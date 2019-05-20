@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
     const float fill_bottom = cyl_bottom + 2.0 * sphere_radius;
     const float fill_height = 2.0 * material_height;  // TODO tune this
 
-    ChSystemGranular_MonodisperseSMC_trimesh m_sys(sphere_radius, params.sphere_density, make_float3(Bx, By, Bz));
+    ChSystemGranularSMC_trimesh m_sys(sphere_radius, params.sphere_density, make_float3(Bx, By, Bz));
 
     m_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
     m_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
@@ -151,7 +151,6 @@ int main(int argc, char* argv[]) {
     m_sys.setOutputDirectory(output_dir);
     filesystem::create_directory(filesystem::path(output_dir));
 
-    m_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
     m_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
     m_sys.set_fixed_stepSize(params.step_size);
     m_sys.set_BD_Fixed(true);

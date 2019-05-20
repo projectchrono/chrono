@@ -42,40 +42,39 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup simulation
-    ChSystemGranular_MonodisperseSMC m_sys(params.sphere_radius, params.sphere_density,
-                                           make_float3(params.box_X, params.box_Y, params.box_Z));
-    m_sys.setPsiFactors(params.psi_T, params.psi_h, params.psi_L);
-    m_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
-    m_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
-    m_sys.set_Gamma_n_SPH2SPH(params.normalDampS2S);
-    m_sys.set_Gamma_n_SPH2WALL(params.normalDampS2W);
-    m_sys.set_K_t_SPH2SPH(params.tangentStiffS2S);
-    m_sys.set_K_t_SPH2WALL(params.tangentStiffS2W);
-    m_sys.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
-    m_sys.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
-    m_sys.set_Cohesion_ratio(params.cohesion_ratio);
-    m_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
-    m_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
-    m_sys.setOutputDirectory(params.output_dir);
-    m_sys.setOutputMode(params.write_mode);
+    ChSystemGranularSMC gran_sys(params.sphere_radius, params.sphere_density,
+                                 make_float3(params.box_X, params.box_Y, params.box_Z));
+    gran_sys.setPsiFactors(params.psi_T, params.psi_L);
+    gran_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
+    gran_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
+    gran_sys.set_Gamma_n_SPH2SPH(params.normalDampS2S);
+    gran_sys.set_Gamma_n_SPH2WALL(params.normalDampS2W);
+    gran_sys.set_K_t_SPH2SPH(params.tangentStiffS2S);
+    gran_sys.set_K_t_SPH2WALL(params.tangentStiffS2W);
+    gran_sys.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
+    gran_sys.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
+    gran_sys.set_Cohesion_ratio(params.cohesion_ratio);
+    gran_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
+    gran_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
+    gran_sys.setOutputDirectory(params.output_dir);
+    gran_sys.setOutputMode(params.write_mode);
 
-    m_sys.set_friction_mode(chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP);
+    gran_sys.set_friction_mode(chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP);
 
     std::vector<ChVector<float>> points;
     points.push_back(ChVector<float>(0, 0, -params.box_Z / 2 + params.sphere_radius));
     points.push_back(ChVector<float>(params.sphere_radius * 1.99, 0, -params.box_Z / 2 + 4 * params.sphere_radius));
-    m_sys.setParticlePositions(points);
+    gran_sys.setParticlePositions(points);
 
-    m_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
-    m_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
-    m_sys.set_fixed_stepSize(params.step_size);
+    gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
+    gran_sys.set_fixed_stepSize(params.step_size);
     filesystem::create_directory(filesystem::path(params.output_dir));
-    m_sys.set_BD_Fixed(true);
+    gran_sys.set_BD_Fixed(true);
 
-    m_sys.setVerbose(params.verbose);
+    gran_sys.setVerbose(params.verbose);
 
     // Finalize settings and initialize for runtime
-    m_sys.initialize();
+    gran_sys.initialize();
 
     int fps = 100;
 
@@ -87,12 +86,12 @@ int main(int argc, char* argv[]) {
 
     // Run settling experiments
     while (curr_time < params.time_end) {
-        m_sys.advance_simulation(frame_step);
+        gran_sys.advance_simulation(frame_step);
         curr_time += frame_step;
         printf("rendering frame %u\n", currframe);
         char filename[100];
         sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
-        m_sys.writeFile(std::string(filename));
+        gran_sys.writeFile(std::string(filename));
     }
     return 0;
 }

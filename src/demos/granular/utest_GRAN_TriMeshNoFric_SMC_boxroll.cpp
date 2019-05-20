@@ -19,7 +19,6 @@
 // The global reference frame located in the left lower corner, close to the viewer.
 // =============================================================================
 
-
 #include <iostream>
 #include <string>
 #include "chrono_thirdparty/filesystem/path.h"
@@ -78,8 +77,8 @@ int main(int argc, char* argv[]) {
 
     float iteration_step = 1 / fps;
     // Setup simulation
-    ChSystemGranular_MonodisperseSMC_trimesh m_sys(params.sphere_radius, params.sphere_density,
-                                                   make_float3(params.box_X, params.box_Y, params.box_Z));
+    ChSystemGranularSMC_trimesh m_sys(params.sphere_radius, params.sphere_density,
+                                      make_float3(params.box_X, params.box_Y, params.box_Z));
 
     m_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
     m_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
@@ -96,7 +95,6 @@ int main(int argc, char* argv[]) {
     m_sys.setOutputDirectory(params.output_dir);
     filesystem::create_directory(filesystem::path(output_dir));
 
-    m_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
     m_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CHUNG);
     m_sys.set_fixed_stepSize(params.step_size);
 

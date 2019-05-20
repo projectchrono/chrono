@@ -299,7 +299,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup granular simulation
-    ChSystemGranular_MonodisperseSMC_trimesh m_sys_gran(params.sphere_radius, params.sphere_density,
+    ChSystemGranularSMC_trimesh m_sys_gran(params.sphere_radius, params.sphere_density,
                                                         make_float3(params.box_X, params.box_Y, params.box_Z));
 
     // Fill box with bodies
@@ -331,11 +331,11 @@ int main(int argc, char* argv[]) {
     m_sys_gran.set_K_n_SPH2MESH(params.normalStiffS2M);
     m_sys_gran.set_Gamma_n_SPH2SPH(params.normalDampS2S);
     m_sys_gran.set_Gamma_n_SPH2WALL(params.normalDampS2S);
-    m_sys_gran.setPsiFactors(params.psi_T, params.psi_h, params.psi_L);
+gran_sys.setPsiFactors(params.psi_T, params.psi_L);
     m_sys_gran.set_Gamma_n_SPH2MESH(params.normalDampS2M);
     m_sys_gran.set_Cohesion_ratio(params.cohesion_ratio);
     m_sys_gran.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
-    m_sys_gran.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
+
     m_sys_gran.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CHUNG);
     m_sys_gran.set_fixed_stepSize(params.step_size);
 

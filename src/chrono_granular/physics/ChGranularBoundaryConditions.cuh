@@ -25,7 +25,6 @@ using chrono::granular::GRAN_ROLLING_MODE;
 
 using chrono::granular::BC_type;
 using chrono::granular::BC_params_t;
-// using chrono::granular::AABox_BC_params_t;  // TODO implement
 using chrono::granular::Sphere_BC_params_t;
 using chrono::granular::Z_Cone_BC_params_t;
 using chrono::granular::Z_Cylinder_BC_params_t;

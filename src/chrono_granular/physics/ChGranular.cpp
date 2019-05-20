@@ -29,17 +29,16 @@ size_t gran_approx_bytes_used = 0;
 namespace chrono {
 namespace granular {
 
-ChSystemGranular_MonodisperseSMC::ChSystemGranular_MonodisperseSMC(float radiusSPH, float density, float3 boxDims)
-    : sphere_radius_UU(radiusSPH),
+ChSystemGranularSMC::ChSystemGranularSMC(float sphere_rad, float density, float3 boxDims)
+    : sphere_radius_UU(sphere_rad),
       sphere_density_UU(density),
       box_size_X(boxDims.x),
       box_size_Y(boxDims.y),
       box_size_Z(boxDims.z),
-      time_stepping(GRAN_TIME_STEPPING::ADAPTIVE),
+      stepSize_UU(1e-4),
       nSpheres(0),
       elapsedSimTime(0),
       verbose_runtime(false),
-      // load_checkpoint(false),
       file_write_mode(CSV),
       X_accGrav(0),
       Y_accGrav(0),
@@ -59,7 +58,6 @@ ChSystemGranular_MonodisperseSMC::ChSystemGranular_MonodisperseSMC(float radiusS
     gpuErrchk(cudaMallocManaged(&gran_params, sizeof(ChGranParams), cudaMemAttachGlobal));
     gpuErrchk(cudaMallocManaged(&sphere_data, sizeof(ChGranSphereData), cudaMemAttachGlobal));
     psi_T = PSI_T_DEFAULT;
-    psi_h = PSI_h_DEFAULT;
     psi_L = PSI_L_DEFAULT;
     gran_params->friction_mode = FRICTIONLESS;
     gran_params->rolling_mode = NO_RESISTANCE;
@@ -74,7 +72,7 @@ ChSystemGranular_MonodisperseSMC::ChSystemGranular_MonodisperseSMC(float radiusS
     setBDWallsMotionFunction(GranPosFunction_default);
 }
 
-void ChSystemGranular_MonodisperseSMC::createWallBCs() {
+void ChSystemGranularSMC::createWallBCs() {
     float plane_center_bot_X[3] = {-box_size_X / 2, 0, 0};
     float plane_center_top_X[3] = {box_size_X / 2, 0, 0};
     float plane_center_bot_Y[3] = {0, -box_size_Y / 2, 0};
@@ -106,15 +104,15 @@ void ChSystemGranular_MonodisperseSMC::createWallBCs() {
     assert(plane_BC_Z_top == BD_WALL_ID_Z_TOP);
 }
 
-ChSystemGranular_MonodisperseSMC::~ChSystemGranular_MonodisperseSMC() {
+ChSystemGranularSMC::~ChSystemGranularSMC() {
     gpuErrchk(cudaFree(gran_params));
 }
 
-size_t ChSystemGranular_MonodisperseSMC::estimateMemUsage() const {
+size_t ChSystemGranularSMC::estimateMemUsage() const {
     return gran_approx_bytes_used;
 }
 
-void ChSystemGranular_MonodisperseSMC::packSphereDataPointers() {
+void ChSystemGranularSMC::packSphereDataPointers() {
     // Set data from system
     sphere_data->sphere_local_pos_X = sphere_local_pos_X.data();
     sphere_data->sphere_local_pos_Y = sphere_local_pos_Y.data();
@@ -169,58 +167,7 @@ void ChSystemGranular_MonodisperseSMC::packSphereDataPointers() {
     gpuErrchk(cudaMemPrefetchAsync(sphere_data, sizeof(*sphere_data), dev_ID));
 }
 
-// // Checkpoint the entire system's data
-// void ChSystemGranular_MonodisperseSMC::writeCheckpoint(std::string ofile) const {
-//     // CSV is much slower but requires less postprocessing
-//     std::ofstream ptFile(ofile + ".dat", std::ios::out);
-//
-//     // Dump to a stream, write to file only at end
-//     std::ostringstream outstrstream;
-//     // no header
-//     outstrstream << "x,y,z";
-//
-//     outstrstream << "\n";
-//     for (unsigned int n = 0; n < nSpheres; n++) {
-//         float x_UU = sphere_local_pos_X[n] * gran_params->LENGTH_UNIT;
-//         float y_UU = sphere_local_pos_Y[n] * gran_params->LENGTH_UNIT;
-//         float z_UU = sphere_local_pos_Z[n] * gran_params->LENGTH_UNIT;
-//
-//         outstrstream << x_UU << "," << y_UU << "," << z_UU << "\n";
-//     }
-//
-//     ptFile << outstrstream.str();
-//
-// }  // namespace granular
-//
-// void tokenizeCSVLine(std::ifstream& istream, std::vector<float> data) {
-//     std::string line;
-//     std::getline(istream, line);  // load in current line
-//     std::stringstream lineStream(line);
-//     std::string cell;
-//
-//     // iterate over cells
-//     while (std::getline(lineStream, cell, ',')) {
-//         data.push_back(std::stof(cell));
-//     }
-// }
-//
-// // Load froma checkpoint file
-// void ChSystemGranular_MonodisperseSMC::loadCheckpoint(std::string infile) {
-//     // CSV is much slower but requires less postprocessing
-//     std::ifstream ptFile(infile + ".dat");
-//
-//     std::string line;
-//     unsigned int curr_sphere_id = 0;
-//     while (ptFile.good()) {
-//         std::vector<float> line_data;
-//         tokenizeCSVLine(ptFile, line_data);
-//         sphere_local_pos_X[curr_sphere_id] = line_data.at(0);
-//         sphere_local_pos_Y[curr_sphere_id] = line_data.at(1);
-//         sphere_local_pos_Z[curr_sphere_id] = line_data.at(2);
-//     }
-// }  // namespace granular
-
-void ChSystemGranular_MonodisperseSMC::writeFile(std::string ofile) const {
+void ChSystemGranularSMC::writeFile(std::string ofile) const {
     // The file writes are a pretty big slowdown in CSV mode
     if (file_write_mode == GRAN_OUTPUT_MODE::BINARY) {
         // Write the data as binary to a file, requires later postprocessing that can be done in parallel, this is a
@@ -306,7 +253,7 @@ void ChSystemGranular_MonodisperseSMC::writeFile(std::string ofile) const {
 }
 
 // Reset broadphase data structures
-void ChSystemGranular_MonodisperseSMC::resetBCForces() {
+void ChSystemGranularSMC::resetBCForces() {
     // zero out reaction forces on each BC
     for (unsigned int i = 0; i < BC_params_list_SU.size(); i++) {
         if (BC_params_list_SU.at(i).track_forces) {
@@ -315,8 +262,8 @@ void ChSystemGranular_MonodisperseSMC::resetBCForces() {
     }
 }
 
-/// Copy constant sphere data to device, this should run at start
-void ChSystemGranular_MonodisperseSMC::copyConstSphereDataToDevice() {
+// Copy constant sphere data to device, this should run at start
+void ChSystemGranularSMC::copyConstSphereDataToDevice() {
     gran_params->max_x_pos_unsigned = ((int64_t)gran_params->SD_size_X_SU * gran_params->nSDs_X);
     gran_params->max_y_pos_unsigned = ((int64_t)gran_params->SD_size_Y_SU * gran_params->nSDs_Y);
     gran_params->max_z_pos_unsigned = ((int64_t)gran_params->SD_size_Z_SU * gran_params->nSDs_Z);
@@ -346,10 +293,7 @@ void ChSystemGranular_MonodisperseSMC::copyConstSphereDataToDevice() {
     gran_params->sphereInertia_by_r = (2.f / 5.f) * gran_params->sphere_mass_SU * gran_params->sphereRadius_SU;
 }
 
-size_t ChSystemGranular_MonodisperseSMC::Create_BC_Sphere(float center[3],
-                                                          float radius,
-                                                          bool outward_normal,
-                                                          bool track_forces) {
+size_t ChSystemGranularSMC::Create_BC_Sphere(float center[3], float radius, bool outward_normal, bool track_forces) {
     BC_params_t<float, float3> p;
     // set center, radius, norm
     p.sphere_params.sphere_center.x = center[0];
@@ -374,12 +318,12 @@ size_t ChSystemGranular_MonodisperseSMC::Create_BC_Sphere(float center[3],
     return BC_type_list.size() - 1;
 }
 
-size_t ChSystemGranular_MonodisperseSMC::Create_BC_Cone_Z(float cone_tip[3],
-                                                          float slope,
-                                                          float hmax,
-                                                          float hmin,
-                                                          bool outward_normal,
-                                                          bool track_forces) {
+size_t ChSystemGranularSMC::Create_BC_Cone_Z(float cone_tip[3],
+                                             float slope,
+                                             float hmax,
+                                             float hmin,
+                                             bool outward_normal,
+                                             bool track_forces) {
     BC_params_t<float, float3> p;
     // set center, radius, norm
     p.cone_params.cone_tip.x = cone_tip[0];
@@ -407,7 +351,7 @@ size_t ChSystemGranular_MonodisperseSMC::Create_BC_Cone_Z(float cone_tip[3],
     return BC_type_list.size() - 1;
 }
 
-size_t ChSystemGranular_MonodisperseSMC::Create_BC_Plane(float plane_pos[3], float plane_normal[3], bool track_forces) {
+size_t ChSystemGranularSMC::Create_BC_Plane(float plane_pos[3], float plane_normal[3], bool track_forces) {
     BC_params_t<float, float3> p;
     p.plane_params.position.x = plane_pos[0];
     p.plane_params.position.y = plane_pos[1];
@@ -429,10 +373,7 @@ size_t ChSystemGranular_MonodisperseSMC::Create_BC_Plane(float plane_pos[3], flo
     return BC_type_list.size() - 1;
 }
 
-size_t ChSystemGranular_MonodisperseSMC::Create_BC_Cyl_Z(float center[3],
-                                                         float radius,
-                                                         bool outward_normal,
-                                                         bool track_forces) {
+size_t ChSystemGranularSMC::Create_BC_Cyl_Z(float center[3], float radius, bool outward_normal, bool track_forces) {
     BC_params_t<float, float3> p;
     p.cyl_params.center.x = center[0];
     p.cyl_params.center.y = center[1];
@@ -459,59 +400,15 @@ size_t ChSystemGranular_MonodisperseSMC::Create_BC_Cyl_Z(float center[3],
     return BC_type_list.size() - 1;
 }
 
-void ChSystemGranular_MonodisperseSMC::determineNewStepSize_SU() {
-    // std::cerr << "determining new step!\n";
-    if (time_stepping == GRAN_TIME_STEPPING::ADAPTIVE) {
-        static float new_step_stop = 0;
-        if (elapsedSimTime >= new_step_stop) {
-            // printf("-------------------------\n");
-            // std::cerr << "elapsed is " << elapsedSimTime << ", stop is " << new_step_stop << std::endl;
-            new_step_stop += new_step_freq;  // assumes we never have a timestep larger than new_step_freq
-            float max_v = get_max_vel();
-            if (max_v <= 0) {
-                // clearly we have an issue, just fallback to the fixed step
-                stepSize_SU = fixed_step_UU / TIME_SU2UU;
-            } else {
-                // maximum number of gravity displacements we allow moving in one timestep
-                constexpr float num_disp_grav = 100;
-                // maximum fraction of radius we allow moving in one timestep
-                constexpr float num_disp_radius = .1;
-                float max_displacement_grav = num_disp_grav;
-                float max_displacement_radius = num_disp_radius * gran_params->sphereRadius_SU;
-
-                // TODO consider gravity drift
-
-                // find the highest position displacement we allow
-                float max_displacement = std::min(max_displacement_grav, max_displacement_radius);
-                float suggested_SU = max_displacement / max_v;
-                float max_step_SU = max_adaptive_step_UU / TIME_SU2UU;
-                float min_step_SU = 1e-5 / TIME_SU2UU;
-                printf("grav step is %f, rad step is %f\n", max_displacement_grav / max_v,
-                       max_displacement_radius / max_v);
-
-                // don't go above max
-                stepSize_SU = std::max(std::min(suggested_SU, max_step_SU), min_step_SU);
-            }
-            printf("new timestep is %f SU, %f UU\n", stepSize_SU, stepSize_SU * TIME_SU2UU);
-        }
-    } else {
-        stepSize_SU = fixed_step_UU / TIME_SU2UU;
-    }
-    // if step size changed, update it on device
-    if (gran_params->stepSize_SU != stepSize_SU) {
-        gran_params->stepSize_SU = stepSize_SU;
-    }
-}
-
-double ChSystemGranular_MonodisperseSMC::get_max_K() const {
+double ChSystemGranularSMC::get_max_K() const {
     return std::max(K_n_s2s_UU, K_n_s2w_UU);
 }
 
 // set the position of a BC and account for the offset
-void ChSystemGranular_MonodisperseSMC::setBCOffset(const BC_type& bc_type,
-                                                   const BC_params_t<float, float3>& params_UU,
-                                                   BC_params_t<int64_t, int64_t3>& params_SU,
-                                                   double3 offset_UU) {
+void ChSystemGranularSMC::setBCOffset(const BC_type& bc_type,
+                                      const BC_params_t<float, float3>& params_UU,
+                                      BC_params_t<int64_t, int64_t3>& params_SU,
+                                      double3 offset_UU) {
     int64_t3 old_pos = {0, 0, 0};
     int64_t3 new_pos = {0, 0, 0};
     switch (bc_type) {
@@ -577,7 +474,7 @@ void ChSystemGranular_MonodisperseSMC::setBCOffset(const BC_type& bc_type,
     }
 }
 
-void ChSystemGranular_MonodisperseSMC::convertBCUnits() {
+void ChSystemGranularSMC::convertBCUnits() {
     for (int i = 0; i < BC_type_list.size(); i++) {
         auto bc_type = BC_type_list.at(i);
         BC_params_t<float, float3> params_UU = BC_params_list_UU.at(i);
@@ -647,7 +544,7 @@ void ChSystemGranular_MonodisperseSMC::convertBCUnits() {
     }
 }
 
-void ChSystemGranular_MonodisperseSMC::initializeSpheres() {
+void ChSystemGranularSMC::initializeSpheres() {
     switchToSimUnits();
 
     // Set aside memory for holding data structures worked with. Get some initializations going
@@ -655,7 +552,6 @@ void ChSystemGranular_MonodisperseSMC::initializeSpheres() {
 
     copyConstSphereDataToDevice();
 
-    determineNewStepSize_SU();
     convertBCUnits();
     setupSphereDataStructures();
 
@@ -679,24 +575,19 @@ void ChSystemGranular_MonodisperseSMC::initializeSpheres() {
 }
 
 // mean to be overriden by children
-void ChSystemGranular_MonodisperseSMC::initialize() {
+void ChSystemGranularSMC::initialize() {
     initializeSpheres();
     size_t approx_mem_usage = estimateMemUsage();
     printf("Approx mem usage is %s\n", pretty_format_bytes(approx_mem_usage).c_str());
 }
 
 // Set particle positions in UU
-void ChSystemGranular_MonodisperseSMC::setParticlePositions(const std::vector<ChVector<float>>& points) {
+void ChSystemGranularSMC::setParticlePositions(const std::vector<ChVector<float>>& points) {
     user_sphere_positions = points;  // Copy points to class vector
 }
 
-/**
-This method figures out how big a SD is, and how many SDs are going to be necessary
-in order to cover the entire BD.
-BD: Big domain.
-SD: Sub-domain.
-*/
-void ChSystemGranular_MonodisperseSMC::partitionBD() {
+// Partitions the big domain (BD) and sets the number of SDs that BD is split in.
+void ChSystemGranularSMC::partitionBD() {
     double sd_length_scale = 2. * sphere_radius_UU * AVERAGE_SPHERES_PER_SD_X_DIR;
 
     unsigned int nSDs_X = (unsigned int)(std::ceil(box_size_X / sd_length_scale));
@@ -745,11 +636,8 @@ void ChSystemGranular_MonodisperseSMC::partitionBD() {
     TRACK_VECTOR_RESIZE(SD_SphereCompositeOffsets, nSDs, "SD_SphereCompositeOffsets", 0);
 }
 
-/**
-This method defines the mass, time, length Simulation Units. It also sets several other constants that enter the
-scaling of various physical quantities set by the user.
-*/
-void ChSystemGranular_MonodisperseSMC::switchToSimUnits() {
+// Convert unit parameters from UU to SU
+void ChSystemGranularSMC::switchToSimUnits() {
     // Compute sphere mass, highest system stiffness, and gravity magnitude
     double massSphere = (4. / 3.) * M_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU * sphere_density_UU;
     double K_star = get_max_K();
@@ -757,13 +645,16 @@ void ChSystemGranular_MonodisperseSMC::switchToSimUnits() {
 
     // These two are independent of hooke/hertz
     this->MASS_SU2UU = massSphere / gran_params->sphere_mass_SU;
-    this->TIME_SU2UU = sqrt(massSphere / (psi_h * K_star)) / psi_T;
+    this->TIME_SU2UU = sqrt(massSphere / K_star) / psi_T;
     // old hooke way
     // LENGTH_SU2UU = massSphere * magGravAcc / (psi_L * K_star);
     // new hertz way
     this->LENGTH_SU2UU =
         std::pow(massSphere * massSphere * magGravAcc * magGravAcc * sphere_radius_UU / (K_star * K_star), 1. / 3.) /
         psi_L;
+
+    stepSize_SU = stepSize_UU / TIME_SU2UU;
+    gran_params->stepSize_SU = stepSize_SU;
 
     // compute temporary composite quantities
     double ACC_SU2UU = LENGTH_SU2UU / (TIME_SU2UU * TIME_SU2UU);

@@ -51,7 +51,6 @@ constexpr float cohes = 0;
 constexpr float timestep = 2e-5;
 
 constexpr unsigned int psi_T = 16;
-constexpr unsigned int psi_h = 4;
 constexpr unsigned int psi_L = 16;
 
 float box_X = 400.f;
@@ -64,7 +63,7 @@ constexpr float frame_step = 1.f / fps;
 
 GRAN_OUTPUT_MODE write_mode = GRAN_OUTPUT_MODE::CSV;
 
-// class ChSystemGranular_MonodisperseSMC_snooper : ChSystemGranular_MonodisperseSMC {public:
+// class ChSystemGranularSMC_snooper : ChSystemGranularSMC {public:
 // std::vector<float>& }
 
 // Bowling ball starts on incline to accelerate
@@ -74,8 +73,8 @@ void ShowUsage() {
     std::cout << "usage: ./utest_GRAN_testsuite <TEST_TYPE>" << std::endl;
 }
 // Set common set of parameters for all demos
-void setCommonParameters(ChSystemGranular_MonodisperseSMC& gran_sys) {
-    gran_sys.setPsiFactors(psi_T, psi_h, psi_L);
+void setCommonParameters(ChSystemGranularSMC& gran_sys) {
+    gran_sys.setPsiFactors(psi_T, psi_L);
     gran_sys.set_K_n_SPH2SPH(normalStiffness_S2S);
     gran_sys.set_K_n_SPH2WALL(normalStiffness_S2W);
     gran_sys.set_Gamma_n_SPH2SPH(normalDampS2S);
@@ -97,7 +96,6 @@ void setCommonParameters(ChSystemGranular_MonodisperseSMC& gran_sys) {
     gran_sys.set_rolling_coeff_SPH2SPH(static_friction_coeff / 2.);
     gran_sys.set_rolling_coeff_SPH2WALL(static_friction_coeff / 2.);
 
-    gran_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
     gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
     gran_sys.set_fixed_stepSize(timestep);
     filesystem::create_directory(filesystem::path(output_dir));
@@ -108,14 +106,14 @@ void setCommonParameters(ChSystemGranular_MonodisperseSMC& gran_sys) {
 float curr_time = 0;
 int currframe = 0;
 
-void writeGranFile(ChSystemGranular_MonodisperseSMC& gran_sys) {
+void writeGranFile(ChSystemGranularSMC& gran_sys) {
     printf("rendering frame %u\n", currframe);
     char filename[100];
     sprintf(filename, "%s/step%06d", output_dir.c_str(), currframe++);
     gran_sys.writeFile(std::string(filename));
 }
 
-void advanceGranSim(ChSystemGranular_MonodisperseSMC& gran_sys) {
+void advanceGranSim(ChSystemGranularSMC& gran_sys) {
     gran_sys.advance_simulation(frame_step);
     curr_time += frame_step;
     writeGranFile(gran_sys);
@@ -136,7 +134,7 @@ int main(int argc, char* argv[]) {
     switch (curr_test) {
             // Roll a ball down a ramp
         case ROTF: {
-            ChSystemGranular_MonodisperseSMC gran_sys(sphere_radius, sphere_density, make_float3(box_X, box_Y, box_Z));
+            ChSystemGranularSMC gran_sys(sphere_radius, sphere_density, make_float3(box_X, box_Y, box_Z));
             setCommonParameters(gran_sys);
 
             float ramp_angle = CH_C_PI / 4;
@@ -199,8 +197,7 @@ int main(int argc, char* argv[]) {
         }
         case ROTF_MESH: {
             // overwrite olds system
-            ChSystemGranular_MonodisperseSMC_trimesh gran_sys(sphere_radius, sphere_density,
-                                                              make_float3(box_X, box_Y, box_Z));
+            ChSystemGranularSMC_trimesh gran_sys(sphere_radius, sphere_density, make_float3(box_X, box_Y, box_Z));
             setCommonParameters(gran_sys);
 
             gran_sys.set_K_n_SPH2MESH(normalStiffness_S2M);
@@ -293,7 +290,7 @@ int main(int argc, char* argv[]) {
             break;
         }
         case PYRAMID: {
-            ChSystemGranular_MonodisperseSMC gran_sys(sphere_radius, sphere_density, make_float3(box_X, box_Y, box_Z));
+            ChSystemGranularSMC gran_sys(sphere_radius, sphere_density, make_float3(box_X, box_Y, box_Z));
             setCommonParameters(gran_sys);
 
             timeEnd = 1;
@@ -338,8 +335,7 @@ int main(int argc, char* argv[]) {
         }
 
         case PYRAMID_MESH: {
-            ChSystemGranular_MonodisperseSMC_trimesh gran_sys(sphere_radius, sphere_density,
-                                                              make_float3(box_X, box_Y, box_Z));
+            ChSystemGranularSMC_trimesh gran_sys(sphere_radius, sphere_density, make_float3(box_X, box_Y, box_Z));
             setCommonParameters(gran_sys);
 
             gran_sys.set_K_n_SPH2MESH(normalStiffness_S2M);

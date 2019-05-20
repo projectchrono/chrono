@@ -20,8 +20,8 @@
 	"cohesion_ratio": 0,
 	"adhesion_ratio_s2w": 0,
 	"verbose": false,
-	"psi_h": 4,
-	"psi_T": 16,
+
+	"psi_T": 32,
 	"psi_L": 16,
 	"output_dir": "dam_break",
 	"write_mode": "binary"

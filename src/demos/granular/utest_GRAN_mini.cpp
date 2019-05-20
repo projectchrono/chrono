@@ -64,8 +64,7 @@ float cohesion_ratio = 0;
 // -----------------------------------------------------------------------------
 double run_test(float box_size_X, float box_size_Y, float box_size_Z) {
     // Setup simulation
-    ChSystemGranular_MonodisperseSMC gran_system(ballRadius, ballDensity,
-                                                 make_float3(box_size_X, box_size_Y, box_size_Z));
+    ChSystemGranularSMC gran_system(ballRadius, ballDensity, make_float3(box_size_X, box_size_Y, box_size_Z));
     gran_system.set_K_n_SPH2SPH(normStiffness_S2S);
     gran_system.set_K_n_SPH2WALL(normStiffness_S2W);
     gran_system.set_Gamma_n_SPH2SPH(normalDampS2S);
@@ -90,7 +89,7 @@ double run_test(float box_size_X, float box_size_Y, float box_size_Z) {
     gran_system.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
     gran_system.set_timeIntegrator(GRAN_TIME_INTEGRATOR::EXTENDED_TAYLOR);
     gran_system.setVerbose(verbose);
-    gran_system.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
+
     gran_system.set_fixed_stepSize(timestep);
     ChTimer<double> timer;
 

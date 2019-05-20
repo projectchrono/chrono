@@ -24,14 +24,12 @@ namespace granular {
 /// @addtogroup granular_physics
 /// @{
 
-/**
- *\brief Template class used as a place holder for arrays associated with a mesh. No memory
- * allocation of freeing done by objects of this class. All its members are public.
- *
- *\attention  The order of the nodes in a triangle defines the positive face of the triangle; right-hand rule used.
- *\attention Some other agent needs to allocate/deallocate memory pointed to by variables in this class
- *
- */
+///
+/// Class used to hold pointers for mesh arrays.
+///
+///\attention The order of the nodes in a triangle defines the positive face of the triangle; right-hand rule used.
+
+// TODO is a template necessary
 template <class T3>
 struct ChTriangleSoup {
     /// Total number of triangles in the soup
@@ -69,7 +67,7 @@ struct ChTriangleSoup {
 // TODO optimize rotations
 /// Position and rotation matrix defining the frame of a triangle mesh
 template <class T>
-struct ChFamilyFrame {
+struct ChGranMeshFamilyFrame {
     T pos[3];
     T rot_mat[9];
 };
@@ -92,35 +90,30 @@ struct ChGranParams_trimesh {
     /// Ratio of normal force to peak tangent force, also arctan(theta) where theta is the friction angle
     float static_friction_coeff_s2m;
 
-    /// Coefficient of rolling resistance
-    /// Units and effect depend on the system rolling resistance model
+    /// Coefficient of rolling resistance. Units and effect depend on the system rolling resistance model
     float rolling_coeff_s2m_SU;
 
     /// Number of triangle families
     unsigned int num_triangle_families;
 
     /// Reference frames of the triangle families in single precision
-    ChFamilyFrame<float>* fam_frame_broad;
+    ChGranMeshFamilyFrame<float>* fam_frame_broad;
 
     /// Reference frames of the triangle families in double precision
-    ChFamilyFrame<double>* fam_frame_narrow;
+    ChGranMeshFamilyFrame<double>* fam_frame_narrow;
 };
 
-/** \brief Class implements functionality required to handle the interaction between a mesh soup and granular material.
- *
- * Mesh soup: a collection of meshes that each has a certain number of triangle elements. For instance, the meshes
- * associated with the four wheels of a rover operating on granular material would be smashed into one soup having four
- * mesh families.
- *
- * Assumptions: Mono-disperse setup, one radius for all spheres. There is no friction. There can be adehsion.
- * The granular material interacts through an implement that is defined via a triangular mesh.
- */
-class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC_trimesh : public ChSystemGranular_MonodisperseSMC {
+/// Class implements functionality required to handle the interaction between a mesh soup and granular material.
+///
+/// Mesh soup: a collection of meshes that each has a certain number of triangle elements. For instance, the meshes
+/// associated with the four wheels of a rover operating on granular material would be smashed into one soup having four
+/// mesh families.
+class CH_GRANULAR_API ChSystemGranularSMC_trimesh : public ChSystemGranularSMC {
   public:
     // we do not want the system to be default-constructible
-    ChSystemGranular_MonodisperseSMC_trimesh() = delete;
-    ChSystemGranular_MonodisperseSMC_trimesh(float radiusSPH, float density, float3 boxDims);
-    virtual ~ChSystemGranular_MonodisperseSMC_trimesh();
+    ChSystemGranularSMC_trimesh() = delete;
+    ChSystemGranularSMC_trimesh(float sphere_rad, float density, float3 boxDims);
+    virtual ~ChSystemGranularSMC_trimesh();
 
     void set_K_n_SPH2MESH(double someValue) { K_n_s2m_UU = someValue; }
     void set_Gamma_n_SPH2MESH(double someValue) { Gamma_n_s2m_UU = someValue; }
@@ -141,13 +134,16 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC_trimesh : public ChSystem
     void meshSoup_applyRigidBodyMotion(double* position_orientation_data, float* vel);
 
     virtual double advance_simulation(float duration) override;
-
+    // override of parent initialize function
     virtual void initialize() override;
+    /// Load triangle meshes into granular system. MUST happen before initialize is called
     void load_meshes(std::vector<std::string> objfilenames,
                      std::vector<float3> scalefactors,
                      std::vector<float> masses,
                      std::vector<bool> inflated,
                      std::vector<float> inflation_radii);
+
+    /// Write visualization files for triangle meshes with current positions
     void write_meshes(std::string outfilename);
 
     /// Set the ratio of adhesion force to sphere weight for sphere to mesh
@@ -166,24 +162,23 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC_trimesh : public ChSystem
   protected:
     /// Create a helper to do triangle initialization
     virtual void initializeTriangles();
+    /// Set of simulation parameters related to triangle data
     ChGranParams_trimesh* tri_params;
 
-    /// Clean copy of mesh soup interacting with granular material in unified memory
-    /// Stored in UU
+    /// Clean copy of mesh soup interacting with granular material in unified memory. Stored in UU
     ChTriangleSoup<float3>* meshSoup;
 
-    /// Sphere-to-mesh normal contact stiffness, in user units (Hertzian sprint)
+    /// Sphere-to-mesh normal contact stiffness, in user units (Hertzian spring)
     double K_n_s2m_UU;
     /// Sphere-to-mesh normal damping coefficient, in user units
     double Gamma_n_s2m_UU;
 
-    /// Sphere-to-mesh tangent contact stiffness, in user units (Hertzian sprint)
+    /// Sphere-to-mesh tangent contact stiffness, in user units (Hertzian spring)
     double K_t_s2m_UU;
     /// Sphere-to-mesh tangent damping coefficient, in user units
     double Gamma_t_s2m_UU;
 
-    /// Rolling friction coefficient for sphere-to-mesh
-    /// Units and effect depend on system rolling resistance model
+    /// Rolling friction coefficient for sphere-to-mesh -- units and effect depend on rolling resistance model
     double rolling_coeff_s2m_UU;
 
     /// Ratio of sphere-to-mesh adhesion to gravity (constant adhesion model)
@@ -192,26 +187,32 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC_trimesh : public ChSystem
     /// Enable or disable collision between spheres and meshes
     bool mesh_collision_enabled = true;
 
-    /// Number of triangles touching each bucket
+    /// Number of triangles touching each subdomain
     std::vector<unsigned int, cudallocator<unsigned int>> triangles_in_SD_composite;
 
     /// Number of triangles touching each subdomain
     std::vector<unsigned int, cudallocator<unsigned int>> SD_numTrianglesTouching;
+
+    /// Big array of triangle offsets for each subdomain
     std::vector<unsigned int, cudallocator<unsigned int>> SD_TriangleCompositeOffsets;
 
+    /// Reset information used for triangle broadphase collision detection
     void resetTriangleBroadphaseInformation();
+    /// Reset computed forces and torques on each triangle family
     void resetTriangleForces();
 
+    /// Setup data structures associated with triangle mesh
     void setupTriMesh(const std::vector<chrono::geometry::ChTriangleMeshConnected>& all_meshes,
                       unsigned int nTriangles,
                       std::vector<float> masses,
                       std::vector<bool> inflated,
                       std::vector<float> inflation_radii);
+
+    /// Clean up data structures associated with triangle mesh
     void cleanupTriMesh();
 
-    /// Run prefix-scan based broadphase
+    /// Broadphase CD for triangles
     void runTriangleBroadphase();
-    void runTriangleBroadphase_rewrite();
 
     virtual double get_max_K() const override;
 

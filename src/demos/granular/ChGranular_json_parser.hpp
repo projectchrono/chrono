@@ -42,10 +42,8 @@ typedef struct sim_param_holder {
     float adhesion_ratio_s2m;
     bool verbose;
     int run_mode;
-    unsigned int psi_h;
     unsigned int psi_T;
     unsigned int psi_L;
-    GRAN_TIME_STEPPING step_mode;
     string output_dir;
     string checkpoint_file;
     GRAN_OUTPUT_MODE write_mode;
@@ -75,7 +73,6 @@ void ShowJSONUsage() {
     cout << "adhesion_ratio_s2w" << endl;
     cout << "adhesion_ratio_s2m" << endl;
     cout << "verbose" << endl;
-    cout << "psi_h" << endl;
     cout << "psi_T" << endl;
     cout << "psi_L" << endl;
     cout << "output_dir" << endl;
@@ -215,10 +212,6 @@ bool ParseJSON(const char* json_file, sim_param_holder& params) {
         params.verbose = doc["verbose"].GetBool();
         cout << "params.verbose " << params.verbose << endl;
     }
-    if (doc.HasMember("psi_h") && doc["psi_h"].IsInt()) {
-        params.psi_h = doc["psi_h"].GetInt();
-        cout << "params.psi_h " << params.psi_h << endl;
-    }
     if (doc.HasMember("psi_T") && doc["psi_T"].IsInt()) {
         params.psi_T = doc["psi_T"].GetInt();
         cout << "params.psi_T " << params.psi_T << endl;
@@ -230,19 +223,6 @@ bool ParseJSON(const char* json_file, sim_param_holder& params) {
     if (doc.HasMember("run_mode") && doc["run_mode"].IsInt()) {
         params.run_mode = doc["run_mode"].GetInt();
         cout << "params.run_mode " << params.run_mode << endl;
-    }
-    GRAN_TIME_STEPPING step_mode;
-    if (doc.HasMember("step_mode") && doc["step_mode"].IsString()) {
-        if (doc["step_mode"].GetString() == string("fixed")) {
-            params.step_mode = GRAN_TIME_STEPPING::FIXED;
-            cout << "params.step_mode " << params.step_mode << endl;
-        } else if (doc["step_mode"].GetString() == string("auto")) {
-            params.step_mode = GRAN_TIME_STEPPING::ADAPTIVE;
-            cout << "params.step_mode " << params.step_mode << endl;
-        } else {
-            InvalidArg("step_mode");
-            return false;
-        }
     }
     if (doc.HasMember("output_dir") && doc["output_dir"].IsString()) {
         params.output_dir = doc["output_dir"].GetString();

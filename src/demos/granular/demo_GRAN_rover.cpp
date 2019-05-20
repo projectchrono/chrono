@@ -230,8 +230,8 @@ int main(int argc, char* argv[]) {
     double iteration_step = params.step_size;
 
     // Setup granular simulation
-    ChSystemGranular_MonodisperseSMC_trimesh gran_sys(params.sphere_radius, params.sphere_density,
-                                                      make_float3(params.box_X, params.box_Y, params.box_Z));
+    ChSystemGranularSMC_trimesh gran_sys(params.sphere_radius, params.sphere_density,
+                                         make_float3(params.box_X, params.box_Y, params.box_Z));
 
     double fill_bottom = 0;
     double fill_top = params.box_Z / 2.0;
@@ -285,7 +285,7 @@ int main(int argc, char* argv[]) {
     gran_sys.set_Adhesion_ratio_S2M(params.adhesion_ratio_s2m);
     gran_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
     gran_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
-    gran_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
+
     gran_sys.set_fixed_stepSize(params.step_size);
     gran_sys.set_friction_mode(GRAN_FRICTION_MODE::MULTI_STEP);
     gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CENTERED_DIFFERENCE);

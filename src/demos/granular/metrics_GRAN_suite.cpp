@@ -57,8 +57,7 @@ float tangentDampS2W = 0;
 
 float timestep = 1e-4;
 
-unsigned int psi_T = 16;
-unsigned int psi_h = 4;
+unsigned int psi_T = 32;
 unsigned int psi_L = 16;
 
 GRAN_OUTPUT_MODE write_mode = GRAN_OUTPUT_MODE::BINARY;
@@ -70,14 +69,14 @@ int fps = 50;
 // assume we run for at least one frame
 float frame_step = 1.0f / fps;
 
-void setupBasicSystem(ChSystemGranular_MonodisperseSMC& gran_sys, float3 box_size) {
+void setupBasicSystem(ChSystemGranularSMC& gran_sys, float3 box_size) {
     gran_sys.set_K_n_SPH2SPH(normalStiffness_S2S);
     gran_sys.set_K_n_SPH2WALL(normalStiffness_S2W);
 
     gran_sys.set_Gamma_n_SPH2SPH(normalDampS2S);
     gran_sys.set_Gamma_n_SPH2WALL(normalDampS2W);
 
-    gran_sys.setPsiFactors(psi_T, psi_h, psi_L);
+    gran_sys.setPsiFactors(psi_T, psi_L);
 
     gran_sys.set_Cohesion_ratio(0);
     gran_sys.set_Adhesion_ratio_S2W(0);
@@ -94,11 +93,11 @@ void setupBasicSystem(ChSystemGranular_MonodisperseSMC& gran_sys, float3 box_siz
 
     gran_sys.set_BD_Fixed(true);
     gran_sys.setVerbose(false);
-    gran_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
+
     gran_sys.set_fixed_stepSize(timestep);
 }
 
-double runGranularSystem(ChSystemGranular_MonodisperseSMC& gran_sys, std::string fprefix) {
+double runGranularSystem(ChSystemGranularSMC& gran_sys, std::string fprefix) {
     float curr_time = 0;
     int currframe = 0;
     ChTimer<double> timer;
@@ -125,7 +124,7 @@ double runWarmupTest() {
               << "Running warmup!\n";
     // run a small system to get the GPU warmed up
     constexpr float3 warmup_box_size = {100, 100, 100};
-    ChSystemGranular_MonodisperseSMC gran_sys(ballRadius, ballDensity, warmup_box_size);
+    ChSystemGranularSMC gran_sys(ballRadius, ballDensity, warmup_box_size);
 
     setupBasicSystem(gran_sys, warmup_box_size);
     gran_sys.set_friction_mode(FRICTIONLESS);
@@ -139,8 +138,8 @@ double runWarmupTest() {
 double runFrictionlessTest() {
     std::cout << delim << "\n"
               << "Running frictionless euler test!\n";
-    ChSystemGranular_MonodisperseSMC gran_sys(ballRadius, ballDensity,
-                                              make_float3(full_box_size.x, full_box_size.y, full_box_size.z));
+    ChSystemGranularSMC gran_sys(ballRadius, ballDensity,
+                                 make_float3(full_box_size.x, full_box_size.y, full_box_size.z));
 
     setupBasicSystem(gran_sys, full_box_size);
     gran_sys.set_friction_mode(FRICTIONLESS);
@@ -152,8 +151,8 @@ double runFrictionlessTest() {
 
 // run the basic frictionless system
 double runFrictionlessChung() {
-    ChSystemGranular_MonodisperseSMC gran_sys(ballRadius, ballDensity,
-                                              make_float3(full_box_size.x, full_box_size.y, full_box_size.z));
+    ChSystemGranularSMC gran_sys(ballRadius, ballDensity,
+                                 make_float3(full_box_size.x, full_box_size.y, full_box_size.z));
     std::cout << delim << "\n"
               << "Running chung test!\n";
     setupBasicSystem(gran_sys, full_box_size);
@@ -165,8 +164,8 @@ double runFrictionlessChung() {
 }
 // run the basic frictionless system
 double runFrictionlessCenteredDiff() {
-    ChSystemGranular_MonodisperseSMC gran_sys(ballRadius, ballDensity,
-                                              make_float3(full_box_size.x, full_box_size.y, full_box_size.z));
+    ChSystemGranularSMC gran_sys(ballRadius, ballDensity,
+                                 make_float3(full_box_size.x, full_box_size.y, full_box_size.z));
     std::cout << delim << "\n"
               << "Running Centered Diff test!\n";
     setupBasicSystem(gran_sys, full_box_size);
@@ -179,8 +178,8 @@ double runFrictionlessCenteredDiff() {
 
 // run the basic frictionless system
 double runMultistepTest() {
-    ChSystemGranular_MonodisperseSMC gran_sys(ballRadius, ballDensity,
-                                              make_float3(full_box_size.x, full_box_size.y, full_box_size.z));
+    ChSystemGranularSMC gran_sys(ballRadius, ballDensity,
+                                 make_float3(full_box_size.x, full_box_size.y, full_box_size.z));
     std::cout << delim << "\n"
               << "Running multistep friction test!\n";
     setupBasicSystem(gran_sys, full_box_size);
@@ -198,8 +197,8 @@ double runMultistepTest() {
 
 // run the basic frictionless system
 double runSingleStepTest() {
-    ChSystemGranular_MonodisperseSMC gran_sys(ballRadius, ballDensity,
-                                              make_float3(full_box_size.x, full_box_size.y, full_box_size.z));
+    ChSystemGranularSMC gran_sys(ballRadius, ballDensity,
+                                 make_float3(full_box_size.x, full_box_size.y, full_box_size.z));
     std::cout << delim << "\n"
               << "Running single step friction test!\n";
     setupBasicSystem(gran_sys, full_box_size);

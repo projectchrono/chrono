@@ -70,8 +70,8 @@ int main(int argc, char* argv[]) {
     cout << "params.box_Z: " << params.box_Z << endl;
 
     // Setup simulation parameters
-    ChSystemGranular_MonodisperseSMC m_sys(params.sphere_radius, params.sphere_density,
-                                           make_float3(params.box_X, params.box_Y, params.box_Z));
+    ChSystemGranularSMC m_sys(params.sphere_radius, params.sphere_density,
+                              make_float3(params.box_X, params.box_Y, params.box_Z));
     m_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
     m_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
     m_sys.set_Gamma_n_SPH2SPH(params.normalDampS2S);
@@ -118,7 +118,6 @@ int main(int argc, char* argv[]) {
 
     m_sys.setParticlePositions(body_points);
 
-    m_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
     m_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
     m_sys.set_fixed_stepSize(params.step_size);
 

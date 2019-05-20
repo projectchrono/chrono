@@ -93,7 +93,7 @@ std::vector<std::string> bc_names;
 constexpr float F_CGS_TO_SI = 1e-5;
 constexpr float M_CGS_TO_SI = 1e-3;
 
-void writeForcesFile(ChSystemGranular_MonodisperseSMC& settlingExperiment) {
+void writeForcesFile(ChSystemGranularSMC& gran_sys) {
     char forcefile[100];
     sprintf(forcefile, "%s/force%06d.csv", (params.output_dir + "/forces").c_str(), currcapture++);
     printf("force file is %s\n", forcefile);
@@ -105,7 +105,7 @@ void writeForcesFile(ChSystemGranular_MonodisperseSMC& settlingExperiment) {
 
     float reaction_forces[3] = {0, 0, 0};
     for (unsigned int i = 0; i < bc_ids.size(); i++) {
-        bool success = settlingExperiment.getBCReactionForces(bc_ids[i], reaction_forces);
+        bool success = gran_sys.getBCReactionForces(bc_ids[i], reaction_forces);
         if (!success) {
             printf("ERROR! Get contact forces for plane %u failed\n", i);
         } else {
@@ -140,27 +140,27 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup simulation
-    ChSystemGranular_MonodisperseSMC settlingExperiment(params.sphere_radius, params.sphere_density,
-                                                        make_float3(params.box_X, params.box_Y, params.box_Z));
-    settlingExperiment.setPsiFactors(params.psi_T, params.psi_h, params.psi_L);
+    ChSystemGranularSMC gran_sys(params.sphere_radius, params.sphere_density,
+                                 make_float3(params.box_X, params.box_Y, params.box_Z));
+    gran_sys.setPsiFactors(params.psi_T, params.psi_L);
 
-    settlingExperiment.set_K_n_SPH2SPH(params.normalStiffS2S);
-    settlingExperiment.set_K_n_SPH2WALL(params.normalStiffS2W);
-    settlingExperiment.set_Gamma_n_SPH2SPH(params.normalDampS2S);
-    settlingExperiment.set_Gamma_n_SPH2WALL(params.normalDampS2W);
+    gran_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
+    gran_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
+    gran_sys.set_Gamma_n_SPH2SPH(params.normalDampS2S);
+    gran_sys.set_Gamma_n_SPH2WALL(params.normalDampS2W);
 
-    settlingExperiment.set_K_t_SPH2SPH(params.tangentStiffS2S);
-    settlingExperiment.set_K_t_SPH2WALL(params.tangentStiffS2W);
-    settlingExperiment.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
-    settlingExperiment.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
-    settlingExperiment.set_static_friction_coeff_SPH2SPH(params.static_friction_coeff);
-    settlingExperiment.set_static_friction_coeff_SPH2WALL(params.static_friction_coeff);
+    gran_sys.set_K_t_SPH2SPH(params.tangentStiffS2S);
+    gran_sys.set_K_t_SPH2WALL(params.tangentStiffS2W);
+    gran_sys.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
+    gran_sys.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
+    gran_sys.set_static_friction_coeff_SPH2SPH(params.static_friction_coeff);
+    gran_sys.set_static_friction_coeff_SPH2WALL(params.static_friction_coeff);
 
-    settlingExperiment.set_Cohesion_ratio(params.cohesion_ratio);
-    settlingExperiment.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
-    settlingExperiment.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
-    settlingExperiment.setOutputDirectory(params.output_dir);
-    settlingExperiment.setOutputMode(params.write_mode);
+    gran_sys.set_Cohesion_ratio(params.cohesion_ratio);
+    gran_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
+    gran_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
+    gran_sys.setOutputDirectory(params.output_dir);
+    gran_sys.setOutputMode(params.write_mode);
 
     std::vector<ChVector<float>> body_points;
     // body_points.push_back(ChVector<float>(0., 0., 0. - (params.box_Z / 2.f - 1.01 * params.sphere_radius)));
@@ -184,7 +184,7 @@ int main(int argc, char* argv[]) {
         // utils::HCPSampler<float> sampler(2.2 * params.sphere_radius);
         // body_points = sampler.SampleBox(center, hdims);
     }
-    settlingExperiment.setParticlePositions(body_points);
+    gran_sys.setParticlePositions(body_points);
 
     // face in upwards
     float bottom_plane_normal_X[3] = {1, 0, 0};
@@ -207,12 +207,12 @@ int main(int argc, char* argv[]) {
     float box_bottom_Z[3] = {0, 0, -box_dist_Z};
     float box_top_Z[3] = {0, 0, box_dist_Z};
 
-    size_t bottom_plane_bc_id_X = settlingExperiment.Create_BC_Plane(box_bottom_X, bottom_plane_normal_X, true);
-    size_t top_plane_bc_id_X = settlingExperiment.Create_BC_Plane(box_top_X, top_plane_normal_X, true);
-    size_t bottom_plane_bc_id_Y = settlingExperiment.Create_BC_Plane(box_bottom_Y, bottom_plane_normal_Y, true);
-    size_t top_plane_bc_id_Y = settlingExperiment.Create_BC_Plane(box_top_Y, top_plane_normal_Y, true);
-    size_t bottom_plane_bc_id_Z = settlingExperiment.Create_BC_Plane(box_bottom_Z, bottom_plane_normal_Z, true);
-    size_t top_plane_bc_id_Z = settlingExperiment.Create_BC_Plane(box_top_Z, top_plane_normal_Z, true);
+    size_t bottom_plane_bc_id_X = gran_sys.Create_BC_Plane(box_bottom_X, bottom_plane_normal_X, true);
+    size_t top_plane_bc_id_X = gran_sys.Create_BC_Plane(box_top_X, top_plane_normal_X, true);
+    size_t bottom_plane_bc_id_Y = gran_sys.Create_BC_Plane(box_bottom_Y, bottom_plane_normal_Y, true);
+    size_t top_plane_bc_id_Y = gran_sys.Create_BC_Plane(box_top_Y, top_plane_normal_Y, true);
+    size_t bottom_plane_bc_id_Z = gran_sys.Create_BC_Plane(box_bottom_Z, bottom_plane_normal_Z, true);
+    size_t top_plane_bc_id_Z = gran_sys.Create_BC_Plane(box_top_Z, top_plane_normal_Z, true);
 
     bc_ids.push_back(bottom_plane_bc_id_X);
     bc_ids.push_back(top_plane_bc_id_X);
@@ -228,47 +228,46 @@ int main(int argc, char* argv[]) {
     bc_names.push_back("bottom_plane_bc_Z");
     bc_names.push_back("top_plane_bc_Z");
 
-    settlingExperiment.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
-    settlingExperiment.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
+    gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
 
     switch (params.run_mode) {
         case run_mode::MULTI_STEP:
-            settlingExperiment.set_friction_mode(GRAN_FRICTION_MODE::MULTI_STEP);
-            settlingExperiment.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
+            gran_sys.set_friction_mode(GRAN_FRICTION_MODE::MULTI_STEP);
+            gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
             break;
         case run_mode::ONE_STEP:
-            settlingExperiment.set_friction_mode(GRAN_FRICTION_MODE::SINGLE_STEP);
-            settlingExperiment.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
+            gran_sys.set_friction_mode(GRAN_FRICTION_MODE::SINGLE_STEP);
+            gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
             break;
         case run_mode::FRICLESS_CHUNG:
-            settlingExperiment.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
-            settlingExperiment.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CHUNG);
+            gran_sys.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
+            gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CHUNG);
             break;
 
         case run_mode::FRICLESS_CD:
-            settlingExperiment.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
-            settlingExperiment.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
+            gran_sys.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
+            gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
             break;
 
         case run_mode::FRICTIONLESS:
-            settlingExperiment.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
-            settlingExperiment.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
+            gran_sys.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
+            gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
             break;
 
         default:
             // fall through to frictionless as default
-            settlingExperiment.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
+            gran_sys.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
     }
 
-    settlingExperiment.set_fixed_stepSize(params.step_size);
+    gran_sys.set_fixed_stepSize(params.step_size);
 
     filesystem::create_directory(filesystem::path(params.output_dir));
     filesystem::create_directory(filesystem::path(params.output_dir + "/forces"));
 
-    settlingExperiment.set_BD_Fixed(true);
+    gran_sys.set_BD_Fixed(true);
 
-    settlingExperiment.setVerbose(params.verbose);
-    settlingExperiment.initialize();
+    gran_sys.setVerbose(params.verbose);
+    gran_sys.initialize();
 
     // number of times to capture force data per second
     int captures_per_second = 50;
@@ -289,7 +288,7 @@ int main(int argc, char* argv[]) {
     char filename[100];
     printf("rendering frame %u\n", currframe);
     sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe);
-    settlingExperiment.writeFile(std::string(filename));
+    gran_sys.writeFile(std::string(filename));
 
     // write mesh transforms for ospray renderer
     {
@@ -306,15 +305,15 @@ int main(int argc, char* argv[]) {
     // Run settling experiments
     while (curr_time < params.time_end) {
         printf("curr time is %f\n", curr_time);
-        writeForcesFile(settlingExperiment);
-        settlingExperiment.advance_simulation(frame_step);
+        writeForcesFile(gran_sys);
+        gran_sys.advance_simulation(frame_step);
         curr_time += frame_step;
 
         // if this frame is a render frame
         if (currcapture % captures_per_frame == 0) {
             printf("rendering frame %u\n", currframe);
             sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
-            settlingExperiment.writeFile(std::string(filename));
+            gran_sys.writeFile(std::string(filename));
         }
     }
 

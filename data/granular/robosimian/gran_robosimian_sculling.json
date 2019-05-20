@@ -17,8 +17,8 @@
 	"normalDampS2M": 1e3,
 	"cohesion_ratio": 40,
 	"verbose": false,
-	"psi_h": 4,
-	"psi_T": 16,
+
+	"psi_T": 32,
 	"psi_L": 16,
 	"run_mode" : 3,
 	"output_dir": "robo_sled",

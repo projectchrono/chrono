@@ -54,8 +54,8 @@
     @brief GPU solver for granular dynamics
 
     This module provides support for modeling systems of granular material on the GPU through CUDA.
-    Currently systems of monodisperse spheres can interact with full-history frictional contact with both
-    analytica boundary conditions and triangle meshes.
+    Currently, systems of monodisperse spheres can interact via full-history frictional contact with both
+    analytical boundary conditions and triangle meshes.
 
     For additional information, see:
     -- the [installation guide](@ref module_granular_installation)
@@ -63,7 +63,8 @@
 
 
     @{
-        @defgroup granular_physics Physics objects
+        @defgroup granular_physics Granular Physics objects
+        @defgroup granular_solver Granular solver infrastructure
     @}
 */
 

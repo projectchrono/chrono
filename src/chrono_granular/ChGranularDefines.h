@@ -44,20 +44,11 @@ constexpr size_t NUM_RESERVED_BC_IDS = 6;
 #define MAX_COUNT_OF_SPHERES_PER_SD 256
 /// Value that indicates non-valid ID. The assumption is that an ID is always a positive integer
 #define NULL_GRANULAR_ID UINT_MAX
-/// Value that controls the length unit. It is this many simulation length units that a sphere deforms under its own
-/// weight.
+/// Value that controls the length unit. A sphere deforms this many simulation length units under its own weight.
 #define PSI_L_DEFAULT 16
-/// Value that controls the time unit. It is this many simulation time units that it will take to clear a deformation of
-/// a sphere
-#define PSI_h_DEFAULT 4
-/// Value that controls the time unit. It is like a safety factor.
-#define PSI_T_DEFAULT 16
-/// Max number of SDs that a mesh triangle can touch. Note that it can touch an equal number of buckets
-#define MAX_SDS_TOUCHED_BY_TRIANGLE 64
-/// MAX_TRIANGLE_COUNT_PER_SD indicates how much memory we set aside to store mesh triangles that belong to a
-/// bucket. This number is not the amount of memory, rather the max number of triangles we anticipate to see in a
-/// bucket. Note that if TRIANGLE_BUCKET_COUNT is small, a lot of SDs will send their triangles to the same bucket,
-/// which means that MAX_TRIANGLE_COUNT_PER_SD should be cranked up.
+/// Value that controls the time unit -- safety factor on the deformation-based time unit
+#define PSI_T_DEFAULT 32
+/// Maximum number of triangles that an SD can touch
 #define MAX_TRIANGLE_COUNT_PER_SD 512u
 /// Number of threads in a block when that number is allowed to vary.
 #define CUDA_THREADS_PER_BLOCK 128

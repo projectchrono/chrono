@@ -15,7 +15,6 @@
 // Authors: Nic Olsen
 // =============================================================================
 
-
 #include <iostream>
 #include <string>
 #include <cmath>
@@ -44,7 +43,7 @@ void ShowUsage() {
     cout << "usage: ./utest_GRAN_meshstep <json_file>" << endl;
 }
 
-void SetupGranSystem(ChSystemGranular_MonodisperseSMC& m_sys, sim_param_holder& params) {
+void SetupGranSystem(ChSystemGranularSMC& m_sys, sim_param_holder& params) {
     m_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
     m_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
     m_sys.set_K_t_SPH2SPH(params.tangentStiffS2S);
@@ -62,7 +61,6 @@ void SetupGranSystem(ChSystemGranular_MonodisperseSMC& m_sys, sim_param_holder& 
     m_sys.setOutputMode(params.write_mode);
     m_sys.setOutputDirectory(params.output_dir);
 
-    m_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
     m_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
     m_sys.set_fixed_stepSize(params.step_size);
     m_sys.set_BD_Fixed(true);
@@ -89,7 +87,7 @@ void SetupGranSystem(ChSystemGranular_MonodisperseSMC& m_sys, sim_param_holder& 
     m_sys.setParticlePositions(body_points);
 }
 
-void SetupGranTriSystem(ChSystemGranular_MonodisperseSMC_trimesh& m_sys, sim_param_holder& params) {
+void SetupGranTriSystem(ChSystemGranularSMC_trimesh& m_sys, sim_param_holder& params) {
     SetupGranSystem(m_sys, params);
 
     m_sys.set_K_n_SPH2MESH(params.normalStiffS2M);
@@ -123,8 +121,8 @@ double RunTest(sim_param_holder& params) {
     double out_fps = 50;
     float frame_step = 1.0 / out_fps;
 
-    ChSystemGranular_MonodisperseSMC_trimesh m_sys(params.sphere_radius, params.sphere_density,
-                                                   make_float3(params.box_X, params.box_Y, params.box_Z));
+    ChSystemGranularSMC_trimesh m_sys(params.sphere_radius, params.sphere_density,
+                                      make_float3(params.box_X, params.box_Y, params.box_Z));
     SetupGranTriSystem(m_sys, params);
     m_sys.enableMeshCollision();
     filesystem::create_directory(filesystem::path(params.output_dir));

@@ -39,6 +39,9 @@ using chrono::granular::GRAN_TIME_INTEGRATOR;
 using chrono::granular::GRAN_FRICTION_MODE;
 using chrono::granular::GRAN_ROLLING_MODE;
 
+/// @addtogroup granular_physics
+/// @{
+
 /// Convert position from its owner subdomain local frame to the global big domain frame
 inline __device__ __host__ int64_t3 convertPosLocalToGlobal(unsigned int ownerSD,
                                                             const int3& local_pos,
@@ -927,28 +930,26 @@ static __global__ void computeSphereForces_frictionless(GranSphereDataPtr sphere
     }
 }
 
-// Compute update for a quantity using Forward Euler
+/// Compute update for a quantity using Forward Euler integrator
 inline __device__ float integrateForwardEuler(float stepsize_SU, float val_dt) {
     return stepsize_SU * val_dt;
 }
 
-// Compute update for a velocity using Chung
+/// Compute update for a velocity using Chung integrator
 inline __device__ float integrateChung_vel(float stepsize_SU, float acc, float acc_old) {
     constexpr float gamma_hat = -1.f / 2.f;
     constexpr float gamma = 3.f / 2.f;
     return stepsize_SU * (acc * gamma + acc_old * gamma_hat);
 }
 
-// Compute update for a position using Chung
+/// Compute update for a position using Chung integrator
 inline __device__ float integrateChung_pos(float stepsize_SU, float vel_old, float acc, float acc_old) {
     constexpr float beta = 28.f / 27.f;
     constexpr float beta_hat = .5 - beta;
     return stepsize_SU * (vel_old + stepsize_SU * (acc * beta + acc_old * beta_hat));
 }
 
-/**
- * Numerically integrates force to velocity and velocity to position
- */
+/// Numerically integrates force to velocity and velocity to position
 static __global__ void integrateSpheres(const float stepsize_SU,
                                         GranSphereDataPtr sphere_data,
                                         unsigned int nSpheres,
@@ -1104,3 +1105,5 @@ static __global__ void updateFrictionData(const float stepsize_SU,
         sphere_data->sphere_Omega_Z[mySphereID] += omega_update_Z;
     }
 }
+
+/// @} granular_physics

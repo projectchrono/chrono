@@ -73,28 +73,28 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup simulation
-    ChSystemGranular_MonodisperseSMC settlingExperiment(params.sphere_radius, params.sphere_density,
-                                                        make_float3(params.box_X, params.box_Y, params.box_Z));
-    settlingExperiment.setPsiFactors(params.psi_T, params.psi_h, params.psi_L);
+    ChSystemGranularSMC gran_sys(params.sphere_radius, params.sphere_density,
+                                 make_float3(params.box_X, params.box_Y, params.box_Z));
+    gran_sys.setPsiFactors(params.psi_T, params.psi_L);
 
-    settlingExperiment.set_K_n_SPH2SPH(params.normalStiffS2S);
-    settlingExperiment.set_K_n_SPH2WALL(params.normalStiffS2W);
-    settlingExperiment.set_Gamma_n_SPH2SPH(params.normalDampS2S);
-    settlingExperiment.set_Gamma_n_SPH2WALL(params.normalDampS2W);
+    gran_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
+    gran_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
+    gran_sys.set_Gamma_n_SPH2SPH(params.normalDampS2S);
+    gran_sys.set_Gamma_n_SPH2WALL(params.normalDampS2W);
 
-    settlingExperiment.set_K_t_SPH2SPH(params.tangentStiffS2S);
-    settlingExperiment.set_K_t_SPH2WALL(params.tangentStiffS2W);
-    settlingExperiment.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
-    settlingExperiment.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
+    gran_sys.set_K_t_SPH2SPH(params.tangentStiffS2S);
+    gran_sys.set_K_t_SPH2WALL(params.tangentStiffS2W);
+    gran_sys.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
+    gran_sys.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
 
-    settlingExperiment.set_static_friction_coeff_SPH2SPH(params.static_friction_coeff);
-    settlingExperiment.set_static_friction_coeff_SPH2WALL(params.static_friction_coeff);
+    gran_sys.set_static_friction_coeff_SPH2SPH(params.static_friction_coeff);
+    gran_sys.set_static_friction_coeff_SPH2WALL(params.static_friction_coeff);
 
-    settlingExperiment.set_Cohesion_ratio(params.cohesion_ratio);
-    settlingExperiment.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
-    settlingExperiment.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
-    settlingExperiment.setOutputDirectory(params.output_dir);
-    settlingExperiment.setOutputMode(params.write_mode);
+    gran_sys.set_Cohesion_ratio(params.cohesion_ratio);
+    gran_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
+    gran_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
+    gran_sys.setOutputDirectory(params.output_dir);
+    gran_sys.setOutputMode(params.write_mode);
 
     std::vector<ChVector<float>> body_points;
     // body_points.push_back(ChVector<float>(0., 0., 0. - (params.box_Z / 2.f - 1.01 * params.sphere_radius)));
@@ -127,39 +127,38 @@ int main(int argc, char* argv[]) {
     // printf("particle is at %f, %f, %f\n", first_points[0].x(), first_points[0].y(), first_points[0].z());
     // printf("particle is at %f, %f, %f\n", first_points[1].x(), first_points[1].y(), first_points[1].z());
     // printf("particle is at %f, %f, %f\n", first_points[2].x(), first_points[2].y(), first_points[2].z());
-    settlingExperiment.setParticlePositions(body_points);
+    gran_sys.setParticlePositions(body_points);
 
     switch (params.run_mode) {
         case run_mode::MULTI_STEP:
-            settlingExperiment.set_friction_mode(GRAN_FRICTION_MODE::MULTI_STEP);
-            settlingExperiment.set_K_t_SPH2SPH(params.tangentStiffS2S);
-            settlingExperiment.set_K_t_SPH2WALL(params.tangentStiffS2W);
-            settlingExperiment.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
-            settlingExperiment.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
+            gran_sys.set_friction_mode(GRAN_FRICTION_MODE::MULTI_STEP);
+            gran_sys.set_K_t_SPH2SPH(params.tangentStiffS2S);
+            gran_sys.set_K_t_SPH2WALL(params.tangentStiffS2W);
+            gran_sys.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
+            gran_sys.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
             break;
         case run_mode::ONE_STEP:
-            settlingExperiment.set_friction_mode(GRAN_FRICTION_MODE::SINGLE_STEP);
-            settlingExperiment.set_K_t_SPH2SPH(params.tangentStiffS2S);
-            settlingExperiment.set_K_t_SPH2WALL(params.tangentStiffS2W);
-            settlingExperiment.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
-            settlingExperiment.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
+            gran_sys.set_friction_mode(GRAN_FRICTION_MODE::SINGLE_STEP);
+            gran_sys.set_K_t_SPH2SPH(params.tangentStiffS2S);
+            gran_sys.set_K_t_SPH2WALL(params.tangentStiffS2W);
+            gran_sys.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
+            gran_sys.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
             break;
         case run_mode::FRICTIONLESS:
         default:
             // fall through to frictionless as default
-            settlingExperiment.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
+            gran_sys.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
     }
 
-    settlingExperiment.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
-    settlingExperiment.set_timeIntegrator(GRAN_TIME_INTEGRATOR::EXTENDED_TAYLOR);
-    settlingExperiment.set_fixed_stepSize(params.step_size);
+    gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::EXTENDED_TAYLOR);
+    gran_sys.set_fixed_stepSize(params.step_size);
 
     filesystem::create_directory(filesystem::path(params.output_dir));
 
-    settlingExperiment.set_BD_Fixed(true);
+    gran_sys.set_BD_Fixed(true);
 
-    settlingExperiment.setVerbose(params.verbose);
-    settlingExperiment.initialize();
+    gran_sys.setVerbose(params.verbose);
+    gran_sys.initialize();
 
     int fps = 50;
     // assume we run for at least one frame
@@ -171,17 +170,17 @@ int main(int argc, char* argv[]) {
     // write an initial frame
     char filename[100];
     sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
-    settlingExperiment.writeFile(std::string(filename));
+    gran_sys.writeFile(std::string(filename));
 
     std::cout << "frame step is " << frame_step << std::endl;
 
     // Run settling experiments
     while (curr_time < params.time_end) {
-        settlingExperiment.advance_simulation(frame_step);
+        gran_sys.advance_simulation(frame_step);
         curr_time += frame_step;
         printf("rendering frame %u\n", currframe);
         sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
-        settlingExperiment.writeFile(std::string(filename));
+        gran_sys.writeFile(std::string(filename));
     }
 
     return 0;

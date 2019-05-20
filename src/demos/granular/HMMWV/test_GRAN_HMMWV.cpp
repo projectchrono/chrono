@@ -237,8 +237,8 @@ int main(int argc, char* argv[]) {
         mesh_inflation_radii.push_back(0);
     }
 
-    ChSystemGranular_MonodisperseSMC_trimesh gran_sys(params.sphere_radius, params.sphere_density,
-                                                      make_float3(params.box_X, params.box_Y, params.box_Z));
+    ChSystemGranularSMC_trimesh gran_sys(params.sphere_radius, params.sphere_density,
+                                         make_float3(params.box_X, params.box_Y, params.box_Z));
     double max_gran_z = -1000000;
 
     // Fill box with bodies
@@ -311,12 +311,12 @@ int main(int argc, char* argv[]) {
     gran_sys.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
     gran_sys.set_Gamma_t_SPH2MESH(params.tangentDampS2M);
 
-    gran_sys.setPsiFactors(params.psi_T, params.psi_h, params.psi_L);
+gran_sys.setPsiFactors(params.psi_T, params.psi_L);
     gran_sys.set_Cohesion_ratio(params.cohesion_ratio);
     gran_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
     gran_sys.set_Adhesion_ratio_S2M(params.adhesion_ratio_s2m);
     gran_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
-    gran_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
+
     gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
     gran_sys.set_fixed_stepSize(params.step_size);
 

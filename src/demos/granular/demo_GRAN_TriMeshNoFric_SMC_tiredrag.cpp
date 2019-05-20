@@ -19,7 +19,6 @@
 // The global reference frame located in the left lower corner, close to the viewer.
 // =============================================================================
 
-
 #include <iostream>
 #include <string>
 #include "chrono_thirdparty/filesystem/path.h"
@@ -111,21 +110,21 @@ int main(int argc, char* argv[]) {
     mesh_filenames.push_back(mesh_filename);
 
     // Setup simulation
-    ChSystemGranular_MonodisperseSMC_trimesh m_sys(params.sphere_radius, params.sphere_density,
-                                                   make_float3(params.box_X, params.box_Y, params.box_Z));
-    m_sys.setPsiFactors(params.psi_T, params.psi_h, params.psi_L);
-    m_sys.set_BD_Fixed(true);
-    m_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
-    m_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
-    m_sys.set_K_n_SPH2MESH(params.normalStiffS2M);
-    m_sys.set_Gamma_n_SPH2SPH(params.normalDampS2S);
-    m_sys.set_Gamma_n_SPH2MESH(params.normalDampS2M);
-    m_sys.set_Cohesion_ratio(params.cohesion_ratio);
-    m_sys.set_Adhesion_ratio_S2M(params.adhesion_ratio_s2m);
-    m_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
-    m_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
-    m_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
-    m_sys.set_fixed_stepSize(params.step_size);
+    ChSystemGranularSMC_trimesh gran_sys(params.sphere_radius, params.sphere_density,
+                                         make_float3(params.box_X, params.box_Y, params.box_Z));
+    gran_sys.setPsiFactors(params.psi_T, params.psi_L);
+    gran_sys.set_BD_Fixed(true);
+    gran_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
+    gran_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
+    gran_sys.set_K_n_SPH2MESH(params.normalStiffS2M);
+    gran_sys.set_Gamma_n_SPH2SPH(params.normalDampS2S);
+    gran_sys.set_Gamma_n_SPH2MESH(params.normalDampS2M);
+    gran_sys.set_Cohesion_ratio(params.cohesion_ratio);
+    gran_sys.set_Adhesion_ratio_S2M(params.adhesion_ratio_s2m);
+    gran_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
+    gran_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
+
+    gran_sys.set_fixed_stepSize(params.step_size);
 
     // Fill the bottom half with material
     chrono::utils::HCPSampler<float> sampler(2.4 * params.sphere_radius);  // Add epsilon
@@ -133,23 +132,23 @@ int main(int argc, char* argv[]) {
     ChVector<float> center(0, 0, -.15 * params.box_Z);
     ChVector<float> hdims(params.box_X / 2, params.box_X / 2, params.box_Z * .35);
     std::vector<ChVector<float>> body_points = sampler.SampleBox(center, hdims);
-    m_sys.setParticlePositions(body_points);
+    gran_sys.setParticlePositions(body_points);
 
-    m_sys.load_meshes(mesh_filenames, mesh_scalings, mesh_masses, mesh_inflated, mesh_inflation_radii);
+    gran_sys.load_meshes(mesh_filenames, mesh_scalings, mesh_masses, mesh_inflated, mesh_inflation_radii);
 
     /// output preferences
-    m_sys.setOutputDirectory(params.output_dir);
-    m_sys.setOutputMode(params.write_mode);
-    m_sys.setVerbose(params.verbose);
+    gran_sys.setOutputDirectory(params.output_dir);
+    gran_sys.setOutputMode(params.write_mode);
+    gran_sys.setVerbose(params.verbose);
     filesystem::create_directory(filesystem::path(params.output_dir));
 
-    unsigned int nSoupFamilies = m_sys.getNumTriangleFamilies();
+    unsigned int nSoupFamilies = gran_sys.getNumTriangleFamilies();
     cout << nSoupFamilies << " soup families" << endl;
     float* genForcesOnMeshSoup = new float[6 * nSoupFamilies];
     double* meshSoupLocOri = new double[7 * nSoupFamilies];
     float* meshVel = new float[6 * nSoupFamilies]();
 
-    m_sys.initialize();
+    gran_sys.initialize();
     int currframe = 0;
 
     // Run a loop that is typical of co-simulation. For instance, the wheeled is moved a bit, which moves the particles.
@@ -168,15 +167,15 @@ int main(int argc, char* argv[]) {
         meshSoupLocOri[5] = rot[2];
         meshSoupLocOri[6] = rot[3];
 
-        m_sys.meshSoup_applyRigidBodyMotion(meshSoupLocOri, meshVel);
+        gran_sys.meshSoup_applyRigidBodyMotion(meshSoupLocOri, meshVel);
 
-        m_sys.advance_simulation(iteration_step);
+        gran_sys.advance_simulation(iteration_step);
 
         cout << "Rendering frame " << currframe << endl;
         char filename[100];
         sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
-        m_sys.writeFile(string(filename));
-        m_sys.write_meshes(string(filename));
+        gran_sys.writeFile(string(filename));
+        gran_sys.write_meshes(string(filename));
     }
 
     delete[] genForcesOnMeshSoup;

@@ -93,7 +93,7 @@ void writeZCylinderMesh(std::ostringstream& outstream, ChVector<> pos, float rad
     ChVector<> vy(0, 1, 0);
     ChVector<> vz(0, 0, 1);
 
-    ChVector<> scaling(2 * rad, 2 * rad, height / 2);
+    ChVector<> scaling(rad, rad, height / 2);
 
     // Write the mesh name to find
     outstream << cyl_filename << ",";
@@ -137,8 +137,8 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup simulation
-    ChSystemGranular_MonodisperseSMC gran_system(params.sphere_radius, params.sphere_density,
-                                                 make_float3(params.box_X, params.box_Y, params.box_Z));
+    ChSystemGranularSMC gran_system(params.sphere_radius, params.sphere_density,
+                                    make_float3(params.box_X, params.box_Y, params.box_Z));
     gran_system.set_K_n_SPH2SPH(params.normalStiffS2S);
     gran_system.set_K_n_SPH2WALL(params.normalStiffS2W);
     gran_system.set_Gamma_n_SPH2SPH(params.normalDampS2S);
@@ -157,7 +157,6 @@ int main(int argc, char* argv[]) {
     gran_system.setOutputDirectory(params.output_dir);
     gran_system.setOutputMode(params.write_mode);
 
-    gran_system.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
     gran_system.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
     gran_system.set_fixed_stepSize(params.step_size);
     gran_system.setVerbose(params.verbose);

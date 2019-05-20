@@ -20,8 +20,8 @@
     "static_friction_coeff": 0.7,
 	"cohesion_ratio": 0,
 	"verbose": false,
-	"psi_h": 4,
-	"psi_T": 16,
+
+	"psi_T": 32,
 	"psi_L": 16,
 	"output_dir": "terrain_box",
 	"write_mode": "binary"

@@ -51,8 +51,6 @@ void ShowUsage() {
 // There is no friction. The units are always cm/s/g[L/T/M].
 // -----------------------------------------------------------------------------
 int main(int argc, char* argv[]) {
-    GRAN_TIME_STEPPING step_mode = GRAN_TIME_STEPPING::FIXED;
-
     sim_param_holder params;
 
     // Some of the default values might be overwritten by user via command line
@@ -73,8 +71,8 @@ int main(int argc, char* argv[]) {
                params.normalStiffS2S, params.step_size, params.static_friction_coeff, params.output_dir.c_str());
     }
     // Setup simulation
-    ChSystemGranular_MonodisperseSMC gran_sys(params.sphere_radius, params.sphere_density,
-                                              make_float3(params.box_X, params.box_Y, params.box_Z));
+    ChSystemGranularSMC gran_sys(params.sphere_radius, params.sphere_density,
+                                 make_float3(params.box_X, params.box_Y, params.box_Z));
     gran_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
     gran_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
     gran_sys.set_Gamma_n_SPH2SPH(params.normalDampS2S);
@@ -139,7 +137,6 @@ int main(int argc, char* argv[]) {
 
     printf("%d spheres with mass %f \n", body_points.size(), body_points.size() * sphere_mass);
 
-    gran_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
     gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
     gran_sys.set_friction_mode(GRAN_FRICTION_MODE::MULTI_STEP);
     gran_sys.set_fixed_stepSize(params.step_size);

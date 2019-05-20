@@ -22,7 +22,7 @@
 namespace chrono {
 namespace granular {
 
-__host__ double ChSystemGranular_MonodisperseSMC::get_max_z() const {
+__host__ double ChSystemGranularSMC::get_max_z() const {
     size_t nSpheres = sphere_local_pos_Z.size();
     std::vector<int64_t> sphere_pos_global_Z;
     sphere_pos_global_Z.resize(nSpheres);
@@ -41,7 +41,7 @@ __host__ double ChSystemGranular_MonodisperseSMC::get_max_z() const {
 }
 
 // Reset broadphase data structures
-void ChSystemGranular_MonodisperseSMC::resetBroadphaseInformation() {
+void ChSystemGranularSMC::resetBroadphaseInformation() {
     // Set all the offsets to zero
     gpuErrchk(cudaMemset(SD_NumSpheresTouching.data(), 0, SD_NumSpheresTouching.size() * sizeof(unsigned int)));
     gpuErrchk(cudaMemset(SD_SphereCompositeOffsets.data(), 0, SD_SphereCompositeOffsets.size() * sizeof(unsigned int)));
@@ -52,7 +52,7 @@ void ChSystemGranular_MonodisperseSMC::resetBroadphaseInformation() {
 }
 
 // Reset sphere acceleration data structures
-void ChSystemGranular_MonodisperseSMC::resetSphereAccelerations() {
+void ChSystemGranularSMC::resetSphereAccelerations() {
     // cache past acceleration data
     if (time_integrator == GRAN_TIME_INTEGRATOR::CHUNG) {
         gpuErrchk(cudaMemcpy(sphere_acc_X_old.data(), sphere_acc_X.data(), nSpheres * sizeof(float),
@@ -161,7 +161,7 @@ __global__ void owner_unpack(int* d_sphere_pos_X,
 
 // Sorts data by owner SD, makes nicer memory accesses
 // Uses a boatload of memory
-__host__ void ChSystemGranular_MonodisperseSMC::defragment_data() {
+__host__ void ChSystemGranularSMC::defragment_data() {
     VERBOSE_PRINTF("Starting defrag run!\n");
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
@@ -223,7 +223,7 @@ __global__ void generate_absv(const unsigned int nSpheres,
     }
 }
 
-__host__ float ChSystemGranular_MonodisperseSMC::get_max_vel() const {
+__host__ float ChSystemGranularSMC::get_max_vel() const {
     float* d_absv;
     float* d_max_vel;
     float h_max_vel;
@@ -245,13 +245,13 @@ __host__ float ChSystemGranular_MonodisperseSMC::get_max_vel() const {
     return h_max_vel;
 }
 
-__host__ int3 ChSystemGranular_MonodisperseSMC::getSDTripletFromID(unsigned int SD_ID) const {
+__host__ int3 ChSystemGranularSMC::getSDTripletFromID(unsigned int SD_ID) const {
     return SDIDTriplet(SD_ID, gran_params);
 }
 /// Sort sphere positions by subdomain id
 /// Occurs entirely on host, not intended to be efficient
 /// ONLY DO AT BEGINNING OF SIMULATION
-__host__ void ChSystemGranular_MonodisperseSMC::defragment_initial_positions() {
+__host__ void ChSystemGranularSMC::defragment_initial_positions() {
     printf("Starting defrag run!\n");
     ChTimer<> timer;
     timer.start();
@@ -294,7 +294,7 @@ __host__ void ChSystemGranular_MonodisperseSMC::defragment_initial_positions() {
     timer.stop();
     printf("finished defrag run in %f seconds!\n", timer.GetTimeSeconds());
 }
-__host__ void ChSystemGranular_MonodisperseSMC::setupSphereDataStructures() {
+__host__ void ChSystemGranularSMC::setupSphereDataStructures() {
     // Each fills user_sphere_positions with positions to be copied
     if (user_sphere_positions.size() == 0) {
         printf("ERROR: no sphere positions given!\n");
@@ -391,7 +391,7 @@ __host__ void ChSystemGranular_MonodisperseSMC::setupSphereDataStructures() {
     packSphereDataPointers();
 }
 
-__host__ void ChSystemGranular_MonodisperseSMC::runSphereBroadphase() {
+__host__ void ChSystemGranularSMC::runSphereBroadphase() {
     VERBOSE_PRINTF("Resetting broadphase info!\n");
 
     resetBroadphaseInformation();
@@ -473,7 +473,7 @@ __host__ void ChSystemGranular_MonodisperseSMC::runSphereBroadphase() {
     gpuErrchk(cudaFree(d_temp_storage));
 }
 
-__host__ void ChSystemGranular_MonodisperseSMC::updateBCPositions() {
+__host__ void ChSystemGranularSMC::updateBCPositions() {
     for (unsigned int i = 0; i < BC_params_list_UU.size(); i++) {
         auto bc_type = BC_type_list.at(i);
         const BC_params_t<float, float3>& params_UU = BC_params_list_UU.at(i);
@@ -518,13 +518,12 @@ __host__ void ChSystemGranular_MonodisperseSMC::updateBCPositions() {
     }
 }
 
-__host__ double ChSystemGranular_MonodisperseSMC::advance_simulation(float duration) {
+__host__ double ChSystemGranularSMC::advance_simulation(float duration) {
     // Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
     // Settling simulation loop.
     float duration_SU = duration / TIME_SU2UU;
-    determineNewStepSize_SU();  // doesn't always change the timestep
     unsigned int nsteps = std::round(duration_SU / stepSize_SU);
 
     VERBOSE_PRINTF("advancing by %f at timestep %f, %u timesteps at approx user timestep %f\n", duration_SU,
@@ -533,8 +532,6 @@ __host__ double ChSystemGranular_MonodisperseSMC::advance_simulation(float durat
 
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
     for (; time_elapsed_SU < stepSize_SU * nsteps; time_elapsed_SU += stepSize_SU) {
-        determineNewStepSize_SU();  // doesn't always change the timestep
-
         updateBCPositions();
 
         runSphereBroadphase();

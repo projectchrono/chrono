@@ -31,11 +31,10 @@
 
 typedef unsigned char not_stupid_bool;
 
-namespace chrono {
-namespace granular {
-
 /// @addtogroup granular_physics
 /// @{
+namespace chrono {
+namespace granular {
 
 /// Used to compute position as a function of time
 typedef std::function<double3(float)> GranPositionFunction;
@@ -43,7 +42,7 @@ typedef std::function<double3(float)> GranPositionFunction;
 /// Position function representing no motion or offset as a funtion of time
 const GranPositionFunction GranPosFunction_default = [](float t) { return make_double3(0, 0, 0); };
 
-/// Hold pointers to kinematic quantities of the granular system
+/// Holds pointers to kinematic quantities of the granular system. These pointers must be in device-accessible memory
 struct ChGranSphereData {
   public:
     /// X position relative to owner subdomain in unified memory
@@ -60,11 +59,11 @@ struct ChGranSphereData {
     /// Z velocity in unified memory
     float* pos_Z_dt;
 
-    /// X angular velocity in unified memory
+    /// X angular velocity in unified memory. Only used if friction is present
     float* sphere_Omega_X;
-    /// Y angular velocity in unified memory
+    /// Y angular velocity in unified memory. Only used if friction is present
     float* sphere_Omega_Y;
-    /// Z angular velocity in unified memory
+    /// Z angular velocity in unified memory. Only used if friction is present
     float* sphere_Omega_Z;
 
     /// X angular acceleration in unified memory
@@ -95,9 +94,11 @@ struct ChGranSphereData {
     /// Previous step Z angular acceleration for multistep integrators
     float* sphere_ang_acc_Z_old;
 
-    /// Set of data for sphere contact pairs
+    /// Set of contact partners for each sphere. Only used in frictional simulations
     unsigned int* contact_partners_map;
+    /// Whether the frictional contact at an index is active
     not_stupid_bool* contact_active_map;
+    /// Tracks the tangential history vector for a given contact pair. Only used in multistep friction
     float3* contact_history_map;
 
     /// Number of particles touching each subdomain
@@ -113,27 +114,28 @@ struct ChGranSphereData {
 
 /// Output mode of system
 enum GRAN_OUTPUT_MODE { CSV, BINARY, NONE };
-/// Allows adaptive time stepping -- CAREFUL, NOT WELL TESTED
-enum GRAN_TIME_STEPPING { ADAPTIVE, FIXED };
-/// How are we integrating w.r.t. time
+/// How are we integrating through time
 enum GRAN_TIME_INTEGRATOR { FORWARD_EULER, CHUNG, CENTERED_DIFFERENCE, EXTENDED_TAYLOR };
 
+/// Supported friction model
 enum GRAN_FRICTION_MODE { FRICTIONLESS, SINGLE_STEP, MULTI_STEP };
+
 /// Rolling resistance models -- ELASTIC_PLASTIC not implemented yet
 enum GRAN_ROLLING_MODE { NO_RESISTANCE, CONSTANT_TORQUE, VISCOUS, ELASTIC_PLASTIC };
 
-enum GRAN_INPUT_MODE { USER, CHECKPOINT_POSITION, CHECKPOINT_FULL };
-
-/// Parameters needed for sphere-based granular dynamics
+/// Parameters needed for sphere-based granular dynamics. This structure is stored in CUDA unified memory so that it can
+/// be accessed from both host and device
 struct ChGranParams {
     /// Timestep in SU
     float stepSize_SU;
 
-    // settings on friction, integrator, and force model
+    /// Which friction mode is active for the simulation
     GRAN_FRICTION_MODE friction_mode;
 
+    /// Which rolling resistance model is active
     GRAN_ROLLING_MODE rolling_mode;
 
+    /// Which time integrator is active
     GRAN_TIME_INTEGRATOR time_integrator;
 
     /// Ratio of normal force to peak tangent force, also arctan(theta) where theta is the friction angle
@@ -225,61 +227,57 @@ struct ChGranParams {
     /// Accleration of adhesion
     float adhesionAcc_s2w;
 
-    double LENGTH_UNIT;  //!< 1 / C_L. Any length expressed in SU is a multiple of LENGTH_UNIT
-    double TIME_UNIT;    //!< 1 / C_T. Any time quantity in SU is measured as a positive multiple of TIME_UNIT
-    double MASS_UNIT;    //!< 1 / C_M. Any mass quantity is measured as a positive multiple of MASS_UNIT.
+    /// 1 / C_L. Any length expressed in SU is a multiple of LENGTH_UNIT
+    double LENGTH_UNIT;
+    /// 1 / C_T. Any time quantity in SU is measured as a positive multiple of TIME_UNIT
+    double TIME_UNIT;
+    /// 1 / C_M. Any mass quantity is measured as a positive multiple of MASS_UNIT.
+    double MASS_UNIT;
 
     /// this is to make clear that the underlying assumption is unit SU mass
     constexpr static float sphere_mass_SU = 1.f;
 
+    /// Used as a safety check to determine whether a system has lost stability
     float max_safe_vel = (float)UINT_MAX;
-
-    /// @} granular_physics
 };
 }  // namespace granular
 }  // namespace chrono
 
 // Do two things: make the naming nicer and require a const pointer everywhere
+/// Get handle for the gran params that skips namespacing and enforces const-ness
 typedef const chrono::granular::ChGranParams* GranParamsPtr;
+/// Get handle for the sphere data that skips namespacing and enforces const-ness
 typedef const chrono::granular::ChGranSphereData* GranSphereDataPtr;
 namespace chrono {
 namespace granular {
-
-/// @addtogroup granular_physics
-/// @{
 
 /**
  * \brief Main Chrono::Granular system class used to control and dispatch the GPU
  * sphere-only solver.
  */
-class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
+class CH_GRANULAR_API ChSystemGranularSMC {
   public:
-    /// The system is not default-constructible
-    ChSystemGranular_MonodisperseSMC() = delete;
-    ChSystemGranular_MonodisperseSMC(float radiusSPH, float density, float3 boxDims);
-    virtual ~ChSystemGranular_MonodisperseSMC();
+    // The system is not default-constructible
+    ChSystemGranularSMC() = delete;
+    /// Construct granular system with given sphere radius, density, and big domain dimensions
+    ChSystemGranularSMC(float sphere_rad, float density, float3 boxDims);
+    virtual ~ChSystemGranularSMC();
 
     /// Return number of subdomains in the big domain
     unsigned int get_SD_count() const { return nSDs; }
+
+    /// Set acceleration of gravity
     void set_gravitational_acceleration(float xVal, float yVal, float zVal) {
         X_accGrav = xVal;
         Y_accGrav = yVal;
         Z_accGrav = zVal;
     }
-    // /// write sphere data to file for later loading
-    // void writeCheckpoint(std::string ofile) const;
-    //
-    // /// load sphere data from a file
-    // void loadCheckpoint(std::string infile);
 
     /// Return total number of spheres in the system
     size_t getNumSpheres() const { return nSpheres; }
 
     /// Roughly estimates the total amount of memory used by the system
     size_t estimateMemUsage() const;
-
-    /// Create an axis-aligned box BC
-    // size_t Create_BC_AABox(float hdims[3], float center[3], bool outward_normal);
 
     /// Create an axis-aligned sphere boundary condition
     size_t Create_BC_Sphere(float center[3], float radius, bool outward_normal, bool track_forces);
@@ -385,30 +383,30 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// render frame. This directory is assumed to be created by the user, either manually or in the driver file.
     void setOutputDirectory(std::string dir) { output_directory = dir; }
 
+    /// Set simualtion verbosity -- used to check on very large, slow simulations or debug
     void setVerbose(bool is_verbose) { verbose_runtime = is_verbose; }
 
-    /// Allows the user to request a step size, will find the closest SU size to it
-    void set_max_adaptive_stepSize(float size_UU) { max_adaptive_step_UU = size_UU; }
-    /// Set timestep size for the fixed stepsize mode
-    void set_fixed_stepSize(float size_UU) { fixed_step_UU = size_UU; }
-    /// Set the timestepper to be either fixed or adaptive
-    void set_timeStepping(GRAN_TIME_STEPPING new_stepping) { time_stepping = new_stepping; }
+    /// Set timestep size
+    void set_fixed_stepSize(float size_UU) { stepSize_UU = size_UU; }
+
     /// Set the time integration scheme for the system
     void set_timeIntegrator(GRAN_TIME_INTEGRATOR new_integrator) {
         gran_params->time_integrator = new_integrator;
         time_integrator = new_integrator;
     }
 
-    /// Set friction formulation
+    /// Set friction formulation. The frictionless setting uses a streamlined solver and avoids storing any physics
+    /// information associated with friction
     void set_friction_mode(GRAN_FRICTION_MODE new_mode) { gran_params->friction_mode = new_mode; }
 
-    /// Set rolling resistence formulation
+    /// Set rolling resistence formulation. NOTE: This requires friction to be active, otherwise this setting will be
+    /// ignored
     void set_rolling_mode(GRAN_ROLLING_MODE new_mode) { gran_params->rolling_mode = new_mode; }
 
     /// Get the max z position of the spheres, allows easier co-simulation
     double get_max_z() const;
 
-    /// Advance simulation by duration seconds in user units, return actual duration elapsed
+    /// Advance simulation by duration in user units, return actual duration elapsed
     /// Requires initialize() to have been called
     virtual double advance_simulation(float duration);
 
@@ -420,9 +418,9 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     void set_static_friction_coeff_SPH2SPH(float mu) { gran_params->static_friction_coeff_s2s = mu; }
     /// Set sphere-to-wall static friction coefficient
     void set_static_friction_coeff_SPH2WALL(float mu) { gran_params->static_friction_coeff_s2w = mu; }
-    /// Set sphere-to-sphere rolling friction coefficient - units and use vary by rolling friction mode
+    /// Set sphere-to-sphere rolling friction coefficient -- units and use vary by rolling friction mode
     void set_rolling_coeff_SPH2SPH(float mu) { rolling_coeff_s2s_UU = mu; }
-    /// Set sphere-to-wall rolling friction coefficient - units and use vary by rolling friction mode
+    /// Set sphere-to-wall rolling friction coefficient -- units and use vary by rolling friction mode
     void set_rolling_coeff_SPH2WALL(float mu) { rolling_coeff_s2w_UU = mu; }
 
     /// Set sphere-to-sphere normal contact stiffness
@@ -445,21 +443,19 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// Set sphere-to-wall tangent damping coefficient
     void set_Gamma_t_SPH2WALL(double someValue) { Gamma_t_s2w_UU = someValue; }
 
-    /// Set the ratio of cohesion to gravity for monodisperse spheres
-    /// Assumes a constant cohesion model
+    /// Set the ratio of cohesion to gravity for monodisperse spheres. Assumes a constant cohesion model
     void set_Cohesion_ratio(float someValue) { cohesion_over_gravity = someValue; }
 
-    /// Set the ratio of adhesion to gravity for sphere to wall
-    /// Assumes a constant cohesion model
+    /// Set the ratio of adhesion to gravity for sphere to wall. Assumes a constant cohesion model
     void set_Adhesion_ratio_S2W(float someValue) { adhesion_s2w_over_gravity = someValue; }
 
-    /// Set the big domain to be fixed or not, if fixed it will ignore any given position functions
+    /// Set the big domain to be fixed or not; if fixed it will ignore any given position functions
     void set_BD_Fixed(bool fixed) { BD_is_fixed = fixed; }
 
-    /// Set initial particle positions
-    /// Must be called only once and only before initialize
+    /// Set initial particle positions. MUST be called only once and MUST be called before initialize
     void setParticlePositions(const std::vector<ChVector<float>>& points);
 
+    /// The offset function for the big domain walls
     GranPositionFunction BDOffsetFunction;
 
     /// Prescribe the motion of the big domain, allows wavetank-style simulations
@@ -474,9 +470,8 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     }
 
     /// Set tuning psi factors for tuning the non-dimensionalization
-    void setPsiFactors(unsigned int psi_T_new, unsigned int psi_h_new, unsigned int psi_L_new) {
+    void setPsiFactors(unsigned int psi_T_new, unsigned int psi_L_new) {
         psi_T = psi_T_new;
-        psi_h = psi_h_new;
         psi_L = psi_L_new;
     }
 
@@ -485,6 +480,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// Writes out particle positions according to the system output mode
     void writeFile(std::string ofile) const;
 
+    /// Safety check velocity to ensure the simulation is still stable
     void setMaxSafeVelocity_SU(float max_vel) { gran_params->max_safe_vel = max_vel; }
 
   protected:
@@ -502,9 +498,11 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// 1 / C_v. Any velocity quantity is measured as a multiple of VEL_SU2UU.
     double VEL_SU2UU;
 
-    /// Tuning for non-dimensionalization
+    // Tuning for non-dimensionalization
+    /// Safety factor on simulation time
     unsigned int psi_T;
-    unsigned int psi_h;
+
+    /// Safety factor on space adim
     unsigned int psi_L;
 
     /// Wrap the device helper function
@@ -518,12 +516,6 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
 
     /// Setup sphere data, initialize local coords
     void setupSphereDataStructures();
-
-    // /// whether we are using user-provided or checkpointed spheres
-    // bool load_checkpoint;
-    //
-    // /// what checkpoint file to use, if any
-    // std::string checkpoint_file;
 
     /// Holds the sphere and big-domain-related params in unified memory
     ChGranParams* gran_params;
@@ -594,8 +586,11 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// Z angular acceleration history used for the Chung integrator in unified memory
     std::vector<float, cudallocator<float>> sphere_ang_acc_Z_old;
 
+    /// Set of contact partners for each sphere. Only used in frictional simulations
     std::vector<unsigned int, cudallocator<unsigned int>> contact_partners_map;
+    /// Whether the frictional contact at an index is active
     std::vector<not_stupid_bool, cudallocator<not_stupid_bool>> contact_active_map;
+    /// Tracks the tangential history vector for a given contact pair. Only used in multistep friction
     std::vector<float3, cudallocator<float3>> contact_history_map;
 
     /// X gravity in user units
@@ -615,23 +610,22 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// List of owner subdomains for each sphere
     std::vector<unsigned int, cudallocator<unsigned int>> sphere_owner_SDs;
 
-    /// User provided maximum timestep in UU, used in adaptive timestepping
-    float max_adaptive_step_UU = 1e-3;
-    /// User provided fixed timestep in UU, used in FIXED timestepping
-    float fixed_step_UU = 1e-4;
-    /// Step size in SU, user can request a larger one but default is 1
-    float stepSize_SU;
+    /// User provided timestep in UU
+    float stepSize_UU;
 
-    /// The type of time stepping (fixed or adaptive) used in the simulation
-    GRAN_TIME_STEPPING time_stepping;
+    /// SU (adimensional) value of time step
+    float stepSize_SU;
 
     /// how is the system integrated through time?
     GRAN_TIME_INTEGRATOR time_integrator;
 
-    /// Partitions the big domain (BD) and sets the number of SDs that BD is split in.
+    /// This method figures out how big a SD is, and how many SDs are going to be necessary
+    /// in order to cover the entire BD.
+    /// Nomenclature: BD: Big domain, SD: Sub-domain.
+
     void partitionBD();
 
-    /// Copy constant parameter data to device
+    /// Copy constant sphere data to device
     void copyConstSphereDataToDevice();
 
     /// Reset binning and broadphase info
@@ -647,7 +641,8 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
 
     /// Run the first sphere broadphase pass to get things started
     void runSphereBroadphase();
-    // just a handy helper function
+
+    /// Helper function to convert a position in UU to its SU representation while also changing data type
     template <typename T1, typename T2>
     T1 convertToPosSU(T2 val) {
         return val / gran_params->LENGTH_UNIT;
@@ -662,17 +657,14 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// Get the maximum stiffness term in the system
     virtual double get_max_K() const;
 
-    /// Convert unit parameters from UU to SU
+    /// This method defines the mass, time, length Simulation Units. It also sets several other constants that enter the
+    /// scaling of various physical quantities set by the user.
     virtual void switchToSimUnits();
 
     /// Sort data based on owner subdomain to improve memory performance
     virtual void defragment_data();
 
-    const float new_step_freq = .01;
-    /// Calculates the new optimal timestep size
-    virtual void determineNewStepSize_SU();
-
-    /// Set the position of a boundary condition and account for the offset
+    /// Set the position function of a boundary condition and account for the offset
     void setBCOffset(const BC_type&,
                      const BC_params_t<float, float3>& params_UU,
                      BC_params_t<int64_t, int64_t3>& params_SU,
@@ -726,8 +718,11 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
 
     /// List of generalized boundary conditions that constrain sphere motion
     std::vector<BC_type, cudallocator<BC_type>> BC_type_list;
+    /// Sim-unit (adimensional) details of boundary conditions
     std::vector<BC_params_t<int64_t, int64_t3>, cudallocator<BC_params_t<int64_t, int64_t3>>> BC_params_list_SU;
+    /// User-unit (dimensional) details of boundary conditions
     std::vector<BC_params_t<float, float3>, cudallocator<BC_params_t<float, float3>>> BC_params_list_UU;
+    /// Offset motions functions for boundary conditions -- used for moving walls, wavetanks, etc.
     std::vector<GranPositionFunction> BC_offset_function_list;
 
     /// User defined radius of the sphere
@@ -749,6 +744,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     bool BD_is_fixed = true;
 };
 
-/// @} granular_physics
 }  // namespace granular
 }  // namespace chrono
+
+/// @} granular_physics

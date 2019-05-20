@@ -86,8 +86,7 @@ int main(int argc, char* argv[]) {
     const float Bz = chamber_height + fill_height + extra_height;
     cout << "Box Dims: " << Bx << " " << By << " " << Bz << endl;
 
-    ChSystemGranular_MonodisperseSMC_trimesh m_sys(params.sphere_radius, params.sphere_density,
-                                                   make_float3(Bx, By, Bz));
+    ChSystemGranularSMC_trimesh m_sys(params.sphere_radius, params.sphere_density, make_float3(Bx, By, Bz));
 
     m_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
     m_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
@@ -152,7 +151,6 @@ int main(int argc, char* argv[]) {
     m_sys.setOutputDirectory(out_dir);
     filesystem::create_directory(filesystem::path(out_dir));
 
-    m_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
     m_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
     m_sys.set_fixed_stepSize(params.step_size);
     m_sys.set_BD_Fixed(true);

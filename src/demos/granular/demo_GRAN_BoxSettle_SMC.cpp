@@ -53,7 +53,6 @@ void ShowUsage() {
 // The units are always cm/s/g[L/T/M].
 // -----------------------------------------------------------------------------
 int main(int argc, char* argv[]) {
-    GRAN_TIME_STEPPING step_mode = GRAN_TIME_STEPPING::FIXED;
     int run_mode = SETTLING;
 
     sim_param_holder params;
@@ -65,20 +64,20 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup simulation
-    ChSystemGranular_MonodisperseSMC settlingExperiment(params.sphere_radius, params.sphere_density,
-                                                        make_float3(params.box_X, params.box_Y, params.box_Z));
-    settlingExperiment.setPsiFactors(params.psi_T, params.psi_h, params.psi_L);
+    ChSystemGranularSMC gran_sys(params.sphere_radius, params.sphere_density,
+                                 make_float3(params.box_X, params.box_Y, params.box_Z));
+    gran_sys.setPsiFactors(params.psi_T, params.psi_L);
 
-    settlingExperiment.set_K_n_SPH2SPH(params.normalStiffS2S);
-    settlingExperiment.set_K_n_SPH2WALL(params.normalStiffS2W);
-    settlingExperiment.set_Gamma_n_SPH2SPH(params.normalDampS2S);
-    settlingExperiment.set_Gamma_n_SPH2WALL(params.normalDampS2W);
+    gran_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
+    gran_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
+    gran_sys.set_Gamma_n_SPH2SPH(params.normalDampS2S);
+    gran_sys.set_Gamma_n_SPH2WALL(params.normalDampS2W);
 
-    settlingExperiment.set_Cohesion_ratio(params.cohesion_ratio);
-    settlingExperiment.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
-    settlingExperiment.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
-    settlingExperiment.setOutputDirectory(params.output_dir);
-    settlingExperiment.setOutputMode(params.write_mode);
+    gran_sys.set_Cohesion_ratio(params.cohesion_ratio);
+    gran_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
+    gran_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
+    gran_sys.setOutputDirectory(params.output_dir);
+    gran_sys.setOutputMode(params.write_mode);
 
     // fill box, layer by layer
     ChVector<> hdims(params.box_X / 4.f - 1.05 * params.sphere_radius, params.box_Y / 4.f - 1.05 * params.sphere_radius,
@@ -92,27 +91,25 @@ int main(int argc, char* argv[]) {
     first_points.push_back(body_points.at(0));
     first_points.push_back(body_points.at(1));
 
-    settlingExperiment.setParticlePositions(body_points);
+    gran_sys.setParticlePositions(body_points);
 
-    settlingExperiment.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
-    // settlingExperiment.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CHUNG);
-    settlingExperiment.set_timeIntegrator(GRAN_TIME_INTEGRATOR::EXTENDED_TAYLOR);
-    settlingExperiment.set_friction_mode(GRAN_FRICTION_MODE::SINGLE_STEP);
-    settlingExperiment.set_fixed_stepSize(params.step_size);
+    // gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CHUNG);
+    gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::EXTENDED_TAYLOR);
+    gran_sys.set_friction_mode(GRAN_FRICTION_MODE::SINGLE_STEP);
+    gran_sys.set_fixed_stepSize(params.step_size);
 
     filesystem::create_directory(filesystem::path(params.output_dir));
 
-    settlingExperiment.set_BD_Fixed(true);
+    gran_sys.set_BD_Fixed(true);
 
-    settlingExperiment.setVerbose(params.verbose);
+    gran_sys.setVerbose(params.verbose);
     // Finalize settings and initialize for runtime
     float point[3] = {0, 0, -params.box_Z * 2.f / 6.f};
     float normal[3] = {0, 0, 1};
-    settlingExperiment.Create_BC_Plane(point, normal, false);
-    settlingExperiment.initialize();
-    // settlingExperiment.Create_BC_AABox(hdims, center_pt, false, false);
-    // settlingExperiment.Create_BC_Sphere(center_pt, 3.f, true, false);
-    // settlingExperiment.Create_BC_Cone_Z(center_pt, 1, params.box_Z, center_pt[2] + 10 * params.sphere_radius, true,
+    gran_sys.Create_BC_Plane(point, normal, false);
+    gran_sys.initialize();
+    // gran_sys.Create_BC_Sphere(center_pt, 3.f, true, false);
+    // gran_sys.Create_BC_Cone_Z(center_pt, 1, params.box_Z, center_pt[2] + 10 * params.sphere_radius, true,
     // false);
 
     int fps = 100;
@@ -125,12 +122,12 @@ int main(int argc, char* argv[]) {
 
     // Run settling experiments
     while (curr_time < params.time_end) {
-        settlingExperiment.advance_simulation(frame_step);
+        gran_sys.advance_simulation(frame_step);
         curr_time += frame_step;
         printf("rendering frame %u\n", currframe);
         char filename[100];
         sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
-        settlingExperiment.writeFile(std::string(filename));
+        gran_sys.writeFile(std::string(filename));
     }
 
     return 0;

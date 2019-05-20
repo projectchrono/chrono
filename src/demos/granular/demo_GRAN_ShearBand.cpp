@@ -58,7 +58,6 @@ void ShowUsage() {
 // that the box will be centered at x = box_size_X
 
 int main(int argc, char* argv[]) {
-    GRAN_TIME_STEPPING step_mode = GRAN_TIME_STEPPING::FIXED;
     int run_mode = SETTLING;
 
     sim_param_holder params;
@@ -70,9 +69,9 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup simulation
-    ChSystemGranular_MonodisperseSMC gran_sys(params.sphere_radius, params.sphere_density,
-                                              make_float3(params.box_X, params.box_Y, params.box_Z));
-    gran_sys.setPsiFactors(params.psi_T, params.psi_h, params.psi_L);
+    ChSystemGranularSMC gran_sys(params.sphere_radius, params.sphere_density,
+                                 make_float3(params.box_X, params.box_Y, params.box_Z));
+    gran_sys.setPsiFactors(params.psi_T, params.psi_L);
 
     gran_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
     gran_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
@@ -106,7 +105,6 @@ int main(int argc, char* argv[]) {
     // Set the position of the BD
     gran_sys.set_BD_Fixed(true);
 
-    gran_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
     // gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CHUNG);
     gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
     gran_sys.set_friction_mode(GRAN_FRICTION_MODE::MULTI_STEP);
