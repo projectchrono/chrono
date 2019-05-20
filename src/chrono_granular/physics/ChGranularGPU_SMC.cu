@@ -353,7 +353,7 @@ __host__ void ChSystemGranular_MonodisperseSMC::setupSphereDataStructures() {
     // NOTE that this will get resized again later, this is just the first estimate
     TRACK_VECTOR_RESIZE(spheres_in_SD_composite, 2 * nSpheres, "spheres_in_SD_composite", NULL_GRANULAR_ID);
 
-    if (friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
+    if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
         // add rotational DOFs
         TRACK_VECTOR_RESIZE(sphere_Omega_X, nSpheres, "sphere_Omega_X", 0);
         TRACK_VECTOR_RESIZE(sphere_Omega_Y, nSpheres, "sphere_Omega_Y", 0);
@@ -365,11 +365,12 @@ __host__ void ChSystemGranular_MonodisperseSMC::setupSphereDataStructures() {
         TRACK_VECTOR_RESIZE(sphere_ang_acc_Z, nSpheres, "sphere_ang_acc_Z", 0);
     }
 
-    if (friction_mode == GRAN_FRICTION_MODE::MULTI_STEP || friction_mode == GRAN_FRICTION_MODE::SINGLE_STEP) {
+    if (gran_params->friction_mode == GRAN_FRICTION_MODE::MULTI_STEP ||
+        gran_params->friction_mode == GRAN_FRICTION_MODE::SINGLE_STEP) {
         TRACK_VECTOR_RESIZE(contact_partners_map, 12 * nSpheres, "contact_partners_map", NULL_GRANULAR_ID);
         TRACK_VECTOR_RESIZE(contact_active_map, 12 * nSpheres, "contact_active_map", false);
     }
-    if (friction_mode == GRAN_FRICTION_MODE::MULTI_STEP) {
+    if (gran_params->friction_mode == GRAN_FRICTION_MODE::MULTI_STEP) {
         float3 null_history = {0., 0., 0.};
         TRACK_VECTOR_RESIZE(contact_history_map, 12 * nSpheres, "contact_history_map", null_history);
     }
@@ -380,7 +381,7 @@ __host__ void ChSystemGranular_MonodisperseSMC::setupSphereDataStructures() {
         TRACK_VECTOR_RESIZE(sphere_acc_Z_old, nSpheres, "sphere_acc_Z_old", 0);
 
         // friction and multistep means keep old ang acc
-        if (friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
+        if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
             TRACK_VECTOR_RESIZE(sphere_ang_acc_X_old, nSpheres, "sphere_ang_acc_X_old", 0);
             TRACK_VECTOR_RESIZE(sphere_ang_acc_Y_old, nSpheres, "sphere_ang_acc_Y_old", 0);
             TRACK_VECTOR_RESIZE(sphere_ang_acc_Z_old, nSpheres, "sphere_ang_acc_Z_old", 0);

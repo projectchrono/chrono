@@ -1446,3 +1446,11 @@ Multistep took 83.8955 seconds!
 Current date is  Fri, 10 May 2019 09:59:32 -0500
 commit a35f033f4c137b445d8f960dad6fc4519a222faa Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri May 10 09:59:06 2019 -0500 massive cleanup, doxygen added, triangle friction, three friction coeffs
 Results:
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Mon, 20 May 2019 11:05:26 -0500
+commit 565ac363d05bfb7481c6ba40526a0dc69c6c7d66 Author: Conlain Kelly <conlain.k@gmail.com> Date: Mon May 20 11:05:19 2019 -0500 cleanup some friction stuff
+Results:
+Running test suite!
+Frictionless took 45.8294 seconds!
+Single Step took 59.7743 seconds!
+Multistep took 85.8025 seconds!

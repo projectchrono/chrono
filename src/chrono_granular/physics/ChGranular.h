@@ -400,10 +400,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     }
 
     /// Set friction formulation
-    void set_friction_mode(GRAN_FRICTION_MODE new_mode) {
-        gran_params->friction_mode = new_mode;
-        this->friction_mode = new_mode;
-    }
+    void set_friction_mode(GRAN_FRICTION_MODE new_mode) { gran_params->friction_mode = new_mode; }
 
     /// Set rolling resistence formulation
     void set_rolling_mode(GRAN_ROLLING_MODE new_mode) { gran_params->rolling_mode = new_mode; }
@@ -628,8 +625,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// The type of time stepping (fixed or adaptive) used in the simulation
     GRAN_TIME_STEPPING time_stepping;
 
-    GRAN_FRICTION_MODE friction_mode;
-    GRAN_FRICTION_MODE friction_mode_s2w;
+    /// how is the system integrated through time?
     GRAN_TIME_INTEGRATOR time_integrator;
 
     /// Partitions the big domain (BD) and sets the number of SDs that BD is split in.

@@ -125,7 +125,7 @@ void ChSystemGranular_MonodisperseSMC::packSphereDataPointers() {
 
     sphere_data->sphere_owner_SDs = sphere_owner_SDs.data();
 
-    if (friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
+    if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
         sphere_data->sphere_Omega_X = sphere_Omega_X.data();
         sphere_data->sphere_Omega_Y = sphere_Omega_Y.data();
         sphere_data->sphere_Omega_Z = sphere_Omega_Z.data();
@@ -142,7 +142,7 @@ void ChSystemGranular_MonodisperseSMC::packSphereDataPointers() {
         sphere_data->sphere_acc_X_old = sphere_acc_X_old.data();
         sphere_data->sphere_acc_Y_old = sphere_acc_Y_old.data();
         sphere_data->sphere_acc_Z_old = sphere_acc_Z_old.data();
-        if (friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
+        if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
             sphere_data->sphere_ang_acc_X_old = sphere_ang_acc_X_old.data();
             sphere_data->sphere_ang_acc_Y_old = sphere_ang_acc_Y_old.data();
             sphere_data->sphere_ang_acc_Z_old = sphere_ang_acc_Z_old.data();
@@ -153,12 +153,13 @@ void ChSystemGranular_MonodisperseSMC::packSphereDataPointers() {
     sphere_data->SD_SphereCompositeOffsets = SD_SphereCompositeOffsets.data();
     sphere_data->spheres_in_SD_composite = spheres_in_SD_composite.data();
 
-    if (friction_mode == GRAN_FRICTION_MODE::MULTI_STEP || friction_mode == GRAN_FRICTION_MODE::SINGLE_STEP) {
+    if (gran_params->friction_mode == GRAN_FRICTION_MODE::MULTI_STEP ||
+        gran_params->friction_mode == GRAN_FRICTION_MODE::SINGLE_STEP) {
         sphere_data->contact_partners_map = contact_partners_map.data();
         sphere_data->contact_active_map = contact_active_map.data();
     }
 
-    if (friction_mode == GRAN_FRICTION_MODE::MULTI_STEP) {
+    if (gran_params->friction_mode == GRAN_FRICTION_MODE::MULTI_STEP) {
         sphere_data->contact_history_map = contact_history_map.data();
     }
 

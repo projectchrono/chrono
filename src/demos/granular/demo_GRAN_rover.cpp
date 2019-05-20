@@ -76,7 +76,11 @@ constexpr double wheel_inertia_x = (1. / 4.) * wheel_mass * wheel_rad * wheel_ra
 constexpr double wheel_inertia_y = (1. / 2.) * wheel_mass * wheel_rad * wheel_rad;
 constexpr double wheel_inertia_z = wheel_inertia_x;
 
+unsigned int out_fps = 50;
+
 double terrain_height_offset = 0;
+
+enum RUN_MODE { SETTLING = 0, TESTING = 1 };
 
 std::string chassis_filename = "granular/rover/MER_body.obj";
 
@@ -90,13 +94,49 @@ std::vector<float> mesh_masses;
 std::vector<bool> mesh_inflated;
 std::vector<float> mesh_inflation_radii;
 
+bool use_base_mesh = true;
+std::string terrain_mesh_filename = "granular/rover/spiky_terrain.obj";
+
 // y is height, x and z are radial
 // starts as height=1, diameter = 1
 
 std::string wheel_filename = std::string("granular/rover/wheel_scaled.obj");
 
 void ShowUsage() {
-    cout << "usage: ./demo_GRAN_rover <json_file>" << endl;
+    cout << "usage: ./demo_GRAN_rover <json_file> <run_mode> <checkpoint_file_base>" << endl;
+}
+
+std::vector<ChVector<float>> loadCheckpointFile(std::string checkpoint_file) {
+    // Read in checkpoint file
+    std::vector<ChVector<float>> body_points;
+
+    std::string line;
+    std::ifstream cp_file(checkpoint_file);
+    if (!cp_file.is_open()) {
+        cout << "ERROR reading checkpoint file" << endl;
+        exit(1);
+    }
+
+    std::string d = ",";
+    std::getline(cp_file, line);  // Skip the header
+    while (std::getline(cp_file, line)) {
+        size_t pos = line.find(d);
+        std::string tok;
+        std::string d = ",";
+        ChVector<float> point;
+        for (size_t i = 0; i < 3; i++) {
+            pos = line.find(d);
+            tok = line.substr(0, pos);
+            point[i] = std::stof(tok);
+            line.erase(0, pos + 1);
+            // if (i == 2 && point[i] > max_gran_z) {
+            //     max_gran_z = point[i];
+            // }
+        }
+        body_points.push_back(point);
+    }
+    cp_file.close();
+    return body_points;
 }
 
 void addWheelBody(ChSystemNSC& rover_sys,
@@ -179,10 +219,13 @@ void writeMeshFrames(std::ostringstream& outstream,
 
 int main(int argc, char* argv[]) {
     sim_param_holder params;
-    if (argc != 2 || ParseJSON(argv[1], params) == false) {
+    if (argc != 4 || ParseJSON(argv[1], params) == false) {
         ShowUsage();
         return 1;
     }
+
+    RUN_MODE run_mode = (RUN_MODE)std::atoi(argv[2]);
+    std::string checkpoint_file_base = std::string(argv[3]);
 
     double iteration_step = params.step_size;
 
@@ -190,15 +233,21 @@ int main(int argc, char* argv[]) {
     ChSystemGranular_MonodisperseSMC_trimesh gran_sys(params.sphere_radius, params.sphere_density,
                                                       make_float3(params.box_X, params.box_Y, params.box_Z));
 
-    double fill_bottom = -params.box_Z / 2.0;
-    double fill_top = 0;
+    double fill_bottom = 0;
+    double fill_top = params.box_Z / 2.0;
 
     // leave a 4cm margin at edges of sampling
     ChVector<> hdims(params.box_X / 2 - 2.0, params.box_Y / 2 - 2.0, std::abs((fill_bottom - fill_top) / 2.) - 2.0);
     ChVector<> center(0, 0, (fill_bottom + fill_top) / 2.);
-    std::vector<ChVector<float>> body_points;
 
-    body_points = PDLayerSampler_BOX<float>(center, hdims, 2. * params.sphere_radius, 1.01);
+    std::vector<ChVector<float>> body_points;
+    if (run_mode == RUN_MODE::SETTLING) {
+        body_points = PDLayerSampler_BOX<float>(center, hdims, 2. * params.sphere_radius, 1.01);
+        params.time_end = 1.f;
+        out_fps = 10;
+    } else if (run_mode == RUN_MODE::TESTING) {
+        body_points = loadCheckpointFile(checkpoint_file_base + ".csv");
+    }
 
     std::vector<ChVector<float>> first_points;
 
@@ -254,6 +303,15 @@ int main(int argc, char* argv[]) {
     rover_sys.Set_G_acc(ChVector<>(params.grav_X, params.grav_Y, params.grav_Z));
     // rover_sys.Set_G_acc(ChVector<>(0, 0, 0));
 
+    if (use_base_mesh) {
+        mesh_masses.push_back(chassis_mass);
+        mesh_inflated.push_back(false);
+        mesh_inflation_radii.push_back(0);
+        float3 terrain_mesh_scaling = {params.box_X, params.box_Y, params.box_Z};
+        mesh_scalings.push_back(terrain_mesh_scaling);
+        mesh_filenames.push_back(terrain_mesh_filename);
+    }
+
     std::shared_ptr<ChBody> chassis_body(rover_sys.NewBody());
 
     double height_offset_chassis_to_bottom = std::abs(wheel_offset_z) + 2 * wheel_rad;
@@ -298,7 +356,6 @@ int main(int argc, char* argv[]) {
 
     gran_sys.initialize();
 
-    unsigned int out_fps = 50;
     cout << "Rendering at " << out_fps << "FPS" << endl;
 
     unsigned int out_steps = 1 / (out_fps * iteration_step);
@@ -306,7 +363,11 @@ int main(int argc, char* argv[]) {
     int currframe = 0;
     unsigned int curr_step = 0;
 
-    gran_sys.enableMeshCollision();
+    if (run_mode == RUN_MODE::SETTLING) {
+        gran_sys.disableMeshCollision();
+    } else if (run_mode == RUN_MODE::TESTING) {
+        gran_sys.enableMeshCollision();
+    }
 
     printf("Chassis mass: %f g, each wheel mass: %f g\n", chassis_mass, wheel_mass);
     printf("Total Chassis weight in CGS: %f\n", std::abs((chassis_mass + 4 * wheel_mass) * params.grav_Z));
@@ -389,6 +450,12 @@ int main(int argc, char* argv[]) {
             meshfile << outstream.str();
             // }
         }
+    }
+
+    if (run_mode == RUN_MODE::SETTLING) {
+        gran_sys.setOutputMode(GRAN_OUTPUT_MODE::CSV);
+
+        gran_sys.writeFile(checkpoint_file_base);
     }
 
     clock_t end = std::clock();
