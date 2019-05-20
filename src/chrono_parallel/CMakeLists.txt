@@ -65,7 +65,18 @@ ENDIF()
 
 # ----- Thrust library -----
 
-find_package(Thrust)
+
+# Workaround for FreeBSD ports devel/thrust
+if (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
+  find_path(THRUST_INCLUDE_DIR NAMES thrust/version.h PATHS "/usr/local" "/usr/local/include")
+  if (THRUST_INCLUDE_DIR)
+    set(${THRUST_FOUND} TRUE)
+  else()
+    message(FATAL_ERROR "THRUST_INCLUDE_DIR is not set, but it is required.")
+  endif()
+else()
+  find_package(Thrust)
+endif()
 
 if(NOT THRUST_FOUND)
   mark_as_advanced(CLEAR THRUST_INCLUDE_DIR)
@@ -81,6 +92,8 @@ ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   FIND_PATH(BLAZE_DIR NAMES blaze/Blaze.h PATHS "/usr/include" "/usr/local/include")
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   FIND_PATH(BLAZE_DIR NAMES blaze/Blaze.h PATHS "/usr/include" "/usr/local/include")
+else()
+  find_path(BLAZE_DIR NAMES blaze/Blaze.h PATHS "/usr/include" "/usr/local/include")
 ENDIF()
 
 # Extract Blaze version
