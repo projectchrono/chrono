@@ -224,7 +224,11 @@ void ChSystemGranularSMC::writeFile(std::string ofile, bool write_vel_components
 
         // Dump to a stream, write to file only at end
         std::ostringstream outstrstream;
-        outstrstream << "x,y,z,absv";
+        outstrstream << "x,y,z";
+        if (write_vel_components) {
+            outstrstream << ",vx,vy,vz";
+        }
+        outstrstream << ",absv";
 
         if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
             outstrstream << ",wx,wy,wz";
@@ -248,7 +252,16 @@ void ChSystemGranularSMC::writeFile(std::string ofile, bool write_vel_components
             y_UU += ((int64_t)ownerSD_trip.y * gran_params->SD_size_Y_SU) * LENGTH_SU2UU;
             z_UU += ((int64_t)ownerSD_trip.z * gran_params->SD_size_Z_SU) * LENGTH_SU2UU;
 
-            outstrstream << x_UU << "," << y_UU << "," << z_UU << "," << absv;
+            outstrstream << x_UU << "," << y_UU << "," << z_UU;
+            if (write_vel_components) {
+                float vx_UU = pos_X_dt[n] * LENGTH_SU2UU / TIME_SU2UU;
+                float vy_UU = pos_Y_dt[n] * LENGTH_SU2UU / TIME_SU2UU;
+                float vz_UU = pos_Z_dt[n] * LENGTH_SU2UU / TIME_SU2UU;
+
+                outstrstream << "," << vx_UU << "," << vy_UU << "," << vz_UU;
+            }
+
+            outstrstream << "," << absv;
 
             if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
                 outstrstream << "," << sphere_Omega_X.at(n) / TIME_SU2UU << "," << sphere_Omega_Y.at(n) / TIME_SU2UU
