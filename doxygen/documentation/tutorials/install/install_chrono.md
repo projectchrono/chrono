@@ -172,7 +172,7 @@ For Visual Studio:
   The entire Chrono project and its demos will be compiled, creating many .exe and .dll files, in the bin/Release subdirectory.   
   This will take a few minutes.
 
-5. Repeat step 3 and 4, but choosing **'Debug'** as configuration type. This will generate the binaries with debugging symbols: they will be placed under the bin/Debug subfolder.
+5. Repeat step 3 and 4, but choosing **Debug** as configuration type. This will generate the binaries with debugging symbols: they will be placed under the bin/Debug subfolder.
 
 For Linux/GCC and for MacOS/clang:
 
@@ -206,4 +206,3 @@ You have to manually copy the Irrlicht.dll from your Irrlicht `/bin/Win64-visual
 IMPORTANT: never mix 64-bit and 32-bit binaries and libraries! 
 For example, you must link the 64-bit Irrlicht library.  
 </div>
-

@@ -4,10 +4,10 @@ Links      {#links}
 
 
 A Chrono body can be constrained in its relative motion with respect to a different body or ground. This is achieved by using ChLink classes.  
-From the @ref chrono::ChLink class various set of links are derived. The most noticeable are those derived from:
-- @ref chrono::ChLinkMate: more efficient, however they do not implement limits and only few of them can have an imposed motion;
-- @ref chrono::ChLinkLock: more general, the relative motion can be limited within boundaries, the motion can be imposed, forces and relative displacements can easily be retrieved; it is possible to specify a constraint over points that are _moving_ respect to the body reference frame.
-- @ref chrono::ChLinkMotor; ChLinkMate derived joints  with included actuation;
+From the @ref chrono::ChLink class various sets of links are derived. The most noticeable are those derived from:
+- @ref chrono::ChLinkMate : more efficient, however they do not implement limits and only few of them can have an imposed motion;
+- @ref chrono::ChLinkLock : more general, the relative motion can be limited within boundaries, forces and relative displacements can easily be retrieved; it is possible to specify a constraint over points that are _moving_ respect to the body reference frame;
+- @ref chrono::ChLinkMotor : ChLinkMate derived joints with included actuation.
 
 Thus, some of the ChLinkMate and ChLinkLock derived classes may overlap. The latter being more flexible, the first more efficient. Because of this, the ChLinkMate version should be preferred, in general.
 
@@ -16,19 +16,19 @@ Thus, some of the ChLinkMate and ChLinkLock derived classes may overlap. The lat
 Some general information are fundamental to effectively use these classes:
 - links often refer to a pair @ref chrono:ChMarker, but such markers can be automatically added to bodies during link initialization; see below;
 - each link has a reference/master frame; reaction forces and axis direction are computed with respect to this reference marker;
-- it's worth to set the initial position of the markers/bodies to a feasibile position;
+- it's worth to set the initial position of the markers/bodies to a feasible position;
 - it's generally useful to set the solver parameters to finer values when constraints are present; see [Solvers](@ref solvers);
 
-# ChLink quick reference
+# ChLink Quick Reference
 | ConDOF | Task | Description | Class |
 | :-: | :--- | :-- | :-- |
-| 6 | Fix | Fix position and rotation | body->SetFixed(); <br> @ref chrono::ChLinkMateFix <br> @ref chrono::ChLinkLockLock |
+| 6 | Fix | Fix position and rotation | @ref chrono::ChLinkMateFix <br> @ref chrono::ChLinkLockLock |
 | 6\|3 | Bushing | Linear compliance + optional spherical joint | @ref chrono::ChLinkBushing |
 | 5 | Revolute | Allows rotation along Z axis | @ref chrono::ChLinkLockRevolute <br> @ref chrono::ChLinkRevolute |
 | 5 | Prismatic | Allows translation along Z axis  | @ref chrono::ChLinkLockPrismatic |
-| 4 | Universal | Universal joint | @ref chrono::ChLinkUniversal |
+| 4 | Universal | Universal joint (along X and Y axes) | @ref chrono::ChLinkUniversal |
 | 4 | Revolute+Prismatic | Allow translation along X axis and rotation along Z axis | @ref chrono::ChLinkLockRevolutePrismatic |
-| 4 | Oldham | Oldham joint; does not fix axis position | @ref chrono::ChLinkLockOldham |
+| 4 | Oldham | Oldham joint; does not fix axes position | @ref chrono::ChLinkLockOldham |
 | 4 | Cylindrical | Z axes are collinear | @ref chrono::ChLinkMateCoaxial <br> @ref chrono::ChLinkLockCylindrical |
 | 3 | Spherical | Fix translations | @ref chrono::ChLinkMateSpherical <br> @ref chrono::ChLinkLockSpherical |
 | 3 | Planar | YZ planes are coplanar | @ref chrono::ChLinkLockPlanePlane <br> @ref chrono::ChLinkMatePlane |
@@ -45,8 +45,9 @@ Some general information are fundamental to effectively use these classes:
 | 1 | Gear | Couple rotation over Z axes; gear-specific features | @ref chrono::ChLinkGear |
 | 0 | Free | No constraints | @ref chrono::ChLinkLockFree |
 
+Additionally, if a body has to be fixed to the global frame and reaction forces are of no interest, it is possible to use the @ref chrono::ChBody::SetFixed() method; this will also eliminate the state from the system.
 
-## Actuated joints
+## Actuators
 | ConDOF | MotDOF | Task | Description | Class |
 | :-: | :-: | :--- | :-- | :-- |
 | 0\|3\|5 | 1 | Linear Actuator | Applies linear force\|speed\|position between frames; <br> optionally adds none\|prismatic\|spherical joints to its ends <br> can be paired with 1D @ref chrono::ChShaft | @ref chrono::ChLinkMotorLinear and derived |
@@ -54,6 +55,7 @@ Some general information are fundamental to effectively use these classes:
 | 0 | 1 | Linear Spring+Damper | Spring+Damper depending to frame distance; also with custom force | @ref chrono::ChLinkSpring <br> @ref chrono::ChLinkSpringCB |
 | 0 | 1 | Rotational Spring+Damper | Spring+Damper depending to frame rotation along Z axis; with custom force | @ref chrono::ChLinkRotSpringCB |
 
+Also @ref chrono::ChLinkLockLock can be used to impose a motion between bodies.
 
 ## Usage
 In many cases there is no need to explicitly create two markers. Use in the case the ChLink::Initialize() 
@@ -68,7 +70,7 @@ In general, the process involves the following steps:
    ~~~{.cpp}
    auto mylink =  std::make_shared<ChLinkLockSpherical>();
    ~~~
-2. Use ```mylink->Initialize(…)``` to connect two bodies
+2. Use ```mylink->Initialize(…)``` to connect two bodies; different links may accept different arguments. Refer to the documentation of the specific link for further information.
    ~~~{.cpp}
    mylink->Initialize(pendulumBody,        // the 1st body to connect
                       floorBody,      // the 2nd body to connect
