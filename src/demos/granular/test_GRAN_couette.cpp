@@ -288,7 +288,7 @@ int main(int argc, char* argv[]) {
             cout << "Rendering frame " << currframe << endl;
             char filename[100];
             sprintf(filename, "%s/step%06u", output_dir.c_str(), currframe++);
-            m_sys.writeFile(string(filename));
+            m_sys.writeFile(string(filename), true);
             // m_sys.write_meshes(string(filename));
             string mesh_output = string(filename) + "_meshframes.csv";
 
@@ -299,7 +299,9 @@ int main(int argc, char* argv[]) {
             if (test_mode == DOUBLE) {
                 writeMeshFrames(outstream, inner_filename, pos_mesh, inner_scaling);
             }
-            writeMeshFrames(outstream, outer_filename, pos_mesh, outer_scaling, omega * (t - time_settling));
+
+            double angle = (settled) ? omega * (t - time_settling) : 0;
+            writeMeshFrames(outstream, outer_filename, pos_mesh, outer_scaling, angle);
 
             meshfile << outstream.str();
             meshfile.close();
