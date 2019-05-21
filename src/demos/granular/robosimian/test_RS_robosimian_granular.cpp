@@ -174,21 +174,21 @@ int main(int argc, char* argv[]) {
     // Create system
     // -------------
 
-    ////ChSystemSMC my_sys;
-    ChSystemNSC my_sys;
+    ////ChSystemSMC chrono_sys;
+    ChSystemNSC chrono_sys;
 
-    my_sys.SetMaxItersSolverSpeed(200);
-    if (my_sys.GetContactMethod() == ChMaterialSurface::NSC)
-        my_sys.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
+    chrono_sys.SetMaxItersSolverSpeed(200);
+    if (chrono_sys.GetContactMethod() == ChMaterialSurface::NSC)
+        chrono_sys.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
 
-    my_sys.Set_G_acc(ChVector<double>(0, 0, -9.8));
-    ////my_sys.Set_G_acc(ChVector<double>(0, 0, 0));
+    chrono_sys.Set_G_acc(ChVector<double>(0, 0, -9.8));
+    ////chrono_sys.Set_G_acc(ChVector<double>(0, 0, 0));
 
     // -----------------------
     // Create RoboSimian robot
     // -----------------------
 
-    robosimian::RoboSimian robot(&my_sys, true, true);
+    robosimian::RoboSimian robot(&chrono_sys, true, true);
 
     // Initialize Robosimian robot
 
@@ -299,8 +299,8 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup granular simulation
-    ChSystemGranularSMC_trimesh m_sys_gran(params.sphere_radius, params.sphere_density,
-                                                        make_float3(params.box_X, params.box_Y, params.box_Z));
+    ChSystemGranularSMC_trimesh gran_sys(params.sphere_radius, params.sphere_density,
+                                         make_float3(params.box_X, params.box_Y, params.box_Z));
 
     // Fill box with bodies
     std::vector<ChVector<float>> body_points;
@@ -322,39 +322,39 @@ int main(int argc, char* argv[]) {
         center.z() += 2.05 * params.sphere_radius;
     }
 
-    m_sys_gran.setParticlePositions(body_points);
+    gran_sys.setParticlePositions(body_points);
 
-    m_sys_gran.set_BD_Fixed(true);
+    gran_sys.set_BD_Fixed(true);
 
-    m_sys_gran.set_K_n_SPH2SPH(params.normalStiffS2S);
-    m_sys_gran.set_K_n_SPH2WALL(params.normalStiffS2W);
-    m_sys_gran.set_K_n_SPH2MESH(params.normalStiffS2M);
-    m_sys_gran.set_Gamma_n_SPH2SPH(params.normalDampS2S);
-    m_sys_gran.set_Gamma_n_SPH2WALL(params.normalDampS2S);
-gran_sys.setPsiFactors(params.psi_T, params.psi_L);
-    m_sys_gran.set_Gamma_n_SPH2MESH(params.normalDampS2M);
-    m_sys_gran.set_Cohesion_ratio(params.cohesion_ratio);
-    m_sys_gran.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
+    gran_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
+    gran_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
+    gran_sys.set_K_n_SPH2MESH(params.normalStiffS2M);
+    gran_sys.set_Gamma_n_SPH2SPH(params.normalDampS2S);
+    gran_sys.set_Gamma_n_SPH2WALL(params.normalDampS2S);
+    gran_sys.setPsiFactors(params.psi_T, params.psi_L);
+    gran_sys.set_Gamma_n_SPH2MESH(params.normalDampS2M);
+    gran_sys.set_Cohesion_ratio(params.cohesion_ratio);
+    gran_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
 
-    m_sys_gran.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CHUNG);
-    m_sys_gran.set_fixed_stepSize(params.step_size);
+    gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CHUNG);
+    gran_sys.set_fixed_stepSize(params.step_size);
 
-    m_sys_gran.load_meshes(mesh_filenames, mesh_scalings, mesh_masses, mesh_inflated, mesh_inflation_radii);
+    gran_sys.load_meshes(mesh_filenames, mesh_scalings, mesh_masses, mesh_inflated, mesh_inflation_radii);
 
-    m_sys_gran.disableMeshCollision();  // disable meshes for settling
+    gran_sys.disableMeshCollision();  // disable meshes for settling
 
     /// output preferences
-    m_sys_gran.setOutputDirectory(params.output_dir);
-    m_sys_gran.setOutputMode(params.write_mode);
-    m_sys_gran.setVerbose(params.verbose);
+    gran_sys.setOutputDirectory(params.output_dir);
+    gran_sys.setOutputMode(params.write_mode);
+    gran_sys.setVerbose(params.verbose);
     filesystem::create_directory(filesystem::path(params.output_dir));
 
-    unsigned int nSoupFamilies = m_sys_gran.getNumTriangleFamilies();
+    unsigned int nSoupFamilies = gran_sys.getNumTriangleFamilies();
     cout << nSoupFamilies << " soup families" << endl;
     double* meshSoupLocOri = new double[7 * nSoupFamilies];
     float* meshVel = new float[6 * nSoupFamilies]();
 
-    m_sys_gran.initialize();
+    gran_sys.initialize();
     int currframe = 0;
 
     unsigned int out_fps = 100;
@@ -370,18 +370,18 @@ gran_sys.setPsiFactors(params.psi_T, params.psi_L);
 
     double curr_time = 0;
     while (curr_time < time_end && curr_time < params.time_end) {
-        if (drop && !terrain_created && my_sys.GetChTime() > time_create_terrain) {
+        if (drop && !terrain_created && chrono_sys.GetChTime() > time_create_terrain) {
             // Set terrain height to be _just_ below wheel
             double wheel_z = robot.GetWheelPos(robosimian::FR).z() - 0.13;
 
             // double z = wheel_z - 1;  // put solid terrain well below rover
-            double max_gran_z = m_sys_gran.get_max_z() / 100;
+            double max_gran_z = gran_sys.get_max_z() / 100;
             // we want the wheels just above terrain height
             robot_granular_offset.z() = -wheel_z + max_gran_z;
             printf("new z offset is %f\n", robot_granular_offset.z());
 
             // add meshes back in
-            m_sys_gran.enableMeshCollision();
+            gran_sys.enableMeshCollision();
 
             // Release robot
             robot.GetChassis()->GetBody()->SetBodyFixed(false);
@@ -415,10 +415,10 @@ gran_sys.setPsiFactors(params.psi_T, params.psi_L);
             meshSoupLocOri[body_family_offset + 6] = mesh_rot[3];
         }
         // Apply the mesh orientation data to the mesh
-        m_sys_gran.meshSoup_applyRigidBodyMotion(meshSoupLocOri, meshVel);
+        gran_sys.meshSoup_applyRigidBodyMotion(meshSoupLocOri, meshVel);
 
         float mesh_forces[6 * num_mesh_bodies];
-        m_sys_gran.collectGeneralizedForcesOnMeshSoup(mesh_forces);
+        gran_sys.collectGeneralizedForcesOnMeshSoup(mesh_forces);
         // Apply forces to the mesh for the duration of the iteration
         for (unsigned int i = 0; i < num_mesh_bodies; i++) {
             auto mesh = gran_collision_bodies[i].second;
@@ -452,9 +452,9 @@ gran_sys.setPsiFactors(params.psi_T, params.psi_L);
             cout << "Rendering frame " << render_frame << endl;
             char filename[100];
             sprintf(filename, "%s/step%06d", params.output_dir.c_str(), render_frame);
-            m_sys_gran.writeFile(string(filename));
+            gran_sys.writeFile(string(filename));
             // // write some VTKs for debug
-            m_sys_gran.write_meshes(string(filename));
+            gran_sys.write_meshes(string(filename));
 
             // write mesh transforms for ospray renderer
             char mesh_output[100];
@@ -472,7 +472,7 @@ gran_sys.setPsiFactors(params.psi_T, params.psi_L);
             render_frame++;
         }
 
-        m_sys_gran.advance_simulation(time_step);
+        gran_sys.advance_simulation(time_step);
 
         robot.DoStepDynamics(time_step);
 

@@ -153,7 +153,7 @@ __host__ void ChSystemGranularSMC::defragment_initial_positions() {
     sphere_owner_SDs_tmp.resize(nSpheres);
 
     // reorder values into new sorted
-    for (int i = 0; i < nSpheres; i++) {
+    for (unsigned int i = 0; i < nSpheres; i++) {
         sphere_pos_x_tmp.at(i) = sphere_local_pos_X.at(sphere_ids.at(i));
         sphere_pos_y_tmp.at(i) = sphere_local_pos_Y.at(sphere_ids.at(i));
         sphere_pos_z_tmp.at(i) = sphere_local_pos_Z.at(sphere_ids.at(i));
