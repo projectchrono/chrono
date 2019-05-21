@@ -167,7 +167,7 @@ void ChSystemGranularSMC::packSphereDataPointers() {
     gpuErrchk(cudaMemPrefetchAsync(sphere_data, sizeof(*sphere_data), dev_ID));
 }
 
-void ChSystemGranularSMC::writeFile(std::string ofile) const {
+void ChSystemGranularSMC::writeFile(std::string ofile, bool write_vel_components) const {
     // The file writes are a pretty big slowdown in CSV mode
     if (file_write_mode == GRAN_OUTPUT_MODE::BINARY) {
         // Write the data as binary to a file, requires later postprocessing that can be done in parallel, this is a
@@ -196,6 +196,17 @@ void ChSystemGranularSMC::writeFile(std::string ofile) const {
             ptFile.write((const char*)&x_UU, sizeof(float));
             ptFile.write((const char*)&y_UU, sizeof(float));
             ptFile.write((const char*)&z_UU, sizeof(float));
+
+            if (write_vel_components) {
+                float vx_UU = pos_X_dt[n] * LENGTH_SU2UU / TIME_SU2UU;
+                float vy_UU = pos_Y_dt[n] * LENGTH_SU2UU / TIME_SU2UU;
+                float vz_UU = pos_Z_dt[n] * LENGTH_SU2UU / TIME_SU2UU;
+
+                ptFile.write((const char*)&vx_UU, sizeof(float));
+                ptFile.write((const char*)&vy_UU, sizeof(float));
+                ptFile.write((const char*)&vz_UU, sizeof(float));
+            }
+
             ptFile.write((const char*)&absv, sizeof(float));
 
             if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {

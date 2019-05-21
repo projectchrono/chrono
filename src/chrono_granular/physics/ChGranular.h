@@ -478,7 +478,7 @@ class CH_GRANULAR_API ChSystemGranularSMC {
     /// Copy back the subdomain device data and save it to a file for error checking on the priming kernel
     void checkSDCounts(std::string ofile, bool write_out, bool verbose) const;
     /// Writes out particle positions according to the system output mode
-    void writeFile(std::string ofile) const;
+    void writeFile(std::string ofile, bool write_vel_components = false) const;
 
     /// Safety check velocity to ensure the simulation is still stable
     void setMaxSafeVelocity_SU(float max_vel) { gran_params->max_safe_vel = max_vel; }
