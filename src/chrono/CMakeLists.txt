@@ -1146,6 +1146,10 @@ set(ChronoEngine_FILES
 # Add the ChronoEngine library to the project
 add_library(ChronoEngine SHARED ${ChronoEngine_FILES})
 
+if(WIN32)
+  target_link_libraries(ChronoEngine winmm)
+endif()
+
 if (UNIX)
   target_link_libraries(ChronoEngine pthread)
 endif()
