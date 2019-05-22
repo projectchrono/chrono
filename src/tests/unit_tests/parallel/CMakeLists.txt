@@ -23,6 +23,7 @@ SET(TESTS
     #utest_PAR_rhs
     utest_PAR_r
     utest_PAR_shafts
+    utest_PAR_rotmotors
     utest_PAR_other_math
     #utest_PAR_svd
     #utest_PAR_collision_system

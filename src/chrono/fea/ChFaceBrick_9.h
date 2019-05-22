@@ -66,7 +66,7 @@ class ChApi ChFaceBrick_9 : public ChLoadableUV {
         return foo_null;
     }
 
-    /// Fills the N shape function matrix (1 row, 10 columns)
+    /// Fills the N shape function matrix (1 row, 4 columns)
     virtual void ShapeFunctions(ChMatrix<>& N, double x, double y) {
         N(0) = 0.25 * (1 - x) * (1 - y);
         N(1) = 0.25 * (1 + x) * (1 - y);
@@ -137,7 +137,7 @@ class ChApi ChFaceBrick_9 : public ChLoadableUV {
                            ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
                            ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
                            ) override {
-        ChMatrixNM<double, 1, 11> N;
+        ChMatrixNM<double, 1, 4> N;
         ShapeFunctions(N, U, V);
 
         //***TODO*** exact det of jacobian at u,v

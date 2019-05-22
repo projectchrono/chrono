@@ -31,7 +31,6 @@ namespace chrono {
 template <class Real = double>
 class ChMatrix33 : public ChMatrixNM<Real, 3, 3> {
   public:
-    /// Default constructor builds a 3x3 matrix with zeroes.
     ChMatrix33() : ChMatrixNM<Real, 3, 3>() {}
 
     /// Copy constructor
@@ -50,6 +49,7 @@ class ChMatrix33 : public ChMatrixNM<Real, 3, 3> {
 
     /// Construct a diagonal 3x3 matrix with all diagonal elements equal to the specified value.
     ChMatrix33(Real val) : ChMatrixNM<Real, 3, 3>() {
+        this->Reset();
         this->Set33Element(0, 0, val);
         this->Set33Element(1, 1, val);
         this->Set33Element(2, 2, val);
@@ -58,6 +58,7 @@ class ChMatrix33 : public ChMatrixNM<Real, 3, 3> {
     /// Construct a 3x3 matrix with the specified vector as its diagonal.
     template <class RealB>
     ChMatrix33(const ChVector<RealB>& vec) : ChMatrixNM<Real, 3, 3>() {
+        this->Reset();
         this->Set33Element(0, 0, vec.x());
         this->Set33Element(1, 1, vec.y());
         this->Set33Element(2, 2, vec.z());

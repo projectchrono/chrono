@@ -19,22 +19,14 @@
 
 namespace chrono {
 
-/// Specialized class for representing a N-DOF item for a
-/// system, that is an item with mass matrix and
-/// associate variables.
-/// The main difference from the base class ChVariables
-/// is that the base class does not create any mass matrix,
-/// while this minimal specialization at least creates a
-/// NxN mass matrix. Of course a generic (uncompressed) NxN
-/// matrix is used. This means that, for example, this
-/// class could  be used for 3D rigid bodies if N=6, however
-/// it would be better to implement a more optimized class
-/// which does not create a full 6x6 matrix (since only few
-/// elements on the diagonal would be different from 0 in case
-/// of rigid bodies), so use the ChVariablesBody in this case..
+/// Specialized class for representing a N-DOF item for a system, that is an item with mass matrix and associate
+/// variables. The main difference from the base class ChVariables is that the base class does not create any mass
+/// matrix, while this minimal specialization at least creates a NxN mass matrix. Of course a generic (uncompressed) NxN
+/// matrix is used. This means that, for example, this class could  be used for 3D rigid bodies if N=6, however it would
+/// be better to implement a more optimized class which does not create a full 6x6 matrix (since only few elements on
+/// the diagonal would be different from 0 in case of rigid bodies), so use the ChVariablesBody in this case..
 
 class ChApi ChVariablesGeneric : public ChVariables {
-
   private:
     ChMatrixDynamic<>* Mmass;
     ChMatrixDynamic<>* inv_Mmass;
@@ -53,22 +45,16 @@ class ChApi ChVariablesGeneric : public ChVariables {
     /// Access the inverted inertia matrix
     ChMatrix<>& GetInvMass() { return *inv_Mmass; }
 
-    // IMPLEMENT PARENT CLASS METHODS
-
-    /// The number of scalar variables in the vector qb
-    /// (dof=degrees of freedom)
+    /// The number of scalar variables in the vector qb (dof=degrees of freedom)
     virtual int Get_ndof() const override { return this->ndof; }
 
-    /// Computes the product of the inverse mass matrix by a
-    /// vector, and add to result: result = [invMb]*vect
+    /// Computes the product of the inverse mass matrix by a vector, and add to result: result = [invMb]*vect
     virtual void Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const override;
 
-    /// Computes the product of the inverse mass matrix by a
-    /// vector, and increment result: result += [invMb]*vect
+    /// Computes the product of the inverse mass matrix by a vector, and increment result: result += [invMb]*vect
     virtual void Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const override;
 
-    /// Computes the product of the mass matrix by a
-    /// vector, and set in result: result = [Mb]*vect
+    /// Computes the product of the mass matrix by a vector, and set in result: result = [Mb]*vect
     virtual void Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const override;
 
     /// Computes the product of the corresponding block in the

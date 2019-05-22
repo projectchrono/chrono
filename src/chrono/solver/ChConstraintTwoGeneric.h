@@ -44,7 +44,7 @@ class ChApi ChConstraintTwoGeneric : public ChConstraintTwo {
 
   public:
     /// Default constructor
-    ChConstraintTwoGeneric() : Cq_a(NULL), Cq_b(NULL), Eq_a(NULL), Eq_b(NULL) {}
+    ChConstraintTwoGeneric();
 
     /// Construct and immediately set references to variables
     ChConstraintTwoGeneric(ChVariables* mvariables_a, ChVariables* mvariables_b);

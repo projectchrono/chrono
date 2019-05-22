@@ -505,7 +505,7 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
     real3& max_bounding_point = data_manager->measures.collision.ff_max_bounding_point;
     real3& min_bounding_point = data_manager->measures.collision.ff_min_bounding_point;
 
-    SphereSphereContact(data_manager->num_fluid_bodies, data_manager->num_rigid_bodies * 6 + data_manager->num_shafts,
+    SphereSphereContact(data_manager->num_fluid_bodies, data_manager->num_rigid_bodies * 6 + data_manager->num_shafts + data_manager->num_motors,
                         radius, data_manager->node_container->collision_envelope, min_bounding_point,
                         max_bounding_point, pos_fluid, data_manager->host_data.vel_3dof,
                         data_manager->host_data.sorted_pos_3dof, data_manager->host_data.sorted_vel_3dof,

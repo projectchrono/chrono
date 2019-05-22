@@ -17,7 +17,9 @@
 namespace chrono {
 namespace utils {
 
-CompositeInertia::CompositeInertia() : m_mass(0) {}
+CompositeInertia::CompositeInertia() : m_mass(0) {
+    m_inertia.Reset();
+}
 
 // Calculate and return the inertia tensor of the composite body, with respect
 // to its centroidal frame.

@@ -92,6 +92,7 @@ typedef blaze::Subvector<const DynamicVector<real>> ConstSubVectorType;
 #define _num_dof_ data_manager->num_dof
 #define _num_rigid_dof_ data_manager->num_rigid_bodies * 6
 #define _num_shaft_dof_ data_manager->num_shafts
+#define _num_motor_dof_ data_manager->num_motors
 #define _num_fluid_dof_ data_manager->num_fluid_bodies * 3
 #define _num_bil_ data_manager->num_bilaterals
 #define _num_uni_ data_manager->num_unilaterals
@@ -102,6 +103,7 @@ typedef blaze::Subvector<const DynamicVector<real>> ConstSubVectorType;
 // 0
 //_num_rigid_dof_
 //_num_shaft_dof_
+//_num_motor_dof_
 //_num_fluid_dof_
 
 // 0
@@ -123,52 +125,52 @@ typedef blaze::Subvector<const DynamicVector<real>> ConstSubVectorType;
 #define _DT_ submatrix(_D_, 0, _num_r_c_, _num_rigid_dof_, 2 * _num_r_c_)
 #define _DS_ submatrix(_D_, 0, 3 * _num_r_c_, _num_rigid_dof_, 3 * _num_r_c_)
 // D Bilateral
-#define _DB_ submatrix(_D_, 0, _num_uni_, _num_rigid_dof_ + _num_shaft_dof_, _num_bil_)
+#define _DB_ submatrix(_D_, 0, _num_uni_, _num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, _num_bil_)
 // D Rigid Fluid
 #define _DRFN_ submatrix(_D_, 0, _num_uni_ + _num_bil_, _num_dof_, _num_rf_c_)
 #define _DRFT_ submatrix(_D_, 0, _num_uni_ + _num_bil_ + _num_rf_c_, _num_dof_, 2 * _num_rf_c_)
 // D fluid fluid density
-#define _DFFD_                                                                                                 \
-    submatrix(_D_, _num_rigid_dof_ + _num_shaft_dof_, _num_uni_ + _num_bil_ + 3 * _num_rf_c_, _num_fluid_dof_, \
-              _num_fluid_)
+#define _DFFD_                                                                                                  \
+    submatrix(_D_, _num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, _num_uni_ + _num_bil_ + 3 * _num_rf_c_, \
+              _num_fluid_dof_, _num_fluid_)
 // D fluid fluid viscosity
-#define _DFFV_                                                                                              \
-    submatrix(_D_, _num_rigid_dof_ + _num_shaft_dof_, _num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_fluid_, \
-              _num_fluid_dof_, 3 * _num_fluid_)
+#define _DFFV_                                                          \
+    submatrix(_D_, _num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, \
+              _num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_fluid_, _num_fluid_dof_, 3 * _num_fluid_)
 //======
 #define _MINVDN_ submatrix(_M_invD_, 0, 0, _num_rigid_dof_, 1 * _num_r_c_)
 #define _MINVDT_ submatrix(_M_invD_, 0, _num_r_c_, _num_rigid_dof_, 2 * _num_r_c_)
 #define _MINVDS_ submatrix(_M_invD_, 0, 3 * _num_r_c_, _num_rigid_dof_, 3 * _num_r_c_)
 // Bilateral
-#define _MINVDB_ submatrix(_M_invD_, 0, _num_uni_, _num_rigid_dof_ + _num_shaft_dof_, _num_bil_)
+#define _MINVDB_ submatrix(_M_invD_, 0, _num_uni_, _num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, _num_bil_)
 // Rigid Fluid
 #define _MINVDRFN_ submatrix(_M_invD_, 0, _num_uni_ + _num_bil_, _num_dof_, _num_rf_c_)
 #define _MINVDRFT_ submatrix(_M_invD_, 0, _num_uni_ + _num_bil_ + _num_rf_c_, _num_dof_, 2 * _num_rf_c_)
 // Density
-#define _MINVDFFD_                                                                                                  \
-    submatrix(_M_invD_, _num_rigid_dof_ + _num_shaft_dof_, _num_uni_ + _num_bil_ + 3 * _num_rf_c_, _num_fluid_dof_, \
-              _num_fluid_)
+#define _MINVDFFD_                                                                                                   \
+    submatrix(_M_invD_, _num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, _num_uni_ + _num_bil_ + 3 * _num_rf_c_, \
+              _num_fluid_dof_, _num_fluid_)
 // Viscosity
-#define _MINVDFFV_                                                                                               \
-    submatrix(_M_invD_, _num_rigid_dof_ + _num_shaft_dof_, _num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_fluid_, \
-              _num_fluid_dof_, 3 * _num_fluid_)
+#define _MINVDFFV_                                                           \
+    submatrix(_M_invD_, _num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, \
+              _num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_fluid_, _num_fluid_dof_, 3 * _num_fluid_)
 //======
 #define _DNT_ submatrix(_D_T_, 0, 0, _num_r_c_, _num_rigid_dof_)
 #define _DTT_ submatrix(_D_T_, _num_r_c_, 0, 2 * _num_r_c_, _num_rigid_dof_)
 #define _DST_ submatrix(_D_T_, 3 * _num_r_c_, 0, 3 * _num_r_c_, _num_rigid_dof_)
 // Bilateral
-#define _DBT_ submatrix(_D_T_, _num_uni_, 0, _num_bil_, _num_rigid_dof_ + _num_shaft_dof_)
+#define _DBT_ submatrix(_D_T_, _num_uni_, 0, _num_bil_, _num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_)
 // Rigid Fluid
 #define _DRFNT_ submatrix(_D_T_, _num_uni_ + _num_bil_, 0, _num_rf_c_, _num_dof_)
 #define _DRFTT_ submatrix(_D_T_, _num_uni_ + _num_bil_ + _num_rf_c_, 0, 2 * _num_rf_c_, _num_dof_)
 // Density
-#define _DFFDT_                                                                                              \
-    submatrix(_D_T_, _num_uni_ + _num_bil_ + 3 * _num_rf_c_, _num_rigid_dof_ + _num_shaft_dof_, _num_fluid_, \
-              _num_fluid_dof_)
+#define _DFFDT_                                                                                                   \
+    submatrix(_D_T_, _num_uni_ + _num_bil_ + 3 * _num_rf_c_, _num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, \
+              _num_fluid_, _num_fluid_dof_)
 // Viscosity
-#define _DFFVT_                                                                                               \
-    submatrix(_D_T_, _num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_fluid_, _num_rigid_dof_ + _num_shaft_dof_, \
-              3 * _num_fluid_, _num_fluid_dof_)
+#define _DFFVT_                                                            \
+    submatrix(_D_T_, _num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_fluid_, \
+              _num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, 3 * _num_fluid_, _num_fluid_dof_)
 //======
 #define _EN_ subvector(_E_, 0, _num_r_c_)
 #define _ET_ subvector(_E_, _num_r_c_, 2 * _num_r_c_)
@@ -433,13 +435,16 @@ class CH_PARALLEL_API ChParallelDataManager {
     // These pointers are used to compute the mass matrix instead of filling a
     // a temporary data structure
     std::vector<std::shared_ptr<ChBody>>* body_list;                  ///< List of bodies
-    std::vector<std::shared_ptr<ChLink>>* link_list;                  ///< List of bilaterals
+    std::vector<std::shared_ptr<ChLinkBase>>* link_list;              ///< List of bilaterals
     std::vector<std::shared_ptr<ChPhysicsItem>>* other_physics_list;  ///< List to other items
 
     // Indexing variables
     uint num_rigid_bodies;             ///< The number of rigid bodies in a system
     uint num_fluid_bodies;             ///< The number of fluid bodies in the system
     uint num_shafts;                   ///< The number of shafts in a system
+    uint num_motors;                   ///< The number of motor links with 1 state variable
+    uint num_linmotors;                ///< The number of linear speed motors
+    uint num_rotmotors;                ///< The number of rotation speed motors
     uint num_dof;                      ///< The number of degrees of freedom in the system
     uint num_rigid_shapes;             ///< The number of collision models in a system
     uint num_rigid_contacts;           ///< The number of contacts between rigid bodies in a system

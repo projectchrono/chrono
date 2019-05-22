@@ -24,7 +24,7 @@ namespace chrono {
 ///
 /// Specialized 'resizeable' matrix class where the elements are allocated on heap.
 /// The size of the matrix can be known even at compile-time, and the matrix can
-/// be freely resized also after creation. The size is unlimited (until you have memory).
+/// be freely resized also after creation. 
 /// Although this is the most generic type of matrix, please do not use it
 /// where you know in advance its size because there are more efficient
 /// types for those matrices with 'static' size (for example, 3x3 rotation
@@ -38,7 +38,6 @@ class ChMatrixDynamic : public ChMatrix<Real> {
         this->rows = 3;
         this->columns = 3;
         this->address = new Real[9];
-        std::memset(this->address, 0, 9 * sizeof(Real));
     }
 
     /// Copy constructor
@@ -70,25 +69,18 @@ class ChMatrixDynamic : public ChMatrix<Real> {
         this->address = new Real[row * col];
 
 #endif
-        std::memset(this->address, 0, this->rows * this->columns * sizeof(Real));
     }
 
-    /// Destructor.
     /// Delete allocated heap mem.
     virtual ~ChMatrixDynamic() { delete[] this->address; }
 
-    //
-    // OPERATORS
-    //
-
-    /// Assignment operator (from generic other matrix, it always work)
+    /// Assignment operator.
     ChMatrixDynamic<Real>& operator=(const ChMatrix<Real>& matbis) {
         ChMatrix<Real>::operator=(matbis);
         return *this;
     }
 
-    /// Negates sign of the matrix.
-    /// Performance warning: a new object is created.
+    /// Negates matrix.
     ChMatrixDynamic<Real> operator-() const {
         ChMatrixDynamic<Real> result(*this);
         result.MatrNeg();
@@ -96,7 +88,6 @@ class ChMatrixDynamic : public ChMatrix<Real> {
     }
 
     /// Sums this matrix and another matrix.
-    /// Performance warning: a new object is created.
     template <class RealB>
     ChMatrixDynamic<Real> operator+(const ChMatrix<RealB>& matbis) const {
         ChMatrixDynamic<Real> result(this->rows, this->columns);
@@ -105,7 +96,6 @@ class ChMatrixDynamic : public ChMatrix<Real> {
     }
 
     /// Subtracts this matrix and another matrix.
-    /// Performance warning: a new object is created.
     template <class RealB>
     ChMatrixDynamic<Real> operator-(const ChMatrix<RealB>& matbis) const {
         ChMatrixDynamic<Real> result(this->rows, this->columns);
@@ -114,7 +104,6 @@ class ChMatrixDynamic : public ChMatrix<Real> {
     }
 
     /// Multiplies this matrix and another matrix.
-    /// Performance warning: a new object is created.
     template <class RealB>
     ChMatrixDynamic<Real> operator*(const ChMatrix<RealB>& matbis) const {
         ChMatrixDynamic<Real> result(this->rows, matbis.GetColumns());
@@ -123,16 +112,11 @@ class ChMatrixDynamic : public ChMatrix<Real> {
     }
 
     /// Multiplies this matrix by a scalar value.
-    /// Performance warning: a new object is created.
     ChMatrixDynamic<Real> operator*(const Real factor) const {
         ChMatrixDynamic<Real> result(*this);
         result.MatrScale(factor);
         return result;
     }
-
-    //
-    // FUNCTIONS
-    //
 
     /// Reallocate memory for a new size.
     virtual void Resize(int nrows, int ncols) {
@@ -142,7 +126,6 @@ class ChMatrixDynamic : public ChMatrix<Real> {
             this->columns = ncols;
             delete[] this->address;
             this->address = new Real[this->rows * this->columns];
-            std::memset(this->address, 0, this->rows * this->columns * sizeof(Real));
         }
     }
 };

@@ -171,15 +171,32 @@ bool ChSystemParallel::Integrate_Y() {
         }
     }
 
+    uint offset = data_manager->num_rigid_bodies * 6;
     ////#pragma omp parallel for
     for (int i = 0; i < (signed)data_manager->num_shafts; i++) {
         if (!data_manager->host_data.shaft_active[i])
             continue;
 
-        shaftlist[i]->Variables().Get_qb().SetElementN(0, velocities[data_manager->num_rigid_bodies * 6 + i]);
+        shaftlist[i]->Variables().Get_qb().SetElementN(0, velocities[offset + i]);
         shaftlist[i]->VariablesQbIncrementPosition(GetStep());
         shaftlist[i]->VariablesQbSetSpeed(GetStep());
         shaftlist[i]->Update(ChTime);
+    }
+
+    offset += data_manager->num_shafts;
+    for (int i = 0; i < (signed)data_manager->num_linmotors; i++) {
+        linmotorlist[i]->Variables().Get_qb().SetElementN(0, velocities[offset + i]);
+        linmotorlist[i]->VariablesQbIncrementPosition(GetStep());
+        linmotorlist[i]->VariablesQbSetSpeed(GetStep());
+        linmotorlist[i]->Update(ChTime, true);
+    }
+
+    offset += data_manager->num_linmotors;
+    for (int i = 0; i < (signed)data_manager->num_rotmotors; i++) {
+        rotmotorlist[i]->Variables().Get_qb().SetElementN(0, velocities[offset + i]);
+        rotmotorlist[i]->VariablesQbIncrementPosition(GetStep());
+        rotmotorlist[i]->VariablesQbSetSpeed(GetStep());
+        rotmotorlist[i]->Update(ChTime, true);
     }
 
     for (int i = 0; i < otherphysicslist.size(); i++) {
@@ -228,6 +245,23 @@ void ChSystemParallel::AddBody(std::shared_ptr<ChBody> newbody) {
 
     // Let derived classes reserve space for specific material surface data
     AddMaterialSurfaceData(newbody);
+}
+
+void ChSystemParallel::AddLink(std::shared_ptr<ChLinkBase> link) {
+    if (link->GetDOF() == 1) {
+        if (auto mot = std::dynamic_pointer_cast<ChLinkMotorLinearSpeed>(link)) {
+            linmotorlist.push_back(mot.get());
+            data_manager->num_linmotors++;
+            data_manager->num_motors++;
+        }
+        if (auto mot = std::dynamic_pointer_cast<ChLinkMotorRotationSpeed>(link)) {
+            rotmotorlist.push_back(mot.get());
+            data_manager->num_rotmotors++;
+            data_manager->num_motors++;
+        }
+    }
+
+    ChSystem::AddLink(link);
 }
 
 //
@@ -358,6 +392,14 @@ void ChSystemParallel::ClearForceVariables() {
     for (int i = 0; i < (signed)data_manager->num_shafts; i++) {
         shaftlist[i]->VariablesFbReset();
     }
+
+    for (int i = 0; i < data_manager->num_linmotors; i++) {
+        linmotorlist[i]->VariablesFbReset();
+    }
+
+    for (int i = 0; i < data_manager->num_rotmotors; i++) {
+        rotmotorlist[i]->VariablesFbReset();
+    }
 }
 
 //
@@ -367,7 +409,9 @@ void ChSystemParallel::ClearForceVariables() {
 // 3. Update other physics items (other than shafts)
 // 4. Update bodies (these introduce state variables)
 // 5. Update shafts (these introduce state variables)
-// 6. Process bilateral constraints
+// 6. Update motor links with states (these introduce state variables)
+// 7. Update 3DOF onjects (these introduce state variables)
+// 8. Process bilateral constraints
 //
 void ChSystemParallel::Update() {
     LOG(INFO) << "ChSystemParallel::Update()";
@@ -387,6 +431,7 @@ void ChSystemParallel::Update() {
     UpdateOtherPhysics();
     UpdateRigidBodies();
     UpdateShafts();
+    UpdateMotorLinks();
     Update3DOFBodies();
     descriptor->EndInsertion();
 
@@ -464,6 +509,29 @@ void ChSystemParallel::UpdateShafts() {
             shaftlist[i]->Variables().Get_qb().GetElementN(0);
         data_manager->host_data.hf[data_manager->num_rigid_bodies * 6 + i] =
             shaftlist[i]->Variables().Get_fb().GetElementN(0);
+    }
+}
+
+//
+// Update all motor links that introduce *exactly* one variable.
+// TODO: extend this to links with more than one variable.
+//
+void ChSystemParallel::UpdateMotorLinks() {
+    int offset = data_manager->num_rigid_bodies * 6 + data_manager->num_shafts;
+    for (int i = 0; i < data_manager->num_linmotors; i++) {
+        linmotorlist[i]->Update(ChTime, false);
+        linmotorlist[i]->VariablesFbLoadForces(GetStep());
+        linmotorlist[i]->VariablesQbLoadSpeed();
+        data_manager->host_data.v[offset + i] = linmotorlist[i]->Variables().Get_qb().GetElementN(0);
+        data_manager->host_data.hf[offset + i] = linmotorlist[i]->Variables().Get_fb().GetElementN(0);
+    }
+    offset += data_manager->num_linmotors;
+    for (int i = 0; i < data_manager->num_rotmotors; i++) {
+        rotmotorlist[i]->Update(ChTime, false);
+        rotmotorlist[i]->VariablesFbLoadForces(GetStep());
+        rotmotorlist[i]->VariablesQbLoadSpeed();
+        data_manager->host_data.v[offset + i] = rotmotorlist[i]->Variables().Get_qb().GetElementN(0);
+        data_manager->host_data.hf[offset + i] = rotmotorlist[i]->Variables().Get_fb().GetElementN(0);
     }
 }
 
@@ -609,9 +677,8 @@ void ChSystemParallel::Setup() {
     data_manager->settings.solver.tol_speed = step * data_manager->settings.solver.tolerance;
     data_manager->settings.gravity = real3(G_acc.x(), G_acc.y(), G_acc.z());
 
-    // Calculate the total number of degrees of freedom (6 per rigid body and 1
-    // for each shaft element).
-    data_manager->num_dof = data_manager->num_rigid_bodies * 6 + data_manager->num_shafts +
+    // Calculate the total number of degrees of freedom (6 per rigid body, 1 per shaft, 1 per motor).
+    data_manager->num_dof = data_manager->num_rigid_bodies * 6 + data_manager->num_shafts + data_manager->num_motors +
                             data_manager->num_fluid_bodies * 3 + data_manager->num_fea_nodes * 3;
 
     // Set variables that are stored in the ChSystem class

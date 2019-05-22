@@ -188,6 +188,9 @@ void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next) {
     ChMatrixNM<double, 6, 6> K_matrix;
     ChMatrixNM<double, 6, 6> R_matrix;
 
+    K_matrix.Reset();
+    R_matrix.Reset();
+
     K_matrix(0, 0) = m_Klin;
     K_matrix(1, 1) = m_Klin;
     K_matrix(2, 2) = m_Klin;

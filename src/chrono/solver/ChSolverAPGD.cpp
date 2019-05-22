@@ -44,6 +44,7 @@ void ChSolverAPGD::ShurBvectorCompute(ChSystemDescriptor& sysd) {
                                                          sysd.GetVariablesList()[iv]->Get_fb());  // q = [M]'*fb
 
     // ...and now do  b_shur = - D'*q = - D'*(M^-1)*k ..
+    r.Reset();
     int s_i = 0;
     for (unsigned int ic = 0; ic < sysd.GetConstraintsList().size(); ic++)
         if (sysd.GetConstraintsList()[ic]->IsActive()) {

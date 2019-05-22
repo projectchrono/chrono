@@ -16,16 +16,19 @@
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 //CH_FACTORY_REGISTER(ChVariables)
 
+ChVariables::ChVariables() : disabled(false), ndof(0), qb(nullptr), fb(nullptr), offset(0) {}
+
 ChVariables::ChVariables(int m_ndof) : disabled(false), ndof(m_ndof), offset(0) {
-    if (Get_ndof() > 0) {
+    if (ndof > 0) {
         qb = new ChMatrixDynamic<>(Get_ndof(), 1);
         fb = new ChMatrixDynamic<>(Get_ndof(), 1);
+        qb->Reset();
+        fb->Reset();
     } else {
-        qb = fb = NULL;
+        qb = fb = nullptr;
     }
 }
 
@@ -41,21 +44,21 @@ ChVariables& ChVariables::operator=(const ChVariables& other) {
     this->disabled = other.disabled;
 
     if (other.qb) {
-        if (qb == NULL)
+        if (!qb)
             qb = new ChMatrixDynamic<>;
         qb->CopyFromMatrix(*other.qb);
     } else {
         delete qb;
-        qb = NULL;
+        qb = nullptr;
     }
 
     if (other.fb) {
-        if (fb == NULL)
+        if (!fb)
             fb = new ChMatrixDynamic<>;
         fb->CopyFromMatrix(*other.fb);
     } else {
         delete fb;
-        fb = NULL;
+        fb = nullptr;
     }
 
     this->ndof = other.ndof;

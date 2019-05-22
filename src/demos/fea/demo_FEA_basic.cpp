@@ -174,16 +174,13 @@ void test_2() {
     auto constraint2 = std::make_shared<ChLinkPointFrame>();
     auto constraint3 = std::make_shared<ChLinkPointFrame>();
 
-    constraint1->Initialize(my_mesh,  // node container
-                            0,        // index of node in node container
+    constraint1->Initialize(mnode1,   // node
                             truss);   // body to be connected to
 
-    constraint2->Initialize(my_mesh,  // node container
-                            1,        // index of node in node container
+    constraint2->Initialize(mnode2,  // node 
                             truss);   // body to be connected to
 
-    constraint3->Initialize(my_mesh,  // node container
-                            3,        // index of node in node container
+    constraint3->Initialize(mnode4,  // node
                             truss);   // body to be connected to
 
     my_system.Add(constraint1);
@@ -293,16 +290,13 @@ void test_3() {
     auto constraint2 = std::make_shared<ChLinkPointFrame>();
     auto constraint3 = std::make_shared<ChLinkPointFrame>();
 
-    constraint1->Initialize(my_mesh,  // node container
-                            0,        // index of node in node container
+    constraint1->Initialize(mnode1,  // node 
                             truss);   // body to be connected to
 
-    constraint2->Initialize(my_mesh,  // node container
-                            1,        // index of node in node container
+    constraint2->Initialize(mnode2,  // node 
                             truss);   // body to be connected to
 
-    constraint3->Initialize(my_mesh,  // node container
-                            3,        // index of node in node container
+    constraint3->Initialize(mnode4,  // node 
                             truss);   // body to be connected to
 
     my_system.Add(constraint1);
@@ -412,20 +406,16 @@ void test_4() {
     auto constraint3 = std::make_shared<ChLinkPointFrame>();
     auto constraint4 = std::make_shared<ChLinkPointFrame>();
 
-    constraint1->Initialize(my_mesh,  // node container
-                            0,        // index of node in node container
+    constraint1->Initialize(mnode1,   // node
                             truss);   // body to be connected to
 
-    constraint2->Initialize(my_mesh,  // node container
-                            1,        // index of node in node container
+    constraint2->Initialize(mnode2,   // node
                             truss);   // body to be connected to
 
-    constraint3->Initialize(my_mesh,  // node container
-                            2,        // index of node in node container
+    constraint3->Initialize(mnode3,   // node
                             truss);   // body to be connected to
 
-    constraint4->Initialize(my_mesh,  // node container
-                            3,        // index of node in node container
+    constraint4->Initialize(mnode4,   // node
                             truss);   // body to be connected to
 
     my_system.Add(constraint1);
@@ -572,20 +562,16 @@ void test_5() {
     auto constraint3 = std::make_shared<ChLinkPointFrame>();
     auto constraint4 = std::make_shared<ChLinkPointFrame>();
 
-    constraint1->Initialize(my_mesh,  // node container
-                            0,        // index of node in node container
+    constraint1->Initialize(mnode1,   // node
                             truss);   // body to be connected to
 
-    constraint2->Initialize(my_mesh,  // node container
-                            1,        // index of node in node container
+    constraint2->Initialize(mnode2,   // node
                             truss);   // body to be connected to
 
-    constraint3->Initialize(my_mesh,  // node container
-                            2,        // index of node in node container
+    constraint3->Initialize(mnode3,   // node
                             truss);   // body to be connected to
 
-    constraint4->Initialize(my_mesh,  // node container
-                            3,        // index of node in node container
+    constraint4->Initialize(mnode4,   // node
                             truss);   // body to be connected to
 
     my_system.Add(constraint1);
@@ -625,8 +611,11 @@ int main(int argc, char* argv[]) {
 
     GetLog() << " Example: the FEM technology for finite elements \n\n\n";
 
-    // Test: an introductory problem:
+    //test_1(); //// NOT WORKING
+    test_2();
+    test_3();
     test_4();
+    test_5();
 
     return 0;
 }

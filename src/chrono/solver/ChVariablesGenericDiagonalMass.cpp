@@ -25,9 +25,7 @@ ChVariablesGenericDiagonalMass::ChVariablesGenericDiagonalMass(int m_ndof) : ChV
 }
 
 ChVariablesGenericDiagonalMass::~ChVariablesGenericDiagonalMass() {
-    if (MmassDiag)
-        delete MmassDiag;
-    MmassDiag = NULL;
+    delete MmassDiag;
 }
 
 ChVariablesGenericDiagonalMass& ChVariablesGenericDiagonalMass::operator=(const ChVariablesGenericDiagonalMass& other) {
@@ -38,22 +36,19 @@ ChVariablesGenericDiagonalMass& ChVariablesGenericDiagonalMass::operator=(const 
     ChVariables::operator=(other);
 
     // copy class data
-
     if (other.MmassDiag) {
-        if (MmassDiag == NULL)
+        if (!MmassDiag)
             MmassDiag = new ChVectorDynamic<>;
         MmassDiag->CopyFromMatrix(*other.MmassDiag);
     } else {
-        if (MmassDiag)
-            delete MmassDiag;
-        MmassDiag = NULL;
+        delete MmassDiag;
+        MmassDiag = nullptr;
     }
 
     return *this;
 }
 
-// Computes the product of the inverse mass matrix by a
-// vector, and add to result: result = [invMb]*vect
+// Computes the product of the inverse mass matrix by a vector, and add to result: result = [invMb]*vect
 void ChVariablesGenericDiagonalMass::Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(result.GetRows() == vect.GetRows());
     assert(vect.GetRows() == Get_ndof());
@@ -61,8 +56,7 @@ void ChVariablesGenericDiagonalMass::Compute_invMb_v(ChMatrix<double>& result, c
         result(i) = vect(i) / (*MmassDiag)(i);
 }
 
-// Computes the product of the inverse mass matrix by a
-// vector, and increment result: result += [invMb]*vect
+// Computes the product of the inverse mass matrix by a vector, and increment result: result += [invMb]*vect
 void ChVariablesGenericDiagonalMass::Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(result.GetRows() == vect.GetRows());
     assert(vect.GetRows() == Get_ndof());
@@ -70,8 +64,7 @@ void ChVariablesGenericDiagonalMass::Compute_inc_invMb_v(ChMatrix<double>& resul
         result(i) += vect(i) / (*MmassDiag)(i);
 }
 
-// Computes the product of the mass matrix by a
-// vector, and set in result: result = [Mb]*vect
+// Computes the product of the mass matrix by a vector, and set in result: result = [Mb]*vect
 void ChVariablesGenericDiagonalMass::Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(result.GetRows() == vect.GetRows());
     assert(vect.GetRows() == Get_ndof());

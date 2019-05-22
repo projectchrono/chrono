@@ -132,6 +132,7 @@ using namespace gui;
 %import  "ChClassFactory.i"
 %import  "ChSystem.i"
 %import  "ChAsset.i"
+%import  "ChVector.i"
 
 %include "IReferenceCounted.h"
 %include "IImage.h"
@@ -175,13 +176,13 @@ using namespace gui;
 // a lot of code bloat. 
 // Alternatively, in the following we create a set of Python-side
 // functions to perform casting by hand, thank to the macro 
-// %DefChSharedPtrDynamicDowncast(base,derived). 
+// %DefSharedPtrDynamicDowncast(base,derived). 
 // Do not specify the "chrono::" namespace before base or derived!
 // Later, in python, you can do the following:
 //  myvis = chrono.CastToChVisualizationShared(myasset)
 //  print ('Could be cast to visualization object?', !myvis.IsNull())
 
-%DefChSharedPtrDynamicDowncast2NS(chrono, chrono::irrlicht, ChAsset,ChIrrNodeAsset)
+%DefSharedPtrDynamicDowncast2NS(chrono, chrono::irrlicht, ChAsset,ChIrrNodeAsset)
 
 
 //

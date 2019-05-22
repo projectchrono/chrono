@@ -90,6 +90,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd  ///< system description with 
         }
     }
     // The vector with the diagonal of the N matrix
+    mD.Reset();
     int d_i = 0;
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
         if (mconstraints[ic]->IsActive()) {
@@ -112,6 +113,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd  ///< system description with 
             mvariables[iv]->Compute_invMb_v(mvariables[iv]->Get_qb(), mvariables[iv]->Get_fb());  // q = [M]'*fb
 
     // ...and now do  b_shur = - D'*q = - D'*(M^-1)*k ..
+    mb.Reset();
     int s_i = 0;
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
         if (mconstraints[ic]->IsActive()) {

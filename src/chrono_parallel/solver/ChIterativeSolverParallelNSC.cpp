@@ -209,6 +209,7 @@ void ChIterativeSolverParallelNSC::ComputeD() {
     }
 
     uint num_shafts = data_manager->num_shafts;
+    uint num_motors = data_manager->num_motors;
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
     uint num_dof = data_manager->num_dof;
     uint num_rigid_contacts = data_manager->num_rigid_contacts;

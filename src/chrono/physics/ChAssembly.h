@@ -50,7 +50,7 @@ class ChApi ChAssembly : public ChPhysicsItem {
     virtual void AddBody(std::shared_ptr<ChBody> body);
 
     /// Attach a link to this assembly.
-    virtual void AddLink(std::shared_ptr<ChLink> link);
+    virtual void AddLink(std::shared_ptr<ChLinkBase> link);
 
     /// Attach a mesh to this assembly.
     virtual void AddMesh(std::shared_ptr<fea::ChMesh> mesh);
@@ -78,7 +78,7 @@ class ChApi ChAssembly : public ChPhysicsItem {
     /// Remove a body from this assembly.
     virtual void RemoveBody(std::shared_ptr<ChBody> body);
     /// Remove a link from this assembly.
-    virtual void RemoveLink(std::shared_ptr<ChLink> link);
+    virtual void RemoveLink(std::shared_ptr<ChLinkBase> link);
     /// Remove a mesh from the assembly.
     virtual void RemoveMesh(std::shared_ptr<fea::ChMesh> mesh);
     /// Remove a ChPhysicsItem object that is not a body or a link
@@ -98,7 +98,7 @@ class ChApi ChAssembly : public ChPhysicsItem {
     /// Get the list of bodies.
     const std::vector<std::shared_ptr<ChBody>>& Get_bodylist() const { return bodylist; }
     /// Get the list of links.
-    const std::vector<std::shared_ptr<ChLink>>& Get_linklist() const { return linklist; }
+    const std::vector<std::shared_ptr<ChLinkBase>>& Get_linklist() const { return linklist; }
     /// Get the list of meshes.
     const std::vector<std::shared_ptr<fea::ChMesh>>& Get_meshlist() const { return meshlist; }
     /// Get the list of physics items that are not in the body or link lists.
@@ -107,7 +107,7 @@ class ChApi ChAssembly : public ChPhysicsItem {
     /// Search a body by its name.
     std::shared_ptr<ChBody> SearchBody(const char* name);
     /// Search a link by its name.
-    std::shared_ptr<ChLink> SearchLink(const char* name);
+    std::shared_ptr<ChLinkBase> SearchLink(const char* name);
     /// Search a mesh by its name.
     std::shared_ptr<fea::ChMesh> SearchMesh(const char* name);
     /// Search from other ChPhysics items (not bodies, links, or meshes) by name.
@@ -283,7 +283,7 @@ class ChApi ChAssembly : public ChPhysicsItem {
 
   protected:
     std::vector<std::shared_ptr<ChBody>> bodylist;                 ///< list of rigid bodies
-    std::vector<std::shared_ptr<ChLink>> linklist;                 ///< list of joints (links)
+    std::vector<std::shared_ptr<ChLinkBase>> linklist;             ///< list of joints (links)
     std::vector<std::shared_ptr<fea::ChMesh>> meshlist;            ///< list of meshes
     std::vector<std::shared_ptr<ChPhysicsItem>> otherphysicslist;  ///< list of other physics objects
     std::vector<std::shared_ptr<ChPhysicsItem>> batch_to_insert;   ///< list of items to insert at once

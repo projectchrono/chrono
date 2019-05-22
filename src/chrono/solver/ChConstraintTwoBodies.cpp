@@ -19,7 +19,18 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChConstraintTwoBodies)
 
+ChConstraintTwoBodies::ChConstraintTwoBodies() {
+    Cq_a.Reset();
+    Cq_b.Reset();
+    Eq_a.Reset();
+    Eq_b.Reset();
+}
+
 ChConstraintTwoBodies::ChConstraintTwoBodies(ChVariablesBody* mvariables_a, ChVariablesBody* mvariables_b) {
+    Cq_a.Reset();
+    Cq_b.Reset();
+    Eq_a.Reset();
+    Eq_b.Reset();
     SetVariables(mvariables_a, mvariables_b);
 }
 

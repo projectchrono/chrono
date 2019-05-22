@@ -13,9 +13,7 @@
 // =============================================================================
 //
 // Unit test for ComputeContactForces utility.
-// Method system->GetContactContainer()->ComputeContactForces(); iterates over
-// all bodies into contact and stores resultant contact force in an unordered map.
-// Upon invocation of myBody->GetContactForce(), the user can retrieve the resultant
+// By calling ChBody::GetContactForce(), the user can retrieve the resultant
 // of all (!) contact forces acting on the body. In this unit test, the overall
 // contact force applied to a contact container is compared to the total weight
 // of a number of balls.
@@ -25,99 +23,40 @@
 #include <vector>
 
 #include "chrono/ChConfig.h"
-#include "chrono/solver/ChSolverMINRES.h"
-#include "chrono/solver/ChSolverSMC.h"
 #include "chrono/physics/ChContactContainerSMC.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
+#include "chrono/solver/ChSolverMINRES.h"
+#include "chrono/solver/ChSolverSMC.h"
 #include "chrono/utils/ChUtilsCreators.h"
+#include "gtest/gtest.h"
 
 using namespace chrono;
 
 // ====================================================================================
 
-// ---------------------
-// Simulation parameters
-// ---------------------
+class ContactForceTest : public ::testing::TestWithParam<ChMaterialSurface::ContactMethod> {
+  protected:
+    ContactForceTest();
+    ~ContactForceTest() { delete system; }
 
-double end_time = 3.0;     // total simulation time
-double start_time = 0.25;  // start check after this period
-double time_step = 5e-3;   // integration step size
-double gravity = -9.81;    // gravitational acceleration
-
-enum SolverType { DEFAULT_SOLVER, MINRES_SOLVER, MKL_SOLVER };
-SolverType solver_type = DEFAULT_SOLVER;
-
-bool stiff_contact = true;
-
-double rtol = 1e-3;  // validation relative error
-
-// ---------------------------
-// Contact material properties
-// ---------------------------
-
-bool use_mat_properties = false;
-ChSystemSMC::ContactForceModel force_model = ChSystemSMC::Hooke;
-ChSystemSMC::TangentialDisplacementModel tdispl_model = ChSystemSMC::OneStep;
-
-float young_modulus = 2e4f;
-float friction = 0.4f;
-float restitution = 0;
-float adhesion = 0;
-
-float kn = 2e4;
-float gn = 5e2;
-float kt = 0;
-float gt = 0;
-
-// --------------------------------
-// Parameters for the falling balls
-// --------------------------------
-
-unsigned int num_balls = 8;
-
-int ballId = 1;
-double radius = 0.05;
-double mass = 5;
-ChVector<> pos(0, 0.06, 0);
-ChQuaternion<> rot(1, 0, 0, 0);
-ChVector<> init_vel(0, 0, 0);
-ChVector<> init_omg(0, 0, 0);
-
-// ---------------------------------
-// Parameters for the containing bin
-// ---------------------------------
-
-int binId = 0;
-double bin_width = 20;
-double bin_length = 20;
-double bin_thickness = 0.1;
-
-// Forward declaration
-bool test_computecontact(ChMaterialSurface::ContactMethod method);
-
-// ====================================================================================
-
-int main(int argc, char* argv[]) {
-
-    bool passed = true;
-    passed &= test_computecontact(ChMaterialSurface::SMC);
-    passed &= test_computecontact(ChMaterialSurface::NSC);
-
-    // Return 0 if all tests passed.
-    return !passed;
-}
-
-// ====================================================================================
-
-bool test_computecontact(ChMaterialSurface::ContactMethod method) {
-    // Create system and contact material.
     ChSystem* system;
+    std::shared_ptr<ChBody> ground;
+    double total_weight;
+};
+
+ContactForceTest::ContactForceTest() {
+    auto method = GetParam();
     std::shared_ptr<ChMaterialSurface> material;
 
     switch (method) {
         case ChMaterialSurface::SMC: {
-            GetLog() << "Using PENALTY method.\n";
+            std::cout << "Using PENALTY method." << std::endl;
+
+            bool use_mat_properties = false;
+            bool stiff_contact = true;
+            ChSystemSMC::ContactForceModel force_model = ChSystemSMC::Hooke;
+            ChSystemSMC::TangentialDisplacementModel tdispl_model = ChSystemSMC::OneStep;
 
             ChSystemSMC* sys = new ChSystemSMC;
             sys->UseMaterialProperties(use_mat_properties);
@@ -125,6 +64,16 @@ bool test_computecontact(ChMaterialSurface::ContactMethod method) {
             sys->SetTangentialDisplacementModel(tdispl_model);
             sys->SetStiffContact(stiff_contact);
             system = sys;
+
+            float young_modulus = 2e4f;
+            float friction = 0.4f;
+            float restitution = 0;
+            float adhesion = 0;
+
+            float kn = 2e4;
+            float gn = 5e2;
+            float kt = 0;
+            float gt = 0;
 
             auto mat = std::make_shared<ChMaterialSurfaceSMC>();
             mat->SetYoungModulus(young_modulus);
@@ -140,9 +89,12 @@ bool test_computecontact(ChMaterialSurface::ContactMethod method) {
             break;
         }
         case ChMaterialSurface::NSC: {
-            GetLog() << "Using COMPLEMENTARITY method.\n";
+            std::cout << "Using COMPLEMENTARITY method." << std::endl;
 
             system = new ChSystemNSC;
+
+            float friction = 0.4f;
+            float restitution = 0;
 
             auto mat = std::make_shared<ChMaterialSurfaceNSC>();
             mat->SetRestitution(restitution);
@@ -153,12 +105,22 @@ bool test_computecontact(ChMaterialSurface::ContactMethod method) {
         }
     }
 
+    double gravity = -9.81;
     system->Set_G_acc(ChVector<>(0, gravity, 0));
 
     // Create the falling balls
+    unsigned int num_balls = 8;
     std::vector<std::shared_ptr<ChBody>> balls(num_balls);
-    double total_weight = 0;
+    total_weight = 0;
 
+    double radius = 0.05;
+    double mass = 5;
+    ChVector<> pos(0, 0.06, 0);
+    ChQuaternion<> rot(1, 0, 0, 0);
+    ChVector<> init_vel(0, 0, 0);
+    ChVector<> init_omg(0, 0, 0);
+
+    int ballId = 1;
     for (unsigned int i = 0; i < num_balls; i++) {
         auto ball = std::shared_ptr<ChBody>(system->NewBody());
 
@@ -183,42 +145,39 @@ bool test_computecontact(ChMaterialSurface::ContactMethod method) {
         total_weight += ball->GetMass();
     }
     total_weight *= gravity;
-    GetLog() << "Total weight = " << total_weight << "\n";
+    std::cout << "Total weight = " << total_weight << std::endl;
 
     // Create container box
-    auto ground = utils::CreateBoxContainer(system, binId, material, ChVector<>(bin_width, bin_length, 2 * radius), bin_thickness,
-                                            ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0), true, true, false, false);
+    int binId = 0;
+    double bin_width = 20;
+    double bin_length = 20;
+    double bin_thickness = 0.1;
+    ground = utils::CreateBoxContainer(system, binId, material,                                       //
+                                       ChVector<>(bin_width, bin_length, 2 * radius), bin_thickness,  //
+                                       ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0),               //
+                                       true, true, false, false);
 
     // -------------------
     // Setup linear solver
     // -------------------
 
-    switch (solver_type) {
-        case DEFAULT_SOLVER: {
-            GetLog() << "Using DEFAULT solver.\n";
-            system->SetMaxItersSolverSpeed(100);
-            system->SetTolForce(1e-6);
-            break;
-        }
-        case MINRES_SOLVER: {
-            GetLog() << "Using MINRES solver.\n";
-            auto minres_solver = std::make_shared<ChSolverMINRES>();
-            minres_solver->SetDiagonalPreconditioning(true);
-            system->SetSolver(minres_solver);
-            system->SetMaxItersSolverSpeed(100);
-            system->SetTolForce(1e-6);
-            break;
-        }
-        default:
-            break;
-    }
+    std::cout << "Using default solver." << std::endl;
+    system->SetMaxItersSolverSpeed(100);
+    system->SetTolForce(1e-6);
+
+    ////std::cout << "Using MINRES solver." << std::endl;
+    ////auto minres_solver = std::make_shared<ChSolverMINRES>();
+    ////minres_solver->SetDiagonalPreconditioning(true);
+    ////system->SetSolver(minres_solver);
+    ////system->SetMaxItersSolverSpeed(100);
+    ////system->SetTolForce(1e-6);
 
     // ----------------
     // Setup integrator
     // ----------------
 
     if (method == ChMaterialSurface::SMC) {
-        GetLog() << "Using HHT integrator.\n";
+        std::cout << "Using HHT integrator." << std::endl;
         system->SetTimestepperType(ChTimestepper::Type::HHT);
         auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
         integrator->SetAlpha(0.0);
@@ -226,33 +185,30 @@ bool test_computecontact(ChMaterialSurface::ContactMethod method) {
         integrator->SetAbsTolerances(1e-08);
         integrator->SetScaling(false);
     } else {
-        GetLog() << "Using default integrator.\n";
+        std::cout << "Using default integrator." << std::endl;
     }
+}
 
-    // ---------------
-    // Simulation loop
-    // ---------------
+// ====================================================================================
 
-    bool passed = true;
+TEST_P(ContactForceTest, simulate) {
+    double end_time = 3.0;     // total simulation time
+    double start_time = 0.25;  // start check after this period
+    double time_step = 5e-3;
+
+    double rtol = 1e-3;  // validation relative error
+
     while (system->GetChTime() < end_time) {
         system->DoStepDynamics(time_step);
 
-        system->GetContactContainer()->ComputeContactForces();
         ChVector<> contact_force = ground->GetContactForce();
-        ////GetLog() << "t = " << system->GetChTime() << " num contacts = " << system->GetContactContainer()->GetNcontacts()
-        ////         << "  force =  " << contact_force.y << "\n";
+        ////std::cout << "t = " << system->GetChTime() << " num contacts = " <<
+        ///system->GetContactContainer()->GetNcontacts() /          << "  force =  " << contact_force.y() << std::endl;
 
         if (system->GetChTime() > start_time) {
-            if (std::abs(1 - contact_force.y() / total_weight) > rtol) {
-                GetLog() << "t = " << system->GetChTime() << "  force =  " << contact_force.y() << "\n";
-                passed = false;
-                break;
-            }
+            ASSERT_LT(std::abs(1 - contact_force.y() / total_weight), rtol);
         }
     }
-
-    GetLog() << "Test " << (passed ? "PASSED" : "FAILED") << "\n\n\n";
-
-    delete system;
-    return passed;
 }
+
+INSTANTIATE_TEST_CASE_P(Chrono, ContactForceTest, ::testing::Values(ChMaterialSurface::NSC, ChMaterialSurface::SMC));

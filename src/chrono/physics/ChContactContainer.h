@@ -26,40 +26,28 @@
 namespace chrono {
 
 /// Class representing a container of many contacts.
-/// There might be implementations of this interface in form of plain CPU linked lists of contact objects,
-/// or highly optimized GPU buffers, etc. This is only the basic interface with the features that are in common.
-/// Struct to store resultant contact force/torque applied on rigid body
 class ChApi ChContactContainer : public ChPhysicsItem {
-
   public:
-    ChContactContainer() : add_contact_callback(NULL), report_contact_callback(NULL) {}
+    ChContactContainer() : add_contact_callback(nullptr), report_contact_callback(nullptr) {}
     ChContactContainer(const ChContactContainer& other);
     virtual ~ChContactContainer() {}
 
-    /// Get the number of added contacts. To be implemented by child classes.
+    /// Get the number of added contacts.
     virtual int GetNcontacts() const = 0;
 
-    /// Remove (delete) all contained contact data. To be implemented by child classes.
+    /// Remove (delete) all contained contact data.
     virtual void RemoveAllContacts() = 0;
 
-    /// The collision system will call BeginAddContact() before adding
-    /// all contacts (for example with AddContact() or similar). By default
-    /// it deletes all previous contacts. Custom more efficient implementations
-    /// might reuse contacts if possible.
+    /// The collision system will call BeginAddContact() before adding all contacts (for example with AddContact() or
+    /// similar). By default it deletes all previous contacts. More efficient implementations might reuse contacts if
+    /// possible.
     virtual void BeginAddContact() { RemoveAllContacts(); }
 
     /// Add a contact between two models, storing it into this container.
-    /// To be implemented by child classes.
-    /// Some specialized child classes (ex. one that uses GPU buffers)
-    /// could implement also other more efficient functions to add many contacts
-    /// in a batch (so that, for example, a special GPU collision system can exploit it);
-    /// yet most collision system might still fall back to this function if no other
-    /// specialized add-functions are found.
     virtual void AddContact(const collision::ChCollisionInfo& mcontact) = 0;
 
-    /// The collision system will call EndAddContact() after adding
-    /// all contacts (for example with AddContact() or similar). By default
-    /// it does nothing.
+    /// The collision system will call EndAddContact() after adding all contacts (for example with AddContact() or
+    /// similar).
     virtual void EndAddContact() {}
 
     /// Class to be used as a callback interface for some user defined action to be taken
@@ -79,7 +67,7 @@ class ChApi ChContactContainer : public ChPhysicsItem {
     };
 
     /// Specify a callback object to be used each time a contact point is added to the container.
-    /// Note that not all derived classes can support this. If supported, the OnAddContact() method
+    /// Note that derived classes may not support this. If supported, the OnAddContact() method
     /// of the provided callback object will be called for each contact pair to allow modifying the
     /// composite material properties.
     virtual void RegisterAddContactCallback(AddContactCallback* mcallback) { add_contact_callback = mcallback; }
@@ -109,21 +97,18 @@ class ChApi ChContactContainer : public ChPhysicsItem {
             ) = 0;
     };
 
-    /// Scans all the contacts and for each contact executes the OnReportContact()
-    /// function of the provided callback object.
-    /// Derived classes of ChContactContainer should try to implement this.
+    /// Scan all the contacts and for each contact executes the OnReportContact() function of the provided callback
+    /// object.
     virtual void ReportAllContacts(ReportContactCallback* mcallback) {}
 
     /// Compute contact forces on all contactable objects in this container.
-    /// If implemented by a derived class, these forces must be stored in the hash table
-    /// contact_forces (with key a pointer to ChContactable and value a ForceTorque structure).
     virtual void ComputeContactForces() {}
 
     /// Return the resultant contact force acting on the specified contactable object.
-    ChVector<> GetContactableForce(ChContactable* contactable);
+    virtual ChVector<> GetContactableForce(ChContactable* contactable) = 0;
 
     /// Return the resultant contact torque acting on the specified contactable object.
-    ChVector<> GetContactableTorque(ChContactable* contactable);
+    virtual ChVector<> GetContactableTorque(ChContactable* contactable) = 0;
 
     /// Method for serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive);
@@ -137,10 +122,15 @@ class ChApi ChContactContainer : public ChPhysicsItem {
         ChVector<> torque;
     };
 
-    std::unordered_map<ChContactable*, ForceTorque> contact_forces;
     AddContactCallback* add_contact_callback;
     ReportContactCallback* report_contact_callback;
 
+    /// Utility function to accumulate contact forces from a specified list of contacts.
+    /// This function is templated by the contact type (assumed to be derived from ChContactTuple).
+    /// Contact forces are accumulated in a map keyed by the contactable objects.
+    /// Derived ChContactContainer classes can use this utility (processing their various lists
+    /// of contacts) to cache information used for reporting through GetContactableForce and
+    /// GetContactableTorque.
     template <class Tcont>
     void SumAllContactForces(std::list<Tcont*>& contactlist,
                              std::unordered_map<ChContactable*, ForceTorque>& contactforces) {

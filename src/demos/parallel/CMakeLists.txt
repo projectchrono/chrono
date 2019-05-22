@@ -35,6 +35,11 @@ SET(DEMOS
     # demo_PAR_cylCouetteFlowSMC
 )
 
+# Add programs that require OpenGL
+if(ENABLE_MODULE_OPENGL)
+    set(DEMOS ${DEMOS} demo_PAR_motors)
+endif()
+
 # ------------------------------------------------------------------------------
 # Add all executables
 # ------------------------------------------------------------------------------

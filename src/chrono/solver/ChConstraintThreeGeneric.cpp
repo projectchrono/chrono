@@ -19,15 +19,18 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChConstraintThreeGeneric)
 
+ChConstraintThreeGeneric::ChConstraintThreeGeneric()
+    : Cq_a(nullptr), Cq_b(nullptr), Cq_c(nullptr), Eq_a(nullptr), Eq_b(nullptr), Eq_c(nullptr) {}
+
 ChConstraintThreeGeneric::ChConstraintThreeGeneric(ChVariables* mvariables_a,
                                                    ChVariables* mvariables_b,
                                                    ChVariables* mvariables_c)
-    : Cq_a(NULL), Cq_b(NULL), Cq_c(NULL), Eq_a(NULL), Eq_b(NULL), Eq_c(NULL) {
+    : Cq_a(nullptr), Cq_b(nullptr), Cq_c(nullptr), Eq_a(nullptr), Eq_b(nullptr), Eq_c(nullptr) {
     SetVariables(mvariables_a, mvariables_b, mvariables_c);
 }
 
 ChConstraintThreeGeneric::ChConstraintThreeGeneric(const ChConstraintThreeGeneric& other) : ChConstraintThree(other) {
-    Cq_a = Cq_b = Cq_c = Eq_a = Eq_b = Eq_c = NULL;
+    Cq_a = Cq_b = Cq_c = Eq_a = Eq_b = Eq_c = nullptr;
     if (other.Cq_a)
         Cq_a = new ChMatrixDynamic<double>(*other.Cq_a);
     if (other.Cq_b)
@@ -43,18 +46,12 @@ ChConstraintThreeGeneric::ChConstraintThreeGeneric(const ChConstraintThreeGeneri
 }
 
 ChConstraintThreeGeneric::~ChConstraintThreeGeneric() {
-    if (Cq_a)
-        delete Cq_a;
-    if (Cq_b)
-        delete Cq_b;
-    if (Cq_c)
-        delete Cq_c;
-    if (Eq_a)
-        delete Eq_a;
-    if (Eq_b)
-        delete Eq_b;
-    if (Eq_c)
-        delete Eq_c;
+    delete Cq_a;
+    delete Cq_b;
+    delete Cq_c;
+    delete Eq_a;
+    delete Eq_b;
+    delete Eq_c;
 }
 
 ChConstraintThreeGeneric& ChConstraintThreeGeneric::operator=(const ChConstraintThreeGeneric& other) {
@@ -65,63 +62,57 @@ ChConstraintThreeGeneric& ChConstraintThreeGeneric::operator=(const ChConstraint
     ChConstraintThree::operator=(other);
 
     if (other.Cq_a) {
-        if (Cq_a == NULL)
+        if (!Cq_a)
             Cq_a = new ChMatrixDynamic<double>;
         Cq_a->CopyFromMatrix(*other.Cq_a);
     } else {
-        if (Cq_a)
-            delete Cq_a;
-        Cq_a = NULL;
+        delete Cq_a;
+        Cq_a = nullptr;
     }
 
     if (other.Cq_b) {
-        if (Cq_b == NULL)
+        if (!Cq_b)
             Cq_b = new ChMatrixDynamic<double>;
         Cq_b->CopyFromMatrix(*other.Cq_b);
     } else {
-        if (Cq_b)
-            delete Cq_b;
-        Cq_b = NULL;
+        delete Cq_b;
+        Cq_b = nullptr;
     }
 
     if (other.Cq_c) {
-        if (Cq_c == NULL)
+        if (!Cq_c)
             Cq_c = new ChMatrixDynamic<double>;
         Cq_c->CopyFromMatrix(*other.Cq_c);
     } else {
-        if (Cq_c)
-            delete Cq_c;
-        Cq_c = NULL;
+        delete Cq_c;
+        Cq_c = nullptr;
     }
 
     if (other.Eq_a) {
-        if (Eq_a == NULL)
+        if (!Eq_a)
             Eq_a = new ChMatrixDynamic<double>;
         Eq_a->CopyFromMatrix(*other.Eq_a);
     } else {
-        if (Eq_a)
-            delete Eq_a;
-        Eq_a = NULL;
+        delete Eq_a;
+        Eq_a = nullptr;
     }
 
     if (other.Eq_b) {
-        if (Eq_b == NULL)
+        if (!Eq_b)
             Eq_b = new ChMatrixDynamic<double>;
         Eq_b->CopyFromMatrix(*other.Eq_b);
     } else {
-        if (Eq_b)
-            delete Eq_b;
-        Eq_b = NULL;
+        delete Eq_b;
+        Eq_b = nullptr;
     }
 
     if (other.Eq_c) {
-        if (Eq_c == NULL)
+        if (!Eq_c)
             Eq_c = new ChMatrixDynamic<double>;
         Eq_c->CopyFromMatrix(*other.Eq_c);
     } else {
-        if (Eq_c)
-            delete Eq_c;
-        Eq_c = NULL;
+        delete Eq_c;
+        Eq_c = nullptr;
     }
 
     return *this;
@@ -150,13 +141,13 @@ void ChConstraintThreeGeneric::SetVariables(ChVariables* mvariables_a,
             Eq_a = new ChMatrixDynamic<double>(variables_a->Get_ndof(), 1);
         else
             Eq_a->Resize(variables_a->Get_ndof(), 1);
+
+        Cq_a->Reset();
     } else {
-        if (Cq_a)
-            delete Cq_a;
-        Cq_a = NULL;
-        if (Eq_a)
-            delete Eq_a;
-        Eq_a = NULL;
+        delete Cq_a;
+        delete Eq_a;
+        Cq_a = nullptr;
+        Eq_a = nullptr;
     }
 
     if (variables_b->Get_ndof()) {
@@ -169,13 +160,13 @@ void ChConstraintThreeGeneric::SetVariables(ChVariables* mvariables_a,
             Eq_b = new ChMatrixDynamic<double>(variables_b->Get_ndof(), 1);
         else
             Eq_b->Resize(variables_b->Get_ndof(), 1);
+
+        Cq_b->Reset();
     } else {
-        if (Cq_b)
-            delete Cq_b;
-        Cq_b = NULL;
-        if (Eq_b)
-            delete Eq_b;
-        Eq_b = NULL;
+        delete Cq_b;
+        delete Eq_b;
+        Cq_b = nullptr;
+        Eq_b = nullptr;
     }
 
     if (variables_c->Get_ndof()) {
@@ -188,13 +179,13 @@ void ChConstraintThreeGeneric::SetVariables(ChVariables* mvariables_a,
             Eq_c = new ChMatrixDynamic<double>(variables_c->Get_ndof(), 1);
         else
             Eq_c->Resize(variables_c->Get_ndof(), 1);
+
+        Cq_c->Reset();
     } else {
-        if (Cq_c)
-            delete Cq_c;
-        Cq_c = NULL;
-        if (Eq_c)
-            delete Eq_c;
-        Eq_c = NULL;
+        delete Cq_c;
+        delete Eq_c;
+        Cq_c = nullptr;
+        Eq_c = nullptr;
     }
 }
 

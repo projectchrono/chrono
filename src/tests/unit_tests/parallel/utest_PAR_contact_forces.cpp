@@ -179,14 +179,13 @@ TEST_P(ContactForceTest, simulate) {
         system->DoStepDynamics(time_step);
 #endif
 
-        system->CalculateContactForces();
-
-        real3 contact_force = system->GetBodyContactForce(ground);
+        system->GetContactContainer()->ComputeContactForces();
+        ChVector<> contact_force = ground->GetContactForce();
         ////std::cout << "t = " << system->GetChTime() << " num contacts = " << system->GetNumContacts()
-        ////          << "  force =  " << contact_force.y << std::endl;
+        ////          << "  force =  " << contact_force.y() << std::endl;
 
         if (system->GetChTime() > start_time) {
-            ASSERT_LT(std::abs(1 - contact_force.y / total_weight), rtol);
+            ASSERT_LT(std::abs(1 - contact_force.y() / total_weight), rtol);
         }
     }
 }

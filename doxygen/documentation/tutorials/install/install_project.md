@@ -4,9 +4,9 @@ Building a project that uses Chrono             {#tutorial_install_project}
 
 When you develop a C++ project and you want to use the Chrono API,
 you need to:
-- **include** the necessary .h headers at compile time,
-- **link** the necessary .lib libraries at link time,
-- **dynamically link** the necessary .dll libraries at run time, 
+- **include** the necessary .h headers at compile time;
+- **link** the necessary .lib libraries at link time;
+- **dynamically link** the necessary .dll libraries at run time.  
 
 as shown below: <br>
 
@@ -38,7 +38,7 @@ build tool.
 -------------------------------------------------------------------
 
 -   Copy the `template_project` directory to some place and rename it as you like.
-    For example copy from `C:\chrono_source\template_project` to `C:\my_project_source`
+    For example copy from `C:\workspace\chrono\template_project` to `C:\workspace\my_project`
 
 This will be the directory where you put your source code.
 
@@ -63,11 +63,11 @@ find_package(Chrono
              COMPONENTS Irrlicht Postprocessing
              CONFIG)
 ~~~
-The same is done for other modules: `FEA`, `Matlab`, `Vehicle`, `Cosimulation`, etc.
+The same is done for other modules: `Vehicle`, `Matlab`, `Cosimulation`, etc.
 </div>
 
 <div class="ce-info">
-If you prefer to change the name of the default my_example.cpp to 
+If you prefer to change the name of the default *my_example.cpp* to 
 something more meaningful, say my_simulator.cpp, just rename that file and then change the line<br>
  `add_executable(myexe my_example.cpp)` <br>
  into <br>
@@ -86,10 +86,10 @@ If your program is split in multiple .cpp sources, simply list them in this line
 -   Start the CMake GUI
 
 -   Use **Browse source...** by setting the source directory that you
-    created, ex: `C:\my_project_source`
+    created, e.g. `C:/workspace/my_project`
 	
 -   Use **Browse build...** by setting a new *empty* directory for the
-    output project, ex: `C:\my_project_build`
+    output project, e.g. `C:/workspace/my_project_build`
 
 	
 5) Configure
@@ -98,35 +98,35 @@ If your program is split in multiple .cpp sources, simply list them in this line
 - Press the **Configure** button in CMake
 
 - When prompted to pick a generator, select the same 
-  compiler that you used to compile Chrono
+  compiler that you used to compile Chrono;
 
 - Important: set the `Chrono_DIR` variable. This is the **cmake** directory that 
-  you find in the directory where you built Chrono. In our example it is `C:/chrono_build/cmake`
+  you find in the directory where you built Chrono. In our example it is `C:/workspace/chrono_build/cmake`
 
 - Press the **Configure** button again
 
-<img src="http://www.projectchrono.org/assets/manual/Install_my_project_1.gif" class="img-responsive">
+<img src="http://www.projectchrono.org/assets/manual/Install_my_project_cmake.png" class="img-responsive">
 
 
 6) Generate the project
 -----------------------------------------------------------
 
 - Press the **Generate** button in CMake. A project will be created in
-  the build directory. In our example you will find it in `C:\my_project_build`
+  the build directory. In our example you will find it in `C:/workspace/my_project_build`
 
 
 7) Compile the project
 ----------------------------------------------------------
 
-If you used a VisualStudio generator in CMake, 
+If you used a Visual Studio generator in CMake, 
 
--   **Open the solution** in VisualStudio editor (in our example double
-    click on `C:\my_project_build\my_project.sln`)
+-   **Open the solution** in Visual Studio editor (in our example double
+    click on `C:\workspace\my_project_build\my_project.sln`)
 
 -   Change from Debug to **Release** mode, using the drop-down list in the 
     toolbar of VisualStudio
 	
--   Use the menu **BUILD / Build solution...** to compile and link.
+-   Use the menu **Build** > **Build solution...** to compile and link.
 
 If you used a Unix makefile generator in CMake (ex. in Linux), you can
 open a shell, cd into the build directory and call **make**: 
@@ -140,35 +140,33 @@ make
 -------------------------------------------------------
 
 By default all binaries (ex. myexe.exe) of your project will go into
-your build directory, in our example `C:\my_project_build\Release\my_project.sln` 
-(or `C:\my_project_build\Debug\my_project.sln` if you decided to compile in Debug mode).
+your build directory, in our example `C:\workspace\my_project_build\Release` 
+(or `C:\workspace\my_project_build\Debug` if you decided to compile in Debug mode).
 
-- double click on the .exe file and you should see the demo running in an interactive 3D view
-
+Double click on the .exe file and you should see the demo running in an interactive 3D view
 <img src="http://projectchrono.org/assets/manual/Install_my_project_2.jpg" class="img-responsive">
 
-Additional information
+Important information for Windows users!
 ----------------------
 
-For Windows users, some notes on copying the Chrono DLL:
+If you are a Windows users, your project executables need to know where to find the Chrono shared libraries (i.e. those with .dll extension), otherwise they will crash as soon as you try to run them.
 
-- Your executable need to know where to find the needed .dll[s], 
-otherwise it will crash as soon as you try to run it.
+To make things simple, we added an auxiliary CMake target (namely COPY_DLLS) that makes a copy of the Chrono shared libraries (and of Irrlicht shared library, if enabled) in the project binaries folder (e.g. `C:\workspace\my_project_build\Release`); however, there are different scenarios. In the case that:
+  + `Chrono_DIR` is a _build_ folder; if you followed our [installation guide](@ref tutorial_install_chrono) then `C:/workspace/chrono_build` is of this type; in this case you may have both Release and Debug version of Chrono (under `C:/workspace/chrono_build/bin`); if both are present, please mind that **only Release libraries will be copied**; if you want to run your project in Debug configuration then you have to manually copy the Debug libraries contained in `C:/workspace/chrono_build/bin/Debug` into `C:/workspace/my_project_build/Debug`;
+  + `Chrono_DIR` is an _install_ folder; this is the folder type that is created by building the `INSTALL` target; this folder is usually `C:/Program Files/Chrono` and contains either Debug or Release libraries, depending on the configuration that you set when you built the `INSTALL` target; please mind that the Chrono configuration type must match your project configuration. If Chrono was built in Release also your project must be compiled in Release.
 
-- To make things simple, at the end of the default CMakeFile.txt used in this example 
-there is this instruction: `add_DLL_copy_command macro`. This takes care of **automatically copying** all the needed dlls right after each build. 
-It also copies the Irrlicht.dll into your executable directory, if the Irrlicht module is used. 
 
-<div class="ce-danger">
-If you followed the [Chrono install tutorial](@ref tutorial_install_chrono) for Visual Studio you will eventually end up with two folders inside `C:/chrono_build/bin/`, namely `/Release` and `/Debug`.<br>
-Currently, the `add_DLL_copy_command` macro will pick the dlls **only** from the `/Release` subdirectory.<br> 
-This is perfectly fine if *your project* is built in `Release` too, but it will **crash** if built in `Debug`!<br>
-In fact you should never mix libraries and executables built with different build configurations.<br>
-In order to run your applications in `Debug` mode you have to **manually copy** any dll inside `C:/chrono_build/bin/Debug` into your `C:/my_project_build/bin/Debug` folder (Irrlicht.dll included).
+<div class="ce-warning">
+The COPY_DLLS target must be re-run (i.e. rebuilt) any time the Chrono library had changed.
 </div>
 
+<div class="ce-warning">
+Your project has to be compiled with the same configuration type of Chrono. E.g. if Chrono was built in Release mode, also your project must be built in Release configuration.
+</div>
+
+<img src="http://www.projectchrono.org/assets/manual/Install_project_COPYDLLS.png" class="img-responsive">
 
 <div class="ce-info">
-Linux users do not have to worry about copying dlls because the .so libraries always go into into a directory that is globally visible.
+Linux users do not have to worry about copying shared libraries because the .so libraries always go into a directory that is globally visible.
 </div>
 

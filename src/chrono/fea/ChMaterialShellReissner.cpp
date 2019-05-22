@@ -310,6 +310,7 @@ void ChMaterialShellReissnerOrthotropic::ComputeTangentC(ChMatrix<>& mC,
     // Compute Qm_local for inplane stresses as in sigma_local = Qm_local * eps_local
     double nu_yx = this->Get_nu_yx();  // follows xy as it must be nu_yx*E_x = nu_xy*E_y
     ChMatrixNM<double, 4, 4> Qm_local;
+    Qm_local.Reset();
     Qm_local(0, 0) = E_x / (1. - nu_xy * nu_yx);
     Qm_local(0, 1) = (nu_xy * E_y) / (1. - nu_xy * nu_yx);
     Qm_local(1, 0) = (nu_yx * E_x) / (1. - nu_xy * nu_yx);
@@ -320,6 +321,8 @@ void ChMaterialShellReissnerOrthotropic::ComputeTangentC(ChMatrix<>& mC,
     ChMatrixNM<double, 2, 2> Qs_local;
     Qs_local(0, 0) = 2. * G_xz;
     Qs_local(1, 1) = 2. * G_yz;
+    Qs_local(0, 1) = 0;
+    Qs_local(1, 0) = 0;
 
     // Rotate Qm_local into Qm, as Qm = Tm'*Qm_local*Tm
     double Co = cos(angle);

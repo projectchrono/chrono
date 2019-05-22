@@ -20,14 +20,39 @@ namespace chrono {
 // dynamic creation and persistence
 CH_FACTORY_REGISTER(ChAssetLevel)
 
-
 void ChAssetLevel::Update(ChPhysicsItem* updater, const ChCoordsys<>& coords) {
-
     // Concatenate the total transformation
     ChCoordsys<> composed_coords(this->levelframe.coord >> coords);
 
     for (unsigned int ia = 0; ia < this->assets.size(); ++ia)
         assets[ia]->Update(updater, composed_coords);
+}
+
+std::shared_ptr<ChAsset> ChAssetLevel::GetAssetN(unsigned int num) {
+    if (num < assets.size())
+        return assets[num];
+    else
+        return std::shared_ptr<ChAsset>();
+}
+
+void ChAssetLevel::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChAssetLevel>();
+    // serialize parent class
+    ChAsset::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(levelframe);
+    marchive << CHNVP(assets);
+}
+
+void ChAssetLevel::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChAssetLevel>();
+    // deserialize parent class
+    ChAsset::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(levelframe);
+    marchive >> CHNVP(assets);
 }
 
 }  // end namespace chrono
