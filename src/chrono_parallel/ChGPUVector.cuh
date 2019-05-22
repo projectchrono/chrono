@@ -98,7 +98,7 @@ class gpu_vector {
     }
     // Copy data from device memory to host stl vector. Resize memory as needed
     void copyDeviceToHost() {
-        size_t new_size = size();
+		size_t new_size = size();
         if (new_size == 0) {
             return;
         }
@@ -127,4 +127,4 @@ class gpu_vector {
     std::vector<T> data_h;
     size_t size_d;
 };
-}  // namespace chrono
+}
