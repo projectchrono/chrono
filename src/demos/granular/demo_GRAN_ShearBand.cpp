@@ -38,7 +38,7 @@ using std::string;
 // Show command line usage
 // -----------------------------------------------------------------------------
 void ShowUsage() {
-    cout << "usage: ./demo_GRAN_wavetank <json_file>" << endl;
+    cout << "usage: ./demo_GRAN_ShearBand <json_file>" << endl;
 }
 
 int main(int argc, char* argv[]) {
