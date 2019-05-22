@@ -27,7 +27,7 @@
 #include "chrono_granular/physics/ChGranularTriMesh.h"
 #include "chrono_thirdparty/SimpleOpt/SimpleOpt.h"
 
-#include "ChGranular_json_parser.hpp"
+#include "chrono_granular/utils/ChGranularJsonParser.h"
 
 using namespace chrono;
 using namespace chrono::granular;

@@ -42,7 +42,7 @@
 
 #include "chrono/utils/ChUtilsCreators.h"
 
-#include "../ChGranular_json_parser.hpp"
+#include "chrono_granular/utils/ChGranularJsonParser.h"
 
 extern std::vector<std::pair<std::string, std::shared_ptr<chrono::ChBodyAuxRef>>> mesh_body_list;
 

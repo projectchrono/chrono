@@ -23,7 +23,7 @@
 #include <string>
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_granular/physics/ChGranular.h"
-#include "ChGranular_json_parser.hpp"
+#include "chrono_granular/utils/ChGranularJsonParser.h"
 #include "ChGranularDemoUtils.hpp"
 #include "chrono/utils/ChUtilsSamplers.h"
 #include "ChGranularDemoUtils.hpp"
@@ -118,7 +118,7 @@ void writeZCylinderMesh(std::ostringstream& outstream, ChVector<> pos, float rad
 
 // -----------------------------------------------------------------------------
 // Demo for settling a monodisperse collection of shperes in a rectangular box.
-// There is no friction. The units are always cm/s/g[L/T/M].
+// The units are always cm/s/g[L/T/M].
 // -----------------------------------------------------------------------------
 int main(int argc, char* argv[]) {
     // Some of the default values might be overwritten by user via command line

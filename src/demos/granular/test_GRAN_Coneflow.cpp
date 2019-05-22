@@ -16,7 +16,6 @@
 //
 // Basic simulation of a settling scenario;
 //  - box is rectangular
-//  - there is no friction
 //
 // The global reference frame has X to the right, Y into the screen, Z up.
 // The global reference frame located in the left lower corner, close to the viewer.
@@ -26,15 +25,12 @@
 #include <string>
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_granular/physics/ChGranular.h"
-#include "ChGranular_json_parser.hpp"
+#include "chrono_granular/utils/ChGranularJsonParser.h"
 #include "ChGranularDemoUtils.hpp"
 #include "chrono/utils/ChUtilsSamplers.h"
 
 using namespace chrono;
 using namespace chrono::granular;
-using std::cout;
-using std::endl;
-using std::string;
 
 // expected number of args for param sweep
 constexpr int num_args_full = 7;
@@ -43,10 +39,10 @@ constexpr int num_args_full = 7;
 // Show command line usage
 // -----------------------------------------------------------------------------
 void ShowUsage() {
-    cout << "usage: ./test_GRAN_Coneflow <json_file> [<aperture_diameter> <particle_radius> <grac_acc> "
-            "<material_density> <output_dir>]"
-         << endl;
-    cout << "must have either 1 or " << num_args_full - 1 << " arguments" << endl;
+    std::cout << "usage: ./test_GRAN_Coneflow <json_file> [<aperture_diameter> <particle_radius> <grac_acc> "
+                 "<material_density> <output_dir>]"
+              << std::endl;
+    std::cout << "must have either 1 or " << num_args_full - 1 << " arguments" << std::endl;
 }
 
 std::string cyl_filename = "Gran_cylinder_transparent.obj";
@@ -113,7 +109,7 @@ void writeZConeMesh(std::ostringstream& outstream, ChVector<> pos, std::string m
 
 // -----------------------------------------------------------------------------
 // Demo for settling a monodisperse collection of shperes in a rectangular box.
-// There is no friction. The units are always cm/s/g[L/T/M].
+// The units are always cm/s/g[L/T/M].
 // -----------------------------------------------------------------------------
 int main(int argc, char* argv[]) {
     sim_param_holder params;

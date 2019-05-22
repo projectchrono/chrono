@@ -16,14 +16,9 @@
 //
 // Basic simulation of a settling scenario;
 //  - box is rectangular
-//  - there is no friction
 //
 // The global reference frame has X to the right, Y into the screen, Z up.
 // The global reference frame located in the left lower corner, close to the viewer.
-//
-// If available, OpenGL is used for run-time rendering. Otherwise, the
-// simulation is carried out for a pre-defined duration and output files are
-// generated for post-processing with POV-Ray.
 // =============================================================================
 #include <fstream>
 #include <iostream>
@@ -60,7 +55,7 @@ float cohesion_ratio = 0;
 
 // -----------------------------------------------------------------------------
 // Run a wavetank for a monodisperse collection of spheres in a rectangular box, undergoing a wave motion
-// There is no friction. The units are always cm/g/s[L/M/T].
+// The units are always cm/g/s[L/M/T].
 // -----------------------------------------------------------------------------
 double run_test(float box_size_X, float box_size_Y, float box_size_Z) {
     // Setup simulation

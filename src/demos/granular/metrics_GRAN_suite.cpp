@@ -16,7 +16,6 @@
 //
 // Basic simulation of a settling scenario;
 //  - box is rectangular
-//  - there is no friction
 //
 // The global reference frame has X to the right, Y into the screen, Z up.
 // The global reference frame located in the left lower corner, close to the viewer.

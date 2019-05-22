@@ -45,7 +45,7 @@
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_granular/physics/ChGranularTriMesh.h"
 
-#include "../ChGranular_json_parser.hpp"
+#include "chrono_granular/utils/ChGranularJsonParser.h"
 
 using namespace chrono;
 using namespace chrono::granular;
@@ -311,7 +311,7 @@ int main(int argc, char* argv[]) {
     gran_sys.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
     gran_sys.set_Gamma_t_SPH2MESH(params.tangentDampS2M);
 
-gran_sys.setPsiFactors(params.psi_T, params.psi_L);
+    gran_sys.setPsiFactors(params.psi_T, params.psi_L);
     gran_sys.set_Cohesion_ratio(params.cohesion_ratio);
     gran_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
     gran_sys.set_Adhesion_ratio_S2M(params.adhesion_ratio_s2m);

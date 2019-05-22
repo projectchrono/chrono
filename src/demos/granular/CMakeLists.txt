@@ -16,27 +16,19 @@ SET(LIBRARIES
 # ------------------------------------------------------------------------------
 
 SET(DEMOS
-		demo_GRAN_BoxSettle_SMC
 		demo_GRAN_terrainBox_SMC
 		demo_GRAN_Bucket
-		demo_GRAN_TriMeshNoFric_SMC
-		demo_GRAN_TriMeshNoFric_SMC_tiredrag
-		metrics_GRAN_ballcosim
+		demo_GRAN_ballcosim
 		demo_GRAN_wavetank
 		metrics_GRAN_milsettle
 		metrics_GRAN_suite
 		utest_GRAN_TriMeshNoFric_SMC_boxroll
-		utest_GRAN_meshstep
 		test_GRAN_Coneflow
-		test_GRAN_HopperReposeAngle
-		utest_GRAN_spherefric
 		utest_GRAN_testsuite
 		utest_GRAN_mini
 		demo_GRAN_DamBreak
 		demo_GRAN_rover
 		demo_GRAN_ShearBand
-		test_GRAN_meshforce
-		test_GRAN_hopperflow
 		test_GRAN_mixer
 		test_GRAN_bulkcompress
 		test_GRAN_directshear

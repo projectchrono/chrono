@@ -33,7 +33,7 @@
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChLinkMotorRotationTorque.h"
 
-#include "ChGranular_json_parser.hpp"
+#include "chrono_granular/utils/ChGranularJsonParser.h"
 #include "ChGranularDemoUtils.hpp"
 
 using namespace chrono;

@@ -12,7 +12,7 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChBody.h"
 
-#include "ChGranular_json_parser.hpp"
+#include "chrono_granular/utils/ChGranularJsonParser.h"
 
 using std::cout;
 using std::endl;

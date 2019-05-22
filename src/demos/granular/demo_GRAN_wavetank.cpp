@@ -29,7 +29,7 @@
 #endif
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_granular/physics/ChGranular.h"
-#include "ChGranular_json_parser.hpp"
+#include "chrono_granular/utils/ChGranularJsonParser.h"
 #include "ChGranularDemoUtils.hpp"
 #include "chrono/utils/ChUtilsSamplers.h"
 
