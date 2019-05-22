@@ -42,20 +42,21 @@ enum MIXER_TYPE {
 };
 
 void ShowUsage() {
-    cout << "usage: ./test_GRAN_mixer <json_file> <output_dir>" << endl;
+    cout << "usage: ./test_GRAN_mixer <json_file> <output_dir> <run_mode:0-4>" << endl;
 }
 
 int main(int argc, char* argv[]) {
     sim_param_holder params;
 
-    // Some of the default values might be overwritten by user via command line
-    if (argc != 3 || ParseJSON(argv[1], params) == false) {
+    if (argc != 4 || ParseJSON(argv[1], params) == false) {
         ShowUsage();
         return 1;
     }
-    float iteration_step = params.step_size;
 
-    // Setup simulation
+    float iteration_step = params.step_size;
+    string out_dir(argv[2]);
+    MIXER_TYPE mixer_type = static_cast<MIXER_TYPE>(stoi(argv[3]));
+
     ChSystemGranularSMC_trimesh m_sys(params.sphere_radius, params.sphere_density,
                                       make_float3(params.box_X, params.box_Y, params.box_Z));
 
@@ -81,18 +82,17 @@ int main(int argc, char* argv[]) {
     m_sys.set_friction_mode(chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP);
 
     const float static_friction = 0.9;
+    cout << "Static Friction: " << static_friction << endl;
     m_sys.set_static_friction_coeff_SPH2SPH(static_friction);
     m_sys.set_static_friction_coeff_SPH2WALL(static_friction);
     m_sys.set_static_friction_coeff_SPH2MESH(static_friction);
-    cout << "Static Friction: " << static_friction << endl;
 
-    m_sys.setOutputMode(GRAN_OUTPUT_MODE::CSV);
+    m_sys.setOutputMode(params.write_mode);
 
-    string out_dir(argv[2]);
     m_sys.setOutputDirectory(out_dir);
     filesystem::create_directory(filesystem::path(out_dir));
 
-    m_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
+    m_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
     m_sys.set_fixed_stepSize(params.step_size);
     m_sys.set_BD_Fixed(true);
 
@@ -112,20 +112,20 @@ int main(int argc, char* argv[]) {
     const float cyl_rad = Bx / 2.f;
     m_sys.Create_BC_Cyl_Z(cyl_center, cyl_rad, false, false);
 
-    utils::HCPSampler<float> sampler(2.2 * params.sphere_radius);
+    utils::HCPSampler<float> sampler(2.1 * params.sphere_radius);
 
     const ChVector<> fill_center(0, 0, fill_bottom + fill_height / 2.f);
     const float fill_radius = Bx / 2.f - 2.f * params.sphere_radius;
     const float fill_htall = fill_height / 2.f - 2.f * params.sphere_radius;
+    // TODO layer sampler
     auto pos = sampler.SampleCylinderZ(fill_center, fill_radius, fill_htall);
 
     unsigned int n_spheres = pos.size();
     cout << "Created " << n_spheres << " spheres" << endl;
 
     m_sys.setParticlePositions(pos);
-    MIXER_TYPE mixer_type = static_cast<MIXER_TYPE>(params.run_mode);
-    float g[3];
 
+    float g[3];
     vector<string> mesh_filenames;
     string mesh_filename;
     switch (mixer_type) {
@@ -174,12 +174,12 @@ int main(int argc, char* argv[]) {
     float3 scaling = make_float3(scale_xy, scale_xy, scale_z);
     mesh_scalings.push_back(scaling);
 
-    std::vector<float> mesh_masses;
-    float mass = 10;
-    mesh_masses.push_back(mass);
+    vector<float> mesh_masses;
+    float mixer_mass = 10;
+    mesh_masses.push_back(mixer_mass);
 
-    std::vector<bool> mesh_inflated;
-    std::vector<float> mesh_inflation_radii;
+    vector<bool> mesh_inflated;
+    vector<float> mesh_inflation_radii;
     mesh_inflated.push_back(false);
     mesh_inflation_radii.push_back(0);
 
@@ -187,12 +187,12 @@ int main(int argc, char* argv[]) {
 
     unsigned int nSoupFamilies = m_sys.getNumTriangleFamilies();
     cout << nSoupFamilies << " soup families" << endl;
-    double* meshSoupLocOri = new double[7 * nSoupFamilies];
-    float* meshVel = new float[6 * nSoupFamilies]();
+    double* mesh_pos_rot = new double[7 * nSoupFamilies];
+    float* mesh_vel = new float[6 * nSoupFamilies]();
 
     float rev_per_sec = 0.5f;
     float ang_vel_Z = rev_per_sec * 2 * CH_C_PI;
-    meshVel[5] = ang_vel_Z;  // BUG with omegas for mesh
+    mesh_vel[5] = ang_vel_Z;
 
     m_sys.initialize();
 
@@ -205,23 +205,23 @@ int main(int argc, char* argv[]) {
     unsigned int step = 0;
 
     for (float t = 0; t < params.time_end; t += iteration_step, step++) {
-        meshSoupLocOri[0] = 0;
-        meshSoupLocOri[1] = 0;
-        meshSoupLocOri[2] = chamber_bottom + chamber_height / 2.0;
+        mesh_pos_rot[0] = 0;
+        mesh_pos_rot[1] = 0;
+        mesh_pos_rot[2] = chamber_bottom + chamber_height / 2.0;
 
         auto q = Q_from_AngZ(t * ang_vel_Z);
-        meshSoupLocOri[3] = q[0];
-        meshSoupLocOri[4] = q[1];
-        meshSoupLocOri[5] = q[2];
-        meshSoupLocOri[6] = q[3];
+        mesh_pos_rot[3] = q[0];
+        mesh_pos_rot[4] = q[1];
+        mesh_pos_rot[5] = q[2];
+        mesh_pos_rot[6] = q[3];
 
-        m_sys.meshSoup_applyRigidBodyMotion(meshSoupLocOri, meshVel);
+        m_sys.meshSoup_applyRigidBodyMotion(mesh_pos_rot, mesh_vel);
         if (step % out_steps == 0) {
             cout << "Rendering frame " << currframe << endl;
             char filename[100];
             sprintf(filename, "%s/step%06u", out_dir.c_str(), currframe++);
             m_sys.writeFile(string(filename));
-            m_sys.write_meshes(string(filename));
+            m_sys.write_meshes(string(filename)); // TODO ospray output
             float forces[6];
             m_sys.collectGeneralizedForcesOnMeshSoup(forces);
             cout << "torque: " << forces[3] << ", " << forces[4] << ", " << forces[5] << endl;
@@ -230,7 +230,8 @@ int main(int argc, char* argv[]) {
         m_sys.advance_simulation(iteration_step);
     }
 
-    delete[] meshSoupLocOri;
+    delete[] mesh_pos_rot;
+    delete[] mesh_vel;
 
     return 0;
 }
