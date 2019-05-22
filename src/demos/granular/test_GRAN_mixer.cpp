@@ -45,6 +45,38 @@ void ShowUsage() {
     cout << "usage: ./test_GRAN_mixer <json_file> <output_dir> <run_mode:0-4>" << endl;
 }
 
+void writeMeshFrames(std::ostringstream& outstream,
+                     const string obj_name,
+                     const ChVector<>& pos,
+                     const float3 mesh_scaling,
+                     const double angle = 0.0) {
+    outstream << obj_name << ",";
+
+    // Get basis vectors
+    auto q = Q_from_AngZ(angle);
+    ChVector<> vx(1, 0, 0);
+    vx = q.Rotate(vx);
+    ChVector<> vy(0, 1, 0);
+    vy = q.Rotate(vy);
+    ChVector<> vz(0, 0, 1);
+
+    // Output in order
+    outstream << pos.x() << ",";
+    outstream << pos.y() << ",";
+    outstream << pos.z() << ",";
+    outstream << vx.x() << ",";
+    outstream << vx.y() << ",";
+    outstream << vx.z() << ",";
+    outstream << vy.x() << ",";
+    outstream << vy.y() << ",";
+    outstream << vy.z() << ",";
+    outstream << vz.x() << ",";
+    outstream << vz.y() << ",";
+    outstream << vz.z() << ",";
+    outstream << mesh_scaling.x << "," << mesh_scaling.y << "," << mesh_scaling.z;
+    outstream << "\n";
+}
+
 int main(int argc, char* argv[]) {
     sim_param_holder params;
 
@@ -53,77 +85,83 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    const float Bx = params.box_X;
+    const float By = Bx;
+    const float chamber_height = Bx / 3;  // TODO
+    const float fill_height = chamber_height;
+    const float Bz = chamber_height + fill_height;
+    cout << "Box Dims: " << Bx << " " << By << " " << Bz << endl;
+
     float iteration_step = params.step_size;
     string out_dir(argv[2]);
     MIXER_TYPE mixer_type = static_cast<MIXER_TYPE>(stoi(argv[3]));
 
-    ChSystemGranularSMC_trimesh m_sys(params.sphere_radius, params.sphere_density,
-                                      make_float3(params.box_X, params.box_Y, params.box_Z));
+    ChSystemGranularSMC_trimesh gran_sys(params.sphere_radius, params.sphere_density, make_float3(Bx, By, Bz));
 
-    m_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
-    m_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
-    m_sys.set_K_n_SPH2MESH(params.normalStiffS2M);
+    gran_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
+    gran_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
+    gran_sys.set_K_n_SPH2MESH(params.normalStiffS2M);
 
-    m_sys.set_K_t_SPH2SPH(params.tangentStiffS2S);
-    m_sys.set_K_t_SPH2WALL(params.tangentStiffS2W);
-    m_sys.set_K_t_SPH2MESH(params.tangentStiffS2M);
+    gran_sys.set_K_t_SPH2SPH(params.tangentStiffS2S);
+    gran_sys.set_K_t_SPH2WALL(params.tangentStiffS2W);
+    gran_sys.set_K_t_SPH2MESH(params.tangentStiffS2M);
 
-    m_sys.set_Gamma_n_SPH2SPH(params.normalDampS2S);
-    m_sys.set_Gamma_n_SPH2WALL(params.normalDampS2W);
-    m_sys.set_Gamma_n_SPH2MESH(params.normalDampS2M);
+    gran_sys.set_Gamma_n_SPH2SPH(params.normalDampS2S);
+    gran_sys.set_Gamma_n_SPH2WALL(params.normalDampS2W);
+    gran_sys.set_Gamma_n_SPH2MESH(params.normalDampS2M);
 
-    m_sys.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
-    m_sys.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
-    m_sys.set_Gamma_t_SPH2MESH(params.tangentDampS2M);
+    gran_sys.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
+    gran_sys.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
+    gran_sys.set_Gamma_t_SPH2MESH(params.tangentDampS2M);
 
-    m_sys.set_Cohesion_ratio(params.cohesion_ratio);
-    m_sys.set_Adhesion_ratio_S2M(params.adhesion_ratio_s2m);
-    m_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
-    m_sys.set_friction_mode(chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP);
+    gran_sys.set_Cohesion_ratio(params.cohesion_ratio);
+    gran_sys.set_Adhesion_ratio_S2M(params.adhesion_ratio_s2m);
+    gran_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
+    gran_sys.set_friction_mode(chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP);
 
     const float static_friction = 0.9;
     cout << "Static Friction: " << static_friction << endl;
-    m_sys.set_static_friction_coeff_SPH2SPH(static_friction);
-    m_sys.set_static_friction_coeff_SPH2WALL(static_friction);
-    m_sys.set_static_friction_coeff_SPH2MESH(static_friction);
+    gran_sys.set_static_friction_coeff_SPH2SPH(static_friction);
+    gran_sys.set_static_friction_coeff_SPH2WALL(static_friction);
+    gran_sys.set_static_friction_coeff_SPH2MESH(static_friction);
 
-    m_sys.setOutputMode(params.write_mode);
+    gran_sys.setOutputMode(params.write_mode);
 
-    m_sys.setOutputDirectory(out_dir);
+    gran_sys.setOutputDirectory(out_dir);
     filesystem::create_directory(filesystem::path(out_dir));
 
-    m_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
-    m_sys.set_fixed_stepSize(params.step_size);
-    m_sys.set_BD_Fixed(true);
-
-    const float Bx = params.box_X;
-    const float By = Bx;
-
-    const float chamber_height = Bx / 3;  // TODO
-    const float fill_height = chamber_height;
-
-    const float Bz = chamber_height + fill_height;
-    cout << "Box Dims: " << Bx << " " << By << " " << Bz << endl;
+    gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
+    gran_sys.set_fixed_stepSize(params.step_size);
+    gran_sys.set_BD_Fixed(true);
 
     const float chamber_bottom = -Bz / 2.f;
     const float fill_bottom = chamber_bottom + chamber_height;
 
     float cyl_center[3] = {0, 0, 0};
     const float cyl_rad = Bx / 2.f;
-    m_sys.Create_BC_Cyl_Z(cyl_center, cyl_rad, false, false);
+    gran_sys.Create_BC_Cyl_Z(cyl_center, cyl_rad, false, false);
 
     utils::HCPSampler<float> sampler(2.1 * params.sphere_radius);
+    vector<ChVector<float>> body_points;
 
-    const ChVector<> fill_center(0, 0, fill_bottom + fill_height / 2.f);
     const float fill_radius = Bx / 2.f - 2.f * params.sphere_radius;
-    const float fill_htall = fill_height / 2.f - 2.f * params.sphere_radius;
-    // TODO layer sampler
-    auto pos = sampler.SampleCylinderZ(fill_center, fill_radius, fill_htall);
+    const float fill_top = fill_bottom + fill_height;
 
-    unsigned int n_spheres = pos.size();
+    unsigned int n_spheres = body_points.size();
     cout << "Created " << n_spheres << " spheres" << endl;
+    cout << "Fill radius " << fill_radius << endl;
+    cout << "Fill bottom " << fill_bottom << endl;
+    cout << "Fill top " << fill_top << endl;
 
-    m_sys.setParticlePositions(pos);
+    ChVector<float> center(0, 0, fill_bottom);
+    center.z() += 2 * params.sphere_radius;
+    while (center.z() < fill_top - 2 * params.sphere_radius) {
+        auto points = sampler.SampleCylinderZ(center, fill_radius, 0);
+        body_points.insert(body_points.end(), points.begin(), points.end());
+        center.z() += 2.1 * params.sphere_radius;
+    }
+
+    gran_sys.setParticlePositions(body_points);
 
     float g[3];
     vector<string> mesh_filenames;
@@ -164,7 +202,7 @@ int main(int argc, char* argv[]) {
             return 1;
     }
 
-    m_sys.set_gravitational_acceleration(g[0], g[1], g[2]);
+    gran_sys.set_gravitational_acceleration(g[0], g[1], g[2]);
 
     mesh_filenames.push_back(mesh_filename);
 
@@ -183,9 +221,9 @@ int main(int argc, char* argv[]) {
     mesh_inflated.push_back(false);
     mesh_inflation_radii.push_back(0);
 
-    m_sys.load_meshes(mesh_filenames, mesh_scalings, mesh_masses, mesh_inflated, mesh_inflation_radii);
+    gran_sys.load_meshes(mesh_filenames, mesh_scalings, mesh_masses, mesh_inflated, mesh_inflation_radii);
 
-    unsigned int nSoupFamilies = m_sys.getNumTriangleFamilies();
+    unsigned int nSoupFamilies = gran_sys.getNumTriangleFamilies();
     cout << nSoupFamilies << " soup families" << endl;
     double* mesh_pos_rot = new double[7 * nSoupFamilies];
     float* mesh_vel = new float[6 * nSoupFamilies]();
@@ -194,7 +232,7 @@ int main(int argc, char* argv[]) {
     float ang_vel_Z = rev_per_sec * 2 * CH_C_PI;
     mesh_vel[5] = ang_vel_Z;
 
-    m_sys.initialize();
+    gran_sys.initialize();
 
     unsigned int currframe = 0;
     double out_fps = 60;
@@ -215,19 +253,33 @@ int main(int argc, char* argv[]) {
         mesh_pos_rot[5] = q[2];
         mesh_pos_rot[6] = q[3];
 
-        m_sys.meshSoup_applyRigidBodyMotion(mesh_pos_rot, mesh_vel);
+        gran_sys.meshSoup_applyRigidBodyMotion(mesh_pos_rot, mesh_vel);
         if (step % out_steps == 0) {
             cout << "Rendering frame " << currframe << endl;
             char filename[100];
             sprintf(filename, "%s/step%06u", out_dir.c_str(), currframe++);
-            m_sys.writeFile(string(filename));
-            m_sys.write_meshes(string(filename)); // TODO ospray output
+            gran_sys.writeFile(string(filename));
+            gran_sys.write_meshes(string(filename));
+
+            string mesh_output = string(filename) + "_meshframes.csv";
+
+            std::ofstream meshfile(mesh_output);
+            std::ostringstream outstream;
+            outstream << "mesh_name,dx,dy,dz,x1,x2,x3,y1,y2,y3,z1,z2,z3,sx,sy,sz\n";
+
+            double angle = t * ang_vel_Z;
+            ChVector<> pos_mesh(mesh_pos_rot[0], mesh_pos_rot[1], mesh_pos_rot[2]);
+            writeMeshFrames(outstream, mesh_filename, pos_mesh, scaling, angle);
+
+            meshfile << outstream.str();
+            meshfile.close();
+
             float forces[6];
-            m_sys.collectGeneralizedForcesOnMeshSoup(forces);
+            gran_sys.collectGeneralizedForcesOnMeshSoup(forces);
             cout << "torque: " << forces[3] << ", " << forces[4] << ", " << forces[5] << endl;
         }
 
-        m_sys.advance_simulation(iteration_step);
+        gran_sys.advance_simulation(iteration_step);
     }
 
     delete[] mesh_pos_rot;
