@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2018 projectchrono.org
+// Copyright (c) 2019 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -10,6 +10,9 @@
 //
 // =============================================================================
 // Authors: Nic Olsen
+// =============================================================================
+// Chrono::Granular simulation of granular material being compressed by a mass
+// allowed to oscillate on top of the material.
 // =============================================================================
 
 #include <iostream>

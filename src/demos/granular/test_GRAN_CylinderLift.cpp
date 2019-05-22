@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2018 projectchrono.org
+// Copyright (c) 2019 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -10,6 +10,11 @@
 //
 // =============================================================================
 // Authors: Nic Olsen
+// =============================================================================
+// Chrono::Granular simulation forming an angle of repose based on friciton and
+// cohesion. Granular material is initially settled within a vertically-aligned
+// mesh cylinder. The cylinder is then slowly raised to allow the material to
+// create a mound of granular material on the box floor.
 // =============================================================================
 
 #include <iostream>
@@ -279,5 +284,6 @@ int main(int argc, char* argv[]) {
     }
 
     delete[] meshPosRot;
+    delete[] meshVel;
     return 0;
 }

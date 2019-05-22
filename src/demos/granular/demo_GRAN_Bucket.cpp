@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2018 projectchrono.org
+// Copyright (c) 2019 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,14 +9,11 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Dan Negrut, Nic Olsen
+// Authors: Conlain Kelly
 // =============================================================================
-//
-// Chrono::Granular demo program using SMC method for frictional contact.
-//
-// Basic simulation of a settling scenario;
-//  - box is rectangular
-//
+// Basic Chrono::Granular simulation of a settling granular material composed of
+// spherical particles.
+// =============================================================================
 
 #include <iostream>
 #include <string>

@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2018 projectchrono.org
+// Copyright (c) 2019 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -11,8 +11,7 @@
 // =============================================================================
 // Authors: Nic Olsen
 // =============================================================================
-//
-// Chrono::Granular demo using SMC method. A body who's geometry is described
+// Chrono::Granular demo using SMC method. A body whose geometry is described
 // by an OBJ file is time-integrated in Chrono and interacts with a Granular
 // wave tank in Chrono::Granular via the co-simulation framework.
 // =============================================================================

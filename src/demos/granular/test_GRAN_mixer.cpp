@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2018 projectchrono.org
+// Copyright (c) 2019 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -10,6 +10,11 @@
 //
 // =============================================================================
 // Authors: Nic Olsen
+// =============================================================================
+// Chrono::Granular evaluation of several simple mixer designs. Material
+// consisting of spherical particles is let to aggitate in a rotating mixer.
+// Metrics on the performance of each mixer can be determined in post-
+// processing.
 // =============================================================================
 
 #include <iostream>

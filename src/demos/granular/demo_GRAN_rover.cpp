@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2018 projectchrono.org
+// Copyright (c) 2019 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -11,8 +11,8 @@
 // =============================================================================
 // Authors: Nic Olsen, Conlain Kelly
 // =============================================================================
-//
-// Simplified rover in Chrono::Granular.
+// Simplified rover using Chrono for rover dynamics co-simulated with 
+// Chrono::Granular for granular terrain.
 // =============================================================================
 
 #include <iostream>

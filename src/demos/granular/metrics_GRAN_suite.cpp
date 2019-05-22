@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2018 projectchrono.org
+// Copyright (c) 2019 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,21 +9,11 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Dan Negrut
+// Authors: Conlain Kelly, Nic Olsen
 // =============================================================================
-//
 // Chrono::Granular metrics test of various parameters
-//
-// Basic simulation of a settling scenario;
-//  - box is rectangular
-//
-// The global reference frame has X to the right, Y into the screen, Z up.
-// The global reference frame located in the left lower corner, close to the viewer.
-//
-// If available, OpenGL is used for run-time rendering. Otherwise, the
-// simulation is carried out for a pre-defined duration and output files are
-// generated for post-processing with POV-Ray.
 // =============================================================================
+
 #include <fstream>
 #include <iostream>
 #include <string>

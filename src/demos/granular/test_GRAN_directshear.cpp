@@ -1,3 +1,22 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2019 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Nic Olsen
+// =============================================================================
+// Chrono::Granular simulation performing a standard direct shear test.
+// Material is settled in a rectangular mesh box, then compressed by a top
+// plate. The test then measures the shear stress caused by moving the top half
+// of the box at a constant velocity.
+// =============================================================================
+
 #include <cmath>
 #include <iostream>
 #include <string>
@@ -38,7 +57,7 @@ double shear_velocity = shear_velocity_inflation * shear_velocity_original;
 double box_xy = 6;
 double box_r = box_xy / 2;
 
-// TODO find these values
+// TODO tune these values
 double time_settle = 0.4;
 double time_compress = 1;
 double time_shear = shear_displacement / shear_velocity;

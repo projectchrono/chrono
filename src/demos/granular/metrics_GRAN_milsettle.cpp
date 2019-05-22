@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2018 projectchrono.org
+// Copyright (c) 2019 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,21 +9,12 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Dan Negrut
+// Authors: Conlain Kelly
 // =============================================================================
-//
-// Chrono::Granular demo program using SMC method for frictional contact.
-//
-// Basic simulation of a settling scenario;
-//  - box is rectangular
-//
-// The global reference frame has X to the right, Y into the screen, Z up.
-// The global reference frame located in the left lower corner, close to the viewer.
-//
-// If available, OpenGL is used for run-time rendering. Otherwise, the
-// simulation is carried out for a pre-defined duration and output files are
-// generated for post-processing with POV-Ray.
+// Chrono::Granular simulation of up to one million spherical particles
+// settling in a box in order to measure run time.
 // =============================================================================
+
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -57,7 +48,6 @@ float cohesion_ratio = 0;
 
 // -----------------------------------------------------------------------------
 // Run a wavetank for a monodisperse collection of spheres in a rectangular box, undergoing a wave motion
-// The units are always cm/g/s[L/M/T].
 // -----------------------------------------------------------------------------
 double run_test(float box_size_X, float box_size_Y, float box_size_Z) {
     // Setup simulation

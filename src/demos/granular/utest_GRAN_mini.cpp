@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2018 projectchrono.org
+// Copyright (c) 2019 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,17 +9,12 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Dan Negrut
+// Authors: Conlain Kelly
 // =============================================================================
-//
-// Chrono::Granular demo program using SMC method for frictional contact.
-//
-// Basic simulation of a settling scenario;
-//  - box is rectangular
-//
-// The global reference frame has X to the right, Y into the screen, Z up.
-// The global reference frame located in the left lower corner, close to the viewer.
+// Simple test of the functionality of Chrono::Granular tools for measuring
+// the memory footprint of a system.
 // =============================================================================
+
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -53,10 +48,6 @@ GRAN_OUTPUT_MODE write_mode = GRAN_OUTPUT_MODE::BINARY;
 bool verbose = false;
 float cohesion_ratio = 0;
 
-// -----------------------------------------------------------------------------
-// Run a wavetank for a monodisperse collection of spheres in a rectangular box, undergoing a wave motion
-// The units are always cm/g/s[L/M/T].
-// -----------------------------------------------------------------------------
 double run_test(float box_size_X, float box_size_Y, float box_size_Z) {
     // Setup simulation
     ChSystemGranularSMC gran_system(ballRadius, ballDensity, make_float3(box_size_X, box_size_Y, box_size_Z));
@@ -111,10 +102,6 @@ double run_test(float box_size_X, float box_size_Y, float box_size_Z) {
 }
 
 int main(int argc, char* argv[]) {
-    // if (argc != 2) {
-    //     std::cout << "USAGE: ./utest_gran_mini <domain_size_x>" << std::endl;
-    // }
-
     const int gpu_dev_id_active = 0;
     const int gpu_dev_id_other = 1;
     cudaDeviceProp dev_props;

@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2018 projectchrono.org
+// Copyright (c) 2019 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -10,6 +10,9 @@
 //
 // =============================================================================
 // Authors: Nic Olsen, Conlain Kelly
+// =============================================================================
+// Set of simple tests for validating low-level behavior of a Chrono::Granular
+// system.
 // =============================================================================
 
 #include <iostream>
@@ -107,6 +110,7 @@ void setCommonParameters(ChSystemGranularSMC& gran_sys) {
     filesystem::create_directory(filesystem::path(output_dir));
     gran_sys.set_BD_Fixed(true);
 }
+
 void setCommonMeshParameters(ChSystemGranularSMC_trimesh& gran_sys) {
     gran_sys.set_K_n_SPH2MESH(normalStiffness_S2M);
     gran_sys.set_Gamma_n_SPH2MESH(normalDampS2M);
@@ -323,6 +327,7 @@ void run_PYRAMID() {
         advanceGranSim(gran_sys);
     }
 }
+
 void run_PYRAMID_MESH() {
     ChSystemGranularSMC_trimesh gran_sys(sphere_radius, sphere_density, make_float3(box_X, box_Y, box_Z));
     setCommonParameters(gran_sys);
@@ -559,7 +564,6 @@ void run_MESH_FORCE() {
 
 int main(int argc, char* argv[]) {
     TEST_TYPE curr_test = ROTF;
-    // Some of the default values might be overwritten by user via command line
     if (argc != 2) {
         ShowUsage();
         return 1;
@@ -570,7 +574,6 @@ int main(int argc, char* argv[]) {
     std::cout << "frame step is " << frame_step << std::endl;
 
     switch (curr_test) {
-            // Roll a ball down a ramp
         case ROTF: {
             run_ROTF();
             break;

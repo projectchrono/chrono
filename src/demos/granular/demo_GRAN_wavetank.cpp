@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2018 projectchrono.org
+// Copyright (c) 2019 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,16 +9,10 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Dan Negrut, Nic Olsen
+// Authors: Conlain Kelly, Nic Olsen
 // =============================================================================
-//
-// Chrono::Granular demo program using SMC method for frictional contact.
-//
-// Basic simulation of a settling scenario;
-//  - box is rectangular
-//
-// The global reference frame has X to the right, Y into the screen, Z up.
-// The global reference frame located in the left lower corner, close to the viewer.
+// Chrono::Granular simulation of spheres in a box being shaken back and forth.
+// TODO remove this in favor of ball cosim?
 // =============================================================================
 
 #include <iostream>
@@ -47,11 +41,6 @@ enum { SETTLING = 0, WAVETANK = 1, BOUNCING_PLATE = 2 };
 void ShowUsage() {
     cout << "usage: ./demo_GRAN_wavetank <json_file>" << endl;
 }
-
-// -----------------------------------------------------------------------------
-// Demo for a wavetank of monodisperse collection of shperes in a rectangular box.
-// The units are always cm/s/g[L/T/M].
-// -----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
     sim_param_holder params;

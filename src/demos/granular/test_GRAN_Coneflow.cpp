@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2018 projectchrono.org
+// Copyright (c) 2019 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,16 +9,9 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Dan Negrut, Nic Olsen, Conlain Kelly
+// Authors: Conlain Kelly
 // =============================================================================
-//
-// Chrono::Granular demo program using SMC method for frictional contact.
-//
-// Basic simulation of a settling scenario;
-//  - box is rectangular
-//
-// The global reference frame has X to the right, Y into the screen, Z up.
-// The global reference frame located in the left lower corner, close to the viewer.
+// Chrono::Granular simulation of material flowing out of a cylindrical hopper.
 // =============================================================================
 
 #include <iostream>
@@ -107,10 +100,6 @@ void writeZConeMesh(std::ostringstream& outstream, ChVector<> pos, std::string m
     outstream << "\n";
 }
 
-// -----------------------------------------------------------------------------
-// Demo for settling a monodisperse collection of shperes in a rectangular box.
-// The units are always cm/s/g[L/T/M].
-// -----------------------------------------------------------------------------
 int main(int argc, char* argv[]) {
     sim_param_holder params;
 

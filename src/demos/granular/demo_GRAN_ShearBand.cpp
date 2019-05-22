@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2018 projectchrono.org
+// Copyright (c) 2019 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,16 +9,11 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Dan Negrut, Nic Olsen
+// Authors: Conlain Kelly
 // =============================================================================
-//
-// Chrono::Granular demo program using SMC method for frictional contact.
-//
-// Basic simulation of a settling scenario;
-//  - box is rectangular
-//
-// The global reference frame has X to the right, Y into the screen, Z up.
-// The global reference frame located in the left lower corner, close to the viewer.
+// Chrono::Granular simulation of a rectangular bed of granular material which
+// is first let to settle and then compressed by advancing one of the box walls
+// into the material.
 // =============================================================================
 
 #include <iostream>
@@ -39,8 +34,6 @@ using std::cout;
 using std::endl;
 using std::string;
 
-enum { SETTLING = 0, WAVETANK = 1, BOUNCING_PLATE = 2 };
-
 // -----------------------------------------------------------------------------
 // Show command line usage
 // -----------------------------------------------------------------------------
@@ -48,18 +41,7 @@ void ShowUsage() {
     cout << "usage: ./demo_GRAN_wavetank <json_file>" << endl;
 }
 
-// -----------------------------------------------------------------------------
-// Demo for a wavetank of monodisperse collection of shperes in a rectangular box.
-// The units are always cm/s/g[L/T/M].
-// -----------------------------------------------------------------------------
-
-// Prescribe a custom position function for the X direction. Note that this MUST be continuous or the simulation
-// will not be stable. The value is in multiples of box half-lengths in that direction, so an x-value of 1 means
-// that the box will be centered at x = box_size_X
-
 int main(int argc, char* argv[]) {
-    int run_mode = SETTLING;
-
     sim_param_holder params;
 
     // Some of the default values might be overwritten by user via command line
@@ -105,7 +87,6 @@ int main(int argc, char* argv[]) {
     // Set the position of the BD
     gran_sys.set_BD_Fixed(true);
 
-    // gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CHUNG);
     gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
     gran_sys.set_friction_mode(GRAN_FRICTION_MODE::MULTI_STEP);
     gran_sys.set_fixed_stepSize(params.step_size);
@@ -118,6 +99,8 @@ int main(int argc, char* argv[]) {
 
     size_t plane_bc_id = gran_sys.Create_BC_Plane(plane_pos, plane_normal, false);
 
+    // Function prescibing the motion of the advancing plane.
+    // Begins outside of the domain.
     std::function<double3(float)> plane_pos_func = [&params](float t) {
         double3 pos = {0, 0, 0};
 

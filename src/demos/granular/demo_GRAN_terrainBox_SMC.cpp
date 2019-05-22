@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2018 projectchrono.org
+// Copyright (c) 2019 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,14 +9,11 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Dan Negrut, Nic Olsen
+// Authors: Conlain Kelly
 // =============================================================================
-//
-// Chrono::Granular demo program using SMC method for frictional contact.
-//
-// Basic simulation of a settling scenario;
-//  - box is rectangular
-//
+// Simple Chrono::Granular settling experiment which allows for sweeping various
+// simulation parameters.
+// =============================================================================
 
 #include <iostream>
 #include <string>
@@ -43,20 +40,16 @@ constexpr int num_args_full = 6;
 // Show command line usage
 // -----------------------------------------------------------------------------
 void ShowUsage() {
-    cout << "usage: ./demo_GRAN_DamBreak <json_file> [<radius> <run_mode> <box_width> <output_dir>]" << endl;
+    cout << "usage: ./demo_GRAN_terrainBox_SMC <json_file> [<radius> <run_mode> <box_width> <output_dir>]" << endl;
     cout << "must have either 1 or " << num_args_full - 1 << " arguments" << endl;
 }
 
 enum run_mode { FRICTIONLESS = 0, ONE_STEP = 1, MULTI_STEP = 2 };
 
-// -----------------------------------------------------------------------------
-// Demo for settling a monodisperse collection of shperes in a rectangular box.
-// The units are always cm/s/g[L/T/M].
-// -----------------------------------------------------------------------------
 int main(int argc, char* argv[]) {
     sim_param_holder params;
 
-    // Some of the default values might be overwritten by user via command line
+    // Some of the default values are overwritten by user via command line
     if (argc < 2 || argc > 2 && argc != num_args_full || ParseJSON(argv[1], params) == false) {
         ShowUsage();
         return 1;
@@ -67,7 +60,7 @@ int main(int argc, char* argv[]) {
         params.run_mode = std::atoi(argv[3]);
         params.box_Y = std::atof(argv[4]);
         params.box_X = params.box_Y;
-        params.output_dir = std::string(argv[5]);
+        params.output_dir = string(argv[5]);
         printf("new parameters: r is %f, run_mode is %d, width is %f, %s\n", params.sphere_radius, params.run_mode,
                params.box_Y, params.output_dir.c_str());
     }
@@ -161,8 +154,6 @@ int main(int argc, char* argv[]) {
     gran_sys.initialize();
 
     int fps = 50;
-    // assume we run for at least one frame
-    // float frame_step = params.step_size * 100.f;
     float frame_step = 1.f / fps;
     float curr_time = 0;
     int currframe = 0;
@@ -170,17 +161,16 @@ int main(int argc, char* argv[]) {
     // write an initial frame
     char filename[100];
     sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
-    gran_sys.writeFile(std::string(filename));
+    gran_sys.writeFile(string(filename));
 
-    std::cout << "frame step is " << frame_step << std::endl;
+    cout << "frame step is " << frame_step << endl;
 
-    // Run settling experiments
     while (curr_time < params.time_end) {
         gran_sys.advance_simulation(frame_step);
         curr_time += frame_step;
         printf("rendering frame %u\n", currframe);
         sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
-        gran_sys.writeFile(std::string(filename));
+        gran_sys.writeFile(string(filename));
     }
 
     return 0;

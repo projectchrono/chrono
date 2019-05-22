@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2018 projectchrono.org
+// Copyright (c) 2019 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -10,6 +10,12 @@
 //
 // =============================================================================
 // Authors: Nic Olsen
+// =============================================================================
+// Chrono::Granular simulation of an angle of repose test. Material is initially
+// settled on a compound circular mesh surface. The outer ring of the mesh is
+// then slowly lowered away, leaving only the central dish. Material flows out
+// of the dish through the gap created, leaving a mound of granular material
+// left in the dish.
 // =============================================================================
 
 #include <iostream>
