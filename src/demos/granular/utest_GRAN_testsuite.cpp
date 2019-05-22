@@ -270,12 +270,6 @@ void run_ROTF_MESH() {
 
     float reaction_forces[3] = {0, 0, 0};
 
-    // total distance traveled parallel to slope
-    // float total_dist = (1 / std::cos(ramp_angle)) * box_Z / 2;
-    // float estimated_time_to_bot =
-    // std::sqrt(2 * total_dist / std::abs(grav_Z * std::cos(ramp_angle)));
-    // printf("total dist is %f, estimated time is %f\n", total_dist, estimated_time_to_bot);
-
     // Run settling experiments
     while (curr_time < timeEnd) {
         gran_sys.meshSoup_applyRigidBodyMotion(meshSoupLocOri, meshVel);

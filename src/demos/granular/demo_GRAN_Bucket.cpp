@@ -12,7 +12,7 @@
 // Authors: Conlain Kelly
 // =============================================================================
 // Basic Chrono::Granular simulation of a settling granular material composed of
-// spherical particles.
+// spherical particles. Units are in CGS.
 // =============================================================================
 
 #include <iostream>
@@ -117,10 +117,6 @@ void writeForcesFile(ChSystemGranularSMC& gran_sys) {
     ofile << outstrstream.str();
 }
 
-// -----------------------------------------------------------------------------
-// Demo for settling a monodisperse collection of shperes in a rectangular box.
-// The units are always cm/s/g[L/T/M].
-// -----------------------------------------------------------------------------
 int main(int argc, char* argv[]) {
     // Some of the default values might be overwritten by user via command line
     if (argc < 2 || argc > 2 && argc != num_args_full || ParseJSON(argv[1], params) == false) {
@@ -160,15 +156,6 @@ int main(int argc, char* argv[]) {
     gran_sys.setOutputMode(params.write_mode);
 
     std::vector<ChVector<float>> body_points;
-    // body_points.push_back(ChVector<float>(0., 0., 0. - (params.box_Z / 2.f - 1.01 * params.sphere_radius)));
-    // body_points.push_back(ChVector<float>(2., 0., 0. - (params.box_Z / 2.f - 1.01 * params.sphere_radius)));
-    // body_points.push_back(ChVector<float>(1., 1.732, 0. - (params.box_Z / 2.f - 1.01 * params.sphere_radius)));
-    // body_points.push_back(ChVector<float>(1., .5774, 2.05 - (params.box_Z / 2.f - 1.01 * params.sphere_radius)));
-    // body_points.push_back(ChVector<float>(params.box_X / 2.f - 2 * params.sphere_radius,
-    //                                       params.box_Y / 2.f - 2 * params.sphere_radius, 3));
-    // body_points.push_back(ChVector<float>(-(params.box_X / 2.f - 2 * params.sphere_radius),
-    //
-    //                                       -(params.box_Y / 2.f - 2 * params.sphere_radius), 3));
 
     {
         // fill box, layer by layer
@@ -177,9 +164,6 @@ int main(int argc, char* argv[]) {
 
         // Fill box with bodies
         body_points = PDLayerSampler_BOX<float>(center, hdims, 2. * params.sphere_radius, 1.01);
-
-        // utils::HCPSampler<float> sampler(2.2 * params.sphere_radius);
-        // body_points = sampler.SampleBox(center, hdims);
     }
     gran_sys.setParticlePositions(body_points);
 

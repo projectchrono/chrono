@@ -90,15 +90,6 @@ int main(int argc, char* argv[]) {
     gran_sys.setOutputMode(params.write_mode);
 
     std::vector<ChVector<float>> body_points;
-    // body_points.push_back(ChVector<float>(0., 0., 0. - (params.box_Z / 2.f - 1.01 * params.sphere_radius)));
-    // body_points.push_back(ChVector<float>(2., 0., 0. - (params.box_Z / 2.f - 1.01 * params.sphere_radius)));
-    // body_points.push_back(ChVector<float>(1., 1.732, 0. - (params.box_Z / 2.f - 1.01 * params.sphere_radius)));
-    // body_points.push_back(ChVector<float>(1., .5774, 2.05 - (params.box_Z / 2.f - 1.01 * params.sphere_radius)));
-    // body_points.push_back(ChVector<float>(params.box_X / 2.f - 2 * params.sphere_radius,
-    //                                       params.box_Y / 2.f - 2 * params.sphere_radius, 3));
-    // body_points.push_back(ChVector<float>(-(params.box_X / 2.f - 2 * params.sphere_radius),
-    //
-    //                                       -(params.box_Y / 2.f - 2 * params.sphere_radius), 3));
 
     {
         // fill box, layer by layer
@@ -106,20 +97,11 @@ int main(int argc, char* argv[]) {
                          params.box_Z / 2.f - 2 * params.sphere_radius);
         ChVector<> center(0, 0, 0);
 
-        // Fill box with bodies
-        // body_points = PDLayerSampler_BOX<float>(center, hdims, 2. * params.sphere_radius, 1.01);
-
         utils::HCPSampler<float> sampler(2.2 * params.sphere_radius);
-        //
+
         body_points = sampler.SampleBox(center, hdims);
     }
-    // std::vector<ChVector<float>> first_points;
-    // first_points.push_back(body_points.at(0));
-    // first_points.push_back(body_points.at(body_points.size() / 2));
-    // first_points.push_back(body_points.at(body_points.size() - 1));
-    // printf("particle is at %f, %f, %f\n", first_points[0].x(), first_points[0].y(), first_points[0].z());
-    // printf("particle is at %f, %f, %f\n", first_points[1].x(), first_points[1].y(), first_points[1].z());
-    // printf("particle is at %f, %f, %f\n", first_points[2].x(), first_points[2].y(), first_points[2].z());
+
     gran_sys.setParticlePositions(body_points);
 
     switch (params.run_mode) {
