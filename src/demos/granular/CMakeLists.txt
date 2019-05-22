@@ -19,10 +19,8 @@ SET(DEMOS
 		demo_GRAN_terrainBox_SMC
 		demo_GRAN_Bucket
 		demo_GRAN_ballcosim
-		demo_GRAN_wavetank
 		metrics_GRAN_milsettle
 		metrics_GRAN_suite
-		utest_GRAN_TriMeshNoFric_SMC_boxroll
 		test_GRAN_Coneflow
 		utest_GRAN_testsuite
 		utest_GRAN_mini
