@@ -206,7 +206,15 @@ inline __device__ bool clampTangentDisplacement(GranParamsPtr gran_params,
     float ut_max = static_friction_coeff * Length(normal_force) / (kt * force_model_multiplier);
     // TODO also consider wall mu and kt clamping
     float ut = Length(tangent_disp);
+    constexpr float GRAN_MACHINE_EPSILON = 1.e-8f;
+    // If u_t is very small, force it to be exactly zero and return no clamping
+    if (ut < GRAN_MACHINE_EPSILON) {
+        tangent_disp = make_float3(0.f, 0.f, 0.f);
+        return false;
+    }
     if (ut > ut_max) {
+        // TODO is this stable???:Q
+
         tangent_disp = tangent_disp * ut_max / ut;
         return true;
     }

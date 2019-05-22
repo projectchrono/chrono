@@ -1474,3 +1474,11 @@ Multistep took 84.9102 seconds!
 Current date is  Wed, 22 May 2019 14:30:04 -0500
 commit f2524cfb1ed79dc6a29f18637187ee64cb8fa69e Merge: f0503d3c8 afc407ce6 Author: Conlain Kelly <conlain.k@gmail.com> Date: Wed May 22 14:29:51 2019 -0500 Merge branch 'develop' into sandbox/chrono_granular
 Results:
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Wed, 22 May 2019 14:37:52 -0500
+commit 329379e2406ab9b9660200d4d70c5ea1e95867a8 Author: Conlain Kelly <conlain.k@gmail.com> Date: Wed May 22 14:37:43 2019 -0500 check for near-zero tangential creep
+Results:
+Running test suite!
+Frictionless took 55.0263 seconds!
+Single Step took 64.137 seconds!
+Multistep took 87.1606 seconds!
