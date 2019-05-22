@@ -439,15 +439,24 @@ ChPathSteeringControllerSR::ChPathSteeringControllerSR(std::shared_ptr<ChBezierC
                                                        double max_wheel_turn_angle,
                                                        double axle_space)
     : m_path(path),
+      m_isClosedPath(isClosedPath),
       m_Klat(0),
       m_Kug(0),
       m_Tp(0.5),
       m_L(axle_space),
       m_delta(0),
       m_delta_max(max_wheel_turn_angle),
-      m_umin(1) {
+      m_umin(1),
+      m_idx_curr(0) {
     // Create a tracker object associated with the given path.
     m_tracker = std::unique_ptr<ChBezierCurveTracker>(new ChBezierCurveTracker(path, isClosedPath));
+    // retireve points
+    CalcPathPoints();
+    if (m_isClosedPath) {
+        GetLog() << "Path is closed.\n";
+    } else {
+        GetLog() << "Path is open.\n";
+    }
 }
 
 ChPathSteeringControllerSR::ChPathSteeringControllerSR(const std::string& filename,
@@ -455,9 +464,18 @@ ChPathSteeringControllerSR::ChPathSteeringControllerSR(const std::string& filena
                                                        bool isClosedPath,
                                                        double max_wheel_turn_angle,
                                                        double axle_space)
-    : m_path(path), m_L(axle_space), m_delta(0), m_delta_max(max_wheel_turn_angle), m_umin(1) {
+    : m_path(path),
+      m_isClosedPath(isClosedPath),
+      m_L(axle_space),
+      m_delta(0),
+      m_delta_max(max_wheel_turn_angle),
+      m_umin(1),
+      m_idx_curr(0) {
     // Create a tracker object associated with the given path.
     m_tracker = std::unique_ptr<ChBezierCurveTracker>(new ChBezierCurveTracker(path, isClosedPath));
+
+    // retireve points
+    CalcPathPoints();
 
     FILE* fp = fopen(filename.c_str(), "r");
 
@@ -482,6 +500,47 @@ void ChPathSteeringControllerSR::CalcTargetLocation() {
     m_tracker->calcClosestPoint(m_sentinel, m_target);
 }
 
+void ChPathSteeringControllerSR::CalcPathPoints() {
+    size_t np = m_path->getNumPoints();
+    S_l.resize(np);
+    R_l.resize(np);
+    R_lu.resize(np);
+
+    if (m_isClosedPath) {
+        for (size_t i = 0; i < np; i++) {
+            S_l[i] = m_path->getPoint(i);
+        }
+        for (size_t i = 0; i < np - 1; i++) {
+            R_l[i] = S_l[i + 1] - S_l[i];
+            R_lu[i] = R_l[i];
+            R_lu[i].Normalize();
+        }
+        // connect the last point to the first point
+        R_l[np - 1] = S_l[0] - S_l[np - 1];
+        R_lu[np - 1] = R_l[np - 1];
+        R_lu[np - 1].Normalize();
+    } else {
+        for (size_t i = 0; i < np; i++) {
+            S_l[i] = m_path->getPoint(i);
+        }
+        for (size_t i = 0; i < np - 1; i++) {
+            R_l[i] = S_l[i + 1] - S_l[i];
+            R_lu[i] = R_l[i];
+            R_lu[i].Normalize();
+        }
+        R_l[np - 1] = S_l[np - 1] - S_l[np - 2];
+        R_lu[np - 1] = R_l[np - 1];
+        R_lu[np - 1].Normalize();
+        // push the last point forward for 100 meters, keeping the last direction
+        // R_lu[np - 1] = R_lu[np - 2];
+        // R_l[np - 1] = 100.0 * R_lu[np - 1];
+        // S_l[np - 1] = S_l[np - 2] + R_l[np - 1];
+        // push the first point backwards for 100 meters, keeping the first direction
+        // R_l[0] = 100.0 * R_lu[0];
+        // S_l[0] = S_l[1] - R_l[0];
+    }
+}
+
 void ChPathSteeringControllerSR::Reset(const ChVehicle& vehicle) {
     // Let the base class calculate the current location of the sentinel point.
     ChSteeringController::Reset(vehicle);
@@ -495,7 +554,7 @@ void ChPathSteeringControllerSR::Reset(const ChVehicle& vehicle) {
 
 void ChPathSteeringControllerSR::SetGains(double Klat, double Kug) {
     m_Klat = std::abs(Klat);
-    m_Kug = ChClamp(Kug, 0.0, 2.0);
+    m_Kug = ChClamp(Kug, 0.0, 5.0);
 }
 
 void ChPathSteeringControllerSR::SetPreviewTime(double Tp) {
@@ -539,22 +598,56 @@ double ChPathSteeringControllerSR::Advance(const ChVehicle& vehicle, double step
         // translate m_delta to steering value
         return m_delta / m_delta_max;
     }
-    // The "error" vector is the projection onto the horizontal plane (z=0) of
-    // the vector between sentinel and target.
-    ChVector<> err_vec = m_target - m_sentinel;
-    err_vec.z() = 0;
+    ChVector<> Pt = m_sentinel - S_l[m_idx_curr];
+    double rt = R_l[m_idx_curr].Length();
 
-    // Calculate the sign of the angle between the projections of the sentinel
-    // vector and the target vector (with origin at vehicle location).
-    ChVector<> sentinel_vec = m_sentinel - vehicle.GetVehiclePos();
-    sentinel_vec.z() = 0;
-    ChVector<> target_vec = m_target - vehicle.GetVehiclePos();
-    target_vec.z() = 0;
+    bool crit = false;
+    double t = std::abs(Pt.Dot(R_lu[m_idx_curr]));
+    if (t < rt) {
+        crit = true;
+    } else {
+        while (t > rt) {
+            m_idx_curr++;
+            if (m_isClosedPath) {
+                if (m_idx_curr == S_l.size()) {
+                    m_idx_curr = 0;
+                }
+                Pt = m_sentinel - S_l[m_idx_curr];
+                rt = R_l[m_idx_curr].Length();
+                t = std::abs(Pt.Dot(R_lu[m_idx_curr]));
+            } else {
+                if (m_idx_curr == S_l.size()) {
+                    m_idx_curr = S_l.size() - 1;
+                }
+                Pt = m_sentinel - S_l[m_idx_curr];
+                rt = R_l[m_idx_curr].Length();
+                t = std::abs(Pt.Dot(R_lu[m_idx_curr]));
+                break;
+            }
+        }
+    }
+    ChVector<> n_lu = ChVector<>(0, 0, -1).Cross(R_lu[m_idx_curr]);
 
-    double temp = Vdot(Vcross(sentinel_vec, target_vec), ChVector<>(0, 0, 1));
+    m_err = Pt.Dot(n_lu);
 
-    // Calculate current error (magnitude).
-    m_err = ChSignum(temp) * err_vec.Length();
+    if (false) {
+        // The "error" vector is the projection onto the horizontal plane (z=0) of
+        // the vector between sentinel and target.
+        ChVector<> err_vec = m_target - m_sentinel;
+        err_vec.z() = 0;
+
+        // Calculate the sign of the angle between the projections of the sentinel
+        // vector and the target vector (with origin at vehicle location).
+        ChVector<> sentinel_vec = m_sentinel - vehicle.GetVehiclePos();
+        sentinel_vec.z() = 0;
+        ChVector<> target_vec = m_target - vehicle.GetVehiclePos();
+        target_vec.z() = 0;
+
+        double temp = Vdot(Vcross(sentinel_vec, target_vec), ChVector<>(0, 0, 1));
+
+        // Calculate current error (magnitude).
+        m_err = ChSignum(temp) * err_vec.Length();
+    }
     m_delta = ChClamp(m_delta + m_Klat * m_err, -m_delta_max, m_delta_max);
 
     // Return steering value

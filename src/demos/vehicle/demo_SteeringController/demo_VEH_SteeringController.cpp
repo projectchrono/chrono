@@ -9,10 +9,10 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Radu Serban, Rainer Gericke
 // =============================================================================
 //
-// Demonstration of a steering path-follower PID controller.
+// Demonstration of a steering path-follower PID controller with two alternatives.
 //
 // The vehicle reference frame has Z up, X towards the front of the vehicle, and
 // Y pointing to the left.
@@ -40,9 +40,13 @@ using namespace chrono::vehicle::hmmwv;
 
 // =============================================================================
 // Select Path Follower, uncomment to select the pure PID steering controller
-#define USE_PID 1
-
+//#define USE_PID 1
 // The extended steering controller only works inside the path limits
+//#define USE_XT 1
+// The simple realistic steering controller should start inside the path limits, after passing the last point
+// a) closed loop course: the vehicle goes into the next round
+// b) open loop course (this example):  the vehicle keeps the last driving direction (forever)
+#define USE_SR 1
 // =============================================================================
 // Problem parameters
 
@@ -119,8 +123,7 @@ int filter_window_size = 20;
 
 // Custom Irrlicht event receiver for selecting current driver model.
 class ChDriverSelector : public irr::IEventReceiver {
-    public:
-
+  public:
 #ifdef USE_PID
     ChDriverSelector(const ChVehicle& vehicle, ChPathFollowerDriver* driver_follower, ChIrrGuiDriver* driver_gui)
         : m_vehicle(vehicle),
@@ -128,8 +131,17 @@ class ChDriverSelector : public irr::IEventReceiver {
           m_driver_gui(driver_gui),
           m_driver(m_driver_follower),
           m_using_gui(false) {}
-#else
+#endif
+#ifdef USE_XT
     ChDriverSelector(const ChVehicle& vehicle, ChPathFollowerDriverXT* driver_follower, ChIrrGuiDriver* driver_gui)
+        : m_vehicle(vehicle),
+          m_driver_follower(driver_follower),
+          m_driver_gui(driver_gui),
+          m_driver(m_driver_follower),
+          m_using_gui(false) {}
+#endif
+#ifdef USE_SR
+    ChDriverSelector(const ChVehicle& vehicle, ChPathFollowerDriverSR* driver_follower, ChIrrGuiDriver* driver_gui)
         : m_vehicle(vehicle),
           m_driver_follower(driver_follower),
           m_driver_gui(driver_gui),
@@ -196,8 +208,12 @@ class ChDriverSelector : public irr::IEventReceiver {
     const ChVehicle& m_vehicle;
 #ifdef USE_PID
     ChPathFollowerDriver* m_driver_follower;
-#else
+#endif
+#ifdef USE_XT
     ChPathFollowerDriverXT* m_driver_follower;
+#endif
+#ifdef USE_SR
+    ChPathFollowerDriverSR* m_driver_follower;
 #endif
     ChIrrGuiDriver* m_driver_gui;
     ChDriver* m_driver;
@@ -249,23 +265,28 @@ int main(int argc, char* argv[]) {
     // From data file
     auto path = ChBezierCurve::read(vehicle::GetDataFile(path_file));
 
-    // Parameterized ISO double lane change (to left)
-    ////auto path = DoubleLaneChangePath(ChVector<>(-125, -125, 0.1), 13.5, 4.0, 11.0, 50.0, true);
+// Parameterized ISO double lane change (to left)
+////auto path = DoubleLaneChangePath(ChVector<>(-125, -125, 0.1), 13.5, 4.0, 11.0, 50.0, true);
 
-    // Parameterized NATO double lane change (to right)
-    ////auto path = DoubleLaneChangePath(ChVector<>(-125, -125, 0.1), 28.93, 3.6105, 25.0, 50.0, false);
- 
-    ////path->write("my_path.txt");
+// Parameterized NATO double lane change (to right)
+////auto path = DoubleLaneChangePath(ChVector<>(-125, -125, 0.1), 28.93, 3.6105, 25.0, 50.0, false);
 
-    // ---------------------------------------
-    // Create the vehicle Irrlicht application
-    // ---------------------------------------
+////path->write("my_path.txt");
+
+// ---------------------------------------
+// Create the vehicle Irrlicht application
+// ---------------------------------------
 
 #ifdef USE_PID
     ChVehicleIrrApp app(&my_hmmwv.GetVehicle(), &my_hmmwv.GetPowertrain(), L"Steering PID Controller Demo",
                         irr::core::dimension2d<irr::u32>(800, 640));
-#else
+#endif
+#ifdef USE_XT
     ChVehicleIrrApp app(&my_hmmwv.GetVehicle(), &my_hmmwv.GetPowertrain(), L"Steering XT Controller Demo",
+                        irr::core::dimension2d<irr::u32>(800, 640));
+#endif
+#ifdef USE_SR
+    ChVehicleIrrApp app(&my_hmmwv.GetVehicle(), &my_hmmwv.GetPowertrain(), L"Steering SR Controller Demo",
                         irr::core::dimension2d<irr::u32>(800, 640));
 #endif
     app.SetHUDLocation(500, 20);
@@ -304,11 +325,29 @@ int main(int argc, char* argv[]) {
     // Create and register a custom Irrlicht event receiver to allow selecting the
     // current driver model.
     ChDriverSelector selector(my_hmmwv.GetVehicle(), &driver_follower, &driver_gui);
-#else
-    //ChPathFollowerDriverXT driver_follower(my_hmmwv.GetVehicle(), path, "my_path", target_speed, my_hmmwv.GetVehicle().GetMaxSteeringAngle());
-    ChPathFollowerDriverXT driver_follower( my_hmmwv.GetVehicle(), path, "my_path", target_speed, my_hmmwv.GetVehicle().GetMaxSteeringAngle());
+#endif
+#ifdef USE_XT
+    // ChPathFollowerDriverXT driver_follower(my_hmmwv.GetVehicle(), path, "my_path", target_speed,
+    // my_hmmwv.GetVehicle().GetMaxSteeringAngle());
+    ChPathFollowerDriverXT driver_follower(my_hmmwv.GetVehicle(), path, "my_path", target_speed,
+                                           my_hmmwv.GetVehicle().GetMaxSteeringAngle());
     driver_follower.GetSteeringController().SetLookAheadDistance(5);
     driver_follower.GetSteeringController().SetGains(0.4, 1, 1, 1);
+    driver_follower.GetSpeedController().SetGains(0.4, 0, 0);
+    driver_follower.Initialize();
+
+    // Create and register a custom Irrlicht event receiver to allow selecting the
+    // current driver model.
+    ChDriverSelector selector(my_hmmwv.GetVehicle(), &driver_follower, &driver_gui);
+#endif
+#ifdef USE_SR
+    const double axle_space = 3.2;
+    const bool path_is_closed = false;
+    ChPathFollowerDriverSR driver_follower(my_hmmwv.GetVehicle(), path, "my_path", target_speed, path_is_closed,
+                                           my_hmmwv.GetVehicle().GetMaxSteeringAngle(), axle_space);
+    // driver_follower.GetSteeringController().SetLookAheadDistance(5);
+    driver_follower.GetSteeringController().SetPreviewTime(0.7);
+    driver_follower.GetSteeringController().SetGains(0.1, 5);
     driver_follower.GetSpeedController().SetGains(0.4, 0, 0);
     driver_follower.Initialize();
 
