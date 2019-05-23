@@ -94,6 +94,7 @@ set(Chrono_HAS_postprocess @ENABLE_MODULE_POSTPROCESS@)
 set(Chrono_HAS_python @ENABLE_MODULE_PYTHON@)
 set(Chrono_HAS_vehicle @ENABLE_MODULE_VEHICLE@)
 set(Chrono_HAS_fsi @ENABLE_MODULE_FSI@)
+set(Chrono_HAS_granular @ENABLE_MODULE_GRANULAR@)
 
 #-------------------------------------------------------------------------------
 # Loop over the list of requested components
@@ -175,6 +176,12 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_FSI_INCLUDES@")
       list(APPEND CHRONO_LIB_NAMES "ChronoEngine_fsi")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_fsi.dll")
+
+    elseif(${COMPONENT_UPPER} MATCHES "GRANULAR")
+ 
+      list(APPEND CHRONO_INCLUDE_DIRS "@CH_GRANULAR_INCLUDES@")
+      list(APPEND CHRONO_LIB_NAMES "ChronoEngine_granular")
+      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_granular.dll")
 
     elseif(${COMPONENT_UPPER} MATCHES "MKL")
 
