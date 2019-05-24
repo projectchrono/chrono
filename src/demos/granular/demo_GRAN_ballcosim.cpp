@@ -153,7 +153,7 @@ int main(int argc, char* argv[]) {
     gran_sys.set_static_friction_coeff_SPH2MESH(params.static_friction_coeff);
 
     vector<string> mesh_filenames;
-    string mesh_filename = string("granular/ballcosim/sphere.obj");
+    string mesh_filename = GetChronoDataFile("granular/ballcosim/sphere.obj");
 
     float ball_radius = 20;
     vector<float3> mesh_scalings;

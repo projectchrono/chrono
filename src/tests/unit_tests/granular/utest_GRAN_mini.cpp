@@ -27,30 +27,28 @@
 using namespace chrono;
 using namespace chrono::granular;
 
-std::string output_prefix = "../results";
-
 const char* DELIM = "------------------------------------";
 
 // Default values
-float ballRadius = 1.f;
-float ballDensity = 2.50f;
-float timeEnd = .1f;
+float sphereRadius = 1.f;
+float sphereDensity = 2.50f;
+float timeEnd = 0.5f;
 float grav_acceleration = -980.f;
-float normStiffness_S2S = 1e7f;
-float normStiffness_S2W = 1e7f;
+float normStiffness_S2S = 5e7f;
+float normStiffness_S2W = 5e7f;
 
-float normalDampS2S = 1000;
-float normalDampS2W = 1000;
+float normalDampS2S = 10000;
+float normalDampS2W = 10000;
 float adhesion_ratio_s2w = 0.f;
 float timestep = 1e-4;
 
-GRAN_OUTPUT_MODE write_mode = GRAN_OUTPUT_MODE::BINARY;
+GRAN_OUTPUT_MODE write_mode = GRAN_OUTPUT_MODE::NONE;
 bool verbose = false;
 float cohesion_ratio = 0;
 
 double run_test(float box_size_X, float box_size_Y, float box_size_Z) {
     // Setup simulation
-    ChSystemGranularSMC gran_system(ballRadius, ballDensity, make_float3(box_size_X, box_size_Y, box_size_Z));
+    ChSystemGranularSMC gran_system(sphereRadius, sphereDensity, make_float3(box_size_X, box_size_Y, box_size_Z));
     gran_system.set_K_n_SPH2SPH(normStiffness_S2S);
     gran_system.set_K_n_SPH2WALL(normStiffness_S2W);
     gran_system.set_Gamma_n_SPH2SPH(normalDampS2S);
@@ -59,43 +57,66 @@ double run_test(float box_size_X, float box_size_Y, float box_size_Z) {
     gran_system.set_Cohesion_ratio(cohesion_ratio);
     gran_system.set_Adhesion_ratio_S2W(adhesion_ratio_s2w);
     gran_system.set_gravitational_acceleration(0.f, 0.f, grav_acceleration);
-    gran_system.setOutputDirectory(output_prefix);
     gran_system.setOutputMode(write_mode);
 
     // Fill the bottom half with material
-    chrono::utils::HCPSampler<float> sampler(2.4 * ballRadius);  // Add epsilon
+    chrono::utils::HCPSampler<float> sampler(2.1 * sphereRadius);  // Add epsilon
     ChVector<float> center(0, 0, -.25 * box_size_Z);
-    ChVector<float> hdims(box_size_X / 2 - ballRadius, box_size_X / 2 - ballRadius, box_size_Z / 4 - ballRadius);
+    ChVector<float> hdims(box_size_X / 2 - sphereRadius, box_size_X / 2 - sphereRadius, box_size_Z / 4 - sphereRadius);
     std::vector<ChVector<float>> body_points = sampler.SampleBox(center, hdims);
     gran_system.setParticlePositions(body_points);
 
-    filesystem::create_directory(filesystem::path(output_prefix));
-
     gran_system.set_BD_Fixed(true);
     gran_system.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
-    gran_system.set_timeIntegrator(GRAN_TIME_INTEGRATOR::EXTENDED_TAYLOR);
+    gran_system.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
     gran_system.setVerbose(verbose);
+
+    // upward facing plane just above the bottom to capture forces
+    float plane_normal[3] = {0, 0, 1};
+    float plane_center[3] = {0, 0, -box_size_Z / 2 + 2 * sphereRadius};
+
+    size_t plane_bc_id = gran_system.Create_BC_Plane(plane_center, plane_normal, true);
 
     gran_system.set_fixed_stepSize(timestep);
     ChTimer<double> timer;
 
-    // Run wavetank experiment and time it
     timer.start();
     gran_system.initialize();
-    int fps = 100;
-    // assume we run for at least one frame
+    int fps = 25;
+
     float frame_step = 1.0f / fps;
     float curr_time = 0;
     int currframe = 0;
+
+    float reaction_forces[3] = {0, 0, 0};
 
     // Run settling experiments
     while (curr_time < timeEnd) {
         gran_system.advance_simulation(frame_step);
         curr_time += frame_step;
-        printf("rendering frame %u\n", currframe);
-        char filename[100];
-        sprintf(filename, "%s/step%06d", output_prefix.c_str(), currframe++);
-        gran_system.writeFile(filename);
+        printf("Time: %f\n", curr_time);
+    }
+
+    constexpr float F_CGS_TO_SI = 1e-5;
+
+    bool success = gran_system.getBCReactionForces(plane_bc_id, reaction_forces);
+    if (!success) {
+        printf("ERROR! Get contact forces for plane failed\n");
+    } else {
+        printf("plane force is (%f, %f, %f) Newtons\n", F_CGS_TO_SI * reaction_forces[0],
+               F_CGS_TO_SI * reaction_forces[1], F_CGS_TO_SI * reaction_forces[2]);
+
+        float computed_bottom_force = reaction_forces[2];
+        float expected_bottom_force = body_points.size() * (4. / 3.) * CH_C_PI * sphereRadius * sphereRadius *
+                                      sphereRadius * sphereDensity * grav_acceleration;
+
+        // 1% error allowed, max
+        float percent_error = 0.01;
+        printf("Expected bottom force is %f, computed %f\n", expected_bottom_force, computed_bottom_force);
+        if (std::abs((expected_bottom_force - computed_bottom_force) / expected_bottom_force) > percent_error) {
+            printf("DIFFERENCE IS TOO LARGE!\n");
+            exit(1);
+        }
     }
     timer.stop();
     return timer.GetTimeSeconds();
@@ -131,7 +152,7 @@ int main(int argc, char* argv[]) {
     // up to one million bodies
     // double time50k = run_test(100, 100, 100);
     // double time500k = run_test(220, 220, 220);
-    double run_time = run_test(1500, 1500, 1000);
+    double run_time = run_test(80, 80, 75);
 
     std::cout << "Running mini granular test!" << std::endl;
     // std::cout << "50 thousand bodies took " << time50k << " seconds!" << std::endl;

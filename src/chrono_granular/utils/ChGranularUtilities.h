@@ -16,12 +16,12 @@
 
 #pragma once
 
-#define GRANULAR_ERROR(msg)                     \
-    {                                           \
-        printf(msg);                            \
-        printf(__func__);                       \
-        printf("\n: EXITTING GRANULAR SIM.\n"); \
-        exit(1);                                \
+#define GRANULAR_ERROR(...)                    \
+    {                                          \
+        printf(__VA_ARGS__);                   \
+        printf(__func__);                      \
+        printf("\n: EXITING GRANULAR SIM.\n"); \
+        exit(1);                               \
     }
 
 // defined in ChGranular.cpp
