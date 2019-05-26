@@ -37,8 +37,7 @@ namespace vehicle {
 /// variables m_displacementLeft, m_displacementRight, and m_steering.
 class CH_VEHICLE_API ChDriverSTR {
   public:
-    ChDriverSTR(ChSuspensionTestRig& rig  ///< associated rig
-                );
+    ChDriverSTR();
 
     virtual ~ChDriverSTR() {}
 
@@ -76,7 +75,6 @@ class CH_VEHICLE_API ChDriverSTR {
     void SetSteering(double val, double min_val = -1, double max_val = 1);
 
   protected:
-    ChSuspensionTestRig& m_rig;  ///< reference to associated suspension test rig
     double m_displLeft;          ///< current value of left post displacement
     double m_displRight;         ///< current value of right post displacement
     double m_steering;           ///< current value of steering input

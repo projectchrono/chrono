@@ -265,6 +265,10 @@ void ChSuspensionTestRig::Initialize(const ChCoordsys<>& chassisPos, double chas
     m_wheel[LEFT]->Initialize(m_suspension->GetSpindle(LEFT));
     m_wheel[RIGHT]->Initialize(m_suspension->GetSpindle(RIGHT));
 
+    // Initialize the tire subsystem
+    m_tire[LEFT]->Initialize(GetWheelBody(LEFT), LEFT);
+    m_tire[RIGHT]->Initialize(GetWheelBody(RIGHT), RIGHT);
+
     // --------------------------------------------
     // Create and initialize the shaker post bodies
     // --------------------------------------------
@@ -308,7 +312,7 @@ void ChSuspensionTestRig::Initialize(const ChCoordsys<>& chassisPos, double chas
     // ------------------------------------------
     // Create and initialize joints and actuators
     // ------------------------------------------
-
+    
     // Prismatic joints to force vertical translation
     m_post_prismatic[LEFT] = std::make_shared<ChLinkLockPrismatic>();
     m_post_prismatic[LEFT]->SetNameString("L_post_prismatic");
@@ -345,13 +349,6 @@ void ChSuspensionTestRig::Initialize(const ChCoordsys<>& chassisPos, double chas
     auto func_R = std::make_shared<ChFunction_Const>(0);
     m_post_linact[RIGHT]->Set_dist_funct(func_R);
     m_system->AddLink(m_post_linact[RIGHT]);
-
-    // -----------------------------
-    // Initialize the tire subsystem
-    // -----------------------------
-
-    m_tire[LEFT]->Initialize(GetWheelBody(LEFT), LEFT);
-    m_tire[RIGHT]->Initialize(GetWheelBody(RIGHT), RIGHT);
 }
 
 // -----------------------------------------------------------------------------
@@ -420,9 +417,15 @@ double ChSuspensionTestRig::GetActuatorMarkerDist(VehicleSide side) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChSuspensionTestRig::Synchronize(double time, double steering, double disp_L, double disp_R) {
+    auto tire_force_L = m_tire[LEFT]->GetTireForce();
+    auto tire_force_R = m_tire[RIGHT]->GetTireForce();
+
+    auto wheel_state_L = GetWheelState(LEFT);
+    auto wheel_state_R = GetWheelState(RIGHT);
+
     // Synchronize the tire subsystems.
-    m_tire[LEFT]->Synchronize(time, GetWheelState(LEFT), m_terrain);
-    m_tire[RIGHT]->Synchronize(time, GetWheelState(RIGHT), m_terrain);
+    m_tire[LEFT]->Synchronize(time, wheel_state_L, m_terrain);
+    m_tire[RIGHT]->Synchronize(time, wheel_state_R, m_terrain);
 
     // Let the steering subsystem process the steering input.
     if (HasSteering()) {
@@ -436,8 +439,8 @@ void ChSuspensionTestRig::Synchronize(double time, double steering, double disp_
         func_R->Set_yconst(disp_R * m_displ_limit);
 
     // Apply tire forces to spindle bodies.
-    m_suspension->Synchronize(LEFT, m_tire[LEFT]->GetTireForce());
-    m_suspension->Synchronize(RIGHT, m_tire[RIGHT]->GetTireForce());
+    m_suspension->Synchronize(LEFT, tire_force_L);
+    m_suspension->Synchronize(RIGHT, tire_force_R);
 
     // Update the height of the underlying "terrain" object, using the current z positions
     // of the post bodies.
@@ -566,7 +569,7 @@ void ChSuspensionTestRig::AddVisualize_post(VehicleSide side, const ChColor& col
 ChSuspensionTestRig::Terrain::Terrain() : m_height_L(0), m_height_R(0) {}
 
 double ChSuspensionTestRig::Terrain::GetHeight(double x, double y) const {
-    return (y < 0) ? m_height_L : m_height_R;
+    return (y < 0) ? m_height_R : m_height_L;
 }
 
 ChVector<> ChSuspensionTestRig::Terrain::GetNormal(double x, double y) const {

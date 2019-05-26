@@ -48,6 +48,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/RigidTire.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRig.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChIrrGuiDriverSTR.h"
@@ -65,9 +66,6 @@ using namespace chrono::vehicle;
 
 // Simulation step size
 double step_size = 1e-3;
-
-// Time interval between two render frames (1/FPS)
-double render_step_size = 1.0 / 50;
 
 // Specification of tested suspension:
 //   'true':  use suspension from a vehicle JSON file?
@@ -93,6 +91,9 @@ std::string driver_file("hmmwv/suspensionTest/ST_inputs.dat");
 
 // JSON files for tire models (rigid)
 std::string tire_file("hmmwv/tire/HMMWV_RigidTire.json");
+////std::string tire_file("hmmwv/tire/HMMWV_RigidMeshTire_Coarse.json");
+////std::string tire_file("hmmwv/tire/HMMWV_Fiala_converted.json");
+////std::string tire_file("hmmwv/tire/HMMWV_TMeasyTire.json");
 
 // Output collection
 bool collect_output = false;
@@ -103,9 +104,9 @@ double out_step_size = 1.0 / 100;
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    // Use rigid wheels to actuate suspension.
-    auto tire_L = std::make_shared<RigidTire>(vehicle::GetDataFile(tire_file));
-    auto tire_R = std::make_shared<RigidTire>(vehicle::GetDataFile(tire_file));
+    // Create tires.
+    auto tire_L = ReadTireJSON(vehicle::GetDataFile(tire_file));
+    auto tire_R = ReadTireJSON(vehicle::GetDataFile(tire_file));
 
     // Create the suspension test rig.
     std::unique_ptr<ChSuspensionTestRig> rig;
@@ -123,7 +124,7 @@ int main(int argc, char* argv[]) {
     rig->Initialize(ChCoordsys<>());
 
     rig->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
-    rig->SetWheelVisualizationType(VisualizationType::PRIMITIVES);
+    rig->SetWheelVisualizationType(VisualizationType::NONE);
     if (rig->HasSteering()) {
         rig->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
     }
@@ -133,7 +134,7 @@ int main(int argc, char* argv[]) {
     ChVehicleIrrApp app(rig.get(), NULL, L"Suspension Test Rig");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
-    app.SetChaseCamera(0.5 * (rig->GetWheelPos(LEFT) + rig->GetWheelPos(RIGHT)), 2.0, 1.0);
+    app.SetChaseCamera(0.5 * (rig->GetWheelPos(LEFT) + rig->GetWheelPos(RIGHT)), 2.0, 0.5);
     app.SetTimestep(step_size);
     app.AssetBindAll();
     app.AssetUpdateAll();
@@ -142,15 +143,13 @@ int main(int argc, char* argv[]) {
     std::unique_ptr<ChDriverSTR> driver;
     if (use_data_driver) {
         // Driver with inputs from file
-        auto data_driver = new ChDataDriverSTR(*rig, vehicle::GetDataFile(driver_file));
+        auto data_driver = new ChDataDriverSTR(vehicle::GetDataFile(driver_file));
         driver = std::unique_ptr<ChDriverSTR>(data_driver);
     } else {
         // Interactive driver
         auto irr_driver = new ChIrrGuiDriverSTR(app);
-        double steering_time = 1.0;      // time to go from 0 to max
-        double displacement_time = 2.0;  // time to go from 0 to max applied post motion
-        irr_driver->SetSteeringDelta(render_step_size / steering_time);
-        irr_driver->SetDisplacementDelta(render_step_size / displacement_time);
+        irr_driver->SetSteeringDelta(1.0 / 50);
+        irr_driver->SetDisplacementDelta(1.0 / 250);
         driver = std::unique_ptr<ChDriverSTR>(irr_driver);
     }
     driver->Initialize();
@@ -167,23 +166,17 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    // Number of simulation steps between two 3D view render frames
-    int render_steps = (int)std::ceil(render_step_size / step_size);
-
     // Number of simulation steps between two data collection frames
     int out_steps = (int)std::ceil(out_step_size / step_size);
 
     // Initialize simulation frame counter
     int step_number = 0;
-    ChRealtimeStepTimer realtime_timer;
 
     while (app.GetDevice()->run()) {
         // Render scene
-        if (step_number % render_steps == 0) {
-            app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-            app.DrawAll();
-            app.EndScene();
-        }
+        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+        app.DrawAll();
+        app.EndScene();
 
         // Collect output data from modules
         double steering_input = driver->GetSteering();
@@ -209,10 +202,9 @@ int main(int argc, char* argv[]) {
         }
 
         // Advance simulation for one timestep for all modules
-        double step = realtime_timer.SuggestSimulationStep(step_size);
-        driver->Advance(step);
-        rig->Advance(step);
-        app.Advance(step);
+        driver->Advance(step_size);
+        rig->Advance(step_size);
+        app.Advance(step_size);
 
         // Increment frame number
         step_number++;

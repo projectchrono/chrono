@@ -32,11 +32,8 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChIrrGuiDriverSTR::ChIrrGuiDriverSTR(ChVehicleIrrApp& app)
-    : ChDriverSTR(*static_cast<ChSuspensionTestRig*>(app.m_vehicle)),
-      m_app(app),
-      m_displDelta(1.0 / 50),
-      m_steeringDelta(1.0 / 50) {
+ChIrrGuiDriverSTR::ChIrrGuiDriverSTR(irrlicht::ChIrrApp& app)
+    : m_app(app), m_displDelta(1.0 / 50), m_steeringDelta(1.0 / 250) {
     app.SetUserEventReceiver(this);
 }
 

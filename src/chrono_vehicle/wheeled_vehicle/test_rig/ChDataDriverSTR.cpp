@@ -22,21 +22,20 @@
 //
 // =============================================================================
 
+#include "chrono_vehicle/wheeled_vehicle/test_rig/ChDataDriverSTR.h"
+
+#include <algorithm>
+#include <fstream>
 #include <iostream>
 #include <sstream>
-#include <fstream>
 #include <vector>
-#include <algorithm>
-
-#include "chrono_vehicle/wheeled_vehicle/test_rig/ChDataDriverSTR.h"
 
 namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChDataDriverSTR::ChDataDriverSTR(ChSuspensionTestRig& rig, const std::string& filename, bool sorted)
-    : ChDriverSTR(rig) {
+ChDataDriverSTR::ChDataDriverSTR(const std::string& filename, bool sorted) {
     std::ifstream ifile(filename.c_str());
     std::string line;
 
@@ -61,8 +60,7 @@ ChDataDriverSTR::ChDataDriverSTR(ChSuspensionTestRig& rig, const std::string& fi
     GetLog() << "Loaded driver file: " << filename.c_str() << "\n";
 }
 
-ChDataDriverSTR::ChDataDriverSTR(ChSuspensionTestRig& rig, const std::vector<Entry>& data, bool sorted)
-    : ChDriverSTR(rig), m_data(data) {
+ChDataDriverSTR::ChDataDriverSTR(const std::vector<Entry>& data, bool sorted) : m_data(data) {
     if (!sorted)
         std::sort(m_data.begin(), m_data.end(), ChDataDriverSTR::compare);
 }

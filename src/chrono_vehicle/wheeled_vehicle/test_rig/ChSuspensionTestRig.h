@@ -83,11 +83,6 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     /// Each post will move between [-val, +val].
     void SetDisplacementLimit(double val) { m_displ_limit = val; }
 
-    /// Set the actuator function on the specified post (currently NOT USED).
-    void SetActuatorFunction(VehicleSide side, const std::shared_ptr<ChFunction>& func) {
-        m_actuator_func[side] = func;
-    }
-
     /// Get a handle to the specified wheel body.
     std::shared_ptr<ChBody> GetWheelBody(VehicleSide side) const { return m_suspension->GetSpindle(side); }
 
@@ -219,7 +214,6 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     std::shared_ptr<ChBody> m_post[2];                         ///< handles to post bodies
     std::shared_ptr<ChLinkLockPrismatic> m_post_prismatic[2];  ///< handles to post prismatic joints
     std::shared_ptr<ChLinkLinActuator> m_post_linact[2];       ///< handles to post linear actuators
-    std::shared_ptr<ChFunction> m_actuator_func[2];            ///< actuator functions applied to left/right posts
 
     double m_displ_limit;  ///< scale factor for post displacement
 
