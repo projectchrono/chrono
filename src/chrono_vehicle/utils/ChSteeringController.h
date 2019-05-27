@@ -282,11 +282,10 @@ class CH_VEHICLE_API ChPathSteeringControllerXT : public ChSteeringController {
 /// The algorithm is from :
 /// BEST, M.C., 2012. A simple realistic driver model. Presented at:
 /// AVEC `12: The 11th International Symposium on Advanced Vehicle Control, 9th-12th September 2012, Seoul, Korea.
-/// The path to be followed is specified as a ChBezierCurve object and the
-/// target point is defined to be the point on that path that is closest to the
-/// current location of the sentinel point.
-/// Originally this is combined lateral and longitudinal controller with polygonal course definition instead of a spline
-/// path
+/// The path to be followed is specified as a ChBezierCurve object and the the original
+/// definition points are extracted automatically. Open and closed course definitions
+/// can be handled. The ChBezier is still used for visualization.
+
 class CH_VEHICLE_API ChPathSteeringControllerSR : public ChSteeringController {
   public:
     /// Construct a steering controller to track the specified path.
@@ -333,13 +332,22 @@ class CH_VEHICLE_API ChPathSteeringControllerSR : public ChSteeringController {
     std::shared_ptr<ChBezierCurve> m_path;            ///< tracked path (piecewise cubic Bezier curve)
     std::unique_ptr<ChBezierCurveTracker> m_tracker;  ///< path tracker
 
+    void CalcPathPoints();  ///< extracts path points and direction vectors, make adjustments as needed
+
+    bool m_isClosedPath;  ///< needed for point extraction
+
     double m_Klat;       ///< lateral controller gain factor
-    double m_Kug;        ///< consideration factor for lateral acceleration
+    double m_Kug;        ///< understeering gradient in °/g, can be set to 0 if unknown
     double m_Tp;         ///< prediction time
     double m_L;          ///< effective axlespace (bycicle model)
     double m_delta;      ///< average turn angle of the steered wheels (bycicle model of the vehicle)
     double m_delta_max;  ///< max. allowed average turn angle of the steered wheels (bycicle model of the vehicle)
     double m_umin;       ///< threshold where the controller gets active
+
+    size_t m_idx_curr;              ///< current interval index
+    std::vector<ChVector<> > S_l;   ///< course definition points
+    std::vector<ChVector<> > R_l;   ///< direction vector: S_l[i+1] = S_l[i] + R_l[i]
+    std::vector<ChVector<> > R_lu;  ///< R_l with unit length, precalculated to avoid redundant calculations
 };
 
 /// @} vehicle_utils
