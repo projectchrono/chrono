@@ -121,7 +121,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Initialize suspension test rig (this automatically initializes tires).
-    rig->Initialize(ChCoordsys<>());
+    rig->Initialize();
 
     rig->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     rig->SetWheelVisualizationType(VisualizationType::NONE);
@@ -162,6 +162,8 @@ int main(int argc, char* argv[]) {
     std::string out_file = out_dir + "/output.dat";
     utils::CSV_writer out_csv(" ");
 
+    std::cout << "Rig mass: " << rig->GetVehicleMass() << std::endl;
+
     // ---------------
     // Simulation loop
     // ---------------
@@ -173,33 +175,35 @@ int main(int argc, char* argv[]) {
     int step_number = 0;
 
     while (app.GetDevice()->run()) {
+        double time = rig->GetChTime();
+        
         // Render scene
         app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         app.DrawAll();
         app.EndScene();
 
-        // Collect output data from modules
+        // Current tire forces
+        auto tire_force_L = rig->GetTireForce(VehicleSide::LEFT);
+        auto tire_force_R = rig->GetTireForce(VehicleSide::RIGHT);
+
+        // Driver inputs
         double steering_input = driver->GetSteering();
         double left_input = driver->GetDisplacementLeft();
         double right_input = driver->GetDisplacementRight();
 
-        // Update modules (process inputs from other modules)
-        double time = rig->GetChTime();
-        driver->Synchronize(time);
-        rig->Synchronize(time, steering_input, left_input, right_input);
-        app.Synchronize("", steering_input, 0, 0);
-
         // Write output data
         if (collect_output && step_number % out_steps == 0) {
-            // Current tire forces
-            auto tire_force_L = tire_L->ReportTireForce(nullptr);
-            auto tire_force_R = tire_R->ReportTireForce(nullptr);
             out_csv << time << left_input << right_input << steering_input;
             out_csv << rig->GetActuatorDisp(VehicleSide::LEFT) << rig->GetActuatorDisp(VehicleSide::RIGHT);
             out_csv << tire_force_L.point << tire_force_L.force << tire_force_L.moment;
             out_csv << tire_force_R.point << tire_force_R.force << tire_force_R.moment;
             out_csv << std::endl;
         }
+
+        // Update modules
+        driver->Synchronize(time);
+        rig->Synchronize(time, steering_input, left_input, right_input);
+        app.Synchronize("", steering_input, 0, 0);
 
         // Advance simulation for one timestep for all modules
         driver->Advance(step_size);

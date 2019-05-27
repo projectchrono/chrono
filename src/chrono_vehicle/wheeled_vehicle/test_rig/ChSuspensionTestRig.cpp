@@ -235,12 +235,12 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
     m_tire[RIGHT] = tire_right;
 }
 
-void ChSuspensionTestRig::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
+void ChSuspensionTestRig::Initialize() {
     // ----------------------------
     // Create the chassis subsystem
     // ----------------------------
     m_chassis = std::make_shared<ChSuspensionTestRigChassis>();
-    m_chassis->Initialize(m_system, chassisPos, 0);
+    m_chassis->Initialize(m_system, ChCoordsys<>(), 0);
     m_chassis->SetFixed(true);
 
     // ---------------------------------
@@ -417,6 +417,9 @@ double ChSuspensionTestRig::GetActuatorMarkerDist(VehicleSide side) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChSuspensionTestRig::Synchronize(double time, double steering, double disp_L, double disp_R) {
+    m_tireforce[LEFT] = m_tire[LEFT]->ReportTireForce(&m_terrain);
+    m_tireforce[RIGHT] = m_tire[RIGHT]->ReportTireForce(&m_terrain);
+
     auto tire_force_L = m_tire[LEFT]->GetTireForce();
     auto tire_force_R = m_tire[RIGHT]->GetTireForce();
 
@@ -478,61 +481,6 @@ void ChSuspensionTestRig::LogConstraintViolations() {
     }
 
     GetLog().SetNumFormat("%g");
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-std::string ChSuspensionTestRig::ExportComponentList() const {
-    rapidjson::Document jsonDocument;
-    jsonDocument.SetObject();
-
-    std::string template_name = GetTemplateName();
-    jsonDocument.AddMember("name", rapidjson::StringRef(m_name.c_str()), jsonDocument.GetAllocator());
-    jsonDocument.AddMember("template", rapidjson::Value(template_name.c_str(), jsonDocument.GetAllocator()).Move(),
-                           jsonDocument.GetAllocator());
-
-    {
-        rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
-        jsonSubDocument.SetObject();
-        m_chassis->ExportComponentList(jsonSubDocument);
-        jsonDocument.AddMember("chassis", jsonSubDocument, jsonDocument.GetAllocator());
-    }
-
-    {
-        rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
-        jsonSubDocument.SetObject();
-        m_suspension->ExportComponentList(jsonSubDocument);
-        jsonDocument.AddMember("suspension", jsonSubDocument, jsonDocument.GetAllocator());
-    }
-
-    if (HasSteering()) {
-        rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
-        jsonSubDocument.SetObject();
-        m_steering->ExportComponentList(jsonSubDocument);
-        jsonDocument.AddMember("steering", jsonSubDocument, jsonDocument.GetAllocator());
-    }
-
-    if (HasAntirollbar()) {
-        rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
-        jsonSubDocument.SetObject();
-        m_antirollbar->ExportComponentList(jsonSubDocument);
-        jsonDocument.AddMember("anti-roll bar", jsonSubDocument, jsonDocument.GetAllocator());
-    }
-
-    rapidjson::StringBuffer jsonBuffer;
-    rapidjson::PrettyWriter<rapidjson::StringBuffer> jsonWriter(jsonBuffer);
-    jsonDocument.Accept(jsonWriter);
-
-    return jsonBuffer.GetString();
-}
-
-void ChSuspensionTestRig::ExportComponentList(const std::string& filename) const {
-    std::ofstream of(filename);
-    of << ExportComponentList();
-}
-
-void ChSuspensionTestRig::Output(int frame, ChVehicleOutput& database) const {
-    //// TODO
 }
 
 // -----------------------------------------------------------------------------
