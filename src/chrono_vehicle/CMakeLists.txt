@@ -437,6 +437,8 @@ set(CV_WV_TIRE_FILES
 
     wheeled_vehicle/tire/RigidTire.h
     wheeled_vehicle/tire/RigidTire.cpp
+    wheeled_vehicle/tire/PacejkaTire.h
+    wheeled_vehicle/tire/PacejkaTire.cpp
     wheeled_vehicle/tire/LugreTire.h
     wheeled_vehicle/tire/LugreTire.cpp
     wheeled_vehicle/tire/FialaTire.h

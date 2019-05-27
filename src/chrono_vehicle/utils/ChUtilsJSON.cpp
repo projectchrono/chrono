@@ -41,6 +41,7 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/FEATire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/FialaTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/LugreTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/PacejkaTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ReissnerTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/RigidTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/TMeasyTire.h"
@@ -352,6 +353,8 @@ std::shared_ptr<ChTire> ReadTireJSON(const std::string& filename) {
         tire = std::make_shared<FialaTire>(d);
     } else if (subtype.compare("LugreTire") == 0) {
         tire = std::make_shared<LugreTire>(d);
+    } else if (subtype.compare("PacejkaTire") == 0) {
+        tire = std::make_shared<PacejkaTire>(d);
     } else if (subtype.compare("ANCFTire") == 0) {
         tire = std::make_shared<ANCFTire>(d);
     } else if (subtype.compare("ReissnerTire") == 0) {

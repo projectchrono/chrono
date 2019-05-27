@@ -49,7 +49,6 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
-#include "chrono_vehicle/wheeled_vehicle/tire/RigidTire.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRig.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChIrrGuiDriverSTR.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChDataDriverSTR.h"
@@ -94,6 +93,7 @@ std::string tire_file("hmmwv/tire/HMMWV_RigidTire.json");
 ////std::string tire_file("hmmwv/tire/HMMWV_RigidMeshTire_Coarse.json");
 ////std::string tire_file("hmmwv/tire/HMMWV_Fiala_converted.json");
 ////std::string tire_file("hmmwv/tire/HMMWV_TMeasyTire.json");
+////std::string tire_file("hmmwv/tire/HMMWV_PacejkaTire.json");
 
 // Output collection
 bool collect_output = false;
@@ -203,7 +203,7 @@ int main(int argc, char* argv[]) {
         // Update modules
         driver->Synchronize(time);
         rig->Synchronize(time, steering_input, left_input, right_input);
-        app.Synchronize("", steering_input, 0, 0);
+        app.Synchronize(tire_L->GetTemplateName(), steering_input, 0, 0);
 
         // Advance simulation for one timestep for all modules
         driver->Advance(step_size);

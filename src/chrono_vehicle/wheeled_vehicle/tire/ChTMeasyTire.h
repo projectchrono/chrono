@@ -64,7 +64,7 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     virtual ~ChTMeasyTire() {}
 
     /// Get the name of the vehicle subsystem template.
-    virtual std::string GetTemplateName() const override { return "TMeasy"; }
+    virtual std::string GetTemplateName() const override { return "TMeasyTire"; }
 
     /// Initialize this tire system.
     virtual void Initialize(std::shared_ptr<ChBody> wheel,  ///< [in] associated wheel body
