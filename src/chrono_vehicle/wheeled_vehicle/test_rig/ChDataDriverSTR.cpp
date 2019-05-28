@@ -56,8 +56,6 @@ ChDataDriverSTR::ChDataDriverSTR(const std::string& filename, bool sorted) {
 
     if (!sorted)
         std::sort(m_data.begin(), m_data.end(), ChDataDriverSTR::compare);
-
-    GetLog() << "Loaded driver file: " << filename.c_str() << "\n";
 }
 
 ChDataDriverSTR::ChDataDriverSTR(const std::vector<Entry>& data, bool sorted) : m_data(data) {

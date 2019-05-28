@@ -33,6 +33,7 @@
 //
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
+#include "chrono_vehicle/wheeled_vehicle/test_rig/ChDriverSTR.h"
 
 namespace chrono {
 namespace vehicle {
@@ -73,36 +74,29 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     /// Destructor
     ~ChSuspensionTestRig() {}
 
-    /// Initialize this suspension test rig.
-    /// Note that this function also initializes the tires.
-    void Initialize();
+    /// Set driver system
+    void SetDriver(std::unique_ptr<ChDriverSTR> driver);
 
     /// Set the limits for post displacement.
     /// Each post will move between [-val, +val].
     void SetDisplacementLimit(double val) { m_displ_limit = val; }
 
-    /// Set visualization type for the suspension subsystem.
-    void SetSuspensionVisualizationType(VisualizationType vis);
+    /// Set visualization type for the suspension subsystem (default: PRIMITIVES).
+    void SetSuspensionVisualizationType(VisualizationType vis) { m_vis_suspension = vis; }
 
-    /// Set visualization type for the steering subsystems.
-    void SetSteeringVisualizationType(VisualizationType vis);
+    /// Set visualization type for the steering subsystems (default: PRIMITIVES).
+    void SetSteeringVisualizationType(VisualizationType vis) { m_vis_steering = vis; }
 
-    /// Set visualization type for the wheel subsystems.
-    void SetWheelVisualizationType(VisualizationType vis);
+    /// Set visualization type for the wheel subsystems (default: NONE).
+    void SetWheelVisualizationType(VisualizationType vis) { m_vis_wheel = vis; }
 
-    /// Set visualization type for the tire subsystems.
-    void SetTireVisualizationType(VisualizationType vis);
+    /// Set visualization type for the tire subsystems (default: PRIMITIVES).
+    void SetTireVisualizationType(VisualizationType vis) { m_vis_tire = vis; }
 
-    /// Update the state at the current time.
-    /// Note that this function also synchronizes the tires.
-    void Synchronize(double time,      ///< [in] current time
-                     double steering,  ///< [in] current steering input [-1,+1]
-                     double disp_L,    ///< [in] left post displacement
-                     double disp_R     ///< [in] right post displacement
-    );
+    /// Initialize this suspension test rig.
+    void Initialize();
 
     /// Advance the state of the suspension test rig by the specified time step.
-    /// Note that this function also advances the tire states.
     virtual void Advance(double step) override;
 
     /// Get a handle to the specified wheel body.
@@ -122,6 +116,10 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
 
     /// Get the complete state for the specified wheel.
     WheelState GetWheelState(VehicleSide side) const;
+
+    double GetSteeringInput() const { return m_steering_input; }
+    double GetDisplacementLeftInput() const { return m_left_input; }
+    double GetDisplacementRightInput() const { return m_right_input; }
 
     double GetActuatorDisp(VehicleSide side);
     double GetActuatorForce(VehicleSide side);
@@ -177,32 +175,45 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     virtual std::string ExportComponentList() const override { return ""; }
     virtual void ExportComponentList(const std::string& filename) const override {}
     virtual void Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel = 0) override { Initialize(); }
+    
+    // Create the rig mechanism
+    void Create();
 
     // Utility function to add visualization to post bodies.
     void AddVisualize_post(VehicleSide side, const ChColor& color);
 
-    std::shared_ptr<ChSuspension> m_suspension;    ///< handle to suspension subsystem
-    std::shared_ptr<ChSteering> m_steering;        ///< handle to the steering subsystem
-    std::shared_ptr<ChAntirollBar> m_antirollbar;  ///< handle to the anti-roll bar subsystem
+    std::shared_ptr<ChSuspension> m_suspension;    ///< suspension subsystem
+    std::shared_ptr<ChSteering> m_steering;        ///< steering subsystem
+    std::shared_ptr<ChAntirollBar> m_antirollbar;  ///< anti-roll bar subsystem
     std::shared_ptr<ChShaft> m_dummy_shaft;        ///< dummy driveshaft
-    std::shared_ptr<ChWheel> m_wheel[2];           ///< handles to wheel subsystems
-    std::shared_ptr<ChTire> m_tire[2];             ///< handles to tire subsystems
+    std::shared_ptr<ChWheel> m_wheel[2];           ///< wheel subsystems
+    std::shared_ptr<ChTire> m_tire[2];             ///< tire subsystems
 
-    std::shared_ptr<ChBody> m_post[2];                         ///< handles to post bodies
-    std::shared_ptr<ChLinkLockPrismatic> m_post_prismatic[2];  ///< handles to post prismatic joints
-    std::shared_ptr<ChLinkLinActuator> m_post_linact[2];       ///< handles to post linear actuators
+    std::shared_ptr<ChBody> m_post[2];                         ///< post bodies
+    std::shared_ptr<ChLinkLockPrismatic> m_post_prismatic[2];  ///< post prismatic joints
+    std::shared_ptr<ChLinkLinActuator> m_post_linact[2];       ///< post linear actuators
+
+    std::unique_ptr<ChDriverSTR> m_driver;  ///< driver system
+    double m_steering_input;                ///< current driver steering input
+    double m_left_input;                    ///< current driver left post displacement input
+    double m_right_input;                   ///< current driver right post displacement input
 
     double m_displ_limit;         ///< scale factor for post displacement
     Terrain m_terrain;            ///< terrain object to provide height to the tires
     TerrainForce m_tireforce[2];  ///< tire-terrain forces (left / right)
 
-    ChVector<> m_suspLoc;
-    ChVector<> m_steeringLoc;
-    ChQuaternion<> m_steeringRot;
-    ChVector<> m_antirollbarLoc;
+    ChVector<> m_suspLoc;          ///< suspension location (relative to chassis)
+    ChVector<> m_steeringLoc;      ///< steering location (relative to chassis)
+    ChQuaternion<> m_steeringRot;  ///< steering orientation (relative to chassis)
+    ChVector<> m_antirollbarLoc;   ///< antiroll bar location (relative to chassis)
 
-    static const double m_post_radius;  ///< radius of the post cylindrical platform
-    static const double m_post_height;  ///< height of the post cylindrical platform
+    VisualizationType m_vis_steering;
+    VisualizationType m_vis_suspension;
+    VisualizationType m_vis_wheel;
+    VisualizationType m_vis_tire;
+
+    static const double m_post_radius;   ///< radius of the post cylindrical platform
+    static const double m_post_hheight;  ///< half-height of the post cylindrical platform
 };
 
 /// @} vehicle_wheeled_test_rig
