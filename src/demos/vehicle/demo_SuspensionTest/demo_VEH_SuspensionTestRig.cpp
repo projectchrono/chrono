@@ -120,6 +120,8 @@ int main(int argc, char* argv[]) {
             new ChSuspensionTestRig(vehicle::GetDataFile(str_file), tire_L, tire_R));
     }
 
+    rig->SetInitialRideHeight(0.4);
+
     rig->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     rig->SetWheelVisualizationType(VisualizationType::NONE);
     if (rig->HasSteering()) {
@@ -163,7 +165,7 @@ int main(int argc, char* argv[]) {
     std::string out_file = out_dir + "/output.dat";
     utils::CSV_writer out_csv(" ");
 
-    std::cout << "Rig mass: " << rig->GetVehicleMass() << std::endl;
+    std::cout << "Rig mass: " << rig->GetMass() << std::endl;
 
     // ---------------
     // Simulation loop
@@ -189,7 +191,9 @@ int main(int argc, char* argv[]) {
 
         // Write output data
         if (collect_output && step_number % out_steps == 0) {
+            out_csv << rig->GetSteeringInput() << rig->GetDisplacementLeftInput() << rig->GetDisplacementRightInput();
             out_csv << rig->GetActuatorDisp(VehicleSide::LEFT) << rig->GetActuatorDisp(VehicleSide::RIGHT);
+            out_csv << rig->GetRideHeight();
             out_csv << tire_force_L.point << tire_force_L.force << tire_force_L.moment;
             out_csv << tire_force_R.point << tire_force_R.force << tire_force_R.moment;
             out_csv << std::endl;

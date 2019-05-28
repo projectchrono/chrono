@@ -55,14 +55,15 @@ class CH_VEHICLE_API ChDriverSTR {
     /// Update the state of this driver system at the current time.
     virtual void Synchronize(double time) {}
 
-    /// Advance the state of this driver system by the specified time step.
-    virtual void Advance(double step) {}
-
     /// Initialize output file for recording driver inputs.
     bool LogInit(const std::string& filename);
 
     /// Record the current driver inputs to the log file.
     bool Log(double time);
+
+    /// Set value of the time delay.
+    /// During this initial time period, no driver inputs are generated.
+    void SetTimeDelay(double delay) { m_delay = delay; }
 
     /// Overwrite the value for the driver left post displacement input.
     void SetDisplacementLeft(double val, double min_val = -1, double max_val = 1);
@@ -74,9 +75,11 @@ class CH_VEHICLE_API ChDriverSTR {
     void SetSteering(double val, double min_val = -1, double max_val = 1);
 
   protected:
-    double m_displLeft;          ///< current value of left post displacement
-    double m_displRight;         ///< current value of right post displacement
-    double m_steering;           ///< current value of steering input
+    double m_displLeft;   ///< current value of left post displacement
+    double m_displRight;  ///< current value of right post displacement
+    double m_steering;    ///< current value of steering input
+
+    double m_delay;  ///< time delay before generating inputs
 
   private:
     std::string m_log_filename;  ///< name of output file for recording driver inputs

@@ -30,6 +30,7 @@
 #include <vector>
 
 #include "chrono/assets/ChColor.h"
+#include "chrono/physics/ChLinkMotorLinearPosition.h"
 //
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
@@ -74,12 +75,15 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     /// Destructor
     ~ChSuspensionTestRig() {}
 
-    /// Set driver system
+    /// Set driver system.
     void SetDriver(std::unique_ptr<ChDriverSTR> driver);
 
-    /// Set the limits for post displacement.
-    /// Each post will move between [-val, +val].
-    void SetDisplacementLimit(double val) { m_displ_limit = val; }
+    /// Set the initial ride height (relative to the chassis reference frame).
+    /// If not specified, the reference height is the suspension design configuration.
+    void SetInitialRideHeight(double height) { m_ride_height = height; }
+
+    /// Set the limits for post displacement (same for jounce and rebound).
+    void SetDisplacementLimit(double limit) { m_displ_limit = limit; }
 
     /// Set visualization type for the suspension subsystem (default: PRIMITIVES).
     void SetSuspensionVisualizationType(VisualizationType vis) { m_vis_suspension = vis; }
@@ -146,10 +150,14 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     /// Get the rig total mass.
     /// This includes the mass of the suspension and wheels, and (if present) the mass of the
     /// steering mechanism.
-    virtual double GetVehicleMass() const override;
+    double GetMass() const;
 
     /// Get the tire force and moment on the specified side.
     const TerrainForce& GetTireForce(VehicleSide side) const { return m_tireforce[side]; }
+
+    /// Get current ride height (relative to the chassis reference frame).
+    /// This estimate uses the average of the left and right posts.
+    double GetRideHeight() const;
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;
@@ -175,6 +183,7 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     virtual std::string ExportComponentList() const override { return ""; }
     virtual void ExportComponentList(const std::string& filename) const override {}
     virtual void Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel = 0) override { Initialize(); }
+    virtual double GetVehicleMass() const override { return GetMass(); }
     
     // Create the rig mechanism
     void Create();
@@ -189,15 +198,17 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     std::shared_ptr<ChWheel> m_wheel[2];           ///< wheel subsystems
     std::shared_ptr<ChTire> m_tire[2];             ///< tire subsystems
 
-    std::shared_ptr<ChBody> m_post[2];                         ///< post bodies
-    std::shared_ptr<ChLinkLockPrismatic> m_post_prismatic[2];  ///< post prismatic joints
-    std::shared_ptr<ChLinkLinActuator> m_post_linact[2];       ///< post linear actuators
+    std::shared_ptr<ChBody> m_post[2];                            ///< post bodies
+    std::shared_ptr<ChLinkMotorLinearPosition> m_post_linact[2];  ///< post linear actuators
 
     std::unique_ptr<ChDriverSTR> m_driver;  ///< driver system
     double m_steering_input;                ///< current driver steering input
     double m_left_input;                    ///< current driver left post displacement input
     double m_right_input;                   ///< current driver right post displacement input
 
+    double m_ride_height;         ///< ride height
+    double m_displ_offset;        ///< post displacement offset (to set reference position)
+    double m_displ_delay;         ///< time interval for assuming reference position
     double m_displ_limit;         ///< scale factor for post displacement
     Terrain m_terrain;            ///< terrain object to provide height to the tires
     TerrainForce m_tireforce[2];  ///< tire-terrain forces (left / right)

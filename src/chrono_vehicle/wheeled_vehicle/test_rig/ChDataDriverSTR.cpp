@@ -66,6 +66,15 @@ ChDataDriverSTR::ChDataDriverSTR(const std::vector<Entry>& data, bool sorted) : 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChDataDriverSTR::Synchronize(double time) {
+    if (time < m_delay) {
+        m_displLeft = 0;
+        m_displRight = 0;
+        m_steering = 0;
+        return;
+    }
+
+    time -= m_delay;
+
     if (time <= m_data[0].m_time) {
         m_displLeft = m_data[0].m_displLeft;
         m_displRight = m_data[0].m_displRight;

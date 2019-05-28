@@ -40,6 +40,9 @@ ChIrrGuiDriverSTR::ChIrrGuiDriverSTR(irrlicht::ChIrrApp& app)
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 bool ChIrrGuiDriverSTR::OnEvent(const SEvent& event) {
+    if (m_app.GetSystem()->GetChTime() < m_delay)
+        return false;
+
     // Only interpret keyboard inputs.
     if (event.EventType != EET_KEY_INPUT_EVENT)
         return false;
