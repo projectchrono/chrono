@@ -146,10 +146,8 @@ using namespace chrono::vehicle;
 %shared_ptr(chrono::ChAssembly)
 
 //from this module:
-/*
-%shared_ptr(chrono::vehicle::Patch)
+//%shared_ptr(chrono::vehicle::Patch)
 
-*/
 
 //
 // B- INCLUDE HEADERS

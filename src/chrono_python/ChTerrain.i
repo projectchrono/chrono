@@ -28,7 +28,7 @@
 %import "ChVector.i"
 %import "ChVisualization.i"
 
-//%shared_ptr(chrono::vehicle::Patch)
+%shared_ptr(chrono::vehicle::RigidTerrain::Patch)
 
 /* Parse the header file to generate wrappers */
 %include "../chrono_vehicle/ChTerrain.h"    
