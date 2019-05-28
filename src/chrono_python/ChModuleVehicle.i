@@ -87,6 +87,8 @@ using namespace chrono::vehicle;
 #define CH_VEHICLE_API 
 #define ChApi
 
+#define CH_MODELS_API
+
 // workaround for trouble
 //%ignore chrono::fea::ChContactNodeXYZ::ComputeJacobianForContactPart;
 
@@ -146,7 +148,7 @@ using namespace chrono::vehicle;
 %shared_ptr(chrono::ChAssembly)
 
 //from this module:
-//%shared_ptr(chrono::vehicle::Patch)
+
 
 
 //
@@ -180,8 +182,8 @@ using namespace chrono::vehicle;
 //%import(module = "pychrono.core")  "ChSystemNSC.i"
 //%import(module = "pychrono.core")  "ChSystemSMC.i"
 %import(module = "pychrono.core")  "ChCoordsys.i"
-// Put this 'director' feature _before_ class wrapping declaration.
-//%feature("director") chrono::ChFunction;
+%import(module = "pychrono.core")  "ChMatrix.i"
+%import "ChVisualization.i"
 /* Parse the header file to generate wrappers */
 %import(module = "pychrono.core") "../chrono/motion_functions/ChFunction_Base.h"
 //%import(module = "pychrono.core") "../chrono/assets/ChAsset.h"
@@ -206,7 +208,11 @@ using namespace chrono::vehicle;
 //%template(vector_ChNodeFEAbase) std::vector< std::shared_ptr<chrono::fea::ChNodeFEAbase> >;
 //%template(vector_ChElementBase) std::vector< std::shared_ptr<chrono::fea::ChElementBase> >;
 
+// TODO: what do we say to rapidjson? Not today.
+//%include "rapidjson.i"
+
 %include "ChTerrain.i"
+%include "ChChassis.i"
 
 //
 // C- DOWNCASTING OF SHARED POINTERS
