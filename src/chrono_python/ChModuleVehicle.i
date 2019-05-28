@@ -20,7 +20,7 @@
 // Turn on the documentation of members, for more intuitive IDE typing
 
 %feature("autodoc", "1");
-
+%feature("flatnested", "1");
 
 // Turn on the exception handling to intercept C++ exceptions
 %include "exception.i"
@@ -61,6 +61,7 @@
 #include "chrono/physics/ChLinkSpringCB.h"
 #include "chrono/physics/ChLinkRotSpringCB.h"
 #include "chrono/physics/ChLoadsBody.h"
+#include "chrono/physics/ChPhysicsItem.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChVehicle.h"
@@ -139,10 +140,14 @@ using namespace chrono::vehicle;
 %shared_ptr(chrono::ChNodeXYZ) 
 %shared_ptr(chrono::ChAsset)
 %shared_ptr(chrono::ChAssetLevel)
+%shared_ptr(chrono::geometry::ChTriangleMeshConnected)
+%shared_ptr(chrono::ChBody)
+%shared_ptr(chrono::ChSystem)
+%shared_ptr(chrono::ChAssembly)
 
 //from this module:
 /*
-%shared_ptr(chrono::fea::ChBeamSection)
+%shared_ptr(chrono::vehicle::Patch)
 
 */
 
@@ -166,11 +171,17 @@ using namespace chrono::vehicle;
 
 %import(module = "pychrono.core")  "ChClassFactory.i"
 %import(module = "pychrono.core")  "ChObject.i"
+%import(module = "pychrono.core")  "ChPhysicsItem.i"
 %import(module = "pychrono.core")  "ChVector.i"
 %import(module = "pychrono.core")  "ChQuaternion.i"
 %import(module = "pychrono.core")  "ChCoordsys.i"
 %import(module = "pychrono.core")  "ChFrame.i"
 %import(module = "pychrono.core")  "ChFrameMoving.i"
+%import(module = "pychrono.core")  "ChTimestepper.i"
+%import(module = "pychrono.core")  "ChSystem.i"
+//%import(module = "pychrono.core")  "ChSystemNSC.i"
+//%import(module = "pychrono.core")  "ChSystemSMC.i"
+%import(module = "pychrono.core")  "ChCoordsys.i"
 // Put this 'director' feature _before_ class wrapping declaration.
 //%feature("director") chrono::ChFunction;
 /* Parse the header file to generate wrappers */
