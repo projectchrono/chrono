@@ -14,11 +14,13 @@
 
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/vehicle/ChVehicleModelDefs.h"
+
 #include "chrono_models/vehicle/generic/Generic_Chassis.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_Chassis.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
-using namespace chrono::vehicle::generic;
+//using namespace chrono::vehicle::generic;
 %}
 
 
@@ -29,3 +31,4 @@ using namespace chrono::vehicle::generic;
 
 // Model:
 %include "../chrono_models/vehicle/generic/Generic_Chassis.h"
+%include "../chrono_models/vehicle/hmmwv/HMMWV_Chassis.h"
