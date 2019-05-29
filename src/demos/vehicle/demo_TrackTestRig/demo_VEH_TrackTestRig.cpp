@@ -18,8 +18,8 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/tracked_vehicle/utils/ChIrrGuiDriverTTR.h"
-#include "chrono_vehicle/tracked_vehicle/utils/ChTrackTestRig.h"
+#include "chrono_vehicle/tracked_vehicle/test_rig/ChIrrGuiDriverTTR.h"
+#include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRig.h"
 #include "chrono_vehicle/utils/ChVehicleIrrApp.h"
 
 #include "chrono_models/vehicle/m113/M113_TrackAssemblyDoublePin.h"

@@ -35,7 +35,7 @@
 
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyDoublePin.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblySinglePin.h"
-#include "chrono_vehicle/tracked_vehicle/utils/ChTrackTestRig.h"
+#include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRig.h"
 
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 

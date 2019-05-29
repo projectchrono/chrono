@@ -20,7 +20,7 @@
 #include <algorithm>
 
 #include "chrono/core/ChMathematics.h"
-#include "chrono_vehicle/tracked_vehicle/utils/ChIrrGuiDriverTTR.h"
+#include "chrono_vehicle/tracked_vehicle/test_rig/ChIrrGuiDriverTTR.h"
 
 using namespace irr;
 

@@ -660,16 +660,26 @@ set(CV_TV_TRACKASSEMBLY_FILES
 )
 source_group("tracked_vehicle\\track_assembly" FILES ${CV_TV_TRACKASSEMBLY_FILES})
 
+set(CV_TV_TEST_RIG_FILES
+    tracked_vehicle/test_rig/ChTrackTestRig.h
+    tracked_vehicle/test_rig/ChTrackTestRig.cpp
+)
+if(ENABLE_MODULE_IRRLICHT)
+    set(CVIRR_TV_TEST_RIG_FILES
+        tracked_vehicle/test_rig/ChIrrGuiDriverTTR.h
+        tracked_vehicle/test_rig/ChIrrGuiDriverTTR.cpp
+    )
+else()
+    set(CVIRR_TV_TEST_RIG_FILES "")
+endif()
+source_group("tracked_vehicle\\test_rig" FILES ${CV_TV_TEST_RIG_FILES} ${CVIRR_TV_TEST_RIG_FILES})
+
 set(CV_TV_UTILS_FILES
-    tracked_vehicle/utils/ChTrackTestRig.h
-    tracked_vehicle/utils/ChTrackTestRig.cpp
 )
 if(ENABLE_MODULE_IRRLICHT)
     set(CVIRR_TV_UTILS_FILES
         tracked_vehicle/utils/ChTrackedVehicleIrrApp.h
         tracked_vehicle/utils/ChTrackedVehicleIrrApp.cpp
-        tracked_vehicle/utils/ChIrrGuiDriverTTR.h
-        tracked_vehicle/utils/ChIrrGuiDriverTTR.cpp
     )
 else()
     set(CVIRR_TV_UTILS_FILES "")
@@ -770,6 +780,8 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_TV_SUSPENSION_FILES}
     ${CV_TV_TRACKSHOE_FILES}
     ${CV_TV_TRACKASSEMBLY_FILES}
+    ${CV_TV_TEST_RIG_FILES}
+    ${CVIRR_TV_TEST_RIG_FILES}
     ${CV_TV_UTILS_FILES}
     ${CVIRR_TV_UTILS_FILES}
     ${CV_TV_VEHICLE_FILES}
