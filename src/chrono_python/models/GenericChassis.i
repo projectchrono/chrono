@@ -5,13 +5,6 @@
 #include <string>
 #include <vector>
 
-#include "chrono/core/ChVector.h"
-#include "chrono/assets/ChColor.h"
-#include "chrono/assets/ChColorAsset.h"
-#include "chrono/geometry/ChTriangleMeshConnected.h"
-#include "chrono/physics/ChBody.h"
-#include "chrono/physics/ChSystem.h"
-
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChChassis.h"
 #include "chrono_vehicle/chassis/RigidChassis.h"
@@ -19,14 +12,20 @@
 
 #include "chrono_thirdparty/rapidjson/document.h"
 
+#include "chrono_models/ChApiModels.h"
+#include "chrono_models/vehicle/ChVehicleModelDefs.h"
+#include "chrono_models/vehicle/generic/Generic_Chassis.h"
 
+using namespace chrono;
+using namespace chrono::vehicle;
+using namespace chrono::vehicle::generic;
 %}
 
 
 //%shared_ptr(chrono::vehicle::RigidTerrain::Patch)
 
 /* Parse the header file to generate wrappers */
-%include "../chrono_vehicle/ChChassis.h"
-%include "../chrono_vehicle/chassis/RigidChassis.h"
-%include "../chrono_vehicle/chassis/ChRigidChassis.h"
-%include "models/GenericChassis.i"
+%import "ChChassis.i"
+
+// Model:
+%include "../chrono_models/vehicle/generic/Generic_Chassis.h"

@@ -73,6 +73,8 @@
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/ChTerrain.h"
 
+#include "chrono_models/ChApiModels.h"
+
 #include "chrono_thirdparty/rapidjson/document.h"
 
 
