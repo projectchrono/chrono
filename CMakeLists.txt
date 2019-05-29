@@ -20,22 +20,6 @@ endif(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 
 #-----------------------------------------------------------------------------
 
-enable_testing()
-set(VALGRIND_COMMAND "/usr/bin/valgrind")
-set(VALGRIND_COMMAND_OPTIONS "-v --tool=memcheck --leak-check=full --track-fds=yes --num-callers=50 --show-reachable=yes --track-origins=yes --malloc-fill=0xff --free-fill=0xfe")
-set(MEMORYCHECK_COMMAND "/usr/bin/valgrind")
-set(CTEST_MEMORYCHECK_COMMAND "/usr/bin/valgrind")
-set(CTEST_MEMORYCHECK_COMMAND_OPTIONS "-v --tool=memcheck --leak-check=full --track-fds=yes --num-callers=50 --show-reachable=yes --track-origins=yes --malloc-fill=0xff --free-fill=0xfe")
-
-if (NOT WIN32)
-    find_program(CCACHE_EXE ccache)
-    if(CCACHE_EXE)
-        set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_EXE}")
-    endif()
-endif()
-
-#-----------------------------------------------------------------------------
-
 # Be sure to avoid troubles with library paths when using old policy
 if(COMMAND cmake_policy)
     cmake_policy(SET CMP0003 NEW)
@@ -91,8 +75,24 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Enable CTest
 #-----------------------------------------------------------------------------
 
-enable_testing()
+# Note: no need to explicitly call 'enable_testing' as this is invoked by
+#       'include(CTest)'
+
+option(BUILD_TESTING "Build unit tests" OFF)
 include(CTest)
+
+set(VALGRIND_COMMAND "/usr/bin/valgrind")
+set(VALGRIND_COMMAND_OPTIONS "-v --tool=memcheck --leak-check=full --track-fds=yes --num-callers=50 --show-reachable=yes --track-origins=yes --malloc-fill=0xff --free-fill=0xfe")
+set(MEMORYCHECK_COMMAND "/usr/bin/valgrind")
+set(CTEST_MEMORYCHECK_COMMAND "/usr/bin/valgrind")
+set(CTEST_MEMORYCHECK_COMMAND_OPTIONS "-v --tool=memcheck --leak-check=full --track-fds=yes --num-callers=50 --show-reachable=yes --track-origins=yes --malloc-fill=0xff --free-fill=0xfe")
+
+if (NOT WIN32)
+    find_program(CCACHE_EXE ccache)
+    if(CCACHE_EXE)
+        set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_EXE}")
+    endif()
+endif()
 
 #-----------------------------------------------------------------------------
 # Use dependent options
