@@ -27,18 +27,18 @@
 // If data collection is enabled, an output file named 'output.dat' will be
 // generated in the directory specified by the variable out_dir. This ASCII file
 // contains one line per output time, each with the following information:
-//  [col  1]     time
-//  [col  2]     left post input, a value in [-1,1]
-//  [col  3]     right post input, a value in [-1,1]
-//  [col  4]     steering input, a value in [-1,1]
-//  [col  5]     actual left post displacement
-//  [col  6]     actual right post displacement
-//  [col  7- 9]  application point for left tire force
-//  [col 10-12]  left tire force
-//  [col 13-15]  left tire moment
-//  [col 16-18]  application point for right tire force
-//  [col 19-21]  right tire force
-//  [col 22-24]  right tire moment
+//  [col 1]      time
+//  [col 2-4]    left post input, right post input, steering input (in [-1,1])
+//  [col 5-6]    actual left post displacement, actual right post displacement
+//  [col 7]      current ride height (relative to chassis reference frame)
+//  [col 8-10]   application point for left tire force
+//  [col 11-13]  left tire force
+//  [col 14-16]  left tire moment
+//  [col 17-19]  application point for right tire force
+//  [col 20-22]  right tire force
+//  [col 23-25]  right tire moment
+//  [col 26-29]  left angular speed (omega), long. slip (kappa), slip angle (alpha), camber angle (gamma) 
+//  [col 30-33]  right angular speed (omega), long. slip (kappa), slip angle (alpha), camber angle (gamma)
 //
 // Tire forces are expressed in the global frame, as applied to the center of
 // the associated wheel.
@@ -89,14 +89,14 @@ double post_limit = 0.15;
 std::string driver_file("hmmwv/suspensionTest/ST_inputs.dat");
 
 // JSON files for tire models (rigid)
-std::string tire_file("hmmwv/tire/HMMWV_RigidTire.json");
+////std::string tire_file("hmmwv/tire/HMMWV_RigidTire.json");
 ////std::string tire_file("hmmwv/tire/HMMWV_RigidMeshTire_Coarse.json");
 ////std::string tire_file("hmmwv/tire/HMMWV_Fiala_converted.json");
-////std::string tire_file("hmmwv/tire/HMMWV_TMeasyTire.json");
+std::string tire_file("hmmwv/tire/HMMWV_TMeasyTire.json");
 ////std::string tire_file("hmmwv/tire/HMMWV_PacejkaTire.json");
 
 // Output collection
-bool collect_output = false;
+bool collect_output = true;
 std::string out_dir = GetChronoOutputPath() + "SUSPENSION_TEST_RIG";
 double out_step_size = 1.0 / 100;
 
@@ -162,7 +162,7 @@ int main(int argc, char* argv[]) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
-    std::string out_file = out_dir + "/output.dat";
+    std::string out_file = out_dir + "/" + tire_L->GetTemplateName() + ".dat";
     utils::CSV_writer out_csv(" ");
 
     std::cout << "Rig mass: " << rig->GetMass() << std::endl;
@@ -189,13 +189,28 @@ int main(int argc, char* argv[]) {
         auto tire_force_L = rig->GetTireForce(VehicleSide::LEFT);
         auto tire_force_R = rig->GetTireForce(VehicleSide::RIGHT);
 
+        // Tire kinematics
+        auto omega_L = rig->GetWheelOmega(VehicleSide::LEFT);
+        auto omega_R = rig->GetWheelOmega(VehicleSide::RIGHT);
+
+        double kappa_L = tire_L->GetLongitudinalSlip();
+        double alpha_L = tire_L->GetSlipAngle();
+        double gamma_L = tire_L->GetCamberAngle();
+
+        double kappa_R = tire_R->GetLongitudinalSlip();
+        double alpha_R = tire_R->GetSlipAngle();
+        double gamma_R = tire_R->GetCamberAngle();
+
         // Write output data
         if (collect_output && step_number % out_steps == 0) {
-            out_csv << rig->GetSteeringInput() << rig->GetDisplacementLeftInput() << rig->GetDisplacementRightInput();
+            out_csv << time;
+            out_csv << rig->GetDisplacementLeftInput() << rig->GetDisplacementRightInput() << rig->GetSteeringInput();
             out_csv << rig->GetActuatorDisp(VehicleSide::LEFT) << rig->GetActuatorDisp(VehicleSide::RIGHT);
             out_csv << rig->GetRideHeight();
             out_csv << tire_force_L.point << tire_force_L.force << tire_force_L.moment;
             out_csv << tire_force_R.point << tire_force_R.force << tire_force_R.moment;
+            out_csv << omega_L << kappa_L << alpha_L << gamma_L;
+            out_csv << omega_R << kappa_R << alpha_R << gamma_R;
             out_csv << std::endl;
         }
 
