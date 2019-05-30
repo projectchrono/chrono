@@ -18,6 +18,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/tracked_vehicle/test_rig/ChDataDriverTTR.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChIrrGuiDriverTTR.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRig.h"
 #include "chrono_vehicle/utils/ChVehicleIrrApp.h"
@@ -46,14 +47,22 @@ using std::endl;
 // USER SETTINGS
 // =============================================================================
 
+// Simulation step size
+double step_size = 1e-3;
+
+// Specification of test rig inputs:
+//   'true':  use driver inputs from file
+//   'false': use interactive Irrlicht driver
+bool use_data_driver = false;
+
 bool use_JSON = false;
 std::string filename("M113/track_assembly/M113_TrackAssemblySinglePin_Left.json");
 ////std::string filename("M113/track_assembly/M113_TrackAssemblyDoublePin_Left.json");
 
-double post_limit = 0.2;
+// File with driver inputs
+std::string driver_file("m113/test_rig/TTR_inputs.dat");
 
-// Simulation step size
-double step_size = 1e-3;
+double post_limit = 0.2;
 
 // Use HHT + MKL / MUMPS
 bool use_mkl = false;
@@ -61,12 +70,6 @@ bool use_mumps = true;
 
 // Solver output level (MKL and MUMPS)
 bool verbose_solver = false;
-
-// Time interval between two render frames
-double render_step_size = 1.0 / 50;
-
-// Output (screenshot captures)
-bool img_output = false;
 
 const std::string out_dir = GetChronoOutputPath() + "TRACK_TEST_RIG";
 
@@ -78,8 +81,6 @@ int main(int argc, char* argv[]) {
     // Construct rig mechanism
     // -----------------------
 
-    ChTrackTestRig* rig = nullptr;
-    ChVector<> attach_loc(0, 1, 0);
     ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC;
 
     //// NOTE
@@ -89,8 +90,9 @@ int main(int argc, char* argv[]) {
     ////
     //// For now, use ChMaterialSurface::NSC for a double-pin track model
 
+    ChTrackTestRig* rig = nullptr;
     if (use_JSON) {
-        rig = new ChTrackTestRig(vehicle::GetDataFile(filename), attach_loc, contact_method);
+        rig = new ChTrackTestRig(vehicle::GetDataFile(filename), contact_method);
         std::cout << "Rig uses track assembly from JSON file: " << vehicle::GetDataFile(filename) << std::endl;
     } else {
         VehicleSide side = LEFT;
@@ -112,9 +114,67 @@ int main(int argc, char* argv[]) {
                 break;
         }
 
-        rig = new ChTrackTestRig(track_assembly, attach_loc, contact_method);
+        rig = new ChTrackTestRig(track_assembly, contact_method);
         std::cout << "Rig uses M113 track assembly:  type " << (int)type << " side " << side << std::endl;
     }
+
+    // ---------------------------------------
+    // Create the vehicle Irrlicht application
+    // ---------------------------------------
+
+    ////ChVector<> target_point = rig->GetPostPosition();
+    ////ChVector<> target_point = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
+    ChVector<> target_point = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
+
+    ChVehicleIrrApp app(rig, NULL, L"Suspension Test Rig");
+    app.SetSkyBox();
+    app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
+    app.SetChaseCamera(ChVector<>(0), 3.0, 0.0);
+    app.SetChaseCameraPosition(target_point + ChVector<>(-2, 3, 0));
+    app.SetChaseCameraState(utils::ChChaseCamera::Free);
+    app.SetChaseCameraAngle(-CH_C_PI_2);
+    app.SetChaseCameraMultipliers(1e-4, 10);
+    app.SetTimestep(step_size);
+
+    // -----------------------------------
+    // Create and attach the driver system
+    // -----------------------------------
+
+    std::unique_ptr<ChDriverTTR> driver;
+    if (use_data_driver) {
+        // Driver with inputs from file
+        auto data_driver = new ChDataDriverTTR(vehicle::GetDataFile(driver_file));
+        driver = std::unique_ptr<ChDriverTTR>(data_driver);
+    } else {
+        auto irr_driver = new ChIrrGuiDriverTTR(app);
+        irr_driver->SetThrottleDelta(1.0 / 50);
+        irr_driver->SetDisplacementDelta(1.0 / 250);
+        driver = std::unique_ptr<ChDriverTTR>(irr_driver);
+    }
+
+    rig->SetDriver(std::move(driver));
+
+    // ----------------------------
+    // Initialize the rig mechanism
+    // ----------------------------
+
+    rig->SetInitialRideHeight(0.6);
+
+    rig->SetMaxTorque(6000);
+
+    ////rig->SetCollide(TrackedCollisionFlag::NONE);
+    ////rig->SetCollide(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SHOES_LEFT);
+
+    rig->SetSprocketVisualizationType(VisualizationType::PRIMITIVES);
+    rig->SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
+    rig->SetRoadWheelAssemblyVisualizationType(VisualizationType::PRIMITIVES);
+    rig->SetRoadWheelVisualizationType(VisualizationType::PRIMITIVES);
+    rig->SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
+
+    rig->Initialize();
+
+    app.AssetBindAll();
+    app.AssetUpdateAll();
 
     // ------------------------------
     // Solver and integrator settings
@@ -178,60 +238,6 @@ int main(int argc, char* argv[]) {
         std::cout << "Solver: Default" << std::endl;
     }
 
-    // Disable gravity in this simulation
-    ////rig->GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
-
-    // ----------------------------
-    // Initialize the rig mechanism
-    // ----------------------------
-
-    rig->SetMaxTorque(6000);
-
-    ChVector<> rig_loc(0, 0, 2);
-    ChQuaternion<> rig_rot(1, 0, 0, 0);
-    rig->Initialize(ChCoordsys<>(rig_loc, rig_rot));
-
-    rig->GetTrackAssembly()->SetSprocketVisualizationType(VisualizationType::PRIMITIVES);
-    rig->GetTrackAssembly()->SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
-    rig->GetTrackAssembly()->SetRoadWheelAssemblyVisualizationType(VisualizationType::PRIMITIVES);
-    rig->GetTrackAssembly()->SetRoadWheelVisualizationType(VisualizationType::PRIMITIVES);
-    rig->GetTrackAssembly()->SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
-
-    ////rig->SetCollide(TrackedCollisionFlag::NONE);
-    ////rig->SetCollide(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SHOES_LEFT);
-    ////rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->SetCollide(false);
-
-    // ---------------------------------------
-    // Create the vehicle Irrlicht application
-    // ---------------------------------------
-
-    ////ChVector<> target_point = rig->GetPostPosition();
-    ////ChVector<> target_point = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
-    ChVector<> target_point = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
-
-    ChVehicleIrrApp app(rig, NULL, L"Suspension Test Rig");
-    app.SetSkyBox();
-    app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
-    app.SetChaseCamera(ChVector<>(0), 3.0, 0.0);
-    app.SetChaseCameraPosition(target_point + ChVector<>(0, 3, 0));
-    app.SetChaseCameraState(utils::ChChaseCamera::Free);
-    app.SetChaseCameraAngle(-CH_C_PI_2);
-    app.SetChaseCameraMultipliers(1e-4, 10);
-    app.SetTimestep(step_size);
-    app.AssetBindAll();
-    app.AssetUpdateAll();
-
-    // ------------------------
-    // Create the driver system
-    // ------------------------
-
-    ChIrrGuiDriverTTR driver(app, post_limit);
-    double steering_time = 1.0;      // time to go from 0 to max
-    double displacement_time = 2.0;  // time to go from 0 to max applied post motion
-    driver.SetSteeringDelta(render_step_size / steering_time);
-    driver.SetDisplacementDelta(render_step_size / displacement_time * post_limit);
-    driver.Initialize();
-
     // -----------------
     // Initialize output
     // -----------------
@@ -245,17 +251,17 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    // Inter-module communication data
-    TerrainForces shoe_forces(1);
-
-    // Number of simulation steps between two 3D view render frames
-    int render_steps = (int)std::ceil(render_step_size / step_size);
-
     // Initialize simulation frame counter
     int step_number = 0;
-    int render_frame = 0;
 
     while (app.GetDevice()->run()) {
+        double time = rig->GetChTime();
+
+        // Render scene
+        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+        app.DrawAll();
+        app.EndScene();
+
         // Debugging output
         const ChFrameMoving<>& c_ref = rig->GetChassisBody()->GetFrame_REF_to_abs();
         const ChVector<>& i_pos_abs = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
@@ -266,31 +272,11 @@ int main(int argc, char* argv[]) {
         ////cout << "      idler:    " << i_pos_rel.x << "  " << i_pos_rel.y << "  " << i_pos_rel.z << endl;
         ////cout << "      sprocket: " << s_pos_rel.x << "  " << s_pos_rel.y << "  " << s_pos_rel.z << endl;
 
-        // Render scene
-        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-        app.DrawAll();
-        app.EndScene();
-
-        if (img_output && step_number > 1000 && step_number % render_steps == 0) {
-            char filename[100];
-            sprintf(filename, "%s/img_%03d.jpg", out_dir.c_str(), render_frame + 1);
-            app.WriteImageToFile(filename);
-            render_frame++;
-        }
-
-        // Collect output data from modules
-        double throttle_input = driver.GetThrottle();
-        double post_input = driver.GetDisplacement();
-
-        // Update modules (process inputs from other modules)
-        double time = rig->GetChTime();
-        driver.Synchronize(time);
-        rig->Synchronize(time, post_input, throttle_input, shoe_forces);
-        app.Synchronize("", 0, throttle_input, 0);
-
-        // Advance simulation for one timestep for all modules
-        driver.Advance(step_size);
+        // Advance simulation of the rig
         rig->Advance(step_size);
+
+        // Update visualization app
+        app.Synchronize("", 0, rig->GetThrottleInput(), 0);
         app.Advance(step_size);
 
         // Increment frame number

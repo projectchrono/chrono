@@ -20,45 +20,39 @@
 #ifndef CH_IRRGUIDRIVER_TTR_H
 #define CH_IRRGUIDRIVER_TTR_H
 
-#include <string>
-
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/driver/ChIrrGuiDriver.h"
+#include "chrono_vehicle/utils/ChVehicleIrrApp.h"
+#include "chrono_vehicle/tracked_vehicle/test_rig/ChDriverTTR.h"
 
 namespace chrono {
 namespace vehicle {
 
-/// @addtogroup vehicle_tracked_utils
+/// @addtogroup vehicle_tracked_test_rig
 /// @{
 
-/// Irrlicht-based GUI driver for the a track test rig.
-/// This class extends the ChIrrGuiDriver for a vehicle with controls for the shaker posts.
-class CH_VEHICLE_API ChIrrGuiDriverTTR : public ChIrrGuiDriver {
+/// Irrlicht-based GUI driver for the a track test rig.This class implements
+/// the functionality required by its base ChDriverSTR class using keyboard inputs.
+/// As an Irrlicht event receiver, its OnEvent() callback is used to keep track
+/// and update the current driver inputs.
+class CH_VEHICLE_API ChIrrGuiDriverTTR : public ChDriverTTR, public irr::IEventReceiver {
   public:
-    ChIrrGuiDriverTTR(ChVehicleIrrApp& app,            ///< handle to the vehicle Irrlicht application
-                      double displacement_limit = 0.1  ///< limits for post displacement
-                      );
+    ChIrrGuiDriverTTR(irrlicht::ChIrrApp& app);
 
     ~ChIrrGuiDriverTTR() {}
 
-    /// Get the post vertical displacement
-    double GetDisplacement() const { return m_displacement; }
-
-    /// Override for OnEvent.
     virtual bool OnEvent(const irr::SEvent& event) override;
 
-    void SetDisplacementDelta(double delta) { m_displacementDelta = delta; }
+    void SetThrottleDelta(double delta) { m_throttleDelta = delta; }
+    void SetDisplacementDelta(double delta) { m_displDelta = delta; }
 
   private:
-    void SetDisplacement(double vertical_disp);
+    irrlicht::ChIrrApp& m_app;
 
-    double m_displacementDelta;
-    double m_displacement;
-    double m_minDisplacement;
-    double m_maxDisplacement;
+    double m_throttleDelta;
+    double m_displDelta;
 };
 
-/// @} vehicle_tracked_utils
+/// @} vehicle_tracked_test_rig
 
 }  // end namespace vehicle
 }  // end namespace chrono
