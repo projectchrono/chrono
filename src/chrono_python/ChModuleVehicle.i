@@ -149,6 +149,7 @@ using namespace chrono::vehicle;
 %shared_ptr(chrono::ChBody)
 %shared_ptr(chrono::ChSystem)
 %shared_ptr(chrono::ChAssembly)
+%shared_ptr(chrono::ChShaft)
 
 //from this module:
 
