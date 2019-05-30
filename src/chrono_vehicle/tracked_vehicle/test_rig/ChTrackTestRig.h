@@ -28,7 +28,7 @@
 //
 #include "chrono/physics/ChLinkMotorLinearPosition.h"
 //
-#include "chrono_vehicle/tracked_Vehicle/ChTrackedVehicle.h"
+#include "chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChDriverTTR.h"
 
 namespace chrono {
