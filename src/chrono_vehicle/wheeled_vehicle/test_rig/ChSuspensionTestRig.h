@@ -118,6 +118,9 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     /// Get the global angular velocity of wheel.
     ChVector<> GetWheelAngVel(VehicleSide side) const { return m_suspension->GetSpindleAngVel(side); }
 
+    /// Get the angular speed of the specified wheel (about its rotation axis).
+    double GetWheelOmega(VehicleSide side) const;
+
     /// Get the complete state for the specified wheel.
     WheelState GetWheelState(VehicleSide side) const;
 

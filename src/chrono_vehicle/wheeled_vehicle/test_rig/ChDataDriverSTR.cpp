@@ -42,14 +42,14 @@ ChDataDriverSTR::ChDataDriverSTR(const std::string& filename, bool sorted) {
     while (std::getline(ifile, line)) {
         std::istringstream iss(line);
 
-        double time, steering, throttle, braking;
+        double time, left, right, steering;
 
-        iss >> time >> steering >> throttle >> braking;
+        iss >> time >> left >> right >> steering;
 
         if (iss.fail())
             break;
 
-        m_data.push_back(Entry(time, steering, throttle, braking));
+        m_data.push_back(Entry(time, left, right, steering));
     }
 
     ifile.close();

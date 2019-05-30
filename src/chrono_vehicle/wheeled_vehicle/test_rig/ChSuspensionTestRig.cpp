@@ -298,6 +298,10 @@ void ChSuspensionTestRig::Create() {
     m_tire[RIGHT]->Initialize(GetWheelBody(RIGHT), RIGHT);
 
     // --------------------------------------------
+    // Imobilize wheels
+    // --------------------------------------------
+
+    // --------------------------------------------
     // Create and initialize the shaker post bodies
     // --------------------------------------------
 
@@ -391,13 +395,20 @@ void ChSuspensionTestRig::SetDriver(std::unique_ptr<ChDriverSTR> driver) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+double ChSuspensionTestRig::GetWheelOmega(VehicleSide side) const {
+    auto rot = GetWheelRot(side);
+    auto ang_vel = GetWheelAngVel(side);
+    auto ang_vel_loc = rot.RotateBack(ang_vel);
+    return ang_vel_loc.y();
+}
+
 WheelState ChSuspensionTestRig::GetWheelState(VehicleSide side) const {
     WheelState state;
 
     state.pos = GetWheelPos(side);
     state.rot = GetWheelRot(side);
     state.lin_vel = GetWheelLinVel(side);
-    state.ang_vel = ChVector<>(0, 0, 0);
+    state.ang_vel = GetWheelAngVel(side);
 
     ChVector<> ang_vel_loc = state.rot.RotateBack(state.ang_vel);
     state.omega = ang_vel_loc.y();
