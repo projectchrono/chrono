@@ -18,9 +18,6 @@
 #include "chrono_models/vehicle/generic/Generic_Chassis.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Chassis.h"
 
-using namespace chrono;
-using namespace chrono::vehicle;
-//using namespace chrono::vehicle::generic;
 %}
 
 

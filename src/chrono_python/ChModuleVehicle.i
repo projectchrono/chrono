@@ -110,6 +110,7 @@ using namespace chrono::vehicle;
 
 
 //%template(vector_ChNodeFEAxyzrot) std::vector< std::shared_ptr<chrono::fea::ChNodeFEAxyzrot> >;
+%template(vector_int) std::vector< int >;
 
 //
 // For each class, keep updated the  A, B, C sections: 
@@ -185,6 +186,7 @@ using namespace chrono::vehicle;
 //%import(module = "pychrono.core")  "ChSystemSMC.i"
 %import(module = "pychrono.core")  "ChCoordsys.i"
 %import(module = "pychrono.core")  "ChMatrix.i"
+%import(module = "pychrono.core")  "ChBody.i"
 %import "ChVisualization.i"
 /* Parse the header file to generate wrappers */
 %import(module = "pychrono.core") "../chrono/motion_functions/ChFunction_Base.h"
@@ -213,8 +215,13 @@ using namespace chrono::vehicle;
 // TODO: what do we say to rapidjson? Not today.
 //%include "rapidjson.i"
 
+%include "../chrono_vehicle/ChPart.h"
 %include "ChTerrain.i"
 %include "ChChassis.i"
+// Shaft end suspensions before driveline
+//%include "ChSuspensions.i"
+//%include "ChShaft.i"
+%include "ChDriveline.i"
 
 //
 // C- DOWNCASTING OF SHARED POINTERS
