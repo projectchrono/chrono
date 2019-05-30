@@ -146,6 +146,11 @@ void ChCollisionSystemBulletParallel::ReportContacts(ChContactContainer* mcontac
         btPersistentManifold* contactManifold = bt_collision_world->getDispatcher()->getManifoldByIndexInternal(i);
         btCollisionObject* obA = static_cast<btCollisionObject*>(contactManifold->getBody0());
         btCollisionObject* obB = static_cast<btCollisionObject*>(contactManifold->getBody1());
+        if (obB->getCompanionId() < obA->getCompanionId()) {
+            auto tmp = obA;
+            obA = obB;
+            obB = tmp;
+        }
         contactManifold->refreshContactPoints(obA->getWorldTransform(), obB->getWorldTransform());
 
         icontact.modelA = (ChCollisionModel*)obA->getUserPointer();
