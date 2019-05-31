@@ -45,11 +45,15 @@ class CH_VEHICLE_API ChIrrGuiDriverTTR : public ChDriverTTR, public irr::IEventR
     void SetThrottleDelta(double delta) { m_throttleDelta = delta; }
     void SetDisplacementDelta(double delta) { m_displDelta = delta; }
 
+    virtual std::string GetInfoMessage() const override { return m_msg; }
+
   private:
     irrlicht::ChIrrApp& m_app;
 
     double m_throttleDelta;
     double m_displDelta;
+    int m_current_post;
+    std::string m_msg;
 };
 
 /// @} vehicle_tracked_test_rig

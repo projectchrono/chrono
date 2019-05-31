@@ -29,8 +29,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChIrrGuiDriverTTR::ChIrrGuiDriverTTR(irrlicht::ChIrrApp& app)
-    : m_app(app),
-      m_displDelta(1.0 / 250), m_throttleDelta(1.0 / 50) {
+    : m_app(app), m_current_post(0), m_msg("Active post: 0"), m_displDelta(1.0 / 250), m_throttleDelta(1.0 / 50) {
     app.SetUserEventReceiver(this);
 }
 
@@ -43,11 +42,21 @@ bool ChIrrGuiDriverTTR::OnEvent(const SEvent& event) {
 
     if (event.KeyInput.PressedDown) {
         switch (event.KeyInput.Key) {
+            case KEY_ADD:
+            case KEY_PLUS:
+                m_current_post = (m_current_post + 1) % m_displ.size();
+                m_msg = "Active post: " + std::to_string(m_current_post);
+                return true;
+            case KEY_SUBTRACT:
+            case KEY_MINUS:
+                m_current_post = (m_current_post == 0) ? (int)m_displ.size() - 1 : m_current_post - 1;
+                m_msg = "Active post: " + std::to_string(m_current_post);
+                return true;
             case KEY_KEY_T:
-                SetDisplacement(2, m_displ[2] + m_displDelta);
+                SetDisplacement(m_current_post, m_displ[m_current_post] + m_displDelta);
                 return true;
             case KEY_KEY_G:
-                SetDisplacement(2, m_displ[2] - m_displDelta);
+                SetDisplacement(m_current_post, m_displ[m_current_post] - m_displDelta);
                 return true;
             case KEY_KEY_W:
                 SetThrottle(m_throttle + m_throttleDelta);

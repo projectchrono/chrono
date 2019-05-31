@@ -56,7 +56,6 @@ class ChTrackTestRigChassis : public ChRigidChassis {
     virtual const ChMatrix33<>& GetInertia() const override { return m_inertia; }
     virtual const ChVector<>& GetLocalPosCOM() const override { return m_COM_loc; }
     virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return m_driverCsys; }
-    virtual void AddVisualizationAssets(VisualizationType vis) override;
 
   private:
     ChMatrix33<> m_inertia;
@@ -74,16 +73,6 @@ const ChCoordsys<> ChTrackTestRigChassis::m_driverCsys(ChVector<>(0, 0, 0), ChQu
 
 ChTrackTestRigChassis::ChTrackTestRigChassis() : ChRigidChassis("Ground") {
     m_inertia = ChMatrix33<>(m_inertiaXX);
-}
-
-void ChTrackTestRigChassis::AddVisualizationAssets(VisualizationType vis) {
-    auto box = std::make_shared<ChBoxShape>();
-    box->GetBoxGeometry().SetLengths(ChVector<>(0.1, 0.1, 0.1));
-    m_body->AddAsset(box);
-
-    auto blue = std::make_shared<ChColorAsset>();
-    blue->SetColor(ChColor(0.2f, 0.2f, 0.8f));
-    m_body->AddAsset(blue);
 }
 
 // -----------------------------------------------------------------------------

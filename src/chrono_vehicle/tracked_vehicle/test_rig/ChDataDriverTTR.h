@@ -71,9 +71,10 @@ class CH_VEHICLE_API ChDataDriverTTR : public ChDriverTTR {
     virtual void Initialize(size_t num_posts) override;
 
     /// Update the driver system at the specified time.
-    /// The driver inputs are obtained through linear interpolation between the
-    /// provided data points.
+    /// The driver inputs are obtained through linear interpolation between the provided data points.
     virtual void Synchronize(double time) override;
+
+    virtual std::string GetInfoMessage() const override { return "Data driver inputs"; }
 
   private:
     static bool compare(const Entry& a, const Entry& b) { return a.m_time < b.m_time; }
