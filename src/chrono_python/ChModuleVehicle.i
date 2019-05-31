@@ -91,6 +91,8 @@ using namespace chrono::vehicle;
 
 #define CH_MODELS_API
 
+
+
 // workaround for trouble
 //%ignore chrono::fea::ChContactNodeXYZ::ComputeJacobianForContactPart;
 
@@ -147,9 +149,12 @@ using namespace chrono::vehicle;
 %shared_ptr(chrono::ChAssetLevel)
 %shared_ptr(chrono::geometry::ChTriangleMeshConnected)
 %shared_ptr(chrono::ChBody)
+%shared_ptr(chrono::ChBodyAuxRef)
 %shared_ptr(chrono::ChSystem)
 %shared_ptr(chrono::ChAssembly)
 %shared_ptr(chrono::ChShaft)
+%shared_ptr(chrono::ChShaftsBody)
+%shared_ptr(chrono::ChLinkLockRevolute)
 
 //from this module:
 
@@ -188,7 +193,9 @@ using namespace chrono::vehicle;
 %import(module = "pychrono.core")  "ChCoordsys.i"
 %import(module = "pychrono.core")  "ChMatrix.i"
 %import(module = "pychrono.core")  "ChBody.i"
-%import "ChVisualization.i"
+%import(module = "pychrono.core")  "ChBodyAuxRef.i"
+%import(module = "pychrono.core")  "ChLinkLock.i"
+%import(module = "pychrono.core")   "ChVisualization.i"
 /* Parse the header file to generate wrappers */
 %import(module = "pychrono.core") "../chrono/motion_functions/ChFunction_Base.h"
 //%import(module = "pychrono.core") "../chrono/assets/ChAsset.h"
@@ -207,7 +214,7 @@ using namespace chrono::vehicle;
 
 //  core/  classes
 // ChPhysicsItem is imported, try not to include
-%include "../chrono/physics/ChPhysicsItem.h"
+//%include "../chrono/physics/ChPhysicsItem.h"
 //%include "../chrono/fea/ChNodeFEAbase.h"
 //%include "../chrono/fea/ChElementBase.h"
 //%template(vector_ChNodeFEAbase) std::vector< std::shared_ptr<chrono::fea::ChNodeFEAbase> >;
@@ -216,12 +223,16 @@ using namespace chrono::vehicle;
 // TODO: what do we say to rapidjson? Not today.
 //%include "rapidjson.i"
 
+//%include "../chrono_vehicle/ChApiVehicle.h"
+%ignore chrono::vehicle::TrackedCollisionFamily::Enum;
+%ignore chrono::vehicle::TrackedCollisionFamily::OutputInformation;
+%ignore chrono::vehicle::TrackedCollisionFlag::Enum;
+%include "../chrono_vehicle/ChSubsysDefs.h"
 %include "../chrono_vehicle/ChPart.h"
 %include "ChTerrain.i"
 %include "ChChassis.i"
-// Shaft end suspensions before driveline
+// suspensions before driveline
 //%include "ChSuspensions.i"
-//%include "ChShaft.i"
 %include "ChDriveline.i"
 
 //
