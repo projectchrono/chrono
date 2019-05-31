@@ -42,6 +42,7 @@
 
 %}
 %import(module = "pychrono.core") "ChShaft.i"
+%import "../chrono_vehicle/ChPart.h"
 //TODO: import once it is done!!!!
 //%import "ChSuspensions.i"
 

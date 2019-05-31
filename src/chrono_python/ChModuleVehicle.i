@@ -71,7 +71,19 @@
 #include "chrono_vehicle/ChVehicleOutput.h"
 #include "chrono_vehicle/ChChassis.h"
 #include "chrono_vehicle/ChPart.h"
+
 #include "chrono_vehicle/ChPowertrain.h"
+
+#include "chrono_vehicle/powertrain/ChSimplePowertrain.h"
+#include "chrono_vehicle/powertrain/ChSimpleMapPowertrain.h"
+#include "chrono_vehicle/powertrain/ChSimpleCVTPowertrain.h"
+#include "chrono_vehicle/powertrain/ChShaftsPowertrain.h"
+
+#include "chrono_vehicle/powertrain/SimplePowertrain.h"
+#include "chrono_vehicle/powertrain/SimpleMapPowertrain.h"
+#include "chrono_vehicle/powertrain/SimpleCVTPowertrain.h"
+#include "chrono_vehicle/powertrain/ShaftsPowertrain.h"
+
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/ChTerrain.h"
 
@@ -246,6 +258,7 @@ using namespace chrono::vehicle;
 %include "../chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 %include "ChSuspension.i"
 %include "ChDriveline.i"
+%include "Steering.i"
 
 //
 // C- DOWNCASTING OF SHARED POINTERS
