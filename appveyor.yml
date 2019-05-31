@@ -164,7 +164,8 @@ install:
     - sh: conda install conda-build anaconda-client=1.5.5 conda-verify --yes
     - sh: conda config --add channels https://conda.anaconda.org/conda-forge
     - sh: conda config --add channels https://conda.anaconda.org/intel
-    - sh: conda install -c conda-forge -c dlr-sc -c pythonocc -c oce pythonocc-core==0.18.1 --yes
+    #- sh: conda install -c conda-forge -c dlr-sc -c pythonocc -c oce pythonocc-core==0.18.1 --yes
+    - sh: conda install -c cadquery pythonocc-core --yes
     - sh: conda install -c intel mkl-devel --yes
 
 build: off

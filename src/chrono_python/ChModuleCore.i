@@ -250,7 +250,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChShaftsPlanetary)
 %shared_ptr(chrono::ChShaftsThermalEngine)
 %shared_ptr(chrono::ChShaftsTorqueBase)
-%shared_ptr(chrono::ChShaftsTorsionSpring) 
+%shared_ptr(chrono::ChShaftsTorsionSpring)
 %shared_ptr(chrono::ChLinkMotor)
 %shared_ptr(chrono::ChLinkMotorLinear)
 %shared_ptr(chrono::ChLinkMotorLinearDriveline)
@@ -432,14 +432,14 @@ using namespace chrono::fea;
 %include "ChLoadContainer.i"
 
 %include "ChShaft.i"
-%include "ChShaftsCouple.i"
+/*%include "ChShaftsCouple.i"
 %include "ChShaftsBody.i"
 %include "ChShaftsClutch.i"
 %include "ChShaftsMotor.i"
 %include "ChShaftsTorqueBase.i"
 %include "ChShaftsTorsionSpring.i"
 %include "ChShaftsPlanetary.i"
-%include "ChShaftsThermalEngine.i"
+%include "ChShaftsThermalEngine.i"*/
 %include "ChLinkMotor.i"
 %include "../chrono/physics/ChLoad.h"
 %include "../chrono/physics/ChLoadsBody.h"
