@@ -81,6 +81,7 @@ int main(int argc, char* argv[]) {
     // Construct rig mechanism
     // -----------------------
 
+    bool create_track = true;
     ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC;
 
     //// NOTE
@@ -92,11 +93,11 @@ int main(int argc, char* argv[]) {
 
     ChTrackTestRig* rig = nullptr;
     if (use_JSON) {
-        rig = new ChTrackTestRig(vehicle::GetDataFile(filename), contact_method);
+        rig = new ChTrackTestRig(vehicle::GetDataFile(filename), create_track, contact_method);
         std::cout << "Rig uses track assembly from JSON file: " << vehicle::GetDataFile(filename) << std::endl;
     } else {
         VehicleSide side = LEFT;
-        TrackShoeType type = TrackShoeType::SINGLE_PIN;
+        TrackShoeType type = TrackShoeType::DOUBLE_PIN;
         std::shared_ptr<ChTrackAssembly> track_assembly;
         switch (type) {
             case TrackShoeType::SINGLE_PIN: {
@@ -114,7 +115,7 @@ int main(int argc, char* argv[]) {
                 break;
         }
 
-        rig = new ChTrackTestRig(track_assembly, contact_method);
+        rig = new ChTrackTestRig(track_assembly, create_track, contact_method);
         std::cout << "Rig uses M113 track assembly:  type " << (int)type << " side " << side << std::endl;
     }
 

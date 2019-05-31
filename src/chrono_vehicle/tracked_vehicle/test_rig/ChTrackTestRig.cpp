@@ -78,10 +78,12 @@ ChTrackTestRigChassis::ChTrackTestRigChassis() : ChRigidChassis("Ground") {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChTrackTestRig::ChTrackTestRig(const std::string& filename,
+                               bool create_track,
                                ChMaterialSurface::ContactMethod contact_method)
     : ChVehicle("TrackTestRig", contact_method),
-    m_ride_height(-1),
-    m_max_torque(0),
+      m_create_track(create_track),
+      m_ride_height(-1),
+      m_max_torque(0),
       m_collide_flags(0xFFFF),
       m_vis_sprocket(VisualizationType::NONE),
       m_vis_idler(VisualizationType::NONE),
@@ -119,11 +121,13 @@ ChTrackTestRig::ChTrackTestRig(const std::string& filename,
 }
 
 ChTrackTestRig::ChTrackTestRig(std::shared_ptr<ChTrackAssembly> assembly,
+                               bool create_track,
                                ChMaterialSurface::ContactMethod contact_method)
     : ChVehicle("TrackTestRig", contact_method),
+      m_create_track(create_track),
       m_track(assembly),
-    m_ride_height(-1),
-    m_max_torque(0),
+      m_ride_height(-1),
+      m_max_torque(0),
       m_collide_flags(0xFFFF),
       m_vis_sprocket(VisualizationType::NONE),
       m_vis_idler(VisualizationType::NONE),
@@ -140,12 +144,11 @@ void ChTrackTestRig::Create() {
     m_chassis->SetFixed(true);
 
     // Initialize the track assembly subsystem
-    m_track->Initialize(m_chassis->GetBody(), ChVector<>(0, 0, 0));
+    m_track->Initialize(m_chassis->GetBody(), ChVector<>(0, 0, 0), m_create_track);
 
     // Create and initialize the shaker post body
     auto num_wheels = m_track->GetNumRoadWheelAssemblies();
     double rw_radius = m_track->GetRoadWheel(0)->GetWheelRadius();
-    double shoe_height = m_track->GetTrackShoe(0)->GetHeight();
 
     m_post_hheight = 0.05;
     m_post_radius = 0.9 * rw_radius;
@@ -159,11 +162,12 @@ void ChTrackTestRig::Create() {
         if (m_track->GetRoadWheel(i)->GetWheelBody()->GetPos().z() < zmin)
             zmin = m_track->GetRoadWheel(i)->GetWheelBody()->GetPos().z();
     }
+    zmin -= m_create_track ? (rw_radius + m_track->GetTrackShoe(0)->GetHeight() + 0.2) : rw_radius;
 
     // Create posts and associated actuators under each road wheel
     for (size_t i = 0; i < num_wheels; ++i) {
         auto post_pos = m_track->GetRoadWheel(i)->GetWheelBody()->GetPos();
-        post_pos.z() -= rw_radius + shoe_height + 0.2;
+        post_pos.z() = zmin;
 
         auto post = std::shared_ptr<ChBody>(m_system->NewBody());
         post->SetPos(post_pos);

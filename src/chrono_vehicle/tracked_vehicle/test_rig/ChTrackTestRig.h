@@ -44,16 +44,16 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     ChTrackTestRig() : ChVehicle("TrackTestRig") {}
 
     /// Construct a test rig from specified track assembly JSON file.
-    ChTrackTestRig(
-        const std::string& filename,  ///< [in] JSON file with test rig specification
-        ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC  ///< [in] contact method
-        );
+    ChTrackTestRig(const std::string& filename,  ///< [in] JSON file with test rig specification
+                   bool create_track = true,     ///< [in] include track shoes?
+                   ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC  ///< [in] contact method
+    );
 
     /// Construct a test rig using the specified track assembly and subsystem locations.
-    ChTrackTestRig(
-        std::shared_ptr<ChTrackAssembly> assembly,  ///< [in] handle to the track assembly
-        ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC  ///< [in] contact method
-        );
+    ChTrackTestRig(std::shared_ptr<ChTrackAssembly> assembly,  ///< [in] handle to the track assembly
+                   bool create_track = true,                   ///< [in] include track shoes?
+                   ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC  ///< [in] contact method
+    );
 
     /// Destructor
     ~ChTrackTestRig() {}
@@ -141,6 +141,7 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
 
     std::shared_ptr<ChTrackAssembly> m_track;  ///< track assembly
     std::shared_ptr<ChShaft> m_dummy_shaft;    ///< dummy driveshaft
+    bool m_create_track;                       ///< include track shoes?
     int m_collide_flags;                       ///< collision flags
 
     std::vector<std::shared_ptr<ChBody>> m_post;                            ///< post bodies
