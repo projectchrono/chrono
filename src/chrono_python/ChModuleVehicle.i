@@ -65,6 +65,8 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChVehicle.h"
+#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
+#include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/ChVehicleOutput.h"
 #include "chrono_vehicle/ChChassis.h"
@@ -155,6 +157,9 @@ using namespace chrono::vehicle;
 %shared_ptr(chrono::ChShaft)
 %shared_ptr(chrono::ChShaftsBody)
 %shared_ptr(chrono::ChLinkLockRevolute)
+%shared_ptr(chrono::ChLinkSpring)
+%shared_ptr(chrono::ChLinkSpringCB)
+%shared_ptr(chrono::ChFunction_Recorder)
 
 //from this module:
 
@@ -195,6 +200,7 @@ using namespace chrono::vehicle;
 %import(module = "pychrono.core")  "ChBody.i"
 %import(module = "pychrono.core")  "ChBodyAuxRef.i"
 %import(module = "pychrono.core")  "ChLinkLock.i"
+%import(module = "pychrono.core")  "ChLinkSpringCB.i"
 %import(module = "pychrono.core")   "ChVisualization.i"
 /* Parse the header file to generate wrappers */
 %import(module = "pychrono.core") "../chrono/motion_functions/ChFunction_Base.h"
@@ -229,10 +235,16 @@ using namespace chrono::vehicle;
 %ignore chrono::vehicle::TrackedCollisionFlag::Enum;
 %include "../chrono_vehicle/ChSubsysDefs.h"
 %include "../chrono_vehicle/ChPart.h"
+//%import "ChPowertrain.i"
 %include "ChTerrain.i"
 %include "ChChassis.i"
-// suspensions before driveline
-//%include "ChSuspensions.i"
+%include "../chrono_vehicle/ChVehicle.h"
+
+
+// Wheeled parts
+%include "../chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
+%include "../chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
+%include "ChSuspension.i"
 %include "ChDriveline.i"
 
 //
