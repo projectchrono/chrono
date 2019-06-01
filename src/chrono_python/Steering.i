@@ -46,5 +46,3 @@
 %include "../chrono_vehicle/wheeled_vehicle/steering/PitmanArm.h"
 %include "../chrono_vehicle/wheeled_vehicle/steering/RackPinion.h"
 %include "../chrono_vehicle/wheeled_vehicle/steering/RotaryArm.h"
-
-//%include "models/SteeringModels.i"

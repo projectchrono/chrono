@@ -247,10 +247,11 @@ using namespace chrono::vehicle;
 %ignore chrono::vehicle::TrackedCollisionFlag::Enum;
 %include "../chrono_vehicle/ChSubsysDefs.h"
 %include "../chrono_vehicle/ChPart.h"
-//%import "ChPowertrain.i"
-%include "ChTerrain.i"
 %include "ChChassis.i"
 %include "../chrono_vehicle/ChVehicle.h"
+
+
+%include "ChTerrain.i"
 
 
 // Wheeled parts
@@ -260,6 +261,7 @@ using namespace chrono::vehicle;
 %include "ChDriveline.i"
 %include "Steering.i"
 
+%include "ChPowertrain.i"
 //
 // C- DOWNCASTING OF SHARED POINTERS
 // 
