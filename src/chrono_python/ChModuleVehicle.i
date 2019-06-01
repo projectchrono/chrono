@@ -74,18 +74,10 @@
 
 #include "chrono_vehicle/ChPowertrain.h"
 
-#include "chrono_vehicle/powertrain/ChSimplePowertrain.h"
-#include "chrono_vehicle/powertrain/ChSimpleMapPowertrain.h"
-#include "chrono_vehicle/powertrain/ChSimpleCVTPowertrain.h"
-#include "chrono_vehicle/powertrain/ChShaftsPowertrain.h"
-
-#include "chrono_vehicle/powertrain/SimplePowertrain.h"
-#include "chrono_vehicle/powertrain/SimpleMapPowertrain.h"
-#include "chrono_vehicle/powertrain/SimpleCVTPowertrain.h"
-#include "chrono_vehicle/powertrain/ShaftsPowertrain.h"
-
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/ChTerrain.h"
+#include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
+#include "chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
 
 #include "chrono_models/ChApiModels.h"
 
@@ -161,6 +153,7 @@ using namespace chrono::vehicle;
 %shared_ptr(chrono::ChNodeXYZ) 
 %shared_ptr(chrono::ChAsset)
 %shared_ptr(chrono::ChAssetLevel)
+%shared_ptr(chrono::ChTriangleMeshShape)
 %shared_ptr(chrono::geometry::ChTriangleMeshConnected)
 %shared_ptr(chrono::ChBody)
 %shared_ptr(chrono::ChBodyAuxRef)
@@ -247,6 +240,7 @@ using namespace chrono::vehicle;
 %ignore chrono::vehicle::TrackedCollisionFlag::Enum;
 %include "../chrono_vehicle/ChSubsysDefs.h"
 %include "../chrono_vehicle/ChPart.h"
+%include "ChPowertrain.i"
 %include "ChChassis.i"
 %include "../chrono_vehicle/ChVehicle.h"
 
@@ -260,8 +254,13 @@ using namespace chrono::vehicle;
 %include "ChSuspension.i"
 %include "ChDriveline.i"
 %include "Steering.i"
+%include "../chrono_vehicle/wheeled_vehicle/ChWheel.h"
+%include "../chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
+%include "models/WheelModels.i"
 
-%include "ChPowertrain.i"
+%include "../chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
+%include "../chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
+
 //
 // C- DOWNCASTING OF SHARED POINTERS
 // 
