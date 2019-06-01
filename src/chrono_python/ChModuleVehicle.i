@@ -169,6 +169,8 @@ using namespace chrono::vehicle;
 %shared_ptr(chrono::ChLinkSpring)
 %shared_ptr(chrono::ChLinkSpringCB)
 %shared_ptr(chrono::ChFunction_Recorder)
+%shared_ptr(chrono::ChTexture)
+
 
 //from this module:
 
@@ -225,6 +227,7 @@ using namespace chrono::vehicle;
 //%import(module = "pychrono.core") "../chrono/physics/ChNodeXYZ.h"
 %import(module = "pychrono.core") "../chrono/physics/ChBodyFrame.h"
 %import(module = "pychrono.core") "../chrono/physics/ChLinkBase.h"
+%import(module = "pychrono.core") "ChTexture.i"
 
 
 //  core/  classes
