@@ -20,7 +20,7 @@
 // Turn on the documentation of members, for more intuitive IDE typing
 
 %feature("autodoc", "1");
-
+%feature("flatnested", "1");
 
 // Turn on the exception handling to intercept C++ exceptions
 %include "exception.i"

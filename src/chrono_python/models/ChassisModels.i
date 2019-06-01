@@ -17,6 +17,7 @@
 
 #include "chrono_models/vehicle/generic/Generic_Chassis.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Chassis.h"
+#include "chrono_models/vehicle/sedan/Sedan_Chassis.h"
 
 %}
 
@@ -29,3 +30,4 @@
 // Model:
 %include "../chrono_models/vehicle/generic/Generic_Chassis.h"
 %include "../chrono_models/vehicle/hmmwv/HMMWV_Chassis.h"
+%include "../chrono_models/vehicle/sedan/Sedan_Chassis.h"

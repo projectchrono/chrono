@@ -65,13 +65,23 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChVehicle.h"
+#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
+#include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/ChVehicleOutput.h"
 #include "chrono_vehicle/ChChassis.h"
 #include "chrono_vehicle/ChPart.h"
+
 #include "chrono_vehicle/ChPowertrain.h"
+
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/ChTerrain.h"
+#include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
+#include "chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
+
+#include "chrono_vehicle/wheeled_vehicle/ChBrake.h"
+#include "chrono_vehicle/wheeled_vehicle/brake/ChBrakeSimple.h"
+#include "chrono_vehicle/wheeled_vehicle/brake/BrakeSimple.h"
 
 #include "chrono_models/ChApiModels.h"
 
@@ -147,6 +157,7 @@ using namespace chrono::vehicle;
 %shared_ptr(chrono::ChNodeXYZ) 
 %shared_ptr(chrono::ChAsset)
 %shared_ptr(chrono::ChAssetLevel)
+%shared_ptr(chrono::ChTriangleMeshShape)
 %shared_ptr(chrono::geometry::ChTriangleMeshConnected)
 %shared_ptr(chrono::ChBody)
 %shared_ptr(chrono::ChBodyAuxRef)
@@ -155,6 +166,11 @@ using namespace chrono::vehicle;
 %shared_ptr(chrono::ChShaft)
 %shared_ptr(chrono::ChShaftsBody)
 %shared_ptr(chrono::ChLinkLockRevolute)
+%shared_ptr(chrono::ChLinkSpring)
+%shared_ptr(chrono::ChLinkSpringCB)
+%shared_ptr(chrono::ChFunction_Recorder)
+%shared_ptr(chrono::ChTexture)
+
 
 //from this module:
 
@@ -195,6 +211,7 @@ using namespace chrono::vehicle;
 %import(module = "pychrono.core")  "ChBody.i"
 %import(module = "pychrono.core")  "ChBodyAuxRef.i"
 %import(module = "pychrono.core")  "ChLinkLock.i"
+%import(module = "pychrono.core")  "ChLinkSpringCB.i"
 %import(module = "pychrono.core")   "ChVisualization.i"
 /* Parse the header file to generate wrappers */
 %import(module = "pychrono.core") "../chrono/motion_functions/ChFunction_Base.h"
@@ -210,6 +227,7 @@ using namespace chrono::vehicle;
 //%import(module = "pychrono.core") "../chrono/physics/ChNodeXYZ.h"
 %import(module = "pychrono.core") "../chrono/physics/ChBodyFrame.h"
 %import(module = "pychrono.core") "../chrono/physics/ChLinkBase.h"
+%import(module = "pychrono.core") "ChTexture.i"
 
 
 //  core/  classes
@@ -229,11 +247,34 @@ using namespace chrono::vehicle;
 %ignore chrono::vehicle::TrackedCollisionFlag::Enum;
 %include "../chrono_vehicle/ChSubsysDefs.h"
 %include "../chrono_vehicle/ChPart.h"
-%include "ChTerrain.i"
+%include "ChPowertrain.i"
 %include "ChChassis.i"
-// suspensions before driveline
-//%include "ChSuspensions.i"
+%include "../chrono_vehicle/ChVehicle.h"
+
+
+%include "ChTerrain.i"
+
+
+// Wheeled parts
+%include "../chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
+%include "../chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
+%include "ChSuspension.i"
 %include "ChDriveline.i"
+%include "Steering.i"
+
+%include "../chrono_vehicle/wheeled_vehicle/ChWheel.h"
+%include "../chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
+%include "models/WheelModels.i"
+
+%include "../chrono_vehicle/wheeled_vehicle/ChBrake.h"
+%include "../chrono_vehicle/wheeled_vehicle/brake/ChBrakeSimple.h"
+%include "../chrono_vehicle/wheeled_vehicle/brake/BrakeSimple.h"
+%include "models/BrakeModels.i"
+
+%include "ChTire.i"
+
+%include "../chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
+%include "../chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 
 //
 // C- DOWNCASTING OF SHARED POINTERS
