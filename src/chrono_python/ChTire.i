@@ -52,6 +52,7 @@
 
 %include "../chrono_vehicle/wheeled_vehicle/tire/ChTMeasyTire.h"
 %include "../chrono_vehicle/wheeled_vehicle/tire/ChRigidTire.h"
+%ignore chrono::vehicle::ChReissnerTire::ChReissnerTire;
 %include "../chrono_vehicle/wheeled_vehicle/tire/ChReissnerTire.h"
 %include "../chrono_vehicle/wheeled_vehicle/tire/ChPacejkaTire.h"
 %include "../chrono_vehicle/wheeled_vehicle/tire/ChPac2002_data.h"
@@ -74,4 +75,4 @@
 %include "../chrono_vehicle/wheeled_vehicle/tire/ANCFToroidalTire.h"
 %include "../chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"*/
 
-//%include "models/TireModels.i"
+%include "models/TireModels.i"

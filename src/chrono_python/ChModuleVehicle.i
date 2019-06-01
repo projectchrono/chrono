@@ -271,6 +271,8 @@ using namespace chrono::vehicle;
 %include "../chrono_vehicle/wheeled_vehicle/brake/BrakeSimple.h"
 %include "models/BrakeModels.i"
 
+%include "ChTire.i"
+
 %include "../chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 %include "../chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 
