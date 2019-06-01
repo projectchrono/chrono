@@ -79,6 +79,10 @@
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
 #include "chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
 
+#include "chrono_vehicle/wheeled_vehicle/ChBrake.h"
+#include "chrono_vehicle/wheeled_vehicle/brake/ChBrakeSimple.h"
+#include "chrono_vehicle/wheeled_vehicle/brake/BrakeSimple.h"
+
 #include "chrono_models/ChApiModels.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
@@ -254,9 +258,15 @@ using namespace chrono::vehicle;
 %include "ChSuspension.i"
 %include "ChDriveline.i"
 %include "Steering.i"
+
 %include "../chrono_vehicle/wheeled_vehicle/ChWheel.h"
 %include "../chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
 %include "models/WheelModels.i"
+
+%include "../chrono_vehicle/wheeled_vehicle/ChBrake.h"
+%include "../chrono_vehicle/wheeled_vehicle/brake/ChBrakeSimple.h"
+%include "../chrono_vehicle/wheeled_vehicle/brake/BrakeSimple.h"
+%include "models/BrakeModels.i"
 
 %include "../chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 %include "../chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
