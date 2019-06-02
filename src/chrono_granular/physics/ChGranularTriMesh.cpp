@@ -120,10 +120,16 @@ void ChSystemGranularSMC_trimesh::load_meshes(std::vector<std::string> objfilena
         all_meshes.push_back(ChTriangleMeshConnected());
         ChTriangleMeshConnected& mesh = all_meshes[all_meshes.size() - 1];
 
-        mesh.LoadWavefrontMesh(GetChronoDataFile(objfilenames[i]), true, false);
+        mesh.LoadWavefrontMesh(objfilenames[i], true, false);
         mesh.Transform({0, 0, 0}, ChMatrix33<>(ChVector<>(scalings[i].x, scalings[i].y, scalings[i].z)));
 
-        nTriangles += mesh.getNumTriangles();
+        unsigned int num_triangles_curr = mesh.getNumTriangles();
+
+        if (num_triangles_curr == 0) {
+            GRANULAR_ERROR("ERROR! Mesh %s has no triangles in it! Exiting!\n", objfilenames[i].c_str());
+        }
+
+        nTriangles += num_triangles_curr;
         numTriangleFamilies++;
     }
 

@@ -13,10 +13,7 @@ SET(LIBRARIES
 # List of all executables
 # ------------------------------------------------------------------------------
 
-SET(DEMOS
-		demo_GRAN_terrainBox_SMC
-		demo_GRAN_ballcosim
-		demo_GRAN_ShearBand
+SET(TESTS
 		utest_GRAN_mini
 )
 
@@ -24,9 +21,9 @@ SET(DEMOS
 # Add all executables
 # ------------------------------------------------------------------------------
 
-MESSAGE(STATUS "Demo programs for GRANULAR module...")
+MESSAGE(STATUS "Test programs for GRANULAR module...")
 
-FOREACH(PROGRAM ${DEMOS})
+FOREACH(PROGRAM ${TESTS})
 		MESSAGE(STATUS "...add ${PROGRAM}")
 
 		ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
@@ -40,6 +37,8 @@ FOREACH(PROGRAM ${DEMOS})
 
 		TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES})
 		ADD_DEPENDENCIES(${PROGRAM} ${LIBRARIES})
+
+    ADD_TEST(${PROGRAM} ${PROJECT_BINARY_DIR}/bin/${PROGRAM})
 
 		INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 

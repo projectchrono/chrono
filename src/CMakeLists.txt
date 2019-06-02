@@ -9,7 +9,7 @@
 #-----------------------------------------------------------------------------
 
 option(BUILD_DEMOS "Build demo programs" ON)
-option(BUILD_BENCHMARKING "Build benchmark tests" ON)
+option(BUILD_BENCHMARKING "Build benchmark tests" OFF)
 
 #-----------------------------------------------------------------------------
 # Collect compiler flags required to build the Chrono libraries

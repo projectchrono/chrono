@@ -292,7 +292,7 @@ void ChTrackShoeDoublePin::Connect(std::shared_ptr<ChTrackShoe> next) {
     system->AddLink(m_revolute_R);
 
     // Create connections between these connector bodies and the next shoe body
-    if (m_index == 0) {
+    if (m_index == -1) {
         // Create and initialize a point-line joint for left connector (sliding along X axis)
         loc_L = m_connector_L->TransformPointLocalToParent(ChVector<>(GetConnectorLength() / 2, 0, 0));
         rot = m_connector_L->GetRot() * Q_from_AngZ(CH_C_PI_2);
