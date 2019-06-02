@@ -1,7 +1,7 @@
 
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2015, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -29,7 +29,7 @@
 
 /**
  * \file
- * cub::DeviceHistogram provides device-wide parallel operations for constructing histogram(s) from a sequence of samples data residing within global memory.
+ * cub::DeviceHistogram provides device-wide parallel operations for constructing histogram(s) from a sequence of samples data residing within device-accessible memory.
  */
 
 #pragma once
@@ -49,8 +49,8 @@ namespace cub {
 
 
 /**
- * \brief DeviceHistogram provides device-wide parallel operations for constructing histogram(s) from a sequence of samples data residing within global memory. ![](histogram_logo.png)
- * \ingroup DeviceModule
+ * \brief DeviceHistogram provides device-wide parallel operations for constructing histogram(s) from a sequence of samples data residing within device-accessible memory. ![](histogram_logo.png)
+ * \ingroup SingleModule
  *
  * \par Overview
  * A <a href="http://en.wikipedia.org/wiki/Histogram"><em>histogram</em></a>
@@ -74,7 +74,6 @@ struct DeviceHistogram
      * - The number of histogram bins is (\p num_levels - 1)
      * - All bins comprise the same width of sample values: (\p upper_level - \p lower_level) / (\p num_levels - 1)
      * - \devicestorage
-     * - \cdp
      *
      * \par Snippet
      * The code snippet below illustrates the computation of a six-bin histogram
@@ -84,7 +83,7 @@ struct DeviceHistogram
      * \code
      * #include <cub/cub.cuh>   // or equivalently <cub/device/device_histogram.cuh>
      *
-     * // Declare, allocate, and initialize device pointers for input samples and
+     * // Declare, allocate, and initialize device-accessible pointers for input samples and
      * // output histogram
      * int      num_samples;    // e.g., 10
      * float*   d_samples;      // e.g., [2.2, 6.0, 7.1, 2.9, 3.5, 0.3, 2.9, 2.0, 6.1, 999.5]
@@ -123,7 +122,7 @@ struct DeviceHistogram
         typename            OffsetT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t HistogramEven(
-        void*               d_temp_storage,                             ///< [in] %Device allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void*               d_temp_storage,                             ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t&             temp_storage_bytes,                        ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         SampleIteratorT     d_samples,                                  ///< [in] The pointer to the input sequence of data samples.
         CounterT*           d_histogram,                                ///< [out] The pointer to the histogram counter output array of length <tt>num_levels</tt> - 1.
@@ -169,7 +168,6 @@ struct DeviceHistogram
      * - The number of histogram bins is (\p num_levels - 1)
      * - All bins comprise the same width of sample values: (\p upper_level - \p lower_level) / (\p num_levels - 1)
      * - \devicestorage
-     * - \cdp
      *
      * \par Snippet
      * The code snippet below illustrates the computation of a six-bin histogram
@@ -179,7 +177,7 @@ struct DeviceHistogram
      * \code
      * #include <cub/cub.cuh>   // or equivalently <cub/device/device_histogram.cuh>
      *
-     * // Declare, allocate, and initialize device pointers for input samples and
+     * // Declare, allocate, and initialize device-accessible pointers for input samples and
      * // output histogram
      * int      num_row_samples;    // e.g., 5
      * int      num_rows;           // e.g., 2;
@@ -223,7 +221,7 @@ struct DeviceHistogram
         typename            OffsetT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t HistogramEven(
-        void*               d_temp_storage,                             ///< [in] %Device allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void*               d_temp_storage,                             ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t&             temp_storage_bytes,                        ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         SampleIteratorT     d_samples,                                  ///< [in] The pointer to the input sequence of data samples.
         CounterT*           d_histogram,                                ///< [out] The pointer to the histogram counter output array of length <tt>num_levels</tt> - 1.
@@ -269,7 +267,6 @@ struct DeviceHistogram
      * - For channel<sub><em>i</em></sub>, the range of values for all histogram bins
      *   have the same width: (<tt>upper_level[i]</tt> - <tt>lower_level[i]</tt>) / (<tt> num_levels[i]</tt> - 1)
      * - \devicestorage
-     * - \cdp
      *
      * \par Snippet
      * The code snippet below illustrates the computation of three 256-bin <em>RGB</em> histograms
@@ -279,7 +276,7 @@ struct DeviceHistogram
      * \code
      * #include <cub/cub.cuh>   // or equivalently <cub/device/device_histogram.cuh>
      *
-     * // Declare, allocate, and initialize device pointers for input samples
+     * // Declare, allocate, and initialize device-accessible pointers for input samples
      * // and output histograms
      * int              num_pixels;         // e.g., 5
      * unsigned char*   d_samples;          // e.g., [(2, 6, 7, 5), (3, 0, 2, 1), (7, 0, 6, 2),
@@ -326,7 +323,7 @@ struct DeviceHistogram
         typename            OffsetT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t MultiHistogramEven(
-        void*               d_temp_storage,                             ///< [in] %Device allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void*               d_temp_storage,                             ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t&             temp_storage_bytes,                        ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         SampleIteratorT     d_samples,                                  ///< [in] The pointer to the multi-channel input sequence of data samples. The samples from different channels are assumed to be interleaved (e.g., an array of 32-bit pixels where each pixel consists of four <em>RGBA</em> 8-bit samples).
         CounterT*           d_histogram[NUM_ACTIVE_CHANNELS],           ///< [out] The pointers to the histogram counter output arrays, one for each active channel.  For channel<sub><em>i</em></sub>, the allocation length of <tt>d_histogram[i]</tt> should be <tt>num_levels[i]</tt> - 1.
@@ -373,7 +370,6 @@ struct DeviceHistogram
      * - For channel<sub><em>i</em></sub>, the range of values for all histogram bins
      *   have the same width: (<tt>upper_level[i]</tt> - <tt>lower_level[i]</tt>) / (<tt> num_levels[i]</tt> - 1)
      * - \devicestorage
-     * - \cdp
      *
      * \par Snippet
      * The code snippet below illustrates the computation of three 256-bin <em>RGB</em> histograms from a 2x3 region of
@@ -383,7 +379,7 @@ struct DeviceHistogram
      * \code
      * #include <cub/cub.cuh>   // or equivalently <cub/device/device_histogram.cuh>
      *
-     * // Declare, allocate, and initialize device pointers for input samples
+     * // Declare, allocate, and initialize device-accessible pointers for input samples
      * // and output histograms
      * int              num_row_pixels;     // e.g., 3
      * int              num_rows;           // e.g., 2
@@ -434,7 +430,7 @@ struct DeviceHistogram
         typename            OffsetT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t MultiHistogramEven(
-        void*               d_temp_storage,                             ///< [in] %Device allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void*               d_temp_storage,                             ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t&             temp_storage_bytes,                        ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         SampleIteratorT     d_samples,                                  ///< [in] The pointer to the multi-channel input sequence of data samples. The samples from different channels are assumed to be interleaved (e.g., an array of 32-bit pixels where each pixel consists of four <em>RGBA</em> 8-bit samples).
         CounterT*           d_histogram[NUM_ACTIVE_CHANNELS],           ///< [out] The pointers to the histogram counter output arrays, one for each active channel.  For channel<sub><em>i</em></sub>, the allocation length of <tt>d_histogram[i]</tt> should be <tt>num_levels[i]</tt> - 1.
@@ -451,7 +447,8 @@ struct DeviceHistogram
         typedef typename std::iterator_traits<SampleIteratorT>::value_type SampleT;
         Int2Type<sizeof(SampleT) == 1> is_byte_sample;
 
-        if ((sizeof(OffsetT) > sizeof(int)) && (row_stride_bytes * num_rows < std::numeric_limits<int>::max()))
+        if ((sizeof(OffsetT) > sizeof(int)) &&
+            ((unsigned long long) (num_rows * row_stride_bytes) < (unsigned long long) std::numeric_limits<int>::max()))
         {
             // Down-convert OffsetT data type
 
@@ -482,7 +479,6 @@ struct DeviceHistogram
      * - The number of histogram bins is (\p num_levels - 1)
      * - The value range for bin<sub><em>i</em></sub> is [<tt>level[i]</tt>, <tt>level[i+1]</tt>)
      * - \devicestorage
-     * - \cdp
      *
      * \par Snippet
      * The code snippet below illustrates the computation of an six-bin histogram
@@ -492,7 +488,7 @@ struct DeviceHistogram
      * \code
      * #include <cub/cub.cuh>   // or equivalently <cub/device/device_histogram.cuh>
      *
-     * // Declare, allocate, and initialize device pointers for input samples and
+     * // Declare, allocate, and initialize device-accessible pointers for input samples and
      * // output histogram
      * int      num_samples;    // e.g., 10
      * float*   d_samples;      // e.g., [2.2, 6.0, 7.1, 2.9, 3.5, 0.3, 2.9, 2.0, 6.1, 999.5]
@@ -530,7 +526,7 @@ struct DeviceHistogram
         typename            OffsetT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t HistogramRange(
-        void*               d_temp_storage,                         ///< [in] %Device allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void*               d_temp_storage,                         ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t&             temp_storage_bytes,                    ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         SampleIteratorT     d_samples,                              ///< [in] The pointer to the input sequence of data samples.
         CounterT*           d_histogram,                            ///< [out] The pointer to the histogram counter output array of length <tt>num_levels</tt> - 1.
@@ -573,7 +569,6 @@ struct DeviceHistogram
      * - The number of histogram bins is (\p num_levels - 1)
      * - The value range for bin<sub><em>i</em></sub> is [<tt>level[i]</tt>, <tt>level[i+1]</tt>)
      * - \devicestorage
-     * - \cdp
      *
      * \par Snippet
      * The code snippet below illustrates the computation of a six-bin histogram
@@ -583,7 +578,7 @@ struct DeviceHistogram
      * \code
      * #include <cub/cub.cuh>   // or equivalently <cub/device/device_histogram.cuh>
      *
-     * // Declare, allocate, and initialize device pointers for input samples and
+     * // Declare, allocate, and initialize device-accessible pointers for input samples and
      * // output histogram
      * int      num_row_samples;    // e.g., 5
      * int      num_rows;           // e.g., 2;
@@ -626,7 +621,7 @@ struct DeviceHistogram
         typename            OffsetT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t HistogramRange(
-        void*               d_temp_storage,                         ///< [in] %Device allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void*               d_temp_storage,                         ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t&             temp_storage_bytes,                    ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         SampleIteratorT     d_samples,                              ///< [in] The pointer to the input sequence of data samples.
         CounterT*           d_histogram,                            ///< [out] The pointer to the histogram counter output array of length <tt>num_levels</tt> - 1.
@@ -669,7 +664,6 @@ struct DeviceHistogram
      * - For channel<sub><em>i</em></sub>, the range of values for all histogram bins
      *   have the same width: (<tt>upper_level[i]</tt> - <tt>lower_level[i]</tt>) / (<tt> num_levels[i]</tt> - 1)
      * - \devicestorage
-     * - \cdp
      *
      * \par Snippet
      * The code snippet below illustrates the computation of three 4-bin <em>RGB</em> histograms
@@ -679,7 +673,7 @@ struct DeviceHistogram
      * \code
      * #include <cub/cub.cuh>   // or equivalently <cub/device/device_histogram.cuh>
      *
-     * // Declare, allocate, and initialize device pointers for input samples
+     * // Declare, allocate, and initialize device-accessible pointers for input samples
      * // and output histograms
      * int            num_pixels;       // e.g., 5
      * unsigned char  *d_samples;       // e.g., [(2, 6, 7, 5),(3, 0, 2, 1),(7, 0, 6, 2),
@@ -726,7 +720,7 @@ struct DeviceHistogram
         typename            OffsetT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t MultiHistogramRange(
-        void*               d_temp_storage,                         ///< [in] %Device allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void*               d_temp_storage,                         ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t&             temp_storage_bytes,                    ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         SampleIteratorT     d_samples,                              ///< [in] The pointer to the multi-channel input sequence of data samples. The samples from different channels are assumed to be interleaved (e.g., an array of 32-bit pixels where each pixel consists of four <em>RGBA</em> 8-bit samples).
         CounterT*           d_histogram[NUM_ACTIVE_CHANNELS],       ///< [out] The pointers to the histogram counter output arrays, one for each active channel.  For channel<sub><em>i</em></sub>, the allocation length of <tt>d_histogram[i]</tt> should be <tt>num_levels[i]</tt> - 1.
@@ -771,7 +765,6 @@ struct DeviceHistogram
      * - For channel<sub><em>i</em></sub>, the range of values for all histogram bins
      *   have the same width: (<tt>upper_level[i]</tt> - <tt>lower_level[i]</tt>) / (<tt> num_levels[i]</tt> - 1)
      * - \devicestorage
-     * - \cdp
      *
      * \par Snippet
      * The code snippet below illustrates the computation of three 4-bin <em>RGB</em> histograms from a 2x3 region of
@@ -781,7 +774,7 @@ struct DeviceHistogram
      * \code
      * #include <cub/cub.cuh>   // or equivalently <cub/device/device_histogram.cuh>
      *
-     * // Declare, allocate, and initialize device pointers for input samples
+     * // Declare, allocate, and initialize device-accessible pointers for input samples
      * // and output histograms
      * int              num_row_pixels;     // e.g., 3
      * int              num_rows;           // e.g., 2
@@ -830,7 +823,7 @@ struct DeviceHistogram
         typename            OffsetT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t MultiHistogramRange(
-        void*               d_temp_storage,                         ///< [in] %Device allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void*               d_temp_storage,                         ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t&             temp_storage_bytes,                    ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         SampleIteratorT     d_samples,                              ///< [in] The pointer to the multi-channel input sequence of data samples. The samples from different channels are assumed to be interleaved (e.g., an array of 32-bit pixels where each pixel consists of four <em>RGBA</em> 8-bit samples).
         CounterT*           d_histogram[NUM_ACTIVE_CHANNELS],       ///< [out] The pointers to the histogram counter output arrays, one for each active channel.  For channel<sub><em>i</em></sub>, the allocation length of <tt>d_histogram[i]</tt> should be <tt>num_levels[i]</tt> - 1.
@@ -846,7 +839,8 @@ struct DeviceHistogram
         typedef typename std::iterator_traits<SampleIteratorT>::value_type SampleT;
         Int2Type<sizeof(SampleT) == 1> is_byte_sample;
 
-        if ((sizeof(OffsetT) > sizeof(int)) && (row_stride_bytes * num_rows < std::numeric_limits<int>::max()))
+        if ((sizeof(OffsetT) > sizeof(int)) &&
+            ((unsigned long long) (num_rows * row_stride_bytes) < (unsigned long long) std::numeric_limits<int>::max()))
         {
             // Down-convert OffsetT data type
             return DipatchHistogram<NUM_CHANNELS, NUM_ACTIVE_CHANNELS, SampleIteratorT, CounterT, LevelT, int>::DispatchRange(
@@ -865,10 +859,6 @@ struct DeviceHistogram
 
     //@}  end member group
 };
-
-/**
- * \example example_device_histogram.cu
- */
 
 }               // CUB namespace
 CUB_NS_POSTFIX  // Optional outer namespace(s)
