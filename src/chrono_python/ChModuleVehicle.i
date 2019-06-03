@@ -69,6 +69,7 @@
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/ChVehicleOutput.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/ChChassis.h"
 #include "chrono_vehicle/ChPart.h"
 
@@ -165,11 +166,13 @@ using namespace chrono::vehicle;
 %shared_ptr(chrono::ChAssembly)
 %shared_ptr(chrono::ChShaft)
 %shared_ptr(chrono::ChShaftsBody)
+%shared_ptr(chrono::ChShaftsCouple)
 %shared_ptr(chrono::ChLinkLockRevolute)
 %shared_ptr(chrono::ChLinkSpring)
 %shared_ptr(chrono::ChLinkSpringCB)
 %shared_ptr(chrono::ChFunction_Recorder)
 %shared_ptr(chrono::ChTexture)
+%shared_ptr(chrono::ChBezierCurve)
 
 
 //from this module:
@@ -246,11 +249,14 @@ using namespace chrono::vehicle;
 %ignore chrono::vehicle::TrackedCollisionFamily::OutputInformation;
 %ignore chrono::vehicle::TrackedCollisionFlag::Enum;
 %include "../chrono_vehicle/ChSubsysDefs.h"
+//TODO: conversion from std::vectors of ChVehicleOutput
+%include "../chrono_vehicle/ChVehicleOutput.h"
+%include "../chrono_vehicle/ChVehicleModelData.h"
 %include "../chrono_vehicle/ChPart.h"
 %include "ChPowertrain.i"
 %include "ChChassis.i"
 %include "../chrono_vehicle/ChVehicle.h"
-
+%include "ChDriver.i"
 
 %include "ChTerrain.i"
 
@@ -275,6 +281,7 @@ using namespace chrono::vehicle;
 
 %include "../chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 %include "../chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
+//%include "models/VehicleModels.i"
 
 //
 // C- DOWNCASTING OF SHARED POINTERS
