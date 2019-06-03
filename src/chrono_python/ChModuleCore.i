@@ -69,6 +69,7 @@
 #include "chrono/geometry/ChTriangleMesh.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/geometry/ChTriangleMeshSoup.h"
+#include "chrono/core/ChBezierCurve.h"
 
 using namespace chrono;
 using namespace chrono::collision;
@@ -137,6 +138,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChPointPointSegment)
 %shared_ptr(chrono::ChPointPointSpring)
 %shared_ptr(chrono::ChTriangleMeshShape)
+%shared_ptr(chrono::ChBezierCurve)
 
 %shared_ptr(chrono::ChFunction)  
 %shared_ptr(chrono::ChFunction_Const)
@@ -337,6 +339,7 @@ using namespace chrono::fea;
 %include "ChVector.i"
 #define Vector ChVector<double>
 %include "ChQuaternion.i"
+%include "../chrono/core/ChBezierCurve.h"
 #define Quaternion ChQuaternion<double>
 %include "ChCoordsys.i"
 #define Coordsys ChCoordsys<double>
