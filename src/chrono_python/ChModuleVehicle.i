@@ -173,6 +173,7 @@ using namespace chrono::vehicle;
 %shared_ptr(chrono::ChFunction_Recorder)
 %shared_ptr(chrono::ChTexture)
 %shared_ptr(chrono::ChBezierCurve)
+%shared_ptr(chrono::ChLinkMarkers)
 
 
 //from this module:
@@ -213,6 +214,7 @@ using namespace chrono::vehicle;
 %import(module = "pychrono.core")  "ChMatrix.i"
 %import(module = "pychrono.core")  "ChBody.i"
 %import(module = "pychrono.core")  "ChBodyAuxRef.i"
+%import(module = "pychrono.core")  "ChLinkBase.i"
 %import(module = "pychrono.core")  "ChLinkLock.i"
 %import(module = "pychrono.core")  "ChLinkSpringCB.i"
 %import(module = "pychrono.core")   "ChVisualization.i"

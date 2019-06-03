@@ -13,10 +13,25 @@
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/driver/ChPathFollowerACCDriver.h"
 
+//to import/wrap
+//#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono/utils/ChUtilsChaseCamera.h"
+#include "chrono_vehicle/utils/ChVehicleIrrApp.h"
+#include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 
+/*using namespace chrono::irrlicht;
+using namespace irr;*/
 %}
 
-//%import(module = "pychrono.core") "../chrono/core/ChBezierCurve.h"
+
+#define ChApiIrr 
+
+
+%import(module = "pychrono.core") "../chrono/core/ChBezierCurve.h"
+%import(module = "pychrono.irrlicht") "dimension2d.h"
+%import(module = "pychrono.irrlicht") "ChIrrAppInterface.i"
+%import(module = "pychrono.irrlicht") "ChIrrApp.i"
+
 //%shared_ptr(chrono::vehicle::RigidTerrain::Patch)
 
 %template(vector_Entry) std::vector< chrono::vehicle::ChDataDriver::Entry >;
@@ -34,4 +49,8 @@
 %include "../chrono_vehicle/driver/ChPathFollowerDriver.h"
 %include "../chrono_vehicle/driver/ChPathFollowerACCDriver.h"
 
-//%include "models/DriverModels.i"
+
+%include "../chrono/utils/ChUtilsChaseCamera.h"
+%include "../chrono_vehicle/utils/ChVehicleIrrApp.h"
+%include "../chrono_vehicle/utils/ChVehicleIrrApp.h"
+%include "../chrono_vehicle/driver/ChIrrGuiDriver.h"
