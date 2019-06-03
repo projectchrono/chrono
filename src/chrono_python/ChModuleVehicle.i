@@ -85,12 +85,17 @@
 #include "chrono_vehicle/wheeled_vehicle/brake/BrakeSimple.h"
 
 #include "chrono_models/ChApiModels.h"
+#include "chrono_models/vehicle/ChVehicleModelDefs.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
 
 
 using namespace chrono;
 using namespace chrono::vehicle;
+
+using namespace chrono::vehicle::generic;
+using namespace chrono::vehicle::hmmwv;
+using namespace chrono::vehicle::sedan;
 
 
 %}
@@ -177,9 +182,11 @@ using namespace chrono::vehicle;
 
 
 //from this module:
-
-
-
+%shared_ptr(chrono::vehicle::RigidTerrain::Patch)
+/*
+!!! IMPORTANT: To "see" model namespace, is mandatory to include ChVehicleModelDefs
+Otherwise, derived classes in such namespace cause error with shared_ptr inheritance
+*/
 //
 // B- INCLUDE HEADERS
 //
@@ -251,6 +258,7 @@ using namespace chrono::vehicle;
 %ignore chrono::vehicle::TrackedCollisionFamily::OutputInformation;
 %ignore chrono::vehicle::TrackedCollisionFlag::Enum;
 %include "../chrono_vehicle/ChSubsysDefs.h"
+%include "../chrono_models/vehicle/ChVehicleModelDefs.h"
 //TODO: conversion from std::vectors of ChVehicleOutput
 %include "../chrono_vehicle/ChVehicleOutput.h"
 %include "../chrono_vehicle/ChVehicleModelData.h"
@@ -268,7 +276,7 @@ using namespace chrono::vehicle;
 %include "../chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 %include "ChSuspension.i"
 %include "ChDriveline.i"
-%include "Steering.i"
+%include "ChSteering.i"
 
 %include "../chrono_vehicle/wheeled_vehicle/ChWheel.h"
 %include "../chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
@@ -283,7 +291,7 @@ using namespace chrono::vehicle;
 
 %include "../chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 %include "../chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
-//%include "models/VehicleModels.i"
+%include "models/VehicleModels.i"
 
 //
 // C- DOWNCASTING OF SHARED POINTERS
