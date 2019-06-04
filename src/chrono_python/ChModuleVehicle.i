@@ -225,8 +225,8 @@ using namespace chrono::vehicle::sedan;
 %import(module = "pychrono.core")   "ChVisualization.i"
 /* Parse the header file to generate wrappers */
 %import(module = "pychrono.core") "../chrono/motion_functions/ChFunction_Base.h"
-//%import(module = "pychrono.core") "../chrono/assets/ChAsset.h"
-//%import(module = "pychrono.core") "../chrono/assets/ChAssetLevel.h"
+%import(module = "pychrono.core") "../chrono/assets/ChAsset.h"
+%import(module = "pychrono.core") "../chrono/assets/ChAssetLevel.h"
 %import(module = "pychrono.core")  "ChMaterialSurface.i"
 %import(module = "pychrono.core") "../chrono/physics/ChContinuumMaterial.h"
 %import(module = "pychrono.core") "../chrono/physics/ChPhysicsItem.h"

@@ -13,10 +13,12 @@
 
 #include "chrono_models/vehicle/generic/Generic_Vehicle.h"
 
+#include "chrono_models/vehicle/hmmwv/HMMWV.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Vehicle.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_VehicleReduced.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_VehicleFull.h"
 
+#include "chrono_models/vehicle/sedan/Sedan.h"
 #include "chrono_models/vehicle/sedan/Sedan_Vehicle.h"
 
 
@@ -30,13 +32,20 @@
 %import "ChDriveline.i"
 %import "ChSteering.i"
 %import "ChPowertrain.i"
+%import "ChChassis.i"
+%import "ChTire.i"
+%import "../chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
+%import "../chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
+%import "../chrono_vehicle/ChVehicle.h"
 
 // Model:
 
 %include "../chrono_models/vehicle/generic/Generic_Vehicle.h"
 
+%include "../chrono_models/vehicle/hmmwv/HMMWV.h"
 %include "../chrono_models/vehicle/hmmwv/HMMWV_Vehicle.h"
 %include "../chrono_models/vehicle/hmmwv/HMMWV_VehicleReduced.h"
 %include "../chrono_models/vehicle/hmmwv/HMMWV_VehicleFull.h"
 
+%include "../chrono_models/vehicle/sedan/Sedan.h"
 %include "../chrono_models/vehicle/sedan/Sedan_Vehicle.h"
