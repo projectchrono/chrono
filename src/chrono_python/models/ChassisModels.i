@@ -26,6 +26,8 @@
 
 /* Parse the header file to generate wrappers */
 %import "ChChassis.i"
+%import(module = "pychrono.core") "../chrono/assets/ChAsset.h"
+%import(module = "pychrono.core") "../chrono/assets/ChAssetLevel.h"
 
 // Model:
 %include "../chrono_models/vehicle/generic/Generic_Chassis.h"

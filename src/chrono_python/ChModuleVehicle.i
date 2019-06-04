@@ -69,6 +69,7 @@
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/ChVehicleOutput.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/ChChassis.h"
 #include "chrono_vehicle/ChPart.h"
 
@@ -84,12 +85,17 @@
 #include "chrono_vehicle/wheeled_vehicle/brake/BrakeSimple.h"
 
 #include "chrono_models/ChApiModels.h"
+#include "chrono_models/vehicle/ChVehicleModelDefs.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
 
 
 using namespace chrono;
 using namespace chrono::vehicle;
+
+using namespace chrono::vehicle::generic;
+using namespace chrono::vehicle::hmmwv;
+using namespace chrono::vehicle::sedan;
 
 
 %}
@@ -165,15 +171,18 @@ using namespace chrono::vehicle;
 %shared_ptr(chrono::ChAssembly)
 %shared_ptr(chrono::ChShaft)
 %shared_ptr(chrono::ChShaftsBody)
+%shared_ptr(chrono::ChShaftsCouple)
 %shared_ptr(chrono::ChLinkLockRevolute)
 %shared_ptr(chrono::ChLinkSpring)
 %shared_ptr(chrono::ChLinkSpringCB)
 %shared_ptr(chrono::ChFunction_Recorder)
 %shared_ptr(chrono::ChTexture)
+%shared_ptr(chrono::ChBezierCurve)
+%shared_ptr(chrono::ChLinkMarkers)
 
 
 //from this module:
-
+%shared_ptr(chrono::vehicle::RigidTerrain::Patch)
 
 
 //
@@ -210,13 +219,14 @@ using namespace chrono::vehicle;
 %import(module = "pychrono.core")  "ChMatrix.i"
 %import(module = "pychrono.core")  "ChBody.i"
 %import(module = "pychrono.core")  "ChBodyAuxRef.i"
+%import(module = "pychrono.core")  "ChLinkBase.i"
 %import(module = "pychrono.core")  "ChLinkLock.i"
 %import(module = "pychrono.core")  "ChLinkSpringCB.i"
 %import(module = "pychrono.core")   "ChVisualization.i"
 /* Parse the header file to generate wrappers */
 %import(module = "pychrono.core") "../chrono/motion_functions/ChFunction_Base.h"
-//%import(module = "pychrono.core") "../chrono/assets/ChAsset.h"
-//%import(module = "pychrono.core") "../chrono/assets/ChAssetLevel.h"
+%import(module = "pychrono.core") "../chrono/assets/ChAsset.h"
+%import(module = "pychrono.core") "../chrono/assets/ChAssetLevel.h"
 %import(module = "pychrono.core")  "ChMaterialSurface.i"
 %import(module = "pychrono.core") "../chrono/physics/ChContinuumMaterial.h"
 %import(module = "pychrono.core") "../chrono/physics/ChPhysicsItem.h"
@@ -229,16 +239,7 @@ using namespace chrono::vehicle;
 %import(module = "pychrono.core") "../chrono/physics/ChLinkBase.h"
 %import(module = "pychrono.core") "ChTexture.i"
 
-
-//  core/  classes
-// ChPhysicsItem is imported, try not to include
-//%include "../chrono/physics/ChPhysicsItem.h"
-//%include "../chrono/fea/ChNodeFEAbase.h"
-//%include "../chrono/fea/ChElementBase.h"
-//%template(vector_ChNodeFEAbase) std::vector< std::shared_ptr<chrono::fea::ChNodeFEAbase> >;
-//%template(vector_ChElementBase) std::vector< std::shared_ptr<chrono::fea::ChElementBase> >;
-
-// TODO: what do we say to rapidjson? Not today.
+// TODO: 
 //%include "rapidjson.i"
 
 //%include "../chrono_vehicle/ChApiVehicle.h"
@@ -246,13 +247,17 @@ using namespace chrono::vehicle;
 %ignore chrono::vehicle::TrackedCollisionFamily::OutputInformation;
 %ignore chrono::vehicle::TrackedCollisionFlag::Enum;
 %include "../chrono_vehicle/ChSubsysDefs.h"
+%include "../chrono_models/vehicle/ChVehicleModelDefs.h"
+//TODO: conversion from std::vectors of ChVehicleOutput
+%include "../chrono_vehicle/ChVehicleOutput.h"
+%include "../chrono_vehicle/ChVehicleModelData.h"
 %include "../chrono_vehicle/ChPart.h"
 %include "ChPowertrain.i"
 %include "ChChassis.i"
 %include "../chrono_vehicle/ChVehicle.h"
-
-
+%include "ChDriver.i"
 %include "ChTerrain.i"
+//TODO: antirollbar
 
 
 // Wheeled parts
@@ -260,7 +265,7 @@ using namespace chrono::vehicle;
 %include "../chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 %include "ChSuspension.i"
 %include "ChDriveline.i"
-%include "Steering.i"
+%include "ChSteering.i"
 
 %include "../chrono_vehicle/wheeled_vehicle/ChWheel.h"
 %include "../chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
@@ -275,6 +280,11 @@ using namespace chrono::vehicle;
 
 %include "../chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 %include "../chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
+%include "models/VehicleModels.i"
+
+/*
+Tracked vehicles are not going to be wrapped in the short term
+*/
 
 //
 // C- DOWNCASTING OF SHARED POINTERS

@@ -22,6 +22,8 @@
 
 %}
 
+%import(module = "pychrono.core") "../chrono/assets/ChAsset.h"
+%import(module = "pychrono.core") "../chrono/assets/ChAssetLevel.h"
 
 //%shared_ptr(chrono::vehicle::RigidTerrain::Patch)
 
