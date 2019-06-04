@@ -157,11 +157,11 @@ install:
     - sh: conda create -n myenv python=$PYTHON_VERSION -y
     - sh: conda update --yes conda
     - sh: source activate myenv
-    - sh: conda install --yes pip conda-build jinja2 binstar
+    - sh: conda install --yes pip jinja2 binstar
     - sh: conda config --set show_channel_urls true
     - sh: conda update conda --yes
     # I had to downgrade conda client, latest version does not show error messages
-    - sh: conda install conda-build anaconda-client=1.5.5 conda-verify --yes
+    - sh: conda install conda-build=3.17.5 anaconda-client=1.5.5 conda-verify --yes
     - sh: conda config --add channels https://conda.anaconda.org/conda-forge
     - sh: conda config --add channels https://conda.anaconda.org/intel
     #- sh: conda install -c conda-forge -c dlr-sc -c pythonocc -c oce pythonocc-core==0.18.1 --yes

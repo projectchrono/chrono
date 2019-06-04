@@ -187,6 +187,7 @@ def main():
 
         app.BeginScene(True, True, chronoirr.SColor(255, 140, 161, 192))
         app.DrawAll()
+        app.AddTypicalLogo(chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
 
         # Output POV-Ray data
         if (povray_output and step_number % render_steps == 0) :
@@ -245,6 +246,7 @@ def main():
 """
 !!!! Set this path before running the demo!
 """
+chrono.SetChronoDataPath('../../../data/')
 veh.SetDataPath('../../../data/Vehicle/')
 #  Initial vehicle location and orientation
 initLoc = chrono.ChVectorD(0, 0, 1.6)
