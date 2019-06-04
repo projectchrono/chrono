@@ -21,6 +21,7 @@
 
 %}
 
+%import(module = "pychrono.core") "ChColor.i"
 
 %shared_ptr(chrono::vehicle::RigidTerrain::Patch)
 

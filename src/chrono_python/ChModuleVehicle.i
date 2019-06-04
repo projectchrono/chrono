@@ -183,10 +183,8 @@ using namespace chrono::vehicle::sedan;
 
 //from this module:
 %shared_ptr(chrono::vehicle::RigidTerrain::Patch)
-/*
-!!! IMPORTANT: To "see" model namespace, is mandatory to include ChVehicleModelDefs
-Otherwise, derived classes in such namespace cause error with shared_ptr inheritance
-*/
+
+
 //
 // B- INCLUDE HEADERS
 //
@@ -267,8 +265,8 @@ Otherwise, derived classes in such namespace cause error with shared_ptr inherit
 %include "ChChassis.i"
 %include "../chrono_vehicle/ChVehicle.h"
 %include "ChDriver.i"
-
 %include "ChTerrain.i"
+//TODO: antirollbar
 
 
 // Wheeled parts

@@ -1,6 +1,8 @@
 %{
 
 /* Includes additional C++ in the wrapper code */
+#include <string>
+#include <vector>
 
 #include "chrono/core/ChBezierCurve.h"
 #include "chrono_vehicle/ChVehicle.h"
@@ -17,6 +19,7 @@
 //#include "chrono_irrlicht/ChIrrApp.h"
 #include "chrono/utils/ChUtilsChaseCamera.h"
 #include "chrono_vehicle/utils/ChVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 
 /*using namespace chrono::irrlicht;
@@ -31,6 +34,10 @@ using namespace irr;*/
 %import(module = "pychrono.irrlicht") "dimension2d.h"
 %import(module = "pychrono.irrlicht") "ChIrrAppInterface.i"
 %import(module = "pychrono.irrlicht") "ChIrrApp.i"
+
+%import "ChPowertrain.i"
+%import "ChChassis.i"
+%import "../chrono_vehicle/ChVehicle.h"
 
 //%shared_ptr(chrono::vehicle::RigidTerrain::Patch)
 
@@ -52,5 +59,5 @@ using namespace irr;*/
 
 %include "../chrono/utils/ChUtilsChaseCamera.h"
 %include "../chrono_vehicle/utils/ChVehicleIrrApp.h"
-%include "../chrono_vehicle/utils/ChVehicleIrrApp.h"
+%include "../chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 %include "../chrono_vehicle/driver/ChIrrGuiDriver.h"
