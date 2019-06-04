@@ -165,16 +165,12 @@ target_link_libraries(ChronoEngine_granular ${CHRONO_GRANULAR_LINKED_LIBRARIES})
 
 install(TARGETS ChronoEngine_granular
 				RUNTIME DESTINATION bin
-				LIBRARY DESTINATION lib64
-				ARCHIVE DESTINATION lib64)
+				LIBRARY DESTINATION lib
+				ARCHIVE DESTINATION lib)
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
 				DESTINATION include/chrono_granular
-				FILES_MATCHING PATTERN "*.h")
-
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
-			DESTINATION include/chrono_granular
-			FILES_MATCHING PATTERN "*.cuh")
+			FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp")
 
 mark_as_advanced(FORCE
 		CUDA_BUILD_CUBIN
