@@ -246,8 +246,8 @@ def main():
 """
 !!!! Set this path before running the demo!
 """
-chrono.SetChronoDataPath('../../../data/')
-veh.SetDataPath('../../../data/Vehicle/')
+chrono.SetChronoDataPath('../../../../Library/data/')
+veh.SetDataPath('../../../../Library/data/Vehicle/')
 #  Initial vehicle location and orientation
 initLoc = chrono.ChVectorD(0, 0, 1.6)
 initRot = chrono.ChQuaternionD(1, 0, 0, 0)
