@@ -29,6 +29,18 @@
 
 %import "ChTire.i"
 
+%shared_ptr(chrono::vehicle::generic::Generic_RigidTire)
+%shared_ptr(chrono::vehicle::generic::Generic_RigidMeshTire)
+%shared_ptr(chrono::vehicle::generic::Generic_FialaTire)
+%shared_ptr(chrono::vehicle::hmmwv::HMMWV_RigidTire)
+%shared_ptr(chrono::vehicle::hmmwv::HMMWV_ReissnerTire)
+%shared_ptr(chrono::vehicle::hmmwv::HMMWV_Pac89Tire)
+%shared_ptr(chrono::vehicle::hmmwv::HMMWV_Pac02Tire)
+%shared_ptr(chrono::vehicle::hmmwv::HMMWV_LugreTire)
+%shared_ptr(chrono::vehicle::hmmwv::HMMWV_FialaTire)
+%shared_ptr(chrono::vehicle::sedan::Sedan_TMeasyTire)
+%shared_ptr(chrono::vehicle::sedan::Sedan_RigidTire)
+
 // Model:
 
 %include "../chrono_models/vehicle/generic/Generic_RigidTire.h"

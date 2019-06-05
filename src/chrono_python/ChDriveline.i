@@ -27,8 +27,17 @@
 
 #include "chrono_thirdparty/rapidjson/document.h"
 
-
 %}
+
+%shared_ptr(chrono::vehicle::ChDriveline)
+%shared_ptr(chrono::vehicle::ChShaftsDriveline2WD)
+%shared_ptr(chrono::vehicle::ChShaftsDriveline4WD)
+%shared_ptr(chrono::vehicle::ChSimpleDriveline)
+%shared_ptr(chrono::vehicle::ShaftsDriveline2WD)
+%shared_ptr(chrono::vehicle::SimpleDriveline)
+%shared_ptr(chrono::vehicle::ShaftsDriveline4WD)
+
+
 %import(module = "pychrono.core") "ChShaft.i"
 //TODO: import these once it is done!!!!
 //%import "ChSuspension.i"

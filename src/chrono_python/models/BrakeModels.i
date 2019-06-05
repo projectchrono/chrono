@@ -19,6 +19,10 @@
 
 %import "../chrono_vehicle/wheeled_vehicle/brake/ChBrakeSimple.h"
 
+%shared_ptr(chrono::vehicle::generic::Generic_BrakeSimple)
+%shared_ptr(chrono::vehicle::hmmwv::HMMWV_BrakeSimple)
+%shared_ptr(chrono::vehicle::sedan::Sedan_BrakeSimple)
+
 // Model:
 
 %include "../chrono_models/vehicle/generic/Generic_BrakeSimple.h"

@@ -40,12 +40,28 @@
 
 %}
 
+
+%shared_ptr(chrono::vehicle::ChTire)
+%shared_ptr(chrono::vehicle::ChTMeasyTire)
+%shared_ptr(chrono::vehicle::ChRigidTire)
+%shared_ptr(chrono::vehicle::ChReissnerTire)
+%shared_ptr(chrono::vehicle::ChPacejkaTire)
+%shared_ptr(chrono::vehicle::ChPac2002_data)
+%shared_ptr(chrono::vehicle::ChPac89Tire)
+%shared_ptr(chrono::vehicle::ChLugreTire)
+%shared_ptr(chrono::vehicle::ChFialaTire)
+%shared_ptr(chrono::vehicle::TMeasyTire)
+%shared_ptr(chrono::vehicle::RigidTire)
+%shared_ptr(chrono::vehicle::ReissnerTire)
+%shared_ptr(chrono::vehicle::ReissnerToroidalTire)
+%shared_ptr(chrono::vehicle::LugreTire)
+%shared_ptr(chrono::vehicle::FialaTire)
+
+
 %import(module = "pychrono.core") "ChShaft.i"
 %import "ChTerrain.i"
 %import "chrono_vehicle/ChSubsysDefs.h"
 
-
-//%shared_ptr(chrono::vehicle::RigidTerrain::Patch)
 
 /* Parse the header file to generate wrappers */
 %include "../chrono_vehicle/wheeled_vehicle/ChTire.h"

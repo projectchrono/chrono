@@ -24,10 +24,18 @@
 #include "chrono_thirdparty/rapidjson/document.h"
 
 %}
+
+%shared_ptr(chrono::vehicle::ChSteering)
+%shared_ptr(chrono::vehicle::ChPitmanArm)
+%shared_ptr(chrono::vehicle::ChPitmanArmShafts)
+%shared_ptr(chrono::vehicle::ChRackPinion)
+%shared_ptr(chrono::vehicle::ChRotaryArm)
+%shared_ptr(chrono::vehicle::PitmanArm)
+%shared_ptr(chrono::vehicle::RackPinion)
+%shared_ptr(chrono::vehicle::RotaryArm)
+
 %import(module = "pychrono.core") "ChShaft.i"
 %import "../chrono_vehicle/ChPart.h"
-//TODO: import once it is done!!!!
-//%import "ChSuspensions.i"
 
 
 //%shared_ptr(chrono::vehicle::RigidTerrain::Patch)

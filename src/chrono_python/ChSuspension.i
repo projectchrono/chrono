@@ -41,10 +41,36 @@
 #include "chrono_thirdparty/rapidjson/document.h"
 
 %}
+
+
+%shared_ptr(chrono::vehicle::ChSuspension)
+%shared_ptr(chrono::vehicle::ChDoubleWishbone)
+%shared_ptr(chrono::vehicle::ChMacPhersonStrut)
+%shared_ptr(chrono::vehicle::MacPhersonStrut)
+%shared_ptr(chrono::vehicle::ChLeafspringAxle)
+%shared_ptr(chrono::vehicle::LeafspringAxle)
+%shared_ptr(chrono::vehicle::ChHendricksonPRIMAXX)
+%shared_ptr(chrono::vehicle::ChDoubleWishboneReduced)
+%shared_ptr(chrono::vehicle::ChMultiLink)
+%shared_ptr(chrono::vehicle::MultiLink)
+%shared_ptr(chrono::vehicle::ChRigidPinnedAxle)
+%shared_ptr(chrono::vehicle::ChSemiTrailingArm)
+%shared_ptr(chrono::vehicle::SemiTrailingArm)
+%shared_ptr(chrono::vehicle::ChRigidSuspension)
+%shared_ptr(chrono::vehicle::ChSolidAxle)
+%shared_ptr(chrono::vehicle::ChThreeLinkIRS)
+%shared_ptr(chrono::vehicle::ChToeBarLeafspringAxle)
+%shared_ptr(chrono::vehicle::DoubleWishbone)
+%shared_ptr(chrono::vehicle::DoubleWishboneReduced)
+%shared_ptr(chrono::vehicle::HendricksonPRIMAXX)
+%shared_ptr(chrono::vehicle::SolidAxle)
+%shared_ptr(chrono::vehicle::ThreeLinkIRS)
+%shared_ptr(chrono::vehicle::ToeBarLeafspringAxle)
+
+
 %import(module = "pychrono.core") "ChShaft.i"
 %import "../chrono_vehicle/ChPart.h"
-//TODO: import once it is done!!!!
-//%import "ChSuspensions.i"
+
 
 
 //%shared_ptr(chrono::vehicle::RigidTerrain::Patch)

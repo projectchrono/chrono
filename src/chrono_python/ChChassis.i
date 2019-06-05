@@ -22,10 +22,14 @@
 
 %}
 
+%shared_ptr(chrono::vehicle::ChChassis)
+%shared_ptr(chrono::vehicle::ChRigidChassis)
+%shared_ptr(chrono::vehicle::RigidChassis)
+
+
 %import(module = "pychrono.core") "../chrono/assets/ChAsset.h"
 %import(module = "pychrono.core") "../chrono/assets/ChAssetLevel.h"
 
-//%shared_ptr(chrono::vehicle::RigidTerrain::Patch)
 
 /* Parse the header file to generate wrappers */
 %include "../chrono_vehicle/ChChassis.h"
