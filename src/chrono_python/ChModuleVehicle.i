@@ -127,8 +127,10 @@ using namespace chrono::vehicle::sedan;
 %pointer_class(float,float_ptr);
 
 
-//%template(vector_ChNodeFEAxyzrot) std::vector< std::shared_ptr<chrono::fea::ChNodeFEAxyzrot> >;
+
 %template(vector_int) std::vector< int >;
+%template(TerrainForces) std::vector< chrono::vehicle::TerrainForce >;
+%template(WheelStates) std::vector< chrono::vehicle::WheelState >;
 
 //
 // For each class, keep updated the  A, B, C sections: 
@@ -180,10 +182,19 @@ using namespace chrono::vehicle::sedan;
 %shared_ptr(chrono::ChBezierCurve)
 %shared_ptr(chrono::ChLinkMarkers)
 
+/*
+from this module: pay attention to inheritance in the model namespace (generic, sedan etc). 
+If those classes are wrapped, their parents are marked as shared_ptr while they are not, SWIG can't hanlde them.
+Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the model namespaces
+*/
 
-//from this module:
 %shared_ptr(chrono::vehicle::RigidTerrain::Patch)
-
+%shared_ptr(chrono::vehicle::ChPart)
+%shared_ptr(chrono::vehicle::ChWheel)
+%shared_ptr(chrono::vehicle::Wheel)
+%shared_ptr(chrono::vehicle::ChBrakeSimple)
+%shared_ptr(chrono::vehicle::ChBrake)
+%shared_ptr(chrono::vehicle::BrakeSimple)
 
 //
 // B- INCLUDE HEADERS

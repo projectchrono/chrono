@@ -38,6 +38,18 @@
 
 %}
 
+%shared_ptr(chrono::vehicle::ChPowertrain)
+
+%shared_ptr(chrono::vehicle::ChSimplePowertrain)
+%shared_ptr(chrono::vehicle::ChSimpleMapPowertrain)
+%shared_ptr(chrono::vehicle::ChSimpleCVTPowertrain)
+%shared_ptr(chrono::vehicle::ChShaftsPowertrain)
+
+%shared_ptr(chrono::vehicle::SimplePowertrain)
+%shared_ptr(chrono::vehicle::SimpleMapPowertrain)
+%shared_ptr(chrono::vehicle::SimpleCVTPowertrain)
+%shared_ptr(chrono::vehicle::ShaftsPowertrain)
+
 %import "../chrono_vehicle/ChPart.h"
 %import(module = "pychrono.core") "ChShaft.i"
 
