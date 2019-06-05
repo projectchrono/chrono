@@ -23,6 +23,13 @@
 %}
 
 
+%shared_ptr(chrono::vehicle::generic::Generic_SimplePowertrain)
+%shared_ptr(chrono::vehicle::generic::Generic_SimpleMapPowertrain)
+
+%shared_ptr(chrono::vehicle::hmmwv::HMMWV_SimplePowertrain)
+%shared_ptr(chrono::vehicle::hmmwv::HMMWV_SimpleMapPowertrain)
+
+%shared_ptr(chrono::vehicle::sedan::Sedan_SimpleMapPowertrain)
 
 
 %import "ChPowertrain.i"

@@ -36,7 +36,13 @@
 %}
 
 
-//%shared_ptr(chrono::vehicle::RigidTerrain::Patch)
+%shared_ptr(chrono::vehicle::generic::Generic_Driveline2WD)
+%shared_ptr(chrono::vehicle::generic::Generic_SimpleDriveline)
+%shared_ptr(chrono::vehicle::hmmwv::HMMWV_Driveline2WD)
+%shared_ptr(chrono::vehicle::hmmwv::HMMWV_Driveline4WD)
+%shared_ptr(chrono::vehicle::hmmwv::HMMWV_SimpleDriveline)
+%shared_ptr(chrono::vehicle::sedan::Sedan_Driveline2WD)
+
 
 /* Parse the header file to generate wrappers */
 %import "ChDriveline.i"

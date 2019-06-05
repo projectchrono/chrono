@@ -22,7 +22,9 @@
 %}
 
 
-//%shared_ptr(chrono::vehicle::RigidTerrain::Patch)
+%shared_ptr(chrono::vehicle::generic::Generic_Chassis)
+%shared_ptr(chrono::vehicle::hmmwv::HMMWV_Chassis)
+%shared_ptr(chrono::vehicle::sedan::Sedan_Chassis)
 
 /* Parse the header file to generate wrappers */
 %import "ChChassis.i"

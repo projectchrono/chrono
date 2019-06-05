@@ -52,7 +52,22 @@
 %}
 
 
-//%shared_ptr(chrono::vehicle::RigidTerrain::Patch)
+%shared_ptr(chrono::vehicle::generic::Generic_RigidSuspension)
+%shared_ptr(chrono::vehicle::generic::Generic_RigidPinnedAxle)
+%shared_ptr(chrono::vehicle::generic::Generic_MultiLink)
+%shared_ptr(chrono::vehicle::generic::Generic_DoubleWishbone)
+%shared_ptr(chrono::vehicle::generic::Generic_DoubleWishboneFront)
+%shared_ptr(chrono::vehicle::generic::Generic_DoubleWishboneRear)
+
+%shared_ptr(chrono::vehicle::hmmwv::HMMWV_DoubleWishbone)
+%shared_ptr(chrono::vehicle::hmmwv::HMMWV_DoubleWishboneReduced)
+%shared_ptr(chrono::vehicle::hmmwv::HMMWV_DoubleWishboneRear)
+%shared_ptr(chrono::vehicle::hmmwv::HMMWV_DoubleWishboneReducedRear)
+%shared_ptr(chrono::vehicle::hmmwv::HMMWV_DoubleWishboneFront)
+%shared_ptr(chrono::vehicle::hmmwv::HMMWV_DoubleWishboneReducedFront)
+
+%shared_ptr(chrono::vehicle::sedan::Sedan_DoubleWishbone)
+%shared_ptr(chrono::vehicle::sedan::Sedan_MultiLink)
 
 /* Parse the header file to generate wrappers */
 %import "ChSuspension.i"

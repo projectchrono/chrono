@@ -25,7 +25,18 @@
 %}
 
 
-//%shared_ptr(chrono::vehicle::RigidTerrain::Patch)
+%shared_ptr(chrono::vehicle::generic::Generic_Vehicle)
+
+%shared_ptr(chrono::vehicle::hmmwv::HMMWV)
+%shared_ptr(chrono::vehicle::hmmwv::HMMWV_Vehicle)
+%shared_ptr(chrono::vehicle::hmmwv::HMMWV_VehicleReduced)
+%shared_ptr(chrono::vehicle::hmmwv::HMMWV_VehicleFull)
+%shared_ptr(chrono::vehicle::hmmwv::HMMWV_Reduced)
+%shared_ptr(chrono::vehicle::hmmwv::HMMWV_Full)
+
+%shared_ptr(chrono::vehicle::sedan::Sedan)
+%shared_ptr(chrono::vehicle::sedan::Sedan_Vehicle)
+
 
 %import(module = "pychrono.core") "ChMaterialSurface.i"
 %import "ChSuspension.i"
