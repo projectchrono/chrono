@@ -1,0 +1,40 @@
+{
+	"sphere_radius": 0.5,
+	"sphere_density": 6,
+
+	"box_X": 1000,
+	"box_Y": 400,
+	"box_Z": 266,
+
+	"step_size": 1e-5,
+	"time_end": 60,
+
+	"grav_X": 0,
+	"grav_Y": 0,
+	"grav_Z": -980,
+
+	"normalStiffS2S": 1e8,
+	"normalStiffS2W": 1e8,
+	"normalStiffS2M": 1e8,
+	"normalDampS2S": 1e3,
+	"normalDampS2W": 1e3,
+	"normalDampS2M": 0,
+
+	"tangentStiffS2S": 1e8,
+	"tangentStiffS2W": 1e8,
+	"tangentStiffS2M": 1e8,
+	"tangentDampS2S": 0,
+	"tangentDampS2W": 0,
+	"tangentDampS2M": 0,
+
+	"cohesion_ratio": 0,
+	"adhesion_ratio_s2w": 0,
+	"adhesion_ratio_s2m": 0,
+
+
+	"psi_T": 32,
+	"psi_L": 16,
+
+	"verbose": false,
+	"write_mode": "binary"
+}

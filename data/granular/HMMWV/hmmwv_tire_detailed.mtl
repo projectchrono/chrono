@@ -1,0 +1,12 @@
+# Blender MTL File: 'hmmwv_tire_detailed.blend'
+# Material Count: 1
+
+newmtl Tire_Black.001
+Ns 92.156863
+Ka 0.000000 0.000000 0.000000
+Kd 0.244706 0.244706 0.244706
+Ks 0.449020 0.449020 0.449020
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
