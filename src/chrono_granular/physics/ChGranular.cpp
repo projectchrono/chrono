@@ -147,6 +147,8 @@ void ChSystemGranularSMC::packSphereDataPointers() {
         }
     }
 
+    sphere_data->sphere_fixed = sphere_fixed.data();
+
     sphere_data->SD_NumSpheresTouching = SD_NumSpheresTouching.data();
     sphere_data->SD_SphereCompositeOffsets = SD_SphereCompositeOffsets.data();
     sphere_data->spheres_in_SD_composite = spheres_in_SD_composite.data();
@@ -608,6 +610,10 @@ void ChSystemGranularSMC::initialize() {
 // Set particle positions in UU
 void ChSystemGranularSMC::setParticlePositions(const std::vector<ChVector<float>>& points) {
     user_sphere_positions = points;  // Copy points to class vector
+}
+
+void ChSystemGranularSMC::setParticleFixed(const std::vector<bool>& fixed) {
+    user_sphere_fixed = fixed;
 }
 
 // Partitions the big domain (BD) and sets the number of SDs that BD is split in.

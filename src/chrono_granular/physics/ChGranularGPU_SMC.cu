@@ -145,11 +145,13 @@ __host__ void ChSystemGranularSMC::defragment_initial_positions() {
     std::vector<int, cudallocator<int>> sphere_pos_x_tmp;
     std::vector<int, cudallocator<int>> sphere_pos_y_tmp;
     std::vector<int, cudallocator<int>> sphere_pos_z_tmp;
+    std::vector<not_stupid_bool, cudallocator<not_stupid_bool>> sphere_fixed_tmp;
     std::vector<unsigned int, cudallocator<unsigned int>> sphere_owner_SDs_tmp;
 
     sphere_pos_x_tmp.resize(nSpheres);
     sphere_pos_y_tmp.resize(nSpheres);
     sphere_pos_z_tmp.resize(nSpheres);
+    sphere_fixed_tmp.resize(nSpheres);
     sphere_owner_SDs_tmp.resize(nSpheres);
 
     // reorder values into new sorted
@@ -157,6 +159,7 @@ __host__ void ChSystemGranularSMC::defragment_initial_positions() {
         sphere_pos_x_tmp.at(i) = sphere_local_pos_X.at(sphere_ids.at(i));
         sphere_pos_y_tmp.at(i) = sphere_local_pos_Y.at(sphere_ids.at(i));
         sphere_pos_z_tmp.at(i) = sphere_local_pos_Z.at(sphere_ids.at(i));
+        sphere_fixed_tmp.at(i) = sphere_fixed.at(sphere_ids.at(i));
         sphere_owner_SDs_tmp.at(i) = sphere_owner_SDs.at(sphere_ids.at(i));
     }
 
@@ -164,6 +167,7 @@ __host__ void ChSystemGranularSMC::defragment_initial_positions() {
     sphere_local_pos_X.swap(sphere_pos_x_tmp);
     sphere_local_pos_Y.swap(sphere_pos_y_tmp);
     sphere_local_pos_Z.swap(sphere_pos_z_tmp);
+    sphere_fixed.swap(sphere_fixed_tmp);
     sphere_owner_SDs.swap(sphere_owner_SDs_tmp);
 
     timer.stop();
@@ -187,8 +191,16 @@ __host__ void ChSystemGranularSMC::setupSphereDataStructures() {
     TRACK_VECTOR_RESIZE(sphere_local_pos_Y, nSpheres, "sphere_local_pos_Y", 0);
     TRACK_VECTOR_RESIZE(sphere_local_pos_Z, nSpheres, "sphere_local_pos_Z", 0);
 
+    TRACK_VECTOR_RESIZE(sphere_fixed, nSpheres, "sphere_fixed", 0);
+
     // temporarily store global positions as 64-bit, discard as soon as local positions are loaded
     {
+        bool user_provided_fixed = user_sphere_fixed.size() != 0;
+        if (user_provided_fixed && user_sphere_fixed.size() != nSpheres) {
+            printf("Provided fixity array does not match provided particle positions\n");
+            exit(1);
+        }
+
         std::vector<int64_t, cudallocator<int64_t>> sphere_global_pos_X;
         std::vector<int64_t, cudallocator<int64_t>> sphere_global_pos_Y;
         std::vector<int64_t, cudallocator<int64_t>> sphere_global_pos_Z;
@@ -204,6 +216,9 @@ __host__ void ChSystemGranularSMC::setupSphereDataStructures() {
             sphere_global_pos_X.at(i) = (int64_t)((double)vec.x() / LENGTH_SU2UU);
             sphere_global_pos_Y.at(i) = (int64_t)((double)vec.y() / LENGTH_SU2UU);
             sphere_global_pos_Z.at(i) = (int64_t)((double)vec.z() / LENGTH_SU2UU);
+
+            // Convert to not_stupid_bool
+            sphere_fixed.at(i) = (not_stupid_bool)((user_provided_fixed) ? user_sphere_fixed[i] : false);
         }
 
         packSphereDataPointers();
