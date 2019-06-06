@@ -1,4 +1,5 @@
 #include "chrono_granular/physics/ChGranular.h"
+#include "chrono_granular/ChGranularDefines.h"
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
 #include "chrono_thirdparty/rapidjson/document.h"
 
@@ -40,7 +41,7 @@ typedef struct sim_param_holder {
     float cohesion_ratio;
     float adhesion_ratio_s2w;
     float adhesion_ratio_s2m;
-    bool verbose;
+    GRAN_VERBOSITY verbose;
     int run_mode;
     unsigned int psi_T;
     unsigned int psi_L;
@@ -87,8 +88,8 @@ void InvalidArg(string arg) {
 
 // Returns true on successful parameter load.
 // Returns false and prints error on invalid argument.
-bool ParseJSON(const char* json_file, sim_param_holder& params) {
-    cout << "Reading parameters: " << json_file << endl;
+bool ParseJSON(const char* json_file, sim_param_holder& params, bool verbose = true) {
+    CONDITIONAL_PRINTF(verbose, "Reading parameters: %s\n", json_file);
     FILE* fp = fopen(json_file, "r");
     if (!fp) {
         cout << "Invalid JSON file" << endl;
@@ -107,141 +108,141 @@ bool ParseJSON(const char* json_file, sim_param_holder& params) {
         return false;
     }
 
-    cout << "--- Parsing JSON ---" << endl;
+    CONDITIONAL_PRINTF(verbose, "--- Parsing JSON ---\n");
     if (doc.HasMember("sphere_radius") && doc["sphere_radius"].IsNumber()) {
         params.sphere_radius = doc["sphere_radius"].GetDouble();
-        cout << "params.sphere_radius " << params.sphere_radius << endl;
+        CONDITIONAL_PRINTF(verbose, "params.sphere_radius %f\n", params.sphere_radius);
     }
     if (doc.HasMember("sphere_density") && doc["sphere_density"].IsNumber()) {
         params.sphere_density = doc["sphere_density"].GetDouble();
-        cout << "params.sphere_density " << params.sphere_density << endl;
+        CONDITIONAL_PRINTF(verbose, "params.sphere_density %f\n", params.sphere_density);
     }
     if (doc.HasMember("box_X") && doc["box_X"].IsNumber()) {
         params.box_X = doc["box_X"].GetDouble();
-        cout << "params.box_X " << params.box_X << endl;
+        CONDITIONAL_PRINTF(verbose, "params.box_X %f\n", params.box_X);
     }
     if (doc.HasMember("box_Y") && doc["box_Y"].IsNumber()) {
         params.box_Y = doc["box_Y"].GetDouble();
-        cout << "params.box_Y " << params.box_Y << endl;
+        CONDITIONAL_PRINTF(verbose, "params.box_Y %f\n", params.box_Y);
     }
     if (doc.HasMember("box_Z") && doc["box_Z"].IsNumber()) {
         params.box_Z = doc["box_Z"].GetDouble();
-        cout << "params.box_Z " << params.box_Z << endl;
+        CONDITIONAL_PRINTF(verbose, "params.box_Z %f\n", params.box_Z);
     }
     if (doc.HasMember("time_end") && doc["time_end"].IsNumber()) {
         params.time_end = doc["time_end"].GetDouble();
-        cout << "params.time_end " << params.time_end << endl;
+        CONDITIONAL_PRINTF(verbose, "params.time_end %f\n", params.time_end);
     }
     if (doc.HasMember("grav_X") && doc["grav_X"].IsNumber()) {
         params.grav_X = doc["grav_X"].GetDouble();
-        cout << "params.grav_X " << params.grav_X << endl;
+        CONDITIONAL_PRINTF(verbose, "params.grav_X %f\n", params.grav_X);
     }
     if (doc.HasMember("grav_Y") && doc["grav_Y"].IsNumber()) {
         params.grav_Y = doc["grav_Y"].GetDouble();
-        cout << "params.grav_Y " << params.grav_Y << endl;
+        CONDITIONAL_PRINTF(verbose, "params.grav_Y %f\n", params.grav_Y);
     }
     if (doc.HasMember("grav_Z") && doc["grav_Z"].IsNumber()) {
         params.grav_Z = doc["grav_Z"].GetDouble();
-        cout << "params.grav_Z " << params.grav_Z << endl;
+        CONDITIONAL_PRINTF(verbose, "params.grav_Z %f\n", params.grav_Z);
     }
     if (doc.HasMember("normalStiffS2S") && doc["normalStiffS2S"].IsNumber()) {
         params.normalStiffS2S = doc["normalStiffS2S"].GetDouble();
-        cout << "params.normalStiffS2S " << params.normalStiffS2S << endl;
+        CONDITIONAL_PRINTF(verbose, "params.normalStiffS2S %f\n", params.normalStiffS2S);
     }
     if (doc.HasMember("normalStiffS2W") && doc["normalStiffS2W"].IsNumber()) {
         params.normalStiffS2W = doc["normalStiffS2W"].GetDouble();
-        cout << "params.normalStiffS2W " << params.normalStiffS2W << endl;
+        CONDITIONAL_PRINTF(verbose, "params.normalStiffS2W %f\n", params.normalStiffS2W);
     }
     if (doc.HasMember("normalStiffS2M") && doc["normalStiffS2M"].IsNumber()) {
         params.normalStiffS2M = doc["normalStiffS2M"].GetDouble();
-        cout << "params.normalStiffS2M " << params.normalStiffS2M << endl;
+        CONDITIONAL_PRINTF(verbose, "params.normalStiffS2M %f\n", params.normalStiffS2M);
     }
     if (doc.HasMember("normalDampS2S") && doc["normalDampS2S"].IsNumber()) {
         params.normalDampS2S = doc["normalDampS2S"].GetDouble();
-        cout << "params.normalDampS2S " << params.normalDampS2S << endl;
+        CONDITIONAL_PRINTF(verbose, "params.normalDampS2S %f\n", params.normalDampS2S);
     }
     if (doc.HasMember("normalDampS2W") && doc["normalDampS2W"].IsNumber()) {
         params.normalDampS2W = doc["normalDampS2W"].GetDouble();
-        cout << "params.normalDampS2W " << params.normalDampS2W << endl;
+        CONDITIONAL_PRINTF(verbose, "params.normalDampS2W %f\n", params.normalDampS2W);
     }
     if (doc.HasMember("normalDampS2M") && doc["normalDampS2M"].IsNumber()) {
         params.normalDampS2M = doc["normalDampS2M"].GetDouble();
-        cout << "params.normalDampS2M " << params.normalDampS2M << endl;
+        CONDITIONAL_PRINTF(verbose, "params.normalDampS2M %f\n", params.normalDampS2M);
     }
     if (doc.HasMember("tangentStiffS2S") && doc["tangentStiffS2S"].IsNumber()) {
         params.tangentStiffS2S = doc["tangentStiffS2S"].GetDouble();
-        cout << "params.tangentStiffS2S " << params.tangentStiffS2S << endl;
+        CONDITIONAL_PRINTF(verbose, "params.tangentStiffS2S %f\n", params.tangentStiffS2S);
     }
     if (doc.HasMember("tangentStiffS2W") && doc["tangentStiffS2W"].IsNumber()) {
         params.tangentStiffS2W = doc["tangentStiffS2W"].GetDouble();
-        cout << "params.tangentStiffS2W " << params.tangentStiffS2W << endl;
+        CONDITIONAL_PRINTF(verbose, "params.tangentStiffS2W %f\n", params.tangentStiffS2W);
     }
     if (doc.HasMember("tangentStiffS2M") && doc["tangentStiffS2M"].IsNumber()) {
         params.tangentStiffS2M = doc["tangentStiffS2M"].GetDouble();
-        cout << "params.tangentStiffS2M " << params.tangentStiffS2M << endl;
+        CONDITIONAL_PRINTF(verbose, "params.tangentStiffS2M %f\n", params.tangentStiffS2M);
     }
     if (doc.HasMember("tangentDampS2S") && doc["tangentDampS2S"].IsNumber()) {
         params.tangentDampS2S = doc["tangentDampS2S"].GetDouble();
-        cout << "params.tangentDampS2S " << params.tangentDampS2S << endl;
+        CONDITIONAL_PRINTF(verbose, "params.tangentDampS2S %f\n", params.tangentDampS2S);
     }
     if (doc.HasMember("tangentDampS2W") && doc["tangentDampS2W"].IsNumber()) {
         params.tangentDampS2W = doc["tangentDampS2W"].GetDouble();
-        cout << "params.tangentDampS2W " << params.tangentDampS2W << endl;
+        CONDITIONAL_PRINTF(verbose, "params.tangentDampS2W %f\n", params.tangentDampS2W);
     }
     if (doc.HasMember("tangentDampS2M") && doc["tangentDampS2M"].IsNumber()) {
         params.tangentDampS2M = doc["tangentDampS2M"].GetDouble();
-        cout << "params.tangentDampS2M " << params.tangentDampS2M << endl;
+        CONDITIONAL_PRINTF(verbose, "params.tangentDampS2M %f\n", params.tangentDampS2M);
     }
     if (doc.HasMember("static_friction_coeff") && doc["static_friction_coeff"].IsNumber()) {
         params.static_friction_coeff = doc["static_friction_coeff"].GetDouble();
-        cout << "params.static_friction_coeff " << params.static_friction_coeff << endl;
+        CONDITIONAL_PRINTF(verbose, "params.static_friction_coeff %f\n", params.static_friction_coeff);
     }
     if (doc.HasMember("cohesion_ratio") && doc["cohesion_ratio"].IsNumber()) {
         params.cohesion_ratio = doc["cohesion_ratio"].GetDouble();
-        cout << "params.cohesion_ratio " << params.cohesion_ratio << endl;
+        CONDITIONAL_PRINTF(verbose, "params.cohesion_ratio %f\n", params.cohesion_ratio);
     }
     if (doc.HasMember("adhesion_ratio_s2w") && doc["adhesion_ratio_s2w"].IsNumber()) {
         params.adhesion_ratio_s2w = doc["adhesion_ratio_s2w"].GetDouble();
-        cout << "params.adhesion_ratio_s2w " << params.adhesion_ratio_s2w << endl;
+        CONDITIONAL_PRINTF(verbose, "params.adhesion_ratio_s2w %f\n", params.adhesion_ratio_s2w);
     }
     if (doc.HasMember("adhesion_ratio_s2m") && doc["adhesion_ratio_s2m"].IsNumber()) {
         params.adhesion_ratio_s2m = doc["adhesion_ratio_s2m"].GetDouble();
-        cout << "params.adhesion_ratio_s2m " << params.adhesion_ratio_s2m << endl;
+        CONDITIONAL_PRINTF(verbose, "params.adhesion_ratio_s2m %f\n", params.adhesion_ratio_s2m);
     }
-    if (doc.HasMember("verbose") && doc["verbose"].IsBool()) {
-        params.verbose = doc["verbose"].GetBool();
-        cout << "params.verbose " << params.verbose << endl;
+    if (doc.HasMember("verbose") && doc["verbose"].IsInt()) {
+        params.verbose = (GRAN_VERBOSITY)doc["verbose"].GetInt();
+        CONDITIONAL_PRINTF(verbose, "params.verbose %d\n", params.verbose);
     }
     if (doc.HasMember("psi_T") && doc["psi_T"].IsInt()) {
         params.psi_T = doc["psi_T"].GetInt();
-        cout << "params.psi_T " << params.psi_T << endl;
+        CONDITIONAL_PRINTF(verbose, "params.psi_T %d\n", params.psi_T);
     }
     if (doc.HasMember("psi_L") && doc["psi_L"].IsInt()) {
         params.psi_L = doc["psi_L"].GetInt();
-        cout << "params.psi_L " << params.psi_L << endl;
+        CONDITIONAL_PRINTF(verbose, "params.psi_L %d\n", params.psi_L);
     }
     if (doc.HasMember("run_mode") && doc["run_mode"].IsInt()) {
         params.run_mode = doc["run_mode"].GetInt();
-        cout << "params.run_mode " << params.run_mode << endl;
+        CONDITIONAL_PRINTF(verbose, "params.run_mode %d\n", params.run_mode);
     }
     if (doc.HasMember("output_dir") && doc["output_dir"].IsString()) {
         params.output_dir = doc["output_dir"].GetString();
-        cout << "params.output_dir " << params.output_dir << endl;
+        CONDITIONAL_PRINTF(verbose, "params.output_dir %s\n", params.output_dir);
     }
     if (doc.HasMember("checkpoint_file") && doc["checkpoint_file"].IsString()) {
         params.checkpoint_file = doc["checkpoint_file"].GetString();
-        cout << "params.checkpoint_file " << params.checkpoint_file << endl;
+        CONDITIONAL_PRINTF(verbose, "params.checkpoint_file %s\n", params.checkpoint_file);
     }
     if (doc.HasMember("write_mode") && doc["write_mode"].IsString()) {
         if (doc["write_mode"].GetString() == string("binary")) {
             params.write_mode = GRAN_OUTPUT_MODE::BINARY;
-            cout << "params.write_mode " << params.write_mode << endl;
+            CONDITIONAL_PRINTF(verbose, "params.write_mode binary\n");
         } else if (doc["write_mode"].GetString() == string("csv")) {
             params.write_mode = GRAN_OUTPUT_MODE::CSV;
-            cout << "params.write_mode " << params.write_mode << endl;
+            CONDITIONAL_PRINTF(verbose, "params.write_mode csv\n");
         } else if (doc["write_mode"].GetString() == string("none")) {
             params.write_mode = GRAN_OUTPUT_MODE::NONE;
-            cout << "params.write_mode " << params.write_mode << endl;
+            CONDITIONAL_PRINTF(verbose, "params.write_mode none\n");
         } else {
             InvalidArg("write_mode");
             return false;
@@ -249,9 +250,10 @@ bool ParseJSON(const char* json_file, sim_param_holder& params) {
     }
     if (doc.HasMember("step_size") && doc["step_size"].IsNumber()) {
         params.step_size = doc["step_size"].GetDouble();
-        cout << "params.step_size " << params.step_size << endl;
+        CONDITIONAL_PRINTF(verbose, "params.step_size %f\n", params.step_size);
     }
-    cout << "--------------------" << endl;
+
+    CONDITIONAL_PRINTF(verbose, "--------------------\n");
 
     // TODO sanity checks
     // necessary parameters

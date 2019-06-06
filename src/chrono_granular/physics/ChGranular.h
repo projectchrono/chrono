@@ -112,6 +112,9 @@ struct ChGranSphereData {
     unsigned int* sphere_owner_SDs;
 };
 
+/// Verbosity level of the system
+enum GRAN_VERBOSITY { QUIET = 0, INFO = 1, METRICS = 2 };
+
 /// Output mode of system
 enum GRAN_OUTPUT_MODE { CSV, BINARY, NONE };
 /// How are we integrating through time
@@ -384,7 +387,7 @@ class CH_GRANULAR_API ChSystemGranularSMC {
     void setOutputDirectory(std::string dir) { output_directory = dir; }
 
     /// Set simualtion verbosity -- used to check on very large, slow simulations or debug
-    void setVerbose(bool is_verbose) { verbose_runtime = is_verbose; }
+    void setVerbose(GRAN_VERBOSITY level) { verbosity = level; }
 
     /// Set timestep size
     void set_fixed_stepSize(float size_UU) { stepSize_UU = size_UU; }
@@ -523,7 +526,7 @@ class CH_GRANULAR_API ChSystemGranularSMC {
     ChGranSphereData* sphere_data;
 
     /// Allows the code to be very verbose for debugging
-    bool verbose_runtime;
+    GRAN_VERBOSITY verbosity;
 
     /// How to write the output files?
     /// Default is CSV

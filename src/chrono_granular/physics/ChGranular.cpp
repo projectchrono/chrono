@@ -38,7 +38,7 @@ ChSystemGranularSMC::ChSystemGranularSMC(float sphere_rad, float density, float3
       stepSize_UU(1e-4),
       nSpheres(0),
       elapsedSimTime(0),
-      verbose_runtime(false),
+      verbosity(INFO),
       file_write_mode(CSV),
       X_accGrav(0),
       Y_accGrav(0),
@@ -292,7 +292,7 @@ void ChSystemGranularSMC::copyConstSphereDataToDevice() {
     gran_params->max_y_pos_unsigned = ((int64_t)gran_params->SD_size_Y_SU * gran_params->nSDs_Y);
     gran_params->max_z_pos_unsigned = ((int64_t)gran_params->SD_size_Z_SU * gran_params->nSDs_Z);
 
-    printf("max pos is is %lu, %lu, %lu\n", gran_params->max_x_pos_unsigned, gran_params->max_y_pos_unsigned,
+    INFO_PRINTF("max pos is is %lu, %lu, %lu\n", gran_params->max_x_pos_unsigned, gran_params->max_y_pos_unsigned,
            gran_params->max_z_pos_unsigned);
 
     int64_t true_max_pos = std::max(std::max(gran_params->max_x_pos_unsigned, gran_params->max_y_pos_unsigned),
@@ -511,7 +511,7 @@ void ChSystemGranularSMC::convertBCUnits() {
         params_SU.vel_SU = {0, 0, 0};
         switch (bc_type) {
             case BC_type::SPHERE: {
-                printf("adding sphere!\n");
+                INFO_PRINTF("adding sphere!\n");
                 setBCOffset(bc_type, params_UU, params_SU, make_double3(0, 0, 0));
                 params_SU.sphere_params.radius = convertToPosSU<int64_t, float>(params_UU.sphere_params.radius);
                 params_SU.sphere_params.normal_sign = params_UU.sphere_params.normal_sign;
@@ -521,7 +521,7 @@ void ChSystemGranularSMC::convertBCUnits() {
             }
 
             case BC_type::CONE: {
-                printf("adding cone!\n");
+                INFO_PRINTF("adding cone!\n");
                 setBCOffset(bc_type, params_UU, params_SU, make_double3(0, 0, 0));
 
                 params_SU.cone_params.slope = params_UU.cone_params.slope;
@@ -531,7 +531,7 @@ void ChSystemGranularSMC::convertBCUnits() {
                 break;
             }
             case BC_type::PLANE: {
-                printf("adding plane!\n");
+                INFO_PRINTF("adding plane!\n");
                 setBCOffset(bc_type, params_UU, params_SU, make_double3(0, 0, 0));
 
                 // normal is unitless
@@ -545,7 +545,7 @@ void ChSystemGranularSMC::convertBCUnits() {
                 break;
             }
             case BC_type::CYLINDER: {
-                printf("adding cylinder!\n");
+                INFO_PRINTF("adding cylinder!\n");
                 setBCOffset(bc_type, params_UU, params_SU, make_double3(0, 0, 0));
 
                 // normal is unitless
@@ -583,10 +583,10 @@ void ChSystemGranularSMC::initializeSpheres() {
     resetBroadphaseInformation();
     resetBCForces();
 
-    printf("Doing initial broadphase!\n");
-    printf("max possible composite offset with 256 limit is %zu\n", (size_t)nSDs * MAX_COUNT_OF_SPHERES_PER_SD);
+    INFO_PRINTF("Doing initial broadphase!\n");
+    INFO_PRINTF("max possible composite offset with 256 limit is %zu\n", (size_t)nSDs * MAX_COUNT_OF_SPHERES_PER_SD);
     runSphereBroadphase();
-    printf("Initial broadphase finished!\n");
+    INFO_PRINTF("Initial broadphase finished!\n");
 
     int dev_ID;
     gpuErrchk(cudaGetDevice(&dev_ID));
@@ -594,15 +594,15 @@ void ChSystemGranularSMC::initializeSpheres() {
     gpuErrchk(cudaMemAdvise(gran_params, sizeof(*gran_params), cudaMemAdviseSetReadMostly, dev_ID));
     gpuErrchk(cudaMemAdvise(sphere_data, sizeof(*sphere_data), cudaMemAdviseSetReadMostly, dev_ID));
 
-    printf("z grav term with timestep %f is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gran_params->gravAcc_Z_SU);
-    printf("running at approximate timestep %f\n", stepSize_SU * TIME_SU2UU);
+    INFO_PRINTF("z grav term with timestep %f is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gran_params->gravAcc_Z_SU);
+    INFO_PRINTF("running at approximate timestep %f\n", stepSize_SU * TIME_SU2UU);
 }
 
 // mean to be overriden by children
 void ChSystemGranularSMC::initialize() {
     initializeSpheres();
     size_t approx_mem_usage = estimateMemUsage();
-    printf("Approx mem usage is %s\n", pretty_format_bytes(approx_mem_usage).c_str());
+    INFO_PRINTF("Approx mem usage is %s\n", pretty_format_bytes(approx_mem_usage).c_str());
 }
 
 // Set particle positions in UU
@@ -653,7 +653,7 @@ void ChSystemGranularSMC::partitionBD() {
     // permanently cache the initial frame
     BD_rest_frame_SU = make_longlong3(gran_params->BD_frame_X, gran_params->BD_frame_Y, gran_params->BD_frame_Z);
 
-    printf("%u Sds as %u, %u, %u\n", gran_params->nSDs, gran_params->nSDs_X, gran_params->nSDs_Y, gran_params->nSDs_Z);
+    INFO_PRINTF("%u Sds as %u, %u, %u\n", gran_params->nSDs, gran_params->nSDs_X, gran_params->nSDs_Y, gran_params->nSDs_Z);
 
     // allocate mem for array saying for each SD how many spheres touch it
     TRACK_VECTOR_RESIZE(SD_NumSpheresTouching, nSDs, "SD_numSpheresTouching", 0);
@@ -721,13 +721,13 @@ void ChSystemGranularSMC::switchToSimUnits() {
     gran_params->rolling_coeff_s2w_SU = rolling_scalingFactor * rolling_coeff_s2w_UU;
 
     // Handy debug output
-    printf("UU mass is %f\n", MASS_SU2UU);
-    printf("SU gravity is %f, %f, %f\n", gran_params->gravAcc_X_SU, gran_params->gravAcc_Y_SU,
+    INFO_PRINTF("UU mass is %f\n", MASS_SU2UU);
+    INFO_PRINTF("SU gravity is %f, %f, %f\n", gran_params->gravAcc_X_SU, gran_params->gravAcc_Y_SU,
            gran_params->gravAcc_Z_SU);
-    printf("SU radius is %u\n", gran_params->sphereRadius_SU);
+    INFO_PRINTF("SU radius is %u\n", gran_params->sphereRadius_SU);
     float dt_safe_estimate = sqrt(massSphere / K_n_s2s_UU);
-    printf("CFL timestep is about %f\n", dt_safe_estimate);
-    printf("Length unit is %0.16f\n", gran_params->LENGTH_UNIT);
+    INFO_PRINTF("CFL timestep is about %f\n", dt_safe_estimate);
+    INFO_PRINTF("Length unit is %0.16f\n", gran_params->LENGTH_UNIT);
 }
 }  // namespace granular
 }  // namespace chrono

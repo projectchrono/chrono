@@ -127,7 +127,7 @@ __host__ int3 ChSystemGranularSMC::getSDTripletFromID(unsigned int SD_ID) const 
 /// Occurs entirely on host, not intended to be efficient
 /// ONLY DO AT BEGINNING OF SIMULATION
 __host__ void ChSystemGranularSMC::defragment_initial_positions() {
-    printf("Starting defrag run!\n");
+    INFO_PRINTF("Starting defrag run!\n");
     ChTimer<> timer;
     timer.start();
 
@@ -167,7 +167,7 @@ __host__ void ChSystemGranularSMC::defragment_initial_positions() {
     sphere_owner_SDs.swap(sphere_owner_SDs_tmp);
 
     timer.stop();
-    printf("finished defrag run in %f seconds!\n", timer.GetTimeSeconds());
+    INFO_PRINTF("finished defrag run in %f seconds!\n", timer.GetTimeSeconds());
 }
 __host__ void ChSystemGranularSMC::setupSphereDataStructures() {
     // Each fills user_sphere_positions with positions to be copied
@@ -177,7 +177,7 @@ __host__ void ChSystemGranularSMC::setupSphereDataStructures() {
     }
 
     nSpheres = (unsigned int)user_sphere_positions.size();
-    std::cout << nSpheres << " balls added!" << std::endl;
+    INFO_PRINTF("%u balls added!\n", nSpheres);
     gran_params->nSpheres = nSpheres;
 
     TRACK_VECTOR_RESIZE(sphere_owner_SDs, nSpheres, "sphere_owner_SDs", NULL_GRANULAR_ID);
@@ -267,7 +267,7 @@ __host__ void ChSystemGranularSMC::setupSphereDataStructures() {
 }
 
 __host__ void ChSystemGranularSMC::runSphereBroadphase() {
-    VERBOSE_PRINTF("Resetting broadphase info!\n");
+    METRICS_PRINTF("Resetting broadphase info!\n");
 
     resetBroadphaseInformation();
     // Figure our the number of blocks that need to be launched to cover the box
@@ -401,8 +401,8 @@ __host__ double ChSystemGranularSMC::advance_simulation(float duration) {
     float duration_SU = duration / TIME_SU2UU;
     unsigned int nsteps = std::round(duration_SU / stepSize_SU);
 
-    VERBOSE_PRINTF("advancing by %f at timestep %f, %u timesteps at approx user timestep %f\n", duration_SU,
-                   stepSize_SU, nsteps, duration / nsteps);
+    METRICS_PRINTF("advancing by %f at timestep %f, %u timesteps at approx user timestep %f\n", duration_SU, stepSize_SU,
+                nsteps, duration / nsteps);
     float time_elapsed_SU = 0;  // time elapsed in this advance call
 
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
@@ -418,7 +418,7 @@ __host__ double ChSystemGranularSMC::advance_simulation(float duration) {
         resetSphereAccelerations();
         resetBCForces();
 
-        VERBOSE_PRINTF("Starting computeSphereForces!\n");
+        METRICS_PRINTF("Starting computeSphereForces!\n");
 
         if (gran_params->friction_mode == FRICTIONLESS) {
             // Compute sphere-sphere forces
@@ -439,7 +439,7 @@ __host__ double ChSystemGranularSMC::advance_simulation(float duration) {
             gpuErrchk(cudaDeviceSynchronize());
         }
 
-        VERBOSE_PRINTF("Starting integrateSpheres!\n");
+        METRICS_PRINTF("Starting integrateSpheres!\n");
         integrateSpheres<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());

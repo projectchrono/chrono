@@ -44,7 +44,7 @@ void ChSystemGranularSMC_trimesh::resetTriangleBroadphaseInformation() {
 }
 
 __host__ void ChSystemGranularSMC_trimesh::runTriangleBroadphase() {
-    VERBOSE_PRINTF("Resetting broadphase info!\n");
+    METRICS_PRINTF("Resetting broadphase info!\n");
 
     packSphereDataPointers();
 
@@ -235,10 +235,10 @@ __host__ double ChSystemGranularSMC_trimesh::advance_simulation(float duration) 
     packSphereDataPointers();
     // cudaMemAdvise(gran_params, sizeof(*gran_params), cudaMemAdviseSetReadMostly, dev_ID);
 
-    VERBOSE_PRINTF("advancing by %f at timestep %f, %u timesteps at approx user timestep %f\n", duration_SU,
+    METRICS_PRINTF("advancing by %f at timestep %f, %u timesteps at approx user timestep %f\n", duration_SU,
                    stepSize_SU, nsteps, duration / nsteps);
 
-    VERBOSE_PRINTF("Starting Main Simulation loop!\n");
+    INFO_PRINTF("Starting Main Simulation loop!\n");
 
     float time_elapsed_SU = 0;  // time elapsed in this call (SU)
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
@@ -255,7 +255,7 @@ __host__ double ChSystemGranularSMC_trimesh::advance_simulation(float duration) 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
 
-        VERBOSE_PRINTF("Starting computeSphereForces!\n");
+        METRICS_PRINTF("Starting computeSphereForces!\n");
 
         if (gran_params->friction_mode == FRICTIONLESS) {
             // Compute sphere-sphere forces
@@ -296,14 +296,14 @@ __host__ double ChSystemGranularSMC_trimesh::advance_simulation(float duration) 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
 
-        VERBOSE_PRINTF("Resetting broadphase info!\n");
+        METRICS_PRINTF("Resetting broadphase info!\n");
 
         resetBroadphaseInformation();
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
 
-        VERBOSE_PRINTF("Starting integrateSpheres!\n");
+        METRICS_PRINTF("Starting integrateSpheres!\n");
         integrateSpheres<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
 
         gpuErrchk(cudaPeekAtLastError());
