@@ -442,7 +442,9 @@ std::vector<ChVector<T>> PDLayerSampler_BOX(ChVector<T> center,       ///!< Cent
     chrono::utils::PDSampler<T> sampler(diam * padding_factor);
     std::vector<ChVector<T>> points_full;
     while (center.z() < fill_top) {
-        std::cout << "Create layer at " << center.z() << std::endl;
+        if (verbose) {
+            std::cout << "Create layer at " << center.z() << std::endl;
+        }
         auto points = sampler.SampleBox(center, hdims);
         points_full.insert(points_full.end(), points.begin(), points.end());
         center.z() += diam * padding_factor;
