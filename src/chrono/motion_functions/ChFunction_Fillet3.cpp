@@ -13,7 +13,6 @@
 // =============================================================================
 
 #include "chrono/motion_functions/ChFunction_Fillet3.h"
-#include "chrono/core/ChLinearAlgebra.h"
 
 namespace chrono {
 
@@ -88,7 +87,7 @@ void ChFunction_Fillet3::SetupCoefficients() {
     ma(3, 1) = 2 * end;
     ma(3, 2) = 1.0;
 
-    ChLinearAlgebra::Solve_LinSys(ma, &mb, &mx);
+    mx = ma.colPivHouseholderQr().solve(mb);
 
     c1 = mx(0, 0);
     c2 = mx(1, 0);
