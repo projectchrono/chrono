@@ -94,6 +94,9 @@ struct ChGranSphereData {
     /// Previous step Z angular acceleration for multistep integrators
     float* sphere_ang_acc_Z_old;
 
+    /// Fixity of each sphere
+    not_stupid_bool* sphere_fixed;
+
     /// Set of contact partners for each sphere. Only used in frictional simulations
     unsigned int* contact_partners_map;
     /// Whether the frictional contact at an index is active
@@ -111,6 +114,9 @@ struct ChGranSphereData {
     /// List of owner subdomains for each sphere
     unsigned int* sphere_owner_SDs;
 };
+
+/// Verbosity level of the system
+enum GRAN_VERBOSITY { QUIET = 0, INFO = 1, METRICS = 2 };
 
 /// Output mode of system
 enum GRAN_OUTPUT_MODE { CSV, BINARY, NONE };
@@ -384,7 +390,7 @@ class CH_GRANULAR_API ChSystemGranularSMC {
     void setOutputDirectory(std::string dir) { output_directory = dir; }
 
     /// Set simualtion verbosity -- used to check on very large, slow simulations or debug
-    void setVerbose(bool is_verbose) { verbose_runtime = is_verbose; }
+    void setVerbose(GRAN_VERBOSITY level) { verbosity = level; }
 
     /// Set timestep size
     void set_fixed_stepSize(float size_UU) { stepSize_UU = size_UU; }
@@ -455,6 +461,9 @@ class CH_GRANULAR_API ChSystemGranularSMC {
     /// Set initial particle positions. MUST be called only once and MUST be called before initialize
     void setParticlePositions(const std::vector<ChVector<float>>& points);
 
+    /// Set particle fixity. MUST be called only once and MUST be called before initialize
+    void setParticleFixed(const std::vector<bool>& fixed);
+
     /// The offset function for the big domain walls
     GranPositionFunction BDOffsetFunction;
 
@@ -523,7 +532,7 @@ class CH_GRANULAR_API ChSystemGranularSMC {
     ChGranSphereData* sphere_data;
 
     /// Allows the code to be very verbose for debugging
-    bool verbose_runtime;
+    GRAN_VERBOSITY verbosity;
 
     /// How to write the output files?
     /// Default is CSV
@@ -585,6 +594,9 @@ class CH_GRANULAR_API ChSystemGranularSMC {
     std::vector<float, cudallocator<float>> sphere_ang_acc_Y_old;
     /// Z angular acceleration history used for the Chung integrator in unified memory
     std::vector<float, cudallocator<float>> sphere_ang_acc_Z_old;
+
+    /// Fixity of each sphere
+    std::vector<not_stupid_bool, cudallocator<not_stupid_bool>> sphere_fixed;
 
     /// Set of contact partners for each sphere. Only used in frictional simulations
     std::vector<unsigned int, cudallocator<unsigned int>> contact_partners_map;
@@ -736,6 +748,9 @@ class CH_GRANULAR_API ChSystemGranularSMC {
 
     /// User-provided sphere positions in UU
     std::vector<ChVector<float>> user_sphere_positions;
+
+    /// User-provided sphere fixity as bools
+    std::vector<bool> user_sphere_fixed;
 
     /// Allow the user to set the big domain to be fixed, ignoring any given position functions
     bool BD_is_fixed = true;

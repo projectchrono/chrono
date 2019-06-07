@@ -72,7 +72,17 @@ inline void gpuAssert(cudaError_t code, const char* file, int line, bool abort =
 }
 
 // Add verbose checks easily
-#define VERBOSE_PRINTF(...)  \
-    if (verbose_runtime) {   \
-        printf(__VA_ARGS__); \
+#define INFO_PRINTF(...)                             \
+    if (verbosity == INFO || verbosity == METRICS) { \
+        printf(__VA_ARGS__);                         \
+    }
+
+#define METRICS_PRINTF(...)     \
+    if (verbosity == METRICS) { \
+        printf(__VA_ARGS__);    \
+    }
+
+#define CONDITIONAL_PRINTF(do_print, ...) \
+    if (do_print) {                       \
+        printf(__VA_ARGS__);           \
     }

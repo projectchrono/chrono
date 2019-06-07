@@ -127,7 +127,7 @@ __host__ int3 ChSystemGranularSMC::getSDTripletFromID(unsigned int SD_ID) const 
 /// Occurs entirely on host, not intended to be efficient
 /// ONLY DO AT BEGINNING OF SIMULATION
 __host__ void ChSystemGranularSMC::defragment_initial_positions() {
-    printf("Starting defrag run!\n");
+    INFO_PRINTF("Starting defrag run!\n");
     ChTimer<> timer;
     timer.start();
 
@@ -145,11 +145,13 @@ __host__ void ChSystemGranularSMC::defragment_initial_positions() {
     std::vector<int, cudallocator<int>> sphere_pos_x_tmp;
     std::vector<int, cudallocator<int>> sphere_pos_y_tmp;
     std::vector<int, cudallocator<int>> sphere_pos_z_tmp;
+    std::vector<not_stupid_bool, cudallocator<not_stupid_bool>> sphere_fixed_tmp;
     std::vector<unsigned int, cudallocator<unsigned int>> sphere_owner_SDs_tmp;
 
     sphere_pos_x_tmp.resize(nSpheres);
     sphere_pos_y_tmp.resize(nSpheres);
     sphere_pos_z_tmp.resize(nSpheres);
+    sphere_fixed_tmp.resize(nSpheres);
     sphere_owner_SDs_tmp.resize(nSpheres);
 
     // reorder values into new sorted
@@ -157,6 +159,7 @@ __host__ void ChSystemGranularSMC::defragment_initial_positions() {
         sphere_pos_x_tmp.at(i) = sphere_local_pos_X.at(sphere_ids.at(i));
         sphere_pos_y_tmp.at(i) = sphere_local_pos_Y.at(sphere_ids.at(i));
         sphere_pos_z_tmp.at(i) = sphere_local_pos_Z.at(sphere_ids.at(i));
+        sphere_fixed_tmp.at(i) = sphere_fixed.at(sphere_ids.at(i));
         sphere_owner_SDs_tmp.at(i) = sphere_owner_SDs.at(sphere_ids.at(i));
     }
 
@@ -164,10 +167,11 @@ __host__ void ChSystemGranularSMC::defragment_initial_positions() {
     sphere_local_pos_X.swap(sphere_pos_x_tmp);
     sphere_local_pos_Y.swap(sphere_pos_y_tmp);
     sphere_local_pos_Z.swap(sphere_pos_z_tmp);
+    sphere_fixed.swap(sphere_fixed_tmp);
     sphere_owner_SDs.swap(sphere_owner_SDs_tmp);
 
     timer.stop();
-    printf("finished defrag run in %f seconds!\n", timer.GetTimeSeconds());
+    INFO_PRINTF("finished defrag run in %f seconds!\n", timer.GetTimeSeconds());
 }
 __host__ void ChSystemGranularSMC::setupSphereDataStructures() {
     // Each fills user_sphere_positions with positions to be copied
@@ -177,7 +181,7 @@ __host__ void ChSystemGranularSMC::setupSphereDataStructures() {
     }
 
     nSpheres = (unsigned int)user_sphere_positions.size();
-    std::cout << nSpheres << " balls added!" << std::endl;
+    INFO_PRINTF("%u balls added!\n", nSpheres);
     gran_params->nSpheres = nSpheres;
 
     TRACK_VECTOR_RESIZE(sphere_owner_SDs, nSpheres, "sphere_owner_SDs", NULL_GRANULAR_ID);
@@ -187,8 +191,16 @@ __host__ void ChSystemGranularSMC::setupSphereDataStructures() {
     TRACK_VECTOR_RESIZE(sphere_local_pos_Y, nSpheres, "sphere_local_pos_Y", 0);
     TRACK_VECTOR_RESIZE(sphere_local_pos_Z, nSpheres, "sphere_local_pos_Z", 0);
 
+    TRACK_VECTOR_RESIZE(sphere_fixed, nSpheres, "sphere_fixed", 0);
+
     // temporarily store global positions as 64-bit, discard as soon as local positions are loaded
     {
+        bool user_provided_fixed = user_sphere_fixed.size() != 0;
+        if (user_provided_fixed && user_sphere_fixed.size() != nSpheres) {
+            printf("Provided fixity array does not match provided particle positions\n");
+            exit(1);
+        }
+
         std::vector<int64_t, cudallocator<int64_t>> sphere_global_pos_X;
         std::vector<int64_t, cudallocator<int64_t>> sphere_global_pos_Y;
         std::vector<int64_t, cudallocator<int64_t>> sphere_global_pos_Z;
@@ -204,6 +216,9 @@ __host__ void ChSystemGranularSMC::setupSphereDataStructures() {
             sphere_global_pos_X.at(i) = (int64_t)((double)vec.x() / LENGTH_SU2UU);
             sphere_global_pos_Y.at(i) = (int64_t)((double)vec.y() / LENGTH_SU2UU);
             sphere_global_pos_Z.at(i) = (int64_t)((double)vec.z() / LENGTH_SU2UU);
+
+            // Convert to not_stupid_bool
+            sphere_fixed.at(i) = (not_stupid_bool)((user_provided_fixed) ? user_sphere_fixed[i] : false);
         }
 
         packSphereDataPointers();
@@ -267,7 +282,7 @@ __host__ void ChSystemGranularSMC::setupSphereDataStructures() {
 }
 
 __host__ void ChSystemGranularSMC::runSphereBroadphase() {
-    VERBOSE_PRINTF("Resetting broadphase info!\n");
+    METRICS_PRINTF("Resetting broadphase info!\n");
 
     resetBroadphaseInformation();
     // Figure our the number of blocks that need to be launched to cover the box
@@ -401,8 +416,8 @@ __host__ double ChSystemGranularSMC::advance_simulation(float duration) {
     float duration_SU = duration / TIME_SU2UU;
     unsigned int nsteps = std::round(duration_SU / stepSize_SU);
 
-    VERBOSE_PRINTF("advancing by %f at timestep %f, %u timesteps at approx user timestep %f\n", duration_SU,
-                   stepSize_SU, nsteps, duration / nsteps);
+    METRICS_PRINTF("advancing by %f at timestep %f, %u timesteps at approx user timestep %f\n", duration_SU, stepSize_SU,
+                nsteps, duration / nsteps);
     float time_elapsed_SU = 0;  // time elapsed in this advance call
 
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
@@ -418,7 +433,7 @@ __host__ double ChSystemGranularSMC::advance_simulation(float duration) {
         resetSphereAccelerations();
         resetBCForces();
 
-        VERBOSE_PRINTF("Starting computeSphereForces!\n");
+        METRICS_PRINTF("Starting computeSphereForces!\n");
 
         if (gran_params->friction_mode == FRICTIONLESS) {
             // Compute sphere-sphere forces
@@ -439,7 +454,7 @@ __host__ double ChSystemGranularSMC::advance_simulation(float duration) {
             gpuErrchk(cudaDeviceSynchronize());
         }
 
-        VERBOSE_PRINTF("Starting integrateSpheres!\n");
+        METRICS_PRINTF("Starting integrateSpheres!\n");
         integrateSpheres<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
