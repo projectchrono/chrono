@@ -48,7 +48,6 @@ set(ChronoEngine_core_SOURCES
     core/ChBezierCurve.cpp
     core/ChCubicSpline.cpp
     core/ChDistribution.cpp
-    core/ChLinearAlgebra.cpp
     )
 
 set(ChronoEngine_core_HEADERS
@@ -60,16 +59,13 @@ set(ChronoEngine_core_HEADERS
     core/ChFilePS.h
     core/ChFrame.h
     core/ChFrameMoving.h
-    core/ChLinearAlgebra.h
     core/ChLists.h
     core/ChLog.h
     core/ChMath.h
     core/ChMathematics.h
     core/ChMatrix.h
-    core/ChMatrixDynamic.h
-    core/ChMatrixNM.h
+    core/ChMatrixEigenExtensions.h
     core/ChMatrix33.h
-    core/ChVectorDynamic.h
     core/ChPlatform.h
     core/ChQuaternion.h
     core/ChRealtimeStep.h

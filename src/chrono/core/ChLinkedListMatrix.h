@@ -72,7 +72,19 @@ class ChApi ChLinkedListMatrix : public ChSparseMatrix {
     ChLinkedListMatrix(int nrows, int ncols, double fill_in = SPM_DEF_FULLNESS);
 
     /// Create a sparse matrix from a given dense matrix.
-    ChLinkedListMatrix(const ChMatrix<>& mat);
+    template <typename Derived>
+    ChLinkedListMatrix(const ChMatrix<Derived>& mat) : elarray(nullptr), mnextel(nullptr), m_determinant(0) {
+        Reset((int)mat.rows(), (int)mat.cols());
+
+        for (int r = 0; r < m_num_rows; r++) {
+            ChMelement* mguess = *(elarray + r);
+            for (int c = 0; c < m_num_cols; c++) {
+                double el = mat(r, c);
+                if (el != 0)
+                    mguess = SetElement(r, c, el, mguess);
+            }
+        }
+    }
 
     /// Copy constructor.
     ChLinkedListMatrix(const ChLinkedListMatrix& other);
@@ -81,7 +93,18 @@ class ChApi ChLinkedListMatrix : public ChSparseMatrix {
     ~ChLinkedListMatrix();
 
     /// Copy this sparse matrix to a dense matrix.
-    void CopyToMatrix(ChMatrix<>& mat);
+    template <typename Derived>
+    void CopyToMatrix(ChMatrix<Derived>& mat) {
+        mat.resize(m_num_rows, m_num_cols);
+        mat.setZero();
+
+        ChMelement* currel;
+        for (int i = 0; i < m_num_rows; i++) {
+            for (currel = *(elarray + i); currel != nullptr; currel = currel->next) {
+                mat(currel->row, currel->col) = currel->val;
+            }
+        }
+    }
 
     /// Optimized SetElement,  returning the fetched Melement*
     ChMelement* SetElement(int row, int col, double val, ChMelement* guess);
@@ -106,28 +129,6 @@ class ChApi ChLinkedListMatrix : public ChSparseMatrix {
     virtual void SetElement(int row, int col, double elem, bool overwrite = true) override;
     virtual double GetElement(int row, int col) const override;
 
-    // Customized functions, speed-optimized for sparse matrices:
-
-    virtual void PasteMatrix(const ChMatrix<>& matra, int insrow, int inscol, bool overwrite, bool transp) override;
-    virtual void PasteTranspMatrix(const ChMatrix<>& matra, int insrow, int inscol) override;
-    virtual void PasteClippedMatrix(const ChMatrix<>& matra,
-                                    int cliprow,
-                                    int clipcol,
-                                    int nrows,
-                                    int ncolumns,
-                                    int insrow,
-                                    int inscol,
-                                    bool overwrite) override;
-    virtual void PasteSumClippedMatrix(const ChMatrix<>& matra,
-                                       int cliprow,
-                                       int clipcol,
-                                       int nrows,
-                                       int ncolumns,
-                                       int insrow,
-                                       int inscol) override;
-    virtual void PasteSumMatrix(const ChMatrix<>& matra, int insrow, int inscol) override;
-    virtual void PasteSumTranspMatrix(const ChMatrix<>& matra, int insrow, int inscol) override;
-
     // Specialized functions
 
     void PasteMatrix(const ChLinkedListMatrix& matra, int insrow, int inscol);
@@ -146,11 +147,11 @@ class ChApi ChLinkedListMatrix : public ChSparseMatrix {
     int Setup_LU();
 
     /// Solve the system A*x = b, using an existing LU factorization.
-    void Solve_LU(const ChMatrix<>& b, ChMatrix<>& x);
+    void Solve_LU(const ChVectorDynamic<>& b, ChVectorDynamic<>& x);
 
     /// Solve the general system A*x = b.
     /// Note that the matrix is modified in-place to contain the LU factors.
-    int SolveGeneral(const ChMatrix<>& b, ChMatrix<>& x);
+    int SolveGeneral(const ChVectorDynamic<>& b, ChVectorDynamic<>& x);
 
     /// Perform in-place LDL factorization with full pivoting.
     /// Note that this factorization can only be performed for symmetric matrices.
@@ -158,11 +159,11 @@ class ChApi ChLinkedListMatrix : public ChSparseMatrix {
     int Setup_LDL();
 
     /// Solve the symmetric system A*x=b, using an existing LDL factorization.
-    void Solve_LDL(const ChMatrix<>& b, ChMatrix<>& x);
+    void Solve_LDL(const ChVectorDynamic<>& b, ChVectorDynamic<>& x);
 
     /// Solve the symmetric system A*x = b.
     /// Note that the matrix is modified in-place to contain the LU factors.
-    int SolveSymmetric(const ChMatrix<>& b, ChMatrix<>& x);
+    int SolveSymmetric(const ChVectorDynamic<>& b, ChVectorDynamic<>& x);
 
     /// Get the pivot indexes after the last factorization.
     const std::vector<int>& GetPivots() const { return m_pindices; }

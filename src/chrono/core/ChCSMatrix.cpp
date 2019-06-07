@@ -17,7 +17,6 @@
 
 #include "chrono/core/ChCSMatrix.h"
 #include "chrono/core/ChMapMatrix.h"
-#include "chrono/solver/ChSystemDescriptor.h"
 
 namespace chrono {
 
@@ -667,108 +666,6 @@ bool ChCSMatrix::operator==(const ChCSMatrix& mat_source) const {
     }  // end for
 
     return true;
-}
-
-void ChCSMatrix::MatrMultiply(const ChMatrix<double>& matB, ChMatrix<double>& mat_out, bool transposeA) const {
-    transposeA
-        ? assert(this->GetNumRows() == matB.GetRows() && "Cannot perform matrix multiplication: wrong dimensions.")
-        : assert(this->GetNumColumns() == matB.GetRows() && "Cannot perform matrix multiplication: wrong dimensions.");
-
-    mat_out.Reset(transposeA ? this->GetNumColumns() : this->GetNumRows(), matB.GetColumns());
-
-    for (auto lead_i = 0; lead_i < *leading_dimension; lead_i++) {
-        for (auto trail_i = leadIndex[lead_i]; trail_i < leadIndex[lead_i + 1] && initialized_element[trail_i];
-             ++trail_i) {
-            if (!initialized_element[trail_i])
-                break;
-
-            for (auto col_i = 0; col_i < matB.GetColumns(); col_i++)
-                IsRowMajor() ^ transposeA
-                    ? mat_out(lead_i, col_i) += values[trail_i] * matB.GetElement(trailIndex[trail_i], col_i)
-                    : mat_out(trailIndex[trail_i], col_i) += values[trail_i] * matB.GetElement(lead_i, col_i);
-        }
-    }
-}
-
-void ChCSMatrix::MatrMultiplyClipped(const ChMatrix<double>& matB,
-                                     ChMatrix<double>& mat_out,
-                                     int start_row_matA,
-                                     int end_row_matA,
-                                     int start_col_matA,
-                                     int end_col_matA,
-                                     int start_row_matB,
-                                     int start_row_mat_out,
-                                     bool transposeA,
-                                     int start_col_matB,
-                                     int end_col_matB,
-                                     int start_col_mat_out) const {
-    // if not otherwise specified, matB will be multiplied from start_col_matB until the last column
-    if (end_col_matB == 0)
-        end_col_matB = matB.GetColumns() - 1;
-
-    // check if selected rows and columns respect matrix boundaries
-    assert(start_row_matA >= 0);
-    assert(start_col_matA >= 0);
-    assert(start_row_mat_out >= 0);
-    assert(start_col_matB >= 0);
-    assert(start_row_mat_out >= 0);
-    assert(start_col_mat_out >= 0);
-
-    assert(end_col_matB < matB.GetColumns());
-
-    if (!transposeA) {
-        assert(end_row_matA < GetNumRows());
-        assert(end_col_matA < GetNumColumns());
-    } else {
-        assert(end_row_matA < GetNumColumns());
-        assert(end_col_matA < GetNumRows());
-    }
-
-    // check if there are enough rows/columns in matB to perform the desired multiplication
-    assert(end_col_matA - start_col_matA + 1 <= matB.GetRows() - start_row_matB && "Not enough rows in matB");
-    assert(end_row_matA - start_row_matA + 1 <= mat_out.GetRows() - start_row_mat_out && "Not enough rows in mat_out");
-    assert(end_col_matB - start_col_matB + 1 <= mat_out.GetColumns() - start_col_mat_out &&
-           "Not enough columns in mat_out");
-
-    // convert passed argument to internal representation
-    auto start_lead_matA = IsRowMajor() ^ transposeA ? start_row_matA : start_col_matA;
-    auto end_lead_matA = IsRowMajor() ^ transposeA ? end_row_matA : end_col_matA;
-    auto start_trail_matA = IsRowMajor() ^ transposeA ? start_col_matA : start_row_matA;
-    auto end_trail_matA = IsRowMajor() ^ transposeA ? end_col_matA : end_row_matA;
-
-    // reset the part of mat_out that will be overwritten
-    for (auto mat_out_row_offset = 0; mat_out_row_offset <= end_row_matA - start_row_matA; ++mat_out_row_offset) {
-        for (auto mat_out_col_offset = 0; mat_out_col_offset <= end_col_matB - start_col_matB; ++mat_out_col_offset) {
-            mat_out(start_row_mat_out + mat_out_row_offset, start_col_mat_out + mat_out_col_offset) = 0;
-        }
-    }
-
-    // perform multiplication
-    // the algorithm would minimize the accesses to *this matrix; every element is loaded only once and is used for e
-    for (auto lead_i = start_lead_matA; lead_i <= end_lead_matA;
-         lead_i++) {  // loop through the selected rows (in RowMaj format) of matA
-        for (auto trail_i = leadIndex[lead_i];
-             trail_i < leadIndex[lead_i + 1] &&
-             initialized_element[trail_i] &&  // skip the row (in RowMaj format) if not initialized elements are found
-             trailIndex[trail_i] <= end_trail_matA;  // skip the row (in RowMaj format) if the element has a column
-                                                     // index (in RowMaj format) greater than required
-             ++trail_i) {
-            if (trailIndex[trail_i] <
-                start_trail_matA)  // skip elements if they have a column index (in RowMaj format) lower than required
-                continue;
-
-            for (auto col_i = start_col_matB; col_i <= end_col_matB; col_i++)
-                IsRowMajor() ^ transposeA
-                    ? mat_out(start_row_mat_out + lead_i - start_lead_matA,
-                              start_col_mat_out + col_i - start_col_matB) +=
-                      values[trail_i] *
-                      matB.GetElement(start_row_matB + trailIndex[trail_i] - start_col_matA, col_i - start_col_matB)
-                    : mat_out(start_row_mat_out + trailIndex[trail_i] - start_col_matA,
-                              start_col_mat_out + col_i - start_col_matB) +=
-                      values[trail_i] *
-                      matB.GetElement(start_row_matB + lead_i - start_lead_matA, col_i - start_col_matB);
-        }
-    }
 }
 
 void ChCSMatrix::ForEachExistentValueInRange(std::function<void(double*)> func,

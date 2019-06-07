@@ -24,8 +24,8 @@
 #include <functional>
 
 namespace chrono {
-	/// @addtogroup chrono
-/// @{		
+/// @addtogroup chrono
+/// @{
 
 /** \class ChSparsityPatternLearner
 \brief A dummy matrix that acquires the sparsity pattern.
@@ -133,7 +133,7 @@ class ChApi ChCSMatrix : public ChSparseMatrix {
 #endif
 
     index_vector_t leadIndex;   ///< CS vector: #leadIndex[i] tells that #trailIndex[#leadIndex[i]] is the first element
-                                ///of the i-th row (if row-major)
+                                /// of the i-th row (if row-major)
     index_vector_t trailIndex;  ///< CS vector: #trailIndex[j] tells the column index of #values[j] (if row-major)
     values_vector_t values;     ///< CS vector: non-zero values
     std::vector<bool> initialized_element;  ///< flag if a space in #trailIndex is initialized or not
@@ -166,11 +166,11 @@ class ChApi ChCSMatrix : public ChSparseMatrix {
         index_vector_t& trailIndex_dest,                   ///< trailing dimension index (destination)
         values_vector_t& values_dest,                      ///< values array (destination)
         std::vector<bool>& initialized_element_dest,       ///< array with initialization flags (destination)
-        int& trail_ins,                                    ///< the position in the trailIndex where a new element must be inserted (the element that
-                                                           ///caused the insertion)
-        int lead_ins,                                      ///< the position, referred to the leading dimension, where a new element must be inserted (the
-                                                           ///element that caused the insertion)
-        int storage_augm                                   ///< number of not-initialized spaces to add
+        int& trail_ins,  ///< the position in the trailIndex where a new element must be inserted (the element that
+                         /// caused the insertion)
+        int lead_ins,    ///< the position, referred to the leading dimension, where a new element must be inserted (the
+                         /// element that caused the insertion)
+        int storage_augm  ///< number of not-initialized spaces to add
     );
 
   public:
@@ -287,45 +287,48 @@ class ChApi ChCSMatrix : public ChSparseMatrix {
     /// It allows non compressed matrices.
     bool operator==(const ChCSMatrix& mat_source) const;
 
-    /// Multiply \a this (or \a this transposed, if \p transposeA is \c true) to \p matB and put the result in \p
-    /// mat_out
-    void MatrMultiply(const ChMatrix<double>& matB, ChMatrix<double>& mat_out, bool transposeA = false) const;
+    /// Multiply this (or this transposed, if \p transposeA is \c true) to \p matB and put the result in \p mat_out.
+    template <typename DerivedIN, typename DerivedOUT>
+    void MatrMultiply(const ChMatrix<DerivedIN>& matB,
+                      ChMatrix<DerivedOUT>& mat_out,
+                      bool transposeA = true) const;
 
-    /// Multiply part of \a this (or part of \a this transposed, if \p transposeA is \c true) to \p matB and put the
-    /// result in \p mat_out. \param start_row_this first row of \a this that has to be taken into account for the
-    /// multiplication \param transposeA multiply for \a this transposed instead of \a this
-    void MatrMultiplyClipped(const ChMatrix<double>& matB,
-                             ChMatrix<double>& mat_out,
-                             int start_row_this,
-                             int end_row_this,
-                             int start_col_this,
-                             int end_col_this,
+    /// Multiply part of this (or part of this transposed, if \p transposeA is \c true) to \p matB and put the
+    /// result in \p mat_out. \param start_row_this first row of this that has to be taken into account for the
+    /// multiplication \param transposeA multiply for this transposed instead of this
+    template <typename DerivedIN, typename DerivedOUT>
+    void MatrMultiplyClipped(const ChMatrix<DerivedIN>& matB,
+                             ChMatrix<DerivedOUT>& mat_out,
+                             int start_row_matA,
+                             int end_row_matA,
+                             int start_col_matA,
+                             int end_col_matA,
                              int start_row_matB,
                              int start_row_mat_out,
-                             bool transposeA = false,
-                             int start_col_matB = 0,
-                             int end_col_matB = 0,
-                             int start_col_mat_out = 0) const;
+                             bool transposeA,
+                             int start_col_matB,
+                             int end_col_matB,
+                             int start_col_mat_out) const;
 
     /// Apply the given function \p func to any existent and initialized element in the matrix.
     /// To the function \p func will be passed the pointer to the existing element.
-    void ForEachExistentValue(std::function<void(double*)> func)
-    {
+    void ForEachExistentValue(std::function<void(double*)> func) {
         ForEachExistentValueInRange(func, 0, GetNumRows() - 1, 0, GetNumColumns() - 1);
     }
 
-    /// Apply the given function \p func to any existent and initialized element in the matrix in the range [\p start_row, \p end_row] and [\p start_col, \p end_col].
-    /// To the function \p func will be passed the pointer to the existing element.
+    /// Apply the given function \p func to any existent and initialized element in the matrix in the range [\p
+    /// start_row, \p end_row] and [\p start_col, \p end_col]. To the function \p func will be passed the pointer to the
+    /// existing element.
     void ForEachExistentValueInRange(std::function<void(double*)> func,
                                      int start_row,
                                      int end_row,
                                      int start_col,
                                      int end_col);
 
-
-    /// Apply the given function \p func to any existent and initialized element in the matrix in the range [\p start_row, \p end_row] and [\p start_col, \p end_col].
-    /// To the function \p func will be passed by value the triplet: row index, column index, value.
-    /// The most useful way to call this function is with \code func = std::bind(foo(), other_arguments, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3); \endcode
+    /// Apply the given function \p func to any existent and initialized element in the matrix in the range [\p
+    /// start_row, \p end_row] and [\p start_col, \p end_col]. To the function \p func will be passed by value the
+    /// triplet: row index, column index, value. The most useful way to call this function is with \code func =
+    /// std::bind(foo(), other_arguments, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3); \endcode
     /// where, in particular, \a foo() can even be a class method and \a other_arguments can also be \a this
     void ForEachExistentValueInRange(std::function<void(int, int, double)> func,
                                      int start_row,
@@ -333,19 +336,122 @@ class ChApi ChCSMatrix : public ChSparseMatrix {
                                      int start_col,
                                      int end_col) const;
 
-    /// Apply the given function \p func to any existent and initialized element in the matrix that meets the \p requirement.
-    /// To the function \p requirement will be passed by value the triplet: row index, column index, value;
+    /// Apply the given function \p func to any existent and initialized element in the matrix that meets the \p
+    /// requirement. To the function \p requirement will be passed by value the triplet: row index, column index, value;
     /// only if the returned boolean is true, then the function \p func will be called as well, with the same arguments.
-    /// The most useful way to call this function is with \code func = std::bind(foo(), other_arguments, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3); \endcode
-    /// where, in particular, \a foo() can even be a class method and \a other_arguments can also be \a this
+    /// The most useful way to call this function is with \code func = std::bind(foo(), other_arguments,
+    /// std::placeholders::_1, std::placeholders::_2, std::placeholders::_3); \endcode where, in particular, \a foo()
+    /// can even be a class method and \a other_arguments can also be \a this
     void ForEachExistentValueThatMeetsRequirement(std::function<void(int, int, double)> func,
                                                   std::function<bool(int, int, double)> requirement) const;
-
-
-
 };
 
-	/// @} chrono
+/// @} chrono
+
+template <typename DerivedIN, typename DerivedOUT>
+void ChCSMatrix::MatrMultiply(const ChMatrix<DerivedIN>& matB, ChMatrix<DerivedOUT>& mat_out, bool transposeA) const {
+    transposeA
+        ? assert(this->GetNumRows() == matB.rows() && "Cannot perform matrix multiplication: wrong dimensions.")
+        : assert(this->GetNumColumns() == matB.rows() && "Cannot perform matrix multiplication: wrong dimensions.");
+
+    mat_out.resize(transposeA ? this->GetNumColumns() : this->GetNumRows(), matB.cols());
+    mat_out.setZero();
+
+    for (auto lead_i = 0; lead_i < *leading_dimension; lead_i++) {
+        for (auto trail_i = leadIndex[lead_i]; trail_i < leadIndex[lead_i + 1] && initialized_element[trail_i];
+             ++trail_i) {
+            if (!initialized_element[trail_i])
+                break;
+
+            for (auto col_i = 0; col_i < matB.cols(); col_i++)
+                IsRowMajor() ^ transposeA
+                    ? mat_out(lead_i, col_i) += values[trail_i] * matB(trailIndex[trail_i], col_i)
+                    : mat_out(trailIndex[trail_i], col_i) += values[trail_i] * matB(lead_i, col_i);
+        }
+    }
+}
+
+template <typename DerivedIN, typename DerivedOUT>
+void ChCSMatrix::MatrMultiplyClipped(const ChMatrix<DerivedIN>& matB,
+                                     ChMatrix<DerivedOUT>& mat_out,
+                                     int start_row_matA,
+                                     int end_row_matA,
+                                     int start_col_matA,
+                                     int end_col_matA,
+                                     int start_row_matB,
+                                     int start_row_mat_out,
+                                     bool transposeA,
+                                     int start_col_matB,
+                                     int end_col_matB,
+                                     int start_col_mat_out) const {
+    // if not otherwise specified, matB will be multiplied from start_col_matB until the last column
+    if (end_col_matB == 0)
+        end_col_matB = (int)matB.cols() - 1;
+
+    // check if selected rows and columns respect matrix boundaries
+    assert(start_row_matA >= 0);
+    assert(start_col_matA >= 0);
+    assert(start_row_mat_out >= 0);
+    assert(start_col_matB >= 0);
+    assert(start_row_mat_out >= 0);
+    assert(start_col_mat_out >= 0);
+
+    assert(end_col_matB < matB.cols());
+
+    if (!transposeA) {
+        assert(end_row_matA < GetNumRows());
+        assert(end_col_matA < GetNumColumns());
+    } else {
+        assert(end_row_matA < GetNumColumns());
+        assert(end_col_matA < GetNumRows());
+    }
+
+    // check if there are enough rows/columns in matB to perform the desired multiplication
+    assert(end_col_matA - start_col_matA + 1 <= matB.rows() - start_row_matB && "Not enough rows in matB");
+    assert(end_row_matA - start_row_matA + 1 <= mat_out.rows() - start_row_mat_out && "Not enough rows in mat_out");
+    assert(end_col_matB - start_col_matB + 1 <= mat_out.cols() - start_col_mat_out && "Not enough columns in mat_out");
+
+    // convert passed argument to internal representation
+    auto start_lead_matA = IsRowMajor() ^ transposeA ? start_row_matA : start_col_matA;
+    auto end_lead_matA = IsRowMajor() ^ transposeA ? end_row_matA : end_col_matA;
+    auto start_trail_matA = IsRowMajor() ^ transposeA ? start_col_matA : start_row_matA;
+    auto end_trail_matA = IsRowMajor() ^ transposeA ? end_col_matA : end_row_matA;
+
+    // reset the part of mat_out that will be overwritten
+    for (auto mat_out_row_offset = 0; mat_out_row_offset <= end_row_matA - start_row_matA; ++mat_out_row_offset) {
+        for (auto mat_out_col_offset = 0; mat_out_col_offset <= end_col_matB - start_col_matB; ++mat_out_col_offset) {
+            mat_out(start_row_mat_out + mat_out_row_offset, start_col_mat_out + mat_out_col_offset) = 0;
+        }
+    }
+
+    // perform multiplication
+    // the algorithm would minimize the accesses to *this matrix; every element is loaded only once and is used for e
+    for (auto lead_i = start_lead_matA; lead_i <= end_lead_matA;
+         lead_i++) {  // loop through the selected rows (in RowMaj format) of matA
+        for (auto trail_i = leadIndex[lead_i];
+             trail_i < leadIndex[lead_i + 1] &&
+             initialized_element[trail_i] &&  // skip the row (in RowMaj format) if not initialized elements are found
+             trailIndex[trail_i] <= end_trail_matA;  // skip the row (in RowMaj format) if the element has a column
+                                                     // index (in RowMaj format) greater than required
+             ++trail_i) {
+            if (trailIndex[trail_i] <
+                start_trail_matA)  // skip elements if they have a column index (in RowMaj format) lower than required
+                continue;
+
+            for (auto col_i = start_col_matB; col_i <= end_col_matB; col_i++)
+                IsRowMajor() ^ transposeA
+                    ? mat_out(start_row_mat_out + lead_i - start_lead_matA,
+                              start_col_mat_out + col_i - start_col_matB) +=
+                      values[trail_i] *
+                      matB(start_row_matB + trailIndex[trail_i] - start_col_matA, col_i - start_col_matB)
+                    : mat_out(start_row_mat_out + trailIndex[trail_i] - start_col_matA,
+                              start_col_mat_out + col_i - start_col_matB) +=
+                      values[trail_i] *
+                      matB(start_row_matB + lead_i - start_lead_matA, col_i - start_col_matB);
+        }
+    }
+}
+
 };  // end namespace chrono
 
 #endif

@@ -368,7 +368,7 @@ class ChFrameMoving : public ChFrame<Real> {
     /// that the point moves in the local reference frame with localspeed,
     /// return the speed in the parent reference frame.
     ChVector<Real> PointSpeedLocalToParent(const ChVector<Real>& localpos, const ChVector<Real>& localspeed) const {
-        return coord_dt.pos + this->Amatrix.Matr_x_Vect(localspeed) +
+        return coord_dt.pos + this->Amatrix * localspeed +
                ((coord_dt.rot % ChQuaternion<Real>(0, localpos) % this->coord.rot.GetConjugate()).GetVector() * 2);
     }
 
@@ -386,7 +386,7 @@ class ChFrameMoving : public ChFrame<Real> {
     ChVector<Real> PointAccelerationLocalToParent(const ChVector<Real>& localpos,
                                                   const ChVector<Real>& localspeed,
                                                   const ChVector<Real>& localacc) const {
-        return coord_dtdt.pos + this->Amatrix.Matr_x_Vect(localacc) +
+        return coord_dtdt.pos + this->Amatrix * localacc +
                ((coord_dtdt.rot % ChQuaternion<Real>(0, localpos) % this->coord.rot.GetConjugate()).GetVector() * 2) +
                ((coord_dt.rot % ChQuaternion<Real>(0, localpos) % coord_dt.rot.GetConjugate()).GetVector() * 2) +
                ((coord_dt.rot % ChQuaternion<Real>(0, localspeed) % this->coord.rot.GetConjugate()).GetVector() * 4);
@@ -397,9 +397,9 @@ class ChFrameMoving : public ChFrame<Real> {
     /// return the speed in local coords.
     ChVector<Real> PointSpeedParentToLocal(const ChVector<Real>& parentpos, const ChVector<Real>& parentspeed) const {
         ChVector<Real> localpos = ChFrame<Real>::TransformParentToLocal(parentpos);
-        return this->Amatrix.MatrT_x_Vect(
-            parentspeed - coord_dt.pos -
-            ((coord_dt.rot % ChQuaternion<Real>(0, localpos) % this->coord.rot.GetConjugate()).GetVector() * 2));
+        return this->Amatrix.transpose() *
+               (parentspeed - coord_dt.pos -
+                ((coord_dt.rot % ChQuaternion<Real>(0, localpos) % this->coord.rot.GetConjugate()).GetVector() * 2));
     }
 
     /// Given the position of a point in parent frame coords, and
@@ -410,11 +410,11 @@ class ChFrameMoving : public ChFrame<Real> {
                                                   const ChVector<Real>& parentacc) const {
         ChVector<Real> localpos = ChFrame<Real>::TransformParentToLocal(parentpos);
         ChVector<Real> localspeed = PointSpeedParentToLocal(parentpos, parentspeed);
-        return this->Amatrix.MatrT_x_Vect(
-            parentacc - coord_dtdt.pos -
-            (coord_dtdt.rot % ChQuaternion<Real>(0, localpos) % this->coord.rot.GetConjugate()).GetVector() * 2 -
-            (coord_dt.rot % ChQuaternion<Real>(0, localpos) % coord_dt.rot.GetConjugate()).GetVector() * 2 -
-            (coord_dt.rot % ChQuaternion<Real>(0, localspeed) % this->coord.rot.GetConjugate()).GetVector() * 4);
+        return this->Amatrix.transpose() *
+               (parentacc - coord_dtdt.pos -
+                (coord_dtdt.rot % ChQuaternion<Real>(0, localpos) % this->coord.rot.GetConjugate()).GetVector() * 2 -
+                (coord_dt.rot % ChQuaternion<Real>(0, localpos) % coord_dt.rot.GetConjugate()).GetVector() * 2 -
+                (coord_dt.rot % ChQuaternion<Real>(0, localspeed) % this->coord.rot.GetConjugate()).GetVector() * 4);
     }
 
     /// This function transforms a frame from 'this' local coordinate

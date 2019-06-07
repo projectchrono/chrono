@@ -542,6 +542,13 @@ ChApi ChQuaternion<double> AngleDTDT_to_QuatDTDT(AngleSet angset,
                                                  const ChVector<double>& mangles,
                                                  const ChQuaternion<double>& q);
 
+// Insertion to output stream
+template <typename Real>
+inline std::ostream& operator<<(std::ostream& out, const ChQuaternion<Real>& q) {
+    out << q.e0() << "  " << q.e1() << "  " << q.e2() << "  " << q.e3();
+    return out;
+}
+
 // =============================================================================
 // IMPLEMENTATION OF ChQuaternion<Real> methods
 // =============================================================================

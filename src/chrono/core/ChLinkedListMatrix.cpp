@@ -23,29 +23,16 @@
 namespace chrono {
 
 ChLinkedListMatrix::ChLinkedListMatrix(int nrows, int ncols, double fill_in)
-    : ChSparseMatrix(nrows, ncols), m_determinant(0) {
+    : ChSparseMatrix(nrows, ncols), elarray(nullptr), mnextel(nullptr), m_determinant(0) {
     ChLinkedListMatrix::Build(fill_in);
 }
 
-ChLinkedListMatrix::ChLinkedListMatrix() : ChSparseMatrix(1, 1), m_determinant(0) {
+ChLinkedListMatrix::ChLinkedListMatrix() : ChSparseMatrix(1, 1), elarray(nullptr), mnextel(nullptr), m_determinant(0) {
     ChLinkedListMatrix::Build(1.0);
 }
 
-ChLinkedListMatrix::ChLinkedListMatrix(const ChMatrix<>& mat) {
-    Reset(mat.GetRows(), mat.GetColumns());
-
-    // fill matrix
-    for (int r = 0; r < m_num_rows; r++) {
-        ChMelement* mguess = *(elarray + r);
-        for (int c = 0; c < m_num_cols; c++) {
-            double el = mat.GetElement(r, c);
-            if (el != 0)
-                mguess = SetElement(r, c, el, mguess);
-        }
-    }
-}
-
-ChLinkedListMatrix::ChLinkedListMatrix(const ChLinkedListMatrix& other) : ChSparseMatrix(other) {
+ChLinkedListMatrix::ChLinkedListMatrix(const ChLinkedListMatrix& other)
+    : ChSparseMatrix(other), elarray(nullptr), mnextel(nullptr), m_determinant(0) {
     Reset(other.m_num_rows, other.m_num_cols);
 
     for (int r = 0; r < m_num_rows; r++) {
@@ -104,18 +91,6 @@ void ChLinkedListMatrix::Build(double fill_in) {
         (mnextel)->Initialize(0, nullptr, nullptr, i, 0);  // initialize 1st col.elements
         mbuffer_added++;                             // increment the counter of "used" elements.
         mnextel++;
-    }
-}
-
-// Copy this matrix to a dense matrix.
-void ChLinkedListMatrix::CopyToMatrix(ChMatrix<>& mat) {
-    mat.Reset(m_num_rows, m_num_cols);
-
-    ChMelement* currel;
-    for (int i = 0; i < m_num_rows; i++) {
-        for (currel = *(elarray + i); currel != nullptr; currel = currel->next) {
-            mat.SetElement(currel->row, currel->col, currel->val);
-        }
     }
 }
 
@@ -370,88 +345,6 @@ void ChLinkedListMatrix::SwapColumns(int a, int b) {
     }
 }
 
-void ChLinkedListMatrix::PasteMatrix(const ChMatrix<>& matra, int insrow, int inscol, bool overwrite, bool transp) {
-    int i, j;
-    int maxrows = matra.GetRows();
-    int maxcol = matra.GetColumns();
-    ChMelement* eguess;
-    double val;
-
-    for (i = 0; i < maxrows; i++) {
-        eguess = *(elarray + i + insrow);
-
-        for (j = 0; j < maxcol; j++) {
-            val = (matra.GetElement(i, j));
-            if (val)
-                eguess = SetElement(i + insrow, j + inscol, val, eguess);
-        }
-    }
-}
-
-void ChLinkedListMatrix::PasteTranspMatrix(const ChMatrix<>& matra, int insrow, int inscol) {
-    int i, j;
-    int maxrows = matra.GetRows();
-    int maxcol = matra.GetColumns();
-    ChMelement* eguess;
-    double val;
-
-    for (j = 0; j < maxcol; j++) {
-        eguess = *(elarray + j + insrow);
-
-        for (i = 0; i < maxrows; i++) {
-            val = (matra.GetElement(i, j));
-            if (val)
-                eguess = SetElement(j + insrow, i + inscol, val, eguess);
-        }
-    }
-}
-
-void ChLinkedListMatrix::PasteSumMatrix(const ChMatrix<>& matra, int insrow, int inscol) {
-    int i, j;
-    int maxrows = matra.GetRows();
-    int maxcol = matra.GetColumns();
-    ChMelement* eguess;
-    ChMelement* eguessread;
-    double val, aval, sum;
-
-    for (i = 0; i < maxrows; i++) {
-        eguess = *(elarray + i + insrow);
-        eguessread = eguess;
-
-        for (j = 0; j < maxcol; j++) {
-            val = (matra.GetElement(i, j));
-            if (val) {
-                eguessread = GetElement(i + insrow, j + inscol, &aval, eguessread);
-                sum = val + aval;
-                eguess = SetElement(i + insrow, j + inscol, sum, eguess);
-            }
-        }
-    }
-}
-
-void ChLinkedListMatrix::PasteSumTranspMatrix(const ChMatrix<>& matra, int insrow, int inscol) {
-    int i, j;
-    int maxrows = matra.GetRows();
-    int maxcol = matra.GetColumns();
-    ChMelement* eguess;
-    ChMelement* eguessread;
-    double val, aval, sum;
-
-    for (j = 0; j < maxcol; j++) {
-        eguess = *(elarray + j + insrow);
-        eguessread = eguess;
-
-        for (i = 0; i < maxrows; i++) {
-            val = (matra.GetElement(i, j));
-            if (val) {
-                eguessread = GetElement(j + insrow, i + inscol, &aval, eguessread);
-                sum = val + aval;
-                eguess = SetElement(j + insrow, i + inscol, sum, eguess);
-            }
-        }
-    }
-}
-
 void ChLinkedListMatrix::PasteMatrix(const ChLinkedListMatrix& matra, int insrow, int inscol) {
     ChMelement* eguess;
     ChMelement* srowel;
@@ -479,54 +372,6 @@ void ChLinkedListMatrix::PasteTranspMatrix(const ChLinkedListMatrix& matra, int 
             val = (matra.GetElement(i, j));
             if (val)
                 eguess = SetElement(j + insrow, i + inscol, val, eguess);
-        }
-    }
-}
-
-void ChLinkedListMatrix::PasteClippedMatrix(const ChMatrix<>& matra,
-                                            int cliprow,
-                                            int clipcol,
-                                            int nrows,
-                                            int ncolumns,
-                                            int insrow,
-                                            int inscol,
-                                            bool overwrite) {
-    ChMelement* eguess;
-    double val;
-
-    for (auto i = 0; i < nrows; i++) {
-        eguess = *(elarray + i + insrow);
-
-        for (auto j = 0; j < ncolumns; j++) {
-            val = (matra.GetElement(i + cliprow, j + clipcol));
-            if (val)
-                eguess = SetElement(i + insrow, j + inscol, val, eguess);
-        }
-    }
-}
-
-void ChLinkedListMatrix::PasteSumClippedMatrix(const ChMatrix<>& matra,
-                                               int cliprow,
-                                               int clipcol,
-                                               int nrows,
-                                               int ncolumns,
-                                               int insrow,
-                                               int inscol) {
-    ChMelement* eguess;
-    ChMelement* eguessread;
-    double val, aval, sum;
-
-    for (auto i = 0; i < nrows; i++) {
-        eguess = *(elarray + i + insrow);
-        eguessread = eguess;
-
-        for (auto j = 0; j < ncolumns; j++) {
-            val = (matra.GetElement(i + cliprow, j + clipcol));
-            if (val) {
-                eguessread = GetElement(i + insrow, j + inscol, &aval, eguessread);
-                sum = val + aval;
-                eguess = SetElement(i + insrow, j + inscol, sum, eguess);
-            }
         }
     }
 }
@@ -640,13 +485,13 @@ int ChLinkedListMatrix::Setup_LU() {
 }
 
 // Substitution using existing LU factorization
-void ChLinkedListMatrix::Solve_LU(const ChMatrix<>& b, ChMatrix<>& x) {
-    assert(m_num_rows == b.GetRows());
-    assert(m_num_cols == x.GetRows());
+void ChLinkedListMatrix::Solve_LU(const ChVectorDynamic<>& b, ChVectorDynamic<>& x) {
+    assert(m_num_rows == b.size());
+    assert(m_num_cols == x.size());
 
     // BACKWARD substitution - L
-    double xlast = b.GetElement(m_pindices[0], 0);
-    x.SetElement(0, 0, xlast);
+    double xlast = b(m_pindices[0]);
+    x(0) = xlast;
 
     for (int k = 1; k < m_num_rows; k++) {
         double sum = 0;
@@ -654,16 +499,16 @@ void ChLinkedListMatrix::Solve_LU(const ChMatrix<>& b, ChMatrix<>& x) {
         ChMelement* rowel = GetElarrayMel(k);
 
         for (; (rowel != nullptr && rowel->col < k); rowel = rowel->next) {
-            sum += rowel->val * (x.GetElement(rowel->col, 0));
+            sum += rowel->val * x(rowel->col);
         }
 
-        double val = (b.GetElement(m_pindices[k], 0) - sum);
-        x.SetElement(k, 0, val);
+        double val = b(m_pindices[k]) - sum;
+        x(k) = val;
     }
 
     // BACKWARD substitution - U
-    xlast = x.GetElement(m_num_rows - 1, 0) / GetElement(m_num_rows - 1, m_num_rows - 1);
-    x.SetElement(m_num_rows - 1, 0, xlast);
+    xlast = x(m_num_rows - 1) / GetElement(m_num_rows - 1, m_num_rows - 1);
+    x(m_num_rows - 1) = xlast;
 
     for (int k = m_num_rows - 2; k >= 0; k--) {
         double sum = 0;
@@ -672,17 +517,17 @@ void ChLinkedListMatrix::Solve_LU(const ChMatrix<>& b, ChMatrix<>& x) {
 
         for (; rowel != nullptr; rowel = rowel->next) {
             if (rowel->col >= k + 1) {
-                sum += rowel->val * (x.GetElement(rowel->col, 0));
+                sum += rowel->val * x(rowel->col);
             }
         }
 
-        double val = (x.GetElement(k, 0) - sum) / GetElement(k, k);
-        x.SetElement(k, 0, val);
+        double val = (x(k) - sum) / GetElement(k, k);
+        x(k) = val;
     }
 }
 
 // LU Factorization + substitution
-int ChLinkedListMatrix::SolveGeneral(const ChMatrix<>& b, ChMatrix<>& x) {
+int ChLinkedListMatrix::SolveGeneral(const ChVectorDynamic<>& b, ChVectorDynamic<>& x) {
     int err = Setup_LU();
     Solve_LU(b, x);
     return err;
@@ -799,27 +644,27 @@ int ChLinkedListMatrix::Setup_LDL() {
 }
 
 // Substitution using existing LDL factorization
-void ChLinkedListMatrix::Solve_LDL(const ChMatrix<>& b, ChMatrix<>& x) {
-    assert(m_num_rows == b.GetRows());
-    assert(m_num_rows == x.GetRows());
+void ChLinkedListMatrix::Solve_LDL(const ChVectorDynamic<>& b, ChVectorDynamic<>& x) {
+    assert(m_num_rows == b.size());
+    assert(m_num_rows == x.size());
 
     // BACKWARD substitution - L
-    double xlast = b.GetElement(m_pindices[0], 0);
-    x.SetElement(m_pindices[0], 0, xlast);
+    double xlast = b(m_pindices[0]);
+    x(m_pindices[0]) = xlast;
 
     for (int k = 1; k < m_num_rows; k++) {
         double sum = 0;
         for (int j = 0; j < k; j++) {
-            sum += GetElement(j, k) * x.GetElement(m_pindices[j], 0);
+            sum += GetElement(j, k) * x(m_pindices[j]);
         }
-        double val = b.GetElement(m_pindices[k], 0) - sum;
-        x.SetElement(m_pindices[k], 0, val);
+        double val = b(m_pindices[k]) - sum;
+        x(m_pindices[k]) = val;
     }
 
     // BACKWARD substitution - D
     for (int k = 0; k < m_num_rows; k++) {
-        double val = x.GetElement(m_pindices[k], 0) / GetElement(k, k);
-        x.SetElement(m_pindices[k], 0, val);
+        double val = x(m_pindices[k]) / GetElement(k, k);
+        x(m_pindices[k]) = val;
     }
 
     // BACKWARD substitution - L'
@@ -830,17 +675,17 @@ void ChLinkedListMatrix::Solve_LDL(const ChMatrix<>& b, ChMatrix<>& x) {
 
         for (; rowel != nullptr; rowel = rowel->next) {
             if (rowel->col >= k + 1) {
-                sum += rowel->val * x.GetElement(m_pindices[rowel->col], 0);
+                sum += rowel->val * x(m_pindices[rowel->col]);
             }
         }
 
-        double val = x.GetElement(m_pindices[k], 0) - sum;
-        x.SetElement(m_pindices[k], 0, val);
+        double val = x(m_pindices[k]) - sum;
+        x(m_pindices[k]) = val;
     }
 }
 
 // LDL Factorization + substitution
-int ChLinkedListMatrix::SolveSymmetric(const ChMatrix<>& b, ChMatrix<>& x) {
+int ChLinkedListMatrix::SolveSymmetric(const ChVectorDynamic<>& b, ChVectorDynamic<>& x) {
     int err = Setup_LDL();
     Solve_LDL(b, x);
     return err;

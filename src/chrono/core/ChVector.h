@@ -408,6 +408,13 @@ void XdirToDxDyDz(const ChVector<RealA>& Vxdir,
     Vy = Vcross(Vz, Vx);
 }
 
+// Insertion to output stream
+template <typename Real>
+inline std::ostream& operator<<(std::ostream& out, const ChVector<Real>& v) {
+    out << v.x() << "  " << v.y() << "  " << v.z();
+    return out;
+}
+
 // =============================================================================
 // IMPLEMENTATION OF ChVector<Real> methods
 // =============================================================================

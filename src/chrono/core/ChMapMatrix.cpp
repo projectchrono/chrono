@@ -22,21 +22,6 @@ ChMapMatrix::ChMapMatrix(int nrows, int ncols) : ChSparseMatrix(nrows, ncols), m
     m_rows.resize(nrows);
 }
 
-ChMapMatrix::ChMapMatrix(const ChMatrix<>& mat) {
-    m_num_rows = mat.GetRows();
-    m_num_cols = mat.GetColumns();
-    m_rows.resize(mat.GetRows());
-    for (int ir = 0; ir < m_num_rows; ir++) {
-        for (int ic = 0; ic < m_num_cols; ic++) {
-            double val = mat.GetElement(ir, ic);
-            if (val != 0) {
-                ChMapMatrix::SetElement(ir, ic, val);
-            }
-        }
-    }
-    m_CSR_current = false;
-}
-
 ChMapMatrix::ChMapMatrix(const ChMapMatrix& other) : ChSparseMatrix(other) {
     m_rows = other.m_rows;
     m_CSR_current = false;
@@ -106,10 +91,11 @@ double ChMapMatrix::GetElement(int row, int col) const {
     }
 
 void ChMapMatrix::ConvertToDense(ChMatrixDynamic<double>& mat) {
-    mat.Reset(m_num_rows, m_num_cols);
+    mat.resize(m_num_rows, m_num_cols);
+    mat.setZero();
     for (int ir = 0; ir < m_num_rows; ir++) {
         for (auto it : m_rows[ir].m_data) {
-            mat.SetElement(ir, it.first, it.second);
+            mat(ir, it.first) = it.second;
         }
     }
 }

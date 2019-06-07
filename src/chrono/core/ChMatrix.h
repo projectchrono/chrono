@@ -9,13 +9,14 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora, Radu Serban
+// Authors: Radu Serban
 // =============================================================================
 
 #ifndef CHMATRIX_H
 #define CHMATRIX_H
 
-#include <cstring>
+#define EIGEN_MATRIXBASE_PLUGIN "chrono/core/ChMatrixEigenExtensions.h"
+#include "Eigen/Dense"
 
 #include "chrono/ChConfig.h"
 #include "chrono/core/ChCoordsys.h"
@@ -33,6 +34,137 @@
 
 namespace chrono {
 
+// =============================================================================
+
+template <typename Derived>
+using ChMatrix = Eigen::MatrixBase<Derived>;
+
+////template <typename T = double, int Rows = Eigen::Dynamic, int Cols = Eigen::Dynamic>
+////using ChMatrix = Eigen::Matrix<T, Rows, Cols>;
+
+// =============================================================================
+
+template <typename T, int M, int N>
+using ChMatrixNM = Eigen::Matrix<T, M, N, Eigen::RowMajor>;
+
+// =============================================================================
+
+template <typename T = double>
+using ChMatrixDynamic = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+
+////template <typename T = double>
+////class ChMatrixDynamic_inh : public Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> {
+////  public:
+////    using Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>::operator=;
+////    ChMatrixDynamic_inh(int row, int col)
+////        : Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>(row, col) {}
+////};
+
+// =============================================================================
+
+template <typename T = double>
+using ChMatrix34 = Eigen::Matrix<T, 3, 4, Eigen::RowMajor>;
+
+template <typename T = double>
+using ChMatrix43 = Eigen::Matrix<T, 4, 3, Eigen::ColMajor>;
+
+template <typename T = double>
+using ChMatrix44 = Eigen::Matrix<T, 4, 4, Eigen::RowMajor>;
+
+// =============================================================================
+
+template <typename T = double>
+using ChVectorDynamic = Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen::ColMajor>;
+
+// =============================================================================
+
+template <typename T = double>
+using ChArray = Eigen::Array<T, Eigen::Dynamic, 1, Eigen::ColMajor>;
+
+// =============================================================================
+
+template <typename Real = double>
+class ChStarMatrix44 : public ChMatrix44<Real> {
+public:
+    /// Constructor from a given quaternion.
+    ChStarMatrix44(const ChQuaternion<Real>& q) {
+        (*this)(0, 0) = q.e0();
+        (*this)(0, 1) = -q.e1();
+        (*this)(0, 2) = -q.e2();
+        (*this)(0, 3) = -q.e3();
+        (*this)(1, 0) = q.e1();
+        (*this)(1, 1) = q.e0();
+        (*this)(1, 2) = -q.e3();
+        (*this)(1, 3) = q.e2();
+        (*this)(2, 0) = q.e2();
+        (*this)(2, 1) = q.e3();
+        (*this)(2, 2) = q.e0();
+        (*this)(2, 3) = -q.e1();
+        (*this)(3, 0) = q.e3();
+        (*this)(3, 1) = -q.e2();
+        (*this)(3, 2) = q.e1();
+        (*this)(3, 3) = q.e0();
+    }
+
+    void semiTranspose() {
+        (*this)(1, 2) *= -1;
+        (*this)(1, 3) *= -1;
+        (*this)(2, 1) *= -1;
+        (*this)(2, 3) *= -1;
+        (*this)(3, 1) *= -1;
+        (*this)(3, 2) *= -1;
+    }
+
+    void semiNegate() {
+        this->rightCols<3>() *= -1;
+    }
+};
+
+// =============================================================================
+// Operations with 3x4 matrices
+
+/// Multiply a 3x4 matrix with a quaternion and return a 3d vector.
+template <typename T, typename U>
+ChVector<T> operator*(const ChMatrix34<T>& A, const ChQuaternion<U>& q) {
+    return ChVector<T>(A(0, 0) * (T)q.e0() + A(0, 1) * (T)q.e1() + A(0, 2) * (T)q.e2() + A(0, 3) * (T)q.e3(),
+        A(1, 0) * (T)q.e0() + A(1, 1) * (T)q.e1() + A(1, 2) * (T)q.e2() + A(1, 3) * (T)q.e3(),
+        A(2, 0) * (T)q.e0() + A(2, 1) * (T)q.e1() + A(2, 2) * (T)q.e2() + A(2, 3) * (T)q.e3());
+}
+
+/// Multiply a 4x3 matrix with a 3d vector and return a quaternion.
+template <typename T, typename U>
+ChQuaternion<T> operator*(const ChMatrix43<T>& A, const ChVector<U>& v) {
+    return ChQuaternion<T>(A(0, 0) * (T)v.x() + A(0, 1) * (T)v.y() + A(0, 2) * (T)v.z(),
+        A(1, 0) * (T)v.x() + A(1, 1) * (T)v.y() + A(1, 2) * (T)v.z(),
+        A(2, 0) * (T)v.x() + A(2, 1) * (T)v.y() + A(2, 2) * (T)v.z(),
+        A(3, 0) * (T)v.x() + A(3, 1) * (T)v.y() + A(3, 2) * (T)v.z());
+}
+
+/// Multiply the transpose of a 3x4 matrix with a 3d vector and return a quaternion.
+template <typename T, typename U>
+ChQuaternion<T> operator*(const Eigen::Transpose<Eigen::Matrix<T, 3, 4, Eigen::RowMajor>>& A, const ChVector<U>& v) {
+    return ChQuaternion<T>(A(0, 0) * (T)v.x() + A(0, 1) * (T)v.y() + A(0, 2) * (T)v.z(),
+        A(1, 0) * (T)v.x() + A(1, 1) * (T)v.y() + A(1, 2) * (T)v.z(),
+        A(2, 0) * (T)v.x() + A(2, 1) * (T)v.y() + A(2, 2) * (T)v.z(),
+        A(3, 0) * (T)v.x() + A(3, 1) * (T)v.y() + A(3, 2) * (T)v.z());
+}
+
+/// Multiply a 4x4 matrix with a quaternion and return a quaternion.
+template <typename T, typename U>
+ChQuaternion<T> operator*(const ChMatrix44<T>& A, const ChQuaternion<U>& q) {
+    return ChQuaternion<T>(A(0, 0) * (T)q.e0() + A(0, 1) * (T)q.e1() + A(0, 2) * (T)q.e2() + A(0, 3) * (T)q.e3(),
+        A(1, 0) * (T)q.e0() + A(1, 1) * (T)q.e1() + A(1, 2) * (T)q.e2() + A(1, 3) * (T)q.e3(),
+        A(2, 0) * (T)q.e0() + A(2, 1) * (T)q.e1() + A(2, 2) * (T)q.e2() + A(2, 3) * (T)q.e3(),
+        A(3, 0) * (T)q.e0() + A(3, 1) * (T)q.e1() + A(3, 2) * (T)q.e2() + A(3, 3) * (T)q.e3());
+}
+
+// =============================================================================
+
+////////////////////////
+////////////////////////
+////////////////////////
+
+/*
 #define Set33Element(a, b, val) SetElementN(((a * 3) + (b)), val)
 #define Get33Element(a, b) GetElementN((a * 3) + (b))
 
@@ -48,8 +180,8 @@ namespace chrono {
 #define Get44Element(a, b) GetElementN((a * 4) + (b))
 
 // forward declaration
-template <class Real = double>
-class ChMatrixDynamic;
+////template <class Real = double>
+////class ChMatrixDynamic;
 
 ///
 /// ChMatrix:
@@ -677,30 +809,30 @@ class ChMatrix {
     }
 
     /// Transpose this matrix in place
-    void MatrTranspose() {
-        if (columns == rows)  // Square transp.is optimized
-        {
-            for (int row = 0; row < rows; ++row)
-                for (int col = row; col < columns; ++col)
-                    if (row != col) {
-                        Real temp = Element(row, col);
-                        Element(row, col) = Element(col, row);
-                        Element(col, row) = temp;
-                    }
-            int tmpr = rows;
-            rows = columns;
-            columns = tmpr;
-        } else  // Naive implementation for rectangular case. Not in-place. Slower.
-        {
-            ChMatrixDynamic<Real> matrcopy(*this);
-            int tmpr = rows;
-            rows = columns;
-            columns = tmpr;  // dont' realloc buffer, anyway
-            for (int row = 0; row < rows; ++row)
-                for (int col = 0; col < columns; ++col)
-                    Element(row, col) = matrcopy.Element(col, row);
-        }
-    }
+    ////void MatrTranspose() {
+    ////    if (columns == rows)  // Square transp.is optimized
+    ////    {
+    ////        for (int row = 0; row < rows; ++row)
+    ////            for (int col = row; col < columns; ++col)
+    ////                if (row != col) {
+    ////                    Real temp = Element(row, col);
+    ////                    Element(row, col) = Element(col, row);
+    ////                    Element(col, row) = temp;
+    ////                }
+    ////        int tmpr = rows;
+    ////        rows = columns;
+    ////        columns = tmpr;
+    ////    } else  // Naive implementation for rectangular case. Not in-place. Slower.
+    ////    {
+    ////        ChMatrixDynamic<Real> matrcopy(*this);
+    ////        int tmpr = rows;
+    ////        rows = columns;
+    ////        columns = tmpr;  // dont' realloc buffer, anyway
+    ////        for (int row = 0; row < rows; ++row)
+    ////            for (int col = 0; col < columns; ++col)
+    ////                Element(row, col) = matrcopy.Element(col, row);
+    ////    }
+    ////}
 
     /// Returns the determinant of the matrix.
     /// Note! This method must be used only with max 4x4 matrices,
@@ -759,135 +891,135 @@ class ChMatrix {
     /// Returns the inverse of the matrix.
     /// Note! This method must be used only with max 4x4 matrices,
     /// otherwise it throws an exception.
-    void MatrInverse() {
-        assert(this->GetRows() == this->GetColumns());
-        assert(this->GetRows() <= 4);
-        assert(this->Det() != 0);
+    ////void MatrInverse() {
+    ////    assert(this->GetRows() == this->GetColumns());
+    ////    assert(this->GetRows() <= 4);
+    ////    assert(this->Det() != 0);
 
-        if (this->GetRows() != this->GetColumns())
-            throw("Cannot compute matrix inverse because rectangular matrix");
-        if (this->GetRows() > 4)
-            throw("Cannot compute matrix inverse because matr. larger than 4x4");
-        if (this->Det() == 0)
-            throw("Cannot compute matrix inverse because singular matrix");
+    ////    if (this->GetRows() != this->GetColumns())
+    ////        throw("Cannot compute matrix inverse because rectangular matrix");
+    ////    if (this->GetRows() > 4)
+    ////        throw("Cannot compute matrix inverse because matr. larger than 4x4");
+    ////    if (this->Det() == 0)
+    ////        throw("Cannot compute matrix inverse because singular matrix");
 
-        switch (this->GetRows()) {
-            case 1:
-                (*this)(0, 0) = (1 / (*this)(0, 0));
-                break;
-            case 2: {
-                ChMatrixDynamic<Real> inv(2, 2);
-                inv(0, 0) = (*this)(1, 1);
-                inv(0, 1) = -(*this)(0, 1);
-                inv(1, 1) = (*this)(0, 0);
-                inv(1, 0) = -(*this)(1, 0);
-                inv.MatrDivScale(this->Det());
-                this->CopyFromMatrix(inv);
-                break;
-            }
-            case 3: {
-                ChMatrixDynamic<Real> inv(3, 3);
-                inv(0, 0) = (*this)(1, 1) * (*this)(2, 2) - (*this)(1, 2) * (*this)(2, 1);
-                inv(0, 1) = (*this)(2, 1) * (*this)(0, 2) - (*this)(0, 1) * (*this)(2, 2);
-                inv(0, 2) = (*this)(0, 1) * (*this)(1, 2) - (*this)(0, 2) * (*this)(1, 1);
-                inv(1, 0) = (*this)(1, 2) * (*this)(2, 0) - (*this)(1, 0) * (*this)(2, 2);
-                inv(1, 1) = (*this)(2, 2) * (*this)(0, 0) - (*this)(2, 0) * (*this)(0, 2);
-                inv(1, 2) = (*this)(0, 2) * (*this)(1, 0) - (*this)(1, 2) * (*this)(0, 0);
-                inv(2, 0) = (*this)(1, 0) * (*this)(2, 1) - (*this)(1, 1) * (*this)(2, 0);
-                inv(2, 1) = (*this)(0, 1) * (*this)(2, 0) - (*this)(0, 0) * (*this)(2, 1);
-                inv(2, 2) = (*this)(0, 0) * (*this)(1, 1) - (*this)(0, 1) * (*this)(1, 0);
-                inv.MatrDivScale(this->Det());
-                this->CopyFromMatrix(inv);
-                break;
-            }
-            case 4: {
-                ChMatrixDynamic<Real> inv(4, 4);
-                inv.SetElement(
-                    0, 0,
-                    (*this)(1, 2) * (*this)(2, 3) * (*this)(3, 1) - (*this)(1, 3) * (*this)(2, 2) * (*this)(3, 1) +
-                        (*this)(1, 3) * (*this)(2, 1) * (*this)(3, 2) - (*this)(1, 1) * (*this)(2, 3) * (*this)(3, 2) -
-                        (*this)(1, 2) * (*this)(2, 1) * (*this)(3, 3) + (*this)(1, 1) * (*this)(2, 2) * (*this)(3, 3));
-                inv.SetElement(
-                    0, 1,
-                    (*this)(0, 3) * (*this)(2, 2) * (*this)(3, 1) - (*this)(0, 2) * (*this)(2, 3) * (*this)(3, 1) -
-                        (*this)(0, 3) * (*this)(2, 1) * (*this)(3, 2) + (*this)(0, 1) * (*this)(2, 3) * (*this)(3, 2) +
-                        (*this)(0, 2) * (*this)(2, 1) * (*this)(3, 3) - (*this)(0, 1) * (*this)(2, 2) * (*this)(3, 3));
-                inv.SetElement(
-                    0, 2,
-                    (*this)(0, 2) * (*this)(1, 3) * (*this)(3, 1) - (*this)(0, 3) * (*this)(1, 2) * (*this)(3, 1) +
-                        (*this)(0, 3) * (*this)(1, 1) * (*this)(3, 2) - (*this)(0, 1) * (*this)(1, 3) * (*this)(3, 2) -
-                        (*this)(0, 2) * (*this)(1, 1) * (*this)(3, 3) + (*this)(0, 1) * (*this)(1, 2) * (*this)(3, 3));
-                inv.SetElement(
-                    0, 3,
-                    (*this)(0, 3) * (*this)(1, 2) * (*this)(2, 1) - (*this)(0, 2) * (*this)(1, 3) * (*this)(2, 1) -
-                        (*this)(0, 3) * (*this)(1, 1) * (*this)(2, 2) + (*this)(0, 1) * (*this)(1, 3) * (*this)(2, 2) +
-                        (*this)(0, 2) * (*this)(1, 1) * (*this)(2, 3) - (*this)(0, 1) * (*this)(1, 2) * (*this)(2, 3));
-                inv.SetElement(
-                    1, 0,
-                    (*this)(1, 3) * (*this)(2, 2) * (*this)(3, 0) - (*this)(1, 2) * (*this)(2, 3) * (*this)(3, 0) -
-                        (*this)(1, 3) * (*this)(2, 0) * (*this)(3, 2) + (*this)(1, 0) * (*this)(2, 3) * (*this)(3, 2) +
-                        (*this)(1, 2) * (*this)(2, 0) * (*this)(3, 3) - (*this)(1, 0) * (*this)(2, 2) * (*this)(3, 3));
-                inv.SetElement(
-                    1, 1,
-                    (*this)(0, 2) * (*this)(2, 3) * (*this)(3, 0) - (*this)(0, 3) * (*this)(2, 2) * (*this)(3, 0) +
-                        (*this)(0, 3) * (*this)(2, 0) * (*this)(3, 2) - (*this)(0, 0) * (*this)(2, 3) * (*this)(3, 2) -
-                        (*this)(0, 2) * (*this)(2, 0) * (*this)(3, 3) + (*this)(0, 0) * (*this)(2, 2) * (*this)(3, 3));
-                inv.SetElement(
-                    1, 2,
-                    (*this)(0, 3) * (*this)(1, 2) * (*this)(3, 0) - (*this)(0, 2) * (*this)(1, 3) * (*this)(3, 0) -
-                        (*this)(0, 3) * (*this)(1, 0) * (*this)(3, 2) + (*this)(0, 0) * (*this)(1, 3) * (*this)(3, 2) +
-                        (*this)(0, 2) * (*this)(1, 0) * (*this)(3, 3) - (*this)(0, 0) * (*this)(1, 2) * (*this)(3, 3));
-                inv.SetElement(
-                    1, 3,
-                    (*this)(0, 2) * (*this)(1, 3) * (*this)(2, 0) - (*this)(0, 3) * (*this)(1, 2) * (*this)(2, 0) +
-                        (*this)(0, 3) * (*this)(1, 0) * (*this)(2, 2) - (*this)(0, 0) * (*this)(1, 3) * (*this)(2, 2) -
-                        (*this)(0, 2) * (*this)(1, 0) * (*this)(2, 3) + (*this)(0, 0) * (*this)(1, 2) * (*this)(2, 3));
-                inv.SetElement(
-                    2, 0,
-                    (*this)(1, 1) * (*this)(2, 3) * (*this)(3, 0) - (*this)(1, 3) * (*this)(2, 1) * (*this)(3, 0) +
-                        (*this)(1, 3) * (*this)(2, 0) * (*this)(3, 1) - (*this)(1, 0) * (*this)(2, 3) * (*this)(3, 1) -
-                        (*this)(1, 1) * (*this)(2, 0) * (*this)(3, 3) + (*this)(1, 0) * (*this)(2, 1) * (*this)(3, 3));
-                inv.SetElement(
-                    2, 1,
-                    (*this)(0, 3) * (*this)(2, 1) * (*this)(3, 0) - (*this)(0, 1) * (*this)(2, 3) * (*this)(3, 0) -
-                        (*this)(0, 3) * (*this)(2, 0) * (*this)(3, 1) + (*this)(0, 0) * (*this)(2, 3) * (*this)(3, 1) +
-                        (*this)(0, 1) * (*this)(2, 0) * (*this)(3, 3) - (*this)(0, 0) * (*this)(2, 1) * (*this)(3, 3));
-                inv.SetElement(
-                    2, 2,
-                    (*this)(0, 1) * (*this)(1, 3) * (*this)(3, 0) - (*this)(0, 3) * (*this)(1, 1) * (*this)(3, 0) +
-                        (*this)(0, 3) * (*this)(1, 0) * (*this)(3, 1) - (*this)(0, 0) * (*this)(1, 3) * (*this)(3, 1) -
-                        (*this)(0, 1) * (*this)(1, 0) * (*this)(3, 3) + (*this)(0, 0) * (*this)(1, 1) * (*this)(3, 3));
-                inv.SetElement(
-                    2, 3,
-                    (*this)(0, 3) * (*this)(1, 1) * (*this)(2, 0) - (*this)(0, 1) * (*this)(1, 3) * (*this)(2, 0) -
-                        (*this)(0, 3) * (*this)(1, 0) * (*this)(2, 1) + (*this)(0, 0) * (*this)(1, 3) * (*this)(2, 1) +
-                        (*this)(0, 1) * (*this)(1, 0) * (*this)(2, 3) - (*this)(0, 0) * (*this)(1, 1) * (*this)(2, 3));
-                inv.SetElement(
-                    3, 0,
-                    (*this)(1, 2) * (*this)(2, 1) * (*this)(3, 0) - (*this)(1, 1) * (*this)(2, 2) * (*this)(3, 0) -
-                        (*this)(1, 2) * (*this)(2, 0) * (*this)(3, 1) + (*this)(1, 0) * (*this)(2, 2) * (*this)(3, 1) +
-                        (*this)(1, 1) * (*this)(2, 0) * (*this)(3, 2) - (*this)(1, 0) * (*this)(2, 1) * (*this)(3, 2));
-                inv.SetElement(
-                    3, 1,
-                    (*this)(0, 1) * (*this)(2, 2) * (*this)(3, 0) - (*this)(0, 2) * (*this)(2, 1) * (*this)(3, 0) +
-                        (*this)(0, 2) * (*this)(2, 0) * (*this)(3, 1) - (*this)(0, 0) * (*this)(2, 2) * (*this)(3, 1) -
-                        (*this)(0, 1) * (*this)(2, 0) * (*this)(3, 2) + (*this)(0, 0) * (*this)(2, 1) * (*this)(3, 2));
-                inv.SetElement(
-                    3, 2,
-                    (*this)(0, 2) * (*this)(1, 1) * (*this)(3, 0) - (*this)(0, 1) * (*this)(1, 2) * (*this)(3, 0) -
-                        (*this)(0, 2) * (*this)(1, 0) * (*this)(3, 1) + (*this)(0, 0) * (*this)(1, 2) * (*this)(3, 1) +
-                        (*this)(0, 1) * (*this)(1, 0) * (*this)(3, 2) - (*this)(0, 0) * (*this)(1, 1) * (*this)(3, 2));
-                inv.SetElement(
-                    3, 3,
-                    (*this)(0, 1) * (*this)(1, 2) * (*this)(2, 0) - (*this)(0, 2) * (*this)(1, 1) * (*this)(2, 0) +
-                        (*this)(0, 2) * (*this)(1, 0) * (*this)(2, 1) - (*this)(0, 0) * (*this)(1, 2) * (*this)(2, 1) -
-                        (*this)(0, 1) * (*this)(1, 0) * (*this)(2, 2) + (*this)(0, 0) * (*this)(1, 1) * (*this)(2, 2));
-                inv.MatrDivScale(this->Det());
-                this->CopyFromMatrix(inv);
-                break;
-            }
-        }
-    }
+    ////    switch (this->GetRows()) {
+    ////        case 1:
+    ////            (*this)(0, 0) = (1 / (*this)(0, 0));
+    ////            break;
+    ////        case 2: {
+    ////            ChMatrixDynamic<Real> inv(2, 2);
+    ////            inv(0, 0) = (*this)(1, 1);
+    ////            inv(0, 1) = -(*this)(0, 1);
+    ////            inv(1, 1) = (*this)(0, 0);
+    ////            inv(1, 0) = -(*this)(1, 0);
+    ////            inv.MatrDivScale(this->Det());
+    ////            this->CopyFromMatrix(inv);
+    ////            break;
+    ////        }
+    ////        case 3: {
+    ////            ChMatrixDynamic<Real> inv(3, 3);
+    ////            inv(0, 0) = (*this)(1, 1) * (*this)(2, 2) - (*this)(1, 2) * (*this)(2, 1);
+    ////            inv(0, 1) = (*this)(2, 1) * (*this)(0, 2) - (*this)(0, 1) * (*this)(2, 2);
+    ////            inv(0, 2) = (*this)(0, 1) * (*this)(1, 2) - (*this)(0, 2) * (*this)(1, 1);
+    ////            inv(1, 0) = (*this)(1, 2) * (*this)(2, 0) - (*this)(1, 0) * (*this)(2, 2);
+    ////            inv(1, 1) = (*this)(2, 2) * (*this)(0, 0) - (*this)(2, 0) * (*this)(0, 2);
+    ////            inv(1, 2) = (*this)(0, 2) * (*this)(1, 0) - (*this)(1, 2) * (*this)(0, 0);
+    ////            inv(2, 0) = (*this)(1, 0) * (*this)(2, 1) - (*this)(1, 1) * (*this)(2, 0);
+    ////            inv(2, 1) = (*this)(0, 1) * (*this)(2, 0) - (*this)(0, 0) * (*this)(2, 1);
+    ////            inv(2, 2) = (*this)(0, 0) * (*this)(1, 1) - (*this)(0, 1) * (*this)(1, 0);
+    ////            inv.MatrDivScale(this->Det());
+    ////            this->CopyFromMatrix(inv);
+    ////            break;
+    ////        }
+    ////        case 4: {
+    ////            ChMatrixDynamic<Real> inv(4, 4);
+    ////            inv.SetElement(
+    ////                0, 0,
+    ////                (*this)(1, 2) * (*this)(2, 3) * (*this)(3, 1) - (*this)(1, 3) * (*this)(2, 2) * (*this)(3, 1) +
+    ////                    (*this)(1, 3) * (*this)(2, 1) * (*this)(3, 2) - (*this)(1, 1) * (*this)(2, 3) * (*this)(3, 2) -
+    ////                    (*this)(1, 2) * (*this)(2, 1) * (*this)(3, 3) + (*this)(1, 1) * (*this)(2, 2) * (*this)(3, 3));
+    ////            inv.SetElement(
+    ////                0, 1,
+    ////                (*this)(0, 3) * (*this)(2, 2) * (*this)(3, 1) - (*this)(0, 2) * (*this)(2, 3) * (*this)(3, 1) -
+    ////                    (*this)(0, 3) * (*this)(2, 1) * (*this)(3, 2) + (*this)(0, 1) * (*this)(2, 3) * (*this)(3, 2) +
+    ////                    (*this)(0, 2) * (*this)(2, 1) * (*this)(3, 3) - (*this)(0, 1) * (*this)(2, 2) * (*this)(3, 3));
+    ////            inv.SetElement(
+    ////                0, 2,
+    ////                (*this)(0, 2) * (*this)(1, 3) * (*this)(3, 1) - (*this)(0, 3) * (*this)(1, 2) * (*this)(3, 1) +
+    ////                    (*this)(0, 3) * (*this)(1, 1) * (*this)(3, 2) - (*this)(0, 1) * (*this)(1, 3) * (*this)(3, 2) -
+    ////                    (*this)(0, 2) * (*this)(1, 1) * (*this)(3, 3) + (*this)(0, 1) * (*this)(1, 2) * (*this)(3, 3));
+    ////            inv.SetElement(
+    ////                0, 3,
+    ////                (*this)(0, 3) * (*this)(1, 2) * (*this)(2, 1) - (*this)(0, 2) * (*this)(1, 3) * (*this)(2, 1) -
+    ////                    (*this)(0, 3) * (*this)(1, 1) * (*this)(2, 2) + (*this)(0, 1) * (*this)(1, 3) * (*this)(2, 2) +
+    ////                    (*this)(0, 2) * (*this)(1, 1) * (*this)(2, 3) - (*this)(0, 1) * (*this)(1, 2) * (*this)(2, 3));
+    ////            inv.SetElement(
+    ////                1, 0,
+    ////                (*this)(1, 3) * (*this)(2, 2) * (*this)(3, 0) - (*this)(1, 2) * (*this)(2, 3) * (*this)(3, 0) -
+    ////                    (*this)(1, 3) * (*this)(2, 0) * (*this)(3, 2) + (*this)(1, 0) * (*this)(2, 3) * (*this)(3, 2) +
+    ////                    (*this)(1, 2) * (*this)(2, 0) * (*this)(3, 3) - (*this)(1, 0) * (*this)(2, 2) * (*this)(3, 3));
+    ////            inv.SetElement(
+    ////                1, 1,
+    ////                (*this)(0, 2) * (*this)(2, 3) * (*this)(3, 0) - (*this)(0, 3) * (*this)(2, 2) * (*this)(3, 0) +
+    ////                    (*this)(0, 3) * (*this)(2, 0) * (*this)(3, 2) - (*this)(0, 0) * (*this)(2, 3) * (*this)(3, 2) -
+    ////                    (*this)(0, 2) * (*this)(2, 0) * (*this)(3, 3) + (*this)(0, 0) * (*this)(2, 2) * (*this)(3, 3));
+    ////            inv.SetElement(
+    ////                1, 2,
+    ////                (*this)(0, 3) * (*this)(1, 2) * (*this)(3, 0) - (*this)(0, 2) * (*this)(1, 3) * (*this)(3, 0) -
+    ////                    (*this)(0, 3) * (*this)(1, 0) * (*this)(3, 2) + (*this)(0, 0) * (*this)(1, 3) * (*this)(3, 2) +
+    ////                    (*this)(0, 2) * (*this)(1, 0) * (*this)(3, 3) - (*this)(0, 0) * (*this)(1, 2) * (*this)(3, 3));
+    ////            inv.SetElement(
+    ////                1, 3,
+    ////                (*this)(0, 2) * (*this)(1, 3) * (*this)(2, 0) - (*this)(0, 3) * (*this)(1, 2) * (*this)(2, 0) +
+    ////                    (*this)(0, 3) * (*this)(1, 0) * (*this)(2, 2) - (*this)(0, 0) * (*this)(1, 3) * (*this)(2, 2) -
+    ////                    (*this)(0, 2) * (*this)(1, 0) * (*this)(2, 3) + (*this)(0, 0) * (*this)(1, 2) * (*this)(2, 3));
+    ////            inv.SetElement(
+    ////                2, 0,
+    ////                (*this)(1, 1) * (*this)(2, 3) * (*this)(3, 0) - (*this)(1, 3) * (*this)(2, 1) * (*this)(3, 0) +
+    ////                    (*this)(1, 3) * (*this)(2, 0) * (*this)(3, 1) - (*this)(1, 0) * (*this)(2, 3) * (*this)(3, 1) -
+    ////                    (*this)(1, 1) * (*this)(2, 0) * (*this)(3, 3) + (*this)(1, 0) * (*this)(2, 1) * (*this)(3, 3));
+    ////            inv.SetElement(
+    ////                2, 1,
+    ////                (*this)(0, 3) * (*this)(2, 1) * (*this)(3, 0) - (*this)(0, 1) * (*this)(2, 3) * (*this)(3, 0) -
+    ////                    (*this)(0, 3) * (*this)(2, 0) * (*this)(3, 1) + (*this)(0, 0) * (*this)(2, 3) * (*this)(3, 1) +
+    ////                    (*this)(0, 1) * (*this)(2, 0) * (*this)(3, 3) - (*this)(0, 0) * (*this)(2, 1) * (*this)(3, 3));
+    ////            inv.SetElement(
+    ////                2, 2,
+    ////                (*this)(0, 1) * (*this)(1, 3) * (*this)(3, 0) - (*this)(0, 3) * (*this)(1, 1) * (*this)(3, 0) +
+    ////                    (*this)(0, 3) * (*this)(1, 0) * (*this)(3, 1) - (*this)(0, 0) * (*this)(1, 3) * (*this)(3, 1) -
+    ////                    (*this)(0, 1) * (*this)(1, 0) * (*this)(3, 3) + (*this)(0, 0) * (*this)(1, 1) * (*this)(3, 3));
+    ////            inv.SetElement(
+    ////                2, 3,
+    ////                (*this)(0, 3) * (*this)(1, 1) * (*this)(2, 0) - (*this)(0, 1) * (*this)(1, 3) * (*this)(2, 0) -
+    ////                    (*this)(0, 3) * (*this)(1, 0) * (*this)(2, 1) + (*this)(0, 0) * (*this)(1, 3) * (*this)(2, 1) +
+    ////                    (*this)(0, 1) * (*this)(1, 0) * (*this)(2, 3) - (*this)(0, 0) * (*this)(1, 1) * (*this)(2, 3));
+    ////            inv.SetElement(
+    ////                3, 0,
+    ////                (*this)(1, 2) * (*this)(2, 1) * (*this)(3, 0) - (*this)(1, 1) * (*this)(2, 2) * (*this)(3, 0) -
+    ////                    (*this)(1, 2) * (*this)(2, 0) * (*this)(3, 1) + (*this)(1, 0) * (*this)(2, 2) * (*this)(3, 1) +
+    ////                    (*this)(1, 1) * (*this)(2, 0) * (*this)(3, 2) - (*this)(1, 0) * (*this)(2, 1) * (*this)(3, 2));
+    ////            inv.SetElement(
+    ////                3, 1,
+    ////                (*this)(0, 1) * (*this)(2, 2) * (*this)(3, 0) - (*this)(0, 2) * (*this)(2, 1) * (*this)(3, 0) +
+    ////                    (*this)(0, 2) * (*this)(2, 0) * (*this)(3, 1) - (*this)(0, 0) * (*this)(2, 2) * (*this)(3, 1) -
+    ////                    (*this)(0, 1) * (*this)(2, 0) * (*this)(3, 2) + (*this)(0, 0) * (*this)(2, 1) * (*this)(3, 2));
+    ////            inv.SetElement(
+    ////                3, 2,
+    ////                (*this)(0, 2) * (*this)(1, 1) * (*this)(3, 0) - (*this)(0, 1) * (*this)(1, 2) * (*this)(3, 0) -
+    ////                    (*this)(0, 2) * (*this)(1, 0) * (*this)(3, 1) + (*this)(0, 0) * (*this)(1, 2) * (*this)(3, 1) +
+    ////                    (*this)(0, 1) * (*this)(1, 0) * (*this)(3, 2) - (*this)(0, 0) * (*this)(1, 1) * (*this)(3, 2));
+    ////            inv.SetElement(
+    ////                3, 3,
+    ////                (*this)(0, 1) * (*this)(1, 2) * (*this)(2, 0) - (*this)(0, 2) * (*this)(1, 1) * (*this)(2, 0) +
+    ////                    (*this)(0, 2) * (*this)(1, 0) * (*this)(2, 1) - (*this)(0, 0) * (*this)(1, 2) * (*this)(2, 1) -
+    ////                    (*this)(0, 1) * (*this)(1, 0) * (*this)(2, 2) + (*this)(0, 0) * (*this)(1, 1) * (*this)(2, 2));
+    ////            inv.MatrDivScale(this->Det());
+    ////            this->CopyFromMatrix(inv);
+    ////            break;
+    ////        }
+    ////    }
+    ////}
 
     /// Returns true if vector is identical to other matrix
     bool Equals(const ChMatrix<Real>& other) const { return Equals(other, 0.0); }
@@ -1217,6 +1349,7 @@ class ChMatrix {
         Set44Element(3, 3, (Real)q.e0());
     }
 };
+*/
 
 }  // end namespace chrono
 

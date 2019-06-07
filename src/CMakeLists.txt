@@ -205,6 +205,20 @@ set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${NEON_FLAGS}")
 set(CH_C_FLAGS "${CH_C_FLAGS} ${NEON_FLAGS}")
 
 #-----------------------------------------------------------------------------
+# Eigen library
+#-----------------------------------------------------------------------------
+
+find_package(Eigen3 3.1.2)
+if(EIGEN3_FOUND)
+  message(STATUS "Eigen3 version: ${EIGEN3_VERSION}")
+  message(STATUS "Eigen3 include directory: ${EIGEN3_INCLUDE_DIR}")
+else()
+  mark_as_advanced(CLEAR EIGEN3_INCLUDE_DIR)
+  mark_as_advanced(FORCE Eigen3_DIR)
+  message(FATAL_ERROR "Eigen3 not found. Specify EIGEN3_INCLUDE_DIR")
+endif()
+
+#-----------------------------------------------------------------------------
 # MPI support
 #-----------------------------------------------------------------------------
 
@@ -379,6 +393,7 @@ add_definitions( "-DBP_USE_FIXEDPOINT_INT_32" )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${PROJECT_BINARY_DIR})
+include_directories(${EIGEN3_INCLUDE_DIR})
 
 #------------------------------------------------------------
 # Build submodules
