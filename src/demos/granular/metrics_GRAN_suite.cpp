@@ -81,7 +81,7 @@ void setupBasicSystem(ChSystemGranularSMC& gran_sys, float3 box_size) {
     gran_sys.setParticlePositions(body_points);
 
     gran_sys.set_BD_Fixed(true);
-    gran_sys.setVerbose(false);
+    gran_sys.setVerbose(GRAN_VERBOSITY::INFO);
 
     gran_sys.set_fixed_stepSize(timestep);
 }

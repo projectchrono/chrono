@@ -34,7 +34,6 @@
 #include "chrono/physics/ChLinkMotorRotationTorque.h"
 
 #include "chrono_granular/utils/ChGranularJsonParser.h"
-#include "ChGranularDemoUtils.hpp"
 
 using namespace chrono;
 using namespace chrono::granular;
@@ -242,7 +241,7 @@ int main(int argc, char* argv[]) {
 
     std::vector<ChVector<float>> body_points;
     if (run_mode == RUN_MODE::SETTLING) {
-        body_points = PDLayerSampler_BOX<float>(center, hdims, 2. * params.sphere_radius, 1.01);
+        body_points = utils::PDLayerSampler_BOX<float>(center, hdims, 2. * params.sphere_radius, 1.01);
         params.time_end = 1.f;
         out_fps = 10;
     } else if (run_mode == RUN_MODE::TESTING) {

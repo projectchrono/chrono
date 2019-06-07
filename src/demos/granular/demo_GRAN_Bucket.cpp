@@ -24,7 +24,6 @@
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_granular/utils/ChGranularJsonParser.h"
-#include "ChGranularDemoUtils.hpp"
 #include "chrono/utils/ChUtilsSamplers.h"
 
 using namespace chrono;
@@ -163,7 +162,7 @@ int main(int argc, char* argv[]) {
         ChVector<> center(0, 0, 0);
 
         // Fill box with bodies
-        body_points = PDLayerSampler_BOX<float>(center, hdims, 2. * params.sphere_radius, 1.01);
+        body_points = utils::PDLayerSampler_BOX<float>(center, hdims, 2. * params.sphere_radius, 1.01);
     }
     gran_sys.setParticlePositions(body_points);
 

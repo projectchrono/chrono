@@ -20,9 +20,7 @@
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_granular/utils/ChGranularJsonParser.h"
-#include "ChGranularDemoUtils.hpp"
 #include "chrono/utils/ChUtilsSamplers.h"
-#include "ChGranularDemoUtils.hpp"
 
 using namespace chrono;
 using namespace chrono::granular;
@@ -193,7 +191,7 @@ int main(int argc, char* argv[]) {
 
     // Fill box with bodies
     std::vector<ChVector<float>> body_points =
-        PDLayerSampler_BOX<float>(center, hdims, 2. * params.sphere_radius, 1.02);
+        utils::PDLayerSampler_BOX<float>(center, hdims, 2. * params.sphere_radius, 1.02);
 
     std::vector<ChVector<float>> first_points;
     // first_points.push_back(body_points.at(10000));

@@ -43,7 +43,7 @@ float adhesion_ratio_s2w = 0.f;
 float timestep = 1e-4;
 
 GRAN_OUTPUT_MODE write_mode = GRAN_OUTPUT_MODE::BINARY;
-bool verbose = false;
+GRAN_VERBOSITY verbose = GRAN_VERBOSITY::INFO;
 float cohesion_ratio = 0;
 
 // -----------------------------------------------------------------------------
