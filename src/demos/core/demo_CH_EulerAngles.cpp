@@ -19,7 +19,6 @@
 #include <iostream>
 #include <cmath>
 
-#include "chrono/core/ChChrono.h"
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChMatrix33.h"
 

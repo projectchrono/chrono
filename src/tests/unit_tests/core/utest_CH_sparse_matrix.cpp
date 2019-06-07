@@ -23,7 +23,6 @@
 
 #include "chrono/core/ChLinkedListMatrix.h"
 #include "chrono/core/ChMapMatrix.h"
-#include "chrono/core/ChMatrixDynamic.h"
 
 using namespace chrono;
 
@@ -43,25 +42,25 @@ TEST(ChLinkedListMatrix, solve_general) {
 
     double det_ref = 0.006828;
 
-    ChMatrixDynamic<> x_ref(5, 1);
-    x_ref(0, 0) = 0.34;
-    x_ref(1, 0) = 0.58;
-    x_ref(2, 0) = 0.23;
-    x_ref(3, 0) = 0.75;
-    x_ref(4, 0) = 0.25;
+    ChVectorDynamic<> x_ref(5);
+    x_ref(0) = 0.34;
+    x_ref(1) = 0.58;
+    x_ref(2) = 0.23;
+    x_ref(3) = 0.75;
+    x_ref(4) = 0.25;
 
-    ChMatrixDynamic<> b(5, 1);
-    b(0, 0) = -0.23;
-    b(1, 0) = 0.47095;
-    b(2, 0) = 0.69725;
-    b(3, 0) = 0.08159;
-    b(4, 0) = 0.1750;
+    ChVectorDynamic<> b(5);
+    b(0) = -0.23;
+    b(1) = 0.47095;
+    b(2) = 0.69725;
+    b(3) = 0.08159;
+    b(4) = 0.1750;
 
-    ChMatrixDynamic<> x(5, 1);
+    ChVectorDynamic<> x(5);
     int err = A.SolveGeneral(b, x);
 
     ASSERT_EQ(err, 0);
-    ASSERT_TRUE(x.Equals(x_ref, 1e-10));
+    ASSERT_TRUE(x.isApprox(x_ref, 1e-10));
 
     double det = A.GetDeterminant();
 
@@ -98,25 +97,25 @@ TEST(ChLinkedListMatrix, solve_symmetric) {
 
     double det_ref = 0.048555072;
 
-    ChMatrixDynamic<> x_ref(5, 1);
-    x_ref(0, 0) = 0.34;
-    x_ref(1, 0) = 0.58;
-    x_ref(2, 0) = 0.23;
-    x_ref(3, 0) = 0.75;
-    x_ref(4, 0) = 0.25;
+    ChVectorDynamic<> x_ref(5);
+    x_ref(0) = 0.34;
+    x_ref(1) = 0.58;
+    x_ref(2) = 0.23;
+    x_ref(3) = 0.75;
+    x_ref(4) = 0.25;
 
-    ChMatrixDynamic<> b(5, 1);
-    b(0, 0) = 0.1236;
-    b(1, 0) = -0.2658;
-    b(2, 0) = 0.1242;
-    b(3, 0) = -0.3;
-    b(4, 0) = -0.4078;
+    ChVectorDynamic<> b(5);
+    b(0) = 0.1236;
+    b(1) = -0.2658;
+    b(2) = 0.1242;
+    b(3) = -0.3;
+    b(4) = -0.4078;
 
-    ChMatrixDynamic<> x(5, 1);
+    ChVectorDynamic<> x(5, 1);
     int err = A.SolveSymmetric(b, x);
 
     ASSERT_EQ(err, 0);
-    ASSERT_TRUE(x.Equals(x_ref, 1e-10));
+    ASSERT_TRUE(x.isApprox(x_ref, 1e-10));
 
     double det = A.GetDeterminant();
 
@@ -166,7 +165,7 @@ TEST(ChMapMatrix, check) {
     A.ConvertToDense(Ad);
     B.ConvertToDense(Bd);
 
-    ASSERT_TRUE(Ad.Equals(Bd));
+    ASSERT_TRUE(Ad == Bd);
 
     std::vector<int> ia;
     std::vector<int> ja;

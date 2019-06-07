@@ -23,8 +23,6 @@
 #include "chrono/core/ChFrame.h"
 #include "chrono/core/ChFrameMoving.h"
 #include "chrono/core/ChTimer.h"
-#include "chrono/physics/ChMarker.h"
-#include "chrono/physics/ChBody.h"
 
 using namespace chrono;
 
@@ -185,7 +183,7 @@ int main(int argc, char* argv[]) {
     //
 
     GetLog() << mvect1 << " ..mvect1 \n";
-    mvect1 = mrotA.MatrT_x_Vect(mvect2 - vtraslA);  // like:  v1 = [A]'*(v2-t)
+    mvect1 = mrotA.transpose() * (mvect2 - vtraslA);  // like:  v1 = [A]'*(v2-t)
     GetLog() << mvect1 << " ..inv, using linear algebra, \n";
 
     // TRASFORM USING QUATERNION ROTATION
