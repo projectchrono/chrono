@@ -52,7 +52,6 @@
 %shared_ptr(chrono::vehicle::ChFialaTire)
 %shared_ptr(chrono::vehicle::TMeasyTire)
 %shared_ptr(chrono::vehicle::RigidTire)
-%shared_ptr(chrono::vehicle::ReissnerTire)
 %shared_ptr(chrono::vehicle::ReissnerToroidalTire)
 %shared_ptr(chrono::vehicle::LugreTire)
 %shared_ptr(chrono::vehicle::FialaTire)
@@ -69,7 +68,6 @@
 %include "../chrono_vehicle/wheeled_vehicle/tire/ChTMeasyTire.h"
 %include "../chrono_vehicle/wheeled_vehicle/tire/ChRigidTire.h"
 %ignore chrono::vehicle::ChReissnerTire::ChReissnerTire;
-%include "../chrono_vehicle/wheeled_vehicle/tire/ChReissnerTire.h"
 %include "../chrono_vehicle/wheeled_vehicle/tire/ChPacejkaTire.h"
 %include "../chrono_vehicle/wheeled_vehicle/tire/ChPac2002_data.h"
 %include "../chrono_vehicle/wheeled_vehicle/tire/ChPac89Tire.h"
@@ -78,8 +76,6 @@
 
 %include "../chrono_vehicle/wheeled_vehicle/tire/TMeasyTire.h"
 %include "../chrono_vehicle/wheeled_vehicle/tire/RigidTire.h"
-%include "../chrono_vehicle/wheeled_vehicle/tire/ReissnerTire.h"
-%include "../chrono_vehicle/wheeled_vehicle/tire/ReissnerToroidalTire.h"
 %include "../chrono_vehicle/wheeled_vehicle/tire/LugreTire.h"
 %include "../chrono_vehicle/wheeled_vehicle/tire/FialaTire.h"
 
@@ -87,6 +83,9 @@
 %include "../chrono_vehicle/wheeled_vehicle/tire/ChFEATire.h"
 %include "../chrono_vehicle/wheeled_vehicle/tire/FEATire.h"
 %include "../chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
+%include "../chrono_vehicle/wheeled_vehicle/tire/ChReissnerTire.h"
+%include "../chrono_vehicle/wheeled_vehicle/tire/ReissnerTire.h"
+%include "../chrono_vehicle/wheeled_vehicle/tire/ReissnerToroidalTire.h"
 %include "../chrono_vehicle/wheeled_vehicle/tire/ChANCFTire.h"
 %include "../chrono_vehicle/wheeled_vehicle/tire/ANCFToroidalTire.h"
 %include "../chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"*/

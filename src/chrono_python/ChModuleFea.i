@@ -138,10 +138,8 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChFrame<double>) 
 %shared_ptr(chrono::ChFrameMoving<double>)
 %shared_ptr(chrono::ChObj)
-%shared_ptr(chrono::ChBodyFrame)
 %shared_ptr(chrono::ChPhysicsItem)
 %shared_ptr(chrono::ChIndexedNodes)
-%shared_ptr(chrono::ChLinkBase)
 %shared_ptr(chrono::ChLoadBase)
 %shared_ptr(chrono::ChLoadCustom)
 %shared_ptr(chrono::ChLoadCustomMultiple)
@@ -151,8 +149,6 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChLoadableUVW)
 %shared_ptr(chrono::ChNodeBase) 
 %shared_ptr(chrono::ChNodeXYZ) 
-%shared_ptr(chrono::ChAsset)
-%shared_ptr(chrono::ChAssetLevel)
 //from this module:
 %shared_ptr(chrono::fea::ChBeamSection)
 %shared_ptr(chrono::fea::ChBeamSectionBasic)
@@ -262,12 +258,14 @@ using namespace chrono::fea;
 %import(module = "pychrono.core")  "ChCoordsys.i"
 %import(module = "pychrono.core")  "ChFrame.i"
 %import(module = "pychrono.core")  "ChFrameMoving.i"
+%import(module = "pychrono.core")  "ChBodyFrame.i"
+%import(module = "pychrono.core")  "ChLinkBase.i"
 // Put this 'director' feature _before_ class wrapping declaration.
 %feature("director") chrono::ChFunction;
 /* Parse the header file to generate wrappers */
 %import(module = "pychrono.core") "../chrono/motion_functions/ChFunction_Base.h"
-%import(module = "pychrono.core") "../chrono/assets/ChAsset.h"
-%import(module = "pychrono.core") "../chrono/assets/ChAssetLevel.h"
+%import(module = "pychrono.core") "ChAsset.i"
+%import(module = "pychrono.core") "ChAssetLevel.i"
 %import(module = "pychrono.core")  "ChMaterialSurface.i"
 %import(module = "pychrono.core") "../chrono/physics/ChContinuumMaterial.h"
 %import(module = "pychrono.core") "../chrono/physics/ChPhysicsItem.h"
@@ -276,8 +274,6 @@ using namespace chrono::fea;
 %import(module = "pychrono.core") "../chrono/physics/ChLoad.h"
 %import(module = "pychrono.core") "../chrono/physics/ChNodeBase.h"
 %import(module = "pychrono.core") "../chrono/physics/ChNodeXYZ.h"
-%import(module = "pychrono.core") "../chrono/physics/ChBodyFrame.h"
-%import(module = "pychrono.core") "../chrono/physics/ChLinkBase.h"
 
 
 //  core/  classes

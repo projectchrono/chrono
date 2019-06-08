@@ -150,10 +150,7 @@ using namespace chrono::vehicle::sedan;
 %shared_ptr(chrono::ChFrame<double>) 
 %shared_ptr(chrono::ChFrameMoving<double>)
 %shared_ptr(chrono::ChObj)
-%shared_ptr(chrono::ChBodyFrame)
 %shared_ptr(chrono::ChPhysicsItem)
-%shared_ptr(chrono::ChIndexedNodes)
-%shared_ptr(chrono::ChLinkBase)
 %shared_ptr(chrono::ChLoadBase)
 %shared_ptr(chrono::ChLoadCustom)
 %shared_ptr(chrono::ChLoadCustomMultiple)
@@ -163,22 +160,10 @@ using namespace chrono::vehicle::sedan;
 %shared_ptr(chrono::ChLoadableUVW)
 %shared_ptr(chrono::ChNodeBase) 
 %shared_ptr(chrono::ChNodeXYZ) 
-%shared_ptr(chrono::ChAsset)
-%shared_ptr(chrono::ChAssetLevel)
 %shared_ptr(chrono::ChTriangleMeshShape)
 %shared_ptr(chrono::geometry::ChTriangleMeshConnected)
-%shared_ptr(chrono::ChBody)
-%shared_ptr(chrono::ChBodyAuxRef)
-%shared_ptr(chrono::ChSystem)
-%shared_ptr(chrono::ChAssembly)
-%shared_ptr(chrono::ChShaft)
-%shared_ptr(chrono::ChShaftsBody)
-%shared_ptr(chrono::ChShaftsCouple)
-%shared_ptr(chrono::ChLinkLockRevolute)
 %shared_ptr(chrono::ChLinkSpring)
-%shared_ptr(chrono::ChLinkSpringCB)
 %shared_ptr(chrono::ChFunction_Recorder)
-%shared_ptr(chrono::ChTexture)
 %shared_ptr(chrono::ChBezierCurve)
 %shared_ptr(chrono::ChLinkMarkers)
 
@@ -195,6 +180,10 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %shared_ptr(chrono::vehicle::ChBrakeSimple)
 %shared_ptr(chrono::vehicle::ChBrake)
 %shared_ptr(chrono::vehicle::BrakeSimple)
+%shared_ptr(chrono::vehicle::ChVehicle)
+%shared_ptr(chrono::vehicle::ChWheeledVehicle)
+%shared_ptr(chrono::vehicle::WheeledVehicle)
+
 
 //
 // B- INCLUDE HEADERS
@@ -226,22 +215,24 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %import(module = "pychrono.core")  "ChSystem.i"
 //%import(module = "pychrono.core")  "ChSystemNSC.i"
 //%import(module = "pychrono.core")  "ChSystemSMC.i"
+%import(module = "pychrono.core")  "ChAssembly.i"
 %import(module = "pychrono.core")  "ChCoordsys.i"
 %import(module = "pychrono.core")  "ChMatrix.i"
+%import(module = "pychrono.core")  "ChBodyFrame.i"
 %import(module = "pychrono.core")  "ChBody.i"
 %import(module = "pychrono.core")  "ChBodyAuxRef.i"
 %import(module = "pychrono.core")  "ChLinkBase.i"
 %import(module = "pychrono.core")  "ChLinkLock.i"
 %import(module = "pychrono.core")  "ChLinkSpringCB.i"
-%import(module = "pychrono.core")   "ChVisualization.i"
+%import(module = "pychrono.core")  "ChShaft.i"
+%import(module = "pychrono.core") "ChAsset.i"
+%import(module = "pychrono.core") "ChAssetLevel.i"
+%import(module = "pychrono.core")  "ChVisualization.i"
 /* Parse the header file to generate wrappers */
 %import(module = "pychrono.core") "../chrono/motion_functions/ChFunction_Base.h"
-%import(module = "pychrono.core") "../chrono/assets/ChAsset.h"
-%import(module = "pychrono.core") "../chrono/assets/ChAssetLevel.h"
 %import(module = "pychrono.core")  "ChMaterialSurface.i"
 %import(module = "pychrono.core") "../chrono/physics/ChContinuumMaterial.h"
 %import(module = "pychrono.core") "../chrono/physics/ChPhysicsItem.h"
-%import(module = "pychrono.core") "../chrono/physics/ChIndexedNodes.h"
 //%import(module = "pychrono.core") "../chrono/physics/ChLoadable.h" // disable because strange error in cxx
 %import(module = "pychrono.core") "../chrono/physics/ChLoad.h"
 %import(module = "pychrono.core") "../chrono/physics/ChNodeBase.h"
