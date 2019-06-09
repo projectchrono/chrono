@@ -33,21 +33,7 @@ class ChApi ChMapMatrix : public ChSparseMatrix {
     ChMapMatrix(int nrows = 1, int ncols = 1);
 
     /// Create a sparse matrix from a given dense matrix.
-    template <typename Derived>
-    ChMapMatrix(const ChMatrix<Derived>& mat) {
-        m_num_rows = mat.rows();
-        m_num_cols = mat.cols();
-        m_rows.resize(mat.rows());
-        for (int ir = 0; ir < m_num_rows; ir++) {
-            for (int ic = 0; ic < m_num_cols; ic++) {
-                double val = mat(ir, ic);
-                if (val != 0) {
-                    ChMapMatrix::SetElement(ir, ic, val);
-                }
-            }
-        }
-        m_CSR_current = false;
-    }
+    ChMapMatrix(ChMatrixConstRef mat);
 
     /// Copy constructor.
     ChMapMatrix(const ChMapMatrix& other);

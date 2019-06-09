@@ -36,29 +36,27 @@ namespace chrono {
 
 // =============================================================================
 
-template <typename Derived>
-using ChMatrix = Eigen::MatrixBase<Derived>;
+//// RADU
+//// This should be removed
+////template <typename Derived>
+////using ChMatrix = Eigen::MatrixBase<Derived>;
 
-////template <typename T = double, int Rows = Eigen::Dynamic, int Cols = Eigen::Dynamic>
-////using ChMatrix = Eigen::Matrix<T, Rows, Cols>;
+//// RADU
+//// Consider templating the following by precision
+
+using ChMatrixRef = Eigen::Ref<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>;
+using ChMatrixConstRef = const Eigen::Ref<const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>&;
+
+using ChVectorRef = Eigen::Ref<Eigen::Matrix<double, Eigen::Dynamic, 1, Eigen::ColMajor>>;
+using ChVectorConstRef = const Eigen::Ref<const Eigen::Matrix<double, Eigen::Dynamic, 1, Eigen::ColMajor>>&;
 
 // =============================================================================
 
 template <typename T, int M, int N>
 using ChMatrixNM = Eigen::Matrix<T, M, N, Eigen::RowMajor>;
 
-// =============================================================================
-
 template <typename T = double>
 using ChMatrixDynamic = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
-
-////template <typename T = double>
-////class ChMatrixDynamic_inh : public Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> {
-////  public:
-////    using Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>::operator=;
-////    ChMatrixDynamic_inh(int row, int col)
-////        : Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>(row, col) {}
-////};
 
 // =============================================================================
 
@@ -73,6 +71,13 @@ using ChMatrix44 = Eigen::Matrix<T, 4, 4, Eigen::RowMajor>;
 
 // =============================================================================
 
+//// RADU
+//// Consider differentiating between column and row vectors
+//// What we have right now are column vectors
+
+template <typename T, int N>
+using ChVectorN = Eigen::Matrix<T, N, 1>;
+
 template <typename T = double>
 using ChVectorDynamic = Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen::ColMajor>;
 
@@ -82,7 +87,171 @@ template <typename T = double>
 using ChArray = Eigen::Array<T, Eigen::Dynamic, 1, Eigen::ColMajor>;
 
 // =============================================================================
+// =============================================================================
 
+/// Special MBD 3x4 matrix [Fp(q)], as in  [Fp(q)] * [Fm(q)]' = [A(q)]
+template <typename Real = double>
+class ChFpMatrix34 : public ChMatrix34<Real> {
+  public:
+    ChFpMatrix34(const ChQuaternion<Real>& q) {
+        (*this)(0, 0) = q.e1();
+        (*this)(0, 1) = q.e0();
+        (*this)(0, 2) = -q.e3();
+        (*this)(0, 3) = q.e2();
+        (*this)(1, 0) = q.e2();
+        (*this)(1, 1) = q.e3();
+        (*this)(1, 2) = q.e0();
+        (*this)(1, 3) = -q.e1();
+        (*this)(2, 0) = q.e3();
+        (*this)(2, 1) = -q.e2();
+        (*this)(2, 2) = q.e1();
+        (*this)(2, 3) = q.e0();
+    }
+
+    // Allows multiplying to other Eigen matrices. 
+    using Eigen::Matrix<Real, 3, 4, Eigen::RowMajor>::operator*;
+};
+
+/// Special MBD 3x4 matrix [Fm(q)], as in  [Fp(q)] * [Fm(q)]' = [A(q)]
+template <typename Real = double>
+class ChFmMatrix34 : public ChMatrix34<Real> {
+  public:
+    ChFmMatrix34(const ChQuaternion<Real>& q) {
+        (*this)(0, 0) = q.e1();
+        (*this)(0, 1) = q.e0();
+        (*this)(0, 2) = q.e3();
+        (*this)(0, 3) = -q.e2();
+        (*this)(1, 0) = q.e2();
+        (*this)(1, 1) = -q.e3();
+        (*this)(1, 2) = q.e0();
+        (*this)(1, 3) = q.e1();
+        (*this)(2, 0) = q.e3();
+        (*this)(2, 1) = q.e2();
+        (*this)(2, 2) = -q.e1();
+        (*this)(2, 3) = q.e0();
+    }
+
+    // Allows multiplying to other Eigen matrices. 
+    using Eigen::Matrix<Real, 3, 4, Eigen::RowMajor>::operator*;
+};
+
+/// Special MBD 3x4 matrix [Gl(q)], as in local angular speed conversion.
+/// Wl = [Gl] * q_dt   (also, [Gl(q)] = 2*[Fp(q')] = 2*[G] with G matrix as in Shabana)
+template <typename Real = double>
+class ChGlMatrix34 : public ChMatrix34<Real> {
+public:
+    ChGlMatrix34(const ChQuaternion<Real>& q) {
+        Real de0 = 2 * q.e0();
+        Real de1 = 2 * q.e1();
+        Real de2 = 2 * q.e2();
+        Real de3 = 2 * q.e3();
+        (*this)(0, 0) = -de1;
+        (*this)(0, 1) = de0;
+        (*this)(0, 2) = de3;
+        (*this)(0, 3) = -de2;
+        (*this)(1, 0) = -de2;
+        (*this)(1, 1) = -de3;
+        (*this)(1, 2) = de0;
+        (*this)(1, 3) = de1;
+        (*this)(2, 0) = -de3;
+        (*this)(2, 1) = de2;
+        (*this)(2, 2) = -de1;
+        (*this)(2, 3) = de0;
+    }
+
+    // Allows multiplying to other Eigen matrices. 
+    using Eigen::Matrix<Real, 3, 4, Eigen::RowMajor>::operator*;
+
+    /// Computes the product v=[Gl(mq)]*qb  without the need of having
+    /// the [Gl] matrix (just pass the mq quaternion, since Gl is function of mq)
+    static ChVector<Real> Gl_times_q(const ChQuaternion<Real>& mq, const ChQuaternion<Real>& q) {
+        Real de0 = 2 * mq.e0();
+        Real de1 = 2 * mq.e1();
+        Real de2 = 2 * mq.e2();
+        Real de3 = 2 * mq.e3();
+        return ChVector<Real>(-de1 * q.e0() + de0 * q.e1() + de3 * q.e2() - de2 * q.e3(),   //
+                              -de2 * q.e0() - de3 * q.e1() + de0 * q.e2() + de1 * q.e3(),   //
+                              -de3 * q.e0() + de2 * q.e1() - de1 * q.e2() + de0 * q.e3());  //
+    }
+
+    /// Computes the product q=[Gl(mq)]*v  without the need of having
+    /// the [Gl] matrix (just pass the mq quaternion, since Gl is function of mq)
+    static ChQuaternion<Real> GlT_times_v(const ChQuaternion<Real>& mq, const ChVector<Real>& v) {
+        Real de0 = 2 * mq.e0();
+        Real de1 = 2 * mq.e1();
+        Real de2 = 2 * mq.e2();
+        Real de3 = 2 * mq.e3();
+        return ChQuaternion<Real>(-de1 * v.x() - de2 * v.y() - de3 * v.z(),  //
+                                  +de0 * v.x() - de3 * v.y() + de2 * v.z(),  //
+                                  +de3 * v.x() + de0 * v.y() - de1 * v.z(),  //
+                                  -de2 * v.x() + de1 * v.y() + de0 * v.z()); //
+    }
+};
+
+/// Special MBD 3x4 matrix [Gw(q)], as in absolute angular speed conversion.
+/// Ww = [Gw] * q_dt   (also, [Gw(q)] = 2*[Fm(q')] = 2*[E] with E matrix as in Shabana)
+template <typename Real = double>
+class ChGwMatrix34 : public ChMatrix34<Real> {
+public:
+    ChGwMatrix34(const ChQuaternion<Real>& q) {
+        Real de0 = 2 * q.e0();
+        Real de1 = 2 * q.e1();
+        Real de2 = 2 * q.e2();
+        Real de3 = 2 * q.e3();
+        (*this)(0, 0) = -de1;
+        (*this)(0, 1) = de0;
+        (*this)(0, 2) = -de3;
+        (*this)(0, 3) = de2;
+        (*this)(1, 0) = -de2;
+        (*this)(1, 1) = de3;
+        (*this)(1, 2) = de0;
+        (*this)(1, 3) = -de1;
+        (*this)(2, 0) = -de3;
+        (*this)(2, 1) = -de2;
+        (*this)(2, 2) = de1;
+        (*this)(2, 3) = de0;
+    }
+
+    // Allows multiplying to other Eigen matrices. 
+    using Eigen::Matrix<Real, 3, 4, Eigen::RowMajor>::operator*;
+};
+
+/// Special MBD 3x3 "star" matrix, , representing vector cross products. \n
+/// (1) given two 3d vectors a and b, a x b= [Astar(a)] * b.             \n
+/// (2) double cross product.
+template <typename Real = double>
+class ChStarMatrix33 : public Eigen::Matrix<Real, 3, 3, Eigen::RowMajor> {
+public:
+    ChStarMatrix33(const ChVector<Real>& v) {
+        (*this)(0, 0) = 0;
+        (*this)(0, 1) = -v.z();
+        (*this)(0, 2) = v.y();
+        (*this)(1, 0) = v.z();
+        (*this)(1, 1) = 0;
+        (*this)(1, 2) = -v.x();
+        (*this)(2, 0) = -v.y();
+        (*this)(2, 1) = v.x();
+        (*this)(2, 2) = 0;
+    }
+
+    ChStarMatrix33(const ChVector<Real>& vA, const ChVector<Real>& vB) {
+        (*this)(0, 0) = -vA.y() * vB.y() - vA.z() * vB.z();
+        (*this)(1, 0) = vA.x() * vB.y();
+        (*this)(2, 0) = vA.x() * vB.z();
+        (*this)(0, 1) = vA.y() * vB.x();
+        (*this)(1, 1) = -vA.z() * vB.z() - vA.x() * vB.x();
+        (*this)(2, 1) = vA.y() * vB.z();
+        (*this)(0, 2) = vA.z() * vB.x();
+        (*this)(1, 2) = vA.z() * vB.y();
+        (*this)(2, 2) = -vA.x() * vB.x() - vA.y() * vB.y();
+    }
+
+    // Allows multiplying to other Eigen matrices. 
+    using Eigen::Matrix<Real, 3, 4, Eigen::RowMajor>::operator*;
+};
+
+/// Special MBD 4x4 "star" matrix, representing quaternion cross product.
+/// That is, given two quaternions a and b, a x b= [Astar] * b
 template <typename Real = double>
 class ChStarMatrix44 : public ChMatrix44<Real> {
 public:
@@ -105,6 +274,9 @@ public:
         (*this)(3, 2) = q.e1();
         (*this)(3, 3) = q.e0();
     }
+
+    //// RADU
+    //// Set up these 2 functions so that they can be used in Eigen expressions!
 
     void semiTranspose() {
         (*this)(1, 2) *= -1;

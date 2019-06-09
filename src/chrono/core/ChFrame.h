@@ -387,6 +387,10 @@ class ChFrame {
         return tmp;
     }
 
+    /*
+    //// RADU
+    //// Delete these functions.  Functionality now provided through "MBD special matrices"
+
     /// Fills a 3x4 matrix [Fp(q)], as in  [Fp(q)]*[Fm(q)]' = [A(q)]
     static void SetMatrix_Fp(ChMatrix34<Real>& Fp, const ChQuaternion<Real>& mq) {
         Fp(0) = mq.e1();
@@ -483,6 +487,8 @@ class ChFrame {
         return ChQuaternion<Real>(-de1 * v.x() - de2 * v.y() - de3 * v.z(), +de0 * v.x() - de3 * v.y() + de2 * v.z(),
                                   +de3 * v.x() + de0 * v.y() - de1 * v.z(), -de2 * v.x() + de1 * v.y() + de0 * v.z());
     }
+
+    */
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) {

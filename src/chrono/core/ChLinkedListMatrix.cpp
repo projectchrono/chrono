@@ -31,6 +31,20 @@ ChLinkedListMatrix::ChLinkedListMatrix() : ChSparseMatrix(1, 1), elarray(nullptr
     ChLinkedListMatrix::Build(1.0);
 }
 
+ChLinkedListMatrix::ChLinkedListMatrix(ChMatrixConstRef mat)
+    : elarray(nullptr), mnextel(nullptr), m_determinant(0) {
+    Reset((int)mat.rows(), (int)mat.cols());
+
+    for (int r = 0; r < m_num_rows; r++) {
+        ChMelement* mguess = *(elarray + r);
+        for (int c = 0; c < m_num_cols; c++) {
+            double el = mat(r, c);
+            if (el != 0)
+                mguess = SetElement(r, c, el, mguess);
+        }
+    }
+}
+
 ChLinkedListMatrix::ChLinkedListMatrix(const ChLinkedListMatrix& other)
     : ChSparseMatrix(other), elarray(nullptr), mnextel(nullptr), m_determinant(0) {
     Reset(other.m_num_rows, other.m_num_cols);
@@ -51,7 +65,6 @@ ChLinkedListMatrix::~ChLinkedListMatrix() {
     mbuffer_added = 0;
 
     free(elarray);
-    elarray = nullptr;
 
     for (ChNode<ChMelement>* mnode = mbufferlist.GetHead(); mnode != nullptr; mnode = mnode->next) {
         free(mnode->data);  // deallocate memory buffers
@@ -87,10 +100,22 @@ void ChLinkedListMatrix::Build(double fill_in) {
     elarray = (ChMelement**)calloc(m_num_rows, sizeof(ChMelement*));
 
     for (int i = 0; i < m_num_rows; i++) {
-        *(elarray + i) = mnextel;                    // initialize vector of 1st col pointr pointers
+        *(elarray + i) = mnextel;                          // initialize vector of 1st col pointr pointers
         (mnextel)->Initialize(0, nullptr, nullptr, i, 0);  // initialize 1st col.elements
-        mbuffer_added++;                             // increment the counter of "used" elements.
+        mbuffer_added++;                                   // increment the counter of "used" elements.
         mnextel++;
+    }
+}
+
+void ChLinkedListMatrix::CopyToDense(ChMatrixDynamic<double>& mat) {
+    mat.resize(m_num_rows, m_num_cols);
+    mat.setZero();
+
+    ChMelement* currel;
+    for (int i = 0; i < m_num_rows; i++) {
+        for (currel = *(elarray + i); currel != nullptr; currel = currel->next) {
+            mat(currel->row, currel->col) = currel->val;
+        }
     }
 }
 
@@ -122,7 +147,7 @@ void ChLinkedListMatrix::Reset() {
 
 void ChLinkedListMatrix::Reset(int nrows, int ncols, int nonzeros) {
     // realloc 1st column array, only if needed
-    if (nrows != m_num_rows) {
+    if (nrows != m_num_rows || !elarray) {
         if (elarray)
             free(elarray);
         elarray = (ChMelement**)calloc(nrows, sizeof(ChMelement*));
@@ -170,9 +195,9 @@ void ChLinkedListMatrix::Reset(int nrows, int ncols, int nonzeros) {
 
     // Just reinitialize 1st row elements
     for (int i = 0; i < m_num_rows; i++) {
-        *(elarray + i) = mnextel;                    // initialize vector of 1st col pointr pointers
+        *(elarray + i) = mnextel;                          // initialize vector of 1st col pointr pointers
         (mnextel)->Initialize(0, nullptr, nullptr, i, 0);  // initialize 1st col.elements
-        mbuffer_added++;                             // increment the counter of "used" elements.
+        mbuffer_added++;                                   // increment the counter of "used" elements.
         mnextel++;
     }
 }
@@ -345,6 +370,88 @@ void ChLinkedListMatrix::SwapColumns(int a, int b) {
     }
 }
 
+void ChLinkedListMatrix::PasteMatrix(ChMatrixConstRef matra, int insrow, int inscol, bool overwrite) {
+    int i, j;
+    int maxrows = (int)matra.rows();
+    int maxcol = (int)matra.cols();
+    ChMelement* eguess;
+    double val;
+
+    for (i = 0; i < maxrows; i++) {
+        eguess = *(elarray + i + insrow);
+
+        for (j = 0; j < maxcol; j++) {
+            val = (matra(i, j));
+            if (val)
+                eguess = SetElement(i + insrow, j + inscol, val, eguess);
+        }
+    }
+}
+
+void ChLinkedListMatrix::PasteTranspMatrix(ChMatrixConstRef matra, int insrow, int inscol) {
+    int i, j;
+    int maxrows = (int)matra.rows();
+    int maxcol = (int)matra.cols();
+    ChMelement* eguess;
+    double val;
+
+    for (j = 0; j < maxcol; j++) {
+        eguess = *(elarray + j + insrow);
+
+        for (i = 0; i < maxrows; i++) {
+            val = (matra(i, j));
+            if (val)
+                eguess = SetElement(j + insrow, i + inscol, val, eguess);
+        }
+    }
+}
+
+void ChLinkedListMatrix::PasteSumMatrix(ChMatrixConstRef matra, int insrow, int inscol) {
+    int i, j;
+    int maxrows = (int)matra.rows();
+    int maxcol = (int)matra.cols();
+    ChMelement* eguess;
+    ChMelement* eguessread;
+    double val, aval, sum;
+
+    for (i = 0; i < maxrows; i++) {
+        eguess = *(elarray + i + insrow);
+        eguessread = eguess;
+
+        for (j = 0; j < maxcol; j++) {
+            val = (matra(i, j));
+            if (val) {
+                eguessread = GetElement(i + insrow, j + inscol, &aval, eguessread);
+                sum = val + aval;
+                eguess = SetElement(i + insrow, j + inscol, sum, eguess);
+            }
+        }
+    }
+}
+
+void ChLinkedListMatrix::PasteSumTranspMatrix(ChMatrixConstRef matra, int insrow, int inscol) {
+    int i, j;
+    int maxrows = (int)matra.rows();
+    int maxcol = (int)matra.cols();
+    ChMelement* eguess;
+    ChMelement* eguessread;
+    double val, aval, sum;
+
+    for (j = 0; j < maxcol; j++) {
+        eguess = *(elarray + j + insrow);
+        eguessread = eguess;
+
+        for (i = 0; i < maxrows; i++) {
+            val = (matra(i, j));
+            if (val) {
+                eguessread = GetElement(j + insrow, i + inscol, &aval, eguessread);
+                sum = val + aval;
+                eguess = SetElement(j + insrow, i + inscol, sum, eguess);
+            }
+        }
+    }
+}
+
 void ChLinkedListMatrix::PasteMatrix(const ChLinkedListMatrix& matra, int insrow, int inscol) {
     ChMelement* eguess;
     ChMelement* srowel;
@@ -372,6 +479,54 @@ void ChLinkedListMatrix::PasteTranspMatrix(const ChLinkedListMatrix& matra, int 
             val = (matra.GetElement(i, j));
             if (val)
                 eguess = SetElement(j + insrow, i + inscol, val, eguess);
+        }
+    }
+}
+
+void ChLinkedListMatrix::PasteClippedMatrix(ChMatrixConstRef matra,
+                                            int cliprow,
+                                            int clipcol,
+                                            int nrows,
+                                            int ncolumns,
+                                            int insrow,
+                                            int inscol,
+                                            bool overwrite) {
+    ChMelement* eguess;
+    double val;
+
+    for (auto i = 0; i < nrows; i++) {
+        eguess = *(elarray + i + insrow);
+
+        for (auto j = 0; j < ncolumns; j++) {
+            val = (matra(i + cliprow, j + clipcol));
+            if (val)
+                eguess = SetElement(i + insrow, j + inscol, val, eguess);
+        }
+    }
+}
+
+void ChLinkedListMatrix::PasteSumClippedMatrix(ChMatrixConstRef matra,
+                                               int cliprow,
+                                               int clipcol,
+                                               int nrows,
+                                               int ncolumns,
+                                               int insrow,
+                                               int inscol) {
+    ChMelement* eguess;
+    ChMelement* eguessread;
+    double val, aval, sum;
+
+    for (auto i = 0; i < nrows; i++) {
+        eguess = *(elarray + i + insrow);
+        eguessread = eguess;
+
+        for (auto j = 0; j < ncolumns; j++) {
+            val = (matra(i + cliprow, j + clipcol));
+            if (val) {
+                eguessread = GetElement(i + insrow, j + inscol, &aval, eguessread);
+                sum = val + aval;
+                eguess = SetElement(i + insrow, j + inscol, sum, eguess);
+            }
         }
     }
 }

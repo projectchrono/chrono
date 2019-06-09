@@ -28,6 +28,40 @@ using namespace chrono;
 
 // ----------------------------------------------------
 
+TEST(ChLinkedListMatrix, check) {
+    ChLinkedListMatrix A(5, 5);
+    A.SetElement(1, 0, 0.130);
+    A.SetElement(3, 0, 0.012);
+    A.SetElement(2, 1, 1);
+    A.SetElement(0, 2, -1);
+    A.SetElement(3, 2, 0.337);
+    A.SetElement(1, 3, 0.569);
+    A.SetElement(4, 3, -0.1);
+    A.SetElement(2, 4, 0.469);
+    A.SetElement(4, 4, 1);
+
+    A.SetElement(3, 2, -2);
+    ASSERT_EQ(A.GetElement(3, 2), -2);
+
+    ChLinkedListMatrix B(A);
+    ChMatrixDynamic<double> Ad, Bd;
+    Ad.resize(5, 5);
+    A.CopyToDense(Ad);
+    B.CopyToDense(Bd);
+    ASSERT_TRUE(Ad == Bd);
+
+    ChLinkedListMatrix AA(Ad);
+    ASSERT_DOUBLE_EQ(AA.GetElement(1, 0), A.GetElement(1, 0));
+    ASSERT_DOUBLE_EQ(AA.GetElement(3, 0), A.GetElement(3, 0));
+    ASSERT_DOUBLE_EQ(AA.GetElement(2, 1), A.GetElement(2, 1));
+    ASSERT_DOUBLE_EQ(AA.GetElement(0, 2), A.GetElement(0, 2));
+    ASSERT_DOUBLE_EQ(AA.GetElement(3, 2), A.GetElement(3, 2));
+    ASSERT_DOUBLE_EQ(AA.GetElement(1, 3), A.GetElement(1, 3));
+    ASSERT_DOUBLE_EQ(AA.GetElement(4, 3), A.GetElement(4, 3));
+    ASSERT_DOUBLE_EQ(AA.GetElement(2, 4), A.GetElement(2, 4));
+    ASSERT_DOUBLE_EQ(AA.GetElement(4, 4), A.GetElement(4, 4));
+}
+
 TEST(ChLinkedListMatrix, solve_general) {
     ChLinkedListMatrix A(5, 5);
     A.SetElement(1, 0, 0.130);
@@ -164,8 +198,18 @@ TEST(ChMapMatrix, check) {
     ChMatrixDynamic<double> Ad, Bd;
     A.ConvertToDense(Ad);
     B.ConvertToDense(Bd);
-
     ASSERT_TRUE(Ad == Bd);
+
+    ChMapMatrix AA(Ad);
+    ASSERT_DOUBLE_EQ(AA.GetElement(1, 0), A.GetElement(1, 0));
+    ASSERT_DOUBLE_EQ(AA.GetElement(3, 0), A.GetElement(3, 0));
+    ASSERT_DOUBLE_EQ(AA.GetElement(2, 1), A.GetElement(2, 1));
+    ASSERT_DOUBLE_EQ(AA.GetElement(0, 2), A.GetElement(0, 2));
+    ASSERT_DOUBLE_EQ(AA.GetElement(3, 2), A.GetElement(3, 2));
+    ASSERT_DOUBLE_EQ(AA.GetElement(1, 3), A.GetElement(1, 3));
+    ASSERT_DOUBLE_EQ(AA.GetElement(4, 3), A.GetElement(4, 3));
+    ASSERT_DOUBLE_EQ(AA.GetElement(2, 4), A.GetElement(2, 4));
+    ASSERT_DOUBLE_EQ(AA.GetElement(4, 4), A.GetElement(4, 4));
 
     std::vector<int> ia;
     std::vector<int> ja;

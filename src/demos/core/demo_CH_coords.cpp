@@ -270,14 +270,10 @@ int main(int argc, char* argv[]) {
     GetLog() << " %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% \n\n";
 
     mrotA.Set_A_quaternion(qrotA);
-    ChMatrixNM<double, 3, 4> Fp;
-    ChFrame<>::SetMatrix_Fp(Fp, qrotA);
-    ChMatrixNM<double, 3, 4> Fm;
-    ChFrame<>::SetMatrix_Fm(Fm, qrotA);
-    ChMatrixNM<double, 3, 4> Gl;
-    ChFrame<>::SetMatrix_Gl(Gl, qrotA);
-    ChMatrixNM<double, 3, 4> Gw;
-    ChFrame<>::SetMatrix_Gw(Gw, qrotA);
+    ChFpMatrix34<> Fp(qrotA);
+    ChFmMatrix34<> Fm(qrotA);
+    ChGlMatrix34<> Gl(qrotA);
+    ChGwMatrix34<> Gw(qrotA);
 
     ChFrameMoving<> testa(vtraslA, qrotA);
     testa.SetPos_dt(ChVector<>(0.5, 0.6, 0.7));
@@ -305,8 +301,6 @@ int main(int argc, char* argv[]) {
 
     GetLog() << bres << " trasf loc->abs \n";
 
-    ChMatrixNM<double, 3, 4> mGl;
-    ChFrame<>::SetMatrix_Gl(mGl, qrotA);
     ChQuaternion<> pollo(3, 5, 6, 7);
     ChVector<> pallo(2, 4, 6);
 

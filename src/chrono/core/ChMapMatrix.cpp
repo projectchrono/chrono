@@ -22,6 +22,21 @@ ChMapMatrix::ChMapMatrix(int nrows, int ncols) : ChSparseMatrix(nrows, ncols), m
     m_rows.resize(nrows);
 }
 
+ChMapMatrix::ChMapMatrix(ChMatrixConstRef mat) {
+    m_num_rows = (int)mat.rows();
+    m_num_cols = (int)mat.cols();
+    m_rows.resize(mat.rows());
+    for (int ir = 0; ir < m_num_rows; ir++) {
+        for (int ic = 0; ic < m_num_cols; ic++) {
+            double val = mat(ir, ic);
+            if (val != 0) {
+                ChMapMatrix::SetElement(ir, ic, val);
+            }
+        }
+    }
+    m_CSR_current = false;
+}
+
 ChMapMatrix::ChMapMatrix(const ChMapMatrix& other) : ChSparseMatrix(other) {
     m_rows = other.m_rows;
     m_CSR_current = false;

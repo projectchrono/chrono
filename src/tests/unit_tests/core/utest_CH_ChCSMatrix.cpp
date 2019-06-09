@@ -238,15 +238,15 @@ TEST(ChCSMatrixTest, mat_mult) {
     ChMatrixDynamic<double> mat_outR(3, 2), mat_outC(3, 2);
     matA_rm.MatrMultiply(matB, mat_outR, false);
     matA_cm.MatrMultiply(matB, mat_outC, false);
-    ////std::cout << mat_outR << std::endl;
-    ////std::cout << mat_outC << std::endl;
+    std::cout << "A_rm * B\n" << mat_outR << std::endl;
+    std::cout << "A_cm * B\n" << mat_outC << std::endl;
     ASSERT_TRUE(mat_outR == mat_outC);
 
     // Test A' * B
     matA_rm.MatrMultiply(matB, mat_outR, true);
     matA_cm.MatrMultiply(matB, mat_outC, true);
-    ////std::cout << mat_outR << std::endl;
-    ////std::cout << mat_outC << std::endl;
+    std::cout << "A_rm' * B\n" << mat_outR << std::endl;
+    std::cout << "A_cm' * B\n" << mat_outC << std::endl;
     ASSERT_TRUE(mat_outR == mat_outC);
 }
 
@@ -311,20 +311,17 @@ TEST(ChCSMatrixTest, mat_mult_clipped) {
     ChMatrixDynamic<double> mat_out1(8, 6);
     mat_out1.setZero();
     matA_cm.MatrMultiplyClipped(matB, mat_out1, 1, 3, 1, 2, 3, 1, false, 1, 3, 1);
-    ////std::cout << "mat_out1" << std::endl;
-    ////std::cout << mat_out1 << std::endl;
+    std::cout << "mat_out1\n" << mat_out1 << std::endl;
 
     ChMatrixDynamic<double> mat_out2(8, 6);
     mat_out2.setZero();
     matA_cm.MatrMultiplyClipped(matB, mat_out2, 1, 3, 1, 2, 3, 1, true, 1, 3, 1);
-    ////std::cout << "mat_out2" << std::endl;
-    ////std::cout << mat_out2 << std::endl;
+    std::cout << "mat_out2\n" << mat_out2 << std::endl;
 
     ChMatrixDynamic<double> mat_out3(8, 6);
     mat_out3.setZero();
     matA_cmT.MatrMultiplyClipped(matB, mat_out3, 1, 3, 1, 2, 3, 1, false, 1, 3, 1);
-    ////std::cout << "mat_out3" << std::endl;
-    ////std::cout << mat_out3 << std::endl;
+    std::cout << "mat3_out\n" << mat_out3 << std::endl;
 
     ASSERT_TRUE(mat_out2 == mat_out3);
 }

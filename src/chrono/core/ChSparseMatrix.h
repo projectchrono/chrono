@@ -100,11 +100,9 @@ class ChApi ChSparseMatrix {
     /// matra.GetColumns()]] \param[in] matra The source matrix that will be copied; \param[in] insrow The row index
     /// where the first element will be copied; \param[in] inscol The column index where the first element will be
     /// copied; \param[in] overwrite Tells if the copied element will overwrite an existing element or be summed to it;
-    /// \param[in] transp Tells if the \a matra matrix should be copied transposed.
-    template <typename Derived>
-    void PasteMatrix(const ChMatrix<Derived>& matra, int insrow, int inscol, bool overwrite = true) {
-        for (auto i = 0; i < maxrows; i++) {
-            for (auto j = 0; j < maxcols; j++) {
+    virtual void PasteMatrix(ChMatrixConstRef matra, int insrow, int inscol, bool overwrite = true) {
+        for (auto i = 0; i < matra.rows(); i++) {
+            for (auto j = 0; j < matra.cols(); j++) {
                 this->SetElement(insrow + i, inscol + j, matra(i, j), overwrite);
             }
         }
@@ -121,17 +119,16 @@ class ChApi ChSparseMatrix {
     /// \param[in] insrow The row index where the first element will be copied;
     /// \param[in] inscol The column index where the first element will be copied;
     /// \param[in] overwrite Tells if the copied element will overwrite an existing element or be summed to it.
-    template <typename Derived>
-    void PasteClippedMatrix(const ChMatrix<Derived>& matra,
-                            int cliprow,
-                            int clipcol,
-                            int nrows,
-                            int ncolumns,
-                            int insrow,
-                            int inscol,
-                            bool overwrite = true) {
+    virtual void PasteClippedMatrix(ChMatrixConstRef matra,
+                                    int cliprow,
+                                    int clipcol,
+                                    int nrows,
+                                    int ncols,
+                                    int insrow,
+                                    int inscol,
+                                    bool overwrite = true) {
         for (auto i = 0; i < nrows; ++i)
-            for (auto j = 0; j < ncolumns; ++j)
+            for (auto j = 0; j < ncols; ++j)
                 this->SetElement(insrow + i, inscol + j, matra(i + cliprow, j + clipcol), overwrite);
     }
 
@@ -148,33 +145,29 @@ class ChApi ChSparseMatrix {
 
     /// Same as #PasteMatrix(), but with \a overwrite set to \c true and \a transp set to \c true.
     /// The source matrix will be transposed and pasted into \a this matrix, overwriting existing elements.
-    template <typename Derived>
-    void PasteTranspMatrix(const ChMatrix<Derived>& matra, int insrow, int inscol) {
+    virtual void PasteTranspMatrix(ChMatrixConstRef matra, int insrow, int inscol) {
         PasteMatrix(matra.transpose(), insrow, inscol, true);
     }
 
     /// Same as #PasteMatrix(), but with \a overwrite set to \c false and \a transp set to \c false.
     /// The source matrix will be summed to the current matrix and not transposed.
-    template <typename Derived>
-    void PasteSumMatrix(const ChMatrix<Derived>& matra, int insrow, int inscol) {
+    virtual void PasteSumMatrix(ChMatrixConstRef matra, int insrow, int inscol) {
         PasteMatrix(matra, insrow, inscol, false);
     }
 
     /// Same as #PasteMatrix(), but with \a overwrite set to \c false and \a transp set to \c true.
     /// The source matrix will be transposed and summed to the \a this matrix.
-    template <typename Derived>
-    void PasteSumTranspMatrix(const ChMatrix<Derived>& matra, int insrow, int inscol) {
+    virtual void PasteSumTranspMatrix(ChMatrixConstRef matra, int insrow, int inscol) {
         PasteMatrix(matra.transpose(), insrow, inscol, false);
     }
 
     /// Same as #PasteClippedMatrix(), but with \a overwrite set to \c false.
     /// The clipped portion of the source matrix will be summed to \a this matrix.
-    template <typename Derived>
-    void PasteSumClippedMatrix(const ChMatrix<Derived>& matra,
+    virtual void PasteSumClippedMatrix(ChMatrixConstRef matra,
                                int cliprow,
                                int clipcol,
                                int nrows,
-                               int ncolumns,
+                               int ncols,
                                int insrow,
                                int inscol) {
         PasteClippedMatrix(matra, cliprow, clipcol, nrows, ncols, insrow, inscol, false);

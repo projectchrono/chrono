@@ -29,7 +29,7 @@ class ChMatrix33 : public Eigen::Matrix<Real, 3, 3, Eigen::RowMajor> {
 
     /// Constructor from Eigen expressions.
     template <typename OtherDerived>
-    ChMatrix33(const ChMatrix<OtherDerived>& other) : Eigen::Matrix<Real, 3, 3, Eigen::RowMajor>(other) {}
+    ChMatrix33(const Eigen::MatrixBase<OtherDerived>& other) : Eigen::Matrix<Real, 3, 3, Eigen::RowMajor>(other) {}
 
     /// Construct a 3x3 rotation matrix from the given quaternion.
     ChMatrix33(const ChQuaternion<Real>& q);
@@ -39,7 +39,7 @@ class ChMatrix33 : public Eigen::Matrix<Real, 3, 3, Eigen::RowMajor> {
 
     /// This method allows assigning Eigen expressions to ChMatrix33.
     template <typename OtherDerived>
-    ChMatrix33& operator=(const ChMatrix<OtherDerived>& other) {
+    ChMatrix33& operator=(const Eigen::MatrixBase<OtherDerived>& other) {
         this->Eigen::Matrix<Real, 3, 3, Eigen::RowMajor>::operator=(other);
         return *this;
     }
@@ -70,14 +70,6 @@ class ChMatrix33 : public Eigen::Matrix<Real, 3, 3, Eigen::RowMajor> {
 
     /// Fill this 3x3 matrix as a rotation matrix, given the three versors X,Y,Z of the basis.
     void Set_A_axis(const ChVector<Real>& X, const ChVector<Real>& Y, const ChVector<Real>& Z);
-
-    /// Fill this 3x3 matrix as the "star" matrix, representing vector cross product.
-    /// That is, given two 3d vectors a and b, a x b= [Astar] * b
-    void Set_X_matrix(const ChVector<Real>& vect);
-
-    /// Fills a 3x3 matrix as product of two 'cross product' matrices,
-    /// as double vector cross product.
-    void Set_XY_matrix(const ChVector<Real>& vectA, const ChVector<Real>& vectB);
 
     /// Return the corresponding unit quaternion.
     /// Assumes that this is a rotation matrix.
@@ -278,32 +270,6 @@ inline void ChMatrix33<Real>::Set_A_axis(const ChVector<Real>& X, const ChVector
     (*this)(2, 0) = X.z();
     (*this)(2, 1) = Y.z();
     (*this)(2, 2) = Z.z();
-}
-
-template <typename Real>
-inline void ChMatrix33<Real>::Set_X_matrix(const ChVector<Real>& vect) {
-    (*this)(0, 0) = 0;
-    (*this)(0, 1) = -vect.z();
-    (*this)(0, 2) = vect.y();
-    (*this)(1, 0) = vect.z();
-    (*this)(1, 1) = 0;
-    (*this)(1, 2) = -vect.x();
-    (*this)(2, 0) = -vect.y();
-    (*this)(2, 1) = vect.x();
-    (*this)(2, 2) = 0;
-}
-
-template <typename Real>
-inline void ChMatrix33<Real>::Set_XY_matrix(const ChVector<Real>& vectA, const ChVector<Real>& vectB) {
-    (*this)(0, 0) = -vectA.y() * vectB.y() - vectA.z() * vectB.z();
-    (*this)(1, 0) = vectA.x() * vectB.y();
-    (*this)(2, 0) = vectA.x() * vectB.z();
-    (*this)(0, 1) = vectA.y() * vectB.x();
-    (*this)(1, 1) = -vectA.z() * vectB.z() - vectA.x() * vectB.x();
-    (*this)(2, 1) = vectA.y() * vectB.z();
-    (*this)(0, 2) = vectA.z() * vectB.x();
-    (*this)(1, 2) = vectA.z() * vectB.y();
-    (*this)(2, 2) = -vectA.x() * vectB.x() - vectA.y() * vectB.y();
 }
 
 template <typename Real>

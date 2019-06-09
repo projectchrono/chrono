@@ -51,15 +51,15 @@ class ChApi ChMelement {
 /// non-zero elements in each row.
 class ChApi ChLinkedListMatrix : public ChSparseMatrix {
   private:
-    ChMelement** elarray;  // array of 1st column elements
+    ChMelement** elarray;  ///< array of 1st column elements
 
-    ChList<ChMelement> mbufferlist;  // list of pointers to Melement* buffers
-    ChMelement* mnextel;             // address of next writable element in mbufferlist
+    ChList<ChMelement> mbufferlist;  ///< list of pointers to Melement* buffers
+    ChMelement* mnextel;             ///< address of next writable element in mbufferlist
 
-    int mtot_size;      // total allocated space for elements (maybe in noncontiguous buffers list)
-	int mbuffer_size;   // size of currently used buffer
-	int mbuffer_added;  // mbuffer_added grows all time a new element is set non-zero,
-    // until it reaches mbuffer_size (if so, allocation of another buffer is needed). Handled internally.
+    int mtot_size;      ///< total allocated space for elements (maybe in noncontiguous buffers list)
+    int mbuffer_size;   ///< size of currently used buffer
+    int mbuffer_added;  ///< mbuffer_added grows all time a new element is set non-zero, until it reaches mbuffer_size
+                        ///< (if so, allocation of another buffer is needed). Handled internally.
 
     std::vector<int> m_pindices;
     double m_determinant;
@@ -72,19 +72,7 @@ class ChApi ChLinkedListMatrix : public ChSparseMatrix {
     ChLinkedListMatrix(int nrows, int ncols, double fill_in = SPM_DEF_FULLNESS);
 
     /// Create a sparse matrix from a given dense matrix.
-    template <typename Derived>
-    ChLinkedListMatrix(const ChMatrix<Derived>& mat) : elarray(nullptr), mnextel(nullptr), m_determinant(0) {
-        Reset((int)mat.rows(), (int)mat.cols());
-
-        for (int r = 0; r < m_num_rows; r++) {
-            ChMelement* mguess = *(elarray + r);
-            for (int c = 0; c < m_num_cols; c++) {
-                double el = mat(r, c);
-                if (el != 0)
-                    mguess = SetElement(r, c, el, mguess);
-            }
-        }
-    }
+    ChLinkedListMatrix(ChMatrixConstRef mat);
 
     /// Copy constructor.
     ChLinkedListMatrix(const ChLinkedListMatrix& other);
@@ -93,18 +81,7 @@ class ChApi ChLinkedListMatrix : public ChSparseMatrix {
     ~ChLinkedListMatrix();
 
     /// Copy this sparse matrix to a dense matrix.
-    template <typename Derived>
-    void CopyToMatrix(ChMatrix<Derived>& mat) {
-        mat.resize(m_num_rows, m_num_cols);
-        mat.setZero();
-
-        ChMelement* currel;
-        for (int i = 0; i < m_num_rows; i++) {
-            for (currel = *(elarray + i); currel != nullptr; currel = currel->next) {
-                mat(currel->row, currel->col) = currel->val;
-            }
-        }
-    }
+    void CopyToDense(ChMatrixDynamic<double>& mat);
 
     /// Optimized SetElement,  returning the fetched Melement*
     ChMelement* SetElement(int row, int col, double val, ChMelement* guess);
@@ -128,6 +105,27 @@ class ChApi ChLinkedListMatrix : public ChSparseMatrix {
 
     virtual void SetElement(int row, int col, double elem, bool overwrite = true) override;
     virtual double GetElement(int row, int col) const override;
+
+    // Customized functions, speed-optimized for sparse matrices:
+    virtual void PasteMatrix(ChMatrixConstRef matra, int insrow, int inscol, bool overwrite) override;
+    virtual void PasteTranspMatrix(ChMatrixConstRef matra, int insrow, int inscol) override;
+    virtual void PasteClippedMatrix(ChMatrixConstRef matra,
+                                    int cliprow,
+                                    int clipcol,
+                                    int nrows,
+                                    int ncolumns,
+                                    int insrow,
+                                    int inscol,
+                                    bool overwrite) override;
+    virtual void PasteSumClippedMatrix(ChMatrixConstRef matra,
+                                       int cliprow,
+                                       int clipcol,
+                                       int nrows,
+                                       int ncolumns,
+                                       int insrow,
+                                       int inscol) override;
+    virtual void PasteSumMatrix(ChMatrixConstRef matra, int insrow, int inscol) override;
+    virtual void PasteSumTranspMatrix(ChMatrixConstRef matra, int insrow, int inscol) override;
 
     // Specialized functions
 
@@ -198,7 +196,7 @@ class ChApi ChLinkedListMatrix : public ChSparseMatrix {
         ChMelement* el_temp;
         // from the first element of each row scan until there's no "next" linked element
         for (int i = 0; i < m_num_rows; i++) {  // for each row
-            el_temp = elarray[i];              // start from the element [i,0]
+            el_temp = elarray[i];               // start from the element [i,0]
             while (el_temp) {
                 if (el_temp->val != 0)
                     reserveSize[i + offset]++;  // assert("i" should be equal to el_temp->row)
