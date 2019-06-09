@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
 #ifndef CHCONSTRAINTNGENERIC_H
@@ -52,10 +52,10 @@ class ChApi ChConstraintNgeneric : public ChConstraint {
 	ChConstraintNgeneric& operator=(const ChConstraintNgeneric& other);
 
     /// Access Nth jacobian matrix
-	virtual ChMatrix<double>& Get_Cq_N(size_t n) { return Cq[n]; }
+	virtual ChMatrixRef Get_Cq_N(size_t n) { return Cq[n]; }
 
     /// Access Nth auxiliary matrix (ex: used by iterative solvers)
-    virtual ChMatrix<double>& Get_Eq_N(size_t n) { return Eq[n]; }
+    virtual ChMatrixRef Get_Eq_N(size_t n) { return Eq[n]; }
 
     /// Access the Nth variable object
     ChVariables* GetVariables_N(size_t n) { return variables[n]; }
@@ -91,7 +91,7 @@ class ChApi ChConstraintNgeneric : public ChConstraint {
 	/// the size of the total variables&constraints in the system; the procedure
 	/// will use the ChVariable offsets (that must be already updated) to know the
 	/// indexes in result and vect;
-	virtual void MultiplyAndAdd(double& result, const ChMatrix<double>& vect) const override;
+	virtual void MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const override;
 
 	/// Computes the product of the corresponding transposed blocks in the
 	/// system matrix (ie. the TRANSPOSED jacobian matrix C_q') by 'l', and add to 'result'.
@@ -99,7 +99,7 @@ class ChApi ChConstraintNgeneric : public ChConstraint {
 	/// the size of the total variables&constraints in the system; the procedure
 	/// will use the ChVariable offsets (that must be already updated) to know the
 	/// indexes in result and vect;
-	virtual void MultiplyTandAdd(ChMatrix<double>& result, double l) override;
+	virtual void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) override;
 
 	/// Puts the three jacobian parts into the 'insrow' row of a sparse matrix,
 	/// where both portions of the jacobian are shifted in order to match the

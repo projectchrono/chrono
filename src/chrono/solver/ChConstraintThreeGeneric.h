@@ -33,15 +33,15 @@ namespace chrono {
 
 class ChApi ChConstraintThreeGeneric : public ChConstraintThree {
   protected:
-    ChMatrixDynamic<double>* Cq_a;  ///< The [Cq_a] jacobian of the constraint
-    ChMatrixDynamic<double>* Cq_b;  ///< The [Cq_b] jacobian of the constraint
-    ChMatrixDynamic<double>* Cq_c;  ///< The [Cq_c] jacobian of the constraint
+    ChMatrixDynamic<double> Cq_a;  ///< The [Cq_a] jacobian of the constraint
+    ChMatrixDynamic<double> Cq_b;  ///< The [Cq_b] jacobian of the constraint
+    ChMatrixDynamic<double> Cq_c;  ///< The [Cq_c] jacobian of the constraint
 
     // Auxiliary data: will be used by iterative constraint solvers:
 
-    ChMatrixDynamic<double>* Eq_a;  ///< The [Eq_a] product [Eq_a]=[invM_a]*[Cq_a]'
-    ChMatrixDynamic<double>* Eq_b;  ///< The [Eq_a] product [Eq_b]=[invM_b]*[Cq_b]'
-    ChMatrixDynamic<double>* Eq_c;  ///< The [Eq_a] product [Eq_c]=[invM_b]*[Cq_c]'
+    ChMatrixDynamic<double> Eq_a;  ///< The [Eq_a] product [Eq_a]=[invM_a]*[Cq_a]'
+    ChMatrixDynamic<double> Eq_b;  ///< The [Eq_a] product [Eq_b]=[invM_b]*[Cq_b]'
+    ChMatrixDynamic<double> Eq_c;  ///< The [Eq_a] product [Eq_c]=[invM_b]*[Cq_c]'
 
   public:
     /// Default constructor
@@ -53,7 +53,7 @@ class ChApi ChConstraintThreeGeneric : public ChConstraintThree {
     /// Copy constructor
     ChConstraintThreeGeneric(const ChConstraintThreeGeneric& other);
 
-    virtual ~ChConstraintThreeGeneric();
+    virtual ~ChConstraintThreeGeneric() {}
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChConstraintThreeGeneric* Clone() const override { return new ChConstraintThreeGeneric(*this); }
@@ -62,18 +62,18 @@ class ChApi ChConstraintThreeGeneric : public ChConstraintThree {
     ChConstraintThreeGeneric& operator=(const ChConstraintThreeGeneric& other);
 
     /// Access jacobian matrix
-    virtual ChMatrix<double>* Get_Cq_a() override { return Cq_a; }
+    virtual ChMatrixRef Get_Cq_a() override { return Cq_a; }
     /// Access jacobian matrix
-    virtual ChMatrix<double>* Get_Cq_b() override { return Cq_b; }
+    virtual ChMatrixRef Get_Cq_b() override { return Cq_b; }
     /// Access jacobian matrix
-    virtual ChMatrix<double>* Get_Cq_c() override { return Cq_c; }
+    virtual ChMatrixRef Get_Cq_c() override { return Cq_c; }
 
     /// Access auxiliary matrix (ex: used by iterative solvers)
-    virtual ChMatrix<double>* Get_Eq_a() override { return Eq_a; }
+    virtual ChMatrixRef Get_Eq_a() override { return Eq_a; }
     /// Access auxiliary matrix (ex: used by iterative solvers)
-    virtual ChMatrix<double>* Get_Eq_b() override { return Eq_b; }
+    virtual ChMatrixRef Get_Eq_b() override { return Eq_b; }
     /// Access auxiliary matrix (ex: used by iterative solvers)
-    virtual ChMatrix<double>* Get_Eq_c() override { return Eq_c; }
+    virtual ChMatrixRef Get_Eq_c() override { return Eq_c; }
 
     /// Set references to the constrained objects, each of ChVariables type,
     /// automatically creating/resizing jacobians if needed.
@@ -105,7 +105,7 @@ class ChApi ChConstraintThreeGeneric : public ChConstraintThree {
     /// the size of the total variables&constraints in the system; the procedure
     /// will use the ChVariable offsets (that must be already updated) to know the
     /// indexes in result and vect;
-    virtual void MultiplyAndAdd(double& result, const ChMatrix<double>& vect) const override;
+    virtual void MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const override;
 
     /// Computes the product of the corresponding transposed blocks in the
     /// system matrix (ie. the TRANSPOSED jacobian matrix C_q') by 'l', and add to 'result'.
@@ -113,7 +113,7 @@ class ChApi ChConstraintThreeGeneric : public ChConstraintThree {
     /// the size of the total variables&constraints in the system; the procedure
     /// will use the ChVariable offsets (that must be already updated) to know the
     /// indexes in result and vect;
-    virtual void MultiplyTandAdd(ChMatrix<double>& result, double l) override;
+    virtual void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) override;
 
     /// Puts the three jacobian parts into the 'insrow' row of a sparse matrix,
     /// where both portions of the jacobian are shifted in order to match the

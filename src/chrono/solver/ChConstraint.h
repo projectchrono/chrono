@@ -82,6 +82,11 @@ class ChApi ChConstraint {
     int offset;              ///< offset in global "l" state vector (needed by some solvers)
 
   public:
+    //// RADU
+    //// Consider defining special types for:
+    ////   - a row vector constraint Jacobian (Cq_a, Cq_b, etc)
+    ////   - a column vector auxiliary quantity (Eq_a, Eq_b, etc)
+
     /// Default constructor
     ChConstraint()
         : c_i(0),
@@ -262,7 +267,7 @@ class ChApi ChConstraint {
     /// the size of the total variables&constraints in the system; the procedure
     /// will use the ChVariable offsets (that must be already updated) to know the
     /// indexes in result and vect;
-    virtual void MultiplyAndAdd(double& result, const ChMatrix<double>& vect) const = 0;
+    virtual void MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const = 0;
 
     /// Computes the product of the corresponding transposed block in the
     /// system matrix (ie. the TRANSPOSED jacobian matrix C_q') by 'l', and add to
@@ -271,7 +276,7 @@ class ChApi ChConstraint {
     /// the size of the total variables&constraints in the system; the procedure
     /// will use the ChVariable offsets (that must be already updated) to know the
     /// indexes in result and vect;
-    virtual void MultiplyTandAdd(ChMatrix<double>& result, double l) = 0;
+    virtual void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) = 0;
 
     /// For iterative solvers: project the value of a possible
     /// 'l_i' value of constraint reaction onto admissible orthant/set.

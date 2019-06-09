@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora 
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
 #include "chrono/solver/ChConstraintNgeneric.h"
@@ -21,9 +21,9 @@ CH_FACTORY_REGISTER(ChConstraintNgeneric)
 
 
 ChConstraintNgeneric::ChConstraintNgeneric(const ChConstraintNgeneric& other) : ChConstraint(other) {
-	this->variables = other.variables;
-	this->Cq = other.Cq;
-	this->Eq = other.Eq;
+	variables = other.variables;
+	Cq = other.Cq;
+	Eq = other.Eq;
 }
 
 
@@ -34,9 +34,9 @@ ChConstraintNgeneric& ChConstraintNgeneric::operator=(const ChConstraintNgeneric
     // copy parent class data
     ChConstraint::operator=(other);
 
-	this->variables = other.variables;
-	this->Cq = other.Cq;
-	this->Eq = other.Eq;
+	variables = other.variables;
+	Cq = other.Cq;
+	Eq = other.Eq;
 
     return *this;
 }
@@ -60,7 +60,7 @@ void ChConstraintNgeneric::SetVariables(std::vector<ChVariables*> mvars) {
     }
 
     for (size_t i = 0; i < variables.size(); ++i) {
-        Cq[i].Reset();
+        Cq[i].setZero();
     }
 }
 
@@ -68,67 +68,68 @@ void ChConstraintNgeneric::Update_auxiliary() {
     // 1- Assuming jacobians are already computed, now compute
     //   the matrices [Eq_a]=[invM_a]*[Cq_a]' and [Eq_b]
 
-	for (size_t i=0; i <  variables.size(); ++i) {
-		if (variables[i]->IsActive())
-			if (variables[i]->Get_ndof()) {
-				ChMatrixDynamic<double> mtemp1(variables[i]->Get_ndof(), 1);
-				mtemp1.CopyFromMatrixT(Cq[i]);
-				variables[i]->Compute_invMb_v(Eq[i], mtemp1);
+    for (size_t i = 0; i < variables.size(); ++i) {
+        if (variables[i]->IsActive())
+            if (variables[i]->Get_ndof()) {
+				variables[i]->Compute_invMb_v(Eq[i], Cq[i].transpose());
 			}
-	}
+    }
 
     // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
-    ChMatrixDynamic<double> res(1, 1);
     g_i = 0;
-	for (size_t i=0; i < variables.size(); ++i) {
-		if (variables[i]->IsActive())
-			if (variables[i]->Get_ndof()) {
-				res.MatrMultiply(Cq[i], Eq[i]);
-				g_i += res(0, 0);
-			}
-	}
+    for (size_t i = 0; i < variables.size(); ++i) {
+        if (variables[i]->IsActive() && variables[i]->Get_ndof() > 0) {
+            g_i += Cq[i].dot(Eq[i]);
+        }
+    }
 
     // 3- adds the constraint force mixing term (usually zero):
     if (cfm_i)
         g_i += cfm_i;
 }
 
+//// RADU
+//// ATTENTION: previously tehre were bugs in the following 2 functions!
+////    Indeed, nested loops were using the same iterator ('i')...
+
 double ChConstraintNgeneric::Compute_Cq_q() {
     double ret = 0;
 
-	for (size_t i=0; i <  variables.size(); ++i) {
-		if (variables[i]->IsActive())
-			for (int i = 0; i < Cq[i].GetColumns(); i++)
-				ret += Cq[i].ElementN(i) * variables[i]->Get_qb().ElementN(i);
-	}
-    
+    for (size_t i = 0; i < variables.size(); ++i) {
+        if (variables[i]->IsActive()) {
+            ret += Cq[i].dot(variables[i]->Get_qb());
+        }
+    }
+
     return ret;
 }
 
 void ChConstraintNgeneric::Increment_q(const double deltal) {
-
-	for (size_t i=0; i <  variables.size(); ++i) {
-		if (variables[i]->IsActive())
-			for (int i = 0; i < Eq[i].GetRows(); i++)
-				variables[i]->Get_qb()(i) += Eq[i].ElementN(i) * deltal;
-	}
- 
+    for (size_t i = 0; i < variables.size(); ++i) {
+        if (variables[i]->IsActive()) {
+            variables[i]->Get_qb() += Eq[i] * deltal;
+        }
+    }
 }
 
-void ChConstraintNgeneric::MultiplyAndAdd(double& result, const ChMatrix<double>& vect) const {
+//// RADU
+//// ATTENTION: previously there were bugs in the following two functions!
+////     Indeed, the for loops were using Cq_a->GetRows().   But that is always 1...  It should have been GetCols()
+////     Furthermore, nested loops were using the same iterator ('i')...
 
-	for (size_t i=0; i <  variables.size(); ++i) {
-		if (variables[i]->IsActive())
-			for (int i = 0; i < Cq[i].GetRows(); i++)
-				result += vect(variables[i]->GetOffset() + i) * Cq[i].ElementN(i);
-	}
+void ChConstraintNgeneric::MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const {
+    for (size_t i = 0; i < variables.size(); ++i) {
+        if (variables[i]->IsActive()) {
+            result += Cq[i].dot(vect.segment(variables[i]->GetOffset(), Cq[i].cols()));
+        }
+    }
 }
 
-void ChConstraintNgeneric::MultiplyTandAdd(ChMatrix<double>& result, double l) {
+void ChConstraintNgeneric::MultiplyTandAdd(ChVectorDynamic<double>& result, double l) {
 	for (size_t i=0; i <  variables.size(); ++i) {
-		if (variables[i]->IsActive())
-			for (int i = 0; i < Cq[i].GetRows(); i++)
-				result(variables[i]->GetOffset() + i) += Cq[i].ElementN(i) * l;
+        if (variables[i]->IsActive()) {
+            result.segment(variables[i]->GetOffset(), Cq[i].cols()) += Cq[i] * l;
+        }
 	}
 }
 

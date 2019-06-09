@@ -15,7 +15,6 @@
 #ifndef CHCONSTRAINTTUPLE_H
 #define CHCONSTRAINTTUPLE_H
 
-#include "chrono/core/ChMatrixNM.h"
 #include "chrono/solver/ChConstraint.h"
 #include "chrono/solver/ChVariables.h"
 
@@ -39,8 +38,8 @@ class ChConstraintTuple_1vars {
   public:
     /// Default constructor
     ChConstraintTuple_1vars() : variables(nullptr) {
-        Cq.Reset();
-        Eq.Reset();
+        Cq.setZero();
+        Eq.setZero();
     }
 
     /// Copy constructor
@@ -60,9 +59,9 @@ class ChConstraintTuple_1vars {
         return *this;
     }
 
-    ChMatrix<double>* Get_Cq() { return &Cq; }
+    ChMatrixRef Get_Cq() { return Cq; }
 
-    ChMatrix<double>* Get_Eq() { return &Eq; }
+    ChMatrixRef Get_Eq() { return Eq; }
 
     ChVariables* GetVariables() { return variables; }
 
@@ -77,49 +76,43 @@ class ChConstraintTuple_1vars {
         // 1- Assuming jacobians are already computed, now compute
         //   the matrices [Eq]=[invM]*[Cq]' and [Eq]
         if (variables->IsActive()) {
-            ChMatrixNM<double, T::nvars1, 1> mtemp1;
-            mtemp1.CopyFromMatrixT(Cq);
-            variables->Compute_invMb_v(Eq, mtemp1);
+            variables->Compute_invMb_v(Eq, Cq.transpose());
         }
 
         // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
         ChMatrixNM<double, 1, 1> res;
         if (variables->IsActive()) {
             res.MatrMultiply(Cq, Eq);
-            g_i += res(0, 0);
+            g_i += Cq.dot(Eq);
         }
     }
 
     double Compute_Cq_q() {
         double ret = 0;
 
-        if (variables->IsActive())
-            for (int i = 0; i < T::nvars1; i++)
-                ret += Cq.ElementN(i) * variables->Get_qb().ElementN(i);
+        if (variables->IsActive()) {
+            ret += Cq.dot(variables->Get_qb());
+        }
 
         return ret;
     }
 
     void Increment_q(const double deltal) {
-        if (variables->IsActive())
-            for (int i = 0; i < T::nvars1; i++)
-                variables->Get_qb()(i) += Eq.ElementN(i) * deltal;
+        if (variables->IsActive()) {
+            variables->Get_qb() += Eq * deltal;
+        }
     }
 
-    void MultiplyAndAdd(double& result, const ChMatrix<double>& vect) const {
-        int off = variables->GetOffset();
-
-        if (variables->IsActive())
-            for (int i = 0; i < T::nvars1; i++)
-                result += vect(off + i) * Cq.ElementN(i);
+    void MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const {
+        if (variables->IsActive()) {
+            result += Cq.dot(vect.segment(variables->GetOffset(), T::nvars1));
+        }
     }
 
-    void MultiplyTandAdd(ChMatrix<double>& result, double l) {
-        int off = variables->GetOffset();
-
-        if (variables->IsActive())
-            for (int i = 0; i < T::nvars1; i++)
-                result(off + i) += Cq.ElementN(i) * l;
+    void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) {
+        if (variables->IsActive()) {
+            result.segment(variables->GetOffset(), T::nvars1) += Cq * l;
+        }
     }
 
     void Build_Cq(ChSparseMatrix& storage, int insrow) {
@@ -152,8 +145,8 @@ class ChConstraintTuple_2vars {
   public:
     /// Default constructor
     ChConstraintTuple_2vars() : variables_1(nullptr), variables_2(nullptr) {
-        Cq_1.Reset();
-        Cq_2.Reset();
+        Cq_1.setZero();
+        Cq_2.setZero();
     }
 
     /// Copy constructor
@@ -179,11 +172,11 @@ class ChConstraintTuple_2vars {
         return *this;
     }
 
-    ChMatrix<double>* Get_Cq_1() { return &Cq_1; }
-    ChMatrix<double>* Get_Cq_2() { return &Cq_2; }
+    ChMatrixRef Get_Cq_1() { return Cq_1; }
+    ChMatrixRef Get_Cq_2() { return Cq_2; }
 
-    ChMatrix<double>* Get_Eq_1() { return &Eq_1; }
-    ChMatrix<double>* Get_Eq_2() { return &Eq_2; }
+    ChMatrixRef Get_Eq_1() { return Eq_1; }
+    ChMatrixRef Get_Eq_2() { return Eq_2; }
 
     ChVariables* GetVariables_1() { return variables_1; }
     ChVariables* GetVariables_2() { return variables_2; }
@@ -200,78 +193,63 @@ class ChConstraintTuple_2vars {
         // 1- Assuming jacobians are already computed, now compute
         //   the matrices [Eq_a]=[invM_a]*[Cq_a]' and [Eq_b]
         if (variables_1->IsActive()) {
-            ChMatrixNM<double, T::nvars1, 1> mtemp1;
-            mtemp1.CopyFromMatrixT(Cq_1);
-            variables_1->Compute_invMb_v(Eq_1, mtemp1);
+            variables_1->Compute_invMb_v(Eq_1, Cq_1.transpose());
         }
         if (variables_2->IsActive()) {
-            ChMatrixNM<double, T::nvars2, 1> mtemp1;
-            mtemp1.CopyFromMatrixT(Cq_2);
-            variables_2->Compute_invMb_v(Eq_2, mtemp1);
+            variables_2->Compute_invMb_v(Eq_2, Cq_2.transpose());
         }
 
         // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
-        ChMatrixNM<double, 1, 1> res;
         if (variables_1->IsActive()) {
-            res.MatrMultiply(Cq_1, Eq_1);
-            g_i += res(0, 0);
+            g_i += Cq_1.dot(Eq_1);
         }
         if (variables_2->IsActive()) {
-            res.MatrMultiply(Cq_2, Eq_2);
-            g_i += res(0, 0);
+            g_i += Cq_2.dot(Eq_2);
         }
     }
 
     double Compute_Cq_q() {
         double ret = 0;
 
-        if (variables_1->IsActive())
-            for (int i = 0; i < T::nvars1; i++)
-                ret += Cq_1.ElementN(i) * variables_1->Get_qb().ElementN(i);
+        if (variables_1->IsActive()) {
+            ret += Cq_1.dot(variables_1->Get_qb());
+        }
 
-        if (variables_2->IsActive())
-            for (int i = 0; i < T::nvars2; i++)
-                ret += Cq_2.ElementN(i) * variables_2->Get_qb().ElementN(i);
+        if (variables_2->IsActive()) {
+            ret += Cq_2.dot(variables_2->Get_qb());
+        }
 
         return ret;
     }
 
     void Increment_q(const double deltal) {
-        if (variables_1->IsActive())
-            for (int i = 0; i < T::nvars1; i++)
-                variables_1->Get_qb()(i) += Eq_1.ElementN(i) * deltal;
+        if (variables_1->IsActive()) {
+            variables_1->Get_qb() += Eq_1 * deltal;
+        }
 
-        if (variables_2->IsActive())
-            for (int i = 0; i < T::nvars2; i++)
-                variables_2->Get_qb()(i) += Eq_2.ElementN(i) * deltal;
+        if (variables_2->IsActive()) {
+            variables_2->Get_qb() += Eq_2 * deltal;
+        }
     }
 
-    void MultiplyAndAdd(double& result, const ChMatrix<double>& vect) const {
-        int off_1 = variables_1->GetOffset();
+    void MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const {
+        if (variables->IsActive()) {
+            result += Cq_1.dot(vect.segment(variables->GetOffset(), T::nvars1));
+        }
 
-        if (variables_1->IsActive())
-            for (int i = 0; i < T::nvars1; i++)
-                result += vect(off_1 + i) * Cq_1.ElementN(i);
-
-        int off_2 = variables_2->GetOffset();
-
-        if (variables_2->IsActive())
-            for (int i = 0; i < T::nvars2; i++)
-                result += vect(off_2 + i) * Cq_2.ElementN(i);
+        if (variables_2->IsActive()) {
+            result += Cq_2.dot(vect.segment(variables_2->GetOffset(), T::nvars2));
+        }
     }
 
-    void MultiplyTandAdd(ChMatrix<double>& result, double l) {
-        int off_1 = variables_1->GetOffset();
+    void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) {
+        if (variables_1->IsActive()) {
+            result.segment(variables_1->GetOffset(), T::nvars1) += Cq_1 * l;
+        }
 
-        if (variables_1->IsActive())
-            for (int i = 0; i < T::nvars1; i++)
-                result(off_1 + i) += Cq_1.ElementN(i) * l;
-
-        int off_2 = variables_2->GetOffset();
-
-        if (variables_2->IsActive())
-            for (int i = 0; i < T::nvars2; i++)
-                result(off_2 + i) += Cq_2.ElementN(i) * l;
+        if (variables_2->IsActive()) {
+            result.segment(variables_2->GetOffset(), T::nvars2) += Cq_2 * l;
+        }
     }
 
     void Build_Cq(ChSparseMatrix& storage, int insrow) {
@@ -311,9 +289,9 @@ class ChConstraintTuple_3vars {
   public:
     /// Default constructor
     ChConstraintTuple_3vars() : variables_1(nullptr), variables_2(nullptr), variables_3(nullptr) {
-        Cq_1.Reset();
-        Cq_2.Reset();
-        Cq_3.Reset();
+        Cq_1.setZero();
+        Cq_2.setZero();
+        Cq_3.setZero();
     }
 
     /// Copy constructor
@@ -345,13 +323,13 @@ class ChConstraintTuple_3vars {
         return *this;
     }
 
-    ChMatrix<double>* Get_Cq_1() { return &Cq_1; }
-    ChMatrix<double>* Get_Cq_2() { return &Cq_2; }
-    ChMatrix<double>* Get_Cq_3() { return &Cq_3; }
+    ChMatrixRef Get_Cq_1() { return Cq_1; }
+    ChMatrixRef Get_Cq_2() { return Cq_2; }
+    ChMatrixRef Get_Cq_3() { return Cq_3; }
 
-    ChMatrix<double>* Get_Eq_1() { return &Eq_1; }
-    ChMatrix<double>* Get_Eq_2() { return &Eq_2; }
-    ChMatrix<double>* Get_Eq_3() { return &Eq_3; }
+    ChMatrixRef Get_Eq_1() { return Eq_1; }
+    ChMatrixRef Get_Eq_2() { return Eq_2; }
+    ChMatrixRef Get_Eq_3() { return Eq_3; }
 
     ChVariables* GetVariables_1() { return variables_1; }
     ChVariables* GetVariables_2() { return variables_2; }
@@ -370,107 +348,85 @@ class ChConstraintTuple_3vars {
         // 1- Assuming jacobians are already computed, now compute
         //   the matrices [Eq_a]=[invM_a]*[Cq_a]' and [Eq_b]
         if (variables_1->IsActive()) {
-            ChMatrixNM<double, T::nvars1, 1> mtemp1;
-            mtemp1.CopyFromMatrixT(Cq_1);
-            variables_1->Compute_invMb_v(Eq_1, mtemp1);
+            variables_1->Compute_invMb_v(Eq_1, Cq_1.transpose());
         }
         if (variables_2->IsActive()) {
-            ChMatrixNM<double, T::nvars2, 1> mtemp1;
-            mtemp1.CopyFromMatrixT(Cq_2);
-            variables_2->Compute_invMb_v(Eq_2, mtemp1);
+            variables_2->Compute_invMb_v(Eq_2, Cq_2.transpose());
         }
         if (variables_3->IsActive()) {
-            ChMatrixNM<double, T::nvars3, 1> mtemp1;
-            mtemp1.CopyFromMatrixT(Cq_3);
-            variables_3->Compute_invMb_v(Eq_3, mtemp1);
+            variables_3->Compute_invMb_v(Eq_3, Cq_3.transpose());
         }
 
         // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
-        ChMatrixNM<double, 1, 1> res;
         if (variables_1->IsActive()) {
-            res.MatrMultiply(Cq_1, Eq_1);
-            g_i += res(0, 0);
+            g_i += Cq_1.dot(Eq_1);
         }
         if (variables_2->IsActive()) {
-            res.MatrMultiply(Cq_2, Eq_2);
-            g_i += res(0, 0);
+            g_i += Cq_2.dot(Eq_2);
         }
         if (variables_3->IsActive()) {
-            res.MatrMultiply(Cq_3, Eq_3);
-            g_i += res(0, 0);
+            g_i += Cq_3.dot(Eq_3);
         }
     }
 
     double Compute_Cq_q() {
         double ret = 0;
 
-        if (variables_1->IsActive())
-            for (int i = 0; i < T::nvars1; i++)
-                ret += Cq_1.ElementN(i) * variables_1->Get_qb().ElementN(i);
+        if (variables_1->IsActive()) {
+            ret += Cq_1.dot(variables_1->Get_qb());
+        }
 
-        if (variables_2->IsActive())
-            for (int i = 0; i < T::nvars2; i++)
-                ret += Cq_2.ElementN(i) * variables_2->Get_qb().ElementN(i);
+        if (variables_2->IsActive()) {
+            ret += Cq_2.dot(variables_2->Get_qb());
+        }
 
-        if (variables_3->IsActive())
-            for (int i = 0; i < T::nvars3; i++)
-                ret += Cq_3.ElementN(i) * variables_3->Get_qb().ElementN(i);
+        if (variables_3->IsActive()) {
+            ret += Cq_3.dot(variables_3->Get_qb());
+        }
 
         return ret;
     }
 
     void Increment_q(const double deltal) {
-        if (variables_1->IsActive())
-            for (int i = 0; i < T::nvars1; i++)
-                variables_1->Get_qb()(i) += Eq_1.ElementN(i) * deltal;
+        if (variables_1->IsActive()) {
+            variables_1->Get_qb() += Eq_1 * deltal;
+        }
 
-        if (variables_2->IsActive())
-            for (int i = 0; i < T::nvars2; i++)
-                variables_2->Get_qb()(i) += Eq_2.ElementN(i) * deltal;
+        if (variables_2->IsActive()) {
+            variables_2->Get_qb() += Eq_2 * deltal;
+        }
 
-        if (variables_3->IsActive())
-            for (int i = 0; i < T::nvars3; i++)
-                variables_3->Get_qb()(i) += Eq_3.ElementN(i) * deltal;
+        if (variables_3->IsActive()) {
+            variables_3->Get_qb() += Eq_3 * deltal;
+        }
     }
 
-    void MultiplyAndAdd(double& result, const ChMatrix<double>& vect) const {
-        int off_1 = variables_1->GetOffset();
+    void MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const {
+        if (variables->IsActive()) {
+            result += Cq_1.dot(vect.segment(variables->GetOffset(), T::nvars1));
+        }
 
-        if (variables_1->IsActive())
-            for (int i = 0; i < T::nvars1; i++)
-                result += vect(off_1 + i) * Cq_1.ElementN(i);
+        if (variables_2->IsActive()) {
+            result += Cq_2.dot(vect.segment(variables_2->GetOffset(), T::nvars2));
+        }
 
-        int off_2 = variables_2->GetOffset();
-
-        if (variables_2->IsActive())
-            for (int i = 0; i < T::nvars2; i++)
-                result += vect(off_2 + i) * Cq_2.ElementN(i);
-
-        int off_3 = variables_3->GetOffset();
-
-        if (variables_3->IsActive())
-            for (int i = 0; i < T::nvars3; i++)
-                result += vect(off_3 + i) * Cq_3.ElementN(i);
+        if (variables_3->IsActive()) {
+            result += Cq_3.dot(vect.segment(variables_3->GetOffset(), T::nvars3));
+        }
     }
 
-    void MultiplyTandAdd(ChMatrix<double>& result, double l) {
-        int off_1 = variables_1->GetOffset();
+    void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) {
+        if (variables_1->IsActive()) {
+            result.segment(variables_1->GetOffset(), T::nvars1) += Cq_1 * l;
+        }
 
-        if (variables_1->IsActive())
-            for (int i = 0; i < T::nvars1; i++)
-                result(off_1 + i) += Cq_1.ElementN(i) * l;
+        if (variables_2->IsActive()) {
+            result.segment(variables_2->GetOffset(), T::nvars2) += Cq_2 * l;
+        }
 
-        int off_2 = variables_2->GetOffset();
-
-        if (variables_2->IsActive())
-            for (int i = 0; i < T::nvars2; i++)
-                result(off_2 + i) += Cq_2.ElementN(i) * l;
-
-        int off_3 = variables_3->GetOffset();
-
-        if (variables_3->IsActive())
-            for (int i = 0; i < T::nvars3; i++)
-                result(off_3 + i) += Cq_3.ElementN(i) * l;
+        if (variables_3->IsActive()) {
+            result.segment(variables_3->GetOffset(), T::nvars3) += Cq_3 * l;
+        }
     }
 
     void Build_Cq(ChSparseMatrix& storage, int insrow) {
@@ -518,10 +474,10 @@ class ChConstraintTuple_4vars {
   public:
     /// Default constructor
     ChConstraintTuple_4vars() : variables_1(nullptr), variables_2(nullptr), variables_3(nullptr), variables_4(nullptr) {
-        Cq_1.Reset();
-        Cq_2.Reset();
-        Cq_3.Reset();
-        Cq_4.Reset();
+        Cq_1.setZero();
+        Cq_2.setZero();
+        Cq_3.setZero();
+        Cq_4.setZero();
     }
 
     /// Copy constructor
@@ -559,15 +515,15 @@ class ChConstraintTuple_4vars {
         return *this;
     }
 
-    ChMatrix<double>* Get_Cq_1() { return &Cq_1; }
-    ChMatrix<double>* Get_Cq_2() { return &Cq_2; }
-    ChMatrix<double>* Get_Cq_3() { return &Cq_3; }
-    ChMatrix<double>* Get_Cq_4() { return &Cq_4; }
+    ChMatrixRef Get_Cq_1() { return Cq_1; }
+    ChMatrixRef Get_Cq_2() { return Cq_2; }
+    ChMatrixRef Get_Cq_3() { return Cq_3; }
+    ChMatrixRef Get_Cq_4() { return Cq_4; }
 
-    ChMatrix<double>* Get_Eq_1() { return &Eq_1; }
-    ChMatrix<double>* Get_Eq_2() { return &Eq_2; }
-    ChMatrix<double>* Get_Eq_3() { return &Eq_3; }
-    ChMatrix<double>* Get_Eq_4() { return &Eq_4; }
+    ChMatrixRef Get_Eq_1() { return Eq_1; }
+    ChMatrixRef Get_Eq_2() { return Eq_2; }
+    ChMatrixRef Get_Eq_3() { return Eq_3; }
+    ChMatrixRef Get_Eq_4() { return Eq_4; }
 
     ChVariables* GetVariables_1() { return variables_1; }
     ChVariables* GetVariables_2() { return variables_2; }
@@ -588,136 +544,109 @@ class ChConstraintTuple_4vars {
         // 1- Assuming jacobians are already computed, now compute
         //   the matrices [Eq_a]=[invM_a]*[Cq_a]' and [Eq_b]
         if (variables_1->IsActive()) {
-            ChMatrixNM<double, T::nvars1, 1> mtemp1;
-            mtemp1.CopyFromMatrixT(Cq_1);
-            variables_1->Compute_invMb_v(Eq_1, mtemp1);
+            variables_1->Compute_invMb_v(Eq_1, Cq_1.transpose());
         }
         if (variables_2->IsActive()) {
-            ChMatrixNM<double, T::nvars2, 1> mtemp1;
-            mtemp1.CopyFromMatrixT(Cq_2);
-            variables_2->Compute_invMb_v(Eq_2, mtemp1);
+            variables_2->Compute_invMb_v(Eq_2, Cq_2.transpose());
         }
         if (variables_3->IsActive()) {
-            ChMatrixNM<double, T::nvars3, 1> mtemp1;
-            mtemp1.CopyFromMatrixT(Cq_3);
-            variables_3->Compute_invMb_v(Eq_3, mtemp1);
+            variables_3->Compute_invMb_v(Eq_3, Cq_3.transpose());
         }
         if (variables_4->IsActive()) {
-            ChMatrixNM<double, T::nvars4, 1> mtemp1;
-            mtemp1.CopyFromMatrixT(Cq_4);
-            variables_4->Compute_invMb_v(Eq_4, mtemp1);
+            variables_4->Compute_invMb_v(Eq_4, Cq_4.transpose());
         }
 
         // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
-        ChMatrixNM<double, 1, 1> res;
         if (variables_1->IsActive()) {
-            res.MatrMultiply(Cq_1, Eq_1);
-            g_i += res(0, 0);
+            g_i += Cq_1.dot(Eq_1);
         }
         if (variables_2->IsActive()) {
-            res.MatrMultiply(Cq_2, Eq_2);
-            g_i += res(0, 0);
+            g_i += Cq_2.dot(Eq_2);
         }
         if (variables_3->IsActive()) {
-            res.MatrMultiply(Cq_3, Eq_3);
-            g_i += res(0, 0);
+            g_i += Cq_3.dot(Eq_3);
         }
         if (variables_4->IsActive()) {
-            res.MatrMultiply(Cq_4, Eq_4);
-            g_i += res(0, 0);
+            g_i += Cq_4.dot(Eq_4);
         }
     }
 
     double Compute_Cq_q() {
         double ret = 0;
 
-        if (variables_1->IsActive())
-            for (int i = 0; i < T::nvars1; i++)
-                ret += Cq_1.ElementN(i) * variables_1->Get_qb().ElementN(i);
+        if (variables_1->IsActive()) {
+            ret += Cq_1.dot(variables_1->Get_qb());
+        }
 
-        if (variables_2->IsActive())
-            for (int i = 0; i < T::nvars2; i++)
-                ret += Cq_2.ElementN(i) * variables_2->Get_qb().ElementN(i);
+        if (variables_2->IsActive()) {
+            ret += Cq_2.dot(variables_2->Get_qb());
+        }
 
-        if (variables_3->IsActive())
-            for (int i = 0; i < T::nvars3; i++)
-                ret += Cq_3.ElementN(i) * variables_3->Get_qb().ElementN(i);
+        if (variables_3->IsActive()) {
+            ret += Cq_3.dot(variables_3->Get_qb());
+        }
 
-        if (variables_4->IsActive())
-            for (int i = 0; i < T::nvars4; i++)
-                ret += Cq_4.ElementN(i) * variables_4->Get_qb().ElementN(i);
+        if (variables_4->IsActive()) {
+            ret += Cq_4.dot(variables_4->Get_qb());
+        }
 
         return ret;
     }
 
     void Increment_q(const double deltal) {
-        if (variables_1->IsActive())
-            for (int i = 0; i < T::nvars1; i++)
-                variables_1->Get_qb()(i) += Eq_1.ElementN(i) * deltal;
+        if (variables_1->IsActive()) {
+            variables_1->Get_qb() += Eq_1 * deltal;
+        }
 
-        if (variables_2->IsActive())
-            for (int i = 0; i < T::nvars2; i++)
-                variables_2->Get_qb()(i) += Eq_2.ElementN(i) * deltal;
+        if (variables_2->IsActive()) {
+            variables_2->Get_qb() += Eq_2 * deltal;
+        }
 
-        if (variables_3->IsActive())
-            for (int i = 0; i < T::nvars3; i++)
-                variables_3->Get_qb()(i) += Eq_3.ElementN(i) * deltal;
+        if (variables_3->IsActive()) {
+            variables_3->Get_qb() += Eq_3 * deltal;
+        }
 
-        if (variables_4->IsActive())
-            for (int i = 0; i < T::nvars4; i++)
-                variables_4->Get_qb()(i) += Eq_4.ElementN(i) * deltal;
+        if (variables_4->IsActive()) {
+            variables_4->Get_qb() += Eq_4 * deltal;
+        }
     }
 
-    void MultiplyAndAdd(double& result, const ChMatrix<double>& vect) const {
-        int off_1 = variables_1->GetOffset();
+    //// RADU
+    //// Fix this with Eigen
+    void MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const {
+        if (variables->IsActive()) {
+            result += Cq_1.dot(vect.segment(variables->GetOffset(), T::nvars1));
+        }
 
-        if (variables_1->IsActive())
-            for (int i = 0; i < T::nvars1; i++)
-                result += vect(off_1 + i) * Cq_1.ElementN(i);
+        if (variables_2->IsActive()) {
+            result += Cq_2.dot(vect.segment(variables_2->GetOffset(), T::nvars2));
+        }
 
-        int off_2 = variables_2->GetOffset();
+        if (variables_3->IsActive()) {
+            result += Cq_3.dot(vect.segment(variables_3->GetOffset(), T::nvars3));
+        }
 
-        if (variables_2->IsActive())
-            for (int i = 0; i < T::nvars2; i++)
-                result += vect(off_2 + i) * Cq_2.ElementN(i);
-
-        int off_3 = variables_3->GetOffset();
-
-        if (variables_3->IsActive())
-            for (int i = 0; i < T::nvars3; i++)
-                result += vect(off_3 + i) * Cq_3.ElementN(i);
-
-        int off_4 = variables_4->GetOffset();
-
-        if (variables_4->IsActive())
-            for (int i = 0; i < T::nvars4; i++)
-                result += vect(off_4 + i) * Cq_4.ElementN(i);
+        if (variables_4->IsActive()) {
+            result += Cq_4.dot(vect.segment(variables_4->GetOffset(), T::nvars4));
+        }
     }
 
-    void MultiplyTandAdd(ChMatrix<double>& result, double l) {
-        int off_1 = variables_1->GetOffset();
+    void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) {
+        if (variables_1->IsActive()) {
+            result.segment(variables_1->GetOffset(), T::nvars1) += Cq_1 * l;
+        }
 
-        if (variables_1->IsActive())
-            for (int i = 0; i < T::nvars1; i++)
-                result(off_1 + i) += Cq_1.ElementN(i) * l;
+        if (variables_2->IsActive()) {
+            result.segment(variables_2->GetOffset(), T::nvars2) += Cq_2 * l;
+        }
 
-        int off_2 = variables_2->GetOffset();
+        if (variables_3->IsActive()) {
+            result.segment(variables_3->GetOffset(), T::nvars3) += Cq_3 * l;
+        }
 
-        if (variables_2->IsActive())
-            for (int i = 0; i < T::nvars2; i++)
-                result(off_2 + i) += Cq_2.ElementN(i) * l;
-
-        int off_3 = variables_3->GetOffset();
-
-        if (variables_3->IsActive())
-            for (int i = 0; i < T::nvars3; i++)
-                result(off_3 + i) += Cq_3.ElementN(i) * l;
-
-        int off_4 = variables_4->GetOffset();
-
-        if (variables_4->IsActive())
-            for (int i = 0; i < T::nvars4; i++)
-                result(off_4 + i) += Cq_4.ElementN(i) * l;
+        if (variables_4->IsActive()) {
+            result.segment(variables_4->GetOffset(), T::nvars4) += Cq_4 * l;
+        }
     }
 
     void Build_Cq(ChSparseMatrix& storage, int insrow) {

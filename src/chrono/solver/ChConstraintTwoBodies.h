@@ -53,14 +53,14 @@ class ChApi ChConstraintTwoBodies : public ChConstraintTwo {
     ChConstraintTwoBodies& operator=(const ChConstraintTwoBodies& other);
 
     /// Access jacobian matrix
-    virtual ChMatrix<double>* Get_Cq_a() override { return &Cq_a; }
+    virtual ChMatrixRef Get_Cq_a() override { return Cq_a; }
     /// Access jacobian matrix
-    virtual ChMatrix<double>* Get_Cq_b() override { return &Cq_b; }
+    virtual ChMatrixRef Get_Cq_b() override { return Cq_b; }
 
     /// Access auxiliary matrix (ex: used by iterative solvers)
-    virtual ChMatrix<double>* Get_Eq_a() override { return &Eq_a; }
+    virtual ChMatrixRef Get_Eq_a() override { return Eq_a; }
     /// Access auxiliary matrix (ex: used by iterative solvers)
-    virtual ChMatrix<double>* Get_Eq_b() override { return &Eq_b; }
+    virtual ChMatrixRef Get_Eq_b() override { return Eq_b; }
 
     /// Set references to the constrained objects, each of ChVariablesBody type,
     /// automatically creating/resizing jacobians if needed.
@@ -93,7 +93,7 @@ class ChApi ChConstraintTwoBodies : public ChConstraintTwo {
     /// the size of the total variables&constraints in the system; the procedure
     /// will use the ChVariable offsets (that must be already updated) to know the
     /// indexes in result and vect;
-    virtual void MultiplyAndAdd(double& result, const ChMatrix<double>& vect) const override;
+    virtual void MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const override;
 
     /// Computes the product of the corresponding transposed blocks in the
     /// system matrix (ie. the TRANSPOSED jacobian matrix C_q') by 'l', and add to 'result'.
@@ -101,7 +101,7 @@ class ChApi ChConstraintTwoBodies : public ChConstraintTwo {
     /// the size of the total variables&constraints in the system; the procedure
     /// will use the ChVariable offsets (that must be already updated) to know the
     /// indexes in result and vect;
-    virtual void MultiplyTandAdd(ChMatrix<double>& result, double l) override;
+    virtual void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) override;
 
     /// Puts the two jacobian parts into the 'insrow' row of a sparse matrix,
     /// where both portions of the jacobian are shifted in order to match the
