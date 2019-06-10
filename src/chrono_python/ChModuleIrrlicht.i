@@ -105,8 +105,6 @@ using namespace gui;
 // is enough that a single class in an inheritance tree uses %shared_ptr, and all other in the 
 // tree must be promoted to %shared_ptr too).
 
-%shared_ptr(chrono::ChSystem)
-%shared_ptr(chrono::ChAsset)
 %shared_ptr(chrono::irrlicht::ChIrrNodeAsset)
 
 

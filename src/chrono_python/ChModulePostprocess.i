@@ -90,9 +90,7 @@ using namespace chrono::postprocess;
 // is enough that a single class in an inheritance tree uses %shared_ptr, and all other in the 
 // tree must be promoted to %shared_ptr too).
 
-%shared_ptr(chrono::ChAsset)
 %shared_ptr(chrono::ChVisualization)
-%shared_ptr(chrono::ChSystem)
 %shared_ptr(chrono::postprocess::ChPostProcessBase)
 %shared_ptr(chrono::postprocess::ChPovRay)
 %shared_ptr(chrono::postprocess::ChPovRayAssetCustom)
@@ -120,6 +118,8 @@ using namespace chrono::postprocess;
 %import  "ChClassFactory.i"
 %import  "ChAsset.i"
 %import  "ChColor.i"
+%import  "ChSystem.i"
+%import  "ChVisualization.i"
 
 %include "ChPostProcessBase.i"
 %include "ChPovRay.i"
