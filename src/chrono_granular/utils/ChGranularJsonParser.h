@@ -227,11 +227,11 @@ bool ParseJSON(const char* json_file, sim_param_holder& params, bool verbose = t
     }
     if (doc.HasMember("output_dir") && doc["output_dir"].IsString()) {
         params.output_dir = doc["output_dir"].GetString();
-        CONDITIONAL_PRINTF(verbose, "params.output_dir %s\n", params.output_dir);
+        CONDITIONAL_PRINTF(verbose, "params.output_dir %s\n", params.output_dir.c_str());
     }
     if (doc.HasMember("checkpoint_file") && doc["checkpoint_file"].IsString()) {
         params.checkpoint_file = doc["checkpoint_file"].GetString();
-        CONDITIONAL_PRINTF(verbose, "params.checkpoint_file %s\n", params.checkpoint_file);
+        CONDITIONAL_PRINTF(verbose, "params.checkpoint_file %s\n", params.checkpoint_file.c_str());
     }
     if (doc.HasMember("write_mode") && doc["write_mode"].IsString()) {
         if (doc["write_mode"].GetString() == string("binary")) {
