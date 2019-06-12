@@ -142,6 +142,7 @@ source_group(cuda FILES ${ChronoEngine_Granular_CUDA})
 set(ChronoEngine_Granular_UTILITIES
 		utils/ChGranularUtilities.h
 		utils/ChGranularJsonParser.h
+		utils/ChGranularSphereDecomp.h
 		)
 
 source_group(utilities FILES ${ChronoEngine_Granular_UTILITIES})
