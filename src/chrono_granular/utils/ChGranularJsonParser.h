@@ -24,10 +24,10 @@ using std::string;
 using std::cout;
 using std::endl;
 
-using namespace chrono;
-using namespace chrono::granular;
 using namespace rapidjson;
 
+namespace chrono {
+namespace granular {
 typedef struct sim_param_holder {
     float sphere_radius;
     float sphere_density;
@@ -363,3 +363,5 @@ bool ParseJSON(const char* json_file, sim_param_holder& params, bool verbose = t
     // step_mode
     return true;
 }
+}  // namespace granular
+}  // namespace chrono
