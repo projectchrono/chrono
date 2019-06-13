@@ -18,7 +18,8 @@
 	"tangentDampS2S": 50,
 	"tangentDampS2W": 50,
 	"cohesion_ratio": 0,
-	"static_friction_coeff": 0,
+	"static_friction_coeffS2S": 0,
+	"static_friction_coeffS2W": 0,
 	"verbose": false,
 
 	"psi_T": 32,

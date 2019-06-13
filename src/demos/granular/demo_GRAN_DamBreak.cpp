@@ -142,8 +142,8 @@ int main(int argc, char* argv[]) {
     gran_system.set_K_t_SPH2WALL(params.tangentStiffS2W);
     gran_system.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
     gran_system.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
-    gran_system.set_static_friction_coeff_SPH2SPH(params.static_friction_coeff);
-    gran_system.set_static_friction_coeff_SPH2WALL(params.static_friction_coeff);
+    gran_system.set_static_friction_coeff_SPH2SPH(params.static_friction_coeffS2S);
+    gran_system.set_static_friction_coeff_SPH2WALL(params.static_friction_coeffS2W);
 
     gran_system.set_Cohesion_ratio(params.cohesion_ratio);
     gran_system.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);

@@ -288,9 +288,9 @@ int main(int argc, char* argv[]) {
     gran_sys.set_fixed_stepSize(params.step_size);
     gran_sys.set_friction_mode(GRAN_FRICTION_MODE::MULTI_STEP);
     gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
-    gran_sys.set_static_friction_coeff_SPH2SPH(params.static_friction_coeff);
-    gran_sys.set_static_friction_coeff_SPH2WALL(params.static_friction_coeff);
-    gran_sys.set_static_friction_coeff_SPH2MESH(params.static_friction_coeff);
+    gran_sys.set_static_friction_coeff_SPH2SPH(params.static_friction_coeffS2S);
+    gran_sys.set_static_friction_coeff_SPH2WALL(params.static_friction_coeffS2W);
+    gran_sys.set_static_friction_coeff_SPH2MESH(params.static_friction_coeffS2M);
 
     // Create rigid wheel simulation
     ChSystemNSC rover_sys;

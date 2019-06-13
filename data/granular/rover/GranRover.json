@@ -26,7 +26,8 @@
 	"tangentDampS2S": 100,
 	"tangentDampS2W": 100,
 	"tangentDampS2M": 100,
-	"static_friction_coeff": 0.7,
+	"static_friction_coeffS2S": 0.7,
+	"static_friction_coeffS2W": 0.7,
 
 	"cohesion_ratio": 0,
 	"adhesion_ratio_s2w": 0,
