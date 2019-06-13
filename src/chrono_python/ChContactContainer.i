@@ -47,6 +47,7 @@ class ChAddContactCallbackP : public chrono::ChContactContainer::AddContactCallb
 
 %feature("director") ChReportContactCallbackP;
 %feature("director") ChAddContactCallbackP;
+%feature("director") ReportContactCallback;
 
 
 // NESTED CLASSES

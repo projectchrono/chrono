@@ -296,7 +296,7 @@ class CH_GRANULAR_API ChSystemGranularSMC {
                             bool outward_normal,
                             bool track_forces);
 
-    /// Create an z-axis aligned cone boundary condition
+    /// Create plane boundary condition
     size_t Create_BC_Plane(float plane_pos[3], float plane_normal[3], bool track_forces);
 
     /// Create an z-axis aligned cylinder boundary condition

@@ -5,6 +5,8 @@
 
 %}
 
+%shared_ptr(chrono::ChLinkBase)
+
 // Forward ref 
 //%import "ChPhysicsItem.i" // parent class does not need %import if all .i are included in proper order
 

@@ -116,7 +116,7 @@ void ChSystemGranularSMC_trimesh::load_meshes(std::vector<std::string> objfilena
     unsigned int numTriangleFamilies = 0;
     std::vector<ChTriangleMeshConnected> all_meshes;
     for (unsigned int i = 0; i < objfilenames.size(); i++) {
-        printf("importing %s\n", objfilenames[i].c_str());
+        INFO_PRINTF("importing %s\n", objfilenames[i].c_str());
         all_meshes.push_back(ChTriangleMeshConnected());
         ChTriangleMeshConnected& mesh = all_meshes[all_meshes.size() - 1];
 
@@ -133,13 +133,13 @@ void ChSystemGranularSMC_trimesh::load_meshes(std::vector<std::string> objfilena
         numTriangleFamilies++;
     }
 
-    printf("nTriangles is %u\n", nTriangles);
-    printf("nTriangleFamiliesInSoup is %u\n", numTriangleFamilies);
+    INFO_PRINTF("nTriangles is %u\n", nTriangles);
+    INFO_PRINTF("nTriangleFamiliesInSoup is %u\n", numTriangleFamilies);
 
     // Allocate memory to store mesh soup in unified memory
-    printf("Allocating mesh unified memory\n");
+    INFO_PRINTF("Allocating mesh unified memory\n");
     setupTriMesh(all_meshes, nTriangles, masses, inflated, inflation_radii);
-    printf("Done allocating mesh unified memory\n");
+    INFO_PRINTF("Done allocating mesh unified memory\n");
 }
 
 // result = rot_mat * p + pos
@@ -247,7 +247,7 @@ void ChSystemGranularSMC_trimesh::setupTriMesh(const std::vector<ChTriangleMeshC
         gpuErrchk(cudaMallocManaged(&meshSoup->node3, nTriangles * sizeof(float3), cudaMemAttachGlobal));
     }
 
-    printf("Done allocating nodes for %d triangles\n", nTriangles);
+    INFO_PRINTF("Done allocating nodes for %d triangles\n", nTriangles);
 
     // Setup the clean copy of the mesh soup from the obj file data
     unsigned int family = 0;
@@ -281,7 +281,7 @@ void ChSystemGranularSMC_trimesh::setupTriMesh(const std::vector<ChTriangleMeshC
             tri_i++;
         }
         family++;
-        printf("Done writing family %d\n", family);
+        INFO_PRINTF("Done writing family %d\n", family);
     }
 
     meshSoup->numTriangleFamilies = family;

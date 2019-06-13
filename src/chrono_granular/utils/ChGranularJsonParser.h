@@ -1,3 +1,17 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2019 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Nic Olsen
+// =============================================================================
+
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_granular/ChGranularDefines.h"
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
@@ -10,16 +24,17 @@ using std::string;
 using std::cout;
 using std::endl;
 
-using namespace chrono;
-using namespace chrono::granular;
 using namespace rapidjson;
 
+namespace chrono {
+namespace granular {
 typedef struct sim_param_holder {
     float sphere_radius;
     float sphere_density;
     float box_X;
     float box_Y;
     float box_Z;
+    GRAN_TIME_INTEGRATOR time_integrator;
     float step_size;
     float time_end;
     float grav_X;
@@ -37,7 +52,14 @@ typedef struct sim_param_holder {
     double tangentStiffS2S;
     double tangentStiffS2W;
     double tangentStiffS2M;
-    float static_friction_coeff;
+    GRAN_FRICTION_MODE friction_mode;
+    float static_friction_coeffS2S;
+    float static_friction_coeffS2W;
+    float static_friction_coeffS2M;
+    GRAN_ROLLING_MODE rolling_mode;
+    float rolling_friction_coeffS2S;
+    float rolling_friction_coeffS2W;
+    float rolling_friction_coeffS2M;
     float cohesion_ratio;
     float adhesion_ratio_s2w;
     float adhesion_ratio_s2m;
@@ -57,6 +79,7 @@ void ShowJSONUsage() {
     cout << "box_X" << endl;
     cout << "box_Y" << endl;
     cout << "box_Z" << endl;
+    cout << "time_integrator (forward_euler|chung|centered_difference|extended_taylor)" << endl;
     cout << "step_size" << endl;
     cout << "time_end" << endl;
     cout << "grav_X" << endl;
@@ -69,7 +92,19 @@ void ShowJSONUsage() {
     cout << "normalDampS2W" << endl;
     cout << "normalDampS2M" << endl;
     cout << "tangentDampS2S" << endl;
+    cout << "tangentDampS2W" << endl;
+    cout << "tangentDampS2M" << endl;
     cout << "tangentStiffS2S" << endl;
+    cout << "tangentStiffS2W" << endl;
+    cout << "tangentStiffS2M" << endl;
+    cout << "friction_mode (frictionless|single_step|multi_step)" << endl;
+    cout << "static_friction_coeffS2S" << endl;
+    cout << "static_friction_coeffS2W" << endl;
+    cout << "static_friction_coeffS2M" << endl;
+    cout << "rolling_mode (no_resistance|constant_torque|viscous)" << endl;
+    cout << "rolling_friction_coeffS2S" << endl;
+    cout << "rolling_friction_coeffS2W" << endl;
+    cout << "rolling_friction_coeffS2M" << endl;
     cout << "cohesion_ratio" << endl;
     cout << "adhesion_ratio_s2w" << endl;
     cout << "adhesion_ratio_s2m" << endl;
@@ -78,7 +113,7 @@ void ShowJSONUsage() {
     cout << "psi_L" << endl;
     cout << "output_dir" << endl;
     cout << "checkpoint_file" << endl;
-    cout << "write_mode (csv, binary, or none)" << endl;
+    cout << "write_mode (csv|binary|none)" << endl;
 }
 
 void InvalidArg(string arg) {
@@ -128,6 +163,24 @@ bool ParseJSON(const char* json_file, sim_param_holder& params, bool verbose = t
     if (doc.HasMember("box_Z") && doc["box_Z"].IsNumber()) {
         params.box_Z = doc["box_Z"].GetDouble();
         CONDITIONAL_PRINTF(verbose, "params.box_Z %f\n", params.box_Z);
+    }
+    if (doc.HasMember("time_integrator") && doc["time_integrator"].IsString()) {
+        if (doc["time_integrator"].GetString() == string("forward_euler")) {
+            params.time_integrator = GRAN_TIME_INTEGRATOR::FORWARD_EULER;
+            CONDITIONAL_PRINTF(verbose, "params.time_integrator forward_euler\n");
+        } else if (doc["time_integrator"].GetString() == string("chung")) {
+            params.time_integrator = GRAN_TIME_INTEGRATOR::CHUNG;
+            CONDITIONAL_PRINTF(verbose, "params.time_integrator chung\n");
+        } else if (doc["time_integrator"].GetString() == string("centered_difference")) {
+            params.time_integrator = GRAN_TIME_INTEGRATOR::CENTERED_DIFFERENCE;
+            CONDITIONAL_PRINTF(verbose, "params.time_integrator centered_difference\n");
+        } else if (doc["time_integrator"].GetString() == string("extended_taylor")) {
+            params.time_integrator = GRAN_TIME_INTEGRATOR::EXTENDED_TAYLOR;
+            CONDITIONAL_PRINTF(verbose, "params.time_integrator extended_taylor\n");
+        } else {
+            InvalidArg("time_integrator");
+            return false;
+        }
     }
     if (doc.HasMember("time_end") && doc["time_end"].IsNumber()) {
         params.time_end = doc["time_end"].GetDouble();
@@ -193,9 +246,59 @@ bool ParseJSON(const char* json_file, sim_param_holder& params, bool verbose = t
         params.tangentDampS2M = doc["tangentDampS2M"].GetDouble();
         CONDITIONAL_PRINTF(verbose, "params.tangentDampS2M %f\n", params.tangentDampS2M);
     }
-    if (doc.HasMember("static_friction_coeff") && doc["static_friction_coeff"].IsNumber()) {
-        params.static_friction_coeff = doc["static_friction_coeff"].GetDouble();
-        CONDITIONAL_PRINTF(verbose, "params.static_friction_coeff %f\n", params.static_friction_coeff);
+    if (doc.HasMember("friction_mode") && doc["friction_mode"].IsString()) {
+        if (doc["friction_mode"].GetString() == string("frictionless")) {
+            params.friction_mode = GRAN_FRICTION_MODE::FRICTIONLESS;
+            CONDITIONAL_PRINTF(verbose, "params.friction_mode frictionless\n");
+        } else if (doc["friction_mode"].GetString() == string("single_step")) {
+            params.friction_mode = GRAN_FRICTION_MODE::SINGLE_STEP;
+            CONDITIONAL_PRINTF(verbose, "params.friction_mode single_step\n");
+        } else if (doc["friction_mode"].GetString() == string("multi_step")) {
+            params.friction_mode = GRAN_FRICTION_MODE::MULTI_STEP;
+            CONDITIONAL_PRINTF(verbose, "params.friction_mode multi_step\n");
+        } else {
+            InvalidArg("friction_mode");
+            return false;
+        }
+    }
+    if (doc.HasMember("static_friction_coeffS2S") && doc["static_friction_coeffS2S"].IsNumber()) {
+        params.static_friction_coeffS2S = doc["static_friction_coeffS2S"].GetDouble();
+        CONDITIONAL_PRINTF(verbose, "params.static_friction_coeffS2S %f\n", params.static_friction_coeffS2S);
+    }
+    if (doc.HasMember("static_friction_coeffS2W") && doc["static_friction_coeffS2W"].IsNumber()) {
+        params.static_friction_coeffS2W = doc["static_friction_coeffS2W"].GetDouble();
+        CONDITIONAL_PRINTF(verbose, "params.static_friction_coeffS2W %f\n", params.static_friction_coeffS2W);
+    }
+    if (doc.HasMember("static_friction_coeffS2M") && doc["static_friction_coeffS2M"].IsNumber()) {
+        params.static_friction_coeffS2M = doc["static_friction_coeffS2M"].GetDouble();
+        CONDITIONAL_PRINTF(verbose, "params.static_friction_coeffS2M %f\n", params.static_friction_coeffS2M);
+    }
+    if (doc.HasMember("rolling_mode") && doc["rolling_mode"].IsString()) {
+        if (doc["rolling_mode"].GetString() == string("no_resistance")) {
+            params.rolling_mode = GRAN_ROLLING_MODE::NO_RESISTANCE;
+            CONDITIONAL_PRINTF(verbose, "params.rolling_mode no_resistance\n");
+        } else if (doc["rolling_mode"].GetString() == string("constant_torque")) {
+            params.rolling_mode = GRAN_ROLLING_MODE::CONSTANT_TORQUE;
+            CONDITIONAL_PRINTF(verbose, "params.rolling_mode constant_torque\n");
+        } else if (doc["rolling_mode"].GetString() == string("viscous")) {
+            params.rolling_mode = GRAN_ROLLING_MODE::VISCOUS;
+            CONDITIONAL_PRINTF(verbose, "params.rolling_mode viscous\n");
+        } else {
+            InvalidArg("rolling_mode");
+            return false;
+        }
+    }
+    if (doc.HasMember("rolling_friction_coeffS2S") && doc["rolling_friction_coeffS2S"].IsNumber()) {
+        params.rolling_friction_coeffS2S = doc["rolling_friction_coeffS2S"].GetDouble();
+        CONDITIONAL_PRINTF(verbose, "params.rolling_friction_coeffS2S %f\n", params.rolling_friction_coeffS2S);
+    }
+    if (doc.HasMember("rolling_friction_coeffS2W") && doc["rolling_friction_coeffS2W"].IsNumber()) {
+        params.rolling_friction_coeffS2W = doc["rolling_friction_coeffS2W"].GetDouble();
+        CONDITIONAL_PRINTF(verbose, "params.rolling_friction_coeffS2W %f\n", params.rolling_friction_coeffS2W);
+    }
+    if (doc.HasMember("rolling_friction_coeffS2M") && doc["rolling_friction_coeffS2M"].IsNumber()) {
+        params.rolling_friction_coeffS2M = doc["rolling_friction_coeffS2M"].GetDouble();
+        CONDITIONAL_PRINTF(verbose, "params.rolling_friction_coeffS2M %f\n", params.rolling_friction_coeffS2M);
     }
     if (doc.HasMember("cohesion_ratio") && doc["cohesion_ratio"].IsNumber()) {
         params.cohesion_ratio = doc["cohesion_ratio"].GetDouble();
@@ -227,11 +330,11 @@ bool ParseJSON(const char* json_file, sim_param_holder& params, bool verbose = t
     }
     if (doc.HasMember("output_dir") && doc["output_dir"].IsString()) {
         params.output_dir = doc["output_dir"].GetString();
-        CONDITIONAL_PRINTF(verbose, "params.output_dir %s\n", params.output_dir);
+        CONDITIONAL_PRINTF(verbose, "params.output_dir %s\n", params.output_dir.c_str());
     }
     if (doc.HasMember("checkpoint_file") && doc["checkpoint_file"].IsString()) {
         params.checkpoint_file = doc["checkpoint_file"].GetString();
-        CONDITIONAL_PRINTF(verbose, "params.checkpoint_file %s\n", params.checkpoint_file);
+        CONDITIONAL_PRINTF(verbose, "params.checkpoint_file %s\n", params.checkpoint_file.c_str());
     }
     if (doc.HasMember("write_mode") && doc["write_mode"].IsString()) {
         if (doc["write_mode"].GetString() == string("binary")) {
@@ -260,3 +363,5 @@ bool ParseJSON(const char* json_file, sim_param_holder& params, bool verbose = t
     // step_mode
     return true;
 }
+}  // namespace granular
+}  // namespace chrono

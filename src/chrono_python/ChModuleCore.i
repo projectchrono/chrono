@@ -20,7 +20,7 @@
 // Turn on the documentation of members, for more intuitive IDE typing
 
 %feature("autodoc", "1");
-
+%feature("flatnested", "1");
 
 // Turn on the exception handling to intercept C++ exceptions
 %include "exception.i"
@@ -69,6 +69,7 @@
 #include "chrono/geometry/ChTriangleMesh.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/geometry/ChTriangleMeshSoup.h"
+#include "chrono/core/ChBezierCurve.h"
 
 using namespace chrono;
 using namespace chrono::collision;
@@ -118,17 +119,13 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChFrame<double>)
 %shared_ptr(chrono::ChFrameMoving<double>)
 
-%shared_ptr(chrono::ChAsset)
-%shared_ptr(chrono::ChVisualization)
 //%shared_ptr(chrono::ChColor)
 %shared_ptr(chrono::ChColorAsset)
-%shared_ptr(chrono::ChAssetLevel)
 %shared_ptr(chrono::ChObjShapeFile)
 %shared_ptr(chrono::ChBoxShape) 
 %shared_ptr(chrono::ChSphereShape)
 %shared_ptr(chrono::ChEllipsoidShape)
 %shared_ptr(chrono::ChCylinderShape)
-%shared_ptr(chrono::ChTexture)
 %shared_ptr(chrono::ChCamera) 
 %shared_ptr(chrono::ChLineShape)
 %shared_ptr(chrono::ChSurfaceShape)
@@ -137,6 +134,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChPointPointSegment)
 %shared_ptr(chrono::ChPointPointSpring)
 %shared_ptr(chrono::ChTriangleMeshShape)
+%shared_ptr(chrono::ChBezierCurve)
 
 %shared_ptr(chrono::ChFunction)  
 %shared_ptr(chrono::ChFunction_Const)
@@ -170,13 +168,10 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChContinuumElastoplastic)
 %shared_ptr(chrono::ChContinuumPlasticVonMises)
 %shared_ptr(chrono::ChContinuumDruckerPrager)
-%shared_ptr(chrono::ChBodyFrame)
 %shared_ptr(chrono::ChNodeBase)
 %shared_ptr(chrono::ChNodeXYZ)
 %shared_ptr(chrono::ChMarker)
 %shared_ptr(chrono::ChForce)
-%shared_ptr(chrono::ChBody)
-%shared_ptr(chrono::ChBodyAuxRef)
 %shared_ptr(chrono::ChBodyEasySphere)
 %shared_ptr(chrono::ChBodyEasyBox)
 %shared_ptr(chrono::ChBodyEasyEllipsoid)
@@ -190,35 +185,17 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChParticleBase)
 %shared_ptr(chrono::ChIndexedParticles)
 %shared_ptr(chrono::ChParticlesClones)
-%shared_ptr(chrono::ChAssembly)
 // shared_ptr macros for ChIntegrable, Chtimestepper and their children classes moved into "ChTimestepper.i"
 %shared_ptr(chrono::ChSolver)
-%shared_ptr(chrono::ChSystem)
 %shared_ptr(chrono::ChSystemNSC)
 %shared_ptr(chrono::ChSystemSMC)
 %shared_ptr(chrono::ChContactContainer)
 %shared_ptr(chrono::ChProximityContainer)
 %shared_ptr(chrono::ChLoadContainer)
 
-%shared_ptr(chrono::ChLinkBase)
-%shared_ptr(chrono::ChLink)
 %shared_ptr(chrono::ChLinkMarkers)
 %shared_ptr(chrono::ChLinkLimit)
-%shared_ptr(chrono::ChLinkLock)
-%shared_ptr(chrono::ChLinkLockRevolute)
-%shared_ptr(chrono::ChLinkLockLock)
-%shared_ptr(chrono::ChLinkLockSpherical)
-%shared_ptr(chrono::ChLinkLockCylindrical)
-%shared_ptr(chrono::ChLinkLockPrismatic)
-%shared_ptr(chrono::ChLinkLockPointPlane)
-%shared_ptr(chrono::ChLinkLockPointLine)
-%shared_ptr(chrono::ChLinkLockPlanePlane)
-%shared_ptr(chrono::ChLinkLockOldham)
-%shared_ptr(chrono::ChLinkLockFree)
-%shared_ptr(chrono::ChLinkLockAlign)
-%shared_ptr(chrono::ChLinkLockParallel)
-%shared_ptr(chrono::ChLinkLockPerpend)
-%shared_ptr(chrono::ChLinkLockRevolutePrismatic)
+
 %shared_ptr(chrono::ChLinkDistance)
 %shared_ptr(chrono::ChLinkGear)
 %shared_ptr(chrono::ChLinkLinActuator)
@@ -236,21 +213,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChLinkRevoluteSpherical)
 %shared_ptr(chrono::ChLinkScrew)
 %shared_ptr(chrono::ChLinkSpring)
-%shared_ptr(chrono::ChLinkSpringCB)
 %shared_ptr(chrono::ChLinkUniversal)
-
-%shared_ptr(chrono::ChShaft)
-%shared_ptr(chrono::ChShaftsBody)
-%shared_ptr(chrono::ChShaftsBodyTranslation)
-%shared_ptr(chrono::ChShaftsMotorBase)
-%shared_ptr(chrono::ChShaftsClutch)
-%shared_ptr(chrono::ChShaftsCouple)
-%shared_ptr(chrono::ChShaftsGear)
-%shared_ptr(chrono::ChShaftsMotor)
-%shared_ptr(chrono::ChShaftsPlanetary)
-%shared_ptr(chrono::ChShaftsThermalEngine)
-%shared_ptr(chrono::ChShaftsTorqueBase)
-%shared_ptr(chrono::ChShaftsTorsionSpring) 
 %shared_ptr(chrono::ChLinkMotor)
 %shared_ptr(chrono::ChLinkMotorLinear)
 %shared_ptr(chrono::ChLinkMotorLinearDriveline)
@@ -337,6 +300,7 @@ using namespace chrono::fea;
 %include "ChVector.i"
 #define Vector ChVector<double>
 %include "ChQuaternion.i"
+%include "../chrono/core/ChBezierCurve.h"
 #define Quaternion ChQuaternion<double>
 %include "ChCoordsys.i"
 #define Coordsys ChCoordsys<double>
@@ -432,14 +396,14 @@ using namespace chrono::fea;
 %include "ChLoadContainer.i"
 
 %include "ChShaft.i"
-%include "ChShaftsCouple.i"
+/*%include "ChShaftsCouple.i"
 %include "ChShaftsBody.i"
 %include "ChShaftsClutch.i"
 %include "ChShaftsMotor.i"
 %include "ChShaftsTorqueBase.i"
 %include "ChShaftsTorsionSpring.i"
 %include "ChShaftsPlanetary.i"
-%include "ChShaftsThermalEngine.i"
+%include "ChShaftsThermalEngine.i"*/
 %include "ChLinkMotor.i"
 %include "../chrono/physics/ChLoad.h"
 %include "../chrono/physics/ChLoadsBody.h"

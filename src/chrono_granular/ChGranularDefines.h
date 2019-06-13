@@ -84,5 +84,5 @@ inline void gpuAssert(cudaError_t code, const char* file, int line, bool abort =
 
 #define CONDITIONAL_PRINTF(do_print, ...) \
     if (do_print) {                       \
-        printf(__VA_ARGS__);           \
+        printf(__VA_ARGS__);              \
     }

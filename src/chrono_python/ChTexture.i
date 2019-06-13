@@ -7,6 +7,8 @@ using namespace chrono;
 
 %}
 
+%shared_ptr(chrono::ChTexture)
+
 /* Parse the header file to generate wrappers */
 %include "../chrono/assets/ChTexture.h"    
 
