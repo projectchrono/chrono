@@ -120,7 +120,6 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChFrameMoving<double>)
 
 //%shared_ptr(chrono::ChColor)
-%shared_ptr(chrono::ChColorAsset)
 %shared_ptr(chrono::ChObjShapeFile)
 %shared_ptr(chrono::ChBoxShape) 
 %shared_ptr(chrono::ChSphereShape)
@@ -191,7 +190,6 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChSystemSMC)
 %shared_ptr(chrono::ChContactContainer)
 %shared_ptr(chrono::ChProximityContainer)
-%shared_ptr(chrono::ChLoadContainer)
 
 %shared_ptr(chrono::ChLinkMarkers)
 %shared_ptr(chrono::ChLinkLimit)
