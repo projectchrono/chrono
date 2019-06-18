@@ -278,6 +278,11 @@ public:
     //// RADU
     //// Set up these 2 functions so that they can be used in Eigen expressions!
 
+    /// Transposes only the lower-right 3x3 submatrix of a hemisymmetric 4x4 matrix,
+    /// used when the 4x4 matrix is a "star" matrix [q] coming from a quaternion q:
+    /// the non commutative quaternion product is:
+    ///     q1 x q2  =  [q1]*q2  =  [q2st]*q1
+    /// where [q2st] is the "semi-transpose" of [q2].
     void semiTranspose() {
         (*this)(1, 2) *= -1;
         (*this)(1, 3) *= -1;
@@ -287,6 +292,10 @@ public:
         (*this)(3, 2) *= -1;
     }
 
+    /// Change the sign of the 2nd, 3rd and 4th columns of this matrix.
+    /// The product between a quaternion q1 and the conjugate of q2 (q2'), is:
+    ///    q1 x q2'  = [q1]*q2'   = [q1sn]*q2
+    /// where [q1sn] is the semi-negation of the 4x4 matrix [q1].
     void semiNegate() {
         this->rightCols<3>() *= -1;
     }
@@ -328,6 +337,20 @@ ChQuaternion<T> operator*(const ChMatrix44<T>& A, const ChQuaternion<U>& q) {
         A(1, 0) * (T)q.e0() + A(1, 1) * (T)q.e1() + A(1, 2) * (T)q.e2() + A(1, 3) * (T)q.e3(),
         A(2, 0) * (T)q.e0() + A(2, 1) * (T)q.e1() + A(2, 2) * (T)q.e2() + A(2, 3) * (T)q.e3(),
         A(3, 0) * (T)q.e0() + A(3, 1) * (T)q.e1() + A(3, 2) * (T)q.e2() + A(3, 3) * (T)q.e3());
+}
+
+// =============================================================================
+
+/// Serialization of a matrix into an ASCII stream (e.g. a file) as a Matlab .dat output.
+void StreamOUTdenseMatlabFormat(ChMatrixConstRef A, ChStreamOutAscii& stream) {
+    for (int ii = 0; ii < A.rows(); ii++) {
+        for (int jj = 0; jj < A.cols(); jj++) {
+            stream << A(ii, jj);
+            if (jj < A.cols() - 1)
+                stream << " ";
+        }
+        stream << "\n";
+    }
 }
 
 // =============================================================================
