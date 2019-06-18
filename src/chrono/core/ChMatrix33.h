@@ -128,7 +128,7 @@ ChMatrix33<Real>::ChMatrix33(const ChQuaternion<Real>& q) {
 template <typename Real>
 ChMatrix33<Real>::ChMatrix33(Real val) {
     this->setZero();
-    this->diagonal() = Eigen::Array<Real, 3, 1>::Constant(val);
+    this->diagonal().setConstant(val);
 }
 
 template <typename Real>

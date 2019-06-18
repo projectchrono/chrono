@@ -98,8 +98,7 @@ void ChLineNurbs::SetupData(
     if (mknots)
         this->knots = *mknots;
     else {
-        this->knots.resize(n + p + 1);
-        this->knots.setZero();
+        this->knots.setZero(n + p + 1);
         ChBasisToolsBspline::ComputeKnotUniformMultipleEnds(this->knots, p);
     }
 

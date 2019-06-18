@@ -72,8 +72,9 @@ ChVariablesBodySharedMass& ChVariablesBodySharedMass::operator=(const ChVariable
 
 // Computes the product of the inverse mass matrix by a vector, and set in result: result = [invMb]*vect
 void ChVariablesBodySharedMass::Compute_invMb_v(ChVectorRef result, ChVectorConstRef vect) const {
-    assert(vect.rows() == Get_ndof());
-    assert(result.rows() == Get_ndof());
+    assert(vect.size() == Get_ndof());
+    assert(result.size() == Get_ndof());
+
     // optimized unrolled operations
     result(0) = sharedmass->inv_mass * vect(0);
     result(1) = sharedmass->inv_mass * vect(1);
@@ -88,8 +89,9 @@ void ChVariablesBodySharedMass::Compute_invMb_v(ChVectorRef result, ChVectorCons
 
 // Computes the product of the inverse mass matrix by a vector, and increment result: result += [invMb]*vect
 void ChVariablesBodySharedMass::Compute_inc_invMb_v(ChVectorRef result, ChVectorConstRef vect) const {
-    assert(vect.rows() == Get_ndof());
-    assert(result.rows() == Get_ndof());
+    assert(vect.size() == Get_ndof());
+    assert(result.size() == Get_ndof());
+
     // optimized unrolled operations
     result(0) += sharedmass->inv_mass * vect(0);
     result(1) += sharedmass->inv_mass * vect(1);
@@ -104,8 +106,9 @@ void ChVariablesBodySharedMass::Compute_inc_invMb_v(ChVectorRef result, ChVector
 
 // Computes the product of the mass matrix by a vector, and set in result: result = [Mb]*vect
 void ChVariablesBodySharedMass::Compute_inc_Mb_v(ChVectorRef result, ChVectorConstRef vect) const {
-    assert(result.rows() == Get_ndof());
-    assert(vect.rows() == Get_ndof());
+    assert(result.size() == Get_ndof());
+    assert(vect.size() == Get_ndof());
+
     // optimized unrolled operations
     result(0) += sharedmass->mass * vect(0);
     result(1) += sharedmass->mass * vect(1);

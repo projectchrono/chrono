@@ -107,15 +107,13 @@ void ChSurfaceNurbs::SetupData(
     if (mknots_u)
         this->knots_u = *mknots_u;
     else {
-        this->knots_u.resize(n_u + p_u + 1);
-        this->knots_u.setZero();
+        this->knots_u.setZero(n_u + p_u + 1);
         ChBasisToolsBspline::ComputeKnotUniformMultipleEnds(this->knots_u, p_u);
     }
     if (mknots_v)
         this->knots_v = *mknots_v;
     else {
-        this->knots_v.resize(n_v + p_v + 1);
-        this->knots_v.setZero();
+        this->knots_v.setZero(n_v + p_v + 1);
         ChBasisToolsBspline::ComputeKnotUniformMultipleEnds(this->knots_v, p_v);
     }
 

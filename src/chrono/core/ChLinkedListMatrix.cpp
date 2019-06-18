@@ -108,8 +108,7 @@ void ChLinkedListMatrix::Build(double fill_in) {
 }
 
 void ChLinkedListMatrix::CopyToDense(ChMatrixDynamic<double>& mat) {
-    mat.resize(m_num_rows, m_num_cols);
-    mat.setZero();
+    mat.setZero(m_num_rows, m_num_cols);
 
     ChMelement* currel;
     for (int i = 0; i < m_num_rows; i++) {

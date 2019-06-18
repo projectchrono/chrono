@@ -602,8 +602,7 @@ void ChSystemDescriptor::SystemProduct(
     ////    FromUnknownsToVector(*vect);
     ////}
 
-    result.resize(n_q + n_c);
-    result.setZero();
+    result.setZero(n_q + n_c);
 
     // 1) First row: result.q part =  [M + K]*x.q + [Cq']*x.l
 

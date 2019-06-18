@@ -51,8 +51,7 @@ class ChApi ChFunction_Integrate : public ChFunction {
 
     void Set_num_samples(int m_samples) {
         num_samples = m_samples;
-        array_x.resize(num_samples, 1);
-        array_x.setZero();
+        array_x.setZero(num_samples, 1);
         ComputeIntegral();
     }
     int Get_num_samples() const { return num_samples; }

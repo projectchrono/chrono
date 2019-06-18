@@ -218,7 +218,7 @@ class ChFrameMoving : public ChFrame<Real> {
     /// Computes the actual angular speed (expressed in parent coords)
     ChVector<Real> GetWvel_par() const {
         ChGwMatrix34<> Gw(this->coord.rot);
-        return Gw * coord_Dt.rot;
+        return Gw * coord_dt.rot;
     }
 
     /// Computes the actual angular acceleration (expressed in local coords)

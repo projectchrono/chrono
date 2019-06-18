@@ -37,8 +37,9 @@ ChVariablesNode& ChVariablesNode::operator=(const ChVariablesNode& other) {
 
 // Computes the product of the inverse mass matrix by a vector, and set in result: result = [invMb]*vect
 void ChVariablesNode::Compute_invMb_v(ChVectorRef result, ChVectorConstRef vect) const {
-    assert(vect.rows() == Get_ndof());
-    assert(result.rows() == Get_ndof());
+    assert(vect.size() == Get_ndof());
+    assert(result.size() == Get_ndof());
+
     // optimized unrolled operations
     double inv_mass = 1.0 / mass;
     result(0) = inv_mass * vect(0);
@@ -48,8 +49,9 @@ void ChVariablesNode::Compute_invMb_v(ChVectorRef result, ChVectorConstRef vect)
 
 // Computes the product of the inverse mass matrix by a vector, and increment result: result += [invMb]*vect
 void ChVariablesNode::Compute_inc_invMb_v(ChVectorRef result, ChVectorConstRef vect) const {
-    assert(vect.rows() == Get_ndof());
-    assert(result.rows() == Get_ndof());
+    assert(vect.size() == Get_ndof());
+    assert(result.size() == Get_ndof());
+
     // optimized unrolled operations
     double inv_mass = 1.0 / mass;
     result(0) += inv_mass * vect(0);
@@ -59,8 +61,9 @@ void ChVariablesNode::Compute_inc_invMb_v(ChVectorRef result, ChVectorConstRef v
 
 // Computes the product of the mass matrix by a vector, and set in result: result = [Mb]*vect
 void ChVariablesNode::Compute_inc_Mb_v(ChVectorRef result, ChVectorConstRef vect) const {
-    assert(result.rows() == Get_ndof());
-    assert(vect.rows() == Get_ndof());
+    assert(result.size() == Get_ndof());
+    assert(vect.size() == Get_ndof());
+
     // optimized unrolled operations
     result(0) += mass * vect(0);
     result(1) += mass * vect(1);

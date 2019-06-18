@@ -20,12 +20,10 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChVariablesGeneric)
 
 ChVariablesGeneric::ChVariablesGeneric(int m_ndof) : ChVariables(m_ndof), ndof(m_ndof) {
-    Mmass.resize(ndof, ndof);
-    Mmass.setZero();
-    Mmass.diagonal() = Eigen::ArrayXd::Constant(ndof, 1.0);
-    inv_Mmass.resize(ndof, ndof);
-    inv_Mmass.setZero();
-    inv_Mmass.diagonal() = Eigen::ArrayXd::Constant(ndof, 1.0);
+    Mmass.setZero(ndof, ndof);
+    Mmass.diagonal().setConstant(1.0);
+    inv_Mmass.setZero(ndof, ndof);
+    inv_Mmass.diagonal().setConstant(1.0);
 }
 
 ChVariablesGeneric& ChVariablesGeneric::operator=(const ChVariablesGeneric& other) {
@@ -43,22 +41,25 @@ ChVariablesGeneric& ChVariablesGeneric::operator=(const ChVariablesGeneric& othe
 
 // Computes the product of the inverse mass matrix by a vector, and add to result: result = [invMb]*vect
 void ChVariablesGeneric::Compute_invMb_v(ChVectorRef result, ChVectorConstRef vect) const {
-    assert(result.rows() == Get_ndof());
-    assert(vect.rows() == Get_ndof());
+    assert(result.size() == Get_ndof());
+    assert(vect.size() == Get_ndof());
+
     result = inv_Mmass * vect;
 }
 
 // Computes the product of the inverse mass matrix by a vector, and increment result: result += [invMb]*vect
 void ChVariablesGeneric::Compute_inc_invMb_v(ChVectorRef result, ChVectorConstRef vect) const {
-    assert(result.rows() == Get_ndof());
-    assert(vect.rows() == Get_ndof());
+    assert(result.size() == Get_ndof());
+    assert(vect.size() == Get_ndof());
+
     result += inv_Mmass * vect;
 }
 
 // Computes the product of the mass matrix by a vector, and set in result: result = [Mb]*vect
 void ChVariablesGeneric::Compute_inc_Mb_v(ChVectorRef result, ChVectorConstRef vect) const {
-    assert(result.rows() == Get_ndof());
-    assert(vect.rows() == Get_ndof());
+    assert(result.size() == Get_ndof());
+    assert(vect.size() == Get_ndof());
+
     result += Mmass * vect;
 }
 

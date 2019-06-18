@@ -21,7 +21,7 @@ CH_FACTORY_REGISTER(ChVariablesGenericDiagonalMass)
 
 ChVariablesGenericDiagonalMass::ChVariablesGenericDiagonalMass(int m_ndof) : ChVariables(m_ndof), ndof(m_ndof) {
     MmassDiag.resize(ndof);
-    MmassDiag = Eigen::ArrayXd::Constant(ndof, 1.0);
+    MmassDiag.setConstant(1.0);
 }
 
 ChVariablesGenericDiagonalMass& ChVariablesGenericDiagonalMass::operator=(const ChVariablesGenericDiagonalMass& other) {
@@ -41,25 +41,28 @@ ChVariablesGenericDiagonalMass& ChVariablesGenericDiagonalMass::operator=(const 
 
 // Computes the product of the inverse mass matrix by a vector, and add to result: result = [invMb]*vect
 void ChVariablesGenericDiagonalMass::Compute_invMb_v(ChVectorRef result, ChVectorConstRef vect) const {
-    assert(result.rows() == Get_ndof());
-    assert(vect.rows() == Get_ndof());
-    for (int i = 0; i < vect.rows(); ++i)
+    assert(result.size() == Get_ndof());
+    assert(vect.size() == Get_ndof());
+
+    for (int i = 0; i < vect.size(); ++i)
         result(i) = vect(i) / MmassDiag(i);
 }
 
 // Computes the product of the inverse mass matrix by a vector, and increment result: result += [invMb]*vect
 void ChVariablesGenericDiagonalMass::Compute_inc_invMb_v(ChVectorRef result, ChVectorConstRef vect) const {
-    assert(result.rows() == Get_ndof());
-    assert(vect.rows() == Get_ndof());
-    for (int i = 0; i < vect.rows(); ++i)
+    assert(result.size() == Get_ndof());
+    assert(vect.size() == Get_ndof());
+
+    for (int i = 0; i < vect.size(); ++i)
         result(i) += vect(i) / MmassDiag(i);
 }
 
 // Computes the product of the mass matrix by a vector, and set in result: result = [Mb]*vect
 void ChVariablesGenericDiagonalMass::Compute_inc_Mb_v(ChVectorRef result, ChVectorConstRef vect) const {
-    assert(result.rows() == Get_ndof());
-    assert(vect.rows() == Get_ndof());
-    for (int i = 0; i < vect.rows(); ++i)
+    assert(result.size() == Get_ndof());
+    assert(vect.size() == Get_ndof());
+
+    for (int i = 0; i < vect.size(); ++i)
         result(i) += vect(i) * MmassDiag(i);
 }
 
@@ -68,7 +71,7 @@ void ChVariablesGenericDiagonalMass::Compute_inc_Mb_v(ChVectorRef result, ChVect
 // NOTE: the 'vect' and 'result' vectors must already have the size of the total variables&constraints in the system;
 // the procedure will use the ChVariable offsets (that must be already updated) to know the indexes in result and vect.
 void ChVariablesGenericDiagonalMass::MultiplyAndAdd(ChVectorRef result, ChVectorConstRef vect, const double c_a) const {
-    for (int i = 0; i < MmassDiag.rows(); i++) {
+    for (int i = 0; i < MmassDiag.size(); i++) {
         result(this->offset + i) += c_a * (MmassDiag(i) * vect(this->offset + i));
     }
 }
@@ -77,13 +80,13 @@ void ChVariablesGenericDiagonalMass::MultiplyAndAdd(ChVectorRef result, ChVector
 // NOTE: the 'result' vector must already have the size of system unknowns, ie the size of the total variables &
 // constraints in the system; the procedure will use the ChVariable offset (that must be already updated) as index.
 void ChVariablesGenericDiagonalMass::DiagonalAdd(ChVectorRef result, const double c_a) const {
-    for (int i = 0; i < MmassDiag.rows(); i++) {
+    for (int i = 0; i < MmassDiag.size(); i++) {
         result(this->offset + i) += c_a * MmassDiag(i);
     }
 }
 
 void ChVariablesGenericDiagonalMass::Build_M(ChSparseMatrix& storage, int insrow, int inscol, const double c_a) {
-    for (int i = 0; i < MmassDiag.rows(); ++i) {
+    for (int i = 0; i < MmassDiag.size(); ++i) {
         storage.SetElement(insrow + i, inscol + i, c_a * MmassDiag(i));
     }
 }

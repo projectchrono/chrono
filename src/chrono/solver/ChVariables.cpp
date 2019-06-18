@@ -23,10 +23,8 @@ ChVariables::ChVariables() : disabled(false), ndof(0), qb(nullptr), fb(nullptr),
 
 ChVariables::ChVariables(int m_ndof) : disabled(false), ndof(m_ndof), offset(0) {
     if (ndof > 0) {
-        qb.resize(Get_ndof());
-        fb.resize(Get_ndof());
-        qb.setZero();
-        fb.setZero();
+        qb.setZero(Get_ndof());
+        fb.setZero(Get_ndof());
     }
 }
 

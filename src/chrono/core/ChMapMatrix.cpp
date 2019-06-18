@@ -106,8 +106,7 @@ double ChMapMatrix::GetElement(int row, int col) const {
     }
 
 void ChMapMatrix::ConvertToDense(ChMatrixDynamic<double>& mat) {
-    mat.resize(m_num_rows, m_num_cols);
-    mat.setZero();
+    mat.setZero(m_num_rows, m_num_cols);
     for (int ir = 0; ir < m_num_rows; ir++) {
         for (auto it : m_rows[ir].m_data) {
             mat(ir, it.first) = it.second;
