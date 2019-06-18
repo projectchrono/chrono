@@ -35,13 +35,7 @@ class ChApi ChSolverMINRES : public ChIterativeSolver {
     ChSolverMINRES(int mmax_iters = 50,       ///< max.number of iterations
                    bool mwarm_start = false,  ///< uses warm start?
                    double mtolerance = 0.0    ///< tolerance for termination criterion
-                   )
-        : ChIterativeSolver(mmax_iters, mwarm_start, mtolerance, 0.2) {
-        rel_tolerance = 0.0;
-        feas_tolerance = 0.2;
-        max_fixedpoint_steps = 6;
-        diag_preconditioning = true;
-    }
+    );
 
     virtual ~ChSolverMINRES() {}
 
@@ -52,11 +46,9 @@ class ChApi ChSolverMINRES : public ChIterativeSolver {
     virtual double Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
                          ) override;
 
-    /// Same as Solve(), but this also supports the presence of
-    /// ChKblock blocks. If Solve() is called and stiffness is present,
-    /// Solve() automatically falls back to this function.
-    virtual double Solve_SupportingStiffness(
-        ChSystemDescriptor& sysd  ///< system description with constraints and variables
+    /// Same as Solve(), but this also supports the presence of ChKblock blocks. If Solve() is called and stiffness is
+    /// present, Solve() automatically falls back to this function.
+    double Solve_SupportingStiffness(ChSystemDescriptor& sysd  ///< system description with constraints and variables
     );
 
     void SetFeasTolerance(double mf) { this->feas_tolerance = mf; }
