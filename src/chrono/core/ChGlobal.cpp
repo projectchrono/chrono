@@ -12,7 +12,7 @@
 
 #include <cstring>
 
-#include "chrono/physics/ChGlobal.h"
+#include "chrono/core/ChGlobal.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 

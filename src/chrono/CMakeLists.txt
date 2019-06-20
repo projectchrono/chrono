@@ -48,6 +48,7 @@ set(ChronoEngine_core_SOURCES
     core/ChBezierCurve.cpp
     core/ChCubicSpline.cpp
     core/ChDistribution.cpp
+    core/ChGlobal.cpp
     )
 
 set(ChronoEngine_core_HEADERS
@@ -86,6 +87,7 @@ set(ChronoEngine_core_HEADERS
     core/ChBezierCurve.h
     core/ChCubicSpline.h
     core/ChBitmaskEnums.h
+    core/ChGlobal.h
     )
 
 source_group(core FILES
@@ -160,7 +162,6 @@ set(ChronoEngine_physics_SOURCES
     physics/ChSystem.cpp
     physics/ChSystemNSC.cpp
     physics/ChSystemSMC.cpp
-    physics/ChGlobal.cpp
     physics/ChSolvmin.cpp
     physics/ChProbe.cpp
     physics/ChControls.cpp
@@ -205,7 +206,7 @@ set(ChronoEngine_physics_SOURCES
     physics/ChLoadContainer.cpp
     physics/ChLoad.cpp
     physics/ChLoadsBody.cpp
-	physics/ChLoadsXYZnode.cpp
+    physics/ChLoadsXYZnode.cpp
     physics/ChLoadBodyMesh.cpp
     )
 
@@ -223,7 +224,6 @@ set(ChronoEngine_physics_HEADERS
     physics/ChConveyor.h
     physics/ChForce.h
     physics/ChFx.h
-    physics/ChGlobal.h
     physics/ChIndexedNodes.h
     physics/ChIndexedParticles.h
     physics/ChIterative.h
@@ -786,7 +786,7 @@ set(ChronoEngine_solver_SOURCES
     solver/ChConstraintThree.cpp
     solver/ChConstraintThreeGeneric.cpp
     solver/ChConstraintThreeBBShaft.cpp
-	solver/ChConstraintNgeneric.cpp
+    solver/ChConstraintNgeneric.cpp
     solver/ChVariables.cpp
     solver/ChVariablesGeneric.cpp
     solver/ChVariablesGenericDiagonalMass.cpp
@@ -814,7 +814,7 @@ set(ChronoEngine_solver_HEADERS
     solver/ChConstraintTwoTuplesFrictionT.h
     solver/ChConstraintTwoTuplesRollingN.h
     solver/ChConstraintTwoTuplesRollingT.h
-	solver/ChConstraintNgeneric.h
+    solver/ChConstraintNgeneric.h
     solver/ChSolver.h
     solver/ChIterativeSolver.h
     solver/ChSolverJacobi.h
