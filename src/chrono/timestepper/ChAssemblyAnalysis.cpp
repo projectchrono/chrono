@@ -19,10 +19,9 @@ namespace chrono {
 
 ChAssemblyAnalysis::ChAssemblyAnalysis(ChIntegrableIIorder& mintegrable) {
     integrable = &mintegrable;
-    L.Reset(0);
-    X.Reset(1, &mintegrable);
-    V.Reset(1, &mintegrable);
-    A.Reset(1, &mintegrable);
+    X.setZero(1, &mintegrable);
+    V.setZero(1, &mintegrable);
+    A.setZero(1, &mintegrable);
     max_assembly_iters = 4;
 }
 
@@ -39,10 +38,10 @@ void ChAssemblyAnalysis::AssemblyAnalysis(int action, double dt) {
 
         for (int m_iter = 0; m_iter < max_assembly_iters; m_iter++) {
             // Set up auxiliary vectors
-            Dx.Reset(integrable->GetNcoords_v(), GetIntegrable());
-            R.Reset(integrable->GetNcoords_v());
-            Qc.Reset(integrable->GetNconstr());
-            L.Reset(integrable->GetNconstr());
+            Dx.setZero(integrable->GetNcoords_v(), GetIntegrable());
+            R.setZero(integrable->GetNcoords_v());
+            Qc.setZero(integrable->GetNconstr());
+            L.setZero(integrable->GetNconstr());
 
             integrable->StateGather(X, V, T);  // state <- system
 
@@ -73,10 +72,10 @@ void ChAssemblyAnalysis::AssemblyAnalysis(int action, double dt) {
         ChStateDelta Vold;
 
         // setup auxiliary vectors
-        Vold.Reset(integrable->GetNcoords_v(), GetIntegrable());
-        R.Reset(integrable->GetNcoords_v());
-        Qc.Reset(integrable->GetNconstr());
-        L.Reset(integrable->GetNconstr());
+        Vold.setZero(integrable->GetNcoords_v(), GetIntegrable());
+        R.setZero(integrable->GetNcoords_v());
+        Qc.setZero(integrable->GetNconstr());
+        L.setZero(integrable->GetNconstr());
 
         integrable->StateGather(X, V, T);  // state <- system
 

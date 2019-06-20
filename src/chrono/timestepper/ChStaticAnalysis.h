@@ -17,7 +17,6 @@
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChMath.h"
-#include "chrono/core/ChVectorDynamic.h"
 #include "chrono/timestepper/ChState.h"
 #include "chrono/timestepper/ChIntegrable.h"
 
@@ -190,9 +189,9 @@ class ChStaticNonLinearAnalysis : public ChStaticAnalysis {
             R *= cfactor;
             Qc *= cfactor;
 
-            //	GetLog()<< "Non-linear statics iteration=" << i << "  |R|=" << R.NormInf() << "  |Qc|=" << Qc.NormInf()
+            //	GetLog()<< "Non-linear statics iteration=" << i << "  |R|=" << R.lpNorm<Eigen::Infinity>() << "  |Qc|=" << Qc.lpNorm<Eigen::Infinity>()
             //<< "\n";
-            if ((R.NormInf() < this->GetTolerance()) && (Qc.NormInf() < this->GetTolerance()))
+            if ((R.lpNorm<Eigen::Infinity>() < this->GetTolerance()) && (Qc.lpNorm<Eigen::Infinity>() < this->GetTolerance()))
                 break;
 
             mintegrable->StateSolveCorrection(

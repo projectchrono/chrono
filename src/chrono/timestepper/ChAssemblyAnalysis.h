@@ -16,7 +16,6 @@
 #define CHASSEMBLYANALYSIS_H
 
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChVectorDynamic.h"
 #include "chrono/timestepper/ChState.h"
 #include "chrono/timestepper/ChIntegrable.h"
 

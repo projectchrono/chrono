@@ -57,6 +57,10 @@ TEST(LinearAlgebraTest, create_assign) {
     M3 = M1;                     // Copy (resize as needed)
     M3 = M1.transpose();         // transposed copy.
     ASSERT_TRUE((M3 + M2.transpose()).isZero());
+
+    ChMatrix33<> B33(1.0);
+    cout << "3x3 identity matrix\n" << B33 << endl;
+    ASSERT_DOUBLE_EQ(B33.trace(), 3.0);
 }
 
 TEST(LinearAlgebraTest, operations) {
@@ -103,6 +107,14 @@ TEST(LinearAlgebraTest, operations) {
     ASSERT_TRUE(CD.transpose() == CD_t);
     ASSERT_DOUBLE_EQ(RC(1, 0), -C(2, 0));
     ASSERT_DOUBLE_EQ(DR(1, 2), -D(1, 1));
+
+    // Component-wise matrix multiplication and division
+    ChMatrixDynamic<> C_times_D = C.array() * D.transpose().array();
+    ChMatrixDynamic<> C_div_D = C.array() / D.transpose().array();
+    cout << "C\n" << C << endl;
+    cout << "D'\n" << D.transpose() << endl;
+    cout << "C_times_D' (component-wise)\n" << C_times_D << endl;
+    cout << "C_div_D' (component-wise)\n" << C_div_D << endl;
 }
 
 TEST(LinearAlgebraTest, vector_rotation) {
