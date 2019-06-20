@@ -67,6 +67,7 @@ set(ChronoEngine_core_HEADERS
     core/ChMatrix.h
     core/ChMatrixEigenExtensions.h
     core/ChMatrix33.h
+    core/ChMatrixMBD.h
     core/ChPlatform.h
     core/ChQuaternion.h
     core/ChRealtimeStep.h

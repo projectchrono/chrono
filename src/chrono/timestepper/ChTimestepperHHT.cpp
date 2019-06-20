@@ -370,8 +370,8 @@ bool ChTimestepperHHT::CheckConvergence(double scaling_factor) {
 
             if (verbose) {
                 GetLog() << " HHT iteration=" << numiters << "  |R|=" << R_nrm << "  |Qc|=" << Qc_nrm
-                         << "  |Da|=" << Da_nrm << "  |Dl|=" << Dl_nrm << "  N = " << R.size() << "  M = " << Qc.size()
-                         << "\n";
+                         << "  |Da|=" << Da_nrm << "  |Dl|=" << Dl_nrm << "  N = " << (int)R.size()
+                         << "  M = " << (int)Qc.size() << "\n";
             }
 
             if ((R_nrm < abstolS && Qc_nrm < abstolL) || (Da_nrm < 1 && Dl_nrm < 1))

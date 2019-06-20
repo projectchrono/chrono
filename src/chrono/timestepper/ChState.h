@@ -25,6 +25,10 @@ namespace chrono {
 // Forward reference
 class ChIntegrable;
 
+//// RADU
+//// Consider deriving ChStateDelta from ChState
+//// as this could reduce code duplication
+
 /// Class for state of time-integrable objects.
 /// This is a vector (one-column matrix) which extends ChVectorDynamic.
 class ChState : public ChVectorDynamic<double> {

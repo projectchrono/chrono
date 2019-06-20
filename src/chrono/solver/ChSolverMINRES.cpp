@@ -14,6 +14,7 @@
 
 #include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/solver/ChConstraintTwoTuplesFrictionT.h"
+#include "chrono/core/ChMathematics.h"
 
 namespace chrono {
 

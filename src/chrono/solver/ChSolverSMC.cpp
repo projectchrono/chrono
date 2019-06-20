@@ -13,6 +13,7 @@
 // =============================================================================
 
 #include "chrono/solver/ChSolverSMC.h"
+#include "chrono/core/ChMathematics.h"
 
 namespace chrono {
 

@@ -18,6 +18,8 @@
 #define ALIGNED_ALLOCATORS
 
 #include <limits>
+#include <vector>
+#include <list>
 
 #include "chrono/core/ChAlignedAllocator.h"
 #include "chrono/core/ChSparseMatrix.h"

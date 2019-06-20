@@ -19,6 +19,7 @@
 #include <limits>
 
 #include "chrono/core/ChApiCE.h"
+#include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChVector.h"
 #include "chrono/core/ChMathematics.h"
 
@@ -542,7 +543,7 @@ ChApi ChQuaternion<double> AngleDTDT_to_QuatDTDT(AngleSet angset,
                                                  const ChVector<double>& mangles,
                                                  const ChQuaternion<double>& q);
 
-// Insertion to output stream
+/// Insertion of quaternion to output stream.
 template <typename Real>
 inline std::ostream& operator<<(std::ostream& out, const ChQuaternion<Real>& q) {
     out << q.e0() << "  " << q.e1() << "  " << q.e2() << "  " << q.e3();

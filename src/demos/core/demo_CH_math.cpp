@@ -21,6 +21,7 @@
 #include "chrono/core/ChVector.h"
 #include "chrono/core/ChQuadrature.h"
 #include "chrono/core/ChException.h"
+#include "chrono/core/ChMathematics.h"
 
 using namespace chrono;
 

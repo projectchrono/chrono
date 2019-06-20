@@ -272,9 +272,19 @@ class ChCoordsys {
 
 CH_CLASS_VERSION(ChCoordsys<double>, 0)
 
-//
+// -----------------------------------------------------------------------------
+
+/// Insertion of coordsys to output stream.
+template <typename Real>
+inline std::ostream& operator<<(std::ostream& out, const ChCoordsys<Real>& cs) {
+    out << cs.pos.x() << "  " << cs.pos.y() << "  " << cs.pos.z() << "  ";
+    out << cs.rot.e0() << "  " << cs.rot.e1() << "  " << cs.rot.e2() << "  " << cs.rot.e3();
+    return out;
+}
+
+// -----------------------------------------------------------------------------
+
 // MIXED ARGUMENT OPERATORS
-//
 
 // Mixing with ChVector :
 

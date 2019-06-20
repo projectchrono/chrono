@@ -18,6 +18,7 @@
 #include "chrono/core/ChCoordsys.h"
 #include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChMatrix33.h"
+#include "chrono/core/ChMatrixMBD.h"
 #include "chrono/core/ChTransform.h"
 
 namespace chrono {
@@ -386,109 +387,6 @@ class ChFrame {
         tmp.Invert();
         return tmp;
     }
-
-    /*
-    //// RADU
-    //// Delete these functions.  Functionality now provided through "MBD special matrices"
-
-    /// Fills a 3x4 matrix [Fp(q)], as in  [Fp(q)]*[Fm(q)]' = [A(q)]
-    static void SetMatrix_Fp(ChMatrix34<Real>& Fp, const ChQuaternion<Real>& mq) {
-        Fp(0) = mq.e1();
-        Fp(1) = mq.e0();
-        Fp(2) = -mq.e3();
-        Fp(3) = mq.e2();
-        Fp(4) = mq.e2();
-        Fp(5) = mq.e3();
-        Fp(6) = mq.e0();
-        Fp(7) = -mq.e1();
-        Fp(8) = mq.e3();
-        Fp(9) = -mq.e2();
-        Fp(10) = mq.e1();
-        Fp(11) = mq.e0();
-    }
-
-    /// Fills a 3x4 matrix [Fm(q)], as in  [Fp(q)]*[Fm(q)]' = [A(q)]
-    static void SetMatrix_Fm(ChMatrix34<Real>& Fm, const ChQuaternion<Real>& mq) {
-        Fm(0) = mq.e1();
-        Fm(1) = mq.e0();
-        Fm(2) = mq.e3();
-        Fm(3) = -mq.e2();
-        Fm(4) = mq.e2();
-        Fm(5) = -mq.e3();
-        Fm(6) = mq.e0();
-        Fm(7) = mq.e1();
-        Fm(8) = mq.e3();
-        Fm(9) = mq.e2();
-        Fm(10) = -mq.e1();
-        Fm(11) = mq.e0();
-    }
-
-    /// Fast fill a 3x4 matrix [Gl(q)], as in local angular speed conversion
-    /// Wl=[Gl]*q_dt   (btw: [Gl(q)] = 2*[Fp(q')] = 2*[G] with G matrix as in Shabana)
-    static void SetMatrix_Gl(ChMatrix34<Real>& Gl, const ChQuaternion<Real>& mq) {
-        Real de0 = 2 * mq.e0();
-        Real de1 = 2 * mq.e1();
-        Real de2 = 2 * mq.e2();
-        Real de3 = 2 * mq.e3();
-        Gl(0) = -de1;
-        Gl(1) = de0;
-        Gl(2) = de3;
-        Gl(3) = -de2;
-        Gl(4) = -de2;
-        Gl(5) = -de3;
-        Gl(6) = de0;
-        Gl(7) = de1;
-        Gl(8) = -de3;
-        Gl(9) = de2;
-        Gl(10) = -de1;
-        Gl(11) = de0;
-    }
-
-    /// Fast fill a 3x4 matrix [Gw(q)], as in absolute angular speed conversion
-    /// Ww=[Gw]*q_dt   (btw: [Gw(q)] = 2*[Fm(q')] = 2*[E] with E matrix as in Shabana)
-    static void SetMatrix_Gw(ChMatrix34<Real>& Gw, const ChQuaternion<Real>& mq) {
-        Real de0 = 2 * mq.e0();
-        Real de1 = 2 * mq.e1();
-        Real de2 = 2 * mq.e2();
-        Real de3 = 2 * mq.e3();
-        Gw(0) = -de1;
-        Gw(1) = de0;
-        Gw(2) = -de3;
-        Gw(3) = de2;
-        Gw(4) = -de2;
-        Gw(5) = de3;
-        Gw(6) = de0;
-        Gw(7) = -de1;
-        Gw(8) = -de3;
-        Gw(9) = -de2;
-        Gw(10) = de1;
-        Gw(11) = de0;
-    }
-
-    /// Computes the product v=[Gl(mq)]*qb  without the need of having
-    /// the [Gl] matrix (just pass the mq quaternion, since Gl is function of mq)
-    static ChVector<Real> Gl_x_Quat(const ChQuaternion<Real>& mq, const ChQuaternion<Real>& qb) {
-        Real de0 = 2 * mq.e0();
-        Real de1 = 2 * mq.e1();
-        Real de2 = 2 * mq.e2();
-        Real de3 = 2 * mq.e3();
-        return ChVector<Real>(-de1 * qb.e0() + de0 * qb.e1() + de3 * qb.e2() - de2 * qb.e3(),
-                              -de2 * qb.e0() - de3 * qb.e1() + de0 * qb.e2() + de1 * qb.e3(),
-                              -de3 * qb.e0() + de2 * qb.e1() - de1 * qb.e2() + de0 * qb.e3());
-    }
-
-    /// Computes the product q=[Gl(mq)]*v  without the need of having
-    /// the [Gl] matrix (just pass the mq quaternion, since Gl is function of mq)
-    static ChQuaternion<Real> GlT_x_Vect(const ChQuaternion<Real>& mq, const ChVector<Real>& v) {
-        Real de0 = 2 * mq.e0();
-        Real de1 = 2 * mq.e1();
-        Real de2 = 2 * mq.e2();
-        Real de3 = 2 * mq.e3();
-        return ChQuaternion<Real>(-de1 * v.x() - de2 * v.y() - de3 * v.z(), +de0 * v.x() - de3 * v.y() + de2 * v.z(),
-                                  +de3 * v.x() + de0 * v.y() - de1 * v.z(), -de2 * v.x() + de1 * v.y() + de0 * v.z());
-    }
-
-    */
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) {

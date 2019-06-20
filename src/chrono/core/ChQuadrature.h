@@ -17,6 +17,7 @@
 
 #include <vector>
 
+#include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChMatrix.h"
 
 namespace chrono {

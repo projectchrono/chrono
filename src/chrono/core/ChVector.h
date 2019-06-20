@@ -20,7 +20,9 @@
 #include <limits>
 
 #include "chrono/core/ChClassFactory.h"
+#include "chrono/core/ChMatrix.h"
 #include "chrono/serialization/ChArchive.h"
+#include "chrono/serialization/ChArchiveAsciiDump.h"
 
 namespace chrono {
 
@@ -408,7 +410,7 @@ void XdirToDxDyDz(const ChVector<RealA>& Vxdir,
     Vy = Vcross(Vz, Vx);
 }
 
-// Insertion to output stream
+/// Insertion ov 3d vector to output stream.
 template <typename Real>
 inline std::ostream& operator<<(std::ostream& out, const ChVector<Real>& v) {
     out << v.x() << "  " << v.y() << "  " << v.z();
