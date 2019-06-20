@@ -137,11 +137,11 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Cq,
     if (E)
         E->Reset(mn_c, mn_c);
     if (Fvector)
-        Fvector->resize(n_q);
+        Fvector->setZero(n_q);
     if (Bvector)
-        Bvector->resize(mn_c);
+        Bvector->setZero(mn_c);
     if (Frict)
-        Frict->resize(mn_c);
+        Frict->setZero(mn_c);
 
     // Fills H submasses and 'f' vector,
     // by looping on variables
@@ -331,7 +331,7 @@ void ChSystemDescriptor::DumpLastMatrices(bool assembled, const char* path) {
 
 int ChSystemDescriptor::BuildFbVector(ChVectorDynamic<>& Fvector) {
     n_q = CountActiveVariables();
-    Fvector.resize(n_q);
+    Fvector.setZero(n_q);
 
     // Fills the 'f' vector
     for (int iv = 0; iv < (int)vvariables.size(); iv++) {
@@ -344,7 +344,7 @@ int ChSystemDescriptor::BuildFbVector(ChVectorDynamic<>& Fvector) {
 
 int ChSystemDescriptor::BuildBiVector(ChVectorDynamic<>& Bvector) {
     n_c = CountActiveConstraints();
-    Bvector.resize(n_c);
+    Bvector.setZero(n_c);
 
     // Fill the 'b' vector
     for (int ic = 0; ic < (int)vconstraints.size(); ic++) {
@@ -359,7 +359,7 @@ int ChSystemDescriptor::BuildBiVector(ChVectorDynamic<>& Bvector) {
 int ChSystemDescriptor::BuildDiVector(ChVectorDynamic<>& Dvector) {
     n_q = CountActiveVariables();
     n_c = CountActiveConstraints();
-    Dvector.resize(n_q + n_c);
+    Dvector.setZero(n_q + n_c);
 
     // Fills the 'f' vector part
     for (int iv = 0; iv < (int)vvariables.size(); iv++) {
@@ -381,7 +381,7 @@ int ChSystemDescriptor::BuildDiVector(ChVectorDynamic<>& Dvector) {
 int ChSystemDescriptor::BuildDiagonalVector(ChVectorDynamic<>& Diagonal_vect) {
     n_q = CountActiveVariables();
     n_c = CountActiveConstraints();
-    Diagonal_vect.resize(n_q + n_c);
+    Diagonal_vect.setZero(n_q + n_c);
 
     // Fill the diagonal values given by ChKblock objects , if any
     // (This cannot be easily parallelized because of possible write concurrency).
@@ -410,7 +410,7 @@ int ChSystemDescriptor::FromVariablesToVector(ChVectorDynamic<>& mvector, bool r
     // Count active variables and resize vector if necessary
     if (resize_vector) {
         n_q = CountActiveVariables();
-        mvector.resize(n_q);
+        mvector.setZero(n_q);
     }
 
     // Fill the vector
@@ -440,7 +440,7 @@ int ChSystemDescriptor::FromConstraintsToVector(ChVectorDynamic<>& mvector, bool
     // Count active constraints and resize vector if necessary
     if (resize_vector) {
         n_c = CountActiveConstraints();
-        mvector.resize(n_c);
+        mvector.setZero(n_c);
     }
 
     // Fill the vector
@@ -456,7 +456,7 @@ int ChSystemDescriptor::FromConstraintsToVector(ChVectorDynamic<>& mvector, bool
 int ChSystemDescriptor::FromVectorToConstraints(const ChVectorDynamic<>& mvector) {
     n_c = CountActiveConstraints();
 
-    assert(n_c == mvector.rows());
+    assert(n_c == mvector.size());
 
     // Fill the vector
     for (int ic = 0; ic < (int)vconstraints.size(); ic++) {
@@ -474,7 +474,7 @@ int ChSystemDescriptor::FromUnknownsToVector(ChVectorDynamic<>& mvector, bool re
     n_c = CountActiveConstraints();
 
     if (resize_vector) {
-        mvector.resize(n_q + n_c);
+        mvector.setZero(n_q + n_c);
     }
 
     // Fill the first part of vector, x.q ,with variables q
@@ -498,7 +498,7 @@ int ChSystemDescriptor::FromVectorToUnknowns(const ChVectorDynamic<>& mvector) {
     n_q = CountActiveVariables();
     n_c = CountActiveConstraints();
 
-    assert((n_q + n_c) == mvector.rows());
+    assert((n_q + n_c) == mvector.size());
 
     // Fetch from the first part of vector (x.q = q)
     for (int iv = 0; iv < (int)vvariables.size(); iv++) {
@@ -522,9 +522,9 @@ void ChSystemDescriptor::ShurComplementProduct(ChVectorDynamic<>& result,
                                                std::vector<bool>* enabled) {
     // currently, the case with ChKblock items is not supported (only diagonal M is supported, no K)
     assert(vstiffness.size() == 0);
-    assert(lvector.rows() == CountActiveConstraints());
+    assert(lvector.size() == CountActiveConstraints());
 
-    result.resize(n_c);
+    result.setZero(n_c);
 
     // Performs the sparse product    result = [N]*l = [ [Cq][M^(-1)][Cq'] - [E] ] *l
     // in different phases:
