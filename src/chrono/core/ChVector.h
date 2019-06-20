@@ -53,6 +53,32 @@ class ChVector {
     const Real& y() const { return data[1]; }
     const Real& z() const { return data[2]; }
 
+    // EIGEN INTER-OPERABILITY
+
+    /// Construct a 3d vector from an Eigen vector expression.
+    template <typename Derived>
+    ChVector(const Eigen::MatrixBase<Derived>& vec,
+             typename std::enable_if<(Derived::MaxRowsAtCompileTime == 1 || Derived::MaxColsAtCompileTime == 1),
+                                     Derived>::type* = 0) {
+        data[0] = vec(0);
+        data[1] = vec(1);
+        data[2] = vec(2);
+    }
+
+    /// View this vector as an Eigen array.
+    Eigen::Map<Eigen::Array<Real, 3, 1>> array() {
+        return Eigen::Map<Eigen::Array<Real, 3, 1>>(data);
+    }
+
+    /// Assign an Eigen vector expression to this 3d vector.
+    template <typename Derived>
+    ChVector& operator=(const Eigen::MatrixBase<Derived>& vec) {
+        data[0] = vec(0);
+        data[1] = vec(1);
+        data[2] = vec(2);
+        return *this;
+    }
+
     // SET FUNCTIONS
 
     /// Set the three values of the vector at once.

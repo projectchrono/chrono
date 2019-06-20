@@ -70,6 +70,32 @@ class ChQuaternion {
     const Real& e2() const { return data[2]; }
     const Real& e3() const { return data[3]; }
 
+    // EIGEN INTER-OPERABILITY
+
+    /// Construct a quaternion from an Eigen vector expression.
+    template <typename Derived>
+    ChQuaternion(const Eigen::MatrixBase<Derived>& vec,
+                 typename std::enable_if<(Derived::MaxRowsAtCompileTime == 1 || Derived::MaxColsAtCompileTime == 1),
+                                         Derived>::type* = 0) {
+        data[0] = vec(0);
+        data[1] = vec(1);
+        data[2] = vec(2);
+        data[3] = vec(3);
+    }
+
+    /// View this quaternion as an Eigen array.
+    Eigen::Map<Eigen::Array<Real, 4, 1>> array() { return Eigen::Map<Eigen::Array<Real, 4, 1>>(data); }
+
+    /// Assign an Eigen vector expression to this quaternion.
+    template <typename Derived>
+    ChQuaternion& operator=(const Eigen::MatrixBase<Derived>& vec) {
+        data[0] = vec(0);
+        data[1] = vec(1);
+        data[2] = vec(2);
+        data[3] = vec(3);
+        return *this;
+    }
+
     // SET & GET FUNCTIONS
 
     /// Sets the four values of the quaternion at once
