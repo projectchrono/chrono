@@ -159,6 +159,9 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
     // Np = N*p
     sysd.ShurComplementProduct(mNp, mp);  // Np = N*p
 
+    //// RADU
+    //// Is the above correct?  We always have z=p and therefore NMr = Np...
+
     //
     // THE LOOP
     //
@@ -186,7 +189,7 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
 
         // l = l + alpha * p;
         mtmp = alpha * mp;
-        ml += alpha * mp;
+        ml += mtmp;
 
         double maxdeltalambda = mtmp.norm();  //***better infinity norm for speed reasons?
 

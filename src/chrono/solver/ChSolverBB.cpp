@@ -236,9 +236,10 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
         mg = mg_p;       // g = g_p;
 
         if (((do_BB1e2) && (iter % 2 == 0)) || do_BB1) {
-            mb_tmp = ms;
             if (do_preconditioning)
-                mb_tmp = mb_tmp.array() * mD.array();
+                mb_tmp = ms.array() * mD.array();
+            else
+                mb_tmp = ms;
             double sDs = ms.dot(mb_tmp);
             double sy = ms.dot(my);
             if (sy <= 0) {
@@ -272,9 +273,10 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
 
         if (((do_BB1e2) && (iter % 2 != 0)) || do_BB2) {
             double sy = ms.dot(my);
-            mb_tmp = my;
             if (do_preconditioning)
-                mb_tmp = mb_tmp.array() / mD.array();
+                mb_tmp = my.array() / mD.array();
+            else
+                mb_tmp = my;
             double yDy = my.dot(mb_tmp);
             if (sy <= 0) {
                 alpha = neg_BB2_fallback;
