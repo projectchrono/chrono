@@ -20,8 +20,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChVariablesGenericDiagonalMass)
 
 ChVariablesGenericDiagonalMass::ChVariablesGenericDiagonalMass(int m_ndof) : ChVariables(m_ndof), ndof(m_ndof) {
-    MmassDiag.resize(ndof);
-    MmassDiag.setConstant(1.0);
+    MmassDiag.setConstant(ndof, 1.0);
 }
 
 ChVariablesGenericDiagonalMass& ChVariablesGenericDiagonalMass::operator=(const ChVariablesGenericDiagonalMass& other) {

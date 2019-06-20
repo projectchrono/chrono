@@ -39,7 +39,7 @@ void ChSharedMassBody::ArchiveOUT(ChArchiveOut& marchive) {
 
     // serialize all member data:
     marchive << CHNVP(mass);
-    marchive << CHNVP(inertia);
+    ////marchive << CHNVP(inertia);
 }
 
 void ChSharedMassBody::ArchiveIN(ChArchiveIn& marchive) {
@@ -48,9 +48,9 @@ void ChSharedMassBody::ArchiveIN(ChArchiveIn& marchive) {
 
     // stream in all member data:
     marchive >> CHNVP(mass);
-    marchive >> CHNVP(inertia);
+    ////marchive >> CHNVP(inertia);
     SetBodyMass(mass);
-    SetBodyInertia(inertia);
+    ////SetBodyInertia(inertia);
 }
 
 // -----------------------------------------------------------------------------

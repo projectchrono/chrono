@@ -20,10 +20,8 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChVariablesGeneric)
 
 ChVariablesGeneric::ChVariablesGeneric(int m_ndof) : ChVariables(m_ndof), ndof(m_ndof) {
-    Mmass.setZero(ndof, ndof);
-    Mmass.diagonal().setConstant(1.0);
-    inv_Mmass.setZero(ndof, ndof);
-    inv_Mmass.diagonal().setConstant(1.0);
+    Mmass.setIdentity(ndof, ndof);
+    inv_Mmass.setIdentity(ndof, ndof);
 }
 
 ChVariablesGeneric& ChVariablesGeneric::operator=(const ChVariablesGeneric& other) {
