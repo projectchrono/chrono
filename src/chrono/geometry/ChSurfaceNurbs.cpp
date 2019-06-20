@@ -120,7 +120,7 @@ void ChSurfaceNurbs::SetupData(
     if (weights)
         this->weights = *weights;
     else
-        this->weights = ChMatrixDynamic<>::Constant(n_u, n_v, 1.0);
+        this->weights.setConstant(n_u, n_v, 1.0);
 }
 
 void ChSurfaceNurbs::ArchiveOUT(ChArchiveOut& marchive) {

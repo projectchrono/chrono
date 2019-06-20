@@ -20,7 +20,6 @@
 #include <iostream>
 
 #include "chrono/motion_functions/ChFunction_Base.h"
-#include "chrono/physics/ChGlobal.h"
 
 namespace chrono {
 
@@ -141,8 +140,8 @@ int ChFunction::FilePostscriptPlot(ChFile_ps* m_file, int plotY, int plotDY, int
         for (int j = 0; j < mresol; j++) {
             mp.x() = mx;
             mp.y() = this->Get_y(mx);
-            xf(j, 0) = mp.x();
-            yf(j, 0) = mp.y();
+            xf(j) = mp.x();
+            yf(j) = mp.y();
             mx += ((xmax - xmin) / ((double)mresol - 1.0));
         }
         m_file->DrawGraphXY(yf, xf);
@@ -152,8 +151,8 @@ int ChFunction::FilePostscriptPlot(ChFile_ps* m_file, int plotY, int plotDY, int
         for (int j = 0; j < mresol; j++) {
             mp.x() = mx;
             mp.y() = this->Get_y_dx(mx);
-            xf(j, 0) = mp.x();
-            yf(j, 0) = mp.y();
+            xf(j) = mp.x();
+            yf(j) = mp.y();
             mx += ((xmax - xmin) / ((double)mresol - 1.0));
         }
         m_file->DrawGraphXY(yf, xf);
@@ -163,8 +162,8 @@ int ChFunction::FilePostscriptPlot(ChFile_ps* m_file, int plotY, int plotDY, int
         for (int j = 0; j < mresol; j++) {
             mp.x() = mx;
             mp.y() = this->Get_y_dxdx(mx);
-            xf(j, 0) = mp.x();
-            yf(j, 0) = mp.y();
+            xf(j) = mp.x();
+            yf(j) = mp.y();
             mx += ((xmax - xmin) / ((double)mresol - 1.0));
         }
         m_file->DrawGraphXY(yf, xf);

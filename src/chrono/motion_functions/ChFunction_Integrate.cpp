@@ -41,7 +41,7 @@ void ChFunction_Integrate::ComputeIntegral() {
 
     double F_sum = this->Get_C_start();
 
-    array_x(0, 0) = this->Get_C_start();
+    array_x(0) = this->Get_C_start();
 
     for (int i = 1; i < this->num_samples; i++) {
         x_b = x_start + ((double)i) * (mstep);
@@ -106,8 +106,7 @@ void ChFunction_Integrate::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(x_start);
     marchive >> CHNVP(x_end);
     marchive >> CHNVP(num_samples);
-    array_x.resize(num_samples);
-    array_x.setZero();
+    array_x.setZero(num_samples);
     ComputeIntegral();
 }
 

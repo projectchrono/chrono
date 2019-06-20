@@ -378,7 +378,7 @@ class ChFrame {
     virtual void Invert() {
         coord.rot.Conjugate();
         Amatrix.transposeInPlace();
-        coord.pos = -(Amatrix * coord.pos);
+        coord.pos = -(Amatrix * coord.pos).eval();  // Attention to aliasing issues!
     }
 
     ChFrame<Real> GetInverse() const {

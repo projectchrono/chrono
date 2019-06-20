@@ -105,7 +105,7 @@ void ChLineNurbs::SetupData(
     if (weights)
         this->weights = *weights;
     else
-        this->weights = ChVectorDynamic<>::Constant(n, 1.0);
+        this->weights.setConstant(n, 1.0);
 }
 
 void ChLineNurbs::ArchiveOUT(ChArchiveOut& marchive) {

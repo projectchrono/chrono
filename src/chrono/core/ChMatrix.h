@@ -342,7 +342,7 @@ ChQuaternion<T> operator*(const ChMatrix44<T>& A, const ChQuaternion<U>& q) {
 // =============================================================================
 
 /// Serialization of a matrix into an ASCII stream (e.g. a file) as a Matlab .dat output.
-void StreamOUTdenseMatlabFormat(ChMatrixConstRef A, ChStreamOutAscii& stream) {
+inline void StreamOUTdenseMatlabFormat(ChMatrixConstRef A, ChStreamOutAscii& stream) {
     for (int ii = 0; ii < A.rows(); ii++) {
         for (int jj = 0; jj < A.cols(); jj++) {
             stream << A(ii, jj);

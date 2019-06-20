@@ -133,7 +133,7 @@ class ChApi ChCSMatrix : public ChSparseMatrix {
 #endif
 
     index_vector_t leadIndex;   ///< CS vector: #leadIndex[i] tells that #trailIndex[#leadIndex[i]] is the first element
-                                /// of the i-th row (if row-major)
+                                ///< of the i-th row (if row-major)
     index_vector_t trailIndex;  ///< CS vector: #trailIndex[j] tells the column index of #values[j] (if row-major)
     values_vector_t values;     ///< CS vector: non-zero values
     std::vector<bool> initialized_element;  ///< flag if a space in #trailIndex is initialized or not
@@ -167,9 +167,9 @@ class ChApi ChCSMatrix : public ChSparseMatrix {
         values_vector_t& values_dest,                      ///< values array (destination)
         std::vector<bool>& initialized_element_dest,       ///< array with initialization flags (destination)
         int& trail_ins,  ///< the position in the trailIndex where a new element must be inserted (the element that
-                         /// caused the insertion)
+                         ///< caused the insertion)
         int lead_ins,    ///< the position, referred to the leading dimension, where a new element must be inserted (the
-                         /// element that caused the insertion)
+                         ///< element that caused the insertion)
         int storage_augm  ///< number of not-initialized spaces to add
     );
 

@@ -22,12 +22,12 @@
 /// Set the diagonal elements to the specified value.
 /// Note that the off-diagonal elements are not modified.
 inline void fillDiagonal(Scalar val) {
-    this->diagonal().array() = val;
+    derived().diagonal().array() = val;
 }
 
-/// Set all elememnts to the specified value.
-inline void fill(Scalar val) {
-    *this = Constant(rows(), cols(), val);
+/// Set all coefficients to random values, uniformly distributed in specified range.
+inline void fillRandom(Scalar min, Scalar max) {
+    derived() = (Random(rows(), cols()) + 1.) * 0.5 * (max - min) + min;
 }
 
 /// Test if this matrix is within given tolerance from specified matrix (element-wise).
@@ -36,7 +36,7 @@ inline bool equals(const MatrixBase<OtherDerived>& other, Scalar tolerance) {
     return (derived() - other).cwiseAbs().maxCoeff() <= tolerance;
 }
 
-/// Calculate the WRMS (wighted residual mean square) norm of a vector.
+/// Calculate the WRMS (weighted residual mean square) norm of a vector.
 template <typename OtherDerived>
 Scalar wrmsNorm(
     const MatrixBase<OtherDerived>& weights,
@@ -60,11 +60,5 @@ friend const CwiseBinaryOp<internal::scalar_sum_op<Scalar>, const ConstantReturn
     return CwiseBinaryOp<internal::scalar_sum_op<Scalar>, const ConstantReturnType, Derived>(
         Constant(mat.rows(), mat.cols(), val), mat.derived());
 }
-
-/// Paste a 3d vector at the specified location.
-////inline void PasteVector(const chrono::ChVector<Scalar>& v, Index startRow, Index startCol) {
-////    Matrix<Scalar, 3, 1> ev(v.x(), v.y(), v.z());
-////    (*this).block<3, 1>(startRow, startCol) = ev;
-////}
 
 #endif

@@ -518,8 +518,8 @@ void ChFile_ps::DrawGraphXY(const ChArray<>& Yvalues, const ChArray<>& Xvalues) 
     StartLine();
     ChVector2<> mp;
     for (int i = 0; i < points; i++) {
-        mp.x() = Xvalues(i, 0);
-        mp.y() = Yvalues(i, 0);
+        mp.x() = Xvalues(i);
+        mp.y() = Yvalues(i);
         mp = To_page_from_graph(mp);
         if (i == 0)
             MoveTo(mp);
@@ -545,7 +545,7 @@ void ChFile_ps::DrawGraphXY(const ChArray<>& Yvalues, double Xfrom, double Xstep
     ChVector2<> mp;
     for (int i = 0; i < points; i++) {
         mp.x() = mx;
-        mp.y() = Yvalues(i, 0);
+        mp.y() = Yvalues(i);
         mp = To_page_from_graph(mp);
         if (i == 0)
             MoveTo(mp);
