@@ -33,15 +33,17 @@ namespace chrono {
 
 class ChApi ChConstraintThreeGeneric : public ChConstraintThree {
   protected:
-    ChMatrixDynamic<double> Cq_a;  ///< The [Cq_a] jacobian of the constraint
-    ChMatrixDynamic<double> Cq_b;  ///< The [Cq_b] jacobian of the constraint
-    ChMatrixDynamic<double> Cq_c;  ///< The [Cq_c] jacobian of the constraint
+    // Note that the constraint Jacobians are stored as *column* vectors
+
+    ChVectorDynamic<double> Cq_a;  ///< The [Cq_a] jacobian of the constraint (transposed, as column vector)
+    ChVectorDynamic<double> Cq_b;  ///< The [Cq_b] jacobian of the constraint (transposed, as column vector)
+    ChVectorDynamic<double> Cq_c;  ///< The [Cq_c] jacobian of the constraint (transposed, as column vector)
 
     // Auxiliary data: will be used by iterative constraint solvers:
 
-    ChMatrixDynamic<double> Eq_a;  ///< The [Eq_a] product [Eq_a]=[invM_a]*[Cq_a]'
-    ChMatrixDynamic<double> Eq_b;  ///< The [Eq_a] product [Eq_b]=[invM_b]*[Cq_b]'
-    ChMatrixDynamic<double> Eq_c;  ///< The [Eq_a] product [Eq_c]=[invM_b]*[Cq_c]'
+    ChVectorDynamic<double> Eq_a;  ///< The [Eq_a] product [Eq_a]=[invM_a]*[Cq_a]'
+    ChVectorDynamic<double> Eq_b;  ///< The [Eq_a] product [Eq_b]=[invM_b]*[Cq_b]'
+    ChVectorDynamic<double> Eq_c;  ///< The [Eq_a] product [Eq_c]=[invM_b]*[Cq_c]'
 
   public:
     /// Default constructor
@@ -61,19 +63,19 @@ class ChApi ChConstraintThreeGeneric : public ChConstraintThree {
     /// Assignment operator: copy from other object
     ChConstraintThreeGeneric& operator=(const ChConstraintThreeGeneric& other);
 
-    /// Access jacobian matrix
-    virtual ChMatrixRef Get_Cq_a() override { return Cq_a; }
-    /// Access jacobian matrix
-    virtual ChMatrixRef Get_Cq_b() override { return Cq_b; }
-    /// Access jacobian matrix
-    virtual ChMatrixRef Get_Cq_c() override { return Cq_c; }
+    /// Access jacobian vector.
+    virtual ChVectorRef Get_Cq_a() override { return Cq_a; }
+    /// Access jacobian vector.
+    virtual ChVectorRef Get_Cq_b() override { return Cq_b; }
+    /// Access jacobian vector.
+    virtual ChVectorRef Get_Cq_c() override { return Cq_c; }
 
-    /// Access auxiliary matrix (ex: used by iterative solvers)
-    virtual ChMatrixRef Get_Eq_a() override { return Eq_a; }
-    /// Access auxiliary matrix (ex: used by iterative solvers)
-    virtual ChMatrixRef Get_Eq_b() override { return Eq_b; }
-    /// Access auxiliary matrix (ex: used by iterative solvers)
-    virtual ChMatrixRef Get_Eq_c() override { return Eq_c; }
+    /// Access auxiliary vector (ex: used by iterative solvers).
+    virtual ChVectorRef Get_Eq_a() override { return Eq_a; }
+    /// Access auxiliary vector (ex: used by iterative solvers).
+    virtual ChVectorRef Get_Eq_b() override { return Eq_b; }
+    /// Access auxiliary vector (ex: used by iterative solvers).
+    virtual ChVectorRef Get_Eq_c() override { return Eq_c; }
 
     /// Set references to the constrained objects, each of ChVariables type,
     /// automatically creating/resizing jacobians if needed.

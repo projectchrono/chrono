@@ -20,21 +20,21 @@
 
 namespace chrono {
 
-/// A class for representing a constraint between
-/// two bodies (2x6dof in space) and a 1D dof (a shaft)
+/// A class for representing a constraint between two bodies (2x6dof in space) and a 1D dof (a shaft)
 
 class ChApi ChConstraintThreeBBShaft : public ChConstraintThree {
-
   protected:
-    ChMatrixNM<double, 1, 6> Cq_a;  ///< The [Cq_a] jacobian of the constraint
-    ChMatrixNM<double, 1, 6> Cq_b;  ///< The [Cq_b] jacobian of the constraint
-    ChMatrixNM<double, 1, 1> Cq_c;  ///< The [Cq_c] jacobian of the constraint
+    // Note that the constraint Jacobians are stored as *column* vectors
 
-    // Auxiliary data: will be used by iterative constraint solvers:
+    ChVectorN<double, 6> Cq_a;  ///< The [Cq_a] jacobian of the constraint (transposed, as column vector)
+    ChVectorN<double, 6> Cq_b;  ///< The [Cq_b] jacobian of the constraint (transposed, as column vector)
+    ChVectorN<double, 1> Cq_c;  ///< The [Cq_c] jacobian of the constraint
 
-    ChMatrixNM<double, 6, 1> Eq_a;  ///< The [Eq_a] product [Eq_a]=[invM_a]*[Cq_a]'
-    ChMatrixNM<double, 6, 1> Eq_b;  ///< The [Eq_b] product [Eq_b]=[invM_b]*[Cq_b]'
-    ChMatrixNM<double, 1, 1> Eq_c;  ///< The [Eq_c] product [Eq_c]=[invM_c]*[Cq_c]'
+    // Auxiliary data (used by iterative constraint solvers)
+
+    ChVectorN<double, 6> Eq_a;  ///< The [Eq_a] product [Eq_a]=[invM_a]*[Cq_a]'
+    ChVectorN<double, 6> Eq_b;  ///< The [Eq_b] product [Eq_b]=[invM_b]*[Cq_b]'
+    ChVectorN<double, 1> Eq_c;  ///< The [Eq_c] product [Eq_c]=[invM_c]*[Cq_c]'
 
   public:
     /// Default constructor
@@ -46,7 +46,7 @@ class ChApi ChConstraintThreeBBShaft : public ChConstraintThree {
     /// Copy constructor
     ChConstraintThreeBBShaft(const ChConstraintThreeBBShaft& other);
 
-    virtual ~ChConstraintThreeBBShaft() {}
+    ~ChConstraintThreeBBShaft() {}
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChConstraintThreeBBShaft* Clone() const override { return new ChConstraintThreeBBShaft(*this); }
@@ -54,19 +54,19 @@ class ChApi ChConstraintThreeBBShaft : public ChConstraintThree {
     /// Assignment operator: copy from other object
     ChConstraintThreeBBShaft& operator=(const ChConstraintThreeBBShaft& other);
 
-    /// Access jacobian matrix
-    virtual ChMatrixRef Get_Cq_a() override { return Cq_a; }
-    /// Access jacobian matrix
-    virtual ChMatrixRef Get_Cq_b() override { return Cq_b; }
-    /// Access jacobian matrix
-    virtual ChMatrixRef Get_Cq_c() override { return Cq_c; }
+    /// Access jacobian vector.
+    virtual ChVectorRef Get_Cq_a() override { return Cq_a; }
+    /// Access jacobian vector.
+    virtual ChVectorRef Get_Cq_b() override { return Cq_b; }
+    /// Access jacobian vector.
+    virtual ChVectorRef Get_Cq_c() override { return Cq_c; }
 
-    /// Access auxiliary matrix (ex: used by iterative solvers)
-    virtual ChMatrixRef Get_Eq_a() override { return Eq_a; }
-    /// Access auxiliary matrix (ex: used by iterative solvers)
-    virtual ChMatrixRef Get_Eq_b() override { return Eq_b; }
-    /// Access auxiliary matrix (ex: used by iterative solvers)
-    virtual ChMatrixRef Get_Eq_c() override { return Eq_c; }
+    /// Access auxiliary vector (ex: used by iterative solvers).
+    virtual ChVectorRef Get_Eq_a() override { return Eq_a; }
+    /// Access auxiliary vector (ex: used by iterative solvers).
+    virtual ChVectorRef Get_Eq_b() override { return Eq_b; }
+    /// Access auxiliary vector (ex: used by iterative solvers).
+    virtual ChVectorRef Get_Eq_c() override { return Eq_c; }
 
     /// Set references to the constrained objects,
     /// If first two variables aren't from ChVariablesBody class, an assert failure happens.

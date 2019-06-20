@@ -77,10 +77,10 @@ void ChConstraintTwoBodies::Update_auxiliary() {
     // 1- Assuming jacobians are already computed, now compute
     //   the matrices [Eq_a]=[invM_a]*[Cq_a]' and [Eq_b]
     if (variables_a->IsActive()) {
-        variables_a->Compute_invMb_v(Eq_a, Cq_a.transpose());
+        variables_a->Compute_invMb_v(Eq_a, Cq_a);
     }
     if (variables_b->IsActive()) {
-        variables_b->Compute_invMb_v(Eq_b, Cq_b.transpose());
+        variables_b->Compute_invMb_v(Eq_b, Cq_b);
     }
 
     // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
@@ -142,17 +142,19 @@ void ChConstraintTwoBodies::MultiplyTandAdd(ChVectorDynamic<double>& result, dou
 }
 
 void ChConstraintTwoBodies::Build_Cq(ChSparseMatrix& storage, int insrow) {
+    // Recall that Cq_a, and Cq_b are column vectors.
     if (variables_a->IsActive())
-        storage.PasteMatrix(Cq_a, insrow, variables_a->GetOffset());
+        storage.PasteTranspMatrix(Cq_a, insrow, variables_a->GetOffset());
     if (variables_b->IsActive())
-        storage.PasteMatrix(Cq_b, insrow, variables_b->GetOffset());
+        storage.PasteTranspMatrix(Cq_b, insrow, variables_b->GetOffset());
 }
 
 void ChConstraintTwoBodies::Build_CqT(ChSparseMatrix& storage, int inscol) {
+    // Recall that Cq_a, and Cq_b are column vectors.
     if (variables_a->IsActive())
-        storage.PasteTranspMatrix(Cq_a, variables_a->GetOffset(), inscol);
+        storage.PasteMatrix(Cq_a, variables_a->GetOffset(), inscol);
     if (variables_b->IsActive())
-        storage.PasteTranspMatrix(Cq_b, variables_b->GetOffset(), inscol);
+        storage.PasteMatrix(Cq_b, variables_b->GetOffset(), inscol);
 }
 
 void ChConstraintTwoBodies::ArchiveOUT(ChArchiveOut& marchive) {

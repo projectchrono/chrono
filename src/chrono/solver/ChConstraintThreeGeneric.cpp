@@ -67,20 +67,20 @@ void ChConstraintThreeGeneric::SetVariables(ChVariables* mvariables_a,
     variables_c = mvariables_c;
 
     if (variables_a->Get_ndof() > 0) {
-        Cq_a.resize(1, variables_a->Get_ndof());
-        Eq_a.resize(variables_a->Get_ndof(), 1);
+        Cq_a.resize(variables_a->Get_ndof());
+        Eq_a.resize(variables_a->Get_ndof());
         Cq_a.setZero();
     }
 
     if (variables_b->Get_ndof() > 0) {
-        Cq_b.resize(1, variables_b->Get_ndof());
-        Eq_b.resize(variables_b->Get_ndof(), 1);
+        Cq_b.resize(variables_b->Get_ndof());
+        Eq_b.resize(variables_b->Get_ndof());
         Cq_b.setZero();
     }
 
     if (variables_c->Get_ndof() > 0) {
-        Cq_c.resize(1, variables_c->Get_ndof());
-        Eq_c.resize(variables_c->Get_ndof(), 1);
+        Cq_c.resize(variables_c->Get_ndof());
+        Eq_c.resize(variables_c->Get_ndof());
         Cq_c.setZero();
     }
 }
@@ -89,14 +89,23 @@ void ChConstraintThreeGeneric::Update_auxiliary() {
     // 1- Assuming jacobians are already computed, now compute
     //   the matrices [Eq_a]=[invM_a]*[Cq_a]' and [Eq_b]
     if (variables_a->IsActive() && variables_a->Get_ndof() > 0) {
-        variables_a->Compute_invMb_v(Eq_a, Cq_a.transpose());
+        variables_a->Compute_invMb_v(Eq_a, Cq_a);
     }
     if (variables_b->IsActive() && variables_b->Get_ndof() > 0) {
-        variables_b->Compute_invMb_v(Eq_b, Cq_b.transpose());
+        variables_b->Compute_invMb_v(Eq_b, Cq_b);
     }
     if (variables_c->IsActive() && variables_c->Get_ndof() > 0) {
-        variables_c->Compute_invMb_v(Eq_c, Cq_b.transpose());
+        variables_c->Compute_invMb_v(Eq_c, Cq_b);
     }
+
+    //// RADU
+    //// How can I include the conditions in a single Eigen expression?
+    //// Option:
+    ////         int a = (variables_a->IsActive() && variables_a->Get_ndof() > 0) ? 1 : 0;
+    ////         int b = (variables_b->IsActive() && variables_b->Get_ndof() > 0) ? 1 : 0;
+    ////         int c = (variables_c->IsActive() && variables_c->Get_ndof() > 0) ? 1 : 0;
+    ////         g_i = a * Cq_a.dot(Eq_a) + b * Cq_b.dot(Eq_b) + c * Cq_c.dot(Eq_c);
+    //// Is it worth it?
 
     // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
     ChMatrixDynamic<double> res(1, 1);
@@ -154,48 +163,50 @@ void ChConstraintThreeGeneric::Increment_q(const double deltal) {
 
 void ChConstraintThreeGeneric::MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const {
     if (variables_a->IsActive()) {
-        result += Cq_a.dot(vect.segment(variables_a->GetOffset(), Cq_a.cols()));
+        result += Cq_a.dot(vect.segment(variables_a->GetOffset(), Cq_a.size()));
     }
 
     if (variables_b->IsActive()) {
-        result += Cq_b.dot(vect.segment(variables_b->GetOffset(), Cq_b.cols()));
+        result += Cq_b.dot(vect.segment(variables_b->GetOffset(), Cq_b.size()));
     }
 
     if (variables_c->IsActive()) {
-        result += Cq_c.dot(vect.segment(variables_c->GetOffset(), Cq_c.cols()));
+        result += Cq_c.dot(vect.segment(variables_c->GetOffset(), Cq_c.size()));
     }
 }
 
 void ChConstraintThreeGeneric::MultiplyTandAdd(ChVectorDynamic<double>& result, double l) {
     if (variables_a->IsActive()) {
-        result.segment(variables_a->GetOffset(), Cq_a.cols()) += Cq_a * l;
+        result.segment(variables_a->GetOffset(), Cq_a.size()) += Cq_a * l;
     }
 
     if (variables_b->IsActive()) {
-        result.segment(variables_b->GetOffset(), Cq_b.cols()) += Cq_b * l;
+        result.segment(variables_b->GetOffset(), Cq_b.size()) += Cq_b * l;
     }
 
     if (variables_c->IsActive()) {
-        result.segment(variables_c->GetOffset(), Cq_c.cols()) += Cq_c * l;
+        result.segment(variables_c->GetOffset(), Cq_c.size()) += Cq_c * l;
     }
 }
 
 void ChConstraintThreeGeneric::Build_Cq(ChSparseMatrix& storage, int insrow) {
+    // Recall that Cq_a, Cq_b, and Cq_c are column vectors.
     if (variables_a->IsActive())
-        storage.PasteMatrix(Cq_a, insrow, variables_a->GetOffset());
+        storage.PasteTranspMatrix(Cq_a, insrow, variables_a->GetOffset());
     if (variables_b->IsActive())
-        storage.PasteMatrix(Cq_b, insrow, variables_b->GetOffset());
+        storage.PasteTranspMatrix(Cq_b, insrow, variables_b->GetOffset());
     if (variables_c->IsActive())
-        storage.PasteMatrix(Cq_c, insrow, variables_c->GetOffset());
+        storage.PasteTranspMatrix(Cq_c, insrow, variables_c->GetOffset());
 }
 
 void ChConstraintThreeGeneric::Build_CqT(ChSparseMatrix& storage, int inscol) {
+    // Recall that Cq_a, Cq_b, and Cq_c are column vectors.
     if (variables_a->IsActive())
-        storage.PasteTranspMatrix(Cq_a, variables_a->GetOffset(), inscol);
+        storage.PasteMatrix(Cq_a, variables_a->GetOffset(), inscol);
     if (variables_b->IsActive())
-        storage.PasteTranspMatrix(Cq_b, variables_b->GetOffset(), inscol);
+        storage.PasteMatrix(Cq_b, variables_b->GetOffset(), inscol);
     if (variables_c->IsActive())
-        storage.PasteTranspMatrix(Cq_c, variables_c->GetOffset(), inscol);
+        storage.PasteMatrix(Cq_c, variables_c->GetOffset(), inscol);
 }
 
 void ChConstraintThreeGeneric::ArchiveOUT(ChArchiveOut& marchive) {

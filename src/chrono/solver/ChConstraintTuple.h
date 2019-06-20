@@ -31,9 +31,9 @@ namespace chrono {
 template <class T>
 class ChConstraintTuple_1vars {
   protected:
-    ChVariables* variables;               ///< The constrained object
-    ChMatrixNM<double, 1, T::nvars1> Cq;  ///< The [Cq] jacobian of the constraint
-    ChMatrixNM<double, T::nvars1, 1> Eq;  ///< The [Eq] product [Eq]=[invM]*[Cq]'
+    ChVariables* variables;           ///< The constrained object
+    ChVectorN<double, T::nvars1> Cq;  ///< The [Cq] jacobian of the constraint (transposed, as column vector)
+    ChVectorN<double, T::nvars1> Eq;  ///< The [Eq] product [Eq]=[invM]*[Cq]'
 
   public:
     /// Default constructor
@@ -59,9 +59,9 @@ class ChConstraintTuple_1vars {
         return *this;
     }
 
-    ChMatrixRef Get_Cq() { return Cq; }
+    ChVectorRef Get_Cq() { return Cq; }
 
-    ChMatrixRef Get_Eq() { return Eq; }
+    ChVectorRef Get_Eq() { return Eq; }
 
     ChVariables* GetVariables() { return variables; }
 
@@ -76,13 +76,11 @@ class ChConstraintTuple_1vars {
         // 1- Assuming jacobians are already computed, now compute
         //   the matrices [Eq]=[invM]*[Cq]' and [Eq]
         if (variables->IsActive()) {
-            variables->Compute_invMb_v(Eq, Cq.transpose());
+            variables->Compute_invMb_v(Eq, Cq);
         }
 
         // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
-        ChMatrixNM<double, 1, 1> res;
         if (variables->IsActive()) {
-            res.MatrMultiply(Cq, Eq);
             g_i += Cq.dot(Eq);
         }
     }
@@ -116,13 +114,15 @@ class ChConstraintTuple_1vars {
     }
 
     void Build_Cq(ChSparseMatrix& storage, int insrow) {
+        // Recall that Cq is a column vector.
         if (variables->IsActive())
-            storage.PasteMatrix(Cq, insrow, variables->GetOffset());
+            storage.PasteTranspMatrix(Cq, insrow, variables->GetOffset());
     }
 
     void Build_CqT(ChSparseMatrix& storage, int inscol) {
+        // Recall that Cq is a column vector.
         if (variables->IsActive())
-            storage.PasteTranspMatrix(Cq, variables->GetOffset(), inscol);
+            storage.PasteMatrix(Cq, variables->GetOffset(), inscol);
     }
 };
 
@@ -135,12 +135,12 @@ class ChConstraintTuple_2vars {
     ChVariables* variables_2;
 
     /// The [Cq] jacobian of the constraint, split in horizontal chunks
-    ChMatrixNM<double, 1, T::nvars1> Cq_1;
-    ChMatrixNM<double, 1, T::nvars2> Cq_2;
+    ChVectorN<double, T::nvars1> Cq_1;  // (transposed, as column vector)
+    ChVectorN<double, T::nvars2> Cq_2;  // (transposed, as column vector)
 
-    /// The [Eq] product [Eq]=[invM]*[Cq]' , split in horizontal chunks
-    ChMatrixNM<double, T::nvars1, 1> Eq_1;
-    ChMatrixNM<double, T::nvars2, 1> Eq_2;
+    /// The [Eq] product [Eq]=[invM]*[Cq]'
+    ChVectorN<double, T::nvars1> Eq_1;
+    ChVectorN<double, T::nvars2> Eq_2;
 
   public:
     /// Default constructor
@@ -172,11 +172,11 @@ class ChConstraintTuple_2vars {
         return *this;
     }
 
-    ChMatrixRef Get_Cq_1() { return Cq_1; }
-    ChMatrixRef Get_Cq_2() { return Cq_2; }
+    ChVectorRef Get_Cq_1() { return Cq_1; }
+    ChVectorRef Get_Cq_2() { return Cq_2; }
 
-    ChMatrixRef Get_Eq_1() { return Eq_1; }
-    ChMatrixRef Get_Eq_2() { return Eq_2; }
+    ChVectorRef Get_Eq_1() { return Eq_1; }
+    ChVectorRef Get_Eq_2() { return Eq_2; }
 
     ChVariables* GetVariables_1() { return variables_1; }
     ChVariables* GetVariables_2() { return variables_2; }
@@ -193,10 +193,10 @@ class ChConstraintTuple_2vars {
         // 1- Assuming jacobians are already computed, now compute
         //   the matrices [Eq_a]=[invM_a]*[Cq_a]' and [Eq_b]
         if (variables_1->IsActive()) {
-            variables_1->Compute_invMb_v(Eq_1, Cq_1.transpose());
+            variables_1->Compute_invMb_v(Eq_1, Cq_1);
         }
         if (variables_2->IsActive()) {
-            variables_2->Compute_invMb_v(Eq_2, Cq_2.transpose());
+            variables_2->Compute_invMb_v(Eq_2, Cq_2);
         }
 
         // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
@@ -233,8 +233,8 @@ class ChConstraintTuple_2vars {
     }
 
     void MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const {
-        if (variables->IsActive()) {
-            result += Cq_1.dot(vect.segment(variables->GetOffset(), T::nvars1));
+        if (variables_1->IsActive()) {
+            result += Cq_1.dot(vect.segment(variables_1->GetOffset(), T::nvars1));
         }
 
         if (variables_2->IsActive()) {
@@ -253,17 +253,19 @@ class ChConstraintTuple_2vars {
     }
 
     void Build_Cq(ChSparseMatrix& storage, int insrow) {
+        // Recall that Cq_1 and Cq_2 are column vectors.
         if (variables_1->IsActive())
-            storage.PasteMatrix(Cq_1, insrow, variables_1->GetOffset());
+            storage.PasteTranspMatrix(Cq_1, insrow, variables_1->GetOffset());
         if (variables_2->IsActive())
-            storage.PasteMatrix(Cq_2, insrow, variables_2->GetOffset());
+            storage.PasteTranspMatrix(Cq_2, insrow, variables_2->GetOffset());
     }
 
     void Build_CqT(ChSparseMatrix& storage, int inscol) {
+        // Recall that Cq_1 and Cq_2 are column vectors.
         if (variables_1->IsActive())
-            storage.PasteTranspMatrix(Cq_1, variables_1->GetOffset(), inscol);
+            storage.PasteMatrix(Cq_1, variables_1->GetOffset(), inscol);
         if (variables_2->IsActive())
-            storage.PasteTranspMatrix(Cq_2, variables_2->GetOffset(), inscol);
+            storage.PasteMatrix(Cq_2, variables_2->GetOffset(), inscol);
     }
 };
 
@@ -277,14 +279,14 @@ class ChConstraintTuple_3vars {
     ChVariables* variables_3;
 
     /// The [Cq] jacobian of the constraint, split in horizontal chunks
-    ChMatrixNM<double, 1, T::nvars1> Cq_1;
-    ChMatrixNM<double, 1, T::nvars2> Cq_2;
-    ChMatrixNM<double, 1, T::nvars3> Cq_3;
+    ChVectorN<double, T::nvars1> Cq_1;   // (transposed, as column vector)
+    ChVectorN<double, T::nvars2> Cq_2;   // (transposed, as column vector)
+    ChVectorN<double, T::nvars3> Cq_3;   // (transposed, as column vector)
 
-    /// The [Eq] product [Eq]=[invM]*[Cq]' , split in horizontal chunks
-    ChMatrixNM<double, T::nvars1, 1> Eq_1;
-    ChMatrixNM<double, T::nvars2, 1> Eq_2;
-    ChMatrixNM<double, T::nvars3, 1> Eq_3;
+    /// The [Eq] product [Eq]=[invM]*[Cq]'
+    ChVectorN<double, T::nvars1> Eq_1;
+    ChVectorN<double, T::nvars2> Eq_2;
+    ChVectorN<double, T::nvars3> Eq_3;
 
   public:
     /// Default constructor
@@ -323,13 +325,13 @@ class ChConstraintTuple_3vars {
         return *this;
     }
 
-    ChMatrixRef Get_Cq_1() { return Cq_1; }
-    ChMatrixRef Get_Cq_2() { return Cq_2; }
-    ChMatrixRef Get_Cq_3() { return Cq_3; }
+    ChVectorRef Get_Cq_1() { return Cq_1; }
+    ChVectorRef Get_Cq_2() { return Cq_2; }
+    ChVectorRef Get_Cq_3() { return Cq_3; }
 
-    ChMatrixRef Get_Eq_1() { return Eq_1; }
-    ChMatrixRef Get_Eq_2() { return Eq_2; }
-    ChMatrixRef Get_Eq_3() { return Eq_3; }
+    ChVectorRef Get_Eq_1() { return Eq_1; }
+    ChVectorRef Get_Eq_2() { return Eq_2; }
+    ChVectorRef Get_Eq_3() { return Eq_3; }
 
     ChVariables* GetVariables_1() { return variables_1; }
     ChVariables* GetVariables_2() { return variables_2; }
@@ -348,13 +350,13 @@ class ChConstraintTuple_3vars {
         // 1- Assuming jacobians are already computed, now compute
         //   the matrices [Eq_a]=[invM_a]*[Cq_a]' and [Eq_b]
         if (variables_1->IsActive()) {
-            variables_1->Compute_invMb_v(Eq_1, Cq_1.transpose());
+            variables_1->Compute_invMb_v(Eq_1, Cq_1);
         }
         if (variables_2->IsActive()) {
-            variables_2->Compute_invMb_v(Eq_2, Cq_2.transpose());
+            variables_2->Compute_invMb_v(Eq_2, Cq_2);
         }
         if (variables_3->IsActive()) {
-            variables_3->Compute_invMb_v(Eq_3, Cq_3.transpose());
+            variables_3->Compute_invMb_v(Eq_3, Cq_3);
         }
 
         // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
@@ -402,8 +404,8 @@ class ChConstraintTuple_3vars {
     }
 
     void MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const {
-        if (variables->IsActive()) {
-            result += Cq_1.dot(vect.segment(variables->GetOffset(), T::nvars1));
+        if (variables_1->IsActive()) {
+            result += Cq_1.dot(vect.segment(variables_1->GetOffset(), T::nvars1));
         }
 
         if (variables_2->IsActive()) {
@@ -430,21 +432,23 @@ class ChConstraintTuple_3vars {
     }
 
     void Build_Cq(ChSparseMatrix& storage, int insrow) {
+        // Recall that Cq_1, Cq_2, and Cq_3 are column vectors.
         if (variables_1->IsActive())
-            storage.PasteMatrix(Cq_1, insrow, variables_1->GetOffset());
+            storage.PasteTranspMatrix(Cq_1, insrow, variables_1->GetOffset());
         if (variables_2->IsActive())
-            storage.PasteMatrix(Cq_2, insrow, variables_2->GetOffset());
+            storage.PasteTranspMatrix(Cq_2, insrow, variables_2->GetOffset());
         if (variables_3->IsActive())
-            storage.PasteMatrix(Cq_3, insrow, variables_3->GetOffset());
+            storage.PasteTranspMatrix(Cq_3, insrow, variables_3->GetOffset());
     }
 
     void Build_CqT(ChSparseMatrix& storage, int inscol) {
+        // Recall that Cq_1, Cq_2, and Cq_3 are column vectors.
         if (variables_1->IsActive())
-            storage.PasteTranspMatrix(Cq_1, variables_1->GetOffset(), inscol);
+            storage.PasteMatrix(Cq_1, variables_1->GetOffset(), inscol);
         if (variables_2->IsActive())
-            storage.PasteTranspMatrix(Cq_2, variables_2->GetOffset(), inscol);
+            storage.PasteMatrix(Cq_2, variables_2->GetOffset(), inscol);
         if (variables_3->IsActive())
-            storage.PasteTranspMatrix(Cq_3, variables_3->GetOffset(), inscol);
+            storage.PasteMatrix(Cq_3, variables_3->GetOffset(), inscol);
     }
 };
 
@@ -460,16 +464,16 @@ class ChConstraintTuple_4vars {
     ChVariables* variables_4;
 
     /// The [Cq] jacobian of the constraint, split in horizontal chunks
-    ChMatrixNM<double, 1, T::nvars1> Cq_1;
-    ChMatrixNM<double, 1, T::nvars2> Cq_2;
-    ChMatrixNM<double, 1, T::nvars3> Cq_3;
-    ChMatrixNM<double, 1, T::nvars4> Cq_4;
+    ChVectorN<double, T::nvars1> Cq_1;   // (transposed, as column vector)
+    ChVectorN<double, T::nvars2> Cq_2;   // (transposed, as column vector)
+    ChVectorN<double, T::nvars3> Cq_3;   // (transposed, as column vector)
+    ChVectorN<double, T::nvars4> Cq_4;   // (transposed, as column vector)
 
-    /// The [Eq] product [Eq]=[invM]*[Cq]' , split in horizontal chunks
-    ChMatrixNM<double, T::nvars1, 1> Eq_1;
-    ChMatrixNM<double, T::nvars2, 1> Eq_2;
-    ChMatrixNM<double, T::nvars3, 1> Eq_3;
-    ChMatrixNM<double, T::nvars4, 1> Eq_4;
+    /// The [Eq] product [Eq]=[invM]*[Cq]'
+    ChVectorN<double, T::nvars1> Eq_1;
+    ChVectorN<double, T::nvars2> Eq_2;
+    ChVectorN<double, T::nvars3> Eq_3;
+    ChVectorN<double, T::nvars4> Eq_4;
 
   public:
     /// Default constructor
@@ -515,15 +519,15 @@ class ChConstraintTuple_4vars {
         return *this;
     }
 
-    ChMatrixRef Get_Cq_1() { return Cq_1; }
-    ChMatrixRef Get_Cq_2() { return Cq_2; }
-    ChMatrixRef Get_Cq_3() { return Cq_3; }
-    ChMatrixRef Get_Cq_4() { return Cq_4; }
+    ChVectorRef Get_Cq_1() { return Cq_1; }
+    ChVectorRef Get_Cq_2() { return Cq_2; }
+    ChVectorRef Get_Cq_3() { return Cq_3; }
+    ChVectorRef Get_Cq_4() { return Cq_4; }
 
-    ChMatrixRef Get_Eq_1() { return Eq_1; }
-    ChMatrixRef Get_Eq_2() { return Eq_2; }
-    ChMatrixRef Get_Eq_3() { return Eq_3; }
-    ChMatrixRef Get_Eq_4() { return Eq_4; }
+    ChVectorRef Get_Eq_1() { return Eq_1; }
+    ChVectorRef Get_Eq_2() { return Eq_2; }
+    ChVectorRef Get_Eq_3() { return Eq_3; }
+    ChVectorRef Get_Eq_4() { return Eq_4; }
 
     ChVariables* GetVariables_1() { return variables_1; }
     ChVariables* GetVariables_2() { return variables_2; }
@@ -544,16 +548,16 @@ class ChConstraintTuple_4vars {
         // 1- Assuming jacobians are already computed, now compute
         //   the matrices [Eq_a]=[invM_a]*[Cq_a]' and [Eq_b]
         if (variables_1->IsActive()) {
-            variables_1->Compute_invMb_v(Eq_1, Cq_1.transpose());
+            variables_1->Compute_invMb_v(Eq_1, Cq_1);
         }
         if (variables_2->IsActive()) {
-            variables_2->Compute_invMb_v(Eq_2, Cq_2.transpose());
+            variables_2->Compute_invMb_v(Eq_2, Cq_2);
         }
         if (variables_3->IsActive()) {
-            variables_3->Compute_invMb_v(Eq_3, Cq_3.transpose());
+            variables_3->Compute_invMb_v(Eq_3, Cq_3);
         }
         if (variables_4->IsActive()) {
-            variables_4->Compute_invMb_v(Eq_4, Cq_4.transpose());
+            variables_4->Compute_invMb_v(Eq_4, Cq_4);
         }
 
         // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
@@ -611,11 +615,9 @@ class ChConstraintTuple_4vars {
         }
     }
 
-    //// RADU
-    //// Fix this with Eigen
     void MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const {
-        if (variables->IsActive()) {
-            result += Cq_1.dot(vect.segment(variables->GetOffset(), T::nvars1));
+        if (variables_1->IsActive()) {
+            result += Cq_1.dot(vect.segment(variables_1->GetOffset(), T::nvars1));
         }
 
         if (variables_2->IsActive()) {
@@ -650,25 +652,27 @@ class ChConstraintTuple_4vars {
     }
 
     void Build_Cq(ChSparseMatrix& storage, int insrow) {
+        // Recall that Cq_1, Cq_2, Cq_3, and Cq_4 are column vectors.
         if (variables_1->IsActive())
-            storage.PasteMatrix(Cq_1, insrow, variables_1->GetOffset());
+            storage.PasteTranspMatrix(Cq_1, insrow, variables_1->GetOffset());
         if (variables_2->IsActive())
-            storage.PasteMatrix(Cq_2, insrow, variables_2->GetOffset());
+            storage.PasteTranspMatrix(Cq_2, insrow, variables_2->GetOffset());
         if (variables_3->IsActive())
-            storage.PasteMatrix(Cq_3, insrow, variables_3->GetOffset());
+            storage.PasteTranspMatrix(Cq_3, insrow, variables_3->GetOffset());
         if (variables_4->IsActive())
-            storage.PasteMatrix(Cq_4, insrow, variables_4->GetOffset());
+            storage.PasteTranspMatrix(Cq_4, insrow, variables_4->GetOffset());
     }
 
     void Build_CqT(ChSparseMatrix& storage, int inscol) {
+        // Recall that Cq_1, Cq_2, Cq_3, and Cq_4 are column vectors.
         if (variables_1->IsActive())
-            storage.PasteTranspMatrix(Cq_1, variables_1->GetOffset(), inscol);
+            storage.PasteMatrix(Cq_1, variables_1->GetOffset(), inscol);
         if (variables_2->IsActive())
-            storage.PasteTranspMatrix(Cq_2, variables_2->GetOffset(), inscol);
+            storage.PasteMatrix(Cq_2, variables_2->GetOffset(), inscol);
         if (variables_3->IsActive())
-            storage.PasteTranspMatrix(Cq_3, variables_3->GetOffset(), inscol);
+            storage.PasteMatrix(Cq_3, variables_3->GetOffset(), inscol);
         if (variables_4->IsActive())
-            storage.PasteTranspMatrix(Cq_4, variables_4->GetOffset(), inscol);
+            storage.PasteMatrix(Cq_4, variables_4->GetOffset(), inscol);
     }
 };
 
@@ -678,16 +682,16 @@ class ChConstraintTuple_4vars {
 template <int N1>
 class ChVariableTupleCarrier_1vars {
   public:
-    typedef ChConstraintTuple_1vars<ChVariableTupleCarrier_1vars<N1> > type_constraint_tuple;
+    typedef ChConstraintTuple_1vars<ChVariableTupleCarrier_1vars<N1>> type_constraint_tuple;
     static const int nvars1 = N1;
-    ////virtual ~ChVariableTupleCarrier_1vars() {}
+    virtual ~ChVariableTupleCarrier_1vars() {}
     virtual ChVariables* GetVariables1() = 0;
 };
 
 template <int N1, int N2>
 class ChVariableTupleCarrier_2vars {
   public:
-    typedef ChConstraintTuple_3vars<ChVariableTupleCarrier_2vars<N1, N2> > type_constraint_tuple;
+    typedef ChConstraintTuple_2vars<ChVariableTupleCarrier_2vars<N1, N2>> type_constraint_tuple;
     static int const nvars1 = N1;
     static int const nvars2 = N2;
     virtual ~ChVariableTupleCarrier_2vars() {}
@@ -698,7 +702,7 @@ class ChVariableTupleCarrier_2vars {
 template <int N1, int N2, int N3>
 class ChVariableTupleCarrier_3vars {
   public:
-    typedef ChConstraintTuple_3vars<ChVariableTupleCarrier_3vars<N1, N2, N3> > type_constraint_tuple;
+    typedef ChConstraintTuple_3vars<ChVariableTupleCarrier_3vars<N1, N2, N3>> type_constraint_tuple;
     static int const nvars1 = N1;
     static int const nvars2 = N2;
     static int const nvars3 = N3;
@@ -711,7 +715,7 @@ class ChVariableTupleCarrier_3vars {
 template <int N1, int N2, int N3, int N4>
 class ChVariableTupleCarrier_4vars {
   public:
-    typedef ChConstraintTuple_4vars<ChVariableTupleCarrier_4vars<N1, N2, N3, N4> > type_constraint_tuple;
+    typedef ChConstraintTuple_4vars<ChVariableTupleCarrier_4vars<N1, N2, N3, N4>> type_constraint_tuple;
     static int const nvars1 = N1;
     static int const nvars2 = N2;
     static int const nvars3 = N3;

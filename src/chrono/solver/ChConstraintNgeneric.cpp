@@ -19,13 +19,11 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChConstraintNgeneric)
 
-
 ChConstraintNgeneric::ChConstraintNgeneric(const ChConstraintNgeneric& other) : ChConstraint(other) {
-	variables = other.variables;
-	Cq = other.Cq;
-	Eq = other.Eq;
+    variables = other.variables;
+    Cq = other.Cq;
+    Eq = other.Eq;
 }
-
 
 ChConstraintNgeneric& ChConstraintNgeneric::operator=(const ChConstraintNgeneric& other) {
     if (&other == this)
@@ -34,9 +32,9 @@ ChConstraintNgeneric& ChConstraintNgeneric::operator=(const ChConstraintNgeneric
     // copy parent class data
     ChConstraint::operator=(other);
 
-	variables = other.variables;
-	Cq = other.Cq;
-	Eq = other.Eq;
+    variables = other.variables;
+    Cq = other.Cq;
+    Eq = other.Eq;
 
     return *this;
 }
@@ -55,12 +53,10 @@ void ChConstraintNgeneric::SetVariables(std::vector<ChVariables*> mvars) {
             return;
         }
 
-        Cq.push_back(ChMatrixDynamic<double>(1, variables[i]->Get_ndof()));
-        Eq.push_back(ChMatrixDynamic<double>(variables[i]->Get_ndof(), 1));
-    }
+        Cq.push_back(ChVectorDynamic<double>(variables[i]->Get_ndof()));
+        Eq.push_back(ChVectorDynamic<double>(variables[i]->Get_ndof()));
 
-    for (size_t i = 0; i < variables.size(); ++i) {
-        Cq[i].setZero();
+        Cq.back().setZero();
     }
 }
 
@@ -71,8 +67,8 @@ void ChConstraintNgeneric::Update_auxiliary() {
     for (size_t i = 0; i < variables.size(); ++i) {
         if (variables[i]->IsActive())
             if (variables[i]->Get_ndof()) {
-				variables[i]->Compute_invMb_v(Eq[i], Cq[i].transpose());
-			}
+                variables[i]->Compute_invMb_v(Eq[i], Cq[i]);
+            }
     }
 
     // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
@@ -89,7 +85,7 @@ void ChConstraintNgeneric::Update_auxiliary() {
 }
 
 //// RADU
-//// ATTENTION: previously tehre were bugs in the following 2 functions!
+//// ATTENTION: previously there were bugs in the following 2 functions!
 ////    Indeed, nested loops were using the same iterator ('i')...
 
 double ChConstraintNgeneric::Compute_Cq_q() {
@@ -120,31 +116,33 @@ void ChConstraintNgeneric::Increment_q(const double deltal) {
 void ChConstraintNgeneric::MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const {
     for (size_t i = 0; i < variables.size(); ++i) {
         if (variables[i]->IsActive()) {
-            result += Cq[i].dot(vect.segment(variables[i]->GetOffset(), Cq[i].cols()));
+            result += Cq[i].dot(vect.segment(variables[i]->GetOffset(), Cq[i].size()));
         }
     }
 }
 
 void ChConstraintNgeneric::MultiplyTandAdd(ChVectorDynamic<double>& result, double l) {
-	for (size_t i=0; i <  variables.size(); ++i) {
+    for (size_t i = 0; i < variables.size(); ++i) {
         if (variables[i]->IsActive()) {
-            result.segment(variables[i]->GetOffset(), Cq[i].cols()) += Cq[i] * l;
+            result.segment(variables[i]->GetOffset(), Cq[i].size()) += Cq[i] * l;
         }
-	}
+    }
 }
 
 void ChConstraintNgeneric::Build_Cq(ChSparseMatrix& storage, int insrow) {
-	for (size_t i=0; i <  variables.size(); ++i) {
-		if (variables[i]->IsActive())
-			storage.PasteMatrix(Cq[i], insrow, variables[i]->GetOffset());
-	}
+    // Recall that Cq[i] is a column vector.
+    for (size_t i = 0; i < variables.size(); ++i) {
+        if (variables[i]->IsActive())
+            storage.PasteTranspMatrix(Cq[i], insrow, variables[i]->GetOffset());
+    }
 }
 
 void ChConstraintNgeneric::Build_CqT(ChSparseMatrix& storage, int inscol) {
-	for (size_t i=0; i <  variables.size(); ++i) {
-		if (variables[i]->IsActive())
-			storage.PasteTranspMatrix(Cq[i], variables[i]->GetOffset(), inscol);
-	}
+    // Recall that Cq[i] is a column vector.
+    for (size_t i = 0; i < variables.size(); ++i) {
+        if (variables[i]->IsActive())
+            storage.PasteMatrix(Cq[i], variables[i]->GetOffset(), inscol);
+    }
 }
 
 void ChConstraintNgeneric::ArchiveOUT(ChArchiveOut& marchive) {
@@ -155,7 +153,7 @@ void ChConstraintNgeneric::ArchiveOUT(ChArchiveOut& marchive) {
     ChConstraint::ArchiveOUT(marchive);
 
     // serialize all member data:
-    // NOTHING INTERESTING TO SERIALIZE 
+    // NOTHING INTERESTING TO SERIALIZE
 }
 
 void ChConstraintNgeneric::ArchiveIN(ChArchiveIn& marchive) {
@@ -166,7 +164,7 @@ void ChConstraintNgeneric::ArchiveIN(ChArchiveIn& marchive) {
     ChConstraint::ArchiveIN(marchive);
 
     // deserialize all member data:
-    // NOTHING INTERESTING TO SERIALIZE 
+    // NOTHING INTERESTING TO SERIALIZE
 }
 
 }  // end namespace chrono

@@ -20,27 +20,23 @@
 
 namespace chrono {
 
-/// This class is inherited from the base ChConstraintTwo(),
-/// which is a base for pairwise constraints. So here this class implements
-/// the functionality for a constraint between a COUPLE of TWO
-/// objects of type ChVariables(), with generic number of scalar
-/// variables each (ex.ChVariablesGeneric() or ChVariablesBody() )
-/// and defines two constraint matrices, whose column number automatically
-/// matches the number of elements in variables vectors.
-///  Before starting the solver one must provide the proper
-/// values in constraints (and update them if necessary), i.e.
+/// This class implements the functionality for a constraint between a COUPLE of TWO objects of type ChVariables(), with
+/// generic number of scalar variables each (ex.ChVariablesGeneric() or ChVariablesBody() ) and defines two constraint
+/// matrices, whose column number automatically matches the number of elements in variables vectors.
+/// Before starting the solver one must provide the proper values in constraints (and update them if necessary), i.e.
 /// must set at least the c_i and b_i values, and jacobians.
 
 class ChApi ChConstraintTwoGeneric : public ChConstraintTwo {
-
   protected:
-    ChMatrixDynamic<double> Cq_a;  ///< The [Cq_a] jacobian of the constraint
-    ChMatrixDynamic<double> Cq_b;  ///< The [Cq_b] jacobian of the constraint
+    // Note that the constraint Jacobians are stored as *column* vectors
+
+    ChVectorDynamic<double> Cq_a;  ///< The [Cq_a] jacobian of the constraint (transposed, as column vector)
+    ChVectorDynamic<double> Cq_b;  ///< The [Cq_b] jacobian of the constraint (transposed, as column vector)
 
     // Auxiliary data: will be used by iterative constraint solvers:
 
-    ChMatrixDynamic<double> Eq_a;  ///< The [Eq_a] product [Eq_a]=[invM_a]*[Cq_a]'
-    ChMatrixDynamic<double> Eq_b;  ///< The [Eq_a] product [Eq_b]=[invM_b]*[Cq_b]'
+    ChVectorDynamic<double> Eq_a;  ///< The [Eq_a] product [Eq_a]=[invM_a]*[Cq_a]'
+    ChVectorDynamic<double> Eq_b;  ///< The [Eq_a] product [Eq_b]=[invM_b]*[Cq_b]'
 
   public:
     /// Default constructor
@@ -60,15 +56,17 @@ class ChApi ChConstraintTwoGeneric : public ChConstraintTwo {
     /// Assignment operator: copy from other object
     ChConstraintTwoGeneric& operator=(const ChConstraintTwoGeneric& other);
 
-    /// Access jacobian matrix
-    virtual ChMatrixRef Get_Cq_a() override { return Cq_a; }
-    /// Access jacobian matrix
-    virtual ChMatrixRef Get_Cq_b() override { return Cq_b; }
+    /// Access jacobian vector.
+    virtual ChVectorRef Get_Cq_a() override { return Cq_a; }
 
-    /// Access auxiliary matrix (ex: used by iterative solvers)
-    virtual ChMatrixRef Get_Eq_a() override { return Eq_a; }
-    /// Access auxiliary matrix (ex: used by iterative solvers)
-    virtual ChMatrixRef Get_Eq_b() override { return Eq_b; }
+    /// Access jacobian vector.
+    virtual ChVectorRef Get_Cq_b() override { return Cq_b; }
+
+    /// Access auxiliary vector (ex: used by iterative solvers).
+    virtual ChVectorRef Get_Eq_a() override { return Eq_a; }
+
+    /// Access auxiliary vector (ex: used by iterative solvers).
+    virtual ChVectorRef Get_Eq_b() override { return Eq_b; }
 
     /// Set references to the constrained objects, each of ChVariables type,
     /// automatically creating/resizing jacobians if needed.
