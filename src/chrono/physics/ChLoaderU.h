@@ -57,14 +57,14 @@ class ChLoaderUdistributed : public ChLoaderU {
                           ) override {
         assert(GetIntegrationPointsU() <= ChQuadrature::GetStaticTables()->Lroots.size());
 
-        Q.Reset(loadable->LoadableGet_ndof_w());
+        Q.setZero(loadable->LoadableGet_ndof_w());
         ChVectorDynamic<> mF(loadable->Get_field_ncoords());
-        mF.Reset();
+        mF.setZero();
 
         const std::vector<double>& Ulroots = ChQuadrature::GetStaticTables()->Lroots[GetIntegrationPointsU() - 1];
         const std::vector<double>& Uweight = ChQuadrature::GetStaticTables()->Weight[GetIntegrationPointsU() - 1];
 
-        ChVectorDynamic<> mNF(Q.GetRows());  // temporary value for loop
+        ChVectorDynamic<> mNF(Q.size());  // temporary value for loop
 
         // Gauss quadrature :  Q = sum (N'*F*detJ * wi)
         for (unsigned int iu = 0; iu < Ulroots.size(); iu++) {
@@ -93,9 +93,9 @@ class ChLoaderUatomic : public ChLoaderU {
     virtual void ComputeQ(ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
                           ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
                           ) override {
-        Q.Reset(loadable->LoadableGet_ndof_w());
+        Q.setZero(loadable->LoadableGet_ndof_w());
         ChVectorDynamic<> mF(loadable->Get_field_ncoords());
-        mF.Reset();
+        mF.setZero();
 
         // Compute F=F(u)
         this->ComputeF(Pu, mF, state_x, state_w);
