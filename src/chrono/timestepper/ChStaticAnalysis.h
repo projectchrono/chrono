@@ -37,10 +37,9 @@ class ChStaticAnalysis {
     /// Constructor
     ChStaticAnalysis(ChIntegrableIIorder& mintegrable) {
         integrable = &mintegrable;
-        L.Reset(0);
-        X.Reset(1, &mintegrable);
-        V.Reset(1, &mintegrable);
-        A.Reset(1, &mintegrable);
+        X.setZero(1, &mintegrable);
+        V.setZero(1, &mintegrable);
+        A.setZero(1, &mintegrable);
     };
 
     /// Destructor
@@ -91,15 +90,15 @@ class ChStaticLinearAnalysis : public ChStaticAnalysis {
         double T;
 
         // setup auxiliary vectors
-        Dx.Reset(mintegrable->GetNcoords_v(), GetIntegrable());
-        R.Reset(mintegrable->GetNcoords_v());
-        Qc.Reset(mintegrable->GetNconstr());
-        L.Reset(mintegrable->GetNconstr());
+        Dx.setZero(mintegrable->GetNcoords_v(), mintegrable);
+        R.setZero(mintegrable->GetNcoords_v());
+        Qc.setZero(mintegrable->GetNconstr());
+        L.setZero(mintegrable->GetNconstr());
 
         mintegrable->StateGather(X, V, T);  // state <- system
 
         // Set V speed to zero
-        V.FillElem(0);
+        V.setZero(mintegrable->GetNcoords_v(), mintegrable);
         mintegrable->StateScatter(X, V, T);  // state -> system
 
         // Solve:
@@ -159,16 +158,16 @@ class ChStaticNonLinearAnalysis : public ChStaticAnalysis {
         double T;
 
         // setup auxiliary vectors
-        Dx.Reset(mintegrable->GetNcoords_v(), GetIntegrable());
-        Xnew.Reset(mintegrable->GetNcoords_x(), mintegrable);
-        R.Reset(mintegrable->GetNcoords_v());
-        Qc.Reset(mintegrable->GetNconstr());
-        L.Reset(mintegrable->GetNconstr());
+        Dx.setZero(mintegrable->GetNcoords_v(), mintegrable);
+        Xnew.setZero(mintegrable->GetNcoords_x(), mintegrable);
+        R.setZero(mintegrable->GetNcoords_v());
+        Qc.setZero(mintegrable->GetNconstr());
+        L.setZero(mintegrable->GetNconstr());
 
         mintegrable->StateGather(X, V, T);  // state <- system
 
         // Set speed to zero
-        V.FillElem(0);
+        V.setZero(mintegrable->GetNcoords_v(), mintegrable);
 
         // Extrapolate a prediction as warm start
         Xnew = X;
@@ -180,8 +179,8 @@ class ChStaticNonLinearAnalysis : public ChStaticAnalysis {
 
         for (int i = 0; i < this->GetMaxiters(); ++i) {
             mintegrable->StateScatter(Xnew, V, T);  // state -> system
-            R.Reset();
-            Qc.Reset();
+            R.setZero();
+            Qc.setZero();
             mintegrable->LoadResidual_F(R, 1.0);
             mintegrable->LoadConstraint_C(Qc, 1.0);
 
