@@ -518,7 +518,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     float GetSleepMinWvel() const { return sleep_minwvel; }
 
     /// Computes the 4x4 inertia tensor in quaternion space, if needed.
-    void ComputeQInertia(ChMatrixNM<double, 4, 4>* mQInertia);
+    void ComputeQInertia(ChMatrix44<>& mQInertia);
 
     /// Computes the gyroscopic torque. In fact, in sake of highest
     /// speed, the gyroscopic torque isn't automatically updated each time a
@@ -527,13 +527,13 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     void ComputeGyro();
 
     /// Transform and adds a Cartesian force to a generic 7x1 vector of body lagrangian forces mQf .
-    /// The Cartesian force must be passed as vector and application point, and vcan be either in local
+    /// The Cartesian force must be passed as vector and application point, and can be either in local
     /// (local = true) or absolute reference (local = false)
     void Add_as_lagrangian_force(const ChVector<>& force,
                                  const ChVector<>& appl_point,
                                  bool local,
-                                 ChMatrixNM<double, 7, 1>* mQf);
-    void Add_as_lagrangian_torque(const ChVector<>& torque, bool local, ChMatrixNM<double, 7, 1>* mQf);
+                                 ChVectorN<double, 7>& mQf);
+    void Add_as_lagrangian_torque(const ChVector<>& torque, bool local, ChVectorN<double, 7>& mQf);
 
     //
     // UTILITIES FOR FORCES/TORQUES:
@@ -611,12 +611,15 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     virtual int ContactableGet_ndof_w() override { return 6; }
 
     /// Get all the DOFs packed in a single vector (position part)
-    virtual void ContactableGetStateBlock_x(ChState& x) override { x.PasteCoordsys(this->GetCoord(), 0, 0); }
+    virtual void ContactableGetStateBlock_x(ChState& x) override {
+        x.segment(0, 3) = this->GetCoord().pos.eigen();
+        x.segment(3, 4) = this->GetCoord().rot.eigen();
+    }
 
     /// Get all the DOFs packed in a single vector (speed part)
     virtual void ContactableGetStateBlock_w(ChStateDelta& w) override {
-        w.PasteVector(this->GetPos_dt(), 0, 0);
-        w.PasteVector(this->GetWvel_loc(), 3, 0);
+        w.segment(0, 3) = this->GetPos_dt().eigen();
+        w.segment(3, 3) = this->GetWvel_loc().eigen();
     }
 
     /// Increment the provided state of this object by the given state-delta increment.
@@ -638,7 +641,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     /// Express the local point in absolute frame, for the given state position.
     virtual ChVector<> GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) override {
-        ChCoordsys<> csys = state_x.ClipCoordsys(0, 0);
+        ChCoordsys<> csys(state_x.segment(0, 7));
         return csys.TransformPointLocalToParent(loc_point);
     }
 
@@ -648,9 +651,9 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     virtual ChVector<> GetContactPointSpeed(const ChVector<>& loc_point,
                                             const ChState& state_x,
                                             const ChStateDelta& state_w) override {
-        ChCoordsys<> csys = state_x.ClipCoordsys(0, 0);
-        ChVector<> abs_vel = state_w.ClipVector(0, 0);
-        ChVector<> loc_omg = state_w.ClipVector(3, 0);
+        ChCoordsys<> csys(state_x.segment(0, 7));
+        ChVector<> abs_vel(state_w.segment(0, 3));
+        ChVector<> loc_omg(state_w.segment(3, 3));
         ChVector<> abs_omg = csys.TransformDirectionLocalToParent(loc_omg);
 
         return abs_vel + Vcross(abs_omg, loc_point);
@@ -679,12 +682,12 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
                                    const ChState& state_x,
                                    ChVectorDynamic<>& Q,
                                    int offset) override {
-        ChCoordsys<> csys = state_x.ClipCoordsys(0, 0);
+        ChCoordsys<> csys(state_x.segment(0, 7));
         ChVector<> point_loc = csys.TransformPointParentToLocal(point);
         ChVector<> force_loc = csys.TransformDirectionParentToLocal(F);
         ChVector<> torque_loc = Vcross(point_loc, force_loc);
-        Q.PasteVector(F, offset + 0, 0);
-        Q.PasteVector(torque_loc, offset + 3, 0);
+        Q.segment(offset + 0, 3) = F.eigen();
+        Q.segment(offset + 3, 3) = torque_loc.eigen();
     }
 
     /// Compute the jacobian(s) part(s) for this contactable item.
@@ -724,13 +727,14 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     /// Gets all the DOFs packed in a single vector (position part)
     virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override {
-        mD.PasteCoordsys(this->GetCoord(), block_offset, 0);
+        mD.segment(block_offset + 0, 3) = this->GetCoord().pos.eigen();
+        mD.segment(block_offset + 3, 4) = this->GetCoord().rot.eigen();
     }
 
     /// Gets all the DOFs packed in a single vector (speed part)
     virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override {
-        mD.PasteVector(this->GetPos_dt(), block_offset, 0);
-        mD.PasteVector(this->GetWvel_loc(), block_offset + 3, 0);
+        mD.segment(block_offset + 0, 3) = this->GetPos_dt().eigen();
+        mD.segment(block_offset + 3, 3) = this->GetWvel_loc().eigen();
     }
 
     /// Increment all DOFs using a delta.
@@ -772,21 +776,21 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
         ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
         ) override {
         ChVector<> abs_pos(U, V, W);
-        ChVector<> absF = F.ClipVector(0, 0);
-        ChVector<> absT = F.ClipVector(3, 0);
+        ChVector<> absF(F.segment(0, 3));
+        ChVector<> absT(F.segment(3, 3));
         ChVector<> body_absF;
         ChVector<> body_locT;
         ChCoordsys<> bodycoord;
         if (state_x)
-            bodycoord = state_x->ClipCoordsys(0, 0);  // the numerical jacobian algo might change state_x
+            bodycoord = state_x->segment(0, 7);  // the numerical jacobian algo might change state_x
         else
             bodycoord = this->coord;
         // compute Q components F,T, given current state of body 'bodycoord'. Note T in Q is in local csys, F is an abs
         // csys
         body_absF = absF;
         body_locT = bodycoord.rot.RotateBack(absT + ((abs_pos - bodycoord.pos) % absF));
-        Qi.PasteVector(body_absF, 0, 0);
-        Qi.PasteVector(body_locT, 3, 0);
+        Qi.segment(0, 3) = body_absF.eigen();
+        Qi.segment(3, 3) = body_locT.eigen();
         detJ = 1;  // not needed because not used in quadrature.
     }
 

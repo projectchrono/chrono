@@ -428,7 +428,7 @@ class ChBodyEasyClusterOfSpheres : public ChBody {
         double totmass = 0;
         ChMatrix33<> totinertia;
         ChVector<> baricenter = VNULL;
-        totinertia.Reset();
+        totinertia.setZero();
         for (unsigned int i = 0; i < positions.size(); ++i) {
             double sphmass = mdensity * ((4.0 / 3.0) * CH_C_PI * pow(radii[i], 3));
             baricenter = (baricenter * totmass + positions[i] * sphmass) / (totmass + sphmass);

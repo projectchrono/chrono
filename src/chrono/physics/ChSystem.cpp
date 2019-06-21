@@ -674,23 +674,23 @@ void ChSystem::Setup() {
         double poison_a = -7777.777;
         double poison_L = 55555.555;
         double test_T;
-        test_x.FillElem(poison_x);  // poison x
-        test_v.FillElem(poison_v);  // poison v
-        test_a.FillElem(poison_a);  // poison a
-        test_L.FillElem(poison_L);  // poison L
+        test_x.setConstant(poison_x);  // poison x
+        test_v.setConstant(poison_v);  // poison v
+        test_a.setConstant(poison_a);  // poison a
+        test_L.setConstant(poison_L);  // poison L
         StateGather(test_x, test_v, test_T);
         StateGatherAcceleration(test_a);
         StateGatherReactions(test_L);
-        for (int i = 0; i < test_x.GetRows(); ++i)
+        for (int i = 0; i < test_x.size(); ++i)
             assert(test_x(i) != poison_x);  // if your debugger breaks here, some ChPhysicsItem has a wrong
                                             // implementation of offsets or DOFs for positions
-        for (int i = 0; i < test_v.GetRows(); ++i)
+        for (int i = 0; i < test_v.size(); ++i)
             assert(test_v(i) != poison_v);  // if your debugger breaks here, some ChPhysicsItem has a wrong
                                             // implementation of offsets or DOFs for velocities
-        for (int i = 0; i < test_a.GetRows(); ++i)
+        for (int i = 0; i < test_a.size(); ++i)
             assert(test_a(i) != poison_a);  // if your debugger breaks here, some ChPhysicsItem has a wrong
                                             // implementation of offsets or DOFs for accelerations
-        for (int i = 0; i < test_L.GetRows(); ++i)
+        for (int i = 0; i < test_L.size(); ++i)
             assert(test_L(i) != poison_L);  // if your debugger breaks here, some ChPhysicsItem has a wrong
                                             // implementation of offsets or DOFs for reaction forces
     }
@@ -1130,11 +1130,11 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
 
         chrono::ChStreamOutAsciiFile file_x((sprefix + "x_pre.dat").c_str());
         file_x.SetNumFormat(numformat);
-        ((ChMatrix<>)x).StreamOUTdenseMatlabFormat(file_x);
+        StreamOUTdenseMatlabFormat(x, file_x);
 
         chrono::ChStreamOutAsciiFile file_v((sprefix + "v_pre.dat").c_str());
         file_v.SetNumFormat(numformat);
-        ((ChMatrix<>)v).StreamOUTdenseMatlabFormat(file_v);
+        StreamOUTdenseMatlabFormat(v, file_v);
     }
 
     // If indicated, first perform a solver setup.
@@ -1165,11 +1165,11 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
 
         chrono::ChStreamOutAsciiFile file_Dv((sprefix + "Dv.dat").c_str());
         file_Dv.SetNumFormat(numformat);
-        ((ChMatrix<>)Dv).StreamOUTdenseMatlabFormat(file_Dv);
+        StreamOUTdenseMatlabFormat(Dv, file_Dv);
 
         chrono::ChStreamOutAsciiFile file_L((sprefix + "L.dat").c_str());
         file_L.SetNumFormat(numformat);
-        ((ChMatrix<>)L).StreamOUTdenseMatlabFormat(file_L);
+        StreamOUTdenseMatlabFormat(L, file_L);
 
         // Just for diagnostic, dump also unscaled loads (forces,torques), 
         // since the .._f.dat vector dumped in DumpLastMatrices() might contain scaled loads, and also +M*v
@@ -1177,7 +1177,7 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
         this->IntLoadResidual_F(0, tempF, 1.0);
         chrono::ChStreamOutAsciiFile file_F((sprefix + "F_pre.dat").c_str());
         file_F.SetNumFormat(numformat);
-        tempF.StreamOUTdenseMatlabFormat(file_F);
+        StreamOUTdenseMatlabFormat(tempF, file_F);
     }
     
     solvecount++;
@@ -1535,19 +1535,19 @@ bool ChSystem::DoStaticLinear() {
         GetSystemDescriptor()->DumpLastMatrices();
 
         // optional check for correctness in result
-        chrono::ChMatrixDynamic<double> md;
+        chrono::ChVectorDynamic<double> md;
         GetSystemDescriptor()->BuildDiVector(md);  // d={f;-b}
 
-        chrono::ChMatrixDynamic<double> mx;
-        GetSystemDescriptor()->FromUnknownsToVector(mx);  // x ={q,-l}
+        chrono::ChVectorDynamic<double> mx;
+        GetSystemDescriptor()->FromUnknownsToVector(mx, true);  // x ={q,-l}
         chrono::ChStreamOutAsciiFile file_x("dump_x.dat");
-        mx.StreamOUTdenseMatlabFormat(file_x);
+        StreamOUTdenseMatlabFormat(mx, file_x);
 
-        chrono::ChMatrixDynamic<double> mZx;
+        chrono::ChVectorDynamic<double> mZx;
         GetSystemDescriptor()->SystemProduct(mZx, &mx);  // Zx = Z*x
 
         GetLog() << "CHECK: norm of solver residual: ||Z*x-d|| -------------------\n";
-        GetLog() << (mZx - md).NormInf() << "\n";
+        GetLog() << (mZx - md).lpNorm<Eigen::Infinity>() << "\n";
     }
 
     return true;
