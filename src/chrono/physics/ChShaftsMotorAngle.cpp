@@ -141,8 +141,8 @@ void ChShaftsMotorAngle::ConstraintsBiLoad_Ct(double factor) {
 }
 
 void ChShaftsMotorAngle::ConstraintsLoadJacobians() {
-    constraint.Get_Cq_a()->SetElement(0, 0, 1);
-    constraint.Get_Cq_b()->SetElement(0, 0, -1);
+    constraint.Get_Cq_a()(0) = 1;
+    constraint.Get_Cq_b()(0) = -1;
 }
 
 void ChShaftsMotorAngle::ConstraintsFetch_react(double factor) {

@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/physics/ChGlobal.h"
+#include "chrono/core/ChGlobal.h"
 #include "chrono/physics/ChShaftsBody.h"
 
 namespace chrono {
@@ -142,14 +142,14 @@ void ChShaftsBody::ConstraintsLoadJacobians() {
     // ChVector<> jacw = body->TransformDirectionParentToLocal(shaft_dir);
     ChVector<> jacw = shaft_dir;
 
-    constraint.Get_Cq_a()->ElementN(0) = -1;
+    constraint.Get_Cq_a()(0) = -1;
 
-    constraint.Get_Cq_b()->ElementN(0) = 0;
-    constraint.Get_Cq_b()->ElementN(1) = 0;
-    constraint.Get_Cq_b()->ElementN(2) = 0;
-    constraint.Get_Cq_b()->ElementN(3) = jacw.x();
-    constraint.Get_Cq_b()->ElementN(4) = jacw.y();
-    constraint.Get_Cq_b()->ElementN(5) = jacw.z();
+    constraint.Get_Cq_b()(0) = 0;
+    constraint.Get_Cq_b()(1) = 0;
+    constraint.Get_Cq_b()(2) = 0;
+    constraint.Get_Cq_b()(3) = jacw.x();
+    constraint.Get_Cq_b()(4) = jacw.y();
+    constraint.Get_Cq_b()(5) = jacw.z();
 }
 
 void ChShaftsBody::ConstraintsFetch_react(double factor) {
@@ -318,14 +318,14 @@ void ChShaftsBodyTranslation::ConstraintsLoadJacobians() {
     ChVector<> jacx = body->TransformDirectionLocalToParent(shaft_dir);
     ChVector<> jacw = Vcross(shaft_pos, shaft_dir);
 
-    constraint.Get_Cq_a()->ElementN(0) = -1.0;
+    constraint.Get_Cq_a()(0) = -1.0;
 
-    constraint.Get_Cq_b()->ElementN(0) = jacx.x();
-    constraint.Get_Cq_b()->ElementN(1) = jacx.y();
-    constraint.Get_Cq_b()->ElementN(2) = jacx.z();
-    constraint.Get_Cq_b()->ElementN(3) = jacw.x();
-    constraint.Get_Cq_b()->ElementN(4) = jacw.y();
-    constraint.Get_Cq_b()->ElementN(5) = jacw.z();
+    constraint.Get_Cq_b()(0) = jacx.x();
+    constraint.Get_Cq_b()(1) = jacx.y();
+    constraint.Get_Cq_b()(2) = jacx.z();
+    constraint.Get_Cq_b()(3) = jacw.x();
+    constraint.Get_Cq_b()(4) = jacw.y();
+    constraint.Get_Cq_b()(5) = jacw.z();
 }
 
 void ChShaftsBodyTranslation::ConstraintsFetch_react(double factor) {
