@@ -73,6 +73,23 @@ class ChMatrix33 : public Eigen::Matrix<Real, 3, 3, Eigen::RowMajor> {
     /// Fill this 3x3 matrix as a rotation matrix, given the three versors X,Y,Z of the basis.
     void Set_A_axis(const ChVector<Real>& X, const ChVector<Real>& Y, const ChVector<Real>& Z);
 
+    /// Fill this 3x3 matrix as a rotation matrix with the X axis along the provided direction.
+    /// Uses the Gram-Schmidt orthonormalization. The optional argument Vsingular, together with Xdir, suggests the XY
+    /// plane (as long as Xdir is not too close to lying in that plane, in which case a different direction is
+    /// selected).
+    void Set_A_Xdir(const ChVector<Real>& Xdir,                                ///< X axis
+                    const ChVector<Real>& Vsingular = ChVector<Real>(0, 1, 0)  ///< suggested Y axis
+    );
+
+    /// Return the versor of X axis.
+    ChVector<Real> Get_A_Xaxis() const;
+
+    /// Return the versor of Y axis.
+    ChVector<Real> Get_A_Yaxis() const;
+
+    /// Return the versor of Z axis.
+    ChVector<Real> Get_A_Zaxis() const;
+
     /// Return the corresponding unit quaternion.
     /// Assumes that this is a rotation matrix.
     ChQuaternion<Real> Get_A_quaternion() const;
@@ -275,6 +292,15 @@ inline void ChMatrix33<Real>::Set_A_axis(const ChVector<Real>& X, const ChVector
 }
 
 template <typename Real>
+inline void ChMatrix33<Real>::Set_A_Xdir(const ChVector<Real>& Xdir, const ChVector<Real>& Vsingular) {
+    ChVector<Real> mX;
+    ChVector<Real> mY;
+    ChVector<Real> mZ;
+    Xdir.DirToDxDyDz(mX, mY, mZ, Vsingular);
+    this->Set_A_axis(mX, mY, mZ);
+}
+
+template <typename Real>
 inline ChVector<Real> ChMatrix33<Real>::Get_A_Eulero() const {
     ChVector<Real> eul;
 
@@ -457,6 +483,33 @@ inline ChQuaternion<Real> ChMatrix33<Real>::Get_A_quaternion() const {
     }
 
     return q;
+}
+
+template <typename Real>
+inline ChVector<Real> ChMatrix33<Real>::Get_A_Xaxis() const {
+    ChVector<Real> X;
+    X.x() = (*this)(0, 0);
+    X.y() = (*this)(1, 0);
+    X.z() = (*this)(2, 0);
+    return X;
+}
+
+template <typename Real>
+inline ChVector<Real> ChMatrix33<Real>::Get_A_Yaxis() const {
+    ChVector<Real> Y;
+    Y.x() = (*this)(0, 1);
+    Y.y() = (*this)(1, 1);
+    Y.z() = (*this)(2, 1);
+    return Y;
+}
+
+template <typename Real>
+inline ChVector<Real> ChMatrix33<Real>::Get_A_Zaxis() const {
+    ChVector<Real> Z;
+    Z.x() = (*this)(0, 2);
+    Z.y() = (*this)(1, 2);
+    Z.z() = (*this)(2, 2);
+    return Z;
 }
 
 /*

@@ -65,10 +65,9 @@ class ChVector {
         data[2] = vec(2);
     }
 
-    /// View this vector as an Eigen array.
-    Eigen::Map<Eigen::Array<Real, 3, 1>> array() {
-        return Eigen::Map<Eigen::Array<Real, 3, 1>>(data);
-    }
+    /// View this 3d vector as an Eigen vector.
+    Eigen::Map<Eigen::Matrix<Real, 3, 1>> eigen() { return Eigen::Map<Eigen::Matrix<Real, 3, 1>>(data); }
+    Eigen::Map<const Eigen::Matrix<Real, 3, 1>> eigen() const { return Eigen::Map<const Eigen::Matrix<Real, 3, 1>>(data); }
 
     /// Assign an Eigen vector expression to this 3d vector.
     template <typename Derived>

@@ -116,6 +116,17 @@ TEST(LinearAlgebraTest, operations) {
     cout << "D'\n" << D.transpose() << endl;
     cout << "C_times_D' (component-wise)\n" << C_times_D << endl;
     cout << "C_div_D' (component-wise)\n" << C_div_D << endl;
+
+    // Assigning matrix rows
+    ChMatrix33<> J;
+    J << 10, 20, 30, 40, 50, 60, 70, 80, 90;
+    cout << "3x3 matrix J\n" << J << endl;
+    ChVectorN<double, 10> V;
+    V.setZero();
+    V.segment(3, 3) = J.row(0);
+    cout << "Place row0 in V starting at index 3\n" << V.transpose() << endl;
+    V.segment(7, 3) = J.row(1);
+    cout << "Place row1 in V starting at index 7\n" << V.transpose() << endl;
 }
 
 TEST(LinearAlgebraTest, vector_rotation) {

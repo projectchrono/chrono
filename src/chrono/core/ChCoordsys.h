@@ -61,8 +61,8 @@ class ChCoordsys {
     /// Construct a coordsys from an Eigen vector expression.
     template <typename Derived>
     ChCoordsys(const Eigen::MatrixBase<Derived>& vec,
-        typename std::enable_if<(Derived::MaxRowsAtCompileTime == 1 || Derived::MaxColsAtCompileTime == 1),
-        Derived>::type* = 0) {
+               typename std::enable_if<(Derived::MaxRowsAtCompileTime == 1 || Derived::MaxColsAtCompileTime == 1),
+                                       Derived>::type* = 0) {
         pos.x() = vec(0);
         pos.y() = vec(1);
         pos.z() = vec(2);
@@ -84,7 +84,6 @@ class ChCoordsys {
         rot.e3() = vec(6);
         return *this;
     }
-
 
     // OPERATORS OVERLOADING
 

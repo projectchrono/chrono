@@ -88,7 +88,7 @@ TEST(ChStateTest, interop) {
         ChState S;
         S.setZero(12, nullptr);
 
-        S.segment(2, 3) = v1.array();
+        S.segment(2, 3) = v1.eigen();
         cout << "v -> S\n" << S.transpose() << endl;
         ChVector<> v2(S.segment(2, 3));
         cout << "S -> v (constructor)\n" << v2 << endl;
@@ -99,7 +99,7 @@ TEST(ChStateTest, interop) {
         ASSERT_TRUE(v1.Equals(v2));
         ASSERT_TRUE(v1.Equals(v3));
 
-        S.segment(5, 4) = q1.array();
+        S.segment(5, 4) = q1.eigen();
         cout << "q -> S\n" << S.transpose() << endl;
         ChQuaternion<> q2(S.segment(5, 4));
         cout << "S -> q (constructor)\n" << q2 << endl;
@@ -112,8 +112,8 @@ TEST(ChStateTest, interop) {
 
         S.setZero(12, nullptr);
 
-        S.segment(1, 3) = cs1.pos.array();
-        S.segment(4, 4) = cs1.rot.array();
+        S.segment(1, 3) = cs1.pos.eigen();
+        S.segment(4, 4) = cs1.rot.eigen();
         cout << "cs -> S\n" << S.transpose() << endl;
         ChCoordsys<> cs2(S.segment(1, 7));
         cout << "S -> cs (constructor)\n" << cs2 << endl;
@@ -129,7 +129,7 @@ TEST(ChStateTest, interop) {
         ChStateDelta SD;
         SD.setZero(12, nullptr);
 
-        SD.segment(2, 3) = v1.array();
+        SD.segment(2, 3) = v1.eigen();
         ChVector<> v2(SD.segment(2, 3));
         ChVector<> v3(0);
         v3 = SD.segment(2, 3);
@@ -137,7 +137,7 @@ TEST(ChStateTest, interop) {
         ASSERT_TRUE(v1.Equals(v2));
         ASSERT_TRUE(v1.Equals(v3));
 
-        SD.segment(5, 4) = q1.array();
+        SD.segment(5, 4) = q1.eigen();
         ChQuaternion<> q2(SD.segment(5, 4));
         ChQuaternion<> q3(0, 0, 0, 0);
         q3 = SD.segment(5, 4);
@@ -147,8 +147,8 @@ TEST(ChStateTest, interop) {
 
         SD.setZero(12, nullptr);
 
-        SD.segment(1, 3) = cs1.pos.array();
-        SD.segment(4, 4) = cs1.rot.array();
+        SD.segment(1, 3) = cs1.pos.eigen();
+        SD.segment(4, 4) = cs1.rot.eigen();
         ChCoordsys<> cs2(SD.segment(1, 7));
         ChCoordsys<> cs3(VNULL, QNULL);
         cs3 = SD.segment(1, 7);
@@ -161,7 +161,7 @@ TEST(ChStateTest, interop) {
         ChVectorDynamic<> V;
         V.setZero(12);
 
-        V.segment(2, 3) = v1.array();
+        V.segment(2, 3) = v1.eigen();
         ChVector<> v2(V.segment(2, 3));
         ChVector<> v3(0);
         v3 = V.segment(2, 3);
@@ -169,7 +169,7 @@ TEST(ChStateTest, interop) {
         ASSERT_TRUE(v1.Equals(v2));
         ASSERT_TRUE(v1.Equals(v3));
 
-        V.segment(5, 4) = q1.array();
+        V.segment(5, 4) = q1.eigen();
         ChQuaternion<> q2(V.segment(5, 4));
         ChQuaternion<> q3(0, 0, 0, 0);
         q3 = V.segment(5, 4);
@@ -179,8 +179,8 @@ TEST(ChStateTest, interop) {
 
         V.setZero(12);
 
-        V.segment(1, 3) = cs1.pos.array();
-        V.segment(4, 4) = cs1.rot.array();
+        V.segment(1, 3) = cs1.pos.eigen();
+        V.segment(4, 4) = cs1.rot.eigen();
         ChCoordsys<> cs2(V.segment(1, 7));
         ChCoordsys<> cs3(VNULL, QNULL);
         cs3 = V.segment(1, 7);

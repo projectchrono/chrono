@@ -83,8 +83,9 @@ class ChQuaternion {
         data[3] = vec(3);
     }
 
-    /// View this quaternion as an Eigen array.
-    Eigen::Map<Eigen::Array<Real, 4, 1>> array() { return Eigen::Map<Eigen::Array<Real, 4, 1>>(data); }
+    /// View this quaternion as an Eigen vector.
+    Eigen::Map<Eigen::Matrix<Real, 4, 1>> eigen() { return Eigen::Map<Eigen::Matrix<Real, 4, 1>>(data); }
+    Eigen::Map<const Eigen::Matrix<Real, 4, 1>> eigen() const { return Eigen::Map<const Eigen::Matrix<Real, 4, 1>>(data); }
 
     /// Assign an Eigen vector expression to this quaternion.
     template <typename Derived>

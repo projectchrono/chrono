@@ -196,7 +196,7 @@ class ChStarMatrix33 : public Eigen::Matrix<Real, 3, 3, Eigen::RowMajor> {
     }
 
     // Allows multiplying to other Eigen matrices.
-    using Eigen::Matrix<Real, 3, 4, Eigen::RowMajor>::operator*;
+    using Eigen::Matrix<Real, 3, 3, Eigen::RowMajor>::operator*;
 };
 
 /// Special MBD 4x4 "star" matrix, representing quaternion cross product.
