@@ -25,8 +25,7 @@
 
 #include "chrono/collision/ChCCollisionModel.h"
 #include "chrono/core/ChFrame.h"
-#include "chrono/core/ChMatrixDynamic.h"
-#include "chrono/core/ChVectorDynamic.h"
+#include "chrono/core/ChMatrix.h"
 #include "chrono/solver/ChKblockGeneric.h"
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/physics/ChContactContainer.h"

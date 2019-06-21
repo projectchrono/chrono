@@ -16,7 +16,6 @@
 #define CH_CONTACT_NSC_H
 
 #include "chrono/core/ChFrame.h"
-#include "chrono/core/ChVectorDynamic.h"
 #include "chrono/solver/ChConstraintTwoTuplesContactN.h"
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/collision/ChCCollisionModel.h"
