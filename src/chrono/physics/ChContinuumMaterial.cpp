@@ -64,7 +64,7 @@ ChContinuumElastic::ChContinuumElastic(const ChContinuumElastic& other) : ChCont
     damping_M = other.damping_M;
     damping_K = other.damping_K;
 
-    StressStrainMatrix.CopyFromMatrix(other.StressStrainMatrix);
+    StressStrainMatrix = other.StressStrainMatrix;
 }
 
 void ChContinuumElastic::Set_E(double m_E) {
@@ -89,21 +89,21 @@ void ChContinuumElastic::Set_G(double m_G) {
 }
 
 void ChContinuumElastic::ComputeStressStrainMatrix() {
-    StressStrainMatrix.Reset(6, 6);
-    StressStrainMatrix.SetElement(0, 0, (E * (1 - v)) / (1 + v) / (1 - 2 * v));
-    // StressStrainMatrix.SetElement(1,1,StressStrainMatrix.GetElement(0,0));	//
-    // StressStrainMatrix.SetElement(2,2,StressStrainMatrix.GetElement(0,0));	//per non ricalcolare; qual'è meglio?
-    StressStrainMatrix.SetElement(1, 1, (E * (1 - v)) / (1 + v) / (1 - 2 * v));
-    StressStrainMatrix.SetElement(2, 2, (E * (1 - v)) / (1 + v) / (1 - 2 * v));
-    StressStrainMatrix.SetElement(0, 1, (E * (v)) / (1 + v) / (1 - 2 * v));
-    StressStrainMatrix.SetElement(0, 2, (E * (v)) / (1 + v) / (1 - 2 * v));
-    StressStrainMatrix.SetElement(1, 0, (E * (v)) / (1 + v) / (1 - 2 * v));
-    StressStrainMatrix.SetElement(1, 2, (E * (v)) / (1 + v) / (1 - 2 * v));
-    StressStrainMatrix.SetElement(2, 0, (E * (v)) / (1 + v) / (1 - 2 * v));
-    StressStrainMatrix.SetElement(2, 1, (E * (v)) / (1 + v) / (1 - 2 * v));
-    StressStrainMatrix.SetElement(3, 3, (E * (1 - 2 * v)) / (1 + v) / (1 - 2 * v) / 2);
-    StressStrainMatrix.SetElement(4, 4, (E * (1 - 2 * v)) / (1 + v) / (1 - 2 * v) / 2);
-    StressStrainMatrix.SetElement(5, 5, (E * (1 - 2 * v)) / (1 + v) / (1 - 2 * v) / 2);
+    StressStrainMatrix.setZero(6, 6);
+    StressStrainMatrix(0, 0) = (E * (1 - v)) / (1 + v) / (1 - 2 * v);
+    // StressStrainMatrix(1,1)=StressStrainMatrix(0,0);	//
+    // StressStrainMatrix(2,2)=StressStrainMatrix(0,0);	//per non ricalcolare; qual'è meglio?
+    StressStrainMatrix(1, 1) = (E * (1 - v)) / (1 + v) / (1 - 2 * v);
+    StressStrainMatrix(2, 2) = (E * (1 - v)) / (1 + v) / (1 - 2 * v);
+    StressStrainMatrix(0, 1) = (E * (v)) / (1 + v) / (1 - 2 * v);
+    StressStrainMatrix(0, 2) = (E * (v)) / (1 + v) / (1 - 2 * v);
+    StressStrainMatrix(1, 0) = (E * (v)) / (1 + v) / (1 - 2 * v);
+    StressStrainMatrix(1, 2) = (E * (v)) / (1 + v) / (1 - 2 * v);
+    StressStrainMatrix(2, 0) = (E * (v)) / (1 + v) / (1 - 2 * v);
+    StressStrainMatrix(2, 1) = (E * (v)) / (1 + v) / (1 - 2 * v);
+    StressStrainMatrix(3, 3) = (E * (1 - 2 * v)) / (1 + v) / (1 - 2 * v) / 2;
+    StressStrainMatrix(4, 4) = (E * (1 - 2 * v)) / (1 + v) / (1 - 2 * v) / 2;
+    StressStrainMatrix(5, 5) = (E * (1 - 2 * v)) / (1 + v) / (1 - 2 * v) / 2;
 }
 
 void ChContinuumElastic::ComputeElasticStress(ChStressTensor<>& mstress, const ChStrainTensor<>& mstrain) const {
@@ -200,15 +200,15 @@ void ChContinuumPlasticVonMises::ComputeReturnMapping(ChStrainTensor<>& mplastic
                                                       const ChStrainTensor<>& mlastelasticstrain,
                                                       const ChStrainTensor<>& mlastplasticstrain) const {
     ChStrainTensor<> guesselstrain(mlastelasticstrain);
-    guesselstrain.MatrInc(mincrementstrain);  // assume increment is all elastic
+    guesselstrain += mincrementstrain;  // assume increment is all elastic
 
     double vonm = guesselstrain.GetEquivalentVonMises();
     if (vonm > this->elastic_yeld) {
         ChVoightTensor<> mdev;
         guesselstrain.GetDeviatoricPart(mdev);
-        mplasticstrainflow.CopyFromMatrix(mdev * ((vonm - this->elastic_yeld) / (vonm)));
+        mplasticstrainflow = mdev * ((vonm - this->elastic_yeld) / (vonm));
     } else {
-        mplasticstrainflow.FillElem(0);
+        mplasticstrainflow.setZero();
     }
 }
 
@@ -218,9 +218,9 @@ void ChContinuumPlasticVonMises::ComputePlasticStrainFlow(ChStrainTensor<>& mpla
     if (vonm > this->elastic_yeld) {
         ChVoightTensor<> mdev;
         mtotstrain.GetDeviatoricPart(mdev);
-        mplasticstrainflow.CopyFromMatrix(mdev * ((vonm - this->elastic_yeld) / (vonm)));
+        mplasticstrainflow = mdev * ((vonm - this->elastic_yeld) / (vonm));
     } else {
-        mplasticstrainflow.FillElem(0);
+        mplasticstrainflow.setZero();
     }
 }
 
@@ -294,7 +294,7 @@ void ChContinuumDruckerPrager::ComputeReturnMapping(ChStrainTensor<>& mplasticst
                                                     const ChStrainTensor<>& mlastelasticstrain,
                                                     const ChStrainTensor<>& mlastplasticstrain) const {
     ChStrainTensor<> guesselstrain(mlastelasticstrain);
-    guesselstrain.MatrInc(mincrementstrain);  // assume increment is all elastic
+    guesselstrain += mincrementstrain;  // assume increment is all elastic
 
     ChStressTensor<> mstress;
     this->ComputeElasticStress(mstress, guesselstrain);
@@ -313,7 +313,7 @@ void ChContinuumDruckerPrager::ComputeReturnMapping(ChStrainTensor<>& mplasticst
             vertexstress.ZZ() = vertcoord;
             ChStrainTensor<> vertexstrain;
             this->ComputeElasticStrain(vertexstrain, vertexstress);
-            mplasticstrainflow.MatrSub(guesselstrain, vertexstrain);
+            mplasticstrainflow = guesselstrain - vertexstrain;
         } else {
             // Case: tentative stress is out of the yield cone.
             // Just project using the yield (or flow potential) gradient.
@@ -338,11 +338,11 @@ void ChContinuumDruckerPrager::ComputeReturnMapping(ChStrainTensor<>& mplasticst
                 dGdS.XZ() = mstress.XZ() / devsq;
             } else {
                 GetLog() << "      ... axial singularity - SHOULD NEVER OCCUR  - handled by polar cone\n";
-                dFdS.FillElem(0);
+                dFdS.setZero();
                 dFdS.XX() = 1;
                 dFdS.YY() = 1;
                 dFdS.ZZ() = 1;
-                dGdS.FillElem(0);
+                dGdS.setZero();
                 dGdS.XX() = 1;
                 dGdS.YY() = 1;
                 dGdS.ZZ() = 1;
@@ -351,15 +351,15 @@ void ChContinuumDruckerPrager::ComputeReturnMapping(ChStrainTensor<>& mplasticst
             this->ComputeElasticStress(aux_dFdS_C, dFdS);
 
             ChMatrixNM<double, 1, 1> inner_up;
-            inner_up.MatrTMultiply(aux_dFdS_C, mincrementstrain);
+            inner_up = aux_dFdS_C.transpose() * mincrementstrain;
             ChMatrixNM<double, 1, 1> inner_dw;
-            inner_dw.MatrTMultiply(aux_dFdS_C, dGdS);
+            inner_dw = aux_dFdS_C.transpose() * dGdS;
 
-            mplasticstrainflow.CopyFromMatrix(dGdS);
-            mplasticstrainflow.MatrScale(inner_up(0) / inner_dw(0));
+            mplasticstrainflow = dGdS;
+            mplasticstrainflow *= inner_up(0) / inner_dw(0);
         }
     } else {
-        mplasticstrainflow.FillElem(0);
+        mplasticstrainflow.setZero();
     }
 }
 
@@ -374,13 +374,13 @@ void ChContinuumDruckerPrager::ComputePlasticStrainFlow(ChStrainTensor<>& mplast
         mstress.GetDeviatoricPart(mdev);
         double divisor = 2. * sqrt(mstress.GetInvariant_J2());
         if (divisor > 10e-20)
-            mdev.MatrScale(1. / divisor);
+            mdev *= 1. / divisor;
         mdev.XX() += this->dilatancy;
         mdev.YY() += this->dilatancy;
         mdev.ZZ() += this->dilatancy;
-        mplasticstrainflow.CopyFromMatrix(mdev);
+        mplasticstrainflow = mdev;
     } else {
-        mplasticstrainflow.FillElem(0);
+        mplasticstrainflow.setZero();
     }
 }
 

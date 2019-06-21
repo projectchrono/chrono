@@ -9,6 +9,8 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHNLSOLVER_H
 #define CHNLSOLVER_H
@@ -35,16 +37,16 @@ class ChApi ChNonlinearSolver {
     /// function (i.e. set of N scalar functions) respect to M variables.
     /// It is used internally by NewtonRaphson, but it can also be used by the user.
     /// If you want to use JacobianCompute, remember that matrices mJ, mx and res
-    /// must be already allocated with the correct sizes (i.e. mJ(N,M), mx(M,1), res(N,1) )
+    /// must be already allocated with the correct sizes (i.e. mJ(N,M), mx(M), res(N) )
     /// Also, res must be already computed, for current mx, and mx must be the
     /// current state in which the jacobian is desired.
     /// \test
 
-    static void JacobianCompute(void (*m_func)(ChMatrix<>* mx, ChMatrix<>* res, void* my_data),
-                                ChMatrix<>* mx,
-                                ChMatrix<>* res,
+    static void JacobianCompute(void (*m_func)(ChVectorRef mx, ChVectorRef res, void* my_data),
+                                ChVectorRef mx,
+                                ChVectorRef res,
                                 void* my_data,
-                                ChMatrix<>* mJ,
+                                ChMatrixRef mJ,
                                 double diff_step);
 
     /// Static function which solves numerically a set of N nonlinear equations in N unknowns.
@@ -60,9 +62,9 @@ class ChApi ChNonlinearSolver {
     /// \return  Return value is norm of residual vector (should be near zero after root finding).
     /// \test
 
-    static double NewtonRaphson(void (*m_func)(ChMatrix<>* mx, ChMatrix<>* res, void* my_data),
-                                void (*m_jacob)(ChMatrix<>* mx, ChMatrix<>* mJ, void* my_data),
-                                ChMatrix<>* mx,
+    static double NewtonRaphson(void (*m_func)(ChVectorRef mx, ChVectorRef res, void* my_data),
+                                void (*m_jacob)(ChVectorRef mx, ChMatrixRef mJ, void* my_data),
+                                ChVectorRef mx,
                                 void* my_data,
                                 int maxiters,
                                 double tolerance);

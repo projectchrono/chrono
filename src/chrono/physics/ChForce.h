@@ -92,12 +92,12 @@ class ChApi ChForce : public ChObj {
     ChVector<> force;     ///< TOTAL force vect (abs.coord) = fm*vdir +fx+fy+fz
     ChVector<> relforce;  ///< TOTAL force vect (rel.coord) = fm*vdir +fx+fy+fz
 
-    ChMatrixDynamic<>* Qf;  ///< Lagrangian force
+    ChVectorN<double, 7> Qf;  ///< Lagrangian force
 
   public:
     ChForce();
     ChForce(const ChForce& other);
-    ~ChForce();
+    ~ChForce() {}
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChForce* Clone() const override { return new ChForce(*this); }
@@ -180,7 +180,7 @@ class ChApi ChForce : public ChObj {
     double GetForceMod() const { return force.Length(); }
 
     /// Gets force-torque applied to rigid body, as lagrangian generalized force (7x1 matrix).
-    ChMatrix<>* GetQf() { return Qf; }
+    const ChVectorN<double, 7>& GetQf() const{ return Qf; }
     /// Gets force-torque applied to rigid body, as force vector (in absol.coords)
     /// and torque vector (in body coords).
     void GetBodyForceTorque(ChVector<>& body_force, ChVector<>& body_torque) const;

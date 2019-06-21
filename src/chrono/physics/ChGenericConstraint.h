@@ -20,85 +20,59 @@
 
 namespace chrono {
 
-/// Class for basic algebraic constraints (not to be confused with
-/// ChLink objects, which are complex kinematic constraints between rigid
-/// bodies in 3D, containing ChConstraint objects)
-///
-/// This is the base data for algebraic constraints.
-/// The base implementation is basically _useless_ unless it has some
-/// inherited implementation (see other classes below)
-///
-/// Child classes should implement at least Update() RestoreReferences() Get_Cn().
-///
+/// Class for basic algebraic constraints (not to be confused with ChLink objects, which are complex kinematic
+/// constraints between rigid bodies in 3D, containing ChConstraint objects).
+/// This is the base data for algebraic constraints. Child classes should implement at least Update(),
+/// RestoreReferences(), Get_Cn().
 class ChApi ChGenericConstraint {
   protected:
     bool valid;
     bool disabled;
    
     int Cn;  ///< constraints equations in this constraint
-    ChMatrix<>* C; ///< residual matrix
+    ChVectorDynamic<> C; ///< residual matrix
 
   public:
     ChGenericConstraint();
-    virtual ~ChGenericConstraint();
+    virtual ~ChGenericConstraint() {}
 
     /// Tells if the constraint data is currently valid.
     /// Instead of implementing it, child classes may simply
     /// set valif=false (or true) depending on the result of their
-    /// implementations of RestoreReference();
-    virtual bool IsValid() { return valid; }
+    /// implementations of RestoreReference().
+    bool IsValid() { return valid; }
 
     /// Tells if the constraint is currently turned on or off by the user.
-    virtual bool IsDisabled() { return disabled; }
-    virtual void SetDisabled(bool mon) { disabled = mon; }
+    bool IsDisabled() { return disabled; }
+    void SetDisabled(bool mon) { disabled = mon; }
 
     /// Tells if the constraint is currently active, in general,
     /// that is tells if it must be included into the system solver or not.
-    virtual bool IsActive() { return (valid & !disabled & (Cn > 0)); }
+    bool IsActive() const { return (valid & !disabled & (Cn > 0)); }
 
-    /// Returns the matrix of residuals (a column vector with Cn elements)
-    /// If constraint is not active, returns NULL because no equations can be used.
-    virtual ChMatrix<>* Get_C() {
-        if (IsActive())
-            return C;
-        else
-            return NULL;
-    }
+    /// Returns the matrix of residuals (a column vector with Cn elements
+    const ChVectorDynamic<>& Get_C() const { return C; }
 
-    /// ---TO IMPLEMENT-- w.overriding
     /// Returns the number of equations in this constraints (the
     /// size of the C residual vector)
-    virtual int Get_Cn() { return 0; }
-    /// Changes the number of equations in this constraints (reset the
-    /// size of the C residual vector).
-    virtual int Reset_Cn(int mCn);
+    virtual int Get_Cn() = 0;
 
-    /// ---TO IMPLEMENT-- w.overloading
-    /// This may be overloaded by child classes. Argument should be
-    /// the 'database' where the reference restoring takes place.
-    /// Should return false if referencing was not possible.
-    /// Should set valid=true/false depending on referencing success.
-    virtual bool RestoreReferences() { return true; };
+    /// Changes the number of equations in this constraints (reset the size of the C residual vector).
+    void Reset_Cn(int mCn);
 
-    /// ---TO IMPLEMENT-- w.overloading
-    /// This MUST be overloaded by child classes.
-    /// It should compute the residuals (vector 'C') of the
-    /// constraint equations, where C=0 is for satisfied constraints.
+    /// This may be overloaded by child classes. Argument should be the 'database' where the reference restoring takes
+    /// place. Should return false if referencing was not possible. Should set valid=true/false depending on referencing
+    /// success.
+    virtual bool RestoreReferences(ChFunction* mroot) { return true; }
+
+    /// Compute the residuals (vector 'C') of the constraint equations, where C=0 is for satisfied constraints.
     /// Should return false if updating was not possible.
-    virtual bool Update() {
-        if (IsActive())
-            return true;
-        else
-            return false;
-    };
+    virtual bool Update() = 0;
 };
 
 /// Constraint between parameters in a ChFunction
-///
-/// This is the base data for all types of constraints which
-/// define relations between parameters of a ChFunction (mostly, of
-/// type ChFunctionSequence).
-///
+/// This is the base data for all types of constraints which define relations between parameters of a ChFunction
+/// (mostly, of type ChFunctionSequence).
 class ChApi ChGenericConstraint_Chf : public ChGenericConstraint {
   protected:
     ChFunction* root_function;
@@ -117,13 +91,11 @@ class ChApi ChGenericConstraint_Chf : public ChGenericConstraint {
 
     // --Note: this may be overloaded by children-
     // (Child classes may need also to restore references in other encapsulated ChRef objects).
-    virtual bool RestoreReferences(ChFunction* mroot);
+    virtual bool RestoreReferences(ChFunction* mroot) override;
 };
 
-///
 /// Algebraic constraint on ChFunctions, of the type  y(T)=A
 /// Impose a value of the function (or its derivative) at given time T.
-///
 class ChApi ChGenericConstraint_Chf_ImposeVal : public ChGenericConstraint_Chf {
   private:
     double T;
@@ -142,7 +114,7 @@ class ChApi ChGenericConstraint_Chf_ImposeVal : public ChGenericConstraint_Chf {
     int GetDerivationOrder() { return derivation_order; }
     void SetDerivationOrder(int mo) { derivation_order = mo; }
 
-    virtual int Get_Cn() override { return 1; };
+    virtual int Get_Cn() override { return 1; }
 
     // virtual bool RestoreReferences(ChFunction* mroot);
 
@@ -167,7 +139,7 @@ class ChApi ChGenericConstraint_Chf_Continuity : public ChGenericConstraint_Chf 
     int GetContinuityOrder() { return continuity_order; }
     void SetContinuityOrder(int mc) { continuity_order = mc; }
 
-    virtual int Get_Cn() override { return 1; };
+    virtual int Get_Cn() override { return 1; }
 
     // virtual bool RestoreReferences(ChFunction* mroot);
 

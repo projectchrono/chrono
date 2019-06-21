@@ -12,6 +12,9 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
+//// RADU
+//// Move to utils/ChCompositeInertia
+
 #ifndef CHINERTIAUTILS_H
 #define CHINERTIAUTILS_H
 
@@ -19,7 +22,6 @@
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChMath.h"
-#include "chrono/core/ChLinearAlgebra.h"
 
 namespace chrono {
 
@@ -46,7 +48,7 @@ class ChInertiaUtils {
         assert(positions.size() == masses.size());
 
         totmass = 0;
-        totJ.Reset();
+        totJ.setZero();
         baricenter = VNULL;
 
         // compute tot mass and baricenter position
@@ -60,7 +62,7 @@ class ChInertiaUtils {
             // rotate ith tensor in absolute space
             ChMatrix33<> R = rotations[i];
             ChMatrix33<> Rt = rotations[i];
-            Rt.MatrTranspose();
+            Rt.transposeInPlace();
             ChMatrix33<> absJ = R * Jlocal[i] * Rt;
 
             // Huygens-Steiner parallel axis theorem:
@@ -84,10 +86,10 @@ class ChInertiaUtils {
         }
     }
 
-    /// Rotate an inertia tensor ,given a rotation matrix R
+    /// Rotate an inertia tensor, given a rotation matrix R
     static void RotateInertia(const ChMatrix33<> inertiaIn, const ChMatrix33<> R, ChMatrix33<>& inertiaOut) {
         ChMatrix33<> Rt = R;
-        Rt.MatrTranspose();
+        Rt.transposeInPlace();
         inertiaOut = R * inertiaIn * Rt;
     }
 
