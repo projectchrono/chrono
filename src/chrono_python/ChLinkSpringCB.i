@@ -2,6 +2,7 @@
 
 /* Includes the header in the wrapper code */
 #include "chrono/physics/ChLinkSpringCB.h"
+#include "chrono/physics/ChLinkRotSpringCB.h"
 
 using namespace chrono;
 
@@ -32,6 +33,10 @@ public:
 };
 
 %}
+
+%shared_ptr(chrono::ChLinkSpringCB)
+%shared_ptr(chrono::ChLinkRotSpringCB)
+
  
 // Tell SWIG about parent class in Python
 %import "ChLinkMarkers.i"
@@ -90,6 +95,8 @@ public:
 
 /* Parse the header file to generate wrappers */
 %include "../chrono/physics/ChLinkSpringCB.h"  
+%include "../chrono/physics/ChLinkRotSpringCB.h"  
+
 
 
 
