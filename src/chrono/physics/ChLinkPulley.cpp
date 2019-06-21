@@ -118,10 +118,10 @@ void ChLinkPulley::UpdateTime(double mytime) {
     ChVector<> dcc_w = Vsub(Get_shaft_pos2(), Get_shaft_pos1());
 
     // compute actual rotation of the two wheels (relative to truss).
-    Vector md1 = abs_shaft1.GetA().MatrT_x_Vect(dcc_w);
+    Vector md1 = abs_shaft1.GetA().transpose() * dcc_w;
     md1.z() = 0;
     md1 = Vnorm(md1);
-    Vector md2 = abs_shaft2.GetA().MatrT_x_Vect(dcc_w);
+    Vector md2 = abs_shaft2.GetA().transpose() * dcc_w;
     md2.z() = 0;
     md2 = Vnorm(md2);
 

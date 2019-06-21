@@ -87,7 +87,7 @@ Vector ChLinkClearance::Get_contact_N_abs() {
         return VECT_X;
     Vector mNrel = VECT_X;
     mNrel = Vmul(mNrel, -1);
-    return (this->GetMarker2()->Dir_Ref2World(&mNrel));
+    return (this->GetMarker2()->Dir_Ref2World(mNrel));
 }
 Vector ChLinkClearance::Get_contact_F_abs() {
     return (this->contact_F_abs);
@@ -95,17 +95,17 @@ Vector ChLinkClearance::Get_contact_F_abs() {
 double ChLinkClearance::Get_contact_F_n() {
     if (!this->GetMarker2())
         return 0;
-    return (this->GetMarker2()->Dir_World2Ref(&this->contact_F_abs).x());
+    return (this->GetMarker2()->Dir_World2Ref(contact_F_abs).x());
 }
 double ChLinkClearance::Get_contact_F_t() {
     if (!this->GetMarker2())
         return 0;
-    return (this->GetMarker2()->Dir_World2Ref(&this->contact_F_abs).y());
+    return (this->GetMarker2()->Dir_World2Ref(contact_F_abs).y());
 }
 double ChLinkClearance::Get_contact_V_t() {
     if (!this->GetMarker2())
         return 0;
-    return (this->GetMarker2()->Dir_World2Ref(&this->contact_V_abs).y());
+    return (this->GetMarker2()->Dir_World2Ref(contact_V_abs).y());
 }
 
 void ChLinkClearance::UpdateForces(double mytime) {
@@ -131,7 +131,7 @@ void ChLinkClearance::UpdateForces(double mytime) {
         m_friction_F_abs = Vmul(Vnorm(m_tang_V_abs), Get_c_friction() * (-m_norm_force));
 
         // transform the friction force in link master coords ***TO CHECK*** (new version!)
-        this->C_force += this->marker2->Dir_World2Ref(&m_friction_F_abs);
+        this->C_force += this->marker2->Dir_World2Ref(m_friction_F_abs);
     }
 
     // update internal data: the abs. vector of all contact forces, is a sum of reaction and friction

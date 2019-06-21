@@ -29,6 +29,10 @@ namespace chrono {
 /// degrees of freedom, using the ChLinkLimit objects.
 class ChApi ChLinkLock : public ChLinkMarkers {
   public:
+    using ChConstraintVectorX = Eigen::Matrix<double, Eigen::Dynamic, 1, Eigen::ColMajor, 7, 1>;
+    using ChConstraintMatrixX6 = Eigen::Matrix<double, Eigen::Dynamic, BODY_DOF, Eigen::RowMajor, 7, BODY_DOF>;
+    using ChConstraintMatrixX7 = Eigen::Matrix<double, Eigen::Dynamic, BODY_QDOF, Eigen::RowMajor, 7, BODY_QDOF>;
+
     /// Default constructor. Builds a ChLinkLockSpherical.
     ChLinkLock();
 
@@ -111,11 +115,11 @@ class ChApi ChLinkLock : public ChLinkMarkers {
     // and their time derivatives
 
     /// Link violation (residuals of the link constraint equations).
-    ChMatrix<>* GetC() { return C; }
+    const ChConstraintVectorX& GetC() const { return C; }
     /// Time derivatives of link violations.
-    ChMatrix<>* GetC_dt() { return C_dt; }
+    const ChConstraintVectorX& GetC_dt() const { return C_dt; }
     /// Double time derivatives of link violations.
-    ChMatrix<>* GetC_dtdt() { return C_dtdt; }
+    const ChConstraintVectorX& GetC_dtdt() const { return C_dtdt; }
 
     // LINK STATE MATRICES
 
@@ -125,23 +129,23 @@ class ChApi ChLinkLock : public ChLinkMarkers {
     // in the Update functions.
 
     /// The jacobian (body n.1 part, i.e. columns= 7 ,  rows= ndoc)
-    ChMatrix<>* GetCq1() { return Cq1; }
+    const ChConstraintMatrixX7& GetCq1() const { return Cq1; }
     /// The jacobian (body n.2 part, i.e. columns= 7 ,  rows= ndoc)
-    ChMatrix<>* GetCq2() { return Cq2; }
+    const ChConstraintMatrixX7& GetCq2() const { return Cq2; }
 
     /// The jacobian for Wl (col 6, rows= ndoc), as [Cqw1_rot]=[Cq_rot]*[Gl_1]'
-    ChMatrix<>* GetCqw1() { return Cqw1; }
+    const ChConstraintMatrixX6& GetCqw1() const { return Cqw1; }
     /// The jacobian for Wl (col 6, rows= ndoc)	as [Cqw2_rot]=[Cq_rot]*[Gl_2]'
-    ChMatrix<>* GetCqw2() { return Cqw2; }
+    const ChConstraintMatrixX6& GetCqw2() const { return Cqw2; }
 
     /// The gamma vector used in dynamics,  [Cq]x''=Qc
-    ChMatrix<>* GetQc() { return Qc; }
+    const ChConstraintVectorX& GetQc() const { return Qc; }
 
     /// The Ct vector used in kinematics,  [Cq]x'=Ct
-    ChMatrix<>* GetCt() { return Ct; }
+    const ChConstraintVectorX& GetCt() const { return Ct; }
 
     /// Access the reaction vector, after dynamics computations
-    ChMatrix<>* GetReact() { return react; }
+    const ChConstraintVectorX& GetReact() const { return react; }
 
     // UPDATE FUNCTIONS
 
@@ -225,27 +229,25 @@ class ChApi ChLinkLock : public ChLinkMarkers {
     std::unique_ptr<ChLinkLimit> limit_Rp;  ///< the polar (conical) limit for "shoulder"rotation
     std::unique_ptr<ChLinkLimit> limit_D;   ///< the polar (conical) limit for "shoulder"rotation
 
-    ChMatrix<>* C;       ///< C(q,q_dt,t), the constraint violations
-    ChMatrix<>* C_dt;    ///< Speed constraint violations
-    ChMatrix<>* C_dtdt;  ///< Acceleration constraint violations
+    ChConstraintVectorX C;       ///< C(q,q_dt,t), the constraint violations
+    ChConstraintVectorX C_dt;    ///< Speed constraint violations
+    ChConstraintVectorX C_dtdt;  ///< Acceleration constraint violations
 
-    ChMatrix<>* Cq1;  ///< [Cq1], the jacobian of the constraint, for coords1, [ndoc,7]
-    ChMatrix<>* Cq2;  ///< [Cq2], the jacobian of the constraint, for coords2. [ndoc,7]
+    ChConstraintMatrixX7 Cq1;  ///< [Cq1], the jacobian of the constraint, for coords1, [ndoc,7]
+    ChConstraintMatrixX7 Cq2;  ///< [Cq2], the jacobian of the constraint, for coords2. [ndoc,7]
 
-    ChMatrix<>* Cqw1;  ///< [Cqw1], the jacobian [ndoc,6] for 3 Wl rot.coordinates instead of quaternions
-    ChMatrix<>* Cqw2;  ///< [Cqw2], the jacobian [ndoc,6] for 3 Wl rot.coordinates instead of quaternions
+    ChConstraintMatrixX6 Cqw1;  ///< [Cqw1], the jacobian [ndoc,6] for 3 Wl rot.coordinates instead of quaternions
+    ChConstraintMatrixX6 Cqw2;  ///< [Cqw2], the jacobian [ndoc,6] for 3 Wl rot.coordinates instead of quaternions
 
-    ChMatrix<>* Qc;  ///< {Qc}, the known part, {Qc}=-{C_dtdt}-([Cq]{q_dt})q-2[Cq_dt]{q_dt}
-
-    ChMatrix<>* Ct;  ///< partial derivative of the link kin. equation wrt to time
-
-    ChMatrix<>* react;  ///< {l}, the lagrangians forces in the constraints
+    ChConstraintVectorX Qc;     ///< {Qc}, the known part, {Qc}=-{C_dtdt}-([Cq]{q_dt})q-2[Cq_dt]{q_dt}
+    ChConstraintVectorX Ct;     ///< partial derivative of the link kin. equation wrt to time
+    ChConstraintVectorX react;  ///< {l}, the lagrangians forces in the constraints
 
     // Only for intermediate calculus
-    ChMatrix<>* Cq1_temp;  //
-    ChMatrix<>* Cq2_temp;  //   the temporary "lock" jacobians,
-    ChMatrix<>* Qc_temp;   //   i.e. the full x,y,z,r0,r1,r2,r3 joint
-    Coordsys Ct_temp;      //
+    ChMatrixNM<double, 7, BODY_QDOF> Cq1_temp;  //
+    ChMatrixNM<double, 7, BODY_QDOF> Cq2_temp;  //   the temporary "lock" jacobians,
+    ChVectorN<double, 7> Qc_temp;               //   i.e. the full x,y,z,r0,r1,r2,r3 joint
+    Coordsys Ct_temp;                           //
 
   protected:
     /// Allocates matrices and initializes all mask-dependent quantities.

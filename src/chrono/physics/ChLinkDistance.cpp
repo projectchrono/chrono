@@ -99,19 +99,19 @@ void ChLinkDistance::Update(double mytime, bool update_assets) {
     ChVector<> CqAr = -Vcross(D2relA, pos1);
     ChVector<> CqBr = Vcross(D2relB, pos2);
 
-    Cx.Get_Cq_a()->ElementN(0) = CqAx.x();
-    Cx.Get_Cq_a()->ElementN(1) = CqAx.y();
-    Cx.Get_Cq_a()->ElementN(2) = CqAx.z();
-    Cx.Get_Cq_a()->ElementN(3) = CqAr.x();
-    Cx.Get_Cq_a()->ElementN(4) = CqAr.y();
-    Cx.Get_Cq_a()->ElementN(5) = CqAr.z();
+    Cx.Get_Cq_a()(0) = CqAx.x();
+    Cx.Get_Cq_a()(1) = CqAx.y();
+    Cx.Get_Cq_a()(2) = CqAx.z();
+    Cx.Get_Cq_a()(3) = CqAr.x();
+    Cx.Get_Cq_a()(4) = CqAr.y();
+    Cx.Get_Cq_a()(5) = CqAr.z();
 
-    Cx.Get_Cq_b()->ElementN(0) = CqBx.x();
-    Cx.Get_Cq_b()->ElementN(1) = CqBx.y();
-    Cx.Get_Cq_b()->ElementN(2) = CqBx.z();
-    Cx.Get_Cq_b()->ElementN(3) = CqBr.x();
-    Cx.Get_Cq_b()->ElementN(4) = CqBr.y();
-    Cx.Get_Cq_b()->ElementN(5) = CqBr.z();
+    Cx.Get_Cq_b()(0) = CqBx.x();
+    Cx.Get_Cq_b()(1) = CqBx.y();
+    Cx.Get_Cq_b()(2) = CqBx.z();
+    Cx.Get_Cq_b()(3) = CqBr.x();
+    Cx.Get_Cq_b()(4) = CqBr.y();
+    Cx.Get_Cq_b()(5) = CqBr.z();
 
     //***TO DO***  C_dt? C_dtdt? (may be never used..)
 }

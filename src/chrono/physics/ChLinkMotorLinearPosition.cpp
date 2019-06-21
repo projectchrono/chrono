@@ -40,7 +40,7 @@ void ChLinkMotorLinearPosition::Update(double mytime, bool update_assets) {
     // Add the time-dependent term in residual C as
     //   C = d_error - d_setpoint - d_offset
     // with d_error = x_pos_A- x_pos_B, and d_setpoint = x(t)
-    C->ElementN(0) = this->mpos - m_func->Get_y(mytime) - this->pos_offset;
+    C(0) = this->mpos - m_func->Get_y(mytime) - this->pos_offset;
 }
 
 void ChLinkMotorLinearPosition::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynamic<>& Qc, const double c) {

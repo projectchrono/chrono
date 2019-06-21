@@ -23,8 +23,6 @@ CH_FACTORY_REGISTER(ChLinkUniversal)
 // Constructor and destructor
 // -----------------------------------------------------------------------------
 ChLinkUniversal::ChLinkUniversal() {
-    m_C = new ChMatrixDynamic<>(4, 1);
-
     m_multipliers[0] = 0;
     m_multipliers[1] = 0;
     m_multipliers[2] = 0;
@@ -50,10 +48,6 @@ ChLinkUniversal::ChLinkUniversal(const ChLinkUniversal& other) : ChLink(other) {
     m_multipliers[3] = other.m_multipliers[3];
 }
 
-ChLinkUniversal::~ChLinkUniversal() {
-    delete m_C;
-}
-
 // -----------------------------------------------------------------------------
 // Link initialization functions
 // -----------------------------------------------------------------------------
@@ -71,13 +65,13 @@ void ChLinkUniversal::Initialize(std::shared_ptr<ChBodyFrame> body1,
     ((ChFrame<>*)Body1)->TransformParentToLocal(frame, m_frame1);
     ((ChFrame<>*)Body2)->TransformParentToLocal(frame, m_frame2);
 
-    m_u1_tilde.Set_X_matrix(m_frame1.GetA().Get_A_Xaxis());
-    m_v2_tilde.Set_X_matrix(m_frame2.GetA().Get_A_Yaxis());
+    m_u1_tilde = ChStarMatrix33<>(m_frame1.GetA().Get_A_Xaxis());
+    m_v2_tilde = ChStarMatrix33<>(m_frame2.GetA().Get_A_Yaxis());
 
-    m_C->SetElement(0, 0, 0.0);
-    m_C->SetElement(1, 0, 0.0);
-    m_C->SetElement(2, 0, 0.0);
-    m_C->SetElement(3, 0, 0.0);
+    m_C(0) = 0.0;
+    m_C(1) = 0.0;
+    m_C(2) = 0.0;
+    m_C(3) = 0.0;
 }
 
 void ChLinkUniversal::Initialize(std::shared_ptr<ChBodyFrame> body1,
@@ -108,13 +102,13 @@ void ChLinkUniversal::Initialize(std::shared_ptr<ChBodyFrame> body1,
         frame2_abs = frame2;
     }
 
-    m_u1_tilde.Set_X_matrix(m_frame1.GetA().Get_A_Xaxis());
-    m_v2_tilde.Set_X_matrix(m_frame2.GetA().Get_A_Yaxis());
+    m_u1_tilde = ChStarMatrix33<>(m_frame1.GetA().Get_A_Xaxis());
+    m_v2_tilde = ChStarMatrix33<>(m_frame2.GetA().Get_A_Yaxis());
 
-    m_C->SetElement(0, 0, frame2_abs.coord.pos.x() - frame1_abs.coord.pos.x());
-    m_C->SetElement(1, 0, frame2_abs.coord.pos.y() - frame1_abs.coord.pos.y());
-    m_C->SetElement(2, 0, frame2_abs.coord.pos.z() - frame1_abs.coord.pos.z());
-    m_C->SetElement(3, 0, Vdot(frame1_abs.GetA().Get_A_Xaxis(), frame2_abs.GetA().Get_A_Yaxis()));
+    m_C(0) = frame2_abs.coord.pos.x() - frame1_abs.coord.pos.x();
+    m_C(1) = frame2_abs.coord.pos.y() - frame1_abs.coord.pos.y();
+    m_C(2) = frame2_abs.coord.pos.z() - frame1_abs.coord.pos.z();
+    m_C(3) = Vdot(frame1_abs.GetA().Get_A_Xaxis(), frame2_abs.GetA().Get_A_Yaxis());
 }
 
 // -----------------------------------------------------------------------------
@@ -129,87 +123,83 @@ void ChLinkUniversal::Update(double time, bool update_assets) {
     ChFrame<> frame2_abs = m_frame2 >> *Body2;
 
     // Calculate violations of the spherical constraints
-    m_C->SetElement(0, 0, frame2_abs.coord.pos.x() - frame1_abs.coord.pos.x());
-    m_C->SetElement(1, 0, frame2_abs.coord.pos.y() - frame1_abs.coord.pos.y());
-    m_C->SetElement(2, 0, frame2_abs.coord.pos.z() - frame1_abs.coord.pos.z());
+    m_C(0) = frame2_abs.coord.pos.x() - frame1_abs.coord.pos.x();
+    m_C(1) = frame2_abs.coord.pos.y() - frame1_abs.coord.pos.y();
+    m_C(2) = frame2_abs.coord.pos.z() - frame1_abs.coord.pos.z();
 
     // Compute Jacobian of the spherical constraints
     //    pos2_abs - pos1_abs = 0
     {
-        ChMatrix33<> tilde1;
-        ChMatrix33<> tilde2;
-        tilde1.Set_X_matrix(m_frame1.coord.pos);
-        tilde2.Set_X_matrix(m_frame2.coord.pos);
-        ChMatrix33<> Phi_pi1 = Body1->GetA() * tilde1;
-        ChMatrix33<> Phi_pi2 = Body2->GetA() * tilde2;
+        ChMatrix33<> Phi_pi1 = Body1->GetA() * ChStarMatrix33<>(m_frame1.coord.pos);
+        ChMatrix33<> Phi_pi2 = Body2->GetA() * ChStarMatrix33<>(m_frame2.coord.pos);
 
-        m_cnstr_x.Get_Cq_a()->ElementN(0) = -1;
-        m_cnstr_x.Get_Cq_b()->ElementN(0) = +1;
-        m_cnstr_x.Get_Cq_a()->ElementN(1) = 0;
-        m_cnstr_x.Get_Cq_b()->ElementN(1) = 0;
-        m_cnstr_x.Get_Cq_a()->ElementN(2) = 0;
-        m_cnstr_x.Get_Cq_b()->ElementN(2) = 0;
-        m_cnstr_x.Get_Cq_a()->ElementN(3) = Phi_pi1(0, 0);
-        m_cnstr_x.Get_Cq_b()->ElementN(3) = -Phi_pi2(0, 0);
-        m_cnstr_x.Get_Cq_a()->ElementN(4) = Phi_pi1(0, 1);
-        m_cnstr_x.Get_Cq_b()->ElementN(4) = -Phi_pi2(0, 1);
-        m_cnstr_x.Get_Cq_a()->ElementN(5) = Phi_pi1(0, 2);
-        m_cnstr_x.Get_Cq_b()->ElementN(5) = -Phi_pi2(0, 2);
+        m_cnstr_x.Get_Cq_a()(0) = -1;
+        m_cnstr_x.Get_Cq_b()(0) = +1;
+        m_cnstr_x.Get_Cq_a()(1) = 0;
+        m_cnstr_x.Get_Cq_b()(1) = 0;
+        m_cnstr_x.Get_Cq_a()(2) = 0;
+        m_cnstr_x.Get_Cq_b()(2) = 0;
+        m_cnstr_x.Get_Cq_a()(3) = Phi_pi1(0, 0);
+        m_cnstr_x.Get_Cq_b()(3) = -Phi_pi2(0, 0);
+        m_cnstr_x.Get_Cq_a()(4) = Phi_pi1(0, 1);
+        m_cnstr_x.Get_Cq_b()(4) = -Phi_pi2(0, 1);
+        m_cnstr_x.Get_Cq_a()(5) = Phi_pi1(0, 2);
+        m_cnstr_x.Get_Cq_b()(5) = -Phi_pi2(0, 2);
 
-        m_cnstr_y.Get_Cq_a()->ElementN(0) = 0;
-        m_cnstr_y.Get_Cq_b()->ElementN(0) = 0;
-        m_cnstr_y.Get_Cq_a()->ElementN(1) = -1;
-        m_cnstr_y.Get_Cq_b()->ElementN(1) = +1;
-        m_cnstr_y.Get_Cq_a()->ElementN(2) = 0;
-        m_cnstr_y.Get_Cq_b()->ElementN(2) = 0;
-        m_cnstr_y.Get_Cq_a()->ElementN(3) = Phi_pi1(1, 0);
-        m_cnstr_y.Get_Cq_b()->ElementN(3) = -Phi_pi2(1, 0);
-        m_cnstr_y.Get_Cq_a()->ElementN(4) = Phi_pi1(1, 1);
-        m_cnstr_y.Get_Cq_b()->ElementN(4) = -Phi_pi2(1, 1);
-        m_cnstr_y.Get_Cq_a()->ElementN(5) = Phi_pi1(1, 2);
-        m_cnstr_y.Get_Cq_b()->ElementN(5) = -Phi_pi2(1, 2);
+        m_cnstr_y.Get_Cq_a()(0) = 0;
+        m_cnstr_y.Get_Cq_b()(0) = 0;
+        m_cnstr_y.Get_Cq_a()(1) = -1;
+        m_cnstr_y.Get_Cq_b()(1) = +1;
+        m_cnstr_y.Get_Cq_a()(2) = 0;
+        m_cnstr_y.Get_Cq_b()(2) = 0;
+        m_cnstr_y.Get_Cq_a()(3) = Phi_pi1(1, 0);
+        m_cnstr_y.Get_Cq_b()(3) = -Phi_pi2(1, 0);
+        m_cnstr_y.Get_Cq_a()(4) = Phi_pi1(1, 1);
+        m_cnstr_y.Get_Cq_b()(4) = -Phi_pi2(1, 1);
+        m_cnstr_y.Get_Cq_a()(5) = Phi_pi1(1, 2);
+        m_cnstr_y.Get_Cq_b()(5) = -Phi_pi2(1, 2);
 
-        m_cnstr_z.Get_Cq_a()->ElementN(0) = 0;
-        m_cnstr_z.Get_Cq_b()->ElementN(0) = 0;
-        m_cnstr_z.Get_Cq_a()->ElementN(1) = 0;
-        m_cnstr_z.Get_Cq_b()->ElementN(1) = 0;
-        m_cnstr_z.Get_Cq_a()->ElementN(2) = -1;
-        m_cnstr_z.Get_Cq_b()->ElementN(2) = +1;
-        m_cnstr_z.Get_Cq_a()->ElementN(3) = Phi_pi1(2, 0);
-        m_cnstr_z.Get_Cq_b()->ElementN(3) = -Phi_pi2(2, 0);
-        m_cnstr_z.Get_Cq_a()->ElementN(4) = Phi_pi1(2, 1);
-        m_cnstr_z.Get_Cq_b()->ElementN(4) = -Phi_pi2(2, 1);
-        m_cnstr_z.Get_Cq_a()->ElementN(5) = Phi_pi1(2, 2);
-        m_cnstr_z.Get_Cq_b()->ElementN(5) = -Phi_pi2(2, 2);
+        m_cnstr_z.Get_Cq_a()(0) = 0;
+        m_cnstr_z.Get_Cq_b()(0) = 0;
+        m_cnstr_z.Get_Cq_a()(1) = 0;
+        m_cnstr_z.Get_Cq_b()(1) = 0;
+        m_cnstr_z.Get_Cq_a()(2) = -1;
+        m_cnstr_z.Get_Cq_b()(2) = +1;
+        m_cnstr_z.Get_Cq_a()(3) = Phi_pi1(2, 0);
+        m_cnstr_z.Get_Cq_b()(3) = -Phi_pi2(2, 0);
+        m_cnstr_z.Get_Cq_a()(4) = Phi_pi1(2, 1);
+        m_cnstr_z.Get_Cq_b()(4) = -Phi_pi2(2, 1);
+        m_cnstr_z.Get_Cq_a()(5) = Phi_pi1(2, 2);
+        m_cnstr_z.Get_Cq_b()(5) = -Phi_pi2(2, 2);
     }
 
     // Calculate violation of the dot constraint
     ChVector<> u1 = frame1_abs.GetA().Get_A_Xaxis();
     ChVector<> v2 = frame2_abs.GetA().Get_A_Yaxis();
 
-    m_C->SetElement(3, 0, Vdot(u1, v2));
+    m_C(3) = Vdot(u1, v2);
 
     // Compute Jacobian of the dot constraint
     //    dot(u1_abs, v2_abs) = 0
     {
         ChMatrix33<> mat1 = Body1->GetA() * m_u1_tilde;
         ChMatrix33<> mat2 = Body2->GetA() * m_v2_tilde;
-        ChVector<> Phi_pi1 = mat1.MatrT_x_Vect(v2);
-        ChVector<> Phi_pi2 = mat2.MatrT_x_Vect(u1);
+        ChVector<> Phi_pi1 = mat1.transpose() * v2;
+        ChVector<> Phi_pi2 = mat2.transpose() * u1;
 
-        m_cnstr_dot.Get_Cq_a()->ElementN(0) = 0;
-        m_cnstr_dot.Get_Cq_a()->ElementN(1) = 0;
-        m_cnstr_dot.Get_Cq_a()->ElementN(2) = 0;
-        m_cnstr_dot.Get_Cq_a()->ElementN(3) = -Phi_pi1.x();
-        m_cnstr_dot.Get_Cq_a()->ElementN(4) = -Phi_pi1.y();
-        m_cnstr_dot.Get_Cq_a()->ElementN(5) = -Phi_pi1.z();
+        m_cnstr_dot.Get_Cq_a()(0) = 0;
+        m_cnstr_dot.Get_Cq_a()(1) = 0;
+        m_cnstr_dot.Get_Cq_a()(2) = 0;
+        m_cnstr_dot.Get_Cq_a()(3) = -Phi_pi1.x();
+        m_cnstr_dot.Get_Cq_a()(4) = -Phi_pi1.y();
+        m_cnstr_dot.Get_Cq_a()(5) = -Phi_pi1.z();
 
-        m_cnstr_dot.Get_Cq_b()->ElementN(0) = 0;
-        m_cnstr_dot.Get_Cq_b()->ElementN(1) = 0;
-        m_cnstr_dot.Get_Cq_b()->ElementN(2) = 0;
-        m_cnstr_dot.Get_Cq_b()->ElementN(3) = -Phi_pi2.x();
-        m_cnstr_dot.Get_Cq_b()->ElementN(4) = -Phi_pi2.y();
-        m_cnstr_dot.Get_Cq_b()->ElementN(5) = -Phi_pi2.z();
+        m_cnstr_dot.Get_Cq_b()(0) = 0;
+        m_cnstr_dot.Get_Cq_b()(1) = 0;
+        m_cnstr_dot.Get_Cq_b()(2) = 0;
+        m_cnstr_dot.Get_Cq_b()(3) = -Phi_pi2.x();
+        m_cnstr_dot.Get_Cq_b()(4) = -Phi_pi2.y();
+        m_cnstr_dot.Get_Cq_b()(5) = -Phi_pi2.z();
     }
 }
 
@@ -252,14 +242,14 @@ void ChLinkUniversal::IntStateScatterReactions(const unsigned int off_L, const C
     //     = -C^T * [A_2 * tilde(v2')]^T * u1 * lam_dot
 
     // Reaction force
-    ChVector<> F2 = Body2->GetA().MatrT_x_Vect(lam_sph);
-    react_force = m_frame2.GetA().MatrT_x_Vect(F2);
+    ChVector<> F2 = Body2->GetA().transpose() * lam_sph;
+    react_force = m_frame2.GetA().transpose() * F2;
 
     // Reaction torque
     ChVector<> u1 = Body1->TransformDirectionLocalToParent(m_frame1.GetA().Get_A_Xaxis());
     ChMatrix33<> mat2 = Body2->GetA() * m_v2_tilde;
-    ChVector<> T2 = mat2.MatrT_x_Vect(u1) * lam_dot;
-    react_torque = -m_frame2.GetA().MatrT_x_Vect(T2);
+    ChVector<> T2 = mat2.transpose() * (lam_dot * u1);
+    react_torque = m_frame2.GetA().transpose() * (-T2);
 }
 
 void ChLinkUniversal::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
@@ -285,10 +275,10 @@ void ChLinkUniversal::IntLoadConstraint_C(const unsigned int off_L,  ///< offset
     if (!IsActive())
         return;
 
-    double cnstr_x_violation = c * m_C->GetElement(0, 0);
-    double cnstr_y_violation = c * m_C->GetElement(1, 0);
-    double cnstr_z_violation = c * m_C->GetElement(2, 0);
-    double cnstr_dot_violation = c * m_C->GetElement(3, 0);
+    double cnstr_x_violation = c * m_C(0);
+    double cnstr_y_violation = c * m_C(1);
+    double cnstr_z_violation = c * m_C(2);
+    double cnstr_dot_violation = c * m_C(3);
 
     if (do_clamp) {
         cnstr_x_violation = ChMin(ChMax(cnstr_x_violation, -recovery_clamp), recovery_clamp);
@@ -359,10 +349,10 @@ void ChLinkUniversal::ConstraintsBiLoad_C(double factor, double recovery_clamp, 
     if (!IsActive())
         return;
 
-    double cnstr_x_violation = factor * m_C->GetElement(0, 0);
-    double cnstr_y_violation = factor * m_C->GetElement(1, 0);
-    double cnstr_z_violation = factor * m_C->GetElement(2, 0);
-    double cnstr_dot_violation = factor * m_C->GetElement(3, 0);
+    double cnstr_x_violation = factor * m_C(0);
+    double cnstr_y_violation = factor * m_C(1);
+    double cnstr_z_violation = factor * m_C(2);
+    double cnstr_dot_violation = factor * m_C(3);
 
     if (do_clamp) {
         cnstr_x_violation = ChMin(ChMax(cnstr_x_violation, -recovery_clamp), recovery_clamp);
@@ -403,14 +393,14 @@ void ChLinkUniversal::ConstraintsFetch_react(double factor) {
     //     = -C^T * [A_2 * tilde(v2')]^T * u1 * lam_dot
 
     // Reaction force
-    ChVector<> F2 = Body2->GetA().MatrT_x_Vect(lam_sph);
-    react_force = m_frame2.GetA().MatrT_x_Vect(F2);
+    ChVector<> F2 = Body2->GetA().transpose() * lam_sph;
+    react_force = m_frame2.GetA().transpose() * F2;
 
     // Reaction torque
     ChVector<> u1 = Body1->TransformDirectionLocalToParent(m_frame1.GetA().Get_A_Xaxis());
     ChMatrix33<> mat2 = Body2->GetA() * m_v2_tilde;
-    ChVector<> T2 = mat2.MatrT_x_Vect(u1) * lam_dot;
-    react_torque = -m_frame2.GetA().MatrT_x_Vect(T2);
+    ChVector<> T2 = mat2.transpose() * (lam_dot * u1);
+    react_torque = m_frame2.GetA().transpose() * (-T2);
 }
 
 void ChLinkUniversal::ArchiveOUT(ChArchiveOut& marchive) {
