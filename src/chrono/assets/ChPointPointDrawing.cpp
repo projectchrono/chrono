@@ -53,8 +53,7 @@ void ChPointPointSpring::UpdateLineGeometry(const ChVector<>& endpoint1, const C
 	ChVector<> dir = dist.GetNormalized();
     XdirToDxDyDz(dir, VECT_Y, Vx, Vy, Vz);
 
-	ChMatrix33<> rel_matrix;
-	rel_matrix.Set_A_axis(Vx, Vy, Vz);
+	ChMatrix33<> rel_matrix(Vx, Vy, Vz);
 	ChCoordsys<> mpos(endpoint1, rel_matrix.Get_A_quaternion());
 
 	double phaseA = 0;
