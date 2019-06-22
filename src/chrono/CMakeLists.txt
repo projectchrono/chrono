@@ -124,6 +124,7 @@ set(ChronoEngine_physics_SOURCES
     physics/ChBodyFrame.cpp
     physics/ChBody.cpp
     physics/ChBodyAuxRef.cpp
+    physics/ChBodyEasy.cpp
     physics/ChLinkForce.cpp
     physics/ChLinkMask.cpp
     physics/ChLinkBase.cpp
