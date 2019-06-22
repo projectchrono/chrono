@@ -39,6 +39,13 @@ class ChMatrix33 : public Eigen::Matrix<Real, 3, 3, Eigen::RowMajor> {
     /// Construct a diagonal matrix with the specified value on the diagonal.
     ChMatrix33(Real val);
 
+    /// Construct a 3x3 rotation matrix from an angle and a rotation axis.
+    /// Note that the axis direction must be normalized.
+    ChMatrix33(Real angle, const ChVector<>& axis);
+
+    /// Construct a 3x3 rotation matrix with the given three versors X,Y,Z of the basis.
+    ChMatrix33(const ChVector<>& X, const ChVector<>& Y, const ChVector<>& Z);
+
     /// This method allows assigning Eigen expressions to ChMatrix33.
     template <typename OtherDerived>
     ChMatrix33& operator=(const Eigen::MatrixBase<OtherDerived>& other) {
@@ -113,6 +120,10 @@ class ChMatrix33 : public Eigen::Matrix<Real, 3, 3, Eigen::RowMajor> {
     /// Return the Rodriguez parameters.
     /// Assumes that this is a rotation matrix.
     ChVector<Real> Get_A_Rodriguez() const;
+
+    /// Compute eigenvectors and eigenvalues.
+    /// Note: only for self-adjoint matrices (e.g. inertia tensors).
+    void SelfAdjointEigenSolve(ChMatrix33<Real>& evec, ChVectorN<Real, 3>& evals);
 };
 
 // -----------------------------------------------------------------------------
@@ -148,6 +159,18 @@ template <typename Real>
 ChMatrix33<Real>::ChMatrix33(Real val) {
     this->setZero();
     this->diagonal().setConstant(val);
+}
+
+template <typename Real>
+ChMatrix33<Real>::ChMatrix33(Real angle, const ChVector<>& axis) {
+    ChQuaternion<Real> mr;
+    mr.Q_from_AngAxis(angle, axis);
+    this->Set_A_quaternion(mr);
+}
+
+template <typename Real>
+ChMatrix33<Real>::ChMatrix33(const ChVector<>& X, const ChVector<>& Y, const ChVector<>& Z) {
+    this->Set_A_axis(X, Y, Z);
 }
 
 template <typename Real>
@@ -510,6 +533,13 @@ inline ChVector<Real> ChMatrix33<Real>::Get_A_Zaxis() const {
     Z.y() = (*this)(1, 2);
     Z.z() = (*this)(2, 2);
     return Z;
+}
+
+template <typename Real>
+inline void ChMatrix33<Real>::SelfAdjointEigenSolve(ChMatrix33<Real>& evec, ChVectorN<Real, 3>& evals) {
+    Eigen::SelfAdjointEigenSolver<Eigen::Matrix<Real, 3, 3, Eigen::RowMajor>> es(*this);
+    evals = es.eigenvalues();
+    evec = es.eigenvectors();
 }
 
 /*

@@ -145,8 +145,7 @@ double ChTriangle::PointTriangleDistance(ChVector<> B,
 
     Dy *= 1 / dylen;
 
-    ChMatrix33<> mA;  
-    mA.Set_A_axis(Dx, Dy, Dz);
+    ChMatrix33<> mA(Dx, Dy, Dz);
 
     // invert triangle coordinate matrix -if singular matrix, was degenerate triangle-.
     if (std::abs(mA.determinant()) < 0.000001)

@@ -162,8 +162,7 @@ ChCoordsys<> ChLinkRevoluteTranslational::GetLinkRelativeCoords() {
     // Origin at P1 (center of revolute side) and orientation formed using
     // the mutually orthogonal direction x2 and y2.
     ChVector<> p = Body2->TransformPointParentToLocal(Body1->TransformPointLocalToParent(m_p1));
-    ChMatrix33<> A;
-    A.Set_A_axis(m_x2, m_y2, Vcross(m_x2, m_y2));
+    ChMatrix33<> A(m_x2, m_y2, Vcross(m_x2, m_y2));
 
     return ChCoordsys<>(p, A.Get_A_quaternion());
 }

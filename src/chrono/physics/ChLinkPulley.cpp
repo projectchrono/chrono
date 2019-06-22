@@ -184,14 +184,11 @@ void ChLinkPulley::UpdateTime(double mytime) {
     belt_low2 = Get_shaft_pos1() + d21_w + Rl_w * r2;
 
     // marker alignment
-    ChMatrix33<> maU;
-    ChMatrix33<> maL;
-
     ChVector<> Dxu = Vnorm(belt_up2 - belt_up1);
     ChVector<> Dyu = Ru_w;
     ChVector<> Dzu = Vnorm(Vcross(Dxu, Dyu));
     Dyu = Vnorm(Vcross(Dzu, Dxu));
-    maU.Set_A_axis(Dxu, Dyu, Dzu);
+    ChMatrix33<> maU(Dxu, Dyu, Dzu);
 
     // ! Require that the BDF routine of marker won't handle speed and acc.calculus of the moved marker 2!
     marker2->SetMotionType(ChMarker::M_MOTION_EXTERNAL);

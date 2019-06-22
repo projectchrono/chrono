@@ -98,10 +98,6 @@ void ChLinkGear::UpdateTime(double mytime) {
 
     // Move markers 1 and 2 to align them as gear teeth
 
-    ChMatrix33<> ma1;
-    ChMatrix33<> ma2;
-    ChMatrix33<> mrotma;
-    ChMatrix33<> marot_beta;
     ChVector<> mx;
     ChVector<> my;
     ChVector<> mz;
@@ -167,14 +163,15 @@ void ChLinkGear::UpdateTime(double mytime) {
     mx2 = Vnorm(Vcross(my2, mz2));
     mr2 = Vnorm(Vcross(mz2, mx2));
 
-    ma1.Set_A_axis(mx, my, mz);
+    ChMatrix33<> ma1(mx, my, mz);
 
     // rotate csys because of beta
     vrota.x() = 0.0;
     vrota.y() = beta;
     vrota.z() = 0.0;
+    ChMatrix33<> mrotma;
     mrotma.Set_A_Rxyz(vrota);
-    marot_beta = ma1 * mrotma;
+    ChMatrix33<> marot_beta = ma1 * mrotma;
     // rotate csys because of alpha
     vrota.x() = 0.0;
     vrota.y() = 0.0;
@@ -186,7 +183,7 @@ void ChLinkGear::UpdateTime(double mytime) {
     mrotma.Set_A_Rxyz(vrota);
     ma1 = marot_beta * mrotma;
 
-    ma2 = ma1;
+    ChMatrix33<> ma2 = ma1;
 
     // is a bevel gear?
     double be = acos(Vdot(Get_shaft_dir1(), Get_shaft_dir2()));

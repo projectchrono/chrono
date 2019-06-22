@@ -124,12 +124,11 @@ void ChLinkRevoluteSpherical::Initialize(std::shared_ptr<ChBodyFrame> body1,
 // -----------------------------------------------------------------------------
 ChCoordsys<> ChLinkRevoluteSpherical::GetLinkRelativeCoords() {
     ChVector<> pos1 = Body2->TransformPointParentToLocal(Body1->TransformPointLocalToParent(m_pos1));
-    ChMatrix33<> A;
 
     ChVector<> u = (m_pos2 - pos1).GetNormalized();
     ChVector<> w = Body2->TransformDirectionParentToLocal(Body1->TransformDirectionLocalToParent(m_dir1));
     ChVector<> v = Vcross(w, u);
-    A.Set_A_axis(u, v, w);
+    ChMatrix33<> A(u, v, w);
 
     return ChCoordsys<>(pos1, A.Get_A_quaternion());
 }

@@ -113,8 +113,7 @@ void ChLinkLinActuator::UpdateTime(double mytime) {
     // ! Require that the BDF routine of marker won't handle speed and acc.calculus of the moved marker 2!
     marker2->SetMotionType(ChMarker::M_MOTION_EXTERNAL);
 
-    ChMatrix33<> ma;
-    ma.Set_A_quaternion(marker2->GetAbsCoord().rot);
+    ChMatrix33<> ma(marker2->GetAbsCoord().rot);
 
     Vector absdist = Vsub(marker1->GetAbsCoord().pos, marker2->GetAbsCoord().pos);
 
