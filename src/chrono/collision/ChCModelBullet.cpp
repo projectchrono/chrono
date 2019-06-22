@@ -115,7 +115,7 @@ static void ChCoordsToBullet(const ChCoordsys<>& mcoords, btTransform& mtransfor
 }
 
 void ChModelBullet::_injectShape(const ChVector<>& pos, const ChMatrix33<>& rot, btCollisionShape* mshape) {
-    bool centered = (pos.IsNull() && rot.IsIdentity());
+    bool centered = (pos.IsNull() && rot.isIdentity());
     
     // This is needed so later one can access ChModelBullet::GetSafeMargin and ChModelBullet::GetEnvelope
     mshape->setUserPointer(this);
