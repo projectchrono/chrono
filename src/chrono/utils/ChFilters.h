@@ -26,7 +26,6 @@
 #include <chrono/motion_functions/ChFunction_Recorder.h>
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChMathematics.h"
-#include "chrono/core/ChMatrixDynamic.h"
 #include "chrono/core/ChVector.h"
 
 namespace chrono {

@@ -25,14 +25,18 @@
 #include "chrono/utils/ChParserAdams.h"
 
 #include "chrono/core/ChFrame.h"
+
+#include "chrono/physics/ChLinkRackpinion.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 
+#include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChEllipsoidShape.h"
 #include "chrono/assets/ChObjShapeFile.h"
 #include "chrono/assets/ChSphereShape.h"
-#include "chrono/physics/ChLinkRackpinion.h"
+
 #include "chrono/utils/ChUtilsCreators.h"
 
 #include <fstream>

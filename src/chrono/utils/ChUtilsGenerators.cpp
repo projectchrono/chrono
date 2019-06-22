@@ -216,35 +216,35 @@ void MixtureIngredient::calcGeometricProps(const ChVector<>& size, double& volum
     switch (m_type) {
         case SPHERE:
             volume = CalcSphereVolume(size.x());
-            gyration = CalcSphereGyration(size.x()).Get_Diag();
+            gyration = CalcSphereGyration(size.x()).diagonal();
             break;
         case ELLIPSOID:
             volume = CalcEllipsoidVolume(size);
-            gyration = CalcEllipsoidGyration(size).Get_Diag();
+            gyration = CalcEllipsoidGyration(size).diagonal();
             break;
         case BOX:
             volume = CalcBoxVolume(size);
-            gyration = CalcBoxGyration(size).Get_Diag();
+            gyration = CalcBoxGyration(size).diagonal();
             break;
         case CYLINDER:
             volume = CalcCylinderVolume(size.x(), size.y());
-            gyration = CalcCylinderGyration(size.x(), size.y()).Get_Diag();
+            gyration = CalcCylinderGyration(size.x(), size.y()).diagonal();
             break;
         case CONE:
             volume = CalcConeVolume(size.x(), size.y());
-            gyration = CalcConeGyration(size.x(), size.y()).Get_Diag();
+            gyration = CalcConeGyration(size.x(), size.y()).diagonal();
             break;
         case BISPHERE:
             volume = CalcBiSphereVolume(size.x(), size.y());
-            gyration = CalcBiSphereGyration(size.x(), size.y()).Get_Diag();
+            gyration = CalcBiSphereGyration(size.x(), size.y()).diagonal();
             break;
         case CAPSULE:
             volume = CalcCapsuleVolume(size.x(), size.y());
-            gyration = CalcCapsuleGyration(size.x(), size.y()).Get_Diag();
+            gyration = CalcCapsuleGyration(size.x(), size.y()).diagonal();
             break;
         case ROUNDEDCYLINDER:
             volume = CalcRoundedCylinderVolume(size.x(), size.y(), size.z());
-            gyration = CalcRoundedCylinderGyration(size.x(), size.y(), size.z()).Get_Diag();
+            gyration = CalcRoundedCylinderGyration(size.x(), size.y(), size.z()).diagonal();
             break;
     }
 }

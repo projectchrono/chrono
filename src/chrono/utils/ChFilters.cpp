@@ -19,6 +19,7 @@
 #include <algorithm>
 
 #include "chrono/utils/ChFilters.h"
+#include "chrono/core/ChMatrix.h"
 
 namespace chrono {
 namespace utils {

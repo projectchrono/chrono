@@ -14,9 +14,21 @@
 //
 // =============================================================================
 
-#include "chrono_thirdparty/tinyobjloader/tiny_obj_loader.h"
-#include "chrono/collision/ChCConvexDecomposition.h"
 #include "chrono/utils/ChUtilsCreators.h"
+
+#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChCapsuleShape.h"
+#include "chrono/assets/ChConeShape.h"
+#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChEllipsoidShape.h"
+#include "chrono/assets/ChRoundedBoxShape.h"
+#include "chrono/assets/ChRoundedCylinderShape.h"
+#include "chrono/assets/ChSphereShape.h"
+#include "chrono/assets/ChTriangleMeshShape.h"
+
+#include "chrono/collision/ChCConvexDecomposition.h"
+
+#include "chrono_thirdparty/tinyobjloader/tiny_obj_loader.h"
 
 namespace chrono {
 using namespace geometry;
@@ -409,9 +421,9 @@ void AddTriangleMeshConvexDecompositionSplit(ChSystem* system,
         // inertia.GetElement(0, 0) << " " << inertia.GetElement(1, 1) << " " <<
         // inertia.GetElement(2, 2) << std::endl;
         FinalizeObject(body, system);
-        body->SetInertiaXX(ChVector<>(inertia.GetElement(0, 0) * scale * total_mass,
-                                      inertia.GetElement(1, 1) * scale * total_mass,
-                                      inertia.GetElement(2, 2) * scale * total_mass));
+        body->SetInertiaXX(ChVector<>(inertia(0, 0) * scale * total_mass,
+                                      inertia(1, 1) * scale * total_mass,
+                                      inertia(2, 2) * scale * total_mass));
     }
 }
 
