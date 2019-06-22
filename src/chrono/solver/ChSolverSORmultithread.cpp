@@ -13,6 +13,8 @@
 // =============================================================================
 
 #include <cstdio>
+#include <algorithm>
+#include <cmath>
 
 #include "chrono/parallel/ChThreadsSync.h"
 #include "chrono/solver/ChConstraintTwoTuplesFrictionT.h"
@@ -143,7 +145,7 @@ void SolverThreadFunc(void* userPtr, void* lsMemory) {
                                            (*mconstraints)[ic]->Get_cfm_i() * (*mconstraints)[ic]->Get_l_i();
 
                         // true constraint violation may be different from 'mresidual' (ex:clamped if unilateral)
-                        double candidate_violation = fabs((*mconstraints)[ic]->Violation(mresidual));
+                        double candidate_violation = std::abs((*mconstraints)[ic]->Violation(mresidual));
 
                         // compute:  delta_lambda = -(omega/g_i) * ([Cq_i]*q + b_i + cfm_i*l_i )
                         double deltal = (tdata->solver->GetOmega() / (*mconstraints)[ic]->Get_g_i()) * (-mresidual);
@@ -157,7 +159,7 @@ void SolverThreadFunc(void* userPtr, void* lsMemory) {
                             i_friction_comp++;
 
                             if (i_friction_comp == 1)
-                                candidate_violation = fabs(ChMin(0.0, mresidual));
+                                candidate_violation = std::abs(std::min(0.0, mresidual));
 
                             if (i_friction_comp == 3) {
                                 (*mconstraints)[ic - 2]->Project();  // the N normal component will take care of N,U,V
@@ -186,9 +188,9 @@ void SolverThreadFunc(void* userPtr, void* lsMemory) {
                                 /*
                                 if (this->record_violation_history)
                                 {
-                                    maxdeltalambda = ChMax(maxdeltalambda, fabs(true_delta_0));
-                                    maxdeltalambda = ChMax(maxdeltalambda, fabs(true_delta_1));
-                                    maxdeltalambda = ChMax(maxdeltalambda, fabs(true_delta_2));
+                                    maxdeltalambda = std::max(maxdeltalambda, std::abs(true_delta_0));
+                                    maxdeltalambda = std::max(maxdeltalambda, std::abs(true_delta_1));
+                                    maxdeltalambda = std::max(maxdeltalambda, std::abs(true_delta_2));
                                 }
                                 */  //***TO DO***
                                 i_friction_comp = 0;
@@ -221,11 +223,11 @@ void SolverThreadFunc(void* userPtr, void* lsMemory) {
                             tdata->mutex->Unlock();  // end critical section
                             /*
                             if (this->record_violation_history)
-                                maxdeltalambda = ChMax(maxdeltalambda, fabs(true_delta));
+                                maxdeltalambda = std::max(maxdeltalambda, std::abs(true_delta));
                             */                       //***TO DO***
                         }
 
-                        maxviolation = ChMax(maxviolation, fabs(candidate_violation));
+                        maxviolation = std::max(maxviolation, std::abs(candidate_violation));
 
                     }  // end IsActive()
 
