@@ -53,7 +53,7 @@ class ChMatrix33 : public Eigen::Matrix<Real, 3, 3, Eigen::RowMajor> {
         return *this;
     }
 
-    // Allows multiplying a 3x3 matrix to other Eigen matrices. 
+    /// Allows multiplying a 3x3 matrix to other Eigen matrices. 
     using Eigen::Matrix<Real, 3, 3, Eigen::RowMajor>::operator*;
 
     /// Multiply this matrix by a 3d vector.
@@ -121,6 +121,9 @@ class ChMatrix33 : public Eigen::Matrix<Real, 3, 3, Eigen::RowMajor> {
     /// Assumes that this is a rotation matrix.
     ChVector<Real> Get_A_Rodriguez() const;
 
+    /// Assuming this matrix is a rotation matrix, get Ax vector.
+    ChVector<Real> GetAx() const;
+
     /// Compute eigenvectors and eigenvalues.
     /// Note: only for self-adjoint matrices (e.g. inertia tensors).
     void SelfAdjointEigenSolve(ChMatrix33<Real>& evec, ChVectorN<Real, 3>& evals);
@@ -144,6 +147,21 @@ ChVector<Real> operator*(const Eigen::Transpose<const Eigen::Matrix<Real, 3, 3, 
     return ChVector<Real>(A(0, 0) * v.x() + A(0, 1) * v.y() + A(0, 2) * v.z(),
                           A(1, 0) * v.x() + A(1, 1) * v.y() + A(1, 2) * v.z(),
                           A(2, 0) * v.x() + A(2, 1) * v.y() + A(2, 2) * v.z());
+}
+
+template <class Real>
+ChMatrix33<Real> TensorProduct(const ChVector<Real>& vA, const ChVector<Real>& vB) {
+    ChMatrix33<Real> T;
+    T(0, 0) = vA.x() * vB.x();
+    T(0, 1) = vA.x() * vB.y();
+    T(0, 2) = vA.x() * vB.z();
+    T(1, 0) = vA.y() * vB.x();
+    T(1, 1) = vA.y() * vB.y();
+    T(1, 2) = vA.y() * vB.z();
+    T(2, 0) = vA.z() * vB.x();
+    T(2, 1) = vA.z() * vB.y();
+    T(2, 2) = vA.z() * vB.z();
+    return T;
 }
 
 // -----------------------------------------------------------------------------
@@ -533,6 +551,13 @@ inline ChVector<Real> ChMatrix33<Real>::Get_A_Zaxis() const {
     Z.y() = (*this)(1, 2);
     Z.z() = (*this)(2, 2);
     return Z;
+}
+
+template <typename Real>
+inline ChVector<Real> ChMatrix33<Real>::GetAx() const {
+    return ChVector<Real>(0.5 * ((*this)(2, 1) - (*this)(1, 2)),  //
+                          0.5 * ((*this)(0, 2) - (*this)(2, 0)),  //
+                          0.5 * ((*this)(1, 0) - (*this)(0, 1)));
 }
 
 template <typename Real>

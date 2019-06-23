@@ -166,11 +166,13 @@ class ChGwMatrix34 : public ChMatrix34<Real> {
 };
 
 /// Special MBD 3x3 "star" matrix, , representing vector cross products. \n
-/// (1) given two 3d vectors a and b, a x b= [Astar(a)] * b.             \n
+/// (1) given two 3d vectors a and b, a x b = [Astar(a)] * b.             \n
 /// (2) double cross product.
 template <typename Real = double>
 class ChStarMatrix33 : public Eigen::Matrix<Real, 3, 3, Eigen::RowMajor> {
   public:
+      /// Constract a 3x3 "star matrix" (aka "tilde matrix") for matrix form of cross product.
+      /// If a and b are 3d vectors, then a x b = [Astar(a)] * b. 
     ChStarMatrix33(const ChVector<Real>& v) {
         (*this)(0, 0) = 0;
         (*this)(0, 1) = -v.z();
@@ -183,6 +185,7 @@ class ChStarMatrix33 : public Eigen::Matrix<Real, 3, 3, Eigen::RowMajor> {
         (*this)(2, 2) = 0;
     }
 
+    /// Constract a 3x3 "star matrix" representing a double cross product.
     ChStarMatrix33(const ChVector<Real>& vA, const ChVector<Real>& vB) {
         (*this)(0, 0) = -vA.y() * vB.y() - vA.z() * vB.z();
         (*this)(1, 0) = vA.x() * vB.y();
@@ -195,8 +198,15 @@ class ChStarMatrix33 : public Eigen::Matrix<Real, 3, 3, Eigen::RowMajor> {
         (*this)(2, 2) = -vA.x() * vB.x() - vA.y() * vB.y();
     }
 
-    // Allows multiplying to other Eigen matrices.
+    /// Allows multiplying to other Eigen matrices.
     using Eigen::Matrix<Real, 3, 3, Eigen::RowMajor>::operator*;
+
+    /// Multiply this matrix by a 3d vector.
+    ChVector<Real> operator*(const ChVector<Real>& v) const {
+        return ChVector<Real>((*this)(0, 0) * v.x() + (*this)(0, 1) * v.y() + (*this)(0, 2) * v.z(),
+                              (*this)(1, 0) * v.x() + (*this)(1, 1) * v.y() + (*this)(1, 2) * v.z(),
+                              (*this)(2, 0) * v.x() + (*this)(2, 1) * v.y() + (*this)(2, 2) * v.z());
+    }
 };
 
 /// Special MBD 4x4 "star" matrix, representing quaternion cross product.
