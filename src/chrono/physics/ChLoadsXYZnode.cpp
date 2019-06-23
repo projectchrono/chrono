@@ -219,7 +219,7 @@ void ChLoadXYZnodeBody::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
     if (state_x) {
         // the numerical jacobian algo might change state_x
         bodycoordA.SetPos(state_x->segment(0, 3));
-        bodycoordB.SetCoord(state_x->segment(3, 3));
+        bodycoordB.SetCoord(state_x->segment(3, 7));
     } else {
         bodycoordA.SetPos(mnodeA->pos);
         bodycoordB.SetCoord(mbodyB->coord);
