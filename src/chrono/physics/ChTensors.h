@@ -13,7 +13,7 @@
 // =============================================================================
 
 //// RADU
-//// Move to core/ ?
+//// Move to core/
 
 #ifndef CHTENSORS_H
 #define CHTENSORS_H
@@ -35,12 +35,16 @@ namespace fea {
 template <class Real = double>
 class ChVoightTensor : public ChVectorN<Real, 6> {
   public:
-    /// Constructors (default empty)
-    ChVoightTensor() { this->setZero(); }
+    /// Constructor (default empty).
+    ChVoightTensor() : ChVectorN<Real, 6>() { this->setZero(); }
 
     ~ChVoightTensor() {}
 
-    /// Copy constructor, from a typical 3D rank-two stress or strain tensor (as 3x3 matrix)
+    /// Constructor from Eigen expressions.
+    template <typename OtherDerived>
+    ChVoightTensor(const Eigen::MatrixBase<OtherDerived>& other) : ChVectorN<Real, 6>(other) {}
+
+    /// Copy constructor, from a typical 3D rank-two stress or strain tensor (as 3x3 matrix).
     template <class RealB>
     inline ChVoightTensor(const ChMatrix33<RealB>& msource) {
         this->ConvertFromMatrix(msource);
@@ -71,7 +75,7 @@ class ChVoightTensor : public ChVectorN<Real, 6> {
     inline Real& YZ() { return (*this)(5); }
     inline const Real& YZ() const { return (*this)(5); }
 
-    /// Convert from a typical 3D rank-two stress or strain tensor (a 3x3 matrix)
+    /// Convert from a typical 3D rank-two stress or strain tensor (a 3x3 matrix).
     template <class RealB>
     void ConvertFromMatrix(const ChMatrix33<RealB>& msource) {
         XX() = (Real)msource(0, 0);
@@ -82,7 +86,7 @@ class ChVoightTensor : public ChVectorN<Real, 6> {
         YZ() = (Real)msource(1, 2);
     }
 
-    /// Convert to a typical 3D rank-two stress or strain tensor (a 3x3 matrix)
+    /// Convert to a typical 3D rank-two stress or strain tensor (a 3x3 matrix).
     template <class RealB>
     void ConvertToMatrix(ChMatrix33<RealB>& mdest) {
         mdest(0, 0) = (RealB)XX();
@@ -96,11 +100,10 @@ class ChVoightTensor : public ChVectorN<Real, 6> {
         mdest(2, 1) = (RealB)YZ();
     }
 
-    /// Compute the volumetric part of the tensor, that is
-    /// the trace V =Txx+Tyy+Tzz.
+    /// Compute the volumetric part of the tensor, that is the trace V =Txx+Tyy+Tzz.
     Real GetVolumetricPart() const { return XX() + YY() + ZZ(); }
-    /// Compute the deviatoric part of the tensor, storing
-    /// it in mdeviatoric
+
+    /// Compute the deviatoric part of the tensor, storing it in mdeviatoric.
     void GetDeviatoricPart(ChVoightTensor<Real>& mdeviatoric) const {
         Real mM = GetVolumetricPart() / 3.0;
         mdeviatoric = *this;
@@ -109,35 +112,35 @@ class ChVoightTensor : public ChVectorN<Real, 6> {
         mdeviatoric.ZZ() -= mM;
     }
 
-    /// Compute the I1 invariant
+    /// Compute the I1 invariant.
     Real GetInvariant_I1() const { return XX() + YY() + ZZ(); }
 
-    /// Compute the I2 invariant
+    /// Compute the I2 invariant.
     Real GetInvariant_I2() const {
         return XX() * YY() + YY() * ZZ() + XX() * ZZ() - XY() * XY() - YZ() * YZ() - XZ() * XZ();
     }
 
-    /// Compute the I3 invariant
+    /// Compute the I3 invariant.
     Real GetInvariant_I3() const {
         return XX() * YY() * ZZ() + 2 * XY() * YZ() * XZ() - XY() * XY() * ZZ() - YZ() * YZ() * XX() -
                XZ() * XZ() * YY();
     }
 
-    /// Compute the J1 invariant of the deviatoric part (that is always 0)
+    /// Compute the J1 invariant of the deviatoric part (that is always 0).
     Real GetInvariant_J1() const { return 0; }
 
-    /// Compute the J2 invariant of the deviatoric part
+    /// Compute the J2 invariant of the deviatoric part.
     Real GetInvariant_J2() const {
         return ChMax(0.0, std::pow(GetInvariant_I1(), 2) / 3.0 - GetInvariant_I2());
     }
-    /// Compute the J3 invariant of the deviatoric part
+
+    /// Compute the J3 invariant of the deviatoric part.
     Real GetInvariant_J3() const {
         return std::pow(GetInvariant_I1(), 3) * (2. / 27.) - GetInvariant_I1() * GetInvariant_I2() * (1. / 3.) +
                GetInvariant_I3();
     }
 
-    /// Rotate to another reference coordinate system,
-    /// overwriting this tensor in place.
+    /// Rotate to another reference coordinate system, overwriting this tensor in place.
     void Rotate(ChMatrix33<Real> Rot) {
         ChMatrix33<Real> T;
         ChMatrix33<Real> temp;
@@ -148,7 +151,7 @@ class ChVoightTensor : public ChVectorN<Real, 6> {
         ConvertFromMatrix(T);  // to do, more efficient: unroll matrix multiplications and exploit T symmetry
     }
 
-    /// Compute the eigenvalues (closed form method)
+    /// Compute the eigenvalues (closed form method).
     void ComputeEigenvalues(double& e1, double& e2, double& e3) {
         double I1 = GetInvariant_I1();
         double I2 = GetInvariant_I2();
@@ -161,7 +164,7 @@ class ChVoightTensor : public ChVectorN<Real, 6> {
         e3 = (I1 / 3.) + k * std::cos(phi + (4. / 3.) * chrono::CH_C_PI);
     }
 
-    /// Compute the eigenvectors and the eigenvalues
+    /// Compute the eigenvectors and the eigenvalues.
     void ComputeEigenvectors(double& eigval1,
                              double& eigval2,
                              double& eigval3,
@@ -192,27 +195,33 @@ class ChVoightTensor : public ChVectorN<Real, 6> {
 
     /// FORMULAS THAT ARE USEFUL FOR YELD CRITERIONS:
 
-    /// Compute the Von Mises equivalent
+    /// Compute the Von Mises equivalent.
     double GetEquivalentVonMises() const {
         return std::sqrt(0.5 * (std::pow(XX() - YY(), 2.) + std::pow(YY() - ZZ(), 2.) + std::pow(ZZ() - XX(), 2.)) +
                          3.0 * (XY() * XY() + XZ() * XZ() + YZ() * YZ()));
     }
 
-    /// Compute the mean hydrostatic value (aka volumetric, normal)
+    /// Compute the mean hydrostatic value (aka volumetric, normal).
     double GetEquivalentMeanHydrostatic() const { return (this->GetInvariant_I1() / 3.); }
 
-    /// Compute the octahedral normal invariant (aka hydrostatic, volumetric)
+    /// Compute the octahedral normal invariant (aka hydrostatic, volumetric).
     double GetEquivalentOctahedralNormal() const { return GetEquivalentMeanHydrostatic(); }
-    /// Compute the octahedral deviatoric invariant (aka shear)
+
+    /// Compute the octahedral deviatoric invariant (aka shear).
     double GetEquivalentOctahedralDeviatoric() const { return std::sqrt((2. / 3.) * GetInvariant_J2()); }
 };
 
-/// Class for stress tensors, in compact Voight notation
-/// that is with 6 components in a column.
-
+/// Class for stress tensors, in compact Voight notation that is with 6 components in a column.
 template <class Real = double>
 class ChStressTensor : public ChVoightTensor<Real> {
   public:
+    /// Constructor (default empty).
+    ChStressTensor() : ChVoightTensor() {}
+
+    /// Constructor from Eigen expressions.
+    template <typename OtherDerived>
+    ChStressTensor(const Eigen::MatrixBase<OtherDerived>& other) : ChVectorN<Real, 6>(other) {}
+
     /// This method allows assigning Eigen expressions to a ChStressTensor.
     template <typename OtherDerived>
     ChStressTensor& operator=(const Eigen::MatrixBase<OtherDerived>& other) {
@@ -220,13 +229,13 @@ class ChStressTensor : public ChVoightTensor<Real> {
         return *this;
     }
 
-    /// Compute the principal stresses for the given  tensor
+    /// Compute the principal stresses for the given tensor.
     void ComputePrincipalStresses(double& e1, double& e2, double& e3) {
         ChVoightTensor<Real>::ComputeEigenvalues(e1, e2, e3);
     }
 
     /// Compute the directions of the principal stresses,
-    /// i.e. three orthogonal directions for zero shear (diagonal stress)
+    /// i.e. three orthogonal directions for zero shear (diagonal stress).
     void ComputePrincipalStressesDirections(double& e1,
                                             double& e2,
                                             double& e3,
@@ -237,12 +246,17 @@ class ChStressTensor : public ChVoightTensor<Real> {
     }
 };
 
-/// Class for strain tensors, in compact Voight notation
-/// that is with 6 components in a column.
-
+/// Class for strain tensors, in compact Voight notation that is with 6 components in a column.
 template <class Real = double>
 class ChStrainTensor : public ChVoightTensor<Real> {
   public:
+    /// Constructor (default empty).
+    ChStrainTensor() : ChVoightTensor() {}
+
+    /// Constructor from Eigen expressions.
+    template <typename OtherDerived>
+    ChStrainTensor(const Eigen::MatrixBase<OtherDerived>& other) : ChVectorN<Real, 6>(other) {}
+
     /// This method allows assigning Eigen expressions to a ChStrainTensor.
     template <typename OtherDerived>
     ChStrainTensor& operator=(const Eigen::MatrixBase<OtherDerived>& other) {
@@ -250,13 +264,13 @@ class ChStrainTensor : public ChVoightTensor<Real> {
         return *this;
     }
 
-    /// Compute the principal strains for the given tensor
+    /// Compute the principal strains for the given tensor.
     void ComputePrincipalStrains(double& e1, double& e2, double& e3) {
         ChVoightTensor<Real>::ComputeEigenvalues(e1, e2, e3);
     }
 
     /// Compute the directions of the principal strain,
-    /// i.e. three orthogonal directions for zero strain (diagonal strain)
+    /// i.e. three orthogonal directions for zero strain (diagonal strain).
     void ComputePrincipalStrainsDirections(double& e1,
                                            double& e2,
                                            double& e3,
