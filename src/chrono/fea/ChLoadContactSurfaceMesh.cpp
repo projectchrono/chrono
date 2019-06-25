@@ -151,9 +151,9 @@ void ChLoadContactSurfaceMesh::ComputeQ(ChState* state_x, ChStateDelta* state_w)
 
 void ChLoadContactSurfaceMesh::ComputeJacobian(ChState* state_x,
                                                ChStateDelta* state_w,
-                                               ChMatrix<>& mK,
-                                               ChMatrix<>& mR,
-                                               ChMatrix<>& mM) {
+                                               ChMatrixRef mK,
+                                               ChMatrixRef mR,
+                                               ChMatrixRef mM) {
     for (int i = 0; i < forces.size(); ++i) {
         forces[i]->ComputeJacobian(state_x, state_w, mK, mR, mM);
     }
