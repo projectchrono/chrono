@@ -32,11 +32,10 @@ class ChApi ChContinuumPoisson3D : public ChContinuumMaterial {
 
   public:
     ChContinuumPoisson3D() {
-        ConstitutiveMatrix.Resize(3, 3);
-        ConstitutiveMatrix.SetIdentity();
+        ConstitutiveMatrix.setIdentity(3,3);
     }
     ChContinuumPoisson3D(const ChContinuumPoisson3D& other) : ChContinuumMaterial(other) {
-        ConstitutiveMatrix.CopyFromMatrix(other.ConstitutiveMatrix);
+        ConstitutiveMatrix = other.ConstitutiveMatrix;
     }
     virtual ~ChContinuumPoisson3D() {}
 

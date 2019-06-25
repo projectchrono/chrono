@@ -1064,8 +1064,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
         glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
         for (unsigned int iel = 0; iel < this->FEMmesh->GetNelements(); ++iel)
             if (auto myelement = std::dynamic_pointer_cast<ChElementTetra_4_P>(this->FEMmesh->GetElement(iel))) {
-                ChMatrixNM<double, 3, 1> mP = myelement->GetPgradient();
-                ChVector<> mvP(mP(0), mP(1), mP(2));
+                ChVector<> mvP(myelement->GetPgradient());
                 auto n0 = std::static_pointer_cast<ChNodeFEAxyzP>(myelement->GetNodeN(0));
                 auto n1 = std::static_pointer_cast<ChNodeFEAxyzP>(myelement->GetNodeN(1));
                 auto n2 = std::static_pointer_cast<ChNodeFEAxyzP>(myelement->GetNodeN(2));

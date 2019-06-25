@@ -479,7 +479,7 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
     std::vector<std::vector<double>> elementsdxdy;            // dx, dy of elements
 
     int TotalNumNodes, TotalNumElements, TottalNumBEdges;
-    BoundingBox.Reset();
+    BoundingBox.setZero();
 
     ifstream fin(filename);
     if (!fin.good())

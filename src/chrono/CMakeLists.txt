@@ -439,7 +439,6 @@ set(ChronoEngine_fea_HEADERS
     fea/ChContactSurfaceNodeCloud.h
     fea/ChContactSurfaceMesh.h
     fea/ChMeshSurface.h
-    fea/ChUtilsFEA.h
     fea/ChLoadContactSurfaceMesh.h
     fea/ChRotUtils.h
     fea/ChMaterialShellANCF.h
@@ -1161,7 +1160,7 @@ if(XCODE_VERSION)
     set_target_properties(ChronoEngine PROPERTIES XCODE_ATTRIBUTE_ENABLE_OPENMP_SUPPORT ${ENABLE_OPENMP})
 endif()
 
-if(MSVC AND MSVC_VERSION EQUAL 1900)
+if(MSVC AND MSVC_VERSION GREATER_EQUAL 1900)
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /bigobj")
 endif()
 

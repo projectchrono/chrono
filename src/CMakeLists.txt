@@ -218,6 +218,11 @@ else()
   message(FATAL_ERROR "Eigen3 not found. Specify EIGEN3_INCLUDE_DIR")
 endif()
 
+# Fix for VS 2017 15.8 and newer to handle alignment specification with Eigen.
+if(MSVC AND ${MSVC_VERSION} GREATER_EQUAL 1915)
+  add_definitions( "-D_ENABLE_EXTENDED_ALIGNED_STORAGE" )
+endif()
+
 #-----------------------------------------------------------------------------
 # MPI support
 #-----------------------------------------------------------------------------

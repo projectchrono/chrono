@@ -34,15 +34,15 @@ void ChElasticityCosserat::ComputeStiffnessMatrix(ChMatrixDynamic<>& K,
     for (int i = 0; i < 3; ++i) {
         strain_e_inc[i] += epsi;
         this->ComputeStress(bstress_n, bstress_m, strain_e_inc, strain_k_inc);
-        K.PasteVector((bstress_n - astress_n) * invepsi, 0, i);
-        K.PasteVector((bstress_m - astress_m) * invepsi, 3, i);
+        K.block(0, i, 3, 1) = (bstress_n - astress_n).eigen() * invepsi;
+        K.block(3, i, 3, 1) = (bstress_m - astress_m).eigen() * invepsi;
         strain_e_inc[i] -= epsi;
     }
     for (int i = 0; i < 3; ++i) {
         strain_k_inc[i] += epsi;
         this->ComputeStress(bstress_n, bstress_m, strain_e_inc, strain_k_inc);
-        K.PasteVector((bstress_n - astress_n) * invepsi, 0, i + 3);
-        K.PasteVector((bstress_m - astress_m) * invepsi, 3, i + 3);
+        K.block(0, i + 3, 3, 3) = (bstress_n - astress_n).eigen() * invepsi;
+        K.block(3, i + 3, 3, 3) = (bstress_m - astress_m).eigen() * invepsi;
         strain_k_inc[i] -= epsi;
     }
 }
@@ -101,7 +101,7 @@ void ChElasticityCosseratSimple::ComputeStress(ChVector<>& stress_n,
 void ChElasticityCosseratSimple::ComputeStiffnessMatrix(ChMatrixDynamic<>& K,
                                                         const ChVector<>& strain_n,
                                                         const ChVector<>& strain_m) {
-    K.Reset(6, 6);
+    K.setZero(6, 6);
     K(0, 0) = E * section->Area;
     K(1, 1) = Ks_y * G * section->Area;
     K(2, 2) = Ks_z * G * section->Area;
@@ -113,7 +113,7 @@ void ChElasticityCosseratSimple::ComputeStiffnessMatrix(ChMatrixDynamic<>& K,
 // -----------------------------------------------------------------------------
 
 ChElasticityCosseratGeneric::ChElasticityCosseratGeneric() {
-    mE.SetIdentity();                     // default E stiffness: diagonal 1.
+    mE.setIdentity();                     // default E stiffness: diagonal 1.
     SetAsRectangularSection(0.01, 0.01);  // defaults Area, Ixx, Iyy, Ks_y, Ks_z, J
 }
 
@@ -170,19 +170,19 @@ void ChElasticityCosseratGeneric::ComputeStress(ChVector<>& stress_n,
                                                 ChVector<>& stress_m,
                                                 const ChVector<>& strain_n,
                                                 const ChVector<>& strain_m) {
-    ChMatrixNM<double, 6, 1> mstrain;
-    ChMatrixNM<double, 6, 1> mstress;
-    mstrain.PasteVector(strain_n, 0, 0);
-    mstrain.PasteVector(strain_m, 3, 0);
-    mstress.MatrMultiply(this->mE, mstrain);
-    stress_n = mstress.ClipVector(0, 0);
-    stress_m = mstress.ClipVector(3, 0);
+    ChVectorN<double, 6> mstrain;
+    ChVectorN<double, 6> mstress;
+    mstrain.segment(0 , 3) = strain_n.eigen();
+    mstrain.segment(3 , 3) = strain_m.eigen();
+    mstress = this->mE * mstrain;
+    stress_n = mstress.segment(0, 3);
+    stress_m = mstress.segment(3, 3);
 }
 
 void ChElasticityCosseratGeneric::ComputeStiffnessMatrix(ChMatrixDynamic<>& K,
                                                          const ChVector<>& strain_n,
                                                          const ChVector<>& strain_m) {
-    K.CopyFromMatrix(this->mE);
+    K = this->mE;
 }
 
 // -----------------------------------------------------------------------------
@@ -223,7 +223,7 @@ void ChElasticityCosseratAdvanced::ComputeStress(ChVector<>& stress_n,
 void ChElasticityCosseratAdvanced::ComputeStiffnessMatrix(ChMatrixDynamic<>& K,
                                                           const ChVector<>& strain_n,
                                                           const ChVector<>& strain_m) {
-    K.Reset(6, 6);
+    K.setZero(6, 6);
     double Area = section->Area;
     double cos_alpha = cos(alpha);
     double sin_alpha = sin(alpha);
@@ -426,16 +426,16 @@ void ChPlasticityCosserat::ComputeStiffnessMatrixElastoplastic(ChMatrixDynamic<>
             strain_n_inc[i] += epsi;
             this->ComputeStressWithReturnMapping(bstress_n, bstress_m, me_strain_n_new, me_strain_m_new,
                                                  *b_plastic_data[0], strain_n_inc, strain_m_inc, data);
-            K.PasteVector((bstress_n - astress_n) * invepsi, 0, i);
-            K.PasteVector((bstress_m - astress_m) * invepsi, 3, i);
+            K.block(0, i, 3, 1) = (bstress_n - astress_n).eigen() * invepsi;
+            K.block(3, i, 3, 1) = (bstress_m - astress_m).eigen() * invepsi;
             strain_n_inc[i] -= epsi;
         }
         for (int i = 0; i < 3; ++i) {
             strain_m_inc[i] += epsi;
             this->ComputeStressWithReturnMapping(bstress_n, bstress_m, me_strain_n_new, me_strain_m_new,
                                                  *b_plastic_data[0], strain_n_inc, strain_m_inc, data);
-            K.PasteVector((bstress_n - astress_n) * invepsi, 0, i + 3);
-            K.PasteVector((bstress_m - astress_m) * invepsi, 3, i + 3);
+            K.block(0, i + 3, 3, 1) = (bstress_n - astress_n).eigen() * invepsi;
+            K.block(3, i + 3, 3, 1) = (bstress_m - astress_m).eigen() * invepsi;
             strain_m_inc[i] -= epsi;
         }
     }
@@ -725,15 +725,14 @@ void ChDampingCosserat::ComputeDampingMatrix(ChMatrixDynamic<>& R,
     for (int i = 0; i < 3; ++i) {
         strain_e_inc[i] += epsi;
         this->ComputeStress(bstress_n, bstress_m, strain_e_inc, strain_k_inc);
-        R.PasteVector((bstress_n - astress_n) * invepsi, 0, i);
-        R.PasteVector((bstress_m - astress_m) * invepsi, 3, i);
-        strain_e_inc[i] -= epsi;
+        R.block(0, i, 3, 1) = (bstress_n - astress_n).eigen() * invepsi;
+        R.block(3, i, 3, 1) = (bstress_m - astress_m).eigen() * invepsi;
     }
     for (int i = 0; i < 3; ++i) {
         strain_k_inc[i] += epsi;
         this->ComputeStress(bstress_n, bstress_m, strain_e_inc, strain_k_inc);
-        R.PasteVector((bstress_n - astress_n) * invepsi, 0, i + 3);
-        R.PasteVector((bstress_m - astress_m) * invepsi, 3, i + 3);
+        R.block(0, i + 3, 3, 1) = (bstress_n - astress_n).eigen() * invepsi;
+        R.block(3, i + 3, 3, 1) = (bstress_m - astress_m).eigen() * invepsi;
         strain_k_inc[i] -= epsi;
     }
 }
@@ -755,7 +754,7 @@ void ChDampingCosseratLinear::ComputeStress(ChVector<>& stress_n,
 void ChDampingCosseratLinear::ComputeDampingMatrix(ChMatrixDynamic<>& R,
                                                    const ChVector<>& dstrain_e,
                                                    const ChVector<>& dstrain_k) {
-    R.Reset();
+    R.setZero();
     R(0, 0) = R_e.x();
     R(1, 1) = R_e.y();
     R(2, 2) = R_e.z();

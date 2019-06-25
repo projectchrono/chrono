@@ -97,10 +97,10 @@ class ChApi ChNodeMeshless : public ChNodeXYZ, public ChContactable_1vars<3> {
     virtual int ContactableGet_ndof_w() override { return 3; }
 
     /// Get all the DOFs packed in a single vector (position part).
-    virtual void ContactableGetStateBlock_x(ChState& x) override { x.PasteVector(this->pos, 0, 0); }
+    virtual void ContactableGetStateBlock_x(ChState& x) override { x.segment(0,3) = this->pos.eigen(); }
 
     /// Get all the DOFs packed in a single vector (speed part).
-    virtual void ContactableGetStateBlock_w(ChStateDelta& w) override { w.PasteVector(this->pos_dt, 0, 0); }
+    virtual void ContactableGetStateBlock_w(ChStateDelta& w) override { w.segment(0,3) = this->pos_dt.eigen(); }
 
     /// Increment the provided state of this object by the given state-delta increment.
     /// Compute: x_new = x + dw.
@@ -110,7 +110,7 @@ class ChApi ChNodeMeshless : public ChNodeXYZ, public ChContactable_1vars<3> {
 
     /// Express the local point in absolute frame, for the given state position.
     virtual ChVector<> GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) override {
-        return state_x.ClipVector(0, 0);
+        return state_x.segment(0, 3);
     }
 
     /// Get the absolute speed of a local point attached to the contactable.
@@ -119,7 +119,7 @@ class ChApi ChNodeMeshless : public ChNodeXYZ, public ChContactable_1vars<3> {
     virtual ChVector<> GetContactPointSpeed(const ChVector<>& loc_point,
                                             const ChState& state_x,
                                             const ChStateDelta& state_w) override {
-        return state_w.ClipVector(0, 0);
+        return state_w.segment(0, 3);
     }
 
     /// Get the absolute speed of point abs_point if attached to the surface.
@@ -146,7 +146,7 @@ class ChApi ChNodeMeshless : public ChNodeXYZ, public ChContactable_1vars<3> {
                                    const ChState& state_x,
                                    ChVectorDynamic<>& Q,
                                    int offset) override {
-        Q.PasteVector(F, offset, 0);
+        Q.segment(offset, 3) = F.eigen();
     }
 
     /// Compute the jacobian(s) part(s) for this contactable item. For example,

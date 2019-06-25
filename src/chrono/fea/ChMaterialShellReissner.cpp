@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
 #include "chrono/fea/ChMaterialShellReissner.h"
@@ -19,7 +19,7 @@ namespace fea {
 
 //--------------------------------------------------------------
 
-void ChMaterialShellReissner::ComputeTangentC(ChMatrix<>& mC,
+void ChMaterialShellReissner::ComputeTangentC(ChMatrixRef mC,
                                               const ChVector<>& eps_u,
                                               const ChVector<>& eps_v,
                                               const ChVector<>& kur_u,
@@ -27,44 +27,41 @@ void ChMaterialShellReissner::ComputeTangentC(ChMatrix<>& mC,
                                               const double z_inf,
                                               const double z_sup,
                                               const double angle) {
-    assert(mC.GetRows() == 12);
-    assert(mC.GetColumns() == 12);
+    assert(mC.rows() == 12);
+    assert(mC.cols() == 12);
 
-    mC.Reset(12, 12);
+    mC.setZero();
 
-    ChMatrixNM<double, 12, 1> strain_0;
-    strain_0.PasteVector(eps_u, 0, 0);
-    strain_0.PasteVector(eps_v, 3, 0);
-    strain_0.PasteVector(kur_u, 6, 0);
-    strain_0.PasteVector(kur_v, 9, 0);
+    ChVectorN<double, 12> strain_0;
+    strain_0.segment(0, 3) = eps_u.eigen();
+    strain_0.segment(3, 3) = eps_v.eigen();
+    strain_0.segment(6, 3) = kur_u.eigen();
+    strain_0.segment(9, 3) = kur_v.eigen();
 
     ChVector<> nu, nv, mu, mv;
-
     this->ComputeStress(nu, nv, mu, mv, eps_u, eps_v, kur_u, kur_v, z_inf, z_sup, angle);
 
-    ChMatrixNM<double, 12, 1> stress_0;
-    stress_0.PasteVector(nu, 0, 0);
-    stress_0.PasteVector(nv, 3, 0);
-    stress_0.PasteVector(mu, 6, 0);
-    stress_0.PasteVector(mv, 9, 0);
+    ChVectorN<double, 12> stress_0;
+    stress_0.segment(0,3) = nu.eigen();
+    stress_0.segment(3,3) = nv.eigen();
+    stress_0.segment(6,3) = mu.eigen();
+    stress_0.segment(9,3) = mv.eigen();
 
     double delta = 1e-9;
     for (int i = 0; i < 12; ++i) {
         strain_0(i, 0) += delta;
-        ChVector<> deps_u, deps_v, dkur_u, dkur_v;
-        deps_u = strain_0.ClipVector(0, 0);
-        deps_v = strain_0.ClipVector(3, 0);
-        dkur_u = strain_0.ClipVector(6, 0);
-        dkur_v = strain_0.ClipVector(9, 0);
+        ChVector<> deps_u(strain_0.segment(0, 3));
+        ChVector<> deps_v(strain_0.segment(3, 3));
+        ChVector<> dkur_u(strain_0.segment(6, 3));
+        ChVector<> dkur_v(strain_0.segment(9, 3));
         this->ComputeStress(nu, nv, mu, mv, deps_u, deps_v, dkur_u, dkur_v, z_inf, z_sup, angle);
-        ChMatrixNM<double, 12, 1> stress_1;
-        stress_1.PasteVector(nu, 0, 0);
-        stress_1.PasteVector(nv, 3, 0);
-        stress_1.PasteVector(mu, 6, 0);
-        stress_1.PasteVector(mv, 9, 0);
-        ChMatrixNM<double, 12, 1> stress_d = stress_1 - stress_0;
-        stress_d *= (1. / delta);
-        mC.PasteMatrix(stress_d, 0, i);
+        ChVectorN<double, 12> stress_1;
+        stress_1.segment(0,3) = nu.eigen();
+        stress_1.segment(3,3) = nv.eigen();
+        stress_1.segment(6,3) = mu.eigen();
+        stress_1.segment(9,3) = mv.eigen();
+        ChVectorN<double, 12> stress_d = (1. / delta) * (stress_1 - stress_0);
+        mC.block(0, i, 12, 1) = stress_d;
         strain_0(i, 0) -= delta;
     }
 }
@@ -145,7 +142,7 @@ void ChMaterialShellReissnerIsothropic::ComputeStress(ChVector<>& n_u,
     }
 }
 
-void ChMaterialShellReissnerIsothropic::ComputeTangentC(ChMatrix<>& mC,
+void ChMaterialShellReissnerIsothropic::ComputeTangentC(ChMatrixRef mC,
                                                         const ChVector<>& eps_u,
                                                         const ChVector<>& eps_v,
                                                         const ChVector<>& kur_u,
@@ -153,10 +150,10 @@ void ChMaterialShellReissnerIsothropic::ComputeTangentC(ChMatrix<>& mC,
                                                         const double z_inf,
                                                         const double z_sup,
                                                         const double angle) {
-    assert(mC.GetRows() == 12);
-    assert(mC.GetColumns() == 12);
+    assert(mC.rows() == 12);
+    assert(mC.cols() == 12);
 
-    mC.Reset(12, 12);
+    mC.setZero();
 
     if (z_inf == -z_sup) {
         // simplified computation for centered layer
@@ -281,20 +278,21 @@ void ChMaterialShellReissnerOrthotropic::ComputeStress(ChVector<>& n_u,
     // constitutive matrix, as S = C*eps, where S={n_u, n_v, m_u, m_v}
     ChMatrixNM<double, 12, 12> mC;
     this->ComputeTangentC(mC, eps_u, eps_v, kur_u, kur_v, z_inf, z_sup, angle);
-    ChMatrixNM<double, 12, 1> eps;
-    eps.PasteVector(eps_u, 0, 0);
-    eps.PasteVector(eps_v, 3, 0);
-    eps.PasteVector(kur_u, 6, 0);
-    eps.PasteVector(kur_v, 9, 0);
-    ChMatrixNM<double, 12, 1> Sigma;
-    Sigma.MatrMultiply(mC, eps);
-    n_u = Sigma.ClipVector(0, 0);
-    n_v = Sigma.ClipVector(3, 0);
-    m_u = Sigma.ClipVector(6, 0);
-    m_v = Sigma.ClipVector(9, 0);
+
+    ChVectorN<double, 12> eps;
+    eps.segment(0,3) = eps_u.eigen();
+    eps.segment(3,3) = eps_v.eigen();
+    eps.segment(6,3) = kur_u.eigen();
+    eps.segment(9,3) = kur_v.eigen();
+
+    ChVectorN<double, 12> Sigma = mC * eps;
+    n_u = Sigma.segment(0, 3);
+    n_v = Sigma.segment(3, 3);
+    m_u = Sigma.segment(6, 3);
+    m_v = Sigma.segment(9, 3);
 }
 
-void ChMaterialShellReissnerOrthotropic::ComputeTangentC(ChMatrix<>& mC,
+void ChMaterialShellReissnerOrthotropic::ComputeTangentC(ChMatrixRef mC,
                                                          const ChVector<>& eps_u,
                                                          const ChVector<>& eps_v,
                                                          const ChVector<>& kur_u,
@@ -302,15 +300,15 @@ void ChMaterialShellReissnerOrthotropic::ComputeTangentC(ChMatrix<>& mC,
                                                          const double z_inf,
                                                          const double z_sup,
                                                          const double angle) {
-    assert(mC.GetRows() == 12);
-    assert(mC.GetColumns() == 12);
+    assert(mC.rows() == 12);
+    assert(mC.cols() == 12);
 
-    mC.Reset(12, 12);
+    mC.setZero();
 
     // Compute Qm_local for inplane stresses as in sigma_local = Qm_local * eps_local
     double nu_yx = this->Get_nu_yx();  // follows xy as it must be nu_yx*E_x = nu_xy*E_y
     ChMatrixNM<double, 4, 4> Qm_local;
-    Qm_local.Reset();
+    Qm_local.setZero();
     Qm_local(0, 0) = E_x / (1. - nu_xy * nu_yx);
     Qm_local(0, 1) = (nu_xy * E_y) / (1. - nu_xy * nu_yx);
     Qm_local(1, 0) = (nu_yx * E_x) / (1. - nu_xy * nu_yx);
@@ -348,10 +346,7 @@ void ChMaterialShellReissnerOrthotropic::ComputeTangentC(ChMatrix<>& mC,
     Tm(3, 2) = -SS;
     Tm(3, 3) = CC;
 
-    ChMatrixNM<double, 4, 4> tmp44;
-    ChMatrixNM<double, 4, 4> Qm;
-    tmp44.MatrMultiply(Qm_local, Tm);
-    Qm.MatrTMultiply(Tm, tmp44);
+    ChMatrixNM<double, 4, 4> Qm = Tm.transpose() * Qm_local * Tm;
 
     // Rotate Qs_local into Qs, as Qs = Ts'*Qs_local*Ts
     ChMatrixNM<double, 2, 2> Ts;
@@ -360,10 +355,7 @@ void ChMaterialShellReissnerOrthotropic::ComputeTangentC(ChMatrix<>& mC,
     Ts(1, 0) = Si;
     Ts(1, 1) = Co;
 
-    ChMatrixNM<double, 2, 2> tmp22;
-    ChMatrixNM<double, 2, 2> Qs;
-    tmp22.MatrMultiply(Qs_local, Ts);
-    Qs.MatrTMultiply(Ts, tmp22);
+    ChMatrixNM<double, 2, 2> Qs = Ts.transpose() * Qs_local * Ts;
 
     // Fill the 12x12 constitutive matrix
     // upper left part

@@ -205,7 +205,7 @@ void ChBuilderBeamIGA::BuildBeam(std::shared_ptr<ChMesh> mesh,                 /
     int p = spline.GetOrder();
 
     // compute N of spans (excluding start and end multiple knots with zero lenght span):
-    int N = spline.Knots().GetRows() - p - p - 1;  // = n+p+1 -p-p-1 = n-p
+    int N = (int)spline.Knots().size() - p - p - 1;  // = n+p+1 -p-p-1 = n-p
 
     // Create the 'complete' stl vector of control points, with uniform distribution
     std::vector<std::shared_ptr<ChNodeFEAxyzrot>> mynodes;
