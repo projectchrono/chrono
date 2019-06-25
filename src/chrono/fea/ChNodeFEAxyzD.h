@@ -121,14 +121,14 @@ class ChApi ChNodeFEAxyzD : public ChNodeFEAxyz {
 
     /// Gets all the DOFs packed in a single vector (position part)
     virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override {
-        mD.PasteVector(pos, block_offset, 0);
-        mD.PasteVector(D, block_offset + 3, 0);
+        mD.segment(block_offset + 0, 3) = pos.eigen();
+        mD.segment(block_offset + 3, 3) = D.eigen();
     }
 
     /// Gets all the DOFs packed in a single vector (speed part)
     virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override {
-        mD.PasteVector(pos_dt, block_offset, 0);
-        mD.PasteVector(D_dt, block_offset + 3, 0);
+        mD.segment(block_offset + 0, 3) = pos_dt.eigen();
+        mD.segment(block_offset + 3, 3) = D_dt.eigen();
     }
 
     /// Increment all DOFs using a delta.
