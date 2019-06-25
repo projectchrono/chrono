@@ -209,12 +209,12 @@ void ChronoModel::Simulate(double step, int num_steps) {
 
         // Save current constraint violations.
         m_cnstr_data[0][it] = m_system->GetChTime();
-        ChMatrix<>* C_1 = m_revolute1->GetC();
+        auto C_1 = m_revolute1->GetC();
         for (int col = 0; col < 5; col++)
-            m_cnstr_data[1 + col][it] = C_1->GetElement(col, 0);
-        ChMatrix<>* C_2 = m_revolute2->GetC();
+            m_cnstr_data[1 + col][it] = C_1(col, 0);
+        auto C_2 = m_revolute2->GetC();
         for (int col = 0; col < 5; col++)
-            m_cnstr_data[6 + col][it] = C_2->GetElement(col, 0);
+            m_cnstr_data[6 + col][it] = C_2(col, 0);
 
         // Advance system state.
         m_system->DoStepDynamics(step);
