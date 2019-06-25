@@ -39,11 +39,15 @@ class ChMatrix33 : public Eigen::Matrix<Real, 3, 3, Eigen::RowMajor> {
     /// Construct a diagonal matrix with the specified value on the diagonal.
     ChMatrix33(Real val);
 
+    /// Construct a diagonal matrix with the specified values on the diagonal.
+    ChMatrix33(const ChVector<Real>& v);
+
     /// Construct a 3x3 rotation matrix from an angle and a rotation axis.
     /// Note that the axis direction must be normalized.
     ChMatrix33(Real angle, const ChVector<>& axis);
 
-    /// Construct a 3x3 rotation matrix with the given three versors X,Y,Z of the basis.
+    /// Construct a 3x3 matrix with the given vectors as columns.
+    /// If the three vectors are mutually orthogonal unit vectors, the resulting matrix is a rotation matrix.
     ChMatrix33(const ChVector<>& X, const ChVector<>& Y, const ChVector<>& Z);
 
     /// This method allows assigning Eigen expressions to ChMatrix33.
@@ -177,6 +181,12 @@ template <typename Real>
 ChMatrix33<Real>::ChMatrix33(Real val) {
     this->setZero();
     this->diagonal().setConstant(val);
+}
+
+template <typename Real>
+ChMatrix33<Real>::ChMatrix33(const ChVector<Real>& v) {
+    this->setZero();
+    this->diagonal() = v.eigen();
 }
 
 template <typename Real>
