@@ -32,7 +32,7 @@ class ChApi ChElementCorotational {
 
   public:
     ChElementCorotational() {
-        A.Set33Identity();
+        A.setIdentity();
     }
 
     virtual ~ChElementCorotational() {}

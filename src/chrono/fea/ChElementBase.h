@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Andrea Favali, Alessandro Tasora
+// Authors: Andrea Favali, Alessandro Tasora, Radu Serban
 // =============================================================================
 
 #ifndef CHELEMENTBASE_H
@@ -53,17 +53,14 @@ class ChApi ChElementBase {
     // FEM functions
     //
 
-    /// Fills the D vector (column matrix) with the current
-    /// field values at the nodes of the element, with proper ordering.
-    /// If the D vector has not the size of this->GetNdofs(), it will be resized.
+    /// Fills the D vector with the current field values at the nodes of the element, with proper ordering.
+    /// If the D vector size is not this->GetNdofs(), it will be resized.
     /// For corotational elements, field is assumed in local reference!
-    /// CHLDREN CLASSES MUST IMPLEMENT THIS!!!
-    virtual void GetStateBlock(ChMatrixDynamic<>& mD) = 0;
+    virtual void GetStateBlock(ChVectorDynamic<>& mD) = 0;
 
     /// Sets M as the mass matrix.
     /// The matrix is expressed in global reference.
-    /// CHLDREN CLASSES MUST IMPLEMENT THIS!!!
-    virtual void ComputeMmatrixGlobal(ChMatrix<>& M) = 0;
+    virtual void ComputeMmatrixGlobal(ChMatrixRef M) = 0;
 
     /// Compute element's nodal masses.
     virtual void ComputeNodalMass() {}
@@ -72,14 +69,11 @@ class ChApi ChElementBase {
     /// superimposes global damping matrix R, scaled by Rfactor, and mass matrix M,
     /// scaled by Mfactor. Matrices are expressed in global reference.
     /// Corotational elements can take the local Kl & Rl matrices and rotate them.
-    /// CHLDREN CLASSES MUST IMPLEMENT THIS!!!
-    virtual void ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor = 0, double Mfactor = 0) = 0;
+    virtual void ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor = 0, double Mfactor = 0) = 0;
 
-    /// Computes the internal forces (ex. the actual position of
-    /// nodes is not in relaxed reference position) and set values
-    /// in the Fi vector, with n.rows = n.of dof of element.
-    /// CHLDREN CLASSES MUST IMPLEMENT THIS!!!
-    virtual void ComputeInternalForces(ChMatrixDynamic<>& Fi) = 0;
+    /// Computes the internal forces (ex. the actual position of nodes is not in relaxed reference position) and set
+    /// values in the Fi vector, with n.rows = n.of dof of element.
+    virtual void ComputeInternalForces(ChVectorDynamic<>& Fi) = 0;
 
     /// Initial setup: This is used mostly to precompute matrices
     /// that do not change during the simulation, i.e. the local

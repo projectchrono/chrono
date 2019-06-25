@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
 #include "chrono/fea/ChElementSpring.h"
@@ -32,39 +32,34 @@ void ChElementSpring::SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA, std::shared_
     Kmatr.SetVariables(mvars);
 }
 
-void ChElementSpring::GetStateBlock(ChMatrixDynamic<>& mD) {
-    mD.Reset(this->GetNdofs(), 1);
-    mD.PasteVector(this->nodes[0]->GetPos(), 0, 0);
-    mD.PasteVector(this->nodes[1]->GetPos(), 3, 0);
+void ChElementSpring::GetStateBlock(ChVectorDynamic<>& mD) {
+    mD.setZero(this->GetNdofs());
+    mD.segment(0, 3) = this->nodes[0]->GetPos().eigen();
+    mD.segment(3, 3) = this->nodes[1]->GetPos().eigen();
 }
 
-void ChElementSpring::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor, double Mfactor) {
-    assert((H.GetRows() == 6) && (H.GetColumns() == 6));
+void ChElementSpring::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
+    assert((H.rows() == 6) && (H.cols() == 6));
 
     // compute stiffness matrix (this is already the explicit
     // formulation of the corotational stiffness matrix in 3D)
-
     ChVector<> dir = (nodes[1]->GetPos() - nodes[0]->GetPos()).GetNormalized();
-    ChMatrixNM<double, 3, 1> dircolumn;
-    dircolumn.PasteVector(dir, 0, 0);
-
-    ChMatrix33<> submatr;
-    submatr.MatrMultiplyT(dircolumn, dircolumn);
+    ChVectorN<double, 3> dircolumn = dir.eigen();
 
     // note that stiffness and damping matrices are the same, so join stuff here
     double commonfactor = this->spring_k * Kfactor + this->damper_r * Rfactor;
-    submatr.MatrScale(commonfactor);
-    H.PasteMatrix(submatr, 0, 0);
-    H.PasteMatrix(submatr, 3, 3);
-    submatr.MatrNeg();
-    H.PasteMatrix(submatr, 0, 3);
-    H.PasteMatrix(submatr, 3, 0);
+    ChMatrix33<> submatr = commonfactor * dircolumn * dircolumn.transpose();
+
+    H.block(0, 0, 3, 3) = submatr;
+    H.block(3, 3, 3, 3) = submatr;
+    H.block(0, 3, 3, 3) = -submatr;
+    H.block(3, 0, 3, 3) = -submatr;
 
     // finally, do nothing about mass matrix because this element is mass-less
 }
 
-void ChElementSpring::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
-    assert((Fi.GetRows() == 6) && (Fi.GetColumns() == 1));
+void ChElementSpring::ComputeInternalForces(ChVectorDynamic<>& Fi) {
+    assert(Fi.size() == 6);
 
     ChVector<> dir = (nodes[1]->GetPos() - nodes[0]->GetPos()).GetNormalized();
     double L_ref = (nodes[1]->GetX0() - nodes[0]->GetX0()).Length();
@@ -75,8 +70,8 @@ void ChElementSpring::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
     double internal_force_local = internal_Kforce_local + internal_Rforce_local;
     ChVector<> int_forceA = dir * internal_force_local;
     ChVector<> int_forceB = -dir * internal_force_local;
-    Fi.PasteVector(int_forceA, 0, 0);
-    Fi.PasteVector(int_forceB, 3, 0);
+    Fi.segment(0, 3) = int_forceA.eigen();
+    Fi.segment(3, 3) = int_forceB.eigen();
 }
 
 }  // end namespace fea
