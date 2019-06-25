@@ -66,8 +66,8 @@ class ChApi ChFaceBrick_9 : public ChLoadableUV {
         return foo_null;
     }
 
-    /// Fills the N shape function matrix (1 row, 4 columns)
-    virtual void ShapeFunctions(ChMatrix<>& N, double x, double y) {
+    /// Fills the N shape function vector (size 4)
+    void ShapeFunctions(ChVectorN<double ,4>& N, double x, double y) {
         N(0) = 0.25 * (1 - x) * (1 - y);
         N(1) = 0.25 * (1 + x) * (1 - y);
         N(2) = 0.25 * (1 + x) * (1 + y);
@@ -86,18 +86,18 @@ class ChApi ChFaceBrick_9 : public ChLoadableUV {
 
     /// Gets all the DOFs packed in a single vector (position part)
     virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override {
-        mD.PasteVector(this->GetNodeN(0)->GetPos(), block_offset, 0);
-        mD.PasteVector(this->GetNodeN(1)->GetPos(), block_offset + 3, 0);
-        mD.PasteVector(this->GetNodeN(2)->GetPos(), block_offset + 6, 0);
-        mD.PasteVector(this->GetNodeN(3)->GetPos(), block_offset + 9, 0);
+        mD.segment(block_offset + 0, 3) = this->GetNodeN(0)->GetPos().eigen();
+        mD.segment(block_offset + 3, 3) = this->GetNodeN(1)->GetPos().eigen();
+        mD.segment(block_offset + 6, 3) = this->GetNodeN(2)->GetPos().eigen();
+        mD.segment(block_offset + 9, 3) = this->GetNodeN(3)->GetPos().eigen();
     }
 
     /// Gets all the DOFs packed in a single vector (speed part)
     virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override {
-        mD.PasteVector(this->GetNodeN(0)->GetPos_dt(), block_offset, 0);
-        mD.PasteVector(this->GetNodeN(1)->GetPos_dt(), block_offset + 3, 0);
-        mD.PasteVector(this->GetNodeN(2)->GetPos_dt(), block_offset + 6, 0);
-        mD.PasteVector(this->GetNodeN(3)->GetPos_dt(), block_offset + 9, 0);
+        mD.segment(block_offset + 0, 3) = this->GetNodeN(0)->GetPos_dt().eigen();
+        mD.segment(block_offset + 3, 3) = this->GetNodeN(1)->GetPos_dt().eigen();
+        mD.segment(block_offset + 6, 3) = this->GetNodeN(2)->GetPos_dt().eigen();
+        mD.segment(block_offset + 9, 3) = this->GetNodeN(3)->GetPos_dt().eigen();
     }
 
     /// Increment all DOFs using a delta.
@@ -137,7 +137,7 @@ class ChApi ChFaceBrick_9 : public ChLoadableUV {
                            ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
                            ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
                            ) override {
-        ChMatrixNM<double, 1, 4> N;
+        ChVectorN<double, 4> N;
         ShapeFunctions(N, U, V);
 
         //***TODO*** exact det of jacobian at u,v
@@ -149,9 +149,8 @@ class ChApi ChFaceBrick_9 : public ChLoadableUV {
                    .Length();
         // (approximate detJ, ok only for rectangular face)
 
-        ChVector<> Fv = F.ClipVector(0, 0);
         for (int i = 0; i < 4; i++) {
-            Qi.PasteVector(N(i) * Fv, 3 * i, 0);
+            Qi.segment(3 * i, 3) = N(i) * F.segment(0, 3);
         }
     }
 
