@@ -49,12 +49,12 @@ void ChLinkMate::ArchiveIN(ChArchiveIn& marchive) {
 CH_FACTORY_REGISTER(ChLinkMateGeneric)
 
 ChLinkMateGeneric::ChLinkMateGeneric(bool mc_x, bool mc_y, bool mc_z, bool mc_rx, bool mc_ry, bool mc_rz)
-    : c_x(mc_x), c_y(mc_y), c_z(mc_z), c_rx(mc_rx), c_ry(mc_ry), c_rz(mc_rz), C(nullptr) {
+    : c_x(mc_x), c_y(mc_y), c_z(mc_z), c_rx(mc_rx), c_ry(mc_ry), c_rz(mc_rz) {
     mask = new ChLinkMask();
     SetupLinkMask();
 }
 
-ChLinkMateGeneric::ChLinkMateGeneric(const ChLinkMateGeneric& other) : ChLinkMate(other), C(nullptr) {
+ChLinkMateGeneric::ChLinkMateGeneric(const ChLinkMateGeneric& other) : ChLinkMate(other) {
     c_x = other.c_x;
     c_y = other.c_y;
     c_z = other.c_z;

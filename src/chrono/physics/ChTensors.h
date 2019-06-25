@@ -143,11 +143,9 @@ class ChVoightTensor : public ChVectorN<Real, 6> {
     /// Rotate to another reference coordinate system, overwriting this tensor in place.
     void Rotate(ChMatrix33<Real> Rot) {
         ChMatrix33<Real> T;
-        ChMatrix33<Real> temp;
         // do  T'= R*T*R'
         ConvertToMatrix(T);
-        temp.MatrMultiplyT(T, Rot);
-        T.MatrMultiply(Rot, temp);
+        T = Rot * T * Rot.transpose();
         ConvertFromMatrix(T);  // to do, more efficient: unroll matrix multiplications and exploit T symmetry
     }
 
@@ -172,25 +170,18 @@ class ChVoightTensor : public ChVectorN<Real, 6> {
                              ChVector<Real>& eigvector2,
                              ChVector<Real>& eigvector3) {
         ChMatrix33<Real> A;
-
-        // GetLog() << A << "\n  vals:" << eigval1 << "   " << eigval2 << "   " << eigval3 << "  eigvect1: \n" <<
-        // eigvector1.GetNormalized();
         this->ConvertToMatrix(A);
-        // GetLog() << A ;
-        ChMatrix33<> vects;
-        double vals[3];
-        A.FastEigen(vects, vals);
-        eigvector1 = vects.ClipVector(0, 0);
-        eigvector2 = vects.ClipVector(0, 1);
-        eigvector3 = vects.ClipVector(0, 2);
-        eigval1 = vals[0];
-        eigval2 = vals[1];
-        eigval3 = vals[2];
-        // GetLog() << "\n  vals:" << vals[0] << "   " << vals[1] << "   " << vals[2] << "  eigvect1: \n" <<
-        // eigvector1.GetNormalized();
-        /*
 
-        */
+        ChMatrix33<Real> vectors;
+        ChVectorN<Real, 3> values;
+        A.SelfAdjointEigenSolve(vectors, values);
+
+        eigvector1 = vectors.col(0);
+        eigvector2 = vectors.col(1);
+        eigvector3 = vectors.col(3);
+        eigval1 = values(0);
+        eigval2 = values(1);
+        eigval3 = values(2);
     }
 
     /// FORMULAS THAT ARE USEFUL FOR YELD CRITERIONS:
@@ -220,7 +211,7 @@ class ChStressTensor : public ChVoightTensor<Real> {
 
     /// Constructor from Eigen expressions.
     template <typename OtherDerived>
-    ChStressTensor(const Eigen::MatrixBase<OtherDerived>& other) : ChVectorN<Real, 6>(other) {}
+    ChStressTensor(const Eigen::MatrixBase<OtherDerived>& other) : ChVoightTensor<Real>(other) {}
 
     /// This method allows assigning Eigen expressions to a ChStressTensor.
     template <typename OtherDerived>
@@ -255,7 +246,7 @@ class ChStrainTensor : public ChVoightTensor<Real> {
 
     /// Constructor from Eigen expressions.
     template <typename OtherDerived>
-    ChStrainTensor(const Eigen::MatrixBase<OtherDerived>& other) : ChVectorN<Real, 6>(other) {}
+    ChStrainTensor(const Eigen::MatrixBase<OtherDerived>& other) : ChVoightTensor<Real>(other) {}
 
     /// This method allows assigning Eigen expressions to a ChStrainTensor.
     template <typename OtherDerived>

@@ -28,17 +28,16 @@ class ChApi ChGenericConstraint {
   protected:
     bool valid;
     bool disabled;
-   
-    int Cn;  ///< constraints equations in this constraint
-    ChVectorDynamic<> C; ///< residual matrix
+
+    int Cn;               ///< constraints equations in this constraint
+    ChVectorDynamic<> C;  ///< residual matrix
 
   public:
     ChGenericConstraint();
     virtual ~ChGenericConstraint() {}
 
     /// Tells if the constraint data is currently valid.
-    /// Instead of implementing it, child classes may simply
-    /// set valif=false (or true) depending on the result of their
+    /// Instead of implementing it, child classes may simply set valid=false (or true) depending on the result of their
     /// implementations of RestoreReference().
     bool IsValid() { return valid; }
 
@@ -53,9 +52,8 @@ class ChApi ChGenericConstraint {
     /// Returns the matrix of residuals (a column vector with Cn elements
     const ChVectorDynamic<>& Get_C() const { return C; }
 
-    /// Returns the number of equations in this constraints (the
-    /// size of the C residual vector)
-    virtual int Get_Cn() = 0;
+    /// Returns the number of equations in this constraints (the size of the C residual vector)
+    virtual int Get_Cn() { return 0; }
 
     /// Changes the number of equations in this constraints (reset the size of the C residual vector).
     void Reset_Cn(int mCn);
@@ -67,7 +65,7 @@ class ChApi ChGenericConstraint {
 
     /// Compute the residuals (vector 'C') of the constraint equations, where C=0 is for satisfied constraints.
     /// Should return false if updating was not possible.
-    virtual bool Update() = 0;
+    virtual bool Update() { return IsActive(); }
 };
 
 /// Constraint between parameters in a ChFunction
@@ -86,6 +84,7 @@ class ChApi ChGenericConstraint_Chf : public ChGenericConstraint {
     // for easy access to inner data
     ChFunction* Get_root_function() { return root_function; }
     ChFunction* Get_target_function() { return target_function.GetFunction(); }
+
     // if needed, for accessing the target funct.reference and change the tree-IDs, for new target..
     ChRefFunctionSegment* Get_target_reference() { return &target_function; }
 
@@ -102,7 +101,6 @@ class ChApi ChGenericConstraint_Chf_ImposeVal : public ChGenericConstraint_Chf {
     double value;
     int derivation_order;
 
-  protected:
   public:
     ChGenericConstraint_Chf_ImposeVal() : T(0), value(0), derivation_order(0) {}
     ChGenericConstraint_Chf_ImposeVal(ChFunction* mRootFunct, char* mTreeIDs, double mtime, double mval);
@@ -121,10 +119,8 @@ class ChApi ChGenericConstraint_Chf_ImposeVal : public ChGenericConstraint_Chf {
     virtual bool Update() override;
 };
 
-///
 /// Algebraic constraint on ChFunctions,
-/// Impose continuity between two function segments
-///
+/// Impose continuity between two function segments.
 class ChApi ChGenericConstraint_Chf_Continuity : public ChGenericConstraint_Chf {
   private:
     int continuity_order;
@@ -146,23 +142,24 @@ class ChApi ChGenericConstraint_Chf_Continuity : public ChGenericConstraint_Chf 
     virtual bool Update() override;
 };
 
-///
 /// Algebraic constraint on ChFunctions.
-/// Impose handle distance along X axis
-///
+/// Impose handle distance along X axis.
 class ChApi ChGenericConstraint_Chf_HorDistance : public ChGenericConstraint_Chf {
   private:
     double distance;
     int handleA;
     int handleB;
 
-  protected:
   public:
     ChGenericConstraint_Chf_HorDistance() { distance = 1; };
     ChGenericConstraint_Chf_HorDistance(ChFunction* mRootFunct, char* mTreeIDs, int mhA, int mhB);
 
     double GetDistance() { return distance; }
     void SetDistance(double md) { distance = md; }
+
+    //// RADU
+    //// Pre-eigen implementatino did not have Get_Cn !?!
+    virtual int Get_Cn() override { return 1; }
 
     int GetHandleA() { return handleA; }
     int GetHandleB() { return handleB; }
@@ -174,23 +171,24 @@ class ChApi ChGenericConstraint_Chf_HorDistance : public ChGenericConstraint_Chf
     virtual bool Update() override;
 };
 
-///
 /// Algebraic constraint on ChFunctions.
-/// Impose segment vertical separation on Y axis, between two handles
-///
+/// Impose segment vertical separation on Y axis, between two handles.
 class ChApi ChGenericConstraint_Chf_VertDistance : public ChGenericConstraint_Chf {
   private:
     double distance;
     int handleA;
     int handleB;
 
-  protected:
   public:
     ChGenericConstraint_Chf_VertDistance() : distance(1) {}
     ChGenericConstraint_Chf_VertDistance(ChFunction* mRootFunct, char* mTreeIDs, int mhA, int mhB);
 
     double GetDistance() { return distance; }
     void SetDistance(double md) { distance = md; }
+
+    //// RADU
+    //// Pre-eigen implementatino did not have Get_Cn !?!
+    virtual int Get_Cn() override { return 1; }
 
     int GetHandleA() { return handleA; }
     int GetHandleB() { return handleB; }
