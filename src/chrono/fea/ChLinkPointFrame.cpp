@@ -169,7 +169,7 @@ void ChLinkPointFrameGeneric::IntLoadConstraint_C(const unsigned int off_L,  // 
 
     ChMatrix33<> Arw(m_csys.rot >> m_body->GetRot());
 
-    ChVector<> res = Arw.MatrT_x_Vect(m_node->GetPos() - m_body->TransformPointLocalToParent(m_csys.pos));
+    ChVector<> res = Arw.transpose() * (m_node->GetPos() - m_body->TransformPointLocalToParent(m_csys.pos));
     ChVector<> cres = res * c;
 
     if (do_clamp) {
@@ -275,7 +275,7 @@ void ChLinkPointFrameGeneric::ConstraintsBiLoad_C(double factor, double recovery
 
     ChMatrix33<> Arw(m_csys.rot >> m_body->GetRot());
 
-    ChVector<> res = Arw.MatrT_x_Vect(m_node->GetPos() - m_body->TransformPointLocalToParent(m_csys.pos));
+    ChVector<> res = Arw.transpose() * (m_node->GetPos() - m_body->TransformPointLocalToParent(m_csys.pos));
 
 	if (c_x && this->constraint1.IsActive()) {
 		constraint1.Set_b_i(constraint1.Get_b_i() + factor * res.x());
@@ -301,32 +301,28 @@ void ChLinkPointFrameGeneric::ConstraintsLoadJacobians() {
     ChMatrix33<> Aow(m_body->GetRot());
     ChMatrix33<> Arw = Aow * Aro;
 
-    ChMatrix33<> Jxn;
-    Jxn.CopyFromMatrixT(Arw);
+    ChMatrix33<> Jxn = Arw.transpose();
 
-    ChMatrix33<> Jxb;
-    Jxb.CopyFromMatrixT(Arw);
-    Jxb.MatrNeg();
+    ChMatrix33<> Jxb = -Arw.transpose();
 
-    ChMatrix33<> atilde;
-    atilde.Set_X_matrix(Aow.MatrT_x_Vect(m_node->GetPos() - m_body->GetPos()));
-    ChMatrix33<> Jrb;
-    Jrb.MatrTMultiply(Aro, atilde);
+    ChStarMatrix33<> atilde(Aow.transpose() * (m_node->GetPos() - m_body->GetPos()));
+
+    ChMatrix33<> Jrb = Aro.transpose() * atilde;
 
 	if (c_x) {
-		constraint1.Get_Cq_a()->PasteClippedMatrix(Jxn, 0, 0, 1, 3, 0, 0);
-		constraint1.Get_Cq_b()->PasteClippedMatrix(Jxb, 0, 0, 1, 3, 0, 0);
-		constraint1.Get_Cq_b()->PasteClippedMatrix(Jrb, 0, 0, 1, 3, 0, 3);
+        constraint1.Get_Cq_a().segment(0, 3) = Jxn.row(0);
+        constraint1.Get_Cq_b().segment(0, 3) = Jxb.row(0);
+        constraint1.Get_Cq_b().segment(3, 3) = Jrb.row(0);
 	}
 	if (c_y) {
-		constraint2.Get_Cq_a()->PasteClippedMatrix(Jxn, 1, 0, 1, 3, 0, 0);
-		constraint2.Get_Cq_b()->PasteClippedMatrix(Jxb, 1, 0, 1, 3, 0, 0);
-		constraint2.Get_Cq_b()->PasteClippedMatrix(Jrb, 1, 0, 1, 3, 0, 3);
+        constraint2.Get_Cq_a().segment(0, 3) = Jxn.row(1);
+        constraint2.Get_Cq_b().segment(0, 3) = Jxb.row(1);
+        constraint2.Get_Cq_b().segment(3, 3) = Jrb.row(1);
 	}
 	if (c_z) {
-		constraint3.Get_Cq_a()->PasteClippedMatrix(Jxn, 2, 0, 1, 3, 0, 0);
-		constraint3.Get_Cq_b()->PasteClippedMatrix(Jxb, 2, 0, 1, 3, 0, 0);
-		constraint3.Get_Cq_b()->PasteClippedMatrix(Jrb, 2, 0, 1, 3, 0, 3);
+        constraint3.Get_Cq_a().segment(0, 3) = Jxn.row(2);
+        constraint3.Get_Cq_b().segment(0, 3) = Jxb.row(2);
+        constraint3.Get_Cq_b().segment(3, 3) = Jrb.row(2);
 	}
 }
 
@@ -395,13 +391,13 @@ void ChLinkPointFrame::Update(double mytime, bool update_assets) {
     // ...
 }
 
-ChMatrixNM<double, 3, 1> ChLinkPointFrame::GetC() const {
+ChVectorN<double, 3> ChLinkPointFrame::GetC() const {
     ChMatrix33<> Arw(m_csys.rot >> m_body->GetRot());
-    ChVector<> res = Arw.MatrT_x_Vect(m_node->GetPos() - m_body->TransformPointLocalToParent(m_csys.pos));
-    ChMatrixNM<double, 3, 1> C;
-    C(0, 0) = res.x();
-    C(1, 0) = res.y();
-    C(2, 0) = res.z();
+    ChVector<> res = Arw.transpose() * (m_node->GetPos() - m_body->TransformPointLocalToParent(m_csys.pos));
+    ChVectorN<double, 3> C;
+    C(0) = res.x();
+    C(1) = res.y();
+    C(2) = res.z();
     return C;
 }
 
@@ -443,7 +439,7 @@ void ChLinkPointFrame::IntLoadConstraint_C(const unsigned int off_L,  // offset 
 
     ChMatrix33<> Arw(m_csys.rot >> m_body->GetRot());
 
-    ChVector<> res = Arw.MatrT_x_Vect(m_node->GetPos() - m_body->TransformPointLocalToParent(m_csys.pos));
+    ChVector<> res = Arw.transpose() * (m_node->GetPos() - m_body->TransformPointLocalToParent(m_csys.pos));
     ChVector<> cres = res * c;
 
     if (do_clamp) {
@@ -512,7 +508,7 @@ void ChLinkPointFrame::ConstraintsBiLoad_C(double factor, double recovery_clamp,
 
     ChMatrix33<> Arw(m_csys.rot >> m_body->GetRot());
 
-    ChVector<> res = Arw.MatrT_x_Vect(m_node->GetPos() - m_body->TransformPointLocalToParent(m_csys.pos));
+    ChVector<> res = Arw.transpose() * (m_node->GetPos() - m_body->TransformPointLocalToParent(m_csys.pos));
 
     constraint1.Set_b_i(constraint1.Get_b_i() + factor * res.x());
     constraint2.Set_b_i(constraint2.Get_b_i() + factor * res.y());
@@ -532,28 +528,24 @@ void ChLinkPointFrame::ConstraintsLoadJacobians() {
     ChMatrix33<> Aow(m_body->GetRot());
     ChMatrix33<> Arw = Aow * Aro;
 
-    ChMatrix33<> Jxn;
-    Jxn.CopyFromMatrixT(Arw);
+    ChMatrix33<> Jxn = Arw.transpose();
 
-    ChMatrix33<> Jxb;
-    Jxb.CopyFromMatrixT(Arw);
-    Jxb.MatrNeg();
+    ChMatrix33<> Jxb = -Arw.transpose();
 
-    ChMatrix33<> atilde;
-    atilde.Set_X_matrix(Aow.MatrT_x_Vect(m_node->GetPos() - m_body->GetPos()));
-    ChMatrix33<> Jrb;
-    Jrb.MatrTMultiply(Aro, atilde);
+    ChStarMatrix33<> atilde(Aow.transpose() * (m_node->GetPos() - m_body->GetPos()));
+    ChMatrix33<> Jrb = Aro.transpose() * atilde;
 
-    constraint1.Get_Cq_a()->PasteClippedMatrix(Jxn, 0, 0, 1, 3, 0, 0);
-    constraint2.Get_Cq_a()->PasteClippedMatrix(Jxn, 1, 0, 1, 3, 0, 0);
-    constraint3.Get_Cq_a()->PasteClippedMatrix(Jxn, 2, 0, 1, 3, 0, 0);
+    constraint1.Get_Cq_a().segment(0, 3) = Jxn.row(0);
+    constraint2.Get_Cq_a().segment(0, 3) = Jxn.row(1);
+    constraint3.Get_Cq_a().segment(0, 3) = Jxn.row(2);
 
-    constraint1.Get_Cq_b()->PasteClippedMatrix(Jxb, 0, 0, 1, 3, 0, 0);
-    constraint2.Get_Cq_b()->PasteClippedMatrix(Jxb, 1, 0, 1, 3, 0, 0);
-    constraint3.Get_Cq_b()->PasteClippedMatrix(Jxb, 2, 0, 1, 3, 0, 0);
-    constraint1.Get_Cq_b()->PasteClippedMatrix(Jrb, 0, 0, 1, 3, 0, 3);
-    constraint2.Get_Cq_b()->PasteClippedMatrix(Jrb, 1, 0, 1, 3, 0, 3);
-    constraint3.Get_Cq_b()->PasteClippedMatrix(Jrb, 2, 0, 1, 3, 0, 3);
+    constraint1.Get_Cq_b().segment(0, 3) = Jxb.row(0);
+    constraint2.Get_Cq_b().segment(0, 3) = Jxb.row(1);
+    constraint3.Get_Cq_b().segment(0, 3) = Jxb.row(2);
+
+    constraint1.Get_Cq_b().segment(3, 3) = Jrb.row(0);
+    constraint2.Get_Cq_b().segment(3, 3) = Jrb.row(1);
+    constraint3.Get_Cq_b().segment(3, 3) = Jrb.row(2);
 }
 
 void ChLinkPointFrame::ConstraintsFetch_react(double factor) {

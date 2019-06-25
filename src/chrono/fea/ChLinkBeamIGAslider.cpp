@@ -166,7 +166,7 @@ void ChLinkBeamIGAslider::IntLoadConstraint_C(const unsigned int off_L,  // offs
     GetLog() << "u2 = " << u2 << "\n";
     GetLog() << "eta = " << eta << "\n";
     GetLog() << "point = " << splinepoint << "\n";
-    ChVector<> res = Arw.MatrT_x_Vect(splinepoint - m_body->TransformPointLocalToParent(m_csys.pos));
+    ChVector<> res = Arw.transpose() * (splinepoint - m_body->TransformPointLocalToParent(m_csys.pos));
     ChVector<> cres = res * c;
     GetLog() << "res = " << res << "\n";
     if (do_clamp) {
@@ -241,7 +241,7 @@ void ChLinkBeamIGAslider::ConstraintsBiLoad_C(double factor, double recovery_cla
     double eta = (2.0 * (this->tau - u1) / (u2 - u1)) - 1.0;
     m_beams[this->active_element]->EvaluateSectionPoint(eta, splinepoint);
 
-    ChVector<> res = Arw.MatrT_x_Vect(splinepoint - m_body->TransformPointLocalToParent(m_csys.pos));
+    ChVector<> res = Arw.transpose() * (splinepoint - m_body->TransformPointLocalToParent(m_csys.pos));
 
     // constraint1.Set_b_i(constraint1.Get_b_i() + factor * res.x());
     constraint2.Set_b_i(constraint2.Get_b_i() + factor * res.y());
@@ -261,12 +261,9 @@ void ChLinkBeamIGAslider::ConstraintsLoadJacobians() {
     ChMatrix33<> Aow(m_body->GetRot());
     ChMatrix33<> Arw = Aow * Aro;
 
-    ChMatrix33<> ArwT;
-    ArwT.CopyFromMatrixT(Arw);
+    ChMatrix33<> ArwT = Arw.transpose();
 
-    ChMatrix33<> Jxb;
-    Jxb.CopyFromMatrixT(Arw);
-    Jxb.MatrNeg();
+    ChMatrix33<> Jxb = -Arw.transpose();
 
     ChVector<> splinepoint;
     double u1 = m_beams[this->active_element]->GetU1();
@@ -274,10 +271,8 @@ void ChLinkBeamIGAslider::ConstraintsLoadJacobians() {
     double eta = (2.0 * (this->tau - u1) / (u2 - u1)) - 1.0;
     m_beams[this->active_element]->EvaluateSectionPoint(eta, splinepoint);
 
-    ChMatrix33<> atilde;
-    atilde.Set_X_matrix(Aow.MatrT_x_Vect(splinepoint - m_body->GetPos()));
-    ChMatrix33<> Jrb;
-    Jrb.MatrTMultiply(Aro, atilde);
+    ChStarMatrix33<> atilde(Aow.transpose() * (splinepoint - m_body->GetPos()));
+    ChMatrix33<> Jrb = Aro.transpose() * atilde;
 
     int nspan = this->order;
 
@@ -290,18 +285,18 @@ void ChLinkBeamIGAslider::ConstraintsLoadJacobians() {
     for (int i = 0; i < this->m_nodes.size(); ++i) {
         ArwT_N = ArwT * N(i);
         // constraint1.Get_Cq_N(i).PasteClippedMatrix(ArwT_N, 0, 0, 1, 3, 0, 0);
-        constraint2.Get_Cq_N(i).PasteClippedMatrix(ArwT_N, 1, 0, 1, 3, 0, 0);
-        constraint3.Get_Cq_N(i).PasteClippedMatrix(ArwT_N, 2, 0, 1, 3, 0, 0);
-        GetLog() << "N" << i << "=" << N(i) << "\n";
+        constraint2.Get_Cq_N(i).segment(0, 3) = ArwT_N.row(1);
+        constraint3.Get_Cq_N(i).segment(0, 3) = ArwT_N.row(2);
+        ////GetLog() << "N" << i << "=" << N(i) << "\n";
     }
 
     // constraint1.Get_Cq_N(this->m_nodes.size()).PasteClippedMatrix(Jxb, 0, 0, 1, 3, 0, 0);
-    constraint2.Get_Cq_N(this->m_nodes.size()).PasteClippedMatrix(Jxb, 1, 0, 1, 3, 0, 0);
-    constraint3.Get_Cq_N(this->m_nodes.size()).PasteClippedMatrix(Jxb, 2, 0, 1, 3, 0, 0);
+    constraint2.Get_Cq_N(this->m_nodes.size()).segment(0, 3) = Jxb.row(1);
+    constraint3.Get_Cq_N(this->m_nodes.size()).segment(0, 3) = Jxb.row(2);
 
     // constraint1.Get_Cq_N(this->m_nodes.size()).PasteClippedMatrix(Jrb, 0, 0, 1, 3, 0, 3);
-    constraint2.Get_Cq_N(this->m_nodes.size()).PasteClippedMatrix(Jrb, 1, 0, 1, 3, 0, 3);
-    constraint3.Get_Cq_N(this->m_nodes.size()).PasteClippedMatrix(Jrb, 2, 0, 1, 3, 0, 3);
+    constraint2.Get_Cq_N(this->m_nodes.size()).segment(3, 3) = Jrb.row(1);
+    constraint3.Get_Cq_N(this->m_nodes.size()).segment(3, 3) = Jrb.row(2);
 }
 
 void ChLinkBeamIGAslider::ConstraintsFetch_react(double factor) {
