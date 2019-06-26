@@ -24,12 +24,36 @@
 
 namespace chrono {
 
+//// RADU
+//// Implement some utilities to abstract use of Eigen::Map
+//// to copy vectors into matrices and vice-versa
+
 // =============================================================================
 
-//// RADU
-//// This should be removed
-////template <typename Derived>
-////using ChMatrix = Eigen::MatrixBase<Derived>;
+template <typename T = double>
+using ChMatrixDynamic = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+
+template <typename T, int M, int N>
+using ChMatrixNM = Eigen::Matrix<T, M, N, Eigen::RowMajor>;
+
+template <typename T, int M, int N>
+using ChMatrixNMnoalign = Eigen::Matrix<T, M, N, Eigen::RowMajor | Eigen::DontAlign>;
+
+// =============================================================================
+
+template <typename T = double>
+using ChVectorDynamic = Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen::ColMajor>;
+
+template <typename T = double>
+using ChRowVectorDynamic = Eigen::Matrix<T, 1, Eigen::Dynamic, Eigen::RowMajor>;
+
+template <typename T, int N>
+using ChVectorN = Eigen::Matrix<T, N, 1>;
+
+template <typename T, int N>
+using ChRowVectorN = Eigen::Matrix<T, 1, N, Eigen::RowMajor>;
+
+// =============================================================================
 
 //// RADU
 //// Consider templating the following by precision
@@ -40,25 +64,8 @@ using ChMatrixConstRef = const Eigen::Ref<const Eigen::Matrix<double, Eigen::Dyn
 using ChVectorRef = Eigen::Ref<Eigen::Matrix<double, Eigen::Dynamic, 1, Eigen::ColMajor>>;
 using ChVectorConstRef = const Eigen::Ref<const Eigen::Matrix<double, Eigen::Dynamic, 1, Eigen::ColMajor>>&;
 
-// =============================================================================
-
-template <typename T, int M, int N>
-using ChMatrixNM = Eigen::Matrix<T, M, N, Eigen::RowMajor>;
-
-template <typename T = double>
-using ChMatrixDynamic = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
-
-// =============================================================================
-
-//// RADU
-//// Consider differentiating between column and row vectors
-//// What we have right now are column vectors
-
-template <typename T, int N>
-using ChVectorN = Eigen::Matrix<T, N, 1>;
-
-template <typename T = double>
-using ChVectorDynamic = Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen::ColMajor>;
+using ChRowVectorRef = Eigen::Ref<Eigen::Matrix<double, 1, Eigen::Dynamic, Eigen::RowMajor>>;
+using ChRowVectorConstRef = const Eigen::Ref<const Eigen::Matrix<double, 1, Eigen::Dynamic, Eigen::RowMajor>>&;
 
 // =============================================================================
 
