@@ -29,8 +29,8 @@ class ChApi ChConstraintNgeneric : public ChConstraint {
   protected:
     std::vector<ChVariables*> variables;
 
-    std::vector<ChVectorDynamic<double>> Cq;  ///< The [Cq] jacobian slices (transposed, as column vector)
-    std::vector<ChVectorDynamic<double>> Eq;  ///< The [Eq] product [Eq]=[invM]*[Cq]'
+    std::vector<ChRowVectorDynamic<double>> Cq;  ///< The [Cq] jacobian slices
+    std::vector<ChVectorDynamic<double>> Eq;     ///< The [Eq] product [Eq]=[invM]*[Cq]'
 
   public:
     /// Default constructor
@@ -48,7 +48,7 @@ class ChApi ChConstraintNgeneric : public ChConstraint {
     ChConstraintNgeneric& operator=(const ChConstraintNgeneric& other);
 
     /// Access the Nth jacobian vector.
-    ChVectorRef Get_Cq_N(size_t n) { return Cq[n]; }
+    ChRowVectorRef Get_Cq_N(size_t n) { return Cq[n]; }
 
     /// Access the Nth auxiliary vector (ex: used by iterative solvers).
     ChVectorRef Get_Eq_N(size_t n) { return Eq[n]; }

@@ -31,9 +31,9 @@ namespace chrono {
 template <class T>
 class ChConstraintTuple_1vars {
   protected:
-    ChVariables* variables;           ///< The constrained object
-    ChVectorN<double, T::nvars1> Cq;  ///< The [Cq] jacobian of the constraint (transposed, as column vector)
-    ChVectorN<double, T::nvars1> Eq;  ///< The [Eq] product [Eq]=[invM]*[Cq]'
+    ChVariables* variables;              ///< The constrained object
+    ChRowVectorN<double, T::nvars1> Cq;  ///< The [Cq] jacobian of the constraint
+    ChVectorN<double, T::nvars1> Eq;     ///< The [Eq] product [Eq]=[invM]*[Cq]'
 
   public:
     /// Default constructor
@@ -59,7 +59,7 @@ class ChConstraintTuple_1vars {
         return *this;
     }
 
-    ChVectorRef Get_Cq() { return Cq; }
+    ChRowVectorRef Get_Cq() { return Cq; }
 
     ChVectorRef Get_Eq() { return Eq; }
 
@@ -76,12 +76,12 @@ class ChConstraintTuple_1vars {
         // 1- Assuming jacobians are already computed, now compute
         //   the matrices [Eq]=[invM]*[Cq]' and [Eq]
         if (variables->IsActive()) {
-            variables->Compute_invMb_v(Eq, Cq);
+            variables->Compute_invMb_v(Eq, Cq.transpose());
         }
 
         // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
         if (variables->IsActive()) {
-            g_i += Cq.dot(Eq);
+            g_i += Cq * Eq;
         }
     }
 
@@ -89,7 +89,7 @@ class ChConstraintTuple_1vars {
         double ret = 0;
 
         if (variables->IsActive()) {
-            ret += Cq.dot(variables->Get_qb());
+            ret += Cq * variables->Get_qb();
         }
 
         return ret;
@@ -103,26 +103,24 @@ class ChConstraintTuple_1vars {
 
     void MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const {
         if (variables->IsActive()) {
-            result += Cq.dot(vect.segment(variables->GetOffset(), T::nvars1));
+            result += Cq * vect.segment(variables->GetOffset(), T::nvars1);
         }
     }
 
     void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) {
         if (variables->IsActive()) {
-            result.segment(variables->GetOffset(), T::nvars1) += Cq * l;
+            result.segment(variables->GetOffset(), T::nvars1) += Cq.transpose() * l;
         }
     }
 
     void Build_Cq(ChSparseMatrix& storage, int insrow) {
-        // Recall that Cq is a column vector.
         if (variables->IsActive())
-            storage.PasteTranspMatrix(Cq, insrow, variables->GetOffset());
+            storage.PasteMatrix(Cq, insrow, variables->GetOffset());
     }
 
     void Build_CqT(ChSparseMatrix& storage, int inscol) {
-        // Recall that Cq is a column vector.
         if (variables->IsActive())
-            storage.PasteMatrix(Cq, variables->GetOffset(), inscol);
+            storage.PasteTranspMatrix(Cq, variables->GetOffset(), inscol);
     }
 };
 
@@ -135,8 +133,8 @@ class ChConstraintTuple_2vars {
     ChVariables* variables_2;
 
     /// The [Cq] jacobian of the constraint, split in horizontal chunks
-    ChVectorN<double, T::nvars1> Cq_1;  // (transposed, as column vector)
-    ChVectorN<double, T::nvars2> Cq_2;  // (transposed, as column vector)
+    ChRowVectorN<double, T::nvars1> Cq_1;
+    ChRowVectorN<double, T::nvars2> Cq_2;
 
     /// The [Eq] product [Eq]=[invM]*[Cq]'
     ChVectorN<double, T::nvars1> Eq_1;
@@ -172,8 +170,8 @@ class ChConstraintTuple_2vars {
         return *this;
     }
 
-    ChVectorRef Get_Cq_1() { return Cq_1; }
-    ChVectorRef Get_Cq_2() { return Cq_2; }
+    ChRowVectorRef Get_Cq_1() { return Cq_1; }
+    ChRowVectorRef Get_Cq_2() { return Cq_2; }
 
     ChVectorRef Get_Eq_1() { return Eq_1; }
     ChVectorRef Get_Eq_2() { return Eq_2; }
@@ -193,18 +191,18 @@ class ChConstraintTuple_2vars {
         // 1- Assuming jacobians are already computed, now compute
         //   the matrices [Eq_a]=[invM_a]*[Cq_a]' and [Eq_b]
         if (variables_1->IsActive()) {
-            variables_1->Compute_invMb_v(Eq_1, Cq_1);
+            variables_1->Compute_invMb_v(Eq_1, Cq_1.transpose());
         }
         if (variables_2->IsActive()) {
-            variables_2->Compute_invMb_v(Eq_2, Cq_2);
+            variables_2->Compute_invMb_v(Eq_2, Cq_2.transpose());
         }
 
         // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
         if (variables_1->IsActive()) {
-            g_i += Cq_1.dot(Eq_1);
+            g_i += Cq_1 * Eq_1;
         }
         if (variables_2->IsActive()) {
-            g_i += Cq_2.dot(Eq_2);
+            g_i += Cq_2 * Eq_2;
         }
     }
 
@@ -212,11 +210,11 @@ class ChConstraintTuple_2vars {
         double ret = 0;
 
         if (variables_1->IsActive()) {
-            ret += Cq_1.dot(variables_1->Get_qb());
+            ret += Cq_1 * variables_1->Get_qb();
         }
 
         if (variables_2->IsActive()) {
-            ret += Cq_2.dot(variables_2->Get_qb());
+            ret += Cq_2 * variables_2->Get_qb();
         }
 
         return ret;
@@ -234,38 +232,36 @@ class ChConstraintTuple_2vars {
 
     void MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const {
         if (variables_1->IsActive()) {
-            result += Cq_1.dot(vect.segment(variables_1->GetOffset(), T::nvars1));
+            result += Cq_1 * vect.segment(variables_1->GetOffset(), T::nvars1);
         }
 
         if (variables_2->IsActive()) {
-            result += Cq_2.dot(vect.segment(variables_2->GetOffset(), T::nvars2));
+            result += Cq_2 * vect.segment(variables_2->GetOffset(), T::nvars2);
         }
     }
 
     void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) {
         if (variables_1->IsActive()) {
-            result.segment(variables_1->GetOffset(), T::nvars1) += Cq_1 * l;
+            result.segment(variables_1->GetOffset(), T::nvars1) += Cq_1.transpose() * l;
         }
 
         if (variables_2->IsActive()) {
-            result.segment(variables_2->GetOffset(), T::nvars2) += Cq_2 * l;
+            result.segment(variables_2->GetOffset(), T::nvars2) += Cq_2.transpose() * l;
         }
     }
 
     void Build_Cq(ChSparseMatrix& storage, int insrow) {
-        // Recall that Cq_1 and Cq_2 are column vectors.
         if (variables_1->IsActive())
-            storage.PasteTranspMatrix(Cq_1, insrow, variables_1->GetOffset());
+            storage.PasteMatrix(Cq_1, insrow, variables_1->GetOffset());
         if (variables_2->IsActive())
-            storage.PasteTranspMatrix(Cq_2, insrow, variables_2->GetOffset());
+            storage.PasteMatrix(Cq_2, insrow, variables_2->GetOffset());
     }
 
     void Build_CqT(ChSparseMatrix& storage, int inscol) {
-        // Recall that Cq_1 and Cq_2 are column vectors.
         if (variables_1->IsActive())
-            storage.PasteMatrix(Cq_1, variables_1->GetOffset(), inscol);
+            storage.PasteTranspMatrix(Cq_1, variables_1->GetOffset(), inscol);
         if (variables_2->IsActive())
-            storage.PasteMatrix(Cq_2, variables_2->GetOffset(), inscol);
+            storage.PasteTranspMatrix(Cq_2, variables_2->GetOffset(), inscol);
     }
 };
 
@@ -279,9 +275,9 @@ class ChConstraintTuple_3vars {
     ChVariables* variables_3;
 
     /// The [Cq] jacobian of the constraint, split in horizontal chunks
-    ChVectorN<double, T::nvars1> Cq_1;   // (transposed, as column vector)
-    ChVectorN<double, T::nvars2> Cq_2;   // (transposed, as column vector)
-    ChVectorN<double, T::nvars3> Cq_3;   // (transposed, as column vector)
+    ChRowVectorN<double, T::nvars1> Cq_1;
+    ChRowVectorN<double, T::nvars2> Cq_2;
+    ChRowVectorN<double, T::nvars3> Cq_3;
 
     /// The [Eq] product [Eq]=[invM]*[Cq]'
     ChVectorN<double, T::nvars1> Eq_1;
@@ -325,9 +321,9 @@ class ChConstraintTuple_3vars {
         return *this;
     }
 
-    ChVectorRef Get_Cq_1() { return Cq_1; }
-    ChVectorRef Get_Cq_2() { return Cq_2; }
-    ChVectorRef Get_Cq_3() { return Cq_3; }
+    ChRowVectorRef Get_Cq_1() { return Cq_1; }
+    ChRowVectorRef Get_Cq_2() { return Cq_2; }
+    ChRowVectorRef Get_Cq_3() { return Cq_3; }
 
     ChVectorRef Get_Eq_1() { return Eq_1; }
     ChVectorRef Get_Eq_2() { return Eq_2; }
@@ -350,24 +346,24 @@ class ChConstraintTuple_3vars {
         // 1- Assuming jacobians are already computed, now compute
         //   the matrices [Eq_a]=[invM_a]*[Cq_a]' and [Eq_b]
         if (variables_1->IsActive()) {
-            variables_1->Compute_invMb_v(Eq_1, Cq_1);
+            variables_1->Compute_invMb_v(Eq_1, Cq_1.transpose());
         }
         if (variables_2->IsActive()) {
-            variables_2->Compute_invMb_v(Eq_2, Cq_2);
+            variables_2->Compute_invMb_v(Eq_2, Cq_2.transpose());
         }
         if (variables_3->IsActive()) {
-            variables_3->Compute_invMb_v(Eq_3, Cq_3);
+            variables_3->Compute_invMb_v(Eq_3, Cq_3.transpose());
         }
 
         // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
         if (variables_1->IsActive()) {
-            g_i += Cq_1.dot(Eq_1);
+            g_i += Cq_1 * Eq_1;
         }
         if (variables_2->IsActive()) {
-            g_i += Cq_2.dot(Eq_2);
+            g_i += Cq_2 * Eq_2;
         }
         if (variables_3->IsActive()) {
-            g_i += Cq_3.dot(Eq_3);
+            g_i += Cq_3 * Eq_3;
         }
     }
 
@@ -375,15 +371,15 @@ class ChConstraintTuple_3vars {
         double ret = 0;
 
         if (variables_1->IsActive()) {
-            ret += Cq_1.dot(variables_1->Get_qb());
+            ret += Cq_1 * variables_1->Get_qb();
         }
 
         if (variables_2->IsActive()) {
-            ret += Cq_2.dot(variables_2->Get_qb());
+            ret += Cq_2 * variables_2->Get_qb();
         }
 
         if (variables_3->IsActive()) {
-            ret += Cq_3.dot(variables_3->Get_qb());
+            ret += Cq_3 * variables_3->Get_qb();
         }
 
         return ret;
@@ -405,50 +401,48 @@ class ChConstraintTuple_3vars {
 
     void MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const {
         if (variables_1->IsActive()) {
-            result += Cq_1.dot(vect.segment(variables_1->GetOffset(), T::nvars1));
+            result += Cq_1 * vect.segment(variables_1->GetOffset(), T::nvars1);
         }
 
         if (variables_2->IsActive()) {
-            result += Cq_2.dot(vect.segment(variables_2->GetOffset(), T::nvars2));
+            result += Cq_2 * vect.segment(variables_2->GetOffset(), T::nvars2);
         }
 
         if (variables_3->IsActive()) {
-            result += Cq_3.dot(vect.segment(variables_3->GetOffset(), T::nvars3));
+            result += Cq_3 * vect.segment(variables_3->GetOffset(), T::nvars3);
         }
     }
 
     void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) {
         if (variables_1->IsActive()) {
-            result.segment(variables_1->GetOffset(), T::nvars1) += Cq_1 * l;
+            result.segment(variables_1->GetOffset(), T::nvars1) += Cq_1.transpose() * l;
         }
 
         if (variables_2->IsActive()) {
-            result.segment(variables_2->GetOffset(), T::nvars2) += Cq_2 * l;
+            result.segment(variables_2->GetOffset(), T::nvars2) += Cq_2.transpose() * l;
         }
 
         if (variables_3->IsActive()) {
-            result.segment(variables_3->GetOffset(), T::nvars3) += Cq_3 * l;
+            result.segment(variables_3->GetOffset(), T::nvars3) += Cq_3.transpose() * l;
         }
     }
 
     void Build_Cq(ChSparseMatrix& storage, int insrow) {
-        // Recall that Cq_1, Cq_2, and Cq_3 are column vectors.
         if (variables_1->IsActive())
-            storage.PasteTranspMatrix(Cq_1, insrow, variables_1->GetOffset());
+            storage.PasteMatrix(Cq_1, insrow, variables_1->GetOffset());
         if (variables_2->IsActive())
-            storage.PasteTranspMatrix(Cq_2, insrow, variables_2->GetOffset());
+            storage.PasteMatrix(Cq_2, insrow, variables_2->GetOffset());
         if (variables_3->IsActive())
-            storage.PasteTranspMatrix(Cq_3, insrow, variables_3->GetOffset());
+            storage.PasteMatrix(Cq_3, insrow, variables_3->GetOffset());
     }
 
     void Build_CqT(ChSparseMatrix& storage, int inscol) {
-        // Recall that Cq_1, Cq_2, and Cq_3 are column vectors.
         if (variables_1->IsActive())
-            storage.PasteMatrix(Cq_1, variables_1->GetOffset(), inscol);
+            storage.PasteTranspMatrix(Cq_1, variables_1->GetOffset(), inscol);
         if (variables_2->IsActive())
-            storage.PasteMatrix(Cq_2, variables_2->GetOffset(), inscol);
+            storage.PasteTranspMatrix(Cq_2, variables_2->GetOffset(), inscol);
         if (variables_3->IsActive())
-            storage.PasteMatrix(Cq_3, variables_3->GetOffset(), inscol);
+            storage.PasteTranspMatrix(Cq_3, variables_3->GetOffset(), inscol);
     }
 };
 
@@ -464,10 +458,10 @@ class ChConstraintTuple_4vars {
     ChVariables* variables_4;
 
     /// The [Cq] jacobian of the constraint, split in horizontal chunks
-    ChVectorN<double, T::nvars1> Cq_1;   // (transposed, as column vector)
-    ChVectorN<double, T::nvars2> Cq_2;   // (transposed, as column vector)
-    ChVectorN<double, T::nvars3> Cq_3;   // (transposed, as column vector)
-    ChVectorN<double, T::nvars4> Cq_4;   // (transposed, as column vector)
+    ChRowVectorN<double, T::nvars1> Cq_1;
+    ChRowVectorN<double, T::nvars2> Cq_2;
+    ChRowVectorN<double, T::nvars3> Cq_3;
+    ChRowVectorN<double, T::nvars4> Cq_4;
 
     /// The [Eq] product [Eq]=[invM]*[Cq]'
     ChVectorN<double, T::nvars1> Eq_1;
@@ -519,10 +513,10 @@ class ChConstraintTuple_4vars {
         return *this;
     }
 
-    ChVectorRef Get_Cq_1() { return Cq_1; }
-    ChVectorRef Get_Cq_2() { return Cq_2; }
-    ChVectorRef Get_Cq_3() { return Cq_3; }
-    ChVectorRef Get_Cq_4() { return Cq_4; }
+    ChRowVectorRef Get_Cq_1() { return Cq_1; }
+    ChRowVectorRef Get_Cq_2() { return Cq_2; }
+    ChRowVectorRef Get_Cq_3() { return Cq_3; }
+    ChRowVectorRef Get_Cq_4() { return Cq_4; }
 
     ChVectorRef Get_Eq_1() { return Eq_1; }
     ChVectorRef Get_Eq_2() { return Eq_2; }
@@ -548,30 +542,30 @@ class ChConstraintTuple_4vars {
         // 1- Assuming jacobians are already computed, now compute
         //   the matrices [Eq_a]=[invM_a]*[Cq_a]' and [Eq_b]
         if (variables_1->IsActive()) {
-            variables_1->Compute_invMb_v(Eq_1, Cq_1);
+            variables_1->Compute_invMb_v(Eq_1, Cq_1.transpose());
         }
         if (variables_2->IsActive()) {
-            variables_2->Compute_invMb_v(Eq_2, Cq_2);
+            variables_2->Compute_invMb_v(Eq_2, Cq_2.transpose());
         }
         if (variables_3->IsActive()) {
-            variables_3->Compute_invMb_v(Eq_3, Cq_3);
+            variables_3->Compute_invMb_v(Eq_3, Cq_3.transpose());
         }
         if (variables_4->IsActive()) {
-            variables_4->Compute_invMb_v(Eq_4, Cq_4);
+            variables_4->Compute_invMb_v(Eq_4, Cq_4.transpose());
         }
 
         // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
         if (variables_1->IsActive()) {
-            g_i += Cq_1.dot(Eq_1);
+            g_i += Cq_1 * Eq_1;
         }
         if (variables_2->IsActive()) {
-            g_i += Cq_2.dot(Eq_2);
+            g_i += Cq_2 * Eq_2;
         }
         if (variables_3->IsActive()) {
-            g_i += Cq_3.dot(Eq_3);
+            g_i += Cq_3 * Eq_3;
         }
         if (variables_4->IsActive()) {
-            g_i += Cq_4.dot(Eq_4);
+            g_i += Cq_4 * Eq_4;
         }
     }
 
@@ -579,19 +573,19 @@ class ChConstraintTuple_4vars {
         double ret = 0;
 
         if (variables_1->IsActive()) {
-            ret += Cq_1.dot(variables_1->Get_qb());
+            ret += Cq_1 * variables_1->Get_qb();
         }
 
         if (variables_2->IsActive()) {
-            ret += Cq_2.dot(variables_2->Get_qb());
+            ret += Cq_2 * variables_2->Get_qb();
         }
 
         if (variables_3->IsActive()) {
-            ret += Cq_3.dot(variables_3->Get_qb());
+            ret += Cq_3 * variables_3->Get_qb();
         }
 
         if (variables_4->IsActive()) {
-            ret += Cq_4.dot(variables_4->Get_qb());
+            ret += Cq_4 * variables_4->Get_qb();
         }
 
         return ret;
@@ -617,62 +611,60 @@ class ChConstraintTuple_4vars {
 
     void MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const {
         if (variables_1->IsActive()) {
-            result += Cq_1.dot(vect.segment(variables_1->GetOffset(), T::nvars1));
+            result += Cq_1 * vect.segment(variables_1->GetOffset(), T::nvars1);
         }
 
         if (variables_2->IsActive()) {
-            result += Cq_2.dot(vect.segment(variables_2->GetOffset(), T::nvars2));
+            result += Cq_2 * vect.segment(variables_2->GetOffset(), T::nvars2);
         }
 
         if (variables_3->IsActive()) {
-            result += Cq_3.dot(vect.segment(variables_3->GetOffset(), T::nvars3));
+            result += Cq_3 * vect.segment(variables_3->GetOffset(), T::nvars3);
         }
 
         if (variables_4->IsActive()) {
-            result += Cq_4.dot(vect.segment(variables_4->GetOffset(), T::nvars4));
+            result += Cq_4 * vect.segment(variables_4->GetOffset(), T::nvars4);
         }
     }
 
     void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) {
         if (variables_1->IsActive()) {
-            result.segment(variables_1->GetOffset(), T::nvars1) += Cq_1 * l;
+            result.segment(variables_1->GetOffset(), T::nvars1) += Cq_1.transpose() * l;
         }
 
         if (variables_2->IsActive()) {
-            result.segment(variables_2->GetOffset(), T::nvars2) += Cq_2 * l;
+            result.segment(variables_2->GetOffset(), T::nvars2) += Cq_2.transpose() * l;
         }
 
         if (variables_3->IsActive()) {
-            result.segment(variables_3->GetOffset(), T::nvars3) += Cq_3 * l;
+            result.segment(variables_3->GetOffset(), T::nvars3) += Cq_3.transpose() * l;
         }
 
         if (variables_4->IsActive()) {
-            result.segment(variables_4->GetOffset(), T::nvars4) += Cq_4 * l;
+            result.segment(variables_4->GetOffset(), T::nvars4) += Cq_4.transpose() * l;
         }
     }
 
     void Build_Cq(ChSparseMatrix& storage, int insrow) {
-        // Recall that Cq_1, Cq_2, Cq_3, and Cq_4 are column vectors.
         if (variables_1->IsActive())
-            storage.PasteTranspMatrix(Cq_1, insrow, variables_1->GetOffset());
+            storage.PasteMatrix(Cq_1, insrow, variables_1->GetOffset());
         if (variables_2->IsActive())
-            storage.PasteTranspMatrix(Cq_2, insrow, variables_2->GetOffset());
+            storage.PasteMatrix(Cq_2, insrow, variables_2->GetOffset());
         if (variables_3->IsActive())
-            storage.PasteTranspMatrix(Cq_3, insrow, variables_3->GetOffset());
+            storage.PasteMatrix(Cq_3, insrow, variables_3->GetOffset());
         if (variables_4->IsActive())
-            storage.PasteTranspMatrix(Cq_4, insrow, variables_4->GetOffset());
+            storage.PasteMatrix(Cq_4, insrow, variables_4->GetOffset());
     }
 
     void Build_CqT(ChSparseMatrix& storage, int inscol) {
-        // Recall that Cq_1, Cq_2, Cq_3, and Cq_4 are column vectors.
         if (variables_1->IsActive())
-            storage.PasteMatrix(Cq_1, variables_1->GetOffset(), inscol);
+            storage.PasteTranspMatrix(Cq_1, variables_1->GetOffset(), inscol);
         if (variables_2->IsActive())
-            storage.PasteMatrix(Cq_2, variables_2->GetOffset(), inscol);
+            storage.PasteTranspMatrix(Cq_2, variables_2->GetOffset(), inscol);
         if (variables_3->IsActive())
-            storage.PasteMatrix(Cq_3, variables_3->GetOffset(), inscol);
+            storage.PasteTranspMatrix(Cq_3, variables_3->GetOffset(), inscol);
         if (variables_4->IsActive())
-            storage.PasteMatrix(Cq_4, variables_4->GetOffset(), inscol);
+            storage.PasteTranspMatrix(Cq_4, variables_4->GetOffset(), inscol);
     }
 };
 

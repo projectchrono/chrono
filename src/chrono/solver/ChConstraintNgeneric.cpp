@@ -53,8 +53,8 @@ void ChConstraintNgeneric::SetVariables(std::vector<ChVariables*> mvars) {
             return;
         }
 
-        Cq.push_back(ChVectorDynamic<double>(variables[i]->Get_ndof()));
-        Eq.push_back(ChVectorDynamic<double>(variables[i]->Get_ndof()));
+        Cq.push_back(ChRowVectorDynamic<double>(variables[i]->Get_ndof()));
+        Eq.push_back(ChRowVectorDynamic<double>(variables[i]->Get_ndof()));
 
         Cq.back().setZero();
     }
@@ -67,7 +67,7 @@ void ChConstraintNgeneric::Update_auxiliary() {
     for (size_t i = 0; i < variables.size(); ++i) {
         if (variables[i]->IsActive())
             if (variables[i]->Get_ndof()) {
-                variables[i]->Compute_invMb_v(Eq[i], Cq[i]);
+                variables[i]->Compute_invMb_v(Eq[i], Cq[i].transpose());
             }
     }
 
@@ -75,7 +75,7 @@ void ChConstraintNgeneric::Update_auxiliary() {
     g_i = 0;
     for (size_t i = 0; i < variables.size(); ++i) {
         if (variables[i]->IsActive() && variables[i]->Get_ndof() > 0) {
-            g_i += Cq[i].dot(Eq[i]);
+            g_i += Cq[i] * Eq[i];
         }
     }
 
@@ -93,7 +93,7 @@ double ChConstraintNgeneric::Compute_Cq_q() {
 
     for (size_t i = 0; i < variables.size(); ++i) {
         if (variables[i]->IsActive()) {
-            ret += Cq[i].dot(variables[i]->Get_qb());
+            ret += Cq[i] * variables[i]->Get_qb();
         }
     }
 
@@ -116,7 +116,7 @@ void ChConstraintNgeneric::Increment_q(const double deltal) {
 void ChConstraintNgeneric::MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const {
     for (size_t i = 0; i < variables.size(); ++i) {
         if (variables[i]->IsActive()) {
-            result += Cq[i].dot(vect.segment(variables[i]->GetOffset(), Cq[i].size()));
+            result += Cq[i] * vect.segment(variables[i]->GetOffset(), Cq[i].size());
         }
     }
 }
@@ -124,24 +124,22 @@ void ChConstraintNgeneric::MultiplyAndAdd(double& result, const ChVectorDynamic<
 void ChConstraintNgeneric::MultiplyTandAdd(ChVectorDynamic<double>& result, double l) {
     for (size_t i = 0; i < variables.size(); ++i) {
         if (variables[i]->IsActive()) {
-            result.segment(variables[i]->GetOffset(), Cq[i].size()) += Cq[i] * l;
+            result.segment(variables[i]->GetOffset(), Cq[i].size()) += Cq[i].transpose() * l;
         }
     }
 }
 
 void ChConstraintNgeneric::Build_Cq(ChSparseMatrix& storage, int insrow) {
-    // Recall that Cq[i] is a column vector.
     for (size_t i = 0; i < variables.size(); ++i) {
         if (variables[i]->IsActive())
-            storage.PasteTranspMatrix(Cq[i], insrow, variables[i]->GetOffset());
+            storage.PasteMatrix(Cq[i], insrow, variables[i]->GetOffset());
     }
 }
 
 void ChConstraintNgeneric::Build_CqT(ChSparseMatrix& storage, int inscol) {
-    // Recall that Cq[i] is a column vector.
     for (size_t i = 0; i < variables.size(); ++i) {
         if (variables[i]->IsActive())
-            storage.PasteMatrix(Cq[i], variables[i]->GetOffset(), inscol);
+            storage.PasteTranspMatrix(Cq[i], variables[i]->GetOffset(), inscol);
     }
 }
 

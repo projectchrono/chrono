@@ -33,11 +33,9 @@ namespace chrono {
 
 class ChApi ChConstraintThreeGeneric : public ChConstraintThree {
   protected:
-    // Note that the constraint Jacobians are stored as *column* vectors
-
-    ChVectorDynamic<double> Cq_a;  ///< The [Cq_a] jacobian of the constraint (transposed, as column vector)
-    ChVectorDynamic<double> Cq_b;  ///< The [Cq_b] jacobian of the constraint (transposed, as column vector)
-    ChVectorDynamic<double> Cq_c;  ///< The [Cq_c] jacobian of the constraint (transposed, as column vector)
+    ChRowVectorDynamic<double> Cq_a;  ///< The [Cq_a] jacobian of the constraint
+    ChRowVectorDynamic<double> Cq_b;  ///< The [Cq_b] jacobian of the constraint
+    ChRowVectorDynamic<double> Cq_c;  ///< The [Cq_c] jacobian of the constraint
 
     // Auxiliary data: will be used by iterative constraint solvers:
 
@@ -64,11 +62,11 @@ class ChApi ChConstraintThreeGeneric : public ChConstraintThree {
     ChConstraintThreeGeneric& operator=(const ChConstraintThreeGeneric& other);
 
     /// Access jacobian vector.
-    virtual ChVectorRef Get_Cq_a() override { return Cq_a; }
+    virtual ChRowVectorRef Get_Cq_a() override { return Cq_a; }
     /// Access jacobian vector.
-    virtual ChVectorRef Get_Cq_b() override { return Cq_b; }
+    virtual ChRowVectorRef Get_Cq_b() override { return Cq_b; }
     /// Access jacobian vector.
-    virtual ChVectorRef Get_Cq_c() override { return Cq_c; }
+    virtual ChRowVectorRef Get_Cq_c() override { return Cq_c; }
 
     /// Access auxiliary vector (ex: used by iterative solvers).
     virtual ChVectorRef Get_Eq_a() override { return Eq_a; }

@@ -81,25 +81,25 @@ void ChConstraintThreeBBShaft::Update_auxiliary() {
     // 1- Assuming jacobians are already computed, now compute
     //   the matrices [Eq_a]=[invM_a]*[Cq_a]'  etc
     if (variables_a->IsActive()) {
-        variables_a->Compute_invMb_v(Eq_a, Cq_a);
+        variables_a->Compute_invMb_v(Eq_a, Cq_a.transpose());
     }
     if (variables_b->IsActive()) {
-        variables_b->Compute_invMb_v(Eq_b, Cq_b);
+        variables_b->Compute_invMb_v(Eq_b, Cq_b.transpose());
     }
     if (variables_c->IsActive()) {
-        variables_c->Compute_invMb_v(Eq_c, Cq_c);
+        variables_c->Compute_invMb_v(Eq_c, Cq_c.transpose());
     }
 
     // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
     g_i = 0;
     if (variables_a->IsActive()) {
-        g_i += Cq_a.dot(Eq_a);
+        g_i += Cq_a * Eq_a;
     }
     if (variables_b->IsActive()) {
-        g_i += Cq_b.dot(Eq_b);
+        g_i += Cq_b * Eq_b;
     }
     if (variables_c->IsActive()) {
-        g_i += Cq_c.dot(Eq_c);
+        g_i += Cq_c * Eq_c;
     }
 
     // 3- adds the constraint force mixing term (usually zero):
@@ -111,11 +111,11 @@ double ChConstraintThreeBBShaft::Compute_Cq_q() {
     double ret = 0;
 
     if (variables_a->IsActive()) {
-        ret += Cq_a.dot(variables_a->Get_qb());
+        ret += Cq_a * variables_a->Get_qb();
     }
 
     if (variables_b->IsActive()) {
-        ret += Cq_b.dot(variables_b->Get_qb());
+        ret += Cq_b * variables_b->Get_qb();
     }
 
     if (variables_c->IsActive()) {
@@ -146,11 +146,11 @@ void ChConstraintThreeBBShaft::Increment_q(const double deltal) {
 
 void ChConstraintThreeBBShaft::MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const {
     if (variables_a->IsActive()) {
-        result += Cq_a.dot(vect.segment(variables_a->GetOffset(), 6));
+        result += Cq_a * vect.segment(variables_a->GetOffset(), 6);
     }
 
     if (variables_b->IsActive()) {
-        result += Cq_b.dot(vect.segment(variables_b->GetOffset(), 6));
+        result += Cq_b * vect.segment(variables_b->GetOffset(), 6);
     }
 
     if (variables_c->IsActive()) {
@@ -160,11 +160,11 @@ void ChConstraintThreeBBShaft::MultiplyAndAdd(double& result, const ChVectorDyna
 
 void ChConstraintThreeBBShaft::MultiplyTandAdd(ChVectorDynamic<double>& result, double l) {
     if (variables_a->IsActive()) {
-        result.segment(variables_a->GetOffset(), 6) += Cq_a * l;
+        result.segment(variables_a->GetOffset(), 6) += Cq_a.transpose() * l;
     }
 
     if (variables_b->IsActive()) {
-        result.segment(variables_b->GetOffset(), 6) += Cq_b * l;
+        result.segment(variables_b->GetOffset(), 6) += Cq_b.transpose() * l;
     }
 
     if (variables_c->IsActive()) {
@@ -173,23 +173,21 @@ void ChConstraintThreeBBShaft::MultiplyTandAdd(ChVectorDynamic<double>& result, 
 }
 
 void ChConstraintThreeBBShaft::Build_Cq(ChSparseMatrix& storage, int insrow) {
-    // Recall that Cq_a, Cq_b, and Cq_c are column vectors.
     if (variables_a->IsActive())
-        storage.PasteTranspMatrix(Cq_a, insrow, variables_a->GetOffset());
+        storage.PasteMatrix(Cq_a, insrow, variables_a->GetOffset());
     if (variables_b->IsActive())
-        storage.PasteTranspMatrix(Cq_b, insrow, variables_b->GetOffset());
+        storage.PasteMatrix(Cq_b, insrow, variables_b->GetOffset());
     if (variables_c->IsActive())
-        storage.PasteTranspMatrix(Cq_c, insrow, variables_c->GetOffset());
+        storage.PasteMatrix(Cq_c, insrow, variables_c->GetOffset());
 }
 
 void ChConstraintThreeBBShaft::Build_CqT(ChSparseMatrix& storage, int inscol) {
-    // Recall that Cq_a, Cq_b, and Cq_c are column vectors.
     if (variables_a->IsActive())
-        storage.PasteMatrix(Cq_a, variables_a->GetOffset(), inscol);
+        storage.PasteTranspMatrix(Cq_a, variables_a->GetOffset(), inscol);
     if (variables_b->IsActive())
-        storage.PasteMatrix(Cq_b, variables_b->GetOffset(), inscol);
+        storage.PasteTranspMatrix(Cq_b, variables_b->GetOffset(), inscol);
     if (variables_c->IsActive())
-        storage.PasteMatrix(Cq_c, variables_c->GetOffset(), inscol);
+        storage.PasteTranspMatrix(Cq_c, variables_c->GetOffset(), inscol);
 }
 
 void ChConstraintThreeBBShaft::ArchiveOUT(ChArchiveOut& marchive) {

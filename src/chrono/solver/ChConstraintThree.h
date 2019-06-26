@@ -49,11 +49,11 @@ class ChApi ChConstraintThree : public ChConstraint {
     ChConstraintThree& operator=(const ChConstraintThree& other);
 
     /// Access jacobian vector.
-    virtual ChVectorRef Get_Cq_a() = 0;
+    virtual ChRowVectorRef Get_Cq_a() = 0;
     /// Access jacobian vector.
-    virtual ChVectorRef Get_Cq_b() = 0;
+    virtual ChRowVectorRef Get_Cq_b() = 0;
     /// Access jacobian vector.
-    virtual ChVectorRef Get_Cq_c() = 0;
+    virtual ChRowVectorRef Get_Cq_c() = 0;
 
     /// Access auxiliary vector (ex: used by iterative solvers).
     virtual ChVectorRef Get_Eq_a() = 0;
