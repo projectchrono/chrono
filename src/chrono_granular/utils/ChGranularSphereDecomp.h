@@ -91,7 +91,7 @@ std::vector<ChVector<Real>> MeshSphericalDecomposition(
         ChVector<Real> end = C_star;
 
         // Fill parallel lines until the width is too small
-        do {
+        while ((start - end).Length() > 1.5 * sphere_radius) {
             Real L = (start - end).Length();
             int n_spheres_across = (int)std::ceil(L / (2.0 * sphere_radius));
             Real increment = L / n_spheres_across;
@@ -104,7 +104,7 @@ std::vector<ChVector<Real>> MeshSphericalDecomposition(
             // onto the sides of the triangle
             start = start + (-2 * sphere_radius / BA.Dot(n)) * BA;
             end = end + (-2 * sphere_radius / CA.Dot(n)) * CA;
-        } while ((start - end).Length() > 1.5 * sphere_radius);
+        }
 
         // Fill remaining space as a single line to the last vertex
         ChVector<Real> A_star = (start + end) * 0.5;
