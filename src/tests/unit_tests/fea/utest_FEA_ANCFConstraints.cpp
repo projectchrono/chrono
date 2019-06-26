@@ -269,8 +269,8 @@ void StoreData(ChSystemNSC& my_system,
                double dot,
                ChVector<> tip,
                ChVector<> NodeFirstPos,
-               ChMatrix<>* C12,
-               ChMatrix<>* C23) {
+               const ChVectorDynamic<>& C12,
+               const ChVectorDynamic<>& C23) {
     if (!store_data || !include_bodies || !include_mesh)
         return;
     ChVector<> ConstraintPos = tip - NodeFirstPos;
@@ -280,17 +280,17 @@ void StoreData(ChSystemNSC& my_system,
     m_data[2][it] = ConstraintPos.y();  // Checks rigid body-ANCF body position constraint
     m_data[3][it] = ConstraintPos.z();  // Checks rigid body-ANCF body position constraint
     m_data[4][it] = dot;                // Checks rigid body-ANCF body direction constraint
-    m_data[5][it] = (*C12).GetElement(0, 0);
-    m_data[6][it] = (*C12).GetElement(1, 0);
-    m_data[7][it] = (*C12).GetElement(2, 0);
-    m_data[8][it] = (*C12).GetElement(3, 0);
-    m_data[9][it] = (*C12).GetElement(4, 0);
-    m_data[10][it] = (*C12).GetElement(5, 0);  // Checks rigid body welded constraint
-    m_data[11][it] = (*C23).GetElement(0, 0);
-    m_data[12][it] = (*C23).GetElement(1, 0);
-    m_data[13][it] = (*C23).GetElement(2, 0);
-    m_data[14][it] = (*C23).GetElement(3, 0);
-    m_data[15][it] = (*C23).GetElement(4, 0);  // Checks rigid body-rigid body revolute joint
+    m_data[5][it] = C12(0);
+    m_data[6][it] = C12(1);
+    m_data[7][it] = C12(2);
+    m_data[8][it] = C12(3);
+    m_data[9][it] = C12(4);
+    m_data[10][it] = C12(5);  // Checks rigid body welded constraint
+    m_data[11][it] = C23(0);
+    m_data[12][it] = C23(1);
+    m_data[13][it] = C23(2);
+    m_data[14][it] = C23(3);
+    m_data[15][it] = C23(4);  // Checks rigid body-rigid body revolute joint
     csv << m_data[0][it] << m_data[1][it] << m_data[2][it] << m_data[3][it] << m_data[4][it] << m_data[5][it]
         << m_data[6][it] << m_data[7][it] << m_data[8][it] << m_data[9][it] << m_data[10][it] << m_data[11][it]
         << m_data[12][it] << m_data[13][it] << m_data[14][it] << m_data[15][it] << std::endl;
@@ -343,12 +343,12 @@ int main(int argc, char* argv[]) {
     out.stream().setf(std::ios::scientific | std::ios::showpos);
     out.stream().precision(10);
 
-    ChMatrixNM<double, 3, 1> Cp;
-    ChMatrixNM<double, 2, 1> Cd;  // Matrices for storing constraint violations
+    ChVectorN<double, 3> Cp;
+    ChVectorN<double, 2> Cd;  // Matrices for storing constraint violations
     double dot;
     ChVector<> tip;  // Position of body 3 tip (constrained to ANCF mesh)
-    ChMatrix<>* C12 = new ChMatrix<>;
-    ChMatrix<>* C23 = new ChMatrix<>;
+    ChVectorDynamic<> C12;
+    ChVectorDynamic<> C23;
 
     for (int it = 0; it < num_steps; it++) {
         my_system.DoStepDynamics(time_step);
@@ -380,21 +380,19 @@ int main(int argc, char* argv[]) {
             printf("Dot product = %e\n", dot);
 
             Cp = constraint_hinge->GetC();
-            printf("Point constraint violations:      %12.4e  %12.4e  %12.4e\n", Cp.GetElement(0, 0),
-                   Cp.GetElement(1, 0), Cp.GetElement(2, 0));
+            printf("Point constraint violations:      %12.4e  %12.4e  %12.4e\n", Cp(0), Cp(1), Cp(2));
             Cd = constraintDir->GetC();
-            printf("Direction constraint violations:  %12.4e  %12.4e\n", Cd.GetElement(0, 0), Cd.GetElement(1, 0));
+            printf("Direction constraint violations:  %12.4e  %12.4e\n", Cd(0), Cd(1));
         }
 
         if (include_joints) {
             C12 = my_link_12->GetC();
-            printf("Weld joint constraints: %12.4e  %12.4e  %12.4e  %12.4e  %12.4e  %12.4e\n", C12->GetElement(0, 0),
-                   C12->GetElement(1, 0), C12->GetElement(2, 0), C12->GetElement(3, 0), C12->GetElement(4, 0),
-                   C12->GetElement(5, 0));
+            printf("Weld joint constraints: %12.4e  %12.4e  %12.4e  %12.4e  %12.4e  %12.4e\n", C12(0), C12(1), C12(2),
+                   C12(3), C12(4), C12(5));
 
             C23 = my_link_23->GetC();
-            printf("Rev joint constraints:  %12.4e  %12.4e  %12.4e  %12.4e  %12.4e\n", C23->GetElement(0, 0),
-                   C23->GetElement(1, 0), C23->GetElement(2, 0), C23->GetElement(3, 0), C23->GetElement(4, 0));
+            printf("Rev joint constraints:  %12.4e  %12.4e  %12.4e  %12.4e  %12.4e\n", C23(0), C23(1), C23(2), C23(3),
+                   C23(4));
         }
 
         printf("\n\n");

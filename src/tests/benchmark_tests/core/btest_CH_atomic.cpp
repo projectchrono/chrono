@@ -11,7 +11,7 @@
 // =============================================================================
 
 #include "chrono/core/ChTimer.h"
-#include "chrono/physics/ChGlobal.h"
+#include "chrono/core/ChGlobal.h"
 
 #if defined(__APPLE__) && !defined(__GNUC__)
 #include <stdatomic.h>

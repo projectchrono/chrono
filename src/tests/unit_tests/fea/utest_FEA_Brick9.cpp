@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
     for (int x = 0; x < 41; x++) {
-        fileMid >> FileInputMat[x][0] >> FileInputMat[x][1] >> FileInputMat[x][2] >> FileInputMat[x][3];
+        fileMid >> FileInputMat(x, 0) >> FileInputMat(x, 1) >> FileInputMat(x, 2) >> FileInputMat(x, 3);
     }
     fileMid.close();
 
@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
     for (int x = 0; x < 1900; x++) {
-        fileBending >> FileInputBend[x][0] >> FileInputBend[x][1] >> FileInputBend[x][2] >> FileInputBend[x][3];
+        fileBending >> FileInputBend(x, 0) >> FileInputBend(x, 1) >> FileInputBend(x, 2) >> FileInputBend(x, 3);
     }
     fileBending.close();
 
@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
     for (int x = 0; x < 510; x++) {
-        fileJ2 >> FileInputJ2[x][0] >> FileInputJ2[x][1] >> FileInputJ2[x][2] >> FileInputJ2[x][3];
+        fileJ2 >> FileInputJ2(x, 0) >> FileInputJ2(x, 1) >> FileInputJ2(x, 2) >> FileInputJ2(x, 3);
     }
     fileJ2.close();
 
@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
     for (int x = 0; x < 510; x++) {
-        fileDruckerPrager >> FileInputDP[x][0] >> FileInputDP[x][1] >> FileInputDP[x][2] >> FileInputDP[x][3];
+        fileDruckerPrager >> FileInputDP(x, 0) >> FileInputDP(x, 1) >> FileInputDP(x, 2) >> FileInputDP(x, 3);
     }
     fileDruckerPrager.close();
 
@@ -296,9 +296,9 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
             fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z());
             fprintf(outputfile, "\n  ");
         } else {
-            RelVal1 = std::abs(nodetip->pos.x() - FileInputMat[it][1]) / std::abs(FileInputMat[it][1]);
-            RelVal2 = std::abs(nodetip->pos.y() - FileInputMat[it][2]) / std::abs(FileInputMat[it][2]);
-            RelVal3 = std::abs(nodetip->pos.z() - FileInputMat[it][3]) / std::abs(FileInputMat[it][3]);
+            RelVal1 = std::abs(nodetip->pos.x() - FileInputMat(it, 1)) / std::abs(FileInputMat(it, 1));
+            RelVal2 = std::abs(nodetip->pos.y() - FileInputMat(it, 2)) / std::abs(FileInputMat(it, 2));
+            RelVal3 = std::abs(nodetip->pos.z() - FileInputMat(it, 3)) / std::abs(FileInputMat(it, 3));
             RelVal = RelVal1 + RelVal2 + RelVal3;
             // GetLog() << RelVal1 << RelVal2 << RelVal3 << RelVal << "\n";
             if (RelVal > precision) {
@@ -497,9 +497,9 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
             fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z());
             fprintf(outputfile, "\n  ");
         } else {
-            RelVal1 = std::abs(nodetip->pos.x() - FileInputMat[it][1]) / std::abs(FileInputMat[it][1]);
-            RelVal2 = std::abs(nodetip->pos.y() - FileInputMat[it][2]) / std::abs(FileInputMat[it][2]);
-            RelVal3 = std::abs(nodetip->pos.z() - FileInputMat[it][3]) / std::abs(FileInputMat[it][3]);
+            RelVal1 = std::abs(nodetip->pos.x() - FileInputMat(it, 1)) / std::abs(FileInputMat(it, 1));
+            RelVal2 = std::abs(nodetip->pos.y() - FileInputMat(it, 2)) / std::abs(FileInputMat(it, 2));
+            RelVal3 = std::abs(nodetip->pos.z() - FileInputMat(it, 3)) / std::abs(FileInputMat(it, 3));
             RelVal = RelVal1 + RelVal2 + RelVal3;
             // GetLog() << RelVal << "\n";
             if (RelVal > precision) {
@@ -595,7 +595,7 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     material->Set_G(G.x());
     material->Set_v(nu.x());
     ChMatrixNM<double, 9, 8> CCPInitial;
-    CCPInitial.Reset();
+    CCPInitial.setZero();
     for (int k = 0; k < 8; k++) {
         CCPInitial(0, k) = 1;
         CCPInitial(4, k) = 1;
@@ -702,9 +702,9 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
             fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().z());
             fprintf(outputfile, "\n  ");
         } else {
-            RelVal1 = std::abs(nodetip1->pos.x() - FileInputMat[it][1]) / std::abs(FileInputMat[it][1]);
-            RelVal2 = std::abs(nodetip1->pos.y() - FileInputMat[it][2]) / std::abs(FileInputMat[it][2]);
-            RelVal3 = std::abs(nodetip1->pos.z() - FileInputMat[it][3]) / std::abs(FileInputMat[it][3]);
+            RelVal1 = std::abs(nodetip1->pos.x() - FileInputMat(it, 1)) / std::abs(FileInputMat(it, 1));
+            RelVal2 = std::abs(nodetip1->pos.y() - FileInputMat(it, 2)) / std::abs(FileInputMat(it, 2));
+            RelVal3 = std::abs(nodetip1->pos.z() - FileInputMat(it, 3)) / std::abs(FileInputMat(it, 3));
             RelVal = RelVal1 + RelVal2 + RelVal3;
             // GetLog() << RelVal1 << RelVal2 << RelVal3 << RelVal << "\n";
             if (RelVal > precision) {
@@ -801,7 +801,7 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     material->Set_G(G.x());
     material->Set_v(nu.x());
     ChMatrixNM<double, 9, 8> CCPInitial;
-    CCPInitial.Reset();
+    CCPInitial.setZero();
     for (int k = 0; k < 8; k++) {
         CCPInitial(0, k) = 1;
         CCPInitial(4, k) = 1;
@@ -913,9 +913,9 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
             fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().z());
             fprintf(outputfile, "\n  ");
         } else {
-            RelVal1 = std::abs(nodetip1->pos.x() - FileInputMat[it][1]) / std::abs(FileInputMat[it][1]);
-            RelVal2 = std::abs(nodetip1->pos.y() - FileInputMat[it][2]) / std::abs(FileInputMat[it][2]);
-            RelVal3 = std::abs(nodetip1->pos.z() - FileInputMat[it][3]) / std::abs(FileInputMat[it][3]);
+            RelVal1 = std::abs(nodetip1->pos.x() - FileInputMat(it, 1)) / std::abs(FileInputMat(it, 1));
+            RelVal2 = std::abs(nodetip1->pos.y() - FileInputMat(it, 2)) / std::abs(FileInputMat(it, 2));
+            RelVal3 = std::abs(nodetip1->pos.z() - FileInputMat(it, 3)) / std::abs(FileInputMat(it, 3));
 
             RelVal = RelVal1 + RelVal2 + RelVal3;
             if (RelVal > precision) {

@@ -61,8 +61,8 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
     for (int x = 0; x < 20000; x++) {
-        fileMid >> FileInputMat[x][0] >> FileInputMat[x][1] >> FileInputMat[x][2] >> FileInputMat[x][3] >>
-            FileInputMat[x][4] >> FileInputMat[x][5] >> FileInputMat[x][6];
+        fileMid >> FileInputMat(x, 0) >> FileInputMat(x, 1) >> FileInputMat(x, 2) >> FileInputMat(x, 3) >>
+            FileInputMat(x, 4) >> FileInputMat(x, 5) >> FileInputMat(x, 6);
     }
     fileMid.close();
 
@@ -212,14 +212,14 @@ int main(int argc, char* argv[]) {
         my_system.DoStepDynamics(0.0001);
         std::cout << "Time t = " << my_system.GetChTime() << "s \n";
         // Checking midpoint and tip Y displacement
-        double AbsVal = std::abs(hnodeancf3->GetPos().y() - FileInputMat[it][4]);
-        double AbsVal2 = std::abs(hnodeancf5->GetPos().z() - FileInputMat[it][6]);
+        double AbsVal = std::abs(hnodeancf3->GetPos().y() - FileInputMat(it, 4));
+        double AbsVal2 = std::abs(hnodeancf5->GetPos().z() - FileInputMat(it, 6));
 
         if (ChMax(AbsVal, AbsVal2) > precision) {
             std::cout << "Unit test check failed \n";
-            std::cout << "  y position: " << hnodeancf3->GetPos().y() << "  (reference: " << FileInputMat[it][4]
+            std::cout << "  y position: " << hnodeancf3->GetPos().y() << "  (reference: " << FileInputMat(it, 4)
                       << "  diff: " << AbsVal << ")\n";
-            std::cout << "  z position: " << hnodeancf5->GetPos().z() << "  (reference: " << FileInputMat[it][6]
+            std::cout << "  z position: " << hnodeancf5->GetPos().z() << "  (reference: " << FileInputMat(it, 6)
                       << "  diff: " << AbsVal2 << ")\n";
             return 1;
         }

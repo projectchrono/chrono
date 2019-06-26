@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
             exit(1);
         }
         for (int x = 0; x < 2000; x++) {
-            fileMid >> FileInputMat[x][0] >> FileInputMat[x][1];
+            fileMid >> FileInputMat(x, 0) >> FileInputMat(x, 1);
         }
         fileMid.close();
         GetLog() << "Running in unit test mode.\n";
@@ -194,11 +194,11 @@ int main(int argc, char* argv[]) {
     int elemcount = 0;
     while (elemcount < TotalNumElements) {
         auto element = std::make_shared<ChElementBrick>();
-        ChMatrixNM<double, 3, 1> InertFlexVec;  // Read element length, used in ChElementBrick
-        InertFlexVec.Reset();
-        InertFlexVec(0, 0) = ElemLengthXY(elemcount, 0);
-        InertFlexVec(1, 0) = ElemLengthXY(elemcount, 1);
-        InertFlexVec(2, 0) = ElemLengthXY(elemcount, 2);
+        ChVectorN<double, 3> InertFlexVec;  // Read element length, used in ChElementBrick
+        InertFlexVec.setZero();
+        InertFlexVec(0) = ElemLengthXY(elemcount, 0);
+        InertFlexVec(1) = ElemLengthXY(elemcount, 1);
+        InertFlexVec(2) = ElemLengthXY(elemcount, 2);
         element->SetInertFlexVec(InertFlexVec);
         // Note we change the order of the nodes to comply with the arrangement of shape functions
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 0))),
@@ -215,11 +215,11 @@ int main(int argc, char* argv[]) {
         element->SetMooneyRivlin(false);  // Turn on/off Mooney Rivlin (Linear Isotropic by default)
         // element->SetMRCoefficients(551584.0, 137896.0); // Set two coefficients for Mooney-Rivlin
 
-        ChMatrixNM<double, 9, 1> stock_alpha_EAS;
-        stock_alpha_EAS.Reset();
-        element->SetStockAlpha(stock_alpha_EAS(0, 0), stock_alpha_EAS(1, 0), stock_alpha_EAS(2, 0),
-                               stock_alpha_EAS(3, 0), stock_alpha_EAS(4, 0), stock_alpha_EAS(5, 0),
-                               stock_alpha_EAS(6, 0), stock_alpha_EAS(7, 0), stock_alpha_EAS(8, 0));
+        ChVectorN<double, 9> stock_alpha_EAS;
+        stock_alpha_EAS.setZero();
+        element->SetStockAlpha(stock_alpha_EAS(0), stock_alpha_EAS(1), stock_alpha_EAS(2),
+                               stock_alpha_EAS(3), stock_alpha_EAS(4), stock_alpha_EAS(5),
+                               stock_alpha_EAS(6), stock_alpha_EAS(7), stock_alpha_EAS(8));
         my_mesh->AddElement(element);
         elemcount++;
     }
@@ -288,11 +288,11 @@ int main(int argc, char* argv[]) {
         for (unsigned int it = 0; it < num_steps_UT; it++) {
             my_system.DoStepDynamics(step_size);
             std::cout << "time = " << my_system.GetChTime() << "\t" << nodetip->GetPos().z() << std::endl;
-            double err = std::abs(nodetip->GetPos().z() - FileInputMat[it][1]);
+            double err = std::abs(nodetip->GetPos().z() - FileInputMat(it, 1));
             max_err = std::max(max_err, err);
             if (err > precision) {
                 std::cout << "Unit test check failed -- node_tip: " << nodetip->pos.z()
-                          << "  reference: " << FileInputMat[it][1] << std::endl;
+                          << "  reference: " << FileInputMat(it, 1) << std::endl;
                 return 1;
             }
         }

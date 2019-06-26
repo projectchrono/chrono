@@ -149,8 +149,8 @@ void test_1() {
             ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate F
             ) {
             double Fy_max = 0.005;
-            F.PasteVector(ChVector<>(0, (((1 + U) / 2) * Fy_max), 0), 0, 0);  // load, force part; hardwired for brevity
-            F.PasteVector(ChVector<>(0, 0, 0), 3, 0);  // load, torque part; hardwired for brevity
+            F.segment(0, 3) = ChVector<>(0, ((1 + U) / 2) * Fy_max, 0).eigen();  // load, force part
+            F.segment(3, 3).setZero();                                             // load, torque part
         }
 
         // Needed because inheriting ChLoaderUdistributed. Use 1 because linear load fx.
@@ -192,8 +192,8 @@ void test_1() {
             ChVector<> node_pos;
             ChVector<> node_vel;
             if (state_x) {
-                node_pos = state_x->ClipVector(0, 0);
-                node_vel = state_w->ClipVector(0, 0);
+                node_pos = state_x->segment(0, 3);
+                node_vel = state_w->segment(0, 3);
             } else {
                 node_pos = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadable)->GetPos();
                 node_vel = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadable)->GetPos_dt();
@@ -253,8 +253,8 @@ void test_1() {
             ChVector<> node_pos;
             ChVector<> node_vel;
             if (state_x && state_w) {
-                node_pos = state_x->ClipVector(0, 0);
-                node_vel = state_w->ClipVector(0, 0);
+                node_pos = state_x->segment(0, 3);
+                node_vel = state_w->segment(0, 3);
             } else {
                 node_pos = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadable)->GetPos();
                 node_vel = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadable)->GetPos_dt();
@@ -280,9 +280,9 @@ void test_1() {
         // default numerical jacobian, just implement the following:
         virtual void ComputeJacobian(ChState* state_x,       ///< state position to evaluate jacobians
                                      ChStateDelta* state_w,  ///< state speed to evaluate jacobians
-                                     ChMatrix<>& mK,         ///< result dQ/dx
-                                     ChMatrix<>& mR,         ///< result dQ/dv
-                                     ChMatrix<>& mM          ///< result dQ/da
+                                     ChMatrixRef mK,         ///< result dQ/dx
+                                     ChMatrixRef mR,         ///< result dQ/dv
+                                     ChMatrixRef mM          ///< result dQ/da
                                      ) override {
             mK(0, 0) = 100;
             mK(1, 1) = 400;
@@ -335,10 +335,10 @@ void test_1() {
             ChVector<> Fnode_pos;
             ChVector<> Fnode_vel;
             if (state_x && state_w) {
-                Enode_pos = state_x->ClipVector(0, 0);
-                Enode_vel = state_w->ClipVector(0, 0);
-                Fnode_pos = state_x->ClipVector(3, 0);
-                Fnode_vel = state_w->ClipVector(3, 0);
+                Enode_pos = state_x->segment(0, 3);
+                Enode_vel = state_w->segment(0, 3);
+                Fnode_pos = state_x->segment(3, 3);
+                Fnode_vel = state_w->segment(3, 3);
             } else {
                 // explicit integrators might call ComputeQ(0,0), null pointers mean
                 // that we assume current state, without passing state_x for efficiency
