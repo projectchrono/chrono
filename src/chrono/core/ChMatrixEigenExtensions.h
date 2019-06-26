@@ -43,7 +43,9 @@ Scalar wrmsNorm(
     typename std::enable_if<(MaxRowsAtCompileTime == 1 || MaxColsAtCompileTime == 1) &&
                                 (OtherDerived::MaxRowsAtCompileTime == 1 || OtherDerived::MaxColsAtCompileTime == 1),
                             OtherDerived>::type* = 0) const {
-    return numext::sqrt(derived().cwiseQuotient(weights).cwiseAbs2().sum() / derived().size());
+    if (derived().size() == 0)
+        return 0;
+    return numext::sqrt(derived().cwiseProduct(weights).cwiseAbs2().sum() / derived().size());
 }
 
 /// Add a scalar to all elements.
