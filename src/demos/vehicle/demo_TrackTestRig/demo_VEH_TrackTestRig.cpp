@@ -53,14 +53,12 @@ double step_size = 1e-3;
 // Specification of test rig inputs:
 //   'true':  use driver inputs from file
 //   'false': use interactive Irrlicht driver
-bool use_data_driver = false;
+bool use_data_driver = true;
+std::string driver_file("M113/test_rig/TTR_inputs.dat");
 
 bool use_JSON = false;
 std::string filename("M113/track_assembly/M113_TrackAssemblySinglePin_Left.json");
 ////std::string filename("M113/track_assembly/M113_TrackAssemblyDoublePin_Left.json");
-
-// File with driver inputs
-std::string driver_file("m113/test_rig/TTR_inputs.dat");
 
 double post_limit = 0.2;
 
