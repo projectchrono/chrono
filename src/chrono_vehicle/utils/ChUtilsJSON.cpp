@@ -49,6 +49,7 @@
 //
 #include "chrono_vehicle/tracked_vehicle/brake/TrackBrakeSimple.h"
 #include "chrono_vehicle/tracked_vehicle/driveline/SimpleTrackDriveline.h"
+#include "chrono_vehicle/tracked_vehicle/driveline/TrackDrivelineBDS.h"
 #include "chrono_vehicle/tracked_vehicle/idler/DoubleIdler.h"
 #include "chrono_vehicle/tracked_vehicle/idler/SingleIdler.h"
 #include "chrono_vehicle/tracked_vehicle/road_wheel/DoubleRoadWheel.h"
@@ -430,6 +431,8 @@ std::shared_ptr<ChTrackDriveline> ReadTrackDrivelineJSON(const std::string& file
     // Create the driveline using the appropriate template.
     if (subtype.compare("SimpleTrackDriveline") == 0) {
         driveline = std::make_shared<SimpleTrackDriveline>(d);
+    } else if (subtype.compare("TrackDrivelineBDS") == 0) {
+        driveline = std::make_shared<TrackDrivelineBDS>(d);
     } else {
         throw ChException("Driveline type not supported in ReadTrackDrivelineJSON.");
     }

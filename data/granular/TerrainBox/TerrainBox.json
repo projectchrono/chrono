@@ -1,0 +1,28 @@
+{
+	"sphere_radius": 0.5,
+	"sphere_density": 2.5,
+	"box_X": 100,
+	"box_Y": 100,
+	"box_Z": 50,
+	"step_size": 1e-4,
+	"time_end": 1,
+	"grav_X": 0,
+	"grav_Y": 0,
+	"grav_Z": -980,
+	"normalStiffS2S": 1e7,
+	"normalStiffS2W": 1e7,
+	"normalDampS2S": 1e3,
+	"normalDampS2W": 1e3,
+	/* "tangentStiffS2S" : 2e6,
+	"tangentStiffS2W" : 1e6, 
+	"tangentDampS2S": 50,
+	"tangentDampS2W": 50, */
+	"cohesion_ratio": 0,
+	"verbose": false,
+
+	"psi_T": 32,
+	"psi_L": 16,
+	"output_dir": "terrain_box",
+	"write_mode": "csv",
+	"run_mode": 1
+}

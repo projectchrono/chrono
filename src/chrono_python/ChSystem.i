@@ -28,6 +28,8 @@ class ChCustomCollisionCallbackP : public chrono::ChSystem::CustomCollisionCallb
 
 %}
 
+%shared_ptr(chrono::ChSystem)
+
 // Forward ref
 %import "ChAssembly.i"
 %import "ChTimestepper.i"

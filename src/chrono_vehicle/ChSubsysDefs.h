@@ -71,10 +71,10 @@ class WheelID {
 };
 
 /// Global constant wheel IDs for the common topology of a 2-axle vehicle.
-static const WheelID FRONT_LEFT(0, LEFT);
-static const WheelID FRONT_RIGHT(0, RIGHT);
-static const WheelID REAR_LEFT(1, LEFT);
-static const WheelID REAR_RIGHT(1, RIGHT);
+CH_VEHICLE_API extern const WheelID FRONT_LEFT;
+CH_VEHICLE_API extern const WheelID FRONT_RIGHT;
+CH_VEHICLE_API extern const WheelID REAR_LEFT;
+CH_VEHICLE_API extern const WheelID REAR_RIGHT;
 
 /// Structure to communicate a full body state.
 struct BodyState {

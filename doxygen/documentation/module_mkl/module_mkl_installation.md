@@ -77,29 +77,41 @@ MATH library:      C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/w
 MKL library dirs:  C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows/mkl/lib/intel64;C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows/compiler/lib/intel64
 ~~~~~
 
-3. Press 'Generate'.
+3. Press 'Generate' and build the project.
 
-4. Set the environmental variables.
-    The MKL installer sets a wide set of environmental variables, but not the one needed by MKL.<br>
+Building this unit will produce an additional shared library, called **ChronoEngine_mkl**, that can be linked to your application if you want to use it.<br>
+The file extension will be .dll for Win and .so on Linux.
+
+When you build the project, you could find some demo_MKL_xxx examples in the 
+binary directory, among other default demos.<br>
+Please mind that are demo_MKL_MklEngine provides an example for those who wants to use the MKL interface without running any simulation.
+So it is not inteded for the average user.
+
+Beware! If you run the MKL demos, you might find that they are not able to find the MKL run time libraries in your PATH. The reason is that you should execute the `mklvars.bat` configuration in your shell, using the appropriate parameters to set the paths to find the Intel run time libraries, as stated in Intel MKL documentation about the installation. For example, in Windows, do 
+`cd "C:\Program Files (x86)\IntelSWTools\compilers_and_libraries_2019\windows"`  then `mklvars intel64` then execute the MKL demos from the shell.
+
+However, if you find annoying to call mklvars all times from a shell, or if you do not want to embed it in your system startup, you can manually do the following:
+
+1. Add MKL libraries to your system path:
+    The MKL installer sets a wide set of environment variables, but not the one needed by MKL.<br>
 	In order to set the variables once for all you have to add these folder in your `PATH` (Windows) or `LD_LIBRARY_PATH` (Linux or MacOS) environmental variable:
-	`<install_folder>/IntelSWTools/compilers_and_libraries/windows/redist/intel64/mkl`<br>
-	`<install_folder>/IntelSWTools/compilers_and_libraries/windows/redist/ia32/mkl`<br>
+	`<install_folder>/IntelSWTools/compilers_and_libraries/windows/redist/intel64_win/mkl`<br>
+	`<install_folder>/IntelSWTools/compilers_and_libraries/windows/redist/intel64_win/tbb/vc_mt`<br>
+	`<install_folder>/IntelSWTools/compilers_and_libraries/windows/redist/intel64_win/compiler`<br>
 	or<br>
 	`<install_folder>/intel/compilers_and_libraries/linux/redist/intel64/mkl`<br>
-	`<install_folder>/intel/compilers_and_libraries/linux/redist/ia32/mkl`<br>
+	`<install_folder>/intel/compilers_and_libraries/linux/redist/intel64/tbb/vc_mt`<br>
+	`<install_folder>/intel/compilers_and_libraries/linux/redist/intel64/compiler`<br>
+	(on ia32 platforms replace intel64 with ia32 in the lines above).
 	
-5. Set the environmental variables<br>
+2. Add these system environment variables<br>
 	`MKL_INTERFACE_LAYER` = `LP64`<br>
 	`MKL_THREADING_LAYER` = `INTEL`<br>
 	or, more in general, you can have [different options](https://software.intel.com/en-us/mkl-linux-developer-guide-dynamically-selecting-the-interface-and-threading-layer), depending on your Architecture and the desired Threading Layer.
 
-This unit corresponds to an additional shared library, called **ChronoEngine_mkl**, that can be linked to your application if you want to use it.<br>
-The file extension will be .dll for Win and .so on Linux.
+By doing this, you will be able to start the MKL-based demos and programs by just double clocking on them, without the need of the `mklvars.bat` script.
 
-When you will rebuild the project, you could find some demo_MKL_xxx examples in the 
-binary directory, among other default demos.<br>
-Please mind that are demo_MKL_MklEngine provides an example for those who wants to use the MKL interface without running any simulation.
-So it is not inteded for the average user.
+
 
 
 ## How to use it
