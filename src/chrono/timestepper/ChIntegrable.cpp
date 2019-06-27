@@ -23,19 +23,22 @@ namespace chrono {
 // -----------------------------------------------------------------------------
 
 void ChIntegrable::StateIncrement(ChState& y_new, const ChState& y, const ChStateDelta& Dy) {
-    
     //// RADU
-    //// The next two lines don't make sense: we assert y and y_new are of the same size,
-    //// then we resize y_new!!!
+    //// The next two lines don't make sense: we assert y and y_new are of the same size, then we resize y_new!!!
 
     assert(y_new.size() == y.size() && y.size() == Dy.size());
 
-    y_new = y + Dy;
+    //// RADU
+    //// Fix this poor implementation!
+    //// We cannot do the natural thing here (i.e, y_new = y + Dy) because this would lead to stack overflow!!!
+    //// Indeed, see implementation of overloaded operator+()
 
-    ////y_new.resize(y.size());
-    ////for (int i = 0; i < y.size(); ++i) {
-    ////    y_new(i) = y(i) + Dy(i);
-    ////}
+    ////y_new = y + Dy;
+
+    y_new.resize(y.size());
+    for (int i = 0; i < y.size(); ++i) {
+        y_new(i) = y(i) + Dy(i);
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -88,7 +91,16 @@ bool ChIntegrableIIorder::StateSolveA(ChStateDelta& Dvdt,       // result: compu
 }
 
 void ChIntegrableIIorder::StateIncrementX(ChState& x_new, const ChState& x, const ChStateDelta& Dx) {
-    x_new = x + Dx;
+    //// RADU
+    //// Fix this poor implementation!
+    //// We cannot do the natural thing here (y_new = y + Dy) because this would lead to stack overflow!!!
+    //// Indeed, see implementation of overloaded operator+()
+
+    ////x_new = x + Dx;
+    x_new.resize(x.size());
+    for (int i = 0; i < x.size(); ++i) {
+        x_new(i) = x(i) + Dx(i);
+    }
 }
 
 void ChIntegrableIIorder::StateGather(ChState& y, double& T)  {
