@@ -1,0 +1,47 @@
+{
+    "sphere_radius": 0.25,
+    "sphere_density": 1,
+    
+    "box_X": 400,
+    "box_Y": 400,
+    "box_Z": 100,
+    
+    "time_integrator" : "centered_difference",
+    
+    "step_size": 1e-5,
+    "time_end": 4,
+
+    "grav_X": 0,
+    "grav_Y": 0,
+    "grav_Z": -980,
+
+    "normalStiffS2S": 1e8,
+    "normalStiffS2W": 1e8,
+
+    "normalDampS2S": 1e2,
+    "normalDampS2W": 1e2,
+
+    "tangentStiffS2S": 1e8,
+    "tangentStiffS2W": 1e8,
+
+    "tangentDampS2S": 1e2,
+    "tangentDampS2W": 1e2,
+
+    "friction_mode" : "multi_step",
+    "static_friction_coeffS2S": 0.5,
+    "static_friction_coeffS2W": 0.5,
+    
+    "rolling_mode" : "constant_torque",
+    "rolling_friction_coeffS2S" : 0.5,
+    "rolling_friction_coeffS2W" : 0.5,
+
+    "cohesion_ratio": 5,
+    "adhesion_ratio_s2w": 0,
+    
+    "verbose": 0,
+
+    "psi_T": 32,
+    "psi_L": 16,
+    "output_dir": "terrain",
+    "write_mode": "csv"
+}

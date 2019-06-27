@@ -151,6 +151,7 @@ set(CV_BASE_FILES
     ChPowertrain.h
     ChPowertrain.cpp
     ChSubsysDefs.h
+	ChSubsysDefs.cpp
     ChTerrain.h
     ChTerrain.cpp
     ChVehicle.h
@@ -540,6 +541,8 @@ set(CV_TV_DRIVELINE_FILES
     tracked_vehicle/driveline/ChSimpleTrackDriveline.h
     tracked_vehicle/driveline/ChSimpleTrackDriveline.cpp
 
+    tracked_vehicle/driveline/TrackDrivelineBDS.h
+    tracked_vehicle/driveline/TrackDrivelineBDS.cpp
     tracked_vehicle/driveline/SimpleTrackDriveline.h
     tracked_vehicle/driveline/SimpleTrackDriveline.cpp
 )

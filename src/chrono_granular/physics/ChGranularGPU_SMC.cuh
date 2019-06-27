@@ -561,6 +561,7 @@ static __global__ void determineContactPairs(GranSphereDataPtr sphere_data, Gran
     // Cache positions of spheres local to this SD
     __shared__ int3 sphere_pos_local[MAX_COUNT_OF_SPHERES_PER_SD];
     __shared__ unsigned int sphIDs[MAX_COUNT_OF_SPHERES_PER_SD];
+    __shared__ not_stupid_bool sphFixed[MAX_COUNT_OF_SPHERES_PER_SD];
 
     unsigned int thisSD = blockIdx.x;
     unsigned int spheresTouchingThisSD = sphere_data->SD_NumSpheresTouching[thisSD];
@@ -595,6 +596,7 @@ static __global__ void determineContactPairs(GranSphereDataPtr sphere_data, Gran
                 sphere_pos_local[threadIdx.x] + getOffsetFromSDs(thisSD, sphere_owner_SD, gran_params);
         }
         sphIDs[threadIdx.x] = mySphereID;
+        sphFixed[threadIdx.x] = sphere_data->sphere_fixed[mySphereID];
     }
 
     __syncthreads();  // Needed to make sure data gets in shmem before using it elsewhere
@@ -606,8 +608,9 @@ static __global__ void determineContactPairs(GranSphereDataPtr sphere_data, Gran
     // Each body looks at each other body and determines whether that body is touching it
     if (bodyA < spheresTouchingThisSD) {
         for (unsigned char bodyB = 0; bodyB < spheresTouchingThisSD; bodyB++) {
-            if (bodyA == bodyB)
+            if (bodyA == bodyB || (sphFixed[bodyA] && sphFixed[bodyB])) {
                 continue;
+            }
 
             bool active_contact =
                 checkSpheresContacting_int(sphere_pos_local[bodyA], sphere_pos_local[bodyB], thisSD, gran_params);
@@ -828,6 +831,7 @@ static __global__ void computeSphereForces_frictionless(GranSphereDataPtr sphere
     // store positions relative to *THIS* SD
     __shared__ int3 sphere_pos[MAX_COUNT_OF_SPHERES_PER_SD];
     __shared__ float3 sphere_vel[MAX_COUNT_OF_SPHERES_PER_SD];
+    __shared__ not_stupid_bool sphere_fixed[MAX_COUNT_OF_SPHERES_PER_SD];
 
     unsigned int thisSD = blockIdx.x;
     unsigned int spheresTouchingThisSD = sphere_data->SD_NumSpheresTouching[thisSD];
@@ -867,6 +871,7 @@ static __global__ void computeSphereForces_frictionless(GranSphereDataPtr sphere
 
         sphere_vel[bodyA] = make_float3(sphere_data->pos_X_dt[mySphereID], sphere_data->pos_Y_dt[mySphereID],
                                         sphere_data->pos_Z_dt[mySphereID]);
+        sphere_fixed[bodyA] = sphere_data->sphere_fixed[mySphereID];
     }
 
     __syncthreads();  // Needed to make sure data gets in shmem before using it elsewhere
@@ -874,8 +879,9 @@ static __global__ void computeSphereForces_frictionless(GranSphereDataPtr sphere
     // Each body looks at each other body and computes the force that the other body exerts on it
     if (bodyA < spheresTouchingThisSD) {
         for (unsigned char bodyB = 0; bodyB < spheresTouchingThisSD; bodyB++) {
-            if (bodyA == bodyB)
+            if (bodyA == bodyB || (sphere_fixed[bodyA] && sphere_fixed[bodyB])) {
                 continue;
+            }
 
             bool active_contact = checkSpheresContacting_int(sphere_pos[bodyA], sphere_pos[bodyB], thisSD, gran_params);
 
@@ -959,7 +965,7 @@ static __global__ void integrateSpheres(const float stepsize_SU,
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
 
     // Write back velocity updates
-    if (mySphereID < nSpheres) {
+    if (mySphereID < nSpheres && !sphere_data->sphere_fixed[mySphereID]) {
         float curr_acc_X = sphere_data->sphere_acc_X[mySphereID];
         float curr_acc_Y = sphere_data->sphere_acc_Y[mySphereID];
         float curr_acc_Z = sphere_data->sphere_acc_Z[mySphereID];

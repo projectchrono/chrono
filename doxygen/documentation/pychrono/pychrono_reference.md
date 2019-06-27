@@ -192,6 +192,25 @@ myvis = chrono.CastToChVisualizationShared(myasset)
 print ('Could be cast to visualization object?', !myvis.IsNull())
 ~~~~~~~~~~~~~~~
 
+### Nested classes
+
+SWIG does not currently support nested clases in Python (see http://www.swig.org/Doc4.0/SWIGPlus.html#SWIGPlus_nested_classes). Nested classes can be either ignored or, such as in PyChrono, flattened. This is automatically done for every nested class in Chrono.
+This means that PyChrono equivalents of nested C++ classes will be in the upper namespace level, as you may see in the followig example:
+
+~~~~~~~~~~~~~~~cpp
+// class inheriting ReportContactCallback in C++
+class ContactReporter : public ChContactContainer::ReportContactCallback { ... etc ...
+//enum classes:
+vehicle.SetChassisVisualizationType(chrono::vehicle::VisualizationType::MESH);
+~~~~~~~~~~~~~~~
+In Python he have:
+~~~~~~~~~~~~~~~py
+# class inheriting ReportContactCallback in Python
+class ContactReporter(chrono.ReportContactCallback): ...etc...
+#the same princliple applies to enum classes:
+vehicle.SetChassisVisualizationType(pychrono.vehicle.VisualizationType_MESH)
+~~~~~~~~~~~~~~~
+
 ### Not supported classes
 
 We managed to map in Python most of the C++ classes of common interest,
