@@ -275,7 +275,7 @@ void ChBuilderBeamANCF::BuildBeam(std::shared_ptr<ChMesh> mesh,              ///
         mesh->AddNode(nodeB);
         beam_nodes.push_back(nodeB);
 
-        auto element = std::make_shared<ChElementCableANCF>();
+        auto element = chrono::make_shared<ChElementCableANCF>();
         mesh->AddElement(element);
         beam_elems.push_back(element);
 

@@ -79,7 +79,7 @@ ANCFshell<N>::ANCFshell() {
     ChVector<> E(2.1e7, 2.1e7, 2.1e7);
     ChVector<> nu(0.3, 0.3, 0.3);
     ChVector<> G(8.0769231e6, 8.0769231e6, 8.0769231e6);
-    auto mat = std::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
+    auto mat = chrono::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
 
     // Create mesh nodes and elements
     auto mesh = std::make_shared<ChMesh>();
@@ -114,7 +114,7 @@ ANCFshell<N>::ANCFshell() {
         mesh->AddNode(nodeC);
         mesh->AddNode(nodeD);
 
-        auto element = std::make_shared<ChElementShellANCF>();
+        auto element = chrono::make_shared<ChElementShellANCF>();
         element->SetNodes(nodeA, nodeB, nodeD, nodeC);
         element->SetDimensions(dx, width);
         element->AddLayer(thickness, 0 * CH_C_DEG_TO_RAD, mat);

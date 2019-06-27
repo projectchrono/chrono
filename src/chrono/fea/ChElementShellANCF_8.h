@@ -219,6 +219,9 @@ class ChApi ChElementShellANCF_8 : public ChElementShell, public ChLoadableUV, p
     ChVectorN<double, 72> m_d_dt;                           ///< current nodal velocities
 
   public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+  public:
     // Interface to ChElementBase base class
     // -------------------------------------
 

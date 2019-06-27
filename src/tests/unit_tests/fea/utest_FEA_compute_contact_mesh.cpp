@@ -196,7 +196,7 @@ bool test_computecontact(ChMaterialSurface::ContactMethod method) {
     double rho = 500;
     double E = 2.1e7;
     double nu = 0.3;
-    auto mat = std::make_shared<ChMaterialShellANCF>(rho, E, nu);
+    auto mat = chrono::make_shared<ChMaterialShellANCF>(rho, E, nu);
 
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
@@ -213,7 +213,7 @@ bool test_computecontact(ChMaterialSurface::ContactMethod method) {
         getchar();*/
 
         // Create the element and set its nodes.
-        auto element = std::make_shared<ChElementShellANCF>();
+        auto element = chrono::make_shared<ChElementShellANCF>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node2)),

@@ -372,6 +372,9 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     bool bFirstRes;
 
   public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+  public:
     // Interface to ChElementBase base class
     // -------------------------------------
 

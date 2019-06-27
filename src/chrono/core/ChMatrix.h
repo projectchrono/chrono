@@ -24,6 +24,22 @@
 
 namespace chrono {
 
+// *****************************************************************************
+
+//// RADU
+//// This should probably be somewhere else...
+
+/// Replacement for make_shared guaranteed to use 'operator new' rather than
+/// 'placement new' in order to avoid memory alignment issues (if the wrapped
+/// object has members that are fixed-sized Eigen matrices.
+template <typename T, typename... Args>
+inline std::shared_ptr<T> make_shared(Args&&... args) {
+    return std::shared_ptr<T>(new T(std::forward<Args>(args)...));
+}
+
+// *****************************************************************************
+
+
 //// RADU
 //// Implement some utilities to abstract use of Eigen::Map
 //// to copy vectors into matrices and vice-versa
@@ -85,6 +101,21 @@ inline void StreamOUTdenseMatlabFormat(ChMatrixConstRef A, ChStreamOutAscii& str
         stream << "\n";
     }
 }
+
+////template<typename Derived>
+////inline ChStreamOutAscii& operator<<(ChStreamOutAscii &stream, const Eigen::MatrixBase<Derived>& A) {
+////    stream << A.rows() << " rows, " << A.cols() << " columns:\n";
+////    for (int ii = 0; ii < A.rows(); ii++) {
+////        for (int jj = 0; jj < A.cols(); jj++) {
+////            stream << A(ii, jj);
+////            if (jj < A.cols() - 1)
+////                stream << " ";
+////        }
+////        stream << "\n";
+////    }
+////    return stream;
+////}
+
 
 // =============================================================================
 

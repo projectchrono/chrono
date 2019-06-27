@@ -15,6 +15,7 @@
 
 //// RADU
 //// Move implementation to cpp file!
+//// Move MyMass, MyForce, etc.
 
 #ifndef CHELEMENTBRICK_H
 #define CHELEMENTBRICK_H

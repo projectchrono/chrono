@@ -207,6 +207,9 @@ class ChApi ChElementShellANCF : public ChElementShell, public ChLoadableUV, pub
     static const int m_maxIterationsEAS;                   ///< maximum number of nonlinear EAS iterations
 
   public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+  public:
     // Interface to ChElementBase base class
     // -------------------------------------
 

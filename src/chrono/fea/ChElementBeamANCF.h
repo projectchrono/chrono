@@ -73,6 +73,9 @@ class ChApi ChMaterialBeamANCF {
     double m_rho;                         ///< density
     ChMatrixNM<double, 6, 6> m_E_eps;     ///< matrix of elastic coefficients
     ChMatrixNM<double, 6, 6> m_E_eps_Nu;  ///< matrix of elastic coefficients
+
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 // ----------------------------------------------------------------------------

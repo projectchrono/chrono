@@ -642,7 +642,7 @@ void ChParserOpenSim::initFunctionTable() {
             joint = weldJoint;
         } else if (type == std::string("UniversalJoint")) {
             // Do some universal magic here
-            auto uniJoint = std::make_shared<ChLinkUniversal>();
+            auto uniJoint = chrono::make_shared<ChLinkUniversal>();
             uniJoint->Initialize(parent, newBody, jointFrame);
             joint = uniJoint;
         } else if (type == std::string("BallJoint")) {

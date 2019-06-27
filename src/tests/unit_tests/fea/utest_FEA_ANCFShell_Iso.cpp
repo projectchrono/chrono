@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
 
     // Create an isotropic material.
     // All layers for all elements share the same material.
-    auto mat = std::make_shared<ChMaterialShellANCF>(500, 2.1e8, 0.3);
+    auto mat = chrono::make_shared<ChMaterialShellANCF>(500, 2.1e8, 0.3);
 
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
@@ -144,7 +144,7 @@ int main(int argc, char* argv[]) {
         int node3 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + N_x;
 
         // Create the element and set its nodes.
-        auto element = std::make_shared<ChElementShellANCF>();
+        auto element = chrono::make_shared<ChElementShellANCF>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node2)),

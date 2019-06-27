@@ -189,7 +189,7 @@ int main(int argc, char* argv[]) {
 
     int elemcount = 0;
     while (elemcount < TotalNumElements) {
-        auto element = std::make_shared<ChElementBrick>();
+        auto element = chrono::make_shared<ChElementBrick>();
         ChVectorN<double, 3> InertFlexVec;  // Read element length, used in ChElementBrick
         InertFlexVec.setZero();
         InertFlexVec(0) = ElemLengthXY(elemcount, 0);

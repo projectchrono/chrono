@@ -330,7 +330,7 @@ void test_3() {
 
     // Create the tetrahedron element, and assign
     // nodes and material
-    auto melement1 = std::make_shared<ChElementTetra_4>();
+    auto melement1 = chrono::make_shared<ChElementTetra_4>();
     melement1->SetNodes(mnode1, mnode2, mnode3, mnode4);
     melement1->SetMaterial(mmaterial);
 

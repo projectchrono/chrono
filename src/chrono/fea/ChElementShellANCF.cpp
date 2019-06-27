@@ -606,8 +606,9 @@ void ChElementShellANCF::ComputeInternalForces(ChVectorDynamic<>& Fi) {
             if (norm_HE < m_toleranceEAS)
                 break;
 
-            // Calculate increment (in place) and update EAS parameters
+            // Calculate increment and update EAS parameters
             ChVectorN<double, 5> sol = KALPHA.colPivHouseholderQr().solve(HE);
+            alphaEAS -= sol;
 
             if (count >= 2)
                 GetLog() << "  count " << count << "  NormHE " << norm_HE << "\n";

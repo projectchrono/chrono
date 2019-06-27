@@ -60,7 +60,7 @@ int main(int argc, char* argv[]) {
     double rho = 1000;  ///< material density
     double E = 5e8;     ///< Young's modulus
     double nu = 0.3;    ///< Poisson ratio
-    auto my_material = std::make_shared<ChMaterialShellANCF>(rho, E, nu);
+    auto my_material = chrono::make_shared<ChMaterialShellANCF>(rho, E, nu);
     // You can also change the contact surface properties for further investigation.
     auto mysurfmaterial = std::make_shared<ChMaterialSurfaceSMC>();
     mysurfmaterial->SetKn(1e0);
@@ -242,7 +242,7 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
     }
 
     // Create the element 1 and 2 and add them to their relevant mesh.
-    auto Element1 = std::make_shared<ChElementShellANCF>();  // To add nodes of the first element
+    auto Element1 = chrono::make_shared<ChElementShellANCF>();  // To add nodes of the first element
     Element1->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_meshes_1->GetNode(0)),
                        std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_meshes_1->GetNode(1)),
                        std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_meshes_1->GetNode(2)),
@@ -254,7 +254,7 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
     Element1->SetGravityOn(false);  // turn internal gravitational force calculation off
     my_meshes_1->AddElement(Element1);
 
-    auto Element2 = std::make_shared<ChElementShellANCF>();  // To add nodes of the first element
+    auto Element2 = chrono::make_shared<ChElementShellANCF>();  // To add nodes of the first element
 
     Element2->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_meshes_2->GetNode(0)),
                        std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_meshes_2->GetNode(1)),

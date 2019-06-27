@@ -470,7 +470,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
             assert(body_J);
 
             // std::cout << "adding revolute joint " << joint_pair.first <<std::endl;
-            auto ch_joint = std::make_shared<ChLinkUniversal>();
+            auto ch_joint = chrono::make_shared<ChLinkUniversal>();
             ch_joint->Initialize(sys.SearchBody(body_I->GetName()), sys.SearchBody(body_J->GetName()), true,
                                  (body_I->GetFrame_REF_to_abs() * (*marker_I)),
                                  (body_J->GetFrame_REF_to_abs() * (*marker_J)));

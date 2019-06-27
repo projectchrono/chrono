@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
     const double k1 = 10 * (1 + nu_rat) / (12 + 11 * nu_rat);  // Timoshenko coefficient
     const double k2 = k1;                                      // Timoshenko coefficient
 
-    auto m_beamMaterial = std::make_shared<ChMaterialBeamANCF>(rho, E_mod, nu_rat, k1, k2);
+    auto m_beamMaterial = chrono::make_shared<ChMaterialBeamANCF>(rho, E_mod, nu_rat, k1, k2);
 
     // Create the end nodes
     auto hnodeancf1 = std::make_shared<ChNodeFEAxyzDD>(ChVector<>(0, 0, 0.0), ChVector<>(0, 1, 0), ChVector<>(0, 0, 1));

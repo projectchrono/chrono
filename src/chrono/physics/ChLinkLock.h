@@ -249,6 +249,9 @@ class ChApi ChLinkLock : public ChLinkMarkers {
     ChVectorN<double, 7> Qc_temp;               //   i.e. the full x,y,z,r0,r1,r2,r3 joint
     Coordsys Ct_temp;                           //
 
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
   protected:
     /// Allocates matrices and initializes all mask-dependent quantities.
     /// Sets number of DOF and number DOC. Copies the mask from new_mask.

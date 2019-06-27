@@ -211,7 +211,7 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
         int node8 = 2 * XYNumNodes + i;
 
         // Create the element and set its nodes.
-        auto element = std::make_shared<ChElementBrick_9>();
+        auto element = chrono::make_shared<ChElementBrick_9>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node2)),
@@ -410,7 +410,7 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
         int node8 = 2 * XYNumNodes + i;
 
         // Create the element and set its nodes.
-        auto element = std::make_shared<ChElementBrick_9>();
+        auto element = chrono::make_shared<ChElementBrick_9>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node2)),
@@ -615,7 +615,7 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
         int node8 = 2 * XYNumNodes + i;
 
         // Create the element and set its nodes.
-        auto element = std::make_shared<ChElementBrick_9>();
+        auto element = chrono::make_shared<ChElementBrick_9>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node2)),
@@ -821,7 +821,7 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
         int node8 = 2 * XYNumNodes + i;
 
         // Create the element and set its nodes.
-        auto element = std::make_shared<ChElementBrick_9>();
+        auto element = chrono::make_shared<ChElementBrick_9>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node2)),
