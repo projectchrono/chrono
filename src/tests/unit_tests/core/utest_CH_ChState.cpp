@@ -74,7 +74,7 @@ TEST(ChStateTest, create_assign) {
 
     cout << "-s3\n" << (-s3).transpose() << endl;
 
-    ASSERT_DEATH(s4 += s3, "^Assertion failed:");   // should be a run-time assertion failure
+    ////ASSERT_DEATH(s4 += s3, "^Assertion failed:");   // should be a run-time assertion failure (only valid in 'Debug' mode)
 }
 
 // Test inter-operability with ChVector, ChQuaternion, and ChCoordsys

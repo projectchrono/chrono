@@ -165,7 +165,7 @@ TEST(LinearAlgebraTest, extensions) {
     v << 2, 3, 4;
     ChVectorDynamic<> w(3);
     w << 0.1, 0.2, 0.3;
-    double wrms_ref = 16.3582576270;
+    double wrms_ref = std::sqrt((0.2 * 0.2 + 0.6 * 0.6 + 1.2 * 1.2) / 3);
     cout << "||v||_wrms, w = " << v.wrmsNorm(w) << endl;
     cout << "||v + v||_wrms, w = " << (v + v).wrmsNorm(w) << endl;
     ASSERT_NEAR(v.wrmsNorm(w), wrms_ref, ABS_ERR);

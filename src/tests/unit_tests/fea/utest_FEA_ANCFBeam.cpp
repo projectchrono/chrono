@@ -183,18 +183,16 @@ int main(int argc, char* argv[]) {
     double time_Step = 0.01;
     std::cout << std::fixed << std::setprecision(12);
     for (unsigned int it = 0; it < num_steps; it++) {
-         std::cout << "Position of the tip: " << hnodeancf5->GetPos().y() << " m. \n";
-         std::cout << "Long. Position of the tip: " << hnodeancf5->GetPos().x() << " m. \n";
-         std::cout << "Lat. Position of the tip: " << hnodeancf5->GetPos().z() << " m. \n";
+         //std::cout << "Position of the tip: " << hnodeancf5->GetPos().y() << " m. \n";
+         //std::cout << "Long. Position of the tip: " << hnodeancf5->GetPos().x() << " m. \n";
+         //std::cout << "Lat. Position of the tip: " << hnodeancf5->GetPos().z() << " m. \n";
 
         hnodeancf5->SetForce(ChVector<>(0, -5e5 * std::pow(0.5, 3), 0));
         my_system.DoStepDynamics(time_Step);
     }
-    //// RADU
-    //// Pre-Eigen implementation did not use std::abs in test below. Bug?!?
     double error_y = (hnodeancf5->GetPos().y() + u_y_Ref) / u_y_Ref;
     double error_x = (hnodeancf5->GetPos().x() + u_x_Ref - 2.0) / u_x_Ref;
-    if (ChMax(std::abs(error_x), std::abs(error_y)) > rel_Tol) {
+    if (ChMax(error_x, error_y) > rel_Tol) {
         return 1;
     }
     std::cout << "Position of the tip: " << hnodeancf5->GetPos().y() << " m. \n";

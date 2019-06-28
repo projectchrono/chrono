@@ -144,17 +144,6 @@ TEST(FullAssembly, Assemble) {
     ChVector<> rtrq_ref(lambda_5, -std::cos(jointAngle) * lambda_4, -std::sin(jointAngle) * lambda_4);
 
     // Compare simulation and analytical solution
-    bool passed = true;
-    passed &= pos.Equals(pos_ref, 1e-3);
-    passed &= rot.Equals(rot_ref, 1e-3);
-    passed &= lin_vel.Equals(lin_vel_ref, 1e-4);
-    passed &= ang_vel.Equals(ang_vel_ref, 1e-4);
-    passed &= lin_acc.Equals(lin_acc_ref, 1e-2);
-    passed &= ang_acc.Equals(ang_acc_ref, 1e-2);
-    passed &= rfrc.Equals(rfrc_ref, 1e-2);
-    passed &= rtrq.Equals(rtrq_ref, 1e-2);
-
-
     TestVector(pos, pos_ref, 1e-3);
     TestQuaternion(rot, rot_ref, 1e-4);
     TestVector(lin_vel, lin_vel_ref, 1e-4);

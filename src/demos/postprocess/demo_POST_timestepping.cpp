@@ -667,6 +667,8 @@ void example5(const std::string& out_dir) {
     mystepper4.SetAlpha(0);  // HHT with no dissipation -> trapezoidal
     ChTimestepperHHT mystepper5(&mintegrable5);
     mystepper5.SetAlpha(-0.2);  // HHT with dissipation
+    ////mystepper5.SetVerbose(true);
+    ////mystepper5.SetMode(ChTimestepperHHT::POSITION);
     ChTimestepperNewmark mystepper6(&mintegrable6);
     mystepper6.SetGammaBeta(0.6, 0.3);  // Newmark
 
