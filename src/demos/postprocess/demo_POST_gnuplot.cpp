@@ -19,10 +19,9 @@
 #include <cmath>
 
 #include "chrono/core/ChLog.h"
-#include "chrono/core/ChVectorDynamic.h"
+#include "chrono/core/ChGlobal.h"
 #include "chrono/motion_functions/ChFunction_Recorder.h"
 #include "chrono/motion_functions/ChFunction_Sine.h"
-#include "chrono/physics/ChGlobal.h"
 
 #include "chrono_postprocess/ChGnuPlot.h"
 
