@@ -37,10 +37,10 @@ float grav_acceleration = -980.f;
 float normStiffness_S2S = 5e7f;
 float normStiffness_S2W = 5e7f;
 
-float normalDampS2S = 10000;
-float normalDampS2W = 10000;
+float normalDampS2S = 20000;
+float normalDampS2W = 20000;
 float adhesion_ratio_s2w = 0.f;
-float timestep = 1e-4;
+float timestep = 5e-5;
 
 GRAN_OUTPUT_MODE write_mode = GRAN_OUTPUT_MODE::NONE;
 GRAN_VERBOSITY verbose = GRAN_VERBOSITY::INFO;
@@ -152,7 +152,7 @@ int main(int argc, char* argv[]) {
     // up to one million bodies
     // double time50k = run_test(100, 100, 100);
     // double time500k = run_test(220, 220, 220);
-    double run_time = run_test(80, 80, 75);
+    double run_time = run_test(70, 70, 70);
 
     std::cout << "Running mini granular test!" << std::endl;
     // std::cout << "50 thousand bodies took " << time50k << " seconds!" << std::endl;
