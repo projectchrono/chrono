@@ -852,7 +852,7 @@ void ChLinkLock::IntStateScatterReactions(const unsigned int off_L, const ChVect
 
     // Ts = 0.5*CsT*G(q2)*Chi*(q1 qp)_barT*qs~*KT*lambda
     ChGlMatrix34<> Gl_q2(q2);
-    ChMatrix34<> Ts = 0.25 * Cs * Gl_q2 * Chi__q1p_barT * qs_tilde;
+    ChMatrix34<> Ts = 0.25 * Cs.transpose() * Gl_q2 * Chi__q1p_barT * qs_tilde;
 
     // Translational constraint reaction force = -lambda_translational
     // Translational constraint reaction torque = -d~''(t)*lambda_translational
@@ -1801,7 +1801,7 @@ void ChLinkLock::ConstraintsFetch_react(double factor) {
 
     // Ts = 0.5*CsT*G(q2)*Chi*(q1 qp)_barT*qs~*KT*lambda
     ChGlMatrix34<> Gl_q2(q2);
-    ChMatrix34<> Ts = 0.25 * Cs * Gl_q2 * Chi__q1p_barT * qs_tilde;
+    ChMatrix34<> Ts = 0.25 * Cs.transpose() * Gl_q2 * Chi__q1p_barT * qs_tilde;
 
     // Translational constraint reaction force = -lambda_translational
     // Translational constraint reaction torque = -d~''(t)*lambda_translational
