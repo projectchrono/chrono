@@ -75,9 +75,10 @@ class ChState : public ChVectorDynamic<double> {
     */
 
     /// Unary minus operator.
-    ChState& operator-() {
-        *this = this->ChVectorDynamic<>::operator-();
-        return *this;
+    ChState operator-() {
+        ChState result(*this);
+        result = result.ChVectorDynamic<>::operator-();
+        return result;
     }
 
     /// Return the sum of this state and another vector.
@@ -166,9 +167,10 @@ class ChStateDelta : public ChVectorDynamic<double> {
     */
 
     /// Unary minus operator.
-    ChStateDelta& operator-() {
-        *this = this->ChVectorDynamic<>::operator-();
-        return *this;
+    ChStateDelta operator-() {
+        ChStateDelta result(*this);
+        result = result.ChVectorDynamic<>::operator-();
+        return result;
     }
 
     /// Scale this state by the given value.
