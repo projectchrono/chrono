@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
     pend->AddAsset(col_p);
 
     // Create a revolute-translational joint to connect pendulum to ground.
-    auto rev_trans = std::make_shared<ChLinkRevoluteTranslational>();
+    auto rev_trans = chrono::make_shared<ChLinkRevoluteTranslational>();
     system.AddLink(rev_trans);
 
     // Initialize the joint specifying a coordinate system (expressed in the

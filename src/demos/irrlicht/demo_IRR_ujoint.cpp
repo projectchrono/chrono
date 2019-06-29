@@ -171,7 +171,7 @@ int main(int argc, char* argv[]) {
     // The joint is located at the global origin.  Its kinematic constraints will
     // enforce orthogonality of the associated cross.
 
-    auto ujoint = std::make_shared<ChLinkUniversal>();
+    auto ujoint = chrono::make_shared<ChLinkUniversal>();
     system.AddLink(ujoint);
     ujoint->Initialize(shaft_1, shaft_2, ChFrame<>(ChVector<>(0, 0, 0), rot));
 

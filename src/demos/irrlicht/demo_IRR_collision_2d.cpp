@@ -165,8 +165,7 @@ int main(int argc, char* argv[]) {
         ChVector<> p5 ( wi/2, R, 0);
         ChVector<> p6 ( B-Ri, R, 0);
         ChVector<> p7 ( B, R, 0);
-        ChMatrix33<> mm;
-        mm.Set_A_AngAxis(alpha, VECT_Z);
+        ChMatrix33<> mm(alpha, VECT_Z);
         p1 = mm * p1;
         p2 = mm * p2;
         p3 = mm * p3;

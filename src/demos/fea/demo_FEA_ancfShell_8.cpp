@@ -144,7 +144,7 @@ int main(int argc, char* argv[]) {
     ChVector<> E(2.1e11, 2.1e11, 2.1e11);
     ChVector<> nu(0.0, 0.0, 0.0);
     ChVector<> G(E.x() / (2 * (1 + nu.x())), E.x() / (2 * (1 + nu.x())), E.x() / (2 * (1 + nu.x())));
-    auto mat = std::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
+    auto mat = chrono::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
 
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
@@ -175,7 +175,7 @@ int main(int argc, char* argv[]) {
         GetLog() << "Node 3 Location: " << nodetip3->GetPos().x() << " " << nodetip3->GetPos().y() << "  " << nodetip3->GetPos().z() << "\n";
 
         // Create the element and set its nodes.
-        auto element = std::make_shared<ChElementShellANCF_8>();
+        auto element = chrono::make_shared<ChElementShellANCF_8>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzDD>(my_mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyzDD>(my_mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyzDD>(my_mesh->GetNode(node2)),

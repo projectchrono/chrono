@@ -55,7 +55,7 @@ void model1(ChSystem& system, std::shared_ptr<ChMesh> mesh) {
 
     // Create the element
 
-    auto belementancf1 = std::make_shared<ChElementCableANCF>();
+    auto belementancf1 = chrono::make_shared<ChElementCableANCF>();
 
     belementancf1->SetNodes(hnodeancf1, hnodeancf2);
     belementancf1->SetSection(msection_cable);

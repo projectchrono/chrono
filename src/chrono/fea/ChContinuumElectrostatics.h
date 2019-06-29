@@ -38,8 +38,8 @@ class ChContinuumElectrostatics : public ChContinuumPoisson3D {
     /// Sets the conductivity matrix as isotropic (diagonal k)
     void SetPermittivity(double me) {
         e_permittivity = me;
-        ConstitutiveMatrix.Reset();
-        ConstitutiveMatrix.FillDiag(e_permittivity);
+        ConstitutiveMatrix.setZero();
+        ConstitutiveMatrix.fillDiagonal(e_permittivity);
     }
 
     /// Sets the e absolute permittivity by using the relative

@@ -179,12 +179,12 @@ int main(int argc, char* argv[]) {
 
     int elemcount = 0;
     while (elemcount < TotalNumElements) {
-        auto element = std::make_shared<ChElementBrick>();
-        ChMatrixNM<double, 3, 1> InertFlexVec;  // read element length, used in ChElementBrick
-        InertFlexVec.Reset();
-        InertFlexVec(0, 0) = ElemLengthXY(elemcount, 0);
-        InertFlexVec(1, 0) = ElemLengthXY(elemcount, 1);
-        InertFlexVec(2, 0) = ElemLengthXY(elemcount, 2);
+        auto element = chrono::make_shared<ChElementBrick>();
+        ChVectorN<double, 3> InertFlexVec;  // read element length, used in ChElementBrick
+        InertFlexVec.setZero();
+        InertFlexVec(0) = ElemLengthXY(elemcount, 0);
+        InertFlexVec(1) = ElemLengthXY(elemcount, 1);
+        InertFlexVec(2) = ElemLengthXY(elemcount, 2);
         element->SetInertFlexVec(InertFlexVec);
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 0))),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 1))),
@@ -199,11 +199,11 @@ int main(int argc, char* argv[]) {
         element->SetElemNum(elemcount);            // for EAS
         element->SetGravityOn(true);               // turn gravity on/off from within the element
         element->SetMooneyRivlin(false);           // turn on/off Mooney Rivlin (Linear Isotropic by default)
-        ChMatrixNM<double, 9, 1> stock_alpha_EAS;  //
-        stock_alpha_EAS.Reset();
-        element->SetStockAlpha(stock_alpha_EAS(0, 0), stock_alpha_EAS(1, 0), stock_alpha_EAS(2, 0),
-                               stock_alpha_EAS(3, 0), stock_alpha_EAS(4, 0), stock_alpha_EAS(5, 0),
-                               stock_alpha_EAS(6, 0), stock_alpha_EAS(7, 0), stock_alpha_EAS(8, 0));
+        ChVectorN<double, 9> stock_alpha_EAS;  //
+        stock_alpha_EAS.setZero();
+        element->SetStockAlpha(stock_alpha_EAS(0), stock_alpha_EAS(1), stock_alpha_EAS(2),
+                               stock_alpha_EAS(3), stock_alpha_EAS(4), stock_alpha_EAS(5),
+                               stock_alpha_EAS(6), stock_alpha_EAS(7), stock_alpha_EAS(8));
         my_mesh->AddElement(element);
         elemcount++;
     }

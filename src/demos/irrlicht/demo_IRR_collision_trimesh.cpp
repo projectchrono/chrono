@@ -126,8 +126,8 @@ int main(int argc, char* argv[]) {
     double mdensity = 1000;
     mmesh->ComputeMassProperties(true, mmass, mcog, minertia);
     ChMatrix33<> principal_inertia_csys;
-    double principal_I[3];
-    minertia.FastEigen(principal_inertia_csys, principal_I);
+    ChVectorN<double, 3> principal_I;
+    minertia.SelfAdjointEigenSolve(principal_inertia_csys, principal_I);
 
     for (int j= 0; j<15;++j) {
 		

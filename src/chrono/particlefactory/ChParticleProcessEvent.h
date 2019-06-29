@@ -126,7 +126,7 @@ class ChParticleProcessEventMassCount : public ChParticleProcessEvent {
 /// ChParticleEventFlowInRectangle.
 class ChParticleProcessEventMassDistribution : public ChParticleProcessEvent {
   public:
-    ChParticleProcessEventMassDistribution(int u_sects = 10, int v_sects = 10) { mmass.Reset(u_sects, v_sects); }
+    ChParticleProcessEventMassDistribution(int u_sects = 10, int v_sects = 10) { mmass.setZero(u_sects, v_sects); }
 
     /// Remove the particle from the system.
     virtual void ParticleProcessEvent(std::shared_ptr<ChBody> mbody,
@@ -135,12 +135,12 @@ class ChParticleProcessEventMassDistribution : public ChParticleProcessEvent {
         assert(std::dynamic_pointer_cast<ChParticleEventFlowInRectangle>(mprocessor));
 
         if (auto mrectangleprocessor = std::dynamic_pointer_cast<ChParticleEventFlowInRectangle>(mprocessor)) {
-            int irow = (int)floor(mmass.GetRows() * mrectangleprocessor->last_intersectionUV.x());
-            if (irow >= mmass.GetRows())
-                irow = mmass.GetRows() - 1;
-            int icol = (int)floor(mmass.GetColumns() * mrectangleprocessor->last_intersectionUV.y());
-            if (icol >= mmass.GetColumns())
-                icol = mmass.GetColumns() - 1;
+            int irow = (int)floor(mmass.rows() * mrectangleprocessor->last_intersectionUV.x());
+            if (irow >= mmass.rows())
+                irow = (int)mmass.rows() - 1;
+            int icol = (int)floor(mmass.cols() * mrectangleprocessor->last_intersectionUV.y());
+            if (icol >= mmass.cols())
+                icol = (int)mmass.cols() - 1;
 
             mmass(irow, icol) += mbody->GetMass();
         }
