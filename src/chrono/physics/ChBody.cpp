@@ -973,6 +973,7 @@ void ChBody::ComputeJacobianForRollingContactPart(
     bool second) {
     ChMatrix33<> Jx1, Jr1;
 
+    Jx1.Reset();
     Jr1.MatrTMultiply(contact_plane, this->GetA());
     if (!second)
         Jr1.MatrNeg();
