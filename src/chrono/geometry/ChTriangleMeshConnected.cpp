@@ -1352,6 +1352,25 @@ bool ChTriangleMeshConnected::MakeOffset(const double moffset) {
                                    this->getTriangle(mverttriangles[k]).GetNormal());
                 }
             }
+            
+            //// RADU
+            //// Fix bug here:  if any 2 face normals are (close to) colinear, A will be singular!
+            //// In such a case, one of the two faces should be discarded.  We can achieve this by setting
+            //// the corresponding row and column to 0 (except the diagonal entry which stays at 1) and
+            //// setting the corresponding right hand side to 0.
+            //// Traverse the lower triangle of A and look for entries close to +1 or -1.
+            for (int j = 0; j < ntri; ++j) {
+                for (int k = j + 1; k < ntri; ++k) {
+                    if (std::abs(A(j, k) - 1 < 1e-4)) {
+                        // eliminate weight k
+                        A.col(k).setZero();
+                        A.row(k).setZero();
+                        A(k, k) = 1;
+                        b(k) = 0;
+                    }
+                }
+            }
+
             x = A.colPivHouseholderQr().solve(b);
 
             // weighted sum as offset vector
