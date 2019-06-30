@@ -12,6 +12,9 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
+//// RADU
+//// Fix implementatino to properly treat the case nc=0
+
 #include "chrono/solver/ChSolverAPGD.h"
 
 #include "chrono/core/ChStream.h"
@@ -140,7 +143,7 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
     L = tmp.norm();
     sysd.ShurComplementProduct(yNew, tmp, nullptr);  // yNew = N * tmp = N * (gamma - gamma_hat)
     L = yNew.norm() / L;
-    yNew.setZero();
+    yNew.setZero();  //// RADU  is this really necessary here?
 
     // (6) t_k = 1 / L_k
     t = 1.0 / L;
