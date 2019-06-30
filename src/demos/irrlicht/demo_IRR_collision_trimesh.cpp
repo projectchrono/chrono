@@ -18,6 +18,7 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
+#include "chrono/physics/ChInertiaUtils.h"
 #include "chrono/physics/ChParticlesClones.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
@@ -125,23 +126,25 @@ int main(int argc, char* argv[]) {
     ChMatrix33<> minertia;
     double mdensity = 1000;
     mmesh->ComputeMassProperties(true, mmass, mcog, minertia);
-    ChMatrix33<> principal_inertia_csys;
-    ChVectorN<double, 3> principal_I;
-    minertia.SelfAdjointEigenSolve(principal_inertia_csys, principal_I);
+    ChMatrix33<> principal_inertia_rot;
+    ChVector<> principal_I;
+    ChInertiaUtils::PrincipalInertia(minertia, principal_I, principal_inertia_rot);
 
     for (int j= 0; j<15;++j) {
 		
         auto mfalling = std::make_shared<ChBodyAuxRef>();
+
+        // Set the COG coordinates to barycenter, without displacing the REF reference.
+        // Make the COG frame a principal frame.
+        mfalling->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
+
+        // Set inertia
         mfalling->SetMass(mmass * mdensity);
-        mfalling->SetInertiaXX(ChVector<>(principal_I[0] * mdensity, principal_I[1] * mdensity, principal_I[2] * mdensity));
-        // Set the COG coordinates to barycenter, without displacing the REF reference
-        mfalling->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_csys));
+        mfalling->SetInertiaXX(mdensity * principal_I);
 
 		// Set the absolute position of the body:
         mfalling->SetFrame_REF_to_abs(ChFrame<>(ChVector<>(-0.9+ChRandom() * 1.4, 0.4 + j * 0.12, -0.9+ChRandom() * 1.4)));
         mphysicalSystem.Add(mfalling);
-        mfalling->SetMass(mmass*1000);
-        mfalling->SetInertia(minertia*1000);
 
         mfalling->GetCollisionModel()->ClearModel();
         mfalling->GetCollisionModel()->AddTriangleMesh(mmesh,false, false, VNULL, ChMatrix33<>(1), 0.005);

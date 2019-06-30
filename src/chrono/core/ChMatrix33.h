@@ -130,7 +130,7 @@ class ChMatrix33 : public Eigen::Matrix<Real, 3, 3, Eigen::RowMajor> {
 
     /// Compute eigenvectors and eigenvalues.
     /// Note: only for self-adjoint matrices (e.g. inertia tensors).
-    void SelfAdjointEigenSolve(ChMatrix33<Real>& evec, ChVectorN<Real, 3>& evals);
+    void SelfAdjointEigenSolve(ChMatrix33<Real>& evec, ChVectorN<Real, 3>& evals) const;
 };
 
 // -----------------------------------------------------------------------------
@@ -571,7 +571,7 @@ inline ChVector<Real> ChMatrix33<Real>::GetAx() const {
 }
 
 template <typename Real>
-inline void ChMatrix33<Real>::SelfAdjointEigenSolve(ChMatrix33<Real>& evec, ChVectorN<Real, 3>& evals) {
+inline void ChMatrix33<Real>::SelfAdjointEigenSolve(ChMatrix33<Real>& evec, ChVectorN<Real, 3>& evals) const {
     Eigen::SelfAdjointEigenSolver<Eigen::Matrix<Real, 3, 3, Eigen::RowMajor>> es(*this);
     evals = es.eigenvalues();
     evec = es.eigenvectors();
