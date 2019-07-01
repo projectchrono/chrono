@@ -74,25 +74,25 @@ void ChMklEngine::SetMatrix(int pb_size, double* a, int* ia, int* ja) {
     m_ja = ja;
 }
 
-void ChMklEngine::SetSolutionVector(ChMatrix<>& x) {
-    assert(x.GetRows() >= m_n);
-    m_x = x.GetAddress();
+void ChMklEngine::SetSolutionVector(ChVectorRef x) {
+    assert(x.size() >= m_n);
+    m_x = x.data();
 }
 
 void ChMklEngine::SetSolutionVector(double* x) {
     m_x = x;
 }
 
-void ChMklEngine::SetRhsVector(ChMatrix<>& b) {
-    assert(b.GetRows() >= m_n);
-    m_b = b.GetAddress();
+void ChMklEngine::SetRhsVector(ChVectorRef b) {
+    assert(b.size() >= m_n);
+    m_b = b.data();
 }
 
 void ChMklEngine::SetRhsVector(double* b) {
     m_b = b;
 }
 
-void ChMklEngine::SetProblem(ChSparseMatrix& Z, ChMatrix<>& b, ChMatrix<>& x) {
+void ChMklEngine::SetProblem(ChSparseMatrix& Z, ChVectorRef b, ChVectorRef x) {
     SetMatrix(Z);
     SetRhsVector(b);
     SetSolutionVector(x);
@@ -248,10 +248,11 @@ void ChMklEngine::ResetSolver() {
     m_iparm[7] = 10;  // Maximum number of iterative refinement steps
 }
 
-void ChMklEngine::GetResidual(ChMatrix<>& res) const {
-    assert(res.GetRows() >= m_n);
-    GetResidual(res.GetAddress());
+void ChMklEngine::GetResidual(ChVectorRef res) const {
+    assert(res.size() >= m_n);
+    GetResidual(res.data());
 }
+
 void ChMklEngine::GetResidual(double* res) const {
     // Calculate A*x
     mkl_cspblas_dcsrgemv("N", &m_n, m_a, m_ia, m_ja, m_x, res);
