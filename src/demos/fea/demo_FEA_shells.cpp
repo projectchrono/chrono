@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
                 auto mnode = std::make_shared<ChNodeFEAxyzrot>(nodeframe);
                 my_mesh->AddNode(mnode);
 
-                mnode->GetInertia().FillDiag(0);  // approx
+                mnode->GetInertia().fillDiagonal(0);  // approx
                 mnode->SetMass(0);
 
                 nodearray[il * (nels_W + 1) + iw] = mnode;
@@ -145,7 +145,7 @@ int main(int argc, char* argv[]) {
 
                 // Make elements
                 if (il > 0 && iw > 0) {
-                    auto melement = std::make_shared<ChElementShellReissner4>();
+                    auto melement = chrono::make_shared<ChElementShellReissner4>();
                     my_mesh->AddElement(melement);
 
                     melement->SetNodes(nodearray[(il - 1) * (nels_W + 1) + (iw - 1)],
@@ -236,7 +236,7 @@ int main(int argc, char* argv[]) {
                 auto mnode = std::make_shared<ChNodeFEAxyzrot>(nodeframe);
                 my_mesh->AddNode(mnode);
 
-                mnode->GetInertia().FillDiag(0.0);
+                mnode->GetInertia().fillDiagonal(0.0);
                 mnode->SetMass(0);
 
                 nodearray[iu * (nels_W + 1) + iw] = mnode;
@@ -248,7 +248,7 @@ int main(int argc, char* argv[]) {
 
                 // Make elements
                 if (iu > 0 && iw > 0) {
-                    auto melement = std::make_shared<ChElementShellReissner4>();
+                    auto melement = chrono::make_shared<ChElementShellReissner4>();
                     my_mesh->AddElement(melement);
 
                     melement->SetNodes(nodearray[(iu) * (nels_W + 1) + (iw)], nodearray[(iu - 1) * (nels_W + 1) + (iw)],
@@ -344,7 +344,7 @@ int main(int argc, char* argv[]) {
                 auto mnode = std::make_shared<ChNodeFEAxyzrot>(nodeframe);
                 my_mesh->AddNode(mnode);
 
-                mnode->GetInertia().FillDiag(0.0);
+                mnode->GetInertia().fillDiagonal(0.0);
                 mnode->SetMass(0.0);
 
                 nodearray[iu * (nels_W + 1) + iw] = mnode;
@@ -360,7 +360,7 @@ int main(int argc, char* argv[]) {
 
                 // Make elements
                 if (iu > 0 && iw > 0) {
-                    auto melement = std::make_shared<ChElementShellReissner4>();
+                    auto melement = chrono::make_shared<ChElementShellReissner4>();
                     my_mesh->AddElement(melement);
 
                     melement->SetNodes(nodearray[(iu) * (nels_W + 1) + (iw)], nodearray[(iu - 1) * (nels_W + 1) + (iw)],

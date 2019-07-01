@@ -124,14 +124,14 @@ int main(int argc, char* argv[]) {
 
     int TotalNumNodes, TotalNumElements;
     std::vector<int> BC_NODES;
-    auto material = std::make_shared<ChMaterialShellANCF>(1000, 1e8, 0.3);
+    auto material = chrono::make_shared<ChMaterialShellANCF>(1000, 1e8, 0.3);
     auto my_mesh = std::make_shared<ChMesh>();
 
     ChVector<> Center(-0.5, -0.5, 0.5);
     ChMatrix33<> rot_transform(0);
-    rot_transform.SetElement(0, 0, 1);
-    rot_transform.SetElement(1, 1, -1);
-    rot_transform.SetElement(2, 1, -1);
+    rot_transform(0, 0) = 1;
+    rot_transform(1, 1) = -1;
+    rot_transform(2, 1) = -1;
     std::vector<double> NODE_AVE_AREA;
 
     // Import the mesh
@@ -152,7 +152,7 @@ int main(int argc, char* argv[]) {
     TotalNumElements = my_mesh->GetNelements();
 
     for (int ele = 0; ele < TotalNumElements; ele++) {
-        auto element = std::make_shared<ChElementShellANCF>();
+        auto element = chrono::make_shared<ChElementShellANCF>();
         element = std::dynamic_pointer_cast<ChElementShellANCF>(my_mesh->GetElement(ele));
         // Add a single layers with a fiber angle of 0 degrees.
         element->AddLayer(dz, 0 * CH_C_DEG_TO_RAD, material);

@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
     my_mesh->AddNode(hnodeancfm4);
 
     // Create the element 1
-    auto belementancf1 = std::make_shared<ChElementBeamANCF>();
+    auto belementancf1 = chrono::make_shared<ChElementBeamANCF>();
     belementancf1->SetNodes(hnodeancf1, hnodeancf2, hnodeancfm1);
     belementancf1->SetDimensions(beam_l / 4, beam_h, beam_w);
     belementancf1->SetMaterial(m_beamMaterial);
@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
     my_mesh->AddElement(belementancf1);
 
     // Create the element 2
-    auto belementancf2 = std::make_shared<ChElementBeamANCF>();
+    auto belementancf2 = chrono::make_shared<ChElementBeamANCF>();
     belementancf2->SetNodes(hnodeancf2, hnodeancf3, hnodeancfm2);
     belementancf2->SetDimensions(beam_l / 4, beam_h, beam_w);
     belementancf2->SetMaterial(m_beamMaterial);
@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) {
     my_mesh->AddElement(belementancf2);
 
     // Create the element 3
-    auto belementancf3 = std::make_shared<ChElementBeamANCF>();
+    auto belementancf3 = chrono::make_shared<ChElementBeamANCF>();
     belementancf3->SetNodes(hnodeancf3, hnodeancf4, hnodeancfm3);
     belementancf3->SetDimensions(beam_l / 4, beam_h, beam_w);
     belementancf3->SetMaterial(m_beamMaterial);
@@ -129,7 +129,7 @@ int main(int argc, char* argv[]) {
     my_mesh->AddElement(belementancf3);
 
     // Create the element 4
-    auto belementancf4 = std::make_shared<ChElementBeamANCF>();
+    auto belementancf4 = chrono::make_shared<ChElementBeamANCF>();
     belementancf4->SetNodes(hnodeancf4, hnodeancf5, hnodeancfm4);
     belementancf4->SetDimensions(beam_l / 4, beam_h, beam_w);
     belementancf4->SetMaterial(m_beamMaterial);

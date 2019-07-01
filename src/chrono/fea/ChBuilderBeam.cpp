@@ -326,7 +326,7 @@ void ChBuilderBeamANCFFullyPar::BuildBeam(
         mesh->AddNode(nodeC);
         beam_nodes.push_back(nodeC);
         beam_nodes.push_back(nodeB);
-        auto element = std::make_shared<ChElementBeamANCF>();
+        auto element = chrono::make_shared<ChElementBeamANCF>();
         beam_elems.push_back(element);
 
         element->SetNodes(beam_nodes[2 * (i - 1)], beam_nodes[2 * i], beam_nodes[2 * i - 1]);

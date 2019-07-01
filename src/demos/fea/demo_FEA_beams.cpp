@@ -255,7 +255,7 @@ int main(int argc, char* argv[]) {
     GetLog() << "BEAM RESULTS (LINEAR STATIC ANALYSIS) \n\n";
 
     ChVector<> F, M;
-    ChMatrixDynamic<> displ;
+    ChVectorDynamic<> displ;
 
     belement1->GetStateBlock(displ);
     GetLog() << displ;

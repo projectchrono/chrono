@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
     double rotstep = 15;
     double rotmax = 90;
 
-    ChMatrixNM<double, 3, 1> loads;
+    ChVectorN<double, 3> loads;
     loads(0) = -4.448;
     loads(1) = -8.896;
     loads(2) = -13.345;

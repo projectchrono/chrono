@@ -68,7 +68,7 @@ double ANCF_test(ChSystem& mysys, float beam_tip_load, int NofEl) {
     my_mesh->SetAutomaticGravity(false);
     mysys.GetSystem()->Add(my_mesh);
 
-    auto material = std::make_shared<ChMaterialBeamANCF>(rho, E_mod, nu_rat, E_mod * nu_rat, k1, k2);
+    auto material = chrono::make_shared<ChMaterialBeamANCF>(rho, E_mod, nu_rat, E_mod * nu_rat, k1, k2);
 
     ChBuilderBeamANCFFullyPar builder;
     builder.BuildBeam(my_mesh, material, NofEl, ChVector<>(0, 0, 0), ChVector<>(beamL, 0, 0), beam_wy, beam_wz, VECT_Y,
