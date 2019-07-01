@@ -20,6 +20,7 @@
 // Turn on the documentation of members, for more intuitive IDE typing
 
 %feature("autodoc", "1");
+%feature("flatnested", "1");
 
 
 // Turn on the exception handling to intercept C++ exceptions
@@ -127,10 +128,10 @@ using namespace gui;
 // in the .i file, before the %include of the .h, even if already forwarded in .h
 
 
-%import  "ChClassFactory.i"
-%import  "ChSystem.i"
-%import  "ChAsset.i"
-%import  "ChVector.i"
+%import(module = "pychrono.core")  "ChClassFactory.i"
+%import(module = "pychrono.core")  "ChSystem.i"
+%import(module = "pychrono.core")  "ChAsset.i"
+%import(module = "pychrono.core")  "ChVector.i"
 
 %include "IReferenceCounted.h"
 %include "IImage.h"
