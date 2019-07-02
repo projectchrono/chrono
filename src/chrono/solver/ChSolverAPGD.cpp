@@ -113,6 +113,14 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
     // Compute the b_shur vector in the Shur complement equation N*l = b_shur
     ShurBvectorCompute(sysd);
 
+    //// RADU
+    //// Add proper check for case nc=0.  Without one, we get division by zero and a potential infinite loop.
+
+    // If no constraints, return now. Variables contain M^-1 * f 
+    if (nc == 0) {
+        return 0;
+    }
+
     // Optimization: backup the  q  sparse data computed above,
     // because   (M^-1)*k   will be needed at the end when computing primals.
     ChVectorDynamic<> Minvk;
