@@ -240,6 +240,7 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %import(module = "pychrono.core") "../chrono/physics/ChBodyFrame.h"
 %import(module = "pychrono.core") "../chrono/physics/ChLinkBase.h"
 %import(module = "pychrono.core") "ChTexture.i"
+%import(module = "pychrono.core") "../chrono/assets/ChTriangleMeshShape.h"
 
 // TODO: 
 //%include "rapidjson.i"

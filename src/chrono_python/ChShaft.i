@@ -19,11 +19,11 @@
 %import "ChPhysicsItem.i"
 
 %shared_ptr(chrono::ChShaft)
+%shared_ptr(chrono::ChShaftsCouple)
 %shared_ptr(chrono::ChShaftsBody)
 %shared_ptr(chrono::ChShaftsBodyTranslation)
 %shared_ptr(chrono::ChShaftsMotorBase)
 %shared_ptr(chrono::ChShaftsClutch)
-%shared_ptr(chrono::ChShaftsCouple)
 %shared_ptr(chrono::ChShaftsGear)
 %shared_ptr(chrono::ChShaftsMotor)
 %shared_ptr(chrono::ChShaftsPlanetary)
@@ -43,7 +43,6 @@
 %include "../chrono/physics/ChShaftsClutch.h"  
 %include "../chrono/physics/ChShaftsThermalEngine.h"  
 %include "../chrono/physics/ChShaftsTorsionSpring.h"  
-
 
 
 
