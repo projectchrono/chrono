@@ -22,13 +22,21 @@ void ChElementGeneric::EleIntLoadResidual_F(ChVectorDynamic<>& R, const double c
     this->ComputeInternalForces(mFi);
     // GetLog() << "EleIntLoadResidual_F , mFi=" << mFi << "  c=" << c << "\n";
     mFi *= c;
+
+    //// RADU
+    //// Attention: this is called from within a parallel OMP for loop.
+    //// Must use atomic increment when updating the global vector R.
+
     int stride = 0;
     for (int in = 0; in < this->GetNnodes(); in++) {
         int nodedofs = GetNodeNdofs(in);
         // GetLog() << "  in=" << in << "  stride=" << stride << "  nodedofs=" << nodedofs << " offset=" <<
         // GetNodeN(in)->NodeGetOffset_w() << "\n";
-        if (!GetNodeN(in)->GetFixed())
-            R.segment(GetNodeN(in)->NodeGetOffset_w(), nodedofs) += mFi.segment(stride, nodedofs);
+        if (!GetNodeN(in)->GetFixed()) {
+            for (int j = 0; j < nodedofs; j++)
+#pragma omp atomic
+                R(GetNodeN(in)->NodeGetOffset_w() + j) += mFi(stride + j);
+        }
         stride += nodedofs;
     }
     // GetLog() << "EleIntLoadResidual_F , R=" << R << "\n";
