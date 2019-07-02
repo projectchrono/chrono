@@ -426,9 +426,7 @@ void ChElementCableANCF::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
     ComputeInternalJacobians(Kfactor, Rfactor);
 
     // Load Jac + Mfactor*[M] into H
-    for (int i = 0; i < 12; i++)
-        for (int j = 0; j < 12; j++)
-            H(i, j) = m_JacobianMatrix(i, j) + Mfactor * m_MassMatrix(i, j);
+    H = m_JacobianMatrix + Mfactor * m_MassMatrix;
 }
 
 // Computes the internal forces and set values in the Fi vector.
@@ -477,18 +475,18 @@ void ChElementCableANCF::ComputeInternalForces_Impl(const ChVector<>& pA,
 
     // this matrix will be used in both MyForcesAxial and MyForcesCurv integrators
     ChVectorN<double, 12> vel_vector;
-    vel_vector(0, 0) = pA_dt.x();
-    vel_vector(1, 0) = pA_dt.y();
-    vel_vector(2, 0) = pA_dt.z();
-    vel_vector(3, 0) = dA_dt.x();
-    vel_vector(4, 0) = dA_dt.y();
-    vel_vector(5, 0) = dA_dt.z();
-    vel_vector(6, 0) = pB_dt.x();
-    vel_vector(7, 0) = pB_dt.y();
-    vel_vector(8, 0) = pB_dt.z();
-    vel_vector(9, 0) = dB_dt.x();
-    vel_vector(10, 0) = dB_dt.y();
-    vel_vector(11, 0) = dB_dt.z();
+    vel_vector(0) = pA_dt.x();
+    vel_vector(1) = pA_dt.y();
+    vel_vector(2) = pA_dt.z();
+    vel_vector(3) = dA_dt.x();
+    vel_vector(4) = dA_dt.y();
+    vel_vector(5) = dA_dt.z();
+    vel_vector(6) = pB_dt.x();
+    vel_vector(7) = pB_dt.y();
+    vel_vector(8) = pB_dt.z();
+    vel_vector(9) = dB_dt.x();
+    vel_vector(10) = dB_dt.y();
+    vel_vector(11) = dB_dt.z();
 
     // 1)
     // Integrate   (strainD'*strain)
@@ -599,7 +597,7 @@ void ChElementCableANCF::ComputeInternalForces_Impl(const ChVector<>& pA,
                 ChVector<> Sd_i = Sd.col(col);
                 fe1.col(col) = Vcross(Sd_i, vr_xx).eigen();
                 ChVector<> Sdd_i = Sdd.col(col);
-                fe1.col(col) = Vcross(vr_x, Sdd_i).eigen();
+                fe1.col(col) += Vcross(vr_x, Sdd_i).eigen();
             }
             ChVectorN<double, 3> f1 = vf1.eigen();
 

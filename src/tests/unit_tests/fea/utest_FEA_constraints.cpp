@@ -78,10 +78,6 @@ Model::Model() {
     constraint_hinge->Initialize(builder.GetLastBeamNodes().front(), mtruss);
     m_system->Add(constraint_hinge);
 
-    auto msphere = std::make_shared<ChSphereShape>();
-    msphere->GetSphereGeometry().rad = 0.02;
-    constraint_hinge->AddAsset(msphere);
-
     // make a box and connect it
     m_box1 = std::make_shared<ChBodyEasyBox>(0.2, 0.04, 0.04, 1000);
     m_box1->SetPos(builder.GetLastBeamNodes().back()->GetPos() + ChVector<>(0.1, 0, 0));
