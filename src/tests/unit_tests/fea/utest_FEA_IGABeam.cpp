@@ -12,8 +12,8 @@
 // Authors: Simone Benatti
 // =============================================================================
 //
-// Test simulation of ANCF cables connected to rigid bodies.
-// Compare results using MINRES and MKL solvers.
+// Test simulation of IGA rods.
+// Compare results with analytical formulation of Timoshenko beam.
 //
 // =============================================================================
 
@@ -103,7 +103,7 @@ double AnalyticalTipDisp(std::shared_ptr<ChElasticityCosseratSimple> elast) {
 }
 
 
-TEST(IGA_Beam) {
+TEST(IGA_Beam, Sim_vs_Analytical) {
 //int main() {
     // Simulate a cantilever with IGA and compare to analytical solution
 
@@ -127,22 +127,5 @@ TEST(IGA_Beam) {
                   << "\n";
 		ASSERT_NEAR(chrono_disp, ref_disp, precision);
 
-        /*CompareVectors(model1.GetBox1()->GetPos(), model2.GetBox1()->GetPos(), precision);
-        CompareVectors(model1.GetBox2()->GetPos(), model2.GetBox2()->GetPos(), precision);
-        CompareQuaternions(model1.GetBox1()->GetRot(), model2.GetBox1()->GetRot(), precision);
-        CompareQuaternions(model1.GetBox2()->GetRot(), model2.GetBox2()->GetRot(), precision);*/
     }
-    /*
-    {
-        auto p1 = model1.GetBox1()->GetPos();
-        auto p2 = model1.GetBox2()->GetPos();
-        auto q1 = model1.GetBox1()->GetRot();
-        auto q2 = model1.GetBox2()->GetRot();
-        std::cout << "Minres" << std::endl;
-        std::cout << "  Box1: " << p1.x() << " " << p1.y() << " " << p1.z() << " ";
-        std::cout << q1.e0() << " " << q1.e1() << " " << q1.e2() << " " << q1.e3() << std::endl;
-        std::cout << "  Box2: " << p2.x() << " " << p2.y() << " " << p2.z() << " ";
-        std::cout << q2.e0() << " " << q2.e1() << " " << q2.e2() << " " << q2.e3() << std::endl;
-    }*/
-    //return 0;
 }
