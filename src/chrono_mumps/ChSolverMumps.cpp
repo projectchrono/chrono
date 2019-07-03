@@ -100,7 +100,7 @@ double ChSolverMumps::Solve(ChSystemDescriptor& sysd)  ///< system description w
         ChMatrixDynamic<double> res;
         m_mat.MatrMultiply(m_rhs_sol, res);
         res -= m_rhs_bkp;
-        auto res_norm = res.NormTwo();
+        auto res_norm = res.norm();
 
         GetLog() << "  |residual| = " << res_norm << "\n\n";
     }
