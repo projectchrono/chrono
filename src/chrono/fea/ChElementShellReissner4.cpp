@@ -720,14 +720,14 @@ void ChElementShellReissner4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
 
             // delta epsilon_tilde_1_i
             block = T_i[i] * L_alpha_beta_i[i](n, 0);
-            B_overline_i[i].block(0, 6 * n, 3, 3) = block;
+            B_overline_i[i].block(0, 6 * n, 3, 3) = block.transpose();
             block = T_i[i].transpose() * myi_1_X * Phi_Delta_i_n_LI_i;
             block = block * m_nodes[n]->GetA();  //***NEEDED because rotations are body-relative
             B_overline_i[i].block(0, 3 + 6 * n, 3, 3) = block;
 
             // delta epsilon_tilde_2_i
             block = T_i[i] * L_alpha_beta_i[i](n, 1);
-            B_overline_i[i].block(3, 6 * n, 3, 3) = block;
+            B_overline_i[i].block(3, 6 * n, 3, 3) = block.transpose();
             block = T_i[i].transpose() * myi_2_X * Phi_Delta_i_n_LI_i;
             block = block * m_nodes[n]->GetA();  //***NEEDED because rotations are body-relative
             B_overline_i[i].block(3, 3 + 6 * n, 3, 3) = block;
