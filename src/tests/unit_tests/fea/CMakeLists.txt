@@ -4,6 +4,7 @@
 set(TESTS
     utest_FEA_ANCFCable
     utest_FEA_ANCFBeam
+	utest_FEA_IGABeam
     utest_FEA_ANCFShell_Iso
     utest_FEA_ANCFShell_Ort
     utest_FEA_ANCFShell_OrtGrav
