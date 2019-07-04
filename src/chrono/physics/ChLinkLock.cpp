@@ -278,28 +278,26 @@ void ChLinkLock::BuildLink() {
     ndoc_d = mask->GetMaskDoc_d();
 
     // create matrices
-    if (ndoc > 0) {
-        C.resize(ndoc);
-        C_dt.resize(ndoc);
-        C_dtdt.resize(ndoc);
-        react.resize(ndoc);
-        Qc.resize(ndoc);
-        Ct.resize(ndoc);
-        Cq1.resize(ndoc, BODY_QDOF);
-        Cq2.resize(ndoc, BODY_QDOF);
-        Cqw1.resize(ndoc, BODY_DOF);
-        Cqw2.resize(ndoc, BODY_DOF);
+    C.resize(ndoc);
+    C_dt.resize(ndoc);
+    C_dtdt.resize(ndoc);
+    react.resize(ndoc);
+    Qc.resize(ndoc);
+    Ct.resize(ndoc);
+    Cq1.resize(ndoc, BODY_QDOF);
+    Cq2.resize(ndoc, BODY_QDOF);
+    Cqw1.resize(ndoc, BODY_DOF);
+    Cqw2.resize(ndoc, BODY_DOF);
 
-        // Zero out vectors of constraint violations
-        C.setZero();
-        C_dt.setZero();
-        C_dtdt.setZero();
-        react.setZero();
+    // Zero out vectors of constraint violations
+    C.setZero();
+    C_dt.setZero();
+    C_dtdt.setZero();
+    react.setZero();
 
-        // Need to zero out the first 3 entries in rows corrsponding to rotation constraints
-        Cq1.setZero();
-        Cq2.setZero();
-    }
+    // Need to zero out the first 3 entries in rows corrsponding to rotation constraints
+    Cq1.setZero();
+    Cq2.setZero();
 }
 
 void ChLinkLock::BuildLink(ChLinkMask* new_mask) {
