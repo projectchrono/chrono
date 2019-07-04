@@ -200,6 +200,7 @@ set(ChronoEngine_physics_SOURCES
     physics/ChShaftsTorsionSpring.cpp
     physics/ChShaftsTorqueConverter.cpp
     physics/ChShaftsThermalEngine.cpp
+	physics/ChShaftsLoads.cpp
     physics/ChConveyor.cpp
     physics/ChFx.cpp
     physics/ChAssembly.cpp
@@ -301,6 +302,7 @@ set(ChronoEngine_physics_HEADERS
     physics/ChShaftsTorsionSpring.h
     physics/ChShaftsTorqueConverter.h
     physics/ChShaftsThermalEngine.h
+	physics/ChShaftsLoads.h
     physics/ChSolvmin.h
     physics/ChSystem.h
     physics/ChSystemNSC.h
