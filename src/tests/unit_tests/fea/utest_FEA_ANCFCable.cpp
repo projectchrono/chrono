@@ -50,7 +50,7 @@ const double precision = 1e-6;
 int main(int argc, char* argv[]) {
     // Utils to open/read files: Load reference solution ("golden") file
     ChMatrixDynamic<> FileInputMat(20000, 7);
-    std::string beam_validation_file = GetChronoDataPath() + "testing/" + "UT_ANCFBeam.txt";
+    std::string beam_validation_file = GetChronoDataPath() + "testing/fea/UT_ANCFBeam.txt";
     std::ifstream fileMid(beam_validation_file);
 
     if (!fileMid.is_open()) {

@@ -38,11 +38,11 @@ int main(int argc, char* argv[]) {
     ChMatrixDynamic<> FileInputJ2(510, 4);
     ChMatrixDynamic<> FileInputDP(510, 4);
 
-    std::string ShellBrick9_Val_File = GetChronoDataPath() + "testing/" + "UT_SwingingShellBrick9.txt";
-    std::string BendingBrick9_Val_File = GetChronoDataPath() + "testing/" + "UT_QuasiBendingBrick9.txt";
-    std::string J2PlasticBrick9_Val_File = GetChronoDataPath() + "testing/" + "UT_J2PlasticBrick9.txt";
+    std::string ShellBrick9_Val_File = GetChronoDataPath() + "testing/fea/UT_SwingingShellBrick9.txt";
+    std::string BendingBrick9_Val_File = GetChronoDataPath() + "testing/fea/UT_QuasiBendingBrick9.txt";
+    std::string J2PlasticBrick9_Val_File = GetChronoDataPath() + "testing/fea/UT_J2PlasticBrick9.txt";
     std::string DruckerPragerPlasticBrick9_Val_File =
-        GetChronoDataPath() + "testing/" + "UT_DruckerPragerPlasticBrick9.txt";
+        GetChronoDataPath() + "testing/fea/UT_DruckerPragerPlasticBrick9.txt";
 
     std::ifstream fileMid(ShellBrick9_Val_File);
     if (!fileMid.is_open()) {

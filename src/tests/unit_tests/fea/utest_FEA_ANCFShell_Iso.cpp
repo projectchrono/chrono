@@ -55,7 +55,7 @@ const int num_steps = 10;       // Number of time steps for unit test (range 1 t
 int main(int argc, char* argv[]) {
     // Utils to open/read files: Load reference solution ("golden") file
     ChMatrixDynamic<> FileInputMat(4000, 2);
-    std::string shell_validation_file = GetChronoDataPath() + "testing/" + "UT_ANCFShellIso.txt";
+    std::string shell_validation_file = GetChronoDataPath() + "testing/fea/UT_ANCFShellIso.txt";
     std::ifstream fileMid(shell_validation_file);
     if (!fileMid.is_open()) {
         fileMid.open(shell_validation_file);

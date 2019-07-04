@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
         GetLog() << "Output file: ../TEST_Brick/tip_position.txt\n";
     } else {
         // Utils to open/read files: Load reference solution ("golden") file
-        std::string EASBrick_val_file = GetChronoDataPath() + "testing/" + "UT_EASBrickIso.txt";
+        std::string EASBrick_val_file = GetChronoDataPath() + "testing/fea/UT_EASBrickIso.txt";
         std::ifstream fileMid(EASBrick_val_file);
 
         if (!fileMid.is_open()) {

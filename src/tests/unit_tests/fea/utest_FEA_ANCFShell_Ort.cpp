@@ -62,7 +62,7 @@ const int num_steps = 8;        // Number of time steps for unit test (range 1 t
 int main(int argc, char* argv[]) {
     // Utils to open/read files: Load reference solution ("golden") file
     ChMatrixDynamic<> FileInputMat(4000, 4);
-    std::string LamShell_Val_File = GetChronoDataPath() + "testing/" + "UT_ANCFShellLam.txt";
+    std::string LamShell_Val_File = GetChronoDataPath() + "testing/fea/UT_ANCFShellLam.txt";
     std::ifstream fileMid(LamShell_Val_File);
     if (!fileMid.is_open()) {
         fileMid.open(LamShell_Val_File);

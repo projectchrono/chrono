@@ -50,7 +50,7 @@ const double precision = 5e-7;  // Used to accept/reject implementation
 int main(int argc, char* argv[]) {
     // Utils to open/read files: Load reference solution ("golden") file
     ChMatrixDynamic<> FileInputMat(2000, 4);
-    std::string LamGravShell_Val_File = GetChronoDataPath() + "testing/" + "UT_ANCFShellOrtGrav.txt";
+    std::string LamGravShell_Val_File = GetChronoDataPath() + "testing/fea/UT_ANCFShellOrtGrav.txt";
     std::ifstream fileMid(LamGravShell_Val_File);
     if (!fileMid.is_open()) {
         fileMid.open(LamGravShell_Val_File);
