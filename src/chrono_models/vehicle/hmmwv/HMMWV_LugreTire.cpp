@@ -36,8 +36,8 @@ const double HMMWV_LugreTire::m_mass = 37.6;
 const ChVector<> HMMWV_LugreTire::m_inertia(3.84, 6.69, 3.84);
 const double HMMWV_LugreTire::m_discLocs[] = {-5 * in2m, 0 * in2m, 5 * in2m};
 
-const double HMMWV_LugreTire::m_normalStiffness = 2e6;
-const double HMMWV_LugreTire::m_normalDamping = 1e3;
+const double HMMWV_LugreTire::m_normalStiffness = 326332;
+const double HMMWV_LugreTire::m_normalDamping = 348;
 
 const std::string HMMWV_LugreTire::m_meshName = "hmmwv_tire_POV_geom";
 const std::string HMMWV_LugreTire::m_meshFile = "hmmwv/hmmwv_tire.obj";
@@ -54,20 +54,20 @@ void HMMWV_LugreTire::SetLugreParams() {
     m_sigma1[0] = 1;
     m_sigma2[0] = 0.02;
 
-    m_Fc[0] = 0.6;
-    m_Fs[0] = 1.0;
+    m_Fc[0] = 0.75;
+    m_Fs[0] = 0.84;
 
-    m_vs[0] = 3.5;
+    m_vs[0] = 0.035;
 
     // Lateral direction
     m_sigma0[1] = 60;
     m_sigma1[1] = 0.1;
     m_sigma2[1] = 0.002;
 
-    m_Fc[1] = 0.6;
-    m_Fs[1] = 1.0;
+    m_Fc[1] = 0.75;
+    m_Fs[1] = 0.84;
 
-    m_vs[1] = 3.5;
+    m_vs[1] = 0.035;
 }
 
 // -----------------------------------------------------------------------------
@@ -81,8 +81,7 @@ void HMMWV_LugreTire::AddVisualizationAssets(VisualizationType vis) {
         m_trimesh_shape->SetName(m_meshName);
         m_trimesh_shape->SetStatic(true);
         m_wheel->AddAsset(m_trimesh_shape);
-    }
-    else {
+    } else {
         ChLugreTire::AddVisualizationAssets(vis);
     }
 }
