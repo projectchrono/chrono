@@ -255,7 +255,7 @@ class ChStarMatrix44 : public ChMatrix44<Real> {
     /// The product between a quaternion q1 and the conjugate of q2 (q2'), is:
     ///    q1 x q2'  = [q1]*q2'   = [q1sn]*q2
     /// where [q1sn] is the semi-negation of the 4x4 matrix [q1].
-    void semiNegate() { this->rightCols<3>() *= -1; }
+    void semiNegate() { this->template rightCols<3>() *= -1; }
 };
 
 // =============================================================================

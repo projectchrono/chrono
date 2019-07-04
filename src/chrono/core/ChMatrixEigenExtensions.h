@@ -27,7 +27,7 @@ inline void fillDiagonal(Scalar val) {
 
 /// Set all coefficients to random values, uniformly distributed in specified range.
 inline void fillRandom(Scalar min, Scalar max) {
-    derived() = (Random(rows(), cols()) + 1.) * 0.5 * (max - min) + min;
+    derived() = (derived().Random(rows(), cols()) + 1.) * 0.5 * (max - min) + min;
 }
 
 /// Test if this matrix is within given tolerance from specified matrix (element-wise).
@@ -52,7 +52,7 @@ Scalar wrmsNorm(
 const CwiseBinaryOp<internal::scalar_sum_op<Scalar>, const Derived, const ConstantReturnType> operator+(
     const Scalar& val) const {
     return CwiseBinaryOp<internal::scalar_sum_op<Scalar>, const Derived, const ConstantReturnType>(
-        derived(), Constant(rows(), cols(), val));
+        derived(), derived().Constant(rows(), cols(), val));
 }
 
 /// Add a scalar to all elements.
@@ -60,7 +60,7 @@ friend const CwiseBinaryOp<internal::scalar_sum_op<Scalar>, const ConstantReturn
     const Scalar& val,
     const MatrixBase<Derived>& mat) {
     return CwiseBinaryOp<internal::scalar_sum_op<Scalar>, const ConstantReturnType, Derived>(
-        Constant(mat.rows(), mat.cols(), val), mat.derived());
+        mat.derived().Constant(mat.rows(), mat.cols(), val), mat.derived());
 }
 
 #endif

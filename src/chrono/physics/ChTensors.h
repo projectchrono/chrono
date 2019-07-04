@@ -207,7 +207,7 @@ template <class Real = double>
 class ChStressTensor : public ChVoightTensor<Real> {
   public:
     /// Constructor (default empty).
-    ChStressTensor() : ChVoightTensor() {}
+    ChStressTensor() : ChVoightTensor<Real>() {}
 
     /// Constructor from Eigen expressions.
     template <typename OtherDerived>
@@ -242,7 +242,7 @@ template <class Real = double>
 class ChStrainTensor : public ChVoightTensor<Real> {
   public:
     /// Constructor (default empty).
-    ChStrainTensor() : ChVoightTensor() {}
+    ChStrainTensor() : ChVoightTensor<Real>() {}
 
     /// Constructor from Eigen expressions.
     template <typename OtherDerived>
