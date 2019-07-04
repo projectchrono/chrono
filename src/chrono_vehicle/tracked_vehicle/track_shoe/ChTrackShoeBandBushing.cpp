@@ -21,7 +21,7 @@
 #include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/physics/ChGlobal.h"
+#include "chrono/core/ChGlobal.h"
 
 #include "chrono/physics/ChLoadContainer.h"
 
@@ -188,8 +188,8 @@ void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next) {
     ChMatrixNM<double, 6, 6> K_matrix;
     ChMatrixNM<double, 6, 6> R_matrix;
 
-    K_matrix.Reset();
-    R_matrix.Reset();
+    K_matrix.setZero();
+    R_matrix.setZero();
 
     K_matrix(0, 0) = m_Klin;
     K_matrix(1, 1) = m_Klin;
@@ -211,7 +211,7 @@ void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next) {
     {
         ChVector<> loc = m_shoe->TransformPointLocalToParent(ChVector<>(GetToothBaseLength() / 2, 0, 0));
         ChQuaternion<>& rot = m_shoe->GetRot();
-        auto loadbushing = std::make_shared<ChLoadBodyBodyBushingGeneric>(
+        auto loadbushing = chrono::make_shared<ChLoadBodyBodyBushingGeneric>(
             m_shoe,               // body A
             m_web_segments[0],    // body B
             ChFrame<>(loc, rot),  // initial frame of bushing in abs space
@@ -229,7 +229,7 @@ void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next) {
     for (size_t is = 0; is < GetNumWebSegments() - 1; is++) {
         ChVector<> loc = m_web_segments[is]->TransformPointLocalToParent(ChVector<>(m_seg_length / 2, 0, 0));
         ChQuaternion<>& rot = m_web_segments[is]->GetRot();
-        auto loadbushing = std::make_shared<ChLoadBodyBodyBushingGeneric>(
+        auto loadbushing = chrono::make_shared<ChLoadBodyBodyBushingGeneric>(
             m_web_segments[is],      // body A
             m_web_segments[is + 1],  // body B
             ChFrame<>(loc, rot),     // initial frame of bushing in abs space
@@ -248,7 +248,7 @@ void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next) {
         int is = GetNumWebSegments() - 1;
         ChVector<> loc = m_web_segments[is]->TransformPointLocalToParent(ChVector<>(m_seg_length / 2, 0, 0));
         ChQuaternion<>& rot = m_web_segments[is]->GetRot();
-        auto loadbushing = std::make_shared<ChLoadBodyBodyBushingGeneric>(
+        auto loadbushing = chrono::make_shared<ChLoadBodyBodyBushingGeneric>(
             m_web_segments[is],   // body A
             next->GetShoeBody(),  // body B
             ChFrame<>(loc, rot),  // initial frame of bushing in abs space

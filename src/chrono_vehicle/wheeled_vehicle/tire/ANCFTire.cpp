@@ -98,13 +98,13 @@ void ANCFTire::ProcessJSON(const rapidjson::Document& d) {
             double rho = d["Materials"][i]["Density"].GetDouble();
             double E = d["Materials"][i]["E"].GetDouble();
             double nu = d["Materials"][i]["nu"].GetDouble();
-            m_materials[i] = std::make_shared<ChMaterialShellANCF>(rho, E, nu);
+            m_materials[i] = chrono::make_shared<ChMaterialShellANCF>(rho, E, nu);
         } else if (type.compare("Orthotropic") == 0) {
             double rho = d["Materials"][i]["Density"].GetDouble();
             ChVector<> E = LoadVectorJSON(d["Materials"][i]["E"]);
             ChVector<> nu = LoadVectorJSON(d["Materials"][i]["nu"]);
             ChVector<> G = LoadVectorJSON(d["Materials"][i]["G"]);
-            m_materials[i] = std::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
+            m_materials[i] = chrono::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
         }
     }
 
@@ -242,7 +242,7 @@ void ANCFTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) 
             auto node3 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_mesh->GetNode(inode3));
 
             // Create the element and set its nodes.
-            auto element = std::make_shared<ChElementShellANCF>();
+            auto element = chrono::make_shared<ChElementShellANCF>();
             element->SetNodes(node0, node1, node2, node3);
 
             // Element dimensions

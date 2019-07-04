@@ -349,57 +349,57 @@ void ChHendricksonPRIMAXX::LogHardpointLocations(const ChVector<>& ref, bool inc
 void ChHendricksonPRIMAXX::LogConstraintViolations(VehicleSide side) {
     // Revolute joints
     {
-        ChMatrix<>* C = m_revolute[side]->GetC();
+        ChVectorDynamic<> C = m_revolute[side]->GetC();
         GetLog() << "Spindle revolute      ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "  ";
-        GetLog() << "  " << C->GetElement(3, 0) << "  ";
-        GetLog() << "  " << C->GetElement(4, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "  ";
+        GetLog() << "  " << C(4) << "\n";
     }
     {
-        ChMatrix<>* C = m_revoluteKingpin[side]->GetC();
+        ChVectorDynamic<> C = m_revoluteKingpin[side]->GetC();
         GetLog() << "Kingpin revolute      ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "  ";
-        GetLog() << "  " << C->GetElement(3, 0) << "  ";
-        GetLog() << "  " << C->GetElement(4, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "  ";
+        GetLog() << "  " << C(4) << "\n";
     }
     // Spherical joints
     {
-        ChMatrix<>* C = m_sphericalTorquerod[side]->GetC();
+        ChVectorDynamic<> C = m_sphericalTorquerod[side]->GetC();
         GetLog() << "Torquerod spherical          ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "\n";
     }
     {
-        ChMatrix<>* C = m_sphericalLowerbeam[side]->GetC();
+        ChVectorDynamic<> C = m_sphericalLowerbeam[side]->GetC();
         GetLog() << "Lowerbeam spherical          ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "\n";
     }
 
     {
-      ChMatrix<>* C = m_revoluteLowerbeam[side]->GetC();
+      ChVectorDynamic<> C = m_revoluteLowerbeam[side]->GetC();
       GetLog() << "Lowerbeam revolute          ";
-      GetLog() << "  " << C->GetElement(0, 0) << "  ";
-      GetLog() << "  " << C->GetElement(1, 0) << "  ";
-      GetLog() << "  " << C->GetElement(2, 0) << "  ";
-      GetLog() << "  " << C->GetElement(3, 0) << "  ";
-      GetLog() << "  " << C->GetElement(4, 0) << "\n";
+      GetLog() << "  " << C(0) << "  ";
+      GetLog() << "  " << C(1) << "  ";
+      GetLog() << "  " << C(2) << "  ";
+      GetLog() << "  " << C(3) << "  ";
+      GetLog() << "  " << C(4) << "\n";
     }
 
     {
-      ChMatrix<>* C = m_revoluteTorquerod[side]->GetC();
+      ChVectorDynamic<> C = m_revoluteTorquerod[side]->GetC();
       GetLog() << "Torquerod revolute          ";
-      GetLog() << "  " << C->GetElement(0, 0) << "  ";
-      GetLog() << "  " << C->GetElement(1, 0) << "  ";
-      GetLog() << "  " << C->GetElement(2, 0) << "  ";
-      GetLog() << "  " << C->GetElement(3, 0) << "  ";
-      GetLog() << "  " << C->GetElement(4, 0) << "\n";
+      GetLog() << "  " << C(0) << "  ";
+      GetLog() << "  " << C(1) << "  ";
+      GetLog() << "  " << C(2) << "  ";
+      GetLog() << "  " << C(3) << "  ";
+      GetLog() << "  " << C(4) << "\n";
     }
 
 

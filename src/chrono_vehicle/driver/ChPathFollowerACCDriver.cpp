@@ -22,6 +22,7 @@
 #include <algorithm>
 
 #include "chrono/core/ChMathematics.h"
+#include "chrono/assets/ChLineShape.h"
 #include "chrono/geometry/ChLineBezier.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 

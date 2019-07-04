@@ -23,7 +23,7 @@
 
 #include <algorithm>
 
-#include "chrono/physics/ChGlobal.h"
+#include "chrono/core/ChGlobal.h"
 #include "chrono/assets/ChTexture.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"

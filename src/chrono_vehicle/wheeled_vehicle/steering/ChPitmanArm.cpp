@@ -134,7 +134,7 @@ void ChPitmanArm::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     w = Vcross(dirs[UNIV_AXIS_ARM], dirs[UNIV_AXIS_LINK]);
     rot.Set_A_axis(dirs[UNIV_AXIS_ARM], dirs[UNIV_AXIS_LINK], w);
 
-    m_universal = std::make_shared<ChLinkUniversal>();
+    m_universal = chrono::make_shared<ChLinkUniversal>();
     m_universal->SetNameString(m_name + "_universal");
     m_universal->Initialize(m_arm, m_link, ChFrame<>(points[UNIV], rot.Get_A_quaternion()));
     chassis->GetSystem()->AddLink(m_universal);
@@ -239,31 +239,31 @@ void ChPitmanArm::RemoveVisualizationAssets() {
 void ChPitmanArm::LogConstraintViolations() {
     // Revolute joint
     ////{
-    ////    ChMatrix<>* C = m_revolute->GetC();
+    ////    ChVectorDynamic<> C = m_revolute->GetC();
     ////    GetLog() << "Revolute              ";
-    ////    GetLog() << "  " << C->GetElement(0, 0) << "  ";
-    ////    GetLog() << "  " << C->GetElement(1, 0) << "  ";
-    ////    GetLog() << "  " << C->GetElement(2, 0) << "  ";
-    ////    GetLog() << "  " << C->GetElement(3, 0) << "  ";
-    ////    GetLog() << "  " << C->GetElement(4, 0) << "\n";
+    ////    GetLog() << "  " << C(0) << "  ";
+    ////    GetLog() << "  " << C(1) << "  ";
+    ////    GetLog() << "  " << C(2) << "  ";
+    ////    GetLog() << "  " << C(3) << "  ";
+    ////    GetLog() << "  " << C(4) << "\n";
     ////}
 
     // Universal joint
     {
-        ChMatrix<>* C = m_universal->GetC();
+        ChVectorDynamic<> C = m_universal->GetC();
         GetLog() << "Universal             ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "  ";
-        GetLog() << "  " << C->GetElement(3, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "\n";
     }
 
     // Revolute-spherical joint
     {
-        ChMatrix<>* C = m_revsph->GetC();
+        ChVectorDynamic<> C = m_revsph->GetC();
         GetLog() << "Revolute-spherical    ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "\n";
     }
 }
 

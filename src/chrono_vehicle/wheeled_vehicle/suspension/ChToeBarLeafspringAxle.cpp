@@ -174,7 +174,7 @@ void ChToeBarLeafspringAxle::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
       chassis->GetSystem()->AddLink(m_sphericalDraglink);
     
       // Create and initialize the universal joint between draglink and knuckle
-      m_universalDraglink = std::make_shared<ChLinkUniversal>();
+      m_universalDraglink = chrono::make_shared<ChLinkUniversal>();
       m_universalDraglink->SetNameString(m_name + "_universalDraglink" + "_L");
       m_universalDraglink->Initialize(m_draglink, m_knuckle[LEFT], ChFrame<>(m_pointsL[KNUCKLE_DRL], rot.Get_A_quaternion()));
       chassis->GetSystem()->AddLink(m_universalDraglink);
@@ -205,7 +205,7 @@ void ChToeBarLeafspringAxle::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
       chassis->GetSystem()->AddLink(m_sphericalDraglink);
     
       // Create and initialize the universal joint between draglink and knuckle
-      m_universalDraglink = std::make_shared<ChLinkUniversal>();
+      m_universalDraglink = chrono::make_shared<ChLinkUniversal>();
       m_universalDraglink->SetNameString(m_name + "_universalDraglink" + "_R");
       m_universalDraglink->Initialize(m_draglink, m_knuckle[RIGHT], ChFrame<>(m_pointsR[KNUCKLE_DRL], rot.Get_A_quaternion()));
       chassis->GetSystem()->AddLink(m_universalDraglink);         
@@ -256,7 +256,7 @@ void ChToeBarLeafspringAxle::InitializeSide(VehicleSide side,
         m_sphericalTierod->Initialize(m_tierod, m_knuckle[side], ChCoordsys<>(points[TIEROD_K], QUNIT));
         chassis->GetSystem()->AddLink(m_sphericalTierod);
     } else {
-        m_universalTierod = std::make_shared<ChLinkUniversal>();
+        m_universalTierod = chrono::make_shared<ChLinkUniversal>();
         m_universalTierod->SetNameString(m_name + "_universalTierod" + suffix);
         ChVector<> rightPoint = points[TIEROD_K];
         m_universalTierod->Initialize(m_tierod, m_knuckle[side],
@@ -329,7 +329,7 @@ void ChToeBarLeafspringAxle::InitializeSide(VehicleSide side,
       chassis->GetSystem()->AddLink(m_sphericalDraglink);
     
       // Create and initialize the universal joint between draglink and bell crank.
-      m_universalDraglink = std::make_shared<ChLinkUniversal>();
+      m_universalDraglink = chrono::make_shared<ChLinkUniversal>();
       m_universalDraglink->SetNameString(m_name + "_universalDraglink" + suffix);
       m_universalDraglink->Initialize(m_draglink, m_knuckle[side], ChFrame<>(points[KNUCKLE_DRL], rot.Get_A_quaternion()));
       chassis->GetSystem()->AddLink(m_universalDraglink);
@@ -402,47 +402,47 @@ void ChToeBarLeafspringAxle::LogConstraintViolations(VehicleSide side) {
     // TODO: Update this to reflect new suspension joints
     // Revolute joints
     {
-        ChMatrix<>* C = m_revoluteKingpin[side]->GetC();
+        ChVectorDynamic<> C = m_revoluteKingpin[side]->GetC();
         GetLog() << "Kingpin revolute      ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "  ";
-        GetLog() << "  " << C->GetElement(3, 0) << "  ";
-        GetLog() << "  " << C->GetElement(4, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "  ";
+        GetLog() << "  " << C(4) << "\n";
     }
 
  
     {
-        ChMatrix<>* C = m_sphericalTierod->GetC();
+        ChVectorDynamic<> C = m_sphericalTierod->GetC();
         GetLog() << "Tierod spherical          ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "\n";
     }
     {
-        ChMatrix<>* C = m_sphericalDraglink->GetC();
+        ChVectorDynamic<> C = m_sphericalDraglink->GetC();
         GetLog() << "Draglink spherical          ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "\n";
     }
 
 
     {
-      ChMatrix<>* C = m_universalTierod->GetC();
+      ChVectorDynamic<> C = m_universalTierod->GetC();
       GetLog() << "Tierod universal          ";
-      GetLog() << "  " << C->GetElement(0, 0) << "  ";
-      GetLog() << "  " << C->GetElement(1, 0) << "  ";
-      GetLog() << "  " << C->GetElement(2, 0) << "  ";
-      GetLog() << "  " << C->GetElement(3, 0) << "\n";
+      GetLog() << "  " << C(0) << "  ";
+      GetLog() << "  " << C(1) << "  ";
+      GetLog() << "  " << C(2) << "  ";
+      GetLog() << "  " << C(3) << "\n";
     }
     {
-      ChMatrix<>* C = m_universalDraglink->GetC();
+      ChVectorDynamic<> C = m_universalDraglink->GetC();
       GetLog() << "Draglink universal          ";
-      GetLog() << "  " << C->GetElement(0, 0) << "  ";
-      GetLog() << "  " << C->GetElement(1, 0) << "  ";
-      GetLog() << "  " << C->GetElement(2, 0) << "  ";
-      GetLog() << "  " << C->GetElement(3, 0) << "\n";
+      GetLog() << "  " << C(0) << "  ";
+      GetLog() << "  " << C(1) << "  ";
+      GetLog() << "  " << C(2) << "  ";
+      GetLog() << "  " << C(3) << "\n";
     }
 
 }

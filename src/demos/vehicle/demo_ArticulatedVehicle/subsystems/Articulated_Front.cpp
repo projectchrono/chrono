@@ -43,16 +43,16 @@ const ChVector<> Articulated_Chassis::m_offset(-1.0, 0, 0.1);
 // Chassis of the front side of the articulated vehicle
 // -----------------------------------------------------------------------------
 Articulated_Chassis::Articulated_Chassis(const std::string& name, bool fixed) : ChRigidChassis(name, fixed) {
-    m_inertia.SetElement(0, 0, m_inertiaXX.x());
-    m_inertia.SetElement(1, 1, m_inertiaXX.y());
-    m_inertia.SetElement(2, 2, m_inertiaXX.z());
+    m_inertia(0, 0) = m_inertiaXX.x();
+    m_inertia(1, 1) = m_inertiaXX.y();
+    m_inertia(2, 2) = m_inertiaXX.z();
 
-    m_inertia.SetElement(0, 1, m_inertiaXY.x());
-    m_inertia.SetElement(0, 2, m_inertiaXY.y());
-    m_inertia.SetElement(1, 2, m_inertiaXY.z());
-    m_inertia.SetElement(1, 0, m_inertiaXY.x());
-    m_inertia.SetElement(2, 0, m_inertiaXY.y());
-    m_inertia.SetElement(2, 1, m_inertiaXY.z());
+    m_inertia(0, 1) = m_inertiaXY.x();
+    m_inertia(0, 2) = m_inertiaXY.y();
+    m_inertia(1, 2) = m_inertiaXY.z();
+    m_inertia(1, 0) = m_inertiaXY.x();
+    m_inertia(2, 0) = m_inertiaXY.y();
+    m_inertia(2, 1) = m_inertiaXY.z();
 
     // Visualization primitives
     BoxShape box(ChVector<>(-0.25, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0), ChVector<>(1.5, 1.0, 0.2));

@@ -236,7 +236,7 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     w = Vcross(u, v);
     rot.Set_A_axis(u, v, w);
 
-    m_universalLateralChassis[side] = std::make_shared<ChLinkUniversal>();
+    m_universalLateralChassis[side] = chrono::make_shared<ChLinkUniversal>();
     m_universalLateralChassis[side]->SetNameString(m_name + "_universalLateralChassis" + suffix);
     m_universalLateralChassis[side]->Initialize(m_lateral[side], chassis,
                                                 ChFrame<>(points[LAT_C], rot.Get_A_quaternion()));
@@ -254,7 +254,7 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     w = Vcross(u, v);
     rot.Set_A_axis(u, v, w);
 
-    m_universalTLChassis[side] = std::make_shared<ChLinkUniversal>();
+    m_universalTLChassis[side] = chrono::make_shared<ChLinkUniversal>();
     m_universalTLChassis[side]->SetNameString(m_name + "_universalTLChassis" + suffix);
     m_universalTLChassis[side]->Initialize(m_trailingLink[side], chassis,
                                            ChFrame<>(points[TL_C], rot.Get_A_quaternion()));
@@ -349,63 +349,63 @@ void ChMultiLink::LogHardpointLocations(const ChVector<>& ref, bool inches) {
 void ChMultiLink::LogConstraintViolations(VehicleSide side) {
     // Revolute joints
     {
-        ChMatrix<>* C = m_revoluteUA[side]->GetC();
+        ChVectorDynamic<> C = m_revoluteUA[side]->GetC();
         GetLog() << "Upper arm revolute    ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "  ";
-        GetLog() << "  " << C->GetElement(3, 0) << "  ";
-        GetLog() << "  " << C->GetElement(4, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "  ";
+        GetLog() << "  " << C(4) << "\n";
     }
     {
-        ChMatrix<>* C = m_revolute[side]->GetC();
+        ChVectorDynamic<> C = m_revolute[side]->GetC();
         GetLog() << "Spindle revolute      ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "  ";
-        GetLog() << "  " << C->GetElement(3, 0) << "  ";
-        GetLog() << "  " << C->GetElement(4, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "  ";
+        GetLog() << "  " << C(4) << "\n";
     }
 
     // Spherical joints
     {
-        ChMatrix<>* C = m_sphericalUA[side]->GetC();
+        ChVectorDynamic<> C = m_sphericalUA[side]->GetC();
         GetLog() << "Upper arm spherical   ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "\n";
     }
     {
-        ChMatrix<>* C = m_sphericalLateralUpright[side]->GetC();
+        ChVectorDynamic<> C = m_sphericalLateralUpright[side]->GetC();
         GetLog() << "Lateral-Upright spherical  ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "\n";
     }
     {
-        ChMatrix<>* C = m_sphericalTLUpright[side]->GetC();
+        ChVectorDynamic<> C = m_sphericalTLUpright[side]->GetC();
         GetLog() << "TL-Upright spherical  ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "\n";
     }
 
     // Universal joints
     {
-        ChMatrix<>* C = m_universalLateralChassis[side]->GetC();
+        ChVectorDynamic<> C = m_universalLateralChassis[side]->GetC();
         GetLog() << "Lateral-Chassis universal  ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "  ";
-        GetLog() << "  " << C->GetElement(3, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "\n";
     }
     {
-        ChMatrix<>* C = m_universalTLChassis[side]->GetC();
+        ChVectorDynamic<> C = m_universalTLChassis[side]->GetC();
         GetLog() << "TL-Chassis universal  ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "  ";
-        GetLog() << "  " << C->GetElement(3, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "\n";
     }
 
     // Distance constraint

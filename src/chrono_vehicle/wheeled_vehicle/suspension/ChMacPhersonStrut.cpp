@@ -184,7 +184,7 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
     //u = Vcross(v, w);
     //rot.Set_A_axis(u, v, w);
     //TODO: Is this the correct rotation matrix?
-    m_universalStrut[side] = std::make_shared<ChLinkUniversal>();
+    m_universalStrut[side] = chrono::make_shared<ChLinkUniversal>();
     m_universalStrut[side]->SetNameString(m_name + "_universalStrut" + suffix);
     m_universalStrut[side]->Initialize(chassis, m_strut[side],
       ChFrame<>(points[SPRING_C], rot.Get_A_quaternion()));
@@ -299,51 +299,51 @@ void ChMacPhersonStrut::LogHardpointLocations(const ChVector<>& ref, bool inches
 void ChMacPhersonStrut::LogConstraintViolations(VehicleSide side) {
     // Revolute joints
     {
-        ChMatrix<>* C = m_revoluteLCA[side]->GetC();
+        ChVectorDynamic<> C = m_revoluteLCA[side]->GetC();
         GetLog() << "LCA revolute          ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "  ";
-        GetLog() << "  " << C->GetElement(3, 0) << "  ";
-        GetLog() << "  " << C->GetElement(4, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "  ";
+        GetLog() << "  " << C(4) << "\n";
     }
     {
-        ChMatrix<>* C = m_revolute[side]->GetC();
+        ChVectorDynamic<> C = m_revolute[side]->GetC();
         GetLog() << "Spindle revolute      ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "  ";
-        GetLog() << "  " << C->GetElement(3, 0) << "  ";
-        GetLog() << "  " << C->GetElement(4, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "  ";
+        GetLog() << "  " << C(4) << "\n";
     }
 
     // Spherical joints
     {
-        ChMatrix<>* C = m_sphericalLCA[side]->GetC();
+        ChVectorDynamic<> C = m_sphericalLCA[side]->GetC();
         GetLog() << "LCA spherical         ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "\n";
     }
 
     // Universal joints
     {
-      ChMatrix<>* C = m_universalStrut[side]->GetC();
+      ChVectorDynamic<> C = m_universalStrut[side]->GetC();
       GetLog() << "Strut universal       ";
-      GetLog() << "  " << C->GetElement(0, 0) << "  ";
-      GetLog() << "  " << C->GetElement(1, 0) << "  ";
-      GetLog() << "  " << C->GetElement(2, 0) << "\n";
-      GetLog() << "  " << C->GetElement(3, 0) << "\n";
+      GetLog() << "  " << C(0) << "  ";
+      GetLog() << "  " << C(1) << "  ";
+      GetLog() << "  " << C(2) << "\n";
+      GetLog() << "  " << C(3) << "\n";
     }
 
   // Cylindrical joints
     {
-      ChMatrix<>* C = m_cylindricalStrut[side]->GetC();
+      ChVectorDynamic<> C = m_cylindricalStrut[side]->GetC();
       GetLog() << "Strut cylindrical     ";
-      GetLog() << "  " << C->GetElement(0, 0) << "  ";
-      GetLog() << "  " << C->GetElement(1, 0) << "  ";
-      GetLog() << "  " << C->GetElement(2, 0) << "\n";
-      GetLog() << "  " << C->GetElement(3, 0) << "\n";
+      GetLog() << "  " << C(0) << "  ";
+      GetLog() << "  " << C(1) << "  ";
+      GetLog() << "  " << C(2) << "\n";
+      GetLog() << "  " << C(3) << "\n";
     }
 
     // Distance constraint

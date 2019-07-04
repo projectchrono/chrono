@@ -187,7 +187,7 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddBody(m_upperLink[side]);
 
     // Create and initialize the universal joint between chassis and upper link.
-    m_universalUpperLink[side] = std::make_shared<ChLinkUniversal>();
+    m_universalUpperLink[side] = chrono::make_shared<ChLinkUniversal>();
     m_universalUpperLink[side]->SetNameString(m_name + "_universalUpperLink" + suffix);
     m_universalUpperLink[side]->Initialize(chassis, m_upperLink[side], ChFrame<>(points[UL_C], rot.Get_A_quaternion()));
     chassis->GetSystem()->AddLink(m_universalUpperLink[side]);
@@ -211,7 +211,7 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddBody(m_lowerLink[side]);
 
     // Create and initialize the universal joint between chassis and lower link.
-    m_universalLowerLink[side] = std::make_shared<ChLinkUniversal>();
+    m_universalLowerLink[side] = chrono::make_shared<ChLinkUniversal>();
     m_universalLowerLink[side]->SetNameString(m_name + "_universalLowerLink" + suffix);
     m_universalLowerLink[side]->Initialize(chassis, m_lowerLink[side], ChFrame<>(points[LL_C], rot.Get_A_quaternion()));
     chassis->GetSystem()->AddLink(m_universalLowerLink[side]);
@@ -223,7 +223,7 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
         m_sphericalTierod->Initialize(m_tierod, m_knuckle[side], ChCoordsys<>(points[TIEROD_K], QUNIT));
         chassis->GetSystem()->AddLink(m_sphericalTierod);
     } else {
-        m_universalTierod = std::make_shared<ChLinkUniversal>();
+        m_universalTierod = chrono::make_shared<ChLinkUniversal>();
         m_universalTierod->SetNameString(m_name + "_universalTierod" + suffix);
         m_universalTierod->Initialize(m_tierod, m_knuckle[side],
                                       ChFrame<>(points[TIEROD_K], chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X)));
@@ -315,7 +315,7 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
       chassis->GetSystem()->AddBody(m_bellCrank);
 
       // Create and initialize the universal joint between draglink and bell crank.
-      m_universalDraglink = std::make_shared<ChLinkUniversal>();
+      m_universalDraglink = chrono::make_shared<ChLinkUniversal>();
       m_universalDraglink->SetNameString(m_name + "_universalDraglink" + suffix);
       m_universalDraglink->Initialize(m_draglink, m_bellCrank, ChFrame<>(points[BELLCRANK_DRAGLINK], rot.Get_A_quaternion()));
       chassis->GetSystem()->AddLink(m_universalDraglink);
@@ -415,100 +415,100 @@ void ChSolidAxle::LogConstraintViolations(VehicleSide side) {
     // TODO: Update this to reflect new suspension joints
     // Revolute joints
     {
-        ChMatrix<>* C = m_revoluteKingpin[side]->GetC();
+        ChVectorDynamic<> C = m_revoluteKingpin[side]->GetC();
         GetLog() << "Kingpin revolute      ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "  ";
-        GetLog() << "  " << C->GetElement(3, 0) << "  ";
-        GetLog() << "  " << C->GetElement(4, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "  ";
+        GetLog() << "  " << C(4) << "\n";
     }
 
     {
-        ChMatrix<>* C = m_revoluteBellCrank->GetC();
+        ChVectorDynamic<> C = m_revoluteBellCrank->GetC();
         GetLog() << "Bell Crank revolute      ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "  ";
-        GetLog() << "  " << C->GetElement(3, 0) << "  ";
-        GetLog() << "  " << C->GetElement(4, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "  ";
+        GetLog() << "  " << C(4) << "\n";
     }
 
     // Spherical joints 
     {
-        ChMatrix<>* C = m_sphericalUpperLink[side]->GetC();
+        ChVectorDynamic<> C = m_sphericalUpperLink[side]->GetC();
         GetLog() << "UL spherical          ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "\n";
     }
     {
-        ChMatrix<>* C = m_sphericalLowerLink[side]->GetC();
+        ChVectorDynamic<> C = m_sphericalLowerLink[side]->GetC();
         GetLog() << "LL spherical          ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "\n";
     }
     {
-        ChMatrix<>* C = m_sphericalTierod->GetC();
+        ChVectorDynamic<> C = m_sphericalTierod->GetC();
         GetLog() << "Tierod spherical          ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "\n";
     }
     {
-        ChMatrix<>* C = m_sphericalDraglink->GetC();
+        ChVectorDynamic<> C = m_sphericalDraglink->GetC();
         GetLog() << "Draglink spherical          ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "\n";
     }
 
 
     // Universal joints
     {
-        ChMatrix<>* C = m_universalUpperLink[side]->GetC();
+        ChVectorDynamic<> C = m_universalUpperLink[side]->GetC();
         GetLog() << "UL universal          ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "  ";
-        GetLog() << "  " << C->GetElement(3, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "\n";
     }
     {
-        ChMatrix<>* C = m_universalLowerLink[side]->GetC();
+        ChVectorDynamic<> C = m_universalLowerLink[side]->GetC();
         GetLog() << "LL universal          ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "  ";
-        GetLog() << "  " << C->GetElement(3, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "\n";
     }
     {
-      ChMatrix<>* C = m_universalTierod->GetC();
+      ChVectorDynamic<> C = m_universalTierod->GetC();
       GetLog() << "Tierod universal          ";
-      GetLog() << "  " << C->GetElement(0, 0) << "  ";
-      GetLog() << "  " << C->GetElement(1, 0) << "  ";
-      GetLog() << "  " << C->GetElement(2, 0) << "  ";
-      GetLog() << "  " << C->GetElement(3, 0) << "\n";
+      GetLog() << "  " << C(0) << "  ";
+      GetLog() << "  " << C(1) << "  ";
+      GetLog() << "  " << C(2) << "  ";
+      GetLog() << "  " << C(3) << "\n";
     }
     {
-      ChMatrix<>* C = m_universalDraglink->GetC();
+      ChVectorDynamic<> C = m_universalDraglink->GetC();
       GetLog() << "Draglink universal          ";
-      GetLog() << "  " << C->GetElement(0, 0) << "  ";
-      GetLog() << "  " << C->GetElement(1, 0) << "  ";
-      GetLog() << "  " << C->GetElement(2, 0) << "  ";
-      GetLog() << "  " << C->GetElement(3, 0) << "\n";
+      GetLog() << "  " << C(0) << "  ";
+      GetLog() << "  " << C(1) << "  ";
+      GetLog() << "  " << C(2) << "  ";
+      GetLog() << "  " << C(3) << "\n";
     }
 
     // Point-plane joints
     {
-      ChMatrix<>* C = m_pointPlaneBellCrank->GetC();
+      ChVectorDynamic<> C = m_pointPlaneBellCrank->GetC();
       GetLog() << "Bell Crank point-plane          ";
-      GetLog() << "  " << C->GetElement(0, 0) << "  ";
-      GetLog() << "  " << C->GetElement(1, 0) << "  ";
-      GetLog() << "  " << C->GetElement(2, 0) << "  ";
-      GetLog() << "  " << C->GetElement(3, 0) << "  ";
-      GetLog() << "  " << C->GetElement(4, 0) << "  ";
-      GetLog() << "  " << C->GetElement(5, 0) << "\n";
+      GetLog() << "  " << C(0) << "  ";
+      GetLog() << "  " << C(1) << "  ";
+      GetLog() << "  " << C(2) << "  ";
+      GetLog() << "  " << C(3) << "  ";
+      GetLog() << "  " << C(4) << "  ";
+      GetLog() << "  " << C(5) << "\n";
     }
 }
 

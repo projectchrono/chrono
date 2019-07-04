@@ -22,7 +22,7 @@
 #include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/physics/ChGlobal.h"
+#include "chrono/core/ChGlobal.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"
@@ -244,7 +244,7 @@ void ChTrackShoeBand::ExportTreadVisualizationMeshPovray(const std::string& out_
 // -----------------------------------------------------------------------------
 // Utilities for creating tooth visualization mesh
 // -----------------------------------------------------------------------------
-size_t ChTrackShoeBand::ProfilePoints(std::vector<ChVector2<>>& points, std::vector<ChVector2<>>& normals) {
+int ChTrackShoeBand::ProfilePoints(std::vector<ChVector2<>>& points, std::vector<ChVector2<>>& normals) {
     int np = 4;
     double step = 1.0 / (np - 1);
 
@@ -278,14 +278,14 @@ size_t ChTrackShoeBand::ProfilePoints(std::vector<ChVector2<>>& points, std::vec
     ////for (auto p : points)
     ////    std::cout << p.x() << "  " << p.y() << std::endl;
 
-    return points.size();
+    return (int)points.size();
 }
 
 std::shared_ptr<ChTriangleMeshShape> ChTrackShoeBand::ToothMesh(double y) {
     // Obtain profile points.
     std::vector<ChVector2<>> points2;
     std::vector<ChVector2<>> normals2;
-    size_t np = ProfilePoints(points2, normals2);
+    int np = ProfilePoints(points2, normals2);
 
     // Create the triangular mesh.
     auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();

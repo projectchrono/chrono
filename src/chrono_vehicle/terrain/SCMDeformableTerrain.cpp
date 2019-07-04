@@ -841,7 +841,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
         class MyRefinement : public geometry::ChTriangleMeshConnected::ChRefineEdgeCriterion {
         public:
             virtual double ComputeLength(const int vert_a, const int  vert_b, geometry::ChTriangleMeshConnected* mmesh) {
-                ChVector<> d = A.MatrT_x_Vect(mmesh->m_vertices[vert_a] - mmesh->m_vertices[vert_b]);
+                ChVector<> d = A.transpose() * (mmesh->m_vertices[vert_a] - mmesh->m_vertices[vert_b]);
                 d.y() = 0;
                 return d.Length();
             }

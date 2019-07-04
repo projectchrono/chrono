@@ -41,6 +41,7 @@
 #include <cmath>
 
 #include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChSphereShape.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"

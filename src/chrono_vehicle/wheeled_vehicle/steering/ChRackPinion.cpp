@@ -137,20 +137,20 @@ void ChRackPinion::RemoveVisualizationAssets() {
 void ChRackPinion::LogConstraintViolations() {
     // Translational joint
     {
-        ChMatrix<>* C = m_prismatic->GetC();
+        ChVectorDynamic<> C = m_prismatic->GetC();
         GetLog() << "Prismatic           ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "  ";
-        GetLog() << "  " << C->GetElement(3, 0) << "  ";
-        GetLog() << "  " << C->GetElement(4, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "  ";
+        GetLog() << "  " << C(4) << "\n";
     }
 
     // Actuator
     {
-        ChMatrix<>* C = m_actuator->GetC();
+        ChVectorDynamic<> C = m_actuator->GetC();
         GetLog() << "Actuator            ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
+        GetLog() << "  " << C(0) << "  ";
     }
 }
 

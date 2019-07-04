@@ -169,13 +169,13 @@ void ChRotationalDamperRWAssembly::RemoveVisualizationAssets() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRotationalDamperRWAssembly::LogConstraintViolations() {
-    ChMatrix<>* C = m_revolute->GetC();
+    ChVectorDynamic<> C = m_revolute->GetC();
     GetLog() << "  Arm-chassis revolute\n";
-    GetLog() << "  " << C->GetElement(0, 0) << "  ";
-    GetLog() << "  " << C->GetElement(1, 0) << "  ";
-    GetLog() << "  " << C->GetElement(2, 0) << "  ";
-    GetLog() << "  " << C->GetElement(3, 0) << "  ";
-    GetLog() << "  " << C->GetElement(4, 0) << "\n";
+    GetLog() << "  " << C(0) << "  ";
+    GetLog() << "  " << C(1) << "  ";
+    GetLog() << "  " << C(2) << "  ";
+    GetLog() << "  " << C(3) << "  ";
+    GetLog() << "  " << C(4) << "\n";
 
     m_road_wheel->LogConstraintViolations();
 }

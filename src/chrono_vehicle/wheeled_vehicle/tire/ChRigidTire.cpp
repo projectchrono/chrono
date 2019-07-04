@@ -18,7 +18,7 @@
 
 #include <algorithm>
 
-#include "chrono/physics/ChGlobal.h"
+#include "chrono/core/ChGlobal.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChContactContainer.h"
 

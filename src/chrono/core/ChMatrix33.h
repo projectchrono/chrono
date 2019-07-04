@@ -33,14 +33,18 @@ class ChMatrix33 : public Eigen::Matrix<Real, 3, 3, Eigen::RowMajor> {
     template <typename OtherDerived>
     ChMatrix33(const Eigen::MatrixBase<OtherDerived>& other) : Eigen::Matrix<Real, 3, 3, Eigen::RowMajor>(other) {}
 
-    /// Construct a 3x3 rotation matrix from the given quaternion.
-    ChMatrix33(const ChQuaternion<Real>& q);
-
     /// Construct a diagonal matrix with the specified value on the diagonal.
     ChMatrix33(Real val);
 
     /// Construct a diagonal matrix with the specified values on the diagonal.
     ChMatrix33(const ChVector<Real>& v);
+
+    /// Construct a symmetric 3x3 matrix with the specified vectors for the diagonal and off-digonal elements.
+    /// The off-diagonal vector is assumed to contain the elements A(0,1), A(0,2), A(1,2) in this order.
+    ChMatrix33(const ChVector<>& diag, const ChVector<>& off_diag);
+
+    /// Construct a 3x3 rotation matrix from the given quaternion.
+    ChMatrix33(const ChQuaternion<Real>& q);
 
     /// Construct a 3x3 rotation matrix from an angle and a rotation axis.
     /// Note that the axis direction must be normalized.
@@ -188,6 +192,21 @@ ChMatrix33<Real>::ChMatrix33(const ChVector<Real>& v) {
     this->setZero();
     this->diagonal() = v.eigen();
 }
+
+template <typename Real>
+ChMatrix33<Real>::ChMatrix33(const ChVector<>& diag, const ChVector<>& off_diag) {
+    this->diagonal() = diag.eigen();
+
+    (*this)(0, 1) = off_diag.x();
+    (*this)(1, 0) = off_diag.x();
+
+    (*this)(0, 2) = off_diag.y();
+    (*this)(2, 0) = off_diag.y();
+
+    (*this)(1, 2) = off_diag.z();
+    (*this)(2, 1) = off_diag.z();
+}
+
 
 template <typename Real>
 ChMatrix33<Real>::ChMatrix33(Real angle, const ChVector<>& axis) {

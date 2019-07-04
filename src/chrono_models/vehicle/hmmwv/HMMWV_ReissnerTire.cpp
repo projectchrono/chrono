@@ -209,7 +209,7 @@ void HMMWV_ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleS
             auto node3 = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(m_mesh->GetNode(inode3));
 
             // Create the element and set its nodes.
-            auto element = std::make_shared<ChElementShellReissner4>();
+            auto element = chrono::make_shared<ChElementShellReissner4>();
             element->SetNodes(node0, node1, node2, node3);
 
             // Element dimensions

@@ -192,7 +192,7 @@ void ChThreeLinkIRS::InitializeSide(VehicleSide side,
     v = Vcross(w, u);
     rot.Set_A_axis(u, v, w);
 
-    m_universalUpper[side] = std::make_shared<ChLinkUniversal>();
+    m_universalUpper[side] = chrono::make_shared<ChLinkUniversal>();
     m_universalUpper[side]->SetNameString(m_name + "_universalUpper" + suffix);
     m_universalUpper[side]->Initialize(m_upper[side], chassis, ChFrame<>(points[UL_C], rot));
     chassis->GetSystem()->AddLink(m_universalUpper[side]);
@@ -203,7 +203,7 @@ void ChThreeLinkIRS::InitializeSide(VehicleSide side,
     v = Vcross(w, u);
     rot.Set_A_axis(u, v, w);
 
-    m_universalLower[side] = std::make_shared<ChLinkUniversal>();
+    m_universalLower[side] = chrono::make_shared<ChLinkUniversal>();
     m_universalLower[side]->SetNameString(m_name + "_universalLower" + suffix);
     m_universalLower[side]->Initialize(m_lower[side], chassis, ChFrame<>(points[LL_C], rot));
     chassis->GetSystem()->AddLink(m_universalLower[side]);
@@ -287,50 +287,50 @@ void ChThreeLinkIRS::LogHardpointLocations(const ChVector<>& ref, bool inches) {
 // -----------------------------------------------------------------------------
 void ChThreeLinkIRS::LogConstraintViolations(VehicleSide side) {
     {
-        ChMatrix<>* C = m_sphericalArm[side]->GetC();
+        ChVectorDynamic<> C = m_sphericalArm[side]->GetC();
         GetLog() << "Arm spherical         ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "\n";
     }
     {
-        ChMatrix<>* C = m_sphericalUpper[side]->GetC();
+        ChVectorDynamic<> C = m_sphericalUpper[side]->GetC();
         GetLog() << "Upper spherical       ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "\n";
     }
     {
-        ChMatrix<>* C = m_sphericalLower[side]->GetC();
+        ChVectorDynamic<> C = m_sphericalLower[side]->GetC();
         GetLog() << "Lower spherical       ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "\n";
     }
     {
-        ChMatrix<>* C = m_universalUpper[side]->GetC();
+        ChVectorDynamic<> C = m_universalUpper[side]->GetC();
         GetLog() << "Upper universal       ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "  ";
-        GetLog() << "  " << C->GetElement(3, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "\n";
     }
     {
-        ChMatrix<>* C = m_universalLower[side]->GetC();
+        ChVectorDynamic<> C = m_universalLower[side]->GetC();
         GetLog() << "Lower universal       ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "  ";
-        GetLog() << "  " << C->GetElement(3, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "\n";
     }
     {
-        ChMatrix<>* C = m_revolute[side]->GetC();
+        ChVectorDynamic<> C = m_revolute[side]->GetC();
         GetLog() << "Spindle revolute      ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "  ";
-        GetLog() << "  " << C->GetElement(3, 0) << "  ";
-        GetLog() << "  " << C->GetElement(4, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "  ";
+        GetLog() << "  " << C(4) << "\n";
     }
 }
 

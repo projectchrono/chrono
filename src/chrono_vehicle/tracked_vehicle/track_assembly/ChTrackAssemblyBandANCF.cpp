@@ -147,8 +147,8 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     connection_lengths[1] = m_shoes[0]->GetWebLength();
 
     // Create ANCF materials (shared by all track shoes)
-    auto rubber_mat = std::make_shared<fea::ChMaterialShellANCF>(m_rubber_rho, m_rubber_E, m_rubber_nu, m_rubber_G);
-    auto steel_mat = std::make_shared<fea::ChMaterialShellANCF>(m_steel_rho, m_steel_E, m_steel_nu, m_steel_G);
+    auto rubber_mat = chrono::make_shared<fea::ChMaterialShellANCF>(m_rubber_rho, m_rubber_E, m_rubber_nu, m_rubber_G);
+    auto steel_mat = chrono::make_shared<fea::ChMaterialShellANCF>(m_steel_rho, m_steel_E, m_steel_nu, m_steel_G);
 
     // Calculate assembly points
     std::vector<ChVector2<>> shoe_points;
