@@ -30,6 +30,7 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/chassis/RigidChassis.h"
 #include "chrono_vehicle/tracked_vehicle/driveline/SimpleTrackDriveline.h"
+#include "chrono_vehicle/tracked_vehicle/driveline/TrackDrivelineBDS.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyBandBushing.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyDoublePin.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblySinglePin.h"
@@ -145,6 +146,8 @@ void TrackedVehicle::LoadDriveline(const std::string& filename, int output) {
     // Create the driveline using the appropriate template.
     if (subtype.compare("SimpleTrackDriveline") == 0) {
         m_driveline = std::make_shared<SimpleTrackDriveline>(d);
+    } else if (subtype.compare("TrackDrivelineBDS") == 0) {
+        m_driveline = std::make_shared<TrackDrivelineBDS>(d);
     }
 
     // A non-zero value of 'output' indicates overwriting the subsystem's flag

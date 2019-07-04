@@ -131,8 +131,8 @@ install:
     - cmd: conda config --add channels https://conda.anaconda.org/intel
     # need to manually add non standard channels.
     # Up-to date version by tpaviot: breaks conda. Use CadQuery version
-    #- cmd: conda install -c conda-forge -c dlr-sc -c pythonocc -c oce -c tpaviot pythonocc-core==0.18.2 --yes
-    - cmd: conda install -c cadquery pythonocc-core --yes
+    - cmd: conda install -c conda-forge -c dlr-sc -c pythonocc -c oce -c 3dhubs oce==0.18 --yes
+    #- cmd: conda install -c cadquery pythonocc-core --yes
     - cmd: conda install -c intel mkl-devel=2018.0.3 --yes
 
 ############################################### UBUNTU ###############################################################
@@ -157,7 +157,7 @@ install:
     - sh: conda create -n myenv python=$PYTHON_VERSION -y
     - sh: conda update --yes conda
     - sh: source activate myenv
-    - sh: conda install --yes pip jinja2 binstar
+    - sh: conda install --yes pip jinja2
     - sh: conda config --set show_channel_urls true
     #- sh: conda install conda-build=3.17.5 anaconda-client=1.5.5 conda-verify --yes
     - sh: conda install conda-build anaconda-client conda-verify --yes
@@ -166,8 +166,8 @@ install:
 
     - sh: conda config --add channels https://conda.anaconda.org/conda-forge
     - sh: conda config --add channels https://conda.anaconda.org/intel
-    #- sh: conda install -c conda-forge -c dlr-sc -c pythonocc -c oce pythonocc-core==0.18.1 --yes
-    - sh: conda install -c cadquery pythonocc-core --yes
+    - sh: conda install -c conda-forge -c dlr-sc -c pythonocc -c oce -c 3dhubs oce==0.18.2 --yes
+    #- sh: conda install -c cadquery pythonocc-core --yes
     - sh: conda install -c intel mkl-devel --yes
 
 build: off

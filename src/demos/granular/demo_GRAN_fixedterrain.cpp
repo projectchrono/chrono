@@ -54,21 +54,19 @@ int main(int argc, char* argv[]) {
                                  make_float3(params.box_X, params.box_Y, params.box_Z));
 
     // Add spherically-decomposed underlying terrain.
-    vector<string> objfilenames;
-    objfilenames.push_back("data/granular/fixedterrain/fixedterrain.obj");
+    std::string objfilename("data/granular/fixedterrain/fixedterrain.obj");
+    // std::string objfilename("data/granular/fixedterrain/triangle.obj");
 
-    vector<ChVector<float>> scalings;
-    scalings.push_back(ChVector<float>(params.box_X / 2, params.box_Y / 2, params.box_Z));
+    ChVector<float> scaling(params.box_X / 2, params.box_Y / 2, params.box_Z);
 
-    vector<ChVector<float>> offsets;
-    offsets.push_back(ChVector<float>(0, 0, -params.box_Z / 2));
+    ChVector<float> offset(0, 0, -params.box_Z / 2);
 
     std::vector<ChVector<float>> terrain_points =
-        MeshSphericalDecomposition(objfilenames, scalings, offsets, params.sphere_radius);
+        MeshSphericalDecomposition<float>(objfilename, scaling, offset, params.sphere_radius);
 
     // Add loose granular material
     int layers = 10;  // Approximate number of material layers
-    const double boundary_padding = 4.0 * params.sphere_radius;
+    const double boundary_padding = 8.0 * params.sphere_radius;
     float fill_bottom = -1e16;
     for (auto pt : terrain_points) {
         fill_bottom = std::max(fill_bottom, pt.z());
@@ -82,12 +80,17 @@ int main(int argc, char* argv[]) {
     ChVector<> fill_hdims(params.box_X / 2 - boundary_padding - 2.0 * params.sphere_radius,
                           params.box_Y / 2 - boundary_padding - 2.0 * params.sphere_radius,
                           (fill_top - fill_bottom) / 2.0);
-    vector<ChVector<float>> body_points =
+    vector<ChVector<float>> material_points =
         utils::PDLayerSampler_BOX<float>(fill_center, fill_hdims, 2.0 * params.sphere_radius);
-    vector<bool> fixed(body_points.size(), false);
+
+    vector<ChVector<float>> body_points;
+    vector<bool> fixed;
 
     body_points.insert(body_points.end(), terrain_points.begin(), terrain_points.end());
     fixed.insert(fixed.end(), terrain_points.size(), true);
+
+    body_points.insert(body_points.end(), material_points.begin(), material_points.end());
+    fixed.insert(fixed.end(), material_points.size(), false);
 
     cout << "Adding " << body_points.size() << " spheres." << endl;
     gran_sys.setParticlePositions(body_points);

@@ -91,12 +91,12 @@ void ShowJSONUsage() {
     cout << "normalDampS2S" << endl;
     cout << "normalDampS2W" << endl;
     cout << "normalDampS2M" << endl;
-    cout << "tangentDampS2S" << endl;
-    cout << "tangentDampS2W" << endl;
-    cout << "tangentDampS2M" << endl;
     cout << "tangentStiffS2S" << endl;
     cout << "tangentStiffS2W" << endl;
     cout << "tangentStiffS2M" << endl;
+    cout << "tangentDampS2S" << endl;
+    cout << "tangentDampS2W" << endl;
+    cout << "tangentDampS2M" << endl;
     cout << "friction_mode (frictionless|single_step|multi_step)" << endl;
     cout << "static_friction_coeffS2S" << endl;
     cout << "static_friction_coeffS2W" << endl;
