@@ -53,7 +53,7 @@ void ChShaftsLoad::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
         mrotB_dt = mshaftB->GetPos_dt();
     }
 
-	double rel_rot    = mrotA    - mrotA;
+	double rel_rot    = mrotA    - mrotB;
     double rel_rot_dt = mrotA_dt - mrotB_dt;
 
     // COMPUTE THE TORQUE
