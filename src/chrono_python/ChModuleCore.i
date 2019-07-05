@@ -393,17 +393,14 @@ using namespace chrono::fea;
 %import "../chrono/physics/ChLoad.h" // a forward reference done "the %import way" here works ok..
 %include "ChLoadContainer.i"
 
-%include "ChShaft.i"
-%include "ChShaftMotor.i"
-%include "ChLinkMotor.i"
 %include "../chrono/physics/ChLoad.h"
 %include "../chrono/physics/ChLoadsBody.h"
 %include "../chrono/physics/ChLoadsXYZnode.h"
 %include "../chrono/physics/ChLoadContainer.h"
 
-
-
-
+%include "ChShaft.i"
+%include "ChShaftMotor.i"
+%include "ChLinkMotor.i"
 
 //
 // C- DOWNCASTING OF SHARED POINTERS
