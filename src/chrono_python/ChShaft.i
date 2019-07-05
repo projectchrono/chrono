@@ -11,6 +11,7 @@
 #include "chrono/physics/ChShaftsClutch.h"
 #include "chrono/physics/ChShaftsThermalEngine.h"
 #include "chrono/physics/ChShaftsTorsionSpring.h"
+#include "chrono/physics/ChShaftsLoads.h"
 
 %}
  
@@ -30,6 +31,9 @@
 %shared_ptr(chrono::ChShaftsThermalEngine)
 %shared_ptr(chrono::ChShaftsTorqueBase)
 %shared_ptr(chrono::ChShaftsTorsionSpring)
+%shared_ptr(chrono::ChShaftsLoad)
+%shared_ptr(chrono::ChShaftsTorsionSpringDamper)
+%shared_ptr(chrono::ChShaftsElasticGear)
 
 
 /* Parse the header file to generate wrappers */
@@ -43,6 +47,7 @@
 %include "../chrono/physics/ChShaftsClutch.h"  
 %include "../chrono/physics/ChShaftsThermalEngine.h"  
 %include "../chrono/physics/ChShaftsTorsionSpring.h"  
+%include "../chrono/physics/ChShaftsLoads.h"  
 
 
 

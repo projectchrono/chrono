@@ -147,7 +147,7 @@ void ChLugreTire::Synchronize(double time,
         // are reduced to the wheel center). If the resulting force is negative, the
         // disc is moving away from the terrain so fast that no contact force is
         // generated.
-        double Fn_mag = GetNormalStiffness() * depth - GetNormalDamping() * m_data[id].vel.z();
+        double Fn_mag = (GetNormalStiffness() * depth - GetNormalDamping() * m_data[id].vel.z()) / GetNumDiscs();
 
         if (Fn_mag < 0)
             Fn_mag = 0;

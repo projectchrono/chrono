@@ -48,6 +48,26 @@ ChLinkMotorLinearDriveline::~ChLinkMotorLinearDriveline() {
     
 }
 
+void ChLinkMotorLinearDriveline::Setup() {
+    if (innershaft1lin->IsActive()) {
+        innershaft1lin->SetOffset_x(this->offset_x + 0);
+        innershaft1lin->SetOffset_w(this->offset_w + 0);
+    }
+    if (innershaft2lin->IsActive()) {
+        innershaft2lin->SetOffset_x(this->offset_x + 1);
+        innershaft2lin->SetOffset_w(this->offset_w + 1);
+    }
+    if (innershaft2rot->IsActive()) {
+        innershaft2rot->SetOffset_x(this->offset_x + 2);
+        innershaft2rot->SetOffset_w(this->offset_w + 2);
+    }
+    int nc = mask->nconstr;
+    innerconstraint1lin->SetOffset_L(this->offset_L + nc + 0);
+    innerconstraint2lin->SetOffset_L(this->offset_L + nc + 1);
+    innerconstraint2rot->SetOffset_L(this->offset_L + nc + 2);
+} 
+
+
 void ChLinkMotorLinearDriveline::Update(double mytime, bool update_assets) {
 
      // Inherit parent class:

@@ -9,17 +9,17 @@
 
   "Disc Locations":   [-0.127, 0, 0.127],
 
-  "Normal Stiffness": 2e6,
-  "Normal Damping":   1e3,
+  "Normal Stiffness": 326332.4234,
+  "Normal Damping":   348.3932502,
 
   "Lugre Parameters":
   {
     "sigma0":         [181.0,  60.0],
     "sigma1":         [  1.0,   0.2],
     "sigma2":         [  0.02,  0.002],
-    "Fc":             [  0.6,   0.6],
-    "Fs":             [  1.0,   1.0],
-    "vs":             [  3.5,   3.5]
+    "Fc":             [  0.7547,   0.7547],
+    "Fs":             [  0.8385,   0.8385],
+    "vs":             [  0.035,   0.035]
   },
 
   "Visualization":
