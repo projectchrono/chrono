@@ -82,6 +82,9 @@ class ChApi ChElementShellANCF : public ChElementShell, public ChLoadableUV, pub
         double m_detJ0C;
         ChMatrixNM<double, 6, 6> m_T0;
 
+      public:
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
         friend class ChElementShellANCF;
         friend class MyForce;
         friend class MyJacobian;
@@ -181,30 +184,30 @@ class ChApi ChElementShellANCF : public ChElementShell, public ChLoadableUV, pub
     //// RADU
     //// Why is m_d_dt inconsistent with m_d?  Why not keep it as an 8x3 matrix?
 
-    std::vector<std::shared_ptr<ChNodeFEAxyzD> > m_nodes;  ///< element nodes
-    std::vector<Layer> m_layers;                           ///< element layers
-    size_t m_numLayers;                                    ///< number of layers for this element
-    double m_lenX;                                         ///< element length in X direction
-    double m_lenY;                                         ///< element length in Y direction
-    double m_thickness;                                    ///< total element thickness
-    std::vector<double> m_GaussZ;                          ///< layer separation z values (scaled to [-1,1])
-    double m_GaussScaling;                                 ///< scaling factor due to change of integration intervals
-    double m_Alpha;                                        ///< structural damping
-    bool m_gravity_on;                                     ///< enable/disable gravity calculation
-    ChVectorN<double, 24> m_GravForce;                     ///< Gravity Force
-    ChMatrixNM<double, 24, 24> m_MassMatrix;               ///< mass matrix
-    ChMatrixNM<double, 24, 24> m_JacobianMatrix;           ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
-    ChMatrixNM<double, 8, 3> m_d0;                         ///< initial nodal coordinates
-    ChMatrixNM<double, 8, 8> m_d0d0T;                      ///< matrix m_d0 * m_d0^T
-    ChMatrixNM<double, 8, 3> m_d;                          ///< current nodal coordinates
-    ChMatrixNM<double, 8, 8> m_ddT;                        ///< matrix m_d * m_d^T
-    ChVectorN<double, 24> m_d_dt;                          ///< current nodal velocities
-    ChVectorN<double, 8> m_strainANS;                      ///< ANS strain
-    ChMatrixNM<double, 8, 24> m_strainANS_D;               ///< ANS strain derivatives
-    std::vector<ChVectorN<double, 5> > m_alphaEAS;         ///< EAS parameters (5 per layer)
-    std::vector<ChMatrixNM<double, 5, 5> > m_KalphaEAS;    ///< EAS Jacobians (a 5x5 matrix per layer)
-    static const double m_toleranceEAS;                    ///< tolerance for nonlinear EAS solver (on residual)
-    static const int m_maxIterationsEAS;                   ///< maximum number of nonlinear EAS iterations
+    std::vector<std::shared_ptr<ChNodeFEAxyzD>> m_nodes;           ///< element nodes
+    std::vector<Layer, Eigen::aligned_allocator<Layer>> m_layers;  ///< element layers
+    size_t m_numLayers;                                            ///< number of layers for this element
+    double m_lenX;                                                 ///< element length in X direction
+    double m_lenY;                                                 ///< element length in Y direction
+    double m_thickness;                                            ///< total element thickness
+    std::vector<double> m_GaussZ;                                  ///< layer separation z values (scaled to [-1,1])
+    double m_GaussScaling;                              ///< scaling factor due to change of integration intervals
+    double m_Alpha;                                     ///< structural damping
+    bool m_gravity_on;                                  ///< enable/disable gravity calculation
+    ChVectorN<double, 24> m_GravForce;                  ///< Gravity Force
+    ChMatrixNM<double, 24, 24> m_MassMatrix;            ///< mass matrix
+    ChMatrixNM<double, 24, 24> m_JacobianMatrix;        ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
+    ChMatrixNM<double, 8, 3> m_d0;                      ///< initial nodal coordinates
+    ChMatrixNM<double, 8, 8> m_d0d0T;                   ///< matrix m_d0 * m_d0^T
+    ChMatrixNM<double, 8, 3> m_d;                       ///< current nodal coordinates
+    ChMatrixNM<double, 8, 8> m_ddT;                     ///< matrix m_d * m_d^T
+    ChVectorN<double, 24> m_d_dt;                       ///< current nodal velocities
+    ChVectorN<double, 8> m_strainANS;                   ///< ANS strain
+    ChMatrixNM<double, 8, 24> m_strainANS_D;            ///< ANS strain derivatives
+    std::vector<ChVectorN<double, 5>> m_alphaEAS;       ///< EAS parameters (5 per layer)
+    std::vector<ChMatrixNM<double, 5, 5>> m_KalphaEAS;  ///< EAS Jacobians (a 5x5 matrix per layer)
+    static const double m_toleranceEAS;                 ///< tolerance for nonlinear EAS solver (on residual)
+    static const int m_maxIterationsEAS;                ///< maximum number of nonlinear EAS iterations
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
