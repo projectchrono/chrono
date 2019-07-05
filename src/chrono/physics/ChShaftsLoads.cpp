@@ -19,17 +19,17 @@ namespace chrono {
 
 
 // -----------------------------------------------------------------------------
-// ChLoadShaftShaft
+// ChShaftsLoad
 // -----------------------------------------------------------------------------
 
-ChLoadShaftShaft::ChLoadShaftShaft(std::shared_ptr<ChShaft> shaftA,  ///< shaft A
+ChShaftsLoad::ChShaftsLoad(std::shared_ptr<ChShaft> shaftA,  ///< shaft A
 								   std::shared_ptr<ChShaft> shaftB   ///< shaft B
     )
     : ChLoadCustomMultiple(shaftA, shaftB) {
     this->torque = 0;
 }
 
-void ChLoadShaftShaft::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
+void ChShaftsLoad::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
     auto mshaftA = std::dynamic_pointer_cast<ChShaft>(this->loadables[0]);
     auto mshaftB = std::dynamic_pointer_cast<ChShaft>(this->loadables[1]);
 
@@ -66,30 +66,30 @@ void ChLoadShaftShaft::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
     this->load_Q(1) = -this->torque;
 }
 
-std::shared_ptr<ChShaft> ChLoadShaftShaft::GetShaftA() const {
+std::shared_ptr<ChShaft> ChShaftsLoad::GetShaftA() const {
     return std::dynamic_pointer_cast<ChShaft>(this->loadables[0]);
 }
 
-std::shared_ptr<ChShaft> ChLoadShaftShaft::GetShaftB() const {
+std::shared_ptr<ChShaft> ChShaftsLoad::GetShaftB() const {
     return std::dynamic_pointer_cast<ChShaft>(this->loadables[1]);
 }
 
 
 // -----------------------------------------------------------------------------
-// ChLoadShaftShaftStiffness
+// ChShaftsTorsionSpringDamper
 // -----------------------------------------------------------------------------
 
 
-chrono::ChLoadShaftShaftStiffness::ChLoadShaftShaftStiffness(std::shared_ptr<ChShaft> mshaftA,
+chrono::ChShaftsTorsionSpringDamper::ChShaftsTorsionSpringDamper(std::shared_ptr<ChShaft> mshaftA,
                                                              std::shared_ptr<ChShaft> mshaftB,
                                                              const double mstiffness,
                                                              const double mdamping) :
-    ChLoadShaftShaft(mshaftA, mshaftB), stiffness(mstiffness), damping(mdamping), rest_phase(0.0) {
+    ChShaftsLoad(mshaftA, mshaftB), stiffness(mstiffness), damping(mdamping), rest_phase(0.0) {
 
 }
 
 
-void ChLoadShaftShaftStiffness::ComputeShaftShaftTorque(const double rel_rot, const double rel_rot_dt, double& result_torque) {
+void ChShaftsTorsionSpringDamper::ComputeShaftShaftTorque(const double rel_rot, const double rel_rot_dt, double& result_torque) {
     result_torque = - (rel_rot-rest_phase) * stiffness    
                     - rel_rot_dt * damping;  
 }
@@ -97,10 +97,10 @@ void ChLoadShaftShaftStiffness::ComputeShaftShaftTorque(const double rel_rot, co
 
 
 // -----------------------------------------------------------------------------
-// ChLoadShaftShaftElasticGear
+// ChShaftsElasticGear
 // -----------------------------------------------------------------------------
 
-chrono::ChLoadShaftShaftElasticGear::ChLoadShaftShaftElasticGear(
+chrono::ChShaftsElasticGear::ChShaftsElasticGear(
     std::shared_ptr<ChShaft> mshaftA,  ///< shaft A
     std::shared_ptr<ChShaft> mshaftB,  ///< shaft B
     const double mstiffness,          ///< normal stiffness at teeth contact, tangent direction to primitive
@@ -117,7 +117,7 @@ chrono::ChLoadShaftShaftElasticGear::ChLoadShaftShaftElasticGear(
 }
 
 
-void ChLoadShaftShaftElasticGear::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
+void ChShaftsElasticGear::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
     auto mshaftA = std::dynamic_pointer_cast<ChShaft>(this->loadables[0]);
     auto mshaftB = std::dynamic_pointer_cast<ChShaft>(this->loadables[1]);
 

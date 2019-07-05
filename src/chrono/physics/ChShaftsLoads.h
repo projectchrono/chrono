@@ -23,12 +23,12 @@ namespace chrono {
 
 
 
-/// Base class for loads (torque) acting between two shafts.
-/// See children classes for concrete implementations.
+/// Base class for defining loads between a couple of two one-degree-of-freedom
+/// parts; i.e., shafts that can be used to build 1D models of powertrains.
 
-class ChApi ChLoadShaftShaft : public ChLoadCustomMultiple {
+class ChApi ChShaftsLoad : public ChLoadCustomMultiple {
   public:
-    ChLoadShaftShaft(std::shared_ptr<ChShaft> shaftA,  ///< shaft A
+    ChShaftsLoad(std::shared_ptr<ChShaft> shaftA,  ///< shaft A
                      std::shared_ptr<ChShaft> shaftB   ///< shaft B
     );
 
@@ -61,7 +61,7 @@ class ChApi ChLoadShaftShaft : public ChLoadCustomMultiple {
                           ) override;
 };
 
-CH_CLASS_VERSION(ChLoadShaftShaft, 0)
+CH_CLASS_VERSION(ChShaftsLoad, 0)
 
 
 
@@ -72,9 +72,9 @@ CH_CLASS_VERSION(ChLoadShaftShaft, 0)
 /// This supersedes the old ChShaftsTorsionSpring (which cannot handle
 /// extremely stiff spring values)
 
-class ChApi ChLoadShaftShaftStiffness : public ChLoadShaftShaft {
+class ChApi ChShaftsTorsionSpringDamper : public ChShaftsLoad {
   public:
-    ChLoadShaftShaftStiffness(
+    ChShaftsTorsionSpringDamper(
         std::shared_ptr<ChShaft> mbodyA,    ///< shaft A
         std::shared_ptr<ChShaft> mbodyB,    ///< shaft B
         const double mstiffness,      ///< torsional stiffness
@@ -82,7 +82,7 @@ class ChApi ChLoadShaftShaftStiffness : public ChLoadShaftShaft {
     );
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChLoadShaftShaftStiffness* Clone() const override { return new ChLoadShaftShaftStiffness(*this); }
+    virtual ChShaftsTorsionSpringDamper* Clone() const override { return new ChShaftsTorsionSpringDamper(*this); }
 
     /// Set torsional stiffness, es. [Nm/rad]
     void SetTorsionalStiffness(const double mstiffness) { stiffness = mstiffness; }
@@ -117,9 +117,9 @@ class ChApi ChLoadShaftShaftStiffness : public ChLoadShaftShaft {
 /// This supersedes the old ChShaftsTorsionSpring (which cannot handle
 /// extremely stiff spring values)
 
-class ChApi ChLoadShaftShaftElasticGear : public ChLoadCustomMultiple {
+class ChApi ChShaftsElasticGear : public ChLoadCustomMultiple {
   public:
-    ChLoadShaftShaftElasticGear(std::shared_ptr<ChShaft> mbodyA,  ///< shaft A
+    ChShaftsElasticGear(std::shared_ptr<ChShaft> mbodyA,  ///< shaft A
                                 std::shared_ptr<ChShaft> mbodyB,  ///< shaft B
                               const double mstiffness,      ///< normal stiffness at teeth contact, tangent direction to primitive
                               const double mdamping,        ///< normal damping at teeth contact, tangent direction to primitive
@@ -128,7 +128,7 @@ class ChApi ChLoadShaftShaftElasticGear : public ChLoadCustomMultiple {
     );
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChLoadShaftShaftElasticGear* Clone() const override { return new ChLoadShaftShaftElasticGear(*this); }
+    virtual ChShaftsElasticGear* Clone() const override { return new ChShaftsElasticGear(*this); }
 
     /// Set teeth stiffness, at contact point, in tangent direction to the two primitives. Es. [N/m]
     void SetTeethStiffness(const double mstiffness) { stiffness = mstiffness; }
