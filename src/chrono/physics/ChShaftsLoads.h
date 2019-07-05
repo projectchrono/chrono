@@ -45,7 +45,7 @@ class ChApi ChShaftsLoad : public ChLoadCustomMultiple {
 
     /// For diagnosis purposes, this can return the actual last computed value of
     /// the applied torque, assumed applied to body B
-    ChVector<> GetTorque() const { return torque; }
+    double GetTorque() const { return torque; }
 
     std::shared_ptr<ChShaft> GetShaftA() const;
     std::shared_ptr<ChShaft> GetShaftB() const;
@@ -167,7 +167,7 @@ class ChApi ChShaftsElasticGear : public ChLoadCustomMultiple {
     double GetGearRadiusA() const { return Ra; }
 
 	/// Get the primitive radius of the gear wheel of shaftB
-    double GetGearRadiusB() const { return Ra * fabs(ratio); }
+    double GetGearRadiusB() const { return Ra * fabs(1.0/ratio); }
 
 	/// Get the last computed contact force, for diagnostics.
 	/// The force is assumed tangent to the primitives of the gear wheels,
