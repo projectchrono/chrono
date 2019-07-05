@@ -20,7 +20,6 @@
 // =============================================================================
 
 #include "chrono/core/ChLog.h"
-#include "chrono/core/ChMatrixDynamic.h"
 
 #include "chrono_cosimulation/ChCosimulation.h"
 #include "chrono_cosimulation/ChExceptionSocket.h"
@@ -37,28 +36,23 @@ int main(int argc, char* argv[]) {
     GetLog() << "NOTE! This requires that you also run a copy of Simulink. \n\n";
 
     try {
-        // Test 1
-        // Create a cosimulation interface and exchange some data
-        // with Simulink.
-
+        // Create a cosimulation interface and exchange some data with Simulink.
         int PORTNUM = 50009;
 
-        ChMatrixDynamic<double> data_in(3, 1);
-        ChMatrixDynamic<double> data_out(2, 1);
-        data_in.Reset();
-        data_out.Reset();
+        ChVectorDynamic<double> data_in(3);
+        ChVectorDynamic<double> data_out(2);
+        data_in.setZero();
+        data_out.setZero();
 
         // 1) Add a socket framework object
         ChSocketFramework socket_tools;
 
         // 2) Create the cosimulation interface:
-
         ChCosimulation cosimul_interface(socket_tools,
-                                         3,   // n.input values from Simulink
-                                         2);  // n.output values to Simulink
+                                         3,   // num. input values from Simulink
+                                         2);  // num. output values to Simulink
 
         // 3) Wait client (Simulink) to connect...
-
         GetLog() << " *** Waiting Simulink to start... *** \n     (load 'data/cosimulation/test_cosimulation.mdl' in "
                     "Simulink and press Start...)\n\n";
 
@@ -69,8 +63,8 @@ int main(int argc, char* argv[]) {
 
         while (true) {
             // 4) Send data and receive data
-            cosimul_interface.SendData(mytime, &data_out);     // --> to Simulink
-            cosimul_interface.ReceiveData(histime, &data_in);  // <-- from Simulink
+            cosimul_interface.SendData(mytime, data_out);     // --> to Simulink
+            cosimul_interface.ReceiveData(histime, data_in);  // <-- from Simulink
 
             mytime = histime;
 
@@ -79,9 +73,8 @@ int main(int argc, char* argv[]) {
             data_out(1) = 1.0 - data_in(1);
 
             GetLog() << "--- synchronization at time: " << mytime << "\n\n";
-            GetLog() << data_in << "\n";
+            std::cout << data_in << std::endl;
         }
-
     } catch (ChExceptionSocket exception) {
         GetLog() << " ERRROR with socket system: \n" << exception.what() << "\n";
     }

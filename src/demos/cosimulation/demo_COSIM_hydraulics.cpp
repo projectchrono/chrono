@@ -102,10 +102,10 @@ int main(int argc, char* argv[]) {
         // back and forth between Chrono and Simulink. In detail we will
         // - receive 1 variable from Simulink (the hydraulic cylinder force)
         // - send 2 variables to Simulink (the hydraulic cylinder velocity and displacement)
-        ChMatrixDynamic<double> data_in(1, 1);
-        ChMatrixDynamic<double> data_out(2, 1);
-        data_in.Reset();
-        data_out.Reset();
+        ChVectorDynamic<double> data_in(1);
+        ChVectorDynamic<double> data_out(2);
+        data_in.setZero();
+        data_out.setZero();
 
         // 4) Wait client (Simulink) to connect...
 
@@ -148,12 +148,12 @@ int main(int argc, char* argv[]) {
                           my_link_actuator->Get_SpringRestLength();  // subtract initial length so starts at 0.
 
             // GetLog() << "Send \n";
-            cosimul_interface.SendData(mytime, &data_out);  // --> to Simulink
+            cosimul_interface.SendData(mytime, data_out);  // --> to Simulink
 
             // B.2) - RECEIVE data
 
             // GetLog() << "Receive \n";
-            cosimul_interface.ReceiveData(histime, &data_in);  // <-- from Simulink
+            cosimul_interface.ReceiveData(histime, data_in);  // <-- from Simulink
 
             // - Update the Chrono system with the force value that we received
             //   from Simulink using the data_in vector, that contains:

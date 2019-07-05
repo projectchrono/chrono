@@ -13,6 +13,7 @@
 // =============================================================================
 
 #include "chrono_matlab/ChSolverMatlab.h"
+#include "chrono/core/ChLinkedListMatrix.h"
 
 namespace chrono {
 
@@ -32,9 +33,9 @@ double ChSolverMatlab::Solve(ChSystemDescriptor& sysd) {
     chrono::ChLinkedListMatrix mdM;
     chrono::ChLinkedListMatrix mdCq;
     chrono::ChLinkedListMatrix mdE;
-    chrono::ChMatrixDynamic<double> mdf;
-    chrono::ChMatrixDynamic<double> mdb;
-    chrono::ChMatrixDynamic<double> mdfric;
+    chrono::ChVectorDynamic<double> mdf;
+    chrono::ChVectorDynamic<double> mdb;
+    chrono::ChVectorDynamic<double> mdfric;
     sysd.ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
 
     mengine->PutSparseMatrix(mdM, "mdM");
