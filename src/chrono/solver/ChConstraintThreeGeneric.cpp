@@ -95,7 +95,7 @@ void ChConstraintThreeGeneric::Update_auxiliary() {
         variables_b->Compute_invMb_v(Eq_b, Cq_b.transpose());
     }
     if (variables_c->IsActive() && variables_c->Get_ndof() > 0) {
-        variables_c->Compute_invMb_v(Eq_c, Cq_b.transpose());
+        variables_c->Compute_invMb_v(Eq_c, Cq_c.transpose());
     }
 
     //// RADU
