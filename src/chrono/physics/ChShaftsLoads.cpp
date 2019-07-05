@@ -140,17 +140,18 @@ void ChShaftsElasticGear::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
         mrotA_dt = mshaftA->GetPos_dt();
         mrotB_dt = mshaftB->GetPos_dt();
     }
+	double invratio = 1.0 / ratio;
 
-    double rel_compression	   = Ra * (mrotA - this->rest_phase) - ratio * Ra * mrotB;
-    double rel_compression_dt  = Ra *  mrotA_dt                  - ratio * Ra * mrotB_dt;
+    double rel_compression	   = Ra * (mrotA - this->rest_phase) - invratio * Ra * mrotB;
+    double rel_compression_dt  = Ra *  mrotA_dt                  - invratio * Ra * mrotB_dt;
 
 	// Compute contact force
 	contact_force = -rel_compression * this->stiffness - rel_compression_dt * this->damping;
 
     // Compute resulting torques on the two shafts and store them in Q
 
-    this->load_Q(0) =		   Ra * contact_force;
-    this->load_Q(1) = -ratio * Ra * contact_force;
+    this->load_Q(0) =		      Ra * contact_force;
+    this->load_Q(1) = -invratio * Ra * contact_force;
 }
 
 
