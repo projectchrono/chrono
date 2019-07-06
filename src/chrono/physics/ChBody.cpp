@@ -298,7 +298,7 @@ void ChBody::VariablesFbIncrementMq() {
 
 void ChBody::VariablesQbLoadSpeed() {
     // set current speed in 'qb', it can be used by the solver when working in incremental mode
-    this->variables.Get_qb().segment(0, 3) = GetCoord().pos.eigen();
+    this->variables.Get_qb().segment(0, 3) = GetCoord_dt().pos.eigen();
     this->variables.Get_qb().segment(3, 3) = GetWvel_loc().eigen();
 }
 
