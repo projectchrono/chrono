@@ -28,6 +28,7 @@
 #include <algorithm>
 
 #include "chrono/ChConfig.h"
+#include "chrono/assets/ChLineShape.h"
 #include "chrono/core/ChMathematics.h"
 #include "chrono/core/ChStream.h"
 #include "chrono/geometry/ChLineBezier.h"

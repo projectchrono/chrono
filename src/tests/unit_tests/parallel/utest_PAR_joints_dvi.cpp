@@ -26,6 +26,7 @@
 #include "chrono_parallel/physics/ChSystemParallel.h"
 
 #include "chrono/ChConfig.h"
+#include "chrono/assets/ChBoxShape.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
 #ifdef CHRONO_OPENGL
@@ -177,15 +178,15 @@ TEST_P(JointsDVI, simulate) {
             system->DoStepDynamics(time_step);
 
             // Check constraints for prismatic joint
-            ChMatrix<>* pC = prismatic->GetC();
+            ChVectorDynamic<> pC = prismatic->GetC();
             for (int i = 0; i < 5; i++) {
-                ASSERT_NEAR(pC->GetElement(i, 0), 0.0, max_cnstr_violation);
+                ASSERT_NEAR(pC(i), 0.0, max_cnstr_violation);
             }
 
             // Check constraints for revolute joint
-            ChMatrix<>* rC = revolute->GetC();
+            ChVectorDynamic<> rC = revolute->GetC();
             for (int i = 0; i < 5; i++) {
-                ASSERT_NEAR(rC->GetElement(i, 0), 0.0, max_cnstr_violation);
+                ASSERT_NEAR(rC(i), 0.0, max_cnstr_violation);
             }
         }
     }

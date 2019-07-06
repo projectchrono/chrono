@@ -81,7 +81,7 @@ void AddBody(ChSystemParallelNSC* sys) {
     bin->GetCollisionModel()->SetFamily(1);
     bin->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(2);
     bin->GetCollisionModel()->BuildModel();
-    bin->SetInertiaXX(utils::CalcBoxGyration(hdim).Get_Diag() * 100);
+    bin->SetInertiaXX(utils::CalcBoxGyration(hdim).diagonal() * 100);
 
     sys->AddBody(bin);
 }

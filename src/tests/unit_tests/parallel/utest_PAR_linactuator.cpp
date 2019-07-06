@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include "chrono/ChConfig.h"
+#include "chrono/assets/ChBoxShape.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
@@ -272,12 +273,11 @@ void ChLinActuatorTest::VerifySolution(double time) {
     // Constraint violations in prismatic joint
     // ----------------------------------------
 
-    ChMatrix<>* CP = prismatic->GetC();
+    ChVectorDynamic<> CP = prismatic->GetC();
     for (int i = 0; i < 5; i++) {
-        ASSERT_NEAR(CP->GetElement(i, 0), 0.0, cnstr_tol);
-        //////if (std::abs(CP->GetElement(i, 0)) > cnstr_tol) {
-        //////    std::cout << "   at t = " << time << "  constraint violation (prismatic " << i
-        //////        << ") = " << CP->GetElement(i, 0) << std::endl;
+        ASSERT_NEAR(CP(i), 0.0, cnstr_tol);
+        //////if (std::abs(CP(i)) > cnstr_tol) {
+        //////    std::cout << "   at t = " << time << "  constraint violation (prismatic " << i  << ") = " << CP(i) << std::endl;
         //////    return false;
         //////}
     }
@@ -285,10 +285,10 @@ void ChLinActuatorTest::VerifySolution(double time) {
     // Constraint violations in linear actuator
     // ----------------------------------------
 
-    ChMatrix<>* CA = actuator->GetC();
-    ASSERT_NEAR(CA->GetElement(0, 0), 0.0, cnstr_tol);
-    //////if (std::abs(CA->GetElement(0, 0)) > cnstr_tol) {
-    //////    std::cout << "   at t = " << time << "  constraint violation (actuator) = " << CA->GetElement(0, 0)
+    ChVectorDynamic<> CA = actuator->GetC();
+    ASSERT_NEAR(CA(0), 0.0, cnstr_tol);
+    //////if (std::abs(CA(00)) > cnstr_tol) {
+    //////    std::cout << "   at t = " << time << "  constraint violation (actuator) = " << CA(0)
     //////        << std::endl;
     //////    return false;
     //////}

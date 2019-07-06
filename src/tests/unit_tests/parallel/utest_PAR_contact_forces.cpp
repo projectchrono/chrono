@@ -20,6 +20,7 @@
 // =============================================================================
 
 #include "chrono/ChConfig.h"
+#include "chrono/assets/ChSphereShape.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
