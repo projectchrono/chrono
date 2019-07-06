@@ -418,8 +418,7 @@ void AddTriangleMeshConvexDecompositionSplit(ChSystem* system,
 
         body->GetAssets().push_back(trimesh_shape);
         // std::cout << mass << " " << scale * mass* total_mass << " " <<
-        // inertia.GetElement(0, 0) << " " << inertia.GetElement(1, 1) << " " <<
-        // inertia.GetElement(2, 2) << std::endl;
+        // inertia(0, 0) << " " << inertia(1, 1) << " " << inertia(2, 2) << std::endl;
         FinalizeObject(body, system);
         body->SetInertiaXX(ChVector<>(inertia(0, 0) * scale * total_mass,
                                       inertia(1, 1) * scale * total_mass,

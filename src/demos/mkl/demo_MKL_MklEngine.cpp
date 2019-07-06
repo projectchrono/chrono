@@ -18,22 +18,6 @@
 
 using namespace chrono;
 
-////void LoadFromMatrix(ChMatrix<>& output_mat, std::string filename)
-////{
-////	std::ifstream my_file;
-////	my_file.open(filename);
-////
-////	double temp;
-////	int row_sel = -1;
-////	for (row_sel = 0; row_sel < output_mat.GetRows(); row_sel++)
-////	{
-////		my_file >> temp;
-////		output_mat.SetElement(row_sel,0,temp);
-////	}
-////	my_file.close();
-////}
-
-
 void test_CSR3()
 {
 	std::cout << "//////////// CSR3 Matrix: basic functions testing //////////////" << std::endl;
