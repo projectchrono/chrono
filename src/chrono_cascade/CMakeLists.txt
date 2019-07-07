@@ -33,14 +33,21 @@ SET(ChronoEngine_CASCADE_HEADERS
     ChApiCASCADE.h
     ChCascadeMeshTools.h
     ChCascadeDoc.h
-    ChIrrCascadeMeshTools.h
     ChCascadeShapeAsset.h
     ChBodyEasyCascade.h
 )
+if(ENABLE_MODULE_IRRLICHT)
+    set(ChronoEngine_CASCADE_HEADERS_IRRLICHT 
+        ChIrrCascadeMeshTools.h)
+else()
+    set(ChronoEngine_CASCADE_HEADERS_IRRLICHT "")
+endif()
 
 SOURCE_GROUP("" FILES 
     ${ChronoEngine_CASCADE_SOURCES} 
-    ${ChronoEngine_CASCADE_HEADERS})
+    ${ChronoEngine_CASCADE_HEADERS}
+    ${ChronoEngine_CASCADE_HEADERS_IRRLICHT}
+    )
 
 #-----------------------------------------------------------------------------	
 
@@ -97,13 +104,23 @@ SET (CASCADE_LIBRARIES "${CASCADE_LIBRARIES}" PARENT_SCOPE )
 #-----------------------------------------------------------------------------	
 # Add the ChronoEngine_cascade library
 
-INCLUDE_DIRECTORIES( "${CASCADE_INCLUDE_DIR}" )
+include_directories(${CASCADE_INCLUDE_DIR})
+set(CXX_FLAGS ${CH_CXX_FLAGS})
+set(LIBRARIES "ChronoEngine")
+
+if(ENABLE_MODULE_IRRLICHT)
+    set(CXX_FLAGS "${CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
+    list(APPEND LIBRARIES ${IRRLICHT_LIBRARY})
+    include_directories(${CH_IRRLICHTINC})
+endif()
 
 ADD_LIBRARY(ChronoEngine_cascade SHARED 
             ${ChronoEngine_CASCADE_SOURCES}
-            ${ChronoEngine_CASCADE_HEADERS})
+            ${ChronoEngine_CASCADE_HEADERS}
+            ${ChronoEngine_CASCADE_HEADERS_IRRLICHT})
 
 SET_TARGET_PROPERTIES(ChronoEngine_cascade PROPERTIES 
+                      COMPILE_FLAGS "${CXX_FLAGS}"
                       LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
                       COMPILE_DEFINITIONS "CH_API_COMPILE_CASCADE")
 
@@ -116,7 +133,7 @@ ENDIF()
 
 TARGET_LINK_LIBRARIES(ChronoEngine_cascade
         ${CASCADE_LIBRARIES} 
-        ChronoEngine)
+        ${LIBRARIES})
 ADD_DEPENDENCIES(ChronoEngine_cascade ChronoEngine)
 
 INSTALL(TARGETS ChronoEngine_cascade
@@ -124,5 +141,6 @@ INSTALL(TARGETS ChronoEngine_cascade
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib)
 
-INSTALL(FILES ${ChronoEngine_CASCADE_HEADERS} DESTINATION include/chrono_cascade)
+INSTALL(FILES ${ChronoEngine_CASCADE_HEADERS} ${ChronoEngine_CASCADE_HEADERS_IRRLICHT}
+        DESTINATION include/chrono_cascade)
 
