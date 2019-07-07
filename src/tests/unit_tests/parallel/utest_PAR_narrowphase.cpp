@@ -256,7 +256,7 @@ int main(int argc, char* argv[]) {
 
 #else
         std::cout << "OpenGL support not available.  Cannot animate mechanism." << std::endl;
-        return false;
+        return 1;
 #endif
     }
     else {

@@ -1361,7 +1361,7 @@ bool ChTriangleMeshConnected::MakeOffset(const double moffset) {
             //// Traverse the lower triangle of A and look for entries close to +1 or -1.
             for (int j = 0; j < ntri; ++j) {
                 for (int k = j + 1; k < ntri; ++k) {
-                    if (std::abs(A(j, k) - 1 < 1e-4)) {
+                    if (std::abs(A(j, k) - 1) < 1e-4) {
                         // eliminate weight k
                         A.col(k).setZero();
                         A.row(k).setZero();
