@@ -63,6 +63,8 @@ ChSystemGranularSMC::ChSystemGranularSMC(float sphere_rad, float density, float3
     gran_params->rolling_mode = NO_RESISTANCE;
     gran_params->time_integrator = EXTENDED_TAYLOR;
     this->time_integrator = EXTENDED_TAYLOR;
+    this->output_flags = ABSV;
+
     setMaxSafeVelocity_SU((float)UINT_MAX);
 
     set_static_friction_coeff_SPH2SPH(0);
@@ -169,7 +171,7 @@ void ChSystemGranularSMC::packSphereDataPointers() {
     gpuErrchk(cudaMemPrefetchAsync(sphere_data, sizeof(*sphere_data), dev_ID));
 }
 
-void ChSystemGranularSMC::writeFile(std::string ofile, bool write_vel_components) const {
+void ChSystemGranularSMC::writeFile(std::string ofile) const {
     // The file writes are a pretty big slowdown in CSV mode
     if (file_write_mode == GRAN_OUTPUT_MODE::BINARY) {
         // Write the data as binary to a file, requires later postprocessing that can be done in parallel, this is a
@@ -177,10 +179,6 @@ void ChSystemGranularSMC::writeFile(std::string ofile, bool write_vel_components
         std::ofstream ptFile(ofile + ".raw", std::ios::out | std::ios::binary);
 
         for (unsigned int n = 0; n < nSpheres; n++) {
-            float absv = sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) +
-                              pos_Z_dt.at(n) * pos_Z_dt.at(n)) *
-                         VEL_SU2UU;
-
             unsigned int ownerSD = sphere_owner_SDs.at(n);
             int3 ownerSD_trip = getSDTripletFromID(ownerSD);
             float x_UU = sphere_local_pos_X[n] * LENGTH_SU2UU;
@@ -199,7 +197,7 @@ void ChSystemGranularSMC::writeFile(std::string ofile, bool write_vel_components
             ptFile.write((const char*)&y_UU, sizeof(float));
             ptFile.write((const char*)&z_UU, sizeof(float));
 
-            if (write_vel_components) {
+            if (GET_OUTPUT_SETTING(VEL_COMPONENTS)) {
                 float vx_UU = pos_X_dt[n] * LENGTH_SU2UU / TIME_SU2UU;
                 float vy_UU = pos_Y_dt[n] * LENGTH_SU2UU / TIME_SU2UU;
                 float vz_UU = pos_Z_dt[n] * LENGTH_SU2UU / TIME_SU2UU;
@@ -209,7 +207,13 @@ void ChSystemGranularSMC::writeFile(std::string ofile, bool write_vel_components
                 ptFile.write((const char*)&vz_UU, sizeof(float));
             }
 
-            ptFile.write((const char*)&absv, sizeof(float));
+            if (GET_OUTPUT_SETTING(ABSV)) {
+                float absv = sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) +
+                                  pos_Z_dt.at(n) * pos_Z_dt.at(n)) *
+                             VEL_SU2UU;
+
+                ptFile.write((const char*)&absv, sizeof(float));
+            }
 
             if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
                 float omega_x_UU = sphere_Omega_X.at(n) / TIME_SU2UU;
@@ -227,10 +231,15 @@ void ChSystemGranularSMC::writeFile(std::string ofile, bool write_vel_components
         // Dump to a stream, write to file only at end
         std::ostringstream outstrstream;
         outstrstream << "x,y,z";
-        if (write_vel_components) {
+        if (GET_OUTPUT_SETTING(VEL_COMPONENTS)) {
             outstrstream << ",vx,vy,vz";
         }
-        outstrstream << ",absv";
+        if (GET_OUTPUT_SETTING(ABSV)) {
+            outstrstream << ",absv";
+        }
+        if (GET_OUTPUT_SETTING(FIXITY)) {
+            outstrstream << ",fixed";
+        }
 
         if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
             outstrstream << ",wx,wy,wz";
@@ -238,9 +247,6 @@ void ChSystemGranularSMC::writeFile(std::string ofile, bool write_vel_components
         outstrstream << "\n";
         for (unsigned int n = 0; n < nSpheres; n++) {
             unsigned int ownerSD = sphere_owner_SDs.at(n);
-            float absv = sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) +
-                              pos_Z_dt.at(n) * pos_Z_dt.at(n)) *
-                         VEL_SU2UU;
             int3 ownerSD_trip = getSDTripletFromID(ownerSD);
             float x_UU = sphere_local_pos_X[n] * LENGTH_SU2UU;
             float y_UU = sphere_local_pos_Y[n] * LENGTH_SU2UU;
@@ -255,7 +261,8 @@ void ChSystemGranularSMC::writeFile(std::string ofile, bool write_vel_components
             z_UU += ((int64_t)ownerSD_trip.z * gran_params->SD_size_Z_SU) * LENGTH_SU2UU;
 
             outstrstream << x_UU << "," << y_UU << "," << z_UU;
-            if (write_vel_components) {
+
+            if (GET_OUTPUT_SETTING(VEL_COMPONENTS)) {
                 float vx_UU = pos_X_dt[n] * LENGTH_SU2UU / TIME_SU2UU;
                 float vy_UU = pos_Y_dt[n] * LENGTH_SU2UU / TIME_SU2UU;
                 float vz_UU = pos_Z_dt[n] * LENGTH_SU2UU / TIME_SU2UU;
@@ -263,7 +270,17 @@ void ChSystemGranularSMC::writeFile(std::string ofile, bool write_vel_components
                 outstrstream << "," << vx_UU << "," << vy_UU << "," << vz_UU;
             }
 
-            outstrstream << "," << absv;
+            if (GET_OUTPUT_SETTING(ABSV)) {
+                float absv = sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) +
+                                  pos_Z_dt.at(n) * pos_Z_dt.at(n)) *
+                             VEL_SU2UU;
+                outstrstream << "," << absv;
+            }
+
+            if (GET_OUTPUT_SETTING(FIXITY)) {
+                int fixed = (int) sphere_fixed[n];
+                outstrstream << "," << fixed;
+            }
 
             if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
                 outstrstream << "," << sphere_Omega_X.at(n) / TIME_SU2UU << "," << sphere_Omega_Y.at(n) / TIME_SU2UU
