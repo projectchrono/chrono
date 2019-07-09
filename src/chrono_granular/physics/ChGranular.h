@@ -129,7 +129,7 @@ enum GRAN_FRICTION_MODE { FRICTIONLESS, SINGLE_STEP, MULTI_STEP };
 /// Rolling resistance models -- ELASTIC_PLASTIC not implemented yet
 enum GRAN_ROLLING_MODE { NO_RESISTANCE, CONSTANT_TORQUE, VISCOUS, ELASTIC_PLASTIC };
 
-enum GRAN_OUTPUT_FLAGS { ABSV = 1, VEL_COMPONENTS = 2, FIXITY = 4 };
+enum GRAN_OUTPUT_FLAGS { ABSV = 1, VEL_COMPONENTS = 2, FIXITY = 4, ANG_VEL_COMPONENTS = 8 };
 #define GET_OUTPUT_SETTING(setting) (this->output_flags & setting)
 
 /// Parameters needed for sphere-based granular dynamics. This structure is stored in CUDA unified memory so that it can

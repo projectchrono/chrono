@@ -63,7 +63,7 @@ ChSystemGranularSMC::ChSystemGranularSMC(float sphere_rad, float density, float3
     gran_params->rolling_mode = NO_RESISTANCE;
     gran_params->time_integrator = EXTENDED_TAYLOR;
     this->time_integrator = EXTENDED_TAYLOR;
-    this->output_flags = ABSV;
+    this->output_flags = ABSV | ANG_VEL_COMPONENTS;
 
     setMaxSafeVelocity_SU((float)UINT_MAX);
 
@@ -215,7 +215,8 @@ void ChSystemGranularSMC::writeFile(std::string ofile) const {
                 ptFile.write((const char*)&absv, sizeof(float));
             }
 
-            if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
+            if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS &&
+                GET_OUTPUT_SETTING(ANG_VEL_COMPONENTS)) {
                 float omega_x_UU = sphere_Omega_X.at(n) / TIME_SU2UU;
                 float omega_y_UU = sphere_Omega_Y.at(n) / TIME_SU2UU;
                 float omega_z_UU = sphere_Omega_Z.at(n) / TIME_SU2UU;
@@ -241,7 +242,7 @@ void ChSystemGranularSMC::writeFile(std::string ofile) const {
             outstrstream << ",fixed";
         }
 
-        if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
+        if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS && GET_OUTPUT_SETTING(ANG_VEL_COMPONENTS)) {
             outstrstream << ",wx,wy,wz";
         }
         outstrstream << "\n";
@@ -282,7 +283,8 @@ void ChSystemGranularSMC::writeFile(std::string ofile) const {
                 outstrstream << "," << fixed;
             }
 
-            if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
+            if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS &&
+                GET_OUTPUT_SETTING(ANG_VEL_COMPONENTS)) {
                 outstrstream << "," << sphere_Omega_X.at(n) / TIME_SU2UU << "," << sphere_Omega_Y.at(n) / TIME_SU2UU
                              << "," << sphere_Omega_Z.at(n) / TIME_SU2UU;
             }
