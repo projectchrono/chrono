@@ -238,7 +238,7 @@ __host__ double ChSystemGranularSMC_trimesh::advance_simulation(float duration) 
     METRICS_PRINTF("advancing by %f at timestep %f, %u timesteps at approx user timestep %f\n", duration_SU,
                    stepSize_SU, nsteps, duration / nsteps);
 
-    INFO_PRINTF("Starting Main Simulation loop!\n");
+    METRICS_PRINTF("Starting Main Simulation loop!\n");
 
     float time_elapsed_SU = 0;  // time elapsed in this call (SU)
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
