@@ -385,9 +385,6 @@ class CH_GRANULAR_API ChSystemGranularSMC {
 
     /// Set the output mode of the simulation
     void setOutputMode(GRAN_OUTPUT_MODE mode) { file_write_mode = mode; }
-    /// Set the simulation's output directory, files are output as step%06d, where the number is replaced by the current
-    /// render frame. This directory is assumed to be created by the user, either manually or in the driver file.
-    void setOutputDirectory(std::string dir) { output_directory = dir; }
 
     /// Set simualtion verbosity -- used to check on very large, slow simulations or debug
     void setVerbose(GRAN_VERBOSITY level) { verbosity = level; }
@@ -537,8 +534,6 @@ class CH_GRANULAR_API ChSystemGranularSMC {
     /// How to write the output files?
     /// Default is CSV
     GRAN_OUTPUT_MODE file_write_mode;
-    /// Directory to write to, this code assumes it already exists
-    std::string output_directory;
 
     /// Number of discrete elements
     unsigned int nSpheres;
