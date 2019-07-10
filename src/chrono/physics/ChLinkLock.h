@@ -44,14 +44,6 @@ class ChApi ChLinkLock : public ChLinkMarkers {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLock* Clone() const override { return new ChLinkLock(*this); }
 
-    /// Must be called after whatever change the mask of the link,
-    /// in order to update auxiliary matrices sizes.
-    void ChangeLinkMask(ChLinkMask* new_mask);
-
-    /// Must be called after whatever change the mask of the link,
-    /// in order to update auxiliary matrices sizes.
-    void ChangedLinkMask();
-
     /// If some constraint is redundant, return to normal state.
     int RestoreRedundant() override;
 
@@ -61,11 +53,10 @@ class ChApi ChLinkLock : public ChLinkMarkers {
     /// For example, a 3rd party software can set the 'broken' status via this method
     virtual void SetBroken(bool mon) override;
 
-    /// Get the pointer to the link mask, ie. a ChLinkMask (sort of
-    /// array containing a set of ChConstraint items).
-    ChLinkMask* GetMask() { return mask; }
+    /// Get the link mask (a container for the ChConstraint items).
+    ChLinkMask& GetMask() { return mask; }
 
-    /// overwrites inherited implementation of this method
+    /// Set the two markers associated with this link.
     virtual void SetUpMarkers(ChMarker* mark1, ChMarker* mark2) override;
 
     //@{
@@ -111,14 +102,13 @@ class ChApi ChLinkLock : public ChLinkMarkers {
 
     // LINK VIOLATIONS
 
-    // Get the constraint violations, i.e. the residual of the constraint equations
-    // and their time derivatives
+    // Get the constraint violations, i.e. the residual of the constraint equations and their time derivatives
 
     /// Link violation (residuals of the link constraint equations).
     const ChConstraintVectorX& GetC() const { return C; }
-    /// Time derivatives of link violations.
+    /// Time derivatives of link violation.
     const ChConstraintVectorX& GetC_dt() const { return C_dt; }
-    /// Double time derivatives of link violations.
+    /// Second time derivatives of link violation.
     const ChConstraintVectorX& GetC_dtdt() const { return C_dtdt; }
 
     // LINK STATE MATRICES
@@ -149,21 +139,19 @@ class ChApi ChLinkLock : public ChLinkMarkers {
 
     // UPDATE FUNCTIONS
 
-    /// Given current time and body state, computes the constraint differentiation to get the
-    /// the state matrices Cq1,  Cq2,  Qc,  Ct , and also C, C_dt, C_dtd.
+    /// Given current time and body state, computes the constraint differentiation to get the the state matrices Cq1,
+    /// Cq2,  Qc,  Ct , and also C, C_dt, C_dtd.
     virtual void UpdateState();
 
     /// Updates the local F, M forces adding penalties from ChLinkLimit objects, if any.
     virtual void UpdateForces(double mytime) override;
 
-    /// Updates Cqw1 and Cqw2  given updated  Cq1 and Cq2, i.e. computes the
-    /// jacobians with 'Wl' rotational coordinates knowing the jacobians
-    /// for body rotations in quaternion coordinates.
+    /// Updates Cqw1 and Cqw2  given updated  Cq1 and Cq2, i.e. computes the jacobians with 'Wl' rotational coordinates
+    /// knowing the jacobians for body rotations in quaternion coordinates.
     void UpdateCqw();
 
-    /// Full update. Fills-in all the matrices of the link, and does all required calculations
-    /// by calling specific Update functions in sequence:
-    /// <pre>
+    /// Full update. Fills-in all the matrices of the link, and does all required calculations by calling specific
+    /// Update functions in sequence: <pre>
     ///     UpdateTime;
     ///     UpdateRelMarkerCoords;
     ///     UpdateState;
@@ -203,7 +191,7 @@ class ChApi ChLinkLock : public ChLinkMarkers {
 
     // The mask of the locked coords, with the status of the scalar constraints.
     // This object also encapsulates the jacobians and residuals for the solver.
-    ChLinkMask* mask;  ///< scalar constraints
+    ChLinkMaskLF mask;  ///< scalar constraints
 
     // Degrees of constraint (excluding constraints from joint limits)
     int ndoc;    ///< number of degrees of constraint
@@ -253,19 +241,16 @@ class ChApi ChLinkLock : public ChLinkMarkers {
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   protected:
-    /// Allocates matrices and initializes all mask-dependent quantities.
-    /// Sets number of DOF and number DOC. Copies the mask from new_mask.
-    void BuildLink(ChLinkMask* new_mask);
-
-    /// Allocates matrices and initializes all mask-dependent quantities.
-    /// Sets number of DOF and number DOC. Uses the current mask.
+    /// Resize matrices and initializes all mask-dependent quantities.
+    /// Sets number of DOF and number DOC based on current mask information.
     void BuildLink();
 
-    /// Frees matrices allocated by BuildLink.
-    void DestroyLink();
+    /// Set the mask and then resize matrices.
+    void BuildLinkType(LinkType link_type);
+    void BuildLink(bool x, bool y, bool z, bool e0, bool e1, bool e2, bool e3);
 
     void ChangeLinkType(LinkType new_link_type);
-    void BuildLinkType(LinkType link_type);
+
 
     // Extend parent functions to account for any ChLinkLimit objects.
     ////virtual void IntLoadResidual_F(const unsigned int off,	ChVectorDynamic<>& R, const double c );

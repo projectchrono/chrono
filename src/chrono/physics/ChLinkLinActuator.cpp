@@ -34,10 +34,8 @@ ChLinkLinActuator::ChLinkLinActuator()
     mot_rot = std::make_shared<ChFunction_Recorder>();
 
     // Mask: initialize our LinkMaskLF (lock formulation mask)
-    // to X  only. It was a LinkMaskLF because this class inherited from LinkLock.
-    ((ChLinkMaskLF*)mask)->SetLockMask(true, false, false, false, false, false, false);
-
-    ChangedLinkMask();
+    mask.SetLockMask(true, false, false, false, false, false, false);
+    BuildLink();
 
     mot_rerot = mot_rerot_dt = mot_rerot_dtdt = 0;
 }
@@ -65,11 +63,11 @@ void ChLinkLinActuator::Set_learn(bool mset) {
     }
 
     if (mset)
-        ((ChLinkMaskLF*)mask)->Constr_X().SetMode(CONSTRAINT_FREE);
+        mask.Constr_X().SetMode(CONSTRAINT_FREE);
     else
-        ((ChLinkMaskLF*)mask)->Constr_X().SetMode(CONSTRAINT_LOCK);
+        mask.Constr_X().SetMode(CONSTRAINT_LOCK);
 
-    ChangedLinkMask();
+    BuildLink();
 
     learn = mset;
     if (dist_funct->Get_Type() != ChFunction::FUNCT_RECORDER)

@@ -23,27 +23,17 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLinkLock)
 
-ChLinkLock::ChLinkLock()
-    : type(LinkType::SPHERICAL),
-      ndoc_d(0),
-      ndoc_c(0),
-      ndoc(0),
-      d_restlength(0),
-      mask(nullptr) {
-
+ChLinkLock::ChLinkLock() : type(LinkType::FREE), ndoc_d(0), ndoc_c(0), ndoc(0), d_restlength(0) {
     // Need to zero out the bottom-right 4x3 block
     Cq1_temp.setZero();
     Cq2_temp.setZero();
 
-    // Default type: spherical link
-    // Sets the mask, all the matrices, and number of DOC and DOF
-    BuildLinkType(LinkType::SPHERICAL);
+    // Note: the joint is not completely built at this time.
+    // Requires definition of the mask (based on concrete joint type)
 }
 
 ChLinkLock::ChLinkLock(const ChLinkLock& other) : ChLinkMarkers(other) {
-    DestroyLink();
-
-    mask = other.mask->Clone();
+    mask = other.mask;
 
     force_D.reset(other.force_D->Clone());
     force_R.reset(other.force_R->Clone());
@@ -72,12 +62,7 @@ ChLinkLock::ChLinkLock(const ChLinkLock& other) : ChLinkMarkers(other) {
     BuildLinkType(other.type);
 }
 
-ChLinkLock::~ChLinkLock() {
-    DestroyLink();
-
-    delete mask;
-    mask = nullptr;
-}
+ChLinkLock::~ChLinkLock() {}
 
 //// Note: ability to explicitly provide joint forces was removed.
 //// If ever needed, these functions can be re-enabled. In that case,
@@ -227,55 +212,44 @@ ChLinkLimit& ChLinkLock::GetLimit_D() {
     return *limit_D;
 }
 
-void ChLinkLock::ChangeLinkMask(ChLinkMask* new_mask) {
-    DestroyLink();
-    BuildLink(new_mask);
-}
-
-void ChLinkLock::ChangedLinkMask() {
-    DestroyLink();
-    BuildLink();
-}
-
 void ChLinkLock::SetDisabled(bool mdis) {
     ChLinkMarkers::SetDisabled(mdis);
 
-    if (mask->SetAllDisabled(mdis) > 0)
-        ChangedLinkMask();
+    if (mask.SetAllDisabled(mdis) > 0)
+        BuildLink();
 }
 
 void ChLinkLock::SetBroken(bool mbro) {
     ChLinkMarkers::SetBroken(mbro);
 
-    if (mask->SetAllBroken(mbro) > 0)
-        ChangedLinkMask();
+    if (mask.SetAllBroken(mbro) > 0)
+        BuildLink();
 }
 
 int ChLinkLock::RestoreRedundant() {
-    int mchanges = mask->RestoreRedundant();
+    int mchanges = mask.RestoreRedundant();
     if (mchanges)
-        ChangedLinkMask();
+        BuildLink();
+
     return mchanges;
 }
 
 void ChLinkLock::SetUpMarkers(ChMarker* mark1, ChMarker* mark2) {
     ChLinkMarkers::SetUpMarkers(mark1, mark2);
+    assert(this->Body1 && this->Body2);
 
-    // could the line below be:     assert(this->Body1 && this->Body2); ?
-    if (this->Body1 && this->Body2) {
-        ((ChLinkMaskLF*)this->mask)->SetTwoBodiesVariables(&Body1->Variables(), &Body2->Variables());
-        // This is needed because only if all constraints in mask are now active, and C,Ct,etc.
-        // matrices must be allocated accordingly, otherwise are null.
-        DestroyLink();
-        BuildLink();
-    }
+    mask.SetTwoBodiesVariables(&Body1->Variables(), &Body2->Variables());
+
+    // We must call BuildLink here again, because only now are the constraints properly activated
+    // (and hence the correct NDOC available).
+    BuildLink();
 }
 
 void ChLinkLock::BuildLink() {
     // set ndoc by counting non-dofs
-    ndoc = mask->GetMaskDoc();
-    ndoc_c = mask->GetMaskDoc_c();
-    ndoc_d = mask->GetMaskDoc_d();
+    ndoc = mask.GetMaskDoc();
+    ndoc_c = mask.GetMaskDoc_c();
+    ndoc_d = mask.GetMaskDoc_d();
 
     // create matrices
     C.resize(ndoc);
@@ -300,78 +274,65 @@ void ChLinkLock::BuildLink() {
     Cq2.setZero();
 }
 
-void ChLinkLock::BuildLink(ChLinkMask* new_mask) {
-    // set mask
-    delete mask;
-    mask = new_mask->Clone();
-
-    // setup matrices;
+void ChLinkLock::BuildLink(bool x, bool y, bool z, bool e0, bool e1, bool e2, bool e3) {
+    mask.SetLockMask(x, y, z, e0, e1, e2, e3);
     BuildLink();
-}
-
-void ChLinkLock::DestroyLink() {
-    ndoc = 0;
 }
 
 void ChLinkLock::BuildLinkType(LinkType link_type) {
     type = link_type;
 
-    ChLinkMaskLF m_mask;
-
     // SetLockMask() sets the constraints for the link coordinates: (X,Y,Z, E0,E1,E2,E3)
     switch (type) {
         case LinkType::FREE:
-            m_mask.SetLockMask(false, false, false, false, false, false, false);
+            BuildLink(false, false, false, false, false, false, false);
             break;
         case LinkType::LOCK:
             // this should never happen
-            m_mask.SetLockMask(true, true, true, false, true, true, true);
+            BuildLink(true, true, true, false, true, true, true);
             break;
         case LinkType::SPHERICAL:
-            m_mask.SetLockMask(true, true, true, false, false, false, false);
+            BuildLink(true, true, true, false, false, false, false);
             break;
         case LinkType::POINTPLANE:
-            m_mask.SetLockMask(false, false, true, false, false, false, false);
+            BuildLink(false, false, true, false, false, false, false);
             break;
         case LinkType::POINTLINE:
-            m_mask.SetLockMask(false, true, true, false, false, false, false);
+            BuildLink(false, true, true, false, false, false, false);
             break;
         case LinkType::REVOLUTE:
-            m_mask.SetLockMask(true, true, true, false, true, true, false);
+            BuildLink(true, true, true, false, true, true, false);
             break;
         case LinkType::CYLINDRICAL:
-            m_mask.SetLockMask(true, true, false, false, true, true, false);
+            BuildLink(true, true, false, false, true, true, false);
             break;
         case LinkType::PRISMATIC:
-            m_mask.SetLockMask(true, true, false, false, true, true, true);
+            BuildLink(true, true, false, false, true, true, true);
             break;
         case LinkType::PLANEPLANE:
-            m_mask.SetLockMask(false, false, true, false, true, true, false);
+            BuildLink(false, false, true, false, true, true, false);
             break;
         case LinkType::OLDHAM:
-            m_mask.SetLockMask(false, false, true, false, true, true, true);
+            BuildLink(false, false, true, false, true, true, true);
             break;
         case LinkType::ALIGN:
-            m_mask.SetLockMask(false, false, false, false, true, true, true);
+            BuildLink(false, false, false, false, true, true, true);
         case LinkType::PARALLEL:
-            m_mask.SetLockMask(false, false, false, false, true, true, false);
+            BuildLink(false, false, false, false, true, true, false);
             break;
         case LinkType::PERPEND:
-            m_mask.SetLockMask(false, false, false, false, true, false, true);
+            BuildLink(false, false, false, false, true, false, true);
             break;
         case LinkType::REVOLUTEPRISMATIC:
-            m_mask.SetLockMask(false, true, true, false, true, true, false);
+            BuildLink(false, true, true, false, true, true, false);
             break;
         default:
-            m_mask.SetLockMask(false, false, false, false, false, false, false);
+            BuildLink(false, false, false, false, false, false, false);
             break;
     }
-
-    BuildLink(&m_mask);
 }
 
 void ChLinkLock::ChangeLinkType(LinkType new_link_type) {
-    DestroyLink();
     BuildLinkType(new_link_type);
 
     limit_X.reset(nullptr);
@@ -494,9 +455,7 @@ void ChLinkLock::UpdateState() {
     // ---------------------
     int index = 0;
 
-    ChLinkMaskLF* mmask = (ChLinkMaskLF*)this->mask;
-
-    if (mmask->Constr_X().IsActive()) {
+    if (mask.Constr_X().IsActive()) {
         Cq1.block<1, 7>(index, 0) = Cq1_temp.block<1, 7>(0, 0);
         Cq2.block<1, 7>(index, 0) = Cq2_temp.block<1, 7>(0, 0);
 
@@ -511,7 +470,7 @@ void ChLinkLock::UpdateState() {
         index++;
     }
 
-    if (mmask->Constr_Y().IsActive()) {
+    if (mask.Constr_Y().IsActive()) {
         Cq1.block<1, 7>(index, 0) = Cq1_temp.block<1, 7>(1, 0);
         Cq2.block<1, 7>(index, 0) = Cq2_temp.block<1, 7>(1, 0);
 
@@ -526,7 +485,7 @@ void ChLinkLock::UpdateState() {
         index++;
     }
 
-    if (mmask->Constr_Z().IsActive()) {
+    if (mask.Constr_Z().IsActive()) {
         Cq1.block<1, 7>(index, 0) = Cq1_temp.block<1, 7>(2, 0);
         Cq2.block<1, 7>(index, 0) = Cq2_temp.block<1, 7>(2, 0);
 
@@ -541,7 +500,7 @@ void ChLinkLock::UpdateState() {
         index++;
     }
 
-    if (mmask->Constr_E0().IsActive()) {
+    if (mask.Constr_E0().IsActive()) {
         Cq1.block<1, 4>(index, 3) = Cq1_temp.block<1, 4>(3, 3);
         Cq2.block<1, 4>(index, 3) = Cq2_temp.block<1, 4>(3, 3);
 
@@ -556,7 +515,7 @@ void ChLinkLock::UpdateState() {
         index++;
     }
 
-    if (mmask->Constr_E1().IsActive()) {
+    if (mask.Constr_E1().IsActive()) {
         Cq1.block<1, 4>(index, 3) = Cq1_temp.block<1, 4>(4, 3);
         Cq2.block<1, 4>(index, 3) = Cq2_temp.block<1, 4>(4, 3);
 
@@ -571,7 +530,7 @@ void ChLinkLock::UpdateState() {
         index++;
     }
 
-    if (mmask->Constr_E2().IsActive()) {
+    if (mask.Constr_E2().IsActive()) {
         Cq1.block<1, 4>(index, 3) = Cq1_temp.block<1, 4>(5, 3);
         Cq2.block<1, 4>(index, 3) = Cq2_temp.block<1, 4>(5, 3);
 
@@ -586,7 +545,7 @@ void ChLinkLock::UpdateState() {
         index++;
     }
 
-    if (mmask->Constr_E3().IsActive()) {
+    if (mask.Constr_E3().IsActive()) {
         Cq1.block<1, 4>(index, 3) = Cq1_temp.block<1, 4>(6, 3);
         Cq2.block<1, 4>(index, 3) = Cq2_temp.block<1, 4>(6, 3);
 
@@ -855,42 +814,41 @@ void ChLinkLock::IntStateScatterReactions(const unsigned int off_L, const ChVect
     // Translational constraint reaction force = -lambda_translational
     // Translational constraint reaction torque = -d~''(t)*lambda_translational
     // No reaction force from the rotational constraints
-    ChLinkMaskLF* mmask = static_cast<ChLinkMaskLF*>(mask);
 
     int local_off = 0;
 
-    if (mmask->Constr_X().IsActive()) {
+    if (mask.Constr_X().IsActive()) {
         react_force.x() = -react(local_off);
         react_torque.y() = -relM.pos.z() * react(local_off);
         react_torque.z() = relM.pos.y() * react(local_off);
         local_off++;
     }
-    if (mmask->Constr_Y().IsActive()) {
+    if (mask.Constr_Y().IsActive()) {
         react_force.y() = -react(local_off);
         react_torque.x() = relM.pos.z() * react(local_off);
         react_torque.z() += -relM.pos.x() * react(local_off);
         local_off++;
     }
-    if (mmask->Constr_Z().IsActive()) {
+    if (mask.Constr_Z().IsActive()) {
         react_force.z() = -react(local_off);
         react_torque.x() += -relM.pos.y() * react(local_off);
         react_torque.y() += relM.pos.x() * react(local_off);
         local_off++;
     }
 
-    if (mmask->Constr_E1().IsActive()) {
+    if (mask.Constr_E1().IsActive()) {
         react_torque.x() += Ts(0, 1) * (react(local_off));
         react_torque.y() += Ts(1, 1) * (react(local_off));
         react_torque.z() += Ts(2, 1) * (react(local_off));
         local_off++;
     }
-    if (mmask->Constr_E2().IsActive()) {
+    if (mask.Constr_E2().IsActive()) {
         react_torque.x() += Ts(0, 2) * (react(local_off));
         react_torque.y() += Ts(1, 2) * (react(local_off));
         react_torque.z() += Ts(2, 2) * (react(local_off));
         local_off++;
     }
-    if (mmask->Constr_E3().IsActive()) {
+    if (mask.Constr_E3().IsActive()) {
         react_torque.x() += Ts(0, 3) * (react(local_off));
         react_torque.y() += Ts(1, 3) * (react(local_off));
         react_torque.z() += Ts(2, 3) * (react(local_off));
@@ -985,9 +943,9 @@ void ChLinkLock::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L
                                      const double c)              // a scaling factor
 {
     int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
-            mask->Constr_N(i).MultiplyTandAdd(R, L(off_L + cnt) * c);
+    for (int i = 0; i < mask.nconstr; i++) {
+        if (mask.Constr_N(i).IsActive()) {
+            mask.Constr_N(i).MultiplyTandAdd(R, L(off_L + cnt) * c);
             cnt++;
         }
     }
@@ -1063,10 +1021,10 @@ void ChLinkLock::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc 
                                      double recovery_clamp)     // value for min/max clamping of c*C
 {
     int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
+    for (int i = 0; i < mask.nconstr; i++) {
+        if (mask.Constr_N(i).IsActive()) {
             if (do_clamp) {
-                if (mask->Constr_N(i).IsUnilateral())
+                if (mask.Constr_N(i).IsUnilateral())
                     Qc(off_L + cnt) += ChMax(c * C(cnt), -recovery_clamp);
                 else
                     Qc(off_L + cnt) += ChMin(ChMax(c * C(cnt), -recovery_clamp), recovery_clamp);
@@ -1148,8 +1106,8 @@ void ChLinkLock::IntLoadConstraint_Ct(const unsigned int off_L,  // offset in Qc
                                       const double c)            // a scaling factor
 {
     int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
+    for (int i = 0; i < mask.nconstr; i++) {
+        if (mask.Constr_N(i).IsActive()) {
             Qc(off_L + cnt) += c * Ct(cnt);
             cnt++;
         }
@@ -1165,10 +1123,10 @@ void ChLinkLock::IntToDescriptor(const unsigned int off_v,
                                  const ChVectorDynamic<>& L,
                                  const ChVectorDynamic<>& Qc) {
     int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
-            mask->Constr_N(i).Set_l_i(L(off_L + cnt));
-            mask->Constr_N(i).Set_b_i(Qc(off_L + cnt));
+    for (int i = 0; i < mask.nconstr; i++) {
+        if (mask.Constr_N(i).IsActive()) {
+            mask.Constr_N(i).Set_l_i(L(off_L + cnt));
+            mask.Constr_N(i).Set_b_i(Qc(off_L + cnt));
             cnt++;
         }
     }
@@ -1254,9 +1212,9 @@ void ChLinkLock::IntFromDescriptor(const unsigned int off_v,
                                    const unsigned int off_L,
                                    ChVectorDynamic<>& L) {
     int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
-            L(off_L + cnt) = mask->Constr_N(i).Get_l_i();
+    for (int i = 0; i < mask.nconstr; i++) {
+        if (mask.Constr_N(i).IsActive()) {
+            L(off_L + cnt) = mask.Constr_N(i).Get_l_i();
             cnt++;
         }
     }
@@ -1329,9 +1287,9 @@ void ChLinkLock::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     if (!this->IsActive())
         return;
 
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive())
-            mdescriptor.InsertConstraint(&mask->Constr_N(i));
+    for (int i = 0; i < mask.nconstr; i++) {
+        if (mask.Constr_N(i).IsActive())
+            mdescriptor.InsertConstraint(&mask.Constr_N(i));
     }
 
     if (limit_X && limit_X->IsActive()) {
@@ -1397,8 +1355,8 @@ void ChLinkLock::InjectConstraints(ChSystemDescriptor& mdescriptor) {
 }
 
 void ChLinkLock::ConstraintsBiReset() {
-    for (int i = 0; i < mask->nconstr; i++) {
-        mask->Constr_N(i).Set_b_i(0.);
+    for (int i = 0; i < mask.nconstr; i++) {
+        mask.Constr_N(i).Set_b_i(0.);
     }
 
     if (limit_X && limit_X->IsActive()) {
@@ -1453,17 +1411,16 @@ void ChLinkLock::ConstraintsBiReset() {
 
 void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
     int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
+    for (int i = 0; i < mask.nconstr; i++) {
+        if (mask.Constr_N(i).IsActive()) {
             if (do_clamp) {
-                if (mask->Constr_N(i).IsUnilateral())
-                    mask->Constr_N(i).Set_b_i(mask->Constr_N(i).Get_b_i() +
-                                              ChMax(factor * C(cnt), -recovery_clamp));
+                if (mask.Constr_N(i).IsUnilateral())
+                    mask.Constr_N(i).Set_b_i(mask.Constr_N(i).Get_b_i() + ChMax(factor * C(cnt), -recovery_clamp));
                 else
-                    mask->Constr_N(i).Set_b_i(mask->Constr_N(i).Get_b_i() +
-                                              ChMin(ChMax(factor * C(cnt), -recovery_clamp), recovery_clamp));
+                    mask.Constr_N(i).Set_b_i(mask.Constr_N(i).Get_b_i() +
+                                             ChMin(ChMax(factor * C(cnt), -recovery_clamp), recovery_clamp));
             } else
-                mask->Constr_N(i).Set_b_i(mask->Constr_N(i).Get_b_i() + factor * C(cnt));
+                mask.Constr_N(i).Set_b_i(mask.Constr_N(i).Get_b_i() + factor * C(cnt));
 
             cnt++;
         }
@@ -1599,9 +1556,9 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
 
 void ChLinkLock::ConstraintsBiLoad_Ct(double factor) {
     int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
-            mask->Constr_N(i).Set_b_i(mask->Constr_N(i).Get_b_i() + factor * Ct(cnt));
+    for (int i = 0; i < mask.nconstr; i++) {
+        if (mask.Constr_N(i).IsActive()) {
+            mask.Constr_N(i).Set_b_i(mask.Constr_N(i).Get_b_i() + factor * Ct(cnt));
             cnt++;
         }
     }
@@ -1609,9 +1566,9 @@ void ChLinkLock::ConstraintsBiLoad_Ct(double factor) {
 
 void ChLinkLock::ConstraintsBiLoad_Qc(double factor) {
     int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
-            mask->Constr_N(i).Set_b_i(mask->Constr_N(i).Get_b_i() + factor * Qc(cnt));
+    for (int i = 0; i < mask.nconstr; i++) {
+        if (mask.Constr_N(i).IsActive()) {
+            mask.Constr_N(i).Set_b_i(mask.Constr_N(i).Get_b_i() + factor * Qc(cnt));
             cnt++;
         }
     }
@@ -1642,10 +1599,10 @@ void ChLinkLock::ConstraintsLoadJacobians() {
         return;
 
     int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
-            mask->Constr_N(i).Get_Cq_a().block(0, 0, 1, Cqw1.cols()) = Cqw1.block(cnt, 0, 1, Cqw1.cols());
-            mask->Constr_N(i).Get_Cq_b().block(0, 0, 1, Cqw2.cols()) = Cqw2.block(cnt, 0, 1, Cqw2.cols());
+    for (int i = 0; i < mask.nconstr; i++) {
+        if (mask.Constr_N(i).IsActive()) {
+            mask.Constr_N(i).Get_Cq_a().block(0, 0, 1, Cqw1.cols()) = Cqw1.block(cnt, 0, 1, Cqw1.cols());
+            mask.Constr_N(i).Get_Cq_b().block(0, 0, 1, Cqw2.cols()) = Cqw2.block(cnt, 0, 1, Cqw2.cols());
             cnt++;
 
             // sets also the CFM term
@@ -1748,9 +1705,9 @@ void ChLinkLock::ConstraintsFetch_react(double factor) {
 
     // From constraints to react vector:
     int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
-            react(cnt) = mask->Constr_N(i).Get_l_i() * factor;
+    for (int i = 0; i < mask.nconstr; i++) {
+        if (mask.Constr_N(i).IsActive()) {
+            react(cnt) = mask.Constr_N(i).Get_l_i() * factor;
             cnt++;
         }
     }
@@ -1804,41 +1761,41 @@ void ChLinkLock::ConstraintsFetch_react(double factor) {
     // Translational constraint reaction force = -lambda_translational
     // Translational constraint reaction torque = -d~''(t)*lambda_translational
     // No reaction force from the rotational constraints
-    ChLinkMaskLF* mmask = static_cast<ChLinkMaskLF*>(mask);
+
     int n_constraint = 0;
 
-    if (mmask->Constr_X().IsActive()) {
+    if (mask.Constr_X().IsActive()) {
         react_force.x() = -react(n_constraint);
         react_torque.y() = -relM.pos.z() * react(n_constraint);
         react_torque.z() = relM.pos.y() * react(n_constraint);
         n_constraint++;
     }
-    if (mmask->Constr_Y().IsActive()) {
+    if (mask.Constr_Y().IsActive()) {
         react_force.y() = -react(n_constraint);
         react_torque.x() = relM.pos.z() * react(n_constraint);
         react_torque.z() += -relM.pos.x() * react(n_constraint);
         n_constraint++;
     }
-    if (mmask->Constr_Z().IsActive()) {
+    if (mask.Constr_Z().IsActive()) {
         react_force.z() = -react(n_constraint);
         react_torque.x() += -relM.pos.y() * react(n_constraint);
         react_torque.y() += relM.pos.x() * react(n_constraint);
         n_constraint++;
     }
 
-    if (mmask->Constr_E1().IsActive()) {
+    if (mask.Constr_E1().IsActive()) {
         react_torque.x() += Ts(0, 1) * (react(n_constraint));
         react_torque.y() += Ts(1, 1) * (react(n_constraint));
         react_torque.z() += Ts(2, 1) * (react(n_constraint));
         n_constraint++;
     }
-    if (mmask->Constr_E2().IsActive()) {
+    if (mask.Constr_E2().IsActive()) {
         react_torque.x() += Ts(0, 2) * (react(n_constraint));
         react_torque.y() += Ts(1, 2) * (react(n_constraint));
         react_torque.z() += Ts(2, 2) * (react(n_constraint));
         n_constraint++;
     }
-    if (mmask->Constr_E3().IsActive()) {
+    if (mask.Constr_E3().IsActive()) {
         react_torque.x() += Ts(0, 3) * (react(n_constraint));
         react_torque.y() += Ts(1, 3) * (react(n_constraint));
         react_torque.z() += Ts(2, 3) * (react(n_constraint));
@@ -2026,9 +1983,7 @@ ChLinkLockLock::ChLinkLockLock()
       deltaC_dt(CSYSNULL),
       deltaC_dtdt(CSYSNULL) {
     type = LinkType::LOCK;
-    ChLinkMaskLF m_mask;
-    m_mask.SetLockMask(true, true, true, false, true, true, true);
-    BuildLink(&m_mask);
+    BuildLink(true, true, true, false, true, true, true);
 
     motion_X = std::make_shared<ChFunction_Const>(0);  // default: no motion
     motion_Y = std::make_shared<ChFunction_Const>(0);
@@ -2040,9 +1995,7 @@ ChLinkLockLock::ChLinkLockLock()
 
 ChLinkLockLock::ChLinkLockLock(const ChLinkLockLock& other) : ChLinkLock(other) {
     type = LinkType::LOCK;
-    ChLinkMaskLF m_mask;
-    m_mask.SetLockMask(true, true, true, false, true, true, true);
-    BuildLink(&m_mask);
+    BuildLink(true, true, true, false, true, true, true);
 
     motion_X = std::shared_ptr<ChFunction>(other.motion_X->Clone());
     motion_Y = std::shared_ptr<ChFunction>(other.motion_Y->Clone());
@@ -2290,9 +2243,7 @@ void ChLinkLockLock::UpdateState() {
     // ---------------------
     int index = 0;
 
-    ChLinkMaskLF* mmask = (ChLinkMaskLF*)this->mask;
-
-    if (mmask->Constr_X().IsActive()) {
+    if (mask.Constr_X().IsActive()) {
         Cq1.block<1, 7>(index, 0) = Cq1_temp.block<1, 7>(0, 0);
         Cq2.block<1, 7>(index, 0) = Cq2_temp.block<1, 7>(0, 0);
 
@@ -2307,7 +2258,7 @@ void ChLinkLockLock::UpdateState() {
         index++;
     }
 
-    if (mmask->Constr_Y().IsActive()) {
+    if (mask.Constr_Y().IsActive()) {
         Cq1.block<1, 7>(index, 0) = Cq1_temp.block<1, 7>(1, 0);
         Cq2.block<1, 7>(index, 0) = Cq2_temp.block<1, 7>(1, 0);
 
@@ -2322,7 +2273,7 @@ void ChLinkLockLock::UpdateState() {
         index++;
     }
 
-    if (mmask->Constr_Z().IsActive()) {
+    if (mask.Constr_Z().IsActive()) {
         Cq1.block<1, 7>(index, 0) = Cq1_temp.block<1, 7>(2, 0);
         Cq2.block<1, 7>(index, 0) = Cq2_temp.block<1, 7>(2, 0);
 
@@ -2337,7 +2288,7 @@ void ChLinkLockLock::UpdateState() {
         index++;
     }
 
-    if (mmask->Constr_E0().IsActive()) {
+    if (mask.Constr_E0().IsActive()) {
         Cq1.block<1, 4>(index, 3) = Cq1_temp.block<1, 4>(3, 3);
         Cq2.block<1, 4>(index, 3) = Cq2_temp.block<1, 4>(3, 3);
 
@@ -2352,7 +2303,7 @@ void ChLinkLockLock::UpdateState() {
         index++;
     }
 
-    if (mmask->Constr_E1().IsActive()) {
+    if (mask.Constr_E1().IsActive()) {
         Cq1.block<1, 4>(index, 3) = Cq1_temp.block<1, 4>(4, 3);
         Cq2.block<1, 4>(index, 3) = Cq2_temp.block<1, 4>(4, 3);
 
@@ -2367,7 +2318,7 @@ void ChLinkLockLock::UpdateState() {
         index++;
     }
 
-    if (mmask->Constr_E2().IsActive()) {
+    if (mask.Constr_E2().IsActive()) {
         Cq1.block<1, 4>(index, 3) = Cq1_temp.block<1, 4>(5, 3);
         Cq2.block<1, 4>(index, 3) = Cq2_temp.block<1, 4>(5, 3);
 
@@ -2382,7 +2333,7 @@ void ChLinkLockLock::UpdateState() {
         index++;
     }
 
-    if (mmask->Constr_E3().IsActive()) {
+    if (mask.Constr_E3().IsActive()) {
         Cq1.block<1, 4>(index, 3) = Cq1_temp.block<1, 4>(6, 3);
         Cq2.block<1, 4>(index, 3) = Cq2_temp.block<1, 4>(6, 3);
 

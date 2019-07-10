@@ -38,10 +38,8 @@ ChLinkClearance::ChLinkClearance() {
     this->limit_X->SetMin(-1000.0);
 
     // Mask: initialize our LinkMaskLF (lock formulation mask)
-    // It was a LinkMaskLF because this class inherited from LinkLock.
-    ((ChLinkMaskLF*)mask)->SetLockMask(false, false, false, false, true, true, false);
-
-    ChangedLinkMask();
+    mask.SetLockMask(false, false, false, false, true, true, false);
+    BuildLink();
 }
 
 ChLinkClearance::ChLinkClearance(const ChLinkClearance& other) : ChLinkLockLock(other) {
@@ -118,7 +116,7 @@ void ChLinkClearance::UpdateForces(double mytime) {
 
     // Just add Coulomb kinematic friction...
 
-    if (((ChLinkMaskLF*)(this->GetMask()))->Constr_X().IsActive()) {
+    if (mask.Constr_X().IsActive()) {
         Vector temp = Get_contact_P_abs();
         Vector pb1 = ((ChFrame<double>*)Body1)->TransformParentToLocal(temp);
         Vector pb2 = ((ChFrame<double>*)Body2)->TransformParentToLocal(temp);

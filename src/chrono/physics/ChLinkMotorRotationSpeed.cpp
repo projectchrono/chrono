@@ -103,26 +103,26 @@ void ChLinkMotorRotationSpeed::Update(double mytime, bool update_assets) {
         }
         if (c_rx) {
             C(nc) = aframe12rotating.GetRot().e1();
-            mask->Constr_N(nc).Get_Cq_a().setZero();
-            mask->Constr_N(nc).Get_Cq_b().setZero();
-            mask->Constr_N(nc).Get_Cq_a().segment(3, 3) = Jw1.row(0);
-            mask->Constr_N(nc).Get_Cq_b().segment(3, 3) = Jw2.row(0);
+            mask.Constr_N(nc).Get_Cq_a().setZero();
+            mask.Constr_N(nc).Get_Cq_b().setZero();
+            mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jw1.row(0);
+            mask.Constr_N(nc).Get_Cq_b().segment(3, 3) = Jw2.row(0);
             nc++;
         }
         if (c_ry) {
             C(nc) = aframe12rotating.GetRot().e2();
-            mask->Constr_N(nc).Get_Cq_a().setZero();
-            mask->Constr_N(nc).Get_Cq_b().setZero();
-            mask->Constr_N(nc).Get_Cq_a().segment(3, 3) = Jw1.row(1);
-            mask->Constr_N(nc).Get_Cq_b().segment(3, 3) = Jw2.row(1);
+            mask.Constr_N(nc).Get_Cq_a().setZero();
+            mask.Constr_N(nc).Get_Cq_b().setZero();
+            mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jw1.row(1);
+            mask.Constr_N(nc).Get_Cq_b().segment(3, 3) = Jw2.row(1);
             nc++;
         }
         if (c_rz) {
             C(nc) = aframe12rotating.GetRot().e3();
-            mask->Constr_N(nc).Get_Cq_a().setZero();
-            mask->Constr_N(nc).Get_Cq_b().setZero();
-            mask->Constr_N(nc).Get_Cq_a().segment(3, 3) = Jw1.row(2);
-            mask->Constr_N(nc).Get_Cq_b().segment(3, 3) = Jw2.row(2);
+            mask.Constr_N(nc).Get_Cq_a().setZero();
+            mask.Constr_N(nc).Get_Cq_b().setZero();
+            mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jw1.row(2);
+            mask.Constr_N(nc).Get_Cq_b().segment(3, 3) = Jw2.row(2);
             nc++;
         }
     }
@@ -131,8 +131,8 @@ void ChLinkMotorRotationSpeed::Update(double mytime, bool update_assets) {
 void ChLinkMotorRotationSpeed::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynamic<>& Qc, const double c) {
     double mCt = -0.5 * m_func->Get_y(this->GetChTime());
 
-    int ncrz = mask->nconstr - 1;
-    if (mask->Constr_N(ncrz).IsActive()) {
+    int ncrz = mask.nconstr - 1;
+    if (mask.Constr_N(ncrz).IsActive()) {
         Qc(off_L + ncrz) += c * mCt;
     }
 }
@@ -142,9 +142,9 @@ void ChLinkMotorRotationSpeed::ConstraintsBiLoad_Ct(double factor) {
         return;
 
     double mCt = -0.5 * m_func->Get_y(this->GetChTime());
-    int ncrz = mask->nconstr - 1;
-    if (mask->Constr_N(ncrz).IsActive()) {
-        mask->Constr_N(ncrz).Set_b_i(mask->Constr_N(ncrz).Get_b_i() + factor * mCt);
+    int ncrz = mask.nconstr - 1;
+    if (mask.Constr_N(ncrz).IsActive()) {
+        mask.Constr_N(ncrz).Set_b_i(mask.Constr_N(ncrz).Get_b_i() + factor * mCt);
     }
 }
 

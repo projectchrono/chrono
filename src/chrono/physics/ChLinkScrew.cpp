@@ -22,11 +22,11 @@ CH_FACTORY_REGISTER(ChLinkScrew)
 ChLinkScrew::ChLinkScrew() {
     Set_thread(0.05);
 
-    // Mask: initialize our LinkMaskLF (lock formulation mask)
-    // to X,Y,Z,Rx Ry, (note: the Z lock is'nt a standard LinkLock z-lock and will
-    // be handled as a custom screw constraint z = tau *alpha, later in updating functions).
-    ((ChLinkMaskLF*)mask)->SetLockMask(true, true, true, false, true, true, false);
-    ChangedLinkMask();
+    // Mask: initialize our LinkMaskLF (lock formulation mask) to X,Y,Z,Rx Ry,
+    // (note: the Z lock is not a standard LinkLock z-lock and will be handled as a custom screw constraint
+    // z = tau*alpha, later in the updating functions).
+    mask.SetLockMask(true, true, true, false, true, true, false);
+    BuildLink();
 }
 
 ChLinkScrew::ChLinkScrew(const ChLinkScrew& other) : ChLinkLock(other) {

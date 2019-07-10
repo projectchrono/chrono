@@ -36,10 +36,9 @@ ChLinkPulley::ChLinkPulley()
     local_shaft1.SetIdentity();
     local_shaft2.SetIdentity();
 
-    // Mask: initialize our LinkMaskLF (lock formulation mask)
-    // to X  only. It was a LinkMaskLF because this class inherited from LinkLock.
-    ((ChLinkMaskLF*)mask)->SetLockMask(true, false, false, false, false, false, false);
-    ChangedLinkMask();
+    // Mask: initialize our LinkMaskLF (lock formulation mask) to X  only
+    mask.SetLockMask(true, false, false, false, false, false, false);
+    BuildLink();
 }
 
 ChLinkPulley::ChLinkPulley(const ChLinkPulley& other) : ChLinkLockLock(other) {

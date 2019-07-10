@@ -33,6 +33,9 @@ class ChApi ChConstraintTwoBodies : public ChConstraintTwo {
     ChVectorN<double, 6> Eq_b;  ///< The [Eq_a] product [Eq_b]=[invM_b]*[Cq_b]'
 
   public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+  public:
     /// Default constructor
     ChConstraintTwoBodies();
 

@@ -217,7 +217,7 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     int ndoc_c;  ///< number of DOC, degrees of constraint (only bilaterals)
     int ndoc_d;  ///< number of DOC, degrees of constraint (only unilaterals)
 
-    ChLinkMask* mask;
+    ChLinkMask mask;
 
     ChConstraintVectorX C;  ///< residuals
 };
