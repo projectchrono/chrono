@@ -14,7 +14,6 @@
 
 #include "chrono_cascade/ChCascadeDoc.h"
 
-#include "chrono/core/ChMatrixDynamic.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono_cascade/ChCascadeMeshTools.h"
 
