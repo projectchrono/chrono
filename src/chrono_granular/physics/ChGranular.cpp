@@ -21,6 +21,11 @@
 #include "chrono/core/ChVector.h"
 #include "chrono_granular/utils/ChGranularUtilities.h"
 #include "chrono_granular/physics/ChGranularBoundaryConditions.h"
+
+#ifdef USE_HDF5
+#include "H5Cpp.h"
+#endif
+
 #include <climits>
 
 // define it here, once and for all
@@ -279,7 +284,7 @@ void ChSystemGranularSMC::writeFile(std::string ofile) const {
             }
 
             if (GET_OUTPUT_SETTING(FIXITY)) {
-                int fixed = (int) sphere_fixed[n];
+                int fixed = (int)sphere_fixed[n];
                 outstrstream << "," << fixed;
             }
 
@@ -292,6 +297,117 @@ void ChSystemGranularSMC::writeFile(std::string ofile) const {
         }
 
         ptFile << outstrstream.str();
+    } else if (file_write_mode == GRAN_OUTPUT_MODE::HDF5) {
+#ifdef USE_HDF5
+        float* x = new float[nSpheres];
+        float* y = new float[nSpheres];
+        float* z = new float[nSpheres];
+
+        for (size_t n = 0; n < nSpheres; n++) {
+            unsigned int ownerSD = sphere_owner_SDs.at(n);
+            int3 ownerSD_trip = getSDTripletFromID(ownerSD);
+            float x_UU = sphere_local_pos_X[n] * LENGTH_SU2UU;
+            float y_UU = sphere_local_pos_Y[n] * LENGTH_SU2UU;
+            float z_UU = sphere_local_pos_Z[n] * LENGTH_SU2UU;
+
+            x_UU += gran_params->BD_frame_X * LENGTH_SU2UU;
+            y_UU += gran_params->BD_frame_Y * LENGTH_SU2UU;
+            z_UU += gran_params->BD_frame_Z * LENGTH_SU2UU;
+
+            x_UU += ((int64_t)ownerSD_trip.x * gran_params->SD_size_X_SU) * LENGTH_SU2UU;
+            y_UU += ((int64_t)ownerSD_trip.y * gran_params->SD_size_Y_SU) * LENGTH_SU2UU;
+            z_UU += ((int64_t)ownerSD_trip.z * gran_params->SD_size_Z_SU) * LENGTH_SU2UU;
+
+            x[n] = x_UU;
+            y[n] = y_UU;
+            z[n] = z_UU;
+        }
+
+        H5::H5File file((ofile + ".h5").c_str(), H5F_ACC_TRUNC);
+
+        hsize_t dims[1] = {nSpheres};
+        H5::DataSpace dataspace(1, dims);
+
+        H5::DataSet ds_x = file.createDataSet("x", H5::PredType::NATIVE_FLOAT, dataspace);
+        ds_x.write(x, H5::PredType::NATIVE_FLOAT);
+
+        H5::DataSet ds_y = file.createDataSet("y", H5::PredType::NATIVE_FLOAT, dataspace);
+        ds_y.write(y, H5::PredType::NATIVE_FLOAT);
+
+        H5::DataSet ds_z = file.createDataSet("z", H5::PredType::NATIVE_FLOAT, dataspace);
+        ds_z.write(z, H5::PredType::NATIVE_FLOAT);
+        delete[] x, y, z;
+
+        if (GET_OUTPUT_SETTING(VEL_COMPONENTS)) {
+            float* vx = new float[nSpheres];
+            float* vy = new float[nSpheres];
+            float* vz = new float[nSpheres];
+            for (size_t n = 0; n < nSpheres; n++) {
+                vx[n] = pos_X_dt[n] * LENGTH_SU2UU / TIME_SU2UU;
+                vy[n] = pos_Y_dt[n] * LENGTH_SU2UU / TIME_SU2UU;
+                vz[n] = pos_Z_dt[n] * LENGTH_SU2UU / TIME_SU2UU;
+            }
+
+            H5::DataSet ds_vx = file.createDataSet("vx", H5::PredType::NATIVE_FLOAT, dataspace);
+            ds_vx.write(vx, H5::PredType::NATIVE_FLOAT);
+
+            H5::DataSet ds_vy = file.createDataSet("vy", H5::PredType::NATIVE_FLOAT, dataspace);
+            ds_vy.write(vy, H5::PredType::NATIVE_FLOAT);
+
+            H5::DataSet ds_vz = file.createDataSet("vz", H5::PredType::NATIVE_FLOAT, dataspace);
+            ds_vz.write(vz, H5::PredType::NATIVE_FLOAT);
+
+            delete[] vx, vy, vz;
+        }
+
+        if (GET_OUTPUT_SETTING(ABSV)) {
+            float* absv = new float[nSpheres];
+            for (size_t n = 0; n < nSpheres; n++) {
+                absv[n] = sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) +
+                               pos_Z_dt.at(n) * pos_Z_dt.at(n)) *
+                          VEL_SU2UU;
+            }
+            H5::DataSet ds_absv = file.createDataSet("absv", H5::PredType::NATIVE_FLOAT, dataspace);
+            ds_absv.write(absv, H5::PredType::NATIVE_FLOAT);
+
+            delete[] absv;
+        }
+
+        if (GET_OUTPUT_SETTING(FIXITY)) {
+            unsigned char* fixed = new unsigned char[nSpheres];
+            for (size_t n = 0; n < nSpheres; n++) {
+                fixed[n] = (unsigned char)sphere_fixed[n];
+            }
+            H5::DataSet ds_fixed = file.createDataSet("fixed", H5::PredType::NATIVE_UCHAR, dataspace);
+            ds_fixed.write(fixed, H5::PredType::NATIVE_UCHAR);
+
+            delete[] fixed;
+        }
+
+        if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS && GET_OUTPUT_SETTING(ANG_VEL_COMPONENTS)) {
+            float* wx = new float[nSpheres];
+            float* wy = new float[nSpheres];
+            float* wz = new float[nSpheres];
+            for (size_t n = 0; n < nSpheres; n++) {
+                wx[n] = sphere_Omega_X[n] / TIME_SU2UU;
+                wy[n] = sphere_Omega_Y[n] / TIME_SU2UU;
+                wz[n] = sphere_Omega_Z[n] / TIME_SU2UU;
+            }
+
+            H5::DataSet ds_wx = file.createDataSet("wx", H5::PredType::NATIVE_FLOAT, dataspace);
+            ds_wx.write(wx, H5::PredType::NATIVE_FLOAT);
+
+            H5::DataSet ds_wy = file.createDataSet("wy", H5::PredType::NATIVE_FLOAT, dataspace);
+            ds_wy.write(wy, H5::PredType::NATIVE_FLOAT);
+
+            H5::DataSet ds_wz = file.createDataSet("wz", H5::PredType::NATIVE_FLOAT, dataspace);
+            ds_wz.write(wz, H5::PredType::NATIVE_FLOAT);
+
+            delete[] wx, wy, wz;
+        }
+#else
+        GRANULAR_ERROR("HDF5 Installation not found. Recompile with HDF5.\n");
+#endif
     } else if (file_write_mode == GRAN_OUTPUT_MODE::NONE) {
         // Do nothing, only here for symmetry
     }
@@ -314,7 +430,7 @@ void ChSystemGranularSMC::copyConstSphereDataToDevice() {
     gran_params->max_z_pos_unsigned = ((int64_t)gran_params->SD_size_Z_SU * gran_params->nSDs_Z);
 
     INFO_PRINTF("max pos is is %lu, %lu, %lu\n", gran_params->max_x_pos_unsigned, gran_params->max_y_pos_unsigned,
-           gran_params->max_z_pos_unsigned);
+                gran_params->max_z_pos_unsigned);
 
     int64_t true_max_pos = std::max(std::max(gran_params->max_x_pos_unsigned, gran_params->max_y_pos_unsigned),
                                     gran_params->max_z_pos_unsigned);
@@ -615,7 +731,8 @@ void ChSystemGranularSMC::initializeSpheres() {
     gpuErrchk(cudaMemAdvise(gran_params, sizeof(*gran_params), cudaMemAdviseSetReadMostly, dev_ID));
     gpuErrchk(cudaMemAdvise(sphere_data, sizeof(*sphere_data), cudaMemAdviseSetReadMostly, dev_ID));
 
-    INFO_PRINTF("z grav term with timestep %f is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gran_params->gravAcc_Z_SU);
+    INFO_PRINTF("z grav term with timestep %f is %f\n", stepSize_SU,
+                stepSize_SU * stepSize_SU * gran_params->gravAcc_Z_SU);
     INFO_PRINTF("running at approximate timestep %f\n", stepSize_SU * TIME_SU2UU);
 }
 
@@ -678,7 +795,8 @@ void ChSystemGranularSMC::partitionBD() {
     // permanently cache the initial frame
     BD_rest_frame_SU = make_longlong3(gran_params->BD_frame_X, gran_params->BD_frame_Y, gran_params->BD_frame_Z);
 
-    INFO_PRINTF("%u Sds as %u, %u, %u\n", gran_params->nSDs, gran_params->nSDs_X, gran_params->nSDs_Y, gran_params->nSDs_Z);
+    INFO_PRINTF("%u Sds as %u, %u, %u\n", gran_params->nSDs, gran_params->nSDs_X, gran_params->nSDs_Y,
+                gran_params->nSDs_Z);
 
     // allocate mem for array saying for each SD how many spheres touch it
     TRACK_VECTOR_RESIZE(SD_NumSpheresTouching, nSDs, "SD_numSpheresTouching", 0);
@@ -748,7 +866,7 @@ void ChSystemGranularSMC::switchToSimUnits() {
     // Handy debug output
     INFO_PRINTF("UU mass is %f\n", MASS_SU2UU);
     INFO_PRINTF("SU gravity is %f, %f, %f\n", gran_params->gravAcc_X_SU, gran_params->gravAcc_Y_SU,
-           gran_params->gravAcc_Z_SU);
+                gran_params->gravAcc_Z_SU);
     INFO_PRINTF("SU radius is %u\n", gran_params->sphereRadius_SU);
     float dt_safe_estimate = sqrt(massSphere / K_n_s2s_UU);
     INFO_PRINTF("CFL timestep is about %f\n", dt_safe_estimate);
