@@ -4,8 +4,6 @@ INCLUDE_DIRECTORIES( ${CH_INCLUDES} )
 SET(TESTS
     utest_CH_slider_pend
     utest_CH_double_pend
-	utest_CH_slider_pend_M
-    utest_CH_double_pend_M
     utest_CH_compute_contact
     utest_CH_assembly
     utest_CH_composite_inertia
