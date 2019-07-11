@@ -16,7 +16,6 @@
 #include <iomanip>
 
 #include "chrono/core/ChCSMatrix.h"
-#include "chrono/core/ChMapMatrix.h"
 
 namespace chrono {
 

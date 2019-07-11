@@ -15,7 +15,7 @@
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/solver/ChConstraintTwoTuplesContactN.h"
 #include "chrono/solver/ChConstraintTwoTuplesFrictionT.h"
-#include "chrono/core/ChLinkedListMatrix.h"
+#include "chrono/core/ChCSMatrix.h"
 
 namespace chrono {
 
@@ -272,7 +272,7 @@ void ChSystemDescriptor::DumpLastMatrices(bool assembled, const char* path) {
         const char* numformat = "%.12g";
 
         if (assembled) {
-            ChLinkedListMatrix Z;
+            ChCSMatrix Z;
             ChVectorDynamic<double> rhs;
             ConvertToMatrixForm(&Z, &rhs);
 
@@ -286,9 +286,9 @@ void ChSystemDescriptor::DumpLastMatrices(bool assembled, const char* path) {
             file_rhs.SetNumFormat(numformat);
             StreamOUTdenseMatlabFormat(rhs, file_rhs);
         } else {
-            ChLinkedListMatrix mdM;
-            ChLinkedListMatrix mdCq;
-            ChLinkedListMatrix mdE;
+            ChCSMatrix mdM;
+            ChCSMatrix mdCq;
+            ChCSMatrix mdE;
             ChVectorDynamic<double> mdf;
             ChVectorDynamic<double> mdb;
             ChVectorDynamic<double> mdfric;

@@ -29,7 +29,7 @@
 #include "chrono/solver/ChSolverSORmultithread.h"
 #include "chrono/solver/ChSolverSymmSOR.h"
 #include "chrono/timestepper/ChStaticAnalysis.h"
-#include "chrono/core/ChLinkedListMatrix.h"
+#include "chrono/core/ChCSMatrix.h"
 #include "chrono/utils/ChProfiler.h"
 
 using namespace chrono::collision;
@@ -1348,7 +1348,7 @@ void ChSystem::DumpSystemMatrices(bool save_M, bool save_K, bool save_R, bool sa
     const char* numformat = "%.12g";
 
     if (save_M) {
-        ChLinkedListMatrix mM;
+        ChCSMatrix mM;
         this->GetMassMatrix(&mM);
         sprintf(filename, "%s%s", path, "_M.dat");
         ChStreamOutAsciiFile file_M(filename);
@@ -1356,7 +1356,7 @@ void ChSystem::DumpSystemMatrices(bool save_M, bool save_K, bool save_R, bool sa
         mM.StreamOUTsparseMatlabFormat(file_M);
     }
     if (save_K) {
-        ChLinkedListMatrix mK;
+        ChCSMatrix mK;
         this->GetStiffnessMatrix(&mK);
         sprintf(filename, "%s%s", path, "_K.dat");
         ChStreamOutAsciiFile file_K(filename);
@@ -1364,7 +1364,7 @@ void ChSystem::DumpSystemMatrices(bool save_M, bool save_K, bool save_R, bool sa
         mK.StreamOUTsparseMatlabFormat(file_K);
     }
     if (save_R) {
-        ChLinkedListMatrix mR;
+        ChCSMatrix mR;
         this->GetDampingMatrix(&mR);
         sprintf(filename, "%s%s", path, "_R.dat");
         ChStreamOutAsciiFile file_R(filename);
@@ -1372,7 +1372,7 @@ void ChSystem::DumpSystemMatrices(bool save_M, bool save_K, bool save_R, bool sa
         mR.StreamOUTsparseMatlabFormat(file_R);
     }
     if (save_Cq) {
-        ChLinkedListMatrix mCq;
+        ChCSMatrix mCq;
         this->GetConstraintJacobianMatrix(&mCq);
         sprintf(filename, "%s%s", path, "_Cq.dat");
         ChStreamOutAsciiFile file_Cq(filename);

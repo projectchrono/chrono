@@ -173,6 +173,35 @@ class ChApi ChSparseMatrix {
         PasteClippedMatrix(matra, cliprow, clipcol, nrows, ncols, insrow, inscol, false);
     }
 
+    /// Method to allow serializing transient data into in ASCII stream (e.g., a file) as a
+    /// Matlab sparse matrix format; each row in file has three elements: {row, column, value}.
+    /// Note: the row and column indexes start from 1.
+    virtual void StreamOUTsparseMatlabFormat(ChStreamOutAscii& mstream) {
+        for (int ii = 0; ii < m_num_rows; ii++) {
+            for (int jj = 0; jj < m_num_cols; jj++) {
+                double elVal = GetElement(ii, jj);
+                if (elVal || (ii + 1 == m_num_rows && jj + 1 == m_num_cols)) {
+                    mstream << ii + 1 << " " << jj + 1 << " " << elVal << "\n";
+                }
+            }
+        }
+    }
+
+    virtual void StreamOUT(ChStreamOutAscii& mstream) {
+        mstream << "\n"
+            << "Matrix " << m_num_rows << " rows, " << m_num_cols << " columns."
+            << "\n";
+        for (int i = 0; i < std::min(m_num_rows, 8); i++) {
+            for (int j = 0; j < std::min(m_num_cols, 8); j++)
+                mstream << GetElement(i, j) << "  ";
+            if (m_num_cols > 8)
+                mstream << "...";
+            mstream << "\n";
+        }
+        if (m_num_rows > 8)
+            mstream << "... \n\n";
+    }
+
   protected:
     int m_num_rows;                          ///< number of rows
     int m_num_cols;                          ///< number of columns

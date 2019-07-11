@@ -40,9 +40,7 @@ set(ChronoEngine_core_SOURCES
     core/ChQuaternion.cpp
     core/ChVector.cpp
     core/ChCoordsys.cpp
-    core/ChLinkedListMatrix.cpp
     core/ChCSMatrix.cpp
-    core/ChMapMatrix.cpp
     core/ChCOOMatrix.cpp
     core/ChQuadrature.cpp
     core/ChBezierCurve.cpp
@@ -80,8 +78,6 @@ set(ChronoEngine_core_HEADERS
     core/ChCSMatrix.h
     core/ChCOOMatrix.h
     core/ChAlignedAllocator.h
-    core/ChLinkedListMatrix.h
-    core/ChMapMatrix.h
     core/ChDistribution.h
     core/ChQuadrature.h
     core/ChTemplateExpressions.h
