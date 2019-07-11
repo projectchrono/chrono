@@ -119,7 +119,7 @@ struct ChGranSphereData {
 enum GRAN_VERBOSITY { QUIET = 0, INFO = 1, METRICS = 2 };
 
 /// Output mode of system
-enum GRAN_OUTPUT_MODE { CSV, BINARY, NONE };
+enum GRAN_OUTPUT_MODE { CSV, BINARY, HDF5, NONE };
 /// How are we integrating through time
 enum GRAN_TIME_INTEGRATOR { FORWARD_EULER, CHUNG, CENTERED_DIFFERENCE, EXTENDED_TAYLOR };
 
@@ -128,6 +128,9 @@ enum GRAN_FRICTION_MODE { FRICTIONLESS, SINGLE_STEP, MULTI_STEP };
 
 /// Rolling resistance models -- ELASTIC_PLASTIC not implemented yet
 enum GRAN_ROLLING_MODE { NO_RESISTANCE, CONSTANT_TORQUE, VISCOUS, ELASTIC_PLASTIC };
+
+enum GRAN_OUTPUT_FLAGS { ABSV = 1, VEL_COMPONENTS = 2, FIXITY = 4, ANG_VEL_COMPONENTS = 8 };
+#define GET_OUTPUT_SETTING(setting) (this->output_flags & setting)
 
 /// Parameters needed for sphere-based granular dynamics. This structure is stored in CUDA unified memory so that it can
 /// be accessed from both host and device
@@ -385,12 +388,12 @@ class CH_GRANULAR_API ChSystemGranularSMC {
 
     /// Set the output mode of the simulation
     void setOutputMode(GRAN_OUTPUT_MODE mode) { file_write_mode = mode; }
-    /// Set the simulation's output directory, files are output as step%06d, where the number is replaced by the current
-    /// render frame. This directory is assumed to be created by the user, either manually or in the driver file.
-    void setOutputDirectory(std::string dir) { output_directory = dir; }
 
     /// Set simualtion verbosity -- used to check on very large, slow simulations or debug
     void setVerbose(GRAN_VERBOSITY level) { verbosity = level; }
+
+    /// Set output settings bit flags by bitwise ORing settings in GRAN_OUTPUT_FLAGS
+    void setOutputFlags(unsigned char flags) { output_flags = flags; }
 
     /// Set timestep size
     void set_fixed_stepSize(float size_UU) { stepSize_UU = size_UU; }
@@ -487,7 +490,7 @@ class CH_GRANULAR_API ChSystemGranularSMC {
     /// Copy back the subdomain device data and save it to a file for error checking on the priming kernel
     void checkSDCounts(std::string ofile, bool write_out, bool verbose) const;
     /// Writes out particle positions according to the system output mode
-    void writeFile(std::string ofile, bool write_vel_components = false) const;
+    void writeFile(std::string ofile) const;
 
     /// Safety check velocity to ensure the simulation is still stable
     void setMaxSafeVelocity_SU(float max_vel) { gran_params->max_safe_vel = max_vel; }
@@ -534,11 +537,13 @@ class CH_GRANULAR_API ChSystemGranularSMC {
     /// Allows the code to be very verbose for debugging
     GRAN_VERBOSITY verbosity;
 
+    /// Bit flags indicating what fields to write out during writeFile
+    /// Set with the GRAN_OUTPUT_FLAGS enum
+    unsigned char output_flags;
+
     /// How to write the output files?
     /// Default is CSV
     GRAN_OUTPUT_MODE file_write_mode;
-    /// Directory to write to, this code assumes it already exists
-    std::string output_directory;
 
     /// Number of discrete elements
     unsigned int nSpheres;

@@ -146,9 +146,11 @@ int main(int argc, char* argv[]) {
     gran_sys.set_rolling_coeff_SPH2SPH(params.rolling_friction_coeffS2S);
     gran_sys.set_rolling_coeff_SPH2WALL(params.rolling_friction_coeffS2W);
 
-    gran_sys.setOutputDirectory(params.output_dir);
     gran_sys.setOutputMode(params.write_mode);
     gran_sys.setVerbose(params.verbose);
+    gran_sys.setOutputFlags(GRAN_OUTPUT_FLAGS::ABSV | GRAN_OUTPUT_FLAGS::ANG_VEL_COMPONENTS |
+                            GRAN_OUTPUT_FLAGS::FIXITY);
+
     filesystem::create_directory(filesystem::path(params.output_dir));
 
     gran_sys.initialize();
