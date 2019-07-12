@@ -189,7 +189,7 @@ void CreateBceGlobalMarkersFromBceLocalPos_CableANCF(ChFsiDataManager* fsiData,
                                                      std::shared_ptr<chrono::fea::ChElementCableANCF> cable) {
     int type = 2;
 
-    chrono::ChMatrixNM<double, 4, 1> N;
+    fea::ChElementCableANCF::ShapeVector N;
     double dx = (cable->GetNodeB()->GetX0() - cable->GetNodeA()->GetX0()).Length();
 
     chrono::ChVector<> Element_Axis = (cable->GetNodeB()->GetX0() - cable->GetNodeA()->GetX0()).GetNormalized();
@@ -262,6 +262,9 @@ void CreateBceGlobalMarkersFromBceLocalPos_CableANCF(ChFsiDataManager* fsiData,
             }
         }
 
+        //// RADU
+        //// N is not set anywhere (call to ShapeFunctions above is commented out), yet used below.
+
         if (addthis) {
             fsiData->sphMarkersH.posRadH.push_back(mR4(ChFsiTypeConvert::ChVectorToReal3(Correct_Pos), posRadBCE[i].w));
             fsiData->fsiGeneralData.FlexSPH_MeshPos_LRF_H.push_back(ChFsiTypeConvert::ChVectorToReal3(pos_physical));
@@ -315,7 +318,7 @@ void CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(ChFsiDataManager* fsiData,
                                                      double kernel_h = 0) {
     int type = 3;
 
-    chrono::ChMatrixNM<double, 8, 1> N;
+    fea::ChElementShellANCF::ShapeVector N;
     int posRadSizeModified = 0;
 
     double my_h = (kernel_h == 0) ? paramsH->HSML : kernel_h;
@@ -590,7 +593,7 @@ void CreateSphereFSI(ChFsiDataManager* fsiData,
     body->SetMaterialSurface(mat_prop);
     body->SetPos(pos);
     double volume = chrono::utils::CalcSphereVolume(radius);
-    ChVector<> gyration = chrono::utils::CalcSphereGyration(radius).Get_Diag();
+    ChVector<> gyration = chrono::utils::CalcSphereGyration(radius).diagonal();
     double mass = density * volume;
     body->SetMass(mass);
     body->SetInertiaXX(mass * gyration);
@@ -621,7 +624,7 @@ void CreateCylinderFSI(ChFsiDataManager* fsiData,
     body->SetPos(pos);
     body->SetRot(rot);
     double volume = chrono::utils::CalcCylinderVolume(radius, 0.5 * length);
-    ChVector<> gyration = chrono::utils::CalcCylinderGyration(radius, 0.5 * length).Get_Diag();
+    ChVector<> gyration = chrono::utils::CalcCylinderGyration(radius, 0.5 * length).diagonal();
     double mass = density * volume;
     body->SetMass(mass);
     body->SetInertiaXX(mass * gyration);
@@ -653,7 +656,7 @@ void CreateBoxFSI(ChFsiDataManager* fsiData,
     body->SetPos(pos);
     body->SetRot(rot);
     double volume = chrono::utils::CalcBoxVolume(hsize);
-    ChVector<> gyration = chrono::utils::CalcBoxGyration(hsize).Get_Diag();
+    ChVector<> gyration = chrono::utils::CalcBoxGyration(hsize).diagonal();
     double mass = density * volume;
     body->SetMass(mass);
     body->SetInertiaXX(mass * gyration);

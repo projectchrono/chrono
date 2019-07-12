@@ -17,6 +17,9 @@
 #ifndef CH_FSIINTERFACE_H_
 #define CH_FSIINTERFACE_H_
 
+#define EIGEN_NO_CUDA
+#define EIGEN_DONT_VECTORIZE
+
 #include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono_fsi/ChApiFsi.h"
