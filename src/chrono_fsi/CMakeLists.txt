@@ -13,6 +13,15 @@ ENDIF()
 
 message(STATUS "==== Chrono FSI module ====")
 
+
+
+# TEMPORARILY DISABLE THIS MODULE
+message("Chrono::FSI currently DISABLED!")
+set(ENABLE_MODULE_FSI OFF CACHE BOOL "" FORCE)
+return()
+
+
+
 # Return now if CUDA is not available
 if(NOT CUDA_FOUND)
   message("Chrono::FSI requires CUDA")

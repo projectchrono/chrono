@@ -14,6 +14,15 @@ endif()
 
 message(STATUS "==== Chrono Python module ====")
 
+
+
+# TEMPORARILY DISABLE THIS MODULE
+message("Chrono::Python currently DISABLED!")
+set(ENABLE_MODULE_PYTHON OFF CACHE BOOL "" FORCE)
+return()
+
+
+
 mark_as_advanced(CLEAR SWIG_EXECUTABLE)
 
 # Python package name
