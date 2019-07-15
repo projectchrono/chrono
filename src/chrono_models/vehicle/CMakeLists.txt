@@ -176,6 +176,39 @@ set(CVM_SEDAN_FILES
 )
 source_group("sedan" FILES ${CVM_SEDAN_FILES})
 
+set(CVM_CITYBUS_FILES
+    citybus/CityBus.cpp
+    citybus/CityBus.h
+    citybus/CityBus_BrakeSimple.cpp
+    citybus/CityBus_BrakeSimple.h
+    citybus/CityBus_Chassis.h
+    citybus/CityBus_Chassis.cpp
+    citybus/CityBus_SolidAxle.h
+    citybus/CityBus_SolidAxle.cpp
+    citybus/CityBus_ToeBarLeafspringAxle.h
+    citybus/CityBus_ToeBarLeafspringAxle.cpp
+    citybus/CityBus_RotaryArm.h
+    citybus/CityBus_RotaryArm.cpp
+    citybus/CityBus_LeafspringAxle.h
+    citybus/CityBus_LeafspringAxle.cpp
+    citybus/CityBus_Driveline2WD.cpp
+    citybus/CityBus_Driveline2WD.h
+    citybus/CityBus_RigidTire.cpp
+    citybus/CityBus_RigidTire.h
+    citybus/CityBus_TMeasyTire.cpp
+    citybus/CityBus_TMeasyTire.h
+    citybus/CityBus_RackPinion.cpp
+    citybus/CityBus_RackPinion.h
+    citybus/CityBus_SimpleMapPowertrain.cpp
+    citybus/CityBus_SimpleMapPowertrain.h
+    citybus/CityBus_Vehicle.h
+    citybus/CityBus_Vehicle.cpp
+    citybus/CityBus_Wheel.cpp
+    citybus/CityBus_Wheel.h
+)
+source_group("citybus" FILES ${CVM_CITYBUS_FILES})
+
+
 set(CVM_M113_FILES
     m113/M113_BrakeSimple.h
     m113/M113_Chassis.h
@@ -269,6 +302,7 @@ add_library(ChronoModels_vehicle SHARED
     ${CVM_UAZ_FILES}
     ${CVM_GENERIC_FILES}
     ${CVM_SEDAN_FILES}
+    ${CVM_CITYBUS_FILES}
     ${CVM_M113_FILES}
     ${CVM_M113_A_FILES}
  )
