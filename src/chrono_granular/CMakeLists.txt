@@ -164,6 +164,13 @@ set_target_properties(ChronoEngine_granular PROPERTIES
 
 target_link_libraries(ChronoEngine_granular ${CHRONO_GRANULAR_LINKED_LIBRARIES})
 
+if(HDF5_FOUND)
+    set(COMPILE_DEFS "${COMPILE_DEFS} ${H5_BUILT_AS_DYNAMIC_LIB}")
+    include_directories(${HDF5_INCLUDE_DIRS})
+    target_link_libraries(ChronoEngine_granular ${HDF5_CXX_LIBRARIES})
+    add_definitions(-DUSE_HDF5)
+endif()
+
 install(TARGETS ChronoEngine_granular
 				RUNTIME DESTINATION bin
 				LIBRARY DESTINATION lib

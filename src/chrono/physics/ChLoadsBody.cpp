@@ -341,7 +341,7 @@ void ChLoadBodyBodyBushingMate::ComputeBodyBodyForceTorque(const ChFrameMoving<>
     ChVector<> vect_rot = dir_rot * angle_rot;
 
     loc_torque = vect_rot * rot_stiffness           // element-wise product!
-                 + rel_AB.GetWvel_par() * damping;  // element-wise product!
+                 + rel_AB.GetWvel_par() * rot_damping;  // element-wise product!
 }
 
 // -----------------------------------------------------------------------------

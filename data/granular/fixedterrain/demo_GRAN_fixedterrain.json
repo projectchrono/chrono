@@ -1,5 +1,5 @@
 {
-    "sphere_radius": 0.5,
+    "sphere_radius": 0.25,
     "sphere_density": 1,
     
     "box_X": 400,
@@ -8,7 +8,7 @@
     
     "time_integrator" : "centered_difference",
     
-    "step_size": 5e-5,
+    "step_size": 1e-5,
     "time_end": 4,
 
     "grav_X": 0,
@@ -18,14 +18,14 @@
     "normalStiffS2S": 1e8,
     "normalStiffS2W": 1e8,
 
-    "normalDampS2S": 1e4,
-    "normalDampS2W": 1e4,
+    "normalDampS2S": 1e2,
+    "normalDampS2W": 1e2,
 
     "tangentStiffS2S": 1e8,
     "tangentStiffS2W": 1e8,
 
-    "tangentDampS2S": 1e4,
-    "tangentDampS2W": 1e4,
+    "tangentDampS2S": 1e2,
+    "tangentDampS2W": 1e2,
 
     "friction_mode" : "multi_step",
     "static_friction_coeffS2S": 0.5,

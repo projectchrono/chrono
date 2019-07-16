@@ -20,6 +20,7 @@
 // Turn on the documentation of members, for more intuitive IDE typing
 
 %feature("autodoc", "1");
+%feature("flatnested", "1");
 
 
 // Turn on the exception handling to intercept C++ exceptions
@@ -115,11 +116,11 @@ using namespace chrono::postprocess;
 // in the .i file, before the %include of the .h, even if already forwarded in .h
 
 //  core/  classes
-%import  "ChClassFactory.i"
-%import  "ChAsset.i"
-%import  "ChColor.i"
-%import  "ChSystem.i"
-%import  "ChVisualization.i"
+%import(module = "pychrono.core")  "ChClassFactory.i"
+%import(module = "pychrono.core")  "ChAsset.i"
+%import(module = "pychrono.core")  "ChColor.i"
+%import(module = "pychrono.core")  "ChSystem.i"
+%import(module = "pychrono.core")  "ChVisualization.i"
 
 %include "ChPostProcessBase.i"
 %include "ChPovRay.i"

@@ -20,7 +20,7 @@
 // Turn on the documentation of members, for more intuitive IDE typing
 
 %feature("autodoc", "1");
-
+%feature("flatnested", "1");
 
 // Turn on the exception handling to intercept C++ exceptions
 %include "exception.i"
@@ -102,6 +102,11 @@ using namespace chrono::fea;
 %ignore chrono::fea::ChContactTriangleXYZ::ComputeJacobianForContactPart;
 %ignore chrono::fea::ChContactNodeXYZROT::ComputeJacobianForContactPart;
 %ignore chrono::fea::ChContactTriangleXYZROT::ComputeJacobianForContactPart;
+
+%ignore chrono::fea::ChElementBrick::MyMass;
+%ignore chrono::fea::ChElementBrick::MyGravity;
+%ignore chrono::fea::ChElementBrick::MyForceAnalytical;
+%ignore chrono::fea::ChElementBrick::MyForceNum;
 
 // Include other .i configuration files for SWIG. 
 // These are divided in many .i files, each per a
@@ -255,6 +260,8 @@ using namespace chrono::fea;
 %import(module = "pychrono.core")  "ChObject.i"
 %import(module = "pychrono.core")  "ChVector.i"
 %import(module = "pychrono.core")  "ChQuaternion.i"
+%import(module = "pychrono.core")  "ChMatrix.i"
+%import(module = "pychrono.core")  "ChPhysicsItem.i"
 %import(module = "pychrono.core")  "ChCoordsys.i"
 %import(module = "pychrono.core")  "ChFrame.i"
 %import(module = "pychrono.core")  "ChFrameMoving.i"
@@ -305,12 +312,16 @@ using namespace chrono::fea;
 %include "../chrono/fea/ChElementHexahedron.h"		
 %include "../chrono/fea/ChElementHexa_8.h"
 %include "../chrono/fea/ChElementHexa_20.h"
+
 %include "../chrono/fea/ChElementBrick.h"
 %include "../chrono/fea/ChElementBrick_9.h"
 %include "../chrono/fea/ChMaterialShellReissner.h"
 %include "../chrono/fea/ChElementShell.h"
+%rename(ShellReissner4Layer) chrono::fea::ChElementShellReissner4::Layer;
 %include "../chrono/fea/ChElementShellReissner4.h"
+%rename(ShellANCF) chrono::fea::ChElementShellANCF::Layer;
 %include "../chrono/fea/ChElementShellANCF.h"
+%rename(ShellANCF_8Layer) chrono::fea::ChElementShellANCF_8::Layer;
 %include "../chrono/fea/ChElementShellANCF_8.h"
 %include "../chrono/fea/ChElementCableANCF.h"
 %include "../chrono/fea/ChContactSurface.h"
