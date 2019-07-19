@@ -23,33 +23,19 @@
 //
 // =============================================================================
 
-#include <cstdio>
-#include <algorithm>
-
-#include "chrono/assets/ChCylinderShape.h"
-
-#include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/chassis/ChRigidChassis.h"
-
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRig.h"
 
-#include "chrono_vehicle/wheeled_vehicle/suspension/DoubleWishbone.h"
-#include "chrono_vehicle/wheeled_vehicle/suspension/DoubleWishboneReduced.h"
-#include "chrono_vehicle/wheeled_vehicle/suspension/SolidAxle.h"
-#include "chrono_vehicle/wheeled_vehicle/suspension/MultiLink.h"
-#include "chrono_vehicle/wheeled_vehicle/suspension/MacPhersonStrut.h"
-#include "chrono_vehicle/wheeled_vehicle/suspension/SemiTrailingArm.h"
-#include "chrono_vehicle/wheeled_vehicle/suspension/ThreeLinkIRS.h"
+#include <algorithm>
+#include <cstdio>
 
-#include "chrono_vehicle/wheeled_vehicle/steering/PitmanArm.h"
-#include "chrono_vehicle/wheeled_vehicle/steering/RackPinion.h"
-
-#include "chrono_vehicle/wheeled_vehicle/antirollbar/AntirollBarRSD.h"
-
-#include "chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
-
+#include "chrono/assets/ChColorAsset.h"
+#include "chrono/assets/ChCylinderShape.h"
+//
+#include "chrono_vehicle/chassis/ChRigidChassis.h"
+//
+#include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
-
+//
 #include "chrono_thirdparty/rapidjson/document.h"
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
 #include "chrono_thirdparty/rapidjson/prettywriter.h"
@@ -92,136 +78,8 @@ ChSuspensionTestRigChassis::ChSuspensionTestRigChassis() : ChRigidChassis("Groun
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const double ChSuspensionTestRig::m_post_height = 0.1;
+const double ChSuspensionTestRig::m_post_hheight = 0.05;
 const double ChSuspensionTestRig::m_post_radius = 0.4;
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChSuspensionTestRig::LoadSteering(const std::string& filename) {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
-
-    // Check that the given file is a steering specification file.
-    assert(d.HasMember("Type"));
-    std::string type = d["Type"].GetString();
-    assert(type.compare("Steering") == 0);
-
-    // Extract the driveline type.
-    assert(d.HasMember("Template"));
-    std::string subtype = d["Template"].GetString();
-
-    // Create the steering using the appropriate template.
-    // Create the driveline using the appropriate template.
-    if (subtype.compare("PitmanArm") == 0) {
-        m_steering = std::make_shared<PitmanArm>(d);
-    } else if (subtype.compare("RackPinion") == 0) {
-        m_steering = std::make_shared<RackPinion>(d);
-    }
-
-    GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
-}
-
-void ChSuspensionTestRig::LoadSuspension(const std::string& filename) {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
-
-    // Check that the given file is a suspension specification file.
-    assert(d.HasMember("Type"));
-    std::string type = d["Type"].GetString();
-    assert(type.compare("Suspension") == 0);
-
-    // Extract the suspension type.
-    assert(d.HasMember("Template"));
-    std::string subtype = d["Template"].GetString();
-
-    // Create the suspension using the appropriate template.
-    if (subtype.compare("DoubleWishbone") == 0) {
-        m_suspension = std::make_shared<DoubleWishbone>(d);
-    } else if (subtype.compare("DoubleWishboneReduced") == 0) {
-        m_suspension = std::make_shared<DoubleWishboneReduced>(d);
-    } else if (subtype.compare("SolidAxle") == 0) {
-        m_suspension = std::make_shared<SolidAxle>(d);
-    } else if (subtype.compare("MultiLink") == 0) {
-        m_suspension = std::make_shared<MultiLink>(d);
-    } else if (subtype.compare("MacPhersonStrut") == 0) {
-        m_suspension = std::make_shared<MacPhersonStrut>(d);
-    } else if (subtype.compare("SemiTrailingArm") == 0) {
-        m_suspension = std::make_shared<SemiTrailingArm>(d);
-    } else if (subtype.compare("ThreeLinkIRS") == 0) {
-        m_suspension = std::make_shared<ThreeLinkIRS>(d);
-    }
-
-    GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
-}
-
-void ChSuspensionTestRig::LoadWheel(const std::string& filename, int side) {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
-
-    // Check that the given file is a wheel specification file.
-    assert(d.HasMember("Type"));
-    std::string type = d["Type"].GetString();
-    assert(type.compare("Wheel") == 0);
-
-    // Extract the wheel type.
-    assert(d.HasMember("Template"));
-    std::string subtype = d["Template"].GetString();
-
-    // Create the wheel using the appropriate template.
-    if (subtype.compare("Wheel") == 0) {
-        m_wheel[side] = std::make_shared<Wheel>(d);
-    }
-
-    GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
-}
-
-void ChSuspensionTestRig::LoadAntirollbar(const std::string& filename) {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
-
-    // Check that the given file is an antirollbar specification file.
-    assert(d.HasMember("Type"));
-    std::string type = d["Type"].GetString();
-    assert(type.compare("Antirollbar") == 0);
-
-    // Extract the antirollbar type.
-    assert(d.HasMember("Template"));
-    std::string subtype = d["Template"].GetString();
-
-    if (subtype.compare("AntirollBarRSD") == 0) {
-        m_antirollbar = std::make_shared<AntirollBarRSD>(d);
-    }
-
-    GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
-}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -231,7 +89,13 @@ ChSuspensionTestRig::ChSuspensionTestRig(ChWheeledVehicle& vehicle,
                                          std::shared_ptr<ChTire> tire_left,
                                          std::shared_ptr<ChTire> tire_right,
                                          ChMaterialSurface::ContactMethod contact_method)
-    : ChVehicle("SuspensionTestRig", contact_method), m_displ_limit(displ_limit) {
+    : ChVehicle("SuspensionTestRig", contact_method),
+      m_displ_limit(displ_limit),
+      m_ride_height(-1),
+      m_vis_suspension(VisualizationType::PRIMITIVES),
+      m_vis_steering(VisualizationType::PRIMITIVES),
+      m_vis_wheel(VisualizationType::NONE),
+      m_vis_tire(VisualizationType::PRIMITIVES) {
     assert(axle_index >= 0 && axle_index < vehicle.GetNumberAxles());
 
     // Load suspension subsystem
@@ -250,9 +114,10 @@ ChSuspensionTestRig::ChSuspensionTestRig(ChWheeledVehicle& vehicle,
         m_steeringRot = m_steering->GetPosition().rot;
     }
 
-    // Cache tires
     m_tire[LEFT] = tire_left;
     m_tire[RIGHT] = tire_right;
+
+    Create();
 }
 
 ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
@@ -261,7 +126,13 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
                                          std::shared_ptr<ChTire> tire_left,
                                          std::shared_ptr<ChTire> tire_right,
                                          ChMaterialSurface::ContactMethod contact_method)
-    : ChVehicle("SuspensionTestRig", contact_method), m_displ_limit(displ_limit) {
+    : ChVehicle("SuspensionTestRig", contact_method),
+      m_displ_limit(displ_limit),
+      m_ride_height(-1),
+      m_vis_suspension(VisualizationType::PRIMITIVES),
+      m_vis_steering(VisualizationType::PRIMITIVES),
+      m_vis_wheel(VisualizationType::NONE),
+      m_vis_tire(VisualizationType::PRIMITIVES) {
     // Open and parse the input file (vehicle JSON specification file)
     FILE* fp = fopen(filename.c_str(), "r");
 
@@ -285,8 +156,8 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
     assert(axle_index >= 0 && axle_index < num_axles);
 
     std::string file_name = d["Axles"][axle_index]["Suspension Input File"].GetString();
-    LoadSuspension(vehicle::GetDataFile(file_name));
-    m_suspLoc = LoadVectorJSON(d["Axles"][axle_index]["Suspension Location"]);
+    m_suspension = ReadSuspensionJSON(vehicle::GetDataFile(file_name));
+    m_suspLoc = ReadVectorJSON(d["Axles"][axle_index]["Suspension Location"]);
 
     int steering_index = -1;
     if (d["Axles"][axle_index].HasMember("Steering Index")) {
@@ -294,36 +165,42 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
     }
 
     file_name = d["Axles"][axle_index]["Left Wheel Input File"].GetString();
-    LoadWheel(vehicle::GetDataFile(file_name), LEFT);
+    m_wheel[VehicleSide::LEFT] = ReadWheelJSON(vehicle::GetDataFile(file_name));
     file_name = d["Axles"][axle_index]["Right Wheel Input File"].GetString();
-    LoadWheel(vehicle::GetDataFile(file_name), RIGHT);
+    m_wheel[VehicleSide::RIGHT] = ReadWheelJSON(vehicle::GetDataFile(file_name));
 
     // Create the steering subsystem, if needed.
     if (steering_index >= 0) {
         std::string file_name = d["Steering Subsystems"][steering_index]["Input File"].GetString();
-        LoadSteering(vehicle::GetDataFile(file_name));
-        m_steeringLoc = LoadVectorJSON(d["Steering Subsystems"][steering_index]["Location"]);
-        m_steeringRot = LoadQuaternionJSON(d["Steering Subsystems"][steering_index]["Orientation"]);
+        m_steering = ReadSteeringJSON(vehicle::GetDataFile(file_name));
+        m_steeringLoc = ReadVectorJSON(d["Steering Subsystems"][steering_index]["Location"]);
+        m_steeringRot = ReadQuaternionJSON(d["Steering Subsystems"][steering_index]["Orientation"]);
     }
 
     // Create the anti-roll bar subsystem, if one exists.
     if (d["Axles"][axle_index].HasMember("Antirollbar Input File")) {
         std::string file_name = d["Axles"][axle_index]["Antirollbar Input File"].GetString();
-        LoadAntirollbar(vehicle::GetDataFile(file_name));
-        m_antirollbarLoc = LoadVectorJSON(d["Axles"][axle_index]["Antirollbar Location"]);
+        m_antirollbar = ReadAntirollbarJSON(vehicle::GetDataFile(file_name));
+        m_antirollbarLoc = ReadVectorJSON(d["Axles"][axle_index]["Antirollbar Location"]);
     }
 
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 
     m_tire[LEFT] = tire_left;
     m_tire[RIGHT] = tire_right;
+
+    Create();
 }
 
 ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
                                          std::shared_ptr<ChTire> tire_left,
                                          std::shared_ptr<ChTire> tire_right,
                                          ChMaterialSurface::ContactMethod contact_method)
-    : ChVehicle("SuspensionTestRig", contact_method) {
+    : ChVehicle("SuspensionTestRig", contact_method),
+      m_vis_suspension(VisualizationType::PRIMITIVES),
+      m_vis_steering(VisualizationType::PRIMITIVES),
+      m_vis_wheel(VisualizationType::NONE),
+      m_vis_tire(VisualizationType::PRIMITIVES) {
     // Open and parse the input file (rig JSON specification file)
     FILE* fp = fopen(filename.c_str(), "r");
 
@@ -344,13 +221,20 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
     assert(d.HasMember("Suspension"));
 
     std::string file_name = d["Suspension"]["Input File"].GetString();
-    LoadSuspension(vehicle::GetDataFile(file_name));
-    m_suspLoc = LoadVectorJSON(d["Suspension"]["Location"]);
+    m_suspension = ReadSuspensionJSON(vehicle::GetDataFile(file_name));
+    m_suspLoc = ReadVectorJSON(d["Suspension"]["Location"]);
 
     file_name = d["Suspension"]["Left Wheel Input File"].GetString();
-    LoadWheel(vehicle::GetDataFile(file_name), LEFT);
+    m_wheel[VehicleSide::LEFT] = ReadWheelJSON(vehicle::GetDataFile(file_name));
     file_name = d["Suspension"]["Right Wheel Input File"].GetString();
-    LoadWheel(vehicle::GetDataFile(file_name), RIGHT);
+    m_wheel[VehicleSide::RIGHT] = ReadWheelJSON(vehicle::GetDataFile(file_name));
+
+    // Read initial ride height (if specified)
+    if (d.HasMember("Ride Height")) {
+        m_ride_height = d["Ride Height"].GetDouble();
+    } else {
+        m_ride_height = -1;
+    }
 
     // Read displacement limit
     assert(d.HasMember("Displacement Limit"));
@@ -359,30 +243,32 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
     // Create the steering subsystem, if specified
     if (d.HasMember("Steering")) {
         std::string file_name = d["Steering"]["Input File"].GetString();
-        LoadSteering(vehicle::GetDataFile(file_name));
-        m_steeringLoc = LoadVectorJSON(d["Steering"]["Location"]);
-        m_steeringRot = LoadQuaternionJSON(d["Steering"]["Orientation"]);
+        m_steering = ReadSteeringJSON(vehicle::GetDataFile(file_name));
+        m_steeringLoc = ReadVectorJSON(d["Steering"]["Location"]);
+        m_steeringRot = ReadQuaternionJSON(d["Steering"]["Orientation"]);
     }
 
     // Create the anti-roll bar subsystem, if one exists.
     if (d["Suspension"].HasMember("Antirollbar Input File")) {
         std::string file_name = d["Suspension"]["Antirollbar Input File"].GetString();
-        LoadAntirollbar(vehicle::GetDataFile(file_name));
-        m_antirollbarLoc = LoadVectorJSON(d["Suspension"]["Antirollbar Location"]);
+        m_antirollbar = ReadAntirollbarJSON(vehicle::GetDataFile(file_name));
+        m_antirollbarLoc = ReadVectorJSON(d["Suspension"]["Antirollbar Location"]);
     }
 
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 
     m_tire[LEFT] = tire_left;
     m_tire[RIGHT] = tire_right;
+
+    Create();
 }
 
-void ChSuspensionTestRig::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
+void ChSuspensionTestRig::Create() {
     // ----------------------------
     // Create the chassis subsystem
     // ----------------------------
     m_chassis = std::make_shared<ChSuspensionTestRigChassis>();
-    m_chassis->Initialize(m_system, chassisPos, 0);
+    m_chassis->Initialize(m_system, ChCoordsys<>(), 0);
     m_chassis->SetFixed(true);
 
     // ---------------------------------
@@ -407,17 +293,21 @@ void ChSuspensionTestRig::Initialize(const ChCoordsys<>& chassisPos, double chas
     m_wheel[LEFT]->Initialize(m_suspension->GetSpindle(LEFT));
     m_wheel[RIGHT]->Initialize(m_suspension->GetSpindle(RIGHT));
 
+    // Initialize the tire subsystem
+    m_tire[LEFT]->Initialize(GetWheelBody(LEFT), LEFT);
+    m_tire[RIGHT]->Initialize(GetWheelBody(RIGHT), RIGHT);
+
+    // --------------------------------------------
+    // Imobilize wheels
+    // --------------------------------------------
+
     // --------------------------------------------
     // Create and initialize the shaker post bodies
     // --------------------------------------------
 
-    // Rotation by 90 degrees about x
-    ChMatrix33<> y2z(chrono::Q_from_AngX(CH_C_PI / 2));
-
     // Left post body (green)
     ChVector<> spindle_L_pos = m_suspension->GetSpindlePos(LEFT);
-    ChVector<> post_L_pos = spindle_L_pos;
-    post_L_pos.z() -= (m_tire[LEFT]->GetRadius() + m_post_height / 2.0);
+    ChVector<> post_L_pos = spindle_L_pos - ChVector<>(0, 0, m_tire[LEFT]->GetRadius());
 
     m_post[LEFT] = std::shared_ptr<ChBody>(m_system->NewBody());
     m_post[LEFT]->SetPos(post_L_pos);
@@ -427,13 +317,14 @@ void ChSuspensionTestRig::Initialize(const ChCoordsys<>& chassisPos, double chas
     AddVisualize_post(LEFT, ChColor(0.1f, 0.8f, 0.15f));
 
     m_post[LEFT]->GetCollisionModel()->ClearModel();
-    m_post[LEFT]->GetCollisionModel()->AddCylinder(m_post_radius, m_post_radius, m_post_height / 2, ChVector<>(0), y2z);
+    m_post[LEFT]->GetCollisionModel()->AddCylinder(m_post_radius, m_post_radius, m_post_hheight,
+                                                   ChVector<>(0, 0, -m_post_hheight),
+                                                   ChMatrix33<>(Q_from_AngX(CH_C_PI / 2)));
     m_post[LEFT]->GetCollisionModel()->BuildModel();
 
     // Right post body (red)
     ChVector<> spindle_R_pos = m_suspension->GetSpindlePos(RIGHT);
-    ChVector<> post_R_pos = spindle_R_pos;
-    post_R_pos.z() -= (m_tire[RIGHT]->GetRadius() + m_post_height / 2.0);
+    ChVector<> post_R_pos = spindle_R_pos - ChVector<>(0, 0, m_tire[RIGHT]->GetRadius());
 
     m_post[RIGHT] = std::shared_ptr<ChBody>(m_system->NewBody());
     m_post[RIGHT]->SetPos(post_R_pos);
@@ -443,89 +334,81 @@ void ChSuspensionTestRig::Initialize(const ChCoordsys<>& chassisPos, double chas
     AddVisualize_post(RIGHT, ChColor(0.8f, 0.1f, 0.1f));
 
     m_post[RIGHT]->GetCollisionModel()->ClearModel();
-    m_post[RIGHT]->GetCollisionModel()->AddCylinder(m_post_radius, m_post_radius, m_post_height / 2, ChVector<>(0),
-                                                    y2z);
+    m_post[RIGHT]->GetCollisionModel()->AddCylinder(m_post_radius, m_post_radius, m_post_hheight,
+                                                    ChVector<>(0, 0, -m_post_hheight),
+                                                    ChMatrix33<>(Q_from_AngX(CH_C_PI / 2)));
     m_post[RIGHT]->GetCollisionModel()->BuildModel();
 
     // ------------------------------------------
     // Create and initialize joints and actuators
     // ------------------------------------------
 
-    // Prismatic joints to force vertical translation
-    m_post_prismatic[LEFT] = std::make_shared<ChLinkLockPrismatic>();
-    m_post_prismatic[LEFT]->SetNameString("L_post_prismatic");
-    m_post_prismatic[LEFT]->Initialize(m_chassis->GetBody(), m_post[LEFT], ChCoordsys<>(ChVector<>(post_L_pos), QUNIT));
-    m_system->AddLink(m_post_prismatic[LEFT]);
+    auto func_L = std::make_shared<ChFunction_Const>();
+    auto func_R = std::make_shared<ChFunction_Const>();
 
-    m_post_prismatic[RIGHT] = std::make_shared<ChLinkLockPrismatic>();
-    m_post_prismatic[RIGHT]->SetNameString("R_post_prismatic");
-    m_post_prismatic[RIGHT]->Initialize(m_chassis->GetBody(), m_post[RIGHT],
-                                        ChCoordsys<>(ChVector<>(post_R_pos), QUNIT));
-    m_system->AddLink(m_post_prismatic[RIGHT]);
-
-    // Post actuators
-    ChVector<> m1_L = post_L_pos;
-    m1_L.z() -= 1.0;  // offset marker 1 location 1 meter below marker 2
-    m_post_linact[LEFT] = std::make_shared<ChLinkLinActuator>();
+    m_post_linact[LEFT] = std::make_shared<ChLinkMotorLinearPosition>();
     m_post_linact[LEFT]->SetNameString("L_post_linActuator");
-    m_post_linact[LEFT]->Initialize(m_chassis->GetBody(), m_post[LEFT], false, ChCoordsys<>(m1_L, QUNIT),
-                                    ChCoordsys<>(post_L_pos, QUNIT));
-    m_post_linact[LEFT]->Set_lin_offset(1.0);
-
-    auto func_L = std::make_shared<ChFunction_Const>(0);
-    m_post_linact[LEFT]->Set_dist_funct(func_L);
+    m_post_linact[LEFT]->SetMotionFunction(func_L);
+    m_post_linact[LEFT]->Initialize(m_chassis->GetBody(), m_post[LEFT],
+                                    ChFrame<>(ChVector<>(post_L_pos), Q_from_AngY(CH_C_PI_2)));
     m_system->AddLink(m_post_linact[LEFT]);
 
-    ChVector<> m1_R = post_R_pos;
-    m1_R.z() -= 1.0;  // offset marker 1 location 1 meter below marker 2
-    m_post_linact[RIGHT] = std::make_shared<ChLinkLinActuator>();
+    m_post_linact[RIGHT] = std::make_shared<ChLinkMotorLinearPosition>();
     m_post_linact[RIGHT]->SetNameString("R_post_linActuator");
-    m_post_linact[RIGHT]->Initialize(m_chassis->GetBody(), m_post[RIGHT], false, ChCoordsys<>(m1_R, QUNIT),
-                                     ChCoordsys<>(post_R_pos, QUNIT));
-    m_post_linact[RIGHT]->Set_lin_offset(1.0);
-
-    auto func_R = std::make_shared<ChFunction_Const>(0);
-    m_post_linact[RIGHT]->Set_dist_funct(func_R);
+    m_post_linact[RIGHT]->SetMotionFunction(func_R);
+    m_post_linact[RIGHT]->Initialize(m_chassis->GetBody(), m_post[RIGHT],
+                                     ChFrame<>(ChVector<>(post_R_pos), Q_from_AngY(CH_C_PI_2)));
     m_system->AddLink(m_post_linact[RIGHT]);
+}
 
-    // -----------------------------
-    // Initialize the tire subsystem
-    // -----------------------------
+void ChSuspensionTestRig::Initialize() {
+    if (!m_driver) {
+        throw ChException("No driver system provided");
+    }
 
-    m_tire[LEFT]->Initialize(GetWheelBody(LEFT), LEFT);
-    m_tire[RIGHT]->Initialize(GetWheelBody(RIGHT), RIGHT);
+    // Calculate post displacement offset (if any) to set reference position at specified ride height
+    m_displ_offset = 0;
+    m_displ_delay = 0;
+    if (m_ride_height > 0) {
+        m_displ_offset = -m_ride_height - m_post[LEFT]->GetPos().z();
+        m_displ_delay = 0.1;
+    }
+
+    // Set visualization modes
+    m_suspension->SetVisualizationType(m_vis_suspension);
+    m_steering->SetVisualizationType(m_vis_steering);
+    m_wheel[LEFT]->SetVisualizationType(m_vis_wheel);
+    m_wheel[RIGHT]->SetVisualizationType(m_vis_wheel);
+    m_tire[LEFT]->SetVisualizationType(m_vis_tire);
+    m_tire[RIGHT]->SetVisualizationType(m_vis_tire);
+
+    // Initialize the driver system
+    m_driver->SetTimeDelay(m_displ_delay);
+    m_driver->Initialize();
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-
-void ChSuspensionTestRig::SetSuspensionVisualizationType(VisualizationType vis) {
-    m_suspension->SetVisualizationType(vis);
-}
-
-void ChSuspensionTestRig::SetSteeringVisualizationType(VisualizationType vis) {
-    m_steering->SetVisualizationType(vis);
-}
-
-void ChSuspensionTestRig::SetWheelVisualizationType(VisualizationType vis) {
-    m_wheel[LEFT]->SetVisualizationType(vis);
-    m_wheel[RIGHT]->SetVisualizationType(vis);
-}
-
-void ChSuspensionTestRig::SetTireVisualizationType(VisualizationType vis) {
-    m_tire[LEFT]->SetVisualizationType(vis);
-    m_tire[RIGHT]->SetVisualizationType(vis);
+void ChSuspensionTestRig::SetDriver(std::unique_ptr<ChDriverSTR> driver) {
+    m_driver = std::move(driver);
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+double ChSuspensionTestRig::GetWheelOmega(VehicleSide side) const {
+    auto rot = GetWheelRot(side);
+    auto ang_vel = GetWheelAngVel(side);
+    auto ang_vel_loc = rot.RotateBack(ang_vel);
+    return ang_vel_loc.y();
+}
+
 WheelState ChSuspensionTestRig::GetWheelState(VehicleSide side) const {
     WheelState state;
 
     state.pos = GetWheelPos(side);
     state.rot = GetWheelRot(side);
     state.lin_vel = GetWheelLinVel(side);
-    state.ang_vel = ChVector<>(0, 0, 0);
+    state.ang_vel = GetWheelAngVel(side);
 
     ChVector<> ang_vel_loc = state.rot.RotateBack(state.ang_vel);
     state.omega = ang_vel_loc.y();
@@ -533,9 +416,7 @@ WheelState ChSuspensionTestRig::GetWheelState(VehicleSide side) const {
     return state;
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-double ChSuspensionTestRig::GetVehicleMass() const {
+double ChSuspensionTestRig::GetMass() const {
     double mass = m_suspension->GetMass();
     if (HasSteering())
         mass += m_steering->GetMass();
@@ -544,11 +425,9 @@ double ChSuspensionTestRig::GetVehicleMass() const {
     return mass;
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 double ChSuspensionTestRig::GetActuatorDisp(VehicleSide side) {
     double time = GetSystem()->GetChTime();
-    return m_post_linact[side]->Get_dist_funct()->Get_y(time);
+    return m_post_linact[side]->GetMotionFunction()->Get_y(time);
 }
 
 double ChSuspensionTestRig::GetActuatorForce(VehicleSide side) {
@@ -556,40 +435,73 @@ double ChSuspensionTestRig::GetActuatorForce(VehicleSide side) {
 }
 
 double ChSuspensionTestRig::GetActuatorMarkerDist(VehicleSide side) {
-    return m_post_linact[side]->GetDist();
+    return m_post_linact[side]->GetMotorPos();
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChSuspensionTestRig::Synchronize(double time, double steering, double disp_L, double disp_R) {
-    // Synchronize the tire subsystems.
-    m_tire[LEFT]->Synchronize(time, GetWheelState(LEFT), m_terrain);
-    m_tire[RIGHT]->Synchronize(time, GetWheelState(RIGHT), m_terrain);
-
-    // Let the steering subsystem process the steering input.
-    if (HasSteering()) {
-        m_steering->Synchronize(time, steering);
-    }
-
-    // Apply the displacements to the left/right post actuators
-    if (auto func_L = std::dynamic_pointer_cast<ChFunction_Const>(m_post_linact[LEFT]->Get_dist_funct()))
-        func_L->Set_yconst(disp_L * m_displ_limit);
-    if (auto func_R = std::dynamic_pointer_cast<ChFunction_Const>(m_post_linact[RIGHT]->Get_dist_funct()))
-        func_R->Set_yconst(disp_R * m_displ_limit);
-
-    // Apply tire forces to spindle bodies.
-    m_suspension->Synchronize(LEFT, m_tire[LEFT]->GetTireForce());
-    m_suspension->Synchronize(RIGHT, m_tire[RIGHT]->GetTireForce());
-
-    // Update the height of the underlying "terrain" object, using the current z positions
-    // of the post bodies.
-    m_terrain.m_height_L = m_post[LEFT]->GetPos().z() + m_post_height / 2;
-    m_terrain.m_height_R = m_post[RIGHT]->GetPos().z() + m_post_height / 2;
+double ChSuspensionTestRig::GetRideHeight() const {
+    // Note: the chassis reference frame is constructed at a height of 0.
+    return -(m_post[LEFT]->GetPos().z() + m_post[RIGHT]->GetPos().z()) / 2;
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChSuspensionTestRig::Advance(double step) {
+    double time = GetChTime();
+
+    // Set post displacements
+    double displ_left = 0;
+    double displ_right = 0;
+
+    if (time < m_displ_delay) {
+        m_steering_input = 0;
+        m_left_input = 0;
+        m_right_input = 0;
+        displ_left = m_displ_offset * time / m_displ_delay;
+        displ_right = m_displ_offset * time / m_displ_delay;
+    } else {
+        m_steering_input = m_driver->GetSteering();
+        m_left_input = m_driver->GetDisplacementLeft();
+        m_right_input = m_driver->GetDisplacementRight();
+
+        displ_left = m_displ_offset + m_displ_limit * m_left_input;
+        displ_right = m_displ_offset + m_displ_limit * m_right_input;
+    }
+
+    m_tireforce[LEFT] = m_tire[LEFT]->ReportTireForce(&m_terrain);
+    m_tireforce[RIGHT] = m_tire[RIGHT]->ReportTireForce(&m_terrain);
+
+    auto tire_force_L = m_tire[LEFT]->GetTireForce();
+    auto tire_force_R = m_tire[RIGHT]->GetTireForce();
+
+    auto wheel_state_L = GetWheelState(LEFT);
+    auto wheel_state_R = GetWheelState(RIGHT);
+
+    // Synchronize driver system
+    m_driver->Synchronize(time);
+
+    // Synchronize the tire subsystems
+    m_tire[LEFT]->Synchronize(time, wheel_state_L, m_terrain);
+    m_tire[RIGHT]->Synchronize(time, wheel_state_R, m_terrain);
+
+    // Let the steering subsystem process the steering input
+    if (HasSteering()) {
+        m_steering->Synchronize(time, m_steering_input);
+    }
+
+    // Apply tire forces to spindle bodies
+    m_suspension->Synchronize(LEFT, tire_force_L);
+    m_suspension->Synchronize(RIGHT, tire_force_R);
+
+    // Update post displacements
+    auto func_L = std::static_pointer_cast<ChFunction_Const>(m_post_linact[LEFT]->GetMotionFunction());
+    auto func_R = std::static_pointer_cast<ChFunction_Const>(m_post_linact[RIGHT]->GetMotionFunction());
+    func_L->Set_yconst(displ_left);
+    func_R->Set_yconst(displ_right);
+
+    // Update the height of the underlying terrain object, using the current z positions of the post bodies.
+    m_terrain.m_height_L = m_post[LEFT]->GetPos().z();
+    m_terrain.m_height_R = m_post[RIGHT]->GetPos().z();
+
     // Advance states of tire subsystems
     m_tire[LEFT]->Advance(step);
     m_tire[RIGHT]->Advance(step);
@@ -621,67 +533,12 @@ void ChSuspensionTestRig::LogConstraintViolations() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-std::string ChSuspensionTestRig::ExportComponentList() const {
-    rapidjson::Document jsonDocument;
-    jsonDocument.SetObject();
-
-    std::string template_name = GetTemplateName();
-    jsonDocument.AddMember("name", rapidjson::StringRef(m_name.c_str()), jsonDocument.GetAllocator());
-    jsonDocument.AddMember("template", rapidjson::Value(template_name.c_str(), jsonDocument.GetAllocator()).Move(),
-                           jsonDocument.GetAllocator());
-
-    {
-        rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
-        jsonSubDocument.SetObject();
-        m_chassis->ExportComponentList(jsonSubDocument);
-        jsonDocument.AddMember("chassis", jsonSubDocument, jsonDocument.GetAllocator());
-    }
-
-    {
-        rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
-        jsonSubDocument.SetObject();
-        m_suspension->ExportComponentList(jsonSubDocument);
-        jsonDocument.AddMember("suspension", jsonSubDocument, jsonDocument.GetAllocator());
-    }
-
-    if (HasSteering()) {
-        rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
-        jsonSubDocument.SetObject();
-        m_steering->ExportComponentList(jsonSubDocument);
-        jsonDocument.AddMember("steering", jsonSubDocument, jsonDocument.GetAllocator());
-    }
-
-    if (HasAntirollbar()) {
-        rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
-        jsonSubDocument.SetObject();
-        m_antirollbar->ExportComponentList(jsonSubDocument);
-        jsonDocument.AddMember("anti-roll bar", jsonSubDocument, jsonDocument.GetAllocator());
-    }
-
-    rapidjson::StringBuffer jsonBuffer;
-    rapidjson::PrettyWriter<rapidjson::StringBuffer> jsonWriter(jsonBuffer);
-    jsonDocument.Accept(jsonWriter);
-
-    return jsonBuffer.GetString();
-}
-
-void ChSuspensionTestRig::ExportComponentList(const std::string& filename) const {
-    std::ofstream of(filename);
-    of << ExportComponentList();
-}
-
-void ChSuspensionTestRig::Output(int frame, ChVehicleOutput& database) const {
-    //// TODO
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChSuspensionTestRig::AddVisualize_post(VehicleSide side, const ChColor& color) {
     // Platform (on post body)
     auto base_cyl = std::make_shared<ChCylinderShape>();
     base_cyl->GetCylinderGeometry().rad = m_post_radius;
-    base_cyl->GetCylinderGeometry().p1 = ChVector<>(0, 0, m_post_height / 2.0);
-    base_cyl->GetCylinderGeometry().p2 = ChVector<>(0, 0, -m_post_height / 2.0);
+    base_cyl->GetCylinderGeometry().p1 = ChVector<>(0, 0, 0);
+    base_cyl->GetCylinderGeometry().p2 = ChVector<>(0, 0, -2 * m_post_hheight);
     m_post[side]->AddAsset(base_cyl);
 
     auto col = std::make_shared<ChColorAsset>();
@@ -691,15 +548,15 @@ void ChSuspensionTestRig::AddVisualize_post(VehicleSide side, const ChColor& col
     // Piston (on post body)
     auto piston = std::make_shared<ChCylinderShape>();
     piston->GetCylinderGeometry().rad = m_post_radius / 6.0;
-    piston->GetCylinderGeometry().p1 = ChVector<>(0, 0, -m_post_height / 2.0);
-    piston->GetCylinderGeometry().p2 = ChVector<>(0, 0, -m_post_height * 12.0);
-    m_post[side]->AddAsset(piston);  // add asset to post body
+    piston->GetCylinderGeometry().p1 = ChVector<>(0, 0, -2 * m_post_hheight);
+    piston->GetCylinderGeometry().p2 = ChVector<>(0, 0, -m_post_hheight * 20.0);
+    m_post[side]->AddAsset(piston);
 
     // Post sleeve (on chassis/ground body)
     auto cyl = std::make_shared<ChCylinderShape>();
     cyl->GetCylinderGeometry().rad = m_post_radius / 4.0;
-    cyl->GetCylinderGeometry().p1 = m_post[side]->GetPos() - ChVector<>(0, 0, 8 * m_post_height);
-    cyl->GetCylinderGeometry().p2 = m_post[side]->GetPos() - ChVector<>(0, 0, 16 * m_post_height);
+    cyl->GetCylinderGeometry().p1 = m_post[side]->GetPos() - ChVector<>(0, 0, 16 * m_post_hheight);
+    cyl->GetCylinderGeometry().p2 = m_post[side]->GetPos() - ChVector<>(0, 0, 32 * m_post_hheight);
     m_chassis->GetBody()->AddAsset(cyl);
 }
 
@@ -708,7 +565,7 @@ void ChSuspensionTestRig::AddVisualize_post(VehicleSide side, const ChColor& col
 ChSuspensionTestRig::Terrain::Terrain() : m_height_L(0), m_height_R(0) {}
 
 double ChSuspensionTestRig::Terrain::GetHeight(double x, double y) const {
-    return (y < 0) ? m_height_L : m_height_R;
+    return (y < 0) ? m_height_R : m_height_L;
 }
 
 ChVector<> ChSuspensionTestRig::Terrain::GetNormal(double x, double y) const {

@@ -16,8 +16,8 @@
 //
 // =============================================================================
 
-#ifndef DOUBLE_IDLER_H
-#define DOUBLE_IDLER_H
+#ifndef SINGLE_ROAD_WHEEL_H
+#define SINGLE_ROAD_WHEEL_H
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/tracked_vehicle/road_wheel/ChSingleRoadWheel.h"

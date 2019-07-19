@@ -193,11 +193,12 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
     /// Get the tire rolling radius, ideally updated each step.
     double get_tire_rolling_rad() const { return m_R_eff; }
 
+  protected:
+    const std::string& getPacTireParamFile() const { return m_paramFile; }
+    std::string m_paramFile;  // input parameter file
+
   private:
     virtual void Create(const rapidjson::Document& d) override {}
-
-    // where to find the input parameter file
-    const std::string& getPacTireParamFile() const { return m_paramFile; }
 
     // look for this data file
     void loadPacTireParamFile();
@@ -390,7 +391,6 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
     double m_C_Fx;
     double m_C_Fy;
 
-    std::string m_paramFile;    // input parameter file
     std::string m_outFilename;  // output filename
 
     int m_Num_WriteOutData;  // number of times WriteOut was called

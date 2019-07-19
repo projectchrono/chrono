@@ -228,5 +228,9 @@ bool ChTrackAssemblySinglePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     return ccw;
 }
 
+void ChTrackAssemblySinglePin::RemoveTrackShoes() {
+    m_shoes.clear();
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

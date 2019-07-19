@@ -216,6 +216,9 @@ class SprocketBandContactCB : public ChSystem::CustomCollisionCallback {
 
 // Add contacts between the sprocket and track shoes.
 void SprocketBandContactCB::OnCustomCollision(ChSystem* system) {
+    if (m_track->GetNumTrackShoes() == 0)
+        return;
+
     // Temporary workaround since the shoe has not been intialized by the time the collision constructor is called.
     if (m_update_tread) {
         m_update_tread = false;

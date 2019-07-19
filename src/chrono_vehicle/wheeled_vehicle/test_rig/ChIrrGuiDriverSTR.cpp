@@ -32,17 +32,17 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChIrrGuiDriverSTR::ChIrrGuiDriverSTR(ChVehicleIrrApp& app)
-    : ChDriverSTR(*static_cast<ChSuspensionTestRig*>(app.m_vehicle)),
-      m_app(app),
-      m_displDelta(1.0 / 50),
-      m_steeringDelta(1.0 / 50) {
+ChIrrGuiDriverSTR::ChIrrGuiDriverSTR(irrlicht::ChIrrApp& app)
+    : m_app(app), m_displDelta(1.0 / 50), m_steeringDelta(1.0 / 250) {
     app.SetUserEventReceiver(this);
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 bool ChIrrGuiDriverSTR::OnEvent(const SEvent& event) {
+    if (m_app.GetSystem()->GetChTime() < m_delay)
+        return false;
+
     // Only interpret keyboard inputs.
     if (event.EventType != EET_KEY_INPUT_EVENT)
         return false;

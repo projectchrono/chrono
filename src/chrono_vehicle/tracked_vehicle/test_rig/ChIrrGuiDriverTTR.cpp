@@ -19,8 +19,7 @@
 
 #include <algorithm>
 
-#include "chrono/core/ChMathematics.h"
-#include "chrono_vehicle/tracked_vehicle/utils/ChIrrGuiDriverTTR.h"
+#include "chrono_vehicle/tracked_vehicle/test_rig/ChIrrGuiDriverTTR.h"
 
 using namespace irr;
 
@@ -29,32 +28,41 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChIrrGuiDriverTTR::ChIrrGuiDriverTTR(ChVehicleIrrApp& app, double displacement_limit)
-    : ChIrrGuiDriver(app),
-      m_displacement(0),
-      m_displacementDelta(displacement_limit / 50),
-      m_minDisplacement(-displacement_limit),
-      m_maxDisplacement(displacement_limit) {
+ChIrrGuiDriverTTR::ChIrrGuiDriverTTR(irrlicht::ChIrrApp& app)
+    : m_app(app), m_current_post(0), m_msg("Active post: 0"), m_displDelta(1.0 / 250), m_throttleDelta(1.0 / 50) {
+    app.SetUserEventReceiver(this);
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 bool ChIrrGuiDriverTTR::OnEvent(const SEvent& event) {
-    // Allow the base class to first interpret events.
-    if (ChIrrGuiDriver::OnEvent(event))
-        return true;
-
     // Only interpret keyboard inputs.
     if (event.EventType != EET_KEY_INPUT_EVENT)
         return false;
 
     if (event.KeyInput.PressedDown) {
         switch (event.KeyInput.Key) {
-            case KEY_KEY_T:  // left post up
-                SetDisplacement(m_displacement + m_displacementDelta);
+            case KEY_ADD:
+            case KEY_PLUS:
+                m_current_post = (m_current_post + 1) % m_displ.size();
+                m_msg = "Active post: " + std::to_string(m_current_post);
                 return true;
-            case KEY_KEY_G:  // left post down
-                SetDisplacement(m_displacement - m_displacementDelta);
+            case KEY_SUBTRACT:
+            case KEY_MINUS:
+                m_current_post = (m_current_post == 0) ? (int)m_displ.size() - 1 : m_current_post - 1;
+                m_msg = "Active post: " + std::to_string(m_current_post);
+                return true;
+            case KEY_KEY_T:
+                SetDisplacement(m_current_post, m_displ[m_current_post] + m_displDelta);
+                return true;
+            case KEY_KEY_G:
+                SetDisplacement(m_current_post, m_displ[m_current_post] - m_displDelta);
+                return true;
+            case KEY_KEY_W:
+                SetThrottle(m_throttle + m_throttleDelta);
+                return true;
+            case KEY_KEY_S:
+                SetThrottle(m_throttle - m_throttleDelta);
                 return true;
             default:
                 break;
@@ -62,12 +70,6 @@ bool ChIrrGuiDriverTTR::OnEvent(const SEvent& event) {
     }
 
     return false;
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChIrrGuiDriverTTR::SetDisplacement(double vertical_disp) {
-    m_displacement = ChClamp(vertical_disp, m_minDisplacement, m_maxDisplacement);
 }
 
 }  // end namespace vehicle

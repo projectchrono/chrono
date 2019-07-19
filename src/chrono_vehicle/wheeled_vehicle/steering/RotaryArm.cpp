@@ -54,11 +54,11 @@ void RotaryArm::Create(const rapidjson::Document& d) {
 
     m_pitmanArmMass = d["Pitman Arm"]["Mass"].GetDouble();
     m_pitmanArmRadius = d["Pitman Arm"]["Radius"].GetDouble();
-    m_pitmanArmInertiaMoments = LoadVectorJSON(d["Pitman Arm"]["Inertia"]);
-    m_pitmanArmInertiaProducts = LoadVectorJSON(d["Pitman Arm"]["Inertia Products"]);
-    m_pointOfRotation = LoadVectorJSON(d["Pitman Arm"]["Point of Rotation"]);
-    m_pointToDragLink = LoadVectorJSON(d["Pitman Arm"]["Point to Draglink"]);
-    m_axisOfRotation = LoadVectorJSON(d["Pitman Arm"]["Axis of Rotation"]);
+    m_pitmanArmInertiaMoments = ReadVectorJSON(d["Pitman Arm"]["Inertia"]);
+    m_pitmanArmInertiaProducts = ReadVectorJSON(d["Pitman Arm"]["Inertia Products"]);
+    m_pointOfRotation = ReadVectorJSON(d["Pitman Arm"]["Point of Rotation"]);
+    m_pointToDragLink = ReadVectorJSON(d["Pitman Arm"]["Point to Draglink"]);
+    m_axisOfRotation = ReadVectorJSON(d["Pitman Arm"]["Axis of Rotation"]);
     m_maxAngle = d["Pitman Arm"]["Maximum Angle Degrees"].GetDouble() * CH_C_PI / 180.0;
 }
 

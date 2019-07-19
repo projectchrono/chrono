@@ -74,8 +74,8 @@ void LeafspringAxle::Create(const rapidjson::Document& d) {
     assert(d["Spindle"].IsObject());
 
     m_spindleMass = d["Spindle"]["Mass"].GetDouble();
-    m_points[SPINDLE] = LoadVectorJSON(d["Spindle"]["COM"]);
-    m_spindleInertia = LoadVectorJSON(d["Spindle"]["Inertia"]);
+    m_points[SPINDLE] = ReadVectorJSON(d["Spindle"]["COM"]);
+    m_spindleInertia = ReadVectorJSON(d["Spindle"]["Inertia"]);
     m_spindleRadius = d["Spindle"]["Radius"].GetDouble();
     m_spindleWidth = d["Spindle"]["Width"].GetDouble();
 
@@ -84,16 +84,16 @@ void LeafspringAxle::Create(const rapidjson::Document& d) {
     assert(d["Axle Tube"].IsObject());
 
     m_axleTubeMass = d["Axle Tube"]["Mass"].GetDouble();
-    m_axleTubeCOM = LoadVectorJSON(d["Axle Tube"]["COM"]);
-    m_axleTubeInertia = LoadVectorJSON(d["Axle Tube"]["Inertia"]);
+    m_axleTubeCOM = ReadVectorJSON(d["Axle Tube"]["COM"]);
+    m_axleTubeInertia = ReadVectorJSON(d["Axle Tube"]["Inertia"]);
     m_axleTubeRadius = d["Axle Tube"]["Radius"].GetDouble();
 
     // Read spring data and create force callback
     assert(d.HasMember("Spring"));
     assert(d["Spring"].IsObject());
 
-    m_points[SPRING_C] = LoadVectorJSON(d["Spring"]["Location Chassis"]);
-    m_points[SPRING_A] = LoadVectorJSON(d["Spring"]["Location Axle"]);
+    m_points[SPRING_C] = ReadVectorJSON(d["Spring"]["Location Chassis"]);
+    m_points[SPRING_A] = ReadVectorJSON(d["Spring"]["Location Axle"]);
     m_springRestLength = d["Spring"]["Free Length"].GetDouble();
     m_springMinLength = d["Spring"]["Minimal Length"].GetDouble();
     m_springMaxLength = d["Spring"]["Maximal Length"].GetDouble();
@@ -115,8 +115,8 @@ void LeafspringAxle::Create(const rapidjson::Document& d) {
     assert(d.HasMember("Shock"));
     assert(d["Shock"].IsObject());
 
-    m_points[SHOCK_C] = LoadVectorJSON(d["Shock"]["Location Chassis"]);
-    m_points[SHOCK_A] = LoadVectorJSON(d["Shock"]["Location Axle"]);
+    m_points[SHOCK_C] = ReadVectorJSON(d["Shock"]["Location Chassis"]);
+    m_points[SHOCK_A] = ReadVectorJSON(d["Shock"]["Location Axle"]);
 
     if (d["Shock"].HasMember("Damping Coefficient")) {
         if (d["Shock"].HasMember("Degressivity Compression") && d["Shock"].HasMember("Degressivity Expansion")) {

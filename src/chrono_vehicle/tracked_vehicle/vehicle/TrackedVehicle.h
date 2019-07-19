@@ -46,10 +46,6 @@ class CH_VEHICLE_API TrackedVehicle : public ChTrackedVehicle {
   private:
     void Create(const std::string& filename);
 
-    void LoadChassis(const std::string& filename, int output);
-    void LoadTrackAssembly(const std::string& filename, VehicleSide side, int output);
-    void LoadDriveline(const std::string& filename, int output);
-
   private:
     double m_track_offset[2];  ///< offsets for the left and right track assemblies
 };

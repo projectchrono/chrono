@@ -73,8 +73,8 @@ void DoubleWishboneReduced::Create(const rapidjson::Document& d) {
     assert(d["Spindle"].IsObject());
 
     m_spindleMass = d["Spindle"]["Mass"].GetDouble();
-    m_points[SPINDLE] = LoadVectorJSON(d["Spindle"]["COM"]);
-    m_spindleInertia = LoadVectorJSON(d["Spindle"]["Inertia"]);
+    m_points[SPINDLE] = ReadVectorJSON(d["Spindle"]["COM"]);
+    m_spindleInertia = ReadVectorJSON(d["Spindle"]["Inertia"]);
     m_spindleRadius = d["Spindle"]["Radius"].GetDouble();
     m_spindleWidth = d["Spindle"]["Width"].GetDouble();
 
@@ -83,39 +83,39 @@ void DoubleWishboneReduced::Create(const rapidjson::Document& d) {
     assert(d["Upright"].IsObject());
 
     m_uprightMass = d["Upright"]["Mass"].GetDouble();
-    m_points[UPRIGHT] = LoadVectorJSON(d["Upright"]["COM"]);
-    m_uprightInertia = LoadVectorJSON(d["Upright"]["Inertia"]);
+    m_points[UPRIGHT] = ReadVectorJSON(d["Upright"]["COM"]);
+    m_uprightInertia = ReadVectorJSON(d["Upright"]["Inertia"]);
     m_uprightRadius = d["Upright"]["Radius"].GetDouble();
 
     // Read UCA data
     assert(d.HasMember("Upper Control Arm"));
     assert(d["Upper Control Arm"].IsObject());
 
-    m_points[UCA_F] = LoadVectorJSON(d["Upper Control Arm"]["Location Chassis Front"]);
-    m_points[UCA_B] = LoadVectorJSON(d["Upper Control Arm"]["Location Chassis Back"]);
-    m_points[UCA_U] = LoadVectorJSON(d["Upper Control Arm"]["Location Upright"]);
+    m_points[UCA_F] = ReadVectorJSON(d["Upper Control Arm"]["Location Chassis Front"]);
+    m_points[UCA_B] = ReadVectorJSON(d["Upper Control Arm"]["Location Chassis Back"]);
+    m_points[UCA_U] = ReadVectorJSON(d["Upper Control Arm"]["Location Upright"]);
 
     // Read LCA data
     assert(d.HasMember("Lower Control Arm"));
     assert(d["Lower Control Arm"].IsObject());
 
-    m_points[LCA_F] = LoadVectorJSON(d["Lower Control Arm"]["Location Chassis Front"]);
-    m_points[LCA_B] = LoadVectorJSON(d["Lower Control Arm"]["Location Chassis Back"]);
-    m_points[LCA_U] = LoadVectorJSON(d["Lower Control Arm"]["Location Upright"]);
+    m_points[LCA_F] = ReadVectorJSON(d["Lower Control Arm"]["Location Chassis Front"]);
+    m_points[LCA_B] = ReadVectorJSON(d["Lower Control Arm"]["Location Chassis Back"]);
+    m_points[LCA_U] = ReadVectorJSON(d["Lower Control Arm"]["Location Upright"]);
 
     // Read Tierod data
     assert(d.HasMember("Tierod"));
     assert(d["Tierod"].IsObject());
 
-    m_points[TIEROD_C] = LoadVectorJSON(d["Tierod"]["Location Chassis"]);
-    m_points[TIEROD_U] = LoadVectorJSON(d["Tierod"]["Location Upright"]);
+    m_points[TIEROD_C] = ReadVectorJSON(d["Tierod"]["Location Chassis"]);
+    m_points[TIEROD_U] = ReadVectorJSON(d["Tierod"]["Location Upright"]);
 
     // Read spring-damper data and create force callback
     assert(d.HasMember("Shock"));
     assert(d["Shock"].IsObject());
 
-    m_points[SHOCK_C] = LoadVectorJSON(d["Shock"]["Location Chassis"]);
-    m_points[SHOCK_U] = LoadVectorJSON(d["Shock"]["Location Upright"]);
+    m_points[SHOCK_C] = ReadVectorJSON(d["Shock"]["Location Chassis"]);
+    m_points[SHOCK_U] = ReadVectorJSON(d["Shock"]["Location Upright"]);
     m_springRestLength = d["Shock"]["Free Length"].GetDouble();
     m_shockForceCB = new LinearSpringDamperForce(d["Shock"]["Spring Coefficient"].GetDouble(),
                                                  d["Shock"]["Damping Coefficient"].GetDouble());

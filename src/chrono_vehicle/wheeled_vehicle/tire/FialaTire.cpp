@@ -58,7 +58,7 @@ void FialaTire::Create(const rapidjson::Document& d) {
     ChPart::Create(d);
 
     m_mass = d["Mass"].GetDouble();
-    m_inertia = LoadVectorJSON(d["Inertia"]);
+    m_inertia = ReadVectorJSON(d["Inertia"]);
     if (d.HasMember("Coefficient of Friction")) {
         // Default value = 0.8
         m_mu_0 = d["Coefficient of Friction"].GetDouble();

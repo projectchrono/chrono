@@ -1,0 +1,16 @@
+{
+  "Name":                       "HMMWV Pacejka Tire",
+  "Type":                       "Tire",
+  "Template":                   "PacejkaTire",
+
+  "Mass":                       37.6,
+  "Inertia":                    [3.84, 6.69, 3.84],
+
+  "Pacejka Parameter File":     "hmmwv/tire/HMMWV_pacejka.tir",
+
+  "Visualization":
+  {
+    "Mesh Filename":            "hmmwv/hmmwv_tire.obj",
+    "Mesh Name":                "hmmwv_tire_POV_geom"
+  }
+}

@@ -61,14 +61,12 @@ class CH_VEHICLE_API ChDataDriverSTR : public ChDriverSTR {
     };
 
     /// Construct using data from the specified file.
-    ChDataDriverSTR(ChSuspensionTestRig& rig,     ///< associated test rig
-                    const std::string& filename,  ///< name of data file
+    ChDataDriverSTR(const std::string& filename,  ///< name of data file
                     bool sorted = true            ///< indicate whether entries are sorted by time stamps
                     );
 
     /// Construct using data from the specified data entries.
-    ChDataDriverSTR(ChSuspensionTestRig& rig,        ///< associated test rig
-                    const std::vector<Entry>& data,  ///< vector of data entries
+    ChDataDriverSTR(const std::vector<Entry>& data,  ///< vector of data entries
                     bool sorted = true               ///< indicate whether entries are sorted by time stamps
                     );
 

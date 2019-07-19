@@ -91,11 +91,11 @@ void RigidTerrain::LoadPatch(const rapidjson::Value& d) {
 
     // Create patch with specified geometry
     std::shared_ptr<Patch> patch;
-    auto loc = LoadVectorJSON(d["Location"]);
-    auto rot = LoadQuaternionJSON(d["Orientation"]);
+    auto loc = ReadVectorJSON(d["Location"]);
+    auto rot = ReadQuaternionJSON(d["Orientation"]);
 
     if (d["Geometry"].HasMember("Dimensions")) {
-        auto size = LoadVectorJSON(d["Geometry"]["Dimensions"]);
+        auto size = ReadVectorJSON(d["Geometry"]["Dimensions"]);
         patch = AddPatch(ChCoordsys<>(loc, rot), size);
     } else if (d["Geometry"].HasMember("Mesh Filename")) {
         std::string mesh_file = d["Geometry"]["Mesh Filename"].GetString();
@@ -132,7 +132,7 @@ void RigidTerrain::LoadPatch(const rapidjson::Value& d) {
     // Set visualization data
     if (d.HasMember("Visualization")) {
         if (d["Visualization"].HasMember("Color")) {
-            ChColor color = LoadColorJSON(d["Visualization"]["Color"]);
+            ChColor color = ReadColorJSON(d["Visualization"]["Color"]);
             patch->SetColor(color);
         }
         if (d["Visualization"].HasMember("Texture File")) {

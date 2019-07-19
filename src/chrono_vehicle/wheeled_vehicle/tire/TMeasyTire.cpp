@@ -62,7 +62,7 @@ void TMeasyTire::Create(const rapidjson::Document& d) {
     assert(d.HasMember("Rolling Resistance Coefficients"));
 
     m_mass = d["Design"]["Mass [kg]"].GetDouble();
-    m_inertia = LoadVectorJSON(d["Design"]["Inertia [kg.m2]"]);
+    m_inertia = ReadVectorJSON(d["Design"]["Inertia [kg.m2]"]);
     m_unloaded_radius = d["Design"]["Unloaded Radius [m]"].GetDouble();
     m_rim_radius = d["Design"]["Rim Radius [m]"].GetDouble();
     m_width = d["Design"]["Width [m]"].GetDouble();
