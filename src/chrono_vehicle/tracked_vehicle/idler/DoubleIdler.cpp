@@ -60,22 +60,22 @@ void DoubleIdler::Create(const rapidjson::Document& d) {
     m_wheel_width = d["Wheel"]["Width"].GetDouble();
     m_wheel_gap = d["Wheel"]["Gap"].GetDouble();
     m_wheel_mass = d["Wheel"]["Mass"].GetDouble();
-    m_wheel_inertia = LoadVectorJSON(d["Wheel"]["Inertia"]);
-    m_points[WHEEL] = LoadVectorJSON(d["Wheel"]["COM"]);
+    m_wheel_inertia = ReadVectorJSON(d["Wheel"]["Inertia"]);
+    m_points[WHEEL] = ReadVectorJSON(d["Wheel"]["COM"]);
 
     // Read carrier geometry and mass properties
     assert(d.HasMember("Carrier"));
     m_carrier_mass = d["Carrier"]["Mass"].GetDouble();
-    m_carrier_inertia = LoadVectorJSON(d["Carrier"]["Inertia"]);
-    m_points[CARRIER] = LoadVectorJSON(d["Carrier"]["COM"]);
-    m_points[CARRIER_CHASSIS] = LoadVectorJSON(d["Carrier"]["Location Chassis"]);
+    m_carrier_inertia = ReadVectorJSON(d["Carrier"]["Inertia"]);
+    m_points[CARRIER] = ReadVectorJSON(d["Carrier"]["COM"]);
+    m_points[CARRIER_CHASSIS] = ReadVectorJSON(d["Carrier"]["Location Chassis"]);
     m_carrier_vis_radius = d["Carrier"]["Visualization Radius"].GetDouble();
     m_pitch_angle = d["Carrier"]["Pitch Angle"].GetDouble();
 
     // Read tensioner data
     assert(d.HasMember("Tensioner"));
-    m_points[TSDA_CARRIER] = LoadVectorJSON(d["Tensioner"]["Location Carrier"]);
-    m_points[TSDA_CHASSIS] = LoadVectorJSON(d["Tensioner"]["Location Chassis"]);
+    m_points[TSDA_CARRIER] = ReadVectorJSON(d["Tensioner"]["Location Carrier"]);
+    m_points[TSDA_CHASSIS] = ReadVectorJSON(d["Tensioner"]["Location Chassis"]);
     m_tensioner_l0 = d["Tensioner"]["Free Length"].GetDouble();
     double tensioner_f = d["Tensioner"]["Preload"].GetDouble();
     if (d["Tensioner"].HasMember("Spring Coefficient")) {

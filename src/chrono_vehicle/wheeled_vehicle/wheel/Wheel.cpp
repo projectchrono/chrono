@@ -57,7 +57,7 @@ void Wheel::Create(const rapidjson::Document& d) {
 
     // Read mass and inertia
     m_mass = d["Mass"].GetDouble();
-    m_inertia = LoadVectorJSON(d["Inertia"]);
+    m_inertia = ReadVectorJSON(d["Inertia"]);
 
     // Check how to visualize this wheel.
     if (d.HasMember("Visualization")) {

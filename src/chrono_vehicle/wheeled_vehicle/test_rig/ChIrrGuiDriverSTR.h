@@ -42,7 +42,7 @@ namespace vehicle {
 /// and update the current driver inputs.
 class CH_VEHICLE_API ChIrrGuiDriverSTR : public ChDriverSTR, public irr::IEventReceiver {
   public:
-    ChIrrGuiDriverSTR(ChVehicleIrrApp& app  ///< handle to the vehicle Irrlicht application
+    ChIrrGuiDriverSTR(irrlicht::ChIrrApp& app  ///< handle to the vehicle Irrlicht application
                       );
 
     ~ChIrrGuiDriverSTR() {}
@@ -61,7 +61,7 @@ class CH_VEHICLE_API ChIrrGuiDriverSTR : public ChDriverSTR, public irr::IEventR
     void SetDisplacementDelta(double delta) { m_displDelta = delta; }
 
   private:
-    ChVehicleIrrApp& m_app;
+    irrlicht::ChIrrApp& m_app;
 
     double m_steeringDelta;
     double m_displDelta;

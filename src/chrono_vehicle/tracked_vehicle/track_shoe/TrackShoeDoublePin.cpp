@@ -61,7 +61,7 @@ void TrackShoeDoublePin::Create(const rapidjson::Document& d) {
     m_shoe_width = d["Shoe"]["Width"].GetDouble();
     m_shoe_height = d["Shoe"]["Height"].GetDouble();
     m_shoe_mass = d["Shoe"]["Mass"].GetDouble();
-    m_shoe_inertia = LoadVectorJSON(d["Shoe"]["Inertia"]);
+    m_shoe_inertia = ReadVectorJSON(d["Shoe"]["Inertia"]);
 
     // Read connector body geometry and mass properties
     assert(d.HasMember("Connector"));
@@ -69,16 +69,16 @@ void TrackShoeDoublePin::Create(const rapidjson::Document& d) {
     m_connector_length = d["Connector"]["Length"].GetDouble();
     m_connector_width = d["Connector"]["Width"].GetDouble();
     m_connector_mass = d["Connector"]["Mass"].GetDouble();
-    m_connector_inertia = LoadVectorJSON(d["Connector"]["Inertia"]);
+    m_connector_inertia = ReadVectorJSON(d["Connector"]["Inertia"]);
 
     // Read contact geometry data
     assert(d.HasMember("Contact Geometry"));
     assert(d["Contact Geometry"].HasMember("Shoe"));
 
-    m_pad_box_dims = LoadVectorJSON(d["Contact Geometry"]["Shoe"]["Pad Dimensions"]);
-    m_pad_box_loc = LoadVectorJSON(d["Contact Geometry"]["Shoe"]["Pad Location"]);
-    m_guide_box_dims = LoadVectorJSON(d["Contact Geometry"]["Shoe"]["Guide Dimensions"]);
-    m_guide_box_loc = LoadVectorJSON(d["Contact Geometry"]["Shoe"]["Guide Location"]);
+    m_pad_box_dims = ReadVectorJSON(d["Contact Geometry"]["Shoe"]["Pad Dimensions"]);
+    m_pad_box_loc = ReadVectorJSON(d["Contact Geometry"]["Shoe"]["Pad Location"]);
+    m_guide_box_dims = ReadVectorJSON(d["Contact Geometry"]["Shoe"]["Guide Dimensions"]);
+    m_guide_box_loc = ReadVectorJSON(d["Contact Geometry"]["Shoe"]["Guide Location"]);
 
     // Read contact material data
     assert(d.HasMember("Contact Material"));

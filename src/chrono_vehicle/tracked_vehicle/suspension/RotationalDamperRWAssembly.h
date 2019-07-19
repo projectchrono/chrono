@@ -57,8 +57,6 @@ class CH_VEHICLE_API RotationalDamperRWAssembly : public ChRotationalDamperRWAss
 
     virtual void Create(const rapidjson::Document& d) override;
 
-    void LoadRoadWheel(const std::string& filename);
-
     ChLinkRotSpringCB::TorqueFunctor* m_spring_torqueCB;
     ChLinkRotSpringCB::TorqueFunctor* m_shock_torqueCB;
 

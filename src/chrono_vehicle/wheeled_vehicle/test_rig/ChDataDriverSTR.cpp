@@ -22,47 +22,43 @@
 //
 // =============================================================================
 
+#include "chrono_vehicle/wheeled_vehicle/test_rig/ChDataDriverSTR.h"
+
+#include <algorithm>
+#include <fstream>
 #include <iostream>
 #include <sstream>
-#include <fstream>
 #include <vector>
-#include <algorithm>
-
-#include "chrono_vehicle/wheeled_vehicle/test_rig/ChDataDriverSTR.h"
 
 namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChDataDriverSTR::ChDataDriverSTR(ChSuspensionTestRig& rig, const std::string& filename, bool sorted)
-    : ChDriverSTR(rig) {
+ChDataDriverSTR::ChDataDriverSTR(const std::string& filename, bool sorted) {
     std::ifstream ifile(filename.c_str());
     std::string line;
 
     while (std::getline(ifile, line)) {
         std::istringstream iss(line);
 
-        double time, steering, throttle, braking;
+        double time, left, right, steering;
 
-        iss >> time >> steering >> throttle >> braking;
+        iss >> time >> left >> right >> steering;
 
         if (iss.fail())
             break;
 
-        m_data.push_back(Entry(time, steering, throttle, braking));
+        m_data.push_back(Entry(time, left, right, steering));
     }
 
     ifile.close();
 
     if (!sorted)
         std::sort(m_data.begin(), m_data.end(), ChDataDriverSTR::compare);
-
-    GetLog() << "Loaded driver file: " << filename.c_str() << "\n";
 }
 
-ChDataDriverSTR::ChDataDriverSTR(ChSuspensionTestRig& rig, const std::vector<Entry>& data, bool sorted)
-    : ChDriverSTR(rig), m_data(data) {
+ChDataDriverSTR::ChDataDriverSTR(const std::vector<Entry>& data, bool sorted) : m_data(data) {
     if (!sorted)
         std::sort(m_data.begin(), m_data.end(), ChDataDriverSTR::compare);
 }
@@ -70,6 +66,15 @@ ChDataDriverSTR::ChDataDriverSTR(ChSuspensionTestRig& rig, const std::vector<Ent
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChDataDriverSTR::Synchronize(double time) {
+    if (time < m_delay) {
+        m_displLeft = 0;
+        m_displRight = 0;
+        m_steering = 0;
+        return;
+    }
+
+    time -= m_delay;
+
     if (time <= m_data[0].m_time) {
         m_displLeft = m_data[0].m_displLeft;
         m_displRight = m_data[0].m_displRight;

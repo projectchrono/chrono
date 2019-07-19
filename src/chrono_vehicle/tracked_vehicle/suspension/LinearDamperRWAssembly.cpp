@@ -18,12 +18,10 @@
 // =============================================================================
 
 #include "chrono_vehicle/tracked_vehicle/suspension/LinearDamperRWAssembly.h"
-#include "chrono_vehicle/tracked_vehicle/road_wheel/SingleRoadWheel.h"
-#include "chrono_vehicle/tracked_vehicle/road_wheel/DoubleRoadWheel.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
-
+//
 #include "chrono_vehicle/ChVehicleModelData.h"
-
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
+//
 #include "chrono_thirdparty/rapidjson/document.h"
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
 
@@ -31,38 +29,6 @@ using namespace rapidjson;
 
 namespace chrono {
 namespace vehicle {
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void LinearDamperRWAssembly::LoadRoadWheel(const std::string& filename) {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
-
-    // Check that the given file is a road-wheel specification file.
-    assert(d.HasMember("Type"));
-    std::string type = d["Type"].GetString();
-    assert(type.compare("RoadWheel") == 0);
-
-    // Extract the road-wheel type
-    assert(d.HasMember("Template"));
-    std::string subtype = d["Template"].GetString();
-
-    // Create the road-wheel using the appropriate template.
-    if (subtype.compare("SingleRoadWheel") == 0) {
-        m_road_wheel = std::make_shared<SingleRoadWheel>(d);
-    } else if (subtype.compare("DoubleRoadWheel") == 0) {
-        m_road_wheel = std::make_shared<DoubleRoadWheel>(d);
-    }
-
-    GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
-}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -102,10 +68,10 @@ void LinearDamperRWAssembly::Create(const rapidjson::Document& d) {
     assert(d["Suspension Arm"].IsObject());
 
     m_arm_mass = d["Suspension Arm"]["Mass"].GetDouble();
-    m_points[ARM] = LoadVectorJSON(d["Suspension Arm"]["COM"]);
-    m_arm_inertia = LoadVectorJSON(d["Suspension Arm"]["Inertia"]);
-    m_points[ARM_CHASSIS] = LoadVectorJSON(d["Suspension Arm"]["Location Chassis"]);
-    m_points[ARM_WHEEL] = LoadVectorJSON(d["Suspension Arm"]["Location Wheel"]);
+    m_points[ARM] = ReadVectorJSON(d["Suspension Arm"]["COM"]);
+    m_arm_inertia = ReadVectorJSON(d["Suspension Arm"]["Inertia"]);
+    m_points[ARM_CHASSIS] = ReadVectorJSON(d["Suspension Arm"]["Location Chassis"]);
+    m_points[ARM_WHEEL] = ReadVectorJSON(d["Suspension Arm"]["Location Wheel"]);
     m_arm_radius = d["Suspension Arm"]["Radius"].GetDouble();
 
     // Read data for torsional spring
@@ -120,8 +86,8 @@ void LinearDamperRWAssembly::Create(const rapidjson::Document& d) {
     // Read linear shock data
     assert(d.HasMember("Damper"));
 
-    m_points[SHOCK_C] = LoadVectorJSON(d["Damper"]["Location Chassis"]);
-    m_points[SHOCK_A] = LoadVectorJSON(d["Damper"]["Location Arm"]);
+    m_points[SHOCK_C] = ReadVectorJSON(d["Damper"]["Location Chassis"]);
+    m_points[SHOCK_A] = ReadVectorJSON(d["Damper"]["Location Arm"]);
     double shock_c = d["Damper"]["Damping Coefficient"].GetDouble();
     m_shock_forceCB = new LinearDamperForce(shock_c);
 
@@ -129,7 +95,7 @@ void LinearDamperRWAssembly::Create(const rapidjson::Document& d) {
     assert(d.HasMember("Road Wheel Input File"));
 
     std::string file_name = d["Road Wheel Input File"].GetString();
-    LoadRoadWheel(vehicle::GetDataFile(file_name));
+    m_road_wheel = ReadRoadWheelJSON(vehicle::GetDataFile(file_name));
 }
 
 }  // end namespace vehicle

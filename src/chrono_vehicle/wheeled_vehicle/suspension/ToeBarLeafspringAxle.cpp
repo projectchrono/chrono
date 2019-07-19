@@ -73,8 +73,8 @@ void ToeBarLeafspringAxle::Create(const rapidjson::Document& d) {
     assert(d["Spindle"].IsObject());
 
     m_spindleMass = d["Spindle"]["Mass"].GetDouble();
-    m_points[SPINDLE] = LoadVectorJSON(d["Spindle"]["COM"]);
-    m_spindleInertia = LoadVectorJSON(d["Spindle"]["Inertia"]);
+    m_points[SPINDLE] = ReadVectorJSON(d["Spindle"]["COM"]);
+    m_spindleInertia = ReadVectorJSON(d["Spindle"]["Inertia"]);
     m_spindleRadius = d["Spindle"]["Radius"].GetDouble();
     m_spindleWidth = d["Spindle"]["Width"].GetDouble();
 
@@ -83,8 +83,8 @@ void ToeBarLeafspringAxle::Create(const rapidjson::Document& d) {
     assert(d["Axle Tube"].IsObject());
 
     m_axleTubeMass = d["Axle Tube"]["Mass"].GetDouble();
-    m_axleTubeCOM = LoadVectorJSON(d["Axle Tube"]["COM"]);
-    m_axleTubeInertia = LoadVectorJSON(d["Axle Tube"]["Inertia"]);
+    m_axleTubeCOM = ReadVectorJSON(d["Axle Tube"]["COM"]);
+    m_axleTubeInertia = ReadVectorJSON(d["Axle Tube"]["Inertia"]);
     m_axleTubeRadius = d["Axle Tube"]["Radius"].GetDouble();
 
     // Read Knuckle data
@@ -92,12 +92,12 @@ void ToeBarLeafspringAxle::Create(const rapidjson::Document& d) {
     assert(d["Knuckle"].IsObject());
 
     m_knuckleMass = d["Knuckle"]["Mass"].GetDouble();
-    m_points[KNUCKLE_CM] = LoadVectorJSON(d["Knuckle"]["COM"]);
-    m_knuckleInertia = LoadVectorJSON(d["Knuckle"]["Inertia"]);
+    m_points[KNUCKLE_CM] = ReadVectorJSON(d["Knuckle"]["COM"]);
+    m_knuckleInertia = ReadVectorJSON(d["Knuckle"]["Inertia"]);
     m_knuckleRadius = d["Knuckle"]["Radius"].GetDouble();
-    m_points[KNUCKLE_L] = LoadVectorJSON(d["Knuckle"]["Location Lower"]);
-    m_points[KNUCKLE_U] = LoadVectorJSON(d["Knuckle"]["Location Upper"]);
-    m_points[KNUCKLE_DRL] = LoadVectorJSON(d["Knuckle"]["Location Draglink"]);
+    m_points[KNUCKLE_L] = ReadVectorJSON(d["Knuckle"]["Location Lower"]);
+    m_points[KNUCKLE_U] = ReadVectorJSON(d["Knuckle"]["Location Upper"]);
+    m_points[KNUCKLE_DRL] = ReadVectorJSON(d["Knuckle"]["Location Draglink"]);
     if (m_points[KNUCKLE_DRL].y() < 0.0) {
         m_use_left_knuckle = false;
         m_points[KNUCKLE_DRL].y() *= -1.0;
@@ -109,8 +109,8 @@ void ToeBarLeafspringAxle::Create(const rapidjson::Document& d) {
     assert(d["Tierod"].IsObject());
 
     m_tierodMass = d["Tierod"]["Mass"].GetDouble();
-    m_tierodInertia = LoadVectorJSON(d["Tierod"]["Inertia"]);
-    m_points[TIEROD_K] = LoadVectorJSON(d["Tierod"]["Location Knuckle"]);
+    m_tierodInertia = ReadVectorJSON(d["Tierod"]["Inertia"]);
+    m_points[TIEROD_K] = ReadVectorJSON(d["Tierod"]["Location Knuckle"]);
     m_tierodRadius = d["Tierod"]["Radius"].GetDouble();
 
     // Read spring data and create force callback
@@ -118,16 +118,16 @@ void ToeBarLeafspringAxle::Create(const rapidjson::Document& d) {
     assert(d["Draglink"].IsObject());
 
     m_draglinkMass = d["Draglink"]["Mass"].GetDouble();
-    m_draglinkInertia = LoadVectorJSON(d["Draglink"]["Inertia"]);
-    m_points[DRAGLINK_C] = LoadVectorJSON(d["Draglink"]["Location Chassis"]);
+    m_draglinkInertia = ReadVectorJSON(d["Draglink"]["Inertia"]);
+    m_points[DRAGLINK_C] = ReadVectorJSON(d["Draglink"]["Location Chassis"]);
     m_draglinkRadius = d["Draglink"]["Radius"].GetDouble();
 
     // Read Draglink data
     assert(d.HasMember("Tierod"));
     assert(d["Tierod"].IsObject());
 
-    m_points[SPRING_C] = LoadVectorJSON(d["Spring"]["Location Chassis"]);
-    m_points[SPRING_A] = LoadVectorJSON(d["Spring"]["Location Axle"]);
+    m_points[SPRING_C] = ReadVectorJSON(d["Spring"]["Location Chassis"]);
+    m_points[SPRING_A] = ReadVectorJSON(d["Spring"]["Location Axle"]);
     m_springRestLength = d["Spring"]["Free Length"].GetDouble();
     m_springMinLength = d["Spring"]["Minimal Length"].GetDouble();
     m_springMaxLength = d["Spring"]["Maximal Length"].GetDouble();
@@ -149,8 +149,8 @@ void ToeBarLeafspringAxle::Create(const rapidjson::Document& d) {
     assert(d.HasMember("Shock"));
     assert(d["Shock"].IsObject());
 
-    m_points[SHOCK_C] = LoadVectorJSON(d["Shock"]["Location Chassis"]);
-    m_points[SHOCK_A] = LoadVectorJSON(d["Shock"]["Location Axle"]);
+    m_points[SHOCK_C] = ReadVectorJSON(d["Shock"]["Location Chassis"]);
+    m_points[SHOCK_A] = ReadVectorJSON(d["Shock"]["Location Axle"]);
 
     if (d["Shock"].HasMember("Damping Coefficient")) {
         if (d["Shock"].HasMember("Degressivity Compression") && d["Shock"].HasMember("Degressivity Expansion")) {

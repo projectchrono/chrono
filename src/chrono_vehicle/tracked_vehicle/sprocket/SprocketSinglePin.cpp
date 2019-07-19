@@ -58,7 +58,7 @@ void SprocketSinglePin::Create(const rapidjson::Document& d) {
     // Read inertia properties
     m_num_teeth = d["Number Teeth"].GetInt();
     m_gear_mass = d["Gear Mass"].GetDouble();
-    m_gear_inertia = LoadVectorJSON(d["Gear Inertia"]);
+    m_gear_inertia = ReadVectorJSON(d["Gear Inertia"]);
     m_axle_inertia = d["Axle Inertia"].GetDouble();
     m_separation = d["Gear Separation"].GetDouble();
 

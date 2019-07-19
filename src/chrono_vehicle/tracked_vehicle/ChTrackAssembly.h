@@ -142,8 +142,9 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     /// frame of the chassis). It is assumed that the track assembly reference frame
     /// is always aligned with the chassis reference frame.
     void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                    const ChVector<>& location              ///< [in] location relative to the chassis frame
-                    );
+                    const ChVector<>& location,             ///< [in] location relative to the chassis frame
+                    bool create_shoes = true                ///< [in] control creation of the actual track
+    );
 
     /// Set visualization type for the sprocket subsystem.
     void SetSprocketVisualizationType(VisualizationType vis);
@@ -186,6 +187,9 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     /// Return true if the track shoes were initialized in a counter clockwise
     /// direction and false otherwise.
     virtual bool Assemble(std::shared_ptr<ChBodyAuxRef> chassis) = 0;
+
+    /// Remove all track shoes from assembly.
+    virtual void RemoveTrackShoes() = 0;
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 

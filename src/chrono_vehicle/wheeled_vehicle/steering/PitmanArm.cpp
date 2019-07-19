@@ -61,36 +61,36 @@ void PitmanArm::Create(const rapidjson::Document& d) {
 
     // Read steering link data
     m_steeringLinkMass = d["Steering Link"]["Mass"].GetDouble();
-    m_points[STEERINGLINK] = LoadVectorJSON(d["Steering Link"]["COM"]);
-    m_steeringLinkInertiaMoments = LoadVectorJSON(d["Steering Link"]["Moments of Inertia"]);
-    m_steeringLinkInertiaProducts = LoadVectorJSON(d["Steering Link"]["Products of Inertia"]);
+    m_points[STEERINGLINK] = ReadVectorJSON(d["Steering Link"]["COM"]);
+    m_steeringLinkInertiaMoments = ReadVectorJSON(d["Steering Link"]["Moments of Inertia"]);
+    m_steeringLinkInertiaProducts = ReadVectorJSON(d["Steering Link"]["Products of Inertia"]);
     m_steeringLinkRadius = d["Steering Link"]["Radius"].GetDouble();
 
     // Read Pitman arm data
     m_pitmanArmMass = d["Pitman Arm"]["Mass"].GetDouble();
-    m_points[PITMANARM] = LoadVectorJSON(d["Pitman Arm"]["COM"]);
-    m_pitmanArmInertiaMoments = LoadVectorJSON(d["Pitman Arm"]["Moments of Inertia"]);
-    m_pitmanArmInertiaProducts = LoadVectorJSON(d["Pitman Arm"]["Products of Inertia"]);
+    m_points[PITMANARM] = ReadVectorJSON(d["Pitman Arm"]["COM"]);
+    m_pitmanArmInertiaMoments = ReadVectorJSON(d["Pitman Arm"]["Moments of Inertia"]);
+    m_pitmanArmInertiaProducts = ReadVectorJSON(d["Pitman Arm"]["Products of Inertia"]);
     m_pitmanArmRadius = d["Pitman Arm"]["Radius"].GetDouble();
 
     // Read data for the revolute joint (Pitman arm - chassis)
-    m_points[REV] = LoadVectorJSON(d["Revolute Joint"]["Location"]);
-    m_dirs[REV_AXIS] = LoadVectorJSON(d["Revolute Joint"]["Direction"]);
+    m_points[REV] = ReadVectorJSON(d["Revolute Joint"]["Location"]);
+    m_dirs[REV_AXIS] = ReadVectorJSON(d["Revolute Joint"]["Direction"]);
     m_maxAngle = d["Revolute Joint"]["Maximum Angle"].GetDouble() * (CH_C_PI / 180);
 
     // Read data for the universal joint (Pitman arm - steering link)
-    m_points[UNIV] = LoadVectorJSON(d["Universal Joint"]["Location"]);
-    m_dirs[UNIV_AXIS_ARM] = LoadVectorJSON(d["Universal Joint"]["Direction Arm"]);
-    m_dirs[UNIV_AXIS_LINK] = LoadVectorJSON(d["Universal Joint"]["Direction Link"]);
+    m_points[UNIV] = ReadVectorJSON(d["Universal Joint"]["Location"]);
+    m_dirs[UNIV_AXIS_ARM] = ReadVectorJSON(d["Universal Joint"]["Direction Arm"]);
+    m_dirs[UNIV_AXIS_LINK] = ReadVectorJSON(d["Universal Joint"]["Direction Link"]);
 
     // Read data for the revolute-spherical joint (chassis - steering link)
-    m_points[REVSPH_R] = LoadVectorJSON(d["Revolute-Spherical Joint"]["Location Chassis"]);
-    m_points[REVSPH_S] = LoadVectorJSON(d["Revolute-Spherical Joint"]["Location Link"]);
-    m_dirs[REVSPH_AXIS] = LoadVectorJSON(d["Revolute-Spherical Joint"]["Direction"]);
+    m_points[REVSPH_R] = ReadVectorJSON(d["Revolute-Spherical Joint"]["Location Chassis"]);
+    m_points[REVSPH_S] = ReadVectorJSON(d["Revolute-Spherical Joint"]["Location Link"]);
+    m_dirs[REVSPH_AXIS] = ReadVectorJSON(d["Revolute-Spherical Joint"]["Direction"]);
 
     // Read data for tierod connection points
-    m_points[TIEROD_PA] = LoadVectorJSON(d["Tierod Locations"]["Pitman Side"]);
-    m_points[TIEROD_IA] = LoadVectorJSON(d["Tierod Locations"]["Idler Side"]);
+    m_points[TIEROD_PA] = ReadVectorJSON(d["Tierod Locations"]["Pitman Side"]);
+    m_points[TIEROD_IA] = ReadVectorJSON(d["Tierod Locations"]["Idler Side"]);
 }
 
 }  // end namespace vehicle

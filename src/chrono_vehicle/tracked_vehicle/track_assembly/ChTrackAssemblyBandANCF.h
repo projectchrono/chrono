@@ -107,6 +107,9 @@ class CH_VEHICLE_API ChTrackAssemblyBandANCF : public ChTrackAssemblyBand {
     /// direction and false otherwise.
     virtual bool Assemble(std::shared_ptr<ChBodyAuxRef> chassis) override final;
 
+    /// Remove all track shoes from assembly.
+    virtual void RemoveTrackShoes() override final;
+
     /// Add visualization assets for the track assembly subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override final;
 

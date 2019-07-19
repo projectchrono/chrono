@@ -228,6 +228,10 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     return ccw;
 }
 
+void ChTrackAssemblyBandANCF::RemoveTrackShoes() {
+    m_shoes.clear();
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
