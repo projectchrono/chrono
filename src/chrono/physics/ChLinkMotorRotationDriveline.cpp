@@ -19,28 +19,39 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLinkMotorRotationDriveline)
 
-
 ChLinkMotorRotationDriveline::ChLinkMotorRotationDriveline() {
-    
     this->c_rz = false;
     SetupLinkMask();
 
     innershaft1 = std::make_shared<ChShaft>();
     innershaft2 = std::make_shared<ChShaft>();
     innerconstraint1 = std::make_shared<ChShaftsBody>();
-    innerconstraint2 = std::make_shared<ChShaftsBody>(); 
+    innerconstraint2 = std::make_shared<ChShaftsBody>();
 }
 
-ChLinkMotorRotationDriveline::ChLinkMotorRotationDriveline(const ChLinkMotorRotationDriveline& other) : ChLinkMotorRotation(other) {
+ChLinkMotorRotationDriveline::ChLinkMotorRotationDriveline(const ChLinkMotorRotationDriveline& other)
+    : ChLinkMotorRotation(other) {
     innershaft1 = other.innershaft1;
     innershaft2 = other.innershaft2;
     innerconstraint1 = other.innerconstraint1;
-    innerconstraint2 = other.innerconstraint2; 
+    innerconstraint2 = other.innerconstraint2;
 }
 
-ChLinkMotorRotationDriveline::~ChLinkMotorRotationDriveline() {
-    
-}
+ChLinkMotorRotationDriveline::~ChLinkMotorRotationDriveline() {}
+
+void ChLinkMotorRotationDriveline::Setup() {
+	if (innershaft1->IsActive()) {
+        innershaft1->SetOffset_x(this->offset_x + 0);
+        innershaft1->SetOffset_w(this->offset_w + 0);
+	}
+    if (innershaft2->IsActive()) {
+        innershaft2->SetOffset_x(this->offset_x + 1);
+        innershaft2->SetOffset_w(this->offset_w + 1);
+    }
+    int nc = mask->nconstr;
+    innerconstraint1->SetOffset_L(this->offset_L + nc + 0);
+    innerconstraint2->SetOffset_L(this->offset_L + nc + 1);
+} 
 
 void ChLinkMotorRotationDriveline::Update(double mytime, bool update_assets) {
 

@@ -416,8 +416,8 @@ __host__ double ChSystemGranularSMC::advance_simulation(float duration) {
     float duration_SU = duration / TIME_SU2UU;
     unsigned int nsteps = std::round(duration_SU / stepSize_SU);
 
-    METRICS_PRINTF("advancing by %f at timestep %f, %u timesteps at approx user timestep %f\n", duration_SU, stepSize_SU,
-                nsteps, duration / nsteps);
+    METRICS_PRINTF("advancing by %f at timestep %f, %u timesteps at approx user timestep %f\n", duration_SU,
+                   stepSize_SU, nsteps, duration / nsteps);
     float time_elapsed_SU = 0;  // time elapsed in this advance call
 
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions

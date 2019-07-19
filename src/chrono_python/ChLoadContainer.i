@@ -5,6 +5,8 @@
 
 %}
  
+ %shared_ptr(chrono::ChLoadContainer)
+
 // Tell SWIG about parent class in Python
 %import "ChPhysicsItem.i"
 

@@ -113,7 +113,7 @@ void ShowJSONUsage() {
     cout << "psi_L" << endl;
     cout << "output_dir" << endl;
     cout << "checkpoint_file" << endl;
-    cout << "write_mode (csv|binary|none)" << endl;
+    cout << "write_mode (csv|binary|hdf5|none)" << endl;
 }
 
 void InvalidArg(string arg) {
@@ -343,6 +343,9 @@ bool ParseJSON(const char* json_file, sim_param_holder& params, bool verbose = t
         } else if (doc["write_mode"].GetString() == string("csv")) {
             params.write_mode = GRAN_OUTPUT_MODE::CSV;
             CONDITIONAL_PRINTF(verbose, "params.write_mode csv\n");
+        } else if (doc["write_mode"].GetString() == string("hdf5")) {
+            params.write_mode = GRAN_OUTPUT_MODE::HDF5;
+            CONDITIONAL_PRINTF(verbose, "params.write_mode hdf5\n")
         } else if (doc["write_mode"].GetString() == string("none")) {
             params.write_mode = GRAN_OUTPUT_MODE::NONE;
             CONDITIONAL_PRINTF(verbose, "params.write_mode none\n");
