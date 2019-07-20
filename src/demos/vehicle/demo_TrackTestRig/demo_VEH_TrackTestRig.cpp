@@ -60,8 +60,6 @@ bool use_JSON = false;
 std::string filename("M113/track_assembly/M113_TrackAssemblySinglePin_Left.json");
 ////std::string filename("M113/track_assembly/M113_TrackAssemblyDoublePin_Left.json");
 
-double post_limit = 0.2;
-
 // Use HHT + MKL / MUMPS
 bool use_mkl = false;
 bool use_mumps = true;
@@ -110,7 +108,7 @@ int main(int argc, char* argv[]) {
             }
             default:
                 GetLog() << "Track type NOT supported\n";
-                break;
+                return 1;
         }
 
         rig = new ChTrackTestRig(track_assembly, create_track, contact_method);
@@ -267,9 +265,9 @@ int main(int argc, char* argv[]) {
         const ChVector<>& s_pos_abs = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
         ChVector<> i_pos_rel = c_ref.TransformPointParentToLocal(i_pos_abs);
         ChVector<> s_pos_rel = c_ref.TransformPointParentToLocal(s_pos_abs);
-        ////cout << "Time: " << rig->GetSystem()->GetChTime() << endl;
-        ////cout << "      idler:    " << i_pos_rel.x << "  " << i_pos_rel.y << "  " << i_pos_rel.z << endl;
-        ////cout << "      sprocket: " << s_pos_rel.x << "  " << s_pos_rel.y << "  " << s_pos_rel.z << endl;
+        ////cout << "Time: " << time << endl;
+        ////cout << "      idler:    " << i_pos_rel.x() << "  " << i_pos_rel.y() << "  " << i_pos_rel.z() << endl;
+        ////cout << "      sprocket: " << s_pos_rel.x() << "  " << s_pos_rel.y() << "  " << s_pos_rel.z() << endl;
 
         // Advance simulation of the rig
         rig->Advance(step_size);

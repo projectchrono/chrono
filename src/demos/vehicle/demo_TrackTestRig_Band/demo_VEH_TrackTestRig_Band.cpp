@@ -19,14 +19,13 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/tracked_vehicle/utils/ChTrackTestRig.h"
+#include "chrono_vehicle/tracked_vehicle/test_rig/ChDataDriverTTR.h"
+#include "chrono_vehicle/tracked_vehicle/test_rig/ChIrrGuiDriverTTR.h"
+#include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRig.h"
+#include "chrono_vehicle/utils/ChVehicleIrrApp.h"
 
 #include "chrono_models/vehicle/m113/M113_TrackAssemblyBandANCF.h"
 #include "chrono_models/vehicle/m113/M113_TrackAssemblyBandBushing.h"
-
-#include "chrono_vehicle/tracked_vehicle/utils/ChIrrGuiDriverTTR.h"
-#include "chrono_vehicle/utils/ChVehicleIrrApp.h"
-#include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -37,8 +36,6 @@
 #ifdef CHRONO_MKL
 #include "chrono_mkl/ChSolverMKL.h"
 #endif
-
-#define USE_IRRLICHT
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -51,28 +48,24 @@ using std::endl;
 // USER SETTINGS
 // =============================================================================
 
-bool use_JSON = false;
-std::string filename("M113/track_assembly/M113_TrackAssemblyBandANCF_Left.json");
-
-double post_limit = 0.2;
-
-// Simulation length
-double t_end = 1.0;
-
 // Simulation step size
 double step_size = 1e-4;
+
+// Specification of test rig inputs:
+//   'true':  use driver inputs from file
+//   'false': use interactive Irrlicht driver
+bool use_data_driver = true;
+std::string driver_file("M113/test_rig/TTR_inputs.dat");
+
+bool use_JSON = false;
+std::string filename("M113/track_assembly/M113_TrackAssemblyBandANCF_Left.json");
 
 // Linear solver
 enum SolverType { MUMPS, MKL };
 SolverType solver_type = MUMPS;
 
-// Time interval between two render frames
-double render_step_size = 1.0 / 50;  // FPS = 50
-
 // Output directories
-const std::string out_dir = GetChronoOutputPath() + "TRACK_TEST_RIG";
-const std::string pov_dir = out_dir + "/POVRAY";
-const std::string img_dir = out_dir + "/IMG";
+const std::string out_dir = GetChronoOutputPath() + "TRACKBAND_TEST_RIG";
 
 // Verbose level
 bool verbose_solver = false;
@@ -80,20 +73,6 @@ bool verbose_integrator = false;
 
 // Output
 bool dbg_output = false;
-bool povray_output = false;
-bool img_output = false;
-
-// =============================================================================
-
-// Dummy driver class (always returns 0 inputs)
-class MyDriver {
-  public:
-    MyDriver() {}
-    double GetThrottle() const { return 0; }
-    double GetDisplacement() const { return 0; }
-    void Synchronize(double time) {}
-    void Advance(double step) {}
-};
 
 // =============================================================================
 
@@ -158,15 +137,14 @@ int main(int argc, char* argv[]) {
     // Create the track test rig
     // -------------------------
 
-    ChTrackTestRig* rig = nullptr;
-    ChVector<> attach_loc(0, 1, 0);
+    bool create_track = true;
 
+    ChTrackTestRig* rig = nullptr;
     if (use_JSON) {
-        rig = new ChTrackTestRig(vehicle::GetDataFile(filename), attach_loc);
+        rig = new ChTrackTestRig(vehicle::GetDataFile(filename), create_track, ChMaterialSurface::SMC);
     } else {
         VehicleSide side = LEFT;
         TrackShoeType type = TrackShoeType::BAND_BUSHING;
-
         std::shared_ptr<ChTrackAssembly> track_assembly;
         switch (type) {
             case TrackShoeType::BAND_BUSHING: {
@@ -185,35 +163,10 @@ int main(int argc, char* argv[]) {
                 return 1;
         }
 
-        rig = new ChTrackTestRig(track_assembly, attach_loc, ChMaterialSurface::SMC);
+        rig = new ChTrackTestRig(track_assembly, create_track, ChMaterialSurface::SMC);
+        std::cout << "Rig uses M113 track assembly:  type " << (int)type << " side " << side << std::endl;
     }
 
-    // -----------------------------
-    // Initialize the track test rig
-    // -----------------------------
-
-    ChVector<> rig_loc(0, 0, 2);
-    ChQuaternion<> rig_rot(1, 0, 0, 0);
-    rig->Initialize(ChCoordsys<>(rig_loc, rig_rot));
-
-    // Disable gravity in this simulation
-    // rig->GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
-
-    rig->GetTrackAssembly()->SetSprocketVisualizationType(VisualizationType::PRIMITIVES);
-    rig->GetTrackAssembly()->SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
-    rig->GetTrackAssembly()->SetRoadWheelAssemblyVisualizationType(VisualizationType::PRIMITIVES);
-    rig->GetTrackAssembly()->SetRoadWheelVisualizationType(VisualizationType::PRIMITIVES);
-    rig->GetTrackAssembly()->SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
-
-    // --------------------------------------------------
-    // Control internal collisions and contact monitoring
-    // --------------------------------------------------
-
-    ////rig->SetCollide(TrackedCollisionFlag::NONE);
-    ////rig->SetCollide(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SHOES_LEFT);
-    ////rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->SetCollide(false);
-
-#ifdef USE_IRRLICHT
     // ---------------------------------------
     // Create the vehicle Irrlicht application
     // ---------------------------------------
@@ -227,59 +180,57 @@ int main(int argc, char* argv[]) {
     irrlicht::ChIrrWizard::add_typical_Logo(app.GetDevice());
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(ChVector<>(0.0, 0.0, 0.0), 3.0, 0.0);
-    app.SetChaseCameraPosition(target_point + ChVector<>(0.0, 3, 0));
+    app.SetChaseCameraPosition(target_point + ChVector<>(-2, 3, 0));
     app.SetChaseCameraState(utils::ChChaseCamera::Free);
     app.SetChaseCameraAngle(-CH_C_PI_2);
     app.SetChaseCameraMultipliers(1e-4, 10);
     app.SetTimestep(step_size);
+
+    // -----------------------------------
+    // Create and attach the driver system
+    // -----------------------------------
+
+    std::unique_ptr<ChDriverTTR> driver;
+    if (use_data_driver) {
+        // Driver with inputs from file
+        auto data_driver = new ChDataDriverTTR(vehicle::GetDataFile(driver_file));
+        driver = std::unique_ptr<ChDriverTTR>(data_driver);
+    } else {
+        auto irr_driver = new ChIrrGuiDriverTTR(app);
+        irr_driver->SetThrottleDelta(1.0 / 50);
+        irr_driver->SetDisplacementDelta(1.0 / 250);
+        driver = std::unique_ptr<ChDriverTTR>(irr_driver);
+    }
+
+    rig->SetDriver(std::move(driver));
+
+    // -----------------------------
+    // Initialize the track test rig
+    // -----------------------------
+
+    rig->SetInitialRideHeight(0.6);
+
+    rig->SetMaxTorque(6000);
+
+    // Disable gravity in this simulation
+    ////rig->GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
+
+    // Visualization settings
+    rig->SetSprocketVisualizationType(VisualizationType::PRIMITIVES);
+    rig->SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
+    rig->SetRoadWheelAssemblyVisualizationType(VisualizationType::PRIMITIVES);
+    rig->SetRoadWheelVisualizationType(VisualizationType::PRIMITIVES);
+    rig->SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
+
+    // Control internal collisions and contact monitoring
+    ////rig->SetCollide(TrackedCollisionFlag::NONE);
+    ////rig->SetCollide(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SHOES_LEFT);
+    ////rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->SetCollide(false);
+
+    rig->Initialize();
+
     app.AssetBindAll();
     app.AssetUpdateAll();
-
-    // ------------------------
-    // Create the driver system
-    // ------------------------
-
-    ChIrrGuiDriverTTR driver(app, post_limit);
-    // Set the time response for keyboard inputs.
-    double steering_time = 1.0;      // time to go from 0 to max
-    double displacement_time = 2.0;  // time to go from 0 to max applied post motion
-    driver.SetSteeringDelta(render_step_size / steering_time);
-    driver.SetDisplacementDelta(render_step_size / displacement_time * post_limit);
-    driver.Initialize();
-#else
-
-    // Create a default driver (always returns 0 inputs)
-    MyDriver driver;
-
-#endif
-
-    // -----------------
-    // Initialize output
-    // -----------------
-
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        cout << "Error creating directory " << out_dir << endl;
-        return 1;
-    }
-
-    if (povray_output) {
-        if (!filesystem::create_directory(filesystem::path(pov_dir))) {
-            cout << "Error creating directory " << pov_dir << endl;
-            return 1;
-        }
-    }
-
-    if (img_output) {
-        if (!filesystem::create_directory(filesystem::path(img_dir))) {
-            cout << "Error creating directory " << img_dir << endl;
-            return 1;
-        }
-    }
-
-    // Export visualization mesh for shoe tread body
-    auto shoe0 = std::static_pointer_cast<ChTrackShoeBand>(rig->GetTrackAssembly()->GetTrackShoe(0));
-    shoe0->WriteTreadVisualizationMesh(out_dir);
-    shoe0->ExportTreadVisualizationMeshPovray(out_dir);
 
     // ---------------------------------------
     // Contact reporter object (for debugging)
@@ -302,22 +253,22 @@ int main(int argc, char* argv[]) {
 
     switch (solver_type) {
 #ifdef CHRONO_MUMPS
-    case MUMPS: {
-        auto mumps_solver = std::make_shared<ChSolverMumps>();
-        mumps_solver->SetSparsityPatternLock(true);
-        mumps_solver->SetVerbose(verbose_solver);
-        rig->GetSystem()->SetSolver(mumps_solver);
-        break;
-    }
+        case MUMPS: {
+            auto mumps_solver = std::make_shared<ChSolverMumps>();
+            mumps_solver->SetSparsityPatternLock(true);
+            mumps_solver->SetVerbose(verbose_solver);
+            rig->GetSystem()->SetSolver(mumps_solver);
+            break;
+        }
 #endif
 #ifdef CHRONO_MKL
-    case MKL: {
-        auto mkl_solver = std::make_shared<ChSolverMKL<>>();
-        mkl_solver->SetSparsityPatternLock(true);
-        mkl_solver->SetVerbose(verbose_solver);
-        rig->GetSystem()->SetSolver(mkl_solver);
-        break;
-    }
+        case MKL: {
+            auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+            mkl_solver->SetSparsityPatternLock(true);
+            mkl_solver->SetVerbose(verbose_solver);
+            rig->GetSystem()->SetSolver(mkl_solver);
+            break;
+        }
 #endif
     }
 
@@ -335,9 +286,9 @@ int main(int argc, char* argv[]) {
     // IMPORTANT: Mark completion of system construction
     rig->GetSystem()->SetupInitial();
 
-    // ----------------
-    // DUMP INFORMATION
-    // ----------------
+    // -----------------
+    // Print model stats
+    // -----------------
 
     auto sys = rig->GetSystem();
     std::vector<size_t> nassets;
@@ -352,27 +303,28 @@ int main(int argc, char* argv[]) {
         cout << i << " ";
     cout << endl;
 
+    // -----------------
+    // Initialize output
+    // -----------------
+
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        cout << "Error creating directory " << out_dir << endl;
+        return 1;
+    }
+
     // ---------------
     // Simulation loop
     // ---------------
-
-    // Inter-module communication data
-    TerrainForces shoe_forces(1);
-
-    // Number of steps to run for the simulation
-    int sim_steps = (int)std::ceil(t_end / step_size);
-
-    // Number of simulation steps between two 3D view render frames
-    int render_steps = (int)std::ceil(render_step_size / step_size);
 
     // Total execution time (for integration)
     double total_timing = 0;
 
     // Initialize simulation frame counter
     int step_number = 0;
-    int render_frame = 0;
 
-    while (step_number < sim_steps) {
+    while (app.GetDevice()->run()) {
+        double time = rig->GetChTime();
+
         // Debugging output
         if (dbg_output) {
             const ChFrameMoving<>& c_ref = rig->GetChassisBody()->GetFrame_REF_to_abs();
@@ -380,54 +332,25 @@ int main(int argc, char* argv[]) {
             const ChVector<>& s_pos_abs = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
             ChVector<> i_pos_rel = c_ref.TransformPointParentToLocal(i_pos_abs);
             ChVector<> s_pos_rel = c_ref.TransformPointParentToLocal(s_pos_abs);
-            ////cout << "Time: " << rig->GetSystem()->GetChTime() << endl;
-            ////cout << "      idler:    " << i_pos_rel.x << "  " << i_pos_rel.y << "  " << i_pos_rel.z << endl;
-            ////cout << "      sprocket: " << s_pos_rel.x << "  " << s_pos_rel.y << "  " << s_pos_rel.z << endl;
+            cout << "Time: " << time << endl;
+            cout << "      idler:    " << i_pos_rel.x() << "  " << i_pos_rel.y() << "  " << i_pos_rel.z() << endl;
+            cout << "      sprocket: " << s_pos_rel.x() << "  " << s_pos_rel.y() << "  " << s_pos_rel.z() << endl;
         }
 
-#ifdef USE_IRRLICHT
         if (!app.GetDevice()->run())
             break;
 
         // Render scene
         app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         app.DrawAll();
-#endif
+        app.EndScene();
 
-        if (step_number % render_steps == 0) {
-            if (povray_output) {
-                char filename[100];
-                sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-                utils::WriteShapesPovray(rig->GetSystem(), filename);
-            }
-
-#ifdef USE_IRRLICHT
-            if (img_output && step_number > 200) {
-                char filename[100];
-                sprintf(filename, "%s/img_%03d.jpg", img_dir.c_str(), render_frame + 1);
-                app.WriteImageToFile(filename);
-            }
-#endif
-            render_frame++;
-        }
-
-        // Collect output data from modules
-        double throttle_input = driver.GetThrottle();
-        double post_input = driver.GetDisplacement();
-
-        // Update modules (process inputs from other modules)
-        double time = rig->GetChTime();
-        driver.Synchronize(time);
-        rig->Synchronize(time, post_input, throttle_input, shoe_forces);
-#ifdef USE_IRRLICHT
-        app.Synchronize("", 0, throttle_input, 0);
-#endif
-        // Advance simulation for one timestep for all modules
-        driver.Advance(step_size);
+        // Advance simulation of the rig
         rig->Advance(step_size);
-#ifdef USE_IRRLICHT
-        app.Advance(1e-2);
-#endif
+
+        // Update visualization app
+        app.Synchronize(rig->GetDriverMessage(), 0, rig->GetThrottleInput(), 0);
+        app.Advance(step_size);
 
         // Parse all contacts in system
         ////reporter.Process();
@@ -438,16 +361,12 @@ int main(int argc, char* argv[]) {
         double step_timing = rig->GetSystem()->GetTimerStep();
         total_timing += step_timing;
 
-        cout << "Step: " << step_number;
-        cout << "   Time: " << time;
-        cout << "   Number of Iterations: " << integrator->GetNumIterations();
-        cout << "   Step Time: " << step_timing;
-        cout << "   Total Time: " << total_timing;
-        cout << endl;
-
-#ifdef USE_IRRLICHT
-        app.EndScene();
-#endif
+        ////cout << "Step: " << step_number;
+        ////cout << "   Time: " << time;
+        ////cout << "   Number of Iterations: " << integrator->GetNumIterations();
+        ////cout << "   Step Time: " << step_timing;
+        ////cout << "   Total Time: " << total_timing;
+        ////cout << endl;
     }
 
     delete rig;
