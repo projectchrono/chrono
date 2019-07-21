@@ -14,15 +14,6 @@ endif()
 
 message(STATUS "==== Chrono Granular module ====")
 
-
-
-# TEMPORARILY DISABLE THIS MODULE
-message("Chrono::Granular currently DISABLED!")
-set(ENABLE_MODULE_GRANULAR OFF CACHE BOOL "" FORCE)
-return()
-
-
-
 # ------------------------------------------------------------------------------
 # Additional compiler flags
 # ------------------------------------------------------------------------------

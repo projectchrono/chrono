@@ -1,5 +1,5 @@
 sudo: required
-dist: trusty
+dist: xenial
 language: cpp
 addons:
   apt:
@@ -9,8 +9,8 @@ addons:
       - libirrlicht-dev
       - libxxf86vm-dev
       - freeglut3-dev
-      - gcc-4.9
-      - g++-4.9
+      - gcc-7
+      - g++-7
       - libeigen3-dev
   coverity_scan:
     project:
@@ -31,7 +31,7 @@ env:
 before_install:
 before_script:
   - mkdir build && cd build
-  - if [ "$CXX" = "g++" ]; then CXX=g++-4.9 CC=gcc-4.9 cmake $CMAKE_EXTRA_FLAGS ..; fi
+  - if [ "$CXX" = "g++" ]; then CXX=g++-7 CC=gcc-7 cmake $CMAKE_EXTRA_FLAGS ..; fi
 script:
   - make -j 4
   - make test

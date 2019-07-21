@@ -208,7 +208,7 @@ set(CH_C_FLAGS "${CH_C_FLAGS} ${NEON_FLAGS}")
 # Eigen library
 #-----------------------------------------------------------------------------
 
-find_package(Eigen3 3.1.2)
+find_package(Eigen3 3.3.0)
 if(EIGEN3_FOUND)
   message(STATUS "Eigen3 version: ${EIGEN3_VERSION}")
   message(STATUS "Eigen3 include directory: ${EIGEN3_INCLUDE_DIR}")
