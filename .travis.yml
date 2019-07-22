@@ -29,6 +29,10 @@ env:
   global:
     - secure: "YY9gwr3+p3xwX7Kaw+j51JKjYdNl2oNBIHOBfXwLzVCh6F+HVIQAT7C9nSFH4O+brImwhDe7q3BzI1m0hdU5L1nyKtPjG5eolRafkvZYIVjvNduh65OS1rIzV9JibmEjqE6I9x1ndYaW3Yc8tdR6TVr+M2UK907jrBClUdv1uwE="
 before_install:
+  - |
+    wget -q -O eigen.tar.gz https://bitbucket.org/eigen/eigen/get/3.3.4.tar.gz
+    tar xzf eigen.tar.gz
+    export CMAKE_INCLUDE_PATH="${CMAKE_INCLUDE_PATH:+$CMAKE_INCLUDE_PATH:}$PWD/eigen-eigen-5a0156e40feb"
 before_script:
   - mkdir build && cd build
   - if [ "$CXX" = "g++" ]; then CXX=g++-7 CC=gcc-7 cmake $CMAKE_EXTRA_FLAGS ..; fi
