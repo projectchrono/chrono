@@ -27,6 +27,7 @@
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsGeometry.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/assets/ChBoxShape.h"
 
 // Chrono general utils
 #include "chrono/core/ChTransform.h"
@@ -157,7 +158,7 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem, fsi::ChSystemFsi& myFsiSyste
     auto cylinder = std::make_shared<ChBody>(ChMaterialSurface::SMC);
     cylinder->SetPos(cyl_pos);
     double volume = utils::CalcCylinderVolume(cyl_radius, cyl_length);
-    ChVector<> gyration = utils::CalcCylinderGyration(cyl_radius, cyl_length).Get_Diag();
+    ChVector<> gyration = utils::CalcCylinderGyration(cyl_radius, cyl_length).diagonal();
 
     // This is the interesting part, sanity check suing the Archimedes' principle
     // If you reduce the density of the solid you should be able to see

@@ -15,7 +15,7 @@
 // Base class for processing the interface between chrono and fsi modules
 // =============================================================================
 
-#define EIGEN_NO_CUDA
+//#define EIGEN_NO_CUDA
 #define EIGEN_DONT_VECTORIZE
 
 #include "chrono/fea/ChElementCableANCF.h"
@@ -228,7 +228,7 @@ ChFsiInterface::ChFsiInterface(SimParams* other_paramsH,
     int numShells = 0;
     //    int numCables = 0;
     int numNodes = 0;
-    //if (mphysicalSystem->Get_otherphysicslist().size())
+    // if (mphysicalSystem->Get_otherphysicslist().size())
     //    numShells =
     //        std::dynamic_pointer_cast<fea::ChMesh>(mphysicalSystem->Get_otherphysicslist().at(0))->GetNelements();
     if (mphysicalSystem->Get_otherphysicslist().size())

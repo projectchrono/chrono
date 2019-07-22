@@ -228,8 +228,8 @@ int main(int argc, char* argv[]) {
         time += paramsH->dT;
         SaveParaViewFiles(myFsiSystem, mphysicalSystem, my_mesh, NodeNeighborElement_mesh, paramsH, next_frame, time);
 
-	if (time > paramsH->tFinal)
-		break;
+        if (time > paramsH->tFinal)
+            break;
     }
 
     return 0;
@@ -373,7 +373,7 @@ void Create_MB_FE(ChSystemSMC& mphysicalSystem, fsi::ChSystemFsi& myFsiSystem, f
             NodeNeighborElement_mesh[node2].push_back(num_elem);
             NodeNeighborElement_mesh[node3].push_back(num_elem);
             // Create the element and set its nodes.
-            auto element = std::make_shared<ChElementShellANCF>();
+            auto element = chrono::make_shared<ChElementShellANCF>();
             element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node0)),
                               std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node1)),
                               std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node2)),
