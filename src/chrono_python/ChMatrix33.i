@@ -2,6 +2,7 @@
 
 /* Includes the header in the wrapper code */
 #include "chrono/core/ChMatrix.h"
+#include "chrono/core/ChMatrix33.h"
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
@@ -12,83 +13,13 @@ using namespace chrono;
 
 %}
 
-#define EIGEN_DENSE_PUBLIC_INTERFACE(Derived) \
-#define EIGEN_STRONG_INLINE __forceinline
-#define EIGEN_DEVICE_FUNC
-
-//%ignore EIGEN_DEVICE_FUNC;
-//%ignore EIGEN_STRONG_INLINE;
-
-/* Parse the header file to generate wrappers */
-//%include "Eigen/src/Core/Matrix.h"    
+%import "ChQuaternion.i"
 
 
-//%template(ChMatrixNMD) chrono::ChMatrixNM<double>;  
-//%template(ChMatrixDynamicD) chrono::ChMatrixDynamic<double>;
+%include "../chrono/core/ChMatrix33.h"
 
-template <typename Real = double>
-class chrono::ChMatrixDynamic : public Eigen::Matrix<Real, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> {
-	public:
-		ChMatrixDynamic() : Eigen::Matrix<Real, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>() {}
-		ChMatrixDynamic(int r, int c) {
-			Eigen::Matrix<Real, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>();
-			this->resize(r,c);
-			}
-		};
 
-%template(ChMatrixDynamicD) chrono::ChMatrixDynamic<double>;
-
-template <typename T = double>
-class chrono::ChVectorDynamic : public Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen::ColMajor> {
-	public:
-		ChVectorDynamic() : Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen::ColMajor>() {}
-		ChVectorDynamic(int r) {
-			Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen::ColMajor>();
-			this->resize(r);
-			}
-		};
-
-%template(ChVectorDynamicD) chrono::ChVectorDynamic<double>;
-
-%extend chrono::ChVectorDynamic<double>{
-		public:
-			double __getitem__(int i) {
-				return (*$self)(i,1);
-				}
-
-			const int Size() {
-				const int r = $self->rows();
-				return r;
-				}
-
-		};
-
-%extend chrono::ChMatrixDynamic<double>{
-		public:
-					// these functions are also argument-templated, so we need to specify the types
-					// ***SWIG template mechanism does not work here for operator() ***
-			//%template(operator+) operator+<double>;
-			//%template(operator-) operator-<double>;
-			//%template(operator*) operator*<double>;
-			/*ChMatrixDynamic<double> operator+(const ChMatrix<double>& matbis) 
-						{ return $self->operator+(matbis);};
-			ChMatrixDynamic<double> operator-(const ChMatrix<double>& matbis) 
-						{ return $self->operator-(matbis);};
-			ChMatrixDynamic<double> operator*(const ChMatrix<double>& matbis) 
-						{ return $self->operator*(matbis);};*/
-
-			double getitem(int i, int j) {
-				return (*$self)(i, j);
-				}
-			const int GetRows() {
-				const int r = $self->rows();
-				return r;
-				}
-			const int GetColumns() {
-				const int c = $self->cols();
-				return c;
-				}
-		};
+%template(ChMatrix33D) chrono::ChMatrix33<double>; 
 
 /*
 %extend chrono::ChMatrix<double>{
@@ -139,6 +70,54 @@ class chrono::ChVectorDynamic : public Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen
 			%template(Set_Xq_matrix) Set_Xq_matrix<double>;
 		};
 
+%extend chrono::ChMatrixDynamic<double>{
+		public:
+					// these functions are also argument-templated, so we need to specify the types
+					// ***SWIG template mechanism does not work here for operator() ***
+			//%template(operator+) operator+<double>;
+			//%template(operator-) operator-<double>;
+			//%template(operator*) operator*<double>;
+			ChMatrixDynamic<double> operator+(const ChMatrix<double>& matbis) 
+						{ return $self->operator+(matbis);};
+			ChMatrixDynamic<double> operator-(const ChMatrix<double>& matbis) 
+						{ return $self->operator-(matbis);};
+			ChMatrixDynamic<double> operator*(const ChMatrix<double>& matbis) 
+						{ return $self->operator*(matbis);};
+
+		};
+
+%extend chrono::ChMatrix33<double>{
+		public:
+					// these functions are also argument-templated, so we need to specify the types
+					// ***SWIG template mechanism does not work here for operator() ***
+			//%template(operator+) operator+<double>;
+			//%template(operator-) operator-<double>;
+			//%template(operator*) operator*<double>;
+			ChMatrix33<double> operator+(const ChMatrix<double>& matbis) 
+						{ return $self->operator+(matbis);};
+			ChMatrix33<double> operator-(const ChMatrix<double>& matbis) 
+						{ return $self->operator-(matbis);};
+			ChMatrix33<double> operator*(const ChMatrix<double>& matbis) 
+						{ return $self->operator*(matbis);};
+
+			ChMatrix33<double>(const ChQuaternion<double>& mq){ 
+						ChMatrix33<double>* newX = new ChMatrix33<double>();
+						newX->Set_A_quaternion(mq);
+						return newX;};
+			
+			//%template(ChMatrix33) ChMatrix33<double>;
+			%template(Matr_x_Vect) Matr_x_Vect<double>;
+			%template(MatrT_x_Vect) MatrT_x_Vect<double>;
+			%template(FastInvert) FastInvert<double>;
+			%template(Set_A_quaternion) Set_A_quaternion<double>;
+			%template(Set_X_matrix) Set_X_matrix<double>;
+			%template(Set_A_axis) Set_A_axis<double>;
+			%template(Set_A_Eulero) Set_A_Eulero<double>;
+			%template(Set_A_Cardano) Set_A_Cardano<double>;
+			%template(Set_A_Hpb) Set_A_Hpb<double>;
+			%template(Set_A_Rxyz) Set_A_Rxyz<double>;
+			%template(Set_A_Rodriguez) Set_A_Rodriguez<double>;
+		};
 
 //
 // ADD PYTHON CODE
@@ -167,8 +146,4 @@ def __matr_getitem(self,index):
 setattr(ChMatrixD, "__getitem__", __matr_getitem)
 setattr(ChMatrixD, "__setitem__", __matr_setitem)
 
-%}
-*/
-
-%ignore chrono::ChMatrixDynamic;
-%include "../chrono/core/ChMatrix.h"
+%}*/

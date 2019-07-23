@@ -2,10 +2,10 @@
 #include <cstddef>
 /* Includes the header in the wrapper code */
 #include "chrono/core/ChVector.h"
-
+#include <Eigen/Core>
 %}
 
-
+%import "ChMatrix.i"
 
 // Hack to avoid problems with .x() .y() .z() that work with references. 
 // This is not straightforward in SWIG. So access them as .x .y .z attributes 
@@ -18,6 +18,7 @@
 %attributeref(chrono::ChVector<float>, float, y);
 %attributeref(chrono::ChVector<float>, float, z);
 
+%ignore chrono::ChVector::eigen;
 
 /* Parse the header file to generate wrappers */
 %include "../chrono/core/ChVector.h"  

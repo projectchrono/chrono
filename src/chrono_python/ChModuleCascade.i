@@ -50,6 +50,7 @@
 //#include "chrono_cascade/ChCascadeShapeAsset.h"
 #include "chrono_cascade/ChBodyEasyCascade.h"
 #include "chrono_cascade/ChCascadeDoc.h"
+#include "Eigen/src/Core/util/Memory.h"
 
 using namespace chrono;
 using namespace chrono::cascade;
@@ -62,6 +63,7 @@ using namespace chrono::cascade;
 #define ChApi 
 #define Handle(ClassName)  Handle_##ClassName
 #define Standard_EXPORT
+#define EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
 // Include other .i configuration files for SWIG. 
 // These are divided in many .i files, each per a

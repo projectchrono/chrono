@@ -89,6 +89,7 @@
 #include "chrono_models/vehicle/ChVehicleModelDefs.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
+#include "Eigen/src/Core/util/Memory.h"
 
 
 using namespace chrono;
@@ -105,6 +106,7 @@ using namespace chrono::vehicle::sedan;
 // Undefine ChApiFea otherwise SWIG gives a syntax error
 #define CH_VEHICLE_API 
 #define ChApi
+#define EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
 #define CH_MODELS_API
 
