@@ -22,9 +22,12 @@
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
+
+#ifdef CHRONO_IRRLICHT
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#endif
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -128,6 +131,7 @@ void HmmwvDlcTest<EnumClass, TIRE_MODEL>::ExecuteStep() {
 
 template <typename EnumClass, EnumClass TIRE_MODEL>
 void HmmwvDlcTest<EnumClass, TIRE_MODEL>::SimulateVis() {
+#ifdef CHRONO_IRRLICHT
     ChWheeledVehicleIrrApp app(&m_hmmwv->GetVehicle(), &m_hmmwv->GetPowertrain(), L"HMMWV acceleration test");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
@@ -157,6 +161,7 @@ void HmmwvDlcTest<EnumClass, TIRE_MODEL>::SimulateVis() {
     }
 
     std::cout << "Time: " << GetTime() << "  location: " << GetLocation() << std::endl;
+#endif
 }
 
 // =============================================================================
@@ -181,6 +186,7 @@ CH_BM_SIMULATION_ONCE(HmmwvDLC_RIGIDMESH, rigidmesh_test_type, NUM_SKIP_STEPS, N
 int main(int argc, char* argv[]) {
     ::benchmark::Initialize(&argc, argv);
 
+#ifdef CHRONO_IRRLICHT
     if (::benchmark::ReportUnrecognizedArguments(argc, argv)) {
         HmmwvDlcTest<TireModelType, TireModelType::TMEASY> test;
         ////HmmwvDlcTest<TireModelType, TireModelType::FIALA> test;
@@ -189,6 +195,7 @@ int main(int argc, char* argv[]) {
         test.SimulateVis();
         return 0;
     }
+#endif
 
     ::benchmark::RunSpecifiedBenchmarks();
 }
