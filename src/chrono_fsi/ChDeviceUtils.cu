@@ -57,6 +57,10 @@ void ChDeviceUtils::ResizeU1(thrust::device_vector<uint>& mThrustVec, int size) 
     mThrustVec.resize(size);
 }
 
+Real3 ChDeviceUtils::FetchElement(thrust::device_vector<Real3>* DevVec, int i) {
+	return (*DevVec)[i];
+}
+
 void ChDeviceUtils::CopyD2H(thrust::device_vector<Real4>& DevVec, thrust::host_vector<Real4>& HostVec) {
     thrust::copy(DevVec.begin(), DevVec.end(), HostVec.begin());
 }

@@ -186,6 +186,7 @@ class CH_FSI_API ChDeviceUtils {
     //        thrust::copy(DevVec.begin(), DevVec.end(), HostVec.begin());
     //    }
 
+    static Real3 FetchElement(thrust::device_vector<Real3>* DevVec, int i) ;
     static void CopyD2H(thrust::device_vector<Real4>& DevVec, thrust::host_vector<Real4>& HostVec);
     static void CopyD2H(thrust::device_vector<Real3>& DevVec, thrust::host_vector<Real3>& HostVec);
     static void CopyD2H(thrust::device_vector<Real>& DevVec, thrust::host_vector<Real>& HostVec);

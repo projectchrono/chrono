@@ -353,7 +353,7 @@ void Create_MB_FE(ChSystemSMC& mphysicalSystem, fsi::ChSystemFsi& myFsiSystem, f
     double rho = 8000;
     double E = 5e6;
     double nu = 0.3;
-    auto mat = std::make_shared<ChMaterialShellANCF>(rho, E, nu);
+    auto mat =chrono::make_shared<ChMaterialShellANCF>(rho, E, nu);
     // Create the elements
 
     int num_elem = 0;

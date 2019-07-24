@@ -22,8 +22,10 @@
 #include "chrono/fea/ChElementShellANCF.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChNodeFEAxyzD.h"
-#include "chrono_fsi/ChFsiInterface.cuh"
+#include "chrono_fsi/ChFsiInterface.h"
 #include "chrono_fsi/ChFsiTypeConvert.h"
+#include "chrono_fsi/ChDeviceUtils.cuh"
+
 
 namespace chrono {
 namespace fsi {
@@ -66,8 +68,11 @@ void ChFsiInterface::Add_Rigid_ForceTorques_To_ChSystem() {
     ChVector<> totalTorque(0);
 
     for (int i = 0; i < numRigids; i++) {
-        chrono::ChVector<> mforce = ChFsiTypeConvert::Real3ToChVector((*rigid_FSI_ForcesD)[i]);
-        chrono::ChVector<> mtorque = ChFsiTypeConvert::Real3ToChVector((*rigid_FSI_TorquesD)[i]);
+
+        chrono::ChVector<> mforce =ChFsiTypeConvert::Real3ToChVector(ChDeviceUtils::FetchElement(rigid_FSI_ForcesD,i));
+        // ChFsiTypeConvert::Real3ToChVector((*rigid_FSI_ForcesD)[i]);
+        chrono::ChVector<> mtorque = ChFsiTypeConvert::Real3ToChVector(ChDeviceUtils::FetchElement(rigid_FSI_TorquesD,i));
+        //ChFsiTypeConvert::Real3ToChVector((*rigid_FSI_TorquesD)[i]);
         totalForce += mforce;
         totalTorque + mtorque;
         std::shared_ptr<chrono::ChBody> body = (*fsiBodeisPtr)[i];
@@ -244,7 +249,7 @@ void ChFsiInterface::Add_Flex_Forces_To_ChSystem() {
     size_t numNodes = fsiNodesPtr->size();
     chrono::ChVector<> total_force(0, 0, 0);
     for (int i = 0; i < numNodes; i++) {
-        chrono::ChVector<> mforce = ChFsiTypeConvert::Real3ToChVector((*Flex_FSI_ForcesD)[i]);
+        chrono::ChVector<> mforce = ChFsiTypeConvert::Real3ToChVector(ChDeviceUtils::FetchElement(Flex_FSI_ForcesD,i)) ; //ChFsiTypeConvert::Real3ToChVector((*Flex_FSI_ForcesD)[i]);
         // if (mforce.Length() != 0.0)
         auto node = std::dynamic_pointer_cast<fea::ChNodeFEAxyzD>(fsi_mesh->GetNode(i));
 
