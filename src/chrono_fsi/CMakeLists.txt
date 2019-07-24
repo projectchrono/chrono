@@ -86,7 +86,7 @@ set(ChronoEngine_FSI_SOURCES
     ChFsiGeneral.cu
     ChSphGeneral.cu
     ChFsiLinearSolverBiCGStab.cpp
-    ChFsiInterface.cu
+    ChFsiInterface.cpp
     ChSystemFsi.cpp
     ChFsiTypeConvert.cpp
 )
@@ -106,7 +106,7 @@ set(ChronoEngine_FSI_HEADERS
     ExactLinearSolvers.cuh
     ChFsiLinearSolver.h
     ChFsiLinearSolverBiCGStab.h
-    ChFsiInterface.cuh
+    ChFsiInterface.h
     ChSystemFsi.h
     ChApiFsi.h
     ChFsiTypeConvert.h
