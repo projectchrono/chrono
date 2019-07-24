@@ -35,7 +35,7 @@ using std::string;
 using std::vector;
 
 void ShowUsage() {
-    cout << "usage: ./test_GRAN_commvessels <json_file> <output_dir>" << endl;
+    cout << "usage: ./test_GRAN_commvessels <json_file> <output_dir> <radius> <density>" << endl;
 }
 
 void writeMeshFrames(std::ostringstream& outstream,
@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
     sim_param_holder params;
 
     // Some of the default values might be overwritten by user via command line
-    if (argc != 3 || ParseJSON(argv[1], params) == false) {
+    if (argc != 5 || ParseJSON(argv[1], params) == false) {
         ShowUsage();
         return 1;
     }
@@ -79,6 +79,12 @@ int main(int argc, char* argv[]) {
     const float Bx = params.box_X;
     const float By = params.box_Y;
     const float Bz = params.box_Z;
+
+    // Overwrite parameters from the command line
+    params.sphere_radius = std::stof(argv[3]);
+    params.sphere_density = std::stof(argv[4]);
+    cout << "sphere_radius " << params.sphere_radius << endl;
+    cout << "sphere_density " << params.sphere_density << endl;
 
     ChSystemGranularSMC_trimesh gran_sys(params.sphere_radius, params.sphere_density, make_float3(Bx, By, Bz));
     gran_sys.setVerbose(params.verbose);

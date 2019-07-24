@@ -1,6 +1,7 @@
 {
-    "sphere_radius": 0.1,
-    "sphere_density": 1.5,
+    "sphere_radius": 0.1, /* Default - overwritten by command line */
+    "sphere_density": 1.5,  /* Default - overwritten by command line */
+
     "box_X": 100,
     "box_Y": 100,
     "box_Z": 100,
