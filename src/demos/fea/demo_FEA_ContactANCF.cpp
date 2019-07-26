@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
 
     int TotalNumNodes, TotalNumElements;
     std::vector<int> BC_NODES;
-    auto material = chrono::make_shared<ChMaterialShellANCF>(1000, 1e8, 0.3);
+    auto material = chrono_types::make_shared<ChMaterialShellANCF>(1000, 1e8, 0.3);
     auto my_mesh = std::make_shared<ChMesh>();
 
     ChVector<> Center(-0.5, -0.5, 0.5);
@@ -152,7 +152,7 @@ int main(int argc, char* argv[]) {
     TotalNumElements = my_mesh->GetNelements();
 
     for (int ele = 0; ele < TotalNumElements; ele++) {
-        auto element = chrono::make_shared<ChElementShellANCF>();
+        auto element = chrono_types::make_shared<ChElementShellANCF>();
         element = std::dynamic_pointer_cast<ChElementShellANCF>(my_mesh->GetElement(ele));
         // Add a single layers with a fiber angle of 0 degrees.
         element->AddLayer(dz, 0 * CH_C_DEG_TO_RAD, material);

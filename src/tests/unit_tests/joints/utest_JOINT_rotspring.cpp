@@ -167,7 +167,7 @@ bool TestRotSpring(const ChVector<>& jointLoc,      // absolute location of join
 
     // Create the ground body
 
-    auto ground = chrono::make_shared<ChBody>();
+    auto ground = chrono_types::make_shared<ChBody>();
     my_system.AddBody(ground);
     ground->SetBodyFixed(true);
 
@@ -176,7 +176,7 @@ bool TestRotSpring(const ChVector<>& jointLoc,      // absolute location of join
     // consistent with the specified joint location.
     // The pendulum CG is assumed to be at half its length.
 
-    auto pendulum = chrono::make_shared<ChBody>();
+    auto pendulum = chrono_types::make_shared<ChBody>();
     my_system.AddBody(pendulum);
     pendulum->SetPos(jointLoc + jointRot.Rotate(ChVector<>(length / 2, 0, 0)));
     pendulum->SetRot(jointRot);
@@ -187,14 +187,14 @@ bool TestRotSpring(const ChVector<>& jointLoc,      // absolute location of join
     // reference frame. The revolute joint's axis of rotation will be the Z axis
     // of the specified rotation matrix.
 
-    auto revoluteJoint = chrono::make_shared<ChLinkLockRevolute>();
+    auto revoluteJoint = chrono_types::make_shared<ChLinkLockRevolute>();
     revoluteJoint->Initialize(pendulum, ground, ChCoordsys<>(jointLoc, jointRot));
     my_system.AddLink(revoluteJoint);
 
     // Add a rotational spring damper to the revolute joint
 
     auto force = std::make_unique<ChLinkForce>();
-    auto customSpring = chrono::make_shared<ChFunction_CustomSpring>();
+    auto customSpring = chrono_types::make_shared<ChFunction_CustomSpring>();
 
     revoluteJoint->GetForce_Rz().SetActive(true);
     revoluteJoint->GetForce_Rz().SetK(200);

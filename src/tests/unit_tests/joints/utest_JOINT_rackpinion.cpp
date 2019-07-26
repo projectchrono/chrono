@@ -142,12 +142,12 @@ bool TestRackPinion(const ChVector<>& jointLoc,      // absolute location of joi
 
     // Create the ground body
 
-    auto ground = chrono::make_shared<ChBody>();
+    auto ground = chrono_types::make_shared<ChBody>();
     my_system.AddBody(ground);
     ground->SetBodyFixed(true);
 
     // Create the pinion body in an initial configuration at rest
-    auto pinion = chrono::make_shared<ChBody>();
+    auto pinion = chrono_types::make_shared<ChBody>();
     my_system.AddBody(pinion);
     pinion->SetPos(jointLoc);
     pinion->SetRot(Q_from_AngY(CH_C_PI_2));
@@ -155,7 +155,7 @@ bool TestRackPinion(const ChVector<>& jointLoc,      // absolute location of joi
     pinion->SetInertiaXX(inertiaXX_Pinion);
 
     // Create the rack body in an initial configuration at rest
-    auto rack = chrono::make_shared<ChBody>();
+    auto rack = chrono_types::make_shared<ChBody>();
     my_system.AddBody(rack);
     rack->SetPos(jointLoc + ChVector<>(0, radiusPinion, 0));
     rack->SetRot(QUNIT);
@@ -165,19 +165,19 @@ bool TestRackPinion(const ChVector<>& jointLoc,      // absolute location of joi
     // Create revolute joint between pinion and ground at "loc" in the global
     // reference frame. The revolute joint's axis of rotation (Z) will be the
     // global x axis.
-    auto revoluteJoint = chrono::make_shared<ChLinkLockRevolute>();
+    auto revoluteJoint = chrono_types::make_shared<ChLinkLockRevolute>();
     revoluteJoint->Initialize(pinion, ground, ChCoordsys<>(jointLoc, Q_from_AngY(CH_C_PI_2)));
     my_system.AddLink(revoluteJoint);
 
     // Create prismatic joint between rack and ground at "loc" - Pinion Radius in the global
     // reference frame. The prismatic joint's axis of translation will be the Z axis
     // of the specified rotation matrix.
-    auto prismaticJoint = chrono::make_shared<ChLinkLockPrismatic>();
+    auto prismaticJoint = chrono_types::make_shared<ChLinkLockPrismatic>();
     prismaticJoint->Initialize(rack, ground, ChCoordsys<>(jointLoc + ChVector<>(0, -radiusPinion, 0), QUNIT));
     my_system.AddLink(prismaticJoint);
 
     // Create the Rack and Pinion joint
-    auto rackpinionJoint = chrono::make_shared<ChLinkRackpinion>();
+    auto rackpinionJoint = chrono_types::make_shared<ChLinkRackpinion>();
     rackpinionJoint->Initialize(pinion, rack, false, ChFrame<>(jointLoc, Q_from_AngY(-CH_C_PI_2)),
                                 ChFrame<>(jointLoc + ChVector<>(0, 0, 0), Q_from_AngY(-CH_C_PI_2)));
     rackpinionJoint->SetPinionRadius(-radiusPinion);

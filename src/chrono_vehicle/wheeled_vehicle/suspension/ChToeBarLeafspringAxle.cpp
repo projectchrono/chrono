@@ -174,7 +174,7 @@ void ChToeBarLeafspringAxle::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
       chassis->GetSystem()->AddLink(m_sphericalDraglink);
     
       // Create and initialize the universal joint between draglink and knuckle
-      m_universalDraglink = chrono::make_shared<ChLinkUniversal>();
+      m_universalDraglink = chrono_types::make_shared<ChLinkUniversal>();
       m_universalDraglink->SetNameString(m_name + "_universalDraglink" + "_L");
       m_universalDraglink->Initialize(m_draglink, m_knuckle[LEFT], ChFrame<>(m_pointsL[KNUCKLE_DRL], rot.Get_A_quaternion()));
       chassis->GetSystem()->AddLink(m_universalDraglink);
@@ -205,7 +205,7 @@ void ChToeBarLeafspringAxle::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
       chassis->GetSystem()->AddLink(m_sphericalDraglink);
     
       // Create and initialize the universal joint between draglink and knuckle
-      m_universalDraglink = chrono::make_shared<ChLinkUniversal>();
+      m_universalDraglink = chrono_types::make_shared<ChLinkUniversal>();
       m_universalDraglink->SetNameString(m_name + "_universalDraglink" + "_R");
       m_universalDraglink->Initialize(m_draglink, m_knuckle[RIGHT], ChFrame<>(m_pointsR[KNUCKLE_DRL], rot.Get_A_quaternion()));
       chassis->GetSystem()->AddLink(m_universalDraglink);         
@@ -256,7 +256,7 @@ void ChToeBarLeafspringAxle::InitializeSide(VehicleSide side,
         m_sphericalTierod->Initialize(m_tierod, m_knuckle[side], ChCoordsys<>(points[TIEROD_K], QUNIT));
         chassis->GetSystem()->AddLink(m_sphericalTierod);
     } else {
-        m_universalTierod = chrono::make_shared<ChLinkUniversal>();
+        m_universalTierod = chrono_types::make_shared<ChLinkUniversal>();
         m_universalTierod->SetNameString(m_name + "_universalTierod" + suffix);
         ChVector<> rightPoint = points[TIEROD_K];
         m_universalTierod->Initialize(m_tierod, m_knuckle[side],
@@ -329,7 +329,7 @@ void ChToeBarLeafspringAxle::InitializeSide(VehicleSide side,
       chassis->GetSystem()->AddLink(m_sphericalDraglink);
     
       // Create and initialize the universal joint between draglink and bell crank.
-      m_universalDraglink = chrono::make_shared<ChLinkUniversal>();
+      m_universalDraglink = chrono_types::make_shared<ChLinkUniversal>();
       m_universalDraglink->SetNameString(m_name + "_universalDraglink" + suffix);
       m_universalDraglink->Initialize(m_draglink, m_knuckle[side], ChFrame<>(points[KNUCKLE_DRL], rot.Get_A_quaternion()));
       chassis->GetSystem()->AddLink(m_universalDraglink);

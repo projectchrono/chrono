@@ -145,7 +145,7 @@ int main(int argc, char* argv[]) {
 
                 // Make elements
                 if (il > 0 && iw > 0) {
-                    auto melement = chrono::make_shared<ChElementShellReissner4>();
+                    auto melement = chrono_types::make_shared<ChElementShellReissner4>();
                     my_mesh->AddElement(melement);
 
                     melement->SetNodes(nodearray[(il - 1) * (nels_W + 1) + (iw - 1)],
@@ -248,7 +248,7 @@ int main(int argc, char* argv[]) {
 
                 // Make elements
                 if (iu > 0 && iw > 0) {
-                    auto melement = chrono::make_shared<ChElementShellReissner4>();
+                    auto melement = chrono_types::make_shared<ChElementShellReissner4>();
                     my_mesh->AddElement(melement);
 
                     melement->SetNodes(nodearray[(iu) * (nels_W + 1) + (iw)], nodearray[(iu - 1) * (nels_W + 1) + (iw)],
@@ -360,7 +360,7 @@ int main(int argc, char* argv[]) {
 
                 // Make elements
                 if (iu > 0 && iw > 0) {
-                    auto melement = chrono::make_shared<ChElementShellReissner4>();
+                    auto melement = chrono_types::make_shared<ChElementShellReissner4>();
                     my_mesh->AddElement(melement);
 
                     melement->SetNodes(nodearray[(iu) * (nels_W + 1) + (iw)], nodearray[(iu - 1) * (nels_W + 1) + (iw)],

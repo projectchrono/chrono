@@ -50,10 +50,10 @@ ChBody::ChBody(ChMaterialSurface::ContactMethod contact_method) {
 
     switch (contact_method) {
         case ChMaterialSurface::NSC:
-            matsurface = chrono::make_shared<ChMaterialSurfaceNSC>();
+            matsurface = chrono_types::make_shared<ChMaterialSurfaceNSC>();
             break;
         case ChMaterialSurface::SMC:
-            matsurface = chrono::make_shared<ChMaterialSurfaceSMC>();
+            matsurface = chrono_types::make_shared<ChMaterialSurfaceSMC>();
             break;
     }
 
@@ -95,10 +95,10 @@ ChBody::ChBody(std::shared_ptr<collision::ChCollisionModel> new_collision_model,
 
     switch (contact_method) {
         case ChMaterialSurface::NSC:
-            matsurface = chrono::make_shared<ChMaterialSurfaceNSC>();
+            matsurface = chrono_types::make_shared<ChMaterialSurfaceNSC>();
             break;
         case ChMaterialSurface::SMC:
-            matsurface = chrono::make_shared<ChMaterialSurfaceSMC>();
+            matsurface = chrono_types::make_shared<ChMaterialSurfaceSMC>();
             break;
     }
 
@@ -160,7 +160,7 @@ ChBody::~ChBody() {
 }
 
 std::shared_ptr<collision::ChCollisionModel> ChBody::InstanceCollisionModel() {
-    auto collision_model_t = chrono::make_shared<ChModelBullet>();
+    auto collision_model_t = chrono_types::make_shared<ChModelBullet>();
     collision_model_t->SetContactable(this);
     return collision_model_t;
 }

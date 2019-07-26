@@ -22,12 +22,12 @@
 #include "chrono/core/ChException.h"
 #include "chrono/serialization/ChArchive.h"
 
-namespace chrono {
-
-// *****************************************************************************
+// =============================================================================
 
 //// RADU
-//// This should probably be somewhere else...
+//// This should probably be somewhere else (ChTypes.h?)
+
+namespace chrono_types {
 
 // Adapted from MRtrix3 (https://github.com/MRtrix3)
 
@@ -59,7 +59,9 @@ inline std::shared_ptr<T> make_shared(Args&&... args) {
 
 /// For classes without members that are fixed-sized Eigen matrices (and hence do not have an overriden operator new),
 /// it is safe to default to using std::make_shared (no alignment issues).
-template <typename T, typename... Args, typename std::enable_if<!class_has_custom_new_operator<T>::value, int>::type = 0>
+template <typename T,
+          typename... Args,
+          typename std::enable_if<!class_has_custom_new_operator<T>::value, int>::type = 0>
 inline std::shared_ptr<T> make_shared(Args&&... args) {
     return std::make_shared<T>(std::forward<Args>(args)...);
 }
@@ -70,8 +72,6 @@ inline std::shared_ptr<T> make_shared(Args&&... args) {
 ////    return std::make_shared<T>(std::forward<Args>(args)...);
 ////}
 
-
-
 ////template <typename T, typename... Args>
 ////inline std::shared_ptr<T> make_shared(Args&&... args) {
 ////    if (class_has_custom_new_operator<T>::value) {
@@ -81,14 +81,17 @@ inline std::shared_ptr<T> make_shared(Args&&... args) {
 ////    }
 ////}
 
-// *****************************************************************************
+}  // end namespace chrono_types
 
+// =============================================================================
+
+namespace chrono {
 
 //// RADU
 //// Implement some utilities to abstract use of Eigen::Map
 //// to copy vectors into matrices and vice-versa
 
-// =============================================================================
+// -----------------------------------------------------------------------------
 
 template <typename T = double>
 using ChMatrixDynamic = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
@@ -99,7 +102,7 @@ using ChMatrixNM = Eigen::Matrix<T, M, N, Eigen::RowMajor>;
 template <typename T, int M, int N>
 using ChMatrixNMnoalign = Eigen::Matrix<T, M, N, Eigen::RowMajor | Eigen::DontAlign>;
 
-// =============================================================================
+// -----------------------------------------------------------------------------
 
 template <typename T = double>
 using ChVectorDynamic = Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen::ColMajor>;
@@ -113,7 +116,7 @@ using ChVectorN = Eigen::Matrix<T, N, 1>;
 template <typename T, int N>
 using ChRowVectorN = Eigen::Matrix<T, 1, N, Eigen::RowMajor>;
 
-// =============================================================================
+// -----------------------------------------------------------------------------
 
 //// RADU
 //// Consider templating the following by precision
@@ -127,12 +130,12 @@ using ChVectorConstRef = const Eigen::Ref<const Eigen::Matrix<double, Eigen::Dyn
 using ChRowVectorRef = Eigen::Ref<Eigen::Matrix<double, 1, Eigen::Dynamic, Eigen::RowMajor>>;
 using ChRowVectorConstRef = const Eigen::Ref<const Eigen::Matrix<double, 1, Eigen::Dynamic, Eigen::RowMajor>>&;
 
-// =============================================================================
+// -----------------------------------------------------------------------------
 
 template <typename T = double>
 using ChArray = Eigen::Array<T, Eigen::Dynamic, 1, Eigen::ColMajor>;
 
-// =============================================================================
+// -----------------------------------------------------------------------------
 
 /// Serialization of a matrix into an ASCII stream (e.g. a file) as a Matlab .dat output.
 inline void StreamOUTdenseMatlabFormat(ChMatrixConstRef A, ChStreamOutAscii& stream) {

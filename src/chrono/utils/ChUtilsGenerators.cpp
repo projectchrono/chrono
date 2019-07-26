@@ -32,8 +32,8 @@ MixtureIngredient::MixtureIngredient(Generator* generator, MixtureType type, dou
       m_type(type),
       m_ratio(ratio),
       m_cumRatio(0),
-      m_defMaterialNSC(chrono::make_shared<ChMaterialSurfaceNSC>()),
-      m_defMaterialSMC(chrono::make_shared<ChMaterialSurfaceSMC>()),
+      m_defMaterialNSC(chrono_types::make_shared<ChMaterialSurfaceNSC>()),
+      m_defMaterialSMC(chrono_types::make_shared<ChMaterialSurfaceSMC>()),
       m_defDensity(1),
       m_defSize(ChVector<>(1, 1, 1)),
       m_frictionDist(nullptr),
@@ -275,7 +275,7 @@ Generator::~Generator() {
 // and the ratio in the final mixture. A smart pointer to the new
 // mixture ingredient is returned to allow modifying its properties.
 std::shared_ptr<MixtureIngredient> Generator::AddMixtureIngredient(MixtureType type, double ratio) {
-    m_mixture.push_back(chrono::make_shared<MixtureIngredient>(this, type, ratio));
+    m_mixture.push_back(chrono_types::make_shared<MixtureIngredient>(this, type, ratio));
     return m_mixture.back();
 }
 

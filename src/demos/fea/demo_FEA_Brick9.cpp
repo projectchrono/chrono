@@ -241,7 +241,7 @@ void DPCapPress() {
         int node8 = (numDiv_z + 1) * XYNumNodes + i;
 
         // Create the element and set its nodes.
-        auto element = chrono::make_shared<ChElementBrick_9>();
+        auto element = chrono_types::make_shared<ChElementBrick_9>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node2)),
@@ -541,7 +541,7 @@ void ShellBrickContact() {
     ChVector<> ES(2.1e10, 2.1e10, 2.1e10);                 // Modulus of elasticity
     ChVector<> nuS(0.3, 0.3, 0.3);                         // Poisson ratio
     ChVector<> GS(8.0769231e9, 8.0769231e9, 8.0769231e9);  // Modulus of rigidity
-    auto mat = chrono::make_shared<ChMaterialShellANCF>(rhoS, ES, nuS, GS);
+    auto mat = chrono_types::make_shared<ChMaterialShellANCF>(rhoS, ES, nuS, GS);
     std::shared_ptr<ChMaterialSurfaceSMC> my_surfacematerial(new ChMaterialSurfaceSMC);
     my_surfacematerial->SetKn(3e6f);
     my_surfacematerial->SetKt(3e6f);
@@ -576,7 +576,7 @@ void ShellBrickContact() {
         int node8 = (numDiv_z + 1) * XYNumNodes + i;
 
         // Create the element and set its nodes.
-        auto element = chrono::make_shared<ChElementBrick_9>();
+        auto element = chrono_types::make_shared<ChElementBrick_9>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node2)),
@@ -624,7 +624,7 @@ void ShellBrickContact() {
         int node2 = (ii / (SnumDiv_x)) * (SN_x) + ii % SnumDiv_x + 1 + SN_x;
         int node3 = (ii / (SnumDiv_x)) * (SN_x) + ii % SnumDiv_x + SN_x;
 
-        auto elementshell = chrono::make_shared<ChElementShellANCF>();
+        auto elementshell = chrono_types::make_shared<ChElementShellANCF>();
         elementshell->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(TotalNumNodes + node0)),
                                std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(TotalNumNodes + node1)),
                                std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(TotalNumNodes + node2)),
@@ -899,7 +899,7 @@ void SimpleBoxContact() {
         int node8 = (numDiv_z + 1) * XYNumNodes + i;
 
         // Create the element and set its nodes.
-        auto element = chrono::make_shared<ChElementBrick_9>();
+        auto element = chrono_types::make_shared<ChElementBrick_9>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node2)),
@@ -1209,7 +1209,7 @@ void SoilBin() {
         int node8 = (numDiv_z + 1) * XYNumNodes + i;
 
         // Create the element and set its nodes.
-        auto element = chrono::make_shared<ChElementBrick_9>();
+        auto element = chrono_types::make_shared<ChElementBrick_9>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node2)),
@@ -1548,7 +1548,7 @@ void AxialDynamics() {
         int node8 = 2 * XYNumNodes + i;
 
         // Create the element and set its nodes.
-        auto element = chrono::make_shared<ChElementBrick_9>();
+        auto element = chrono_types::make_shared<ChElementBrick_9>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node2)),
@@ -1800,7 +1800,7 @@ void BendingQuasiStatic() {
         int node8 = 2 * XYNumNodes + i;
 
         // Create the element and set its nodes.
-        auto element = chrono::make_shared<ChElementBrick_9>();
+        auto element = chrono_types::make_shared<ChElementBrick_9>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node2)),
@@ -2046,7 +2046,7 @@ void SwingingShell() {
         int node8 = 2 * XYNumNodes + i;
 
         // Create the element and set its nodes.
-        auto element = chrono::make_shared<ChElementBrick_9>();
+        auto element = chrono_types::make_shared<ChElementBrick_9>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node2)),

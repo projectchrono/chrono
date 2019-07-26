@@ -31,7 +31,7 @@ ChLoadBodyForce::ChLoadBodyForce(std::shared_ptr<ChBody> body,
       m_local_force(local_force),
       m_local_point(local_point),
       m_scale(1) {
-    m_modulation = chrono::make_shared<ChFunction_Const>(1.0);
+    m_modulation = chrono_types::make_shared<ChFunction_Const>(1.0);
 }
 
 void ChLoadBodyForce::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
@@ -91,7 +91,7 @@ ChVector<> ChLoadBodyForce::GetForce() const {
 
 ChLoadBodyTorque::ChLoadBodyTorque(std::shared_ptr<ChBody> body, const ChVector<>& torque, bool local_torque)
     : ChLoadCustom(body), m_torque(torque), m_local_torque(local_torque), m_scale(1) {
-    m_modulation = chrono::make_shared<ChFunction_Const>(1.0);
+    m_modulation = chrono_types::make_shared<ChFunction_Const>(1.0);
 }
 
 void ChLoadBodyTorque::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
@@ -212,7 +212,7 @@ ChLoadBodyBodyTorque::ChLoadBodyBodyTorque(std::shared_ptr<ChBody> bodyA,
                                            const ChVector<> torque,
                                            bool local_torque)
     : ChLoadBodyBody(bodyA, bodyB, ChFrame<>()), m_torque(torque), m_local_torque(local_torque), m_scale(1) {
-    m_modulation = chrono::make_shared<ChFunction_Const>(1.0);
+    m_modulation = chrono_types::make_shared<ChFunction_Const>(1.0);
 }
 
 void ChLoadBodyBodyTorque::ComputeBodyBodyForceTorque(const ChFrameMoving<>& rel_AB,

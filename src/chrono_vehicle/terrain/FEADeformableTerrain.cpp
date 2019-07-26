@@ -194,7 +194,7 @@ void FEADeformableTerrain::Initialize(const ChVector<>& start_point,
         int node8 = (numDiv_z + 1) * XYNumNodes + i;
 
         // Create the element and set its nodes.
-        auto element = chrono::make_shared<ChElementBrick_9>();
+        auto element = chrono_types::make_shared<ChElementBrick_9>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(m_mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(m_mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(m_mesh->GetNode(node2)),

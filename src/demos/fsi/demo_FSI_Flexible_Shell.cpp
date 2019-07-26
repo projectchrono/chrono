@@ -353,7 +353,7 @@ void Create_MB_FE(ChSystemSMC& mphysicalSystem, fsi::ChSystemFsi& myFsiSystem, f
     double rho = 8000;
     double E = 5e6;
     double nu = 0.3;
-    auto mat =chrono::make_shared<ChMaterialShellANCF>(rho, E, nu);
+    auto mat = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu);
     // Create the elements
 
     int num_elem = 0;
@@ -373,7 +373,7 @@ void Create_MB_FE(ChSystemSMC& mphysicalSystem, fsi::ChSystemFsi& myFsiSystem, f
             NodeNeighborElement_mesh[node2].push_back(num_elem);
             NodeNeighborElement_mesh[node3].push_back(num_elem);
             // Create the element and set its nodes.
-            auto element = chrono::make_shared<ChElementShellANCF>();
+            auto element = chrono_types::make_shared<ChElementShellANCF>();
             element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node0)),
                               std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node1)),
                               std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node2)),

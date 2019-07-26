@@ -39,12 +39,12 @@ void ChPointPointDrawing::Update(ChPhysicsItem* updater, const ChCoordsys<>& coo
 
 // Set line geometry as a segment between two end point
 void ChPointPointSegment::UpdateLineGeometry(const ChVector<>& endpoint1, const ChVector<>& endpoint2) {
-	this->SetLineGeometry(std::static_pointer_cast<geometry::ChLine>(chrono::make_shared<geometry::ChLineSegment>(endpoint1, endpoint2)));
+	this->SetLineGeometry(std::static_pointer_cast<geometry::ChLine>(chrono_types::make_shared<geometry::ChLineSegment>(endpoint1, endpoint2)));
 };
 
 // Set line geometry as a coil between two end point
 void ChPointPointSpring::UpdateLineGeometry(const ChVector<>& endpoint1, const ChVector<>& endpoint2) {
-	auto linepath = chrono::make_shared<geometry::ChLinePath>();
+	auto linepath = chrono_types::make_shared<geometry::ChLinePath>();
 
 	// Following part was copied from irrlicht::ChIrrTools::drawSpring()
 	ChVector<> dist = endpoint2 - endpoint1;

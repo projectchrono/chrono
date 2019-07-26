@@ -161,7 +161,7 @@ bool TestRevSpherical(
 
     // Create the ground body
 
-    auto ground = chrono::make_shared<ChBody>();
+    auto ground = chrono_types::make_shared<ChBody>();
     my_system.AddBody(ground);
     ground->SetBodyFixed(true);
 
@@ -170,7 +170,7 @@ bool TestRevSpherical(
     // consistent with the specified joint location.
     // The pendulum CG is assumed to be at half its length.
 
-    auto pendulum = chrono::make_shared<ChBody>();
+    auto pendulum = chrono_types::make_shared<ChBody>();
     my_system.AddBody(pendulum);
     pendulum->SetPos(PendCSYS.pos);
     pendulum->SetRot(PendCSYS.rot);
@@ -182,7 +182,7 @@ bool TestRevSpherical(
     // The constrained distance is set equal to the inital distance between
     // "jointLocPend" and "jointLocGnd".
 
-    auto revSphericalConstraint = chrono::make_shared<ChLinkRevoluteSpherical>();
+    auto revSphericalConstraint = chrono_types::make_shared<ChLinkRevoluteSpherical>();
     revSphericalConstraint->Initialize(ground, pendulum, false, jointLocGnd, jointRevAxis, jointLocPend, true);
     my_system.AddLink(revSphericalConstraint);
 

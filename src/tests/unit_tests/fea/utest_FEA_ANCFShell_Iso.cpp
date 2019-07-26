@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
     double dz = plate_lenght_z / numDiv_z;
 
     // Create the mesh
-    auto my_mesh = chrono::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     // Create and add the nodes
     for (int i = 0; i < TotalNumNodes; i++) {
@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
         double dir_z = 1;
 
         // Create the node
-        auto node = chrono::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z));
+        auto node = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z));
 
         node->SetMass(0);
 
@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
 
     // Create an isotropic material.
     // All layers for all elements share the same material.
-    auto mat = chrono::make_shared<ChMaterialShellANCF>(500, 2.1e8, 0.3);
+    auto mat = chrono_types::make_shared<ChMaterialShellANCF>(500, 2.1e8, 0.3);
 
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
@@ -144,7 +144,7 @@ int main(int argc, char* argv[]) {
         int node3 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + N_x;
 
         // Create the element and set its nodes.
-        auto element = chrono::make_shared<ChElementShellANCF>();
+        auto element = chrono_types::make_shared<ChElementShellANCF>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node2)),
@@ -180,7 +180,7 @@ int main(int argc, char* argv[]) {
     // Setup solver
     if (use_mkl) {
 #ifdef CHRONO_MKL
-        auto mkl_solver = chrono::make_shared<ChSolverMKL<>>();
+        auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
         mkl_solver->SetSparsityPatternLock(true);
         mkl_solver->SetVerbose(true);
         my_system.SetSolver(mkl_solver);

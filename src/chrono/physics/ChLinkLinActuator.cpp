@@ -29,9 +29,9 @@ ChLinkLinActuator::ChLinkLinActuator()
       mot_rerot(0),
       mot_rerot_dt(0),
       mot_rerot_dtdt(0) {
-    dist_funct = chrono::make_shared<ChFunction_Const>(0);
-    mot_torque = chrono::make_shared<ChFunction_Recorder>();
-    mot_rot = chrono::make_shared<ChFunction_Recorder>();
+    dist_funct = chrono_types::make_shared<ChFunction_Const>(0);
+    mot_torque = chrono_types::make_shared<ChFunction_Recorder>();
+    mot_rot = chrono_types::make_shared<ChFunction_Recorder>();
 
     // Mask: initialize our LinkMaskLF (lock formulation mask)
     mask.SetLockMask(true, false, false, false, false, false, false);
@@ -71,16 +71,16 @@ void ChLinkLinActuator::Set_learn(bool mset) {
 
     learn = mset;
     if (dist_funct->Get_Type() != ChFunction::FUNCT_RECORDER)
-        dist_funct = chrono::make_shared<ChFunction_Recorder>();
+        dist_funct = chrono_types::make_shared<ChFunction_Recorder>();
 }
 
 void ChLinkLinActuator::Set_learn_torque_rotaton(bool mset) {
     learn_torque_rotation = mset;
     if (mot_torque->Get_Type() != ChFunction::FUNCT_RECORDER)
-        mot_torque = chrono::make_shared<ChFunction_Recorder>();
+        mot_torque = chrono_types::make_shared<ChFunction_Recorder>();
 
     if (mot_rot->Get_Type() != ChFunction::FUNCT_RECORDER)
-        mot_rot = chrono::make_shared<ChFunction_Recorder>();
+        mot_rot = chrono_types::make_shared<ChFunction_Recorder>();
 }
 
 void ChLinkLinActuator::UpdateTime(double mytime) {
@@ -98,7 +98,7 @@ void ChLinkLinActuator::UpdateTime(double mytime) {
         deltaC_dtdt.rot = QNULL;
         */
         if (dist_funct->Get_Type() != ChFunction::FUNCT_RECORDER)
-            dist_funct = chrono::make_shared<ChFunction_Recorder>();
+            dist_funct = chrono_types::make_shared<ChFunction_Recorder>();
 
         // record point
         double rec_dist = Vlength(Vsub(marker1->GetAbsCoord().pos, marker2->GetAbsCoord().pos));
@@ -172,10 +172,10 @@ void ChLinkLinActuator::UpdateTime(double mytime) {
 
     if (learn_torque_rotation) {
         if (mot_torque->Get_Type() != ChFunction::FUNCT_RECORDER)
-            mot_torque = chrono::make_shared<ChFunction_Recorder>();
+            mot_torque = chrono_types::make_shared<ChFunction_Recorder>();
 
         if (mot_rot->Get_Type() != ChFunction::FUNCT_RECORDER)
-            mot_rot = chrono::make_shared<ChFunction_Recorder>();
+            mot_rot = chrono_types::make_shared<ChFunction_Recorder>();
 
         std::static_pointer_cast<ChFunction_Recorder>(mot_torque)->AddPoint(mytime, mot_retorque, 1);  // (x,y,w)  x=t
         std::static_pointer_cast<ChFunction_Recorder>(mot_rot)->AddPoint(mytime, mot_rerot, 1);        // (x,y,w)  x=t

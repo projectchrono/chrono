@@ -167,7 +167,7 @@ bool TestPrismatic(const ChVector<>& jointLoc,      // absolute location of join
 
     // Create the ground body
 
-    auto ground = chrono::make_shared<ChBody>();
+    auto ground = chrono_types::make_shared<ChBody>();
     my_system.AddBody(ground);
     ground->SetBodyFixed(true);
 
@@ -176,7 +176,7 @@ bool TestPrismatic(const ChVector<>& jointLoc,      // absolute location of join
     // consistent with the specified joint location.
     // The pendulum CG is assumed to be at half its length.
 
-    auto pendulum = chrono::make_shared<ChBody>();
+    auto pendulum = chrono_types::make_shared<ChBody>();
     my_system.AddBody(pendulum);
     pendulum->SetPos(jointLoc + jointRot.Rotate(ChVector<>(length / 2, 0, 0)));
     pendulum->SetRot(jointRot);
@@ -187,7 +187,7 @@ bool TestPrismatic(const ChVector<>& jointLoc,      // absolute location of join
     // reference frame. The prismatic joint's axis of translation will be the Z axis
     // of the specified rotation matrix.
 
-    auto prismaticJoint = chrono::make_shared<ChLinkLockPrismatic>();
+    auto prismaticJoint = chrono_types::make_shared<ChLinkLockPrismatic>();
     prismaticJoint->Initialize(pendulum, ground, ChCoordsys<>(jointLoc, jointRot));
     my_system.AddLink(prismaticJoint);
 

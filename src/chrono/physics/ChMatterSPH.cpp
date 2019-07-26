@@ -207,7 +207,7 @@ void ChContinuumSPH::ArchiveIN(ChArchiveIn& marchive) {
 CH_FACTORY_REGISTER(ChMatterSPH)
 
 ChMatterSPH::ChMatterSPH() : do_collide(false) {
-    matsurface = chrono::make_shared<ChMaterialSurfaceNSC>();
+    matsurface = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 }
 
 ChMatterSPH::ChMatterSPH(const ChMatterSPH& other) : ChIndexedNodes(other) {
@@ -238,7 +238,7 @@ void ChMatterSPH::ResizeNnodes(int newsize) {
     nodes.resize(newsize);
 
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        nodes[j] = chrono::make_shared<ChNodeSPH>();
+        nodes[j] = chrono_types::make_shared<ChNodeSPH>();
 
         nodes[j]->SetContainer(this);
 
@@ -252,7 +252,7 @@ void ChMatterSPH::ResizeNnodes(int newsize) {
 }
 
 void ChMatterSPH::AddNode(ChVector<double> initial_state) {
-    auto newp = chrono::make_shared<ChNodeSPH>();
+    auto newp = chrono_types::make_shared<ChNodeSPH>();
 
     newp->SetContainer(this);
 

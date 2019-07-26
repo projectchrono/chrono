@@ -236,7 +236,7 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     w = Vcross(u, v);
     rot.Set_A_axis(u, v, w);
 
-    m_universalLateralChassis[side] = chrono::make_shared<ChLinkUniversal>();
+    m_universalLateralChassis[side] = chrono_types::make_shared<ChLinkUniversal>();
     m_universalLateralChassis[side]->SetNameString(m_name + "_universalLateralChassis" + suffix);
     m_universalLateralChassis[side]->Initialize(m_lateral[side], chassis,
                                                 ChFrame<>(points[LAT_C], rot.Get_A_quaternion()));
@@ -254,7 +254,7 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     w = Vcross(u, v);
     rot.Set_A_axis(u, v, w);
 
-    m_universalTLChassis[side] = chrono::make_shared<ChLinkUniversal>();
+    m_universalTLChassis[side] = chrono_types::make_shared<ChLinkUniversal>();
     m_universalTLChassis[side]->SetNameString(m_name + "_universalTLChassis" + suffix);
     m_universalTLChassis[side]->Initialize(m_trailingLink[side], chassis,
                                            ChFrame<>(points[TL_C], rot.Get_A_quaternion()));

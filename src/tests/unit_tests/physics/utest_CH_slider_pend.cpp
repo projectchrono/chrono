@@ -199,19 +199,19 @@ ChronoModel::ChronoModel() {
 
     // Create the Chrono physical system
     // ---------------------------------
-    m_system = chrono::make_shared<ChSystemNSC>();
+    m_system = chrono_types::make_shared<ChSystemNSC>();
     m_system->Set_G_acc(ChVector<>(0, -g, 0));
 
     // Create the ground body
     // ----------------------
-    m_ground = chrono::make_shared<ChBody>();
+    m_ground = chrono_types::make_shared<ChBody>();
     m_system->AddBody(m_ground);
     m_ground->SetIdentifier(-1);
     m_ground->SetBodyFixed(true);
 
     // Create the slider body
     // ----------------------
-    m_slider = chrono::make_shared<ChBody>();
+    m_slider = chrono_types::make_shared<ChBody>();
     m_system->AddBody(m_slider);
     m_slider->SetIdentifier(1);
     m_slider->SetMass(m1);
@@ -220,7 +220,7 @@ ChronoModel::ChronoModel() {
 
     // Create the pendulum body
     // ------------------------
-    m_pend = chrono::make_shared<ChBody>();
+    m_pend = chrono_types::make_shared<ChBody>();
     m_system->AddBody(m_pend);
     m_pend->SetIdentifier(2);
     m_pend->SetMass(m2);
@@ -229,7 +229,7 @@ ChronoModel::ChronoModel() {
 
     // Spring ground-cart
     // ------------------
-    auto spring = chrono::make_shared<ChLinkSpring>();
+    auto spring = chrono_types::make_shared<ChLinkSpring>();
     spring->Initialize(m_slider, m_ground, false, ChVector<>(0, 0, 0), ChVector<>(0, 0, 0), true);
     spring->Set_SpringK(k1);
     spring->Set_SpringR(0);
@@ -239,13 +239,13 @@ ChronoModel::ChronoModel() {
 ChronoModelL::ChronoModelL() {
     // Translational joint ground-cart
     // -------------------------------
-    m_prismatic = chrono::make_shared<ChLinkLockPrismatic>();
+    m_prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
     m_prismatic->Initialize(m_ground, m_slider, ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngY(CH_C_PI_2)));
     m_system->AddLink(m_prismatic);
 
     // Revolute joint cart-pendulum
     // ----------------------------
-    m_revolute = chrono::make_shared<ChLinkLockRevolute>();
+    m_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute->Initialize(m_slider, m_pend, ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));
     m_system->AddLink(m_revolute);
 }
@@ -253,13 +253,13 @@ ChronoModelL::ChronoModelL() {
 ChronoModelM::ChronoModelM() {
     // Translational joint ground-cart
     // -------------------------------
-    m_prismatic = chrono::make_shared<ChLinkMateGeneric>(true, true, false, true, true, true);
+    m_prismatic = chrono_types::make_shared<ChLinkMateGeneric>(true, true, false, true, true, true);
     m_prismatic->Initialize(m_ground, m_slider, ChFrame<>(ChVector<>(0, 0, 0), Q_from_AngY(CH_C_PI_2)));
     m_system->AddLink(m_prismatic);
 
     // Revolute joint cart-pendulum
     // ----------------------------
-    m_revolute = chrono::make_shared<ChLinkMateGeneric>(true, true, true, true, true, false);
+    m_revolute = chrono_types::make_shared<ChLinkMateGeneric>(true, true, true, true, true, false);
     m_revolute->Initialize(m_slider, m_pend, ChFrame<>(ChVector<>(0, 0, 0), QUNIT));
     m_system->AddLink(m_revolute);
 }

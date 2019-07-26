@@ -161,7 +161,7 @@ bool TestRevolute(const ChVector<>& jointLoc,      // absolute location of joint
 
     std::cout << "  Create bodies..." << std::endl;
 
-    auto ground = chrono::make_shared<ChBody>();
+    auto ground = chrono_types::make_shared<ChBody>();
     my_system.AddBody(ground);
     ground->SetBodyFixed(true);
 
@@ -170,7 +170,7 @@ bool TestRevolute(const ChVector<>& jointLoc,      // absolute location of joint
     // consistent with the specified joint location.
     // The pendulum CG is assumed to be at half its length.
 
-    auto pendulum = chrono::make_shared<ChBody>();
+    auto pendulum = chrono_types::make_shared<ChBody>();
     my_system.AddBody(pendulum);
     pendulum->SetPos(jointLoc + jointRot.Rotate(ChVector<>(length / 2, 0, 0)));
     pendulum->SetRot(jointRot);
@@ -183,7 +183,7 @@ bool TestRevolute(const ChVector<>& jointLoc,      // absolute location of joint
 
     std::cout << "  Create joint..." << std::endl;
 
-    auto revoluteJoint = chrono::make_shared<ChLinkLockRevolute>();
+    auto revoluteJoint = chrono_types::make_shared<ChLinkLockRevolute>();
     revoluteJoint->Initialize(pendulum, ground, ChCoordsys<>(jointLoc, jointRot));
     ////ChSharedPtr<ChLinkRevolute>  revoluteJoint(new ChLinkRevolute);
     ////revoluteJoint->Initialize(pendulum, ground, ChFrame<>(jointLoc, jointRot));

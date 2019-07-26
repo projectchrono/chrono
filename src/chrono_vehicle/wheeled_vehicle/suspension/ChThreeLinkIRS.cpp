@@ -192,7 +192,7 @@ void ChThreeLinkIRS::InitializeSide(VehicleSide side,
     v = Vcross(w, u);
     rot.Set_A_axis(u, v, w);
 
-    m_universalUpper[side] = chrono::make_shared<ChLinkUniversal>();
+    m_universalUpper[side] = chrono_types::make_shared<ChLinkUniversal>();
     m_universalUpper[side]->SetNameString(m_name + "_universalUpper" + suffix);
     m_universalUpper[side]->Initialize(m_upper[side], chassis, ChFrame<>(points[UL_C], rot));
     chassis->GetSystem()->AddLink(m_universalUpper[side]);
@@ -203,7 +203,7 @@ void ChThreeLinkIRS::InitializeSide(VehicleSide side,
     v = Vcross(w, u);
     rot.Set_A_axis(u, v, w);
 
-    m_universalLower[side] = chrono::make_shared<ChLinkUniversal>();
+    m_universalLower[side] = chrono_types::make_shared<ChLinkUniversal>();
     m_universalLower[side]->SetNameString(m_name + "_universalLower" + suffix);
     m_universalLower[side]->Initialize(m_lower[side], chassis, ChFrame<>(points[LL_C], rot));
     chassis->GetSystem()->AddLink(m_universalLower[side]);

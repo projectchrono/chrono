@@ -211,7 +211,7 @@ void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next) {
     {
         ChVector<> loc = m_shoe->TransformPointLocalToParent(ChVector<>(GetToothBaseLength() / 2, 0, 0));
         ChQuaternion<>& rot = m_shoe->GetRot();
-        auto loadbushing = chrono::make_shared<ChLoadBodyBodyBushingGeneric>(
+        auto loadbushing = chrono_types::make_shared<ChLoadBodyBodyBushingGeneric>(
             m_shoe,               // body A
             m_web_segments[0],    // body B
             ChFrame<>(loc, rot),  // initial frame of bushing in abs space
@@ -229,7 +229,7 @@ void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next) {
     for (size_t is = 0; is < GetNumWebSegments() - 1; is++) {
         ChVector<> loc = m_web_segments[is]->TransformPointLocalToParent(ChVector<>(m_seg_length / 2, 0, 0));
         ChQuaternion<>& rot = m_web_segments[is]->GetRot();
-        auto loadbushing = chrono::make_shared<ChLoadBodyBodyBushingGeneric>(
+        auto loadbushing = chrono_types::make_shared<ChLoadBodyBodyBushingGeneric>(
             m_web_segments[is],      // body A
             m_web_segments[is + 1],  // body B
             ChFrame<>(loc, rot),     // initial frame of bushing in abs space
@@ -248,7 +248,7 @@ void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next) {
         int is = GetNumWebSegments() - 1;
         ChVector<> loc = m_web_segments[is]->TransformPointLocalToParent(ChVector<>(m_seg_length / 2, 0, 0));
         ChQuaternion<>& rot = m_web_segments[is]->GetRot();
-        auto loadbushing = chrono::make_shared<ChLoadBodyBodyBushingGeneric>(
+        auto loadbushing = chrono_types::make_shared<ChLoadBodyBodyBushingGeneric>(
             m_web_segments[is],   // body A
             next->GetShoeBody(),  // body B
             ChFrame<>(loc, rot),  // initial frame of bushing in abs space

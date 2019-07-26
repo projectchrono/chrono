@@ -184,7 +184,7 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
     //u = Vcross(v, w);
     //rot.Set_A_axis(u, v, w);
     //TODO: Is this the correct rotation matrix?
-    m_universalStrut[side] = chrono::make_shared<ChLinkUniversal>();
+    m_universalStrut[side] = chrono_types::make_shared<ChLinkUniversal>();
     m_universalStrut[side]->SetNameString(m_name + "_universalStrut" + suffix);
     m_universalStrut[side]->Initialize(chassis, m_strut[side],
       ChFrame<>(points[SPRING_C], rot.Get_A_quaternion()));

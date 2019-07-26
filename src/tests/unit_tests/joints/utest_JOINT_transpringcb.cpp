@@ -231,7 +231,7 @@ bool TestTranSpringCB(const ChVector<>& jointLocGnd,   // absolute location of t
 
     // Create the ground body
 
-    auto ground = chrono::make_shared<ChBody>();
+    auto ground = chrono_types::make_shared<ChBody>();
     my_system.AddBody(ground);
     ground->SetBodyFixed(true);
 
@@ -240,7 +240,7 @@ bool TestTranSpringCB(const ChVector<>& jointLocGnd,   // absolute location of t
     // consistent with the specified joint location.
     // The pendulum CG is assumed to be at half its length.
 
-    auto pendulum = chrono::make_shared<ChBody>();
+    auto pendulum = chrono_types::make_shared<ChBody>();
     my_system.AddBody(pendulum);
     pendulum->SetPos(PendCSYS.pos);
     pendulum->SetRot(PendCSYS.rot);
@@ -255,7 +255,7 @@ bool TestTranSpringCB(const ChVector<>& jointLocGnd,   // absolute location of t
 
     ChLinkSpringCB::ForceFunctor* force;
 
-    auto spring = chrono::make_shared<ChLinkSpringCB>();
+    auto spring = chrono_types::make_shared<ChLinkSpringCB>();
     spring->Initialize(pendulum, ground, false, jointLocPend, jointLocGnd, true);
     if (customSpringType == 1) {
         force = new MySpringForceCase01;

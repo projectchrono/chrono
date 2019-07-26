@@ -81,7 +81,7 @@ int main(int argc, char* argv[]) {
     // The physical system: it contains all physical objects.
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
-    auto my_mesh = chrono::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
     int numFlexBody = 1;
     // Geometry of the plate
     double plate_lenght_x = 1;
@@ -123,7 +123,7 @@ int main(int argc, char* argv[]) {
         MPROP(i, 2) = 0.3;      // nu
     }
 
-    auto mmaterial = chrono::make_shared<ChContinuumElastic>();
+    auto mmaterial = chrono_types::make_shared<ChContinuumElastic>();
     mmaterial->Set_RayleighDampingK(0.0);
     mmaterial->Set_RayleighDampingM(0.0);
     mmaterial->Set_density(MPROP(0, 0));
@@ -179,7 +179,7 @@ int main(int argc, char* argv[]) {
     // Adding the nodes to the mesh
     int i = 0;
     while (i < TotalNumNodes) {
-        auto node = chrono::make_shared<ChNodeFEAxyz>(ChVector<>(COORDFlex(i, 0), COORDFlex(i, 1), COORDFlex(i, 2)));
+        auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(COORDFlex(i, 0), COORDFlex(i, 1), COORDFlex(i, 2)));
         node->SetMass(0.0);
         // Fix nodes clamped to the ground
         my_mesh->AddNode(node);
@@ -193,7 +193,7 @@ int main(int argc, char* argv[]) {
 
     int elemcount = 0;
     while (elemcount < TotalNumElements) {
-        auto element = chrono::make_shared<ChElementBrick>();
+        auto element = chrono_types::make_shared<ChElementBrick>();
         ChVectorN<double, 3> InertFlexVec;  // read element length, used in ChElementBrick
         InertFlexVec.setZero();
         InertFlexVec(0) = ElemLengthXY(elemcount, 0);

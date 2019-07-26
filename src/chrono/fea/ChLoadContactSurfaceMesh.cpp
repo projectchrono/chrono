@@ -88,7 +88,7 @@ void ChLoadContactSurfaceMesh::InputSimpleForces(const std::vector<ChVector<>> v
     // Populate the array of applied loads to nodes
     for (size_t i = 0; i < vert_forces.size(); ++i) {
         std::shared_ptr<ChNodeFEAxyz> mnode = ind_ptr_map[vert_ind[i]];
-        auto mforce = chrono::make_shared<ChLoadXYZnode>(mnode);
+        auto mforce = chrono_types::make_shared<ChLoadXYZnode>(mnode);
         mforce->loader.SetForce(vert_forces[i]);
         this->forces.push_back(mforce);
     }

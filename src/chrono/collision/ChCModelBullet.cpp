@@ -615,7 +615,7 @@ bool ChModelBullet::AddTriangleMesh(std::shared_ptr<geometry::ChTriangleMesh> tr
             */
 
             // ----- ..or use this? (using the JR convex decomposition) :
-            auto mydecompositionJR = chrono::make_shared<ChConvexDecompositionJR>();
+            auto mydecompositionJR = chrono_types::make_shared<ChConvexDecompositionJR>();
             mydecompositionJR->AddTriangleMesh(*trimesh);
             mydecompositionJR->SetParameters(0,      // skin width
                                              9, 64,  // depth, max vertices in hull
@@ -631,7 +631,7 @@ bool ChModelBullet::AddTriangleMesh(std::shared_ptr<geometry::ChTriangleMesh> tr
 
             /*
             // ----- ..or use this? (using the HACD convex decomposition) :
-            auto mydecompositionHACD = chrono::make_shared<ChConvexDecompositionHACD>();
+            auto mydecompositionHACD = chrono_types::make_shared<ChConvexDecompositionHACD>();
             mydecompositionHACD->AddTriangleMesh(trimesh);
             mydecompositionHACD->SetParameters(2,      // clusters
                                                0,      // no decimation

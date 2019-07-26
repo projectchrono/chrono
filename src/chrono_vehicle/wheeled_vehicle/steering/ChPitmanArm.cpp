@@ -134,7 +134,7 @@ void ChPitmanArm::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     w = Vcross(dirs[UNIV_AXIS_ARM], dirs[UNIV_AXIS_LINK]);
     rot.Set_A_axis(dirs[UNIV_AXIS_ARM], dirs[UNIV_AXIS_LINK], w);
 
-    m_universal = chrono::make_shared<ChLinkUniversal>();
+    m_universal = chrono_types::make_shared<ChLinkUniversal>();
     m_universal->SetNameString(m_name + "_universal");
     m_universal->Initialize(m_arm, m_link, ChFrame<>(points[UNIV], rot.Get_A_quaternion()));
     chassis->GetSystem()->AddLink(m_universal);

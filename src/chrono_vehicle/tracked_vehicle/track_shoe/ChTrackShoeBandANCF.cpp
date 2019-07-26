@@ -131,7 +131,7 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                     unsigned int node3 = m_starting_node_index + (y_idx + 1) + x_idx * N_y;
 
                     // Create the element and set its nodes.
-                    auto element = chrono::make_shared<ChElementShellANCF>();
+                    auto element = chrono_types::make_shared<ChElementShellANCF>();
                     element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_web_mesh->GetNode(node0)),
                                       std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_web_mesh->GetNode(node1)),
                                       std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_web_mesh->GetNode(node2)),
@@ -214,7 +214,7 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                     unsigned int node7 = m_starting_node_index + 2 * y_idx + x_idx * (N_y_edge + N_y_mid) + 1;
 
                     // Create the element and set its nodes.
-                    auto element = chrono::make_shared<ChElementShellANCF_8>();
+                    auto element = chrono_types::make_shared<ChElementShellANCF_8>();
                     element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzDD>(m_web_mesh->GetNode(node0)),
                                       std::dynamic_pointer_cast<ChNodeFEAxyzDD>(m_web_mesh->GetNode(node1)),
                                       std::dynamic_pointer_cast<ChNodeFEAxyzDD>(m_web_mesh->GetNode(node2)),

@@ -249,7 +249,7 @@ ChParticlesClones::ChParticlesClones()
     // ResizeNparticles(num_particles); // caused memory corruption.. why?
 
     // default non-smooth contact material
-    matsurface = chrono::make_shared<ChMaterialSurfaceNSC>();
+    matsurface = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 }
 
 ChParticlesClones::ChParticlesClones(const ChParticlesClones& other) : ChIndexedParticles(other) {

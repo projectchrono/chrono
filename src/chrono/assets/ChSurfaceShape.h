@@ -30,7 +30,7 @@ class ChApi ChSurfaceShape : public ChVisualization {
   public:
     ChSurfaceShape() {
         // default
-        // gsurface = chrono::make_shared<geometry::ChSurface>();
+        // gsurface = chrono_types::make_shared<geometry::ChSurface>();
 
         wireframe = false;
         resolution_U = 5;
