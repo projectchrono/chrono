@@ -145,10 +145,10 @@ ChPhysicsItem* ChNodeMeshless::GetPhysicsItem() {
 
 ChMatterMeshless::ChMatterMeshless() : do_collide(false), viscosity(0) {
     // Default: VonMises material
-    material = std::make_shared<ChContinuumPlasticVonMises>();
+    material = chrono::make_shared<ChContinuumPlasticVonMises>();
 
     // Default: NSC material
-    matsurface = std::make_shared<ChMaterialSurfaceNSC>();
+    matsurface = chrono::make_shared<ChMaterialSurfaceNSC>();
 }
 
 ChMatterMeshless::ChMatterMeshless(const ChMatterMeshless& other) : ChIndexedNodes(other) {
@@ -183,7 +183,7 @@ void ChMatterMeshless::ResizeNnodes(int newsize) {
     nodes.resize(newsize);
 
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        nodes[j] = std::make_shared<ChNodeMeshless>();
+        nodes[j] = chrono::make_shared<ChNodeMeshless>();
 
         nodes[j]->variables.SetUserData((void*)this);  // UserData unuseful in future cuda solver?
 
@@ -195,7 +195,7 @@ void ChMatterMeshless::ResizeNnodes(int newsize) {
 }
 
 void ChMatterMeshless::AddNode(ChVector<double> initial_state) {
-    auto newp = std::make_shared<ChNodeMeshless>();
+    auto newp = chrono::make_shared<ChNodeMeshless>();
 
     newp->SetPos(initial_state);
     newp->SetPosReference(initial_state);

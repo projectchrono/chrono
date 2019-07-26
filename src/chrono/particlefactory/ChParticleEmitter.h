@@ -63,11 +63,11 @@ class ChParticleEmitter {
           inherit_owner_speed(true),
           jitter_declustering(true) {
         // defaults:
-        particle_creator = std::make_shared<ChRandomShapeCreatorSpheres>();
-        particle_positioner = std::make_shared<ChRandomParticlePositionRectangleOutlet>();
-        particle_aligner = std::make_shared<ChRandomParticleAlignmentUniform>();
-        particle_velocity = std::make_shared<ChRandomParticleVelocity>();
-        particle_angular_velocity = std::make_shared<ChRandomParticleVelocity>();
+        particle_creator = chrono::make_shared<ChRandomShapeCreatorSpheres>();
+        particle_positioner = chrono::make_shared<ChRandomParticlePositionRectangleOutlet>();
+        particle_aligner = chrono::make_shared<ChRandomParticleAlignmentUniform>();
+        particle_velocity = chrono::make_shared<ChRandomParticleVelocity>();
+        particle_angular_velocity = chrono::make_shared<ChRandomParticleVelocity>();
     }
 
     /// Function that creates random particles with random shape, position

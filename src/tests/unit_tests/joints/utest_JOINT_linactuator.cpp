@@ -147,13 +147,13 @@ bool TestLinActuator(const ChQuaternion<>& rot,    // translation along Z axis
 
     // Create the ground body.
 
-    auto ground = std::make_shared<ChBody>();
+    auto ground = chrono::make_shared<ChBody>();
     my_system.AddBody(ground);
     ground->SetBodyFixed(true);
 
     // Create the plate body.
 
-    auto plate = std::make_shared<ChBody>();
+    auto plate = chrono::make_shared<ChBody>();
     my_system.AddBody(plate);
     plate->SetPos(ChVector<>(0, 0, 0));
     plate->SetRot(rot);
@@ -165,7 +165,7 @@ bool TestLinActuator(const ChQuaternion<>& rot,    // translation along Z axis
     // We set the ground as the "master" body (second one in the initialization
     // call) so that the link coordinate system is expressed in the ground frame.
 
-    auto prismatic = std::make_shared<ChLinkLockPrismatic>();
+    auto prismatic = chrono::make_shared<ChLinkLockPrismatic>();
     prismatic->Initialize(plate, ground, ChCoordsys<>(ChVector<>(0, 0, 0), rot));
     my_system.AddLink(prismatic);
 
@@ -173,14 +173,14 @@ bool TestLinActuator(const ChQuaternion<>& rot,    // translation along Z axis
     //   y(t) = 0 + t * desiredSpeed
     //   y'(t) = desiredSpeed
 
-    auto actuator_fun = std::make_shared<ChFunction_Ramp>(0.0, desiredSpeed);
+    auto actuator_fun = chrono::make_shared<ChFunction_Ramp>(0.0, desiredSpeed);
 
     // Create the linear actuator, connecting the plate to the ground.
     // Here, we set the plate as the master body (second one in the initialization
     // call) so that the link coordinate system is expressed in the plate body
     // frame.
 
-    auto actuator = std::make_shared<ChLinkLinActuator>();
+    auto actuator = chrono::make_shared<ChLinkLinActuator>();
     ChVector<> pt1 = ChVector<>(0, 0, 0);
     ChVector<> pt2 = axis;
     actuator->Initialize(ground, plate, false, ChCoordsys<>(pt1, rot), ChCoordsys<>(pt2, rot));

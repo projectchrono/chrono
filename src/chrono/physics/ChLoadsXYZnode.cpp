@@ -68,7 +68,7 @@ ChLoadXYZnodeForceAbsolute::ChLoadXYZnodeForceAbsolute(std::shared_ptr<ChNodeXYZ
     : ChLoadXYZnodeForce(body),
       m_force_base(force),
       m_scale(1) {
-    m_modulation = std::make_shared<ChFunction_Const>(1.0);
+    m_modulation = chrono::make_shared<ChFunction_Const>(1.0);
 }
 
 /// Compute the force on the node, in absolute coordsystem,
@@ -181,9 +181,9 @@ void ChLoadXYZnodeXYZnodeSpring::ComputeForce(const ChVector<>& rel_pos,
 ChLoadXYZnodeXYZnodeBushing::ChLoadXYZnodeXYZnodeBushing(std::shared_ptr<ChNodeXYZ> mnodeA,
                                                          std::shared_ptr<ChNodeXYZ> mnodeB)
     : ChLoadXYZnodeXYZnode(mnodeA, mnodeB), R(VNULL), is_stiff(false) {
-    force_dX = std::make_shared<ChFunction_Const>(0.0);
-    force_dY = std::make_shared<ChFunction_Const>(0.0);
-    force_dZ = std::make_shared<ChFunction_Const>(0.0);
+    force_dX = chrono::make_shared<ChFunction_Const>(0.0);
+    force_dY = chrono::make_shared<ChFunction_Const>(0.0);
+    force_dZ = chrono::make_shared<ChFunction_Const>(0.0);
 }
 
 /// Compute the force on the node, in absolute coordsystem,
@@ -299,9 +299,9 @@ ChLoadXYZnodeBodyBushing::ChLoadXYZnodeBodyBushing(std::shared_ptr<ChNodeXYZ> mn
 								  )	
     : ChLoadXYZnodeBody(mnodeA, mbodyB)
      {
-	force_dX = std::make_shared<ChFunction_Const>(0.0);
-	force_dY = std::make_shared<ChFunction_Const>(0.0);
-	force_dZ = std::make_shared<ChFunction_Const>(0.0);
+	force_dX = chrono::make_shared<ChFunction_Const>(0.0);
+	force_dY = chrono::make_shared<ChFunction_Const>(0.0);
+	force_dZ = chrono::make_shared<ChFunction_Const>(0.0);
 	R = VNULL;
 	is_stiff = false;
 }

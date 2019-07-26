@@ -162,14 +162,14 @@ bool TestUniversal(const ChVector<>& jointLoc,      // absolute location of join
 
     // Create the ground body
 
-    auto ground = std::make_shared<ChBody>();
+    auto ground = chrono::make_shared<ChBody>();
     my_system.AddBody(ground);
     ground->SetBodyFixed(true);
 
     // Create the pendulum body in an initial configuration at rest.
     // The pendulum CG is assumed to be at half its length.
 
-    auto pendulum = std::make_shared<ChBody>();
+    auto pendulum = chrono::make_shared<ChBody>();
     my_system.AddBody(pendulum);
     pendulum->SetPos(jointLoc + jointRot.Rotate(ChVector<>(0, 0, -0.5 * length)));
     pendulum->SetRot(jointRot);

@@ -27,10 +27,10 @@ ChLinkTrajectory::ChLinkTrajectory() : modulo_s(false) {
     type = LinkType::TRAJECTORY;
 
     // default s(t) function. User will provide better fx.
-    space_fx = std::make_shared<ChFunction_Ramp>(0, 1.);
+    space_fx = chrono::make_shared<ChFunction_Ramp>(0, 1.);
 
     // default trajectory is a segment
-    trajectory_line = std::make_shared<ChLineSegment>();
+    trajectory_line = chrono::make_shared<ChLineSegment>();
 
     // Mask: initialize our LinkMaskLF (lock formulation mask) to X  only
     mask.SetLockMask(true, true, true, false, false, false, false);

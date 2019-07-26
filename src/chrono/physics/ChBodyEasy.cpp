@@ -106,7 +106,7 @@ ChBodyEasyCylinder::ChBodyEasyCylinder(double radius,      // radius of the cyli
         SetCollide(true);
     }
     if (visual_asset) {
-        auto vshape = std::make_shared<ChCylinderShape>();
+        auto vshape = chrono::make_shared<ChCylinderShape>();
         vshape->GetCylinderGeometry().p1 = ChVector<>(0, -height * 0.5, 0);
         vshape->GetCylinderGeometry().p2 = ChVector<>(0, height * 0.5, 0);
         vshape->GetCylinderGeometry().rad = radius;
@@ -138,7 +138,7 @@ ChBodyEasyBox::ChBodyEasyBox(double Xsize,       // size along the X dimension
         SetCollide(true);
     }
     if (visual_asset) {
-        auto vshape = std::make_shared<ChBoxShape>();
+        auto vshape = chrono::make_shared<ChBoxShape>();
         vshape->GetBoxGeometry().SetLengths(ChVector<>(Xsize, Ysize, Zsize));
         this->AddAsset(vshape);
     }
@@ -153,7 +153,7 @@ ChBodyEasyConvexHull::ChBodyEasyConvexHull(
     std::shared_ptr<collision::ChCollisionModel> collision_model  // collision model
     )
     : ChBody(collision_model, contact_method) {
-    auto vshape = std::make_shared<ChTriangleMeshShape>();
+    auto vshape = chrono::make_shared<ChTriangleMeshShape>();
     collision::ChConvexHullLibraryWrapper lh;
     lh.ComputeHull(points, *vshape->GetMesh());
     if (visual_asset) {
@@ -198,7 +198,7 @@ ChBodyEasyConvexHullAuxRef::ChBodyEasyConvexHullAuxRef(
     std::shared_ptr<collision::ChCollisionModel> collision_model  // collision model
     )
     : ChBodyAuxRef(collision_model, contact_method) {
-    auto vshape = std::make_shared<ChTriangleMeshShape>();
+    auto vshape = chrono::make_shared<ChTriangleMeshShape>();
     collision::ChConvexHullLibraryWrapper lh;
     lh.ComputeHull(points, *vshape->GetMesh());
     if (visual_asset) {
@@ -249,11 +249,11 @@ ChBodyEasyMesh::ChBodyEasyMesh(
     std::shared_ptr<collision::ChCollisionModel> collision_model  // collision model
     )
     : ChBodyAuxRef(collision_model, contact_method) {
-    auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+    auto trimesh = chrono::make_shared<geometry::ChTriangleMeshConnected>();
     trimesh->LoadWavefrontMesh(filename, true, true);
 
     if (visual_asset) {
-        auto vshape = std::make_shared<ChTriangleMeshShape>();
+        auto vshape = chrono::make_shared<ChTriangleMeshShape>();
         vshape->SetMesh(trimesh);
         vshape->SetName(filename);
         AddAsset(vshape);  // assets are respect to REF c.sys
@@ -343,7 +343,7 @@ ChBodyEasyClusterOfSpheres::ChBodyEasyClusterOfSpheres(
     }
     if (visual_asset) {
         for (unsigned int i = 0; i < positions.size(); ++i) {
-            auto vshape = std::make_shared<ChSphereShape>();
+            auto vshape = chrono::make_shared<ChSphereShape>();
             vshape->GetSphereGeometry().rad = radii[i];
             vshape->GetSphereGeometry().center = offset_positions[i];
             this->AddAsset(vshape);

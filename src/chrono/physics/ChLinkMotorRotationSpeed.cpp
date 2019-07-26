@@ -23,7 +23,7 @@ ChLinkMotorRotationSpeed::ChLinkMotorRotationSpeed() {
     variable.GetMass()(0, 0) = 1.0;
     variable.GetInvMass()(0, 0) = 1.0;
 
-    m_func = std::make_shared<ChFunction_Const>(1.0);
+    m_func = chrono::make_shared<ChFunction_Const>(1.0);
 
     rot_offset = 0;
 

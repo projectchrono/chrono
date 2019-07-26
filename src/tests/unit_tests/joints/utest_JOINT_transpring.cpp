@@ -152,7 +152,7 @@ bool TestTranSpring(
 
     // Create the ground body
 
-    auto ground = std::make_shared<ChBody>();
+    auto ground = chrono::make_shared<ChBody>();
     my_system.AddBody(ground);
     ground->SetBodyFixed(true);
 
@@ -161,7 +161,7 @@ bool TestTranSpring(
     // consistent with the specified joint location.
     // The pendulum CG is assumed to be at half its length.
 
-    auto pendulum = std::make_shared<ChBody>();
+    auto pendulum = chrono::make_shared<ChBody>();
     my_system.AddBody(pendulum);
     pendulum->SetPos(PendCSYS.pos);
     pendulum->SetRot(PendCSYS.rot);
@@ -173,7 +173,7 @@ bool TestTranSpring(
     // The free length is set equal to the inital distance between
     // "jointLocPend" and "jointLocGnd".
 
-    auto spring = std::make_shared<ChLinkSpring>();
+    auto spring = chrono::make_shared<ChLinkSpring>();
     spring->Initialize(pendulum, ground, false, jointLocPend, jointLocGnd, true);
     spring->Set_SpringK(spring_coef);
     spring->Set_SpringR(damping_coef);

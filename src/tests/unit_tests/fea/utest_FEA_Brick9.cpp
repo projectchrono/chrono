@@ -131,7 +131,7 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
     GetLog() << "-----------------------------------------------------------\n";
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono::make_shared<ChMesh>();
 
     // Geometry of the plate
     double plate_lenght_x = 1;
@@ -162,7 +162,7 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
             double loc_z = j * dz;
 
             // Create the node
-            auto node = std::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
+            auto node = chrono::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
             node->SetMass(0);
 
             // Fix all nodes along the axis X=0
@@ -175,7 +175,7 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
     }
 
     for (int i = 0; i < TotalNumElements; i++) {
-        auto node = std::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
+        auto node = chrono::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
                                                     ChVector<>(0.0, 0.0, 0.0));
         node->SetMass(0);
         my_mesh->AddNode(node);
@@ -189,7 +189,7 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
     ChVector<> E(2.1e8, 2.1e8, 2.1e8);
     ChVector<> nu(0.3, 0.3, 0.3);
     ChVector<> G(8.0769231e7, 8.0769231e7, 8.0769231e7);
-    auto material = std::make_shared<ChContinuumElastic>();
+    auto material = chrono::make_shared<ChContinuumElastic>();
     material->Set_RayleighDampingK(0.0);
     material->Set_RayleighDampingM(0.0);
     material->Set_density(rho);
@@ -325,7 +325,7 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     GetLog() << "--------------------------------------------------------------------\n";
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono::make_shared<ChMesh>();
 
     // Geometry of the plate
     double plate_lenght_x = 1;
@@ -360,7 +360,7 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
             double loc_z = j * dz;
 
             // Create the node
-            auto node = std::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
+            auto node = chrono::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
             node->SetMass(0);
             // Fix all nodes along the axis X=0
             if (i == 0 && j == 0)
@@ -372,7 +372,7 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     }
 
     for (int i = 0; i < TotalNumElements; i++) {
-        auto node = std::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
+        auto node = chrono::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
                                                     ChVector<>(0.0, 0.0, 0.0));
         node->SetMass(0);
         my_mesh->AddNode(node);
@@ -388,7 +388,7 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     ChVector<> E(2.1e7, 2.1e7, 2.1e7);
     ChVector<> nu(0.3, 0.3, 0.3);
     ChVector<> G(8.0769231e6, 8.0769231e6, 8.0769231e6);
-    auto material = std::make_shared<ChContinuumElastic>();
+    auto material = chrono::make_shared<ChContinuumElastic>();
     material->Set_RayleighDampingK(0.0);
     material->Set_RayleighDampingM(0.0);
     material->Set_density(rho);
@@ -526,7 +526,7 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     GetLog() << "-----------------------------------------------------------------\n";
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono::make_shared<ChMesh>();
 
     // Geometry of the plate
     double plate_lenght_x = 1;
@@ -557,7 +557,7 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
             double loc_z = j * dz;
 
             // Create the node
-            auto node = std::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
+            auto node = chrono::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
             node->SetMass(0);
 
             // Fix all nodes along the axis X=0
@@ -570,7 +570,7 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     }
 
     for (int i = 0; i < TotalNumElements; i++) {
-        auto node = std::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
+        auto node = chrono::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
                                                     ChVector<>(0.0, 0.0, 0.0));
         node->SetMass(0);
         my_mesh->AddNode(node);
@@ -587,7 +587,7 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     ChVector<> E(1.0e7, 1.0e7, 1.0e7);
     ChVector<> nu(0.3, 0.3, 0.3);
     ChVector<> G(3.8461538e6, 3.8461538e6, 3.8461538e6);
-    auto material = std::make_shared<ChContinuumElastic>();
+    auto material = chrono::make_shared<ChContinuumElastic>();
     material->Set_RayleighDampingK(0.0);
     material->Set_RayleighDampingM(0.0);
     material->Set_density(rho);
@@ -732,7 +732,7 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     GetLog() << "-----------------------------------------------------------------------------\n";
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono::make_shared<ChMesh>();
 
     // Geometry of the plate
     double plate_lenght_x = 1;
@@ -763,7 +763,7 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
             double loc_z = j * dz;
 
             // Create the node
-            auto node = std::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
+            auto node = chrono::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
             node->SetMass(0);
 
             // Fix all nodes along the axis X=0
@@ -776,7 +776,7 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     }
 
     for (int i = 0; i < TotalNumElements; i++) {
-        auto node = std::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
+        auto node = chrono::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
                                                     ChVector<>(0.0, 0.0, 0.0));
         node->SetMass(0);
         my_mesh->AddNode(node);
@@ -793,7 +793,7 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     ChVector<> E(1.0e7, 1.0e7, 1.0e7);
     ChVector<> nu(0.3, 0.3, 0.3);
     ChVector<> G(3.8461538e6, 3.8461538e6, 3.8461538e6);
-    auto material = std::make_shared<ChContinuumElastic>();
+    auto material = chrono::make_shared<ChContinuumElastic>();
     material->Set_RayleighDampingK(0.0);
     material->Set_RayleighDampingM(0.0);
     material->Set_density(rho);

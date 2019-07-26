@@ -454,18 +454,18 @@ void ChPlasticityCosserat::CreatePlasticityData(
 
 ChPlasticityCosseratLumped::ChPlasticityCosseratLumped() {
     // Default: linear isotropic constant hardening
-    n_yeld_x = std::make_shared<ChFunction_Const>(1000);
-    n_beta_x = std::make_shared<ChFunction_Const>(0);
-    n_yeld_y = std::make_shared<ChFunction_Const>(1000);
-    n_beta_y = std::make_shared<ChFunction_Const>(0);
-    n_yeld_z = std::make_shared<ChFunction_Const>(1000);
-    n_beta_z = std::make_shared<ChFunction_Const>(0);
-    n_yeld_Mx = std::make_shared<ChFunction_Const>(1000);
-    n_beta_Mx = std::make_shared<ChFunction_Const>(0);
-    n_yeld_My = std::make_shared<ChFunction_Const>(1000);
-    n_beta_My = std::make_shared<ChFunction_Const>(0);
-    n_yeld_Mz = std::make_shared<ChFunction_Const>(1000);
-    n_beta_Mz = std::make_shared<ChFunction_Const>(0);
+    n_yeld_x = chrono::make_shared<ChFunction_Const>(1000);
+    n_beta_x = chrono::make_shared<ChFunction_Const>(0);
+    n_yeld_y = chrono::make_shared<ChFunction_Const>(1000);
+    n_beta_y = chrono::make_shared<ChFunction_Const>(0);
+    n_yeld_z = chrono::make_shared<ChFunction_Const>(1000);
+    n_beta_z = chrono::make_shared<ChFunction_Const>(0);
+    n_yeld_Mx = chrono::make_shared<ChFunction_Const>(1000);
+    n_beta_Mx = chrono::make_shared<ChFunction_Const>(0);
+    n_yeld_My = chrono::make_shared<ChFunction_Const>(1000);
+    n_beta_My = chrono::make_shared<ChFunction_Const>(0);
+    n_yeld_Mz = chrono::make_shared<ChFunction_Const>(1000);
+    n_beta_Mz = chrono::make_shared<ChFunction_Const>(0);
 }
 
 bool ChPlasticityCosseratLumped::ComputeStressWithReturnMapping(ChVector<>& stress_n,

@@ -339,7 +339,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
     // Make the bodies from the cached info
     for (auto part_pair : parts_map) {
         adams_part_struct part = part_pair.second;
-        auto newBody = std::make_shared<ChBodyAuxRef>();
+        auto newBody = chrono::make_shared<ChBodyAuxRef>();
         // std::cout << "fixed is " << part.fixed <<std::endl;
         newBody->SetBodyFixed(part.fixed);
         newBody->SetMass(part.mass);
@@ -382,7 +382,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
 
         sys.AddBody(newBody);
 
-        // auto sphere = std::make_shared<ChSphereShape>();
+        // auto sphere = chrono::make_shared<ChSphereShape>();
         // sphere->GetSphereGeometry().rad = 0.05;
         // sphere->Pos = newBody->GetFrame_REF_to_abs().GetPos();
         // newBody->AddAsset(sphere);
@@ -400,7 +400,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
         // Convert to aux frame instead of COG frame
         ChCoordsys<> markerCoord = (parentFrame * ChFrame<>(loc, rot)).GetCoord();
         // Make new marker attached to body, without any initial motion
-        auto ch_marker = std::make_shared<ChMarker>(marker_pair.first, parentBody.get(), markerCoord, ChCoordsys<>(),
+        auto ch_marker = chrono::make_shared<ChMarker>(marker_pair.first, parentBody.get(), markerCoord, ChCoordsys<>(),
                                                     ChCoordsys<>());
         parentBody->AddMarker(ch_marker);
         // std::cout << "marker " << marker_pair.first << " is at " << loc.x() << "," << loc.y() << "," << loc.z()
@@ -444,7 +444,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
             assert(body_J);
 
             // std::cout << "adding revolute joint " << joint_pair.first <<std::endl;
-            auto ch_joint = std::make_shared<ChLinkLockRevolute>();
+            auto ch_joint = chrono::make_shared<ChLinkLockRevolute>();
             ch_joint->Initialize(sys.SearchBody(body_I->GetName()), sys.SearchBody(body_J->GetName()),
                                  (body_I->GetFrame_REF_to_abs() * (*marker_I)).GetCoord());
             new_joint = ch_joint;
@@ -457,7 +457,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
             assert(body_J);
 
             // std::cout << "adding spherical joint " << joint_pair.first <<std::endl;
-            auto ch_joint = std::make_shared<ChLinkLockSpherical>();
+            auto ch_joint = chrono::make_shared<ChLinkLockSpherical>();
             ch_joint->Initialize(sys.SearchBody(body_I->GetName()), sys.SearchBody(body_J->GetName()),
                                  (body_I->GetFrame_REF_to_abs() * (*marker_I)).GetCoord());
             new_joint = ch_joint;
@@ -484,7 +484,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
             assert(body_J);
 
             // std::cout << "adding prismatic joint " << joint_pair.first <<std::endl;
-            auto ch_joint = std::make_shared<ChLinkLockPrismatic>();
+            auto ch_joint = chrono::make_shared<ChLinkLockPrismatic>();
             ch_joint->Initialize(sys.SearchBody(body_I->GetName()), sys.SearchBody(body_J->GetName()), true,
                                  (body_I->GetFrame_REF_to_abs() * (*marker_I)).GetCoord(),
                                  (body_J->GetFrame_REF_to_abs() * (*marker_J)).GetCoord());
@@ -498,7 +498,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
             assert(body_J);
 
             // std::cout << "adding cylindrical joint " << joint_pair.first <<std::endl;
-            auto ch_joint = std::make_shared<ChLinkLockCylindrical>();
+            auto ch_joint = chrono::make_shared<ChLinkLockCylindrical>();
             ch_joint->Initialize(sys.SearchBody(body_I->GetName()), sys.SearchBody(body_J->GetName()), true,
                                  (body_I->GetFrame_REF_to_abs() * (*marker_I)).GetCoord(),
                                  (body_J->GetFrame_REF_to_abs() * (*marker_J)).GetCoord());
@@ -512,7 +512,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
             assert(body_J);
 
             // std::cout << "adding rackpin joint " << joint_pair.first <<std::endl;
-            auto ch_joint = std::make_shared<ChLinkRackpinion>();
+            auto ch_joint = chrono::make_shared<ChLinkRackpinion>();
             ch_joint->Initialize(sys.SearchBody(body_I->GetName()), sys.SearchBody(body_J->GetName()), true,
                                  (body_I->GetFrame_REF_to_abs() * (*marker_I)),
                                  (body_J->GetFrame_REF_to_abs() * (*marker_J)));
@@ -533,7 +533,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
             auto iter = tokens.begin();
             //
             if (iter->second == std::string("CYLINDER")) {
-                auto cylinder = std::make_shared<ChCylinderShape>();
+                auto cylinder = chrono::make_shared<ChCylinderShape>();
                 iter++;  // Get next field
                 std::shared_ptr<ChMarker> cm_marker;
                 ChBodyAuxRef* parentBody;
@@ -566,7 +566,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
                     iter++;  // next loop
                 }
             } else if (iter->second == std::string("ELLIPSOID")) {
-                auto ellipsoid = std::make_shared<ChEllipsoidShape>();
+                auto ellipsoid = chrono::make_shared<ChEllipsoidShape>();
                 iter++;  // Get next field
                 std::shared_ptr<ChMarker> cm_marker;
                 ChBodyAuxRef* parentBody;
@@ -608,7 +608,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
                     iter++;  // next loop
                 }
             } else if (iter->second == std::string("BOX")) {
-                auto box = std::make_shared<ChBoxShape>();
+                auto box = chrono::make_shared<ChBoxShape>();
                 iter++;  // Get next field
                 std::shared_ptr<ChMarker> cm_marker;
                 ChBodyAuxRef* parentBody;

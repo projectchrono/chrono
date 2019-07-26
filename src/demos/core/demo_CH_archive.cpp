@@ -353,7 +353,7 @@ void my_serialization_example(ChArchiveOut& marchive)
         // Also store c++ objects referenced by shared pointers.
         // If classes of pointed objects used CH_FACTORY_REGISTER, class abstraction
         // will be automatically used.
-        auto s_boss = std::make_shared<myEmployeeBoss>();
+        auto s_boss = chrono::make_shared<myEmployeeBoss>();
         marchive << CHNVP(s_boss);  //  object was referenced by shared pointer.
 
         // Serialize a shared pointer pointing to the same shared resource of s_boss. 

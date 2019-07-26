@@ -149,7 +149,7 @@ bool TestSpherical(const ChVector<>& jointLoc,      // absolute location of join
 
     // Create the ground body
 
-    auto ground = std::make_shared<ChBody>();
+    auto ground = chrono::make_shared<ChBody>();
     my_system.AddBody(ground);
     ground->SetBodyFixed(true);
 
@@ -158,7 +158,7 @@ bool TestSpherical(const ChVector<>& jointLoc,      // absolute location of join
     // consistent with the specified joint location.
     // The pendulum CG is assumed to be at half its length.
 
-    auto pendulum = std::make_shared<ChBody>();
+    auto pendulum = chrono::make_shared<ChBody>();
     my_system.AddBody(pendulum);
     pendulum->SetPos(jointLoc + jointRot.Rotate(ChVector<>(length / 2, 0, 0)));
     pendulum->SetRot(jointRot);
@@ -169,7 +169,7 @@ bool TestSpherical(const ChVector<>& jointLoc,      // absolute location of join
     // reference frame. The revolute joint's axis of rotation will be the Z axis
     // of the specified rotation matrix.
 
-    auto sphericalJoint = std::make_shared<ChLinkLockSpherical>();
+    auto sphericalJoint = chrono::make_shared<ChLinkLockSpherical>();
     sphericalJoint->Initialize(pendulum, ground, ChCoordsys<>(jointLoc, jointRot));
     my_system.AddLink(sphericalJoint);
 

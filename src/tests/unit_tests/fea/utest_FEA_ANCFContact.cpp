@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
     double nu = 0.3;    ///< Poisson ratio
     auto my_material = chrono::make_shared<ChMaterialShellANCF>(rho, E, nu);
     // You can also change the contact surface properties for further investigation.
-    auto mysurfmaterial = std::make_shared<ChMaterialSurfaceSMC>();
+    auto mysurfmaterial = chrono::make_shared<ChMaterialSurfaceSMC>();
     mysurfmaterial->SetKn(1e0);
     mysurfmaterial->SetKt(0);
     mysurfmaterial->SetGn(1e0);
@@ -226,17 +226,17 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
 
     ChVector<> direction1 (0, 1, 0);
     ChVector<> direction2(0, -1, 0);
-    auto my_meshes_1 = std::make_shared<ChMesh>();
-    auto my_meshes_2 = std::make_shared<ChMesh>();
+    auto my_meshes_1 = chrono::make_shared<ChMesh>();
+    auto my_meshes_2 = chrono::make_shared<ChMesh>();
 
     // Note that two elements are added in two different meshes
     for (int i = 0; i < 4; i++) {
-        auto node = std::make_shared<ChNodeFEAxyzD>(N1[i], direction1);
+        auto node = chrono::make_shared<ChNodeFEAxyzD>(N1[i], direction1);
         node->SetMass(0);
         my_meshes_1->AddNode(node);
     }
     for (int i = 0; i < 4; i++) {
-        auto node = std::make_shared<ChNodeFEAxyzD>(N2[i], direction2);
+        auto node = chrono::make_shared<ChNodeFEAxyzD>(N2[i], direction2);
         node->SetMass(0);
         my_meshes_2->AddNode(node);
     }
@@ -267,8 +267,8 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
     my_meshes_2->AddElement(Element2);
     std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_meshes_1->GetNode(0))->SetFixed(true);
 
-    auto mcontactsurf_1 = std::make_shared<ChContactSurfaceMesh>();
-    auto mcontactsurf_2 = std::make_shared<ChContactSurfaceMesh>();
+    auto mcontactsurf_1 = chrono::make_shared<ChContactSurfaceMesh>();
+    auto mcontactsurf_2 = chrono::make_shared<ChContactSurfaceMesh>();
     my_meshes_1->AddContactSurface(mcontactsurf_1);
     my_meshes_2->AddContactSurface(mcontactsurf_2);
     mcontactsurf_1->AddFacesFromBoundary(sphere_swept_thickness);  // do this after my_mesh->AddContactSurface
@@ -307,8 +307,8 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
     mystepper->SetMode(ChTimestepperHHT::POSITION);  // POSITION //ACCELERATION
     mystepper->SetScaling(true);
     mystepper->SetVerbose(false);
-    auto container = std::make_shared<MyContactContainer>();
-    //    auto contacts = std::make_shared<MyContacts>();
+    auto container = chrono::make_shared<MyContactContainer>();
+    //    auto contacts = chrono::make_shared<MyContacts>();
 
     my_system.SetContactContainer(container);
     bool thereIsContact;

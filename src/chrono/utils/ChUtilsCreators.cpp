@@ -45,7 +45,7 @@ void AddSphereGeometry(ChBody* body,
     body->GetCollisionModel()->AddSphere(radius, pos);
 
     if (visualization) {
-        auto sphere = std::make_shared<ChSphereShape>();
+        auto sphere = chrono::make_shared<ChSphereShape>();
         sphere->GetSphereGeometry().rad = radius;
         sphere->Pos = pos;
         sphere->Rot = rot;
@@ -63,7 +63,7 @@ void AddEllipsoidGeometry(ChBody* body,
     body->GetCollisionModel()->AddEllipsoid(size.x(), size.y(), size.z(), pos, rot);
 
     if (visualization) {
-        auto ellipsoid = std::make_shared<ChEllipsoidShape>();
+        auto ellipsoid = chrono::make_shared<ChEllipsoidShape>();
         ellipsoid->GetEllipsoidGeometry().rad = size;
         ellipsoid->Pos = pos;
         ellipsoid->Rot = rot;
@@ -81,7 +81,7 @@ void AddBoxGeometry(ChBody* body,
     body->GetCollisionModel()->AddBox(size.x(), size.y(), size.z(), pos, rot);
 
     if (visualization) {
-        auto box = std::make_shared<ChBoxShape>();
+        auto box = chrono::make_shared<ChBoxShape>();
         box->GetBoxGeometry().Size = size;
         box->Pos = pos;
         box->Rot = rot;
@@ -120,7 +120,7 @@ void AddCapsuleGeometry(ChBody* body,
     body->GetCollisionModel()->AddCapsule(radius, hlen, pos, rot);
 
     if (visualization) {
-        auto capsule = std::make_shared<ChCapsuleShape>();
+        auto capsule = chrono::make_shared<ChCapsuleShape>();
         capsule->GetCapsuleGeometry().rad = radius;
         capsule->GetCapsuleGeometry().hlen = hlen;
         capsule->Pos = pos;
@@ -140,7 +140,7 @@ void AddCylinderGeometry(ChBody* body,
     body->GetCollisionModel()->AddCylinder(radius, radius, hlen, pos, rot);
 
     if (visualization) {
-        auto cylinder = std::make_shared<ChCylinderShape>();
+        auto cylinder = chrono::make_shared<ChCylinderShape>();
         cylinder->GetCylinderGeometry().rad = radius;
         cylinder->GetCylinderGeometry().p1 = ChVector<>(0, hlen, 0);
         cylinder->GetCylinderGeometry().p2 = ChVector<>(0, -hlen, 0);
@@ -171,7 +171,7 @@ void AddConeGeometry(ChBody* body,
     body->GetCollisionModel()->AddCone(radius, radius, height, posCollisionModel, rot);
 
     if (visualization) {
-        auto cone = std::make_shared<ChConeShape>();
+        auto cone = chrono::make_shared<ChConeShape>();
         cone->GetConeGeometry().rad = ChVector<>(radius, height, radius);
         cone->Pos = posCollisionModel;
         cone->Rot = rot;
@@ -187,7 +187,7 @@ void AddTriangleMeshGeometry(ChBody* body,
                              const ChVector<>& pos,
                              const ChQuaternion<>& rot,
                              bool visualization) {
-    auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+    auto trimesh = chrono::make_shared<geometry::ChTriangleMeshConnected>();
     trimesh->LoadWavefrontMesh(obj_filename, false, false);
 
     for (int i = 0; i < trimesh->m_vertices.size(); i++)
@@ -196,7 +196,7 @@ void AddTriangleMeshGeometry(ChBody* body,
     body->GetCollisionModel()->AddTriangleMesh(trimesh, false, false);
 
     if (visualization) {
-        auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+        auto trimesh_shape = chrono::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(name);
         trimesh_shape->Pos = ChVector<>(0, 0, 0);
@@ -221,7 +221,7 @@ void AddTriangleMeshConvexDecomposition(ChBody* body,
     float volumep = 0.1f;
     bool useinitialislands = true;
 
-    auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+    auto trimesh = chrono::make_shared<geometry::ChTriangleMeshConnected>();
     trimesh->LoadWavefrontMesh(obj_filename, true, false);
     for (int i = 0; i < trimesh->m_vertices.size(); i++) {
         trimesh->m_vertices[i] = pos + rot.Rotate(trimesh->m_vertices[i]);
@@ -250,10 +250,10 @@ void AddTriangleMeshConvexDecomposition(ChBody* body,
         if (!use_original_asset) {
             std::stringstream ss;
             ss << name << "_" << c;
-            auto trimesh_convex = std::make_shared<geometry::ChTriangleMeshConnected>();
+            auto trimesh_convex = chrono::make_shared<geometry::ChTriangleMeshConnected>();
             used_decomposition->GetConvexHullResult(c, *trimesh_convex);
 
-            auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+            auto trimesh_shape = chrono::make_shared<ChTriangleMeshShape>();
             trimesh_shape->SetMesh(trimesh_convex);
             trimesh_shape->SetName(ss.str());
             trimesh_shape->Pos = ChVector<>(0, 0, 0);
@@ -263,7 +263,7 @@ void AddTriangleMeshConvexDecomposition(ChBody* body,
         }
     }
     if (use_original_asset) {
-        auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+        auto trimesh_shape = chrono::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(name);
         trimesh_shape->Pos = ChVector<>(0, 0, 0);
@@ -280,7 +280,7 @@ void AddTriangleMeshConvexDecompositionV2(ChBody* body,
                                           const ChVector<>& pos,
                                           const ChQuaternion<>& rot,
                                           bool use_original_asset) {
-    auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+    auto trimesh = chrono::make_shared<geometry::ChTriangleMeshConnected>();
     trimesh->LoadWavefrontMesh(obj_filename, true, false);
 
     for (int i = 0; i < trimesh->m_vertices.size(); i++) {
@@ -314,10 +314,10 @@ void AddTriangleMeshConvexDecompositionV2(ChBody* body,
         if (!use_original_asset) {
             std::stringstream ss;
             ss << name << "_" << c;
-            auto trimesh_convex = std::make_shared<geometry::ChTriangleMeshConnected>();
+            auto trimesh_convex = chrono::make_shared<geometry::ChTriangleMeshConnected>();
             used_decomposition->GetConvexHullResult(c, *trimesh_convex);
 
-            auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+            auto trimesh_shape = chrono::make_shared<ChTriangleMeshShape>();
             trimesh_shape->SetMesh(trimesh_convex);
             trimesh_shape->SetName(ss.str());
             trimesh_shape->Pos = ChVector<>(0, 0, 0);
@@ -326,7 +326,7 @@ void AddTriangleMeshConvexDecompositionV2(ChBody* body,
         }
     }
     if (use_original_asset) {
-        auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+        auto trimesh_shape = chrono::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(name);
         trimesh_shape->Pos = ChVector<>(0, 0, 0);
@@ -389,7 +389,7 @@ void AddTriangleMeshConvexDecompositionSplit(ChSystem* system,
     double scale = 1.0 / sum;
 
     for (int c = 0; c < hull_count; c++) {
-        auto trimesh_convex = std::make_shared<geometry::ChTriangleMeshConnected>();
+        auto trimesh_convex = chrono::make_shared<geometry::ChTriangleMeshConnected>();
         used_decomposition->GetConvexHullResult(c, *trimesh_convex);
         trimesh_convex->ComputeMassProperties(true, mass, center, inertia);
 
@@ -410,7 +410,7 @@ void AddTriangleMeshConvexDecompositionSplit(ChSystem* system,
         //      geometry::ChTriangleMeshConnected trimesh_convex;
         //      used_decomposition->GetConvexHullResult(c, trimesh_convex);
 
-        auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+        auto trimesh_shape = chrono::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh_convex);
         trimesh_shape->SetName(ss.str());
         trimesh_shape->Pos = -center;
@@ -436,7 +436,7 @@ void AddTriangle(ChBody* body,
                  const ChVector<>& pos,
                  const ChQuaternion<>& rot,
                  bool visualization) {
-    auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+    auto trimesh = chrono::make_shared<geometry::ChTriangleMeshConnected>();
     trimesh->m_vertices.clear();
     trimesh->m_face_v_indices.clear();
     trimesh->m_vertices.push_back(vertA);
@@ -450,7 +450,7 @@ void AddTriangle(ChBody* body,
     body->GetCollisionModel()->AddTriangleMesh(trimesh, false, false);
 
     if (visualization) {
-        auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+        auto trimesh_shape = chrono::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(name);
         trimesh_shape->Pos = ChVector<>(0, 0, 0);
@@ -470,7 +470,7 @@ void AddRoundedBoxGeometry(ChBody* body,
     body->GetCollisionModel()->AddRoundedBox(size.x(), size.y(), size.z(), srad, pos, rot);
 
     if (visualization) {
-        auto box = std::make_shared<ChRoundedBoxShape>();
+        auto box = chrono::make_shared<ChRoundedBoxShape>();
         box->GetRoundedBoxGeometry().Size = size;
         box->GetRoundedBoxGeometry().radsphere = srad;
         box->Pos = pos;
@@ -491,7 +491,7 @@ void AddRoundedCylinderGeometry(ChBody* body,
     body->GetCollisionModel()->AddRoundedCylinder(radius, radius, hlen, srad, pos, rot);
 
     if (visualization) {
-        auto rcyl = std::make_shared<ChRoundedCylinderShape>();
+        auto rcyl = chrono::make_shared<ChRoundedCylinderShape>();
         rcyl->GetRoundedCylinderGeometry().rad = radius;
         rcyl->GetRoundedCylinderGeometry().hlen = hlen;
         rcyl->GetRoundedCylinderGeometry().radsphere = srad;
@@ -780,10 +780,10 @@ void AddConvexCollisionModel(std::shared_ptr<ChBody> body,
         if (!use_original_asset) {
             std::stringstream ss;
             ss << convex_mesh->GetFileName() << "_" << c;
-            auto trimesh_convex = std::make_shared<geometry::ChTriangleMeshConnected>();
+            auto trimesh_convex = chrono::make_shared<geometry::ChTriangleMeshConnected>();
             used_decomposition->GetConvexHullResult(c, *trimesh_convex);
 
-            auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+            auto trimesh_shape = chrono::make_shared<ChTriangleMeshShape>();
             trimesh_shape->SetMesh(trimesh_convex);
             trimesh_shape->SetName(ss.str());
             trimesh_shape->Pos = pos;
@@ -793,7 +793,7 @@ void AddConvexCollisionModel(std::shared_ptr<ChBody> body,
     }
     // Add the original triangle mesh as asset
     if (use_original_asset) {
-        auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+        auto trimesh_shape = chrono::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(convex_mesh);
         trimesh_shape->SetName(convex_mesh->GetFileName());
         trimesh_shape->Pos = VNULL;
@@ -813,7 +813,7 @@ void AddConvexCollisionModel(std::shared_ptr<ChBody> body,
         body->GetCollisionModel()->AddConvexHull(convex_hulls[c], pos, rot);
     }
     // Add the original triangle mesh as asset
-    auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+    auto trimesh_shape = chrono::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(convex_mesh);
     trimesh_shape->SetName(convex_mesh->GetFileName());
     trimesh_shape->Pos = pos;

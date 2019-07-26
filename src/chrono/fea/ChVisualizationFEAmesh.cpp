@@ -63,10 +63,10 @@ ChVisualizationFEAmesh::ChVisualizationFEAmesh(ChMesh& mymesh) {
 
     undeformed_reference = false;
 
-    auto new_mesh_asset = std::make_shared<ChTriangleMeshShape>();
+    auto new_mesh_asset = chrono::make_shared<ChTriangleMeshShape>();
     this->AddAsset(new_mesh_asset);
 
-    auto new_glyphs_asset = std::make_shared<ChGlyphs>();
+    auto new_glyphs_asset = chrono::make_shared<ChGlyphs>();
     this->AddAsset(new_glyphs_asset);
 }
 
@@ -298,11 +298,11 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
     if (!mesh_asset) {
         this->GetAssets().resize(0);  // this to delete other sub assets that are not in mesh & glyphs, if any
 
-        auto new_mesh_asset = std::make_shared<ChTriangleMeshShape>();
+        auto new_mesh_asset = chrono::make_shared<ChTriangleMeshShape>();
         this->AddAsset(new_mesh_asset);
         mesh_asset = new_mesh_asset;
 
-        auto new_glyphs_asset = std::make_shared<ChGlyphs>();
+        auto new_glyphs_asset = chrono::make_shared<ChGlyphs>();
         this->AddAsset(new_glyphs_asset);
         glyphs_asset = new_glyphs_asset;
     }

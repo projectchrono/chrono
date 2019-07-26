@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
     ChSystemNSC my_system;
     my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
 
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono::make_shared<ChMesh>();
 
     // Dimensions of the plate
     double plate_lenght_x = 1;
@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
         MPROP(i, 2) = 0.3;      // nu
     }
 
-    auto mmaterial = std::make_shared<ChContinuumElastic>();
+    auto mmaterial = chrono::make_shared<ChContinuumElastic>();
     mmaterial->Set_RayleighDampingK(0.0);
     mmaterial->Set_RayleighDampingM(0.0);
     mmaterial->Set_density(MPROP(0, 0));
@@ -175,7 +175,7 @@ int main(int argc, char* argv[]) {
     // Adding the nodes to the mesh
     int i = 0;
     while (i < TotalNumNodes) {
-        auto node = std::make_shared<ChNodeFEAxyz>(ChVector<>(COORDFlex(i, 0), COORDFlex(i, 1), COORDFlex(i, 2)));
+        auto node = chrono::make_shared<ChNodeFEAxyz>(ChVector<>(COORDFlex(i, 0), COORDFlex(i, 1), COORDFlex(i, 2)));
         node->SetMass(0.0);
         my_mesh->AddNode(node);
         if (NDR(i, 0) == 1 && NDR(i, 1) == 1 && NDR(i, 2) == 1) {

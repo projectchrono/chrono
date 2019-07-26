@@ -21,7 +21,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChFunction_Integrate)
 
 ChFunction_Integrate::ChFunction_Integrate() : order(1), C_start(0), x_start(0), x_end(1), num_samples(2000) {
-    fa = std::make_shared<ChFunction_Const>();  // default
+    fa = chrono::make_shared<ChFunction_Const>();  // default
     array_x.resize(num_samples);
 }
 

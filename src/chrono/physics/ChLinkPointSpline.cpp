@@ -25,7 +25,7 @@ CH_FACTORY_REGISTER(ChLinkPointSpline)
 
 ChLinkPointSpline::ChLinkPointSpline() {
     // default trajectory is a segment
-    trajectory_line = std::make_shared<ChLineSegment>();
+    trajectory_line = chrono::make_shared<ChLineSegment>();
 
     // Mask: initialize our LinkMaskLF (lock formulation mask) to X  only
     mask.SetLockMask(false, true, true, false, false, false, false);

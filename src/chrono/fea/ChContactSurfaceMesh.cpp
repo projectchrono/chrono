@@ -358,7 +358,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
             std::shared_ptr<ChNodeFEAxyzrot> nA = mbeam->GetNodeA();
             std::shared_ptr<ChNodeFEAxyzrot> nB = mbeam->GetNodeB();
 
-            auto contact_triangle = std::make_shared<ChContactTriangleXYZROT>();
+            auto contact_triangle = chrono::make_shared<ChContactTriangleXYZROT>();
             contact_triangle->SetNode1(nA);
             contact_triangle->SetNode2(nB);
             contact_triangle->SetNode3(nB);
@@ -383,7 +383,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
             std::shared_ptr<ChNodeFEAxyzD> nA = mbeam->GetNodeA();
             std::shared_ptr<ChNodeFEAxyzD> nB = mbeam->GetNodeB();
 
-            auto contact_triangle = std::make_shared<ChContactTriangleXYZ>();
+            auto contact_triangle = chrono::make_shared<ChContactTriangleXYZ>();
             contact_triangle->SetNode1(nA);
             contact_triangle->SetNode2(nB);
             contact_triangle->SetNode3(nB);
@@ -743,7 +743,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
                 i_wingvertex_C = triangles[tri_map[it][3]][2];
         }
 
-        auto contact_triangle = std::make_shared<ChContactTriangleXYZ>();
+        auto contact_triangle = chrono::make_shared<ChContactTriangleXYZ>();
         contact_triangle->SetNode1(triangles_ptrs[it][0]);
         contact_triangle->SetNode2(triangles_ptrs[it][1]);
         contact_triangle->SetNode3(triangles_ptrs[it][2]);
@@ -831,7 +831,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
                 i_wingvertex_C = triangles_rot[tri_map_rot[it][3]][2];
         }
 
-        auto contact_triangle_rot = std::make_shared<ChContactTriangleXYZROT>();
+        auto contact_triangle_rot = chrono::make_shared<ChContactTriangleXYZROT>();
         contact_triangle_rot->SetNode1(triangles_rot_ptrs[it][0]);
         contact_triangle_rot->SetNode2(triangles_rot_ptrs[it][1]);
         contact_triangle_rot->SetNode3(triangles_rot_ptrs[it][2]);

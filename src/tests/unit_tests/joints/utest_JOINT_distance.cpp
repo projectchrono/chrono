@@ -170,7 +170,7 @@ bool TestDistance(
 
     // Create the ground body
 
-    auto ground = std::make_shared<ChBody>();
+    auto ground = chrono::make_shared<ChBody>();
     my_system.AddBody(ground);
     ground->SetBodyFixed(true);
 
@@ -179,7 +179,7 @@ bool TestDistance(
     // consistent with the specified joint location.
     // The pendulum CG is assumed to be at half its length.
 
-    auto pendulum = std::make_shared<ChBody>();
+    auto pendulum = chrono::make_shared<ChBody>();
     my_system.AddBody(pendulum);
     pendulum->SetPos(PendCSYS.pos);
     pendulum->SetRot(PendCSYS.rot);
@@ -191,7 +191,7 @@ bool TestDistance(
     // The constrained distance is set equal to the inital distance between
     // "jointLocPend" and "jointLocGnd".
 
-    auto distanceConstraint = std::make_shared<ChLinkDistance>();
+    auto distanceConstraint = chrono::make_shared<ChLinkDistance>();
     distanceConstraint->Initialize(pendulum, ground, false, jointLocPend, jointLocGnd, true);
     my_system.AddLink(distanceConstraint);
 

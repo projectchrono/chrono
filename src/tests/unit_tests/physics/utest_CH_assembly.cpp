@@ -64,7 +64,7 @@ TEST(FullAssembly, Assemble) {
     my_system.SetTolForce(1e-4);
 
     // Create the ground body
-    auto ground = std::make_shared<ChBody>();
+    auto ground = chrono::make_shared<ChBody>();
     my_system.AddBody(ground);
     ground->SetIdentifier(0);
     ground->SetBodyFixed(true);
@@ -73,7 +73,7 @@ TEST(FullAssembly, Assemble) {
     // orientation that matches the specified joint orientation and a position
     // consistent with the specified joint location.
     // The pendulum CG is assumed to be at half its length.
-    auto pendulum = std::make_shared<ChBody>();
+    auto pendulum = chrono::make_shared<ChBody>();
     my_system.AddBody(pendulum);
     pendulum->SetIdentifier(1);
     pendulum->SetPos(jointLoc + jointRot.Rotate(ChVector<>(length / 2, 0, 0)));
@@ -84,9 +84,9 @@ TEST(FullAssembly, Assemble) {
     // Create revolute joint between pendulum and ground at "loc" in the global
     // reference frame. The revolute joint's axis of rotation will be the Z axis
     // of the specified rotation matrix.
-    auto revoluteJoint = std::make_shared<ChLinkLockRevolute>();
+    auto revoluteJoint = chrono::make_shared<ChLinkLockRevolute>();
     revoluteJoint->Initialize(pendulum, ground, ChCoordsys<>(jointLoc, jointRot));
-    ////auto revoluteJoint = std::make_shared<ChLinkRevolute>();
+    ////auto revoluteJoint = chrono::make_shared<ChLinkRevolute>();
     ////revoluteJoint->Initialize(pendulum, ground, ChFrame<>(jointLoc, jointRot));
     my_system.AddLink(revoluteJoint);
 

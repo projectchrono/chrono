@@ -123,7 +123,7 @@ bool test_computecontact(ChMaterialSurface::ContactMethod method) {
             sys->SetStiffContact(stiff_contact);
             system = sys;
 
-            auto mat = std::make_shared<ChMaterialSurfaceSMC>();
+            auto mat = chrono::make_shared<ChMaterialSurfaceSMC>();
             mat->SetYoungModulus(young_modulus);
             mat->SetRestitution(restitution);
             mat->SetFriction(friction);
@@ -141,7 +141,7 @@ bool test_computecontact(ChMaterialSurface::ContactMethod method) {
 
             system = new ChSystemNSC;
 
-            auto mat = std::make_shared<ChMaterialSurfaceNSC>();
+            auto mat = chrono::make_shared<ChMaterialSurfaceNSC>();
             mat->SetRestitution(restitution);
             mat->SetFriction(friction);
             material = mat;
@@ -154,7 +154,7 @@ bool test_computecontact(ChMaterialSurface::ContactMethod method) {
 
     // Create the ANCF shell element mesh
 
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono::make_shared<ChMesh>();
     // Geometry of the plate
     double plate_lenght_x = 0.5;
     double plate_lenght_y = 0.05;
@@ -185,7 +185,7 @@ bool test_computecontact(ChMaterialSurface::ContactMethod method) {
         double dir_z = 0;
 
         // Create the node
-        auto node = std::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z));
+        auto node = chrono::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z));
         node->SetMass(0);
 
         // Add node to mesh
@@ -233,14 +233,14 @@ bool test_computecontact(ChMaterialSurface::ContactMethod method) {
 
     // Create node cloud for contact with box
     double m_contact_node_radius = 0.0015;
-    auto mysurfmaterial = std::make_shared<ChMaterialSurfaceSMC>();
+    auto mysurfmaterial = chrono::make_shared<ChMaterialSurfaceSMC>();
 
     mysurfmaterial->SetKn(kn);
     mysurfmaterial->SetKt(kt);
     mysurfmaterial->SetGn(gn);
     mysurfmaterial->SetGt(gt);
 
-    auto contact_surf = std::make_shared<ChContactSurfaceNodeCloud>();
+    auto contact_surf = chrono::make_shared<ChContactSurfaceNodeCloud>();
     my_mesh->AddContactSurface(contact_surf);
     contact_surf->AddAllNodes(m_contact_node_radius);
     contact_surf->SetMaterialSurface(mysurfmaterial);
@@ -272,7 +272,7 @@ bool test_computecontact(ChMaterialSurface::ContactMethod method) {
         }
         case MINRES_SOLVER: {
             GetLog() << "Using MINRES solver.\n";
-            auto minres_solver = std::make_shared<ChSolverMINRES>();
+            auto minres_solver = chrono::make_shared<ChSolverMINRES>();
             minres_solver->SetDiagonalPreconditioning(true);
             system->SetSolver(minres_solver);
             system->SetMaxItersSolverSpeed(100);

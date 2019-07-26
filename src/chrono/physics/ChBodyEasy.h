@@ -42,7 +42,7 @@ class ChApi ChBodyEasySphere : public ChBody {
                      bool visual_asset = true,  ///< attach a visualization asset to the body
                      ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,  ///< contact method
                      std::shared_ptr<collision::ChCollisionModel> collision_model =
-                         ::std::make_shared<collision::ChModelBullet>()  ///< collision model
+                         chrono::make_shared<collision::ChModelBullet>()  ///< collision model
     );
 };
 
@@ -64,7 +64,7 @@ class ChApi ChBodyEasyEllipsoid : public ChBody {
                         bool visual_asset = true,  ///< attach a visualization asset to the body
                         ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,  ///< contact method
                         std::shared_ptr<collision::ChCollisionModel> collision_model =
-                            ::std::make_shared<collision::ChModelBullet>()  ///< collision model
+                            chrono::make_shared<collision::ChModelBullet>()  ///< collision model
     );
 };
 
@@ -87,7 +87,7 @@ class ChApi ChBodyEasyCylinder : public ChBody {
                        bool visual_asset = true,  ///< attach a visualization asset to the body
                        ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,  ///< contact method
                        std::shared_ptr<collision::ChCollisionModel> collision_model =
-                           ::std::make_shared<collision::ChModelBullet>()  ///< collision model
+                           chrono::make_shared<collision::ChModelBullet>()  ///< collision model
     );
 };
 
@@ -111,7 +111,7 @@ class ChApi ChBodyEasyBox : public ChBody {
                   bool visual_asset = true,  ///< attach a visualization asset to the body
                   ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,  ///< contact method
                   std::shared_ptr<collision::ChCollisionModel> collision_model =
-                      ::std::make_shared<collision::ChModelBullet>()  ///< collision model
+                      chrono::make_shared<collision::ChModelBullet>()  ///< collision model
     );
 };
 
@@ -135,7 +135,7 @@ class ChApi ChBodyEasyConvexHull : public ChBody {
                          bool visual_asset = true,          ///< attach a visualization asset to the body
                          ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,  ///< contact method
                          std::shared_ptr<collision::ChCollisionModel> collision_model =
-                             ::std::make_shared<collision::ChModelBullet>()  ///< collision model
+                             chrono::make_shared<collision::ChModelBullet>()  ///< collision model
     );
 };
 
@@ -163,7 +163,7 @@ class ChApi ChBodyEasyConvexHullAuxRef : public ChBodyAuxRef {
         bool visual_asset = true,          ///< attach a visual asset to the body?
         ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,  ///< contact method
         std::shared_ptr<collision::ChCollisionModel> collision_model =
-            ::std::make_shared<collision::ChModelBullet>()  ///< collision model
+            chrono::make_shared<collision::ChModelBullet>()  ///< collision model
     );
 };
 
@@ -193,7 +193,7 @@ class ChApi ChBodyEasyMesh : public ChBodyAuxRef {
         bool visual_asset = true,     ///< attach a visualization asset to the body
         ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,  ///< contact method
         std::shared_ptr<collision::ChCollisionModel> collision_model =
-            ::std::make_shared<collision::ChModelBullet>()  ///< collision model
+            chrono::make_shared<collision::ChModelBullet>()  ///< collision model
     );
 };
 
@@ -220,7 +220,7 @@ class ChApi ChBodyEasyClusterOfSpheres : public ChBody {
         bool visual_asset = true,             ///< attach a visualization asset to the body
         ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,  ///< contact method
         std::shared_ptr<collision::ChCollisionModel> collision_model =
-            ::std::make_shared<collision::ChModelBullet>()  ///< collision model
+            chrono::make_shared<collision::ChModelBullet>()  ///< collision model
     );
 };
 

@@ -49,12 +49,12 @@ void test_1() {
     ChSystemNSC my_system;
 
     // Create a mesh:
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono::make_shared<ChMesh>();
     my_system.Add(my_mesh);
 
     // Create some nodes.
-    auto mnodeA = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(0, 0, 0)));
-    auto mnodeB = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(2, 0, 0)));
+    auto mnodeA = chrono::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(0, 0, 0)));
+    auto mnodeB = chrono::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(2, 0, 0)));
 
     // Default mass for FEM nodes is zero
     mnodeA->SetMass(0.0);
@@ -64,7 +64,7 @@ void test_1() {
     my_mesh->AddNode(mnodeB);
 
     // Create beam section & material
-    auto msection = std::make_shared<ChBeamSectionAdvanced>();
+    auto msection = chrono::make_shared<ChBeamSectionAdvanced>();
     double beam_wy = 0.1;
     double beam_wz = 0.2;
     msection->SetAsRectangularSection(beam_wy, beam_wz);
@@ -74,18 +74,18 @@ void test_1() {
     msection->SetDensity(1500);
 
     // Create a beam of Eulero-Bernoulli type:
-    auto melementA = std::make_shared<ChElementBeamEuler>();
+    auto melementA = chrono::make_shared<ChElementBeamEuler>();
     melementA->SetNodes(mnodeA, mnodeB);
     melementA->SetSection(msection);
     my_mesh->AddElement(melementA);
 
     // Create also a truss
-    auto truss = std::make_shared<ChBody>();
+    auto truss = chrono::make_shared<ChBody>();
     truss->SetBodyFixed(true);
     my_system.Add(truss);
 
     // Create a constraint at the end of the beam
-    auto constr_a = std::make_shared<ChLinkMateGeneric>();
+    auto constr_a = chrono::make_shared<ChLinkMateGeneric>();
     constr_a->Initialize(mnodeA, truss, false, mnodeA->Frame(), mnodeA->Frame());
     my_system.Add(constr_a);
     constr_a->SetConstrainedCoords(true, true, true,   // x, y, z
@@ -95,13 +95,13 @@ void test_1() {
 
     // First: loads must be added to "load containers",
     // and load containers must be added to your system
-    auto mloadcontainer = std::make_shared<ChLoadContainer>();
+    auto mloadcontainer = chrono::make_shared<ChLoadContainer>();
     my_system.Add(mloadcontainer);
 
     // Example 1:
 
     // Add a vertical load to the end of the beam element:
-    auto mwrench = std::make_shared<ChLoadBeamWrench>(melementA);
+    auto mwrench = chrono::make_shared<ChLoadBeamWrench>(melementA);
     mwrench->loader.SetApplication(1.0);  // in -1..+1 range, -1: end A, 0: mid, +1: end B
     mwrench->loader.SetForce(ChVector<>(0, -0.2, 0));
     mloadcontainer->Add(mwrench);  // do not forget to add the load to the load container.
@@ -109,14 +109,14 @@ void test_1() {
     // Example 2:
 
     // Add a distributed load along the beam element:
-    auto mwrenchdis = std::make_shared<ChLoadBeamWrenchDistributed>(melementA);
+    auto mwrenchdis = chrono::make_shared<ChLoadBeamWrenchDistributed>(melementA);
     mwrenchdis->loader.SetForcePerUnit(ChVector<>(0, -0.1, 0));  // load per unit length
     mloadcontainer->Add(mwrenchdis);
 
     // Example 3:
 
     // Add gravity (constant volumetric load)
-    auto mgravity = std::make_shared<ChLoad<ChLoaderGravity>>(melementA);
+    auto mgravity = chrono::make_shared<ChLoad<ChLoaderGravity>>(melementA);
     mloadcontainer->Add(mgravity);
 
     // note that by default all solid elements in the mesh will already
@@ -170,7 +170,7 @@ void test_1() {
     // As a stiff load, this will automatically generate a jacobian (tangent stiffness matrix K)
     // that will be used in statics, implicit integrators, etc.
 
-    auto mnodeC = std::make_shared<ChNodeFEAxyz>(ChVector<>(2, 10, 3));
+    auto mnodeC = chrono::make_shared<ChNodeFEAxyz>(ChVector<>(2, 10, 3));
     my_mesh->AddNode(mnodeC);
 
     class MyLoaderPointStiff : public ChLoaderUVWatomic {
@@ -232,7 +232,7 @@ void test_1() {
     // As a stiff load, this will automatically generate a jacobian (tangent stiffness matrix K)
     // that will be used in statics, implicit integrators, etc.
 
-    auto mnodeD = std::make_shared<ChNodeFEAxyz>(ChVector<>(2, 10, 3));
+    auto mnodeD = chrono::make_shared<ChNodeFEAxyz>(ChVector<>(2, 10, 3));
     my_mesh->AddNode(mnodeD);
 
     class MyLoadCustom : public ChLoadCustom {
@@ -295,7 +295,7 @@ void test_1() {
     };
 
     // Instance load object, applying to a node, as in previous example, and add to container:
-    auto mloadcustom = std::make_shared<MyLoadCustom>(mnodeD);
+    auto mloadcustom = chrono::make_shared<MyLoadCustom>(mnodeD);
     mloadcontainer->Add(mloadcustom);
 
     // Example 7:
@@ -308,9 +308,9 @@ void test_1() {
     // by default using numerical differentiation; but if you want you
     // can override ComputeJacobian() and compute mK, mR analytically - see prev.example.
 
-    auto mnodeE = std::make_shared<ChNodeFEAxyz>(ChVector<>(2, 10, 3));
+    auto mnodeE = chrono::make_shared<ChNodeFEAxyz>(ChVector<>(2, 10, 3));
     my_mesh->AddNode(mnodeE);
-    auto mnodeF = std::make_shared<ChNodeFEAxyz>(ChVector<>(2, 11, 3));
+    auto mnodeF = chrono::make_shared<ChNodeFEAxyz>(ChVector<>(2, 11, 3));
     my_mesh->AddNode(mnodeF);
 
     class MyLoadCustomMultiple : public ChLoadCustomMultiple {
@@ -385,7 +385,7 @@ void test_1() {
     std::vector<std::shared_ptr<ChLoadable>> mnodelist;
     mnodelist.push_back(mnodeE);
     mnodelist.push_back(mnodeF);
-    auto mloadcustommultiple = std::make_shared<MyLoadCustomMultiple>(mnodelist);
+    auto mloadcustommultiple = chrono::make_shared<MyLoadCustomMultiple>(mnodelist);
     mloadcontainer->Add(mloadcustommultiple);
 
     ///////////////////////////////////////

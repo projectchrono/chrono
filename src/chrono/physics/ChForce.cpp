@@ -34,13 +34,13 @@ ChForce::ChForce()
       align(BODY_DIR),
       frame(BODY),
       mode(FORCE) {
-    modula = std::make_shared<ChFunction_Const>(1);
-    move_x = std::make_shared<ChFunction_Const>(0);
-    move_y = std::make_shared<ChFunction_Const>(0);
-    move_z = std::make_shared<ChFunction_Const>(0);
-    f_x = std::make_shared<ChFunction_Const>(0);
-    f_y = std::make_shared<ChFunction_Const>(0);
-    f_z = std::make_shared<ChFunction_Const>(0);
+    modula = chrono::make_shared<ChFunction_Const>(1);
+    move_x = chrono::make_shared<ChFunction_Const>(0);
+    move_y = chrono::make_shared<ChFunction_Const>(0);
+    move_z = chrono::make_shared<ChFunction_Const>(0);
+    f_x = chrono::make_shared<ChFunction_Const>(0);
+    f_y = chrono::make_shared<ChFunction_Const>(0);
+    f_z = chrono::make_shared<ChFunction_Const>(0);
 }
 
 ChForce::ChForce(const ChForce& other) : ChObj(other) {

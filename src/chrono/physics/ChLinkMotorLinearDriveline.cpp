@@ -25,12 +25,12 @@ ChLinkMotorLinearDriveline::ChLinkMotorLinearDriveline() {
     this->c_x = false;
     SetupLinkMask();
 
-    innershaft1lin = std::make_shared<ChShaft>();
-    innershaft2lin = std::make_shared<ChShaft>();
-    innershaft2rot = std::make_shared<ChShaft>();
-    innerconstraint1lin = std::make_shared<ChShaftsBodyTranslation>();
-    innerconstraint2lin = std::make_shared<ChShaftsBodyTranslation>(); 
-    innerconstraint2rot = std::make_shared<ChShaftsBody>(); 
+    innershaft1lin = chrono::make_shared<ChShaft>();
+    innershaft2lin = chrono::make_shared<ChShaft>();
+    innershaft2rot = chrono::make_shared<ChShaft>();
+    innerconstraint1lin = chrono::make_shared<ChShaftsBodyTranslation>();
+    innerconstraint2lin = chrono::make_shared<ChShaftsBodyTranslation>(); 
+    innerconstraint2rot = chrono::make_shared<ChShaftsBody>(); 
     shaft2_rotation_dir = VECT_X;
 }
 

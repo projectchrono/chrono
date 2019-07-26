@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
 
     // Create a mesh, that is a container for groups of elements and
     // their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono::make_shared<ChMesh>();
 
     const double f_const = 5.0;  // Gerstmayr's paper's parameter
     double diam = 0.0;
@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
     unsigned int NElem = 4;
     double rho = 0.0;
 
-    auto msection_cable = std::make_shared<ChBeamSectionCable>();
+    auto msection_cable = chrono::make_shared<ChBeamSectionCable>();
     diam = sqrt(1e-6 / CH_C_PI) * 2.0 * f_const;
     msection_cable->SetDiameter(diam);
     msection_cable->SetYoungModulus(1e9 / pow(f_const, 4));
@@ -91,11 +91,11 @@ int main(int argc, char* argv[]) {
     msection_cable->SetDensity(rho);
 
     // Create the nodes
-    auto hnodeancf1 = std::make_shared<ChNodeFEAxyzD>(ChVector<>(0, 0, 0.0), ChVector<>(1, 0, 0));
-    auto hnodeancf2 = std::make_shared<ChNodeFEAxyzD>(ChVector<>(beam_length / 4, 0, 0), ChVector<>(1, 0, 0));
-    auto hnodeancf3 = std::make_shared<ChNodeFEAxyzD>(ChVector<>(beam_length / 2, 0, 0), ChVector<>(1, 0, 0));
-    auto hnodeancf4 = std::make_shared<ChNodeFEAxyzD>(ChVector<>(3.0 * beam_length / 4, 0, 0), ChVector<>(1, 0, 0));
-    auto hnodeancf5 = std::make_shared<ChNodeFEAxyzD>(ChVector<>(beam_length, 0, 0), ChVector<>(1, 0, 0));
+    auto hnodeancf1 = chrono::make_shared<ChNodeFEAxyzD>(ChVector<>(0, 0, 0.0), ChVector<>(1, 0, 0));
+    auto hnodeancf2 = chrono::make_shared<ChNodeFEAxyzD>(ChVector<>(beam_length / 4, 0, 0), ChVector<>(1, 0, 0));
+    auto hnodeancf3 = chrono::make_shared<ChNodeFEAxyzD>(ChVector<>(beam_length / 2, 0, 0), ChVector<>(1, 0, 0));
+    auto hnodeancf4 = chrono::make_shared<ChNodeFEAxyzD>(ChVector<>(3.0 * beam_length / 4, 0, 0), ChVector<>(1, 0, 0));
+    auto hnodeancf5 = chrono::make_shared<ChNodeFEAxyzD>(ChVector<>(beam_length, 0, 0), ChVector<>(1, 0, 0));
 
     my_mesh->AddNode(hnodeancf1);
     my_mesh->AddNode(hnodeancf2);
@@ -131,10 +131,10 @@ int main(int argc, char* argv[]) {
     belementancf4->SetAlphaDamp(0.0);
     my_mesh->AddElement(belementancf4);
 
-    auto mtruss = std::make_shared<ChBody>();
+    auto mtruss = chrono::make_shared<ChBody>();
     mtruss->SetBodyFixed(true);
 
-    auto constraint_hinge = std::make_shared<ChLinkPointFrame>();
+    auto constraint_hinge = chrono::make_shared<ChLinkPointFrame>();
     constraint_hinge->Initialize(hnodeancf1, mtruss);
     my_system.Add(constraint_hinge);
 
@@ -154,24 +154,24 @@ int main(int argc, char* argv[]) {
 
     // First: loads must be added to "load containers",
     // and load containers must be added to your system
-    auto mloadcontainer = std::make_shared<ChLoadContainer>();
+    auto mloadcontainer = chrono::make_shared<ChLoadContainer>();
     my_system.Add(mloadcontainer);
 
     // Add gravity (constant volumetric load): Use 2 Gauss integration points
 
-    auto mgravity1 = std::make_shared<ChLoad<ChLoaderGravity>>(belementancf1);
+    auto mgravity1 = chrono::make_shared<ChLoad<ChLoaderGravity>>(belementancf1);
     mgravity1->loader.SetNumIntPoints(2);
     mloadcontainer->Add(mgravity1);
 
-    auto mgravity2 = std::make_shared<ChLoad<ChLoaderGravity>>(belementancf2);
+    auto mgravity2 = chrono::make_shared<ChLoad<ChLoaderGravity>>(belementancf2);
     mgravity2->loader.SetNumIntPoints(2);
     mloadcontainer->Add(mgravity2);
 
-    auto mgravity3 = std::make_shared<ChLoad<ChLoaderGravity>>(belementancf3);
+    auto mgravity3 = chrono::make_shared<ChLoad<ChLoaderGravity>>(belementancf3);
     mgravity3->loader.SetNumIntPoints(2);
     mloadcontainer->Add(mgravity3);
 
-    auto mgravity4 = std::make_shared<ChLoad<ChLoaderGravity>>(belementancf4);
+    auto mgravity4 = chrono::make_shared<ChLoad<ChLoaderGravity>>(belementancf4);
     mgravity4->loader.SetNumIntPoints(2);
     mloadcontainer->Add(mgravity4);
 

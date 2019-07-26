@@ -169,7 +169,7 @@ bool TestCylindrical(const ChVector<>& jointLoc,      // absolute location of jo
 
     // Create the ground body
 
-    auto ground = std::make_shared<ChBody>();
+    auto ground = chrono::make_shared<ChBody>();
     my_system.AddBody(ground);
     ground->SetBodyFixed(true);
 
@@ -178,7 +178,7 @@ bool TestCylindrical(const ChVector<>& jointLoc,      // absolute location of jo
     // consistent with the specified joint location.
     // The pendulum CG is assumed to be at half its length.
 
-    auto pendulum = std::make_shared<ChBody>();
+    auto pendulum = chrono::make_shared<ChBody>();
     my_system.AddBody(pendulum);
     pendulum->SetPos(jointLoc + jointRot.Rotate(ChVector<>(length / 2, 0, 0)));
     pendulum->SetRot(jointRot);
@@ -189,7 +189,7 @@ bool TestCylindrical(const ChVector<>& jointLoc,      // absolute location of jo
     // reference frame. The cylindrical joint's axis of rotation and translation
     // will be the Z axis of the specified rotation matrix.
 
-    auto cylindricalJoint = std::make_shared<ChLinkLockCylindrical>();
+    auto cylindricalJoint = chrono::make_shared<ChLinkLockCylindrical>();
     cylindricalJoint->Initialize(pendulum, ground, ChCoordsys<>(jointLoc, jointRot));
     my_system.AddLink(cylindricalJoint);
 

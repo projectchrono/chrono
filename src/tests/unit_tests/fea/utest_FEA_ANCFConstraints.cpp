@@ -96,7 +96,7 @@ void AddBodies(ChSystemNSC& my_system) {
         return;
 
     // Defining the Body 1
-    BGround = std::make_shared<ChBody>();
+    BGround = chrono::make_shared<ChBody>();
     my_system.AddBody(BGround);
     BGround->SetIdentifier(1);
     BGround->SetBodyFixed(true);
@@ -108,7 +108,7 @@ void AddBodies(ChSystemNSC& my_system) {
     BGround->SetRot(rot);
 
     // Defining the Body 2
-    Body_2 = std::make_shared<ChBody>();
+    Body_2 = chrono::make_shared<ChBody>();
     my_system.AddBody(Body_2);
     Body_2->SetIdentifier(2);
     Body_2->SetBodyFixed(false);
@@ -119,7 +119,7 @@ void AddBodies(ChSystemNSC& my_system) {
     Body_2->SetRot(rot);
 
     // Defining the Body 3
-    Body_3 = std::make_shared<ChBody>();
+    Body_3 = chrono::make_shared<ChBody>();
     my_system.AddBody(Body_3);
     Body_3->SetIdentifier(3);
     Body_3->SetBodyFixed(false);
@@ -137,7 +137,7 @@ void AddMesh(ChSystemNSC& my_system) {
         return;
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
-    my_mesh = std::make_shared<ChMesh>();
+    my_mesh = chrono::make_shared<ChMesh>();
     // Geometry of the plate
     double plate_lenght_x = 1;
     double plate_lenght_y = 1;
@@ -170,7 +170,7 @@ void AddMesh(ChSystemNSC& my_system) {
         double dir_z = 1;
 
         // Create the node
-        auto node = std::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z));
+        auto node = chrono::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z));
 
         node->SetMass(0);
 
@@ -234,25 +234,25 @@ void AddMesh(ChSystemNSC& my_system) {
 void AddConstraints(ChSystemNSC& my_system) {
     if (include_bodies && include_joints) {
         // Weld body_2 to ground body.
-        my_link_12 = std::make_shared<ChLinkLockLock>();
+        my_link_12 = chrono::make_shared<ChLinkLockLock>();
         my_link_12->Initialize(BGround, Body_2, ChCoordsys<>(ChVector<>(-2.0, 0, 0)));
         my_system.AddLink(my_link_12);
 
         // Add another revolute joint
-        my_link_23 = std::make_shared<ChLinkLockRevolute>();
+        my_link_23 = chrono::make_shared<ChLinkLockRevolute>();
         my_link_23->Initialize(Body_2, Body_3, ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI / 2.0)));
         my_system.AddLink(my_link_23);
     }
 
     if (include_bodies && include_mesh && include_constraints) {
         // Constraining a node to the truss
-        constraint_hinge = std::make_shared<ChLinkPointFrame>();
+        constraint_hinge = chrono::make_shared<ChLinkPointFrame>();
         constraint_hinge->Initialize(NodeFirst, Body_3);
         my_system.Add(constraint_hinge);
 
         // This contraint means that rz will always be perpendicular to
         // the direction along the length of the link
-        constraintDir = std::make_shared<ChLinkDirFrame>();
+        constraintDir = chrono::make_shared<ChLinkDirFrame>();
         constraintDir->Initialize(NodeFirst, Body_3);
         // constraintDir->SetDirectionInBodyCoords(ChVector<double>(0, 0, 1));
         constraintDir->SetDirectionInAbsoluteCoords(ChVector<double>(0, 0, 1));

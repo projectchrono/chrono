@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
 
     // Create a mesh, that is a container for groups of elements and
     // their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono::make_shared<ChMesh>();
 
     my_system.Set_G_acc(ChVector<>(0, -9.81, 0.0));
     const double beam_h = 0.5;  // Beam height (y)
@@ -65,25 +65,25 @@ int main(int argc, char* argv[]) {
     auto m_beamMaterial = chrono::make_shared<ChMaterialBeamANCF>(rho, E_mod, nu_rat, k1, k2);
 
     // Create the end nodes
-    auto hnodeancf1 = std::make_shared<ChNodeFEAxyzDD>(ChVector<>(0, 0, 0.0), ChVector<>(0, 1, 0), ChVector<>(0, 0, 1));
+    auto hnodeancf1 = chrono::make_shared<ChNodeFEAxyzDD>(ChVector<>(0, 0, 0.0), ChVector<>(0, 1, 0), ChVector<>(0, 0, 1));
     auto hnodeancf2 =
-        std::make_shared<ChNodeFEAxyzDD>(ChVector<>(beam_l / 4, 0, 0), ChVector<>(0, 1, 0), ChVector<>(0, 0, 1));
+        chrono::make_shared<ChNodeFEAxyzDD>(ChVector<>(beam_l / 4, 0, 0), ChVector<>(0, 1, 0), ChVector<>(0, 0, 1));
     auto hnodeancf3 =
-        std::make_shared<ChNodeFEAxyzDD>(ChVector<>(beam_l / 2, 0, 0), ChVector<>(0, 1, 0), ChVector<>(0, 0, 1));
+        chrono::make_shared<ChNodeFEAxyzDD>(ChVector<>(beam_l / 2, 0, 0), ChVector<>(0, 1, 0), ChVector<>(0, 0, 1));
     auto hnodeancf4 =
-        std::make_shared<ChNodeFEAxyzDD>(ChVector<>(3.0 * beam_l / 4, 0, 0), ChVector<>(0, 1, 0), ChVector<>(0, 0, 1));
+        chrono::make_shared<ChNodeFEAxyzDD>(ChVector<>(3.0 * beam_l / 4, 0, 0), ChVector<>(0, 1, 0), ChVector<>(0, 0, 1));
     auto hnodeancf5 =
-        std::make_shared<ChNodeFEAxyzDD>(ChVector<>(beam_l, 0, 0), ChVector<>(0, 1, 0), ChVector<>(0, 0, 1));
+        chrono::make_shared<ChNodeFEAxyzDD>(ChVector<>(beam_l, 0, 0), ChVector<>(0, 1, 0), ChVector<>(0, 0, 1));
 
     // Create the middle nodes
     auto hnodeancfm1 =
-        std::make_shared<ChNodeFEAxyzDD>(ChVector<>(beam_l / 8, 0, 0.0), ChVector<>(0, 1, 0), ChVector<>(0, 0, 1));
+        chrono::make_shared<ChNodeFEAxyzDD>(ChVector<>(beam_l / 8, 0, 0.0), ChVector<>(0, 1, 0), ChVector<>(0, 0, 1));
     auto hnodeancfm2 =
-        std::make_shared<ChNodeFEAxyzDD>(ChVector<>(3 * beam_l / 8, 0, 0), ChVector<>(0, 1, 0), ChVector<>(0, 0, 1));
+        chrono::make_shared<ChNodeFEAxyzDD>(ChVector<>(3 * beam_l / 8, 0, 0), ChVector<>(0, 1, 0), ChVector<>(0, 0, 1));
     auto hnodeancfm3 =
-        std::make_shared<ChNodeFEAxyzDD>(ChVector<>(5 * beam_l / 8, 0, 0), ChVector<>(0, 1, 0), ChVector<>(0, 0, 1));
+        chrono::make_shared<ChNodeFEAxyzDD>(ChVector<>(5 * beam_l / 8, 0, 0), ChVector<>(0, 1, 0), ChVector<>(0, 0, 1));
     auto hnodeancfm4 =
-        std::make_shared<ChNodeFEAxyzDD>(ChVector<>(7 * beam_l / 8, 0, 0), ChVector<>(0, 1, 0), ChVector<>(0, 0, 1));
+        chrono::make_shared<ChNodeFEAxyzDD>(ChVector<>(7 * beam_l / 8, 0, 0), ChVector<>(0, 1, 0), ChVector<>(0, 0, 1));
 
     hnodeancf1->SetFixed(true);  // Fix ALL coordinates of first (clamped) node
 
@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
     // Setup solver
     if (use_mkl) {
 #ifdef CHRONO_MKL
-        auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+        auto mkl_solver = chrono::make_shared<ChSolverMKL<>>();
         mkl_solver->SetSparsityPatternLock(false);
         mkl_solver->SetVerbose(false);
         my_system.SetSolver(mkl_solver);
