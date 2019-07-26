@@ -22,6 +22,14 @@ return()
 
 
 
+if(EIGEN3_VERSION VERSION_LESS "3.3.6")
+  message("Chrono::FSI requires Eigen version 3.3.6 or better")
+  message("Current Eigen version: ${EIGEN3_VERSION}")
+  message("Chrono::FSI disabled")
+  set(ENABLE_MODULE_FSI OFF CACHE BOOL "Enable the Chrono FSI module" FORCE)
+  return()
+endif()
+
 # Return now if CUDA is not available
 if(NOT CUDA_FOUND)
   message("Chrono::FSI requires CUDA")

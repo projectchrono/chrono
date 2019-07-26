@@ -9,10 +9,18 @@ option(ENABLE_MODULE_GRANULAR "Enable the Chrono Granular module" OFF)
 
 # Return now if this module is not enabled
 if(NOT ENABLE_MODULE_GRANULAR)
-	return()
+  return()
 endif()
 
 message(STATUS "==== Chrono Granular module ====")
+
+if(EIGEN3_VERSION VERSION_LESS "3.3.6")
+  message("Chrono::Granular requires Eigen version 3.3.6 or better")
+  message("Current Eigen version: ${EIGEN3_VERSION}")
+  message("Chrono::Granular disabled")
+  set(ENABLE_MODULE_GRANULAR OFF CACHE BOOL "Enable the Chrono Granular module" FORCE)
+  return()
+endif()
 
 # ------------------------------------------------------------------------------
 # Additional compiler flags
