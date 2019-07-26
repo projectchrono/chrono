@@ -128,7 +128,7 @@ void ChSystemGranularSMC_trimesh::load_meshes(std::vector<std::string> objfilena
         ChVector<> displ(translations[i].x, translations[i].y, translations[i].z);
 
         // Apply scaling and then rotation
-        mesh.Transform(displ, rotscale[i]);
+        mesh.Transform(displ, rotscale[i].cast<double>());
 
         unsigned int num_triangles_curr = mesh.getNumTriangles();
 
