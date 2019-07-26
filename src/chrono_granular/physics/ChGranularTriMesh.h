@@ -138,7 +138,8 @@ class CH_GRANULAR_API ChSystemGranularSMC_trimesh : public ChSystemGranularSMC {
     virtual void initialize() override;
     /// Load triangle meshes into granular system. MUST happen before initialize is called
     void load_meshes(std::vector<std::string> objfilenames,
-                     std::vector<float3> scalefactors,
+                     std::vector<ChMatrix33<float>> rotscale,
+                     std::vector<float3> translations,
                      std::vector<float> masses,
                      std::vector<bool> inflated,
                      std::vector<float> inflation_radii);
