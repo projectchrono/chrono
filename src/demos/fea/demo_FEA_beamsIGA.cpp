@@ -66,7 +66,7 @@ void MakeAndRunDemo0(ChIrrApp& myapp) {
 	// Create a mesh, that is a container for groups
 	// of elements and their referenced nodes.
 	// Remember to add it to the system.
-	auto my_mesh = std::make_shared<ChMesh>();
+	auto my_mesh = chrono_types::make_shared<ChMesh>();
 	my_mesh->SetAutomaticGravity(false);
 	myapp.GetSystem()->Add(my_mesh);
 
@@ -76,11 +76,11 @@ void MakeAndRunDemo0(ChIrrApp& myapp) {
 	double beam_wy = 0.012;
 	double beam_wz = 0.025;
 
-	auto melasticity = std::make_shared<ChElasticityCosseratSimple>();
+	auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
 	melasticity->SetYoungModulus(0.02e10);
 	melasticity->SetGshearModulus(0.02e10 * 0.3);
 	melasticity->SetBeamRaleyghDamping(0.0000);
-	auto msection = std::make_shared<ChBeamSectionCosserat>(melasticity);
+	auto msection = chrono_types::make_shared<ChBeamSectionCosserat>(melasticity);
 	msection->SetDensity(1000);
 	msection->SetAsRectangularSection(beam_wy, beam_wz);
 
@@ -90,11 +90,11 @@ void MakeAndRunDemo0(ChIrrApp& myapp) {
 
 	double beam_L = 0.1;
 
-	auto hnode1 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L * 0, 0, 0)));
-	auto hnode2 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L*0.5, 0.00, 0)));
-	auto hnode3 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L*1.0, 0.00, 0)));
-	auto hnode4 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L*1.5, 0.00, 0)));
-	auto hnode5 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L*2.0, 0.00, 0)));
+	auto hnode1 = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L * 0, 0, 0)));
+	auto hnode2 = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L*0.5, 0.00, 0)));
+	auto hnode3 = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L*1.0, 0.00, 0)));
+	auto hnode4 = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L*1.5, 0.00, 0)));
+	auto hnode5 = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L*2.0, 0.00, 0)));
 	
 	my_mesh->AddNode(hnode1);
 	my_mesh->AddNode(hnode2);
@@ -104,14 +104,14 @@ void MakeAndRunDemo0(ChIrrApp& myapp) {
 
 	// cubic spline with 2 spans, 5 control points and 9 knots= {0 0 0 0 1/2 1 1 1 1}
 
-	auto belement1 = std::make_shared<ChElementBeamIGA>();
+	auto belement1 = chrono_types::make_shared<ChElementBeamIGA>();
 
 	belement1->SetNodesCubic(hnode1, hnode2, hnode3, hnode4, 0, 0, 0, 0, 1./2., 1, 1, 1);
 	belement1->SetSection(msection);
 
 	my_mesh->AddElement(belement1);
 
-	auto belement2 = std::make_shared<ChElementBeamIGA>();
+	auto belement2 = chrono_types::make_shared<ChElementBeamIGA>();
 
 	belement2->SetNodesCubic(hnode2, hnode3, hnode4, hnode5, 0, 0, 0, 1./2., 1, 1, 1, 1);
 	belement2->SetSection(msection);
@@ -121,12 +121,12 @@ void MakeAndRunDemo0(ChIrrApp& myapp) {
 
 	// Attach a visualization of the FEM mesh.
 
-	auto mvisualizebeamA = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+	auto mvisualizebeamA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
 	mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
 	mvisualizebeamA->SetSmoothFaces(true);
 	my_mesh->AddAsset(mvisualizebeamA);
 
-	auto mvisualizebeamC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+	auto mvisualizebeamC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
 	mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
 	mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
 	mvisualizebeamC->SetSymbolsThickness(0.006);
@@ -166,7 +166,7 @@ void MakeAndRunDemo1(ChIrrApp& myapp, int nsections=32, int order=2) {
 	// Create a mesh, that is a container for groups
 	// of elements and their referenced nodes.
 	// Remember to add it to the system.
-	auto my_mesh = std::make_shared<ChMesh>();
+	auto my_mesh = chrono_types::make_shared<ChMesh>();
 	my_mesh->SetAutomaticGravity(false);
 	myapp.GetSystem()->Add(my_mesh);
 
@@ -179,18 +179,18 @@ void MakeAndRunDemo1(ChIrrApp& myapp, int nsections=32, int order=2) {
 	double beam_wy = 0.012;
 	double beam_wz = 0.025;
 /*
-	auto melasticity = std::make_shared<ChElasticityCosseratMesh>();
-	auto mmeshmaterial = std::make_shared<ChElasticityCosseratMesh::ChSectionMaterial>();
+	auto melasticity = chrono_types::make_shared<ChElasticityCosseratMesh>();
+	auto mmeshmaterial = chrono_types::make_shared<ChElasticityCosseratMesh::ChSectionMaterial>();
 	mmeshmaterial->E = 0.02e10;
 	mmeshmaterial->G = 0.02e10 * 0.3;
 	melasticity->Materials().push_back(mmeshmaterial);
 */
-	auto melasticity = std::make_shared<ChElasticityCosseratSimple>();
+	auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
 	melasticity->SetYoungModulus( 0.02e10);
 	melasticity->SetGshearModulus(0.02e10 * 0.38);
 	melasticity->SetBeamRaleyghDamping(0.0000);
 
-	auto msection = std::make_shared<ChBeamSectionCosserat>(melasticity);
+	auto msection = chrono_types::make_shared<ChBeamSectionCosserat>(melasticity);
 	msection->SetDensity(1000);
 	msection->SetAsRectangularSection(beam_wy, beam_wz);
 
@@ -212,12 +212,12 @@ void MakeAndRunDemo1(ChIrrApp& myapp, int nsections=32, int order=2) {
 	
 	// Attach a visualization of the FEM mesh.
 
-	auto mvisualizebeamA = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+	auto mvisualizebeamA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
 	mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
 	mvisualizebeamA->SetSmoothFaces(true);
 	my_mesh->AddAsset(mvisualizebeamA);
 
-	auto mvisualizebeamC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+	auto mvisualizebeamC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
 	mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
 	mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
 	mvisualizebeamC->SetSymbolsThickness(0.006);
@@ -273,7 +273,7 @@ void MakeAndRunDemo2(ChIrrApp& myapp) {
 	// Create a mesh, that is a container for groups
 	// of elements and their referenced nodes.
 	// Remember to add it to the system.
-	auto my_mesh = std::make_shared<ChMesh>();
+	auto my_mesh = chrono_types::make_shared<ChMesh>();
 	my_mesh->SetAutomaticGravity(false);
 	myapp.GetSystem()->Add(my_mesh);
 
@@ -284,11 +284,11 @@ void MakeAndRunDemo2(ChIrrApp& myapp) {
 	double beam_wy = 0.012;
 	double beam_wz = 0.025;
 
-	auto melasticity = std::make_shared<ChElasticityCosseratSimple>();
+	auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
 	melasticity->SetYoungModulus(0.02e10);
 	melasticity->SetGshearModulus(0.02e10 * 0.3);
 	melasticity->SetBeamRaleyghDamping(0.0000);
-	auto msection = std::make_shared<ChBeamSectionCosserat>(melasticity);
+	auto msection = chrono_types::make_shared<ChBeamSectionCosserat>(melasticity);
 	msection->SetDensity(1000);
 	msection->SetAsRectangularSection(beam_wy, beam_wz);
 
@@ -307,23 +307,23 @@ void MakeAndRunDemo2(ChIrrApp& myapp) {
 
 	builderR.GetLastBeamNodes().front()->SetFixed(true);
 
-	auto mbodywing = std::make_shared<ChBodyEasyBox>(0.01,0.2,0.05,2000);
+	auto mbodywing = chrono_types::make_shared<ChBodyEasyBox>(0.01,0.2,0.05,2000);
 	mbodywing->SetCoord(builderR.GetLastBeamNodes().back()->GetCoord());
 	myapp.GetSystem()->Add(mbodywing);
 
-	auto myjoint = std::make_shared<ChLinkMateFix>();
+	auto myjoint = chrono_types::make_shared<ChLinkMateFix>();
 	myjoint->Initialize(builderR.GetLastBeamNodes().back(), mbodywing);
 	myapp.GetSystem()->Add(myjoint);
 
 
 	// Attach a visualization of the FEM mesh.
 
-	auto mvisualizebeamA = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+	auto mvisualizebeamA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
 	mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
 	mvisualizebeamA->SetSmoothFaces(true);
 	my_mesh->AddAsset(mvisualizebeamA);
 
-	auto mvisualizebeamC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+	auto mvisualizebeamC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
 	mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
 	mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
 	mvisualizebeamC->SetSymbolsThickness(0.006);
@@ -361,7 +361,7 @@ void MakeAndRunDemo3(ChIrrApp& myapp) {
 	// Create a mesh, that is a container for groups
 	// of elements and their referenced nodes.
 	// Remember to add it to the system.
-	auto my_mesh = std::make_shared<ChMesh>();
+	auto my_mesh = chrono_types::make_shared<ChMesh>();
 	my_mesh->SetAutomaticGravity(false);
 	myapp.GetSystem()->Add(my_mesh);
 
@@ -374,26 +374,26 @@ void MakeAndRunDemo3(ChIrrApp& myapp) {
 	double beam_wy = 0.012;
 	double beam_wz = 0.025;
 
-	auto melasticity = std::make_shared<ChElasticityCosseratSimple>();
+	auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
 	melasticity->SetYoungModulus(0.02e10);
 	melasticity->SetGshearModulus(0.02e10 * 0.3);
 	melasticity->SetBeamRaleyghDamping(0.0000);
 
-	auto mplasticity = std::make_shared<ChPlasticityCosseratLumped>();
+	auto mplasticity = chrono_types::make_shared<ChPlasticityCosseratLumped>();
 	// The isotropic hardening curve. The value at zero absyssa is the initial yeld.
-	mplasticity->n_yeld_x = std::make_shared<ChFunction_Const>(3000);
-	//mplasticity->n_yeld_x = std::make_shared<ChFunction_Ramp>(3000, 1e3);
+	mplasticity->n_yeld_x = chrono_types::make_shared<ChFunction_Const>(3000);
+	//mplasticity->n_yeld_x = chrono_types::make_shared<ChFunction_Ramp>(3000, 1e3);
 	// The optional kinematic hardening curve:
-	mplasticity->n_beta_x = std::make_shared<ChFunction_Ramp>(0, 1e3);
+	mplasticity->n_beta_x = chrono_types::make_shared<ChFunction_Ramp>(0, 1e3);
 
 	// for bending (on y and z): some kinematic hardening
-	mplasticity->n_yeld_My = std::make_shared<ChFunction_Const>(0.3);
-	mplasticity->n_beta_My = std::make_shared<ChFunction_Ramp>(0, 0.001e2);
-	mplasticity->n_yeld_Mz = std::make_shared<ChFunction_Const>(0.3);
-	mplasticity->n_beta_Mz = std::make_shared<ChFunction_Ramp>(0, 0.001e2);
+	mplasticity->n_yeld_My = chrono_types::make_shared<ChFunction_Const>(0.3);
+	mplasticity->n_beta_My = chrono_types::make_shared<ChFunction_Ramp>(0, 0.001e2);
+	mplasticity->n_yeld_Mz = chrono_types::make_shared<ChFunction_Const>(0.3);
+	mplasticity->n_beta_Mz = chrono_types::make_shared<ChFunction_Ramp>(0, 0.001e2);
 
 
-	auto msection = std::make_shared<ChBeamSectionCosserat>(melasticity, mplasticity);
+	auto msection = chrono_types::make_shared<ChBeamSectionCosserat>(melasticity, mplasticity);
 	msection->SetDensity(1000);
 	msection->SetAsRectangularSection(beam_wy, beam_wz);
 
@@ -410,23 +410,23 @@ void MakeAndRunDemo3(ChIrrApp& myapp) {
 
 	// Now create a linear motor that push-pulls the end of the beam
 	// up to repeated plasticization.
-	auto truss = std::make_shared<ChBody>();
+	auto truss = chrono_types::make_shared<ChBody>();
 	myapp.GetSystem()->Add(truss);
 	truss->SetBodyFixed(true);
 
-	auto motor = std::make_shared<ChLinkMotorLinearPosition>();
+	auto motor = chrono_types::make_shared<ChLinkMotorLinearPosition>();
 	myapp.GetSystem()->Add(motor);
 	motor->Initialize(builder.GetLastBeamNodes().back(), truss, ChFrame<>(builder.GetLastBeamNodes().back()->GetPos(), chrono::Q_from_AngAxis(0*CH_C_PI_2, VECT_Z)));
 	motor->SetGuideConstraint(ChLinkMotorLinear::GuideConstraint::SPHERICAL);
-	auto rampup = std::make_shared<ChFunction_Ramp>(0, 0.1);
-	auto rampdo = std::make_shared<ChFunction_Ramp>(0, -0.1);
-	auto motfun = std::make_shared<ChFunction_Sequence>();
+	auto rampup = chrono_types::make_shared<ChFunction_Ramp>(0, 0.1);
+	auto rampdo = chrono_types::make_shared<ChFunction_Ramp>(0, -0.1);
+	auto motfun = chrono_types::make_shared<ChFunction_Sequence>();
 	motfun->InsertFunct(rampdo, 1, 0, true);
 	motfun->InsertFunct(rampup, 1, 0, true);
-	auto motrepeat = std::make_shared<ChFunction_Repeat>();
+	auto motrepeat = chrono_types::make_shared<ChFunction_Repeat>();
 	motrepeat->Set_fa(motfun);
 	motrepeat->Set_window_length(2);
-	auto motfuntot = std::make_shared<ChFunction_Sequence>();
+	auto motfuntot = chrono_types::make_shared<ChFunction_Sequence>();
 	motfuntot->InsertFunct(rampup, 0.5, 0, true);
 	motfuntot->InsertFunct(motrepeat, 10, 0, true);
 	motor->SetMotionFunction(motfuntot);
@@ -434,12 +434,12 @@ void MakeAndRunDemo3(ChIrrApp& myapp) {
 
 	// Attach a visualization of the FEM mesh.
 
-	auto mvisualizebeamA = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+	auto mvisualizebeamA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
 	mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
 	mvisualizebeamA->SetSmoothFaces(true);
 	my_mesh->AddAsset(mvisualizebeamA);
 
-	auto mvisualizebeamC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+	auto mvisualizebeamC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
 	mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
 	mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
 	mvisualizebeamC->SetSymbolsThickness(0.006);
@@ -505,7 +505,7 @@ void MakeAndRunDemo4(ChIrrApp& myapp) {
 	// Create a mesh, that is a container for groups
 	// of elements and their referenced nodes.
 	// Remember to add it to the system.
-	auto my_mesh = std::make_shared<ChMesh>();
+	auto my_mesh = chrono_types::make_shared<ChMesh>();
 	myapp.GetSystem()->Add(my_mesh);
 
 	my_mesh->SetAutomaticGravity(true,2); // for max precision in gravity of FE, at least 2 integration points per element when using cubic IGA
@@ -518,14 +518,14 @@ void MakeAndRunDemo4(ChIrrApp& myapp) {
 	// Create a section, i.e. thickness and material properties
 	// for beams. This will be shared among some beams.
 
-	auto melasticity = std::make_shared<ChElasticityCosseratSimple>();
+	auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
 	melasticity->SetYoungModulus(210e9);
 	melasticity->SetGwithPoissonRatio(0.3);
 	melasticity->SetIyy( (CH_C_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)) );
 	melasticity->SetIzz( (CH_C_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)) );
 	melasticity->SetJ  ( (CH_C_PI / 2.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)) );
 
-	auto msection = std::make_shared<ChBeamSectionCosserat>(melasticity);
+	auto msection = chrono_types::make_shared<ChBeamSectionCosserat>(melasticity);
 	msection->SetDensity(7800);
 	msection->SetCircular(true);
 	msection->SetDrawCircularRadius(beam_ro); // SetAsCircularSection(..) would overwrite Ixx Iyy J etc.
@@ -547,24 +547,24 @@ void MakeAndRunDemo4(ChIrrApp& myapp) {
 	
 	// Create the flywheel and attach it to the center of the beam
 	
-	auto mbodyflywheel = std::make_shared<ChBodyEasyCylinder>(0.24, 0.05, 7800); // R, h, density
+	auto mbodyflywheel = chrono_types::make_shared<ChBodyEasyCylinder>(0.24, 0.05, 7800); // R, h, density
 	mbodyflywheel->SetCoord(
 			ChCoordsys<>(node_mid->GetPos() + ChVector<>(0,0.05,0), // flywheel initial center (plus Y offset)
 			Q_from_AngAxis(CH_C_PI_2,VECT_Z)) // flywheel initial alignment (rotate 90° so cylinder axis is on X)
 	);
 	myapp.GetSystem()->Add(mbodyflywheel);
 
-	auto myjoint = std::make_shared<ChLinkMateFix>();
+	auto myjoint = chrono_types::make_shared<ChLinkMateFix>();
 	myjoint->Initialize(node_mid, mbodyflywheel);
 	myapp.GetSystem()->Add(myjoint);
 
 	// Create the truss
-	auto truss = std::make_shared<ChBody>();
+	auto truss = chrono_types::make_shared<ChBody>();
 	truss->SetBodyFixed(true);
 	myapp.GetSystem()->Add(truss);
 
 	// Create the end bearing 
-	auto bearing = std::make_shared<ChLinkMateGeneric>(false, true, true, false, true, true);
+	auto bearing = chrono_types::make_shared<ChLinkMateGeneric>(false, true, true, false, true, true);
 	bearing->Initialize(builder.GetLastBeamNodes().back(),
 		truss,
 		ChFrame<>(builder.GetLastBeamNodes().back()->GetPos())
@@ -572,7 +572,7 @@ void MakeAndRunDemo4(ChIrrApp& myapp) {
 	myapp.GetSystem()->Add(bearing);
 
 	// Create the motor that rotates the beam
-	auto rotmotor1 = std::make_shared<ChLinkMotorRotationSpeed>();
+	auto rotmotor1 = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
 
 	// Connect the rotor and the stator and add the motor to the system:
 	rotmotor1->Initialize(builder.GetLastBeamNodes().front(),                // body A (slave)
@@ -604,17 +604,17 @@ void MakeAndRunDemo4(ChIrrApp& myapp) {
 		}
 	};
 
-	auto f_ramp = std::make_shared<ChFunction_myf>();
+	auto f_ramp = chrono_types::make_shared<ChFunction_myf>();
 	rotmotor1->SetMotorFunction(f_ramp);
 
 	// Attach a visualization of the FEM mesh.
 
-	auto mvisualizebeamA = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+	auto mvisualizebeamA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
 	mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
 	mvisualizebeamA->SetSmoothFaces(true);
 	my_mesh->AddAsset(mvisualizebeamA);
 
-	auto mvisualizebeamC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+	auto mvisualizebeamC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
 	mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
 	mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
 	mvisualizebeamC->SetSymbolsThickness(0.006);
@@ -741,7 +741,7 @@ int main(int argc, char* argv[]) {
     msolver->SetDiagonalPreconditioning(true);
 
     #ifdef USE_MKL
-        auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+        auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
         my_system.SetSolver(mkl_solver);
     #endif
 

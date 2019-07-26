@@ -97,12 +97,12 @@ int main(int argc, char* argv[]) {
         std::shared_ptr<ChTrackAssembly> track_assembly;
         switch (type) {
             case TrackShoeType::SINGLE_PIN: {
-                auto assembly = std::make_shared<M113_TrackAssemblySinglePin>(side);
+                auto assembly = chrono_types::make_shared<M113_TrackAssemblySinglePin>(side);
                 track_assembly = assembly;
                 break;
             }
             case TrackShoeType::DOUBLE_PIN: {
-                auto assembly = std::make_shared<M113_TrackAssemblyDoublePin>(side);
+                auto assembly = chrono_types::make_shared<M113_TrackAssemblyDoublePin>(side);
                 track_assembly = assembly;
                 break;
             }
@@ -193,7 +193,7 @@ int main(int argc, char* argv[]) {
     if (use_mkl) {
 #ifdef CHRONO_MKL
         std::cout << "Solver: MKL" << std::endl;
-        auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+        auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
         mkl_solver->SetSparsityPatternLock(true);
         mkl_solver->SetVerbose(verbose_solver);
         rig->GetSystem()->SetSolver(mkl_solver);
@@ -201,7 +201,7 @@ int main(int argc, char* argv[]) {
     } else if (use_mumps) {
 #ifdef CHRONO_MUMPS
         std::cout << "Solver: MUMPS" << std::endl;
-        auto mumps_solver = std::make_shared<ChSolverMumps>();
+        auto mumps_solver = chrono_types::make_shared<ChSolverMumps>();
         mumps_solver->SetSparsityPatternLock(true);
         mumps_solver->SetNullPivotDetection(true);
         mumps_solver->SetVerbose(verbose_solver);

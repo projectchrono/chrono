@@ -110,7 +110,7 @@ void ChCommDistributed::ProcessExchanges(int num_recv, BodyExchange* buf, int up
         // If there are no empty spaces in the data manager, create
         // a new body to add
         if (ddm->first_empty == data_manager->num_rigid_bodies) {
-            body = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
+            body = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
             body->SetId(data_manager->num_rigid_bodies);
         }
         // If an empty space was found in the body manager
@@ -789,7 +789,7 @@ void ChCommDistributed::UnpackExchange(BodyExchange* buf, std::shared_ptr<ChBody
     body->SetInertiaXY(ChVector<double>(buf->inertiaXY[0], buf->inertiaXY[1], buf->inertiaXY[2]));
 
     // Material SMC
-    std::shared_ptr<ChMaterialSurfaceSMC> mat = std::make_shared<ChMaterialSurfaceSMC>();
+    std::shared_ptr<ChMaterialSurfaceSMC> mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
 
     mat->SetFriction(buf->mu);  // Static Friction
 

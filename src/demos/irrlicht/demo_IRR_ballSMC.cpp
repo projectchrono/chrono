@@ -39,7 +39,7 @@ using namespace irr::gui;
 void AddWall(std::shared_ptr<ChBody> body, const ChVector<>& dim, const ChVector<>& loc) {
     body->GetCollisionModel()->AddBox(dim.x(), dim.y(), dim.z(), loc);
 
-    auto box = std::make_shared<ChBoxShape>();
+    auto box = chrono_types::make_shared<ChBoxShape>();
     box->GetBoxGeometry().Size = dim;
     box->GetBoxGeometry().Pos = loc;
     box->SetColor(ChColor(1, 0, 0));
@@ -97,13 +97,13 @@ int main(int argc, char* argv[]) {
     application.SetContactsDrawMode(ChIrrTools::eCh_ContactsDrawMode::CONTACT_FORCES);
 
     // Create a material (will be used by both objects)
-    auto material = std::make_shared<ChMaterialSurfaceSMC>();
+    auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     material->SetRestitution(0.1f);
     material->SetFriction(0.4f);
     material->SetAdhesion(0);  // Magnitude of the adhesion in Constant adhesion model
 
     // Create the falling ball
-    auto ball = std::make_shared<ChBody>(ChMaterialSurface::SMC);
+    auto ball = chrono_types::make_shared<ChBody>(ChMaterialSurface::SMC);
 
     ball->SetIdentifier(ballId);
     ball->SetMass(mass);
@@ -122,18 +122,18 @@ int main(int argc, char* argv[]) {
 
     ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector<>(1, 1, 1));
 
-    auto sphere = std::make_shared<ChSphereShape>();
+    auto sphere = chrono_types::make_shared<ChSphereShape>();
     sphere->GetSphereGeometry().rad = radius;
     ball->AddAsset(sphere);
 
-    auto mtexture = std::make_shared<ChTexture>();
+    auto mtexture = chrono_types::make_shared<ChTexture>();
     mtexture->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
     ball->AddAsset(mtexture);
 
     msystem.AddBody(ball);
 
     // Create container
-    auto bin = std::make_shared<ChBody>(ChMaterialSurface::SMC);
+    auto bin = chrono_types::make_shared<ChBody>(ChMaterialSurface::SMC);
 
     bin->SetIdentifier(binId);
     bin->SetMass(1);

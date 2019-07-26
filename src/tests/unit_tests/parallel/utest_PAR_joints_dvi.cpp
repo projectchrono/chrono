@@ -88,14 +88,14 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
         system->ChangeSolverType(opts.type);
 
         // Create the ground body
-        auto ground = std::make_shared<ChBody>(std::make_shared<collision::ChCollisionModelParallel>());
+        auto ground = chrono_types::make_shared<ChBody>(chrono_types::make_shared<collision::ChCollisionModelParallel>());
         ground->SetIdentifier(-1);
         ground->SetBodyFixed(true);
         ground->SetCollide(false);
         system->AddBody(ground);
 
         // Create the sled body
-        auto sled = std::make_shared<ChBody>(std::make_shared<collision::ChCollisionModelParallel>());
+        auto sled = chrono_types::make_shared<ChBody>(chrono_types::make_shared<collision::ChCollisionModelParallel>());
         sled->SetIdentifier(1);
         sled->SetMass(550);
         sled->SetInertiaXX(ChVector<>(100, 100, 100));
@@ -104,7 +104,7 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
         sled->SetBodyFixed(false);
         sled->SetCollide(false);
 
-        auto box_sled = std::make_shared<ChBoxShape>();
+        auto box_sled = chrono_types::make_shared<ChBoxShape>();
         box_sled->GetBoxGeometry().Size = ChVector<>(1, 0.25, 0.25);
         box_sled->Pos = ChVector<>(0, 0, 0);
         box_sled->Rot = ChQuaternion<>(1, 0, 0, 0);
@@ -113,7 +113,7 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
         system->AddBody(sled);
 
         // Create the wheel body
-        auto wheel = std::make_shared<ChBody>(std::make_shared<collision::ChCollisionModelParallel>());
+        auto wheel = chrono_types::make_shared<ChBody>(chrono_types::make_shared<collision::ChCollisionModelParallel>());
         wheel->SetIdentifier(2);
         wheel->SetMass(350);
         wheel->SetInertiaXX(ChVector<>(50, 138, 138));
@@ -130,12 +130,12 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
         system->AddBody(wheel);
 
         // Create and initialize translational joint ground - sled
-        prismatic = std::make_shared<ChLinkLockPrismatic>();
+        prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
         prismatic->Initialize(ground, sled, ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngY(CH_C_PI_2)));
         system->AddLink(prismatic);
 
         // Create and initialize revolute joint sled - wheel
-        revolute = std::make_shared<ChLinkLockRevolute>();
+        revolute = chrono_types::make_shared<ChLinkLockRevolute>();
         revolute->Initialize(wheel, sled, ChCoordsys<>(ChVector<>(1, 0, 0), Q_from_AngX(CH_C_PI_2)));
         system->AddLink(revolute);
     }

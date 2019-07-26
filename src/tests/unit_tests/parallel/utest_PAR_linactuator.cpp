@@ -115,7 +115,7 @@ ChLinActuatorTest::ChLinActuatorTest() : animate(false) {
     msystem->AddBody(ground);
     ground->SetBodyFixed(true);
 
-    auto box_g = std::make_shared<ChBoxShape>();
+    auto box_g = chrono_types::make_shared<ChBoxShape>();
     box_g->GetBoxGeometry().SetLengths(ChVector<>(0.1, 0.1, 5));
     box_g->Pos = 2.5 * axis;
     box_g->Rot = rot;
@@ -130,27 +130,27 @@ ChLinActuatorTest::ChLinActuatorTest() : animate(false) {
     plate->SetMass(mass);
     plate->SetInertiaXX(inertiaXX);
 
-    auto box_p = std::make_shared<ChBoxShape>();
+    auto box_p = chrono_types::make_shared<ChBoxShape>();
     box_p->GetBoxGeometry().SetLengths(ChVector<>(1, 1, 0.2));
     plate->AddAsset(box_p);
 
     // Create prismatic (translational) joint between plate and ground.
     // We set the ground as the "master" body (second one in the initialization
     // call) so that the link coordinate system is expressed in the ground frame.
-    prismatic = std::make_shared<ChLinkLockPrismatic>();
+    prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
     prismatic->Initialize(plate, ground, ChCoordsys<>(ChVector<>(0, 0, 0), rot));
     msystem->AddLink(prismatic);
 
     // Create a ramp function to impose constant speed.  This function returns
     //   y(t) = 0 + t * speed
     //   y'(t) = speed
-    auto actuator_fun = std::make_shared<ChFunction_Ramp>(0.0, speed);
+    auto actuator_fun = chrono_types::make_shared<ChFunction_Ramp>(0.0, speed);
 
     // Create the linear actuator, connecting the plate to the ground.
     // Here, we set the plate as the master body (second one in the initialization
     // call) so that the link coordinate system is expressed in the plate body
     // frame.
-    actuator = std::make_shared<ChLinkLinActuator>();
+    actuator = chrono_types::make_shared<ChLinkLinActuator>();
     ChVector<> pt1 = ChVector<>(0, 0, 0);
     ChVector<> pt2 = axis;
     actuator->Initialize(ground, plate, false, ChCoordsys<>(pt1, rot), ChCoordsys<>(pt2, rot));

@@ -65,7 +65,7 @@ void TrackAssemblySinglePin::ReadSprocket(const std::string& filename, int outpu
     assert(subtype.compare("SprocketSinglePin") == 0);
 
     // Create the sprocket using the appropriate template.
-    m_sprocket = std::make_shared<SprocketSinglePin>(d);
+    m_sprocket = chrono_types::make_shared<SprocketSinglePin>(d);
 
     // A non-zero value of 'output' indicates overwriting the subsystem's flag
     if (output != 0) {
@@ -100,7 +100,7 @@ void TrackAssemblySinglePin::ReadTrackShoes(const std::string& filename, int num
 
     // Create the track shoes using the appropriate template.
     for (size_t it = 0; it < num_shoes; it++) {
-        m_shoes.push_back(std::make_shared<TrackShoeSinglePin>(d));
+        m_shoes.push_back(chrono_types::make_shared<TrackShoeSinglePin>(d));
     }
 
     // A non-zero value of 'output' indicates overwriting the subsystem's flag

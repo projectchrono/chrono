@@ -61,7 +61,7 @@ TT_Trailer::TT_Trailer(ChSystem* mysystem, const bool fixed, SuspensionType susp
     m_chassis->SetInertiaXX(m_chassisInertia);
     m_chassis->SetBodyFixed(fixed);
 
-    auto sphere = std::make_shared<ChSphereShape>();
+    auto sphere = chrono_types::make_shared<ChSphereShape>();
     sphere->GetSphereGeometry().rad = 0.1;
     sphere->Pos = m_chassisCOM;
     m_chassis->AddAsset(sphere);
@@ -80,12 +80,12 @@ TT_Trailer::TT_Trailer(ChSystem* mysystem, const bool fixed, SuspensionType susp
     m_frontaxle->SetInertiaXX(m_frontaxleInertia);
     m_frontaxle->SetBodyFixed(fixed);
 
-    auto sphereB = std::make_shared<ChSphereShape>();
+    auto sphereB = chrono_types::make_shared<ChSphereShape>();
     sphereB->GetSphereGeometry().rad = 0.1;
     sphereB->Pos = m_frontaxleCOM;
     m_frontaxle->AddAsset(sphereB);
 
-    auto boxB = std::make_shared<ChBoxShape>();
+    auto boxB = chrono_types::make_shared<ChBoxShape>();
     boxB->GetBoxGeometry().SetLengths(ChVector<>(0.1, 1.5, 0.1));
     m_frontaxle->AddAsset(boxB);
 
@@ -95,7 +95,7 @@ TT_Trailer::TT_Trailer(ChSystem* mysystem, const bool fixed, SuspensionType susp
     // Create the frontaxle - trailer chassis joint
     // -------------------------------------------
 
-    m_joint = std::make_shared<ChLinkLockSpherical>();
+    m_joint = chrono_types::make_shared<ChLinkLockSpherical>();
     m_joint->Initialize(this->m_chassis, this->m_frontaxle, ChCoordsys<>(this->m_frontaxleSphericalJoint));
     mysystem->Add(m_joint);
 
@@ -108,12 +108,12 @@ TT_Trailer::TT_Trailer(ChSystem* mysystem, const bool fixed, SuspensionType susp
 
     switch (m_suspType) {
         case SuspensionType::SOLID_AXLE:
-            m_suspensions[0] = std::make_shared<Generic_SolidAxle>("FrontSusp");
-            m_suspensions[1] = std::make_shared<Generic_SolidAxle>("RearSusp");
+            m_suspensions[0] = chrono_types::make_shared<Generic_SolidAxle>("FrontSusp");
+            m_suspensions[1] = chrono_types::make_shared<Generic_SolidAxle>("RearSusp");
             break;
         case SuspensionType::MULTI_LINK:
-            m_suspensions[0] = std::make_shared<Generic_MultiLink>("FrontSusp");
-            m_suspensions[1] = std::make_shared<Generic_MultiLink>("RearSusp");
+            m_suspensions[0] = chrono_types::make_shared<Generic_MultiLink>("FrontSusp");
+            m_suspensions[1] = chrono_types::make_shared<Generic_MultiLink>("RearSusp");
             break;
         default:
             break;
@@ -123,19 +123,19 @@ TT_Trailer::TT_Trailer(ChSystem* mysystem, const bool fixed, SuspensionType susp
     // Create the wheels
     // -----------------
     m_wheels.resize(4);
-    m_wheels[0] = std::make_shared<Generic_Wheel>("Wheel_FL");
-    m_wheels[1] = std::make_shared<Generic_Wheel>("Wheel_FR");
-    m_wheels[2] = std::make_shared<Generic_Wheel>("Wheel_RL");
-    m_wheels[3] = std::make_shared<Generic_Wheel>("Wheel_RR");
+    m_wheels[0] = chrono_types::make_shared<Generic_Wheel>("Wheel_FL");
+    m_wheels[1] = chrono_types::make_shared<Generic_Wheel>("Wheel_FR");
+    m_wheels[2] = chrono_types::make_shared<Generic_Wheel>("Wheel_RL");
+    m_wheels[3] = chrono_types::make_shared<Generic_Wheel>("Wheel_RR");
 
     // -----------------
     // Create the brakes
     // -----------------
     m_brakes.resize(4);
-    m_brakes[0] = std::make_shared<Generic_BrakeSimple>("Brake_FL");
-    m_brakes[1] = std::make_shared<Generic_BrakeSimple>("Brake_FR");
-    m_brakes[2] = std::make_shared<Generic_BrakeSimple>("Brake_RL");
-    m_brakes[3] = std::make_shared<Generic_BrakeSimple>("Brake_RR");
+    m_brakes[0] = chrono_types::make_shared<Generic_BrakeSimple>("Brake_FL");
+    m_brakes[1] = chrono_types::make_shared<Generic_BrakeSimple>("Brake_FR");
+    m_brakes[2] = chrono_types::make_shared<Generic_BrakeSimple>("Brake_RL");
+    m_brakes[3] = chrono_types::make_shared<Generic_BrakeSimple>("Brake_RR");
 }
 
 // -----------------------------------------------------------------------------
@@ -151,7 +151,7 @@ void TT_Trailer::Initialize(const ChCoordsys<>& chassisPos,
     // -------------------------------------------
 
     if (connect_to_puller) {
-        m_puller = std::make_shared<ChLinkLockSpherical>();
+        m_puller = chrono_types::make_shared<ChLinkLockSpherical>();
         m_puller->Initialize(this->m_frontaxle, pulling_vehicle,
                              ChCoordsys<>(this->m_frontaxlePullerJoint) >> chassisPos);
         pulling_vehicle->GetSystem()->Add(m_puller);

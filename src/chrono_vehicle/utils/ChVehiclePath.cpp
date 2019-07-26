@@ -48,7 +48,7 @@ std::shared_ptr<ChBezierCurve> StraightLinePath(const ChVector<>& start,
     inCV.push_back(end - dir * offset);
     outCV.push_back(end);
 
-    return std::make_shared<ChBezierCurve>(points, inCV, outCV);
+    return chrono_types::make_shared<ChBezierCurve>(points, inCV, outCV);
 }
 
 std::shared_ptr<ChBezierCurve> CirclePath(const ChVector<>& start,
@@ -110,7 +110,7 @@ std::shared_ptr<ChBezierCurve> CirclePath(const ChVector<>& start,
     inCV.push_back(P1_in);
     outCV.push_back(P1_out);
 
-    return std::make_shared<ChBezierCurve>(points, inCV, outCV);
+    return chrono_types::make_shared<ChBezierCurve>(points, inCV, outCV);
 }
 
 std::shared_ptr<ChBezierCurve> DoubleLaneChangePath(const ChVector<>& start,
@@ -158,7 +158,7 @@ std::shared_ptr<ChBezierCurve> DoubleLaneChangePath(const ChVector<>& start,
     inCV.push_back(P - offset);
     outCV.push_back(P + offset);
 
-    return std::make_shared<ChBezierCurve>(points, inCV, outCV);
+    return chrono_types::make_shared<ChBezierCurve>(points, inCV, outCV);
 }
 
 }  // end namespace vehicle

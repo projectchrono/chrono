@@ -68,17 +68,17 @@ int main(int argc, char* argv[]) {
     // - Create a floor
 
 	// We could use a primitive box for the floor collision, doing simply
-       auto mfloor2 = std::make_shared<ChBodyEasyBox>(5, 2, 5, 1000, true, true);
+       auto mfloor2 = chrono_types::make_shared<ChBodyEasyBox>(5, 2, 5, 1000, true, true);
 	// but here we rather use a mesh-based collision also for the floor, for 
 	// added difficulty in the benchmark. So we start from a basic ChBody and add collision
 	// and visualization stuff separately:
     
-	//auto mfloor2 = std::make_shared<ChBody>();
+	//auto mfloor2 = chrono_types::make_shared<ChBody>();
     mfloor2->SetPos(ChVector<>(0, -1, 0));
     mfloor2->SetBodyFixed(true);
     mphysicalSystem.Add(mfloor2);
 /*
-    auto mmeshbox = std::make_shared<ChTriangleMeshConnected>();
+    auto mmeshbox = chrono_types::make_shared<ChTriangleMeshConnected>();
     mmeshbox->LoadWavefrontMesh(GetChronoDataFile("cube.obj"),true,true);
 
     mfloor2->GetCollisionModel()->ClearModel();
@@ -86,11 +86,11 @@ int main(int argc, char* argv[]) {
     mfloor2->GetCollisionModel()->BuildModel();
     mfloor2->SetCollide(true);
 
-    auto masset_meshbox = std::make_shared<ChTriangleMeshShape>();
+    auto masset_meshbox = chrono_types::make_shared<ChTriangleMeshShape>();
     masset_meshbox->SetMesh(mmeshbox);
     mfloor2->AddAsset(masset_meshbox);
 */
-    auto masset_texture = std::make_shared<ChTexture>();
+    auto masset_texture = chrono_types::make_shared<ChTexture>();
     masset_texture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
     mfloor2->AddAsset(masset_texture);
 
@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
 	// Note: one can create easily a colliding shape using the following 
 	// piece of code:
 	//
-	// auto mfalling = std::make_shared<ChBodyEasyMesh>(
+	// auto mfalling = chrono_types::make_shared<ChBodyEasyMesh>(
 	//	  GetChronoDataFile("shoe_view.obj"),   ///< .OBJ mesh defined respect REF c.sys of body (initially REF=0,0,0 pos.)
 	//	  1000,              ///< density of the body
 	//	  true,			   ///< automatic evaluation of mass, COG position, inertia tensor
@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
 	// between 15 falling shapes; also we want to call RepairDuplicateVertexes() on the
 	// imported mesh; also we want to scale the imported mesh using Transform().
 
-    auto mmesh = std::make_shared<ChTriangleMeshConnected>();
+    auto mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
     mmesh->LoadWavefrontMesh(GetChronoDataFile("shoe_view.obj"), false, true);
     mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1.2));  // scale to a different size
     mmesh->RepairDuplicateVertexes(1e-9);                      // if meshes are not watertight
@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
 
     for (int j= 0; j<15;++j) {
 		
-        auto mfalling = std::make_shared<ChBodyAuxRef>();
+        auto mfalling = chrono_types::make_shared<ChBodyAuxRef>();
 
         // Set the COG coordinates to barycenter, without displacing the REF reference.
         // Make the COG frame a principal frame.
@@ -151,7 +151,7 @@ int main(int argc, char* argv[]) {
         mfalling->GetCollisionModel()->BuildModel();
         mfalling->SetCollide(true);
 
-        auto masset_mesh = std::make_shared<ChTriangleMeshShape>();
+        auto masset_mesh = chrono_types::make_shared<ChTriangleMeshShape>();
         masset_mesh->SetMesh(mmesh);
         masset_mesh->SetBackfaceCull(true);
         mfalling->AddAsset(masset_mesh);
@@ -161,14 +161,14 @@ int main(int argc, char* argv[]) {
         // Create a bunch of ChronoENGINE rigid bodies (spheres and
         // boxes etc.) which will fall..
 
-        auto msphereBody = std::make_shared<ChBodyEasySphere>(0.05,             // radius size
+        auto msphereBody = chrono_types::make_shared<ChBodyEasySphere>(0.05,             // radius size
                                                               1000,             // density
                                                               true,             // collide enable?
                                                               true);            // visualization?
         msphereBody->SetPos(ChVector<>(-0.5 + ChRandom() * 1, 1.4, -0.5 + ChRandom()));
         msphereBody->GetMaterialSurfaceNSC()->SetFriction(0.2f);
 
-        auto mballcolor = std::make_shared<ChColorAsset>();
+        auto mballcolor = chrono_types::make_shared<ChColorAsset>();
         mballcolor->SetColor(ChColor(0.3f, 0.3f, 0.6f));
         msphereBody->AddAsset(mballcolor);
 

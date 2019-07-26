@@ -45,7 +45,7 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem) {
 
     // Create a bunch of Chrono rigid bodies which will fall..
     for (int bi = 0; bi < 400; bi++) {
-        auto mrigidBody = std::make_shared<ChBodyEasySphere>(0.81,   // radius
+        auto mrigidBody = chrono_types::make_shared<ChBodyEasySphere>(0.81,   // radius
                                                              1000,   // density
                                                              true,   // collide enable?
                                                              true);  // visualization?
@@ -58,7 +58,7 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem) {
     // Create the five walls of the rectangular container, using
     // fixed rigid bodies of 'box' type:
 
-    auto floorBody = std::make_shared<ChBodyEasyBox>(20, 1, 20,  // x,y,z size
+    auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20,  // x,y,z size
                                                      1000,       // density
                                                      true,       // collide enable?
                                                      true);      // visualization?
@@ -67,7 +67,7 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem) {
 
     mphysicalSystem.Add(floorBody);
 
-    auto wallBody1 = std::make_shared<ChBodyEasyBox>(1, 10, 20.99,  // x,y,z size
+    auto wallBody1 = chrono_types::make_shared<ChBodyEasyBox>(1, 10, 20.99,  // x,y,z size
                                                      1000,          // density
                                                      true,          // collide enable?
                                                      true);         // visualization?
@@ -76,7 +76,7 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem) {
 
     mphysicalSystem.Add(wallBody1);
 
-    auto wallBody2 = std::make_shared<ChBodyEasyBox>(1, 10, 20.99,  // x,y,z size
+    auto wallBody2 = chrono_types::make_shared<ChBodyEasyBox>(1, 10, 20.99,  // x,y,z size
                                                      1000,          // density
                                                      true,          // collide enable?
                                                      true);         // visualization?
@@ -85,7 +85,7 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem) {
 
     mphysicalSystem.Add(wallBody2);
 
-    auto wallBody3 = std::make_shared<ChBodyEasyBox>(20.99, 10, 1,  // x,y,z size
+    auto wallBody3 = chrono_types::make_shared<ChBodyEasyBox>(20.99, 10, 1,  // x,y,z size
                                                      1000,          // density
                                                      true,          // collide enable?
                                                      true);         // visualization?
@@ -94,7 +94,7 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem) {
 
     mphysicalSystem.Add(wallBody3);
 
-    auto wallBody4 = std::make_shared<ChBodyEasyBox>(20.99, 10, 1,  // x,y,z size
+    auto wallBody4 = chrono_types::make_shared<ChBodyEasyBox>(20.99, 10, 1,  // x,y,z size
                                                      1000,          // density
                                                      true,          // collide enable?
                                                      true);         // visualization?
@@ -104,7 +104,7 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem) {
     mphysicalSystem.Add(wallBody4);
 
     // Add the rotating mixer
-    auto rotatingBody = std::make_shared<ChBodyEasyBox>(10, 5, 1,  // x,y,z size
+    auto rotatingBody = chrono_types::make_shared<ChBodyEasyBox>(10, 5, 1,  // x,y,z size
                                                         4000,      // density
                                                         true,      // collide enable?
                                                         true);     // visualization?
@@ -114,9 +114,9 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem) {
     mphysicalSystem.Add(rotatingBody);
 
     // .. a motor between mixer and truss
-    auto motor = std::make_shared<ChLinkMotorRotationSpeed>();
+    auto motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     motor->Initialize(rotatingBody, floorBody, ChFrame<>(ChVector<>(0, 0, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X)));
-    motor->SetSpeedFunction(std::make_shared<ChFunction_Const>(CH_C_PI / 2.0));
+    motor->SetSpeedFunction(chrono_types::make_shared<ChFunction_Const>(CH_C_PI / 2.0));
     mphysicalSystem.AddLink(motor);
 }
 

@@ -19,7 +19,7 @@ using namespace chrono;
 using namespace chrono::collision;
 
 ChSystemParallelSMC::ChSystemParallelSMC() : ChSystemParallel() {
-    solver_speed = std::make_shared<ChIterativeSolverParallelSMC>(data_manager);
+    solver_speed = chrono_types::make_shared<ChIterativeSolverParallelSMC>(data_manager);
 
     data_manager->settings.collision.collision_envelope = 0;
 
@@ -35,14 +35,14 @@ ChSystemParallelSMC::ChSystemParallelSMC(const ChSystemParallelSMC& other) : ChS
 
 ChBody* ChSystemParallelSMC::NewBody() {
     if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
-        return new ChBody(std::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurface::SMC);
+        return new ChBody(chrono_types::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurface::SMC);
 
     return new ChBody(ChMaterialSurface::SMC);
 }
 
 ChBodyAuxRef* ChSystemParallelSMC::NewBodyAuxRef() {
     if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
-        return new ChBodyAuxRef(std::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurface::SMC);
+        return new ChBodyAuxRef(chrono_types::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurface::SMC);
 
     return new ChBodyAuxRef(ChMaterialSurface::SMC);
 }

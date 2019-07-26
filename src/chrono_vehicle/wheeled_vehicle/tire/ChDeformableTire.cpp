@@ -44,14 +44,14 @@ void ChDeformableTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide sid
     assert(system);
 
     // Create the tire mesh
-    m_mesh = std::make_shared<ChMesh>();
+    m_mesh = chrono_types::make_shared<ChMesh>();
     system->Add(m_mesh);
 
     // Create the FEA nodes and elements
     CreateMesh(*(wheel.get()), side);
 
     // Create a load container
-    m_load_container = std::make_shared<ChLoadContainer>();
+    m_load_container = chrono_types::make_shared<ChLoadContainer>();
     system->Add(m_load_container);
 
     // Enable tire pressure
@@ -65,7 +65,7 @@ void ChDeformableTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide sid
     }
 
     // Create the contact material
-    m_contact_mat = std::make_shared<ChMaterialSurfaceSMC>();
+    m_contact_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     m_contact_mat->SetFriction(m_friction);
     m_contact_mat->SetRestitution(m_restitution);
     m_contact_mat->SetYoungModulus(m_young_modulus);
@@ -92,7 +92,7 @@ void ChDeformableTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
 
-    m_visualization = std::make_shared<ChVisualizationFEAmesh>(*(m_mesh.get()));
+    m_visualization = chrono_types::make_shared<ChVisualizationFEAmesh>(*(m_mesh.get()));
     m_visualization->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
     m_visualization->SetColorscaleMinMax(0.0, 1);
     m_visualization->SetSmoothFaces(true);

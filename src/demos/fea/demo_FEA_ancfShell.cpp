@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
     GetLog() << "-----------------------------------------------------------\n";
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
     int numFlexBody = 1;
     // Geometry of the plate
     double plate_lenght_x = 1;
@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
         double dir_z = 1;
 
         // Create the node
-        auto node = std::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z));
+        auto node = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z));
 
         node->SetMass(0);
 
@@ -149,26 +149,26 @@ int main(int argc, char* argv[]) {
     // Options for visualization in irrlicht
     // -------------------------------------
 
-    auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddAsset(mvisualizemesh);
 
-    auto mvisualizemeshref = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshref = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshref->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
     mvisualizemeshref->SetWireframe(true);
     mvisualizemeshref->SetDrawInUndeformedReference(true);
     my_mesh->AddAsset(mvisualizemeshref);
 
-    auto mvisualizemeshC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
     mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     mvisualizemeshC->SetSymbolsThickness(0.004);
     my_mesh->AddAsset(mvisualizemeshC);
 
-    auto mvisualizemeshD = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshD = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     // mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_VECT_SPEED);
     mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_ELEM_TENS_STRAIN);
     mvisualizemeshD->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);

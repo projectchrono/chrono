@@ -138,9 +138,9 @@ int main(int argc, char* argv[]) {
 
     for (int i = 0; i < num_wheels; i++) {
         if(i < 2) {
-            tires[i] = std::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_front_tire_file));
+            tires[i] = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_front_tire_file));
         } else {
-            tires[i] = std::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_rear_tire_file));
+            tires[i] = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_rear_tire_file));
         }
         tires[i]->Initialize(vehicle.GetWheelBody(i), VehicleSide(i % 2));
         tires[i]->SetVisualizationType(VisualizationType::MESH);

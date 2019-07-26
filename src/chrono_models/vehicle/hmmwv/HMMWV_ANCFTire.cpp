@@ -177,7 +177,7 @@ void HMMWV_ANCFTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide 
             ChVector<> nrm_prf = Vcross(tan_prf, nrm).GetNormalized();
             ChVector<> dir = wheel_frame.TransformDirectionLocalToParent(nrm_prf);
 
-            auto node = std::make_shared<ChNodeFEAxyzD>(loc, dir);
+            auto node = chrono_types::make_shared<ChNodeFEAxyzD>(loc, dir);
 
             // Node velocity
             ChVector<> vel = wheel_frame.PointSpeedLocalToParent(ChVector<>(x, y, z));

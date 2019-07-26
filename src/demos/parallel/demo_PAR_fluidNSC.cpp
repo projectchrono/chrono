@@ -56,7 +56,7 @@ void AddContainer(ChSystemParallelNSC* sys) {
     int mixerId = -201;
 
     // Create a common material
-    auto mat = std::make_shared<ChMaterialSurfaceNSC>();
+    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     mat->SetFriction(0.4f);
 
     ChVector<> hdim(.55, .6, .55);
@@ -69,7 +69,7 @@ void AddContainer(ChSystemParallelNSC* sys) {
 // Create the fluid in the shape of a sphere.
 // -----------------------------------------------------------------------------
 void AddFluid(ChSystemParallelNSC* sys) {
-    auto fluid_container = std::make_shared<ChFluidContainer>();
+    auto fluid_container = chrono_types::make_shared<ChFluidContainer>();
     sys->Add3DOFContainer(fluid_container);
 
     fluid_container->tau = time_step * 4;

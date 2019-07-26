@@ -279,7 +279,7 @@ void ChFsiInterface::Copy_fsiNodes_ChSystem_to_FluidSystem(FsiMeshDataD* FsiMesh
 
 void ChFsiInterface::ResizeChronoNodesData() {
     int numNodes = 0;
-    auto my_mesh = std::make_shared<fea::ChMesh>();
+    auto my_mesh = chrono_types::make_shared<fea::ChMesh>();
     if (mphysicalSystem->Get_otherphysicslist().size()) {
         printf("fsi_mesh.size in ResizeChronNodesData  %d\n", numNodes);
     }
@@ -291,7 +291,7 @@ void ChFsiInterface::ResizeChronoNodesData() {
 //------------------------------------------------------------------------------------
 void ChFsiInterface::ResizeChronoFEANodesData() {
     int numNodes = 0;
-    auto my_mesh = std::make_shared<fea::ChMesh>();
+    auto my_mesh = chrono_types::make_shared<fea::ChMesh>();
     if (mphysicalSystem->Get_otherphysicslist().size()) {
         my_mesh = std::dynamic_pointer_cast<fea::ChMesh>(mphysicalSystem->Get_otherphysicslist().at(0));
     }
@@ -305,7 +305,7 @@ void ChFsiInterface::ResizeChronoFEANodesData() {
 
 void ChFsiInterface::ResizeChronoCablesData(std::vector<std::vector<int>> CableElementsNodesSTDVector,
                                             thrust::host_vector<int2>* CableElementsNodesH) {
-    auto my_mesh = std::make_shared<fea::ChMesh>();
+    auto my_mesh = chrono_types::make_shared<fea::ChMesh>();
     if (mphysicalSystem->Get_otherphysicslist().size()) {
         my_mesh = std::dynamic_pointer_cast<fea::ChMesh>(mphysicalSystem->Get_otherphysicslist().at(0));
     }
@@ -340,7 +340,7 @@ void ChFsiInterface::ResizeChronoCablesData(std::vector<std::vector<int>> CableE
 
 void ChFsiInterface::ResizeChronoShellsData(std::vector<std::vector<int>> ShellElementsNodesSTDVector,
                                             thrust::host_vector<int4>* ShellElementsNodesH) {
-    auto my_mesh = std::make_shared<fea::ChMesh>();
+    auto my_mesh = chrono_types::make_shared<fea::ChMesh>();
     if (mphysicalSystem->Get_otherphysicslist().size()) {
         my_mesh = std::dynamic_pointer_cast<fea::ChMesh>(mphysicalSystem->Get_otherphysicslist().at(0));
     }

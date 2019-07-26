@@ -41,7 +41,7 @@ TT_Tractor::TT_Tractor(const bool fixed, SuspensionType suspType, ChMaterialSurf
     // -------------------------------------------
     // Create the chassis subsystem
     // -------------------------------------------
-    m_chassis = std::make_shared<TT_Chassis>("Chassis");
+    m_chassis = chrono_types::make_shared<TT_Chassis>("Chassis");
 
     // -------------------------------------------
     // Create the suspension subsystems
@@ -52,12 +52,12 @@ TT_Tractor::TT_Tractor(const bool fixed, SuspensionType suspType, ChMaterialSurf
 
     switch (m_suspType) {
         case SuspensionType::SOLID_AXLE:
-            m_suspensions[0] = std::make_shared<Generic_SolidAxle>("FrontSusp");
-            m_suspensions[1] = std::make_shared<Generic_SolidAxle>("RearSusp");
+            m_suspensions[0] = chrono_types::make_shared<Generic_SolidAxle>("FrontSusp");
+            m_suspensions[1] = chrono_types::make_shared<Generic_SolidAxle>("RearSusp");
             break;
         case SuspensionType::MULTI_LINK:
-            m_suspensions[0] = std::make_shared<Generic_MultiLink>("FrontSusp");
-            m_suspensions[1] = std::make_shared<Generic_MultiLink>("RearSusp");
+            m_suspensions[0] = chrono_types::make_shared<Generic_MultiLink>("FrontSusp");
+            m_suspensions[1] = chrono_types::make_shared<Generic_MultiLink>("RearSusp");
             break;
         default:
             break;
@@ -67,30 +67,30 @@ TT_Tractor::TT_Tractor(const bool fixed, SuspensionType suspType, ChMaterialSurf
     // Create the steering subsystem
     // -----------------------------
     m_steerings.resize(1);
-    m_steerings[0] = std::make_shared<Generic_RackPinion>("Steering");
+    m_steerings[0] = chrono_types::make_shared<Generic_RackPinion>("Steering");
 
     // -----------------
     // Create the wheels
     // -----------------
     m_wheels.resize(4);
-    m_wheels[0] = std::make_shared<Generic_Wheel>("Wheel_FL");
-    m_wheels[1] = std::make_shared<Generic_Wheel>("Wheel_FR");
-    m_wheels[2] = std::make_shared<Generic_Wheel>("Wheel_RL");
-    m_wheels[3] = std::make_shared<Generic_Wheel>("Wheel_RR");
+    m_wheels[0] = chrono_types::make_shared<Generic_Wheel>("Wheel_FL");
+    m_wheels[1] = chrono_types::make_shared<Generic_Wheel>("Wheel_FR");
+    m_wheels[2] = chrono_types::make_shared<Generic_Wheel>("Wheel_RL");
+    m_wheels[3] = chrono_types::make_shared<Generic_Wheel>("Wheel_RR");
 
     // --------------------
     // Create the driveline
     // --------------------
-    m_driveline = std::make_shared<Generic_Driveline2WD>("driveline");
+    m_driveline = chrono_types::make_shared<Generic_Driveline2WD>("driveline");
 
     // -----------------
     // Create the brakes
     // -----------------
     m_brakes.resize(4);
-    m_brakes[0] = std::make_shared<Generic_BrakeSimple>("Brake_FL");
-    m_brakes[1] = std::make_shared<Generic_BrakeSimple>("Brake_FR");
-    m_brakes[2] = std::make_shared<Generic_BrakeSimple>("Brake_RL");
-    m_brakes[3] = std::make_shared<Generic_BrakeSimple>("Brake_RR");
+    m_brakes[0] = chrono_types::make_shared<Generic_BrakeSimple>("Brake_FL");
+    m_brakes[1] = chrono_types::make_shared<Generic_BrakeSimple>("Brake_FR");
+    m_brakes[2] = chrono_types::make_shared<Generic_BrakeSimple>("Brake_RL");
+    m_brakes[3] = chrono_types::make_shared<Generic_BrakeSimple>("Brake_RR");
 }
 
 // -----------------------------------------------------------------------------

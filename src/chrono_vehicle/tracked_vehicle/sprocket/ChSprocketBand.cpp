@@ -634,19 +634,19 @@ void ChSprocketBand::AddVisualizationAssets(VisualizationType vis) {
     double width = GetGuideWheelWidth();
     double gap = GetGuideWheelGap();
 
-    auto cyl_1 = std::make_shared<ChCylinderShape>();
+    auto cyl_1 = chrono_types::make_shared<ChCylinderShape>();
     cyl_1->GetCylinderGeometry().p1 = ChVector<>(0, width / 2, 0);
     cyl_1->GetCylinderGeometry().p2 = ChVector<>(0, gap / 2, 0);
     cyl_1->GetCylinderGeometry().rad = radius;
     m_gear->AddAsset(cyl_1);
 
-    auto cyl_2 = std::make_shared<ChCylinderShape>();
+    auto cyl_2 = chrono_types::make_shared<ChCylinderShape>();
     cyl_2->GetCylinderGeometry().p1 = ChVector<>(0, -width / 2, 0);
     cyl_2->GetCylinderGeometry().p2 = ChVector<>(0, -gap / 2, 0);
     cyl_2->GetCylinderGeometry().rad = radius;
     m_gear->AddAsset(cyl_2);
 
-    auto tex = std::make_shared<ChTexture>();
+    auto tex = chrono_types::make_shared<ChTexture>();
     tex->SetTextureFilename(chrono::GetChronoDataFile("greenwhite.png"));
     m_gear->AddAsset(tex);
 }
@@ -674,7 +674,7 @@ ChSystem::CustomCollisionCallback* ChSprocketBand::GetCollisionCallback(ChTrackA
 // Create and return the sprocket gear profile.
 // -----------------------------------------------------------------------------
 std::shared_ptr<geometry::ChLinePath> ChSprocketBand::GetProfile() {
-    auto profile = std::make_shared<geometry::ChLinePath>();
+    auto profile = chrono_types::make_shared<geometry::ChLinePath>();
 
     int num_teeth = GetNumTeeth();
     double OutRad = GetOuterRadius();

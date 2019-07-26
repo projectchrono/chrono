@@ -77,32 +77,32 @@ Articulated_Front::Articulated_Front(const bool fixed, ChMaterialSurface::Contac
     // -------------------------------------------
     // Create the chassis subsystem
     // -------------------------------------------
-    m_chassis = std::make_shared<Articulated_Chassis>("Chassis", fixed);
+    m_chassis = chrono_types::make_shared<Articulated_Chassis>("Chassis", fixed);
 
     // -------------------------------------------
     // Create the suspension subsystems
     // -------------------------------------------
     m_suspensions.resize(1);
-    m_suspensions[0] = std::make_shared<Generic_RigidSuspension>("FrontSusp");
+    m_suspensions[0] = chrono_types::make_shared<Generic_RigidSuspension>("FrontSusp");
 
     // -----------------
     // Create the wheels
     // -----------------
     m_wheels.resize(2);
-    m_wheels[0] = std::make_shared<Generic_Wheel>("Wheel_FL");
-    m_wheels[1] = std::make_shared<Generic_Wheel>("Wheel_FR");
+    m_wheels[0] = chrono_types::make_shared<Generic_Wheel>("Wheel_FL");
+    m_wheels[1] = chrono_types::make_shared<Generic_Wheel>("Wheel_FR");
 
     // --------------------
     // Create the driveline
     // --------------------
-    m_driveline = std::make_shared<Generic_Driveline2WD>("driveline");
+    m_driveline = chrono_types::make_shared<Generic_Driveline2WD>("driveline");
 
     // -----------------
     // Create the brakes
     // -----------------
     m_brakes.resize(2);
-    m_brakes[0] = std::make_shared<Generic_BrakeSimple>("Brake_FL");
-    m_brakes[1] = std::make_shared<Generic_BrakeSimple>("Brake_FR");
+    m_brakes[0] = chrono_types::make_shared<Generic_BrakeSimple>("Brake_FL");
+    m_brakes[1] = chrono_types::make_shared<Generic_BrakeSimple>("Brake_FR");
 }
 
 void Articulated_Front::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {

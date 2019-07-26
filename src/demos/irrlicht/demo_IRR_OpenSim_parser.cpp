@@ -96,21 +96,21 @@ int main(int argc, char* argv[]) {
     // Find the actuator named "grav" and directly set its excitation function
     ////if (auto force = rep.GetForce("grav")) {
     ////    if (auto body_force = std::dynamic_pointer_cast<ChLoadBodyForce>(force)) {
-    ////        auto excitation = std::make_shared<ChFunction_Ramp>(0, 1);
+    ////        auto excitation = chrono_types::make_shared<ChFunction_Ramp>(0, 1);
     ////        body_force->SetModulationFunction(excitation);
     ////    }
     ////}
 
     // Use parser wrapper method to set excitation for named actuator.
-    ////auto excitation = std::make_shared<ChFunction_Ramp>(0, 1);
+    ////auto excitation = chrono_types::make_shared<ChFunction_Ramp>(0, 1);
     ////parser.SetExcitationFunction("grav", excitation);
 
     // Create a gound body
-    ////auto my_ground = std::make_shared<ChBodyEasyBox>(40, 2, 40, 1000, true, true, my_system.GetContactMethod());
+    ////auto my_ground = chrono_types::make_shared<ChBodyEasyBox>(40, 2, 40, 1000, true, true, my_system.GetContactMethod());
     ////my_system.AddBody(my_ground);
     ////my_ground->SetBodyFixed(true);
     ////my_ground->SetPos(ChVector<>(0, -2.9, 0));
-    ////my_ground->AddAsset(std::make_shared<ChTexture>(GetChronoDataFile("concrete.jpg")));
+    ////my_ground->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("concrete.jpg")));
 
     // Set up Irrlicht
     ChIrrApp application(&my_system, L"Model loaded from OpenSim file", core::dimension2d<u32>(800, 600), false, true);

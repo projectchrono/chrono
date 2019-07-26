@@ -163,13 +163,13 @@ void ChTrackShoeBandBushing::RemoveVisualizationAssets() {
 }
 
 void ChTrackShoeBandBushing::AddWebVisualization(std::shared_ptr<ChBody> segment) {
-    segment->AddAsset(std::make_shared<ChColorAsset>(GetColor(m_index)));
+    segment->AddAsset(chrono_types::make_shared<ChColorAsset>(GetColor(m_index)));
 
-    auto box = std::make_shared<ChBoxShape>();
+    auto box = chrono_types::make_shared<ChBoxShape>();
     box->GetBoxGeometry().SetLengths(ChVector<>(m_seg_length, GetBeltWidth(), GetWebThickness()));
     segment->AddAsset(box);
 
-    auto cyl = std::make_shared<ChCylinderShape>();
+    auto cyl = chrono_types::make_shared<ChCylinderShape>();
     double radius = GetWebThickness() / 4;
     cyl->GetCylinderGeometry().rad = radius;
     cyl->GetCylinderGeometry().p1 = ChVector<>(m_seg_length / 2, -GetBeltWidth() / 2 - 2 * radius, 0);
@@ -181,7 +181,7 @@ void ChTrackShoeBandBushing::AddWebVisualization(std::shared_ptr<ChBody> segment
 // -----------------------------------------------------------------------------
 void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next) {
     // Bushings are inherited from ChLoad, so they require a 'load container'
-    auto loadcontainer = std::make_shared<ChLoadContainer>();
+    auto loadcontainer = chrono_types::make_shared<ChLoadContainer>();
     m_shoe->GetSystem()->Add(loadcontainer);
 
     // Stiffness and Damping matrix values

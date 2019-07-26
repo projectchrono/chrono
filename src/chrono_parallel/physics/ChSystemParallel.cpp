@@ -49,10 +49,10 @@ namespace chrono {
 ChSystemParallel::ChSystemParallel() : ChSystem() {
     data_manager = new ChParallelDataManager();
 
-    descriptor = std::make_shared<ChSystemDescriptorParallel>(data_manager);
-    contact_container = std::make_shared<ChContactContainerParallel>(data_manager);
+    descriptor = chrono_types::make_shared<ChSystemDescriptorParallel>(data_manager);
+    contact_container = chrono_types::make_shared<ChContactContainerParallel>(data_manager);
     contact_container->SetSystem(this);
-    collision_system = std::make_shared<ChCollisionSystemParallel>(data_manager);
+    collision_system = chrono_types::make_shared<ChCollisionSystemParallel>(data_manager);
 
     collision_system_type = CollisionSystemType::COLLSYS_PARALLEL;
     counter = 0;
@@ -749,10 +749,10 @@ void ChSystemParallel::ChangeCollisionSystem(CollisionSystemType type) {
 
     switch (type) {
         case CollisionSystemType::COLLSYS_PARALLEL:
-            collision_system = std::make_shared<ChCollisionSystemParallel>(data_manager);
+            collision_system = chrono_types::make_shared<ChCollisionSystemParallel>(data_manager);
             break;
         case CollisionSystemType::COLLSYS_BULLET_PARALLEL:
-            collision_system = std::make_shared<ChCollisionSystemBulletParallel>(data_manager);
+            collision_system = chrono_types::make_shared<ChCollisionSystemBulletParallel>(data_manager);
             break;
     }
 }

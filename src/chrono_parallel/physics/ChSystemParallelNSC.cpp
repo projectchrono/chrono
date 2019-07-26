@@ -21,7 +21,7 @@
 using namespace chrono;
 
 ChSystemParallelNSC::ChSystemParallelNSC() : ChSystemParallel() {
-    solver_speed = std::make_shared<ChIterativeSolverParallelNSC>(data_manager);
+    solver_speed = chrono_types::make_shared<ChIterativeSolverParallelNSC>(data_manager);
 
     // Set this so that the CD can check what type of system it is (needed for narrowphase)
     data_manager->settings.system_type = SystemType::SYSTEM_NSC;
@@ -48,7 +48,7 @@ ChSystemParallelNSC::ChSystemParallelNSC(const ChSystemParallelNSC& other) : ChS
 
 ChBody* ChSystemParallelNSC::NewBody() {
     if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
-        return new ChBody(std::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurface::NSC);
+        return new ChBody(chrono_types::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurface::NSC);
 
     return new ChBody(ChMaterialSurface::NSC);
 }
@@ -59,7 +59,7 @@ void ChSystemParallelNSC::ChangeSolverType(SolverType type) {
 
 ChBodyAuxRef* ChSystemParallelNSC::NewBodyAuxRef() {
     if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
-        return new ChBodyAuxRef(std::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurface::NSC);
+        return new ChBodyAuxRef(chrono_types::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurface::NSC);
 
     return new ChBodyAuxRef(ChMaterialSurface::NSC);
 }

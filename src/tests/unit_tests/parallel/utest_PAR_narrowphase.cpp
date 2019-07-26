@@ -39,7 +39,7 @@ using namespace chrono::collision;
 // -----------------------------------------------------------------------------
 
 void CreateContainer(ChSystemParallel* system) {
-    auto mat_walls = std::make_shared<ChMaterialSurfaceNSC>();
+    auto mat_walls = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     mat_walls->SetFriction(0.3f);
 
     std::shared_ptr<ChBody> container(system->NewBody());
@@ -63,7 +63,7 @@ void CreateContainer(ChSystemParallel* system) {
 
 void CreateGranularMaterial(ChSystemParallel* sys) {
     // Common material
-    auto ballMat = std::make_shared<ChMaterialSurfaceNSC>();
+    auto ballMat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     ballMat->SetFriction(1.0);
 
     // Create the falling balls

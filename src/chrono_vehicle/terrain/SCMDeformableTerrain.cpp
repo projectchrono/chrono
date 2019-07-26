@@ -43,7 +43,7 @@ namespace vehicle {
 // Implementation of the SCMDeformableTerrain wrapper class
 // -----------------------------------------------------------------------------
 SCMDeformableTerrain::SCMDeformableTerrain(ChSystem* system) {
-    m_ground = std::make_shared<SCMDeformableSoil>(system);
+    m_ground = chrono_types::make_shared<SCMDeformableSoil>(system);
     system->Add(m_ground);
 }
     

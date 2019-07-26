@@ -48,7 +48,7 @@ std::shared_ptr<ChBody> create_wheel(ChVector<> mposition, ChIrrAppInterface& ma
     ChCollisionModel::SetDefaultSuggestedMargin(0.004);
 
     // create a basic rigid body, it comes with no visualization or collision shapes 
-    auto mrigidBody = std::make_shared<ChBody>();
+    auto mrigidBody = chrono_types::make_shared<ChBody>();
     mapplication.GetSystem()->Add(mrigidBody);
     mrigidBody->SetMass(50);
     mrigidBody->SetInertiaXX(ChVector<>(10, 10, 10));
@@ -56,7 +56,7 @@ std::shared_ptr<ChBody> create_wheel(ChVector<> mposition, ChIrrAppInterface& ma
     mrigidBody->GetMaterialSurfaceNSC()->SetFriction(0.5);
 
     // now attach a visualization shape, as a mesh from disk
-    auto tireMesh = std::make_shared<ChObjShapeFile>();
+    auto tireMesh = chrono_types::make_shared<ChObjShapeFile>();
     tireMesh->SetFilename(GetChronoDataFile("tractor_wheel.obj").c_str());
     mrigidBody->AddAsset(tireMesh);
 
@@ -106,7 +106,7 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem, ISceneManager* msce
         ChQuaternion<> randrot(ChRandom(), ChRandom(), ChRandom(), ChRandom());
         randrot.Normalize();
 
-        auto mrigidBody = std::make_shared<ChBodyEasySphere>(sphrad, sphdens, true, true);
+        auto mrigidBody = chrono_types::make_shared<ChBodyEasySphere>(sphrad, sphdens, true, true);
         mphysicalSystem.Add(mrigidBody);
         mrigidBody->SetRot(randrot);
         mrigidBody->SetPos(ChVector<>(-0.5 * bed_x + ChRandom() * bed_x, 
@@ -116,12 +116,12 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem, ISceneManager* msce
     }
 
     // Create the a plane using body of 'box' type:
-    auto mrigidBodyB = std::make_shared<ChBodyEasyBox>(10, 1, 10, 1000, true, true);
+    auto mrigidBodyB = chrono_types::make_shared<ChBodyEasyBox>(10, 1, 10, 1000, true, true);
     mphysicalSystem.Add(mrigidBodyB);
     mrigidBodyB->SetBodyFixed(true);
     mrigidBodyB->SetPos(ChVector<>(0, -0.5, 0));
     mrigidBodyB->GetMaterialSurfaceNSC()->SetFriction(0.5);
-    auto mcolor = std::make_shared<ChColorAsset>();
+    auto mcolor = chrono_types::make_shared<ChColorAsset>();
     mcolor->SetColor(ChColor(0.2f,0.2f,0.2f));
     mrigidBodyB->AddAsset(mcolor);
 }

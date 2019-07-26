@@ -35,31 +35,31 @@ int main(int argc, char* argv[]) {
     system.Set_G_acc(ChVector<>(0, 0, 0));
 
     // Create the ground body
-    auto ground = std::make_shared<ChBodyEasyBox>(3, 2, 0.1, 10, false, true);
+    auto ground = chrono_types::make_shared<ChBodyEasyBox>(3, 2, 0.1, 10, false, true);
     system.AddBody(ground);
     ground->SetBodyFixed(true);
 
     // Create the sliding body
     // Give an initial angular velocity
-    auto body = std::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 10, false, true);
+    auto body = chrono_types::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 10, false, true);
     system.AddBody(body);
     body->SetBodyFixed(false);
     body->SetPos(ChVector<>(-1.25, -0.75, 0.1));
     body->SetWvel_loc(ChVector<>(0.1, 0.1, 0.1));
 
-    auto body_col = std::make_shared<ChColorAsset>();
+    auto body_col = chrono_types::make_shared<ChColorAsset>();
     body_col->SetColor(ChColor(0.6f, 0, 0));
     body->AddAsset(body_col);
 
     // Create the plane-plane constraint
     // Constrain the sliding body to move and rotate in the x-y plane
     // (i.e. the plane whose normal is the z-axis of the specified coord sys)
-    auto plane_plane = std::make_shared<ChLinkLockPlanePlane>();
+    auto plane_plane = chrono_types::make_shared<ChLinkLockPlanePlane>();
     plane_plane->Initialize(ground, body, ChCoordsys<>(ChVector<>(-1.25, -0.75, 0), ChQuaternion<>(1, 0, 0, 0)));
     system.AddLink(plane_plane);
 
     // Create a linear spring (with default spring & damping coefficients)
-    auto spring = std::make_shared<ChLinkSpring>();
+    auto spring = chrono_types::make_shared<ChLinkSpring>();
     spring->Initialize(ground, body, true, ChVector<>(0, 0, 2), ChVector<>(0, 0, 0), false, 1.9);
     system.AddLink(spring);
 

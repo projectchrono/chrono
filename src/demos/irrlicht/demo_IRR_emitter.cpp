@@ -61,11 +61,11 @@ int main(int argc, char* argv[]) {
 
     // Create the floor:
 
-    auto floorBody = std::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true);
+    auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true);
     floorBody->SetPos(ChVector<>(0, -5, 0));
     floorBody->SetBodyFixed(true);
 
-    auto mtexture = std::make_shared<ChTexture>();
+    auto mtexture = chrono_types::make_shared<ChTexture>();
     mtexture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
     floorBody->AddAsset(mtexture);
 
@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
     // inherit your own class from these randomizers if the choice is not enough).
 
     // ---Initialize the randomizer for positions
-    auto emitter_positions = std::make_shared<ChRandomParticlePositionRectangleOutlet>();
+    auto emitter_positions = chrono_types::make_shared<ChRandomParticlePositionRectangleOutlet>();
     emitter_positions->Outlet() =
         ChCoordsys<>(ChVector<>(0, 3, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X));  // center and alignment of the outlet
     emitter_positions->OutletWidth() = 3.0;
@@ -112,12 +112,12 @@ int main(int argc, char* argv[]) {
     emitter.SetParticlePositioner(emitter_positions);
 
     // ---Initialize the randomizer for alignments
-    auto emitter_rotations = std::make_shared<ChRandomParticleAlignmentUniform>();
+    auto emitter_rotations = chrono_types::make_shared<ChRandomParticleAlignmentUniform>();
 
     emitter.SetParticleAligner(emitter_rotations);
 
     // ---Initialize the randomizer for velocities, with statistical distribution
-    auto mvelo = std::make_shared<ChRandomParticleVelocityConstantDirection>();
+    auto mvelo = chrono_types::make_shared<ChRandomParticleVelocityConstantDirection>();
     mvelo->SetDirection(-VECT_Y);
     mvelo->SetModulusDistribution(0.0);
 
@@ -126,12 +126,12 @@ int main(int argc, char* argv[]) {
     // ---Initialize the randomizer for creations, with statistical distribution
 
     // Create a ChRandomShapeCreator object (ex. here for box particles)
-    auto mcreator_boxes = std::make_shared<ChRandomShapeCreatorBoxes>();
+    auto mcreator_boxes = chrono_types::make_shared<ChRandomShapeCreatorBoxes>();
     mcreator_boxes->SetXsizeDistribution(
-        std::make_shared<ChZhangDistribution>(0.5, 0.2));  // Zhang parameters: average val, min val.
-    mcreator_boxes->SetSizeRatioZDistribution(std::make_shared<ChMinMaxDistribution>(0.2, 1.0));
-    mcreator_boxes->SetSizeRatioYZDistribution(std::make_shared<ChMinMaxDistribution>(0.4, 1.0));
-    mcreator_boxes->SetDensityDistribution(std::make_shared<ChConstantDistribution>(1000));
+        chrono_types::make_shared<ChZhangDistribution>(0.5, 0.2));  // Zhang parameters: average val, min val.
+    mcreator_boxes->SetSizeRatioZDistribution(chrono_types::make_shared<ChMinMaxDistribution>(0.2, 1.0));
+    mcreator_boxes->SetSizeRatioYZDistribution(chrono_types::make_shared<ChMinMaxDistribution>(0.4, 1.0));
+    mcreator_boxes->SetDensityDistribution(chrono_types::make_shared<ChConstantDistribution>(1000));
 
     // Optional: define a callback to be exectuted at each creation of a box particle:
     class MyCreator_boxes : public ChRandomShapeCreator::AddBodyCallback {
@@ -141,7 +141,7 @@ int main(int argc, char* argv[]) {
                                ChCoordsys<> mcoords,
                                ChRandomShapeCreator& mcreator) override {
             // Ex.: attach some optional assets, ex for visualization
-            auto mvisual = std::make_shared<ChColorAsset>();
+            auto mvisual = chrono_types::make_shared<ChColorAsset>();
             mvisual->SetColor(ChColor(0.0f, 1.0f, (float)ChRandom()));
             mbody->AddAsset(mvisual);
         }

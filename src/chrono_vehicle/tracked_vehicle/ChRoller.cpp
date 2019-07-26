@@ -64,7 +64,7 @@ void ChRoller::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<
 
     // Create and initialize the revolute joint between roller and chassis.
     // The axis of rotation is the y axis of the road wheel reference frame.
-    m_revolute = std::make_shared<ChLinkLockRevolute>();
+    m_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute->SetNameString(m_name + "_revolute");
     m_revolute->Initialize(chassis, m_wheel,
                            ChCoordsys<>(roller_to_abs.GetPos(), roller_to_abs.GetRot() * Q_from_AngX(CH_C_PI_2)));

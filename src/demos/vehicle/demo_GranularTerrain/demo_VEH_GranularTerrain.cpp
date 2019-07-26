@@ -147,10 +147,10 @@ int main(int argc, char* argv[]) {
     body->SetRot(Q_from_AngZ(CH_C_PI_2));
     system->AddBody(body);
 
-    auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
     trimesh->LoadWavefrontMesh(GetChronoDataFile("tractor_wheel.obj"));
 
-    auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(trimesh);
     body->AddAsset(trimesh_shape);
 
@@ -162,13 +162,13 @@ int main(int argc, char* argv[]) {
 
     body->SetCollide(true);
 
-    auto col = std::make_shared<ChColorAsset>();
+    auto col = chrono_types::make_shared<ChColorAsset>();
     col->SetColor(ChColor(0.3f, 0.3f, 0.3f));
     body->AddAsset(col);
 
-    auto motor = std::make_shared<ChLinkMotorRotationAngle>();
+    auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     motor->SetSpindleConstraint(ChLinkMotorRotation::SpindleConstraint::OLDHAM);
-    motor->SetAngleFunction(std::make_shared<ChFunction_Ramp>(0, -tire_ang_vel));
+    motor->SetAngleFunction(chrono_types::make_shared<ChFunction_Ramp>(0, -tire_ang_vel));
     motor->Initialize(body, terrain.GetGroundBody(), ChFrame<>(tire_center, Q_from_AngX(CH_C_PI_2)));
     system->Add(motor);
 

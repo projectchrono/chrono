@@ -157,7 +157,7 @@ ChBodySceneNode* create_mecanum_wheel(ChSystemNSC& mphysicalSystem,
         // (preconcatenate rotation 90 degrees on X, to set axis of revolute joint)
         ChFrameMoving<> fr(ChVector<>(0, 0, 0), Q_from_AngAxis(CH_C_PI / 2.0, ChVector<>(1, 0, 0)));
         ChFrameMoving<> frabs = fr >> f3;
-        auto my_link_roller = std::make_shared<ChLinkLockRevolute>();
+        auto my_link_roller = chrono_types::make_shared<ChLinkLockRevolute>();
         my_link_roller->Initialize(mRoller->GetBody(), mCentralWheel->GetBody(), frabs.GetCoord());
         mphysicalSystem.AddLink(my_link_roller);
     }
@@ -229,9 +229,9 @@ int main(int argc, char* argv[]) {
                              0.1,                     // mass of single roller
                              0.2);                    // mass of the spindle
 
-    auto my_link_shaftA = std::make_shared<ChLinkMotorRotationSpeed>();
+    auto my_link_shaftA = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     my_link_shaftA->Initialize(spindle_A->GetBody(), mTrussPlatform->GetBody(), (f1 >> f2_wA));
-    my_link_shaftA->SetSpeedFunction(std::make_shared<ChFunction_Const>(0));
+    my_link_shaftA->SetSpeedFunction(chrono_types::make_shared<ChFunction_Const>(0));
     mphysicalSystem.AddLink(my_link_shaftA);
 
     ChBodySceneNode* spindle_B =
@@ -246,9 +246,9 @@ int main(int argc, char* argv[]) {
                              0.1,                     // mass of single roller
                              0.2);                    // mass of the spindle
 
-    auto my_link_shaftB = std::make_shared<ChLinkMotorRotationSpeed>();
+    auto my_link_shaftB = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     my_link_shaftB->Initialize(spindle_B->GetBody(), mTrussPlatform->GetBody(), (f1 >> f2_wB));
-    my_link_shaftB->SetSpeedFunction(std::make_shared<ChFunction_Const>(0));
+    my_link_shaftB->SetSpeedFunction(chrono_types::make_shared<ChFunction_Const>(0));
     mphysicalSystem.AddLink(my_link_shaftB);
 
     ChBodySceneNode* spindle_C =
@@ -263,9 +263,9 @@ int main(int argc, char* argv[]) {
                              0.1,                     // mass of single roller
                              0.2);                    // mass of the spindle
 
-    auto my_link_shaftC = std::make_shared<ChLinkMotorRotationSpeed>();
+    auto my_link_shaftC = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     my_link_shaftC->Initialize(spindle_C->GetBody(), mTrussPlatform->GetBody(), (f1 >> f2_wC));
-    my_link_shaftC->SetSpeedFunction(std::make_shared<ChFunction_Const>(0));
+    my_link_shaftC->SetSpeedFunction(chrono_types::make_shared<ChFunction_Const>(0));
     mphysicalSystem.AddLink(my_link_shaftC);
 
     // Create the ground for the collision

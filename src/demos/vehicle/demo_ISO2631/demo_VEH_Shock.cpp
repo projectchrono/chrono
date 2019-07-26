@@ -174,7 +174,7 @@ int main(int argc, char* argv[]) {
         switch (iTire) {
             default:
             case 1:
-                tmeasy_tires[i] = std::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_tire_file));
+                tmeasy_tires[i] = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_tire_file));
                 if (tmeasy_tires[i] == nullptr) {
                     GetLog() << "Bad TMeasy tire problem\n";
                 }
@@ -182,14 +182,14 @@ int main(int argc, char* argv[]) {
                 tmeasy_tires[i]->SetVisualizationType(VisualizationType::MESH);
                 break;
             case 2:
-                fiala_tires[i] = std::make_shared<FialaTire>(vehicle::GetDataFile(fiala_tire_file));
+                fiala_tires[i] = chrono_types::make_shared<FialaTire>(vehicle::GetDataFile(fiala_tire_file));
                 if (fiala_tires[i] == nullptr) {
                     GetLog() << "Bad Fiala tire problem\n";
                 }
                 fiala_tires[i]->Initialize(vehicle.GetWheelBody(i), VehicleSide(i % 2));
                 fiala_tires[i]->SetVisualizationType(VisualizationType::MESH);
             case 3:
-                pacejka_tires[i] = std::make_shared<hmmwv::HMMWV_Pac02Tire>(vehicle::GetDataFile(pacejka_tire_file));
+                pacejka_tires[i] = chrono_types::make_shared<hmmwv::HMMWV_Pac02Tire>(vehicle::GetDataFile(pacejka_tire_file));
                 if (pacejka_tires[i] == nullptr) {
                     GetLog() << "Bad Pacejka tire problem\n";
                 }
@@ -197,7 +197,7 @@ int main(int argc, char* argv[]) {
                 pacejka_tires[i]->SetVisualizationType(VisualizationType::MESH);
                 break;
             case 4:
-                pacejka89_tires[i] = std::make_shared<hmmwv::HMMWV_Pac89Tire>("HMMWV_Pac89_Tire");
+                pacejka89_tires[i] = chrono_types::make_shared<hmmwv::HMMWV_Pac89Tire>("HMMWV_Pac89_Tire");
                 if (pacejka89_tires[i] == nullptr) {
                     GetLog() << "Bad Pacejka89 tire problem\n";
                 }

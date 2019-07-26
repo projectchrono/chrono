@@ -66,7 +66,7 @@ void ChRoadWheel::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
     // Create and initialize the revolute joint between wheel and carrier.
     // The axis of rotation is the y axis of the road wheel reference frame.
-    m_revolute = std::make_shared<ChLinkLockRevolute>();
+    m_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute->SetNameString(m_name + "_revolute");
     m_revolute->Initialize(carrier, m_wheel,
                            ChCoordsys<>(wheel_to_abs.GetPos(), wheel_to_abs.GetRot() * Q_from_AngX(CH_C_PI_2)));

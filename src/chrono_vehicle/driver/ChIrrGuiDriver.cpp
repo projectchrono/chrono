@@ -226,7 +226,7 @@ void ChIrrGuiDriver::SetGains(double steering_gain, double throttle_gain, double
 
 void ChIrrGuiDriver::SetInputDataFile(const std::string& filename) {
     // Embed a DataDriver.
-    m_data_driver = std::make_shared<ChDataDriver>(m_vehicle, filename, false);
+    m_data_driver = chrono_types::make_shared<ChDataDriver>(m_vehicle, filename, false);
 }
 
 void ChIrrGuiDriver::SetInputMode(InputMode mode) {

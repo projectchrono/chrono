@@ -134,7 +134,7 @@ int main(int argc, char* argv[]) {
     // Create the surface material, containing information
     // about friction etc.
 
-    auto mysurfmaterial = std::make_shared<ChMaterialSurfaceSMC>();
+    auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     mysurfmaterial->SetYoungModulus(10e4);
     mysurfmaterial->SetFriction(0.3f);
     mysurfmaterial->SetRestitution(0.2f);
@@ -143,13 +143,13 @@ int main(int argc, char* argv[]) {
     // Create a mesh, that is a container for groups
     // of FEA elements and their referenced nodes.
 
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
     my_system.Add(my_mesh);
 
     // Create a material, that must be assigned to each solid element in the mesh,
     // and set its parameters
 
-    auto mmaterial = std::make_shared<ChContinuumElastic>();
+    auto mmaterial = chrono_types::make_shared<ChContinuumElastic>();
     mmaterial->Set_E(0.003e9);  // rubber 0.01e9, steel 200e9
     mmaterial->Set_v(0.4);
     mmaterial->Set_RayleighDampingK(0.004);
@@ -173,7 +173,7 @@ int main(int argc, char* argv[]) {
     // Create the contact surface(s).
     // Use the AddFacesFromBoundary() to select automatically the outer skin of the tetrahedron mesh:
 
-    auto mcontactsurf = std::make_shared<ChContactSurfaceMesh>();
+    auto mcontactsurf = chrono_types::make_shared<ChContactSurfaceMesh>();
     my_mesh->AddContactSurface(mcontactsurf);
 
     mcontactsurf->AddFacesFromBoundary();
@@ -184,10 +184,10 @@ int main(int argc, char* argv[]) {
     // Create a mesh load for cosimulation, acting on the contact surface above
     // (forces on nodes will be computed by an external procedure)
 
-    auto mloadcontainer = std::make_shared<ChLoadContainer>();
+    auto mloadcontainer = chrono_types::make_shared<ChLoadContainer>();
     my_system.Add(mloadcontainer);
 
-    auto mmeshload = std::make_shared<ChLoadContactSurfaceMesh>(mcontactsurf);
+    auto mmeshload = chrono_types::make_shared<ChLoadContactSurfaceMesh>(mcontactsurf);
     mloadcontainer->Add(mmeshload);
 
     //
@@ -199,7 +199,7 @@ int main(int argc, char* argv[]) {
     // asset that is internally managed) by setting  proper
     // coordinates and vertex colors as in the FEM elements.
 
-    auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 10);
     mvisualizemesh->SetSmoothFaces(true);
@@ -213,23 +213,23 @@ int main(int argc, char* argv[]) {
     // this time the ChLoadContactSurfaceMesh cannot be used as in the FEA case, so we
     // will use the ChLoadBodyMesh class:
 
-    auto mrigidbody = std::make_shared<ChBody>();
+    auto mrigidbody = chrono_types::make_shared<ChBody>();
     my_system.Add(mrigidbody);
     mrigidbody->SetMass(200);
     mrigidbody->SetInertiaXX(ChVector<>(20, 20, 20));
     mrigidbody->SetPos(tire_center + ChVector<>(-1, 0, 0));
 
-    auto mrigidmesh = std::make_shared<ChTriangleMeshShape>();
+    auto mrigidmesh = chrono_types::make_shared<ChTriangleMeshShape>();
     mrigidmesh->GetMesh()->LoadWavefrontMesh(GetChronoDataFile("tractor_wheel_fine.obj"));
     mrigidmesh->GetMesh()->Transform(VNULL, Q_from_AngAxis(CH_C_PI, VECT_Y));
     mrigidbody->AddAsset(mrigidmesh);
 
-    auto mcol = std::make_shared<ChColorAsset>();
+    auto mcol = chrono_types::make_shared<ChColorAsset>();
     mcol->SetColor(ChColor(0.3f, 0.3f, 0.3f));
     mrigidbody->AddAsset(mcol);
 
     // this is used to use the mesh in cosimulation!
-    auto mrigidmeshload = std::make_shared<ChLoadBodyMesh>(mrigidbody, *mrigidmesh->GetMesh());
+    auto mrigidmeshload = chrono_types::make_shared<ChLoadBodyMesh>(mrigidbody, *mrigidmesh->GetMesh());
     mloadcontainer->Add(mrigidmeshload);
 
     // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items

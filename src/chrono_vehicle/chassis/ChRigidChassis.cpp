@@ -101,9 +101,9 @@ void ChRigidChassis::AddVisualizationAssets(VisualizationType vis) {
         return;
 
     if (vis == VisualizationType::MESH && m_has_mesh) {
-        auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
         trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_vis_mesh_file), false, false);
-        auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(m_vis_mesh_name);
         trimesh_shape->SetStatic(true);
@@ -113,14 +113,14 @@ void ChRigidChassis::AddVisualizationAssets(VisualizationType vis) {
 
     if (vis == VisualizationType::PRIMITIVES && m_has_primitives) {
         for (auto sphere : m_vis_spheres) {
-            auto sphere_shape = std::make_shared<ChSphereShape>();
+            auto sphere_shape = chrono_types::make_shared<ChSphereShape>();
             sphere_shape->GetSphereGeometry().rad = sphere.m_radius;
             sphere_shape->Pos = sphere.m_pos;
             m_body->AddAsset(sphere_shape);
         }
 
         for (auto box : m_vis_boxes) {
-            auto box_shape = std::make_shared<ChBoxShape>();
+            auto box_shape = chrono_types::make_shared<ChBoxShape>();
             box_shape->GetBoxGeometry().SetLengths(box.m_dims);
             box_shape->Pos = box.m_pos;
             box_shape->Rot = box.m_rot;
@@ -128,7 +128,7 @@ void ChRigidChassis::AddVisualizationAssets(VisualizationType vis) {
         }
 
         for (auto cyl : m_vis_cylinders) {
-            auto cyl_shape = std::make_shared<ChCylinderShape>();
+            auto cyl_shape = chrono_types::make_shared<ChCylinderShape>();
             cyl_shape->GetCylinderGeometry().rad = cyl.m_radius;
             cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, cyl.m_length / 2, 0);
             cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, -cyl.m_length / 2, 0);
@@ -140,7 +140,7 @@ void ChRigidChassis::AddVisualizationAssets(VisualizationType vis) {
         return;
     }
 
-    auto sphere_shape = std::make_shared<ChSphereShape>();
+    auto sphere_shape = chrono_types::make_shared<ChSphereShape>();
     sphere_shape->GetSphereGeometry().rad = 0.1;
     sphere_shape->Pos = GetLocalPosCOM();
     m_body->AddAsset(sphere_shape);

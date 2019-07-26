@@ -66,7 +66,7 @@ void create_column(ChSystemNSC& mphysicalSystem,
         double y = col_base;
         mpoints.push_back(ChVector<>(x, y, z));
     }
-    auto bodyColumn = std::make_shared<ChBodyEasyConvexHull>(mpoints, col_density, true, true);
+    auto bodyColumn = chrono_types::make_shared<ChBodyEasyConvexHull>(mpoints, col_density, true, true);
     ChCoordsys<> cog_column(ChVector<>(0, col_base + col_height / 2, 0));
     ChCoordsys<> abs_cog_column = cog_column >> base_pos;
     bodyColumn->SetCoord(abs_cog_column);
@@ -95,36 +95,36 @@ int main(int argc, char* argv[]) {
 
     // Create a floor that is fixed (that is used also to represent the absolute reference)
 
-    auto floorBody = std::make_shared<ChBodyEasyBox>(20, 2, 20, 3000, false, true);
+    auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 2, 20, 3000, false, true);
     floorBody->SetPos(ChVector<>(0, -2, 0));
     floorBody->SetBodyFixed(true);
 
     mphysicalSystem.Add(floorBody);
 
     // optional, attach a texture for better visualization
-    auto mtexture = std::make_shared<ChTexture>();
+    auto mtexture = chrono_types::make_shared<ChTexture>();
     mtexture->SetTextureFilename(GetChronoDataFile("blu.png"));
     floorBody->AddAsset(mtexture);
 
     // Create the table that is subject to earthquake
 
-    auto tableBody = std::make_shared<ChBodyEasyBox>(15, 1, 15, 3000, true, true);
+    auto tableBody = chrono_types::make_shared<ChBodyEasyBox>(15, 1, 15, 3000, true, true);
     tableBody->SetPos(ChVector<>(0, -0.5, 0));
 
     mphysicalSystem.Add(tableBody);
 
     // optional, attach a texture for better visualization
-    auto mtextureconcrete = std::make_shared<ChTexture>();
+    auto mtextureconcrete = chrono_types::make_shared<ChTexture>();
     mtextureconcrete->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
     tableBody->AddAsset(mtextureconcrete);
 
     // Create the constraint between ground and table. If no earthquacke, it just
     // keeps the table in position.
 
-    auto linkEarthquake = std::make_shared<ChLinkLockLock>();
+    auto linkEarthquake = chrono_types::make_shared<ChLinkLockLock>();
     linkEarthquake->Initialize(tableBody, floorBody, ChCoordsys<>(ChVector<>(0, 0, 0)));
 
-    auto mmotion_x = std::make_shared<ChFunction_Sine>(0, 0.6, 0.2);  // phase freq ampl
+    auto mmotion_x = chrono_types::make_shared<ChFunction_Sine>(0, 0.6, 0.2);  // phase freq ampl
     linkEarthquake->SetMotion_X(mmotion_x);
 
     mphysicalSystem.Add(linkEarthquake);
@@ -143,7 +143,7 @@ int main(int argc, char* argv[]) {
         create_column(mphysicalSystem, base_position3, 10, 0.35, 0.40, 1.5, density);
  
         if (icol < 4) {
-            auto bodyTop = std::make_shared<ChBodyEasyBox>(spacing, 0.4, 1.2,  // x y z sizes
+            auto bodyTop = chrono_types::make_shared<ChBodyEasyBox>(spacing, 0.4, 1.2,  // x y z sizes
                                                            density, true, true);
 
             ChCoordsys<> cog_top(ChVector<>(icol * spacing + spacing / 2, 4.5 + 0.4 / 2, 0));

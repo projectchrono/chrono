@@ -59,7 +59,7 @@ lock.
 
 Minimal usage example, to be put anywhere in the code, before starting the main simulation loop:
 \code{.cpp}
-auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
 application.GetSystem()->SetSolver(mkl_solver);
 \endcode
 

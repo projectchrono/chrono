@@ -58,7 +58,7 @@ void ANCFToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSid
             double nz = cos(theta) * sin(phi);
             ChVector<> dir = wheel_frame.TransformDirectionLocalToParent(ChVector<>(nx, ny, nz));
 
-            auto node = std::make_shared<ChNodeFEAxyzD>(loc, dir);
+            auto node = chrono_types::make_shared<ChNodeFEAxyzD>(loc, dir);
             node->SetMass(0);
             m_mesh->AddNode(node);
         }

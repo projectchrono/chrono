@@ -62,13 +62,13 @@ int main(int argc, char* argv[]) {
 
     // Create a ChBody that contains the trajectory (a floor, fixed body)
 
-    auto mfloor = std::make_shared<ChBodyEasyBox>(3, 0.2, 3, 1000);
+    auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(3, 0.2, 3, 1000);
     mfloor->SetBodyFixed(true);
     // mfloor->SetRot(Q_from_AngAxis(0.1,VECT_Z));
     application.GetSystem()->Add(mfloor);
 
     // Create a ChLinePath geometry, and insert sub-paths:
-    auto mpath = std::make_shared<ChLinePath>();
+    auto mpath = chrono_types::make_shared<ChLinePath>();
     ChLineSegment mseg1(ChVector<>(1, 2, 0), ChVector<>(2, 2, 0));
     mpath->AddSubLine(mseg1);
     ChLineArc marc1(ChCoordsys<>(ChVector<>(2, 2.5, 0)), 0.5, -CH_C_PI_2, CH_C_PI_2, true);
@@ -81,19 +81,19 @@ int main(int argc, char* argv[]) {
 
     // Create a ChLineShape, a visualization asset for lines.
     // The ChLinePath is a special type of ChLine and it can be visualized.
-    auto mpathasset = std::make_shared<ChLineShape>();
+    auto mpathasset = chrono_types::make_shared<ChLineShape>();
     mpathasset->SetLineGeometry(mpath);
     mfloor->AddAsset(mpathasset);
 
     // Create a body that will follow the trajectory
 
-    auto mpendulum = std::make_shared<ChBodyEasyBox>(0.1, 1, 0.1, 1000);
+    auto mpendulum = chrono_types::make_shared<ChBodyEasyBox>(0.1, 1, 0.1, 1000);
     mpendulum->SetPos(ChVector<>(1, 1.5, 0));
     application.GetSystem()->Add(mpendulum);
 
     // The trajectory constraint:
 
-    auto mtrajectory = std::make_shared<ChLinkTrajectory>();
+    auto mtrajectory = chrono_types::make_shared<ChLinkTrajectory>();
 
     // Define which parts are connected (the trajectory is considered in the 2nd body).
     mtrajectory->Initialize(mpendulum,              // body1 that follows the trajectory
@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
 
     // Optionally, set a function that gets the curvilinear
     // abscyssa s of the line, as a function of time s(t). By default it was simply  s=t.
-    auto mspacefx = std::make_shared<ChFunction_Ramp>(0, 0.5);
+    auto mspacefx = chrono_types::make_shared<ChFunction_Ramp>(0, 0.5);
     mtrajectory->Set_space_fx(mspacefx);
 
     application.GetSystem()->Add(mtrajectory);
@@ -115,18 +115,18 @@ int main(int argc, char* argv[]) {
 
     // Create a ChBody that contains the trajectory
 
-    auto mwheel = std::make_shared<ChBody>();
+    auto mwheel = chrono_types::make_shared<ChBody>();
     mwheel->SetPos(ChVector<>(-3, 2, 0));
     application.GetSystem()->Add(mwheel);
 
     // Create a motor that spins the wheel
-    auto motor = std::make_shared<ChLinkMotorRotationSpeed>();
+    auto motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     motor->Initialize(mwheel, mfloor, ChFrame<>(ChVector<>(-3, 2, 0)));
-    motor->SetSpeedFunction(std::make_shared<ChFunction_Const>(CH_C_PI / 4.0));
+    motor->SetSpeedFunction(chrono_types::make_shared<ChFunction_Const>(CH_C_PI / 4.0));
     mphysicalSystem.AddLink(motor);
 
     // Create a ChLinePath geometry, and insert sub-paths:
-    auto mglyph = std::make_shared<ChLinePath>();
+    auto mglyph = chrono_types::make_shared<ChLinePath>();
     ChLineSegment ms1(ChVector<>(-0.5, -0.5, 0), ChVector<>(0.5, -0.5, 0));
     mglyph->AddSubLine(ms1);
     ChLineArc ma1(ChCoordsys<>(ChVector<>(0.5, 0, 0)), 0.5, -CH_C_PI_2, CH_C_PI_2, true);
@@ -140,19 +140,19 @@ int main(int argc, char* argv[]) {
 
     // Create a ChLineShape, a visualization asset for lines.
     // The ChLinePath is a special type of ChLine and it can be visualized.
-    auto mglyphasset = std::make_shared<ChLineShape>();
+    auto mglyphasset = chrono_types::make_shared<ChLineShape>();
     mglyphasset->SetLineGeometry(mglyph);
     mwheel->AddAsset(mglyphasset);
 
     // Create a body that will slide on the glyph
 
-    auto mpendulum2 = std::make_shared<ChBodyEasyBox>(0.1, 1, 0.1, 1000);
+    auto mpendulum2 = chrono_types::make_shared<ChBodyEasyBox>(0.1, 1, 0.1, 1000);
     mpendulum2->SetPos(ChVector<>(-3, 1, 0));
     application.GetSystem()->Add(mpendulum2);
 
     // The glyph constraint:
 
-    auto mglyphconstraint = std::make_shared<ChLinkPointSpline>();
+    auto mglyphconstraint = chrono_types::make_shared<ChLinkPointSpline>();
 
     // Define which parts are connected (the trajectory is considered in the 2nd body).
     mglyphconstraint->Initialize(mpendulum2,  // body1 that follows the trajectory

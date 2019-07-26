@@ -82,7 +82,7 @@ GranularTerrain::GranularTerrain(ChSystem* system)
     system->AddBody(m_ground);
 
     // Set default parameters for contact materials
-    m_matSMC = std::make_shared<ChMaterialSurfaceSMC>();
+    m_matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     m_matSMC->SetFriction(0.9f);
     m_matSMC->SetRestitution(0.0f);
     m_matSMC->SetAdhesion(0.0f);
@@ -93,13 +93,13 @@ GranularTerrain::GranularTerrain(ChSystem* system)
     m_matSMC->SetKt(2e5f);
     m_matSMC->SetGt(20.0f);
 
-    m_matNSC = std::make_shared<ChMaterialSurfaceNSC>();
+    m_matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     m_matNSC->SetFriction(0.9f);
     m_matNSC->SetRestitution(0.0f);
     m_matNSC->SetCohesion(0.0f);
 
     // Create the default color asset
-    m_color = std::make_shared<ChColorAsset>();
+    m_color = chrono_types::make_shared<ChColorAsset>();
     m_color->SetColor(ChColor(1, 1, 1));
     m_ground->AddAsset(m_color);
 }
@@ -394,12 +394,12 @@ void GranularTerrain::Initialize(const ChVector<>& center,
         for (int ix = 0; ix < m_nx; ix++) {
             double y_pos = -0.5 * width;
             for (int iy = 0; iy < m_ny; iy++) {
-                auto sphere = std::make_shared<ChSphereShape>();
+                auto sphere = chrono_types::make_shared<ChSphereShape>();
                 sphere->GetSphereGeometry().rad = radius;
                 sphere->Pos = ChVector<>(x_pos, y_pos, radius);
                 m_ground->AddAsset(sphere);
 
-                ////auto box = std::make_shared<ChBoxShape>();
+                ////auto box = chrono_types::make_shared<ChBoxShape>();
                 ////double hside = radius / std::sqrt(2.0);
                 ////box->GetBoxGeometry().Size = ChVector<>(hside, hside, hside);
                 ////box->Pos = ChVector<>(x_pos, y_pos, radius);
@@ -466,7 +466,7 @@ void GranularTerrain::Initialize(const ChVector<>& center,
 
     // If enabled, create visualization assets for the boundaries.
     if (m_vis_enabled) {
-        auto box = std::make_shared<ChBoxShape>();
+        auto box = chrono_types::make_shared<ChBoxShape>();
         double hthick = 0.05;
         box->GetBoxGeometry().Size = ChVector<>(length / 2, width / 2, hthick);
         box->Pos = ChVector<>(0, 0, -hthick);

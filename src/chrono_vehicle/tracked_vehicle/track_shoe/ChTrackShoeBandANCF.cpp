@@ -113,7 +113,7 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                     // Node direction
                     auto node_dir = zdir;
                     // Create the node
-                    auto node = std::make_shared<ChNodeFEAxyzD>(node_loc, node_dir);
+                    auto node = chrono_types::make_shared<ChNodeFEAxyzD>(node_loc, node_dir);
                     // No additional mass assigned to nodes
                     node->SetMass(0);
                     // Add node to mesh
@@ -181,7 +181,7 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                     // Node direction derivative
                     auto node_curv = ChVector<>(0.0, 0.0, 0.0);
                     // Create the node
-                    auto node = std::make_shared<ChNodeFEAxyzDD>(node_loc, node_dir, node_curv);
+                    auto node = chrono_types::make_shared<ChNodeFEAxyzDD>(node_loc, node_dir, node_curv);
                     // No additional mass assigned to nodes
                     node->SetMass(0);
                     // Add node to mesh
@@ -373,11 +373,11 @@ void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next) {
 
                 node->SetD(rot_cur_shoe.GetZaxis());
 
-                auto constraintxyz = std::make_shared<ChLinkPointFrame>();
+                auto constraintxyz = chrono_types::make_shared<ChLinkPointFrame>();
                 constraintxyz->Initialize(node, m_shoe);
                 system->Add(constraintxyz);
 
-                auto constraintD = std::make_shared<ChLinkDirFrame>();
+                auto constraintD = chrono_types::make_shared<ChLinkDirFrame>();
                 constraintD->Initialize(node, m_shoe);
                 system->Add(constraintD);
             }
@@ -390,11 +390,11 @@ void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next) {
 
                 node->SetD(rot_next_shoe.GetZaxis());
 
-                auto constraintxyz = std::make_shared<ChLinkPointFrame>();
+                auto constraintxyz = chrono_types::make_shared<ChLinkPointFrame>();
                 constraintxyz->Initialize(node, next->GetShoeBody());
                 system->Add(constraintxyz);
 
-                auto constraintD = std::make_shared<ChLinkDirFrame>();
+                auto constraintD = chrono_types::make_shared<ChLinkDirFrame>();
                 constraintD->Initialize(node, next->GetShoeBody());
                 system->Add(constraintD);
             }
@@ -418,11 +418,11 @@ void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next) {
 
                 node->SetD(rot_cur_shoe.GetZaxis());
 
-                auto constraintxyz = std::make_shared<ChLinkPointFrame>();
+                auto constraintxyz = chrono_types::make_shared<ChLinkPointFrame>();
                 constraintxyz->Initialize(node, m_shoe);
                 system->Add(constraintxyz);
 
-                auto constraintD = std::make_shared<ChLinkDirFrame>();
+                auto constraintD = chrono_types::make_shared<ChLinkDirFrame>();
                 constraintD->Initialize(node, m_shoe);
                 system->Add(constraintD);
             }
@@ -435,11 +435,11 @@ void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next) {
 
                 node->SetD(rot_next_shoe.GetZaxis());
 
-                auto constraintxyz = std::make_shared<ChLinkPointFrame>();
+                auto constraintxyz = chrono_types::make_shared<ChLinkPointFrame>();
                 constraintxyz->Initialize(node, next->GetShoeBody());
                 system->Add(constraintxyz);
 
-                auto constraintD = std::make_shared<ChLinkDirFrame>();
+                auto constraintD = chrono_types::make_shared<ChLinkDirFrame>();
                 constraintD->Initialize(node, next->GetShoeBody());
                 system->Add(constraintD);
             }

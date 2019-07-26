@@ -41,7 +41,7 @@ using namespace irr::gui;
 
 void create_wall_bodies(ChSystemNSC& mphysicalSystem) {
     // Create a material that will be shared between bricks
-    auto mmaterial = std::make_shared<ChMaterialSurfaceNSC>();
+    auto mmaterial = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     mmaterial->SetFriction(0.4f);
     mmaterial->SetCompliance(0.0000005f);
     mmaterial->SetComplianceT(0.0000005f);
@@ -54,7 +54,7 @@ void create_wall_bodies(ChSystemNSC& mphysicalSystem) {
         {
             for (int ui = 0; ui < 15; ui++)  // N. of hor. bricks
             {
-                auto mrigidBody = std::make_shared<ChBodyEasyBox>(3.96, 2, 4,  // x,y,z size
+                auto mrigidBody = chrono_types::make_shared<ChBodyEasyBox>(3.96, 2, 4,  // x,y,z size
                                                                   100,         // density
                                                                   true,        // collide enable?
                                                                   true);       // visualization?
@@ -64,7 +64,7 @@ void create_wall_bodies(ChSystemNSC& mphysicalSystem) {
                 mphysicalSystem.Add(mrigidBody);
 
                 // optional, attach a texture for better visualization
-                auto mtexture = std::make_shared<ChTexture>();
+                auto mtexture = chrono_types::make_shared<ChTexture>();
                 mtexture->SetTextureFilename(GetChronoDataFile("cubetexture_borders.png"));
                 mrigidBody->AddAsset(mtexture);
             }
@@ -74,7 +74,7 @@ void create_wall_bodies(ChSystemNSC& mphysicalSystem) {
     // Create the floor using
     // fixed rigid body of 'box' type:
 
-    auto mrigidFloor = std::make_shared<ChBodyEasyBox>(250, 4, 250,  // x,y,z size
+    auto mrigidFloor = chrono_types::make_shared<ChBodyEasyBox>(250, 4, 250,  // x,y,z size
                                                        1000,         // density
                                                        true,         // collide enable?
                                                        true);        // visualization?
@@ -85,7 +85,7 @@ void create_wall_bodies(ChSystemNSC& mphysicalSystem) {
     mphysicalSystem.Add(mrigidFloor);
 
     // Create a ball that will collide with wall
-    auto mrigidBall = std::make_shared<ChBodyEasySphere>(4,      // radius
+    auto mrigidBall = chrono_types::make_shared<ChBodyEasySphere>(4,      // radius
                                                          8000,   // density
                                                          true,   // collide enable?
                                                          true);  // visualization?
@@ -101,7 +101,7 @@ void create_wall_bodies(ChSystemNSC& mphysicalSystem) {
     mphysicalSystem.Add(mrigidBall);
 
     // optional, attach a texture for better visualization
-    auto mtextureball = std::make_shared<ChTexture>();
+    auto mtextureball = chrono_types::make_shared<ChTexture>();
     mtextureball->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
     mrigidBall->AddAsset(mtextureball);
 }
@@ -111,7 +111,7 @@ void create_wall_bodies(ChSystemNSC& mphysicalSystem) {
 
 void create_jengatower_bodies(ChSystemNSC& mphysicalSystem) {
     // Create a material that will be shared between bricks
-    auto mmaterial = std::make_shared<ChMaterialSurfaceNSC>();
+    auto mmaterial = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     mmaterial->SetFriction(0.4f);
     mmaterial->SetCompliance(0.0000005f);
     mmaterial->SetComplianceT(0.0000005f);
@@ -119,7 +119,7 @@ void create_jengatower_bodies(ChSystemNSC& mphysicalSystem) {
 
     // Create bricks
     for (int bi = 0; bi < 12; bi += 2) {
-        auto mrigidBody1 = std::make_shared<ChBodyEasyBox>(2, 2, 14,        // x,y,z size
+        auto mrigidBody1 = chrono_types::make_shared<ChBodyEasyBox>(2, 2, 14,        // x,y,z size
                                                            100,             // density
                                                            true,            // collide enable?
                                                            true);           // visualization?
@@ -127,7 +127,7 @@ void create_jengatower_bodies(ChSystemNSC& mphysicalSystem) {
         mrigidBody1->SetMaterialSurface(mmaterial);  // use shared surface properties
         mphysicalSystem.Add(mrigidBody1);
 
-        auto mrigidBody2 = std::make_shared<ChBodyEasyBox>(2, 2, 14,  // x,y,z size
+        auto mrigidBody2 = chrono_types::make_shared<ChBodyEasyBox>(2, 2, 14,  // x,y,z size
                                                            100,       // density
                                                            true,      // collide enable?
                                                            true);     // visualization?
@@ -135,7 +135,7 @@ void create_jengatower_bodies(ChSystemNSC& mphysicalSystem) {
         mrigidBody2->SetMaterialSurface(mmaterial);  // use shared surface properties
         mphysicalSystem.Add(mrigidBody2);
 
-        auto mrigidBody3 = std::make_shared<ChBodyEasyBox>(14, 2, 2,  // x,y,z size
+        auto mrigidBody3 = chrono_types::make_shared<ChBodyEasyBox>(14, 2, 2,  // x,y,z size
                                                            100,       // density
                                                            true,      // collide enable?
                                                            true);     // visualization?
@@ -143,7 +143,7 @@ void create_jengatower_bodies(ChSystemNSC& mphysicalSystem) {
         mrigidBody3->SetMaterialSurface(mmaterial);  // use shared surface properties
         mphysicalSystem.Add(mrigidBody3);
 
-        auto mrigidBody4 = std::make_shared<ChBodyEasyBox>(14, 2, 2,  // x,y,z size
+        auto mrigidBody4 = chrono_types::make_shared<ChBodyEasyBox>(14, 2, 2,  // x,y,z size
                                                            100,       // density
                                                            true,      // collide enable?
                                                            true);     // visualization?
@@ -154,7 +154,7 @@ void create_jengatower_bodies(ChSystemNSC& mphysicalSystem) {
 
     // Create the floor using
     // fixed rigid body of 'box' type:
-    auto mrigidFloor = std::make_shared<ChBodyEasyBox>(250, 4, 250,  // x,y,z size
+    auto mrigidFloor = chrono_types::make_shared<ChBodyEasyBox>(250, 4, 250,  // x,y,z size
                                                        1000,         // density
                                                        true,         // collide enable?
                                                        true);        // visualization?
@@ -165,7 +165,7 @@ void create_jengatower_bodies(ChSystemNSC& mphysicalSystem) {
     mphysicalSystem.Add(mrigidFloor);
 
     // Create a ball that will collide with tower
-    auto mrigidBall = std::make_shared<ChBodyEasySphere>(4,      // radius
+    auto mrigidBall = chrono_types::make_shared<ChBodyEasySphere>(4,      // radius
                                                          1000,   // density
                                                          true,   // collide enable?
                                                          true);  // visualization?
@@ -180,7 +180,7 @@ void create_jengatower_bodies(ChSystemNSC& mphysicalSystem) {
     mphysicalSystem.Add(mrigidBall);
 
     // optional, attach a texture for better visualization
-    auto mtextureball = std::make_shared<ChTexture>();
+    auto mtextureball = chrono_types::make_shared<ChTexture>();
     mtextureball->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
     mrigidBall->AddAsset(mtextureball);
 }

@@ -113,7 +113,7 @@ std::shared_ptr<ChChassis> ReadChassisJSON(const std::string& filename) {
 
     // Create the chassis using the appropriate template.
     if (subtype.compare("RigidChassis") == 0) {
-        chassis = std::make_shared<RigidChassis>(d);
+        chassis = chrono_types::make_shared<RigidChassis>(d);
     } else {
         throw ChException("Chassis type not supported in ReadChassisJSON.");
     }
@@ -143,23 +143,23 @@ std::shared_ptr<ChSuspension> ReadSuspensionJSON(const std::string& filename) {
 
     // Create the suspension using the appropriate template.
     if (subtype.compare("DoubleWishbone") == 0) {
-        suspension = std::make_shared<DoubleWishbone>(d);
+        suspension = chrono_types::make_shared<DoubleWishbone>(d);
     } else if (subtype.compare("DoubleWishboneReduced") == 0) {
-        suspension = std::make_shared<DoubleWishboneReduced>(d);
+        suspension = chrono_types::make_shared<DoubleWishboneReduced>(d);
     } else if (subtype.compare("SolidAxle") == 0) {
-        suspension = std::make_shared<SolidAxle>(d);
+        suspension = chrono_types::make_shared<SolidAxle>(d);
     } else if (subtype.compare("MultiLink") == 0) {
-        suspension = std::make_shared<MultiLink>(d);
+        suspension = chrono_types::make_shared<MultiLink>(d);
     } else if (subtype.compare("MacPhersonStrut") == 0) {
-        suspension = std::make_shared<MacPhersonStrut>(d);
+        suspension = chrono_types::make_shared<MacPhersonStrut>(d);
     } else if (subtype.compare("SemiTrailingArm") == 0) {
-        suspension = std::make_shared<SemiTrailingArm>(d);
+        suspension = chrono_types::make_shared<SemiTrailingArm>(d);
     } else if (subtype.compare("ThreeLinkIRS") == 0) {
-        suspension = std::make_shared<ThreeLinkIRS>(d);
+        suspension = chrono_types::make_shared<ThreeLinkIRS>(d);
     } else if (subtype.compare("ToeBarLeafspringAxle") == 0) {
-        suspension = std::make_shared<ToeBarLeafspringAxle>(d);
+        suspension = chrono_types::make_shared<ToeBarLeafspringAxle>(d);
     } else if (subtype.compare("LeafspringAxle") == 0) {
-        suspension = std::make_shared<LeafspringAxle>(d);
+        suspension = chrono_types::make_shared<LeafspringAxle>(d);
     } else {
         throw ChException("Suspension type not supported in ReadSuspensionJSON.");
     }
@@ -189,11 +189,11 @@ std::shared_ptr<ChSteering> ReadSteeringJSON(const std::string& filename) {
 
     // Create the steering using the appropriate template.
     if (subtype.compare("PitmanArm") == 0) {
-        steering = std::make_shared<PitmanArm>(d);
+        steering = chrono_types::make_shared<PitmanArm>(d);
     } else if (subtype.compare("RackPinion") == 0) {
-        steering = std::make_shared<RackPinion>(d);
+        steering = chrono_types::make_shared<RackPinion>(d);
     } else if (subtype.compare("RotaryArm") == 0) {
-        steering = std::make_shared<RotaryArm>(d);
+        steering = chrono_types::make_shared<RotaryArm>(d);
     } else {
         throw ChException("Steering type not supported in ReadSteeringJSON.");
     }
@@ -223,11 +223,11 @@ std::shared_ptr<ChDriveline> ReadDrivelineJSON(const std::string& filename) {
 
     // Create the driveline using the appropriate template.
     if (subtype.compare("ShaftsDriveline2WD") == 0) {
-        driveline = std::make_shared<ShaftsDriveline2WD>(d);
+        driveline = chrono_types::make_shared<ShaftsDriveline2WD>(d);
     } else if (subtype.compare("ShaftsDriveline4WD") == 0) {
-        driveline = std::make_shared<ShaftsDriveline4WD>(d);
+        driveline = chrono_types::make_shared<ShaftsDriveline4WD>(d);
     } else if (subtype.compare("SimpleDriveline") == 0) {
-        driveline = std::make_shared<SimpleDriveline>(d);
+        driveline = chrono_types::make_shared<SimpleDriveline>(d);
     } else {
         throw ChException("Driveline type not supported in ReadDrivelineJSON.");
     }
@@ -257,7 +257,7 @@ std::shared_ptr<ChAntirollBar> ReadAntirollbarJSON(const std::string& filename) 
 
     // Create the antirollbar using the appropriate template.
     if (subtype.compare("AntirollBarRSD") == 0) {
-        antirollbar = std::make_shared<AntirollBarRSD>(d);
+        antirollbar = chrono_types::make_shared<AntirollBarRSD>(d);
     } else {
         throw ChException("AntirollBar type not supported in ReadAntirollbarJSON.");
     }
@@ -287,7 +287,7 @@ std::shared_ptr<ChWheel> ReadWheelJSON(const std::string& filename) {
 
     // Create the wheel using the appropriate template.
     if (subtype.compare("Wheel") == 0) {
-        wheel = std::make_shared<Wheel>(d);
+        wheel = chrono_types::make_shared<Wheel>(d);
     } else {
         throw ChException("Wheel type not supported in ReadWheelJSON.");
     }
@@ -317,7 +317,7 @@ std::shared_ptr<ChBrake> ReadBrakeJSON(const std::string& filename) {
 
     // Create the brake using the appropriate template.
     if (subtype.compare("BrakeSimple") == 0) {
-        brake = std::make_shared<BrakeSimple>(d);
+        brake = chrono_types::make_shared<BrakeSimple>(d);
     } else {
         throw ChException("Brake type not supported in ReadBrakeJSON.");
     }
@@ -347,21 +347,21 @@ std::shared_ptr<ChTire> ReadTireJSON(const std::string& filename) {
 
     // Create the tire using the appropriate template.
     if (subtype.compare("RigidTire") == 0) {
-        tire = std::make_shared<RigidTire>(d);
+        tire = chrono_types::make_shared<RigidTire>(d);
     } else if (subtype.compare("TMeasyTire") == 0) {
-        tire = std::make_shared<TMeasyTire>(d);
+        tire = chrono_types::make_shared<TMeasyTire>(d);
     } else if (subtype.compare("FialaTire") == 0) {
-        tire = std::make_shared<FialaTire>(d);
+        tire = chrono_types::make_shared<FialaTire>(d);
     } else if (subtype.compare("LugreTire") == 0) {
-        tire = std::make_shared<LugreTire>(d);
+        tire = chrono_types::make_shared<LugreTire>(d);
     } else if (subtype.compare("PacejkaTire") == 0) {
-        tire = std::make_shared<PacejkaTire>(d);
+        tire = chrono_types::make_shared<PacejkaTire>(d);
     } else if (subtype.compare("ANCFTire") == 0) {
-        tire = std::make_shared<ANCFTire>(d);
+        tire = chrono_types::make_shared<ANCFTire>(d);
     } else if (subtype.compare("ReissnerTire") == 0) {
-        tire = std::make_shared<ReissnerTire>(d);
+        tire = chrono_types::make_shared<ReissnerTire>(d);
     } else if (subtype.compare("FEATire") == 0) {
-        tire = std::make_shared<FEATire>(d);
+        tire = chrono_types::make_shared<FEATire>(d);
     } else {
         throw ChException("Tire type not supported in ReadTireJSON.");
     }
@@ -393,13 +393,13 @@ std::shared_ptr<ChTrackAssembly> ReadTrackAssemblySON(const std::string& filenam
 
     // Create the steering using the appropriate template.
     if (subtype.compare("TrackAssemblySinglePin") == 0) {
-        track = std::make_shared<TrackAssemblySinglePin>(d);
+        track = chrono_types::make_shared<TrackAssemblySinglePin>(d);
     } else if (subtype.compare("TrackAssemblyDoublePin") == 0) {
-        track = std::make_shared<TrackAssemblyDoublePin>(d);
+        track = chrono_types::make_shared<TrackAssemblyDoublePin>(d);
     } else if (subtype.compare("TrackAssemblyBandBushing") == 0) {
-        track = std::make_shared<TrackAssemblyBandBushing>(d);
+        track = chrono_types::make_shared<TrackAssemblyBandBushing>(d);
     } else if (subtype.compare("TrackAssemblyBandANCF") == 0) {
-        track = std::make_shared<TrackAssemblyBandANCF>(d);
+        track = chrono_types::make_shared<TrackAssemblyBandANCF>(d);
     }
     else {
         throw ChException("TrackAssembly type not supported in ReadTrackAssemblySON.");
@@ -430,9 +430,9 @@ std::shared_ptr<ChTrackDriveline> ReadTrackDrivelineJSON(const std::string& file
 
     // Create the driveline using the appropriate template.
     if (subtype.compare("SimpleTrackDriveline") == 0) {
-        driveline = std::make_shared<SimpleTrackDriveline>(d);
+        driveline = chrono_types::make_shared<SimpleTrackDriveline>(d);
     } else if (subtype.compare("TrackDrivelineBDS") == 0) {
-        driveline = std::make_shared<TrackDrivelineBDS>(d);
+        driveline = chrono_types::make_shared<TrackDrivelineBDS>(d);
     } else {
         throw ChException("Driveline type not supported in ReadTrackDrivelineJSON.");
     }
@@ -462,7 +462,7 @@ std::shared_ptr<ChTrackBrake> ReadTrackBrakeJSON(const std::string& filename) {
 
     // Create the brake using the appropriate template.
     if (subtype.compare("TrackBrakeSimple") == 0) {
-        brake = std::make_shared<TrackBrakeSimple>(d);
+        brake = chrono_types::make_shared<TrackBrakeSimple>(d);
     } else {
         throw ChException("Brake type not supported in ReadTrackBrakeJSON.");
     }
@@ -492,9 +492,9 @@ std::shared_ptr<ChIdler> ReadIdlerJSON(const std::string& filename) {
 
     // Create the idler using the appropriate template.
     if (subtype.compare("SingleIdler") == 0) {
-        idler = std::make_shared<SingleIdler>(d);
+        idler = chrono_types::make_shared<SingleIdler>(d);
     } else if (subtype.compare("DoubleIdler") == 0) {
-        idler = std::make_shared<DoubleIdler>(d);
+        idler = chrono_types::make_shared<DoubleIdler>(d);
     } else {
         throw ChException("Idler type not supported in ReadIdlerJSON.");
     }
@@ -524,9 +524,9 @@ std::shared_ptr<ChRoadWheelAssembly> ReadRoadWheelAssemblyJSON(const std::string
 
     // Create the road-wheel assembly using the appropriate template.
     if (subtype.compare("LinearDamperRWAssembly") == 0) {
-        suspension = std::make_shared<LinearDamperRWAssembly>(d, has_shock);
+        suspension = chrono_types::make_shared<LinearDamperRWAssembly>(d, has_shock);
     } else if (subtype.compare("RotationalDamperRWAssembly") == 0) {
-        suspension = std::make_shared<RotationalDamperRWAssembly>(d, has_shock);
+        suspension = chrono_types::make_shared<RotationalDamperRWAssembly>(d, has_shock);
     } else {
         throw ChException("Suspension type not supported in ReadRoadWheelAssemblyJSON.");
     }
@@ -556,7 +556,7 @@ std::shared_ptr<ChRoller> ReadRollerJSON(const std::string& filename) {
 
     // Create the roller using the appropriate template.
     if (subtype.compare("DoubleRoller") == 0) {
-        roller = std::make_shared<DoubleRoller>(d);
+        roller = chrono_types::make_shared<DoubleRoller>(d);
     } else {
         throw ChException("Roller type not supported in ReadRollerJSON.");
     }
@@ -586,9 +586,9 @@ std::shared_ptr<ChRoadWheel> ReadRoadWheelJSON(const std::string& filename) {
 
     // Create the road-wheel using the appropriate template.
     if (subtype.compare("SingleRoadWheel") == 0) {
-        wheel = std::make_shared<SingleRoadWheel>(d);
+        wheel = chrono_types::make_shared<SingleRoadWheel>(d);
     } else if (subtype.compare("DoubleRoadWheel") == 0) {
-        wheel = std::make_shared<DoubleRoadWheel>(d);
+        wheel = chrono_types::make_shared<DoubleRoadWheel>(d);
     } else {
         throw ChException("Road-wheel type not supported in ReadRoadWheelJSON.");
     }

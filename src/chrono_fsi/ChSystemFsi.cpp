@@ -38,7 +38,7 @@ ChSystemFsi::ChSystemFsi(ChSystem* other_physicalSystem, bool other_haveFluid, C
                           paramsH, numObjectsH);
     fluidDynamics = new ChFluidDynamics(bceWorker, fsiData, paramsH, numObjectsH, fluidIntegrator);
 
-    fsi_mesh = std::make_shared<fea::ChMesh>();
+    fsi_mesh = chrono_types::make_shared<fea::ChMesh>();
     fsiBodeisPtr.resize(0);
     fsiShellsPtr.resize(0);
     fsiCablesPtr.resize(0);
