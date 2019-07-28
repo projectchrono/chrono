@@ -15,6 +15,8 @@
 #ifndef CHTYPES_H
 #define CHTYPES_H
 
+#include <memory>
+
 namespace chrono_types {
 
 // Adapted from MRtrix3 (https://github.com/MRtrix3)
