@@ -35,6 +35,15 @@ class ChApi ChElementHexahedron : public ChElement3D,
   public:
     int ID;
 
+    ChElementHexahedron() : ir(nullptr) {}
+    
+    virtual ~ChElementHexahedron() {
+        delete ir;
+        for (auto gpoint : GpVector)
+            delete gpoint;
+        GpVector.clear();
+    }
+
     virtual void Update() {
         // parent class update:
         ChElement3D::Update();
