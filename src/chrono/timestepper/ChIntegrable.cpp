@@ -34,7 +34,6 @@ void ChIntegrable::StateIncrement(ChState& y_new, const ChState& y, const ChStat
     //// Indeed, see implementation of overloaded operator+()
 
     ////y_new = y + Dy;
-
     y_new.resize(y.size());
     for (int i = 0; i < y.size(); ++i) {
         y_new(i) = y(i) + Dy(i);

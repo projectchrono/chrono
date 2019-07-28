@@ -369,8 +369,8 @@ class MySimpleTank {
         chrono::ChVector<> joint_displacement  // position of shoe-shoe constraint, relative to COG.
     ) {
         auto rigidBodyShoe = std::shared_ptr<ChBody>(template_shoe.get()->Clone());
-        ////rigidBodyShoe->SetSystem(template_shoe->GetSystem()); //// RADU: this seems redundant as the system will be
-        ///set when adding the body
+        //// RADU: this seems redundant as the system will be set when adding the body
+        ////rigidBodyShoe->SetSystem(template_shoe->GetSystem()); 
         rigidBodyShoe->SetPos(position);
         rigidBodyShoe->SetRot(rotation);
         my_system.Add(rigidBodyShoe);

@@ -898,10 +898,6 @@ void ChISO2631_Vibration_SeatCushionLogger::AddData(double speed, double acc_x, 
     m_logging_time += m_step;
 }
 
-//// RADU
-//// Fix bugs in several functions below
-//// (potentially trying to access last element of an empty vector)
-
 static double mean(const std::vector<double>& v) {
     if (v.empty())
         return 0;
@@ -1160,9 +1156,7 @@ double ChISO2631_Shock_SeatCushionLogger::GetSe() {
     // generate filter input with fs = 160 Hz
     size_t nInDat = static_cast<size_t>(std::floor(m_logging_time / m_step));
 
-    //// RADU
-    //// Fix bug (access out-of-range in CalcPeaks) when no data available.
-
+    // Return now if no data available (else, CalcPeaks makes out-of-range accesses).
     if (nInDat == 0)
         return 0;
 

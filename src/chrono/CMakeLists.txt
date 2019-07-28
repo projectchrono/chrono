@@ -85,6 +85,7 @@ set(ChronoEngine_core_HEADERS
     core/ChCubicSpline.h
     core/ChBitmaskEnums.h
     core/ChGlobal.h
+    core/ChTypes.h
     )
 
 source_group(core FILES

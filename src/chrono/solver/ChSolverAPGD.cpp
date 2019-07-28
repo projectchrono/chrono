@@ -13,7 +13,7 @@
 // =============================================================================
 
 //// RADU
-//// Fix implementatino to properly treat the case nc=0
+//// Fix implementation to properly treat the case nc=0
 
 #include "chrono/solver/ChSolverAPGD.h"
 
@@ -113,10 +113,8 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
     // Compute the b_shur vector in the Shur complement equation N*l = b_shur
     ShurBvectorCompute(sysd);
 
-    //// RADU
-    //// Add proper check for case nc=0.  Without one, we get division by zero and a potential infinite loop.
-
-    // If no constraints, return now. Variables contain M^-1 * f 
+    // If no constraints, return now. Variables contain M^-1 * f after call to ShurBvectorCompute.
+    // This early exit is needed, else we get division by zero and a potential infinite loop.
     if (nc == 0) {
         return 0;
     }

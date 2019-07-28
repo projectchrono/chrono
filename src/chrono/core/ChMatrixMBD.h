@@ -13,9 +13,8 @@
 // =============================================================================
 //
 // Definition of special Multi-Body Dynamics 3x4, 4x3, and 4x4 matrices.
-// 
+//
 // =============================================================================
-
 
 #ifndef CHMATRIXMBD_H
 #define CHMATRIXMBD_H
@@ -171,8 +170,8 @@ class ChGwMatrix34 : public ChMatrix34<Real> {
 template <typename Real = double>
 class ChStarMatrix33 : public Eigen::Matrix<Real, 3, 3, Eigen::RowMajor> {
   public:
-      /// Constract a 3x3 "star matrix" (aka "tilde matrix") for matrix form of cross product.
-      /// If a and b are 3d vectors, then a x b = [Astar(a)] * b. 
+    /// Construct a 3x3 "star matrix" (aka "tilde matrix") for matrix form of cross product.
+    /// If a and b are 3d vectors, then a x b = [Astar(a)] * b.
     ChStarMatrix33(const ChVector<Real>& v) {
         (*this)(0, 0) = 0;
         (*this)(0, 1) = -v.z();
@@ -185,7 +184,7 @@ class ChStarMatrix33 : public Eigen::Matrix<Real, 3, 3, Eigen::RowMajor> {
         (*this)(2, 2) = 0;
     }
 
-    /// Constract a 3x3 "star matrix" representing a double cross product.
+    /// Construct a 3x3 "star matrix" representing a double cross product.
     ChStarMatrix33(const ChVector<Real>& vA, const ChVector<Real>& vB) {
         (*this)(0, 0) = -vA.y() * vB.y() - vA.z() * vB.z();
         (*this)(1, 0) = vA.x() * vB.y();

@@ -1457,7 +1457,7 @@ void ChElementBeamANCF::ComputeInternalJacobians(double Kfactor, double Rfactor)
     // m_strainANS and m_strainANS_D (as calculated in ComputeInternalForces).
 
     //// RADU
-    //// There is no need to initialize the JAcobian to zero as it is completely overwritten below...
+    //// There is no need to initialize the Jacobian to zero as it is completely overwritten below...
     m_JacobianMatrix.setZero();
 
     // Jacobian from diagonal terms D0 (three-dimensional)

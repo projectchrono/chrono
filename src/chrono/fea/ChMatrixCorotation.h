@@ -16,7 +16,6 @@
 #define CHMATRIXCOROTATION_H
 
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChMatrix33.h"
 
 namespace chrono {
