@@ -402,9 +402,6 @@ void ChLinkLock::UpdateState() {
     Cq2_temp.topRightCorner<3, 4>() = CqxT * Body2->GetA() * Q2star * body2Gl +         //
                                       marker2->GetA().transpose() * tmpStar * body2Gl;  // -- -* Cq2_temp(4-7)
 
-    //// RADU
-    //// change this if/when semiTranspose and semiNegate can be used in Eigen expressions
-
     {
         ChStarMatrix44<> stempQ1(Qcross(Qconjugate(marker2->GetCoord().rot), Qconjugate(Body2->GetCoord().rot)));
         ChStarMatrix44<> stempQ2(marker1->GetCoord().rot);
@@ -567,24 +564,9 @@ static void Transform_Cq_to_Cqw(const ChLinkLock::ChConstraintMatrixX7& mCq,
     // translational part - not changed
     mCqw.block(0, 0, mCq.rows(), 3) = mCq.block(0, 0, mCq.rows(), 3);
 
-    //// RADU
-    //// change this to also use blocks
-
     // rotational part [Cq_w] = [Cq_q]*[Gl]'*1/4
-    int col, row, colres;
-    double sum;
-
     ChGlMatrix34<> mGl(mbody->GetCoord().rot);
-
-    for (colres = 0; colres < 3; colres++) {
-        for (row = 0; row < mCq.rows(); row++) {
-            sum = 0;
-            for (col = 0; col < 4; col++) {
-                sum += mCq(row, col + 3) * mGl(colres, col);
-            }
-            mCqw(row, colres + 3) = sum * 0.25;
-        }
-    }
+    mCqw.block(0, 3, mCq.rows(), 3) = 0.25 * mCq.block(0, 3, mCq.rows(), 4) * mGl.transpose();
 }
 
 void ChLinkLock::UpdateCqw() {
@@ -1576,22 +1558,10 @@ void ChLinkLock::ConstraintsBiLoad_Qc(double factor) {
 
 void Transform_Cq_to_Cqw_row(const ChMatrixNM<double, 7, BODY_QDOF>& mCq, int qrow, ChMatrixRef mCqw, int qwrow, const ChGlMatrix34<>& Gl) {
     // translational part - not changed
-    mCqw.block<1,3>(qwrow, 0) = mCq.block<1,3>(qrow,0);
+    mCqw.block<1, 3>(qwrow, 0) = mCq.block<1, 3>(qrow, 0);
 
     // rotational part [Cq_w] = [Cq_q]*[Gl]'*1/4
-    int col, colres;
-    double sum;
-    for (colres = 0; colres < 3; colres++) {
-        sum = 0;
-        for (col = 0; col < 4; col++) {
-            sum += mCq(qrow, col + 3) * Gl(colres, col);
-        }
-        mCqw(qwrow, colres + 3) = sum * 0.25;
-    }
-
-    //// RADU
-    //// Replace calculation above with Eigen block computations
-
+    mCqw.block<1, 3>(qwrow, 3) = 0.25 * mCq.block<1, 4>(qrow, 3) * Gl.transpose();
 }
 
 void ChLinkLock::ConstraintsLoadJacobians() {
@@ -2179,9 +2149,6 @@ void ChLinkLockLock::UpdateState() {
     Cq1_temp.topRightCorner<3, 4>() = -CqxT * Body1->GetA() * P1star * body1Gl;         // -* -- Cq1_temp(4-7)
     Cq2_temp.topRightCorner<3, 4>() = CqxT * Body2->GetA() * Q2star * body2Gl +         //
                                       marker2->GetA().transpose() * tmpStar * body2Gl;  // -- -* Cq2_temp(4-7)
-
-    //// RADU
-    //// change this if/when semiTranspose and semiNegate can be used in Eigen expressions
 
     {
         ChStarMatrix44<> stempQ1(Qcross(Qconjugate(marker2->GetCoord().rot), Qconjugate(Body2->GetCoord().rot)));

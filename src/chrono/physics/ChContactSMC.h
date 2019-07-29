@@ -408,11 +408,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
         ChStateDelta prtrbA(ndofA_w, NULL);
         ChStateDelta prtrbB(ndofB_w, NULL);
 
-        //// RADU
-        //// Eliminate Jcolumn, load directly into m_K and m_R matrices
-
         ChVectorDynamic<> Q1(ndofA_w + ndofB_w);
-        ChVectorDynamic<> Jcolumn(ndofA_w + ndofB_w);
 
         // Jacobian w.r.t. variables of objA
         for (int i = 0; i < ndofA_w; i++) {
@@ -421,15 +417,13 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
             CalculateQ(stateA_x1, stateA_w, stateB_x, stateB_w, mat, Q1);
             prtrbA(i) -= perturbation;
 
-            Jcolumn = (Q1 - Q0) * (-1 / perturbation);  // note sign change
-            m_Jac->m_K.col(i) = Jcolumn;
+            m_Jac->m_K.col(i) = (Q1 - Q0) * (-1 / perturbation);  // note sign change
 
             stateA_w(i) += perturbation;
             CalculateQ(stateA_x, stateA_w, stateB_x, stateB_w, mat, Q1);
             stateA_w(i) -= perturbation;
 
-            Jcolumn = (Q1 - Q0) * (-1 / perturbation);  // note sign change
-            m_Jac->m_R.col(i) = Jcolumn;
+            m_Jac->m_R.col(i) = (Q1 - Q0) * (-1 / perturbation);  // note sign change
         }
 
         // Jacobian w.r.t. variables of objB
@@ -439,15 +433,13 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
             CalculateQ(stateA_x, stateA_w, stateB_x1, stateB_w, mat, Q1);
             prtrbB(i) -= perturbation;
 
-            Jcolumn = (Q1 - Q0) * (-1 / perturbation);  // note sign change
-            m_Jac->m_K.col(ndofA_w + i) = Jcolumn;
+            m_Jac->m_K.col(ndofA_w + i) = (Q1 - Q0) * (-1 / perturbation);  // note sign change
 
             stateB_w(i) += perturbation;
             CalculateQ(stateA_x, stateA_w, stateB_x, stateB_w, mat, Q1);
             stateB_w(i) -= perturbation;
 
-            Jcolumn = (Q1 - Q0) * (-1 / perturbation);  // note sign change
-            m_Jac->m_R.col(ndofA_w + i) = Jcolumn;
+            m_Jac->m_R.col(ndofA_w + i) = (Q1 - Q0) * (-1 / perturbation);  // note sign change
         }
     }
 

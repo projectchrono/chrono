@@ -39,52 +39,38 @@ ChVariablesGeneric& ChVariablesGeneric::operator=(const ChVariablesGeneric& othe
 
 // Computes the product of the inverse mass matrix by a vector, and add to result: result = [invMb]*vect
 void ChVariablesGeneric::Compute_invMb_v(ChVectorRef result, ChVectorConstRef vect) const {
-    assert(result.size() == Get_ndof());
-    assert(vect.size() == Get_ndof());
-
+    assert(result.size() == ndof);
+    assert(vect.size() == ndof);
     result = inv_Mmass * vect;
 }
 
 // Computes the product of the inverse mass matrix by a vector, and increment result: result += [invMb]*vect
 void ChVariablesGeneric::Compute_inc_invMb_v(ChVectorRef result, ChVectorConstRef vect) const {
-    assert(result.size() == Get_ndof());
-    assert(vect.size() == Get_ndof());
-
+    assert(result.size() == ndof);
+    assert(vect.size() == ndof);
     result += inv_Mmass * vect;
 }
 
 // Computes the product of the mass matrix by a vector, and set in result: result = [Mb]*vect
 void ChVariablesGeneric::Compute_inc_Mb_v(ChVectorRef result, ChVectorConstRef vect) const {
-    assert(result.size() == Get_ndof());
-    assert(vect.size() == Get_ndof());
-
+    assert(result.size() == ndof);
+    assert(vect.size() == ndof);
     result += Mmass * vect;
 }
-
-//// RADU
-//// Consider using Eigen expresions in the functions below.
 
 // Computes the product of the corresponding block in the system matrix (ie. the mass matrix) by 'vect', scale by c_a,
 // and add to 'result'.
 // NOTE: the 'vect' and 'result' vectors must already have the size of the total variables&constraints in the system;
 // the procedure will use the ChVariable offsets (that must be already updated) to know the indexes in result and vect.
 void ChVariablesGeneric::MultiplyAndAdd(ChVectorRef result, ChVectorConstRef vect, const double c_a) const {
-    for (int i = 0; i < Mmass.rows(); i++) {
-        double tot = 0;
-        for (int j = 0; j < Mmass.cols(); j++) {
-            tot += Mmass(i, j) * vect(this->offset + i);
-        }
-        result(this->offset + i) += c_a * tot;
-    }
+    result.segment(this->offset, ndof) += c_a * Mmass * vect.segment(this->offset, ndof);
 }
 
 // Add the diagonal of the mass matrix scaled by c_a, to 'result'.
 // NOTE: the 'result' vector must already have the size of system unknowns, ie the size of the total variables &
 // constraints in the system; the procedure will use the ChVariable offset (that must be already updated) as index.
 void ChVariablesGeneric::DiagonalAdd(ChVectorRef result, const double c_a) const {
-    for (int i = 0; i < Mmass.rows(); i++) {
-        result(this->offset + i) += c_a * Mmass(i, i);
-    }
+    result.segment(this->offset, ndof) += c_a * Mmass.diagonal();
 }
 
 void ChVariablesGeneric::Build_M(ChSparseMatrix& storage, int insrow, int inscol, const double c_a) {

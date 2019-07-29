@@ -84,10 +84,6 @@ void ChConstraintNgeneric::Update_auxiliary() {
         g_i += cfm_i;
 }
 
-//// RADU
-//// ATTENTION: previously there were bugs in the following 2 functions!
-////    Indeed, nested loops were using the same iterator ('i')...
-
 double ChConstraintNgeneric::Compute_Cq_q() {
     double ret = 0;
 
@@ -107,11 +103,6 @@ void ChConstraintNgeneric::Increment_q(const double deltal) {
         }
     }
 }
-
-//// RADU
-//// ATTENTION: previously there were bugs in the following two functions!
-////     Indeed, the for loops were using Cq_a->GetRows().   But that is always 1...  It should have been GetCols()
-////     Furthermore, nested loops were using the same iterator ('i')...
 
 void ChConstraintNgeneric::MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const {
     for (size_t i = 0; i < variables.size(); ++i) {

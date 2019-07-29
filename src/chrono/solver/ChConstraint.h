@@ -254,9 +254,6 @@ class ChApi ChConstraint {
     /// inherited classes!
     virtual void Increment_q(const double deltal) = 0;
 
-    //// RADU
-    //// Does it make sense to use ChVectorRef and ChVectorConstRef in the two functions below?
-
     /// Computes the product of the corresponding block in the
     /// system matrix by 'vect', and add to 'result'.
     /// NOTE: the 'vect' vector must already have

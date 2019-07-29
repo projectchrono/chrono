@@ -78,14 +78,6 @@ void ChConstraintTwoGeneric::Update_auxiliary() {
         variables_b->Compute_invMb_v(Eq_b, Cq_b.transpose());
     }
 
-    //// RADU
-    //// How can I include the conditions in a single Eigen expression?
-    //// Option:
-    ////         int a = (variables_a->IsActive() && variables_a->Get_ndof() > 0) ? 1 : 0;
-    ////         int b = (variables_b->IsActive() && variables_b->Get_ndof() > 0) ? 1 : 0;
-    ////         g_i = a * Cq_a.dot(Eq_a) + b * Cq_b.dot(Eq_b);
-    //// Is it worth it?
-
     // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
     g_i = 0;
     if (variables_a->IsActive() && variables_a->Get_ndof() > 0) {

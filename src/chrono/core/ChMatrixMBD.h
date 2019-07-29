@@ -233,9 +233,6 @@ class ChStarMatrix44 : public ChMatrix44<Real> {
         (*this)(3, 3) = q.e0();
     }
 
-    //// RADU
-    //// Set up these 2 functions so that they can be used in Eigen expressions!
-
     /// Transposes only the lower-right 3x3 submatrix of a hemisymmetric 4x4 matrix,
     /// used when the 4x4 matrix is a "star" matrix [q] coming from a quaternion q:
     /// the non commutative quaternion product is:

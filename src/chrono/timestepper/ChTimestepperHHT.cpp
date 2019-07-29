@@ -407,14 +407,7 @@ bool ChTimestepperHHT::CheckConvergence(double scaling_factor) {
 // Calculate the error weight vector corresponding to the specified solution vector x,
 // using the given relative and absolute tolerances.
 void ChTimestepperHHT::CalcErrorWeights(const ChVectorDynamic<>& x, double rtol, double atol, ChVectorDynamic<>& ewt) {
-    //// RADU
-    //// Test this:
-    ////ewt = (1 / rtol) * x.array().abs().inverse() + atol;
-
-    ewt.resize(x.size());
-    for (int i = 0; i < x.size(); ++i) {
-        ewt(i) = 1.0 / (rtol * std::abs(x(i)) + atol);
-    }
+    ewt = (rtol * x.cwiseAbs() + atol).cwiseInverse();
 }
 
 // Trick to avoid putting the following mapper macro inside the class definition in .h file:

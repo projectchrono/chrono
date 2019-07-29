@@ -157,8 +157,6 @@ class ChApi ChGenericConstraint_Chf_HorDistance : public ChGenericConstraint_Chf
     double GetDistance() { return distance; }
     void SetDistance(double md) { distance = md; }
 
-    //// RADU
-    //// Pre-eigen implementation did not have Get_Cn !?!
     virtual int Get_Cn() override { return 1; }
 
     int GetHandleA() { return handleA; }
@@ -186,8 +184,6 @@ class ChApi ChGenericConstraint_Chf_VertDistance : public ChGenericConstraint_Ch
     double GetDistance() { return distance; }
     void SetDistance(double md) { distance = md; }
 
-    //// RADU
-    //// Pre-eigen implementation did not have Get_Cn !?!
     virtual int Get_Cn() override { return 1; }
 
     int GetHandleA() { return handleA; }

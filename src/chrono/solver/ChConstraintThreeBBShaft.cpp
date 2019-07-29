@@ -139,11 +139,6 @@ void ChConstraintThreeBBShaft::Increment_q(const double deltal) {
     }
 }
 
-//// RADU
-//// ATTENTION: previously there was a bug in the following two functions!
-////     Indeed, Indeed, the for loops were using Cq_a->GetRows().   
-////     But that is always 1..  It should have been GetCols()
-
 void ChConstraintThreeBBShaft::MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const {
     if (variables_a->IsActive()) {
         result += Cq_a * vect.segment(variables_a->GetOffset(), 6);

@@ -98,15 +98,6 @@ void ChConstraintThreeGeneric::Update_auxiliary() {
         variables_c->Compute_invMb_v(Eq_c, Cq_c.transpose());
     }
 
-    //// RADU
-    //// How can I include the conditions in a single Eigen expression?
-    //// Option:
-    ////         int a = (variables_a->IsActive() && variables_a->Get_ndof() > 0) ? 1 : 0;
-    ////         int b = (variables_b->IsActive() && variables_b->Get_ndof() > 0) ? 1 : 0;
-    ////         int c = (variables_c->IsActive() && variables_c->Get_ndof() > 0) ? 1 : 0;
-    ////         g_i = a * Cq_a.dot(Eq_a) + b * Cq_b.dot(Eq_b) + c * Cq_c.dot(Eq_c);
-    //// Is it worth it?
-
     // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
     ChMatrixDynamic<double> res(1, 1);
     g_i = 0;
@@ -156,10 +147,6 @@ void ChConstraintThreeGeneric::Increment_q(const double deltal) {
         variables_c->Get_qb() += Eq_c * deltal;
     }
 }
-
-//// RADU
-//// ATTENTION: previously there were bugs in the following two functions!
-////     Indeed, the for loops wer using Cq_a->GetRows().   But that is always 1...
 
 void ChConstraintThreeGeneric::MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const {
     if (variables_a->IsActive()) {

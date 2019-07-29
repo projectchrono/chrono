@@ -52,37 +52,22 @@ void ChKblockGeneric::SetVariables(std::vector<ChVariables*> mvariables) {
     K.resize(msize, msize);
 }
 
-//// RADU
-//// Look into implementing the following functions using Eigen expressions
-
-
 void ChKblockGeneric::MultiplyAndAdd(ChVectorRef result, ChVectorConstRef vect) const {
     int kio = 0;
     for (unsigned int iv = 0; iv < this->GetNvars(); iv++) {
         int io = this->GetVariableN(iv)->GetOffset();
         int in = this->GetVariableN(iv)->Get_ndof();
-
         if (this->GetVariableN(iv)->IsActive()) {
             int kjo = 0;
             for (unsigned int jv = 0; jv < this->GetNvars(); jv++) {
                 int jo = this->GetVariableN(jv)->GetOffset();
                 int jn = this->GetVariableN(jv)->Get_ndof();
-
                 if (this->GetVariableN(jv)->IsActive()) {
-                    // Multiply the iv,jv sub block of K
-                    for (int r = 0; r < in; r++) {
-                        double tot = 0;
-                        for (int c = 0; c < jn; c++) {
-                            tot += K(kio + r, kjo + c) * vect(jo + c);
-                        }
-                        result(io + r) += tot;
-                    }
+                    result.segment(io, in) += K.block(kio, kjo, in, jn) * vect.segment(jo, jn);
                 }
-
                 kjo += jn;
             }
         }
-
         kio += in;
     }
 }
@@ -92,12 +77,8 @@ void ChKblockGeneric::DiagonalAdd(ChVectorRef result) {
     for (unsigned int iv = 0; iv < this->GetNvars(); iv++) {
         int io = this->GetVariableN(iv)->GetOffset();
         int in = this->GetVariableN(iv)->Get_ndof();
-
         if (this->GetVariableN(iv)->IsActive()) {
-            for (int r = 0; r < in; r++) {
-                // GetLog() << "Summing" << result(io+r) << " to " << (*this->K)(kio+r,kio+r) << "\n";
-                result(io + r) += K(kio + r, kio + r);
-            }
+            result.segment(io, in) += K.diagonal().segment(kio, in);
         }
         kio += in;
     }
