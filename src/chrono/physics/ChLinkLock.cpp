@@ -566,7 +566,17 @@ static void Transform_Cq_to_Cqw(const ChLinkLock::ChConstraintMatrixX7& mCq,
 
     // rotational part [Cq_w] = [Cq_q]*[Gl]'*1/4
     ChGlMatrix34<> mGl(mbody->GetCoord().rot);
-    mCqw.block(0, 3, mCq.rows(), 3) = 0.25 * mCq.block(0, 3, mCq.rows(), 4) * mGl.transpose();
+    for (int colres = 0; colres < 3; colres++) {
+        for (int row = 0; row < mCq.rows(); row++) {
+            double sum = 0;
+            for (int col = 0; col < 4; col++) {
+                sum += mCq(row, col + 3) * mGl(colres, col);
+            }
+            mCqw(row, colres + 3) = sum * 0.25;
+        }
+    }
+    //// RADU: explicit loop slightly more performant than Eigen expressions
+    ////mCqw.block(0, 3, mCq.rows(), 3) = 0.25 * mCq.block(0, 3, mCq.rows(), 4) * mGl.transpose();
 }
 
 void ChLinkLock::UpdateCqw() {
@@ -1561,7 +1571,15 @@ void Transform_Cq_to_Cqw_row(const ChMatrixNM<double, 7, BODY_QDOF>& mCq, int qr
     mCqw.block<1, 3>(qwrow, 0) = mCq.block<1, 3>(qrow, 0);
 
     // rotational part [Cq_w] = [Cq_q]*[Gl]'*1/4
-    mCqw.block<1, 3>(qwrow, 3) = 0.25 * mCq.block<1, 4>(qrow, 3) * Gl.transpose();
+    for (int colres = 0; colres < 3; colres++) {
+        double sum = 0;
+        for (int col = 0; col < 4; col++) {
+            sum += mCq(qrow, col + 3) * Gl(colres, col);
+        }
+        mCqw(qwrow, colres + 3) = sum * 0.25;
+    }
+    //// RADU: explicit loop slightly more performant than Eigen expressions
+    ////mCqw.block<1, 3>(qwrow, 3) = 0.25 * mCq.block<1, 4>(qrow, 3) * Gl.transpose();
 }
 
 void ChLinkLock::ConstraintsLoadJacobians() {
