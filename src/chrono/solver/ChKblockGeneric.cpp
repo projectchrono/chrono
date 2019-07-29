@@ -63,7 +63,15 @@ void ChKblockGeneric::MultiplyAndAdd(ChVectorRef result, ChVectorConstRef vect) 
                 int jo = this->GetVariableN(jv)->GetOffset();
                 int jn = this->GetVariableN(jv)->Get_ndof();
                 if (this->GetVariableN(jv)->IsActive()) {
-                    result.segment(io, in) += K.block(kio, kjo, in, jn) * vect.segment(jo, jn);
+                    for (int r = 0; r < in; r++) {
+                        double tot = 0;
+                        for (int c = 0; c < jn; c++) {
+                            tot += K(kio + r, kjo + c) * vect(jo + c);
+                        }
+                        result(io + r) += tot;
+                    }
+                    //// RADU: using Eigen as below leads to *significant* performance drop!
+                    ////result.segment(io, in) += K.block(kio, kjo, in, jn) * vect.segment(jo, jn);
                 }
                 kjo += jn;
             }
@@ -78,7 +86,11 @@ void ChKblockGeneric::DiagonalAdd(ChVectorRef result) {
         int io = this->GetVariableN(iv)->GetOffset();
         int in = this->GetVariableN(iv)->Get_ndof();
         if (this->GetVariableN(iv)->IsActive()) {
-            result.segment(io, in) += K.diagonal().segment(kio, in);
+            for (int r = 0; r < in; r++) {
+                result(io + r) += K(kio + r, kio + r);
+            }
+            //// RADU: using Eigen as below leads to *noticeable* performance drop!
+            ////result.segment(io, in) += K.diagonal().segment(kio, in);
         }
         kio += in;
     }
