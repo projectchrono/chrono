@@ -201,7 +201,11 @@ class ChApi ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW {
     virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override;
 
     /// Increment all DOFs using a delta.
-    virtual void LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv) override;
+    virtual void LoadableStateIncrement(const unsigned int off_x,
+                                        ChState& x_new,
+                                        const ChState& x,
+                                        const unsigned int off_v,
+                                        const ChStateDelta& Dv) override;
 
     /// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;
@@ -248,7 +252,7 @@ class ChApi ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW {
     ChVectorN<double, 33> m_d_dt;        ///< current nodal velocities
     double m_FrictionAngle;              ///< Drucker-Prager Friction Angle Beta
     double m_DilatancyAngle;             ///< Drucker-Prager Dilatancy Angle Phi
-    int m_DPHardening;        ///< Drucker-Prager Hardening Type
+    int m_DPHardening;                   ///< Drucker-Prager Hardening Type
 
     StrainFormulation m_strain_form;     ///< Enum for strain formulation
     PlasticityFormulation m_plast_form;  ///< Enum for plasticity formulation
@@ -345,10 +349,10 @@ class ChApi ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW {
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    friend class MyMassBrick9;
-    friend class MyGravityBrick9;
-    friend class MyForceBrick9;
-    friend class MyJacobianBrick9;
+    friend class Brick9_Mass;
+    friend class Brick9_Gravity;
+    friend class Brick9_Force;
+    friend class Brick9_Jacobian;
 };
 
 /// @} fea_elements

@@ -86,8 +86,8 @@ class ChApi ChElementShellANCF : public ChElementShell, public ChLoadableUV, pub
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
         friend class ChElementShellANCF;
-        friend class MyForce;
-        friend class MyJacobian;
+        friend class ShellANCF_Force;
+        friend class ShellANCF_Jacobian;
     };
 
     /// Get the number of nodes used by this element.
@@ -383,10 +383,10 @@ class ChApi ChElementShellANCF : public ChElementShell, public ChLoadableUV, pub
     /// Each coordinate ranging in -1..+1.
     virtual ChVector<> ComputeNormal(const double U, const double V) override;
 
-    friend class MyMass;
-    friend class MyGravity;
-    friend class MyForce;
-    friend class MyJacobian;
+    friend class ShellANCF_Mass;
+    friend class ShellANCF_Gravity;
+    friend class ShellANCF_Force;
+    friend class ShellANCF_Jacobian;
 };
 
 /// @} fea_elements

@@ -208,8 +208,8 @@ class ChApi ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public
     // Interface to ChElementBase base class
     // -------------------------------------
 
-    // Fill the D vector (column matrix) with the current field values at the nodes of the element, with proper ordering.
-    // If the D vector has not the size of this->GetNdofs(), it will be resized.
+    // Fill the D vector (column matrix) with the current field values at the nodes of the element, with proper
+    // ordering. If the D vector has not the size of this->GetNdofs(), it will be resized.
     //  {x_a y_a z_a Dx_a Dx_a Dx_a x_b y_b z_b Dx_b Dy_b Dz_b}
     virtual void GetStateBlock(ChVectorDynamic<>& mD) override;
 
@@ -245,8 +245,7 @@ class ChApi ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public
     // void EvaluateSectionPoint(const double u, const ChMatrix<>& displ, ChVector<>& point); // Not needed?
 
     // Dummy method definitions.
-    virtual void EvaluateSectionStrain(const double,
-                                       chrono::ChVector<double>&) override {}
+    virtual void EvaluateSectionStrain(const double, chrono::ChVector<double>&) override {}
 
     virtual void EvaluateSectionForceTorque(const double,
                                             chrono::ChVector<double>&,
@@ -257,18 +256,14 @@ class ChApi ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public
     /// Note, eta=-1 at node1, eta=+1 at node2.
     /// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetStateBlock()
     /// Results are not corotated.
-    virtual void EvaluateSectionDisplacement(const double eta,
-                                             ChVector<>& u_displ,
-                                             ChVector<>& u_rotaz) override {}
+    virtual void EvaluateSectionDisplacement(const double eta, ChVector<>& u_displ, ChVector<>& u_rotaz) override {}
 
     /// Gets the absolute xyz position of a point on the beam line,
     /// and the absolute rotation of section plane, at abscissa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
     /// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetStateBlock()
     /// Results are corotated (expressed in world reference)
-    virtual void EvaluateSectionFrame(const double eta,
-                                      ChVector<>& point,
-                                      ChQuaternion<>& rot) override {}
+    virtual void EvaluateSectionFrame(const double eta, ChVector<>& point, ChQuaternion<>& rot) override {}
     // Internal computations
     // ---------------------
 
@@ -365,7 +360,7 @@ class ChApi ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public
                            const ChVectorDynamic<>& F,  ///< Input F vector, size is =n. field coords.
                            ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate
                            ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate
-    ) override;
+                           ) override;
 
     /// Evaluate N'*F , where N is some type of shape function
     /// evaluated at U,V,W coordinates of the volume, each ranging in -1..+1
@@ -379,7 +374,7 @@ class ChApi ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public
                            const ChVectorDynamic<>& F,  ///< Input F vector, size is = n.field coords.
                            ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
                            ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
-    ) override;
+                           ) override;
 
     /// This is needed so that it can be accessed by ChLoaderVolumeGravity.
     /// Density is mass per unit surface.
@@ -389,12 +384,12 @@ class ChApi ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public
     /// Each coordinate ranging in -1..+1.
     ChVector<> ComputeTangent(const double U);
 
-    friend class MyMassBeam;
-    friend class MyGravityBeam;
-    friend class MyForceBeam;
-    friend class MyForceBeam_Nu;
-    friend class MyJacobianBeam;
-    friend class MyJacobianBeam_Nu;
+    friend class BeamANCF_Mass;
+    friend class BeamANCF_Gravity;
+    friend class BeamANCF_Force;
+    friend class BeamANCF_ForceNu;
+    friend class BeamANCF_Jacobian;
+    friend class BeamANCF_JacobianNu;
 };
 
 /// @} fea_elements

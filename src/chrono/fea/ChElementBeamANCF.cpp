@@ -123,10 +123,10 @@ void ChElementBeamANCF::ComputeMmatrixGlobal(ChMatrixRef M) {
 // -----------------------------------------------------------------------------
 
 /// This class defines the calculations for the integrand of the inertia matrix.
-class MyMassBeam : public ChIntegrable3D<ChMatrixNM<double, 27, 27> > {
+class BeamANCF_Mass : public ChIntegrable3D<ChMatrixNM<double, 27, 27>> {
   public:
-    MyMassBeam(ChElementBeamANCF* element) : m_element(element) {}
-    ~MyMassBeam() {}
+    BeamANCF_Mass(ChElementBeamANCF* element) : m_element(element) {}
+    ~BeamANCF_Mass() {}
 
   private:
     ChElementBeamANCF* m_element;
@@ -134,7 +134,7 @@ class MyMassBeam : public ChIntegrable3D<ChMatrixNM<double, 27, 27> > {
     virtual void Evaluate(ChMatrixNM<double, 27, 27>& result, const double x, const double y, const double z) override;
 };
 
-void MyMassBeam::Evaluate(ChMatrixNM<double, 27, 27>& result, const double x, const double y, const double z) {
+void BeamANCF_Mass::Evaluate(ChMatrixNM<double, 27, 27>& result, const double x, const double y, const double z) {
     ChElementBeamANCF::ShapeVector N;
     m_element->ShapeFunctions(N, x, y, z);
 
@@ -162,7 +162,7 @@ void ChElementBeamANCF::ComputeMassMatrix() {
     m_MassMatrix.setZero();
 
     double rho = GetMaterial()->Get_rho();
-    MyMassBeam myformula(this);
+    BeamANCF_Mass myformula(this);
     ChMatrixNM<double, 27, 27> TempMassMatrix;
     TempMassMatrix.setZero();
     ChQuadrature::Integrate3D<ChMatrixNM<double, 27, 27>>(TempMassMatrix,  // result of integration will go there
@@ -186,10 +186,10 @@ void ChElementBeamANCF::ComputeNodalMass() {
 // -----------------------------------------------------------------------------
 
 /// This class defines the calculations for the integrand of the element gravity forces
-class MyGravityBeam : public ChIntegrable3D<ChVectorN<double, 27> > {
+class BeamANCF_Gravity : public ChIntegrable3D<ChVectorN<double, 27>> {
   public:
-    MyGravityBeam(ChElementBeamANCF* element, const ChVector<> gacc) : m_element(element), m_gacc(gacc) {}
-    ~MyGravityBeam() {}
+    BeamANCF_Gravity(ChElementBeamANCF* element, const ChVector<> gacc) : m_element(element), m_gacc(gacc) {}
+    ~BeamANCF_Gravity() {}
 
   private:
     ChElementBeamANCF* m_element;
@@ -198,7 +198,7 @@ class MyGravityBeam : public ChIntegrable3D<ChVectorN<double, 27> > {
     virtual void Evaluate(ChVectorN<double, 27>& result, const double x, const double y, const double z) override;
 };
 
-void MyGravityBeam::Evaluate(ChVectorN<double, 27>& result, const double x, const double y, const double z) {
+void BeamANCF_Gravity::Evaluate(ChVectorN<double, 27>& result, const double x, const double y, const double z) {
     ChElementBeamANCF::ShapeVector N;
     m_element->ShapeFunctions(N, x, y, z);
 
@@ -221,7 +221,7 @@ void ChElementBeamANCF::ComputeGravityForce(const ChVector<>& g_acc) {
     m_GravForce.setZero();
 
     double rho = GetMaterial()->Get_rho();
-    MyGravityBeam myformula(this, g_acc);
+    BeamANCF_Gravity myformula(this, g_acc);
     ChVectorN<double, 27> Fgravity;
     Fgravity.setZero();
     ChQuadrature::Integrate3D<ChVectorN<double, 27>>(Fgravity,   // result of integration will go there
@@ -239,15 +239,14 @@ void ChElementBeamANCF::ComputeGravityForce(const ChVector<>& g_acc) {
 // Elastic force calculation
 // -----------------------------------------------------------------------------
 
-// The class MyForceBeam provides the integrand for the calculation of the internal forces
+// The class BeamANCF_Force provides the integrand for the calculation of the internal forces
 // for one layer of an ANCF shell element.
 // The 27 entries in the integrand represent the internal force.
 
-class MyForceBeam : public ChIntegrable3D<ChVectorN<double, 27> > {
+class BeamANCF_Force : public ChIntegrable3D<ChVectorN<double, 27>> {
   public:
-    MyForceBeam(ChElementBeamANCF* element)  // Containing element
-        : m_element(element) {}
-    ~MyForceBeam() {}
+    BeamANCF_Force(ChElementBeamANCF* element) : m_element(element) {}
+    ~BeamANCF_Force() {}
 
   private:
     ChElementBeamANCF* m_element;
@@ -256,7 +255,7 @@ class MyForceBeam : public ChIntegrable3D<ChVectorN<double, 27> > {
     virtual void Evaluate(ChVectorN<double, 27>& result, const double x, const double y, const double z) override;
 };
 
-void MyForceBeam::Evaluate(ChVectorN<double, 27>& result, const double x, const double y, const double z) {
+void BeamANCF_Force::Evaluate(ChVectorN<double, 27>& result, const double x, const double y, const double z) {
     // Element shape function
     ChElementBeamANCF::ShapeVector N;
     m_element->ShapeFunctions(N, x, y, z);
@@ -365,21 +364,18 @@ void MyForceBeam::Evaluate(ChVectorN<double, 27>& result, const double x, const 
                 strain_til(2) * beta(1) * beta(4) + strain_til(3) * beta(7) * beta(7) +
                 strain_til(4) * beta(1) * beta(7) + strain_til(5) * beta(4) * beta(7);
     strain(2) = strain_til(0) * 2.0 * beta(0) * beta(1) + strain_til(1) * 2.0 * beta(3) * beta(4) +
-                strain_til(2) * (beta(1) * beta(3) + beta(0) * beta(4)) +
-                strain_til(3) * 2.0 * beta(6) * beta(7) +
+                strain_til(2) * (beta(1) * beta(3) + beta(0) * beta(4)) + strain_til(3) * 2.0 * beta(6) * beta(7) +
                 strain_til(4) * (beta(1) * beta(6) + beta(0) * beta(7)) +
                 strain_til(5) * (beta(4) * beta(6) + beta(3) * beta(7));
     strain(3) = strain_til(0) * beta(2) * beta(2) + strain_til(1) * beta(5) * beta(5) +
                 strain_til(2) * beta(2) * beta(5) + strain_til(3) * beta(8) * beta(8) +
                 strain_til(4) * beta(2) * beta(8) + strain_til(5) * beta(5) * beta(8);
     strain(4) = strain_til(0) * 2.0 * beta(0) * beta(2) + strain_til(1) * 2.0 * beta(3) * beta(5) +
-                strain_til(2) * (beta(2) * beta(3) + beta(0) * beta(5)) +
-                strain_til(3) * 2.0 * beta(6) * beta(8) +
+                strain_til(2) * (beta(2) * beta(3) + beta(0) * beta(5)) + strain_til(3) * 2.0 * beta(6) * beta(8) +
                 strain_til(4) * (beta(2) * beta(6) + beta(0) * beta(8)) +
                 strain_til(5) * (beta(5) * beta(6) + beta(3) * beta(8));
     strain(5) = strain_til(0) * 2.0 * beta(1) * beta(2) + strain_til(1) * 2.0 * beta(4) * beta(5) +
-                strain_til(2) * (beta(2) * beta(4) + beta(1) * beta(5)) +
-                strain_til(3) * 2.0 * beta(7) * beta(8) +
+                strain_til(2) * (beta(2) * beta(4) + beta(1) * beta(5)) + strain_til(3) * 2.0 * beta(7) * beta(8) +
                 strain_til(4) * (beta(2) * beta(7) + beta(1) * beta(8)) +
                 strain_til(5) * (beta(5) * beta(7) + beta(4) * beta(8));
     // std::cout << "With beta: " << strain(0, 0) << " " << strain(1, 0) << " " << strain(2, 0) << " " <<
@@ -411,14 +407,14 @@ void MyForceBeam::Evaluate(ChVectorN<double, 27>& result, const double x, const 
             tempB(0, i * 3 + j) = tempB31(0, j) * Ny(i);
         }
     }
-    strainD_til.row(1) = tempB; // strainD for yy
+    strainD_til.row(1) = tempB;  // strainD for yy
 
     for (int i = 0; i < 9; i++) {
         for (int j = 0; j < 3; j++) {
             tempB(0, i * 3 + j) = tempB31(0, j) * Nx(i) + tempB3(0, j) * Ny(i);
         }
     }
-    strainD_til.row(2) = tempB; // strainD for xy
+    strainD_til.row(2) = tempB;  // strainD for xy
 
     tempB32 = Nz * m_element->m_d;
     for (int i = 0; i < 9; i++) {
@@ -503,15 +499,14 @@ void MyForceBeam::Evaluate(ChVectorN<double, 27>& result, const double x, const 
     result = (tempC * strain) * (detJ0 * m_element->m_GaussScaling);
 }
 
-// The class MyForceBeam provides the integrand for the calculation of the internal forces
+// The class BeamANCF_ForceNu provides the integrand for the calculation of the internal forces
 // for one layer of an ANCF shell element.
 // The 27 entries in the integrand represent the internal force.
 
-class MyForceBeam_Nu : public ChIntegrable1D<ChVectorN<double, 27> > {
+class BeamANCF_ForceNu : public ChIntegrable1D<ChVectorN<double, 27>> {
   public:
-    MyForceBeam_Nu(ChElementBeamANCF* element)  // Containing element
-        : m_element(element) {}
-    ~MyForceBeam_Nu() {}
+    BeamANCF_ForceNu(ChElementBeamANCF* element) : m_element(element) {}
+    ~BeamANCF_ForceNu() {}
 
   private:
     ChElementBeamANCF* m_element;
@@ -520,7 +515,7 @@ class MyForceBeam_Nu : public ChIntegrable1D<ChVectorN<double, 27> > {
     virtual void Evaluate(ChVectorN<double, 27>& result, const double x) override;
 };
 
-void MyForceBeam_Nu::Evaluate(ChVectorN<double, 27>& result, const double x) {
+void BeamANCF_ForceNu::Evaluate(ChVectorN<double, 27>& result, const double x) {
     // Element shape function
     ChElementBeamANCF::ShapeVector N;
     double y = 0;
@@ -631,21 +626,18 @@ void MyForceBeam_Nu::Evaluate(ChVectorN<double, 27>& result, const double x) {
                 strain_til(2) * beta(1) * beta(4) + strain_til(3) * beta(7) * beta(7) +
                 strain_til(4) * beta(1) * beta(7) + strain_til(5) * beta(4) * beta(7);
     strain(2) = strain_til(0) * 2.0 * beta(0) * beta(1) + strain_til(1) * 2.0 * beta(3) * beta(4) +
-                strain_til(2) * (beta(1) * beta(3) + beta(0) * beta(4)) +
-                strain_til(3) * 2.0 * beta(6) * beta(7) +
+                strain_til(2) * (beta(1) * beta(3) + beta(0) * beta(4)) + strain_til(3) * 2.0 * beta(6) * beta(7) +
                 strain_til(4) * (beta(1) * beta(6) + beta(0) * beta(7)) +
                 strain_til(5) * (beta(4) * beta(6) + beta(3) * beta(7));
     strain(3) = strain_til(0) * beta(2) * beta(2) + strain_til(1) * beta(5) * beta(5) +
                 strain_til(2) * beta(2) * beta(5) + strain_til(3) * beta(8) * beta(8) +
                 strain_til(4) * beta(2) * beta(8) + strain_til(5) * beta(5) * beta(8);
     strain(4) = strain_til(0) * 2.0 * beta(0) * beta(2) + strain_til(1) * 2.0 * beta(3) * beta(5) +
-                strain_til(2) * (beta(2) * beta(3) + beta(0) * beta(5)) +
-                strain_til(3) * 2.0 * beta(6) * beta(8) +
+                strain_til(2) * (beta(2) * beta(3) + beta(0) * beta(5)) + strain_til(3) * 2.0 * beta(6) * beta(8) +
                 strain_til(4) * (beta(2) * beta(6) + beta(0) * beta(8)) +
                 strain_til(5) * (beta(5) * beta(6) + beta(3) * beta(8));
     strain(5) = strain_til(0) * 2.0 * beta(1) * beta(2) + strain_til(1) * 2.0 * beta(4) * beta(5) +
-                strain_til(2) * (beta(2) * beta(4) + beta(1) * beta(5)) +
-                strain_til(3) * 2.0 * beta(7) * beta(8) +
+                strain_til(2) * (beta(2) * beta(4) + beta(1) * beta(5)) + strain_til(3) * 2.0 * beta(7) * beta(8) +
                 strain_til(4) * (beta(2) * beta(7) + beta(1) * beta(8)) +
                 strain_til(5) * (beta(5) * beta(7) + beta(4) * beta(8));
 
@@ -765,7 +757,7 @@ void ChElementBeamANCF::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     Fi.setZero();
 
     // Three-dimensional integration of Poisson-less terms
-    MyForceBeam formula(this);
+    BeamANCF_Force formula(this);
     ChVectorN<double, 27> result;
     result.setZero();
     ChQuadrature::Integrate3D<ChVectorN<double, 27>>(result,   // result of integration
@@ -781,7 +773,7 @@ void ChElementBeamANCF::ComputeInternalForces(ChVectorDynamic<>& Fi) {
 
     if (GetStrainFormulation() == ChElementBeamANCF::StrainFormulation::CMPoisson) {
         // One-dimensional integration of Poisson terms (over centerline)
-        MyForceBeam_Nu formula_Nu(this);
+        BeamANCF_ForceNu formula_Nu(this);
         result.setZero();
         ChQuadrature::Integrate1D<ChVectorN<double, 27>>(result,      // result of integration
                                                          formula_Nu,  // integrand formula
@@ -802,18 +794,18 @@ void ChElementBeamANCF::ComputeInternalForces(ChVectorDynamic<>& Fi) {
 // Jacobians of internal forces
 // -----------------------------------------------------------------------------
 
-// The class MyJacobianBeam provides the integrand for the calculation of the Jacobians
+// The class BeamANCF_Jacobian provides the integrand for the calculation of the Jacobians
 // (stiffness and damping matrices) of the internal forces for one layer of an ANCF
 // shell element.
 // The integrated quantity represents the 27x27 Jacobian
 //      Kfactor * [K] + Rfactor * [R]
 
-class MyJacobianBeam : public ChIntegrable3D<ChMatrixNM<double, 27, 27> > {
+class BeamANCF_Jacobian : public ChIntegrable3D<ChMatrixNM<double, 27, 27>> {
   public:
-    MyJacobianBeam(ChElementBeamANCF* element,  // Containing element
-                   double Kfactor,              // Scaling coefficient for stiffness component
-                   double Rfactor               // Scaling coefficient for damping component
-                   )
+    BeamANCF_Jacobian(ChElementBeamANCF* element,  // Containing element
+                      double Kfactor,              // Scaling coefficient for stiffness component
+                      double Rfactor               // Scaling coefficient for damping component
+                      )
         : m_element(element), m_Kfactor(Kfactor), m_Rfactor(Rfactor) {}
 
   private:
@@ -825,7 +817,7 @@ class MyJacobianBeam : public ChIntegrable3D<ChMatrixNM<double, 27, 27> > {
     virtual void Evaluate(ChMatrixNM<double, 27, 27>& result, const double x, const double y, const double z) override;
 };
 
-void MyJacobianBeam::Evaluate(ChMatrixNM<double, 27, 27>& result, const double x, const double y, const double z) {
+void BeamANCF_Jacobian::Evaluate(ChMatrixNM<double, 27, 27>& result, const double x, const double y, const double z) {
     // Element shape function
     ChElementBeamANCF::ShapeVector N;
     m_element->ShapeFunctions(N, x, y, z);
@@ -934,21 +926,18 @@ void MyJacobianBeam::Evaluate(ChMatrixNM<double, 27, 27>& result, const double x
                 strain_til(2) * beta(1) * beta(4) + strain_til(3) * beta(7) * beta(7) +
                 strain_til(4) * beta(1) * beta(7) + strain_til(5) * beta(4) * beta(7);
     strain(2) = strain_til(0) * 2.0 * beta(0) * beta(1) + strain_til(1) * 2.0 * beta(3) * beta(4) +
-                strain_til(2) * (beta(1) * beta(3) + beta(0) * beta(4)) +
-                strain_til(3) * 2.0 * beta(6) * beta(7) +
+                strain_til(2) * (beta(1) * beta(3) + beta(0) * beta(4)) + strain_til(3) * 2.0 * beta(6) * beta(7) +
                 strain_til(4) * (beta(1) * beta(6) + beta(0) * beta(7)) +
                 strain_til(5) * (beta(4) * beta(6) + beta(3) * beta(7));
     strain(3) = strain_til(0) * beta(2) * beta(2) + strain_til(1) * beta(5) * beta(5) +
                 strain_til(2) * beta(2) * beta(5) + strain_til(3) * beta(8) * beta(8) +
                 strain_til(4) * beta(2) * beta(8) + strain_til(5) * beta(5) * beta(8);
     strain(4) = strain_til(0) * 2.0 * beta(0) * beta(2) + strain_til(1) * 2.0 * beta(3) * beta(5) +
-                strain_til(2) * (beta(2) * beta(3) + beta(0) * beta(5)) +
-                strain_til(3) * 2.0 * beta(6) * beta(8) +
+                strain_til(2) * (beta(2) * beta(3) + beta(0) * beta(5)) + strain_til(3) * 2.0 * beta(6) * beta(8) +
                 strain_til(4) * (beta(2) * beta(6) + beta(0) * beta(8)) +
                 strain_til(5) * (beta(5) * beta(6) + beta(3) * beta(8));
     strain(5) = strain_til(0) * 2.0 * beta(1) * beta(2) + strain_til(1) * 2.0 * beta(4) * beta(5) +
-                strain_til(2) * (beta(2) * beta(4) + beta(1) * beta(5)) +
-                strain_til(3) * 2.0 * beta(7) * beta(8) +
+                strain_til(2) * (beta(2) * beta(4) + beta(1) * beta(5)) + strain_til(3) * 2.0 * beta(7) * beta(8) +
                 strain_til(4) * (beta(2) * beta(7) + beta(1) * beta(8)) +
                 strain_til(5) * (beta(5) * beta(7) + beta(4) * beta(8));
 
@@ -968,7 +957,7 @@ void MyJacobianBeam::Evaluate(ChMatrixNM<double, 27, 27>& result, const double x
             tempB(0, i * 3 + j) = tempB3(0, j) * Nx(0, i);
         }
     }
-    strainD_til.row(0) = tempB; // strain for xx
+    strainD_til.row(0) = tempB;  // strain for xx
 
     tempB31 = Ny * m_element->m_d;
     for (int i = 0; i < 9; i++) {
@@ -983,7 +972,7 @@ void MyJacobianBeam::Evaluate(ChMatrixNM<double, 27, 27>& result, const double x
             tempB(0, i * 3 + j) = tempB31(0, j) * Nx(0, i) + tempB3(0, j) * Ny(0, i);
         }
     }
-    strainD_til.row(2) = tempB; // strainD for xy
+    strainD_til.row(2) = tempB;  // strainD for xy
 
     tempB32 = Nz * m_element->m_d;
     for (int i = 0; i < 9; i++) {
@@ -991,14 +980,14 @@ void MyJacobianBeam::Evaluate(ChMatrixNM<double, 27, 27>& result, const double x
             tempB(0, i * 3 + j) = tempB32(0, j) * Nz(0, i);
         }
     }
-    strainD_til.row(3) = tempB; // strainD for zz
+    strainD_til.row(3) = tempB;  // strainD for zz
 
     for (int i = 0; i < 9; i++) {
         for (int j = 0; j < 3; j++) {
             tempB(0, i * 3 + j) = tempB3(0, j) * Nz(0, i) + tempB32(0, j) * Nx(0, i);
         }
     }
-    strainD_til.row(4) = tempB; // strainD for xz
+    strainD_til.row(4) = tempB;  // strainD for xz
 
     for (int i = 0; i < 9; i++) {
         for (int j = 0; j < 3; j++) {
@@ -1131,12 +1120,12 @@ void MyJacobianBeam::Evaluate(ChMatrixNM<double, 27, 27>& result, const double x
     result *= detJ0 * m_element->m_GaussScaling;
 }
 
-class MyJacobianBeam_Nu : public ChIntegrable1D<ChMatrixNM<double, 27, 27> > {
+class BeamANCF_JacobianNu : public ChIntegrable1D<ChMatrixNM<double, 27, 27>> {
   public:
-    MyJacobianBeam_Nu(ChElementBeamANCF* element,  // Containing element
-                      double Kfactor,              // Scaling coefficient for stiffness component
-                      double Rfactor               // Scaling coefficient for damping component
-                      )
+    BeamANCF_JacobianNu(ChElementBeamANCF* element,  // Containing element
+                        double Kfactor,              // Scaling coefficient for stiffness component
+                        double Rfactor               // Scaling coefficient for damping component
+                        )
         : m_element(element), m_Kfactor(Kfactor), m_Rfactor(Rfactor) {}
 
   private:
@@ -1148,7 +1137,7 @@ class MyJacobianBeam_Nu : public ChIntegrable1D<ChMatrixNM<double, 27, 27> > {
     virtual void Evaluate(ChMatrixNM<double, 27, 27>& result, const double x) override;
 };
 
-void MyJacobianBeam_Nu::Evaluate(ChMatrixNM<double, 27, 27>& result, const double x) {
+void BeamANCF_JacobianNu::Evaluate(ChMatrixNM<double, 27, 27>& result, const double x) {
     // Element shape function
     ChElementBeamANCF::ShapeVector N;
     double y = 0;
@@ -1259,21 +1248,18 @@ void MyJacobianBeam_Nu::Evaluate(ChMatrixNM<double, 27, 27>& result, const doubl
                 strain_til(2) * beta(1) * beta(4) + strain_til(3) * beta(7) * beta(7) +
                 strain_til(4) * beta(1) * beta(7) + strain_til(5) * beta(4) * beta(7);
     strain(2) = strain_til(0) * 2.0 * beta(0) * beta(1) + strain_til(1) * 2.0 * beta(3) * beta(4) +
-                strain_til(2) * (beta(1) * beta(3) + beta(0) * beta(4)) +
-                strain_til(3) * 2.0 * beta(6) * beta(7) +
+                strain_til(2) * (beta(1) * beta(3) + beta(0) * beta(4)) + strain_til(3) * 2.0 * beta(6) * beta(7) +
                 strain_til(4) * (beta(1) * beta(6) + beta(0) * beta(7)) +
                 strain_til(5) * (beta(4) * beta(6) + beta(3) * beta(7));
     strain(3) = strain_til(0) * beta(2) * beta(2) + strain_til(1) * beta(5) * beta(5) +
                 strain_til(2) * beta(2) * beta(5) + strain_til(3) * beta(8) * beta(8) +
                 strain_til(4) * beta(2) * beta(8) + strain_til(5) * beta(5) * beta(8);
     strain(4) = strain_til(0) * 2.0 * beta(0) * beta(2) + strain_til(1, 0) * 2.0 * beta(3) * beta(5) +
-                strain_til(2) * (beta(2) * beta(3) + beta(0) * beta(5)) +
-                strain_til(3) * 2.0 * beta(6) * beta(8) +
+                strain_til(2) * (beta(2) * beta(3) + beta(0) * beta(5)) + strain_til(3) * 2.0 * beta(6) * beta(8) +
                 strain_til(4) * (beta(2) * beta(6) + beta(0) * beta(8)) +
                 strain_til(5) * (beta(5) * beta(6) + beta(3) * beta(8));
     strain(5) = strain_til(0) * 2.0 * beta(1) * beta(2) + strain_til(1) * 2.0 * beta(4) * beta(5) +
-                strain_til(2) * (beta(2) * beta(4) + beta(1) * beta(5)) +
-                strain_til(3) * 2.0 * beta(7) * beta(8) +
+                strain_til(2) * (beta(2) * beta(4) + beta(1) * beta(5)) + strain_til(3) * 2.0 * beta(7) * beta(8) +
                 strain_til(4) * (beta(2) * beta(7) + beta(1) * beta(8)) +
                 strain_til(5) * (beta(5) * beta(7) + beta(4) * beta(8));
 
@@ -1461,7 +1447,7 @@ void ChElementBeamANCF::ComputeInternalJacobians(double Kfactor, double Rfactor)
     m_JacobianMatrix.setZero();
 
     // Jacobian from diagonal terms D0 (three-dimensional)
-    MyJacobianBeam formula(this, Kfactor, Rfactor);
+    BeamANCF_Jacobian formula(this, Kfactor, Rfactor);
     ChMatrixNM<double, 27, 27> result;
     result.setZero();
     ChQuadrature::Integrate3D<ChMatrixNM<double, 27, 27>>(result,   // result of integration
@@ -1476,7 +1462,7 @@ void ChElementBeamANCF::ComputeInternalJacobians(double Kfactor, double Rfactor)
 
     // Jacobian from diagonal terms Dv (one-dimensional)
     if (GetStrainFormulation() == ChElementBeamANCF::StrainFormulation::CMPoisson) {
-        MyJacobianBeam_Nu formula_Nu(this, Kfactor, Rfactor);
+        BeamANCF_JacobianNu formula_Nu(this, Kfactor, Rfactor);
         result.setZero();
         ChQuadrature::Integrate1D<ChMatrixNM<double, 27, 27>>(result,      // result of integration
                                                               formula_Nu,  // integrand formula
@@ -1786,21 +1772,18 @@ ChVector<> ChElementBeamANCF::EvaluateBeamSectionStrains() {
                 strain_til(2) * beta(1) * beta(4) + strain_til(3) * beta(7) * beta(7) +
                 strain_til(4) * beta(1) * beta(7) + strain_til(5) * beta(4) * beta(7);
     strain(2) = strain_til(0) * 2.0 * beta(0) * beta(1) + strain_til(1) * 2.0 * beta(3) * beta(4) +
-                strain_til(2) * (beta(1) * beta(3) + beta(0) * beta(4)) +
-                strain_til(3) * 2.0 * beta(6) * beta(7) +
+                strain_til(2) * (beta(1) * beta(3) + beta(0) * beta(4)) + strain_til(3) * 2.0 * beta(6) * beta(7) +
                 strain_til(4) * (beta(1) * beta(6) + beta(0) * beta(7)) +
                 strain_til(5) * (beta(4) * beta(6) + beta(3) * beta(7));
     strain(3) = strain_til(0) * beta(2) * beta(2) + strain_til(1) * beta(5) * beta(5) +
                 strain_til(2) * beta(2) * beta(5) + strain_til(3) * beta(8) * beta(8) +
                 strain_til(4) * beta(2) * beta(8) + strain_til(5) * beta(5) * beta(8);
     strain(4) = strain_til(0) * 2.0 * beta(0) * beta(2) + strain_til(1) * 2.0 * beta(3) * beta(5) +
-                strain_til(2) * (beta(2) * beta(3) + beta(0) * beta(5)) +
-                strain_til(3) * 2.0 * beta(6) * beta(8) +
+                strain_til(2) * (beta(2) * beta(3) + beta(0) * beta(5)) + strain_til(3) * 2.0 * beta(6) * beta(8) +
                 strain_til(4) * (beta(2) * beta(6) + beta(0) * beta(8)) +
                 strain_til(5) * (beta(5) * beta(6) + beta(3) * beta(8));
     strain(5) = strain_til(0) * 2.0 * beta(1) * beta(2) + strain_til(1) * 2.0 * beta(4) * beta(5) +
-                strain_til(2) * (beta(2) * beta(4) + beta(1) * beta(5)) +
-                strain_til(3) * 2.0 * beta(7) * beta(8) +
+                strain_til(2) * (beta(2) * beta(4) + beta(1) * beta(5)) + strain_til(3) * 2.0 * beta(7) * beta(8) +
                 strain_til(4) * (beta(2) * beta(7) + beta(1) * beta(8)) +
                 strain_til(5) * (beta(5) * beta(7) + beta(4) * beta(8));
 
@@ -1883,10 +1866,14 @@ void ChElementBeamANCF::LoadableGetStateBlock_w(int block_offset, ChStateDelta& 
 }
 
 /// Increment all DOFs using a delta.
-void ChElementBeamANCF::LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv)  {
-    m_nodes[0]->NodeIntStateIncrement(off_x   , x_new, x, off_v   , Dv);
-    m_nodes[1]->NodeIntStateIncrement(off_x+9 , x_new, x, off_v+9 , Dv);
-    m_nodes[2]->NodeIntStateIncrement(off_x+18, x_new, x, off_v+18, Dv);
+void ChElementBeamANCF::LoadableStateIncrement(const unsigned int off_x,
+                                               ChState& x_new,
+                                               const ChState& x,
+                                               const unsigned int off_v,
+                                               const ChStateDelta& Dv) {
+    m_nodes[0]->NodeIntStateIncrement(off_x, x_new, x, off_v, Dv);
+    m_nodes[1]->NodeIntStateIncrement(off_x + 9, x_new, x, off_v + 9, Dv);
+    m_nodes[2]->NodeIntStateIncrement(off_x + 18, x_new, x, off_v + 18, Dv);
 }
 
 void ChElementBeamANCF::EvaluateSectionVelNorm(double U, ChVector<>& Result) {
@@ -1915,7 +1902,7 @@ void ChElementBeamANCF::ComputeNF(
     const ChVectorDynamic<>& F,  // Input F vector, size is =n. field coords.
     ChVectorDynamic<>* state_x,  // if != 0, update state (pos. part) to this, then evaluate Q
     ChVectorDynamic<>* state_w   // if != 0, update state (speed part) to this, then evaluate Q
-    ) {
+) {
     ShapeVector N;
     ShapeFunctions(N, U, 0, 0);
 
@@ -2045,8 +2032,8 @@ void ChMaterialBeamANCF::Calc_E_eps(const ChVector<>& E,
     m_E_eps(5, 5) = G.z();
 }
 void ChMaterialBeamANCF::Calc_E_eps_Nu(const ChVector<>& E, const ChVector<>& nu, const ChVector<>& G) {
-    double delta = 1.0 - (nu.x() * nu.x()) * E.y() / E.x() - (nu.y() * nu.y()) * E.z() / E.x() - (nu.z() * nu.z()) * E.z() / E.y() -
-                   2.0 * nu.x() * nu.y() * nu.z() * E.z() / E.x();
+    double delta = 1.0 - (nu.x() * nu.x()) * E.y() / E.x() - (nu.y() * nu.y()) * E.z() / E.x() -
+                   (nu.z() * nu.z()) * E.z() / E.y() - 2.0 * nu.x() * nu.y() * nu.z() * E.z() / E.x();
     double nu_yx = nu.x() * E.y() / E.x();
     double nu_zx = nu.y() * E.z() / E.x();
     double nu_zy = nu.z() * E.z() / E.y();

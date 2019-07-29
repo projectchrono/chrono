@@ -202,10 +202,10 @@ void ChElementShellANCF_8::ComputeMmatrixGlobal(ChMatrixRef M) {
 // -----------------------------------------------------------------------------
 
 /// This class defines the calculations for the integrand of the inertia matrix.
-class MyMass_8 : public ChIntegrable3D<ChMatrixNM<double, 72, 72> > {
+class ShellANCF8_Mass : public ChIntegrable3D<ChMatrixNM<double, 72, 72>> {
   public:
-    MyMass_8(ChElementShellANCF_8* element) : m_element(element) {}
-    ~MyMass_8() {}
+    ShellANCF8_Mass(ChElementShellANCF_8* element) : m_element(element) {}
+    ~ShellANCF8_Mass() {}
 
   private:
     ChElementShellANCF_8* m_element;
@@ -213,7 +213,7 @@ class MyMass_8 : public ChIntegrable3D<ChMatrixNM<double, 72, 72> > {
     virtual void Evaluate(ChMatrixNM<double, 72, 72>& result, const double x, const double y, const double z) override;
 };
 
-void MyMass_8::Evaluate(ChMatrixNM<double, 72, 72>& result, const double x, const double y, const double z) {
+void ShellANCF8_Mass::Evaluate(ChMatrixNM<double, 72, 72>& result, const double x, const double y, const double z) {
     ChElementShellANCF_8::ShapeVector N;
     m_element->ShapeFunctions(N, x, y, z);
 
@@ -240,15 +240,15 @@ void ChElementShellANCF_8::ComputeMassMatrix() {
 
     for (size_t kl = 0; kl < m_numLayers; kl++) {
         double rho = m_layers[kl].GetMaterial()->Get_rho();
-        MyMass_8 myformula(this);
+        ShellANCF8_Mass myformula(this);
         ChMatrixNM<double, 72, 72> TempMassMatrix;
         TempMassMatrix.setZero();
-        ChQuadrature::Integrate3D<ChMatrixNM<double, 72, 72> >(TempMassMatrix,  // result of integration will go there
-                                                               myformula,       // formula to integrate
-                                                               -1, 1,           // x limits
-                                                               -1, 1,           // y limits
-                                                               m_GaussZ[kl], m_GaussZ[kl + 1],  // z limits
-                                                               3                                // order of integration
+        ChQuadrature::Integrate3D<ChMatrixNM<double, 72, 72>>(TempMassMatrix,  // result of integration will go there
+                                                              myformula,       // formula to integrate
+                                                              -1, 1,           // x limits
+                                                              -1, 1,           // y limits
+                                                              m_GaussZ[kl], m_GaussZ[kl + 1],  // z limits
+                                                              3                                // order of integration
         );
         TempMassMatrix *= rho;
         m_MassMatrix += TempMassMatrix;
@@ -283,10 +283,10 @@ void ChElementShellANCF_8::ComputeNodalMass() {
 // -----------------------------------------------------------------------------
 
 /// This class defines the calculations for the integrand of the element gravity forces
-class MyGravity_8 : public ChIntegrable3D<ChVectorN<double, 72> > {
+class ShellANCF8_Gravity : public ChIntegrable3D<ChVectorN<double, 72>> {
   public:
-    MyGravity_8(ChElementShellANCF_8* element, const ChVector<> gacc) : m_element(element), m_gacc(gacc) {}
-    ~MyGravity_8() {}
+    ShellANCF8_Gravity(ChElementShellANCF_8* element, const ChVector<> gacc) : m_element(element), m_gacc(gacc) {}
+    ~ShellANCF8_Gravity() {}
 
   private:
     ChElementShellANCF_8* m_element;
@@ -295,7 +295,7 @@ class MyGravity_8 : public ChIntegrable3D<ChVectorN<double, 72> > {
     virtual void Evaluate(ChVectorN<double, 72>& result, const double x, const double y, const double z) override;
 };
 
-void MyGravity_8::Evaluate(ChVectorN<double, 72>& result, const double x, const double y, const double z) {
+void ShellANCF8_Gravity::Evaluate(ChVectorN<double, 72>& result, const double x, const double y, const double z) {
     ChElementShellANCF_8::ShapeVector N;
     m_element->ShapeFunctions(N, x, y, z);
     double detJ0 = m_element->Calc_detJ0(x, y, z);
@@ -313,15 +313,15 @@ void ChElementShellANCF_8::ComputeGravityForce(const ChVector<>& g_acc) {
 
     for (size_t kl = 0; kl < m_numLayers; kl++) {
         double rho = m_layers[kl].GetMaterial()->Get_rho();
-        MyGravity_8 myformula(this, g_acc);
+        ShellANCF8_Gravity myformula(this, g_acc);
         ChVectorN<double, 72> Fgravity;
         Fgravity.setZero();
-        ChQuadrature::Integrate3D<ChVectorN<double, 72> >(Fgravity,   // result of integration will go there
-                                                          myformula,  // formula to integrate
-                                                          -1, 1,      // x limits
-                                                          -1, 1,      // y limits
-                                                          m_GaussZ[kl], m_GaussZ[kl + 1],  // z limits
-                                                          3                                // order of integration
+        ChQuadrature::Integrate3D<ChVectorN<double, 72>>(Fgravity,   // result of integration will go there
+                                                         myformula,  // formula to integrate
+                                                         -1, 1,      // x limits
+                                                         -1, 1,      // y limits
+                                                         m_GaussZ[kl], m_GaussZ[kl + 1],  // z limits
+                                                         3                                // order of integration
         );
 
         Fgravity *= rho;
@@ -333,19 +333,19 @@ void ChElementShellANCF_8::ComputeGravityForce(const ChVector<>& g_acc) {
 // Elastic force calculation
 // -----------------------------------------------------------------------------
 
-// The class MyForce provides the integrand for the calculation of the internal forces
+// The class ShellANCF8_Force provides the integrand for the calculation of the internal forces
 // for one layer of an ANCF shell element.
 // The first 72 entries in the integrand represent the internal force.
 // This implementation also features a composite material implementation
 // that allows for selecting a number of layers over the element thickness; each of which
 // has an independent, user-selected fiber angle (direction for orthotropic constitutive behavior)
-class MyForce_8 : public ChIntegrable3D<ChVectorN<double, 72> > {
+class ShellANCF8_Force : public ChIntegrable3D<ChVectorN<double, 72>> {
   public:
-    MyForce_8(ChElementShellANCF_8* element,  // Containing element
-              size_t kl                       // Current layer index
-              )
+    ShellANCF8_Force(ChElementShellANCF_8* element,  // Containing element
+                     size_t kl                       // Current layer index
+                     )
         : m_element(element), m_kl(kl) {}
-    ~MyForce_8() {}
+    ~ShellANCF8_Force() {}
 
   private:
     ChElementShellANCF_8* m_element;
@@ -355,7 +355,7 @@ class MyForce_8 : public ChIntegrable3D<ChVectorN<double, 72> > {
     virtual void Evaluate(ChVectorN<double, 72>& result, const double x, const double y, const double z) override;
 };
 
-void MyForce_8::Evaluate(ChVectorN<double, 72>& result, const double x, const double y, const double z) {
+void ShellANCF8_Force::Evaluate(ChVectorN<double, 72>& result, const double x, const double y, const double z) {
     // Element shape function
     ChElementShellANCF_8::ShapeVector N;
     m_element->ShapeFunctions(N, x, y, z);
@@ -376,7 +376,7 @@ void MyForce_8::Evaluate(ChVectorN<double, 72>& result, const double x, const do
     G1xG2.x() = Nx_d0(1) * Ny_d0(2) - Nx_d0(2) * Ny_d0(1);
     G1xG2.y() = Nx_d0(2) * Ny_d0(0) - Nx_d0(0) * Ny_d0(2);
     G1xG2.z() = Nx_d0(0) * Ny_d0(1) - Nx_d0(1) * Ny_d0(0);
-    G1dotG1   = Nx_d0(0) * Nx_d0(0) + Nx_d0(1) * Nx_d0(1) + Nx_d0(2) * Nx_d0(2);
+    G1dotG1 = Nx_d0(0) * Nx_d0(0) + Nx_d0(1) * Nx_d0(1) + Nx_d0(2) * Nx_d0(2);
 
     // Tangent Frame
     ChVector<double> A1;
@@ -469,21 +469,18 @@ void MyForce_8::Evaluate(ChVectorN<double, 72>& result, const double x, const do
                 strain_til(2) * beta(1) * beta(4) + strain_til(3) * beta(7) * beta(7) +
                 strain_til(4) * beta(1) * beta(7) + strain_til(5) * beta(4) * beta(7);
     strain(2) = strain_til(0) * 2.0 * beta(0) * beta(1) + strain_til(1) * 2.0 * beta(3) * beta(4) +
-                strain_til(2) * (beta(1) * beta(3) + beta(0) * beta(4)) +
-                strain_til(3) * 2.0 * beta(6) * beta(7) +
+                strain_til(2) * (beta(1) * beta(3) + beta(0) * beta(4)) + strain_til(3) * 2.0 * beta(6) * beta(7) +
                 strain_til(4) * (beta(1) * beta(6) + beta(0) * beta(7)) +
                 strain_til(5) * (beta(4) * beta(6) + beta(3) * beta(7));
     strain(3) = strain_til(0) * beta(2) * beta(2) + strain_til(1) * beta(5) * beta(5) +
                 strain_til(2) * beta(2) * beta(5) + strain_til(3) * beta(8) * beta(8) +
                 strain_til(4) * beta(2) * beta(8) + strain_til(5) * beta(5) * beta(8);
     strain(4) = strain_til(0) * 2.0 * beta(0) * beta(2) + strain_til(1) * 2.0 * beta(3) * beta(5) +
-                strain_til(2) * (beta(2) * beta(3) + beta(0) * beta(5)) +
-                strain_til(3) * 2.0 * beta(6) * beta(8) +
+                strain_til(2) * (beta(2) * beta(3) + beta(0) * beta(5)) + strain_til(3) * 2.0 * beta(6) * beta(8) +
                 strain_til(4) * (beta(2) * beta(6) + beta(0) * beta(8)) +
                 strain_til(5) * (beta(5) * beta(6) + beta(3) * beta(8));
     strain(5) = strain_til(0) * 2.0 * beta(1) * beta(2) + strain_til(1) * 2.0 * beta(4) * beta(5) +
-                strain_til(2) * (beta(2) * beta(4) + beta(1) * beta(5)) +
-                strain_til(3) * 2.0 * beta(7) * beta(8) +
+                strain_til(2) * (beta(2) * beta(4) + beta(1) * beta(5)) + strain_til(3) * 2.0 * beta(7) * beta(8) +
                 strain_til(4) * (beta(2) * beta(7) + beta(1) * beta(8)) +
                 strain_til(5) * (beta(5) * beta(7) + beta(4) * beta(8));
 
@@ -602,7 +599,7 @@ void ChElementShellANCF_8::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     Fi.setZero();
 
     for (size_t kl = 0; kl < m_numLayers; kl++) {
-        MyForce_8 formula(this, kl);
+        ShellANCF8_Force formula(this, kl);
         ChVectorN<double, 72> Finternal;
         Finternal.setZero();
         ChQuadrature::Integrate3D<ChVectorN<double, 72>>(Finternal,                       // result of integration
@@ -627,19 +624,19 @@ void ChElementShellANCF_8::ComputeInternalForces(ChVectorDynamic<>& Fi) {
 // Jacobians of internal forces
 // -----------------------------------------------------------------------------
 
-// The class MyJacobian provides the integrand for the calculation of the Jacobians
+// The class ShellANCF8_Jacobian provides the integrand for the calculation of the Jacobians
 // (stiffness and damping matrices) of the internal forces for one layer of an ANCF
 // shell element.
 // 72x72 Jacobian
 //      Kfactor * [K] + Rfactor * [R]
 
-class MyJacobian_8 : public ChIntegrable3D<ChVectorN<double, 5184> > {
+class ShellANCF8_Jacobian : public ChIntegrable3D<ChVectorN<double, 5184>> {
   public:
-    MyJacobian_8(ChElementShellANCF_8* element,  // Containing element
-                 double Kfactor,                 // Scaling coefficient for stiffness component
-                 double Rfactor,                 // Scaling coefficient for damping component
-                 size_t kl                       // Current layer index
-                 )
+    ShellANCF8_Jacobian(ChElementShellANCF_8* element,  // Containing element
+                        double Kfactor,                 // Scaling coefficient for stiffness component
+                        double Rfactor,                 // Scaling coefficient for damping component
+                        size_t kl                       // Current layer index
+                        )
         : m_element(element), m_Kfactor(Kfactor), m_Rfactor(Rfactor), m_kl(kl) {}
 
   private:
@@ -652,7 +649,7 @@ class MyJacobian_8 : public ChIntegrable3D<ChVectorN<double, 5184> > {
     virtual void Evaluate(ChVectorN<double, 5184>& result, const double x, const double y, const double z) override;
 };
 
-void MyJacobian_8::Evaluate(ChVectorN<double, 5184>& result, const double x, const double y, const double z) {
+void ShellANCF8_Jacobian::Evaluate(ChVectorN<double, 5184>& result, const double x, const double y, const double z) {
     // Element shape function
     ChElementShellANCF_8::ShapeVector N;
     m_element->ShapeFunctions(N, x, y, z);
@@ -673,7 +670,7 @@ void MyJacobian_8::Evaluate(ChVectorN<double, 5184>& result, const double x, con
     G1xG2.x() = Nx_d0(1) * Ny_d0(2) - Nx_d0(2) * Ny_d0(1);
     G1xG2.y() = Nx_d0(2) * Ny_d0(0) - Nx_d0(0) * Ny_d0(2);
     G1xG2.z() = Nx_d0(0) * Ny_d0(1) - Nx_d0(1) * Ny_d0(0);
-    G1dotG1   = Nx_d0(0) * Nx_d0(0) + Nx_d0(1) * Nx_d0(1) + Nx_d0(2) * Nx_d0(2);
+    G1dotG1 = Nx_d0(0) * Nx_d0(0) + Nx_d0(1) * Nx_d0(1) + Nx_d0(2) * Nx_d0(2);
 
     // Tangent Frame
     ChVector<double> A1;
@@ -766,21 +763,18 @@ void MyJacobian_8::Evaluate(ChVectorN<double, 5184>& result, const double x, con
                 strain_til(2) * beta(1) * beta(4) + strain_til(3) * beta(7) * beta(7) +
                 strain_til(4) * beta(1) * beta(7) + strain_til(5) * beta(4) * beta(7);
     strain(2) = strain_til(0) * 2.0 * beta(0) * beta(1) + strain_til(1) * 2.0 * beta(3) * beta(4) +
-                strain_til(2) * (beta(1) * beta(3) + beta(0) * beta(4)) +
-                strain_til(3) * 2.0 * beta(6) * beta(7) +
+                strain_til(2) * (beta(1) * beta(3) + beta(0) * beta(4)) + strain_til(3) * 2.0 * beta(6) * beta(7) +
                 strain_til(4) * (beta(1) * beta(6) + beta(0) * beta(7)) +
                 strain_til(5) * (beta(4) * beta(6) + beta(3) * beta(7));
     strain(3) = strain_til(0) * beta(2) * beta(2) + strain_til(1) * beta(5) * beta(5) +
                 strain_til(2) * beta(2) * beta(5) + strain_til(3) * beta(8) * beta(8) +
                 strain_til(4) * beta(2) * beta(8) + strain_til(5) * beta(5) * beta(8);
     strain(4) = strain_til(0) * 2.0 * beta(0) * beta(2) + strain_til(1) * 2.0 * beta(3) * beta(5) +
-                strain_til(2) * (beta(2) * beta(3) + beta(0) * beta(5)) +
-                strain_til(3) * 2.0 * beta(6) * beta(8) +
+                strain_til(2) * (beta(2) * beta(3) + beta(0) * beta(5)) + strain_til(3) * 2.0 * beta(6) * beta(8) +
                 strain_til(4) * (beta(2) * beta(6) + beta(0) * beta(8)) +
                 strain_til(5) * (beta(5) * beta(6) + beta(3) * beta(8));
     strain(5) = strain_til(0) * 2.0 * beta(1) * beta(2) + strain_til(1) * 2.0 * beta(4) * beta(5) +
-                strain_til(2) * (beta(2) * beta(4) + beta(1) * beta(5)) +
-                strain_til(3) * 2.0 * beta(7) * beta(8) +
+                strain_til(2) * (beta(2) * beta(4) + beta(1) * beta(5)) + strain_til(3) * 2.0 * beta(7) * beta(8) +
                 strain_til(4) * (beta(2) * beta(7) + beta(1) * beta(8)) +
                 strain_til(5) * (beta(5) * beta(7) + beta(4) * beta(8));
 
@@ -788,7 +782,7 @@ void MyJacobian_8::Evaluate(ChVectorN<double, 5184>& result, const double x, con
 
     ChMatrixNM<double, 6, 72> strainD_til;
     strainD_til.setZero();
-    
+
     ChMatrixNM<double, 1, 72> tempB;
     ChMatrixNM<double, 1, 3> tempB3;
     ChMatrixNM<double, 1, 3> tempB31;
@@ -966,7 +960,7 @@ void ChElementShellANCF_8::ComputeInternalJacobians(double Kfactor, double Rfact
 
     // Loop over all layers.
     for (size_t kl = 0; kl < m_numLayers; kl++) {
-        MyJacobian_8 formula(this, Kfactor, Rfactor, kl);
+        ShellANCF8_Jacobian formula(this, Kfactor, Rfactor, kl);
         ChVectorN<double, 5184> result;
         result.setZero();
         ChQuadrature::Integrate3D<ChVectorN<double, 5184>>(result,                          // result of integration
@@ -1390,7 +1384,7 @@ ChVector<> ChElementShellANCF_8::EvaluateSectionStrains() {
     G1xG2.x() = Nx_d0(1) * Ny_d0(2) - Nx_d0(2) * Ny_d0(1);
     G1xG2.y() = Nx_d0(2) * Ny_d0(0) - Nx_d0(0) * Ny_d0(2);
     G1xG2.z() = Nx_d0(0) * Ny_d0(1) - Nx_d0(1) * Ny_d0(0);
-    G1dotG1   = Nx_d0(0) * Nx_d0(0) + Nx_d0(1) * Nx_d0(1) + Nx_d0(2) * Nx_d0(2);
+    G1dotG1 = Nx_d0(0) * Nx_d0(0) + Nx_d0(1) * Nx_d0(1) + Nx_d0(2) * Nx_d0(2);
 
     // Tangent Frame
     ChVector<double> A1;
@@ -1483,21 +1477,18 @@ ChVector<> ChElementShellANCF_8::EvaluateSectionStrains() {
                 strain_til(2) * beta(1) * beta(4) + strain_til(3) * beta(7) * beta(7) +
                 strain_til(4) * beta(1) * beta(7) + strain_til(5) * beta(4) * beta(7);
     strain(2) = strain_til(0) * 2.0 * beta(0) * beta(1) + strain_til(1) * 2.0 * beta(3) * beta(4) +
-                strain_til(2) * (beta(1) * beta(3) + beta(0) * beta(4)) +
-                strain_til(3) * 2.0 * beta(6) * beta(7) +
+                strain_til(2) * (beta(1) * beta(3) + beta(0) * beta(4)) + strain_til(3) * 2.0 * beta(6) * beta(7) +
                 strain_til(4) * (beta(1) * beta(6) + beta(0) * beta(7)) +
                 strain_til(5) * (beta(4) * beta(6) + beta(3) * beta(7));
     strain(3) = strain_til(0) * beta(2) * beta(2) + strain_til(1) * beta(5) * beta(5) +
                 strain_til(2) * beta(2) * beta(5) + strain_til(3) * beta(8) * beta(8) +
                 strain_til(4) * beta(2) * beta(8) + strain_til(5) * beta(5) * beta(8);
     strain(4) = strain_til(0) * 2.0 * beta(0) * beta(2) + strain_til(1) * 2.0 * beta(3) * beta(5) +
-                strain_til(2) * (beta(2) * beta(3) + beta(0) * beta(5)) +
-                strain_til(3) * 2.0 * beta(6) * beta(8) +
+                strain_til(2) * (beta(2) * beta(3) + beta(0) * beta(5)) + strain_til(3) * 2.0 * beta(6) * beta(8) +
                 strain_til(4) * (beta(2) * beta(6) + beta(0) * beta(8)) +
                 strain_til(5) * (beta(5) * beta(6) + beta(3) * beta(8));
     strain(5) = strain_til(0) * 2.0 * beta(1) * beta(2) + strain_til(1) * 2.0 * beta(4) * beta(5) +
-                strain_til(2) * (beta(2) * beta(4) + beta(1) * beta(5)) +
-                strain_til(3) * 2.0 * beta(7) * beta(8) +
+                strain_til(2) * (beta(2) * beta(4) + beta(1) * beta(5)) + strain_til(3) * 2.0 * beta(7) * beta(8) +
                 strain_til(4) * (beta(2) * beta(7) + beta(1) * beta(8)) +
                 strain_til(5) * (beta(5) * beta(7) + beta(4) * beta(8));
 
@@ -1521,9 +1512,7 @@ void ChElementShellANCF_8::EvaluateSectionFrame(const double u,
     rot = QUNIT;  // or maybe use gram-schmidt to get csys of section from slopes?
 }
 
-void ChElementShellANCF_8::EvaluateSectionPoint(const double u,
-                                                const double v,
-                                                ChVector<>& point) {
+void ChElementShellANCF_8::EvaluateSectionPoint(const double u, const double v, ChVector<>& point) {
     double x = u;  // because ShapeFunctions() works in -1..1 range
     double y = v;  // because ShapeFunctions() works in -1..1 range
     double z = 0;
@@ -1765,7 +1754,7 @@ void ChElementShellANCF_8::Layer::SetupInitial() {
     G1xG2.x() = Nx_d0(1) * Ny_d0(2) - Nx_d0(2) * Ny_d0(1);
     G1xG2.y() = Nx_d0(2) * Ny_d0(0) - Nx_d0(0) * Ny_d0(2);
     G1xG2.z() = Nx_d0(0) * Ny_d0(1) - Nx_d0(1) * Ny_d0(0);
-    G1dotG1   = Nx_d0(0) * Nx_d0(0) + Nx_d0(1) * Nx_d0(1) + Nx_d0(2) * Nx_d0(2);
+    G1dotG1 = Nx_d0(0) * Nx_d0(0) + Nx_d0(1) * Nx_d0(1) + Nx_d0(2) * Nx_d0(2);
 
     // Tangent Frame
     ChVector<double> A1;

@@ -94,8 +94,8 @@ class ChApi ChElementShellANCF_8 : public ChElementShell, public ChLoadableUV, p
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
         friend class ChElementShellANCF_8;
-        friend class MyForce_8;
-        friend class MyJacobian_8;
+        friend class ShellANCF8_Force;
+        friend class ShellANCF8_Jacobian;
     };
 
     /// Get the number of nodes used by this element.
@@ -276,14 +276,9 @@ class ChApi ChElementShellANCF_8 : public ChElementShell, public ChLoadableUV, p
                                              ChVector<>& u_displ,
                                              ChVector<>& u_rotaz) override;
 
-    virtual void EvaluateSectionFrame(const double u,
-                                      const double v,
-                                      ChVector<>& point,
-                                      ChQuaternion<>& rot) override;
+    virtual void EvaluateSectionFrame(const double u, const double v, ChVector<>& point, ChQuaternion<>& rot) override;
 
-    virtual void EvaluateSectionPoint(const double u,
-                                      const double v,
-                                      ChVector<>& point) override;
+    virtual void EvaluateSectionPoint(const double u, const double v, ChVector<>& point) override;
 
     // Internal computations
     // ---------------------
@@ -400,10 +395,10 @@ class ChApi ChElementShellANCF_8 : public ChElementShell, public ChLoadableUV, p
     /// Each coordinate ranging in -1..+1.
     virtual ChVector<> ComputeNormal(const double U, const double V) override;
 
-    friend class MyMass_8;
-    friend class MyGravity_8;
-    friend class MyForce_8;
-    friend class MyJacobian_8;
+    friend class ShellANCF8_Mass;
+    friend class ShellANCF8_Gravity;
+    friend class ShellANCF8_Force;
+    friend class ShellANCF8_Jacobian;
 };
 
 /// @} fea_elements

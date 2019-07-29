@@ -27,6 +27,7 @@ namespace chrono {
 namespace fea {
 
 // -----------------------------------------------------------------------------
+
 ChElementBrick::ChElementBrick() : m_flag_HE(ANALYTICAL), m_gravity_on(false) {
     m_nodes.resize(8);
 }
@@ -128,413 +129,95 @@ void ChElementBrick::SetStockAlpha(double a1,
 
 // -----------------------------------------------------------------------------
 
-void ChElementBrick::ComputeInternalForces(ChVectorDynamic<>& Fi) {
-    int i = GetElemNum();
+// Internal force, EAS stiffness, and analytical jacobian are calculated
+class Brick_ForceAnalytical : public ChIntegrable3D<ChVectorN<double, 906>> {
+  public:
+    Brick_ForceAnalytical(ChMatrixNM<double, 8, 3>* d_,
+                          ChMatrixNM<double, 8, 3>* d0_,
+                          ChElementBrick* element_,
+                          ChMatrixNM<double, 6, 6>* T0_,
+                          double* detJ0C_,
+                          ChVectorN<double, 9>* alpha_eas_);
 
-    ChVector<> pA = m_nodes[0]->GetPos();
-    ChVector<> pB = m_nodes[1]->GetPos();
-    ChVector<> pC = m_nodes[2]->GetPos();
-    ChVector<> pD = m_nodes[3]->GetPos();
-    ChVector<> pE = m_nodes[4]->GetPos();
-    ChVector<> pF = m_nodes[5]->GetPos();
-    ChVector<> pG = m_nodes[6]->GetPos();
-    ChVector<> pH = m_nodes[7]->GetPos();
+    Brick_ForceAnalytical(ChMatrixNM<double, 8, 3>* d_,
+                          ChMatrixNM<double, 8, 3>* d0_,
+                          ChElementBrick* element_,
+                          ChMatrixNM<double, 6, 6>* T0_,
+                          double* detJ0C_,
+                          ChVectorN<double, 9>* alpha_eas_,
+                          double* E_,
+                          double* v_);
+    ~Brick_ForceAnalytical() {}
 
-    ChMatrixNM<double, 8, 3> d;
-    d(0, 0) = pA.x();
-    d(0, 1) = pA.y();
-    d(0, 2) = pA.z();
-    d(1, 0) = pB.x();
-    d(1, 1) = pB.y();
-    d(1, 2) = pB.z();
-    d(2, 0) = pC.x();
-    d(2, 1) = pC.y();
-    d(2, 2) = pC.z();
-    d(3, 0) = pD.x();
-    d(3, 1) = pD.y();
-    d(3, 2) = pD.z();
-    d(4, 0) = pE.x();
-    d(4, 1) = pE.y();
-    d(4, 2) = pE.z();
-    d(5, 0) = pF.x();
-    d(5, 1) = pF.y();
-    d(5, 2) = pF.z();
-    d(6, 0) = pG.x();
-    d(6, 1) = pG.y();
-    d(6, 2) = pG.z();
-    d(7, 0) = pH.x();
-    d(7, 1) = pH.y();
-    d(7, 2) = pH.z();
+  private:
+    ChElementBrick* element;
+    ChMatrixNM<double, 8, 3>* d;      // Pointer to a matrix containing the element coordinates
+    ChMatrixNM<double, 8, 3>* d0;     // Pointer to a matrix containing the element initial coordinates
+    ChMatrixNM<double, 6, 6>* T0;     // Pointer to transformation matrix for Enhanced Assumed Strain (EAS)
+    ChVectorN<double, 9>* alpha_eas;  // Pointer to the 9 internal parameters for EAS
+    double* detJ0C;                   // Pointer to determinant of the initial Jacobian at the element center
+    double* E;                        // Pointer to Young modulus
+    double* v;                        // Pointer to Poisson ratio
 
-    double v = m_Material->Get_v();
-    double E = m_Material->Get_E();
+    ChVectorN<double, 24> Fint;         // Generalized internal (elastic) force vector
+    ChMatrixNM<double, 24, 24> JAC11;   // Jacobian of internal forces for implicit numerical integration
+    ChMatrixNM<double, 9, 24> Gd;       // Jacobian (w.r.t. coordinates) of the initial pos. vector gradient matrix
+    ChVectorN<double, 6> stress;        // stress tensor in vector form
+    ChMatrixNM<double, 9, 9> Sigm;      // stress tensor in sparse form
+    ChMatrixNM<double, 6, 6> E_eps;     // Matrix of elastic coefficients (features orthotropy)
+    ChMatrixNM<double, 3, 24> Sx;       // Sparse shape function matrix, X derivative
+    ChMatrixNM<double, 3, 24> Sy;       // Sparse shape function matrix, Y derivative
+    ChMatrixNM<double, 3, 24> Sz;       // Sparse shape function matrix, Z derivative
+    ChElementBrick::ShapeVector Nx;     // Dense shape function vector, X derivative
+    ChElementBrick::ShapeVector Ny;     // Dense shape function vector, Y derivative
+    ChElementBrick::ShapeVector Nz;     // Dense shape function vector, Z derivative
+    ChMatrixNM<double, 6, 24> strainD;  // Derivative of the strains w.r.t. the coordinates. Includes orthotropy
+    ChVectorN<double, 6> strain;        // Vector of strains
+    double detJ0;                       // Determinant of the initial position vector gradient matrix
+    // EAS
+    ChMatrixNM<double, 6, 9> M;       // Shape function matrix for Enhanced Assumed Strain
+    ChMatrixNM<double, 6, 9> G;       // Matrix G interpolates the internal parameters of EAS
+    ChVectorN<double, 6> strain_EAS;  // Enhanced assumed strain vector
 
-    Fi.setZero();
+    // Evaluate (strainD'*strain)  at a point
+    virtual void Evaluate(ChVectorN<double, 906>& result, const double x, const double y, const double z) override;
+};
 
-    /// If numerical differentiation is used, only the internal force and EAS stiffness
-    /// will be calculated. If the numerical differentiation is not used, the jacobian
-    /// will also be calculated.
-    bool use_numerical_differentiation = false;
+Brick_ForceAnalytical::Brick_ForceAnalytical(ChMatrixNM<double, 8, 3>* d_,
+                                             ChMatrixNM<double, 8, 3>* d0_,
+                                             ChElementBrick* element_,
+                                             ChMatrixNM<double, 6, 6>* T0_,
+                                             double* detJ0C_,
+                                             ChVectorN<double, 9>* alpha_eas_)
+    : d(d_), d0(d0_), element(element_), T0(T0_), detJ0C(detJ0C_), alpha_eas(alpha_eas_) {
+    E_eps.setZero();
+    Gd.setZero();
+    Sigm.setZero();
 
-    /// Internal force and EAS parameters are calculated for numerical differentiation.
-    if (use_numerical_differentiation) {
-        //////////////////////////////////////////////////////////////////////////////////////////////////////////
-        ChVectorN<double, 330> TempIntegratedResult;
-        ChVectorN<double, 24> Finternal;
-
-        ChMatrixNM<double, 6, 6> T0;
-        ChVectorN<double, 9> HE;
-        ChMatrixNM<double, 9, 24> GDEPSP;
-        ChMatrixNM<double, 9, 9> KALPHA;
-        ChMatrixNM<double, 9, 9> KALPHA1;
-        ChVectorN<double, 9> ResidHE;
-        double detJ0C;
-        ChVectorN<double, 9> alpha_eas;
-        ChVectorN<double, 9> renewed_alpha_eas;
-        ChVectorN<double, 9> previous_alpha;
-
-        previous_alpha = m_stock_alpha_EAS;
-        alpha_eas = previous_alpha;
-        ResidHE.setZero();
-        int count = 0;
-        int fail = 1;
-        /// Begin EAS loop
-        while (fail == 1) {
-            /// Update alpha EAS
-            alpha_eas = alpha_eas - ResidHE;
-            renewed_alpha_eas = alpha_eas;
-
-            Finternal.setZero();
-            HE.setZero();
-            GDEPSP.setZero();
-            KALPHA.setZero();
-
-            // Enhanced Assumed Strain (EAS)
-            T0.setZero();
-            detJ0C = 0.0;
-            T0DetJElementCenterForEAS(m_d0, T0, detJ0C);
-            //== F_internal ==//
-            // Choose constructors depending on m_isMooney
-            MyForceNum myformula = !m_isMooney ? MyForceNum(&d, &m_d0, this, &T0, &detJ0C, &alpha_eas, &E, &v)
-                                               : MyForceNum(&d, &m_d0, this, &T0, &detJ0C, &alpha_eas);
-            TempIntegratedResult.setZero();
-            ChQuadrature::Integrate3D<ChVectorN<double, 330>>(
-                TempIntegratedResult,  // result of integration will go there
-                myformula,             // formula to integrate
-                -1,                    // start of x
-                1,                     // end of x
-                -1,                    // start of y
-                1,                     // end of y
-                -1,                    // start of z
-                1,                     // end of z
-                2                      // order of integration
-            );
-
-            ///===============================================================//
-            ///===TempIntegratedResult(0:23,1) -> InternalForce(24x1)=========//
-            ///===TempIntegratedResult(24:32,1) -> HE(9x1)   brick   =========//
-            ///===TempIntegratedResult(33:248,1) -> GDEPSP(9x24)     =========//
-            ///===TempIntegratedResult(249:329,1) -> KALPHA(9x9)     =========//
-            ///===============================================================//
-            ChVectorN<double, 216> GDEPSPvec;
-            ChVectorN<double, 81> KALPHAvec;
-            Finternal = TempIntegratedResult.segment(0, 24);
-            HE = TempIntegratedResult.segment(24, 9);
-            GDEPSPvec = TempIntegratedResult.segment(33, 216);
-            KALPHAvec = TempIntegratedResult.segment(249, 81);
-            GDEPSP = Eigen::Map<ChMatrixNM<double, 9, 24>>(GDEPSPvec.data(), 9, 24);
-            KALPHA = Eigen::Map<ChMatrixNM<double, 9, 9>>(KALPHAvec.data(), 9, 9);
-            KALPHA1 = KALPHA;
-
-            if (m_flag_HE == NUMERICAL)
-                break;  // When numerical jacobian loop, no need to calculate HE
-            count = count + 1;
-            double norm_HE = HE.norm();
-
-            if (norm_HE < 0.00001) {
-                fail = 0;
-            } else {
-                // Solve for ResidHE
-                ResidHE = KALPHA1.colPivHouseholderQr().solve(HE);
-            }
-            if (m_flag_HE == ANALYTICAL && count > 2) {
-                GetLog() << i << "  count " << count << "  NormHE " << norm_HE << "\n";
-            }
-        }
-        Fi = -Finternal;
-        //== Stock_Alpha=================//
-        if (m_flag_HE == ANALYTICAL) {
-            SetStockAlpha(renewed_alpha_eas(0), renewed_alpha_eas(1), renewed_alpha_eas(2),
-                          renewed_alpha_eas(3), renewed_alpha_eas(4), renewed_alpha_eas(5),
-                          renewed_alpha_eas(6), renewed_alpha_eas(7), renewed_alpha_eas(8));  // this->
-        }
-        //== Jacobian Matrix for alpha ==//
-        if (m_flag_HE == ANALYTICAL) {
-            ChMatrixNM<double, 9, 9> INV_KALPHA;
-            ChMatrixNM<double, 24, 24> stock_jac_EAS_elem;
-
-            for (int ii = 0; ii < 9; ii++) {
-                ChVectorN<double, 9> DAMMY_vec;
-                DAMMY_vec.setZero();
-                DAMMY_vec(ii) = 1.0;
-                INV_KALPHA.col(ii) = KALPHA.colPivHouseholderQr().solve(DAMMY_vec);
-            }
-            stock_jac_EAS_elem = GDEPSP.transpose() * INV_KALPHA * GDEPSP;
-            SetStockJac(stock_jac_EAS_elem);
-        }
-    } else {
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-        ChVectorN<double, 906> TempIntegratedResult;
-        ChVectorN<double, 24> Finternal;
-        // Enhanced Assumed Strain (EAS)
-        ChMatrixNM<double, 6, 6> T0;
-        ChVectorN<double, 9> HE;
-        ChMatrixNM<double, 9, 24> GDEPSP;
-        ChMatrixNM<double, 9, 9> KALPHA;
-        ChMatrixNM<double, 24, 24> KTE;
-        ChMatrixNM<double, 9, 9> KALPHA1;
-        ChVectorN<double, 9> ResidHE;
-        double detJ0C;
-        ChVectorN<double, 9> alpha_eas;
-        ChVectorN<double, 9> renewed_alpha_eas;
-        ChVectorN<double, 9> previous_alpha;
-
-        previous_alpha = m_stock_alpha_EAS;
-        alpha_eas = previous_alpha;
-        ResidHE.setZero();
-        int count = 0;
-        int fail = 1;
-        // Loop to obtain convergence in EAS internal parameters alpha
-        // This loops call ChQuadrature::Integrate3D on MyAnalyticalForce,
-        // which calculates the Jacobian at every iteration of each time step
-        int iteralpha = 0;  //  Counts number of iterations
-        while (fail == 1) {
-            iteralpha++;
-            alpha_eas = alpha_eas - ResidHE;
-            renewed_alpha_eas = alpha_eas;
-
-            Finternal.setZero();  // Internal force vector
-            HE.setZero();         // Internal force vector from EAS
-            GDEPSP.setZero();     // Jacobian of EAS forces w.r.t. coordinates
-            KALPHA.setZero();     // Jacobian of EAS forces w.r.t. EAS internal parameters
-
-            // Enhanced Assumed Strain (EAS)
-            T0.setZero();
-            detJ0C = 0.0;
-            T0DetJElementCenterForEAS(m_d0, T0, detJ0C);
-
-            //== F_internal ==//
-            MyForceAnalytical myformula = !m_isMooney
-                                              ? MyForceAnalytical(&d, &m_d0, this, &T0, &detJ0C, &alpha_eas, &E, &v)
-                                              : MyForceAnalytical(&d, &m_d0, this, &T0, &detJ0C, &alpha_eas);
-            TempIntegratedResult.setZero();
-            ChQuadrature::Integrate3D<ChVectorN<double, 906>>(
-                TempIntegratedResult,  // result of integration will go there
-                myformula,             // formula to integrate
-                -1,                    // start of x
-                1,                     // end of x
-                -1,                    // start of y
-                1,                     // end of y
-                -1,                    // start of z
-                1,                     // end of z
-                2                      // order of integration
-            );
-
-            //	///===============================================================//
-            //	///===TempIntegratedResult(0:23,1) -> InternalForce(24x1)=========//
-            //	///===TempIntegratedResult(24:28,1) -> HE(5x1)           =========//
-            //	///===TempIntegratedResult(29:148,1) -> GDEPSP(5x24)     =========//
-            //	///===TempIntegratedResult(149:173,1) -> KALPHA(5x5)     =========//
-            //	///===TempIntegratedResult(174:749,1) -> Stiffness Matrix(24x24) =//
-            //	///===============================================================//
-            ChVectorN<double, 216> GDEPSPvec;
-            ChVectorN<double, 81> KALPHAvec;
-            ChVectorN<double, 576> JACvec;
-            Finternal = TempIntegratedResult.segment(0, 24);
-            HE = TempIntegratedResult.segment(24, 9);
-            GDEPSPvec = TempIntegratedResult.segment(33, 216);
-            KALPHAvec = TempIntegratedResult.segment(249, 81);
-            JACvec = TempIntegratedResult.segment(330, 576);
-            for (int i = 0; i < 9; i++) {
-                for (int j = 0; j < 24; j++) {
-                    GDEPSP(i, j) = GDEPSPvec(i * 24 + j);
-                }
-            }
-            // GDEPSP = GDEPSPvec;
-            for (int i = 0; i < 9; i++) {
-                for (int j = 0; j < 9; j++) {
-                    KALPHA(i, j) = KALPHAvec(i * 9 + j);
-                }
-            }
-            // KALPHA = KALPHAvec;
-            for (int i = 0; i < 24; i++) {
-                for (int j = 0; j < 24; j++) {
-                    KTE(i, j) = JACvec(i * 24 + j);
-                }
-            }
-            // KTE = JACvec;
-
-            // Calculation of the element Jacobian for implicit integrator
-            // KTE and stock_jac_EAS_elem.
-            KALPHA1 = KALPHA;
-            if (m_flag_HE == NUMERICAL)
-                break;  // When numerical jacobian loop, no need to calculate HE
-            count = count + 1;
-            double norm_HE = HE.norm();
-            if (norm_HE < 0.00001) {
-                fail = 0;
-            } else {
-                // Solve for ResidHE
-                ResidHE = KALPHA1.colPivHouseholderQr().solve(HE);
-            }
-        }  // end of while
-        Fi = -Finternal;
-        ////== Stock_Alpha=================//
-        if (m_flag_HE == ANALYTICAL) {
-            SetStockAlpha(renewed_alpha_eas(0), renewed_alpha_eas(1), renewed_alpha_eas(2),
-                          renewed_alpha_eas(3), renewed_alpha_eas(4), renewed_alpha_eas(5),
-                          renewed_alpha_eas(6), renewed_alpha_eas(7), renewed_alpha_eas(8));  // this->
-        }
-        ////== Jacobian Matrix for alpha ==//
-        if (m_flag_HE == ANALYTICAL) {
-            ChMatrixNM<double, 9, 9> INV_KALPHA;
-            ChMatrixNM<double, 24, 24> stock_jac_EAS_elem;
-
-            for (int ii = 0; ii < 9; ii++) {
-                ChVectorN<double, 9> DAMMY_vec;
-                DAMMY_vec.setZero();
-                DAMMY_vec(ii) = 1.0;
-                INV_KALPHA.col(ii) = KALPHA.colPivHouseholderQr().solve(DAMMY_vec);
-            }
-            stock_jac_EAS_elem = GDEPSP.transpose() * INV_KALPHA * GDEPSP;
-            SetStockKTE(KTE);
-            SetStockJac(stock_jac_EAS_elem);
-        }
-    }  // end of else for numerical or analytical
-
-    if (m_gravity_on) {
-        Fi += m_GravForce;
-    }
+    Sx.setZero();
+    Sy.setZero();
+    Sz.setZero();
 }
 
-// -----------------------------------------------------------------------------
+Brick_ForceAnalytical::Brick_ForceAnalytical(ChMatrixNM<double, 8, 3>* d_,
+                                             ChMatrixNM<double, 8, 3>* d0_,
+                                             ChElementBrick* element_,
+                                             ChMatrixNM<double, 6, 6>* T0_,
+                                             double* detJ0C_,
+                                             ChVectorN<double, 9>* alpha_eas_,
+                                             double* E_,
+                                             double* v_)
+    : d(d_), d0(d0_), element(element_), T0(T0_), detJ0C(detJ0C_), alpha_eas(alpha_eas_), E(E_), v(v_) {
+    E_eps.setZero();
+    Gd.setZero();
+    Sigm.setZero();
 
-void ChElementBrick::ShapeFunctions(ShapeVector& N, double x, double y, double z) {
-    N(0) = 0.125 * (1.0 - x) * (1.0 - y) * (1.0 - z);
-    N(1) = 0.125 * (1.0 + x) * (1.0 - y) * (1.0 - z);
-    N(2) = 0.125 * (1.0 + x) * (1.0 + y) * (1.0 - z);
-    N(3) = 0.125 * (1.0 - x) * (1.0 + y) * (1.0 - z);
-    N(4) = 0.125 * (1.0 - x) * (1.0 - y) * (1.0 + z);
-    N(5) = 0.125 * (1.0 + x) * (1.0 - y) * (1.0 + z);
-    N(6) = 0.125 * (1.0 + x) * (1.0 + y) * (1.0 + z);
-    N(7) = 0.125 * (1.0 - x) * (1.0 + y) * (1.0 + z);
+    Sx.setZero();
+    Sy.setZero();
+    Sz.setZero();
 }
 
-// -----------------------------------------------------------------------------
-
-void ChElementBrick::ShapeFunctionsDerivativeX(ShapeVector& Nx, double x, double y, double z) {
-    double a = GetLengthX();
-
-    Nx(0) = 2.0 / a * 0.125 * (-1.0) * (1.0 - y) * (1.0 - z);
-    Nx(1) = 2.0 / a * 0.125 * (1.0) * (1.0 - y) * (1.0 - z);
-    Nx(2) = 2.0 / a * 0.125 * (1.0) * (1.0 + y) * (1.0 - z);
-    Nx(3) = 2.0 / a * 0.125 * (-1.0) * (1.0 + y) * (1.0 - z);
-    Nx(4) = 2.0 / a * 0.125 * (-1.0) * (1.0 - y) * (1.0 + z);
-    Nx(5) = 2.0 / a * 0.125 * (1.0) * (1.0 - y) * (1.0 + z);
-    Nx(6) = 2.0 / a * 0.125 * (1.0) * (1.0 + y) * (1.0 + z);
-    Nx(7) = 2.0 / a * 0.125 * (-1.0) * (1.0 + y) * (1.0 + z);
-}
-
-// -----------------------------------------------------------------------------
-
-void ChElementBrick::ShapeFunctionsDerivativeY(ShapeVector& Ny, double x, double y, double z) {
-    double b = GetLengthY();
-
-    Ny(0) = 2.0 / b * 0.125 * (1.0 - x) * (-1.0) * (1.0 - z);
-    Ny(1) = 2.0 / b * 0.125 * (1.0 + x) * (-1.0) * (1.0 - z);
-    Ny(2) = 2.0 / b * 0.125 * (1.0 + x) * (1.0) * (1.0 - z);
-    Ny(3) = 2.0 / b * 0.125 * (1.0 - x) * (1.0) * (1.0 - z);
-    Ny(4) = 2.0 / b * 0.125 * (1.0 - x) * (-1.0) * (1.0 + z);
-    Ny(5) = 2.0 / b * 0.125 * (1.0 + x) * (-1.0) * (1.0 + z);
-    Ny(6) = 2.0 / b * 0.125 * (1.0 + x) * (1.0) * (1.0 + z);
-    Ny(7) = 2.0 / b * 0.125 * (1.0 - x) * (1.0) * (1.0 + z);
-}
-
-// -----------------------------------------------------------------------------
-
-void ChElementBrick::ShapeFunctionsDerivativeZ(ShapeVector& Nz, double x, double y, double z) {
-    double c = GetLengthZ();
-
-    Nz(0) = 2.0 / c * 0.125 * (1.0 - x) * (1.0 - y) * (-1.0);
-    Nz(1) = 2.0 / c * 0.125 * (1.0 + x) * (1.0 - y) * (-1.0);
-    Nz(2) = 2.0 / c * 0.125 * (1.0 + x) * (1.0 + y) * (-1.0);
-    Nz(3) = 2.0 / c * 0.125 * (1.0 - x) * (1.0 + y) * (-1.0);
-    Nz(4) = 2.0 / c * 0.125 * (1.0 - x) * (1.0 - y) * (1.0);
-    Nz(5) = 2.0 / c * 0.125 * (1.0 + x) * (1.0 - y) * (1.0);
-    Nz(6) = 2.0 / c * 0.125 * (1.0 + x) * (1.0 + y) * (1.0);
-    Nz(7) = 2.0 / c * 0.125 * (1.0 - x) * (1.0 + y) * (1.0);
-}
-
-// ----------------------------------------------------------------------------
-void ChElementBrick::Update() {
-    // parent class update:
-    ChElementGeneric::Update();
-}
-
-// -----------------------------------------------------------------------------
-
-void ChElementBrick::GetStateBlock(ChVectorDynamic<>& mD) {
-    mD.segment(0, 3) = m_nodes[0]->GetPos().eigen();
-    mD.segment(3, 3) = m_nodes[1]->GetPos().eigen();
-    mD.segment(6, 3) = m_nodes[2]->GetPos().eigen();
-    mD.segment(9, 3) = m_nodes[3]->GetPos().eigen();
-    mD.segment(12, 3) = m_nodes[4]->GetPos().eigen();
-    mD.segment(15, 3) = m_nodes[5]->GetPos().eigen();
-    mD.segment(18, 3) = m_nodes[6]->GetPos().eigen();
-    mD.segment(21, 3) = m_nodes[7]->GetPos().eigen();
-}
-
-// -----------------------------------------------------------------------------
-
-void ChElementBrick::ComputeStiffnessMatrix() {
-    bool use_numerical_differentiation = false;
-
-    if (use_numerical_differentiation) {
-        double diff = 1e-8;
-        ChVectorDynamic<> F0(24);
-        ChVectorDynamic<> F1(24);
-        ComputeInternalForces(F0);
-        for (int inode = 0; inode < 8; ++inode) {
-            m_nodes[inode]->pos.x() += diff;
-            ComputeInternalForces(F1);  // Flag=1 > Jacobian of internal force calculation
-            m_StiffnessMatrix.col(0 + inode * 3) = (F0 - F1) * (1.0 / diff);
-            m_nodes[inode]->pos.x() -= diff;
-
-            m_nodes[inode]->pos.y() += diff;
-            ComputeInternalForces(F1);
-            m_StiffnessMatrix.col(1 + inode * 3) = (F0 - F1) * (1.0 / diff);
-            m_nodes[inode]->pos.y() -= diff;
-
-            m_nodes[inode]->pos.z() += diff;
-            ComputeInternalForces(F1);
-            m_StiffnessMatrix.col(2 + inode * 3) = (F0 - F1) * (1.0 / diff);
-            m_nodes[inode]->pos.z() -= diff;
-        }
-        // flag_HE=0 is default
-        m_StiffnessMatrix -= m_stock_jac_EAS;  // For Enhanced Assumed Strain
-    } else {
-        // Put in m_StiffnessMatrix the values for the Jacobian already calculated in the computation of internal forces
-        // Note that m_stock_KTE and m_stock_jac_EAS are updated at each iteration of the time step
-        m_StiffnessMatrix = m_stock_KTE;
-        m_StiffnessMatrix -= m_stock_jac_EAS;
-    }
-}
-// -----------------------------------------------------------------------------
-void ChElementBrick::MyForceAnalytical::Evaluate(ChVectorN<double, 906>& result,
-                                                 const double x,
-                                                 const double y,
-                                                 const double z) {
+void Brick_ForceAnalytical::Evaluate(ChVectorN<double, 906>& result, const double x, const double y, const double z) {
     element->ShapeFunctionsDerivativeX(Nx, x, y, z);
     element->ShapeFunctionsDerivativeY(Ny, x, y, z);
     element->ShapeFunctionsDerivativeZ(Nz, x, y, z);
@@ -671,21 +354,18 @@ void ChElementBrick::MyForceAnalytical::Evaluate(ChVectorN<double, 906>& result,
                 strain_til(2) * beta(1) * beta(4) + strain_til(3) * beta(7) * beta(7) +
                 strain_til(4) * beta(1) * beta(7) + strain_til(5) * beta(4) * beta(7);
     strain(2) = strain_til(0) * 2.0 * beta(0) * beta(1) + strain_til(1) * 2.0 * beta(3) * beta(4) +
-                strain_til(2) * (beta(1) * beta(3) + beta(0) * beta(4)) +
-                strain_til(3) * 2.0 * beta(6) * beta(7) +
+                strain_til(2) * (beta(1) * beta(3) + beta(0) * beta(4)) + strain_til(3) * 2.0 * beta(6) * beta(7) +
                 strain_til(4) * (beta(1) * beta(6) + beta(0) * beta(7)) +
                 strain_til(5) * (beta(4) * beta(6) + beta(3) * beta(7));
     strain(3) = strain_til(0) * beta(2) * beta(2) + strain_til(1) * beta(5) * beta(5) +
                 strain_til(2) * beta(2) * beta(5) + strain_til(3) * beta(8) * beta(8) +
                 strain_til(4) * beta(2) * beta(8) + strain_til(5) * beta(5) * beta(8);
     strain(4) = strain_til(0) * 2.0 * beta(0) * beta(2) + strain_til(1) * 2.0 * beta(3) * beta(5) +
-                strain_til(2) * (beta(2) * beta(3) + beta(0) * beta(5)) +
-                strain_til(3) * 2.0 * beta(6) * beta(8) +
+                strain_til(2) * (beta(2) * beta(3) + beta(0) * beta(5)) + strain_til(3) * 2.0 * beta(6) * beta(8) +
                 strain_til(4) * (beta(2) * beta(6) + beta(0) * beta(8)) +
                 strain_til(5) * (beta(5) * beta(6) + beta(3) * beta(8));
     strain(5) = strain_til(0) * 2.0 * beta(1) * beta(2) + strain_til(1) * 2.0 * beta(4) * beta(5) +
-                strain_til(2) * (beta(2) * beta(4) + beta(1) * beta(5)) +
-                strain_til(3) * 2.0 * beta(7) * beta(8) +
+                strain_til(2) * (beta(2) * beta(4) + beta(1) * beta(5)) + strain_til(3) * 2.0 * beta(7) * beta(8) +
                 strain_til(4) * (beta(2) * beta(7) + beta(1) * beta(8)) +
                 strain_til(5) * (beta(5) * beta(7) + beta(4) * beta(8));
 
@@ -957,10 +637,12 @@ void ChElementBrick::MyForceAnalytical::Evaluate(ChVectorN<double, 906>& result,
     // Final expression for the Jacobian
     JAC11 *= detJ0 * (element->GetLengthX() / 2.0) * (element->GetLengthY() / 2.0) * (element->GetLengthZ() / 2.0);
     // Jacobian of EAS forces w.r.t. element coordinates
-    double factor_g = detJ0 * (element->GetLengthX() / 2.0) * (element->GetLengthY() / 2.0) * (element->GetLengthZ() / 2.0);
+    double factor_g =
+        detJ0 * (element->GetLengthX() / 2.0) * (element->GetLengthY() / 2.0) * (element->GetLengthZ() / 2.0);
     GDEPSP = factor_g * temp56 * strainD;
     // Jacobian of EAS forces (w.r.t. EAS internal parameters)
-    double factor_k = detJ0 * (element->GetLengthX() / 2.0) * (element->GetLengthY() / 2.0) * (element->GetLengthZ() / 2.0);
+    double factor_k =
+        detJ0 * (element->GetLengthX() / 2.0) * (element->GetLengthY() / 2.0) * (element->GetLengthZ() / 2.0);
     KALPHA = factor_k * temp56 * G;
 
     ChVectorN<double, 216> GDEPSPVec;
@@ -996,38 +678,87 @@ void ChElementBrick::MyForceAnalytical::Evaluate(ChVectorN<double, 906>& result,
 }
 
 // -----------------------------------------------------------------------------
-void ChElementBrick::MyMass::Evaluate(ChMatrixNM<double, 24, 24>& result,
-                                      const double x,
-                                      const double y,
-                                      const double z) {
-    element->ShapeFunctions(N, x, y, z);
-    element->ShapeFunctionsDerivativeX(Nx, x, y, z);
-    element->ShapeFunctionsDerivativeY(Ny, x, y, z);
-    element->ShapeFunctionsDerivativeZ(Nz, x, y, z);
 
-    // S=[N1*eye(3) N2*eye(3) N3*eye(3) N4*eye(3)...]
-    for (int i = 0; i < 8; i++) {
-        S(0, 3 * i + 0) = N(i);
-        S(1, 3 * i + 1) = N(i);
-        S(2, 3 * i + 2) = N(i);
-    }
+class Brick_ForceNumerical : public ChIntegrable3D<ChVectorN<double, 330>> {
+  public:
+    Brick_ForceNumerical(ChMatrixNM<double, 8, 3>* d_,
+                         ChMatrixNM<double, 8, 3>* d0_,
+                         ChElementBrick* element_,
+                         ChMatrixNM<double, 6, 6>* T0_,
+                         double* detJ0C_,
+                         ChVectorN<double, 9>* alpha_eas_);
 
-    ChMatrixNM<double, 3, 3> rd0;
-    rd0.col(0) = (*d0).transpose() * Nx.transpose();
-    rd0.col(1) = (*d0).transpose() * Ny.transpose();
-    rd0.col(2) = (*d0).transpose() * Nz.transpose();
-    double detJ0 = rd0.determinant();
+    Brick_ForceNumerical(ChMatrixNM<double, 8, 3>* d_,
+                         ChMatrixNM<double, 8, 3>* d0_,
+                         ChElementBrick* element_,
+                         ChMatrixNM<double, 6, 6>* T0_,
+                         double* detJ0C_,
+                         ChVectorN<double, 9>* alpha_eas_,
+                         double* E_,
+                         double* v_);
+    ~Brick_ForceNumerical() {}
 
-    // Perform  r = S'*S
-    double factor = detJ0 * (element->GetLengthX() / 2) * (element->GetLengthY() / 2) * (element->GetLengthZ() / 2);
-    result = factor * S.transpose() * S;
+  private:
+    ChElementBrick* element;
+    // Pointers used for external values
+    ChMatrixNM<double, 8, 3>* d;        // Pointer to a matrix containing the element coordinates
+    ChMatrixNM<double, 8, 3>* d0;       // Pointer to a matrix containing the element initial coordinates
+    ChMatrixNM<double, 6, 6>* T0;       // Pointer to transformation matrix for Enhanced Assumed Strain (EAS)
+    ChVectorN<double, 9>* alpha_eas;    // Pointer to the 9 internal parameters for EAS
+    double* detJ0C;                     // Pointer to determinant of the initial Jacobian at the element center
+    double* E;                          // Pointer to Young modulus
+    double* v;                          // Pointer to Poisson ratio
+    ChVectorN<double, 24> Fint;         // Generalized internal (elastic) force vector
+    ChMatrixNM<double, 6, 6> E_eps;     // Matrix of elastic coefficients (features orthotropy)
+    ChMatrixNM<double, 3, 24> Sx;       // Sparse shape function matrix, X derivative
+    ChMatrixNM<double, 3, 24> Sy;       // Sparse shape function matrix, Y derivative
+    ChMatrixNM<double, 3, 24> Sz;       // Sparse shape function matrix, Z derivative
+    ChElementBrick::ShapeVector Nx;     // Dense shape function vector, X derivative
+    ChElementBrick::ShapeVector Ny;     // Dense shape function vector, Y derivative
+    ChElementBrick::ShapeVector Nz;     // Dense shape function vector, Z derivative
+    ChMatrixNM<double, 6, 24> strainD;  // Derivative of the strains w.r.t. the coordinates. Includes orthotropy
+    ChVectorN<double, 6> strain;        // Vector of strains
+    double detJ0;                       // Determinant of the initial position vector gradient matrix
+    // EAS
+    ChMatrixNM<double, 6, 9> M;       // Shape function matrix for Enhanced Assumed Strain
+    ChMatrixNM<double, 6, 9> G;       // Matrix G interpolates the internal parameters of EAS
+    ChVectorN<double, 6> strain_EAS;  // Enhanced assumed strain vector
+
+    // Gaussian integration to calculate internal forces and EAS matrices
+    virtual void Evaluate(ChVectorN<double, 330>& result, const double x, const double y, const double z) override;
+};
+
+Brick_ForceNumerical::Brick_ForceNumerical(ChMatrixNM<double, 8, 3>* d_,
+                                           ChMatrixNM<double, 8, 3>* d0_,
+                                           ChElementBrick* element_,
+                                           ChMatrixNM<double, 6, 6>* T0_,
+                                           double* detJ0C_,
+                                           ChVectorN<double, 9>* alpha_eas_)
+    : d(d_), d0(d0_), element(element_), T0(T0_), detJ0C(detJ0C_), alpha_eas(alpha_eas_) {
+    E_eps.setZero();
+
+    Sx.setZero();
+    Sy.setZero();
+    Sz.setZero();
 }
 
-// -----------------------------------------------------------------------------
-void ChElementBrick::MyForceNum::Evaluate(ChVectorN<double, 330>& result,
-                                          const double x,
-                                          const double y,
-                                          const double z) {
+Brick_ForceNumerical::Brick_ForceNumerical(ChMatrixNM<double, 8, 3>* d_,
+                                           ChMatrixNM<double, 8, 3>* d0_,
+                                           ChElementBrick* element_,
+                                           ChMatrixNM<double, 6, 6>* T0_,
+                                           double* detJ0C_,
+                                           ChVectorN<double, 9>* alpha_eas_,
+                                           double* E_,
+                                           double* v_)
+    : d(d_), d0(d0_), element(element_), T0(T0_), detJ0C(detJ0C_), alpha_eas(alpha_eas_), E(E_), v(v_) {
+    E_eps.setZero();
+
+    Sx.setZero();
+    Sy.setZero();
+    Sz.setZero();
+}
+
+void Brick_ForceNumerical::Evaluate(ChVectorN<double, 330>& result, const double x, const double y, const double z) {
     element->ShapeFunctionsDerivativeX(Nx, x, y, z);
     element->ShapeFunctionsDerivativeY(Ny, x, y, z);
     element->ShapeFunctionsDerivativeZ(Nz, x, y, z);
@@ -1167,21 +898,18 @@ void ChElementBrick::MyForceNum::Evaluate(ChVectorN<double, 330>& result,
                 strain_til(2) * beta(1) * beta(4) + strain_til(3) * beta(7) * beta(7) +
                 strain_til(4) * beta(1) * beta(7) + strain_til(5) * beta(4) * beta(7);
     strain(2) = strain_til(0) * 2.0 * beta(0) * beta(1) + strain_til(1) * 2.0 * beta(3) * beta(4) +
-                strain_til(2) * (beta(1) * beta(3) + beta(0) * beta(4)) +
-                strain_til(3) * 2.0 * beta(6) * beta(7) +
+                strain_til(2) * (beta(1) * beta(3) + beta(0) * beta(4)) + strain_til(3) * 2.0 * beta(6) * beta(7) +
                 strain_til(4) * (beta(1) * beta(6) + beta(0) * beta(7)) +
                 strain_til(5) * (beta(4) * beta(6) + beta(3) * beta(7));
     strain(3) = strain_til(0) * beta(2) * beta(2) + strain_til(1) * beta(5) * beta(5) +
                 strain_til(2) * beta(2) * beta(5) + strain_til(3) * beta(8) * beta(8) +
                 strain_til(4) * beta(2) * beta(8) + strain_til(5) * beta(5) * beta(8);
     strain(4) = strain_til(0) * 2.0 * beta(0) * beta(2) + strain_til(1) * 2.0 * beta(3) * beta(5) +
-                strain_til(2) * (beta(2) * beta(3) + beta(0) * beta(5)) +
-                strain_til(3) * 2.0 * beta(6) * beta(8) +
+                strain_til(2) * (beta(2) * beta(3) + beta(0) * beta(5)) + strain_til(3) * 2.0 * beta(6) * beta(8) +
                 strain_til(4) * (beta(2) * beta(6) + beta(0) * beta(8)) +
                 strain_til(5) * (beta(5) * beta(6) + beta(3) * beta(8));
     strain(5) = strain_til(0) * 2.0 * beta(1) * beta(2) + strain_til(1) * 2.0 * beta(4) * beta(5) +
-                strain_til(2) * (beta(2) * beta(4) + beta(1) * beta(5)) +
-                strain_til(3) * 2.0 * beta(7) * beta(8) +
+                strain_til(2) * (beta(2) * beta(4) + beta(1) * beta(5)) + strain_til(3) * 2.0 * beta(7) * beta(8) +
                 strain_til(4) * (beta(2) * beta(7) + beta(1) * beta(8)) +
                 strain_til(5) * (beta(5) * beta(7) + beta(4) * beta(8));
 
@@ -1352,9 +1080,11 @@ void ChElementBrick::MyForceNum::Evaluate(ChVectorN<double, 330>& result,
         HE1 *= detJ0 * (element->GetLengthX() / 2.0) * (element->GetLengthY() / 2.0) * (element->GetLengthZ() / 2.0);
     }  // end of   if(*flag_Mooney==1)
 
-    double factor_k = detJ0 * (element->GetLengthX() / 2.0) * (element->GetLengthY() / 2.0) * (element->GetLengthZ() / 2.0);
+    double factor_k =
+        detJ0 * (element->GetLengthX() / 2.0) * (element->GetLengthY() / 2.0) * (element->GetLengthZ() / 2.0);
     KALPHA = factor_k * temp56 * G;
-    double factor_g = detJ0 * (element->GetLengthX() / 2.0) * (element->GetLengthY() / 2.0) * (element->GetLengthZ() / 2.0);
+    double factor_g =
+        detJ0 * (element->GetLengthX() / 2.0) * (element->GetLengthY() / 2.0) * (element->GetLengthZ() / 2.0);
     GDEPSP = factor_g * temp56 * strainD;
 
     ChVectorN<double, 216> GDEPSPVec = Eigen::Map<ChVectorN<double, 216>>(GDEPSP.data(), 216);
@@ -1368,10 +1098,502 @@ void ChElementBrick::MyForceNum::Evaluate(ChVectorN<double, 330>& result,
 
 // -----------------------------------------------------------------------------
 
-void ChElementBrick::MyGravity::Evaluate(ChVectorN<double, 24>& result,
-                                         const double x,
-                                         const double y,
-                                         const double z) {
+void ChElementBrick::ComputeInternalForces(ChVectorDynamic<>& Fi) {
+    int i = GetElemNum();
+
+    ChVector<> pA = m_nodes[0]->GetPos();
+    ChVector<> pB = m_nodes[1]->GetPos();
+    ChVector<> pC = m_nodes[2]->GetPos();
+    ChVector<> pD = m_nodes[3]->GetPos();
+    ChVector<> pE = m_nodes[4]->GetPos();
+    ChVector<> pF = m_nodes[5]->GetPos();
+    ChVector<> pG = m_nodes[6]->GetPos();
+    ChVector<> pH = m_nodes[7]->GetPos();
+
+    ChMatrixNM<double, 8, 3> d;
+    d(0, 0) = pA.x();
+    d(0, 1) = pA.y();
+    d(0, 2) = pA.z();
+    d(1, 0) = pB.x();
+    d(1, 1) = pB.y();
+    d(1, 2) = pB.z();
+    d(2, 0) = pC.x();
+    d(2, 1) = pC.y();
+    d(2, 2) = pC.z();
+    d(3, 0) = pD.x();
+    d(3, 1) = pD.y();
+    d(3, 2) = pD.z();
+    d(4, 0) = pE.x();
+    d(4, 1) = pE.y();
+    d(4, 2) = pE.z();
+    d(5, 0) = pF.x();
+    d(5, 1) = pF.y();
+    d(5, 2) = pF.z();
+    d(6, 0) = pG.x();
+    d(6, 1) = pG.y();
+    d(6, 2) = pG.z();
+    d(7, 0) = pH.x();
+    d(7, 1) = pH.y();
+    d(7, 2) = pH.z();
+
+    double v = m_Material->Get_v();
+    double E = m_Material->Get_E();
+
+    Fi.setZero();
+
+    /// If numerical differentiation is used, only the internal force and EAS stiffness
+    /// will be calculated. If the numerical differentiation is not used, the jacobian
+    /// will also be calculated.
+    bool use_numerical_differentiation = false;
+
+    /// Internal force and EAS parameters are calculated for numerical differentiation.
+    if (use_numerical_differentiation) {
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////
+        ChVectorN<double, 330> TempIntegratedResult;
+        ChVectorN<double, 24> Finternal;
+
+        ChMatrixNM<double, 6, 6> T0;
+        ChVectorN<double, 9> HE;
+        ChMatrixNM<double, 9, 24> GDEPSP;
+        ChMatrixNM<double, 9, 9> KALPHA;
+        ChMatrixNM<double, 9, 9> KALPHA1;
+        ChVectorN<double, 9> ResidHE;
+        double detJ0C;
+        ChVectorN<double, 9> alpha_eas;
+        ChVectorN<double, 9> renewed_alpha_eas;
+        ChVectorN<double, 9> previous_alpha;
+
+        previous_alpha = m_stock_alpha_EAS;
+        alpha_eas = previous_alpha;
+        ResidHE.setZero();
+        int count = 0;
+        int fail = 1;
+        /// Begin EAS loop
+        while (fail == 1) {
+            /// Update alpha EAS
+            alpha_eas = alpha_eas - ResidHE;
+            renewed_alpha_eas = alpha_eas;
+
+            Finternal.setZero();
+            HE.setZero();
+            GDEPSP.setZero();
+            KALPHA.setZero();
+
+            // Enhanced Assumed Strain (EAS)
+            T0.setZero();
+            detJ0C = 0.0;
+            T0DetJElementCenterForEAS(m_d0, T0, detJ0C);
+            //== F_internal ==//
+            // Choose constructors depending on m_isMooney
+            Brick_ForceNumerical myformula =
+                !m_isMooney ? Brick_ForceNumerical(&d, &m_d0, this, &T0, &detJ0C, &alpha_eas, &E, &v)
+                            : Brick_ForceNumerical(&d, &m_d0, this, &T0, &detJ0C, &alpha_eas);
+            TempIntegratedResult.setZero();
+            ChQuadrature::Integrate3D<ChVectorN<double, 330>>(
+                TempIntegratedResult,  // result of integration will go there
+                myformula,             // formula to integrate
+                -1,                    // start of x
+                1,                     // end of x
+                -1,                    // start of y
+                1,                     // end of y
+                -1,                    // start of z
+                1,                     // end of z
+                2                      // order of integration
+            );
+
+            ///===============================================================//
+            ///===TempIntegratedResult(0:23,1) -> InternalForce(24x1)=========//
+            ///===TempIntegratedResult(24:32,1) -> HE(9x1)   brick   =========//
+            ///===TempIntegratedResult(33:248,1) -> GDEPSP(9x24)     =========//
+            ///===TempIntegratedResult(249:329,1) -> KALPHA(9x9)     =========//
+            ///===============================================================//
+            ChVectorN<double, 216> GDEPSPvec;
+            ChVectorN<double, 81> KALPHAvec;
+            Finternal = TempIntegratedResult.segment(0, 24);
+            HE = TempIntegratedResult.segment(24, 9);
+            GDEPSPvec = TempIntegratedResult.segment(33, 216);
+            KALPHAvec = TempIntegratedResult.segment(249, 81);
+            GDEPSP = Eigen::Map<ChMatrixNM<double, 9, 24>>(GDEPSPvec.data(), 9, 24);
+            KALPHA = Eigen::Map<ChMatrixNM<double, 9, 9>>(KALPHAvec.data(), 9, 9);
+            KALPHA1 = KALPHA;
+
+            if (m_flag_HE == NUMERICAL)
+                break;  // When numerical jacobian loop, no need to calculate HE
+            count = count + 1;
+            double norm_HE = HE.norm();
+
+            if (norm_HE < 0.00001) {
+                fail = 0;
+            } else {
+                // Solve for ResidHE
+                ResidHE = KALPHA1.colPivHouseholderQr().solve(HE);
+            }
+            if (m_flag_HE == ANALYTICAL && count > 2) {
+                GetLog() << i << "  count " << count << "  NormHE " << norm_HE << "\n";
+            }
+        }
+        Fi = -Finternal;
+        //== Stock_Alpha=================//
+        if (m_flag_HE == ANALYTICAL) {
+            SetStockAlpha(renewed_alpha_eas(0), renewed_alpha_eas(1), renewed_alpha_eas(2), renewed_alpha_eas(3),
+                          renewed_alpha_eas(4), renewed_alpha_eas(5), renewed_alpha_eas(6), renewed_alpha_eas(7),
+                          renewed_alpha_eas(8));  // this->
+        }
+        //== Jacobian Matrix for alpha ==//
+        if (m_flag_HE == ANALYTICAL) {
+            ChMatrixNM<double, 9, 9> INV_KALPHA;
+            ChMatrixNM<double, 24, 24> stock_jac_EAS_elem;
+
+            for (int ii = 0; ii < 9; ii++) {
+                ChVectorN<double, 9> DAMMY_vec;
+                DAMMY_vec.setZero();
+                DAMMY_vec(ii) = 1.0;
+                INV_KALPHA.col(ii) = KALPHA.colPivHouseholderQr().solve(DAMMY_vec);
+            }
+            stock_jac_EAS_elem = GDEPSP.transpose() * INV_KALPHA * GDEPSP;
+            SetStockJac(stock_jac_EAS_elem);
+        }
+    } else {
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        ChVectorN<double, 906> TempIntegratedResult;
+        ChVectorN<double, 24> Finternal;
+        // Enhanced Assumed Strain (EAS)
+        ChMatrixNM<double, 6, 6> T0;
+        ChVectorN<double, 9> HE;
+        ChMatrixNM<double, 9, 24> GDEPSP;
+        ChMatrixNM<double, 9, 9> KALPHA;
+        ChMatrixNM<double, 24, 24> KTE;
+        ChMatrixNM<double, 9, 9> KALPHA1;
+        ChVectorN<double, 9> ResidHE;
+        double detJ0C;
+        ChVectorN<double, 9> alpha_eas;
+        ChVectorN<double, 9> renewed_alpha_eas;
+        ChVectorN<double, 9> previous_alpha;
+
+        previous_alpha = m_stock_alpha_EAS;
+        alpha_eas = previous_alpha;
+        ResidHE.setZero();
+        int count = 0;
+        int fail = 1;
+        // Loop to obtain convergence in EAS internal parameters alpha
+        // This loops call ChQuadrature::Integrate3D on MyAnalyticalForce,
+        // which calculates the Jacobian at every iteration of each time step
+        int iteralpha = 0;  //  Counts number of iterations
+        while (fail == 1) {
+            iteralpha++;
+            alpha_eas = alpha_eas - ResidHE;
+            renewed_alpha_eas = alpha_eas;
+
+            Finternal.setZero();  // Internal force vector
+            HE.setZero();         // Internal force vector from EAS
+            GDEPSP.setZero();     // Jacobian of EAS forces w.r.t. coordinates
+            KALPHA.setZero();     // Jacobian of EAS forces w.r.t. EAS internal parameters
+
+            // Enhanced Assumed Strain (EAS)
+            T0.setZero();
+            detJ0C = 0.0;
+            T0DetJElementCenterForEAS(m_d0, T0, detJ0C);
+
+            //== F_internal ==//
+            Brick_ForceAnalytical myformula =
+                !m_isMooney ? Brick_ForceAnalytical(&d, &m_d0, this, &T0, &detJ0C, &alpha_eas, &E, &v)
+                            : Brick_ForceAnalytical(&d, &m_d0, this, &T0, &detJ0C, &alpha_eas);
+            TempIntegratedResult.setZero();
+            ChQuadrature::Integrate3D<ChVectorN<double, 906>>(
+                TempIntegratedResult,  // result of integration will go there
+                myformula,             // formula to integrate
+                -1,                    // start of x
+                1,                     // end of x
+                -1,                    // start of y
+                1,                     // end of y
+                -1,                    // start of z
+                1,                     // end of z
+                2                      // order of integration
+            );
+
+            //	///===============================================================//
+            //	///===TempIntegratedResult(0:23,1) -> InternalForce(24x1)=========//
+            //	///===TempIntegratedResult(24:28,1) -> HE(5x1)           =========//
+            //	///===TempIntegratedResult(29:148,1) -> GDEPSP(5x24)     =========//
+            //	///===TempIntegratedResult(149:173,1) -> KALPHA(5x5)     =========//
+            //	///===TempIntegratedResult(174:749,1) -> Stiffness Matrix(24x24) =//
+            //	///===============================================================//
+            ChVectorN<double, 216> GDEPSPvec;
+            ChVectorN<double, 81> KALPHAvec;
+            ChVectorN<double, 576> JACvec;
+            Finternal = TempIntegratedResult.segment(0, 24);
+            HE = TempIntegratedResult.segment(24, 9);
+            GDEPSPvec = TempIntegratedResult.segment(33, 216);
+            KALPHAvec = TempIntegratedResult.segment(249, 81);
+            JACvec = TempIntegratedResult.segment(330, 576);
+            for (int i = 0; i < 9; i++) {
+                for (int j = 0; j < 24; j++) {
+                    GDEPSP(i, j) = GDEPSPvec(i * 24 + j);
+                }
+            }
+            // GDEPSP = GDEPSPvec;
+            for (int i = 0; i < 9; i++) {
+                for (int j = 0; j < 9; j++) {
+                    KALPHA(i, j) = KALPHAvec(i * 9 + j);
+                }
+            }
+            // KALPHA = KALPHAvec;
+            for (int i = 0; i < 24; i++) {
+                for (int j = 0; j < 24; j++) {
+                    KTE(i, j) = JACvec(i * 24 + j);
+                }
+            }
+            // KTE = JACvec;
+
+            // Calculation of the element Jacobian for implicit integrator
+            // KTE and stock_jac_EAS_elem.
+            KALPHA1 = KALPHA;
+            if (m_flag_HE == NUMERICAL)
+                break;  // When numerical jacobian loop, no need to calculate HE
+            count = count + 1;
+            double norm_HE = HE.norm();
+            if (norm_HE < 0.00001) {
+                fail = 0;
+            } else {
+                // Solve for ResidHE
+                ResidHE = KALPHA1.colPivHouseholderQr().solve(HE);
+            }
+        }  // end of while
+        Fi = -Finternal;
+        ////== Stock_Alpha=================//
+        if (m_flag_HE == ANALYTICAL) {
+            SetStockAlpha(renewed_alpha_eas(0), renewed_alpha_eas(1), renewed_alpha_eas(2), renewed_alpha_eas(3),
+                          renewed_alpha_eas(4), renewed_alpha_eas(5), renewed_alpha_eas(6), renewed_alpha_eas(7),
+                          renewed_alpha_eas(8));  // this->
+        }
+        ////== Jacobian Matrix for alpha ==//
+        if (m_flag_HE == ANALYTICAL) {
+            ChMatrixNM<double, 9, 9> INV_KALPHA;
+            ChMatrixNM<double, 24, 24> stock_jac_EAS_elem;
+
+            for (int ii = 0; ii < 9; ii++) {
+                ChVectorN<double, 9> DAMMY_vec;
+                DAMMY_vec.setZero();
+                DAMMY_vec(ii) = 1.0;
+                INV_KALPHA.col(ii) = KALPHA.colPivHouseholderQr().solve(DAMMY_vec);
+            }
+            stock_jac_EAS_elem = GDEPSP.transpose() * INV_KALPHA * GDEPSP;
+            SetStockKTE(KTE);
+            SetStockJac(stock_jac_EAS_elem);
+        }
+    }  // end of else for numerical or analytical
+
+    if (m_gravity_on) {
+        Fi += m_GravForce;
+    }
+}
+
+// -----------------------------------------------------------------------------
+
+void ChElementBrick::ShapeFunctions(ShapeVector& N, double x, double y, double z) {
+    N(0) = 0.125 * (1.0 - x) * (1.0 - y) * (1.0 - z);
+    N(1) = 0.125 * (1.0 + x) * (1.0 - y) * (1.0 - z);
+    N(2) = 0.125 * (1.0 + x) * (1.0 + y) * (1.0 - z);
+    N(3) = 0.125 * (1.0 - x) * (1.0 + y) * (1.0 - z);
+    N(4) = 0.125 * (1.0 - x) * (1.0 - y) * (1.0 + z);
+    N(5) = 0.125 * (1.0 + x) * (1.0 - y) * (1.0 + z);
+    N(6) = 0.125 * (1.0 + x) * (1.0 + y) * (1.0 + z);
+    N(7) = 0.125 * (1.0 - x) * (1.0 + y) * (1.0 + z);
+}
+
+// -----------------------------------------------------------------------------
+
+void ChElementBrick::ShapeFunctionsDerivativeX(ShapeVector& Nx, double x, double y, double z) {
+    double a = GetLengthX();
+
+    Nx(0) = 2.0 / a * 0.125 * (-1.0) * (1.0 - y) * (1.0 - z);
+    Nx(1) = 2.0 / a * 0.125 * (1.0) * (1.0 - y) * (1.0 - z);
+    Nx(2) = 2.0 / a * 0.125 * (1.0) * (1.0 + y) * (1.0 - z);
+    Nx(3) = 2.0 / a * 0.125 * (-1.0) * (1.0 + y) * (1.0 - z);
+    Nx(4) = 2.0 / a * 0.125 * (-1.0) * (1.0 - y) * (1.0 + z);
+    Nx(5) = 2.0 / a * 0.125 * (1.0) * (1.0 - y) * (1.0 + z);
+    Nx(6) = 2.0 / a * 0.125 * (1.0) * (1.0 + y) * (1.0 + z);
+    Nx(7) = 2.0 / a * 0.125 * (-1.0) * (1.0 + y) * (1.0 + z);
+}
+
+// -----------------------------------------------------------------------------
+
+void ChElementBrick::ShapeFunctionsDerivativeY(ShapeVector& Ny, double x, double y, double z) {
+    double b = GetLengthY();
+
+    Ny(0) = 2.0 / b * 0.125 * (1.0 - x) * (-1.0) * (1.0 - z);
+    Ny(1) = 2.0 / b * 0.125 * (1.0 + x) * (-1.0) * (1.0 - z);
+    Ny(2) = 2.0 / b * 0.125 * (1.0 + x) * (1.0) * (1.0 - z);
+    Ny(3) = 2.0 / b * 0.125 * (1.0 - x) * (1.0) * (1.0 - z);
+    Ny(4) = 2.0 / b * 0.125 * (1.0 - x) * (-1.0) * (1.0 + z);
+    Ny(5) = 2.0 / b * 0.125 * (1.0 + x) * (-1.0) * (1.0 + z);
+    Ny(6) = 2.0 / b * 0.125 * (1.0 + x) * (1.0) * (1.0 + z);
+    Ny(7) = 2.0 / b * 0.125 * (1.0 - x) * (1.0) * (1.0 + z);
+}
+
+// -----------------------------------------------------------------------------
+
+void ChElementBrick::ShapeFunctionsDerivativeZ(ShapeVector& Nz, double x, double y, double z) {
+    double c = GetLengthZ();
+
+    Nz(0) = 2.0 / c * 0.125 * (1.0 - x) * (1.0 - y) * (-1.0);
+    Nz(1) = 2.0 / c * 0.125 * (1.0 + x) * (1.0 - y) * (-1.0);
+    Nz(2) = 2.0 / c * 0.125 * (1.0 + x) * (1.0 + y) * (-1.0);
+    Nz(3) = 2.0 / c * 0.125 * (1.0 - x) * (1.0 + y) * (-1.0);
+    Nz(4) = 2.0 / c * 0.125 * (1.0 - x) * (1.0 - y) * (1.0);
+    Nz(5) = 2.0 / c * 0.125 * (1.0 + x) * (1.0 - y) * (1.0);
+    Nz(6) = 2.0 / c * 0.125 * (1.0 + x) * (1.0 + y) * (1.0);
+    Nz(7) = 2.0 / c * 0.125 * (1.0 - x) * (1.0 + y) * (1.0);
+}
+
+// ----------------------------------------------------------------------------
+
+void ChElementBrick::Update() {
+    // parent class update:
+    ChElementGeneric::Update();
+}
+
+// -----------------------------------------------------------------------------
+
+void ChElementBrick::GetStateBlock(ChVectorDynamic<>& mD) {
+    mD.segment(0, 3) = m_nodes[0]->GetPos().eigen();
+    mD.segment(3, 3) = m_nodes[1]->GetPos().eigen();
+    mD.segment(6, 3) = m_nodes[2]->GetPos().eigen();
+    mD.segment(9, 3) = m_nodes[3]->GetPos().eigen();
+    mD.segment(12, 3) = m_nodes[4]->GetPos().eigen();
+    mD.segment(15, 3) = m_nodes[5]->GetPos().eigen();
+    mD.segment(18, 3) = m_nodes[6]->GetPos().eigen();
+    mD.segment(21, 3) = m_nodes[7]->GetPos().eigen();
+}
+
+// -----------------------------------------------------------------------------
+
+void ChElementBrick::ComputeStiffnessMatrix() {
+    bool use_numerical_differentiation = false;
+
+    if (use_numerical_differentiation) {
+        double diff = 1e-8;
+        ChVectorDynamic<> F0(24);
+        ChVectorDynamic<> F1(24);
+        ComputeInternalForces(F0);
+        for (int inode = 0; inode < 8; ++inode) {
+            m_nodes[inode]->pos.x() += diff;
+            ComputeInternalForces(F1);  // Flag=1 > Jacobian of internal force calculation
+            m_StiffnessMatrix.col(0 + inode * 3) = (F0 - F1) * (1.0 / diff);
+            m_nodes[inode]->pos.x() -= diff;
+
+            m_nodes[inode]->pos.y() += diff;
+            ComputeInternalForces(F1);
+            m_StiffnessMatrix.col(1 + inode * 3) = (F0 - F1) * (1.0 / diff);
+            m_nodes[inode]->pos.y() -= diff;
+
+            m_nodes[inode]->pos.z() += diff;
+            ComputeInternalForces(F1);
+            m_StiffnessMatrix.col(2 + inode * 3) = (F0 - F1) * (1.0 / diff);
+            m_nodes[inode]->pos.z() -= diff;
+        }
+        // flag_HE=0 is default
+        m_StiffnessMatrix -= m_stock_jac_EAS;  // For Enhanced Assumed Strain
+    } else {
+        // Put in m_StiffnessMatrix the values for the Jacobian already calculated in the computation of internal forces
+        // Note that m_stock_KTE and m_stock_jac_EAS are updated at each iteration of the time step
+        m_StiffnessMatrix = m_stock_KTE;
+        m_StiffnessMatrix -= m_stock_jac_EAS;
+    }
+}
+
+// -----------------------------------------------------------------------------
+
+class Brick_Mass : public ChIntegrable3D<ChMatrixNM<double, 24, 24>> {
+  public:
+    Brick_Mass(ChMatrixNM<double, 8, 3>* d0_, ChElementBrick* element_);
+    ~Brick_Mass() {}
+
+  private:
+    ChElementBrick* element;
+    ChMatrixNM<double, 8, 3>* d0;    ///< Pointer to a matrix containing the element initial coordinates
+    ChMatrixNM<double, 3, 24> S;     ///< Sparse shape function matrix
+    ChElementBrick::ShapeVector N;   ///< Dense shape function vector
+    ChElementBrick::ShapeVector Nx;  ///< Dense shape function vector, X derivative
+    ChElementBrick::ShapeVector Ny;  ///< Dense shape function vector, Y derivative
+    ChElementBrick::ShapeVector Nz;  ///< Dense shape function vector, Z derivative
+
+    /// Evaluate the S'*S  at point x
+    virtual void Evaluate(ChMatrixNM<double, 24, 24>& result, const double x, const double y, const double z) override;
+};
+
+Brick_Mass::Brick_Mass(ChMatrixNM<double, 8, 3>* d0_, ChElementBrick* element_) : d0(d0_), element(element_) {
+    S.setZero();
+}
+
+void Brick_Mass::Evaluate(ChMatrixNM<double, 24, 24>& result, const double x, const double y, const double z) {
+    element->ShapeFunctions(N, x, y, z);
+    element->ShapeFunctionsDerivativeX(Nx, x, y, z);
+    element->ShapeFunctionsDerivativeY(Ny, x, y, z);
+    element->ShapeFunctionsDerivativeZ(Nz, x, y, z);
+
+    // S=[N1*eye(3) N2*eye(3) N3*eye(3) N4*eye(3)...]
+    for (int i = 0; i < 8; i++) {
+        S(0, 3 * i + 0) = N(i);
+        S(1, 3 * i + 1) = N(i);
+        S(2, 3 * i + 2) = N(i);
+    }
+
+    ChMatrixNM<double, 3, 3> rd0;
+    rd0.col(0) = (*d0).transpose() * Nx.transpose();
+    rd0.col(1) = (*d0).transpose() * Ny.transpose();
+    rd0.col(2) = (*d0).transpose() * Nz.transpose();
+    double detJ0 = rd0.determinant();
+
+    // Perform  r = S'*S
+    double factor = detJ0 * (element->GetLengthX() / 2) * (element->GetLengthY() / 2) * (element->GetLengthZ() / 2);
+    result = factor * S.transpose() * S;
+}
+
+void ChElementBrick::ComputeMassMatrix() {
+    double rho = m_Material->Get_density();
+    Brick_Mass myformula(&m_d0, this);
+    m_MassMatrix.setZero();
+    ChQuadrature::Integrate3D<ChMatrixNM<double, 24, 24>>(m_MassMatrix,  // result of integration will go there
+                                                          myformula,     // formula to integrate
+                                                          -1,            // start of x
+                                                          1,             // end of x
+                                                          -1,            // start of y
+                                                          1,             // end of y
+                                                          -1,            // start of z
+                                                          1,             // end of z
+                                                          2              // order of integration
+    );
+
+    m_MassMatrix *= rho;
+}
+
+// -----------------------------------------------------------------------------
+
+// Class to calculate the gravity forces of a brick element
+class BrickGravity : public ChIntegrable3D<ChVectorN<double, 24>> {
+  public:
+    BrickGravity(ChMatrixNM<double, 8, 3>* d0_, ChElementBrick* element_, const ChVector<> g_acc);
+    ~BrickGravity() {}
+
+  private:
+    ChElementBrick* element;
+    ChMatrixNM<double, 8, 3>* d0;    // Pointer to a matrix containing the element initial coordinates
+    ChMatrixNM<double, 3, 24> S;     // Sparse shape function matrix
+    ChElementBrick::ShapeVector N;   // Dense shape function vector
+    ChElementBrick::ShapeVector Nx;  // Dense shape function vector, X derivative
+    ChElementBrick::ShapeVector Ny;  // Dense shape function vector, Y derivative
+    ChElementBrick::ShapeVector Nz;  // Dense shape function vector, Z derivative
+    ChVector<> gacc;                 // gravitational acceleration
+
+    virtual void Evaluate(ChVectorN<double, 24>& result, const double x, const double y, const double z) override;
+};
+
+BrickGravity::BrickGravity(ChMatrixNM<double, 8, 3>* d0_, ChElementBrick* element_, const ChVector<> g_acc)
+    : d0(d0_), element(element_), gacc(g_acc) {}
+
+void BrickGravity::Evaluate(ChVectorN<double, 24>& result, const double x, const double y, const double z) {
     element->ShapeFunctions(N, x, y, z);
     element->ShapeFunctionsDerivativeX(Nx, x, y, z);
     element->ShapeFunctionsDerivativeY(Ny, x, y, z);
@@ -1398,7 +1620,7 @@ void ChElementBrick::MyGravity::Evaluate(ChVectorN<double, 24>& result,
 }
 
 void ChElementBrick::ComputeGravityForce(const ChVector<>& g_acc) {
-    MyGravity myformula1(&m_d0, this, g_acc);
+    BrickGravity myformula1(&m_d0, this, g_acc);
     m_GravForce.setZero();
     ChQuadrature::Integrate3D<ChVectorN<double, 24>>(m_GravForce,  // result of integration will go there
                                                      myformula1,   // formula to integrate
@@ -1411,23 +1633,6 @@ void ChElementBrick::ComputeGravityForce(const ChVector<>& g_acc) {
     m_GravForce *= m_Material->Get_density();
 }
 
-void ChElementBrick::ComputeMassMatrix() {
-    double rho = m_Material->Get_density();
-    MyMass myformula(&m_d0, this);
-    m_MassMatrix.setZero();
-    ChQuadrature::Integrate3D<ChMatrixNM<double, 24, 24>>(m_MassMatrix,  // result of integration will go there
-                                                          myformula,     // formula to integrate
-                                                          -1,            // start of x
-                                                          1,             // end of x
-                                                          -1,            // start of y
-                                                          1,             // end of y
-                                                          -1,            // start of z
-                                                          1,             // end of z
-                                                          2              // order of integration
-    );
-
-    m_MassMatrix *= rho;
-}
 // -----------------------------------------------------------------------------
 
 void ChElementBrick::SetupInitial(ChSystem* system) {
@@ -1583,6 +1788,83 @@ void ChElementBrick::Basis_M(ChMatrixNM<double, 6, 9>& M, double x, double y, do
     M(4, 6) = z;
     M(5, 7) = y;
     M(5, 8) = z;
+}
+
+// -----------------------------------------------------------------------------
+
+void ChElementBrick::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
+    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos().eigen();
+    mD.segment(block_offset + 3, 3) = m_nodes[1]->GetPos().eigen();
+    mD.segment(block_offset + 6, 3) = m_nodes[2]->GetPos().eigen();
+    mD.segment(block_offset + 9, 3) = m_nodes[3]->GetPos().eigen();
+    mD.segment(block_offset + 12, 3) = m_nodes[4]->GetPos().eigen();
+    mD.segment(block_offset + 15, 3) = m_nodes[5]->GetPos().eigen();
+    mD.segment(block_offset + 18, 3) = m_nodes[6]->GetPos().eigen();
+    mD.segment(block_offset + 21, 3) = m_nodes[7]->GetPos().eigen();
+}
+
+void ChElementBrick::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
+    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos_dt().eigen();
+    mD.segment(block_offset + 3, 3) = m_nodes[1]->GetPos_dt().eigen();
+    mD.segment(block_offset + 6, 3) = m_nodes[2]->GetPos_dt().eigen();
+    mD.segment(block_offset + 9, 3) = m_nodes[3]->GetPos_dt().eigen();
+    mD.segment(block_offset + 12, 3) = m_nodes[4]->GetPos_dt().eigen();
+    mD.segment(block_offset + 15, 3) = m_nodes[5]->GetPos_dt().eigen();
+    mD.segment(block_offset + 18, 3) = m_nodes[6]->GetPos_dt().eigen();
+    mD.segment(block_offset + 21, 3) = m_nodes[7]->GetPos_dt().eigen();
+}
+
+void ChElementBrick::LoadableStateIncrement(const unsigned int off_x,
+                                            ChState& x_new,
+                                            const ChState& x,
+                                            const unsigned int off_v,
+                                            const ChStateDelta& Dv) {
+    for (int i = 0; i < 8; ++i) {
+        this->m_nodes[i]->NodeIntStateIncrement(off_x + 3 * 1, x_new, x, off_v + 3 * i, Dv);
+    }
+}
+
+void ChElementBrick::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
+    for (int i = 0; i < m_nodes.size(); ++i)
+        mvars.push_back(&this->m_nodes[i]->Variables());
+}
+
+// -----------------------------------------------------------------------------
+
+void ChElementBrick::ComputeNF(
+    const double U,              // parametric coordinate in volume
+    const double V,              // parametric coordinate in volume
+    const double W,              // parametric coordinate in volume
+    ChVectorDynamic<>& Qi,       // Return result of N'*F  here, maybe with offset block_offset
+    double& detJ,                // Return det[J] here
+    const ChVectorDynamic<>& F,  // Input F vector, size is = n.field coords.
+    ChVectorDynamic<>* state_x,  // if != 0, update state (pos. part) to this, then evaluate Q
+    ChVectorDynamic<>* state_w   // if != 0, update state (speed part) to this, then evaluate Q
+) {
+    // this->ComputeNF(U, V, Qi, detJ, F, state_x, state_w);
+    ShapeVector N;
+    ShapeVector Nx;
+    ShapeVector Ny;
+    ShapeVector Nz;
+    ShapeFunctions(N, U, V, W);  // evaluate shape functions (in compressed vector)
+    ShapeFunctionsDerivativeX(Nx, U, V, W);
+    ShapeFunctionsDerivativeY(Ny, U, V, W);
+    ShapeFunctionsDerivativeZ(Nz, U, V, W);
+
+    ChMatrixNM<double, 1, 3> Nx_d0 = Nx * m_d0;
+    ChMatrixNM<double, 1, 3> Ny_d0 = Ny * m_d0;
+    ChMatrixNM<double, 1, 3> Nz_d0 = Nz * m_d0;
+
+    ChMatrixNM<double, 3, 3> rd0;
+    rd0.col(0) = m_d0.transpose() * Nx.transpose();
+    rd0.col(1) = m_d0.transpose() * Ny.transpose();
+    rd0.col(2) = m_d0.transpose() * Nz.transpose();
+    detJ = rd0.determinant();
+    detJ *= this->GetLengthX() * this->GetLengthY() * this->GetLengthZ() / 8.0;
+
+    for (int i = 0; i < 8; i++) {
+        Qi.segment(3 * i, 3) = N(i) * F.segment(0, 3);
+    }
 }
 
 }  // end namespace fea

@@ -107,7 +107,7 @@ class ChApi ChElementCableANCF : public ChElementBeam, public ChLoadableU, publi
     virtual void Update() override;
 
     /// Fills the D vector  with the current field values at the nodes of the element, with proper ordering. If the D
-    /// vector has not the size of this->GetNdofs(), it will be resized. 
+    /// vector has not the size of this->GetNdofs(), it will be resized.
     /// {x_a y_a z_a Dx_a Dx_a Dx_a x_b y_b z_b Dx_b Dy_b Dz_b}
     virtual void GetStateBlock(ChVectorDynamic<>& mD) override;
 
@@ -133,7 +133,7 @@ class ChApi ChElementCableANCF : public ChElementBeam, public ChLoadableU, publi
                                           double Rfactor = 0,
                                           double Mfactor = 0) override;
 
-    /// Computes the internal forces and set values in the Fi vector. 
+    /// Computes the internal forces and set values in the Fi vector.
     /// (e.g. the actual position of nodes is not in relaxed reference position).
     virtual void ComputeInternalForces(ChVectorDynamic<>& Fi) override;
 

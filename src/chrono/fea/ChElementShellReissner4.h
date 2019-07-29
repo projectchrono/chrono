@@ -439,7 +439,6 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     /// constant material are assumed
     void ComputeMassMatrix();
 
-
     // Functions for ChLoadable interface
     // ----------------------------------
 
@@ -510,11 +509,6 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     /// Gets the normal to the surface at the parametric coordinate U,V.
     /// Each coordinate ranging in -1..+1.
     virtual ChVector<> ComputeNormal(const double U, const double V) override;
-
-    friend class MyMassEANS;
-    friend class MyGravity;
-    friend class MyForceEANS;
-    friend class MyJacobianEANS;
 };
 
 /// @} fea_elements

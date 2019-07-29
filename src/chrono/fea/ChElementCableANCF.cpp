@@ -193,7 +193,7 @@ void ChElementCableANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
         ChVector<> pB = this->nodes[1]->GetPos();
         ChVector<> dB = this->nodes[1]->GetD();
 
-        // this matrix will be used in both MyStiffnessAxial and MyStiffnessCurv integrators
+        // this matrix will be used in both CableANCF_StiffnessAxial and CableANCF_StiffnessCurv integrators
         ChMatrixNM<double, 4, 3> d;
         d(0, 0) = pA.x();
         d(0, 1) = pA.y();
@@ -211,7 +211,7 @@ void ChElementCableANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
         // 1)
         // Integrate   ((strainD'*strainD)+(strain*Sd'*Sd))
 
-        class MyStiffnessAxial : public ChIntegrable1D<ChMatrixNM<double, 12, 12>> {
+        class CableANCF_StiffnessAxial : public ChIntegrable1D<ChMatrixNM<double, 12, 12>> {
           public:
             ChElementCableANCF* element;
             ChMatrixNM<double, 4, 3>* d;
@@ -241,7 +241,7 @@ void ChElementCableANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
             }
         };
 
-        MyStiffnessAxial myformulaAx;
+        CableANCF_StiffnessAxial myformulaAx;
         myformulaAx.d = &d;
         myformulaAx.element = this;
 
@@ -259,7 +259,7 @@ void ChElementCableANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
         // 2)
         // Integrate   (k_e'*k_e)
 
-        class MyStiffnessCurv : public ChIntegrable1D<ChMatrixNM<double, 12, 12>> {
+        class CableANCF_StiffnessCurv : public ChIntegrable1D<ChMatrixNM<double, 12, 12>> {
           public:
             ChElementCableANCF* element;
             ChMatrixNM<double, 4, 3>* d;
@@ -316,7 +316,7 @@ void ChElementCableANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
                 if (f == 0)
                     f_e = f1.transpose() * fe1;
                 else {
-                    f_e = (1/f) * f1.transpose() * fe1;
+                    f_e = (1 / f) * f1.transpose() * fe1;
                 }
 
                 k_e = (f_e * g - g_e * f) * (1 / (pow(g, 2)));
@@ -325,7 +325,7 @@ void ChElementCableANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
             }
         };
 
-        MyStiffnessCurv myformulaCurv;
+        CableANCF_StiffnessCurv myformulaCurv;
         myformulaCurv.d = &d;
         myformulaCurv.element = this;
 
@@ -362,7 +362,7 @@ void ChElementCableANCF::ComputeMassMatrix() {
     // Integrate  Area*rho*(S'*S)
     // where S=[N1*eye(3) N2*eye(3) N3*eye(3) N4*eye(3)]
 
-    class MyMass : public ChIntegrable1D<ChMatrixNM<double, 12, 12>> {
+    class CableANCF_Mass : public ChIntegrable1D<ChMatrixNM<double, 12, 12>> {
       public:
         ChElementCableANCF* element;
         ChMatrixNM<double, 3, 12> S;
@@ -383,7 +383,7 @@ void ChElementCableANCF::ComputeMassMatrix() {
         }
     };
 
-    MyMass myformula;
+    CableANCF_Mass myformula;
     myformula.element = this;
     m_MassMatrix.setZero();
     ChQuadrature::Integrate1D<ChMatrixNM<double, 12, 12>>(m_MassMatrix,  // result of integration will go there
@@ -458,7 +458,7 @@ void ChElementCableANCF::ComputeInternalForces_Impl(const ChVector<>& pA,
 
     double l = this->length;
 
-    // this matrix will be used in both MyForcesAxial and MyForcesCurv integrators
+    // this matrix will be used in both CableANCF_ForceAxial and CableANCF_ForceCurv integrators
     ChMatrixNM<double, 4, 3> d;
     d(0, 0) = pA.x();
     d(0, 1) = pA.y();
@@ -473,7 +473,7 @@ void ChElementCableANCF::ComputeInternalForces_Impl(const ChVector<>& pA,
     d(3, 1) = dB.y();
     d(3, 2) = dB.z();
 
-    // this matrix will be used in both MyForcesAxial and MyForcesCurv integrators
+    // this matrix will be used in both CableANCF_ForceAxial and CableANCF_ForceCurv integrators
     ChVectorN<double, 12> vel_vector;
     vel_vector(0) = pA_dt.x();
     vel_vector(1) = pA_dt.y();
@@ -491,7 +491,7 @@ void ChElementCableANCF::ComputeInternalForces_Impl(const ChVector<>& pA,
     // 1)
     // Integrate   (strainD'*strain)
 
-    class MyForcesAxial : public ChIntegrable1D<ChVectorN<double, 12>> {
+    class CableANCF_ForceAxial : public ChIntegrable1D<ChVectorN<double, 12>> {
       public:
         ChElementCableANCF* element;
         ChMatrixNM<double, 4, 3>* d;  // this is an external matrix, use pointer
@@ -517,7 +517,7 @@ void ChElementCableANCF::ComputeInternalForces_Impl(const ChVector<>& pA,
             strainD = Nd_d * Sd;
 
             // strain = (Nd*(d*d')*Nd'-1)*0.5;
-            double strain = 0.5 *(Nd_d.dot(Nd_d) - 1);
+            double strain = 0.5 * (Nd_d.dot(Nd_d) - 1);
 
             // Add damping forces if selected
             if (element->m_use_damping)
@@ -527,7 +527,7 @@ void ChElementCableANCF::ComputeInternalForces_Impl(const ChVector<>& pA,
         }
     };
 
-    MyForcesAxial myformulaAx;
+    CableANCF_ForceAxial myformulaAx;
     myformulaAx.d = &d;
     myformulaAx.d_dt = &vel_vector;
     myformulaAx.element = this;
@@ -547,7 +547,7 @@ void ChElementCableANCF::ComputeInternalForces_Impl(const ChVector<>& pA,
     // 2)
     // Integrate   (k_e'*k_e)
 
-    class MyForcesCurv : public ChIntegrable1D<ChVectorN<double, 12>> {
+    class CableANCF_ForceCurv : public ChIntegrable1D<ChVectorN<double, 12>> {
       public:
         ChElementCableANCF* element;
         ChMatrixNM<double, 4, 3>* d;  // this is an external matrix, use pointer
@@ -617,7 +617,7 @@ void ChElementCableANCF::ComputeInternalForces_Impl(const ChVector<>& pA,
         }
     };
 
-    MyForcesCurv myformulaCurv;
+    CableANCF_ForceCurv myformulaCurv;
     myformulaCurv.d = &d;
     myformulaCurv.d_dt = &vel_vector;
     myformulaCurv.element = this;
