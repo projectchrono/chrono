@@ -171,19 +171,13 @@ void ChAparticle::ComputeJacobianForRollingContactPart(
     ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
     ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
     bool second) {
-    ChMatrix33<> Jx1;
-
-    //// RADU
-    //// There must be a bug here!   Jx1 is never set.
-
     ChMatrix33<> Jr1 = contact_plane.transpose() * this->GetA();
     if (!second)
         Jr1 *= -1;
 
-    jacobian_tuple_N.Get_Cq().segment(0, 3) = Jx1.row(0);
-    jacobian_tuple_U.Get_Cq().segment(0, 3) = Jx1.row(1);
-    jacobian_tuple_V.Get_Cq().segment(0, 3) = Jx1.row(2);
-
+    jacobian_tuple_N.Get_Cq().segment(0, 3).setZero();
+    jacobian_tuple_U.Get_Cq().segment(0, 3).setZero();
+    jacobian_tuple_V.Get_Cq().segment(0, 3).setZero();
     jacobian_tuple_N.Get_Cq().segment(3, 3) = Jr1.row(0);
     jacobian_tuple_U.Get_Cq().segment(3, 3) = Jr1.row(1);
     jacobian_tuple_V.Get_Cq().segment(3, 3) = Jr1.row(2);

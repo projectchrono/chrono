@@ -963,9 +963,7 @@ void ChBody::ComputeJacobianForRollingContactPart(
     ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
     ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
     bool second) {
-    ChMatrix33<> Jr1;
-
-    Jr1 = contact_plane.transpose() * this->GetA();
+    ChMatrix33<> Jr1 = contact_plane.transpose() * this->GetA();
     if (!second)
         Jr1 *= -1;
 
