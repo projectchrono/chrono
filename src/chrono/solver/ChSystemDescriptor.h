@@ -266,13 +266,11 @@ class ChApi ChSystemDescriptor {
         std::vector<bool>* enabled = nullptr  ///< optional: vector of "enabled" flags, one per scalar constraint.
     );
 
-    /// Performs the product of the entire system matrix (KKT matrix), by a vector x ={q,l}
-    /// (if x not provided, use values in current lagrangian multipliers l_i and current q variables)
-    /// NOTE! the 'q' data in the ChVariables of the system descriptor is changed by this
-    /// operation, so it may happen that you need to backup them via FromVariablesToVector()
-    virtual void SystemProduct(
-        ChVectorDynamic<>& result,  ///< matrix which contains the result of matrix by x
-        ChVectorDynamic<>* x  ///< optional matrix with the vector to be multiplied (if null, use current l_i and q)
+    /// Performs the product of the entire system matrix (KKT matrix), by a vector x ={q,l}.
+    /// Note that the 'q' data in the ChVariables of the system descriptor is changed by this
+    /// operation, so thay may need to be backed up via FromVariablesToVector()
+    virtual void SystemProduct(ChVectorDynamic<>& result,  ///< result vector (multiplication of system matrix by x)
+                               const ChVectorDynamic<>& x  ///< vector to be multiplied
     );
 
     /// Performs projection of constraint multipliers onto allowed set (in case

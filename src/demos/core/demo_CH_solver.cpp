@@ -421,7 +421,7 @@ void test_3(const std::string& out_dir) {
     mdescriptor.BuildDiVector(md);  // d={f;-b}
 
     chrono::ChVectorDynamic<double> mZx;
-    mdescriptor.SystemProduct(mZx, &mx);  // Zx = Z*x
+    mdescriptor.SystemProduct(mZx, mx);  // Zx = Z*x
 
     GetLog() << "CHECK: norm of solver residual: ||Z*x-d|| -------------------\n";
     GetLog() << (mZx - md).lpNorm<Eigen::Infinity>() << "\n";

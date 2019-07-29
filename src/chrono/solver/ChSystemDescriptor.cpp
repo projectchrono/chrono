@@ -576,51 +576,30 @@ void ChSystemDescriptor::ShurComplementProduct(ChVectorDynamic<>& result,
     }
 }
 
-void ChSystemDescriptor::SystemProduct(
-    ChVectorDynamic<>& result,  // matrix which contains the result of matrix by x
-    ChVectorDynamic<>* x        // optional matrix with the vector to be multiplied (if null, use current l_i and q)
-) {
+void ChSystemDescriptor::SystemProduct(ChVectorDynamic<>& result, const ChVectorDynamic<>& x) {
     n_q = CountActiveVariables();
     n_c = CountActiveConstraints();
-
-    //// RADU
-    //// x_ql and vect are NOT USED.
-    //// Revisit this and consider passing a const reference to x if that can never be nullptr!
-
-    ////ChMatrix<>* x_ql = 0;
-
-    ////ChMatrix<>* vect;
-
-    ////if (x) {
-    ////    assert(x->GetRows() == n_q + n_c);
-    ////    assert(x->GetColumns() == 1);
-
-    ////    vect = x;
-    ////} else {
-    ////    x_ql = new ChMatrixDynamic<double>(n_q + n_c, 1);
-    ////    vect = x_ql;
-    ////    FromUnknownsToVector(*vect);
-    ////}
 
     result.setZero(n_q + n_c);
 
     // 1) First row: result.q part =  [M + K]*x.q + [Cq']*x.l
 
     // 1.1)  do  M*x.q
-    for (int iv = 0; iv < (int)vvariables.size(); iv++)
+    for (int iv = 0; iv < (int)vvariables.size(); iv++) {
         if (vvariables[iv]->IsActive()) {
-            vvariables[iv]->MultiplyAndAdd(result, *x, c_a);
+            vvariables[iv]->MultiplyAndAdd(result, x, c_a);
         }
+    }
 
     // 1.2)  add also K*x.q  (NON straight parallelizable - risk of concurrency in writing)
     for (int ik = 0; ik < (int)vstiffness.size(); ik++) {
-        vstiffness[ik]->MultiplyAndAdd(result, *x);
+        vstiffness[ik]->MultiplyAndAdd(result, x);
     }
 
     // 1.3)  add also [Cq]'*x.l  (NON straight parallelizable - risk of concurrency in writing)
     for (int ic = 0; ic < (int)vconstraints.size(); ic++) {
         if (vconstraints[ic]->IsActive()) {
-            vconstraints[ic]->MultiplyTandAdd(result, (*x)(vconstraints[ic]->GetOffset() + n_q));
+            vconstraints[ic]->MultiplyTandAdd(result, x(vconstraints[ic]->GetOffset() + n_q));
         }
     }
 
@@ -628,14 +607,10 @@ void ChSystemDescriptor::SystemProduct(
     for (int ic = 0; ic < (int)vconstraints.size(); ic++) {
         if (vconstraints[ic]->IsActive()) {
             int s_c = vconstraints[ic]->GetOffset() + n_q;
-            vconstraints[ic]->MultiplyAndAdd(result(s_c), (*x));       // result.l_i += [C_q_i]*x.q
-            result(s_c) -= vconstraints[ic]->Get_cfm_i() * (*x)(s_c);  // result.l_i += [E]*x.l_i  NOTE:  cfm = -E
+            vconstraints[ic]->MultiplyAndAdd(result(s_c), x);       // result.l_i += [C_q_i]*x.q
+            result(s_c) -= vconstraints[ic]->Get_cfm_i() * x(s_c);  // result.l_i += [E]*x.l_i  NOTE:  cfm = -E
         }
     }
-
-    // if a temp vector has been created because x was not provided, then delete it
-    ////if (x_ql)
-    ////    delete x_ql;
 }
 
 void ChSystemDescriptor::ConstraintsProject(ChVectorDynamic<>& multipliers) {

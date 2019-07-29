@@ -1544,7 +1544,7 @@ bool ChSystem::DoStaticLinear() {
         StreamOUTdenseMatlabFormat(mx, file_x);
 
         chrono::ChVectorDynamic<double> mZx;
-        GetSystemDescriptor()->SystemProduct(mZx, &mx);  // Zx = Z*x
+        GetSystemDescriptor()->SystemProduct(mZx, mx);  // Zx = Z*x
 
         GetLog() << "CHECK: norm of solver residual: ||Z*x-d|| -------------------\n";
         GetLog() << (mZx - md).lpNorm<Eigen::Infinity>() << "\n";

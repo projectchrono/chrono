@@ -365,7 +365,7 @@ double ChSolverPMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
     sysd.UnknownsProject(mx);
 
     // r = d - Z*x;
-    sysd.SystemProduct(mr, &mx);  // r = Z*x
+    sysd.SystemProduct(mr, mx);  // r = Z*x
     mr = md - mr;                 // r =-Z*x+d
 
     if (do_preconditioning)
@@ -377,10 +377,10 @@ double ChSolverPMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
     mz = mp;
 
     // ZMr = Z*M*r = Z*z
-    sysd.SystemProduct(mZMr, &mz);  // ZMr = Z*z
+    sysd.SystemProduct(mZMr, mz);  // ZMr = Z*z
 
     // Zp = Z*p
-    sysd.SystemProduct(mZp, &mp);  // Zp = Z*p
+    sysd.SystemProduct(mZp, mp);  // Zp = Z*p
 
     //
     // THE LOOP
@@ -431,7 +431,7 @@ double ChSolverPMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
         sysd.UnknownsProject(mx);  // x = P(x)
 
         // r = d - Z*x;
-        sysd.SystemProduct(mr, &mx);  // r = Z*x
+        sysd.SystemProduct(mr, mx);  // r = Z*x
         mr = md - mr;                 // r =-Z*x+d
 
         this->tot_iterations++;
@@ -457,7 +457,7 @@ double ChSolverPMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
         mZMr_old = mZMr;
 
         // ZMr = Z*z;
-        sysd.SystemProduct(mZMr, &mz);  // ZMr = Z*z
+        sysd.SystemProduct(mZMr, mz);  // ZMr = Z*z
 
         // Ribiere quotient (for flexible preconditioning)
         //    beta = z'*(ZMr-ZMr_old)/(z_old'*(ZMr_old));

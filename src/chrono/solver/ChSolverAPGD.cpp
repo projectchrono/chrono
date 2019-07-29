@@ -12,9 +12,6 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-//// RADU
-//// Fix implementation to properly treat the case nc=0
-
 #include "chrono/solver/ChSolverAPGD.h"
 
 #include "chrono/core/ChStream.h"

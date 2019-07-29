@@ -426,8 +426,8 @@ double ChSolverMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
     double rel_tol_d = d.lpNorm<Eigen::Infinity>() * rel_tol;
 
     // r = d - Z*x;
-    sysd.SystemProduct(r, &x);  // r = Z*x
-    r = d - r;                  // r =-Z*x+d
+    sysd.SystemProduct(r, x);  // r = Z*x
+    r = d - r;                 // r =-Z*x+d
 
     // Precondition: r = M(r)
     if (do_preconditioning)
@@ -437,7 +437,7 @@ double ChSolverMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
     p = r;
 
     // Zr = Z*r;
-    sysd.SystemProduct(Zr, &r);
+    sysd.SystemProduct(Zr, r);
 
     // Zp = Z*p;
     Zp = Zr;
@@ -483,7 +483,7 @@ double ChSolverMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
         Zr_old = Zr;
 
         // Zr = Z*r;
-        sysd.SystemProduct(Zr, &r);
+        sysd.SystemProduct(Zr, r);
 
         // beta = (r' * N*r) / (r_old' * N*r_old);
         double numerator = r.dot(Zr);            // r'* Z *r
