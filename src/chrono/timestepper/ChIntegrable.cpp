@@ -55,8 +55,10 @@ bool ChIntegrableIIorder::StateSolveA(ChStateDelta& Dvdt,       // result: compu
     ChVectorDynamic<> Qc(GetNconstr());
     const double Delta = 1e-6;
 
-    LoadResidual_F(R, 1.0);
+    R.Reset();
+    Qc.Reset();
 
+    LoadResidual_F(R, 1.0);
     LoadConstraint_C(Qc, -2.0 / (Delta * Delta));
 
     // numerical differentiation to get the Qc term in constraints
