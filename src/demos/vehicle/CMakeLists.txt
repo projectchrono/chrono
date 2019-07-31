@@ -23,6 +23,7 @@ ADD_SUBDIRECTORY(demo_WheeledAssembly)
 ADD_SUBDIRECTORY(demo_SteeringController)
 ADD_SUBDIRECTORY(demo_TwoCars)
 ADD_SUBDIRECTORY(demo_Sedan)
+ADD_SUBDIRECTORY(demo_CityBus)
 
 ADD_SUBDIRECTORY(demo_ISO2631)
 
