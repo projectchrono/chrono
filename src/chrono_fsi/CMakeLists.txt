@@ -15,13 +15,6 @@ message(STATUS "==== Chrono FSI module ====")
 
 
 
-# TEMPORARILY DISABLE THIS MODULE
-message("Chrono::FSI currently DISABLED!")
-set(ENABLE_MODULE_FSI OFF CACHE BOOL "" FORCE)
-return()
-
-
-
 if(EIGEN3_VERSION VERSION_LESS "3.3.6")
   message("Chrono::FSI requires Eigen version 3.3.6 or better")
   message("Current Eigen version: ${EIGEN3_VERSION}")
