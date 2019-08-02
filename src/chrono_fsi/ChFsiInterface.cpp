@@ -15,8 +15,7 @@
 // Base class for processing the interface between chrono and fsi modules
 // =============================================================================
 
-//#define EIGEN_NO_CUDA
-#define EIGEN_DONT_VECTORIZE
+
 
 #include "chrono/fea/ChElementCableANCF.h"
 #include "chrono/fea/ChElementShellANCF.h"
