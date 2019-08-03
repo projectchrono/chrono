@@ -214,6 +214,8 @@ ChBodyEasyConvexHullAuxRef::ChBodyEasyConvexHullAuxRef(
     ChMatrix33<> principal_inertia_csys;
     ChVectorN<double, 3> principal_I;
     inertia.SelfAdjointEigenSolve(principal_inertia_csys, principal_I);
+    if (principal_inertia_csys.determinant() < 0)
+        principal_inertia_csys.col(0) *= -1;
 
     SetDensity((float)mdensity);
     SetMass(mass * mdensity);
@@ -269,6 +271,8 @@ ChBodyEasyMesh::ChBodyEasyMesh(
         ChMatrix33<> principal_inertia_csys;
         ChVectorN<double, 3> principal_I;
         inertia.SelfAdjointEigenSolve(principal_inertia_csys, principal_I);
+        if (principal_inertia_csys.determinant() < 0)
+            principal_inertia_csys.col(0) *= -1;
 
         SetMass(mass * mdensity);
         SetInertiaXX(ChVector<>(principal_I) * mdensity);
