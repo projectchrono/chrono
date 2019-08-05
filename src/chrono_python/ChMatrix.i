@@ -32,6 +32,29 @@ using namespace chrono;
     $result = SWIG_Python_AppendOutput($result, list);
 }
 
+%typemap(in) (int numel, double* q) %{
+    if (PyList_Check($input)) {
+        $1 = PyList_Size($input);
+        $2 = (double*)malloc($1);
+        for (int i = 0; i < $1; i++) {
+            PyObject *o = PyList_GetItem($input, i);
+            double tmp = PyFloat_AsDouble(o);
+            if(PyErr_Occurred())
+                SWIG_fail;
+            $2[i] = PyFloat_AsDouble(o);
+        }
+    } else {
+        PyErr_SetString(PyExc_TypeError, "not a list");
+        return NULL;
+    }
+%}
+
+
+%typemap(freearg) (double *x, int nx, int mx, double* f) %{
+    free($1);
+    free($4);
+%}
+
 template <typename Real = double>
 class chrono::ChMatrixDynamic : public Eigen::Matrix<Real, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> {
 	public:
@@ -74,9 +97,9 @@ class chrono::ChVectorDynamic : public Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen
 					p[i] =  (double)(*$self)(i, 1);
 						}
 				}
-			void SetVectorData(double * p, int len){
-				for (int i = 0; i < len; i++){
-					(double)(*$self)(i, 1) = p[i];
+			void SetVectorData(int numel, double* q){
+				for (int i = 0; i < numel; i++){
+					(double)(*$self)(i, 1) = q[i];
 						}
 				}
 		};
