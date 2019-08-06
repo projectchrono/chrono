@@ -3,10 +3,11 @@
 /* Includes the header in the wrapper code */
 #include "chrono/physics/ChLoad.h"
 #include "chrono/physics/ChLoadsBody.h"
-//#include "chrono/physics/ChLoadsXYZnode.h"
+#include "chrono/physics/ChLoadsXYZnode.h"
 
 %}
- 
+
+//TODO: remove ignore once ref is wrapped 
 %shared_ptr(chrono::ChLoadBase)
 %shared_ptr(chrono::ChLoad)
 %shared_ptr(chrono::ChLoadCustom)
@@ -34,9 +35,12 @@
 %import "ChObject.i"
 
 /* Parse the header file to generate wrappers */
+%ignore chrono::ChLoadBase::ComputeJacobian;
+%ignore chrono::ChLoadCustom::ComputeJacobian;
+%ignore chrono::ChLoadCustomMultiple::ComputeJacobian;
 %include "../chrono/physics/ChLoad.h"
 %include "../chrono/physics/ChLoadsBody.h"
-//%include "../chrono/physics/ChLoadsXYZnode.h"
+%include "../chrono/physics/ChLoadsXYZnode.h"
 
 
 
