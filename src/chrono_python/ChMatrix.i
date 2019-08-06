@@ -17,11 +17,11 @@ using namespace chrono;
     if(!PyLong_Check($input))
         SWIG_exception(SWIG_TypeError, "expected integer");
     $2 = PyLong_AsUnsignedLong($input);
-    $1 = (double*)malloc($2);
+    $1 = new double[$2];
 %}
 
 %typemap(freearg) (double* p, int len) %{
-    free($1);
+    delete($1);
 %}
 
 %typemap(argout) (double* p, int len) {
@@ -35,7 +35,7 @@ using namespace chrono;
 %typemap(in) (int numel, double* q) %{
     if (PyList_Check($input)) {
         $1 = PyList_Size($input);
-        $2 = (double*)malloc($1);
+        $2 = new double[$1];
         for (int i = 0; i < $1; i++) {
             PyObject *o = PyList_GetItem($input, i);
             double tmp = PyFloat_AsDouble(o);
@@ -50,9 +50,34 @@ using namespace chrono;
 %}
 
 
-%typemap(freearg) (double *x, int nx, int mx, double* f) %{
-    free($1);
-    free($4);
+%typemap(freearg) (int numel, double* q) %{
+    delete($2);
+%}
+
+%typemap(in) (double *mat, int ros, int col) %{
+    if (PyList_Check($input)) {
+        $2 = PyList_Size($input);
+        $3 = PyList_Size(PyList_GetItem($input, 0));
+		$1 = new double[$2 * $3];
+        for (int i = 0; i < $2; i++) {
+            for (int j = 0; j < $3; j++) {
+                PyObject *o = PyList_GetItem(PyList_GetItem($input, i), j);
+				// TODO: check what's this line for
+                double tmp = PyFloat_AsDouble(o);
+                if(PyErr_Occurred())
+                    SWIG_fail;
+                $1[i * $3 + j] = PyFloat_AsDouble(o);
+            }
+        }
+    } else {
+        PyErr_SetString(PyExc_TypeError, "not a list");
+        return NULL;
+    }
+%}
+
+
+%typemap(freearg) (double *mat, int ros, int col) %{
+    delete($1);
 %}
 
 template <typename Real = double>
@@ -97,7 +122,8 @@ class chrono::ChVectorDynamic : public Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen
 					p[i] =  (double)(*$self)(i, 1);
 						}
 				}
-			void SetVectorData(int numel, double* q){
+			void SetVect(int numel, double* q){
+				($self)->resize(numel);
 				for (int i = 0; i < numel; i++){
 					(double)(*$self)(i, 1) = q[i];
 						}
@@ -146,6 +172,16 @@ class chrono::ChVectorDynamic : public Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen
 					
 				}
 			}
+
+			void SetMatr(double *mat, int ros, int col) {
+				($self)->resize(ros, col);
+				for (int i = 0; i < ros; i++){
+					for (int j = 0; j < col; j++){
+						(double)(*$self)(i, j) = mat[i*col + j];
+					}
+				}
+
+			}
 		};
 
 //
@@ -174,6 +210,27 @@ def GetVect(self):
     return rs_list
 
 setattr(ChVectorDynamicD, "GetVect", GetVect)
+
+def __matr_setitem(self,index,vals):
+    row = index[0];
+    col = index[1];
+    if row>=self.GetRows() or row <0:
+        raise NameError('Bad row. Setting value at [{0},{1}] in a {2}x{3} matrix'.format(row,col,self.GetRows(),self.GetColumns()))
+    if col>=self.GetColumns() or col <0:
+        raise NameError('Bad column. Setting value at [{0},{1}] in a {2}x{3} matrix'.format(row,col,self.GetRows(),self.GetColumns()))
+    self.setitem(index[0],index[1],vals)
+
+def __matr_getitem(self,index):
+    row = index[0];
+    col = index[1];
+    if row>=self.GetRows() or row <0:
+        raise NameError('Bad row. Getting value at [{0},{1}] in a {2}x{3} matrix'.format(row,col,self.GetRows(),self.GetColumns()))
+    if col>=self.GetColumns() or col <0:
+        raise NameError('Bad column. Getting value at [{0},{1}] in a {2}x{3} matrix'.format(row,col,self.GetRows(),self.GetColumns()))
+    return self.getitem(index[0],index[1])
+
+setattr(ChMatrixDynamicD, "__getitem__", __matr_getitem)
+setattr(ChMatrixDynamicD, "__setitem__", __matr_setitem)
 
 %}
 %ignore chrono::ChMatrixDynamic;
