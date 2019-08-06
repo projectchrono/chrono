@@ -125,7 +125,7 @@ class chrono::ChVectorDynamic : public Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen
 			void SetVect(int numel, double* q){
 				($self)->resize(numel);
 				for (int i = 0; i < numel; i++){
-					(double)(*$self)(i, 1) = q[i];
+					(*$self)(i, 1) = q[i];
 						}
 				}
 		};
@@ -177,7 +177,7 @@ class chrono::ChVectorDynamic : public Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen
 				($self)->resize(ros, col);
 				for (int i = 0; i < ros; i++){
 					for (int j = 0; j < col; j++){
-						(double)(*$self)(i, j) = mat[i*col + j];
+						(*$self)(i, j) = mat[i*col + j];
 					}
 				}
 
