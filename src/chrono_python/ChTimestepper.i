@@ -1,7 +1,6 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include <cstdlib>
 #include <cmath>
 #include <cstdlib>
 #include "chrono/core/ChApiCE.h"

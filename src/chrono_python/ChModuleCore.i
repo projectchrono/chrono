@@ -71,7 +71,6 @@
 #include "chrono/geometry/ChTriangleMeshSoup.h"
 #include "chrono/core/ChBezierCurve.h"
 #include "Eigen/src/Core/util/Memory.h"
-
 using namespace chrono;
 using namespace chrono::collision;
 using namespace chrono::geometry;
@@ -186,8 +185,6 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChParticleBase)
 %shared_ptr(chrono::ChIndexedParticles)
 %shared_ptr(chrono::ChParticlesClones)
-// shared_ptr macros for ChIntegrable, Chtimestepper and their children classes moved into "ChTimestepper.i"
-%shared_ptr(chrono::ChSolver)
 %shared_ptr(chrono::ChSystemNSC)
 %shared_ptr(chrono::ChSystemSMC)
 %shared_ptr(chrono::ChContactContainer)
@@ -368,7 +365,7 @@ using namespace chrono::fea;
 %include "ChLinkPointSpline.i"
 %include "ChAssembly.i"
 %include "ChTimestepper.i"
-%include "../chrono/solver/ChSolver.h"
+%include "ChSolver.i"
 %include "ChContactContainer.i"
 %include "ChSystem.i"
 %include "ChSystemNSC.i"

@@ -65,7 +65,9 @@
 #include "chrono/fea/ChElementHexa_20.h"
 #include "chrono/fea/ChElementBrick.h"
 #include "chrono/fea/ChElementBrick_9.h"
+#include "chrono/fea/ChElementShell.h"
 #include "chrono/fea/ChMaterialShellReissner.h"
+#include "chrono/fea/ChMaterialShellANCF.h"
 #include "chrono/fea/ChElementShellReissner4.h"
 #include "chrono/fea/ChElementShellANCF.h"
 #include "chrono/fea/ChElementShellANCF_8.h"
@@ -221,6 +223,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::fea::ChLinkPointFrame)
 %shared_ptr(chrono::fea::ChLinkPointFrameGeneric)
 %shared_ptr(chrono::fea::ChLinkPointPoint)
+%shared_ptr(chrono::fea::ChMaterialShellANCF)
 %shared_ptr(chrono::fea::ChMaterialShellReissner)
 %shared_ptr(chrono::fea::ChMaterialShellReissnerIsothropic)
 %shared_ptr(chrono::fea::ChMaterialShellReissnerOrthotropic)
@@ -321,6 +324,7 @@ using namespace chrono::fea;
 
 %include "../chrono/fea/ChElementBrick.h"
 %include "../chrono/fea/ChElementBrick_9.h"
+%include "../chrono/fea/ChMaterialShellANCF.h"
 %ignore chrono::fea::ChMaterialShellReissner::ComputeTangentC;
 %include "../chrono/fea/ChMaterialShellReissner.h"
 %include "../chrono/fea/ChElementShell.h"
@@ -381,6 +385,7 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementShellANCF_8)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementBrick)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementBrick_9)
+%DefSharedPtrDynamicDowncast2NS(chrono,chrono::fea,ChNodeBase,ChNodeFEAbase)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChNodeFEAbase,ChNodeFEAxyz)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChNodeFEAbase,ChNodeFEAxyzP)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChNodeFEAbase,ChNodeFEAxyzD)
