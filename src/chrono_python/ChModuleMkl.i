@@ -45,6 +45,9 @@
 // Include C++ headers this way...
 
 %{
+#include "chrono/solver/ChSolver.h"
+#include "chrono/solver/ChIterativeSolver.h"
+#include "chrono/solver/ChSolverMINRES.h"
 
 #include "chrono_mkl/ChMklEngine.h"
 #include "chrono_mkl/ChSolverMKL.h"
