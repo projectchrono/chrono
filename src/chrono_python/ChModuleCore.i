@@ -378,8 +378,8 @@ using namespace chrono::fea;
 %include "ChLoad.i"
 %include "ChLoadContainer.i"
 
-//%include "ChShaft.i"
-//%include "ChShaftMotor.i"
+%include "ChShaft.i"
+%include "ChShaftMotor.i"
 %include "ChLinkMotor.i"
 
 //
@@ -521,7 +521,7 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono,ChFunction, ChFunction_Sigma)
 %DefSharedPtrDynamicDowncast(chrono,ChFunction, ChFunction_Sine)
 
-/*%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChShaft)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChShaft)
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChShaftsBody)
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChShaftsCouple)
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChShaftsClutch)
@@ -540,7 +540,7 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono,ChLoadBase, ChLoadBodyBodyBushingSpherical)
 %DefSharedPtrDynamicDowncast(chrono,ChLoadBase, ChLoadBodyBodyBushingPlastic)
 %DefSharedPtrDynamicDowncast(chrono,ChLoadBase, ChLoadBodyBodyBushingMate)
-%DefSharedPtrDynamicDowncast(chrono,ChLoadBase, ChLoadBodyBodyBushingGeneric)*/
+%DefSharedPtrDynamicDowncast(chrono,ChLoadBase, ChLoadBodyBodyBushingGeneric)
 
 %DefSharedPtrDynamicDowncast(chrono::geometry,ChGeometry, ChTriangleMeshConnected)
 %DefSharedPtrDynamicDowncast(chrono::geometry,ChGeometry, ChTriangleMeshSoup)
