@@ -13,6 +13,19 @@ using namespace chrono;
 
 %}
 
+/*
+typemaps redefine inputs and outputs of the methods that have the same arguments NAME and TYPE such as  (double* p, int len)
+
+typemap in :
+according to the Python input of the function ($input) feeds the arguments ($1, $2...) ti the C++ function
+
+freearg:
+delete / free whatever is new / malloc in typemap(in)
+
+typemap argout
+defines the Python function return ($result) from the C++ args ($1, $2...)
+*/
+
 %typemap(in) (double* p, int len) %{
     if(!PyLong_Check($input))
         SWIG_exception(SWIG_TypeError, "expected integer");
