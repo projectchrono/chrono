@@ -670,6 +670,8 @@ set(CV_TV_TEST_RIG_FILES
     tracked_vehicle/test_rig/ChDriverTTR.cpp
     tracked_vehicle/test_rig/ChDataDriverTTR.h
     tracked_vehicle/test_rig/ChDataDriverTTR.cpp
+    tracked_vehicle/test_rig/ChRoadDriverTTR.h
+    tracked_vehicle/test_rig/ChRoadDriverTTR.cpp
 )
 if(ENABLE_MODULE_IRRLICHT)
     set(CVIRR_TV_TEST_RIG_FILES

@@ -84,6 +84,8 @@ ChTrackTestRig::ChTrackTestRig(const std::string& filename,
       m_create_track(create_track),
       m_ride_height(-1),
       m_max_torque(0),
+      m_displ_limit(0),
+      m_driver_logfile(""),
       m_collide_flags(0xFFFF),
       m_vis_sprocket(VisualizationType::NONE),
       m_vis_idler(VisualizationType::NONE),
@@ -128,6 +130,8 @@ ChTrackTestRig::ChTrackTestRig(std::shared_ptr<ChTrackAssembly> assembly,
       m_track(assembly),
       m_ride_height(-1),
       m_max_torque(0),
+      m_displ_limit(0),
+      m_driver_logfile(""),
       m_collide_flags(0xFFFF),
       m_vis_sprocket(VisualizationType::NONE),
       m_vis_idler(VisualizationType::NONE),
@@ -201,10 +205,8 @@ void ChTrackTestRig::Initialize() {
 
     // Calculate post displacement offset (if any) to set reference position at specified ride height
     m_displ_offset = 0;
-    m_displ_delay = 0;
     if (m_ride_height > 0) {
         m_displ_offset = -m_ride_height - m_post[LEFT]->GetPos().z();
-        m_displ_delay = 0.2;
     }
 
     // Set visualization modes
@@ -226,10 +228,17 @@ void ChTrackTestRig::Initialize() {
     bool collide_shoes = (m_collide_flags & static_cast<int>(TrackedCollisionFlag::SHOES_LEFT)) != 0;
     for (size_t i = 0; i < m_track->GetNumTrackShoes(); ++i)
         m_track->GetTrackShoe(i)->SetCollide(collide_shoes);
- 
+
+    // Post locations (in X direction)
+    std::vector<double> locations;
+    for (int i = 0; i < m_post.size(); i++) {
+        locations.push_back(m_post[i]->GetPos().x());
+    }
+
     // Initialize the driver system
     m_driver->SetTimeDelay(m_displ_delay);
-    m_driver->Initialize(m_post.size());
+    m_driver->Initialize(m_post.size(), locations);
+    m_driver->LogInit(m_driver_logfile);
 }
 
 // -----------------------------------------------------------------------------
@@ -263,8 +272,6 @@ double ChTrackTestRig::GetRideHeight() const {
 // -----------------------------------------------------------------------------
 void ChTrackTestRig::Advance(double step) {
     double time = GetChTime();
-
-    m_displ_limit = 0.2;
 
     // Driver inputs
     std::vector<double> displ(m_post.size(), 0.0);
@@ -307,6 +314,13 @@ void ChTrackTestRig::Advance(double step) {
 // -----------------------------------------------------------------------------
 double ChTrackTestRig::GetMass() const {
     return m_track->GetMass();
+}
+
+// -----------------------------------------------------------------------------
+// Log driver inputs
+// -----------------------------------------------------------------------------
+void ChTrackTestRig::LogDriverInputs() {
+    m_driver->Log(GetChTime());
 }
 
 // -----------------------------------------------------------------------------

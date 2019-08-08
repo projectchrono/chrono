@@ -21,6 +21,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <iomanip>
 #include <sstream>
 
 #include "chrono/core/ChMathematics.h"
@@ -32,8 +33,9 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 ChDriverTTR::ChDriverTTR() : m_throttle(0), m_delay(0), m_log_filename("") {}
 
-void ChDriverTTR::Initialize(size_t num_posts) {
+void ChDriverTTR::Initialize(size_t num_posts, const std::vector<double>& locations) {
     m_displ.resize(num_posts);
+    m_locations = locations;
 }
 
 // -----------------------------------------------------------------------------

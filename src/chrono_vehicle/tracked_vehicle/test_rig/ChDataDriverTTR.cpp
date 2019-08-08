@@ -28,15 +28,14 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include <vector>
 
 namespace chrono {
 namespace vehicle {
 
 ChDataDriverTTR::ChDataDriverTTR(const std::string& filename, bool sorted) : m_filename(filename), m_sorted(sorted) {}
 
-void ChDataDriverTTR::Initialize(size_t num_posts) {
-    ChDriverTTR::Initialize(num_posts);
+void ChDataDriverTTR::Initialize(size_t num_posts, const std::vector<double>& locations) {
+    ChDriverTTR::Initialize(num_posts, locations);
 
     std::ifstream ifile(m_filename.c_str());
     std::string line;

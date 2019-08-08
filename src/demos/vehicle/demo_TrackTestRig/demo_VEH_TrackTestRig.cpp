@@ -18,8 +18,9 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/tracked_vehicle/test_rig/ChDataDriverTTR.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChIrrGuiDriverTTR.h"
+#include "chrono_vehicle/tracked_vehicle/test_rig/ChDataDriverTTR.h"
+#include "chrono_vehicle/tracked_vehicle/test_rig/ChRoadDriverTTR.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRig.h"
 #include "chrono_vehicle/utils/ChVehicleIrrApp.h"
 
@@ -50,11 +51,16 @@ using std::endl;
 // Simulation step size
 double step_size = 1e-3;
 
-// Specification of test rig inputs:
-//   'true':  use driver inputs from file
-//   'false': use interactive Irrlicht driver
-bool use_data_driver = true;
-std::string driver_file("M113/test_rig/TTR_inputs.dat");
+// Specification of test rig inputs
+enum DriverMode {
+    KEYBOARD,    // interactive (Irrlicht) driver
+    DATAFILE,    // inputs from data file
+    ROADPROFILE  // inputs to follow road profile
+};
+std::string driver_file("M113/test_rig/TTR_inputs.dat");  // used for mode=DATAFILE
+std::string road_file("M113/test_rig/TTR_road.dat");      // used for mode=ROADPROFILE
+double road_speed = 10;                                   // used for mode=ROADPROFILE
+DriverMode driver_mode = DATAFILE;
 
 bool use_JSON = false;
 std::string filename("M113/track_assembly/M113_TrackAssemblySinglePin_Left.json");
@@ -72,6 +78,15 @@ const std::string out_dir = GetChronoOutputPath() + "TRACK_TEST_RIG";
 // =============================================================================
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
+    // -----------------
+    // Initialize output
+    // -----------------
+
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
 
     // -----------------------
     // Construct rig mechanism
@@ -138,15 +153,25 @@ int main(int argc, char* argv[]) {
     // -----------------------------------
 
     std::unique_ptr<ChDriverTTR> driver;
-    if (use_data_driver) {
-        // Driver with inputs from file
-        auto data_driver = new ChDataDriverTTR(vehicle::GetDataFile(driver_file));
-        driver = std::unique_ptr<ChDriverTTR>(data_driver);
-    } else {
-        auto irr_driver = new ChIrrGuiDriverTTR(app);
-        irr_driver->SetThrottleDelta(1.0 / 50);
-        irr_driver->SetDisplacementDelta(1.0 / 250);
-        driver = std::unique_ptr<ChDriverTTR>(irr_driver);
+    switch (driver_mode) {
+        case KEYBOARD: {
+            auto irr_driver = new ChIrrGuiDriverTTR(app);
+            irr_driver->SetThrottleDelta(1.0 / 50);
+            irr_driver->SetDisplacementDelta(1.0 / 250);
+            driver = std::unique_ptr<ChDriverTTR>(irr_driver);
+            break;
+        }
+        case DATAFILE: {
+            // Driver with inputs from file
+            auto data_driver = new ChDataDriverTTR(vehicle::GetDataFile(driver_file));
+            driver = std::unique_ptr<ChDriverTTR>(data_driver);
+            break;
+        }
+        case ROADPROFILE: {
+            auto road_driver = new ChRoadDriverTTR(vehicle::GetDataFile(road_file), road_speed);
+            driver = std::unique_ptr<ChDriverTTR>(road_driver);
+            break;
+        }
     }
 
     rig->SetDriver(std::move(driver));
@@ -155,8 +180,9 @@ int main(int argc, char* argv[]) {
     // Initialize the rig mechanism
     // ----------------------------
 
-    rig->SetInitialRideHeight(0.6);
-
+    rig->SetInitialRideHeight(0.55);
+    rig->SetDisplacementDelay(0.4);
+    rig->SetDisplacementLimit(0.15);
     rig->SetMaxTorque(6000);
 
     ////rig->SetCollide(TrackedCollisionFlag::NONE);
@@ -167,6 +193,8 @@ int main(int argc, char* argv[]) {
     rig->SetRoadWheelAssemblyVisualizationType(VisualizationType::PRIMITIVES);
     rig->SetRoadWheelVisualizationType(VisualizationType::PRIMITIVES);
     rig->SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
+
+    rig->SetDriverLogFilename(out_dir + "/TTR_driver.out");
 
     rig->Initialize();
 
@@ -235,15 +263,6 @@ int main(int argc, char* argv[]) {
         std::cout << "Solver: Default" << std::endl;
     }
 
-    // -----------------
-    // Initialize output
-    // -----------------
-
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        std::cout << "Error creating directory " << out_dir << std::endl;
-        return 1;
-    }
-
     // ---------------
     // Simulation loop
     // ---------------
@@ -260,6 +279,8 @@ int main(int argc, char* argv[]) {
         app.EndScene();
 
         // Debugging output
+        ////rig->LogDriverInputs();
+
         const ChFrameMoving<>& c_ref = rig->GetChassisBody()->GetFrame_REF_to_abs();
         const ChVector<>& i_pos_abs = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
         const ChVector<>& s_pos_abs = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();

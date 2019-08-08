@@ -40,14 +40,13 @@ class CH_VEHICLE_API ChIrrGuiDriverTTR : public ChDriverTTR, public irr::IEventR
 
     ~ChIrrGuiDriverTTR() {}
 
-    virtual bool OnEvent(const irr::SEvent& event) override;
-
     void SetThrottleDelta(double delta) { m_throttleDelta = delta; }
     void SetDisplacementDelta(double delta) { m_displDelta = delta; }
 
+  private:
+    virtual bool OnEvent(const irr::SEvent& event) override;
     virtual std::string GetInfoMessage() const override { return m_msg; }
 
-  private:
     irrlicht::ChIrrApp& m_app;
 
     double m_throttleDelta;

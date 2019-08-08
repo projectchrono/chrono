@@ -61,13 +61,17 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     /// Set driver system.
     void SetDriver(std::unique_ptr<ChDriverTTR> driver);
 
-
     /// Set the initial ride height (relative to the sprocket reference frame).
     /// If not specified, the reference height is the track assembly design configuration.
     void SetInitialRideHeight(double height) { m_ride_height = height; }
 
     /// Set the limits for post displacement (same for jounce and rebound).
+    /// Default value: 0
     void SetDisplacementLimit(double limit) { m_displ_limit = limit; }
+
+    /// Set time delay before applying post displacement.
+    /// Default value: 0
+    void SetDisplacementDelay(double delay) { m_displ_delay = delay; }
 
     /// Set maximum sprocket torque
     void SetMaxTorque(double val) { m_max_torque = val; }
@@ -86,6 +90,9 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
 
     /// Set visualization type for the track shoe subsystems (default: PRIMITIVES).
     void SetTrackShoeVisualizationType(VisualizationType vis) { m_vis_shoe = vis; }
+
+    /// Set filename for optional driver log
+    void SetDriverLogFilename(const std::string& filename) { m_driver_logfile = filename; }
 
     /// Initialize this track test rig.
     void Initialize();
@@ -115,6 +122,9 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     /// Get current ride height (relative to the chassis reference frame).
     /// This estimate uses the average of the left and right posts.
     double GetRideHeight() const;
+
+    /// Log current driver inputs.
+    void LogDriverInputs();
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;
@@ -150,6 +160,7 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     std::unique_ptr<ChDriverTTR> m_driver;  ///< driver system
     double m_throttle_input;                ///< current driver throttle input
     std::vector<double> m_displ_input;      ///< current post displacement inputs
+    std::string m_driver_logfile;           ///< name of optioinal driver log file
 
     double m_ride_height;         ///< ride height
     double m_displ_offset;        ///< post displacement offset (to set reference position)
