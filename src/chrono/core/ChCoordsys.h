@@ -56,9 +56,36 @@ class ChCoordsys {
     /// Copy constructor
     ChCoordsys(const ChCoordsys<Real>& other) : pos(other.pos), rot(other.rot){};
 
-    //
+    // EIGEN INTER-OPERABILITY
+
+    /// Construct a coordsys from an Eigen vector expression.
+    template <typename Derived>
+    ChCoordsys(const Eigen::MatrixBase<Derived>& vec,
+               typename std::enable_if<(Derived::MaxRowsAtCompileTime == 1 || Derived::MaxColsAtCompileTime == 1),
+                                       Derived>::type* = 0) {
+        pos.x() = vec(0);
+        pos.y() = vec(1);
+        pos.z() = vec(2);
+        rot.e0() = vec(3);
+        rot.e1() = vec(4);
+        rot.e2() = vec(5);
+        rot.e3() = vec(6);
+    }
+
+    /// Assign an Eigen vector expression to this coordsys.
+    template <typename Derived>
+    ChCoordsys& operator=(const Eigen::MatrixBase<Derived>& vec) {
+        pos.x() = vec(0);
+        pos.y() = vec(1);
+        pos.z() = vec(2);
+        rot.e0() = vec(3);
+        rot.e1() = vec(4);
+        rot.e2() = vec(5);
+        rot.e3() = vec(6);
+        return *this;
+    }
+
     // OPERATORS OVERLOADING
-    //
 
     /// Assignment operator: copy from another coordsys
     ChCoordsys<Real>& operator=(const ChCoordsys<Real>& other) {
@@ -272,9 +299,19 @@ class ChCoordsys {
 
 CH_CLASS_VERSION(ChCoordsys<double>, 0)
 
-//
+// -----------------------------------------------------------------------------
+
+/// Insertion of coordsys to output stream.
+template <typename Real>
+inline std::ostream& operator<<(std::ostream& out, const ChCoordsys<Real>& cs) {
+    out << cs.pos.x() << "  " << cs.pos.y() << "  " << cs.pos.z() << "  ";
+    out << cs.rot.e0() << "  " << cs.rot.e1() << "  " << cs.rot.e2() << "  " << cs.rot.e3();
+    return out;
+}
+
+// -----------------------------------------------------------------------------
+
 // MIXED ARGUMENT OPERATORS
-//
 
 // Mixing with ChVector :
 

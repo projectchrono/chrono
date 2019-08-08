@@ -97,7 +97,7 @@ void ChLeafspringAxle::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     chassis->GetSystem()->AddBody(m_axleTube);
 
     // Fix the axle body to the chassis
-    m_axleTubeGuide = std::make_shared<ChLinkLockRevolutePrismatic>();
+    m_axleTubeGuide = chrono_types::make_shared<ChLinkLockRevolutePrismatic>();
     m_axleTubeGuide->SetNameString(m_name + "_revolutePrismaticAxleTube");
     const ChQuaternion<>& guideRot = chassis->GetFrame_REF_to_abs().GetRot();
     m_axleTubeGuide->Initialize(chassis, m_axleTube, ChCoordsys<>(axleCOM, guideRot * Q_from_AngY(CH_C_PI_2)));
@@ -148,19 +148,19 @@ void ChLeafspringAxle::InitializeSide(VehicleSide side,
 
     // Create and initialize the revolute joint between axle tube and spindle.
     ChCoordsys<> rev_csys(points[SPINDLE], chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
-    m_revolute[side] = std::make_shared<ChLinkLockRevolute>();
+    m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
     m_revolute[side]->Initialize(m_spindle[side], m_axleTube, rev_csys);
     chassis->GetSystem()->AddLink(m_revolute[side]);
 
     // Create and initialize the spring/damper
-    m_shock[side] = std::make_shared<ChLinkSpringCB>();
+    m_shock[side] = chrono_types::make_shared<ChLinkSpringCB>();
     m_shock[side]->SetNameString(m_name + "_shock" + suffix);
     m_shock[side]->Initialize(chassis, m_axleTube, false, points[SHOCK_C], points[SHOCK_A]);
     m_shock[side]->RegisterForceFunctor(getShockForceFunctor());
     chassis->GetSystem()->AddLink(m_shock[side]);
 
-    m_spring[side] = std::make_shared<ChLinkSpringCB>();
+    m_spring[side] = chrono_types::make_shared<ChLinkSpringCB>();
     m_spring[side]->SetNameString(m_name + "_spring" + suffix);
     m_spring[side]->Initialize(chassis, m_axleTube, false, points[SPRING_C], points[SPRING_A], false,
                                getSpringRestLength());
@@ -169,13 +169,13 @@ void ChLeafspringAxle::InitializeSide(VehicleSide side,
 
     // Create and initialize the axle shaft and its connection to the spindle. Note that the
     // spindle rotates about the Y axis.
-    m_axle[side] = std::make_shared<ChShaft>();
+    m_axle[side] = chrono_types::make_shared<ChShaft>();
     m_axle[side]->SetNameString(m_name + "_axle" + suffix);
     m_axle[side]->SetInertia(getAxleInertia());
     m_axle[side]->SetPos_dt(-ang_vel);
     chassis->GetSystem()->Add(m_axle[side]);
 
-    m_axle_to_spindle[side] = std::make_shared<ChShaftsBody>();
+    m_axle_to_spindle[side] = chrono_types::make_shared<ChShaftsBody>();
     m_axle_to_spindle[side]->SetNameString(m_name + "_axle_to_spindle" + suffix);
     m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector<>(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
@@ -228,11 +228,11 @@ void ChLeafspringAxle::LogConstraintViolations(VehicleSide side) {
     // Revolute joints
 
     {
-        ChMatrix<>* C = m_sphericalTierod->GetC();
+        ChVectorDynamic<> C = m_sphericalTierod->GetC();
         GetLog() << "Tierod spherical          ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "\n";
     }
 }
 
@@ -247,11 +247,11 @@ void ChLeafspringAxle::AddVisualizationAssets(VisualizationType vis) {
     AddVisualizationLink(m_axleTube, m_axleOuterL, m_axleOuterR, getAxleTubeRadius(), ChColor(0.7f, 0.7f, 0.7f));
 
     // Add visualization for the springs and shocks
-    m_spring[LEFT]->AddAsset(std::make_shared<ChPointPointSpring>(0.06, 150, 15));
-    m_spring[RIGHT]->AddAsset(std::make_shared<ChPointPointSpring>(0.06, 150, 15));
+    m_spring[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.06, 150, 15));
+    m_spring[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.06, 150, 15));
 
-    m_shock[LEFT]->AddAsset(std::make_shared<ChPointPointSegment>());
-    m_shock[RIGHT]->AddAsset(std::make_shared<ChPointPointSegment>());
+    m_shock[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
+    m_shock[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
 }
 
 void ChLeafspringAxle::RemoveVisualizationAssets() {
@@ -277,13 +277,13 @@ void ChLeafspringAxle::AddVisualizationLink(std::shared_ptr<ChBody> body,
     ChVector<> p_1 = body->TransformPointParentToLocal(pt_1);
     ChVector<> p_2 = body->TransformPointParentToLocal(pt_2);
 
-    auto cyl = std::make_shared<ChCylinderShape>();
+    auto cyl = chrono_types::make_shared<ChCylinderShape>();
     cyl->GetCylinderGeometry().p1 = p_1;
     cyl->GetCylinderGeometry().p2 = p_2;
     cyl->GetCylinderGeometry().rad = radius;
     body->AddAsset(cyl);
 
-    auto col = std::make_shared<ChColorAsset>();
+    auto col = chrono_types::make_shared<ChColorAsset>();
     col->SetColor(color);
     body->AddAsset(col);
 }

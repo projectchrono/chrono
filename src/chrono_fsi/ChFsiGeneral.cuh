@@ -19,7 +19,9 @@
 #define CH_FSIGENERAL_H_
 
 #include "chrono_fsi/ChApiFsi.h"
-#include "chrono_fsi/ChSphGeneral.cuh"
+//#include "chrono_fsi/ChSphGeneral.cuh"
+#include "chrono_fsi/ChParams.cuh"
+#include "chrono_fsi/ChFsiDataManager.cuh"
 
 namespace chrono {
 namespace fsi {

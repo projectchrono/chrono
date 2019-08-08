@@ -54,9 +54,9 @@ void ChTriangle::GetBoundingBox(double& xmin,
         ymax = ChMax(ChMax(p1.y(), p2.y()), p3.y());
         zmax = ChMax(ChMax(p1.z(), p2.z()), p3.z());
     } else {
-        ChVector<> trp1 = Rot->MatrT_x_Vect(p1);
-        ChVector<> trp2 = Rot->MatrT_x_Vect(p2);
-        ChVector<> trp3 = Rot->MatrT_x_Vect(p3);
+        ChVector<> trp1 = Rot->transpose() * p1;
+        ChVector<> trp2 = Rot->transpose() * p2;
+        ChVector<> trp3 = Rot->transpose() * p3;
         xmin = ChMin(ChMin(trp1.x(), trp2.x()), trp3.x());
         ymin = ChMin(ChMin(trp1.y(), trp2.y()), trp3.y());
         zmin = ChMin(ChMin(trp1.z(), trp2.z()), trp3.z());
@@ -134,34 +134,33 @@ double ChTriangle::PointTriangleDistance(ChVector<> B,
 
     ChVector<> Dx, Dy, Dz, T1, T1p;
 
-    Dx = Vsub(A2, A1);
-    Dz = Vsub(A3, A1);
+    Dx = A2 - A1;
+    Dz = A3 - A1;
     Dy = Vcross(Dz, Dx);
 
-    double dylen = Vlength(Dy);
+    double dylen = Dy.Length();
 
-    if (fabs(dylen) < EPS_TRIDEGENERATE)  // degenerate triangle
+    if (std::abs(dylen) < EPS_TRIDEGENERATE)  // degenerate triangle
         return mdistance;
 
-    Dy = Vmul(Dy, 1.0 / dylen);
+    Dy *= 1 / dylen;
 
-    ChMatrix33<> mA;
-    ChMatrix33<> mAi;
-    mA.Set_A_axis(Dx, Dy, Dz);
+    ChMatrix33<> mA(Dx, Dy, Dz);
 
     // invert triangle coordinate matrix -if singular matrix, was degenerate triangle-.
-    if (fabs(mA.FastInvert(mAi)) < 0.000001)
+    if (std::abs(mA.determinant()) < 0.000001)
         return mdistance;
 
-    T1 = mAi.Matr_x_Vect(Vsub(B, A1));
+    ChMatrix33<> mAi = mA.inverse();
+    T1 = mAi * (B - A1);
     T1p = T1;
     T1p.y() = 0;
     mu = T1.x();
     mv = T1.z();
     if (mu >= 0 && mv >= 0 && mv <= 1.0 - mu) {
         is_into = true;
-        mdistance = fabs(T1.y());
-        Bprojected = Vadd(A1, mA.Matr_x_Vect(T1p));
+        mdistance = std::abs(T1.y());
+        Bprojected = A1 + mA * T1p;
     }
 
     return mdistance;

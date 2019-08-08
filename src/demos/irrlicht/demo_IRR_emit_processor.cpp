@@ -64,11 +64,11 @@ int main(int argc, char* argv[]) {
 
     // Create the floor:
 
-    auto floorBody = std::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true);
+    auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true);
     floorBody->SetPos(ChVector<>(0, -5, 0));
     floorBody->SetBodyFixed(true);
 
-    auto mtexture = std::make_shared<ChTexture>();
+    auto mtexture = chrono_types::make_shared<ChTexture>();
     mtexture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
     floorBody->AddAsset(mtexture);
 
@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
     // inherit your own class from these randomizers if the choice is not enough).
 
     // ---Initialize the randomizer for positions
-    auto emitter_positions = std::make_shared<ChRandomParticlePositionRectangleOutlet>();
+    auto emitter_positions = chrono_types::make_shared<ChRandomParticlePositionRectangleOutlet>();
     emitter_positions->Outlet() =
         ChCoordsys<>(ChVector<>(0, 3, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X));  // center and alignment of the outlet
     emitter_positions->OutletWidth() = 3.0;
@@ -105,11 +105,11 @@ int main(int argc, char* argv[]) {
     emitter.SetParticlePositioner(emitter_positions);
 
     // ---Initialize the randomizer for alignments
-    auto emitter_rotations = std::make_shared<ChRandomParticleAlignmentUniform>();
+    auto emitter_rotations = chrono_types::make_shared<ChRandomParticleAlignmentUniform>();
     emitter.SetParticleAligner(emitter_rotations);
 
     // ---Initialize the randomizer for velocities, with statistical distribution
-    auto mvelo = std::make_shared<ChRandomParticleVelocityConstantDirection>();
+    auto mvelo = chrono_types::make_shared<ChRandomParticleVelocityConstantDirection>();
     mvelo->SetDirection(-VECT_Y);
     mvelo->SetModulusDistribution(0.0);
 
@@ -118,12 +118,12 @@ int main(int argc, char* argv[]) {
     // ---Initialize the randomizer for creations, with statistical distribution
 
     // Create a ChRandomShapeCreator object (ex. here for box particles)
-    auto mcreator_plastic = std::make_shared<ChRandomShapeCreatorBoxes>();
+    auto mcreator_plastic = chrono_types::make_shared<ChRandomShapeCreatorBoxes>();
     mcreator_plastic->SetXsizeDistribution(
-        std::make_shared<ChZhangDistribution>(0.5, 0.2));  // Zhang parameters: average val, min val.
-    mcreator_plastic->SetSizeRatioZDistribution(std::make_shared<ChMinMaxDistribution>(0.2, 1.0));
-    mcreator_plastic->SetSizeRatioYZDistribution(std::make_shared<ChMinMaxDistribution>(0.4, 1.0));
-    mcreator_plastic->SetDensityDistribution(std::make_shared<ChConstantDistribution>(1000));
+        chrono_types::make_shared<ChZhangDistribution>(0.5, 0.2));  // Zhang parameters: average val, min val.
+    mcreator_plastic->SetSizeRatioZDistribution(chrono_types::make_shared<ChMinMaxDistribution>(0.2, 1.0));
+    mcreator_plastic->SetSizeRatioYZDistribution(chrono_types::make_shared<ChMinMaxDistribution>(0.4, 1.0));
+    mcreator_plastic->SetDensityDistribution(chrono_types::make_shared<ChConstantDistribution>(1000));
 
     // Optional: define a callback to be exectuted at each creation of a box particle:
     class MyCreator_plastic : public ChRandomShapeCreator::AddBodyCallback {
@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
                                ChCoordsys<> mcoords,
                                ChRandomShapeCreator& mcreator) override {
             // Ex.: attach some optional assets, ex for visualization
-            auto mvisual = std::make_shared<ChColorAsset>();
+            auto mvisual = chrono_types::make_shared<ChColorAsset>();
             mvisual->SetColor(ChColor(0.0f, 1.0f, (float)ChRandom()));
             mbody->AddAsset(mvisual);
         }
@@ -185,12 +185,12 @@ int main(int argc, char* argv[]) {
     // Test also a ChParticleProcessor configured as a
     // counter of particles that flow into a rectangle:
     //  -create the trigger:
-    auto rectangleflow = std::make_shared<ChParticleEventFlowInRectangle>(8, 8);
+    auto rectangleflow = chrono_types::make_shared<ChParticleEventFlowInRectangle>(8, 8);
     rectangleflow->rectangle_csys =
         ChCoordsys<>(ChVector<>(0, 2, 0), Q_from_AngAxis(-CH_C_PI_2, VECT_X));  // center and alignment of rectangle
     rectangleflow->margin = 1;
     //  -create the counter:
-    auto counter = std::make_shared<ChParticleProcessEventCount>();
+    auto counter = chrono_types::make_shared<ChParticleProcessEventCount>();
     //  -create the processor and plug in the trigger and the counter:
     ChParticleProcessor processor_flowcount;
     processor_flowcount.SetEventTrigger(rectangleflow);

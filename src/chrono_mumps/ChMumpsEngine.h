@@ -57,7 +57,7 @@ class ChApiMumps ChMumpsEngine {
     virtual ~ChMumpsEngine();
 
     /// Set the problem matrix and the right-hand side, at the same time
-    void SetProblem(const ChCOOMatrix& Z, const ChMatrix<>& rhs);
+    void SetProblem(const ChCOOMatrix& Z, ChVectorRef rhs);
 
     /// Set the problem matrix
     void SetMatrix(const ChCOOMatrix& Z);
@@ -67,7 +67,7 @@ class ChApiMumps ChMumpsEngine {
 
     /// Set the right-hand side vector.
     /// Note that it is the caller's responsibility to ensure that the size is appropriate.
-    void SetRhsVector(const ChMatrix<>& b);
+    void SetRhsVector(ChVectorRef b);
     void SetRhsVector(double* b);
 
     /// Submit jobs to MUMPS

@@ -98,7 +98,7 @@ void FEATire::ProcessJSON(const rapidjson::Document& d) {
     double rd = d["Continuum Material"]["Rayleigh Damping"].GetDouble();
     double density = d["Continuum Material"]["Density"].GetDouble();
 
-    m_material = std::make_shared<ChContinuumElastic>();
+    m_material = chrono_types::make_shared<ChContinuumElastic>();
     m_material->Set_E(E);
     m_material->Set_v(nu);
     m_material->Set_RayleighDampingK(rd);

@@ -1,5 +1,5 @@
 sudo: required
-dist: trusty
+dist: xenial
 language: cpp
 addons:
   apt:
@@ -9,8 +9,9 @@ addons:
       - libirrlicht-dev
       - libxxf86vm-dev
       - freeglut3-dev
-      - gcc-4.9
-      - g++-4.9
+      - gcc-7
+      - g++-7
+      - libeigen3-dev
   coverity_scan:
     project:
       name: "projectchrono/chrono"
@@ -23,14 +24,18 @@ compiler:
   - gcc
 env:
   matrix:
-    - CMAKE_EXTRA_FLAGS="-DENABLE_MODULE_IRRLICHT=ON -DENABLE_MODULE_POSTPROCESS=ON -DBUILD_TESTING=ON -DBUILD_BENCHMARKING=ON -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DENABLE_CXX11=ON"
-    - CMAKE_EXTRA_FLAGS="-DENABLE_MODULE_IRRLICHT=ON -DENABLE_MODULE_VEHICLE=ON     -DBUILD_TESTING=ON -DBUILD_BENCHMARKING=ON -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DENABLE_CXX11=ON"
+    - CMAKE_EXTRA_FLAGS="-DCMAKE_BUILD_TYPE=Release -DENABLE_MODULE_IRRLICHT=ON -DENABLE_MODULE_POSTPROCESS=ON -DBUILD_TESTING=ON -DBUILD_BENCHMARKING=ON -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DENABLE_CXX11=ON"
+    - CMAKE_EXTRA_FLAGS="-DCMAKE_BUILD_TYPE=Release -DENABLE_MODULE_VEHICLE=ON -DBUILD_TESTING=ON -DBUILD_BENCHMARKING=ON -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DENABLE_CXX11=ON"
   global:
     - secure: "YY9gwr3+p3xwX7Kaw+j51JKjYdNl2oNBIHOBfXwLzVCh6F+HVIQAT7C9nSFH4O+brImwhDe7q3BzI1m0hdU5L1nyKtPjG5eolRafkvZYIVjvNduh65OS1rIzV9JibmEjqE6I9x1ndYaW3Yc8tdR6TVr+M2UK907jrBClUdv1uwE="
 before_install:
+  - |
+    wget -q -O eigen.tar.gz https://bitbucket.org/eigen/eigen/get/3.3.4.tar.gz
+    tar xzf eigen.tar.gz
+    export CMAKE_INCLUDE_PATH="${CMAKE_INCLUDE_PATH:+$CMAKE_INCLUDE_PATH:}$PWD/eigen-eigen-5a0156e40feb"
 before_script:
   - mkdir build && cd build
-  - if [ "$CXX" = "g++" ]; then CXX=g++-4.9 CC=gcc-4.9 cmake $CMAKE_EXTRA_FLAGS ..; fi
+  - if [ "$CXX" = "g++" ]; then CXX=g++-7 CC=gcc-7 cmake $CMAKE_EXTRA_FLAGS ..; fi
 script:
   - make -j 4
   - make test

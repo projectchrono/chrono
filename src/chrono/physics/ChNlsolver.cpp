@@ -9,85 +9,80 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
+
+//// RADU
+//// obsolete?
+//// move to core/
 
 #include <cmath>
 
 #include "chrono/physics/ChNlsolver.h"
-#include "chrono/core/ChLinearAlgebra.h"
-#include "chrono/core/ChMatrixDynamic.h"
+#include "chrono/core/ChMatrix.h"
+#include "chrono/core/ChMathematics.h"
 
 namespace chrono {
 
-void ChNonlinearSolver::JacobianCompute(void (*m_func)(ChMatrix<>* mx, ChMatrix<>* res, void* my_data),
-                                        ChMatrix<>* mx,
-                                        ChMatrix<>* res,
+void ChNonlinearSolver::JacobianCompute(void (*m_func)(ChVectorRef mx, ChVectorRef res, void* my_data),
+                                        ChVectorRef mx,
+                                        ChVectorRef res,
                                         void* my_data,
-                                        ChMatrix<>* mJ,
+                                        ChMatrixRef mJ,
                                         double diff_step) {
     if (diff_step <= 0)
         diff_step = BDF_STEP_LOW;
-    int jrows = res->GetRows();
-    int jcols = mx->GetRows();
 
-    ChMatrixDynamic<> dres;
-    ChMatrixDynamic<> dx;
+    ChVectorDynamic<> dres = res;
+    ChVectorDynamic<> dx = mx;
 
-    dres.Reset(jrows, 1);
-    dx.Reset(jcols, 1);
-
-    dres.CopyFromMatrix(*res);
-    dx.CopyFromMatrix(*mx);
-
-    for (int i = 0; i < jcols; i++) {
-        dx.SetElement(i, 0, mx->GetElement(i, 0) + diff_step);
-        (*m_func)(&dx, &dres, my_data);
-        for (int j = 0; j < jrows; j++) {
-            mJ->SetElement(j, i, (dres.GetElement(j, 0) - res->GetElement(j, 0)) / diff_step);
+    for (int i = 0; i < mx.size(); i++) {
+        dx(i) = mx(i) + diff_step;
+        (*m_func)(dx, dres, my_data);
+        for (int j = 0; j < res.size(); j++) {
+            mJ(j, i) = (dres(j) - res(j)) / diff_step;
         }
-        dx.SetElement(i, 0, mx->GetElement(i, 0));
+        dx(i) = mx(i);
     }
 }
 
-double ChNonlinearSolver::NewtonRaphson(void (*m_func)(ChMatrix<>* mx, ChMatrix<>* res, void* my_data),
-                                        void (*m_jacob)(ChMatrix<>* mx, ChMatrix<>* mJ, void* my_data),
-                                        ChMatrix<>* mx,
+double ChNonlinearSolver::NewtonRaphson(void (*m_func)(ChVectorRef mx, ChVectorRef res, void* my_data),
+                                        void (*m_jacob)(ChVectorRef mx, ChMatrixRef mJ, void* my_data),
+                                        ChVectorRef mx,
                                         void* my_data,
                                         int maxiters,
                                         double tolerance) {
-    ChMatrixDynamic<> res;
+    ChVectorDynamic<> res;
+    ChVectorDynamic<> delta;
     ChMatrixDynamic<> jac;
-    ChMatrixDynamic<> delta;
 
-    double residual = 0;
-    int vars = mx->GetRows();
-
-    res.Reset(vars, 1);
-    delta.Reset(vars, 1);
-    jac.Reset(vars, vars);
+    auto vars = mx.size();
+    res.setZero(vars);
+    jac.setZero(vars, vars);
 
     int iters = 0;
+    double residual = 0;
 
     while (true) {
         if (iters >= maxiters)
             break;
 
         // compute residuals
-
-        (*m_func)(mx, &res, my_data);
-        residual = res.NormInf();
+        (*m_func)(mx, res, my_data);
+        residual = res.lpNorm<Eigen::Infinity>();
         if (residual <= tolerance)
             break;
 
         // compute jacobian
         if (m_jacob)
-            (*m_jacob)(mx, &jac, my_data);
+            (*m_jacob)(mx, jac, my_data);
         else {
-            ChNonlinearSolver::JacobianCompute(m_func, mx, &res, my_data, &jac, BDF_STEP_LOW);
+            ChNonlinearSolver::JacobianCompute(m_func, mx, res, my_data, jac, BDF_STEP_LOW);
         }
-        // solve LU for delta
-        ChLinearAlgebra::Solve_LinSys(jac, &res, &delta);
-        delta.MatrNeg();
-        mx->MatrInc(delta);
+
+        // solve jac * delta = res
+        delta = jac.colPivHouseholderQr().solve(res);
+        mx -= delta;
 
         iters++;
     }

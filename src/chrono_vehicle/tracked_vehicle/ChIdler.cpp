@@ -95,7 +95,7 @@ void ChIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>
 
     // Create and initialize the revolute joint between wheel and carrier.
     // The axis of rotation is the y axis of the idler reference frame.
-    m_revolute = std::make_shared<ChLinkLockRevolute>();
+    m_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute->SetNameString(m_name + "_revolute");
     m_revolute->Initialize(m_carrier, m_wheel,
                            ChCoordsys<>(points[WHEEL], idler_to_abs.GetRot() * Q_from_AngX(CH_C_PI_2)));
@@ -104,7 +104,7 @@ void ChIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>
     // Create and initialize the prismatic joint between carrier and chassis.
     // The axis of translation is pitched by the specified angle from the x axis
     // of the idler reference frame.
-    m_prismatic = std::make_shared<ChLinkLockPrismatic>();
+    m_prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
     m_prismatic->SetNameString(m_name + "_prismatic");
     m_prismatic->Initialize(chassis, m_carrier,
                             ChCoordsys<>(points[CARRIER_CHASSIS],
@@ -112,7 +112,7 @@ void ChIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>
     chassis->GetSystem()->AddLink(m_prismatic);
 
     // Create and initialize the tensioner force element.
-    m_tensioner = std::make_shared<ChLinkSpringCB>();
+    m_tensioner = chrono_types::make_shared<ChLinkSpringCB>();
     m_tensioner->SetNameString(m_name + "_tensioner");
     m_tensioner->Initialize(chassis, m_carrier, false, points[TSDA_CHASSIS], points[TSDA_CARRIER]);
     m_tensioner->RegisterForceFunctor(GetTensionerForceCallback());
@@ -136,7 +136,7 @@ void ChIdler::AddVisualizationAssets(VisualizationType vis) {
     double radius = GetCarrierVisRadius();
 
     if ((m_pW - m_pC).Length2() > threshold2) {
-        auto cyl = std::make_shared<ChCylinderShape>();
+        auto cyl = chrono_types::make_shared<ChCylinderShape>();
         cyl->GetCylinderGeometry().p1 = m_pW;
         cyl->GetCylinderGeometry().p2 = m_pC;
         cyl->GetCylinderGeometry().rad = radius;
@@ -144,25 +144,25 @@ void ChIdler::AddVisualizationAssets(VisualizationType vis) {
     }
 
     if ((m_pC - m_pT).Length2() > threshold2) {
-        auto cyl = std::make_shared<ChCylinderShape>();
+        auto cyl = chrono_types::make_shared<ChCylinderShape>();
         cyl->GetCylinderGeometry().p1 = m_pC;
         cyl->GetCylinderGeometry().p2 = m_pT;
         cyl->GetCylinderGeometry().rad = radius;
         m_carrier->AddAsset(cyl);
     }
 
-    auto box = std::make_shared<ChBoxShape>();
+    auto box = chrono_types::make_shared<ChBoxShape>();
     box->GetBoxGeometry().Size = ChVector<>(3 * radius, radius, radius);
     box->Pos = m_pT;
     box->Rot = ChMatrix33<>(GetPrismaticPitchAngle(), ChVector<>(0, 1, 0));
     m_carrier->AddAsset(box);
 
-    auto col = std::make_shared<ChColorAsset>();
+    auto col = chrono_types::make_shared<ChColorAsset>();
     col->SetColor(ChColor(0.2f, 0.2f, 0.6f));
     m_carrier->AddAsset(col);
 
     // Visualization of the tensioner spring (with default color)
-    m_tensioner->AddAsset(std::make_shared<ChPointPointSpring>(0.06, 150, 15));
+    m_tensioner->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.06, 150, 15));
 }
 
 void ChIdler::RemoveVisualizationAssets() {
@@ -173,22 +173,22 @@ void ChIdler::RemoveVisualizationAssets() {
 // -----------------------------------------------------------------------------
 void ChIdler::LogConstraintViolations() {
     {
-        ChMatrix<>* C = m_revolute->GetC();
+        ChVectorDynamic<> C = m_revolute->GetC();
         GetLog() << "  Idler-carrier revolute\n";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "  ";
-        GetLog() << "  " << C->GetElement(3, 0) << "  ";
-        GetLog() << "  " << C->GetElement(4, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "  ";
+        GetLog() << "  " << C(4) << "\n";
     }
     {
-        ChMatrix<>* C = m_prismatic->GetC();
+        ChVectorDynamic<> C = m_prismatic->GetC();
         GetLog() << "  Carrier-chassis prismatic\n";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "  ";
-        GetLog() << "  " << C->GetElement(3, 0) << "  ";
-        GetLog() << "  " << C->GetElement(4, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "  ";
+        GetLog() << "  " << C(4) << "\n";
     }
 }
 

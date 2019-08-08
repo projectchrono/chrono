@@ -30,12 +30,12 @@ class ChApi ChFunction_Integrate : public ChFunction {
     double x_start;
     double x_end;
     int num_samples;
-    ChMatrix<>* array_x;
+    ChArray<> array_x;
 
   public:
     ChFunction_Integrate();
     ChFunction_Integrate(const ChFunction_Integrate& other);
-    ~ChFunction_Integrate();
+    ~ChFunction_Integrate() {}
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChFunction_Integrate* Clone() const override { return new ChFunction_Integrate(*this); }
@@ -51,7 +51,7 @@ class ChApi ChFunction_Integrate : public ChFunction {
 
     void Set_num_samples(int m_samples) {
         num_samples = m_samples;
-        array_x->Reset(num_samples, 1);
+        array_x.setZero(num_samples, 1);
         ComputeIntegral();
     }
     int Get_num_samples() const { return num_samples; }

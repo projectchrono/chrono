@@ -40,7 +40,7 @@ ChConveyor::ChConveyor(double xlength, double ythick, double zwidth) : conveyor_
     conveyor_plate->SetCollide(true);
 
     internal_link = new ChLinkLockLock;
-    internal_link->SetMotion_X(std::make_shared<ChFunction_Ramp>());
+    internal_link->SetMotion_X(chrono_types::make_shared<ChFunction_Ramp>());
 
     std::shared_ptr<ChMarker> mmark1(new ChMarker);
     std::shared_ptr<ChMarker> mmark2(new ChMarker);

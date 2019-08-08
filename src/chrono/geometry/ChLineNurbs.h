@@ -72,13 +72,13 @@ class ChApi ChLineNurbs : public ChLine {
     /// but knot range is not necessarily in 0..1. So you can convert u->U,
     /// where u is in knot range, calling this:
     double ComputeUfromKnotU(const double u) const {
-        return (u - this->knots(0)) / (knots(knots.GetRows() - 1) - knots(0));
+        return (u - knots(0)) / (knots(knots.size() - 1) - knots(0));
     }
     /// When using Evaluate() etc. you need U parameter to be in 0..1 range,
     /// but knot range is not necessarily in 0..1. So you can convert U->u,
     /// where u is in knot range, calling this:
     double ComputeKnotUfromU(const double U) const {
-        return U * (knots(knots.GetRows() - 1) - knots(0)) + this->knots(0);
+        return U * (knots(knots.size() - 1) - knots(0)) + knots(0);
     }
 
     /// Access the points

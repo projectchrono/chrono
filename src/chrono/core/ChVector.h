@@ -20,7 +20,9 @@
 #include <limits>
 
 #include "chrono/core/ChClassFactory.h"
+#include "chrono/core/ChMatrix.h"
 #include "chrono/serialization/ChArchive.h"
+#include "chrono/serialization/ChArchiveAsciiDump.h"
 
 namespace chrono {
 
@@ -50,6 +52,31 @@ class ChVector {
     const Real& x() const { return data[0]; }
     const Real& y() const { return data[1]; }
     const Real& z() const { return data[2]; }
+
+    // EIGEN INTER-OPERABILITY
+
+    /// Construct a 3d vector from an Eigen vector expression.
+    template <typename Derived>
+    ChVector(const Eigen::MatrixBase<Derived>& vec,
+             typename std::enable_if<(Derived::MaxRowsAtCompileTime == 1 || Derived::MaxColsAtCompileTime == 1),
+                                     Derived>::type* = 0) {
+        data[0] = vec(0);
+        data[1] = vec(1);
+        data[2] = vec(2);
+    }
+
+    /// View this 3d vector as an Eigen vector.
+    Eigen::Map<Eigen::Matrix<Real, 3, 1>> eigen() { return Eigen::Map<Eigen::Matrix<Real, 3, 1>>(data); }
+    Eigen::Map<const Eigen::Matrix<Real, 3, 1>> eigen() const { return Eigen::Map<const Eigen::Matrix<Real, 3, 1>>(data); }
+
+    /// Assign an Eigen vector expression to this 3d vector.
+    template <typename Derived>
+    ChVector& operator=(const Eigen::MatrixBase<Derived>& vec) {
+        data[0] = vec(0);
+        data[1] = vec(1);
+        data[2] = vec(2);
+        return *this;
+    }
 
     // SET FUNCTIONS
 
@@ -406,6 +433,13 @@ void XdirToDxDyDz(const ChVector<RealA>& Vxdir,
     Vz = Vmul(Vz, 1.0 / zlen);
     // compute Vy
     Vy = Vcross(Vz, Vx);
+}
+
+/// Insertion ov 3d vector to output stream.
+template <typename Real>
+inline std::ostream& operator<<(std::ostream& out, const ChVector<Real>& v) {
+    out << v.x() << "  " << v.y() << "  " << v.z();
+    return out;
 }
 
 // =============================================================================

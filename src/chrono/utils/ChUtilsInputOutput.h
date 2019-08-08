@@ -41,6 +41,8 @@
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChBezierCurve.h"
+#include "chrono/assets/ChColor.h"
+#include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/utils/ChUtilsCreators.h"
 

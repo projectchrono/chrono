@@ -12,6 +12,10 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
+//// RADU
+//// Obsolete this?
+//// Otherwise, move to core/
+
 #ifndef CHSOLVMIN_H
 #define CHSOLVMIN_H
 
@@ -85,12 +89,12 @@ class ChApi ChOptimizer : public ChObj {
     /// Returns the value of the functional, for given state of variables
     /// and with the given "database" multibody system. Here evaluates the string "function".
     double Eval_fx(double x[]);
-    double Eval_fx(const ChMatrix<>* x);
+    double Eval_fx(const ChVectorDynamic<>& x);
 
     /// Computes the gradient of objective function, for given state of variables.
     /// The gradient is stored into gr vector.
     void Eval_grad(double x[], double gr[]);
-    void Eval_grad(const ChMatrix<>* x, ChMatrix<>* gr);
+    void Eval_grad(const ChVectorDynamic<>& x, ChVectorDynamic<>& gr);
 
     /// Performs the optimization of the ChSystem pointed by "database"
     /// (or whatever object which can evaluate the string "function" and the "optvarlist")
@@ -152,15 +156,15 @@ class ChApi ChOptimizerLocal : public ChOptimizer {
 
 class ChApi ChGenotype {
   public:
-    ChMatrix<>* genes;   ///< genetic information (variables defining the individual)
-    double fitness;      ///< fitness value
-    double rel_fitness;  ///< relative fitness
-    double cum_fitness;  ///< cumulative fitness
-    bool need_eval;      ///< genes changed, need recomputation of fitness;
+    ChVectorDynamic<> genes;  ///< genetic information (variables defining the individual)
+    double fitness;           ///< fitness value
+    double rel_fitness;       ///< relative fitness
+    double cum_fitness;       ///< cumulative fitness
+    bool need_eval;           ///< genes changed, need recomputation of fitness;
 
     ChGenotype(int number_of_genes);
     ChGenotype(const ChGenotype& other);
-    ~ChGenotype();
+    ~ChGenotype() {}
 
     ChGenotype* Clone() const { return new ChGenotype(*this); }
 
@@ -237,10 +241,10 @@ class ChApi ChOptimizerGenetic : public ChOptimizer {
     // If set = NULL (as by default) nothing is recorded.
     // If they point to external vectors (matrix with one column), they will
     // be filled generation by generation.
-    ChMatrix<>* his_average;
-    ChMatrix<>* his_stdeviation;
-    ChMatrix<>* his_maxfitness;
-    ChMatrix<>* his_minfitness;
+    ChVectorDynamic<>* his_average;
+    ChVectorDynamic<>* his_stdeviation;
+    ChVectorDynamic<>* his_maxfitness;
+    ChVectorDynamic<>* his_minfitness;
 
     ChOptimizerGenetic();
     ChOptimizerGenetic(const ChOptimizerGenetic& other);

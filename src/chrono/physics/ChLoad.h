@@ -94,9 +94,9 @@ class ChApi ChLoadBase : public ChObj {
     /// Called automatically at each Update().
     virtual void ComputeJacobian(ChState* state_x,       ///< state position to evaluate jacobians
                                  ChStateDelta* state_w,  ///< state speed to evaluate jacobians
-                                 ChMatrix<>& mK,         ///< result dQ/dx
-                                 ChMatrix<>& mR,         ///< result dQ/dv
-                                 ChMatrix<>& mM          ///< result dQ/da
+                                 ChMatrixRef mK,         ///< result dQ/dx
+                                 ChMatrixRef mR,         ///< result dQ/dv
+                                 ChMatrixRef mM          ///< result dQ/da
                                  ) = 0;
 
     /// Access the jacobians (if any, i.e. if this is a stiff load)
@@ -178,9 +178,9 @@ class ChLoad : public ChLoadBase {
     /// Called automatically at each Update().
     virtual void ComputeJacobian(ChState* state_x,       ///< state position to evaluate jacobians
                                  ChStateDelta* state_w,  ///< state speed to evaluate jacobians
-                                 ChMatrix<>& mK,         ///< result dQ/dx
-                                 ChMatrix<>& mR,         ///< result dQ/dv
-                                 ChMatrix<>& mM          ///< result dQ/da
+                                 ChMatrixRef mK,         ///< result dQ/dx
+                                 ChMatrixRef mR,         ///< result dQ/dv
+                                 ChMatrixRef mM          ///< result dQ/da
                                  ) override;
 
     virtual void LoadIntLoadResidual_F(ChVectorDynamic<>& R, const double c) override;
@@ -223,9 +223,9 @@ class ChApi ChLoadCustom : public ChLoadBase {
     /// Called automatically at each Update().
     virtual void ComputeJacobian(ChState* state_x,       ///< state position to evaluate jacobians
                                  ChStateDelta* state_w,  ///< state speed to evaluate jacobians
-                                 ChMatrix<>& mK,         ///< result dQ/dx
-                                 ChMatrix<>& mR,         ///< result dQ/dv
-                                 ChMatrix<>& mM          ///< result dQ/da
+                                 ChMatrixRef mK,         ///< result dQ/dx
+                                 ChMatrixRef mR,         ///< result dQ/dv
+                                 ChMatrixRef mM          ///< result dQ/da
                                  ) override;
 
     virtual void LoadIntLoadResidual_F(ChVectorDynamic<>& R, const double c) override;
@@ -278,9 +278,9 @@ class ChApi ChLoadCustomMultiple : public ChLoadBase {
     /// Called automatically at each Update().
     virtual void ComputeJacobian(ChState* state_x,       ///< state position to evaluate jacobians
                                  ChStateDelta* state_w,  ///< state speed to evaluate jacobians
-                                 ChMatrix<>& mK,         ///< result dQ/dx
-                                 ChMatrix<>& mR,         ///< result dQ/dv
-                                 ChMatrix<>& mM          ///< result dQ/da
+                                 ChMatrixRef mK,         ///< result dQ/dx
+                                 ChMatrixRef mR,         ///< result dQ/dv
+                                 ChMatrixRef mM          ///< result dQ/da
                                  ) override;
 
     virtual void LoadIntLoadResidual_F(ChVectorDynamic<>& R, const double c) override;
@@ -335,9 +335,9 @@ inline void ChLoad<Tloader>::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
 template <class Tloader>
 inline void ChLoad<Tloader>::ComputeJacobian(ChState* state_x,
                                              ChStateDelta* state_w,
-                                             ChMatrix<>& mK,
-                                             ChMatrix<>& mR,
-                                             ChMatrix<>& mM) {
+                                             ChMatrixRef mK,
+                                             ChMatrixRef mR,
+                                             ChMatrixRef mM) {
     double Delta = 1e-8;
 
     int mrows_w = this->LoadGet_ndof_w();
@@ -354,7 +354,7 @@ inline void ChLoad<Tloader>::ComputeJacobian(ChState* state_x,
     ChStateDelta state_delta(mrows_w, nullptr);
 
     // Compute K=-dQ(x,v)/dx by backward differentiation
-    state_delta.Reset(mrows_w, nullptr);
+    state_delta.setZero(mrows_w, nullptr);
 
     for (int i = 0; i < mrows_w; ++i) {
         state_delta(i) += Delta;
@@ -365,7 +365,7 @@ inline void ChLoad<Tloader>::ComputeJacobian(ChState* state_x,
         state_delta(i) -= Delta;
 
         Jcolumn = (Q1 - Q0) * (-1.0 / Delta);  // - sign because K=-dQ/dx
-        this->jacobians->K.PasteMatrix(Jcolumn, 0, i);
+        this->jacobians->K.block(0, i, mrows_w, 1) = Jcolumn;
     }
     // Compute R=-dQ(x,v)/dv by backward differentiation
     for (int i = 0; i < mrows_w; ++i) {
@@ -375,7 +375,7 @@ inline void ChLoad<Tloader>::ComputeJacobian(ChState* state_x,
         (*state_w)(i) -= Delta;
 
         Jcolumn = (Q1 - Q0) * (-1.0 / Delta);  // - sign because R=-dQ/dv
-        this->jacobians->R.PasteMatrix(Jcolumn, 0, i);
+        this->jacobians->R.block(0, i, mrows_w, 1) = Jcolumn;
     }
 }
 

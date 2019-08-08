@@ -86,8 +86,8 @@ class ChApi ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ, public ChVari
                                     const unsigned int off_v,
                                     ChStateDelta& v,
                                     double& T) override {
-        x.PasteVector(pos, off_x, 0);
-        v.PasteVector(pos_dt, off_v, 0);
+        x.segment(off_x, 3) = pos.eigen();
+        v.segment(off_v, 3) = pos_dt.eigen();
     }
 
     virtual void NodeIntStateScatter(const unsigned int off_x,
@@ -95,16 +95,16 @@ class ChApi ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ, public ChVari
                                      const unsigned int off_v,
                                      const ChStateDelta& v,
                                      const double T) override {
-        SetPos(x.ClipVector(off_x, 0));
-        SetPos_dt(v.ClipVector(off_v, 0));
+        SetPos(x.segment(off_x, 3));
+        SetPos_dt(v.segment(off_v, 3));
     }
 
     virtual void NodeIntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override {
-        a.PasteVector(pos_dtdt, off_a, 0);
+        a.segment(off_a, 3) = pos_dtdt.eigen();
     }
 
     virtual void NodeIntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override {
-        SetPos_dtdt(a.ClipVector(off_a, 0));
+        SetPos_dtdt(a.segment(off_a, 3));
     }
 
     virtual void NodeIntStateIncrement(const unsigned int off_x,
@@ -118,7 +118,7 @@ class ChApi ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ, public ChVari
     }
 
     virtual void NodeIntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override {
-        R.PasteSumVector(Force * c, off, 0);
+        R.segment(off, 3) += c * Force.eigen();
     }
 
     virtual void NodeIntLoadResidual_Mv(const unsigned int off,
@@ -133,12 +133,12 @@ class ChApi ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ, public ChVari
     virtual void NodeIntToDescriptor(const unsigned int off_v,
                                      const ChStateDelta& v,
                                      const ChVectorDynamic<>& R) override {
-        variables.Get_qb().PasteClippedMatrix(v, off_v, 0, 3, 1, 0, 0);
-        variables.Get_fb().PasteClippedMatrix(R, off_v, 0, 3, 1, 0, 0);
+        variables.Get_qb() = v.segment(off_v, 3);
+        variables.Get_fb() = R.segment(off_v, 3);
     }
 
     virtual void NodeIntFromDescriptor(const unsigned int off_v, ChStateDelta& v) override {
-        v.PasteMatrix(variables.Get_qb(), off_v, 0);
+        v.segment(off_v, 3) = variables.Get_qb();
     }
 
     //
@@ -147,17 +147,17 @@ class ChApi ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ, public ChVari
 
     virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override { mdescriptor.InsertVariables(&variables); }
 
-    virtual void VariablesFbReset() override { variables.Get_fb().FillElem(0.0); }
+    virtual void VariablesFbReset() override { variables.Get_fb().setZero(); }
 
     virtual void VariablesFbLoadForces(double factor = 1) override {
-        variables.Get_fb().PasteSumVector(Force * factor, 0, 0);
+        variables.Get_fb() += factor * Force.eigen();
     }
 
-    virtual void VariablesQbLoadSpeed() override { variables.Get_qb().PasteVector(pos_dt, 0, 0); }
+    virtual void VariablesQbLoadSpeed() override { variables.Get_qb() = pos_dt.eigen(); }
 
     virtual void VariablesQbSetSpeed(double step = 0) override {
         ChVector<> old_dt = pos_dt;
-        SetPos_dt(variables.Get_qb().ClipVector(0, 0));
+        SetPos_dt(variables.Get_qb().segment(0, 3));
         if (step) {
             SetPos_dtdt((pos_dt - old_dt) / step);
         }
@@ -168,7 +168,7 @@ class ChApi ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ, public ChVari
     }
 
     virtual void VariablesQbIncrementPosition(double step) override {
-        ChVector<> newspeed = variables.Get_qb().ClipVector(0, 0);
+        ChVector<> newspeed = variables.Get_qb().segment(0, 3);
 
         // ADVANCE POSITION: pos' = pos + dt * vel
         SetPos(GetPos() + newspeed * step);

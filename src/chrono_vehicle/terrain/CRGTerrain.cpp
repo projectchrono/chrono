@@ -222,7 +222,7 @@ std::shared_ptr<ChBezierCurve> CRGTerrain::GetPath() {
         pathpoints.back() = pathpoints[0];
     }
 
-    return std::make_shared<ChBezierCurve>(pathpoints);
+    return chrono_types::make_shared<ChBezierCurve>(pathpoints);
 }
 
 void CRGTerrain::SetupLineGraphics() {
@@ -263,29 +263,29 @@ void CRGTerrain::SetupLineGraphics() {
         pr.back() = pr[0];
     }
 
-    auto mfloorcolor = std::make_shared<ChColorAsset>();
+    auto mfloorcolor = chrono_types::make_shared<ChColorAsset>();
     mfloorcolor->SetColor(ChColor(0.3f, 0.3f, 0.6f));
     m_ground->AddAsset(mfloorcolor);
 
     // Create a Bezier curve asset, reusing the points
-    auto bezier_curve_left = std::make_shared<ChBezierCurve>(pl);
-    auto bezier_line_left = std::make_shared<geometry::ChLineBezier>(bezier_curve_left);
-    auto bezier_asset_left = std::make_shared<ChLineShape>();
+    auto bezier_curve_left = chrono_types::make_shared<ChBezierCurve>(pl);
+    auto bezier_line_left = chrono_types::make_shared<geometry::ChLineBezier>(bezier_curve_left);
+    auto bezier_asset_left = chrono_types::make_shared<ChLineShape>();
     bezier_asset_left->SetLineGeometry(bezier_line_left);
     bezier_asset_left->SetNumRenderPoints(num_render_points);
     m_ground->AddAsset(bezier_asset_left);
 
     // Create a Bezier curve asset, reusing the points
-    auto bezier_curve_right = std::make_shared<ChBezierCurve>(pr);
-    auto bezier_line_right = std::make_shared<geometry::ChLineBezier>(bezier_curve_right);
-    auto bezier_asset_right = std::make_shared<ChLineShape>();
+    auto bezier_curve_right = chrono_types::make_shared<ChBezierCurve>(pr);
+    auto bezier_line_right = chrono_types::make_shared<geometry::ChLineBezier>(bezier_curve_right);
+    auto bezier_asset_right = chrono_types::make_shared<ChLineShape>();
     bezier_asset_right->SetLineGeometry(bezier_line_right);
     bezier_asset_right->SetNumRenderPoints(num_render_points);
     m_ground->AddAsset(bezier_asset_right);
 }
 
 void CRGTerrain::GenerateMesh() {
-    m_mesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+    m_mesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
     auto& coords = m_mesh->getCoordsVertices();
     auto& indices = m_mesh->getIndicesVertexes();
 
@@ -367,11 +367,11 @@ void CRGTerrain::GenerateMesh() {
 }
 
 void CRGTerrain::SetupMeshGraphics() {
-    auto vmesh = std::make_shared<ChTriangleMeshShape>();
+    auto vmesh = chrono_types::make_shared<ChTriangleMeshShape>();
     vmesh->SetMesh(m_mesh);
     vmesh->SetName(m_mesh_name);
 
-    auto vcolor = std::make_shared<ChColorAsset>();
+    auto vcolor = chrono_types::make_shared<ChColorAsset>();
     vcolor->SetColor(ChColor(0.6f, 0.6f, 0.8f));
 
     m_ground->AddAsset(vcolor);

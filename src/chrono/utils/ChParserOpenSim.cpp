@@ -149,7 +149,7 @@ void ChParserOpenSim::Parse(ChSystem& system, const std::string& filename) {
     ////    // Read function as controllerNode->first_node("FunctionSet")
     ////}
 
-    auto loadcontainer = std::make_shared<ChLoadContainer>();
+    auto loadcontainer = chrono_types::make_shared<ChLoadContainer>();
     system.Add(loadcontainer);
 
     xml_node<>* forceSet = doc.first_node()->first_node("Model")->first_node("ForceSet");
@@ -265,9 +265,9 @@ bool ChParserOpenSim::parseForce(rapidxml::xml_node<>* forceNode,
         auto force_global = CStrToBool(forceNode->first_node("force_is_global")->value());
         auto max_force = std::stod(stringStripCStr(forceNode->first_node("optimal_force")->value()));
 
-        auto load = std::make_shared<ChLoadBodyForce>(body, max_force * direction, !force_global, point, !point_global);
+        auto load = chrono_types::make_shared<ChLoadBodyForce>(body, max_force * direction, !force_global, point, !point_global);
         if (!m_activate_actuators)
-            load->SetModulationFunction(std::make_shared<ChFunction_Const>(0));
+            load->SetModulationFunction(chrono_types::make_shared<ChFunction_Const>(0));
         container->Add(load);
 
         m_report.forces.insert(std::make_pair(name, Report::ForceInfo{std::string("PointActuator"), load}));
@@ -284,9 +284,9 @@ bool ChParserOpenSim::parseForce(rapidxml::xml_node<>* forceNode,
         // Note: OpenSim assumes the specified torque is applied to bodyA (with an equal and opposite
         // torque applied to bodyB).  In ChLoadBodyBodyTorque, the torque is applied to the 2nd body
         // passed in its constructor.
-        auto load = std::make_shared<ChLoadBodyBodyTorque>(bodyB, bodyA, max_force * axis, !torque_is_global);
+        auto load = chrono_types::make_shared<ChLoadBodyBodyTorque>(bodyB, bodyA, max_force * axis, !torque_is_global);
         if (!m_activate_actuators)
-            load->SetModulationFunction(std::make_shared<ChFunction_Const>(0));
+            load->SetModulationFunction(chrono_types::make_shared<ChFunction_Const>(0));
         container->Add(load);
 
         m_report.forces.insert(std::make_pair(name, Report::ForceInfo{std::string("TorqueActuator"), load}));
@@ -357,7 +357,7 @@ void ChParserOpenSim::initFunctionTable() {
             newBody->SetCollide(false);
             newBody->SetPos(ChVector<>(0, 0, 0));
             // Mark as ground body
-            newBody->AddAsset(std::make_shared<ChColorAsset>(0.0f, 0.0f, 0.0f));
+            newBody->AddAsset(chrono_types::make_shared<ChColorAsset>(0.0f, 0.0f, 0.0f));
         } else {
             // Give new body mass
             newBody->SetMass(std::stod(fieldNode->value()));
@@ -633,21 +633,21 @@ void ChParserOpenSim::initFunctionTable() {
         bool standin = false;
         // Make a joint, depending on what it actually is
         if (type == std::string("PinJoint")) {
-            auto revJoint = std::make_shared<ChLinkLockRevolute>();
+            auto revJoint = chrono_types::make_shared<ChLinkLockRevolute>();
             revJoint->Initialize(parent, newBody, jointFrame.GetCoord());
             joint = revJoint;
         } else if (type == std::string("WeldJoint")) {
-            auto weldJoint = std::make_shared<ChLinkLockLock>();
+            auto weldJoint = chrono_types::make_shared<ChLinkLockLock>();
             weldJoint->Initialize(parent, newBody, jointFrame.GetCoord());
             joint = weldJoint;
         } else if (type == std::string("UniversalJoint")) {
             // Do some universal magic here
-            auto uniJoint = std::make_shared<ChLinkUniversal>();
+            auto uniJoint = chrono_types::make_shared<ChLinkUniversal>();
             uniJoint->Initialize(parent, newBody, jointFrame);
             joint = uniJoint;
         } else if (type == std::string("BallJoint")) {
             // Add a spherical joint
-            auto spherJoint = std::make_shared<ChLinkLockSpherical>();
+            auto spherJoint = chrono_types::make_shared<ChLinkLockSpherical>();
             spherJoint->Initialize(parent, newBody, jointFrame.GetCoord());
             joint = spherJoint;
         } else {
@@ -655,7 +655,7 @@ void ChParserOpenSim::initFunctionTable() {
             // Unknown joint type.  Replace with a spherical
             std::cout << "Unknown Joint type " << type << " between " << parent->GetName() << " and "
                       << newBody->GetName() << " -- making spherical standin." << std::endl;
-            auto customJoint = std::make_shared<ChLinkLockSpherical>();
+            auto customJoint = chrono_types::make_shared<ChLinkLockSpherical>();
             customJoint->Initialize(parent, newBody, jointFrame.GetCoord());
             joint = customJoint;
         }
@@ -673,7 +673,7 @@ void ChParserOpenSim::initFunctionTable() {
             auto geometry = fieldNode->first_node("GeometrySet")->first_node("objects")->first_node();
             while (geometry != nullptr) {
                 std::string meshFilename(geometry->first_node("geometry_file")->value());
-                auto bodyMesh = std::make_shared<ChObjShapeFile>();
+                auto bodyMesh = chrono_types::make_shared<ChObjShapeFile>();
                 bodyMesh->SetFilename(m_datapath + meshFilename);
                 newBody->AddAsset(bodyMesh);
                 geometry = geometry->next_sibling();
@@ -810,17 +810,17 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
         if (m_visType == VisType::PRIMITIVES) {
             // Assign a color based on the body's level in the tree hierarchy
             float colorVal = (1.0f * body_info.level) / max_depth_level;
-            body_info.body->AddAsset(std::make_shared<ChColorAsset>(colorVal, 1.0f - colorVal, 0.0f));
+            body_info.body->AddAsset(chrono_types::make_shared<ChColorAsset>(colorVal, 1.0f - colorVal, 0.0f));
 
             // Create a sphere at the body COM
-            auto sphere = std::make_shared<ChSphereShape>();
+            auto sphere = chrono_types::make_shared<ChSphereShape>();
             sphere->GetSphereGeometry().rad = 0.1;
             sphere->Pos = body_info.body->GetFrame_COG_to_REF().GetPos();
             body_info.body->AddAsset(sphere);
 
             // Create visualization cylinders
             for (auto cyl_info : body_info.cylinders) {
-                auto cylinder = std::make_shared<ChCylinderShape>();
+                auto cylinder = chrono_types::make_shared<ChCylinderShape>();
                 cylinder->GetCylinderGeometry().rad = cyl_info.rad;
                 cylinder->GetCylinderGeometry().p1 = ChVector<>(0, cyl_info.hlen, 0);
                 cylinder->GetCylinderGeometry().p2 = ChVector<>(0, -cyl_info.hlen, 0);

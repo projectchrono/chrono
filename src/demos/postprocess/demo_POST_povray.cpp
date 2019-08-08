@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
 
     // Create a rigid body as usual, and add it
     // to the physical system:
-    auto mfloor = std::make_shared<ChBody>();
+    auto mfloor = chrono_types::make_shared<ChBody>();
     mfloor->SetBodyFixed(true);
 
     // Define a collision shape
@@ -67,13 +67,13 @@ int main(int argc, char* argv[]) {
     // ==Asset== attach a 'box' shape.
     // Note that assets are managed via shared pointer, so they
     // can also be shared). Do not forget AddAsset() at the end!
-    auto mboxfloor = std::make_shared<ChBoxShape>();
+    auto mboxfloor = chrono_types::make_shared<ChBoxShape>();
     mboxfloor->GetBoxGeometry().Pos = ChVector<>(0, -1, 0);
     mboxfloor->GetBoxGeometry().Size = ChVector<>(10, 0.5, 10);
     mfloor->AddAsset(mboxfloor);
 
     // ==Asset== attach color asset.
-    auto mfloorcolor = std::make_shared<ChColorAsset>();
+    auto mfloorcolor = chrono_types::make_shared<ChColorAsset>();
     mfloorcolor->SetColor(ChColor(0.3f, 0.3f, 0.6f));
     mfloor->AddAsset(mfloorcolor);
 
@@ -89,24 +89,24 @@ int main(int argc, char* argv[]) {
 
     // Create the rigid body as usual (this won't move,
     // it is only for visualization tests)
-    auto mbody = std::make_shared<ChBody>();
+    auto mbody = chrono_types::make_shared<ChBody>();
     mbody->SetBodyFixed(true);
     mphysicalSystem.Add(mbody);
 
     // ==Asset== Attach a 'sphere' shape
-    auto msphere = std::make_shared<ChSphereShape>();
+    auto msphere = chrono_types::make_shared<ChSphereShape>();
     msphere->GetSphereGeometry().rad = 0.5;
     msphere->GetSphereGeometry().center = ChVector<>(-1, 0, 0);
     mbody->AddAsset(msphere);
 
     // ==Asset== Attach also a 'box' shape
-    auto mbox = std::make_shared<ChBoxShape>();
+    auto mbox = chrono_types::make_shared<ChBoxShape>();
     mbox->GetBoxGeometry().Pos = ChVector<>(1, 0, 0);
     mbox->GetBoxGeometry().Size = ChVector<>(0.2, 0.5, 0.1);
     mbody->AddAsset(mbox);
 
     // ==Asset== Attach also a 'cylinder' shape
-    auto mcyl = std::make_shared<ChCylinderShape>();
+    auto mcyl = chrono_types::make_shared<ChCylinderShape>();
     mcyl->GetCylinderGeometry().p1 = ChVector<>(2, -0.2, 0);
     mcyl->GetCylinderGeometry().p2 = ChVector<>(2.2, 0.5, 0);
     mcyl->GetCylinderGeometry().rad = 0.3;
@@ -114,24 +114,24 @@ int main(int argc, char* argv[]) {
 
     // ==Asset== Attach color. To set colors for all assets
     // in the same level, just add this:
-    auto mvisual = std::make_shared<ChColorAsset>();
+    auto mvisual = chrono_types::make_shared<ChColorAsset>();
     mvisual->SetColor(ChColor(0.9f, 0.4f, 0.2f));
     mbody->AddAsset(mvisual);
 
     // ==Asset== Attach a level that contains other assets.
     // Note: a ChAssetLevel can define a rotation/translation respect to paren level,
     // Note: a ChAssetLevel can contain colors or textures: if any, they affect only objects in the level.
-    auto mlevelA = std::make_shared<ChAssetLevel>();
+    auto mlevelA = chrono_types::make_shared<ChAssetLevel>();
 
     // ==Asset== Attach, in this level, a 'Wavefront mesh' asset,
     // referencing a .obj file:
-    auto mobjmesh = std::make_shared<ChObjShapeFile>();
+    auto mobjmesh = chrono_types::make_shared<ChObjShapeFile>();
     mobjmesh->SetFilename(GetChronoDataFile("forklift_body.obj"));
     mlevelA->AddAsset(mobjmesh);
 
     // ==Asset== Attach also a texture, that will affect only the
     // assets in mlevelA:
-    auto mtexture = std::make_shared<ChTexture>();
+    auto mtexture = chrono_types::make_shared<ChTexture>();
     mtexture->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
     mlevelA->AddAsset(mtexture);
 
@@ -142,13 +142,13 @@ int main(int argc, char* argv[]) {
     // ==Asset== Attach sub level, then add to it an array of sub-levels,
     // each rotated, and each containing a displaced box, thus making a
     // spiral of cubes
-    auto mlevelB = std::make_shared<ChAssetLevel>();
+    auto mlevelB = chrono_types::make_shared<ChAssetLevel>();
     for (int j = 0; j < 20; j++) {
         // ==Asset== the sub sub level..
-        auto mlevelC = std::make_shared<ChAssetLevel>();
+        auto mlevelC = chrono_types::make_shared<ChAssetLevel>();
 
         // ==Asset== the contained box..
-        auto msmallbox = std::make_shared<ChBoxShape>();
+        auto msmallbox = chrono_types::make_shared<ChBoxShape>();
         msmallbox->GetBoxGeometry().Pos = ChVector<>(0.4, 0, 0);
         msmallbox->GetBoxGeometry().Size = ChVector<>(0.1, 0.1, 0.01);
         mlevelC->AddAsset(msmallbox);
@@ -166,7 +166,7 @@ int main(int argc, char* argv[]) {
     // ==Asset== Attach a video camera. This will be used by Irrlicht,
     // or POVray postprocessing, etc. Note that a camera can also be
     // put in a moving object.
-    auto mcamera = std::make_shared<ChCamera>();
+    auto mcamera = chrono_types::make_shared<ChCamera>();
     mcamera->SetAngle(50);
     mcamera->SetPosition(ChVector<>(-3, 4, -5));
     mcamera->SetAimPoint(ChVector<>(0, 1, 0));
@@ -184,7 +184,7 @@ int main(int argc, char* argv[]) {
 
     // Create the ChParticleClones, populate it with some random particles,
     // and add it to physical system:
-    auto mparticles = std::make_shared<ChParticlesClones>();
+    auto mparticles = chrono_types::make_shared<ChParticlesClones>();
 
     // Note: coll. shape, if needed, must be specified before creating particles
     mparticles->GetCollisionModel()->ClearModel();
@@ -201,7 +201,7 @@ int main(int argc, char* argv[]) {
 
     //  ==Asset== Attach a 'sphere' shape asset.. it will be used as a sample
     // shape to display all particles when rendering in 3D!
-    auto mspherepart = std::make_shared<ChSphereShape>();
+    auto mspherepart = chrono_types::make_shared<ChSphereShape>();
     mspherepart->GetSphereGeometry().rad = 0.05;
     mparticles->AddAsset(mspherepart);
 
@@ -264,7 +264,7 @@ int main(int argc, char* argv[]) {
     //   using the ChPovRayAssetCustom asset. This asset for example projects a
     //   checkered texture to the floor. This POV specific asset won't be rendered
     //   by Irrlicht or other interfaces.
-    auto mPOVcustom = std::make_shared<ChPovRayAssetCustom>();
+    auto mPOVcustom = chrono_types::make_shared<ChPovRayAssetCustom>();
     mPOVcustom->SetCommands((char*)"pigment { checker rgb<0.9,0.9,0.9>, rgb<0.75,0.8,0.8> }");
     mfloor->AddAsset(mPOVcustom);
 

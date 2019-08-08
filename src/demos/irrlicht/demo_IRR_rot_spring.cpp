@@ -67,14 +67,14 @@ int main(int argc, char* argv[]) {
     ChVector<> rev_pos(+1, 0, 0);
 
     // Create ground body
-    auto ground = std::make_shared<ChBody>();
+    auto ground = chrono_types::make_shared<ChBody>();
     system.AddBody(ground);
     ground->SetIdentifier(-1);
     ground->SetBodyFixed(true);
     ground->SetCollide(false);
 
     // Visualization for revolute joint
-    auto cyl_rev = std::make_shared<ChCylinderShape>();
+    auto cyl_rev = chrono_types::make_shared<ChCylinderShape>();
     cyl_rev->GetCylinderGeometry().p1 = rev_pos + 0.2 * rev_dir;
     cyl_rev->GetCylinderGeometry().p2 = rev_pos - 0.2 * rev_dir;
     cyl_rev->GetCylinderGeometry().rad = 0.1;
@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
     ChVector<> lin_vel = Vcross(ang_vel, offset);
 
     // Create pendulum body
-    auto body = std::make_shared<ChBody>();
+    auto body = chrono_types::make_shared<ChBody>();
     system.AddBody(body);
     body->SetPos(rev_pos + offset);
     body->SetPos_dt(lin_vel);
@@ -101,26 +101,26 @@ int main(int argc, char* argv[]) {
     body->SetInertiaXX(ChVector<>(1, 1, 1));
 
     // Attach visualization assets
-    auto sph = std::make_shared<ChSphereShape>();
+    auto sph = chrono_types::make_shared<ChSphereShape>();
     sph->GetSphereGeometry().rad = 0.3;
     body->AddAsset(sph);
-    auto cyl = std::make_shared<ChCylinderShape>();
+    auto cyl = chrono_types::make_shared<ChCylinderShape>();
     cyl->GetCylinderGeometry().p1 = ChVector<>(-1.5, 0, 0);
     cyl->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
     cyl->GetCylinderGeometry().rad = 0.1;
     body->AddAsset(cyl);
-    auto col = std::make_shared<ChColorAsset>();
+    auto col = chrono_types::make_shared<ChColorAsset>();
     col->SetColor(ChColor(0.7f, 0.8f, 0.8f));
     body->AddAsset(col);
 
     // Create revolute joint between body and ground
-    auto rev = std::make_shared<ChLinkLockRevolute>();
+    auto rev = chrono_types::make_shared<ChLinkLockRevolute>();
     rev->Initialize(body, ground, ChCoordsys<>(rev_pos, rev_rot));
     system.AddLink(rev);
     
     // Create the rotational spring between body and ground
     MySpringTorque torque;
-    auto spring = std::make_shared<ChLinkRotSpringCB>();
+    auto spring = chrono_types::make_shared<ChLinkRotSpringCB>();
     spring->Initialize(body, ground, ChCoordsys<>(rev_pos, rev_rot));
     spring->RegisterTorqueFunctor(&torque);
     system.AddLink(spring);

@@ -1,8 +1,8 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "chrono/solver/ChVariables.h"
-#include "chrono/solver/ChVariablesShaft.h"
+//#include "chrono/solver/ChVariables.h"
+//#include "chrono/solver/ChVariablesShaft.h"
 #include "chrono/physics/ChShaft.h"
 #include "chrono/physics/ChShaftsBody.h"
 #include "chrono/physics/ChShaftsCouple.h"
@@ -23,8 +23,8 @@
 %import "ChLoad.i"
 %import "ChLoadable.i"
 
-%shared_ptr(chrono::ChVariables)
-%shared_ptr(chrono::ChVariablesShaft)
+//%shared_ptr(chrono::ChVariables)
+//%shared_ptr(chrono::ChVariablesShaft)
 %shared_ptr(chrono::ChShaft)
 %shared_ptr(chrono::ChShaftsCouple)
 %shared_ptr(chrono::ChShaftsBody)
@@ -43,8 +43,8 @@
 
 
 /* Parse the header file to generate wrappers */
-%include "../chrono/solver/ChVariables.h"
-%include "../chrono/solver/ChVariablesShaft.h"
+//%include "../chrono/solver/ChVariables.h"
+//%include "../chrono/solver/ChVariablesShaft.h"
 %include "../chrono/physics/ChShaft.h"  
 %include "../chrono/physics/ChShaftsBody.h" 
 %include "../chrono/physics/ChShaftsCouple.h" 

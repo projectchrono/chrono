@@ -36,7 +36,7 @@ void ChReissnerTire::CreatePressureLoad() {
     // negative pressure (i.e. internal pressure, acting opposite to the surface normal)
     for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ie++) {
         if (auto mshell = std::dynamic_pointer_cast<ChElementShellReissner4>(m_mesh->GetElement(ie))) {
-            auto load = std::make_shared<ChLoad<ChLoaderPressure>>(mshell);
+            auto load = chrono_types::make_shared<ChLoad<ChLoaderPressure>>(mshell);
             load->loader.SetPressure(-m_pressure);
             load->loader.SetStiff(false);          //// TODO:  user control?
             load->loader.SetIntegrationPoints(2);  //// TODO:  user control?
@@ -50,14 +50,14 @@ void ChReissnerTire::CreatePressureLoad() {
 void ChReissnerTire::CreateContactSurface() {
     switch (m_contact_type) {
         case NODE_CLOUD: {
-            auto contact_surf = std::make_shared<ChContactSurfaceNodeCloud>();
+            auto contact_surf = chrono_types::make_shared<ChContactSurfaceNodeCloud>();
             m_mesh->AddContactSurface(contact_surf);
             contact_surf->AddAllNodes(m_contact_node_radius);
             contact_surf->SetMaterialSurface(m_contact_mat);
             break;
         }
         case TRIANGLE_MESH: {
-            auto contact_surf = std::make_shared<ChContactSurfaceMesh>();
+            auto contact_surf = chrono_types::make_shared<ChContactSurfaceMesh>();
             m_mesh->AddContactSurface(contact_surf);
             contact_surf->AddFacesFromBoundary(m_contact_face_thickness, false);
             contact_surf->SetMaterialSurface(m_contact_mat);
@@ -75,7 +75,7 @@ void ChReissnerTire::CreateRimConnections(std::shared_ptr<ChBody> wheel) {
 
     for (size_t in = 0; in < nodes.size(); ++in) {
         auto node = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(nodes[in]);
-        m_connectionsF[in] = std::make_shared<ChLinkMateFix>();
+        m_connectionsF[in] = chrono_types::make_shared<ChLinkMateFix>();
         m_connectionsF[in]->Initialize(node, wheel);
         wheel->GetSystem()->Add(m_connectionsF[in]);
     }

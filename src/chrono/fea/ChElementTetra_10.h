@@ -33,14 +33,16 @@ class ChApi ChElementTetra_10 : public ChElementTetrahedron, public ChLoadableUV
   protected:
     std::vector<std::shared_ptr<ChNodeFEAxyz> > nodes;
     std::shared_ptr<ChContinuumElastic> Material;
-    std::vector<ChMatrixDynamic<> >
-        MatrB;  // matrices of shape function's partial derivatives (one for each integration point)
-                // we use a vector to keep in memory all the four matrices (-> 4 integr. point)
+    // matrices of shape function's partial derivatives (one for each integration point)
+    // we use a vector to keep in memory all the four matrices (-> 4 integr. point)
+    std::vector<ChMatrixDynamic<> > MatrB;
     ChMatrixDynamic<> StiffnessMatrix;
 
     ChMatrixNM<double, 4, 4> mM;  // for speeding up corotational approach
 
   public:
+    using ShapeVector = ChMatrixNM<double, 1, 10>;
+
     ChElementTetra_10();
     virtual ~ChElementTetra_10();
 
@@ -70,13 +72,12 @@ class ChApi ChElementTetra_10 : public ChElementTetrahedron, public ChLoadableUV
     /// r=1 at 2nd vertex, s=1 at 3rd, t=1 at 4th. All ranging in [0...1].
     /// The last, u (=1 at 1st vertex) is computed form the first 3.
     /// It stores the Ni(r,s,t) values in a 1 row, 10 columns matrix.
-    virtual void ShapeFunctions(ChMatrix<>& N, double r, double s, double t);
+    void ShapeFunctions(ShapeVector& N, double r, double s, double t);
 
-    /// Fills the D vector (displacement) column matrix with the current
-    /// field values at the nodes of the element, with proper ordering.
-    /// If the D vector has not the size of this->GetNdofs(), it will be resized.
-    /// For corotational elements, field is assumed in local reference!
-    virtual void GetStateBlock(ChMatrixDynamic<>& mD) override;
+    /// Fills the D vector (displacement) with the current field values at the nodes of the element, with proper
+    /// ordering. If the D vector has not the size of this->GetNdofs(), it will be resized. For corotational elements,
+    /// field is assumed in local reference!
+    virtual void GetStateBlock(ChVectorDynamic<>& mD) override;
 
     /// Approximation!! not the exact volume
     /// This returns an exact value only in case of Constant Metric Tetrahedron
@@ -120,15 +121,14 @@ class ChApi ChElementTetra_10 : public ChElementTetrahedron, public ChLoadableUV
 
     /// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
     /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
-    virtual void ComputeKRMmatricesGlobal(ChMatrix<>& H,
+    virtual void ComputeKRMmatricesGlobal(ChMatrixRef H,
                                           double Kfactor,
                                           double Rfactor = 0,
                                           double Mfactor = 0) override;
 
-    /// Computes the internal forces (ex. the actual position of
-    /// nodes is not in relaxed reference position) and set values
-    /// in the Fi vector.
-    virtual void ComputeInternalForces(ChMatrixDynamic<>& Fi) override;
+    /// Computes the internal forces (ex. the actual position of nodes is not in relaxed reference position) and set
+    /// values in the Fi vector.
+    virtual void ComputeInternalForces(ChVectorDynamic<>& Fi) override;
 
     //
     // Custom properties functions
@@ -139,8 +139,8 @@ class ChApi ChElementTetra_10 : public ChElementTetrahedron, public ChLoadableUV
     std::shared_ptr<ChContinuumElastic> GetMaterial() { return Material; }
 
     /// Get the partial derivatives matrix MatrB and the StiffnessMatrix
-    ChMatrix<>& GetMatrB(int n) { return MatrB[n]; }
-    ChMatrix<>& GetStiffnessMatrix() { return StiffnessMatrix; }
+    const ChMatrixDynamic<>& GetMatrB(int n) const { return MatrB[n]; }
+    const ChMatrixDynamic<>& GetStiffnessMatrix() const { return StiffnessMatrix; }
 
     //
     // Functions for interfacing to the solver
@@ -204,6 +204,9 @@ class ChApi ChElementTetra_10 : public ChElementTetrahedron, public ChLoadableUV
     /// If true, use quadrature over u,v,w in [0..1] range as tetrahedron volumetric coords, with z=1-u-v-w
     /// otherwise use quadrature over u,v,w in [-1..+1] as box isoparametric coords.
     virtual bool IsTetrahedronIntegrationNeeded() override { return true; }
+
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 /// @} fea_elements

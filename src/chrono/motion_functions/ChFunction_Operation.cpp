@@ -21,8 +21,8 @@ CH_FACTORY_REGISTER(ChFunction_Operation)
 
 ChFunction_Operation::ChFunction_Operation() {
     op_type = ChOP_ADD;
-    fa = std::make_shared<ChFunction_Const>();
-    fb = std::make_shared<ChFunction_Const>();
+    fa = chrono_types::make_shared<ChFunction_Const>();
+    fb = chrono_types::make_shared<ChFunction_Const>();
 }
 
 ChFunction_Operation::ChFunction_Operation(const ChFunction_Operation& other) {

@@ -101,38 +101,38 @@ void ChDoubleWishboneReduced::InitializeSide(VehicleSide side,
 
     // Create and initialize joints
     ChCoordsys<> rev_csys(points[SPINDLE], chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
-    m_revolute[side] = std::make_shared<ChLinkLockRevolute>();
+    m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
     m_revolute[side]->Initialize(m_spindle[side], m_upright[side], rev_csys);
     chassis->GetSystem()->AddLink(m_revolute[side]);
 
-    m_distUCA_F[side] = std::make_shared<ChLinkDistance>();
+    m_distUCA_F[side] = chrono_types::make_shared<ChLinkDistance>();
     m_distUCA_F[side]->SetNameString(m_name + "_distUCA_F" + suffix);
     m_distUCA_F[side]->Initialize(chassis, m_upright[side], false, points[UCA_F], points[UCA_U]);
     chassis->GetSystem()->AddLink(m_distUCA_F[side]);
 
-    m_distUCA_B[side] = std::make_shared<ChLinkDistance>();
+    m_distUCA_B[side] = chrono_types::make_shared<ChLinkDistance>();
     m_distUCA_B[side]->SetNameString(m_name + "_distUCA_B" + suffix);
     m_distUCA_B[side]->Initialize(chassis, m_upright[side], false, points[UCA_B], points[UCA_U]);
     chassis->GetSystem()->AddLink(m_distUCA_B[side]);
 
-    m_distLCA_F[side] = std::make_shared<ChLinkDistance>();
+    m_distLCA_F[side] = chrono_types::make_shared<ChLinkDistance>();
     m_distLCA_F[side]->SetNameString(m_name + "_distLCA_F" + suffix);
     m_distLCA_F[side]->Initialize(chassis, m_upright[side], false, points[LCA_F], points[LCA_U]);
     chassis->GetSystem()->AddLink(m_distLCA_F[side]);
 
-    m_distLCA_B[side] = std::make_shared<ChLinkDistance>();
+    m_distLCA_B[side] = chrono_types::make_shared<ChLinkDistance>();
     m_distLCA_B[side]->SetNameString(m_name + "_distLCA_B" + suffix);
     m_distLCA_B[side]->Initialize(chassis, m_upright[side], false, points[LCA_B], points[LCA_U]);
     chassis->GetSystem()->AddLink(m_distLCA_B[side]);
 
-    m_distTierod[side] = std::make_shared<ChLinkDistance>();
+    m_distTierod[side] = chrono_types::make_shared<ChLinkDistance>();
     m_distTierod[side]->SetNameString(m_name + "_distTierod" + suffix);
     m_distTierod[side]->Initialize(tierod_body, m_upright[side], false, points[TIEROD_C], points[TIEROD_U]);
     chassis->GetSystem()->AddLink(m_distTierod[side]);
 
     // Create and initialize the spring/damper
-    m_shock[side] = std::make_shared<ChLinkSpringCB>();
+    m_shock[side] = chrono_types::make_shared<ChLinkSpringCB>();
     m_shock[side]->SetNameString(m_name + "_shock" + suffix);
     m_shock[side]->Initialize(chassis, m_upright[side], false, points[SHOCK_C], points[SHOCK_U]);
     m_shock[side]->SetSpringRestLength(getSpringRestLength());
@@ -141,13 +141,13 @@ void ChDoubleWishboneReduced::InitializeSide(VehicleSide side,
 
     // Create and initialize the axle shaft and its connection to the spindle.
     // Note that the spindle rotates about the Y axis.
-    m_axle[side] = std::make_shared<ChShaft>();
+    m_axle[side] = chrono_types::make_shared<ChShaft>();
     m_axle[side]->SetNameString(m_name + "_axle" + suffix);
     m_axle[side]->SetInertia(getAxleInertia());
     m_axle[side]->SetPos_dt(-ang_vel);
     chassis->GetSystem()->Add(m_axle[side]);
 
-    m_axle_to_spindle[side] = std::make_shared<ChShaftsBody>();
+    m_axle_to_spindle[side] = chrono_types::make_shared<ChShaftsBody>();
     m_axle_to_spindle[side]->SetNameString(m_name + "_axle_to_spindle" + suffix);
     m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector<>(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
@@ -197,38 +197,38 @@ void ChDoubleWishboneReduced::AddVisualizationAssets(VisualizationType vis) {
                             m_pointsR[LCA_U], m_pointsR[TIEROD_U], getUprightRadius());
 
     // Add visualization for the spring-dampers
-    m_shock[LEFT]->AddAsset(std::make_shared<ChPointPointSpring>(0.06, 150, 15));
-    m_shock[RIGHT]->AddAsset(std::make_shared<ChPointPointSpring>(0.06, 150, 15));
+    m_shock[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.06, 150, 15));
+    m_shock[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.06, 150, 15));
 
     // Add visualization for the arm and tie-rod distance constraints
     ChColor col_tierod(0.8f, 0.3f, 0.3f);
     ChColor col_upperarm(0.1f, 0.4f, 0.1f);
     ChColor col_lowerarm(0.1f, 0.1f, 0.4f);
 
-    m_distTierod[LEFT]->AddAsset(std::make_shared<ChPointPointSegment>());
-    m_distTierod[RIGHT]->AddAsset(std::make_shared<ChPointPointSegment>());
-    m_distTierod[LEFT]->AddAsset(std::make_shared<ChColorAsset>(col_tierod));
-    m_distTierod[RIGHT]->AddAsset(std::make_shared<ChColorAsset>(col_tierod));
+    m_distTierod[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
+    m_distTierod[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
+    m_distTierod[LEFT]->AddAsset(chrono_types::make_shared<ChColorAsset>(col_tierod));
+    m_distTierod[RIGHT]->AddAsset(chrono_types::make_shared<ChColorAsset>(col_tierod));
 
-    m_distUCA_F[LEFT]->AddAsset(std::make_shared<ChPointPointSegment>());
-    m_distUCA_F[RIGHT]->AddAsset(std::make_shared<ChPointPointSegment>());
-    m_distUCA_F[LEFT]->AddAsset(std::make_shared<ChColorAsset>(col_upperarm));
-    m_distUCA_F[RIGHT]->AddAsset(std::make_shared<ChColorAsset>(col_upperarm));
+    m_distUCA_F[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
+    m_distUCA_F[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
+    m_distUCA_F[LEFT]->AddAsset(chrono_types::make_shared<ChColorAsset>(col_upperarm));
+    m_distUCA_F[RIGHT]->AddAsset(chrono_types::make_shared<ChColorAsset>(col_upperarm));
 
-    m_distUCA_B[LEFT]->AddAsset(std::make_shared<ChPointPointSegment>());
-    m_distUCA_B[RIGHT]->AddAsset(std::make_shared<ChPointPointSegment>());
-    m_distUCA_B[LEFT]->AddAsset(std::make_shared<ChColorAsset>(col_upperarm));
-    m_distUCA_B[RIGHT]->AddAsset(std::make_shared<ChColorAsset>(col_upperarm));
+    m_distUCA_B[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
+    m_distUCA_B[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
+    m_distUCA_B[LEFT]->AddAsset(chrono_types::make_shared<ChColorAsset>(col_upperarm));
+    m_distUCA_B[RIGHT]->AddAsset(chrono_types::make_shared<ChColorAsset>(col_upperarm));
 
-    m_distLCA_F[LEFT]->AddAsset(std::make_shared<ChPointPointSegment>());
-    m_distLCA_F[RIGHT]->AddAsset(std::make_shared<ChPointPointSegment>());
-    m_distLCA_F[LEFT]->AddAsset(std::make_shared<ChColorAsset>(col_lowerarm));
-    m_distLCA_F[RIGHT]->AddAsset(std::make_shared<ChColorAsset>(col_lowerarm));
+    m_distLCA_F[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
+    m_distLCA_F[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
+    m_distLCA_F[LEFT]->AddAsset(chrono_types::make_shared<ChColorAsset>(col_lowerarm));
+    m_distLCA_F[RIGHT]->AddAsset(chrono_types::make_shared<ChColorAsset>(col_lowerarm));
 
-    m_distLCA_B[LEFT]->AddAsset(std::make_shared<ChPointPointSegment>());
-    m_distLCA_B[RIGHT]->AddAsset(std::make_shared<ChPointPointSegment>());
-    m_distLCA_B[LEFT]->AddAsset(std::make_shared<ChColorAsset>(col_lowerarm));
-    m_distLCA_B[RIGHT]->AddAsset(std::make_shared<ChColorAsset>(col_lowerarm));
+    m_distLCA_B[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
+    m_distLCA_B[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
+    m_distLCA_B[LEFT]->AddAsset(chrono_types::make_shared<ChColorAsset>(col_lowerarm));
+    m_distLCA_B[RIGHT]->AddAsset(chrono_types::make_shared<ChColorAsset>(col_lowerarm));
 }
 
 void ChDoubleWishboneReduced::RemoveVisualizationAssets() {
@@ -271,7 +271,7 @@ void ChDoubleWishboneReduced::AddVisualizationUpright(std::shared_ptr<ChBody> up
     ChVector<> p_T = upright->TransformPointParentToLocal(pt_T);
 
     if ((p_L - p_C).Length2() > threshold2) {
-        auto cyl_L = std::make_shared<ChCylinderShape>();
+        auto cyl_L = chrono_types::make_shared<ChCylinderShape>();
         cyl_L->GetCylinderGeometry().p1 = p_L;
         cyl_L->GetCylinderGeometry().p2 = p_C;
         cyl_L->GetCylinderGeometry().rad = radius;
@@ -279,7 +279,7 @@ void ChDoubleWishboneReduced::AddVisualizationUpright(std::shared_ptr<ChBody> up
     }
 
     if ((p_U - p_C).Length2() > threshold2) {
-        auto cyl_U = std::make_shared<ChCylinderShape>();
+        auto cyl_U = chrono_types::make_shared<ChCylinderShape>();
         cyl_U->GetCylinderGeometry().p1 = p_U;
         cyl_U->GetCylinderGeometry().p2 = p_C;
         cyl_U->GetCylinderGeometry().rad = radius;
@@ -287,14 +287,14 @@ void ChDoubleWishboneReduced::AddVisualizationUpright(std::shared_ptr<ChBody> up
     }
 
     if ((p_T - p_C).Length2() > threshold2) {
-        auto cyl_T = std::make_shared<ChCylinderShape>();
+        auto cyl_T = chrono_types::make_shared<ChCylinderShape>();
         cyl_T->GetCylinderGeometry().p1 = p_T;
         cyl_T->GetCylinderGeometry().p2 = p_C;
         cyl_T->GetCylinderGeometry().rad = radius;
         upright->AddAsset(cyl_T);
     }
 
-    auto col = std::make_shared<ChColorAsset>();
+    auto col = chrono_types::make_shared<ChColorAsset>();
     col->SetColor(ChColor(0.2f, 0.2f, 0.6f));
     upright->AddAsset(col);
 }
@@ -304,13 +304,13 @@ void ChDoubleWishboneReduced::AddVisualizationUpright(std::shared_ptr<ChBody> up
 void ChDoubleWishboneReduced::LogConstraintViolations(VehicleSide side) {
     // Revolute joint
     {
-        ChMatrix<>* C = m_revolute[side]->GetC();
+        ChVectorDynamic<> C = m_revolute[side]->GetC();
         GetLog() << "Spindle revolute      ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "  ";
-        GetLog() << "  " << C->GetElement(3, 0) << "  ";
-        GetLog() << "  " << C->GetElement(4, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "  ";
+        GetLog() << "  " << C(4) << "\n";
     }
 
     // Distance constraints

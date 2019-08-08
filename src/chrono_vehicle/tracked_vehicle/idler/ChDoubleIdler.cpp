@@ -17,7 +17,7 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChGlobal.h"
+#include "chrono/core/ChGlobal.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChTexture.h"
 
@@ -68,19 +68,19 @@ void ChDoubleIdler::AddVisualizationAssets(VisualizationType vis) {
     double width = GetWheelWidth();
     double gap = GetWheelGap();
 
-    auto cyl_1 = std::make_shared<ChCylinderShape>();
+    auto cyl_1 = chrono_types::make_shared<ChCylinderShape>();
     cyl_1->GetCylinderGeometry().p1 = ChVector<>(0, width / 2, 0);
     cyl_1->GetCylinderGeometry().p2 = ChVector<>(0, gap / 2, 0);
     cyl_1->GetCylinderGeometry().rad = radius;
     m_wheel->AddAsset(cyl_1);
 
-    auto cyl_2 = std::make_shared<ChCylinderShape>();
+    auto cyl_2 = chrono_types::make_shared<ChCylinderShape>();
     cyl_2->GetCylinderGeometry().p1 = ChVector<>(0, -width / 2, 0);
     cyl_2->GetCylinderGeometry().p2 = ChVector<>(0, -gap / 2, 0);
     cyl_2->GetCylinderGeometry().rad = radius;
     m_wheel->AddAsset(cyl_2);
 
-    auto tex = std::make_shared<ChTexture>();
+    auto tex = chrono_types::make_shared<ChTexture>();
     tex->SetTextureFilename(chrono::GetChronoDataFile("bluwhite.png"));
     m_wheel->AddAsset(tex);
 }

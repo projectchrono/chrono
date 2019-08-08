@@ -79,7 +79,7 @@ void SaveParaViewFilesMBD(fsi::ChSystemFsi& myFsiSystem,
 //------------------------------------------------------------------
 void CreateSolidPhase(ChSystemSMC& mphysicalSystem, fsi::ChSystemFsi& myFsiSystem, fsi::SimParams* paramsH) {
     std::shared_ptr<ChMaterialSurfaceNSC> mat_g(new ChMaterialSurfaceNSC);
-    auto mysurfmaterial = std::make_shared<ChMaterialSurfaceSMC>();
+    auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
 
     // Set common material Properties
     mysurfmaterial->SetYoungModulus(6e4);
@@ -87,7 +87,7 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem, fsi::ChSystemFsi& myFsiSyste
     mysurfmaterial->SetRestitution(0.2f);
     mysurfmaterial->SetAdhesion(0);
     // Ground body
-    auto ground = std::make_shared<ChBody>();
+    auto ground = chrono_types::make_shared<ChBody>();
     ground->SetIdentifier(-1);
     ground->SetBodyFixed(true);
     ground->SetCollide(true);

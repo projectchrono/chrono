@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
     // The physical system: it contains all physical objects.
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
     // Geometry of the plate
     double plate_lenght_x = 1;
     double plate_lenght_y = 1;
@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
         MPROP(i, 1) = 2.1E+05;  // H(m)
         MPROP(i, 2) = 0.3;      // nu
     }
-    auto mmaterial = std::make_shared<ChContinuumElastic>();
+    auto mmaterial = chrono_types::make_shared<ChContinuumElastic>();
     mmaterial->Set_RayleighDampingK(0.0);
     mmaterial->Set_RayleighDampingM(0.0);
     mmaterial->Set_density(MPROP(0, 0));
@@ -167,7 +167,7 @@ int main(int argc, char* argv[]) {
     // Adding the nodes to the mesh
     int i = 0;
     while (i < TotalNumNodes) {
-        auto node = std::make_shared<ChNodeFEAxyz>(ChVector<>(COORDFlex(i, 0), COORDFlex(i, 1), COORDFlex(i, 2)));
+        auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(COORDFlex(i, 0), COORDFlex(i, 1), COORDFlex(i, 2)));
         node->SetMass(0.0);
         my_mesh->AddNode(node);
         if (NDR(i, 0) == 1 && NDR(i, 1) == 1 && NDR(i, 2) == 1) {
@@ -179,12 +179,12 @@ int main(int argc, char* argv[]) {
 
     int elemcount = 0;
     while (elemcount < TotalNumElements) {
-        auto element = std::make_shared<ChElementBrick>();
-        ChMatrixNM<double, 3, 1> InertFlexVec;  // read element length, used in ChElementBrick
-        InertFlexVec.Reset();
-        InertFlexVec(0, 0) = ElemLengthXY(elemcount, 0);
-        InertFlexVec(1, 0) = ElemLengthXY(elemcount, 1);
-        InertFlexVec(2, 0) = ElemLengthXY(elemcount, 2);
+        auto element = chrono_types::make_shared<ChElementBrick>();
+        ChVectorN<double, 3> InertFlexVec;  // read element length, used in ChElementBrick
+        InertFlexVec.setZero();
+        InertFlexVec(0) = ElemLengthXY(elemcount, 0);
+        InertFlexVec(1) = ElemLengthXY(elemcount, 1);
+        InertFlexVec(2) = ElemLengthXY(elemcount, 2);
         element->SetInertFlexVec(InertFlexVec);
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 0))),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 1))),
@@ -199,11 +199,11 @@ int main(int argc, char* argv[]) {
         element->SetElemNum(elemcount);            // for EAS
         element->SetGravityOn(true);               // turn gravity on/off from within the element
         element->SetMooneyRivlin(false);           // turn on/off Mooney Rivlin (Linear Isotropic by default)
-        ChMatrixNM<double, 9, 1> stock_alpha_EAS;  //
-        stock_alpha_EAS.Reset();
-        element->SetStockAlpha(stock_alpha_EAS(0, 0), stock_alpha_EAS(1, 0), stock_alpha_EAS(2, 0),
-                               stock_alpha_EAS(3, 0), stock_alpha_EAS(4, 0), stock_alpha_EAS(5, 0),
-                               stock_alpha_EAS(6, 0), stock_alpha_EAS(7, 0), stock_alpha_EAS(8, 0));
+        ChVectorN<double, 9> stock_alpha_EAS;  //
+        stock_alpha_EAS.setZero();
+        element->SetStockAlpha(stock_alpha_EAS(0), stock_alpha_EAS(1), stock_alpha_EAS(2),
+                               stock_alpha_EAS(3), stock_alpha_EAS(4), stock_alpha_EAS(5),
+                               stock_alpha_EAS(6), stock_alpha_EAS(7), stock_alpha_EAS(8));
         my_mesh->AddElement(element);
         elemcount++;
     }
@@ -214,25 +214,25 @@ int main(int argc, char* argv[]) {
     my_system.Add(my_mesh);
 
     // Options for visualization in irrlicht
-    auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_P);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(false);
     my_mesh->AddAsset(mvisualizemesh);
 
-    auto mvisualizemeshref = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshref = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshref->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
     mvisualizemeshref->SetWireframe(true);
     mvisualizemeshref->SetDrawInUndeformedReference(true);
     my_mesh->AddAsset(mvisualizemeshref);
 
-    auto mvisualizemeshC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
     mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
     mvisualizemeshC->SetSymbolsThickness(0.015);
     my_mesh->AddAsset(mvisualizemeshC);
 
-    auto mvisualizemeshD = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshD = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NONE);
     mvisualizemeshD->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
     mvisualizemeshD->SetSymbolsScale(1);

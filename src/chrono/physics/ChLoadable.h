@@ -13,7 +13,8 @@
 #ifndef CHLOADABLE_H
 #define CHLOADABLE_H
 
-#include "chrono/core/ChVectorDynamic.h"
+#include "chrono/core/ChMatrix.h"
+#include "chrono/core/ChVector.h"
 #include "chrono/solver/ChVariables.h"
 
 namespace chrono {

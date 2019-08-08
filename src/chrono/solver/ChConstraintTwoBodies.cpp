@@ -20,17 +20,17 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChConstraintTwoBodies)
 
 ChConstraintTwoBodies::ChConstraintTwoBodies() {
-    Cq_a.Reset();
-    Cq_b.Reset();
-    Eq_a.Reset();
-    Eq_b.Reset();
+    Cq_a.setZero();
+    Cq_b.setZero();
+    Eq_a.setZero();
+    Eq_b.setZero();
 }
 
 ChConstraintTwoBodies::ChConstraintTwoBodies(ChVariablesBody* mvariables_a, ChVariablesBody* mvariables_b) {
-    Cq_a.Reset();
-    Cq_b.Reset();
-    Eq_a.Reset();
-    Eq_b.Reset();
+    Cq_a.setZero();
+    Cq_b.setZero();
+    Eq_a.setZero();
+    Eq_b.setZero();
     SetVariables(mvariables_a, mvariables_b);
 }
 
@@ -77,26 +77,19 @@ void ChConstraintTwoBodies::Update_auxiliary() {
     // 1- Assuming jacobians are already computed, now compute
     //   the matrices [Eq_a]=[invM_a]*[Cq_a]' and [Eq_b]
     if (variables_a->IsActive()) {
-        ChMatrixNM<double, 6, 1> mtemp1;
-        mtemp1.CopyFromMatrixT(Cq_a);
-        variables_a->Compute_invMb_v(Eq_a, mtemp1);
+        variables_a->Compute_invMb_v(Eq_a, Cq_a.transpose());
     }
     if (variables_b->IsActive()) {
-        ChMatrixNM<double, 6, 1> mtemp1;
-        mtemp1.CopyFromMatrixT(Cq_b);
-        variables_b->Compute_invMb_v(Eq_b, mtemp1);
+        variables_b->Compute_invMb_v(Eq_b, Cq_b.transpose());
     }
 
     // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
-    ChMatrixNM<double, 1, 1> res;
     g_i = 0;
     if (variables_a->IsActive()) {
-        res.MatrMultiply(Cq_a, Eq_a);
-        g_i = res(0, 0);
+        g_i += Cq_a * Eq_a;
     }
     if (variables_b->IsActive()) {
-        res.MatrMultiply(Cq_b, Eq_b);
-        g_i += res(0, 0);
+        g_i += Cq_b * Eq_b;
     }
 
     // 3- adds the constraint force mixing term (usually zero):
@@ -107,51 +100,45 @@ void ChConstraintTwoBodies::Update_auxiliary() {
 double ChConstraintTwoBodies::Compute_Cq_q() {
     double ret = 0;
 
-    if (variables_a->IsActive())
-        for (int i = 0; i < 6; i++)
-            ret += Cq_a.ElementN(i) * variables_a->Get_qb().ElementN(i);
+    if (variables_a->IsActive()) {
+        ret += Cq_a * variables_a->Get_qb();
+    }
 
-    if (variables_b->IsActive())
-        for (int i = 0; i < 6; i++)
-            ret += Cq_b.ElementN(i) * variables_b->Get_qb().ElementN(i);
+    if (variables_b->IsActive()) {
+        ret += Cq_b * variables_b->Get_qb();
+    }
 
     return ret;
 }
 
 void ChConstraintTwoBodies::Increment_q(const double deltal) {
-    if (variables_a->IsActive())
-        for (int i = 0; i < 6; i++)
-            variables_a->Get_qb()(i) += Eq_a.ElementN(i) * deltal;
+    if (variables_a->IsActive()) {
+        variables_a->Get_qb() += Eq_a * deltal;
+    }
 
-    if (variables_b->IsActive())
-        for (int i = 0; i < 6; i++)
-            variables_b->Get_qb()(i) += Eq_b.ElementN(i) * deltal;
+    if (variables_b->IsActive()) {
+        variables_b->Get_qb() += Eq_b * deltal;
+    }
 }
 
-void ChConstraintTwoBodies::MultiplyAndAdd(double& result, const ChMatrix<double>& vect) const {
-    int off_a = variables_a->GetOffset();
-    int off_b = variables_b->GetOffset();
+void ChConstraintTwoBodies::MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const {
+    if (variables_a->IsActive()) {
+        result += Cq_a * vect.segment(variables_a->GetOffset(), 6);
+    }
 
-    if (variables_a->IsActive())
-        for (int i = 0; i < 6; i++)
-            result += vect(off_a + i) * Cq_a.ElementN(i);
-
-    if (variables_b->IsActive())
-        for (int i = 0; i < 6; i++)
-            result += vect(off_b + i) * Cq_b.ElementN(i);
+    if (variables_b->IsActive()) {
+        result += Cq_b * vect.segment(variables_b->GetOffset(), 6);
+    }
 }
 
-void ChConstraintTwoBodies::MultiplyTandAdd(ChMatrix<double>& result, double l) {
-    int off_a = variables_a->GetOffset();
-    int off_b = variables_b->GetOffset();
+void ChConstraintTwoBodies::MultiplyTandAdd(ChVectorDynamic<double>& result, double l) {
+    if (variables_a->IsActive()) {
+        result.segment(variables_a->GetOffset(), 6) += Cq_a.transpose() * l;
+    }
 
-    if (variables_a->IsActive())
-        for (int i = 0; i < 6; i++)
-            result(off_a + i) += Cq_a.ElementN(i) * l;
-
-    if (variables_b->IsActive())
-        for (int i = 0; i < 6; i++)
-            result(off_b + i) += Cq_b.ElementN(i) * l;
+    if (variables_b->IsActive()) {
+        result.segment(variables_b->GetOffset(), 6) += Cq_b.transpose() * l;
+    }
 }
 
 void ChConstraintTwoBodies::Build_Cq(ChSparseMatrix& storage, int insrow) {

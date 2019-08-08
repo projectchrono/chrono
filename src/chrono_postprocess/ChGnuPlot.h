@@ -20,8 +20,7 @@
 #include <iomanip>
 
 #include "chrono/core/ChStream.h"
-#include "chrono/core/ChMatrixDynamic.h"
-#include "chrono/core/ChVectorDynamic.h"
+#include "chrono/core/ChMatrix.h"
 #include "chrono/assets/ChColor.h"
 #include "chrono/motion_functions/ChFunction_Base.h"
 #include "chrono/motion_functions/ChFunction_Recorder.h"
@@ -96,7 +95,6 @@ class ChGnuPlot {
     /// from a .dat external file
     void Plot(const char* datfile, int colX, int colY, const char* title, const char* customsettings = " with lines ") {
         ChGnuPlotDataplot mdataplot;
-        mdataplot.data.Resize(0, 0);  // embedded data not needed
 
         mdataplot.command += " \"";
         mdataplot.command += datfile;
@@ -119,12 +117,12 @@ class ChGnuPlot {
               ChVectorDynamic<>& my,
               const char* title,
               const char* customsettings = " with lines ") {
-        assert(mx.GetRows() == my.GetRows());
+        assert(mx.size() == my.size());
 
         ChGnuPlotDataplot mdataplot;
-        mdataplot.data.Resize(mx.GetRows(), 2);
-        mdataplot.data.PasteMatrix(mx, 0, 0);
-        mdataplot.data.PasteMatrix(my, 0, 1);
+        mdataplot.data.resize(mx.size(), 2);
+        mdataplot.data.col(0) = mx;
+        mdataplot.data.col(1) = my;
 
         mdataplot.command += " \"-\" using 1:2 ";
         mdataplot.command += customsettings;
@@ -135,21 +133,20 @@ class ChGnuPlot {
         this->plots.push_back(mdataplot);
     }
 
-    /// Shortcut to easy 2D plot of x,y data
-    /// from two columns of a matrix
-    void Plot(ChMatrix<>& mdata, int colX, int colY, const char* title, const char* customsettings = " with lines ") {
-        ChVectorDynamic<> mx(mdata.GetRows());
-        ChVectorDynamic<> my(mdata.GetRows());
-        mx.PasteClippedMatrix(mdata, 0, colX, mdata.GetRows(), 1, 0, 0);
-        my.PasteClippedMatrix(mdata, 0, colY, mdata.GetRows(), 1, 0, 0);
+    /// Shortcut to easy 2D plot of x,y data from two columns of a matrix
+    void Plot(ChMatrixConstRef mdata, int colX, int colY, const char* title, const char* customsettings = " with lines ") {
+        ChVectorDynamic<> mx(mdata.rows());
+        ChVectorDynamic<> my(mdata.rows());
+        mx = mdata.col(colX);
+        my = mdata.col(colY);
         Plot(mx, my, title, customsettings);
     }
 
     /// Shortcut to easy 2D plot of x,y data
     /// from a ChFunction_recorder
     void Plot(ChFunction_Recorder& mrecorder, const char* title, const char* customsettings = " with lines ") {
-        ChVectorDynamic<> mx((const int)mrecorder.GetPoints().size());
-        ChVectorDynamic<> my(mx.GetRows());
+        ChVectorDynamic<> mx(mrecorder.GetPoints().size());
+        ChVectorDynamic<> my(mrecorder.GetPoints().size());
 
         int i = 0;
         for (auto iter = mrecorder.GetPoints().begin(); iter != mrecorder.GetPoints().end(); ++iter) {
@@ -163,8 +160,8 @@ class ChGnuPlot {
     /// Shortcut to easy 2D plot of x,y data
     /// from a ChFunction_recorder
     void Plot(ChFunction_Oscilloscope& mrecorder, const char* title, const char* customsettings = " with lines ") {
-        ChVectorDynamic<> mx((int)(mrecorder.GetPointList().size()));
-        ChVectorDynamic<> my(mx.GetRows());
+        ChVectorDynamic<> mx(mrecorder.GetPointList().size());
+        ChVectorDynamic<> my(mrecorder.GetPointList().size());
 
         double xmin, xmax;
         mrecorder.Estimate_x_range(xmin, xmax);
@@ -358,9 +355,9 @@ class ChGnuPlot {
 
         // Embed plot data in the .gpl file
         for (int i = 0; i < this->plots.size(); ++i) {
-            if ((plots[i].data.GetColumns() > 0) && (plots[i].data.GetRows() > 0)) {
-                for (int ir = 0; ir < plots[i].data.GetRows(); ++ir) {
-                    for (int ic = 0; ic < plots[i].data.GetColumns(); ++ic) {
+            if ((plots[i].data.cols() > 0) && (plots[i].data.rows() > 0)) {
+                for (int ir = 0; ir < plots[i].data.rows(); ++ir) {
+                    for (int ic = 0; ic < plots[i].data.cols(); ++ic) {
                         mscript += d_to_str(plots[i].data(ir, ic));
                         mscript += " ";
                     }

@@ -57,14 +57,14 @@ void HMMWV_VehicleFull::Create(bool fixed,
     // -------------------------------------------
     // Create the chassis subsystem
     // -------------------------------------------
-    m_chassis = std::make_shared<HMMWV_Chassis>("Chassis", fixed, chassis_collision_type);
+    m_chassis = chrono_types::make_shared<HMMWV_Chassis>("Chassis", fixed, chassis_collision_type);
 
     // -------------------------------------------
     // Create the suspension subsystems
     // -------------------------------------------
     m_suspensions.resize(2);
-    m_suspensions[0] = std::make_shared<HMMWV_DoubleWishboneFront>("FrontSusp");
-    m_suspensions[1] = std::make_shared<HMMWV_DoubleWishboneRear>("RearSusp");
+    m_suspensions[0] = chrono_types::make_shared<HMMWV_DoubleWishboneFront>("FrontSusp");
+    m_suspensions[1] = chrono_types::make_shared<HMMWV_DoubleWishboneRear>("RearSusp");
 
     // -----------------------------
     // Create the steering subsystem
@@ -72,10 +72,10 @@ void HMMWV_VehicleFull::Create(bool fixed,
     m_steerings.resize(1);
     switch (steering_type) {
         case SteeringType::PITMAN_ARM:
-            m_steerings[0] = std::make_shared<HMMWV_PitmanArm>("Steering");
+            m_steerings[0] = chrono_types::make_shared<HMMWV_PitmanArm>("Steering");
             break;
         case SteeringType::PITMAN_ARM_SHAFTS:
-            m_steerings[0] = std::make_shared<HMMWV_PitmanArmShafts>("Steering", rigid_steering_column);
+            m_steerings[0] = chrono_types::make_shared<HMMWV_PitmanArmShafts>("Steering", rigid_steering_column);
             break;
         default:
             GetLog() << "Steering type NOT supported\n";
@@ -86,10 +86,10 @@ void HMMWV_VehicleFull::Create(bool fixed,
     // Create the wheels
     // -----------------
     m_wheels.resize(4);
-    m_wheels[0] = std::make_shared<HMMWV_WheelLeft>("Wheel_FL");
-    m_wheels[1] = std::make_shared<HMMWV_WheelRight>("Wheel_FR");
-    m_wheels[2] = std::make_shared<HMMWV_WheelLeft>("Wheel_RL");
-    m_wheels[3] = std::make_shared<HMMWV_WheelRight>("Wheel_RR");
+    m_wheels[0] = chrono_types::make_shared<HMMWV_WheelLeft>("Wheel_FL");
+    m_wheels[1] = chrono_types::make_shared<HMMWV_WheelRight>("Wheel_FR");
+    m_wheels[2] = chrono_types::make_shared<HMMWV_WheelLeft>("Wheel_RL");
+    m_wheels[3] = chrono_types::make_shared<HMMWV_WheelRight>("Wheel_RR");
 
     // --------------------
     // Create the driveline
@@ -97,13 +97,13 @@ void HMMWV_VehicleFull::Create(bool fixed,
     switch (m_driveType) {
         case DrivelineType::FWD:
         case DrivelineType::RWD:
-            m_driveline = std::make_shared<HMMWV_Driveline2WD>("Driveline");
+            m_driveline = chrono_types::make_shared<HMMWV_Driveline2WD>("Driveline");
             break;
         case DrivelineType::AWD:
-            m_driveline = std::make_shared<HMMWV_Driveline4WD>("Driveline");
+            m_driveline = chrono_types::make_shared<HMMWV_Driveline4WD>("Driveline");
             break;
         case DrivelineType::SIMPLE:
-            m_driveline = std::make_shared<HMMWV_SimpleDriveline>("Driveline");
+            m_driveline = chrono_types::make_shared<HMMWV_SimpleDriveline>("Driveline");
             break;
     }
 
@@ -111,10 +111,10 @@ void HMMWV_VehicleFull::Create(bool fixed,
     // Create the brakes
     // -----------------
     m_brakes.resize(4);
-    m_brakes[0] = std::make_shared<HMMWV_BrakeSimple>("Brake_FL");
-    m_brakes[1] = std::make_shared<HMMWV_BrakeSimple>("Brake_FR");
-    m_brakes[2] = std::make_shared<HMMWV_BrakeSimple>("Brake_RL");
-    m_brakes[3] = std::make_shared<HMMWV_BrakeSimple>("Brake_RR");
+    m_brakes[0] = chrono_types::make_shared<HMMWV_BrakeSimple>("Brake_FL");
+    m_brakes[1] = chrono_types::make_shared<HMMWV_BrakeSimple>("Brake_FR");
+    m_brakes[2] = chrono_types::make_shared<HMMWV_BrakeSimple>("Brake_RL");
+    m_brakes[3] = chrono_types::make_shared<HMMWV_BrakeSimple>("Brake_RR");
 }
 
 HMMWV_VehicleFull::~HMMWV_VehicleFull() {}

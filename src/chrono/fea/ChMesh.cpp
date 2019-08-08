@@ -273,7 +273,7 @@ void ChMesh::IntLoadResidual_F(const unsigned int off,
     // it for all 'volume' objects.
     if (automatic_gravity_load) {
         std::shared_ptr<ChLoadableUVW> mloadable;  // still null
-        auto common_gravity_loader = std::make_shared<ChLoad<ChLoaderGravity>>(mloadable);
+        auto common_gravity_loader = chrono_types::make_shared<ChLoad<ChLoaderGravity>>(mloadable);
         common_gravity_loader->loader.Set_G_acc(GetSystem()->Get_G_acc());
         common_gravity_loader->loader.SetNumIntPoints(num_points_gravity);
 

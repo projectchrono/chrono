@@ -20,7 +20,7 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #endif
-#include "chrono/physics/ChGlobal.h"
+#include "chrono/core/ChGlobal.h"
 #include "chrono/core/ChVector.h"
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChMatrix33.h"
@@ -128,7 +128,7 @@ void ChSystemGranularSMC_trimesh::load_meshes(std::vector<std::string> objfilena
         ChVector<> displ(translations[i].x, translations[i].y, translations[i].z);
 
         // Apply scaling and then rotation
-        mesh.Transform(displ, rotscale[i]);
+        mesh.Transform(displ, rotscale[i].cast<double>());
 
         unsigned int num_triangles_curr = mesh.getNumTriangles();
 

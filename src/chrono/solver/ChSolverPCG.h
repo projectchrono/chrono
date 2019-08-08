@@ -24,13 +24,11 @@ namespace chrono {
 /// passed to the solver.
 
 class ChApi ChSolverPCG : public ChIterativeSolver {
-
   public:
     ChSolverPCG(int mmax_iters = 50,       ///< max.number of iterations
                 bool mwarm_start = false,  ///< uses warm start?
                 double mtolerance = 0.0    ///< tolerance for termination criterion
-                )
-        : ChIterativeSolver(mmax_iters, mwarm_start, mtolerance, 0.2) {}
+    );
 
     virtual ~ChSolverPCG() {}
 

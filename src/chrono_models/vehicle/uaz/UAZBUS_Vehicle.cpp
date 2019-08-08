@@ -50,44 +50,44 @@ void UAZBUS_Vehicle::Create(bool fixed, SteeringType steering_model, ChassisColl
     // -------------------------------------------
     // Create the chassis subsystem
     // -------------------------------------------
-    m_chassis = std::make_shared<UAZBUS_Chassis>("Chassis", fixed, chassis_collision_type);
+    m_chassis = chrono_types::make_shared<UAZBUS_Chassis>("Chassis", fixed, chassis_collision_type);
 
     // -------------------------------------------
     // Create the suspension subsystems
     // -------------------------------------------
     m_suspensions.resize(2);
-    m_suspensions[0] = std::make_shared<UAZBUS_ToeBarLeafspringAxle>("FrontSusp");
-    m_suspensions[1] = std::make_shared<UAZBUS_LeafspringAxle>("RearSusp");
+    m_suspensions[0] = chrono_types::make_shared<UAZBUS_ToeBarLeafspringAxle>("FrontSusp");
+    m_suspensions[1] = chrono_types::make_shared<UAZBUS_LeafspringAxle>("RearSusp");
 
     // -----------------------------
     // Create the steering subsystem
     // -----------------------------
     m_steerings.resize(1);
-    m_steerings[0] = std::make_shared<UAZBUS_RotaryArm>("Steering");
+    m_steerings[0] = chrono_types::make_shared<UAZBUS_RotaryArm>("Steering");
 
     // -----------------
     // Create the wheels
     // -----------------
     m_wheels.resize(4);
-    m_wheels[0] = std::make_shared<UAZBUS_WheelLeft>("Wheel_FL");
-    m_wheels[1] = std::make_shared<UAZBUS_WheelRight>("Wheel_FR");
-    m_wheels[2] = std::make_shared<UAZBUS_WheelLeft>("Wheel_RL");
-    m_wheels[3] = std::make_shared<UAZBUS_WheelRight>("Wheel_RR");
+    m_wheels[0] = chrono_types::make_shared<UAZBUS_WheelLeft>("Wheel_FL");
+    m_wheels[1] = chrono_types::make_shared<UAZBUS_WheelRight>("Wheel_FR");
+    m_wheels[2] = chrono_types::make_shared<UAZBUS_WheelLeft>("Wheel_RL");
+    m_wheels[3] = chrono_types::make_shared<UAZBUS_WheelRight>("Wheel_RR");
 
     // --------------------
     // Create the driveline
     // --------------------
-    m_driveline = std::make_shared<UAZBUS_Driveline4WD>("Driveline");
-    // m_driveline = std::make_shared<UAZBUS_SimpleDriveline>("Driveline");
+    m_driveline = chrono_types::make_shared<UAZBUS_Driveline4WD>("Driveline");
+    // m_driveline = chrono_types::make_shared<UAZBUS_SimpleDriveline>("Driveline");
 
     // -----------------
     // Create the brakes
     // -----------------
     m_brakes.resize(4);
-    m_brakes[0] = std::make_shared<UAZBUS_BrakeSimpleFront>("Brake_FL");
-    m_brakes[1] = std::make_shared<UAZBUS_BrakeSimpleFront>("Brake_FR");
-    m_brakes[2] = std::make_shared<UAZBUS_BrakeSimpleRear>("Brake_RL");
-    m_brakes[3] = std::make_shared<UAZBUS_BrakeSimpleRear>("Brake_RR");
+    m_brakes[0] = chrono_types::make_shared<UAZBUS_BrakeSimpleFront>("Brake_FL");
+    m_brakes[1] = chrono_types::make_shared<UAZBUS_BrakeSimpleFront>("Brake_FR");
+    m_brakes[2] = chrono_types::make_shared<UAZBUS_BrakeSimpleRear>("Brake_RL");
+    m_brakes[3] = chrono_types::make_shared<UAZBUS_BrakeSimpleRear>("Brake_RR");
 }
 
 UAZBUS_Vehicle::~UAZBUS_Vehicle() {}

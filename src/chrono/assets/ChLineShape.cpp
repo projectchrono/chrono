@@ -18,7 +18,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChLineShape)
 
 ChLineShape::ChLineShape() : npoints(200) {
-    gline = std::make_shared<geometry::ChLineSegment>();
+    gline = chrono_types::make_shared<geometry::ChLineSegment>();
 }
 
 ChLineShape::ChLineShape(std::shared_ptr<geometry::ChLine>& mline) : npoints(200), gline(mline) {}

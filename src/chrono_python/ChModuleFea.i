@@ -65,7 +65,9 @@
 #include "chrono/fea/ChElementHexa_20.h"
 #include "chrono/fea/ChElementBrick.h"
 #include "chrono/fea/ChElementBrick_9.h"
+#include "chrono/fea/ChElementShell.h"
 #include "chrono/fea/ChMaterialShellReissner.h"
+#include "chrono/fea/ChMaterialShellANCF.h"
 #include "chrono/fea/ChElementShellReissner4.h"
 #include "chrono/fea/ChElementShellANCF.h"
 #include "chrono/fea/ChElementShellANCF_8.h"
@@ -85,6 +87,7 @@
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChLinkPointPoint.h"
 #include "chrono/fea/ChMeshFileLoader.h"
+#include "Eigen/src/Core/util/Memory.h"
 
 using namespace chrono;
 using namespace chrono::fea;
@@ -96,6 +99,7 @@ using namespace chrono::fea;
 // Undefine ChApiFea otherwise SWIG gives a syntax error
 #define ChApiFea 
 #define ChApi
+#define EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
 // workaround for trouble
 %ignore chrono::fea::ChContactNodeXYZ::ComputeJacobianForContactPart;
@@ -219,6 +223,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::fea::ChLinkPointFrame)
 %shared_ptr(chrono::fea::ChLinkPointFrameGeneric)
 %shared_ptr(chrono::fea::ChLinkPointPoint)
+%shared_ptr(chrono::fea::ChMaterialShellANCF)
 %shared_ptr(chrono::fea::ChMaterialShellReissner)
 %shared_ptr(chrono::fea::ChMaterialShellReissnerIsothropic)
 %shared_ptr(chrono::fea::ChMaterialShellReissnerOrthotropic)
@@ -285,12 +290,16 @@ using namespace chrono::fea;
 
 //  core/  classes
 %include "../chrono/physics/ChPhysicsItem.h"
+%ignore chrono::fea::ChNodeFEAbase::ComputeKRMmatricesGlobal;
 %include "../chrono/fea/ChNodeFEAbase.h"
 %include "../chrono/fea/ChNodeFEAxyz.h"
 %include "../chrono/fea/ChNodeFEAxyzP.h"
 %include "../chrono/fea/ChNodeFEAxyzD.h"
 %include "../chrono/fea/ChNodeFEAxyzDD.h"
 %include "../chrono/fea/ChNodeFEAxyzrot.h"
+// TODO: if eigen::ref can be wrapped, unignore these, ChMaterialShellReissner CTangent and ChNodeFEAbase matrix
+%ignore chrono::fea::ChElementBase::ComputeKRMmatricesGlobal;
+%ignore chrono::fea::ChElementBase::ComputeMmatrixGlobal;
 %include "../chrono/fea/ChElementBase.h"
 %include "../chrono/fea/ChElementGeneric.h"
 %include "../chrono/fea/ChElementBar.h"
@@ -315,6 +324,8 @@ using namespace chrono::fea;
 
 %include "../chrono/fea/ChElementBrick.h"
 %include "../chrono/fea/ChElementBrick_9.h"
+%include "../chrono/fea/ChMaterialShellANCF.h"
+%ignore chrono::fea::ChMaterialShellReissner::ComputeTangentC;
 %include "../chrono/fea/ChMaterialShellReissner.h"
 %include "../chrono/fea/ChElementShell.h"
 %rename(ShellReissner4Layer) chrono::fea::ChElementShellReissner4::Layer;
@@ -374,6 +385,7 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementShellANCF_8)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementBrick)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementBrick_9)
+%DefSharedPtrDynamicDowncast2NS(chrono,chrono::fea,ChNodeBase,ChNodeFEAbase)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChNodeFEAbase,ChNodeFEAxyz)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChNodeFEAbase,ChNodeFEAxyzP)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChNodeFEAbase,ChNodeFEAxyzD)

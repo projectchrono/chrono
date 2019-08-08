@@ -245,7 +245,7 @@ ISceneNode* addChBodySceneNode_easyGenericMesh(ChSystem* asystem,
 
     assert(genericMesh);
 
-    auto trimesh = std::make_shared<geometry::ChTriangleMeshSoup>();
+    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshSoup>();
     fillChTrimeshFromIrlichtMesh(trimesh.get(), genericMesh->getMesh(0));
 
     // create a ChronoENGINE rigid body

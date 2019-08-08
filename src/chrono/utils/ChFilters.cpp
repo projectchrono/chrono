@@ -19,6 +19,7 @@
 #include <algorithm>
 
 #include "chrono/utils/ChFilters.h"
+#include "chrono/core/ChMatrix.h"
 
 namespace chrono {
 namespace utils {
@@ -673,7 +674,9 @@ void ChISO2631_1_Wf::Reset() {
     ups.Reset();
 }
 
+// -----------------------------------------------------------------------------
 // ISO 2631-5 Horizontal weighting
+// -----------------------------------------------------------------------------
 
 // internal sample step
 const double ChISO2631_5_Wxy::m_step = 1.0 / 160.0;
@@ -706,7 +709,10 @@ double ChISO2631_5_Wxy::Filter(double u) {
     return y;
 }
 
+// -----------------------------------------------------------------------------
 // vertical shock weighting filter ISO 2631-5
+// -----------------------------------------------------------------------------
+
 const double ChISO2631_5_Wz::m_w[13][7] = {{0.00130, 0.01841, -0.00336, 0.01471, 0.00174, 0.00137, 0.00145},
                                            {-0.00646, -0.00565, -0.00539, 0.01544, -0.00542, 0.00381, 0.00497},
                                            {-0.00091, -0.02073, 0.00708, -0.00091, 0.00255, -0.00216, 0.01001},
@@ -754,7 +760,10 @@ void ChISO2631_5_Wz::Filter(std::vector<double>& u, std::vector<double>& y) {
     y.erase(y.begin(), y.begin() + 8);  // get rid of leading zeros
 }
 
+// -----------------------------------------------------------------------------
 // Absorbed Power Vertical Filter Class
+// -----------------------------------------------------------------------------
+
 ChAbsorbed_Power_Vertical::ChAbsorbed_Power_Vertical() {
     Reset();
 }
@@ -812,7 +821,10 @@ void ChAbsorbed_Power_Vertical::Config(double step) {
     Reset();
 }
 
+// -----------------------------------------------------------------------------
 // ISO 2661-1 Seat cushion logger class
+// -----------------------------------------------------------------------------
+
 ChISO2631_Vibration_SeatCushionLogger::ChISO2631_Vibration_SeatCushionLogger() {}
 
 ChISO2631_Vibration_SeatCushionLogger::ChISO2631_Vibration_SeatCushionLogger(double step) {
@@ -886,13 +898,103 @@ void ChISO2631_Vibration_SeatCushionLogger::AddData(double speed, double acc_x, 
     m_logging_time += m_step;
 }
 
-double ChISO2631_Vibration_SeatCushionLogger::GetVDV() {
+static double mean(const std::vector<double>& v) {
+    if (v.empty())
+        return 0;
+
+    double s = 0.0;
+    for (size_t i = 0; i < v.size(); i++) {
+        s += v[i];
+    }
+    return s / v.size();
+}
+
+static double rms(const std::vector<double>& v) {
+    if (v.empty())
+        return 0;
+
+    double s = 0.0;
+    double m = mean(v);
+    for (size_t i = 0; i < v.size(); i++) {
+        s += (v[i] - m) * (v[i] - m);
+    }
+    return sqrt(s / v.size());
+}
+
+static double maxval(const std::vector<double>& v) {
+    double vm = 0.0;
+    for (size_t i = 0; i < v.size(); i++) {
+        if (v[i] > vm) {
+            vm = v[i];
+        }
+    }
+    return vm;
+}
+
+double ChISO2631_Vibration_SeatCushionLogger::GetInputRMS_X() const {
+    return rms(m_data_acc_x);
+}
+
+double ChISO2631_Vibration_SeatCushionLogger::GetInputRMS_Y() const {
+    return rms(m_data_acc_y);
+}
+
+double ChISO2631_Vibration_SeatCushionLogger::GetInputRMS_Z() const {
+    return rms(m_data_acc_z);
+}
+
+double ChISO2631_Vibration_SeatCushionLogger::GetAW_X() const {
+    if (m_data_aw_x_avg.empty())
+        return 0;
+    return m_data_aw_x_avg.back();
+}
+
+double ChISO2631_Vibration_SeatCushionLogger::GetAW_Y() const {
+    if (m_data_aw_y_avg.empty())
+        return 0;
+    return m_data_aw_y_avg.back();
+}
+
+double ChISO2631_Vibration_SeatCushionLogger::GetAW_Z() const {
+    if (m_data_aw_z_avg.empty())
+        return 0;
+    return m_data_aw_z_avg.back();
+}
+
+double ChISO2631_Vibration_SeatCushionLogger::GetAW_V() const {
+    const double kx = 1.4;
+    const double ky = 1.4;
+    const double kz = 1.0;
+
+    return sqrt(pow(kx * GetAW_X(), 2.0) + pow(ky * GetAW_Y(), 2.0) + pow(kz * GetAW_Z(), 2.0));
+}
+
+double ChISO2631_Vibration_SeatCushionLogger::GetCrestFactor() const {
+    if (m_data_acc_z.empty())
+        return 0;
+    return maxval(m_data_acc_z) / rms(m_data_acc_z);
+}
+
+double ChISO2631_Vibration_SeatCushionLogger::GetVDV() const {
+    if (m_data_vdv_x_avg.empty())
+        return 0;
+
     const double kx = 1.4;
     const double ky = 1.4;
     const double kz = 1.0;
 
     return sqrt(pow(kx * m_data_vdv_x_avg.back(), 2.0) + pow(ky * m_data_vdv_y_avg.back(), 2.0) +
                 pow(kz * m_data_vdv_z_avg.back(), 2.0));
+}
+
+double ChISO2631_Vibration_SeatCushionLogger::GetAVGSpeed() const {
+    return mean(m_data_speed);
+}
+
+double ChISO2631_Vibration_SeatCushionLogger::GetSeverityVDV() const {
+    if (m_data_aw_x_avg.empty())
+        return 0;
+    return GetVDV() / (GetAW_V() * pow(m_logging_time, 0.25));
 }
 
 double ChISO2631_Vibration_SeatCushionLogger::GetAbsorbedPowerVertical() {
@@ -914,6 +1016,10 @@ double ChISO2631_Vibration_SeatCushionLogger::GetAbsorbedPowerVertical() {
             ap_buf_avg.push_back(ap_buf_int[i] / time);
         }
     }
+
+    if (ap_buf_avg.empty())
+        return 0;
+
     ap = ap_buf_avg.back();
     return ap;
 }
@@ -967,41 +1073,6 @@ void ChISO2631_Vibration_SeatCushionLogger::Reset() {
     m_filter_int_vdv_z.Reset();
 }
 
-double ChISO2631_Vibration_SeatCushionLogger::mean(std::vector<double>& v) {
-    double s = 0.0;
-    for (size_t i = 0; i < v.size(); i++) {
-        s += v[i];
-    }
-    return s / v.size();
-}
-
-double ChISO2631_Vibration_SeatCushionLogger::rms(std::vector<double>& v) {
-    double s = 0.0;
-    double m = mean(v);
-    for (size_t i = 0; i < v.size(); i++) {
-        s += (v[i] - m) * (v[i] - m);
-    }
-    return sqrt(s / v.size());
-}
-
-double ChISO2631_Vibration_SeatCushionLogger::GetAW_V() {
-    const double kx = 1.4;
-    const double ky = 1.4;
-    const double kz = 1.0;
-
-    return sqrt(pow(kx * GetAW_X(), 2.0) + pow(ky * GetAW_Y(), 2.0) + pow(kz * GetAW_Z(), 2.0));
-}
-
-double ChISO2631_Vibration_SeatCushionLogger::maxval(std::vector<double>& v) {
-    double vm = 0.0;
-    for (size_t i = 0; i < v.size(); i++) {
-        if (v[i] > vm) {
-            vm = v[i];
-        }
-    }
-    return vm;
-}
-
 void ChISO2631_Vibration_SeatCushionLogger::GeneratePlotFile(std::string fName, std::string testInfo) {
     std::ofstream plt(fName);
     if (!plt.is_open()) {
@@ -1047,7 +1118,9 @@ void ChISO2631_Vibration_SeatCushionLogger::GeneratePlotFile(std::string fName, 
     plt.close();
 }
 
+// -----------------------------------------------------------------------------
 // ISO2631-5 shock data logger
+// -----------------------------------------------------------------------------
 
 ChISO2631_Shock_SeatCushionLogger::ChISO2631_Shock_SeatCushionLogger() {}
 
@@ -1082,6 +1155,10 @@ void ChISO2631_Shock_SeatCushionLogger::Config(double step) {
 double ChISO2631_Shock_SeatCushionLogger::GetSe() {
     // generate filter input with fs = 160 Hz
     size_t nInDat = static_cast<size_t>(std::floor(m_logging_time / m_step));
+
+    // Return now if no data available (else, CalcPeaks makes out-of-range accesses).
+    if (nInDat == 0)
+        return 0;
 
     m_inp_x.resize(nInDat);
     m_inp_y.resize(nInDat);

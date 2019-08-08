@@ -22,11 +22,11 @@
 #define SPM_DEF_MAXELEMENTS 10000  ///< default limit on initial number of off-diagonal elements
 
 namespace chrono {
-    class ChSparsityPatternLearner;
+class ChSparsityPatternLearner;
 
-    /// Base class for all sparse matrices.
+/// Base class for all sparse matrices.
 class ChApi ChSparseMatrix {
-public:
+  public:
     /// Symmetry type of the matrix
     enum SymmetryType {
         GENERAL,              ///< unsymmetric matrix
@@ -37,8 +37,7 @@ public:
 
     /// Construct a sparse matrix with \a nrows and \a ncols and with \a nnz non-zero elements.
     /// By default, the matrix type is GENERAL (i.e., unsymmetric) and the sparsity pattern is unlocked.
-    ChSparseMatrix(int nrows = 0, int ncols = 0, int nnz = 0)
-        : m_num_rows(nrows), m_num_cols(ncols), m_nnz(nnz) {}
+    ChSparseMatrix(int nrows = 0, int ncols = 0, int nnz = 0) : m_num_rows(nrows), m_num_cols(ncols), m_nnz(nnz) {}
 
     ChSparseMatrix(const ChSparseMatrix& other) {
         m_num_rows = other.m_num_rows;
@@ -46,7 +45,7 @@ public:
         m_nnz = other.m_nnz;
         m_type = other.m_type;
         m_lock = other.m_lock;
-		m_update_sparsity_pattern = other.m_update_sparsity_pattern;
+        m_update_sparsity_pattern = other.m_update_sparsity_pattern;
     }
 
     virtual ~ChSparseMatrix() {}
@@ -71,16 +70,16 @@ public:
     /// Enable/disable a lock on the matrix sparsity pattern (default: false).
     void SetSparsityPatternLock(bool val) { m_lock = val; }
 
-	/// (Optional) Force the update of the sparsity pattern
+    /// (Optional) Force the update of the sparsity pattern
     /// Depending on the internal data structure, this can highly speed up the insertion of elements in the matrix.
     /// Suggested for matrix with dimension >1e5
-    virtual void LoadSparsityPattern(ChSparsityPatternLearner& sparsity_learner){}
+    virtual void LoadSparsityPattern(ChSparsityPatternLearner& sparsity_learner) {}
 
-	/// Set the value of the element with index (\a insrow, \a inscol) to \a insval.
-	/// \param[in] insrow row index of the element;
-	/// \param[in] inscol column index of the element;
-	/// \param[in] insval value of the element;
-	/// \param[in] overwrite tells if the new element should overwrite an existing element or be summed to it.
+    /// Set the value of the element with index (\a insrow, \a inscol) to \a insval.
+    /// \param[in] insrow row index of the element;
+    /// \param[in] inscol column index of the element;
+    /// \param[in] insval value of the element;
+    /// \param[in] overwrite tells if the new element should overwrite an existing element or be summed to it.
     virtual void SetElement(int insrow, int inscol, double insval, bool overwrite = true) = 0;
 
     /// Returns the value of the element with index (\a row, \a col).
@@ -97,27 +96,14 @@ public:
     virtual bool Compress() { return false; }
 
     /// Paste a given matrix into \a this sparse matrix at position (\a insrow, \a inscol).
-    /// The matrix \a matra will be copied into \a this[insrow : insrow + \a matra.GetRows()][[inscol : inscol + matra.GetColumns()]]
-    /// \param[in] matra The source matrix that will be copied;
-    /// \param[in] insrow The row index where the first element will be copied;
-    /// \param[in] inscol The column index where the first element will be copied;
-    /// \param[in] overwrite Tells if the copied element will overwrite an existing element or be summed to it;
-    /// \param[in] transp Tells if the \a matra matrix should be copied transposed.
-    virtual void PasteMatrix(const ChMatrix<>& matra, int insrow, int inscol, bool overwrite = true, bool transp = false) {
-        auto maxrows = matra.GetRows();
-        auto maxcols = matra.GetColumns();
-
-        if (transp) {
-            for (auto i = 0; i < maxcols; i++) {
-                for (auto j = 0; j < maxrows; j++) {
-                    this->SetElement(insrow + i, inscol + j, matra(j, i), overwrite);
-                }
-            }
-        } else {
-            for (auto i = 0; i < maxrows; i++) {
-                for (auto j = 0; j < maxcols; j++) {
-                    this->SetElement(insrow + i, inscol + j, matra(i, j), overwrite);
-                }
+    /// The matrix \a matra will be copied into \a this[insrow : insrow + \a matra.GetRows()][[inscol : inscol +
+    /// matra.GetColumns()]] \param[in] matra The source matrix that will be copied; \param[in] insrow The row index
+    /// where the first element will be copied; \param[in] inscol The column index where the first element will be
+    /// copied; \param[in] overwrite Tells if the copied element will overwrite an existing element or be summed to it;
+    virtual void PasteMatrix(ChMatrixConstRef matra, int insrow, int inscol, bool overwrite = true) {
+        for (auto i = 0; i < matra.rows(); i++) {
+            for (auto j = 0; j < matra.cols(); j++) {
+                this->SetElement(insrow + i, inscol + j, matra(i, j), overwrite);
             }
         }
     }
@@ -125,25 +111,25 @@ public:
     /// Paste a clipped portion of the given matrix into \a this sparse matrix at position (\a insrow, \a inscol).
     /// So the clipped portion \a matra[cliprow : cliprow + nrows][[clipcol : clipcol + ncolumns]]
     /// will be copied into \a this[insrow : insrow + nrows][[inscol : inscol + ncolumns]]
-	/// \param[in] matra The source matrix that will be copied;
-	/// \param[in] cliprow The row index of the first element of source matrix that will be copied;
-	/// \param[in] clipcol The column index of the first element of source matrix that will be copied;
-	/// \param[in] nrows The number of rows that will be copied;
-	/// \param[in] ncolumns The number of columns that will be copied;
-	/// \param[in] insrow The row index where the first element will be copied;
-	/// \param[in] inscol The column index where the first element will be copied;
-	/// \param[in] overwrite Tells if the copied element will overwrite an existing element or be summed to it.
-    virtual void PasteClippedMatrix(const ChMatrix<>& matra,
+    /// \param[in] matra The source matrix that will be copied;
+    /// \param[in] cliprow The row index of the first element of source matrix that will be copied;
+    /// \param[in] clipcol The column index of the first element of source matrix that will be copied;
+    /// \param[in] nrows The number of rows that will be copied;
+    /// \param[in] ncolumns The number of columns that will be copied;
+    /// \param[in] insrow The row index where the first element will be copied;
+    /// \param[in] inscol The column index where the first element will be copied;
+    /// \param[in] overwrite Tells if the copied element will overwrite an existing element or be summed to it.
+    virtual void PasteClippedMatrix(ChMatrixConstRef matra,
                                     int cliprow,
                                     int clipcol,
                                     int nrows,
-                                    int ncolumns,
+                                    int ncols,
                                     int insrow,
                                     int inscol,
                                     bool overwrite = true) {
         for (auto i = 0; i < nrows; ++i)
-            for (auto j = 0; j < ncolumns; ++j)
-                this->SetElement(insrow + i, inscol + j, matra.GetElement(i + cliprow, j + clipcol), overwrite);
+            for (auto j = 0; j < ncols; ++j)
+                this->SetElement(insrow + i, inscol + j, matra(i + cliprow, j + clipcol), overwrite);
     }
 
     /// Return the row|column index array in the CSR|CSC representation of this matrix.
@@ -156,43 +142,73 @@ public:
     virtual double* GetCS_ValueArray() const { return nullptr; }
 
     // Wrapper functions
+
     /// Same as #PasteMatrix(), but with \a overwrite set to \c true and \a transp set to \c true.
     /// The source matrix will be transposed and pasted into \a this matrix, overwriting existing elements.
-    virtual void PasteTranspMatrix(const ChMatrix<>& matra, int insrow, int inscol) {
-        PasteMatrix(matra, insrow, inscol, true, true);
+    virtual void PasteTranspMatrix(ChMatrixConstRef matra, int insrow, int inscol) {
+        PasteMatrix(matra.transpose(), insrow, inscol, true);
     }
 
     /// Same as #PasteMatrix(), but with \a overwrite set to \c false and \a transp set to \c false.
     /// The source matrix will be summed to the current matrix and not transposed.
-    virtual void PasteSumMatrix(const ChMatrix<>& matra, int insrow, int inscol) {
-        PasteMatrix(matra, insrow, inscol, false, false);
+    virtual void PasteSumMatrix(ChMatrixConstRef matra, int insrow, int inscol) {
+        PasteMatrix(matra, insrow, inscol, false);
     }
 
     /// Same as #PasteMatrix(), but with \a overwrite set to \c false and \a transp set to \c true.
     /// The source matrix will be transposed and summed to the \a this matrix.
-    virtual void PasteSumTranspMatrix(const ChMatrix<>& matra, int insrow, int inscol) {
-        PasteMatrix(matra, insrow, inscol, false, true);
+    virtual void PasteSumTranspMatrix(ChMatrixConstRef matra, int insrow, int inscol) {
+        PasteMatrix(matra.transpose(), insrow, inscol, false);
     }
 
     /// Same as #PasteClippedMatrix(), but with \a overwrite set to \c false.
     /// The clipped portion of the source matrix will be summed to \a this matrix.
-    virtual void PasteSumClippedMatrix(const ChMatrix<>& matra,
-                                       int cliprow,
-                                       int clipcol,
-                                       int nrows,
-                                       int ncolumns,
-                                       int insrow,
-                                       int inscol) {
-        PasteClippedMatrix(matra, cliprow, clipcol, nrows, ncolumns, insrow, inscol, false);
+    virtual void PasteSumClippedMatrix(ChMatrixConstRef matra,
+                               int cliprow,
+                               int clipcol,
+                               int nrows,
+                               int ncols,
+                               int insrow,
+                               int inscol) {
+        PasteClippedMatrix(matra, cliprow, clipcol, nrows, ncols, insrow, inscol, false);
+    }
+
+    /// Method to allow serializing transient data into in ASCII stream (e.g., a file) as a
+    /// Matlab sparse matrix format; each row in file has three elements: {row, column, value}.
+    /// Note: the row and column indexes start from 1.
+    virtual void StreamOUTsparseMatlabFormat(ChStreamOutAscii& mstream) {
+        for (int ii = 0; ii < m_num_rows; ii++) {
+            for (int jj = 0; jj < m_num_cols; jj++) {
+                double elVal = GetElement(ii, jj);
+                if (elVal || (ii + 1 == m_num_rows && jj + 1 == m_num_cols)) {
+                    mstream << ii + 1 << " " << jj + 1 << " " << elVal << "\n";
+                }
+            }
+        }
+    }
+
+    virtual void StreamOUT(ChStreamOutAscii& mstream) {
+        mstream << "\n"
+            << "Matrix " << m_num_rows << " rows, " << m_num_cols << " columns."
+            << "\n";
+        for (int i = 0; i < std::min(m_num_rows, 8); i++) {
+            for (int j = 0; j < std::min(m_num_cols, 8); j++)
+                mstream << GetElement(i, j) << "  ";
+            if (m_num_cols > 8)
+                mstream << "...";
+            mstream << "\n";
+        }
+        if (m_num_rows > 8)
+            mstream << "... \n\n";
     }
 
   protected:
-      int m_num_rows;                               ///< number of rows
-      int m_num_cols;                               ///< number of columns
-      int m_nnz;                                    ///< number of non-zero elements
-      SymmetryType m_type = GENERAL;                ///< matrix type
-      bool m_lock = false;                          ///< indicate whether or not the matrix sparsity pattern should be locked
-      bool m_update_sparsity_pattern = false;	    ///< let the matrix acquire the sparsity pattern
+    int m_num_rows;                          ///< number of rows
+    int m_num_cols;                          ///< number of columns
+    int m_nnz;                               ///< number of non-zero elements
+    SymmetryType m_type = GENERAL;           ///< matrix type
+    bool m_lock = false;                     ///< indicate whether or not the matrix sparsity pattern should be locked
+    bool m_update_sparsity_pattern = false;  ///< let the matrix acquire the sparsity pattern
 };
 
 }  // end namespace chrono

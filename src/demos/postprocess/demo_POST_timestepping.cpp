@@ -18,9 +18,8 @@
 
 #include <cmath>
 
-#include "chrono/core/ChLinearAlgebra.h"
 #include "chrono/core/ChLog.h"
-#include "chrono/physics/ChGlobal.h"
+#include "chrono/core/ChGlobal.h"
 #include "chrono/timestepper/ChTimestepper.h"
 #include "chrono/timestepper/ChTimestepperHHT.h"
 
@@ -586,15 +585,14 @@ void example5(const std::string& out_dir) {
             b(1) = R(1);
             b(2) = Qc(0);
             ChMatrixDynamic<> A(3, 3);
-            A.Reset();
+            A.setZero();
             A(0, 0) = c_a * this->M + c_v * (-this->R) + c_x * (-this->K);
             A(1, 1) = c_a * this->M;
             A(0, 2) = dirpend.x();
             A(1, 2) = dirpend.y();
             A(2, 0) = dirpend.x();
             A(2, 1) = dirpend.y();
-            ChVectorDynamic<> w(3);
-            ChLinearAlgebra::Solve_LinSys(A, &b, &w);
+            ChVectorDynamic<> w = A.colPivHouseholderQr().solve(b);
             Dv(0) = w(0);
             Dv(1) = w(1);
             L(0) = -w(2);  // note assume result sign in multiplier is flipped
@@ -669,6 +667,8 @@ void example5(const std::string& out_dir) {
     mystepper4.SetAlpha(0);  // HHT with no dissipation -> trapezoidal
     ChTimestepperHHT mystepper5(&mintegrable5);
     mystepper5.SetAlpha(-0.2);  // HHT with dissipation
+    ////mystepper5.SetVerbose(true);
+    ////mystepper5.SetMode(ChTimestepperHHT::POSITION);
     ChTimestepperNewmark mystepper6(&mintegrable6);
     mystepper6.SetGammaBeta(0.6, 0.3);  // Newmark
 

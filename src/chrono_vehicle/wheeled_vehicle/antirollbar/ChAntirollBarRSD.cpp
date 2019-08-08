@@ -88,14 +88,14 @@ void ChAntirollBarRSD::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
     // Create and initialize the revolute joint between left arm and chassis.
     ChCoordsys<> rev_ch_csys(P_arm_left, chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
-    m_revolute_ch = std::make_shared<ChLinkLockRevolute>();
+    m_revolute_ch = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute_ch->SetNameString(m_name + "_revolute_ch");
     m_revolute_ch->Initialize(m_arm_left, chassis, rev_ch_csys);
     chassis->GetSystem()->AddLink(m_revolute_ch);
 
     // Create and initialize the revolute joint between left and right arms.
     ChCoordsys<> rev_csys(P_center, chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
-    m_revolute = std::make_shared<ChLinkLockRevolute>();
+    m_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute->SetNameString(m_name + "_revolute");
     m_revolute->Initialize(m_arm_left, m_arm_right, rev_csys);
     chassis->GetSystem()->AddLink(m_revolute);
@@ -105,13 +105,13 @@ void ChAntirollBarRSD::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_revolute->GetForce_Rz().SetR(getDampingCoefficient());
 
     // Create distance constraint to model left droplink.
-    m_link_left = std::make_shared<ChLinkDistance>();
+    m_link_left = chrono_types::make_shared<ChLinkDistance>();
     m_link_left->SetNameString(m_name + "_droplink_left");
     m_link_left->Initialize(m_arm_left, susp_body_left, false, P_drop_arm_left, P_drop_susp_left);
     chassis->GetSystem()->AddLink(m_link_left);
 
     // Create distance constraint to model right droplink.
-    m_link_right = std::make_shared<ChLinkDistance>();
+    m_link_right = chrono_types::make_shared<ChLinkDistance>();
     m_link_right->SetNameString(m_name + "_droplink_right");
     m_link_right->Initialize(m_arm_right, susp_body_right, false, P_drop_arm_right, P_drop_susp_right);
     chassis->GetSystem()->AddLink(m_link_right);
@@ -138,24 +138,24 @@ ChVector<> ChAntirollBarRSD::GetCOMPos() const {
 void ChAntirollBarRSD::LogConstraintViolations() {
     // Chassis revolute joint
     {
-        ChMatrix<>* C = m_revolute_ch->GetC();
+        ChVectorDynamic<> C = m_revolute_ch->GetC();
         GetLog() << "Chassis revolute          ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "  ";
-        GetLog() << "  " << C->GetElement(3, 0) << "  ";
-        GetLog() << "  " << C->GetElement(4, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "  ";
+        GetLog() << "  " << C(4) << "\n";
     }
 
     // Central revolute joint
     {
-        ChMatrix<>* C = m_revolute->GetC();
+        ChVectorDynamic<> C = m_revolute->GetC();
         GetLog() << "Central revolute          ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "  ";
-        GetLog() << "  " << C->GetElement(3, 0) << "  ";
-        GetLog() << "  " << C->GetElement(4, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "  ";
+        GetLog() << "  " << C(4) << "\n";
     }
 
     // Distance constraints (droplinks)
@@ -173,25 +173,25 @@ void ChAntirollBarRSD::AddVisualizationArm(std::shared_ptr<ChBody> arm,
                                            const ChVector<>& pt_3,
                                            double radius,
                                            const ChColor& color) {
-    auto cyl_1 = std::make_shared<ChCylinderShape>();
+    auto cyl_1 = chrono_types::make_shared<ChCylinderShape>();
     cyl_1->GetCylinderGeometry().p1 = pt_1;
     cyl_1->GetCylinderGeometry().p2 = pt_2;
     cyl_1->GetCylinderGeometry().rad = radius;
     arm->AddAsset(cyl_1);
 
-    auto cyl_2 = std::make_shared<ChCylinderShape>();
+    auto cyl_2 = chrono_types::make_shared<ChCylinderShape>();
     cyl_2->GetCylinderGeometry().p1 = pt_2;
     cyl_2->GetCylinderGeometry().p2 = pt_3;
     cyl_2->GetCylinderGeometry().rad = radius;
     arm->AddAsset(cyl_2);
 
-    auto cyl_3 = std::make_shared<ChCylinderShape>();
+    auto cyl_3 = chrono_types::make_shared<ChCylinderShape>();
     cyl_3->GetCylinderGeometry().p1 = pt_1 + ChVector<>(0, 0, 3 * radius);
     cyl_3->GetCylinderGeometry().p2 = pt_1 - ChVector<>(0, 0, 3 * radius);
     cyl_3->GetCylinderGeometry().rad = radius / 2;
     arm->AddAsset(cyl_3);
 
-    auto col = std::make_shared<ChColorAsset>();
+    auto col = chrono_types::make_shared<ChColorAsset>();
     col->SetColor(color);
     arm->AddAsset(col);
 }

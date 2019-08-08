@@ -35,8 +35,8 @@ ChWheeledVehicleAssembly::ChWheeledVehicleAssembly(ChSystem* system,
                                                    const std::string& powertrain_def_filename)
     : m_driver_cb(NULL), m_tire_cb(NULL), m_chassis_cb(NULL) {
     // Create the vehicle and powertrain systems.
-    m_vehicle = std::make_shared<WheeledVehicle>(system, vehicle::GetDataFile(vehicle_def_filename));
-    m_powertrain = std::make_shared<SimplePowertrain>(vehicle::GetDataFile(powertrain_def_filename));
+    m_vehicle = chrono_types::make_shared<WheeledVehicle>(system, vehicle::GetDataFile(vehicle_def_filename));
+    m_powertrain = chrono_types::make_shared<SimplePowertrain>(vehicle::GetDataFile(powertrain_def_filename));
 
     // The vector of tire forces is required by the ChronoVehicle API. Since we
     // use rigid contact for tire-terrain interaction, these are always zero.

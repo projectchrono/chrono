@@ -4,19 +4,14 @@ INCLUDE_DIRECTORIES( ${CH_INCLUDES} )
 SET(TESTS
     utest_CH_ChVector
     utest_CH_ChQuaternion
+    utest_CH_ChState
     utest_CH_coords
+    utest_CH_linalg
     utest_CH_math
-    utest_CH_sparse_matrix
     utest_CH_ChCSMatrix
     utest_CH_ISO2631
     #utest_CH_stream
 )
-
-if(AVX_FOUND)
-   set(TESTS ${TESTS} 
-       utest_CH_AVX
-   )
-endif()
 
 if(CH_CXX14)
    set(TESTS ${TESTS}

@@ -62,12 +62,12 @@ int main(int argc, char* argv[]) {
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
     my_mesh->SetAutomaticGravity(false);
 
     // Create a material, that must be assigned to each element,
     // and set its parameters
-    auto mmaterial = std::make_shared<ChContinuumElectrostatics>();
+    auto mmaterial = chrono_types::make_shared<ChContinuumElectrostatics>();
     mmaterial->SetPermittivity(1);
     // mmaterial->SetRelativePermettivity(1000.01);
 
@@ -124,20 +124,20 @@ int main(int argc, char* argv[]) {
     // This will paint the colored mesh with temperature scale (E_PLOT_NODE_P is the scalar field of the Poisson
     // problem)
 
-    auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_P);  // plot V, potential field
     mvisualizemesh->SetColorscaleMinMax(-0.1, 24);
     my_mesh->AddAsset(mvisualizemesh);
 
     // This will paint the wireframe
-    auto mvisualizemeshB = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshB = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshB->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
     mvisualizemeshB->SetColorscaleMinMax(-0.1, 24);
     mvisualizemeshB->SetWireframe(true);
     my_mesh->AddAsset(mvisualizemeshB);
 
     // This will paint the E vector field as line vectors
-    auto mvisualizemeshC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_ELEM_VECT_DP);
     mvisualizemeshC->SetSymbolsScale(0.00002);

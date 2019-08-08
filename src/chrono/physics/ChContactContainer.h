@@ -138,7 +138,7 @@ class ChApi ChContactContainer : public ChPhysicsItem {
             // Extract information for current contact (expressed in global frame)
             ChMatrix33<> A = (*contact)->GetContactPlane();
             ChVector<> force_loc = (*contact)->GetContactForce();
-            ChVector<> force = A.Matr_x_Vect(force_loc);
+            ChVector<> force = A * force_loc;
             ChVector<> p1 = (*contact)->GetContactP1();
             ChVector<> p2 = (*contact)->GetContactP2();
 

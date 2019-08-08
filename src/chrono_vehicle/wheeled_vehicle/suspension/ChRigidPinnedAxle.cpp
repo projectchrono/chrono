@@ -79,7 +79,7 @@ void ChRigidPinnedAxle::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_axlePinLoc = suspension_to_abs.TransformLocalToParent(getAxlePinLocation());
     ChQuaternion<> chassisRot = chassis->GetFrame_REF_to_abs().GetRot();
     ChCoordsys<> rev_csys(m_axlePinLoc, chassisRot * Q_from_AngY(CH_C_PI_2));
-    m_axlePin = std::make_shared<ChLinkLockRevolute>();
+    m_axlePin = chrono_types::make_shared<ChLinkLockRevolute>();
     m_axlePin->SetNameString(m_name + "_axlePin");
     m_axlePin->Initialize(m_axleTube, chassis, rev_csys);
     chassis->GetSystem()->AddLink(m_axlePin);
@@ -111,20 +111,20 @@ void ChRigidPinnedAxle::InitializeSide(VehicleSide side,
 
     // Create and initialize joints
     ChCoordsys<> rev_csys(points[SPINDLE], chassisRot * Q_from_AngX(CH_C_PI_2));
-    m_revolute[side] = std::make_shared<ChLinkLockRevolute>();
+    m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
     m_revolute[side]->Initialize(m_axleTube, m_spindle[side], rev_csys);
     chassis->GetSystem()->AddLink(m_revolute[side]);
 
     // Create and initialize the axle shaft and its connection to the spindle.
     // Note that the spindle rotates about the Y axis.
-    m_axle[side] = std::make_shared<ChShaft>();
+    m_axle[side] = chrono_types::make_shared<ChShaft>();
     m_axle[side]->SetNameString(m_name + "_axle" + suffix);
     m_axle[side]->SetInertia(getAxleInertia());
     m_axle[side]->SetPos_dt(-ang_vel);
     chassis->GetSystem()->Add(m_axle[side]);
 
-    m_axle_to_spindle[side] = std::make_shared<ChShaftsBody>();
+    m_axle_to_spindle[side] = chrono_types::make_shared<ChShaftsBody>();
     m_axle_to_spindle[side]->SetNameString(m_name + "_axle_to_spindle" + suffix);
     m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector<>(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
@@ -163,13 +163,13 @@ double ChRigidPinnedAxle::GetTrack() {
 void ChRigidPinnedAxle::LogConstraintViolations(VehicleSide side) {
     // Revolute joint
     {
-        ChMatrix<>* C = m_revolute[side]->GetC();
+        ChVectorDynamic<> C = m_revolute[side]->GetC();
         GetLog() << "Spindle revolute      ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "  ";
-        GetLog() << "  " << C->GetElement(3, 0) << "  ";
-        GetLog() << "  " << C->GetElement(4, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "  ";
+        GetLog() << "  " << C(4) << "\n";
     }
 }
 
@@ -187,7 +187,7 @@ void ChRigidPinnedAxle::AddVisualizationAssets(VisualizationType vis) {
     ChVector<> pP = m_axleTube->TransformPointParentToLocal(m_axlePinLoc);
 
     // Add visualization assets for the axle tube body
-    auto cyl1 = std::make_shared<ChCylinderShape>();
+    auto cyl1 = chrono_types::make_shared<ChCylinderShape>();
     cyl1->GetCylinderGeometry().p1 = pSL;
     cyl1->GetCylinderGeometry().p2 = pSR;
     cyl1->GetCylinderGeometry().rad = getAxleTubeRadius();
@@ -195,20 +195,20 @@ void ChRigidPinnedAxle::AddVisualizationAssets(VisualizationType vis) {
 
     static const double threshold2 = 1e-6;
     if (pP.Length2() > threshold2) {
-        auto cyl2 = std::make_shared<ChCylinderShape>();
+        auto cyl2 = chrono_types::make_shared<ChCylinderShape>();
         cyl2->GetCylinderGeometry().p1 = pP;
         cyl2->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
         cyl2->GetCylinderGeometry().rad = getAxleTubeRadius() / 2;
         m_axleTube->AddAsset(cyl2);
     }
 
-    auto cyl3 = std::make_shared<ChCylinderShape>();
+    auto cyl3 = chrono_types::make_shared<ChCylinderShape>();
     cyl3->GetCylinderGeometry().p1 = pP - ChVector<>(1.5 * getAxleTubeRadius(), 0, 0);
     cyl3->GetCylinderGeometry().p2 = pP + ChVector<>(1.5 * getAxleTubeRadius(), 0, 0);
     cyl3->GetCylinderGeometry().rad = getAxleTubeRadius();
     m_axleTube->AddAsset(cyl3);
 
-    auto col = std::make_shared<ChColorAsset>(0.2f, 0.2f, 0.6f);
+    auto col = chrono_types::make_shared<ChColorAsset>(0.2f, 0.2f, 0.6f);
     m_axleTube->AddAsset(col);
 }
 

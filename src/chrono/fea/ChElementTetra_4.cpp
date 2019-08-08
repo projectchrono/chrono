@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Andrea Favali, Alessandro Tasora
+// Authors: Andrea Favali, Alessandro Tasora, Radu Serban
 // =============================================================================
 
 #include "chrono/fea/ChElementTetra_4.h"
@@ -19,8 +19,8 @@ namespace fea {
 
 ChElementTetra_4::ChElementTetra_4() {
     nodes.resize(4);
-    this->MatrB.Reset(6, 12);
-    this->StiffnessMatrix.Resize(12, 12);
+    this->MatrB.setZero(6, 12);
+    this->StiffnessMatrix.setZero(12, 12);
 }
 
 ChElementTetra_4::~ChElementTetra_4() {}
@@ -41,19 +41,19 @@ void ChElementTetra_4::SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA,
     Kmatr.SetVariables(mvars);
 }
 
-void ChElementTetra_4::ShapeFunctions(ChMatrix<>& N, double r, double s, double t) {
+void ChElementTetra_4::ShapeFunctions(ShapeVector& N, double r, double s, double t) {
     N(0) = 1.0 - r - s - t;
     N(1) = r;
     N(2) = s;
     N(3) = t;
 }
 
-void ChElementTetra_4::GetStateBlock(ChMatrixDynamic<>& mD) {
-    mD.Reset(this->GetNdofs(), 1);
-    mD.PasteVector(A.MatrT_x_Vect(nodes[0]->pos) - nodes[0]->GetX0(), 0, 0);
-    mD.PasteVector(A.MatrT_x_Vect(nodes[1]->pos) - nodes[1]->GetX0(), 3, 0);
-    mD.PasteVector(A.MatrT_x_Vect(nodes[2]->pos) - nodes[2]->GetX0(), 6, 0);
-    mD.PasteVector(A.MatrT_x_Vect(nodes[3]->pos) - nodes[3]->GetX0(), 9, 0);
+void ChElementTetra_4::GetStateBlock(ChVectorDynamic<>& mD) {
+    mD.setZero(this->GetNdofs());
+    mD.segment(0, 3) = (A.transpose() * nodes[0]->pos - nodes[0]->GetX0()).eigen();
+    mD.segment(3, 3) = (A.transpose() * nodes[1]->pos - nodes[1]->GetX0()).eigen();
+    mD.segment(6, 3) = (A.transpose() * nodes[2]->pos - nodes[2]->GetX0()).eigen();
+    mD.segment(9, 3) = (A.transpose() * nodes[3]->pos - nodes[3]->GetX0()).eigen();
 }
 
 double ChElementTetra_4::ComputeVolume() {
@@ -62,26 +62,24 @@ double ChElementTetra_4::ComputeVolume() {
     C1.Sub(nodes[2]->pos, nodes[0]->pos);
     D1.Sub(nodes[3]->pos, nodes[0]->pos);
     ChMatrixDynamic<> M(3, 3);
-    M.PasteVector(B1, 0, 0);
-    M.PasteVector(C1, 0, 1);
-    M.PasteVector(D1, 0, 2);
-    M.MatrTranspose();
-    Volume = std::abs(M.Det() / 6);
+    M.col(0) = B1.eigen();
+    M.col(1) = C1.eigen();
+    M.col(2) = D1.eigen();
+    M.transposeInPlace();
+    Volume = std::abs(M.determinant() / 6);
     return Volume;
 }
 
 void ChElementTetra_4::ComputeStiffnessMatrix() {
     // M = [ X0_0 X0_1 X0_2 X0_3 ] ^-1
     //     [ 1    1    1    1    ]
-    mM.PasteVector(nodes[0]->GetX0(), 0, 0);
-    mM.PasteVector(nodes[1]->GetX0(), 0, 1);
-    mM.PasteVector(nodes[2]->GetX0(), 0, 2);
-    mM.PasteVector(nodes[3]->GetX0(), 0, 3);
-    mM(3, 0) = 1.0;
-    mM(3, 1) = 1.0;
-    mM(3, 2) = 1.0;
-    mM(3, 3) = 1.0;
-    mM.MatrInverse();
+    ChMatrixNM<double, 4, 4> tmp;
+    tmp.block(0, 0, 3, 1) = nodes[0]->GetX0().eigen();
+    tmp.block(0, 1, 3, 1) = nodes[1]->GetX0().eigen();
+    tmp.block(0, 2, 3, 1) = nodes[2]->GetX0().eigen();
+    tmp.block(0, 3, 3, 1) = nodes[3]->GetX0().eigen();
+    tmp.row(3).setConstant(1.0);
+    mM = tmp.inverse();
 
     ////MatrB.Reset(6, 12);
     MatrB(0) = mM(0);
@@ -121,24 +119,19 @@ void ChElementTetra_4::ComputeStiffnessMatrix() {
     MatrB(69) = mM(14);
     MatrB(71) = mM(12);
 
-    ChMatrixNM<double, 6, 12> EB;
-    EB.MatrMultiply(this->Material->Get_StressStrainMatrix(), MatrB);
-
-    StiffnessMatrix.MatrTMultiply(MatrB, EB);
-
-    StiffnessMatrix.MatrScale(Volume);
+    StiffnessMatrix = Volume * MatrB.transpose() * Material->Get_StressStrainMatrix() * MatrB;
 
     // ***TEST*** SYMMETRIZE TO AVOID ROUNDOFF ASYMMETRY
-    for (int row = 0; row < StiffnessMatrix.GetRows() - 1; ++row)
-        for (int col = row + 1; col < StiffnessMatrix.GetColumns(); ++col)
+    for (int row = 0; row < StiffnessMatrix.rows() - 1; ++row)
+        for (int col = row + 1; col < StiffnessMatrix.cols(); ++col)
             StiffnessMatrix(row, col) = StiffnessMatrix(col, row);
 
     double max_err = 0;
     int err_r = -1;
     int err_c = -1;
-    for (int row = 0; row < StiffnessMatrix.GetRows(); ++row)
-        for (int col = 0; col < StiffnessMatrix.GetColumns(); ++col) {
-            double diff = fabs(StiffnessMatrix.GetElement(row, col) - StiffnessMatrix.GetElement(col, row));
+    for (int row = 0; row < StiffnessMatrix.rows(); ++row)
+        for (int col = 0; col < StiffnessMatrix.cols(); ++col) {
+            double diff = fabs(StiffnessMatrix(row, col) - StiffnessMatrix(col, row));
             if (diff > max_err) {
                 max_err = diff;
                 err_r = row;
@@ -158,14 +151,11 @@ void ChElementTetra_4::UpdateRotation() {
     // P = [ p_0  p_1  p_2  p_3 ]
     //     [ 1    1    1    1   ]
     ChMatrixNM<double, 4, 4> P;
-    P.PasteVector(nodes[0]->pos, 0, 0);
-    P.PasteVector(nodes[1]->pos, 0, 1);
-    P.PasteVector(nodes[2]->pos, 0, 2);
-    P.PasteVector(nodes[3]->pos, 0, 3);
-    P(3, 0) = 1.0;
-    P(3, 1) = 1.0;
-    P(3, 2) = 1.0;
-    P(3, 3) = 1.0;
+    P.block(0, 0, 3, 1) = nodes[0]->pos.eigen();
+    P.block(0, 1, 3, 1) = nodes[1]->pos.eigen();
+    P.block(0, 2, 3, 1) = nodes[2]->pos.eigen();
+    P.block(0, 3, 3, 1) = nodes[3]->pos.eigen();
+    P.row(3).setConstant(1.0);
 
     ChMatrix33<double> F;
     // F=P*mM (only upper-left 3x3 block!)
@@ -180,20 +170,20 @@ void ChElementTetra_4::UpdateRotation() {
     ChMatrix33<> S;
     double det = ChPolarDecomposition<>::Compute(F, this->A, S, 1E-6);
     if (det < 0)
-        this->A.MatrScale(-1.0);
+        this->A *= -1.0;
 
     // GetLog() << "FEM rotation: \n" << A << "\n" ;
 }
 
-void ChElementTetra_4::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor, double Mfactor) {
-    assert((H.GetRows() == 12) && (H.GetColumns() == 12));
+void ChElementTetra_4::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
+    assert((H.rows() == 12) && (H.cols() == 12));
 
     // warp the local stiffness matrix K in order to obtain global
     // tangent stiffness CKCt:
     ChMatrixDynamic<> CK(12, 12);
     ChMatrixDynamic<> CKCt(12, 12);  // the global, corotated, K matrix
-    ChMatrixCorotation<>::ComputeCK(StiffnessMatrix, this->A, 4, CK);
-    ChMatrixCorotation<>::ComputeKCt(CK, this->A, 4, CKCt);
+    ChMatrixCorotation::ComputeCK(StiffnessMatrix, this->A, 4, CK);
+    ChMatrixCorotation::ComputeKCt(CK, this->A, 4, CKCt);
     /*
     // ***TEST***
     ChMatrixDynamic<> testCKCt(12,12);
@@ -214,17 +204,17 @@ void ChElementTetra_4::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, d
     */
 
     // ***TEST*** SYMMETRIZE TO AVOID ROUNDOFF ASYMMETRY
-    for (int row = 0; row < CKCt.GetRows() - 1; ++row)
-        for (int col = row + 1; col < CKCt.GetColumns(); ++col)
+    for (int row = 0; row < CKCt.rows() - 1; ++row)
+        for (int col = row + 1; col < CKCt.cols(); ++col)
             CKCt(row, col) = CKCt(col, row);
 
     //***DEBUG***
     double max_err = 0;
     int err_r = -1;
     int err_c = -1;
-    for (int row = 0; row < StiffnessMatrix.GetRows(); ++row)
-        for (int col = 0; col < StiffnessMatrix.GetColumns(); ++col) {
-            double diff = fabs(StiffnessMatrix.GetElement(row, col) - StiffnessMatrix.GetElement(col, row));
+    for (int row = 0; row < StiffnessMatrix.rows(); ++row)
+        for (int col = 0; col < StiffnessMatrix.cols(); ++col) {
+            double diff = fabs(StiffnessMatrix(row, col) - StiffnessMatrix(col, row));
             if (diff > max_err) {
                 max_err = diff;
                 err_r = row;
@@ -237,16 +227,16 @@ void ChElementTetra_4::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, d
     err_r = -1;
     err_c = -1;
     double maxval = 0;
-    for (int row = 0; row < CKCt.GetRows(); ++row)
-        for (int col = 0; col < CKCt.GetColumns(); ++col) {
-            double diff = fabs(CKCt.GetElement(row, col) - CKCt.GetElement(col, row));
+    for (int row = 0; row < CKCt.rows(); ++row)
+        for (int col = 0; col < CKCt.cols(); ++col) {
+            double diff = fabs(CKCt(row, col) - CKCt(col, row));
             if (diff > max_err) {
                 max_err = diff;
                 err_r = row;
                 err_c = col;
             }
-            if (CKCt.GetElement(row, col) > maxval)
-                maxval = CKCt.GetElement(row, col);
+            if (CKCt(row, col) > maxval)
+                maxval = CKCt(row, col);
         }
     if (max_err > 1e-10)
         GetLog() << "NONSYMMETRIC corotated matrix! err " << max_err << " at " << err_r << "," << err_c
@@ -267,12 +257,8 @@ void ChElementTetra_4::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, d
     */
 
     // For K stiffness matrix and R damping matrix:
-
     double mkfactor = Kfactor + Rfactor * this->GetMaterial()->Get_RayleighDampingK();
-
-    CKCt.MatrScale(mkfactor);
-
-    H.PasteMatrix(CKCt, 0, 0);
+    H = mkfactor * CKCt;
 
     // For M mass matrix:
     if (Mfactor) {
@@ -285,51 +271,46 @@ void ChElementTetra_4::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, d
     //***TO DO*** better per-node lumping, or 12x12 consistent mass matrix.
 }
 
-void ChElementTetra_4::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
-    assert((Fi.GetRows() == 12) && (Fi.GetColumns() == 1));
+void ChElementTetra_4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
+    assert(Fi.size() == 12);
 
     // set up vector of nodal displacements (in local element system) u_l = R*p - p0
-    ChMatrixDynamic<> displ(12, 1);
+    ChVectorDynamic<> displ(12);
     this->GetStateBlock(displ);  // nodal displacements, local
 
     // [local Internal Forces] = [Klocal] * displ + [Rlocal] * displ_dt
-    ChMatrixDynamic<> FiK_local(12, 1);
-    FiK_local.MatrMultiply(StiffnessMatrix, displ);
+    ChVectorDynamic<> FiK_local = StiffnessMatrix * displ;
 
-    displ.PasteVector(A.MatrT_x_Vect(nodes[0]->pos_dt), 0, 0);  // nodal speeds, local
-    displ.PasteVector(A.MatrT_x_Vect(nodes[1]->pos_dt), 3, 0);
-    displ.PasteVector(A.MatrT_x_Vect(nodes[2]->pos_dt), 6, 0);
-    displ.PasteVector(A.MatrT_x_Vect(nodes[3]->pos_dt), 9, 0);
-    ChMatrixDynamic<> FiR_local(12, 1);
-    FiR_local.MatrMultiply(StiffnessMatrix, displ);
-    FiR_local.MatrScale(this->Material->Get_RayleighDampingK());
+    displ.segment(0,3) = (A.transpose() * nodes[0]->pos_dt).eigen();  // nodal speeds, local
+    displ.segment(3,3) = (A.transpose() * nodes[1]->pos_dt).eigen();
+    displ.segment(6,3) = (A.transpose() * nodes[2]->pos_dt).eigen();
+    displ.segment(9,3) = (A.transpose() * nodes[3]->pos_dt).eigen();
+    ChMatrixDynamic<> FiR_local = Material->Get_RayleighDampingK() * StiffnessMatrix * displ;
 
     double lumped_node_mass = (this->GetVolume() * this->Material->Get_density()) / 4.0;
-    displ.MatrScale(lumped_node_mass * this->Material->Get_RayleighDampingM());  // reuse 'displ' for performance
-    FiR_local.MatrInc(displ);
+    displ *= lumped_node_mass * this->Material->Get_RayleighDampingM();
+    FiR_local += displ;
+
     //***TO DO*** better per-node lumping, or 12x12 consistent mass matrix.
 
-    FiK_local.MatrInc(FiR_local);
-
-    FiK_local.MatrScale(-1.0);
+    FiK_local += FiR_local;
+    FiK_local *= -1.0;
 
     // Fi = C * Fi_local  with C block-diagonal rotations A
-    ChMatrixCorotation<>::ComputeCK(FiK_local, this->A, 4, Fi);
+    ChMatrixCorotation::ComputeCK(FiK_local, this->A, 4, Fi);
 }
 
 ChStrainTensor<> ChElementTetra_4::GetStrain() {
     // set up vector of nodal displacements (in local element system) u_l = R*p - p0
-    ChMatrixDynamic<> displ(12, 1);
+    ChVectorDynamic<> displ(12);
     this->GetStateBlock(displ);  // nodal displacements, local
 
-    ChStrainTensor<> mstrain;
-    mstrain.MatrMultiply(MatrB, displ);
+    ChStrainTensor<> mstrain = MatrB * displ;
     return mstrain;
 }
 
 ChStressTensor<> ChElementTetra_4::GetStress() {
-    ChStressTensor<> mstress;
-    mstress.MatrMultiply(this->Material->Get_StressStrainMatrix(), this->GetStrain());
+    ChStressTensor<> mstress = this->Material->Get_StressStrainMatrix() * this->GetStrain();
     return mstress;
 }
 
@@ -341,17 +322,17 @@ void ChElementTetra_4::ComputeNodalMass() {
 }
 
 void ChElementTetra_4::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
-    mD.PasteVector(this->nodes[0]->GetPos(), block_offset, 0);
-    mD.PasteVector(this->nodes[1]->GetPos(), block_offset + 3, 0);
-    mD.PasteVector(this->nodes[2]->GetPos(), block_offset + 6, 0);
-    mD.PasteVector(this->nodes[3]->GetPos(), block_offset + 9, 0);
+    mD.segment(block_offset + 0, 3) = nodes[0]->GetPos().eigen();
+    mD.segment(block_offset + 3, 3) = nodes[1]->GetPos().eigen();
+    mD.segment(block_offset + 6, 3) = nodes[2]->GetPos().eigen();
+    mD.segment(block_offset + 9, 3) = nodes[3]->GetPos().eigen();
 }
 
 void ChElementTetra_4::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
-    mD.PasteVector(this->nodes[0]->GetPos_dt(), block_offset, 0);
-    mD.PasteVector(this->nodes[1]->GetPos_dt(), block_offset + 3, 0);
-    mD.PasteVector(this->nodes[2]->GetPos_dt(), block_offset + 6, 0);
-    mD.PasteVector(this->nodes[3]->GetPos_dt(), block_offset + 9, 0);
+    mD.segment(block_offset + 0, 3) = nodes[0]->GetPos_dt().eigen();
+    mD.segment(block_offset + 3, 3) = nodes[1]->GetPos_dt().eigen();
+    mD.segment(block_offset + 6, 3) = nodes[2]->GetPos_dt().eigen();
+    mD.segment(block_offset + 9, 3) = nodes[3]->GetPos_dt().eigen();
 }
 
 void ChElementTetra_4::LoadableStateIncrement(const unsigned int off_x,
@@ -379,7 +360,7 @@ void ChElementTetra_4::ComputeNF(const double U,
                                  ChVectorDynamic<>* state_w) {
     // evaluate shape functions (in compressed vector), btw. not dependent on state
     // note: U,V,W in 0..1 range, thanks to IsTetrahedronIntegrationNeeded() {return true;}
-    ChMatrixNM<double, 1, 4> N;
+    ShapeVector N;
     this->ShapeFunctions(N, U, V, W);
 
     detJ = 6 * this->GetVolume();
@@ -402,8 +383,8 @@ void ChElementTetra_4::ComputeNF(const double U,
 
 ChElementTetra_4_P::ChElementTetra_4_P() {
     nodes.resize(4);
-    this->MatrB.Resize(3, 4);
-    this->StiffnessMatrix.Resize(4, 4);
+    this->MatrB.setZero(3, 4);
+    this->StiffnessMatrix.setZero(4, 4);
 }
 
 void ChElementTetra_4_P::SetNodes(std::shared_ptr<ChNodeFEAxyzP> nodeA,
@@ -422,15 +403,15 @@ void ChElementTetra_4_P::SetNodes(std::shared_ptr<ChNodeFEAxyzP> nodeA,
     Kmatr.SetVariables(mvars);
 }
 
-void ChElementTetra_4_P::ShapeFunctions(ChMatrix<>& N, double z0, double z1, double z2) {
+void ChElementTetra_4_P::ShapeFunctions(ShapeVector& N, double z0, double z1, double z2) {
     N(0) = z0;
     N(1) = z1;
     N(2) = z2;
     N(3) = 1.0 - z0 - z1 - z2;
 }
 
-void ChElementTetra_4_P::GetStateBlock(ChMatrixDynamic<>& mD) {
-    mD.Reset(this->GetNdofs(), 1);
+void ChElementTetra_4_P::GetStateBlock(ChVectorDynamic<>& mD) {
+    mD.setZero(this->GetNdofs());
     mD(0) = nodes[0]->GetP();
     mD(1) = nodes[1]->GetP();
     mD(2) = nodes[2]->GetP();
@@ -443,26 +424,24 @@ double ChElementTetra_4_P::ComputeVolume() {
     C1.Sub(nodes[2]->GetPos(), nodes[0]->GetPos());
     D1.Sub(nodes[3]->GetPos(), nodes[0]->GetPos());
     ChMatrixDynamic<> M(3, 3);
-    M.PasteVector(B1, 0, 0);
-    M.PasteVector(C1, 0, 1);
-    M.PasteVector(D1, 0, 2);
-    M.MatrTranspose();
-    Volume = std::abs(M.Det() / 6);
+    M.col(0) = B1.eigen();
+    M.col(1) = C1.eigen();
+    M.col(2) = D1.eigen();
+    M.transposeInPlace();
+    Volume = std::abs(M.determinant() / 6);
     return Volume;
 }
 
 void ChElementTetra_4_P::ComputeStiffnessMatrix() {
     // M = [ X0_0 X0_1 X0_2 X0_3 ] ^-1
     //     [ 1    1    1    1    ]
-    mM.PasteVector(nodes[0]->GetPos(), 0, 0);
-    mM.PasteVector(nodes[1]->GetPos(), 0, 1);
-    mM.PasteVector(nodes[2]->GetPos(), 0, 2);
-    mM.PasteVector(nodes[3]->GetPos(), 0, 3);
-    mM(3, 0) = 1.0;
-    mM(3, 1) = 1.0;
-    mM(3, 2) = 1.0;
-    mM(3, 3) = 1.0;
-    mM.MatrInverse();
+    ChMatrixNM<double, 4, 4> tmp;
+    tmp.block(0, 0, 3, 1) = nodes[0]->GetPos().eigen();
+    tmp.block(0, 1, 3, 1) = nodes[1]->GetPos().eigen();
+    tmp.block(0, 2, 3, 1) = nodes[2]->GetPos().eigen();
+    tmp.block(0, 3, 3, 1) = nodes[3]->GetPos().eigen();
+    tmp.row(3).setConstant(1.0);
+    mM = tmp.inverse();
 
     ////MatrB.Reset(3, 4);
     MatrB(0, 0) = mM(0);
@@ -478,12 +457,7 @@ void ChElementTetra_4_P::ComputeStiffnessMatrix() {
     MatrB(2, 2) = mM(10);
     MatrB(2, 3) = mM(14);
 
-    ChMatrixNM<double, 3, 4> EB;
-    EB.MatrMultiply(this->Material->Get_ConstitutiveMatrix(), MatrB);
-
-    StiffnessMatrix.MatrTMultiply(MatrB, EB);
-
-    StiffnessMatrix.MatrScale(Volume);
+    StiffnessMatrix = Volume * MatrB.transpose() * Material->Get_ConstitutiveMatrix() * MatrB;
 }
 
 void ChElementTetra_4_P::SetupInitial(ChSystem* system) {
@@ -495,14 +469,11 @@ void ChElementTetra_4_P::UpdateRotation() {
     // P = [ p_0  p_1  p_2  p_3 ]
     //     [ 1    1    1    1   ]
     ChMatrixNM<double, 4, 4> P;
-    P.PasteVector(nodes[0]->GetPos(), 0, 0);
-    P.PasteVector(nodes[1]->GetPos(), 0, 1);
-    P.PasteVector(nodes[2]->GetPos(), 0, 2);
-    P.PasteVector(nodes[3]->GetPos(), 0, 3);
-    P(3, 0) = 1.0;
-    P(3, 1) = 1.0;
-    P(3, 2) = 1.0;
-    P(3, 3) = 1.0;
+    P.block(0, 0, 3, 1) = nodes[0]->GetPos().eigen();
+    P.block(0, 1, 3, 1) = nodes[1]->GetPos().eigen();
+    P.block(0, 2, 3, 1) = nodes[2]->GetPos().eigen();
+    P.block(0, 3, 3, 1) = nodes[3]->GetPos().eigen();
+    P.row(3).setConstant(1.0);
 
     ChMatrix33<double> F;
     // F=P*mM (only upper-left 3x3 block!)
@@ -517,18 +488,14 @@ void ChElementTetra_4_P::UpdateRotation() {
     ChMatrix33<> S;
     double det = ChPolarDecomposition<>::Compute(F, this->A, S, 1E-6);
     if (det < 0)
-        this->A.MatrScale(-1.0);
+        this->A *= -1.0;
 }
 
-void ChElementTetra_4_P::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor, double Mfactor) {
-    assert((H.GetRows() == 4) && (H.GetColumns() == 4));
+void ChElementTetra_4_P::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
+    assert((H.rows() == 4) && (H.cols() == 4));
 
     // For K  matrix (jacobian d/dT of  c dT/dt + div [C] grad T = f )
-
-    ChMatrixDynamic<> mK(this->StiffnessMatrix);  // local copy of stiffness
-    mK.MatrScale(Kfactor);
-
-    H.PasteMatrix(mK, 0, 0);
+    H = Kfactor * StiffnessMatrix;
 
     // For R  matrix: (jacobian d/d\dot(T) of  c dT/dt + div [C] grad T = f )
     if (Rfactor)
@@ -544,34 +511,31 @@ void ChElementTetra_4_P::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor,
     // For M mass matrix: NONE in Poisson equation c dT/dt + div [C] grad T = f
 }
 
-void ChElementTetra_4_P::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
-    assert((Fi.GetRows() == 4) && (Fi.GetColumns() == 1));
+void ChElementTetra_4_P::ComputeInternalForces(ChVectorDynamic<>& Fi) {
+    assert(Fi.size() == 4);
 
     // set up vector of nodal fields
-    ChMatrixDynamic<> displ(4, 1);
+    ChVectorDynamic<> displ(4);
     this->GetStateBlock(displ);
 
     // [local Internal Forces] = [Klocal] * P
-    ChMatrixDynamic<> FiK_local(4, 1);
-    FiK_local.MatrMultiply(StiffnessMatrix, displ);
+    ChVectorDynamic<> FiK_local = StiffnessMatrix * displ;
 
     //***TO DO*** derivative terms? + [Rlocal] * P_dt ???? ***NO because Poisson  rho dP/dt + div [C] grad P = 0
 
-    FiK_local.MatrScale(-1.0);
+    FiK_local *= -1.0;
 
-    // ChMatrixCorotation<>::ComputeCK(FiK_local, this->A, 4, Fi);  ***corotation NOT NEEDED
+    // ChMatrixCorotation::ComputeCK(FiK_local, this->A, 4, Fi);  ***corotation NOT NEEDED
 
     Fi = FiK_local;
 }
 
-ChMatrixNM<double, 3, 1> ChElementTetra_4_P::GetPgradient() {
+ChVectorN<double, 3> ChElementTetra_4_P::GetPgradient() {
     // set up vector of nodal displacements (in local element system) u_l = R*p - p0
-    ChMatrixDynamic<> displ(4, 1);
+    ChVectorDynamic<> displ(4);
     this->GetStateBlock(displ);
 
-    ChMatrixNM<double, 3, 1> mPgrad;
-    mPgrad.MatrMultiply(MatrB, displ);
-    return mPgrad;
+    return MatrB * displ;
 }
 
 void ChElementTetra_4_P::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
@@ -612,7 +576,7 @@ void ChElementTetra_4_P::ComputeNF(const double U,
                                    ChVectorDynamic<>* state_x,
                                    ChVectorDynamic<>* state_w) {
     // evaluate shape functions (in compressed vector), btw. not dependant on state
-    ChMatrixNM<double, 1, 4> N;
+    ShapeVector N;
     this->ShapeFunctions(N, U, V,
                          W);  // note: U,V,W in 0..1 range, thanks to IsTetrahedronIntegrationNeeded() {return true;}
 

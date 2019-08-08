@@ -64,7 +64,7 @@ void ChSurfaceNurbs::Evaluate(ChVector<>& pos, const double parU, const double p
     int vind = spanV - p_v;
     for (int iu = 0; iu <= this->p_u; iu++) {
         for (int iv = 0; iv <= this->p_v; iv++) {
-            pos += points[uind + iu][vind + iv] * mR(iu, iv);
+            pos += points(uind + iu, vind + iv) * mR(iu, iv);
         }
     }
 }
@@ -83,46 +83,44 @@ void ChSurfaceNurbs::SetupData(
     if (morder_v < 1)
         throw ChException("ChSurfaceNurbs::SetupData requires v order >= 1.");
 
-    if (mpoints.GetRows() < morder_u + 1)
+    if (mpoints.rows() < morder_u + 1)
         throw ChException("ChSurfaceNurbs::SetupData requires at least (order_u+1)x(order_v+1) control points.");
-    if (mpoints.GetColumns() < morder_v + 1)
+    if (mpoints.cols() < morder_v + 1)
         throw ChException("ChSurfaceNurbs::SetupData requires at least (order_u+1)x(order_v+1) control points.");
 
-    if (mknots_u && mknots_u->GetLength() != (mpoints.GetRows() + morder_u + 1))
+    if (mknots_u && mknots_u->size() != (mpoints.rows() + morder_u + 1))
         throw ChException("ChSurfaceNurbs::SetupData: knots_u must have size=n_points_u+order_u+1");
-    if (mknots_v && mknots_v->GetLength() != (mpoints.GetColumns() + morder_v + 1))
+    if (mknots_v && mknots_v->size() != (mpoints.cols() + morder_v + 1))
         throw ChException("ChSurfaceNurbs::SetupData: knots_v must have size=n_points_v+order_v+1");
 
-    if (weights && (weights->GetRows() != mpoints.GetRows() || weights->GetColumns() != mpoints.GetColumns()))
+    if (weights && (weights->rows() != mpoints.rows() || weights->cols() != mpoints.cols()))
         throw ChException("ChSurfaceNurbs::SetupData: weights matrix must have size as point matrix");
 
     this->p_u = morder_u;
     this->p_v = morder_v;
     this->points = mpoints;
-    int n_u = points.GetRows();
-    int n_v = points.GetColumns();
+    int n_u = (int)points.rows();
+    int n_v = (int)points.cols();
     int k_u = n_u + p_u + 1;
     int k_v = n_v + p_v + 1;
 
     if (mknots_u)
-        this->knots_u.CopyFromMatrix(*mknots_u);
+        this->knots_u = *mknots_u;
     else {
-        this->knots_u.Reset(n_u + p_u + 1);
+        this->knots_u.setZero(n_u + p_u + 1);
         ChBasisToolsBspline::ComputeKnotUniformMultipleEnds(this->knots_u, p_u);
     }
     if (mknots_v)
-        this->knots_v.CopyFromMatrix(*mknots_v);
+        this->knots_v = *mknots_v;
     else {
-        this->knots_v.Reset(n_v + p_v + 1);
+        this->knots_v.setZero(n_v + p_v + 1);
         ChBasisToolsBspline::ComputeKnotUniformMultipleEnds(this->knots_v, p_v);
     }
 
     if (weights)
-        this->weights.CopyFromMatrix(*weights);
-    else {
-        this->weights.Reset(n_u, n_v);
-        this->weights.FillElem(1.0);
-    }
+        this->weights = *weights;
+    else
+        this->weights.setConstant(n_u, n_v, 1.0);
 }
 
 void ChSurfaceNurbs::ArchiveOUT(ChArchiveOut& marchive) {
@@ -145,10 +143,10 @@ void ChSurfaceNurbs::ArchiveIN(ChArchiveIn& marchive) {
     // deserialize parent class
     ChSurface::ArchiveIN(marchive);
     // stream in all member data:
-    marchive >> CHNVP(points);
-    marchive >> CHNVP(weights);
-    marchive >> CHNVP(knots_u);
-    marchive >> CHNVP(knots_v);
+    ////marchive >> CHNVP(points);
+    ////marchive >> CHNVP(weights);
+    ////marchive >> CHNVP(knots_u);
+    ////marchive >> CHNVP(knots_v);
     marchive >> CHNVP(p_u);
     marchive >> CHNVP(p_v);
 }

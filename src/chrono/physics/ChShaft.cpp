@@ -140,12 +140,12 @@ void ChShaft::InjectVariables(ChSystemDescriptor& mdescriptor) {
 }
 
 void ChShaft::VariablesFbReset() {
-    variables.Get_fb().FillElem(0.0);
+    variables.Get_fb().setZero();
 }
 
 void ChShaft::VariablesFbLoadForces(double factor) {
     // add applied torques to 'fb' vector
-    variables.Get_fb().ElementN(0) += torque * factor;
+    variables.Get_fb()(0) += torque * factor;
 }
 
 void ChShaft::VariablesFbIncrementMq() {
@@ -154,14 +154,14 @@ void ChShaft::VariablesFbIncrementMq() {
 
 void ChShaft::VariablesQbLoadSpeed() {
     // set current speed in 'qb', it can be used by the solver when working in incremental mode
-    variables.Get_qb().SetElement(0, 0, pos_dt);
+    variables.Get_qb()(0) = pos_dt;
 }
 
 void ChShaft::VariablesQbSetSpeed(double step) {
     double old_dt = pos_dt;
 
     // from 'qb' vector, sets body speed, and updates auxiliary data
-    pos_dt = variables.Get_qb().GetElement(0, 0);
+    pos_dt = variables.Get_qb()(0);
 
     // apply limits (if in speed clamping mode) to speeds.
     ClampSpeed();
@@ -179,7 +179,7 @@ void ChShaft::VariablesQbIncrementPosition(double dt_step) {
     // Updates position with incremental action of speed contained in the
     // 'qb' vector:  pos' = pos + dt * speed   , like in an Eulero step.
 
-    double newspeed = variables.Get_qb().GetElement(0, 0);
+    double newspeed = variables.Get_qb()(0);
 
     // ADVANCE POSITION: pos' = pos + dt * vel
     pos = pos + newspeed * dt_step;

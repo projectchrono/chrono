@@ -37,7 +37,7 @@ ANCFToroidalTire::ANCFToroidalTire(const std::string& name)
 
 void ANCFToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) {
     // Create an isotropic material (shared by all elements)
-    auto mat = std::make_shared<ChMaterialShellANCF>(500, 9.0e7, 0.3);
+    auto mat = chrono_types::make_shared<ChMaterialShellANCF>(500, 9.0e7, 0.3);
 
     // Create the mesh nodes.
     // The nodes are first created in the wheel local frame, assuming Y as the tire axis,
@@ -58,7 +58,7 @@ void ANCFToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSid
             double nz = cos(theta) * sin(phi);
             ChVector<> dir = wheel_frame.TransformDirectionLocalToParent(ChVector<>(nx, ny, nz));
 
-            auto node = std::make_shared<ChNodeFEAxyzD>(loc, dir);
+            auto node = chrono_types::make_shared<ChNodeFEAxyzD>(loc, dir);
             node->SetMass(0);
             m_mesh->AddNode(node);
         }
@@ -91,7 +91,7 @@ void ANCFToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSid
             auto node3 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_mesh->GetNode(inode3));
 
             // Create the element and set its nodes.
-            auto element = std::make_shared<ChElementShellANCF>();
+            auto element = chrono_types::make_shared<ChElementShellANCF>();
             element->SetNodes(node0, node1, node2, node3);
 
             // Set element dimensions

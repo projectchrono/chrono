@@ -99,10 +99,10 @@ void ChRotaryArm::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     u = Vcross(v, dirs[REV_AXIS]);
     rot.Set_A_axis(u, v, dirs[REV_AXIS]);
 
-    m_revolute = std::make_shared<ChLinkMotorRotationAngle>();
+    m_revolute = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     m_revolute->SetNameString(m_name + "_revolute");
     m_revolute->Initialize(chassis, m_link, ChFrame<>(points[REV], rot.Get_A_quaternion()));
-    auto motor_fun = std::make_shared<ChFunction_Setpoint>();
+    auto motor_fun = chrono_types::make_shared<ChFunction_Setpoint>();
     m_revolute->SetAngleFunction(motor_fun);
     chassis->GetSystem()->AddLink(m_revolute);
 }
@@ -138,13 +138,13 @@ void ChRotaryArm::AddVisualizationAssets(VisualizationType vis) {
 
     // Visualization for arm
     {
-        auto cyl = std::make_shared<ChCylinderShape>();
+        auto cyl = chrono_types::make_shared<ChCylinderShape>();
         cyl->GetCylinderGeometry().p1 = m_pC;
         cyl->GetCylinderGeometry().p2 = m_pL;
         cyl->GetCylinderGeometry().rad = getPitmanArmRadius();
         m_link->AddAsset(cyl);
 
-        auto col = std::make_shared<ChColorAsset>();
+        auto col = chrono_types::make_shared<ChColorAsset>();
         col->SetColor(ChColor(0.7f, 0.7f, 0.2f));
         m_link->AddAsset(col);
     }
@@ -159,13 +159,13 @@ void ChRotaryArm::RemoveVisualizationAssets() {
 void ChRotaryArm::LogConstraintViolations() {
     // Revolute joint
     ////{
-    ////    ChMatrix<>* C = m_revolute->GetC();
+    ////    ChVectorDynamic<> C = m_revolute->GetC();
     ////    GetLog() << "Revolute              ";
-    ////    GetLog() << "  " << C->GetElement(0, 0) << "  ";
-    ////    GetLog() << "  " << C->GetElement(1, 0) << "  ";
-    ////    GetLog() << "  " << C->GetElement(2, 0) << "  ";
-    ////    GetLog() << "  " << C->GetElement(3, 0) << "  ";
-    ////    GetLog() << "  " << C->GetElement(4, 0) << "\n";
+    ////    GetLog() << "  " << C(0) << "  ";
+    ////    GetLog() << "  " << C(1) << "  ";
+    ////    GetLog() << "  " << C(2) << "  ";
+    ////    GetLog() << "  " << C(3) << "  ";
+    ////    GetLog() << "  " << C(4) << "\n";
     ////}
 }
 

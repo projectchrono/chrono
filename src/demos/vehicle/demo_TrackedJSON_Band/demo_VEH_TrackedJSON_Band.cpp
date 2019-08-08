@@ -281,7 +281,7 @@ int main(int argc, char* argv[]) {
     switch (solver_type) {
 #ifdef CHRONO_MUMPS
         case MUMPS: {
-            auto mumps_solver = std::make_shared<ChSolverMumps>();
+            auto mumps_solver = chrono_types::make_shared<ChSolverMumps>();
             mumps_solver->SetSparsityPatternLock(true);
             mumps_solver->SetVerbose(verbose_solver);
             vehicle.GetSystem()->SetSolver(mumps_solver);
@@ -290,7 +290,7 @@ int main(int argc, char* argv[]) {
 #endif
 #ifdef CHRONO_MKL
         case MKL: {
-            auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+            auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
             mkl_solver->SetSparsityPatternLock(true);
             mkl_solver->SetVerbose(verbose_solver);
             vehicle.GetSystem()->SetSolver(mkl_solver);

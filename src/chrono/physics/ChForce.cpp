@@ -12,9 +12,9 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
+#include "chrono/core/ChGlobal.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChForce.h"
-#include "chrono/physics/ChGlobal.h"
 
 namespace chrono {
 
@@ -34,15 +34,13 @@ ChForce::ChForce()
       align(BODY_DIR),
       frame(BODY),
       mode(FORCE) {
-    Qf = new ChMatrixDynamic<double>(7, 1);
-
-    modula = std::make_shared<ChFunction_Const>(1);
-    move_x = std::make_shared<ChFunction_Const>(0);
-    move_y = std::make_shared<ChFunction_Const>(0);
-    move_z = std::make_shared<ChFunction_Const>(0);
-    f_x = std::make_shared<ChFunction_Const>(0);
-    f_y = std::make_shared<ChFunction_Const>(0);
-    f_z = std::make_shared<ChFunction_Const>(0);
+    modula = chrono_types::make_shared<ChFunction_Const>(1);
+    move_x = chrono_types::make_shared<ChFunction_Const>(0);
+    move_y = chrono_types::make_shared<ChFunction_Const>(0);
+    move_z = chrono_types::make_shared<ChFunction_Const>(0);
+    f_x = chrono_types::make_shared<ChFunction_Const>(0);
+    f_y = chrono_types::make_shared<ChFunction_Const>(0);
+    f_z = chrono_types::make_shared<ChFunction_Const>(0);
 }
 
 ChForce::ChForce(const ChForce& other) : ChObj(other) {
@@ -62,8 +60,7 @@ ChForce::ChForce(const ChForce& other) : ChObj(other) {
 
     ChTime = other.ChTime;
 
-    Qf = new ChMatrixDynamic<double>(7, 1);
-    Qf->CopyFromMatrix(*other.Qf);
+    Qf = other.Qf;
 
     modula = std::shared_ptr<ChFunction>(other.modula->Clone());
 
@@ -74,10 +71,6 @@ ChForce::ChForce(const ChForce& other) : ChObj(other) {
     f_x = std::shared_ptr<ChFunction>(other.f_x->Clone());
     f_y = std::shared_ptr<ChFunction>(other.f_y->Clone());
     f_z = std::shared_ptr<ChFunction>(other.f_z->Clone());
-}
-
-ChForce::~ChForce() {
-    delete Qf;
 }
 
 // Impose absolute or relative positions, also setting the correct "rest position".
@@ -153,17 +146,13 @@ void ChForce::SetMforce(double newf) {
 
 // Force as applied to body
 void ChForce::GetBodyForceTorque(ChVector<>& body_force, ChVector<>& body_torque) const {
-    ChMatrix33<> Xpos;
-
     switch (mode) {
-        case FORCE:
-            body_force = this->force;  // Fb = F.w
-
-            Xpos.Set_X_matrix(this->vrelpoint);
-            body_torque = Xpos.MatrT_x_Vect(this->relforce);
-            body_torque = Vmul(body_torque, -1.0);  // Mb = - [u]'[A]'F,w   = - [u]'F,l
+        case FORCE: {
+            body_force = force;  // Fb = F.w
+            ChStarMatrix33<> Xpos(vrelpoint);
+            body_torque = -(Xpos.transpose() * relforce);  // Mb = - [u]'[A]'F,w   = - [u]'F,l
             break;
-
+        }
         case TORQUE:
             body_force = VNULL;      // Fb = 0;
             body_torque = relforce;  // Mb = [A]'F,w   = F,l
@@ -188,9 +177,6 @@ void ChForce::UpdateState() {
     ChVector<> vectforce;
     ChVector<> vmotion;
     ChVector<> xyzforce;
-    ChMatrixNM<double, 3, 1> mat_force;
-    ChMatrix33<> Xpos;
-    ChMatrixNM<double, 4, 1> Qfrot;
 
     my_body = GetBody();
 
@@ -249,40 +235,33 @@ void ChForce::UpdateState() {
 
     switch (mode) {
         case FORCE: {
-            Qf->SetElement(0, 0, force.x());  // pos.lagrangian Qfx
-            Qf->SetElement(1, 0, force.y());
-            Qf->SetElement(2, 0, force.z());
+            Qf(0) = force.x();  // pos.lagrangian Qfx
+            Qf(1) = force.y();
+            Qf(2) = force.z();
+
             //   Qfrot= (-[A][u][G])'f
-            ChVector<> VQtemp;
 
-            Xpos.Set_X_matrix(vrelpoint);
+            ChStarMatrix33<> Xpos(vrelpoint);
+            ChVector<> VQtemp = Xpos.transpose() * relforce; // = [u]'[A]'F,w
 
-            VQtemp = Xpos.MatrT_x_Vect(relforce);  // = [u]'[A]'F,w
+            ChGlMatrix34<> mGl(my_body->GetCoord().rot);
+            ChVectorN<double, 4> Qfrot = -mGl.transpose() * VQtemp.eigen(); // Q = - [Gl]'[u]'[A]'F,w
 
-            mat_force.PasteVector(VQtemp, 0, 0);
+            Qf.segment(3, 4) = Qfrot;
 
-            ChMatrixNM<double, 3, 4> mGl;
-            ChFrame<>::SetMatrix_Gl(mGl, my_body->GetCoord().rot);
-
-            Qfrot.MatrTMultiply(mGl, mat_force);
-            Qfrot.MatrNeg();  // Q = - [Gl]'[u]'[A]'F,w
-            Qf->PasteMatrix(Qfrot, 3, 0);
             break;
         }
 
         case TORQUE:
-            Qf->SetElement(0, 0, 0);  // pos.lagrangian Qfx
-            Qf->SetElement(1, 0, 0);
-            Qf->SetElement(2, 0, 0);
+            Qf(0) = 0;  // pos.lagrangian Qfx
+            Qf(1) = 0;
+            Qf(2) = 0;
 
             // rot.lagangian
-            mat_force.PasteVector(relforce, 0, 0);
+            ChGlMatrix34<> mGl(my_body->GetCoord().rot);
+            ChVectorN<double, 4> Qfrot = mGl.transpose() * relforce.eigen();
 
-            ChMatrixNM<double, 3, 4> mGl;
-            ChFrame<>::SetMatrix_Gl(mGl, my_body->GetCoord().rot);
-
-            Qfrot.MatrTMultiply(mGl, mat_force);
-            Qf->PasteMatrix(Qfrot, 3, 0);
+            Qf.segment(3, 4) = Qfrot;
 
             break;
     }

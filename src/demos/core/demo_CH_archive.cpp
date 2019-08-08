@@ -27,11 +27,11 @@
 #include "chrono/serialization/ChArchiveXML.h"
 #include "chrono/serialization/ChArchiveExplorer.h"
 
-#include "chrono/physics/ChGlobal.h"
+#include "chrono/core/ChGlobal.h"
 
 #include "chrono/core/ChLog.h"
 #include "chrono/core/ChVector.h"
-#include "chrono/core/ChMatrixDynamic.h"
+#include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChException.h"
 #include "chrono/solver/ChConstraintTuple.h"
@@ -296,7 +296,7 @@ void my_serialization_example(ChArchiveOut& marchive)
         m_stlunorderedmap[41]=44.8;
         m_stlunorderedmap[34]=33.6;
         ChMatrixDynamic<double> m_matr(3, 5);
-        m_matr.FillRandom(10, 0);
+        m_matr.fillRandom(0, 10);
         ChVector<> m_vect(0.5, 0.6, 0.7);
         ChQuaternion<> m_quat(0.1, 0.2, 0.3, 0.4);
  
@@ -309,7 +309,7 @@ void my_serialization_example(ChArchiveOut& marchive)
         marchive << CHNVP(m_stllist);
         marchive << CHNVP(m_stlpair);
         marchive << CHNVP(m_stlunorderedmap);
-        marchive << CHNVP(m_matr);    
+        ////marchive << CHNVP(m_matr);    
         marchive << CHNVP(m_vect);
         marchive << CHNVP(m_quat, "m_quaternion", NVP_TRACK_OBJECT);  
         
@@ -353,7 +353,7 @@ void my_serialization_example(ChArchiveOut& marchive)
         // Also store c++ objects referenced by shared pointers.
         // If classes of pointed objects used CH_FACTORY_REGISTER, class abstraction
         // will be automatically used.
-        auto s_boss = std::make_shared<myEmployeeBoss>();
+        auto s_boss = chrono_types::make_shared<myEmployeeBoss>();
         marchive << CHNVP(s_boss);  //  object was referenced by shared pointer.
 
         // Serialize a shared pointer pointing to the same shared resource of s_boss. 
@@ -415,7 +415,7 @@ void my_deserialization_example(ChArchiveIn& marchive)
         marchive >> CHNVP(m_stllist);
         marchive >> CHNVP(m_stlpair);
         marchive >> CHNVP(m_stlunorderedmap);
-        marchive >> CHNVP(m_matr);
+        ////marchive >> CHNVP(m_matr);
         marchive >> CHNVP(m_vect);  
         marchive >> CHNVP(m_quat, "m_quaternion", NVP_TRACK_OBJECT);        
 

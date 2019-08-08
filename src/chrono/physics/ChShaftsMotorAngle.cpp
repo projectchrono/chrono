@@ -22,7 +22,7 @@ CH_FACTORY_REGISTER(ChShaftsMotorAngle)
 
 ChShaftsMotorAngle::ChShaftsMotorAngle() : rot_offset(0), motor_torque(0), violation(0) {
     // default motion function : a ramp
-    this->f_rot = std::make_shared<ChFunction_Ramp>(
+    this->f_rot = chrono_types::make_shared<ChFunction_Ramp>(
         0.0,   // default y(0)
         1.0    // default dy/dx , i.e.   1 [rad/s]
         );
@@ -141,8 +141,8 @@ void ChShaftsMotorAngle::ConstraintsBiLoad_Ct(double factor) {
 }
 
 void ChShaftsMotorAngle::ConstraintsLoadJacobians() {
-    constraint.Get_Cq_a()->SetElement(0, 0, 1);
-    constraint.Get_Cq_b()->SetElement(0, 0, -1);
+    constraint.Get_Cq_a()(0) = 1;
+    constraint.Get_Cq_b()(0) = -1;
 }
 
 void ChShaftsMotorAngle::ConstraintsFetch_react(double factor) {

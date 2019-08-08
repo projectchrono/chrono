@@ -202,6 +202,9 @@ class ChApi ChElasticityCosseratGeneric : public ChElasticityCosserat {
 
   private:
     ChMatrixNM<double, 6, 6> mE;
+
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 /// Elasticity for a beam section in 3D, along with basic material

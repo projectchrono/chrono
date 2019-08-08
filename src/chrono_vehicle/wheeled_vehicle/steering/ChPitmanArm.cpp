@@ -120,10 +120,10 @@ void ChPitmanArm::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     u = Vcross(v, dirs[REV_AXIS]);
     rot.Set_A_axis(u, v, dirs[REV_AXIS]);
 
-    m_revolute = std::make_shared<ChLinkMotorRotationAngle>();
+    m_revolute = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     m_revolute->SetNameString(m_name + "_revolute");
     m_revolute->Initialize(chassis, m_arm, ChFrame<>(points[REV], rot.Get_A_quaternion()));
-    auto motor_fun = std::make_shared<ChFunction_Setpoint>();
+    auto motor_fun = chrono_types::make_shared<ChFunction_Setpoint>();
     m_revolute->SetAngleFunction(motor_fun);
     chassis->GetSystem()->AddLink(m_revolute);
 
@@ -134,7 +134,7 @@ void ChPitmanArm::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     w = Vcross(dirs[UNIV_AXIS_ARM], dirs[UNIV_AXIS_LINK]);
     rot.Set_A_axis(dirs[UNIV_AXIS_ARM], dirs[UNIV_AXIS_LINK], w);
 
-    m_universal = std::make_shared<ChLinkUniversal>();
+    m_universal = chrono_types::make_shared<ChLinkUniversal>();
     m_universal->SetNameString(m_name + "_universal");
     m_universal->Initialize(m_arm, m_link, ChFrame<>(points[UNIV], rot.Get_A_quaternion()));
     chassis->GetSystem()->AddLink(m_universal);
@@ -151,7 +151,7 @@ void ChPitmanArm::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     u = Vcross(v, dirs[REVSPH_AXIS]);
     rot.Set_A_axis(u, v, dirs[REVSPH_AXIS]);
 
-    m_revsph = std::make_shared<ChLinkRevoluteSpherical>();
+    m_revsph = chrono_types::make_shared<ChLinkRevoluteSpherical>();
     m_revsph->SetNameString(m_name + "_revsph");
     m_revsph->Initialize(chassis, m_link, ChCoordsys<>(points[REVSPH_R], rot.Get_A_quaternion()), distance);
     chassis->GetSystem()->AddLink(m_revsph);
@@ -188,44 +188,44 @@ void ChPitmanArm::AddVisualizationAssets(VisualizationType vis) {
 
     // Visualization for link
     {
-        auto cyl = std::make_shared<ChCylinderShape>();
+        auto cyl = chrono_types::make_shared<ChCylinderShape>();
         cyl->GetCylinderGeometry().p1 = m_pP;
         cyl->GetCylinderGeometry().p2 = m_pI;
         cyl->GetCylinderGeometry().rad = getSteeringLinkRadius();
         m_link->AddAsset(cyl);
 
-        auto cyl_P = std::make_shared<ChCylinderShape>();
+        auto cyl_P = chrono_types::make_shared<ChCylinderShape>();
         cyl_P->GetCylinderGeometry().p1 = m_pP;
         cyl_P->GetCylinderGeometry().p2 = m_pTP;
         cyl_P->GetCylinderGeometry().rad = getSteeringLinkRadius();
         m_link->AddAsset(cyl_P);
 
-        auto cyl_I = std::make_shared<ChCylinderShape>();
+        auto cyl_I = chrono_types::make_shared<ChCylinderShape>();
         cyl_I->GetCylinderGeometry().p1 = m_pI;
         cyl_I->GetCylinderGeometry().p2 = m_pTI;
         cyl_I->GetCylinderGeometry().rad = getSteeringLinkRadius();
         m_link->AddAsset(cyl_I);
 
-        auto col = std::make_shared<ChColorAsset>();
+        auto col = chrono_types::make_shared<ChColorAsset>();
         col->SetColor(ChColor(0.2f, 0.7f, 0.7f));
         m_link->AddAsset(col);
     }
 
     // Visualization for arm
     {
-        auto cyl = std::make_shared<ChCylinderShape>();
+        auto cyl = chrono_types::make_shared<ChCylinderShape>();
         cyl->GetCylinderGeometry().p1 = m_pC;
         cyl->GetCylinderGeometry().p2 = m_pL;
         cyl->GetCylinderGeometry().rad = getPitmanArmRadius();
         m_arm->AddAsset(cyl);
 
-        auto col = std::make_shared<ChColorAsset>();
+        auto col = chrono_types::make_shared<ChColorAsset>();
         col->SetColor(ChColor(0.7f, 0.7f, 0.2f));
         m_arm->AddAsset(col);
     }
 
     // Visualization for rev-sph link
-    m_revsph->AddAsset(std::make_shared<ChPointPointSegment>());
+    m_revsph->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
 }
 
 void ChPitmanArm::RemoveVisualizationAssets() {
@@ -239,31 +239,31 @@ void ChPitmanArm::RemoveVisualizationAssets() {
 void ChPitmanArm::LogConstraintViolations() {
     // Revolute joint
     ////{
-    ////    ChMatrix<>* C = m_revolute->GetC();
+    ////    ChVectorDynamic<> C = m_revolute->GetC();
     ////    GetLog() << "Revolute              ";
-    ////    GetLog() << "  " << C->GetElement(0, 0) << "  ";
-    ////    GetLog() << "  " << C->GetElement(1, 0) << "  ";
-    ////    GetLog() << "  " << C->GetElement(2, 0) << "  ";
-    ////    GetLog() << "  " << C->GetElement(3, 0) << "  ";
-    ////    GetLog() << "  " << C->GetElement(4, 0) << "\n";
+    ////    GetLog() << "  " << C(0) << "  ";
+    ////    GetLog() << "  " << C(1) << "  ";
+    ////    GetLog() << "  " << C(2) << "  ";
+    ////    GetLog() << "  " << C(3) << "  ";
+    ////    GetLog() << "  " << C(4) << "\n";
     ////}
 
     // Universal joint
     {
-        ChMatrix<>* C = m_universal->GetC();
+        ChVectorDynamic<> C = m_universal->GetC();
         GetLog() << "Universal             ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "  ";
-        GetLog() << "  " << C->GetElement(3, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "\n";
     }
 
     // Revolute-spherical joint
     {
-        ChMatrix<>* C = m_revsph->GetC();
+        ChVectorDynamic<> C = m_revsph->GetC();
         GetLog() << "Revolute-spherical    ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "\n";
     }
 }
 

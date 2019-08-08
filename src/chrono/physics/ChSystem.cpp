@@ -29,7 +29,7 @@
 #include "chrono/solver/ChSolverSORmultithread.h"
 #include "chrono/solver/ChSolverSymmSOR.h"
 #include "chrono/timestepper/ChStaticAnalysis.h"
-#include "chrono/core/ChLinkedListMatrix.h"
+#include "chrono/core/ChCSMatrix.h"
 #include "chrono/utils/ChProfiler.h"
 
 using namespace chrono::collision;
@@ -73,7 +73,7 @@ ChSystem::ChSystem()
     collision::ChCollisionModel::SetDefaultSuggestedMargin(0.01);
 
     // Set default timestepper.
-    timestepper = std::make_shared<ChTimestepperEulerImplicitLinearized>(this);
+    timestepper = chrono_types::make_shared<ChTimestepperEulerImplicitLinearized>(this);
 }
 
 ChSystem::ChSystem(const ChSystem& other) : ChAssembly(other) {
@@ -144,49 +144,49 @@ void ChSystem::SetSolverType(ChSolver::Type type) {
     if (type == ChSolver::Type::CUSTOM)
         return;
 
-    descriptor = std::make_shared<ChSystemDescriptor>();
+    descriptor = chrono_types::make_shared<ChSystemDescriptor>();
     descriptor->SetNumThreads(parallel_thread_number);
 
     switch (type) {
         case ChSolver::Type::SOR:
-            solver_speed = std::make_shared<ChSolverSOR>();
-            solver_stab = std::make_shared<ChSolverSOR>();
+            solver_speed = chrono_types::make_shared<ChSolverSOR>();
+            solver_stab = chrono_types::make_shared<ChSolverSOR>();
             break;
         case ChSolver::Type::SYMMSOR:
-            solver_speed = std::make_shared<ChSolverSymmSOR>();
-            solver_stab = std::make_shared<ChSolverSymmSOR>();
+            solver_speed = chrono_types::make_shared<ChSolverSymmSOR>();
+            solver_stab = chrono_types::make_shared<ChSolverSymmSOR>();
             break;
         case ChSolver::Type::JACOBI:
-            solver_speed = std::make_shared<ChSolverJacobi>();
-            solver_stab = std::make_shared<ChSolverJacobi>();
+            solver_speed = chrono_types::make_shared<ChSolverJacobi>();
+            solver_stab = chrono_types::make_shared<ChSolverJacobi>();
             break;
         case ChSolver::Type::SOR_MULTITHREAD:
-            solver_speed = std::make_shared<ChSolverSORmultithread>("speedSolver", parallel_thread_number);
-            solver_stab = std::make_shared<ChSolverSORmultithread>("posSolver", parallel_thread_number);
+            solver_speed = chrono_types::make_shared<ChSolverSORmultithread>("speedSolver", parallel_thread_number);
+            solver_stab = chrono_types::make_shared<ChSolverSORmultithread>("posSolver", parallel_thread_number);
             break;
         case ChSolver::Type::PMINRES:
-            solver_speed = std::make_shared<ChSolverPMINRES>();
-            solver_stab = std::make_shared<ChSolverPMINRES>();
+            solver_speed = chrono_types::make_shared<ChSolverPMINRES>();
+            solver_stab = chrono_types::make_shared<ChSolverPMINRES>();
             break;
         case ChSolver::Type::BARZILAIBORWEIN:
-            solver_speed = std::make_shared<ChSolverBB>();
-            solver_stab = std::make_shared<ChSolverBB>();
+            solver_speed = chrono_types::make_shared<ChSolverBB>();
+            solver_stab = chrono_types::make_shared<ChSolverBB>();
             break;
         case ChSolver::Type::PCG:
-            solver_speed = std::make_shared<ChSolverPCG>();
-            solver_stab = std::make_shared<ChSolverPCG>();
+            solver_speed = chrono_types::make_shared<ChSolverPCG>();
+            solver_stab = chrono_types::make_shared<ChSolverPCG>();
             break;
         case ChSolver::Type::APGD:
-            solver_speed = std::make_shared<ChSolverAPGD>();
-            solver_stab = std::make_shared<ChSolverAPGD>();
+            solver_speed = chrono_types::make_shared<ChSolverAPGD>();
+            solver_stab = chrono_types::make_shared<ChSolverAPGD>();
             break;
         case ChSolver::Type::MINRES:
-            solver_speed = std::make_shared<ChSolverMINRES>();
-            solver_stab = std::make_shared<ChSolverMINRES>();
+            solver_speed = chrono_types::make_shared<ChSolverMINRES>();
+            solver_stab = chrono_types::make_shared<ChSolverMINRES>();
             break;
         default:
-            solver_speed = std::make_shared<ChSolverSymmSOR>();
-            solver_stab = std::make_shared<ChSolverSymmSOR>();
+            solver_speed = chrono_types::make_shared<ChSolverSymmSOR>();
+            solver_stab = chrono_types::make_shared<ChSolverSymmSOR>();
             break;
     }
 }
@@ -438,41 +438,41 @@ void ChSystem::SetTimestepperType(ChTimestepper::Type type) {
     // (the previous will be automatically deallocated thanks to shared pointers)
     switch (type) {
         case ChTimestepper::Type::EULER_IMPLICIT:
-            timestepper = std::make_shared<ChTimestepperEulerImplicit>(this);
+            timestepper = chrono_types::make_shared<ChTimestepperEulerImplicit>(this);
             std::static_pointer_cast<ChTimestepperEulerImplicit>(timestepper)->SetMaxiters(4);
             break;
         case ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED:
-            timestepper = std::make_shared<ChTimestepperEulerImplicitLinearized>(this);
+            timestepper = chrono_types::make_shared<ChTimestepperEulerImplicitLinearized>(this);
             break;
         case ChTimestepper::Type::EULER_IMPLICIT_PROJECTED:
-            timestepper = std::make_shared<ChTimestepperEulerImplicitProjected>(this);
+            timestepper = chrono_types::make_shared<ChTimestepperEulerImplicitProjected>(this);
             break;
         case ChTimestepper::Type::TRAPEZOIDAL:
-            timestepper = std::make_shared<ChTimestepperTrapezoidal>(this);
+            timestepper = chrono_types::make_shared<ChTimestepperTrapezoidal>(this);
             std::static_pointer_cast<ChTimestepperTrapezoidal>(timestepper)->SetMaxiters(4);
             break;
         case ChTimestepper::Type::TRAPEZOIDAL_LINEARIZED:
-            timestepper = std::make_shared<ChTimestepperTrapezoidalLinearized>(this);
+            timestepper = chrono_types::make_shared<ChTimestepperTrapezoidalLinearized>(this);
             std::static_pointer_cast<ChTimestepperTrapezoidalLinearized>(timestepper)->SetMaxiters(4);
             break;
         case ChTimestepper::Type::HHT:
-            timestepper = std::make_shared<ChTimestepperHHT>(this);
+            timestepper = chrono_types::make_shared<ChTimestepperHHT>(this);
             std::static_pointer_cast<ChTimestepperHHT>(timestepper)->SetMaxiters(4);
             break;
         case ChTimestepper::Type::HEUN:
-            timestepper = std::make_shared<ChTimestepperHeun>(this);
+            timestepper = chrono_types::make_shared<ChTimestepperHeun>(this);
             break;
         case ChTimestepper::Type::RUNGEKUTTA45:
-            timestepper = std::make_shared<ChTimestepperRungeKuttaExpl>(this);
+            timestepper = chrono_types::make_shared<ChTimestepperRungeKuttaExpl>(this);
             break;
         case ChTimestepper::Type::EULER_EXPLICIT:
-            timestepper = std::make_shared<ChTimestepperEulerExplIIorder>(this);
+            timestepper = chrono_types::make_shared<ChTimestepperEulerExplIIorder>(this);
             break;
         case ChTimestepper::Type::LEAPFROG:
-            timestepper = std::make_shared<ChTimestepperLeapfrog>(this);
+            timestepper = chrono_types::make_shared<ChTimestepperLeapfrog>(this);
             break;
         case ChTimestepper::Type::NEWMARK:
-            timestepper = std::make_shared<ChTimestepperNewmark>(this);
+            timestepper = chrono_types::make_shared<ChTimestepperNewmark>(this);
             break;
         default:
             throw ChException("SetTimestepperType: timestepper not supported");
@@ -674,23 +674,23 @@ void ChSystem::Setup() {
         double poison_a = -7777.777;
         double poison_L = 55555.555;
         double test_T;
-        test_x.FillElem(poison_x);  // poison x
-        test_v.FillElem(poison_v);  // poison v
-        test_a.FillElem(poison_a);  // poison a
-        test_L.FillElem(poison_L);  // poison L
+        test_x.setConstant(poison_x);  // poison x
+        test_v.setConstant(poison_v);  // poison v
+        test_a.setConstant(poison_a);  // poison a
+        test_L.setConstant(poison_L);  // poison L
         StateGather(test_x, test_v, test_T);
         StateGatherAcceleration(test_a);
         StateGatherReactions(test_L);
-        for (int i = 0; i < test_x.GetRows(); ++i)
+        for (int i = 0; i < test_x.size(); ++i)
             assert(test_x(i) != poison_x);  // if your debugger breaks here, some ChPhysicsItem has a wrong
                                             // implementation of offsets or DOFs for positions
-        for (int i = 0; i < test_v.GetRows(); ++i)
+        for (int i = 0; i < test_v.size(); ++i)
             assert(test_v(i) != poison_v);  // if your debugger breaks here, some ChPhysicsItem has a wrong
                                             // implementation of offsets or DOFs for velocities
-        for (int i = 0; i < test_a.GetRows(); ++i)
+        for (int i = 0; i < test_a.size(); ++i)
             assert(test_a(i) != poison_a);  // if your debugger breaks here, some ChPhysicsItem has a wrong
                                             // implementation of offsets or DOFs for accelerations
-        for (int i = 0; i < test_L.GetRows(); ++i)
+        for (int i = 0; i < test_L.size(); ++i)
             assert(test_L(i) != poison_L);  // if your debugger breaks here, some ChPhysicsItem has a wrong
                                             // implementation of offsets or DOFs for reaction forces
     }
@@ -1130,11 +1130,11 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
 
         chrono::ChStreamOutAsciiFile file_x((sprefix + "x_pre.dat").c_str());
         file_x.SetNumFormat(numformat);
-        ((ChMatrix<>)x).StreamOUTdenseMatlabFormat(file_x);
+        StreamOUTdenseMatlabFormat(x, file_x);
 
         chrono::ChStreamOutAsciiFile file_v((sprefix + "v_pre.dat").c_str());
         file_v.SetNumFormat(numformat);
-        ((ChMatrix<>)v).StreamOUTdenseMatlabFormat(file_v);
+        StreamOUTdenseMatlabFormat(v, file_v);
     }
 
     // If indicated, first perform a solver setup.
@@ -1165,11 +1165,11 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
 
         chrono::ChStreamOutAsciiFile file_Dv((sprefix + "Dv.dat").c_str());
         file_Dv.SetNumFormat(numformat);
-        ((ChMatrix<>)Dv).StreamOUTdenseMatlabFormat(file_Dv);
+        StreamOUTdenseMatlabFormat(Dv, file_Dv);
 
         chrono::ChStreamOutAsciiFile file_L((sprefix + "L.dat").c_str());
         file_L.SetNumFormat(numformat);
-        ((ChMatrix<>)L).StreamOUTdenseMatlabFormat(file_L);
+        StreamOUTdenseMatlabFormat(L, file_L);
 
         // Just for diagnostic, dump also unscaled loads (forces,torques), 
         // since the .._f.dat vector dumped in DumpLastMatrices() might contain scaled loads, and also +M*v
@@ -1177,7 +1177,7 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
         this->IntLoadResidual_F(0, tempF, 1.0);
         chrono::ChStreamOutAsciiFile file_F((sprefix + "F_pre.dat").c_str());
         file_F.SetNumFormat(numformat);
-        tempF.StreamOUTdenseMatlabFormat(file_F);
+        StreamOUTdenseMatlabFormat(tempF, file_F);
     }
     
     solvecount++;
@@ -1348,7 +1348,7 @@ void ChSystem::DumpSystemMatrices(bool save_M, bool save_K, bool save_R, bool sa
     const char* numformat = "%.12g";
 
     if (save_M) {
-        ChLinkedListMatrix mM;
+        ChCSMatrix mM;
         this->GetMassMatrix(&mM);
         sprintf(filename, "%s%s", path, "_M.dat");
         ChStreamOutAsciiFile file_M(filename);
@@ -1356,7 +1356,7 @@ void ChSystem::DumpSystemMatrices(bool save_M, bool save_K, bool save_R, bool sa
         mM.StreamOUTsparseMatlabFormat(file_M);
     }
     if (save_K) {
-        ChLinkedListMatrix mK;
+        ChCSMatrix mK;
         this->GetStiffnessMatrix(&mK);
         sprintf(filename, "%s%s", path, "_K.dat");
         ChStreamOutAsciiFile file_K(filename);
@@ -1364,7 +1364,7 @@ void ChSystem::DumpSystemMatrices(bool save_M, bool save_K, bool save_R, bool sa
         mK.StreamOUTsparseMatlabFormat(file_K);
     }
     if (save_R) {
-        ChLinkedListMatrix mR;
+        ChCSMatrix mR;
         this->GetDampingMatrix(&mR);
         sprintf(filename, "%s%s", path, "_R.dat");
         ChStreamOutAsciiFile file_R(filename);
@@ -1372,7 +1372,7 @@ void ChSystem::DumpSystemMatrices(bool save_M, bool save_K, bool save_R, bool sa
         mR.StreamOUTsparseMatlabFormat(file_R);
     }
     if (save_Cq) {
-        ChLinkedListMatrix mCq;
+        ChCSMatrix mCq;
         this->GetConstraintJacobianMatrix(&mCq);
         sprintf(filename, "%s%s", path, "_Cq.dat");
         ChStreamOutAsciiFile file_Cq(filename);
@@ -1535,19 +1535,19 @@ bool ChSystem::DoStaticLinear() {
         GetSystemDescriptor()->DumpLastMatrices();
 
         // optional check for correctness in result
-        chrono::ChMatrixDynamic<double> md;
+        chrono::ChVectorDynamic<double> md;
         GetSystemDescriptor()->BuildDiVector(md);  // d={f;-b}
 
-        chrono::ChMatrixDynamic<double> mx;
-        GetSystemDescriptor()->FromUnknownsToVector(mx);  // x ={q,-l}
+        chrono::ChVectorDynamic<double> mx;
+        GetSystemDescriptor()->FromUnknownsToVector(mx, true);  // x ={q,-l}
         chrono::ChStreamOutAsciiFile file_x("dump_x.dat");
-        mx.StreamOUTdenseMatlabFormat(file_x);
+        StreamOUTdenseMatlabFormat(mx, file_x);
 
-        chrono::ChMatrixDynamic<double> mZx;
-        GetSystemDescriptor()->SystemProduct(mZx, &mx);  // Zx = Z*x
+        chrono::ChVectorDynamic<double> mZx;
+        GetSystemDescriptor()->SystemProduct(mZx, mx);  // Zx = Z*x
 
         GetLog() << "CHECK: norm of solver residual: ||Z*x-d|| -------------------\n";
-        GetLog() << (mZx - md).NormInf() << "\n";
+        GetLog() << (mZx - md).lpNorm<Eigen::Infinity>() << "\n";
     }
 
     return true;

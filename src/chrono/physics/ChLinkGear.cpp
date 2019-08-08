@@ -34,10 +34,9 @@ ChLinkGear::ChLinkGear()
     local_shaft1.SetIdentity();
     local_shaft2.SetIdentity();
 
-    // Mask: initialize our LinkMaskLF (lock formulation mask)
-    // to X  only. It was a LinkMaskLF because this class inherited from LinkLock.
-    ((ChLinkMaskLF*)mask)->SetLockMask(true, false, false, false, false, false, false);
-    ChangedLinkMask();
+    // Mask: initialize our LinkMaskLF (lock formulation mask) to X  only
+    mask.SetLockMask(true, false, false, false, false, false, false);
+    BuildLink();
 }
 
 ChLinkGear::ChLinkGear(const ChLinkGear& other) : ChLinkLock(other) {
@@ -98,10 +97,6 @@ void ChLinkGear::UpdateTime(double mytime) {
 
     // Move markers 1 and 2 to align them as gear teeth
 
-    ChMatrix33<> ma1;
-    ChMatrix33<> ma2;
-    ChMatrix33<> mrotma;
-    ChMatrix33<> marot_beta;
     ChVector<> mx;
     ChVector<> my;
     ChVector<> mz;
@@ -125,10 +120,10 @@ void ChLinkGear::UpdateTime(double mytime) {
     double dist = Vlength(vbdist);
 
     // compute actual rotation of the two wheels (relative to truss).
-    ChVector<> md1 = abs_shaft1.GetA().MatrT_x_Vect(-vbdist);
+    ChVector<> md1 = abs_shaft1.GetA().transpose() * (-vbdist);
     md1.z() = 0;
     md1 = Vnorm(md1);
-    ChVector<> md2 = abs_shaft2.GetA().MatrT_x_Vect(-vbdist);
+    ChVector<> md2 = abs_shaft2.GetA().transpose() * (-vbdist);
     md2.z() = 0;
     md2 = Vnorm(md2);
 
@@ -167,14 +162,15 @@ void ChLinkGear::UpdateTime(double mytime) {
     mx2 = Vnorm(Vcross(my2, mz2));
     mr2 = Vnorm(Vcross(mz2, mx2));
 
-    ma1.Set_A_axis(mx, my, mz);
+    ChMatrix33<> ma1(mx, my, mz);
 
     // rotate csys because of beta
     vrota.x() = 0.0;
     vrota.y() = beta;
     vrota.z() = 0.0;
+    ChMatrix33<> mrotma;
     mrotma.Set_A_Rxyz(vrota);
-    marot_beta.MatrMultiply(ma1, mrotma);
+    ChMatrix33<> marot_beta = ma1 * mrotma;
     // rotate csys because of alpha
     vrota.x() = 0.0;
     vrota.y() = 0.0;
@@ -184,9 +180,9 @@ void ChLinkGear::UpdateTime(double mytime) {
     else
         vrota.z() = -alpha;
     mrotma.Set_A_Rxyz(vrota);
-    ma1.MatrMultiply(marot_beta, mrotma);
+    ma1 = marot_beta * mrotma;
 
-    ma2.CopyFromMatrix(ma1);
+    ChMatrix33<> ma2 = ma1;
 
     // is a bevel gear?
     double be = acos(Vdot(Get_shaft_dir1(), Get_shaft_dir2()));
@@ -243,9 +239,9 @@ void ChLinkGear::UpdateTime(double mytime) {
         vrota.x() = vrota.y() = 0.0;
         vrota.z() = -m_delta;
         mrotma.Set_A_Rxyz(vrota);  // rotate about Z of shaft to correct
-        mmark1 = abs_shaft1.GetA().MatrT_x_Vect(Vsub(mmark1, Get_shaft_pos1()));
-        mmark1 = mrotma.Matr_x_Vect(mmark1);
-        mmark1 = Vadd(abs_shaft1.GetA().Matr_x_Vect(mmark1), Get_shaft_pos1());
+        mmark1 = abs_shaft1.GetA().transpose() * (mmark1 - Get_shaft_pos1());
+        mmark1 = mrotma * mmark1;
+        mmark1 = abs_shaft1.GetA() * mmark1 + Get_shaft_pos1();
     }
     // Move Shaft 1 along its direction if not aligned to wheel
     double offset = Vdot(Get_shaft_dir1(), (contact_pt - Get_shaft_pos1()));

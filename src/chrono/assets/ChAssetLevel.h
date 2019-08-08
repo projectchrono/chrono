@@ -15,7 +15,6 @@
 
 #include "chrono/assets/ChAsset.h"
 #include "chrono/core/ChFrame.h"
-#include "chrono/core/ChMatrixDynamic.h"
 
 namespace chrono {
 

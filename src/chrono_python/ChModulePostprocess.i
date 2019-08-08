@@ -46,11 +46,15 @@
 // Include C++ headers this way...
 
 %{
+#include "chrono/solver/ChSolver.h"
+#include "chrono/solver/ChIterativeSolver.h"
+#include "chrono/solver/ChSolverMINRES.h"
 
 #include "chrono_postprocess/ChPostProcessBase.h"
 #include "chrono_postprocess/ChPovRay.h"
 #include "chrono_postprocess/ChPovRayAssetCustom.h"
 #include "chrono_postprocess/ChGnuPlot.h"
+#include "Eigen/src/Core/util/Memory.h"
 
 using namespace chrono;
 using namespace chrono::postprocess;
@@ -62,6 +66,7 @@ using namespace chrono::postprocess;
 // Undefine ChApi otherwise SWIG gives a syntax error
 #define ChApiPostProcess 
 #define ChApi 
+#define EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
 // Include other .i configuration files for SWIG. 
 // These are divided in many .i files, each per a

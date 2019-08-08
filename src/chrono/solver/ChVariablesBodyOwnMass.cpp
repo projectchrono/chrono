@@ -19,10 +19,7 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChVariablesBodyOwnMass)
 
-ChVariablesBodyOwnMass::ChVariablesBodyOwnMass() : mass(1), inv_mass(1) {
-    inertia.Set33Identity();
-    inv_inertia.Set33Identity();
-}
+ChVariablesBodyOwnMass::ChVariablesBodyOwnMass() : mass(1), inv_mass(1), inertia(1), inv_inertia(1) {}
 
 ChVariablesBodyOwnMass& ChVariablesBodyOwnMass::operator=(const ChVariablesBodyOwnMass& other) {
     if (&other == this)
@@ -43,8 +40,8 @@ ChVariablesBodyOwnMass& ChVariablesBodyOwnMass::operator=(const ChVariablesBodyO
 
 // Set the inertia matrix
 void ChVariablesBodyOwnMass::SetBodyInertia(const ChMatrix33<>& minertia) {
-    inertia.CopyFromMatrix(minertia);
-    inertia.FastInvert(inv_inertia);
+    inertia = minertia;
+    inv_inertia = inertia.inverse();
 }
 
 // Set the mass associated with translation of body
@@ -57,9 +54,10 @@ void ChVariablesBodyOwnMass::SetBodyMass(const double mmass) {
 }
 
 // Computes the product of the inverse mass matrix by a vector, and set in result: result = [invMb]*vect
-void ChVariablesBodyOwnMass::Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
-    assert(vect.GetRows() == Get_ndof());
-    assert(result.GetRows() == Get_ndof());
+void ChVariablesBodyOwnMass::Compute_invMb_v(ChVectorRef result, ChVectorConstRef vect) const {
+    assert(vect.size() == Get_ndof());
+    assert(result.size() == Get_ndof());
+
     // optimized unrolled operations
     result(0) = inv_mass * vect(0);
     result(1) = inv_mass * vect(1);
@@ -70,9 +68,10 @@ void ChVariablesBodyOwnMass::Compute_invMb_v(ChMatrix<double>& result, const ChM
 }
 
 // Computes the product of the inverse mass matrix by a vector, and increment result: result += [invMb]*vect
-void ChVariablesBodyOwnMass::Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
-    assert(vect.GetRows() == Get_ndof());
-    assert(result.GetRows() == Get_ndof());
+void ChVariablesBodyOwnMass::Compute_inc_invMb_v(ChVectorRef result, ChVectorConstRef vect) const {
+    assert(vect.size() == Get_ndof());
+    assert(result.size() == Get_ndof());
+
     // optimized unrolled operations
     result(0) += inv_mass * vect(0);
     result(1) += inv_mass * vect(1);
@@ -83,9 +82,10 @@ void ChVariablesBodyOwnMass::Compute_inc_invMb_v(ChMatrix<double>& result, const
 }
 
 // Computes the product of the mass matrix by a vector, and set in result: result = [Mb]*vect
-void ChVariablesBodyOwnMass::Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
-    assert(result.GetRows() == vect.GetRows());
-    assert(vect.GetRows() == Get_ndof());
+void ChVariablesBodyOwnMass::Compute_inc_Mb_v(ChVectorRef result, ChVectorConstRef vect) const {
+    assert(result.size() == Get_ndof());
+    assert(vect.size() == Get_ndof());
+
     // optimized unrolled operations
     result(0) += mass * vect(0);
     result(1) += mass * vect(1);
@@ -95,16 +95,11 @@ void ChVariablesBodyOwnMass::Compute_inc_Mb_v(ChMatrix<double>& result, const Ch
     result(5) += (inertia(2, 0) * vect(3) + inertia(2, 1) * vect(4) + inertia(2, 2) * vect(5));
 }
 
-// Computes the product of the corresponding block in the
-// system matrix (ie. the mass matrix) by 'vect', scale by c_a, and add to 'result'.
-// NOTE: the 'vect' and 'result' vectors must already have
-// the size of the total variables&constraints in the system; the procedure
-// will use the ChVariable offsets (that must be already updated) to know the
-// indexes in result and vect.
-void ChVariablesBodyOwnMass::MultiplyAndAdd(ChMatrix<double>& result,
-                                            const ChMatrix<double>& vect,
-                                            const double c_a) const {
-    assert(result.GetColumns() == 1 && vect.GetColumns() == 1);
+// Computes the product of the corresponding block in the system matrix (ie. the mass matrix) by 'vect', scale by c_a,
+// and add to 'result'.
+// NOTE: the 'vect' and 'result' vectors must already have the size of the total variables&constraints in the system;
+// the procedure will use the ChVariable offsets (that must be already updated) to know the indexes in result and vect.
+void ChVariablesBodyOwnMass::MultiplyAndAdd(ChVectorRef result, ChVectorConstRef vect, const double c_a) const {
     // optimized unrolled operations
     double q0 = vect(this->offset + 0);
     double q1 = vect(this->offset + 1);
@@ -122,11 +117,9 @@ void ChVariablesBodyOwnMass::MultiplyAndAdd(ChMatrix<double>& result,
 }
 
 // Add the diagonal of the mass matrix scaled by c_a to 'result'.
-// NOTE: the 'result' vector must already have the size of system unknowns, ie
-// the size of the total variables&constraints in the system; the procedure
-// will use the ChVariable offset (that must be already updated) as index.
-void ChVariablesBodyOwnMass::DiagonalAdd(ChMatrix<double>& result, const double c_a) const {
-    assert(result.GetColumns() == 1);
+// NOTE: the 'result' vector must already have the size of system unknowns, ie the size of the total variables &
+// constraints in the system; the procedure will use the ChVariable offset (that must be already updated) as index.
+void ChVariablesBodyOwnMass::DiagonalAdd(ChVectorRef result, const double c_a) const {
     result(this->offset + 0) += c_a * mass;
     result(this->offset + 1) += c_a * mass;
     result(this->offset + 2) += c_a * mass;
@@ -154,7 +147,7 @@ void ChVariablesBodyOwnMass::ArchiveOUT(ChArchiveOut& marchive) {
     ChVariablesBody::ArchiveOUT(marchive);
     // serialize all member data:
     marchive << CHNVP(mass);
-    marchive << CHNVP(inertia);
+    ////marchive << CHNVP(inertia);
 }
 
 void ChVariablesBodyOwnMass::ArchiveIN(ChArchiveIn& marchive) {
@@ -164,9 +157,9 @@ void ChVariablesBodyOwnMass::ArchiveIN(ChArchiveIn& marchive) {
     ChVariablesBody::ArchiveIN(marchive);
     // stream in all member data:
     marchive >> CHNVP(mass);
-    marchive >> CHNVP(inertia);
+    ////marchive >> CHNVP(inertia);
     SetBodyMass(mass);
-    SetBodyInertia(inertia);
+    ////SetBodyInertia(inertia);
 }
 
 }  // end namespace chrono

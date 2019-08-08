@@ -57,9 +57,9 @@ class ChLoaderUVdistributed : public ChLoaderUV {
     virtual void ComputeQ(ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
                           ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
                           ) override {
-        Q.Reset(loadable->LoadableGet_ndof_w());
+        Q.setZero(loadable->LoadableGet_ndof_w());
         ChVectorDynamic<> mF(loadable->Get_field_ncoords());
-        mF.Reset();
+        mF.setZero();
 
         if (!loadable->IsTriangleIntegrationNeeded()) {
             // Case of normal quadrilateral isoparametric coords
@@ -70,7 +70,7 @@ class ChLoaderUVdistributed : public ChLoaderUV {
             const std::vector<double>& Vlroots = ChQuadrature::GetStaticTables()->Lroots[GetIntegrationPointsV() - 1];
             const std::vector<double>& Vweight = ChQuadrature::GetStaticTables()->Weight[GetIntegrationPointsV() - 1];
 
-            ChVectorDynamic<> mNF(Q.GetRows());  // temporary value for loop
+            ChVectorDynamic<> mNF(Q.size());  // temporary value for loop
 
             // Gauss quadrature :  Q = sum (N'*F*detJ * wi*wj)
             for (unsigned int iu = 0; iu < Ulroots.size(); iu++) {
@@ -92,7 +92,7 @@ class ChLoaderUVdistributed : public ChLoaderUV {
             const std::vector<double>& Vlroots = ChQuadrature::GetStaticTablesTriangle()->LrootsV[GetIntegrationPointsU() - 1];
             const std::vector<double>& weight = ChQuadrature::GetStaticTablesTriangle()->Weight[GetIntegrationPointsU() - 1];
 
-            ChVectorDynamic<> mNF(Q.GetRows());  // temporary value for loop
+            ChVectorDynamic<> mNF(Q.size());  // temporary value for loop
 
             // Gauss quadrature :  Q = sum (N'*F*detJ * wi *1/2)   often detJ= 2 * triangle area
             for (unsigned int i = 0; i < Ulroots.size(); i++) {
@@ -124,9 +124,9 @@ class ChLoaderUVatomic : public ChLoaderUV {
     virtual void ComputeQ(ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
                           ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
                           ) override {
-        Q.Reset(loadable->LoadableGet_ndof_w());
+        Q.setZero(loadable->LoadableGet_ndof_w());
         ChVectorDynamic<> mF(loadable->Get_field_ncoords());
-        mF.Reset();
+        mF.setZero();
 
         // Compute F=F(u,v)
         this->ComputeF(Pu, Pv, mF, state_x, state_w);
@@ -163,7 +163,7 @@ class ChLoaderForceOnSurface : public ChLoaderUVatomic {
                           ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate F
                           ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate F
                           ) override {
-        F.PasteVector(force, 0, 0);
+        F.segment(0, 3) = force.eigen();
     }
     // Set constant force (assumed in absolute coordinates)
     void SetForce(ChVector<> mforce) { force = mforce; }
@@ -192,7 +192,7 @@ class ChLoaderPressure : public ChLoaderUVdistributed {
                           ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate F
                           ) override {
         ChVector<> mnorm = this->loadable->ComputeNormal(U, V);
-        F.PasteVector(mnorm * (-pressure), 0, 0);
+        F.segment(0, 3) = -pressure * mnorm.eigen();
     }
 
     void SetPressure(double mpressure) { pressure = mpressure; }

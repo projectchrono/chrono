@@ -45,7 +45,7 @@ void ChElementCableANCF::SetNodes(std::shared_ptr<ChNodeFEAxyzD> nodeA, std::sha
     Kmatr.SetVariables(mvars);
 }
 
-void ChElementCableANCF::ShapeFunctions(ChMatrix<>& N, double xi) {
+void ChElementCableANCF::ShapeFunctions(ShapeVector& N, double xi) {
     double l = this->GetRestLength();
 
     N(0) = 1 - 3 * pow(xi, 2) + 2 * pow(xi, 3);
@@ -54,7 +54,7 @@ void ChElementCableANCF::ShapeFunctions(ChMatrix<>& N, double xi) {
     N(3) = l * (-pow(xi, 2) + pow(xi, 3));
 };
 
-void ChElementCableANCF::ShapeFunctionsDerivatives(ChMatrix<>& Nd, double xi) {
+void ChElementCableANCF::ShapeFunctionsDerivatives(ShapeVector& Nd, double xi) {
     double l = this->GetRestLength();
 
     Nd(0) = (6.0 * pow(xi, 2.0) - 6.0 * xi) / l;
@@ -63,7 +63,7 @@ void ChElementCableANCF::ShapeFunctionsDerivatives(ChMatrix<>& Nd, double xi) {
     Nd(3) = -2.0 * xi + 3.0 * pow(xi, 2.0);
 };
 
-void ChElementCableANCF::ShapeFunctionsDerivatives2(ChMatrix<>& Ndd, double xi) {
+void ChElementCableANCF::ShapeFunctionsDerivatives2(ShapeVector& Ndd, double xi) {
     double l = this->GetRestLength();
     Ndd(0) = (12 * xi - 6) / pow(l, 2);
     Ndd(1) = (-4 + 6 * xi) / l;
@@ -76,13 +76,13 @@ void ChElementCableANCF::Update() {
     ChElementGeneric::Update();
 };
 
-void ChElementCableANCF::GetStateBlock(ChMatrixDynamic<>& mD) {
-    mD.Reset(12, 1);
+void ChElementCableANCF::GetStateBlock(ChVectorDynamic<>& mD) {
+    mD.resize(12);
 
-    mD.PasteVector(this->nodes[0]->GetPos(), 0, 0);
-    mD.PasteVector(this->nodes[0]->GetD(), 3, 0);
-    mD.PasteVector(this->nodes[1]->GetPos(), 6, 0);
-    mD.PasteVector(this->nodes[1]->GetD(), 9, 0);
+    mD.segment(0, 3) = this->nodes[0]->GetPos().eigen();
+    mD.segment(3, 3) = this->nodes[0]->GetD().eigen();
+    mD.segment(6, 3) = this->nodes[1]->GetPos().eigen();
+    mD.segment(9, 3) = this->nodes[1]->GetD().eigen();
 }
 
 // Computes the stiffness matrix of the element:
@@ -97,9 +97,8 @@ void ChElementCableANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
     // produces a rank deficient matrix for straight beams.
     if (use_numerical_differentiation) {
         double diff = 1e-8;
-        ChMatrixDynamic<> Kcolumn(12, 1);
-        ChMatrixDynamic<> F0(12, 1);
-        ChMatrixDynamic<> F1(12, 1);
+        ChVectorDynamic<> F0(12);
+        ChVectorDynamic<> F1(12);
 
         this->ComputeInternalForces(F0);
 
@@ -115,39 +114,33 @@ void ChElementCableANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
         // Add part of the Jacobian stemming from elastic forces
         for (int inode = 0; inode < 2; ++inode) {
             pos[inode].x() += diff;
-            this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1], F1);
-            Kcolumn = (F0 - F1) * (1.0 / diff) * Kfactor;
-            this->m_JacobianMatrix.PasteClippedMatrix(Kcolumn, 0, 0, 12, 1, 0, 0 + inode * 6);
+            ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1], F1);
+            m_JacobianMatrix.col(0 + inode * 6) = (F0 - F1) * (1.0 / diff) * Kfactor;
             pos[inode].x() -= diff;
 
             pos[inode].y() += diff;
-            this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1], F1);
-            Kcolumn = (F0 - F1) * (1.0 / diff) * Kfactor;
-            this->m_JacobianMatrix.PasteClippedMatrix(Kcolumn, 0, 0, 12, 1, 0, 1 + inode * 6);
+            ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1], F1);
+            m_JacobianMatrix.col(1 + inode * 6) = (F0 - F1) * (1.0 / diff) * Kfactor;
             pos[inode].y() -= diff;
 
             pos[inode].z() += diff;
-            this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1], F1);
-            Kcolumn = (F0 - F1) * (1.0 / diff) * Kfactor;
-            this->m_JacobianMatrix.PasteClippedMatrix(Kcolumn, 0, 0, 12, 1, 0, 2 + inode * 6);
+            ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1], F1);
+            m_JacobianMatrix.col(2 + inode * 6) = (F0 - F1) * (1.0 / diff) * Kfactor;
             pos[inode].z() -= diff;
 
             D[inode].x() += diff;
-            this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1], F1);
-            Kcolumn = (F0 - F1) * (1.0 / diff) * Kfactor;
-            this->m_JacobianMatrix.PasteClippedMatrix(Kcolumn, 0, 0, 12, 1, 0, 3 + inode * 6);
+            ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1], F1);
+            m_JacobianMatrix.col(3 + inode * 6) = (F0 - F1) * (1.0 / diff) * Kfactor;
             D[inode].x() -= diff;
 
             D[inode].y() += diff;
-            this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1], F1);
-            Kcolumn = (F0 - F1) * (1.0 / diff) * Kfactor;
-            this->m_JacobianMatrix.PasteClippedMatrix(Kcolumn, 0, 0, 12, 1, 0, 4 + inode * 6);
+            ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1], F1);
+            m_JacobianMatrix.col(4 + inode * 6) = (F0 - F1) * (1.0 / diff) * Kfactor;
             D[inode].y() -= diff;
 
             D[inode].z() += diff;
-            this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1], F1);
-            Kcolumn = (F0 - F1) * (1.0 / diff) * Kfactor;
-            this->m_JacobianMatrix.PasteClippedMatrix(Kcolumn, 0, 0, 12, 1, 0, 5 + inode * 6);
+            ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1], F1);
+            m_JacobianMatrix.col(5 + inode * 6) = (F0 - F1) * (1.0 / diff) * Kfactor;
             D[inode].z() -= diff;
         }
 
@@ -155,51 +148,37 @@ void ChElementCableANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
         if (m_use_damping) {
             for (int inode = 0; inode < 2; ++inode) {
                 pos_dt[inode].x() += diff;
-                this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
-                                                 F1);
-                Kcolumn = (F0 - F1) * (1.0 / diff) * Rfactor;
-                this->m_JacobianMatrix.PasteClippedMatrix(Kcolumn, 0, 0, 12, 1, 0, 0 + inode * 6);
+                ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1], F1);
+                m_JacobianMatrix.col(0 + inode * 6) = (F0 - F1) * (1.0 / diff) * Rfactor;
                 pos_dt[inode].x() -= diff;
 
                 pos_dt[inode].y() += diff;
-                this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
-                                                 F1);
-                Kcolumn = (F0 - F1) * (1.0 / diff) * Rfactor;
-                this->m_JacobianMatrix.PasteClippedMatrix(Kcolumn, 0, 0, 12, 1, 0, 1 + inode * 6);
+                ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1], F1);
+                m_JacobianMatrix.col(1 + inode * 6) = (F0 - F1) * (1.0 / diff) * Rfactor;
                 pos_dt[inode].y() -= diff;
 
                 pos_dt[inode].z() += diff;
-                this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
-                                                 F1);
-                Kcolumn = (F0 - F1) * (1.0 / diff) * Rfactor;
-                this->m_JacobianMatrix.PasteClippedMatrix(Kcolumn, 0, 0, 12, 1, 0, 2 + inode * 6);
+                ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1], F1);
+                m_JacobianMatrix.col(2 + inode * 6) = (F0 - F1) * (1.0 / diff) * Rfactor;
                 pos_dt[inode].z() -= diff;
 
                 D_dt[inode].x() += diff;
-                this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
-                                                 F1);
-                Kcolumn = (F0 - F1) * (1.0 / diff) * Rfactor;
-                this->m_JacobianMatrix.PasteClippedMatrix(Kcolumn, 0, 0, 12, 1, 0, 3 + inode * 6);
+                ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1], F1);
+                m_JacobianMatrix.col(3 + inode * 6) = (F0 - F1) * (1.0 / diff) * Rfactor;
                 D_dt[inode].x() -= diff;
 
                 D_dt[inode].y() += diff;
-                this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
-                                                 F1);
-                Kcolumn = (F0 - F1) * (1.0 / diff) * Rfactor;
-                this->m_JacobianMatrix.PasteClippedMatrix(Kcolumn, 0, 0, 12, 1, 0, 4 + inode * 6);
+                ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1], F1);
+                m_JacobianMatrix.col(4 + inode * 6) = (F0 - F1) * (1.0 / diff) * Rfactor;
                 D_dt[inode].y() -= diff;
 
                 D_dt[inode].z() += diff;
-                this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
-                                                 F1);
-                Kcolumn = (F0 - F1) * (1.0 / diff) * Rfactor;
-                this->m_JacobianMatrix.PasteClippedMatrix(Kcolumn, 0, 0, 12, 1, 0, 5 + inode * 6);
+                ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1], F1);
+                m_JacobianMatrix.col(5 + inode * 6) = (F0 - F1) * (1.0 / diff) * Rfactor;
                 D_dt[inode].z() -= diff;
             }
         }
-    }
-
-    else {
+    } else {
         // Option B: use the code in D.Melanz thesis. These formulas, however,
         // produce a rank deficient matrix for straight beams.
         //// TODO: Test it and include internal damping from strain rates.
@@ -214,7 +193,7 @@ void ChElementCableANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
         ChVector<> pB = this->nodes[1]->GetPos();
         ChVector<> dB = this->nodes[1]->GetD();
 
-        // this matrix will be used in both MyStiffnessAxial and MyStiffnessCurv integrators
+        // this matrix will be used in both CableANCF_StiffnessAxial and CableANCF_StiffnessCurv integrators
         ChMatrixNM<double, 4, 3> d;
         d(0, 0) = pA.x();
         d(0, 1) = pA.y();
@@ -232,85 +211,62 @@ void ChElementCableANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
         // 1)
         // Integrate   ((strainD'*strainD)+(strain*Sd'*Sd))
 
-        class MyStiffnessAxial : public ChIntegrable1D<ChMatrixNM<double, 12, 12>> {
+        class CableANCF_StiffnessAxial : public ChIntegrable1D<ChMatrixNM<double, 12, 12>> {
           public:
             ChElementCableANCF* element;
             ChMatrixNM<double, 4, 3>* d;
-            ChMatrixNM<double, 3, 12> Sd;
-            ChMatrixNM<double, 1, 4> N;
-            ChMatrixNM<double, 1, 4> Nd;
-            ChMatrixNM<double, 1, 12> strainD;
-            ChMatrixNM<double, 1, 1> strain;
-            ChMatrixNM<double, 1, 3> Nd_d;
-            ChMatrixNM<double, 12, 12> temp;
 
             // Evaluate ((strainD'*strainD)+(strain*Sd'*Sd)) at point x
             virtual void Evaluate(ChMatrixNM<double, 12, 12>& result, const double x) {
+                ChElementCableANCF::ShapeVector Nd;
                 element->ShapeFunctionsDerivatives(Nd, x);
 
                 // Sd=[Nd1*eye(3) Nd2*eye(3) Nd3*eye(3) Nd4*eye(3)]
-                ChMatrix33<> Sdi;
-                Sdi.Reset();
+                ChMatrixNM<double, 3, 12> Sd;
+                Sd.setZero();
+                for (int i = 0; i < 4; i++) {
+                    Sd(0, 3 * i + 0) = Nd(i);
+                    Sd(1, 3 * i + 1) = Nd(i);
+                    Sd(2, 3 * i + 2) = Nd(i);
+                }
 
-                Sdi.FillDiag(Nd(0));
-                Sd.PasteMatrix(Sdi, 0, 0);
-                Sdi.FillDiag(Nd(1));
-                Sd.PasteMatrix(Sdi, 0, 3);
-                Sdi.FillDiag(Nd(2));
-                Sd.PasteMatrix(Sdi, 0, 6);
-                Sdi.FillDiag(Nd(3));
-                Sd.PasteMatrix(Sdi, 0, 9);
-
-                Nd_d = Nd * (*d);
-
-                strainD = Nd_d * Sd;
+                ChMatrixNM<double, 1, 3> Nd_d = Nd * (*d);
+                ChMatrixNM<double, 1, 12> strainD = Nd_d * Sd;
 
                 // strain = (Nd*(d*d')*Nd'-1)*0.5;
-
-                strain.MatrMultiplyT(Nd_d, Nd_d);
-                strain(0, 0) += -1;
-                strain(0, 0) *= 0.5;  // strain
+                double strain = 0.5 * (Nd_d.dot(Nd_d) - 1);
 
                 // result:  ((strainD'*strainD)+(strain*Sd'*Sd))
-
-                result.MatrTMultiply(strainD, strainD);  //(strainD'*strainD)
-
-                temp.MatrTMultiply(Sd, Sd);  //(strain*Sd'*Sd)
-                temp *= strain(0, 0);
-                result += temp;
+                result = strainD.transpose() * strainD + strain * Sd.transpose() * Sd;
             }
         };
 
-        MyStiffnessAxial myformulaAx;
+        CableANCF_StiffnessAxial myformulaAx;
         myformulaAx.d = &d;
         myformulaAx.element = this;
 
         ChMatrixNM<double, 12, 12> Kaxial;
-        Kaxial.Reset();
+        Kaxial.setZero();
         ChQuadrature::Integrate1D<ChMatrixNM<double, 12, 12>>(Kaxial,       // result of integration will go there
                                                               myformulaAx,  // formula to integrate
                                                               0,            // start of x
                                                               1,            // end of x
                                                               5             // order of integration
         );
-        Kaxial *= E * Area * length;
 
-        this->m_JacobianMatrix = Kaxial;
+        this->m_JacobianMatrix = E * Area * length * Kaxial;
 
         // 2)
         // Integrate   (k_e'*k_e)
 
-        class MyStiffnessCurv : public ChIntegrable1D<ChMatrixNM<double, 12, 12>> {
+        class CableANCF_StiffnessCurv : public ChIntegrable1D<ChMatrixNM<double, 12, 12>> {
           public:
             ChElementCableANCF* element;
             ChMatrixNM<double, 4, 3>* d;
             ChMatrixNM<double, 3, 12> Sd;
             ChMatrixNM<double, 3, 12> Sdd;
-            ChMatrixNM<double, 1, 4> Nd;
-            ChMatrixNM<double, 1, 4> Ndd;
-
-            ChMatrixNM<double, 1, 3> r_x;
-            ChMatrixNM<double, 1, 3> r_xx;
+            ChElementCableANCF::ShapeVector Nd;
+            ChElementCableANCF::ShapeVector Ndd;
 
             ChMatrixNM<double, 1, 12> g_e;
             ChMatrixNM<double, 1, 12> f_e;
@@ -324,82 +280,65 @@ void ChElementCableANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
 
                 // Sd=[Nd1*eye(3) Nd2*eye(3) Nd3*eye(3) Nd4*eye(3)]
                 // Sdd=[Ndd1*eye(3) Ndd2*eye(3) Ndd3*eye(3) Ndd4*eye(3)]
-                ChMatrix33<> Sdi;
-                Sdi.Reset();
+                Sd.setZero();
+                for (int i = 0; i < 4; i++) {
+                    Sd(0, 3 * i + 0) = Nd(i);
+                    Sd(1, 3 * i + 1) = Nd(i);
+                    Sd(2, 3 * i + 2) = Nd(i);
+                }
 
-                Sdi.FillDiag(Nd(0));
-                Sd.PasteMatrix(Sdi, 0, 0);
-                Sdi.FillDiag(Nd(1));
-                Sd.PasteMatrix(Sdi, 0, 3);
-                Sdi.FillDiag(Nd(2));
-                Sd.PasteMatrix(Sdi, 0, 6);
-                Sdi.FillDiag(Nd(3));
-                Sd.PasteMatrix(Sdi, 0, 9);
+                Sdd.setZero();
+                for (int i = 0; i < 4; i++) {
+                    Sdd(0, 3 * i + 0) = Ndd(i);
+                    Sdd(1, 3 * i + 1) = Ndd(i);
+                    Sdd(2, 3 * i + 2) = Ndd(i);
+                }
 
-                Sdi.FillDiag(Ndd(0));
-                Sdd.PasteMatrix(Sdi, 0, 0);
-                Sdi.FillDiag(Ndd(1));
-                Sdd.PasteMatrix(Sdi, 0, 3);
-                Sdi.FillDiag(Ndd(2));
-                Sdd.PasteMatrix(Sdi, 0, 6);
-                Sdi.FillDiag(Ndd(3));
-                Sdd.PasteMatrix(Sdi, 0, 9);
-
-                r_x.MatrMultiply(Nd, *d);    // r_x=d'*Nd';  (transposed)
-                r_xx.MatrMultiply(Ndd, *d);  // r_xx=d'*Ndd';  (transposed)
-
-                // if (r_xx.Length()==0)
-                //     {r_xx(0)=0; r_xx(1)=1; r_xx(2)=0;}
-                ChVector<> vr_x(r_x(0), r_x(1), r_x(2));
-                ChVector<> vr_xx(r_xx(0), r_xx(1), r_xx(2));
+                ChVector<> vr_x((*d).transpose() * Nd.transpose());
+                ChVector<> vr_xx((*d).transpose() * Ndd.transpose());
                 ChVector<> vf1 = Vcross(vr_x, vr_xx);
                 double f = vf1.Length();
                 double g1 = vr_x.Length();
                 double g = pow(g1, 3);
                 double k = f / g;
 
-                g_e = (Nd * (*d)) * Sd;
-                g_e *= (3 * g1);
+                g_e = (3 * g1) * Nd * (*d) * Sd;
 
                 // do:  fe1=cross(Sd,r_xxrep)+cross(r_xrep,Sdd);
                 for (int col = 0; col < 12; ++col) {
-                    ChVector<> Sd_i = Sd.ClipVector(0, col);
-                    fe1.PasteVector(Vcross(Sd_i, vr_xx), 0, col);
-                    ChVector<> Sdd_i = Sdd.ClipVector(0, col);
-                    fe1.PasteSumVector(Vcross(vr_x, Sdd_i), 0, col);
+                    ChVector<> Sd_i = Sd.col(col);
+                    fe1.col(col) = Vcross(Sd_i, vr_xx).eigen();
+                    ChVector<> Sdd_i = Sdd.col(col);
+                    fe1.col(col) = Vcross(vr_x, Sdd_i).eigen();
                 }
-                ChMatrixNM<double, 3, 1> f1;
-                f1.PasteVector(vf1, 0, 0);
+                ChVectorN<double, 3> f1 = vf1.eigen();
 
                 if (f == 0)
-                    f_e.MatrTMultiply(f1, fe1);
+                    f_e = f1.transpose() * fe1;
                 else {
-                    f_e.MatrTMultiply(f1, fe1);
-                    f_e *= (1 / f);
+                    f_e = (1 / f) * f1.transpose() * fe1;
                 }
 
                 k_e = (f_e * g - g_e * f) * (1 / (pow(g, 2)));
 
-                // result:  k_e'*k_e
-                result.MatrTMultiply(k_e, k_e);
+                result = k_e.transpose() * k_e;
             }
         };
 
-        MyStiffnessCurv myformulaCurv;
+        CableANCF_StiffnessCurv myformulaCurv;
         myformulaCurv.d = &d;
         myformulaCurv.element = this;
 
         ChMatrixNM<double, 12, 12> Kcurv;
-        Kcurv.Reset();
+        Kcurv.setZero();
         ChQuadrature::Integrate1D<ChMatrixNM<double, 12, 12>>(Kcurv,          // result of integration will go there
                                                               myformulaCurv,  // formula to integrate
                                                               0,              // start of x
                                                               1,              // end of x
                                                               3               // order of integration
         );
-        Kcurv *= E * I * length;  // note Iyy should be the same value (circular section assumption)
 
-        this->m_JacobianMatrix += Kcurv;
+        m_JacobianMatrix += (E * I * length) * Kcurv;  // Iyy should be the same value (circular section assumption)
     }
 
     //***DEBUG***
@@ -423,35 +362,30 @@ void ChElementCableANCF::ComputeMassMatrix() {
     // Integrate  Area*rho*(S'*S)
     // where S=[N1*eye(3) N2*eye(3) N3*eye(3) N4*eye(3)]
 
-    class MyMass : public ChIntegrable1D<ChMatrixNM<double, 12, 12>> {
+    class CableANCF_Mass : public ChIntegrable1D<ChMatrixNM<double, 12, 12>> {
       public:
         ChElementCableANCF* element;
         ChMatrixNM<double, 3, 12> S;
-        ChMatrixNM<double, 1, 4> N;
+        ChElementCableANCF::ShapeVector N;
 
         // Evaluate the S'*S  at point x
         virtual void Evaluate(ChMatrixNM<double, 12, 12>& result, const double x) {
             element->ShapeFunctions(N, x);
             // S=[N1*eye(3) N2*eye(3) N3*eye(3) N4*eye(3)]
-            ChMatrix33<> Si;
-            Si.Reset();
+            S.setZero();
+            for (int i = 0; i < 4; i++) {
+                S(0, 3 * i + 0) = N(i);
+                S(1, 3 * i + 1) = N(i);
+                S(2, 3 * i + 2) = N(i);
+            }
 
-            Si.FillDiag(N(0));
-            S.PasteMatrix(Si, 0, 0);
-            Si.FillDiag(N(1));
-            S.PasteMatrix(Si, 0, 3);
-            Si.FillDiag(N(2));
-            S.PasteMatrix(Si, 0, 6);
-            Si.FillDiag(N(3));
-            S.PasteMatrix(Si, 0, 9);
-            // perform  r = S'*S
-            result.MatrTMultiply(S, S);
+            result = S.transpose() * S;
         }
     };
 
-    MyMass myformula;
+    CableANCF_Mass myformula;
     myformula.element = this;
-    m_MassMatrix.Reset();
+    m_MassMatrix.setZero();
     ChQuadrature::Integrate1D<ChMatrixNM<double, 12, 12>>(m_MassMatrix,  // result of integration will go there
                                                           myformula,     // formula to integrate
                                                           0,             // start of x
@@ -472,9 +406,9 @@ void ChElementCableANCF::SetupInitial(ChSystem* system) {
 
     // Here we calculate the internal forces in the initial configuration
     // Contribution of initial configuration in elastic forces is automatically subtracted
-    ChMatrixDynamic<> FVector0(12, 1);
-    FVector0.Reset();
-    m_GenForceVec0.Reset();  // Note: this is important here (m_GenForceVec0 used in ComputeInternalForces)
+    ChVectorDynamic<> FVector0(12);
+    FVector0.setZero();
+    m_GenForceVec0.setZero();  // Note: this is important here (m_GenForceVec0 used in ComputeInternalForces)
     ComputeInternalForces(FVector0);
     m_GenForceVec0 = FVector0;
 
@@ -484,22 +418,20 @@ void ChElementCableANCF::SetupInitial(ChSystem* system) {
 
 // Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also superimposes global
 // damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
-void ChElementCableANCF::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor, double Mfactor) {
-    assert((H.GetRows() == 12) && (H.GetColumns() == 12));
+void ChElementCableANCF::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
+    assert((H.rows() == 12) && (H.cols() == 12));
     assert(section);
 
     // Calculate the linear combination Kfactor*[K] + Rfactor*[R]
     ComputeInternalJacobians(Kfactor, Rfactor);
 
     // Load Jac + Mfactor*[M] into H
-    for (int i = 0; i < 12; i++)
-        for (int j = 0; j < 12; j++)
-            H(i, j) = m_JacobianMatrix(i, j) + Mfactor * m_MassMatrix(i, j);
+    H = m_JacobianMatrix + Mfactor * m_MassMatrix;
 }
 
 // Computes the internal forces and set values in the Fi vector.
 // (e.g. the actual position of nodes is not in relaxed reference position).
-void ChElementCableANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
+void ChElementCableANCF::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     ComputeInternalForces_Impl(this->nodes[0]->GetPos(), this->nodes[0]->GetD(), this->nodes[1]->GetPos(),
                                this->nodes[1]->GetD(), this->nodes[0]->GetPos_dt(), this->nodes[0]->GetD_dt(),
                                this->nodes[1]->GetPos_dt(), this->nodes[1]->GetD_dt(), Fi);
@@ -516,8 +448,8 @@ void ChElementCableANCF::ComputeInternalForces_Impl(const ChVector<>& pA,
                                                     const ChVector<>& dA_dt,
                                                     const ChVector<>& pB_dt,
                                                     const ChVector<>& dB_dt,
-                                                    ChMatrixDynamic<>& Fi) {
-    assert((Fi.GetRows() == 12) && (Fi.GetColumns() == 1));
+                                                    ChVectorDynamic<>& Fi) {
+    assert(Fi.size() == 12);
     assert(section);
 
     double Area = section->Area;
@@ -526,7 +458,7 @@ void ChElementCableANCF::ComputeInternalForces_Impl(const ChVector<>& pA,
 
     double l = this->length;
 
-    // this matrix will be used in both MyForcesAxial and MyForcesCurv integrators
+    // this matrix will be used in both CableANCF_ForceAxial and CableANCF_ForceCurv integrators
     ChMatrixNM<double, 4, 3> d;
     d(0, 0) = pA.x();
     d(0, 1) = pA.y();
@@ -541,85 +473,72 @@ void ChElementCableANCF::ComputeInternalForces_Impl(const ChVector<>& pA,
     d(3, 1) = dB.y();
     d(3, 2) = dB.z();
 
-    // this matrix will be used in both MyForcesAxial and MyForcesCurv integrators
-    ChMatrixNM<double, 12, 1> vel_vector;
-    vel_vector(0, 0) = pA_dt.x();
-    vel_vector(1, 0) = pA_dt.y();
-    vel_vector(2, 0) = pA_dt.z();
-    vel_vector(3, 0) = dA_dt.x();
-    vel_vector(4, 0) = dA_dt.y();
-    vel_vector(5, 0) = dA_dt.z();
-    vel_vector(6, 0) = pB_dt.x();
-    vel_vector(7, 0) = pB_dt.y();
-    vel_vector(8, 0) = pB_dt.z();
-    vel_vector(9, 0) = dB_dt.x();
-    vel_vector(10, 0) = dB_dt.y();
-    vel_vector(11, 0) = dB_dt.z();
+    // this matrix will be used in both CableANCF_ForceAxial and CableANCF_ForceCurv integrators
+    ChVectorN<double, 12> vel_vector;
+    vel_vector(0) = pA_dt.x();
+    vel_vector(1) = pA_dt.y();
+    vel_vector(2) = pA_dt.z();
+    vel_vector(3) = dA_dt.x();
+    vel_vector(4) = dA_dt.y();
+    vel_vector(5) = dA_dt.z();
+    vel_vector(6) = pB_dt.x();
+    vel_vector(7) = pB_dt.y();
+    vel_vector(8) = pB_dt.z();
+    vel_vector(9) = dB_dt.x();
+    vel_vector(10) = dB_dt.y();
+    vel_vector(11) = dB_dt.z();
 
     // 1)
     // Integrate   (strainD'*strain)
 
-    class MyForcesAxial : public ChIntegrable1D<ChMatrixNM<double, 12, 1>> {
+    class CableANCF_ForceAxial : public ChIntegrable1D<ChVectorN<double, 12>> {
       public:
         ChElementCableANCF* element;
-        ChMatrixNM<double, 4, 3>* d;      // this is an external matrix, use pointer
-        ChMatrixNM<double, 12, 1>* d_dt;  // this is an external matrix, use pointer
+        ChMatrixNM<double, 4, 3>* d;  // this is an external matrix, use pointer
+        ChVectorN<double, 12>* d_dt;  // this is an external matrix, use pointer
         ChMatrixNM<double, 3, 12> Sd;
-        ChMatrixNM<double, 1, 4> N;
-        ChMatrixNM<double, 1, 4> Nd;
+        ChElementCableANCF::ShapeVector Nd;
         ChMatrixNM<double, 1, 12> strainD;
-        ChMatrixNM<double, 1, 1> strain;
         ChMatrixNM<double, 1, 3> Nd_d;
-        ChMatrixNM<double, 12, 12> temp;
 
         // Evaluate (strainD'*strain)  at point x
-        virtual void Evaluate(ChMatrixNM<double, 12, 1>& result, const double x) {
+        virtual void Evaluate(ChVectorN<double, 12>& result, const double x) override {
             element->ShapeFunctionsDerivatives(Nd, x);
 
             // Sd=[Nd1*eye(3) Nd2*eye(3) Nd3*eye(3) Nd4*eye(3)]
-            ChMatrix33<> Sdi;
-            Sdi.Reset();
-
-            Sdi.FillDiag(Nd(0));
-            Sd.PasteMatrix(Sdi, 0, 0);
-            Sdi.FillDiag(Nd(1));
-            Sd.PasteMatrix(Sdi, 0, 3);
-            Sdi.FillDiag(Nd(2));
-            Sd.PasteMatrix(Sdi, 0, 6);
-            Sdi.FillDiag(Nd(3));
-            Sd.PasteMatrix(Sdi, 0, 9);
+            Sd.setZero();
+            for (int i = 0; i < 4; i++) {
+                Sd(0, 3 * i + 0) = Nd(i);
+                Sd(1, 3 * i + 1) = Nd(i);
+                Sd(2, 3 * i + 2) = Nd(i);
+            }
 
             Nd_d = Nd * (*d);
-
             strainD = Nd_d * Sd;
 
             // strain = (Nd*(d*d')*Nd'-1)*0.5;
-
-            strain.MatrMultiplyT(Nd_d, Nd_d);
-            strain(0, 0) += -1;
-            strain(0, 0) *= 0.5;
+            double strain = 0.5 * (Nd_d.dot(Nd_d) - 1);
 
             // Add damping forces if selected
             if (element->m_use_damping)
-                strain(0, 0) += (element->m_alpha) * (strainD * (*d_dt))(0, 0);
+                strain += (element->m_alpha) * (strainD * (*d_dt))(0, 0);
 
-            result.MatrTMultiply(strainD, strain);
-            // result:  strainD'*strain
+            result = strainD.transpose() * strain;
         }
     };
 
-    MyForcesAxial myformulaAx;
+    CableANCF_ForceAxial myformulaAx;
     myformulaAx.d = &d;
     myformulaAx.d_dt = &vel_vector;
     myformulaAx.element = this;
 
-    ChMatrixNM<double, 12, 1> Faxial;
-    Faxial.Reset();
-    ChQuadrature::Integrate1D<ChMatrixNM<double, 12, 1>>(Faxial,       // result of integration will go there
-                                                         myformulaAx,  // formula to integrate
-                                                         0,            // start of x
-                                                         1,            // end of x
-                                                         5             // order of integration
+    ChVectorN<double, 12> Faxial;
+    Faxial.setZero();
+    ChQuadrature::Integrate1D<ChVectorN<double, 12>>(Faxial,       // result of integration will go there
+                                                     myformulaAx,  // formula to integrate
+                                                     0,            // start of x
+                                                     1,            // end of x
+                                                     5             // order of integration
     );
     Faxial *= -E * Area * length;
 
@@ -628,122 +547,98 @@ void ChElementCableANCF::ComputeInternalForces_Impl(const ChVector<>& pA,
     // 2)
     // Integrate   (k_e'*k_e)
 
-    class MyForcesCurv : public ChIntegrable1D<ChMatrixNM<double, 12, 1>> {
+    class CableANCF_ForceCurv : public ChIntegrable1D<ChVectorN<double, 12>> {
       public:
         ChElementCableANCF* element;
-        ChMatrixNM<double, 4, 3>* d;      // this is an external matrix, use pointer
-        ChMatrixNM<double, 12, 1>* d_dt;  // this is an external matrix, use pointer
+        ChMatrixNM<double, 4, 3>* d;  // this is an external matrix, use pointer
+        ChVectorN<double, 12>* d_dt;  // this is an external matrix, use pointer
         ChMatrixNM<double, 3, 12> Sd;
         ChMatrixNM<double, 3, 12> Sdd;
-        ChMatrixNM<double, 1, 4> Nd;
-        ChMatrixNM<double, 1, 4> Ndd;
-        ChMatrixNM<double, 1, 3> r_x;
-        ChMatrixNM<double, 1, 3> r_xx;
+        ChElementCableANCF::ShapeVector Nd;
+        ChElementCableANCF::ShapeVector Ndd;
         ChMatrixNM<double, 1, 12> g_e;
         ChMatrixNM<double, 1, 12> f_e;
         ChMatrixNM<double, 1, 12> k_e;
         ChMatrixNM<double, 3, 12> fe1;
 
         // Evaluate  at point x
-        virtual void Evaluate(ChMatrixNM<double, 12, 1>& result, const double x) {
+        virtual void Evaluate(ChVectorN<double, 12>& result, const double x) override {
             element->ShapeFunctionsDerivatives(Nd, x);
             element->ShapeFunctionsDerivatives2(Ndd, x);
 
             // Sd=[Nd1*eye(3) Nd2*eye(3) Nd3*eye(3) Nd4*eye(3)]
             // Sdd=[Ndd1*eye(3) Ndd2*eye(3) Ndd3*eye(3) Ndd4*eye(3)]
-            ChMatrix33<> Sdi;
-            Sdi.Reset();
+            Sd.setZero();
+            for (int i = 0; i < 4; i++) {
+                Sd(0, 3 * i + 0) = Nd(i);
+                Sd(1, 3 * i + 1) = Nd(i);
+                Sd(2, 3 * i + 2) = Nd(i);
+            }
 
-            Sdi.FillDiag(Nd(0));
-            Sd.PasteMatrix(Sdi, 0, 0);
-            Sdi.FillDiag(Nd(1));
-            Sd.PasteMatrix(Sdi, 0, 3);
-            Sdi.FillDiag(Nd(2));
-            Sd.PasteMatrix(Sdi, 0, 6);
-            Sdi.FillDiag(Nd(3));
-            Sd.PasteMatrix(Sdi, 0, 9);
+            Sdd.setZero();
+            for (int i = 0; i < 4; i++) {
+                Sdd(0, 3 * i + 0) = Ndd(i);
+                Sdd(1, 3 * i + 1) = Ndd(i);
+                Sdd(2, 3 * i + 2) = Ndd(i);
+            }
 
-            Sdi.FillDiag(Ndd(0));
-            Sdd.PasteMatrix(Sdi, 0, 0);
-            Sdi.FillDiag(Ndd(1));
-            Sdd.PasteMatrix(Sdi, 0, 3);
-            Sdi.FillDiag(Ndd(2));
-            Sdd.PasteMatrix(Sdi, 0, 6);
-            Sdi.FillDiag(Ndd(3));
-            Sdd.PasteMatrix(Sdi, 0, 9);
-
-            r_x.MatrMultiply(Nd, (*d));    // r_x=d'*Nd';  (transposed)
-            r_xx.MatrMultiply(Ndd, (*d));  // r_xx=d'*Ndd';  (transposed)
-
-            // if (r_xx.Length()==0)
-            //     {r_xx(0)=0; r_xx(1)=1; r_xx(2)=0;}
-            ChVector<> vr_x(r_x(0), r_x(1), r_x(2));
-            ChVector<> vr_xx(r_xx(0), r_xx(1), r_xx(2));
+            ChVector<> vr_x((*d).transpose() * Nd.transpose());
+            ChVector<> vr_xx((*d).transpose() * Ndd.transpose());
             ChVector<> vf1 = Vcross(vr_x, vr_xx);
             double f = vf1.Length();
             double g1 = vr_x.Length();
             double g = pow(g1, 3);
             double k = f / g;
-            g_e = (Nd * (*d)) * Sd;
-            g_e *= (3 * g1);
+
+            g_e = (3 * g1) * Nd * (*d) * Sd;
 
             // do:  fe1=cross(Sd,r_xxrep)+cross(r_xrep,Sdd);
             for (int col = 0; col < 12; ++col) {
-                ChVector<> Sd_i = Sd.ClipVector(0, col);
-                fe1.PasteVector(Vcross(Sd_i, vr_xx), 0, col);
-                ChVector<> Sdd_i = Sdd.ClipVector(0, col);
-                fe1.PasteSumVector(Vcross(vr_x, Sdd_i), 0, col);
+                ChVector<> Sd_i = Sd.col(col);
+                fe1.col(col) = Vcross(Sd_i, vr_xx).eigen();
+                ChVector<> Sdd_i = Sdd.col(col);
+                fe1.col(col) += Vcross(vr_x, Sdd_i).eigen();
             }
-            ChMatrixNM<double, 3, 1> f1;
-            f1.PasteVector(vf1, 0, 0);
+            ChVectorN<double, 3> f1 = vf1.eigen();
 
             if (f == 0)
-                f_e.MatrTMultiply(f1, fe1);
+                f_e = f1.transpose() * fe1;
             else {
-                f_e.MatrTMultiply(f1, fe1);
-                f_e *= (1 / f);
+                f_e = (1 / f) * f1.transpose() * fe1;
             }
 
             k_e = (f_e * g - g_e * f) * (1 / (pow(g, 2)));
-
-            // result:  k_e'*k
-            result.CopyFromMatrixT(k_e);
 
             // Add damping if selected by user: curvature rate
             if (element->m_use_damping)
                 k += (element->m_alpha) * (k_e * (*d_dt))(0, 0);
 
-            result *= k;
+            result = k * k_e.transpose();
         }
     };
 
-    MyForcesCurv myformulaCurv;
+    CableANCF_ForceCurv myformulaCurv;
     myformulaCurv.d = &d;
     myformulaCurv.d_dt = &vel_vector;
     myformulaCurv.element = this;
 
-    ChMatrixNM<double, 12, 1> Fcurv;
-    Fcurv.Reset();
-    ChQuadrature::Integrate1D<ChMatrixNM<double, 12, 1>>(Fcurv,          // result of integration will go there
-                                                         myformulaCurv,  // formula to integrate
-                                                         0,              // start of x
-                                                         1,              // end of x
-                                                         3               // order of integration
+    ChVectorN<double, 12> Fcurv;
+    Fcurv.setZero();
+    ChQuadrature::Integrate1D<ChVectorN<double, 12>>(Fcurv,          // result of integration will go there
+                                                     myformulaCurv,  // formula to integrate
+                                                     0,              // start of x
+                                                     1,              // end of x
+                                                     3               // order of integration
     );
-    Fcurv *= -E * I * length;  // note Iyy should be the same value (circular section assumption)
 
-    Fi += Fcurv;
-
-    // Substract contribution of initial configuration
-    Fi -= this->m_GenForceVec0;
+    // Also subtract contribution of initial configuration
+    Fi -= (E * I * length) * Fcurv + m_GenForceVec0;
 }
 
 void ChElementCableANCF::EvaluateSectionDisplacement(const double eta, ChVector<>& u_displ, ChVector<>& u_rotaz) {
-    ChMatrixNM<double, 1, 4> N;
-
+    ShapeVector N;
     double xi = (eta + 1.0) * 0.5;
-
-    this->ShapeFunctions(N, xi);  // because ShapeFunctions() works in 0..1 range
+    ShapeFunctions(N, xi);  // because ShapeFunctions() works in 0..1 range
 
     u_displ = VNULL;  //(not needed in ANCF? )
     u_rotaz = VNULL;  //(not needed in ANCF? )
@@ -753,11 +648,9 @@ void ChElementCableANCF::EvaluateSectionFrame(const double eta, ChVector<>& poin
     ChVector<> u_displ;
     ChVector<> u_rotaz;
 
-    ChMatrixNM<double, 1, 4> N;
-
     double xi = (eta + 1.0) * 0.5;  // because ShapeFunctions() works in 0..1 range
-
-    this->ShapeFunctions(N, xi);
+    ShapeVector N;
+    ShapeFunctions(N, xi);
 
     ChVector<> pA = this->nodes[0]->GetPos();
     ChVector<> dA = this->nodes[0]->GetD();
@@ -790,9 +683,9 @@ void ChElementCableANCF::EvaluateSectionFrame(const double eta, ChVector<>& poin
 void ChElementCableANCF::EvaluateSectionForceTorque(const double eta, ChVector<>& Fforce, ChVector<>& Mtorque) {
     assert(section);
 
-    ChMatrixNM<double, 1, 4> N;
-    ChMatrixNM<double, 1, 4> Nd;
-    ChMatrixNM<double, 1, 4> Ndd;
+    ShapeVector N;
+    ShapeVector Nd;
+    ShapeVector Ndd;
     // double xi = (eta*2 - 1.0);
     double xi = (eta + 1.0) / 2.0;
 
@@ -802,55 +695,43 @@ void ChElementCableANCF::EvaluateSectionForceTorque(const double eta, ChVector<>
 void ChElementCableANCF::EvaluateSectionStrain(const double eta, ChVector<>& StrainV) {
     assert(section);
 
-    ChMatrixNM<double, 1, 4> N;
-    ChMatrixNM<double, 1, 4> Nd;
-    ChMatrixNM<double, 1, 4> Ndd;
+    ShapeVector N;
+    ShapeVector Nd;
+    ShapeVector Ndd;
     // double xi = (eta*2 - 1.0);
     double xi = (eta + 1.0) / 2.0;
 
     this->ShapeFunctions(N, xi);  // Evaluate shape functions
     this->ShapeFunctionsDerivatives(Nd, xi);
     this->ShapeFunctionsDerivatives2(Ndd, xi);
-    ChMatrixDynamic<> mD(GetNdofs(), 1);
-    ChMatrixNM<double, 3, 12> Sd;
-    ChMatrixNM<double, 3, 12> Sdd;
-    ChMatrixNM<double, 3, 1> r_x;
-    ChMatrixNM<double, 3, 1> r_xx;
+    ChVectorDynamic<> mD(GetNdofs());
 
     this->GetStateBlock(mD);
 
-    ChMatrix33<> Sdi;
-    Sdi.Reset();
+    ChMatrixNM<double, 3, 12> Sd;
+    Sd.setZero();
+    for (int i = 0; i < 4; i++) {
+        Sd(0, 3 * i + 0) = Nd(i);
+        Sd(1, 3 * i + 1) = Nd(i);
+        Sd(2, 3 * i + 2) = Nd(i);
+    }
 
-    Sdi.FillDiag(Nd(0));
-    Sd.PasteMatrix(Sdi, 0, 0);
-    Sdi.FillDiag(Nd(1));
-    Sd.PasteMatrix(Sdi, 0, 3);
-    Sdi.FillDiag(Nd(2));
-    Sd.PasteMatrix(Sdi, 0, 6);
-    Sdi.FillDiag(Nd(3));
-    Sd.PasteMatrix(Sdi, 0, 9);
-    Sdi.Reset();
-    Sdi.FillDiag(Ndd(0));
-    Sdd.PasteMatrix(Sdi, 0, 0);
-    Sdi.FillDiag(Ndd(1));
-    Sdd.PasteMatrix(Sdi, 0, 3);
-    Sdi.FillDiag(Ndd(2));
-    Sdd.PasteMatrix(Sdi, 0, 6);
-    Sdi.FillDiag(Ndd(3));
-    Sdd.PasteMatrix(Sdi, 0, 9);
+    ChMatrixNM<double, 3, 12> Sdd;
+    Sdd.setZero();
+    for (int i = 0; i < 4; i++) {
+        Sdd(0, 3 * i + 0) = Ndd(i);
+        Sdd(1, 3 * i + 1) = Ndd(i);
+        Sdd(2, 3 * i + 2) = Ndd(i);
+    }
 
-    r_x.MatrMultiply(Sd, mD);  // r_x=d'*Nd';  (transposed)
-    r_xx.MatrMultiply(Sdd, mD);
-
-    ChVector<> vr_x(r_x(0), r_x(1), r_x(2));
-    ChVector<> vr_xx(r_xx(0), r_xx(1), r_xx(2));
+    ChVector<> vr_x(Sd * mD);
+    ChVector<> vr_xx(Sdd * mD);
     ChVector<> vf1 = Vcross(vr_x, vr_xx);
     double f = vf1.Length();
     double g1 = vr_x.Length();
     double g = pow(g1, 3);
 
-    StrainV.x() = (pow(r_x(0), 2) + pow(r_x(1), 2) + pow(r_x(2), 2) - 1.0);
+    StrainV.x() = vr_x.Length2() - 1.0;
     StrainV.y() = f / g;  // Bending strain measure (Gertmayer and Shabana, 2006)
 }
 
@@ -862,18 +743,18 @@ void ChElementCableANCF::SetAlphaDamp(double a) {
 }
 
 void ChElementCableANCF::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
-    mD.PasteVector(this->nodes[0]->GetPos(), block_offset, 0);
-    mD.PasteVector(this->nodes[0]->GetD(), block_offset + 3, 0);
-    mD.PasteVector(this->nodes[1]->GetPos(), block_offset + 6, 0);
-    mD.PasteVector(this->nodes[1]->GetD(), block_offset + 9, 0);
+    mD.segment(block_offset + 0, 3) = nodes[0]->GetPos().eigen();
+    mD.segment(block_offset + 3, 3) = nodes[0]->GetD().eigen();
+    mD.segment(block_offset + 6, 3) = nodes[1]->GetPos().eigen();
+    mD.segment(block_offset + 9, 3) = nodes[1]->GetD().eigen();
 }
 
 // Gets all the DOFs packed in a single vector (speed part)
 void ChElementCableANCF::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
-    mD.PasteVector(this->nodes[0]->GetPos_dt(), block_offset, 0);
-    mD.PasteVector(this->nodes[0]->GetD_dt(), block_offset + 3, 0);
-    mD.PasteVector(this->nodes[1]->GetPos_dt(), block_offset + 6, 0);
-    mD.PasteVector(this->nodes[1]->GetD_dt(), block_offset + 9, 0);
+    mD.segment(block_offset + 0, 3) = nodes[0]->GetPos_dt().eigen();
+    mD.segment(block_offset + 3, 3) = nodes[0]->GetD_dt().eigen();
+    mD.segment(block_offset + 6, 3) = nodes[1]->GetPos_dt().eigen();
+    mD.segment(block_offset + 9, 3) = nodes[1]->GetD_dt().eigen();
 }
 
 // Increment all DOFs using a delta.
@@ -904,22 +785,15 @@ void ChElementCableANCF::ComputeNF(const double U,
                                    const ChVectorDynamic<>& F,
                                    ChVectorDynamic<>* state_x,
                                    ChVectorDynamic<>* state_w) {
-    ChMatrixNM<double, 1, 4> N;
-    this->ShapeFunctions(
-        N, (U + 1) * 0.5);  // evaluate shape functions (in compressed vector), btw. not dependant on state
+    ShapeVector N;
+    this->ShapeFunctions(N, (U + 1) * 0.5);  // evaluate shape functions (in compressed vector)
 
     detJ = this->GetRestLength() / 2.0;
 
-    ChVector<> tmp;
-    ChVector<> Fv = F.ClipVector(0, 0);
-    tmp = N(0) * Fv;
-    Qi.PasteVector(tmp, 0, 0);
-    tmp = N(1) * Fv;
-    Qi.PasteVector(tmp, 3, 0);
-    tmp = N(2) * Fv;
-    Qi.PasteVector(tmp, 6, 0);
-    tmp = N(3) * Fv;
-    Qi.PasteVector(tmp, 9, 0);
+    Qi.segment(0, 3) = N(0) * F.segment(0, 3);
+    Qi.segment(3, 3) = N(1) * F.segment(0, 3);
+    Qi.segment(6, 3) = N(2) * F.segment(0, 3);
+    Qi.segment(9, 3) = N(3) * F.segment(0, 3);
 }
 
 // Evaluate N'*F , where N is some type of shape function evaluated at U,V,W coordinates of the volume,

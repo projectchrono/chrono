@@ -18,35 +18,14 @@ namespace chrono {
 
 // -----------------------------------------------------------------------------
 
-ChGenericConstraint::ChGenericConstraint() : valid(false), disabled(false), C(NULL) {
+ChGenericConstraint::ChGenericConstraint() : valid(false), disabled(false) {
     Reset_Cn(Get_Cn());
 }
 
-ChGenericConstraint::~ChGenericConstraint() {
-    if (C)
-        delete C;
-    C = NULL;
-}
-
-// Sets the number of equations in this constraints (reset the
-// size of the C residual vector).
-int ChGenericConstraint::Reset_Cn(int mCn) {
-    if (mCn > 0) {
-        Cn = mCn;
-        if (C) {
-            delete C;
-            C = NULL;
-        }
-        C = new ChMatrixDynamic<>(Cn, 1);
-    } else {
-        Cn = 0;
-        if (C) {
-            delete C;
-            C = NULL;
-        }
-        C = NULL;
-    }
-    return Cn;
+// Sets the number of equations in this constraints (reset the size of the C residual vector).
+void ChGenericConstraint::Reset_Cn(int mCn) {
+    Cn = mCn;
+    C.resize(Cn);
 }
 
 // -----------------------------------------------------------------------------
@@ -94,10 +73,7 @@ bool ChGenericConstraint_Chf_ImposeVal::Update() {
     // Implement method:
 
     // CONSTRAINT EQUATION (residual of mc=0);
-    double mc = this->Get_target_function()->Get_y(this->T) - this->value;
-
-    if (C)
-        C->SetElement(0, 0, mc);
+    C(0) = this->Get_target_function()->Get_y(this->T) - this->value;
 
     return true;
 }
@@ -133,21 +109,18 @@ bool ChGenericConstraint_Chf_Continuity::Update() {
 
     // b- computes the time instant of discontinuity
     double mt;
-    double mc = 0;
-    if ((this->interface_num > mfun->Get_list().size()) || (this->interface_num < 0))  // NO!out of range...
-    {
-        if (C)
-            C->SetElement(0, 0, 0.0);
+    if ((this->interface_num > mfun->Get_list().size()) || (this->interface_num < 0)) {  // NO! out of range...
+
+        C(0) = 0.0;
         return false;
     }
-    if (this->interface_num == mfun->Get_list().size())  // ok, last discontinuity
-    {
+    if (this->interface_num == mfun->Get_list().size()) {  // ok, last discontinuity
         mt = mfun->GetNthNode(this->interface_num)->t_end;
     }
 
     mt = mfun->GetNthNode(this->interface_num)->t_start;  // ok, inner interface
 
-    // CONSTRAINT EQUATION (residual of mc=0);
+    // CONSTRAINT EQUATION
     double mstep = 1e-9;
     double v_a, v_b;
     switch (this->continuity_order) {
@@ -166,10 +139,8 @@ bool ChGenericConstraint_Chf_Continuity::Update() {
         default:
             v_a = v_b = 0;
     }
-    mc = v_b - v_a;
 
-    if (C)
-        C->SetElement(0, 0, mc);
+    C(0) = v_b - v_a;
 
     return true;
 }
@@ -208,12 +179,7 @@ bool ChGenericConstraint_Chf_HorDistance::Update() {
     double x_a = mfun->GetNthNode(this->handleA)->t_start;  // ok, first  handle X value
     double x_b = mfun->GetNthNode(this->handleB)->t_start;  // ok, second handle X value
 
-    // CONSTRAINT EQUATION (residual of mc=0);
-
-    double mc = x_b - x_a;
-
-    if (C)
-        C->SetElement(0, 0, mc);
+    C(0) = x_b - x_a;
 
     return true;
 }
@@ -255,12 +221,7 @@ bool ChGenericConstraint_Chf_VertDistance::Update() {
     double y_a = mfun->Get_y(x_a);
     double y_b = mfun->Get_y(x_b);
 
-    // CONSTRAINT EQUATION (residual of mc=0);
-
-    double mc = y_b - y_a;
-
-    if (C)
-        C->SetElement(0, 0, mc);
+    C(0) = y_b - y_a;
 
     return true;
 }

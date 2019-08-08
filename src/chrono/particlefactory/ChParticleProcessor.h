@@ -40,9 +40,9 @@ class ChParticleProcessor {
   public:
     ChParticleProcessor() {
         // default trigger: trigger never
-        trigger = std::make_shared<ChParticleEventTriggerNever>();
+        trigger = chrono_types::make_shared<ChParticleEventTriggerNever>();
         // default event processor: do nothing
-        particle_processor = std::make_shared<ChParticleProcessEventDoNothing>();
+        particle_processor = chrono_types::make_shared<ChParticleProcessEventDoNothing>();
     }
 
     /// This function process particles according to some rule,

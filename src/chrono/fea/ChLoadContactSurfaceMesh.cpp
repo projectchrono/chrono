@@ -88,7 +88,7 @@ void ChLoadContactSurfaceMesh::InputSimpleForces(const std::vector<ChVector<>> v
     // Populate the array of applied loads to nodes
     for (size_t i = 0; i < vert_forces.size(); ++i) {
         std::shared_ptr<ChNodeFEAxyz> mnode = ind_ptr_map[vert_ind[i]];
-        auto mforce = std::make_shared<ChLoadXYZnode>(mnode);
+        auto mforce = chrono_types::make_shared<ChLoadXYZnode>(mnode);
         mforce->loader.SetForce(vert_forces[i]);
         this->forces.push_back(mforce);
     }
@@ -151,9 +151,9 @@ void ChLoadContactSurfaceMesh::ComputeQ(ChState* state_x, ChStateDelta* state_w)
 
 void ChLoadContactSurfaceMesh::ComputeJacobian(ChState* state_x,
                                                ChStateDelta* state_w,
-                                               ChMatrix<>& mK,
-                                               ChMatrix<>& mR,
-                                               ChMatrix<>& mM) {
+                                               ChMatrixRef mK,
+                                               ChMatrixRef mR,
+                                               ChMatrixRef mM) {
     for (int i = 0; i < forces.size(); ++i) {
         forces[i]->ComputeJacobian(state_x, state_w, mK, mR, mM);
     }

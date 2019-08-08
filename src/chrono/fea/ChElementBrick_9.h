@@ -31,6 +31,8 @@ namespace fea {
 /// Brick element with 9 nodes.
 class ChApi ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW {
   public:
+    using ShapeVector = ChMatrixNM<double, 1, 11>;
+
     ChElementBrick_9();
     ~ChElementBrick_9() {}
 
@@ -153,13 +155,16 @@ class ChApi ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW {
     /// Calculate shape functions and their derivatives.
     ///   N = [N1, N2, N3, N4, ...]                               (1x11 row vector)
     ///   S = [N1*eye(3), N2*eye(3), N3*eye(3) ,N4*eye(3), ...]   (3x11 matrix)
-    void ShapeFunctions(ChMatrix<>& N, double x, double y, double z);
+    void ShapeFunctions(ShapeVector& N, double x, double y, double z);
+
     /// Calculate shape function derivative w.r.t. X.
-    void ShapeFunctionsDerivativeX(ChMatrix<>& Nx, double x, double y, double z);
+    void ShapeFunctionsDerivativeX(ShapeVector& Nx, double x, double y, double z);
+
     /// Calculate shape function derivative w.r.t. Y.
-    void ShapeFunctionsDerivativeY(ChMatrix<>& Ny, double x, double y, double z);
+    void ShapeFunctionsDerivativeY(ShapeVector& Ny, double x, double y, double z);
+
     /// Calculate shape function derivative w.r.t. Z.
-    void ShapeFunctionsDerivativeZ(ChMatrix<>& Nz, double x, double y, double z);
+    void ShapeFunctionsDerivativeZ(ShapeVector& Nz, double x, double y, double z);
 
     /// Number of coordinates in the interpolated field: here the {x,y,z} displacement.
     virtual int Get_field_ncoords() override { return 3; }
@@ -196,7 +201,11 @@ class ChApi ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW {
     virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override;
 
     /// Increment all DOFs using a delta.
-    virtual void LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv) override;
+    virtual void LoadableStateIncrement(const unsigned int off_x,
+                                        ChState& x_new,
+                                        const ChState& x,
+                                        const unsigned int off_v,
+                                        const ChStateDelta& Dv) override;
 
     /// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;
@@ -231,7 +240,7 @@ class ChApi ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW {
 
     ChVector<> m_dimensions;                      ///< element dimensions (x, y, z components)
     bool m_gravity_on;                            ///< enable/disable internal gravity calculation
-    ChMatrixNM<double, 33, 1> m_GravForce;        ///< gravitational force
+    ChVectorN<double, 33> m_GravForce;            ///< gravitational force
     ChMatrixNM<double, 33, 33> m_MassMatrix;      ///< mass matrix
     ChMatrixNM<double, 33, 33> m_JacobianMatrix;  ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
     double m_GaussScaling;
@@ -240,10 +249,10 @@ class ChApi ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW {
     ChMatrixNM<double, 11, 3> m_d;       ///< current nodal coordinates
     ChMatrixNM<double, 11, 11> m_ddT;    ///< matrix m_d * m_d^T
     ChMatrixNM<double, 11, 11> m_d0d0T;  ///< matrix m_d0 * m_d0^T
-    ChMatrixNM<double, 33, 1> m_d_dt;    ///< current nodal velocities
-    double m_FrictionAngle;   ///< Drucker-Prager Friction Angle Beta
-    double m_DilatancyAngle;  ///< Drucker-Prager Dilatancy Angle Phi
-    int m_DPHardening;        ///< Drucker-Prager Hardening Type
+    ChVectorN<double, 33> m_d_dt;        ///< current nodal velocities
+    double m_FrictionAngle;              ///< Drucker-Prager Friction Angle Beta
+    double m_DilatancyAngle;             ///< Drucker-Prager Dilatancy Angle Phi
+    int m_DPHardening;                   ///< Drucker-Prager Hardening Type
 
     StrainFormulation m_strain_form;     ///< Enum for strain formulation
     PlasticityFormulation m_plast_form;  ///< Enum for plasticity formulation
@@ -253,7 +262,7 @@ class ChApi ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW {
 
     double m_YieldStress;                     ///< plastic yield stress
     double m_HardeningSlope;                  ///< plastic hardening slope
-    ChMatrixNM<double, 8, 1> m_Alpha_Plast;   ///< hardening alpha parameter
+    ChVectorN<double, 8> m_Alpha_Plast;       ///< hardening alpha parameter
     ChMatrixNM<double, 9, 8> m_CCPinv_Plast;  ///< strain tensor for each integration point
     int m_InteCounter;                        ///< Integration point counter (up to 8)
 
@@ -268,22 +277,22 @@ class ChApi ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW {
     /// Update this element.
     virtual void Update() override;
 
-    /// Fill the D vector (column matrix) with the current states of the element nodes.
-    virtual void GetStateBlock(ChMatrixDynamic<>& mD) override;
+    /// Fill the D vector with the current states of the element nodes.
+    virtual void GetStateBlock(ChVectorDynamic<>& mD) override;
 
     /// Initial element setup.
     virtual void SetupInitial(ChSystem* system) override;
     /// Set M as the global mass matrix.
-    virtual void ComputeMmatrixGlobal(ChMatrix<>& M) override;
+    virtual void ComputeMmatrixGlobal(ChMatrixRef M) override;
     /// Set H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
     /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
-    virtual void ComputeKRMmatricesGlobal(ChMatrix<>& H,
+    virtual void ComputeKRMmatricesGlobal(ChMatrixRef H,
                                           double Kfactor,
                                           double Rfactor = 0,
                                           double Mfactor = 0) override;
 
     /// Compute internal forces and load them in the Fi vector.
-    virtual void ComputeInternalForces(ChMatrixDynamic<>& Fi) override;
+    virtual void ComputeInternalForces(ChVectorDynamic<>& Fi) override;
 
     // -----------------------------------
     // Functions for internal computations
@@ -310,9 +319,9 @@ class ChApi ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW {
     double Calc_detJ0(double x,
                       double y,
                       double z,
-                      ChMatrixNM<double, 1, 11>& Nx,
-                      ChMatrixNM<double, 1, 11>& Ny,
-                      ChMatrixNM<double, 1, 11>& Nz,
+                      ShapeVector& Nx,
+                      ShapeVector& Ny,
+                      ShapeVector& Nz,
                       ChMatrixNM<double, 1, 3>& Nx_d0,
                       ChMatrixNM<double, 1, 3>& Ny_d0,
                       ChMatrixNM<double, 1, 3>& Nz_d0);
@@ -321,7 +330,7 @@ class ChApi ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW {
     void CalcCoordMatrix(ChMatrixNM<double, 11, 3>& d);
 
     // Calculate the current 33x1 matrix of nodal coordinate derivatives.
-    void CalcCoordDerivMatrix(ChMatrixNM<double, 33, 1>& dt);
+    void CalcCoordDerivMatrix(ChVectorN<double, 33>& dt);
 
     void ComputeStrainD_Brick9(ChMatrixNM<double, 6, 33>& strainD,
                                ChMatrixNM<double, 1, 11> Nx,
@@ -337,10 +346,13 @@ class ChApi ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW {
                             ChVectorDynamic<double> m_DPVector2,
                             int m_DPVector_size);
 
-    friend class MyMassBrick9;
-    friend class MyGravityBrick9;
-    friend class MyForceBrick9;
-    friend class MyJacobianBrick9;
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+    friend class Brick9_Mass;
+    friend class Brick9_Gravity;
+    friend class Brick9_Force;
+    friend class Brick9_Jacobian;
 };
 
 /// @} fea_elements

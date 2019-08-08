@@ -267,7 +267,7 @@ void ChSuspensionTestRig::Create() {
     // ----------------------------
     // Create the chassis subsystem
     // ----------------------------
-    m_chassis = std::make_shared<ChSuspensionTestRigChassis>();
+    m_chassis = chrono_types::make_shared<ChSuspensionTestRigChassis>();
     m_chassis->Initialize(m_system, ChCoordsys<>(), 0);
     m_chassis->SetFixed(true);
 
@@ -343,17 +343,17 @@ void ChSuspensionTestRig::Create() {
     // Create and initialize joints and actuators
     // ------------------------------------------
 
-    auto func_L = std::make_shared<ChFunction_Const>();
-    auto func_R = std::make_shared<ChFunction_Const>();
+    auto func_L = chrono_types::make_shared<ChFunction_Const>();
+    auto func_R = chrono_types::make_shared<ChFunction_Const>();
 
-    m_post_linact[LEFT] = std::make_shared<ChLinkMotorLinearPosition>();
+    m_post_linact[LEFT] = chrono_types::make_shared<ChLinkMotorLinearPosition>();
     m_post_linact[LEFT]->SetNameString("L_post_linActuator");
     m_post_linact[LEFT]->SetMotionFunction(func_L);
     m_post_linact[LEFT]->Initialize(m_chassis->GetBody(), m_post[LEFT],
                                     ChFrame<>(ChVector<>(post_L_pos), Q_from_AngY(CH_C_PI_2)));
     m_system->AddLink(m_post_linact[LEFT]);
 
-    m_post_linact[RIGHT] = std::make_shared<ChLinkMotorLinearPosition>();
+    m_post_linact[RIGHT] = chrono_types::make_shared<ChLinkMotorLinearPosition>();
     m_post_linact[RIGHT]->SetNameString("R_post_linActuator");
     m_post_linact[RIGHT]->SetMotionFunction(func_R);
     m_post_linact[RIGHT]->Initialize(m_chassis->GetBody(), m_post[RIGHT],
@@ -535,25 +535,25 @@ void ChSuspensionTestRig::LogConstraintViolations() {
 // -----------------------------------------------------------------------------
 void ChSuspensionTestRig::AddVisualize_post(VehicleSide side, const ChColor& color) {
     // Platform (on post body)
-    auto base_cyl = std::make_shared<ChCylinderShape>();
+    auto base_cyl = chrono_types::make_shared<ChCylinderShape>();
     base_cyl->GetCylinderGeometry().rad = m_post_radius;
     base_cyl->GetCylinderGeometry().p1 = ChVector<>(0, 0, 0);
     base_cyl->GetCylinderGeometry().p2 = ChVector<>(0, 0, -2 * m_post_hheight);
     m_post[side]->AddAsset(base_cyl);
 
-    auto col = std::make_shared<ChColorAsset>();
+    auto col = chrono_types::make_shared<ChColorAsset>();
     col->SetColor(color);
     m_post[side]->AddAsset(col);
 
     // Piston (on post body)
-    auto piston = std::make_shared<ChCylinderShape>();
+    auto piston = chrono_types::make_shared<ChCylinderShape>();
     piston->GetCylinderGeometry().rad = m_post_radius / 6.0;
     piston->GetCylinderGeometry().p1 = ChVector<>(0, 0, -2 * m_post_hheight);
     piston->GetCylinderGeometry().p2 = ChVector<>(0, 0, -m_post_hheight * 20.0);
     m_post[side]->AddAsset(piston);
 
     // Post sleeve (on chassis/ground body)
-    auto cyl = std::make_shared<ChCylinderShape>();
+    auto cyl = chrono_types::make_shared<ChCylinderShape>();
     cyl->GetCylinderGeometry().rad = m_post_radius / 4.0;
     cyl->GetCylinderGeometry().p1 = m_post[side]->GetPos() - ChVector<>(0, 0, 16 * m_post_hheight);
     cyl->GetCylinderGeometry().p2 = m_post[side]->GetPos() - ChVector<>(0, 0, 32 * m_post_hheight);

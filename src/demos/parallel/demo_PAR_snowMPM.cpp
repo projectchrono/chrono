@@ -60,11 +60,11 @@ void AddBody(ChSystemParallelNSC* sys) {
     int mixerId = -201;
 
     // Create a common material
-    auto mat = std::make_shared<ChMaterialSurfaceNSC>();
+    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     mat->SetFriction(0.4f);
 
     // Create the containing bin (2 x 2 x 1)
-    auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelParallel>());
+    auto bin = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>());
     bin->SetMaterialSurface(mat);
     bin->SetIdentifier(binId);
     bin->SetMass(100);
@@ -81,7 +81,7 @@ void AddBody(ChSystemParallelNSC* sys) {
     bin->GetCollisionModel()->SetFamily(1);
     bin->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(2);
     bin->GetCollisionModel()->BuildModel();
-    bin->SetInertiaXX(utils::CalcBoxGyration(hdim).Get_Diag() * 100);
+    bin->SetInertiaXX(utils::CalcBoxGyration(hdim).diagonal() * 100);
 
     sys->AddBody(bin);
 }
@@ -92,11 +92,11 @@ void AddContainer(ChSystemParallelNSC* sys) {
     int mixerId = -201;
 
     // Create a common material
-    auto mat = std::make_shared<ChMaterialSurfaceNSC>();
+    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     mat->SetFriction(0.4f);
 
     // Create the containing bin (2 x 2 x 1)
-    auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelParallel>());
+    auto bin = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>());
     bin->SetMaterialSurface(mat);
     bin->SetIdentifier(binId);
     bin->SetMass(1);
@@ -123,9 +123,9 @@ void AddContainer(ChSystemParallelNSC* sys) {
 void AddMPMContainer(ChSystemParallelNSC* sys) {
 
 #if USE_RIGID
-    auto mpm_container = std::make_shared<ChParticleContainer>();
+    auto mpm_container = chrono_types::make_shared<ChParticleContainer>();
 #else
-    auto mpm_container = std::make_shared<ChFluidContainer>();
+    auto mpm_container = chrono_types::make_shared<ChFluidContainer>();
 #endif
     sys->Add3DOFContainer(mpm_container);
 

@@ -63,11 +63,11 @@ int main(int argc, char* argv[]) {
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     // Create a material, that must be assigned to each element,
     // and set its parameters
-    auto mmaterial = std::make_shared<ChContinuumThermal>();
+    auto mmaterial = chrono_types::make_shared<ChContinuumThermal>();
     mmaterial->SetMassSpecificHeatCapacity(2);
     mmaterial->SetThermalConductivityK(200);
 
@@ -131,7 +131,7 @@ int main(int argc, char* argv[]) {
 
     // This will paint the colored mesh with temperature scale (E_PLOT_NODE_P is the scalar field of the Poisson
     // problem)
-    auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_P);
     mvisualizemesh->SetColorscaleMinMax(-1, 12);
     mvisualizemesh->SetShrinkElements(false, 0.85);
@@ -139,13 +139,13 @@ int main(int argc, char* argv[]) {
     my_mesh->AddAsset(mvisualizemesh);
 
     // This will paint the wireframe
-    auto mvisualizemeshB = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshB = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshB->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
     mvisualizemeshB->SetWireframe(true);
     my_mesh->AddAsset(mvisualizemeshB);
 
     // This will paint the heat flux as line vectors
-    auto mvisualizemeshC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_ELEM_VECT_DP);
     mvisualizemeshC->SetSymbolsScale(0.003);

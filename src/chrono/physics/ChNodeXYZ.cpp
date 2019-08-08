@@ -50,8 +50,8 @@ void ChNodeXYZ::ComputeNF(
     ChVectorDynamic<>* state_w   // if != 0, update state (speed part) to this, then evaluate Q
     ) {
     // ChVector<> abs_pos(U,V,W); not needed, nodes has no torque. Assuming load is applied to node center
-    ChVector<> absF = F.ClipVector(0, 0);
-    Qi.PasteVector(absF, 0, 0);
+    ChVector<> absF(F.segment(0, 3));
+    Qi.segment(0, 3) = absF.eigen();
     detJ = 1;  // not needed because not used in quadrature.
 }
 

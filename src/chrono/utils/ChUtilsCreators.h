@@ -32,23 +32,10 @@
 #include "chrono/physics/ChMaterialSurfaceNSC.h"
 #include "chrono/physics/ChMaterialSurfaceSMC.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChSystemSMC.h"
 
-#include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChCapsuleShape.h"
-#include "chrono/assets/ChColorAsset.h"
-#include "chrono/assets/ChConeShape.h"
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChEllipsoidShape.h"
-#include "chrono/assets/ChLineShape.h"
-#include "chrono/assets/ChRoundedBoxShape.h"
-#include "chrono/assets/ChRoundedConeShape.h"
-#include "chrono/assets/ChRoundedCylinderShape.h"
-#include "chrono/assets/ChSphereShape.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/geometry/ChTriangleMeshConnected.h"
 
 #include "chrono/collision/ChCConvexDecomposition.h"
-#include "chrono/collision/ChCModelBullet.h"
 
 namespace chrono {
 namespace utils {

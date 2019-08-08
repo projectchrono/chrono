@@ -506,24 +506,20 @@ void ChFile_ps::DrawGraphAxes(ChFile_ps_graph_setting* msetting) {
     GrRestore();
 }
 
-void ChFile_ps::DrawGraphXY(ChMatrix<>* Yvalues, ChMatrix<>* Xvalues) {
-    int points;
-    ChVector2<> mp;
-
+void ChFile_ps::DrawGraphXY(const ChArray<>& Yvalues, const ChArray<>& Xvalues) {
     // Set clip region
     GrSave();
     ClipToGraph();
 
-    points = Yvalues->GetRows();
-    if (Xvalues->GetRows() < points)
-        points = Xvalues->GetRows();
-    if (!points)
+    int points = std::min((int)Xvalues.size(), (int)Yvalues.size());
+    if (points == 0)
         return;
 
     StartLine();
+    ChVector2<> mp;
     for (int i = 0; i < points; i++) {
-        mp.x() = Xvalues->GetElement(i, 0);
-        mp.y() = Yvalues->GetElement(i, 0);
+        mp.x() = Xvalues(i);
+        mp.y() = Yvalues(i);
         mp = To_page_from_graph(mp);
         if (i == 0)
             MoveTo(mp);
@@ -535,24 +531,21 @@ void ChFile_ps::DrawGraphXY(ChMatrix<>* Yvalues, ChMatrix<>* Xvalues) {
     GrRestore();
 }
 
-void ChFile_ps::DrawGraphXY(ChMatrix<>* Yvalues, double Xfrom, double Xstep) {
-    int points;
-    ChVector2<> mp;
-    double mx;
-
+void ChFile_ps::DrawGraphXY(const ChArray<>& Yvalues, double Xfrom, double Xstep) {
     // clip region
     GrSave();
     ClipToGraph();
 
-    points = Yvalues->GetRows();
-    if (!points)
+    int points = (int)Yvalues.size();
+    if (points == 0)
         return;
 
     StartLine();
-    mx = Xfrom;
+    double mx = Xfrom;
+    ChVector2<> mp;
     for (int i = 0; i < points; i++) {
         mp.x() = mx;
-        mp.y() = Yvalues->GetElement(i, 0);
+        mp.y() = Yvalues(i);
         mp = To_page_from_graph(mp);
         if (i == 0)
             MoveTo(mp);

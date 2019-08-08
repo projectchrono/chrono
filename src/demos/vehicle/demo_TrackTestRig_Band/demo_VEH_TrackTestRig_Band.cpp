@@ -148,12 +148,12 @@ int main(int argc, char* argv[]) {
         std::shared_ptr<ChTrackAssembly> track_assembly;
         switch (type) {
             case TrackShoeType::BAND_BUSHING: {
-                auto assembly = std::make_shared<M113_TrackAssemblyBandBushing>(side);
+                auto assembly = chrono_types::make_shared<M113_TrackAssemblyBandBushing>(side);
                 track_assembly = assembly;
                 break;
             }
             case TrackShoeType::BAND_ANCF: {
-                auto assembly = std::make_shared<M113_TrackAssemblyBandANCF>(side);
+                auto assembly = chrono_types::make_shared<M113_TrackAssemblyBandANCF>(side);
                 assembly->SetContactSurfaceType(ChTrackAssemblyBandANCF::NONE);
                 track_assembly = assembly;
                 break;
@@ -254,7 +254,7 @@ int main(int argc, char* argv[]) {
     switch (solver_type) {
 #ifdef CHRONO_MUMPS
         case MUMPS: {
-            auto mumps_solver = std::make_shared<ChSolverMumps>();
+            auto mumps_solver = chrono_types::make_shared<ChSolverMumps>();
             mumps_solver->SetSparsityPatternLock(true);
             mumps_solver->SetVerbose(verbose_solver);
             rig->GetSystem()->SetSolver(mumps_solver);
@@ -263,7 +263,7 @@ int main(int argc, char* argv[]) {
 #endif
 #ifdef CHRONO_MKL
         case MKL: {
-            auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+            auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
             mkl_solver->SetSparsityPatternLock(true);
             mkl_solver->SetVerbose(verbose_solver);
             rig->GetSystem()->SetSolver(mkl_solver);

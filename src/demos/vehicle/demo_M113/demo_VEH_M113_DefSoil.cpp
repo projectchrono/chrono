@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
     if (use_mkl) {
 #ifdef CHRONO_MKL
         GetLog() << "Using MKL solver\n";
-        auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+        auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
         mkl_solver->SetSparsityPatternLock(true);
         vehicle.GetSystem()->SetSolver(mkl_solver);
 
@@ -307,17 +307,17 @@ void AddFixedObstacles(ChSystem* system) {
     obstacle->SetCollide(true);
 
     // Visualization
-    auto shape = std::make_shared<ChCylinderShape>();
+    auto shape = chrono_types::make_shared<ChCylinderShape>();
     shape->GetCylinderGeometry().p1 = ChVector<>(0, -length * 0.5, 0);
     shape->GetCylinderGeometry().p2 = ChVector<>(0, length * 0.5, 0);
     shape->GetCylinderGeometry().rad = radius;
     obstacle->AddAsset(shape);
 
-    auto color = std::make_shared<ChColorAsset>();
+    auto color = chrono_types::make_shared<ChColorAsset>();
     color->SetColor(ChColor(1, 1, 1));
     obstacle->AddAsset(color);
 
-    auto texture = std::make_shared<ChTexture>();
+    auto texture = chrono_types::make_shared<ChTexture>();
     texture->SetTextureFilename(vehicle::GetDataFile("terrain/textures/tile4.jpg"));
     texture->SetTextureScale(10, 10);
     obstacle->AddAsset(texture);
@@ -352,7 +352,7 @@ void AddMovingObstacles(ChSystem* system) {
     ChVector<> init_ang_vel(0, 30, 0);
 
     // Create a material
-    auto material = std::make_shared<ChMaterialSurfaceSMC>();
+    auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     material->SetRestitution(0.1f);
     material->SetFriction(0.4f);
 
@@ -375,11 +375,11 @@ void AddMovingObstacles(ChSystem* system) {
 
     ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector<>(1, 1, 1));
 
-    auto sphere = std::make_shared<ChSphereShape>();
+    auto sphere = chrono_types::make_shared<ChSphereShape>();
     sphere->GetSphereGeometry().rad = radius;
     ball->AddAsset(sphere);
 
-    auto mtexture = std::make_shared<ChTexture>();
+    auto mtexture = chrono_types::make_shared<ChTexture>();
     mtexture->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
     ball->AddAsset(mtexture);
 

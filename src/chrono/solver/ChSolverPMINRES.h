@@ -34,12 +34,7 @@ class ChApi ChSolverPMINRES : public ChIterativeSolver {
     ChSolverPMINRES(int mmax_iters = 50,       ///< max.number of iterations
                     bool mwarm_start = false,  ///< uses warm start?
                     double mtolerance = 0.0    ///< tolerance for termination criterion
-                    )
-        : ChIterativeSolver(mmax_iters, mwarm_start, mtolerance, 0.2) {
-        grad_diffstep = 0.01;  // too small can cause numerical roundoff troubles!
-        rel_tolerance = 0.0;
-        diag_preconditioning = true;
-    }
+    );
 
     virtual ~ChSolverPMINRES() {}
 
@@ -55,8 +50,7 @@ class ChApi ChSolverPMINRES : public ChIterativeSolver {
     /// Solve() automatically falls back to this function.
     /// It does not solve the Schur complement N*l-r=0 as Solve does, here the
     /// entire system KKT matrix with duals l and primals q is used.
-    virtual double Solve_SupportingStiffness(
-        ChSystemDescriptor& sysd  ///< system description with constraints and variables
+    double Solve_SupportingStiffness(ChSystemDescriptor& sysd  ///< system description with constraints and variables
     );
 
     /// For the case where inequalities are introduced, the

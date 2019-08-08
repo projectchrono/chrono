@@ -59,24 +59,24 @@ Articulated_Rear::Articulated_Rear(std::shared_ptr<Articulated_Chassis> front) :
     m_chassis->SetFrame_COG_to_REF(ChFrame<>(m_chassisCOM, ChQuaternion<>(1, 0, 0, 0)));
     m_chassis->SetInertiaXX(m_chassisInertia);
 
-    auto box = std::make_shared<ChBoxShape>();
+    auto box = chrono_types::make_shared<ChBoxShape>();
     box->GetBoxGeometry().SetLengths(ChVector<>(1.0, 1.0, 0.2));
     box->GetBoxGeometry().Pos = ChVector<>(0.07, 0, 0.1);
     m_chassis->AddAsset(box);
 
-    auto cyl1 = std::make_shared<ChCylinderShape>();
+    auto cyl1 = chrono_types::make_shared<ChCylinderShape>();
     cyl1->GetCylinderGeometry().rad = 0.05;
     cyl1->GetCylinderGeometry().p1 = ChVector<>(0.45, 0.45, 0.1);
     cyl1->GetCylinderGeometry().p2 = m_offset;
     m_chassis->AddAsset(cyl1);
 
-    auto cyl2 = std::make_shared<ChCylinderShape>();
+    auto cyl2 = chrono_types::make_shared<ChCylinderShape>();
     cyl2->GetCylinderGeometry().rad = 0.05;
     cyl2->GetCylinderGeometry().p1 = ChVector<>(0.45, -0.45, 0.1);
     cyl2->GetCylinderGeometry().p2 = m_offset;
     m_chassis->AddAsset(cyl2);
 
-    m_chassis->AddAsset(std::make_shared<ChColorAsset>(0.6f, 0.2f, 0.2f));
+    m_chassis->AddAsset(chrono_types::make_shared<ChColorAsset>(0.6f, 0.2f, 0.2f));
 
     system->Add(m_chassis);
 
@@ -84,22 +84,22 @@ Articulated_Rear::Articulated_Rear(std::shared_ptr<Articulated_Chassis> front) :
     // Create the suspension subsystems
     // -------------------------------------------
     m_suspensions.resize(1);
-    ////m_suspensions[0] = std::make_shared<Generic_RigidPinnedAxle>("RearSusp");
-    m_suspensions[0] = std::make_shared<Generic_RigidSuspension>("RearSusp");
+    ////m_suspensions[0] = chrono_types::make_shared<Generic_RigidPinnedAxle>("RearSusp");
+    m_suspensions[0] = chrono_types::make_shared<Generic_RigidSuspension>("RearSusp");
 
     // -----------------
     // Create the wheels
     // -----------------
     m_wheels.resize(2);
-    m_wheels[0] = std::make_shared<Generic_Wheel>("Wheel_FL");
-    m_wheels[1] = std::make_shared<Generic_Wheel>("Wheel_FR");
+    m_wheels[0] = chrono_types::make_shared<Generic_Wheel>("Wheel_FL");
+    m_wheels[1] = chrono_types::make_shared<Generic_Wheel>("Wheel_FR");
 
     // -----------------
     // Create the brakes
     // -----------------
     m_brakes.resize(2);
-    m_brakes[0] = std::make_shared<Generic_BrakeSimple>("Brake_FL");
-    m_brakes[1] = std::make_shared<Generic_BrakeSimple>("Brake_FR");
+    m_brakes[0] = chrono_types::make_shared<Generic_BrakeSimple>("Brake_FL");
+    m_brakes[1] = chrono_types::make_shared<Generic_BrakeSimple>("Brake_FR");
 }
 
 // -----------------------------------------------------------------------------
@@ -127,8 +127,8 @@ void Articulated_Rear::Initialize() {
     m_brakes[1]->Initialize(m_suspensions[0]->GetRevolute(RIGHT));
 
     // Create the connection to the front side.
-    m_motor = std::make_shared<ChLinkMotorRotationAngle>();
-    m_motor->SetAngleFunction(std::make_shared<ChFunction_Const>());
+    m_motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
+    m_motor->SetAngleFunction(chrono_types::make_shared<ChFunction_Const>());
     m_motor->Initialize(m_chassis, m_front->GetBody(), ChFrame<>(connection, rot));
     m_chassis->GetSystem()->AddLink(m_motor);
 }

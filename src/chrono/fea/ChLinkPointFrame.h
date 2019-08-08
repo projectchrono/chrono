@@ -69,7 +69,7 @@ class ChApi ChLinkPointFrame : public ChLinkBase {
     virtual ChVector<> Get_react_force() override { return GetReactionOnBody(); }
 
     // Get constraint violations
-    ChMatrixNM<double, 3, 1> GetC() const;
+    ChVectorN<double, 3> GetC() const;
 
     //
     // STATE FUNCTIONS
@@ -230,7 +230,7 @@ class ChApi ChLinkPointFrameGeneric : public ChLinkBase {
     virtual ChVector<> Get_react_force() override { return GetReactionOnBody(); }
 
     // Get constraint violations
-    //ChMatrixNM<double, 3, 1> GetC() const;
+    //ChVectorN<double, 3> GetC() const;
 
 	bool IsConstrainedX() { return c_x; }
     bool IsConstrainedY() { return c_y; }

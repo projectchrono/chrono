@@ -62,7 +62,7 @@ const int num_steps = 8;        // Number of time steps for unit test (range 1 t
 int main(int argc, char* argv[]) {
     // Utils to open/read files: Load reference solution ("golden") file
     ChMatrixDynamic<> FileInputMat(4000, 4);
-    std::string LamShell_Val_File = GetChronoDataPath() + "testing/" + "UT_ANCFShellLam.txt";
+    std::string LamShell_Val_File = GetChronoDataPath() + "testing/fea/UT_ANCFShellLam.txt";
     std::ifstream fileMid(LamShell_Val_File);
     if (!fileMid.is_open()) {
         fileMid.open(LamShell_Val_File);
@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
     for (int x = 0; x < 4000; x++) {
-        fileMid >> FileInputMat[x][0] >> FileInputMat[x][1] >> FileInputMat[x][2] >> FileInputMat[x][3];
+        fileMid >> FileInputMat(x, 0) >> FileInputMat(x, 1) >> FileInputMat(x, 2) >> FileInputMat(x, 3);
     }
     fileMid.close();
 
@@ -110,7 +110,7 @@ int main(int argc, char* argv[]) {
     double dz = plate_lenght_z / numDiv_z;
 
     // Create the mesh
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     // Create and add the nodes
     for (int i = 0; i < TotalNumNodes; i++) {
@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
         double dir_z = cos(CH_C_PI / 2 / numDiv_x * (i % (numDiv_x + 1)));
 
         // Create the node
-        auto node = std::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z));
+        auto node = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z));
 
         node->SetMass(0);
 
@@ -147,7 +147,7 @@ int main(int argc, char* argv[]) {
     ChVector<> E(2e8, 1e8, 1e8);
     ChVector<> nu(0.3, 0.3, 0.3);
     ChVector<> G(3.84615E+07, 3.84615E+07, 3.84615E+07);
-    auto mat = std::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
+    auto mat = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
 
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
@@ -158,7 +158,7 @@ int main(int argc, char* argv[]) {
         int node3 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + N_x;
 
         // Create the element and set its nodes.
-        auto element = std::make_shared<ChElementShellANCF>();
+        auto element = chrono_types::make_shared<ChElementShellANCF>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node2)),
@@ -200,7 +200,7 @@ int main(int argc, char* argv[]) {
     // Setup solver
     if (use_mkl) {
 #ifdef CHRONO_MKL
-        auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+        auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
         mkl_solver->SetSparsityPatternLock(true);
         mkl_solver->SetVerbose(true);
         my_system.SetSolver(mkl_solver);
@@ -244,11 +244,11 @@ int main(int argc, char* argv[]) {
         // std::cout << "nodetip->pos.z = " << nodetip->pos.z << "\n";
         // std::cout << "mystepper->GetNumIterations()= " << mystepper->GetNumIterations() << "\n";
         // Checking tip Z displacement
-        double err = std::abs(nodetip->pos.z() - FileInputMat[it][1]);
+        double err = std::abs(nodetip->pos.z() - FileInputMat(it, 1));
         max_err = std::max(max_err, err);
         if (err > precision) {
             std::cout << "Unit test check failed -- node_tip: " << nodetip->pos.z()
-                      << "  reference: " << FileInputMat[it][1] << std::endl;
+                      << "  reference: " << FileInputMat(it, 1) << std::endl;
             return 1;
         }
         /*

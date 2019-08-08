@@ -67,7 +67,7 @@ FEAcontactTest::FEAcontactTest() {
     collision::ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
     collision::ChCollisionModel::SetDefaultSuggestedMargin(0.006);
 
-    auto cmat = std::make_shared<ChMaterialSurfaceSMC>();
+    auto cmat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     cmat->SetYoungModulus(6e4);
     cmat->SetFriction(0.3f);
     cmat->SetRestitution(0.2f);
@@ -81,21 +81,21 @@ FEAcontactTest::FEAcontactTest() {
 }
 
 void FEAcontactTest::CreateFloor(std::shared_ptr<ChMaterialSurfaceSMC> cmat) {
-    auto mfloor = std::make_shared<ChBodyEasyBox>(2, 0.1, 2, 2700, true);
+    auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(2, 0.1, 2, 2700, true);
     mfloor->SetBodyFixed(true);
     mfloor->SetMaterialSurface(cmat);
     m_system->Add(mfloor);
 
-    auto masset_texture = std::make_shared<ChTexture>();
+    auto masset_texture = chrono_types::make_shared<ChTexture>();
     masset_texture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
     mfloor->AddAsset(masset_texture);
 }
 
 void FEAcontactTest::CreateBeams(std::shared_ptr<ChMaterialSurfaceSMC> cmat) {
-    auto mesh = std::make_shared<ChMesh>();
+    auto mesh = chrono_types::make_shared<ChMesh>();
     m_system->Add(mesh);
 
-    auto emat = std::make_shared<ChContinuumElastic>();
+    auto emat = chrono_types::make_shared<ChContinuumElastic>();
     emat->Set_E(0.01e9);
     emat->Set_v(0.3);
     emat->Set_RayleighDampingK(0.003);
@@ -113,12 +113,12 @@ void FEAcontactTest::CreateBeams(std::shared_ptr<ChMaterialSurfaceSMC> cmat) {
                                          ChMatrix33<>(ctot.rot));
     }
 
-    auto surf = std::make_shared<ChContactSurfaceMesh>();
+    auto surf = chrono_types::make_shared<ChContactSurfaceMesh>();
     mesh->AddContactSurface(surf);
     surf->SetMaterialSurface(cmat);
     surf->AddFacesFromBoundary(0.002);
 
-    auto vis_speed = std::make_shared<ChVisualizationFEAmesh>(*(mesh.get()));
+    auto vis_speed = chrono_types::make_shared<ChVisualizationFEAmesh>(*(mesh.get()));
     vis_speed->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
     vis_speed->SetColorscaleMinMax(0.0, 5.50);
     vis_speed->SetSmoothFaces(true);
@@ -126,10 +126,10 @@ void FEAcontactTest::CreateBeams(std::shared_ptr<ChMaterialSurfaceSMC> cmat) {
 }
 
 void FEAcontactTest::CreateCables(std::shared_ptr<ChMaterialSurfaceSMC> cmat) {
-    auto mesh = std::make_shared<ChMesh>();
+    auto mesh = chrono_types::make_shared<ChMesh>();
     m_system->Add(mesh);
 
-    auto section = std::make_shared<ChBeamSectionCable>();
+    auto section = chrono_types::make_shared<ChBeamSectionCable>();
     section->SetDiameter(0.05);
     section->SetYoungModulus(0.01e9);
     section->SetBeamRaleyghDamping(0.05);
@@ -138,19 +138,19 @@ void FEAcontactTest::CreateCables(std::shared_ptr<ChMaterialSurfaceSMC> cmat) {
 
     builder.BuildBeam(mesh, section, 10, ChVector<>(0, 0.1, -0.5), ChVector<>(0.5, 0.5, -0.5));
 
-    auto cloud = std::make_shared<ChContactSurfaceNodeCloud>();
+    auto cloud = chrono_types::make_shared<ChContactSurfaceNodeCloud>();
     mesh->AddContactSurface(cloud);
     cloud->SetMaterialSurface(cmat);
     cloud->AddAllNodes(0.025);
 
-    auto vis_speed = std::make_shared<ChVisualizationFEAmesh>(*(mesh.get()));
+    auto vis_speed = chrono_types::make_shared<ChVisualizationFEAmesh>(*(mesh.get()));
     vis_speed->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
     vis_speed->SetColorscaleMinMax(0.0, 5.50);
     vis_speed->SetSmoothFaces(true);
     vis_speed->SetWireframe(true);
     mesh->AddAsset(vis_speed);
 
-    auto vis_nodes = std::make_shared<ChVisualizationFEAmesh>(*(mesh.get()));
+    auto vis_nodes = chrono_types::make_shared<ChVisualizationFEAmesh>(*(mesh.get()));
     vis_nodes->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
     vis_nodes->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     vis_nodes->SetSymbolsThickness(0.008);

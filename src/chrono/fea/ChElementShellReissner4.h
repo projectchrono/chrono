@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 // Geometrically exact kinematics of shell, with formulation from Masarati et.al.
 // =============================================================================
@@ -22,7 +22,6 @@
 
 #include "chrono/fea/ChElementShell.h"
 #include "chrono/fea/ChNodeFEAxyzrot.h"
-#include "chrono/fea/ChUtilsFEA.h"
 #include "chrono/fea/ChMaterialShellReissner.h"
 #include "chrono/solver/ChVariablesGenericDiagonalMass.h"
 
@@ -49,6 +48,8 @@ namespace fea {
 ///
 class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV, public ChLoadableUVW {
   public:
+    using ShapeVector = ChMatrixNM<double, 1, 4>;
+
     ChElementShellReissner4();
     virtual ~ChElementShellReissner4();
 
@@ -171,13 +172,13 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     // ---------------
 
     /// Fills the N shape function matrix.
-    void ShapeFunctions(ChMatrix<>& N, double x, double y);
+    void ShapeFunctions(ShapeVector& N, double x, double y);
 
     /// Fills the Nx shape function derivative matrix with respect to X.
-    void ShapeFunctionsDerivativeX(ChMatrix<>& Nx, double x, double y);
+    void ShapeFunctionsDerivativeX(ShapeVector& Nx, double x, double y);
 
     /// Fills the Ny shape function derivative matrix with respect to Y.
-    void ShapeFunctionsDerivativeY(ChMatrix<>& Ny, double x, double y);
+    void ShapeFunctionsDerivativeY(ShapeVector& Ny, double x, double y);
 
     ChVector<> EvaluateGP(int igp);
     ChVector<> EvaluatePT(int ipt);
@@ -357,44 +358,45 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     ChVector<> y_i_1[NUMIP];
     ChVector<> y_i_2[NUMIP];
 
-    ChMatrixNM<double, IDOFS, 1> beta;
-    ChMatrixNM<double, 12, 1> epsilon_hat;
-    ChMatrixNM<double, 12, 1> epsilon;
+    ChVectorN<double, IDOFS> beta;
+    ChVectorN<double, 12> epsilon_hat;
+    ChVectorN<double, 12> epsilon;
 
     // Reference constitutive law tangent matrices
     ChMatrixNM<double, 12, 12> DRef[NUMIP];
 
     // stress
-    ChMatrixNM<double, 12, 1> stress_i[NUMIP];
+    ChVectorN<double, 12> stress_i[NUMIP];
 
     // Is first residual
     bool bFirstRes;
 
   public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+  public:
     // Interface to ChElementBase base class
     // -------------------------------------
 
-    // Fill the D vector (column matrix) with the current field values at the
-    // nodes of the element, with proper ordering.
-    // If the D vector has not the size of this->GetNdofs_x(), it will be resized.
-    //  {x_a y_a z_a Rx_a Rx_a Rx_a x_b y_b z_b Rx_b Ry_b Rz_b}
-    virtual void GetStateBlock(ChMatrixDynamic<>& mD) override;
+    /// Fill the D vector with the current field values at thenodes of the element, with proper ordering.
+    /// If the D vector has not the size of this->GetNdofs_x(), it will be resized.
+    ///  {x_a y_a z_a Rx_a Rx_a Rx_a x_b y_b z_b Rx_b Ry_b Rz_b}
+    virtual void GetStateBlock(ChVectorDynamic<>& mD) override;
 
     // Set H as a linear combination of M, K, and R.
     //   H = Mfactor * [M] + Kfactor * [K] + Rfactor * [R],
     // where [M] is the mass matrix, [K] is the stiffness matrix, and [R] is the damping matrix.
-    virtual void ComputeKRMmatricesGlobal(ChMatrix<>& H,
+    virtual void ComputeKRMmatricesGlobal(ChMatrixRef H,
                                           double Kfactor,
                                           double Rfactor = 0,
                                           double Mfactor = 0) override;
 
-    // Set M as the global mass matrix.
-    virtual void ComputeMmatrixGlobal(ChMatrix<>& M) override;
+    /// Set M as the global mass matrix.
+    virtual void ComputeMmatrixGlobal(ChMatrixRef M) override;
 
     /// Computes the internal forces.
-    /// (E.g. the actual position of nodes is not in relaxed reference position) and set values
-    /// in the Fi vector.
-    virtual void ComputeInternalForces(ChMatrixDynamic<>& Fi) override;
+    /// (E.g. the actual position of nodes is not in relaxed reference position) and set values in the Fi vector.
+    virtual void ComputeInternalForces(ChVectorDynamic<>& Fi) override;
 
     /// Initial setup.
     /// This is used mostly to precompute matrices that do not change during the simulation,
@@ -436,7 +438,6 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     /// Note: in this 'basic' implementation, constant section and
     /// constant material are assumed
     void ComputeMassMatrix();
-
 
     // Functions for ChLoadable interface
     // ----------------------------------
@@ -508,11 +509,6 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     /// Gets the normal to the surface at the parametric coordinate U,V.
     /// Each coordinate ranging in -1..+1.
     virtual ChVector<> ComputeNormal(const double U, const double V) override;
-
-    friend class MyMassEANS;
-    friend class MyGravity;
-    friend class MyForceEANS;
-    friend class MyJacobianEANS;
 };
 
 /// @} fea_elements

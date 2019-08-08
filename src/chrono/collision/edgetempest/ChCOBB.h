@@ -49,7 +49,7 @@ class CHOBB {
         To = other.To;
         d = other.d;
         first_child = other.first_child;
-        Rot.CopyFromMatrix(other.Rot);
+        Rot = other.Rot;
     }
 
     /// Returns 1 if this is a leaf in BV tree

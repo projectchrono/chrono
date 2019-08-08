@@ -96,16 +96,15 @@ void ChVehicleOutputASCII::WriteJoints(const std::vector<std::shared_ptr<ChLink>
     for (auto joint : joints) {
         std::vector<double> violations;
         //// TODO: Fix this mess in Chrono
-        ChMatrix<>* C = nullptr;
         if (auto jnt = std::dynamic_pointer_cast<ChLinkLock>(joint)) {
-            C = jnt->GetC();
-            for (int i = 0; i < C->GetRows(); i++)
-                violations.push_back(C->GetElement(i, 0));
+            ChVectorDynamic<> C = jnt->GetC();
+            for (int i = 0; i < C.size(); i++)
+                violations.push_back(C(i));
         }
         else if (auto jnt = std::dynamic_pointer_cast<ChLinkUniversal>(joint)) {
-            C = jnt->GetC();
-            for (int i = 0; i < C->GetRows(); i++)
-                violations.push_back(C->GetElement(i, 0));
+            ChVectorDynamic<> C = jnt->GetC();
+            for (int i = 0; i < C.size(); i++)
+                violations.push_back(C(i));
         }
         else if (auto jnt = std::dynamic_pointer_cast<ChLinkDistance>(joint)) {
             violations.push_back(jnt->GetCurrentDistance() - jnt->GetImposedDistance());

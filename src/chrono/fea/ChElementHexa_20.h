@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Andrea Favali
+// Authors: Andrea Favali, Radu Serban
 // =============================================================================
 
 #ifndef CHELEMENTHEXA20_H
@@ -36,6 +36,8 @@ class ChApi ChElementHexa_20 : public ChElementHexahedron, public ChLoadableUVW 
     ChMatrixDynamic<> StiffnessMatrix;
 
   public:
+    using ShapeVector = ChMatrixNM<double, 1, 20>;
+
     ChElementHexa_20();
     virtual ~ChElementHexa_20();
 
@@ -84,13 +86,12 @@ class ChApi ChElementHexa_20 : public ChElementHexahedron, public ChLoadableUVW 
     /// values of shape functions at r,s,t parametric coordinates, where
     /// each parameter is in [-1...+1] range.
     /// It stores the Ni(r,s,t) values in a 1 row, 20 columns matrix N.
-    virtual void ShapeFunctions(ChMatrix<>& N, double r, double s, double t);
+    void ShapeFunctions(ShapeVector& N, double r, double s, double t);
 
-    /// Fills the D vector (displacement) column matrix with the current
-    /// field values at the nodes of the element, with proper ordering.
-    /// If the D vector has not the size of this->GetNdofs(), it will be resized.
-    /// For corotational elements, field is assumed in local reference!
-    virtual void GetStateBlock(ChMatrixDynamic<>& mD) override;
+    /// Fills the D vector (displacement) with the current field values at the nodes of the element, with proper
+    /// ordering. If the D vector has not the size of this->GetNdofs(), it will be resized. For corotational elements,
+    /// field is assumed in local reference!
+    virtual void GetStateBlock(ChVectorDynamic<>& mD) override;
 
     /// Puts inside 'Jacobian' and 'J1' the Jacobian matrix and the shape functions derivatives matrix of the element
     /// The vector "coord" contains the natural coordinates of the integration point
@@ -126,15 +127,14 @@ class ChApi ChElementHexa_20 : public ChElementHexahedron, public ChLoadableUVW 
 
     /// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
     /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
-    virtual void ComputeKRMmatricesGlobal(ChMatrix<>& H,
+    virtual void ComputeKRMmatricesGlobal(ChMatrixRef H,
                                           double Kfactor,
                                           double Rfactor = 0,
                                           double Mfactor = 0) override;
 
-    /// Computes the internal forces (ex. the actual position of
-    /// nodes is not in relaxed reference position) and set values
-    /// in the Fi vector.
-    virtual void ComputeInternalForces(ChMatrixDynamic<>& Fi) override;
+    /// Computes the internal forces (ex. the actual position of nodes is not in relaxed reference position) and set
+    /// values in the Fi vector.
+    virtual void ComputeInternalForces(ChVectorDynamic<>& Fi) override;
 
     //
     // Custom properties functions
@@ -145,7 +145,8 @@ class ChApi ChElementHexa_20 : public ChElementHexahedron, public ChLoadableUVW 
     std::shared_ptr<ChContinuumElastic> GetMaterial() { return Material; }
 
     /// Get the StiffnessMatrix
-    ChMatrix<>& GetStiffnessMatrix() { return StiffnessMatrix; }
+    const ChMatrixDynamic<>& GetStiffnessMatrix() const { return StiffnessMatrix; }
+
     /// Get the Nth gauss point
     ChGaussPoint* GetGaussPoint(int N) { return GpVector[N]; }
 

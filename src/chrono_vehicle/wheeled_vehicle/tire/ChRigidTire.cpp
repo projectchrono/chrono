@@ -18,7 +18,7 @@
 
 #include <algorithm>
 
-#include "chrono/physics/ChGlobal.h"
+#include "chrono/core/ChGlobal.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChContactContainer.h"
 
@@ -56,7 +56,7 @@ void ChRigidTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
 
     if (m_use_contact_mesh) {
         // Mesh contact
-        m_trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+        m_trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
         m_trimesh->LoadWavefrontMesh(m_contact_meshFile, true, false);
 
         wheel->GetCollisionModel()->AddTriangleMesh(m_trimesh, false, false, ChVector<>(0), ChMatrix33<>(1),
@@ -92,13 +92,13 @@ void ChRigidTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
 
-    m_cyl_shape = std::make_shared<ChCylinderShape>();
+    m_cyl_shape = chrono_types::make_shared<ChCylinderShape>();
     m_cyl_shape->GetCylinderGeometry().rad = GetRadius();
     m_cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, GetWidth() / 2, 0);
     m_cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, -GetWidth() / 2, 0);
     m_wheel->AddAsset(m_cyl_shape);
 
-    m_texture = std::make_shared<ChTexture>();
+    m_texture = chrono_types::make_shared<ChTexture>();
     m_texture->SetTextureFilename(GetChronoDataFile("greenwhite.png"));
     m_wheel->AddAsset(m_texture);
 }

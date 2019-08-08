@@ -77,8 +77,8 @@ class ChApiMumps ChSolverMumps : public ChSolver {
   private:
     ChMumpsEngine m_engine;                       ///< interface to Mumps solver
     ChCOOMatrix m_mat = ChCOOMatrix(1, 1, true);  ///< problem matrix
-    ChMatrixDynamic<double> m_rhs_sol;            ///< right-hand side vector (will be overridden by solution)
-    ChMatrixDynamic<double> m_rhs_bkp;            ///< solution vector
+    ChVectorDynamic<double> m_rhs_sol;            ///< right-hand side vector (will be overridden by solution)
+    ChVectorDynamic<double> m_rhs_bkp;            ///< solution vector
 
     int m_dim = 0;         ///< problem size
     int m_nnz = 0;         ///< user-supplied estimate of NNZ

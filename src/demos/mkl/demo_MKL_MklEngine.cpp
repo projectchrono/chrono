@@ -12,28 +12,11 @@
 // Authors: Dario Mangoni
 // =============================================================================
 
-#include "chrono/core/ChMatrixDynamic.h"
-
-#include "chrono_mkl/ChSolverMKL.h"
+#include "chrono/core/ChLog.h"
 #include "chrono/core/ChCSMatrix.h"
+#include "chrono_mkl/ChSolverMKL.h"
 
 using namespace chrono;
-
-void LoadFromMatrix(ChMatrix<>& output_mat, std::string filename)
-{
-	std::ifstream my_file;
-	my_file.open(filename);
-
-	double temp;
-	int row_sel = -1;
-	for (row_sel = 0; row_sel < output_mat.GetRows(); row_sel++)
-	{
-		my_file >> temp;
-		output_mat.SetElement(row_sel,0,temp);
-	}
-	my_file.close();
-}
-
 
 void test_CSR3()
 {
@@ -122,8 +105,8 @@ void test_MklEngine()
 
 	int n = 5;
 	ChCSMatrix matCSR3(n, n);
-	ChMatrixDynamic<double> rhs(n, 1);
-	ChMatrixDynamic<double> sol(n, 1);
+	ChVectorDynamic<double> rhs(n);
+	ChVectorDynamic<double> sol(n);
 
 	matCSR3.SetElement(0, 0, 1.0);
 	matCSR3.SetElement(0, 1, -1.0);
@@ -140,7 +123,7 @@ void test_MklEngine()
 	matCSR3.SetElement(4, 4, -5.0);
 
 	for (int cont = 0; cont < n; cont++)
-		rhs(cont, 0) = 1.0;
+		rhs(cont) = 1.0;
 
 
 	// Solve with Pardiso Sparse Direct Solver

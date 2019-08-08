@@ -69,7 +69,7 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     ChVectorDynamic<> ewtL;  ///< vector of error weights (Lagrange multipliers)
 
   public:
-    ChTimestepperHHT(ChIntegrableIIorder* mintegrable = nullptr);
+    ChTimestepperHHT(ChIntegrableIIorder* intgr = nullptr);
 
     virtual Type GetType() const override { return Type::HHT; }
 
@@ -123,10 +123,10 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
                          ) override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+    virtual void ArchiveOUT(ChArchiveOut& archive) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override;
+    virtual void ArchiveIN(ChArchiveIn& archive) override;
 
   private:
     void Prepare(ChIntegrableIIorder* integrable, double scaling_factor);

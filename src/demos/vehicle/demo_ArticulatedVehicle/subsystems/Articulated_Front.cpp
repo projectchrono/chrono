@@ -43,16 +43,16 @@ const ChVector<> Articulated_Chassis::m_offset(-1.0, 0, 0.1);
 // Chassis of the front side of the articulated vehicle
 // -----------------------------------------------------------------------------
 Articulated_Chassis::Articulated_Chassis(const std::string& name, bool fixed) : ChRigidChassis(name, fixed) {
-    m_inertia.SetElement(0, 0, m_inertiaXX.x());
-    m_inertia.SetElement(1, 1, m_inertiaXX.y());
-    m_inertia.SetElement(2, 2, m_inertiaXX.z());
+    m_inertia(0, 0) = m_inertiaXX.x();
+    m_inertia(1, 1) = m_inertiaXX.y();
+    m_inertia(2, 2) = m_inertiaXX.z();
 
-    m_inertia.SetElement(0, 1, m_inertiaXY.x());
-    m_inertia.SetElement(0, 2, m_inertiaXY.y());
-    m_inertia.SetElement(1, 2, m_inertiaXY.z());
-    m_inertia.SetElement(1, 0, m_inertiaXY.x());
-    m_inertia.SetElement(2, 0, m_inertiaXY.y());
-    m_inertia.SetElement(2, 1, m_inertiaXY.z());
+    m_inertia(0, 1) = m_inertiaXY.x();
+    m_inertia(0, 2) = m_inertiaXY.y();
+    m_inertia(1, 2) = m_inertiaXY.z();
+    m_inertia(1, 0) = m_inertiaXY.x();
+    m_inertia(2, 0) = m_inertiaXY.y();
+    m_inertia(2, 1) = m_inertiaXY.z();
 
     // Visualization primitives
     BoxShape box(ChVector<>(-0.25, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0), ChVector<>(1.5, 1.0, 0.2));
@@ -77,32 +77,32 @@ Articulated_Front::Articulated_Front(const bool fixed, ChMaterialSurface::Contac
     // -------------------------------------------
     // Create the chassis subsystem
     // -------------------------------------------
-    m_chassis = std::make_shared<Articulated_Chassis>("Chassis", fixed);
+    m_chassis = chrono_types::make_shared<Articulated_Chassis>("Chassis", fixed);
 
     // -------------------------------------------
     // Create the suspension subsystems
     // -------------------------------------------
     m_suspensions.resize(1);
-    m_suspensions[0] = std::make_shared<Generic_RigidSuspension>("FrontSusp");
+    m_suspensions[0] = chrono_types::make_shared<Generic_RigidSuspension>("FrontSusp");
 
     // -----------------
     // Create the wheels
     // -----------------
     m_wheels.resize(2);
-    m_wheels[0] = std::make_shared<Generic_Wheel>("Wheel_FL");
-    m_wheels[1] = std::make_shared<Generic_Wheel>("Wheel_FR");
+    m_wheels[0] = chrono_types::make_shared<Generic_Wheel>("Wheel_FL");
+    m_wheels[1] = chrono_types::make_shared<Generic_Wheel>("Wheel_FR");
 
     // --------------------
     // Create the driveline
     // --------------------
-    m_driveline = std::make_shared<Generic_Driveline2WD>("driveline");
+    m_driveline = chrono_types::make_shared<Generic_Driveline2WD>("driveline");
 
     // -----------------
     // Create the brakes
     // -----------------
     m_brakes.resize(2);
-    m_brakes[0] = std::make_shared<Generic_BrakeSimple>("Brake_FL");
-    m_brakes[1] = std::make_shared<Generic_BrakeSimple>("Brake_FR");
+    m_brakes[0] = chrono_types::make_shared<Generic_BrakeSimple>("Brake_FL");
+    m_brakes[1] = chrono_types::make_shared<Generic_BrakeSimple>("Brake_FR");
 }
 
 void Articulated_Front::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {

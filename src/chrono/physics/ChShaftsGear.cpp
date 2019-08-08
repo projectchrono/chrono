@@ -136,8 +136,8 @@ void ChShaftsGear::ConstraintsBiLoad_C(double factor, double recovery_clamp, boo
 
 void ChShaftsGear::ConstraintsLoadJacobians() {
     // compute jacobians
-    constraint.Get_Cq_a()->SetElement(0, 0, ratio);
-    constraint.Get_Cq_b()->SetElement(0, 0, -1);
+    constraint.Get_Cq_a()(0) = ratio;
+    constraint.Get_Cq_b()(0) = -1;
 }
 
 void ChShaftsGear::ConstraintsFetch_react(double factor) {

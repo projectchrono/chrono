@@ -579,10 +579,9 @@ double ChPathSteeringControllerSR::Advance(const ChVehicle& vehicle, double step
         // m_Kug is in [°/g]
         R = (m_L + CH_C_DEG_TO_RAD * m_Kug * u * u / g) / m_delta;
         double theta = u * m_Tp / R;
-        ChMatrix33<> RM;
-        RM.Set_A_AngAxis(theta, ChVector<>(0, 0, 1));
+        ChMatrix33<> RM(theta, ChVector<>(0, 0, 1));
         m_sentinel = vehicle.GetChassisBody()->GetFrame_REF_to_abs().TransformPointLocalToParent(ChVector<>(0, 0, 0)) +
-                     R * n_g - RM * R * n_g;
+                     R * (n_g - RM * n_g);
     }
 
     // Calculate current "target" location.

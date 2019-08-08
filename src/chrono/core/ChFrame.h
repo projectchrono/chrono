@@ -16,8 +16,9 @@
 #define CHFRAME_H
 
 #include "chrono/core/ChCoordsys.h"
+#include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChMatrix33.h"
-#include "chrono/core/ChMatrixNM.h"
+#include "chrono/core/ChMatrixMBD.h"
 #include "chrono/core/ChTransform.h"
 
 namespace chrono {
@@ -257,7 +258,7 @@ class ChFrame {
     /// Note: the rotation matrix must be already orthogonal!
     virtual void SetRot(const ChMatrix33<Real>& mA) {
         coord.rot = mA.Get_A_quaternion();
-        Amatrix.CopyFromMatrix(mA);
+        Amatrix = mA;
     }
 
     /// Impose the translation
@@ -342,17 +343,15 @@ class ChFrame {
     /// This function transforms a direction from 'this' local coordinate
     /// system to parent frame coordinate system.
     /// \return The direction in local frame coordinate
-    virtual ChVector<Real> TransformDirectionParentToLocal(
-        const ChVector<>& mdirection  ///< direction to transform, given in parent coordinates
-        ) const {
-        return Amatrix.MatrT_x_Vect(mdirection);
+    virtual ChVector<Real> TransformDirectionParentToLocal(const ChVector<Real>& mdirection) const {
+        return Amatrix.transpose() * mdirection;
     }
 
     /// This function transforms a direction from the parent frame coordinate system
     /// to 'this' local coordinate system.
     /// \return The direction in parent frame coordinate
-    virtual ChVector<Real> TransformDirectionLocalToParent(const ChVector<>& mdirection) const {
-        return Amatrix.Matr_x_Vect(mdirection);
+    virtual ChVector<Real> TransformDirectionLocalToParent(const ChVector<Real>& mdirection) const {
+        return Amatrix * mdirection;
     }
 
     // OTHER FUNCTIONS
@@ -372,122 +371,21 @@ class ChFrame {
     /// Sets to no translation and no rotation
     virtual void SetIdentity() {
         coord.SetIdentity();
-        Amatrix.SetIdentity();
+        Amatrix.setIdentity();
     }
 
     /// The transformation is inverted in place.
     /// That is if w=A*v, then A.Invert();v=A*w;
     virtual void Invert() {
         coord.rot.Conjugate();
-        Amatrix.MatrTranspose();
-        coord.pos = -Amatrix.Matr_x_Vect(coord.pos);
+        Amatrix.transposeInPlace();
+        coord.pos = -(Amatrix * coord.pos);
     }
 
     ChFrame<Real> GetInverse() const {
         ChFrame<Real> tmp(*this);
         tmp.Invert();
         return tmp;
-    }
-
-    /// Fills a 3x4 matrix [Fp(q)], as in  [Fp(q)]*[Fm(q)]' = [A(q)]
-    static void SetMatrix_Fp(ChMatrixNM<Real, 3, 4>& Fp, const ChQuaternion<Real>& mq) {
-        assert((Fp.GetRows() == 3) && (Fp.GetColumns() == 4));
-        Fp(0) = mq.e1();
-        Fp(1) = mq.e0();
-        Fp(2) = -mq.e3();
-        Fp(3) = mq.e2();
-        Fp(4) = mq.e2();
-        Fp(5) = mq.e3();
-        Fp(6) = mq.e0();
-        Fp(7) = -mq.e1();
-        Fp(8) = mq.e3();
-        Fp(9) = -mq.e2();
-        Fp(10) = mq.e1();
-        Fp(11) = mq.e0();
-    }
-
-    /// Fills a 3x4 matrix [Fm(q)], as in  [Fp(q)]*[Fm(q)]' = [A(q)]
-    static void SetMatrix_Fm(ChMatrixNM<Real, 3, 4>& Fm, const ChQuaternion<Real>& mq) {
-        assert((Fm.GetRows() == 3) && (Fm.GetColumns() == 4));
-        Fm(0) = mq.e1();
-        Fm(1) = mq.e0();
-        Fm(2) = mq.e3();
-        Fm(3) = -mq.e2();
-        Fm(4) = mq.e2();
-        Fm(5) = -mq.e3();
-        Fm(6) = mq.e0();
-        Fm(7) = mq.e1();
-        Fm(8) = mq.e3();
-        Fm(9) = mq.e2();
-        Fm(10) = -mq.e1();
-        Fm(11) = mq.e0();
-    }
-
-    /// Fast fill a 3x4 matrix [Gl(q)], as in local angular speed conversion
-    /// Wl=[Gl]*q_dt   (btw: [Gl(q)] = 2*[Fp(q')] = 2*[G] with G matrix as in Shabana)
-    static void SetMatrix_Gl(ChMatrixNM<Real, 3, 4>& Gl, const ChQuaternion<Real>& mq) {
-        assert((Gl.GetRows() == 3) && (Gl.GetColumns() == 4));
-        Real de0 = 2 * mq.e0();
-        Real de1 = 2 * mq.e1();
-        Real de2 = 2 * mq.e2();
-        Real de3 = 2 * mq.e3();
-        Gl(0) = -de1;
-        Gl(1) = de0;
-        Gl(2) = de3;
-        Gl(3) = -de2;
-        Gl(4) = -de2;
-        Gl(5) = -de3;
-        Gl(6) = de0;
-        Gl(7) = de1;
-        Gl(8) = -de3;
-        Gl(9) = de2;
-        Gl(10) = -de1;
-        Gl(11) = de0;
-    }
-
-    /// Fast fill a 3x4 matrix [Gw(q)], as in absolute angular speed conversion
-    /// Ww=[Gw]*q_dt   (btw: [Gw(q)] = 2*[Fm(q')] = 2*[E] with E matrix as in Shabana)
-    static void SetMatrix_Gw(ChMatrixNM<Real, 3, 4>& Gw, const ChQuaternion<Real>& mq) {
-        assert((Gw.GetRows() == 3) && (Gw.GetColumns() == 4));
-        Real de0 = 2 * mq.e0();
-        Real de1 = 2 * mq.e1();
-        Real de2 = 2 * mq.e2();
-        Real de3 = 2 * mq.e3();
-        Gw(0) = -de1;
-        Gw(1) = de0;
-        Gw(2) = -de3;
-        Gw(3) = de2;
-        Gw(4) = -de2;
-        Gw(5) = de3;
-        Gw(6) = de0;
-        Gw(7) = -de1;
-        Gw(8) = -de3;
-        Gw(9) = -de2;
-        Gw(10) = de1;
-        Gw(11) = de0;
-    }
-
-    /// Computes the product v=[Gl(mq)]*qb  without the need of having
-    /// the [Gl] matrix (just pass the mq quaternion, since Gl is function of mq)
-    static ChVector<Real> Gl_x_Quat(const ChQuaternion<Real>& mq, const ChQuaternion<Real>& qb) {
-        Real de0 = 2 * mq.e0();
-        Real de1 = 2 * mq.e1();
-        Real de2 = 2 * mq.e2();
-        Real de3 = 2 * mq.e3();
-        return ChVector<Real>(-de1 * qb.e0() + de0 * qb.e1() + de3 * qb.e2() - de2 * qb.e3(),
-                              -de2 * qb.e0() - de3 * qb.e1() + de0 * qb.e2() + de1 * qb.e3(),
-                              -de3 * qb.e0() + de2 * qb.e1() - de1 * qb.e2() + de0 * qb.e3());
-    }
-
-    /// Computes the product q=[Gl(mq)]*v  without the need of having
-    /// the [Gl] matrix (just pass the mq quaternion, since Gl is function of mq)
-    static ChQuaternion<Real> GlT_x_Vect(const ChQuaternion<Real>& mq, const ChVector<Real>& v) {
-        Real de0 = 2 * mq.e0();
-        Real de1 = 2 * mq.e1();
-        Real de2 = 2 * mq.e2();
-        Real de3 = 2 * mq.e3();
-        return ChQuaternion<Real>(-de1 * v.x() - de2 * v.y() - de3 * v.z(), +de0 * v.x() - de3 * v.y() + de2 * v.z(),
-                                  +de3 * v.x() + de0 * v.y() - de1 * v.z(), -de2 * v.x() + de1 * v.y() + de0 * v.z());
     }
 
     /// Method to allow serialization of transient data to archives.
@@ -506,6 +404,9 @@ class ChFrame {
         marchive >> CHNVP(coord);
         Amatrix.Set_A_quaternion(coord.rot);
     }
+
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 CH_CLASS_VERSION(ChFrame<double>, 0)
@@ -670,6 +571,14 @@ template <class Real>
 ChFrame<Real> operator>>(const ChFrame<Real>& Fa, const ChQuaternion<Real>& Fb) {
     ChFrame<Real> res(Fb.Rotate(Fa.coord.pos), Fa.coord.rot >> Fb);
     return res;
+}
+
+// Insertion to output stream
+template <typename Real>
+inline std::ostream& operator<<(std::ostream& out, const ChFrame<Real>& f) {
+    out << f.coord.pos.x() << "  " << f.coord.pos.y() << "  " << f.coord.pos.z() << "\n";
+    out << f.coord.rot.e0() << "  " << f.coord.rot.e1() << "  " << f.coord.rot.e2() << "  " << f.coord.rot.e3();
+    return out;
 }
 
 }  // end namespace chrono

@@ -52,8 +52,8 @@ ChParallelDataManager::ChParallelDataManager()
       nnz_bilaterals(0),
       add_contact_callback(nullptr),
       composition_strategy(new ChMaterialCompositionStrategy<real>) {
-    node_container = std::make_shared<Ch3DOFContainer>();
-    fea_container = std::make_shared<Ch3DOFContainer>();
+    node_container = chrono_types::make_shared<Ch3DOFContainer>();
+    fea_container = chrono_types::make_shared<Ch3DOFContainer>();
     node_container->data_manager = this;
     fea_container->data_manager = this;
 

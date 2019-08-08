@@ -35,12 +35,7 @@ class ChApi ChSolverBB : public ChIterativeSolver {
     ChSolverBB(int mmax_iters = 50,       ///< max.number of iterations
                bool mwarm_start = false,  ///< uses warm start?
                double mtolerance = 0.0    ///< tolerance for termination criterion
-               )
-        : ChIterativeSolver(mmax_iters, mwarm_start, mtolerance, 0.2) {
-        n_armijo = 10;
-        max_armijo_backtrace = 3;
-        diag_preconditioning = true;
-    }
+    );
 
     virtual ~ChSolverBB() {}
 
@@ -50,17 +45,6 @@ class ChApi ChSolverBB : public ChIterativeSolver {
     /// \return  the maximum constraint violation after termination.
     virtual double Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
                          ) override;
-
-    /// Same as Solve(), but this also supports the presence of
-    /// ChKblock blocks. If Solve() is called and stiffness is present,
-    /// Solve() automatically falls back to this function.
-    /// It does not solve the Schur complement N*l-r=0 as Solve does, here the
-    /// entire system KKT matrix with duals l and primals q is used.
-    //***TODO*** Solve_SupportingStiffness() was not working. Is there a way to make this working? probably not..
-    //***DEPRECATED***
-    virtual double Solve_SupportingStiffness(
-        ChSystemDescriptor& sysd  ///< system description with constraints and variables
-    );
 
     /// Number of max tolerated steps in non-monotone Armijo
     /// line search; usually good values are in 1..10 range.

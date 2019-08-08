@@ -85,9 +85,9 @@ M113_Suspension::M113_Suspension(const std::string& name, VehicleSide side, int 
 
     // Create the associated road wheel.
     if (side == LEFT)
-        m_road_wheel = std::make_shared<M113_RoadWheelLeft>(index);
+        m_road_wheel = chrono_types::make_shared<M113_RoadWheelLeft>(index);
     else
-        m_road_wheel = std::make_shared<M113_RoadWheelRight>(index);
+        m_road_wheel = chrono_types::make_shared<M113_RoadWheelRight>(index);
 }
 
 M113_Suspension::~M113_Suspension() {

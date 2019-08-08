@@ -152,7 +152,7 @@ int main(int argc, char* argv[]) {
     std::vector<std::shared_ptr<RigidTire> > tires(num_wheels);
 
     for (int i = 0; i < num_wheels; i++) {
-        tires[i] = std::make_shared<RigidTire>(vehicle::GetDataFile(rigidtire_file));
+        tires[i] = chrono_types::make_shared<RigidTire>(vehicle::GetDataFile(rigidtire_file));
         tires[i]->Initialize(vehicle.GetWheelBody(i), VehicleSide(i % 2));
         tires[i]->SetVisualizationType(VisualizationType::MESH);
     }

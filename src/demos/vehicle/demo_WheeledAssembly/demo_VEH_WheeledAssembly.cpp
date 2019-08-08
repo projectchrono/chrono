@@ -164,7 +164,7 @@ class MyDriverInputs : public ChWheeledVehicleAssembly::ChDriverInputsCallback {
 class MyCylindricalTire : public ChWheeledVehicleAssembly::ChTireContactCallback {
   public:
     virtual void onCallback(std::shared_ptr<ChBody> wheelBody) override {
-        wheelBody->SetCollisionModel(std::make_shared<collision::ChCollisionModelParallel>());
+        wheelBody->SetCollisionModel(chrono_types::make_shared<collision::ChCollisionModelParallel>());
 
         wheelBody->GetCollisionModel()->ClearModel();
         wheelBody->GetCollisionModel()->AddCylinder(0.46, 0.46, 0.127);
@@ -172,7 +172,7 @@ class MyCylindricalTire : public ChWheeledVehicleAssembly::ChTireContactCallback
 
         wheelBody->GetMaterialSurfaceNSC()->SetFriction(mu_t);
 
-        auto cyl = std::make_shared<ChCylinderShape>();
+        auto cyl = chrono_types::make_shared<ChCylinderShape>();
         cyl->GetCylinderGeometry().p1 = ChVector<>(0, 0.127, 0);
         cyl->GetCylinderGeometry().p2 = ChVector<>(0, -0.127, 0);
         cyl->GetCylinderGeometry().rad = 0.46;
@@ -184,7 +184,7 @@ class MyCylindricalTire : public ChWheeledVehicleAssembly::ChTireContactCallback
 
 double CreateParticles(ChSystem* system) {
     // Create a material
-    auto mat_g = std::make_shared<ChMaterialSurfaceNSC>();
+    auto mat_g = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     mat_g->SetFriction(mu_g);
 
     // Create a particle generator and a mixture entirely made out of spheres

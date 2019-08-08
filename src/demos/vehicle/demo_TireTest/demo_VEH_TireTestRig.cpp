@@ -51,12 +51,12 @@ int main() {
     // Create wheel and tire subsystems
     // --------------------------------
 
-    auto wheel = std::make_shared<hmmwv::HMMWV_WheelLeft>("Wheel");
+    auto wheel = chrono_types::make_shared<hmmwv::HMMWV_WheelLeft>("Wheel");
 
-    ////auto tire = std::make_shared<hmmwv::HMMWV_RigidTire>("Rigid tire");
-    ////auto tire = std::make_shared<hmmwv::HMMWV_TMeasyTire>("TMeasy tire");
-    auto tire = std::make_shared<hmmwv::HMMWV_FialaTire>("Fiala tire");
-    ////auto tire = std::make_shared<hmmwv::HMMWV_LugreTire>("Lugre tire");
+    ////auto tire = chrono_types::make_shared<hmmwv::HMMWV_RigidTire>("Rigid tire");
+    ////auto tire = chrono_types::make_shared<hmmwv::HMMWV_TMeasyTire>("TMeasy tire");
+    auto tire = chrono_types::make_shared<hmmwv::HMMWV_FialaTire>("Fiala tire");
+    ////auto tire = chrono_types::make_shared<hmmwv::HMMWV_LugreTire>("Lugre tire");
 
     // Create and configure test rig
     // -----------------------------
@@ -79,22 +79,22 @@ int main() {
     // -----------------
 
     // Scenario: driven wheel
-    ////rig.SetAngSpeedFunction(std::make_shared<ChFunction_Const>(10.0));
+    ////rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunction_Const>(10.0));
     ////rig.Initialize();
 
     // Scenario: pulled wheel
-    ////rig.SetLongSpeedFunction(std::make_shared<ChFunction_Const>(1.0));
+    ////rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunction_Const>(1.0));
     ////rig.Initialize();
 
     // Scenario: imobilized wheel
-    ////rig.SetLongSpeedFunction(std::make_shared<ChFunction_Const>(0.0));
-    ////rig.SetAngSpeedFunction(std::make_shared<ChFunction_Const>(0.0));
+    ////rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunction_Const>(0.0));
+    ////rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunction_Const>(0.0));
     ////rig.Initialize();
 
     // Scenario: prescribe all motion functions
-    ////rig.SetLongSpeedFunction(std::make_shared<ChFunction_Const>(0.2));
-    ////rig.SetAngSpeedFunction(std::make_shared<ChFunction_Const>(10.0));
-    ////rig.SetSlipAngleFunction(std::make_shared<ChFunction_Sine>(0, 0.6, 0.2));
+    ////rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunction_Const>(0.2));
+    ////rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunction_Const>(10.0));
+    ////rig.SetSlipAngleFunction(chrono_types::make_shared<ChFunction_Sine>(0, 0.6, 0.2));
     ////rig.Initialize();
 
     // Scenario: specified longitudinal slip

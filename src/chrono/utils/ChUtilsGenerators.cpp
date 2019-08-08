@@ -32,8 +32,8 @@ MixtureIngredient::MixtureIngredient(Generator* generator, MixtureType type, dou
       m_type(type),
       m_ratio(ratio),
       m_cumRatio(0),
-      m_defMaterialNSC(std::make_shared<ChMaterialSurfaceNSC>()),
-      m_defMaterialSMC(std::make_shared<ChMaterialSurfaceSMC>()),
+      m_defMaterialNSC(chrono_types::make_shared<ChMaterialSurfaceNSC>()),
+      m_defMaterialSMC(chrono_types::make_shared<ChMaterialSurfaceSMC>()),
       m_defDensity(1),
       m_defSize(ChVector<>(1, 1, 1)),
       m_frictionDist(nullptr),
@@ -216,35 +216,35 @@ void MixtureIngredient::calcGeometricProps(const ChVector<>& size, double& volum
     switch (m_type) {
         case SPHERE:
             volume = CalcSphereVolume(size.x());
-            gyration = CalcSphereGyration(size.x()).Get_Diag();
+            gyration = CalcSphereGyration(size.x()).diagonal();
             break;
         case ELLIPSOID:
             volume = CalcEllipsoidVolume(size);
-            gyration = CalcEllipsoidGyration(size).Get_Diag();
+            gyration = CalcEllipsoidGyration(size).diagonal();
             break;
         case BOX:
             volume = CalcBoxVolume(size);
-            gyration = CalcBoxGyration(size).Get_Diag();
+            gyration = CalcBoxGyration(size).diagonal();
             break;
         case CYLINDER:
             volume = CalcCylinderVolume(size.x(), size.y());
-            gyration = CalcCylinderGyration(size.x(), size.y()).Get_Diag();
+            gyration = CalcCylinderGyration(size.x(), size.y()).diagonal();
             break;
         case CONE:
             volume = CalcConeVolume(size.x(), size.y());
-            gyration = CalcConeGyration(size.x(), size.y()).Get_Diag();
+            gyration = CalcConeGyration(size.x(), size.y()).diagonal();
             break;
         case BISPHERE:
             volume = CalcBiSphereVolume(size.x(), size.y());
-            gyration = CalcBiSphereGyration(size.x(), size.y()).Get_Diag();
+            gyration = CalcBiSphereGyration(size.x(), size.y()).diagonal();
             break;
         case CAPSULE:
             volume = CalcCapsuleVolume(size.x(), size.y());
-            gyration = CalcCapsuleGyration(size.x(), size.y()).Get_Diag();
+            gyration = CalcCapsuleGyration(size.x(), size.y()).diagonal();
             break;
         case ROUNDEDCYLINDER:
             volume = CalcRoundedCylinderVolume(size.x(), size.y(), size.z());
-            gyration = CalcRoundedCylinderGyration(size.x(), size.y(), size.z()).Get_Diag();
+            gyration = CalcRoundedCylinderGyration(size.x(), size.y(), size.z()).diagonal();
             break;
     }
 }
@@ -275,7 +275,7 @@ Generator::~Generator() {
 // and the ratio in the final mixture. A smart pointer to the new
 // mixture ingredient is returned to allow modifying its properties.
 std::shared_ptr<MixtureIngredient> Generator::AddMixtureIngredient(MixtureType type, double ratio) {
-    m_mixture.push_back(std::make_shared<MixtureIngredient>(this, type, ratio));
+    m_mixture.push_back(chrono_types::make_shared<MixtureIngredient>(this, type, ratio));
     return m_mixture.back();
 }
 

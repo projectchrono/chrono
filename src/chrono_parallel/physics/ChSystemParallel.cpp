@@ -49,10 +49,10 @@ namespace chrono {
 ChSystemParallel::ChSystemParallel() : ChSystem() {
     data_manager = new ChParallelDataManager();
 
-    descriptor = std::make_shared<ChSystemDescriptorParallel>(data_manager);
-    contact_container = std::make_shared<ChContactContainerParallel>(data_manager);
+    descriptor = chrono_types::make_shared<ChSystemDescriptorParallel>(data_manager);
+    contact_container = chrono_types::make_shared<ChContactContainerParallel>(data_manager);
     contact_container->SetSystem(this);
-    collision_system = std::make_shared<ChCollisionSystemParallel>(data_manager);
+    collision_system = chrono_types::make_shared<ChCollisionSystemParallel>(data_manager);
 
     collision_system_type = CollisionSystemType::COLLSYS_PARALLEL;
     counter = 0;
@@ -152,12 +152,12 @@ bool ChSystemParallel::Integrate_Y() {
 #pragma omp parallel for
     for (int i = 0; i < bodylist.size(); i++) {
         if (data_manager->host_data.active_rigid[i] != 0) {
-            bodylist[i]->Variables().Get_qb().SetElement(0, 0, velocities[i * 6 + 0]);
-            bodylist[i]->Variables().Get_qb().SetElement(1, 0, velocities[i * 6 + 1]);
-            bodylist[i]->Variables().Get_qb().SetElement(2, 0, velocities[i * 6 + 2]);
-            bodylist[i]->Variables().Get_qb().SetElement(3, 0, velocities[i * 6 + 3]);
-            bodylist[i]->Variables().Get_qb().SetElement(4, 0, velocities[i * 6 + 4]);
-            bodylist[i]->Variables().Get_qb().SetElement(5, 0, velocities[i * 6 + 5]);
+            bodylist[i]->Variables().Get_qb()(0) = velocities[i * 6 + 0];
+            bodylist[i]->Variables().Get_qb()(1) = velocities[i * 6 + 1];
+            bodylist[i]->Variables().Get_qb()(2) = velocities[i * 6 + 2];
+            bodylist[i]->Variables().Get_qb()(3) = velocities[i * 6 + 3];
+            bodylist[i]->Variables().Get_qb()(4) = velocities[i * 6 + 4];
+            bodylist[i]->Variables().Get_qb()(5) = velocities[i * 6 + 5];
 
             bodylist[i]->VariablesQbIncrementPosition(this->GetStep());
             bodylist[i]->VariablesQbSetSpeed(this->GetStep());
@@ -177,7 +177,7 @@ bool ChSystemParallel::Integrate_Y() {
         if (!data_manager->host_data.shaft_active[i])
             continue;
 
-        shaftlist[i]->Variables().Get_qb().SetElementN(0, velocities[offset + i]);
+        shaftlist[i]->Variables().Get_qb()(0) = velocities[offset + i];
         shaftlist[i]->VariablesQbIncrementPosition(GetStep());
         shaftlist[i]->VariablesQbSetSpeed(GetStep());
         shaftlist[i]->Update(ChTime);
@@ -185,7 +185,7 @@ bool ChSystemParallel::Integrate_Y() {
 
     offset += data_manager->num_shafts;
     for (int i = 0; i < (signed)data_manager->num_linmotors; i++) {
-        linmotorlist[i]->Variables().Get_qb().SetElementN(0, velocities[offset + i]);
+        linmotorlist[i]->Variables().Get_qb()(0) = velocities[offset + i];
         linmotorlist[i]->VariablesQbIncrementPosition(GetStep());
         linmotorlist[i]->VariablesQbSetSpeed(GetStep());
         linmotorlist[i]->Update(ChTime, true);
@@ -193,7 +193,7 @@ bool ChSystemParallel::Integrate_Y() {
 
     offset += data_manager->num_linmotors;
     for (int i = 0; i < (signed)data_manager->num_rotmotors; i++) {
-        rotmotorlist[i]->Variables().Get_qb().SetElementN(0, velocities[offset + i]);
+        rotmotorlist[i]->Variables().Get_qb()(0) = velocities[offset + i];
         rotmotorlist[i]->VariablesQbIncrementPosition(GetStep());
         rotmotorlist[i]->VariablesQbSetSpeed(GetStep());
         rotmotorlist[i]->Update(ChTime, true);
@@ -454,24 +454,24 @@ void ChSystemParallel::UpdateRigidBodies() {
         bodylist[i]->VariablesFbLoadForces(GetStep());
         bodylist[i]->VariablesQbLoadSpeed();
 
-        ChMatrix<>& body_qb = bodylist[i]->Variables().Get_qb();
-        ChMatrix<>& body_fb = bodylist[i]->Variables().Get_fb();
+        ChVectorRef body_qb = bodylist[i]->Variables().Get_qb();
+        ChVectorRef body_fb = bodylist[i]->Variables().Get_fb();
         ChVector<>& body_pos = bodylist[i]->GetPos();
         ChQuaternion<>& body_rot = bodylist[i]->GetRot();
 
-        data_manager->host_data.v[i * 6 + 0] = body_qb.GetElementN(0);
-        data_manager->host_data.v[i * 6 + 1] = body_qb.GetElementN(1);
-        data_manager->host_data.v[i * 6 + 2] = body_qb.GetElementN(2);
-        data_manager->host_data.v[i * 6 + 3] = body_qb.GetElementN(3);
-        data_manager->host_data.v[i * 6 + 4] = body_qb.GetElementN(4);
-        data_manager->host_data.v[i * 6 + 5] = body_qb.GetElementN(5);
+        data_manager->host_data.v[i * 6 + 0] = body_qb(0);
+        data_manager->host_data.v[i * 6 + 1] = body_qb(1);
+        data_manager->host_data.v[i * 6 + 2] = body_qb(2);
+        data_manager->host_data.v[i * 6 + 3] = body_qb(3);
+        data_manager->host_data.v[i * 6 + 4] = body_qb(4);
+        data_manager->host_data.v[i * 6 + 5] = body_qb(5);
 
-        data_manager->host_data.hf[i * 6 + 0] = body_fb.ElementN(0);
-        data_manager->host_data.hf[i * 6 + 1] = body_fb.ElementN(1);
-        data_manager->host_data.hf[i * 6 + 2] = body_fb.ElementN(2);
-        data_manager->host_data.hf[i * 6 + 3] = body_fb.ElementN(3);
-        data_manager->host_data.hf[i * 6 + 4] = body_fb.ElementN(4);
-        data_manager->host_data.hf[i * 6 + 5] = body_fb.ElementN(5);
+        data_manager->host_data.hf[i * 6 + 0] = body_fb(0);
+        data_manager->host_data.hf[i * 6 + 1] = body_fb(1);
+        data_manager->host_data.hf[i * 6 + 2] = body_fb(2);
+        data_manager->host_data.hf[i * 6 + 3] = body_fb(3);
+        data_manager->host_data.hf[i * 6 + 4] = body_fb(4);
+        data_manager->host_data.hf[i * 6 + 5] = body_fb(5);
 
         position[i] = real3(body_pos.x(), body_pos.y(), body_pos.z());
         rotation[i] = quaternion(body_rot.e0(), body_rot.e1(), body_rot.e2(), body_rot.e3());
@@ -506,9 +506,9 @@ void ChSystemParallel::UpdateShafts() {
         shaft_active[i] = shaftlist[i]->IsActive();
 
         data_manager->host_data.v[data_manager->num_rigid_bodies * 6 + i] =
-            shaftlist[i]->Variables().Get_qb().GetElementN(0);
+            shaftlist[i]->Variables().Get_qb()(0);
         data_manager->host_data.hf[data_manager->num_rigid_bodies * 6 + i] =
-            shaftlist[i]->Variables().Get_fb().GetElementN(0);
+            shaftlist[i]->Variables().Get_fb()(0);
     }
 }
 
@@ -522,16 +522,16 @@ void ChSystemParallel::UpdateMotorLinks() {
         linmotorlist[i]->Update(ChTime, false);
         linmotorlist[i]->VariablesFbLoadForces(GetStep());
         linmotorlist[i]->VariablesQbLoadSpeed();
-        data_manager->host_data.v[offset + i] = linmotorlist[i]->Variables().Get_qb().GetElementN(0);
-        data_manager->host_data.hf[offset + i] = linmotorlist[i]->Variables().Get_fb().GetElementN(0);
+        data_manager->host_data.v[offset + i] = linmotorlist[i]->Variables().Get_qb()(0);
+        data_manager->host_data.hf[offset + i] = linmotorlist[i]->Variables().Get_fb()(0);
     }
     offset += data_manager->num_linmotors;
     for (int i = 0; i < data_manager->num_rotmotors; i++) {
         rotmotorlist[i]->Update(ChTime, false);
         rotmotorlist[i]->VariablesFbLoadForces(GetStep());
         rotmotorlist[i]->VariablesQbLoadSpeed();
-        data_manager->host_data.v[offset + i] = rotmotorlist[i]->Variables().Get_qb().GetElementN(0);
-        data_manager->host_data.hf[offset + i] = rotmotorlist[i]->Variables().Get_fb().GetElementN(0);
+        data_manager->host_data.v[offset + i] = rotmotorlist[i]->Variables().Get_qb()(0);
+        data_manager->host_data.hf[offset + i] = rotmotorlist[i]->Variables().Get_fb()(0);
     }
 }
 
@@ -749,10 +749,10 @@ void ChSystemParallel::ChangeCollisionSystem(CollisionSystemType type) {
 
     switch (type) {
         case CollisionSystemType::COLLSYS_PARALLEL:
-            collision_system = std::make_shared<ChCollisionSystemParallel>(data_manager);
+            collision_system = chrono_types::make_shared<ChCollisionSystemParallel>(data_manager);
             break;
         case CollisionSystemType::COLLSYS_BULLET_PARALLEL:
-            collision_system = std::make_shared<ChCollisionSystemBulletParallel>(data_manager);
+            collision_system = chrono_types::make_shared<ChCollisionSystemBulletParallel>(data_manager);
             break;
     }
 }

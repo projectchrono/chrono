@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
 #include "chrono/fea/ChElementTetra_10.h"
@@ -20,11 +20,11 @@ namespace fea {
 ChElementTetra_10::ChElementTetra_10() {
     nodes.resize(10);
     MatrB.resize(4);  // standard: 4 integration points
-    MatrB[0].Reset(6, 30);
-    MatrB[1].Reset(6, 30);
-    MatrB[2].Reset(6, 30);
-    MatrB[3].Reset(6, 30);
-    this->StiffnessMatrix.Resize(30, 30);
+    MatrB[0].setZero(6, 30);
+    MatrB[1].setZero(6, 30);
+    MatrB[2].setZero(6, 30);
+    MatrB[3].setZero(6, 30);
+    this->StiffnessMatrix.setZero(30, 30);
 }
 
 ChElementTetra_10::~ChElementTetra_10() {}
@@ -63,7 +63,7 @@ void ChElementTetra_10::SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA,
     Kmatr.SetVariables(mvars);
 }
 
-void ChElementTetra_10::ShapeFunctions(ChMatrix<>& N, double r, double s, double t) {
+void ChElementTetra_10::ShapeFunctions(ShapeVector& N, double r, double s, double t) {
     double u = 1.0 - r - s - t;
 
     // at corners
@@ -80,11 +80,11 @@ void ChElementTetra_10::ShapeFunctions(ChMatrix<>& N, double r, double s, double
     N(9) = 4.0 * s * t;
 }
 
-void ChElementTetra_10::GetStateBlock(ChMatrixDynamic<>& mD) {
-    mD.Reset(this->GetNdofs(), 1);
+void ChElementTetra_10::GetStateBlock(ChVectorDynamic<>& mD) {
+    mD.setZero(this->GetNdofs());
 
     for (int i = 0; i < GetNnodes(); i++)
-        mD.PasteVector(A.MatrT_x_Vect(this->nodes[i]->GetPos()) - nodes[i]->GetX0(), i * 3, 0);
+        mD.segment(i * 3, 3) = (A.transpose() * this->nodes[i]->GetPos() - nodes[i]->GetX0()).eigen();
 }
 
 double ChElementTetra_10::ComputeVolume() {
@@ -93,11 +93,11 @@ double ChElementTetra_10::ComputeVolume() {
     C1.Sub(nodes[2]->pos, nodes[0]->pos);
     D1.Sub(nodes[3]->pos, nodes[0]->pos);
     ChMatrixDynamic<> M(3, 3);
-    M.PasteVector(B1, 0, 0);
-    M.PasteVector(C1, 0, 1);
-    M.PasteVector(D1, 0, 2);
-    M.MatrTranspose();
-    Volume = std::abs(M.Det() / 6);
+    M.col(0) = B1.eigen();
+    M.col(1) = C1.eigen();
+    M.col(2) = D1.eigen();
+    M.transposeInPlace();
+    Volume = std::abs(M.determinant() / 6);
     return Volume;
 }
 
@@ -106,44 +106,32 @@ void ChElementTetra_10::ComputeJacobian(ChMatrixDynamic<>& Jacobian,
                                         double zeta2,
                                         double zeta3,
                                         double zeta4) {
-    Jacobian.FillElem(1);
+    Jacobian.setConstant(1);
 
-    Jacobian.SetElement(1, 0,
-                        4 * (nodes[0]->pos.x() * (zeta1 - 1 / 4) + nodes[4]->pos.x() * zeta2 +
-                             nodes[6]->pos.x() * zeta3 + nodes[7]->pos.x() * zeta4));
-    Jacobian.SetElement(2, 0,
-                        4 * (nodes[0]->pos.y() * (zeta1 - 1 / 4) + nodes[4]->pos.y() * zeta2 +
-                             nodes[6]->pos.y() * zeta3 + nodes[7]->pos.y() * zeta4));
-    Jacobian.SetElement(3, 0,
-                        4 * (nodes[0]->pos.z() * (zeta1 - 1 / 4) + nodes[4]->pos.z() * zeta2 +
-                             nodes[6]->pos.z() * zeta3 + nodes[7]->pos.z() * zeta4));
-    Jacobian.SetElement(1, 1,
-                        4 * (nodes[4]->pos.x() * zeta1 + nodes[1]->pos.x() * (zeta2 - 1 / 4) +
-                             nodes[5]->pos.x() * zeta3 + nodes[8]->pos.x() * zeta4));
-    Jacobian.SetElement(2, 1,
-                        4 * (nodes[4]->pos.y() * zeta1 + nodes[1]->pos.y() * (zeta2 - 1 / 4) +
-                             nodes[5]->pos.y() * zeta3 + nodes[8]->pos.y() * zeta4));
-    Jacobian.SetElement(3, 1,
-                        4 * (nodes[4]->pos.z() * zeta1 + nodes[1]->pos.z() * (zeta2 - 1 / 4) +
-                             nodes[5]->pos.z() * zeta3 + nodes[8]->pos.z() * zeta4));
-    Jacobian.SetElement(1, 2,
-                        4 * (nodes[6]->pos.x() * zeta1 + nodes[5]->pos.x() * zeta2 +
-                             nodes[2]->pos.x() * (zeta3 - 1 / 4) + nodes[9]->pos.x() * zeta4));
-    Jacobian.SetElement(2, 2,
-                        4 * (nodes[6]->pos.y() * zeta1 + nodes[5]->pos.y() * zeta2 +
-                             nodes[2]->pos.y() * (zeta3 - 1 / 4) + nodes[9]->pos.y() * zeta4));
-    Jacobian.SetElement(3, 2,
-                        4 * (nodes[6]->pos.z() * zeta1 + nodes[5]->pos.z() * zeta2 +
-                             nodes[2]->pos.z() * (zeta3 - 1 / 4) + nodes[9]->pos.z() * zeta4));
-    Jacobian.SetElement(1, 3,
-                        4 * (nodes[7]->pos.x() * zeta1 + nodes[8]->pos.x() * zeta2 + nodes[9]->pos.x() * zeta3 +
-                             nodes[3]->pos.x() * (zeta4 - 1 / 4)));
-    Jacobian.SetElement(2, 3,
-                        4 * (nodes[7]->pos.y() * zeta1 + nodes[8]->pos.y() * zeta2 + nodes[9]->pos.y() * zeta3 +
-                             nodes[3]->pos.y() * (zeta4 - 1 / 4)));
-    Jacobian.SetElement(3, 3,
-                        4 * (nodes[7]->pos.z() * zeta1 + nodes[8]->pos.z() * zeta2 + nodes[9]->pos.z() * zeta3 +
-                             nodes[3]->pos.z() * (zeta4 - 1 / 4)));
+    Jacobian(1, 0) = 4 * (nodes[0]->pos.x() * (zeta1 - 1 / 4) + nodes[4]->pos.x() * zeta2 + nodes[6]->pos.x() * zeta3 +
+                          nodes[7]->pos.x() * zeta4);
+    Jacobian(2, 0) = 4 * (nodes[0]->pos.y() * (zeta1 - 1 / 4) + nodes[4]->pos.y() * zeta2 + nodes[6]->pos.y() * zeta3 +
+                          nodes[7]->pos.y() * zeta4);
+    Jacobian(3, 0) = 4 * (nodes[0]->pos.z() * (zeta1 - 1 / 4) + nodes[4]->pos.z() * zeta2 + nodes[6]->pos.z() * zeta3 +
+                          nodes[7]->pos.z() * zeta4);
+    Jacobian(1, 1) = 4 * (nodes[4]->pos.x() * zeta1 + nodes[1]->pos.x() * (zeta2 - 1 / 4) + nodes[5]->pos.x() * zeta3 +
+                          nodes[8]->pos.x() * zeta4);
+    Jacobian(2, 1) = 4 * (nodes[4]->pos.y() * zeta1 + nodes[1]->pos.y() * (zeta2 - 1 / 4) + nodes[5]->pos.y() * zeta3 +
+                          nodes[8]->pos.y() * zeta4);
+    Jacobian(3, 1) = 4 * (nodes[4]->pos.z() * zeta1 + nodes[1]->pos.z() * (zeta2 - 1 / 4) + nodes[5]->pos.z() * zeta3 +
+                          nodes[8]->pos.z() * zeta4);
+    Jacobian(1, 2) = 4 * (nodes[6]->pos.x() * zeta1 + nodes[5]->pos.x() * zeta2 + nodes[2]->pos.x() * (zeta3 - 1 / 4) +
+                          nodes[9]->pos.x() * zeta4);
+    Jacobian(2, 2) = 4 * (nodes[6]->pos.y() * zeta1 + nodes[5]->pos.y() * zeta2 + nodes[2]->pos.y() * (zeta3 - 1 / 4) +
+                          nodes[9]->pos.y() * zeta4);
+    Jacobian(3, 2) = 4 * (nodes[6]->pos.z() * zeta1 + nodes[5]->pos.z() * zeta2 + nodes[2]->pos.z() * (zeta3 - 1 / 4) +
+                          nodes[9]->pos.z() * zeta4);
+    Jacobian(1, 3) = 4 * (nodes[7]->pos.x() * zeta1 + nodes[8]->pos.x() * zeta2 + nodes[9]->pos.x() * zeta3 +
+                          nodes[3]->pos.x() * (zeta4 - 1 / 4));
+    Jacobian(2, 3) = 4 * (nodes[7]->pos.y() * zeta1 + nodes[8]->pos.y() * zeta2 + nodes[9]->pos.y() * zeta3 +
+                          nodes[3]->pos.y() * (zeta4 - 1 / 4));
+    Jacobian(3, 3) = 4 * (nodes[7]->pos.z() * zeta1 + nodes[8]->pos.z() * zeta2 + nodes[9]->pos.z() * zeta3 +
+                          nodes[3]->pos.z() * (zeta4 - 1 / 4));
 }
 
 void ChElementTetra_10::ComputeMatrB(ChMatrixDynamic<>& mmatrB,
@@ -155,343 +143,290 @@ void ChElementTetra_10::ComputeMatrB(ChMatrixDynamic<>& mmatrB,
     ChMatrixDynamic<> Jacobian(4, 4);
     ComputeJacobian(Jacobian, zeta1, zeta2, zeta3, zeta4);
 
-    double Jdet = Jacobian.Det();
+    double Jdet = Jacobian.determinant();
     JacobianDet = Jdet;  // !!! store the Jacobian Determinant: needed for the integration
 
-    mmatrB.SetElement(0, 0,
-                      (4 * zeta1 - 1) *
-                          ((Jacobian(2, 3) - Jacobian(2, 1)) * (Jacobian(3, 2) - Jacobian(3, 1)) -
-                           (Jacobian(2, 2) - Jacobian(2, 1)) * (Jacobian(3, 3) - Jacobian(3, 1))) /
-                          Jdet);
-    mmatrB.SetElement(0, 3,
-                      (4 * zeta2 - 1) *
-                          ((Jacobian(2, 2) - Jacobian(2, 0)) * (Jacobian(3, 3) - Jacobian(3, 2)) -
-                           (Jacobian(2, 2) - Jacobian(2, 3)) * (Jacobian(3, 0) - Jacobian(3, 2))) /
-                          Jdet);
-    mmatrB.SetElement(0, 6,
-                      (4 * zeta3 - 1) *
-                          ((Jacobian(2, 1) - Jacobian(2, 3)) * (Jacobian(3, 0) - Jacobian(3, 3)) -
-                           (Jacobian(2, 0) - Jacobian(2, 3)) * (Jacobian(3, 1) - Jacobian(3, 3))) /
-                          Jdet);
-    mmatrB.SetElement(0, 9,
-                      (4 * zeta4 - 1) *
-                          ((Jacobian(2, 0) - Jacobian(2, 2)) * (Jacobian(3, 1) - Jacobian(3, 0)) -
-                           (Jacobian(2, 0) - Jacobian(2, 1)) * (Jacobian(3, 2) - Jacobian(3, 0))) /
-                          Jdet);
-    mmatrB.SetElement(0, 12,
-                      4 *
-                          (zeta1 * ((Jacobian(2, 2) - Jacobian(2, 0)) * (Jacobian(3, 3) - Jacobian(3, 2)) -
-                                    (Jacobian(2, 2) - Jacobian(2, 3)) * (Jacobian(3, 0) - Jacobian(3, 2))) +
-                           zeta2 * ((Jacobian(2, 3) - Jacobian(2, 1)) * (Jacobian(3, 2) - Jacobian(3, 1)) -
-                                    (Jacobian(2, 2) - Jacobian(2, 1)) * (Jacobian(3, 3) - Jacobian(3, 1)))) /
-                          Jdet);
-    mmatrB.SetElement(0, 15,
-                      4 *
-                          (zeta2 * ((Jacobian(2, 1) - Jacobian(2, 3)) * (Jacobian(3, 0) - Jacobian(3, 3)) -
-                                    (Jacobian(2, 0) - Jacobian(2, 3)) * (Jacobian(3, 1) - Jacobian(3, 3))) +
-                           zeta3 * ((Jacobian(2, 2) - Jacobian(2, 0)) * (Jacobian(3, 3) - Jacobian(3, 2)) -
-                                    (Jacobian(2, 2) - Jacobian(2, 3)) * (Jacobian(3, 0) - Jacobian(3, 2)))) /
-                          Jdet);
-    mmatrB.SetElement(0, 18,
-                      4 *
-                          (zeta3 * ((Jacobian(2, 3) - Jacobian(2, 1)) * (Jacobian(3, 2) - Jacobian(3, 1)) -
-                                    (Jacobian(2, 2) - Jacobian(2, 1)) * (Jacobian(3, 3) - Jacobian(3, 1))) +
-                           zeta1 * ((Jacobian(2, 1) - Jacobian(2, 3)) * (Jacobian(3, 0) - Jacobian(3, 3)) -
-                                    (Jacobian(2, 0) - Jacobian(2, 3)) * (Jacobian(3, 1) - Jacobian(3, 3)))) /
-                          Jdet);
-    mmatrB.SetElement(0, 21,
-                      4 *
-                          (zeta1 * ((Jacobian(2, 0) - Jacobian(2, 2)) * (Jacobian(3, 1) - Jacobian(3, 0)) -
-                                    (Jacobian(2, 0) - Jacobian(2, 1)) * (Jacobian(3, 2) - Jacobian(3, 0))) +
-                           zeta4 * ((Jacobian(2, 3) - Jacobian(2, 1)) * (Jacobian(3, 2) - Jacobian(3, 1)) -
-                                    (Jacobian(2, 2) - Jacobian(2, 1)) * (Jacobian(3, 3) - Jacobian(3, 1)))) /
-                          Jdet);
-    mmatrB.SetElement(0, 24,
-                      4 *
-                          (zeta2 * ((Jacobian(2, 0) - Jacobian(2, 2)) * (Jacobian(3, 1) - Jacobian(3, 0)) -
-                                    (Jacobian(2, 0) - Jacobian(2, 1)) * (Jacobian(3, 2) - Jacobian(3, 0))) +
-                           zeta4 * ((Jacobian(2, 2) - Jacobian(2, 0)) * (Jacobian(3, 3) - Jacobian(3, 2)) -
-                                    (Jacobian(2, 2) - Jacobian(2, 3)) * (Jacobian(3, 0) - Jacobian(3, 2)))) /
-                          Jdet);
-    mmatrB.SetElement(0, 27,
-                      4 *
-                          (zeta3 * ((Jacobian(2, 0) - Jacobian(2, 2)) * (Jacobian(3, 1) - Jacobian(3, 0)) -
-                                    (Jacobian(2, 0) - Jacobian(2, 1)) * (Jacobian(3, 2) - Jacobian(3, 0))) +
-                           zeta4 * ((Jacobian(2, 1) - Jacobian(2, 3)) * (Jacobian(3, 0) - Jacobian(3, 3)) -
-                                    (Jacobian(2, 0) - Jacobian(2, 3)) * (Jacobian(3, 1) - Jacobian(3, 3)))) /
-                          Jdet);
+    mmatrB(0, 0) = (4 * zeta1 - 1) *
+                   ((Jacobian(2, 3) - Jacobian(2, 1)) * (Jacobian(3, 2) - Jacobian(3, 1)) -
+                    (Jacobian(2, 2) - Jacobian(2, 1)) * (Jacobian(3, 3) - Jacobian(3, 1))) /
+                   Jdet;
+    mmatrB(0, 3) = (4 * zeta2 - 1) *
+                   ((Jacobian(2, 2) - Jacobian(2, 0)) * (Jacobian(3, 3) - Jacobian(3, 2)) -
+                    (Jacobian(2, 2) - Jacobian(2, 3)) * (Jacobian(3, 0) - Jacobian(3, 2))) /
+                   Jdet;
+    mmatrB(0, 6) = (4 * zeta3 - 1) *
+                   ((Jacobian(2, 1) - Jacobian(2, 3)) * (Jacobian(3, 0) - Jacobian(3, 3)) -
+                    (Jacobian(2, 0) - Jacobian(2, 3)) * (Jacobian(3, 1) - Jacobian(3, 3))) /
+                   Jdet;
+    mmatrB(0, 9) = (4 * zeta4 - 1) *
+                   ((Jacobian(2, 0) - Jacobian(2, 2)) * (Jacobian(3, 1) - Jacobian(3, 0)) -
+                    (Jacobian(2, 0) - Jacobian(2, 1)) * (Jacobian(3, 2) - Jacobian(3, 0))) /
+                   Jdet;
+    mmatrB(0, 12) = 4 *
+                    (zeta1 * ((Jacobian(2, 2) - Jacobian(2, 0)) * (Jacobian(3, 3) - Jacobian(3, 2)) -
+                              (Jacobian(2, 2) - Jacobian(2, 3)) * (Jacobian(3, 0) - Jacobian(3, 2))) +
+                     zeta2 * ((Jacobian(2, 3) - Jacobian(2, 1)) * (Jacobian(3, 2) - Jacobian(3, 1)) -
+                              (Jacobian(2, 2) - Jacobian(2, 1)) * (Jacobian(3, 3) - Jacobian(3, 1)))) /
+                    Jdet;
+    mmatrB(0, 15) = 4 *
+                    (zeta2 * ((Jacobian(2, 1) - Jacobian(2, 3)) * (Jacobian(3, 0) - Jacobian(3, 3)) -
+                              (Jacobian(2, 0) - Jacobian(2, 3)) * (Jacobian(3, 1) - Jacobian(3, 3))) +
+                     zeta3 * ((Jacobian(2, 2) - Jacobian(2, 0)) * (Jacobian(3, 3) - Jacobian(3, 2)) -
+                              (Jacobian(2, 2) - Jacobian(2, 3)) * (Jacobian(3, 0) - Jacobian(3, 2)))) /
+                    Jdet;
+    mmatrB(0, 18) = 4 *
+                    (zeta3 * ((Jacobian(2, 3) - Jacobian(2, 1)) * (Jacobian(3, 2) - Jacobian(3, 1)) -
+                              (Jacobian(2, 2) - Jacobian(2, 1)) * (Jacobian(3, 3) - Jacobian(3, 1))) +
+                     zeta1 * ((Jacobian(2, 1) - Jacobian(2, 3)) * (Jacobian(3, 0) - Jacobian(3, 3)) -
+                              (Jacobian(2, 0) - Jacobian(2, 3)) * (Jacobian(3, 1) - Jacobian(3, 3)))) /
+                    Jdet;
+    mmatrB(0, 21) = 4 *
+                    (zeta1 * ((Jacobian(2, 0) - Jacobian(2, 2)) * (Jacobian(3, 1) - Jacobian(3, 0)) -
+                              (Jacobian(2, 0) - Jacobian(2, 1)) * (Jacobian(3, 2) - Jacobian(3, 0))) +
+                     zeta4 * ((Jacobian(2, 3) - Jacobian(2, 1)) * (Jacobian(3, 2) - Jacobian(3, 1)) -
+                              (Jacobian(2, 2) - Jacobian(2, 1)) * (Jacobian(3, 3) - Jacobian(3, 1)))) /
+                    Jdet;
+    mmatrB(0, 24) = 4 *
+                    (zeta2 * ((Jacobian(2, 0) - Jacobian(2, 2)) * (Jacobian(3, 1) - Jacobian(3, 0)) -
+                              (Jacobian(2, 0) - Jacobian(2, 1)) * (Jacobian(3, 2) - Jacobian(3, 0))) +
+                     zeta4 * ((Jacobian(2, 2) - Jacobian(2, 0)) * (Jacobian(3, 3) - Jacobian(3, 2)) -
+                              (Jacobian(2, 2) - Jacobian(2, 3)) * (Jacobian(3, 0) - Jacobian(3, 2)))) /
+                    Jdet;
+    mmatrB(0, 27) = 4 *
+                    (zeta3 * ((Jacobian(2, 0) - Jacobian(2, 2)) * (Jacobian(3, 1) - Jacobian(3, 0)) -
+                              (Jacobian(2, 0) - Jacobian(2, 1)) * (Jacobian(3, 2) - Jacobian(3, 0))) +
+                     zeta4 * ((Jacobian(2, 1) - Jacobian(2, 3)) * (Jacobian(3, 0) - Jacobian(3, 3)) -
+                              (Jacobian(2, 0) - Jacobian(2, 3)) * (Jacobian(3, 1) - Jacobian(3, 3)))) /
+                    Jdet;
 
-    mmatrB.SetElement(1, 1,
-                      (4 * zeta1 - 1) *
-                          ((Jacobian(1, 2) - Jacobian(1, 1)) * (Jacobian(3, 3) - Jacobian(3, 1)) -
-                           (Jacobian(1, 3) - Jacobian(1, 1)) * (Jacobian(3, 2) - Jacobian(3, 1))) /
-                          Jdet);
-    mmatrB.SetElement(1, 4,
-                      (4 * zeta2 - 1) *
-                          ((Jacobian(1, 3) - Jacobian(1, 2)) * (Jacobian(3, 2) - Jacobian(3, 0)) -
-                           (Jacobian(1, 0) - Jacobian(1, 2)) * (Jacobian(3, 2) - Jacobian(3, 3))) /
-                          Jdet);
-    mmatrB.SetElement(1, 7,
-                      (4 * zeta3 - 1) *
-                          ((Jacobian(1, 0) - Jacobian(1, 3)) * (Jacobian(3, 1) - Jacobian(3, 3)) -
-                           (Jacobian(1, 1) - Jacobian(1, 3)) * (Jacobian(3, 0) - Jacobian(3, 3))) /
-                          Jdet);
-    mmatrB.SetElement(1, 10,
-                      (4 * zeta4 - 1) *
-                          ((Jacobian(1, 1) - Jacobian(1, 0)) * (Jacobian(3, 0) - Jacobian(3, 2)) -
-                           (Jacobian(1, 2) - Jacobian(1, 0)) * (Jacobian(3, 0) - Jacobian(3, 1))) /
-                          Jdet);
-    mmatrB.SetElement(1, 13,
-                      4 *
-                          (zeta1 * ((Jacobian(1, 3) - Jacobian(1, 2)) * (Jacobian(3, 2) - Jacobian(3, 0)) -
-                                    (Jacobian(1, 0) - Jacobian(1, 2)) * (Jacobian(3, 2) - Jacobian(3, 3))) +
-                           zeta2 * ((Jacobian(1, 2) - Jacobian(1, 1)) * (Jacobian(3, 3) - Jacobian(3, 1)) -
-                                    (Jacobian(1, 3) - Jacobian(1, 1)) * (Jacobian(3, 2) - Jacobian(3, 1)))) /
-                          Jdet);
-    mmatrB.SetElement(1, 16,
-                      4 *
-                          (zeta2 * ((Jacobian(1, 0) - Jacobian(1, 3)) * (Jacobian(3, 1) - Jacobian(3, 3)) -
-                                    (Jacobian(1, 1) - Jacobian(1, 3)) * (Jacobian(3, 0) - Jacobian(3, 3))) +
-                           zeta3 * ((Jacobian(1, 3) - Jacobian(1, 2)) * (Jacobian(3, 2) - Jacobian(3, 0)) -
-                                    (Jacobian(1, 0) - Jacobian(1, 2)) * (Jacobian(3, 2) - Jacobian(3, 3)))) /
-                          Jdet);
-    mmatrB.SetElement(1, 19,
-                      4 *
-                          (zeta3 * ((Jacobian(1, 2) - Jacobian(1, 1)) * (Jacobian(3, 3) - Jacobian(3, 1)) -
-                                    (Jacobian(1, 3) - Jacobian(1, 1)) * (Jacobian(3, 2) - Jacobian(3, 1))) +
-                           zeta1 * ((Jacobian(1, 0) - Jacobian(1, 3)) * (Jacobian(3, 1) - Jacobian(3, 3)) -
-                                    (Jacobian(1, 1) - Jacobian(1, 3)) * (Jacobian(3, 0) - Jacobian(3, 3)))) /
-                          Jdet);
-    mmatrB.SetElement(1, 22,
-                      4 *
-                          (zeta1 * ((Jacobian(1, 1) - Jacobian(1, 0)) * (Jacobian(3, 0) - Jacobian(3, 2)) -
-                                    (Jacobian(1, 2) - Jacobian(1, 0)) * (Jacobian(3, 0) - Jacobian(3, 1))) +
-                           zeta4 * ((Jacobian(1, 2) - Jacobian(1, 1)) * (Jacobian(3, 3) - Jacobian(3, 1)) -
-                                    (Jacobian(1, 3) - Jacobian(1, 1)) * (Jacobian(3, 2) - Jacobian(3, 1)))) /
-                          Jdet);
-    mmatrB.SetElement(1, 25,
-                      4 *
-                          (zeta2 * ((Jacobian(1, 1) - Jacobian(1, 0)) * (Jacobian(3, 0) - Jacobian(3, 2)) -
-                                    (Jacobian(1, 2) - Jacobian(1, 0)) * (Jacobian(3, 0) - Jacobian(3, 1))) +
-                           zeta4 * ((Jacobian(1, 3) - Jacobian(1, 2)) * (Jacobian(3, 2) - Jacobian(3, 0)) -
-                                    (Jacobian(1, 0) - Jacobian(1, 2)) * (Jacobian(3, 2) - Jacobian(3, 3)))) /
-                          Jdet);
-    mmatrB.SetElement(1, 28,
-                      4 *
-                          (zeta3 * ((Jacobian(1, 1) - Jacobian(1, 0)) * (Jacobian(3, 0) - Jacobian(3, 2)) -
-                                    (Jacobian(1, 2) - Jacobian(1, 0)) * (Jacobian(3, 0) - Jacobian(3, 1))) +
-                           zeta4 * ((Jacobian(1, 0) - Jacobian(1, 3)) * (Jacobian(3, 1) - Jacobian(3, 3)) -
-                                    (Jacobian(1, 1) - Jacobian(1, 3)) * (Jacobian(3, 0) - Jacobian(3, 3)))) /
-                          Jdet);
+    mmatrB(1, 1) = (4 * zeta1 - 1) *
+                   ((Jacobian(1, 2) - Jacobian(1, 1)) * (Jacobian(3, 3) - Jacobian(3, 1)) -
+                    (Jacobian(1, 3) - Jacobian(1, 1)) * (Jacobian(3, 2) - Jacobian(3, 1))) /
+                   Jdet;
+    mmatrB(1, 4) = (4 * zeta2 - 1) *
+                   ((Jacobian(1, 3) - Jacobian(1, 2)) * (Jacobian(3, 2) - Jacobian(3, 0)) -
+                    (Jacobian(1, 0) - Jacobian(1, 2)) * (Jacobian(3, 2) - Jacobian(3, 3))) /
+                   Jdet;
+    mmatrB(1, 7) = (4 * zeta3 - 1) *
+                   ((Jacobian(1, 0) - Jacobian(1, 3)) * (Jacobian(3, 1) - Jacobian(3, 3)) -
+                    (Jacobian(1, 1) - Jacobian(1, 3)) * (Jacobian(3, 0) - Jacobian(3, 3))) /
+                   Jdet;
+    mmatrB(1, 10) = (4 * zeta4 - 1) *
+                    ((Jacobian(1, 1) - Jacobian(1, 0)) * (Jacobian(3, 0) - Jacobian(3, 2)) -
+                     (Jacobian(1, 2) - Jacobian(1, 0)) * (Jacobian(3, 0) - Jacobian(3, 1))) /
+                    Jdet;
+    mmatrB(1, 13) = 4 *
+                    (zeta1 * ((Jacobian(1, 3) - Jacobian(1, 2)) * (Jacobian(3, 2) - Jacobian(3, 0)) -
+                              (Jacobian(1, 0) - Jacobian(1, 2)) * (Jacobian(3, 2) - Jacobian(3, 3))) +
+                     zeta2 * ((Jacobian(1, 2) - Jacobian(1, 1)) * (Jacobian(3, 3) - Jacobian(3, 1)) -
+                              (Jacobian(1, 3) - Jacobian(1, 1)) * (Jacobian(3, 2) - Jacobian(3, 1)))) /
+                    Jdet;
+    mmatrB(1, 16) = 4 *
+                    (zeta2 * ((Jacobian(1, 0) - Jacobian(1, 3)) * (Jacobian(3, 1) - Jacobian(3, 3)) -
+                              (Jacobian(1, 1) - Jacobian(1, 3)) * (Jacobian(3, 0) - Jacobian(3, 3))) +
+                     zeta3 * ((Jacobian(1, 3) - Jacobian(1, 2)) * (Jacobian(3, 2) - Jacobian(3, 0)) -
+                              (Jacobian(1, 0) - Jacobian(1, 2)) * (Jacobian(3, 2) - Jacobian(3, 3)))) /
+                    Jdet;
+    mmatrB(1, 19) = 4 *
+                    (zeta3 * ((Jacobian(1, 2) - Jacobian(1, 1)) * (Jacobian(3, 3) - Jacobian(3, 1)) -
+                              (Jacobian(1, 3) - Jacobian(1, 1)) * (Jacobian(3, 2) - Jacobian(3, 1))) +
+                     zeta1 * ((Jacobian(1, 0) - Jacobian(1, 3)) * (Jacobian(3, 1) - Jacobian(3, 3)) -
+                              (Jacobian(1, 1) - Jacobian(1, 3)) * (Jacobian(3, 0) - Jacobian(3, 3)))) /
+                    Jdet;
+    mmatrB(1, 22) = 4 *
+                    (zeta1 * ((Jacobian(1, 1) - Jacobian(1, 0)) * (Jacobian(3, 0) - Jacobian(3, 2)) -
+                              (Jacobian(1, 2) - Jacobian(1, 0)) * (Jacobian(3, 0) - Jacobian(3, 1))) +
+                     zeta4 * ((Jacobian(1, 2) - Jacobian(1, 1)) * (Jacobian(3, 3) - Jacobian(3, 1)) -
+                              (Jacobian(1, 3) - Jacobian(1, 1)) * (Jacobian(3, 2) - Jacobian(3, 1)))) /
+                    Jdet;
+    mmatrB(1, 25) = 4 *
+                    (zeta2 * ((Jacobian(1, 1) - Jacobian(1, 0)) * (Jacobian(3, 0) - Jacobian(3, 2)) -
+                              (Jacobian(1, 2) - Jacobian(1, 0)) * (Jacobian(3, 0) - Jacobian(3, 1))) +
+                     zeta4 * ((Jacobian(1, 3) - Jacobian(1, 2)) * (Jacobian(3, 2) - Jacobian(3, 0)) -
+                              (Jacobian(1, 0) - Jacobian(1, 2)) * (Jacobian(3, 2) - Jacobian(3, 3)))) /
+                    Jdet;
+    mmatrB(1, 28) = 4 *
+                    (zeta3 * ((Jacobian(1, 1) - Jacobian(1, 0)) * (Jacobian(3, 0) - Jacobian(3, 2)) -
+                              (Jacobian(1, 2) - Jacobian(1, 0)) * (Jacobian(3, 0) - Jacobian(3, 1))) +
+                     zeta4 * ((Jacobian(1, 0) - Jacobian(1, 3)) * (Jacobian(3, 1) - Jacobian(3, 3)) -
+                              (Jacobian(1, 1) - Jacobian(1, 3)) * (Jacobian(3, 0) - Jacobian(3, 3)))) /
+                    Jdet;
 
-    mmatrB.SetElement(2, 2,
-                      (4 * zeta1 - 1) *
-                          ((Jacobian(1, 3) - Jacobian(1, 1)) * (Jacobian(2, 2) - Jacobian(2, 1)) -
-                           (Jacobian(1, 2) - Jacobian(1, 1)) * (Jacobian(2, 3) - Jacobian(2, 1))) /
-                          Jdet);
-    mmatrB.SetElement(2, 5,
-                      (4 * zeta2 - 1) *
-                          ((Jacobian(1, 2) - Jacobian(1, 0)) * (Jacobian(2, 3) - Jacobian(2, 2)) -
-                           (Jacobian(1, 2) - Jacobian(1, 3)) * (Jacobian(2, 0) - Jacobian(2, 2))) /
-                          Jdet);
-    mmatrB.SetElement(2, 8,
-                      (4 * zeta3 - 1) *
-                          ((Jacobian(1, 1) - Jacobian(1, 3)) * (Jacobian(2, 0) - Jacobian(2, 3)) -
-                           (Jacobian(1, 0) - Jacobian(1, 3)) * (Jacobian(2, 1) - Jacobian(2, 3))) /
-                          Jdet);
-    mmatrB.SetElement(2, 11,
-                      (4 * zeta4 - 1) *
-                          ((Jacobian(1, 0) - Jacobian(1, 2)) * (Jacobian(2, 1) - Jacobian(2, 0)) -
-                           (Jacobian(1, 0) - Jacobian(1, 1)) * (Jacobian(2, 2) - Jacobian(2, 0))) /
-                          Jdet);
-    mmatrB.SetElement(2, 14,
-                      4 *
-                          (zeta1 * ((Jacobian(1, 2) - Jacobian(1, 0)) * (Jacobian(2, 3) - Jacobian(2, 2)) -
-                                    (Jacobian(1, 2) - Jacobian(1, 3)) * (Jacobian(2, 0) - Jacobian(2, 2))) +
-                           zeta2 * ((Jacobian(1, 3) - Jacobian(1, 1)) * (Jacobian(2, 2) - Jacobian(2, 1)) -
-                                    (Jacobian(1, 2) - Jacobian(1, 1)) * (Jacobian(2, 3) - Jacobian(2, 1)))) /
-                          Jdet);
-    mmatrB.SetElement(2, 17,
-                      4 *
-                          (zeta2 * ((Jacobian(1, 1) - Jacobian(1, 3)) * (Jacobian(2, 0) - Jacobian(2, 3)) -
-                                    (Jacobian(1, 0) - Jacobian(1, 3)) * (Jacobian(2, 1) - Jacobian(2, 3))) +
-                           zeta3 * ((Jacobian(1, 2) - Jacobian(1, 0)) * (Jacobian(2, 3) - Jacobian(2, 2)) -
-                                    (Jacobian(1, 2) - Jacobian(1, 3)) * (Jacobian(2, 0) - Jacobian(2, 2)))) /
-                          Jdet);
-    mmatrB.SetElement(2, 20,
-                      4 *
-                          (zeta3 * ((Jacobian(1, 3) - Jacobian(1, 1)) * (Jacobian(2, 2) - Jacobian(2, 1)) -
-                                    (Jacobian(1, 2) - Jacobian(1, 1)) * (Jacobian(2, 3) - Jacobian(2, 1))) +
-                           zeta1 * ((Jacobian(1, 1) - Jacobian(1, 3)) * (Jacobian(2, 0) - Jacobian(2, 3)) -
-                                    (Jacobian(1, 0) - Jacobian(1, 3)) * (Jacobian(2, 1) - Jacobian(2, 3)))) /
-                          Jdet);
-    mmatrB.SetElement(2, 23,
-                      4 *
-                          (zeta1 * ((Jacobian(1, 0) - Jacobian(1, 2)) * (Jacobian(2, 1) - Jacobian(2, 0)) -
-                                    (Jacobian(1, 0) - Jacobian(1, 1)) * (Jacobian(2, 2) - Jacobian(2, 0))) +
-                           zeta4 * ((Jacobian(1, 3) - Jacobian(1, 1)) * (Jacobian(2, 2) - Jacobian(2, 1)) -
-                                    (Jacobian(1, 2) - Jacobian(1, 1)) * (Jacobian(2, 3) - Jacobian(2, 1)))) /
-                          Jdet);
-    mmatrB.SetElement(2, 26,
-                      4 *
-                          (zeta2 * ((Jacobian(1, 0) - Jacobian(1, 2)) * (Jacobian(2, 1) - Jacobian(2, 0)) -
-                                    (Jacobian(1, 0) - Jacobian(1, 1)) * (Jacobian(2, 2) - Jacobian(2, 0))) +
-                           zeta4 * ((Jacobian(1, 2) - Jacobian(1, 0)) * (Jacobian(2, 3) - Jacobian(2, 2)) -
-                                    (Jacobian(1, 2) - Jacobian(1, 3)) * (Jacobian(2, 0) - Jacobian(2, 2)))) /
-                          Jdet);
-    mmatrB.SetElement(2, 29,
-                      4 *
-                          (zeta3 * ((Jacobian(1, 0) - Jacobian(1, 2)) * (Jacobian(2, 1) - Jacobian(2, 0)) -
-                                    (Jacobian(1, 0) - Jacobian(1, 1)) * (Jacobian(2, 2) - Jacobian(2, 0))) +
-                           zeta4 * ((Jacobian(1, 1) - Jacobian(1, 3)) * (Jacobian(2, 0) - Jacobian(2, 3)) -
-                                    (Jacobian(1, 0) - Jacobian(1, 3)) * (Jacobian(2, 1) - Jacobian(2, 3)))) /
-                          Jdet);
+    mmatrB(2, 2) = (4 * zeta1 - 1) *
+                   ((Jacobian(1, 3) - Jacobian(1, 1)) * (Jacobian(2, 2) - Jacobian(2, 1)) -
+                    (Jacobian(1, 2) - Jacobian(1, 1)) * (Jacobian(2, 3) - Jacobian(2, 1))) /
+                   Jdet;
+    mmatrB(2, 5) = (4 * zeta2 - 1) *
+                   ((Jacobian(1, 2) - Jacobian(1, 0)) * (Jacobian(2, 3) - Jacobian(2, 2)) -
+                    (Jacobian(1, 2) - Jacobian(1, 3)) * (Jacobian(2, 0) - Jacobian(2, 2))) /
+                   Jdet;
+    mmatrB(2, 8) = (4 * zeta3 - 1) *
+                   ((Jacobian(1, 1) - Jacobian(1, 3)) * (Jacobian(2, 0) - Jacobian(2, 3)) -
+                    (Jacobian(1, 0) - Jacobian(1, 3)) * (Jacobian(2, 1) - Jacobian(2, 3))) /
+                   Jdet;
+    mmatrB(2, 11) = (4 * zeta4 - 1) *
+                    ((Jacobian(1, 0) - Jacobian(1, 2)) * (Jacobian(2, 1) - Jacobian(2, 0)) -
+                     (Jacobian(1, 0) - Jacobian(1, 1)) * (Jacobian(2, 2) - Jacobian(2, 0))) /
+                    Jdet;
+    mmatrB(2, 14) = 4 *
+                    (zeta1 * ((Jacobian(1, 2) - Jacobian(1, 0)) * (Jacobian(2, 3) - Jacobian(2, 2)) -
+                              (Jacobian(1, 2) - Jacobian(1, 3)) * (Jacobian(2, 0) - Jacobian(2, 2))) +
+                     zeta2 * ((Jacobian(1, 3) - Jacobian(1, 1)) * (Jacobian(2, 2) - Jacobian(2, 1)) -
+                              (Jacobian(1, 2) - Jacobian(1, 1)) * (Jacobian(2, 3) - Jacobian(2, 1)))) /
+                    Jdet;
+    mmatrB(2, 17) = 4 *
+                    (zeta2 * ((Jacobian(1, 1) - Jacobian(1, 3)) * (Jacobian(2, 0) - Jacobian(2, 3)) -
+                              (Jacobian(1, 0) - Jacobian(1, 3)) * (Jacobian(2, 1) - Jacobian(2, 3))) +
+                     zeta3 * ((Jacobian(1, 2) - Jacobian(1, 0)) * (Jacobian(2, 3) - Jacobian(2, 2)) -
+                              (Jacobian(1, 2) - Jacobian(1, 3)) * (Jacobian(2, 0) - Jacobian(2, 2)))) /
+                    Jdet;
+    mmatrB(2, 20) = 4 *
+                    (zeta3 * ((Jacobian(1, 3) - Jacobian(1, 1)) * (Jacobian(2, 2) - Jacobian(2, 1)) -
+                              (Jacobian(1, 2) - Jacobian(1, 1)) * (Jacobian(2, 3) - Jacobian(2, 1))) +
+                     zeta1 * ((Jacobian(1, 1) - Jacobian(1, 3)) * (Jacobian(2, 0) - Jacobian(2, 3)) -
+                              (Jacobian(1, 0) - Jacobian(1, 3)) * (Jacobian(2, 1) - Jacobian(2, 3)))) /
+                    Jdet;
+    mmatrB(2, 23) = 4 *
+                    (zeta1 * ((Jacobian(1, 0) - Jacobian(1, 2)) * (Jacobian(2, 1) - Jacobian(2, 0)) -
+                              (Jacobian(1, 0) - Jacobian(1, 1)) * (Jacobian(2, 2) - Jacobian(2, 0))) +
+                     zeta4 * ((Jacobian(1, 3) - Jacobian(1, 1)) * (Jacobian(2, 2) - Jacobian(2, 1)) -
+                              (Jacobian(1, 2) - Jacobian(1, 1)) * (Jacobian(2, 3) - Jacobian(2, 1)))) /
+                    Jdet;
+    mmatrB(2, 26) = 4 *
+                    (zeta2 * ((Jacobian(1, 0) - Jacobian(1, 2)) * (Jacobian(2, 1) - Jacobian(2, 0)) -
+                              (Jacobian(1, 0) - Jacobian(1, 1)) * (Jacobian(2, 2) - Jacobian(2, 0))) +
+                     zeta4 * ((Jacobian(1, 2) - Jacobian(1, 0)) * (Jacobian(2, 3) - Jacobian(2, 2)) -
+                              (Jacobian(1, 2) - Jacobian(1, 3)) * (Jacobian(2, 0) - Jacobian(2, 2)))) /
+                    Jdet;
+    mmatrB(2, 29) = 4 *
+                    (zeta3 * ((Jacobian(1, 0) - Jacobian(1, 2)) * (Jacobian(2, 1) - Jacobian(2, 0)) -
+                              (Jacobian(1, 0) - Jacobian(1, 1)) * (Jacobian(2, 2) - Jacobian(2, 0))) +
+                     zeta4 * ((Jacobian(1, 1) - Jacobian(1, 3)) * (Jacobian(2, 0) - Jacobian(2, 3)) -
+                              (Jacobian(1, 0) - Jacobian(1, 3)) * (Jacobian(2, 1) - Jacobian(2, 3)))) /
+                    Jdet;
 
-    mmatrB.SetElement(3, 0, mmatrB(1, 1));
-    mmatrB.SetElement(3, 1, mmatrB(0, 0));
-    mmatrB.SetElement(3, 3, mmatrB(1, 4));
-    mmatrB.SetElement(3, 4, mmatrB(0, 3));
-    mmatrB.SetElement(3, 6, mmatrB(1, 7));
-    mmatrB.SetElement(3, 7, mmatrB(0, 6));
-    mmatrB.SetElement(3, 9, mmatrB(1, 10));
-    mmatrB.SetElement(3, 10, mmatrB(0, 9));
-    mmatrB.SetElement(3, 12, mmatrB(1, 13));
-    mmatrB.SetElement(3, 13, mmatrB(0, 12));
-    mmatrB.SetElement(3, 15, mmatrB(1, 16));
-    mmatrB.SetElement(3, 16, mmatrB(0, 15));
-    mmatrB.SetElement(3, 18, mmatrB(1, 19));
-    mmatrB.SetElement(3, 19, mmatrB(0, 18));
-    mmatrB.SetElement(3, 21, mmatrB(1, 22));
-    mmatrB.SetElement(3, 22, mmatrB(0, 21));
-    mmatrB.SetElement(3, 24, mmatrB(1, 25));
-    mmatrB.SetElement(3, 25, mmatrB(0, 24));
-    mmatrB.SetElement(3, 27, mmatrB(1, 28));
-    mmatrB.SetElement(3, 28, mmatrB(0, 27));
+    mmatrB(3, 0) = mmatrB(1, 1);
+    mmatrB(3, 1) = mmatrB(0, 0);
+    mmatrB(3, 3) = mmatrB(1, 4);
+    mmatrB(3, 4) = mmatrB(0, 3);
+    mmatrB(3, 6) = mmatrB(1, 7);
+    mmatrB(3, 7) = mmatrB(0, 6);
+    mmatrB(3, 9) = mmatrB(1, 10);
+    mmatrB(3, 10) = mmatrB(0, 9);
+    mmatrB(3, 12) = mmatrB(1, 13);
+    mmatrB(3, 13) = mmatrB(0, 12);
+    mmatrB(3, 15) = mmatrB(1, 16);
+    mmatrB(3, 16) = mmatrB(0, 15);
+    mmatrB(3, 18) = mmatrB(1, 19);
+    mmatrB(3, 19) = mmatrB(0, 18);
+    mmatrB(3, 21) = mmatrB(1, 22);
+    mmatrB(3, 22) = mmatrB(0, 21);
+    mmatrB(3, 24) = mmatrB(1, 25);
+    mmatrB(3, 25) = mmatrB(0, 24);
+    mmatrB(3, 27) = mmatrB(1, 28);
+    mmatrB(3, 28) = mmatrB(0, 27);
 
-    mmatrB.SetElement(4, 1, mmatrB(2, 2));
-    mmatrB.SetElement(4, 2, mmatrB(1, 1));
-    mmatrB.SetElement(4, 4, mmatrB(2, 5));
-    mmatrB.SetElement(4, 5, mmatrB(1, 4));
-    mmatrB.SetElement(4, 7, mmatrB(2, 8));
-    mmatrB.SetElement(4, 8, mmatrB(1, 7));
-    mmatrB.SetElement(4, 10, mmatrB(2, 11));
-    mmatrB.SetElement(4, 11, mmatrB(1, 10));
-    mmatrB.SetElement(4, 13, mmatrB(2, 14));
-    mmatrB.SetElement(4, 14, mmatrB(1, 13));
-    mmatrB.SetElement(4, 16, mmatrB(2, 17));
-    mmatrB.SetElement(4, 17, mmatrB(1, 16));
-    mmatrB.SetElement(4, 19, mmatrB(2, 20));
-    mmatrB.SetElement(4, 20, mmatrB(1, 19));
-    mmatrB.SetElement(4, 22, mmatrB(2, 23));
-    mmatrB.SetElement(4, 23, mmatrB(1, 22));
-    mmatrB.SetElement(4, 25, mmatrB(2, 26));
-    mmatrB.SetElement(4, 26, mmatrB(1, 25));
-    mmatrB.SetElement(4, 28, mmatrB(2, 29));
-    mmatrB.SetElement(4, 29, mmatrB(1, 28));
+    mmatrB(4, 1) = mmatrB(2, 2);
+    mmatrB(4, 2) = mmatrB(1, 1);
+    mmatrB(4, 4) = mmatrB(2, 5);
+    mmatrB(4, 5) = mmatrB(1, 4);
+    mmatrB(4, 7) = mmatrB(2, 8);
+    mmatrB(4, 8) = mmatrB(1, 7);
+    mmatrB(4, 10) = mmatrB(2, 11);
+    mmatrB(4, 11) = mmatrB(1, 10);
+    mmatrB(4, 13) = mmatrB(2, 14);
+    mmatrB(4, 14) = mmatrB(1, 13);
+    mmatrB(4, 16) = mmatrB(2, 17);
+    mmatrB(4, 17) = mmatrB(1, 16);
+    mmatrB(4, 19) = mmatrB(2, 20);
+    mmatrB(4, 20) = mmatrB(1, 19);
+    mmatrB(4, 22) = mmatrB(2, 23);
+    mmatrB(4, 23) = mmatrB(1, 22);
+    mmatrB(4, 25) = mmatrB(2, 26);
+    mmatrB(4, 26) = mmatrB(1, 25);
+    mmatrB(4, 28) = mmatrB(2, 29);
+    mmatrB(4, 29) = mmatrB(1, 28);
 
-    mmatrB.SetElement(5, 0, mmatrB(2, 2));
-    mmatrB.SetElement(5, 2, mmatrB(0, 0));
-    mmatrB.SetElement(5, 3, mmatrB(2, 5));
-    mmatrB.SetElement(5, 5, mmatrB(0, 3));
-    mmatrB.SetElement(5, 6, mmatrB(2, 8));
-    mmatrB.SetElement(5, 8, mmatrB(0, 6));
-    mmatrB.SetElement(5, 9, mmatrB(2, 11));
-    mmatrB.SetElement(5, 11, mmatrB(0, 9));
-    mmatrB.SetElement(5, 12, mmatrB(2, 14));
-    mmatrB.SetElement(5, 14, mmatrB(0, 12));
-    mmatrB.SetElement(5, 15, mmatrB(2, 17));
-    mmatrB.SetElement(5, 17, mmatrB(0, 15));
-    mmatrB.SetElement(5, 18, mmatrB(2, 20));
-    mmatrB.SetElement(5, 20, mmatrB(0, 18));
-    mmatrB.SetElement(5, 21, mmatrB(2, 23));
-    mmatrB.SetElement(5, 23, mmatrB(0, 21));
-    mmatrB.SetElement(5, 24, mmatrB(2, 26));
-    mmatrB.SetElement(5, 26, mmatrB(0, 24));
-    mmatrB.SetElement(5, 27, mmatrB(2, 29));
-    mmatrB.SetElement(5, 29, mmatrB(0, 27));
-    mmatrB.MatrScale(2);
+    mmatrB(5, 0) = mmatrB(2, 2);
+    mmatrB(5, 2) = mmatrB(0, 0);
+    mmatrB(5, 3) = mmatrB(2, 5);
+    mmatrB(5, 5) = mmatrB(0, 3);
+    mmatrB(5, 6) = mmatrB(2, 8);
+    mmatrB(5, 8) = mmatrB(0, 6);
+    mmatrB(5, 9) = mmatrB(2, 11);
+    mmatrB(5, 11) = mmatrB(0, 9);
+    mmatrB(5, 12) = mmatrB(2, 14);
+    mmatrB(5, 14) = mmatrB(0, 12);
+    mmatrB(5, 15) = mmatrB(2, 17);
+    mmatrB(5, 17) = mmatrB(0, 15);
+    mmatrB(5, 18) = mmatrB(2, 20);
+    mmatrB(5, 20) = mmatrB(0, 18);
+    mmatrB(5, 21) = mmatrB(2, 23);
+    mmatrB(5, 23) = mmatrB(0, 21);
+    mmatrB(5, 24) = mmatrB(2, 26);
+    mmatrB(5, 26) = mmatrB(0, 24);
+    mmatrB(5, 27) = mmatrB(2, 29);
+    mmatrB(5, 29) = mmatrB(0, 27);
+
+    mmatrB *= 2;
 }
 
 void ChElementTetra_10::ComputeStiffnessMatrix() {
     // for speeding up corotational, used later:
     // M = [ X0_0 X0_1 X0_2 X0_3 ] ^-1
     //     [ 1    1    1    1    ]
-    mM.PasteVector(nodes[0]->GetX0(), 0, 0);
-    mM.PasteVector(nodes[1]->GetX0(), 0, 1);
-    mM.PasteVector(nodes[2]->GetX0(), 0, 2);
-    mM.PasteVector(nodes[3]->GetX0(), 0, 3);
-    mM(3, 0) = 1.0;
-    mM(3, 1) = 1.0;
-    mM(3, 2) = 1.0;
-    mM(3, 3) = 1.0;
-    mM.MatrInverse();
+    ChMatrixNM<double, 4, 4> tmp;
+    tmp.block(0, 0, 3, 1) = nodes[0]->GetX0().eigen();
+    tmp.block(0, 1, 3, 1) = nodes[1]->GetX0().eigen();
+    tmp.block(0, 2, 3, 1) = nodes[2]->GetX0().eigen();
+    tmp.block(0, 3, 3, 1) = nodes[3]->GetX0().eigen();
+    tmp.row(3).setConstant(1.0);
+    mM = tmp.inverse();
 
     //========================
     // Exact Integration (4 Gp)
     //========================
-    double zeta1, zeta2, zeta3, zeta4;
-    double JacobianDet;
     ChMatrixDynamic<> temp;
-    ChMatrixDynamic<> BT;
 
-    zeta1 = 0.58541020;
-    zeta2 = 0.1381966;
-    zeta3 = 0.1381966;
-    zeta4 = 0.1381966;
-
+    double zeta1 = 0.58541020;
+    double zeta2 = 0.1381966;
+    double zeta3 = 0.1381966;
+    double zeta4 = 0.1381966;
+    double JacobianDet;
     ComputeMatrB(this->MatrB[0], zeta1, zeta2, zeta3, zeta4, JacobianDet);
-    BT = MatrB[0];
-    BT.MatrTranspose();
-    temp = (BT * Material->Get_StressStrainMatrix() * MatrB[0]);
-    temp.MatrScale(JacobianDet / 6);
+    temp = (JacobianDet / 6.0 / 16.0) * (MatrB[0].transpose() * Material->Get_StressStrainMatrix() * MatrB[0]);
     // Gauss integration weight = 1*1/4*1/4*1/4
-    temp.MatrDivScale(16);
     StiffnessMatrix = temp;
 
     zeta1 = 0.1381966;
     zeta2 = 0.58541020;
     zeta3 = 0.1381966;
     zeta4 = 0.1381966;
-
     ComputeMatrB(this->MatrB[1], zeta1, zeta2, zeta3, zeta4, JacobianDet);
-    BT = MatrB[1];
-    BT.MatrTranspose();
-    temp = (BT * Material->Get_StressStrainMatrix() * MatrB[1]);
-    temp.MatrScale(JacobianDet / 6);
+    temp = (JacobianDet / 6.0 / 16.0) * (MatrB[1].transpose() * Material->Get_StressStrainMatrix() * MatrB[1]);
     // Gauss integration weight = 1*1/4*1/4*1/4
-    temp.MatrDivScale(16);
-    StiffnessMatrix.MatrAdd(StiffnessMatrix, temp);
+    StiffnessMatrix += temp;
 
     zeta1 = 0.1381966;
     zeta2 = 0.1381966;
     zeta3 = 0.58541020;
     zeta4 = 0.1381966;
-
     ComputeMatrB(this->MatrB[2], zeta1, zeta2, zeta3, zeta4, JacobianDet);
-    BT = MatrB[2];
-    BT.MatrTranspose();
-    temp = (BT * Material->Get_StressStrainMatrix() * MatrB[2]);
-    temp.MatrScale(JacobianDet / 6);
+    temp = (JacobianDet / 6.0 / 16.0) * (MatrB[2].transpose() * Material->Get_StressStrainMatrix() * MatrB[2]);
     // Gauss integration weight = 1*1/4*1/4*1/4
-    temp.MatrDivScale(16);
-    StiffnessMatrix.MatrAdd(StiffnessMatrix, temp);
+    StiffnessMatrix += temp;
 
     zeta1 = 0.1381966;
     zeta2 = 0.1381966;
     zeta3 = 0.1381966;
     zeta4 = 0.58541020;
-
     ComputeMatrB(this->MatrB[3], zeta1, zeta2, zeta3, zeta4, JacobianDet);
-    BT = MatrB[3];
-    BT.MatrTranspose();
-    temp = (BT * Material->Get_StressStrainMatrix() * MatrB[3]);
-    temp.MatrScale(JacobianDet / 6);
+    temp = (JacobianDet / 6.0 / 16.0) * (MatrB[3].transpose() * Material->Get_StressStrainMatrix() * MatrB[3]);
     // Gauss integration weight = 1*1/4*1/4*1/4
-    temp.MatrDivScale(16);
-    StiffnessMatrix.MatrAdd(StiffnessMatrix, temp);
+    StiffnessMatrix += temp;
 
-    StiffnessMatrix.MatrDivScale(2);  //!!! => because the canonical interval is -1 ... +1,  but we want to integrate
-                                      //		 in 0 ... +1 -> we have to multiply by: b-a/2 ( = (1-0)/2 = 1/2)
+    StiffnessMatrix /= 2;  //!!! => because the canonical interval is -1 ... +1,  but we want to integrate
+                           //		 in 0 ... +1 -> we have to multiply by: b-a/2 ( = (1-0)/2 = 1/2)
 }
 
 void ChElementTetra_10::GetParameterForNodeID(const int nodeID, double& z1, double& z2, double& z3, double& z4) {
@@ -563,22 +498,20 @@ void ChElementTetra_10::GetParameterForNodeID(const int nodeID, double& z1, doub
 
 ChStrainTensor<> ChElementTetra_10::GetStrain(double z1, double z2, double z3, double z4) {
     // set up vector of nodal displacements (in local element system) u_l = R*p - p0
-    ChMatrixDynamic<> displ(GetNdofs(), 1);
+    ChVectorDynamic<> displ(GetNdofs());
     this->GetStateBlock(displ);
 
     double JacobianDet;
     ChMatrixDynamic<> amatrB(6, GetNdofs());
-    amatrB.Reset();
+    amatrB.setZero();
     ComputeMatrB(amatrB, z1, z2, z3, z4, JacobianDet);
 
-    ChStrainTensor<> mstrain;
-    mstrain.MatrMultiply(amatrB, displ);
+    ChStrainTensor<> mstrain = amatrB * displ;
     return mstrain;
 }
 
 ChStressTensor<> ChElementTetra_10::GetStress(double z1, double z2, double z3, double z4) {
-    ChStressTensor<> mstress;
-    mstress.MatrMultiply(this->Material->Get_StressStrainMatrix(), this->GetStrain(z1, z2, z3, z4));
+    ChStressTensor<> mstress = this->Material->Get_StressStrainMatrix() * this->GetStrain(z1, z2, z3, z4);
     return mstress;
 }
 
@@ -591,10 +524,10 @@ void ChElementTetra_10::UpdateRotation() {
     // P = [ p_0  p_1  p_2  p_3 ]
     //     [ 1    1    1    1   ]
     ChMatrixNM<double, 4, 4> P;
-    P.PasteVector(nodes[0]->pos, 0, 0);
-    P.PasteVector(nodes[1]->pos, 0, 1);
-    P.PasteVector(nodes[2]->pos, 0, 2);
-    P.PasteVector(nodes[3]->pos, 0, 3);
+    P.block(0, 0, 3, 1) = nodes[0]->pos.eigen();
+    P.block(0, 1, 3, 1) = nodes[1]->pos.eigen();
+    P.block(0, 2, 3, 1) = nodes[2]->pos.eigen();
+    P.block(0, 3, 3, 1) = nodes[3]->pos.eigen();
     P(3, 0) = 1.0;
     P(3, 1) = 1.0;
     P(3, 2) = 1.0;
@@ -613,28 +546,23 @@ void ChElementTetra_10::UpdateRotation() {
     ChMatrix33<> S;
     double det = ChPolarDecomposition<>::Compute(F, this->A, S, 1E-6);
     if (det < 0)
-        this->A.MatrScale(-1.0);
+        this->A *= -1.0;
 
     // GetLog() << "FEM rotation: \n" << A << "\n"
 }
 
-void ChElementTetra_10::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor, double Mfactor) {
-    assert((H.GetRows() == GetNdofs()) && (H.GetColumns() == GetNdofs()));
+void ChElementTetra_10::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
+    assert((H.rows() == GetNdofs()) && (H.cols() == GetNdofs()));
 
-    // warp the local stiffness matrix K in order to obtain global
-    // tangent stiffness CKCt:
+    // warp the local stiffness matrix K in order to obtain global tangent stiffness CKCt:
     ChMatrixDynamic<> CK(GetNdofs(), GetNdofs());
     ChMatrixDynamic<> CKCt(GetNdofs(), GetNdofs());  // the global, corotated, K matrix
-    ChMatrixCorotation<>::ComputeCK(StiffnessMatrix, this->A, 10, CK);
-    ChMatrixCorotation<>::ComputeKCt(CK, this->A, 10, CKCt);
+    ChMatrixCorotation::ComputeCK(StiffnessMatrix, this->A, 10, CK);
+    ChMatrixCorotation::ComputeKCt(CK, this->A, 10, CKCt);
 
     // For K stiffness matrix and R damping matrix:
-
     double mkfactor = Kfactor + Rfactor * this->GetMaterial()->Get_RayleighDampingK();
-
-    CKCt.MatrScale(mkfactor);
-
-    H.PasteMatrix(CKCt, 0, 0);
+    H.block(0, 0, GetNdofs(), GetNdofs()) = mkfactor * CKCt;
 
     // For M mass matrix:
     if (Mfactor) {
@@ -647,68 +575,63 @@ void ChElementTetra_10::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, 
     //***TO DO*** better per-node lumping, or 30x30 consistent mass matrix.
 }
 
-void ChElementTetra_10::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
-    assert((Fi.GetRows() == GetNdofs()) && (Fi.GetColumns() == 1));
+void ChElementTetra_10::ComputeInternalForces(ChVectorDynamic<>& Fi) {
+    assert(Fi.size() == GetNdofs());
 
     // set up vector of nodal displacements (in local element system) u_l = R*p - p0
-    ChMatrixDynamic<> displ(GetNdofs(), 1);
+    ChVectorDynamic<> displ(GetNdofs());
     this->GetStateBlock(displ);
 
     // [local Internal Forces] = [Klocal] * displ + [Rlocal] * displ_dt
-    ChMatrixDynamic<> FiK_local(GetNdofs(), 1);
-    FiK_local.MatrMultiply(StiffnessMatrix, displ);
+    ChVectorDynamic<> FiK_local = StiffnessMatrix * displ;
 
-    displ.PasteVector(A.MatrT_x_Vect(nodes[0]->pos_dt), 0, 0);  // nodal speeds, local
-    displ.PasteVector(A.MatrT_x_Vect(nodes[1]->pos_dt), 3, 0);
-    displ.PasteVector(A.MatrT_x_Vect(nodes[2]->pos_dt), 6, 0);
-    displ.PasteVector(A.MatrT_x_Vect(nodes[3]->pos_dt), 9, 0);
-    displ.PasteVector(A.MatrT_x_Vect(nodes[4]->pos_dt), 12, 0);
-    displ.PasteVector(A.MatrT_x_Vect(nodes[5]->pos_dt), 15, 0);
-    displ.PasteVector(A.MatrT_x_Vect(nodes[6]->pos_dt), 18, 0);
-    displ.PasteVector(A.MatrT_x_Vect(nodes[7]->pos_dt), 21, 0);
-    displ.PasteVector(A.MatrT_x_Vect(nodes[8]->pos_dt), 24, 0);
-    displ.PasteVector(A.MatrT_x_Vect(nodes[9]->pos_dt), 27, 0);
-    ChMatrixDynamic<> FiR_local(GetNdofs(), 1);
-    FiR_local.MatrMultiply(StiffnessMatrix, displ);
-    FiR_local.MatrScale(this->Material->Get_RayleighDampingK());
+    // nodal speeds, local
+    displ.segment(0, 3) = A.transpose() * nodes[0]->pos_dt.eigen();
+    displ.segment(3, 3) = A.transpose() * nodes[1]->pos_dt.eigen();
+    displ.segment(6, 3) = A.transpose() * nodes[2]->pos_dt.eigen();
+    displ.segment(9, 3) = A.transpose() * nodes[3]->pos_dt.eigen();
+    displ.segment(12, 3) = A.transpose() * nodes[4]->pos_dt.eigen();
+    displ.segment(15, 3) = A.transpose() * nodes[5]->pos_dt.eigen();
+    displ.segment(18, 3) = A.transpose() * nodes[6]->pos_dt.eigen();
+    displ.segment(21, 3) = A.transpose() * nodes[7]->pos_dt.eigen();
+    displ.segment(24, 3) = A.transpose() * nodes[8]->pos_dt.eigen();
+    displ.segment(27, 3) = A.transpose() * nodes[9]->pos_dt.eigen();
 
-    double lumped_node_mass = (this->GetVolume() * this->Material->Get_density()) / (double)this->GetNnodes();
-    displ.MatrScale(lumped_node_mass * this->Material->Get_RayleighDampingM());  // reuse 'displ' for performance
-    FiR_local.MatrInc(displ);
+    double lumped_node_mass = (GetVolume() * Material->Get_density()) / GetNnodes();
+    ChVectorDynamic<> FiR_local = Material->Get_RayleighDampingK() * (StiffnessMatrix * displ + lumped_node_mass * displ);
     //***TO DO*** better per-node lumping, or 12x12 consistent mass matrix.
 
-    FiK_local.MatrInc(FiR_local);
-
-    FiK_local.MatrScale(-1.0);
+    FiK_local += FiR_local;
+    FiK_local *= -1.0;
 
     // Fi = C * Fi_local  with C block-diagonal rotations A
-    ChMatrixCorotation<>::ComputeCK(FiK_local, this->A, 10, Fi);
+    ChMatrixCorotation::ComputeCK(FiK_local, this->A, 10, Fi);
 }
 
 void ChElementTetra_10::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
-    mD.PasteVector(this->nodes[0]->GetPos(), block_offset, 0);
-    mD.PasteVector(this->nodes[1]->GetPos(), block_offset + 3, 0);
-    mD.PasteVector(this->nodes[2]->GetPos(), block_offset + 6, 0);
-    mD.PasteVector(this->nodes[3]->GetPos(), block_offset + 9, 0);
-    mD.PasteVector(this->nodes[4]->GetPos(), block_offset + 12, 0);
-    mD.PasteVector(this->nodes[5]->GetPos(), block_offset + 15, 0);
-    mD.PasteVector(this->nodes[6]->GetPos(), block_offset + 18, 0);
-    mD.PasteVector(this->nodes[7]->GetPos(), block_offset + 21, 0);
-    mD.PasteVector(this->nodes[8]->GetPos(), block_offset + 24, 0);
-    mD.PasteVector(this->nodes[9]->GetPos(), block_offset + 27, 0);
+    mD.segment(block_offset + 0, 3) = this->nodes[0]->GetPos().eigen();
+    mD.segment(block_offset + 3, 3) = this->nodes[1]->GetPos().eigen();
+    mD.segment(block_offset + 6, 3) = this->nodes[2]->GetPos().eigen();
+    mD.segment(block_offset + 9, 3) = this->nodes[3]->GetPos().eigen();
+    mD.segment(block_offset + 12, 3) = this->nodes[4]->GetPos().eigen();
+    mD.segment(block_offset + 15, 3) = this->nodes[5]->GetPos().eigen();
+    mD.segment(block_offset + 18, 3) = this->nodes[6]->GetPos().eigen();
+    mD.segment(block_offset + 21, 3) = this->nodes[7]->GetPos().eigen();
+    mD.segment(block_offset + 24, 3) = this->nodes[8]->GetPos().eigen();
+    mD.segment(block_offset + 27, 3) = this->nodes[9]->GetPos().eigen();
 }
 
 void ChElementTetra_10::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
-    mD.PasteVector(this->nodes[0]->GetPos_dt(), block_offset, 0);
-    mD.PasteVector(this->nodes[1]->GetPos_dt(), block_offset + 3, 0);
-    mD.PasteVector(this->nodes[2]->GetPos_dt(), block_offset + 6, 0);
-    mD.PasteVector(this->nodes[3]->GetPos_dt(), block_offset + 9, 0);
-    mD.PasteVector(this->nodes[4]->GetPos_dt(), block_offset + 12, 0);
-    mD.PasteVector(this->nodes[5]->GetPos_dt(), block_offset + 15, 0);
-    mD.PasteVector(this->nodes[6]->GetPos_dt(), block_offset + 18, 0);
-    mD.PasteVector(this->nodes[7]->GetPos_dt(), block_offset + 21, 0);
-    mD.PasteVector(this->nodes[8]->GetPos_dt(), block_offset + 24, 0);
-    mD.PasteVector(this->nodes[9]->GetPos_dt(), block_offset + 27, 0);
+    mD.segment(block_offset + 0, 3) = this->nodes[0]->GetPos_dt().eigen();
+    mD.segment(block_offset + 3, 3) = this->nodes[1]->GetPos_dt().eigen();
+    mD.segment(block_offset + 6, 3) = this->nodes[2]->GetPos_dt().eigen();
+    mD.segment(block_offset + 9, 3) = this->nodes[3]->GetPos_dt().eigen();
+    mD.segment(block_offset + 12, 3) = this->nodes[4]->GetPos_dt().eigen();
+    mD.segment(block_offset + 15, 3) = this->nodes[5]->GetPos_dt().eigen();
+    mD.segment(block_offset + 18, 3) = this->nodes[6]->GetPos_dt().eigen();
+    mD.segment(block_offset + 21, 3) = this->nodes[7]->GetPos_dt().eigen();
+    mD.segment(block_offset + 24, 3) = this->nodes[8]->GetPos_dt().eigen();
+    mD.segment(block_offset + 27, 3) = this->nodes[9]->GetPos_dt().eigen();
 }
 
 void ChElementTetra_10::LoadableStateIncrement(const unsigned int off_x,
@@ -735,9 +658,9 @@ void ChElementTetra_10::ComputeNF(const double U,
                                   ChVectorDynamic<>* state_x,
                                   ChVectorDynamic<>* state_w) {
     // evaluate shape functions (in compressed vector), btw. not dependant on state
-    ChMatrixNM<double, 1, 10> N;
-    this->ShapeFunctions(N, U, V,
-                         W);  // note: U,V,W in 0..1 range, thanks to IsTetrahedronIntegrationNeeded() {return true;}
+    // note: U,V,W in 0..1 range, thanks to IsTetrahedronIntegrationNeeded() {return true;}
+    ShapeVector N;
+    ShapeFunctions(N, U, V, W);
 
     detJ = 6 * this->GetVolume();
 

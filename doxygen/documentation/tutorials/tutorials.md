@@ -1,6 +1,23 @@
 Tutorials {#tutorial_root}
 ==========================
 
+<div class="ce-info">
+**Dynamic objects of classes with fixed-size vectorizable Eigen object members**<br>
+<ul>
+<li>Many of the Chrono classes now have members that are fixed-size vecorizable Eigen types. These classes overload their `operator new` to generate 16-bye-aligned pointers (using an Eigen-provided macro).</li>
+<li>This takes care of situations where one must dynamically create objects of such classes; for more details, see the [Eigen documentation](https://eigen.tuxfamily.org/dox/group__TopicStructHavingEigenMembers.html).</li>
+<li>f you need to create STL containers of such classes, you should use a custom allocator that always allocates aligned memory (such as the Eigen-provided `Eigen:aligned_allocator`); for more details, see the [Eigen documentation](https://eigen.tuxfamily.org/dox/group__TopicStlContainers.html).</li>
+<li>Finally, this requirement for aligned memory allocation has implications on creation of shared pointers.  Indeed, `std::make_shared` uses `placement new` instead of `operator new`.  To address this issue and preserve encapsulation (as much as possible), Chrono provides custom replacement functions for `make_shared`, available in the `chrono_types` namespace. These functions will automatically infer if they can safely fallback on `std::make_shared` or else create a shared pointer with an alternative mechanism that ensures use of aligned memory. <br>
+As such, user code should **always** use `chrono_types::make_shared` as in
+~~~{.cpp}
+auto my_body = chrono_types::make_shared<ChBody>();
+~~~ 
+</li>
+</ul>
+</div>
+
+## Core module 
+
 -   @subpage tutorial_table_of_content_chrono
 
     Examples about the core functionalities of the Chrono library.

@@ -9,6 +9,8 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHSYSTEMDESCRIPTOR_H
 #define CHSYSTEMDESCRIPTOR_H
@@ -71,9 +73,6 @@ namespace chrono {
 
 class ChApi ChSystemDescriptor {
   protected:
-    //
-    // DATA
-    //
     std::vector<ChConstraint*> vconstraints;  ///< list of pointers to all the ChConstraint in the current Chrono system
     std::vector<ChVariables*> vvariables;     ///< list of pointers to all the ChVariables in the current Chrono system
     std::vector<ChKblock*> vstiffness;        ///< list of pointers to all the ChKblock in the current Chrono system
@@ -96,9 +95,7 @@ class ChApi ChSystemDescriptor {
     /// Destructor
     virtual ~ChSystemDescriptor();
 
-    //
     // DATA MANAGEMENT FUNCTIONS
-    //
 
     /// Access the vector of constraints
     std::vector<ChConstraint*>& GetConstraintsList() { return vconstraints; }
@@ -154,32 +151,31 @@ class ChApi ChSystemDescriptor {
     /// when performing ShurComplementProduct(), SystemProduct(), ConvertToMatrixForm(),
     virtual double GetMassFactor() { return c_a; }
 
-    //
     // DATA <-> MATH.VECTORS FUNCTIONS
-    //
 
     /// Get a vector with all the 'fb' known terms ('forces'etc.) associated to all variables,
     /// ordered into a column vector. The column vector must be passed as a ChMatrix<>
     /// object, which will be automatically reset and resized to the proper length if necessary.
-    virtual int BuildFbVector(ChMatrix<>& Fvector  ///< matrix which will contain the entire vector of 'f'
+    virtual int BuildFbVector(ChVectorDynamic<>& Fvector  ///< system-level vector 'f'
     );
+
     /// Get a vector with all the 'bi' known terms ('constraint residuals' etc.) associated to all constraints,
     /// ordered into a column vector. The column vector must be passed as a ChMatrix<>
     /// object, which will be automatically reset and resized to the proper length if necessary.
-    virtual int BuildBiVector(ChMatrix<>& Bvector  ///< matrix which will contain the entire vector of 'b'
+    virtual int BuildBiVector(ChVectorDynamic<>& Bvector  ///< system-level vector 'b'
     );
 
     /// Get the d vector = {f; -b} with all the 'fb' and 'bi' known terms, as in  Z*y-d
     /// (it is the concatenation of BuildFbVector and BuildBiVector) The column vector must be passed as a ChMatrix<>
     /// object, which will be automatically reset and resized to the proper length if necessary.
-    virtual int BuildDiVector(ChMatrix<>& Dvector  ///< matrix which will contain the entire vector of {f;-b}
+    virtual int BuildDiVector(ChVectorDynamic<>& Dvector  ///< system-level vector {f;-b}
     );
 
     /// Get the D diagonal of the Z system matrix, as a single column vector (it includes all the diagonal
     /// masses of M, and all the diagonal E (-cfm) terms).
     /// The Diagonal_vect must already have the size of n. of unknowns, otherwise it will be resized if necessary).
     virtual int BuildDiagonalVector(
-        ChMatrix<>& Diagonal_vect  ///< matrix which will contain the entire vector of terms on M and E diagonal
+        ChVectorDynamic<>& Diagonal_vect  ///< system-level vector of terms on M and E diagonal
     );
 
     /// Using this function, one may get a vector with all the variables 'q'
@@ -188,9 +184,8 @@ class ChApi ChSystemDescriptor {
     /// (but if you are sure that the vector has already the proper size, you can optimize
     /// the performance a bit by setting resize_vector as false).
     /// \return  the number of scalar variables (i.e. the rows of the column vector).
-    virtual int FromVariablesToVector(
-        ChMatrix<>& mvector,       ///< matrix which will contain the entire vector of 'q'
-        bool resize_vector = true  ///< if true the vector size will be checked & resized if necessary
+    virtual int FromVariablesToVector(ChVectorDynamic<>& mvector,  ///< system-level vector 'q'
+                                      bool resize_vector = true    ///< if true, resize vector as necessary
     );
 
     /// Using this function, one may go in the opposite direction of the FromVariablesToVector()
@@ -201,7 +196,7 @@ class ChApi ChSystemDescriptor {
     /// the variable objects!!! (it is up to the user to check this!) btw: most often,
     /// this is called after FromVariablesToVector() to do a kind of 'undo', for example.
     /// \return  the number of scalar variables (i.e. the rows of the column vector).
-    virtual int FromVectorToVariables(ChMatrix<>& mvector  ///< matrix which contains the entire vector of 'q'
+    virtual int FromVectorToVariables(const ChVectorDynamic<>& mvector  ///< system-level vector 'q'
     );
 
     /// Using this function, one may get a vector with all the constraint reactions 'l_i'
@@ -212,9 +207,8 @@ class ChApi ChSystemDescriptor {
     /// Optionally, you can pass an 'enabled' vector of bools, that must have the same
     /// length of the l_i reactions vector; constraints with enabled=false are not handled.
     /// \return  the number of scalar constr.multipliers (i.e. the rows of the column vector).
-    virtual int FromConstraintsToVector(
-        ChMatrix<>& mvector,       ///< matrix which will contain the entire vector of 'l_i'
-        bool resize_vector = true  ///< if true the vector size will be checked & resized if necessary
+    virtual int FromConstraintsToVector(ChVectorDynamic<>& mvector,  ///< system-level vector 'l_i'
+                                        bool resize_vector = true    ///< if true, resize vector as necessary
     );
 
     /// Using this function, one may go in the opposite direction of the FromConstraintsToVector()
@@ -227,7 +221,7 @@ class ChApi ChSystemDescriptor {
     /// the variable objects!!! (it is up to the user to check this!) btw: most often,
     /// this is called after FromConstraintsToVector() to do a kind of 'undo', for example.
     /// \return  the number of scalar constraint multipliers (i.e. the rows of the column vector).
-    virtual int FromVectorToConstraints(ChMatrix<>& mvector  ///< matrix which contains the entire vector of 'l_i'
+    virtual int FromVectorToConstraints(const ChVectorDynamic<>& mvector  ///< system-level vector 'l_i'
     );
 
     /// Using this function, one may get a vector with all the unknowns x={q,l} i.e. q variables & l_i constr.
@@ -236,9 +230,8 @@ class ChApi ChSystemDescriptor {
     /// (but if you are sure that the vector has already the proper size, you can optimize
     /// the performance a bit by setting resize_vector as false).
     /// \return  the number of scalar unknowns
-    virtual int FromUnknownsToVector(
-        ChMatrix<>& mvector,       ///< matrix which will contain the entire vector x={q,l}
-        bool resize_vector = true  ///< if true the vector size will be checked & resized if necessary
+    virtual int FromUnknownsToVector(ChVectorDynamic<>& mvector,  ///< system-level vector x={q,l}
+                                     bool resize_vector = true    ///< if true, resize vector as necessary
     );
 
     /// Using this function, one may go in the opposite direction of the FromUnknownsToVector()
@@ -247,16 +240,15 @@ class ChApi ChSystemDescriptor {
     /// NOTE!!! differently from  FromUnknownsToVector(), which always works, this
     /// function will fail if mvector does not match the amount and ordering of
     /// the variable and constraint objects!!! (it is up to the user to check this!)
-    virtual int FromVectorToUnknowns(ChMatrix<>& mvector  ///< matrix which contains the entire vector x={q,l}
+    virtual int FromVectorToUnknowns(const ChVectorDynamic<>& mvector  ///< system-level vector x={q,l}
     );
 
-    //
     // MATHEMATICAL OPERATIONS ON DATA
-    //
 
-    /// Performs the product of N, the Shur complement of the KKT matrix, by an
-    /// l vector (if x not provided, use current lagrangian multipliers l_i), that is
+    /// Performs the product of N, the Shur complement of the KKT matrix, by an 'l' vector
+    /// <pre>
     ///    result = [N]*l = [ [Cq][M^(-1)][Cq'] - [E] ] * l
+    /// </pre>
     /// where [Cq] are the jacobians, [M] is the mass matrix, [E] is the matrix
     /// of the optional cfm 'constraint force mixing' terms for compliant constraints.
     /// The N matrix is not built explicitly, to exploit sparsity, it is described by the
@@ -268,24 +260,17 @@ class ChApi ChSystemDescriptor {
     /// NOTE! currently this function does NOT support the cases that use also ChKblock
     /// objects, because it would need to invert the global M+K, that is not diagonal,
     /// for doing = [N]*l = [ [Cq][(M+K)^(-1)][Cq'] - [E] ] * l
-    virtual void ShurComplementProduct(ChMatrix<>& result,   ///< matrix which contains the result of  N*l_i
-                                       ChMatrix<>* lvector,  ///< optional matrix with the vector to be multiplied (if
-                                       /// null, use current constr. multipliers l_i)
-                                       std::vector<bool>* enabled = 0  ///< optional: vector of enable flags, one per
-                                                                       /// scalar constraint. true=enable, false=disable
-                                                                       ///(skip)
+    virtual void ShurComplementProduct(
+        ChVectorDynamic<>& result,            ///< result of  N * l_i
+        const ChVectorDynamic<>& lvector,     ///< vector to be multiplied
+        std::vector<bool>* enabled = nullptr  ///< optional: vector of "enabled" flags, one per scalar constraint.
     );
 
-    /// Performs the product of the entire system matrix (KKT matrix), by a vector x ={q,l}
-    /// (if x not provided, use values in current lagrangian multipliers l_i
-    /// and current q variables)
-    /// NOTE! the 'q' data in the ChVariables of the system descriptor is changed by this
-    /// operation, so it may happen that you need to backup them via FromVariablesToVector()
-    virtual void SystemProduct(
-        ChMatrix<>& result,  ///< matrix which contains the result of matrix by x
-        ChMatrix<>* x        ///< optional matrix with the vector to be multiplied (if null, use current l_i and q)
-        // std::vector<bool>* enabled=0 ///< optional: vector of enable flags, one per scalar constraint. true=enable,
-        // false=disable (skip)
+    /// Performs the product of the entire system matrix (KKT matrix), by a vector x ={q,l}.
+    /// Note that the 'q' data in the ChVariables of the system descriptor is changed by this
+    /// operation, so thay may need to be backed up via FromVariablesToVector()
+    virtual void SystemProduct(ChVectorDynamic<>& result,  ///< result vector (multiplication of system matrix by x)
+                               const ChVectorDynamic<>& x  ///< vector to be multiplied
     );
 
     /// Performs projection of constraint multipliers onto allowed set (in case
@@ -295,7 +280,7 @@ class ChApi ChSystemDescriptor {
     /// by this operation (they get the value of 'multipliers' after the projection), so
     /// it may happen that you need to backup them via FromConstraintToVector().
     virtual void ConstraintsProject(
-        ChMatrix<>& multipliers  ///< matrix which contains the entire vector of 'l_i' multipliers to be projected
+        ChVectorDynamic<>& multipliers  ///< system-level vector of 'l_i' multipliers to be projected
     );
 
     /// As ConstraintsProject(), but instead of passing the l vector, the entire
@@ -304,22 +289,19 @@ class ChApi ChSystemDescriptor {
     /// by this operation (they get the value of 'multipliers' after the projection), so
     /// it may happen that you need to backup them via FromConstraintToVector().
     virtual void UnknownsProject(
-        ChMatrix<>& mx  ///< matrix which contains the entire vector of unknowns x={q,-l} (only the l part is projected)
+        ChVectorDynamic<>& mx  ///< system-level vector of unknowns x={q,-l} (only the l part is projected)
     );
 
     /// The following (obsolete) function may be called after a solver's 'Solve()'
     /// operation has been performed. This gives an estimate of 'how
     /// good' the solver had been in finding the proper solution.
     /// Resulting estimates are passed as references in member arguments.
-
     virtual void ComputeFeasabilityViolation(
         double& resulting_maxviolation,  ///< gets the max constraint violation (either bi- and unilateral.)
         double& resulting_feasability    ///< gets the max feasability as max |l*c| , for unilateral only
     );
 
-    //
     // MISC
-    //
 
     /// Set the number of threads (some operations like ShurComplementProduct
     /// are CPU intensive, so they can be run in parallel threads).
@@ -327,9 +309,7 @@ class ChApi ChSystemDescriptor {
     virtual void SetNumThreads(int nthreads);
     virtual int GetNumThreads() { return this->num_threads; }
 
-    //
     // LOGGING/OUTPUT/ETC.
-    //
 
     /// The following function may be used to create the Jacobian and the
     /// mass matrix of the variational problem in matrix form, by assembling all
@@ -342,20 +322,20 @@ class ChApi ChSystemDescriptor {
     /// Optionally, tangential (u,v) contact jacobians may be skipped, or only bilaterals can be considered
     /// The matrices and vectors are automatically resized if needed.
     virtual void ConvertToMatrixForm(
-        ChSparseMatrix* Cq,   ///< fill this system jacobian matrix, if not null
-        ChSparseMatrix* H,    ///< fill this system H (mass+stiffness+damp) matrix, if not null
-        ChSparseMatrix* E,    ///< fill this system 'compliance' matrix , if not null
-        ChMatrix<>* Fvector,  ///< fill this vector as the known term 'f', if not null
-        ChMatrix<>* Bvector,  ///< fill this vector as the known term 'b', if not null
-        ChMatrix<>* Frict,    ///< fill as a vector with friction coefficients (=-1 for
-        /// tangent comp.; =-2 for bilaterals), if not null
+        ChSparseMatrix* Cq,            ///< fill this system jacobian matrix, if not null
+        ChSparseMatrix* H,             ///< fill this system H (mass+stiffness+damp) matrix, if not null
+        ChSparseMatrix* E,             ///< fill this system 'compliance' matrix , if not null
+        ChVectorDynamic<>* Fvector,    ///< fill this vector as the known term 'f', if not null
+        ChVectorDynamic<>* Bvector,    ///< fill this vector as the known term 'b', if not null
+        ChVectorDynamic<>* Frict,      ///< fill as a vector with friction coefficients (=-1 for tangent comp.; =-2 for
+                                       ///< bilaterals), if not null
         bool only_bilaterals = false,  ///< skip unilateral constraints
         bool skip_contacts_uv = false  ///< skip the tangential reaction constraints
     );
 
     /// Create and return the assembled system matrix and RHS vector.
-    virtual void ConvertToMatrixForm(ChSparseMatrix* Z,  ///< [out] assembled system matrix
-                                     ChMatrix<>* rhs     ///< [out] assembled RHS vector
+    virtual void ConvertToMatrixForm(ChSparseMatrix* Z,      ///< [out] assembled system matrix
+                                     ChVectorDynamic<>* rhs  ///< [out] assembled RHS vector
     );
 
     /// Saves to disk the LAST used matrices of the problem.

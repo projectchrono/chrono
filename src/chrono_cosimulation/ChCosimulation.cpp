@@ -62,11 +62,9 @@ bool ChCosimulation::WaitConnection(int aport) {
     return true;
 }
 
-bool ChCosimulation::SendData(double mtime, ChMatrix<double>* out_data) {
-    if (out_data->GetColumns() != 1)
-        throw ChExceptionSocket(0, "Error. Sent data must be a matrix with 1 column");
-    if (out_data->GetRows() != this->out_n)
-        throw ChExceptionSocket(0, "Error. Sent data must be a matrix with N rows and 1 column");
+bool ChCosimulation::SendData(double mtime, ChVectorConstRef out_data) {
+    if (out_data.size() != this->out_n)
+        throw ChExceptionSocket(0, "Error. Sent data must be a vector of size N.");
     if (!myClient)
         throw ChExceptionSocket(0, "Error. Attempted 'SendData' with no connected client.");
 
@@ -78,8 +76,8 @@ bool ChCosimulation::SendData(double mtime, ChMatrix<double>* out_data) {
     // time:
     stream_out << mtime;
     // variables:
-    for (int i = 0; i < out_data->GetRows(); i++)
-        stream_out << out_data->Element(i, 0);
+    for (int i = 0; i < out_data.size(); i++)
+        stream_out << out_data(i);
 
     // -----> SEND!!!
     this->myClient->SendBuffer(*stream_out.GetVector());
@@ -87,11 +85,9 @@ bool ChCosimulation::SendData(double mtime, ChMatrix<double>* out_data) {
     return true;
 }
 
-bool ChCosimulation::ReceiveData(double& mtime, ChMatrix<double>* in_data) {
-    if (in_data->GetColumns() != 1)
-        throw ChExceptionSocket(0, "Error. Received data must be a matrix with 1 column");
-    if (in_data->GetRows() != this->in_n)
-        throw ChExceptionSocket(0, "Error. Received data must be a matrix with N rows and 1 column");
+bool ChCosimulation::ReceiveData(double& mtime, ChVectorRef in_data) {
+    if (in_data.size() != this->in_n)
+        throw ChExceptionSocket(0, "Error. Received data must be a vector of size N.");
     if (!myClient)
         throw ChExceptionSocket(0, "Error. Attempted 'ReceiveData' with no connected client.");
 
@@ -109,8 +105,8 @@ bool ChCosimulation::ReceiveData(double& mtime, ChMatrix<double>* in_data) {
     // time:
     stream_in >> mtime;
     // variables:
-    for (int i = 0; i < in_data->GetRows(); i++)
-        stream_in >> in_data->Element(i, 0);
+    for (int i = 0; i < in_data.size(); i++)
+        stream_in >> in_data(i);
 
     return true;
 }

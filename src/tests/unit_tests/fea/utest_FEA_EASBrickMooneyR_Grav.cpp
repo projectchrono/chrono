@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
         GetLog() << "Output file: ../TEST_Brick/UT_EASBrickMR_Grav.txt\n";
     } else {
         // Utils to open/read files: Load reference solution ("golden") file
-        std::string EASBrick_val_file = GetChronoDataPath() + "testing/" + "UT_EASBrickMR_Grav.txt";
+        std::string EASBrick_val_file = GetChronoDataPath() + "testing/fea/UT_EASBrickMR_Grav.txt";
         std::ifstream fileMid(EASBrick_val_file);
 
         if (!fileMid.is_open()) {
@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
             exit(1);
         }
         for (int x = 0; x < 2000; x++) {
-            fileMid >> FileInputMat[x][0] >> FileInputMat[x][1];
+            fileMid >> FileInputMat(x, 0) >> FileInputMat(x, 1);
         }
         fileMid.close();
         GetLog() << "Running in unit test mode.\n";
@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
     ChSystemNSC my_system;
     my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
 
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     // Dimensions of the plate
     double plate_lenght_x = 1;
@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
         MPROP(i, 2) = 0.3;      // nu
     }
 
-    auto mmaterial = std::make_shared<ChContinuumElastic>();
+    auto mmaterial = chrono_types::make_shared<ChContinuumElastic>();
     mmaterial->Set_RayleighDampingK(0.0);
     mmaterial->Set_RayleighDampingM(0.0);
     mmaterial->Set_density(MPROP(0, 0));
@@ -175,7 +175,7 @@ int main(int argc, char* argv[]) {
     // Adding the nodes to the mesh
     int i = 0;
     while (i < TotalNumNodes) {
-        auto node = std::make_shared<ChNodeFEAxyz>(ChVector<>(COORDFlex(i, 0), COORDFlex(i, 1), COORDFlex(i, 2)));
+        auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(COORDFlex(i, 0), COORDFlex(i, 1), COORDFlex(i, 2)));
         node->SetMass(0.0);
         my_mesh->AddNode(node);
         if (NDR(i, 0) == 1 && NDR(i, 1) == 1 && NDR(i, 2) == 1) {
@@ -189,12 +189,12 @@ int main(int argc, char* argv[]) {
 
     int elemcount = 0;
     while (elemcount < TotalNumElements) {
-        auto element = std::make_shared<ChElementBrick>();
-        ChMatrixNM<double, 3, 1> InertFlexVec;  // Read element length, used in ChElementBrick
-        InertFlexVec.Reset();
-        InertFlexVec(0, 0) = ElemLengthXY(elemcount, 0);
-        InertFlexVec(1, 0) = ElemLengthXY(elemcount, 1);
-        InertFlexVec(2, 0) = ElemLengthXY(elemcount, 2);
+        auto element = chrono_types::make_shared<ChElementBrick>();
+        ChVectorN<double, 3> InertFlexVec;  // Read element length, used in ChElementBrick
+        InertFlexVec.setZero();
+        InertFlexVec(0) = ElemLengthXY(elemcount, 0);
+        InertFlexVec(1) = ElemLengthXY(elemcount, 1);
+        InertFlexVec(2) = ElemLengthXY(elemcount, 2);
         element->SetInertFlexVec(InertFlexVec);
         // Note we change the order of the nodes to comply with the arrangement of shape functions
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 0))),
@@ -211,11 +211,11 @@ int main(int argc, char* argv[]) {
         element->SetGravityOn(true);                     // Turn gravity on/off from within the element
         element->SetMooneyRivlin(true);                  // Turn on/off Mooney Rivlin (Linear Isotropic by default)
         element->SetMRCoefficients(551584.0, 137896.0);  // Set two coefficients for Mooney-Rivlin
-        ChMatrixNM<double, 9, 1> stock_alpha_EAS;
-        stock_alpha_EAS.Reset();
-        element->SetStockAlpha(stock_alpha_EAS(0, 0), stock_alpha_EAS(1, 0), stock_alpha_EAS(2, 0),
-                               stock_alpha_EAS(3, 0), stock_alpha_EAS(4, 0), stock_alpha_EAS(5, 0),
-                               stock_alpha_EAS(6, 0), stock_alpha_EAS(7, 0), stock_alpha_EAS(8, 0));
+        ChVectorN<double, 9> stock_alpha_EAS;
+        stock_alpha_EAS.setZero();
+        element->SetStockAlpha(stock_alpha_EAS(0), stock_alpha_EAS(1), stock_alpha_EAS(2),
+                               stock_alpha_EAS(3), stock_alpha_EAS(4), stock_alpha_EAS(5),
+                               stock_alpha_EAS(6), stock_alpha_EAS(7), stock_alpha_EAS(8));
         my_mesh->AddElement(element);
         elemcount++;
     }
@@ -274,7 +274,7 @@ int main(int argc, char* argv[]) {
         // Simulate to final time, while accumulating number of iterations.
         while (my_system.GetChTime() < sim_time_UT) {
             my_system.DoStepDynamics(step_size);
-            AbsVal = std::abs(nodetip->GetPos().z() - FileInputMat[stepNo][1]);
+            AbsVal = std::abs(nodetip->GetPos().z() - FileInputMat(stepNo, 1));
             GetLog() << "time = " << my_system.GetChTime() << "\t" << nodetip->GetPos().z() << "\n";
             if (AbsVal > precision) {
                 std::cout << "Unit test check failed \n";

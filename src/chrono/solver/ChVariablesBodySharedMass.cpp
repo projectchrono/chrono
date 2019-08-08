@@ -21,14 +21,11 @@ CH_FACTORY_REGISTER(ChVariablesBodySharedMass)
 
 // -----------------------------------------------------------------------------
 
-ChSharedMassBody::ChSharedMassBody() : mass(1), inv_mass(1) {
-    inertia.Set33Identity();
-    inv_inertia.Set33Identity();
-}
+ChSharedMassBody::ChSharedMassBody() : mass(1), inv_mass(1), inertia(1), inv_inertia(1) {}
 
 void ChSharedMassBody::SetBodyInertia(const ChMatrix33<>& minertia) {
-    inertia.CopyFromMatrix(minertia);
-    inertia.FastInvert(inv_inertia);
+    inertia = minertia;
+    inv_inertia = inertia.inverse();
 }
 
 void ChSharedMassBody::SetBodyMass(const double mmass) {
@@ -42,7 +39,7 @@ void ChSharedMassBody::ArchiveOUT(ChArchiveOut& marchive) {
 
     // serialize all member data:
     marchive << CHNVP(mass);
-    marchive << CHNVP(inertia);
+    ////marchive << CHNVP(inertia);
 }
 
 void ChSharedMassBody::ArchiveIN(ChArchiveIn& marchive) {
@@ -51,9 +48,9 @@ void ChSharedMassBody::ArchiveIN(ChArchiveIn& marchive) {
 
     // stream in all member data:
     marchive >> CHNVP(mass);
-    marchive >> CHNVP(inertia);
+    ////marchive >> CHNVP(inertia);
     SetBodyMass(mass);
-    SetBodyInertia(inertia);
+    ////SetBodyInertia(inertia);
 }
 
 // -----------------------------------------------------------------------------
@@ -74,9 +71,10 @@ ChVariablesBodySharedMass& ChVariablesBodySharedMass::operator=(const ChVariable
 }
 
 // Computes the product of the inverse mass matrix by a vector, and set in result: result = [invMb]*vect
-void ChVariablesBodySharedMass::Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
-    assert(vect.GetRows() == Get_ndof());
-    assert(result.GetRows() == Get_ndof());
+void ChVariablesBodySharedMass::Compute_invMb_v(ChVectorRef result, ChVectorConstRef vect) const {
+    assert(vect.size() == Get_ndof());
+    assert(result.size() == Get_ndof());
+
     // optimized unrolled operations
     result(0) = sharedmass->inv_mass * vect(0);
     result(1) = sharedmass->inv_mass * vect(1);
@@ -90,9 +88,10 @@ void ChVariablesBodySharedMass::Compute_invMb_v(ChMatrix<double>& result, const 
 }
 
 // Computes the product of the inverse mass matrix by a vector, and increment result: result += [invMb]*vect
-void ChVariablesBodySharedMass::Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
-    assert(vect.GetRows() == Get_ndof());
-    assert(result.GetRows() == Get_ndof());
+void ChVariablesBodySharedMass::Compute_inc_invMb_v(ChVectorRef result, ChVectorConstRef vect) const {
+    assert(vect.size() == Get_ndof());
+    assert(result.size() == Get_ndof());
+
     // optimized unrolled operations
     result(0) += sharedmass->inv_mass * vect(0);
     result(1) += sharedmass->inv_mass * vect(1);
@@ -106,9 +105,10 @@ void ChVariablesBodySharedMass::Compute_inc_invMb_v(ChMatrix<double>& result, co
 }
 
 // Computes the product of the mass matrix by a vector, and set in result: result = [Mb]*vect
-void ChVariablesBodySharedMass::Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
-    assert(result.GetRows() == Get_ndof());
-    assert(vect.GetRows() == Get_ndof());
+void ChVariablesBodySharedMass::Compute_inc_Mb_v(ChVectorRef result, ChVectorConstRef vect) const {
+    assert(result.size() == Get_ndof());
+    assert(vect.size() == Get_ndof());
+
     // optimized unrolled operations
     result(0) += sharedmass->mass * vect(0);
     result(1) += sharedmass->mass * vect(1);
@@ -121,16 +121,11 @@ void ChVariablesBodySharedMass::Compute_inc_Mb_v(ChMatrix<double>& result, const
                   sharedmass->inertia(2, 2) * vect(5));
 }
 
-// Computes the product of the corresponding block in the
-// system matrix (ie. the mass matrix) by 'vect', scale by c_a, and add to 'result'.
-// NOTE: the 'vect' and 'result' vectors must already have
-// the size of the total variables&constraints in the system; the procedure
-// will use the ChVariable offsets (that must be already updated) to know the
-// indexes in result and vect.
-void ChVariablesBodySharedMass::MultiplyAndAdd(ChMatrix<double>& result,
-                                               const ChMatrix<double>& vect,
-                                               const double c_a) const {
-    assert(result.GetColumns() == 1 && vect.GetColumns() == 1);
+// Computes the product of the corresponding block in the system matrix (ie. the mass matrix) by 'vect', scale by c_a,
+// and add to 'result'.
+// NOTE: the 'vect' and 'result' vectors must already have the size of the total variables&constraints in the system;
+// the procedure will use the ChVariable offsets (that must be already updated) to know the indexes in result and vect.
+void ChVariablesBodySharedMass::MultiplyAndAdd(ChVectorRef result, ChVectorConstRef vect, const double c_a) const {
     // optimized unrolled operations
     double q0 = vect(this->offset + 0);
     double q1 = vect(this->offset + 1);
@@ -151,11 +146,9 @@ void ChVariablesBodySharedMass::MultiplyAndAdd(ChMatrix<double>& result,
 }
 
 // Add the diagonal of the mass matrix scaled  by c_a, to 'result'.
-// NOTE: the 'result' vector must already have the size of system unknowns, ie
-// the size of the total variables&constraints in the system; the procedure
-// will use the ChVariable offset (that must be already updated) as index.
-void ChVariablesBodySharedMass::DiagonalAdd(ChMatrix<double>& result, const double c_a) const {
-    assert(result.GetColumns() == 1);
+// NOTE: the 'result' vector must already have the size of system unknowns, ie the size of the total variables &
+// constraints in the system; the procedure will use the ChVariable offset (that must be already updated) as index.
+void ChVariablesBodySharedMass::DiagonalAdd(ChVectorRef result, const double c_a) const {
     result(this->offset + 0) += c_a * sharedmass->mass;
     result(this->offset + 1) += c_a * sharedmass->mass;
     result(this->offset + 2) += c_a * sharedmass->mass;

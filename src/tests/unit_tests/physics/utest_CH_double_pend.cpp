@@ -139,8 +139,8 @@ class ChronoModel {
 
   protected:
     ChronoModel();
-    virtual ChMatrix<>* GetViolation1() = 0;
-    virtual ChMatrix<>* GetViolation2() = 0;
+    virtual ChVectorDynamic<> GetViolation1() = 0;
+    virtual ChVectorDynamic<> GetViolation2() = 0;
 
     std::shared_ptr<ChSystemNSC> m_system;
     std::shared_ptr<ChBody> m_ground;
@@ -157,8 +157,8 @@ class ChronoModelL : public ChronoModel {
     virtual std::string GetJointType() const override { return "LinkLock"; }
 
   private:
-    virtual ChMatrix<>* GetViolation1() override { return m_revolute1->GetC(); }
-    virtual ChMatrix<>* GetViolation2() override { return m_revolute2->GetC(); }
+    virtual ChVectorDynamic<> GetViolation1() override { return m_revolute1->GetC(); }
+    virtual ChVectorDynamic<> GetViolation2() override { return m_revolute2->GetC(); }
 
     std::shared_ptr<ChLinkLockRevolute> m_revolute1;
     std::shared_ptr<ChLinkLockRevolute> m_revolute2;
@@ -171,8 +171,8 @@ class ChronoModelM : public ChronoModel {
     virtual std::string GetJointType() const override { return "LinkMate"; }
 
   private:
-    virtual ChMatrix<>* GetViolation1() override { return m_revolute1->GetC(); }
-    virtual ChMatrix<>* GetViolation2() override { return m_revolute2->GetC(); }
+    virtual ChVectorDynamic<> GetViolation1() override { return m_revolute1->GetC(); }
+    virtual ChVectorDynamic<> GetViolation2() override { return m_revolute2->GetC(); }
 
     std::shared_ptr<ChLinkMateGeneric> m_revolute1;
     std::shared_ptr<ChLinkMateGeneric> m_revolute2;
@@ -186,19 +186,19 @@ ChronoModel::ChronoModel() {
 
     // Create the Chrono physical system
     // ---------------------------------
-    m_system = std::make_shared<ChSystemNSC>();
+    m_system = chrono_types::make_shared<ChSystemNSC>();
     m_system->Set_G_acc(ChVector<>(0, -g, 0));
 
     // Create the ground body
     // ----------------------
-    m_ground = std::make_shared<ChBody>();
+    m_ground = chrono_types::make_shared<ChBody>();
     m_system->AddBody(m_ground);
     m_ground->SetIdentifier(-1);
     m_ground->SetBodyFixed(true);
 
     // Create the first pendulum body
     // ------------------------------
-    m_pend1 = std::make_shared<ChBody>();
+    m_pend1 = chrono_types::make_shared<ChBody>();
     m_system->AddBody(m_pend1);
     m_pend1->SetIdentifier(1);
     m_pend1->SetMass(m1);
@@ -207,7 +207,7 @@ ChronoModel::ChronoModel() {
 
     // Create the second pendulum body
     // -------------------------------
-    m_pend2 = std::make_shared<ChBody>();
+    m_pend2 = chrono_types::make_shared<ChBody>();
     m_system->AddBody(m_pend2);
     m_pend2->SetIdentifier(2);
     m_pend2->SetMass(m2);
@@ -218,13 +218,13 @@ ChronoModel::ChronoModel() {
 ChronoModelL::ChronoModelL() {
     // Revolute joint ground-pendulum
     // ------------------------------
-    m_revolute1 = std::make_shared<ChLinkLockRevolute>();
+    m_revolute1 = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute1->Initialize(m_ground, m_pend1, ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));
     m_system->AddLink(m_revolute1);
 
     // Revolute joint pendulum-pendulum
     // --------------------------------
-    m_revolute2 = std::make_shared<ChLinkLockRevolute>();
+    m_revolute2 = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute2->Initialize(m_pend1, m_pend2, ChCoordsys<>(ChVector<>(l1, 0, 0), QUNIT));
     m_system->AddLink(m_revolute2);
 }
@@ -232,13 +232,13 @@ ChronoModelL::ChronoModelL() {
 ChronoModelM::ChronoModelM() {
     // Revolute joint ground-pendulum
     // ------------------------------
-    m_revolute1 = std::make_shared<ChLinkMateGeneric>(true, true, true, true, true, false);
+    m_revolute1 = chrono_types::make_shared<ChLinkMateGeneric>(true, true, true, true, true, false);
     m_revolute1->Initialize(m_ground, m_pend1, ChFrame<>(ChVector<>(0, 0, 0)));
     m_system->AddLink(m_revolute1);
 
     // Revolute joint pendulum-pendulum
     // --------------------------------
-    m_revolute2 = std::make_shared<ChLinkMateGeneric>(true, true, true, true, true, false);
+    m_revolute2 = chrono_types::make_shared<ChLinkMateGeneric>(true, true, true, true, true, false);
     m_revolute2->Initialize(m_pend1, m_pend2, ChFrame<>(ChVector<>(l1, 0, 0), QUNIT));
     m_system->AddLink(m_revolute2);
 }
@@ -261,12 +261,12 @@ void ChronoModel::Simulate(double step, int num_steps) {
 
         // Save current constraint violations.
         m_cnstr_data[0][it] = m_system->GetChTime();
-        ChMatrix<>* C_1 = GetViolation1();
+        ChVectorDynamic<> C_1 = GetViolation1();
         for (int col = 0; col < 5; col++)
-            m_cnstr_data[1 + col][it] = C_1->GetElement(col, 0);
-        ChMatrix<>* C_2 = GetViolation2();
+            m_cnstr_data[1 + col][it] = C_1(col);
+        ChVectorDynamic<> C_2 = GetViolation2();
         for (int col = 0; col < 5; col++)
-            m_cnstr_data[6 + col][it] = C_2->GetElement(col, 0);
+            m_cnstr_data[6 + col][it] = C_2(col);
 
         // Advance system state.
         m_system->DoStepDynamics(step);

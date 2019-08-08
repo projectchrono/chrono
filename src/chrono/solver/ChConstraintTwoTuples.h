@@ -65,7 +65,7 @@ class ChConstraintTwoTuples : public ChConstraint {
         tuple_a.Update_auxiliary(g_i);
         tuple_b.Update_auxiliary(g_i);
         //  adds the constraint force mixing term (usually zero):
-        if (cfm_i)
+        if (cfm_i != 0)
             g_i += cfm_i;
     }
 
@@ -95,7 +95,7 @@ class ChConstraintTwoTuples : public ChConstraint {
     /// the size of the total variables&constraints in the system; the procedure
     /// will use the ChVariable offsets (that must be already updated) to know the
     /// indexes in result and vect;
-    virtual void MultiplyAndAdd(double& result, const ChMatrix<double>& vect) const override {
+    virtual void MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const override {
         tuple_a.MultiplyAndAdd(result, vect);
         tuple_b.MultiplyAndAdd(result, vect);
     }
@@ -106,7 +106,7 @@ class ChConstraintTwoTuples : public ChConstraint {
     /// the size of the total variables&constraints in the system; the procedure
     /// will use the ChVariable offsets (that must be already updated) to know the
     /// indexes in result and vect;
-    virtual void MultiplyTandAdd(ChMatrix<double>& result, double l) override {
+    virtual void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) override {
         tuple_a.MultiplyTandAdd(result, l);
         tuple_b.MultiplyTandAdd(result, l);
     }

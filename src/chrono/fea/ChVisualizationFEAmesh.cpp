@@ -63,10 +63,10 @@ ChVisualizationFEAmesh::ChVisualizationFEAmesh(ChMesh& mymesh) {
 
     undeformed_reference = false;
 
-    auto new_mesh_asset = std::make_shared<ChTriangleMeshShape>();
+    auto new_mesh_asset = chrono_types::make_shared<ChTriangleMeshShape>();
     this->AddAsset(new_mesh_asset);
 
-    auto new_glyphs_asset = std::make_shared<ChGlyphs>();
+    auto new_glyphs_asset = chrono_types::make_shared<ChGlyphs>();
     this->AddAsset(new_glyphs_asset);
 }
 
@@ -298,11 +298,11 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
     if (!mesh_asset) {
         this->GetAssets().resize(0);  // this to delete other sub assets that are not in mesh & glyphs, if any
 
-        auto new_mesh_asset = std::make_shared<ChTriangleMeshShape>();
+        auto new_mesh_asset = chrono_types::make_shared<ChTriangleMeshShape>();
         this->AddAsset(new_mesh_asset);
         mesh_asset = new_mesh_asset;
 
-        auto new_glyphs_asset = std::make_shared<ChGlyphs>();
+        auto new_glyphs_asset = chrono_types::make_shared<ChGlyphs>();
         this->AddAsset(new_glyphs_asset);
         glyphs_asset = new_glyphs_asset;
     }
@@ -1064,8 +1064,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
         glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
         for (unsigned int iel = 0; iel < this->FEMmesh->GetNelements(); ++iel)
             if (auto myelement = std::dynamic_pointer_cast<ChElementTetra_4_P>(this->FEMmesh->GetElement(iel))) {
-                ChMatrixNM<double, 3, 1> mP = myelement->GetPgradient();
-                ChVector<> mvP(mP(0), mP(1), mP(2));
+                ChVector<> mvP(myelement->GetPgradient());
                 auto n0 = std::static_pointer_cast<ChNodeFEAxyzP>(myelement->GetNodeN(0));
                 auto n1 = std::static_pointer_cast<ChNodeFEAxyzP>(myelement->GetNodeN(1));
                 auto n2 = std::static_pointer_cast<ChNodeFEAxyzP>(myelement->GetNodeN(2));

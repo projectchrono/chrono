@@ -25,10 +25,10 @@ Example: create an object and handle it with via a shared pointer.
 std::shared_ptr<ChBody> my_body(new ChBody);
 ~~~
 
-A better alternative is to use ```std::make_shared```, which is a bit faster:
+A better alternative is to use ```std::make_shared``` (which requires a single memory allocation and is a bit faster). However, ```std::make_shared``` will use the incorrect allocator for objects of classes that contain fixed-size vecorizable Eigen types.  Chrono provides an alternative function that automatically infers whether or not it is safe to fallback on using ```std::make_shared```.  As such, user code should **always** use 
 
 ~~~{.cpp}
-auto my_body = std::make_shared<ChBody>();
+auto my_body = chrono_types::make_shared<ChBody>();
 ~~~
 
 Note that ```auto```, as in other C++11 cases, means that there is no need to specify 
@@ -38,14 +38,14 @@ Note that ```auto```, as in other C++11 cases, means that there is no need to sp
 In the next example, parameters are needed in the constructor call:
 
 ~~~{.cpp}
-auto my_foo = std::make_shared<Foo>(par1, par2);
+auto my_foo = chrono_types::make_shared<Foo>(par1, par2);
 ~~~
 
 Other pointers can also be assigned to the same shared object.
 Examples:
 
 ~~~{.cpp}
-auto my_foo = std::make_shared<Foo>(par1, par2);
+auto my_foo = chrono_types::make_shared<Foo>(par1, par2);
 std::shared_ptr<Foo> my_fuu = my_foo;
 
 auto my_fii = FunctionReturningSharedPointer();
@@ -86,7 +86,7 @@ Modifying old code to use the v.3.0 and newer versions of the Chrono API can be 
 	
   - NEW:
   
-		auto my_var = std::make_shared<Foo>(arg1, arg2);
+		auto my_var = chrono_types::make_shared<Foo>(arg1, arg2);
 
 - If the constructor of Foo does not take any arguments, then:
   - OLD:
@@ -95,7 +95,7 @@ Modifying old code to use the v.3.0 and newer versions of the Chrono API can be 
 	
   - NEW:
   
-		auto my_var = std::make_shared<Foo>();
+		auto my_var = chrono_types::make_shared<Foo>();
 	
 - If a variable has already been declared as a shared pointer somewhere else:
   - OLD:
@@ -106,7 +106,7 @@ Modifying old code to use the v.3.0 and newer versions of the Chrono API can be 
   - NEW:
   
 		std::shared_ptr<Foo> my_var;
-		my_var = std::make_shared<Foo>(arg1, arg2);
+		my_var = chrono_types::make_shared<Foo>(arg1, arg2);
 
 - Copy constructors
   - OLD:

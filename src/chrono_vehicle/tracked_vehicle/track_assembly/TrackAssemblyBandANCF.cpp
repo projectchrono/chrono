@@ -65,7 +65,7 @@ void TrackAssemblyBandANCF::ReadSprocket(const std::string& filename, int output
     assert(subtype.compare("SprocketBand") == 0);
 
     // Create the sprocket using the appropriate template.
-    m_sprocket = std::make_shared<SprocketBand>(d);
+    m_sprocket = chrono_types::make_shared<SprocketBand>(d);
 
     // A non-zero value of 'output' indicates overwriting the subsystem's flag
     if (output != 0) {
@@ -100,7 +100,7 @@ void TrackAssemblyBandANCF::ReadTrackShoes(const std::string& filename, int num_
 
     // Create the track shoes using the appropriate template.
     for (size_t it = 0; it < num_shoes; it++) {
-        m_shoes.push_back(std::make_shared<TrackShoeBandANCF>(d));
+        m_shoes.push_back(chrono_types::make_shared<TrackShoeBandANCF>(d));
     }
 
     // A non-zero value of 'output' indicates overwriting the subsystem's flag

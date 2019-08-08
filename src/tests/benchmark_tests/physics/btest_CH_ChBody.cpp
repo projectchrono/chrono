@@ -28,7 +28,7 @@ public:
         time_step = 0.1;
         sys = new ChSystemNSC();
         for (int i = 0; i < num_bodies; i++) {
-            auto body = std::make_shared<ChBody>();
+            auto body = chrono_types::make_shared<ChBody>();
             body->SetPos(ChVector<>(rand() % 1000 / 1000.0, rand() % 1000 / 1000.0, rand() % 1000 / 1000.0));
             sys->AddBody(body);
         }

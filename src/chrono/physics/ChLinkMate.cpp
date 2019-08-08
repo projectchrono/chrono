@@ -49,12 +49,11 @@ void ChLinkMate::ArchiveIN(ChArchiveIn& marchive) {
 CH_FACTORY_REGISTER(ChLinkMateGeneric)
 
 ChLinkMateGeneric::ChLinkMateGeneric(bool mc_x, bool mc_y, bool mc_z, bool mc_rx, bool mc_ry, bool mc_rz)
-    : c_x(mc_x), c_y(mc_y), c_z(mc_z), c_rx(mc_rx), c_ry(mc_ry), c_rz(mc_rz), C(nullptr) {
-    mask = new ChLinkMask();
+    : c_x(mc_x), c_y(mc_y), c_z(mc_z), c_rx(mc_rx), c_ry(mc_ry), c_rz(mc_rz) {
     SetupLinkMask();
 }
 
-ChLinkMateGeneric::ChLinkMateGeneric(const ChLinkMateGeneric& other) : ChLinkMate(other), C(nullptr) {
+ChLinkMateGeneric::ChLinkMateGeneric(const ChLinkMateGeneric& other) : ChLinkMate(other) {
     c_x = other.c_x;
     c_y = other.c_y;
     c_z = other.c_z;
@@ -62,14 +61,10 @@ ChLinkMateGeneric::ChLinkMateGeneric(const ChLinkMateGeneric& other) : ChLinkMat
     c_ry = other.c_ry;
     c_rz = other.c_rz;
 
-    mask = new ChLinkMask();
     SetupLinkMask();
 }
 
-ChLinkMateGeneric::~ChLinkMateGeneric() {
-    delete C;
-    delete mask;
-}
+ChLinkMateGeneric::~ChLinkMateGeneric() {}
 
 void ChLinkMateGeneric::SetConstrainedCoords(bool mc_x, bool mc_y, bool mc_z, bool mc_rx, bool mc_ry, bool mc_rz) {
     c_x = mc_x;
@@ -97,37 +92,35 @@ void ChLinkMateGeneric::SetupLinkMask() {
     if (c_rz)
         nc++;
 
-    mask->ResetNconstr(nc);
+    mask.ResetNconstr(nc);
 
-    delete C;
-    C = new ChMatrixDynamic<>(nc, 1);
-    C->Reset();
+    C.setZero(nc);
 
     ChangedLinkMask();
 }
 
 void ChLinkMateGeneric::ChangedLinkMask() {
-    ndoc = mask->GetMaskDoc();
-    ndoc_c = mask->GetMaskDoc_c();
-    ndoc_d = mask->GetMaskDoc_d();
+    ndoc = mask.GetMaskDoc();
+    ndoc_c = mask.GetMaskDoc_c();
+    ndoc_d = mask.GetMaskDoc_d();
 }
 
 void ChLinkMateGeneric::SetDisabled(bool mdis) {
     ChLinkMate::SetDisabled(mdis);
 
-    if (mask->SetAllDisabled(mdis) > 0)
+    if (mask.SetAllDisabled(mdis) > 0)
         ChangedLinkMask();
 }
 
 void ChLinkMateGeneric::SetBroken(bool mbro) {
     ChLinkMate::SetBroken(mbro);
 
-    if (mask->SetAllBroken(mbro) > 0)
+    if (mask.SetAllBroken(mbro) > 0)
         ChangedLinkMask();
 }
 
 int ChLinkMateGeneric::RestoreRedundant() {
-    int mchanges = mask->RestoreRedundant();
+    int mchanges = mask.RestoreRedundant();
     if (mchanges)
         ChangedLinkMask();
     return mchanges;
@@ -138,7 +131,7 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
     ChLink::Update(mytime, update_assets);
 
     if (this->Body1 && this->Body2) {
-        this->mask->SetTwoBodiesVariables(&Body1->Variables(), &Body2->Variables());
+        this->mask.SetTwoBodiesVariables(&Body1->Variables(), &Body2->Variables());
 
         ChFrame<> aframe = this->frame1 >> (*this->Body1);
         ChVector<> p1_abs = aframe.GetPos();
@@ -150,96 +143,85 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
         // Now 'aframe' contains the position/rotation of frame 1 respect to frame 2, in frame 2 coords. 
         //***TODO*** check if it is faster to do   aframe2.TransformParentToLocal(aframe, bframe); instead of two transforms above
 
-        ChMatrix33<> Jx1, Jx2, Jr1, Jr2, Jw1, Jw2;
-        ChMatrix33<> mtempM, mtempQ;
 
-        ChMatrix33<> abs_plane;
-        abs_plane.MatrMultiply(Body2->GetA(), frame2.GetA());
+        ChMatrix33<> abs_plane = Body2->GetA() * frame2.GetA();
 
-        Jx1.CopyFromMatrixT(abs_plane);
-        Jx2.CopyFromMatrixT(abs_plane);
-        Jx2.MatrNeg();
+        ChMatrix33<> Jx1 = abs_plane.transpose();
+        ChMatrix33<> Jx2 = -abs_plane.transpose();
 
-        Jw1.MatrTMultiply(abs_plane, Body1->GetA());
-        Jw2.MatrTMultiply(abs_plane, Body2->GetA());
+        ChMatrix33<> Jw1 = abs_plane.transpose() * Body1->GetA();
+        ChMatrix33<> Jw2 = -abs_plane.transpose() * Body2->GetA();
 
-        mtempM.Set_X_matrix(frame1.GetPos());
-        Jr1.MatrMultiply(Jw1, mtempM);
-        Jr1.MatrNeg();
+        ChMatrix33<> Jr1 = -Jw1 * ChStarMatrix33<>(frame1.GetPos());
+        ChMatrix33<> Jr2 = -Jw2 * ChStarMatrix33<>(frame2.GetPos());
 
-        mtempM.Set_X_matrix(frame2.GetPos());
-        Jr2.MatrMultiply(Jw2, mtempM);
-
-        ChVector<> p2p1_base2 = (Body2->GetA()).MatrT_x_Vect(Vsub(p1_abs, p2_abs));
-        mtempM.Set_X_matrix(p2p1_base2);
-        mtempQ.MatrTMultiply(frame2.GetA(), mtempM);
-        Jr2.MatrInc(mtempQ);
-
-        Jw2.MatrNeg();
+        ChVector<> p2p1_base2 = Body2->GetA().transpose() * (p1_abs - p2_abs);
+        Jr2 += frame2.GetA().transpose() * ChStarMatrix33<>(p2p1_base2);
 
         // Premultiply by Jw1 and Jw2 by  0.5*[Fp(q_resid)]' to get residual as imaginary part of a quaternion.
-        // For small misalignment this effect is almost insignificant cause [Fp(q_resid)]=[I],
+        // For small misalignment this effect is almost insignificant because [Fp(q_resid)]=[I],
         // but otherwise it is needed (if you want to use the stabilization term - if not, you can live without).
-        mtempM.Set_X_matrix((aframe.GetRot().GetVector()) * 0.5);
+        ChStarMatrix33<> mtempM((aframe.GetRot().GetVector()) * 0.5);
         mtempM(0, 0) = 0.5 * aframe.GetRot().e0();
         mtempM(1, 1) = 0.5 * aframe.GetRot().e0();
         mtempM(2, 2) = 0.5 * aframe.GetRot().e0();
-        mtempQ.MatrTMultiply(mtempM, Jw1);
+
+        ChMatrix33<> mtempQ;
+        mtempQ = mtempM.transpose() * Jw1;
         Jw1 = mtempQ;
-        mtempQ.MatrTMultiply(mtempM, Jw2);
+        mtempQ = mtempM.transpose() * Jw2;
         Jw2 = mtempQ;
         
         int nc = 0;
 
         if (c_x) {
-            this->C->ElementN(nc) = aframe.GetPos().x();
-            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jx1, 0, 0, 1, 3, 0, 0);
-            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jr1, 0, 0, 1, 3, 0, 3);
-            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(Jx2, 0, 0, 1, 3, 0, 0);
-            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(Jr2, 0, 0, 1, 3, 0, 3);
+            C(nc) = aframe.GetPos().x();
+            mask.Constr_N(nc).Get_Cq_a().segment(0, 3) = Jx1.row(0);
+            mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jr1.row(0);
+            mask.Constr_N(nc).Get_Cq_b().segment(0, 3) = Jx2.row(0);
+            mask.Constr_N(nc).Get_Cq_b().segment(3, 3) = Jr2.row(0);
             nc++;
         }
         if (c_y) {
-            this->C->ElementN(nc) = aframe.GetPos().y();
-            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jx1, 1, 0, 1, 3, 0, 0);
-            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jr1, 1, 0, 1, 3, 0, 3);
-            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(Jx2, 1, 0, 1, 3, 0, 0);
-            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(Jr2, 1, 0, 1, 3, 0, 3);
+            C(nc) = aframe.GetPos().y();
+            mask.Constr_N(nc).Get_Cq_a().segment(0, 3) = Jx1.row(1);
+            mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jr1.row(1);
+            mask.Constr_N(nc).Get_Cq_b().segment(0, 3) = Jx2.row(1);
+            mask.Constr_N(nc).Get_Cq_b().segment(3, 3) = Jr2.row(1);
             nc++;
         }
         if (c_z) {
-            this->C->ElementN(nc) = aframe.GetPos().z();
-            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jx1, 2, 0, 1, 3, 0, 0);
-            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jr1, 2, 0, 1, 3, 0, 3);
-            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(Jx2, 2, 0, 1, 3, 0, 0);
-            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(Jr2, 2, 0, 1, 3, 0, 3);
+            C(nc) = aframe.GetPos().z();
+            mask.Constr_N(nc).Get_Cq_a().segment(0, 3) = Jx1.row(2);
+            mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jr1.row(2);
+            mask.Constr_N(nc).Get_Cq_b().segment(0, 3) = Jx2.row(2);
+            mask.Constr_N(nc).Get_Cq_b().segment(3, 3) = Jr2.row(2);
             nc++;
         }
         if (c_rx) {
-            this->C->ElementN(nc) = aframe.GetRot().e1();
-            this->mask->Constr_N(nc).Get_Cq_a()->FillElem(0);
-            this->mask->Constr_N(nc).Get_Cq_b()->FillElem(0);
-            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jw1, 0, 0, 1, 3, 0, 3);
-            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(Jw2, 0, 0, 1, 3, 0, 3);
+            C(nc) = aframe.GetRot().e1();
+            mask.Constr_N(nc).Get_Cq_a().setZero();
+            mask.Constr_N(nc).Get_Cq_b().setZero();
+            mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jw1.row(0);
+            mask.Constr_N(nc).Get_Cq_b().segment(3, 3) = Jw2.row(0);
             nc++;
         }
         if (c_ry) {
-            this->C->ElementN(nc) = aframe.GetRot().e2();
-            this->mask->Constr_N(nc).Get_Cq_a()->FillElem(0);
-            this->mask->Constr_N(nc).Get_Cq_b()->FillElem(0);
-            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jw1, 1, 0, 1, 3, 0, 3);
-            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(Jw2, 1, 0, 1, 3, 0, 3);
+            C(nc) = aframe.GetRot().e2();
+            mask.Constr_N(nc).Get_Cq_a().setZero();
+            mask.Constr_N(nc).Get_Cq_b().setZero();
+            mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jw1.row(1);
+            mask.Constr_N(nc).Get_Cq_b().segment(3, 3) = Jw2.row(1);
             nc++;
         }
         if (c_rz) {
-            this->C->ElementN(nc) = aframe.GetRot().e3();
-            this->mask->Constr_N(nc).Get_Cq_a()->FillElem(0);
-            this->mask->Constr_N(nc).Get_Cq_b()->FillElem(0);
-            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jw1, 2, 0, 1, 3, 0, 3);
-            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(Jw2, 2, 0, 1, 3, 0, 3);
+            C(nc) = aframe.GetRot().e3();
+            mask.Constr_N(nc).Get_Cq_a().setZero();
+            mask.Constr_N(nc).Get_Cq_b().setZero();
+            mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jw1.row(2);
+            mask.Constr_N(nc).Get_Cq_b().segment(3, 3) = Jw2.row(2);
             nc++;
         }
-
     }
 }
 
@@ -254,7 +236,7 @@ void ChLinkMateGeneric::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
     this->Body2 = mbody2.get();
     // this->SetSystem(mbody1->GetSystem());
 
-    this->mask->SetTwoBodiesVariables(&Body1->Variables(), &Body2->Variables());
+    this->mask.SetTwoBodiesVariables(&Body1->Variables(), &Body2->Variables());
 
     if (pos_are_relative) {
         this->frame1 = mpos1;
@@ -288,7 +270,7 @@ void ChLinkMateGeneric::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
     this->Body2 = mbody2.get();
     // this->SetSystem(mbody1->GetSystem());
 
-    this->mask->SetTwoBodiesVariables(&Body1->Variables(), &Body2->Variables());
+    this->mask.SetTwoBodiesVariables(&Body1->Variables(), &Body2->Variables());
 
     ChVector<> mx, my, mz, mN;
     ChMatrix33<> mrot;
@@ -336,32 +318,32 @@ void ChLinkMateGeneric::IntStateGatherReactions(const unsigned int off_L, ChVect
 
     int nc = 0;
     if (c_x) {
-        if (mask->Constr_N(nc).IsActive())
+        if (mask.Constr_N(nc).IsActive())
             L(off_L + nc) = -react_force.x();
         nc++;
     }
     if (c_y) {
-        if (mask->Constr_N(nc).IsActive())
+        if (mask.Constr_N(nc).IsActive())
             L(off_L + nc) = -react_force.y();
         nc++;
     }
     if (c_z) {
-        if (mask->Constr_N(nc).IsActive())
+        if (mask.Constr_N(nc).IsActive())
             L(off_L + nc) = -react_force.z();
         nc++;
     }
     if (c_rx) {
-        if (mask->Constr_N(nc).IsActive())
+        if (mask.Constr_N(nc).IsActive())
             L(off_L + nc) = -2.0 * react_torque.x();
         nc++;
     }
     if (c_ry) {
-        if (mask->Constr_N(nc).IsActive())
+        if (mask.Constr_N(nc).IsActive())
             L(off_L + nc) = -2.0 * react_torque.y();
         nc++;
     }
     if (c_rz) {
-        if (mask->Constr_N(nc).IsActive())
+        if (mask.Constr_N(nc).IsActive())
             L(off_L + nc) = -2.0 * react_torque.z();
         nc++;
     }
@@ -376,32 +358,32 @@ void ChLinkMateGeneric::IntStateScatterReactions(const unsigned int off_L, const
 
     int nc = 0;
     if (c_x) {
-        if (mask->Constr_N(nc).IsActive())
+        if (mask.Constr_N(nc).IsActive())
             react_force.x() = -L(off_L + nc);
         nc++;
     }
     if (c_y) {
-        if (mask->Constr_N(nc).IsActive())
+        if (mask.Constr_N(nc).IsActive())
             react_force.y() = -L(off_L + nc);
         nc++;
     }
     if (c_z) {
-        if (mask->Constr_N(nc).IsActive())
+        if (mask.Constr_N(nc).IsActive())
             react_force.z() = -L(off_L + nc);
         nc++;
     }
     if (c_rx) {
-        if (mask->Constr_N(nc).IsActive())
+        if (mask.Constr_N(nc).IsActive())
             react_torque.x() = -0.5 * L(off_L + nc);
         nc++;
     }
     if (c_ry) {
-        if (mask->Constr_N(nc).IsActive())
+        if (mask.Constr_N(nc).IsActive())
             react_torque.y() = -0.5 * L(off_L + nc);
         nc++;
     }
     if (c_rz) {
-        if (mask->Constr_N(nc).IsActive())
+        if (mask.Constr_N(nc).IsActive())
             react_torque.z() = -0.5 * L(off_L + nc);
         nc++;
     }
@@ -412,9 +394,9 @@ void ChLinkMateGeneric::IntLoadResidual_CqL(const unsigned int off_L,
                                             const ChVectorDynamic<>& L,
                                             const double c) {
     int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
-            mask->Constr_N(i).MultiplyTandAdd(R, L(off_L + cnt) * c);
+    for (int i = 0; i < mask.nconstr; i++) {
+        if (mask.Constr_N(i).IsActive()) {
+            mask.Constr_N(i).MultiplyTandAdd(R, L(off_L + cnt) * c);
             cnt++;
         }
     }
@@ -426,15 +408,15 @@ void ChLinkMateGeneric::IntLoadConstraint_C(const unsigned int off_L,
                                             bool do_clamp,
                                             double recovery_clamp) {
     int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
+    for (int i = 0; i < mask.nconstr; i++) {
+        if (mask.Constr_N(i).IsActive()) {
             if (do_clamp) {
-                if (mask->Constr_N(i).IsUnilateral())
-                    Qc(off_L + cnt) += ChMax(c * C->ElementN(cnt), -recovery_clamp);
+                if (mask.Constr_N(i).IsUnilateral())
+                    Qc(off_L + cnt) += ChMax(c * C(cnt), -recovery_clamp);
                 else
-                    Qc(off_L + cnt) += ChMin(ChMax(c * C->ElementN(cnt), -recovery_clamp), recovery_clamp);
+                    Qc(off_L + cnt) += ChMin(ChMax(c * C(cnt), -recovery_clamp), recovery_clamp);
             } else
-                Qc(off_L + cnt) += c * C->ElementN(cnt);
+                Qc(off_L + cnt) += c * C(cnt);
             cnt++;
         }
     }
@@ -451,10 +433,10 @@ void ChLinkMateGeneric::IntToDescriptor(const unsigned int off_v,
                                         const ChVectorDynamic<>& L,
                                         const ChVectorDynamic<>& Qc) {
     int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
-            mask->Constr_N(i).Set_l_i(L(off_L + cnt));
-            mask->Constr_N(i).Set_b_i(Qc(off_L + cnt));
+    for (int i = 0; i < mask.nconstr; i++) {
+        if (mask.Constr_N(i).IsActive()) {
+            mask.Constr_N(i).Set_l_i(L(off_L + cnt));
+            mask.Constr_N(i).Set_b_i(Qc(off_L + cnt));
             cnt++;
         }
     }
@@ -465,9 +447,9 @@ void ChLinkMateGeneric::IntFromDescriptor(const unsigned int off_v,
                                           const unsigned int off_L,
                                           ChVectorDynamic<>& L) {
     int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
-            L(off_L + cnt) = mask->Constr_N(i).Get_l_i();
+    for (int i = 0; i < mask.nconstr; i++) {
+        if (mask.Constr_N(i).IsActive()) {
+            L(off_L + cnt) = mask.Constr_N(i).Get_l_i();
             cnt++;
         }
     }
@@ -479,9 +461,9 @@ void ChLinkMateGeneric::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     if (!this->IsActive())
         return;
 
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive())
-            mdescriptor.InsertConstraint(&mask->Constr_N(i));
+    for (int i = 0; i < mask.nconstr; i++) {
+        if (mask.Constr_N(i).IsActive())
+            mdescriptor.InsertConstraint(&mask.Constr_N(i));
     }
 }
 
@@ -489,8 +471,8 @@ void ChLinkMateGeneric::ConstraintsBiReset() {
     if (!this->IsActive())
         return;
 
-    for (int i = 0; i < mask->nconstr; i++) {
-        mask->Constr_N(i).Set_b_i(0.);
+    for (int i = 0; i < mask.nconstr; i++) {
+        mask.Constr_N(i).Set_b_i(0.);
     }
 }
 
@@ -510,17 +492,17 @@ void ChLinkMateGeneric::ConstraintsBiLoad_C(double factor, double recovery_clamp
         GetLog()<< *this->C << "\n";
     */
     int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
+    for (int i = 0; i < mask.nconstr; i++) {
+        if (mask.Constr_N(i).IsActive()) {
             if (do_clamp) {
-                if (mask->Constr_N(i).IsUnilateral())
-                    mask->Constr_N(i).Set_b_i(mask->Constr_N(i).Get_b_i() +
-                                              ChMax(factor * C->ElementN(cnt), -recovery_clamp));
+                if (mask.Constr_N(i).IsUnilateral())
+                    mask.Constr_N(i).Set_b_i(mask.Constr_N(i).Get_b_i() +
+                                              ChMax(factor * C(cnt), -recovery_clamp));
                 else
-                    mask->Constr_N(i).Set_b_i(mask->Constr_N(i).Get_b_i() +
-                                              ChMin(ChMax(factor * C->ElementN(cnt), -recovery_clamp), recovery_clamp));
+                    mask.Constr_N(i).Set_b_i(mask.Constr_N(i).Get_b_i() +
+                                              ChMin(ChMax(factor * C(cnt), -recovery_clamp), recovery_clamp));
             } else
-                mask->Constr_N(i).Set_b_i(mask->Constr_N(i).Get_b_i() + factor * C->ElementN(cnt));
+                mask.Constr_N(i).Set_b_i(mask.Constr_N(i).Get_b_i() + factor * C(cnt));
 
             cnt++;
         }
@@ -547,33 +529,33 @@ void ChLinkMateGeneric::ConstraintsFetch_react(double factor) {
 
     int nc = 0;
     if (c_x) {
-        if (mask->Constr_N(nc).IsActive())
-            react_force.x() = -mask->Constr_N(nc).Get_l_i() * factor;
+        if (mask.Constr_N(nc).IsActive())
+            react_force.x() = -mask.Constr_N(nc).Get_l_i() * factor;
         nc++;
     }
     if (c_y) {
-        if (mask->Constr_N(nc).IsActive())
-            react_force.y() = -mask->Constr_N(nc).Get_l_i() * factor;
+        if (mask.Constr_N(nc).IsActive())
+            react_force.y() = -mask.Constr_N(nc).Get_l_i() * factor;
         nc++;
     }
     if (c_z) {
-        if (mask->Constr_N(nc).IsActive())
-            react_force.z() = -mask->Constr_N(nc).Get_l_i() * factor;
+        if (mask.Constr_N(nc).IsActive())
+            react_force.z() = -mask.Constr_N(nc).Get_l_i() * factor;
         nc++;
     }
     if (c_rx) {
-        if (mask->Constr_N(nc).IsActive())
-            react_torque.x() = -0.5 * mask->Constr_N(nc).Get_l_i() * factor;
+        if (mask.Constr_N(nc).IsActive())
+            react_torque.x() = -0.5 * mask.Constr_N(nc).Get_l_i() * factor;
         nc++;
     }
     if (c_ry) {
-        if (mask->Constr_N(nc).IsActive())
-            react_torque.y() = -0.5 * mask->Constr_N(nc).Get_l_i() * factor;
+        if (mask.Constr_N(nc).IsActive())
+            react_torque.y() = -0.5 * mask.Constr_N(nc).Get_l_i() * factor;
         nc++;
     }
     if (c_rz) {
-        if (mask->Constr_N(nc).IsActive())
-            react_torque.z() = -0.5 * mask->Constr_N(nc).Get_l_i() * factor;
+        if (mask.Constr_N(nc).IsActive())
+            react_torque.z() = -0.5 * mask.Constr_N(nc).Get_l_i() * factor;
         nc++;
     }
 }
@@ -648,7 +630,7 @@ void ChLinkMatePlane::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
     // two normals are opposed (default behavior, otherwise is considered 'flipped')
 
     ChVector<> mnorm1_reversed;
-    if (!this->flipped)
+    if (!flipped)
         mnorm1_reversed = -mnorm1;
     else
         mnorm1_reversed = mnorm1;
@@ -662,7 +644,7 @@ void ChLinkMatePlane::Update(double mtime, bool update_assets) {
     ChLinkMateGeneric::Update(mtime, update_assets);
 
     // .. then add the effect of imposed distance on C residual vector
-    this->C->Element(0, 0) -= this->separation;  // for this mate, C = {Cx, Cry, Crz}
+    C(0) -= separation;  // for this mate, C = {Cx, Cry, Crz}
 }
 
 void ChLinkMatePlane::ArchiveOUT(ChArchiveOut& marchive) {
@@ -700,13 +682,13 @@ ChLinkMateCoaxial::ChLinkMateCoaxial(const ChLinkMateCoaxial& other) : ChLinkMat
 }
 
 void ChLinkMateCoaxial::SetFlipped(bool doflip) {
-    if (doflip != this->flipped) {
+    if (doflip != flipped) {
         // swaps direction of X axis by flipping 180° the frame A (slave)
 
         ChFrame<> frameRotator(VNULL, Q_from_AngAxis(CH_C_PI, VECT_Y));
         this->frame1.ConcatenatePostTransformation(frameRotator);
 
-        this->flipped = doflip;
+        flipped = doflip;
     }
 }
 
@@ -721,7 +703,7 @@ void ChLinkMateCoaxial::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
     // two normals are opposed (default behavior, otherwise is considered 'flipped')
 
     ChVector<> mnorm1_reversed;
-    if (!this->flipped)
+    if (!flipped)
         mnorm1_reversed = mnorm1;
     else
         mnorm1_reversed = -mnorm1;
@@ -790,7 +772,7 @@ void ChLinkMateXdistance::Update(double mtime, bool update_assets) {
     ChLinkMateGeneric::Update(mtime, update_assets);
 
     // .. then add the effect of imposed distance on C residual vector
-    this->C->Element(0, 0) -= this->distance;  // for this mate, C = {Cx}
+    C(0) -= distance;  // for this mate, C = {Cx}
 }
 
 void ChLinkMateXdistance::ArchiveOUT(ChArchiveOut& marchive) {
@@ -826,13 +808,13 @@ ChLinkMateParallel::ChLinkMateParallel(const ChLinkMateParallel& other) : ChLink
 }
 
 void ChLinkMateParallel::SetFlipped(bool doflip) {
-    if (doflip != this->flipped) {
+    if (doflip != flipped) {
         // swaps direction of X axis by flipping 180° the frame A (slave)
 
         ChFrame<> frameRotator(VNULL, Q_from_AngAxis(CH_C_PI, VECT_Y));
         this->frame1.ConcatenatePostTransformation(frameRotator);
 
-        this->flipped = doflip;
+        flipped = doflip;
     }
 }
 
@@ -847,7 +829,7 @@ void ChLinkMateParallel::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
     // two axes are aligned (default behavior, otherwise is considered 'flipped')
 
     ChVector<> mnorm1_reversed;
-    if (!this->flipped)
+    if (!flipped)
         mnorm1_reversed = mnorm1;
     else
         mnorm1_reversed = -mnorm1;
@@ -898,11 +880,11 @@ void ChLinkMateOrthogonal::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
     // set the two frames so that they have the X axis aligned
     ChVector<> mabsnorm1, mabsnorm2;
     if (pos_are_relative) {
-        this->reldir1 = mnorm1;
-        this->reldir2 = mnorm2;
+        reldir1 = mnorm1;
+        reldir2 = mnorm2;
     } else {
-        this->reldir1 = mbody1->TransformDirectionParentToLocal(mnorm1);
-        this->reldir2 = mbody2->TransformDirectionParentToLocal(mnorm2);
+        reldir1 = mbody1->TransformDirectionParentToLocal(mnorm1);
+        reldir2 = mbody2->TransformDirectionParentToLocal(mnorm2);
     }
 
     // do this asap otherwise the following Update() won't work..
@@ -927,8 +909,8 @@ void ChLinkMateOrthogonal::Update(double mtime, bool update_assets) {
     ChVector<> mabsD1, mabsD2;
 
     if (this->Body1 && this->Body2) {
-        mabsD1 = this->Body1->TransformDirectionLocalToParent(this->reldir1);
-        mabsD2 = this->Body2->TransformDirectionLocalToParent(this->reldir2);
+        mabsD1 = this->Body1->TransformDirectionLocalToParent(reldir1);
+        mabsD2 = this->Body2->TransformDirectionLocalToParent(reldir2);
 
         ChVector<> mX = Vcross(mabsD2, mabsD1);
         double xlen = mX.Length();

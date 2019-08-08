@@ -14,7 +14,18 @@
 //
 // =============================================================================
 
+#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChCapsuleShape.h"
 #include "chrono/assets/ChColorAsset.h"
+#include "chrono/assets/ChConeShape.h"
+#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChEllipsoidShape.h"
+#include "chrono/assets/ChLineShape.h"
+#include "chrono/assets/ChRoundedBoxShape.h"
+#include "chrono/assets/ChRoundedCylinderShape.h"
+#include "chrono/assets/ChSphereShape.h"
+#include "chrono/assets/ChTriangleMeshShape.h"
+
 #include "chrono/geometry/ChLineBezier.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 

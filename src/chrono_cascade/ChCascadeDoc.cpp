@@ -14,7 +14,6 @@
 
 #include "chrono_cascade/ChCascadeDoc.h"
 
-#include "chrono/core/ChMatrixDynamic.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono_cascade/ChCascadeMeshTools.h"
 
@@ -485,10 +484,10 @@ std::shared_ptr<ChBodyAuxRef> ChCascadeDoc::CreateBodyFromShape(
 
 	// Add a visualization asset if needed
 	if (visual_asset) {
-		auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+		auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
 		ChCascadeMeshTools::fillTriangleMeshFromCascade(*trimesh, objshape);
 
-		auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+		auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
 		trimesh_shape->SetMesh(trimesh);
 		mbody->AddAsset(trimesh_shape);
 

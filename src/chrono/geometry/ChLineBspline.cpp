@@ -80,7 +80,7 @@ void ChLineBspline::SetupData(
     if (mpoints.size() < morder + 1)
         throw ChException("ChLineBspline::SetupData requires at least order+1 control points.");
 
-    if (mknots && mknots->GetLength() != (mpoints.size() + morder + 1))
+    if (mknots && mknots->size() != (mpoints.size() + morder + 1))
         throw ChException("ChLineBspline::SetupData: knots must have size=n_points+order+1");
 
     this->p = morder;
@@ -89,9 +89,9 @@ void ChLineBspline::SetupData(
     int k = n + p + 1;
 
     if (mknots)
-        this->knots.CopyFromMatrix(*mknots);
+        this->knots = *mknots;
     else {
-        this->knots.Reset(n + p + 1);
+        this->knots.setZero(n + p + 1);
         ChBasisToolsBspline::ComputeKnotUniformMultipleEnds(this->knots, p);
     }
 }
@@ -114,7 +114,7 @@ void ChLineBspline::ArchiveIN(ChArchiveIn& marchive) {
     ChLine::ArchiveIN(marchive);
     // stream in all member data:
     marchive >> CHNVP(points);
-    marchive >> CHNVP(knots);
+    ////marchive >> CHNVP(knots);
     marchive >> CHNVP(p);
 }
 

@@ -50,6 +50,9 @@
 
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChVector.h"
+#include "chrono/solver/ChSolver.h"
+#include "chrono/solver/ChIterativeSolver.h"
+#include "chrono/solver/ChSolverMINRES.h"
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChShaft.h"
@@ -62,6 +65,7 @@
 #include "chrono/physics/ChLinkSpringCB.h"
 #include "chrono/physics/ChLinkRotSpringCB.h"
 #include "chrono/physics/ChLoadsBody.h"
+#include "chrono/physics/ChLoadsXYZnode.h"
 #include "chrono/physics/ChPhysicsItem.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
@@ -89,6 +93,7 @@
 #include "chrono_models/vehicle/ChVehicleModelDefs.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
+#include "Eigen/src/Core/util/Memory.h"
 
 
 using namespace chrono;
@@ -105,6 +110,7 @@ using namespace chrono::vehicle::sedan;
 // Undefine ChApiFea otherwise SWIG gives a syntax error
 #define CH_VEHICLE_API 
 #define ChApi
+#define EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
 #define CH_MODELS_API
 

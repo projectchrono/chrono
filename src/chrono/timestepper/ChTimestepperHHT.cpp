@@ -21,8 +21,8 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChTimestepperHHT)
 
-ChTimestepperHHT::ChTimestepperHHT(ChIntegrableIIorder* mintegrable)
-    : ChTimestepperIIorder(mintegrable),
+ChTimestepperHHT::ChTimestepperHHT(ChIntegrableIIorder* intgr)
+    : ChTimestepperIIorder(intgr),
       ChImplicitIterativeTimestepper(),
       mode(ACCELERATION),
       scaling(false),
@@ -57,20 +57,20 @@ void ChTimestepperHHT::Advance(const double dt) {
     mintegrable->StateSetup(X, V, A);
 
     // Setup auxiliary vectors
-    Da.Reset(mintegrable->GetNcoords_a(), mintegrable);
+    Da.setZero(mintegrable->GetNcoords_a(), mintegrable);
     if (mode == POSITION) {
-        Xprev.Reset(mintegrable->GetNcoords_x(), mintegrable);
-        Dx.Reset(mintegrable->GetNcoords_v(), mintegrable);
+        Xprev.setZero(mintegrable->GetNcoords_x(), mintegrable);
+        Dx.setZero(mintegrable->GetNcoords_v(), mintegrable);
     }
-    Dl.Reset(mintegrable->GetNconstr());
-    Xnew.Reset(mintegrable->GetNcoords_x(), mintegrable);
-    Vnew.Reset(mintegrable->GetNcoords_v(), mintegrable);
-    Anew.Reset(mintegrable->GetNcoords_a(), mintegrable);
-    R.Reset(mintegrable->GetNcoords_v());
-    Rold.Reset(mintegrable->GetNcoords_v());
-    Qc.Reset(mintegrable->GetNconstr());
-    L.Reset(mintegrable->GetNconstr());
-    Lnew.Reset(mintegrable->GetNconstr());
+    Dl.setZero(mintegrable->GetNconstr());
+    Xnew.setZero(mintegrable->GetNcoords_x(), mintegrable);
+    Vnew.setZero(mintegrable->GetNcoords_v(), mintegrable);
+    Anew.setZero(mintegrable->GetNcoords_a(), mintegrable);
+    R.setZero(mintegrable->GetNcoords_v());
+    Rold.setZero(mintegrable->GetNcoords_v());
+    Qc.setZero(mintegrable->GetNconstr());
+    L.setZero(mintegrable->GetNconstr());
+    Lnew.setZero(mintegrable->GetNconstr());
 
     // State at current time T
     mintegrable->StateGather(X, V, T);        // state <- system
@@ -168,20 +168,20 @@ void ChTimestepperHHT::Advance(const double dt) {
             A = Anew;
             L = Lnew;
 
-        /*
-        } else if (!matrix_is_current) {
-            // ------ NR did not converge but the matrix was out-of-date
+            /*
+            } else if (!matrix_is_current) {
+                // ------ NR did not converge but the matrix was out-of-date
 
-            // reset the count of successive successful steps
-            num_successful_steps = 0;
+                // reset the count of successive successful steps
+                num_successful_steps = 0;
 
-            // re-attempt step with updated matrix
-            if (verbose) {
-                GetLog() << " HHT re-attempt step with updated matrix.\n";
-            }
+                // re-attempt step with updated matrix
+                if (verbose) {
+                    GetLog() << " HHT re-attempt step with updated matrix.\n";
+                }
 
-            call_setup = true;
-        */
+                call_setup = true;
+            */
 
         } else if (!step_control) {
             // ------ NR did not converge and we do not control stepsize
@@ -229,8 +229,8 @@ void ChTimestepperHHT::Advance(const double dt) {
 
         // In case we go back in the loop
         //// TODO: this is wasted work if we DO NOT go back
-        Rold.Reset();
-        Anew.Reset(mintegrable->GetNcoords_a(), mintegrable);
+        Rold.setZero();
+        Anew.setZero(mintegrable->GetNcoords_a(), mintegrable);
     }
 
     // Scatter auxiliary data (A and L) -> system
@@ -290,8 +290,8 @@ void ChTimestepperHHT::Increment(ChIntegrableIIorder* integrable, double scaling
     integrable->StateScatter(Xnew, Vnew, T + h);
 
     // Initialize the two segments of the RHS
-    R = Rold;    // terms related to state at time T
-    Qc.Reset();  // zero
+    R = Rold;      // terms related to state at time T
+    Qc.setZero();  // zero
 
     switch (mode) {
         case ACCELERATION:
@@ -309,7 +309,7 @@ void ChTimestepperHHT::Increment(ChIntegrableIIorder* integrable, double scaling
                                              Xnew, Vnew, T + h,  // not used here (force_scatter = false)
                                              false,              // do not scatter states
                                              call_setup          // call Setup?
-                                             );
+            );
 
             // Update estimate of state at t+h
             Lnew += Dl;  // not -= Dl because we assume StateSolveCorrection flips sign of Dl
@@ -334,7 +334,7 @@ void ChTimestepperHHT::Increment(ChIntegrableIIorder* integrable, double scaling
                                              Xnew, Vnew, T + h,  // not used here(force_scatter = false)
                                              false,              // do not scatter states
                                              call_setup          // call Setup?
-                                             );
+            );
 
             // Update estimate of state at t+h
             Lnew += Dl * (1.0 / scaling_factor);  // not -= Dl because we assume StateSolveCorrection flips sign of Dl
@@ -363,15 +363,15 @@ bool ChTimestepperHHT::CheckConvergence(double scaling_factor) {
             //    |R|_2 < atol
             // or |D|_WRMS < 1
             // Both states and Lagrange multipliers must converge.
-            double R_nrm = R.NormTwo();
-            double Qc_nrm = Qc.NormTwo();
-            double Da_nrm = Da.NormWRMS(ewtS);
-            double Dl_nrm = Dl.NormWRMS(ewtL);
+            double R_nrm = R.norm();
+            double Qc_nrm = Qc.norm();
+            double Da_nrm = Da.wrmsNorm(ewtS);
+            double Dl_nrm = Dl.wrmsNorm(ewtL);
 
             if (verbose) {
                 GetLog() << " HHT iteration=" << numiters << "  |R|=" << R_nrm << "  |Qc|=" << Qc_nrm
-                         << "  |Da|=" << Da_nrm << "  |Dl|=" << Dl_nrm << "  N = " << R.GetLength()
-                         << "  M = " << Qc.GetLength() << "\n";
+                         << "  |Da|=" << Da_nrm << "  |Dl|=" << Dl_nrm << "  N = " << (int)R.size()
+                         << "  M = " << (int)Qc.size() << "\n";
             }
 
             if ((R_nrm < abstolS && Qc_nrm < abstolL) || (Da_nrm < 1 && Dl_nrm < 1))
@@ -384,10 +384,10 @@ bool ChTimestepperHHT::CheckConvergence(double scaling_factor) {
             // (relative + absolute tolerance test).
             // Note that the scaling factor must be properly included in the update to
             // the Lagrange multipliers.
-            double Dx_nrm = (Xnew - Xprev).NormWRMS(ewtS);
+            double Dx_nrm = (Xnew - Xprev).wrmsNorm(ewtS);
             Xprev = Xnew;
 
-            double Dl_nrm = Dl.NormWRMS(ewtL);
+            double Dl_nrm = Dl.wrmsNorm(ewtL);
             Dl_nrm /= scaling_factor;
 
             if (verbose) {
@@ -407,50 +407,47 @@ bool ChTimestepperHHT::CheckConvergence(double scaling_factor) {
 // Calculate the error weight vector corresponding to the specified solution vector x,
 // using the given relative and absolute tolerances.
 void ChTimestepperHHT::CalcErrorWeights(const ChVectorDynamic<>& x, double rtol, double atol, ChVectorDynamic<>& ewt) {
-    ewt.Reset(x.GetLength());
-    for (int i = 0; i < x.GetLength(); ++i) {
-        ewt.ElementN(i) = 1.0 / (rtol * std::abs(x.ElementN(i)) + atol);
-    }
+    ewt = (rtol * x.cwiseAbs() + atol).cwiseInverse();
 }
 
 // Trick to avoid putting the following mapper macro inside the class definition in .h file:
 // enclose macros in local 'my_enum_mappers', just to avoid avoiding cluttering of the parent class.
 class my_enum_mappers : public ChTimestepperHHT {
-public:
+  public:
     CH_ENUM_MAPPER_BEGIN(HHT_Mode);
     CH_ENUM_VAL(ACCELERATION);
     CH_ENUM_VAL(POSITION);
     CH_ENUM_MAPPER_END(HHT_Mode);
 };
 
-void ChTimestepperHHT::ArchiveOUT(ChArchiveOut& marchive) {
+void ChTimestepperHHT::ArchiveOUT(ChArchiveOut& archive) {
     // version number
-    marchive.VersionWrite<ChTimestepperHHT>();
+    archive.VersionWrite<ChTimestepperHHT>();
     // serialize parent class:
-    ChTimestepperIIorder::ArchiveOUT(marchive);
-    ChImplicitIterativeTimestepper::ArchiveOUT(marchive);
+    ChTimestepperIIorder::ArchiveOUT(archive);
+    ChImplicitIterativeTimestepper::ArchiveOUT(archive);
     // serialize all member data:
-    marchive << CHNVP(alpha);
-    marchive << CHNVP(beta);
-    marchive << CHNVP(gamma);
-    marchive << CHNVP(scaling);
+    archive << CHNVP(alpha);
+    archive << CHNVP(beta);
+    archive << CHNVP(gamma);
+    archive << CHNVP(scaling);
     my_enum_mappers::HHT_Mode_mapper modemapper;
-    marchive << CHNVP(modemapper(mode), "mode");
+    archive << CHNVP(modemapper(mode), "mode");
 }
 
-void ChTimestepperHHT::ArchiveIN(ChArchiveIn& marchive) {
+void ChTimestepperHHT::ArchiveIN(ChArchiveIn& archive) {
     // version number
-    int version = marchive.VersionRead<ChTimestepperHHT>();
+    int version = archive.VersionRead<ChTimestepperHHT>();
     // deserialize parent class:
-    ChTimestepperIIorder::ArchiveIN(marchive);
-    ChImplicitIterativeTimestepper::ArchiveIN(marchive);
+    ChTimestepperIIorder::ArchiveIN(archive);
+    ChImplicitIterativeTimestepper::ArchiveIN(archive);
     // stream in all member data:
-    marchive >> CHNVP(alpha);
-    marchive >> CHNVP(beta);
-    marchive >> CHNVP(gamma);
-    marchive >> CHNVP(scaling);
+    archive >> CHNVP(alpha);
+    archive >> CHNVP(beta);
+    archive >> CHNVP(gamma);
+    archive >> CHNVP(scaling);
     my_enum_mappers::HHT_Mode_mapper modemapper;
-    marchive >> CHNVP(modemapper(mode), "mode");
+    archive >> CHNVP(modemapper(mode), "mode");
 }
 
 }  // end namespace chrono

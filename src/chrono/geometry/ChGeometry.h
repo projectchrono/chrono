@@ -78,7 +78,7 @@ class ChApi ChGeometry {
                                 double& ymax,
                                 double& zmin,
                                 double& zmax,
-                                ChMatrix33<>* Rot = NULL) const {
+                                ChMatrix33<>* Rot = nullptr) const {
         xmin = xmax = ymin = ymax = zmin = zmax = 0.0;
     }
 
@@ -103,7 +103,7 @@ class ChApi ChGeometry {
     /// Compute the 3x3 covariance matrix (only the diagonal and upper part)
     /// It should be overridden by inherited classes
     // TODO: obsolete (unused)
-    virtual void CovarianceMatrix(ChMatrix33<>& C) const { C.Reset(); }
+    virtual void CovarianceMatrix(ChMatrix33<>& C) const { C.setZero(); }
 
     /// Tells the dimension of the geometry
     /// (0=point, 1=line, 2=surface, 3=solid)

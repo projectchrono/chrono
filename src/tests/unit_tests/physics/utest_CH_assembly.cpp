@@ -64,7 +64,7 @@ TEST(FullAssembly, Assemble) {
     my_system.SetTolForce(1e-4);
 
     // Create the ground body
-    auto ground = std::make_shared<ChBody>();
+    auto ground = chrono_types::make_shared<ChBody>();
     my_system.AddBody(ground);
     ground->SetIdentifier(0);
     ground->SetBodyFixed(true);
@@ -73,7 +73,7 @@ TEST(FullAssembly, Assemble) {
     // orientation that matches the specified joint orientation and a position
     // consistent with the specified joint location.
     // The pendulum CG is assumed to be at half its length.
-    auto pendulum = std::make_shared<ChBody>();
+    auto pendulum = chrono_types::make_shared<ChBody>();
     my_system.AddBody(pendulum);
     pendulum->SetIdentifier(1);
     pendulum->SetPos(jointLoc + jointRot.Rotate(ChVector<>(length / 2, 0, 0)));
@@ -84,9 +84,9 @@ TEST(FullAssembly, Assemble) {
     // Create revolute joint between pendulum and ground at "loc" in the global
     // reference frame. The revolute joint's axis of rotation will be the Z axis
     // of the specified rotation matrix.
-    auto revoluteJoint = std::make_shared<ChLinkLockRevolute>();
+    auto revoluteJoint = chrono_types::make_shared<ChLinkLockRevolute>();
     revoluteJoint->Initialize(pendulum, ground, ChCoordsys<>(jointLoc, jointRot));
-    ////auto revoluteJoint = std::make_shared<ChLinkRevolute>();
+    ////auto revoluteJoint = chrono_types::make_shared<ChLinkRevolute>();
     ////revoluteJoint->Initialize(pendulum, ground, ChFrame<>(jointLoc, jointRot));
     my_system.AddLink(revoluteJoint);
 
@@ -144,17 +144,6 @@ TEST(FullAssembly, Assemble) {
     ChVector<> rtrq_ref(lambda_5, -std::cos(jointAngle) * lambda_4, -std::sin(jointAngle) * lambda_4);
 
     // Compare simulation and analytical solution
-    bool passed = true;
-    passed &= pos.Equals(pos_ref, 1e-3);
-    passed &= rot.Equals(rot_ref, 1e-3);
-    passed &= lin_vel.Equals(lin_vel_ref, 1e-4);
-    passed &= ang_vel.Equals(ang_vel_ref, 1e-4);
-    passed &= lin_acc.Equals(lin_acc_ref, 1e-2);
-    passed &= ang_acc.Equals(ang_acc_ref, 1e-2);
-    passed &= rfrc.Equals(rfrc_ref, 1e-2);
-    passed &= rtrq.Equals(rtrq_ref, 1e-2);
-
-
     TestVector(pos, pos_ref, 1e-3);
     TestQuaternion(rot, rot_ref, 1e-4);
     TestVector(lin_vel, lin_vel_ref, 1e-4);

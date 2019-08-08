@@ -47,19 +47,19 @@ class Model {
 };
 
 Model::Model() {
-    m_system = std::make_shared<ChSystemNSC>();
+    m_system = chrono_types::make_shared<ChSystemNSC>();
 
     // Create a mesh, that is a container for groups of elements and
     // their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     // pasted part begins
-    auto msection_cable2 = std::make_shared<ChBeamSectionCable>();
+    auto msection_cable2 = chrono_types::make_shared<ChBeamSectionCable>();
     msection_cable2->SetDiameter(0.015);
     msection_cable2->SetYoungModulus(0.01e9);
     msection_cable2->SetBeamRaleyghDamping(0.000);
 
-    auto mtruss = std::make_shared<ChBody>();
+    auto mtruss = chrono_types::make_shared<ChBody>();
     mtruss->SetBodyFixed(true);
 
     ChBuilderBeamANCF builder;
@@ -74,24 +74,20 @@ Model::Model() {
 
     builder.GetLastBeamNodes().back()->SetForce(ChVector<>(0, -0.2, 0));
 
-    auto constraint_hinge = std::make_shared<ChLinkPointFrame>();
+    auto constraint_hinge = chrono_types::make_shared<ChLinkPointFrame>();
     constraint_hinge->Initialize(builder.GetLastBeamNodes().front(), mtruss);
     m_system->Add(constraint_hinge);
 
-    auto msphere = std::make_shared<ChSphereShape>();
-    msphere->GetSphereGeometry().rad = 0.02;
-    constraint_hinge->AddAsset(msphere);
-
     // make a box and connect it
-    m_box1 = std::make_shared<ChBodyEasyBox>(0.2, 0.04, 0.04, 1000);
+    m_box1 = chrono_types::make_shared<ChBodyEasyBox>(0.2, 0.04, 0.04, 1000);
     m_box1->SetPos(builder.GetLastBeamNodes().back()->GetPos() + ChVector<>(0.1, 0, 0));
     m_system->Add(m_box1);
 
-    auto constraint_pos = std::make_shared<ChLinkPointFrame>();
+    auto constraint_pos = chrono_types::make_shared<ChLinkPointFrame>();
     constraint_pos->Initialize(builder.GetLastBeamNodes().back(), m_box1);
     m_system->Add(constraint_pos);
 
-    auto constraint_dir = std::make_shared<ChLinkDirFrame>();
+    auto constraint_dir = chrono_types::make_shared<ChLinkDirFrame>();
     constraint_dir->Initialize(builder.GetLastBeamNodes().back(), m_box1);
     constraint_dir->SetDirectionInAbsoluteCoords(ChVector<>(1, 0, 0));
     m_system->Add(constraint_dir);
@@ -104,25 +100,25 @@ Model::Model() {
                       ChVector<>(m_box1->GetPos().x() + 0.1 + 0.1 * 6, 0, 0)  // point B (end of beam)
     );
 
-    auto constraint_pos2 = std::make_shared<ChLinkPointFrame>();
+    auto constraint_pos2 = chrono_types::make_shared<ChLinkPointFrame>();
     constraint_pos2->Initialize(builder.GetLastBeamNodes().front(), m_box1);
     m_system->Add(constraint_pos2);
 
-    auto constraint_dir2 = std::make_shared<ChLinkDirFrame>();
+    auto constraint_dir2 = chrono_types::make_shared<ChLinkDirFrame>();
     constraint_dir2->Initialize(builder.GetLastBeamNodes().front(), m_box1);
     constraint_dir2->SetDirectionInAbsoluteCoords(ChVector<>(1, 0, 0));
     m_system->Add(constraint_dir2);
 
     // make a box and connect it
-    m_box2 = std::make_shared<ChBodyEasyBox>(0.2, 0.04, 0.04, 1000);
+    m_box2 = chrono_types::make_shared<ChBodyEasyBox>(0.2, 0.04, 0.04, 1000);
     m_box2->SetPos(builder.GetLastBeamNodes().back()->GetPos() + ChVector<>(0.1, 0, 0));
     m_system->Add(m_box2);
 
-    auto constraint_pos3 = std::make_shared<ChLinkPointFrame>();
+    auto constraint_pos3 = chrono_types::make_shared<ChLinkPointFrame>();
     constraint_pos3->Initialize(builder.GetLastBeamNodes().back(), m_box2);
     m_system->Add(constraint_pos3);
 
-    auto constraint_dir3 = std::make_shared<ChLinkDirFrame>();
+    auto constraint_dir3 = chrono_types::make_shared<ChLinkDirFrame>();
     constraint_dir3->Initialize(builder.GetLastBeamNodes().back(), m_box2);
     constraint_dir3->SetDirectionInAbsoluteCoords(ChVector<>(1, 0, 0));
     m_system->Add(constraint_dir3);
@@ -166,7 +162,7 @@ TEST(ANCFcables_rigid_constraints, Minres_MKL) {
     model1.GetSystem()->SetTolForce(1e-13);
 
     // MODEL2 uses MKL (Pardiso)
-    auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+    auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
     mkl_solver->SetSparsityPatternLock(false);
     model2.GetSystem()->SetSolver(mkl_solver);
 

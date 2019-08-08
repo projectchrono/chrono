@@ -19,10 +19,9 @@
 #include <cmath>
 #include <sstream>
 
-#include "chrono/physics/ChGlobal.h"
+#include "chrono/core/ChGlobal.h"
 #include "chrono/core/ChLog.h"
 #include "chrono/core/ChMatrix.h"
-#include "chrono/core/ChMatrixDynamic.h"
 #include "chrono/core/ChVector.h"
 #include "chrono/core/ChClassFactory.h"
 #include "chrono/core/ChException.h"

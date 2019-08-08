@@ -21,7 +21,7 @@ ChNodeFEAxyzD::ChNodeFEAxyzD(ChVector<> initial_pos, ChVector<> initial_dir)
     : ChNodeFEAxyz(initial_pos), D(initial_dir), D_dt(VNULL), D_dtdt(VNULL) {
     variables_D = new ChVariablesGenericDiagonalMass(3);
     // default: no atomic mass associated to fea node, the fea element will add mass matrix
-    variables_D->GetMassDiagonal().FillElem(0.0);
+    variables_D->GetMassDiagonal().setZero();
 }
 
 ChNodeFEAxyzD::ChNodeFEAxyzD(const ChNodeFEAxyzD& other) : ChNodeFEAxyz(other) {
@@ -72,10 +72,11 @@ void ChNodeFEAxyzD::NodeIntStateGather(const unsigned int off_x,
                                        const unsigned int off_v,
                                        ChStateDelta& v,
                                        double& T) {
-    x.PasteVector(pos, off_x, 0);
-    x.PasteVector(D, off_x + 3, 0);
-    v.PasteVector(pos_dt, off_v, 0);
-    v.PasteVector(D_dt, off_v + 3, 0);
+    x.segment(off_x + 0, 3) = pos.eigen();
+    x.segment(off_x + 3, 3) = D.eigen();
+
+    v.segment(off_v + 0, 3) = pos_dt.eigen();
+    v.segment(off_v + 3, 3) = D_dt.eigen();
 }
 
 void ChNodeFEAxyzD::NodeIntStateScatter(const unsigned int off_x,
@@ -83,20 +84,20 @@ void ChNodeFEAxyzD::NodeIntStateScatter(const unsigned int off_x,
                                         const unsigned int off_v,
                                         const ChStateDelta& v,
                                         const double T) {
-    SetPos(x.ClipVector(off_x, 0));
-    SetD(x.ClipVector(off_x + 3, 0));
-    SetPos_dt(v.ClipVector(off_v, 0));
-    SetD_dt(v.ClipVector(off_v + 3, 0));
+    SetPos(x.segment(off_x, 3));
+    SetD(x.segment(off_x + 3, 3));
+    SetPos_dt(v.segment(off_v, 3));
+    SetD_dt(v.segment(off_v + 3, 3));
 }
 
 void ChNodeFEAxyzD::NodeIntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
-    a.PasteVector(pos_dtdt, off_a, 0);
-    a.PasteVector(D_dtdt, off_a + 3, 0);
+    a.segment(off_a + 0, 3) = pos_dtdt.eigen();
+    a.segment(off_a + 3, 3) = D_dtdt.eigen();
 }
 
 void ChNodeFEAxyzD::NodeIntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
-    SetPos_dtdt(a.ClipVector(off_a, 0));
-    SetD_dtdt(a.ClipVector(off_a + 3, 0));
+    SetPos_dtdt(a.segment(off_a, 3));
+    SetD_dtdt(a.segment(off_a + 3, 3));
 }
 
 void ChNodeFEAxyzD::NodeIntStateIncrement(const unsigned int off_x,
@@ -113,8 +114,8 @@ void ChNodeFEAxyzD::NodeIntStateIncrement(const unsigned int off_x,
 }
 
 void ChNodeFEAxyzD::NodeIntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
-    R.PasteSumVector(Force * c, off, 0);
-    R.PasteSumVector(VNULL, off + 3, 0);  // TODO something about applied nodal torque..
+    R.segment(off + 0, 3) += c * Force.eigen();
+    R.segment(off + 3, 3).setZero();  // TODO something about applied nodal torque..
 }
 
 void ChNodeFEAxyzD::NodeIntLoadResidual_Mv(const unsigned int off,
@@ -131,13 +132,13 @@ void ChNodeFEAxyzD::NodeIntLoadResidual_Mv(const unsigned int off,
 
 void ChNodeFEAxyzD::NodeIntToDescriptor(const unsigned int off_v, const ChStateDelta& v, const ChVectorDynamic<>& R) {
     ChNodeFEAxyz::NodeIntToDescriptor(off_v, v, R);
-    variables_D->Get_qb().PasteClippedMatrix(v, off_v + 3, 0, 3, 1, 0, 0);
-    variables_D->Get_fb().PasteClippedMatrix(R, off_v + 3, 0, 3, 1, 0, 0);
+    variables_D->Get_qb().segment(0, 3) = v.segment(off_v + 3, 3);
+    variables_D->Get_fb().segment(0, 3) = R.segment(off_v + 3, 3);
 }
 
 void ChNodeFEAxyzD::NodeIntFromDescriptor(const unsigned int off_v, ChStateDelta& v) {
     ChNodeFEAxyz::NodeIntFromDescriptor(off_v, v);
-    v.PasteMatrix(variables_D->Get_qb(), off_v + 3, 0);
+    v.segment(off_v + 3, 3) = variables_D->Get_qb().segment(0,3);
 }
 
 // -----------------------------------------------------------------------------
@@ -149,7 +150,7 @@ void ChNodeFEAxyzD::InjectVariables(ChSystemDescriptor& mdescriptor) {
 
 void ChNodeFEAxyzD::VariablesFbReset() {
     ChNodeFEAxyz::VariablesFbReset();
-    variables_D->Get_fb().FillElem(0.0);
+    variables_D->Get_fb().setZero();
 }
 
 void ChNodeFEAxyzD::VariablesFbLoadForces(double factor) {
@@ -159,14 +160,14 @@ void ChNodeFEAxyzD::VariablesFbLoadForces(double factor) {
 
 void ChNodeFEAxyzD::VariablesQbLoadSpeed() {
     ChNodeFEAxyz::VariablesQbLoadSpeed();
-    variables_D->Get_qb().PasteVector(D_dt, 0, 0);
+    variables_D->Get_qb().segment(0,3) = D_dt.eigen();
 }
 
 void ChNodeFEAxyzD::VariablesQbSetSpeed(double step) {
     ChNodeFEAxyz::VariablesQbSetSpeed(step);
 
     ChVector<> oldD_dt = D_dt;
-    SetD_dt(variables_D->Get_qb().ClipVector(0, 0));
+    SetD_dt(variables_D->Get_qb().segment(0, 3));
     if (step) {
         SetD_dtdt((D_dt - oldD_dt) / step);
     }
@@ -180,7 +181,7 @@ void ChNodeFEAxyzD::VariablesFbIncrementMq() {
 void ChNodeFEAxyzD::VariablesQbIncrementPosition(double step) {
     ChNodeFEAxyz::VariablesQbIncrementPosition(step);
 
-    ChVector<> newspeed_D = variables_D->Get_qb().ClipVector(0, 0);
+    ChVector<> newspeed_D(variables_D->Get_qb().segment(0, 3));
 
     // ADVANCE POSITION: pos' = pos + dt * vel
     SetD(GetD() + newspeed_D * step);
@@ -189,20 +190,17 @@ void ChNodeFEAxyzD::VariablesQbIncrementPosition(double step) {
 // -----------------------------------------------------------------------------
 
 void ChNodeFEAxyzD::ComputeNF(
-    const double U,              ///< x coordinate of application point in absolute space
-    const double V,              ///< y coordinate of application point in absolute space
-    const double W,              ///< z coordinate of application point in absolute space
-    ChVectorDynamic<>& Qi,       ///< Return result of N'*F  here, maybe with offset block_offset
-    double& detJ,                ///< Return det[J] here
-    const ChVectorDynamic<>& F,  ///< Input F vector, containing Force xyz in absolute coords and a 'pseudo' torque.
-    ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
-    ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
+    const double U,              // x coordinate of application point in absolute space
+    const double V,              // y coordinate of application point in absolute space
+    const double W,              // z coordinate of application point in absolute space
+    ChVectorDynamic<>& Qi,       // Return result of N'*F  here, maybe with offset block_offset
+    double& detJ,                // Return det[J] here
+    const ChVectorDynamic<>& F,  // Input F vector, containing Force xyz in absolute coords and a 'pseudo' torque.
+    ChVectorDynamic<>* state_x,  // if != 0, update state (pos. part) to this, then evaluate Q
+    ChVectorDynamic<>* state_w   // if != 0, update state (speed part) to this, then evaluate Q
     ) {
     // ChVector<> abs_pos(U,V,W); not needed, nodes has no torque. Assuming load is applied to node center
-    ChVector<> absF = F.ClipVector(0, 0);
-    ChVector<> absPseudoTorque = F.ClipVector(3, 0);
-    Qi.PasteVector(absF, 0, 0);
-    Qi.PasteVector(absPseudoTorque, 3, 0);
+    Qi.segment(0, 6) = F.segment(0, 6);  //  [absF ; absPseudoTorque]
     detJ = 1;  // not needed because not used in quadrature.
 }
 

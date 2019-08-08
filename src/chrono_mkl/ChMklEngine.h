@@ -64,18 +64,18 @@ class ChApiMkl ChMklEngine {
 
     /// Set the solution vector.
     /// Note that it is the caller's responsibility to provide an array of appropriate size.
-    void SetSolutionVector(ChMatrix<>& x);
-    /// As #SetSolutionVector(ChMatrix<>&).
+    void SetSolutionVector(ChVectorRef x);
+    /// As #SetSolutionVector(ChVectorRef).
     void SetSolutionVector(double* x);
 
     /// Set the right-hand side vector.
     /// Note that it is the caller's responsibility to ensure that the size is appropriate.
-    void SetRhsVector(ChMatrix<>& b);
+    void SetRhsVector(ChVectorRef b);
     /// As #SetRhsVector(ChMatrix<>&).
     void SetRhsVector(double* b);
 
     /// Set the matrix, as well as the right-hand side and solution arrays.
-    void SetProblem(ChSparseMatrix& Z, ChMatrix<>& b, ChMatrix<>& x);
+    void SetProblem(ChSparseMatrix& Z, ChVectorRef b, ChVectorRef x);
 
     /// Solver routine.
     int PardisoCall(int phase, int message_level = 0);
@@ -87,7 +87,7 @@ class ChApiMkl ChMklEngine {
 
     /// Calculate and return the problem residual res=b-Ax.
     /// Note that it is the caller's responsibility to provide an array of appropriate size.
-    void GetResidual(ChMatrix<>& res) const;
+    void GetResidual(ChVectorRef res) const;
 
     /// As GetResidual(ChMatrix<>&).
     void GetResidual(double* res) const;

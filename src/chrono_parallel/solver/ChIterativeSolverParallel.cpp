@@ -83,25 +83,25 @@ void ChIterativeSolverParallel::ComputeInvMassMatrix() {
             M_inv.append(i * 6 + 2, i * 6 + 2, inv_mass);
             M_inv.finalize(i * 6 + 2);
 
-            M_inv.append(i * 6 + 3, i * 6 + 3, body_inv_inr.GetElement(0, 0));
+            M_inv.append(i * 6 + 3, i * 6 + 3, body_inv_inr(0, 0));
             if (use_full_inertia_tensor) {
-                M_inv.append(i * 6 + 3, i * 6 + 4, body_inv_inr.GetElement(0, 1));
-                M_inv.append(i * 6 + 3, i * 6 + 5, body_inv_inr.GetElement(0, 2));
+                M_inv.append(i * 6 + 3, i * 6 + 4, body_inv_inr(0, 1));
+                M_inv.append(i * 6 + 3, i * 6 + 5, body_inv_inr(0, 2));
             }
             M_inv.finalize(i * 6 + 3);
             if (use_full_inertia_tensor) {
-                M_inv.append(i * 6 + 4, i * 6 + 3, body_inv_inr.GetElement(1, 0));
+                M_inv.append(i * 6 + 4, i * 6 + 3, body_inv_inr(1, 0));
             }
-            M_inv.append(i * 6 + 4, i * 6 + 4, body_inv_inr.GetElement(1, 1));
+            M_inv.append(i * 6 + 4, i * 6 + 4, body_inv_inr(1, 1));
             if (use_full_inertia_tensor) {
-                M_inv.append(i * 6 + 4, i * 6 + 5, body_inv_inr.GetElement(1, 2));
+                M_inv.append(i * 6 + 4, i * 6 + 5, body_inv_inr(1, 2));
             }
             M_inv.finalize(i * 6 + 4);
             if (use_full_inertia_tensor) {
-                M_inv.append(i * 6 + 5, i * 6 + 3, body_inv_inr.GetElement(2, 0));
-                M_inv.append(i * 6 + 5, i * 6 + 4, body_inv_inr.GetElement(2, 1));
+                M_inv.append(i * 6 + 5, i * 6 + 3, body_inv_inr(2, 0));
+                M_inv.append(i * 6 + 5, i * 6 + 4, body_inv_inr(2, 1));
             }
-            M_inv.append(i * 6 + 5, i * 6 + 5, body_inv_inr.GetElement(2, 2));
+            M_inv.append(i * 6 + 5, i * 6 + 5, body_inv_inr(2, 2));
             M_inv.finalize(i * 6 + 5);
         } else {
             M_inv.finalize(i * 6 + 0);
@@ -171,25 +171,25 @@ void ChIterativeSolverParallel::ComputeMassMatrix() {
             M.append(i * 6 + 2, i * 6 + 2, mass);
             M.finalize(i * 6 + 2);
 
-            M.append(i * 6 + 3, i * 6 + 3, body_inr.GetElement(0, 0));
+            M.append(i * 6 + 3, i * 6 + 3, body_inr(0, 0));
             if (use_full_inertia_tensor) {
-                M.append(i * 6 + 3, i * 6 + 4, body_inr.GetElement(0, 1));
-                M.append(i * 6 + 3, i * 6 + 5, body_inr.GetElement(0, 2));
+                M.append(i * 6 + 3, i * 6 + 4, body_inr(0, 1));
+                M.append(i * 6 + 3, i * 6 + 5, body_inr(0, 2));
             }
             M.finalize(i * 6 + 3);
             if (use_full_inertia_tensor) {
-                M.append(i * 6 + 4, i * 6 + 3, body_inr.GetElement(1, 0));
+                M.append(i * 6 + 4, i * 6 + 3, body_inr(1, 0));
             }
-            M.append(i * 6 + 4, i * 6 + 4, body_inr.GetElement(1, 1));
+            M.append(i * 6 + 4, i * 6 + 4, body_inr(1, 1));
             if (use_full_inertia_tensor) {
-                M.append(i * 6 + 4, i * 6 + 5, body_inr.GetElement(1, 2));
+                M.append(i * 6 + 4, i * 6 + 5, body_inr(1, 2));
             }
             M.finalize(i * 6 + 4);
             if (use_full_inertia_tensor) {
-                M.append(i * 6 + 5, i * 6 + 3, body_inr.GetElement(2, 0));
-                M.append(i * 6 + 5, i * 6 + 4, body_inr.GetElement(2, 1));
+                M.append(i * 6 + 5, i * 6 + 3, body_inr(2, 0));
+                M.append(i * 6 + 5, i * 6 + 4, body_inr(2, 1));
             }
-            M.append(i * 6 + 5, i * 6 + 5, body_inr.GetElement(2, 2));
+            M.append(i * 6 + 5, i * 6 + 5, body_inr(2, 2));
             M.finalize(i * 6 + 5);
         } else {
             M.finalize(i * 6 + 0);

@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include "chrono_matlab/ChMatlabEngine.h"
+#include "chrono/core/ChCSMatrix.h"
 
 // Use the namespace of Chrono
 using namespace chrono;
@@ -75,7 +76,7 @@ int main(int argc, char* argv[]) {
 
         ChMatrixDynamic<double> m_matr;
         matlab_engine.GetVariable(m_matr, "m_matr");
-        GetLog() << m_matr;
+        std::cout << m_matr << std::endl;
 
         //
         // EXAMPLE 4: pass a sparse matrix to Matlab
@@ -83,7 +84,7 @@ int main(int argc, char* argv[]) {
 
         GetLog() << "- Send a sparse matrix to Matlab...\n\n";
 
-        ChLinkedListMatrix m_sparse(6, 7);
+        ChCSMatrix m_sparse(6, 7);
         m_sparse.SetElement(3, 5, 102);
         m_sparse.SetElement(1, 2, 104);
         m_sparse.SetElement(4, 4, 101);

@@ -28,6 +28,7 @@
 #include <algorithm>
 
 #include "chrono/ChConfig.h"
+#include "chrono/assets/ChLineShape.h"
 #include "chrono/core/ChMathematics.h"
 #include "chrono/core/ChStream.h"
 #include "chrono/geometry/ChLineBezier.h"
@@ -202,8 +203,8 @@ HMMWV_Driver::HMMWV_Driver(chrono::vehicle::ChVehicle& vehicle,
     road->SetBodyFixed(true);
     m_vehicle.GetSystem()->AddBody(road);
 
-    auto path_asset = std::make_shared<chrono::ChLineShape>();
-    path_asset->SetLineGeometry(std::make_shared<geometry::ChLineBezier>(m_steeringPID.GetPath()));
+    auto path_asset = chrono_types::make_shared<chrono::ChLineShape>();
+    path_asset->SetLineGeometry(chrono_types::make_shared<geometry::ChLineBezier>(m_steeringPID.GetPath()));
     path_asset->SetColor(chrono::ChColor(0.0f, 0.8f, 0.0f));
     path_asset->SetName("straight_path");
     road->AddAsset(path_asset);
@@ -589,7 +590,7 @@ HMMWV_Driver* CreateDriver(HMMWV_Full* hmmwv) {
     inCV.push_back(ChVector<>(9 * hdimX, 0, height));
     outCV.push_back(ChVector<>(10 * hdimX, 0, height));
 
-    auto path = std::make_shared<ChBezierCurve>(points, inCV, outCV);
+    auto path = chrono_types::make_shared<ChBezierCurve>(points, inCV, outCV);
 
     double look_ahead_dist = 5;
     double Kp_steering = 0.5;

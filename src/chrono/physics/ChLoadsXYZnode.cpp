@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
 #include "chrono/physics/ChLoadsXYZnode.h"
@@ -35,14 +35,14 @@ void ChLoadXYZnodeForce::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
 
 	if (state_x) {
         // the numerical jacobian algo might change state_x
-        nodeApos = (state_x->ClipVector(0, 0));
+        nodeApos = ChVector<>(state_x->segment(0, 3));
     } else {
 		nodeApos = mnode->GetPos();
     }
 
     if (state_w) {
         // the numerical jacobian algo might change state_w
-		nodeApos_dt = (state_w->ClipVector(0, 0));
+		nodeApos_dt = ChVector<>(state_w->segment(0, 3));
     } else {
         nodeApos_dt = mnode->GetPos_dt();
     }
@@ -50,7 +50,7 @@ void ChLoadXYZnodeForce::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
 	ComputeForce(nodeApos, nodeApos_dt, computed_abs_force);
 
     // Compute Q 
-	this->load_Q.PasteVector(computed_abs_force, 0, 0);
+    load_Q.segment(0, 3) = computed_abs_force.eigen();
 }
 
 void ChLoadXYZnodeForce::Update(double time) {
@@ -68,7 +68,7 @@ ChLoadXYZnodeForceAbsolute::ChLoadXYZnodeForceAbsolute(std::shared_ptr<ChNodeXYZ
     : ChLoadXYZnodeForce(body),
       m_force_base(force),
       m_scale(1) {
-    m_modulation = std::make_shared<ChFunction_Const>(1.0);
+    m_modulation = chrono_types::make_shared<ChFunction_Const>(1.0);
 }
 
 /// Compute the force on the node, in absolute coordsystem,
@@ -118,8 +118,8 @@ void ChLoadXYZnodeXYZnode::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
 
 	if (state_x) {
         // the numerical jacobian algo might change state_x
-        nodeApos = (state_x->ClipVector(0, 0));
-		nodeBpos = (state_x->ClipVector(3, 0));
+        nodeApos = state_x->segment(0, 3);
+		nodeBpos = state_x->segment(3, 3);
     } else {
 		nodeApos = mnodeA->GetPos();
 		nodeBpos = mnodeB->GetPos();
@@ -127,8 +127,8 @@ void ChLoadXYZnodeXYZnode::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
 
     if (state_w) {
         // the numerical jacobian algo might change state_w
-		nodeApos_dt = (state_w->ClipVector(0, 0));
-		nodeBpos_dt = (state_w->ClipVector(3, 0));
+		nodeApos_dt = state_w->segment(0, 3);
+		nodeBpos_dt = state_w->segment(3, 3);
     } else {
         nodeApos_dt = mnodeA->GetPos_dt();
 		nodeBpos_dt = mnodeB->GetPos_dt();
@@ -137,8 +137,8 @@ void ChLoadXYZnodeXYZnode::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
 	ComputeForce((nodeApos-nodeBpos), (nodeApos_dt-nodeBpos_dt), computed_abs_force);
 
     // Compute Q 
-	this->load_Q.PasteVector( computed_abs_force, 0, 0);
-	this->load_Q.PasteVector(-computed_abs_force, 3, 0);
+    load_Q.segment(0, 3) = computed_abs_force.eigen();
+    load_Q.segment(3, 3) = -computed_abs_force.eigen();
 }
 
 void ChLoadXYZnodeXYZnode::Update(double time) {
@@ -178,16 +178,12 @@ void ChLoadXYZnodeXYZnodeSpring::ComputeForce(const ChVector<>& rel_pos,
 // ChLoadXYZnodeXYZnodeBushing
 // -----------------------------------------------------------------------------
 
-ChLoadXYZnodeXYZnodeBushing::ChLoadXYZnodeXYZnodeBushing(std::shared_ptr<ChNodeXYZ> mnodeA,  ///< node to apply load to
-								  std::shared_ptr<ChNodeXYZ> mnodeB   ///< node to apply load to as reaction
-								  )	
-    : ChLoadXYZnodeXYZnode(mnodeA, mnodeB)
-     {
-	force_dX = std::make_shared<ChFunction_Const>(0.0);
-	force_dY = std::make_shared<ChFunction_Const>(0.0);
-	force_dZ = std::make_shared<ChFunction_Const>(0.0);
-	R = VNULL;
-	is_stiff = false;
+ChLoadXYZnodeXYZnodeBushing::ChLoadXYZnodeXYZnodeBushing(std::shared_ptr<ChNodeXYZ> mnodeA,
+                                                         std::shared_ptr<ChNodeXYZ> mnodeB)
+    : ChLoadXYZnodeXYZnode(mnodeA, mnodeB), R(VNULL), is_stiff(false) {
+    force_dX = chrono_types::make_shared<ChFunction_Const>(0.0);
+    force_dY = chrono_types::make_shared<ChFunction_Const>(0.0);
+    force_dZ = chrono_types::make_shared<ChFunction_Const>(0.0);
 }
 
 /// Compute the force on the node, in absolute coordsystem,
@@ -222,8 +218,8 @@ void ChLoadXYZnodeBody::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
     ChFrameMoving<> bodycoordA, bodycoordB;
     if (state_x) {
         // the numerical jacobian algo might change state_x
-        bodycoordA.SetPos(state_x->ClipVector(0, 0));
-        bodycoordB.SetCoord(state_x->ClipCoordsys(3, 0));
+        bodycoordA.SetPos(state_x->segment(0, 3));
+        bodycoordB.SetCoord(state_x->segment(3, 7));
     } else {
         bodycoordA.SetPos(mnodeA->pos);
         bodycoordB.SetCoord(mbodyB->coord);
@@ -231,9 +227,9 @@ void ChLoadXYZnodeBody::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
 
     if (state_w) {
         // the numerical jacobian algo might change state_w
-        bodycoordA.SetPos_dt(state_w->ClipVector(0, 0));
-        bodycoordB.SetPos_dt(state_w->ClipVector(3, 0));
-        bodycoordB.SetWvel_loc(state_w->ClipVector(6, 0));
+        bodycoordA.SetPos_dt(state_w->segment(0, 3));
+        bodycoordB.SetPos_dt(state_w->segment(3, 3));
+        bodycoordB.SetWvel_loc(state_w->segment(6, 3));
     } else {
         bodycoordA.SetPos_dt(mnodeA->GetPos_dt());
         bodycoordB.SetCoord_dt(mbodyB->GetCoord_dt());
@@ -250,11 +246,11 @@ void ChLoadXYZnodeBody::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
     ChVector<> abs_force = frame_Bw.TransformDirectionLocalToParent(computed_loc_force);
 
     // Compute Q
-    this->load_Q.PasteVector(abs_force, 0, 0);
+    load_Q.segment(0, 3) = abs_force.eigen();
 
     ChVector<> loc_ftorque = bodycoordB.GetRot().RotateBack(((frame_Bw.GetPos() - bodycoordB.GetPos()) % abs_force));
-    this->load_Q.PasteVector(-abs_force, 3, 0);
-    this->load_Q.PasteVector(-loc_ftorque, 6, 0);
+    load_Q.segment(3, 3) = -abs_force.eigen();
+    load_Q.segment(6, 3) = -loc_ftorque.eigen();
 }
 
 std::shared_ptr<ChNodeXYZ> ChLoadXYZnodeBody::GetNodeA() const {
@@ -303,9 +299,9 @@ ChLoadXYZnodeBodyBushing::ChLoadXYZnodeBodyBushing(std::shared_ptr<ChNodeXYZ> mn
 								  )	
     : ChLoadXYZnodeBody(mnodeA, mbodyB)
      {
-	force_dX = std::make_shared<ChFunction_Const>(0.0);
-	force_dY = std::make_shared<ChFunction_Const>(0.0);
-	force_dZ = std::make_shared<ChFunction_Const>(0.0);
+	force_dX = chrono_types::make_shared<ChFunction_Const>(0.0);
+	force_dY = chrono_types::make_shared<ChFunction_Const>(0.0);
+	force_dZ = chrono_types::make_shared<ChFunction_Const>(0.0);
 	R = VNULL;
 	is_stiff = false;
 }

@@ -10,6 +10,10 @@
 //
 // =============================================================================
 
+//// RADU
+//// Obsolete?
+//// Move to core/
+
 #ifndef CHITERATIVE_H
 #define CHITERATIVE_H
 
@@ -19,11 +23,6 @@
 #include "chrono/core/ChMath.h"
 
 namespace chrono {
-
-// TO DO:
-//   - add other Krylov methods (CG, MINRES, etc)
-//   - enclose them in a class as in ChLinarAlgebra.h, with similar interfaces
-//   - maybe move in core/ dir? or move both this and ChLinarAlgebra.h in a new dir 'source/numerical/' ?
 
 /// TF-QMR
 ///
@@ -53,20 +52,19 @@ namespace chrono {
 ///              as 3rd parameter, so it may be useful to pass some pointer to application,
 ///              geometric or modeling data, etc., then avoiding the use of global vars.)
 
-ChApi int ch_iterative_TFQMR(ChMatrix<>& x,
-                             ChMatrix<>& b,
-                             void (*SolveAX)(ChMatrix<>& inX, ChMatrix<>& outB, void* userdata),
-                             void (*M1_solve)(ChMatrix<>& eIn, ChMatrix<>& eOut, void* userdata),
-                             void (*M2_solve)(ChMatrix<>& eIn, ChMatrix<>& eOut, void* userdata),
+ChApi int ch_iterative_TFQMR(ChVectorDynamic<>& x,
+                             const ChVectorDynamic<>& b,
+                             void (*SolveAX)(ChVectorDynamic<>& inX, ChVectorDynamic<>& outB, void* userdata),
+                             void (*M1_solve)(ChVectorDynamic<>& eIn, ChVectorDynamic<>& eOut, void* userdata),
+                             void (*M2_solve)(ChVectorDynamic<>& eIn, ChVectorDynamic<>& eOut, void* userdata),
                              double min_kappa,
                              int max_iterations,
                              int& iter,
                              int& error_code,
                              void* userdata);
 
-/// As before, but with less parameters, easier to use.
-
-ChApi int ch_iterative_TFQMR_easy(ChMatrix<>& A, ChMatrix<>& x, ChMatrix<>& b, double mkappa, int iterations);
+/// As before, but with fewer parameters.
+ChApi int ch_iterative_TFQMR_easy(ChMatrixDynamic<>& A, ChVectorDynamic<>& x, const ChVectorDynamic<>& b, double mkappa, int iterations);
 
 }  // end namespace chrono
 

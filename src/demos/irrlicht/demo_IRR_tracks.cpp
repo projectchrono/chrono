@@ -106,7 +106,7 @@ class MySimpleTank {
 
         // --- The tank body ---
 
-        truss = std::make_shared<ChBodyEasyMesh>(GetChronoDataFile("bulldozerB10.obj").c_str(), 1000, false, false, 0,
+        truss = chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("bulldozerB10.obj").c_str(), 1000, false, false, 0,
                                                  true);
         my_system.Add(truss);
         truss->SetPos(ChVector<>(mx + passo / 2, my + radiustrack, rlwidth / 2));
@@ -120,7 +120,7 @@ class MySimpleTank {
 
         // ..the tank right-front wheel
         wheelRF =
-            std::make_shared<ChBodyEasyMesh>(GetChronoDataFile("wheel_view.obj").c_str(), 1000, false, false, 0, true);
+            chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("wheel_view.obj").c_str(), 1000, false, false, 0, true);
         my_system.Add(wheelRF);
         wheelRF->SetPos(ChVector<>(mx + passo, my + radiustrack, 0));
         wheelRF->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
@@ -134,12 +134,12 @@ class MySimpleTank {
         wheelRF->GetCollisionModel()->BuildModel();
         wheelRF->SetCollide(true);
 
-        auto color_wheel = std::make_shared<ChColorAsset>();
+        auto color_wheel = chrono_types::make_shared<ChColorAsset>();
         color_wheel->SetColor(ChColor(0.2f, 0.2f, 0.2f));
         wheelRF->AddAsset(color_wheel);
 
         // .. create the revolute joint between the wheel and the truss
-        link_revoluteRF = std::make_shared<ChLinkLockRevolute>();  // right, front, upper, 1
+        link_revoluteRF = chrono_types::make_shared<ChLinkLockRevolute>();  // right, front, upper, 1
         link_revoluteRF->Initialize(wheelRF, truss, ChCoordsys<>(ChVector<>(mx + passo, my + radiustrack, 0), QUNIT));
         my_system.AddLink(link_revoluteRF);
 
@@ -148,7 +148,7 @@ class MySimpleTank {
         // ..the tank left-front wheel
 
         wheelLF =
-            std::make_shared<ChBodyEasyMesh>(GetChronoDataFile("wheel_view.obj").c_str(), 1000, false, false, 0, true);
+            chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("wheel_view.obj").c_str(), 1000, false, false, 0, true);
         my_system.Add(wheelLF);
         wheelLF->SetPos(ChVector<>(mx + passo, my + radiustrack, rlwidth));
         wheelLF->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
@@ -164,7 +164,7 @@ class MySimpleTank {
         wheelLF->SetCollide(true);
 
         // .. create the revolute joint between the wheel and the truss
-        link_revoluteLF = std::make_shared<ChLinkLockRevolute>();  // left, front, upper, 1
+        link_revoluteLF = chrono_types::make_shared<ChLinkLockRevolute>();  // left, front, upper, 1
         link_revoluteLF->Initialize(wheelLF, truss,
                                     ChCoordsys<>(ChVector<>(mx + passo, my + radiustrack, rlwidth), QUNIT));
         my_system.AddLink(link_revoluteLF);
@@ -174,7 +174,7 @@ class MySimpleTank {
         // ..the tank right-back wheel
 
         wheelRB =
-            std::make_shared<ChBodyEasyMesh>(GetChronoDataFile("wheel_view.obj").c_str(), 1000, false, false, 0, true);
+            chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("wheel_view.obj").c_str(), 1000, false, false, 0, true);
         my_system.Add(wheelRB);
         wheelRB->SetPos(ChVector<>(mx, my + radiustrack, 0));
         wheelRB->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
@@ -190,8 +190,8 @@ class MySimpleTank {
         wheelRB->SetCollide(true);
 
         // .. create the motor joint between the wheel and the truss (simplified motor model: just impose speed..)
-        link_motorRB = std::make_shared<ChLinkMotorRotationSpeed>();
-        link_motorRB->SetSpeedFunction(std::make_shared<ChFunction_Const>());  // actually, default function type
+        link_motorRB = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
+        link_motorRB->SetSpeedFunction(chrono_types::make_shared<ChFunction_Const>());  // actually, default function type
         link_motorRB->Initialize(wheelRB, truss, ChFrame<>(ChVector<>(mx, my + radiustrack, 0), QUNIT));
         my_system.AddLink(link_motorRB);
 
@@ -200,7 +200,7 @@ class MySimpleTank {
         // ..the tank left-back wheel
 
         wheelLB =
-            std::make_shared<ChBodyEasyMesh>(GetChronoDataFile("wheel_view.obj").c_str(), 1000, false, false, 0, true);
+            chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("wheel_view.obj").c_str(), 1000, false, false, 0, true);
         my_system.Add(wheelLB);
         wheelLB->SetPos(ChVector<>(mx, my + radiustrack, rlwidth));
         wheelLB->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
@@ -216,8 +216,8 @@ class MySimpleTank {
         wheelLB->SetCollide(true);
 
         // .. create the motor joint between the wheel and the truss (simplified motor model: just impose speed..)
-        link_motorLB = std::make_shared<ChLinkMotorRotationSpeed>();
-        link_motorLB->SetSpeedFunction(std::make_shared<ChFunction_Const>());  // actually, default function type
+        link_motorLB = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
+        link_motorLB->SetSpeedFunction(chrono_types::make_shared<ChFunction_Const>());  // actually, default function type
         link_motorLB->Initialize(wheelLB, truss, ChFrame<>(ChVector<>(mx, my + radiustrack, rlwidth), QUNIT));
         my_system.AddLink(link_motorLB);
 
@@ -226,7 +226,7 @@ class MySimpleTank {
         // Load a triangle mesh for collision
         IAnimatedMesh* irmesh_shoe_collision = msceneManager->getMesh(GetChronoDataFile("shoe_collision.obj").c_str());
 
-        auto trimesh = std::make_shared<ChTriangleMeshSoup>();
+        auto trimesh = chrono_types::make_shared<ChTriangleMeshSoup>();
         fillChTrimeshFromIrlichtMesh(trimesh.get(), irmesh_shoe_collision->getMesh(0));
 
         ChVector<> mesh_displacement(shoelength * 0.5, 0, 0);    // as mesh origin is not in body center of mass
@@ -252,7 +252,7 @@ class MySimpleTank {
 
             // Create sample body (with empty collision shape; later create the collision model by adding the
             // coll.shapes)
-            auto firstBodyShoe = std::make_shared<ChBody>();
+            auto firstBodyShoe = chrono_types::make_shared<ChBody>();
             my_system.Add(firstBodyShoe);
             firstBodyShoe->SetMass(shoemass);
             firstBodyShoe->SetPos(position);
@@ -260,14 +260,14 @@ class MySimpleTank {
             firstBodyShoe->SetInertiaXX(ChVector<>(0.1, 0.1, 0.1));
 
             // Visualization:
-            auto shoe_mesh = std::make_shared<ChTriangleMeshShape>();
+            auto shoe_mesh = chrono_types::make_shared<ChTriangleMeshShape>();
             firstBodyShoe->AddAsset(shoe_mesh);
             shoe_mesh->GetMesh()->LoadWavefrontMesh(GetChronoDataFile("shoe_view.obj").c_str());
             shoe_mesh->GetMesh()->Transform(-mesh_displacement, ChMatrix33<>(1));
             shoe_mesh->SetVisible(true);
 
             // Visualize collision mesh
-            auto shoe_coll_mesh = std::make_shared<ChTriangleMeshShape>();
+            auto shoe_coll_mesh = chrono_types::make_shared<ChTriangleMeshShape>();
             firstBodyShoe->AddAsset(shoe_coll_mesh);
             shoe_coll_mesh->GetMesh()->LoadWavefrontMesh(GetChronoDataFile("shoe_collision.obj").c_str());
             shoe_coll_mesh->GetMesh()->Transform(-mesh_displacement, ChMatrix33<>(1));
@@ -335,7 +335,7 @@ class MySimpleTank {
             }
             // close track
             ChVector<> linkpos = firstBodyShoe->Point_Body2World(joint_displacement);
-            auto link_revolute_shoeshoe = std::make_shared<ChLinkLockRevolute>();
+            auto link_revolute_shoeshoe = chrono_types::make_shared<ChLinkLockRevolute>();
             link_revolute_shoeshoe->Initialize(firstBodyShoe, previous_rigidBodyShoe, ChCoordsys<>(linkpos, QUNIT));
             my_system.AddLink(link_revolute_shoeshoe);
         }
@@ -369,8 +369,6 @@ class MySimpleTank {
         chrono::ChVector<> joint_displacement  // position of shoe-shoe constraint, relative to COG.
     ) {
         auto rigidBodyShoe = std::shared_ptr<ChBody>(template_shoe.get()->Clone());
-        ////rigidBodyShoe->SetSystem(template_shoe->GetSystem()); //// RADU: this seems redundant as the system will be
-        ///set when adding the body
         rigidBodyShoe->SetPos(position);
         rigidBodyShoe->SetRot(rotation);
         my_system.Add(rigidBodyShoe);
@@ -388,7 +386,7 @@ class MySimpleTank {
         // Create revolute constraint
         if (previous_shoe) {
             ChVector<> linkpos = rigidBodyShoe->Point_Body2World(joint_displacement);
-            auto link_revolute_shoeshoe = std::make_shared<ChLinkLockRevolute>();
+            auto link_revolute_shoeshoe = chrono_types::make_shared<ChLinkLockRevolute>();
             link_revolute_shoeshoe->Initialize(rigidBodyShoe, previous_shoe, ChCoordsys<>(linkpos, QUNIT));
             my_system.AddLink(link_revolute_shoeshoe);
         }

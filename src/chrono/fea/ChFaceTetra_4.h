@@ -57,9 +57,9 @@ class ChApi ChFaceTetra_4 : public ChLoadableUV {
         return foo_null;
     }
 
-    /// Fills the N shape function matrix (1 row, 3 columns) with the
-    /// values of shape functions at r,s 'area' coordinates, all ranging in [0...1].
-    virtual void ShapeFunctions(ChMatrix<>& N, double r, double s) {
+    /// Fills the N shape function vector (size 3) with the values of shape functions at r,s 'area' coordinates, all
+    /// ranging in [0...1].
+    void ShapeFunctions(ChVectorN<double, 3>& N, double r, double s) {
         N(0) = 1.0 - r - s;
         N(1) = r;
         N(2) = s;
@@ -77,16 +77,16 @@ class ChApi ChFaceTetra_4 : public ChLoadableUV {
 
     /// Gets all the DOFs packed in a single vector (position part)
     virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override {
-        mD.PasteVector(this->GetNodeN(0)->GetPos(), block_offset, 0);
-        mD.PasteVector(this->GetNodeN(1)->GetPos(), block_offset + 3, 0);
-        mD.PasteVector(this->GetNodeN(2)->GetPos(), block_offset + 6, 0);
+        mD.segment(block_offset + 0, 3) = this->GetNodeN(0)->GetPos().eigen();
+        mD.segment(block_offset + 3, 3) = this->GetNodeN(1)->GetPos().eigen();
+        mD.segment(block_offset + 6, 3) = this->GetNodeN(2)->GetPos().eigen();
     }
 
     /// Gets all the DOFs packed in a single vector (speed part)
     virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override {
-        mD.PasteVector(this->GetNodeN(0)->GetPos_dt(), block_offset, 0);
-        mD.PasteVector(this->GetNodeN(1)->GetPos_dt(), block_offset + 3, 0);
-        mD.PasteVector(this->GetNodeN(2)->GetPos_dt(), block_offset + 6, 0);
+        mD.segment(block_offset + 0, 3) = this->GetNodeN(0)->GetPos_dt().eigen();
+        mD.segment(block_offset + 3, 3) = this->GetNodeN(1)->GetPos_dt().eigen();
+        mD.segment(block_offset + 6, 3) = this->GetNodeN(2)->GetPos_dt().eigen();
     }
 
     /// Increment all DOFs using a delta.
@@ -128,7 +128,7 @@ class ChApi ChFaceTetra_4 : public ChLoadableUV {
                            ) override {
         // evaluate shape functions (in compressed vector), btw. not dependant on state
         // note: U,V in 0..1 range, thanks to IsTriangleIntegrationNeeded() {return true;}
-        ChMatrixNM<double, 1, 3> N;
+        ChVectorN<double, 3> N;
         this->ShapeFunctions(N, U, V);
 
         // determinant of jacobian is also =2*areaoftriangle, also length of cross product of sides

@@ -313,7 +313,7 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
     double LengthOfArcs = 0;
     double LengthOfTangents = 0;
 
-    for (int i = 0; i < Arcs.GetRows(); i++) {
+    for (int i = 0; i < Arcs.rows(); i++) {
         LengthOfArcs += (Arcs(i, 0) * CircleRadius[i]);
         LengthOfTangents += (TangentPoints[i].second - TangentPoints[i].first).Length();
     }
@@ -410,7 +410,7 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
             ChVector2<> StartingPoint = shoe_points[shoeidx - 1];
 
             // Make sure that all the features are only searched once to prevent and endless loop
-            for (int c = 0; c < Features.GetRows(); c++) {
+            for (int c = 0; c < Features.rows(); c++) {
                 if (Features(CurrentFeature, 0) == 0) {
                     CheckCircleCircle(FoundPoint, Point, Features, CurrentFeature, StartingPoint,
                                       connection_lengths[shoelinktype]);
@@ -425,7 +425,7 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
 
                 InitalSprocketWrap = false;
                 CurrentFeature += 1;
-                if (CurrentFeature >= Features.GetRows()) {
+                if (CurrentFeature >= Features.rows()) {
                     CurrentFeature = 0;
                 }
             }

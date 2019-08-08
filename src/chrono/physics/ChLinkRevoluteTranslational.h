@@ -30,7 +30,7 @@ class ChApi ChLinkRevoluteTranslational : public ChLink {
   public:
     ChLinkRevoluteTranslational();
     ChLinkRevoluteTranslational(const ChLinkRevoluteTranslational& other);
-    ~ChLinkRevoluteTranslational();
+    ~ChLinkRevoluteTranslational() {}
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkRevoluteTranslational* Clone() const override { return new ChLinkRevoluteTranslational(*this); }
@@ -75,7 +75,7 @@ class ChApi ChLinkRevoluteTranslational : public ChLink {
     virtual ChCoordsys<> GetLinkRelativeCoords() override;
 
     /// Get the joint violation (residuals of the constraint equations)
-    ChMatrix<>* GetC() { return m_C; }
+    const ChVectorN<double, 4>& GetC() const { return m_C; }
 
     /// Initialize this joint by specifying the two bodies to be connected, a
     /// coordinate system specified in the absolute frame, and the distance of
@@ -190,11 +190,14 @@ class ChApi ChLinkRevoluteTranslational : public ChLink {
     ChConstraintTwoBodies m_cnstr_dot;   ///< constraint: d12 perpendicular to z1
     ChConstraintTwoBodies m_cnstr_dist;  ///< constraint: distance between axes
 
-    ChMatrix<>* m_C;  ///< current constraint violations
+    ChVectorN<double, 4> m_C;  ///< current constraint violations
 
     // Note that the order of the Lagrange multipliers corresponds to the following
     // order of the constraints: par1, par2, dot, dist.
     double m_multipliers[4];  ///< Lagrange multipliers
+
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 CH_CLASS_VERSION(ChLinkRevoluteTranslational,0)

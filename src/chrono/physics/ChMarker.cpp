@@ -12,9 +12,9 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
+#include "chrono/core/ChGlobal.h"
 #include "chrono/core/ChTransform.h"
 #include "chrono/physics/ChBody.h"
-#include "chrono/physics/ChGlobal.h"
 #include "chrono/physics/ChMarker.h"
 
 namespace chrono {
@@ -32,10 +32,10 @@ ChMarker::ChMarker()
       last_rel_coord(CSYSNORM),
       last_rel_coord_dt(CSYSNULL),
       last_time(0) {
-    motion_X = std::make_shared<ChFunction_Const>(0);  // default: no motion
-    motion_Y = std::make_shared<ChFunction_Const>(0); 
-    motion_Z = std::make_shared<ChFunction_Const>(0); 
-    motion_ang = std::make_shared<ChFunction_Const>(0); 
+    motion_X = chrono_types::make_shared<ChFunction_Const>(0);  // default: no motion
+    motion_Y = chrono_types::make_shared<ChFunction_Const>(0); 
+    motion_Z = chrono_types::make_shared<ChFunction_Const>(0); 
+    motion_ang = chrono_types::make_shared<ChFunction_Const>(0); 
 
     UpdateState();
 }
@@ -48,10 +48,10 @@ ChMarker::ChMarker(const std::string& name,
     SetNameString(name);
     Body = body;
 
-    motion_X = std::make_shared<ChFunction_Const>(0);  // default: no motion
-    motion_Y = std::make_shared<ChFunction_Const>(0); 
-    motion_Z = std::make_shared<ChFunction_Const>(0); 
-    motion_ang = std::make_shared<ChFunction_Const>(0); 
+    motion_X = chrono_types::make_shared<ChFunction_Const>(0);  // default: no motion
+    motion_Y = chrono_types::make_shared<ChFunction_Const>(0); 
+    motion_Z = chrono_types::make_shared<ChFunction_Const>(0); 
+    motion_ang = chrono_types::make_shared<ChFunction_Const>(0); 
     motion_axis = VECT_Z;
 
     rest_coord = CSYSNORM;
@@ -147,25 +147,23 @@ void ChMarker::Impose_Abs_Coord(const Coordsys& m_coord) {
 
 //// Utilities for coordinate transformations
 
-Vector ChMarker::Point_World2Ref(Vector* mpoint) {
-    return abs_frame / *mpoint;
+ChVector<> ChMarker::Point_World2Ref(const ChVector<>& point) const {
+    return abs_frame / point;
 }
 
-Vector ChMarker::Point_Ref2World(Vector* mpoint) {
-    return *(ChFrame<double>*)&abs_frame * *mpoint;
+ChVector<> ChMarker::Point_Ref2World(const ChVector<>& point) const {
+    return *(ChFrame<double>*)&abs_frame * point;
 }
 
-Vector ChMarker::Dir_World2Ref(Vector* mpoint) {
-    return abs_frame.GetA().MatrT_x_Vect(*mpoint);
+ChVector<> ChMarker::Dir_World2Ref(const ChVector<>& dir) const {
+    return abs_frame.GetA().transpose() * dir;
 }
 
-Vector ChMarker::Dir_Ref2World(Vector* mpoint) {
-    return abs_frame.GetA().Matr_x_Vect(*mpoint);
+ChVector<> ChMarker::Dir_Ref2World(const ChVector<>& dir) const {
+    return abs_frame.GetA().transpose() * dir;
 }
 
-// This handles the time-varying functions for the relative
-// coordinates
-
+// This handles the time-varying functions for the relative coordinates
 void ChMarker::UpdateTime(double mytime) {
     Coordsys csys, csys_dt, csys_dtdt;
     Quaternion qtemp;

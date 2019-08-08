@@ -79,19 +79,19 @@ ANCFshell<N>::ANCFshell() {
     ChVector<> E(2.1e7, 2.1e7, 2.1e7);
     ChVector<> nu(0.3, 0.3, 0.3);
     ChVector<> G(8.0769231e6, 8.0769231e6, 8.0769231e6);
-    auto mat = std::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
+    auto mat = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
 
     // Create mesh nodes and elements
-    auto mesh = std::make_shared<ChMesh>();
+    auto mesh = chrono_types::make_shared<ChMesh>();
     m_system->Add(mesh);
 
-    auto vis_surf = std::make_shared<ChVisualizationFEAmesh>(*mesh);
+    auto vis_surf = chrono_types::make_shared<ChVisualizationFEAmesh>(*mesh);
     vis_surf->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
     vis_surf->SetWireframe(true);
     vis_surf->SetDrawInUndeformedReference(true);
     mesh->AddAsset(vis_surf);
 
-    auto vis_node = std::make_shared<ChVisualizationFEAmesh>(*mesh);
+    auto vis_node = chrono_types::make_shared<ChVisualizationFEAmesh>(*mesh);
     vis_node->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
     vis_node->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     vis_node->SetSymbolsThickness(0.004);
@@ -101,20 +101,20 @@ ANCFshell<N>::ANCFshell() {
     double dx = length / N;
     ChVector<> dir(0, 1, 0);
 
-    auto nodeA = std::make_shared<ChNodeFEAxyzD>(ChVector<>(0, 0, -width / 2), dir);
-    auto nodeB = std::make_shared<ChNodeFEAxyzD>(ChVector<>(0, 0, +width / 2), dir);
+    auto nodeA = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(0, 0, -width / 2), dir);
+    auto nodeB = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(0, 0, +width / 2), dir);
     nodeA->SetFixed(true);
     nodeB->SetFixed(true);
     mesh->AddNode(nodeA);
     mesh->AddNode(nodeB);
 
     for (int i = 1; i < N; i++) {
-        auto nodeC = std::make_shared<ChNodeFEAxyzD>(ChVector<>(i * dx, 0, -width / 2), dir);
-        auto nodeD = std::make_shared<ChNodeFEAxyzD>(ChVector<>(i * dx, 0, +width / 2), dir);
+        auto nodeC = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(i * dx, 0, -width / 2), dir);
+        auto nodeD = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(i * dx, 0, +width / 2), dir);
         mesh->AddNode(nodeC);
         mesh->AddNode(nodeD);
 
-        auto element = std::make_shared<ChElementShellANCF>();
+        auto element = chrono_types::make_shared<ChElementShellANCF>();
         element->SetNodes(nodeA, nodeB, nodeD, nodeC);
         element->SetDimensions(dx, width);
         element->AddLayer(thickness, 0 * CH_C_DEG_TO_RAD, mat);

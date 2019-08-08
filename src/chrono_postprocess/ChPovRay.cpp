@@ -77,7 +77,7 @@ ChPovRay::ChPovRay(ChSystem* system) : ChPostProcessBase(system) {
 void ChPovRay::Add(std::shared_ptr<ChPhysicsItem> mitem) {
     // flag as renderable by adding a ChPovAsset into assets of the item
     if (!this->IsAdded(mitem)) {
-        auto mpov_asset = std::make_shared<ChPovRayAsset>();
+        auto mpov_asset = chrono_types::make_shared<ChPovRayAsset>();
         mitem->AddAsset(mpov_asset);
     }
 }

@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
         double E = 1.2e6;
         double nu = 0.0;
 
-        auto mat = std::make_shared<ChMaterialShellReissnerIsothropic>(rho, E, nu, 1.0, 0.01);
+        auto mat = chrono_types::make_shared<ChMaterialShellReissnerIsothropic>(rho, E, nu, 1.0, 0.01);
 
         // Create the nodes
 
@@ -130,10 +130,10 @@ int main(int argc, char* argv[]) {
 
                 ChFrame<> nodeframe(nodepos, noderot);
 
-                auto mnode = std::make_shared<ChNodeFEAxyzrot>(nodeframe);
+                auto mnode = chrono_types::make_shared<ChNodeFEAxyzrot>(nodeframe);
                 my_mesh->AddNode(mnode);
 
-                mnode->GetInertia().FillDiag(0);  // approx
+                mnode->GetInertia().fillDiagonal(0);  // approx
                 mnode->SetMass(0);
 
                 nodearray[il * (nels_W + 1) + iw] = mnode;
@@ -145,7 +145,7 @@ int main(int argc, char* argv[]) {
 
                 // Make elements
                 if (il > 0 && iw > 0) {
-                    auto melement = std::make_shared<ChElementShellReissner4>();
+                    auto melement = chrono_types::make_shared<ChElementShellReissner4>();
                     my_mesh->AddElement(melement);
 
                     melement->SetNodes(nodearray[(il - 1) * (nels_W + 1) + (iw - 1)],
@@ -211,7 +211,7 @@ int main(int argc, char* argv[]) {
         double E = 21e6;
         double nu = 0.0;
 
-        auto mat = std::make_shared<ChMaterialShellReissnerIsothropic>(rho, E, nu, 1.0, 0.01);
+        auto mat = chrono_types::make_shared<ChMaterialShellReissnerIsothropic>(rho, E, nu, 1.0, 0.01);
 
         // Create the nodes
 
@@ -233,10 +233,10 @@ int main(int argc, char* argv[]) {
                 ChQuaternion<> noderot(QUNIT);
                 ChFrame<> nodeframe(nodepos, noderot);
 
-                auto mnode = std::make_shared<ChNodeFEAxyzrot>(nodeframe);
+                auto mnode = chrono_types::make_shared<ChNodeFEAxyzrot>(nodeframe);
                 my_mesh->AddNode(mnode);
 
-                mnode->GetInertia().FillDiag(0.0);
+                mnode->GetInertia().fillDiagonal(0.0);
                 mnode->SetMass(0);
 
                 nodearray[iu * (nels_W + 1) + iw] = mnode;
@@ -248,7 +248,7 @@ int main(int argc, char* argv[]) {
 
                 // Make elements
                 if (iu > 0 && iw > 0) {
-                    auto melement = std::make_shared<ChElementShellReissner4>();
+                    auto melement = chrono_types::make_shared<ChElementShellReissner4>();
                     my_mesh->AddElement(melement);
 
                     melement->SetNodes(nodearray[(iu) * (nels_W + 1) + (iw)], nodearray[(iu - 1) * (nels_W + 1) + (iw)],
@@ -314,10 +314,10 @@ int main(int argc, char* argv[]) {
         double E = 2.0685e7;
         double nu = 0.3;
 
-        auto mat = std::make_shared<ChMaterialShellReissnerIsothropic>(rho, E, nu, 1.0, 0.01);
+        auto mat = chrono_types::make_shared<ChMaterialShellReissnerIsothropic>(rho, E, nu, 1.0, 0.01);
 
         // In case you want to test laminated shells, use this:
-        auto mat_ortho = std::make_shared<ChMaterialShellReissnerOrthotropic>(rho, 2.0685e7, 0.517e7, 0.3, 0.795e7,
+        auto mat_ortho = chrono_types::make_shared<ChMaterialShellReissnerOrthotropic>(rho, 2.0685e7, 0.517e7, 0.3, 0.795e7,
                                                                               0.795e7, 0.795e7, 1.0, 0.01);
 
         // Create the nodes
@@ -341,10 +341,10 @@ int main(int argc, char* argv[]) {
                 ChQuaternion<> noderot(QUNIT);
                 ChFrame<> nodeframe(nodepos, noderot);
 
-                auto mnode = std::make_shared<ChNodeFEAxyzrot>(nodeframe);
+                auto mnode = chrono_types::make_shared<ChNodeFEAxyzrot>(nodeframe);
                 my_mesh->AddNode(mnode);
 
-                mnode->GetInertia().FillDiag(0.0);
+                mnode->GetInertia().fillDiagonal(0.0);
                 mnode->SetMass(0.0);
 
                 nodearray[iu * (nels_W + 1) + iw] = mnode;
@@ -360,7 +360,7 @@ int main(int argc, char* argv[]) {
 
                 // Make elements
                 if (iu > 0 && iw > 0) {
-                    auto melement = std::make_shared<ChElementShellReissner4>();
+                    auto melement = chrono_types::make_shared<ChElementShellReissner4>();
                     my_mesh->AddElement(melement);
 
                     melement->SetNodes(nodearray[(iu) * (nels_W + 1) + (iw)], nodearray[(iu - 1) * (nels_W + 1) + (iw)],
@@ -386,16 +386,16 @@ int main(int argc, char* argv[]) {
             mstartnode->SetFixed(true);
         }
 
-        auto mtruss = std::make_shared<ChBody>();
+        auto mtruss = chrono_types::make_shared<ChBody>();
         mtruss->SetBodyFixed(true);
         my_system.Add(mtruss);
         for (auto mendnode : nodes_left) {
-            auto mlink = std::make_shared<ChLinkMateGeneric>(false, true, false, true, false, true);
+            auto mlink = chrono_types::make_shared<ChLinkMateGeneric>(false, true, false, true, false, true);
             mlink->Initialize(mendnode, mtruss, false, mendnode->Frame(), mendnode->Frame());
             my_system.Add(mlink);
         }
         for (auto mendnode : nodes_right) {
-            auto mlink = std::make_shared<ChLinkMateGeneric>(false, true, false, true, false, true);
+            auto mlink = chrono_types::make_shared<ChLinkMateGeneric>(false, true, false, true, false, true);
             mlink->Initialize(mendnode, mtruss, false, mendnode->Frame(), mendnode->Frame());
             my_system.Add(mlink);
         }
@@ -424,19 +424,19 @@ int main(int argc, char* argv[]) {
     // postprocessor that can handle a colored ChTriangleMeshShape).
     // Do not forget AddAsset() at the end!
 
-    auto mvisualizeshellA = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizeshellA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizeshellA->SetSmoothFaces(true);
     mvisualizeshellA->SetWireframe(true);
     my_mesh->AddAsset(mvisualizeshellA);
     /*
-    auto mvisualizeshellB = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizeshellB = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizeshellB->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     mvisualizeshellB->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
     mvisualizeshellB->SetSymbolsThickness(0.01);
     my_mesh->AddAsset(mvisualizeshellB);
     */
 
-    auto mvisualizeshellC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizeshellC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizeshellC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     // mvisualizeshellC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
     mvisualizeshellC->SetSymbolsThickness(0.05);
@@ -462,7 +462,7 @@ int main(int argc, char* argv[]) {
     // THE SOFT-REAL-TIME CYCLE
     //
     // Change solver to MKL
-    auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+    auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
     mkl_solver->SetSparsityPatternLock(true);
     my_system.SetSolver(mkl_solver);
 

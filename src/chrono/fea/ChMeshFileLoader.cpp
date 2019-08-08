@@ -105,10 +105,10 @@ void ChMeshFileLoader::FromTetGenFile(std::shared_ptr<ChMesh> mesh,
                 node_position = pos_transform + node_position;  // move, if needed
 
                 if (std::dynamic_pointer_cast<ChContinuumElastic>(my_material)) {
-                    auto mnode = std::make_shared<ChNodeFEAxyz>(node_position);
+                    auto mnode = chrono_types::make_shared<ChNodeFEAxyz>(node_position);
                     mesh->AddNode(mnode);
                 } else if (std::dynamic_pointer_cast<ChContinuumPoisson3D>(my_material)) {
-                    auto mnode = std::make_shared<ChNodeFEAxyzP>(node_position);
+                    auto mnode = chrono_types::make_shared<ChNodeFEAxyzP>(node_position);
                     mesh->AddNode(mnode);
                 } else
                     throw ChException("ERROR in TetGen generation. Material type not supported. \n");
@@ -166,7 +166,7 @@ void ChMeshFileLoader::FromTetGenFile(std::shared_ptr<ChMesh> mesh,
                 if (n4 > totnodes)
                     throw ChException("ERROR in TetGen .node file, ID of 4th node is out of range: \n" + line + "\n");
                 if (std::dynamic_pointer_cast<ChContinuumElastic>(my_material)) {
-                    auto mel = std::make_shared<ChElementTetra_4>();
+                    auto mel = chrono_types::make_shared<ChElementTetra_4>();
                     mel->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(nodes_offset + n1 - 1)),
                                   std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(nodes_offset + n3 - 1)),
                                   std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(nodes_offset + n2 - 1)),
@@ -174,7 +174,7 @@ void ChMeshFileLoader::FromTetGenFile(std::shared_ptr<ChMesh> mesh,
                     mel->SetMaterial(std::static_pointer_cast<ChContinuumElastic>(my_material));
                     mesh->AddElement(mel);
                 } else if (std::dynamic_pointer_cast<ChContinuumPoisson3D>(my_material)) {
-                    auto mel = std::make_shared<ChElementTetra_4_P>();
+                    auto mel = chrono_types::make_shared<ChElementTetra_4_P>();
                     mel->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzP>(mesh->GetNode(nodes_offset + n1 - 1)),
                                   std::dynamic_pointer_cast<ChNodeFEAxyzP>(mesh->GetNode(nodes_offset + n3 - 1)),
                                   std::dynamic_pointer_cast<ChNodeFEAxyzP>(mesh->GetNode(nodes_offset + n2 - 1)),
@@ -323,13 +323,13 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
 
             idnode = static_cast<unsigned int>(tokenvals[0]);
             if (std::dynamic_pointer_cast<ChContinuumElastic>(my_material)) {
-                auto mnode = std::make_shared<ChNodeFEAxyz>(node_position);
+                auto mnode = chrono_types::make_shared<ChNodeFEAxyz>(node_position);
                 mnode->SetIndex(idnode);
                 parsed_nodes[idnode] = std::make_pair(mnode, false);
                 if (!discard_unused_nodes)
                     mesh->AddNode(mnode);
             } else if (std::dynamic_pointer_cast<ChContinuumPoisson3D>(my_material)) {
-                auto mnode = std::make_shared<ChNodeFEAxyzP>(ChVector<>(x, y, z));
+                auto mnode = chrono_types::make_shared<ChNodeFEAxyzP>(ChVector<>(x, y, z));
                 mnode->SetIndex(idnode);
                 parsed_nodes[idnode] = std::make_pair(mnode, false);
                 if (!discard_unused_nodes)
@@ -390,7 +390,7 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
                 }
 
                 if (std::dynamic_pointer_cast<ChContinuumElastic>(my_material)) {
-                    auto mel = std::make_shared<ChElementTetra_4>();
+                    auto mel = chrono_types::make_shared<ChElementTetra_4>();
                     mel->SetNodes(std::static_pointer_cast<ChNodeFEAxyz>(element_nodes[3]),
                                   std::static_pointer_cast<ChNodeFEAxyz>(element_nodes[1]),
                                   std::static_pointer_cast<ChNodeFEAxyz>(element_nodes[2]),
@@ -399,7 +399,7 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
                     mesh->AddElement(mel);
 
                 } else if (std::dynamic_pointer_cast<ChContinuumPoisson3D>(my_material)) {
-                    auto mel = std::make_shared<ChElementTetra_4_P>();
+                    auto mel = chrono_types::make_shared<ChElementTetra_4_P>();
                     mel->SetNodes(std::static_pointer_cast<ChNodeFEAxyzP>(element_nodes[0]),
                                   std::static_pointer_cast<ChNodeFEAxyzP>(element_nodes[1]),
                                   std::static_pointer_cast<ChNodeFEAxyzP>(element_nodes[2]),
@@ -479,7 +479,7 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
     std::vector<std::vector<double>> elementsdxdy;            // dx, dy of elements
 
     int TotalNumNodes, TotalNumElements, TottalNumBEdges;
-    BoundingBox.Reset();
+    BoundingBox.setZero();
 
     ifstream fin(filename);
     if (!fin.good())
@@ -526,7 +526,7 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
                 ChVector<> node_position(loc_x, loc_y, loc_z);
                 node_position = rot_transform * node_position;  // rotate/scale, if needed
                 node_position = pos_transform + node_position;  // move, if needed
-                auto node = std::make_shared<ChNodeFEAxyzD>(node_position, ChVector<>(dir_x, dir_y, dir_z));
+                auto node = chrono_types::make_shared<ChNodeFEAxyzD>(node_position, ChVector<>(dir_x, dir_y, dir_z));
                 nodesVector.push_back(node);
 
                 if (loc_x < BoundingBox(0, 0) || added_nodes == 0)
@@ -662,7 +662,7 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
         node_normal.Normalize();
 
         ChVector<> node_position = nodesVector[inode]->GetPos();
-        auto node = std::make_shared<ChNodeFEAxyzD>(node_position, node_normal);
+        auto node = chrono_types::make_shared<ChNodeFEAxyzD>(node_position, node_normal);
         node->SetMass(0);
         // Add node to mesh
         mesh->AddNode(node);
@@ -672,7 +672,7 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
     }
     GetLog() << "-----------------------------------------------------------\n";
     for (int ielem = 0; ielem < 0 + TotalNumElements; ielem++) {
-        auto element = std::make_shared<ChElementShellANCF>();
+        auto element = chrono_types::make_shared<ChElementShellANCF>();
         element->SetNodes(
             std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(nodes_offset + elementsVector[ielem][0] - 1)),
             std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(nodes_offset + elementsVector[ielem][1] - 1)),

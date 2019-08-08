@@ -51,7 +51,7 @@ class Model {
     };
 
 Model::Model(int sec, int ord ) {
-    m_system = std::make_shared<ChSystemNSC>();
+    m_system = chrono_types::make_shared<ChSystemNSC>();
 
     m_system->SetSolverType(ChSolver::Type::MINRES);
     m_system->SetSolverWarmStarting(true);
@@ -59,16 +59,16 @@ Model::Model(int sec, int ord ) {
     m_system->SetMaxItersSolverStab(200);
     m_system->SetTolForce(1e-13);
 
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
     my_mesh->SetAutomaticGravity(false);
     m_system->Add(my_mesh);
 
-    melasticity = std::make_shared<ChElasticityCosseratSimple>();
+    melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
     melasticity->SetYoungModulus(E);
     melasticity->SetGshearModulus(E * nu);
     melasticity->SetBeamRaleyghDamping(0.0000);
 
-    auto msection = std::make_shared<ChBeamSectionCosserat>(melasticity);
+    auto msection = chrono_types::make_shared<ChBeamSectionCosserat>(melasticity);
     msection->SetDensity(rho);
     msection->SetAsRectangularSection(wy, wz);
 

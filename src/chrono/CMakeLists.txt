@@ -40,15 +40,13 @@ set(ChronoEngine_core_SOURCES
     core/ChQuaternion.cpp
     core/ChVector.cpp
     core/ChCoordsys.cpp
-    core/ChLinkedListMatrix.cpp
     core/ChCSMatrix.cpp
-    core/ChMapMatrix.cpp
     core/ChCOOMatrix.cpp
     core/ChQuadrature.cpp
     core/ChBezierCurve.cpp
     core/ChCubicSpline.cpp
     core/ChDistribution.cpp
-    core/ChLinearAlgebra.cpp
+    core/ChGlobal.cpp
     )
 
 set(ChronoEngine_core_HEADERS
@@ -60,16 +58,14 @@ set(ChronoEngine_core_HEADERS
     core/ChFilePS.h
     core/ChFrame.h
     core/ChFrameMoving.h
-    core/ChLinearAlgebra.h
     core/ChLists.h
     core/ChLog.h
     core/ChMath.h
     core/ChMathematics.h
     core/ChMatrix.h
-    core/ChMatrixDynamic.h
-    core/ChMatrixNM.h
+    core/ChMatrixEigenExtensions.h
     core/ChMatrix33.h
-    core/ChVectorDynamic.h
+    core/ChMatrixMBD.h
     core/ChPlatform.h
     core/ChQuaternion.h
     core/ChRealtimeStep.h
@@ -82,14 +78,14 @@ set(ChronoEngine_core_HEADERS
     core/ChCSMatrix.h
     core/ChCOOMatrix.h
     core/ChAlignedAllocator.h
-    core/ChLinkedListMatrix.h
-    core/ChMapMatrix.h
     core/ChDistribution.h
     core/ChQuadrature.h
     core/ChTemplateExpressions.h
     core/ChBezierCurve.h
     core/ChCubicSpline.h
     core/ChBitmaskEnums.h
+    core/ChGlobal.h
+    core/ChTypes.h
     )
 
 source_group(core FILES
@@ -125,6 +121,7 @@ set(ChronoEngine_physics_SOURCES
     physics/ChBodyFrame.cpp
     physics/ChBody.cpp
     physics/ChBodyAuxRef.cpp
+    physics/ChBodyEasy.cpp
     physics/ChLinkForce.cpp
     physics/ChLinkMask.cpp
     physics/ChLinkBase.cpp
@@ -164,7 +161,6 @@ set(ChronoEngine_physics_SOURCES
     physics/ChSystem.cpp
     physics/ChSystemNSC.cpp
     physics/ChSystemSMC.cpp
-    physics/ChGlobal.cpp
     physics/ChSolvmin.cpp
     physics/ChProbe.cpp
     physics/ChControls.cpp
@@ -210,7 +206,7 @@ set(ChronoEngine_physics_SOURCES
     physics/ChLoadContainer.cpp
     physics/ChLoad.cpp
     physics/ChLoadsBody.cpp
-	physics/ChLoadsXYZnode.cpp
+    physics/ChLoadsXYZnode.cpp
     physics/ChLoadBodyMesh.cpp
     )
 
@@ -228,7 +224,6 @@ set(ChronoEngine_physics_HEADERS
     physics/ChConveyor.h
     physics/ChForce.h
     physics/ChFx.h
-    physics/ChGlobal.h
     physics/ChIndexedNodes.h
     physics/ChIndexedParticles.h
     physics/ChIterative.h
@@ -443,7 +438,6 @@ set(ChronoEngine_fea_HEADERS
     fea/ChContactSurfaceNodeCloud.h
     fea/ChContactSurfaceMesh.h
     fea/ChMeshSurface.h
-    fea/ChUtilsFEA.h
     fea/ChLoadContactSurfaceMesh.h
     fea/ChRotUtils.h
     fea/ChMaterialShellANCF.h
@@ -792,7 +786,7 @@ set(ChronoEngine_solver_SOURCES
     solver/ChConstraintThree.cpp
     solver/ChConstraintThreeGeneric.cpp
     solver/ChConstraintThreeBBShaft.cpp
-	solver/ChConstraintNgeneric.cpp
+    solver/ChConstraintNgeneric.cpp
     solver/ChVariables.cpp
     solver/ChVariablesGeneric.cpp
     solver/ChVariablesGenericDiagonalMass.cpp
@@ -820,7 +814,7 @@ set(ChronoEngine_solver_HEADERS
     solver/ChConstraintTwoTuplesFrictionT.h
     solver/ChConstraintTwoTuplesRollingN.h
     solver/ChConstraintTwoTuplesRollingT.h
-	solver/ChConstraintNgeneric.h
+    solver/ChConstraintNgeneric.h
     solver/ChSolver.h
     solver/ChIterativeSolver.h
     solver/ChSolverJacobi.h
@@ -1164,9 +1158,10 @@ endif()
 if(XCODE_VERSION)
     set_target_properties(ChronoEngine PROPERTIES XCODE_ATTRIBUTE_ENABLE_OPENMP_SUPPORT ${ENABLE_OPENMP})
 endif()
-
-if(MSVC AND MSVC_VERSION EQUAL 1900)
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /bigobj")
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	if(MSVC AND MSVC_VERSION GREATER_EQUAL 1900)
+	    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /bigobj")
+	endif()
 endif()
 
 # Install the main ChronoEngine library

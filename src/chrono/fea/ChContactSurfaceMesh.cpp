@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
 #include "chrono/collision/ChCModelBullet.h"
@@ -73,16 +73,18 @@ ChPhysicsItem* ChContactTriangleXYZ::GetPhysicsItem() {
 
 // Gets all the DOFs packed in a single vector (position part).
 void ChContactTriangleXYZ::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
-    mD.PasteVector(mnode1->GetPos(), block_offset, 0);
-    mD.PasteVector(mnode2->GetPos(), block_offset + 3, 0);
-    mD.PasteVector(mnode3->GetPos(), block_offset + 6, 0);
+    mD.segment(block_offset + 0, 3) = mnode1->GetPos().eigen();
+    mD.segment(block_offset + 3, 3) = mnode2->GetPos().eigen();
+    mD.segment(block_offset + 6, 3) = mnode3->GetPos().eigen();
 }
+
 // Gets all the DOFs packed in a single vector (velocity part).
 void ChContactTriangleXYZ::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
-    mD.PasteVector(mnode1->GetPos_dt(), block_offset, 0);
-    mD.PasteVector(mnode2->GetPos_dt(), block_offset + 3, 0);
-    mD.PasteVector(mnode3->GetPos_dt(), block_offset + 6, 0);
+    mD.segment(block_offset + 0, 3) = mnode1->GetPos_dt().eigen();
+    mD.segment(block_offset + 3, 3) = mnode2->GetPos_dt().eigen();
+    mD.segment(block_offset + 6, 3) = mnode3->GetPos_dt().eigen();
 }
+
 /// Increment all DOFs using a delta.
 void ChContactTriangleXYZ::LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv)  {
     mnode1->NodeIntStateIncrement(off_x   , x_new, x, off_v   , Dv);
@@ -119,14 +121,9 @@ void ChContactTriangleXYZ::ComputeNF(
     ChVector<> p2 = GetNode3()->GetPos();
     detJ = (Vcross(p2 - p0, p1 - p0)).Length();
 
-    ChVector<> tmp;
-    ChVector<> Fv = F.ClipVector(0, 0);
-    tmp = N(0) * Fv;
-    Qi.PasteVector(tmp, 0, 0);
-    tmp = N(1) * Fv;
-    Qi.PasteVector(tmp, 3, 0);
-    tmp = N(2) * Fv;
-    Qi.PasteVector(tmp, 6, 0);
+    Qi.segment(0, 3) = N(0) * F.segment(0, 3);
+    Qi.segment(3, 3) = N(1) * F.segment(0, 3);
+    Qi.segment(6, 3) = N(2) * F.segment(0, 3);
 }
 
 ChVector<> ChContactTriangleXYZ::ComputeNormal(const double U, const double V) {
@@ -169,24 +166,34 @@ ChPhysicsItem* ChContactTriangleXYZROT::GetPhysicsItem() {
 
 // Gets all the DOFs packed in a single vector (position part).
 void ChContactTriangleXYZROT::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
-    mD.PasteVector(mnode1->GetPos(), block_offset, 0);
-    mD.PasteQuaternion(mnode1->GetRot(), block_offset + 3, 0);
-    mD.PasteVector(mnode2->GetPos(), block_offset + 7, 0);
-    mD.PasteQuaternion(mnode2->GetRot(), block_offset + 10, 0);
-    mD.PasteVector(mnode3->GetPos(), block_offset + 14, 0);
-    mD.PasteQuaternion(mnode3->GetRot(), block_offset + 17, 0);
+    mD.segment(block_offset + 0, 3) = mnode1->GetPos().eigen();
+    mD.segment(block_offset + 3, 4) = mnode1->GetRot().eigen();
+
+    mD.segment(block_offset + 7, 3) = mnode2->GetPos().eigen();
+    mD.segment(block_offset + 10, 4) = mnode2->GetRot().eigen();
+
+    mD.segment(block_offset + 14, 3) = mnode3->GetPos().eigen();
+    mD.segment(block_offset + 17, 4) = mnode3->GetRot().eigen();
 }
+
 // Gets all the DOFs packed in a single vector (velocity part).
 void ChContactTriangleXYZROT::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
-    mD.PasteVector(mnode1->GetPos_dt(), block_offset, 0);
-    mD.PasteVector(mnode1->GetWvel_loc(), block_offset + 3, 0);
-    mD.PasteVector(mnode2->GetPos_dt(), block_offset + 6, 0);
-    mD.PasteVector(mnode2->GetWvel_loc(), block_offset + 9, 0);
-    mD.PasteVector(mnode3->GetPos_dt(), block_offset + 12, 0);
-    mD.PasteVector(mnode3->GetWvel_loc(), block_offset + 15, 0);
+    mD.segment(block_offset + 0, 3) = mnode1->GetPos_dt().eigen();
+    mD.segment(block_offset + 3, 3) = mnode1->GetWvel_loc().eigen();
+
+    mD.segment(block_offset + 6, 3) = mnode2->GetPos_dt().eigen();
+    mD.segment(block_offset + 9, 3) = mnode2->GetWvel_loc().eigen();
+
+    mD.segment(block_offset + 12, 3) = mnode3->GetPos_dt().eigen();
+    mD.segment(block_offset + 15, 3) = mnode3->GetWvel_loc().eigen();
 }
-/// Increment all DOFs using a delta.
-void ChContactTriangleXYZROT::LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv)  {
+
+// Increment all DOFs using a delta.
+void ChContactTriangleXYZROT::LoadableStateIncrement(const unsigned int off_x,
+                                                     ChState& x_new,
+                                                     const ChState& x,
+                                                     const unsigned int off_v,
+                                                     const ChStateDelta& Dv) {
     mnode1->NodeIntStateIncrement(off_x   , x_new, x, off_v    , Dv);
     mnode2->NodeIntStateIncrement(off_x+7 , x_new, x, off_v+6  , Dv);
     mnode3->NodeIntStateIncrement(off_x+14, x_new, x, off_v+12 , Dv);
@@ -220,21 +227,14 @@ void ChContactTriangleXYZROT::ComputeNF(
     ChVector<> p2 = GetNode3()->GetPos();
     detJ = (Vcross(p2 - p0, p1 - p0)).Length();
 
-    ChVector<> tmp;
-    ChVector<> Fv = F.ClipVector(0, 0);
-    ChVector<> Mv = F.ClipVector(3, 0);
-    tmp = N(0) * Fv;
-    Qi.PasteVector(tmp, 0, 0);
-    tmp = N(0) * Mv;
-    Qi.PasteVector(tmp, 3, 0);
-    tmp = N(1) * Fv;
-    Qi.PasteVector(tmp, 6, 0);
-    tmp = N(1) * Mv;
-    Qi.PasteVector(tmp, 9, 0);
-    tmp = N(2) * Fv;
-    Qi.PasteVector(tmp, 12, 0);
-    tmp = N(2) * Mv;
-    Qi.PasteVector(tmp, 15, 0);
+    Qi.segment(0, 3) = N(0) * F.segment(0, 3);
+    Qi.segment(3, 3) = N(0) * F.segment(3, 3);
+
+    Qi.segment(6, 3) = N(1) * F.segment(0, 3);
+    Qi.segment(9, 3) = N(1) * F.segment(3, 3);
+    
+    Qi.segment(12, 3) = N(2) * F.segment(0, 3);
+    Qi.segment(15, 3) = N(2) * F.segment(3, 3);
 }
 
 ChVector<> ChContactTriangleXYZROT::ComputeNormal(const double U, const double V) {
@@ -358,7 +358,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
             std::shared_ptr<ChNodeFEAxyzrot> nA = mbeam->GetNodeA();
             std::shared_ptr<ChNodeFEAxyzrot> nB = mbeam->GetNodeB();
 
-            auto contact_triangle = std::make_shared<ChContactTriangleXYZROT>();
+            auto contact_triangle = chrono_types::make_shared<ChContactTriangleXYZROT>();
             contact_triangle->SetNode1(nA);
             contact_triangle->SetNode2(nB);
             contact_triangle->SetNode3(nB);
@@ -383,7 +383,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
             std::shared_ptr<ChNodeFEAxyzD> nA = mbeam->GetNodeA();
             std::shared_ptr<ChNodeFEAxyzD> nB = mbeam->GetNodeB();
 
-            auto contact_triangle = std::make_shared<ChContactTriangleXYZ>();
+            auto contact_triangle = chrono_types::make_shared<ChContactTriangleXYZ>();
             contact_triangle->SetNode1(nA);
             contact_triangle->SetNode2(nB);
             contact_triangle->SetNode3(nB);
@@ -743,7 +743,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
                 i_wingvertex_C = triangles[tri_map[it][3]][2];
         }
 
-        auto contact_triangle = std::make_shared<ChContactTriangleXYZ>();
+        auto contact_triangle = chrono_types::make_shared<ChContactTriangleXYZ>();
         contact_triangle->SetNode1(triangles_ptrs[it][0]);
         contact_triangle->SetNode2(triangles_ptrs[it][1]);
         contact_triangle->SetNode3(triangles_ptrs[it][2]);
@@ -831,7 +831,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
                 i_wingvertex_C = triangles_rot[tri_map_rot[it][3]][2];
         }
 
-        auto contact_triangle_rot = std::make_shared<ChContactTriangleXYZROT>();
+        auto contact_triangle_rot = chrono_types::make_shared<ChContactTriangleXYZROT>();
         contact_triangle_rot->SetNode1(triangles_rot_ptrs[it][0]);
         contact_triangle_rot->SetNode2(triangles_rot_ptrs[it][1]);
         contact_triangle_rot->SetNode3(triangles_rot_ptrs[it][2]);

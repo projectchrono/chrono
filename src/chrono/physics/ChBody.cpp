@@ -15,15 +15,14 @@
 #include <cstdlib>
 #include <algorithm>
 
+#include "chrono/core/ChGlobal.h"
 #include "chrono/core/ChTransform.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChForce.h"
-#include "chrono/physics/ChGlobal.h"
 #include "chrono/physics/ChMarker.h"
 #include "chrono/physics/ChSystem.h"
 
 #include "chrono/collision/ChCModelBullet.h"
-#include "chrono/core/ChLinearAlgebra.h"
 
 namespace chrono {
 
@@ -51,10 +50,10 @@ ChBody::ChBody(ChMaterialSurface::ContactMethod contact_method) {
 
     switch (contact_method) {
         case ChMaterialSurface::NSC:
-            matsurface = std::make_shared<ChMaterialSurfaceNSC>();
+            matsurface = chrono_types::make_shared<ChMaterialSurfaceNSC>();
             break;
         case ChMaterialSurface::SMC:
-            matsurface = std::make_shared<ChMaterialSurfaceSMC>();
+            matsurface = chrono_types::make_shared<ChMaterialSurfaceSMC>();
             break;
     }
 
@@ -96,10 +95,10 @@ ChBody::ChBody(std::shared_ptr<collision::ChCollisionModel> new_collision_model,
 
     switch (contact_method) {
         case ChMaterialSurface::NSC:
-            matsurface = std::make_shared<ChMaterialSurfaceNSC>();
+            matsurface = chrono_types::make_shared<ChMaterialSurfaceNSC>();
             break;
         case ChMaterialSurface::SMC:
-            matsurface = std::make_shared<ChMaterialSurfaceSMC>();
+            matsurface = chrono_types::make_shared<ChMaterialSurfaceSMC>();
             break;
     }
 
@@ -161,7 +160,7 @@ ChBody::~ChBody() {
 }
 
 std::shared_ptr<collision::ChCollisionModel> ChBody::InstanceCollisionModel() {
-    auto collision_model_t = std::make_shared<ChModelBullet>();
+    auto collision_model_t = chrono_types::make_shared<ChModelBullet>();
     collision_model_t->SetContactable(this);
     return collision_model_t;
 }
@@ -174,9 +173,10 @@ void ChBody::IntStateGather(const unsigned int off_x,  // offset in x state vect
                             ChStateDelta& v,           // state vector, speed part
                             double& T                  // time
                             ) {
-    x.PasteCoordsys(this->coord, off_x, 0);
-    v.PasteVector(this->coord_dt.pos, off_v, 0);
-    v.PasteVector(this->GetWvel_loc(), off_v + 3, 0);
+    x.segment(off_x + 0, 3) = this->coord.pos.eigen();
+    x.segment(off_x + 3, 4) = this->coord.rot.eigen();
+    v.segment(off_v + 0, 3) = this->coord_dt.pos.eigen();
+    v.segment(off_v + 3, 3) = this->GetWvel_loc().eigen();
     T = this->GetChTime();
 }
 
@@ -186,21 +186,21 @@ void ChBody::IntStateScatter(const unsigned int off_x,  // offset in x state vec
                              const ChStateDelta& v,     // state vector, speed part
                              const double T             // time
                              ) {
-    this->SetCoord(x.ClipCoordsys(off_x, 0));
-    this->SetPos_dt(v.ClipVector(off_v, 0));
-    this->SetWvel_loc(v.ClipVector(off_v + 3, 0));
+    this->SetCoord(x.segment(off_x, 7));
+    this->SetPos_dt(v.segment(off_v + 0, 3));
+    this->SetWvel_loc(v.segment(off_v + 3, 3));
     this->SetChTime(T);
     this->Update();
 }
 
 void ChBody::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
-    a.PasteVector(this->coord_dtdt.pos, off_a, 0);
-    a.PasteVector(this->GetWacc_loc(), off_a + 3, 0);
+    a.segment(off_a + 0, 3) = this->coord_dtdt.pos.eigen();
+    a.segment(off_a + 3, 3) = this->GetWacc_loc().eigen();
 }
 
 void ChBody::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
-    this->SetPos_dtdt(a.ClipVector(off_a, 0));
-    this->SetWacc_loc(a.ClipVector(off_a + 3, 0));
+    this->SetPos_dtdt(a.segment(off_a + 0, 3));
+    this->SetWacc_loc(a.segment(off_a + 3, 3));
 }
 
 void ChBody::IntStateIncrement(const unsigned int off_x,  // offset in x state vector
@@ -216,13 +216,13 @@ void ChBody::IntStateIncrement(const unsigned int off_x,  // offset in x state v
 
     // ADVANCE ROTATION: rot' = delta*rot  (use quaternion for delta rotation)
     ChQuaternion<> mdeltarot;
-    ChQuaternion<> moldrot = x.ClipQuaternion(off_x + 3, 0);
-    ChVector<> newwel_abs = Amatrix * Dv.ClipVector(off_v + 3, 0);
+    ChQuaternion<> moldrot(x.segment(off_x + 3, 4));
+    ChVector<> newwel_abs = Amatrix * ChVector<>(Dv.segment(off_v + 3, 3));
     double mangle = newwel_abs.Length();
     newwel_abs.Normalize();
     mdeltarot.Q_from_AngAxis(mangle, newwel_abs);
     ChQuaternion<> mnewrot = mdeltarot * moldrot;  // quaternion product
-    x_new.PasteQuaternion(mnewrot, off_x + 3, 0);
+    x_new.segment(off_x + 3, 4) = mnewrot.eigen();
 }
 
 void ChBody::IntLoadResidual_F(const unsigned int off,  // offset in R residual
@@ -230,13 +230,13 @@ void ChBody::IntLoadResidual_F(const unsigned int off,  // offset in R residual
                                const double c           // a scaling factor
                                ) {
     // add applied forces to 'fb' vector
-    R.PasteSumVector(Xforce * c, off, 0);
+    R.segment(off, 3) += c * Xforce.eigen();
 
     // add applied torques to 'fb' vector, including gyroscopic torque
     if (this->GetNoGyroTorque())
-        R.PasteSumVector((Xtorque)*c, off + 3, 0);
+        R.segment(off + 3, 3) += c * Xtorque.eigen();
     else
-        R.PasteSumVector((Xtorque - gyro) * c, off + 3, 0);
+        R.segment(off + 3, 3) += c * (Xtorque - gyro).eigen();
 }
 
 void ChBody::IntLoadResidual_Mv(const unsigned int off,      // offset in R residual
@@ -247,9 +247,9 @@ void ChBody::IntLoadResidual_Mv(const unsigned int off,      // offset in R resi
     R(off + 0) += c * GetMass() * w(off + 0);
     R(off + 1) += c * GetMass() * w(off + 1);
     R(off + 2) += c * GetMass() * w(off + 2);
-    ChVector<> Iw = GetInertia() * w.ClipVector(off + 3, 0);
+    ChVector<> Iw = GetInertia() * ChVector<>(w.segment(off + 3, 3));
     Iw *= c;
-    R.PasteSumVector(Iw, off + 3, 0);
+    R.segment(off + 3, 3) += Iw.eigen();
 }
 
 void ChBody::IntToDescriptor(const unsigned int off_v,
@@ -258,15 +258,15 @@ void ChBody::IntToDescriptor(const unsigned int off_v,
                              const unsigned int off_L,
                              const ChVectorDynamic<>& L,
                              const ChVectorDynamic<>& Qc) {
-    this->variables.Get_qb().PasteClippedMatrix(v, off_v, 0, 6, 1, 0, 0);  // for solver warm starting only
-    this->variables.Get_fb().PasteClippedMatrix(R, off_v, 0, 6, 1, 0, 0);  // solver known term
+    this->variables.Get_qb() = v.segment(off_v, 6);
+    this->variables.Get_fb() = R.segment(off_v, 6);
 }
 
 void ChBody::IntFromDescriptor(const unsigned int off_v,  // offset in v
                                ChStateDelta& v,
                                const unsigned int off_L,  // offset in L
                                ChVectorDynamic<>& L) {
-    v.PasteMatrix(this->variables.Get_qb(), off_v, 0);
+    v.segment(off_v, 6) = this->variables.Get_qb();
 }
 
 ////
@@ -278,18 +278,18 @@ void ChBody::InjectVariables(ChSystemDescriptor& mdescriptor) {
 }
 
 void ChBody::VariablesFbReset() {
-    this->variables.Get_fb().FillElem(0.0);
+    this->variables.Get_fb().setZero();
 }
 
 void ChBody::VariablesFbLoadForces(double factor) {
     // add applied forces to 'fb' vector
-    this->variables.Get_fb().PasteSumVector(Xforce * factor, 0, 0);
+    this->variables.Get_fb().segment(0, 3) += factor * Xforce.eigen();
 
     // add applied torques to 'fb' vector, including gyroscopic torque
     if (this->GetNoGyroTorque())
-        this->variables.Get_fb().PasteSumVector((Xtorque)*factor, 3, 0);
+        this->variables.Get_fb().segment(3, 3) += factor * Xtorque.eigen();
     else
-        this->variables.Get_fb().PasteSumVector((Xtorque - gyro) * factor, 3, 0);
+        this->variables.Get_fb().segment(3, 3) += factor * (Xtorque - gyro).eigen();
 }
 
 void ChBody::VariablesFbIncrementMq() {
@@ -298,16 +298,16 @@ void ChBody::VariablesFbIncrementMq() {
 
 void ChBody::VariablesQbLoadSpeed() {
     // set current speed in 'qb', it can be used by the solver when working in incremental mode
-    this->variables.Get_qb().PasteVector(GetCoord_dt().pos, 0, 0);
-    this->variables.Get_qb().PasteVector(GetWvel_loc(), 3, 0);
+    this->variables.Get_qb().segment(0, 3) = GetCoord_dt().pos.eigen();
+    this->variables.Get_qb().segment(3, 3) = GetWvel_loc().eigen();
 }
 
 void ChBody::VariablesQbSetSpeed(double step) {
     ChCoordsys<> old_coord_dt = this->GetCoord_dt();
 
     // from 'qb' vector, sets body speed, and updates auxiliary data
-    this->SetPos_dt(this->variables.Get_qb().ClipVector(0, 0));
-    this->SetWvel_loc(this->variables.Get_qb().ClipVector(3, 0));
+    this->SetPos_dt(this->variables.Get_qb().segment(0, 3));
+    this->SetWvel_loc(this->variables.Get_qb().segment(3, 3));
 
     // apply limits (if in speed clamping mode) to speeds.
     ClampSpeed();
@@ -329,8 +329,8 @@ void ChBody::VariablesQbIncrementPosition(double dt_step) {
     // Updates position with incremental action of speed contained in the
     // 'qb' vector:  pos' = pos + dt * speed   , like in an Eulero step.
 
-    ChVector<> newspeed = variables.Get_qb().ClipVector(0, 0);
-    ChVector<> newwel = variables.Get_qb().ClipVector(3, 0);
+    ChVector<> newspeed(variables.Get_qb().segment(0, 3));
+    ChVector<> newwel(variables.Get_qb().segment(3, 3));
 
     // ADVANCE POSITION: pos' = pos + dt * vel
     this->SetPos(this->GetPos() + newspeed * dt_step);
@@ -377,11 +377,11 @@ ChVector<> ChBody::Point_Body2World(const ChVector<>& mpoint) {
 }
 
 ChVector<> ChBody::Dir_World2Body(const ChVector<>& mpoint) {
-    return Amatrix.MatrT_x_Vect(mpoint);
+    return Amatrix.transpose() * mpoint;
 }
 
 ChVector<> ChBody::Dir_Body2World(const ChVector<>& mpoint) {
-    return Amatrix.Matr_x_Vect(mpoint);
+    return Amatrix * mpoint;
 }
 
 ChVector<> ChBody::RelPoint_AbsSpeed(const ChVector<>& mrelpoint) {
@@ -399,47 +399,42 @@ void ChBody::SetInertia(const ChMatrix33<>& newXInertia) {
 }
 
 void ChBody::SetInertiaXX(const ChVector<>& iner) {
-    variables.GetBodyInertia().SetElement(0, 0, iner.x());
-    variables.GetBodyInertia().SetElement(1, 1, iner.y());
-    variables.GetBodyInertia().SetElement(2, 2, iner.z());
-    variables.GetBodyInertia().FastInvert(variables.GetBodyInvInertia());
+    variables.GetBodyInertia()(0, 0) = iner.x();
+    variables.GetBodyInertia()(1, 1) = iner.y();
+    variables.GetBodyInertia()(2, 2) = iner.z();
+    variables.GetBodyInvInertia() = variables.GetBodyInertia().inverse();
 }
+
 void ChBody::SetInertiaXY(const ChVector<>& iner) {
-    variables.GetBodyInertia().SetElement(0, 1, iner.x());
-    variables.GetBodyInertia().SetElement(0, 2, iner.y());
-    variables.GetBodyInertia().SetElement(1, 2, iner.z());
-    variables.GetBodyInertia().SetElement(1, 0, iner.x());
-    variables.GetBodyInertia().SetElement(2, 0, iner.y());
-    variables.GetBodyInertia().SetElement(2, 1, iner.z());
-    variables.GetBodyInertia().FastInvert(variables.GetBodyInvInertia());
+    variables.GetBodyInertia()(0, 1) = iner.x();
+    variables.GetBodyInertia()(0, 2) = iner.y();
+    variables.GetBodyInertia()(1, 2) = iner.z();
+    variables.GetBodyInertia()(1, 0) = iner.x();
+    variables.GetBodyInertia()(2, 0) = iner.y();
+    variables.GetBodyInertia()(2, 1) = iner.z();
+    variables.GetBodyInvInertia() = variables.GetBodyInertia().inverse();
 }
 
 ChVector<> ChBody::GetInertiaXX() {
     ChVector<> iner;
-    iner.x() = variables.GetBodyInertia().GetElement(0, 0);
-    iner.y() = variables.GetBodyInertia().GetElement(1, 1);
-    iner.z() = variables.GetBodyInertia().GetElement(2, 2);
+    iner.x() = variables.GetBodyInertia()(0, 0);
+    iner.y() = variables.GetBodyInertia()(1, 1);
+    iner.z() = variables.GetBodyInertia()(2, 2);
     return iner;
 }
 
 ChVector<> ChBody::GetInertiaXY() {
     ChVector<> iner;
-    iner.x() = variables.GetBodyInertia().GetElement(0, 1);
-    iner.y() = variables.GetBodyInertia().GetElement(0, 2);
-    iner.z() = variables.GetBodyInertia().GetElement(1, 2);
+    iner.x() = variables.GetBodyInertia()(0, 1);
+    iner.y() = variables.GetBodyInertia()(0, 2);
+    iner.z() = variables.GetBodyInertia()(1, 2);
     return iner;
 }
 
-void ChBody::ComputeQInertia(ChMatrixNM<double, 4, 4>* mQInertia) {
-    ChMatrixNM<double, 3, 4> res;
-    ChMatrixNM<double, 3, 4> Gl;
-    ChMatrixNM<double, 4, 3> GlT;
-
-    SetMatrix_Gl(Gl, coord.rot);
-    GlT.CopyFromMatrixT(Gl);
-
-    res.MatrMultiply(this->GetInertia(), Gl);
-    mQInertia->MatrMultiply(GlT, res);  // [Iq]=[G'][Ix][G]
+void ChBody::ComputeQInertia(ChMatrix44<>& mQInertia) {
+    // [Iq]=[G'][Ix][G]
+    ChGlMatrix34<> Gl(coord.rot);
+    mQInertia = Gl.transpose() * this->GetInertia() * Gl;
 }
 
 //////
@@ -447,18 +442,18 @@ void ChBody::ComputeQInertia(ChMatrixNM<double, 4, 4>* mQInertia) {
 void ChBody::Add_as_lagrangian_force(const ChVector<>& force,
                                      const ChVector<>& appl_point,
                                      bool local,
-                                     ChMatrixNM<double, 7, 1>* mQf) {
+                                     ChVectorN<double, 7>& mQf) {
     ChVector<> mabsforce;
     ChVector<> mabstorque;
     To_abs_forcetorque(force, appl_point, local, mabsforce, mabstorque);
-    mQf->PasteSumVector(mabsforce, 0, 0);
-    mQf->PasteSumQuaternion(ChFrame<>::GlT_x_Vect(coord.rot, Dir_World2Body(mabstorque)), 3, 0);
+    mQf.segment(0, 3) += mabsforce.eigen();
+    mQf.segment(3, 4) += ChGlMatrix34<>::GlT_times_v(coord.rot, Dir_World2Body(mabstorque)).eigen();
 }
 
-void ChBody::Add_as_lagrangian_torque(const ChVector<>& torque, bool local, ChMatrixNM<double, 7, 1>* mQf) {
+void ChBody::Add_as_lagrangian_torque(const ChVector<>& torque, bool local, ChVectorN<double, 7>& mQf) {
     ChVector<> mabstorque;
     To_abs_torque(torque, local, mabstorque);
-    mQf->PasteSumQuaternion(ChFrame<>::GlT_x_Vect(coord.rot, Dir_World2Body(mabstorque)), 3, 0);
+    mQf.segment(3, 4) += ChGlMatrix34<>::GlT_times_v(coord.rot, Dir_World2Body(mabstorque)).eigen();
 }
 
 //////
@@ -498,7 +493,7 @@ void ChBody::Accumulate_script_torque(const ChVector<>& torque, bool local) {
 
 void ChBody::ComputeGyro() {
     ChVector<> Wvel = this->GetWvel_loc();
-    gyro = Vcross(Wvel, (variables.GetBodyInertia().Matr_x_Vect(Wvel)));
+    gyro = Vcross(Wvel, variables.GetBodyInertia() * Wvel);
 }
 
 bool ChBody::TrySleeping() {
@@ -864,8 +859,8 @@ void ChBody::ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& a
     ChVector<> m_p1_loc = this->Point_World2Body(abs_point);
     ChVector<> force1_loc = this->Dir_World2Body(F);
     ChVector<> torque1_loc = Vcross(m_p1_loc, force1_loc);
-    R.PasteSumVector(F, this->GetOffset_w() + 0, 0);
-    R.PasteSumVector(torque1_loc, this->GetOffset_w() + 3, 0);
+    R.segment(this->GetOffset_w() + 0, 3) += F.eigen();
+    R.segment(this->GetOffset_w() + 3, 3) += torque1_loc.eigen();
 }
 
 void ChBody::ComputeJacobianForContactPart(const ChVector<>& abs_point,
@@ -917,51 +912,48 @@ void ChBody::ComputeJacobianForContactPart(const ChVector<>& abs_point,
     //       p1y*(temp01) - p1z*(temp11), p1z*(temp21) - p1x*(temp01), p1x*(temp11) - p1y*(temp21);
     //       p1y*(temp02) - p1z*(temp12), p1z*(temp22) - p1x*(temp02), p1x*(temp12) - p1y*(temp22)];
 	if (!second) {
-		jacobian_tuple_N.Get_Cq()->SetElementN(0, -contact_plane(0, 0));
-		jacobian_tuple_N.Get_Cq()->SetElementN(1, -contact_plane(1, 0));
-		jacobian_tuple_N.Get_Cq()->SetElementN(2, -contact_plane(2, 0));
-		jacobian_tuple_N.Get_Cq()->SetElementN(3, -p1.y()*(temp00) + p1.z()*(temp10));
-		jacobian_tuple_N.Get_Cq()->SetElementN(4, -p1.z()*(temp20) + p1.x()*(temp00));
-		jacobian_tuple_N.Get_Cq()->SetElementN(5, -p1.x()*(temp10) + p1.y()*(temp20));
+        jacobian_tuple_N.Get_Cq()(0) = -contact_plane(0, 0);
+        jacobian_tuple_N.Get_Cq()(1) = -contact_plane(1, 0);
+        jacobian_tuple_N.Get_Cq()(2) = -contact_plane(2, 0);
+        jacobian_tuple_N.Get_Cq()(3) = -p1.y() * temp00 + p1.z() * temp10;
+        jacobian_tuple_N.Get_Cq()(4) = -p1.z() * temp20 + p1.x() * temp00;
+        jacobian_tuple_N.Get_Cq()(5) = -p1.x() * temp10 + p1.y() * temp20;
 
-		jacobian_tuple_U.Get_Cq()->SetElementN(0, -contact_plane(0, 1));
-		jacobian_tuple_U.Get_Cq()->SetElementN(1, -contact_plane(1, 1));
-		jacobian_tuple_U.Get_Cq()->SetElementN(2, -contact_plane(2, 1));
-		jacobian_tuple_U.Get_Cq()->SetElementN(3, -p1.y()*(temp01) + p1.z()*(temp11));
-		jacobian_tuple_U.Get_Cq()->SetElementN(4, -p1.z()*(temp21) + p1.x()*(temp01));
-		jacobian_tuple_U.Get_Cq()->SetElementN(5, -p1.x()*(temp11) + p1.y()*(temp21));
+        jacobian_tuple_U.Get_Cq()(0) = -contact_plane(0, 1);
+        jacobian_tuple_U.Get_Cq()(1) = -contact_plane(1, 1);
+        jacobian_tuple_U.Get_Cq()(2) = -contact_plane(2, 1);
+        jacobian_tuple_U.Get_Cq()(3) = -p1.y() * temp01 + p1.z() * temp11;
+        jacobian_tuple_U.Get_Cq()(4) = -p1.z() * temp21 + p1.x() * temp01;
+        jacobian_tuple_U.Get_Cq()(5) = -p1.x() * temp11 + p1.y() * temp21;
 
-		jacobian_tuple_V.Get_Cq()->SetElementN(0, -contact_plane(0, 2));
-		jacobian_tuple_V.Get_Cq()->SetElementN(1, -contact_plane(1, 2));
-		jacobian_tuple_V.Get_Cq()->SetElementN(2, -contact_plane(2, 2));
-		jacobian_tuple_V.Get_Cq()->SetElementN(3, -p1.y()*(temp02) + p1.z()*(temp12));
-		jacobian_tuple_V.Get_Cq()->SetElementN(4, -p1.z()*(temp22) + p1.x()*(temp02));
-		jacobian_tuple_V.Get_Cq()->SetElementN(5, -p1.x()*(temp12) + p1.y()*(temp22));
-	}
-	else
-	{
-		jacobian_tuple_N.Get_Cq()->SetElementN(0, contact_plane(0, 0));
-		jacobian_tuple_N.Get_Cq()->SetElementN(1, contact_plane(1, 0));
-		jacobian_tuple_N.Get_Cq()->SetElementN(2, contact_plane(2, 0));
-		jacobian_tuple_N.Get_Cq()->SetElementN(3, p1.y()*(temp00) - p1.z()*(temp10));
-		jacobian_tuple_N.Get_Cq()->SetElementN(4, p1.z()*(temp20) - p1.x()*(temp00));
-		jacobian_tuple_N.Get_Cq()->SetElementN(5, p1.x()*(temp10) - p1.y()*(temp20));
+        jacobian_tuple_V.Get_Cq()(0) = -contact_plane(0, 2);
+        jacobian_tuple_V.Get_Cq()(1) = -contact_plane(1, 2);
+        jacobian_tuple_V.Get_Cq()(2) = -contact_plane(2, 2);
+        jacobian_tuple_V.Get_Cq()(3) = -p1.y() * temp02 + p1.z() * temp12;
+        jacobian_tuple_V.Get_Cq()(4) = -p1.z() * temp22 + p1.x() * temp02;
+        jacobian_tuple_V.Get_Cq()(5) = -p1.x() * temp12 + p1.y() * temp22;
+    } else {
+        jacobian_tuple_N.Get_Cq()(0) = contact_plane(0, 0);
+        jacobian_tuple_N.Get_Cq()(1) = contact_plane(1, 0);
+        jacobian_tuple_N.Get_Cq()(2) = contact_plane(2, 0);
+        jacobian_tuple_N.Get_Cq()(3) = p1.y() * temp00 - p1.z() * temp10;
+        jacobian_tuple_N.Get_Cq()(4) = p1.z() * temp20 - p1.x() * temp00;
+        jacobian_tuple_N.Get_Cq()(5) = p1.x() * temp10 - p1.y() * temp20;
 
-		jacobian_tuple_U.Get_Cq()->SetElementN(0, contact_plane(0, 1));
-		jacobian_tuple_U.Get_Cq()->SetElementN(1, contact_plane(1, 1));
-		jacobian_tuple_U.Get_Cq()->SetElementN(2, contact_plane(2, 1));
-		jacobian_tuple_U.Get_Cq()->SetElementN(3, p1.y()*(temp01) - p1.z()*(temp11));
-		jacobian_tuple_U.Get_Cq()->SetElementN(4, p1.z()*(temp21) - p1.x()*(temp01));
-		jacobian_tuple_U.Get_Cq()->SetElementN(5, p1.x()*(temp11) - p1.y()*(temp21));
+        jacobian_tuple_U.Get_Cq()(0) = contact_plane(0, 1);
+        jacobian_tuple_U.Get_Cq()(1) = contact_plane(1, 1);
+        jacobian_tuple_U.Get_Cq()(2) = contact_plane(2, 1);
+        jacobian_tuple_U.Get_Cq()(3) = p1.y() * temp01 - p1.z() * temp11;
+        jacobian_tuple_U.Get_Cq()(4) = p1.z() * temp21 - p1.x() * temp01;
+        jacobian_tuple_U.Get_Cq()(5) = p1.x() * temp11 - p1.y() * temp21;
 
-		jacobian_tuple_V.Get_Cq()->SetElementN(0, contact_plane(0, 2));
-		jacobian_tuple_V.Get_Cq()->SetElementN(1, contact_plane(1, 2));
-		jacobian_tuple_V.Get_Cq()->SetElementN(2, contact_plane(2, 2));
-		jacobian_tuple_V.Get_Cq()->SetElementN(3, p1.y()*(temp02) - p1.z()*(temp12));
-		jacobian_tuple_V.Get_Cq()->SetElementN(4, p1.z()*(temp22) - p1.x()*(temp02));
-		jacobian_tuple_V.Get_Cq()->SetElementN(5, p1.x()*(temp12) - p1.y()*(temp22));
-	}
-	
+        jacobian_tuple_V.Get_Cq()(0) = contact_plane(0, 2);
+        jacobian_tuple_V.Get_Cq()(1) = contact_plane(1, 2);
+        jacobian_tuple_V.Get_Cq()(2) = contact_plane(2, 2);
+        jacobian_tuple_V.Get_Cq()(3) = p1.y() * temp02 - p1.z() * temp12;
+        jacobian_tuple_V.Get_Cq()(4) = p1.z() * temp22 - p1.x() * temp02;
+        jacobian_tuple_V.Get_Cq()(5) = p1.x() * temp12 - p1.y() * temp22;
+    }
 }
 
 void ChBody::ComputeJacobianForRollingContactPart(
@@ -971,19 +963,16 @@ void ChBody::ComputeJacobianForRollingContactPart(
     ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
     ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
     bool second) {
-    ChMatrix33<> Jx1, Jr1;
-
-    Jx1.Reset();
-    Jr1.MatrTMultiply(contact_plane, this->GetA());
+    ChMatrix33<> Jr1 = contact_plane.transpose() * this->GetA();
     if (!second)
-        Jr1.MatrNeg();
+        Jr1 *= -1;
 
-    jacobian_tuple_N.Get_Cq()->PasteClippedMatrix(Jx1, 0, 0, 1, 3, 0, 0);
-    jacobian_tuple_U.Get_Cq()->PasteClippedMatrix(Jx1, 1, 0, 1, 3, 0, 0);
-    jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(Jx1, 2, 0, 1, 3, 0, 0);
-    jacobian_tuple_N.Get_Cq()->PasteClippedMatrix(Jr1, 0, 0, 1, 3, 0, 3);
-    jacobian_tuple_U.Get_Cq()->PasteClippedMatrix(Jr1, 1, 0, 1, 3, 0, 3);
-    jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(Jr1, 2, 0, 1, 3, 0, 3);
+    jacobian_tuple_N.Get_Cq().segment(0, 3).setZero();
+    jacobian_tuple_U.Get_Cq().segment(0, 3).setZero();
+    jacobian_tuple_V.Get_Cq().segment(0, 3).setZero();
+    jacobian_tuple_N.Get_Cq().segment(3, 3) = Jr1.row(0);
+    jacobian_tuple_U.Get_Cq().segment(3, 3) = Jr1.row(1);
+    jacobian_tuple_V.Get_Cq().segment(3, 3) = Jr1.row(2);
 }
 
 ChVector<> ChBody::GetContactForce() {

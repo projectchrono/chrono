@@ -104,7 +104,7 @@ ChainTest<N>::ChainTest() : m_length(0.25), m_step(1e-3) {
     }
 
     // Create ground
-    auto ground = std::make_shared<ChBody>(contact_method);
+    auto ground = chrono_types::make_shared<ChBody>(contact_method);
     ground->SetBodyFixed(true);
     m_system->AddBody(ground);
 
@@ -114,12 +114,12 @@ ChainTest<N>::ChainTest() : m_length(0.25), m_step(1e-3) {
     for (int ib = 0; ib < N; ib++) {
         auto prev = m_system->Get_bodylist().back();
 
-        auto pend = std::make_shared<ChBodyEasyBox>(m_length, width, width, density, false, true, contact_method);
+        auto pend = chrono_types::make_shared<ChBodyEasyBox>(m_length, width, width, density, false, true, contact_method);
         pend->SetPos(ChVector<>((ib + 0.5) * m_length, 0, 0));
-        pend->AddAsset(std::make_shared<ChColorAsset>(0.5f * (ib % 2), 0.0f, 0.5f * (ib % 2 - 1)));
+        pend->AddAsset(chrono_types::make_shared<ChColorAsset>(0.5f * (ib % 2), 0.0f, 0.5f * (ib % 2 - 1)));
         m_system->AddBody(pend);
 
-        auto rev = std::make_shared<ChLinkLockRevolute>();
+        auto rev = chrono_types::make_shared<ChLinkLockRevolute>();
         rev->Initialize(pend, prev, ChCoordsys<>(ChVector<>(ib * m_length, 0, 0)));
         m_system->AddLink(rev);
     }

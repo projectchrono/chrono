@@ -66,7 +66,7 @@ void ChRoadWheel::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
     // Create and initialize the revolute joint between wheel and carrier.
     // The axis of rotation is the y axis of the road wheel reference frame.
-    m_revolute = std::make_shared<ChLinkLockRevolute>();
+    m_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute->SetNameString(m_name + "_revolute");
     m_revolute->Initialize(carrier, m_wheel,
                            ChCoordsys<>(wheel_to_abs.GetPos(), wheel_to_abs.GetRot() * Q_from_AngX(CH_C_PI_2)));
@@ -76,13 +76,13 @@ void ChRoadWheel::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRoadWheel::LogConstraintViolations() {
-    ChMatrix<>* C = m_revolute->GetC();
+    ChVectorDynamic<> C = m_revolute->GetC();
     GetLog() << "  Road-wheel revolute\n";
-    GetLog() << "  " << C->GetElement(0, 0) << "  ";
-    GetLog() << "  " << C->GetElement(1, 0) << "  ";
-    GetLog() << "  " << C->GetElement(2, 0) << "  ";
-    GetLog() << "  " << C->GetElement(3, 0) << "  ";
-    GetLog() << "  " << C->GetElement(4, 0) << "\n";
+    GetLog() << "  " << C(0) << "  ";
+    GetLog() << "  " << C(1) << "  ";
+    GetLog() << "  " << C(2) << "  ";
+    GetLog() << "  " << C(3) << "  ";
+    GetLog() << "  " << C(4) << "\n";
 }
 
 // -----------------------------------------------------------------------------

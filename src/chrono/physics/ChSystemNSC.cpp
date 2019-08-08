@@ -46,14 +46,14 @@ ChSystemNSC::ChSystemNSC(unsigned int max_objects, double scene_size, bool init_
     : ChSystem() {
     if (init_sys) {
         // Set default contact container
-        contact_container = std::make_shared<ChContactContainerNSC>();
+        contact_container = chrono_types::make_shared<ChContactContainerNSC>();
         contact_container->SetSystem(this);
 
         // Set default collision engine
-        collision_system = std::make_shared<collision::ChCollisionSystemBullet>(max_objects, scene_size);
+        collision_system = chrono_types::make_shared<collision::ChCollisionSystemBullet>(max_objects, scene_size);
 
         // Set the system descriptor
-        descriptor = std::make_shared<ChSystemDescriptor>();
+        descriptor = chrono_types::make_shared<ChSystemDescriptor>();
         descriptor->SetNumThreads(parallel_thread_number);
 
         // Set default solver

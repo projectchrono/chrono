@@ -14,21 +14,28 @@
 
 #include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/solver/ChConstraintTwoTuplesFrictionT.h"
+#include "chrono/core/ChMathematics.h"
 
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChSolverMINRES)
 
-double ChSolverMINRES::Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
-) {
+ChSolverMINRES::ChSolverMINRES(int mmax_iters, bool mwarm_start, double mtolerance)
+    : ChIterativeSolver(mmax_iters, mwarm_start, mtolerance, 0.2),
+      rel_tolerance(0.0),
+      feas_tolerance(0.2),
+      max_fixedpoint_steps(6),
+      diag_preconditioning(true) {}
+
+double ChSolverMINRES::Solve(ChSystemDescriptor& sysd) {
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
     std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
 
     // If stiffness blocks are used, the Schur complement cannot be esily
     // used, so fall back to the Solve_SupportingStiffness method, that operates on KKT.
     if (sysd.GetKblocksList().size() > 0)
-        return this->Solve_SupportingStiffness(sysd);
+        return Solve_SupportingStiffness(sysd);
 
     tot_iterations = 0;
     double maxviolation = 0.;
@@ -64,13 +71,13 @@ double ChSolverMINRES::Solve(ChSystemDescriptor& sysd  ///< system description w
 
     if (verbose)
         GetLog() << "nc = " << nc << "\n";
-    ChMatrixDynamic<> ml(nc, 1);
-    ChMatrixDynamic<> mb(nc, 1);
-    ChMatrixDynamic<> mr(nc, 1);
-    ChMatrixDynamic<> mp(nc, 1);
-    ChMatrixDynamic<> mb_i(nc, 1);
-    ChMatrixDynamic<> Nr(nc, 1);
-    ChMatrixDynamic<> Np(nc, 1);
+    ChVectorDynamic<> ml(nc);
+    ChVectorDynamic<> mb(nc);
+    ChVectorDynamic<> mr(nc);
+    ChVectorDynamic<> mp(nc);
+    ChVectorDynamic<> mb_i(nc);
+    ChVectorDynamic<> Nr(nc);
+    ChVectorDynamic<> Np(nc);
     std::vector<bool> en_l(nc);
 
     // Compute the b_shur vector in the Shur complement equation N*l = b_shur
@@ -86,7 +93,7 @@ double ChSolverMINRES::Solve(ChSystemDescriptor& sysd  ///< system description w
             mvariables[iv]->Compute_invMb_v(mvariables[iv]->Get_qb(), mvariables[iv]->Get_fb());  // q = [M]'*fb
 
     // ...and now do  b_shur = - D' * q  ..
-    mb.Reset();
+    mb.setZero();
     int s_i = 0;
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
         if (mconstraints[ic]->IsActive()) {
@@ -96,18 +103,18 @@ double ChSolverMINRES::Solve(ChSystemDescriptor& sysd  ///< system description w
 
     // ..and finally do   b_shur = b_shur - c
     sysd.BuildBiVector(mb_i);  // b_i   =   -c   = phi/h
-    mb.MatrDec(mb_i);
+    mb -= mb_i;
 
     // Optimization: backup the  q  sparse data computed above,
     // because   (M^-1)*k   will be needed at the end when computing primals.
-    ChMatrixDynamic<> mq;
+    ChVectorDynamic<> mq;
     sysd.FromVariablesToVector(mq, true);
 
     // Initialize lambdas
     if (warm_start)
         sysd.FromConstraintsToVector(ml);
     else
-        ml.FillElem(0);
+        ml.setZero();
 
     // Initially all constraints are enabled
     for (int ie = 0; ie < nc; ie++)
@@ -126,9 +133,8 @@ double ChSolverMINRES::Solve(ChSystemDescriptor& sysd  ///< system description w
         //
 
         // Compute initial residual, with minus sign
-        sysd.ShurComplementProduct(mr, &ml, &en_l);  // 1)  r = N*l ...
-        mr.MatrDec(mb);                              // 2)  r = N*l - b_shur ...
-        mr.MatrNeg();                                // 3)  r = - N*l + b_shur
+        sysd.ShurComplementProduct(mr, ml, &en_l);  // r = N*l
+        mr = mb - mr;                               // r = - N*l + b_shur
 
         for (int row = 0; row < nc; row++)
             if (en_l[row] == false)
@@ -136,25 +142,25 @@ double ChSolverMINRES::Solve(ChSystemDescriptor& sysd  ///< system description w
 
         mp = mr;
 
-        sysd.ShurComplementProduct(Nr, &mr, &en_l);  // Nr  =  N * r
-        Np = Nr;                                     // Np  =  N * p
+        sysd.ShurComplementProduct(Nr, mr, &en_l);  // Nr  =  N * r
+        Np = Nr;                                    // Np  =  N * p
 
         while (true) {
             if (verbose)
                 GetLog() << "K";
-            // sysd.ShurComplementProduct(Nr, &mr,&en_l); // Nr  =  N * r  (no, recompute only when mr changes, see
-            // later)
-            double rNr = mr.MatrDot(mr, Nr);  // rNr = r' * N * r
 
-            // sysd.ShurComplementProduct(Np, &mp,&en_l); // Np  =  N * p  (no, see optimization at the end)
-            double den = pow(Np.NormTwo(), 2);  // den =  ((N*p)'(N*p))
+            ///sysd.ShurComplementProduct(Nr, mr, &en_l); // Nr  =  N * r  (no, recompute only when mr changes, see later)
+            double rNr = mr.dot(Nr);  // rNr = r' * N * r
+
+            ///sysd.ShurComplementProduct(Np, mp, &en_l); // Np  =  N * p  (no, see optimization at the end)
+            double den = Np.squaredNorm();
 
             if (den == 0)
                 break;
 
             double alpha = rNr / den;  // alpha = r'*N*r / ((N*p)'(N*p))
 
-            // ml.MatrInc((mp*alpha));				// l = l + alpha * p;  done below, with projection too
+            ///ml += mp*alpha;  // l = l + alpha * p;  done below, also with projection
 
             // btw. must split projection in two loops to avoid troubles with frictional contacts (three updates, but
             // project only at the end)
@@ -217,18 +223,15 @@ double ChSolverMINRES::Solve(ChSystemDescriptor& sysd  ///< system description w
                     ++s_cc;
                 }
 
-            mr.MatrDec((Np * alpha));  // r = r - alpha * N*p;
+            mr -= alpha * Np;  // r = r - alpha * N*p;
 
-            sysd.ShurComplementProduct(Nr, &mr, &en_l);  // Nr  =  N * r
-            double rNr_ = mr.MatrDot(mr, Nr);            // rNr = r' * N * r
+            sysd.ShurComplementProduct(Nr, mr, &en_l);  // Nr  =  N * r
+            double rNr_ = mr.dot(Nr);                   // rNr = r' * N * r
 
             double beta = rNr_ / rNr;  // beta = r'*(N*r)/ rjNrj;
 
-            mp.MatrScale(beta);
-            mp.MatrInc(mr);  // p = r + beta*p;
-
-            Np.MatrScale(beta);  // Avoid matr x vector operation by doing:
-            Np.MatrInc(Nr);      // N*p' = Nr + beta * N*p
+            mp = mr + beta * mp;  // p = r + beta*p;
+            Np = Nr + beta * Np;  // N*p' = Nr + beta * N*p
 
             // For recording into violation history
             if (this->record_violation_history)
@@ -256,8 +259,8 @@ double ChSolverMINRES::Solve(ChSystemDescriptor& sysd  ///< system description w
                 GetLog() << "p";
 
             // Compute residual  as  r = N*l - b_shur
-            sysd.ShurComplementProduct(mr, &ml, 0);  // 1)  r = N*l ...
-            mr.MatrDec(mb);                          // 2)  r = N*l - b_shur
+            sysd.ShurComplementProduct(mr, ml, 0);  // 1)  r = N*l ...
+            mr -= mb;                               // 2)  r = N*l - b_shur
 
             //	l = l - omega * (diag(N)^-1)* (res);
             double norm_dlam = 0;
@@ -345,12 +348,9 @@ double ChSolverMINRES::Solve(ChSystemDescriptor& sysd  ///< system description w
     return maxviolation;
 }
 
-//////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
+// ---------------------------------------------------------------------------
 
-double ChSolverMINRES::Solve_SupportingStiffness(
-    ChSystemDescriptor& sysd  ///< system description with constraints and variables
-) {
+double ChSolverMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
     bool do_preconditioning = this->diag_preconditioning;
 
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
@@ -369,18 +369,18 @@ double ChSolverMINRES::Solve_SupportingStiffness(
         GetLog() << "\n----- MINRES -supporting stiffness-, n.vars nx=" << nx << "  max.iters=" << max_iterations
                  << "\n";
 
-    ChMatrixDynamic<> x(nx, 1);
-    ChMatrixDynamic<> d(nx, 1);
-    ChMatrixDynamic<> p(nx, 1);
-    ChMatrixDynamic<> r(nx, 1);
-    ChMatrixDynamic<> Zr(nx, 1);
-    ChMatrixDynamic<> Zp(nx, 1);
-    ChMatrixDynamic<> MZp(nx, 1);
-    ChMatrixDynamic<> r_old(nx, 1);
-    ChMatrixDynamic<> Zr_old(nx, 1);
+    ChVectorDynamic<> x(nx);
+    ChVectorDynamic<> d(nx);
+    ChVectorDynamic<> p(nx);
+    ChVectorDynamic<> r(nx);
+    ChVectorDynamic<> Zr(nx);
+    ChVectorDynamic<> Zp(nx);
+    ChVectorDynamic<> MZp(nx);
+    ChVectorDynamic<> r_old(nx);
+    ChVectorDynamic<> Zr_old(nx);
 
-    ChMatrixDynamic<> tmp(nx, 1);
-    ChMatrixDynamic<> mDi(nx, 1);
+    ChVectorDynamic<> tmp(nx);
+    ChVectorDynamic<> mDi(nx);
 
     this->tot_iterations = 0;
     double maxviolation = 0.;
@@ -396,7 +396,7 @@ double ChSolverMINRES::Solve_SupportingStiffness(
     // From now, mDi contains the inverse of the diagonal of Z.
     // Note, for constraints, the diagonal is 0, so set inverse of D as 1 assuming
     // a constraint preconditioning and assuming the dot product of jacobians is already about 1.
-    for (int nel = 0; nel < mDi.GetRows(); nel++) {
+    for (int nel = 0; nel < mDi.size(); nel++) {
         if (fabs(mDi(nel)) > 1e-9)
             mDi(nel) = 1.0 / mDi(nel);
         else
@@ -412,7 +412,7 @@ double ChSolverMINRES::Solve_SupportingStiffness(
     if (warm_start)
         sysd.FromUnknownsToVector(x);
     else
-        x.FillElem(0);
+        x.setZero();
 
     // Initialize the d vector filling it with {f, -b}
     sysd.BuildDiVector(d);
@@ -423,23 +423,21 @@ double ChSolverMINRES::Solve_SupportingStiffness(
 
     double rel_tol = this->rel_tolerance;
     double abs_tol = this->tolerance;
-    double rel_tol_d = d.NormInf() * rel_tol;
+    double rel_tol_d = d.lpNorm<Eigen::Infinity>() * rel_tol;
 
     // r = d - Z*x;
-    sysd.SystemProduct(
-        r, &x);    // 1)  r = Z*x ...        #### MATR.MULTIPLICATION!!!### can be avoided if no warm starting!
-    r.MatrNeg();   // 2)  r =-Z*x
-    r.MatrInc(d);  // 3)  r =-Z*x+d
+    sysd.SystemProduct(r, x);  // r = Z*x
+    r = d - r;                 // r =-Z*x+d
 
-    // r = M(r)								//						   ## Precond
+    // Precondition: r = M(r)
     if (do_preconditioning)
-        r.MatrScale(mDi);
+        r = r.array() * mDi.array();
 
     // p = r
     p = r;
 
     // Zr = Z*r;
-    sysd.SystemProduct(Zr, &r);  // 1)  Zr = Z*r ...        #### MATR.MULTIPLICATION!!!###
+    sysd.SystemProduct(Zr, r);
 
     // Zp = Z*p;
     Zp = Zr;
@@ -450,7 +448,7 @@ double ChSolverMINRES::Solve_SupportingStiffness(
 
     for (int iter = 0; iter < max_iterations; iter++) {
         // Terminate iteration when the projected r is small, if (norm(r,2) <= max(rel_tol_d,abs_tol))
-        double r_proj_resid = r.NormTwo();
+        double r_proj_resid = r.norm();
         if (r_proj_resid < ChMax(rel_tol_d, abs_tol)) {
             if (verbose)
                 GetLog() << "P(r)-converged! iter=" << iter << " |P(r)|=" << r_proj_resid << "\n";
@@ -458,52 +456,45 @@ double ChSolverMINRES::Solve_SupportingStiffness(
         }
 
         // MZp = M*Z*p
-        MZp = Zp;
         if (do_preconditioning)
-            MZp.MatrScale(mDi);
+            MZp = Zp.array() * mDi.array();
+        else
+            MZp = Zp;
 
         // alpha = (r' * Zr) / ((Zp)'*(MZp));
-        double rZr = r.MatrDot(r, Zr);      // 1)  z'* Zr
-        double ZpMZp = r.MatrDot(Zp, MZp);  // 2)  ZpMZp = (Zp)'*(MZp)
+        double rZr = r.dot(Zr);      // z'* Zr
+        double ZpMZp = Zp.dot(MZp);  // ZpMZp = (Zp)'*(MZp)
 
         double alpha = rZr / ZpMZp;
 
         // x = x + alpha * p;
-        tmp = p;
-        tmp.MatrScale(alpha);
-        x.MatrInc(tmp);
+        tmp = alpha * p;
+        x += tmp;
 
-        double maxdeltaunknowns = tmp.NormTwo();
+        double maxdeltaunknowns = tmp.norm();
 
         // r_old = r;
         r_old = r;
 
         // r = r - alpha * MZp;
-        tmp = MZp;
-        tmp.MatrScale(-alpha);
-        r.MatrInc(tmp);
+        r -= alpha * MZp;
 
         // Zr_old = Zr;
         Zr_old = Zr;
 
         // Zr = Z*r;
-        sysd.SystemProduct(Zr, &r);  // 1)  Zr = Z*r ...        #### MATR.MULTIPLICATION!!!###
+        sysd.SystemProduct(Zr, r);
 
         // beta = (r' * N*r) / (r_old' * N*r_old);
-        double numerator = r.MatrDot(r, Zr);            // 1)  r'* Z *r
-        double denominator = r.MatrDot(r_old, Zr_old);  // 2)  r_old'* Z *r_old
-
+        double numerator = r.dot(Zr);            // r'* Z *r
+        double denominator = r_old.dot(Zr_old);  // r_old'* Z *r_old
         double beta = numerator / denominator;
 
         // p = r + beta * p;
-        tmp = p;
-        tmp.MatrScale(beta);
-        p = r;
-        p.MatrInc(tmp);
+        p = r + beta * p;
 
         // Zp = Zr + beta * Zp;  % avoids multiply for Np=N*p
-        Zp.MatrScale(beta);
-        Zp.MatrInc(Zr);
+        Zp = Zr + beta * Zp;
 
         // ---------------------------------------------
         // METRICS - convergence, plots, etc
@@ -518,7 +509,7 @@ double ChSolverMINRES::Solve_SupportingStiffness(
     sysd.FromVectorToUnknowns(x);
 
     if (verbose)
-        GetLog() << "MINRES residual: " << r.NormTwo() << " ---\n";
+        GetLog() << "MINRES residual: " << r.norm() << " ---\n";
 
     return maxviolation;
 }

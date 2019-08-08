@@ -17,7 +17,6 @@
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChClassFactory.h"
-#include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChSparseMatrix.h"
 
 namespace chrono {
@@ -55,11 +54,9 @@ enum eChConstraintMode {
 
 class ChApi ChConstraint {
   protected:
-    double c_i;  ///< The 'c_i' residual of the constraint (if satisfied, c must be
-                 ///=0)
+    double c_i;  ///< The 'c_i' residual of the constraint (if satisfied, c must be 0)
     double l_i;  ///< The 'l_i' lagrangian multiplier (reaction)
-    double b_i;  ///< The 'b_i' right term in [Cq_i]*q+b_i=0 , note: c_i= [Cq_i]*q
-                 ///+ b_i
+    double b_i;  ///< The 'b_i' right term in [Cq_i]*q+b_i=0 , note: c_i= [Cq_i]*q + b_i
 
     /// The constraint force mixing, if needed (usually is zero) to add some
     /// numerical 'compliance' in the constraint, that is the equation becomes:
@@ -112,6 +109,7 @@ class ChApi ChConstraint {
 
     /// Tells if the constraint data is currently valid.
     virtual bool IsValid() const { return valid; }
+
     /// Use this function to set the valid state (child class
     /// Children classes must use this function depending on
     /// the result of their implementations of RestoreReference();
@@ -122,6 +120,7 @@ class ChApi ChConstraint {
 
     /// Tells if the constraint is currently turned on or off by the user.
     virtual bool IsDisabled() const { return disabled; }
+
     /// User can use this to enable/disable the constraint as desired
     virtual void SetDisabled(bool mon) {
         disabled = mon;
@@ -130,6 +129,7 @@ class ChApi ChConstraint {
 
     /// Tells if the constraint is redundant or singular.
     virtual bool IsRedundant() const { return redundant; }
+
     /// Solvers may use the following to mark a constraint as redundant
     virtual void SetRedundant(bool mon) {
         redundant = mon;
@@ -138,6 +138,7 @@ class ChApi ChConstraint {
 
     /// Tells if the constraint is broken, for excess of pulling/pushing.
     virtual bool IsBroken() const { return broken; }
+
     /// 3rd party software can set the 'broken' status via this method
     /// (by default, constraints never break);
     virtual void SetBroken(bool mon) {
@@ -145,8 +146,7 @@ class ChApi ChConstraint {
         UpdateActiveFlag();
     }
 
-    /// Tells if the constraint is unilateral (typical complementarity
-    /// constraint).
+    /// Tells if the constraint is unilateral (typical complementarity constraint).
     virtual bool IsUnilateral() const { return mode == CONSTRAINT_UNILATERAL; }
 
     /// Tells if the constraint is linear (if non linear, returns false).
@@ -162,7 +162,6 @@ class ChApi ChConstraint {
         UpdateActiveFlag();
     }
 
-    /// A VERY IMPORTANT function!
     /// Tells if the constraint is currently active, in general,
     /// that is tells if it must be included into the system solver or not.
     /// This method cumulates the effect of all flags (so a constraint may
@@ -187,9 +186,11 @@ class ChApi ChConstraint {
     /// Set the status of the constraint to active
     virtual void SetActive(bool isactive) { _active = isactive; }
 
-    /// Compute the residual of the constraint using the LINEAR
-    /// expression   c_i= [Cq_i]*q + cfm_i*l_i + b_i . For a satisfied bilateral
-    /// constraint, this residual must be near zero.
+    /// Compute the residual of the constraint using the LINEAR expression
+    /// <pre>
+    /// c_i= [Cq_i]*q + cfm_i*l_i + b_i
+    /// </pre>
+    /// For a satisfied bilateral constraint, this residual must be near zero.
     virtual double Compute_c_i() {
         c_i = Compute_Cq_q() + cfm_i * l_i + b_i;
         return c_i;
@@ -198,17 +199,14 @@ class ChApi ChConstraint {
     /// Return the residual 'c_i' of this constraint. // CURRENTLY NOT USED
     double Get_c_i() const { return c_i; }
 
-    /// Sets the known term b_i in [Cq_i]*q + b_i =0,
-    /// where: c_i = [Cq_i]*q + b_i = 0
+    /// Sets the known term b_i in [Cq_i]*q + b_i = 0, where: c_i = [Cq_i]*q + b_i = 0
     void Set_b_i(const double mb) { b_i = mb; }
 
-    /// Return the known term b_i in [Cq_i]*q + b_i =0,
-    /// where: c_i= [Cq_i]*q + b_i = 0
+    /// Return the known term b_i in [Cq_i]*q + b_i = 0, where: c_i= [Cq_i]*q + b_i = 0
     double Get_b_i() const { return b_i; }
 
     /// Sets the constraint force mixing term (default=0).
-    /// Adds artificial 'elasticity' to the constraint,
-    /// as:   c_i= [Cq_i]*q + b_i + cfm*l_i =0;
+    /// Adds artificial 'elasticity' to the constraint, as c_i= [Cq_i]*q + b_i + cfm*l_i = 0
     void Set_cfm_i(const double mcfm) { cfm_i = mcfm; }
 
     /// Returns the constraint force mixing term.
@@ -262,7 +260,7 @@ class ChApi ChConstraint {
     /// the size of the total variables&constraints in the system; the procedure
     /// will use the ChVariable offsets (that must be already updated) to know the
     /// indexes in result and vect;
-    virtual void MultiplyAndAdd(double& result, const ChMatrix<double>& vect) const = 0;
+    virtual void MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const = 0;
 
     /// Computes the product of the corresponding transposed block in the
     /// system matrix (ie. the TRANSPOSED jacobian matrix C_q') by 'l', and add to
@@ -271,7 +269,7 @@ class ChApi ChConstraint {
     /// the size of the total variables&constraints in the system; the procedure
     /// will use the ChVariable offsets (that must be already updated) to know the
     /// indexes in result and vect;
-    virtual void MultiplyTandAdd(ChMatrix<double>& result, double l) = 0;
+    virtual void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) = 0;
 
     /// For iterative solvers: project the value of a possible
     /// 'l_i' value of constraint reaction onto admissible orthant/set.

@@ -1,75 +1,146 @@
 %{
 
 /* Includes the header in the wrapper code */
+#include <math.h>  
 #include "chrono/core/ChMatrix.h"
-#include "chrono/core/ChMatrixDynamic.h"
-#include "chrono/core/ChMatrixNM.h"
-#include "chrono/core/ChMatrix33.h"
+#include <Eigen/Core>
+#include <Eigen/Dense>
+
+#include "Eigen/src/Core/Matrix.h"
+#include "Eigen/src/Core/util/Macros.h"
 
 using namespace chrono;
 
 %}
- 
 
-/* Parse the header file to generate wrappers */
-%include "../chrono/core/ChMatrix.h"    
-%include "../chrono/core/ChMatrixDynamic.h"
-%include "../chrono/core/ChMatrixNM.h"
-%include "../chrono/core/ChMatrix33.h"
+/*
+typemaps redefine inputs and outputs of the methods that have the same arguments NAME and TYPE such as  (double* p, int len)
 
-//%feature("notabstract") chrono::ChMatrix;
+typemap in :
+according to the Python input of the function ($input) feeds the arguments ($1, $2...) ti the C++ function
 
-%template(ChMatrixD) chrono::ChMatrix<double>;
-%template(ChMatrixNMD) chrono::ChMatrixNM<double>; 
-%template(ChMatrix33D) chrono::ChMatrix33<double>; 
+freearg:
+delete / free whatever is new / malloc in typemap(in)
+
+typemap argout
+defines the Python function return ($result) from the C++ args ($1, $2...)
+*/
+
+%typemap(in) (double* p, int len) %{
+    if(!PyLong_Check($input))
+        SWIG_exception(SWIG_TypeError, "expected integer");
+    $2 = PyLong_AsUnsignedLong($input);
+    $1 = new double[$2];
+%}
+
+%typemap(freearg) (double* p, int len) %{
+    delete($1);
+%}
+
+%typemap(argout) (double* p, int len) {
+    PyObject* list = PyList_New($2);
+    int i;
+    for(i = 0; i < $2; ++i)
+        PyList_SET_ITEM(list, i, PyFloat_FromDouble($1[i]));
+    $result = SWIG_Python_AppendOutput($result, list);
+}
+
+%typemap(in) (int numel, double* q) %{
+    if (PyList_Check($input)) {
+        $1 = PyList_Size($input);
+        $2 = new double[$1];
+        for (int i = 0; i < $1; i++) {
+            PyObject *o = PyList_GetItem($input, i);
+            double tmp = PyFloat_AsDouble(o);
+            if(PyErr_Occurred())
+                SWIG_fail;
+            $2[i] = PyFloat_AsDouble(o);
+        }
+    } else {
+        PyErr_SetString(PyExc_TypeError, "not a list");
+        return NULL;
+    }
+%}
+
+
+%typemap(freearg) (int numel, double* q) %{
+    delete($2);
+%}
+
+%typemap(in) (double *mat, int ros, int col) %{
+    if (PyList_Check($input)) {
+        $2 = PyList_Size($input);
+        $3 = PyList_Size(PyList_GetItem($input, 0));
+		$1 = new double[$2 * $3];
+        for (int i = 0; i < $2; i++) {
+            for (int j = 0; j < $3; j++) {
+                PyObject *o = PyList_GetItem(PyList_GetItem($input, i), j);
+				// TODO: check what's this line for
+                double tmp = PyFloat_AsDouble(o);
+                if(PyErr_Occurred())
+                    SWIG_fail;
+                $1[i * $3 + j] = PyFloat_AsDouble(o);
+            }
+        }
+    } else {
+        PyErr_SetString(PyExc_TypeError, "not a list");
+        return NULL;
+    }
+%}
+
+
+%typemap(freearg) (double *mat, int ros, int col) %{
+    delete($1);
+%}
+
+template <typename Real = double>
+class chrono::ChMatrixDynamic : public Eigen::Matrix<Real, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> {
+	public:
+		ChMatrixDynamic() : Eigen::Matrix<Real, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>() {}
+		ChMatrixDynamic(int r, int c) {
+			Eigen::Matrix<Real, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>();
+			this->resize(r,c);
+			}
+		};
+
 %template(ChMatrixDynamicD) chrono::ChMatrixDynamic<double>;
 
-%extend chrono::ChMatrix<double>{
+template <typename T = double>
+class chrono::ChVectorDynamic : public Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen::ColMajor> {
+	public:
+		ChVectorDynamic() : Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen::ColMajor>() {}
+		ChVectorDynamic(int r) {
+			Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen::ColMajor>();
+			this->resize(r);
+			}
+		};
+
+%template(ChVectorDynamicD) chrono::ChVectorDynamic<double>;
+
+%extend chrono::ChVectorDynamic<double>{
 		public:
-					// Add function to support python 'print(...)'
-			char *__str__() 
-						{
-							static char temp[2000];
-							sprintf(temp, "Matrix, size= %d x %d \n", $self->GetRows(), $self->GetColumns());
-							for (int row=0; row < ChMin(6,$self->GetRows()); row++)
-							{
-								for (int col=0; col < ChMin(6,$self->GetColumns()); col++)
-								{
-									sprintf(temp, "%s%g  ", temp, $self->GetElement(row,col));
-								}
-								if ($self->GetColumns() >6) sprintf(temp,"%s ...", temp);
-								sprintf(temp,"%s\n", temp);
-							}
-							if ($self->GetRows() >6) sprintf(temp,"%s ...\n", temp);
-							return &temp[0];
+			double __getitem__(int i) {
+				return (*$self)(i,1);
+				}
+			void __setitem__(int i, double v) {
+				(*$self)(i, 1) = v;
+				}
+
+			const int Size() {
+				const int r = $self->rows();
+				return r;
+				}
+			void GetVectorData(double* p, int len) {
+				for (int i = 0; i < len; i++){
+					p[i] =  (double)(*$self)(i, 1);
 						}
-					// these functions are also argument-templated, so we need to specify the types
-			%template(CopyFromMatrix) CopyFromMatrix<double>;
-			%template(CopyFromMatrixT) CopyFromMatrixT<double>;
-			%template(MatrAdd) MatrAdd<double,double>;
-			%template(MatrSub) MatrSub<double,double>;
-			%template(MatrInc) MatrInc<double>;
-			%template(MatrDec) MatrDec<double>;
-			%template(MatrMultiply) MatrMultiply<double,double>;
-			%template(MatrTMultiply) MatrTMultiply<double,double>;
-			%template(MatrMultiplyT) MatrMultiplyT<double,double>;
-			//%template(MatrDot) MatrDot<double,double>; // static fn, does not work here..
-			%template(Matr34_x_Quat) Matr34_x_Quat<double>;
-			%template(Matr34T_x_Vect) Matr34T_x_Vect<double>;
-			%template(Matr44_x_Quat) Matr44_x_Quat<double>;
-			%template(PasteMatrix) PasteMatrix<double>;
-			%template(PasteSumMatrix) PasteSumMatrix<double>;
-			%template(PasteTranspMatrix) PasteTranspMatrix<double>;
-			%template(PasteSumTranspMatrix) PasteSumTranspMatrix<double>;
-			%template(PasteClippedMatrix) PasteClippedMatrix<double>;
-			%template(PasteSumClippedMatrix) PasteSumClippedMatrix<double>;
-			%template(PasteVector) PasteVector<double>;
-			%template(PasteSumVector) PasteSumVector<double>;
-			%template(PasteSubVector) PasteSubVector<double>;
-			%template(PasteQuaternion) PasteQuaternion<double>;
-			%template(PasteSumQuaternion) PasteSumQuaternion<double>;
-			%template(PasteCoordsys) PasteCoordsys<double>;
-			%template(Set_Xq_matrix) Set_Xq_matrix<double>;
+				}
+			void SetVect(int numel, double* q){
+				($self)->resize(numel);
+				for (int i = 0; i < numel; i++){
+					(*$self)(i, 1) = q[i];
+						}
+				}
 		};
 
 %extend chrono::ChMatrixDynamic<double>{
@@ -79,46 +150,51 @@ using namespace chrono;
 			//%template(operator+) operator+<double>;
 			//%template(operator-) operator-<double>;
 			//%template(operator*) operator*<double>;
-			ChMatrixDynamic<double> operator+(const ChMatrix<double>& matbis) 
+			/*ChMatrixDynamic<double> operator+(const ChMatrix<double>& matbis) 
 						{ return $self->operator+(matbis);};
 			ChMatrixDynamic<double> operator-(const ChMatrix<double>& matbis) 
 						{ return $self->operator-(matbis);};
 			ChMatrixDynamic<double> operator*(const ChMatrix<double>& matbis) 
-						{ return $self->operator*(matbis);};
+						{ return $self->operator*(matbis);};*/
 
-		};
+			double getitem(int i, int j) {
+				return (*$self)(i, j);
+				}
 
-%extend chrono::ChMatrix33<double>{
-		public:
-					// these functions are also argument-templated, so we need to specify the types
-					// ***SWIG template mechanism does not work here for operator() ***
-			//%template(operator+) operator+<double>;
-			//%template(operator-) operator-<double>;
-			//%template(operator*) operator*<double>;
-			ChMatrix33<double> operator+(const ChMatrix<double>& matbis) 
-						{ return $self->operator+(matbis);};
-			ChMatrix33<double> operator-(const ChMatrix<double>& matbis) 
-						{ return $self->operator-(matbis);};
-			ChMatrix33<double> operator*(const ChMatrix<double>& matbis) 
-						{ return $self->operator*(matbis);};
+			void setitem(int i, int j, double v) {
+				(*$self)(i, j) = v;
+				}
+			const int GetRows() {
+				const int r = $self->rows();
+				return r;
+				}
+			const int GetColumns() {
+				const int c = $self->cols();
+				return c;
+				}
 
-			ChMatrix33<double>(const ChQuaternion<double>& mq){ 
-						ChMatrix33<double>* newX = new ChMatrix33<double>();
-						newX->Set_A_quaternion(mq);
-						return newX;};
-			
-			//%template(ChMatrix33) ChMatrix33<double>;
-			%template(Matr_x_Vect) Matr_x_Vect<double>;
-			%template(MatrT_x_Vect) MatrT_x_Vect<double>;
-			%template(FastInvert) FastInvert<double>;
-			%template(Set_A_quaternion) Set_A_quaternion<double>;
-			%template(Set_X_matrix) Set_X_matrix<double>;
-			%template(Set_A_axis) Set_A_axis<double>;
-			%template(Set_A_Eulero) Set_A_Eulero<double>;
-			%template(Set_A_Cardano) Set_A_Cardano<double>;
-			%template(Set_A_Hpb) Set_A_Hpb<double>;
-			%template(Set_A_Rxyz) Set_A_Rxyz<double>;
-			%template(Set_A_Rodriguez) Set_A_Rodriguez<double>;
+			void GetMatrixData(double* p, int len) {
+				int r = $self->rows();
+				int c = $self->cols();
+				//double matr[len];
+				//double* matr = $self->data();
+				for (int i = 0; i < len; i++){
+					int ri = floor (i/c);
+					int ci = i - c*ri;
+					p[i] =  (double)(*$self)(ri, ci);
+					
+				}
+			}
+
+			void SetMatr(double *mat, int ros, int col) {
+				($self)->resize(ros, col);
+				for (int i = 0; i < ros; i++){
+					for (int j = 0; j < col; j++){
+						(*$self)(i, j) = mat[i*col + j];
+					}
+				}
+
+			}
 		};
 
 //
@@ -127,6 +203,27 @@ using namespace chrono;
 
 %pythoncode %{
 
+def reshape(seq, rows, cols):
+    return [list(u) for u in zip(*[iter(seq)] * cols)]
+
+def GetMatr(self):
+    cls = self.GetColumns()
+    rws = self.GetRows()
+    len = cls*rws
+    lst = self.GetMatrixData(len)
+    rs_list = reshape(lst, rws, cls)
+    return rs_list
+
+setattr(ChMatrixDynamicD, "GetMatr", GetMatr)
+
+def GetVect(self):
+    len = self.Size()
+    lst = self.GetVectorData(len)
+    rs_list = reshape(lst, len, 1)
+    return rs_list
+
+setattr(ChVectorDynamicD, "GetVect", GetVect)
+
 def __matr_setitem(self,index,vals):
     row = index[0];
     col = index[1];
@@ -134,7 +231,7 @@ def __matr_setitem(self,index,vals):
         raise NameError('Bad row. Setting value at [{0},{1}] in a {2}x{3} matrix'.format(row,col,self.GetRows(),self.GetColumns()))
     if col>=self.GetColumns() or col <0:
         raise NameError('Bad column. Setting value at [{0},{1}] in a {2}x{3} matrix'.format(row,col,self.GetRows(),self.GetColumns()))
-    self.SetElement(index[0],index[1],vals)
+    self.setitem(index[0],index[1],vals)
 
 def __matr_getitem(self,index):
     row = index[0];
@@ -143,9 +240,11 @@ def __matr_getitem(self,index):
         raise NameError('Bad row. Getting value at [{0},{1}] in a {2}x{3} matrix'.format(row,col,self.GetRows(),self.GetColumns()))
     if col>=self.GetColumns() or col <0:
         raise NameError('Bad column. Getting value at [{0},{1}] in a {2}x{3} matrix'.format(row,col,self.GetRows(),self.GetColumns()))
-    return self.GetElement(index[0],index[1])
+    return self.getitem(index[0],index[1])
 
-setattr(ChMatrixD, "__getitem__", __matr_getitem)
-setattr(ChMatrixD, "__setitem__", __matr_setitem)
+setattr(ChMatrixDynamicD, "__getitem__", __matr_getitem)
+setattr(ChMatrixDynamicD, "__setitem__", __matr_setitem)
 
 %}
+%ignore chrono::ChMatrixDynamic;
+%include "../chrono/core/ChMatrix.h"

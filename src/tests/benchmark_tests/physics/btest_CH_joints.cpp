@@ -33,12 +33,12 @@ class LinkLockBM : public ::benchmark::Fixture {
 
         sys = new ChSystemNSC();
         for (int i = 0; i < N + 1; i++) {
-            auto body = std::make_shared<ChBody>();
+            auto body = chrono_types::make_shared<ChBody>();
             body->SetPos(ChVector<>(rand() % 1000 / 1000.0, rand() % 1000 / 1000.0, rand() % 1000 / 1000.0));
             sys->AddBody(body);
         }
         for (int i = 0; i < N; i++) {
-            auto joint = std::make_shared<ChLinkLockRevolute>();
+            auto joint = chrono_types::make_shared<ChLinkLockRevolute>();
             auto b1 = sys->Get_bodylist()[i];
             auto b2 = sys->Get_bodylist()[i + 1];
             auto loc = 0.5 * (b1->GetPos() + b2->GetPos());

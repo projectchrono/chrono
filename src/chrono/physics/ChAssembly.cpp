@@ -15,10 +15,9 @@
 #include <algorithm>
 #include <cstdlib>
 
-#include "chrono/core/ChLinearAlgebra.h"
+#include "chrono/core/ChGlobal.h"
 #include "chrono/core/ChTransform.h"
 #include "chrono/physics/ChAssembly.h"
-#include "chrono/physics/ChGlobal.h"
 #include "chrono/physics/ChSystem.h"
 
 namespace chrono {

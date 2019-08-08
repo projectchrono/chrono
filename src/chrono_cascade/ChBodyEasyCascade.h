@@ -93,10 +93,10 @@ class ChBodyEasyCascade : public ChBodyAuxRef {
 
         // Add a visualization asset if needed
         if (visual_asset) {
-            auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+            auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
             ChCascadeMeshTools::fillTriangleMeshFromCascade(*trimesh, topods_shape);
 
-            auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+            auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
             trimesh_shape->SetMesh(trimesh);
             this->AddAsset(trimesh_shape);
 

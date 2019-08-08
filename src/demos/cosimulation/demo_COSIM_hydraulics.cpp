@@ -50,11 +50,11 @@ int main(int argc, char* argv[]) {
         ChSystemNSC my_system;
 
         // Create rigid bodies and add them to the system:
-        auto my_body_A = std::make_shared<ChBody>();  // truss
+        auto my_body_A = chrono_types::make_shared<ChBody>();  // truss
         my_body_A->SetBodyFixed(true);          // truss does not move!
         my_system.AddBody(my_body_A);
 
-        auto my_body_B = std::make_shared<ChBody>();  // moving body
+        auto my_body_B = chrono_types::make_shared<ChBody>();  // moving body
         my_body_B->SetMass(114);
         my_body_B->SetInertiaXX(ChVector<>(50, 50, 50));
         my_body_B->SetPos(ChVector<>(1, 1, 0));
@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
 
         // Now create a mechanical link (a revolute joint in 0,0,0)
         // between these two markers, and insert in system:
-        auto my_link_BA = std::make_shared<ChLinkLockRevolute>();
+        auto my_link_BA = chrono_types::make_shared<ChLinkLockRevolute>();
         my_link_BA->Initialize(my_body_B, my_body_A, ChCoordsys<>(ChVector<>(0, 1, 0)));
         my_system.AddLink(my_link_BA);
 
@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
         // ChLinkSpring with zero stiffness and damping. This will
         // be used to apply the force between the two bodies as a
         // cylinder with spherical ball ends.
-        auto my_link_actuator = std::make_shared<ChLinkSpring>();
+        auto my_link_actuator = chrono_types::make_shared<ChLinkSpring>();
         my_link_actuator->Initialize(my_body_B, my_body_A, false, ChVector<>(1, 0, 0), ChVector<>(1, 1, 0));
         my_link_actuator->Set_SpringK(0);
         my_link_actuator->Set_SpringR(0);
@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
         my_system.AddLink(my_link_actuator);
 
         // Create also a spring-damper to have some load when moving:
-        auto my_link_springdamper = std::make_shared<ChLinkSpring>();
+        auto my_link_springdamper = chrono_types::make_shared<ChLinkSpring>();
         my_link_springdamper->Initialize(my_body_B, my_body_A, false, ChVector<>(1, 0, 0), ChVector<>(1, 1, 0));
         my_link_springdamper->Set_SpringK(4450);
         my_link_springdamper->Set_SpringR(284);
@@ -102,10 +102,10 @@ int main(int argc, char* argv[]) {
         // back and forth between Chrono and Simulink. In detail we will
         // - receive 1 variable from Simulink (the hydraulic cylinder force)
         // - send 2 variables to Simulink (the hydraulic cylinder velocity and displacement)
-        ChMatrixDynamic<double> data_in(1, 1);
-        ChMatrixDynamic<double> data_out(2, 1);
-        data_in.Reset();
-        data_out.Reset();
+        ChVectorDynamic<double> data_in(1);
+        ChVectorDynamic<double> data_out(2);
+        data_in.setZero();
+        data_out.setZero();
 
         // 4) Wait client (Simulink) to connect...
 
@@ -148,12 +148,12 @@ int main(int argc, char* argv[]) {
                           my_link_actuator->Get_SpringRestLength();  // subtract initial length so starts at 0.
 
             // GetLog() << "Send \n";
-            cosimul_interface.SendData(mytime, &data_out);  // --> to Simulink
+            cosimul_interface.SendData(mytime, data_out);  // --> to Simulink
 
             // B.2) - RECEIVE data
 
             // GetLog() << "Receive \n";
-            cosimul_interface.ReceiveData(histime, &data_in);  // <-- from Simulink
+            cosimul_interface.ReceiveData(histime, data_in);  // <-- from Simulink
 
             // - Update the Chrono system with the force value that we received
             //   from Simulink using the data_in vector, that contains:

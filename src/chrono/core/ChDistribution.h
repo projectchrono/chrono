@@ -140,25 +140,25 @@ class ChApi ChContinuumDistribution : public ChDistribution {
     /// must be unit, i.e normalized (but if not, a normalization will be enforced)
     /// Note: too few points means approximate results, but too many points might give a
     /// small performance overhead when calling GetRandom().
-    ChContinuumDistribution(ChMatrix<>& mx, ChMatrix<>& my);
+    ChContinuumDistribution(ChVectorDynamic<>& mx, ChVectorDynamic<>& my);
 
-    ~ChContinuumDistribution();
+    ~ChContinuumDistribution() {}
 
     /// Compute a random value whose probability is the probability curve that has
     /// been entered with x,y points during the creation of this object.
     virtual double GetRandom() override;
 
-    const ChMatrix<>& GetProbabilityXpoints() const { return *x; }
-    const ChMatrix<>& GetProbabilityYpoints() const { return *y; }
-    const ChMatrix<>& GetProbabilityCDFcumulativeX() const { return *cdf_x; }
-    const ChMatrix<>& GetProbabilityCDFcumulativeY() const { return *cdf_y; }
+    const ChVectorDynamic<>& GetProbabilityXpoints() const { return x; }
+    const ChVectorDynamic<>& GetProbabilityYpoints() const { return y; }
+    const ChVectorDynamic<>& GetProbabilityCDFcumulativeX() const { return cdf_x; }
+    const ChVectorDynamic<>& GetProbabilityCDFcumulativeY() const { return cdf_y; }
 
   private:
-    ChMatrix<>* x;
-    ChMatrix<>* y;
+    ChVectorDynamic<> x;
+    ChVectorDynamic<> y;
 
-    ChMatrix<>* cdf_x;
-    ChMatrix<>* cdf_y;
+    ChVectorDynamic<> cdf_x;
+    ChVectorDynamic<> cdf_y;
 };
 
 /// Class that can be used to generate sample numbers according to a discrete probability distribution.
@@ -172,22 +172,22 @@ class ChApi ChDiscreteDistribution : public ChDistribution {
     /// For example, to get '12.3' for 30% of the times you call GetRandom(), and '150' for
     /// the remaining 70% of the times, create  ChDiscreteDistribution with
     /// mx = [12.3; 150] and my = [0.3; 0.7]
-    ChDiscreteDistribution(ChMatrix<>& mx, ChMatrix<>& my);
+    ChDiscreteDistribution(ChVectorDynamic<>& mx, ChVectorDynamic<>& my);
 
-    ~ChDiscreteDistribution();
+    ~ChDiscreteDistribution() {}
 
     /// Compute a random value, according to the discrete probability values entered
     /// when you created this object
     virtual double GetRandom() override;
 
-    const ChMatrix<>& GetProbabilityXpoints() const { return *x; }
-    const ChMatrix<>& GetProbabilityYpoints() const { return *y; }
-    const ChMatrix<>& GetProbabilityCDFcumulativeY() const { return *cdf_y; }
+    const ChVectorDynamic<>& GetProbabilityXpoints() const { return x; }
+    const ChVectorDynamic<>& GetProbabilityYpoints() const { return y; }
+    const ChVectorDynamic<>& GetProbabilityCDFcumulativeY() const { return cdf_y; }
 
   private:
-    ChMatrix<>* x;
-    ChMatrix<>* y;
-    ChMatrix<>* cdf_y;
+    ChVectorDynamic<> x;
+    ChVectorDynamic<> y;
+    ChVectorDynamic<> cdf_y;
 };
 
 }  // end namespace chrono

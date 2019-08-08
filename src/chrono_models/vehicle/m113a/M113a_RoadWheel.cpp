@@ -55,9 +55,9 @@ M113a_RoadWheel::M113a_RoadWheel(const std::string& name) : ChDoubleRoadWheel(na
 // -----------------------------------------------------------------------------
 void M113a_RoadWheel::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
         trimesh->LoadWavefrontMesh(GetMeshFile(), false, false);
-        auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(GetMeshName());
         trimesh_shape->SetStatic(true);

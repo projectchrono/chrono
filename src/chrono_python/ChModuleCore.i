@@ -70,7 +70,7 @@
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/geometry/ChTriangleMeshSoup.h"
 #include "chrono/core/ChBezierCurve.h"
-
+#include "Eigen/src/Core/util/Memory.h"
 using namespace chrono;
 using namespace chrono::collision;
 using namespace chrono::geometry;
@@ -80,11 +80,12 @@ using namespace chrono::fea;
 
 // Undefine ChApi otherwise SWIG gives a syntax error
 #define ChApi 
+#define EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
 %ignore CH_ENUM_MAPPER_BEGIN;
 %ignore CH_ENUM_VAL;
 %ignore CH_ENUM_MAPPER_END;
-
+%ignore CH_CLASS_VERSION;
 // Cross-inheritance between Python and c++ for callbacks that must be inherited.
 // Put this 'director' feature _before_ class wrapping declaration.
 
@@ -184,8 +185,6 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChParticleBase)
 %shared_ptr(chrono::ChIndexedParticles)
 %shared_ptr(chrono::ChParticlesClones)
-// shared_ptr macros for ChIntegrable, Chtimestepper and their children classes moved into "ChTimestepper.i"
-%shared_ptr(chrono::ChSolver)
 %shared_ptr(chrono::ChSystemNSC)
 %shared_ptr(chrono::ChSystemSMC)
 %shared_ptr(chrono::ChContactContainer)
@@ -275,23 +274,22 @@ using namespace chrono::fea;
 //  core/  classes
 %include "ChException.i"
 %include "ChClassFactory.i"
-%include "../chrono/physics/ChGlobal.h"
+%include "../chrono/core/ChGlobal.h"
 //%include "ChArchive.i"
+%include "ChMatrix.i"
 %include "ChVector.i"
 #define Vector ChVector<double>
 %include "ChQuaternion.i"
 %include "../chrono/core/ChBezierCurve.h"
 #define Quaternion ChQuaternion<double>
+%include "ChMatrix33.i"
 %include "ChCoordsys.i"
 #define Coordsys ChCoordsys<double>
 %include "ChFrame.i"
 %include "ChFrameMoving.i"
-%include "ChLinearAlgebra.i"
 %include "ChStream.i"
 %include "ChLog.i"
 %include "ChMathematics.i"
-%include "ChMatrix.i"
-%include "ChVectorDynamic.i"
 %include "ChTimer.i"
 %include "ChRealtimeStep.i"
 %include "ChTransform.i"
@@ -367,13 +365,12 @@ using namespace chrono::fea;
 %include "ChLinkPointSpline.i"
 %include "ChAssembly.i"
 %include "ChTimestepper.i"
-%include "../chrono/solver/ChSolver.h"
+%include "ChSolver.i"
 %include "ChContactContainer.i"
 %include "ChSystem.i"
 %include "ChSystemNSC.i"
 %include "ChSystemSMC.i"
 %include "ChProximityContainer.i"
-//%import "../chrono/physics/ChLoad.h" // a forward reference done "the %import way" here works ok..
 
 %include "ChLoad.i"
 %include "ChLoadContainer.i"

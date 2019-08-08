@@ -39,7 +39,7 @@ void create_some_falling_items(ChSystemNSC& system) {
     double thick = 0.1;
 
     // Create the SPH fluid
-    auto myfluid = std::make_shared<ChMatterSPH>();
+    auto myfluid = chrono_types::make_shared<ChMatterSPH>();
 
     // Use the FillBox easy way to create the set of SPH particles
     myfluid->FillBox(ChVector<>(xsize - 0.2, height, zsize),                       // size of box
@@ -61,10 +61,10 @@ void create_some_falling_items(ChSystemNSC& system) {
     GetLog() << "Added " << myfluid->GetNnodes() << " SPH particles \n\n";
 
     // Create the five walls of the rectangular container.
-    auto texture = std::make_shared<ChTexture>();
+    auto texture = chrono_types::make_shared<ChTexture>();
     texture->SetTextureFilename(GetChronoDataFile("blu.png"));
 
-    auto wall1 = std::make_shared<ChBodyEasyBox>(xsize + 2 * thick, thick, zsize + 2 * thick, 1.0, true, true);
+    auto wall1 = chrono_types::make_shared<ChBodyEasyBox>(xsize + 2 * thick, thick, zsize + 2 * thick, 1.0, true, true);
     wall1->SetPos(ChVector<>(0, -thick * 0.5, 0));
     wall1->SetBodyFixed(true);
     wall1->SetMass(100);
@@ -72,7 +72,7 @@ void create_some_falling_items(ChSystemNSC& system) {
     wall1->AddAsset(texture);
     system.Add(wall1);
 
-    auto wall2 = std::make_shared<ChBodyEasyBox>(thick, height, zsize + 2 * thick, 1.0, true, true);
+    auto wall2 = chrono_types::make_shared<ChBodyEasyBox>(thick, height, zsize + 2 * thick, 1.0, true, true);
     wall2->SetPos(ChVector<>(-xsize * 0.5 - thick * 0.5, height * 0.5, 0));
     wall2->SetBodyFixed(true);
     wall2->SetMass(100);
@@ -80,7 +80,7 @@ void create_some_falling_items(ChSystemNSC& system) {
     wall2->AddAsset(texture);
     system.Add(wall2);
 
-    auto wall3 = std::make_shared<ChBodyEasyBox>(thick, height, zsize + 2 * thick, 1.0, true, true);
+    auto wall3 = chrono_types::make_shared<ChBodyEasyBox>(thick, height, zsize + 2 * thick, 1.0, true, true);
     wall3->SetPos(ChVector<>(xsize * 0.5 + thick * 0.5, height * 0.5, 0));
     wall3->SetBodyFixed(true);
     wall3->SetMass(100);
@@ -88,7 +88,7 @@ void create_some_falling_items(ChSystemNSC& system) {
     wall3->AddAsset(texture);
     system.Add(wall3);
 
-    auto wall4 = std::make_shared<ChBodyEasyBox>(xsize + 2 * thick, height, thick, 1.0, true, true);
+    auto wall4 = chrono_types::make_shared<ChBodyEasyBox>(xsize + 2 * thick, height, thick, 1.0, true, true);
     wall4->SetPos(ChVector<>(0, height * 0.5, -zsize * 0.5 - thick * 0.5));
     wall4->SetBodyFixed(true);
     wall4->SetMass(100);
@@ -97,7 +97,7 @@ void create_some_falling_items(ChSystemNSC& system) {
     system.Add(wall4);
 
     double opening = 0.2;
-    auto wall5 = std::make_shared<ChBodyEasyBox>(xsize + 2 * thick, height, thick, 1.0, true, true);
+    auto wall5 = chrono_types::make_shared<ChBodyEasyBox>(xsize + 2 * thick, height, thick, 1.0, true, true);
     wall5->SetPos(ChVector<>(opening, height * 0.5, zsize * 0.5 + thick * 0.5));
     wall5->SetBodyFixed(true);
     wall5->SetMass(100);
@@ -106,7 +106,7 @@ void create_some_falling_items(ChSystemNSC& system) {
     system.Add(wall5);
 
     // Create the floor.
-    auto floor = std::make_shared<ChBodyEasyBox>(2, 0.1, 2, 1.0, true, true);
+    auto floor = chrono_types::make_shared<ChBodyEasyBox>(2, 0.1, 2, 1.0, true, true);
     floor->SetPos(ChVector<>(0, -0.5, 0));
     floor->SetBodyFixed(true);
     floor->SetMass(100);
@@ -114,11 +114,11 @@ void create_some_falling_items(ChSystemNSC& system) {
     system.Add(floor);
 
     // Create floating balls.
-    auto textureball = std::make_shared<ChTexture>();
+    auto textureball = chrono_types::make_shared<ChTexture>();
     textureball->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
 
     for (int ib = 0; ib < 12; ib++) {
-        auto ball = std::make_shared<ChBodyEasySphere>(0.02 + ChRandom() * 0.02, 100, true, true);
+        auto ball = chrono_types::make_shared<ChBodyEasySphere>(0.02 + ChRandom() * 0.02, 100, true, true);
         ball->SetPos(ChVector<>(ChRandom() * 0.3 - 0.15, 0.2, ChRandom() * 0.3 - 0.15));
         ball->GetMaterialSurfaceNSC()->SetFriction(0.0f);
         ball->AddAsset(textureball);
@@ -159,7 +159,7 @@ int main(int argc, char* argv[]) {
 
     // IMPORTANT!
     // This takes care of the interaction between the particles of the SPH material
-    auto my_sph_proximity = std::make_shared<ChProximityContainerSPH>();
+    auto my_sph_proximity = chrono_types::make_shared<ChProximityContainerSPH>();
     mphysicalSystem.Add(my_sph_proximity);
 
 

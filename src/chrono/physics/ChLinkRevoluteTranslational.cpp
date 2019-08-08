@@ -33,8 +33,6 @@ ChLinkRevoluteTranslational::ChLinkRevoluteTranslational()
       m_cur_par2(0),
       m_cur_dot(0),
       m_cur_dist(0) {
-    m_C = new ChMatrixDynamic<>(4, 1);
-
     for (int i = 0; i < 4; i++) {
         m_multipliers[i] = 0;
     }
@@ -64,10 +62,6 @@ ChLinkRevoluteTranslational::ChLinkRevoluteTranslational(const ChLinkRevoluteTra
     for (int i = 0; i < 4; i++) {
         m_multipliers[i] = other.m_multipliers[i];
     }
-}
-
-ChLinkRevoluteTranslational::~ChLinkRevoluteTranslational() {
-    delete m_C;
 }
 
 // -----------------------------------------------------------------------------
@@ -168,8 +162,7 @@ ChCoordsys<> ChLinkRevoluteTranslational::GetLinkRelativeCoords() {
     // Origin at P1 (center of revolute side) and orientation formed using
     // the mutually orthogonal direction x2 and y2.
     ChVector<> p = Body2->TransformPointParentToLocal(Body1->TransformPointLocalToParent(m_p1));
-    ChMatrix33<> A;
-    A.Set_A_axis(m_x2, m_y2, Vcross(m_x2, m_y2));
+    ChMatrix33<> A(m_x2, m_y2, Vcross(m_x2, m_y2));
 
     return ChCoordsys<>(p, A.Get_A_quaternion());
 }
@@ -207,113 +200,113 @@ void ChLinkRevoluteTranslational::Update(double time, bool update_assets) {
     // First constraint (par1)
     {
         // Cache constraint violation
-        m_C->SetElement(0, 0, m_cur_par1);
+        m_C(0) = m_cur_par1;
 
         // Set Jacobian w.r.t. states of Body 1
         ChVector<> Phi_pi1 = Vcross(m_z1, x2_1);
 
-        m_cnstr_par1.Get_Cq_a()->ElementN(0) = 0;
-        m_cnstr_par1.Get_Cq_a()->ElementN(1) = 0;
-        m_cnstr_par1.Get_Cq_a()->ElementN(2) = 0;
+        m_cnstr_par1.Get_Cq_a()(0) = 0;
+        m_cnstr_par1.Get_Cq_a()(1) = 0;
+        m_cnstr_par1.Get_Cq_a()(2) = 0;
 
-        m_cnstr_par1.Get_Cq_a()->ElementN(3) = Phi_pi1.x();
-        m_cnstr_par1.Get_Cq_a()->ElementN(4) = Phi_pi1.y();
-        m_cnstr_par1.Get_Cq_a()->ElementN(5) = Phi_pi1.z();
+        m_cnstr_par1.Get_Cq_a()(3) = Phi_pi1.x();
+        m_cnstr_par1.Get_Cq_a()(4) = Phi_pi1.y();
+        m_cnstr_par1.Get_Cq_a()(5) = Phi_pi1.z();
 
         // Set Jacobian w.r.t. states of Body 2
         ChVector<> Phi_pi2 = Vcross(m_x2, z1_2);
 
-        m_cnstr_par1.Get_Cq_b()->ElementN(0) = 0;
-        m_cnstr_par1.Get_Cq_b()->ElementN(1) = 0;
-        m_cnstr_par1.Get_Cq_b()->ElementN(2) = 0;
+        m_cnstr_par1.Get_Cq_b()(0) = 0;
+        m_cnstr_par1.Get_Cq_b()(1) = 0;
+        m_cnstr_par1.Get_Cq_b()(2) = 0;
 
-        m_cnstr_par1.Get_Cq_b()->ElementN(3) = Phi_pi2.x();
-        m_cnstr_par1.Get_Cq_b()->ElementN(4) = Phi_pi2.y();
-        m_cnstr_par1.Get_Cq_b()->ElementN(5) = Phi_pi2.z();
+        m_cnstr_par1.Get_Cq_b()(3) = Phi_pi2.x();
+        m_cnstr_par1.Get_Cq_b()(4) = Phi_pi2.y();
+        m_cnstr_par1.Get_Cq_b()(5) = Phi_pi2.z();
     }
 
     // Second constraint (par2)
     {
         // Cache constraint violation
-        m_C->SetElement(1, 0, m_cur_par2);
+        m_C(1) = m_cur_par2;
 
         // Set Jacobian w.r.t. states of Body 1
         ChVector<> Phi_pi1 = Vcross(m_z1, y2_1);
 
-        m_cnstr_par2.Get_Cq_a()->ElementN(0) = 0;
-        m_cnstr_par2.Get_Cq_a()->ElementN(1) = 0;
-        m_cnstr_par2.Get_Cq_a()->ElementN(2) = 0;
+        m_cnstr_par2.Get_Cq_a()(0) = 0;
+        m_cnstr_par2.Get_Cq_a()(1) = 0;
+        m_cnstr_par2.Get_Cq_a()(2) = 0;
 
-        m_cnstr_par2.Get_Cq_a()->ElementN(3) = Phi_pi1.x();
-        m_cnstr_par2.Get_Cq_a()->ElementN(4) = Phi_pi1.y();
-        m_cnstr_par2.Get_Cq_a()->ElementN(5) = Phi_pi1.z();
+        m_cnstr_par2.Get_Cq_a()(3) = Phi_pi1.x();
+        m_cnstr_par2.Get_Cq_a()(4) = Phi_pi1.y();
+        m_cnstr_par2.Get_Cq_a()(5) = Phi_pi1.z();
 
         // Set Jacobian w.r.t. states of Body 2
         ChVector<> Phi_pi2 = Vcross(m_y2, z1_2);
 
-        m_cnstr_par2.Get_Cq_b()->ElementN(0) = 0;
-        m_cnstr_par2.Get_Cq_b()->ElementN(1) = 0;
-        m_cnstr_par2.Get_Cq_b()->ElementN(2) = 0;
+        m_cnstr_par2.Get_Cq_b()(0) = 0;
+        m_cnstr_par2.Get_Cq_b()(1) = 0;
+        m_cnstr_par2.Get_Cq_b()(2) = 0;
 
-        m_cnstr_par2.Get_Cq_b()->ElementN(3) = Phi_pi2.x();
-        m_cnstr_par2.Get_Cq_b()->ElementN(4) = Phi_pi2.y();
-        m_cnstr_par2.Get_Cq_b()->ElementN(5) = Phi_pi2.z();
+        m_cnstr_par2.Get_Cq_b()(3) = Phi_pi2.x();
+        m_cnstr_par2.Get_Cq_b()(4) = Phi_pi2.y();
+        m_cnstr_par2.Get_Cq_b()(5) = Phi_pi2.z();
     }
 
     // Third constraint (dot)
     {
         // Cache constraint violation
-        m_C->SetElement(2, 0, m_cur_dot);
+        m_C(2) = m_cur_dot;
 
         // Set Jacobian w.r.t. states of Body 1
         ChVector<> Phi_pi1 = Vcross(m_z1, d12_1) - Vcross(m_p1, m_z1);
 
-        m_cnstr_dot.Get_Cq_a()->ElementN(0) = -z1_abs.x();
-        m_cnstr_dot.Get_Cq_a()->ElementN(1) = -z1_abs.y();
-        m_cnstr_dot.Get_Cq_a()->ElementN(2) = -z1_abs.z();
+        m_cnstr_dot.Get_Cq_a()(0) = -z1_abs.x();
+        m_cnstr_dot.Get_Cq_a()(1) = -z1_abs.y();
+        m_cnstr_dot.Get_Cq_a()(2) = -z1_abs.z();
 
-        m_cnstr_dot.Get_Cq_a()->ElementN(3) = Phi_pi1.x();
-        m_cnstr_dot.Get_Cq_a()->ElementN(4) = Phi_pi1.y();
-        m_cnstr_dot.Get_Cq_a()->ElementN(5) = Phi_pi1.z();
+        m_cnstr_dot.Get_Cq_a()(3) = Phi_pi1.x();
+        m_cnstr_dot.Get_Cq_a()(4) = Phi_pi1.y();
+        m_cnstr_dot.Get_Cq_a()(5) = Phi_pi1.z();
 
         // Set Jacobian w.r.t. states of Body 2
         ChVector<> Phi_pi2 = Vcross(m_p2, z1_2);
 
-        m_cnstr_dot.Get_Cq_b()->ElementN(0) = z1_abs.x();
-        m_cnstr_dot.Get_Cq_b()->ElementN(1) = z1_abs.y();
-        m_cnstr_dot.Get_Cq_b()->ElementN(2) = z1_abs.z();
+        m_cnstr_dot.Get_Cq_b()(0) = z1_abs.x();
+        m_cnstr_dot.Get_Cq_b()(1) = z1_abs.y();
+        m_cnstr_dot.Get_Cq_b()(2) = z1_abs.z();
 
-        m_cnstr_dot.Get_Cq_b()->ElementN(3) = Phi_pi2.x();
-        m_cnstr_dot.Get_Cq_b()->ElementN(4) = Phi_pi2.y();
-        m_cnstr_dot.Get_Cq_b()->ElementN(5) = Phi_pi2.z();
+        m_cnstr_dot.Get_Cq_b()(3) = Phi_pi2.x();
+        m_cnstr_dot.Get_Cq_b()(4) = Phi_pi2.y();
+        m_cnstr_dot.Get_Cq_b()(5) = Phi_pi2.z();
     }
 
     // Fourth constraint (dist)
     {
         // Cache constraint violation
-        m_C->SetElement(3, 0, m_cur_dist - m_dist);
+        m_C(3) = m_cur_dist - m_dist;
 
         // Set Jacobian w.r.t. states of Body 1
         ChVector<> Phi_pi1 = -Vcross(m_p1, x2_1);
 
-        m_cnstr_dist.Get_Cq_a()->ElementN(0) = -x2_abs.x();
-        m_cnstr_dist.Get_Cq_a()->ElementN(1) = -x2_abs.y();
-        m_cnstr_dist.Get_Cq_a()->ElementN(2) = -x2_abs.z();
+        m_cnstr_dist.Get_Cq_a()(0) = -x2_abs.x();
+        m_cnstr_dist.Get_Cq_a()(1) = -x2_abs.y();
+        m_cnstr_dist.Get_Cq_a()(2) = -x2_abs.z();
 
-        m_cnstr_dist.Get_Cq_a()->ElementN(3) = Phi_pi1.x();
-        m_cnstr_dist.Get_Cq_a()->ElementN(4) = Phi_pi1.y();
-        m_cnstr_dist.Get_Cq_a()->ElementN(5) = Phi_pi1.z();
+        m_cnstr_dist.Get_Cq_a()(3) = Phi_pi1.x();
+        m_cnstr_dist.Get_Cq_a()(4) = Phi_pi1.y();
+        m_cnstr_dist.Get_Cq_a()(5) = Phi_pi1.z();
 
         // Set Jacobian w.r.t. states of Body 2
         ChVector<> Phi_pi2 = Vcross(m_x2, d12_2) + Vcross(m_p2, m_x2);
 
-        m_cnstr_dist.Get_Cq_b()->ElementN(0) = x2_abs.x();
-        m_cnstr_dist.Get_Cq_b()->ElementN(1) = x2_abs.y();
-        m_cnstr_dist.Get_Cq_b()->ElementN(2) = x2_abs.z();
+        m_cnstr_dist.Get_Cq_b()(0) = x2_abs.x();
+        m_cnstr_dist.Get_Cq_b()(1) = x2_abs.y();
+        m_cnstr_dist.Get_Cq_b()(2) = x2_abs.z();
 
-        m_cnstr_dist.Get_Cq_b()->ElementN(3) = Phi_pi2.x();
-        m_cnstr_dist.Get_Cq_b()->ElementN(4) = Phi_pi2.y();
-        m_cnstr_dist.Get_Cq_b()->ElementN(5) = Phi_pi2.z();
+        m_cnstr_dist.Get_Cq_b()(3) = Phi_pi2.x();
+        m_cnstr_dist.Get_Cq_b()(4) = Phi_pi2.y();
+        m_cnstr_dist.Get_Cq_b()(5) = Phi_pi2.z();
     }
 }
 

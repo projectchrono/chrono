@@ -21,7 +21,7 @@
 #include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/physics/ChGlobal.h"
+#include "chrono/core/ChGlobal.h"
 
 #include "chrono/physics/ChLoadContainer.h"
 
@@ -163,13 +163,13 @@ void ChTrackShoeBandBushing::RemoveVisualizationAssets() {
 }
 
 void ChTrackShoeBandBushing::AddWebVisualization(std::shared_ptr<ChBody> segment) {
-    segment->AddAsset(std::make_shared<ChColorAsset>(GetColor(m_index)));
+    segment->AddAsset(chrono_types::make_shared<ChColorAsset>(GetColor(m_index)));
 
-    auto box = std::make_shared<ChBoxShape>();
+    auto box = chrono_types::make_shared<ChBoxShape>();
     box->GetBoxGeometry().SetLengths(ChVector<>(m_seg_length, GetBeltWidth(), GetWebThickness()));
     segment->AddAsset(box);
 
-    auto cyl = std::make_shared<ChCylinderShape>();
+    auto cyl = chrono_types::make_shared<ChCylinderShape>();
     double radius = GetWebThickness() / 4;
     cyl->GetCylinderGeometry().rad = radius;
     cyl->GetCylinderGeometry().p1 = ChVector<>(m_seg_length / 2, -GetBeltWidth() / 2 - 2 * radius, 0);
@@ -181,15 +181,15 @@ void ChTrackShoeBandBushing::AddWebVisualization(std::shared_ptr<ChBody> segment
 // -----------------------------------------------------------------------------
 void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next) {
     // Bushings are inherited from ChLoad, so they require a 'load container'
-    auto loadcontainer = std::make_shared<ChLoadContainer>();
+    auto loadcontainer = chrono_types::make_shared<ChLoadContainer>();
     m_shoe->GetSystem()->Add(loadcontainer);
 
     // Stiffness and Damping matrix values
     ChMatrixNM<double, 6, 6> K_matrix;
     ChMatrixNM<double, 6, 6> R_matrix;
 
-    K_matrix.Reset();
-    R_matrix.Reset();
+    K_matrix.setZero();
+    R_matrix.setZero();
 
     K_matrix(0, 0) = m_Klin;
     K_matrix(1, 1) = m_Klin;
@@ -211,7 +211,7 @@ void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next) {
     {
         ChVector<> loc = m_shoe->TransformPointLocalToParent(ChVector<>(GetToothBaseLength() / 2, 0, 0));
         ChQuaternion<>& rot = m_shoe->GetRot();
-        auto loadbushing = std::make_shared<ChLoadBodyBodyBushingGeneric>(
+        auto loadbushing = chrono_types::make_shared<ChLoadBodyBodyBushingGeneric>(
             m_shoe,               // body A
             m_web_segments[0],    // body B
             ChFrame<>(loc, rot),  // initial frame of bushing in abs space
@@ -229,7 +229,7 @@ void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next) {
     for (size_t is = 0; is < GetNumWebSegments() - 1; is++) {
         ChVector<> loc = m_web_segments[is]->TransformPointLocalToParent(ChVector<>(m_seg_length / 2, 0, 0));
         ChQuaternion<>& rot = m_web_segments[is]->GetRot();
-        auto loadbushing = std::make_shared<ChLoadBodyBodyBushingGeneric>(
+        auto loadbushing = chrono_types::make_shared<ChLoadBodyBodyBushingGeneric>(
             m_web_segments[is],      // body A
             m_web_segments[is + 1],  // body B
             ChFrame<>(loc, rot),     // initial frame of bushing in abs space
@@ -248,7 +248,7 @@ void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next) {
         int is = GetNumWebSegments() - 1;
         ChVector<> loc = m_web_segments[is]->TransformPointLocalToParent(ChVector<>(m_seg_length / 2, 0, 0));
         ChQuaternion<>& rot = m_web_segments[is]->GetRot();
-        auto loadbushing = std::make_shared<ChLoadBodyBodyBushingGeneric>(
+        auto loadbushing = chrono_types::make_shared<ChLoadBodyBodyBushingGeneric>(
             m_web_segments[is],   // body A
             next->GetShoeBody(),  // body B
             ChFrame<>(loc, rot),  // initial frame of bushing in abs space

@@ -68,7 +68,7 @@ class ChApi ChLinkDirFrame : public ChLinkBase {
     virtual ChVector<> Get_react_torque() override { return GetReactionOnBody(); }
 
     // Get constraint violations
-    ChMatrixNM<double, 2, 1> GetC() const;
+    ChVectorN<double, 2> GetC() const;
 
     //
     // STATE FUNCTIONS

@@ -23,9 +23,9 @@ namespace chrono {
 /// y = (linear interpolated array of samples)
 class ChApi ChFunction_Mocap : public ChFunction {
   private:
-    ChMatrix<>* array_y;
-    ChMatrix<>* array_y_dt;
-    ChMatrix<>* array_y_dtdt;
+    ChArray<> array_y;
+    ChArray<> array_y_dt;
+    ChArray<> array_y_dtdt;
 
     double samp_freq;
     int samples;
@@ -35,7 +35,7 @@ class ChApi ChFunction_Mocap : public ChFunction {
     ChFunction_Mocap();
     ChFunction_Mocap(int m_samples, double freq);
     ChFunction_Mocap(const ChFunction_Mocap& other);
-    ~ChFunction_Mocap();
+    ~ChFunction_Mocap() {}
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChFunction_Mocap* Clone() const override { return new ChFunction_Mocap(*this); }
@@ -53,19 +53,16 @@ class ChApi ChFunction_Mocap : public ChFunction {
     double Get_timetot() const { return ((double)samples / samp_freq); }
     double Get_timeslice() const { return (1 / samp_freq); }
 
-    ChMatrix<>* Get_array_y() const { return array_y; }
-    ChMatrix<>* Get_array_y_dt() const { return array_y_dt; }
-    ChMatrix<>* Get_array_y_dtdt() const { return array_y_dtdt; }
+    const ChArray<>& Get_array_y() const { return array_y; }
+    const ChArray<>& Get_array_y_dt() const { return array_y_dt; }
+    const ChArray<>& Get_array_y_dtdt() const { return array_y_dtdt; }
 
-    void Set_array_y(ChMatrix<>* m_array_y);
-    void Set_array_y_dt(ChMatrix<>* m_array_y_dt);      // *** TO DO
-    void Set_array_y_dtdt(ChMatrix<>* m_array_y_dtdt);  // *** TO DO
+    void Set_array_y(const ChArray<>& m_array_y);
+    void Set_array_y_dt(const ChArray<>& m_array_y_dt);      // *** TO DO
+    void Set_array_y_dtdt(const ChArray<>& m_array_y_dtdt);  // *** TO DO
 
     bool Parse_array_AOA();    // *** TO DO
     bool Parse_array_Elite();  // *** TO DO
-
-    void Compute_array_dt(ChMatrix<>* array_A, ChMatrix<>* array_A_dt);
-    double LinInterp(ChMatrix<>* m_array, double x, double x_max) const;
 
     virtual void Estimate_x_range(double& xmin, double& xmax) const override;
 
@@ -74,6 +71,10 @@ class ChApi ChFunction_Mocap : public ChFunction {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+  private:
+    void Compute_array_dt(const ChArray<>& array_A, ChArray<>& array_A_dt) const;
+    double LinInterp(const ChArray<>& array, double x, double x_max) const;
 };
 
 CH_CLASS_VERSION(ChFunction_Mocap, 0)

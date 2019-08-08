@@ -79,7 +79,7 @@ void ChLoadBodyMesh::LoadGetStateBlock_x(ChState& mD) {
     for (int i = 0; i < forces.size(); ++i) {
         ChState mDi(forces[i]->LoadGet_ndof_x(), nullptr);
         forces[i]->LoadGetStateBlock_x(mDi);
-        mD.PasteMatrix(mDi, ndoftot, 0);
+        mD.segment(ndoftot, mDi.size()) = mDi;
         ndoftot += forces[i]->LoadGet_ndof_x();
     }
 }
@@ -89,7 +89,7 @@ void ChLoadBodyMesh::LoadGetStateBlock_w(ChStateDelta& mD) {
     for (int i = 0; i < forces.size(); ++i) {
         ChStateDelta mDi(forces[i]->LoadGet_ndof_w(), nullptr);
         forces[i]->LoadGetStateBlock_w(mDi);
-        mD.PasteMatrix(mDi, ndoftot, 0);
+        mD.segment(ndoftot, mDi.size()) = mDi;
         ndoftot += forces[i]->LoadGet_ndof_w();
     }
 }
@@ -101,10 +101,10 @@ void ChLoadBodyMesh::LoadStateIncrement(const ChState& x, const ChStateDelta& dw
         ChState mx_inc(forces[i]->LoadGet_ndof_x(), nullptr);
         ChState mx(forces[i]->LoadGet_ndof_x(), nullptr);
         ChStateDelta mDi(forces[i]->LoadGet_ndof_w(), nullptr);
-        mx.PasteClippedMatrix(x, ndoftotx, 0, forces[i]->LoadGet_ndof_x(), 1, 0, 0);
-        mDi.PasteClippedMatrix(dw, ndoftotw, 0, forces[i]->LoadGet_ndof_w(), 1, 0, 0);
+        mx = x.segment(ndoftotx, mx.size());
+        mDi = dw.segment(ndoftotw, mDi.size());
         forces[i]->LoadStateIncrement(mx, mDi, mx_inc);
-        x_new.PasteMatrix(mx_inc, ndoftotx, 0);
+        x_new.segment(ndoftotx, mx_inc.size()) = mx_inc;
         ndoftotx += forces[i]->LoadGet_ndof_x();
         ndoftotw += forces[i]->LoadGet_ndof_w();
     }
@@ -120,9 +120,9 @@ void ChLoadBodyMesh::ComputeQ(ChState* state_x,      // state position to evalua
 
 void ChLoadBodyMesh::ComputeJacobian(ChState* state_x,       // state position to evaluate jacobians
                                      ChStateDelta* state_w,  // state speed to evaluate jacobians
-                                     ChMatrix<>& mK,         // result dQ/dx
-                                     ChMatrix<>& mR,         // result dQ/dv
-                                     ChMatrix<>& mM)         // result dQ/da
+                                     ChMatrixRef mK,         // result dQ/dx
+                                     ChMatrixRef mR,         // result dQ/dv
+                                     ChMatrixRef mM)         // result dQ/da
 {
     for (int i = 0; i < forces.size(); ++i) {
         forces[i]->ComputeJacobian(state_x, state_w, mK, mR, mM);

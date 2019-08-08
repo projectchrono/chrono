@@ -174,15 +174,15 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheelBody) {
     coll_model->BuildModel();
 
     // Visualization
-    auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
     trimesh->LoadWavefrontMesh(vehicle::GetDataFile("hmmwv/lugged_wheel.obj"), false, false);
 
-    auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName("lugged_wheel");
     wheelBody->AddAsset(trimesh_shape);
 
-    auto mcolor = std::make_shared<ChColorAsset>(0.3f, 0.3f, 0.3f);
+    auto mcolor = chrono_types::make_shared<ChColorAsset>(0.3f, 0.3f, 0.3f);
     wheelBody->AddAsset(mcolor);
 }
 

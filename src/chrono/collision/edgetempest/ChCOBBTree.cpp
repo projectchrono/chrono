@@ -83,9 +83,9 @@ void recurse_scan_OBBs(ChMatrix33<>& PrevRot,
     Vector Pos;
     ChMatrix33<> tempRot;
     Vector tempPos;
-    tempRot.MatrMultiply(PrevRot, mmodel->child(nb)->Rot);
+    tempRot = PrevRot * mmodel->child(nb)->Rot;
     tempPos = ChTransform<>::TransformLocalToParent(mmodel->child(nb)->To, PrevPos, PrevRot);
-    Rot.CopyFromMatrix(tempRot);
+    Rot = tempRot;
     Pos = tempPos;
 
     // execute callback
@@ -111,7 +111,7 @@ int CHOBBTree::TraverseBoundingBoxes(
     int nboxes = 0;
 
     static ChMatrix33<> mrot;
-    mrot.Set33Identity();
+    mrot.setIdentity();
     static Vector mpos;
     mpos = VNULL;
 
@@ -153,8 +153,8 @@ void get_covariance_geometries(PQP_REAL M[3][3], std::vector<geometry::ChGeometr
     static ChMatrix33<> S2_geo;
     S1 = VNULL;
     S1_geo = VNULL;
-    S2.Reset();
-    S2_geo.Reset();
+    S2.setZero();
+    S2_geo.setZero();
 
     // get center of mass
     geometry::ChGeometry* nit;
@@ -167,7 +167,7 @@ void get_covariance_geometries(PQP_REAL M[3][3], std::vector<geometry::ChGeometr
 
         nit->CovarianceMatrix(S2_geo);
 
-        S2.MatrInc(S2_geo);
+        S2 += S2_geo;
     }
 
     // now get covariances
@@ -265,15 +265,15 @@ int build_recurse(CHOBBTree* m, int bn, int first_geo, int num_geos, double enve
     R[2][2] = E[0][max] * E[1][mid] - E[0][mid] * E[1][max];
 
     static ChMatrix33<> Rch;
-    Rch.Set33Element(0, 0, R[0][0]);
-    Rch.Set33Element(0, 1, R[0][1]);
-    Rch.Set33Element(0, 2, R[0][2]);
-    Rch.Set33Element(1, 0, R[1][0]);
-    Rch.Set33Element(1, 1, R[1][1]);
-    Rch.Set33Element(1, 2, R[1][2]);
-    Rch.Set33Element(2, 0, R[2][0]);
-    Rch.Set33Element(2, 1, R[2][1]);
-    Rch.Set33Element(2, 2, R[2][2]);
+    Rch(0, 0) = R[0][0];
+    Rch(0, 1) = R[0][1];
+    Rch(0, 2) = R[0][2];
+    Rch(1, 0) = R[1][0];
+    Rch(1, 1) = R[1][1];
+    Rch(1, 2) = R[1][2];
+    Rch(2, 0) = R[2][0];
+    Rch(2, 1) = R[2][1];
+    Rch(2, 2) = R[2][2];
 
     // fit the BV
 
@@ -326,10 +326,10 @@ void make_parent_relative(CHOBBTree* m, int bn, ChMatrix33<>& parentR, Vector& p
 
     // make self parent relative
 
-    Rpc.MatrTMultiply(parentR, m->child(bn)->Rot);  // MTxM(Rpc,parentR,m->child(bn)->R);
-    m->child(bn)->Rot.CopyFromMatrix(Rpc);          // McM(m->child(bn)->R,Rpc);
+    Rpc = parentR.transpose() * m->child(bn)->Rot;  // MTxM(Rpc,parentR,m->child(bn)->R);
+    m->child(bn)->Rot = Rpc;                        // McM(m->child(bn)->R,Rpc);
     Tpc = Vsub(m->child(bn)->To, parentTo);         // VmV(Tpc,m->child(bn)->To,parentTo);
-    m->child(bn)->To = parentR.MatrT_x_Vect(Tpc);   // Tpc MTxV(m->child(bn)->To,parentR,Tpc);
+    m->child(bn)->To = parentR.transpose() * Tpc;   // Tpc MTxV(m->child(bn)->To,parentR,Tpc);
 }
 
 int CHOBBTree::build_model(double envelope) {
@@ -346,7 +346,7 @@ int CHOBBTree::build_model(double envelope) {
     static ChMatrix33<> R;
     static Vector T;
 
-    R.Set33Identity();
+    R.setIdentity();
     T = VNULL;
 
     make_parent_relative(this, 0, R, T);

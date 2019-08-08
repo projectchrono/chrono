@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
 #include "chrono/physics/ChIndexedNodes.h"
@@ -218,7 +218,7 @@ void ChLinkPointTriface::ConstraintsLoadJacobians() {
 
     // compute jacobians
     ChMatrix33<> Jxa;
-    Jxa.Set33Identity();
+    Jxa.setIdentity();
 
     ChMatrix33<> Jxb1;
     ChMatrix33<> Jxb2;
@@ -318,29 +318,29 @@ void ChLinkPointTriface::ConstraintsLoadJacobians() {
         Jxb3(2, 2) = -s3 - (d * t7 * t26 * t57) / 2;
     } else {
         // simplified jacobian when offset d = 0;
-        Jxb1.Reset();
-        Jxb2.Reset();
-        Jxb3.Reset();
-        Jxb1.FillDiag(-s1);
-        Jxb2.FillDiag(-s2);
-        Jxb3.FillDiag(-s3);
+        Jxb1.setZero();
+        Jxb2.setZero();
+        Jxb3.setZero();
+        Jxb1.fillDiagonal(-s1);
+        Jxb2.fillDiagonal(-s2);
+        Jxb3.fillDiagonal(-s3);
     }
 
-    constraint1.Get_tuple_a().Get_Cq()->PasteClippedMatrix(Jxa, 0, 0, 1, 3, 0, 0);
-    constraint2.Get_tuple_a().Get_Cq()->PasteClippedMatrix(Jxa, 1, 0, 1, 3, 0, 0);
-    constraint3.Get_tuple_a().Get_Cq()->PasteClippedMatrix(Jxa, 2, 0, 1, 3, 0, 0);
+    constraint1.Get_tuple_a().Get_Cq().segment(0, 3) = Jxa.row(0);
+    constraint2.Get_tuple_a().Get_Cq().segment(0, 3) = Jxa.row(1);
+    constraint3.Get_tuple_a().Get_Cq().segment(0, 3) = Jxa.row(2);
 
-    constraint1.Get_tuple_b().Get_Cq_1()->PasteClippedMatrix(Jxb1, 0, 0, 1, 3, 0, 0);
-    constraint2.Get_tuple_b().Get_Cq_1()->PasteClippedMatrix(Jxb1, 1, 0, 1, 3, 0, 0);
-    constraint3.Get_tuple_b().Get_Cq_1()->PasteClippedMatrix(Jxb1, 2, 0, 1, 3, 0, 0);
+    constraint1.Get_tuple_b().Get_Cq_1().segment(0, 3) = Jxb1.row(0);
+    constraint2.Get_tuple_b().Get_Cq_1().segment(0, 3) = Jxb1.row(1);
+    constraint3.Get_tuple_b().Get_Cq_1().segment(0, 3) = Jxb1.row(2);
 
-    constraint1.Get_tuple_b().Get_Cq_2()->PasteClippedMatrix(Jxb2, 0, 0, 1, 3, 0, 0);
-    constraint2.Get_tuple_b().Get_Cq_2()->PasteClippedMatrix(Jxb2, 1, 0, 1, 3, 0, 0);
-    constraint3.Get_tuple_b().Get_Cq_2()->PasteClippedMatrix(Jxb2, 2, 0, 1, 3, 0, 0);
+    constraint1.Get_tuple_b().Get_Cq_2().segment(0, 3) = Jxb2.row(0);
+    constraint2.Get_tuple_b().Get_Cq_2().segment(0, 3) = Jxb2.row(1);
+    constraint3.Get_tuple_b().Get_Cq_2().segment(0, 3) = Jxb2.row(2);
 
-    constraint1.Get_tuple_b().Get_Cq_3()->PasteClippedMatrix(Jxb3, 0, 0, 1, 3, 0, 0);
-    constraint2.Get_tuple_b().Get_Cq_3()->PasteClippedMatrix(Jxb3, 1, 0, 1, 3, 0, 0);
-    constraint3.Get_tuple_b().Get_Cq_3()->PasteClippedMatrix(Jxb3, 2, 0, 1, 3, 0, 0);
+    constraint1.Get_tuple_b().Get_Cq_3().segment(0, 3) = Jxb3.row(0);
+    constraint2.Get_tuple_b().Get_Cq_3().segment(0, 3) = Jxb3.row(1);
+    constraint3.Get_tuple_b().Get_Cq_3().segment(0, 3) = Jxb3.row(2);
 }
 
 //***OBSOLETE*** will be removed in favor of Int... functions
@@ -560,7 +560,7 @@ void ChLinkPointTrifaceRot::ConstraintsLoadJacobians() {
 
     // compute jacobians
     ChMatrix33<> Jxa;
-    Jxa.Set33Identity();
+    Jxa.setIdentity();
 
     ChMatrix33<> Jxb1;
     ChMatrix33<> Jxb2;
@@ -660,29 +660,29 @@ void ChLinkPointTrifaceRot::ConstraintsLoadJacobians() {
         Jxb3(2, 2) = -s3 - (d * t7 * t26 * t57) / 2;
     } else {
         // simplified jacobian when offset d = 0;
-        Jxb1.Reset();
-        Jxb2.Reset();
-        Jxb3.Reset();
-        Jxb1.FillDiag(-s1);
-        Jxb2.FillDiag(-s2);
-        Jxb3.FillDiag(-s3);
+        Jxb1.setZero();
+        Jxb2.setZero();
+        Jxb3.setZero();
+        Jxb1.fillDiagonal(-s1);
+        Jxb2.fillDiagonal(-s2);
+        Jxb3.fillDiagonal(-s3);
     }
 
-    constraint1.Get_tuple_a().Get_Cq()->PasteClippedMatrix(Jxa, 0, 0, 1, 3, 0, 0);
-    constraint2.Get_tuple_a().Get_Cq()->PasteClippedMatrix(Jxa, 1, 0, 1, 3, 0, 0);
-    constraint3.Get_tuple_a().Get_Cq()->PasteClippedMatrix(Jxa, 2, 0, 1, 3, 0, 0);
+    constraint1.Get_tuple_a().Get_Cq().segment(0, 3) = Jxa.row(0);
+    constraint2.Get_tuple_a().Get_Cq().segment(0, 3) = Jxa.row(1);
+    constraint3.Get_tuple_a().Get_Cq().segment(0, 3) = Jxa.row(2);
 
-    constraint1.Get_tuple_b().Get_Cq_1()->PasteClippedMatrix(Jxb1, 0, 0, 1, 3, 0, 0);
-    constraint2.Get_tuple_b().Get_Cq_1()->PasteClippedMatrix(Jxb1, 1, 0, 1, 3, 0, 0);
-    constraint3.Get_tuple_b().Get_Cq_1()->PasteClippedMatrix(Jxb1, 2, 0, 1, 3, 0, 0);
+    constraint1.Get_tuple_b().Get_Cq_1().segment(0, 3) = Jxb1.row(0);
+    constraint2.Get_tuple_b().Get_Cq_1().segment(0, 3) = Jxb1.row(1);
+    constraint3.Get_tuple_b().Get_Cq_1().segment(0, 3) = Jxb1.row(2);
 
-    constraint1.Get_tuple_b().Get_Cq_2()->PasteClippedMatrix(Jxb2, 0, 0, 1, 3, 0, 0);
-    constraint2.Get_tuple_b().Get_Cq_2()->PasteClippedMatrix(Jxb2, 1, 0, 1, 3, 0, 0);
-    constraint3.Get_tuple_b().Get_Cq_2()->PasteClippedMatrix(Jxb2, 2, 0, 1, 3, 0, 0);
+    constraint1.Get_tuple_b().Get_Cq_2().segment(0, 3) = Jxb2.row(0);
+    constraint2.Get_tuple_b().Get_Cq_2().segment(0, 3) = Jxb2.row(1);
+    constraint3.Get_tuple_b().Get_Cq_2().segment(0, 3) = Jxb2.row(2);
 
-    constraint1.Get_tuple_b().Get_Cq_3()->PasteClippedMatrix(Jxb3, 0, 0, 1, 3, 0, 0);
-    constraint2.Get_tuple_b().Get_Cq_3()->PasteClippedMatrix(Jxb3, 1, 0, 1, 3, 0, 0);
-    constraint3.Get_tuple_b().Get_Cq_3()->PasteClippedMatrix(Jxb3, 2, 0, 1, 3, 0, 0);
+    constraint1.Get_tuple_b().Get_Cq_3().segment(0, 3) = Jxb3.row(0);
+    constraint2.Get_tuple_b().Get_Cq_3().segment(0, 3) = Jxb3.row(1);
+    constraint3.Get_tuple_b().Get_Cq_3().segment(0, 3) = Jxb3.row(2);
 }
 
 //***OBSOLETE*** will be removed in favor of Int... functions

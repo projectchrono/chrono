@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
 
     // Create a mesh, that is a container for groups of elements and
     // their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     my_system.Set_G_acc(ChVector<>(0, -9.81, 0.0));
     const double beam_h = 0.5;  // Beam height (y)
@@ -62,28 +62,28 @@ int main(int argc, char* argv[]) {
     const double k1 = 10 * (1 + nu_rat) / (12 + 11 * nu_rat);  // Timoshenko coefficient
     const double k2 = k1;                                      // Timoshenko coefficient
 
-    auto m_beamMaterial = std::make_shared<ChMaterialBeamANCF>(rho, E_mod, nu_rat, k1, k2);
+    auto m_beamMaterial = chrono_types::make_shared<ChMaterialBeamANCF>(rho, E_mod, nu_rat, k1, k2);
 
     // Create the end nodes
-    auto hnodeancf1 = std::make_shared<ChNodeFEAxyzDD>(ChVector<>(0, 0, 0.0), ChVector<>(0, 1, 0), ChVector<>(0, 0, 1));
+    auto hnodeancf1 = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(0, 0, 0.0), ChVector<>(0, 1, 0), ChVector<>(0, 0, 1));
     auto hnodeancf2 =
-        std::make_shared<ChNodeFEAxyzDD>(ChVector<>(beam_l / 4, 0, 0), ChVector<>(0, 1, 0), ChVector<>(0, 0, 1));
+        chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(beam_l / 4, 0, 0), ChVector<>(0, 1, 0), ChVector<>(0, 0, 1));
     auto hnodeancf3 =
-        std::make_shared<ChNodeFEAxyzDD>(ChVector<>(beam_l / 2, 0, 0), ChVector<>(0, 1, 0), ChVector<>(0, 0, 1));
+        chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(beam_l / 2, 0, 0), ChVector<>(0, 1, 0), ChVector<>(0, 0, 1));
     auto hnodeancf4 =
-        std::make_shared<ChNodeFEAxyzDD>(ChVector<>(3.0 * beam_l / 4, 0, 0), ChVector<>(0, 1, 0), ChVector<>(0, 0, 1));
+        chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(3.0 * beam_l / 4, 0, 0), ChVector<>(0, 1, 0), ChVector<>(0, 0, 1));
     auto hnodeancf5 =
-        std::make_shared<ChNodeFEAxyzDD>(ChVector<>(beam_l, 0, 0), ChVector<>(0, 1, 0), ChVector<>(0, 0, 1));
+        chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(beam_l, 0, 0), ChVector<>(0, 1, 0), ChVector<>(0, 0, 1));
 
     // Create the middle nodes
     auto hnodeancfm1 =
-        std::make_shared<ChNodeFEAxyzDD>(ChVector<>(beam_l / 8, 0, 0.0), ChVector<>(0, 1, 0), ChVector<>(0, 0, 1));
+        chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(beam_l / 8, 0, 0.0), ChVector<>(0, 1, 0), ChVector<>(0, 0, 1));
     auto hnodeancfm2 =
-        std::make_shared<ChNodeFEAxyzDD>(ChVector<>(3 * beam_l / 8, 0, 0), ChVector<>(0, 1, 0), ChVector<>(0, 0, 1));
+        chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(3 * beam_l / 8, 0, 0), ChVector<>(0, 1, 0), ChVector<>(0, 0, 1));
     auto hnodeancfm3 =
-        std::make_shared<ChNodeFEAxyzDD>(ChVector<>(5 * beam_l / 8, 0, 0), ChVector<>(0, 1, 0), ChVector<>(0, 0, 1));
+        chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(5 * beam_l / 8, 0, 0), ChVector<>(0, 1, 0), ChVector<>(0, 0, 1));
     auto hnodeancfm4 =
-        std::make_shared<ChNodeFEAxyzDD>(ChVector<>(7 * beam_l / 8, 0, 0), ChVector<>(0, 1, 0), ChVector<>(0, 0, 1));
+        chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(7 * beam_l / 8, 0, 0), ChVector<>(0, 1, 0), ChVector<>(0, 0, 1));
 
     hnodeancf1->SetFixed(true);  // Fix ALL coordinates of first (clamped) node
 
@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
     my_mesh->AddNode(hnodeancfm4);
 
     // Create the element 1
-    auto belementancf1 = std::make_shared<ChElementBeamANCF>();
+    auto belementancf1 = chrono_types::make_shared<ChElementBeamANCF>();
     belementancf1->SetNodes(hnodeancf1, hnodeancf2, hnodeancfm1);
     belementancf1->SetDimensions(beam_l / 4, beam_h, beam_w);
     belementancf1->SetMaterial(m_beamMaterial);
@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
     my_mesh->AddElement(belementancf1);
 
     // Create the element 2
-    auto belementancf2 = std::make_shared<ChElementBeamANCF>();
+    auto belementancf2 = chrono_types::make_shared<ChElementBeamANCF>();
     belementancf2->SetNodes(hnodeancf2, hnodeancf3, hnodeancfm2);
     belementancf2->SetDimensions(beam_l / 4, beam_h, beam_w);
     belementancf2->SetMaterial(m_beamMaterial);
@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) {
     my_mesh->AddElement(belementancf2);
 
     // Create the element 3
-    auto belementancf3 = std::make_shared<ChElementBeamANCF>();
+    auto belementancf3 = chrono_types::make_shared<ChElementBeamANCF>();
     belementancf3->SetNodes(hnodeancf3, hnodeancf4, hnodeancfm3);
     belementancf3->SetDimensions(beam_l / 4, beam_h, beam_w);
     belementancf3->SetMaterial(m_beamMaterial);
@@ -129,7 +129,7 @@ int main(int argc, char* argv[]) {
     my_mesh->AddElement(belementancf3);
 
     // Create the element 4
-    auto belementancf4 = std::make_shared<ChElementBeamANCF>();
+    auto belementancf4 = chrono_types::make_shared<ChElementBeamANCF>();
     belementancf4->SetNodes(hnodeancf4, hnodeancf5, hnodeancfm4);
     belementancf4->SetDimensions(beam_l / 4, beam_h, beam_w);
     belementancf4->SetMaterial(m_beamMaterial);
@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
     // Setup solver
     if (use_mkl) {
 #ifdef CHRONO_MKL
-        auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+        auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
         mkl_solver->SetSparsityPatternLock(false);
         mkl_solver->SetVerbose(false);
         my_system.SetSolver(mkl_solver);
@@ -183,9 +183,9 @@ int main(int argc, char* argv[]) {
     double time_Step = 0.01;
     std::cout << std::fixed << std::setprecision(12);
     for (unsigned int it = 0; it < num_steps; it++) {
-        // std::cout << "Position of the tip: " << hnodeancf5->GetPos().y << " m. \n";
-        // std::cout << "Long. Position of the tip: " << hnodeancf5->GetPos().x << " m. \n";
-        // std::cout << "Lat. Position of the tip: " << hnodeancf5->GetPos().z << " m. \n";
+         //std::cout << "Position of the tip: " << hnodeancf5->GetPos().y() << " m. \n";
+         //std::cout << "Long. Position of the tip: " << hnodeancf5->GetPos().x() << " m. \n";
+         //std::cout << "Lat. Position of the tip: " << hnodeancf5->GetPos().z() << " m. \n";
 
         hnodeancf5->SetForce(ChVector<>(0, -5e5 * std::pow(0.5, 3), 0));
         my_system.DoStepDynamics(time_Step);

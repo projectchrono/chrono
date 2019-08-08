@@ -62,21 +62,21 @@ int main(int argc, char* argv[]) {
     //
 
     // Create the truss:
-    auto mfloor = std::make_shared<ChBody>();
+    auto mfloor = chrono_types::make_shared<ChBody>();
     mfloor->SetBodyFixed(true);
     application.GetSystem()->Add(mfloor);
 
 
     // Create a ChBody that contains a 2D convex collision shape:
 
-    auto mcoin = std::make_shared<ChBody>();
+    auto mcoin = chrono_types::make_shared<ChBody>();
     mcoin->SetPos(ChVector<>(5.5, 1, 0));
     application.GetSystem()->Add(mcoin);
 
     // Create a ChLinePath geometry, and insert sub-paths in clockwise order.
     // Note that the end of one segment must match the beginning of the other. 
     // For arcs, the beginning corresponds to angle1, the second to angle2.
-    auto mpathcoin = std::make_shared<ChLinePath>();
+    auto mpathcoin = chrono_types::make_shared<ChLinePath>();
     ChLineArc     marcol1 (ChCoordsys<>(ChVector<>(0, 0, 0)), 0.5, 0, CH_C_PI);
     ChLineSegment msegcol1(ChVector<>(-0.5, 0, 0), ChVector<>(0.5, 0, 0));
     mpathcoin->AddSubLine(marcol1);
@@ -90,14 +90,14 @@ int main(int argc, char* argv[]) {
     mcoin->GetCollisionModel()->BuildModel();
 
     // For visualization:create a ChLineShape, a visualization asset for lines.
-    auto mcoinasset = std::make_shared<ChLineShape>();
+    auto mcoinasset = chrono_types::make_shared<ChLineShape>();
     mcoinasset->SetLineGeometry(mpathcoin);
     mcoin->AddAsset(mcoinasset);
     
 
     // Create a ChBody that contains a 2D concave collision shape:
 
-    auto mhole = std::make_shared<ChBody>();
+    auto mhole = chrono_types::make_shared<ChBody>();
     mhole->SetPos(ChVector<>(4, 0, 0));
     mhole->SetBodyFixed(true);
     application.GetSystem()->Add(mhole);
@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
     // arc must be enabled. It will flow from angle1 to angle2 in counterclockwise way: this 
     // means 'concave' because for 2d shapes, the 'solid' part of the shape is always ON THE RIGHT
     // side of the curvilinear abscyssa.
-    auto mpathhole = std::make_shared<ChLinePath>();
+    auto mpathhole = chrono_types::make_shared<ChLinePath>();
     ChLineArc     marcol2(ChCoordsys<>(ChVector<>(0, 0, 0)), 1, -CH_C_PI, 0, true); // true = ccw arc = concave
     ChLineSegment msegcol2(ChVector<>(1, 0, 0), ChVector<>(2, 0.04, 0));
     mpathhole->AddSubLine(marcol2);
@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
     mhole->GetCollisionModel()->BuildModel();
 
     // Create a ChLineShape, a visualization asset for lines.
-    auto mholeasset = std::make_shared<ChLineShape>();
+    auto mholeasset = chrono_types::make_shared<ChLineShape>();
     mholeasset->SetLineGeometry(mpathhole);
     mhole->AddAsset(mholeasset);
 
@@ -146,7 +146,7 @@ int main(int argc, char* argv[]) {
     ChVector<> crank_center = ChVector<>(B, R, 0) + geneva_center;
     
     // Create the rotating Gnevawheel:
-    auto mgenevawheel = std::make_shared<ChBody>();
+    auto mgenevawheel = chrono_types::make_shared<ChBody>();
     mgenevawheel->SetPos(geneva_center);
     mgenevawheel->SetWvel_loc(ChVector<>(0,0,-0.08));
     application.GetSystem()->Add(mgenevawheel);
@@ -154,7 +154,7 @@ int main(int argc, char* argv[]) {
     // Create a ChLinePath geometry that represents the 2D shape of the Geneva wheel.
     // It can be made of ChLineArc or ChLineSegment sub-lines. These must be added in clockwise
     // order, and the end of sub-item i must be coincident with beginning of sub-line i+1.
-    auto mpathwheel = std::make_shared<ChLinePath>();
+    auto mpathwheel = chrono_types::make_shared<ChLinePath>();
     
     for (int i=0; i<nstations; ++i) {
         double alpha = -i*beta; // phase of current station
@@ -165,8 +165,7 @@ int main(int argc, char* argv[]) {
         ChVector<> p5 ( wi/2, R, 0);
         ChVector<> p6 ( B-Ri, R, 0);
         ChVector<> p7 ( B, R, 0);
-        ChMatrix33<> mm;
-        mm.Set_A_AngAxis(alpha, VECT_Z);
+        ChMatrix33<> mm(alpha, VECT_Z);
         p1 = mm * p1;
         p2 = mm * p2;
         p3 = mm * p3;
@@ -198,28 +197,28 @@ int main(int argc, char* argv[]) {
     mgenevawheel->GetCollisionModel()->BuildModel();
 
     // Create a ChLineShape, a visualization asset for lines.
-    auto mwheelasset = std::make_shared<ChLineShape>();
+    auto mwheelasset = chrono_types::make_shared<ChLineShape>();
     mwheelasset->SetLineGeometry(mpathwheel);
     mgenevawheel->AddAsset(mwheelasset);
     
     // Revolute constraint 
-    auto mrevolute = std::make_shared<ChLinkLockRevolute>();
+    auto mrevolute = chrono_types::make_shared<ChLinkLockRevolute>();
     mrevolute->Initialize(mgenevawheel, mfloor, ChCoordsys<>(geneva_center));
     application.GetSystem()->Add(mrevolute);
 
 
     // Create the crank:
 
-    auto mcrank = std::make_shared<ChBody>();
+    auto mcrank = chrono_types::make_shared<ChBody>();
     mcrank->SetPos(crank_center);
     application.GetSystem()->Add(mcrank);
 
      // Create a ChLinePath geometry, and insert sub-paths in clockwise order:
-    auto mpathcrankpin = std::make_shared<ChLinePath>();
+    auto mpathcrankpin = chrono_types::make_shared<ChLinePath>();
     ChLineArc mpin(ChCoordsys<>(ChVector<>(-B, 0, 0)), wi/2-0.005, CH_C_2PI, 0);
     mpathcrankpin->AddSubLine(mpin);
 
-    auto mpathcrankstopper = std::make_shared<ChLinePath>();
+    auto mpathcrankstopper = chrono_types::make_shared<ChLinePath>();
     ChLineArc     mstopperarc(ChCoordsys<>(ChVector<>(0, 0, 0)), Ri-0.005, CH_C_PI-gamma/2, -CH_C_PI+gamma/2);
     ChLineSegment mstopperve1(mstopperarc.GetEndB(),ChVector<>(0, 0, 0));
     ChLineSegment mstopperve2(ChVector<>(0, 0, 0), mstopperarc.GetEndA());
@@ -236,17 +235,17 @@ int main(int argc, char* argv[]) {
     mcrank->GetCollisionModel()->BuildModel();
 
     // Create a ChLineShape, a visualization asset for lines.
-    auto mcrankasset = std::make_shared<ChLineShape>();
+    auto mcrankasset = chrono_types::make_shared<ChLineShape>();
     mcrankasset->SetLineGeometry(mpathcrankpin);
     mcrank->AddAsset(mcrankasset);
-    auto mcrankasset2 = std::make_shared<ChLineShape>();
+    auto mcrankasset2 = chrono_types::make_shared<ChLineShape>();
     mcrankasset2->SetLineGeometry(mpathcrankstopper);
     mcrank->AddAsset(mcrankasset2);
 
     // .. a motor between crank and truss
-    auto my_motor = std::make_shared<ChLinkMotorRotationSpeed>();
+    auto my_motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     my_motor->Initialize(mcrank, mfloor, ChFrame<>(crank_center));
-    my_motor->SetSpeedFunction(std::make_shared<ChFunction_Const>(CH_C_PI / 8.0));
+    my_motor->SetSpeedFunction(chrono_types::make_shared<ChFunction_Const>(CH_C_PI / 8.0));
     application.GetSystem()->AddLink(my_motor);
 
     // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items

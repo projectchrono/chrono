@@ -76,12 +76,12 @@ class ChApi ChNodeXYZ : public virtual ChNodeBase, public ChLoadableUVW {
 
     /// Gets all the DOFs packed in a single vector (position part)
     virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override {
-        mD.PasteVector(pos, block_offset, 0);
+        mD.segment(block_offset, 3) = pos.eigen();
     }
 
     /// Gets all the DOFs packed in a single vector (speed part)
     virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override {
-        mD.PasteVector(pos_dt, block_offset, 0);
+        mD.segment(block_offset, 3) = pos_dt.eigen();
     }
 
     /// Increment all DOFs using a delta.

@@ -42,6 +42,8 @@ class ChApi ChElementTetra_4 : public ChElementTetrahedron, public ChLoadableUVW
     ChMatrixNM<double, 4, 4> mM;  // for speeding up corotational approach
 
   public:
+    using ShapeVector = ChMatrixNM<double, 1, 4>;
+
     ChElementTetra_4();
     virtual ~ChElementTetra_4();
 
@@ -68,13 +70,12 @@ class ChApi ChElementTetra_4 : public ChElementTetrahedron, public ChLoadableUVW
     /// as  N = [n1*eye(3) n2*eye(3) n3*eye(3) n4*eye(3)]; ,
     /// but to avoid wasting zero and repeated elements, here
     /// it stores only the n1 n2 n3 n4 values in a 1 row, 4 columns matrix.
-    virtual void ShapeFunctions(ChMatrix<>& N, double r, double s, double t);
+    void ShapeFunctions(ShapeVector& N, double r, double s, double t);
 
-    /// Fills the D vector (displacement) column matrix with the current
-    /// field values at the nodes of the element, with proper ordering.
-    /// If the D vector has not the size of this->GetNdofs(), it will be resized.
-    /// For corotational elements, field is assumed in local reference!
-    virtual void GetStateBlock(ChMatrixDynamic<>& mD) override;
+    /// Fills the D vector (displacement) with the currentfield values at the nodes of the element, with proper
+    /// ordering. If the D vector has not the size of this->GetNdofs(), it will be resized.For corotational elements,
+    /// field is assumed in local reference!
+    virtual void GetStateBlock(ChVectorDynamic<>& mD) override;
 
     double ComputeVolume();
 
@@ -90,15 +91,14 @@ class ChApi ChElementTetra_4 : public ChElementTetrahedron, public ChLoadableUVW
 
     /// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
     /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
-    virtual void ComputeKRMmatricesGlobal(ChMatrix<>& H,
+    virtual void ComputeKRMmatricesGlobal(ChMatrixRef H,
                                           double Kfactor,
                                           double Rfactor = 0,
                                           double Mfactor = 0) override;
 
-    /// Computes the internal forces (ex. the actual position of
-    /// nodes is not in relaxed reference position) and set values
-    /// in the Fi vector.
-    virtual void ComputeInternalForces(ChMatrixDynamic<>& Fi) override;
+    /// Computes the internal forces (ex. the actual position of nodes is not in relaxed reference position) and set
+    /// values in the Fi vector.
+    virtual void ComputeInternalForces(ChVectorDynamic<>& Fi) override;
 
     //
     // Custom properties functions
@@ -109,8 +109,8 @@ class ChApi ChElementTetra_4 : public ChElementTetrahedron, public ChLoadableUVW
     std::shared_ptr<ChContinuumElastic> GetMaterial() { return Material; }
 
     /// Get the partial derivatives matrix MatrB and the StiffnessMatrix
-    ChMatrix<>& GetMatrB() { return MatrB; }
-    ChMatrix<>& GetStiffnessMatrix() { return StiffnessMatrix; }
+    const ChMatrixDynamic<>& GetMatrB() const { return MatrB; }
+    const ChMatrixDynamic<>& GetStiffnessMatrix() const { return StiffnessMatrix; }
 
     /// Returns the strain tensor (note that the tetrahedron 4 nodes is a linear
     /// element, thus the strain is constant in the entire volume).
@@ -187,6 +187,9 @@ class ChApi ChElementTetra_4 : public ChElementTetrahedron, public ChLoadableUVW
     /// If true, use quadrature over u,v,w in [0..1] range as tetrahedron volumetric coords, with z=1-u-v-w
     /// otherwise use quadrature over u,v,w in [-1..+1] as box isoparametric coords.
     virtual bool IsTetrahedronIntegrationNeeded() override { return true; }
+
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 // -----------------------------------------------------------------------------
@@ -204,6 +207,8 @@ class ChApi ChElementTetra_4_P : public ChElementTetrahedron, public ChLoadableU
     ChMatrixNM<double, 4, 4> mM;  // for speeding up corotational approach
 
   public:
+    using ShapeVector = ChMatrixNM<double, 1, 4>;
+
     ChElementTetra_4_P();
 
     virtual ~ChElementTetra_4_P() {}
@@ -231,13 +236,12 @@ class ChApi ChElementTetra_4_P : public ChElementTetrahedron, public ChLoadableU
     /// as  N = [n1*eye(3) n2*eye(3) n3*eye(3) n4*eye(3)]; ,
     /// but to avoid wasting zero and repeated elements, here
     /// it stores only the n1 n2 n3 n4 values in a 1 row, 4 columns matrix!
-    virtual void ShapeFunctions(ChMatrix<>& N, double z0, double z1, double z2);
+    virtual void ShapeFunctions(ShapeVector& N, double z0, double z1, double z2);
 
-    /// Fills the D vector column matrix with the current
-    /// field values at the nodes of the element, with proper ordering.
-    /// If the D vector has not the size of this->GetNdofs(), it will be resized.
-    /// For corotational elements, field is assumed in local reference!
-    virtual void GetStateBlock(ChMatrixDynamic<>& mD) override;
+    /// Fills the D vector with the current field values at the nodes of the element, with proper ordering. If the D
+    /// vector has not the size of this->GetNdofs(), it will be resized. For corotational elements, field is assumed in
+    /// local reference!
+    virtual void GetStateBlock(ChVectorDynamic<>& mD) override;
 
     double ComputeVolume();
 
@@ -254,14 +258,13 @@ class ChApi ChElementTetra_4_P : public ChElementTetrahedron, public ChLoadableU
 
     /// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
     /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
-    virtual void ComputeKRMmatricesGlobal(ChMatrix<>& H,
+    virtual void ComputeKRMmatricesGlobal(ChMatrixRef H,
                                           double Kfactor,
                                           double Rfactor = 0,
                                           double Mfactor = 0) override;
 
-    /// Computes the internal 'pseudo-forces' and set values
-    /// in the Fi vector. The iterative solver uses this to know if the residual went to zero.
-    virtual void ComputeInternalForces(ChMatrixDynamic<>& Fi) override;
+    /// Computes the internal 'pseudo-forces' and set values in the Fi vector.
+    virtual void ComputeInternalForces(ChVectorDynamic<>& Fi) override;
 
     //
     // Custom properties functions
@@ -272,13 +275,13 @@ class ChApi ChElementTetra_4_P : public ChElementTetrahedron, public ChLoadableU
     std::shared_ptr<ChContinuumPoisson3D> GetMaterial() { return Material; }
 
     /// Get the partial derivatives matrix MatrB and the StiffnessMatrix
-    ChMatrix<>& GetMatrB() { return MatrB; }
-    ChMatrix<>& GetStiffnessMatrix() { return StiffnessMatrix; }
+    const ChMatrixDynamic<>& GetMatrB() const { return MatrB; }
+    const ChMatrixDynamic<>& GetStiffnessMatrix() const { return StiffnessMatrix; }
 
     /// Returns the gradient of P (note that the tetrahedron 4 nodes is a linear
     /// element, thus the gradient is constant in the entire volume).
     /// It is in the original undeformed unrotated reference.
-    ChMatrixNM<double, 3, 1> GetPgradient();
+    ChVectorN<double, 3> GetPgradient();
 
     //
     // Functions for interfacing to the solver
@@ -342,6 +345,9 @@ class ChApi ChElementTetra_4_P : public ChElementTetrahedron, public ChLoadableU
     /// If true, use quadrature over u,v,w in [0..1] range as tetrahedron volumetric coords, with z=1-u-v-w
     /// otherwise use quadrature over u,v,w in [-1..+1] as box isoparametric coords.
     virtual bool IsTetrahedronIntegrationNeeded() override { return true; }
+
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 /// @} fea_elements

@@ -27,6 +27,7 @@
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsGeometry.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/assets/ChBoxShape.h"
 
 // Chrono general utils
 #include "chrono/core/ChTransform.h"
@@ -81,7 +82,7 @@ void SaveParaViewFiles(fsi::ChSystemFsi& myFsiSystem,
 
 void AddWall(std::shared_ptr<ChBody> body, const ChVector<>& dim, const ChVector<>& loc) {
     body->GetCollisionModel()->AddBox(dim.x(), dim.y(), dim.z(), loc);
-    auto box = std::make_shared<ChBoxShape>();
+    auto box = chrono_types::make_shared<ChBoxShape>();
     box->GetBoxGeometry().Size = dim;
     box->GetBoxGeometry().Pos = loc;
 }
@@ -100,7 +101,7 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem, fsi::ChSystemFsi& myFsiSyste
     ChVector<> gravity = ChVector<>(paramsH->gravity.x, paramsH->gravity.y, paramsH->gravity.z);
     mphysicalSystem.Set_G_acc(gravity);
 
-    auto mysurfmaterial = std::make_shared<ChMaterialSurfaceSMC>();
+    auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     /// Set common material Properties
     mysurfmaterial->SetYoungModulus(1e8);
     mysurfmaterial->SetFriction(0.2f);
@@ -123,7 +124,7 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem, fsi::ChSystemFsi& myFsiSyste
     ChVector<> pos_yn(0, -byDim / 2 - 3 * initSpace0, bzDim / 2 + 1 * initSpace0);
 
     /// Create a container
-    auto bin = std::make_shared<ChBody>(ChMaterialSurface::SMC);
+    auto bin = chrono_types::make_shared<ChBody>(ChMaterialSurface::SMC);
     bin->SetPos(ChVector<>(0.0, 0.0, 0.0));
     bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
     bin->SetIdentifier(-1);
@@ -154,10 +155,10 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem, fsi::ChSystemFsi& myFsiSyste
     /// Create falling cylinder
     ChVector<> cyl_pos = ChVector<>(0, 0, fzDim + cyl_radius + 2 * initSpace0);
     ChQuaternion<> cyl_rot = QUNIT;
-    auto cylinder = std::make_shared<ChBody>(ChMaterialSurface::SMC);
+    auto cylinder = chrono_types::make_shared<ChBody>(ChMaterialSurface::SMC);
     cylinder->SetPos(cyl_pos);
     double volume = utils::CalcCylinderVolume(cyl_radius, cyl_length);
-    ChVector<> gyration = utils::CalcCylinderGyration(cyl_radius, cyl_length).Get_Diag();
+    ChVector<> gyration = utils::CalcCylinderGyration(cyl_radius, cyl_length).diagonal();
 
     // This is the interesting part, sanity check suing the Archimedes' principle
     // If you reduce the density of the solid you should be able to see

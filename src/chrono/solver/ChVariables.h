@@ -16,7 +16,6 @@
 #define CHVARIABLES_H
 
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChMatrixDynamic.h"
 #include "chrono/core/ChSparseMatrix.h"
 
 namespace chrono {
@@ -38,12 +37,11 @@ namespace chrono {
 /// Because of this, the ChVariables class does \e not include any mass submatrix by default
 
 class ChApi ChVariables {
-
   private:
-    ChMatrix<>* qb;  ///< variables (accelerations, speeds, etc. depending on the problem)
-    ChMatrix<>* fb;  ///< known vector (forces, or impulses, etc. depending on the problem)
-    int ndof;        ///< number of degrees of freedom (number of contained scalar variables)
-    bool disabled;   ///< user activation/deactivation of variables
+    ChVectorDynamic<double> qb;  ///< variables (accelerations, speeds, etc. depending on the problem)
+    ChVectorDynamic<double> fb;  ///< known vector (forces, or impulses, etc. depending on the problem)
+    int ndof;                    ///< number of degrees of freedom (number of contained scalar variables)
+    bool disabled;               ///< user activation/deactivation of variables
 
   protected:
     int offset;  ///< offset in global q state vector (needed by some solvers)
@@ -51,7 +49,7 @@ class ChApi ChVariables {
   public:
     ChVariables();
     ChVariables(int m_ndof);
-    virtual ~ChVariables();
+    virtual ~ChVariables() {}
 
     /// Assignment operator: copy from other object
     ChVariables& operator=(const ChVariables& other);
@@ -75,7 +73,7 @@ class ChApi ChVariables {
     ///    | M -Cq'|*|q|- | f|= |0| ,  c>0, l>0, l*r=0;
     ///    | Cq  0 | |l|  |-b|  |c|
     /// </pre>
-    ChMatrix<>& Get_qb() { return *qb; }
+    ChVectorRef Get_qb() { return qb; }
 
     /// Compute fb, body-relative part of known vector f in system.
     /// *** This function MAY BE OVERRIDDEN by specialized inherited classes (e.g., for impulsive multibody simulation,
@@ -90,30 +88,28 @@ class ChApi ChVariables {
     ///    | Cq  0 | |l|  |-b|  |c|
     /// </pre>
     /// This function can be used to set values of fb vector before starting the solver.
-    ChMatrix<>& Get_fb() { return *fb; }
+    ChVectorRef Get_fb() { return fb; }
 
     /// Computes the product of the inverse mass matrix by a vector, and store in result: result = [invMb]*vect
-    virtual void Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const = 0;
+    virtual void Compute_invMb_v(ChVectorRef result, ChVectorConstRef vect) const = 0;
 
     /// Computes the product of the inverse mass matrix by a vector, and increment result: result += [invMb]*vect
-    virtual void Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const = 0;
+    virtual void Compute_inc_invMb_v(ChVectorRef result, ChVectorConstRef vect) const = 0;
 
     /// Computes the product of the mass matrix by a vector, and increment result: result = [Mb]*vect
-    virtual void Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const = 0;
+    virtual void Compute_inc_Mb_v(ChVectorRef result, ChVectorConstRef vect) const = 0;
 
-    /// Computes the product of the corresponding block in the
-    /// system matrix (ie. the mass matrix) by 'vect', scale by c_a, and add to 'result'.
-    /// NOTE: the 'vect' and 'result' vectors must already have
-    /// the size of the total variables&constraints in the system; the procedure
-    /// will use the ChVariable offset (that must be already updated) to know the
-    /// indexes in result and vect.
-    virtual void MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect, const double c_a) const = 0;
+    /// Computes the product of the corresponding block in the system matrix (ie. the mass matrix) by 'vect', scale by
+    /// c_a, and add to 'result'.
+    /// NOTE: the 'vect' and 'result' vectors must already have the size of the total variables&constraints in the
+    /// system; the procedure will use the ChVariable offset (that must be already updated) to know the indexes in
+    /// result and vect.
+    virtual void MultiplyAndAdd(ChVectorRef result, ChVectorConstRef vect, const double c_a) const = 0;
 
     /// Add the diagonal of the mass matrix scaled by c_a, to 'result', as a vector.
-    /// NOTE: the 'result' vector must already have the size of system unknowns, ie
-    /// the size of the total variables&constraints in the system; the procedure
-    /// will use the ChVariable offset (that must be already updated) as index.
-    virtual void DiagonalAdd(ChMatrix<double>& result, const double c_a) const = 0;
+    /// NOTE: the 'result' vector must already have the size of system unknowns, ie the size of the total variables &
+    /// constraints in the system; the procedure will use the ChVariable offset (that must be already updated) as index.
+    virtual void DiagonalAdd(ChVectorRef result, const double c_a) const = 0;
 
     /// Build the mass submatrix (for these variables) multiplied by c_a, storing
     /// it in 'storage' sparse matrix, at given column/row offset.

@@ -88,9 +88,9 @@ inline double CalcBoxVolume(const ChVector<>& hdims) {
 }
 
 inline double CalcBiSphereVolume(double radius, double cDist) {
-	double delta = 2 * radius - cDist;
-	double cos_theta = (radius - 0.5 * delta) / radius;
-	return (4.0 / 3.0) * CH_C_PI * radius * radius * radius * (1 + cos_theta);
+    double delta = 2 * radius - cDist;
+    double cos_theta = (radius - 0.5 * delta) / radius;
+    return (4.0 / 3.0) * CH_C_PI * radius * radius * radius * (1 + cos_theta);
 }
 
 inline double CalcCapsuleVolume(double radius, double hlen) {
@@ -113,7 +113,8 @@ inline double CalcRoundedCylinderVolume(double radius, double hlen, double srad)
 }
 
 inline double CalcRoundedBoxVolume(const ChVector<>& hdims, double srad) {
-    return 8 * hdims.x() * hdims.y() * hdims.z() + 2 * srad * (hdims.x() * hdims.y() + hdims.y() * hdims.z() + hdims.z() * hdims.x()) +
+    return 8 * hdims.x() * hdims.y() * hdims.z() +
+           2 * srad * (hdims.x() * hdims.y() + hdims.y() * hdims.z() + hdims.z() * hdims.x()) +
            (4.0 * CH_C_PI / 3.0) * srad * srad * srad;
 }
 
@@ -139,12 +140,13 @@ inline void TransformGyration(ChMatrix33<>& J, const ChVector<>& pos, const ChQu
 inline ChMatrix33<> CalcSphereGyration(double radius,
                                        const ChVector<>& pos = ChVector<>(0, 0, 0),
                                        const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)) {
-    ChMatrix33<> J;
     double Jxx = (2.0 / 5.0) * radius * radius;
 
-    J.SetElement(0, 0, Jxx);
-    J.SetElement(1, 1, Jxx);
-    J.SetElement(2, 2, Jxx);
+    ChMatrix33<> J;
+    J.setZero();
+    J(0, 0) = Jxx;
+    J(1, 1) = Jxx;
+    J(2, 2) = Jxx;
 
     TransformGyration(J, pos, rot);
 
@@ -155,10 +157,10 @@ inline ChMatrix33<> CalcEllipsoidGyration(const ChVector<>& hdims,
                                           const ChVector<>& pos = ChVector<>(0, 0, 0),
                                           const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)) {
     ChMatrix33<> J;
-
-    J.SetElement(0, 0, (1.0 / 5.0) * (hdims.y() * hdims.y() + hdims.z() * hdims.z()));
-    J.SetElement(1, 1, (1.0 / 5.0) * (hdims.z() * hdims.z() + hdims.x() * hdims.x()));
-    J.SetElement(2, 2, (1.0 / 5.0) * (hdims.x() * hdims.x() + hdims.y() * hdims.y()));
+    J.setZero();
+    J(0, 0) = (1.0 / 5.0) * (hdims.y() * hdims.y() + hdims.z() * hdims.z());
+    J(1, 1) = (1.0 / 5.0) * (hdims.z() * hdims.z() + hdims.x() * hdims.x());
+    J(2, 2) = (1.0 / 5.0) * (hdims.x() * hdims.x() + hdims.y() * hdims.y());
 
     TransformGyration(J, pos, rot);
 
@@ -170,10 +172,10 @@ inline ChMatrix33<> CalcBoxGyration(const ChVector<>& hdims,
                                     const ChVector<>& pos = ChVector<>(0, 0, 0),
                                     const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)) {
     ChMatrix33<> J;
-
-    J.SetElement(0, 0, (1.0 / 3.0) * (hdims.y() * hdims.y() + hdims.z() * hdims.z()));
-    J.SetElement(1, 1, (1.0 / 3.0) * (hdims.z() * hdims.z() + hdims.x() * hdims.x()));
-    J.SetElement(2, 2, (1.0 / 3.0) * (hdims.x() * hdims.x() + hdims.y() * hdims.y()));
+    J.setZero();
+    J(0, 0) = (1.0 / 3.0) * (hdims.y() * hdims.y() + hdims.z() * hdims.z());
+    J(1, 1) = (1.0 / 3.0) * (hdims.z() * hdims.z() + hdims.x() * hdims.x());
+    J(2, 2) = (1.0 / 3.0) * (hdims.x() * hdims.x() + hdims.y() * hdims.y());
 
     TransformGyration(J, pos, rot);
 
@@ -183,28 +185,30 @@ inline ChMatrix33<> CalcBoxGyration(const ChVector<>& hdims,
 // Calculate the gyration tensor of a bisphere, which is two identical spheres attached to
 // each other. delta is the overlap length and radius is the radius of each sphere
 inline ChMatrix33<> CalcBiSphereGyration(double radius,
-                                                double cDist,
-                                                const ChVector<>& pos = ChVector<>(0, 0, 0),
-                                                const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)) {
-	// TODO: simple implementation for now
+                                         double cDist,
+                                         const ChVector<>& pos = ChVector<>(0, 0, 0),
+                                         const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)) {
+    // TODO: simple implementation for now
 
-	double delta = 2 * radius - cDist;
-	double cos_theta = (radius - 0.5 * delta) / radius;
-	double z_prim = radius - 0.5 * delta;
+    double delta = 2 * radius - cDist;
+    double cos_theta = (radius - 0.5 * delta) / radius;
+    double z_prim = radius - 0.5 * delta;
+
+    double comp1 = 0.4 * radius * radius * (1 + cos_theta);
+    double comp2 = -0.2 * radius * radius * (1. / 3. * (-cos_theta * cos_theta * cos_theta - 1) + (1 + cos_theta));
+    double comp3 = 2. / 3. * z_prim * z_prim * (1 + cos_theta);
+    double comp4 = 0.5 * radius * z_prim * sqrt(1 - cos_theta * cos_theta);
+    double numerator = 2 * (comp1 + comp2 + comp3 + comp4);
+    double denominator = 4. / 3. * (1 + cos_theta);
+    double Jxx = numerator / denominator;
+    double Jyy = 0.6 * radius * radius * (1. / 3. * (-cos_theta * cos_theta * cos_theta - 1) + (1 + cos_theta)) /
+                 (1 + cos_theta);
 
     ChMatrix33<> J;
-	double comp1 =  0.4 * radius * radius * ( 1 + cos_theta );
-	double comp2 = - 0.2 * radius * radius * ( 1./3. * ( - cos_theta * cos_theta * cos_theta - 1 ) + (1 + cos_theta));
-	double comp3 = 2. / 3. * z_prim * z_prim * (1 + cos_theta);
-	double comp4 = 0.5 * radius * z_prim * sqrt(1 - cos_theta * cos_theta);
-	double numerator = 2 * (comp1 + comp2 + comp3 + comp4);
-	double denominator = 4. / 3. * (1 + cos_theta);
-	double Jxx = numerator / denominator;
-	double Jyy = 0.6 * radius * radius * ( 1./3. * ( - cos_theta * cos_theta * cos_theta - 1 ) + ( 1 + cos_theta ) ) / (1 + cos_theta);
-
-    J.SetElement(0, 0, Jxx);
-    J.SetElement(1, 1, Jyy);
-    J.SetElement(2, 2, Jxx);
+    J.setZero();
+    J(0, 0) = Jxx;
+    J(1, 1) = Jyy;
+    J(2, 2) = Jxx;
 
     TransformGyration(J, pos, rot);
 
@@ -217,8 +221,6 @@ inline ChMatrix33<> CalcCapsuleGyration(double radius,
                                         double hlen,
                                         const ChVector<>& pos = ChVector<>(0, 0, 0),
                                         const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)) {
-    ChMatrix33<> J;
-
     double massRatio = 1.5 * hlen / radius;
     double cmDist = hlen + 3.0 / 8 * radius;
     double Ixx = massRatio / (1 + massRatio) * (1.0 / 12.0) * (3 * radius * radius + 4 * hlen * hlen) +
@@ -226,9 +228,11 @@ inline ChMatrix33<> CalcCapsuleGyration(double radius,
     double Iyy = massRatio / (1 + massRatio) * (1.0 / 2.0) * (radius * radius) +
                  1 / (1 + massRatio) * (2.0 / 5.0) * (radius * radius);
 
-    J.SetElement(0, 0, Ixx);
-    J.SetElement(1, 1, Iyy);
-    J.SetElement(2, 2, Ixx);
+    ChMatrix33<> J;
+    J.setZero();
+    J(0, 0) = Ixx;
+    J(1, 1) = Iyy;
+    J(2, 2) = Ixx;
 
     TransformGyration(J, pos, rot);
 
@@ -242,10 +246,10 @@ inline ChMatrix33<> CalcCylinderGyration(double radius,
                                          const ChVector<>& pos = ChVector<>(0, 0, 0),
                                          const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)) {
     ChMatrix33<> J;
-
-    J.SetElement(0, 0, (1.0 / 12.0) * (3 * radius * radius + 4 * hlen * hlen));
-    J.SetElement(1, 1, (1.0 / 2.0) * (radius * radius));
-    J.SetElement(2, 2, (1.0 / 12.0) * (3 * radius * radius + 4 * hlen * hlen));
+    J.setZero();
+    J(0, 0) = (1.0 / 12.0) * (3 * radius * radius + 4 * hlen * hlen);
+    J(1, 1) = (1.0 / 2.0) * (radius * radius);
+    J(2, 2) = (1.0 / 12.0) * (3 * radius * radius + 4 * hlen * hlen);
 
     TransformGyration(J, pos, rot);
 
@@ -258,12 +262,13 @@ inline ChMatrix33<> CalcConeGyration(double radius,
                                      double len,
                                      const ChVector<>& pos = ChVector<>(0, 0, 0),
                                      const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)) {
-    ChMatrix33<> J;
-
     double Ixx = (3.0 / 80.0) * (len * len) + (3.0 / 20.0) * (radius * radius);
-    J.SetElement(0, 0, Ixx);
-    J.SetElement(1, 1, (3.0 / 10.0) * (radius * radius));
-    J.SetElement(2, 2, Ixx);
+
+    ChMatrix33<> J;
+    J.setZero();
+    J(0, 0) = Ixx;
+    J(1, 1) = (3.0 / 10.0) * (radius * radius);
+    J(2, 2) = Ixx;
 
     TransformGyration(J, pos, rot);
 
@@ -275,14 +280,15 @@ inline ChMatrix33<> CalcRoundedCylinderGyration(double radius,
                                                 double srad,
                                                 const ChVector<>& pos = ChVector<>(0, 0, 0),
                                                 const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)) {
-    ChMatrix33<> J;
-
     double modifiedRadius = radius + srad;
     double modifiedHlen = hlen + srad;
+
+    ChMatrix33<> J;
+    J.setZero();
     //// TODO: for now, use the gyration of the offset cylinder
-    J.SetElement(0, 0, (1.0 / 12.0) * (3 * modifiedRadius * modifiedRadius + 4 * modifiedHlen * modifiedHlen));
-    J.SetElement(1, 1, (1.0 / 2.0) * (modifiedRadius * modifiedRadius));
-    J.SetElement(2, 2, (1.0 / 12.0) * (3 * modifiedRadius * modifiedRadius + 4 * modifiedHlen * modifiedHlen));
+    J(0, 0) = (1.0 / 12.0) * (3 * modifiedRadius * modifiedRadius + 4 * modifiedHlen * modifiedHlen);
+    J(1, 1) = (1.0 / 2.0) * (modifiedRadius * modifiedRadius);
+    J(2, 2) = (1.0 / 12.0) * (3 * modifiedRadius * modifiedRadius + 4 * modifiedHlen * modifiedHlen);
 
     TransformGyration(J, pos, rot);
 
@@ -293,13 +299,14 @@ inline ChMatrix33<> CalcRoundedBoxGyration(const ChVector<>& hdims,
                                            double srad,
                                            const ChVector<>& pos = ChVector<>(0, 0, 0),
                                            const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)) {
-    ChMatrix33<> J;
-
     ChVector<> modifiedHdims = hdims + ChVector<>(srad, srad, srad);
+
+    ChMatrix33<> J;
+    J.setZero();
     //// TODO: for now, use the gyration of the offset box
-    J.SetElement(0, 0, (1.0 / 3.0) * (modifiedHdims.y() * modifiedHdims.y() + modifiedHdims.z() * modifiedHdims.z()));
-    J.SetElement(1, 1, (1.0 / 3.0) * (modifiedHdims.z() * modifiedHdims.z() + modifiedHdims.x() * modifiedHdims.x()));
-    J.SetElement(2, 2, (1.0 / 3.0) * (modifiedHdims.x() * modifiedHdims.x() + modifiedHdims.y() * modifiedHdims.y()));
+    J(0, 0) = (1.0 / 3.0) * (modifiedHdims.y() * modifiedHdims.y() + modifiedHdims.z() * modifiedHdims.z());
+    J(1, 1) = (1.0 / 3.0) * (modifiedHdims.z() * modifiedHdims.z() + modifiedHdims.x() * modifiedHdims.x());
+    J(2, 2) = (1.0 / 3.0) * (modifiedHdims.x() * modifiedHdims.x() + modifiedHdims.y() * modifiedHdims.y());
 
     TransformGyration(J, pos, rot);
 
@@ -311,10 +318,10 @@ inline ChMatrix33<> CalcTorusGyration(double radius,
                                       const ChVector<>& pos = ChVector<>(0, 0, 0),
                                       const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)) {
     ChMatrix33<> J;
-
-    J.SetElement(0, 0, (5.0 / 8.0) * (thickness * thickness) + (1.0 / 2.0) * (radius * radius));
-    J.SetElement(1, 1, (3.0 / 4.0) * (thickness * thickness) + (radius * radius));
-    J.SetElement(2, 2, (5.0 / 8.0) * (thickness * thickness) + (1.0 / 2.0) * (radius * radius));
+    J.setZero();
+    J(0, 0) = (5.0 / 8.0) * (thickness * thickness) + (1.0 / 2.0) * (radius * radius);
+    J(1, 1) = (3.0 / 4.0) * (thickness * thickness) + (radius * radius);
+    J(2, 2) = (5.0 / 8.0) * (thickness * thickness) + (1.0 / 2.0) * (radius * radius);
 
     TransformGyration(J, pos, rot);
 

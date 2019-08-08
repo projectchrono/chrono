@@ -20,7 +20,6 @@
 // =============================================================================
 
 #include "chrono_mumps/ChMumpsEngine.h"
-#include "chrono/core/ChMatrixDynamic.h"
 
 using namespace chrono;
 
@@ -30,7 +29,7 @@ int test_basic() {
     // - rhs/solution vector
     int n = 3;
     ChCOOMatrix mat(n, n, true);
-    ChMatrixDynamic<double> rhs_sol(n, 1);
+    ChVectorDynamic<double> rhs_sol(n);
     ChMumpsEngine mumps_engine;
 
     // Store test rhs values in the vector
@@ -65,7 +64,7 @@ int test_basic() {
 int test_null_pivot() {
     int n = 3;
     ChCOOMatrix mat(n, n, true);
-    ChMatrixDynamic<double> rhs_sol(n, 1);
+    ChVectorDynamic<double> rhs_sol(n);
     ChMumpsEngine mumps_engine;
 
     rhs_sol(0) = 2;

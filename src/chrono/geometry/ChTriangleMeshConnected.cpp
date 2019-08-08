@@ -44,7 +44,6 @@
 #include <map>
 #include <unordered_map>
 
-#include "chrono/core/ChLinearAlgebra.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 
 namespace chrono {
@@ -864,27 +863,27 @@ void ChTriangleMeshConnected::ComputeMassProperties(bool bodyCoords,
     center = ChVector<double>(integral[1], integral[2], integral[3]) / mass;
 
     // inertia relative to world origin
-    inertia[0][0] = integral[5] + integral[6];
-    inertia[0][1] = -integral[7];
-    inertia[0][2] = -integral[9];
-    inertia[1][0] = inertia[0][1];
-    inertia[1][1] = integral[4] + integral[6];
-    inertia[1][2] = -integral[8];
-    inertia[2][0] = inertia[0][2];
-    inertia[2][1] = inertia[1][2];
-    inertia[2][2] = integral[4] + integral[5];
+    inertia(0, 0) = integral[5] + integral[6];
+    inertia(0, 1) = -integral[7];
+    inertia(0, 2) = -integral[9];
+    inertia(1, 0) = inertia(0, 1);
+    inertia(1, 1) = integral[4] + integral[6];
+    inertia(1, 2) = -integral[8];
+    inertia(2, 0) = inertia(0, 2);
+    inertia(2, 1) = inertia(1, 2);
+    inertia(2, 2) = integral[4] + integral[5];
 
     // inertia relative to center of mass
     if (bodyCoords) {
-        inertia[0][0] -= mass * (center.y() * center.y() + center.z() * center.z());
-        inertia[0][1] += mass * center.x() * center.y();
-        inertia[0][2] += mass * center.z() * center.x();
-        inertia[1][0] = inertia[0][1];
-        inertia[1][1] -= mass * (center.z() * center.z() + center.x() * center.x());
-        inertia[1][2] += mass * center.y() * center.z();
-        inertia[2][0] = inertia[0][2];
-        inertia[2][1] = inertia[1][2];
-        inertia[2][2] -= mass * (center.x() * center.x() + center.y() * center.y());
+        inertia(0, 0) -= mass * (center.y() * center.y() + center.z() * center.z());
+        inertia(0, 1) += mass * center.x() * center.y();
+        inertia(0, 2) += mass * center.z() * center.x();
+        inertia(1, 0) = inertia(0, 1);
+        inertia(1, 1) -= mass * (center.z() * center.z() + center.x() * center.x());
+        inertia(1, 2) += mass * center.y() * center.z();
+        inertia(2, 0) = inertia(0, 2);
+        inertia(2, 1) = inertia(1, 2);
+        inertia(2, 2) -= mass * (center.x() * center.x() + center.y() * center.y());
     }
 }
 
@@ -1344,8 +1343,8 @@ bool ChTriangleMeshConnected::MakeOffset(const double moffset) {
             std::vector<int>& mverttriangles = mpair->second;
             int ntri = (int)mverttriangles.size();
             ChMatrixDynamic<> A(ntri, ntri);
-            ChMatrixDynamic<> b(ntri, 1);
-            ChMatrixDynamic<> x(ntri, 1);
+            ChVectorDynamic<> b(ntri);
+            ChVectorDynamic<> x(ntri);
             for (int j = 0; j < ntri; ++j) {
                 b(j, 0) = 1;
                 for (int k = 0; k < ntri; ++k) {
@@ -1353,7 +1352,25 @@ bool ChTriangleMeshConnected::MakeOffset(const double moffset) {
                                    this->getTriangle(mverttriangles[k]).GetNormal());
                 }
             }
-            ChLinearAlgebra::Solve_LinSys(A, &b, &x);
+            
+            // If any 2 face normals are (close to) colinear, A will be singular!
+            // In such a case, one of the two faces should be discarded.  We can achieve this by setting
+            // the corresponding row and column to 0 (except the diagonal entry which stays at 1) and
+            // setting the corresponding right hand side to 0.
+            // Traverse the lower triangle of A and look for entries close to +1 or -1.
+            for (int j = 0; j < ntri; ++j) {
+                for (int k = j + 1; k < ntri; ++k) {
+                    if (std::abs(A(j, k) - 1) < 1e-4) {
+                        // eliminate weight k
+                        A.col(k).setZero();
+                        A.row(k).setZero();
+                        A(k, k) = 1;
+                        b(k) = 0;
+                    }
+                }
+            }
+
+            x = A.colPivHouseholderQr().solve(b);
 
             // weighted sum as offset vector
             voffsets[i] = VNULL;

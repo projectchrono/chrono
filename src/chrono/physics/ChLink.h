@@ -57,21 +57,18 @@ class ChApi ChLink : public ChLinkBase {
     /// Get the constrained body '2', the 'master' body.
     ChBodyFrame* GetBody2() { return Body2; }
 
-    /// Get the link coordinate system, expressed relative to Body2 (the 'master'
-    /// body). This represents the 'main' reference of the link: reaction forces
-    /// and reaction torques are expressed in this coordinate system.
-    /// By default is in the origin of Body2, but child classes should implement this.
+    /// Get the link coordinate system, expressed relative to Body2 (the 'master' body). This represents the 'main'
+    /// reference of the link: reaction forces and reaction torques are expressed in this coordinate system. By default
+    /// this is in the origin of Body2.
     virtual ChCoordsys<> GetLinkRelativeCoords() { return CSYSNORM; }
 
-    /// Get the link coordinate system in absolute reference.
-    /// This represents the 'main' reference of the link: reaction forces
-    /// and reaction torques are expressed in this coordinate system.
-    /// Child classes should implement this.
+    /// Get the link coordinate system in absolute reference. This represents the 'main' reference of the link: reaction
+    /// forces and reaction torques are expressed in this coordinate system.
     virtual ChCoordsys<> GetLinkAbsoluteCoords() override { return GetLinkRelativeCoords() >> Body2->GetCoord(); }
 
-    /// To get reaction force, expressed in link coordinate system:
+    /// Get reaction force, expressed in link coordinate system.
     virtual ChVector<> Get_react_force() override { return react_force; }
-    /// To get reaction torque,  expressed in link coordinate system:
+    /// Get reaction torque,  expressed in link coordinate system.
     virtual ChVector<> Get_react_torque() override { return react_torque; }
 
     /// If some constraint is redundant, return to normal state  //***OBSOLETE***
@@ -86,21 +83,15 @@ class ChApi ChLink : public ChLinkBase {
     /// Default: do nothing except setting new time.
     virtual void UpdateTime(double mytime);
 
-    /// This is an important function, which is called by the
-    /// owner ChSystem at least once per integration step.
-    /// It may update all auxiliary data of the link, such as
-    /// matrices if any, etc.
-    /// The inherited classes, for example the ChLinkMask, often
-    /// implement specialized versions of this Update(time) function,
-    /// because they might need to update inner states, forces, springs, etc.
+    /// This function, called by the owner ChSystem at least once per integration step,
+    /// updates any auxiliary data of the link (e.g. internal states, forces, Jacobian matrices).
     /// This base version, by default, simply updates the time.
     virtual void Update(double mytime, bool update_assets = true) override;
 
     /// As above, but with current time
     virtual void Update(bool update_assets = true) override;
 
-    /// Called from a external package (i.e. a plugin, a CAD app.) to report
-    /// that time has changed. Most often you can leave this unimplemented.
+    /// Called from a external package (i.e. a plugin, a CAD app.) to report that time has changed.
     virtual void UpdatedExternalTime(double prevtime, double time) {}
 
     //
