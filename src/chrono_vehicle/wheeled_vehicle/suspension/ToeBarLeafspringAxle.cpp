@@ -101,7 +101,6 @@ void ToeBarLeafspringAxle::Create(const rapidjson::Document& d) {
     if (m_points[KNUCKLE_DRL].y() < 0.0) {
         m_use_left_knuckle = false;
         m_points[KNUCKLE_DRL].y() *= -1.0;
-        std::cout << "Right Knuckle is actuated!" << std::endl;
     }
 
     // Read Tierod aka Toe Bar data

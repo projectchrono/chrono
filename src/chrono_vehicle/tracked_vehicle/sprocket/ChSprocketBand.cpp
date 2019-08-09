@@ -52,13 +52,12 @@ static ChVector2<> CalcCircleCenter(const ChVector2<>& A, const ChVector2<>& B, 
     // circle center
     ChVector2<> O(C.x() + direction * x_offset, C.y() + direction * y_offset);
 
-    ////std::cout << std::endl;
-    ////std::cout << "radius: " << r << std::endl;
-    ////std::cout << A.x() << "  " << A.y() << std::endl;
-    ////std::cout << B.x() << "  " << B.y() << std::endl;
-    ////std::cout << O.x() << "  " << O.y() << std::endl;
-    ////std::cout << "Check: " << (A - O).Length() - r << "  " << (B - O).Length() - r << std::endl;
-    ////std::cout << std::endl;
+    ////GetLog() << "\n";
+    ////GetLog() << "radius: " << r << "\n";
+    ////GetLog() << A.x() << "  " << A.y() << "\n";
+    ////GetLog() << B.x() << "  " << B.y() << "\n";
+    ////GetLog() << O.x() << "  " << O.y() << "\n";
+    ////GetLog() << "Check: " << (A - O).Length() - r << "  " << (B - O).Length() - r << "\n\n";
 
     return O;
 }

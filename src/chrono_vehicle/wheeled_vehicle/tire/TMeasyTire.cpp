@@ -18,6 +18,8 @@
 
 #include <algorithm>
 
+#include "chrono/core/ChLog.h"
+
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/TMeasyTire.h"
@@ -175,7 +177,7 @@ void TMeasyTire::Create(const rapidjson::Document& d) {
                               p_li, p_use);
         }
     } else {
-        std::cout << "ERROR: Incorrect TMeasy JSON specification." << std::endl;
+        GetLog() << "ERROR: Incorrect TMeasy JSON specification.\n";
         return;
     }
 

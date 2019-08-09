@@ -289,7 +289,7 @@ void ChPac89Tire::Advance(double step) {
         My = myStartUp * m_rolling_resistance * m_data.normal_force * Lrad * ChSignum(m_states.omega);
     }
 
-    // std::cout << "Fx:" << Fx
+    // GetLog() << "Fx:" << Fx
     //    << " Fy:" << Fy
     //    << " Fz:" << Fz
     //    << " Mx:" << Mx
@@ -300,7 +300,7 @@ void ChPac89Tire::Advance(double step) {
     //    << " A:" << alpha
     //    << " K:" << kappa
     //    << " O:" << m_states.omega
-    //    << std::endl;
+    //    << "\n";
 
     // Compile the force and moment vectors so that they can be
     // transformed into the global coordinate system.

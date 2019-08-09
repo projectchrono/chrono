@@ -22,6 +22,7 @@
 
 #include "chrono/core/ChTimer.h"
 #include "chrono/core/ChGlobal.h"
+#include "chrono/core/ChLog.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChPacejkaTire.h"
 
@@ -1788,7 +1789,7 @@ void ChPacejkaTire::WriteOutData(double time, const std::string& outFilename) {
         m_outFilename = outFilename;
         std::ofstream oFile(outFilename.c_str(), std::ios_base::out);
         if (!oFile.is_open()) {
-            std::cout << " couldn't open file for writing: " << outFilename << " \n\n";
+            GetLog() << " couldn't open file for writing: " << outFilename << " \n\n";
             return;
         } else {
             // write the headers, Fx, Fy are pure forces, Fxc and Fyc are the combined forces
