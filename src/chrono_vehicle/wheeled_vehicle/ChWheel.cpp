@@ -39,7 +39,7 @@ ChWheel::ChWheel(const std::string& name) : ChPart(name), m_tire(nullptr) {}
 void ChWheel::Initialize(std::shared_ptr<ChSuspension> suspension, VehicleSide side, double offset) {
     m_suspension = suspension;
     m_side = side;
-    m_offset = offset;
+    m_offset = (side == LEFT) ? offset : -offset;
 
     //// RADU
     //// Todo:  Properly account for offset in adjusting inertia.
@@ -87,8 +87,8 @@ void ChWheel::AddVisualizationAssets(VisualizationType vis) {
 
     m_cyl_shape = chrono_types::make_shared<ChCylinderShape>();
     m_cyl_shape->GetCylinderGeometry().rad = GetRadius();
-    m_cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, GetWidth() / 2, 0);
-    m_cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, -GetWidth() / 2, 0);
+    m_cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, m_offset + GetWidth() / 2, 0);
+    m_cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, m_offset - GetWidth() / 2, 0);
     m_suspension->GetSpindle(m_side)->AddAsset(m_cyl_shape);
 }
 

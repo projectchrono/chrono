@@ -72,11 +72,12 @@ class CH_VEHICLE_API ChWheel : public ChPart {
 
     /// Initialize this wheel subsystem by associating it to an existing suspension subsystem.
     /// The optional 'offset' argument allows models with double wheels(tires).
-    /// The default value offset=0 corresponds to an axle with a single tire.
+    /// The default value offset=0 corresponds to an axle with a single tire. A positive offset
+    /// corresponds to an "outer" wheel, while a negative offset corresponds to an "inner" wheel.
     /// The wheel mass and inertia are used to increment those of the associated spindle body.
     virtual void Initialize(std::shared_ptr<ChSuspension> suspension,  ///< associated suspension subsystem
                             VehicleSide side,                          ///< wheel mounted on left/right side
-                            double offset = 0                          ///< offset from associated spindle offset
+                            double offset = 0                          ///< offset from associated spindle center
     );
 
     /// Synchronize the wheel subsystem. 
