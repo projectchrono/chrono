@@ -29,6 +29,7 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChPart.h"
 #include "chrono_vehicle/ChTerrain.h"
+#include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
 
 namespace chrono {
 namespace vehicle {
@@ -49,22 +50,17 @@ class CH_VEHICLE_API ChTire : public ChPart {
 
     virtual ~ChTire() {}
 
-    /// Initialize this tire subsystem.
-    /// Cache the associated wheel body and vehicle side flag, and add tire mass and
-    /// inertia to the wheel body. A derived class must first call this base implementation.
-    virtual void Initialize(std::shared_ptr<ChBody> wheel,  ///< [in] associated wheel body
-                            VehicleSide side                ///< [in] left/right vehicle side
-                            );
+    /// Initialize this tire subsystem by associating it to an existing wheel subsystem.
+    /// The tire mass and inertia are used to increment those of the associated suspension spindle body.
+    virtual void Initialize(std::shared_ptr<ChWheel> wheel);
 
     /// Update the state of this tire system at the current time.
-    /// The tire system is provided the current state of its associated wheel and
-    /// a handle to the terrain system.
-    virtual void Synchronize(double time,                    ///< [in] current time
-                             const WheelState& wheel_state,  ///< [in] current state of associated wheel body
-                             const ChTerrain& terrain,       ///< [in] reference to the terrain system
+    /// The tire system is provided a handle to the terrain system.
+    virtual void Synchronize(double time,               ///< [in] current time
+                             const ChTerrain& terrain,  ///< [in] reference to the terrain system
                              CollisionType collision_type = CollisionType::SINGLE_POINT  ///< [in] collision method
-                             ) {
-        CalculateKinematics(time, wheel_state, terrain);
+    ) {
+        CalculateKinematics(time, m_wheel->GetState(), terrain);
     }
 
     /// Set the value of the integration step size for the underlying dynamics (if applicable).
@@ -137,6 +133,12 @@ class CH_VEHICLE_API ChTire : public ChPart {
     virtual double GetDeflection() const { return 0; }
 
   protected:
+    /// Calculate kinematics quantities based on the given state of the associated wheel body.
+    void CalculateKinematics(double time,                    ///< [in] current time
+                             const WheelState& wheel_state,  ///< [in] current state of associated wheel body
+                             const ChTerrain& terrain        ///< [in] reference to the terrain system
+    );
+
     /// Perform disc-terrain collision detection.
     /// This utility function checks for contact between a disc of specified
     /// radius with given position and orientation (specified as the location of
@@ -194,17 +196,10 @@ class CH_VEHICLE_API ChTire : public ChPart {
     /// for a given tire radius.  The return map can be used in DiscTerrainCollisionEnvelope.
     static void ConstructAreaDepthTable(double disc_radius, ChFunction_Recorder& areaDep);
 
-    VehicleSide m_side;               ///< tire mounted on left/right side
-    std::shared_ptr<ChBody> m_wheel;  ///< associated wheel body
-    double m_stepsize;                ///< tire integration step size (if applicable)
+    std::shared_ptr<ChWheel> m_wheel;  ///< associated wheel subsystem
+    double m_stepsize;                 ///< tire integration step size (if applicable)
 
   private:
-    /// Calculate kinematics quantities based on the current state of the associated wheel body.
-    void CalculateKinematics(double time,                    ///< [in] current time
-                             const WheelState& wheel_state,  ///< [in] current state of associated wheel body
-                             const ChTerrain& terrain        ///< [in] reference to the terrain system
-                             );
-
     double m_slip_angle;
     double m_longitudinal_slip;
     double m_camber_angle;

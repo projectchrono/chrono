@@ -214,8 +214,8 @@ int main(int argc, char* argv[]) {
     // Set wheel contact material.
     // If needed, modify wheel contact and visualization models
     // --------------------------------------------------------
-    for (int i = 0; i < 4; i++) {
-        auto wheelBody = my_hmmwv.GetVehicle().GetWheelBody(i);
+    for (auto wheel : my_hmmwv.GetVehicle().GetWheels()) {
+        auto wheelBody = wheel->GetSpindle();
         wheelBody->GetMaterialSurfaceSMC()->SetFriction(mu_t);
         wheelBody->GetMaterialSurfaceSMC()->SetYoungModulus(Y_t);
         wheelBody->GetMaterialSurfaceSMC()->SetRestitution(cr_t);

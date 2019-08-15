@@ -132,8 +132,8 @@ int main(int argc, char* argv[]) {
     powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
 
     // Create and initialize the tires
-    int num_axles = vehicle.GetNumberAxles();
-    int num_wheels = 2 * num_axles;
+    auto wheels = vehicle.GetWheels();
+    auto num_wheels = wheels.size();
     std::vector<std::shared_ptr<TMeasyTire> > tires(num_wheels);
 
     for (int i = 0; i < num_wheels; i++) {
@@ -142,7 +142,7 @@ int main(int argc, char* argv[]) {
         } else {
             tires[i] = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_rear_tire_file));
         }
-        tires[i]->Initialize(vehicle.GetWheelBody(i), VehicleSide(i % 2));
+        tires[i]->Initialize(wheels[i]);
         tires[i]->SetVisualizationType(VisualizationType::MESH);
     }
 
@@ -197,7 +197,6 @@ int main(int argc, char* argv[]) {
 
     // Inter-module communication data
     TerrainForces tire_forces(num_wheels);
-    WheelStates wheel_states(num_wheels);
     double driveshaft_speed;
     double powertrain_torque;
     double throttle_input;
@@ -222,7 +221,6 @@ int main(int argc, char* argv[]) {
         driveshaft_speed = vehicle.GetDriveshaftSpeed();
         for (int i = 0; i < num_wheels; i++) {
             tire_forces[i] = tires[i]->GetTireForce();
-            wheel_states[i] = vehicle.GetWheelState(i);
         }
 
         // Update modules (process inputs from other modules)
@@ -232,7 +230,7 @@ int main(int argc, char* argv[]) {
         vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, tire_forces);
         terrain.Synchronize(time);
         for (int i = 0; i < num_wheels; i++)
-            tires[i]->Synchronize(time, wheel_states[i], terrain);
+            tires[i]->Synchronize(time, terrain);
         app.Synchronize(driver.GetInputModeAsString(), steering_input, throttle_input, braking_input);
 
         // Advance simulation for one timestep for all modules

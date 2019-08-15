@@ -123,8 +123,9 @@ int main(int argc, char* argv[]) {
             return 1;
     }
 
-    tire_FL->Initialize(front_side.GetWheelBody(FRONT_LEFT), LEFT);
-    tire_FR->Initialize(front_side.GetWheelBody(FRONT_RIGHT), RIGHT);
+    auto front_wheels = front_side.GetWheels();
+    tire_FL->Initialize(front_wheels[0]);
+    tire_FR->Initialize(front_wheels[1]);
     tire_FL->SetVisualizationType(VisualizationType::MESH);
     tire_FR->SetVisualizationType(VisualizationType::MESH);
 
@@ -149,8 +150,9 @@ int main(int argc, char* argv[]) {
             return 1;
     }
 
-    tire_RL->Initialize(rear_side.GetWheelBody(FRONT_LEFT), LEFT);
-    tire_RR->Initialize(rear_side.GetWheelBody(FRONT_RIGHT), RIGHT);
+    auto rear_wheels = front_side.GetWheels();
+    tire_RL->Initialize(rear_wheels[0]);
+    tire_RR->Initialize(rear_wheels[1]);
     tire_RL->SetVisualizationType(VisualizationType::MESH);
     tire_RR->SetVisualizationType(VisualizationType::MESH);
 
@@ -221,12 +223,6 @@ int main(int argc, char* argv[]) {
 
         driveshaft_speed = front_side.GetDriveshaftSpeed();
 
-        WheelState wheel_FL = front_side.GetWheelState(FRONT_LEFT);
-        WheelState wheel_FR = front_side.GetWheelState(FRONT_RIGHT);
-
-        WheelState wheel_RL = rear_side.GetWheelState(FRONT_LEFT);
-        WheelState wheel_RR = rear_side.GetWheelState(FRONT_RIGHT);
-
         // Update modules (process inputs from other modules)
         time = front_side.GetSystem()->GetChTime();
 
@@ -234,10 +230,10 @@ int main(int argc, char* argv[]) {
 
         terrain.Synchronize(time);
 
-        tire_FL->Synchronize(time, wheel_FL, terrain);
-        tire_FR->Synchronize(time, wheel_FR, terrain);
-        tire_RL->Synchronize(time, wheel_RL, terrain);
-        tire_RR->Synchronize(time, wheel_RR, terrain);
+        tire_FL->Synchronize(time, terrain);
+        tire_FR->Synchronize(time, terrain);
+        tire_RL->Synchronize(time, terrain);
+        tire_RR->Synchronize(time, terrain);
 
         powertrain.Synchronize(time, throttle_input, driveshaft_speed);
 

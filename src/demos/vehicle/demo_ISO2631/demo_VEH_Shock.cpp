@@ -40,11 +40,9 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/FialaTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/TMeasyTire.h"
 
-// If Irrlicht support is available...
 #ifdef CHRONO_IRRLICHT
-// ...include additional headers
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
-// ...and specify whether the demo should actually use Irrlicht
+// specify whether the demo should actually use Irrlicht
 #define USE_IRRLICHT
 #endif
 
@@ -160,8 +158,8 @@ int main(int argc, char* argv[]) {
     powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
 
     // Create and initialize the tires
-    int num_axles = vehicle.GetNumberAxles();
-    int num_wheels = 2 * num_axles;
+    const auto& wheels = vehicle.GetWheels();
+    auto num_wheels = wheels.size();
 
     // handling tire works, but still too high results;
     // a validated flexible tire model would be the best choice
@@ -175,33 +173,21 @@ int main(int argc, char* argv[]) {
             default:
             case 1:
                 tmeasy_tires[i] = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_tire_file));
-                if (tmeasy_tires[i] == nullptr) {
-                    GetLog() << "Bad TMeasy tire problem\n";
-                }
-                tmeasy_tires[i]->Initialize(vehicle.GetWheelBody(i), VehicleSide(i % 2));
+                tmeasy_tires[i]->Initialize(wheels[i]);
                 tmeasy_tires[i]->SetVisualizationType(VisualizationType::MESH);
                 break;
             case 2:
                 fiala_tires[i] = chrono_types::make_shared<FialaTire>(vehicle::GetDataFile(fiala_tire_file));
-                if (fiala_tires[i] == nullptr) {
-                    GetLog() << "Bad Fiala tire problem\n";
-                }
-                fiala_tires[i]->Initialize(vehicle.GetWheelBody(i), VehicleSide(i % 2));
+                fiala_tires[i]->Initialize(wheels[i]);
                 fiala_tires[i]->SetVisualizationType(VisualizationType::MESH);
             case 3:
                 pacejka_tires[i] = chrono_types::make_shared<hmmwv::HMMWV_Pac02Tire>(vehicle::GetDataFile(pacejka_tire_file));
-                if (pacejka_tires[i] == nullptr) {
-                    GetLog() << "Bad Pacejka tire problem\n";
-                }
-                pacejka_tires[i]->Initialize(vehicle.GetWheelBody(i), VehicleSide(i % 2));
+                pacejka_tires[i]->Initialize(wheels[i]);
                 pacejka_tires[i]->SetVisualizationType(VisualizationType::MESH);
                 break;
             case 4:
                 pacejka89_tires[i] = chrono_types::make_shared<hmmwv::HMMWV_Pac89Tire>("HMMWV_Pac89_Tire");
-                if (pacejka89_tires[i] == nullptr) {
-                    GetLog() << "Bad Pacejka89 tire problem\n";
-                }
-                pacejka89_tires[i]->Initialize(vehicle.GetWheelBody(i), VehicleSide(i % 2));
+                pacejka89_tires[i]->Initialize(wheels[i]);
                 pacejka89_tires[i]->SetVisualizationType(VisualizationType::MESH);
                 break;
         }
@@ -253,7 +239,6 @@ int main(int argc, char* argv[]) {
 
     // Inter-module communication data
     TerrainForces tire_forces(num_wheels);
-    WheelStates wheel_states(num_wheels);
     double driveshaft_speed;
     double powertrain_torque;
     double throttle_input;
@@ -293,7 +278,6 @@ int main(int argc, char* argv[]) {
                     tire_forces[i] = pacejka89_tires[i]->GetTireForce();
                     break;
             }
-            wheel_states[i] = vehicle.GetWheelState(i);
         }
 
         // Update modules (process inputs from other modules)
@@ -306,16 +290,16 @@ int main(int argc, char* argv[]) {
             switch (iTire) {
                 default:
                 case 1:
-                    tmeasy_tires[i]->Synchronize(time, wheel_states[i], terrain, collision_type);
+                    tmeasy_tires[i]->Synchronize(time, terrain, collision_type);
                     break;
                 case 2:
-                    fiala_tires[i]->Synchronize(time, wheel_states[i], terrain, collision_type);
+                    fiala_tires[i]->Synchronize(time, terrain, collision_type);
                     break;
                 case 3:
-                    pacejka_tires[i]->Synchronize(time, wheel_states[i], terrain, collision_type);
+                    pacejka_tires[i]->Synchronize(time, terrain, collision_type);
                     break;
                 case 4:
-                    pacejka89_tires[i]->Synchronize(time, wheel_states[i], terrain, collision_type);
+                    pacejka89_tires[i]->Synchronize(time, terrain, collision_type);
                     break;
             }
         }
@@ -384,7 +368,6 @@ int main(int argc, char* argv[]) {
                     tire_forces[i] = pacejka89_tires[i]->GetTireForce();
                     break;
             }
-            wheel_states[i] = vehicle.GetWheelState(i);
         }
 
         // Update modules (process inputs from other modules)
@@ -397,16 +380,16 @@ int main(int argc, char* argv[]) {
             switch (iTire) {
                 default:
                 case 1:
-                    tmeasy_tires[i]->Synchronize(time, wheel_states[i], terrain, collision_type);
+                    tmeasy_tires[i]->Synchronize(time, terrain, collision_type);
                     break;
                 case 2:
-                    fiala_tires[i]->Synchronize(time, wheel_states[i], terrain, collision_type);
+                    fiala_tires[i]->Synchronize(time, terrain, collision_type);
                     break;
                 case 3:
-                    pacejka_tires[i]->Synchronize(time, wheel_states[i], terrain, collision_type);
+                    pacejka_tires[i]->Synchronize(time, terrain, collision_type);
                     break;
                 case 4:
-                    pacejka89_tires[i]->Synchronize(time, wheel_states[i], terrain, collision_type);
+                    pacejka89_tires[i]->Synchronize(time, terrain, collision_type);
                     break;
             }
         }

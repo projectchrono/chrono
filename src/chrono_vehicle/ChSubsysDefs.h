@@ -44,6 +44,13 @@ enum VehicleSide {
     RIGHT = 1  ///< right side of vehicle is always 1
 };
 
+/// Enum for wheel location on spindle.
+enum WheelLocation {
+    SINGLE = 0, ///< 
+    INNER = 1, ///<
+    OUTER = 2 ///<
+};
+
 /// Class to encode the ID of a vehicle wheel.
 /// By convention, wheels are counted front to rear and left to right. In other
 /// words, for a vehicle with 2 axles, the order is: front-left, front-right,

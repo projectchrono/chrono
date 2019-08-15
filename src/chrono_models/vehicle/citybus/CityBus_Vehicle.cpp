@@ -108,10 +108,10 @@ void CityBus_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisF
                                  m_omega[2], m_omega[3]);
 
     // Initialize wheels
-    m_wheels[0]->Initialize(m_suspensions[0]->GetSpindle(LEFT));
-    m_wheels[1]->Initialize(m_suspensions[0]->GetSpindle(RIGHT));
-    m_wheels[2]->Initialize(m_suspensions[1]->GetSpindle(LEFT));
-    m_wheels[3]->Initialize(m_suspensions[1]->GetSpindle(RIGHT));
+    m_wheels[0]->Initialize(m_suspensions[0], LEFT);
+    m_wheels[1]->Initialize(m_suspensions[0], RIGHT);
+    m_wheels[2]->Initialize(m_suspensions[1], LEFT);
+    m_wheels[3]->Initialize(m_suspensions[1], RIGHT);
 
     // Initialize the driveline subsystem
     std::vector<int> driven_susp_indexes = {1};//(m_driveline->GetNumDrivenAxles());

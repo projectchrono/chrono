@@ -60,7 +60,7 @@ void Sedan_Wheel::AddVisualizationAssets(VisualizationType vis) {
         m_trimesh_shape->SetMesh(trimesh);
         m_trimesh_shape->SetStatic(true);
         m_trimesh_shape->SetName(GetMeshName());
-        m_spindle->AddAsset(m_trimesh_shape);
+        GetSpindle()->AddAsset(m_trimesh_shape);
     } else {
         ChWheel::AddVisualizationAssets(vis);
     }
@@ -72,9 +72,9 @@ void Sedan_Wheel::RemoveVisualizationAssets() {
     // Make sure we only remove the assets added by Sedan_Wheel::AddVisualizationAssets.
     // This is important for the ChWheel object because a tire may add its own assets
     // to the same body (the spindle).
-    auto it = std::find(m_spindle->GetAssets().begin(), m_spindle->GetAssets().end(), m_trimesh_shape);
-    if (it != m_spindle->GetAssets().end())
-        m_spindle->GetAssets().erase(it);
+    auto it = std::find(GetSpindle()->GetAssets().begin(), GetSpindle()->GetAssets().end(), m_trimesh_shape);
+    if (it != GetSpindle()->GetAssets().end())
+        GetSpindle()->GetAssets().erase(it);
 }
 
 }  // end namespace sedan

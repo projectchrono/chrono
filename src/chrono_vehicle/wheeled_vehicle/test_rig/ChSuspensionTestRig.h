@@ -103,9 +103,6 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     /// Advance the state of the suspension test rig by the specified time step.
     virtual void Advance(double step) override;
 
-    /// Get a handle to the specified wheel body.
-    std::shared_ptr<ChBody> GetWheelBody(VehicleSide side) const { return m_suspension->GetSpindle(side); }
-
     /// Get the global location of the specified wheel.
     const ChVector<>& GetWheelPos(VehicleSide side) const { return m_suspension->GetSpindlePos(side); }
 
@@ -120,9 +117,6 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
 
     /// Get the angular speed of the specified wheel (about its rotation axis).
     double GetWheelOmega(VehicleSide side) const;
-
-    /// Get the complete state for the specified wheel.
-    WheelState GetWheelState(VehicleSide side) const;
 
     double GetSteeringInput() const { return m_steering_input; }
     double GetDisplacementLeftInput() const { return m_left_input; }

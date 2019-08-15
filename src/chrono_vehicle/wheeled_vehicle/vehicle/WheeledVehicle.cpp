@@ -16,6 +16,9 @@
 //
 // =============================================================================
 
+//// RADU
+//// Todo: extend to allow axles with double wheels
+
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -238,8 +241,8 @@ void WheeledVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
         else
             m_suspensions[i]->Initialize(m_chassis->GetBody(), m_suspLocations[i], m_chassis->GetBody(), -1);
 
-        m_wheels[2 * i]->Initialize(m_suspensions[i]->GetSpindle(LEFT));
-        m_wheels[2 * i + 1]->Initialize(m_suspensions[i]->GetSpindle(RIGHT));
+        m_wheels[2 * i + 0]->Initialize(m_suspensions[i], LEFT);
+        m_wheels[2 * i + 1]->Initialize(m_suspensions[i], RIGHT);
 
         m_brakes[2 * i]->Initialize(m_suspensions[i]->GetRevolute(LEFT));
         m_brakes[2 * i + 1]->Initialize(m_suspensions[i]->GetRevolute(RIGHT));

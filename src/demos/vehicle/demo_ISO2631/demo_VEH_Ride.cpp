@@ -38,11 +38,9 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/FialaTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/TMeasyTire.h"
 
-// If Irrlicht support is available...
 #ifdef CHRONO_IRRLICHT
-// ...include additional headers
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
-// ...and specify whether the demo should actually use Irrlicht
+// specify whether the demo should actually use Irrlicht
 #define USE_IRRLICHT
 #endif
 
@@ -160,8 +158,8 @@ int main(int argc, char* argv[]) {
     powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
 
     // Create and initialize the tires
-    int num_axles = vehicle.GetNumberAxles();
-    int num_wheels = 2 * num_axles;
+    auto wheels = vehicle.GetWheels();
+    auto num_wheels = wheels.size();
     std::vector<std::shared_ptr<FialaTire> > fiala_tires(num_wheels);
     std::vector<std::shared_ptr<TMeasyTire> > tmeasy_tires(num_wheels);
     std::vector<std::shared_ptr<hmmwv::HMMWV_Pac02Tire> > pacejka_tires(num_wheels);
@@ -171,26 +169,27 @@ int main(int argc, char* argv[]) {
             default:
             case 1:
                 tmeasy_tires[i] = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_tire_file));
-                tmeasy_tires[i]->Initialize(vehicle.GetWheelBody(i), VehicleSide(i % 2));
+                tmeasy_tires[i]->Initialize(wheels[i]);
                 tmeasy_tires[i]->SetVisualizationType(VisualizationType::MESH);
                 break;
             case 2:
                 fiala_tires[i] = chrono_types::make_shared<FialaTire>(vehicle::GetDataFile(fiala_tire_file));
-                fiala_tires[i]->Initialize(vehicle.GetWheelBody(i), VehicleSide(i % 2));
+                fiala_tires[i]->Initialize(wheels[i]);
                 fiala_tires[i]->SetVisualizationType(VisualizationType::MESH);
                 break;
             case 3:
                 pacejka_tires[i] = chrono_types::make_shared<hmmwv::HMMWV_Pac02Tire>(vehicle::GetDataFile(pacejka_tire_file));
-                pacejka_tires[i]->Initialize(vehicle.GetWheelBody(i), VehicleSide(i % 2));
+                pacejka_tires[i]->Initialize(wheels[i]);
                 pacejka_tires[i]->SetVisualizationType(VisualizationType::MESH);
                 break;
             case 4:
                 pacejka89_tires[i] = chrono_types::make_shared<hmmwv::HMMWV_Pac89Tire>("HMMWV_Pac89_Tire");
-                pacejka89_tires[i]->Initialize(vehicle.GetWheelBody(i), VehicleSide(i % 2));
+                pacejka89_tires[i]->Initialize(wheels[i]);
                 pacejka89_tires[i]->SetVisualizationType(VisualizationType::MESH);
                 break;
         }
     }
+
 
     ChISO2631_Vibration_SeatCushionLogger seat_logger(step_size);
 
@@ -240,7 +239,6 @@ int main(int argc, char* argv[]) {
 
     // Inter-module communication data
     TerrainForces tire_forces(num_wheels);
-    WheelStates wheel_states(num_wheels);
 
     // Logging of seat acceleration data on flat road surface is useless and would lead to distorted results
     double xstart = 100.0;  // start logging when the vehicle crosses this x position
@@ -275,7 +273,6 @@ int main(int argc, char* argv[]) {
                     tire_forces[i] = pacejka89_tires[i]->GetTireForce();
                     break;
             }
-            wheel_states[i] = vehicle.GetWheelState(i);
         }
 
         // Update modules (process inputs from other modules)
@@ -288,16 +285,16 @@ int main(int argc, char* argv[]) {
             switch (iTire) {
                 default:
                 case 1:
-                    tmeasy_tires[i]->Synchronize(time, wheel_states[i], terrain, collision_type);
+                    tmeasy_tires[i]->Synchronize(time, terrain, collision_type);
                     break;
                 case 2:
-                    fiala_tires[i]->Synchronize(time, wheel_states[i], terrain, collision_type);
+                    fiala_tires[i]->Synchronize(time, terrain, collision_type);
                     break;
                 case 3:
-                    pacejka_tires[i]->Synchronize(time, wheel_states[i], terrain, collision_type);
+                    pacejka_tires[i]->Synchronize(time, terrain, collision_type);
                     break;
                 case 4:
-                    pacejka89_tires[i]->Synchronize(time, wheel_states[i], terrain, collision_type);
+                    pacejka89_tires[i]->Synchronize(time, terrain, collision_type);
                     break;
             }
         }
@@ -366,7 +363,6 @@ int main(int argc, char* argv[]) {
                     tire_forces[i] = pacejka89_tires[i]->GetTireForce();
                     break;
             }
-            wheel_states[i] = vehicle.GetWheelState(i);
         }
 
         // Update modules (process inputs from other modules)
@@ -379,16 +375,16 @@ int main(int argc, char* argv[]) {
             switch (iTire) {
                 default:
                 case 1:
-                    tmeasy_tires[i]->Synchronize(time, wheel_states[i], terrain, collision_type);
+                    tmeasy_tires[i]->Synchronize(time, terrain, collision_type);
                     break;
                 case 2:
-                    fiala_tires[i]->Synchronize(time, wheel_states[i], terrain, collision_type);
+                    fiala_tires[i]->Synchronize(time, terrain, collision_type);
                     break;
                 case 3:
-                    pacejka_tires[i]->Synchronize(time, wheel_states[i], terrain, collision_type);
+                    pacejka_tires[i]->Synchronize(time, terrain, collision_type);
                     break;
                 case 4:
-                    pacejka89_tires[i]->Synchronize(time, wheel_states[i], terrain, collision_type);
+                    pacejka89_tires[i]->Synchronize(time, terrain, collision_type);
                     break;
             }
         }

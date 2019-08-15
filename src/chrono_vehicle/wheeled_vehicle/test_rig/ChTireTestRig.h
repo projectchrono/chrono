@@ -187,6 +187,7 @@ class CH_VEHICLE_API ChTireTestRig {
     ChSystem* m_system;  ///< pointer to the Chrono system
 
     std::shared_ptr<ChTerrain> m_terrain;    ///< handle to underlying terrain subsystem
+    std::shared_ptr<ChSuspension> m_susp;    ///< dummy suspension subsystem
     std::shared_ptr<ChWheel> m_wheel;        ///< handle to wheel subsystem
     std::shared_ptr<ChTire> m_tire;          ///< handle to tire subsystem
     VisualizationType m_tire_vis;            ///< visualization type for tire subsystem

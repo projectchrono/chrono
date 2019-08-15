@@ -21,6 +21,9 @@
 //
 // =============================================================================
 
+//// RADU
+//// Todo: why are the trailer tires not synchronized? fix!
+
 #include <vector>
 
 #include "chrono/core/ChStream.h"
@@ -137,10 +140,11 @@ int main(int argc, char* argv[]) {
     Generic_RigidTire tire_rear_left("RL");
     Generic_RigidTire tire_rear_right("RR");
 
-    tire_front_left.Initialize(vehicle.GetWheelBody(FRONT_LEFT), LEFT);
-    tire_front_right.Initialize(vehicle.GetWheelBody(FRONT_RIGHT), RIGHT);
-    tire_rear_left.Initialize(vehicle.GetWheelBody(REAR_LEFT), LEFT);
-    tire_rear_right.Initialize(vehicle.GetWheelBody(REAR_RIGHT), RIGHT);
+    auto tractor_wheels = vehicle.GetWheels();
+    tire_front_left.Initialize(tractor_wheels[0]);
+    tire_front_right.Initialize(tractor_wheels[1]);
+    tire_rear_left.Initialize(tractor_wheels[2]);
+    tire_rear_right.Initialize(tractor_wheels[3]);
 
     tire_front_left.SetVisualizationType(VisualizationType::PRIMITIVES);
     tire_front_right.SetVisualizationType(VisualizationType::PRIMITIVES);
@@ -153,10 +157,11 @@ int main(int argc, char* argv[]) {
     Generic_RigidTire tr_tire_rear_left("RL");
     Generic_RigidTire tr_tire_rear_right("RR");
 
-    tr_tire_front_left.Initialize(trailer.GetWheelBody(FRONT_LEFT), LEFT);
-    tr_tire_front_right.Initialize(trailer.GetWheelBody(FRONT_RIGHT), RIGHT);
-    tr_tire_rear_left.Initialize(trailer.GetWheelBody(REAR_LEFT), LEFT);
-    tr_tire_rear_right.Initialize(trailer.GetWheelBody(REAR_RIGHT), RIGHT);
+    auto trailer_wheels = trailer.GetWheels();
+    tr_tire_front_left.Initialize(trailer_wheels[0]);
+    tr_tire_front_right.Initialize(trailer_wheels[1]);
+    tr_tire_rear_left.Initialize(trailer_wheels[2]);
+    tr_tire_rear_right.Initialize(trailer_wheels[3]);
 
     tr_tire_front_left.SetVisualizationType(VisualizationType::PRIMITIVES);
     tr_tire_front_right.SetVisualizationType(VisualizationType::PRIMITIVES);
@@ -204,7 +209,6 @@ int main(int argc, char* argv[]) {
     // Inter-module communication data
     TerrainForces tire_forces(4);
     TerrainForces tr_tire_forces(4);
-    WheelState wheel_states[4];
     double driveshaft_speed;
     double powertrain_torque;
     double throttle_input;
@@ -260,11 +264,6 @@ int main(int argc, char* argv[]) {
 
         driveshaft_speed = vehicle.GetDriveshaftSpeed();
 
-        wheel_states[FRONT_LEFT.id()] = vehicle.GetWheelState(FRONT_LEFT);
-        wheel_states[FRONT_RIGHT.id()] = vehicle.GetWheelState(FRONT_RIGHT);
-        wheel_states[REAR_LEFT.id()] = vehicle.GetWheelState(REAR_LEFT);
-        wheel_states[REAR_RIGHT.id()] = vehicle.GetWheelState(REAR_RIGHT);
-
         // Update modules (process inputs from other modules)
         time = vehicle.GetSystem()->GetChTime();
 
@@ -272,10 +271,10 @@ int main(int argc, char* argv[]) {
 
         terrain.Synchronize(time);
 
-        tire_front_left.Synchronize(time, wheel_states[FRONT_LEFT.id()], terrain);
-        tire_front_right.Synchronize(time, wheel_states[FRONT_RIGHT.id()], terrain);
-        tire_rear_left.Synchronize(time, wheel_states[REAR_LEFT.id()], terrain);
-        tire_rear_right.Synchronize(time, wheel_states[REAR_RIGHT.id()], terrain);
+        tire_front_left.Synchronize(time, terrain);
+        tire_front_right.Synchronize(time, terrain);
+        tire_rear_left.Synchronize(time, terrain);
+        tire_rear_right.Synchronize(time, terrain);
 
         powertrain.Synchronize(time, throttle_input, driveshaft_speed);
 
@@ -349,11 +348,6 @@ int main(int argc, char* argv[]) {
 
         driveshaft_speed = vehicle.GetDriveshaftSpeed();
 
-        wheel_states[FRONT_LEFT.id()] = vehicle.GetWheelState(FRONT_LEFT);
-        wheel_states[FRONT_RIGHT.id()] = vehicle.GetWheelState(FRONT_RIGHT);
-        wheel_states[REAR_LEFT.id()] = vehicle.GetWheelState(REAR_LEFT);
-        wheel_states[REAR_RIGHT.id()] = vehicle.GetWheelState(REAR_RIGHT);
-
         // Update modules (process inputs from other modules)
         time = vehicle.GetSystem()->GetChTime();
 
@@ -361,10 +355,10 @@ int main(int argc, char* argv[]) {
 
         terrain.Synchronize(time);
 
-        tire_front_left.Synchronize(time, wheel_states[FRONT_LEFT.id()], terrain);
-        tire_front_right.Synchronize(time, wheel_states[FRONT_RIGHT.id()], terrain);
-        tire_rear_left.Synchronize(time, wheel_states[REAR_LEFT.id()], terrain);
-        tire_rear_right.Synchronize(time, wheel_states[REAR_RIGHT.id()], terrain);
+        tire_front_left.Synchronize(time, terrain);
+        tire_front_right.Synchronize(time, terrain);
+        tire_rear_left.Synchronize(time, terrain);
+        tire_rear_right.Synchronize(time, terrain);
 
         powertrain.Synchronize(time, throttle_input, driveshaft_speed);
 

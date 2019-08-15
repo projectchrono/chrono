@@ -163,10 +163,10 @@ void TT_Trailer::Initialize(const ChCoordsys<>& chassisPos,
     m_suspensions[1]->Initialize(m_chassis, ChVector<>(-2, 0, 0), m_chassis, -1);
 
     // Initialize wheels
-    m_wheels[0]->Initialize(m_suspensions[0]->GetSpindle(LEFT));
-    m_wheels[1]->Initialize(m_suspensions[0]->GetSpindle(RIGHT));
-    m_wheels[2]->Initialize(m_suspensions[1]->GetSpindle(LEFT));
-    m_wheels[3]->Initialize(m_suspensions[1]->GetSpindle(RIGHT));
+    m_wheels[0]->Initialize(m_suspensions[0], LEFT);
+    m_wheels[1]->Initialize(m_suspensions[0], RIGHT);
+    m_wheels[2]->Initialize(m_suspensions[1], LEFT);
+    m_wheels[3]->Initialize(m_suspensions[1], RIGHT);
 
     // Initialize the four brakes
     m_brakes[0]->Initialize(m_suspensions[0]->GetRevolute(LEFT));
@@ -349,8 +349,4 @@ void TT_Trailer::DebugLog(int what) {
     }
 
     GetLog().SetNumFormat("%g");
-}
-
-std::shared_ptr<ChBody> TT_Trailer::GetWheelBody(const WheelID& wheel_id) const {
-    return m_suspensions[wheel_id.axle()]->GetSpindle(wheel_id.side());
 }

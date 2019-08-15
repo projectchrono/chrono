@@ -37,8 +37,8 @@ class Articulated_Rear {
     void SetSuspensionVisualizationType(chrono::vehicle::VisualizationType vis);
     void SetWheelVisualizationType(chrono::vehicle::VisualizationType vis);
 
-    /// Get a handle to the specified wheel body.
-    std::shared_ptr<chrono::ChBody> GetWheelBody(const chrono::vehicle::WheelID& wheel_id) const;
+    /// Get all wheels.
+    const chrono::vehicle::ChWheelList& GetWheels() const { return m_wheels; }
 
     /// Get the global location of the specified wheel.
     const chrono::ChVector<>& GetWheelPos(const chrono::vehicle::WheelID& wheel_id) const;
@@ -51,9 +51,6 @@ class Articulated_Rear {
 
     /// Get the angular velocity of the specified wheel.
     chrono::ChVector<> GetWheelAngVel(const chrono::vehicle::WheelID& wheel_id) const;
-
-    /// Get the complete state for the specified wheel.
-    chrono::vehicle::WheelState GetWheelState(const chrono::vehicle::WheelID& wheel_id) const;
 
   private:
     std::shared_ptr<Articulated_Chassis> m_front;  ///< handle to front side

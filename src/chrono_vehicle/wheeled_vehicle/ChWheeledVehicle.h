@@ -67,6 +67,9 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// Get the specified steering subsystem.
     std::shared_ptr<ChSteering> GetSteering(int id) const { return m_steerings[id]; }
 
+    /// Get all vehicle wheels.
+    const ChWheelList& GetWheels() const { return m_wheels; }
+
     /// Get a handle to the specified vehicle wheel subsystem.
     std::shared_ptr<ChWheel> GetWheel(const WheelID& wheel_id) const { return m_wheels[wheel_id.id()]; }
 
@@ -94,9 +97,6 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// Return the number of axles for this vehicle.
     virtual int GetNumberAxles() const = 0;
 
-    /// Get a handle to the specified wheel body.
-    std::shared_ptr<ChBody> GetWheelBody(const WheelID& wheelID) const;
-
     /// Get the global location of the specified wheel.
     const ChVector<>& GetWheelPos(const WheelID& wheel_id) const;
 
@@ -118,12 +118,6 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// Get the angular speed of the specified wheel.
     /// This is the angular speed of the wheel axle.
     double GetWheelOmega(const WheelID& wheel_id) const;
-
-    /// Get the complete state for the specified wheel.
-    /// This includes the location, orientation, linear and angular velocities,
-    /// all expressed in the global reference frame, as well as the wheel angular
-    /// speed about its rotation axis.
-    WheelState GetWheelState(const WheelID& wheel_id) const;
 
     /// Return the vehicle wheelbase.
     virtual double GetWheelbase() const  = 0;

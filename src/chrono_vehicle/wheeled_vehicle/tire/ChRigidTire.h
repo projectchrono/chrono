@@ -71,12 +71,8 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     /// in global frame, as applied to the center of the associated wheel.
     virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override;
 
-    /// Initialize this tire system.
-    /// This function creates the tire contact shape and attaches it to the
-    /// associated wheel body.
-    virtual void Initialize(std::shared_ptr<ChBody> wheel,  ///< handle to the associated wheel body
-                            VehicleSide side                ///< left/right vehicle side
-                            ) override;
+    /// Initialize this tire by associating it to the specified wheel.
+    virtual void Initialize(std::shared_ptr<ChWheel> wheel) override;
 
     /// Add visualization assets for the rigid tire subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;

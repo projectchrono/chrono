@@ -120,10 +120,10 @@ void TT_Tractor::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel
     m_suspensions[1]->Initialize(m_chassis->GetBody(), ChVector<>(-1.6865, 0, 0), m_chassis->GetBody(), -1);
 
     // Initialize wheels
-    m_wheels[0]->Initialize(m_suspensions[0]->GetSpindle(LEFT));
-    m_wheels[1]->Initialize(m_suspensions[0]->GetSpindle(RIGHT));
-    m_wheels[2]->Initialize(m_suspensions[1]->GetSpindle(LEFT));
-    m_wheels[3]->Initialize(m_suspensions[1]->GetSpindle(RIGHT));
+    m_wheels[0]->Initialize(m_suspensions[0], LEFT);
+    m_wheels[1]->Initialize(m_suspensions[0], RIGHT);
+    m_wheels[2]->Initialize(m_suspensions[1], LEFT);
+    m_wheels[3]->Initialize(m_suspensions[1], RIGHT);
 
     // Initialize the driveline subsystem (RWD)
     std::vector<int> driven_susp(1, 1);

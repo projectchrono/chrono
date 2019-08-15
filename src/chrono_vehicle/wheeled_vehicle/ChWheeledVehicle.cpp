@@ -145,6 +145,8 @@ void ChWheeledVehicle::SetDrivelineOutput(bool state) {
 
 // -----------------------------------------------------------------------------
 // Calculate and return the total vehicle mass
+// Note: do not include the wheels, as these are already accounted for through
+// the associated spindle body.
 // -----------------------------------------------------------------------------
 double ChWheeledVehicle::GetVehicleMass() const {
     double mass = m_chassis->GetMass();
@@ -158,15 +160,14 @@ double ChWheeledVehicle::GetVehicleMass() const {
     for (auto steering : m_steerings) {
         mass += steering->GetMass();
     }
-    for (auto wheel : m_wheels) {
-        mass += wheel->GetMass();
-    }
 
     return mass;
 }
 
 // -----------------------------------------------------------------------------
 // Calculate and return the current vehicle COM location
+// Note: do not include the wheels, as these are already accounted for through
+// the associated spindle body.
 // -----------------------------------------------------------------------------
 ChVector<> ChWheeledVehicle::GetVehicleCOMPos() const {
     ChVector<> com(0, 0, 0);
@@ -181,19 +182,12 @@ ChVector<> ChWheeledVehicle::GetVehicleCOMPos() const {
     for (auto steering : m_steerings) {
         com += steering->GetMass() * steering->GetCOMPos();
     }
-    for (auto wheel : m_wheels) {
-        com += wheel->GetMass() * wheel->GetCOMPos();
-    }
 
     return com / GetVehicleMass();
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-std::shared_ptr<ChBody> ChWheeledVehicle::GetWheelBody(const WheelID& wheel_id) const {
-    return m_suspensions[wheel_id.axle()]->GetSpindle(wheel_id.side());
-}
-
 const ChVector<>& ChWheeledVehicle::GetWheelPos(const WheelID& wheel_id) const {
     return m_suspensions[wheel_id.axle()]->GetSpindlePos(wheel_id.side());
 }
@@ -212,24 +206,6 @@ ChVector<> ChWheeledVehicle::GetWheelAngVel(const WheelID& wheel_id) const {
 
 double ChWheeledVehicle::GetWheelOmega(const WheelID& wheel_id) const {
     return m_suspensions[wheel_id.axle()]->GetAxleSpeed(wheel_id.side());
-}
-
-// -----------------------------------------------------------------------------
-// Return the complete state (expressed in the global frame) for the specified
-// wheel body.
-// -----------------------------------------------------------------------------
-WheelState ChWheeledVehicle::GetWheelState(const WheelID& wheel_id) const {
-    WheelState state;
-
-    state.pos = GetWheelPos(wheel_id);
-    state.rot = GetWheelRot(wheel_id);
-    state.lin_vel = GetWheelLinVel(wheel_id);
-    state.ang_vel = GetWheelAngVel(wheel_id);
-
-    ChVector<> ang_vel_loc = state.rot.RotateBack(state.ang_vel);
-    state.omega = ang_vel_loc.y();
-
-    return state;
 }
 
 // -----------------------------------------------------------------------------

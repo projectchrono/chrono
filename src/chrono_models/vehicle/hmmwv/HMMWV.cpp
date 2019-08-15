@@ -254,10 +254,11 @@ void HMMWV::Initialize() {
     }
 
     // Initialize the tires.
-    m_tires[0]->Initialize(m_vehicle->GetWheelBody(FRONT_LEFT), LEFT);
-    m_tires[1]->Initialize(m_vehicle->GetWheelBody(FRONT_RIGHT), RIGHT);
-    m_tires[2]->Initialize(m_vehicle->GetWheelBody(REAR_LEFT), LEFT);
-    m_tires[3]->Initialize(m_vehicle->GetWheelBody(REAR_RIGHT), RIGHT);
+    auto wheels = m_vehicle->GetWheels();
+    m_tires[0]->Initialize(wheels[0]);
+    m_tires[1]->Initialize(wheels[1]);
+    m_tires[2]->Initialize(wheels[2]);
+    m_tires[3]->Initialize(wheels[3]);
 
     if (m_tire_step_size > 0) {
         m_tires[0]->SetStepsize(m_tire_step_size);
@@ -284,26 +285,20 @@ void HMMWV::Synchronize(double time,
                         double throttle_input,
                         const ChTerrain& terrain) {
     TerrainForces tire_forces(4);
-    WheelState wheel_states[4];
 
     tire_forces[0] = m_tires[0]->GetTireForce();
     tire_forces[1] = m_tires[1]->GetTireForce();
     tire_forces[2] = m_tires[2]->GetTireForce();
     tire_forces[3] = m_tires[3]->GetTireForce();
 
-    wheel_states[0] = m_vehicle->GetWheelState(FRONT_LEFT);
-    wheel_states[1] = m_vehicle->GetWheelState(FRONT_RIGHT);
-    wheel_states[2] = m_vehicle->GetWheelState(REAR_LEFT);
-    wheel_states[3] = m_vehicle->GetWheelState(REAR_RIGHT);
-
     double powertrain_torque = m_powertrain->GetOutputTorque();
 
     double driveshaft_speed = m_vehicle->GetDriveshaftSpeed();
 
-    m_tires[0]->Synchronize(time, wheel_states[0], terrain, m_tire_collision_type);
-    m_tires[1]->Synchronize(time, wheel_states[1], terrain, m_tire_collision_type);
-    m_tires[2]->Synchronize(time, wheel_states[2], terrain, m_tire_collision_type);
-    m_tires[3]->Synchronize(time, wheel_states[3], terrain, m_tire_collision_type);
+    m_tires[0]->Synchronize(time, terrain, m_tire_collision_type);
+    m_tires[1]->Synchronize(time, terrain, m_tire_collision_type);
+    m_tires[2]->Synchronize(time, terrain, m_tire_collision_type);
+    m_tires[3]->Synchronize(time, terrain, m_tire_collision_type);
 
     m_powertrain->Synchronize(time, throttle_input, driveshaft_speed);
 

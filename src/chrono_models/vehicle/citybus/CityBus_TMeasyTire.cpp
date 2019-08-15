@@ -81,7 +81,7 @@ void CityBus_TMeasyTire::AddVisualizationAssets(VisualizationType vis) {
         m_trimesh_shape->SetMesh(trimesh);
         m_trimesh_shape->SetStatic(true);
         m_trimesh_shape->SetName(m_meshName);
-        m_wheel->AddAsset(m_trimesh_shape);
+        m_wheel->GetSpindle()->AddAsset(m_trimesh_shape);
     } else {
         ChTMeasyTire::AddVisualizationAssets(vis);
     }
@@ -93,9 +93,10 @@ void CityBus_TMeasyTire::RemoveVisualizationAssets() {
     // Make sure we only remove the assets added by WVP_FialaTire::AddVisualizationAssets.
     // This is important for the ChTire object because a wheel may add its own assets
     // to the same body (the spindle/wheel).
-    auto it = std::find(m_wheel->GetAssets().begin(), m_wheel->GetAssets().end(), m_trimesh_shape);
-    if (it != m_wheel->GetAssets().end())
-        m_wheel->GetAssets().erase(it);
+    auto& assets = m_wheel->GetSpindle()->GetAssets();
+    auto it = std::find(assets.begin(), assets.end(), m_trimesh_shape);
+    if (it != assets.end())
+        assets.erase(it);
 }
 
 }  // end namespace citybus

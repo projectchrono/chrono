@@ -50,8 +50,8 @@ class TT_Trailer {
     void LogHardpointLocations();  /// suspension hardpoints at design
     void DebugLog(int what);       /// shock forces and lengths, constraints, etc.
 
-    /// Get a handle to the specified wheel body.
-    std::shared_ptr<chrono::ChBody> GetWheelBody(const chrono::vehicle::WheelID& wheelID) const;
+    /// Get all trailer wheels.
+    const chrono::vehicle::ChWheelList& GetWheels() const { return m_wheels; }
 
   private:
     chrono::vehicle::SuspensionType m_suspType;

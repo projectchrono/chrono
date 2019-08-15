@@ -40,8 +40,7 @@ namespace vehicle {
 /// Base class for a suspension subsystem.
 class CH_VEHICLE_API ChSuspension : public ChPart {
   public:
-    ChSuspension(const std::string& name  ///< [in] name of the subsystem
-    );
+    ChSuspension(const std::string& name);
 
     virtual ~ChSuspension() {}
 
@@ -67,12 +66,6 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     /// Get the global location of the spindle on the specified side.
     const ChVector<>& GetSpindlePos(VehicleSide side) const { return m_spindle[side]->GetPos(); }
 
-    /// Get the global location of the outer wheel on the specified side (twin tires).
-    const ChVector<>& GetOuterSpindlePos(VehicleSide side) const { return m_outer_wheel_marker[side]->GetPos(); }
-
-    /// Get the global location of the inner wheel on the specified side (twin tires).
-    const ChVector<>& GetInnerSpindlePos(VehicleSide side) const { return m_inner_wheel_marker[side]->GetPos(); }
-
     /// Get the orientation of the spindle body on the specified side.
     /// The spindle body orientation is returned as a quaternion representing a
     /// rotation with respect to the global reference frame.
@@ -83,22 +76,10 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     /// reference frame.
     const ChVector<>& GetSpindleLinVel(VehicleSide side) const { return m_spindle[side]->GetPos_dt(); }
 
-    /// Get the linear velocity of the outer wheel center on the specified side (twin tires).
-    const ChVector<>& GetOuterSpindleLinVel(VehicleSide side) const { return m_outer_wheel_marker[side]->GetPos_dt(); }
-
-    /// Get the linear velocity of the inner wheel center on the specified side (twin tires).
-    const ChVector<>& GetInnerSpindleLinVel(VehicleSide side) const { return m_inner_wheel_marker[side]->GetPos_dt(); }
-
     /// Get the angular velocity of the spindle body on the specified side.
     /// Return the angular velocity of the spindle frame, expressed in the global
     /// reference frame.
     ChVector<> GetSpindleAngVel(VehicleSide side) const { return m_spindle[side]->GetWvel_par(); }
-
-    /// Get the angular velocity of the outer wheel on the specified side (twin tires).
-    ChVector<> GetOuterSpindleAngVel(VehicleSide side) const { return m_outer_wheel_marker[side]->GetWvel_par(); }
-
-    /// Get the angular velocity of the inner wheel on the specified side (twin tires).
-    ChVector<> GetInnerSpindleAngVel(VehicleSide side) const { return m_inner_wheel_marker[side]->GetWvel_par(); }
 
     /// Get the angular speed of the axle on the specified side.
     double GetAxleSpeed(VehicleSide side) const { return m_axle[side]->GetPos_dt(); }
@@ -109,18 +90,9 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     /// Update the suspension subsystem: apply the provided tire forces.
     /// The given tire force and moment is applied to the specified (left or
     /// right) spindle body. This function provides the interface to the tire
-    /// system (intermediated by the vehicle system). Used for single tires:
+    /// system (intermediated by the vehicle system).
     void Synchronize(VehicleSide side,               ///< side (left or right) on which forces should be applied
                      const TerrainForce& tire_force  ///< generalized tire forces
-    );
-    /// Twin tires: two tire forces act on the spindle body
-    /// Update the suspension subsystem: apply the provided tire forces.
-    /// The given tire force and moment is applied to the specified (left or
-    /// right) spindle body. This function provides the interface to the tire
-    /// system (intermediated by the vehicle system). Used for single tires:
-    void Synchronize(VehicleSide side,                      ///< side (left or right) on which forces should be applied
-                     const TerrainForce& tire_force_inner,  ///< generalized tire forces of the inner wheel
-                     const TerrainForce& tire_force_outer   ///< generalized tire forces of the inner wheel
     );
 
     /// Apply the provided motor torque.
@@ -182,21 +154,13 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     /// Log current constraint violations.
     virtual void LogConstraintViolations(VehicleSide side) {}
 
-    bool HasTwinTires() { return m_has_twin_tires; }
-
   protected:
-    ChVector<> m_location;                 ///< location relative to chassis
-    int m_steering_index;                  ///< index of associated steering mechanism
-    std::shared_ptr<ChBody> m_spindle[2];  ///< handles to spindle bodies
-    std::shared_ptr<ChMarker>
-        m_inner_wheel_marker[2];  ///< marker on the spindle where the inner wheel of twin wheels is located
-    std::shared_ptr<ChMarker>
-        m_outer_wheel_marker[2];         ///< marker on the spindle where the outer wheel of twin wheels is located
-    std::shared_ptr<ChShaft> m_axle[2];  ///< handles to axle shafts
+    ChVector<> m_location;                               ///< location relative to chassis
+    int m_steering_index;                                ///< index of associated steering mechanism
+    std::shared_ptr<ChBody> m_spindle[2];                ///< handles to spindle bodies
+    std::shared_ptr<ChShaft> m_axle[2];                  ///< handles to axle shafts
     std::shared_ptr<ChShaftsBody> m_axle_to_spindle[2];  ///< handles to spindle-shaft connectors
     std::shared_ptr<ChLinkLockRevolute> m_revolute[2];   ///< handles to spindle revolute joints
-    bool m_has_twin_tires;                               ///< info about twin tires
-    double m_twin_tire_offset;                           ///< twin tires have an offset from spindle centers (+/-)
 
   private:
     std::shared_ptr<ChCylinderShape> m_spindle_shapes[2];

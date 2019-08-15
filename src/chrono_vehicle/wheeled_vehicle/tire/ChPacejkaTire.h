@@ -78,10 +78,8 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
     /// By default, the wheel is assumed not driven.
     void SetDrivenWheel(bool val) { m_driven = val; }
 
-    /// specify the file name to read the Pactire input from
-    virtual void Initialize(std::shared_ptr<ChBody> wheel,  ///< handle to the associated wheel body
-                            VehicleSide side                ///< [in] left/right vehicle side
-                            ) override;
+    /// Initialize this tire by associating it to the specified wheel.
+    virtual void Initialize(std::shared_ptr<ChWheel> wheel) override;
 
     /// Add visualization assets for the rigid tire subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
@@ -114,7 +112,6 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
     /// Update the state of this tire system at the current time.
     /// Set the PacTire spindle state data from the global wheel body state.
     virtual void Synchronize(double time,                    ///< [in] current time
-                             const WheelState& wheel_state,  ///< [in] current state of associated wheel body
                              const ChTerrain& terrain,       ///< [in] reference to the terrain system
                              CollisionType collision_type = CollisionType::SINGLE_POINT  ///< [in] collision type
                              ) override;

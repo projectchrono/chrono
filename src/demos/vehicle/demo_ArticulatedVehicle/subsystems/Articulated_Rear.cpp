@@ -119,8 +119,8 @@ void Articulated_Rear::Initialize() {
     m_suspensions[0]->Initialize(m_chassis, ChVector<>(-0.5, 0, 0), m_chassis, -1);
 
     // Initialize wheels
-    m_wheels[0]->Initialize(m_suspensions[0]->GetSpindle(LEFT));
-    m_wheels[1]->Initialize(m_suspensions[0]->GetSpindle(RIGHT));
+    m_wheels[0]->Initialize(m_suspensions[0], LEFT);
+    m_wheels[1]->Initialize(m_suspensions[0], RIGHT);
 
     // Initialize the four brakes
     m_brakes[0]->Initialize(m_suspensions[0]->GetRevolute(LEFT));
@@ -167,10 +167,6 @@ void Articulated_Rear::Synchronize(double time, double steering, double braking,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-std::shared_ptr<ChBody> Articulated_Rear::GetWheelBody(const WheelID& wheel_id) const {
-    return m_suspensions[wheel_id.axle()]->GetSpindle(wheel_id.side());
-}
-
 const ChVector<>& Articulated_Rear::GetWheelPos(const WheelID& wheel_id) const {
     return m_suspensions[wheel_id.axle()]->GetSpindlePos(wheel_id.side());
 }
@@ -185,18 +181,4 @@ const ChVector<>& Articulated_Rear::GetWheelLinVel(const WheelID& wheel_id) cons
 
 ChVector<> Articulated_Rear::GetWheelAngVel(const WheelID& wheel_id) const {
     return m_suspensions[wheel_id.axle()]->GetSpindleAngVel(wheel_id.side());
-}
-
-WheelState Articulated_Rear::GetWheelState(const WheelID& wheel_id) const {
-    WheelState state;
-
-    state.pos = GetWheelPos(wheel_id);
-    state.rot = GetWheelRot(wheel_id);
-    state.lin_vel = GetWheelLinVel(wheel_id);
-    state.ang_vel = GetWheelAngVel(wheel_id);
-
-    ChVector<> ang_vel_loc = state.rot.RotateBack(state.ang_vel);
-    state.omega = ang_vel_loc.y();
-
-    return state;
 }

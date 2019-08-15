@@ -63,11 +63,9 @@ void ChWheeledVehicleAssembly::Initialize(const ChVector<>& init_loc, const ChQu
     // If provided, invoke the user-specified callback to attach tire contact
     // geometry for each wheel of the vehicle.
     if (m_tire_cb) {
-        for (int i = 0; i < 2 * m_vehicle->GetNumberAxles(); i++) {
-            std::shared_ptr<ChBody> wheelBody = m_vehicle->GetWheelBody(i);
-
-            m_tire_cb->onCallback(wheelBody);
-            wheelBody->SetCollide(true);
+        for (auto wheel : m_vehicle->GetWheels()) {
+            m_tire_cb->onCallback(wheel->GetSpindle());
+            wheel->GetSpindle()->SetCollide(true);
         }
     }
 }

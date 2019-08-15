@@ -23,42 +23,16 @@
 namespace chrono {
 namespace vehicle {
 
-ChSuspension::ChSuspension(const std::string& name)
-    : ChPart(name), m_steering_index(-1), m_has_twin_tires(false), m_twin_tire_offset(0) {
-    m_inner_wheel_marker[0] = nullptr;
-    m_inner_wheel_marker[1] = nullptr;
-    m_outer_wheel_marker[0] = nullptr;
-    m_outer_wheel_marker[1] = nullptr;
-}
+ChSuspension::ChSuspension(const std::string& name) : ChPart(name), m_steering_index(-1) {}
 
 void ChSuspension::ApplyAxleTorque(VehicleSide side, double torque) {
     m_axle[side]->SetAppliedTorque(torque);
 }
 
 void ChSuspension::Synchronize(VehicleSide side, const TerrainForce& tire_force) {
-    if (m_has_twin_tires) {
-        GetLog() << "Wrong call of ChSuspension::Synchronize(VehicleSide side, const TerrainForce& tire_force)!!\n";
-        GetLog() << "Use ChSuspension::Synchronize(VehicleSide side, const TerrainForce& tire_force_inner, const "
-                    "TerrainForce& tire_force_outer) instead!\n";
-    }
     m_spindle[side]->Empty_forces_accumulators();
     m_spindle[side]->Accumulate_force(tire_force.force, tire_force.point, false);
     m_spindle[side]->Accumulate_torque(tire_force.moment, false);
-}
-
-void ChSuspension::Synchronize(VehicleSide side,
-                               const TerrainForce& tire_force_inner,
-                               const TerrainForce& tire_force_outer) {
-    if (!m_has_twin_tires) {
-        GetLog() << "Wrong call of ChSuspension::Synchronize(VehicleSide side, const TerrainForce& tire_force_inner, "
-                    "const TerrainForce& tire_force_outer))!!\n";
-        GetLog() << "Use ChSuspension::Synchronize(VehicleSide side, const TerrainForce& tire_force_inner) instead\n";
-    }
-    m_spindle[side]->Empty_forces_accumulators();
-    m_spindle[side]->Accumulate_force(tire_force_inner.force, tire_force_inner.point, false);
-    m_spindle[side]->Accumulate_torque(tire_force_inner.moment, false);
-    m_spindle[side]->Accumulate_force(tire_force_outer.force, tire_force_outer.point, false);
-    m_spindle[side]->Accumulate_torque(tire_force_outer.moment, false);
 }
 
 void ChSuspension::AddVisualizationAssets(VisualizationType vis) {

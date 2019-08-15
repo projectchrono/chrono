@@ -41,13 +41,10 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-// If Irrlicht support is available...
 #ifdef CHRONO_IRRLICHT
-// ...include additional headers
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
-
-// ...and specify whether the demo should actually use Irrlicht
+// specify whether the demo should actually use Irrlicht
 #define USE_IRRLICHT
 #endif
 
@@ -147,13 +144,13 @@ int main(int argc, char* argv[]) {
     powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
 
     // Create and initialize the tires
-    int num_axles = vehicle.GetNumberAxles();
-    int num_wheels = 2 * num_axles;
+    auto wheels = vehicle.GetWheels();
+    auto num_wheels = wheels.size();
     std::vector<std::shared_ptr<RigidTire> > tires(num_wheels);
 
     for (int i = 0; i < num_wheels; i++) {
         tires[i] = chrono_types::make_shared<RigidTire>(vehicle::GetDataFile(rigidtire_file));
-        tires[i]->Initialize(vehicle.GetWheelBody(i), VehicleSide(i % 2));
+        tires[i]->Initialize(wheels[i]);
         tires[i]->SetVisualizationType(VisualizationType::MESH);
     }
 
@@ -236,7 +233,6 @@ int main(int argc, char* argv[]) {
 
     // Inter-module communication data
     TerrainForces tire_forces(num_wheels);
-    WheelStates wheel_states(num_wheels);
     double driveshaft_speed;
     double powertrain_torque;
     double throttle_input;
@@ -275,7 +271,6 @@ int main(int argc, char* argv[]) {
         driveshaft_speed = vehicle.GetDriveshaftSpeed();
         for (int i = 0; i < num_wheels; i++) {
             tire_forces[i] = tires[i]->GetTireForce();
-            wheel_states[i] = vehicle.GetWheelState(i);
         }
 
         // Update modules (process inputs from other modules)
@@ -285,7 +280,7 @@ int main(int argc, char* argv[]) {
         vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, tire_forces);
         terrain.Synchronize(time);
         for (int i = 0; i < num_wheels; i++)
-            tires[i]->Synchronize(time, wheel_states[i], terrain);
+            tires[i]->Synchronize(time, terrain);
         app.Synchronize(driver.GetInputModeAsString(), steering_input, throttle_input, braking_input);
 
         // Advance simulation for one timestep for all modules
@@ -334,7 +329,6 @@ int main(int argc, char* argv[]) {
         driveshaft_speed = vehicle.GetDriveshaftSpeed();
         for (int i = 0; i < num_wheels; i++) {
             tire_forces[i] = tires[i]->GetTireForce();
-            wheel_states[i] = vehicle.GetWheelState(i);
         }
 
         // Update modules (process inputs from other modules)
@@ -344,7 +338,7 @@ int main(int argc, char* argv[]) {
         vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, tire_forces);
         terrain.Synchronize(time);
         for (int i = 0; i < num_wheels; i++)
-            tires[i]->Synchronize(time, wheel_states[i], terrain);
+            tires[i]->Synchronize(time, terrain);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);

@@ -114,8 +114,8 @@ void Articulated_Front::Initialize(const ChCoordsys<>& chassisPos, double chassi
     m_suspensions[0]->Initialize(m_chassis->GetBody(), ChVector<>(0.5, 0, 0), m_chassis->GetBody(), -1);
 
     // Initialize wheels
-    m_wheels[0]->Initialize(m_suspensions[0]->GetSpindle(LEFT));
-    m_wheels[1]->Initialize(m_suspensions[0]->GetSpindle(RIGHT));
+    m_wheels[0]->Initialize(m_suspensions[0], LEFT);
+    m_wheels[1]->Initialize(m_suspensions[0], RIGHT);
 
     // Initialize the driveline subsystem (RWD)
     std::vector<int> driven_susp(1, 0);

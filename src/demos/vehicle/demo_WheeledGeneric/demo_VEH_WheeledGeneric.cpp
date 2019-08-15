@@ -39,13 +39,10 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-// If Irrlicht support is available...
 #ifdef CHRONO_IRRLICHT
-// ...include additional headers
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
-
-// ...and specify whether the demo should actually use Irrlicht
+// specify whether the demo should actually use Irrlicht
 #define USE_IRRLICHT
 #endif
 
@@ -134,10 +131,11 @@ int main(int argc, char* argv[]) {
     Generic_RigidTire tire_rear_left("RL");
     Generic_RigidTire tire_rear_right("RR");
 
-    tire_front_left.Initialize(vehicle.GetWheelBody(FRONT_LEFT), LEFT);
-    tire_front_right.Initialize(vehicle.GetWheelBody(FRONT_RIGHT), RIGHT);
-    tire_rear_left.Initialize(vehicle.GetWheelBody(REAR_LEFT), LEFT);
-    tire_rear_right.Initialize(vehicle.GetWheelBody(REAR_RIGHT), RIGHT);
+    auto wheels = vehicle.GetWheels();
+    tire_front_left.Initialize(wheels[0]);
+    tire_front_right.Initialize(wheels[1]);
+    tire_rear_left.Initialize(wheels[2]);
+    tire_rear_right.Initialize(wheels[3]);
 
     tire_front_left.SetVisualizationType(VisualizationType::PRIMITIVES);
     tire_front_right.SetVisualizationType(VisualizationType::PRIMITIVES);
@@ -207,7 +205,6 @@ int main(int argc, char* argv[]) {
 
     // Inter-module communication data
     TerrainForces tire_forces(4);
-    WheelState wheel_states[4];
     double driveshaft_speed;
     double powertrain_torque;
     double throttle_input;
@@ -263,11 +260,6 @@ int main(int argc, char* argv[]) {
 
         driveshaft_speed = vehicle.GetDriveshaftSpeed();
 
-        wheel_states[FRONT_LEFT.id()] = vehicle.GetWheelState(FRONT_LEFT);
-        wheel_states[FRONT_RIGHT.id()] = vehicle.GetWheelState(FRONT_RIGHT);
-        wheel_states[REAR_LEFT.id()] = vehicle.GetWheelState(REAR_LEFT);
-        wheel_states[REAR_RIGHT.id()] = vehicle.GetWheelState(REAR_RIGHT);
-
         // Update modules (process inputs from other modules)
         time = vehicle.GetSystem()->GetChTime();
 
@@ -275,10 +267,10 @@ int main(int argc, char* argv[]) {
 
         terrain.Synchronize(time);
 
-        tire_front_left.Synchronize(time, wheel_states[FRONT_LEFT.id()], terrain);
-        tire_front_right.Synchronize(time, wheel_states[FRONT_RIGHT.id()], terrain);
-        tire_rear_left.Synchronize(time, wheel_states[REAR_LEFT.id()], terrain);
-        tire_rear_right.Synchronize(time, wheel_states[REAR_RIGHT.id()], terrain);
+        tire_front_left.Synchronize(time, terrain);
+        tire_front_right.Synchronize(time, terrain);
+        tire_rear_left.Synchronize(time, terrain);
+        tire_rear_right.Synchronize(time, terrain);
 
         powertrain.Synchronize(time, throttle_input, driveshaft_speed);
 
@@ -356,11 +348,6 @@ int main(int argc, char* argv[]) {
 
         driveshaft_speed = vehicle.GetDriveshaftSpeed();
 
-        wheel_states[FRONT_LEFT.id()] = vehicle.GetWheelState(FRONT_LEFT);
-        wheel_states[FRONT_RIGHT.id()] = vehicle.GetWheelState(FRONT_RIGHT);
-        wheel_states[REAR_LEFT.id()] = vehicle.GetWheelState(REAR_LEFT);
-        wheel_states[REAR_RIGHT.id()] = vehicle.GetWheelState(REAR_RIGHT);
-
         // Update modules (process inputs from other modules)
         time = vehicle.GetSystem()->GetChTime();
 
@@ -368,10 +355,10 @@ int main(int argc, char* argv[]) {
 
         terrain.Synchronize(time);
 
-        tire_front_left.Synchronize(time, wheel_states[FRONT_LEFT.id()], terrain);
-        tire_front_right.Synchronize(time, wheel_states[FRONT_RIGHT.id()], terrain);
-        tire_rear_left.Synchronize(time, wheel_states[REAR_LEFT.id()], terrain);
-        tire_rear_right.Synchronize(time, wheel_states[REAR_RIGHT.id()], terrain);
+        tire_front_left.Synchronize(time, terrain);
+        tire_front_right.Synchronize(time, terrain);
+        tire_rear_left.Synchronize(time, terrain);
+        tire_rear_right.Synchronize(time, terrain);
 
         powertrain.Synchronize(time, throttle_input, driveshaft_speed);
 
