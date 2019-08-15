@@ -90,16 +90,6 @@ class CH_VEHICLE_API ChTire : public ChPart {
     /// Note that these should not include the inertia of the wheel (rim).
     virtual ChVector<> GetInertia() const = 0;
 
-    /// Get the tire force and moment.
-    /// This represents the output from this tire system that is passed to the
-    /// vehicle system. Typically, the vehicle subsystem will pass the tire force
-    /// to the appropriate suspension subsystem which applies it as an external
-    /// force on the wheel body.
-    /// NOTE: tire models that rely on underlying Chrono functionality (e.g., the
-    /// Chrono contact system or Chrono constraints) must always return zero forces
-    /// and moments, else tire forces are double counted.
-    virtual TerrainForce GetTireForce() const = 0;
-
     /// Report the tire force and moment.
     /// This function can be used for reporting purposes or else to calculate tire
     /// forces in a co-simulation framework.
@@ -138,6 +128,16 @@ class CH_VEHICLE_API ChTire : public ChPart {
                              const WheelState& wheel_state,  ///< [in] current state of associated wheel body
                              const ChTerrain& terrain        ///< [in] reference to the terrain system
     );
+
+    /// Get the tire force and moment.
+    /// This represents the output from this tire system that is passed to the
+    /// vehicle system. Typically, the vehicle subsystem will pass the tire force
+    /// to the appropriate suspension subsystem which applies it as an external
+    /// force on the wheel body.
+    /// NOTE: tire models that rely on underlying Chrono functionality (e.g., the
+    /// Chrono contact system or Chrono constraints) must always return zero forces
+    /// and moments, else tire forces are double counted.
+    virtual TerrainForce GetTireForce() const = 0;
 
     /// Perform disc-terrain collision detection.
     /// This utility function checks for contact between a disc of specified
@@ -203,6 +203,8 @@ class CH_VEHICLE_API ChTire : public ChPart {
     double m_slip_angle;
     double m_longitudinal_slip;
     double m_camber_angle;
+
+    friend class ChWheel;
 };
 
 /// Vector of handles to tire subsystems.

@@ -290,16 +290,6 @@ void ChPacejkaTire::Synchronize(double time,
     // keep the last calculated reaction force or moment, to use later
     m_FM_pure_last = m_FM_pure;
     m_FM_combined_last = m_FM_combined;
-
-    // Initialize the output tire forces to ensure that we do not report any tire
-    // forces if the wheel does not contact the terrain.
-    m_FM_pure.point = ChVector<>();
-    m_FM_pure.force = ChVector<>();
-    m_FM_pure.moment = ChVector<>();
-
-    m_FM_combined.point = ChVector<>();
-    m_FM_combined.force = ChVector<>();
-    m_FM_combined.moment = ChVector<>();
 }
 
 // -----------------------------------------------------------------------------
@@ -308,6 +298,16 @@ void ChPacejkaTire::Synchronize(double time,
 // as needed.
 // -----------------------------------------------------------------------------
 void ChPacejkaTire::Advance(double step) {
+    // Initialize the output tire forces to ensure that we do not report any tire
+    // forces if the tire does not contact the terrain.
+    m_FM_pure.point = ChVector<>();
+    m_FM_pure.force = ChVector<>();
+    m_FM_pure.moment = ChVector<>();
+
+    m_FM_combined.point = ChVector<>();
+    m_FM_combined.force = ChVector<>();
+    m_FM_combined.moment = ChVector<>();
+
     // increment the counter
     ChTimer<double> advance_time;
     m_num_Advance_calls++;

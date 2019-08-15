@@ -120,7 +120,7 @@ int main(int argc, char* argv[]) {
             new ChSuspensionTestRig(vehicle::GetDataFile(str_file), tire_L, tire_R));
     }
 
-    rig->SetInitialRideHeight(0.4);
+    rig->SetInitialRideHeight(0.5);
 
     rig->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     rig->SetWheelVisualizationType(VisualizationType::NONE);
@@ -186,8 +186,8 @@ int main(int argc, char* argv[]) {
         app.EndScene();
 
         // Current tire forces
-        auto tire_force_L = rig->GetTireForce(VehicleSide::LEFT);
-        auto tire_force_R = rig->GetTireForce(VehicleSide::RIGHT);
+        auto tire_force_L = rig->ReportTireForce(VehicleSide::LEFT);
+        auto tire_force_R = rig->ReportTireForce(VehicleSide::RIGHT);
 
         // Tire kinematics
         auto omega_L = rig->GetWheelOmega(VehicleSide::LEFT);

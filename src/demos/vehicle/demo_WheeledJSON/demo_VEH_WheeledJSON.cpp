@@ -232,7 +232,6 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     // Inter-module communication data
-    TerrainForces tire_forces(num_wheels);
     double driveshaft_speed;
     double powertrain_torque;
     double throttle_input;
@@ -269,15 +268,12 @@ int main(int argc, char* argv[]) {
         braking_input = driver.GetBraking();
         powertrain_torque = powertrain.GetOutputTorque();
         driveshaft_speed = vehicle.GetDriveshaftSpeed();
-        for (int i = 0; i < num_wheels; i++) {
-            tire_forces[i] = tires[i]->GetTireForce();
-        }
 
         // Update modules (process inputs from other modules)
         time = vehicle.GetSystem()->GetChTime();
         driver.Synchronize(time);
         powertrain.Synchronize(time, throttle_input, driveshaft_speed);
-        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, tire_forces);
+        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque);
         terrain.Synchronize(time);
         for (int i = 0; i < num_wheels; i++)
             tires[i]->Synchronize(time, terrain);
@@ -327,15 +323,12 @@ int main(int argc, char* argv[]) {
         braking_input = driver.GetBraking();
         powertrain_torque = powertrain.GetOutputTorque();
         driveshaft_speed = vehicle.GetDriveshaftSpeed();
-        for (int i = 0; i < num_wheels; i++) {
-            tire_forces[i] = tires[i]->GetTireForce();
-        }
 
         // Update modules (process inputs from other modules)
         time = vehicle.GetSystem()->GetChTime();
         driver.Synchronize(time);
         powertrain.Synchronize(time, throttle_input, driveshaft_speed);
-        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, tire_forces);
+        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque);
         terrain.Synchronize(time);
         for (int i = 0; i < num_wheels; i++)
             tires[i]->Synchronize(time, terrain);

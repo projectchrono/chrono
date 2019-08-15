@@ -150,10 +150,10 @@ void Articulated_Rear::SetWheelVisualizationType(VisualizationType vis) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void Articulated_Rear::Synchronize(double time, double steering, double braking, const TerrainForces& tire_forces) {
+void Articulated_Rear::Synchronize(double time, double steering, double braking) {
     // Apply tire forces to spindle bodies.
-    m_suspensions[0]->Synchronize(LEFT, tire_forces[FRONT_LEFT.id()]);
-    m_suspensions[0]->Synchronize(RIGHT, tire_forces[FRONT_RIGHT.id()]);
+    m_wheels[0]->Synchronize();
+    m_wheels[1]->Synchronize();
 
     // Apply braking
     m_brakes[0]->Synchronize(braking);

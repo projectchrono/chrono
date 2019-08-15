@@ -150,7 +150,7 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     double GetMass() const;
 
     /// Get the tire force and moment on the specified side.
-    const TerrainForce& GetTireForce(VehicleSide side) const { return m_tireforce[side]; }
+    const TerrainForce& ReportTireForce(VehicleSide side) const { return m_tireforce[side]; }
 
     /// Get current ride height (relative to the chassis reference frame).
     /// This estimate uses the average of the left and right posts.

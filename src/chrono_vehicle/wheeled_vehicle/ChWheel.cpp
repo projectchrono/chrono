@@ -27,11 +27,12 @@
 #include "chrono/assets/ChTexture.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
+#include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 
 namespace chrono {
 namespace vehicle {
 
-ChWheel::ChWheel(const std::string& name) : ChPart(name) {}
+ChWheel::ChWheel(const std::string& name) : ChPart(name), m_tire(nullptr) {}
 
 // Initialize this wheel by associating it to the specified suspension subsystem.
 // Increment the mass and inertia of the spindle body to account for the wheel mass and inertia.
@@ -45,6 +46,13 @@ void ChWheel::Initialize(std::shared_ptr<ChSuspension> suspension, VehicleSide s
     ////        This requires changing the spindle to a ChBodyAuxRef.
     suspension->GetSpindle(side)->SetMass(suspension->GetSpindle(side)->GetMass() + GetMass());
     suspension->GetSpindle(side)->SetInertiaXX(suspension->GetSpindle(side)->GetInertiaXX() + GetInertia());
+}
+
+void ChWheel::Synchronize() {
+    if (!m_tire)
+        return;
+    TerrainForce tire_force = m_tire->GetTireForce();
+    m_suspension->Synchronize(m_side, tire_force);
 }
 
 ChVector<> ChWheel::GetPos() const {

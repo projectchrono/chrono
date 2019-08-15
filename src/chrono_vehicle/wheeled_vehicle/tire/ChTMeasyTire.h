@@ -78,13 +78,6 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     /// Get the tire radius.
     virtual double GetRadius() const override { return m_states.R_eff; }
 
-    /// Get the tire force and moment.
-    /// This represents the output from this tire system that is passed to the
-    /// vehicle system.  Typically, the vehicle subsystem will pass the tire force
-    /// to the appropriate suspension subsystem which applies it as an external
-    /// force one the wheel body.
-    virtual TerrainForce GetTireForce() const override { return m_tireforce; }
-
     /// Report the tire force and moment.
     virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override { return m_tireforce; }
 
@@ -282,6 +275,13 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
 
   private:
     void UpdateVerticalStiffness();
+
+    /// Get the tire force and moment.
+    /// This represents the output from this tire system that is passed to the
+    /// vehicle system.  Typically, the vehicle subsystem will pass the tire force
+    /// to the appropriate suspension subsystem which applies it as an external
+    /// force one the wheel body.
+    virtual TerrainForce GetTireForce() const override { return m_tireforce; }
 
     std::vector<double> m_tire_test_defl;  // set, when test data are used for vertical
     std::vector<double> m_tire_test_frc;   // stiffness calculation

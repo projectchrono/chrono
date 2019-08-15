@@ -47,9 +47,6 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-// Comment the following line to disable Irrlicht visualization
-#define USE_IRRLICHT
-
 // DEBUGGING:  Uncomment the following line to print shock data
 //#define DEBUG_LOG
 
@@ -83,15 +80,8 @@ double render_step_size = 1.0 / 50;  // FPS = 50
 // Time interval between two output frames
 double output_step_size = 1.0 / 1;  // once a second
 
-#ifdef USE_IRRLICHT
 // Point on chassis tracked by the camera
 ChVector<> trackPoint(0.0, 0.0, 1.75);
-#else
-double tend = 20.0;
-
-const std::string out_dir = GetChronoOutputPath() + "TRACTOR_TRAILER";
-const std::string pov_dir = out_dir + "/POVRAY";
-#endif
 
 // =============================================================================
 
@@ -168,7 +158,6 @@ int main(int argc, char* argv[]) {
     tr_tire_rear_left.SetVisualizationType(VisualizationType::PRIMITIVES);
     tr_tire_rear_right.SetVisualizationType(VisualizationType::PRIMITIVES);
 
-#ifdef USE_IRRLICHT
     ChWheeledVehicleIrrApp app(&vehicle, &powertrain, L"Articulated Vehicle Demo");
 
     app.SetSkyBox();
@@ -191,10 +180,6 @@ int main(int argc, char* argv[]) {
     driver.SetThrottleDelta(render_step_size / throttle_time);
     driver.SetBrakingDelta(render_step_size / braking_time);
 
-#else
-    Generic_FuncDriver driver(vehicle);
-#endif
-
     driver.Initialize();
 
 // ---------------
@@ -207,8 +192,6 @@ int main(int argc, char* argv[]) {
 #endif
 
     // Inter-module communication data
-    TerrainForces tire_forces(4);
-    TerrainForces tr_tire_forces(4);
     double driveshaft_speed;
     double powertrain_torque;
     double throttle_input;
@@ -224,8 +207,6 @@ int main(int argc, char* argv[]) {
     // Initialize simulation frame counter and simulation time
     int step_number = 0;
     double time = 0;
-
-#ifdef USE_IRRLICHT
 
     ChRealtimeStepTimer realtime_timer;
 
@@ -251,17 +232,6 @@ int main(int argc, char* argv[]) {
         braking_input = driver.GetBraking();
 
         powertrain_torque = powertrain.GetOutputTorque();
-
-        tire_forces[FRONT_LEFT.id()] = tire_front_left.GetTireForce();
-        tire_forces[FRONT_RIGHT.id()] = tire_front_right.GetTireForce();
-        tire_forces[REAR_LEFT.id()] = tire_rear_left.GetTireForce();
-        tire_forces[REAR_RIGHT.id()] = tire_rear_right.GetTireForce();
-
-        tr_tire_forces[FRONT_LEFT.id()] = tr_tire_front_left.GetTireForce();
-        tr_tire_forces[FRONT_RIGHT.id()] = tr_tire_front_right.GetTireForce();
-        tr_tire_forces[REAR_LEFT.id()] = tr_tire_rear_left.GetTireForce();
-        tr_tire_forces[REAR_RIGHT.id()] = tr_tire_rear_right.GetTireForce();
-
         driveshaft_speed = vehicle.GetDriveshaftSpeed();
 
         // Update modules (process inputs from other modules)
@@ -278,8 +248,8 @@ int main(int argc, char* argv[]) {
 
         powertrain.Synchronize(time, throttle_input, driveshaft_speed);
 
-        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, tire_forces);
-        trailer.Synchronize(time, braking_input, tr_tire_forces);
+        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque);
+        trailer.Synchronize(time, braking_input);
 
         app.Synchronize(driver.GetInputModeAsString(), steering_input, throttle_input, braking_input);
 
@@ -304,85 +274,6 @@ int main(int argc, char* argv[]) {
         // Increment frame number
         step_number++;
     }
-
-#else
-
-    int render_frame = 0;
-
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        std::cout << "Error creating directory " << out_dir << std::endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(pov_dir))) {
-        std::cout << "Error creating directory " << pov_dir << std::endl;
-        return 1;
-    }
-
-    char filename[100];
-
-    while (time < tend) {
-        if (step_number % render_steps == 0) {
-            // Output render data
-            sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-            utils::WriteShapesPovray(vehicle.GetSystem(), filename);
-            std::cout << "Output frame:   " << render_frame << std::endl;
-            std::cout << "Sim frame:      " << step_number << std::endl;
-            std::cout << "Time:           " << time << std::endl;
-            std::cout << "             throttle: " << driver.GetThrottle() << " steering: " << driver.GetSteering()
-                      << std::endl;
-            std::cout << std::endl;
-            render_frame++;
-        }
-
-        // Collect output data from modules (for inter-module communication)
-        throttle_input = driver.GetThrottle();
-        steering_input = driver.GetSteering();
-        braking_input = driver.GetBraking();
-
-        powertrain_torque = powertrain.GetOutputTorque();
-
-        tire_forces[FRONT_LEFT.id()] = tire_front_left.GetTireForce();
-        tire_forces[FRONT_RIGHT.id()] = tire_front_right.GetTireForce();
-        tire_forces[REAR_LEFT.id()] = tire_rear_left.GetTireForce();
-        tire_forces[REAR_RIGHT.id()] = tire_rear_right.GetTireForce();
-
-        driveshaft_speed = vehicle.GetDriveshaftSpeed();
-
-        // Update modules (process inputs from other modules)
-        time = vehicle.GetSystem()->GetChTime();
-
-        driver.Synchronize(time);
-
-        terrain.Synchronize(time);
-
-        tire_front_left.Synchronize(time, terrain);
-        tire_front_right.Synchronize(time, terrain);
-        tire_rear_left.Synchronize(time, terrain);
-        tire_rear_right.Synchronize(time, terrain);
-
-        powertrain.Synchronize(time, throttle_input, driveshaft_speed);
-
-        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, tire_forces);
-
-        // Advance simulation for one timestep for all modules
-        driver.Advance(step_size);
-
-        terrain.Advance(step_size);
-
-        tire_front_right.Advance(step_size);
-        tire_front_left.Advance(step_size);
-        tire_rear_right.Advance(step_size);
-        tire_rear_left.Advance(step_size);
-
-        powertrain.Advance(step_size);
-
-        vehicle.Advance(step_size);
-
-        // Increment frame number
-        step_number++;
-    }
-
-#endif
 
     return 0;
 }

@@ -105,11 +105,10 @@ void ChFialaTire::Synchronize(double time,
 
     m_time = time;
 
-    // Clear the force accumulators and set the application point to the wheel center.
-    m_tireforce.force = ChVector<>(0, 0, 0);
-    m_tireforce.moment = ChVector<>(0, 0, 0);
+    // Set the application point of tire forces to be the wheel center
     m_tireforce.point = wheel_state.pos;
 
+    // Get mu at wheel location
     m_mu = terrain.GetCoefficientFriction(m_tireforce.point.x(), m_tireforce.point.y());
 
     // Extract the wheel normal (expressed in global frame)
@@ -173,94 +172,99 @@ void ChFialaTire::Synchronize(double time,
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChFialaTire::Advance(double step) {
-    if (m_data.in_contact) {
-        ////Overwrite with steady-state alpha & kappa for debugging
-        // if (m_states.abs_vx != 0) {
-        //  m_states.kappa_l = -m_states.vsx / m_states.abs_vx;
-        //  m_states.alpha_l = std::atan2(m_states.vsy , m_states.abs_vx);
-        //}
-        // else {
-        //  m_states.kappa_l = 0;
-        //  m_states.alpha_l = 0;
-        //}
+    // Set tire forces to zero. The application point was set to be the wheel center in Synchronize.
+    m_tireforce.force = ChVector<>(0, 0, 0);
+    m_tireforce.moment = ChVector<>(0, 0, 0);
 
-        const double vnum = 0.01;
+    // Return now if no contact.
+    if (!m_data.in_contact)
+        return;
 
-        // smoothing interval for My
-        const double vx_min = 0.125;
-        const double vx_max = 0.5;
+    ////Overwrite with steady-state alpha & kappa for debugging
+    // if (m_states.abs_vx != 0) {
+    //  m_states.kappa_l = -m_states.vsx / m_states.abs_vx;
+    //  m_states.alpha_l = std::atan2(m_states.vsy , m_states.abs_vx);
+    //}
+    // else {
+    //  m_states.kappa_l = 0;
+    //  m_states.alpha_l = 0;
+    //}
 
-        // limits for time lags
-        const double tau_min = 1.0e-4;
-        const double tau_max = 0.25;
+    const double vnum = 0.01;
 
-        // lag times for relaxation
-        double tau_k;
-        double tau_a;
+    // smoothing interval for My
+    const double vx_min = 0.125;
+    const double vx_max = 0.5;
 
-        if (m_states.abs_vx != 0) {
-            m_states.kappa = -m_states.vsx / m_states.abs_vx;
-            m_states.alpha = std::atan2(m_states.vsy, m_states.abs_vx);
-        } else {
-            m_states.kappa = 0;
-            m_states.alpha = 0;
-        }
-        // Relaxation time varies with rotational tire speed. Stand still or very low speed generates
-        // unrealistic lags and causes bad  oscillations. Tau == 0 is not allowed in later calculations
-        tau_k = ChClamp(m_relax_length_x / (m_states.abs_vt + vnum), tau_min, tau_max);
-        tau_a = ChClamp(m_relax_length_y / (m_states.abs_vt + vnum), tau_min, tau_max);
+    // limits for time lags
+    const double tau_min = 1.0e-4;
+    const double tau_max = 0.25;
 
-        // Now calculate the new force and moment values.
-        // Normal force and moment have already been accounted for in Synchronize().
-        // See reference for more detail on the calculations
-        double Fx = 0;
-        double Fy = 0;
-        double My = 0;
-        double Mz = 0;
+    // lag times for relaxation
+    double tau_k;
+    double tau_a;
 
-        FialaPatchForces(Fx, Fy, Mz, m_states.kappa, m_states.alpha, m_data.normal_force);
-
-        // Smoothing factor dependend on m_state.abs_vx, allows soft switching of My
-        double myStartUp = ChSineStep(m_states.abs_vx, vx_min, 0.0, vx_max, 1.0);
-        // Rolling Resistance
-        My = -myStartUp * m_rolling_resistance * m_data.normal_force * ChSignum(m_states.omega);
-
-        if (m_dynamic_mode && (m_relax_length_x > 0.0) && (m_relax_length_y > 0.0)) {
-            // Integration of the ODEs
-            double t = 0;
-            while (t < step) {
-                // Ensure we integrate exactly to 'step'
-                double h = std::min<>(m_stepsize, step - t);
-                double gain_k = 1.0 / tau_k;
-                double gain_a = 1.0 / tau_a;
-                m_states.Fx_l += h / (1.0 - h * (-gain_k)) * gain_k * (Fx - m_states.Fx_l);
-                m_states.Fy_l += h / (1.0 - h * (-gain_a)) * gain_a * (Fy - m_states.Fy_l);
-                t += h;
-            }
-        } else {
-            m_states.Fx_l = Fx;
-            m_states.Fy_l = Fy;
-        }
-
-        // Smooth starting transients
-        double tr_fact = ChSineStep(m_time, 0, 0, m_time_trans, 1.0);
-        m_states.Fx_l *= tr_fact;
-        m_states.Fy_l *= tr_fact;
-
-        // compile the force and moment vectors so that they can be
-        // transformed into the global coordinate system
-        m_tireforce.force = ChVector<>(m_states.Fx_l, m_states.Fy_l, m_data.normal_force);
-        m_tireforce.moment = ChVector<>(0, My, Mz);
-
-        // Rotate into global coordinates
-        m_tireforce.force = m_data.frame.TransformDirectionLocalToParent(m_tireforce.force);
-        m_tireforce.moment = m_data.frame.TransformDirectionLocalToParent(m_tireforce.moment);
-
-        // Move the tire forces from the contact patch to the wheel center
-        m_tireforce.moment += Vcross(
-            (m_data.frame.pos + m_data.depth * m_data.frame.rot.GetZaxis()) - m_tireforce.point, m_tireforce.force);
+    if (m_states.abs_vx != 0) {
+        m_states.kappa = -m_states.vsx / m_states.abs_vx;
+        m_states.alpha = std::atan2(m_states.vsy, m_states.abs_vx);
+    } else {
+        m_states.kappa = 0;
+        m_states.alpha = 0;
     }
-    // Else do nothing since the "m_tireForce" force and moment values are already 0 (set in Synchronize())
+    // Relaxation time varies with rotational tire speed. Stand still or very low speed generates
+    // unrealistic lags and causes bad  oscillations. Tau == 0 is not allowed in later calculations
+    tau_k = ChClamp(m_relax_length_x / (m_states.abs_vt + vnum), tau_min, tau_max);
+    tau_a = ChClamp(m_relax_length_y / (m_states.abs_vt + vnum), tau_min, tau_max);
+
+    // Now calculate the new force and moment values.
+    // Normal force and moment have already been accounted for in Synchronize().
+    // See reference for more detail on the calculations
+    double Fx = 0;
+    double Fy = 0;
+    double My = 0;
+    double Mz = 0;
+
+    FialaPatchForces(Fx, Fy, Mz, m_states.kappa, m_states.alpha, m_data.normal_force);
+
+    // Smoothing factor dependend on m_state.abs_vx, allows soft switching of My
+    double myStartUp = ChSineStep(m_states.abs_vx, vx_min, 0.0, vx_max, 1.0);
+    // Rolling Resistance
+    My = -myStartUp * m_rolling_resistance * m_data.normal_force * ChSignum(m_states.omega);
+
+    if (m_dynamic_mode && (m_relax_length_x > 0.0) && (m_relax_length_y > 0.0)) {
+        // Integration of the ODEs
+        double t = 0;
+        while (t < step) {
+            // Ensure we integrate exactly to 'step'
+            double h = std::min<>(m_stepsize, step - t);
+            double gain_k = 1.0 / tau_k;
+            double gain_a = 1.0 / tau_a;
+            m_states.Fx_l += h / (1.0 - h * (-gain_k)) * gain_k * (Fx - m_states.Fx_l);
+            m_states.Fy_l += h / (1.0 - h * (-gain_a)) * gain_a * (Fy - m_states.Fy_l);
+            t += h;
+        }
+    } else {
+        m_states.Fx_l = Fx;
+        m_states.Fy_l = Fy;
+    }
+
+    // Smooth starting transients
+    double tr_fact = ChSineStep(m_time, 0, 0, m_time_trans, 1.0);
+    m_states.Fx_l *= tr_fact;
+    m_states.Fy_l *= tr_fact;
+
+    // compile the force and moment vectors so that they can be
+    // transformed into the global coordinate system
+    m_tireforce.force = ChVector<>(m_states.Fx_l, m_states.Fy_l, m_data.normal_force);
+    m_tireforce.moment = ChVector<>(0, My, Mz);
+
+    // Rotate into global coordinates
+    m_tireforce.force = m_data.frame.TransformDirectionLocalToParent(m_tireforce.force);
+    m_tireforce.moment = m_data.frame.TransformDirectionLocalToParent(m_tireforce.moment);
+
+    // Move the tire forces from the contact patch to the wheel center
+    m_tireforce.moment +=
+        Vcross((m_data.frame.pos + m_data.depth * m_data.frame.rot.GetZaxis()) - m_tireforce.point, m_tireforce.force);
 }
 
 void ChFialaTire::FialaPatchForces(double& fx, double& fy, double& mz, double kappa, double alpha, double fz) {

@@ -114,11 +114,6 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     /// Report the tire mass.
     virtual double ReportMass() const override { return GetTireMass(); }
 
-    /// Get the tire force and moment.
-    /// A ChDeformableTire always returns zero forces and moments since tire forces
-    /// are implicitly applied to the associated wheel through the tire-wheel connections.
-    virtual TerrainForce GetTireForce() const override;
-
     /// Report the tire force and moment.
     /// This generalized force encapsulates the tire-terrain forces, as well as the weight
     /// of the tire itself and is calculated as the resultant of all reaction forces and
@@ -142,6 +137,11 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     /// deformable tire, these functions must always return 0.
     virtual double GetMass() const final { return 0; }
     virtual ChVector<> GetInertia() const final { return ChVector<>(0, 0, 0); }
+
+    /// Get the tire force and moment.
+    /// A ChDeformableTire always returns zero forces and moments since tire forces
+    /// are implicitly applied to the associated wheel through the tire-wheel connections.
+    virtual TerrainForce GetTireForce() const override;
 
   protected:
     /// Return the default tire pressure.

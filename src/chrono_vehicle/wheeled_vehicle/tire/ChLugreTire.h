@@ -58,13 +58,6 @@ class CH_VEHICLE_API ChLugreTire : public ChTire {
     /// This is just an approximation of a tire width.
     double GetWidth() const;
 
-    /// Get the tire force and moment.
-    /// This represents the output from this tire system that is passed to the
-    /// vehicle system.  Typically, the vehicle subsystem will pass the tire force
-    /// to the appropriate suspension subsystem which applies it as an external
-    /// force one the wheel body.
-    virtual TerrainForce GetTireForce() const override { return m_tireForce; }
-
     /// Report the tire force and moment.
     virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override { return m_tireForce; }
 
@@ -102,6 +95,13 @@ class CH_VEHICLE_API ChLugreTire : public ChTire {
     double m_vs[2];      ///< Stribeck velocity
 
   private:
+    /// Get the tire force and moment.
+    /// This represents the output from this tire system that is passed to the
+    /// vehicle system.  Typically, the vehicle subsystem will pass the tire force
+    /// to the appropriate suspension subsystem which applies it as an external
+    /// force one the wheel body.
+    virtual TerrainForce GetTireForce() const override { return m_tireForce; }
+
     struct DiscContactData {
         bool in_contact;       // true if disc in contact with terrain
         ChCoordsys<> frame;    // contact frame (x: long, y: lat, z: normal)

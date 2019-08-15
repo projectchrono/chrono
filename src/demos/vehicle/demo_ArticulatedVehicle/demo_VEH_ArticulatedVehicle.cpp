@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
             return 1;
     }
 
-    auto rear_wheels = front_side.GetWheels();
+    auto rear_wheels = rear_side.GetWheels();
     tire_RL->Initialize(rear_wheels[0]);
     tire_RR->Initialize(rear_wheels[1]);
     tire_RL->SetVisualizationType(VisualizationType::MESH);
@@ -186,8 +186,6 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     // Inter-module communication data
-    TerrainForces tire_front_forces(2);
-    TerrainForces tire_rear_forces(2);
     double driveshaft_speed;
     double powertrain_torque;
     double throttle_input;
@@ -215,12 +213,6 @@ int main(int argc, char* argv[]) {
         braking_input = driver.GetBraking();
 
         powertrain_torque = powertrain.GetOutputTorque();
-
-        tire_front_forces[0] = tire_FL->GetTireForce();
-        tire_front_forces[1] = tire_FR->GetTireForce();
-        tire_rear_forces[0] = tire_RL->GetTireForce();
-        tire_rear_forces[1] = tire_RR->GetTireForce();
-
         driveshaft_speed = front_side.GetDriveshaftSpeed();
 
         // Update modules (process inputs from other modules)
@@ -237,8 +229,8 @@ int main(int argc, char* argv[]) {
 
         powertrain.Synchronize(time, throttle_input, driveshaft_speed);
 
-        front_side.Synchronize(time, steering_input, braking_input, powertrain_torque, tire_front_forces);
-        rear_side.Synchronize(time, steering_input, braking_input, tire_rear_forces);
+        front_side.Synchronize(time, steering_input, braking_input, powertrain_torque);
+        rear_side.Synchronize(time, steering_input, braking_input);
 
         app.Synchronize(driver.GetInputModeAsString(), steering_input, throttle_input, braking_input);
 

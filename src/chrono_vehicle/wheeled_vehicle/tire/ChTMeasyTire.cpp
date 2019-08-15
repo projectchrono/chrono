@@ -137,14 +137,11 @@ void ChTMeasyTire::Synchronize(double time,
 
     m_time = time;
 
-    ChCoordsys<> contact_frame;
-    // Clear the force accumulators and set the application point to the wheel
-    // center.
-    m_tireforce.force = ChVector<>(0, 0, 0);
-    m_tireforce.moment = ChVector<>(0, 0, 0);
+    // Set the application point of tire forces to be the wheel center
     m_tireforce.point = wheel_state.pos;
+
+    // Get mu at wheel location and ensure it stays realistic and the formulae don't degenerate
     m_mu = terrain.GetCoefficientFriction(m_tireforce.point.x(), m_tireforce.point.y());
-    // Ensure that m_mu stays realistic and the formulae don't degenerate
     ChClampValue(m_mu, 0.1, 1.0);
 
     // Extract the wheel normal (expressed in global frame)
@@ -231,7 +228,11 @@ void ChTMeasyTire::Synchronize(double time,
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChTMeasyTire::Advance(double step) {
-    // Return now if no contact.  Tire force and moment are already set to 0 in Synchronize().
+    // Set tire forces to zero. The application point was set to be the wheel center in Synchronize.
+    m_tireforce.force = ChVector<>(0, 0, 0);
+    m_tireforce.moment = ChVector<>(0, 0, 0);
+
+    // Return now if no contact.
     if (!m_data.in_contact)
         return;
 

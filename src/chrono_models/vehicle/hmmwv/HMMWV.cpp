@@ -284,25 +284,15 @@ void HMMWV::Synchronize(double time,
                         double braking_input,
                         double throttle_input,
                         const ChTerrain& terrain) {
-    TerrainForces tire_forces(4);
-
-    tire_forces[0] = m_tires[0]->GetTireForce();
-    tire_forces[1] = m_tires[1]->GetTireForce();
-    tire_forces[2] = m_tires[2]->GetTireForce();
-    tire_forces[3] = m_tires[3]->GetTireForce();
-
     double powertrain_torque = m_powertrain->GetOutputTorque();
-
     double driveshaft_speed = m_vehicle->GetDriveshaftSpeed();
 
     m_tires[0]->Synchronize(time, terrain, m_tire_collision_type);
     m_tires[1]->Synchronize(time, terrain, m_tire_collision_type);
     m_tires[2]->Synchronize(time, terrain, m_tire_collision_type);
     m_tires[3]->Synchronize(time, terrain, m_tire_collision_type);
-
     m_powertrain->Synchronize(time, throttle_input, driveshaft_speed);
-
-    m_vehicle->Synchronize(time, steering_input, braking_input, powertrain_torque, tire_forces);
+    m_vehicle->Synchronize(time, steering_input, braking_input, powertrain_torque);
 }
 
 // -----------------------------------------------------------------------------

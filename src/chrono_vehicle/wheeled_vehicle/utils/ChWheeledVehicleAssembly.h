@@ -122,7 +122,6 @@ class CH_VEHICLE_API ChWheeledVehicleAssembly {
   private:
     std::shared_ptr<WheeledVehicle> m_vehicle;
     std::shared_ptr<SimplePowertrain> m_powertrain;
-    TerrainForces m_tire_forces;
     ChDriverInputsCallback* m_driver_cb;
     ChTireContactCallback* m_tire_cb;
     ChChassisContactCallback* m_chassis_cb;

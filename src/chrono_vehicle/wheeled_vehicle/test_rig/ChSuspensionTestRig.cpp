@@ -406,10 +406,10 @@ double ChSuspensionTestRig::GetWheelOmega(VehicleSide side) const {
 }
 
 double ChSuspensionTestRig::GetMass() const {
+    // Note: do not include mass of the wheels, as these are already accounted for in suspension.
     double mass = m_suspension->GetMass();
     if (HasSteering())
         mass += m_steering->GetMass();
-    mass += m_wheel[LEFT]->GetMass() + m_wheel[RIGHT]->GetMass();
 
     return mass;
 }
@@ -456,11 +456,9 @@ void ChSuspensionTestRig::Advance(double step) {
         displ_right = m_displ_offset + m_displ_limit * m_right_input;
     }
 
+    // Extract tire forces for reporting purposes
     m_tireforce[LEFT] = m_tire[LEFT]->ReportTireForce(&m_terrain);
     m_tireforce[RIGHT] = m_tire[RIGHT]->ReportTireForce(&m_terrain);
-
-    auto tire_force_L = m_tire[LEFT]->GetTireForce();
-    auto tire_force_R = m_tire[RIGHT]->GetTireForce();
 
     // Synchronize driver system
     m_driver->Synchronize(time);
@@ -474,9 +472,10 @@ void ChSuspensionTestRig::Advance(double step) {
         m_steering->Synchronize(time, m_steering_input);
     }
 
-    // Apply tire forces to spindle bodies
-    m_suspension->Synchronize(LEFT, tire_force_L);
-    m_suspension->Synchronize(RIGHT, tire_force_R);
+    // Synchronize wheels (this applies tire forces to spindle bodies)
+    for (auto wheel : m_wheel) {
+        wheel->Synchronize();
+    }
 
     // Update post displacements
     auto func_L = std::static_pointer_cast<ChFunction_Const>(m_post_linact[LEFT]->GetMotionFunction());

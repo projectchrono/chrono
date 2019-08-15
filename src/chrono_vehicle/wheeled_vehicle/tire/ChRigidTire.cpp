@@ -169,9 +169,8 @@ class RigidTireContactReporter : public ChContactContainer::ReportContactCallbac
 };
 
 TerrainForce ChRigidTire::GetTireForce() const {
-    // A ChRigidTire always returns zero force and moment since tire
-    // forces are automatically applied to the associated wheel through Chrono's
-    // frictional contact system.
+    // A ChRigidTire always returns zero force and moment since tire forces are automatically applied
+    // to the associated wheel through Chrono's frictional contact system.
     TerrainForce tire_force;
     tire_force.point = m_wheel->GetPos();
     tire_force.force = ChVector<>(0, 0, 0);

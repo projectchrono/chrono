@@ -59,12 +59,6 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     /// Get the tire width.
     virtual double GetWidth() const = 0;
 
-    /// Get the tire force and moment.
-    /// A ChRigidTire always returns zero force and moment since tire
-    /// forces are automatically applied to the associated wheel through Chrono's
-    /// frictional contact system.
-    virtual TerrainForce GetTireForce() const override;
-
     /// Report the tire force and moment.
     /// This generalized force encapsulates the tire-terrain forces (i.e. the resultant
     /// of all contact forces acting on the tire). The force and moment are expressed
@@ -102,6 +96,12 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
                              ) const;
 
   private:
+    /// Get the tire force and moment.
+    /// A ChRigidTire always returns zero force and moment since tire
+    /// forces are automatically applied to the associated wheel through Chrono's
+    /// frictional contact system.
+    virtual TerrainForce GetTireForce() const override;
+
     bool m_use_contact_mesh;         ///< flag indicating use of a contact mesh
     std::string m_contact_meshFile;  ///< name of the OBJ file for contact mesh
     double m_sweep_sphere_radius;    ///< radius of sweeping sphere for mesh contact

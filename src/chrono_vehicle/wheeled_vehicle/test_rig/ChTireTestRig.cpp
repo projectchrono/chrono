@@ -202,21 +202,9 @@ void ChTireTestRig::Advance(double step) {
     m_chassis_body->Accumulate_force(ChVector<>(0, 0, external_force), ChVector<>(0, 0, 0), true);
 
     // Synchronize subsystems
-    auto tire_force = m_tire->GetTireForce();
-
-    WheelState wheel_state;
-    wheel_state.pos = m_spindle_body->GetPos();
-    wheel_state.rot = m_spindle_body->GetRot();
-    wheel_state.lin_vel = m_spindle_body->GetPos_dt();
-    wheel_state.ang_vel = m_spindle_body->GetWvel_par();
-    ChVector<> ang_vel_loc = wheel_state.rot.RotateBack(wheel_state.ang_vel);
-    wheel_state.omega = ang_vel_loc.y();
-
     m_terrain->Synchronize(time);
     m_tire->Synchronize(time, *m_terrain.get(), m_collision_type);
-    m_spindle_body->Empty_forces_accumulators();
-    m_spindle_body->Accumulate_force(tire_force.force, tire_force.point, false);
-    m_spindle_body->Accumulate_torque(tire_force.moment, false);
+    m_wheel->Synchronize();
 
     // Advance state
     m_terrain->Advance(step);
@@ -529,7 +517,7 @@ void ChTireTestRig::GetSuggestedCollisionSettings(double& collision_envelope, Ch
 
 // -----------------------------------------------------------------------------
 
-TerrainForce ChTireTestRig::GetTireForce() const {
+TerrainForce ChTireTestRig::ReportTireForce() const {
     return m_tire->ReportTireForce(m_terrain.get());
 }
 

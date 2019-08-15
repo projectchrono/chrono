@@ -58,13 +58,6 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
     /// For a Fiala tire, this is the unloaded tire radius.
     virtual double GetRadius() const override { return m_unloaded_radius; }
 
-    /// Get the tire force and moment.
-    /// This represents the output from this tire system that is passed to the
-    /// vehicle system.  Typically, the vehicle subsystem will pass the tire force
-    /// to the appropriate suspension subsystem which applies it as an external
-    /// force one the wheel body.
-    virtual TerrainForce GetTireForce() const override { return m_tireforce; }
-
     /// Report the tire force and moment.
     virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override { return m_tireforce; }
 
@@ -136,6 +129,13 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
     double m_time_trans;  // end of start transient
 
   private:
+    /// Get the tire force and moment.
+    /// This represents the output from this tire system that is passed to the
+    /// vehicle system.  Typically, the vehicle subsystem will pass the tire force
+    /// to the appropriate suspension subsystem which applies it as an external
+    /// force one the wheel body.
+    virtual TerrainForce GetTireForce() const override { return m_tireforce; }
+
     struct ContactData {
         bool in_contact;      // true if disc in contact with terrain
         ChCoordsys<> frame;   // contact frame (x: long, y: lat, z: normal)

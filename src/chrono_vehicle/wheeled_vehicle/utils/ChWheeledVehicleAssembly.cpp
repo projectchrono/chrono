@@ -37,10 +37,6 @@ ChWheeledVehicleAssembly::ChWheeledVehicleAssembly(ChSystem* system,
     // Create the vehicle and powertrain systems.
     m_vehicle = chrono_types::make_shared<WheeledVehicle>(system, vehicle::GetDataFile(vehicle_def_filename));
     m_powertrain = chrono_types::make_shared<SimplePowertrain>(vehicle::GetDataFile(powertrain_def_filename));
-
-    // The vector of tire forces is required by the ChronoVehicle API. Since we
-    // use rigid contact for tire-terrain interaction, these are always zero.
-    m_tire_forces.resize(2 * m_vehicle->GetNumberAxles());
 }
 
 // -----------------------------------------------------------------------------
@@ -86,7 +82,7 @@ void ChWheeledVehicleAssembly::Synchronize(double time) {
     m_powertrain->Synchronize(time, throttle, m_vehicle->GetDriveshaftSpeed());
 
     // Update the vehicle system.
-    m_vehicle->Synchronize(time, steering, braking, m_powertrain->GetOutputTorque(), m_tire_forces);
+    m_vehicle->Synchronize(time, steering, braking, m_powertrain->GetOutputTorque());
 }
 
 }  // end namespace vehicle

@@ -142,7 +142,7 @@ class CH_VEHICLE_API ChTireTestRig {
     const ChVector<>& GetPos() const { return m_carrier_body->GetPos(); }
 
     /// Get the current tire forces
-    TerrainForce GetTireForce() const;
+    TerrainForce ReportTireForce() const;
 
   private:
     enum class TerrainType { SCM, RIGID, CRG, GRANULAR, NONE };

@@ -204,7 +204,6 @@ int main(int argc, char* argv[]) {
 #endif
 
     // Inter-module communication data
-    TerrainForces tire_forces(4);
     double driveshaft_speed;
     double powertrain_torque;
     double throttle_input;
@@ -252,12 +251,6 @@ int main(int argc, char* argv[]) {
         braking_input = driver.GetBraking();
 
         powertrain_torque = powertrain.GetOutputTorque();
-
-        tire_forces[FRONT_LEFT.id()] = tire_front_left.GetTireForce();
-        tire_forces[FRONT_RIGHT.id()] = tire_front_right.GetTireForce();
-        tire_forces[REAR_LEFT.id()] = tire_rear_left.GetTireForce();
-        tire_forces[REAR_RIGHT.id()] = tire_rear_right.GetTireForce();
-
         driveshaft_speed = vehicle.GetDriveshaftSpeed();
 
         // Update modules (process inputs from other modules)
@@ -274,7 +267,7 @@ int main(int argc, char* argv[]) {
 
         powertrain.Synchronize(time, throttle_input, driveshaft_speed);
 
-        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, tire_forces);
+        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque);
 
         app.Synchronize(driver.GetInputModeAsString(), steering_input, throttle_input, braking_input);
 
@@ -340,12 +333,6 @@ int main(int argc, char* argv[]) {
         braking_input = driver.GetBraking();
 
         powertrain_torque = powertrain.GetOutputTorque();
-
-        tire_forces[FRONT_LEFT.id()] = tire_front_left.GetTireForce();
-        tire_forces[FRONT_RIGHT.id()] = tire_front_right.GetTireForce();
-        tire_forces[REAR_LEFT.id()] = tire_rear_left.GetTireForce();
-        tire_forces[REAR_RIGHT.id()] = tire_rear_right.GetTireForce();
-
         driveshaft_speed = vehicle.GetDriveshaftSpeed();
 
         // Update modules (process inputs from other modules)
@@ -362,7 +349,7 @@ int main(int argc, char* argv[]) {
 
         powertrain.Synchronize(time, throttle_input, driveshaft_speed);
 
-        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, tire_forces);
+        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);

@@ -36,6 +36,9 @@
 namespace chrono {
 namespace vehicle {
 
+// Forward declaration
+class ChTire;
+
 /// @addtogroup vehicle_wheeled_wheel
 /// @{
 
@@ -76,6 +79,10 @@ class CH_VEHICLE_API ChWheel : public ChPart {
                             double offset = 0                          ///< offset from associated spindle offset
     );
 
+    /// Synchronize the wheel subsystem. 
+    /// This querries the forces from the attached tire and passes it to the associated suspension.
+    void Synchronize();
+
     /// Get the associated spindle body.
     std::shared_ptr<ChBody> GetSpindle() const { return m_suspension->GetSpindle(m_side); }
 
@@ -100,9 +107,12 @@ class CH_VEHICLE_API ChWheel : public ChPart {
 
   protected:
     std::shared_ptr<ChSuspension> m_suspension;    ///< associated suspension subsystem
+    ChTire* m_tire;                                ///< attached tire subsystem
     VehicleSide m_side;                            ///< wheel mounted on left/right side
     double m_offset;                               ///< offset from spindle center
     std::shared_ptr<ChCylinderShape> m_cyl_shape;  ///< visualization cylinder asset
+
+    friend class ChTire;
 };
 
 /// Vector of handles to wheel subsystems.

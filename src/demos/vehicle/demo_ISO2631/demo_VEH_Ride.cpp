@@ -237,9 +237,6 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    // Inter-module communication data
-    TerrainForces tire_forces(num_wheels);
-
     // Logging of seat acceleration data on flat road surface is useless and would lead to distorted results
     double xstart = 100.0;  // start logging when the vehicle crosses this x position
     double xend = 400.0;    // end logging here, this also the end of our world
@@ -257,29 +254,12 @@ int main(int argc, char* argv[]) {
         double braking_input = driver.GetBraking();
         double powertrain_torque = powertrain.GetOutputTorque();
         double driveshaft_speed = vehicle.GetDriveshaftSpeed();
-        for (int i = 0; i < num_wheels; i++) {
-            switch (iTire) {
-                default:
-                case 1:
-                    tire_forces[i] = tmeasy_tires[i]->GetTireForce();
-                    break;
-                case 2:
-                    tire_forces[i] = fiala_tires[i]->GetTireForce();
-                    break;
-                case 3:
-                    tire_forces[i] = pacejka_tires[i]->GetTireForce();
-                    break;
-                case 4:
-                    tire_forces[i] = pacejka89_tires[i]->GetTireForce();
-                    break;
-            }
-        }
 
         // Update modules (process inputs from other modules)
         double time = vehicle.GetSystem()->GetChTime();
         driver.Synchronize(time);
         powertrain.Synchronize(time, throttle_input, driveshaft_speed);
-        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, tire_forces);
+        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque);
         terrain.Synchronize(time);
         for (int i = 0; i < num_wheels; i++) {
             switch (iTire) {
@@ -347,29 +327,12 @@ int main(int argc, char* argv[]) {
         double braking_input = driver.GetBraking();
         double powertrain_torque = powertrain.GetOutputTorque();
         double driveshaft_speed = vehicle.GetDriveshaftSpeed();
-        for (int i = 0; i < num_wheels; i++) {
-            switch (iTire) {
-                default:
-                case 1:
-                    tire_forces[i] = tmeasy_tires[i]->GetTireForce();
-                    break;
-                case 2:
-                    tire_forces[i] = fiala_tires[i]->GetTireForce();
-                    break;
-                case 3:
-                    tire_forces[i] = pacejka_tires[i]->GetTireForce();
-                    break;
-                case 4:
-                    tire_forces[i] = pacejka89_tires[i]->GetTireForce();
-                    break;
-            }
-        }
 
         // Update modules (process inputs from other modules)
         double time = vehicle.GetSystem()->GetChTime();
         driver.Synchronize(time);
         powertrain.Synchronize(time, throttle_input, driveshaft_speed);
-        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, tire_forces);
+        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque);
         terrain.Synchronize(time);
         for (int i = 0; i < num_wheels; i++) {
             switch (iTire) {

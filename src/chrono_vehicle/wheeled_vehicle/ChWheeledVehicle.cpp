@@ -47,17 +47,15 @@ void ChWheeledVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassis
 // -----------------------------------------------------------------------------
 // Update the state of this vehicle at the current time.
 // The vehicle system is provided the current driver inputs (throttle between
-// 0 and 1, steering between -1 and +1, braking between 0 and 1), the torque
-// from the powertrain, and tire forces (expressed in the global reference
-// frame).
-// The default implementation of this function invokes the update functions for
-// all vehicle subsystems.
+// 0 and 1, steering between -1 and +1, braking between 0 and 1), and the torque
+// from the powertrain.
+// The default implementation of this function invokes the synchronize functions
+// for all vehicle subsystems.
 // -----------------------------------------------------------------------------
 void ChWheeledVehicle::Synchronize(double time,
                                    double steering,
                                    double braking,
-                                   double powertrain_torque,
-                                   const TerrainForces& tire_forces) {
+                                   double powertrain_torque) {
     // Apply powertrain torque to the driveline's input shaft.
     m_driveline->Synchronize(powertrain_torque);
 
@@ -66,11 +64,13 @@ void ChWheeledVehicle::Synchronize(double time,
         m_steerings[i]->Synchronize(time, steering);
     }
 
-    // Apply tire forces to spindle bodies and apply braking.
-    for (unsigned int i = 0; i < m_suspensions.size(); i++) {
-        m_suspensions[i]->Synchronize(LEFT, tire_forces[2 * i]);
-        m_suspensions[i]->Synchronize(RIGHT, tire_forces[2 * i + 1]);
+    // Let the wheel subsystems get tire forces and pass them to their associated suspension.
+    for (auto wheel : m_wheels) {
+        wheel->Synchronize();
+    }
 
+    // Apply braking.
+    for (unsigned int i = 0; i < m_suspensions.size(); i++) {
         m_brakes[2 * i]->Synchronize(braking);
         m_brakes[2 * i + 1]->Synchronize(braking);
     }
