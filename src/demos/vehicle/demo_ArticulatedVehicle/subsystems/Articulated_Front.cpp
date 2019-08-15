@@ -122,6 +122,6 @@ void Articulated_Front::Initialize(const ChCoordsys<>& chassisPos, double chassi
     m_driveline->Initialize(m_chassis->GetBody(), m_suspensions, driven_susp);
 
     // Initialize the brakes
-    m_brakes[0]->Initialize(m_suspensions[0]->GetRevolute(LEFT));
-    m_brakes[1]->Initialize(m_suspensions[0]->GetRevolute(RIGHT));
+    m_brakes[0]->Initialize(m_suspensions[0], LEFT);
+    m_brakes[1]->Initialize(m_suspensions[0], RIGHT);
 }

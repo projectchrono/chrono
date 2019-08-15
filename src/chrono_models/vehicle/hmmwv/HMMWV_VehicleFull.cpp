@@ -164,10 +164,10 @@ void HMMWV_VehicleFull::Initialize(const ChCoordsys<>& chassisPos, double chassi
     m_driveline->Initialize(m_chassis->GetBody(), m_suspensions, driven_susp_indexes);
 
     // Initialize the four brakes
-    m_brakes[0]->Initialize(m_suspensions[0]->GetRevolute(LEFT));
-    m_brakes[1]->Initialize(m_suspensions[0]->GetRevolute(RIGHT));
-    m_brakes[2]->Initialize(m_suspensions[1]->GetRevolute(LEFT));
-    m_brakes[3]->Initialize(m_suspensions[1]->GetRevolute(RIGHT));
+    m_brakes[0]->Initialize(m_suspensions[0], LEFT);
+    m_brakes[1]->Initialize(m_suspensions[0], RIGHT);
+    m_brakes[2]->Initialize(m_suspensions[1], LEFT);
+    m_brakes[3]->Initialize(m_suspensions[1], RIGHT);
 }
 
 // -----------------------------------------------------------------------------

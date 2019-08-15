@@ -123,8 +123,8 @@ void Articulated_Rear::Initialize() {
     m_wheels[1]->Initialize(m_suspensions[0], RIGHT);
 
     // Initialize the four brakes
-    m_brakes[0]->Initialize(m_suspensions[0]->GetRevolute(LEFT));
-    m_brakes[1]->Initialize(m_suspensions[0]->GetRevolute(RIGHT));
+    m_brakes[0]->Initialize(m_suspensions[0], LEFT);
+    m_brakes[1]->Initialize(m_suspensions[0], RIGHT);
 
     // Create the connection to the front side.
     m_motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();

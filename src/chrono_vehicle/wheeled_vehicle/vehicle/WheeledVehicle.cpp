@@ -244,8 +244,8 @@ void WheeledVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
         m_wheels[2 * i + 0]->Initialize(m_suspensions[i], LEFT);
         m_wheels[2 * i + 1]->Initialize(m_suspensions[i], RIGHT);
 
-        m_brakes[2 * i]->Initialize(m_suspensions[i]->GetRevolute(LEFT));
-        m_brakes[2 * i + 1]->Initialize(m_suspensions[i]->GetRevolute(RIGHT));
+        m_brakes[2 * i]->Initialize(m_suspensions[i], LEFT);
+        m_brakes[2 * i + 1]->Initialize(m_suspensions[i], RIGHT);
     }
 
     // Initialize the antirollbar subsystems.

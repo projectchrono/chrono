@@ -70,9 +70,8 @@ void ChWheeledVehicle::Synchronize(double time,
     }
 
     // Apply braking.
-    for (unsigned int i = 0; i < m_suspensions.size(); i++) {
-        m_brakes[2 * i]->Synchronize(braking);
-        m_brakes[2 * i + 1]->Synchronize(braking);
+    for (auto brake : m_brakes) {
+        brake->Synchronize(braking);
     }
 
     m_chassis->Synchronize(time);
