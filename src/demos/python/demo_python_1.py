@@ -13,6 +13,12 @@ print ("First tutorial for PyChrono: vectors, matrices etc.");
 
 # Load the Chrono::Engine core module!
 import pychrono as chrono
+try:
+    import numpy as np
+    from numpy import linalg as LA
+except ImportError:
+    print("You need NumPyto run this demo!")
+        
 
 # Test logging
 chrono.GetLog().Bar()
@@ -39,15 +45,17 @@ print ('quat. conjugate  =', my_qconjugate)
 print ('quat. dot product=', my_qconjugate ^ my_quat)
 print ('quat. product=',     my_qconjugate % my_quat)
 
-# Test matrices
-ma = chrono.ChMatrixDynamicD(4,4)
-ma.FillDiag(-2)
+# Test matrices and NumPy interoperability
+mlist = [[1,2,3,4], [5,6,7,8], [9,10,11,12], [13,14,15,16]]
+ma = chrono.ChMatrixDynamicD() 
+ma.SetMatr(mlist)   # Create a Matrix from a list. Size is adjusted automatically.
+npmat = np.asarray(ma.GetMatr()) # Create a 2D npy array from the list extracted from ChMatrixDynamic
+w, v = LA.eig(npmat)  # get eigenvalues and eigenvectors using numpy
 mb = chrono.ChMatrixDynamicD(4,4)
-mb.FillElem(10)
-mc = (ma-mb)*0.1;   # operator overloading of +,-,* is supported
-print (mc);
+prod = v * npmat   # you can perform linear algebra operations with numpy and then feed results into a ChMatrixDynamicD using SetMatr 
+mb.SetMatr(v.tolist())    # create a ChMatrixDynamicD from the numpy eigenvectors
 mr = chrono.ChMatrix33D()
-mr.FillDiag(20)
+mr.SetMatr([[1,2,3], [4,5,6], [7,8,9]])
 print  (mr*my_vect1);
 
 
@@ -61,12 +69,6 @@ my_vect5 = my_vect1 >> my_frame
 import inspect
 inspect.getmro(chrono.ChStreamOutAsciiFile)
 
-# Use matrices
-my_matr = chrono.ChMatrixDynamicD(6,4)
-my_matr[1,2]=4
-my_matrb = chrono.ChMatrixDynamicD(4,6)
-my_matrb.FillRandom(-2,2)
-print ( my_matrb * 4 )
 
 
 # Use the ChFunction classes

@@ -57,7 +57,6 @@
 #include "chrono/physics/ChNodeXYZ.h"
 #include "chrono/physics/ChLoadsXYZnode.h"
 #include "chrono/physics/ChTensors.h"
-#include "chrono/fea/ChContinuumMaterial.h"
 #include "chrono/physics/ChIndexedNodes.h"
 #include "chrono/assets/ChLineShape.h"
 #include "chrono/assets/ChPathShape.h"
@@ -163,11 +162,6 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChMaterialSurfaceNSC)
 %shared_ptr(chrono::ChMaterialSurfaceSMC)
 %shared_ptr(chrono::ChMaterialSurface)
-%shared_ptr(chrono::ChContinuumMaterial)
-%shared_ptr(chrono::ChContinuumElastic)
-%shared_ptr(chrono::ChContinuumElastoplastic)
-%shared_ptr(chrono::ChContinuumPlasticVonMises)
-%shared_ptr(chrono::ChContinuumDruckerPrager)
 %shared_ptr(chrono::ChNodeBase)
 %shared_ptr(chrono::ChNodeXYZ)
 %shared_ptr(chrono::ChMarker)
@@ -328,7 +322,6 @@ using namespace chrono::fea;
 //%template(ChStressTensorD) chrono::fea::ChStressTensor<double>;
 //%template(ChStrainTensorD) chrono::fea::ChStrainTensor<double>;
 %include "ChLoadable.i"
-%include "../chrono/fea/ChContinuumMaterial.h"
 %include "ChObject.i"
 %include "ChPhysicsItem.i"
 %include "../chrono/physics/ChIndexedNodes.h"

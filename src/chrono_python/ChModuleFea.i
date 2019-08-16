@@ -51,6 +51,7 @@
 #include "chrono/fea/ChNodeFEAxyzP.h"
 #include "chrono/fea/ChNodeFEAxyzrot.h"
 #include "chrono/fea/ChNodeFEAxyzD.h"
+#include "chrono/fea/ChContinuumMaterial.h"
 #include "chrono/fea/ChElementBase.h"
 #include "chrono/fea/ChElementGeneric.h"
 #include "chrono/fea/ChElementSpring.h"
@@ -159,6 +160,11 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChNodeBase) 
 %shared_ptr(chrono::ChNodeXYZ) 
 //from this module:
+%shared_ptr(chrono::fea::ChContinuumMaterial)
+%shared_ptr(chrono::fea::ChContinuumElastic)
+%shared_ptr(chrono::fea::ChContinuumElastoplastic)
+%shared_ptr(chrono::fea::ChContinuumPlasticVonMises)
+%shared_ptr(chrono::fea::ChContinuumDruckerPrager)
 %shared_ptr(chrono::fea::ChBeamSection)
 %shared_ptr(chrono::fea::ChBeamSectionBasic)
 %shared_ptr(chrono::fea::ChBeamSectionCable)
@@ -279,7 +285,6 @@ using namespace chrono::fea;
 %import(module = "pychrono.core") "ChAsset.i"
 %import(module = "pychrono.core") "ChAssetLevel.i"
 %import(module = "pychrono.core")  "ChMaterialSurface.i"
-%import(module = "pychrono.core") "../chrono/fea/ChContinuumMaterial.h"
 %import(module = "pychrono.core") "../chrono/physics/ChPhysicsItem.h"
 %import(module = "pychrono.core") "../chrono/physics/ChIndexedNodes.h"
 //%import(module = "pychrono.core") "../chrono/physics/ChLoadable.h" // disable because strange error in cxx
@@ -290,6 +295,7 @@ using namespace chrono::fea;
 
 //  core/  classes
 %include "../chrono/physics/ChPhysicsItem.h"
+%include "../chrono/fea/ChContinuumMaterial.h"
 %ignore chrono::fea::ChNodeFEAbase::ComputeKRMmatricesGlobal;
 %include "../chrono/fea/ChNodeFEAbase.h"
 %include "../chrono/fea/ChNodeFEAxyz.h"
