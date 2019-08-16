@@ -204,6 +204,7 @@ void ChTireTestRig::Advance(double step) {
     // Synchronize subsystems
     m_terrain->Synchronize(time);
     m_tire->Synchronize(time, *m_terrain.get(), m_collision_type);
+    m_susp->Synchronize();
     m_wheel->Synchronize();
 
     // Advance state

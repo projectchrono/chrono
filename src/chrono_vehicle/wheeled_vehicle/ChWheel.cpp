@@ -51,8 +51,7 @@ void ChWheel::Initialize(std::shared_ptr<ChSuspension> suspension, VehicleSide s
 void ChWheel::Synchronize() {
     if (!m_tire)
         return;
-    TerrainForce tire_force = m_tire->GetTireForce();
-    m_suspension->Synchronize(m_side, tire_force);
+    m_suspension->AccumulateTireForce(m_side, m_tire->GetTireForce());
 }
 
 ChVector<> ChWheel::GetPos() const {

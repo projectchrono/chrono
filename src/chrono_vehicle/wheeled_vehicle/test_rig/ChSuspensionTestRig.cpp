@@ -472,6 +472,9 @@ void ChSuspensionTestRig::Advance(double step) {
         m_steering->Synchronize(time, m_steering_input);
     }
 
+    // Prepare suspension for accepting tire forces
+    m_suspension->Synchronize();
+
     // Synchronize wheels (this applies tire forces to spindle bodies)
     for (auto wheel : m_wheel) {
         wheel->Synchronize();

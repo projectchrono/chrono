@@ -64,6 +64,11 @@ void ChWheeledVehicle::Synchronize(double time,
         m_steerings[i]->Synchronize(time, steering);
     }
 
+    // Prepare suspension subsystems for accepting tire forces
+    for (auto suspension : m_suspensions) {
+        suspension->Synchronize();
+    }
+
     // Let the wheel subsystems get tire forces and pass them to their associated suspension.
     for (auto wheel : m_wheels) {
         wheel->Synchronize();

@@ -41,25 +41,24 @@ class Articulated_Rear {
     const chrono::vehicle::ChWheelList& GetWheels() const { return m_wheels; }
 
     /// Get the global location of the specified wheel.
-    const chrono::ChVector<>& GetWheelPos(const chrono::vehicle::WheelID& wheel_id) const;
+    const chrono::ChVector<>& GetWheelPos(chrono::vehicle::VehicleSide side) const;
 
     /// Get the orientation of the specified wheel.
-    const chrono::ChQuaternion<>& GetWheelRot(const chrono::vehicle::WheelID& wheel_id) const;
+    const chrono::ChQuaternion<>& GetWheelRot(chrono::vehicle::VehicleSide side) const;
 
     /// Get the linear velocity of the specified wheel.
-    const chrono::ChVector<>& GetWheelLinVel(const chrono::vehicle::WheelID& wheel_id) const;
+    const chrono::ChVector<>& GetWheelLinVel(chrono::vehicle::VehicleSide side) const;
 
     /// Get the angular velocity of the specified wheel.
-    chrono::ChVector<> GetWheelAngVel(const chrono::vehicle::WheelID& wheel_id) const;
+    chrono::ChVector<> GetWheelAngVel(chrono::vehicle::VehicleSide side) const;
 
   private:
     std::shared_ptr<Articulated_Chassis> m_front;  ///< handle to front side
 
-    std::shared_ptr<chrono::ChBodyAuxRef> m_chassis;  ///< handle to the chassis body
-
-    chrono::vehicle::ChSuspensionList m_suspensions;  ///< list of handles to suspension subsystems
-    chrono::vehicle::ChWheelList m_wheels;            ///< list of handles to wheel subsystems
-    chrono::vehicle::ChBrakeList m_brakes;            ///< list of handles to brake subsystems
+    std::shared_ptr<chrono::ChBodyAuxRef> m_chassis;              ///< handle to the chassis body
+    std::shared_ptr<chrono::vehicle::ChSuspension> m_suspension;  ///< handle to the suspension subsystem
+    chrono::vehicle::ChWheelList m_wheels;                        ///< list of handles to wheel subsystems
+    chrono::vehicle::ChBrakeList m_brakes;                        ///< list of handles to brake subsystems
 
     std::shared_ptr<chrono::ChLinkMotorRotationAngle> m_motor;
 
