@@ -61,11 +61,20 @@ void ChRigidTire::Initialize(std::shared_ptr<ChWheel> wheel) {
         m_trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
         m_trimesh->LoadWavefrontMesh(m_contact_meshFile, true, false);
 
+        //// RADU
+        // Hack to deal with current limitation: cannot set offset on a trimesh collision shape!
+        double offset = GetOffset();
+        if (std::abs(offset) > 1e-3) {
+            for (int i = 0; i < m_trimesh->m_vertices.size(); i++)
+                m_trimesh->m_vertices[i].y() += offset;
+        }
+
         wheel_body->GetCollisionModel()->AddTriangleMesh(m_trimesh, false, false, ChVector<>(0), ChMatrix33<>(1),
                                                          m_sweep_sphere_radius);
     } else {
         // Cylinder contact
-        wheel_body->GetCollisionModel()->AddCylinder(GetRadius(), GetRadius(), GetWidth() / 2);
+        wheel_body->GetCollisionModel()->AddCylinder(GetRadius(), GetRadius(), GetWidth() / 2,
+                                                     ChVector<>(0, GetOffset(), 0));
     }
 
     wheel_body->GetCollisionModel()->BuildModel();
