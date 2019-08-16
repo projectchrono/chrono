@@ -105,11 +105,8 @@ void ChPac89Tire::Synchronize(double time,
     WheelState wheel_state = m_wheel->GetState();
     CalculateKinematics(time, wheel_state, terrain);
 
-    // Set the application point of tire forces to be the wheel center
-    m_tireforce.point = wheel_state.pos;
-
     // Get mu at wheel location
-    m_mu = terrain.GetCoefficientFriction(m_tireforce.point.x(), m_tireforce.point.y());
+    m_mu = terrain.GetCoefficientFriction(wheel_state.pos.x(), wheel_state.pos.y());
 
     // Extract the wheel normal (expressed in global frame)
     ChMatrix33<> A(wheel_state.rot);
@@ -173,7 +170,8 @@ void ChPac89Tire::Synchronize(double time,
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChPac89Tire::Advance(double step) {
-    // Set tire forces to zero. The application point was set to be the wheel center in Synchronize.
+    // Set tire forces to zero.
+    m_tireforce.point = m_wheel->GetPos();
     m_tireforce.force = ChVector<>(0, 0, 0);
     m_tireforce.moment = ChVector<>(0, 0, 0);
 
