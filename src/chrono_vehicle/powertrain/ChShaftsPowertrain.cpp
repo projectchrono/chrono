@@ -29,8 +29,7 @@ namespace vehicle {
 // ChShaftsBody could transfer rolling torque to the chassis.
 // -----------------------------------------------------------------------------
 ChShaftsPowertrain::ChShaftsPowertrain(const std::string& name, const ChVector<>& dir_motor_block)
-    : ChPowertrain(name), m_dir_motor_block(dir_motor_block), m_last_time_gearshift(0), m_gear_shift_latency(0.5) {
-}
+    : ChPowertrain(name), m_dir_motor_block(dir_motor_block), m_last_time_gearshift(0), m_gear_shift_latency(0.5) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -40,6 +39,10 @@ void ChShaftsPowertrain::Initialize(std::shared_ptr<ChBody> chassis, std::shared
     assert(chassis->GetSystem());
 
     ChSystem* my_system = chassis->GetSystem();
+
+    // Cache the upshift and downshift speeds (in rad/s)
+    m_upshift_speed = GetUpshiftRPM() * CH_C_2PI / 60.0;
+    m_downshift_speed = GetDownshiftRPM() * CH_C_2PI / 60.0;
 
     // Let the derived class specify the gear ratios
     SetGearRatios(m_gear_ratios);
@@ -179,13 +182,13 @@ void ChShaftsPowertrain::Synchronize(double time, double throttle, double shaft_
 
     double gearshaft_speed = m_shaft_ingear->GetPos_dt();
 
-    if (gearshaft_speed > 2500 * CH_C_2PI / 60.0) {
+    if (gearshaft_speed > m_upshift_speed) {
         // upshift if possible
         if (m_current_gear + 1 < m_gear_ratios.size()) {
             SetSelectedGear(m_current_gear + 1);
             m_last_time_gearshift = time;
         }
-    } else if (gearshaft_speed < 1500 * CH_C_2PI / 60.0) {
+    } else if (gearshaft_speed < m_downshift_speed) {
         // downshift if possible
         if (m_current_gear - 1 > 0) {
             SetSelectedGear(m_current_gear - 1);

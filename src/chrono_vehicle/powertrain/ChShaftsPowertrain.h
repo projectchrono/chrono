@@ -125,6 +125,10 @@ class CH_VEHICLE_API ChShaftsPowertrain : public ChPowertrain {
     virtual double GetCrankshaftInertia() const = 0;
     virtual double GetIngearShaftInertia() const = 0;
 
+    /// Upshift and downshift rotation speeds (in RPM)
+    virtual double GetUpshiftRPM() const = 0;
+    virtual double GetDownshiftRPM() const = 0;
+
     /// Engine speed-torque map.
     virtual void SetEngineTorqueMap(std::shared_ptr<ChFunction_Recorder>& map) = 0;
     /// Engine speed-torque braking effect because of losses.
@@ -155,6 +159,8 @@ class CH_VEHICLE_API ChShaftsPowertrain : public ChPowertrain {
 
     double m_last_time_gearshift;
     double m_gear_shift_latency;
+    double m_upshift_speed;
+    double m_downshift_speed;
 };
 
 /// @} vehicle_powertrain

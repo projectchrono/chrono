@@ -24,6 +24,7 @@
 #include "chrono/ChConfig.h"
 #include "chrono/utils/ChFilters.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/core/ChTimer.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -58,7 +59,7 @@ PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
 DrivelineType drive_type = DrivelineType::AWD;
 
 // Type of tire model (RIGID, RIGID_MESH, PACEJKA, LUGRE, FIALA, PAC89, TMEASY)
-TireModelType tire_model = TireModelType::FIALA;
+TireModelType tire_model = TireModelType::TMEASY;
 
 // Terrain length (X direction)
 double terrainLength = 300.0;
@@ -150,14 +151,18 @@ int main(int argc, char* argv[]) {
     double time = 0;
     bool done = false;
 
+    ChTimer<> timer;
+    timer.start();
     while (app.GetDevice()->run()) {
         time = my_hmmwv.GetSystem()->GetChTime();
 
         double speed = speed_filter.Add(my_hmmwv.GetVehicle().GetVehicleSpeed());
         if (!done) {
             speed_recorder.AddPoint(time, speed);
-            if (time > 1 && std::abs((speed - last_speed) / step_size) < 0.0005) {
+            if (time > 6 && std::abs((speed - last_speed) / step_size) < 2e-4) {
                 done = true;
+                timer.stop();
+                std::cout << "Simulation time: " << timer() << std::endl;
                 std::cout << "Maximum speed: " << speed << std::endl;
 #ifdef CHRONO_POSTPROCESS
                 postprocess::ChGnuPlot gplot;
