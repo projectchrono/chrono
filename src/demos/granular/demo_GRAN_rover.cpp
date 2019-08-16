@@ -11,7 +11,7 @@
 // =============================================================================
 // Authors: Nic Olsen, Conlain Kelly
 // =============================================================================
-// Simplified rover using Chrono for rover dynamics co-simulated with 
+// Simplified rover using Chrono for rover dynamics co-simulated with
 // Chrono::Granular for granular terrain.
 // =============================================================================
 
@@ -40,6 +40,11 @@ using namespace chrono::granular;
 
 using std::cout;
 using std::endl;
+
+constexpr double mars_grav_mag = 370;
+
+constexpr double time_settling = 1.0;  // TODO
+constexpr double time_running = 10.0;  // TODO
 
 constexpr double METERS_TO_CM = 100;
 constexpr double KG_TO_GRAM = 1000;
@@ -81,7 +86,7 @@ double terrain_height_offset = 0;
 
 enum RUN_MODE { SETTLING = 0, TESTING = 1 };
 
-std::string chassis_filename = "granular/rover/MER_body.obj";
+std::string chassis_filename = "granular/rover/MER_body.obj";  // For output only
 
 enum ROVER_BODY_ID { WHEEL_FRONT_LEFT, WHEEL_FRONT_RIGHT, WHEEL_REAR_LEFT, WHEEL_REAR_RIGHT };
 
@@ -94,15 +99,17 @@ std::vector<bool> mesh_inflated;
 std::vector<float> mesh_inflation_radii;
 
 bool use_base_mesh = true;
-std::string terrain_mesh_filename = "granular/rover/spiky_terrain.obj";
+std::string terrain_mesh_filename = "data/granular/fixedterrain.obj";
 
 // y is height, x and z are radial
 // starts as height=1, diameter = 1
 
-std::string wheel_filename = std::string("granular/rover/wheel_scaled.obj");
+std::string wheel_filename = std::string("data/granular/rover/wheel_scaled.obj");
 
 void ShowUsage() {
-    cout << "usage: ./demo_GRAN_rover <json_file> <run_mode> <checkpoint_file_base>" << endl;
+    cout << "usage: ./demo_GRAN_rover <json_file> <run_mode: 0-settling, 1-running> <checkpoint_file_base> <gravity "
+            "angle (deg)>"
+         << endl;
 }
 
 std::vector<ChVector<float>> loadCheckpointFile(std::string checkpoint_file) {
@@ -144,8 +151,6 @@ void addWheelBody(ChSystemNSC& rover_sys,
     ChVector<> wheel_initial_pos = chassis_body->GetPos() + wheel_initial_pos_relative;
     std::shared_ptr<ChBody> wheel_body(rover_sys.NewBody());
 
-    // bool wheel_fixed = true;
-    // wheel_body->SetBodyFixed(wheel_fixed);
     wheel_body->SetMass(wheel_mass);
     wheel_body->SetBodyFixed(false);
     // assume it's a cylinder inertially
@@ -153,7 +158,6 @@ void addWheelBody(ChSystemNSC& rover_sys,
 
     printf("Inertia tensor is %f, %f, %f\n", wheel_inertia_x, wheel_inertia_y, wheel_inertia_z);
     wheel_body->SetPos(wheel_initial_pos);
-    // wheel_body->SetPos_dt(ChVector<>(50, 0, 0));
     rover_sys.AddBody(wheel_body);
 
     auto joint = std::make_shared<ChLinkLockRevolute>();
@@ -218,7 +222,7 @@ void writeMeshFrames(std::ostringstream& outstream,
 
 int main(int argc, char* argv[]) {
     sim_param_holder params;
-    if (argc != 4 || ParseJSON(argv[1], params) == false) {
+    if (argc != 5 || ParseJSON(argv[1], params) == false) {
         ShowUsage();
         return 1;
     }
@@ -226,13 +230,23 @@ int main(int argc, char* argv[]) {
     RUN_MODE run_mode = (RUN_MODE)std::atoi(argv[2]);
     std::string checkpoint_file_base = std::string(argv[3]);
 
+    // Rotates gravity about +Y axis
+    double input_grav_angle_deg = std::stod(argv[4]);
+    double grav_angle = 2.0 * CH_C_PI * input_grav_angle_deg / 360.0;
+
+    double Gx = -mars_grav_mag * std::sin(grav_angle);
+    double Gy = 0;
+    double Gz = -mars_grav_mag * std::cos(grav_angle);
+
+    std::cout << "Gravity (" << input_grav_angle_deg << "deg): " << Gx << " " << Gy << " " << Gz << std::endl;
+
     double iteration_step = params.step_size;
 
     // Setup granular simulation
     ChSystemGranularSMC_trimesh gran_sys(params.sphere_radius, params.sphere_density,
                                          make_float3(params.box_X, params.box_Y, params.box_Z));
 
-    double fill_bottom = 0;
+    double fill_bottom = 0;  // TODO
     double fill_top = params.box_Z / 2.0;
 
     // leave a 4cm margin at edges of sampling
@@ -242,22 +256,11 @@ int main(int argc, char* argv[]) {
     std::vector<ChVector<float>> body_points;
     if (run_mode == RUN_MODE::SETTLING) {
         body_points = utils::PDLayerSampler_BOX<float>(center, hdims, 2. * params.sphere_radius, 1.01);
-        params.time_end = 1.f;
-        out_fps = 10;
     } else if (run_mode == RUN_MODE::TESTING) {
         body_points = loadCheckpointFile(checkpoint_file_base + ".csv");
     }
 
     std::vector<ChVector<float>> first_points;
-
-    utils::HCPSampler<float> sampler(2.3 * params.sphere_radius);
-
-    double sample_cyl_rad = 10 * params.sphere_radius;
-
-    ChVector<> sample_cyl_center(params.box_X / 4, 0, params.box_Z / 2 - sample_cyl_rad - 3 * params.sphere_radius);
-    auto cyl_points =
-        sampler.SampleCylinderY(sample_cyl_center, sample_cyl_rad, params.box_Y / 2 - 3 * params.sphere_radius);
-    // body_points.insert(body_points.end(), cyl_points.begin(), cyl_points.end());
 
     first_points.push_back(body_points.at(0));
     gran_sys.setParticlePositions(body_points);
@@ -283,7 +286,7 @@ int main(int argc, char* argv[]) {
     gran_sys.set_Cohesion_ratio(params.cohesion_ratio);
     gran_sys.set_Adhesion_ratio_S2M(params.adhesion_ratio_s2m);
     gran_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
-    gran_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
+    gran_sys.set_gravitational_acceleration(Gx, Gy, Gz);
 
     gran_sys.set_fixed_stepSize(params.step_size);
     gran_sys.set_friction_mode(GRAN_FRICTION_MODE::MULTI_STEP);
@@ -299,8 +302,7 @@ int main(int argc, char* argv[]) {
 
     // rover_sys.SetContactForceModel(ChSystemNSC::ContactForceModel::Hooke);
     // rover_sys.SetTimestepperType(ChTimestepper::Type::EULER_EXPLICIT);
-    rover_sys.Set_G_acc(ChVector<>(params.grav_X, params.grav_Y, params.grav_Z));
-    // rover_sys.Set_G_acc(ChVector<>(0, 0, 0));
+    rover_sys.Set_G_acc(ChVector<>(Gx, Gy, Gz));
 
     if (use_base_mesh) {
         mesh_masses.push_back(chassis_mass);
@@ -313,7 +315,7 @@ int main(int argc, char* argv[]) {
 
     std::shared_ptr<ChBody> chassis_body(rover_sys.NewBody());
 
-    double height_offset_chassis_to_bottom = std::abs(wheel_offset_z) + 2 * wheel_rad;
+    double height_offset_chassis_to_bottom = std::abs(wheel_offset_z) + 2 * wheel_rad;  // TODO
     double init_offset_x = -params.box_X / 4;
     // start well above the terrain
     terrain_height_offset = params.box_Z + height_offset_chassis_to_bottom;
@@ -334,13 +336,16 @@ int main(int argc, char* argv[]) {
     // two wheels at front
     addWheelBody(rover_sys, chassis_body, ChVector<>(front_wheel_offset_x, front_wheel_offset_y, wheel_offset_z));
     addWheelBody(rover_sys, chassis_body, ChVector<>(front_wheel_offset_x, -front_wheel_offset_y, wheel_offset_z));
+
     // two wheels at back
     addWheelBody(rover_sys, chassis_body, ChVector<>(middle_wheel_offset_x, middle_wheel_offset_y, wheel_offset_z));
     addWheelBody(rover_sys, chassis_body, ChVector<>(middle_wheel_offset_x, -middle_wheel_offset_y, wheel_offset_z));
+
     // two wheels in middle of chassis
     addWheelBody(rover_sys, chassis_body, ChVector<>(rear_wheel_offset_x, rear_wheel_offset_y, wheel_offset_z));
     addWheelBody(rover_sys, chassis_body, ChVector<>(rear_wheel_offset_x, -rear_wheel_offset_y, wheel_offset_z));
 
+    // Load in meshes
     gran_sys.load_meshes(mesh_filenames, mesh_scalings, mesh_masses, mesh_inflated, mesh_inflation_radii);
 
     gran_sys.setOutputDirectory(params.output_dir);
@@ -364,8 +369,10 @@ int main(int argc, char* argv[]) {
 
     if (run_mode == RUN_MODE::SETTLING) {
         gran_sys.disableMeshCollision();
+        params.time_end = time_settling;
     } else if (run_mode == RUN_MODE::TESTING) {
         gran_sys.enableMeshCollision();
+        params.time_end = time_running;
     }
 
     printf("Chassis mass: %f g, each wheel mass: %f g\n", chassis_mass, wheel_mass);

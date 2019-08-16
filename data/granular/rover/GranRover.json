@@ -5,11 +5,6 @@
 	"box_Y": 200,
 	"box_Z": 50,
 	"step_size": 5e-5,
-	"time_end": 10,
-
-	"grav_X": 0,
-	"grav_Y": 0,
-	"grav_Z": -370,
 
 	"normalStiffS2S": 1e8,
 	"normalStiffS2W": 1e8,
