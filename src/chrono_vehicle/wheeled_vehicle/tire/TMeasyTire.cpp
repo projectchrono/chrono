@@ -202,6 +202,7 @@ void TMeasyTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH && m_has_mesh) {
         auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
         trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
+        trimesh->Transform(ChVector<>(0, GetOffset(), 0), ChMatrix33<>(1));
         m_trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         m_trimesh_shape->SetMesh(trimesh);
         m_trimesh_shape->SetName(m_meshName);
@@ -215,7 +216,7 @@ void TMeasyTire::AddVisualizationAssets(VisualizationType vis) {
 void TMeasyTire::RemoveVisualizationAssets() {
     ChTMeasyTire::RemoveVisualizationAssets();
 
-    // Make sure we only remove the assets added by RigidTire::AddVisualizationAssets.
+    // Make sure we only remove the assets added by TMeasyTire::AddVisualizationAssets.
     // This is important for the ChTire object because a wheel may add its own assets
     // to the same body (the spindle/wheel).
     auto& assets = m_wheel->GetSpindle()->GetAssets();

@@ -69,8 +69,8 @@ void ChLugreTire::AddVisualizationAssets(VisualizationType vis) {
     for (int id = 0; id < GetNumDiscs(); id++) {
         m_cyl_shapes[id] = chrono_types::make_shared<ChCylinderShape>();
         m_cyl_shapes[id]->GetCylinderGeometry().rad = disc_radius;
-        m_cyl_shapes[id]->GetCylinderGeometry().p1 = ChVector<>(0, disc_locs[id] + discWidth / 2, 0);
-        m_cyl_shapes[id]->GetCylinderGeometry().p2 = ChVector<>(0, disc_locs[id] - discWidth / 2, 0);
+        m_cyl_shapes[id]->GetCylinderGeometry().p1 = ChVector<>(0, GetOffset() + disc_locs[id] + discWidth / 2, 0);
+        m_cyl_shapes[id]->GetCylinderGeometry().p2 = ChVector<>(0, GetOffset() + disc_locs[id] - discWidth / 2, 0);
         m_wheel->GetSpindle()->AddAsset(m_cyl_shapes[id]);
     }
 

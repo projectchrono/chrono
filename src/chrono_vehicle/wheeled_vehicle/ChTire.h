@@ -129,6 +129,10 @@ class CH_VEHICLE_API ChTire : public ChPart {
                              const ChTerrain& terrain        ///< [in] reference to the terrain system
     );
 
+    /// Get offset from spindle center.
+    /// This queries the associated wheel, so it must be called only after the wheel was initialized.
+    double GetOffset() const { return m_wheel->m_offset; }
+
     /// Get the tire force and moment.
     /// This represents the output from this tire system that is passed to the
     /// vehicle system. Typically, the vehicle subsystem will pass the tire force
