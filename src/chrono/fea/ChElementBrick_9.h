@@ -16,8 +16,8 @@
 #ifndef CHELEMENTBRICK9_H
 #define CHELEMENTBRICK9_H
 
-#include "chrono/physics/ChContinuumMaterial.h"
 #include "chrono/physics/ChSystem.h"
+#include "chrono/fea/ChContinuumMaterial.h"
 #include "chrono/fea/ChElementGeneric.h"
 #include "chrono/fea/ChNodeFEAcurv.h"
 #include "chrono/fea/ChNodeFEAxyz.h"

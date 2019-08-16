@@ -22,6 +22,9 @@
 namespace chrono {
 namespace fea {
 
+/// @addtogroup chrono_fea
+/// @{
+
 // -----------------------------------------------------------------------------
 
 /// Base class for properties of materials in a continuum.
@@ -309,6 +312,8 @@ class ChApi ChContinuumDruckerPrager : public ChContinuumElastoplastic {
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+/// @} chrono_fea
 
 }  // end namespace fea
 

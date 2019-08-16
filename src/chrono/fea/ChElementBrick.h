@@ -17,8 +17,8 @@
 #define CHELEMENTBRICK_H
 
 #include "chrono/core/ChQuadrature.h"
-#include "chrono/physics/ChContinuumMaterial.h"
 #include "chrono/physics/ChLoadable.h"
+#include "chrono/fea/ChContinuumMaterial.h"
 #include "chrono/fea/ChElementGeneric.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
 

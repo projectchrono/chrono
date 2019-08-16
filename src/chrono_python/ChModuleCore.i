@@ -57,7 +57,7 @@
 #include "chrono/physics/ChNodeXYZ.h"
 #include "chrono/physics/ChLoadsXYZnode.h"
 #include "chrono/physics/ChTensors.h"
-#include "chrono/physics/ChContinuumMaterial.h"
+#include "chrono/fea/ChContinuumMaterial.h"
 #include "chrono/physics/ChIndexedNodes.h"
 #include "chrono/assets/ChLineShape.h"
 #include "chrono/assets/ChPathShape.h"
@@ -328,7 +328,7 @@ using namespace chrono::fea;
 //%template(ChStressTensorD) chrono::fea::ChStressTensor<double>;
 //%template(ChStrainTensorD) chrono::fea::ChStrainTensor<double>;
 %include "ChLoadable.i"
-%include "../chrono/physics/ChContinuumMaterial.h"
+%include "../chrono/fea/ChContinuumMaterial.h"
 %include "ChObject.i"
 %include "ChPhysicsItem.i"
 %include "../chrono/physics/ChIndexedNodes.h"
