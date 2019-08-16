@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/physics/ChContinuumMaterial.h"
+#include "chrono/fea/ChContinuumMaterial.h"
 
 namespace chrono {
 namespace fea {

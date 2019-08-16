@@ -18,9 +18,9 @@
 #include <cmath>
 
 #include "chrono/collision/ChCCollisionModel.h"
-#include "chrono/physics/ChContinuumMaterial.h"
 #include "chrono/physics/ChIndexedNodes.h"
 #include "chrono/physics/ChNodeXYZ.h"
+#include "chrono/fea/ChContinuumMaterial.h"
 #include "chrono/solver/ChVariablesNode.h"
 
 namespace chrono {

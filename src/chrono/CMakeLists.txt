@@ -196,13 +196,12 @@ set(ChronoEngine_physics_SOURCES
     physics/ChShaftsTorsionSpring.cpp
     physics/ChShaftsTorqueConverter.cpp
     physics/ChShaftsThermalEngine.cpp
-	physics/ChShaftsLoads.cpp
+    physics/ChShaftsLoads.cpp
     physics/ChConveyor.cpp
     physics/ChFx.cpp
     physics/ChAssembly.cpp
     physics/ChMaterialSurfaceSMC.cpp
     physics/ChMaterialSurfaceNSC.cpp
-    physics/ChContinuumMaterial.cpp
     physics/ChLoadContainer.cpp
     physics/ChLoad.cpp
     physics/ChLoadsBody.cpp
@@ -297,7 +296,7 @@ set(ChronoEngine_physics_HEADERS
     physics/ChShaftsTorsionSpring.h
     physics/ChShaftsTorqueConverter.h
     physics/ChShaftsThermalEngine.h
-	physics/ChShaftsLoads.h
+    physics/ChShaftsLoads.h
     physics/ChSolvmin.h
     physics/ChSystem.h
     physics/ChSystemNSC.h
@@ -307,7 +306,6 @@ set(ChronoEngine_physics_HEADERS
     physics/ChContactNSC.h
     physics/ChContactNSCrolling.h
     physics/ChTensors.h
-    physics/ChContinuumMaterial.h
     physics/ChInertiaUtils.h
     physics/ChContactable.h
     physics/ChContactTuple.h
@@ -333,6 +331,7 @@ set(ChronoEngine_fea_SOURCES
     fea/ChBuilderBeam.cpp
     fea/ChBeamSection.cpp
     fea/ChBeamSectionCosserat.cpp
+    fea/ChContinuumMaterial.cpp
     fea/ChElementBeamANCF.cpp
     fea/ChElementBeamEuler.cpp
     fea/ChElementCableANCF.cpp
@@ -382,6 +381,7 @@ set(ChronoEngine_fea_HEADERS
     fea/ChBeamSection.h
     fea/ChBeamSectionCosserat.h
     fea/ChBuilderBeam.h
+    fea/ChContinuumMaterial.h
     fea/ChContinuumPoisson3D.h
     fea/ChContinuumThermal.h
     fea/ChContinuumElectrostatics.h

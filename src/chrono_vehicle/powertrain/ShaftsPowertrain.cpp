@@ -76,6 +76,13 @@ void ShaftsPowertrain::Create(const rapidjson::Document& d) {
     for (unsigned int i = 0; i < np; i++)
         m_fwd_gear[i] = d["Transmission"]["Forward Gear Ratios"][i].GetDouble();
 
+    m_upshift_RPM = d["Transmission"]["Upshift RPM"].GetDouble();
+    m_downshift_RPM = d["Transmission"]["Downshift RPM"].GetDouble();
+
+    if (d["Transmission"].HasMember("Shift Latency")) {
+        SetGearShiftLatency(d["Transmission"]["Shift Latency"].GetDouble());
+    }
+
     // Read torque converter data
     assert(d.HasMember("Torque Converter"));
     ReadMapData(d["Torque Converter"]["Capacity Factor Map"], m_tc_capacity_factor);

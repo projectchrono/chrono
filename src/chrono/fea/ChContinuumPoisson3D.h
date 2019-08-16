@@ -15,7 +15,7 @@
 #ifndef CHCONTINUUMPOISSON3D_H
 #define CHCONTINUUMPOISSON3D_H
 
-#include "chrono/physics/ChContinuumMaterial.h"
+#include "chrono/fea/ChContinuumMaterial.h"
 
 namespace chrono {
 namespace fea {

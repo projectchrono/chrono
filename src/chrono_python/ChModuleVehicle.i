@@ -230,7 +230,7 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %import(module = "pychrono.core")  "ChVisualization.i"
 %import(module = "pychrono.core") "../chrono/motion_functions/ChFunction_Base.h"
 %import(module = "pychrono.core")  "ChMaterialSurface.i"
-%import(module = "pychrono.core") "../chrono/physics/ChContinuumMaterial.h"
+%import(module = "pychrono.core") "../chrono/fea/ChContinuumMaterial.h"
 %import(module = "pychrono.core") "../chrono/physics/ChPhysicsItem.h"
 //%import(module = "pychrono.core") "../chrono/physics/ChLoadable.h" // disable because strange error in cxx
 

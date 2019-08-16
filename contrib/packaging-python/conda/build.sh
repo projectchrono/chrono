@@ -35,11 +35,11 @@ cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DBUILD_BENCHMARKING=OFF \
  -DBUILD_GMOCK=OFF \
  -DENABLE_MODULE_CASCADE=ON \
- -DCASCADE_INCLUDE_DIR=/home/appveyor/miniconda3/envs/myenv/include/oce \
- -DCASCADE_LIBDIR=/home/appveyor/miniconda3/envs/myenv/lib \
+ -DCASCADE_INCLUDE_DIR=$HOME/miniconda3/envs/myenv/include/oce \
+ -DCASCADE_LIBDIR=$HOME/miniconda3/envs/myenv/lib \
  -DENABLE_MODULE_MKL=ON \
- -DMKL_INCLUDE_DIR=/home/appveyor/miniconda3/envs/myenv/include \
- -DMKL_RT_LIBRARY=/home/appveyor/miniconda3/envs/myenv/lib/libmkl_rt.so \
+ -DMKL_INCLUDE_DIR=$HOME/miniconda3/envs/myenv/include \
+ -DMKL_RT_LIBRARY=$HOME/miniconda3/envs/myenv/lib/libmkl_rt.so \
  ./..
 # Build step
 # on linux travis, limit the number of concurrent jobs otherwise
