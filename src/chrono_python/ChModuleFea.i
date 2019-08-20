@@ -291,6 +291,7 @@ using namespace chrono::fea;
 %import(module = "pychrono.core") "../chrono/physics/ChLoad.h"
 %import(module = "pychrono.core") "../chrono/physics/ChNodeBase.h"
 %import(module = "pychrono.core") "../chrono/physics/ChNodeXYZ.h"
+%import(module = "pychrono.core") "ChContactContainer.i"
 
 
 //  core/  classes
@@ -403,12 +404,26 @@ using namespace chrono::fea;
 // ADDITIONAL C++ FUNCTIONS / CLASSES THAT ARE USED ONLY FOR PYTHON WRAPPER
 //
 
-/*
 %inline %{
-
-
+  chrono::fea::ChContactNodeXYZROT* CastContactableToChContactNodeXYZROT(chrono::ChContactable* base) {
+    return static_cast<chrono::fea::ChContactNodeXYZROT*>(base);
+  }
 %}
-*/
+%inline %{
+  chrono::fea::ChContactNodeXYZ* CastContactableToChContactNodeXYZ(chrono::ChContactable* base) {
+    return static_cast<chrono::fea::ChContactNodeXYZ*>(base);
+  }
+%}
+%inline %{
+  chrono::fea::ChContactTriangleXYZROT* CastContactableToChContactTriangleXYZROT(chrono::ChContactable* base) {
+    return static_cast<chrono::fea::ChContactTriangleXYZROT*>(base);
+  }
+%}
+%inline %{
+  chrono::fea::ChContactTriangleXYZ* CastContactableToChContactTriangleXYZ(chrono::ChContactable* base) {
+    return static_cast<chrono::fea::ChContactTriangleXYZ*>(base);
+  }
+%}
 
 
 //
