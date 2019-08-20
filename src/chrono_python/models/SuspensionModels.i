@@ -49,6 +49,10 @@
 #include "chrono_models/vehicle/sedan/Sedan_DoubleWishbone.h"
 #include "chrono_models/vehicle/sedan/Sedan_MultiLink.h"
 
+#include "chrono_models/vehicle/citybus/CityBus_ToeBarLeafspringAxle.h"
+#include "chrono_models/vehicle/citybus/CityBus_SolidAxle.h"
+#include "chrono_models/vehicle/citybus/CityBus_LeafspringAxle.h"
+
 %}
 
 
@@ -69,6 +73,12 @@
 %shared_ptr(chrono::vehicle::sedan::Sedan_DoubleWishbone)
 %shared_ptr(chrono::vehicle::sedan::Sedan_MultiLink)
 
+%shared_ptr(chrono::vehicle::citybus::CityBus_ToeBarLeafspringAxle)
+%shared_ptr(chrono::vehicle::citybus::CityBus_SolidAxleFront)
+%shared_ptr(chrono::vehicle::citybus::CityBus_SolidAxleRear)
+%shared_ptr(chrono::vehicle::citybus::CityBus_LeafspringAxle)
+
+
 /* Parse the header file to generate wrappers */
 %import "ChSuspension.i"
 
@@ -84,3 +94,7 @@
 
 %include "../chrono_models/vehicle/sedan/Sedan_DoubleWishbone.h"
 %include "../chrono_models/vehicle/sedan/Sedan_MultiLink.h"
+
+%include "../chrono_models/vehicle/citybus/CityBus_ToeBarLeafspringAxle.h"
+%include "../chrono_models/vehicle/citybus/CityBus_SolidAxle.h"
+%include "../chrono_models/vehicle/citybus/CityBus_LeafspringAxle.h"

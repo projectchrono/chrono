@@ -13,6 +13,8 @@
 #include "chrono_models/vehicle/generic/Generic_BrakeSimple.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_BrakeSimple.h"
 #include "chrono_models/vehicle/sedan/Sedan_BrakeSimple.h"
+
+#include "chrono_models/vehicle/citybus/CityBus_BrakeSimple.h"
 %}
 
 
@@ -22,9 +24,11 @@
 %shared_ptr(chrono::vehicle::generic::Generic_BrakeSimple)
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_BrakeSimple)
 %shared_ptr(chrono::vehicle::sedan::Sedan_BrakeSimple)
+%shared_ptr(chrono::vehicle::citybus::CityBus_BrakeSimple)
 
 // Model:
 
 %include "../chrono_models/vehicle/generic/Generic_BrakeSimple.h"
 %include "../chrono_models/vehicle/hmmwv/HMMWV_BrakeSimple.h"
 %include "../chrono_models/vehicle/sedan/Sedan_BrakeSimple.h"
+%include "../chrono_models/vehicle/citybus/CityBus_BrakeSimple.h"
