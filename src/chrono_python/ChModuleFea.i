@@ -406,25 +406,40 @@ using namespace chrono::fea;
 
 %inline %{
   chrono::fea::ChContactNodeXYZROT* CastContactableToChContactNodeXYZROT(chrono::ChContactable* base) {
-    return static_cast<chrono::fea::ChContactNodeXYZROT*>(base);
+    chrono::fea::ChContactNodeXYZROT* ptr_out = dynamic_cast<chrono::fea::ChContactNodeXYZROT*>(base);
+	if (ptr_out == NULL) {
+        throw std::invalid_argument( "Wrong Upcast Choice" );
+    }
+    return ptr_out;
   }
 %}
 %inline %{
   chrono::fea::ChContactNodeXYZ* CastContactableToChContactNodeXYZ(chrono::ChContactable* base) {
-    return static_cast<chrono::fea::ChContactNodeXYZ*>(base);
+    chrono::fea::ChContactNodeXYZ* ptr_out = dynamic_cast<chrono::fea::ChContactNodeXYZ*>(base);
+	if (ptr_out == NULL) {
+        throw std::invalid_argument( "Wrong Upcast Choice" );
+    }
+    return ptr_out;
   }
 %}
 %inline %{
   chrono::fea::ChContactTriangleXYZROT* CastContactableToChContactTriangleXYZROT(chrono::ChContactable* base) {
-    return static_cast<chrono::fea::ChContactTriangleXYZROT*>(base);
+    chrono::fea::ChContactTriangleXYZROT* ptr_out = dynamic_cast<chrono::fea::ChContactTriangleXYZROT*>(base);
+	if (ptr_out == NULL) {
+        throw std::invalid_argument( "Wrong Upcast Choice" );
+    }
+    return ptr_out;
   }
 %}
 %inline %{
   chrono::fea::ChContactTriangleXYZ* CastContactableToChContactTriangleXYZ(chrono::ChContactable* base) {
-    return static_cast<chrono::fea::ChContactTriangleXYZ*>(base);
+    chrono::fea::ChContactTriangleXYZ* ptr_out = dynamic_cast<chrono::fea::ChContactTriangleXYZ*>(base);
+	if (ptr_out == NULL) {
+        throw std::invalid_argument( "Wrong Upcast Choice" );
+    }
+    return ptr_out;
   }
 %}
-
 
 //
 // ADD PYTHON CODE

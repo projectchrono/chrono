@@ -39,7 +39,11 @@ class ChAddContactCallbackP : public chrono::ChContactContainer::AddContactCallb
 
 %inline %{
   chrono::ChBody* CastContactableToChBody(chrono::ChContactable* base) {
-    return static_cast<chrono::ChBody*>(base);
+    chrono::ChBody* ptr_out = dynamic_cast<chrono::ChBody*>(base);
+	if (ptr_out == NULL) {
+        throw std::invalid_argument( "Wrong Upcast Choice" );
+    }
+    return ptr_out;
   }
 %}
 
