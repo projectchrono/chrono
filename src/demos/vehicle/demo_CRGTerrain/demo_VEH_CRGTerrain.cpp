@@ -107,6 +107,7 @@ int main(int argc, char* argv[]) {
     auto path = terrain.GetPath();
     bool path_is_closed = terrain.IsPathClosed();
     double road_length = terrain.GetLength();
+    double road_width = terrain.GetWidth();
 
 #ifdef USE_PID
     // Create the driver system based on PID steering controller
@@ -188,6 +189,7 @@ int main(int argc, char* argv[]) {
         t_end += 30.0;
     }
     std::cout << "Road length:     " << road_length << std::endl;
+    std::cout << "Road width:      " << road_width << std::endl;
     std::cout << "Closed loop?     " << path_is_closed << std::endl;
     std::cout << "Set end time to: " << t_end << std::endl;
 

@@ -326,11 +326,10 @@ class CH_VEHICLE_API ChPathSteeringControllerSR : public ChSteeringController {
     /// Calculate the current target point location.
     /// The target point is the point on the associated path that is closest to
     /// the current location of the sentinel point.
-    virtual void CalcTargetLocation() override;
+    virtual void CalcTargetLocation() override{};
 
   private:
-    std::shared_ptr<ChBezierCurve> m_path;            ///< tracked path (piecewise cubic Bezier curve)
-    std::unique_ptr<ChBezierCurveTracker> m_tracker;  ///< path tracker
+    std::shared_ptr<ChBezierCurve> m_path;  ///< tracked path (piecewise cubic Bezier curve)
 
     void CalcPathPoints();  ///< extracts path points and direction vectors, make adjustments as needed
 
