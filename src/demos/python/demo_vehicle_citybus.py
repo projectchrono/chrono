@@ -22,6 +22,8 @@ import pychrono.core as chrono
 import pychrono.irrlicht as irr
 import pychrono.vehicle as veh
 import math
+chrono.SetChronoDataPath('../../../data/')
+veh.SetDataPath('../../../data/Vehicle/')
 # Initial vehicle location and orientation
 initLoc = chrono.ChVectorD(0, 0, 0.5)
 initRot = chrono.ChQuaternionD(1, 0, 0, 0)
@@ -246,6 +248,7 @@ while (app.GetDevice().run()) :
     if (step_number % render_steps == 0) :
         app.BeginScene(True, True, irr.SColor(255, 140, 161, 192))
         app.DrawAll()
+        app.AddTypicalLogo(chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
         app.EndScene()
         """
         if (povray_output) :
@@ -294,3 +297,4 @@ while (app.GetDevice().run()) :
 if (driver_mode == RECORD) {
     driver_csv.write_to_file(driver_file)
 }"""
+del app

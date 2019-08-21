@@ -2,18 +2,21 @@
 
 /* Includes additional C++ in the wrapper code */
 
-#include <string>
-#include <vector>
-#include "chrono/core/ChVector.h"
-#include "chrono/assets/ChColor.h"
-#include "chrono/assets/ChColorAsset.h"
-#include "chrono/geometry/ChTriangleMeshConnected.h"
-#include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChBodyAuxRef.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono/physics/ChShaft.h"
 #include "chrono_vehicle/ChPart.h"
+
+#include "chrono_vehicle/wheeled_vehicle/ChSteering.h"
+#include "chrono_vehicle/wheeled_vehicle/steering/ChPitmanArm.h"
+#include "chrono_vehicle/wheeled_vehicle/steering/ChPitmanArmShafts.h"
+#include "chrono_vehicle/wheeled_vehicle/steering/ChRackPinion.h"
+
+#include "chrono_vehicle/wheeled_vehicle/steering/ChRotaryArm.h"
+#include "chrono_vehicle/wheeled_vehicle/steering/PitmanArm.h"
+#include "chrono_vehicle/wheeled_vehicle/steering/RackPinion.h"
+#include "chrono_vehicle/wheeled_vehicle/steering/RotaryArm.h"
 
 #include "chrono_models/vehicle/citybus/CityBus_RotaryArm.h"
 #include "chrono_models/vehicle/citybus/CityBus_RackPinion.h"
