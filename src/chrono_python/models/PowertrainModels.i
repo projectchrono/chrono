@@ -19,6 +19,7 @@
 
 #include "chrono_models/vehicle/sedan/Sedan_SimpleMapPowertrain.h"
 
+#include "chrono_models/vehicle/citybus/CityBus_SimpleMapPowertrain.h"
 
 %}
 
@@ -31,6 +32,8 @@
 
 %shared_ptr(chrono::vehicle::sedan::Sedan_SimpleMapPowertrain)
 
+%shared_ptr(chrono::vehicle::citybus::CityBus_SimpleMapPowertrain)
+
 
 %import "ChPowertrain.i"
 
@@ -42,3 +45,5 @@
 %include "../chrono_models/vehicle/hmmwv/HMMWV_SimpleMapPowertrain.h"
 
 %include "../chrono_models/vehicle/sedan/Sedan_SimpleMapPowertrain.h"
+
+%include "../chrono_models/vehicle/citybus/CityBus_SimpleMapPowertrain.h"

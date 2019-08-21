@@ -291,6 +291,7 @@ using namespace chrono::fea;
 %import(module = "pychrono.core") "../chrono/physics/ChLoad.h"
 %import(module = "pychrono.core") "../chrono/physics/ChNodeBase.h"
 %import(module = "pychrono.core") "../chrono/physics/ChNodeXYZ.h"
+%import(module = "pychrono.core") "ChContactContainer.i"
 
 
 //  core/  classes
@@ -403,13 +404,42 @@ using namespace chrono::fea;
 // ADDITIONAL C++ FUNCTIONS / CLASSES THAT ARE USED ONLY FOR PYTHON WRAPPER
 //
 
-/*
 %inline %{
-
-
+  chrono::fea::ChContactNodeXYZROT* CastContactableToChContactNodeXYZROT(chrono::ChContactable* base) {
+    chrono::fea::ChContactNodeXYZROT* ptr_out = dynamic_cast<chrono::fea::ChContactNodeXYZROT*>(base);
+	if (ptr_out == NULL) {
+        throw std::invalid_argument( "Wrong Upcast Choice" );
+    }
+    return ptr_out;
+  }
 %}
-*/
-
+%inline %{
+  chrono::fea::ChContactNodeXYZ* CastContactableToChContactNodeXYZ(chrono::ChContactable* base) {
+    chrono::fea::ChContactNodeXYZ* ptr_out = dynamic_cast<chrono::fea::ChContactNodeXYZ*>(base);
+	if (ptr_out == NULL) {
+        throw std::invalid_argument( "Wrong Upcast Choice" );
+    }
+    return ptr_out;
+  }
+%}
+%inline %{
+  chrono::fea::ChContactTriangleXYZROT* CastContactableToChContactTriangleXYZROT(chrono::ChContactable* base) {
+    chrono::fea::ChContactTriangleXYZROT* ptr_out = dynamic_cast<chrono::fea::ChContactTriangleXYZROT*>(base);
+	if (ptr_out == NULL) {
+        throw std::invalid_argument( "Wrong Upcast Choice" );
+    }
+    return ptr_out;
+  }
+%}
+%inline %{
+  chrono::fea::ChContactTriangleXYZ* CastContactableToChContactTriangleXYZ(chrono::ChContactable* base) {
+    chrono::fea::ChContactTriangleXYZ* ptr_out = dynamic_cast<chrono::fea::ChContactTriangleXYZ*>(base);
+	if (ptr_out == NULL) {
+        throw std::invalid_argument( "Wrong Upcast Choice" );
+    }
+    return ptr_out;
+  }
+%}
 
 //
 // ADD PYTHON CODE

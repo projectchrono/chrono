@@ -94,7 +94,7 @@
 
 #include "chrono_thirdparty/rapidjson/document.h"
 #include "Eigen/src/Core/util/Memory.h"
-
+#include "chrono_models/vehicle/citybus/CityBus.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -102,6 +102,7 @@ using namespace chrono::vehicle;
 using namespace chrono::vehicle::generic;
 using namespace chrono::vehicle::hmmwv;
 using namespace chrono::vehicle::sedan;
+using namespace chrono::vehicle::citybus;
 
 
 %}
