@@ -103,7 +103,7 @@ install:
     - ps: Start-FileDownload 'http://downloads.sourceforge.net/irrlicht/irrlicht-1.8.2.zip'
     - ps: 7z x irrlicht-1.8.2.zip -oC:\ -y
     - ps: Start-FileDownload 'http://bitbucket.org/eigen/eigen/get/3.3.7.zip'
-    - ps: 7z x eigen-eigen-323c052e1731.zip -oC:\ -y
+    - ps: 7z x 3.3.7.zip -oC:\ -y
     # fetch git submodules, to update the demos/ folder
     - cmd: git submodule update --init --remote --recursive
     # Set the CONDA_NPY, although it has no impact on the actual build. We need this because of a test within conda-build.
