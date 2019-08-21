@@ -102,6 +102,8 @@ install:
 
     - ps: Start-FileDownload 'http://downloads.sourceforge.net/irrlicht/irrlicht-1.8.2.zip'
     - ps: 7z x irrlicht-1.8.2.zip -oC:\ -y
+    - ps: Start-FileDownload 'http://bitbucket.org/eigen/eigen/get/3.3.7.zip'
+    - ps: 7z x eigen-eigen-323c052e1731.zip -oC:\ -y
     # fetch git submodules, to update the demos/ folder
     - cmd: git submodule update --init --remote --recursive
     # Set the CONDA_NPY, although it has no impact on the actual build. We need this because of a test within conda-build.
@@ -131,9 +133,9 @@ install:
     - cmd: conda config --add channels https://conda.anaconda.org/intel
     # need to manually add non standard channels.
     # Up-to date version by tpaviot: breaks conda. Use CadQuery version
-    - cmd: conda install -c conda-forge -c dlr-sc -c pythonocc -c oce -c 3dhubs oce==0.18 --yes
+    #- cmd: conda install -c conda-forge -c dlr-sc -c pythonocc -c oce -c 3dhubs oce==0.18 --yes
     #- cmd: conda install -c cadquery pythonocc-core --yes
-    - cmd: conda install -c intel mkl-devel=2018.0.3 --yes
+    #- cmd: conda install -c intel mkl-devel=2018.0.3 --yes
 
 ############################################### UBUNTU ###############################################################
 

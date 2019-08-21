@@ -29,10 +29,11 @@ cmake -G "%CMAKE_GENERATOR%" ^
  -DBUILD_BENCHMARKING=OFF ^
  -DIRRLICHT_ROOT="C:\irrlicht-1.8.2" ^
  -DIRRLICHT_LIBRARY="C:\irrlicht-1.8.2\lib\Win64-visualStudio\Irrlicht.lib" ^
- -DENABLE_MODULE_CASCADE=ON ^
+ -DEIGEN3_INCLUDE_DIR="C:\eigen-eigen-323c052e1731" ^
+ -DENABLE_MODULE_CASCADE=OFF ^
  -DCASCADE_INCLUDE_DIR="%CONDA_INSTALL_LOCN%"\envs\myenv\Library\include\oce ^
  -DCASCADE_LIBDIR="%CONDA_INSTALL_LOCN%"\envs\myenv\Library\lib ^
- -DENABLE_MODULE_MKL=ON ^
+ -DENABLE_MODULE_MKL=OFF ^
  -DMKL_INCLUDE_DIR="%CONDA_INSTALL_LOCN%"\envs\myenv\Library\include ^
  -DMKL_RT_LIBRARY="%CONDA_INSTALL_LOCN%"\envs\myenv\Library\lib\mkl_rt.lib ^
  ..
