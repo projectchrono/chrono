@@ -174,6 +174,8 @@ source_group("chassis" FILES ${CV_CHASSIS_FILES})
 set(CV_DRIVER_FILES
     driver/ChDataDriver.h
     driver/ChDataDriver.cpp
+    driver/ChHumanDriver.h
+    driver/ChHumanDriver.cpp
     driver/ChPathFollowerDriver.h
     driver/ChPathFollowerDriver.cpp
     driver/ChPathFollowerACCDriver.h
