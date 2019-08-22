@@ -142,8 +142,8 @@ install:
     # needed by Irr 
     - sh: sudo apt-get install libxxf86vm-dev -y
     - sh: sudo apt-get install libglu1-mesa-dev freeglut3-dev mesa-common-dev -y
-    - ps: Start-FileDownload 'http://bitbucket.org/eigen/eigen/get/3.3.7.zip'
-    - ps: 7z x 3.3.7.zip -o~/ -y
+    - sh: Start-FileDownload 'http://bitbucket.org/eigen/eigen/get/3.3.7.zip'
+    - sh: 7z x 3.3.7.zip -o~/ -y
     # had issues manually sompiling shared irrlicht
     #- ps: Start-FileDownload 'http://downloads.sourceforge.net/irrlicht/irrlicht-1.8.2.zip'
     #- ps: 7z x irrlicht-1.8.2.zip -oIRR -y
