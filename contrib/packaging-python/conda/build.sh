@@ -35,10 +35,10 @@ cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DBUILD_TESTING=OFF \
  -DBUILD_BENCHMARKING=OFF \
  -DBUILD_GMOCK=OFF \
- -DENABLE_MODULE_CASCADE=ON \
+ -DENABLE_MODULE_CASCADE=OFF \
  -DCASCADE_INCLUDE_DIR=$HOME/miniconda3/envs/myenv/include/oce \
  -DCASCADE_LIBDIR=$HOME/miniconda3/envs/myenv/lib \
- -DENABLE_MODULE_MKL=ON \
+ -DENABLE_MODULE_MKL=OFF \
  -DMKL_INCLUDE_DIR=$HOME/miniconda3/envs/myenv/include \
  -DMKL_RT_LIBRARY=$HOME/miniconda3/envs/myenv/lib/libmkl_rt.so \
  ./..

@@ -170,9 +170,9 @@ install:
 
     - sh: conda config --add channels https://conda.anaconda.org/conda-forge
     - sh: conda config --add channels https://conda.anaconda.org/intel
-    - sh: conda install -c conda-forge -c dlr-sc -c pythonocc -c oce -c 3dhubs oce==0.18.2 --yes
+    #- sh: conda install -c conda-forge -c dlr-sc -c pythonocc -c oce -c 3dhubs oce==0.18.2 --yes
     #- sh: conda install -c cadquery pythonocc-core --yes
-    - sh: conda install -c intel mkl-devel --yes
+    #- sh: conda install -c intel mkl-devel --yes
 
 build: off
 
