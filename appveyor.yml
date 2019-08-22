@@ -140,7 +140,6 @@ install:
 ############################################### UBUNTU ###############################################################
 
     # needed by Irr 
-    - sh: pippo
     - sh: sudo apt-get install libxxf86vm-dev -y
     - sh: sudo apt-get install libglu1-mesa-dev freeglut3-dev mesa-common-dev -y
     # had issues manually sompiling shared irrlicht
