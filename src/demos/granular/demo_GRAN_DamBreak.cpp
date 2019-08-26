@@ -123,10 +123,10 @@ int main(int argc, char* argv[]) {
 
     if (argc == num_args_full) {
         params.sphere_radius = std::atof(argv[2]);
-        params.cohesion_ratio = std::atof(argv[3]);
+        params.run_mode = std::atof(argv[3]);
         params.box_Y = std::atof(argv[4]);
         params.output_dir = std::string(argv[5]);
-        printf("new parameters: r is %f, cohes is %f, y is %f, %s\n", params.sphere_radius, params.cohesion_ratio,
+        printf("new parameters: r is %f, run_mode is %d, y is %f, %s\n", params.sphere_radius, params.run_mode,
                params.box_Y, params.output_dir.c_str());
     }
 
