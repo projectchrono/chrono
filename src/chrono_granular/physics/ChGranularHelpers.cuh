@@ -206,16 +206,14 @@ inline __device__ bool clampTangentDisplacement(GranParamsPtr gran_params,
     float ut_max = static_friction_coeff * Length(normal_force) / (kt * force_model_multiplier);
     // TODO also consider wall mu and kt clamping
     float ut = Length(tangent_disp);
-    constexpr float GRAN_MACHINE_EPSILON = 1.e-8f;
+    constexpr float GRAN_MACHINE_EPSILON = 1.e-3f;  // This is SU length
     // If u_t is very small, force it to be exactly zero and return no clamping
     if (ut < GRAN_MACHINE_EPSILON) {
         tangent_disp = make_float3(0.f, 0.f, 0.f);
         return false;
     }
     if (ut > ut_max) {
-        // TODO is this stable???:Q
-
-        tangent_disp = tangent_disp * ut_max / ut;
+        tangent_disp = tangent_disp * ut_max / ut;  // TODO is this stable???
         return true;
     }
     return false;
@@ -277,10 +275,14 @@ inline __device__ float3 computeRollingAngAcc(GranSphereDataPtr sphere_data,
         gran_params->rolling_mode != GRAN_ROLLING_MODE::NO_RESISTANCE) {
         float3 omega_rel = my_omega - their_omega;
         float omega_rel_mag = Length(omega_rel);
+
         // normalize relative rotation
-        if (omega_rel_mag != 0.f) {  // TODO some small bound?
-            omega_rel = omega_rel / omega_rel_mag;
+        constexpr float GRAN_MACHINE_EPSILON = 1e-5f;  // TODO this is an SU rel ang vel
+        if (omega_rel_mag < GRAN_MACHINE_EPSILON) {
+            return make_float3(0.f, 0.f, 0.f);  // No resistance if too little relative roll
         }
+
+        omega_rel = omega_rel / omega_rel_mag;
 
         const float normal_force_mag = Length(normal_force);
         switch (gran_params->rolling_mode) {

@@ -151,7 +151,7 @@ int main(int argc, char* argv[]) {
 
     m_sys.setOutputMode(params.write_mode);
     string out_dir(argv[2]);
-    m_sys.setOutputDirectory(out_dir);
+    m_sys.setVerbose(params.verbose);
     filesystem::create_directory(filesystem::path(out_dir));
 
     m_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
@@ -185,6 +185,7 @@ int main(int argc, char* argv[]) {
     }
 
     unsigned int n_spheres = body_points.size();
+    cout << "Adding " << n_spheres << " particles" << endl;
     m_sys.setParticlePositions(body_points);
 
     vector<string> mesh_filenames;
@@ -192,7 +193,7 @@ int main(int argc, char* argv[]) {
     vector<float> mesh_masses;
     const float mass = 10;
 
-    string mesh_filename("granular/cylinder_lift/cylinder_refined.obj");
+    string mesh_filename("data/granular/cylinder_lift/cylinder_refined.obj");
     mesh_filenames.push_back(mesh_filename);
     mesh_scalings.push_back(scaling);
     mesh_masses.push_back(mass);
