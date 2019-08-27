@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Conlain Kelly
+// Authors: Conlain Kelly, Nic Olsen
 // =============================================================================
 // Chrono::Granular demo program using SMC method for frictional contact for a
 // Dam Break Simulation
@@ -24,24 +24,20 @@
 
 using namespace chrono;
 using namespace chrono::granular;
+
 using std::cout;
 using std::endl;
 using std::string;
 
 enum run_mode { FRICTIONLESS_NOCYL = 0, FRICTIONLESS_WITHCYL = 1, MULTI_STEP_NOCYL = 2, MULTI_STEP_WITHCYL = 3 };
 
-// expected number of args for param sweep
-constexpr int num_args_full = 6;
-
-// whether or not to have a cylinder blocking the flow
+// whether or not to have a cylinder blocking the flow. Set by run_mode.
 bool use_cylinder = false;
 
-// -----------------------------------------------------------------------------
-// Show command line usage
-// -----------------------------------------------------------------------------
 void ShowUsage() {
-    cout << "usage: ./demo_GRAN_DamBreak <json_file> [<radius> <psi_L> <length_Y> <output_dir>]" << endl;
-    cout << "must have either 1 or " << num_args_full - 1 << " arguments" << endl;
+    cout << "usage: ./demo_GRAN_DamBreak <json_file> <radius> <density> <run_mode: 0-FRICTIONLESS_NOCYL, "
+            "1-FRICTIONLESS_WITHCYL, 2-MULTI_STEP_NOCYL, 3-MULTI_STEP_WITHCYL> <box_Y> <output_dir>"
+         << endl;
 }
 
 std::string box_filename = "BD_Box.obj";
@@ -49,7 +45,6 @@ std::string cyl_filename = "Gran_cylinder.obj";
 
 sim_param_holder params;
 
-// Take a ChBody and write its
 void writeBoxMesh(std::ostringstream& outstream) {
     ChVector<> pos(0, 0, 0);
     // Get basis vectors
@@ -80,7 +75,6 @@ void writeBoxMesh(std::ostringstream& outstream) {
     outstream << "\n";
 }
 
-// Take a ChBody and write its
 void writeZCylinderMesh(std::ostringstream& outstream, ChVector<> pos, float rad, float height) {
     // Get basis vectors
     ChVector<> vx(1, 0, 0);
@@ -110,25 +104,24 @@ void writeZCylinderMesh(std::ostringstream& outstream, ChVector<> pos, float rad
     outstream << "\n";
 }
 
-// -----------------------------------------------------------------------------
-// Demo for settling a monodisperse collection of shperes in a rectangular box.
-// The units are always cm/s/g[L/T/M].
-// -----------------------------------------------------------------------------
 int main(int argc, char* argv[]) {
     // Some of the default values might be overwritten by user via command line
-    if (argc < 2 || argc > 2 && argc != num_args_full || ParseJSON(argv[1], params) == false) {
+    if (argc != 7 || ParseJSON(argv[1], params) == false) {
         ShowUsage();
         return 1;
     }
 
-    if (argc == num_args_full) {
-        params.sphere_radius = std::atof(argv[2]);
-        params.run_mode = std::atof(argv[3]);
-        params.box_Y = std::atof(argv[4]);
-        params.output_dir = std::string(argv[5]);
-        printf("new parameters: r is %f, run_mode is %d, y is %f, %s\n", params.sphere_radius, params.run_mode,
-               params.box_Y, params.output_dir.c_str());
-    }
+    params.sphere_radius = std::atof(argv[2]);
+    params.sphere_density = std::atof(argv[3]);
+    params.run_mode = std::atof(argv[4]);
+    params.box_Y = std::atof(argv[5]);
+    params.output_dir = std::string(argv[6]);
+
+    cout << "Radius " << params.sphere_radius << endl;
+    cout << "Density " << params.sphere_density << endl;
+    cout << "Run Mode " << params.run_mode << endl;
+    cout << "box_Y " << params.box_Y << endl;
+    cout << "output_dir " << params.output_dir << endl;
 
     // Setup simulation
     ChSystemGranularSMC gran_system(params.sphere_radius, params.sphere_density,
@@ -148,7 +141,6 @@ int main(int argc, char* argv[]) {
     gran_system.set_Cohesion_ratio(params.cohesion_ratio);
     gran_system.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
     gran_system.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
-    gran_system.setOutputDirectory(params.output_dir);
     gran_system.setOutputMode(params.write_mode);
 
     gran_system.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
@@ -171,14 +163,18 @@ int main(int argc, char* argv[]) {
             use_cylinder = true;
             break;
         case run_mode::FRICTIONLESS_NOCYL:
-        default:
-            // fall through to frictionless as default
             gran_system.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
             use_cylinder = false;
+            break;
+        default:
+            cout << "Invalid run_mode" << endl;
+            ShowUsage();
+            return 1;
     }
 
     // offset of radius from walls
     ChVector<float> rad_offset = 1.02f * params.sphere_radius * ChVector<float>(1, 1, 1);
+
     // (2 x 1 x 1) box (x,y,z)
     float sphere_diam = 2.f * params.sphere_radius;
 
@@ -194,14 +190,17 @@ int main(int argc, char* argv[]) {
         utils::PDLayerSampler_BOX<float>(center, hdims, 2. * params.sphere_radius, 1.02);
 
     std::vector<ChVector<float>> first_points;
-    // first_points.push_back(body_points.at(10000));
+
+    cout << "Adding " << body_points.size() << " particles" << endl;
     gran_system.setParticlePositions(body_points);
+
     // just at end of material
     float plane_center[3] = {center.x() + hdims.x() + sphere_diam, 0, 0};
+
     // face in -y, hold material in
     float plane_normal[3] = {-1, 0, 0};
 
-    printf("fill center is %f, %f, %f, plane center is is %f, %f, %f\n", center[0], center[1], center[2],
+    printf("fill center is %f, %f, %f, plane center is %f, %f, %f\n", center[0], center[1], center[2],
            plane_center[0], plane_center[1], plane_center[2]);
     size_t plane_bc_id = gran_system.Create_BC_Plane(plane_center, plane_normal, true);
 
@@ -218,15 +217,13 @@ int main(int argc, char* argv[]) {
 
     // Finalize settings and initialize for runtime
     gran_system.initialize();
-    // gran_system.disable_BC_by_ID(plane_bc_id);
 
     int fps = 50;
-    // assume we run for at least one frame
     float frame_step = 1. / fps;
     float curr_time = 0;
     int currframe = 0;
 
-    std::cout << "frame step is " << frame_step << std::endl;
+    cout << "frame step is " << frame_step << endl;
     bool plane_active = true;
     float reaction_forces[3] = {0, 0, 0};
 
@@ -278,12 +275,13 @@ int main(int argc, char* argv[]) {
                 }
             }
         }
+        
         gran_system.advance_simulation(frame_step);
         curr_time += frame_step;
         printf("rendering frame %u\n", currframe);
         char filename[100];
         sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
-        gran_system.writeFile(std::string(filename));
+        gran_system.writeFile(string(filename));
     }
 
     return 0;
