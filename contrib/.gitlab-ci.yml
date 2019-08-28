@@ -14,7 +14,7 @@
     entrypoint: ["/usr/bin/bash", "-c"]
   before_script:
   - uname -a
-  - pacman -Syyu --noconfirm base-devel cuda git cmake glfw glm glew glut irrlicht wget boost fish python python-pip openmpi swig
+  - pacman -Syyu --noconfirm base-devel cuda git eigen cmake glfw glm glew glut irrlicht wget boost fish python python-pip openmpi swig
   - ldconfig
   - wget https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.5.tar.gz
   - tar -xf blaze-3.5.tar.gz
