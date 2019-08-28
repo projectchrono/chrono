@@ -36,7 +36,9 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/RigidTire.h"
-
+#include "chrono_vehicle/wheeled_vehicle/tire/FialaTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/TMeasyTire.h"
+#include "chrono_vehicle/wheeled_vehicle/suspension/ChDoubleWishbone.h"
 #include "chrono_vehicle/ChConfigVehicle.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -53,6 +55,8 @@
 
 using namespace chrono;
 using namespace chrono::vehicle;
+
+std::wstring winTitle = L"Vehicle Demo";
 
 // =============================================================================
 
@@ -85,6 +89,12 @@ std::string simplepowertrain_file("generic/powertrain/SimplePowertrain.json");
 std::string rigidtire_file("hmmwv/tire/HMMWV_RigidTire.json");
 ////std::string rigidtire_file("hmmwv/tire/HMMWV_RigidMeshTire.json");
 ////std::string rigidtire_file("generic/tire/RigidTire.json");
+
+// JSON files tire models (Fiala)
+std::string fialatire_file("hmmwv/tire/HMMWV_Fiala_converted.json");
+
+// JSON files tire models (TMeasy)
+std::string tmeasytire_file("hmmwv/tire/HMMWV_TMeasy_converted.json");
 
 // Driver input file (if not using Irrlicht)
 std::string driver_file("generic/driver/Sample_Maneuver.txt");
@@ -120,11 +130,14 @@ double tend = 20.0;
 const std::string out_dir = GetChronoOutputPath() + "WHEELED_JSON";
 const std::string pov_dir = out_dir + "/POVRAY";
 
+typedef enum { rigid_tire, fiala_tire, tmeasy_tire } TireToUse;
+
 // =============================================================================
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
+    TireToUse myTire = fiala_tire;
     // --------------------------
     // Create the various modules
     // --------------------------
@@ -149,17 +162,40 @@ int main(int argc, char* argv[]) {
     // Create and initialize the tires
     int num_axles = vehicle.GetNumberAxles();
     int num_wheels = 2 * num_axles;
-    std::vector<std::shared_ptr<RigidTire> > tires(num_wheels);
+    std::vector<std::shared_ptr<RigidTire> > tires_rigid(num_wheels);
+    std::vector<std::shared_ptr<FialaTire> > tires_fiala(num_wheels);
+    std::vector<std::shared_ptr<TMeasyTire> > tires_tmeasy(num_wheels);
 
     for (int i = 0; i < num_wheels; i++) {
-        tires[i] = chrono_types::make_shared<RigidTire>(vehicle::GetDataFile(rigidtire_file));
-        tires[i]->Initialize(vehicle.GetWheelBody(i), VehicleSide(i % 2));
-        tires[i]->SetVisualizationType(VisualizationType::MESH);
+        switch (myTire) {
+            case rigid_tire:
+                tires_rigid[i] = chrono_types::make_shared<RigidTire>(vehicle::GetDataFile(rigidtire_file));
+                tires_rigid[i]->Initialize(vehicle.GetWheelBody(i), VehicleSide(i % 2));
+                tires_rigid[i]->SetVisualizationType(VisualizationType::MESH);
+                if (i == 0)
+                    winTitle.append(L" (Rigid Tires)");
+                break;
+            case fiala_tire:
+                tires_fiala[i] = chrono_types::make_shared<FialaTire>(vehicle::GetDataFile(fialatire_file));
+                tires_fiala[i]->Initialize(vehicle.GetWheelBody(i), VehicleSide(i % 2));
+                tires_fiala[i]->SetVisualizationType(VisualizationType::MESH);
+                if (i == 0)
+                    winTitle.append(L" (Fiala Tires)");
+                break;
+            case tmeasy_tire:
+                tires_tmeasy[i] = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasytire_file));
+                tires_tmeasy[i]->Initialize(vehicle.GetWheelBody(i), VehicleSide(i % 2));
+                tires_tmeasy[i]->SetVisualizationType(VisualizationType::MESH);
+                if (i == 0)
+                    winTitle.append(L" (TMeasy Tires)");
+                break;
+                break;
+        }
     }
 
 #ifdef USE_IRRLICHT
 
-    ChVehicleIrrApp app(&vehicle, &powertrain, L"Vehicle Demo");
+    ChVehicleIrrApp app(&vehicle, &powertrain, winTitle.c_str());
 
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
@@ -274,7 +310,17 @@ int main(int argc, char* argv[]) {
         powertrain_torque = powertrain.GetOutputTorque();
         driveshaft_speed = vehicle.GetDriveshaftSpeed();
         for (int i = 0; i < num_wheels; i++) {
-            tire_forces[i] = tires[i]->GetTireForce();
+            switch (myTire) {
+                case rigid_tire:
+                    tire_forces[i] = tires_rigid[i]->GetTireForce();
+                    break;
+                case fiala_tire:
+                    tire_forces[i] = tires_fiala[i]->GetTireForce();
+                    break;
+                case tmeasy_tire:
+                    tire_forces[i] = tires_tmeasy[i]->GetTireForce();
+                    break;
+            }
             wheel_states[i] = vehicle.GetWheelState(i);
         }
 
@@ -284,8 +330,19 @@ int main(int argc, char* argv[]) {
         powertrain.Synchronize(time, throttle_input, driveshaft_speed);
         vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, tire_forces);
         terrain.Synchronize(time);
-        for (int i = 0; i < num_wheels; i++)
-            tires[i]->Synchronize(time, wheel_states[i], terrain);
+        for (int i = 0; i < num_wheels; i++) {
+            switch (myTire) {
+                case rigid_tire:
+                    tires_rigid[i]->Synchronize(time, wheel_states[i], terrain);
+                    break;
+                case fiala_tire:
+                    tires_fiala[i]->Synchronize(time, wheel_states[i], terrain);
+                    break;
+                case tmeasy_tire:
+                    tires_tmeasy[i]->Synchronize(time, wheel_states[i], terrain);
+                    break;
+            }
+        }
         app.Synchronize(driver.GetInputModeAsString(), steering_input, throttle_input, braking_input);
 
         // Advance simulation for one timestep for all modules
@@ -295,9 +352,18 @@ int main(int argc, char* argv[]) {
         vehicle.Advance(step);
         terrain.Advance(step);
         for (int i = 0; i < num_wheels; i++)
-            tires[i]->Advance(step);
+            switch (myTire) {
+                case rigid_tire:
+                    tires_rigid[i]->Advance(step);
+                    break;
+                case fiala_tire:
+                    tires_fiala[i]->Advance(step);
+                    break;
+                case tmeasy_tire:
+                    tires_tmeasy[i]->Advance(step);
+                    break;
+            }
         app.Advance(step);
-
         // Increment frame number
         step_number++;
 
@@ -333,7 +399,17 @@ int main(int argc, char* argv[]) {
         powertrain_torque = powertrain.GetOutputTorque();
         driveshaft_speed = vehicle.GetDriveshaftSpeed();
         for (int i = 0; i < num_wheels; i++) {
-            tire_forces[i] = tires[i]->GetTireForce();
+            switch (myTire) {
+                case rigid_tire:
+                    tire_forces[i] = tires_rigid[i]->GetTireForce();
+                    break;
+                case fiala_tire:
+                    tire_forces[i] = tires_fiala[i]->GetTireForce();
+                    break;
+                case tmeasy_tire:
+                    tire_forces[i] = tires_tmeasy[i]->GetTireForce();
+                    break;
+            }
             wheel_states[i] = vehicle.GetWheelState(i);
         }
 
@@ -344,7 +420,17 @@ int main(int argc, char* argv[]) {
         vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, tire_forces);
         terrain.Synchronize(time);
         for (int i = 0; i < num_wheels; i++)
-            tires[i]->Synchronize(time, wheel_states[i], terrain);
+            switch (myTire) {
+                case rigid_tire:
+                    tires_rigid[i]->Synchronize(time, wheel_states[i], terrain);
+                    break;
+                case fiala_tire:
+                    tires_fiala[i]->Synchronize(time, wheel_states[i], terrain);
+                    break;
+                case tmeasy_tire:
+                    tires_tmeasy[i]->Synchronize(time, wheel_states[i], terrain);
+                    break;
+            }
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
@@ -352,7 +438,17 @@ int main(int argc, char* argv[]) {
         vehicle.Advance(step_size);
         terrain.Advance(step_size);
         for (int i = 0; i < num_wheels; i++)
-            tires[i]->Advance(step_size);
+            switch (myTire) {
+                case rigid_tire:
+                    tires_rigid[i]->Advance(step_size);
+                    break;
+                case fiala_tire:
+                    tires_fiala[i]->Advance(step_size);
+                    break;
+                case tmeasy_tire:
+                    tires_tmeasy[i]->Advance(step_size);
+                    break;
+            }
 
         // Increment frame number
         step_number++;
