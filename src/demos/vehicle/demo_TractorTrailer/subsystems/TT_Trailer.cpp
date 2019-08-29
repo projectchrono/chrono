@@ -192,40 +192,34 @@ void TT_Trailer::SetWheelVisualizationType(VisualizationType vis) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-double TT_Trailer::GetSpringForce(const WheelID& wheel_id) const {
+double TT_Trailer::GetSpringForce(int axle, VehicleSide side) const {
     switch (m_suspType) {
         case SuspensionType::SOLID_AXLE:
-            return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])
-                ->GetSpringForce(wheel_id.side());
+            return std::static_pointer_cast<ChSolidAxle>(m_suspensions[axle])->GetSpringForce(side);
         case SuspensionType::MULTI_LINK:
-            return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])
-                ->GetSpringForce(wheel_id.side());
+            return std::static_pointer_cast<ChMultiLink>(m_suspensions[axle])->GetSpringForce(side);
         default:
             return -1;
     }
 }
 
-double TT_Trailer::GetSpringLength(const WheelID& wheel_id) const {
+double TT_Trailer::GetSpringLength(int axle, VehicleSide side) const {
     switch (m_suspType) {
         case SuspensionType::SOLID_AXLE:
-            return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])
-                ->GetSpringLength(wheel_id.side());
+            return std::static_pointer_cast<ChSolidAxle>(m_suspensions[axle])->GetSpringLength(side);
         case SuspensionType::MULTI_LINK:
-            return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])
-                ->GetSpringLength(wheel_id.side());
+            return std::static_pointer_cast<ChMultiLink>(m_suspensions[axle])->GetSpringLength(side);
         default:
             return -1;
     }
 }
 
-double TT_Trailer::GetSpringDeformation(const WheelID& wheel_id) const {
+double TT_Trailer::GetSpringDeformation(int axle, VehicleSide side) const {
     switch (m_suspType) {
         case SuspensionType::SOLID_AXLE:
-            return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])
-                ->GetSpringDeformation(wheel_id.side());
+            return std::static_pointer_cast<ChSolidAxle>(m_suspensions[axle])->GetSpringDeformation(side);
         case SuspensionType::MULTI_LINK:
-            return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])
-                ->GetSpringDeformation(wheel_id.side());
+            return std::static_pointer_cast<ChMultiLink>(m_suspensions[axle])->GetSpringDeformation(side);
         default:
             return -1;
     }
@@ -233,40 +227,34 @@ double TT_Trailer::GetSpringDeformation(const WheelID& wheel_id) const {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-double TT_Trailer::GetShockForce(const WheelID& wheel_id) const {
+double TT_Trailer::GetShockForce(int axle, VehicleSide side) const {
     switch (m_suspType) {
         case SuspensionType::SOLID_AXLE:
-            return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])
-                ->GetShockForce(wheel_id.side());
+            return std::static_pointer_cast<ChSolidAxle>(m_suspensions[axle])->GetShockForce(side);
         case SuspensionType::MULTI_LINK:
-            return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])
-                ->GetShockForce(wheel_id.side());
+            return std::static_pointer_cast<ChMultiLink>(m_suspensions[axle])->GetShockForce(side);
         default:
             return -1;
     }
 }
 
-double TT_Trailer::GetShockLength(const WheelID& wheel_id) const {
+double TT_Trailer::GetShockLength(int axle, VehicleSide side) const {
     switch (m_suspType) {
         case SuspensionType::SOLID_AXLE:
-            return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])
-                ->GetShockLength(wheel_id.side());
+            return std::static_pointer_cast<ChSolidAxle>(m_suspensions[axle])->GetShockLength(side);
         case SuspensionType::MULTI_LINK:
-            return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])
-                ->GetShockLength(wheel_id.side());
+            return std::static_pointer_cast<ChMultiLink>(m_suspensions[axle])->GetShockLength(side);
         default:
             return -1;
     }
 }
 
-double TT_Trailer::GetShockVelocity(const WheelID& wheel_id) const {
+double TT_Trailer::GetShockVelocity(int axle, VehicleSide side) const {
     switch (m_suspType) {
         case SuspensionType::SOLID_AXLE:
-            return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])
-                ->GetShockVelocity(wheel_id.side());
+            return std::static_pointer_cast<ChSolidAxle>(m_suspensions[axle])->GetShockVelocity(side);
         case SuspensionType::MULTI_LINK:
-            return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])
-                ->GetShockVelocity(wheel_id.side());
+            return std::static_pointer_cast<ChMultiLink>(m_suspensions[axle])->GetShockVelocity(side);
         default:
             return -1;
     }
@@ -333,23 +321,22 @@ void TT_Trailer::DebugLog(int what) {
 
     if (what & OUT_SPRINGS) {
         GetLog() << "\n---- Spring (front-left, front-right, rear-left, rear-right)\n";
-        GetLog() << "Length [inch]       " << GetSpringLength(FRONT_LEFT) << "  " << GetSpringLength(FRONT_RIGHT)
-                 << "  " << GetSpringLength(REAR_LEFT) << "  " << GetSpringLength(REAR_RIGHT) << "\n";
-        GetLog() << "Deformation [inch]  " << GetSpringDeformation(FRONT_LEFT) << "  "
-                 << GetSpringDeformation(FRONT_RIGHT) << "  " << GetSpringDeformation(REAR_LEFT) << "  "
-                 << GetSpringDeformation(REAR_RIGHT) << "\n";
-        GetLog() << "Force [lbf]         " << GetSpringForce(FRONT_LEFT) << "  " << GetSpringForce(FRONT_RIGHT) << "  "
-                 << GetSpringForce(REAR_LEFT) << "  " << GetSpringForce(REAR_RIGHT) << "\n";
+        GetLog() << "Length [inch]       " << GetSpringLength(0, LEFT) << "  " << GetSpringLength(0, RIGHT) << "  "
+                 << GetSpringLength(1, LEFT) << "  " << GetSpringLength(1, RIGHT) << "\n";
+        GetLog() << "Deformation [inch]  " << GetSpringDeformation(0, LEFT) << "  " << GetSpringDeformation(0, RIGHT)
+                 << "  " << GetSpringDeformation(1, LEFT) << "  " << GetSpringDeformation(1, RIGHT) << "\n";
+        GetLog() << "Force [lbf]         " << GetSpringForce(0, LEFT) << "  " << GetSpringForce(0, RIGHT) << "  "
+                 << GetSpringForce(1, LEFT) << "  " << GetSpringForce(1, RIGHT) << "\n";
     }
 
     if (what & OUT_SHOCKS) {
         GetLog() << "\n---- Shock (front-left, front-right, rear-left, rear-right)\n";
-        GetLog() << "Length [inch]       " << GetShockLength(FRONT_LEFT) << "  " << GetShockLength(FRONT_RIGHT) << "  "
-                 << GetShockLength(REAR_LEFT) << "  " << GetShockLength(REAR_RIGHT) << "\n";
-        GetLog() << "Velocity [inch/s]   " << GetShockVelocity(FRONT_LEFT) << "  " << GetShockVelocity(FRONT_RIGHT)
-                 << "  " << GetShockVelocity(REAR_LEFT) << "  " << GetShockVelocity(REAR_RIGHT) << "\n";
-        GetLog() << "Force [lbf]         " << GetShockForce(FRONT_LEFT) << "  " << GetShockForce(FRONT_RIGHT) << "  "
-                 << GetShockForce(REAR_LEFT) << "  " << GetShockForce(REAR_RIGHT) << "\n";
+        GetLog() << "Length [inch]       " << GetShockLength(0, LEFT) << "  " << GetShockLength(0, RIGHT) << "  "
+                 << GetShockLength(1, LEFT) << "  " << GetShockLength(1, RIGHT) << "\n";
+        GetLog() << "Velocity [inch/s]   " << GetShockVelocity(0, LEFT) << "  " << GetShockVelocity(0, RIGHT) << "  "
+                 << GetShockVelocity(1, LEFT) << "  " << GetShockVelocity(1, RIGHT) << "\n";
+        GetLog() << "Force [lbf]         " << GetShockForce(0, LEFT) << "  " << GetShockForce(0, RIGHT) << "  "
+                 << GetShockForce(1, LEFT) << "  " << GetShockForce(1, RIGHT) << "\n";
     }
 
     GetLog().SetNumFormat("%g");

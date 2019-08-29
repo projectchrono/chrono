@@ -272,6 +272,8 @@ source_group("output" FILES ${CV_OUTPUT_FILES} ${CVHDF5_OUTPUT_FILES})
 # --------------- WHEELED VEHICLE FILES
 
 set(CV_WV_BASE_FILES
+    wheeled_vehicle/ChAxle.h
+    wheeled_vehicle/ChAxle.cpp
     wheeled_vehicle/ChAntirollBar.h
     wheeled_vehicle/ChAntirollBar.cpp
     wheeled_vehicle/ChBrake.h

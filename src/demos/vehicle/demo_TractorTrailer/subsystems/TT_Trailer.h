@@ -29,13 +29,13 @@ class TT_Trailer {
 
     virtual int GetNumberAxles() const { return 2; }
 
-    double GetSpringForce(const chrono::vehicle::WheelID& wheel_id) const;
-    double GetSpringLength(const chrono::vehicle::WheelID& wheel_id) const;
-    double GetSpringDeformation(const chrono::vehicle::WheelID& wheel_id) const;
+    double GetSpringForce(int axle, chrono::vehicle::VehicleSide side) const;
+    double GetSpringLength(int axle, chrono::vehicle::VehicleSide side) const;
+    double GetSpringDeformation(int axle, chrono::vehicle::VehicleSide side) const;
 
-    double GetShockForce(const chrono::vehicle::WheelID& wheel_id) const;
-    double GetShockLength(const chrono::vehicle::WheelID& wheel_id) const;
-    double GetShockVelocity(const chrono::vehicle::WheelID& wheel_id) const;
+    double GetShockForce(int axle, chrono::vehicle::VehicleSide side) const;
+    double GetShockLength(int axle, chrono::vehicle::VehicleSide side) const;
+    double GetShockVelocity(int axle, chrono::vehicle::VehicleSide side) const;
 
     virtual void Initialize(const chrono::ChCoordsys<>& chassisPos,
                             const bool connect_to_puller,

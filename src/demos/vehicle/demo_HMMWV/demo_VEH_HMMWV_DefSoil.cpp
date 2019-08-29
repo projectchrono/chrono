@@ -214,13 +214,17 @@ int main(int argc, char* argv[]) {
     // Set wheel contact material.
     // If needed, modify wheel contact and visualization models
     // --------------------------------------------------------
-    for (auto wheel : my_hmmwv.GetVehicle().GetWheels()) {
-        auto wheelBody = wheel->GetSpindle();
-        wheelBody->GetMaterialSurfaceSMC()->SetFriction(mu_t);
-        wheelBody->GetMaterialSurfaceSMC()->SetYoungModulus(Y_t);
-        wheelBody->GetMaterialSurfaceSMC()->SetRestitution(cr_t);
-
-        CreateLuggedGeometry(wheelBody);
+    for (auto& axle : my_hmmwv.GetVehicle().GetAxles()) {
+        auto wheelBodyL = axle->m_wheels_left[0]->GetSpindle();
+        wheelBodyL->GetMaterialSurfaceSMC()->SetFriction(mu_t);
+        wheelBodyL->GetMaterialSurfaceSMC()->SetYoungModulus(Y_t);
+        wheelBodyL->GetMaterialSurfaceSMC()->SetRestitution(cr_t);
+        CreateLuggedGeometry(wheelBodyL);
+        auto wheelBodyR = axle->m_wheels_right[0]->GetSpindle();
+        wheelBodyR->GetMaterialSurfaceSMC()->SetFriction(mu_t);
+        wheelBodyR->GetMaterialSurfaceSMC()->SetYoungModulus(Y_t);
+        wheelBodyR->GetMaterialSurfaceSMC()->SetRestitution(cr_t);
+        CreateLuggedGeometry(wheelBodyR);
     }
 
     // --------------------
@@ -341,9 +345,6 @@ int main(int argc, char* argv[]) {
 
     while (app.GetDevice()->run()) {
         double time = system->GetChTime();
-
-        ////auto frc = static_cast<ChRigidTire*>(my_hmmwv.GetTire(0))->ReportTireForce(terrain);
-        ////std::cout << frc.force.x() << " " << frc.force.y() << " " << frc.force.z() << std::endl;
 
         // Render scene
         app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));

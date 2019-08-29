@@ -123,9 +123,8 @@ int main(int argc, char* argv[]) {
             return 1;
     }
 
-    auto front_wheels = front_side.GetWheels();
-    tire_FL->Initialize(front_wheels[0]);
-    tire_FR->Initialize(front_wheels[1]);
+    tire_FL->Initialize(front_side.GetAxle(0)->m_wheels_left[0]);
+    tire_FR->Initialize(front_side.GetAxle(0)->m_wheels_right[0]);
     tire_FL->SetVisualizationType(VisualizationType::MESH);
     tire_FR->SetVisualizationType(VisualizationType::MESH);
 

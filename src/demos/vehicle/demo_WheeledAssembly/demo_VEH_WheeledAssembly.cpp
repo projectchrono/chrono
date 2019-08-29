@@ -330,8 +330,9 @@ int main(int argc, char* argv[]) {
 
     // Initially, fix the chassis and wheel bodies (will be released after time_hold).
     vehicle_assembly.GetVehicle()->GetChassisBody()->SetBodyFixed(true);
-    for (auto wheel : vehicle_assembly.GetVehicle()->GetWheels()) {
-        wheel->GetSpindle()->SetBodyFixed(true);
+    for (auto& axle : vehicle_assembly.GetVehicle()->GetAxles()) {
+        axle->m_suspension->GetSpindle(LEFT)->SetBodyFixed(true);
+        axle->m_suspension->GetSpindle(RIGHT)->SetBodyFixed(true);
     }
 
     // -----------------------
@@ -355,8 +356,9 @@ int main(int argc, char* argv[]) {
         if (vehicle_assembly.GetVehicle()->GetChassis()->IsFixed() && time > time_hold) {
             cout << endl << "Release vehicle t = " << time << endl;
             vehicle_assembly.GetVehicle()->GetChassisBody()->SetBodyFixed(false);
-            for (auto wheel : vehicle_assembly.GetVehicle()->GetWheels()) {
-                wheel->GetSpindle()->SetBodyFixed(false);
+            for (auto& axle : vehicle_assembly.GetVehicle()->GetAxles()) {
+                axle->m_suspension->GetSpindle(LEFT)->SetBodyFixed(false);
+                axle->m_suspension->GetSpindle(RIGHT)->SetBodyFixed(false);
             }
         }
 

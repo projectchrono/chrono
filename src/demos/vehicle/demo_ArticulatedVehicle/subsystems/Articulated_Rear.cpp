@@ -166,18 +166,18 @@ void Articulated_Rear::Synchronize(double time, double steering, double braking)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-const ChVector<>& Articulated_Rear::GetWheelPos(VehicleSide side) const {
+const ChVector<>& Articulated_Rear::GetSpindlePos(VehicleSide side) const {
     return m_suspension->GetSpindlePos(side);
 }
 
-const ChQuaternion<>& Articulated_Rear::GetWheelRot(VehicleSide side) const {
+const ChQuaternion<>& Articulated_Rear::GetSpindleRot(VehicleSide side) const {
     return m_suspension->GetSpindleRot(side);
 }
 
-const ChVector<>& Articulated_Rear::GetWheelLinVel(VehicleSide side) const {
+const ChVector<>& Articulated_Rear::GetSpindleLinVel(VehicleSide side) const {
     return m_suspension->GetSpindleLinVel(side);
 }
 
-ChVector<> Articulated_Rear::GetWheelAngVel(VehicleSide side) const {
+ChVector<> Articulated_Rear::GetSpindleAngVel(VehicleSide side) const {
     return m_suspension->GetSpindleAngVel(side);
 }

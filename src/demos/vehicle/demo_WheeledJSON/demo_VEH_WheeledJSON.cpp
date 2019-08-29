@@ -144,14 +144,17 @@ int main(int argc, char* argv[]) {
     powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
 
     // Create and initialize the tires
-    auto wheels = vehicle.GetWheels();
-    auto num_wheels = wheels.size();
-    std::vector<std::shared_ptr<RigidTire> > tires(num_wheels);
+    std::vector<std::shared_ptr<RigidTire> > tires;
 
-    for (int i = 0; i < num_wheels; i++) {
-        tires[i] = chrono_types::make_shared<RigidTire>(vehicle::GetDataFile(rigidtire_file));
-        tires[i]->Initialize(wheels[i]);
-        tires[i]->SetVisualizationType(VisualizationType::MESH);
+    for (auto& axle : vehicle.GetAxles()) {
+        auto tireL = chrono_types::make_shared<RigidTire>(vehicle::GetDataFile(rigidtire_file));
+        tireL->Initialize(axle->m_wheels_left[0]);
+        tireL->SetVisualizationType(VisualizationType::MESH);
+        auto tireR = chrono_types::make_shared<RigidTire>(vehicle::GetDataFile(rigidtire_file));
+        tireR->Initialize(axle->m_wheels_right[0]);
+        tireR->SetVisualizationType(VisualizationType::MESH);
+        tires.push_back(tireL);
+        tires.push_back(tireR);
     }
 
 #ifdef USE_IRRLICHT
@@ -275,8 +278,8 @@ int main(int argc, char* argv[]) {
         powertrain.Synchronize(time, throttle_input, driveshaft_speed);
         vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque);
         terrain.Synchronize(time);
-        for (int i = 0; i < num_wheels; i++)
-            tires[i]->Synchronize(time, terrain);
+        for (auto& tire : tires)
+            tire->Synchronize(time, terrain);
         app.Synchronize(driver.GetInputModeAsString(), steering_input, throttle_input, braking_input);
 
         // Advance simulation for one timestep for all modules
@@ -285,8 +288,8 @@ int main(int argc, char* argv[]) {
         powertrain.Advance(step);
         vehicle.Advance(step);
         terrain.Advance(step);
-        for (int i = 0; i < num_wheels; i++)
-            tires[i]->Advance(step);
+        for (auto& tire : tires)
+            tire->Advance(step);
         app.Advance(step);
 
         // Increment frame number

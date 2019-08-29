@@ -146,11 +146,10 @@ void UAZBUS::Initialize() {
     }
 
     // Initialize the tires.
-    auto wheels = m_vehicle->GetWheels();
-    m_tires[0]->Initialize(wheels[0]);
-    m_tires[1]->Initialize(wheels[1]);
-    m_tires[2]->Initialize(wheels[2]);
-    m_tires[3]->Initialize(wheels[3]);
+    m_tires[0]->Initialize(m_vehicle->GetAxle(0)->m_wheels_left[0]);
+    m_tires[1]->Initialize(m_vehicle->GetAxle(0)->m_wheels_right[0]);
+    m_tires[2]->Initialize(m_vehicle->GetAxle(1)->m_wheels_left[0]);
+    m_tires[3]->Initialize(m_vehicle->GetAxle(1)->m_wheels_right[0]);
 
     m_tire_mass = m_tires[0]->ReportMass();
 }

@@ -220,6 +220,7 @@ class RigSuspension : public ChSuspension {
   public:
     RigSuspension(ChSystem* system) : ChSuspension("rig_suspension") {
         m_spindle[LEFT] = std::shared_ptr<ChBody>(system->NewBody());
+        m_spindle[RIGHT] = std::shared_ptr<ChBody>(system->NewBody());
     }
     virtual std::string GetTemplateName() const override { return "rig_suspension"; }
     virtual bool IsSteerable() const final override { return false; }

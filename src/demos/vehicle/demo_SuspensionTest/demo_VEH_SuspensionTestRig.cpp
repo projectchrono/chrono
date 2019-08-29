@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
     ChVehicleIrrApp app(rig.get(), NULL, L"Suspension Test Rig");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
-    app.SetChaseCamera(0.5 * (rig->GetWheelPos(LEFT) + rig->GetWheelPos(RIGHT)), 2.0, 0.5);
+    app.SetChaseCamera(0.5 * (rig->GetSpindlePos(LEFT) + rig->GetSpindlePos(RIGHT)), 2.0, 0.5);
     app.SetTimestep(step_size);
 
     // Create and attach the driver system.
@@ -190,8 +190,8 @@ int main(int argc, char* argv[]) {
         auto tire_force_R = rig->ReportTireForce(VehicleSide::RIGHT);
 
         // Tire kinematics
-        auto omega_L = rig->GetWheelOmega(VehicleSide::LEFT);
-        auto omega_R = rig->GetWheelOmega(VehicleSide::RIGHT);
+        auto omega_L = rig->GetSpindleOmega(VehicleSide::LEFT);
+        auto omega_R = rig->GetSpindleOmega(VehicleSide::RIGHT);
 
         double kappa_L = tire_L->GetLongitudinalSlip();
         double alpha_L = tire_L->GetSlipAngle();

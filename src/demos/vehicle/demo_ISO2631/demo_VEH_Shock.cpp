@@ -158,38 +158,56 @@ int main(int argc, char* argv[]) {
     powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
 
     // Create and initialize the tires
-    const auto& wheels = vehicle.GetWheels();
-    auto num_wheels = wheels.size();
-
     // handling tire works, but still too high results;
     // a validated flexible tire model would be the best choice
-    std::vector<std::shared_ptr<TMeasyTire> > tmeasy_tires(num_wheels);
-    std::vector<std::shared_ptr<FialaTire> > fiala_tires(num_wheels);
-    std::vector<std::shared_ptr<hmmwv::HMMWV_Pac02Tire> > pacejka_tires(num_wheels);
-    std::vector<std::shared_ptr<hmmwv::HMMWV_Pac89Tire> > pacejka89_tires(num_wheels);
-    GetLog() << "TMeasy Tire selected\n";
-    for (int i = 0; i < num_wheels; i++) {
+    std::vector<std::shared_ptr<ChTire>> tires;
+    for (auto& axle : vehicle.GetAxles()) {
         switch (iTire) {
-            default:
-            case 1:
-                tmeasy_tires[i] = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_tire_file));
-                tmeasy_tires[i]->Initialize(wheels[i]);
-                tmeasy_tires[i]->SetVisualizationType(VisualizationType::MESH);
-                break;
-            case 2:
-                fiala_tires[i] = chrono_types::make_shared<FialaTire>(vehicle::GetDataFile(fiala_tire_file));
-                fiala_tires[i]->Initialize(wheels[i]);
-                fiala_tires[i]->SetVisualizationType(VisualizationType::MESH);
-            case 3:
-                pacejka_tires[i] = chrono_types::make_shared<hmmwv::HMMWV_Pac02Tire>(vehicle::GetDataFile(pacejka_tire_file));
-                pacejka_tires[i]->Initialize(wheels[i]);
-                pacejka_tires[i]->SetVisualizationType(VisualizationType::MESH);
-                break;
-            case 4:
-                pacejka89_tires[i] = chrono_types::make_shared<hmmwv::HMMWV_Pac89Tire>("HMMWV_Pac89_Tire");
-                pacejka89_tires[i]->Initialize(wheels[i]);
-                pacejka89_tires[i]->SetVisualizationType(VisualizationType::MESH);
-                break;
+        default:
+        case 1: {
+            auto tireL = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_tire_file));
+            tireL->Initialize(axle->m_wheels_left[0]);
+            tireL->SetVisualizationType(VisualizationType::MESH);
+            auto tireR = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_tire_file));
+            tireR->Initialize(axle->m_wheels_right[0]);
+            tireR->SetVisualizationType(VisualizationType::MESH);
+            tires.push_back(tireL);
+            tires.push_back(tireR);
+            break;
+        }
+        case 2: {
+            auto tireL = chrono_types::make_shared<FialaTire>(vehicle::GetDataFile(fiala_tire_file));
+            tireL->Initialize(axle->m_wheels_left[0]);
+            tireL->SetVisualizationType(VisualizationType::MESH);
+            auto tireR = chrono_types::make_shared<FialaTire>(vehicle::GetDataFile(fiala_tire_file));
+            tireR->Initialize(axle->m_wheels_right[0]);
+            tireR->SetVisualizationType(VisualizationType::MESH);
+            tires.push_back(tireL);
+            tires.push_back(tireR);
+            break;
+        }
+        case 3: {
+            auto tireL = chrono_types::make_shared<hmmwv::HMMWV_Pac02Tire>(vehicle::GetDataFile(pacejka_tire_file));
+            tireL->Initialize(axle->m_wheels_left[0]);
+            tireL->SetVisualizationType(VisualizationType::MESH);
+            auto tireR = chrono_types::make_shared<hmmwv::HMMWV_Pac02Tire>(vehicle::GetDataFile(pacejka_tire_file));
+            tireR->Initialize(axle->m_wheels_right[0]);
+            tireR->SetVisualizationType(VisualizationType::MESH);
+            tires.push_back(tireL);
+            tires.push_back(tireR);
+            break;
+        }
+        case 4: {
+            auto tireL = chrono_types::make_shared<hmmwv::HMMWV_Pac89Tire>("HMMWV_Pac89_Tire");
+            tireL->Initialize(axle->m_wheels_left[0]);
+            tireL->SetVisualizationType(VisualizationType::MESH);
+            auto tireR = chrono_types::make_shared<hmmwv::HMMWV_Pac89Tire>("HMMWV_Pac89_Tire");
+            tireR->Initialize(axle->m_wheels_right[0]);
+            tireR->SetVisualizationType(VisualizationType::MESH);
+            tires.push_back(tireL);
+            tires.push_back(tireR);
+            break;
+        }
         }
     }
 
@@ -268,22 +286,8 @@ int main(int argc, char* argv[]) {
         powertrain.Synchronize(time, throttle_input, driveshaft_speed);
         vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque);
         terrain.Synchronize(time);
-        for (int i = 0; i < num_wheels; i++) {
-            switch (iTire) {
-                default:
-                case 1:
-                    tmeasy_tires[i]->Synchronize(time, terrain, collision_type);
-                    break;
-                case 2:
-                    fiala_tires[i]->Synchronize(time, terrain, collision_type);
-                    break;
-                case 3:
-                    pacejka_tires[i]->Synchronize(time, terrain, collision_type);
-                    break;
-                case 4:
-                    pacejka89_tires[i]->Synchronize(time, terrain, collision_type);
-                    break;
-            }
+        for (auto& tire : tires) {
+            tire->Synchronize(time, terrain, collision_type);
         }
         app.Synchronize("", steering_input, throttle_input, braking_input);
 
@@ -292,26 +296,12 @@ int main(int argc, char* argv[]) {
         powertrain.Advance(step_size);
         vehicle.Advance(step_size);
         terrain.Advance(step_size);
-        for (int i = 0; i < num_wheels; i++) {
-            switch (iTire) {
-                default:
-                case 1:
-                    tmeasy_tires[i]->Advance(step_size);
-                    break;
-                case 2:
-                    fiala_tires[i]->Advance(step_size);
-                    break;
-                case 3:
-                    pacejka_tires[i]->Advance(step_size);
-                    break;
-                case 4:
-                    pacejka89_tires[i]->Advance(step_size);
-                    break;
-            }
+        for (auto& tire : tires) {
+            tire->Advance(step_size);
         }
         app.Advance(step_size);
 
-        double xpos = vehicle.GetWheelPos(0).x();
+        double xpos = vehicle.GetSpindlePos(0, LEFT).x();
         if (xpos >= xend) {
             break;
         }
@@ -327,7 +317,7 @@ int main(int argc, char* argv[]) {
 #else
 
     double v_pos;
-    while ((v_pos = vehicle.GetWheelPos(0).x()) < xend) {
+    while ((v_pos = vehicle.GetSpindlePos(0, LEFT).x()) < xend) {
         // Collect output data from modules (for inter-module communication)
         throttle_input = driver.GetThrottle();
         steering_input = driver.GetSteering();
@@ -341,22 +331,8 @@ int main(int argc, char* argv[]) {
         powertrain.Synchronize(time, throttle_input, driveshaft_speed);
         vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque);
         terrain.Synchronize(time);
-        for (int i = 0; i < num_wheels; i++) {
-            switch (iTire) {
-                default:
-                case 1:
-                    tmeasy_tires[i]->Synchronize(time, terrain, collision_type);
-                    break;
-                case 2:
-                    fiala_tires[i]->Synchronize(time, terrain, collision_type);
-                    break;
-                case 3:
-                    pacejka_tires[i]->Synchronize(time, terrain, collision_type);
-                    break;
-                case 4:
-                    pacejka89_tires[i]->Synchronize(time, terrain, collision_type);
-                    break;
-            }
+        for (auto& tire : tires) {
+            tire->Synchronize(time, terrain, collision_type);
         }
 
         // Advance simulation for one timestep for all modules
@@ -364,22 +340,8 @@ int main(int argc, char* argv[]) {
         powertrain.Advance(step_size);
         vehicle.Advance(step_size);
         terrain.Advance(step_size);
-        for (int i = 0; i < num_wheels; i++) {
-            switch (iTire) {
-                default:
-                case 1:
-                    tmeasy_tires[i]->Advance(step_size);
-                    break;
-                case 2:
-                    fiala_tires[i]->Advance(step_size);
-                    break;
-                case 3:
-                    pacejka_tires[i]->Advance(step_size);
-                    break;
-                case 4:
-                    pacejka89_tires[i]->Advance(step_size);
-                    break;
-            }
+        for (auto& tire : tires) {
+            tire->Advance(step_size);
         }
 
         if (v_pos >= xstart) {

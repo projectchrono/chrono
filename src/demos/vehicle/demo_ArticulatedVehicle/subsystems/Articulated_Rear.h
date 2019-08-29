@@ -40,17 +40,17 @@ class Articulated_Rear {
     /// Get all wheels.
     const chrono::vehicle::ChWheelList& GetWheels() const { return m_wheels; }
 
-    /// Get the global location of the specified wheel.
-    const chrono::ChVector<>& GetWheelPos(chrono::vehicle::VehicleSide side) const;
+    /// Get the global location of the specified spindle.
+    const chrono::ChVector<>& GetSpindlePos(chrono::vehicle::VehicleSide side) const;
 
-    /// Get the orientation of the specified wheel.
-    const chrono::ChQuaternion<>& GetWheelRot(chrono::vehicle::VehicleSide side) const;
+    /// Get the orientation of the specified spindle.
+    const chrono::ChQuaternion<>& GetSpindleRot(chrono::vehicle::VehicleSide side) const;
 
-    /// Get the linear velocity of the specified wheel.
-    const chrono::ChVector<>& GetWheelLinVel(chrono::vehicle::VehicleSide side) const;
+    /// Get the linear velocity of the specified spindle.
+    const chrono::ChVector<>& GetSpindleLinVel(chrono::vehicle::VehicleSide side) const;
 
-    /// Get the angular velocity of the specified wheel.
-    chrono::ChVector<> GetWheelAngVel(chrono::vehicle::VehicleSide side) const;
+    /// Get the angular velocity of the specified spindle.
+    chrono::ChVector<> GetSpindleAngVel(chrono::vehicle::VehicleSide side) const;
 
   private:
     std::shared_ptr<Articulated_Chassis> m_front;  ///< handle to front side

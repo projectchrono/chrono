@@ -24,7 +24,7 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChPart.h"
-#include "chrono_vehicle/wheeled_vehicle/ChSuspension.h"
+#include "chrono_vehicle/wheeled_vehicle/ChAxle.h"
 
 namespace chrono {
 namespace vehicle {
@@ -35,8 +35,7 @@ namespace vehicle {
 /// Base class for a driveline subsystem.
 class CH_VEHICLE_API ChDriveline : public ChPart {
   public:
-    ChDriveline(const std::string& name  ///< [in] name of the subsystem
-                );
+    ChDriveline(const std::string& name);
 
     virtual ~ChDriveline() {}
 
@@ -44,10 +43,9 @@ class CH_VEHICLE_API ChDriveline : public ChPart {
     virtual int GetNumDrivenAxles() const = 0;
 
     /// Initialize the driveline subsystem.
-    /// This function connects this driveline subsystem to the axles of the
-    /// specified suspension subsystems.
+    /// This function connects this driveline subsystem to the specified axle subsystems.
     virtual void Initialize(std::shared_ptr<ChBody> chassis,      ///< handle to the chassis body
-                            const ChSuspensionList& suspensions,  ///< list of all vehicle suspension subsystems
+                            const ChAxleList& axles,              ///< list of all vehicle axle subsystems
                             const std::vector<int>& driven_axles  ///< indexes of the driven vehicle axles
                             ) = 0;
 
@@ -79,11 +77,11 @@ class CH_VEHICLE_API ChDriveline : public ChPart {
     /// Get the indexes of the vehicle's axles driven by this driveline subsystem.
     const std::vector<int>& GetDrivenAxleIndexes() const { return m_driven_axles; }
 
-    /// Get the motor torque to be applied to the specified wheel.
-    virtual double GetWheelTorque(const WheelID& wheel_id) const = 0;
+    /// Get the motor torque to be applied to the specified spindle.
+    virtual double GetSpindleTorque(int axle, VehicleSide side) const = 0;
 
   protected:
-    std::shared_ptr<ChShaft> m_driveshaft;  ///< handle to the shaft connection to the powertrain
+    std::shared_ptr<ChShaft> m_driveshaft;  ///< shaft connection to the powertrain
 
     std::vector<int> m_driven_axles;  ///< indexes of the driven vehicle axles
 };

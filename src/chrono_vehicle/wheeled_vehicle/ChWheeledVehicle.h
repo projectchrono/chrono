@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "chrono_vehicle/ChVehicle.h"
+#include "chrono_vehicle/wheeled_vehicle/ChAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/ChAntirollBar.h"
 #include "chrono_vehicle/wheeled_vehicle/ChBrake.h"
 #include "chrono_vehicle/wheeled_vehicle/ChDriveline.h"
@@ -61,20 +62,17 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// Get the name of the vehicle system template.
     virtual std::string GetTemplateName() const override { return "WheeledVehicle"; }
 
+    /// Get all vehicle axle subsystems.
+    const ChAxleList& GetAxles() const { return m_axles; }
+
+    /// Get the specified vehicle axle subsystem.
+    std::shared_ptr<ChAxle> GetAxle(int id) const { return m_axles[id]; }
+
     /// Get the specified suspension subsystem.
-    std::shared_ptr<ChSuspension> GetSuspension(int id) const { return m_suspensions[id]; }
+    std::shared_ptr<ChSuspension> GetSuspension(int id) const { return m_axles[id]->m_suspension; }
 
     /// Get the specified steering subsystem.
     std::shared_ptr<ChSteering> GetSteering(int id) const { return m_steerings[id]; }
-
-    /// Get all vehicle wheels.
-    const ChWheelList& GetWheels() const { return m_wheels; }
-
-    /// Get a handle to the specified vehicle wheel subsystem.
-    std::shared_ptr<ChWheel> GetWheel(const WheelID& wheel_id) const { return m_wheels[wheel_id.id()]; }
-
-    /// Get a handle to the specified vehicle brake subsystem.
-    std::shared_ptr<ChBrake> GetBrake(const WheelID& wheel_id) const { return m_brakes[wheel_id.id()]; }
 
     /// Get a handle to the vehicle's driveline subsystem.
     std::shared_ptr<ChDriveline> GetDriveline() const { return m_driveline; }
@@ -97,33 +95,30 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// Return the number of axles for this vehicle.
     virtual int GetNumberAxles() const = 0;
 
-    /// Get the global location of the specified wheel.
-    const ChVector<>& GetWheelPos(const WheelID& wheel_id) const;
+    /// Get the global location of the specified spindle.
+    const ChVector<>& GetSpindlePos(int axle, VehicleSide side) const;
 
-    /// Get the orientation of the specified wheel.
-    /// The wheel orientation is returned as a quaternion representing a rotation
-    /// with respect to the global reference frame.
-    const ChQuaternion<>& GetWheelRot(const WheelID& wheel_id) const;
+    /// Get the orientation of the specified spindle.
+    /// Return a quaternion representing a rotation with respect to the global reference frame.
+    const ChQuaternion<>& GetSpindleRot(int axle, VehicleSide side) const;
 
-    /// Get the linear velocity of the specified wheel.
-    /// Return the linear velocity of the wheel center, expressed in the global
-    /// reference frame.
-    const ChVector<>& GetWheelLinVel(const WheelID& wheel_id) const;
+    /// Get the linear velocity of the specified spindle.
+    /// Return the linear velocity of the spindle center, expressed in the global reference frame.
+    const ChVector<>& GetSpindleLinVel(int axle, VehicleSide side) const;
 
-    /// Get the angular velocity of the specified wheel.
-    /// Return the angular velocity of the wheel frame, expressed in the global
-    /// reference frame.
-    ChVector<> GetWheelAngVel(const WheelID& wheel_id) const;
+    /// Get the angular velocity of the specified spindle.
+    /// Return the angular velocity of the spindle frame, expressed in the global reference frame.
+    ChVector<> GetSpindleAngVel(int axle, VehicleSide side) const;
 
-    /// Get the angular speed of the specified wheel.
-    /// This is the angular speed of the wheel axle.
-    double GetWheelOmega(const WheelID& wheel_id) const;
+    /// Get the angular speed of the specified spindle.
+    /// This is the angular speed of the spindle shaft.
+    double GetSpindleOmega(int axle, VehicleSide side) const;
 
     /// Return the vehicle wheelbase.
     virtual double GetWheelbase() const  = 0;
 
     /// Return the vehicle wheel track of the specified suspension subsystem.
-    double GetWheeltrack(int id) const { return m_suspensions[id]->GetTrack(); }
+    double GetWheeltrack(int id) const { return m_axles[id]->m_suspension->GetTrack(); }
 
     /// Return the minimum turning radius.
     /// A concrete wheeled vehicle class should override the default value (20 m).
@@ -162,14 +157,6 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// Enable/disable output from the driveline subsystem.
     void SetDrivelineOutput(bool state);
 
-    /// Initialize this vehicle at the specified global location and orientation.
-    /// This base class implementation only initializes the chassis subsystem.
-    /// Derived classes must extend this function to initialize all other wheeled
-    /// vehicle subsystems (steering, suspensions, wheels, brakes, and driveline).
-    virtual void Initialize(const ChCoordsys<>& chassisPos,  ///< [in] initial global position and orientation
-                            double chassisFwdVel = 0         ///< [in] initial chassis forward velocity
-                            ) override;
-
     /// Update the state of this vehicle at the current time.
     /// The vehicle system is provided the current driver inputs (throttle between 0 and 1, steering between -1 and +1,
     /// braking between 0 and 1), and the torque from the powertrain.
@@ -203,12 +190,9 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     virtual void Output(int frame, ChVehicleOutput& database) const override;
 
   protected:
-    ChSuspensionList m_suspensions;            ///< list of handles to suspension subsystems
-    ChAntirollbarList m_antirollbars;          ///< list of handles to antirollbar subsystems (optional)
-    std::shared_ptr<ChDriveline> m_driveline;  ///< handle to the driveline subsystem
-    ChSteeringList m_steerings;                ///< list of handles to steering subsystems
-    ChWheelList m_wheels;                      ///< list of handles to wheel subsystems
-    ChBrakeList m_brakes;                      ///< list of handles to brake subsystems
+    ChAxleList m_axles;                        ///< list of axle subsystems
+    ChSteeringList m_steerings;                ///< list of steering subsystems
+    std::shared_ptr<ChDriveline> m_driveline;  ///< driveline subsystem
 };
 
 /// @} vehicle_wheeled

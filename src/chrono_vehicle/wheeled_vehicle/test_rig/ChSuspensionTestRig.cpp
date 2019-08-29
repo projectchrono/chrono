@@ -106,8 +106,8 @@ ChSuspensionTestRig::ChSuspensionTestRig(ChWheeledVehicle& vehicle,
     m_suspLoc = m_suspension->GetLocation();
 
     // Load wheel subsystems
-    m_wheel[LEFT] = vehicle.GetWheel(WheelID(axle_index, LEFT));
-    m_wheel[RIGHT] = vehicle.GetWheel(WheelID(axle_index, RIGHT));
+    m_wheel[LEFT] = vehicle.GetAxle(axle_index)->m_wheels_left[0];
+    m_wheel[RIGHT] = vehicle.GetAxle(axle_index)->m_wheels_right[0];
 
     // Load steering subsystem (if needed)
     int steering_index = m_suspension->GetSteeringIndex();
@@ -398,9 +398,9 @@ void ChSuspensionTestRig::SetDriver(std::unique_ptr<ChDriverSTR> driver) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-double ChSuspensionTestRig::GetWheelOmega(VehicleSide side) const {
-    auto rot = GetWheelRot(side);
-    auto ang_vel = GetWheelAngVel(side);
+double ChSuspensionTestRig::GetSpindleOmega(VehicleSide side) const {
+    auto rot = GetSpindleRot(side);
+    auto ang_vel = GetSpindleAngVel(side);
     auto ang_vel_loc = rot.RotateBack(ang_vel);
     return ang_vel_loc.y();
 }

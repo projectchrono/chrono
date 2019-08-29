@@ -131,11 +131,10 @@ int main(int argc, char* argv[]) {
     Generic_RigidTire tire_rear_left("RL");
     Generic_RigidTire tire_rear_right("RR");
 
-    auto wheels = vehicle.GetWheels();
-    tire_front_left.Initialize(wheels[0]);
-    tire_front_right.Initialize(wheels[1]);
-    tire_rear_left.Initialize(wheels[2]);
-    tire_rear_right.Initialize(wheels[3]);
+    tire_front_left.Initialize(vehicle.GetAxle(0)->m_wheels_left[0]);
+    tire_front_right.Initialize(vehicle.GetAxle(0)->m_wheels_right[0]);
+    tire_rear_left.Initialize(vehicle.GetAxle(1)->m_wheels_left[0]);
+    tire_rear_right.Initialize(vehicle.GetAxle(1)->m_wheels_right[0]);
 
     tire_front_left.SetVisualizationType(VisualizationType::PRIMITIVES);
     tire_front_right.SetVisualizationType(VisualizationType::PRIMITIVES);

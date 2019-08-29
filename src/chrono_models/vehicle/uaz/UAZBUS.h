@@ -68,7 +68,6 @@ class CH_MODELS_API UAZBUS {
     std::shared_ptr<ChChassis> GetChassis() const { return m_vehicle->GetChassis(); }
     std::shared_ptr<ChBodyAuxRef> GetChassisBody() const { return m_vehicle->GetChassisBody(); }
     ChPowertrain& GetPowertrain() const { return *m_powertrain; }
-    ChTire* GetTire(WheelID which) const { return m_tires[which.id()]; }
     double GetTotalMass() const;
 
     void Initialize();

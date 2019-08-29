@@ -55,17 +55,15 @@ class CH_VEHICLE_API WheeledVehicle : public ChWheeledVehicle {
   private:
     int m_num_axles;                           // number of axles for this vehicle
     std::vector<ChVector<> > m_suspLocations;  // locations of the suspensions relative to chassis
+    std::vector<ChVector<> > m_arbLocations;   // locations of the antirollbar subsystems relative to chassis
     std::vector<int> m_suspSteering;           // indexes of steering subsystems (-1 indicates a non-steered suspension)
     double m_wheelbase;                        // vehicle wheel base
-
-    std::vector<ChVector<> > m_arbLocations;  // locations of the antirollbar subsystems relative to chassis
-    std::vector<int> m_arbSuspension;         // indexes of steering subsystems
 
     int m_num_strs;                               // number of steering subsystems
     std::vector<ChVector<> > m_strLocations;      // locations of the steering subsystems relative to chassis
     std::vector<ChQuaternion<> > m_strRotations;  // orientations of the steering subsystems relative to chassis
 
-    std::vector<int> m_driven_susp;  // indexes of the driven suspensions
+    std::vector<int> m_driven_axles;  // indexes of the driven axles
 
     double m_turn_radius;  // minimum turning radius
     double m_steer_angle;  // maximum steering angle
