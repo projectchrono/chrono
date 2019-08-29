@@ -99,4 +99,23 @@ def __matr33_getitem(self,index):
 setattr(ChMatrix33D, "__getitem__", __matr33_getitem)
 setattr(ChMatrix33D, "__setitem__", __matr33_setitem)
 
+def SetMatr(self, l_in):
+    if len(l_in)>3 or len(l_in[0])>3:
+	    raise NameError('Wrong Input List. Must be 3x3')
+    for i, li in enumerate(l_in):
+        for j, lij in enumerate(li):
+          self[i,j] = lij 
+
+def GetMatr(self, ):
+    l_out = []
+    for i in range(3):
+        irow = []
+        for j in range(3):
+          irow.append(self[i,j])
+        l_out.append(irow)
+    return l_out
+
+setattr(ChMatrix33D, "SetMatr", SetMatr)
+setattr(ChMatrix33D, "GetMatr", GetMatr)
+
 %}

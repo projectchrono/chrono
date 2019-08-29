@@ -135,6 +135,7 @@ using namespace gui;
 %import(module = "pychrono.core")  "ChSystem.i"
 %import(module = "pychrono.core")  "ChAsset.i"
 %import(module = "pychrono.core")  "ChVector.i"
+%import(module = "pychrono.core")  "ChCoordsys.i"
 
 %include "IReferenceCounted.h"
 %include "IImage.h"

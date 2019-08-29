@@ -100,6 +100,9 @@ class CH_VEHICLE_API CRGTerrain : public ChTerrain {
     /// Get length of the road.
     double GetLength() { return m_uend - m_ubeg; }
 
+    /// Get width of the road.
+    double GetWidth() { return m_vend - m_vbeg; }
+
     /// Export road mesh to Wavefront file.
     void ExportMeshWavefront(const std::string& out_dir);
 

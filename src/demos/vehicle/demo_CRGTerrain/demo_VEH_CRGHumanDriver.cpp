@@ -12,7 +12,7 @@
 // Authors: Radu Serban, Rainer Gericke
 // =============================================================================
 //
-// Demonstration of an OpenCRG terrain.
+// Demonstration of an OpenCRG terrain and the ChHumanDirver
 //
 // The vehicle reference frame has Z up, X towards the front of the vehicle, and
 // Y pointing to the left.
@@ -22,7 +22,7 @@
 #include "chrono/core/ChRealtimeStep.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/driver/ChPathFollowerDriver.h"
+#include "chrono_vehicle/driver/ChHumanDriver.h"
 #include "chrono_vehicle/terrain/CRGTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 
@@ -34,13 +34,8 @@ using namespace chrono;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::hmmwv;
 
-// =============================================================================
-// Select Path Follower, uncomment the next line to get the pure PID driver
-//#define USE_PID 1
-// to use the XT controller uncomment the next line
-//#define USE_XT
-// to use the SR controller uncomment the next line
-#define USE_SR
+#define READ_JSON_FILE
+
 // =============================================================================
 // Problem parameters
 
@@ -49,17 +44,15 @@ TireModelType tire_model = TireModelType::TMEASY;
 
 // OpenCRG input file
 std::string crg_road_file = "terrain/crg_roads/Barber.crg";
-////std::string crg_road_file = "terrain/crg_roads/Horstwalde.crg";
-////std::string crg_road_file = "terrain/crg_roads/handmade_arc.crg";
-////std::string crg_road_file = "terrain/crg_roads/handmade_banked.crg";
-////std::string crg_road_file = "terrain/crg_roads/handmade_circle.crg";
-////std::string crg_road_file = "terrain/crg_roads/handmade_sloped.crg";
 
 // Road visualization (mesh or boundary lines)
 bool useMesh = false;
 
-// Desired vehicle speed (m/s)
-double target_speed = 12;
+// Desired minimal vehicle speed (m/s)
+double minimum_speed = 12;
+
+// Desired minimal vehicle speed (m/s)
+double maximum_speed = 30;
 
 // Simulation step size
 double step_size = 3e-3;
@@ -69,6 +62,7 @@ double tire_step_size = 1e-3;
 bool output_images = false;
 double fps = 60;
 const std::string out_dir = GetChronoOutputPath() + "OPENCRG_DEMO";
+const std::string json_file = "hmmwv/driver/HumanController.json";
 
 // =============================================================================
 
@@ -109,40 +103,24 @@ int main(int argc, char* argv[]) {
     double road_length = terrain.GetLength();
     double road_width = terrain.GetWidth();
 
-#ifdef USE_PID
-    // Create the driver system based on PID steering controller
-    ChPathFollowerDriver driver(my_hmmwv.GetVehicle(), path, "my_path", target_speed, path_is_closed);
-    driver.GetSteeringController().SetLookAheadDistance(5);
-    driver.GetSteeringController().SetGains(0.5, 0, 0);
-    driver.GetSpeedController().SetGains(0.4, 0, 0);
+#ifdef READ_JSON_FILE
+    ChHumanDriver driver(vehicle::GetDataFile(json_file), my_hmmwv.GetVehicle(), path, "my_path", path_is_closed,
+                         road_width, my_hmmwv.GetVehicle().GetMaxSteeringAngle(), 3.2);
+#else
+    ChHumanDriver driver(my_hmmwv.GetVehicle(), path, "my_path", path_is_closed, road_width,
+                         my_hmmwv.GetVehicle().GetMaxSteeringAngle(), 3.2);
+    driver.SetPreviewTime(0.5);
+    driver.SetLateralGains(0.1, 2);
+    driver.SetLongitudinalGains(0.1, 0.1, 0.2);
+    driver.SetSpeedRange(minimum_speed, maximum_speed);
+#endif
+    // driver.GetSteeringController().SetGains(0.1, 5);
+    // driver.GetSteeringController().SetPreviewTime(0.5);
+    // driver.GetSpeedController().SetGains(0.4, 0, 0);
     driver.Initialize();
 
-    ChVehicleIrrApp app(&my_hmmwv.GetVehicle(), &my_hmmwv.GetPowertrain(), L"OpenCRG Demo PID Steering",
-                        irr::core::dimension2d<irr::u32>(800, 640));
-#endif
-#ifdef USE_XT
-    // Create the driver system based on XT steering controller
-    ChPathFollowerDriverXT driver(my_hmmwv.GetVehicle(), path, "my_path", target_speed, path_is_closed,
-                                  my_hmmwv.GetVehicle().GetMaxSteeringAngle());
-    driver.GetSteeringController().SetLookAheadDistance(5);
-    driver.GetSteeringController().SetGains(0.4, 1, 1, 1);
-    driver.GetSpeedController().SetGains(0.4, 0, 0);
-    driver.Initialize();
-
-    ChVehicleIrrApp app(&my_hmmwv.GetVehicle(), &my_hmmwv.GetPowertrain(), L"OpenCRG Demo XT Steering",
-                        irr::core::dimension2d<irr::u32>(800, 640));
-#endif
-#ifdef USE_SR
-    ChPathFollowerDriverSR driver(my_hmmwv.GetVehicle(), path, "my_path", target_speed, path_is_closed,
-                                  my_hmmwv.GetVehicle().GetMaxSteeringAngle(), 3.2);
-    driver.GetSteeringController().SetGains(0.1, 5);
-    driver.GetSteeringController().SetPreviewTime(0.5);
-    driver.GetSpeedController().SetGains(0.4, 0, 0);
-    driver.Initialize();
-
-    ChVehicleIrrApp app(&my_hmmwv.GetVehicle(), &my_hmmwv.GetPowertrain(), L"OpenCRG Demo SR Steering",
-                        irr::core::dimension2d<irr::u32>(800, 640));
-#endif
+    ChVehicleIrrApp app(&my_hmmwv.GetVehicle(), &my_hmmwv.GetPowertrain(),
+                        L"OpenCRG Demo Simple Realistic Human Driver", irr::core::dimension2d<irr::u32>(800, 640));
     // ---------------------------------------
     // Create the vehicle Irrlicht application
     // ---------------------------------------
@@ -184,10 +162,8 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     // Final time
-    double t_end = 2 + road_length / target_speed;
-    if (path_is_closed) {
-        t_end += 30.0;
-    }
+    double t_end = 300.0;
+
     std::cout << "Road length:     " << road_length << std::endl;
     std::cout << "Road width:      " << road_width << std::endl;
     std::cout << "Closed loop?     " << path_is_closed << std::endl;
@@ -214,8 +190,8 @@ int main(int argc, char* argv[]) {
 
         // Update sentinel and target location markers for the path-follower controller.
         // Note that we do this whether or not we are currently using the path-follower driver.
-        const ChVector<>& pS = driver.GetSteeringController().GetSentinelLocation();
-        const ChVector<>& pT = driver.GetSteeringController().GetTargetLocation();
+        const ChVector<>& pS = driver.GetSentinelLocation();
+        const ChVector<>& pT = driver.GetTargetLocation();
         ballS->setPosition(irr::core::vector3df((irr::f32)pS.x(), (irr::f32)pS.y(), (irr::f32)pS.z()));
         ballT->setPosition(irr::core::vector3df((irr::f32)pT.x(), (irr::f32)pT.y(), (irr::f32)pT.z()));
 
@@ -249,5 +225,11 @@ int main(int argc, char* argv[]) {
         app.EndScene();
     }
 
+    GetLog() << "Traveled Distance = " << driver.GetTraveledDistance() << " m\n";
+    GetLog() << "Average Speed = " << driver.GetAverageSpeed() << " m/s\n";
+    GetLog() << "Max. Speed = " << driver.GetMaxSpeed() << " m/s\n";
+    GetLog() << "Min. Speed = " << driver.GetMinSpeed() << " m/s\n";
+    GetLog() << "Max. Lateral Acc. = " << driver.GetMaxLatAcc() << " m^2/s\n";
+    GetLog() << "Min. Lateral Acc. = " << driver.GetMinLatAcc() << " m^2/s\n";
     return 0;
 }

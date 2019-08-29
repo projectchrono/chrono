@@ -4,6 +4,10 @@ version: pychrono-dev.{build}
 
 configuration: Release
 
+branches:
+  only:
+  - feature/AppveyorConda
+
 environment:
   # setting this var true the PS command are executed only by win build (so Ubuntu will only consider "sh" commands)
   APPVEYOR_YML_DISABLE_PS_LINUX: true

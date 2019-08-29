@@ -33,8 +33,8 @@ namespace hmmwv {
 const double HMMWV_Chassis::m_mass = 2086.52;
 const ChVector<> HMMWV_Chassis::m_inertiaXX(1078.52, 2955.66, 3570.20);
 const ChVector<> HMMWV_Chassis::m_inertiaXY(0, 0, 0);
-const ChVector<> HMMWV_Chassis::m_COM_loc(0.056, 0, 0.523);
-const ChCoordsys<> HMMWV_Chassis::m_driverCsys(ChVector<>(0.87, -0.27, 1.05), ChQuaternion<>(1, 0, 0, 0));
+const ChVector<> HMMWV_Chassis::m_COM_loc(0.056, 0, 0.213);
+const ChCoordsys<> HMMWV_Chassis::m_driverCsys(ChVector<>(0.87, 0.27, 1.05), ChQuaternion<>(1, 0, 0, 0));
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

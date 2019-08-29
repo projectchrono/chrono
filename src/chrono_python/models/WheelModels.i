@@ -15,6 +15,8 @@
 #include "chrono_models/vehicle/hmmwv/HMMWV_Wheel.h"
 
 #include "chrono_models/vehicle/sedan/Sedan_Wheel.h"
+
+#include "chrono_models/vehicle/citybus/CityBus_Wheel.h"
 %}
 
 
@@ -27,6 +29,10 @@
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_WheelRight)
 %shared_ptr(chrono::vehicle::sedan::Sedan_WheelRight)
 
+%shared_ptr(chrono::vehicle::citybus::CityBus_Wheel)
+%shared_ptr(chrono::vehicle::citybus::CityBus_WheelLeft)
+%shared_ptr(chrono::vehicle::citybus::CityBus_WheelRight)
+
 
 %import "../chrono_vehicle/wheeled_vehicle/ChWheel.h"
 
@@ -37,3 +43,5 @@
 %include "../chrono_models/vehicle/hmmwv/HMMWV_Wheel.h"
 
 %include "../chrono_models/vehicle/sedan/Sedan_Wheel.h"
+
+%include "../chrono_models/vehicle/citybus/CityBus_Wheel.h"

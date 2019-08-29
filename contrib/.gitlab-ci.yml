@@ -1,0 +1,88 @@
+#####################################
+## ProjectChrono Default CI Config ##
+#####################################
+
+#---------------#
+# Linux Builder #
+#---------------#
+
+.linux:
+  tags:
+  - linux
+  image: 
+    name: archlinux/base
+    entrypoint: ["/usr/bin/bash", "-c"]
+  before_script:
+  - uname -a
+  - pacman -Syyu --noconfirm base-devel cuda git eigen cmake glfw glm glew glut irrlicht wget boost fish python python-pip openmpi swig
+  - ldconfig
+  - wget https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.5.tar.gz
+  - tar -xf blaze-3.5.tar.gz
+  - cp blaze-3.5/blaze -r /usr/local/include
+  - mkdir -p build
+
+linux:build:
+  stage: build
+  extends: .linux
+  script:
+  - git submodule update
+  - git submodule init
+  - cd build
+  - cmake ../ -DCMAKE_BUILD_TYPE=Release -DENABLE_MODULE_POSTPROCESS=TRUE -DENABLE_MODULE_PYTHON=TRUE -DENABLE_MODULE_COSIMULATION=FALSE -DENABLE_MODULE_IRRLICHT=TRUE -DENABLE_MODULE_VEHICLE=TRUE -DENABLE_MODULE_PARALLEL=TRUE -DENABLE_MODULE_OPENGL=TRUE -DCMAKE_C_COMPILER=/usr/bin/gcc -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCUDA_HOST_COMPILER=/usr/bin/gcc
+  - make -j 8
+  artifacts:
+    expire_in: 30m
+    paths:
+      - build
+    
+
+linux:test:
+  stage: test
+  extends: .linux
+  script:
+  - cd build
+  - make test
+  dependencies:
+  - linux:build
+
+
+#-----------------#
+# Windows Builder #
+#-----------------#
+
+.windows:
+  tags:
+  - windows
+  before_script:
+#  - wget -UseBasicParsing https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.5.tar.gz -OutFile blaze-3.5.tar.gz
+#  - tar -xf .\blaze-3.5.tar.gz blaze-3.5/blaze
+  - mkdir -Force build
+
+
+windows:build:
+  stage: build
+  extends: .windows
+  script:
+  - cd build
+  - cmake ../ -G "Visual Studio 16 2019" -A x64 -T v142 -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=TRUE -DBUILD_BENCHMARKING=TRUE -DENABLE_MODULE_POSTPROCESS=TRUE -DENABLE_MODULE_PYTHON=TRUE -DENABLE_MODULE_COSIMULATION=FALSE -DENABLE_MODULE_IRRLICHT=TRUE -DENABLE_MODULE_VEHICLE=TRUE -DENABLE_MODULE_PARALLEL=TRUE -DENABLE_MODULE_OPENGL=TRUE -DBLAZE_DIR=C:/Users/Public/Documents/blaze-3.1 -DSWIG_EXECUTABLE=C:/Users/Public/Documents/swigwin-3.0.12/swig.exe -DBOOST_ROOT=C:/Users/Public/Documents/boost_1_68_0 -DGLM_INCLUDE_DIR=C:/Users/Public/Documents/glm-0.9.9.5 -DGLEW_DLL=C:/Users/Public/Documents/glew-2.1.0/bin/Release/x64/glew32.dll -DGLEW_INCLUDE_DIR=C:/Users/Public/Documents/glew-2.1.0/include -DIRRLICHT_LIBRARY=C:/Users/Public/Documents/irrlicht-1.8.4/lib/Win64-visualStudio/Irrlicht.lib -DIRRLICHT_ROOT=C:/Users/Public/Documents/irrlicht-1.8.4 -DUSE_PARALLEL_CUDA=OFF -DGLEW_LIBRARY=C:/Users/Public/Documents/glew-2.1.0/lib/Release/x64/glew32.lib -DGLFW_DLL=C:/Users/Public/Documents/glfw-3.3/lib-vc2015/glfw3.dll -DGLFW_INCLUDE_DIR=C:/Users/Public/Documents/glfw-3.3/include/GLFW -DGLFW_LIBRARY=C:/Users/Public/Documents/glfw-3.3/lib-vc2015/glfw3dll.lib -DENABLE_MODULE_FSI=TRUE -DEIGEN3_INCLUDE_DIR=C:/Users/Public/Documents/eigen-3.3.7
+  #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
+  - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
+  artifacts:
+    expire_in: 30m
+    paths:
+      - build
+
+
+windows:test:
+  stage: test
+  extends: .windows
+  script:
+  - cd build
+  - ctest
+  dependencies:
+  - windows:build
+
+
+
+    
+

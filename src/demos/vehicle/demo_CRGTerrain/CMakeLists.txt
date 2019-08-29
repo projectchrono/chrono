@@ -12,6 +12,7 @@ ENDIF()
 
 SET(DEMOS
     demo_VEH_CRGTerrain
+    demo_VEH_CRGHumanDriver
     )
 
 #--------------------------------------------------------------
