@@ -2,11 +2,11 @@
 ## ProjectChrono Default CI Config ##
 #####################################
 
-#---------------#
-# Linux Builder #
-#---------------#
+#---------------------#
+# Arch Linux Builders #
+#---------------------#
 
-.linux:
+.archlinux:
   tags:
   - linux
   image: 
@@ -21,29 +21,113 @@
   - cp blaze-3.5/blaze -r /usr/local/include
   - mkdir -p build
 
-linux:build:
+linux:arch-gcc:build:
   stage: build
-  extends: .linux
+  extends: .archlinux
   script:
   - git submodule update
   - git submodule init
   - cd build
-  - cmake ../ -DCMAKE_BUILD_TYPE=Release -DENABLE_MODULE_POSTPROCESS=TRUE -DENABLE_MODULE_PYTHON=TRUE -DENABLE_MODULE_COSIMULATION=FALSE -DENABLE_MODULE_IRRLICHT=TRUE -DENABLE_MODULE_VEHICLE=TRUE -DENABLE_MODULE_PARALLEL=TRUE -DENABLE_MODULE_OPENGL=TRUE -DCMAKE_C_COMPILER=/usr/bin/gcc -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCUDA_HOST_COMPILER=/usr/bin/gcc
+  - cmake ../ -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=TRUE -DBUILD_BENCHMARKING=TRUE -DENABLE_MODULE_POSTPROCESS=TRUE -DENABLE_MODULE_PYTHON=TRUE -DENABLE_MODULE_COSIMULATION=FALSE -DENABLE_MODULE_IRRLICHT=TRUE -DENABLE_MODULE_VEHICLE=TRUE -DENABLE_MODULE_PARALLEL=TRUE -DENABLE_MODULE_OPENGL=TRUE -DENABLE_MODULE_DISTRIBUTED=TRUE -DENABLE_MODULE_FSI=TRUE -DCMAKE_C_COMPILER=/usr/bin/gcc -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCUDA_HOST_COMPILER=/usr/bin/gcc-8 -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
   - make -j 8
   artifacts:
     expire_in: 30m
     paths:
-      - build
+    - build
     
 
-linux:test:
+linux:arch-gcc:test:
   stage: test
-  extends: .linux
+  extends: .archlinux
   script:
   - cd build
   - make test
   dependencies:
-  - linux:build
+  - linux:arch-gcc:build
+
+
+linux:arch-llvm:build:
+  stage: build
+  extends: .archlinux
+  script:
+  - pacman -S llvm clang openmp
+  - git submodule update
+  - git submodule init
+  - cd build
+  - cmake ../ -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=TRUE -DBUILD_BENCHMARKING=TRUE -DENABLE_MODULE_POSTPROCESS=TRUE -DENABLE_MODULE_PYTHON=TRUE -DENABLE_MODULE_COSIMULATION=FALSE -DENABLE_MODULE_IRRLICHT=TRUE -DENABLE_MODULE_VEHICLE=TRUE -DENABLE_MODULE_PARALLEL=TRUE -DENABLE_MODULE_OPENGL=TRUE -DENABLE_MODULE_DISTRIBUTED=TRUE -DENABLE_MODULE_FSI=TRUE -DCMAKE_C_COMPILER=/usr/bin/gcc -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCUDA_HOST_COMPILER=/usr/bin/gcc-8 -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
+  - make -j 8
+  artifacts:
+    expire_in: 30m
+    paths:
+    - build
+
+
+linux:arch-llvm:test:
+  stage: test
+  extends: .archlinux
+  script:
+  - pacman -S llvm clang openmp
+  - cd build
+  - make test
+  dependencies:
+  - linux:arch-llvm:build
+
+
+#----------------#
+# CentOS Builder #
+#----------------#
+
+.centos:
+  tags:
+  - linux
+  image:
+    name: nvidia/cuda:10.0-devel-centos7
+    entrypoint: ["/usr/bin/bash", "-c"]
+  before_script:
+  - uname -a
+  - yum -y update && yum -y install epel-release
+  - yum -y groupinstall "Development Tools"
+  - yum -y install centos-release-scl
+  - yum -y install devtoolset-6
+  - source scl_source enable devtoolset-6
+  - yum -y install cmake3 eigen3 irrlicht-devel glew-devel glfw-devel glfw-devel libGLEW glm-devel sudo boost-devel freeglut-devel wget fish python python-devel python-pip pcre-devel openmpi openmpi-devel
+  - alternatives --install /usr/local/bin/cmake cmake /usr/bin/cmake3 20 --slave /usr/local/bin/ctest ctest /usr/bin/ctest3 --slave /usr/local/bin/cpack cpack /usr/bin/cpack3 --slave /usr/local/bin/ccmake ccmake /usr/bin/ccmake3 --family cmake
+  # SWIG will have been mysteriously installed, we install a newer version later
+  - yum -y remove swig
+  - ldconfig
+  - wget https://sourceforge.net/projects/swig/files/swig/swig-3.0.12/swig-3.0.12.tar.gz
+  - tar -xf swig-3.0.12.tar.gz
+  - cd swig-3.0.12
+  - ./configure && make && make install
+  - ldconfig
+  - cd ../
+  - wget https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.5.tar.gz
+  - tar -xf blaze-3.5.tar.gz
+  - cp blaze-3.5/blaze -r /usr/local/include
+  - mkdir -p build
+
+linux:centos:build:
+  stage: build
+  extends: .centos
+  script:
+  - git submodule init
+  - git submodule update
+  - cd build
+  - cmake ../ -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=TRUE -DBUILD_BENCHMARKING=TRUE -DENABLE_MODULE_POSTPROCESS=TRUE -DENABLE_MODULE_PYTHON=TRUE -DENABLE_MODULE_COSIMULATION=FALSE -DENABLE_MODULE_IRRLICHT=TRUE -DENABLE_MODULE_VEHICLE=TRUE -DENABLE_MODULE_PARALLEL=TRUE -DENABLE_MODULE_OPENGL=TRUE -DENABLE_MODULE_DISTRIBUTED=TRUE -DENABLE_MODULE_FSI=TRUE -DCMAKE_C_COMPILER=/opt/rh/devtoolset-6/root/usr/bin/gcc -DCMAKE_CXX_COMPILER=/opt/rh/devtoolset-6/root/usr/bin/g++ -DCUDA_HOST_COMPILER=/opt/rh/devtoolset-6/root/usr/bin/gcc
+  - make -j 8
+  artifacts:
+    expire_in: 30m
+    paths:
+    - build
+
+linux:centos:test:
+  stage: test
+  extends: .centos
+  script:
+  - cd build
+  - make test
+  dependencies:
+  - linux:centos:build
 
 
 #-----------------#
