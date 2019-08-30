@@ -50,7 +50,7 @@ linux:arch-llvm:build:
   stage: build
   extends: .archlinux
   script:
-  - pacman -S llvm clang openmp
+  - pacman -S --noconfirm llvm clang openmp
   - git submodule update
   - git submodule init
   - cd build
@@ -66,7 +66,7 @@ linux:arch-llvm:test:
   stage: test
   extends: .archlinux
   script:
-  - pacman -S llvm clang openmp
+  - pacman -S --noconfirm llvm clang openmp
   - cd build
   - make test
   dependencies:
