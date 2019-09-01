@@ -2,6 +2,12 @@
 ## ProjectChrono Default CI Config ##
 #####################################
 
+# Build Stages (shared by each platform)
+stages:
+  - build
+  - test
+  - deploy
+
 #---------------------#
 # Arch Linux Builders #
 #---------------------#
@@ -38,6 +44,7 @@ linux:arch-gcc:build:
 
 linux:arch-gcc:test:
   stage: test
+  needs: ["linux:arch-gcc:build"]
   extends: .archlinux
   script:
   - cd build
@@ -64,6 +71,7 @@ linux:arch-llvm:build:
 
 linux:arch-llvm:test:
   stage: test
+  needs: ["linux:arch-llvm:build"]
   extends: .archlinux
   script:
   - pacman -S --noconfirm llvm clang openmp
@@ -89,7 +97,10 @@ linux:arch-llvm:test:
   - yum -y groupinstall "Development Tools"
   - yum -y install centos-release-scl
   - yum -y install devtoolset-6
-  - source scl_source enable devtoolset-6
+  # The normal "scl enable ..." route creates a new bash session which will 
+  # cause the script to hang. We need to activate the environment in the
+  # _current_ shell instead
+  - source /opt/rh/devtoolset-6/enable
   - yum -y install cmake3 eigen3 irrlicht-devel glew-devel glfw-devel glfw-devel libGLEW glm-devel sudo boost-devel freeglut-devel wget fish python python-devel python-pip pcre-devel openmpi openmpi-devel
   - alternatives --install /usr/local/bin/cmake cmake /usr/bin/cmake3 20 --slave /usr/local/bin/ctest ctest /usr/bin/ctest3 --slave /usr/local/bin/cpack cpack /usr/bin/cpack3 --slave /usr/local/bin/ccmake ccmake /usr/bin/ccmake3 --family cmake
   # SWIG will have been mysteriously installed, we install a newer version later
@@ -122,6 +133,7 @@ linux:centos:build:
 
 linux:centos:test:
   stage: test
+  needs: ["linux:centos:build"]
   extends: .centos
   script:
   - cd build
@@ -143,7 +155,7 @@ linux:centos:test:
   - mkdir -Force build
 
 
-windows:build:
+windows:vs2019:build:
   stage: build
   extends: .windows
   script:
@@ -157,14 +169,15 @@ windows:build:
       - build
 
 
-windows:test:
+windows:vs2019:test:
   stage: test
+  needs: ["windows:vs2019:build"]
   extends: .windows
   script:
   - cd build
   - ctest
   dependencies:
-  - windows:build
+  - windows:vs2019:build
 
 
 
