@@ -96,11 +96,11 @@ linux:arch-llvm:test:
   - yum -y update && yum -y install epel-release
   - yum -y groupinstall "Development Tools"
   - yum -y install centos-release-scl
-  - yum -y install devtoolset-6
+  - yum -y install devtoolset-8
   # The normal "scl enable ..." route creates a new bash session which will 
   # cause the script to hang. We need to activate the environment in the
   # _current_ shell instead
-  - source /opt/rh/devtoolset-6/enable
+  - source /opt/rh/devtoolset-8/enable
   - yum -y install cmake3 eigen3 irrlicht-devel glew-devel glfw-devel glfw-devel libGLEW glm-devel sudo boost-devel freeglut-devel wget fish python python-devel python-pip pcre-devel openmpi openmpi-devel
   - alternatives --install /usr/local/bin/cmake cmake /usr/bin/cmake3 20 --slave /usr/local/bin/ctest ctest /usr/bin/ctest3 --slave /usr/local/bin/cpack cpack /usr/bin/cpack3 --slave /usr/local/bin/ccmake ccmake /usr/bin/ccmake3 --family cmake
   # SWIG will have been mysteriously installed, we install a newer version later
@@ -124,7 +124,7 @@ linux:centos:build:
   - git submodule init
   - git submodule update
   - cd build
-  - cmake ../ -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=TRUE -DBUILD_BENCHMARKING=TRUE -DENABLE_MODULE_POSTPROCESS=TRUE -DENABLE_MODULE_PYTHON=TRUE -DENABLE_MODULE_COSIMULATION=FALSE -DENABLE_MODULE_IRRLICHT=TRUE -DENABLE_MODULE_VEHICLE=TRUE -DENABLE_MODULE_PARALLEL=TRUE -DENABLE_MODULE_OPENGL=TRUE -DENABLE_MODULE_DISTRIBUTED=TRUE -DENABLE_MODULE_FSI=TRUE -DCMAKE_C_COMPILER=/opt/rh/devtoolset-6/root/usr/bin/gcc -DCMAKE_CXX_COMPILER=/opt/rh/devtoolset-6/root/usr/bin/g++ -DCUDA_HOST_COMPILER=/opt/rh/devtoolset-6/root/usr/bin/gcc
+  - cmake ../ -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=TRUE -DBUILD_BENCHMARKING=TRUE -DENABLE_MODULE_POSTPROCESS=TRUE -DENABLE_MODULE_PYTHON=TRUE -DENABLE_MODULE_COSIMULATION=FALSE -DENABLE_MODULE_IRRLICHT=TRUE -DENABLE_MODULE_VEHICLE=TRUE -DENABLE_MODULE_PARALLEL=TRUE -DENABLE_MODULE_OPENGL=TRUE -DENABLE_MODULE_DISTRIBUTED=TRUE -DENABLE_MODULE_FSI=TRUE -DCMAKE_C_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/gcc -DCMAKE_CXX_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/g++ -DCUDA_HOST_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/gcc
   - make -j 8
   artifacts:
     expire_in: 30m
