@@ -25,21 +25,21 @@ stages:
   - wget https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.5.tar.gz
   - tar -xf blaze-3.5.tar.gz
   - cp blaze-3.5/blaze -r /usr/local/include
+  - git submodule update
+  - git submodule init
   - mkdir -p build
 
 linux:arch-gcc:build:
   stage: build
   extends: .archlinux
   script:
-  - git submodule update
-  - git submodule init
   - cd build
   - cmake ../ -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=TRUE -DBUILD_BENCHMARKING=TRUE -DENABLE_MODULE_POSTPROCESS=TRUE -DENABLE_MODULE_PYTHON=TRUE -DENABLE_MODULE_COSIMULATION=FALSE -DENABLE_MODULE_IRRLICHT=TRUE -DENABLE_MODULE_VEHICLE=TRUE -DENABLE_MODULE_PARALLEL=TRUE -DENABLE_MODULE_OPENGL=TRUE -DENABLE_MODULE_DISTRIBUTED=TRUE -DENABLE_MODULE_FSI=TRUE -DCMAKE_C_COMPILER=/usr/bin/gcc -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCUDA_HOST_COMPILER=/usr/bin/gcc-8 -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
   - make -j 8
   artifacts:
     expire_in: 30m
     paths:
-    - build
+    - build/
     
 
 linux:arch-gcc:test:
@@ -49,24 +49,20 @@ linux:arch-gcc:test:
   script:
   - cd build
   - make test
-  dependencies:
-  - linux:arch-gcc:build
-
+  dependencies: ["linux:arch-gcc:build"]
 
 linux:arch-llvm:build:
   stage: build
   extends: .archlinux
   script:
   - pacman -S --noconfirm llvm clang openmp
-  - git submodule update
-  - git submodule init
   - cd build
   - cmake ../ -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=TRUE -DBUILD_BENCHMARKING=TRUE -DENABLE_MODULE_POSTPROCESS=TRUE -DENABLE_MODULE_PYTHON=TRUE -DENABLE_MODULE_COSIMULATION=FALSE -DENABLE_MODULE_IRRLICHT=TRUE -DENABLE_MODULE_VEHICLE=TRUE -DENABLE_MODULE_PARALLEL=TRUE -DENABLE_MODULE_OPENGL=TRUE -DENABLE_MODULE_DISTRIBUTED=TRUE -DENABLE_MODULE_FSI=TRUE -DCMAKE_C_COMPILER=/usr/bin/gcc -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCUDA_HOST_COMPILER=/usr/bin/gcc-8 -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
   - make -j 8
   artifacts:
     expire_in: 30m
     paths:
-    - build
+    - build/
 
 
 linux:arch-llvm:test:
@@ -77,8 +73,7 @@ linux:arch-llvm:test:
   - pacman -S --noconfirm llvm clang openmp
   - cd build
   - make test
-  dependencies:
-  - linux:arch-llvm:build
+  dependencies: ["linux:arch-llvm:build"]
 
 
 #----------------#
@@ -101,8 +96,14 @@ linux:arch-llvm:test:
   # cause the script to hang. We need to activate the environment in the
   # _current_ shell instead
   - source /opt/rh/devtoolset-8/enable
-  - yum -y install cmake3 eigen3 irrlicht-devel glew-devel glfw-devel glfw-devel libGLEW glm-devel sudo boost-devel freeglut-devel wget fish python python-devel python-pip pcre-devel openmpi openmpi-devel
-  - alternatives --install /usr/local/bin/cmake cmake /usr/bin/cmake3 20 --slave /usr/local/bin/ctest ctest /usr/bin/ctest3 --slave /usr/local/bin/cpack cpack /usr/bin/cpack3 --slave /usr/local/bin/ccmake ccmake /usr/bin/ccmake3 --family cmake
+  - yum -y install cmake3 eigen3 irrlicht-devel glew-devel glfw-devel glfw-devel
+      libGLEW glm-devel sudo boost-devel freeglut-devel wget fish python 
+      python-devel python-pip pcre-devel openmpi openmpi-devel
+  - alternatives --install /usr/local/bin/cmake cmake /usr/bin/cmake3 20 
+      --slave /usr/local/bin/ctest ctest /usr/bin/ctest3 
+      --slave /usr/local/bin/cpack cpack /usr/bin/cpack3 
+      --slave /usr/local/bin/ccmake ccmake /usr/bin/ccmake3 
+      --family cmake
   # SWIG will have been mysteriously installed, we install a newer version later
   - yum -y remove swig
   - ldconfig
@@ -115,21 +116,30 @@ linux:arch-llvm:test:
   - wget https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.5.tar.gz
   - tar -xf blaze-3.5.tar.gz
   - cp blaze-3.5/blaze -r /usr/local/include
+  - git submodule init
+  - git submodule update
   - mkdir -p build
 
 linux:centos:build:
   stage: build
   extends: .centos
   script:
-  - git submodule init
-  - git submodule update
   - cd build
-  - cmake ../ -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=TRUE -DBUILD_BENCHMARKING=TRUE -DENABLE_MODULE_POSTPROCESS=TRUE -DENABLE_MODULE_PYTHON=TRUE -DENABLE_MODULE_COSIMULATION=FALSE -DENABLE_MODULE_IRRLICHT=TRUE -DENABLE_MODULE_VEHICLE=TRUE -DENABLE_MODULE_PARALLEL=TRUE -DENABLE_MODULE_OPENGL=TRUE -DENABLE_MODULE_DISTRIBUTED=TRUE -DENABLE_MODULE_FSI=TRUE -DCMAKE_C_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/gcc -DCMAKE_CXX_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/g++ -DCUDA_HOST_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/gcc
+  - cmake ../ -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=TRUE 
+      -DBUILD_BENCHMARKING=TRUE -DENABLE_MODULE_POSTPROCESS=TRUE 
+      -DENABLE_MODULE_PYTHON=TRUE -DENABLE_MODULE_COSIMULATION=FALSE 
+      -DENABLE_MODULE_IRRLICHT=TRUE -DENABLE_MODULE_VEHICLE=TRUE 
+      -DENABLE_MODULE_PARALLEL=TRUE -DENABLE_MODULE_OPENGL=TRUE 
+      -DENABLE_MODULE_DISTRIBUTED=TRUE
+      -DCMAKE_C_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/gcc 
+      -DCMAKE_CXX_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/g++ 
+#      -DCUDA_HOST_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/gcc
+#      -DENABLE_MODULE_FSI=TRUE 
   - make -j 8
   artifacts:
     expire_in: 30m
     paths:
-    - build
+    - build/
 
 linux:centos:test:
   stage: test
@@ -138,8 +148,7 @@ linux:centos:test:
   script:
   - cd build
   - make test
-  dependencies:
-  - linux:centos:build
+  dependencies: ["linux:centos:build"]
 
 
 #-----------------#
@@ -150,8 +159,10 @@ linux:centos:test:
   tags:
   - windows
   before_script:
-#  - wget -UseBasicParsing https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.5.tar.gz -OutFile blaze-3.5.tar.gz
-#  - tar -xf .\blaze-3.5.tar.gz blaze-3.5/blaze
+    #  - wget -UseBasicParsing https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.5.tar.gz -OutFile blaze-3.5.tar.gz
+    #  - tar -xf .\blaze-3.5.tar.gz blaze-3.5/blaze
+  - git submodule init
+  - git submodule update
   - mkdir -Force build
 
 
@@ -160,13 +171,31 @@ windows:vs2019:build:
   extends: .windows
   script:
   - cd build
-  - cmake ../ -G "Visual Studio 16 2019" -A x64 -T v142 -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=TRUE -DBUILD_BENCHMARKING=TRUE -DENABLE_MODULE_POSTPROCESS=TRUE -DENABLE_MODULE_PYTHON=TRUE -DENABLE_MODULE_COSIMULATION=FALSE -DENABLE_MODULE_IRRLICHT=TRUE -DENABLE_MODULE_VEHICLE=TRUE -DENABLE_MODULE_PARALLEL=TRUE -DENABLE_MODULE_OPENGL=TRUE -DBLAZE_DIR=C:/Users/Public/Documents/blaze-3.1 -DSWIG_EXECUTABLE=C:/Users/Public/Documents/swigwin-3.0.12/swig.exe -DBOOST_ROOT=C:/Users/Public/Documents/boost_1_68_0 -DGLM_INCLUDE_DIR=C:/Users/Public/Documents/glm-0.9.9.5 -DGLEW_DLL=C:/Users/Public/Documents/glew-2.1.0/bin/Release/x64/glew32.dll -DGLEW_INCLUDE_DIR=C:/Users/Public/Documents/glew-2.1.0/include -DIRRLICHT_LIBRARY=C:/Users/Public/Documents/irrlicht-1.8.4/lib/Win64-visualStudio/Irrlicht.lib -DIRRLICHT_ROOT=C:/Users/Public/Documents/irrlicht-1.8.4 -DUSE_PARALLEL_CUDA=OFF -DGLEW_LIBRARY=C:/Users/Public/Documents/glew-2.1.0/lib/Release/x64/glew32.lib -DGLFW_DLL=C:/Users/Public/Documents/glfw-3.3/lib-vc2015/glfw3.dll -DGLFW_INCLUDE_DIR=C:/Users/Public/Documents/glfw-3.3/include/GLFW -DGLFW_LIBRARY=C:/Users/Public/Documents/glfw-3.3/lib-vc2015/glfw3dll.lib -DENABLE_MODULE_FSI=TRUE -DEIGEN3_INCLUDE_DIR=C:/Users/Public/Documents/eigen-3.3.7
+  - cmake ../ -G "Visual Studio 16 2019" -A x64 -T v142 
+    -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=TRUE -DBUILD_BENCHMARKING=TRUE 
+    -DENABLE_MODULE_POSTPROCESS=TRUE -DENABLE_MODULE_PYTHON=TRUE 
+    -DENABLE_MODULE_COSIMULATION=FALSE -DENABLE_MODULE_IRRLICHT=TRUE 
+    -DENABLE_MODULE_VEHICLE=TRUE -DENABLE_MODULE_PARALLEL=TRUE 
+    -DENABLE_MODULE_OPENGL=TRUE -DUSE_PARALLEL_CUDA=OFF -DENABLE_MODULE_FSI=TRUE 
+    -DBLAZE_DIR=C:/Users/Public/Documents/blaze-3.1 
+    -DSWIG_EXECUTABLE=C:/Users/Public/Documents/swigwin-3.0.12/swig.exe 
+    -DBOOST_ROOT=C:/Users/Public/Documents/boost_1_68_0 
+    -DGLM_INCLUDE_DIR=C:/Users/Public/Documents/glm-0.9.9.5 
+    -DGLEW_DLL=C:/Users/Public/Documents/glew-2.1.0/bin/Release/x64/glew32.dll 
+    -DGLEW_INCLUDE_DIR=C:/Users/Public/Documents/glew-2.1.0/include 
+    -DGLEW_LIBRARY=C:/Users/Public/Documents/glew-2.1.0/lib/Release/x64/glew32.lib 
+    -DGLFW_DLL=C:/Users/Public/Documents/glfw-3.3/lib-vc2015/glfw3.dll 
+    -DGLFW_INCLUDE_DIR=C:/Users/Public/Documents/glfw-3.3/include/GLFW 
+    -DGLFW_LIBRARY=C:/Users/Public/Documents/glfw-3.3/lib-vc2015/glfw3dll.lib 
+    -DIRRLICHT_LIBRARY=C:/Users/Public/Documents/irrlicht-1.8.4/lib/Win64-visualStudio/Irrlicht.lib 
+    -DIRRLICHT_ROOT=C:/Users/Public/Documents/irrlicht-1.8.4 
+    -DEIGEN3_INCLUDE_DIR=C:/Users/Public/Documents/eigen-3.3.7
   #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
   - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
   artifacts:
     expire_in: 30m
     paths:
-      - build
+      - build/
 
 
 windows:vs2019:test:
@@ -176,10 +205,19 @@ windows:vs2019:test:
   script:
   - cd build
   - ctest
-  dependencies:
-  - windows:vs2019:build
+  dependencies: ["windows:vs2019:build"]
 
 
-
+windows:vs2019:deploy:
+  stage: deploy
+  needs: ["windows:vs2019:test"]
+  extends: .windows
+  script:
+    - Out-Host "Build PyChrono and deploy via Anaconda..."
+    - Out-Host "**NOT YET IMPLEMENTED**"
+  environment:
+    name: pychrono-win64
+    url: https://anaconda.org/projectchrono/pychrono
+  when: manual
     
 
