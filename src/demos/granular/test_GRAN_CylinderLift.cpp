@@ -39,7 +39,7 @@ using std::vector;
 
 void ShowUsage() {
     cout << "usage: ./test_GRAN_repose <json_file> <output_dir> <static_friction> <rolling_model 0:constant, "
-            "1:viscous> <rolling_friction> <cohesion_ratio>"
+            "1:viscous 2:elastic_plastic 3:none> <rolling_friction> <cohesion_ratio>"
          << endl;
 }
 
@@ -105,16 +105,17 @@ int main(int argc, char* argv[]) {
     m_sys.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
     m_sys.set_Gamma_t_SPH2MESH(params.tangentDampS2M);
 
-    float cohesion_ratio = std::stof(argv[6]);
-    cout << "Cohesion Ratio: " << cohesion_ratio << endl;
-    m_sys.set_Cohesion_ratio(cohesion_ratio);
+    params.cohesion_ratio = std::stof(argv[6]);
+    cout << "Cohesion Ratio: " << params.cohesion_ratio << endl;
+    m_sys.set_Cohesion_ratio(params.cohesion_ratio);
     m_sys.set_Adhesion_ratio_S2M(params.adhesion_ratio_s2m);
     m_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
 
     float static_friction = std::stof(argv[3]);
     cout << "Static Friction: " << static_friction << endl;
     cout << "Expected angle from sliding: " << std::atan(static_friction) << endl;
-    m_sys.set_friction_mode(GRAN_FRICTION_MODE::MULTI_STEP);
+    // m_sys.set_friction_mode(GRAN_FRICTION_MODE::MULTI_STEP); TODO
+    m_sys.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
     m_sys.set_static_friction_coeff_SPH2SPH(static_friction);
     m_sys.set_static_friction_coeff_SPH2WALL(static_friction);
     m_sys.set_static_friction_coeff_SPH2MESH(static_friction);
@@ -134,6 +135,10 @@ int main(int argc, char* argv[]) {
             cout << "Elasti-plastic rolling model not yet implemented" << endl;
             ShowUsage();
             return 1;
+            break;
+        case 3:
+            m_sys.set_rolling_mode(GRAN_ROLLING_MODE::NO_RESISTANCE);
+            cout << "No rolling resistance" << endl;
             break;
         default:
             cout << "Invalid rolling mode" << endl;

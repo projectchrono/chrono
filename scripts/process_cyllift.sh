@@ -24,6 +24,7 @@ for d in ${dir_prefix}*; do
     last_file=$(ls | sort | tail -n3 | sed -E -e "/(meshframes|\.raw\.csv|ppm)/d" | tail -n1)
     frame=$(echo $last_file | sed -E -e "s/[^0-9]//g" -e "s/0*//")
     if [[ $frame -ne $last_frame ]]; then
+        echo "Skipping $d"
         cd ..
         continue
     fi

@@ -467,7 +467,7 @@ __global__ void interactionTerrain_TriangleSoup(
                 // Compute force updates for adhesion term, opposite the spring term
                 // NOTE ratio is wrt the weight of a sphere of mass 1
                 // NOTE the cancelation of two negatives
-                force_accum = force_accum + gran_params->sphere_mass_SU * gran_params->adhesionAcc_s2w * delta / depth;
+                force_accum = force_accum + gran_params->sphere_mass_SU * mesh_params->adhesionAcc_s2m * delta / depth;
 
                 // Velocity difference, it's better to do a coalesced access here than a fragmented access
                 // inside
@@ -493,7 +493,7 @@ __global__ void interactionTerrain_TriangleSoup(
                     v_rel = v_rel + Cross(omega[sphereIDLocal], r_A);
                 }
 
-                // Forace accumulator on sphere for this sphere-triangle collision
+                // Force accumulator on sphere for this sphere-triangle collision
                 // Compute force updates for normal spring term
 
                 // Compute force updates for damping term

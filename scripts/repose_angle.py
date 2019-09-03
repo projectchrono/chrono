@@ -52,14 +52,6 @@ for r in np.arange(rmin, rmax, part_size):
         continue
     top_layer.append(section[np.argmax(section[:,1]), :])
 
-# top_layer = np.array(top_layer)
-# plt.figure()
-# plt.scatter(top_layer[:,0], top_layer[:,1])
-# plt.xlabel('r')
-# plt.ylabel('z')
-# plt.axis('equal')
-# plt.show()
-
 max_slope = 0.0
 for point in top_layer:
     slope = (top_point[2] - point[1]) / point[0]
