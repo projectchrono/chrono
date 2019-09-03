@@ -193,32 +193,6 @@ inline __device__ void cleanupContactMap(GranSphereDataPtr sphere_data,
     }
 }
 
-/// NOTE that this requires the normal force to be in hookean form (no hertz factor yet)
-/// enforce the Coulomb condition that Ft <= mu Fn
-/// by enforcing ut <= mu Fn / kt
-inline __device__ bool clampTangentDisplacement(GranParamsPtr gran_params,
-                                                float kt,
-                                                float static_friction_coeff,
-                                                const float3& normal_force,
-                                                const float force_model_multiplier,
-                                                float3& tangent_disp) {
-    // divide out hertz force factor
-    float ut_max = static_friction_coeff * Length(normal_force) / (kt * force_model_multiplier);
-    // TODO also consider wall mu and kt clamping
-    float ut = Length(tangent_disp);
-    constexpr float GRAN_MACHINE_EPSILON = 1.e-3f;  // This is SU length
-    // If u_t is very small, force it to be exactly zero and return no clamping
-    if (ut < GRAN_MACHINE_EPSILON) {
-        tangent_disp = make_float3(0.f, 0.f, 0.f);
-        return false;
-    }
-    if (ut > ut_max) {
-        tangent_disp = tangent_disp * ut_max / ut;  // TODO is this stable???
-        return true;
-    }
-    return false;
-}
-
 inline __device__ bool checkLocalPointInSD(const int3& point, GranParamsPtr gran_params) {
     // TODO verify that this is correct
     // TODO optimize me
@@ -309,34 +283,22 @@ inline __device__ float3 computeRollingAngAcc(GranSphereDataPtr sphere_data,
     return delta_Ang_Acc;
 }
 
-/// Compute single-step friction displacement and clamp it
+/// Compute single-step friction displacement
 /// set delta_t for the displacement
-inline __device__ bool computeSingleStepDisplacement(GranParamsPtr gran_params,
-                                                     GranSphereDataPtr sphere_data,
-                                                     float static_friction_coeff,
-                                                     const float3& normal_force,
-                                                     float force_model_multiplier,
+inline __device__ void computeSingleStepDisplacement(GranParamsPtr gran_params,
                                                      const float3& rel_vel,
-                                                     const float3& contact_normal,
-                                                     const float k_t,
                                                      float3& delta_t) {
     delta_t = rel_vel * gran_params->stepSize_SU;
-    bool clamped = clampTangentDisplacement(gran_params, k_t, static_friction_coeff, normal_force,
-                                            force_model_multiplier, delta_t);
-    return clamped;
+    float ut = Length(delta_t);
 }
 
-/// Compute multi-step friction displacement and clamp it
+/// Compute multi-step friction displacement
 /// set delta_t for the displacement
-inline __device__ bool computeMultiStepDisplacement(GranParamsPtr gran_params,
+inline __device__ void computeMultiStepDisplacement(GranParamsPtr gran_params,
                                                     GranSphereDataPtr sphere_data,
-                                                    float static_friction_coeff,
                                                     const size_t& contact_id,
-                                                    const float3& normal_force,
-                                                    float force_model_multiplier,
                                                     const float3& rel_vel,
                                                     const float3& contact_normal,
-                                                    const float k_t,
                                                     float3& delta_t) {
     // get the tangential displacement so far
     delta_t = sphere_data->contact_history_map[contact_id];
@@ -347,13 +309,9 @@ inline __device__ bool computeMultiStepDisplacement(GranParamsPtr gran_params,
     float disp_proj = Dot(delta_t, contact_normal);
     // remove normal projection
     delta_t = delta_t - disp_proj * contact_normal;
-    // clamp tangent displacement
-    bool clamped = clampTangentDisplacement(gran_params, k_t, static_friction_coeff, normal_force,
-                                            force_model_multiplier, delta_t);
 
     // write back the updated displacement
     sphere_data->contact_history_map[contact_id] = delta_t;
-    return clamped;
 }
 
 /// compute friction forces for a contact
@@ -370,24 +328,28 @@ inline __device__ float3 computeFrictionForces(GranParamsPtr gran_params,
                                                const float3& rel_vel,
                                                const float3& contact_normal) {
     float3 delta_t = {0., 0., 0.};
-    bool clamped = true;
 
     if (gran_params->friction_mode == GRAN_FRICTION_MODE::SINGLE_STEP) {
-        clamped = computeSingleStepDisplacement(gran_params, sphere_data, static_friction_coeff, normal_force,
-                                                force_model_multiplier, rel_vel, contact_normal, k_t, delta_t);
+        computeSingleStepDisplacement(gran_params, rel_vel, delta_t);
     } else if (gran_params->friction_mode == GRAN_FRICTION_MODE::MULTI_STEP) {
         // TODO optimize this if we already have the contact ID
-        clamped =
-            computeMultiStepDisplacement(gran_params, sphere_data, static_friction_coeff, contact_index, normal_force,
-                                         force_model_multiplier, rel_vel, contact_normal, k_t, delta_t);
+        computeMultiStepDisplacement(gran_params, sphere_data, contact_index, rel_vel, contact_normal, delta_t);
     }
 
-    float3 tangent_force = -k_t * delta_t * force_model_multiplier;
-    // if no-slip, add the tangential damping
-    if (!clamped) {
-        tangent_force = tangent_force - gamma_t * m_eff * rel_vel * force_model_multiplier;
+    float3 tangent_force = force_model_multiplier * (-k_t * delta_t - gamma_t * m_eff * rel_vel);
+    const float ft = Length(tangent_force);  // could be small
+
+    // TODO what value is (1) a negligible SU force (2) a safe number to divide by numerically?
+    constexpr float GRAN_MACHINE_EPSILON = 1e-6f;
+    if (ft < GRAN_MACHINE_EPSILON) {
+        return make_float3(0.f, 0.f, 0.f);
     }
-    return tangent_force;
+
+    // If the force is beyond the coulomb criternion, clamp it
+    const float ft_max = Length(normal_force) * static_friction_coeff;
+    if (ft > ft_max) {
+        return tangent_force * ft_max / ft;  // TODO stability
+    }
 }
 
 // overload for if the body ids are given rather than contact id
