@@ -166,23 +166,24 @@ linux:centos:test:
 .windows:
   tags:
   - windows
-  variables:
-    CHRONO_W64_LIBRARIES: "-DBLAZE_DIR=C:/Users/Public/Documents/blaze-3.1 
-      -DSWIG_EXECUTABLE=C:/Users/Public/Documents/swigwin-3.0.12/swig.exe 
-      -DBOOST_ROOT=C:/Users/Public/Documents/boost_1_68_0 
-      -DGLM_INCLUDE_DIR=C:/Users/Public/Documents/glm-0.9.9.5 
-      -DGLEW_DLL=C:/Users/Public/Documents/glew-2.1.0/bin/Release/x64/glew32.dll 
-      -DGLEW_INCLUDE_DIR=C:/Users/Public/Documents/glew-2.1.0/include 
-      -DGLEW_LIBRARY=C:/Users/Public/Documents/glew-2.1.0/lib/Release/x64/glew32.lib 
-      -DGLFW_DLL=C:/Users/Public/Documents/glfw-3.3/lib-vc2015/glfw3.dll 
-      -DGLFW_INCLUDE_DIR=C:/Users/Public/Documents/glfw-3.3/include/GLFW 
-      -DGLFW_LIBRARY=C:/Users/Public/Documents/glfw-3.3/lib-vc2015/glfw3dll.lib 
-      -DIRRLICHT_LIBRARY=C:/Users/Public/Documents/irrlicht-1.8.4/lib/Win64-visualStudio/Irrlicht.lib 
-      -DIRRLICHT_ROOT=C:/Users/Public/Documents/irrlicht-1.8.4 
-      -DEIGEN3_INCLUDE_DIR=C:/Users/Public/Documents/eigen-3.3.7"
   before_script:
     #  - wget -UseBasicParsing https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.5.tar.gz -OutFile blaze-3.5.tar.gz
     #  - tar -xf .\blaze-3.5.tar.gz blaze-3.5/blaze
+  - $CHRONO_W64_LIBRARIES = @(
+    "-DBLAZE_DIR=C:/Users/Public/Documents/blaze-3.1"
+    "-DSWIG_EXECUTABLE=C:/Users/Public/Documents/swigwin-3.0.12/swig.exe",
+    "-DBOOST_ROOT=C:/Users/Public/Documents/boost_1_68_0",
+    "-DGLM_INCLUDE_DIR=C:/Users/Public/Documents/glm-0.9.9.5",
+    "-DGLEW_DLL=C:/Users/Public/Documents/glew-2.1.0/bin/Release/x64/glew32.dll",
+    "-DGLEW_INCLUDE_DIR=C:/Users/Public/Documents/glew-2.1.0/include",
+    "-DGLEW_LIBRARY=C:/Users/Public/Documents/glew-2.1.0/lib/Release/x64/glew32.lib",
+    "-DGLFW_DLL=C:/Users/Public/Documents/glfw-3.3/lib-vc2015/glfw3.dll",
+    "-DGLFW_INCLUDE_DIR=C:/Users/Public/Documents/glfw-3.3/include/GLFW",
+    "-DGLFW_LIBRARY=C:/Users/Public/Documents/glfw-3.3/lib-vc2015/glfw3dll.lib",
+    "-DIRRLICHT_LIBRARY=C:/Users/Public/Documents/irrlicht-1.8.4/lib/Win64-visualStudio/Irrlicht.lib",
+    "-DIRRLICHT_ROOT=C:/Users/Public/Documents/irrlicht-1.8.4",
+    "-DEIGEN3_INCLUDE_DIR=C:/Users/Public/Documents/eigen-3.3.7"
+    )
   - git submodule init
   - git submodule update
   - mkdir -Force build
@@ -193,9 +194,9 @@ windows:vs2019:build:
   extends: .windows
   script:
   - cd build
-  - Write-Output $env:CHRONO_CMAKE_SHARED $env:CHRONO_W64_LIBRARIES
-  - cmake ../ $env:CHRONO_CMAKE_SHARED $env:CHRONO_W64_LIBRARIES 
-    -G "Visual Studio 16 2019" -A x64 -T v142 -DUSE_PARALLEL_CUDA=OFF 
+  - Write-Output $env:CHRONO_CMAKE_SHARED @CHRONO_W64_LIBRARIES
+  - cmake ../ -G "Visual Studio 16 2019" -A x64 -T v142 
+    $env:CHRONO_CMAKE_SHARED @CHRONO_W64_LIBRARIES -DUSE_PARALLEL_CUDA=OFF
   #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
   - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
   artifacts:
