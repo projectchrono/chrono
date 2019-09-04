@@ -8,6 +8,13 @@ stages:
   - test
   - deploy
 
+variables:
+  CHRONO_CMAKE_SHARED: "-DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=TRUE 
+    -DBUILD_BENCHMARKING=TRUE -DENABLE_MODULE_POSTPROCESS=TRUE 
+    -DENABLE_MODULE_PYTHON=TRUE -DENABLE_MODULE_COSIMULATION=FALSE 
+    -DENABLE_MODULE_IRRLICHT=TRUE -DENABLE_MODULE_VEHICLE=TRUE 
+    -DENABLE_MODULE_PARALLEL=TRUE -DENABLE_MODULE_OPENGL=TRUE"
+
 #---------------------#
 # Arch Linux Builders #
 #---------------------#
@@ -34,7 +41,10 @@ linux:arch-gcc:build:
   extends: .archlinux
   script:
   - cd build
-  - cmake ../ -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=TRUE -DBUILD_BENCHMARKING=TRUE -DENABLE_MODULE_POSTPROCESS=TRUE -DENABLE_MODULE_PYTHON=TRUE -DENABLE_MODULE_COSIMULATION=FALSE -DENABLE_MODULE_IRRLICHT=TRUE -DENABLE_MODULE_VEHICLE=TRUE -DENABLE_MODULE_PARALLEL=TRUE -DENABLE_MODULE_OPENGL=TRUE -DENABLE_MODULE_DISTRIBUTED=TRUE -DENABLE_MODULE_FSI=TRUE -DCMAKE_C_COMPILER=/usr/bin/gcc -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCUDA_HOST_COMPILER=/usr/bin/gcc-8 -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
+  - cmake ../ $CHRONO_CMAKE_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE 
+    -DENABLE_MODULE_FSI=TRUE -DCMAKE_C_COMPILER=/usr/bin/gcc 
+    -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCUDA_HOST_COMPILER=/usr/bin/gcc-8 
+    -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3/eigen3
   - make -j 8
   artifacts:
     expire_in: 30m
@@ -57,7 +67,10 @@ linux:arch-llvm:build:
   script:
   - pacman -S --noconfirm llvm clang openmp
   - cd build
-  - cmake ../ -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=TRUE -DBUILD_BENCHMARKING=TRUE -DENABLE_MODULE_POSTPROCESS=TRUE -DENABLE_MODULE_PYTHON=TRUE -DENABLE_MODULE_COSIMULATION=FALSE -DENABLE_MODULE_IRRLICHT=TRUE -DENABLE_MODULE_VEHICLE=TRUE -DENABLE_MODULE_PARALLEL=TRUE -DENABLE_MODULE_OPENGL=TRUE -DENABLE_MODULE_DISTRIBUTED=TRUE -DENABLE_MODULE_FSI=TRUE -DCMAKE_C_COMPILER=/usr/bin/gcc -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCUDA_HOST_COMPILER=/usr/bin/gcc-8 -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
+  - cmake ../ $CHRONO_CMAKE_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE 
+    -DENABLE_MODULE_FSI=TRUE -DCMAKE_C_COMPILER=/usr/bin/clang 
+    -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DCUDA_HOST_COMPILER=/usr/bin/gcc-8 
+    -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
   - make -j 8
   artifacts:
     expire_in: 30m
@@ -125,12 +138,7 @@ linux:centos:build:
   extends: .centos
   script:
   - cd build
-  - cmake ../ -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=TRUE 
-      -DBUILD_BENCHMARKING=TRUE -DENABLE_MODULE_POSTPROCESS=TRUE 
-      -DENABLE_MODULE_PYTHON=TRUE -DENABLE_MODULE_COSIMULATION=FALSE 
-      -DENABLE_MODULE_IRRLICHT=TRUE -DENABLE_MODULE_VEHICLE=TRUE 
-      -DENABLE_MODULE_PARALLEL=TRUE -DENABLE_MODULE_OPENGL=TRUE 
-      -DENABLE_MODULE_DISTRIBUTED=TRUE
+  - cmake ../ $CHRONO_CMAKE_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE
       -DCMAKE_C_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/gcc 
       -DCMAKE_CXX_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/g++ 
 #      -DCUDA_HOST_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/gcc
@@ -158,6 +166,20 @@ linux:centos:test:
 .windows:
   tags:
   - windows
+  variables:
+    CHRONO_W64_LIBRARIES: "-DBLAZE_DIR=C:/Users/Public/Documents/blaze-3.1 
+      -DSWIG_EXECUTABLE=C:/Users/Public/Documents/swigwin-3.0.12/swig.exe 
+      -DBOOST_ROOT=C:/Users/Public/Documents/boost_1_68_0 
+      -DGLM_INCLUDE_DIR=C:/Users/Public/Documents/glm-0.9.9.5 
+      -DGLEW_DLL=C:/Users/Public/Documents/glew-2.1.0/bin/Release/x64/glew32.dll 
+      -DGLEW_INCLUDE_DIR=C:/Users/Public/Documents/glew-2.1.0/include 
+      -DGLEW_LIBRARY=C:/Users/Public/Documents/glew-2.1.0/lib/Release/x64/glew32.lib 
+      -DGLFW_DLL=C:/Users/Public/Documents/glfw-3.3/lib-vc2015/glfw3.dll 
+      -DGLFW_INCLUDE_DIR=C:/Users/Public/Documents/glfw-3.3/include/GLFW 
+      -DGLFW_LIBRARY=C:/Users/Public/Documents/glfw-3.3/lib-vc2015/glfw3dll.lib 
+      -DIRRLICHT_LIBRARY=C:/Users/Public/Documents/irrlicht-1.8.4/lib/Win64-visualStudio/Irrlicht.lib 
+      -DIRRLICHT_ROOT=C:/Users/Public/Documents/irrlicht-1.8.4 
+      -DEIGEN3_INCLUDE_DIR=C:/Users/Public/Documents/eigen-3.3.7"
   before_script:
     #  - wget -UseBasicParsing https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.5.tar.gz -OutFile blaze-3.5.tar.gz
     #  - tar -xf .\blaze-3.5.tar.gz blaze-3.5/blaze
@@ -172,24 +194,7 @@ windows:vs2019:build:
   script:
   - cd build
   - cmake ../ -G "Visual Studio 16 2019" -A x64 -T v142 
-    -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=TRUE -DBUILD_BENCHMARKING=TRUE 
-    -DENABLE_MODULE_POSTPROCESS=TRUE -DENABLE_MODULE_PYTHON=TRUE 
-    -DENABLE_MODULE_COSIMULATION=FALSE -DENABLE_MODULE_IRRLICHT=TRUE 
-    -DENABLE_MODULE_VEHICLE=TRUE -DENABLE_MODULE_PARALLEL=TRUE 
-    -DENABLE_MODULE_OPENGL=TRUE -DUSE_PARALLEL_CUDA=OFF -DENABLE_MODULE_FSI=TRUE 
-    -DBLAZE_DIR=C:/Users/Public/Documents/blaze-3.1 
-    -DSWIG_EXECUTABLE=C:/Users/Public/Documents/swigwin-3.0.12/swig.exe 
-    -DBOOST_ROOT=C:/Users/Public/Documents/boost_1_68_0 
-    -DGLM_INCLUDE_DIR=C:/Users/Public/Documents/glm-0.9.9.5 
-    -DGLEW_DLL=C:/Users/Public/Documents/glew-2.1.0/bin/Release/x64/glew32.dll 
-    -DGLEW_INCLUDE_DIR=C:/Users/Public/Documents/glew-2.1.0/include 
-    -DGLEW_LIBRARY=C:/Users/Public/Documents/glew-2.1.0/lib/Release/x64/glew32.lib 
-    -DGLFW_DLL=C:/Users/Public/Documents/glfw-3.3/lib-vc2015/glfw3.dll 
-    -DGLFW_INCLUDE_DIR=C:/Users/Public/Documents/glfw-3.3/include/GLFW 
-    -DGLFW_LIBRARY=C:/Users/Public/Documents/glfw-3.3/lib-vc2015/glfw3dll.lib 
-    -DIRRLICHT_LIBRARY=C:/Users/Public/Documents/irrlicht-1.8.4/lib/Win64-visualStudio/Irrlicht.lib 
-    -DIRRLICHT_ROOT=C:/Users/Public/Documents/irrlicht-1.8.4 
-    -DEIGEN3_INCLUDE_DIR=C:/Users/Public/Documents/eigen-3.3.7
+    $env:CHRONO_CMAKE_SHARED -DUSE_PARALLEL_CUDA=OFF $env:CHRONO_W64_LIBRARIES
   #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
   - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
   artifacts:
