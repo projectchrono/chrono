@@ -16,9 +16,6 @@
 //
 // =============================================================================
 
-//// RADU
-//// For consistency with the tractor side, model this with a ChAxle object
-
 #ifndef TT_TRAILER_H
 #define TT_TRAILER_H
 
@@ -53,20 +50,21 @@ class TT_Trailer {
     void LogHardpointLocations();  /// suspension hardpoints at design
     void DebugLog(int what);       /// shock forces and lengths, constraints, etc.
 
-    /// Get all trailer wheels.
-    const chrono::vehicle::ChWheelList& GetWheels() const { return m_wheels; }
+    /// Get all trailer axle subsystems.
+    const chrono::vehicle::ChAxleList& GetAxles() const { return m_axles; }
+
+    /// Get the specified trailer axle subsystem.
+    std::shared_ptr<chrono::vehicle::ChAxle> GetAxle(int id) const { return m_axles[id]; }
 
   private:
     chrono::vehicle::SuspensionType m_suspType;
 
-    std::shared_ptr<chrono::ChBodyAuxRef> m_chassis;    ///< handle to the chassis body
-    std::shared_ptr<chrono::ChBodyAuxRef> m_frontaxle;  ///< handle to the steering axle
-    chrono::vehicle::ChSuspensionList m_suspensions;    ///< list of handles to suspension subsystems
-    chrono::vehicle::ChWheelList m_wheels;              ///< list of handles to wheel subsystems
-    chrono::vehicle::ChBrakeList m_brakes;              ///< list of handles to brake subsystems
+    std::shared_ptr<chrono::ChBodyAuxRef> m_chassis;    ///< chassis body
+    std::shared_ptr<chrono::ChBodyAuxRef> m_frontaxle;  ///< steering axle
+    chrono::vehicle::ChAxleList m_axles;                ///< list of axle subsystems
 
-    std::shared_ptr<chrono::ChLinkLockSpherical> m_joint;   ///< handle to the joint between chassis and front axle
-    std::shared_ptr<chrono::ChLinkLockSpherical> m_puller;  ///< handle to the joint between trailer and pulling vehicle
+    std::shared_ptr<chrono::ChLinkLockSpherical> m_joint;   ///< joint between chassis and front axle
+    std::shared_ptr<chrono::ChLinkLockSpherical> m_puller;  ///< joint between trailer and pulling vehicle
 
     // Chassis mass properties
     static const double m_chassisMass;

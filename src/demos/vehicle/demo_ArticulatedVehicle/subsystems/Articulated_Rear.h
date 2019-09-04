@@ -17,9 +17,6 @@
 //
 // =============================================================================
 
-//// RADU
-//// For consistency with the front side, model this with a ChAxle object
-
 #ifndef ARTICULATED_REAR_H
 #define ARTICULATED_REAR_H
 
@@ -40,8 +37,8 @@ class Articulated_Rear {
     void SetSuspensionVisualizationType(chrono::vehicle::VisualizationType vis);
     void SetWheelVisualizationType(chrono::vehicle::VisualizationType vis);
 
-    /// Get all wheels.
-    const chrono::vehicle::ChWheelList& GetWheels() const { return m_wheels; }
+    /// Get the axle subsystem.
+    std::shared_ptr<chrono::vehicle::ChAxle> GetAxle() const { return m_axle; }
 
     /// Get the global location of the specified spindle.
     const chrono::ChVector<>& GetSpindlePos(chrono::vehicle::VehicleSide side) const;
@@ -58,12 +55,9 @@ class Articulated_Rear {
   private:
     std::shared_ptr<Articulated_Chassis> m_front;  ///< handle to front side
 
-    std::shared_ptr<chrono::ChBodyAuxRef> m_chassis;              ///< handle to the chassis body
-    std::shared_ptr<chrono::vehicle::ChSuspension> m_suspension;  ///< handle to the suspension subsystem
-    chrono::vehicle::ChWheelList m_wheels;                        ///< list of handles to wheel subsystems
-    chrono::vehicle::ChBrakeList m_brakes;                        ///< list of handles to brake subsystems
-
-    std::shared_ptr<chrono::ChLinkMotorRotationAngle> m_motor;
+    std::shared_ptr<chrono::ChBodyAuxRef> m_chassis;            ///< chassis body
+    std::shared_ptr<chrono::vehicle::ChAxle> m_axle;            ///< axle subsystem (suspension + brakes + wheels)
+    std::shared_ptr<chrono::ChLinkMotorRotationAngle> m_motor;  ///< steering motor
 
     // Chassis mass properties
     static const double m_chassisMass;

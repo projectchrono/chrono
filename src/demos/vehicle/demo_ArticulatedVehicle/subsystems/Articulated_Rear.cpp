@@ -81,24 +81,19 @@ Articulated_Rear::Articulated_Rear(std::shared_ptr<Articulated_Chassis> front) :
     system->Add(m_chassis);
 
     // -------------------------------------------
-    // Create the suspension subsystem
+    // Create the axle subsystem
     // -------------------------------------------
-    ////m_suspension = chrono_types::make_shared<Generic_RigidPinnedAxle>("RearSusp");
-    m_suspension = chrono_types::make_shared<Generic_RigidSuspension>("RearSusp");
+    m_axle = chrono_types::make_shared<ChAxle>();
 
-    // -----------------
-    // Create the wheels
-    // -----------------
-    m_wheels.resize(2);
-    m_wheels[0] = chrono_types::make_shared<Generic_Wheel>("Wheel_FL");
-    m_wheels[1] = chrono_types::make_shared<Generic_Wheel>("Wheel_FR");
+    ////m_axle->m_suspension = chrono_types::make_shared<Generic_RigidPinnedAxle>("RearSusp");
+    m_axle->m_suspension = chrono_types::make_shared<Generic_RigidSuspension>("RearSusp");
 
-    // -----------------
-    // Create the brakes
-    // -----------------
-    m_brakes.resize(2);
-    m_brakes[0] = chrono_types::make_shared<Generic_BrakeSimple>("Brake_FL");
-    m_brakes[1] = chrono_types::make_shared<Generic_BrakeSimple>("Brake_FR");
+    m_axle->m_wheels.resize(2);
+    m_axle->m_wheels[0] = chrono_types::make_shared<Generic_Wheel>("Wheel_RL");
+    m_axle->m_wheels[1] = chrono_types::make_shared<Generic_Wheel>("Wheel_RR");
+
+    m_axle->m_brake_left = chrono_types::make_shared<Generic_BrakeSimple>("Brake_RL");
+    m_axle->m_brake_right = chrono_types::make_shared<Generic_BrakeSimple>("Brake_RR");
 }
 
 // -----------------------------------------------------------------------------
@@ -113,16 +108,8 @@ void Articulated_Rear::Initialize() {
 
     m_chassis->SetFrame_REF_to_abs(ChFrame<>(pos, rot));
 
-    // Initialize the suspension subsystem (specify its frame relative to the chassis reference frame)
-    m_suspension->Initialize(m_chassis, ChVector<>(-0.5, 0, 0), m_chassis, -1);
-
-    // Initialize wheels
-    m_wheels[0]->Initialize(m_suspension, LEFT);
-    m_wheels[1]->Initialize(m_suspension, RIGHT);
-
-    // Initialize the four brakes
-    m_brakes[0]->Initialize(m_suspension, LEFT);
-    m_brakes[1]->Initialize(m_suspension, RIGHT);
+    // Initialize the axle subsystem
+    m_axle->Initialize(m_chassis, ChVector<>(-0.5, 0, 0), ChVector<>(0, 0, 0), m_chassis, -1, 0.0);
 
     // Create the connection to the front side.
     m_motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
@@ -135,28 +122,21 @@ void Articulated_Rear::Initialize() {
 // Set visualization type for the various subsystems
 // -----------------------------------------------------------------------------
 void Articulated_Rear::SetSuspensionVisualizationType(VisualizationType vis) {
-    m_suspension->SetVisualizationType(vis);
+    m_axle->m_suspension->SetVisualizationType(vis);
 }
 
 void Articulated_Rear::SetWheelVisualizationType(VisualizationType vis) {
-    for (size_t i = 0; i < m_wheels.size(); ++i) {
-        m_wheels[i]->SetVisualizationType(vis);
+    for (auto& wheel : m_axle->m_wheels) {
+        wheel->SetVisualizationType(vis);
     }
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void Articulated_Rear::Synchronize(double time, double steering, double braking) {
-    // Prepare suspension for accepting tire forces
-    m_suspension->Synchronize();
-
-    // Apply tire forces to spindle bodies.
-    m_wheels[0]->Synchronize();
-    m_wheels[1]->Synchronize();
-
-    // Apply braking
-    m_brakes[0]->Synchronize(braking);
-    m_brakes[1]->Synchronize(braking);
+    // Synchronize the vehicle's axle subsystems
+    // (this applies tire forces to suspension spindles and braking input)
+    m_axle->Synchronize(braking);
 
     // Apply steering
     double max_angle = CH_C_PI / 6;
@@ -167,17 +147,17 @@ void Articulated_Rear::Synchronize(double time, double steering, double braking)
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 const ChVector<>& Articulated_Rear::GetSpindlePos(VehicleSide side) const {
-    return m_suspension->GetSpindlePos(side);
+    return m_axle->m_suspension->GetSpindlePos(side);
 }
 
 const ChQuaternion<>& Articulated_Rear::GetSpindleRot(VehicleSide side) const {
-    return m_suspension->GetSpindleRot(side);
+    return m_axle->m_suspension->GetSpindleRot(side);
 }
 
 const ChVector<>& Articulated_Rear::GetSpindleLinVel(VehicleSide side) const {
-    return m_suspension->GetSpindleLinVel(side);
+    return m_axle->m_suspension->GetSpindleLinVel(side);
 }
 
 ChVector<> Articulated_Rear::GetSpindleAngVel(VehicleSide side) const {
-    return m_suspension->GetSpindleAngVel(side);
+    return m_axle->m_suspension->GetSpindleAngVel(side);
 }

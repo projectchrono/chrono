@@ -146,11 +146,10 @@ int main(int argc, char* argv[]) {
     Generic_RigidTire tr_tire_RL("RL");
     Generic_RigidTire tr_tire_RR("RR");
 
-    auto trailer_wheels = trailer.GetWheels();
-    tr_tire_FL.Initialize(trailer_wheels[0]);
-    tr_tire_FR.Initialize(trailer_wheels[1]);
-    tr_tire_RL.Initialize(trailer_wheels[2]);
-    tr_tire_RR.Initialize(trailer_wheels[3]);
+    tr_tire_FL.Initialize(trailer.GetAxle(0)->m_wheels[0]);
+    tr_tire_FR.Initialize(trailer.GetAxle(0)->m_wheels[1]);
+    tr_tire_RL.Initialize(trailer.GetAxle(1)->m_wheels[0]);
+    tr_tire_RR.Initialize(trailer.GetAxle(1)->m_wheels[1]);
 
     tr_tire_FL.SetVisualizationType(VisualizationType::PRIMITIVES);
     tr_tire_FR.SetVisualizationType(VisualizationType::PRIMITIVES);
