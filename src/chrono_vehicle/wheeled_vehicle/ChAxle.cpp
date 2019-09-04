@@ -31,10 +31,7 @@ void ChAxle::SetOutput(bool state) {
     m_suspension->SetOutput(state);
     m_brake_left->SetOutput(state);
     m_brake_right->SetOutput(state);
-    for (auto& wheel : m_wheels_left) {
-        wheel->SetOutput(state);
-    }
-    for (auto& wheel : m_wheels_right) {
+    for (auto& wheel : m_wheels) {
         wheel->SetOutput(state);
     }
     if (m_antirollbar) {
@@ -54,17 +51,15 @@ void ChAxle::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_brake_left->Initialize(m_suspension, LEFT);
     m_brake_right->Initialize(m_suspension, RIGHT);
     if (wheel_separation > 0) {
-        assert(m_wheels_left.size() == 2);
-        assert(m_wheels_right.size() == 2);
-        m_wheels_left[0]->Initialize(m_suspension, LEFT, -wheel_separation / 2);
-        m_wheels_left[1]->Initialize(m_suspension, LEFT, +wheel_separation / 2);
-        m_wheels_right[0]->Initialize(m_suspension, RIGHT, -wheel_separation / 2);
-        m_wheels_right[1]->Initialize(m_suspension, RIGHT, +wheel_separation / 2);
+        assert(m_wheels.size() == 4);
+        m_wheels[0]->Initialize(m_suspension, LEFT, -wheel_separation / 2);   // inner left
+        m_wheels[1]->Initialize(m_suspension, RIGHT, -wheel_separation / 2);  // inner right
+        m_wheels[2]->Initialize(m_suspension, LEFT, +wheel_separation / 2);   // outer left
+        m_wheels[3]->Initialize(m_suspension, RIGHT, +wheel_separation / 2);  // outer right
     } else {
-        assert(m_wheels_left.size() == 1);
-        assert(m_wheels_right.size() == 1);
-        m_wheels_left[0]->Initialize(m_suspension, LEFT);
-        m_wheels_right[0]->Initialize(m_suspension, RIGHT);
+        assert(m_wheels.size() == 2);
+        m_wheels[0]->Initialize(m_suspension, LEFT);   // left
+        m_wheels[1]->Initialize(m_suspension, RIGHT);  // right
     }
     if (m_antirollbar) {
         assert(m_suspension->IsIndependent());
@@ -77,16 +72,20 @@ void ChAxle::Synchronize(double braking) {
     m_suspension->Synchronize();
 
     // Let the wheel subsystems get tire forces and pass them to their associated suspension.
-    for (auto& wheel : m_wheels_left) {
-        wheel->Synchronize();
-    }
-    for (auto& wheel : m_wheels_right) {
+    for (auto& wheel : m_wheels) {
         wheel->Synchronize();
     }
 
     // Apply braking input.
     m_brake_left->Synchronize(braking);
     m_brake_right->Synchronize(braking);
+}
+
+std::shared_ptr<ChWheel> ChAxle::GetWheel(VehicleSide side, WheelLocation location) const {
+    assert((location == SINGLE && m_wheels.size() == 2) || (location != SINGLE && m_wheels.size() == 4));
+    if (location == SINGLE)
+        return m_wheels[side];
+    return m_wheels[2 * (location - 1) + side];
 }
 
 }  // end namespace vehicle

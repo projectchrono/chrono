@@ -171,14 +171,13 @@ void WheeledVehicle::Create(const std::string& filename) {
         }
 
         // Left and right wheels
-        int num_wheels = 1;
-        m_axles[i]->m_wheels_left.resize(num_wheels);
-        m_axles[i]->m_wheels_right.resize(num_wheels);
+        int num_wheels = 2;
+        m_axles[i]->m_wheels.resize(num_wheels);
         file_name = d["Axles"][i]["Left Wheel Input File"].GetString();
-        m_axles[i]->m_wheels_left[0] = ReadWheelJSON(vehicle::GetDataFile(file_name));
+        m_axles[i]->m_wheels[0] = ReadWheelJSON(vehicle::GetDataFile(file_name));
 
         file_name = d["Axles"][i]["Right Wheel Input File"].GetString();
-        m_axles[i]->m_wheels_right[0] = ReadWheelJSON(vehicle::GetDataFile(file_name));
+        m_axles[i]->m_wheels[1] = ReadWheelJSON(vehicle::GetDataFile(file_name));
 
         // Left and right brakes
         file_name = d["Axles"][i]["Left Brake Input File"].GetString();

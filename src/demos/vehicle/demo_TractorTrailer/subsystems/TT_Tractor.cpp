@@ -61,14 +61,12 @@ TT_Tractor::TT_Tractor(const bool fixed, SuspensionType suspType, ChMaterialSurf
             break;
     }
 
-    m_axles[0]->m_wheels_left.resize(1);
-    m_axles[0]->m_wheels_right.resize(1);
-    m_axles[0]->m_wheels_left[0] = chrono_types::make_shared<Generic_Wheel>("Wheel_FL");
-    m_axles[0]->m_wheels_right[0] = chrono_types::make_shared<Generic_Wheel>("Wheel_FR");
-    m_axles[1]->m_wheels_left.resize(1);
-    m_axles[1]->m_wheels_right.resize(1);
-    m_axles[1]->m_wheels_left[0] = chrono_types::make_shared<Generic_Wheel>("Wheel_RL");
-    m_axles[1]->m_wheels_right[0] = chrono_types::make_shared<Generic_Wheel>("Wheel_RR");
+    m_axles[0]->m_wheels.resize(2);
+    m_axles[0]->m_wheels[0] = chrono_types::make_shared<Generic_Wheel>("Wheel_FL");
+    m_axles[0]->m_wheels[1] = chrono_types::make_shared<Generic_Wheel>("Wheel_FR");
+    m_axles[1]->m_wheels.resize(2);
+    m_axles[1]->m_wheels[0] = chrono_types::make_shared<Generic_Wheel>("Wheel_RL");
+    m_axles[1]->m_wheels[1] = chrono_types::make_shared<Generic_Wheel>("Wheel_RR");
 
     m_axles[0]->m_brake_left = chrono_types::make_shared<Generic_BrakeSimple>("Brake_FL");
     m_axles[0]->m_brake_right = chrono_types::make_shared<Generic_BrakeSimple>("Brake_FR");

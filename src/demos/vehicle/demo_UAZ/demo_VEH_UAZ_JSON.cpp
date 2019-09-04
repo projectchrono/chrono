@@ -136,15 +136,15 @@ int main(int argc, char* argv[]) {
 
     auto tireFL = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_front_tire_file));
     auto tireFR = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_front_tire_file));
-    tireFL->Initialize(vehicle.GetAxle(0)->m_wheels_left[0]);
-    tireFR->Initialize(vehicle.GetAxle(0)->m_wheels_right[0]);
+    tireFL->Initialize(vehicle.GetAxle(0)->m_wheels[0]);
+    tireFR->Initialize(vehicle.GetAxle(0)->m_wheels[1]);
     tires.push_back(tireFL);
     tires.push_back(tireFR);
 
     auto tireRL = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_rear_tire_file));
     auto tireRR = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_rear_tire_file));
-    tireRL->Initialize(vehicle.GetAxle(1)->m_wheels_left[0]);
-    tireRR->Initialize(vehicle.GetAxle(1)->m_wheels_right[0]);
+    tireRL->Initialize(vehicle.GetAxle(1)->m_wheels[0]);
+    tireRR->Initialize(vehicle.GetAxle(1)->m_wheels[1]);
     tires.push_back(tireRL);
     tires.push_back(tireRR);
 

@@ -254,10 +254,10 @@ void HMMWV::Initialize() {
     }
 
     // Initialize the tires.
-    m_tires[0]->Initialize(m_vehicle->GetAxle(0)->m_wheels_left[0]);
-    m_tires[1]->Initialize(m_vehicle->GetAxle(0)->m_wheels_right[0]);
-    m_tires[2]->Initialize(m_vehicle->GetAxle(1)->m_wheels_left[0]);
-    m_tires[3]->Initialize(m_vehicle->GetAxle(1)->m_wheels_right[0]);
+    m_tires[0]->Initialize(m_vehicle->GetAxle(0)->m_wheels[0]);
+    m_tires[1]->Initialize(m_vehicle->GetAxle(0)->m_wheels[1]);
+    m_tires[2]->Initialize(m_vehicle->GetAxle(1)->m_wheels[0]);
+    m_tires[3]->Initialize(m_vehicle->GetAxle(1)->m_wheels[1]);
 
     if (m_tire_step_size > 0) {
         m_tires[0]->SetStepsize(m_tire_step_size);

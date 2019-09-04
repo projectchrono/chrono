@@ -215,12 +215,12 @@ int main(int argc, char* argv[]) {
     // If needed, modify wheel contact and visualization models
     // --------------------------------------------------------
     for (auto& axle : my_hmmwv.GetVehicle().GetAxles()) {
-        auto wheelBodyL = axle->m_wheels_left[0]->GetSpindle();
+        auto wheelBodyL = axle->m_wheels[0]->GetSpindle();
         wheelBodyL->GetMaterialSurfaceSMC()->SetFriction(mu_t);
         wheelBodyL->GetMaterialSurfaceSMC()->SetYoungModulus(Y_t);
         wheelBodyL->GetMaterialSurfaceSMC()->SetRestitution(cr_t);
         CreateLuggedGeometry(wheelBodyL);
-        auto wheelBodyR = axle->m_wheels_right[0]->GetSpindle();
+        auto wheelBodyR = axle->m_wheels[1]->GetSpindle();
         wheelBodyR->GetMaterialSurfaceSMC()->SetFriction(mu_t);
         wheelBodyR->GetMaterialSurfaceSMC()->SetYoungModulus(Y_t);
         wheelBodyR->GetMaterialSurfaceSMC()->SetRestitution(cr_t);

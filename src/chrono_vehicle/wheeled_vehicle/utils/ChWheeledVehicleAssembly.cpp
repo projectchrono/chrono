@@ -60,11 +60,7 @@ void ChWheeledVehicleAssembly::Initialize(const ChVector<>& init_loc, const ChQu
     // geometry for each wheel of the vehicle.
     if (m_tire_cb) {
         for (auto& axle : m_vehicle->GetAxles()) {
-            for (auto& wheel : axle->m_wheels_left) {
-                m_tire_cb->onCallback(wheel->GetSpindle());
-                wheel->GetSpindle()->SetCollide(true);
-            }
-            for (auto& wheel : axle->m_wheels_right) {
+            for (auto& wheel : axle->m_wheels) {
                 m_tire_cb->onCallback(wheel->GetSpindle());
                 wheel->GetSpindle()->SetCollide(true);
             }

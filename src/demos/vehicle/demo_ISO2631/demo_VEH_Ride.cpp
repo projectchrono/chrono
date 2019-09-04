@@ -164,10 +164,10 @@ int main(int argc, char* argv[]) {
             default:
             case 1: {
                 auto tireL = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_tire_file));
-                tireL->Initialize(axle->m_wheels_left[0]);
+                tireL->Initialize(axle->m_wheels[0]);
                 tireL->SetVisualizationType(VisualizationType::MESH);
                 auto tireR = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_tire_file));
-                tireR->Initialize(axle->m_wheels_right[0]);
+                tireR->Initialize(axle->m_wheels[1]);
                 tireR->SetVisualizationType(VisualizationType::MESH);
                 tires.push_back(tireL);
                 tires.push_back(tireR);
@@ -175,10 +175,10 @@ int main(int argc, char* argv[]) {
             }
             case 2: {
                 auto tireL = chrono_types::make_shared<FialaTire>(vehicle::GetDataFile(fiala_tire_file));
-                tireL->Initialize(axle->m_wheels_left[0]);
+                tireL->Initialize(axle->m_wheels[0]);
                 tireL->SetVisualizationType(VisualizationType::MESH);
                 auto tireR = chrono_types::make_shared<FialaTire>(vehicle::GetDataFile(fiala_tire_file));
-                tireR->Initialize(axle->m_wheels_right[0]);
+                tireR->Initialize(axle->m_wheels[1]);
                 tireR->SetVisualizationType(VisualizationType::MESH);
                 tires.push_back(tireL);
                 tires.push_back(tireR);
@@ -186,10 +186,10 @@ int main(int argc, char* argv[]) {
             }
             case 3: {
                 auto tireL = chrono_types::make_shared<hmmwv::HMMWV_Pac02Tire>(vehicle::GetDataFile(pacejka_tire_file));
-                tireL->Initialize(axle->m_wheels_left[0]);
+                tireL->Initialize(axle->m_wheels[0]);
                 tireL->SetVisualizationType(VisualizationType::MESH);
                 auto tireR = chrono_types::make_shared<hmmwv::HMMWV_Pac02Tire>(vehicle::GetDataFile(pacejka_tire_file));
-                tireR->Initialize(axle->m_wheels_right[0]);
+                tireR->Initialize(axle->m_wheels[1]);
                 tireR->SetVisualizationType(VisualizationType::MESH);
                 tires.push_back(tireL);
                 tires.push_back(tireR);
@@ -197,10 +197,10 @@ int main(int argc, char* argv[]) {
             }
             case 4: {
                 auto tireL = chrono_types::make_shared<hmmwv::HMMWV_Pac89Tire>("HMMWV_Pac89_Tire");
-                tireL->Initialize(axle->m_wheels_left[0]);
+                tireL->Initialize(axle->m_wheels[0]);
                 tireL->SetVisualizationType(VisualizationType::MESH);
                 auto tireR = chrono_types::make_shared<hmmwv::HMMWV_Pac89Tire>("HMMWV_Pac89_Tire");
-                tireR->Initialize(axle->m_wheels_right[0]);
+                tireR->Initialize(axle->m_wheels[1]);
                 tireR->SetVisualizationType(VisualizationType::MESH);
                 tires.push_back(tireL);
                 tires.push_back(tireR);

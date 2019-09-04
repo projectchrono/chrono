@@ -151,7 +151,6 @@ set(CV_BASE_FILES
     ChPowertrain.h
     ChPowertrain.cpp
     ChSubsysDefs.h
-	ChSubsysDefs.cpp
     ChTerrain.h
     ChTerrain.cpp
     ChVehicle.h
@@ -163,11 +162,11 @@ set(CV_BASE_FILES
 source_group("base" FILES ${CV_BASE_FILES})
 
 set(CV_CHASSIS_FILES
-	chassis/ChRigidChassis.h
-	chassis/ChRigidChassis.cpp
+    chassis/ChRigidChassis.h
+    chassis/ChRigidChassis.cpp
 
-	chassis/RigidChassis.h
-	chassis/RigidChassis.cpp
+    chassis/RigidChassis.h
+    chassis/RigidChassis.cpp
 )
 source_group("chassis" FILES ${CV_CHASSIS_FILES})
 

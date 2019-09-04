@@ -106,8 +106,8 @@ ChSuspensionTestRig::ChSuspensionTestRig(ChWheeledVehicle& vehicle,
     m_suspLoc = m_suspension->GetLocation();
 
     // Load wheel subsystems
-    m_wheel[LEFT] = vehicle.GetAxle(axle_index)->m_wheels_left[0];
-    m_wheel[RIGHT] = vehicle.GetAxle(axle_index)->m_wheels_right[0];
+    m_wheel[LEFT] = vehicle.GetAxle(axle_index)->m_wheels[0];
+    m_wheel[RIGHT] = vehicle.GetAxle(axle_index)->m_wheels[1];
 
     // Load steering subsystem (if needed)
     int steering_index = m_suspension->GetSteeringIndex();

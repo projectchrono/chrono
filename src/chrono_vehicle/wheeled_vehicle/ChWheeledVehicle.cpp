@@ -91,10 +91,7 @@ void ChWheeledVehicle::SetSteeringVisualizationType(VisualizationType vis) {
 
 void ChWheeledVehicle::SetWheelVisualizationType(VisualizationType vis) {
     for (auto& axle : m_axles) {
-        for (auto& wheel : axle->m_wheels_left) {
-            wheel->SetVisualizationType(vis);
-        }
-        for (auto& wheel : axle->m_wheels_right) {
+        for (auto& wheel : axle->m_wheels) {
             wheel->SetVisualizationType(vis);
         }
     }

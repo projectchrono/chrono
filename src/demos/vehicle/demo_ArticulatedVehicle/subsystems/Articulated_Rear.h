@@ -17,6 +17,9 @@
 //
 // =============================================================================
 
+//// RADU
+//// For consistency with the front side, model this with a ChAxle object
+
 #ifndef ARTICULATED_REAR_H
 #define ARTICULATED_REAR_H
 

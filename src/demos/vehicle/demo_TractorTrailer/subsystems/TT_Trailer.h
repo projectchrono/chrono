@@ -16,6 +16,9 @@
 //
 // =============================================================================
 
+//// RADU
+//// For consistency with the tractor side, model this with a ChAxle object
+
 #ifndef TT_TRAILER_H
 #define TT_TRAILER_H
 

@@ -125,37 +125,37 @@ int main(int argc, char* argv[]) {
     powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
 
     // Create the tires
-    Generic_RigidTire tire_front_left("FL");
-    Generic_RigidTire tire_front_right("FR");
-    Generic_RigidTire tire_rear_left("RL");
-    Generic_RigidTire tire_rear_right("RR");
+    Generic_RigidTire tire_FL("FL");
+    Generic_RigidTire tire_FR("FR");
+    Generic_RigidTire tire_RL("RL");
+    Generic_RigidTire tire_RR("RR");
 
-    tire_front_left.Initialize(vehicle.GetAxle(0)->m_wheels_left[0]);
-    tire_front_right.Initialize(vehicle.GetAxle(0)->m_wheels_right[0]);
-    tire_rear_left.Initialize(vehicle.GetAxle(1)->m_wheels_left[0]);
-    tire_rear_right.Initialize(vehicle.GetAxle(1)->m_wheels_right[0]);
+    tire_FL.Initialize(vehicle.GetAxle(0)->m_wheels[0]);
+    tire_FR.Initialize(vehicle.GetAxle(0)->m_wheels[1]);
+    tire_RL.Initialize(vehicle.GetAxle(1)->m_wheels[0]);
+    tire_RR.Initialize(vehicle.GetAxle(1)->m_wheels[1]);
 
-    tire_front_left.SetVisualizationType(VisualizationType::PRIMITIVES);
-    tire_front_right.SetVisualizationType(VisualizationType::PRIMITIVES);
-    tire_rear_left.SetVisualizationType(VisualizationType::PRIMITIVES);
-    tire_rear_right.SetVisualizationType(VisualizationType::PRIMITIVES);
+    tire_FL.SetVisualizationType(VisualizationType::PRIMITIVES);
+    tire_FR.SetVisualizationType(VisualizationType::PRIMITIVES);
+    tire_RL.SetVisualizationType(VisualizationType::PRIMITIVES);
+    tire_RR.SetVisualizationType(VisualizationType::PRIMITIVES);
 
     // Create the trailer tires
-    Generic_RigidTire tr_tire_front_left("FL");
-    Generic_RigidTire tr_tire_front_right("FR");
-    Generic_RigidTire tr_tire_rear_left("RL");
-    Generic_RigidTire tr_tire_rear_right("RR");
+    Generic_RigidTire tr_tire_FL("FL");
+    Generic_RigidTire tr_tire_FR("FR");
+    Generic_RigidTire tr_tire_RL("RL");
+    Generic_RigidTire tr_tire_RR("RR");
 
     auto trailer_wheels = trailer.GetWheels();
-    tr_tire_front_left.Initialize(trailer_wheels[0]);
-    tr_tire_front_right.Initialize(trailer_wheels[1]);
-    tr_tire_rear_left.Initialize(trailer_wheels[2]);
-    tr_tire_rear_right.Initialize(trailer_wheels[3]);
+    tr_tire_FL.Initialize(trailer_wheels[0]);
+    tr_tire_FR.Initialize(trailer_wheels[1]);
+    tr_tire_RL.Initialize(trailer_wheels[2]);
+    tr_tire_RR.Initialize(trailer_wheels[3]);
 
-    tr_tire_front_left.SetVisualizationType(VisualizationType::PRIMITIVES);
-    tr_tire_front_right.SetVisualizationType(VisualizationType::PRIMITIVES);
-    tr_tire_rear_left.SetVisualizationType(VisualizationType::PRIMITIVES);
-    tr_tire_rear_right.SetVisualizationType(VisualizationType::PRIMITIVES);
+    tr_tire_FL.SetVisualizationType(VisualizationType::PRIMITIVES);
+    tr_tire_FR.SetVisualizationType(VisualizationType::PRIMITIVES);
+    tr_tire_RL.SetVisualizationType(VisualizationType::PRIMITIVES);
+    tr_tire_RR.SetVisualizationType(VisualizationType::PRIMITIVES);
 
     ChWheeledVehicleIrrApp app(&vehicle, &powertrain, L"Articulated Vehicle Demo");
 
@@ -240,10 +240,15 @@ int main(int argc, char* argv[]) {
 
         terrain.Synchronize(time);
 
-        tire_front_left.Synchronize(time, terrain);
-        tire_front_right.Synchronize(time, terrain);
-        tire_rear_left.Synchronize(time, terrain);
-        tire_rear_right.Synchronize(time, terrain);
+        tire_FL.Synchronize(time, terrain);
+        tire_FR.Synchronize(time, terrain);
+        tire_RL.Synchronize(time, terrain);
+        tire_RR.Synchronize(time, terrain);
+
+        tr_tire_FL.Synchronize(time, terrain);
+        tr_tire_FR.Synchronize(time, terrain);
+        tr_tire_RL.Synchronize(time, terrain);
+        tr_tire_RR.Synchronize(time, terrain);
 
         powertrain.Synchronize(time, throttle_input, driveshaft_speed);
 
@@ -259,10 +264,15 @@ int main(int argc, char* argv[]) {
 
         terrain.Advance(step);
 
-        tire_front_right.Advance(step);
-        tire_front_left.Advance(step);
-        tire_rear_right.Advance(step);
-        tire_rear_left.Advance(step);
+        tire_FL.Advance(step);
+        tire_FR.Advance(step);
+        tire_RL.Advance(step);
+        tire_RR.Advance(step);
+
+        tr_tire_FL.Advance(step);
+        tr_tire_FR.Advance(step);
+        tr_tire_RL.Advance(step);
+        tr_tire_RR.Advance(step);
 
         powertrain.Advance(step);
 

@@ -78,26 +78,27 @@ class CH_VEHICLE_API ChAxle {
     /// This function must be called before any call to AccumulateTireForce.
     void Synchronize(double braking);
 
-    /// Get wheels on left side.
-    const ChWheelList& GetWheelsLeft() const { return m_wheels_left; }
+    /// Get all wheels from this axle.
+    /// The wheels associated with an axle are assumed to be ordered from inner to outer wheels, first left then right.
+    /// In other words, for a single-wheel axle the order is left wheel, right wheel.  For a double-wheel axle, the
+    /// order is inner left, inner right, outer left, outer right.
+    const ChWheelList& GetWheels() const { return m_wheels; }
 
-    /// Get wheels on right side.
-    const ChWheelList& GetWheelsRight() const { return m_wheels_right; }
+    /// Get the specified wheel of this axle.
+    std::shared_ptr<ChWheel> GetWheel(VehicleSide side, WheelLocation location = SINGLE) const;
 
     std::shared_ptr<ChSuspension> m_suspension;
     std::shared_ptr<ChBrake> m_brake_left;
     std::shared_ptr<ChBrake> m_brake_right;
     std::shared_ptr<ChAntirollBar> m_antirollbar;
-    ChWheelList m_wheels_left;
-    ChWheelList m_wheels_right;
+    ChWheelList m_wheels;
 
   protected:
     ChVector<> m_susp_location;  ///< suspension location relative to chassis
-    int m_steering_index;   ///< index of associated steering mechanism
+    int m_steering_index;        ///< index of associated steering mechanism
 
     bool m_double_wheel;        ///< true if doulbe wheels on each side
     double m_wheel_separation;  ///< distance between wheel centers (0 for single wheel)
-
 };
 
 /// Vector of handles to axle subsystems.

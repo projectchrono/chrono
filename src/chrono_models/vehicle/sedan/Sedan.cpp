@@ -144,10 +144,10 @@ void Sedan::Initialize() {
     }
 
     // Initialize the tires.
-    m_tires[0]->Initialize(m_vehicle->GetAxle(0)->m_wheels_left[0]);
-    m_tires[1]->Initialize(m_vehicle->GetAxle(0)->m_wheels_right[0]);
-    m_tires[2]->Initialize(m_vehicle->GetAxle(1)->m_wheels_left[0]);
-    m_tires[3]->Initialize(m_vehicle->GetAxle(1)->m_wheels_right[0]);
+    m_tires[0]->Initialize(m_vehicle->GetAxle(0)->m_wheels[0]);
+    m_tires[1]->Initialize(m_vehicle->GetAxle(0)->m_wheels[1]);
+    m_tires[2]->Initialize(m_vehicle->GetAxle(1)->m_wheels[0]);
+    m_tires[3]->Initialize(m_vehicle->GetAxle(1)->m_wheels[1]);
 
     m_tire_mass = m_tires[0]->ReportMass();
 }

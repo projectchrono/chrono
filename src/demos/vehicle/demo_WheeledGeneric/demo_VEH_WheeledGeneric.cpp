@@ -126,20 +126,20 @@ int main(int argc, char* argv[]) {
     powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
 
     // Create the tires
-    Generic_RigidTire tire_front_left("FL");
-    Generic_RigidTire tire_front_right("FR");
-    Generic_RigidTire tire_rear_left("RL");
-    Generic_RigidTire tire_rear_right("RR");
+    Generic_RigidTire tire_FL("FL");
+    Generic_RigidTire tire_FR("FR");
+    Generic_RigidTire tire_RL("RL");
+    Generic_RigidTire tire_RR("RR");
 
-    tire_front_left.Initialize(vehicle.GetAxle(0)->m_wheels_left[0]);
-    tire_front_right.Initialize(vehicle.GetAxle(0)->m_wheels_right[0]);
-    tire_rear_left.Initialize(vehicle.GetAxle(1)->m_wheels_left[0]);
-    tire_rear_right.Initialize(vehicle.GetAxle(1)->m_wheels_right[0]);
+    tire_FL.Initialize(vehicle.GetAxle(0)->m_wheels[0]);
+    tire_FR.Initialize(vehicle.GetAxle(0)->m_wheels[1]);
+    tire_RL.Initialize(vehicle.GetAxle(1)->m_wheels[0]);
+    tire_RR.Initialize(vehicle.GetAxle(1)->m_wheels[1]);
 
-    tire_front_left.SetVisualizationType(VisualizationType::PRIMITIVES);
-    tire_front_right.SetVisualizationType(VisualizationType::PRIMITIVES);
-    tire_rear_left.SetVisualizationType(VisualizationType::PRIMITIVES);
-    tire_rear_right.SetVisualizationType(VisualizationType::PRIMITIVES);
+    tire_FL.SetVisualizationType(VisualizationType::PRIMITIVES);
+    tire_FR.SetVisualizationType(VisualizationType::PRIMITIVES);
+    tire_RL.SetVisualizationType(VisualizationType::PRIMITIVES);
+    tire_RR.SetVisualizationType(VisualizationType::PRIMITIVES);
 
 #ifdef USE_IRRLICHT
 
@@ -259,10 +259,10 @@ int main(int argc, char* argv[]) {
 
         terrain.Synchronize(time);
 
-        tire_front_left.Synchronize(time, terrain);
-        tire_front_right.Synchronize(time, terrain);
-        tire_rear_left.Synchronize(time, terrain);
-        tire_rear_right.Synchronize(time, terrain);
+        tire_FL.Synchronize(time, terrain);
+        tire_FR.Synchronize(time, terrain);
+        tire_RL.Synchronize(time, terrain);
+        tire_RR.Synchronize(time, terrain);
 
         powertrain.Synchronize(time, throttle_input, driveshaft_speed);
 
@@ -277,10 +277,10 @@ int main(int argc, char* argv[]) {
 
         terrain.Advance(step);
 
-        tire_front_right.Advance(step);
-        tire_front_left.Advance(step);
-        tire_rear_right.Advance(step);
-        tire_rear_left.Advance(step);
+        tire_FL.Advance(step);
+        tire_FR.Advance(step);
+        tire_RL.Advance(step);
+        tire_RR.Advance(step);
 
         powertrain.Advance(step);
 
@@ -341,10 +341,10 @@ int main(int argc, char* argv[]) {
 
         terrain.Synchronize(time);
 
-        tire_front_left.Synchronize(time, terrain);
-        tire_front_right.Synchronize(time, terrain);
-        tire_rear_left.Synchronize(time, terrain);
-        tire_rear_right.Synchronize(time, terrain);
+        tire_FL.Synchronize(time, terrain);
+        tire_FR.Synchronize(time, terrain);
+        tire_RL.Synchronize(time, terrain);
+        tire_RR.Synchronize(time, terrain);
 
         powertrain.Synchronize(time, throttle_input, driveshaft_speed);
 
@@ -355,10 +355,10 @@ int main(int argc, char* argv[]) {
 
         terrain.Advance(step_size);
 
-        tire_front_right.Advance(step_size);
-        tire_front_left.Advance(step_size);
-        tire_rear_right.Advance(step_size);
-        tire_rear_left.Advance(step_size);
+        tire_FL.Advance(step_size);
+        tire_FR.Advance(step_size);
+        tire_RL.Advance(step_size);
+        tire_RR.Advance(step_size);
 
         powertrain.Advance(step_size);
 
