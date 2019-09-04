@@ -1025,7 +1025,7 @@ inline ChQuaternion<Real> ChQuaternion<Real>::GetConjugate() const {
 template <class Real>
 inline ChQuaternion<Real> ChQuaternion<Real>::GetInverse() const {
     ChQuaternion<Real> invq = this->GetConjugate();
-    invq.Scale(1 / this->Length());
+    invq.Scale(1 / this->Length2());
     return invq;
 }
 
