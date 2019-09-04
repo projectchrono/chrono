@@ -170,7 +170,7 @@ linux:centos:test:
     #  - wget -UseBasicParsing https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.5.tar.gz -OutFile blaze-3.5.tar.gz
     #  - tar -xf .\blaze-3.5.tar.gz blaze-3.5/blaze
   - $CHRONO_W64_LIBRARIES = @(
-    "-DBLAZE_DIR=C:/Users/Public/Documents/blaze-3.1"
+    "-DBLAZE_DIR=C:/Users/Public/Documents/blaze-3.1",
     "-DSWIG_EXECUTABLE=C:/Users/Public/Documents/swigwin-3.0.12/swig.exe",
     "-DBOOST_ROOT=C:/Users/Public/Documents/boost_1_68_0",
     "-DGLM_INCLUDE_DIR=C:/Users/Public/Documents/glm-0.9.9.5",
