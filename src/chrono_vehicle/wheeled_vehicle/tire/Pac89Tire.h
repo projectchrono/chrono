@@ -19,11 +19,10 @@
 #ifndef PAC89_TIRE_H
 #define PAC89_TIRE_H
 
-#include "chrono/assets/ChTriangleMeshShape.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChPac89Tire.h"
-
-#include "chrono_models/ChApiModels.h"
+#include "chrono_vehicle/ChApiVehicle.h"
+#include "chrono/assets/ChTriangleMeshShape.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
 
@@ -34,7 +33,7 @@ namespace vehicle {
 /// @{
 
 /// PAC89 tire model from JSON file.
-class CH_MODELS_API Pac89Tire : public ChPac89Tire {
+class CH_VEHICLE_API Pac89Tire : public ChPac89Tire {
   public:
     Pac89Tire(const std::string& filename);
     Pac89Tire(const rapidjson::Document& d);

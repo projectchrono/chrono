@@ -152,7 +152,7 @@ void Pac89Tire::AddVisualizationAssets(VisualizationType vis) {
         m_trimesh_shape->SetMesh(trimesh);
         m_trimesh_shape->SetName(m_meshName);
         m_trimesh_shape->SetStatic(true);
-        m_wheel->AddAsset(m_trimesh_shape);
+        m_wheel->GetSpindle()->AddAsset(m_trimesh_shape);
     } else {
         ChPac89Tire::AddVisualizationAssets(vis);
     }
@@ -164,9 +164,10 @@ void Pac89Tire::RemoveVisualizationAssets() {
     // Make sure we only remove the assets added by Pac89Tire::AddVisualizationAssets.
     // This is important for the ChTire object because a wheel may add its own assets
     // to the same body (the spindle/wheel).
-    auto it = std::find(m_wheel->GetAssets().begin(), m_wheel->GetAssets().end(), m_trimesh_shape);
-    if (it != m_wheel->GetAssets().end())
-        m_wheel->GetAssets().erase(it);
+    auto& assets = m_wheel->GetSpindle()->GetAssets();
+    auto it = std::find(assets.begin(), assets.end(), m_trimesh_shape);
+    if (it != assets.end())
+        assets.erase(it);
 }
 }  // namespace vehicle
 }  // namespace chrono
