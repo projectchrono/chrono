@@ -195,7 +195,7 @@ windows:vs2019:build:
   - cd build
   - Write-Output $env:CHRONO_CMAKE_SHARED $env:CHRONO_W64_LIBRARIES
   - cmake ../ -G "Visual Studio 16 2019" -A x64 -T v142 $env:CHRONO_CMAKE_SHARED
-     -DUSE_PARALLEL_CUDA=OFF $env:CHRONO_W64_LIBRARIES
+     -DUSE_PARALLEL_CUDA=OFF $env:CHRONO_W64_LIBRARIES %CHRONO_CMAKE_LIBRARIES%
   #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
   - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
   artifacts:
