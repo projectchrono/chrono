@@ -38,6 +38,7 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/RigidTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/FialaTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/TMeasyTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/Pac89Tire.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/ChDoubleWishbone.h"
 #include "chrono_vehicle/ChConfigVehicle.h"
 
@@ -96,6 +97,9 @@ std::string fialatire_file("hmmwv/tire/HMMWV_Fiala_converted.json");
 // JSON files tire models (TMeasy)
 std::string tmeasytire_file("hmmwv/tire/HMMWV_TMeasy_converted.json");
 
+// JSON files tire models (Pac89)
+std::string pac89tire_file("hmmwv/tire/HMMWV_Pac89.json");
+
 // Driver input file (if not using Irrlicht)
 std::string driver_file("generic/driver/Sample_Maneuver.txt");
 
@@ -130,14 +134,14 @@ double tend = 20.0;
 const std::string out_dir = GetChronoOutputPath() + "WHEELED_JSON";
 const std::string pov_dir = out_dir + "/POVRAY";
 
-typedef enum { rigid_tire, fiala_tire, tmeasy_tire } TireToUse;
+typedef enum { rigid_tire, fiala_tire, tmeasy_tire, pac89_tire } TireToUse;
 
 // =============================================================================
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    TireToUse myTire = fiala_tire;
+    TireToUse myTire = pac89_tire;
     // --------------------------
     // Create the various modules
     // --------------------------
@@ -165,6 +169,7 @@ int main(int argc, char* argv[]) {
     std::vector<std::shared_ptr<RigidTire> > tires_rigid(num_wheels);
     std::vector<std::shared_ptr<FialaTire> > tires_fiala(num_wheels);
     std::vector<std::shared_ptr<TMeasyTire> > tires_tmeasy(num_wheels);
+    std::vector<std::shared_ptr<Pac89Tire> > tires_pac89(num_wheels);
 
     for (int i = 0; i < num_wheels; i++) {
         switch (myTire) {
@@ -189,6 +194,12 @@ int main(int argc, char* argv[]) {
                 if (i == 0)
                     winTitle.append(L" (TMeasy Tires)");
                 break;
+            case pac89_tire:
+                tires_pac89[i] = chrono_types::make_shared<Pac89Tire>(vehicle::GetDataFile(pac89tire_file));
+                tires_pac89[i]->Initialize(vehicle.GetWheelBody(i), VehicleSide(i % 2));
+                tires_pac89[i]->SetVisualizationType(VisualizationType::MESH);
+                if (i == 0)
+                    winTitle.append(L" (Pac89 Tires)");
                 break;
         }
     }
@@ -320,6 +331,9 @@ int main(int argc, char* argv[]) {
                 case tmeasy_tire:
                     tire_forces[i] = tires_tmeasy[i]->GetTireForce();
                     break;
+                case pac89_tire:
+                    tire_forces[i] = tires_pac89[i]->GetTireForce();
+                    break;
             }
             wheel_states[i] = vehicle.GetWheelState(i);
         }
@@ -341,6 +355,9 @@ int main(int argc, char* argv[]) {
                 case tmeasy_tire:
                     tires_tmeasy[i]->Synchronize(time, wheel_states[i], terrain);
                     break;
+                case pac89_tire:
+                    tires_pac89[i]->Synchronize(time, wheel_states[i], terrain);
+                    break;
             }
         }
         app.Synchronize(driver.GetInputModeAsString(), steering_input, throttle_input, braking_input);
@@ -361,6 +378,9 @@ int main(int argc, char* argv[]) {
                     break;
                 case tmeasy_tire:
                     tires_tmeasy[i]->Advance(step);
+                    break;
+                case pac89_tire:
+                    tires_pac89[i]->Advance(step);
                     break;
             }
         app.Advance(step);
@@ -409,6 +429,9 @@ int main(int argc, char* argv[]) {
                 case tmeasy_tire:
                     tire_forces[i] = tires_tmeasy[i]->GetTireForce();
                     break;
+                case pac89_tire:
+                    tire_forces[i] = tires_pac89[i]->GetTireForce();
+                    break;
             }
             wheel_states[i] = vehicle.GetWheelState(i);
         }
@@ -430,6 +453,9 @@ int main(int argc, char* argv[]) {
                 case tmeasy_tire:
                     tires_tmeasy[i]->Synchronize(time, wheel_states[i], terrain);
                     break;
+                case pac89_tire:
+                    tires_pac89[i]->Synchronize(time, wheel_states[i], terrain);
+                    break;
             }
 
         // Advance simulation for one timestep for all modules
@@ -447,6 +473,9 @@ int main(int argc, char* argv[]) {
                     break;
                 case tmeasy_tire:
                     tires_tmeasy[i]->Advance(step_size);
+                    break;
+                case pac89_tire:
+                    tires_pac89[i]->Advance(step_size);
                     break;
             }
 
