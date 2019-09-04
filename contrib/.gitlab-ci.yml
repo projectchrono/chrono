@@ -9,7 +9,7 @@ stages:
   - deploy
 
 variables:
-  CHRONO_CMAKE_SHARED: "-DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=TRUE 
+  CHRONO_LINUX_SHARED: "-DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=TRUE 
     -DBUILD_BENCHMARKING=TRUE -DENABLE_MODULE_POSTPROCESS=TRUE 
     -DENABLE_MODULE_PYTHON=TRUE -DENABLE_MODULE_COSIMULATION=FALSE 
     -DENABLE_MODULE_IRRLICHT=TRUE -DENABLE_MODULE_VEHICLE=TRUE 
@@ -41,10 +41,10 @@ linux:arch-gcc:build:
   extends: .archlinux
   script:
   - cd build
-  - cmake ../ $CHRONO_CMAKE_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE 
+  - cmake ../ $CHRONO_LINUX_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE 
     -DENABLE_MODULE_FSI=TRUE -DCMAKE_C_COMPILER=/usr/bin/gcc 
     -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCUDA_HOST_COMPILER=/usr/bin/gcc-8 
-    -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3/eigen3
+    -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
   - make -j 8
   artifacts:
     expire_in: 30m
@@ -67,7 +67,7 @@ linux:arch-llvm:build:
   script:
   - pacman -S --noconfirm llvm clang openmp
   - cd build
-  - cmake ../ $CHRONO_CMAKE_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE 
+  - cmake ../ $CHRONO_LINUX_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE 
     -DENABLE_MODULE_FSI=TRUE -DCMAKE_C_COMPILER=/usr/bin/clang 
     -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DCUDA_HOST_COMPILER=/usr/bin/gcc-8 
     -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
@@ -138,7 +138,7 @@ linux:centos:build:
   extends: .centos
   script:
   - cd build
-  - cmake ../ $CHRONO_CMAKE_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE
+  - cmake ../ $CHRONO_LINUX_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE
       -DCMAKE_C_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/gcc 
       -DCMAKE_CXX_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/g++ 
 #      -DCUDA_HOST_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/gcc
@@ -167,6 +167,13 @@ linux:centos:test:
   tags:
   - windows
   before_script:
+  - $CHRONO_W64_SHARED = @(
+    "-DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=TRUE",
+    "-DBUILD_BENCHMARKING=TRUE -DENABLE_MODULE_POSTPROCESS=TRUE",
+    "-DENABLE_MODULE_PYTHON=TRUE -DENABLE_MODULE_COSIMULATION=FALSE",
+    "-DENABLE_MODULE_IRRLICHT=TRUE -DENABLE_MODULE_VEHICLE=TRUE",
+    "-DENABLE_MODULE_PARALLEL=TRUE -DENABLE_MODULE_OPENGL=TRUE"
+    )
     #  - wget -UseBasicParsing https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.5.tar.gz -OutFile blaze-3.5.tar.gz
     #  - tar -xf .\blaze-3.5.tar.gz blaze-3.5/blaze
   - $CHRONO_W64_LIBRARIES = @(
@@ -194,9 +201,10 @@ windows:vs2019:build:
   extends: .windows
   script:
   - cd build
-  - Write-Output $env:CHRONO_CMAKE_SHARED @CHRONO_W64_LIBRARIES
   - cmake ../ -G "Visual Studio 16 2019" -A x64 -T v142 
-    $env:CHRONO_CMAKE_SHARED @CHRONO_W64_LIBRARIES -DUSE_PARALLEL_CUDA=OFF
+    @CHRONO_W64_SHARED 
+    @CHRONO_W64_LIBRARIES 
+    -DUSE_PARALLEL_CUDA=OFF -DENABLE_MODULE_FSI=TRUE
   #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
   - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
   artifacts:
@@ -226,6 +234,39 @@ windows:vs2019:deploy:
     name: pychrono-win64
     url: https://anaconda.org/projectchrono/pychrono
   when: manual
+
+
+windows:vs2017:build:
+  stage: build
+  extends: .windows
+  script:
+  - cd build
+  - cmake ../ -G "Visual Studio 16 2019" -A x64 -T v141
+    @CHRONO_W64_SHARED
+    @CHRONO_W64_LIBRARIES
+    -DUSE_PARALLEL_CUDA=OFF -DENABLE_MODULE_FSI=TRUE
+  #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
+  - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
+  artifacts:
+    expire_in: 30m
+    paths:
+      - build/
+
+windows:vs2015:build:
+  stage: build
+  extends: .windows
+  script:
+  - cd build
+  - cmake ../ -G "Visual Studio 16 2019" -A x64 -T v140
+    @CHRONO_W64_SHARED
+    @CHRONO_W64_LIBRARIES
+    -DUSE_PARALLEL_CUDA=OFF -DENABLE_MODULE_FSI=TRUE
+  #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
+  - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
+  artifacts:
+    expire_in: 30m
+    paths:
+      - build/
 
 
 #-----------------#
