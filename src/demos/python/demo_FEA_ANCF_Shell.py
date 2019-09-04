@@ -20,6 +20,7 @@
 import pychrono as chrono
 import pychrono.fea as fea
 import pychrono.irrlicht as chronoirr
+import math
 
 
 #print(["Copyright (c) 2017 projectchrono.org\nChrono version: ", chrono.CHRONO_VERSION , "\n\n"])
@@ -59,8 +60,8 @@ plate_lenght_y = 0.1
 plate_lenght_z = 0.01
 # Specification of the mesh
 numDiv_x = 10
-numDiv_y = 1
-numDiv_z = 1
+numDiv_y = 10
+numDiv_z = 10
 N_x = numDiv_x + 1
 N_y = numDiv_y + 1
 N_z = numDiv_z + 1
@@ -114,10 +115,10 @@ mat = fea.ChMaterialShellANCF(rho, E, nu, G)
 # Create the elements
 for i in range(TotalNumElements):
     # Adjacent nodes
-    node0 = int( i % numDiv_x)
-    node1 = int(i % numDiv_x + 1)
-    node2 = int(i % numDiv_x + 1 + N_x)
-    node3 = int(i % numDiv_x + N_x)
+    node0 = int( i % numDiv_x + (numDiv_x+1) * math.floor(i/numDiv_x))
+    node1 = int(i % numDiv_x + 1 + (numDiv_x+1) * math.floor(i/numDiv_x))
+    node2 = int(i % numDiv_x + 1 + N_x + (numDiv_x+1) * math.floor(i/numDiv_x))
+    node3 = int(i % numDiv_x + N_x + (numDiv_x+1) * math.floor(i/numDiv_x))
 
     # Create the element and set its nodes.
     element = fea.ChElementShellANCF()
