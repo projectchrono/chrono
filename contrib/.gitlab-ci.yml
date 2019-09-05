@@ -205,6 +205,7 @@ windows:vs2019:build:
     @CHRONO_W64_SHARED 
     @CHRONO_W64_LIBRARIES 
     -DUSE_PARALLEL_CUDA=OFF
+  #-DENABLE_MODULE_FSI=TRUE
   #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
   - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
   artifacts:
@@ -244,7 +245,8 @@ windows:vs2017:build:
   - cmake ../ -G "Visual Studio 16 2019" -A x64 -T v141
     @CHRONO_W64_SHARED
     @CHRONO_W64_LIBRARIES
-    -DUSE_PARALLEL_CUDA=OFF -DENABLE_MODULE_FSI=TRUE
+    -DUSE_PARALLEL_CUDA=OFF
+  #-DENABLE_MODULE_FSI=TRUE
   #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
   - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
   artifacts:
@@ -260,7 +262,8 @@ windows:vs2015:build:
   - cmake ../ -G "Visual Studio 16 2019" -A x64 -T v140
     @CHRONO_W64_SHARED
     @CHRONO_W64_LIBRARIES
-    -DUSE_PARALLEL_CUDA=OFF -DENABLE_MODULE_FSI=TRUE
+    -DUSE_PARALLEL_CUDA=OFF 
+  #-DENABLE_MODULE_FSI=TRUE
   #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
   - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
   artifacts:
