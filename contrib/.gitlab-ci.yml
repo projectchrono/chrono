@@ -168,7 +168,7 @@ linux:centos:test:
     - linux
   image:
     name: nvidia/cuda:10.1-base-ubuntu18.04
-    entrypoint: ["/usr/bin/bash", "-c"]
+    entrypoint: ["/bin/sh", "-c"]
   before_script:
     - uname -a
     - apt-get -y install cuda wget python software-properties-common locales
