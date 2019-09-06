@@ -177,6 +177,7 @@ linux:centos:test:
         libopenmpi-dev
     - ldconfig
     - wget https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.5.tar.gz
+    - tar -xf blaze-3.5.tar.gz
     - cp blaze-3.5/blaze -r /usr/local/include
     - git submodule init
     - git submodule update
