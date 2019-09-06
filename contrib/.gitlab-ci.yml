@@ -61,6 +61,34 @@ linux:arch-gcc:test:
   - make test
   dependencies: ["linux:arch-gcc:build"]
 
+
+linux:arch-gcc:deploy:
+  stage: deploy
+  needs: ["linux:arch-gcc:test"]
+  extends: .ubuntu
+  script:
+    - echo "Build PyChrono and deploy via Anaconda..."
+    - export CONDA_NPY=19
+    - wget "http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh"
+    - bash Miniconda3-latest-Linux-x86_64.sh -b
+    - export PATH=$HOME/miniconda3/bin:$PATH
+    - conda update --yes conda
+    - conda install --yes pip jinja2
+    - conda config --set show_channel_urls true
+    - conda install conda-build anaconda-client conda-verify --yes
+    - conda update conda --yes
+    - conda config --add channels https://conda.anaconda.org/conda-forge
+    - conda config --add channels https://conda.anaconda.org/intel
+    - conda install -c conda-forge -c dlr-sc -c pythonocc -c oce -c 3dhubs oce=0.18.2 --yes
+    - conda install -c intel mkl-devel --yes
+    - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.7
+    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.bz2 -l develop --force
+  environment:
+    name: pychrono-archlinux
+    url: https://anaconda.org/projectchrono/pychrono
+  when: manual
+
+
 linux:arch-llvm:build:
   stage: build
   extends: .archlinux
@@ -219,8 +247,17 @@ linux:ubuntu1804:deploy:
     - wget "http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh"
     - bash Miniconda3-latest-Linux-x86_64.sh -b
     - export PATH=$HOME/miniconda3/bin:$PATH
-    - conda create -n myenv python=$PYTHON_VERSION -y
-    - echo "**NOT YET IMPLEMENTED**"
+    - conda update --yes conda
+    - conda install --yes pip jinja2
+    - conda config --set show_channel_urls true
+    - conda install conda-build anaconda-client conda-verify --yes
+    - conda update conda --yes
+    - conda config --add channels https://conda.anaconda.org/conda-forge
+    - conda config --add channels https://conda.anaconda.org/intel
+    - conda install -c conda-forge -c dlr-sc -c pythonocc -c oce -c 3dhubs oce=0.18.2 --yes
+    - conda install -c intel mkl-devel --yes
+    - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.6
+    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.bz2 -l develop --force
   environment:
     name: pychrono-ubuntu1804
     url: https://anaconda.org/projectchrono/pychrono
