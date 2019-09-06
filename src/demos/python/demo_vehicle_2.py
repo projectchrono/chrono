@@ -31,16 +31,17 @@ def main() :
     powertrain = veh.SimplePowertrain(simplepowertrain_file)
     powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft())
 
-    #// Create and initialize the tires
-    num_axles = vehicle.GetNumberAxles()
-    num_wheels = 2 * num_axles
-    tires = [ veh.RigidTire(rigidtire_file) for i in range(num_wheels)]
-
-    for i, t in enumerate(tires):
-        #t = std::make_shared<vehicle::RigidTire>(vehicle::GetDataFile(rigidtire_file));
-       s = [veh.LEFT, veh.RIGHT]
-       t.Initialize(vehicle.GetWheelBody(veh.WheelID(i)), s[i % 2])
-       t.SetVisualizationType(veh.VisualizationType_MESH)
+    #// Create and initialize the tire
+    tires = []
+    for axle in vehicle.GetAxles() :
+        tireL = veh.RigidTire(rigidtire_file)
+        tireL.Initialize(axle.m_wheels[0])
+        tireL.SetVisualizationType(veh.VisualizationType_MESH)
+        tireR = veh.RigidTire(rigidtire_file)
+        tireR.Initialize(axle.m_wheels[1])
+        tireR.SetVisualizationType(veh.VisualizationType_MESH)
+        tires.append(tireL)
+        tires.append(tireR)
 
 
     app = veh.ChVehicleIrrApp (vehicle, powertrain)
@@ -122,8 +123,6 @@ def main() :
     # ---------------
 
     # Inter-module communication data
-    tire_forces = veh.TerrainForces(num_wheels)
-    wheel_states = veh.WheelStates(num_wheels)
 
     # Initialize simulation frame counter and simulation time
     step_number = 0
@@ -145,18 +144,13 @@ def main() :
         braking_input = driver.GetBraking()
         powertrain_torque = powertrain.GetOutputTorque()
         driveshaft_speed = vehicle.GetDriveshaftSpeed()
-        for i in range (num_wheels) :
-            tire_forces[i] = tires[i].GetTireForce()
-            wheel_states[i] = vehicle.GetWheelState(veh.WheelID(i))
 
         # Update modules (process inputs from other modules)
         time = vehicle.GetSystem().GetChTime()
         driver.Synchronize(time)
         powertrain.Synchronize(time, throttle_input, driveshaft_speed)
-        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, tire_forces)
+        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque)
         terrain.Synchronize(time)
-        for i in range (num_wheels):
-            tires[i].Synchronize(time, wheel_states[i], terrain)
         app.Synchronize(driver.GetInputModeAsString(), steering_input, throttle_input, braking_input)
 
         # Advance simulation for one timestep for all modules
@@ -165,8 +159,6 @@ def main() :
         powertrain.Advance(step)
         vehicle.Advance(step)
         terrain.Advance(step)
-        for i in range(num_wheels) :
-            tires[i].Advance(step)
         app.Advance(step)
 
         # Increment frame number
@@ -236,8 +228,8 @@ def main() :
 # =============================================================================
 povray_output = False
 # JSON file for vehicle model
-veh.SetDataPath('../../../../Library/data/vehicle/')
-CHRONO_DATA_DIR = "../../../../Library/data/"
+veh.SetDataPath('C:/codes/Chrono/Chrono_Source/data/vehicle/')
+CHRONO_DATA_DIR = "C:/codes/Chrono/Chrono_Source/data/"
 chrono.SetChronoDataPath(CHRONO_DATA_DIR);
 vehicle_file = veh.GetDataPath() +"hmmwv/vehicle/HMMWV_Vehicle.json"
 
