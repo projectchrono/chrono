@@ -14,7 +14,7 @@ build:
     - CC
     - CXX
 
-  number: {{ GIT_DESCRIBE_NUMBER }}
+  number: {{ CI_COMMIT_SHA }}
   binary_relocation: true
   #features:
   #  - vc9               [win and py27]

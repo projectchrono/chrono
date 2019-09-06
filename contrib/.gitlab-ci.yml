@@ -65,7 +65,7 @@ linux:arch-gcc:test:
 linux:arch-gcc:deploy:
   stage: deploy
   needs: ["linux:arch-gcc:test"]
-  extends: .ubuntu
+  extends: .archlinux
   script:
     - echo "Build PyChrono and deploy via Anaconda..."
     - export CONDA_NPY=19
