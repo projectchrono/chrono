@@ -103,9 +103,23 @@ void HMMWV_Pac89Tire::SetPac89Params() {
     m_PacCoeff.C15 = 0.0;
     m_PacCoeff.C16 = 0.0;
     m_PacCoeff.C17 = 0.0;
+
+    // load the vertical stiffness table
+    m_vert_map.AddPoint(0.00, 0);
+    m_vert_map.AddPoint(0.01, 2830.0);
+    m_vert_map.AddPoint(0.02, 6212.0);
+    m_vert_map.AddPoint(0.03, 10146.0);
+    m_vert_map.AddPoint(0.04, 14632.0);
+    m_vert_map.AddPoint(0.05, 19670.0);
+    m_vert_map.AddPoint(0.06, 25260.0);
+    m_vert_map.AddPoint(0.07, 31402.0);
+    m_vert_map.AddPoint(0.08, 38096.0);
+    m_vert_map.AddPoint(0.09, 45342.0);
+    m_vert_map.AddPoint(0.10, 53140.0);
 }
 
 double HMMWV_Pac89Tire::GetNormalStiffnessForce(double depth) const {
+    /* original method
     // corresponding depths = 0 : 0.01 : 0.03
     // double normalforcetabel[11] = {0.0, 2300.0, 5000.0, 8100.0};
     // modified for tire format "37x12.5x16.5 50 psi"
@@ -126,6 +140,8 @@ double HMMWV_Pac89Tire::GetNormalStiffnessForce(double depth) const {
         return (normalforcetabel[int(std::floor(position))] * (1 - scale) +
                 normalforcetabel[int(std::floor(position) + 1)] * scale);
     }
+    */
+    return m_vert_map.Get_y(depth);
 }
 
 // -----------------------------------------------------------------------------
