@@ -40,13 +40,13 @@ using namespace chrono::vehicle::hmmwv;
 
 // =============================================================================
 // Select Path Follower, uncomment to select the pure PID steering controller
-//#define USE_PID 1
+#define USE_PID 1
 // The extended steering controller only works inside the path limits
 //#define USE_XT 1
 // The simple realistic steering controller should start inside the path limits, after passing the last point
 // a) closed loop course: the vehicle goes into the next round
 // b) open loop course (this example):  the vehicle keeps the last driving direction (forever)
-#define USE_SR 1
+//#define USE_SR 1
 // =============================================================================
 // Problem parameters
 
