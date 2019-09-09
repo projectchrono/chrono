@@ -188,6 +188,7 @@ int main(int argc, char* argv[]) {
                 }
                 fiala_tires[i]->Initialize(vehicle.GetWheelBody(i), VehicleSide(i % 2));
                 fiala_tires[i]->SetVisualizationType(VisualizationType::MESH);
+                break;
             case 3:
                 pacejka_tires[i] = chrono_types::make_shared<hmmwv::HMMWV_Pac02Tire>(vehicle::GetDataFile(pacejka_tire_file));
                 if (pacejka_tires[i] == nullptr) {
