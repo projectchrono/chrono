@@ -102,7 +102,7 @@ void CityBus::Initialize() {
 
     // Create the tires and set parameters depending on type.
     switch (m_tireType) {
-        // case TireModelType::RIGID:
+        case TireModelType::RIGID_MESH:
         case TireModelType::RIGID: {
             std::cout << "Init RIGID" << std::endl;
             bool use_mesh = (m_tireType == TireModelType::RIGID_MESH);

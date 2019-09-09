@@ -20,7 +20,6 @@
 // =============================================================================
 
 #include "chrono/core/ChStream.h"
-#include "chrono/core/ChRealtimeStep.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
@@ -44,10 +43,6 @@ using namespace chrono::vehicle::sedan;
 // Initial vehicle location and orientation
 ChVector<> initLoc(0, 0, 1.0);
 ChQuaternion<> initRot(1, 0, 0, 0);
-// ChQuaternion<> initRot(0.866025, 0, 0, 0.5);
-// ChQuaternion<> initRot(0.7071068, 0, 0, 0.7071068);
-// ChQuaternion<> initRot(0.25882, 0, 0, 0.965926);
-// ChQuaternion<> initRot(0, 0, 0, 1);
 
 enum DriverMode { DEFAULT, RECORD, PLAYBACK };
 DriverMode driver_mode = DEFAULT;
@@ -60,12 +55,6 @@ VisualizationType wheel_vis_type = VisualizationType::MESH;
 
 // Collision type for chassis (PRIMITIVES, MESH, or NONE)
 ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE;
-
-// Type of powertrain model (SHAFTS, SIMPLE)
-// PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
-
-// Drive type (FWD)
-// DrivelineType drive_type = DrivelineType::FWD;
 
 // Type of tire model (RIGID, TMEASY)
 TireModelType tire_model = TireModelType::RIGID;
@@ -119,14 +108,12 @@ int main(int argc, char* argv[]) {
     my_sedan.SetChassisCollisionType(chassis_collision_type);
     my_sedan.SetChassisFixed(false);
     my_sedan.SetInitPosition(ChCoordsys<>(initLoc, initRot));
-    //my_sedan.SetPowertrainType(powertrain_model);
-    //my_sedan.SetDriveType(drive_type);
     my_sedan.SetTireType(tire_model);
     my_sedan.SetTireStepSize(tire_step_size);
     my_sedan.SetVehicleStepSize(step_size);
     my_sedan.Initialize();
 
-    VisualizationType tire_vis_type = VisualizationType::MESH;// : VisualizationType::PRIMITIVES;
+    VisualizationType tire_vis_type = VisualizationType::MESH;
 
     my_sedan.SetChassisVisualizationType(chassis_vis_type);
     my_sedan.SetSuspensionVisualizationType(suspension_vis_type);
@@ -229,7 +216,6 @@ int main(int argc, char* argv[]) {
     int debug_steps = (int)std::ceil(debug_step_size / step_size);
 
     // Initialize simulation frame counter and simulation time
-    ChRealtimeStepTimer realtime_timer;
     int step_number = 0;
     int render_frame = 0;
     double time = 0;
@@ -285,11 +271,10 @@ int main(int argc, char* argv[]) {
         app.Synchronize(driver.GetInputModeAsString(), steering_input, throttle_input, braking_input);
 
         // Advance simulation for one timestep for all modules
-        double step = realtime_timer.SuggestSimulationStep(step_size);
-        driver.Advance(step);
-        terrain.Advance(step);
-        my_sedan.Advance(step);
-        app.Advance(step);
+        driver.Advance(step_size);
+        terrain.Advance(step_size);
+        my_sedan.Advance(step_size);
+        app.Advance(step_size);
 
         // Increment frame number
         step_number++;
