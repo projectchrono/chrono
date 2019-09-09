@@ -277,21 +277,21 @@ int main(int argc, char* argv[]) {
         double time = vehicle.GetSystem()->GetChTime();
         driver.Synchronize(time);
         powertrain.Synchronize(time, throttle_input, driveshaft_speed);
-        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque);
-        terrain.Synchronize(time);
         for (auto& tire : tires) {
             tire->Synchronize(time, terrain, collision_type);
         }
-        app.Synchronize("", steering_input, throttle_input, braking_input);
+        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque);
+        terrain.Synchronize(time);
+        app.Synchronize(tires[0]->GetTemplateName(), steering_input, throttle_input, braking_input);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         powertrain.Advance(step_size);
-        vehicle.Advance(step_size);
-        terrain.Advance(step_size);
         for (auto& tire : tires) {
             tire->Advance(step_size);
         }
+        vehicle.Advance(step_size);
+        terrain.Advance(step_size);
         app.Advance(step_size);
 
         double xpos = vehicle.GetSpindlePos(0, LEFT).x();

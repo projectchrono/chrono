@@ -227,20 +227,20 @@ int main(int argc, char* argv[]) {
         time = vehicle.GetSystem()->GetChTime();
         driver.Synchronize(time);
         powertrain.Synchronize(time, throttle_input, driveshaft_speed);
-        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque);
-        terrain.Synchronize(time);
         for (auto& tire : tires)
             tire->Synchronize(time, terrain);
+        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque);
+        terrain.Synchronize(time);
         app.Synchronize(driver.GetInputModeAsString(), steering_input, throttle_input, braking_input);
 
         // Advance simulation for one timestep for all modules
         double step = realtime_timer.SuggestSimulationStep(step_size);
         driver.Advance(step);
         powertrain.Advance(step);
-        vehicle.Advance(step);
-        terrain.Advance(step);
         for (auto& tire : tires)
             tire->Advance(step);
+        vehicle.Advance(step);
+        terrain.Advance(step);
         app.Advance(step);
 
         // Increment frame number
