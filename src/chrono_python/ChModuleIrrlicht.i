@@ -151,6 +151,8 @@ using namespace gui;
 %template(vector3di) irr::core::vector3d<irr::s32>;
 %include "SColor.h"
 %include "IVideoDriver.h"
+%include "ISceneNode.h"
+%include "ICameraSceneNode.h"
 %include "IrrlichtDevice.h"
 %include "ISceneNode.h"
 %include "ISceneManager.h"
