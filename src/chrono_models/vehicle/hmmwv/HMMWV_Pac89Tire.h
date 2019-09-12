@@ -57,6 +57,7 @@ class CH_MODELS_API HMMWV_Pac89Tire : public ChPac89Tire {
     static const double m_normalDamping;
     static const double m_mass;
     static const ChVector<> m_inertia;
+    ChFunction_Recorder m_vert_map;
 
     static const std::string m_meshName;
     static const std::string m_meshFile;
