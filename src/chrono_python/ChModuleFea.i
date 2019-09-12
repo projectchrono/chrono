@@ -153,10 +153,6 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChLoadBase)
 %shared_ptr(chrono::ChLoadCustom)
 %shared_ptr(chrono::ChLoadCustomMultiple)
-%shared_ptr(chrono::ChLoadable) 
-%shared_ptr(chrono::ChLoadableU) 
-%shared_ptr(chrono::ChLoadableUV) 
-%shared_ptr(chrono::ChLoadableUVW)
 %shared_ptr(chrono::ChNodeBase) 
 %shared_ptr(chrono::ChNodeXYZ) 
 //from this module:
@@ -287,7 +283,11 @@ using namespace chrono::fea;
 %import(module = "pychrono.core")  "ChMaterialSurface.i"
 %import(module = "pychrono.core") "../chrono/physics/ChPhysicsItem.h"
 %import(module = "pychrono.core") "../chrono/physics/ChIndexedNodes.h"
-//%import(module = "pychrono.core") "../chrono/physics/ChLoadable.h" // disable because strange error in cxx
+%feature("director") chrono::ChLoadable;
+%feature("director") chrono::ChLoadableU;
+%feature("director") chrono::ChLoadableUV;
+%feature("director") chrono::ChLoadableUVW;
+%import(module = "pychrono.core") "ChLoadable.i" // disable because strange error in cxx
 %import(module = "pychrono.core") "../chrono/physics/ChLoad.h"
 %import(module = "pychrono.core") "../chrono/physics/ChNodeBase.h"
 %import(module = "pychrono.core") "../chrono/physics/ChNodeXYZ.h"
