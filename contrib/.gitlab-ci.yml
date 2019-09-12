@@ -398,7 +398,7 @@ windows:vs2015:build:
     - macos
   before_script:
   - uname -a
-  - wget https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.5.tar.gz
+  - curl https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.5.tar.gz > blaze-3.5.tar.gz
   - tar -xf blaze-3.5.tar.gz
   - git submodule init
   - git submodule update
