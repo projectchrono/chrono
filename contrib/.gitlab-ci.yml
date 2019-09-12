@@ -398,8 +398,6 @@ windows:vs2015:build:
     - macos
   before_script:
   - uname -a
-  - curl https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.5.tar.gz > blaze-3.5.tar.gz
-  - tar -xf blaze-3.5.tar.gz
   - git submodule init
   - git submodule update
   - mkdir -p build
@@ -415,6 +413,7 @@ macos:highsierra:build:
     -DCMAKE_CXX_FLAGS="-Wno-deprecated-declarations -Xpreprocessor -fopenmp -lomp -Wno-unused-command-line-argument"
     -DUSE_PARALLEL_CUDA=FALSE -DCUDA_NVCC_FLAGS=-std=c++11
     -DEIGEN3_INCLUDE_DIR=/usr/local/include/eigen3
+    -DBLAZE_DIR=/usr/local/include/blaze
   - make -j 3
   artifacts:
     expire_in: 60m
