@@ -9,7 +9,7 @@ stages:
   - deploy
 
 variables:
-  CHRONO_LINUX_SHARED: "-DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=TRUE 
+  CHRONO_UNIX_SHARED: "-DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=TRUE 
     -DBUILD_BENCHMARKING=TRUE -DENABLE_MODULE_POSTPROCESS=TRUE 
     -DENABLE_MODULE_PYTHON=TRUE -DENABLE_MODULE_COSIMULATION=FALSE 
     -DENABLE_MODULE_IRRLICHT=TRUE -DENABLE_MODULE_VEHICLE=TRUE 
@@ -41,7 +41,7 @@ linux:arch-gcc:build:
   extends: .archlinux
   script:
   - cd build
-  - cmake ../ $CHRONO_LINUX_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE 
+  - cmake ../ $CHRONO_UNIX_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE 
     -DENABLE_MODULE_FSI=TRUE -DCMAKE_C_COMPILER=/usr/bin/gcc 
     -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCUDA_HOST_COMPILER=/usr/bin/gcc-8 
     -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
@@ -101,7 +101,7 @@ linux:arch-llvm:build:
   script:
   - pacman -S --noconfirm llvm clang openmp
   - cd build
-  - cmake ../ $CHRONO_LINUX_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE 
+  - cmake ../ $CHRONO_UNIX_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE 
     -DENABLE_MODULE_FSI=TRUE -DCMAKE_C_COMPILER=/usr/bin/clang 
     -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DCUDA_HOST_COMPILER=/usr/bin/gcc-8 
     -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
@@ -172,7 +172,7 @@ linux:centos:build:
   extends: .centos
   script:
   - cd build
-  - cmake ../ $CHRONO_LINUX_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE
+  - cmake ../ $CHRONO_UNIX_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE
       -DCMAKE_C_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/gcc 
       -DCMAKE_CXX_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/g++ 
 #      -DCUDA_HOST_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/gcc
@@ -217,13 +217,16 @@ linux:centos:test:
     - git submodule update
     - mkdir -p build
 
+#----------------#
+# Ubuntu Builder #
+#----------------#
 
 linux:ubuntu1804:build:
   stage: build
   extends: .ubuntu
   script:
     - cd build
-    - cmake ../ $CHRONO_LINUX_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE
+    - cmake ../ $CHRONO_UNIX_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE
         -DCMAKE_C_COMPILER=/usr/bin/gcc -DCMAKE_CXX_COMPILER=/usr/bin/g++
         -DPYTHON_EXECUTABLE=/usr/bin/python3
     - make -j 8
@@ -384,6 +387,50 @@ windows:vs2015:build:
     expire_in: 60m
     paths:
       - build/
+
+
+#----------------#
+# macOS Builders #
+#----------------#
+
+.macos:
+  tags:
+    - macos
+  before_script:
+  - uname -a
+  - git submodule init
+  - git submodule update
+  - mkdir -p build
+
+macos:highsierra:build:
+  stage: build
+  extends: .macos
+  script:
+  - cd build
+  - cmake ../ $CHRONO_UNIX_SHARED -DENABLE_MODULE_DISTRIBUTED=FALSE 
+    -DENABLE_MODULE_FSI=FALSE -DCMAKE_C_COMPILER=$(which clang)
+    -DCMAKE_CXX_COMPILER=$(which clang++)
+    -DCMAKE_CXX_FLAGS="-Wno-deprecated-declarations -Xpreprocessor -fopenmp -lomp -Wno-unused-command-line-argument"
+    -DUSE_PARALLEL_CUDA=FALSE -DCUDA_NVCC_FLAGS=-std=c++11
+    -DEIGEN3_INCLUDE_DIR=/usr/local/include/eigen3
+    -DBLAZE_DIR=/usr/local/include
+  - make -j 3
+  artifacts:
+    expire_in: 60m
+    paths:
+    - build/
+    
+
+macos:highsierra:test:
+  stage: test
+  needs: ["macos:highsierra:build"]
+  extends: .macos
+  script:
+  - cd build
+  - make test
+  dependencies: ["macos:highsierra:build"]
+
+
 
 
 #-----------------#
