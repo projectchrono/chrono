@@ -47,7 +47,7 @@ linux:arch-gcc:build:
     -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
   - make -j 8
   artifacts:
-    expire_in: 30m
+    expire_in: 60m
     paths:
     - build/
     
@@ -107,7 +107,7 @@ linux:arch-llvm:build:
     -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
   - make -j 8
   artifacts:
-    expire_in: 30m
+    expire_in: 60m
     paths:
     - build/
 
@@ -179,7 +179,7 @@ linux:centos:build:
 #      -DENABLE_MODULE_FSI=TRUE 
   - make -j 8
   artifacts:
-    expire_in: 30m
+    expire_in: 60m
     paths:
     - build/
 
@@ -228,7 +228,7 @@ linux:ubuntu1804:build:
         -DPYTHON_EXECUTABLE=/usr/bin/python3
     - make -j 8
   artifacts:
-    expire_in: 30m
+    expire_in: 60m
     paths:
       - build/
 
@@ -323,7 +323,7 @@ windows:vs2019:build:
   #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
   - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
   artifacts:
-    expire_in: 30m
+    expire_in: 60m
     paths:
       - build/
 
@@ -364,7 +364,7 @@ windows:vs2017:build:
   #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
   - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
   artifacts:
-    expire_in: 30m
+    expire_in: 60m
     paths:
       - build/
 
@@ -381,7 +381,7 @@ windows:vs2015:build:
   #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
   - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
   artifacts:
-    expire_in: 30m
+    expire_in: 60m
     paths:
       - build/
 
@@ -415,7 +415,7 @@ windows:vs2015:build:
     -DENABLE_MODULE_DISTRIBUTED=TRUE -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
   - make -j 8
   artifacts:
-    expire_in: 30m
+    expire_in: 60m
     paths:
     - build/
 
