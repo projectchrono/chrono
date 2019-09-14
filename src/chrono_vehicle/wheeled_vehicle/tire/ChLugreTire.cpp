@@ -106,8 +106,7 @@ double ChLugreTire::GetWidth() const {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChLugreTire::Synchronize(double time,
-                              const ChTerrain& terrain,
-                              CollisionType collision_type) {
+                              const ChTerrain& terrain) {
     WheelState wheel_state = m_wheel->GetState();
     CalculateKinematics(time, wheel_state, terrain);
 

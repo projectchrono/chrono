@@ -32,7 +32,7 @@ class Articulated_Rear {
 
     void Initialize();
 
-    void Synchronize(double time, double steering, double braking);
+    void Synchronize(double time, double steering, double braking, const chrono::vehicle::ChTerrain& terrain);
 
     void SetSuspensionVisualizationType(chrono::vehicle::VisualizationType vis);
     void SetWheelVisualizationType(chrono::vehicle::VisualizationType vis);

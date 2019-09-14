@@ -130,8 +130,7 @@ void ChTMeasyTire::RemoveVisualizationAssets() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChTMeasyTire::Synchronize(double time,
-                               const ChTerrain& terrain,
-                               CollisionType collision_type) {
+                               const ChTerrain& terrain) {
     WheelState wheel_state = m_wheel->GetState();
     CalculateKinematics(time, wheel_state, terrain);
 
@@ -146,7 +145,7 @@ void ChTMeasyTire::Synchronize(double time,
     ChVector<> disc_normal = A.Get_A_Yaxis();
 
     // Assuming the tire is a disc, check contact with terrain
-    switch (collision_type) {
+    switch (m_collision_type) {
         case CollisionType::SINGLE_POINT:
             m_data.in_contact = DiscTerrainCollision(terrain, wheel_state.pos, disc_normal, m_unloaded_radius,
                                                      m_data.frame, m_data.depth);

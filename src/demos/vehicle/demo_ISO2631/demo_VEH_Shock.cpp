@@ -167,9 +167,11 @@ int main(int argc, char* argv[]) {
         case 1: {
             auto tireL = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_tire_file));
             tireL->Initialize(axle->m_wheels[0]);
+            tireL->SetCollisionType(collision_type);
             tireL->SetVisualizationType(VisualizationType::MESH);
             auto tireR = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_tire_file));
             tireR->Initialize(axle->m_wheels[1]);
+            tireR->SetCollisionType(collision_type);
             tireR->SetVisualizationType(VisualizationType::MESH);
             tires.push_back(tireL);
             tires.push_back(tireR);
@@ -178,9 +180,11 @@ int main(int argc, char* argv[]) {
         case 2: {
             auto tireL = chrono_types::make_shared<FialaTire>(vehicle::GetDataFile(fiala_tire_file));
             tireL->Initialize(axle->m_wheels[0]);
+            tireL->SetCollisionType(collision_type);
             tireL->SetVisualizationType(VisualizationType::MESH);
             auto tireR = chrono_types::make_shared<FialaTire>(vehicle::GetDataFile(fiala_tire_file));
             tireR->Initialize(axle->m_wheels[1]);
+            tireR->SetCollisionType(collision_type);
             tireR->SetVisualizationType(VisualizationType::MESH);
             tires.push_back(tireL);
             tires.push_back(tireR);
@@ -189,9 +193,11 @@ int main(int argc, char* argv[]) {
         case 3: {
             auto tireL = chrono_types::make_shared<hmmwv::HMMWV_Pac02Tire>(vehicle::GetDataFile(pacejka_tire_file));
             tireL->Initialize(axle->m_wheels[0]);
+            tireL->SetCollisionType(collision_type);
             tireL->SetVisualizationType(VisualizationType::MESH);
             auto tireR = chrono_types::make_shared<hmmwv::HMMWV_Pac02Tire>(vehicle::GetDataFile(pacejka_tire_file));
             tireR->Initialize(axle->m_wheels[1]);
+            tireR->SetCollisionType(collision_type);
             tireR->SetVisualizationType(VisualizationType::MESH);
             tires.push_back(tireL);
             tires.push_back(tireR);
@@ -200,9 +206,11 @@ int main(int argc, char* argv[]) {
         case 4: {
             auto tireL = chrono_types::make_shared<hmmwv::HMMWV_Pac89Tire>("HMMWV_Pac89_Tire");
             tireL->Initialize(axle->m_wheels[0]);
+            tireL->SetCollisionType(collision_type);
             tireL->SetVisualizationType(VisualizationType::MESH);
             auto tireR = chrono_types::make_shared<hmmwv::HMMWV_Pac89Tire>("HMMWV_Pac89_Tire");
             tireR->Initialize(axle->m_wheels[1]);
+            tireR->SetCollisionType(collision_type);
             tireR->SetVisualizationType(VisualizationType::MESH);
             tires.push_back(tireL);
             tires.push_back(tireR);
@@ -284,10 +292,7 @@ int main(int argc, char* argv[]) {
         double time = vehicle.GetSystem()->GetChTime();
         driver.Synchronize(time);
         powertrain.Synchronize(time, throttle_input, driveshaft_speed);
-        for (auto& tire : tires) {
-            tire->Synchronize(time, terrain, collision_type);
-        }
-        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque);
+        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, terrain);
         terrain.Synchronize(time);
         app.Synchronize(tires[0]->GetTemplateName(), steering_input, throttle_input, braking_input);
 
@@ -329,11 +334,8 @@ int main(int argc, char* argv[]) {
         double time = vehicle.GetSystem()->GetChTime();
         driver.Synchronize(time);
         powertrain.Synchronize(time, throttle_input, driveshaft_speed);
-        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque);
+        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, terrain);
         terrain.Synchronize(time);
-        for (auto& tire : tires) {
-            tire->Synchronize(time, terrain, collision_type);
-        }
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);

@@ -329,9 +329,7 @@ int main(int argc, char* argv[]) {
         time = vehicle.GetSystem()->GetChTime();
         driver.Synchronize(time);
         powertrain.Synchronize(time, throttle_input, driveshaft_speed);
-        for (auto& tire : tires)
-            tire->Synchronize(time, terrain);
-        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque);
+        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, terrain);
         terrain.Synchronize(time);
         app.Synchronize(tires[0]->GetTemplateName(), steering_input, throttle_input, braking_input);
 
@@ -384,9 +382,7 @@ int main(int argc, char* argv[]) {
         time = vehicle.GetSystem()->GetChTime();
         driver.Synchronize(time);
         powertrain.Synchronize(time, throttle_input, driveshaft_speed);
-        for (int i = 0; i < num_wheels; i++)
-            tires[i]->Synchronize(time, terrain);
-        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque);
+        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, terrain);
         terrain.Synchronize(time);
 
         // Advance simulation for one timestep for all modules

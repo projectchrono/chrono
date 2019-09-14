@@ -58,8 +58,7 @@ namespace vehicle {
 /// TMeasy tire model.
 class CH_VEHICLE_API ChTMeasyTire : public ChTire {
   public:
-    ChTMeasyTire(const std::string& name  ///< [in] name of this tire system
-                 );
+    ChTMeasyTire(const std::string& name);
 
     virtual ~ChTMeasyTire() {}
 
@@ -80,12 +79,6 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
 
     /// Report the tire force and moment.
     virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override { return m_tireforce; }
-
-    /// Update the state of this tire system at the current time.
-    virtual void Synchronize(double time,                    ///< [in] current time
-                             const ChTerrain& terrain,       ///< [in] reference to the terrain system
-                             CollisionType collision_type = CollisionType::SINGLE_POINT  ///< [in] collision type
-                             ) override;
 
     /// Advance the state of this tire by the specified time step.
     virtual void Advance(double step) override;
@@ -282,6 +275,11 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     /// to the appropriate suspension subsystem which applies it as an external
     /// force one the wheel body.
     virtual TerrainForce GetTireForce() const override { return m_tireforce; }
+
+    /// Update the state of this tire system at the current time.
+    virtual void Synchronize(double time,              ///< [in] current time
+                             const ChTerrain& terrain  ///< [in] reference to the terrain system
+                             ) override;
 
     std::vector<double> m_tire_test_defl;  // set, when test data are used for vertical
     std::vector<double> m_tire_test_frc;   // stiffness calculation

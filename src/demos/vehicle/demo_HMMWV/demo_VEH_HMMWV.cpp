@@ -72,8 +72,8 @@ DrivelineType drive_type = DrivelineType::AWD;
 // Steering type (PITMAN_ARM or PITMAN_ARM_SHAFTS)
 SteeringType steering_type = SteeringType::PITMAN_ARM;
 
-// Type of tire model (RIGID, RIGID_MESH, PACEJKA, LUGRE, FIALA, PAC89)
-TireModelType tire_model = TireModelType::RIGID;
+// Type of tire model (RIGID, RIGID_MESH, TMEASY, PACEJKA, LUGRE, FIALA, PAC89)
+TireModelType tire_model = TireModelType::TMEASY;
 
 // Rigid terrain
 RigidTerrain::Type terrain_model = RigidTerrain::BOX;

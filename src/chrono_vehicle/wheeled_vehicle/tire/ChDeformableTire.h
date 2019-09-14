@@ -47,8 +47,7 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     enum ContactSurfaceType { NODE_CLOUD, TRIANGLE_MESH };
 
     /// Construct a deformable tire with the specified name.
-    ChDeformableTire(const std::string& name  ///< [in] name of this tire system
-                     );
+    ChDeformableTire(const std::string& name);
 
     virtual ~ChDeformableTire() {}
 

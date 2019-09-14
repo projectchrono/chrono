@@ -75,7 +75,6 @@ class CH_VEHICLE_API ChAxle {
     );
 
     /// Synchronize this suspension subsystem.
-    /// This function must be called before any call to AccumulateTireForce.
     void Synchronize(double braking);
 
     /// Get all wheels from this axle.

@@ -256,17 +256,9 @@ int main(int argc, char* argv[]) {
         time = vehicle.GetSystem()->GetChTime();
 
         driver.Synchronize(time);
-
         terrain.Synchronize(time);
-
-        tire_FL.Synchronize(time, terrain);
-        tire_FR.Synchronize(time, terrain);
-        tire_RL.Synchronize(time, terrain);
-        tire_RR.Synchronize(time, terrain);
-
         powertrain.Synchronize(time, throttle_input, driveshaft_speed);
-
-        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque);
+        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, terrain);
 
         app.Synchronize(driver.GetInputModeAsString(), steering_input, throttle_input, braking_input);
 

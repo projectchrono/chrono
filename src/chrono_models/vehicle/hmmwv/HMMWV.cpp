@@ -259,6 +259,11 @@ void HMMWV::Initialize() {
     m_tires[2]->Initialize(m_vehicle->GetAxle(1)->m_wheels[0]);
     m_tires[3]->Initialize(m_vehicle->GetAxle(1)->m_wheels[1]);
 
+    m_tires[0]->SetCollisionType(m_tire_collision_type);
+    m_tires[1]->SetCollisionType(m_tire_collision_type);
+    m_tires[2]->SetCollisionType(m_tire_collision_type);
+    m_tires[3]->SetCollisionType(m_tire_collision_type);
+
     if (m_tire_step_size > 0) {
         m_tires[0]->SetStepsize(m_tire_step_size);
         m_tires[1]->SetStepsize(m_tire_step_size);
@@ -286,12 +291,8 @@ void HMMWV::Synchronize(double time,
     double powertrain_torque = m_powertrain->GetOutputTorque();
     double driveshaft_speed = m_vehicle->GetDriveshaftSpeed();
 
-    m_tires[0]->Synchronize(time, terrain, m_tire_collision_type);
-    m_tires[1]->Synchronize(time, terrain, m_tire_collision_type);
-    m_tires[2]->Synchronize(time, terrain, m_tire_collision_type);
-    m_tires[3]->Synchronize(time, terrain, m_tire_collision_type);
     m_powertrain->Synchronize(time, throttle_input, driveshaft_speed);
-    m_vehicle->Synchronize(time, steering_input, braking_input, powertrain_torque);
+    m_vehicle->Synchronize(time, steering_input, braking_input, powertrain_torque, terrain);
 }
 
 // -----------------------------------------------------------------------------

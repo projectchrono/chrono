@@ -22,6 +22,7 @@
 #include "chrono/assets/ChColorAsset.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 
 #include "chrono_models/vehicle/generic/Generic_RigidSuspension.h"
 #include "chrono_models/vehicle/generic/Generic_RigidPinnedAxle.h"
@@ -133,7 +134,12 @@ void Articulated_Rear::SetWheelVisualizationType(VisualizationType vis) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void Articulated_Rear::Synchronize(double time, double steering, double braking) {
+void Articulated_Rear::Synchronize(double time, double steering, double braking, const ChTerrain& terrain) {
+    // Synchronize the tires
+    for (auto& wheel : m_axle->m_wheels) {
+        wheel->GetTire()->Synchronize(time, terrain);
+    }
+
     // Synchronize the vehicle's axle subsystems
     // (this applies tire forces to suspension spindles and braking input)
     m_axle->Synchronize(braking);

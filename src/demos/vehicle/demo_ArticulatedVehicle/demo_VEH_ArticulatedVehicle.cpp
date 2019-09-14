@@ -220,15 +220,10 @@ int main(int argc, char* argv[]) {
 
         terrain.Synchronize(time);
 
-        tire_FL->Synchronize(time, terrain);
-        tire_FR->Synchronize(time, terrain);
-        tire_RL->Synchronize(time, terrain);
-        tire_RR->Synchronize(time, terrain);
-
         powertrain.Synchronize(time, throttle_input, driveshaft_speed);
 
-        front_side.Synchronize(time, steering_input, braking_input, powertrain_torque);
-        rear_side.Synchronize(time, steering_input, braking_input);
+        front_side.Synchronize(time, steering_input, braking_input, powertrain_torque, terrain);
+        rear_side.Synchronize(time, steering_input, braking_input, terrain);
 
         app.Synchronize(driver.GetInputModeAsString(), steering_input, throttle_input, braking_input);
 

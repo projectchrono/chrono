@@ -19,6 +19,7 @@
 #include <fstream>
 
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
+#include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
 #include "chrono_thirdparty/rapidjson/prettywriter.h"
@@ -39,13 +40,12 @@ ChWheeledVehicle::ChWheeledVehicle(const std::string& name, ChSystem* system) : 
 // The vehicle system is provided the current driver inputs (throttle between
 // 0 and 1, steering between -1 and +1, braking between 0 and 1), and the torque
 // from the powertrain.
-// The default implementation of this function invokes the synchronize functions
-// for all vehicle subsystems.
 // -----------------------------------------------------------------------------
 void ChWheeledVehicle::Synchronize(double time,
                                    double steering,
                                    double braking,
-                                   double powertrain_torque) {
+                                   double powertrain_torque,
+                                   const ChTerrain& terrain) {
     // Apply powertrain torque to the driveline's input shaft.
     m_driveline->Synchronize(powertrain_torque);
 
@@ -55,8 +55,11 @@ void ChWheeledVehicle::Synchronize(double time,
     }
 
     // Synchronize the vehicle's axle subsystems
-    // (this applies tire forces to suspension spindles and braking input)
-    for (auto axle : m_axles) {
+    for (auto& axle : m_axles) {
+        for (auto& wheel : axle->GetWheels()) {
+            if (wheel->m_tire)
+                wheel->m_tire->Synchronize(time, terrain);
+        }
         axle->Synchronize(braking);
     }
 

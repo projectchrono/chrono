@@ -262,8 +262,7 @@ TerrainForce ChPacejkaTire::GetTireForce_combinedSlip(const bool local) const {
 // Synchronize() function.
 // -----------------------------------------------------------------------------
 void ChPacejkaTire::Synchronize(double time,
-                                const ChTerrain& terrain,
-                                CollisionType collision_type) {
+                                const ChTerrain& terrain) {
     //// TODO: This must be removed from here.  A tire with unspecified or
     ////       incorrect parameters should have been invalidate at initialization.
     // Check that input tire model parameters are defined
@@ -277,7 +276,7 @@ void ChPacejkaTire::Synchronize(double time,
 
     // Update the tire coordinate system.
     m_simTime = time;
-    update_W_frame(terrain, collision_type);
+    update_W_frame(terrain);
 
     // If not using the transient slip model, check that the tangential forward
     // velocity is not too small.
@@ -433,7 +432,7 @@ void ChPacejkaTire::advance_tire(double step) {
 // Local frame transforms output forces/moments to global frame, to be applied
 //  to the wheel body CM.
 // Pacejka (2006), Fig 2.3, all forces are calculated at the contact point "C"
-void ChPacejkaTire::update_W_frame(const ChTerrain& terrain, CollisionType collision_type) {
+void ChPacejkaTire::update_W_frame(const ChTerrain& terrain) {
     // Check contact with terrain, using a disc of radius R0.
     ChCoordsys<> contact_frame;
 
@@ -441,7 +440,7 @@ void ChPacejkaTire::update_W_frame(const ChTerrain& terrain, CollisionType colli
 
     double depth;
     double dum_cam;
-    switch (collision_type) {
+    switch (m_collision_type) {
         case CollisionType::SINGLE_POINT:
             m_in_contact =
                 DiscTerrainCollision(terrain, m_tireState.pos, m_tireState.rot.GetYaxis(), m_R0, contact_frame, depth);

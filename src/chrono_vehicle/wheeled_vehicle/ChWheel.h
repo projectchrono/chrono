@@ -31,6 +31,7 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChPart.h"
+#include "chrono_vehicle/ChTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/ChSuspension.h"
 
 namespace chrono {
@@ -106,6 +107,8 @@ class CH_VEHICLE_API ChWheel : public ChPart {
     /// Remove visualization assets for the wheel subsystem.
     virtual void RemoveVisualizationAssets() override;
 
+    ChTire* const GetTire() const { return m_tire; }
+
   protected:
     std::shared_ptr<ChSuspension> m_suspension;    ///< associated suspension subsystem
     ChTire* m_tire;                                ///< attached tire subsystem
@@ -114,6 +117,7 @@ class CH_VEHICLE_API ChWheel : public ChPart {
     std::shared_ptr<ChCylinderShape> m_cyl_shape;  ///< visualization cylinder asset
 
     friend class ChTire;
+    friend class ChWheeledVehicle;
 };
 
 /// Vector of handles to wheel subsystems.

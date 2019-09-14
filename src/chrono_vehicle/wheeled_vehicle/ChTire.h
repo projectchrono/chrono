@@ -54,21 +54,16 @@ class CH_VEHICLE_API ChTire : public ChPart {
     /// The tire mass and inertia are used to increment those of the associated suspension spindle body.
     virtual void Initialize(std::shared_ptr<ChWheel> wheel);
 
-    /// Update the state of this tire system at the current time.
-    /// The tire system is provided a handle to the terrain system.
-    virtual void Synchronize(double time,               ///< [in] current time
-                             const ChTerrain& terrain,  ///< [in] reference to the terrain system
-                             CollisionType collision_type = CollisionType::SINGLE_POINT  ///< [in] collision method
-    ) {
-        CalculateKinematics(time, m_wheel->GetState(), terrain);
-    }
-
     /// Set the value of the integration step size for the underlying dynamics (if applicable).
     /// Default value: 1ms.
     void SetStepsize(double val) { m_stepsize = val; }
 
     /// Get the current value of the integration step size.
     double GetStepsize() const { return m_stepsize; }
+
+    /// Set the collision type for tire-terrain interaction.
+    /// Default: SINGLE_POINT
+    void SetCollisionType(CollisionType collision_type) { m_collision_type = collision_type; }
 
     /// Advance the state of this tire by the specified time step.
     virtual void Advance(double step) {}
@@ -121,6 +116,15 @@ class CH_VEHICLE_API ChTire : public ChPart {
 
     /// Report the tire deflection.
     virtual double GetDeflection() const { return 0; }
+
+  public:
+    /// Update the state of this tire system at the current time.
+    /// The tire system is provided a handle to the terrain system.
+    virtual void Synchronize(double time,              ///< [in] current time
+                             const ChTerrain& terrain  ///< [in] reference to the terrain system
+    ) {
+        CalculateKinematics(time, m_wheel->GetState(), terrain);
+    }
 
   protected:
     /// Calculate kinematics quantities based on the given state of the associated wheel body.
@@ -202,6 +206,7 @@ class CH_VEHICLE_API ChTire : public ChPart {
 
     std::shared_ptr<ChWheel> m_wheel;  ///< associated wheel subsystem
     double m_stepsize;                 ///< tire integration step size (if applicable)
+    CollisionType m_collision_type;    ///< method used for tire-terrain collision
 
   private:
     double m_slip_angle;

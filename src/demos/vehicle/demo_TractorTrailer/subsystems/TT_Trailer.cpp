@@ -19,6 +19,8 @@
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChBoxShape.h"
 
+#include "chrono_vehicle/wheeled_vehicle/ChTire.h"
+
 #include "chrono_models/vehicle/generic/Generic_SolidAxle.h"
 #include "chrono_models/vehicle/generic/Generic_MultiLink.h"
 #include "chrono_models/vehicle/generic/Generic_Wheel.h"
@@ -253,11 +255,14 @@ double TT_Trailer::GetShockVelocity(int axle, VehicleSide side) const {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void TT_Trailer::Synchronize(double time, double braking) {
+void TT_Trailer::Synchronize(double time, double braking, const ChTerrain& terrain) {
     // Synchronize the trailer's axle subsystems
     // (this applies tire forces to suspension spindles and braking input)
     for (auto axle : m_axles) {
-        axle->Synchronize(braking);
+        for (auto& wheel : axle->GetWheels()) {
+            wheel->GetTire()->Synchronize(time, terrain);
+            axle->Synchronize(braking);
+        }
     }
 }
 

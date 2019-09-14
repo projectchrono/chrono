@@ -19,6 +19,7 @@
 #ifndef TT_TRAILER_H
 #define TT_TRAILER_H
 
+#include "chrono_vehicle/ChTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 
 class TT_Trailer {
@@ -41,7 +42,7 @@ class TT_Trailer {
                             const bool connect_to_puller,
                             std::shared_ptr<chrono::ChBodyAuxRef> pulling_vehicle);
 
-    virtual void Synchronize(double time, double braking);
+    virtual void Synchronize(double time, double braking, const chrono::vehicle::ChTerrain& terrain);
 
     void SetSuspensionVisualizationType(chrono::vehicle::VisualizationType vis);
     void SetWheelVisualizationType(chrono::vehicle::VisualizationType vis);

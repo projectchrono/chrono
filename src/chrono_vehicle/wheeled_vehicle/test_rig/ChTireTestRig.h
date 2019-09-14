@@ -69,7 +69,7 @@ class CH_VEHICLE_API ChTireTestRig {
     void SetSlipAngleFunction(std::shared_ptr<ChFunction> funct) { m_sa_fun = funct; }
 
     /// Set collision type for tire-terrain interaction (default: SINGLE_POINT).
-    void SetTireCollisionType(ChTire::CollisionType coll_type) { m_collision_type = coll_type; }
+    void SetTireCollisionType(ChTire::CollisionType coll_type);
 
     /// Set the time step for advancing tire dynamics (default: 1e-3 s).
     void SetTireStepsize(double step) { m_tire_step = step; }
@@ -191,7 +191,6 @@ class CH_VEHICLE_API ChTireTestRig {
     std::shared_ptr<ChWheel> m_wheel;        ///< handle to wheel subsystem
     std::shared_ptr<ChTire> m_tire;          ///< handle to tire subsystem
     VisualizationType m_tire_vis;            ///< visualization type for tire subsystem
-    ChTire::CollisionType m_collision_type;  ///< tire-terrain collision method
     double m_tire_step;                      ///< step size for tire integration
     double m_camber_angle;                   ///< camber angle
 

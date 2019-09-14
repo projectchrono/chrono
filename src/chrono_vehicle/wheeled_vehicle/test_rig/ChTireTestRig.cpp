@@ -48,10 +48,11 @@ ChTireTestRig::ChTireTestRig(std::shared_ptr<ChWheel> wheel, std::shared_ptr<ChT
       m_terrain_offset(0),
       m_terrain_height(0),
       m_tire_step(1e-3),
-      m_collision_type(ChTire::CollisionType::SINGLE_POINT),
       m_tire_vis(VisualizationType::PRIMITIVES) {
     // Default motion function for slip angle control
     m_sa_fun = chrono_types::make_shared<ChFunction_Const>(0);
+    // Default tire-terrain collision method
+    m_tire->SetCollisionType(ChTire::CollisionType::SINGLE_POINT);
 }
 
 // -----------------------------------------------------------------------------
@@ -64,6 +65,10 @@ void ChTireTestRig::SetLongSpeedFunction(std::shared_ptr<ChFunction> funct) {
 void ChTireTestRig::SetAngSpeedFunction(std::shared_ptr<ChFunction> funct) { 
     m_rs_fun = funct; 
     m_rs_actuated = true;
+}
+
+void ChTireTestRig::SetTireCollisionType(ChTire::CollisionType coll_type) {
+    m_tire->SetCollisionType(coll_type);
 }
 
 // -----------------------------------------------------------------------------
@@ -203,7 +208,7 @@ void ChTireTestRig::Advance(double step) {
 
     // Synchronize subsystems
     m_terrain->Synchronize(time);
-    m_tire->Synchronize(time, *m_terrain.get(), m_collision_type);
+    m_tire->Synchronize(time, *m_terrain.get());
     m_susp->Synchronize();
     m_wheel->Synchronize();
 

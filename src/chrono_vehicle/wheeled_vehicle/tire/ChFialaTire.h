@@ -37,8 +37,7 @@ namespace vehicle {
 /// Fiala based tire model.
 class CH_VEHICLE_API ChFialaTire : public ChTire {
   public:
-    ChFialaTire(const std::string& name  ///< [in] name of this tire system
-                );
+    ChFialaTire(const std::string& name);
 
     virtual ~ChFialaTire() {}
 
@@ -60,12 +59,6 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
 
     /// Report the tire force and moment.
     virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override { return m_tireforce; }
-
-    /// Update the state of this tire system at the current time.
-    virtual void Synchronize(double time,                    ///< [in] current time
-                             const ChTerrain& terrain,       ///< [in] reference to the terrain system
-                             CollisionType collision_type = CollisionType::SINGLE_POINT  ///< [in] collision type
-                             ) override;
 
     /// Advance the state of this tire by the specified time step.
     virtual void Advance(double step) override;
@@ -135,6 +128,11 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
     /// to the appropriate suspension subsystem which applies it as an external
     /// force one the wheel body.
     virtual TerrainForce GetTireForce() const override { return m_tireforce; }
+
+    /// Update the state of this tire system at the current time.
+    virtual void Synchronize(double time,              ///< [in] current time
+                             const ChTerrain& terrain  ///< [in] reference to the terrain system
+                             ) override;
 
     struct ContactData {
         bool in_contact;      // true if disc in contact with terrain
