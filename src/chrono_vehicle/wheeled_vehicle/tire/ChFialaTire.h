@@ -60,9 +60,6 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
     /// Report the tire force and moment.
     virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override { return m_tireforce; }
 
-    /// Advance the state of this tire by the specified time step.
-    virtual void Advance(double step) override;
-
     /// Get the width of the tire.
     double GetWidth() const { return m_width; }
 
@@ -133,6 +130,9 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
     virtual void Synchronize(double time,              ///< [in] current time
                              const ChTerrain& terrain  ///< [in] reference to the terrain system
                              ) override;
+
+    /// Advance the state of this tire by the specified time step.
+    virtual void Advance(double step) override;
 
     struct ContactData {
         bool in_contact;      // true if disc in contact with terrain

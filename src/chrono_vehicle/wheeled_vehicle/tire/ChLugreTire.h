@@ -60,9 +60,6 @@ class CH_VEHICLE_API ChLugreTire : public ChTire {
     /// Report the tire force and moment.
     virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override { return m_tireForce; }
 
-    /// Advance the state of this tire by the specified time step.
-    virtual void Advance(double step) override;
-
   protected:
     /// Return the number of discs used to model this tire.
     virtual int GetNumDiscs() const = 0;
@@ -99,6 +96,9 @@ class CH_VEHICLE_API ChLugreTire : public ChTire {
     virtual void Synchronize(double time,              ///< [in] current time
                              const ChTerrain& terrain  ///< [in] reference to the terrain system
                              ) override;
+
+    /// Advance the state of this tire by the specified time step.
+    virtual void Advance(double step) override;
 
     struct DiscContactData {
         bool in_contact;       // true if disc in contact with terrain

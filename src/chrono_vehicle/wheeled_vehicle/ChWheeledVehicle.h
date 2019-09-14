@@ -168,6 +168,12 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
                              const ChTerrain& terrain   ///< [in] reference to the terrain system
     );
 
+    /// Advance the state of this vehicle by the specified time step.
+    /// This function must be called if the vehicle system owns the underlying Chrono system.
+    /// In addition to advancing the state of the multibody system, this function also advances
+    /// the states of all associated tires.
+    virtual void Advance(double step);
+
     /// Lock/unlock the differential on the specified axle.
     /// By convention, axles are counted front to back, starting with index 0.
     void LockAxleDifferential(int axle, bool lock);

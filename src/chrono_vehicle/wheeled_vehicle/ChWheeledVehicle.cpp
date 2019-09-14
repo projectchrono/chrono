@@ -67,6 +67,27 @@ void ChWheeledVehicle::Synchronize(double time,
 }
 
 // -----------------------------------------------------------------------------
+// Advance the state of this vehicle by the specified time step.
+// This function must be called if the vehicle system owns the underlying Chrono system.
+// In addition to advancing the state of the multibody system, this function also advances
+// the states of all associated tires.
+// -----------------------------------------------------------------------------
+void ChWheeledVehicle::Advance(double step) {
+    // Advance state of all vehicle tires.
+    // This is done before advancing the state of the multibody system in order to use
+    // wheel states corresponding to current time.
+    for (auto& axle : m_axles) {
+        for (auto& wheel : axle->GetWheels()) {
+            if (wheel->m_tire)
+                wheel->m_tire->Advance(step);
+        }
+    }
+
+    // Invoke base class function to advance state of underlying chrono system.
+    ChVehicle::Advance(step);
+}
+
+// -----------------------------------------------------------------------------
 // Enable/disable differential locking.
 // -----------------------------------------------------------------------------
 void ChWheeledVehicle::LockAxleDifferential(int axle, bool lock) {

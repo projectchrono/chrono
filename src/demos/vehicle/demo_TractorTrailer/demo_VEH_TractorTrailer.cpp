@@ -241,8 +241,8 @@ int main(int argc, char* argv[]) {
 
         powertrain.Synchronize(time, throttle_input, driveshaft_speed);
 
-        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, terrain);
         trailer.Synchronize(time, braking_input, terrain);
+        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, terrain);
 
         app.Synchronize(driver.GetInputModeAsString(), steering_input, throttle_input, braking_input);
 
@@ -253,18 +253,9 @@ int main(int argc, char* argv[]) {
 
         terrain.Advance(step);
 
-        tire_FL.Advance(step);
-        tire_FR.Advance(step);
-        tire_RL.Advance(step);
-        tire_RR.Advance(step);
-
-        tr_tire_FL.Advance(step);
-        tr_tire_FR.Advance(step);
-        tr_tire_RL.Advance(step);
-        tr_tire_RR.Advance(step);
-
         powertrain.Advance(step);
 
+        trailer.Advance(step);
         vehicle.Advance(step);
 
         app.Advance(step);

@@ -294,14 +294,11 @@ int main(int argc, char* argv[]) {
         powertrain.Synchronize(time, throttle_input, driveshaft_speed);
         vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, terrain);
         terrain.Synchronize(time);
-        app.Synchronize(tires[0]->GetTemplateName(), steering_input, throttle_input, braking_input);
+        app.Synchronize("", steering_input, throttle_input, braking_input);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         powertrain.Advance(step_size);
-        for (auto& tire : tires) {
-            tire->Advance(step_size);
-        }
         vehicle.Advance(step_size);
         terrain.Advance(step_size);
         app.Advance(step_size);
@@ -342,9 +339,6 @@ int main(int argc, char* argv[]) {
         powertrain.Advance(step_size);
         vehicle.Advance(step_size);
         terrain.Advance(step_size);
-        for (auto& tire : tires) {
-            tire->Advance(step_size);
-        }
 
         if (v_pos >= xstart) {
             double speed = vehicle.GetVehicleSpeed();

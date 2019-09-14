@@ -29,10 +29,10 @@ namespace uaz {
 
 // -----------------------------------------------------------------------------
 UAZBUS::UAZBUS()
-    : m_system(NULL),
-      m_vehicle(NULL),
-      m_powertrain(NULL),
-      m_tires({{NULL, NULL, NULL, NULL}}),
+    : m_system(nullptr),
+      m_vehicle(nullptr),
+      m_powertrain(nullptr),
+      m_tires({{nullptr, nullptr, nullptr, nullptr}}),
       m_contactMethod(ChMaterialSurface::NSC),
       m_chassisCollisionType(ChassisCollisionType::NONE),
       m_fixed(false),
@@ -48,9 +48,9 @@ UAZBUS::UAZBUS()
 
 UAZBUS::UAZBUS(ChSystem* system)
     : m_system(system),
-      m_vehicle(NULL),
-      m_powertrain(NULL),
-      m_tires({{NULL, NULL, NULL, NULL}}),
+      m_vehicle(nullptr),
+      m_powertrain(nullptr),
+      m_tires({{nullptr, nullptr, nullptr, nullptr}}),
       m_contactMethod(ChMaterialSurface::NSC),
       m_chassisCollisionType(ChassisCollisionType::NONE),
       m_fixed(false),
@@ -181,13 +181,7 @@ void UAZBUS::Synchronize(double time,
 
 // -----------------------------------------------------------------------------
 void UAZBUS::Advance(double step) {
-    m_tires[0]->Advance(step);
-    m_tires[1]->Advance(step);
-    m_tires[2]->Advance(step);
-    m_tires[3]->Advance(step);
-
     m_powertrain->Advance(step);
-
     m_vehicle->Advance(step);
 }
 

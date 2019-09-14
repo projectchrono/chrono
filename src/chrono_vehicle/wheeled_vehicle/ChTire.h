@@ -65,9 +65,6 @@ class CH_VEHICLE_API ChTire : public ChPart {
     /// Default: SINGLE_POINT
     void SetCollisionType(CollisionType collision_type) { m_collision_type = collision_type; }
 
-    /// Advance the state of this tire by the specified time step.
-    virtual void Advance(double step) {}
-
     /// Get the tire radius.
     virtual double GetRadius() const = 0;
 
@@ -119,12 +116,14 @@ class CH_VEHICLE_API ChTire : public ChPart {
 
   public:
     /// Update the state of this tire system at the current time.
-    /// The tire system is provided a handle to the terrain system.
     virtual void Synchronize(double time,              ///< [in] current time
                              const ChTerrain& terrain  ///< [in] reference to the terrain system
     ) {
         CalculateKinematics(time, m_wheel->GetState(), terrain);
     }
+
+    /// Advance the state of this tire by the specified time step.
+    virtual void Advance(double step) {}
 
   protected:
     /// Calculate kinematics quantities based on the given state of the associated wheel body.

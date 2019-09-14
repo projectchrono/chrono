@@ -266,6 +266,14 @@ void TT_Trailer::Synchronize(double time, double braking, const ChTerrain& terra
     }
 }
 
+void TT_Trailer::Advance(double step) {
+    for (auto axle : m_axles) {
+        for (auto& wheel : axle->GetWheels()) {
+            wheel->GetTire()->Advance(step);
+        }
+    }
+}
+
 // -----------------------------------------------------------------------------
 // Log the hardpoint locations for the front-right and rear-right suspension
 // subsystems (display in inches)

@@ -28,7 +28,7 @@ class TT_Trailer {
 
     ~TT_Trailer() {}
 
-    virtual int GetNumberAxles() const { return 2; }
+    int GetNumberAxles() const { return 2; }
 
     double GetSpringForce(int axle, chrono::vehicle::VehicleSide side) const;
     double GetSpringLength(int axle, chrono::vehicle::VehicleSide side) const;
@@ -38,11 +38,13 @@ class TT_Trailer {
     double GetShockLength(int axle, chrono::vehicle::VehicleSide side) const;
     double GetShockVelocity(int axle, chrono::vehicle::VehicleSide side) const;
 
-    virtual void Initialize(const chrono::ChCoordsys<>& chassisPos,
+    void Initialize(const chrono::ChCoordsys<>& chassisPos,
                             const bool connect_to_puller,
                             std::shared_ptr<chrono::ChBodyAuxRef> pulling_vehicle);
 
-    virtual void Synchronize(double time, double braking, const chrono::vehicle::ChTerrain& terrain);
+    void Synchronize(double time, double braking, const chrono::vehicle::ChTerrain& terrain);
+
+    void Advance(double step);
 
     void SetSuspensionVisualizationType(chrono::vehicle::VisualizationType vis);
     void SetWheelVisualizationType(chrono::vehicle::VisualizationType vis);

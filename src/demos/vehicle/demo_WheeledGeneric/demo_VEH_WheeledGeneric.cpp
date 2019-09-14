@@ -269,11 +269,6 @@ int main(int argc, char* argv[]) {
 
         terrain.Advance(step);
 
-        tire_FL.Advance(step);
-        tire_FR.Advance(step);
-        tire_RL.Advance(step);
-        tire_RR.Advance(step);
-
         powertrain.Advance(step);
 
         vehicle.Advance(step);
@@ -333,11 +328,6 @@ int main(int argc, char* argv[]) {
 
         terrain.Synchronize(time);
 
-        tire_FL.Synchronize(time, terrain);
-        tire_FR.Synchronize(time, terrain);
-        tire_RL.Synchronize(time, terrain);
-        tire_RR.Synchronize(time, terrain);
-
         powertrain.Synchronize(time, throttle_input, driveshaft_speed);
 
         vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque);
@@ -346,11 +336,6 @@ int main(int argc, char* argv[]) {
         driver.Advance(step_size);
 
         terrain.Advance(step_size);
-
-        tire_FL.Advance(step_size);
-        tire_FR.Advance(step_size);
-        tire_RL.Advance(step_size);
-        tire_RR.Advance(step_size);
 
         powertrain.Advance(step_size);
 

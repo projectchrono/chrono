@@ -292,9 +292,6 @@ int main(int argc, char* argv[]) {
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         powertrain.Advance(step_size);
-        for (auto& tire : tires) {
-            tire->Advance(step_size);
-        }
         vehicle.Advance(step_size);
         terrain.Advance(step_size);
         app.Advance(step_size);
@@ -335,9 +332,6 @@ int main(int argc, char* argv[]) {
         powertrain.Advance(step_size);
         vehicle.Advance(step_size);
         terrain.Advance(step_size);
-        for (auto& tire : tires) {
-            tire->Advance(step_size);
-        }
 
         if (xpos >= xstart) {
             double speed = vehicle.GetVehicleSpeed();

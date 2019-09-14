@@ -80,9 +80,6 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     /// Report the tire force and moment.
     virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override { return m_tireforce; }
 
-    /// Advance the state of this tire by the specified time step.
-    virtual void Advance(double step) override;
-
     /// Set the limit for camber angle (in degrees).  Default: 3 degrees.
     void SetGammaLimit(double gamma_limit) { m_gamma_limit = gamma_limit; }
 
@@ -280,6 +277,9 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     virtual void Synchronize(double time,              ///< [in] current time
                              const ChTerrain& terrain  ///< [in] reference to the terrain system
                              ) override;
+
+    /// Advance the state of this tire by the specified time step.
+    virtual void Advance(double step) override;
 
     std::vector<double> m_tire_test_defl;  // set, when test data are used for vertical
     std::vector<double> m_tire_test_frc;   // stiffness calculation

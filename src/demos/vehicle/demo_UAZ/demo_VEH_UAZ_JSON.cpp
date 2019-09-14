@@ -132,21 +132,15 @@ int main(int argc, char* argv[]) {
     powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
 
     // Create and initialize the tires
-    std::vector<std::shared_ptr<TMeasyTire> > tires;
-
     auto tireFL = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_front_tire_file));
     auto tireFR = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_front_tire_file));
     tireFL->Initialize(vehicle.GetAxle(0)->m_wheels[0]);
     tireFR->Initialize(vehicle.GetAxle(0)->m_wheels[1]);
-    tires.push_back(tireFL);
-    tires.push_back(tireFR);
 
     auto tireRL = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_rear_tire_file));
     auto tireRR = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_rear_tire_file));
     tireRL->Initialize(vehicle.GetAxle(1)->m_wheels[0]);
     tireRR->Initialize(vehicle.GetAxle(1)->m_wheels[1]);
-    tires.push_back(tireRL);
-    tires.push_back(tireRR);
 
     // Create the Irrlicht visualization
     ChVehicleIrrApp app(&vehicle, &powertrain, L"UAZ (JSON) Vehicle Demo");
@@ -235,8 +229,6 @@ int main(int argc, char* argv[]) {
         double step = realtime_timer.SuggestSimulationStep(step_size);
         driver.Advance(step);
         powertrain.Advance(step);
-        for (auto& tire : tires)
-            tire->Advance(step);
         vehicle.Advance(step);
         terrain.Advance(step);
         app.Advance(step);

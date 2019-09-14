@@ -114,11 +114,6 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
     /// The reported value will be the same as that reported by ChTire::GetCamberAngle.
     double GetCamberAngle_internal() const { return m_slip->gamma; }
 
-    /// Advance the state of this tire by the specified time step.
-    /// Use the new body state, calculate all the relevant quantities over the
-    /// time increment.
-    virtual void Advance(double step) override;
-
     /// Write output data to a file.
     void WriteOutData(double time, const std::string& outFilename);
 
@@ -195,6 +190,10 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
     virtual void Synchronize(double time,              ///< [in] current time
                              const ChTerrain& terrain  ///< [in] reference to the terrain system
                              ) override;
+
+    /// Advance the state of this tire by the specified time step.
+    /// Use the new body state, calculate all the relevant quantities over the time increment.
+    virtual void Advance(double step) override;
 
     // look for this data file
     void loadPacTireParamFile();

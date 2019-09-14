@@ -150,6 +150,12 @@ void Articulated_Rear::Synchronize(double time, double steering, double braking,
     fun->Set_yconst(-max_angle * steering);
 }
 
+void Articulated_Rear::Advance(double step) {
+    for (auto& wheel : m_axle->m_wheels) {
+        wheel->GetTire()->Advance(step);
+    }
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 const ChVector<>& Articulated_Rear::GetSpindlePos(VehicleSide side) const {
