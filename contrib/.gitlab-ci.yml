@@ -9,7 +9,7 @@ stages:
   - deploy
 
 variables:
-  CHRONO_LINUX_SHARED: "-DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=TRUE 
+  CHRONO_UNIX_SHARED: "-DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=TRUE 
     -DBUILD_BENCHMARKING=TRUE -DENABLE_MODULE_POSTPROCESS=TRUE 
     -DENABLE_MODULE_PYTHON=TRUE -DENABLE_MODULE_COSIMULATION=FALSE 
     -DENABLE_MODULE_IRRLICHT=TRUE -DENABLE_MODULE_VEHICLE=TRUE 
@@ -41,13 +41,13 @@ linux:arch-gcc:build:
   extends: .archlinux
   script:
   - cd build
-  - cmake ../ $CHRONO_LINUX_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE 
+  - cmake ../ $CHRONO_UNIX_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE 
     -DENABLE_MODULE_FSI=TRUE -DCMAKE_C_COMPILER=/usr/bin/gcc 
     -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCUDA_HOST_COMPILER=/usr/bin/gcc-8 
     -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
   - make -j 8
   artifacts:
-    expire_in: 30m
+    expire_in: 60m
     paths:
     - build/
     
@@ -61,19 +61,53 @@ linux:arch-gcc:test:
   - make test
   dependencies: ["linux:arch-gcc:build"]
 
+
+linux:arch-gcc:deploy:
+  stage: deploy
+  needs: ["linux:arch-gcc:test"]
+  extends: .archlinux
+  script:
+# Clean up the docker image because it is very large and pychrono won't fit
+    - pacman -R cuda openmpi --noconfirm
+    - pacman -Scc --noconfirm
+    - echo "Build PyChrono and deploy via Anaconda..."
+# Remove build directory because anaconda doesn't want it
+    - rm -rf build
+    - export CONDA_NPY=19
+    - wget "http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh"
+    - bash Miniconda3-latest-Linux-x86_64.sh -b
+    - rm -rf Miniconda3-latest-Linux-x86_64.sh
+    - export PATH=$HOME/miniconda3/bin:$PATH
+    - conda update --yes conda
+    - conda install --yes pip jinja2
+    - conda config --set show_channel_urls true
+    - conda install conda-build anaconda-client conda-verify --yes
+    - conda update conda --yes
+    - conda config --add channels https://conda.anaconda.org/conda-forge
+    - conda config --add channels https://conda.anaconda.org/intel
+    - conda install -c conda-forge -c dlr-sc -c pythonocc -c oce -c 3dhubs oce=0.18.2 --yes
+    - conda install -c intel mkl-devel --yes
+    - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.7
+    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.bz2 -l develop --force
+  environment:
+    name: pychrono-archlinux
+    url: https://anaconda.org/projectchrono/pychrono
+  when: manual
+
+
 linux:arch-llvm:build:
   stage: build
   extends: .archlinux
   script:
   - pacman -S --noconfirm llvm clang openmp
   - cd build
-  - cmake ../ $CHRONO_LINUX_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE 
+  - cmake ../ $CHRONO_UNIX_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE 
     -DENABLE_MODULE_FSI=TRUE -DCMAKE_C_COMPILER=/usr/bin/clang 
     -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DCUDA_HOST_COMPILER=/usr/bin/gcc-8 
     -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
   - make -j 8
   artifacts:
-    expire_in: 30m
+    expire_in: 60m
     paths:
     - build/
 
@@ -138,14 +172,14 @@ linux:centos:build:
   extends: .centos
   script:
   - cd build
-  - cmake ../ $CHRONO_LINUX_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE
+  - cmake ../ $CHRONO_UNIX_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE
       -DCMAKE_C_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/gcc 
       -DCMAKE_CXX_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/g++ 
 #      -DCUDA_HOST_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/gcc
 #      -DENABLE_MODULE_FSI=TRUE 
   - make -j 8
   artifacts:
-    expire_in: 30m
+    expire_in: 60m
     paths:
     - build/
 
@@ -157,11 +191,94 @@ linux:centos:test:
   - cd build
   - make test
   dependencies: ["linux:centos:build"]
+  
+
+#----------------#
+# Ubuntu Builder #
+#----------------#
+
+.ubuntu:
+  tags:
+    - linux
+  image:
+    name: nvidia/cuda:10.1-base-ubuntu18.04
+  before_script:
+    - uname -a
+    - export DEBIAN_FRONTEND=noninteractive
+    - apt-get update; apt-get -y install cuda wget python git 
+        cmake build-essential libboost-dev swig3.0 libeigen3-dev 
+        libglfw3-dev libglm-dev libglew-dev freeglut3-dev libirrlicht-dev
+        libopenmpi-dev python3 python3-dev
+    - ldconfig
+    - wget https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.5.tar.gz
+    - tar -xf blaze-3.5.tar.gz
+    - cp blaze-3.5/blaze -r /usr/local/include
+    - git submodule init
+    - git submodule update
+    - mkdir -p build
+
+#----------------#
+# Ubuntu Builder #
+#----------------#
+
+linux:ubuntu1804:build:
+  stage: build
+  extends: .ubuntu
+  script:
+    - cd build
+    - cmake ../ $CHRONO_UNIX_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE
+        -DCMAKE_C_COMPILER=/usr/bin/gcc -DCMAKE_CXX_COMPILER=/usr/bin/g++
+        -DPYTHON_EXECUTABLE=/usr/bin/python3
+    - make -j 8
+  artifacts:
+    expire_in: 60m
+    paths:
+      - build/
 
 
-#-----------------#
-# Windows Builder #
-#-----------------#
+linux:ubuntu1804:test:
+  stage: test
+  needs: ["linux:ubuntu1804:build"]
+  extends: .ubuntu
+  script:
+    - cd build
+    - make test
+  dependencies: ["linux:ubuntu1804:build"]
+
+
+linux:ubuntu1804:deploy:
+  stage: deploy
+  needs: ["linux:ubuntu1804:test"]
+  extends: .ubuntu
+  script:
+    - echo "Build PyChrono and deploy via Anaconda..."
+# Remove build directory because anaconda doesn't want it
+    - rm -rf build
+    - export CONDA_NPY=19
+    - wget "http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh"
+    - bash Miniconda3-latest-Linux-x86_64.sh -b
+    - export PATH=$HOME/miniconda3/bin:$PATH
+    - conda update --yes conda
+    - conda install --yes pip jinja2
+    - conda config --set show_channel_urls true
+    - conda install conda-build anaconda-client conda-verify --yes
+    - conda update conda --yes
+    - conda config --add channels https://conda.anaconda.org/conda-forge
+    - conda config --add channels https://conda.anaconda.org/intel
+    - conda install -c conda-forge -c dlr-sc -c pythonocc -c oce -c 3dhubs oce=0.18.2 --yes
+    - conda install -c intel mkl-devel --yes
+    - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.6
+    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.bz2 -l develop --force
+  environment:
+    name: pychrono-ubuntu1804
+    url: https://anaconda.org/projectchrono/pychrono
+  when: manual
+
+
+
+#------------------#
+# Windows Builders #
+#------------------#
 
 .windows:
   tags:
@@ -209,7 +326,7 @@ windows:vs2019:build:
   #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
   - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
   artifacts:
-    expire_in: 30m
+    expire_in: 60m
     paths:
       - build/
 
@@ -250,7 +367,7 @@ windows:vs2017:build:
   #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
   - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
   artifacts:
-    expire_in: 30m
+    expire_in: 60m
     paths:
       - build/
 
@@ -267,9 +384,53 @@ windows:vs2015:build:
   #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
   - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
   artifacts:
-    expire_in: 30m
+    expire_in: 60m
     paths:
       - build/
+
+
+#----------------#
+# macOS Builders #
+#----------------#
+
+.macos:
+  tags:
+    - macos
+  before_script:
+  - uname -a
+  - git submodule init
+  - git submodule update
+  - mkdir -p build
+
+macos:highsierra:build:
+  stage: build
+  extends: .macos
+  script:
+  - cd build
+  - cmake ../ $CHRONO_UNIX_SHARED -DENABLE_MODULE_DISTRIBUTED=FALSE 
+    -DENABLE_MODULE_FSI=FALSE -DCMAKE_C_COMPILER=$(which clang)
+    -DCMAKE_CXX_COMPILER=$(which clang++)
+    -DCMAKE_CXX_FLAGS="-Wno-deprecated-declarations -Xpreprocessor -fopenmp -lomp -Wno-unused-command-line-argument"
+    -DUSE_PARALLEL_CUDA=FALSE -DCUDA_NVCC_FLAGS=-std=c++11
+    -DEIGEN3_INCLUDE_DIR=/usr/local/include/eigen3
+    -DBLAZE_DIR=/usr/local/include
+  - make -j 3
+  artifacts:
+    expire_in: 60m
+    paths:
+    - build/
+    
+
+macos:highsierra:test:
+  stage: test
+  needs: ["macos:highsierra:build"]
+  extends: .macos
+  script:
+  - cd build
+  - make test
+  dependencies: ["macos:highsierra:build"]
+
+
 
 
 #-----------------#
@@ -301,7 +462,7 @@ windows:vs2015:build:
     -DENABLE_MODULE_DISTRIBUTED=TRUE -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
   - make -j 8
   artifacts:
-    expire_in: 30m
+    expire_in: 60m
     paths:
     - build/
 

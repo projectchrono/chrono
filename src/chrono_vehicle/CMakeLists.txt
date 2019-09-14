@@ -465,8 +465,6 @@ set(CV_WV_TIRE_FILES
 source_group("wheeled_vehicle\\tire" FILES ${CV_WV_TIRE_FILES})
 
 set(CV_WV_UTILS_FILES
-    wheeled_vehicle/utils/ChWheeledVehicleAssembly.h
-    wheeled_vehicle/utils/ChWheeledVehicleAssembly.cpp
 )
 if(ENABLE_MODULE_IRRLICHT)
     set(CVIRR_WV_UTILS_FILES
