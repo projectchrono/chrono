@@ -54,7 +54,6 @@ class ISO3888_Helper {
   public:
     ISO3888_Helper(double xmin, double acc_length, double vehicle_width, DLC_Variant variant, bool left_turn = true)
         : xmin(xmin), acc_length(acc_length), left_turn(left_turn), vehicle_width(vehicle_width) {
-        GetLog() << "Helper Start.\n";
         switch (variant) {
             default:
             case ISO3888_1:
@@ -179,7 +178,6 @@ class ISO3888_Helper {
             outCV.push_back(centerLine[i] + offset);
         }
         path = chrono_types::make_shared<ChBezierCurve>(centerLine, inCV, outCV);
-        GetLog() << "Helper Ready.\n";
     }
 
     bool GateTestLeft(ChVector<>& p) {
@@ -224,7 +222,7 @@ class ISO3888_Helper {
 
     ~ISO3888_Helper() {}
 
-    double GetManoeverLength() { return leftLine[5].x() - leftLine[0].x(); }
+    double GetManeuverLength() { return leftLine[5].x() - leftLine[0].x(); }
     double GetXmax() { return leftLine[5].x(); }
     std::shared_ptr<ChBezierCurve> GetPath() { return path; }
 
@@ -415,7 +413,7 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetTireVisualizationType(tire_vis_type);
 
     ISO3888_Helper helper(-accelerationLength + 5.0, accelerationLength, vehicle_width, dlc_mode, left_turn);
-    GetLog() << "Manoever Length = " << helper.GetManoeverLength() << " m\n";
+    ////GetLog() << "Maneuver Length = " << helper.GetManeuverLength() << " m\n";
 
     // Create the terrain
     RigidTerrain terrain(my_hmmwv.GetSystem());
@@ -425,7 +423,7 @@ int main(int argc, char* argv[]) {
     patch->SetContactRestitutionCoefficient(0.01f);
     patch->SetContactMaterialProperties(2e7f, 0.3f);
     patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
-    patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), terrainLength, terrainWidth);
+    patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), (float)terrainLength, (float)terrainWidth);
     terrain.Initialize();
 
     // Create the vehicle Irrlicht interface
@@ -454,14 +452,14 @@ int main(int argc, char* argv[]) {
             app.GetSceneManager()->getMesh(GetChronoDataFile("trafficCone750mm.obj").c_str());
         irr::scene::IAnimatedMeshSceneNode* node_coneL = app.GetSceneManager()->addAnimatedMeshSceneNode(mesh_coneL);
         node_coneL->getMaterial(0).EmissiveColor = irr::video::SColor(0, 100, 0, 0);
-        node_coneL->setPosition(irr::core::vector3df(pL.x(), pL.y(), pL.z()));
+        node_coneL->setPosition(irr::core::vector3dfCH(pL));
 
         ChVector<> pR = helper.GetConePosition(i, false) + ChVector<>(0, -coneBaseWidth / 2, 0);
         irr::scene::IAnimatedMesh* mesh_coneR =
             app.GetSceneManager()->getMesh(GetChronoDataFile("trafficCone750mm.obj").c_str());
         irr::scene::IAnimatedMeshSceneNode* node_coneR = app.GetSceneManager()->addAnimatedMeshSceneNode(mesh_coneR);
         node_coneR->getMaterial(0).EmissiveColor = irr::video::SColor(0, 0, 100, 0);
-        node_coneR->setPosition(irr::core::vector3df(pR.x(), pR.y(), pR.z()));
+        node_coneR->setPosition(irr::core::vector3dfCH(pR));
     }
 
     // ---------------------------------------------
