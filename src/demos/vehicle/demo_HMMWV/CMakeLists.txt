@@ -13,6 +13,7 @@ ENDIF()
 SET(DEMOS
     demo_VEH_HMMWV
     demo_VEH_HMMWV_Accel
+    demo_VEH_HMMWV_DoubleLaneChange
     demo_VEH_HMMWV_DefSoil)
 
 #--------------------------------------------------------------
