@@ -44,7 +44,6 @@ HMMWV::HMMWV()
     : m_system(nullptr),
       m_vehicle(nullptr),
       m_powertrain(nullptr),
-      m_tires({{nullptr, nullptr, nullptr, nullptr}}),
       m_contactMethod(ChMaterialSurface::NSC),
       m_chassisCollisionType(ChassisCollisionType::NONE),
       m_fixed(false),
@@ -63,7 +62,6 @@ HMMWV::HMMWV(ChSystem* system)
     : m_system(system),
       m_vehicle(nullptr),
       m_powertrain(nullptr),
-      m_tires({{nullptr, nullptr, nullptr, nullptr}}),
       m_contactMethod(ChMaterialSurface::NSC),
       m_chassisCollisionType(ChassisCollisionType::NONE),
       m_fixed(false),
@@ -81,10 +79,6 @@ HMMWV::HMMWV(ChSystem* system)
 HMMWV::~HMMWV() {
     delete m_vehicle;
     delete m_powertrain;
-    delete m_tires[0];
-    delete m_tires[1];
-    delete m_tires[2];
-    delete m_tires[3];
 }
 
 // -----------------------------------------------------------------------------
@@ -143,143 +137,151 @@ void HMMWV::Initialize() {
         case TireModelType::RIGID:
         case TireModelType::RIGID_MESH: {
             bool use_mesh = (m_tireType == TireModelType::RIGID_MESH);
-            HMMWV_RigidTire* tire_FL = new HMMWV_RigidTire("FL", use_mesh);
-            HMMWV_RigidTire* tire_FR = new HMMWV_RigidTire("FR", use_mesh);
-            HMMWV_RigidTire* tire_RL = new HMMWV_RigidTire("RL", use_mesh);
-            HMMWV_RigidTire* tire_RR = new HMMWV_RigidTire("RR", use_mesh);
 
-            m_tires[0] = tire_FL;
-            m_tires[1] = tire_FR;
-            m_tires[2] = tire_RL;
-            m_tires[3] = tire_RR;
+            auto tire_FL = chrono_types::make_shared<HMMWV_RigidTire>("FL", use_mesh);
+            auto tire_FR = chrono_types::make_shared<HMMWV_RigidTire>("FR", use_mesh);
+            auto tire_RL = chrono_types::make_shared<HMMWV_RigidTire>("RL", use_mesh);
+            auto tire_RR = chrono_types::make_shared<HMMWV_RigidTire>("RR", use_mesh);
+
+            m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT]);
+            m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT]);
+            m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT]);
+            m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT]);
+
+            m_tire_mass = tire_FL->ReportMass();
 
             break;
         }
         case TireModelType::LUGRE: {
-            HMMWV_LugreTire* tire_FL = new HMMWV_LugreTire("FL");
-            HMMWV_LugreTire* tire_FR = new HMMWV_LugreTire("FR");
-            HMMWV_LugreTire* tire_RL = new HMMWV_LugreTire("RL");
-            HMMWV_LugreTire* tire_RR = new HMMWV_LugreTire("RR");
+            auto tire_FL = chrono_types::make_shared<HMMWV_LugreTire>("FL");
+            auto tire_FR = chrono_types::make_shared<HMMWV_LugreTire>("FR");
+            auto tire_RL = chrono_types::make_shared<HMMWV_LugreTire>("RL");
+            auto tire_RR = chrono_types::make_shared<HMMWV_LugreTire>("RR");
 
-            m_tires[0] = tire_FL;
-            m_tires[1] = tire_FR;
-            m_tires[2] = tire_RL;
-            m_tires[3] = tire_RR;
+            m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT]);
+            m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT]);
+            m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT]);
+            m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT]);
+
+            m_tire_mass = tire_FL->ReportMass();
 
             break;
         }
         case TireModelType::FIALA: {
-            HMMWV_FialaTire* tire_FL = new HMMWV_FialaTire("FL");
-            HMMWV_FialaTire* tire_FR = new HMMWV_FialaTire("FR");
-            HMMWV_FialaTire* tire_RL = new HMMWV_FialaTire("RL");
-            HMMWV_FialaTire* tire_RR = new HMMWV_FialaTire("RR");
+            auto tire_FL = chrono_types::make_shared<HMMWV_FialaTire>("FL");
+            auto tire_FR = chrono_types::make_shared<HMMWV_FialaTire>("FR");
+            auto tire_RL = chrono_types::make_shared<HMMWV_FialaTire>("RL");
+            auto tire_RR = chrono_types::make_shared<HMMWV_FialaTire>("RR");
 
-            m_tires[0] = tire_FL;
-            m_tires[1] = tire_FR;
-            m_tires[2] = tire_RL;
-            m_tires[3] = tire_RR;
+            m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT]);
+            m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT]);
+            m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT]);
+            m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT]);
+
+            m_tire_mass = tire_FL->ReportMass();
 
             break;
         }
         case TireModelType::TMEASY: {
-            HMMWV_TMeasyTire* tire_FL = new HMMWV_TMeasyTire("FL");
-            HMMWV_TMeasyTire* tire_FR = new HMMWV_TMeasyTire("FR");
-            HMMWV_TMeasyTire* tire_RL = new HMMWV_TMeasyTire("RL");
-            HMMWV_TMeasyTire* tire_RR = new HMMWV_TMeasyTire("RR");
+            auto tire_FL = chrono_types::make_shared<HMMWV_TMeasyTire>("FL");
+            auto tire_FR = chrono_types::make_shared<HMMWV_TMeasyTire>("FR");
+            auto tire_RL = chrono_types::make_shared<HMMWV_TMeasyTire>("RL");
+            auto tire_RR = chrono_types::make_shared<HMMWV_TMeasyTire>("RR");
 
-            m_tires[0] = tire_FL;
-            m_tires[1] = tire_FR;
-            m_tires[2] = tire_RL;
-            m_tires[3] = tire_RR;
+            m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT]);
+            m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT]);
+            m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT]);
+            m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT]);
+
+            m_tire_mass = tire_FL->ReportMass();
 
             break;
         }
         case TireModelType::PAC89: {
-            HMMWV_Pac89Tire* tire_FL = new HMMWV_Pac89Tire("FL");
-            HMMWV_Pac89Tire* tire_FR = new HMMWV_Pac89Tire("FR");
-            HMMWV_Pac89Tire* tire_RL = new HMMWV_Pac89Tire("RL");
-            HMMWV_Pac89Tire* tire_RR = new HMMWV_Pac89Tire("RR");
+            auto tire_FL = chrono_types::make_shared<HMMWV_Pac89Tire>("FL");
+            auto tire_FR = chrono_types::make_shared<HMMWV_Pac89Tire>("FR");
+            auto tire_RL = chrono_types::make_shared<HMMWV_Pac89Tire>("RL");
+            auto tire_RR = chrono_types::make_shared<HMMWV_Pac89Tire>("RR");
 
-            m_tires[0] = tire_FL;
-            m_tires[1] = tire_FR;
-            m_tires[2] = tire_RL;
-            m_tires[3] = tire_RR;
+            m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT]);
+            m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT]);
+            m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT]);
+            m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT]);
+
+            m_tire_mass = tire_FL->ReportMass();
 
             break;
         }
         case TireModelType::PACEJKA: {
-            ChPacejkaTire* tire_FL = new HMMWV_Pac02Tire("FL");
-            ChPacejkaTire* tire_FR = new HMMWV_Pac02Tire("FR");
-            ChPacejkaTire* tire_RL = new HMMWV_Pac02Tire("RL");
-            ChPacejkaTire* tire_RR = new HMMWV_Pac02Tire("RR");
+            auto tire_FL = chrono_types::make_shared<HMMWV_Pac02Tire>("FL");
+            auto tire_FR = chrono_types::make_shared<HMMWV_Pac02Tire>("FR");
+            auto tire_RL = chrono_types::make_shared<HMMWV_Pac02Tire>("RL");
+            auto tire_RR = chrono_types::make_shared<HMMWV_Pac02Tire>("RR");
 
             tire_FL->SetDrivenWheel(false);
             tire_FR->SetDrivenWheel(false);
             tire_RL->SetDrivenWheel(true);
             tire_RR->SetDrivenWheel(true);
 
-            m_tires[0] = tire_FL;
-            m_tires[1] = tire_FR;
-            m_tires[2] = tire_RL;
-            m_tires[3] = tire_RR;
+            m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT]);
+            m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT]);
+            m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT]);
+            m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT]);
+
+            m_tire_mass = tire_FL->ReportMass();
 
             break;
         }
         case TireModelType::ANCF: {
-            HMMWV_ANCFTire* tire_FL = new HMMWV_ANCFTire("FL");
-            HMMWV_ANCFTire* tire_FR = new HMMWV_ANCFTire("FR");
-            HMMWV_ANCFTire* tire_RL = new HMMWV_ANCFTire("RL");
-            HMMWV_ANCFTire* tire_RR = new HMMWV_ANCFTire("RR");
+            auto tire_FL = chrono_types::make_shared<HMMWV_ANCFTire>("FL");
+            auto tire_FR = chrono_types::make_shared<HMMWV_ANCFTire>("FR");
+            auto tire_RL = chrono_types::make_shared<HMMWV_ANCFTire>("RL");
+            auto tire_RR = chrono_types::make_shared<HMMWV_ANCFTire>("RR");
 
-            m_tires[0] = tire_FL;
-            m_tires[1] = tire_FR;
-            m_tires[2] = tire_RL;
-            m_tires[3] = tire_RR;
+            m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT]);
+            m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT]);
+            m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT]);
+            m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT]);
+
+            m_tire_mass = tire_FL->ReportMass();
+
             break;
         }
         case TireModelType::REISSNER: {
-            HMMWV_ReissnerTire* tire_FL = new HMMWV_ReissnerTire("FL");
-            HMMWV_ReissnerTire* tire_FR = new HMMWV_ReissnerTire("FR");
-            HMMWV_ReissnerTire* tire_RL = new HMMWV_ReissnerTire("RL");
-            HMMWV_ReissnerTire* tire_RR = new HMMWV_ReissnerTire("RR");
+            auto tire_FL = chrono_types::make_shared<HMMWV_ReissnerTire>("FL");
+            auto tire_FR = chrono_types::make_shared<HMMWV_ReissnerTire>("FR");
+            auto tire_RL = chrono_types::make_shared<HMMWV_ReissnerTire>("RL");
+            auto tire_RR = chrono_types::make_shared<HMMWV_ReissnerTire>("RR");
 
-            m_tires[0] = tire_FL;
-            m_tires[1] = tire_FR;
-            m_tires[2] = tire_RL;
-            m_tires[3] = tire_RR;
+            m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT]);
+            m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT]);
+            m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT]);
+            m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT]);
+
+            m_tire_mass = tire_FL->ReportMass();
+
             break;
         }
         default:
             break;
     }
 
-    // Initialize the tires.
-    m_tires[0]->Initialize(m_vehicle->GetAxle(0)->m_wheels[0]);
-    m_tires[1]->Initialize(m_vehicle->GetAxle(0)->m_wheels[1]);
-    m_tires[2]->Initialize(m_vehicle->GetAxle(1)->m_wheels[0]);
-    m_tires[3]->Initialize(m_vehicle->GetAxle(1)->m_wheels[1]);
-
-    m_tires[0]->SetCollisionType(m_tire_collision_type);
-    m_tires[1]->SetCollisionType(m_tire_collision_type);
-    m_tires[2]->SetCollisionType(m_tire_collision_type);
-    m_tires[3]->SetCollisionType(m_tire_collision_type);
-
-    if (m_tire_step_size > 0) {
-        m_tires[0]->SetStepsize(m_tire_step_size);
-        m_tires[1]->SetStepsize(m_tire_step_size);
-        m_tires[2]->SetStepsize(m_tire_step_size);
-        m_tires[3]->SetStepsize(m_tire_step_size);
+    for (auto& axle : m_vehicle->GetAxles()) {
+        for (auto& wheel : axle->GetWheels()) {
+            wheel->GetTire()->SetCollisionType(m_tire_collision_type);
+            if (m_tire_step_size > 0)
+                wheel->GetTire()->SetStepsize(m_tire_step_size);
+        }
     }
-
-    m_tire_mass = m_tires[0]->ReportMass();
 }
 
 // -----------------------------------------------------------------------------
 void HMMWV::SetTireVisualizationType(VisualizationType vis) {
-    m_tires[0]->SetVisualizationType(vis);
-    m_tires[1]->SetVisualizationType(vis);
-    m_tires[2]->SetVisualizationType(vis);
-    m_tires[3]->SetVisualizationType(vis);
+    for (auto& axle : m_vehicle->GetAxles()) {
+        for (auto& wheel : axle->GetWheels()) {
+            wheel->GetTire()->SetVisualizationType(vis);
+        }
+    }
 }
 
 // -----------------------------------------------------------------------------

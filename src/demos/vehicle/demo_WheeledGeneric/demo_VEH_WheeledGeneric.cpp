@@ -126,20 +126,15 @@ int main(int argc, char* argv[]) {
     powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
 
     // Create the tires
-    Generic_RigidTire tire_FL("FL");
-    Generic_RigidTire tire_FR("FR");
-    Generic_RigidTire tire_RL("RL");
-    Generic_RigidTire tire_RR("RR");
+    auto tire_FL = chrono_types::make_shared<Generic_RigidTire>("FL");
+    auto tire_FR = chrono_types::make_shared<Generic_RigidTire>("FR");
+    auto tire_RL = chrono_types::make_shared<Generic_RigidTire>("RL");
+    auto tire_RR = chrono_types::make_shared<Generic_RigidTire>("RR");
 
-    tire_FL.Initialize(vehicle.GetAxle(0)->m_wheels[0]);
-    tire_FR.Initialize(vehicle.GetAxle(0)->m_wheels[1]);
-    tire_RL.Initialize(vehicle.GetAxle(1)->m_wheels[0]);
-    tire_RR.Initialize(vehicle.GetAxle(1)->m_wheels[1]);
-
-    tire_FL.SetVisualizationType(VisualizationType::PRIMITIVES);
-    tire_FR.SetVisualizationType(VisualizationType::PRIMITIVES);
-    tire_RL.SetVisualizationType(VisualizationType::PRIMITIVES);
-    tire_RR.SetVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle.InitializeTire(tire_FL, vehicle.GetAxle(0)->m_wheels[0], VisualizationType::PRIMITIVES);
+    vehicle.InitializeTire(tire_FR, vehicle.GetAxle(0)->m_wheels[1], VisualizationType::PRIMITIVES);
+    vehicle.InitializeTire(tire_RL, vehicle.GetAxle(1)->m_wheels[0], VisualizationType::PRIMITIVES);
+    vehicle.InitializeTire(tire_RR, vehicle.GetAxle(1)->m_wheels[1], VisualizationType::PRIMITIVES);
 
 #ifdef USE_IRRLICHT
 

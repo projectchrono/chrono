@@ -85,6 +85,12 @@ class CH_VEHICLE_API ChWheel : public ChPart {
     /// This querries the forces from the attached tire and passes it to the associated suspension.
     void Synchronize();
 
+    /// Get the tire attached to this wheel.
+    std::shared_ptr<ChTire> GetTire() const { return m_tire; }
+
+    /// Associate the given tire with this wheel.
+    void SetTire(std::shared_ptr<ChTire> tire) { m_tire = tire; }
+
     /// Get the associated spindle body.
     std::shared_ptr<ChBody> GetSpindle() const { return m_suspension->GetSpindle(m_side); }
 
@@ -107,11 +113,9 @@ class CH_VEHICLE_API ChWheel : public ChPart {
     /// Remove visualization assets for the wheel subsystem.
     virtual void RemoveVisualizationAssets() override;
 
-    ChTire* const GetTire() const { return m_tire; }
-
   protected:
     std::shared_ptr<ChSuspension> m_suspension;    ///< associated suspension subsystem
-    ChTire* m_tire;                                ///< attached tire subsystem
+    std::shared_ptr<ChTire> m_tire;                ///< attached tire subsystem
     VehicleSide m_side;                            ///< wheel mounted on left/right side
     double m_offset;                               ///< offset from spindle center
     std::shared_ptr<ChCylinderShape> m_cyl_shape;  ///< visualization cylinder asset

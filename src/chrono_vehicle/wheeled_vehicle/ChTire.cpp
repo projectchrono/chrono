@@ -42,7 +42,6 @@ ChTire::ChTire(const std::string& name)
 // -----------------------------------------------------------------------------
 void ChTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     m_wheel = wheel;
-    m_wheel->m_tire = this;
 
     //// RADU
     //// Todo:  Properly account for offset in adjusting inertia.

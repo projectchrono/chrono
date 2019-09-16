@@ -19,7 +19,6 @@
 #include <fstream>
 
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
-#include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
 #include "chrono_thirdparty/rapidjson/prettywriter.h"
@@ -34,6 +33,19 @@ ChWheeledVehicle::ChWheeledVehicle(const std::string& name, ChMaterialSurface::C
     : ChVehicle(name, contact_method) {}
 
 ChWheeledVehicle::ChWheeledVehicle(const std::string& name, ChSystem* system) : ChVehicle(name, system) {}
+
+// -----------------------------------------------------------------------------
+// Initialize a tire and attach it to one of the vehicle's wheels.
+// -----------------------------------------------------------------------------
+void ChWheeledVehicle::InitializeTire(std::shared_ptr<ChTire> tire,
+                                      std::shared_ptr<ChWheel> wheel,
+                                      VisualizationType tire_vis,
+                                      ChTire::CollisionType tire_coll) {
+    wheel->m_tire = tire;
+    tire->Initialize(wheel);
+    tire->SetVisualizationType(tire_vis);
+    tire->SetCollisionType(tire_coll);
+}
 
 // -----------------------------------------------------------------------------
 // Update the state of this vehicle at the current time.
@@ -153,6 +165,13 @@ void ChWheeledVehicle::SetAntirollbarOutput(int id, bool state) {
 
 void ChWheeledVehicle::SetDrivelineOutput(bool state) {
     m_driveline->SetOutput(state);
+}
+
+// -----------------------------------------------------------------------------
+// Get the specified wheel (axle, side, location)
+// -----------------------------------------------------------------------------
+std::shared_ptr<ChWheel> ChWheeledVehicle::GetWheel(int axle, VehicleSide side, WheelLocation location) const {
+    return m_axles[axle]->GetWheel(side, location);
 }
 
 // -----------------------------------------------------------------------------

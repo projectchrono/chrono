@@ -159,52 +159,35 @@ int main(int argc, char* argv[]) {
     powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
 
     // Create and initialize the tires
-    std::vector<std::shared_ptr<ChTire>> tires;
     for (auto& axle : vehicle.GetAxles()) {
         switch (tire_model) {
             default:
             case TireModelType::RIGID: {
                 auto tireL = chrono_types::make_shared<RigidTire>(vehicle::GetDataFile(rigidtire_file));
-                tireL->Initialize(axle->m_wheels[0]);
-                tireL->SetVisualizationType(VisualizationType::MESH);
                 auto tireR = chrono_types::make_shared<RigidTire>(vehicle::GetDataFile(rigidtire_file));
-                tireR->Initialize(axle->m_wheels[1]);
-                tireR->SetVisualizationType(VisualizationType::MESH);
-                tires.push_back(tireL);
-                tires.push_back(tireR);
+                vehicle.InitializeTire(tireL, axle->m_wheels[0], VisualizationType::MESH);
+                vehicle.InitializeTire(tireR, axle->m_wheels[1], VisualizationType::MESH);
                 break;
             }
             case TireModelType::TMEASY: {
                 auto tireL = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasytire_file));
-                tireL->Initialize(axle->m_wheels[0]);
-                tireL->SetVisualizationType(VisualizationType::MESH);
                 auto tireR = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasytire_file));
-                tireR->Initialize(axle->m_wheels[1]);
-                tireR->SetVisualizationType(VisualizationType::MESH);
-                tires.push_back(tireL);
-                tires.push_back(tireR);
+                vehicle.InitializeTire(tireL, axle->m_wheels[0], VisualizationType::MESH);
+                vehicle.InitializeTire(tireR, axle->m_wheels[1], VisualizationType::MESH);
                 break;
             }
             case TireModelType::FIALA: {
                 auto tireL = chrono_types::make_shared<FialaTire>(vehicle::GetDataFile(fialatire_file));
-                tireL->Initialize(axle->m_wheels[0]);
-                tireL->SetVisualizationType(VisualizationType::MESH);
                 auto tireR = chrono_types::make_shared<FialaTire>(vehicle::GetDataFile(fialatire_file));
-                tireR->Initialize(axle->m_wheels[1]);
-                tireR->SetVisualizationType(VisualizationType::MESH);
-                tires.push_back(tireL);
-                tires.push_back(tireR);
+                vehicle.InitializeTire(tireL, axle->m_wheels[0], VisualizationType::MESH);
+                vehicle.InitializeTire(tireR, axle->m_wheels[1], VisualizationType::MESH);
                 break;
             }
             case TireModelType::PAC89: {
                 auto tireL = chrono_types::make_shared<Pac89Tire>(vehicle::GetDataFile(pac89tire_file));
-                tireL->Initialize(axle->m_wheels[0]);
-                tireL->SetVisualizationType(VisualizationType::MESH);
                 auto tireR = chrono_types::make_shared<Pac89Tire>(vehicle::GetDataFile(pac89tire_file));
-                tireR->Initialize(axle->m_wheels[1]);
-                tireR->SetVisualizationType(VisualizationType::MESH);
-                tires.push_back(tireL);
-                tires.push_back(tireR);
+                vehicle.InitializeTire(tireL, axle->m_wheels[0], VisualizationType::MESH);
+                vehicle.InitializeTire(tireR, axle->m_wheels[1], VisualizationType::MESH);
                 break;
             }
         }

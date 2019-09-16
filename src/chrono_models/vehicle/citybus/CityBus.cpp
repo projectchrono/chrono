@@ -32,7 +32,6 @@ CityBus::CityBus()
     : m_system(nullptr),
       m_vehicle(nullptr),
       m_powertrain(nullptr),
-      m_tires({{nullptr, nullptr, nullptr, nullptr}}),
       m_contactMethod(ChMaterialSurface::NSC),
       m_chassisCollisionType(ChassisCollisionType::NONE),
       m_fixed(false),
@@ -48,7 +47,6 @@ CityBus::CityBus(ChSystem* system)
     : m_system(system),
       m_vehicle(nullptr),
       m_powertrain(nullptr),
-      m_tires({{nullptr, nullptr, nullptr, nullptr}}),
       m_contactMethod(ChMaterialSurface::NSC),
       m_chassisCollisionType(ChassisCollisionType::NONE),
       m_fixed(false),
@@ -63,10 +61,6 @@ CityBus::CityBus(ChSystem* system)
 CityBus::~CityBus() {
     delete m_vehicle;
     delete m_powertrain;
-    delete m_tires[0];
-    delete m_tires[1];
-    delete m_tires[2];
-    delete m_tires[3];
 }
 
 // -----------------------------------------------------------------------------
@@ -104,39 +98,35 @@ void CityBus::Initialize() {
     switch (m_tireType) {
         case TireModelType::RIGID_MESH:
         case TireModelType::RIGID: {
-            std::cout << "Init RIGID" << std::endl;
             bool use_mesh = (m_tireType == TireModelType::RIGID_MESH);
-            // bool use_mesh = true;
-            CityBus_RigidTire* tire_FL = new CityBus_RigidTire("FL", use_mesh);
-            CityBus_RigidTire* tire_FR = new CityBus_RigidTire("FR", use_mesh);
-            CityBus_RigidTire* tire_RL = new CityBus_RigidTire("RL", use_mesh);
-            CityBus_RigidTire* tire_RR = new CityBus_RigidTire("RR", use_mesh);
 
-            m_tires[0] = tire_FL;
-            m_tires[1] = tire_FR;
-            m_tires[2] = tire_RL;
-            m_tires[3] = tire_RR;
+            auto tire_FL = chrono_types::make_shared<CityBus_RigidTire>("FL", use_mesh);
+            auto tire_FR = chrono_types::make_shared<CityBus_RigidTire>("FR", use_mesh);
+            auto tire_RL = chrono_types::make_shared<CityBus_RigidTire>("RL", use_mesh);
+            auto tire_RR = chrono_types::make_shared<CityBus_RigidTire>("RR", use_mesh);
+
+            m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT]);
+            m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT]);
+            m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT]);
+            m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT]);
+
+            m_tire_mass = tire_FL->ReportMass();
 
             break;
         }
 
         case TireModelType::TMEASY: {
-            CityBus_TMeasyTire* tire_FL = new CityBus_TMeasyTire("FL");
-            CityBus_TMeasyTire* tire_FR = new CityBus_TMeasyTire("FR");
-            CityBus_TMeasyTire* tire_RL = new CityBus_TMeasyTire("RL");
-            CityBus_TMeasyTire* tire_RR = new CityBus_TMeasyTire("RR");
+            auto tire_FL = chrono_types::make_shared<CityBus_TMeasyTire>("FL");
+            auto tire_FR = chrono_types::make_shared<CityBus_TMeasyTire>("FR");
+            auto tire_RL = chrono_types::make_shared<CityBus_TMeasyTire>("RL");
+            auto tire_RR = chrono_types::make_shared<CityBus_TMeasyTire>("RR");
 
-            if (m_tire_step_size > 0) {
-                tire_FL->SetStepsize(m_tire_step_size);
-                tire_FR->SetStepsize(m_tire_step_size);
-                tire_RL->SetStepsize(m_tire_step_size);
-                tire_RR->SetStepsize(m_tire_step_size);
-            }
+            m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT]);
+            m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT]);
+            m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT]);
+            m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT]);
 
-            m_tires[0] = tire_FL;
-            m_tires[1] = tire_FR;
-            m_tires[2] = tire_RL;
-            m_tires[3] = tire_RR;
+            m_tire_mass = tire_FL->ReportMass();
 
             break;
         }
@@ -144,21 +134,21 @@ void CityBus::Initialize() {
             break;
     }
 
-    // Initialize the tires.
-    m_tires[0]->Initialize(m_vehicle->GetAxle(0)->m_wheels[0]);
-    m_tires[1]->Initialize(m_vehicle->GetAxle(0)->m_wheels[1]);
-    m_tires[2]->Initialize(m_vehicle->GetAxle(1)->m_wheels[0]);
-    m_tires[3]->Initialize(m_vehicle->GetAxle(1)->m_wheels[1]);
-
-    m_tire_mass = m_tires[0]->ReportMass();
+    for (auto& axle : m_vehicle->GetAxles()) {
+        for (auto& wheel : axle->GetWheels()) {
+            if (m_tire_step_size > 0)
+                wheel->GetTire()->SetStepsize(m_tire_step_size);
+        }
+    }
 }
 
 // -----------------------------------------------------------------------------
 void CityBus::SetTireVisualizationType(VisualizationType vis) {
-    m_tires[0]->SetVisualizationType(vis);
-    m_tires[1]->SetVisualizationType(vis);
-    m_tires[2]->SetVisualizationType(vis);
-    m_tires[3]->SetVisualizationType(vis);
+    for (auto& axle : m_vehicle->GetAxles()) {
+        for (auto& wheel : axle->GetWheels()) {
+            wheel->GetTire()->SetVisualizationType(vis);
+        }
+    }
 }
 
 // -----------------------------------------------------------------------------

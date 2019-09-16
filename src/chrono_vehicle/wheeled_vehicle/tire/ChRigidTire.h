@@ -65,9 +65,6 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     /// in global frame, as applied to the center of the associated wheel.
     virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override;
 
-    /// Initialize this tire by associating it to the specified wheel.
-    virtual void Initialize(std::shared_ptr<ChWheel> wheel) override;
-
     /// Add visualization assets for the rigid tire subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
@@ -101,6 +98,9 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     /// forces are automatically applied to the associated wheel through Chrono's
     /// frictional contact system.
     virtual TerrainForce GetTireForce() const override;
+
+    /// Initialize this tire by associating it to the specified wheel.
+    virtual void Initialize(std::shared_ptr<ChWheel> wheel) override;
 
     bool m_use_contact_mesh;         ///< flag indicating use of a contact mesh
     std::string m_contact_meshFile;  ///< name of the OBJ file for contact mesh

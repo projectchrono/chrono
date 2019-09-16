@@ -92,36 +92,34 @@ int main(int argc, char* argv[]) {
     // CREATE A DEFORMABLE TIRE
     //
  
-    // a dummy suspension:
-
+    // Crete a dummy suspension:
     auto susp = chrono_types::make_shared<DummySuspension>(&my_system);
     auto mrim = susp->GetSpindle(LEFT);
 
-    // the rim body: 
-
+    // The rim body: 
     my_system.Add(mrim);
     mrim->SetMass(80);
     mrim->SetInertiaXX(ChVector<>(1,1,1));
     mrim->SetPos(tire_center + ChVector<>(0,0.2,0));
     mrim->SetRot(Q_from_AngAxis(CH_C_PI_2, VECT_Z));
 
-    // the wheel object:
-
+    // The wheel object:
     auto wheel = chrono_types::make_shared<Wheel>(vehicle::GetDataFile("hmmwv/wheel/HMMWV_Wheel_FrontLeft.json"));
     wheel->Initialize(susp, LEFT);
 
-    // the tire:
-
+    // The tire:
     auto tire_reissner = chrono_types::make_shared<ReissnerTire>(vehicle::GetDataFile("hmmwv/tire/HMMWV_ReissnerTire.json"));
     tire_reissner->EnablePressure(false);
     tire_reissner->EnableContact(true);
     tire_reissner->SetContactSurfaceType(ChDeformableTire::TRIANGLE_MESH);
     tire_reissner->EnableRimConnection(true);
-    tire_reissner->Initialize(wheel);
+    std::static_pointer_cast<ChTire>(tire_reissner)->Initialize(wheel);
     tire_reissner->SetVisualizationType(VisualizationType::MESH);
 
-    // the motor that rotates the rim:
+    // Attach tire to wheel
+    wheel->GetTire() = tire_reissner;
 
+    // The motor that rotates the rim:
     auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     motor->SetSpindleConstraint(ChLinkMotorRotation::SpindleConstraint::OLDHAM);
     motor->SetAngleFunction(chrono_types::make_shared<ChFunction_Ramp>(0, CH_C_PI / 4.0));

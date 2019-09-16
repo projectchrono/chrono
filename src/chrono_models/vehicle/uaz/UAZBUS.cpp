@@ -32,7 +32,6 @@ UAZBUS::UAZBUS()
     : m_system(nullptr),
       m_vehicle(nullptr),
       m_powertrain(nullptr),
-      m_tires({{nullptr, nullptr, nullptr, nullptr}}),
       m_contactMethod(ChMaterialSurface::NSC),
       m_chassisCollisionType(ChassisCollisionType::NONE),
       m_fixed(false),
@@ -50,7 +49,6 @@ UAZBUS::UAZBUS(ChSystem* system)
     : m_system(system),
       m_vehicle(nullptr),
       m_powertrain(nullptr),
-      m_tires({{nullptr, nullptr, nullptr, nullptr}}),
       m_contactMethod(ChMaterialSurface::NSC),
       m_chassisCollisionType(ChassisCollisionType::NONE),
       m_fixed(false),
@@ -67,10 +65,6 @@ UAZBUS::UAZBUS(ChSystem* system)
 UAZBUS::~UAZBUS() {
     delete m_vehicle;
     delete m_powertrain;
-    delete m_tires[0];
-    delete m_tires[1];
-    delete m_tires[2];
-    delete m_tires[3];
 }
 
 // -----------------------------------------------------------------------------
@@ -109,35 +103,33 @@ void UAZBUS::Initialize() {
         case TireModelType::RIGID:
         case TireModelType::RIGID_MESH: {
             bool use_mesh = (m_tireType == TireModelType::RIGID_MESH);
-            UAZBUS_RigidTire* tire_FL = new UAZBUS_RigidTire("FL", use_mesh);
-            UAZBUS_RigidTire* tire_FR = new UAZBUS_RigidTire("FR", use_mesh);
-            UAZBUS_RigidTire* tire_RL = new UAZBUS_RigidTire("RL", use_mesh);
-            UAZBUS_RigidTire* tire_RR = new UAZBUS_RigidTire("RR", use_mesh);
 
-            m_tires[0] = tire_FL;
-            m_tires[1] = tire_FR;
-            m_tires[2] = tire_RL;
-            m_tires[3] = tire_RR;
+            auto tire_FL = chrono_types::make_shared<UAZBUS_RigidTire>("FL", use_mesh);
+            auto tire_FR = chrono_types::make_shared<UAZBUS_RigidTire>("FR", use_mesh);
+            auto tire_RL = chrono_types::make_shared<UAZBUS_RigidTire>("RL", use_mesh);
+            auto tire_RR = chrono_types::make_shared<UAZBUS_RigidTire>("RR", use_mesh);
+
+            m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT]);
+            m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT]);
+            m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT]);
+            m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT]);
+
+            m_tire_mass = tire_FL->ReportMass();
 
             break;
         }
         case TireModelType::TMEASY: {
-            UAZBUS_TMeasyTireFront* tire_FL = new UAZBUS_TMeasyTireFront("FL");
-            UAZBUS_TMeasyTireFront* tire_FR = new UAZBUS_TMeasyTireFront("FR");
-            UAZBUS_TMeasyTireRear* tire_RL = new UAZBUS_TMeasyTireRear("RL");
-            UAZBUS_TMeasyTireRear* tire_RR = new UAZBUS_TMeasyTireRear("RR");
+            auto tire_FL = chrono_types::make_shared<UAZBUS_TMeasyTireFront>("FL");
+            auto tire_FR = chrono_types::make_shared<UAZBUS_TMeasyTireFront>("FR");
+            auto tire_RL = chrono_types::make_shared<UAZBUS_TMeasyTireFront>("RL");
+            auto tire_RR = chrono_types::make_shared<UAZBUS_TMeasyTireFront>("RR");
 
-            if (m_tire_step_size > 0) {
-                tire_FL->SetStepsize(m_tire_step_size);
-                tire_FR->SetStepsize(m_tire_step_size);
-                tire_RL->SetStepsize(m_tire_step_size);
-                tire_RR->SetStepsize(m_tire_step_size);
-            }
+            m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT]);
+            m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT]);
+            m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT]);
+            m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT]);
 
-            m_tires[0] = tire_FL;
-            m_tires[1] = tire_FR;
-            m_tires[2] = tire_RL;
-            m_tires[3] = tire_RR;
+            m_tire_mass = tire_FL->ReportMass();
 
             break;
         }
@@ -145,21 +137,21 @@ void UAZBUS::Initialize() {
             break;
     }
 
-    // Initialize the tires.
-    m_tires[0]->Initialize(m_vehicle->GetAxle(0)->m_wheels[0]);
-    m_tires[1]->Initialize(m_vehicle->GetAxle(0)->m_wheels[1]);
-    m_tires[2]->Initialize(m_vehicle->GetAxle(1)->m_wheels[0]);
-    m_tires[3]->Initialize(m_vehicle->GetAxle(1)->m_wheels[1]);
-
-    m_tire_mass = m_tires[0]->ReportMass();
+    for (auto& axle : m_vehicle->GetAxles()) {
+        for (auto& wheel : axle->GetWheels()) {
+            if (m_tire_step_size > 0)
+                wheel->GetTire()->SetStepsize(m_tire_step_size);
+        }
+    }
 }
 
 // -----------------------------------------------------------------------------
 void UAZBUS::SetTireVisualizationType(VisualizationType vis) {
-    m_tires[0]->SetVisualizationType(vis);
-    m_tires[1]->SetVisualizationType(vis);
-    m_tires[2]->SetVisualizationType(vis);
-    m_tires[3]->SetVisualizationType(vis);
+    for (auto& axle : m_vehicle->GetAxles()) {
+        for (auto& wheel : axle->GetWheels()) {
+            wheel->GetTire()->SetVisualizationType(vis);
+        }
+    }
 }
 
 // -----------------------------------------------------------------------------

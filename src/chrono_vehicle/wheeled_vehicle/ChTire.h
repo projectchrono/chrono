@@ -50,10 +50,6 @@ class CH_VEHICLE_API ChTire : public ChPart {
 
     virtual ~ChTire() {}
 
-    /// Initialize this tire subsystem by associating it to an existing wheel subsystem.
-    /// The tire mass and inertia are used to increment those of the associated suspension spindle body.
-    virtual void Initialize(std::shared_ptr<ChWheel> wheel);
-
     /// Set the value of the integration step size for the underlying dynamics (if applicable).
     /// Default value: 1ms.
     void SetStepsize(double val) { m_stepsize = val; }
@@ -115,6 +111,13 @@ class CH_VEHICLE_API ChTire : public ChPart {
     virtual double GetDeflection() const { return 0; }
 
   public:
+    // NOTE: Typically, users should not directly call these functions. They are public for use in special cases and to
+    // allow extensions to Chrono::Vehicle in user code.
+
+    /// Initialize this tire subsystem by associating it to an existing wheel subsystem.
+    /// The tire mass and inertia are used to increment those of the associated suspension spindle body.
+    virtual void Initialize(std::shared_ptr<ChWheel> wheel);
+
     /// Update the state of this tire system at the current time.
     virtual void Synchronize(double time,              ///< [in] current time
                              const ChTerrain& terrain  ///< [in] reference to the terrain system

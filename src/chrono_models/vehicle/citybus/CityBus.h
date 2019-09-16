@@ -106,7 +106,6 @@ class CH_MODELS_API CityBus {
     ChSystem* m_system;
     CityBus_Vehicle* m_vehicle;
     ChPowertrain* m_powertrain;
-    std::array<ChTire*, 4> m_tires;
 
     double m_tire_mass;
 };

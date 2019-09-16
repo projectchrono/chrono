@@ -32,7 +32,7 @@
 namespace chrono {
 namespace vehicle {
 
-ChWheel::ChWheel(const std::string& name) : ChPart(name), m_tire(nullptr) {}
+ChWheel::ChWheel(const std::string& name) : ChPart(name) {}
 
 // Initialize this wheel by associating it to the specified suspension subsystem.
 // Increment the mass and inertia of the spindle body to account for the wheel mass and inertia.

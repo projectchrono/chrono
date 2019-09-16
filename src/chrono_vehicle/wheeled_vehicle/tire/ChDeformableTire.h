@@ -120,9 +120,6 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     /// The force and moment are expressed in the global frame.
     virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override;
 
-    /// Initialize this tire by associating it to the specified wheel.
-    virtual void Initialize(std::shared_ptr<ChWheel> wheel) override;
-
     /// Add visualization assets for the rigid tire subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override final;
 
@@ -136,6 +133,9 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     /// deformable tire, these functions must always return 0.
     virtual double GetMass() const final { return 0; }
     virtual ChVector<> GetInertia() const final { return ChVector<>(0, 0, 0); }
+
+    /// Initialize this tire by associating it to the specified wheel.
+    virtual void Initialize(std::shared_ptr<ChWheel> wheel) override;
 
     /// Get the tire force and moment.
     /// A ChDeformableTire always returns zero forces and moments since tire forces

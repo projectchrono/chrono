@@ -32,6 +32,12 @@ class Articulated_Rear {
 
     void Initialize();
 
+    void InitializeTire(
+        std::shared_ptr<chrono::vehicle::ChTire> tire,
+        std::shared_ptr<chrono::vehicle::ChWheel> wheel,
+        chrono::vehicle::VisualizationType tire_vis = chrono::vehicle::VisualizationType::PRIMITIVES,
+        chrono::vehicle::ChTire::CollisionType tire_coll = chrono::vehicle::ChTire::CollisionType::SINGLE_POINT);
+
     void Synchronize(double time, double steering, double braking, const chrono::vehicle::ChTerrain& terrain);
 
     void Advance(double step);

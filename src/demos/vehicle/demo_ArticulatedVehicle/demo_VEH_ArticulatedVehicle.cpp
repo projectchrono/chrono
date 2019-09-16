@@ -102,57 +102,51 @@ int main(int argc, char* argv[]) {
     Generic_SimplePowertrain powertrain("Powertrain");
     powertrain.Initialize(front_side.GetChassisBody(), front_side.GetDriveshaft());
 
-    // Create the front tires
-    std::unique_ptr<ChTire> tire_FL;
-    std::unique_ptr<ChTire> tire_FR;
+    // Create and initialize the front and rear tires
     switch (tire_model) {
-        case TireModelType::RIGID:
-            tire_FL = std::unique_ptr<ChTire>(new Generic_RigidTire("FL"));
-            tire_FR = std::unique_ptr<ChTire>(new Generic_RigidTire("FR"));
+        case TireModelType::RIGID: {
+            auto tire_FL = chrono_types::make_shared<Generic_RigidTire>("FL");
+            auto tire_FR = chrono_types::make_shared<Generic_RigidTire>("FR");
+            front_side.InitializeTire(tire_FL, front_side.GetAxle(0)->m_wheels[0], VisualizationType::MESH);
+            front_side.InitializeTire(tire_FR, front_side.GetAxle(0)->m_wheels[1], VisualizationType::MESH);
+
+            auto tire_RL = chrono_types::make_shared<Generic_RigidTire>("RL");
+            auto tire_RR = chrono_types::make_shared<Generic_RigidTire>("RR");
+            rear_side.InitializeTire(tire_RL, rear_side.GetAxle()->m_wheels[0], VisualizationType::MESH);
+            rear_side.InitializeTire(tire_RR, rear_side.GetAxle()->m_wheels[1], VisualizationType::MESH);
+
             break;
-        case TireModelType::RIGID_MESH:
-            tire_FL = std::unique_ptr<ChTire>(new Generic_RigidMeshTire("FL"));
-            tire_FR = std::unique_ptr<ChTire>(new Generic_RigidMeshTire("FR"));
+        }
+        case TireModelType::RIGID_MESH: {
+            auto tire_FL = chrono_types::make_shared<Generic_RigidMeshTire>("FL");
+            auto tire_FR = chrono_types::make_shared<Generic_RigidMeshTire>("FR");
+            front_side.InitializeTire(tire_FL, front_side.GetAxle(0)->m_wheels[0], VisualizationType::MESH);
+            front_side.InitializeTire(tire_FR, front_side.GetAxle(0)->m_wheels[1], VisualizationType::MESH);
+ 
+            auto tire_RL = chrono_types::make_shared<Generic_RigidMeshTire>("RL");
+            auto tire_RR = chrono_types::make_shared<Generic_RigidMeshTire>("RR");
+            rear_side.InitializeTire(tire_RL, rear_side.GetAxle()->m_wheels[0], VisualizationType::MESH);
+            rear_side.InitializeTire(tire_RR, rear_side.GetAxle()->m_wheels[1], VisualizationType::MESH);
+
             break;
-        case TireModelType::FIALA:
-            tire_FL = std::unique_ptr<ChTire>(new Generic_FialaTire("FL"));
-            tire_FR = std::unique_ptr<ChTire>(new Generic_FialaTire("FR"));
+        }
+        case TireModelType::FIALA: {
+            auto tire_FL = chrono_types::make_shared<Generic_FialaTire>("FL");
+            auto tire_FR = chrono_types::make_shared<Generic_FialaTire>("FR");
+            front_side.InitializeTire(tire_FL, front_side.GetAxle(0)->m_wheels[0], VisualizationType::MESH);
+            front_side.InitializeTire(tire_FR, front_side.GetAxle(0)->m_wheels[1], VisualizationType::MESH);
+ 
+            auto tire_RL = chrono_types::make_shared<Generic_FialaTire>("RL");
+            auto tire_RR = chrono_types::make_shared<Generic_FialaTire>("RR");
+            rear_side.InitializeTire(tire_RL, rear_side.GetAxle()->m_wheels[0], VisualizationType::MESH);
+            rear_side.InitializeTire(tire_RR, rear_side.GetAxle()->m_wheels[1], VisualizationType::MESH);
+
             break;
+        }
         default:
             std::cout << "Tire type not supported!" << std::endl;
             return 1;
     }
-
-    tire_FL->Initialize(front_side.GetAxle(0)->m_wheels[0]);
-    tire_FR->Initialize(front_side.GetAxle(0)->m_wheels[1]);
-    tire_FL->SetVisualizationType(VisualizationType::MESH);
-    tire_FR->SetVisualizationType(VisualizationType::MESH);
-
-    // Create the rear tires
-    std::unique_ptr<ChTire> tire_RL;
-    std::unique_ptr<ChTire> tire_RR;
-    switch (tire_model) {
-        case TireModelType::RIGID:
-            tire_RL = std::unique_ptr<ChTire>(new Generic_RigidTire("RL"));
-            tire_RR = std::unique_ptr<ChTire>(new Generic_RigidTire("RR"));
-            break;
-        case TireModelType::RIGID_MESH:
-            tire_RL = std::unique_ptr<ChTire>(new Generic_RigidMeshTire("RL"));
-            tire_RR = std::unique_ptr<ChTire>(new Generic_RigidMeshTire("RR"));
-            break;
-        case TireModelType::FIALA:
-            tire_RL = std::unique_ptr<ChTire>(new Generic_FialaTire("RL"));
-            tire_RR = std::unique_ptr<ChTire>(new Generic_FialaTire("RR"));
-            break;
-        default:
-            std::cout << "Tire type not supported!" << std::endl;
-            return 1;
-    }
-
-    tire_RL->Initialize(rear_side.GetAxle()->m_wheels[0]);
-    tire_RR->Initialize(rear_side.GetAxle()->m_wheels[1]);
-    tire_RL->SetVisualizationType(VisualizationType::MESH);
-    tire_RR->SetVisualizationType(VisualizationType::MESH);
 
     // Initialize Irrlicht app
     ChWheeledVehicleIrrApp app(&front_side, &powertrain, L"Articulated Vehicle Demo");

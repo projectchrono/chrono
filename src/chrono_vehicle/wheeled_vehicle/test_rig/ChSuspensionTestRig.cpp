@@ -296,6 +296,10 @@ void ChSuspensionTestRig::Create() {
     m_wheel[LEFT]->Initialize(m_suspension, LEFT);
     m_wheel[RIGHT]->Initialize(m_suspension, RIGHT);
 
+    // Associate tires to wheels
+    m_wheel[LEFT]->SetTire(m_tire[LEFT]);
+    m_wheel[RIGHT]->SetTire(m_tire[RIGHT]);
+
     // Initialize the tire subsystem
     m_tire[LEFT]->Initialize(m_wheel[LEFT]);
     m_tire[RIGHT]->Initialize(m_wheel[RIGHT]);

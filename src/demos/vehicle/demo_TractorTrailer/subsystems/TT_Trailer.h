@@ -42,6 +42,12 @@ class TT_Trailer {
                             const bool connect_to_puller,
                             std::shared_ptr<chrono::ChBodyAuxRef> pulling_vehicle);
 
+    void InitializeTire(
+        std::shared_ptr<chrono::vehicle::ChTire> tire,
+        std::shared_ptr<chrono::vehicle::ChWheel> wheel,
+        chrono::vehicle::VisualizationType tire_vis = chrono::vehicle::VisualizationType::PRIMITIVES,
+        chrono::vehicle::ChTire::CollisionType tire_coll = chrono::vehicle::ChTire::CollisionType::SINGLE_POINT);
+
     void Synchronize(double time, double braking, const chrono::vehicle::ChTerrain& terrain);
 
     void Advance(double step);

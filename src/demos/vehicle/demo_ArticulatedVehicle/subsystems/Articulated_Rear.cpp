@@ -120,6 +120,19 @@ void Articulated_Rear::Initialize() {
 }
 
 // -----------------------------------------------------------------------------
+// Initialize the given tire and attach to the specified wheel
+// -----------------------------------------------------------------------------
+void Articulated_Rear::InitializeTire(std::shared_ptr<ChTire> tire,
+                                      std::shared_ptr<ChWheel> wheel,
+                                      VisualizationType tire_vis,
+                                      ChTire::CollisionType tire_coll) {
+    wheel->SetTire(tire);
+    tire->Initialize(wheel);
+    tire->SetVisualizationType(tire_vis);
+    tire->SetCollisionType(tire_coll);
+}
+
+// -----------------------------------------------------------------------------
 // Set visualization type for the various subsystems
 // -----------------------------------------------------------------------------
 void Articulated_Rear::SetSuspensionVisualizationType(VisualizationType vis) {

@@ -158,60 +158,35 @@ int main(int argc, char* argv[]) {
     powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
 
     // Create and initialize the tires
-    std::vector<std::shared_ptr<ChTire>> tires;
     for (auto& axle : vehicle.GetAxles()) {
         switch (iTire) {
             default:
             case 1: {
                 auto tireL = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_tire_file));
-                tireL->Initialize(axle->m_wheels[0]);
-                tireL->SetCollisionType(collision_type);
-                tireL->SetVisualizationType(VisualizationType::MESH);
                 auto tireR = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_tire_file));
-                tireR->Initialize(axle->m_wheels[1]);
-                tireR->SetCollisionType(collision_type);
-                tireR->SetVisualizationType(VisualizationType::MESH);
-                tires.push_back(tireL);
-                tires.push_back(tireR);
+                vehicle.InitializeTire(tireL, axle->m_wheels[0], VisualizationType::MESH, collision_type);
+                vehicle.InitializeTire(tireR, axle->m_wheels[1], VisualizationType::MESH, collision_type);
                 break;
             }
             case 2: {
                 auto tireL = chrono_types::make_shared<FialaTire>(vehicle::GetDataFile(fiala_tire_file));
-                tireL->Initialize(axle->m_wheels[0]);
-                tireL->SetCollisionType(collision_type);
-                tireL->SetVisualizationType(VisualizationType::MESH);
                 auto tireR = chrono_types::make_shared<FialaTire>(vehicle::GetDataFile(fiala_tire_file));
-                tireR->Initialize(axle->m_wheels[1]);
-                tireR->SetCollisionType(collision_type);
-                tireR->SetVisualizationType(VisualizationType::MESH);
-                tires.push_back(tireL);
-                tires.push_back(tireR);
+                vehicle.InitializeTire(tireL, axle->m_wheels[0], VisualizationType::MESH, collision_type);
+                vehicle.InitializeTire(tireR, axle->m_wheels[1], VisualizationType::MESH, collision_type);
                 break;
             }
             case 3: {
                 auto tireL = chrono_types::make_shared<hmmwv::HMMWV_Pac02Tire>(vehicle::GetDataFile(pacejka_tire_file));
-                tireL->Initialize(axle->m_wheels[0]);
-                tireL->SetCollisionType(collision_type);
-                tireL->SetVisualizationType(VisualizationType::MESH);
                 auto tireR = chrono_types::make_shared<hmmwv::HMMWV_Pac02Tire>(vehicle::GetDataFile(pacejka_tire_file));
-                tireR->Initialize(axle->m_wheels[1]);
-                tireR->SetCollisionType(collision_type);
-                tireR->SetVisualizationType(VisualizationType::MESH);
-                tires.push_back(tireL);
-                tires.push_back(tireR);
+                vehicle.InitializeTire(tireL, axle->m_wheels[0], VisualizationType::MESH, collision_type);
+                vehicle.InitializeTire(tireR, axle->m_wheels[1], VisualizationType::MESH, collision_type);
                 break;
             }
             case 4: {
                 auto tireL = chrono_types::make_shared<hmmwv::HMMWV_Pac89Tire>("HMMWV_Pac89_Tire");
-                tireL->Initialize(axle->m_wheels[0]);
-                tireL->SetCollisionType(collision_type);
-                tireL->SetVisualizationType(VisualizationType::MESH);
                 auto tireR = chrono_types::make_shared<hmmwv::HMMWV_Pac89Tire>("HMMWV_Pac89_Tire");
-                tireR->Initialize(axle->m_wheels[1]);
-                tireR->SetCollisionType(collision_type);
-                tireR->SetVisualizationType(VisualizationType::MESH);
-                tires.push_back(tireL);
-                tires.push_back(tireR);
+                vehicle.InitializeTire(tireL, axle->m_wheels[0], VisualizationType::MESH, collision_type);
+                vehicle.InitializeTire(tireR, axle->m_wheels[1], VisualizationType::MESH, collision_type);
                 break;
             }
         }
@@ -287,7 +262,7 @@ int main(int argc, char* argv[]) {
         powertrain.Synchronize(time, throttle_input, driveshaft_speed);
         vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, terrain);
         terrain.Synchronize(time);
-        app.Synchronize(tires[0]->GetTemplateName(), steering_input, throttle_input, braking_input);
+        app.Synchronize("", steering_input, throttle_input, braking_input);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);

@@ -389,6 +389,7 @@ void ChTireTestRig::CreateMechanism() {
     // Initialize subsystems
     m_wheel->Initialize(m_susp, LEFT);
     m_wheel->SetVisualizationType(VisualizationType::NONE);
+    m_wheel->SetTire(m_tire);
     m_tire->SetStepsize(m_tire_step);
     m_tire->Initialize(m_wheel);
     m_tire->SetVisualizationType(m_tire_vis);

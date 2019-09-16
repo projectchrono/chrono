@@ -78,9 +78,6 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
     /// By default, the wheel is assumed not driven.
     void SetDrivenWheel(bool val) { m_driven = val; }
 
-    /// Initialize this tire by associating it to the specified wheel.
-    virtual void Initialize(std::shared_ptr<ChWheel> wheel) override;
-
     /// Add visualization assets for the rigid tire subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
@@ -184,6 +181,9 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
     /// to the appropriate suspension subsystem which applies it as an external
     /// force one the wheel body.
     virtual TerrainForce GetTireForce() const override;
+
+    /// Initialize this tire by associating it to the specified wheel.
+    virtual void Initialize(std::shared_ptr<ChWheel> wheel) override;
 
     /// Update the state of this tire system at the current time.
     /// Set the PacTire spindle state data from the global wheel body state.

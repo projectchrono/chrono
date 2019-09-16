@@ -33,6 +33,7 @@
 #include "chrono_vehicle/wheeled_vehicle/ChSteering.h"
 #include "chrono_vehicle/wheeled_vehicle/ChSuspension.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
+#include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 
 namespace chrono {
 namespace vehicle {
@@ -74,6 +75,12 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
 
     /// Get the specified steering subsystem.
     std::shared_ptr<ChSteering> GetSteering(int id) const { return m_steerings[id]; }
+
+    /// Get the specified vehicle wheel, by specifying the axle, side, and wheel location.
+    /// Axles are assumed to be indexed starting from the front of the vehicle. On each axle, wheels are assumed to be
+    /// ordered from inner to outer wheels, first left then right: for a single-wheel axle the order is left wheel,
+    /// right wheel; for a double-wheel axle, the order is inner left, inner right, outer left, outer right.
+    std::shared_ptr<ChWheel> GetWheel(int axle, VehicleSide side, WheelLocation location = SINGLE) const;
 
     /// Get a handle to the vehicle's driveline subsystem.
     std::shared_ptr<ChDriveline> GetDriveline() const { return m_driveline; }
@@ -129,6 +136,14 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// This default implementation estimates the maximum steering angle based on a bicycle model
     /// and the vehicle minimum turning radius.
     virtual double GetMaxSteeringAngle() const;
+
+    /// Initialize the given tire and attach it to the specified wheel.
+    /// Optionally, specify tire visualization mode and tire-terrain collision detection method.
+    /// This function should be called only after vehicle initialization.
+    void InitializeTire(std::shared_ptr<ChTire> tire,
+                        std::shared_ptr<ChWheel> wheel,
+                        VisualizationType tire_vis = VisualizationType::PRIMITIVES,
+                        ChTire::CollisionType tire_coll = ChTire::CollisionType::SINGLE_POINT);
 
     /// Set visualization type for the suspension subsystems.
     /// This function should be called only after vehicle initialization.
