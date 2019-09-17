@@ -11,7 +11,7 @@
 // =============================================================================
 // Authors: Nic Olsen
 // =============================================================================
-// Chrono::Granular simulation forming an angle of repose based on friciton and
+// Chrono::Granular simulation forming an angle of repose based on friction and
 // cohesion. Granular material is initially settled within a vertically-aligned
 // mesh cylinder. The cylinder is then slowly raised to allow the material to
 // create a mound of granular material on the box floor.

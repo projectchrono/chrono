@@ -297,7 +297,7 @@ void ChSystemGranularSMC::copyConstSphereDataToDevice() {
     gran_params->max_z_pos_unsigned = ((int64_t)gran_params->SD_size_Z_SU * gran_params->nSDs_Z);
 
     INFO_PRINTF("max pos is is %lu, %lu, %lu\n", gran_params->max_x_pos_unsigned, gran_params->max_y_pos_unsigned,
-           gran_params->max_z_pos_unsigned);
+                gran_params->max_z_pos_unsigned);
 
     int64_t true_max_pos = std::max(std::max(gran_params->max_x_pos_unsigned, gran_params->max_y_pos_unsigned),
                                     gran_params->max_z_pos_unsigned);
@@ -598,7 +598,8 @@ void ChSystemGranularSMC::initializeSpheres() {
     gpuErrchk(cudaMemAdvise(gran_params, sizeof(*gran_params), cudaMemAdviseSetReadMostly, dev_ID));
     gpuErrchk(cudaMemAdvise(sphere_data, sizeof(*sphere_data), cudaMemAdviseSetReadMostly, dev_ID));
 
-    INFO_PRINTF("z grav term with timestep %f is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gran_params->gravAcc_Z_SU);
+    INFO_PRINTF("z grav term with timestep %f is %f\n", stepSize_SU,
+                stepSize_SU * stepSize_SU * gran_params->gravAcc_Z_SU);
     INFO_PRINTF("running at approximate timestep %f\n", stepSize_SU * TIME_SU2UU);
 }
 
@@ -661,7 +662,8 @@ void ChSystemGranularSMC::partitionBD() {
     // permanently cache the initial frame
     BD_rest_frame_SU = make_longlong3(gran_params->BD_frame_X, gran_params->BD_frame_Y, gran_params->BD_frame_Z);
 
-    INFO_PRINTF("%u Sds as %u, %u, %u\n", gran_params->nSDs, gran_params->nSDs_X, gran_params->nSDs_Y, gran_params->nSDs_Z);
+    INFO_PRINTF("%u Sds as %u, %u, %u\n", gran_params->nSDs, gran_params->nSDs_X, gran_params->nSDs_Y,
+                gran_params->nSDs_Z);
 
     // allocate mem for array saying for each SD how many spheres touch it
     TRACK_VECTOR_RESIZE(SD_NumSpheresTouching, nSDs, "SD_numSpheresTouching", 0);
@@ -731,7 +733,7 @@ void ChSystemGranularSMC::switchToSimUnits() {
     // Handy debug output
     INFO_PRINTF("UU mass is %f\n", MASS_SU2UU);
     INFO_PRINTF("SU gravity is %f, %f, %f\n", gran_params->gravAcc_X_SU, gran_params->gravAcc_Y_SU,
-           gran_params->gravAcc_Z_SU);
+                gran_params->gravAcc_Z_SU);
     INFO_PRINTF("SU radius is %u\n", gran_params->sphereRadius_SU);
     float dt_safe_estimate = sqrt(massSphere / K_n_s2s_UU);
     INFO_PRINTF("CFL timestep is about %f\n", dt_safe_estimate);
