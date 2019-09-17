@@ -32,7 +32,6 @@ SET(DEMOS
     demo_PAR_snowMPM
     demo_PAR_particlesNSC
     demo_PAR_friction
-    # demo_PAR_cylCouetteFlowSMC
 )
 
 # Add programs that require OpenGL
@@ -64,3 +63,4 @@ FOREACH(PROGRAM ${DEMOS})
     INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 
 ENDFOREACH(PROGRAM)
+
