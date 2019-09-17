@@ -81,7 +81,7 @@ class ChRandomParticlePositionOnGeometry : public ChRandomParticlePosition {
   public:
     ChRandomParticlePositionOnGeometry() {
         // defaults
-        geometry = std::make_shared<geometry::ChBox>(VNULL, ChMatrix33<>(QUNIT), ChVector<>(0.1, 0.1, 0.1));
+        geometry = chrono_types::make_shared<geometry::ChBox>(VNULL, ChMatrix33<>(QUNIT), ChVector<>(0.1, 0.1, 0.1));
     }
 
     /// Function that creates a random position each

@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Antonio Recuero
+// Authors: Antonio Recuero, Radu Serban
 // =============================================================================
 // ANCF laminated shell element with eight nodes: High-Order.
 // Element 3833 of paper: 'Analysis of higher-order quadrilateral plate elements
@@ -19,13 +19,18 @@
 // Dynamics, To be published, 2017
 // =============================================================================
 
+//// RADU
+//// A lot more to do here...
+//// - reconsider the use of large static matrices
+//// - more use of Eigen expressions
+//// - remove unecessary initializations to zero
+
 #include <cmath>
 
 #include "chrono/fea/ChElementShellANCF_8.h"
 #include "chrono/core/ChException.h"
 #include "chrono/core/ChQuadrature.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono/fea/ChUtilsFEA.h"
 
 namespace chrono {
 namespace fea {
@@ -98,7 +103,7 @@ void ChElementShellANCF_8::SetNodes(std::shared_ptr<ChNodeFEAxyzDD> nodeA,
 
     // Initial positions and slopes of the element nodes
     CalcCoordMatrix(m_d0);
-    m_d0d0T.MatrMultiplyT(m_d0, m_d0);
+    m_d0d0T = m_d0 * m_d0.transpose();
 }
 
 // -----------------------------------------------------------------------------
@@ -146,37 +151,37 @@ void ChElementShellANCF_8::Update() {
 }
 
 // Fill the DD vector with the current field values at the element nodes.
-void ChElementShellANCF_8::GetStateBlock(ChMatrixDynamic<>& mDD) {
-    mDD.PasteVector(m_nodes[0]->GetPos(), 0, 0);
-    mDD.PasteVector(m_nodes[0]->GetD(), 3, 0);
-    mDD.PasteVector(m_nodes[0]->GetDD(), 6, 0);
-    mDD.PasteVector(m_nodes[1]->GetPos(), 9, 0);
-    mDD.PasteVector(m_nodes[1]->GetD(), 12, 0);
-    mDD.PasteVector(m_nodes[1]->GetDD(), 15, 0);
-    mDD.PasteVector(m_nodes[2]->GetPos(), 18, 0);
-    mDD.PasteVector(m_nodes[2]->GetD(), 21, 0);
-    mDD.PasteVector(m_nodes[2]->GetDD(), 24, 0);
-    mDD.PasteVector(m_nodes[3]->GetPos(), 27, 0);
-    mDD.PasteVector(m_nodes[3]->GetD(), 30, 0);
-    mDD.PasteVector(m_nodes[3]->GetDD(), 33, 0);
-    mDD.PasteVector(m_nodes[4]->GetPos(), 36, 0);
-    mDD.PasteVector(m_nodes[4]->GetD(), 39, 0);
-    mDD.PasteVector(m_nodes[4]->GetDD(), 42, 0);
-    mDD.PasteVector(m_nodes[5]->GetPos(), 45, 0);
-    mDD.PasteVector(m_nodes[5]->GetD(), 48, 0);
-    mDD.PasteVector(m_nodes[5]->GetDD(), 51, 0);
-    mDD.PasteVector(m_nodes[6]->GetPos(), 54, 0);
-    mDD.PasteVector(m_nodes[6]->GetD(), 57, 0);
-    mDD.PasteVector(m_nodes[6]->GetDD(), 60, 0);
-    mDD.PasteVector(m_nodes[7]->GetPos(), 63, 0);
-    mDD.PasteVector(m_nodes[7]->GetD(), 66, 0);
-    mDD.PasteVector(m_nodes[7]->GetDD(), 69, 0);
+void ChElementShellANCF_8::GetStateBlock(ChVectorDynamic<>& mDD) {
+    mDD.segment(0, 3) = m_nodes[0]->GetPos().eigen();
+    mDD.segment(3, 3) = m_nodes[0]->GetD().eigen();
+    mDD.segment(6, 3) = m_nodes[0]->GetDD().eigen();
+    mDD.segment(9, 3) = m_nodes[1]->GetPos().eigen();
+    mDD.segment(12, 3) = m_nodes[1]->GetD().eigen();
+    mDD.segment(15, 3) = m_nodes[1]->GetDD().eigen();
+    mDD.segment(18, 3) = m_nodes[2]->GetPos().eigen();
+    mDD.segment(21, 3) = m_nodes[2]->GetD().eigen();
+    mDD.segment(24, 3) = m_nodes[2]->GetDD().eigen();
+    mDD.segment(27, 3) = m_nodes[3]->GetPos().eigen();
+    mDD.segment(30, 3) = m_nodes[3]->GetD().eigen();
+    mDD.segment(33, 3) = m_nodes[3]->GetDD().eigen();
+    mDD.segment(36, 3) = m_nodes[4]->GetPos().eigen();
+    mDD.segment(39, 3) = m_nodes[4]->GetD().eigen();
+    mDD.segment(42, 3) = m_nodes[4]->GetDD().eigen();
+    mDD.segment(45, 3) = m_nodes[5]->GetPos().eigen();
+    mDD.segment(48, 3) = m_nodes[5]->GetD().eigen();
+    mDD.segment(51, 3) = m_nodes[5]->GetDD().eigen();
+    mDD.segment(54, 3) = m_nodes[6]->GetPos().eigen();
+    mDD.segment(57, 3) = m_nodes[6]->GetD().eigen();
+    mDD.segment(60, 3) = m_nodes[6]->GetDD().eigen();
+    mDD.segment(63, 3) = m_nodes[7]->GetPos().eigen();
+    mDD.segment(66, 3) = m_nodes[7]->GetD().eigen();
+    mDD.segment(69, 3) = m_nodes[7]->GetDD().eigen();
 }
 
 // Calculate the global matrix H as a linear combination of K, R, and M:
 //   H = Mfactor * [M] + Kfactor * [K] + Rfactor * [R]
-void ChElementShellANCF_8::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor, double Mfactor) {
-    assert((H.GetRows() == 72) && (H.GetColumns() == 72));
+void ChElementShellANCF_8::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
+    assert((H.rows() == 72) && (H.cols() == 72));
 
     // Calculate the linear combination Kfactor*[K] + Rfactor*[R]
     ComputeInternalJacobians(Kfactor, Rfactor);
@@ -188,7 +193,7 @@ void ChElementShellANCF_8::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfacto
 }
 
 // Return the mass matrix.
-void ChElementShellANCF_8::ComputeMmatrixGlobal(ChMatrix<>& M) {
+void ChElementShellANCF_8::ComputeMmatrixGlobal(ChMatrixRef M) {
     M = m_MassMatrix;
 }
 
@@ -197,10 +202,10 @@ void ChElementShellANCF_8::ComputeMmatrixGlobal(ChMatrix<>& M) {
 // -----------------------------------------------------------------------------
 
 /// This class defines the calculations for the integrand of the inertia matrix.
-class MyMass_8 : public ChIntegrable3D<ChMatrixNM<double, 72, 72> > {
+class ShellANCF8_Mass : public ChIntegrable3D<ChMatrixNM<double, 72, 72>> {
   public:
-    MyMass_8(ChElementShellANCF_8* element) : m_element(element) {}
-    ~MyMass_8() {}
+    ShellANCF8_Mass(ChElementShellANCF_8* element) : m_element(element) {}
+    ~ShellANCF8_Mass() {}
 
   private:
     ChElementShellANCF_8* m_element;
@@ -208,8 +213,8 @@ class MyMass_8 : public ChIntegrable3D<ChMatrixNM<double, 72, 72> > {
     virtual void Evaluate(ChMatrixNM<double, 72, 72>& result, const double x, const double y, const double z) override;
 };
 
-void MyMass_8::Evaluate(ChMatrixNM<double, 72, 72>& result, const double x, const double y, const double z) {
-    ChMatrixNM<double, 1, 24> N;
+void ShellANCF8_Mass::Evaluate(ChMatrixNM<double, 72, 72>& result, const double x, const double y, const double z) {
+    ChElementShellANCF_8::ShapeVector N;
     m_element->ShapeFunctions(N, x, y, z);
 
     // S=[N1*eye(3) N2*eye(3) N3*eye(3) N4*eye(3) N5*eye(3) N6*eye(3) N7*eye(3) N8*eye(3)...
@@ -217,83 +222,33 @@ void MyMass_8::Evaluate(ChMatrixNM<double, 72, 72>& result, const double x, cons
     // N17*eye(3) N18*eye(3) N19*eye(3) N20*eye(3) N21*eye(3) N22*eye(3) N23*eye(3) N24*eye(3)]
 
     ChMatrixNM<double, 3, 72> S;
-    ChMatrix33<> Si;
-    Si.Reset();
-
-    Si.FillDiag(N(0));
-    S.PasteMatrix(Si, 0, 0);
-    Si.FillDiag(N(1));
-    S.PasteMatrix(Si, 0, 3);
-    Si.FillDiag(N(2));
-    S.PasteMatrix(Si, 0, 6);
-    Si.FillDiag(N(3));
-    S.PasteMatrix(Si, 0, 9);
-    Si.FillDiag(N(4));
-    S.PasteMatrix(Si, 0, 12);
-    Si.FillDiag(N(5));
-    S.PasteMatrix(Si, 0, 15);
-    Si.FillDiag(N(6));
-    S.PasteMatrix(Si, 0, 18);
-    Si.FillDiag(N(7));
-    S.PasteMatrix(Si, 0, 21);
-
-    Si.FillDiag(N(8));
-    S.PasteMatrix(Si, 0, 24);
-    Si.FillDiag(N(9));
-    S.PasteMatrix(Si, 0, 27);
-    Si.FillDiag(N(10));
-    S.PasteMatrix(Si, 0, 30);
-    Si.FillDiag(N(11));
-    S.PasteMatrix(Si, 0, 33);
-    Si.FillDiag(N(12));
-    S.PasteMatrix(Si, 0, 36);
-    Si.FillDiag(N(13));
-    S.PasteMatrix(Si, 0, 39);
-    Si.FillDiag(N(14));
-    S.PasteMatrix(Si, 0, 42);
-    Si.FillDiag(N(15));
-    S.PasteMatrix(Si, 0, 45);
-
-    Si.FillDiag(N(16));
-    S.PasteMatrix(Si, 0, 48);
-    Si.FillDiag(N(17));
-    S.PasteMatrix(Si, 0, 51);
-    Si.FillDiag(N(18));
-    S.PasteMatrix(Si, 0, 54);
-    Si.FillDiag(N(19));
-    S.PasteMatrix(Si, 0, 57);
-    Si.FillDiag(N(20));
-    S.PasteMatrix(Si, 0, 60);
-    Si.FillDiag(N(21));
-    S.PasteMatrix(Si, 0, 63);
-    Si.FillDiag(N(22));
-    S.PasteMatrix(Si, 0, 66);
-    Si.FillDiag(N(23));
-    S.PasteMatrix(Si, 0, 69);
+    S.setZero();
+    for (int i = 0; i < 24; i++) {
+        S(0, 3 * i + 0) = N(i);
+        S(1, 3 * i + 1) = N(i);
+        S(2, 3 * i + 2) = N(i);
+    }
 
     double detJ0 = m_element->Calc_detJ0(x, y, z);
 
-    // perform  r = S'*S
-    result.MatrTMultiply(S, S);
-
-    // multiply integration weights
-    result *= detJ0 * (m_element->m_GaussScaling);
+    // perform  r = S'*S, scaled by integration weights
+    result = detJ0 * m_element->m_GaussScaling * S.transpose() * S;
 };
 
 void ChElementShellANCF_8::ComputeMassMatrix() {
-    m_MassMatrix.Reset();
+    m_MassMatrix.setZero();
 
     for (size_t kl = 0; kl < m_numLayers; kl++) {
         double rho = m_layers[kl].GetMaterial()->Get_rho();
-        MyMass_8 myformula(this);
+        ShellANCF8_Mass myformula(this);
         ChMatrixNM<double, 72, 72> TempMassMatrix;
-        TempMassMatrix.Reset();
-        ChQuadrature::Integrate3D<ChMatrixNM<double, 72, 72> >(TempMassMatrix,  // result of integration will go there
-                                                               myformula,       // formula to integrate
-                                                               -1, 1,           // x limits
-                                                               -1, 1,           // y limits
-                                                               m_GaussZ[kl], m_GaussZ[kl + 1],  // z limits
-                                                               3                                // order of integration
+        TempMassMatrix.setZero();
+        ChQuadrature::Integrate3D<ChMatrixNM<double, 72, 72>>(TempMassMatrix,  // result of integration will go there
+                                                              myformula,       // formula to integrate
+                                                              -1, 1,           // x limits
+                                                              -1, 1,           // y limits
+                                                              m_GaussZ[kl], m_GaussZ[kl + 1],  // z limits
+                                                              3                                // order of integration
         );
         TempMassMatrix *= rho;
         m_MassMatrix += TempMassMatrix;
@@ -328,45 +283,45 @@ void ChElementShellANCF_8::ComputeNodalMass() {
 // -----------------------------------------------------------------------------
 
 /// This class defines the calculations for the integrand of the element gravity forces
-class MyGravity_8 : public ChIntegrable3D<ChMatrixNM<double, 72, 1> > {
+class ShellANCF8_Gravity : public ChIntegrable3D<ChVectorN<double, 72>> {
   public:
-    MyGravity_8(ChElementShellANCF_8* element, const ChVector<> gacc) : m_element(element), m_gacc(gacc) {}
-    ~MyGravity_8() {}
+    ShellANCF8_Gravity(ChElementShellANCF_8* element, const ChVector<> gacc) : m_element(element), m_gacc(gacc) {}
+    ~ShellANCF8_Gravity() {}
 
   private:
     ChElementShellANCF_8* m_element;
     ChVector<> m_gacc;
 
-    virtual void Evaluate(ChMatrixNM<double, 72, 1>& result, const double x, const double y, const double z) override;
+    virtual void Evaluate(ChVectorN<double, 72>& result, const double x, const double y, const double z) override;
 };
 
-void MyGravity_8::Evaluate(ChMatrixNM<double, 72, 1>& result, const double x, const double y, const double z) {
-    ChMatrixNM<double, 1, 24> N;
+void ShellANCF8_Gravity::Evaluate(ChVectorN<double, 72>& result, const double x, const double y, const double z) {
+    ChElementShellANCF_8::ShapeVector N;
     m_element->ShapeFunctions(N, x, y, z);
     double detJ0 = m_element->Calc_detJ0(x, y, z);
 
     for (int i = 0; i < 24; i++) {
-        result(i * 3 + 0, 0) = N(0, i) * m_gacc.x();
-        result(i * 3 + 1, 0) = N(0, i) * m_gacc.y();
-        result(i * 3 + 2, 0) = N(0, i) * m_gacc.z();
+        result(i * 3 + 0) = N(0, i) * m_gacc.x();
+        result(i * 3 + 1) = N(0, i) * m_gacc.y();
+        result(i * 3 + 2) = N(0, i) * m_gacc.z();
     }
     result *= detJ0 * m_element->m_GaussScaling;
 };
 
 void ChElementShellANCF_8::ComputeGravityForce(const ChVector<>& g_acc) {
-    m_GravForce.Reset();
+    m_GravForce.setZero();
 
     for (size_t kl = 0; kl < m_numLayers; kl++) {
         double rho = m_layers[kl].GetMaterial()->Get_rho();
-        MyGravity_8 myformula(this, g_acc);
-        ChMatrixNM<double, 72, 1> Fgravity;
-        Fgravity.Reset();
-        ChQuadrature::Integrate3D<ChMatrixNM<double, 72, 1> >(Fgravity,   // result of integration will go there
-                                                              myformula,  // formula to integrate
-                                                              -1, 1,      // x limits
-                                                              -1, 1,      // y limits
-                                                              m_GaussZ[kl], m_GaussZ[kl + 1],  // z limits
-                                                              3                                // order of integration
+        ShellANCF8_Gravity myformula(this, g_acc);
+        ChVectorN<double, 72> Fgravity;
+        Fgravity.setZero();
+        ChQuadrature::Integrate3D<ChVectorN<double, 72>>(Fgravity,   // result of integration will go there
+                                                         myformula,  // formula to integrate
+                                                         -1, 1,      // x limits
+                                                         -1, 1,      // y limits
+                                                         m_GaussZ[kl], m_GaussZ[kl + 1],  // z limits
+                                                         3                                // order of integration
         );
 
         Fgravity *= rho;
@@ -378,31 +333,31 @@ void ChElementShellANCF_8::ComputeGravityForce(const ChVector<>& g_acc) {
 // Elastic force calculation
 // -----------------------------------------------------------------------------
 
-// The class MyForce provides the integrand for the calculation of the internal forces
+// The class ShellANCF8_Force provides the integrand for the calculation of the internal forces
 // for one layer of an ANCF shell element.
 // The first 72 entries in the integrand represent the internal force.
 // This implementation also features a composite material implementation
 // that allows for selecting a number of layers over the element thickness; each of which
 // has an independent, user-selected fiber angle (direction for orthotropic constitutive behavior)
-class MyForce_8 : public ChIntegrable3D<ChMatrixNM<double, 72, 1> > {
+class ShellANCF8_Force : public ChIntegrable3D<ChVectorN<double, 72>> {
   public:
-    MyForce_8(ChElementShellANCF_8* element,  // Containing element
-              size_t kl                       // Current layer index
-              )
+    ShellANCF8_Force(ChElementShellANCF_8* element,  // Containing element
+                     size_t kl                       // Current layer index
+                     )
         : m_element(element), m_kl(kl) {}
-    ~MyForce_8() {}
+    ~ShellANCF8_Force() {}
 
   private:
     ChElementShellANCF_8* m_element;
     size_t m_kl;
 
-    /// Evaluate (strainD'*strain)  at point x, include ANS and EAS.
-    virtual void Evaluate(ChMatrixNM<double, 72, 1>& result, const double x, const double y, const double z) override;
+    /// Evaluate (strainD'*strain)  at point x
+    virtual void Evaluate(ChVectorN<double, 72>& result, const double x, const double y, const double z) override;
 };
 
-void MyForce_8::Evaluate(ChMatrixNM<double, 72, 1>& result, const double x, const double y, const double z) {
+void ShellANCF8_Force::Evaluate(ChVectorN<double, 72>& result, const double x, const double y, const double z) {
     // Element shape function
-    ChMatrixNM<double, 1, 24> N;
+    ChElementShellANCF_8::ShapeVector N;
     m_element->ShapeFunctions(N, x, y, z);
 
     // Determinant of position vector gradient matrix: Initial configuration
@@ -418,18 +373,18 @@ void MyForce_8::Evaluate(ChMatrixNM<double, 72, 1>& result, const double x, cons
     ChVector<double> G1xG2;  // Cross product of first and second column of
     double G1dotG1;          // Dot product of first column of position vector gradient
 
-    G1xG2.x() = Nx_d0[0][1] * Ny_d0[0][2] - Nx_d0[0][2] * Ny_d0[0][1];
-    G1xG2.y() = Nx_d0[0][2] * Ny_d0[0][0] - Nx_d0[0][0] * Ny_d0[0][2];
-    G1xG2.z() = Nx_d0[0][0] * Ny_d0[0][1] - Nx_d0[0][1] * Ny_d0[0][0];
-    G1dotG1 = Nx_d0[0][0] * Nx_d0[0][0] + Nx_d0[0][1] * Nx_d0[0][1] + Nx_d0[0][2] * Nx_d0[0][2];
+    G1xG2.x() = Nx_d0(1) * Ny_d0(2) - Nx_d0(2) * Ny_d0(1);
+    G1xG2.y() = Nx_d0(2) * Ny_d0(0) - Nx_d0(0) * Ny_d0(2);
+    G1xG2.z() = Nx_d0(0) * Ny_d0(1) - Nx_d0(1) * Ny_d0(0);
+    G1dotG1 = Nx_d0(0) * Nx_d0(0) + Nx_d0(1) * Nx_d0(1) + Nx_d0(2) * Nx_d0(2);
 
     // Tangent Frame
     ChVector<double> A1;
     ChVector<double> A2;
     ChVector<double> A3;
-    A1.x() = Nx_d0[0][0];
-    A1.y() = Nx_d0[0][1];
-    A1.z() = Nx_d0[0][2];
+    A1.x() = Nx_d0(0);
+    A1.y() = Nx_d0(1);
+    A1.z() = Nx_d0(2);
     A1 = A1 / sqrt(G1dotG1);
     A3 = G1xG2.GetNormalized();
     A2.Cross(A3, A1);
@@ -448,18 +403,18 @@ void MyForce_8::Evaluate(ChMatrixNM<double, 72, 1>& result, const double x, cons
     ChVector<double> j01;
     ChVector<double> j02;
     ChVector<double> j03;
-    ChMatrixNM<double, 9, 1> beta;
+    ChVectorN<double, 9> beta;
     // Calculates inverse of rd0 (j0) (position vector gradient: Initial Configuration)
-    j0(0, 0) = Ny_d0[0][1] * Nz_d0[0][2] - Nz_d0[0][1] * Ny_d0[0][2];
-    j0(0, 1) = Ny_d0[0][2] * Nz_d0[0][0] - Ny_d0[0][0] * Nz_d0[0][2];
-    j0(0, 2) = Ny_d0[0][0] * Nz_d0[0][1] - Nz_d0[0][0] * Ny_d0[0][1];
-    j0(1, 0) = Nz_d0[0][1] * Nx_d0[0][2] - Nx_d0[0][1] * Nz_d0[0][2];
-    j0(1, 1) = Nz_d0[0][2] * Nx_d0[0][0] - Nx_d0[0][2] * Nz_d0[0][0];
-    j0(1, 2) = Nz_d0[0][0] * Nx_d0[0][1] - Nz_d0[0][1] * Nx_d0[0][0];
-    j0(2, 0) = Nx_d0[0][1] * Ny_d0[0][2] - Ny_d0[0][1] * Nx_d0[0][2];
-    j0(2, 1) = Ny_d0[0][0] * Nx_d0[0][2] - Nx_d0[0][0] * Ny_d0[0][2];
-    j0(2, 2) = Nx_d0[0][0] * Ny_d0[0][1] - Ny_d0[0][0] * Nx_d0[0][1];
-    j0.MatrDivScale(detJ0);
+    j0(0, 0) = Ny_d0(1) * Nz_d0(2) - Nz_d0(1) * Ny_d0(2);
+    j0(0, 1) = Ny_d0(2) * Nz_d0(0) - Ny_d0(0) * Nz_d0(2);
+    j0(0, 2) = Ny_d0(0) * Nz_d0(1) - Nz_d0(0) * Ny_d0(1);
+    j0(1, 0) = Nz_d0(1) * Nx_d0(2) - Nx_d0(1) * Nz_d0(2);
+    j0(1, 1) = Nz_d0(2) * Nx_d0(0) - Nx_d0(2) * Nz_d0(0);
+    j0(1, 2) = Nz_d0(0) * Nx_d0(1) - Nz_d0(1) * Nx_d0(0);
+    j0(2, 0) = Nx_d0(1) * Ny_d0(2) - Ny_d0(1) * Nx_d0(2);
+    j0(2, 1) = Ny_d0(0) * Nx_d0(2) - Nx_d0(0) * Ny_d0(2);
+    j0(2, 2) = Nx_d0(0) * Ny_d0(1) - Ny_d0(0) * Nx_d0(1);
+    j0 /= detJ0;
 
     j01[0] = j0(0, 0);
     j02[0] = j0(1, 0);
@@ -472,126 +427,116 @@ void MyForce_8::Evaluate(ChMatrixNM<double, 72, 1>& result, const double x, cons
     j03[2] = j0(2, 2);
 
     // Coefficients of contravariant transformation
-    beta(0, 0) = Vdot(AA1, j01);
-    beta(1, 0) = Vdot(AA2, j01);
-    beta(2, 0) = Vdot(AA3, j01);
-    beta(3, 0) = Vdot(AA1, j02);
-    beta(4, 0) = Vdot(AA2, j02);
-    beta(5, 0) = Vdot(AA3, j02);
-    beta(6, 0) = Vdot(AA1, j03);
-    beta(7, 0) = Vdot(AA2, j03);
-    beta(8, 0) = Vdot(AA3, j03);
+    beta(0) = Vdot(AA1, j01);
+    beta(1) = Vdot(AA2, j01);
+    beta(2) = Vdot(AA3, j01);
+    beta(3) = Vdot(AA1, j02);
+    beta(4) = Vdot(AA2, j02);
+    beta(5) = Vdot(AA3, j02);
+    beta(6) = Vdot(AA1, j03);
+    beta(7) = Vdot(AA2, j03);
+    beta(8) = Vdot(AA3, j03);
 
     // Transformation matrix, function of fiber angle
     const ChMatrixNM<double, 6, 6>& T0 = m_element->GetLayer(m_kl).Get_T0();
     // Determinant of the initial position vector gradient at the element center
     double detJ0C = m_element->GetLayer(m_kl).Get_detJ0C();
 
-    ChMatrixNM<double, 24, 1> ddNx;
-    ChMatrixNM<double, 24, 1> ddNy;
-    ChMatrixNM<double, 24, 1> ddNz;
-    ddNx.MatrMultiplyT(m_element->m_ddT, Nx);
-    ddNy.MatrMultiplyT(m_element->m_ddT, Ny);
-    ddNz.MatrMultiplyT(m_element->m_ddT, Nz);
+    ChVectorN<double, 24> ddNx = m_element->m_ddT * Nx.transpose();
+    ChVectorN<double, 24> ddNy = m_element->m_ddT * Ny.transpose();
+    ChVectorN<double, 24> ddNz = m_element->m_ddT * Nz.transpose();
 
-    ChMatrixNM<double, 24, 1> d0d0Nx;
-    ChMatrixNM<double, 24, 1> d0d0Ny;
-    ChMatrixNM<double, 24, 1> d0d0Nz;
-    d0d0Nx.MatrMultiplyT(m_element->m_d0d0T, Nx);
-    d0d0Ny.MatrMultiplyT(m_element->m_d0d0T, Ny);
-    d0d0Nz.MatrMultiplyT(m_element->m_d0d0T, Nz);
+    ChVectorN<double, 24> d0d0Nx = m_element->m_d0d0T * Nx.transpose();
+    ChVectorN<double, 24> d0d0Ny = m_element->m_d0d0T * Ny.transpose();
+    ChVectorN<double, 24> d0d0Nz = m_element->m_d0d0T * Nz.transpose();
+
     // Strain component
-    ChMatrixNM<double, 6, 1> strain_til;
-    strain_til(0, 0) = 0.5 * ((Nx * ddNx)(0, 0) - (Nx * d0d0Nx)(0, 0));
-    strain_til(1, 0) = 0.5 * ((Ny * ddNy)(0, 0) - (Ny * d0d0Ny)(0, 0));
-    strain_til(2, 0) = (Nx * ddNy)(0, 0) - (Nx * d0d0Ny)(0, 0);          // xy
-    strain_til(3, 0) = 0.5 * ((Nz * ddNz)(0, 0) - (Nz * d0d0Nz)(0, 0));  // zz
-    strain_til(4, 0) = (Ny * ddNz)(0, 0) - (Ny * d0d0Nz)(0, 0);          // yz
-    strain_til(5, 0) = (Nx * ddNz)(0, 0) - (Nx * d0d0Nz)(0, 0);          // xz
+    ChVectorN<double, 6> strain_til;
+    strain_til(0) = 0.5 * ((Nx * ddNx)(0, 0) - (Nx * d0d0Nx)(0, 0));
+    strain_til(1) = 0.5 * ((Ny * ddNy)(0, 0) - (Ny * d0d0Ny)(0, 0));
+    strain_til(2) = (Nx * ddNy)(0, 0) - (Nx * d0d0Ny)(0, 0);          // xy
+    strain_til(3) = 0.5 * ((Nz * ddNz)(0, 0) - (Nz * d0d0Nz)(0, 0));  // zz
+    strain_til(4) = (Ny * ddNz)(0, 0) - (Ny * d0d0Nz)(0, 0);          // yz
+    strain_til(5) = (Nx * ddNz)(0, 0) - (Nx * d0d0Nz)(0, 0);          // xz
 
     // For orthotropic material
-    ChMatrixNM<double, 6, 1> strain;
+    ChVectorN<double, 6> strain;
 
-    strain(0, 0) = strain_til(0, 0) * beta(0) * beta(0) + strain_til(1, 0) * beta(3) * beta(3) +
-                   strain_til(2, 0) * beta(0) * beta(3) + strain_til(3, 0) * beta(6) * beta(6) +
-                   strain_til(4, 0) * beta(0) * beta(6) + strain_til(5, 0) * beta(3) * beta(6);
-    strain(1, 0) = strain_til(0, 0) * beta(1) * beta(1) + strain_til(1, 0) * beta(4) * beta(4) +
-                   strain_til(2, 0) * beta(1) * beta(4) + strain_til(3, 0) * beta(7) * beta(7) +
-                   strain_til(4, 0) * beta(1) * beta(7) + strain_til(5, 0) * beta(4) * beta(7);
-    strain(2, 0) = strain_til(0, 0) * 2.0 * beta(0) * beta(1) + strain_til(1, 0) * 2.0 * beta(3) * beta(4) +
-                   strain_til(2, 0) * (beta(1) * beta(3) + beta(0) * beta(4)) +
-                   strain_til(3, 0) * 2.0 * beta(6) * beta(7) +
-                   strain_til(4, 0) * (beta(1) * beta(6) + beta(0) * beta(7)) +
-                   strain_til(5, 0) * (beta(4) * beta(6) + beta(3) * beta(7));
-    strain(3, 0) = strain_til(0, 0) * beta(2) * beta(2) + strain_til(1, 0) * beta(5) * beta(5) +
-                   strain_til(2, 0) * beta(2) * beta(5) + strain_til(3, 0) * beta(8) * beta(8) +
-                   strain_til(4, 0) * beta(2) * beta(8) + strain_til(5, 0) * beta(5) * beta(8);
-    strain(4, 0) = strain_til(0, 0) * 2.0 * beta(0) * beta(2) + strain_til(1, 0) * 2.0 * beta(3) * beta(5) +
-                   strain_til(2, 0) * (beta(2) * beta(3) + beta(0) * beta(5)) +
-                   strain_til(3, 0) * 2.0 * beta(6) * beta(8) +
-                   strain_til(4, 0) * (beta(2) * beta(6) + beta(0) * beta(8)) +
-                   strain_til(5, 0) * (beta(5) * beta(6) + beta(3) * beta(8));
-    strain(5, 0) = strain_til(0, 0) * 2.0 * beta(1) * beta(2) + strain_til(1, 0) * 2.0 * beta(4) * beta(5) +
-                   strain_til(2, 0) * (beta(2) * beta(4) + beta(1) * beta(5)) +
-                   strain_til(3, 0) * 2.0 * beta(7) * beta(8) +
-                   strain_til(4, 0) * (beta(2) * beta(7) + beta(1) * beta(8)) +
-                   strain_til(5, 0) * (beta(5) * beta(7) + beta(4) * beta(8));
+    strain(0) = strain_til(0) * beta(0) * beta(0) + strain_til(1) * beta(3) * beta(3) +
+                strain_til(2) * beta(0) * beta(3) + strain_til(3) * beta(6) * beta(6) +
+                strain_til(4) * beta(0) * beta(6) + strain_til(5) * beta(3) * beta(6);
+    strain(1) = strain_til(0) * beta(1) * beta(1) + strain_til(1) * beta(4) * beta(4) +
+                strain_til(2) * beta(1) * beta(4) + strain_til(3) * beta(7) * beta(7) +
+                strain_til(4) * beta(1) * beta(7) + strain_til(5) * beta(4) * beta(7);
+    strain(2) = strain_til(0) * 2.0 * beta(0) * beta(1) + strain_til(1) * 2.0 * beta(3) * beta(4) +
+                strain_til(2) * (beta(1) * beta(3) + beta(0) * beta(4)) + strain_til(3) * 2.0 * beta(6) * beta(7) +
+                strain_til(4) * (beta(1) * beta(6) + beta(0) * beta(7)) +
+                strain_til(5) * (beta(4) * beta(6) + beta(3) * beta(7));
+    strain(3) = strain_til(0) * beta(2) * beta(2) + strain_til(1) * beta(5) * beta(5) +
+                strain_til(2) * beta(2) * beta(5) + strain_til(3) * beta(8) * beta(8) +
+                strain_til(4) * beta(2) * beta(8) + strain_til(5) * beta(5) * beta(8);
+    strain(4) = strain_til(0) * 2.0 * beta(0) * beta(2) + strain_til(1) * 2.0 * beta(3) * beta(5) +
+                strain_til(2) * (beta(2) * beta(3) + beta(0) * beta(5)) + strain_til(3) * 2.0 * beta(6) * beta(8) +
+                strain_til(4) * (beta(2) * beta(6) + beta(0) * beta(8)) +
+                strain_til(5) * (beta(5) * beta(6) + beta(3) * beta(8));
+    strain(5) = strain_til(0) * 2.0 * beta(1) * beta(2) + strain_til(1) * 2.0 * beta(4) * beta(5) +
+                strain_til(2) * (beta(2) * beta(4) + beta(1) * beta(5)) + strain_til(3) * 2.0 * beta(7) * beta(8) +
+                strain_til(4) * (beta(2) * beta(7) + beta(1) * beta(8)) +
+                strain_til(5) * (beta(5) * beta(7) + beta(4) * beta(8));
 
     // Strain derivative component
 
     ChMatrixNM<double, 6, 72> strainD_til;
+
     ChMatrixNM<double, 1, 72> tempB;
-    ChMatrixNM<double, 1, 72> tempBB;
     ChMatrixNM<double, 1, 3> tempB3;
     ChMatrixNM<double, 1, 3> tempB31;
     ChMatrixNM<double, 1, 3> tempB32;
 
-    strainD_til.Reset();
-    tempB3.MatrMultiply(Nx, m_element->m_d);  // rx
+    tempB3 = Nx * m_element->m_d;  // rx
     for (int i = 0; i < 24; i++) {
         for (int j = 0; j < 3; j++) {
             tempB(0, i * 3 + j) = tempB3(0, j) * Nx(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 72, 0, 0);  // xx
+    strainD_til.row(0) = tempB;  // xx
 
-    tempB31.MatrMultiply(Ny, m_element->m_d);  // ry
+    tempB31 = Ny * m_element->m_d;  // ry
     for (int i = 0; i < 24; i++) {
         for (int j = 0; j < 3; j++) {
             tempB(0, i * 3 + j) = tempB31(0, j) * Ny(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 72, 1, 0);  // yy
+    strainD_til.row(1) = tempB;  // yy
 
     for (int i = 0; i < 24; i++) {
         for (int j = 0; j < 3; j++) {
             tempB(0, i * 3 + j) = tempB3(0, j) * Ny(0, i) + tempB31(0, j) * Nx(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 72, 2, 0);  // xy
+    strainD_til.row(2) = tempB;  // xy
 
-    // Recuero
-    tempB32.MatrMultiply(Nz, m_element->m_d);  // rz
+    tempB32 = Nz * m_element->m_d;  // rz
     for (int i = 0; i < 24; i++) {
         for (int j = 0; j < 3; j++) {
             tempB(0, i * 3 + j) = tempB32(0, j) * Nz(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 72, 3, 0);  // zz
+    strainD_til.row(3) = tempB;  // zz
 
     for (int i = 0; i < 24; i++) {
         for (int j = 0; j < 3; j++) {
             tempB(0, i * 3 + j) = tempB32(0, j) * Ny(0, i) + tempB31(0, j) * Nz(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 72, 4, 0);  // yz
+    strainD_til.row(4) = tempB;  // yz
 
     for (int i = 0; i < 24; i++) {
         for (int j = 0; j < 3; j++) {
             tempB(0, i * 3 + j) = tempB3(0, j) * Nz(0, i) + tempB32(0, j) * Nx(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 72, 5, 0);  // xz
+    strainD_til.row(5) = tempB;  // xz
 
     // For orthotropic material
     ChMatrixNM<double, 6, 72> strainD;  // Derivative of the strains w.r.t. the coordinates. Includes orthotropy
@@ -623,15 +568,15 @@ void MyForce_8::Evaluate(ChMatrixNM<double, 72, 1>& result, const double x, cons
     }
 
     // Strain time derivative for structural damping
-    ChMatrixNM<double, 6, 1> DEPS;
-    DEPS.Reset();
+    ChVectorN<double, 6> DEPS;
+    DEPS.setZero();
     for (int ii = 0; ii < 72; ii++) {
-        DEPS(0, 0) = DEPS(0, 0) + strainD(0, ii) * m_element->m_d_dt(ii, 0);
-        DEPS(1, 0) = DEPS(1, 0) + strainD(1, ii) * m_element->m_d_dt(ii, 0);
-        DEPS(2, 0) = DEPS(2, 0) + strainD(2, ii) * m_element->m_d_dt(ii, 0);
-        DEPS(3, 0) = DEPS(3, 0) + strainD(3, ii) * m_element->m_d_dt(ii, 0);
-        DEPS(4, 0) = DEPS(4, 0) + strainD(4, ii) * m_element->m_d_dt(ii, 0);
-        DEPS(5, 0) = DEPS(5, 0) + strainD(5, ii) * m_element->m_d_dt(ii, 0);
+        DEPS(0) += strainD(0, ii) * m_element->m_d_dt(ii);
+        DEPS(1) += strainD(1, ii) * m_element->m_d_dt(ii);
+        DEPS(2) += strainD(2, ii) * m_element->m_d_dt(ii);
+        DEPS(3) += strainD(3, ii) * m_element->m_d_dt(ii);
+        DEPS(4) += strainD(4, ii) * m_element->m_d_dt(ii);
+        DEPS(5) += strainD(5, ii) * m_element->m_d_dt(ii);
     }
 
     // Add structural damping
@@ -641,31 +586,28 @@ void MyForce_8::Evaluate(ChMatrixNM<double, 72, 1>& result, const double x, cons
     const ChMatrixNM<double, 6, 6>& E_eps = m_element->GetLayer(m_kl).GetMaterial()->Get_E_eps();
 
     // Internal force calculation
-    ChMatrixNM<double, 72, 6> tempC;
-    tempC.MatrTMultiply(strainD, E_eps);
-    ChMatrixNM<double, 72, 1> Fint = (tempC * strain) * (detJ0 * m_element->m_GaussScaling);
+    ChMatrixNM<double, 72, 6> tempC = strainD.transpose() * E_eps;
 
-    /// Total result vector
-    result.PasteClippedMatrix(Fint, 0, 0, 72, 1, 0, 0);
+    result = (tempC * strain) * (detJ0 * m_element->m_GaussScaling);
 }
 
-void ChElementShellANCF_8::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
+void ChElementShellANCF_8::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     // Current nodal coordinates and velocities
     CalcCoordMatrix(m_d);
     CalcCoordDerivMatrix(m_d_dt);
-    m_ddT.MatrMultiplyT(m_d, m_d);
-    Fi.Reset();
+    m_ddT = m_d * m_d.transpose();
+    Fi.setZero();
 
     for (size_t kl = 0; kl < m_numLayers; kl++) {
-        MyForce_8 formula(this, kl);
-        ChMatrixNM<double, 72, 1> Finternal;
-        Finternal.Reset();
-        ChQuadrature::Integrate3D<ChMatrixNM<double, 72, 1> >(Finternal,                       // result of integration
-                                                              formula,                         // integrand formula
-                                                              -1, 1,                           // x limits
-                                                              -1, 1,                           // y limits
-                                                              m_GaussZ[kl], m_GaussZ[kl + 1],  // z limits
-                                                              5                                // order of integration
+        ShellANCF8_Force formula(this, kl);
+        ChVectorN<double, 72> Finternal;
+        Finternal.setZero();
+        ChQuadrature::Integrate3D<ChVectorN<double, 72>>(Finternal,                       // result of integration
+                                                         formula,                         // integrand formula
+                                                         -1, 1,                           // x limits
+                                                         -1, 1,                           // y limits
+                                                         m_GaussZ[kl], m_GaussZ[kl + 1],  // z limits
+                                                         5                                // order of integration
         );
 
         // Accumulate internal force
@@ -682,19 +624,19 @@ void ChElementShellANCF_8::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
 // Jacobians of internal forces
 // -----------------------------------------------------------------------------
 
-// The class MyJacobian provides the integrand for the calculation of the Jacobians
+// The class ShellANCF8_Jacobian provides the integrand for the calculation of the Jacobians
 // (stiffness and damping matrices) of the internal forces for one layer of an ANCF
 // shell element.
 // 72x72 Jacobian
 //      Kfactor * [K] + Rfactor * [R]
 
-class MyJacobian_8 : public ChIntegrable3D<ChMatrixNM<double, 5184, 1> > {
+class ShellANCF8_Jacobian : public ChIntegrable3D<ChVectorN<double, 5184>> {
   public:
-    MyJacobian_8(ChElementShellANCF_8* element,  // Containing element
-                 double Kfactor,                 // Scaling coefficient for stiffness component
-                 double Rfactor,                 // Scaling coefficient for damping component
-                 size_t kl                       // Current layer index
-                 )
+    ShellANCF8_Jacobian(ChElementShellANCF_8* element,  // Containing element
+                        double Kfactor,                 // Scaling coefficient for stiffness component
+                        double Rfactor,                 // Scaling coefficient for damping component
+                        size_t kl                       // Current layer index
+                        )
         : m_element(element), m_Kfactor(Kfactor), m_Rfactor(Rfactor), m_kl(kl) {}
 
   private:
@@ -704,12 +646,12 @@ class MyJacobian_8 : public ChIntegrable3D<ChMatrixNM<double, 5184, 1> > {
     size_t m_kl;
 
     // Evaluate integrand at the specified point.
-    virtual void Evaluate(ChMatrixNM<double, 5184, 1>& result, const double x, const double y, const double z) override;
+    virtual void Evaluate(ChVectorN<double, 5184>& result, const double x, const double y, const double z) override;
 };
 
-void MyJacobian_8::Evaluate(ChMatrixNM<double, 5184, 1>& result, const double x, const double y, const double z) {
+void ShellANCF8_Jacobian::Evaluate(ChVectorN<double, 5184>& result, const double x, const double y, const double z) {
     // Element shape function
-    ChMatrixNM<double, 1, 24> N;
+    ChElementShellANCF_8::ShapeVector N;
     m_element->ShapeFunctions(N, x, y, z);
 
     // Determinant of position vector gradient matrix: Initial configuration
@@ -725,18 +667,18 @@ void MyJacobian_8::Evaluate(ChMatrixNM<double, 5184, 1>& result, const double x,
     ChVector<double> G1xG2;  // Cross product of first and second column of
     double G1dotG1;          // Dot product of first column of position vector gradient
 
-    G1xG2.x() = Nx_d0[0][1] * Ny_d0[0][2] - Nx_d0[0][2] * Ny_d0[0][1];
-    G1xG2.y() = Nx_d0[0][2] * Ny_d0[0][0] - Nx_d0[0][0] * Ny_d0[0][2];
-    G1xG2.z() = Nx_d0[0][0] * Ny_d0[0][1] - Nx_d0[0][1] * Ny_d0[0][0];
-    G1dotG1 = Nx_d0[0][0] * Nx_d0[0][0] + Nx_d0[0][1] * Nx_d0[0][1] + Nx_d0[0][2] * Nx_d0[0][2];
+    G1xG2.x() = Nx_d0(1) * Ny_d0(2) - Nx_d0(2) * Ny_d0(1);
+    G1xG2.y() = Nx_d0(2) * Ny_d0(0) - Nx_d0(0) * Ny_d0(2);
+    G1xG2.z() = Nx_d0(0) * Ny_d0(1) - Nx_d0(1) * Ny_d0(0);
+    G1dotG1 = Nx_d0(0) * Nx_d0(0) + Nx_d0(1) * Nx_d0(1) + Nx_d0(2) * Nx_d0(2);
 
     // Tangent Frame
     ChVector<double> A1;
     ChVector<double> A2;
     ChVector<double> A3;
-    A1.x() = Nx_d0[0][0];
-    A1.y() = Nx_d0[0][1];
-    A1.z() = Nx_d0[0][2];
+    A1.x() = Nx_d0(0);
+    A1.y() = Nx_d0(1);
+    A1.z() = Nx_d0(2);
     A1 = A1 / sqrt(G1dotG1);
     A3 = G1xG2.GetNormalized();
     A2.Cross(A3, A1);
@@ -755,18 +697,18 @@ void MyJacobian_8::Evaluate(ChMatrixNM<double, 5184, 1>& result, const double x,
     ChVector<double> j01;
     ChVector<double> j02;
     ChVector<double> j03;
-    ChMatrixNM<double, 9, 1> beta;
+    ChVectorN<double, 9> beta;
     // Calculates inverse of rd0 (j0) (position vector gradient: Initial Configuration)
-    j0(0, 0) = Ny_d0[0][1] * Nz_d0[0][2] - Nz_d0[0][1] * Ny_d0[0][2];
-    j0(0, 1) = Ny_d0[0][2] * Nz_d0[0][0] - Ny_d0[0][0] * Nz_d0[0][2];
-    j0(0, 2) = Ny_d0[0][0] * Nz_d0[0][1] - Nz_d0[0][0] * Ny_d0[0][1];
-    j0(1, 0) = Nz_d0[0][1] * Nx_d0[0][2] - Nx_d0[0][1] * Nz_d0[0][2];
-    j0(1, 1) = Nz_d0[0][2] * Nx_d0[0][0] - Nx_d0[0][2] * Nz_d0[0][0];
-    j0(1, 2) = Nz_d0[0][0] * Nx_d0[0][1] - Nz_d0[0][1] * Nx_d0[0][0];
-    j0(2, 0) = Nx_d0[0][1] * Ny_d0[0][2] - Ny_d0[0][1] * Nx_d0[0][2];
-    j0(2, 1) = Ny_d0[0][0] * Nx_d0[0][2] - Nx_d0[0][0] * Ny_d0[0][2];
-    j0(2, 2) = Nx_d0[0][0] * Ny_d0[0][1] - Ny_d0[0][0] * Nx_d0[0][1];
-    j0.MatrDivScale(detJ0);
+    j0(0, 0) = Ny_d0(1) * Nz_d0(2) - Nz_d0(1) * Ny_d0(2);
+    j0(0, 1) = Ny_d0(2) * Nz_d0(0) - Ny_d0(0) * Nz_d0(2);
+    j0(0, 2) = Ny_d0(0) * Nz_d0(1) - Nz_d0(0) * Ny_d0(1);
+    j0(1, 0) = Nz_d0(1) * Nx_d0(2) - Nx_d0(1) * Nz_d0(2);
+    j0(1, 1) = Nz_d0(2) * Nx_d0(0) - Nx_d0(2) * Nz_d0(0);
+    j0(1, 2) = Nz_d0(0) * Nx_d0(1) - Nz_d0(1) * Nx_d0(0);
+    j0(2, 0) = Nx_d0(1) * Ny_d0(2) - Ny_d0(1) * Nx_d0(2);
+    j0(2, 1) = Ny_d0(0) * Nx_d0(2) - Nx_d0(0) * Ny_d0(2);
+    j0(2, 2) = Nx_d0(0) * Ny_d0(1) - Ny_d0(0) * Nx_d0(1);
+    j0 /= detJ0;
 
     j01[0] = j0(0, 0);
     j02[0] = j0(1, 0);
@@ -779,126 +721,117 @@ void MyJacobian_8::Evaluate(ChMatrixNM<double, 5184, 1>& result, const double x,
     j03[2] = j0(2, 2);
 
     // Coefficients of contravariant transformation
-    beta(0, 0) = Vdot(AA1, j01);
-    beta(1, 0) = Vdot(AA2, j01);
-    beta(2, 0) = Vdot(AA3, j01);
-    beta(3, 0) = Vdot(AA1, j02);
-    beta(4, 0) = Vdot(AA2, j02);
-    beta(5, 0) = Vdot(AA3, j02);
-    beta(6, 0) = Vdot(AA1, j03);
-    beta(7, 0) = Vdot(AA2, j03);
-    beta(8, 0) = Vdot(AA3, j03);
+    beta(0) = Vdot(AA1, j01);
+    beta(1) = Vdot(AA2, j01);
+    beta(2) = Vdot(AA3, j01);
+    beta(3) = Vdot(AA1, j02);
+    beta(4) = Vdot(AA2, j02);
+    beta(5) = Vdot(AA3, j02);
+    beta(6) = Vdot(AA1, j03);
+    beta(7) = Vdot(AA2, j03);
+    beta(8) = Vdot(AA3, j03);
 
     // Transformation matrix, function of fiber angle
     const ChMatrixNM<double, 6, 6>& T0 = m_element->GetLayer(m_kl).Get_T0();
     // Determinant of the initial position vector gradient at the element center
     double detJ0C = m_element->GetLayer(m_kl).Get_detJ0C();
 
-    ChMatrixNM<double, 24, 1> ddNx;
-    ChMatrixNM<double, 24, 1> ddNy;
-    ChMatrixNM<double, 24, 1> ddNz;
-    ddNx.MatrMultiplyT(m_element->m_ddT, Nx);
-    ddNy.MatrMultiplyT(m_element->m_ddT, Ny);
-    ddNz.MatrMultiplyT(m_element->m_ddT, Nz);
+    ChVectorN<double, 24> ddNx = m_element->m_ddT * Nx.transpose();
+    ChVectorN<double, 24> ddNy = m_element->m_ddT * Ny.transpose();
+    ChVectorN<double, 24> ddNz = m_element->m_ddT * Nz.transpose();
 
-    ChMatrixNM<double, 24, 1> d0d0Nx;
-    ChMatrixNM<double, 24, 1> d0d0Ny;
-    ChMatrixNM<double, 24, 1> d0d0Nz;
-    d0d0Nx.MatrMultiplyT(m_element->m_d0d0T, Nx);
-    d0d0Ny.MatrMultiplyT(m_element->m_d0d0T, Ny);
-    d0d0Nz.MatrMultiplyT(m_element->m_d0d0T, Nz);
+    ChVectorN<double, 24> d0d0Nx = m_element->m_d0d0T * Nx.transpose();
+    ChVectorN<double, 24> d0d0Ny = m_element->m_d0d0T * Ny.transpose();
+    ChVectorN<double, 24> d0d0Nz = m_element->m_d0d0T * Nz.transpose();
 
     // Strain component
-    ChMatrixNM<double, 6, 1> strain_til;
-    strain_til(0, 0) = 0.5 * ((Nx * ddNx)(0, 0) - (Nx * d0d0Nx)(0, 0));
-    strain_til(1, 0) = 0.5 * ((Ny * ddNy)(0, 0) - (Ny * d0d0Ny)(0, 0));
-    strain_til(2, 0) = (Nx * ddNy)(0, 0) - (Nx * d0d0Ny)(0, 0);          // xy
-    strain_til(3, 0) = 0.5 * ((Nz * ddNz)(0, 0) - (Nz * d0d0Nz)(0, 0));  // zz
-    strain_til(4, 0) = (Ny * ddNz)(0, 0) - (Ny * d0d0Nz)(0, 0);          // yz
-    strain_til(5, 0) = (Nx * ddNz)(0, 0) - (Nx * d0d0Nz)(0, 0);          // xz
+    ChVectorN<double, 6> strain_til;
+    strain_til(0) = 0.5 * ((Nx * ddNx)(0, 0) - (Nx * d0d0Nx)(0, 0));
+    strain_til(1) = 0.5 * ((Ny * ddNy)(0, 0) - (Ny * d0d0Ny)(0, 0));
+    strain_til(2) = (Nx * ddNy)(0, 0) - (Nx * d0d0Ny)(0, 0);          // xy
+    strain_til(3) = 0.5 * ((Nz * ddNz)(0, 0) - (Nz * d0d0Nz)(0, 0));  // zz
+    strain_til(4) = (Ny * ddNz)(0, 0) - (Ny * d0d0Nz)(0, 0);          // yz
+    strain_til(5) = (Nx * ddNz)(0, 0) - (Nx * d0d0Nz)(0, 0);          // xz
 
     // For orthotropic material
-    ChMatrixNM<double, 6, 1> strain;
+    ChVectorN<double, 6> strain;
 
-    strain(0, 0) = strain_til(0, 0) * beta(0) * beta(0) + strain_til(1, 0) * beta(3) * beta(3) +
-                   strain_til(2, 0) * beta(0) * beta(3) + strain_til(3, 0) * beta(6) * beta(6) +
-                   strain_til(4, 0) * beta(0) * beta(6) + strain_til(5, 0) * beta(3) * beta(6);
-    strain(1, 0) = strain_til(0, 0) * beta(1) * beta(1) + strain_til(1, 0) * beta(4) * beta(4) +
-                   strain_til(2, 0) * beta(1) * beta(4) + strain_til(3, 0) * beta(7) * beta(7) +
-                   strain_til(4, 0) * beta(1) * beta(7) + strain_til(5, 0) * beta(4) * beta(7);
-    strain(2, 0) = strain_til(0, 0) * 2.0 * beta(0) * beta(1) + strain_til(1, 0) * 2.0 * beta(3) * beta(4) +
-                   strain_til(2, 0) * (beta(1) * beta(3) + beta(0) * beta(4)) +
-                   strain_til(3, 0) * 2.0 * beta(6) * beta(7) +
-                   strain_til(4, 0) * (beta(1) * beta(6) + beta(0) * beta(7)) +
-                   strain_til(5, 0) * (beta(4) * beta(6) + beta(3) * beta(7));
-    strain(3, 0) = strain_til(0, 0) * beta(2) * beta(2) + strain_til(1, 0) * beta(5) * beta(5) +
-                   strain_til(2, 0) * beta(2) * beta(5) + strain_til(3, 0) * beta(8) * beta(8) +
-                   strain_til(4, 0) * beta(2) * beta(8) + strain_til(5, 0) * beta(5) * beta(8);
-    strain(4, 0) = strain_til(0, 0) * 2.0 * beta(0) * beta(2) + strain_til(1, 0) * 2.0 * beta(3) * beta(5) +
-                   strain_til(2, 0) * (beta(2) * beta(3) + beta(0) * beta(5)) +
-                   strain_til(3, 0) * 2.0 * beta(6) * beta(8) +
-                   strain_til(4, 0) * (beta(2) * beta(6) + beta(0) * beta(8)) +
-                   strain_til(5, 0) * (beta(5) * beta(6) + beta(3) * beta(8));
-    strain(5, 0) = strain_til(0, 0) * 2.0 * beta(1) * beta(2) + strain_til(1, 0) * 2.0 * beta(4) * beta(5) +
-                   strain_til(2, 0) * (beta(2) * beta(4) + beta(1) * beta(5)) +
-                   strain_til(3, 0) * 2.0 * beta(7) * beta(8) +
-                   strain_til(4, 0) * (beta(2) * beta(7) + beta(1) * beta(8)) +
-                   strain_til(5, 0) * (beta(5) * beta(7) + beta(4) * beta(8));
+    strain(0) = strain_til(0) * beta(0) * beta(0) + strain_til(1) * beta(3) * beta(3) +
+                strain_til(2) * beta(0) * beta(3) + strain_til(3) * beta(6) * beta(6) +
+                strain_til(4) * beta(0) * beta(6) + strain_til(5) * beta(3) * beta(6);
+    strain(1) = strain_til(0) * beta(1) * beta(1) + strain_til(1) * beta(4) * beta(4) +
+                strain_til(2) * beta(1) * beta(4) + strain_til(3) * beta(7) * beta(7) +
+                strain_til(4) * beta(1) * beta(7) + strain_til(5) * beta(4) * beta(7);
+    strain(2) = strain_til(0) * 2.0 * beta(0) * beta(1) + strain_til(1) * 2.0 * beta(3) * beta(4) +
+                strain_til(2) * (beta(1) * beta(3) + beta(0) * beta(4)) + strain_til(3) * 2.0 * beta(6) * beta(7) +
+                strain_til(4) * (beta(1) * beta(6) + beta(0) * beta(7)) +
+                strain_til(5) * (beta(4) * beta(6) + beta(3) * beta(7));
+    strain(3) = strain_til(0) * beta(2) * beta(2) + strain_til(1) * beta(5) * beta(5) +
+                strain_til(2) * beta(2) * beta(5) + strain_til(3) * beta(8) * beta(8) +
+                strain_til(4) * beta(2) * beta(8) + strain_til(5) * beta(5) * beta(8);
+    strain(4) = strain_til(0) * 2.0 * beta(0) * beta(2) + strain_til(1) * 2.0 * beta(3) * beta(5) +
+                strain_til(2) * (beta(2) * beta(3) + beta(0) * beta(5)) + strain_til(3) * 2.0 * beta(6) * beta(8) +
+                strain_til(4) * (beta(2) * beta(6) + beta(0) * beta(8)) +
+                strain_til(5) * (beta(5) * beta(6) + beta(3) * beta(8));
+    strain(5) = strain_til(0) * 2.0 * beta(1) * beta(2) + strain_til(1) * 2.0 * beta(4) * beta(5) +
+                strain_til(2) * (beta(2) * beta(4) + beta(1) * beta(5)) + strain_til(3) * 2.0 * beta(7) * beta(8) +
+                strain_til(4) * (beta(2) * beta(7) + beta(1) * beta(8)) +
+                strain_til(5) * (beta(5) * beta(7) + beta(4) * beta(8));
 
     // Strain derivative component
 
     ChMatrixNM<double, 6, 72> strainD_til;
+    strainD_til.setZero();
+
     ChMatrixNM<double, 1, 72> tempB;
-    ChMatrixNM<double, 1, 72> tempBB;
     ChMatrixNM<double, 1, 3> tempB3;
     ChMatrixNM<double, 1, 3> tempB31;
     ChMatrixNM<double, 1, 3> tempB32;
 
-    strainD_til.Reset();
-    tempB3.MatrMultiply(Nx, m_element->m_d);  // rx
+    tempB3 = Nx * m_element->m_d;  // rx
     for (int i = 0; i < 24; i++) {
         for (int j = 0; j < 3; j++) {
             tempB(0, i * 3 + j) = tempB3(0, j) * Nx(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 72, 0, 0);  // xx
+    strainD_til.row(0) = tempB;  // xx
 
-    tempB31.MatrMultiply(Ny, m_element->m_d);  // ry
+    tempB31 = Ny * m_element->m_d;  // ry
     for (int i = 0; i < 24; i++) {
         for (int j = 0; j < 3; j++) {
             tempB(0, i * 3 + j) = tempB31(0, j) * Ny(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 72, 1, 0);  // yy
+    strainD_til.row(1) = tempB;  // yy
 
     for (int i = 0; i < 24; i++) {
         for (int j = 0; j < 3; j++) {
             tempB(0, i * 3 + j) = tempB3(0, j) * Ny(0, i) + tempB31(0, j) * Nx(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 72, 2, 0);  // xy
+    strainD_til.row(2) = tempB;  // xy
 
-    tempB32.MatrMultiply(Nz, m_element->m_d);  // rz
+    tempB32 = Nz * m_element->m_d;  // rz
     for (int i = 0; i < 24; i++) {
         for (int j = 0; j < 3; j++) {
             tempB(0, i * 3 + j) = tempB32(0, j) * Nz(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 72, 3, 0);  // zz
+    strainD_til.row(3) = tempB;  // zz
 
     for (int i = 0; i < 24; i++) {
         for (int j = 0; j < 3; j++) {
             tempB(0, i * 3 + j) = tempB32(0, j) * Ny(0, i) + tempB31(0, j) * Nz(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 72, 4, 0);  // yz
+    strainD_til.row(4) = tempB;  // yz
 
     for (int i = 0; i < 24; i++) {
         for (int j = 0; j < 3; j++) {
             tempB(0, i * 3 + j) = tempB3(0, j) * Nz(0, i) + tempB32(0, j) * Nx(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 72, 5, 0);  // xz
+    strainD_til.row(5) = tempB;  // xz
 
     //// For orthotropic material
     ChMatrixNM<double, 6, 72> strainD;  // Derivative of the strains w.r.t. the coordinates. Includes orthotropy
@@ -931,7 +864,7 @@ void MyJacobian_8::Evaluate(ChMatrixNM<double, 5184, 1>& result, const double x,
 
     /// Gd : Jacobian (w.r.t. coordinates) of the initial position vector gradient matrix
     ChMatrixNM<double, 9, 72> Gd;
-    Gd.Reset();
+    Gd.setZero();
 
     for (int ii = 0; ii < 24; ii++) {
         Gd(0, 3 * (ii)) = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
@@ -949,15 +882,15 @@ void MyJacobian_8::Evaluate(ChMatrixNM<double, 5184, 1>& result, const double x,
 
     // Structural damping
     // Strain time derivative for structural damping
-    ChMatrixNM<double, 6, 1> DEPS;
-    DEPS.Reset();
+    ChVectorN<double, 6> DEPS;
+    DEPS.setZero();
     for (int ii = 0; ii < 72; ii++) {
-        DEPS(0, 0) = DEPS(0, 0) + strainD(0, ii) * m_element->m_d_dt(ii, 0);
-        DEPS(1, 0) = DEPS(1, 0) + strainD(1, ii) * m_element->m_d_dt(ii, 0);
-        DEPS(2, 0) = DEPS(2, 0) + strainD(2, ii) * m_element->m_d_dt(ii, 0);
-        DEPS(3, 0) = DEPS(3, 0) + strainD(3, ii) * m_element->m_d_dt(ii, 0);
-        DEPS(4, 0) = DEPS(4, 0) + strainD(4, ii) * m_element->m_d_dt(ii, 0);
-        DEPS(5, 0) = DEPS(5, 0) + strainD(5, ii) * m_element->m_d_dt(ii, 0);
+        DEPS(0) += strainD(0, ii) * m_element->m_d_dt(ii);
+        DEPS(1) += strainD(1, ii) * m_element->m_d_dt(ii);
+        DEPS(2) += strainD(2, ii) * m_element->m_d_dt(ii);
+        DEPS(3) += strainD(3, ii) * m_element->m_d_dt(ii);
+        DEPS(4) += strainD(4, ii) * m_element->m_d_dt(ii);
+        DEPS(5) += strainD(5, ii) * m_element->m_d_dt(ii);
     }
 
     // Add structural damping
@@ -967,92 +900,79 @@ void MyJacobian_8::Evaluate(ChMatrixNM<double, 5184, 1>& result, const double x,
     const ChMatrixNM<double, 6, 6>& E_eps = m_element->GetLayer(m_kl).GetMaterial()->Get_E_eps();
 
     // Stress tensor calculation
-    ChMatrixNM<double, 6, 1> stress;
-    stress.MatrMultiply(E_eps, strain);
+    ChVectorN<double, 6> stress = E_eps * strain;
 
     // Declaration and computation of Sigm, to be removed
     ChMatrixNM<double, 9, 9> Sigm;  ///< Rearrangement of stress vector (not always needed)
-    Sigm.Reset();
+    Sigm.setZero();
 
-    Sigm(0, 0) = stress(0, 0);  // XX
-    Sigm(1, 1) = stress(0, 0);
-    Sigm(2, 2) = stress(0, 0);
+    Sigm(0, 0) = stress(0);  // XX
+    Sigm(1, 1) = stress(0);
+    Sigm(2, 2) = stress(0);
 
-    Sigm(0, 3) = stress(2, 0);  // XY
-    Sigm(1, 4) = stress(2, 0);
-    Sigm(2, 5) = stress(2, 0);
+    Sigm(0, 3) = stress(2);  // XY
+    Sigm(1, 4) = stress(2);
+    Sigm(2, 5) = stress(2);
 
-    Sigm(0, 6) = stress(4, 0);  // XZ
-    Sigm(1, 7) = stress(4, 0);
-    Sigm(2, 8) = stress(4, 0);
+    Sigm(0, 6) = stress(4);  // XZ
+    Sigm(1, 7) = stress(4);
+    Sigm(2, 8) = stress(4);
 
-    Sigm(3, 0) = stress(2, 0);  // XY
-    Sigm(4, 1) = stress(2, 0);
-    Sigm(5, 2) = stress(2, 0);
+    Sigm(3, 0) = stress(2);  // XY
+    Sigm(4, 1) = stress(2);
+    Sigm(5, 2) = stress(2);
 
-    Sigm(3, 3) = stress(1, 0);  // YY
-    Sigm(4, 4) = stress(1, 0);
-    Sigm(5, 5) = stress(1, 0);
+    Sigm(3, 3) = stress(1);  // YY
+    Sigm(4, 4) = stress(1);
+    Sigm(5, 5) = stress(1);
 
-    Sigm(3, 6) = stress(5, 0);  // YZ
-    Sigm(4, 7) = stress(5, 0);
-    Sigm(5, 8) = stress(5, 0);
+    Sigm(3, 6) = stress(5);  // YZ
+    Sigm(4, 7) = stress(5);
+    Sigm(5, 8) = stress(5);
 
-    Sigm(6, 0) = stress(4, 0);  // XZ
-    Sigm(7, 1) = stress(4, 0);
-    Sigm(8, 2) = stress(4, 0);
+    Sigm(6, 0) = stress(4);  // XZ
+    Sigm(7, 1) = stress(4);
+    Sigm(8, 2) = stress(4);
 
-    Sigm(6, 3) = stress(5, 0);  // YZ
-    Sigm(7, 4) = stress(5, 0);
-    Sigm(8, 5) = stress(5, 0);
+    Sigm(6, 3) = stress(5);  // YZ
+    Sigm(7, 4) = stress(5);
+    Sigm(8, 5) = stress(5);
 
-    Sigm(6, 6) = stress(3, 0);  // ZZ
-    Sigm(7, 7) = stress(3, 0);
-    Sigm(8, 8) = stress(3, 0);
+    Sigm(6, 6) = stress(3);  // ZZ
+    Sigm(7, 7) = stress(3);
+    Sigm(8, 8) = stress(3);
 
     // Jacobian of internal forces (excluding the EAS contribution).
-    ChMatrixNM<double, 72, 6> temp726;
-    ChMatrixNM<double, 72, 9> temp729;
-    temp726.MatrTMultiply(strainD, E_eps);
-    temp729.MatrTMultiply(Gd, Sigm);
     ChMatrixNM<double, 72, 72> KTE;
-
-#ifdef CHRONO_HAS_AVX
-    ChMatrixNM<double, 72, 72> KTE_temp1;
-    ChMatrixNM<double, 72, 72> KTE_temp2;
-    KTE_temp1.MatrMultiplyAVX(temp726, strainD);
-    KTE_temp2.MatrMultiplyAVX(temp729, Gd);
-    KTE = KTE_temp1 * (m_Kfactor + m_Rfactor * m_element->m_Alpha) + KTE_temp2 * m_Kfactor;
-#else
-    KTE = (temp726 * strainD) * (m_Kfactor + m_Rfactor * m_element->m_Alpha) + (temp729 * Gd) * m_Kfactor;
-#endif
-    KTE *= detJ0 * (m_element->m_GaussScaling);
+    KTE = (strainD.transpose() * E_eps * strainD) * (m_Kfactor + m_Rfactor * m_element->m_Alpha) +
+          (Gd.transpose() * Sigm * Gd) * m_Kfactor;
+    KTE *= detJ0 * m_element->m_GaussScaling;
 
     // Load result vector (integrand)
-    result.PasteClippedMatrixToVector(KTE, 0, 0, 72, 72, 0);
+    result = Eigen::Map<ChVectorN<double, 72 * 72>>(KTE.data(), 72 * 72);
 }
 
 void ChElementShellANCF_8::ComputeInternalJacobians(double Kfactor, double Rfactor) {
     // Note that the matrices with current nodal coordinates and velocities are
     // already available in m_d and m_d_dt (as set in ComputeInternalForces).
 
-    m_JacobianMatrix.Reset();
+    m_JacobianMatrix.setZero();
+
     // Loop over all layers.
     for (size_t kl = 0; kl < m_numLayers; kl++) {
-        MyJacobian_8 formula(this, Kfactor, Rfactor, kl);
-        ChMatrixNM<double, 5184, 1> result;
-        result.Reset();
-        ChQuadrature::Integrate3D<ChMatrixNM<double, 5184, 1> >(result,   // result of integration
-                                                                formula,  // integrand formula
-                                                                -1, 1,    // x limits
-                                                                -1, 1,    // y limits
-                                                                m_GaussZ[kl], m_GaussZ[kl + 1],  // z limits
-                                                                3                                // order of integration
+        ShellANCF8_Jacobian formula(this, Kfactor, Rfactor, kl);
+        ChVectorN<double, 5184> result;
+        result.setZero();
+        ChQuadrature::Integrate3D<ChVectorN<double, 5184>>(result,                          // result of integration
+                                                           formula,                         // integrand formula
+                                                           -1, 1,                           // x limits
+                                                           -1, 1,                           // y limits
+                                                           m_GaussZ[kl], m_GaussZ[kl + 1],  // z limits
+                                                           3                                // order of integration
         );
 
         // Extract matrices from result of integration
-        ChMatrixNM<double, 72, 72> KTE;
-        KTE.PasteClippedVectorToMatrix(result, 0, 0, 72, 72, 0);
+        ChMatrixNM<double, 72, 72> KTE = Eigen::Map<ChMatrixNM<double, 72, 72>>(result.data(), 72, 72);
 
         // Accumulate Jacobian
         m_JacobianMatrix += KTE;
@@ -1063,7 +983,7 @@ void ChElementShellANCF_8::ComputeInternalJacobians(double Kfactor, double Rfact
 // Shape functions
 // -----------------------------------------------------------------------------
 
-void ChElementShellANCF_8::ShapeFunctions(ChMatrix<>& N, double x, double y, double z) {
+void ChElementShellANCF_8::ShapeFunctions(ShapeVector& N, double x, double y, double z) {
     double a = GetLengthX();
     double b = GetLengthY();
     double c = m_thickness;
@@ -1094,7 +1014,7 @@ void ChElementShellANCF_8::ShapeFunctions(ChMatrix<>& N, double x, double y, dou
     N(23) = z * z * c * c * (-1 + y) * (1 + y) * (-1 + x) / 16;
 }
 
-void ChElementShellANCF_8::ShapeFunctionsDerivativeX(ChMatrix<>& Nx, double x, double y, double z) {
+void ChElementShellANCF_8::ShapeFunctionsDerivativeX(ShapeVector& Nx, double x, double y, double z) {
     double a = GetLengthX();
     double b = GetLengthY();
     double c = m_thickness;
@@ -1125,7 +1045,7 @@ void ChElementShellANCF_8::ShapeFunctionsDerivativeX(ChMatrix<>& Nx, double x, d
     Nx(23) = (c * c * z * z * (y - 1) * (y + 1)) / (8 * a);
 }
 
-void ChElementShellANCF_8::ShapeFunctionsDerivativeY(ChMatrix<>& Ny, double x, double y, double z) {
+void ChElementShellANCF_8::ShapeFunctionsDerivativeY(ShapeVector& Ny, double x, double y, double z) {
     double a = GetLengthX();
     double b = GetLengthY();
     double c = m_thickness;
@@ -1156,7 +1076,7 @@ void ChElementShellANCF_8::ShapeFunctionsDerivativeY(ChMatrix<>& Ny, double x, d
     Ny(23) = (c * c * y * z * z * (x - 1)) / (4 * b);
 }
 
-void ChElementShellANCF_8::ShapeFunctionsDerivativeZ(ChMatrix<>& Nz, double x, double y, double z) {
+void ChElementShellANCF_8::ShapeFunctionsDerivativeZ(ShapeVector& Nz, double x, double y, double z) {
     double a = GetLengthX();
     double b = GetLengthY();
     double c = m_thickness;
@@ -1192,9 +1112,9 @@ void ChElementShellANCF_8::ShapeFunctionsDerivativeZ(ChMatrix<>& Nz, double x, d
 double ChElementShellANCF_8::Calc_detJ0(double x,
                                         double y,
                                         double z,
-                                        ChMatrixNM<double, 1, 24>& Nx,
-                                        ChMatrixNM<double, 1, 24>& Ny,
-                                        ChMatrixNM<double, 1, 24>& Nz,
+                                        ShapeVector& Nx,
+                                        ShapeVector& Ny,
+                                        ShapeVector& Nz,
                                         ChMatrixNM<double, 1, 3>& Nx_d0,
                                         ChMatrixNM<double, 1, 3>& Ny_d0,
                                         ChMatrixNM<double, 1, 3>& Nz_d0) {
@@ -1332,7 +1252,7 @@ void ChElementShellANCF_8::CalcCoordMatrix(ChMatrixNM<double, 24, 3>& d) {
     d(23, 2) = ddH.z();
 }
 
-void ChElementShellANCF_8::CalcCoordDerivMatrix(ChMatrixNM<double, 72, 1>& dt) {
+void ChElementShellANCF_8::CalcCoordDerivMatrix(ChVectorN<double, 72>& dt) {
     const ChVector<>& pA_dt = m_nodes[0]->GetPos_dt();
     const ChVector<>& dA_dt = m_nodes[0]->GetD_dt();
     const ChVector<>& ddA_dt = m_nodes[0]->GetDD_dt();
@@ -1359,85 +1279,85 @@ void ChElementShellANCF_8::CalcCoordDerivMatrix(ChMatrixNM<double, 72, 1>& dt) {
     const ChVector<>& dH_dt = m_nodes[7]->GetD_dt();
     const ChVector<>& ddH_dt = m_nodes[7]->GetDD_dt();
 
-    dt(0, 0) = pA_dt.x();
-    dt(1, 0) = pA_dt.y();
-    dt(2, 0) = pA_dt.z();
-    dt(3, 0) = dA_dt.x();
-    dt(4, 0) = dA_dt.y();
-    dt(5, 0) = dA_dt.z();
-    dt(6, 0) = ddA_dt.x();
-    dt(7, 0) = ddA_dt.y();
-    dt(8, 0) = ddA_dt.z();
+    dt(0) = pA_dt.x();
+    dt(1) = pA_dt.y();
+    dt(2) = pA_dt.z();
+    dt(3) = dA_dt.x();
+    dt(4) = dA_dt.y();
+    dt(5) = dA_dt.z();
+    dt(6) = ddA_dt.x();
+    dt(7) = ddA_dt.y();
+    dt(8) = ddA_dt.z();
 
-    dt(9, 0) = pB_dt.x();
-    dt(10, 0) = pB_dt.y();
-    dt(11, 0) = pB_dt.z();
-    dt(12, 0) = dB_dt.x();
-    dt(13, 0) = dB_dt.y();
-    dt(14, 0) = dB_dt.z();
-    dt(15, 0) = ddB_dt.x();
-    dt(16, 0) = ddB_dt.y();
-    dt(17, 0) = ddB_dt.z();
+    dt(9) = pB_dt.x();
+    dt(10) = pB_dt.y();
+    dt(11) = pB_dt.z();
+    dt(12) = dB_dt.x();
+    dt(13) = dB_dt.y();
+    dt(14) = dB_dt.z();
+    dt(15) = ddB_dt.x();
+    dt(16) = ddB_dt.y();
+    dt(17) = ddB_dt.z();
 
-    dt(18, 0) = pC_dt.x();
-    dt(19, 0) = pC_dt.y();
-    dt(20, 0) = pC_dt.z();
-    dt(21, 0) = dC_dt.x();
-    dt(22, 0) = dC_dt.y();
-    dt(23, 0) = dC_dt.z();
-    dt(24, 0) = ddC_dt.x();
-    dt(25, 0) = ddC_dt.y();
-    dt(26, 0) = ddC_dt.z();
+    dt(18) = pC_dt.x();
+    dt(19) = pC_dt.y();
+    dt(20) = pC_dt.z();
+    dt(21) = dC_dt.x();
+    dt(22) = dC_dt.y();
+    dt(23) = dC_dt.z();
+    dt(24) = ddC_dt.x();
+    dt(25) = ddC_dt.y();
+    dt(26) = ddC_dt.z();
 
-    dt(27, 0) = pD_dt.x();
-    dt(28, 0) = pD_dt.y();
-    dt(29, 0) = pD_dt.z();
-    dt(30, 0) = dD_dt.x();
-    dt(31, 0) = dD_dt.y();
-    dt(32, 0) = dD_dt.z();
-    dt(33, 0) = ddD_dt.x();
-    dt(34, 0) = ddD_dt.y();
-    dt(35, 0) = ddD_dt.z();
+    dt(27) = pD_dt.x();
+    dt(28) = pD_dt.y();
+    dt(29) = pD_dt.z();
+    dt(30) = dD_dt.x();
+    dt(31) = dD_dt.y();
+    dt(32) = dD_dt.z();
+    dt(33) = ddD_dt.x();
+    dt(34) = ddD_dt.y();
+    dt(35) = ddD_dt.z();
 
-    dt(36, 0) = pE_dt.x();
-    dt(37, 0) = pE_dt.y();
-    dt(38, 0) = pE_dt.z();
-    dt(39, 0) = dE_dt.x();
-    dt(40, 0) = dE_dt.y();
-    dt(41, 0) = dE_dt.z();
-    dt(42, 0) = ddE_dt.x();
-    dt(43, 0) = ddE_dt.y();
-    dt(44, 0) = ddE_dt.z();
+    dt(36) = pE_dt.x();
+    dt(37) = pE_dt.y();
+    dt(38) = pE_dt.z();
+    dt(39) = dE_dt.x();
+    dt(40) = dE_dt.y();
+    dt(41) = dE_dt.z();
+    dt(42) = ddE_dt.x();
+    dt(43) = ddE_dt.y();
+    dt(44) = ddE_dt.z();
 
-    dt(45, 0) = pF_dt.x();
-    dt(46, 0) = pF_dt.y();
-    dt(47, 0) = pF_dt.z();
-    dt(48, 0) = dF_dt.x();
-    dt(49, 0) = dF_dt.y();
-    dt(50, 0) = dF_dt.z();
-    dt(51, 0) = ddF_dt.x();
-    dt(52, 0) = ddF_dt.y();
-    dt(53, 0) = ddF_dt.z();
+    dt(45) = pF_dt.x();
+    dt(46) = pF_dt.y();
+    dt(47) = pF_dt.z();
+    dt(48) = dF_dt.x();
+    dt(49) = dF_dt.y();
+    dt(50) = dF_dt.z();
+    dt(51) = ddF_dt.x();
+    dt(52) = ddF_dt.y();
+    dt(53) = ddF_dt.z();
 
-    dt(54, 0) = pG_dt.x();
-    dt(55, 0) = pG_dt.y();
-    dt(56, 0) = pG_dt.z();
-    dt(57, 0) = dG_dt.x();
-    dt(58, 0) = dG_dt.y();
-    dt(59, 0) = dG_dt.z();
-    dt(60, 0) = ddG_dt.x();
-    dt(61, 0) = ddG_dt.y();
-    dt(62, 0) = ddG_dt.z();
+    dt(54) = pG_dt.x();
+    dt(55) = pG_dt.y();
+    dt(56) = pG_dt.z();
+    dt(57) = dG_dt.x();
+    dt(58) = dG_dt.y();
+    dt(59) = dG_dt.z();
+    dt(60) = ddG_dt.x();
+    dt(61) = ddG_dt.y();
+    dt(62) = ddG_dt.z();
 
-    dt(63, 0) = pH_dt.x();
-    dt(64, 0) = pH_dt.y();
-    dt(65, 0) = pH_dt.z();
-    dt(66, 0) = dH_dt.x();
-    dt(67, 0) = dH_dt.y();
-    dt(68, 0) = dH_dt.z();
-    dt(69, 0) = ddH_dt.x();
-    dt(70, 0) = ddH_dt.y();
-    dt(71, 0) = ddH_dt.z();
+    dt(63) = pH_dt.x();
+    dt(64) = pH_dt.y();
+    dt(65) = pH_dt.z();
+    dt(66) = dH_dt.x();
+    dt(67) = dH_dt.y();
+    dt(68) = dH_dt.z();
+    dt(69) = ddH_dt.x();
+    dt(70) = ddH_dt.y();
+    dt(71) = ddH_dt.z();
 }
 
 // -----------------------------------------------------------------------------
@@ -1445,7 +1365,7 @@ void ChElementShellANCF_8::CalcCoordDerivMatrix(ChMatrixNM<double, 72, 1>& dt) {
 // -----------------------------------------------------------------------------
 ChVector<> ChElementShellANCF_8::EvaluateSectionStrains() {
     // Element shape function
-    ChMatrixNM<double, 1, 24> N;
+    ShapeVector N;
     this->ShapeFunctions(N, 0, 0, 0);
 
     // Determinant of position vector gradient matrix: Initial configuration
@@ -1461,18 +1381,18 @@ ChVector<> ChElementShellANCF_8::EvaluateSectionStrains() {
     ChVector<double> G1xG2;  // Cross product of first and second column of
     double G1dotG1;          // Dot product of first column of position vector gradient
 
-    G1xG2.x() = Nx_d0[0][1] * Ny_d0[0][2] - Nx_d0[0][2] * Ny_d0[0][1];
-    G1xG2.y() = Nx_d0[0][2] * Ny_d0[0][0] - Nx_d0[0][0] * Ny_d0[0][2];
-    G1xG2.z() = Nx_d0[0][0] * Ny_d0[0][1] - Nx_d0[0][1] * Ny_d0[0][0];
-    G1dotG1 = Nx_d0[0][0] * Nx_d0[0][0] + Nx_d0[0][1] * Nx_d0[0][1] + Nx_d0[0][2] * Nx_d0[0][2];
+    G1xG2.x() = Nx_d0(1) * Ny_d0(2) - Nx_d0(2) * Ny_d0(1);
+    G1xG2.y() = Nx_d0(2) * Ny_d0(0) - Nx_d0(0) * Ny_d0(2);
+    G1xG2.z() = Nx_d0(0) * Ny_d0(1) - Nx_d0(1) * Ny_d0(0);
+    G1dotG1 = Nx_d0(0) * Nx_d0(0) + Nx_d0(1) * Nx_d0(1) + Nx_d0(2) * Nx_d0(2);
 
     // Tangent Frame
     ChVector<double> A1;
     ChVector<double> A2;
     ChVector<double> A3;
-    A1.x() = Nx_d0[0][0];
-    A1.y() = Nx_d0[0][1];
-    A1.z() = Nx_d0[0][2];
+    A1.x() = Nx_d0(0);
+    A1.y() = Nx_d0(1);
+    A1.z() = Nx_d0(2);
     A1 = A1 / sqrt(G1dotG1);
     A3 = G1xG2.GetNormalized();
     A2.Cross(A3, A1);
@@ -1491,18 +1411,18 @@ ChVector<> ChElementShellANCF_8::EvaluateSectionStrains() {
     ChVector<double> j01;
     ChVector<double> j02;
     ChVector<double> j03;
-    ChMatrixNM<double, 9, 1> beta;
+    ChVectorN<double, 9> beta;
     // Calculates inverse of rd0 (j0) (position vector gradient: Initial Configuration)
-    j0(0, 0) = Ny_d0[0][1] * Nz_d0[0][2] - Nz_d0[0][1] * Ny_d0[0][2];
-    j0(0, 1) = Ny_d0[0][2] * Nz_d0[0][0] - Ny_d0[0][0] * Nz_d0[0][2];
-    j0(0, 2) = Ny_d0[0][0] * Nz_d0[0][1] - Nz_d0[0][0] * Ny_d0[0][1];
-    j0(1, 0) = Nz_d0[0][1] * Nx_d0[0][2] - Nx_d0[0][1] * Nz_d0[0][2];
-    j0(1, 1) = Nz_d0[0][2] * Nx_d0[0][0] - Nx_d0[0][2] * Nz_d0[0][0];
-    j0(1, 2) = Nz_d0[0][0] * Nx_d0[0][1] - Nz_d0[0][1] * Nx_d0[0][0];
-    j0(2, 0) = Nx_d0[0][1] * Ny_d0[0][2] - Ny_d0[0][1] * Nx_d0[0][2];
-    j0(2, 1) = Ny_d0[0][0] * Nx_d0[0][2] - Nx_d0[0][0] * Ny_d0[0][2];
-    j0(2, 2) = Nx_d0[0][0] * Ny_d0[0][1] - Ny_d0[0][0] * Nx_d0[0][1];
-    j0.MatrDivScale(detJ0);
+    j0(0, 0) = Ny_d0(1) * Nz_d0(2) - Nz_d0(1) * Ny_d0(2);
+    j0(0, 1) = Ny_d0(2) * Nz_d0(0) - Ny_d0(0) * Nz_d0(2);
+    j0(0, 2) = Ny_d0(0) * Nz_d0(1) - Nz_d0(0) * Ny_d0(1);
+    j0(1, 0) = Nz_d0(1) * Nx_d0(2) - Nx_d0(1) * Nz_d0(2);
+    j0(1, 1) = Nz_d0(2) * Nx_d0(0) - Nx_d0(2) * Nz_d0(0);
+    j0(1, 2) = Nz_d0(0) * Nx_d0(1) - Nz_d0(1) * Nx_d0(0);
+    j0(2, 0) = Nx_d0(1) * Ny_d0(2) - Ny_d0(1) * Nx_d0(2);
+    j0(2, 1) = Ny_d0(0) * Nx_d0(2) - Nx_d0(0) * Ny_d0(2);
+    j0(2, 2) = Nx_d0(0) * Ny_d0(1) - Ny_d0(0) * Nx_d0(1);
+    j0 /= detJ0;
 
     j01[0] = j0(0, 0);
     j02[0] = j0(1, 0);
@@ -1515,72 +1435,64 @@ ChVector<> ChElementShellANCF_8::EvaluateSectionStrains() {
     j03[2] = j0(2, 2);
 
     // Coefficients of contravariant transformation
-    beta(0, 0) = Vdot(AA1, j01);
-    beta(1, 0) = Vdot(AA2, j01);
-    beta(2, 0) = Vdot(AA3, j01);
-    beta(3, 0) = Vdot(AA1, j02);
-    beta(4, 0) = Vdot(AA2, j02);
-    beta(5, 0) = Vdot(AA3, j02);
-    beta(6, 0) = Vdot(AA1, j03);
-    beta(7, 0) = Vdot(AA2, j03);
-    beta(8, 0) = Vdot(AA3, j03);
+    beta(0) = Vdot(AA1, j01);
+    beta(1) = Vdot(AA2, j01);
+    beta(2) = Vdot(AA3, j01);
+    beta(3) = Vdot(AA1, j02);
+    beta(4) = Vdot(AA2, j02);
+    beta(5) = Vdot(AA3, j02);
+    beta(6) = Vdot(AA1, j03);
+    beta(7) = Vdot(AA2, j03);
+    beta(8) = Vdot(AA3, j03);
 
     // Transformation matrix, function of fiber angle
     const ChMatrixNM<double, 6, 6>& T0 = this->GetLayer(0).Get_T0();
     // Determinant of the initial position vector gradient at the element center
     double detJ0C = this->GetLayer(0).Get_detJ0C();
 
-    ChMatrixNM<double, 8, 1> ddNx;
-    ChMatrixNM<double, 8, 1> ddNy;
-    ChMatrixNM<double, 8, 1> ddNz;
-    ddNx.MatrMultiplyT(this->m_ddT, Nx);
-    ddNy.MatrMultiplyT(this->m_ddT, Ny);
-    ddNz.MatrMultiplyT(this->m_ddT, Nz);
+    ChVectorN<double, 24> ddNx = m_ddT * Nx.transpose();
+    ChVectorN<double, 24> ddNy = m_ddT * Ny.transpose();
+    ChVectorN<double, 24> ddNz = m_ddT * Nz.transpose();
 
-    ChMatrixNM<double, 8, 1> d0d0Nx;
-    ChMatrixNM<double, 8, 1> d0d0Ny;
-    ChMatrixNM<double, 8, 1> d0d0Nz;
-    d0d0Nx.MatrMultiplyT(this->m_d0d0T, Nx);
-    d0d0Ny.MatrMultiplyT(this->m_d0d0T, Ny);
-    d0d0Nz.MatrMultiplyT(this->m_d0d0T, Nz);
+    ChVectorN<double, 24> d0d0Nx = m_d0d0T * Nx.transpose();
+    ChVectorN<double, 24> d0d0Ny = m_d0d0T * Ny.transpose();
+    ChVectorN<double, 24> d0d0Nz = m_d0d0T * Nz.transpose();
 
     // Strain component
-    ChMatrixNM<double, 6, 1> strain_til;
-    strain_til(0, 0) = 0.5 * ((Nx * ddNx)(0, 0) - (Nx * d0d0Nx)(0, 0));
-    strain_til(1, 0) = 0.5 * ((Ny * ddNy)(0, 0) - (Ny * d0d0Ny)(0, 0));
-    strain_til(2, 0) = (Nx * ddNy)(0, 0) - (Nx * d0d0Ny)(0, 0);          // xy
-    strain_til(3, 0) = 0.5 * ((Nz * ddNz)(0, 0) - (Nz * d0d0Nz)(0, 0));  // zz
-    strain_til(4, 0) = (Ny * ddNz)(0, 0) - (Ny * d0d0Nz)(0, 0);          // yz
-    strain_til(5, 0) = (Nx * ddNz)(0, 0) - (Nx * d0d0Nz)(0, 0);          // xz
+    ChVectorN<double, 6> strain_til;
+    strain_til(0) = 0.5 * ((Nx * ddNx)(0, 0) - (Nx * d0d0Nx)(0, 0));
+    strain_til(1) = 0.5 * ((Ny * ddNy)(0, 0) - (Ny * d0d0Ny)(0, 0));
+    strain_til(2) = (Nx * ddNy)(0, 0) - (Nx * d0d0Ny)(0, 0);          // xy
+    strain_til(3) = 0.5 * ((Nz * ddNz)(0, 0) - (Nz * d0d0Nz)(0, 0));  // zz
+    strain_til(4) = (Ny * ddNz)(0, 0) - (Ny * d0d0Nz)(0, 0);          // yz
+    strain_til(5) = (Nx * ddNz)(0, 0) - (Nx * d0d0Nz)(0, 0);          // xz
 
     // For orthotropic material
-    ChMatrixNM<double, 6, 1> strain;
+    ChVectorN<double, 6> strain;
 
-    strain(0, 0) = strain_til(0, 0) * beta(0) * beta(0) + strain_til(1, 0) * beta(3) * beta(3) +
-                   strain_til(2, 0) * beta(0) * beta(3) + strain_til(3, 0) * beta(6) * beta(6) +
-                   strain_til(4, 0) * beta(0) * beta(6) + strain_til(5, 0) * beta(3) * beta(6);
-    strain(1, 0) = strain_til(0, 0) * beta(1) * beta(1) + strain_til(1, 0) * beta(4) * beta(4) +
-                   strain_til(2, 0) * beta(1) * beta(4) + strain_til(3, 0) * beta(7) * beta(7) +
-                   strain_til(4, 0) * beta(1) * beta(7) + strain_til(5, 0) * beta(4) * beta(7);
-    strain(2, 0) = strain_til(0, 0) * 2.0 * beta(0) * beta(1) + strain_til(1, 0) * 2.0 * beta(3) * beta(4) +
-                   strain_til(2, 0) * (beta(1) * beta(3) + beta(0) * beta(4)) +
-                   strain_til(3, 0) * 2.0 * beta(6) * beta(7) +
-                   strain_til(4, 0) * (beta(1) * beta(6) + beta(0) * beta(7)) +
-                   strain_til(5, 0) * (beta(4) * beta(6) + beta(3) * beta(7));
-    strain(3, 0) = strain_til(0, 0) * beta(2) * beta(2) + strain_til(1, 0) * beta(5) * beta(5) +
-                   strain_til(2, 0) * beta(2) * beta(5) + strain_til(3, 0) * beta(8) * beta(8) +
-                   strain_til(4, 0) * beta(2) * beta(8) + strain_til(5, 0) * beta(5) * beta(8);
-    strain(4, 0) = strain_til(0, 0) * 2.0 * beta(0) * beta(2) + strain_til(1, 0) * 2.0 * beta(3) * beta(5) +
-                   strain_til(2, 0) * (beta(2) * beta(3) + beta(0) * beta(5)) +
-                   strain_til(3, 0) * 2.0 * beta(6) * beta(8) +
-                   strain_til(4, 0) * (beta(2) * beta(6) + beta(0) * beta(8)) +
-                   strain_til(5, 0) * (beta(5) * beta(6) + beta(3) * beta(8));
-    strain(5, 0) = strain_til(0, 0) * 2.0 * beta(1) * beta(2) + strain_til(1, 0) * 2.0 * beta(4) * beta(5) +
-                   strain_til(2, 0) * (beta(2) * beta(4) + beta(1) * beta(5)) +
-                   strain_til(3, 0) * 2.0 * beta(7) * beta(8) +
-                   strain_til(4, 0) * (beta(2) * beta(7) + beta(1) * beta(8)) +
-                   strain_til(5, 0) * (beta(5) * beta(7) + beta(4) * beta(8));
-    return ChVector<>(strain(0, 0), strain(1, 0), strain(2, 0));
+    strain(0) = strain_til(0) * beta(0) * beta(0) + strain_til(1) * beta(3) * beta(3) +
+                strain_til(2) * beta(0) * beta(3) + strain_til(3) * beta(6) * beta(6) +
+                strain_til(4) * beta(0) * beta(6) + strain_til(5) * beta(3) * beta(6);
+    strain(1) = strain_til(0) * beta(1) * beta(1) + strain_til(1) * beta(4) * beta(4) +
+                strain_til(2) * beta(1) * beta(4) + strain_til(3) * beta(7) * beta(7) +
+                strain_til(4) * beta(1) * beta(7) + strain_til(5) * beta(4) * beta(7);
+    strain(2) = strain_til(0) * 2.0 * beta(0) * beta(1) + strain_til(1) * 2.0 * beta(3) * beta(4) +
+                strain_til(2) * (beta(1) * beta(3) + beta(0) * beta(4)) + strain_til(3) * 2.0 * beta(6) * beta(7) +
+                strain_til(4) * (beta(1) * beta(6) + beta(0) * beta(7)) +
+                strain_til(5) * (beta(4) * beta(6) + beta(3) * beta(7));
+    strain(3) = strain_til(0) * beta(2) * beta(2) + strain_til(1) * beta(5) * beta(5) +
+                strain_til(2) * beta(2) * beta(5) + strain_til(3) * beta(8) * beta(8) +
+                strain_til(4) * beta(2) * beta(8) + strain_til(5) * beta(5) * beta(8);
+    strain(4) = strain_til(0) * 2.0 * beta(0) * beta(2) + strain_til(1) * 2.0 * beta(3) * beta(5) +
+                strain_til(2) * (beta(2) * beta(3) + beta(0) * beta(5)) + strain_til(3) * 2.0 * beta(6) * beta(8) +
+                strain_til(4) * (beta(2) * beta(6) + beta(0) * beta(8)) +
+                strain_til(5) * (beta(5) * beta(6) + beta(3) * beta(8));
+    strain(5) = strain_til(0) * 2.0 * beta(1) * beta(2) + strain_til(1) * 2.0 * beta(4) * beta(5) +
+                strain_til(2) * (beta(2) * beta(4) + beta(1) * beta(5)) + strain_til(3) * 2.0 * beta(7) * beta(8) +
+                strain_til(4) * (beta(2) * beta(7) + beta(1) * beta(8)) +
+                strain_til(5) * (beta(5) * beta(7) + beta(4) * beta(8));
+
+    return ChVector<>(strain(0), strain(1), strain(2));
 }
 void ChElementShellANCF_8::EvaluateSectionDisplacement(const double u,
                                                        const double v,
@@ -1600,18 +1512,12 @@ void ChElementShellANCF_8::EvaluateSectionFrame(const double u,
     rot = QUNIT;  // or maybe use gram-schmidt to get csys of section from slopes?
 }
 
-void ChElementShellANCF_8::EvaluateSectionPoint(const double u,
-                                                const double v,
-                                                ChVector<>& point) {
-    ChVector<> u_displ;
-
-    ChMatrixNM<double, 1, 24> N;
-
+void ChElementShellANCF_8::EvaluateSectionPoint(const double u, const double v, ChVector<>& point) {
     double x = u;  // because ShapeFunctions() works in -1..1 range
     double y = v;  // because ShapeFunctions() works in -1..1 range
     double z = 0;
-
-    this->ShapeFunctions(N, x, y, z);
+    ShapeVector N;
+    ShapeFunctions(N, x, y, z);
 
     const ChVector<>& pA = m_nodes[0]->GetPos();
     const ChVector<>& pB = m_nodes[1]->GetPos();
@@ -1636,58 +1542,58 @@ void ChElementShellANCF_8::EvaluateSectionPoint(const double u,
 
 // Gets all the DOFs packed in a single vector (position part).
 void ChElementShellANCF_8::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
-    mD.PasteVector(m_nodes[0]->GetPos(), block_offset, 0);
-    mD.PasteVector(m_nodes[0]->GetD(), block_offset + 3, 0);
-    mD.PasteVector(m_nodes[0]->GetDD(), block_offset + 6, 0);
-    mD.PasteVector(m_nodes[1]->GetPos(), block_offset + 9, 0);
-    mD.PasteVector(m_nodes[1]->GetD(), block_offset + 12, 0);
-    mD.PasteVector(m_nodes[1]->GetDD(), block_offset + 15, 0);
-    mD.PasteVector(m_nodes[2]->GetPos(), block_offset + 18, 0);
-    mD.PasteVector(m_nodes[2]->GetD(), block_offset + 21, 0);
-    mD.PasteVector(m_nodes[2]->GetDD(), block_offset + 24, 0);
-    mD.PasteVector(m_nodes[3]->GetPos(), block_offset + 27, 0);
-    mD.PasteVector(m_nodes[3]->GetD(), block_offset + 30, 0);
-    mD.PasteVector(m_nodes[3]->GetDD(), block_offset + 33, 0);
-    mD.PasteVector(m_nodes[4]->GetPos(), block_offset + 36, 0);
-    mD.PasteVector(m_nodes[4]->GetD(), block_offset + 39, 0);
-    mD.PasteVector(m_nodes[4]->GetDD(), block_offset + 42, 0);
-    mD.PasteVector(m_nodes[5]->GetPos(), block_offset + 45, 0);
-    mD.PasteVector(m_nodes[5]->GetD(), block_offset + 48, 0);
-    mD.PasteVector(m_nodes[5]->GetDD(), block_offset + 51, 0);
-    mD.PasteVector(m_nodes[6]->GetPos(), block_offset + 54, 0);
-    mD.PasteVector(m_nodes[6]->GetD(), block_offset + 57, 0);
-    mD.PasteVector(m_nodes[6]->GetDD(), block_offset + 60, 0);
-    mD.PasteVector(m_nodes[7]->GetPos(), block_offset + 63, 0);
-    mD.PasteVector(m_nodes[7]->GetD(), block_offset + 66, 0);
-    mD.PasteVector(m_nodes[7]->GetDD(), block_offset + 69, 0);
+    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos().eigen();
+    mD.segment(block_offset + 3, 3) = m_nodes[0]->GetD().eigen();
+    mD.segment(block_offset + 6, 3) = m_nodes[0]->GetDD().eigen();
+    mD.segment(block_offset + 9, 3) = m_nodes[1]->GetPos().eigen();
+    mD.segment(block_offset + 12, 3) = m_nodes[1]->GetD().eigen();
+    mD.segment(block_offset + 15, 3) = m_nodes[1]->GetDD().eigen();
+    mD.segment(block_offset + 18, 3) = m_nodes[2]->GetPos().eigen();
+    mD.segment(block_offset + 21, 3) = m_nodes[2]->GetD().eigen();
+    mD.segment(block_offset + 24, 3) = m_nodes[2]->GetDD().eigen();
+    mD.segment(block_offset + 27, 3) = m_nodes[3]->GetPos().eigen();
+    mD.segment(block_offset + 30, 3) = m_nodes[3]->GetD().eigen();
+    mD.segment(block_offset + 33, 3) = m_nodes[3]->GetDD().eigen();
+    mD.segment(block_offset + 36, 3) = m_nodes[4]->GetPos().eigen();
+    mD.segment(block_offset + 39, 3) = m_nodes[4]->GetD().eigen();
+    mD.segment(block_offset + 42, 3) = m_nodes[4]->GetDD().eigen();
+    mD.segment(block_offset + 45, 3) = m_nodes[5]->GetPos().eigen();
+    mD.segment(block_offset + 48, 3) = m_nodes[5]->GetD().eigen();
+    mD.segment(block_offset + 51, 3) = m_nodes[5]->GetDD().eigen();
+    mD.segment(block_offset + 54, 3) = m_nodes[6]->GetPos().eigen();
+    mD.segment(block_offset + 57, 3) = m_nodes[6]->GetD().eigen();
+    mD.segment(block_offset + 60, 3) = m_nodes[6]->GetDD().eigen();
+    mD.segment(block_offset + 63, 3) = m_nodes[7]->GetPos().eigen();
+    mD.segment(block_offset + 66, 3) = m_nodes[7]->GetD().eigen();
+    mD.segment(block_offset + 69, 3) = m_nodes[7]->GetDD().eigen();
 }
 
 // Gets all the DOFs packed in a single vector (velocity part).
 void ChElementShellANCF_8::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
-    mD.PasteVector(m_nodes[0]->GetPos_dt(), block_offset, 0);
-    mD.PasteVector(m_nodes[0]->GetD_dt(), block_offset + 3, 0);
-    mD.PasteVector(m_nodes[0]->GetDD_dt(), block_offset + 6, 0);
-    mD.PasteVector(m_nodes[1]->GetPos_dt(), block_offset + 9, 0);
-    mD.PasteVector(m_nodes[1]->GetD_dt(), block_offset + 12, 0);
-    mD.PasteVector(m_nodes[1]->GetDD_dt(), block_offset + 15, 0);
-    mD.PasteVector(m_nodes[2]->GetPos_dt(), block_offset + 18, 0);
-    mD.PasteVector(m_nodes[2]->GetD_dt(), block_offset + 21, 0);
-    mD.PasteVector(m_nodes[2]->GetDD_dt(), block_offset + 24, 0);
-    mD.PasteVector(m_nodes[3]->GetPos_dt(), block_offset + 27, 0);
-    mD.PasteVector(m_nodes[3]->GetD_dt(), block_offset + 30, 0);
-    mD.PasteVector(m_nodes[3]->GetDD_dt(), block_offset + 33, 0);
-    mD.PasteVector(m_nodes[4]->GetPos_dt(), block_offset + 36, 0);
-    mD.PasteVector(m_nodes[4]->GetD_dt(), block_offset + 39, 0);
-    mD.PasteVector(m_nodes[4]->GetDD_dt(), block_offset + 42, 0);
-    mD.PasteVector(m_nodes[5]->GetPos_dt(), block_offset + 45, 0);
-    mD.PasteVector(m_nodes[5]->GetD_dt(), block_offset + 48, 0);
-    mD.PasteVector(m_nodes[5]->GetDD_dt(), block_offset + 51, 0);
-    mD.PasteVector(m_nodes[6]->GetPos_dt(), block_offset + 54, 0);
-    mD.PasteVector(m_nodes[6]->GetD_dt(), block_offset + 57, 0);
-    mD.PasteVector(m_nodes[6]->GetDD_dt(), block_offset + 60, 0);
-    mD.PasteVector(m_nodes[7]->GetPos_dt(), block_offset + 63, 0);
-    mD.PasteVector(m_nodes[7]->GetD_dt(), block_offset + 66, 0);
-    mD.PasteVector(m_nodes[7]->GetDD_dt(), block_offset + 69, 0);
+    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos_dt().eigen();
+    mD.segment(block_offset + 3, 3) = m_nodes[0]->GetD_dt().eigen();
+    mD.segment(block_offset + 6, 3) = m_nodes[0]->GetDD_dt().eigen();
+    mD.segment(block_offset + 9, 3) = m_nodes[1]->GetPos_dt().eigen();
+    mD.segment(block_offset + 12, 3) = m_nodes[1]->GetD_dt().eigen();
+    mD.segment(block_offset + 15, 3) = m_nodes[1]->GetDD_dt().eigen();
+    mD.segment(block_offset + 18, 3) = m_nodes[2]->GetPos_dt().eigen();
+    mD.segment(block_offset + 21, 3) = m_nodes[2]->GetD_dt().eigen();
+    mD.segment(block_offset + 24, 3) = m_nodes[2]->GetDD_dt().eigen();
+    mD.segment(block_offset + 27, 3) = m_nodes[3]->GetPos_dt().eigen();
+    mD.segment(block_offset + 30, 3) = m_nodes[3]->GetD_dt().eigen();
+    mD.segment(block_offset + 33, 3) = m_nodes[3]->GetDD_dt().eigen();
+    mD.segment(block_offset + 36, 3) = m_nodes[4]->GetPos_dt().eigen();
+    mD.segment(block_offset + 39, 3) = m_nodes[4]->GetD_dt().eigen();
+    mD.segment(block_offset + 42, 3) = m_nodes[4]->GetDD_dt().eigen();
+    mD.segment(block_offset + 45, 3) = m_nodes[5]->GetPos_dt().eigen();
+    mD.segment(block_offset + 48, 3) = m_nodes[5]->GetD_dt().eigen();
+    mD.segment(block_offset + 51, 3) = m_nodes[5]->GetDD_dt().eigen();
+    mD.segment(block_offset + 54, 3) = m_nodes[6]->GetPos_dt().eigen();
+    mD.segment(block_offset + 57, 3) = m_nodes[6]->GetD_dt().eigen();
+    mD.segment(block_offset + 60, 3) = m_nodes[6]->GetDD_dt().eigen();
+    mD.segment(block_offset + 63, 3) = m_nodes[7]->GetPos_dt().eigen();
+    mD.segment(block_offset + 66, 3) = m_nodes[7]->GetD_dt().eigen();
+    mD.segment(block_offset + 69, 3) = m_nodes[7]->GetDD_dt().eigen();
 }
 
 void ChElementShellANCF_8::LoadableStateIncrement(const unsigned int off_x,
@@ -1701,7 +1607,7 @@ void ChElementShellANCF_8::LoadableStateIncrement(const unsigned int off_x,
 }
 
 void ChElementShellANCF_8::EvaluateSectionVelNorm(double U, double V, ChVector<>& Result) {
-    ChMatrixNM<double, 24, 1> N;
+    ShapeVector N;
     ShapeFunctions(N, U, V, 0);
     for (unsigned int ii = 0; ii < m_nodes.size(); ii++) {
         Result += N(ii * 3) * m_nodes[ii]->GetPos_dt();
@@ -1733,56 +1639,9 @@ void ChElementShellANCF_8::ComputeNF(
     detJ = Calc_detJ0(U, V, 0);
     detJ *= GetLengthX() * GetLengthY() / 4.0;
 
-    ChVector<> tmp;
-    ChVector<> Fv = F.ClipVector(0, 0);
-    tmp = N(0) * Fv;
-    Qi.PasteVector(tmp, 0, 0);
-    tmp = N(1) * Fv;
-    Qi.PasteVector(tmp, 3, 0);
-    tmp = N(2) * Fv;
-    Qi.PasteVector(tmp, 6, 0);
-    tmp = N(3) * Fv;
-    Qi.PasteVector(tmp, 9, 0);
-    tmp = N(4) * Fv;
-    Qi.PasteVector(tmp, 12, 0);
-    tmp = N(5) * Fv;
-    Qi.PasteVector(tmp, 15, 0);
-    tmp = N(6) * Fv;
-    Qi.PasteVector(tmp, 18, 0);
-    tmp = N(7) * Fv;
-    Qi.PasteVector(tmp, 21, 0);
-    tmp = N(8) * Fv;
-    Qi.PasteVector(tmp, 24, 0);
-    tmp = N(9) * Fv;
-    Qi.PasteVector(tmp, 27, 0);
-    tmp = N(10) * Fv;
-    Qi.PasteVector(tmp, 30, 0);
-    tmp = N(11) * Fv;
-    Qi.PasteVector(tmp, 33, 0);
-    tmp = N(12) * Fv;
-    Qi.PasteVector(tmp, 36, 0);
-    tmp = N(13) * Fv;
-    Qi.PasteVector(tmp, 39, 0);
-    tmp = N(14) * Fv;
-    Qi.PasteVector(tmp, 42, 0);
-    tmp = N(15) * Fv;
-    Qi.PasteVector(tmp, 45, 0);
-    tmp = N(16) * Fv;
-    Qi.PasteVector(tmp, 48, 0);
-    tmp = N(17) * Fv;
-    Qi.PasteVector(tmp, 51, 0);
-    tmp = N(18) * Fv;
-    Qi.PasteVector(tmp, 54, 0);
-    tmp = N(19) * Fv;
-    Qi.PasteVector(tmp, 57, 0);
-    tmp = N(20) * Fv;
-    Qi.PasteVector(tmp, 60, 0);
-    tmp = N(21) * Fv;
-    Qi.PasteVector(tmp, 63, 0);
-    tmp = N(22) * Fv;
-    Qi.PasteVector(tmp, 66, 0);
-    tmp = N(23) * Fv;
-    Qi.PasteVector(tmp, 69, 0);
+    for (int i = 0; i < 24; i++) {
+        Qi.segment(3 * i, 3) = N(i) * F.segment(0, 3);
+    }
 }
 
 // Evaluate N'*F , where N is the shape function evaluated at (U,V,W) coordinates of the surface.
@@ -1802,56 +1661,9 @@ void ChElementShellANCF_8::ComputeNF(
     detJ = Calc_detJ0(U, V, W);
     detJ *= m_GaussScaling;
 
-    ChVector<> tmp;
-    ChVector<> Fv = F.ClipVector(0, 0);
-    tmp = N(0) * Fv;
-    Qi.PasteVector(tmp, 0, 0);
-    tmp = N(1) * Fv;
-    Qi.PasteVector(tmp, 3, 0);
-    tmp = N(2) * Fv;
-    Qi.PasteVector(tmp, 6, 0);
-    tmp = N(3) * Fv;
-    Qi.PasteVector(tmp, 9, 0);
-    tmp = N(4) * Fv;
-    Qi.PasteVector(tmp, 12, 0);
-    tmp = N(5) * Fv;
-    Qi.PasteVector(tmp, 15, 0);
-    tmp = N(6) * Fv;
-    Qi.PasteVector(tmp, 18, 0);
-    tmp = N(7) * Fv;
-    Qi.PasteVector(tmp, 21, 0);
-    tmp = N(8) * Fv;
-    Qi.PasteVector(tmp, 24, 0);
-    tmp = N(9) * Fv;
-    Qi.PasteVector(tmp, 27, 0);
-    tmp = N(10) * Fv;
-    Qi.PasteVector(tmp, 30, 0);
-    tmp = N(11) * Fv;
-    Qi.PasteVector(tmp, 33, 0);
-    tmp = N(12) * Fv;
-    Qi.PasteVector(tmp, 36, 0);
-    tmp = N(13) * Fv;
-    Qi.PasteVector(tmp, 39, 0);
-    tmp = N(14) * Fv;
-    Qi.PasteVector(tmp, 42, 0);
-    tmp = N(15) * Fv;
-    Qi.PasteVector(tmp, 45, 0);
-    tmp = N(16) * Fv;
-    Qi.PasteVector(tmp, 48, 0);
-    tmp = N(17) * Fv;
-    Qi.PasteVector(tmp, 51, 0);
-    tmp = N(18) * Fv;
-    Qi.PasteVector(tmp, 54, 0);
-    tmp = N(19) * Fv;
-    Qi.PasteVector(tmp, 57, 0);
-    tmp = N(20) * Fv;
-    Qi.PasteVector(tmp, 60, 0);
-    tmp = N(21) * Fv;
-    Qi.PasteVector(tmp, 63, 0);
-    tmp = N(22) * Fv;
-    Qi.PasteVector(tmp, 66, 0);
-    tmp = N(23) * Fv;
-    Qi.PasteVector(tmp, 69, 0);
+    for (int i = 0; i < 24; i++) {
+        Qi.segment(3 * i, 3) = N(i) * F.segment(0, 3);
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -1871,15 +1683,14 @@ double ChElementShellANCF_8::GetDensity() {
 
 // Calculate normal to the surface at (U,V) coordinates.
 ChVector<> ChElementShellANCF_8::ComputeNormal(const double U, const double V) {
-    ChMatrixNM<double, 24, 3> mDD;
-    ChMatrixNM<double, 1, 24> Nx;
-    ChMatrixNM<double, 1, 24> Ny;
-    ChMatrixNM<double, 1, 24> Nz;
-
+    ShapeVector Nx;
+    ShapeVector Ny;
+    ShapeVector Nz;
     ShapeFunctionsDerivativeX(Nx, U, V, 0);
     ShapeFunctionsDerivativeY(Ny, U, V, 0);
     ShapeFunctionsDerivativeZ(Nz, U, V, 0);
 
+    ChMatrixNM<double, 24, 3> mDD;
     CalcCoordMatrix(mDD);
 
     ChMatrixNM<double, 1, 3> Nx_d = Nx * mDD;
@@ -1920,9 +1731,9 @@ ChElementShellANCF_8::Layer::Layer(ChElementShellANCF_8* element,
 // Initial setup for this layer: calculate T0 and detJ0 at the element center.
 void ChElementShellANCF_8::Layer::SetupInitial() {
     // Evaluate shape functions at element center
-    ChMatrixNM<double, 1, 24> Nx;
-    ChMatrixNM<double, 1, 24> Ny;
-    ChMatrixNM<double, 1, 24> Nz;
+    ShapeVector Nx;
+    ShapeVector Ny;
+    ShapeVector Nz;
     m_element->ShapeFunctionsDerivativeX(Nx, 0, 0, 0);
     m_element->ShapeFunctionsDerivativeY(Ny, 0, 0, 0);
     m_element->ShapeFunctionsDerivativeZ(Nz, 0, 0, 0);
@@ -1940,18 +1751,18 @@ void ChElementShellANCF_8::Layer::SetupInitial() {
     ChVector<double> G1xG2;  // Cross product of first and second column of
     double G1dotG1;          // Dot product of first column of position vector gradient
 
-    G1xG2.x() = Nx_d0[0][1] * Ny_d0[0][2] - Nx_d0[0][2] * Ny_d0[0][1];
-    G1xG2.y() = Nx_d0[0][2] * Ny_d0[0][0] - Nx_d0[0][0] * Ny_d0[0][2];
-    G1xG2.z() = Nx_d0[0][0] * Ny_d0[0][1] - Nx_d0[0][1] * Ny_d0[0][0];
-    G1dotG1 = Nx_d0[0][0] * Nx_d0[0][0] + Nx_d0[0][1] * Nx_d0[0][1] + Nx_d0[0][2] * Nx_d0[0][2];
+    G1xG2.x() = Nx_d0(1) * Ny_d0(2) - Nx_d0(2) * Ny_d0(1);
+    G1xG2.y() = Nx_d0(2) * Ny_d0(0) - Nx_d0(0) * Ny_d0(2);
+    G1xG2.z() = Nx_d0(0) * Ny_d0(1) - Nx_d0(1) * Ny_d0(0);
+    G1dotG1 = Nx_d0(0) * Nx_d0(0) + Nx_d0(1) * Nx_d0(1) + Nx_d0(2) * Nx_d0(2);
 
     // Tangent Frame
     ChVector<double> A1;
     ChVector<double> A2;
     ChVector<double> A3;
-    A1.x() = Nx_d0[0][0];
-    A1.y() = Nx_d0[0][1];
-    A1.z() = Nx_d0[0][2];
+    A1.x() = Nx_d0(0);
+    A1.y() = Nx_d0(1);
+    A1.z() = Nx_d0(2);
     A1 = A1 / sqrt(G1dotG1);
     A3 = G1xG2.GetNormalized();
     A2.Cross(A3, A1);
@@ -1968,18 +1779,18 @@ void ChElementShellANCF_8::Layer::SetupInitial() {
     ChVector<double> j01;
     ChVector<double> j02;
     ChVector<double> j03;
-    ChMatrixNM<double, 9, 1> beta;
+    ChVectorN<double, 9> beta;
 
-    j0(0, 0) = Ny_d0[0][1] * Nz_d0[0][2] - Nz_d0[0][1] * Ny_d0[0][2];
-    j0(0, 1) = Ny_d0[0][2] * Nz_d0[0][0] - Ny_d0[0][0] * Nz_d0[0][2];
-    j0(0, 2) = Ny_d0[0][0] * Nz_d0[0][1] - Nz_d0[0][0] * Ny_d0[0][1];
-    j0(1, 0) = Nz_d0[0][1] * Nx_d0[0][2] - Nx_d0[0][1] * Nz_d0[0][2];
-    j0(1, 1) = Nz_d0[0][2] * Nx_d0[0][0] - Nx_d0[0][2] * Nz_d0[0][0];
-    j0(1, 2) = Nz_d0[0][0] * Nx_d0[0][1] - Nz_d0[0][1] * Nx_d0[0][0];
-    j0(2, 0) = Nx_d0[0][1] * Ny_d0[0][2] - Ny_d0[0][1] * Nx_d0[0][2];
-    j0(2, 1) = Ny_d0[0][0] * Nx_d0[0][2] - Nx_d0[0][0] * Ny_d0[0][2];
-    j0(2, 2) = Nx_d0[0][0] * Ny_d0[0][1] - Ny_d0[0][0] * Nx_d0[0][1];
-    j0.MatrDivScale(m_detJ0C);
+    j0(0, 0) = Ny_d0(1) * Nz_d0(2) - Nz_d0(1) * Ny_d0(2);
+    j0(0, 1) = Ny_d0(2) * Nz_d0(0) - Ny_d0(0) * Nz_d0(2);
+    j0(0, 2) = Ny_d0(0) * Nz_d0(1) - Nz_d0(0) * Ny_d0(1);
+    j0(1, 0) = Nz_d0(1) * Nx_d0(2) - Nx_d0(1) * Nz_d0(2);
+    j0(1, 1) = Nz_d0(2) * Nx_d0(0) - Nx_d0(2) * Nz_d0(0);
+    j0(1, 2) = Nz_d0(0) * Nx_d0(1) - Nz_d0(1) * Nx_d0(0);
+    j0(2, 0) = Nx_d0(1) * Ny_d0(2) - Ny_d0(1) * Nx_d0(2);
+    j0(2, 1) = Ny_d0(0) * Nx_d0(2) - Nx_d0(0) * Ny_d0(2);
+    j0(2, 2) = Nx_d0(0) * Ny_d0(1) - Ny_d0(0) * Nx_d0(1);
+    j0 /= m_detJ0C;
 
     j01[0] = j0(0, 0);
     j02[0] = j0(1, 0);

@@ -50,9 +50,13 @@
 
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChVector.h"
+#include "chrono/solver/ChSolver.h"
+#include "chrono/solver/ChIterativeSolver.h"
+#include "chrono/solver/ChSolverMINRES.h"
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChShaft.h"
+#include "chrono/physics/ChShaftsLoads.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChMarker.h"
@@ -61,6 +65,7 @@
 #include "chrono/physics/ChLinkSpringCB.h"
 #include "chrono/physics/ChLinkRotSpringCB.h"
 #include "chrono/physics/ChLoadsBody.h"
+#include "chrono/physics/ChLoadsXYZnode.h"
 #include "chrono/physics/ChPhysicsItem.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
@@ -88,7 +93,8 @@
 #include "chrono_models/vehicle/ChVehicleModelDefs.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
-
+#include "Eigen/src/Core/util/Memory.h"
+#include "chrono_models/vehicle/citybus/CityBus.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -96,6 +102,7 @@ using namespace chrono::vehicle;
 using namespace chrono::vehicle::generic;
 using namespace chrono::vehicle::hmmwv;
 using namespace chrono::vehicle::sedan;
+using namespace chrono::vehicle::citybus;
 
 
 %}
@@ -104,6 +111,7 @@ using namespace chrono::vehicle::sedan;
 // Undefine ChApiFea otherwise SWIG gives a syntax error
 #define CH_VEHICLE_API 
 #define ChApi
+#define EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
 #define CH_MODELS_API
 
@@ -149,15 +157,7 @@ using namespace chrono::vehicle::sedan;
 %shared_ptr(chrono::ChFunction)
 %shared_ptr(chrono::ChFrame<double>) 
 %shared_ptr(chrono::ChFrameMoving<double>)
-%shared_ptr(chrono::ChObj)
 %shared_ptr(chrono::ChPhysicsItem)
-%shared_ptr(chrono::ChLoadBase)
-%shared_ptr(chrono::ChLoadCustom)
-%shared_ptr(chrono::ChLoadCustomMultiple)
-%shared_ptr(chrono::ChLoadable) 
-%shared_ptr(chrono::ChLoadableU) 
-%shared_ptr(chrono::ChLoadableUV) 
-%shared_ptr(chrono::ChLoadableUVW)
 %shared_ptr(chrono::ChNodeBase) 
 %shared_ptr(chrono::ChNodeXYZ) 
 %shared_ptr(chrono::ChTriangleMeshShape)
@@ -224,22 +224,23 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %import(module = "pychrono.core")  "ChLinkBase.i"
 %import(module = "pychrono.core")  "ChLinkLock.i"
 %import(module = "pychrono.core")  "ChLinkSpringCB.i"
-%import(module = "pychrono.core")  "ChShaft.i"
+%import(module = "pychrono.core") "ChLoad.i"
+%import(module = "pychrono.core") "ChShaft.i"
 %import(module = "pychrono.core") "ChAsset.i"
 %import(module = "pychrono.core") "ChAssetLevel.i"
 %import(module = "pychrono.core")  "ChVisualization.i"
-/* Parse the header file to generate wrappers */
 %import(module = "pychrono.core") "../chrono/motion_functions/ChFunction_Base.h"
 %import(module = "pychrono.core")  "ChMaterialSurface.i"
-%import(module = "pychrono.core") "../chrono/physics/ChContinuumMaterial.h"
+%import(module = "pychrono.core") "../chrono/fea/ChContinuumMaterial.h"
 %import(module = "pychrono.core") "../chrono/physics/ChPhysicsItem.h"
 //%import(module = "pychrono.core") "../chrono/physics/ChLoadable.h" // disable because strange error in cxx
-%import(module = "pychrono.core") "../chrono/physics/ChLoad.h"
+
 %import(module = "pychrono.core") "../chrono/physics/ChNodeBase.h"
 //%import(module = "pychrono.core") "../chrono/physics/ChNodeXYZ.h"
 %import(module = "pychrono.core") "../chrono/physics/ChBodyFrame.h"
 %import(module = "pychrono.core") "../chrono/physics/ChLinkBase.h"
 %import(module = "pychrono.core") "ChTexture.i"
+%import(module = "pychrono.core") "../chrono/assets/ChTriangleMeshShape.h"
 
 // TODO: 
 //%include "rapidjson.i"

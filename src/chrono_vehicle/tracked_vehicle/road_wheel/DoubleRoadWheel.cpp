@@ -60,7 +60,7 @@ void DoubleRoadWheel::Create(const rapidjson::Document& d) {
     m_wheel_width = d["Wheel"]["Width"].GetDouble();
     m_wheel_gap = d["Wheel"]["Gap"].GetDouble();
     m_wheel_mass = d["Wheel"]["Mass"].GetDouble();
-    m_wheel_inertia = LoadVectorJSON(d["Wheel"]["Inertia"]);
+    m_wheel_inertia = ReadVectorJSON(d["Wheel"]["Inertia"]);
 
     // Read contact material data
     assert(d.HasMember("Contact Material"));
@@ -98,9 +98,9 @@ void DoubleRoadWheel::Create(const rapidjson::Document& d) {
 // -----------------------------------------------------------------------------
 void DoubleRoadWheel::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH && m_has_mesh) {
-        auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
         trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
-        auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(m_meshName);
         trimesh_shape->SetStatic(true);

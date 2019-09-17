@@ -51,12 +51,12 @@ void ChLinkPointPoint::Update(double mytime, bool update_assets) {
     // ...
 }
 
-ChMatrixNM<double, 3, 1> ChLinkPointPoint::GetC() const {
+ChVectorN<double, 3> ChLinkPointPoint::GetC() const {
     ChVector<> res = mnodeA->GetPos() - mnodeB->GetPos();
-    ChMatrixNM<double, 3, 1> C;
-    C(0, 0) = res.x();
-    C(1, 0) = res.y();
-    C(2, 0) = res.z();
+    ChVectorN<double, 3> C;
+    C(0) = res.x();
+    C(1) = res.y();
+    C(2) = res.z();
     return C;
 }
 
@@ -173,19 +173,17 @@ void ChLinkPointPoint::ConstraintsBiLoad_Ct(double factor) {
 
 void ChLinkPointPoint::ConstraintsLoadJacobians() {
     // compute jacobians
-    ChMatrix33<> Jxa;
-    Jxa.FillDiag(1.0);
+    ChMatrix33<> Jxa(1.0);
 
-    ChMatrix33<> Jxb;
-    Jxb.FillDiag(-1.0);
+    ChMatrix33<> Jxb(-1.0);
 
-    constraint1.Get_Cq_a()->PasteClippedMatrix(Jxa, 0, 0, 1, 3, 0, 0);
-    constraint2.Get_Cq_a()->PasteClippedMatrix(Jxa, 1, 0, 1, 3, 0, 0);
-    constraint3.Get_Cq_a()->PasteClippedMatrix(Jxa, 2, 0, 1, 3, 0, 0);
+    constraint1.Get_Cq_a().segment(0, 3) = Jxa.row(0);
+    constraint2.Get_Cq_a().segment(0, 3) = Jxa.row(1);
+    constraint3.Get_Cq_a().segment(0, 3) = Jxa.row(2);
 
-    constraint1.Get_Cq_b()->PasteClippedMatrix(Jxb, 0, 0, 1, 3, 0, 0);
-    constraint2.Get_Cq_b()->PasteClippedMatrix(Jxb, 1, 0, 1, 3, 0, 0);
-    constraint3.Get_Cq_b()->PasteClippedMatrix(Jxb, 2, 0, 1, 3, 0, 0);
+    constraint1.Get_Cq_b().segment(0, 3) = Jxb.row(0);
+    constraint2.Get_Cq_b().segment(0, 3) = Jxb.row(1);
+    constraint3.Get_Cq_b().segment(0, 3) = Jxb.row(2);
 }
 
 void ChLinkPointPoint::ConstraintsFetch_react(double factor) {

@@ -52,13 +52,12 @@ static ChVector2<> CalcCircleCenter(const ChVector2<>& A, const ChVector2<>& B, 
     // circle center
     ChVector2<> O(C.x() + direction * x_offset, C.y() + direction * y_offset);
 
-    ////std::cout << std::endl;
-    ////std::cout << "radius: " << r << std::endl;
-    ////std::cout << A.x() << "  " << A.y() << std::endl;
-    ////std::cout << B.x() << "  " << B.y() << std::endl;
-    ////std::cout << O.x() << "  " << O.y() << std::endl;
-    ////std::cout << "Check: " << (A - O).Length() - r << "  " << (B - O).Length() - r << std::endl;
-    ////std::cout << std::endl;
+    ////GetLog() << "\n";
+    ////GetLog() << "radius: " << r << "\n";
+    ////GetLog() << A.x() << "  " << A.y() << "\n";
+    ////GetLog() << B.x() << "  " << B.y() << "\n";
+    ////GetLog() << O.x() << "  " << O.y() << "\n";
+    ////GetLog() << "Check: " << (A - O).Length() - r << "  " << (B - O).Length() - r << "\n\n";
 
     return O;
 }
@@ -216,6 +215,9 @@ class SprocketBandContactCB : public ChSystem::CustomCollisionCallback {
 
 // Add contacts between the sprocket and track shoes.
 void SprocketBandContactCB::OnCustomCollision(ChSystem* system) {
+    if (m_track->GetNumTrackShoes() == 0)
+        return;
+
     // Temporary workaround since the shoe has not been intialized by the time the collision constructor is called.
     if (m_update_tread) {
         m_update_tread = false;
@@ -631,19 +633,19 @@ void ChSprocketBand::AddVisualizationAssets(VisualizationType vis) {
     double width = GetGuideWheelWidth();
     double gap = GetGuideWheelGap();
 
-    auto cyl_1 = std::make_shared<ChCylinderShape>();
+    auto cyl_1 = chrono_types::make_shared<ChCylinderShape>();
     cyl_1->GetCylinderGeometry().p1 = ChVector<>(0, width / 2, 0);
     cyl_1->GetCylinderGeometry().p2 = ChVector<>(0, gap / 2, 0);
     cyl_1->GetCylinderGeometry().rad = radius;
     m_gear->AddAsset(cyl_1);
 
-    auto cyl_2 = std::make_shared<ChCylinderShape>();
+    auto cyl_2 = chrono_types::make_shared<ChCylinderShape>();
     cyl_2->GetCylinderGeometry().p1 = ChVector<>(0, -width / 2, 0);
     cyl_2->GetCylinderGeometry().p2 = ChVector<>(0, -gap / 2, 0);
     cyl_2->GetCylinderGeometry().rad = radius;
     m_gear->AddAsset(cyl_2);
 
-    auto tex = std::make_shared<ChTexture>();
+    auto tex = chrono_types::make_shared<ChTexture>();
     tex->SetTextureFilename(chrono::GetChronoDataFile("greenwhite.png"));
     m_gear->AddAsset(tex);
 }
@@ -671,7 +673,7 @@ ChSystem::CustomCollisionCallback* ChSprocketBand::GetCollisionCallback(ChTrackA
 // Create and return the sprocket gear profile.
 // -----------------------------------------------------------------------------
 std::shared_ptr<geometry::ChLinePath> ChSprocketBand::GetProfile() {
-    auto profile = std::make_shared<geometry::ChLinePath>();
+    auto profile = chrono_types::make_shared<geometry::ChLinePath>();
 
     int num_teeth = GetNumTeeth();
     double OutRad = GetOuterRadius();

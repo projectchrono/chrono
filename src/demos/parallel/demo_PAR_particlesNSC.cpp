@@ -57,7 +57,7 @@ void AddContainer(ChSystemParallelNSC* sys) {
     int mixerId = -201;
 
     // Create a common material
-    auto mat = std::make_shared<ChMaterialSurfaceNSC>();
+    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     mat->SetFriction(0.4f);
 
     ChVector<> hdim(.55, .6, .55);
@@ -70,7 +70,7 @@ void AddContainer(ChSystemParallelNSC* sys) {
 // Create the 3DOF particles with spherical contact
 // -----------------------------------------------------------------------------
 void AddParticles(ChSystemParallelNSC* sys) {
-    auto particle_container = std::make_shared<ChParticleContainer>();
+    auto particle_container = chrono_types::make_shared<ChParticleContainer>();
     sys->Add3DOFContainer(particle_container);
 
     particle_container->contact_cohesion = 0;

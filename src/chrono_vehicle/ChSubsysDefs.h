@@ -204,6 +204,75 @@ class MapSpringForce : public ChLinkSpringCB::ForceFunctor {
     ChFunction_Recorder m_map;
 };
 
+/// Utility class for specifying a map translational spring force with bump and rebound stop.
+class MapSpringBistopForce : public ChLinkSpringCB::ForceFunctor {
+  public:
+    MapSpringBistopForce(double spring_min_length, double spring_max_length)
+        : m_min_length(spring_min_length), m_max_length(spring_max_length) {
+        setup_stop_maps();
+    }
+    MapSpringBistopForce(const std::vector<std::pair<double, double>>& data,
+                         double spring_min_length,
+                         double spring_max_length)
+        : m_min_length(spring_min_length), m_max_length(spring_max_length) {
+        setup_stop_maps();
+        for (unsigned int i = 0; i < data.size(); ++i) {
+            m_map.AddPoint(data[i].first, data[i].second);
+        }
+    }
+    void add_point(double x, double y) { m_map.AddPoint(x, y); }
+    virtual double operator()(double time,
+                              double rest_length,
+                              double length,
+                              double vel,
+                              ChLinkSpringCB* link) override {
+        double defl_bump = 0.0;
+        double defl_rebound = 0.0;
+
+        if (length < m_min_length) {
+            defl_bump = m_min_length - length;
+        }
+
+        if (length > m_max_length) {
+            defl_rebound = length - m_max_length;
+        }
+
+        return -m_map.Get_y(length - rest_length) + m_bump.Get_y(defl_bump) - m_rebound.Get_y(defl_rebound);
+    }
+
+  private:
+    void setup_stop_maps() {
+        m_bump.AddPoint(0.0, 0.0);
+        m_bump.AddPoint(2.0e-3, 200.0);
+        m_bump.AddPoint(4.0e-3, 400.0);
+        m_bump.AddPoint(6.0e-3, 600.0);
+        m_bump.AddPoint(8.0e-3, 800.0);
+        m_bump.AddPoint(10.0e-3, 1000.0);
+        m_bump.AddPoint(20.0e-3, 2500.0);
+        m_bump.AddPoint(30.0e-3, 4500.0);
+        m_bump.AddPoint(40.0e-3, 7500.0);
+        m_bump.AddPoint(50.0e-3, 12500.0);
+        m_bump.AddPoint(60.0e-3, 125000.0);
+
+        m_rebound.AddPoint(0.0, 0.0);
+        m_rebound.AddPoint(2.0e-3, 200.0);
+        m_rebound.AddPoint(4.0e-3, 400.0);
+        m_rebound.AddPoint(6.0e-3, 600.0);
+        m_rebound.AddPoint(8.0e-3, 800.0);
+        m_rebound.AddPoint(10.0e-3, 1000.0);
+        m_rebound.AddPoint(20.0e-3, 2500.0);
+        m_rebound.AddPoint(30.0e-3, 4500.0);
+        m_rebound.AddPoint(40.0e-3, 7500.0);
+        m_rebound.AddPoint(50.0e-3, 12500.0);
+        m_rebound.AddPoint(60.0e-3, 125000.0);
+    }
+    ChFunction_Recorder m_map;
+    ChFunction_Recorder m_bump;
+    ChFunction_Recorder m_rebound;
+    double m_min_length;
+    double m_max_length;
+};
+
 /// Utility class for specifying a linear translational spring force with bump and rebound stop.
 class LinearSpringBistopForce : public ChLinkSpringCB::ForceFunctor {
   public:

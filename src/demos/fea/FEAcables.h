@@ -41,21 +41,21 @@ void model1(ChSystem& system, std::shared_ptr<ChMesh> mesh) {
 
     // Create a section, i.e. thickness and material properties
     // for beams. This will be shared among some beams.
-    auto msection_cable = std::make_shared<ChBeamSectionCable>();
+    auto msection_cable = chrono_types::make_shared<ChBeamSectionCable>();
     msection_cable->SetDiameter(beam_diameter);
     msection_cable->SetYoungModulus(0.01e9);
     msection_cable->SetBeamRaleyghDamping(0.000);
 
     // Create the nodes
-    auto hnodeancf1 = std::make_shared<ChNodeFEAxyzD>(ChVector<>(0, 0, -0.2), ChVector<>(1, 0, 0));
-    auto hnodeancf2 = std::make_shared<ChNodeFEAxyzD>(ChVector<>(beam_L, 0, -0.2), ChVector<>(1, 0, 0));
+    auto hnodeancf1 = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(0, 0, -0.2), ChVector<>(1, 0, 0));
+    auto hnodeancf2 = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(beam_L, 0, -0.2), ChVector<>(1, 0, 0));
 
     mesh->AddNode(hnodeancf1);
     mesh->AddNode(hnodeancf2);
 
     // Create the element
 
-    auto belementancf1 = std::make_shared<ChElementCableANCF>();
+    auto belementancf1 = chrono_types::make_shared<ChElementCableANCF>();
 
     belementancf1->SetNodes(hnodeancf1, hnodeancf2);
     belementancf1->SetSection(msection_cable);
@@ -69,15 +69,15 @@ void model1(ChSystem& system, std::shared_ptr<ChMesh> mesh) {
 
     // Add a rigid body connected to the end of the beam:
 
-    auto mbox = std::make_shared<ChBodyEasyBox>(0.1, 0.02, 0.02, 1000);
+    auto mbox = chrono_types::make_shared<ChBodyEasyBox>(0.1, 0.02, 0.02, 1000);
     mbox->SetPos(hnodeancf2->GetPos() + ChVector<>(0.05, 0, 0));
     system.Add(mbox);
 
-    auto constraint_pos = std::make_shared<ChLinkPointFrame>();
+    auto constraint_pos = chrono_types::make_shared<ChLinkPointFrame>();
     constraint_pos->Initialize(hnodeancf2, mbox);
     system.Add(constraint_pos);
 
-    auto constraint_dir = std::make_shared<ChLinkDirFrame>();
+    auto constraint_dir = chrono_types::make_shared<ChLinkDirFrame>();
     constraint_dir->Initialize(hnodeancf2, mbox);
     constraint_dir->SetDirectionInAbsoluteCoords(ChVector<>(1, 0, 0));
     system.Add(constraint_dir);
@@ -92,7 +92,7 @@ void model2(ChSystem& system, std::shared_ptr<ChMesh> mesh) {
     // Create a section, i.e. thickness and material properties
     // for beams. This will be shared among some beams.
 
-    auto msection_cable2 = std::make_shared<ChBeamSectionCable>();
+    auto msection_cable2 = chrono_types::make_shared<ChBeamSectionCable>();
     msection_cable2->SetDiameter(0.015);
     msection_cable2->SetYoungModulus(0.01e9);
     msection_cable2->SetBeamRaleyghDamping(0.000);
@@ -118,10 +118,10 @@ void model2(ChSystem& system, std::shared_ptr<ChMesh> mesh) {
 
     // For instance, now retrieve the A end and add a constraint to
     // block the position only of that node:
-    auto mtruss = std::make_shared<ChBody>();
+    auto mtruss = chrono_types::make_shared<ChBody>();
     mtruss->SetBodyFixed(true);
 
-    auto constraint_hinge = std::make_shared<ChLinkPointFrame>();
+    auto constraint_hinge = chrono_types::make_shared<ChLinkPointFrame>();
     constraint_hinge->Initialize(builder.GetLastBeamNodes().back(), mtruss);
     system.Add(constraint_hinge);
 }
@@ -135,12 +135,12 @@ void model3(ChSystem& system, std::shared_ptr<ChMesh> mesh) {
   // Add ANCF CABLE BEAMS making chains with bodies
   //
 
-  auto msection_cable2 = std::make_shared<ChBeamSectionCable>();
+  auto msection_cable2 = chrono_types::make_shared<ChBeamSectionCable>();
   msection_cable2->SetDiameter(0.015);
   msection_cable2->SetYoungModulus(0.01e9);
   msection_cable2->SetBeamRaleyghDamping(0.000);
 
-  auto mtruss = std::make_shared<ChBody>();
+  auto mtruss = chrono_types::make_shared<ChBody>();
   mtruss->SetBodyFixed(true);
 
   for (int j = 0; j < 6; ++j) {
@@ -156,24 +156,24 @@ void model3(ChSystem& system, std::shared_ptr<ChMesh> mesh) {
 
     builder.GetLastBeamNodes().back()->SetForce(ChVector<>(0, -0.2, 0));
 
-    auto constraint_hinge = std::make_shared<ChLinkPointFrame>();
+    auto constraint_hinge = chrono_types::make_shared<ChLinkPointFrame>();
     constraint_hinge->Initialize(builder.GetLastBeamNodes().front(), mtruss);
     system.Add(constraint_hinge);
 
-    auto msphere = std::make_shared<ChSphereShape>();
+    auto msphere = chrono_types::make_shared<ChSphereShape>();
     msphere->GetSphereGeometry().rad = 0.02;
     constraint_hinge->AddAsset(msphere);
 
     // make a box and connect it
-    auto mbox = std::make_shared<ChBodyEasyBox>(0.2, 0.04, 0.04, 1000);
+    auto mbox = chrono_types::make_shared<ChBodyEasyBox>(0.2, 0.04, 0.04, 1000);
     mbox->SetPos(builder.GetLastBeamNodes().back()->GetPos() + ChVector<>(0.1, 0, 0));
     system.Add(mbox);
 
-    auto constraint_pos = std::make_shared<ChLinkPointFrame>();
+    auto constraint_pos = chrono_types::make_shared<ChLinkPointFrame>();
     constraint_pos->Initialize(builder.GetLastBeamNodes().back(), mbox);
     system.Add(constraint_pos);
 
-    auto constraint_dir = std::make_shared<ChLinkDirFrame>();
+    auto constraint_dir = chrono_types::make_shared<ChLinkDirFrame>();
     constraint_dir->Initialize(builder.GetLastBeamNodes().back(), mbox);
     constraint_dir->SetDirectionInAbsoluteCoords(ChVector<>(1, 0, 0));
     system.Add(constraint_dir);
@@ -186,25 +186,25 @@ void model3(ChSystem& system, std::shared_ptr<ChMesh> mesh) {
       ChVector<>(mbox->GetPos().x() + 0.1 + 0.1 * (6 - j), 0, -0.1 * j)  // point B (end of beam)
       );
 
-    auto constraint_pos2 = std::make_shared<ChLinkPointFrame>();
+    auto constraint_pos2 = chrono_types::make_shared<ChLinkPointFrame>();
     constraint_pos2->Initialize(builder.GetLastBeamNodes().front(), mbox);
     system.Add(constraint_pos2);
 
-    auto constraint_dir2 = std::make_shared<ChLinkDirFrame>();
+    auto constraint_dir2 = chrono_types::make_shared<ChLinkDirFrame>();
     constraint_dir2->Initialize(builder.GetLastBeamNodes().front(), mbox);
     constraint_dir2->SetDirectionInAbsoluteCoords(ChVector<>(1, 0, 0));
     system.Add(constraint_dir2);
 
     // make a box and connect it
-    auto mbox2 = std::make_shared<ChBodyEasyBox>(0.2, 0.04, 0.04, 1000);
+    auto mbox2 = chrono_types::make_shared<ChBodyEasyBox>(0.2, 0.04, 0.04, 1000);
     mbox2->SetPos(builder.GetLastBeamNodes().back()->GetPos() + ChVector<>(0.1, 0, 0));
     system.Add(mbox2);
 
-    auto constraint_pos3 = std::make_shared<ChLinkPointFrame>();
+    auto constraint_pos3 = chrono_types::make_shared<ChLinkPointFrame>();
     constraint_pos3->Initialize(builder.GetLastBeamNodes().back(), mbox2);
     system.Add(constraint_pos3);
 
-    auto constraint_dir3 = std::make_shared<ChLinkDirFrame>();
+    auto constraint_dir3 = chrono_types::make_shared<ChLinkDirFrame>();
     constraint_dir3->Initialize(builder.GetLastBeamNodes().back(), mbox2);
     constraint_dir3->SetDirectionInAbsoluteCoords(ChVector<>(1, 0, 0));
     system.Add(constraint_dir3);

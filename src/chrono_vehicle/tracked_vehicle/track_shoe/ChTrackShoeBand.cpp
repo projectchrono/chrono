@@ -22,7 +22,7 @@
 #include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/physics/ChGlobal.h"
+#include "chrono/core/ChGlobal.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"
@@ -54,13 +54,12 @@ static ChVector2<> CalcCircleCenter(const ChVector2<>& A, const ChVector2<>& B, 
     // circle center
     ChVector2<> O(C.x() + direction * x_offset, C.y() + direction * y_offset);
 
-    ////std::cout << std::endl;
-    ////std::cout << "radius: " << r << std::endl;
-    ////std::cout << A.x() << "  " << A.y() << std::endl;
-    ////std::cout << B.x() << "  " << B.y() << std::endl;
-    ////std::cout << O.x() << "  " << O.y() << std::endl;
-    ////std::cout << "Check: " << (A - O).Length() - r << "  " << (B - O).Length() - r << std::endl;
-    ////std::cout << std::endl;
+    ////GetLog() << "\n";
+    ////GetLog() << "radius: " << r << "\n";
+    ////GetLog() << A.x() << "  " << A.y() << "\n";
+    ////GetLog() << B.x() << "  " << B.y() << "\n";
+    ////GetLog() << O.x() << "  " << O.y() << "\n";
+    ////GetLog() << "Check: " << (A - O).Length() - r << "  " << (B - O).Length() - r << "\n\n";
 
     return O;
 }
@@ -183,12 +182,12 @@ ChColor ChTrackShoeBand::GetColor(size_t index) {
 }
 
 void ChTrackShoeBand::AddShoeVisualization() {
-    m_shoe->AddAsset(std::make_shared<ChColorAsset>(GetColor(m_index)));
+    m_shoe->AddAsset(chrono_types::make_shared<ChColorAsset>(GetColor(m_index)));
 
     // Guide pin
     ChVector<> g_hdims = GetGuideBoxDimensions() / 2;
     ChVector<> g_loc(GetGuideBoxOffsetX(), 0, GetWebThickness() / 2 + g_hdims.z());
-    auto box_pin = std::make_shared<ChBoxShape>();
+    auto box_pin = chrono_types::make_shared<ChBoxShape>();
     box_pin->GetBoxGeometry().Size = g_hdims;
     box_pin->Pos = g_loc;
     m_shoe->AddAsset(box_pin);
@@ -196,7 +195,7 @@ void ChTrackShoeBand::AddShoeVisualization() {
     // Main box
     ChVector<> b_hdims(GetToothBaseLength() / 2, GetBeltWidth() / 2, GetWebThickness() / 2);
     ChVector<> b_loc(0, 0, 0);
-    auto box_main = std::make_shared<ChBoxShape>();
+    auto box_main = chrono_types::make_shared<ChBoxShape>();
     box_main->GetBoxGeometry().Size = b_hdims;
     box_main->Pos = b_loc;
     m_shoe->AddAsset(box_main);
@@ -204,14 +203,14 @@ void ChTrackShoeBand::AddShoeVisualization() {
     // Tread box
     ChVector<> t_hdims(GetTreadLength() / 2, GetBeltWidth() / 2, GetTreadThickness() / 2);
     ChVector<> t_loc(0, 0, (-GetWebThickness() - GetTreadThickness()) / 2);
-    auto box_tread = std::make_shared<ChBoxShape>();
+    auto box_tread = chrono_types::make_shared<ChBoxShape>();
     box_tread->GetBoxGeometry().Size = t_hdims;
     box_tread->Pos = t_loc;
     m_shoe->AddAsset(box_tread);
 
     // Connection to first web segment
     double radius = GetWebThickness() / 4;
-    auto cyl = std::make_shared<ChCylinderShape>();
+    auto cyl = chrono_types::make_shared<ChCylinderShape>();
     cyl->GetCylinderGeometry().rad = radius;
     cyl->GetCylinderGeometry().p1 = ChVector<>(GetToothBaseLength() / 2, -GetBeltWidth() / 2 - 2 * radius, 0);
     cyl->GetCylinderGeometry().p2 = ChVector<>(GetToothBaseLength() / 2, +GetBeltWidth() / 2 + 2 * radius, 0);
@@ -244,7 +243,7 @@ void ChTrackShoeBand::ExportTreadVisualizationMeshPovray(const std::string& out_
 // -----------------------------------------------------------------------------
 // Utilities for creating tooth visualization mesh
 // -----------------------------------------------------------------------------
-size_t ChTrackShoeBand::ProfilePoints(std::vector<ChVector2<>>& points, std::vector<ChVector2<>>& normals) {
+int ChTrackShoeBand::ProfilePoints(std::vector<ChVector2<>>& points, std::vector<ChVector2<>>& normals) {
     int np = 4;
     double step = 1.0 / (np - 1);
 
@@ -274,21 +273,21 @@ size_t ChTrackShoeBand::ProfilePoints(std::vector<ChVector2<>>& points, std::vec
         normals.push_back(nrm);
     }
 
-    ////std::cout << std::endl << std::endl;
+    ////GetLog() << "\n\n";
     ////for (auto p : points)
-    ////    std::cout << p.x() << "  " << p.y() << std::endl;
+    ////    GetLog() << p.x() << "  " << p.y() << "\n";
 
-    return points.size();
+    return (int)points.size();
 }
 
 std::shared_ptr<ChTriangleMeshShape> ChTrackShoeBand::ToothMesh(double y) {
     // Obtain profile points.
     std::vector<ChVector2<>> points2;
     std::vector<ChVector2<>> normals2;
-    size_t np = ProfilePoints(points2, normals2);
+    int np = ProfilePoints(points2, normals2);
 
     // Create the triangular mesh.
-    auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
     std::vector<ChVector<>>& vertices = trimesh->getCoordsVertices();
     std::vector<ChVector<>>& normals = trimesh->getCoordsNormals();
     std::vector<ChVector<int>>& idx_vertices = trimesh->getIndicesVertexes();
@@ -361,7 +360,7 @@ std::shared_ptr<ChTriangleMeshShape> ChTrackShoeBand::ToothMesh(double y) {
         it++;
     }
 
-    auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName(GetTreadVisualizationMeshName());
     return trimesh_shape;

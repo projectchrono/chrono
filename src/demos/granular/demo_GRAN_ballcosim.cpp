@@ -152,30 +152,23 @@ int main(int argc, char* argv[]) {
     gran_sys.set_static_friction_coeff_SPH2WALL(params.static_friction_coeffS2W);
     gran_sys.set_static_friction_coeff_SPH2MESH(params.static_friction_coeffS2M);
 
-    vector<string> mesh_filenames;
-    string mesh_filename = GetChronoDataFile("granular/ballcosim/sphere.obj");
+    string mesh_filename("data/granular/ballcosim/sphere.obj");
+    vector<string> mesh_filenames(1, mesh_filename);
+
+    vector<float3> mesh_translations(1, make_float3(0, 0, 0));
 
     float ball_radius = 20;
-    vector<float3> mesh_scalings;
-    float3 scaling;
-    scaling.x = ball_radius;
-    scaling.y = ball_radius;
-    scaling.z = ball_radius;
+    vector<ChMatrix33<float>> mesh_rotscales(1, ChMatrix33<float>(ball_radius));
 
-    vector<float> mesh_masses;
     float ball_density = params.sphere_density / 100;
     float ball_mass = 4.0 / 3.0 * CH_C_PI * ball_radius * ball_radius * ball_radius * ball_density;
-    mesh_masses.push_back(ball_mass);
+    vector<float> mesh_masses(1, ball_mass);
 
-    vector<bool> mesh_inflated;
-    vector<float> mesh_inflation_radii;
-    mesh_inflated.push_back(false);
-    mesh_inflation_radii.push_back(0);
+    vector<bool> mesh_inflated(1, false);
+    vector<float> mesh_inflation_radii(1, 0);
 
-    mesh_scalings.push_back(scaling);
-    mesh_filenames.push_back(mesh_filename);
-
-    gran_sys.load_meshes(mesh_filenames, mesh_scalings, mesh_masses, mesh_inflated, mesh_inflation_radii);
+    gran_sys.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses, mesh_inflated,
+                         mesh_inflation_radii);
 
     gran_sys.setOutputMode(params.write_mode);
     gran_sys.setVerbose(params.verbose);

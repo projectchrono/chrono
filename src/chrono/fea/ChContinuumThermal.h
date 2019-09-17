@@ -41,8 +41,8 @@ class ChContinuumThermal : public ChContinuumPoisson3D {
     /// Sets the conductivity matrix as isotropic (diagonal k)
     void SetThermalConductivityK(double mk) {
         k_thermal_conductivity = mk;
-        ConstitutiveMatrix.Reset();
-        ConstitutiveMatrix.FillDiag(k_thermal_conductivity);
+        ConstitutiveMatrix.setZero();
+        ConstitutiveMatrix.fillDiagonal(k_thermal_conductivity);
     }
 
     /// Gets the k conductivity constant of the material,

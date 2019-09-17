@@ -83,5 +83,4 @@ INSTALL(TARGETS ChronoEngine_matlab
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)       
 
-INSTALL(FILES ${ChronoEngine_MATLAB_HEADERS}
-        DESTINATION include/chrono/unit_MATLAB)
+INSTALL(FILES ${ChronoEngine_MATLAB_HEADERS} DESTINATION include/chrono_matlab)

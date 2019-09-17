@@ -17,11 +17,12 @@
 #include <cfloat>
 
 #include "chrono/core/ChQuadrature.h"
-#include "chrono/core/ChMatrixDynamic.h"
+#include "chrono/core/ChLog.h"
+#include "chrono/core/ChMathematics.h"
 
 namespace chrono {
 
-void ChQuadratureTables::glege_coef(ChMatrix<>& lcoef, int N) {
+static void glege_coef(ChMatrixDynamic<>& lcoef, int N) {
     int n, i;
     lcoef(0, 0) = lcoef(1, 1) = 1;
     for (n = 2; n <= N; n++) {
@@ -31,7 +32,7 @@ void ChQuadratureTables::glege_coef(ChMatrix<>& lcoef, int N) {
     }
 }
 
-double ChQuadratureTables::glege_eval(int n, double x, ChMatrix<>& lcoef) {
+static double glege_eval(int n, double x, ChMatrixDynamic<>& lcoef) {
     int i;
     double s = lcoef(n, n);
     for (i = n; i; i--)
@@ -39,11 +40,11 @@ double ChQuadratureTables::glege_eval(int n, double x, ChMatrix<>& lcoef) {
     return s;
 }
 
-double ChQuadratureTables::glege_diff(int n, double x, ChMatrix<>& lcoef) {
+static double glege_diff(int n, double x, ChMatrixDynamic<>& lcoef) {
     return n * (x * glege_eval(n, x, lcoef) - glege_eval(n - 1, x, lcoef)) / (x * x - 1);
 }
 
-void ChQuadratureTables::glege_roots(ChMatrix<>& lcoef, int N, int ntable) {
+void ChQuadratureTables::glege_roots(ChMatrixDynamic<>& lcoef, int N, int ntable) {
     int i;
     double x, x1;
     for (i = 1; i <= N; i++) {
@@ -89,7 +90,7 @@ ChQuadratureTables::ChQuadratureTables(int order_from, int order_to) {
         Lroots[io].resize(Ncoef);
 
         ChMatrixDynamic<> lcoef(Ncoef + 1, Ncoef + 1);
-        lcoef.Reset();
+        lcoef.setZero();
 
         glege_coef(lcoef, Ncoef);
         glege_roots(lcoef, Ncoef, io);

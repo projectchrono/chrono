@@ -19,7 +19,7 @@
 #ifndef GENERIC_WHEEL_H
 #define GENERIC_WHEEL_H
 
-#include "chrono/physics/ChGlobal.h"
+#include "chrono/core/ChGlobal.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChTexture.h"
 

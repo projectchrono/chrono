@@ -25,7 +25,6 @@ namespace chrono {
 /// passed to the solver.
 
 class ChApi ChSolverSORmultithread : public ChIterativeSolver {
-
   protected:
     ChThreads* solver_threads;
 
@@ -36,7 +35,7 @@ class ChApi ChSolverSORmultithread : public ChIterativeSolver {
                            bool mwarm_start = false,           ///< uses warm start?
                            double mtolerance = 0.0,            ///< tolerance for termination criterion
                            double momega = 1.0                 ///< overrelaxation criterion
-                           );
+    );
 
     virtual ~ChSolverSORmultithread();
 

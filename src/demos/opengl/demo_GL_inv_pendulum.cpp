@@ -184,25 +184,25 @@ int main(int argc, char* argv[]) {
 
     // Create the ground body
     // ----------------------
-    auto ground = std::make_shared<ChBody>();
+    auto ground = chrono_types::make_shared<ChBody>();
     system.AddBody(ground);
     ground->SetIdentifier(-1);
     ground->SetBodyFixed(true);
 
     // Attach visualization assets
-    auto sphere1_g = std::make_shared<ChSphereShape>();
+    auto sphere1_g = chrono_types::make_shared<ChSphereShape>();
     sphere1_g->GetSphereGeometry().rad = 0.02;
     sphere1_g->Pos = ChVector<>(travel_dist, 0, 0);
     ground->AddAsset(sphere1_g);
 
-    auto sphere2_g = std::make_shared<ChSphereShape>();
+    auto sphere2_g = chrono_types::make_shared<ChSphereShape>();
     sphere2_g->GetSphereGeometry().rad = 0.02;
     sphere2_g->Pos = ChVector<>(-travel_dist, 0, 0);
     ground->AddAsset(sphere2_g);
 
     // Create the cart body
     // --------------------
-    auto cart = std::make_shared<ChBody>();
+    auto cart = chrono_types::make_shared<ChBody>();
     system.AddBody(cart);
     cart->SetIdentifier(1);
     cart->SetMass(mass_cart);
@@ -210,14 +210,14 @@ int main(int argc, char* argv[]) {
     cart->SetPos(ChVector<>(0, 0, 0));
 
     // Attach visualization assets.
-    auto box_c = std::make_shared<ChBoxShape>();
+    auto box_c = chrono_types::make_shared<ChBoxShape>();
     box_c->GetBoxGeometry().Size = ChVector<>(0.1, 0.1, 0.1);
     box_c->Pos = ChVector<>(0, -0.1, 0);
     cart->AddAsset(box_c);
 
     // Create the pendulum body
     // ------------------------
-    auto pend = std::make_shared<ChBody>();
+    auto pend = chrono_types::make_shared<ChBody>();
     system.AddBody(pend);
     pend->SetIdentifier(2);
     pend->SetMass(mass_pend);
@@ -225,7 +225,7 @@ int main(int argc, char* argv[]) {
     pend->SetPos(ChVector<>(0, hlen_pend, 0));
 
     // Attach visualization assets.
-    auto cyl_p = std::make_shared<ChCylinderShape>();
+    auto cyl_p = chrono_types::make_shared<ChCylinderShape>();
     cyl_p->GetCylinderGeometry().p1 = ChVector<>(0, -hlen_pend, 0);
     cyl_p->GetCylinderGeometry().p2 = ChVector<>(0, hlen_pend, 0);
     cyl_p->GetCylinderGeometry().rad = r_pend;
@@ -233,13 +233,13 @@ int main(int argc, char* argv[]) {
 
     // Translational joint ground-cart
     // -------------------------------
-    auto prismatic = std::make_shared<ChLinkLockPrismatic>();
+    auto prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
     prismatic->Initialize(ground, cart, ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngY(CH_C_PI_2)));
     system.AddLink(prismatic);
 
     // Revolute joint cart-pendulum
     // ----------------------------
-    auto revolute = std::make_shared<ChLinkLockRevolute>();
+    auto revolute = chrono_types::make_shared<ChLinkLockRevolute>();
     revolute->Initialize(cart, pend, ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));
     system.AddLink(revolute);
 

@@ -62,11 +62,11 @@ int main(int argc, char* argv[]) {
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     // Create a material, that must be assigned to each element,
     // and set its parameters
-    auto mmaterial = std::make_shared<ChContinuumElastic>();
+    auto mmaterial = chrono_types::make_shared<ChContinuumElastic>();
     mmaterial->Set_E(0.01e9);  // rubber 0.01e9, steel 200e9
     mmaterial->Set_v(0.3);
     mmaterial->Set_RayleighDampingK(0.001);
@@ -112,17 +112,17 @@ int main(int argc, char* argv[]) {
 
         for (int ilayer = 0; ilayer < 6; ++ilayer) {
             double hy = ilayer * sz;
-            auto hnode1 = std::make_shared<ChNodeFEAxyz>(hexpos + hexrot * ChVector<>(0, hy, 0));
-            auto hnode2 = std::make_shared<ChNodeFEAxyz>(hexpos + hexrot * ChVector<>(0, hy, sz));
-            auto hnode3 = std::make_shared<ChNodeFEAxyz>(hexpos + hexrot * ChVector<>(sx, hy, sz));
-            auto hnode4 = std::make_shared<ChNodeFEAxyz>(hexpos + hexrot * ChVector<>(sx, hy, 0));
+            auto hnode1 = chrono_types::make_shared<ChNodeFEAxyz>(hexpos + hexrot * ChVector<>(0, hy, 0));
+            auto hnode2 = chrono_types::make_shared<ChNodeFEAxyz>(hexpos + hexrot * ChVector<>(0, hy, sz));
+            auto hnode3 = chrono_types::make_shared<ChNodeFEAxyz>(hexpos + hexrot * ChVector<>(sx, hy, sz));
+            auto hnode4 = chrono_types::make_shared<ChNodeFEAxyz>(hexpos + hexrot * ChVector<>(sx, hy, 0));
             my_mesh->AddNode(hnode1);
             my_mesh->AddNode(hnode2);
             my_mesh->AddNode(hnode3);
             my_mesh->AddNode(hnode4);
 
             if (ilayer > 0) {
-                auto helement1 = std::make_shared<ChElementHexa_8>();
+                auto helement1 = chrono_types::make_shared<ChElementHexa_8>();
                 helement1->SetNodes(hnode1_lower, hnode2_lower, hnode3_lower, hnode4_lower, hnode1, hnode2, hnode3,
                                     hnode4);
                 helement1->SetMaterial(mmaterial);
@@ -151,7 +151,7 @@ int main(int argc, char* argv[]) {
     my_system.Add(my_mesh);
 
     // Create also a truss
-    auto truss = std::make_shared<ChBody>();
+    auto truss = chrono_types::make_shared<ChBody>();
     truss->SetBodyFixed(true);
     my_system.Add(truss);
 
@@ -160,12 +160,12 @@ int main(int argc, char* argv[]) {
     for (unsigned int inode = 0; inode < my_mesh->GetNnodes(); ++inode) {
         if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(inode))) {
             if (mnode->GetPos().y() < 0.01) {
-                auto constraint = std::make_shared<ChLinkPointFrame>();
+                auto constraint = chrono_types::make_shared<ChLinkPointFrame>();
                 constraint->Initialize(mnode, truss);
                 my_system.Add(constraint);
 
                 // For example, attach small cube to show the constraint
-                auto mboxfloor = std::make_shared<ChBoxShape>();
+                auto mboxfloor = chrono_types::make_shared<ChBoxShape>();
                 mboxfloor->GetBoxGeometry().Size = ChVector<>(0.005);
                 constraint->AddAsset(mboxfloor);
 
@@ -185,20 +185,20 @@ int main(int argc, char* argv[]) {
     // postprocessor that can handle a colored ChTriangleMeshShape).
     // Do not forget AddAsset() at the end!
 
-    auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddAsset(mvisualizemesh);
 
-    auto mvisualizemeshref = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshref = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshref->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
     mvisualizemeshref->SetWireframe(true);
     mvisualizemeshref->SetDrawInUndeformedReference(true);
     my_mesh->AddAsset(mvisualizemeshref);
 
-    auto mvisualizemeshC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
     mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     mvisualizemeshC->SetSymbolsThickness(0.006);
@@ -236,7 +236,7 @@ int main(int argc, char* argv[]) {
     /*
     //// TEST
     ChMatlabEngine matlab_engine;
-    auto matlab_solver = std::make_shared<ChSolverMatlab>(matlab_engine);
+    auto matlab_solver = chrono_types::make_shared<ChSolverMatlab>(matlab_engine);
     my_system.SetSolver(matlab_solver);
     */
     application.SetTimestep(0.001);

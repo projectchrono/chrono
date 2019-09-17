@@ -40,8 +40,7 @@ class ChApi ChConstraintTwoGenericBoxed : public ChConstraintTwoGeneric {
     ChConstraintTwoGenericBoxed() : l_min(-1), l_max(1) {}
 
     /// Construct and immediately set references to variables
-    ChConstraintTwoGenericBoxed(ChVariables* mvariables_a, ChVariables* mvariables_b)
-        : ChConstraintTwoGeneric(mvariables_a, mvariables_b), l_min(-1), l_max(1) {}
+    ChConstraintTwoGenericBoxed(ChVariables* mvariables_a, ChVariables* mvariables_b);
 
     /// Copy constructor
     ChConstraintTwoGenericBoxed(const ChConstraintTwoGenericBoxed& other);
@@ -59,6 +58,7 @@ class ChApi ChConstraintTwoGenericBoxed : public ChConstraintTwoGeneric {
 
     /// Get the lower limit for the multiplier
     double GetBoxedMin() { return l_min; }
+
     /// Get the upper limit for the multiplier
     double GetBoxedMax() { return l_max; }
 

@@ -19,7 +19,6 @@
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChMath.h"
-#include "chrono/core/ChVectorDynamic.h"
 #include "chrono/timestepper/ChState.h"
 
 namespace chrono {
@@ -45,8 +44,8 @@ class ChApi ChIntegrable {
 
     /// Set up the system state.
     virtual void StateSetup(ChState& y, ChStateDelta& dy) {
-        y.Resize(GetNcoords_y(), 1);
-        dy.Resize(GetNcoords_dy(), 1);
+        y.resize(GetNcoords_y());
+        dy.resize(GetNcoords_dy());
     }
 
     /// Gather system state in specified array.
@@ -468,7 +467,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
 /// "y_new = y + Dy", invokes the specialized StateIncrement() in the ChIntegrable. If none is 
 /// provided, this defaults to a simple vector sum
 inline ChState operator+(const ChState& y, const ChStateDelta& Dy) {
-    ChState result(y.GetRows(), y.GetIntegrable());
+    ChState result(y.size(), y.GetIntegrable());
     y.GetIntegrable()->StateIncrement(result, y, Dy);
     return result;
 }
@@ -482,7 +481,7 @@ inline ChState& operator+=(ChState& y, const ChStateDelta& Dy) {
 /// "y_new = Dy + y", invokes the specialized StateIncrement() in the ChIntegrable. If none is 
 /// provided, this defaults to a simple vector sum
 inline ChState operator+(const ChStateDelta& Dy, const ChState& y) {
-    ChState result(y.GetRows(), y.GetIntegrable());
+    ChState result(y.size(), y.GetIntegrable());
     y.GetIntegrable()->StateIncrement(result, y, Dy);
     return result;
 }

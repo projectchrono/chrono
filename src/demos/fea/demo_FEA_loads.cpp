@@ -49,12 +49,12 @@ void test_1() {
     ChSystemNSC my_system;
 
     // Create a mesh:
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
     my_system.Add(my_mesh);
 
     // Create some nodes.
-    auto mnodeA = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(0, 0, 0)));
-    auto mnodeB = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(2, 0, 0)));
+    auto mnodeA = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(0, 0, 0)));
+    auto mnodeB = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(2, 0, 0)));
 
     // Default mass for FEM nodes is zero
     mnodeA->SetMass(0.0);
@@ -64,7 +64,7 @@ void test_1() {
     my_mesh->AddNode(mnodeB);
 
     // Create beam section & material
-    auto msection = std::make_shared<ChBeamSectionAdvanced>();
+    auto msection = chrono_types::make_shared<ChBeamSectionAdvanced>();
     double beam_wy = 0.1;
     double beam_wz = 0.2;
     msection->SetAsRectangularSection(beam_wy, beam_wz);
@@ -74,18 +74,18 @@ void test_1() {
     msection->SetDensity(1500);
 
     // Create a beam of Eulero-Bernoulli type:
-    auto melementA = std::make_shared<ChElementBeamEuler>();
+    auto melementA = chrono_types::make_shared<ChElementBeamEuler>();
     melementA->SetNodes(mnodeA, mnodeB);
     melementA->SetSection(msection);
     my_mesh->AddElement(melementA);
 
     // Create also a truss
-    auto truss = std::make_shared<ChBody>();
+    auto truss = chrono_types::make_shared<ChBody>();
     truss->SetBodyFixed(true);
     my_system.Add(truss);
 
     // Create a constraint at the end of the beam
-    auto constr_a = std::make_shared<ChLinkMateGeneric>();
+    auto constr_a = chrono_types::make_shared<ChLinkMateGeneric>();
     constr_a->Initialize(mnodeA, truss, false, mnodeA->Frame(), mnodeA->Frame());
     my_system.Add(constr_a);
     constr_a->SetConstrainedCoords(true, true, true,   // x, y, z
@@ -95,13 +95,13 @@ void test_1() {
 
     // First: loads must be added to "load containers",
     // and load containers must be added to your system
-    auto mloadcontainer = std::make_shared<ChLoadContainer>();
+    auto mloadcontainer = chrono_types::make_shared<ChLoadContainer>();
     my_system.Add(mloadcontainer);
 
     // Example 1:
 
     // Add a vertical load to the end of the beam element:
-    auto mwrench = std::make_shared<ChLoadBeamWrench>(melementA);
+    auto mwrench = chrono_types::make_shared<ChLoadBeamWrench>(melementA);
     mwrench->loader.SetApplication(1.0);  // in -1..+1 range, -1: end A, 0: mid, +1: end B
     mwrench->loader.SetForce(ChVector<>(0, -0.2, 0));
     mloadcontainer->Add(mwrench);  // do not forget to add the load to the load container.
@@ -109,14 +109,14 @@ void test_1() {
     // Example 2:
 
     // Add a distributed load along the beam element:
-    auto mwrenchdis = std::make_shared<ChLoadBeamWrenchDistributed>(melementA);
+    auto mwrenchdis = chrono_types::make_shared<ChLoadBeamWrenchDistributed>(melementA);
     mwrenchdis->loader.SetForcePerUnit(ChVector<>(0, -0.1, 0));  // load per unit length
     mloadcontainer->Add(mwrenchdis);
 
     // Example 3:
 
     // Add gravity (constant volumetric load)
-    auto mgravity = std::make_shared<ChLoad<ChLoaderGravity>>(melementA);
+    auto mgravity = chrono_types::make_shared<ChLoad<ChLoaderGravity>>(melementA);
     mloadcontainer->Add(mgravity);
 
     // note that by default all solid elements in the mesh will already
@@ -149,8 +149,8 @@ void test_1() {
             ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate F
             ) {
             double Fy_max = 0.005;
-            F.PasteVector(ChVector<>(0, (((1 + U) / 2) * Fy_max), 0), 0, 0);  // load, force part; hardwired for brevity
-            F.PasteVector(ChVector<>(0, 0, 0), 3, 0);  // load, torque part; hardwired for brevity
+            F.segment(0, 3) = ChVector<>(0, ((1 + U) / 2) * Fy_max, 0).eigen();  // load, force part
+            F.segment(3, 3).setZero();                                             // load, torque part
         }
 
         // Needed because inheriting ChLoaderUdistributed. Use 1 because linear load fx.
@@ -170,7 +170,7 @@ void test_1() {
     // As a stiff load, this will automatically generate a jacobian (tangent stiffness matrix K)
     // that will be used in statics, implicit integrators, etc.
 
-    auto mnodeC = std::make_shared<ChNodeFEAxyz>(ChVector<>(2, 10, 3));
+    auto mnodeC = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(2, 10, 3));
     my_mesh->AddNode(mnodeC);
 
     class MyLoaderPointStiff : public ChLoaderUVWatomic {
@@ -192,8 +192,8 @@ void test_1() {
             ChVector<> node_pos;
             ChVector<> node_vel;
             if (state_x) {
-                node_pos = state_x->ClipVector(0, 0);
-                node_vel = state_w->ClipVector(0, 0);
+                node_pos = state_x->segment(0, 3);
+                node_vel = state_w->segment(0, 3);
             } else {
                 node_pos = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadable)->GetPos();
                 node_vel = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadable)->GetPos_dt();
@@ -232,7 +232,7 @@ void test_1() {
     // As a stiff load, this will automatically generate a jacobian (tangent stiffness matrix K)
     // that will be used in statics, implicit integrators, etc.
 
-    auto mnodeD = std::make_shared<ChNodeFEAxyz>(ChVector<>(2, 10, 3));
+    auto mnodeD = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(2, 10, 3));
     my_mesh->AddNode(mnodeD);
 
     class MyLoadCustom : public ChLoadCustom {
@@ -253,8 +253,8 @@ void test_1() {
             ChVector<> node_pos;
             ChVector<> node_vel;
             if (state_x && state_w) {
-                node_pos = state_x->ClipVector(0, 0);
-                node_vel = state_w->ClipVector(0, 0);
+                node_pos = state_x->segment(0, 3);
+                node_vel = state_w->segment(0, 3);
             } else {
                 node_pos = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadable)->GetPos();
                 node_vel = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadable)->GetPos_dt();
@@ -280,9 +280,9 @@ void test_1() {
         // default numerical jacobian, just implement the following:
         virtual void ComputeJacobian(ChState* state_x,       ///< state position to evaluate jacobians
                                      ChStateDelta* state_w,  ///< state speed to evaluate jacobians
-                                     ChMatrix<>& mK,         ///< result dQ/dx
-                                     ChMatrix<>& mR,         ///< result dQ/dv
-                                     ChMatrix<>& mM          ///< result dQ/da
+                                     ChMatrixRef mK,         ///< result dQ/dx
+                                     ChMatrixRef mR,         ///< result dQ/dv
+                                     ChMatrixRef mM          ///< result dQ/da
                                      ) override {
             mK(0, 0) = 100;
             mK(1, 1) = 400;
@@ -295,7 +295,7 @@ void test_1() {
     };
 
     // Instance load object, applying to a node, as in previous example, and add to container:
-    auto mloadcustom = std::make_shared<MyLoadCustom>(mnodeD);
+    auto mloadcustom = chrono_types::make_shared<MyLoadCustom>(mnodeD);
     mloadcontainer->Add(mloadcustom);
 
     // Example 7:
@@ -308,9 +308,9 @@ void test_1() {
     // by default using numerical differentiation; but if you want you
     // can override ComputeJacobian() and compute mK, mR analytically - see prev.example.
 
-    auto mnodeE = std::make_shared<ChNodeFEAxyz>(ChVector<>(2, 10, 3));
+    auto mnodeE = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(2, 10, 3));
     my_mesh->AddNode(mnodeE);
-    auto mnodeF = std::make_shared<ChNodeFEAxyz>(ChVector<>(2, 11, 3));
+    auto mnodeF = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(2, 11, 3));
     my_mesh->AddNode(mnodeF);
 
     class MyLoadCustomMultiple : public ChLoadCustomMultiple {
@@ -335,10 +335,10 @@ void test_1() {
             ChVector<> Fnode_pos;
             ChVector<> Fnode_vel;
             if (state_x && state_w) {
-                Enode_pos = state_x->ClipVector(0, 0);
-                Enode_vel = state_w->ClipVector(0, 0);
-                Fnode_pos = state_x->ClipVector(3, 0);
-                Fnode_vel = state_w->ClipVector(3, 0);
+                Enode_pos = state_x->segment(0, 3);
+                Enode_vel = state_w->segment(0, 3);
+                Fnode_pos = state_x->segment(3, 3);
+                Fnode_vel = state_w->segment(3, 3);
             } else {
                 // explicit integrators might call ComputeQ(0,0), null pointers mean
                 // that we assume current state, without passing state_x for efficiency
@@ -385,7 +385,7 @@ void test_1() {
     std::vector<std::shared_ptr<ChLoadable>> mnodelist;
     mnodelist.push_back(mnodeE);
     mnodelist.push_back(mnodeF);
-    auto mloadcustommultiple = std::make_shared<MyLoadCustomMultiple>(mnodelist);
+    auto mloadcustommultiple = chrono_types::make_shared<MyLoadCustomMultiple>(mnodelist);
     mloadcontainer->Add(mloadcustommultiple);
 
     ///////////////////////////////////////

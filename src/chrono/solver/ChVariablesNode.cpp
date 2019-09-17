@@ -36,9 +36,10 @@ ChVariablesNode& ChVariablesNode::operator=(const ChVariablesNode& other) {
 }
 
 // Computes the product of the inverse mass matrix by a vector, and set in result: result = [invMb]*vect
-void ChVariablesNode::Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
-    assert(vect.GetRows() == Get_ndof());
-    assert(result.GetRows() == Get_ndof());
+void ChVariablesNode::Compute_invMb_v(ChVectorRef result, ChVectorConstRef vect) const {
+    assert(vect.size() == Get_ndof());
+    assert(result.size() == Get_ndof());
+
     // optimized unrolled operations
     double inv_mass = 1.0 / mass;
     result(0) = inv_mass * vect(0);
@@ -47,9 +48,10 @@ void ChVariablesNode::Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<d
 }
 
 // Computes the product of the inverse mass matrix by a vector, and increment result: result += [invMb]*vect
-void ChVariablesNode::Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
-    assert(vect.GetRows() == Get_ndof());
-    assert(result.GetRows() == Get_ndof());
+void ChVariablesNode::Compute_inc_invMb_v(ChVectorRef result, ChVectorConstRef vect) const {
+    assert(vect.size() == Get_ndof());
+    assert(result.size() == Get_ndof());
+
     // optimized unrolled operations
     double inv_mass = 1.0 / mass;
     result(0) += inv_mass * vect(0);
@@ -58,23 +60,21 @@ void ChVariablesNode::Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatr
 }
 
 // Computes the product of the mass matrix by a vector, and set in result: result = [Mb]*vect
-void ChVariablesNode::Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
-    assert(result.GetRows() == vect.GetRows());
-    assert(vect.GetRows() == Get_ndof());
+void ChVariablesNode::Compute_inc_Mb_v(ChVectorRef result, ChVectorConstRef vect) const {
+    assert(result.size() == Get_ndof());
+    assert(vect.size() == Get_ndof());
+
     // optimized unrolled operations
     result(0) += mass * vect(0);
     result(1) += mass * vect(1);
     result(2) += mass * vect(2);
 }
 
-// Computes the product of the corresponding block in the
-// system matrix (ie. the mass matrix) by 'vect', scale by c_a, and add to 'result'.
-// NOTE: the 'vect' and 'result' vectors must already have
-// the size of the total variables&constraints in the system; the procedure
-// will use the ChVariable offsets (that must be already updated) to know the
-// indexes in result and vect.
-void ChVariablesNode::MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect, const double c_a) const {
-    assert(result.GetColumns() == 1 && vect.GetColumns() == 1);
+// Computes the product of the corresponding block in the system matrix (ie. the mass matrix) by 'vect', scale by c_a,
+// and add to 'result'.
+// NOTE: the 'vect' and 'result' vectors must already have the size of the total variables&constraints in the system;
+// the procedure will use the ChVariable offsets (that must be already updated) to know the indexes in result and vect.
+void ChVariablesNode::MultiplyAndAdd(ChVectorRef result, ChVectorConstRef vect, const double c_a) const {
     // optimized unrolled operations
     double scaledmass = c_a * mass;
     result(this->offset) += scaledmass * vect(this->offset);
@@ -83,11 +83,9 @@ void ChVariablesNode::MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<do
 }
 
 // Add the diagonal of the mass matrix scaled by c_a, to 'result'.
-// NOTE: the 'result' vector must already have the size of system unknowns, ie
-// the size of the total variables&constraints in the system; the procedure
-// will use the ChVariable offset (that must be already updated) as index.
-void ChVariablesNode::DiagonalAdd(ChMatrix<double>& result, const double c_a) const {
-    assert(result.GetColumns() == 1);
+// NOTE: the 'result' vector must already have the size of system unknowns, ie the size of the total variables &
+// constraints in the system; the procedure will use the ChVariable offset (that must be already updated) as index.
+void ChVariablesNode::DiagonalAdd(ChVectorRef result, const double c_a) const {
     result(this->offset) += c_a * mass;
     result(this->offset + 1) += c_a * mass;
     result(this->offset + 2) += c_a * mass;

@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
 #ifndef CHCONTACTSURFACEMESH_H
@@ -91,16 +91,16 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
 
     /// Get all the DOFs packed in a single vector (position part)
     virtual void ContactableGetStateBlock_x(ChState& x) override {
-        x.PasteVector(this->mnode1->pos, 0, 0);
-        x.PasteVector(this->mnode2->pos, 3, 0);
-        x.PasteVector(this->mnode3->pos, 6, 0);
+        x.segment(0, 3) = this->mnode1->pos.eigen();
+        x.segment(3, 3) = this->mnode2->pos.eigen();
+        x.segment(6, 3) = this->mnode3->pos.eigen();
     }
 
     /// Get all the DOFs packed in a single vector (speed part)
     virtual void ContactableGetStateBlock_w(ChStateDelta& w) override {
-        w.PasteVector(this->mnode1->pos_dt, 0, 0);
-        w.PasteVector(this->mnode2->pos_dt, 3, 0);
-        w.PasteVector(this->mnode3->pos_dt, 6, 0);
+        w.segment(0, 3) = this->mnode1->pos_dt.eigen();
+        w.segment(3, 3) = this->mnode2->pos_dt.eigen();
+        w.segment(6, 3) = this->mnode3->pos_dt.eigen();
     }
 
     /// Increment the provided state of this object by the given state-delta increment.
@@ -121,9 +121,9 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
         this->ComputeUVfromP(loc_point, s2, s3);
         double s1 = 1 - s2 - s3;
 
-        ChVector<> A1 = state_x.ClipVector(0, 0);
-        ChVector<> A2 = state_x.ClipVector(3, 0);
-        ChVector<> A3 = state_x.ClipVector(6, 0);
+        ChVector<> A1(state_x.segment(0, 3));
+        ChVector<> A2(state_x.segment(3, 3));
+        ChVector<> A3(state_x.segment(6, 3));
 
         return s1 * A1 + s2 * A2 + s3 * A3;
     }
@@ -142,9 +142,9 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
         this->ComputeUVfromP(loc_point, s2, s3);
         double s1 = 1 - s2 - s3;
 
-        ChVector<> A1_dt = state_w.ClipVector(0, 0);
-        ChVector<> A2_dt = state_w.ClipVector(3, 0);
-        ChVector<> A3_dt = state_w.ClipVector(6, 0);
+        ChVector<> A1_dt(state_w.segment(0, 3));
+        ChVector<> A2_dt(state_w.segment(3, 3));
+        ChVector<> A3_dt(state_w.segment(6, 3));
 
         return s1 * A1_dt + s2 * A2_dt + s3 * A3_dt;
     }
@@ -171,9 +171,9 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
         double s2, s3;
         this->ComputeUVfromP(abs_point, s2, s3);
         double s1 = 1 - s2 - s3;
-        R.PasteSumVector(F * s1, this->mnode1->NodeGetOffset_w(), 0);
-        R.PasteSumVector(F * s2, this->mnode2->NodeGetOffset_w(), 0);
-        R.PasteSumVector(F * s3, this->mnode3->NodeGetOffset_w(), 0);
+        R.segment(this->mnode1->NodeGetOffset_w(), 3) += F.eigen() * s1;
+        R.segment(this->mnode2->NodeGetOffset_w(), 3) += F.eigen() * s2;
+        R.segment(this->mnode3->NodeGetOffset_w(), 3) += F.eigen() * s3;
     }
 
     /// Apply the given force at the given point and load the generalized force array.
@@ -186,9 +186,9 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
                                    ChVectorDynamic<>& Q,
                                    int offset) override {
         // Calculate barycentric coordinates
-        ChVector<> A1 = state_x.ClipVector(0, 0);
-        ChVector<> A2 = state_x.ClipVector(3, 0);
-        ChVector<> A3 = state_x.ClipVector(6, 0);
+        ChVector<> A1(state_x.segment(0, 3));
+        ChVector<> A2(state_x.segment(3, 3));
+        ChVector<> A3(state_x.segment(6, 3));
 
         double s2, s3;
         double dist;
@@ -196,9 +196,9 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
         ChVector<> p_projected;
         dist = collision::ChCollisionUtils::PointTriangleDistance(point, A1, A2, A3, s2, s3, is_into, p_projected);
         double s1 = 1 - s2 - s3;
-        Q.PasteVector(F * s1, offset + 0, 0);
-        Q.PasteVector(F * s2, offset + 3, 0);
-        Q.PasteVector(F * s3, offset + 6, 0);
+        Q.segment(offset + 0, 3) = F.eigen() * s1;
+        Q.segment(offset + 3, 3) = F.eigen() * s2;
+        Q.segment(offset + 6, 3) = F.eigen() * s3;
     }
 
     /// Compute the jacobian(s) part(s) for this contactable item. For example,
@@ -222,29 +222,28 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
                                     s2, s3, is_into, p_projected);
         double s1 = 1 - s2 - s3;
 
-        ChMatrix33<> Jx1;
-
-        Jx1.CopyFromMatrixT(contact_plane);
+        ChMatrix33<> Jx1 = contact_plane.transpose();
         if (!second)
-            Jx1.MatrNeg();
-        jacobian_tuple_N.Get_Cq_1()->PasteClippedMatrix(Jx1, 0, 0, 1, 3, 0, 0);
-        jacobian_tuple_U.Get_Cq_1()->PasteClippedMatrix(Jx1, 1, 0, 1, 3, 0, 0);
-        jacobian_tuple_V.Get_Cq_1()->PasteClippedMatrix(Jx1, 2, 0, 1, 3, 0, 0);
-        jacobian_tuple_N.Get_Cq_1()->MatrScale(s1);
-        jacobian_tuple_U.Get_Cq_1()->MatrScale(s1);
-        jacobian_tuple_V.Get_Cq_1()->MatrScale(s1);
-        jacobian_tuple_N.Get_Cq_2()->PasteClippedMatrix(Jx1, 0, 0, 1, 3, 0, 0);
-        jacobian_tuple_U.Get_Cq_2()->PasteClippedMatrix(Jx1, 1, 0, 1, 3, 0, 0);
-        jacobian_tuple_V.Get_Cq_2()->PasteClippedMatrix(Jx1, 2, 0, 1, 3, 0, 0);
-        jacobian_tuple_N.Get_Cq_2()->MatrScale(s2);
-        jacobian_tuple_U.Get_Cq_2()->MatrScale(s2);
-        jacobian_tuple_V.Get_Cq_2()->MatrScale(s2);
-        jacobian_tuple_N.Get_Cq_3()->PasteClippedMatrix(Jx1, 0, 0, 1, 3, 0, 0);
-        jacobian_tuple_U.Get_Cq_3()->PasteClippedMatrix(Jx1, 1, 0, 1, 3, 0, 0);
-        jacobian_tuple_V.Get_Cq_3()->PasteClippedMatrix(Jx1, 2, 0, 1, 3, 0, 0);
-        jacobian_tuple_N.Get_Cq_3()->MatrScale(s3);
-        jacobian_tuple_U.Get_Cq_3()->MatrScale(s3);
-        jacobian_tuple_V.Get_Cq_3()->MatrScale(s3);
+            Jx1 *= -1;
+
+        jacobian_tuple_N.Get_Cq_1().segment(0,3) = Jx1.row(0);
+        jacobian_tuple_U.Get_Cq_1().segment(0,3) = Jx1.row(1);
+        jacobian_tuple_V.Get_Cq_1().segment(0,3) = Jx1.row(2);
+        jacobian_tuple_N.Get_Cq_1() *= s1;
+        jacobian_tuple_U.Get_Cq_1() *= s1;
+        jacobian_tuple_V.Get_Cq_1() *= s1;
+        jacobian_tuple_N.Get_Cq_2().segment(0,3) = Jx1.row(0);
+        jacobian_tuple_U.Get_Cq_2().segment(0,3) = Jx1.row(1);
+        jacobian_tuple_V.Get_Cq_2().segment(0,3) = Jx1.row(2);
+        jacobian_tuple_N.Get_Cq_2() *= s2;
+        jacobian_tuple_U.Get_Cq_2() *= s2;
+        jacobian_tuple_V.Get_Cq_2() *= s2;
+        jacobian_tuple_N.Get_Cq_3().segment(0,3) = Jx1.row(0);
+        jacobian_tuple_U.Get_Cq_3().segment(0,3) = Jx1.row(1);
+        jacobian_tuple_V.Get_Cq_3().segment(0,3) = Jx1.row(2);
+        jacobian_tuple_N.Get_Cq_3() *= s3;
+        jacobian_tuple_U.Get_Cq_3() *= s3;
+        jacobian_tuple_V.Get_Cq_3() *= s3;
     }
 
     /// Might be needed by some SMC models
@@ -414,22 +413,26 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
 
     /// Get all the DOFs packed in a single vector (position part)
     virtual void ContactableGetStateBlock_x(ChState& x) override {
-        x.PasteVector(this->mnode1->GetPos(), 0, 0);
-        x.PasteQuaternion(this->mnode1->GetRot(), 3, 0);
-        x.PasteVector(this->mnode2->GetPos(), 7, 0);
-        x.PasteQuaternion(this->mnode2->GetRot(), 10, 0);
-        x.PasteVector(this->mnode3->GetPos(), 14, 0);
-        x.PasteQuaternion(this->mnode3->GetRot(), 17, 0);
+        x.segment(0, 3) = this->mnode1->GetPos().eigen();
+        x.segment(3, 4) = this->mnode1->GetRot().eigen();
+
+        x.segment(7, 3) = this->mnode2->GetPos().eigen();
+        x.segment(10, 4) = this->mnode2->GetRot().eigen();
+
+        x.segment(14, 3) = this->mnode3->GetPos().eigen();
+        x.segment(17, 4) = this->mnode3->GetRot().eigen();
     }
 
     /// Get all the DOFs packed in a single vector (speed part)
     virtual void ContactableGetStateBlock_w(ChStateDelta& w) override {
-        w.PasteVector(this->mnode1->GetPos_dt(), 0, 0);
-        w.PasteVector(this->mnode1->GetWvel_loc(), 3, 0);
-        w.PasteVector(this->mnode2->GetPos_dt(), 6, 0);
-        w.PasteVector(this->mnode2->GetWvel_loc(), 9, 0);
-        w.PasteVector(this->mnode3->GetPos_dt(), 12, 0);
-        w.PasteVector(this->mnode3->GetWvel_loc(), 15, 0);
+        w.segment(0, 3) = this->mnode1->GetPos_dt().eigen();
+        w.segment(3, 3) = this->mnode1->GetWvel_loc().eigen();
+
+        w.segment(6, 3) = this->mnode2->GetPos_dt().eigen();
+        w.segment(9, 3) = this->mnode2->GetWvel_loc().eigen();
+
+        w.segment(12, 3) = this->mnode3->GetPos_dt().eigen();
+        w.segment(15, 3) = this->mnode3->GetWvel_loc().eigen();
     }
 
     /// Increment the provided state of this object by the given state-delta increment.
@@ -450,9 +453,9 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
         this->ComputeUVfromP(loc_point, s2, s3);
         double s1 = 1 - s2 - s3;
 
-        ChVector<> A1 = state_x.ClipVector(0, 0);
-        ChVector<> A2 = state_x.ClipVector(7, 0);
-        ChVector<> A3 = state_x.ClipVector(14, 0);
+        ChVector<> A1(state_x.segment(0, 3));
+        ChVector<> A2(state_x.segment(7, 3));
+        ChVector<> A3(state_x.segment(14, 3));
 
         return s1 * A1 + s2 * A2 + s3 * A3;
     }
@@ -471,9 +474,9 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
         this->ComputeUVfromP(loc_point, s2, s3);
         double s1 = 1 - s2 - s3;
 
-        ChVector<> A1_dt = state_w.ClipVector(0, 0);
-        ChVector<> A2_dt = state_w.ClipVector(6, 0);
-        ChVector<> A3_dt = state_w.ClipVector(12, 0);
+        ChVector<> A1_dt(state_w.segment(0, 3));
+        ChVector<> A2_dt(state_w.segment(6, 3));
+        ChVector<> A3_dt(state_w.segment(12, 3));
 
         return s1 * A1_dt + s2 * A2_dt + s3 * A3_dt;
     }
@@ -500,9 +503,9 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
         double s2, s3;
         this->ComputeUVfromP(abs_point, s2, s3);
         double s1 = 1 - s2 - s3;
-        R.PasteSumVector(F * s1, this->mnode1->NodeGetOffset_w(), 0);
-        R.PasteSumVector(F * s2, this->mnode2->NodeGetOffset_w(), 0);
-        R.PasteSumVector(F * s3, this->mnode3->NodeGetOffset_w(), 0);
+        R.segment(this->mnode1->NodeGetOffset_w(), 3) += F.eigen() * s1;
+        R.segment(this->mnode2->NodeGetOffset_w(), 3) += F.eigen() * s2;
+        R.segment(this->mnode3->NodeGetOffset_w(), 3) += F.eigen() * s3;
     }
 
     /// Apply the given force at the given point and load the generalized force array.
@@ -515,9 +518,9 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
                                    ChVectorDynamic<>& Q,
                                    int offset) override {
         // Calculate barycentric coordinates
-        ChVector<> A1 = state_x.ClipVector(0, 0);
-        ChVector<> A2 = state_x.ClipVector(7, 0);
-        ChVector<> A3 = state_x.ClipVector(14, 0);
+        ChVector<> A1(state_x.segment(0, 3));
+        ChVector<> A2(state_x.segment(7, 3));
+        ChVector<> A3(state_x.segment(14, 3));
 
         double s2, s3;
         double dist;
@@ -525,9 +528,9 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
         ChVector<> p_projected;
         dist = collision::ChCollisionUtils::PointTriangleDistance(point, A1, A2, A3, s2, s3, is_into, p_projected);
         double s1 = 1 - s2 - s3;
-        Q.PasteVector(F * s1, offset + 0, 0);
-        Q.PasteVector(F * s2, offset + 6, 0);
-        Q.PasteVector(F * s3, offset + 12, 0);
+        Q.segment(offset + 0, 3) = F.eigen() * s1;
+        Q.segment(offset + 6, 3) = F.eigen() * s2;
+        Q.segment(offset + 12, 3) = F.eigen() * s3;
     }
 
     /// Compute the jacobian(s) part(s) for this contactable item. For example,
@@ -550,29 +553,28 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
                                     s2, s3, is_into, p_projected);
         double s1 = 1 - s2 - s3;
 
-        ChMatrix33<> Jx1;
-
-        Jx1.CopyFromMatrixT(contact_plane);
+        ChMatrix33<> Jx1 = contact_plane.transpose();
         if (!second)
-            Jx1.MatrNeg();
-        jacobian_tuple_N.Get_Cq_1()->PasteClippedMatrix(Jx1, 0, 0, 1, 3, 0, 0);
-        jacobian_tuple_U.Get_Cq_1()->PasteClippedMatrix(Jx1, 1, 0, 1, 3, 0, 0);
-        jacobian_tuple_V.Get_Cq_1()->PasteClippedMatrix(Jx1, 2, 0, 1, 3, 0, 0);
-        jacobian_tuple_N.Get_Cq_1()->MatrScale(s1);
-        jacobian_tuple_U.Get_Cq_1()->MatrScale(s1);
-        jacobian_tuple_V.Get_Cq_1()->MatrScale(s1);
-        jacobian_tuple_N.Get_Cq_2()->PasteClippedMatrix(Jx1, 0, 0, 1, 3, 0, 0);
-        jacobian_tuple_U.Get_Cq_2()->PasteClippedMatrix(Jx1, 1, 0, 1, 3, 0, 0);
-        jacobian_tuple_V.Get_Cq_2()->PasteClippedMatrix(Jx1, 2, 0, 1, 3, 0, 0);
-        jacobian_tuple_N.Get_Cq_2()->MatrScale(s2);
-        jacobian_tuple_U.Get_Cq_2()->MatrScale(s2);
-        jacobian_tuple_V.Get_Cq_2()->MatrScale(s2);
-        jacobian_tuple_N.Get_Cq_3()->PasteClippedMatrix(Jx1, 0, 0, 1, 3, 0, 0);
-        jacobian_tuple_U.Get_Cq_3()->PasteClippedMatrix(Jx1, 1, 0, 1, 3, 0, 0);
-        jacobian_tuple_V.Get_Cq_3()->PasteClippedMatrix(Jx1, 2, 0, 1, 3, 0, 0);
-        jacobian_tuple_N.Get_Cq_3()->MatrScale(s3);
-        jacobian_tuple_U.Get_Cq_3()->MatrScale(s3);
-        jacobian_tuple_V.Get_Cq_3()->MatrScale(s3);
+            Jx1 *= -1;
+
+        jacobian_tuple_N.Get_Cq_1().segment(0,3) = Jx1.row(0);
+        jacobian_tuple_U.Get_Cq_1().segment(0,3) = Jx1.row(1);
+        jacobian_tuple_V.Get_Cq_1().segment(0,3) = Jx1.row(2);
+        jacobian_tuple_N.Get_Cq_1() *= s1;
+        jacobian_tuple_U.Get_Cq_1() *= s1;
+        jacobian_tuple_V.Get_Cq_1() *= s1;
+        jacobian_tuple_N.Get_Cq_2().segment(0,3) = Jx1.row(0);
+        jacobian_tuple_U.Get_Cq_2().segment(0,3) = Jx1.row(1);
+        jacobian_tuple_V.Get_Cq_2().segment(0,3) = Jx1.row(2);
+        jacobian_tuple_N.Get_Cq_2() *= s2;
+        jacobian_tuple_U.Get_Cq_2() *= s2;
+        jacobian_tuple_V.Get_Cq_2() *= s2;
+        jacobian_tuple_N.Get_Cq_3().segment(0,3) = Jx1.row(0);
+        jacobian_tuple_U.Get_Cq_3().segment(0,3) = Jx1.row(1);
+        jacobian_tuple_V.Get_Cq_3().segment(0,3) = Jx1.row(2);
+        jacobian_tuple_N.Get_Cq_3() *= s3;
+        jacobian_tuple_U.Get_Cq_3() *= s3;
+        jacobian_tuple_V.Get_Cq_3() *= s3;
     }
 
     /// Might be needed by some SMC models

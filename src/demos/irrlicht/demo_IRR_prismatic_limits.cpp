@@ -37,30 +37,30 @@ int main(int argc, char* argv[]) {
     // Create the ground body
     // ----------------------
 
-    auto ground = std::make_shared<ChBody>();
+    auto ground = chrono_types::make_shared<ChBody>();
     system.AddBody(ground);
     ground->SetIdentifier(-1);
     ground->SetBodyFixed(true);
     ground->SetCollide(false);
 
-    auto rail1 = std::make_shared<ChBoxShape>();
+    auto rail1 = chrono_types::make_shared<ChBoxShape>();
     rail1->GetBoxGeometry().SetLengths(ChVector<>(8, 0.1, 0.1));
     rail1->GetBoxGeometry().Pos = ChVector<>(0, 0, -1);
     ground->AddAsset(rail1);
 
-    auto rail2 = std::make_shared<ChBoxShape>();
+    auto rail2 = chrono_types::make_shared<ChBoxShape>();
     rail2->GetBoxGeometry().SetLengths(ChVector<>(8, 0.1, 0.1));
     rail2->GetBoxGeometry().Pos = ChVector<>(0, 0, +1);
     ground->AddAsset(rail2);
 
-    auto col = std::make_shared<ChColorAsset>();
+    auto col = chrono_types::make_shared<ChColorAsset>();
     col->SetColor(ChColor(0.6f, 0.6f, 0.6f));
     ground->AddAsset(col);
 
     // Create the slider bodies
     // ------------------------
 
-    auto slider1 = std::make_shared<ChBody>();
+    auto slider1 = chrono_types::make_shared<ChBody>();
     system.AddBody(slider1);
     slider1->SetIdentifier(1);
     slider1->SetBodyFixed(false);
@@ -69,17 +69,17 @@ int main(int argc, char* argv[]) {
     slider1->SetInertiaXX(ChVector<>(0.1, 0.1, 0.1));
     slider1->SetPos(ChVector<>(-4, 0, -1));
 
-    auto cyl1 = std::make_shared<ChCylinderShape>();
+    auto cyl1 = chrono_types::make_shared<ChCylinderShape>();
     cyl1->GetCylinderGeometry().p1 = ChVector<>(-0.2, 0, 0);
     cyl1->GetCylinderGeometry().p2 = ChVector<>(+0.2, 0, 0);
     cyl1->GetCylinderGeometry().rad = 0.2;
     slider1->AddAsset(cyl1);
 
-    auto col1 = std::make_shared<ChColorAsset>();
+    auto col1 = chrono_types::make_shared<ChColorAsset>();
     col1->SetColor(ChColor(0.6f, 0, 0));
     slider1->AddAsset(col1);
 
-    auto slider2 = std::make_shared<ChBody>();
+    auto slider2 = chrono_types::make_shared<ChBody>();
     system.AddBody(slider2);
     slider2->SetIdentifier(1);
     slider2->SetBodyFixed(false);
@@ -88,13 +88,13 @@ int main(int argc, char* argv[]) {
     slider2->SetInertiaXX(ChVector<>(0.1, 0.1, 01));
     slider2->SetPos(ChVector<>(-4, 0, +1));
 
-    auto cyl2 = std::make_shared<ChCylinderShape>();
+    auto cyl2 = chrono_types::make_shared<ChCylinderShape>();
     cyl2->GetCylinderGeometry().p1 = ChVector<>(-0.2, 0, 0);
     cyl2->GetCylinderGeometry().p2 = ChVector<>(+0.2, 0, 0);
     cyl2->GetCylinderGeometry().rad = 0.2;
     slider2->AddAsset(cyl2);
 
-    auto col2 = std::make_shared<ChColorAsset>();
+    auto col2 = chrono_types::make_shared<ChColorAsset>();
     col2->SetColor(ChColor(0, 0, 0.6f));
     slider2->AddAsset(col2);
 
@@ -103,32 +103,32 @@ int main(int argc, char* argv[]) {
 
     // Add limit (Z min) on this prismatic joint.
     // The limit value relates to the Z component of the relative marker position 2->1
-    auto prismatic1 = std::make_shared<ChLinkLockPrismatic>();
+    auto prismatic1 = chrono_types::make_shared<ChLinkLockPrismatic>();
     prismatic1->Initialize(ground, slider1, ChCoordsys<>(ChVector<>(0, 0, -1), Q_from_AngY(CH_C_PI_2)));
     prismatic1->GetLimit_Z().SetActive(true);
     prismatic1->GetLimit_Z().SetMin(-6);
     system.AddLink(prismatic1);
 
-    auto prismatic2 = std::make_shared<ChLinkLockPrismatic>();
+    auto prismatic2 = chrono_types::make_shared<ChLinkLockPrismatic>();
     prismatic2->Initialize(ground, slider2, ChCoordsys<>(ChVector<>(0, 0, +1), Q_from_AngY(CH_C_PI_2)));
     system.AddLink(prismatic2);
 
     // Add linear springs to the sliders
     // ---------------------------------
 
-    auto spring1 = std::make_shared<ChLinkSpring>();
+    auto spring1 = chrono_types::make_shared<ChLinkSpring>();
     spring1->Initialize(ground, slider1, true, ChVector<>(0, 0, -1), ChVector<>(0, 0, 0), false, 0);
     spring1->Set_SpringK(10);
     spring1->Set_SpringR(0);
     system.AddLink(spring1);
-    spring1->AddAsset(std::make_shared<ChPointPointSpring>(0.1, 80, 15));
+    spring1->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.1, 80, 15));
 
-    auto spring2 = std::make_shared<ChLinkSpring>();
+    auto spring2 = chrono_types::make_shared<ChLinkSpring>();
     spring2->Initialize(ground, slider2, true, ChVector<>(0, 0, +1), ChVector<>(0, 0, 0), false, 0);
     spring2->Set_SpringK(10);
     spring2->Set_SpringR(0);
     system.AddLink(spring2);
-    spring2->AddAsset(std::make_shared<ChPointPointSpring>(0.1, 80, 15));
+    spring2->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.1, 80, 15));
 
     // Create the Irrlicht application
     // -------------------------------

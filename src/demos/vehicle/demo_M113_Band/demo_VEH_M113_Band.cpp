@@ -290,7 +290,7 @@ int main(int argc, char* argv[]) {
     switch (solver_type) {
 #ifdef CHRONO_MUMPS
         case MUMPS: {
-            auto mumps_solver = std::make_shared<ChSolverMumps>();
+            auto mumps_solver = chrono_types::make_shared<ChSolverMumps>();
             mumps_solver->SetSparsityPatternLock(true);
             mumps_solver->SetVerbose(verbose_solver);
             vehicle.GetSystem()->SetSolver(mumps_solver);
@@ -299,7 +299,7 @@ int main(int argc, char* argv[]) {
 #endif
 #ifdef CHRONO_MKL
         case MKL: {
-            auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+            auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
             mkl_solver->SetSparsityPatternLock(true);
             mkl_solver->SetVerbose(verbose_solver);
             vehicle.GetSystem()->SetSolver(mkl_solver);
@@ -489,18 +489,18 @@ void AddFixedObstacles(ChSystem* system) {
     obstacle->SetCollide(true);
 
     // Visualization
-    auto shape = std::make_shared<ChCylinderShape>();
+    auto shape = chrono_types::make_shared<ChCylinderShape>();
     shape->GetCylinderGeometry().p1 = ChVector<>(0, -length * 0.5, 0);
     shape->GetCylinderGeometry().p2 = ChVector<>(0, length * 0.5, 0);
     shape->GetCylinderGeometry().rad = radius;
     obstacle->AddAsset(shape);
 
-    auto color = std::make_shared<ChColorAsset>();
+    auto color = chrono_types::make_shared<ChColorAsset>();
     color->SetColor(ChColor(1, 1, 1));
     obstacle->AddAsset(color);
 
 #ifdef USE_IRRLICHT
-    auto texture = std::make_shared<ChTexture>();
+    auto texture = chrono_types::make_shared<ChTexture>();
     texture->SetTextureFilename(vehicle::GetDataFile("terrain/textures/tile4.jpg"));
     texture->SetTextureScale(10, 10);
     obstacle->AddAsset(texture);

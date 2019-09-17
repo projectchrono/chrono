@@ -84,10 +84,10 @@ void ChLineNurbs::SetupData(
     if (mpoints.size() < morder + 1)
         throw ChException("ChLineNurbs::SetupData requires at least order+1 control points.");
 
-    if (mknots && mknots->GetLength() != (mpoints.size() + morder + 1))
+    if (mknots && mknots->size() != (mpoints.size() + morder + 1))
         throw ChException("ChLineNurbs::SetupData: knots must have size=n_points+order+1");
 
-    if (weights && weights->GetLength() != mpoints.size())
+    if (weights && weights->size() != mpoints.size())
         throw ChException("ChLineNurbs::SetupData: weights must have size=n_points");
 
     this->p = morder;
@@ -96,18 +96,16 @@ void ChLineNurbs::SetupData(
     int k = n + p + 1;
 
     if (mknots)
-        this->knots.CopyFromMatrix(*mknots);
+        this->knots = *mknots;
     else {
-        this->knots.Reset(n + p + 1);
+        this->knots.setZero(n + p + 1);
         ChBasisToolsBspline::ComputeKnotUniformMultipleEnds(this->knots, p);
     }
 
     if (weights)
-        this->weights.CopyFromMatrix(*weights);
-    else {
-        this->weights.Reset(n);
-        this->weights.FillElem(1.0);
-    }
+        this->weights = *weights;
+    else
+        this->weights.setConstant(n, 1.0);
 }
 
 void ChLineNurbs::ArchiveOUT(ChArchiveOut& marchive) {
@@ -129,8 +127,8 @@ void ChLineNurbs::ArchiveIN(ChArchiveIn& marchive) {
     ChLine::ArchiveIN(marchive);
     // stream in all member data:
     marchive >> CHNVP(points);
-    marchive >> CHNVP(weights);
-    marchive >> CHNVP(knots);
+    ////marchive >> CHNVP(weights);
+    ////marchive >> CHNVP(knots);
     marchive >> CHNVP(p);
 }
 

@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Antonio Recuero
+// Authors: Antonio Recuero, Radu Serban
 // =============================================================================
 // ANCF laminated shell element with eight nodes: High-Order.
 // Element 3833 of paper: 'Analysis of higher-order quadrilateral plate elements
@@ -51,6 +51,8 @@ namespace fea {
 ///
 class ChApi ChElementShellANCF_8 : public ChElementShell, public ChLoadableUV, public ChLoadableUVW {
   public:
+    using ShapeVector = ChMatrixNM<double, 1, 24>;
+
     ChElementShellANCF_8();
     ~ChElementShellANCF_8() {}
 
@@ -88,9 +90,12 @@ class ChApi ChElementShellANCF_8 : public ChElementShell, public ChLoadableUV, p
         double m_detJ0C;
         ChMatrixNM<double, 6, 6> m_T0;
 
+      public:
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
         friend class ChElementShellANCF_8;
-        friend class MyForce_8;
-        friend class MyJacobian_8;
+        friend class ShellANCF8_Force;
+        friend class ShellANCF8_Jacobian;
     };
 
     /// Get the number of nodes used by this element.
@@ -177,44 +182,47 @@ class ChApi ChElementShellANCF_8 : public ChElementShell, public ChLoadableUV, p
     /// as  N = [s1*eye(3) s2*eye(3) s3*eye(3) s4*eye(3)...]; ,
     /// but to avoid wasting zero and repeated elements, here
     /// it stores only the s1 through s24 values in a 1 row, 24 columns matrix!
-    void ShapeFunctions(ChMatrix<>& N, double x, double y, double z);
+    void ShapeFunctions(ShapeVector& N, double x, double y, double z);
 
     /// Fills the Nx shape function derivative matrix with respect to X.
     /// NOTE! to avoid wasting zero and repeated elements, here
     /// it stores only the four values in a 1 row, 24 columns matrix!
-    void ShapeFunctionsDerivativeX(ChMatrix<>& Nx, double x, double y, double z);
+    void ShapeFunctionsDerivativeX(ShapeVector& Nx, double x, double y, double z);
 
     /// Fills the Ny shape function derivative matrix with respect to Y.
     /// NOTE! to avoid wasting zero and repeated elements, here
     /// it stores only the four values in a 1 row, 24 columns matrix!
-    void ShapeFunctionsDerivativeY(ChMatrix<>& Ny, double x, double y, double z);
+    void ShapeFunctionsDerivativeY(ShapeVector& Ny, double x, double y, double z);
 
     /// Fills the Nz shape function derivative matrix with respect to Z.
     /// NOTE! to avoid wasting zero and repeated elements, here
     /// it stores only the four values in a 1 row, 24 columns matrix!
-    void ShapeFunctionsDerivativeZ(ChMatrix<>& Nz, double x, double y, double z);
+    void ShapeFunctionsDerivativeZ(ShapeVector& Nz, double x, double y, double z);
     /// Return a vector with three strain components
     ChVector<> EvaluateSectionStrains();
 
   private:
-    std::vector<std::shared_ptr<ChNodeFEAxyzDD> > m_nodes;  ///< element nodes
-    std::vector<Layer> m_layers;                            ///< element layers
-    size_t m_numLayers;                                     ///< number of layers for this element
-    double m_lenX;                                          ///< element length in X direction
-    double m_lenY;                                          ///< element length in Y direction
-    double m_thickness;                                     ///< total element thickness
-    std::vector<double> m_GaussZ;                           ///< layer separation z values (scaled to [-1,1])
-    double m_GaussScaling;                                  ///< scaling factor due to change of integration intervals
-    double m_Alpha;                                         ///< structural damping
-    bool m_gravity_on;                                      ///< enable/disable gravity calculation
-    ChMatrixNM<double, 72, 1> m_GravForce;                  ///< Gravity Force
-    ChMatrixNM<double, 72, 72> m_MassMatrix;                ///< mass matrix
-    ChMatrixNM<double, 72, 72> m_JacobianMatrix;            ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
-    ChMatrixNM<double, 24, 3> m_d0;                         ///< initial nodal coordinates
-    ChMatrixNM<double, 24, 24> m_d0d0T;                     ///< matrix m_d0 * m_d0^T
-    ChMatrixNM<double, 24, 3> m_d;                          ///< current nodal coordinates
-    ChMatrixNM<double, 24, 24> m_ddT;                       ///< matrix m_d * m_d^T
-    ChMatrixNM<double, 72, 1> m_d_dt;                       ///< current nodal velocities
+    std::vector<std::shared_ptr<ChNodeFEAxyzDD>> m_nodes;          ///< element nodes
+    std::vector<Layer, Eigen::aligned_allocator<Layer>> m_layers;  ///< element layers
+    size_t m_numLayers;                                            ///< number of layers for this element
+    double m_lenX;                                                 ///< element length in X direction
+    double m_lenY;                                                 ///< element length in Y direction
+    double m_thickness;                                            ///< total element thickness
+    std::vector<double> m_GaussZ;                                  ///< layer separation z values (scaled to [-1,1])
+    double m_GaussScaling;                        ///< scaling factor due to change of integration intervals
+    double m_Alpha;                               ///< structural damping
+    bool m_gravity_on;                            ///< enable/disable gravity calculation
+    ChVectorN<double, 72> m_GravForce;            ///< Gravity Force
+    ChMatrixNM<double, 72, 72> m_MassMatrix;      ///< mass matrix
+    ChMatrixNM<double, 72, 72> m_JacobianMatrix;  ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
+    ChMatrixNM<double, 24, 3> m_d0;               ///< initial nodal coordinates
+    ChMatrixNM<double, 24, 24> m_d0d0T;           ///< matrix m_d0 * m_d0^T
+    ChMatrixNM<double, 24, 3> m_d;                ///< current nodal coordinates
+    ChMatrixNM<double, 24, 24> m_ddT;             ///< matrix m_d * m_d^T
+    ChVectorN<double, 72> m_d_dt;                 ///< current nodal velocities
+
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   public:
     // Interface to ChElementBase base class
@@ -232,26 +240,25 @@ class ChApi ChElementShellANCF_8 : public ChElementShell, public ChLoadableUV, p
     //  {x_g y_g z_g Dx_g Dy_g Dz_g DDx_g DDy_g DDz_g
     //  {x_h y_h z_h Dx_h Dy_h Dz_h DDx_h DDy_h DDz_h}
 
-    virtual void GetStateBlock(ChMatrixDynamic<>& mDD) override;
+    virtual void GetStateBlock(ChVectorDynamic<>& mDD) override;
 
     // Set H as a linear combination of M, K, and R.
     //   H = Mfactor * [M] + Kfactor * [K] + Rfactor * [R],
     // where [M] is the mass matrix, [K] is the stiffness matrix, and [R] is the damping matrix.
-    virtual void ComputeKRMmatricesGlobal(ChMatrix<>& H,
+    virtual void ComputeKRMmatricesGlobal(ChMatrixRef H,
                                           double Kfactor,
                                           double Rfactor = 0,
                                           double Mfactor = 0) override;
 
     // Set M as the global mass matrix.
-    virtual void ComputeMmatrixGlobal(ChMatrix<>& M) override;
+    virtual void ComputeMmatrixGlobal(ChMatrixRef M) override;
 
     /// Add contribution of element inertia to total nodal masses
     virtual void ComputeNodalMass() override;
 
     /// Computes the internal forces.
-    /// (E.g. the actual position of nodes is not in relaxed reference position) and set values
-    /// in the Fi vector.
-    virtual void ComputeInternalForces(ChMatrixDynamic<>& Fi) override;
+    /// (E.g. the actual position of nodes is not in relaxed reference position) and set values in the Fi vector.
+    virtual void ComputeInternalForces(ChVectorDynamic<>& Fi) override;
 
     /// Initial setup.
     /// This is used mostly to precompute matrices that do not change during the simulation,
@@ -269,14 +276,9 @@ class ChApi ChElementShellANCF_8 : public ChElementShell, public ChLoadableUV, p
                                              ChVector<>& u_displ,
                                              ChVector<>& u_rotaz) override;
 
-    virtual void EvaluateSectionFrame(const double u,
-                                      const double v,
-                                      ChVector<>& point,
-                                      ChQuaternion<>& rot) override;
+    virtual void EvaluateSectionFrame(const double u, const double v, ChVector<>& point, ChQuaternion<>& rot) override;
 
-    virtual void EvaluateSectionPoint(const double u,
-                                      const double v,
-                                      ChVector<>& point) override;
+    virtual void EvaluateSectionPoint(const double u, const double v, ChVector<>& point) override;
 
     // Internal computations
     // ---------------------
@@ -305,9 +307,9 @@ class ChApi ChElementShellANCF_8 : public ChElementShell, public ChLoadableUV, p
     double Calc_detJ0(double x,
                       double y,
                       double z,
-                      ChMatrixNM<double, 1, 24>& Nx,
-                      ChMatrixNM<double, 1, 24>& Ny,
-                      ChMatrixNM<double, 1, 24>& Nz,
+                      ShapeVector& Nx,
+                      ShapeVector& Ny,
+                      ShapeVector& Nz,
                       ChMatrixNM<double, 1, 3>& Nx_d0,
                       ChMatrixNM<double, 1, 3>& Ny_d0,
                       ChMatrixNM<double, 1, 3>& Nz_d0);
@@ -316,7 +318,7 @@ class ChApi ChElementShellANCF_8 : public ChElementShell, public ChLoadableUV, p
     void CalcCoordMatrix(ChMatrixNM<double, 24, 3>& d);
 
     // Calculate the current 72x1 matrix of nodal coordinate derivatives.
-    void CalcCoordDerivMatrix(ChMatrixNM<double, 72, 1>& dt);
+    void CalcCoordDerivMatrix(ChVectorN<double, 72>& dt);
 
     // Functions for ChLoadable interface
     // ----------------------------------
@@ -393,10 +395,10 @@ class ChApi ChElementShellANCF_8 : public ChElementShell, public ChLoadableUV, p
     /// Each coordinate ranging in -1..+1.
     virtual ChVector<> ComputeNormal(const double U, const double V) override;
 
-    friend class MyMass_8;
-    friend class MyGravity_8;
-    friend class MyForce_8;
-    friend class MyJacobian_8;
+    friend class ShellANCF8_Mass;
+    friend class ShellANCF8_Gravity;
+    friend class ShellANCF8_Force;
+    friend class ShellANCF8_Jacobian;
 };
 
 /// @} fea_elements

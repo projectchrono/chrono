@@ -17,7 +17,7 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChGlobal.h"
+#include "chrono/core/ChGlobal.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChTexture.h"
 
@@ -65,13 +65,13 @@ void ChSingleRoadWheel::AddVisualizationAssets(VisualizationType vis) {
     double radius = GetWheelRadius();
     double width = GetWheelWidth();
 
-    auto cyl = std::make_shared<ChCylinderShape>();
+    auto cyl = chrono_types::make_shared<ChCylinderShape>();
     cyl->GetCylinderGeometry().p1 = ChVector<>(0, width / 2, 0);
     cyl->GetCylinderGeometry().p2 = ChVector<>(0, -width / 2, 0);
     cyl->GetCylinderGeometry().rad = radius;
     m_wheel->AddAsset(cyl);
 
-    auto tex = std::make_shared<ChTexture>();
+    auto tex = chrono_types::make_shared<ChTexture>();
     tex->SetTextureFilename(chrono::GetChronoDataFile("greenwhite.png"));
     m_wheel->AddAsset(tex);
 }

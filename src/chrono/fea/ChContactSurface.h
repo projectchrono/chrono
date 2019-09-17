@@ -36,7 +36,7 @@ class ChApi ChContactSurface {
   public:
     ChContactSurface(ChMesh* parentmesh = 0) {
         // default non-smooth contact material
-        matsurface = std::make_shared<ChMaterialSurfaceNSC>();
+        matsurface = chrono_types::make_shared<ChMaterialSurfaceNSC>();
         mmesh = parentmesh;
     }
 

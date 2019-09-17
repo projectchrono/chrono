@@ -40,7 +40,9 @@
 #include <cstdio>
 #include <cmath>
 
+#include "chrono/core/ChLog.h"
 #include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChSphereShape.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -81,7 +83,7 @@ GranularTerrain::GranularTerrain(ChSystem* system)
     system->AddBody(m_ground);
 
     // Set default parameters for contact materials
-    m_matSMC = std::make_shared<ChMaterialSurfaceSMC>();
+    m_matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     m_matSMC->SetFriction(0.9f);
     m_matSMC->SetRestitution(0.0f);
     m_matSMC->SetAdhesion(0.0f);
@@ -92,13 +94,13 @@ GranularTerrain::GranularTerrain(ChSystem* system)
     m_matSMC->SetKt(2e5f);
     m_matSMC->SetGt(20.0f);
 
-    m_matNSC = std::make_shared<ChMaterialSurfaceNSC>();
+    m_matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     m_matNSC->SetFriction(0.9f);
     m_matNSC->SetRestitution(0.0f);
     m_matNSC->SetCohesion(0.0f);
 
     // Create the default color asset
-    m_color = std::make_shared<ChColorAsset>();
+    m_color = chrono_types::make_shared<ChColorAsset>();
     m_color->SetColor(ChColor(1, 1, 1));
     m_ground->AddAsset(m_color);
 }
@@ -227,10 +229,10 @@ void BoundaryContact::CheckFixedSpheres(ChBody* body, const ChVector<>& center) 
 
     ////double eps = 1e-6;
     ////if (center.x() < x_m - eps || center.x() > x_p + eps) {
-    ////    std::cout << "X problem  " << center.x() << " " << x_m << " " << x_p << std::endl;
+    ////    GetLog() << "X problem  " << center.x() << " " << x_m << " " << x_p << "\n";
     ////}
     ////if (center.y() < y_m - eps || center.y() > y_p + eps) {
-    ////    std::cout << "Y problem  " << center.y() << " " << y_m << " " << y_p << std::endl;
+    ////    GetLog() << "Y problem  " << center.y() << " " << y_m << " " << y_p << "\n";
     ////}
 
     // Check potential collisions
@@ -393,12 +395,12 @@ void GranularTerrain::Initialize(const ChVector<>& center,
         for (int ix = 0; ix < m_nx; ix++) {
             double y_pos = -0.5 * width;
             for (int iy = 0; iy < m_ny; iy++) {
-                auto sphere = std::make_shared<ChSphereShape>();
+                auto sphere = chrono_types::make_shared<ChSphereShape>();
                 sphere->GetSphereGeometry().rad = radius;
                 sphere->Pos = ChVector<>(x_pos, y_pos, radius);
                 m_ground->AddAsset(sphere);
 
-                ////auto box = std::make_shared<ChBoxShape>();
+                ////auto box = chrono_types::make_shared<ChBoxShape>();
                 ////double hside = radius / std::sqrt(2.0);
                 ////box->GetBoxGeometry().Size = ChVector<>(hside, hside, hside);
                 ////box->Pos = ChVector<>(x_pos, y_pos, radius);
@@ -410,9 +412,9 @@ void GranularTerrain::Initialize(const ChVector<>& center,
         }
 
         if (m_verbose) {
-            std::cout << "Enable rough surface." << std::endl;
-            std::cout << "   X direction (" << m_nx << ") separation: " << m_sep_x << std::endl;
-            std::cout << "   Y direction (" << m_ny << ") separation: " << m_sep_y << std::endl;
+            GetLog() << "Enable rough surface.\n";
+            GetLog() << "   X direction (" << m_nx << ") separation: " << m_sep_x << "\n";
+            GetLog() << "   Y direction (" << m_ny << ") separation: " << m_sep_y << "\n";
         }
     }
 
@@ -456,7 +458,7 @@ void GranularTerrain::Initialize(const ChVector<>& center,
 
     while (layer < num_layers || m_num_particles < m_min_num_particles) {
         if (m_verbose)
-            std::cout << "Create layer at height: " << layer_center.z() << std::endl;
+            GetLog() << "Create layer at height: " << layer_center.z() << "\n";
         generator.createObjectsBox(utils::POISSON_DISK, 2 * r, layer_center, layer_hdims, init_vel);
         layer_center.z() += 2 * r;
         m_num_particles = generator.getTotalNumBodies();
@@ -465,7 +467,7 @@ void GranularTerrain::Initialize(const ChVector<>& center,
 
     // If enabled, create visualization assets for the boundaries.
     if (m_vis_enabled) {
-        auto box = std::make_shared<ChBoxShape>();
+        auto box = chrono_types::make_shared<ChBoxShape>();
         double hthick = 0.05;
         box->GetBoxGeometry().Size = ChVector<>(length / 2, width / 2, hthick);
         box->Pos = ChVector<>(0, 0, -hthick);
@@ -529,9 +531,9 @@ void GranularTerrain::Synchronize(double time) {
     m_moved = true;
 
     if (m_verbose) {
-        std::cout << "Move patch at time " << time << std::endl;
-        std::cout << "   moved " << num_moved_particles << " particles" << std::endl;
-        std::cout << "   rear: " << m_rear << "  front: " << m_front << std::endl;
+        GetLog() << "Move patch at time " << time << "\n";
+        GetLog() << "   moved " << num_moved_particles << " particles\n";
+        GetLog() << "   rear: " << m_rear << "  front: " << m_front << "\n";
     }
 }
 

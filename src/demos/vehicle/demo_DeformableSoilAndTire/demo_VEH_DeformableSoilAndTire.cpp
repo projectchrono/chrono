@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
     // the tire:
 
     std::shared_ptr<ChReissnerTire> tire_reissner;
-    tire_reissner = std::make_shared<ReissnerTire>(vehicle::GetDataFile("hmmwv/tire/HMMWV_ReissnerTire.json"));
+    tire_reissner = chrono_types::make_shared<ReissnerTire>(vehicle::GetDataFile("hmmwv/tire/HMMWV_ReissnerTire.json"));
     tire_reissner->EnablePressure(false);
     tire_reissner->EnableContact(true);
     tire_reissner->SetContactSurfaceType(ChDeformableTire::TRIANGLE_MESH);
@@ -90,9 +90,9 @@ int main(int argc, char* argv[]) {
 
     // the motor that rotates the rim:
 
-    auto motor = std::make_shared<ChLinkMotorRotationAngle>();
+    auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     motor->SetSpindleConstraint(ChLinkMotorRotation::SpindleConstraint::OLDHAM);
-    motor->SetAngleFunction(std::make_shared<ChFunction_Ramp>(0, CH_C_PI / 4.0));
+    motor->SetAngleFunction(chrono_types::make_shared<ChFunction_Ramp>(0, CH_C_PI / 4.0));
     motor->Initialize(mrim, mtruss, ChFrame<>(tire_center, Q_from_AngAxis(CH_C_PI_2, VECT_Y)));
     my_system.Add(motor);
 
@@ -165,7 +165,7 @@ int main(int argc, char* argv[]) {
 
     // change the solver to MKL: 
     GetLog() << "Using MKL solver\n";
-    auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+    auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
     mkl_solver->SetSparsityPatternLock(true);
     my_system.SetSolver(mkl_solver);
     

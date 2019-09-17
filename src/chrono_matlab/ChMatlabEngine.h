@@ -17,7 +17,7 @@
 
 #include "chrono_matlab/ChApiMatlab.h"
 #include "chrono/core/ChMath.h"
-#include "chrono/core/ChLinkedListMatrix.h"
+#include "chrono/core/ChSparseMatrix.h"
 
 // Following namespace trick is a fix for VS2010+ and Matlab: avoid error with typedef in matrix.h
 namespace matlabengine {
@@ -70,7 +70,7 @@ class ChApiMatlab ChMatlabEngine {
 
     /// Put a matrix in Matlab environment, specifying its name as variable.
     /// If a variable with the same name already exist, it is overwritten.
-    bool PutVariable(const ChMatrix<double>& mmatr, std::string varname);
+    bool PutVariable(ChMatrixConstRef mmatr, std::string varname);
 
     /// Put a sparse matrix in Matlab environment, specifying its name as variable.
     /// If a variable with the same name already exist, it is overwritten.

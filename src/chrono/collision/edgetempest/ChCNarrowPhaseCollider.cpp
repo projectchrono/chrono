@@ -76,16 +76,16 @@ ChNarrowPhaseCollider::eCollSuccess ChNarrowPhaseCollider::ComputeCollisions(ChM
 
     // Precompute useful matrices
 
-    this->R.MatrTMultiply(aR1, aR2);  //  MTxM(this->R,R1,R2);
+    this->R = aR1.transpose() *  aR2;  //  MTxM(this->R,R1,R2);
 
     static Vector Ttemp;
     Ttemp = Vsub(aT2, aT1);             // VmV(Ttemp, T2, T1);
-    this->T = aR1.MatrT_x_Vect(Ttemp);  // MTxV(this->T, R1, Ttemp);
+    this->T = aR1.transpose() * Ttemp;  // MTxV(this->T, R1, Ttemp);
 
     this->T1 = aT1;
     this->T2 = aT2;
-    this->R1.CopyFromMatrix(aR1);
-    this->R2.CopyFromMatrix(aR2);
+    this->R1 = aR1;
+    this->R2 = aR2;
 
     //
     // CHILD CLASSES SHOULD IMPLEMENT THE REST....

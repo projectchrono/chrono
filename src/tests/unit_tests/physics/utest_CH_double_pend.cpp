@@ -25,6 +25,9 @@
 #include <valarray>
 
 #include "chrono/physics/ChSystemNSC.h"
+#include "chrono/solver/ChSolverMINRES.h"
+#include "chrono/physics/ChLinkLock.h"
+#include "chrono/physics/ChLinkMate.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtilsValidation.h"
 
@@ -123,41 +126,79 @@ void ODEModel::WriteData(double step, const std::string& filename) {
 
 // =============================================================================
 
+// Base Chrono model.
 class ChronoModel {
   public:
-    ChronoModel();
     std::shared_ptr<ChSystemNSC> GetSystem() const { return m_system; }
     void Simulate(double step, int num_steps);
     const utils::Data& GetData() const { return m_data; }
     const utils::Data& GetCnstrData() const { return m_cnstr_data; }
     void WriteData(double step, const std::string& filename);
 
-  private:
+    virtual std::string GetJointType() const = 0;
+
+  protected:
+    ChronoModel();
+    virtual ChVectorDynamic<> GetViolation1() = 0;
+    virtual ChVectorDynamic<> GetViolation2() = 0;
+
     std::shared_ptr<ChSystemNSC> m_system;
+    std::shared_ptr<ChBody> m_ground;
     std::shared_ptr<ChBody> m_pend1;
     std::shared_ptr<ChBody> m_pend2;
-    std::shared_ptr<ChLinkLockRevolute> m_revolute1;
-    std::shared_ptr<ChLinkLockRevolute> m_revolute2;
     utils::Data m_data;
     utils::Data m_cnstr_data;
 };
 
+// Chrono model using LinkLock joints.
+class ChronoModelL : public ChronoModel {
+  public:
+    ChronoModelL();
+    virtual std::string GetJointType() const override { return "LinkLock"; }
+
+  private:
+    virtual ChVectorDynamic<> GetViolation1() override { return m_revolute1->GetC(); }
+    virtual ChVectorDynamic<> GetViolation2() override { return m_revolute2->GetC(); }
+
+    std::shared_ptr<ChLinkLockRevolute> m_revolute1;
+    std::shared_ptr<ChLinkLockRevolute> m_revolute2;
+};
+
+// Chrono model using LinkMate joints.
+class ChronoModelM : public ChronoModel {
+  public:
+    ChronoModelM();
+    virtual std::string GetJointType() const override { return "LinkMate"; }
+
+  private:
+    virtual ChVectorDynamic<> GetViolation1() override { return m_revolute1->GetC(); }
+    virtual ChVectorDynamic<> GetViolation2() override { return m_revolute2->GetC(); }
+
+    std::shared_ptr<ChLinkMateGeneric> m_revolute1;
+    std::shared_ptr<ChLinkMateGeneric> m_revolute2;
+};
+
 ChronoModel::ChronoModel() {
+    // Size the data
+    // -------------
+    m_data.resize(5);                // time + x_pend2 + y_pend2 + xd_pend2 + yd_pend2
+    m_cnstr_data.resize(1 + 5 + 5);  // time + revolute1 + revolute2
+
     // Create the Chrono physical system
     // ---------------------------------
-    m_system = std::make_shared<ChSystemNSC>();
+    m_system = chrono_types::make_shared<ChSystemNSC>();
     m_system->Set_G_acc(ChVector<>(0, -g, 0));
 
     // Create the ground body
     // ----------------------
-    auto ground = std::make_shared<ChBody>();
-    m_system->AddBody(ground);
-    ground->SetIdentifier(-1);
-    ground->SetBodyFixed(true);
+    m_ground = chrono_types::make_shared<ChBody>();
+    m_system->AddBody(m_ground);
+    m_ground->SetIdentifier(-1);
+    m_ground->SetBodyFixed(true);
 
     // Create the first pendulum body
     // ------------------------------
-    m_pend1 = std::make_shared<ChBody>();
+    m_pend1 = chrono_types::make_shared<ChBody>();
     m_system->AddBody(m_pend1);
     m_pend1->SetIdentifier(1);
     m_pend1->SetMass(m1);
@@ -166,29 +207,40 @@ ChronoModel::ChronoModel() {
 
     // Create the second pendulum body
     // -------------------------------
-    m_pend2 = std::make_shared<ChBody>();
+    m_pend2 = chrono_types::make_shared<ChBody>();
     m_system->AddBody(m_pend2);
     m_pend2->SetIdentifier(2);
     m_pend2->SetMass(m2);
     m_pend2->SetInertiaXX(ChVector<>(1, 1, J2));
     m_pend2->SetPos(ChVector<>(l1 + l2 / 2, 0, 0));
+}
 
+ChronoModelL::ChronoModelL() {
     // Revolute joint ground-pendulum
     // ------------------------------
-    m_revolute1 = std::make_shared<ChLinkLockRevolute>();
-    m_revolute1->Initialize(ground, m_pend1, ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));
+    m_revolute1 = chrono_types::make_shared<ChLinkLockRevolute>();
+    m_revolute1->Initialize(m_ground, m_pend1, ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));
     m_system->AddLink(m_revolute1);
 
     // Revolute joint pendulum-pendulum
     // --------------------------------
-    m_revolute2 = std::make_shared<ChLinkLockRevolute>();
+    m_revolute2 = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute2->Initialize(m_pend1, m_pend2, ChCoordsys<>(ChVector<>(l1, 0, 0), QUNIT));
     m_system->AddLink(m_revolute2);
+}
 
-    // Size the data
-    // -------------
-    m_data.resize(5);                // time + x_pend2 + y_pend2 + xd_pend2 + yd_pend2
-    m_cnstr_data.resize(1 + 5 + 5);  // time + revolute1 + revolute2
+ChronoModelM::ChronoModelM() {
+    // Revolute joint ground-pendulum
+    // ------------------------------
+    m_revolute1 = chrono_types::make_shared<ChLinkMateGeneric>(true, true, true, true, true, false);
+    m_revolute1->Initialize(m_ground, m_pend1, ChFrame<>(ChVector<>(0, 0, 0)));
+    m_system->AddLink(m_revolute1);
+
+    // Revolute joint pendulum-pendulum
+    // --------------------------------
+    m_revolute2 = chrono_types::make_shared<ChLinkMateGeneric>(true, true, true, true, true, false);
+    m_revolute2->Initialize(m_pend1, m_pend2, ChFrame<>(ChVector<>(l1, 0, 0), QUNIT));
+    m_system->AddLink(m_revolute2);
 }
 
 void ChronoModel::Simulate(double step, int num_steps) {
@@ -209,12 +261,12 @@ void ChronoModel::Simulate(double step, int num_steps) {
 
         // Save current constraint violations.
         m_cnstr_data[0][it] = m_system->GetChTime();
-        ChMatrix<>* C_1 = m_revolute1->GetC();
+        ChVectorDynamic<> C_1 = GetViolation1();
         for (int col = 0; col < 5; col++)
-            m_cnstr_data[1 + col][it] = C_1->GetElement(col, 0);
-        ChMatrix<>* C_2 = m_revolute2->GetC();
+            m_cnstr_data[1 + col][it] = C_1(col);
+        ChVectorDynamic<> C_2 = GetViolation2();
         for (int col = 0; col < 5; col++)
-            m_cnstr_data[6 + col][it] = C_2->GetElement(col, 0);
+            m_cnstr_data[6 + col][it] = C_2(col);
 
         // Advance system state.
         m_system->DoStepDynamics(step);
@@ -235,16 +287,13 @@ void ChronoModel::WriteData(double step, const std::string& filename) {
 
 // =============================================================================
 
-bool test_EULER_IMPLICIT_LINEARIZED(double step,
-    int num_steps,
-    const utils::Data& ref_data,
-    double tol_state,
-    double tol_cnstr) {
-    std::cout << "EULER_IMPLICIT_LINEARIZED integrator" << std::endl;
-
+template <typename ChronoModelType>
+bool test_EULER(double step, int num_steps, const utils::Data& ref_data, double tol_state, double tol_cnstr) {
     // Create Chrono model.
-    ChronoModel model;
+    ChronoModelType model;
     std::shared_ptr<ChSystemNSC> system = model.GetSystem();
+
+    std::cout << "EULER_IMPLICIT_LINEARIZED integrator *** " << model.GetJointType() << std::endl;
 
     // Set integrator and modify parameters.
     system->SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
@@ -276,12 +325,13 @@ bool test_EULER_IMPLICIT_LINEARIZED(double step,
     return check_state && check_cnstr;
 }
 
+template <typename ChronoModelType>
 bool test_HHT(double step, int num_steps, const utils::Data& ref_data, double tol_state, double tol_cnstr) {
-    std::cout << "HHT integrator" << std::endl;
-
     // Create Chrono model.
-    ChronoModel model;
+    ChronoModelType model;
     std::shared_ptr<ChSystemNSC> system = model.GetSystem();
+
+    std::cout << "HHT integrator *** " << model.GetJointType() << std::endl;
 
     // Set solver and modify parameters.
     ////system->SetMaxItersSolverSpeed(200);
@@ -345,8 +395,11 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Validation tests for slider+pend system" << std::endl;
     std::cout << num_steps << " steps, using h = " << step << std::endl << std::endl;
-    passed &= test_EULER_IMPLICIT_LINEARIZED(step, num_steps, ref_data, tol_state, tol_cnstr);
-    passed &= test_HHT(step, num_steps, ref_data, tol_state, tol_cnstr);
+
+    passed &= test_EULER<ChronoModelL>(step, num_steps, ref_data, tol_state, tol_cnstr);
+    passed &= test_EULER<ChronoModelM>(step, num_steps, ref_data, tol_state, tol_cnstr);
+    passed &= test_HHT<ChronoModelL>(step, num_steps, ref_data, tol_state, tol_cnstr);
+    passed &= test_HHT<ChronoModelM>(step, num_steps, ref_data, tol_state, tol_cnstr);
 
     // Return 0 if all tests passed.
     return !passed;

@@ -13,14 +13,17 @@
 // =============================================================================
 
 #include "chrono/solver/ChSolverSOR.h"
+#include "chrono/core/ChMathematics.h"
 
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChSolverSOR)
 
-double ChSolverSOR::Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
-                          ) {
+ChSolverSOR::ChSolverSOR(int mmax_iters, bool mwarm_start, double mtolerance, double momega)
+    : ChIterativeSolver(mmax_iters, mwarm_start, mtolerance, momega) {}
+
+double ChSolverSOR::Solve(ChSystemDescriptor& sysd) {
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
     std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
 

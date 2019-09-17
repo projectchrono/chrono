@@ -13,6 +13,8 @@
 // =============================================================================
 
 #include <cstdio>
+#include <algorithm>
+#include <cmath>
 
 #include "chrono/parallel/ChThreadsSync.h"
 #include "chrono/solver/ChConstraintTwoTuplesFrictionT.h"
@@ -143,21 +145,21 @@ void SolverThreadFunc(void* userPtr, void* lsMemory) {
                                            (*mconstraints)[ic]->Get_cfm_i() * (*mconstraints)[ic]->Get_l_i();
 
                         // true constraint violation may be different from 'mresidual' (ex:clamped if unilateral)
-                        double candidate_violation = fabs((*mconstraints)[ic]->Violation(mresidual));
+                        double candidate_violation = std::abs((*mconstraints)[ic]->Violation(mresidual));
 
                         // compute:  delta_lambda = -(omega/g_i) * ([Cq_i]*q + b_i + cfm_i*l_i )
                         double deltal = (tdata->solver->GetOmega() / (*mconstraints)[ic]->Get_g_i()) * (-mresidual);
 
                         if ((*mconstraints)[ic]->GetMode() == CONSTRAINT_FRIC) {
                             candidate_violation = 0;
-                            
+
                             // update:   lambda += delta_lambda;
                             old_lambda_friction[i_friction_comp] = (*mconstraints)[ic]->Get_l_i();
                             (*mconstraints)[ic]->Set_l_i(old_lambda_friction[i_friction_comp] + deltal);
                             i_friction_comp++;
 
                             if (i_friction_comp == 1)
-                                candidate_violation = fabs(ChMin(0.0, mresidual));
+                                candidate_violation = std::abs(std::min(0.0, mresidual));
 
                             if (i_friction_comp == 3) {
                                 (*mconstraints)[ic - 2]->Project();  // the N normal component will take care of N,U,V
@@ -184,13 +186,13 @@ void SolverThreadFunc(void* userPtr, void* lsMemory) {
                                 (*mconstraints)[ic - 0]->Increment_q(true_delta_2);
                                 //	tdata->mutex->Unlock(); // end critical section
                                 /*
-								if (this->record_violation_history)
-								{
-									maxdeltalambda = ChMax(maxdeltalambda, fabs(true_delta_0));
-									maxdeltalambda = ChMax(maxdeltalambda, fabs(true_delta_1));
-									maxdeltalambda = ChMax(maxdeltalambda, fabs(true_delta_2));
-								}
-								*/  //***TO DO***
+                                if (this->record_violation_history)
+                                {
+                                    maxdeltalambda = std::max(maxdeltalambda, std::abs(true_delta_0));
+                                    maxdeltalambda = std::max(maxdeltalambda, std::abs(true_delta_1));
+                                    maxdeltalambda = std::max(maxdeltalambda, std::abs(true_delta_2));
+                                }
+                                */  //***TO DO***
                                 i_friction_comp = 0;
                             }
                         } else {
@@ -220,12 +222,12 @@ void SolverThreadFunc(void* userPtr, void* lsMemory) {
                             (*mconstraints)[ic]->Increment_q(true_delta);
                             tdata->mutex->Unlock();  // end critical section
                             /*
-							if (this->record_violation_history)
-								maxdeltalambda = ChMax(maxdeltalambda, fabs(true_delta)); 
-							*/                       //***TO DO***
+                            if (this->record_violation_history)
+                                maxdeltalambda = std::max(maxdeltalambda, std::abs(true_delta));
+                            */                       //***TO DO***
                         }
 
-                        maxviolation = ChMax(maxviolation, fabs(candidate_violation));
+                        maxviolation = std::max(maxviolation, std::abs(candidate_violation));
 
                     }  // end IsActive()
 
@@ -244,7 +246,9 @@ void SolverThreadFunc(void* userPtr, void* lsMemory) {
             break;
         }  // end stage
 
-        default: { break; }
+        default: {
+            break;
+        }
     }  // end stage  switching
 }
 
@@ -276,10 +280,7 @@ ChSolverSORmultithread::~ChSolverSORmultithread() {
 // So, the N threads must be started (each executing SolverThreadFunc() )
 // and, after waiting for all them to be completed, with flush(), the
 // solution is done.
-
-double ChSolverSORmultithread::Solve(
-    ChSystemDescriptor& sysd  ///< system description with constraints and variables
-    ) {
+double ChSolverSORmultithread::Solve(ChSystemDescriptor& sysd) {
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
     std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
 
@@ -370,7 +371,7 @@ void ChSolverSORmultithread::ChangeNumberOfThreads(int mthreads) {
         mthreads = 1;
 
     char mname[100];
-    strncpy(mname, solver_threads->getUniqueName().c_str(), sizeof(mname)-1);
+    strncpy(mname, solver_threads->getUniqueName().c_str(), sizeof(mname) - 1);
 
     solver_threads->flush();
     delete (solver_threads);
@@ -381,4 +382,4 @@ void ChSolverSORmultithread::ChangeNumberOfThreads(int mthreads) {
     solver_threads = new ChThreads(create_args);
 }
 
-} // end namespace chrono
+}  // end namespace chrono

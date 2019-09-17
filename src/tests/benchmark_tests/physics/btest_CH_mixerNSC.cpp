@@ -50,53 +50,53 @@ class MixerTestNSC : public utils::ChBenchmarkTest {
 template <int N>
 MixerTestNSC<N>::MixerTestNSC() : m_system(new ChSystemNSC()), m_step(0.02) {
     for (int bi = 0; bi < N; bi++) {
-        auto sphereBody = std::make_shared<ChBodyEasySphere>(1.1, 1000, true, true);
+        auto sphereBody = chrono_types::make_shared<ChBodyEasySphere>(1.1, 1000, true, true);
         sphereBody->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
         sphereBody->GetMaterialSurfaceNSC()->SetFriction(0.2f);
         m_system->Add(sphereBody);
 
-        auto boxBody = std::make_shared<ChBodyEasyBox>(1.5, 1.5, 1.5, 100, true, true);
+        auto boxBody = chrono_types::make_shared<ChBodyEasyBox>(1.5, 1.5, 1.5, 100, true, true);
         boxBody->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
         m_system->Add(boxBody);
 
-        auto mcylBody = std::make_shared<ChBodyEasyCylinder>(0.75, 0.5, 100, true, true);
+        auto mcylBody = chrono_types::make_shared<ChBodyEasyCylinder>(0.75, 0.5, 100, true, true);
         mcylBody->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
         m_system->Add(mcylBody);
     }
 
-    auto floorBody = std::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true);
+    auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true);
     floorBody->SetPos(ChVector<>(0, -5, 0));
     floorBody->SetBodyFixed(true);
     m_system->Add(floorBody);
 
-    auto wallBody1 = std::make_shared<ChBodyEasyBox>(1, 10, 20.99, 1000, true, true);
+    auto wallBody1 = chrono_types::make_shared<ChBodyEasyBox>(1, 10, 20.99, 1000, true, true);
     wallBody1->SetPos(ChVector<>(-10, 0, 0));
     wallBody1->SetBodyFixed(true);
     m_system->Add(wallBody1);
 
-    auto wallBody2 = std::make_shared<ChBodyEasyBox>(1, 10, 20.99, 1000, true, true);
+    auto wallBody2 = chrono_types::make_shared<ChBodyEasyBox>(1, 10, 20.99, 1000, true, true);
     wallBody2->SetPos(ChVector<>(10, 0, 0));
     wallBody2->SetBodyFixed(true);
     m_system->Add(wallBody2);
 
-    auto wallBody3 = std::make_shared<ChBodyEasyBox>(20.99, 10, 1, 1000, true, true);
+    auto wallBody3 = chrono_types::make_shared<ChBodyEasyBox>(20.99, 10, 1, 1000, true, true);
     wallBody3->SetPos(ChVector<>(0, 0, -10));
     wallBody3->SetBodyFixed(true);
     m_system->Add(wallBody3);
 
-    auto wallBody4 = std::make_shared<ChBodyEasyBox>(20.99, 10, 1, 1000, true, true);
+    auto wallBody4 = chrono_types::make_shared<ChBodyEasyBox>(20.99, 10, 1, 1000, true, true);
     wallBody4->SetPos(ChVector<>(0, 0, 10));
     wallBody4->SetBodyFixed(true);
     m_system->Add(wallBody4);
 
-    auto rotatingBody = std::make_shared<ChBodyEasyBox>(10, 5, 1, 4000, true, true);
+    auto rotatingBody = chrono_types::make_shared<ChBodyEasyBox>(10, 5, 1, 4000, true, true);
     rotatingBody->SetPos(ChVector<>(0, -1.6, 0));
     rotatingBody->GetMaterialSurfaceNSC()->SetFriction(0.4f);
     m_system->Add(rotatingBody);
 
-    auto my_motor = std::make_shared<ChLinkMotorRotationSpeed>();
+    auto my_motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     my_motor->Initialize(rotatingBody, floorBody, ChFrame<>(ChVector<>(0, 0, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X)));
-    auto mfun = std::make_shared<ChFunction_Const>(CH_C_PI / 2.0);
+    auto mfun = chrono_types::make_shared<ChFunction_Const>(CH_C_PI / 2.0);
     my_motor->SetSpeedFunction(mfun);
     m_system->AddLink(my_motor);
 }

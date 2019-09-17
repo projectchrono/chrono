@@ -13,6 +13,7 @@
 // =============================================================================
 
 #include "chrono_matlab/ChSolverMatlab.h"
+#include "chrono/core/ChCSMatrix.h"
 
 namespace chrono {
 
@@ -29,12 +30,12 @@ ChSolverMatlab::ChSolverMatlab() {
 
 // Solve using the Matlab default direct solver (as in x=A\b)
 double ChSolverMatlab::Solve(ChSystemDescriptor& sysd) {
-    chrono::ChLinkedListMatrix mdM;
-    chrono::ChLinkedListMatrix mdCq;
-    chrono::ChLinkedListMatrix mdE;
-    chrono::ChMatrixDynamic<double> mdf;
-    chrono::ChMatrixDynamic<double> mdb;
-    chrono::ChMatrixDynamic<double> mdfric;
+    ChCSMatrix mdM;
+    ChCSMatrix mdCq;
+    ChCSMatrix mdE;
+    ChVectorDynamic<double> mdf;
+    ChVectorDynamic<double> mdb;
+    ChVectorDynamic<double> mdfric;
     sysd.ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
 
     mengine->PutSparseMatrix(mdM, "mdM");
@@ -48,14 +49,14 @@ double ChSolverMatlab::Solve(ChSystemDescriptor& sysd) {
 
     mengine->Eval("mdx = mldivide(mdZ , mdd);");
 
-    chrono::ChMatrixDynamic<> mx;
+    ChMatrixDynamic<> mx;
     if (!mengine->GetVariable(mx, "mdx"))
         GetLog() << "ERROR!! cannot fetch mdx";
 
     sysd.FromVectorToUnknowns(mx);
 
     mengine->Eval("resid = norm(mdZ*mdx - mdd);");
-    chrono::ChMatrixDynamic<> mres;
+    ChMatrixDynamic<> mres;
     mengine->GetVariable(mres, "resid");
     GetLog() << " Matlab computed residual:" << mres(0, 0) << "\n";
 

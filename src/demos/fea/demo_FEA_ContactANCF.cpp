@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
     // about friction etc.
     // It is a SMC (penalty) material that we will assign to
     // all surfaces that might generate contacts.
-    auto mysurfmaterial = std::make_shared<ChMaterialSurfaceSMC>();
+    auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     mysurfmaterial->SetYoungModulus(6e4f);
     mysurfmaterial->SetFriction(0.3f);
     mysurfmaterial->SetRestitution(0.5f);
@@ -112,26 +112,26 @@ int main(int argc, char* argv[]) {
 
     // Adding the ground
     if (true) {
-        auto mfloor = std::make_shared<ChBodyEasyBox>(3, 3, 0.2, 8000, true);
+        auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(3, 3, 0.2, 8000, true);
 
         mfloor->SetBodyFixed(true);
         mfloor->SetMaterialSurface(mysurfmaterial);
         my_system.Add(mfloor);
-        auto masset_texture = std::make_shared<ChTexture>();
+        auto masset_texture = chrono_types::make_shared<ChTexture>();
         masset_texture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
         mfloor->AddAsset(masset_texture);
     }
 
     int TotalNumNodes, TotalNumElements;
     std::vector<int> BC_NODES;
-    auto material = std::make_shared<ChMaterialShellANCF>(1000, 1e8, 0.3);
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto material = chrono_types::make_shared<ChMaterialShellANCF>(1000, 1e8, 0.3);
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     ChVector<> Center(-0.5, -0.5, 0.5);
     ChMatrix33<> rot_transform(0);
-    rot_transform.SetElement(0, 0, 1);
-    rot_transform.SetElement(1, 1, -1);
-    rot_transform.SetElement(2, 1, -1);
+    rot_transform(0, 0) = 1;
+    rot_transform(1, 1) = -1;
+    rot_transform(2, 1) = -1;
     std::vector<double> NODE_AVE_AREA;
 
     // Import the mesh
@@ -143,7 +143,7 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    auto mcontactsurf = std::make_shared<ChContactSurfaceMesh>();
+    auto mcontactsurf = chrono_types::make_shared<ChContactSurfaceMesh>();
     my_mesh->AddContactSurface(mcontactsurf);
     mcontactsurf->AddFacesFromBoundary(sphere_swept_thickness);  // do this after my_mesh->AddContactSurface
     mcontactsurf->SetMaterialSurface(mysurfmaterial);            // use the SMC penalty contacts
@@ -152,7 +152,7 @@ int main(int argc, char* argv[]) {
     TotalNumElements = my_mesh->GetNelements();
 
     for (int ele = 0; ele < TotalNumElements; ele++) {
-        auto element = std::make_shared<ChElementShellANCF>();
+        auto element = chrono_types::make_shared<ChElementShellANCF>();
         element = std::dynamic_pointer_cast<ChElementShellANCF>(my_mesh->GetElement(ele));
         // Add a single layers with a fiber angle of 0 degrees.
         element->AddLayer(dz, 0 * CH_C_DEG_TO_RAD, material);
@@ -174,25 +174,25 @@ int main(int argc, char* argv[]) {
     //    ////////////////////////////////////////
     //    // Options for visualization in irrlicht
     //    ////////////////////////////////////////
-    auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddAsset(mvisualizemesh);
 
-    auto mvisualizemeshcoll = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshcoll = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshcoll->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_CONTACTSURFACES);
     mvisualizemeshcoll->SetWireframe(true);
     mvisualizemeshcoll->SetDefaultMeshColor(ChColor(1, 0.5, 0));
     my_mesh->AddAsset(mvisualizemeshcoll);
 
-    auto mvisualizemeshbeam = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshbeam = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshbeam->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
     mvisualizemeshbeam->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemeshbeam->SetSmoothFaces(true);
     my_mesh->AddAsset(mvisualizemeshbeam);
 
-    auto mvisualizemeshbeamnodes = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshbeamnodes = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshbeamnodes->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
     mvisualizemeshbeamnodes->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     mvisualizemeshbeamnodes->SetSymbolsThickness(0.0008);
@@ -206,7 +206,7 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    ////auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+    ////auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
     ////my_system.SetSolver(mkl_solver);
     ////mkl_solver->SetSparsityPatternLock(true);
     ////my_system.Update();

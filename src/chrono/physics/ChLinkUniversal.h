@@ -32,7 +32,7 @@ class ChApi ChLinkUniversal : public ChLink {
   public:
     ChLinkUniversal();
     ChLinkUniversal(const ChLinkUniversal& other);
-    ~ChLinkUniversal();
+    ~ChLinkUniversal() {}
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkUniversal* Clone() const override { return new ChLinkUniversal(*this); }
@@ -54,7 +54,7 @@ class ChApi ChLinkUniversal : public ChLink {
     ChFrame<> GetFrame2Abs() const { return m_frame2 >> *Body2; }
 
     /// Get the joint violation (residuals of the constraint equations)
-    ChMatrix<>* GetC() { return m_C; }
+    const ChVectorN<double, 4>& GetC() const { return m_C; }
 
     /// Initialize this joint by specifying the two bodies to be connected and a
     /// joint frame specified in the absolute frame. Two local joint frames, one
@@ -149,9 +149,12 @@ class ChApi ChLinkUniversal : public ChLink {
     ChConstraintTwoBodies m_cnstr_z;    ///< constraint: z1_abs - z2_abs = 0
     ChConstraintTwoBodies m_cnstr_dot;  ///< constraint: dot(u1_abs, v2_abs) = 0
 
-    ChMatrix<>* m_C;  ////< current constraint violations
+    ChVectorN<double, 4> m_C;  ////< current constraint violations
 
     double m_multipliers[4];  ///< Lagrange multipliers
+
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 CH_CLASS_VERSION(ChLinkUniversal,0)

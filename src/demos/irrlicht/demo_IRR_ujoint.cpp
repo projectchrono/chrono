@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
     // Create the ground (fixed) body
     // ------------------------------
 
-    auto ground = std::make_shared<ChBody>();
+    auto ground = chrono_types::make_shared<ChBody>();
     system.AddBody(ground);
     ground->SetIdentifier(-1);
     ground->SetBodyFixed(true);
@@ -64,13 +64,13 @@ int main(int argc, char* argv[]) {
     // attach visualization assets to represent the revolute and cylindrical
     // joints that connect the two shafts to ground
     {
-        auto cyl_1 = std::make_shared<ChCylinderShape>();
+        auto cyl_1 = chrono_types::make_shared<ChCylinderShape>();
         cyl_1->GetCylinderGeometry().p1 = ChVector<>(0, 0, -hl - 0.2);
         cyl_1->GetCylinderGeometry().p2 = ChVector<>(0, 0, -hl + 0.2);
         cyl_1->GetCylinderGeometry().rad = 0.3;
         ground->AddAsset(cyl_1);
 
-        auto cyl_2 = std::make_shared<ChCylinderShape>();
+        auto cyl_2 = chrono_types::make_shared<ChCylinderShape>();
         cyl_2->GetCylinderGeometry().p1 = ChVector<>(0, -(hl - 0.2) * sina, (hl - 0.2) * cosa);
         cyl_2->GetCylinderGeometry().p2 = ChVector<>(0, -(hl + 0.2) * sina, (hl + 0.2) * cosa);
         cyl_2->GetCylinderGeometry().rad = 0.3;
@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
     // Create the first shaft body
     // ---------------------------
 
-    auto shaft_1 = std::make_shared<ChBody>();
+    auto shaft_1 = chrono_types::make_shared<ChBody>();
     system.AddBody(shaft_1);
     shaft_1->SetIdentifier(1);
     shaft_1->SetBodyFixed(false);
@@ -93,17 +93,17 @@ int main(int argc, char* argv[]) {
     // Add visualization assets to represent the shaft (a box) and the arm of the
     // universal joint's cross associated with this shaft (a cylinder)
     {
-        auto box_1 = std::make_shared<ChBoxShape>();
+        auto box_1 = chrono_types::make_shared<ChBoxShape>();
         box_1->GetBoxGeometry().Size = ChVector<>(0.15, 0.15, 0.9 * hl);
         shaft_1->AddAsset(box_1);
 
-        auto cyl_2 = std::make_shared<ChCylinderShape>();
+        auto cyl_2 = chrono_types::make_shared<ChCylinderShape>();
         cyl_2->GetCylinderGeometry().p1 = ChVector<>(-0.2, 0, hl);
         cyl_2->GetCylinderGeometry().p2 = ChVector<>(0.2, 0, hl);
         cyl_2->GetCylinderGeometry().rad = 0.05;
         shaft_1->AddAsset(cyl_2);
 
-        auto col = std::make_shared<ChColorAsset>();
+        auto col = chrono_types::make_shared<ChColorAsset>();
         col->SetColor(ChColor(0.6f, 0, 0));
         shaft_1->AddAsset(col);
     }
@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
     // The second shaft is identical to the first one, but initialized at an angle
     // equal to the specified bend angle.
 
-    auto shaft_2 = std::make_shared<ChBody>();
+    auto shaft_2 = chrono_types::make_shared<ChBody>();
     system.AddBody(shaft_2);
     shaft_2->SetIdentifier(1);
     shaft_2->SetBodyFixed(false);
@@ -127,17 +127,17 @@ int main(int argc, char* argv[]) {
     // Add visualization assets to represent the shaft (a box) and the arm of the
     // universal joint's cross associated with this shaft (a cylinder)
     {
-        auto box_1 = std::make_shared<ChBoxShape>();
+        auto box_1 = chrono_types::make_shared<ChBoxShape>();
         box_1->GetBoxGeometry().Size = ChVector<>(0.15, 0.15, 0.9 * hl);
         shaft_2->AddAsset(box_1);
 
-        auto cyl_2 = std::make_shared<ChCylinderShape>();
+        auto cyl_2 = chrono_types::make_shared<ChCylinderShape>();
         cyl_2->GetCylinderGeometry().p1 = ChVector<>(0, -0.2, -hl);
         cyl_2->GetCylinderGeometry().p2 = ChVector<>(0, 0.2, -hl);
         cyl_2->GetCylinderGeometry().rad = 0.05;
         shaft_2->AddAsset(cyl_2);
 
-        auto col = std::make_shared<ChColorAsset>();
+        auto col = chrono_types::make_shared<ChColorAsset>();
         col->SetColor(ChColor(0, 0, 0.6f));
         shaft_2->AddAsset(col);
     }
@@ -149,9 +149,9 @@ int main(int argc, char* argv[]) {
     // as constant angular velocity. Here, we drive the motor angle with a ramp function.
     // Alternatively, we could use a ChLinkMotorAngularSpeed with constant speed.
     // The joint is located at the origin of the first shaft.
-    auto motor = std::make_shared<ChLinkMotorRotationAngle>();
+    auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     motor->Initialize(ground, shaft_1, ChFrame<>(ChVector<>(0, 0, -hl), ChQuaternion<>(1, 0, 0, 0)));
-    motor->SetAngleFunction(std::make_shared<ChFunction_Ramp>(0, 1));
+    motor->SetAngleFunction(chrono_types::make_shared<ChFunction_Ramp>(0, 1));
     system.AddLink(motor);
 
     // Connect the second shaft to ground through a cylindrical joint
@@ -161,7 +161,7 @@ int main(int argc, char* argv[]) {
     // (note that, technically Chrono could deal with a revolute joint here).
     // the joint is located at the origin of the second shaft.
 
-    auto cyljoint = std::make_shared<ChLinkLockCylindrical>();
+    auto cyljoint = chrono_types::make_shared<ChLinkLockCylindrical>();
     system.AddLink(cyljoint);
     cyljoint->Initialize(ground, shaft_2, ChCoordsys<>(ChVector<>(0, -hl * sina, hl * cosa), rot));
 
@@ -171,7 +171,7 @@ int main(int argc, char* argv[]) {
     // The joint is located at the global origin.  Its kinematic constraints will
     // enforce orthogonality of the associated cross.
 
-    auto ujoint = std::make_shared<ChLinkUniversal>();
+    auto ujoint = chrono_types::make_shared<ChLinkUniversal>();
     system.AddLink(ujoint);
     ujoint->Initialize(shaft_1, shaft_2, ChFrame<>(ChVector<>(0, 0, 0), rot));
 

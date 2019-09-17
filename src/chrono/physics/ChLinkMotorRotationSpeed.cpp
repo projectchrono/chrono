@@ -23,7 +23,7 @@ ChLinkMotorRotationSpeed::ChLinkMotorRotationSpeed() {
     variable.GetMass()(0, 0) = 1.0;
     variable.GetInvMass()(0, 0) = 1.0;
 
-    m_func = std::make_shared<ChFunction_Const>(1.0);
+    m_func = chrono_types::make_shared<ChFunction_Const>(1.0);
 
     rot_offset = 0;
 
@@ -73,24 +73,21 @@ void ChLinkMotorRotationSpeed::Update(double mytime, bool update_assets) {
         ChFrame<> aframe12rotating;
         aframe2rotating.TransformParentToLocal(aframe1, aframe12rotating);
 
-        ChMatrix33<> Jw1, Jw2;
-        ChMatrix33<> mtempM, mtempQ;
-
         ChMatrix33<> abs_plane_rotating = aframe2rotating.GetA();
 
-        Jw1.MatrTMultiply(abs_plane_rotating, Body1->GetA());
-        Jw2.MatrTMultiply(abs_plane_rotating, Body2->GetA());
-
-        Jw2.MatrNeg();
+        ChMatrix33<> Jw1 = abs_plane_rotating.transpose() * Body1->GetA();
+        ChMatrix33<> Jw2 = -abs_plane_rotating.transpose() * Body2->GetA();
 
         // Premultiply by Jw1 and Jw2 by  0.5*[Fp(q_resid)]' to get residual as imaginary part of a quaternion.
-        mtempM.Set_X_matrix((aframe12rotating.GetRot().GetVector()) * 0.5);
+        ChStarMatrix33<> mtempM(aframe12rotating.GetRot().GetVector() * 0.5);
         mtempM(0, 0) = 0.5 * aframe12rotating.GetRot().e0();
         mtempM(1, 1) = 0.5 * aframe12rotating.GetRot().e0();
         mtempM(2, 2) = 0.5 * aframe12rotating.GetRot().e0();
-        mtempQ.MatrTMultiply(mtempM, Jw1);
+
+        ChMatrix33<> mtempQ;
+        mtempQ = mtempM.transpose() * Jw1;
         Jw1 = mtempQ;
-        mtempQ.MatrTMultiply(mtempM, Jw2);
+        mtempQ = mtempM.transpose() * Jw2;
         Jw2 = mtempQ;
 
         int nc = 0;
@@ -105,27 +102,27 @@ void ChLinkMotorRotationSpeed::Update(double mytime, bool update_assets) {
             nc++;
         }
         if (c_rx) {
-            this->C->ElementN(nc) = aframe12rotating.GetRot().e1();
-            this->mask->Constr_N(nc).Get_Cq_a()->FillElem(0);
-            this->mask->Constr_N(nc).Get_Cq_b()->FillElem(0);
-            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jw1, 0, 0, 1, 3, 0, 3);
-            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(Jw2, 0, 0, 1, 3, 0, 3);
+            C(nc) = aframe12rotating.GetRot().e1();
+            mask.Constr_N(nc).Get_Cq_a().setZero();
+            mask.Constr_N(nc).Get_Cq_b().setZero();
+            mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jw1.row(0);
+            mask.Constr_N(nc).Get_Cq_b().segment(3, 3) = Jw2.row(0);
             nc++;
         }
         if (c_ry) {
-            this->C->ElementN(nc) = aframe12rotating.GetRot().e2();
-            this->mask->Constr_N(nc).Get_Cq_a()->FillElem(0);
-            this->mask->Constr_N(nc).Get_Cq_b()->FillElem(0);
-            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jw1, 1, 0, 1, 3, 0, 3);
-            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(Jw2, 1, 0, 1, 3, 0, 3);
+            C(nc) = aframe12rotating.GetRot().e2();
+            mask.Constr_N(nc).Get_Cq_a().setZero();
+            mask.Constr_N(nc).Get_Cq_b().setZero();
+            mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jw1.row(1);
+            mask.Constr_N(nc).Get_Cq_b().segment(3, 3) = Jw2.row(1);
             nc++;
         }
         if (c_rz) {
-            this->C->ElementN(nc) = aframe12rotating.GetRot().e3();
-            this->mask->Constr_N(nc).Get_Cq_a()->FillElem(0);
-            this->mask->Constr_N(nc).Get_Cq_b()->FillElem(0);
-            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jw1, 2, 0, 1, 3, 0, 3);
-            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(Jw2, 2, 0, 1, 3, 0, 3);
+            C(nc) = aframe12rotating.GetRot().e3();
+            mask.Constr_N(nc).Get_Cq_a().setZero();
+            mask.Constr_N(nc).Get_Cq_b().setZero();
+            mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jw1.row(2);
+            mask.Constr_N(nc).Get_Cq_b().segment(3, 3) = Jw2.row(2);
             nc++;
         }
     }
@@ -134,8 +131,8 @@ void ChLinkMotorRotationSpeed::Update(double mytime, bool update_assets) {
 void ChLinkMotorRotationSpeed::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynamic<>& Qc, const double c) {
     double mCt = -0.5 * m_func->Get_y(this->GetChTime());
 
-    int ncrz = mask->nconstr - 1;
-    if (mask->Constr_N(ncrz).IsActive()) {
+    int ncrz = mask.nconstr - 1;
+    if (mask.Constr_N(ncrz).IsActive()) {
         Qc(off_L + ncrz) += c * mCt;
     }
 }
@@ -145,9 +142,9 @@ void ChLinkMotorRotationSpeed::ConstraintsBiLoad_Ct(double factor) {
         return;
 
     double mCt = -0.5 * m_func->Get_y(this->GetChTime());
-    int ncrz = mask->nconstr - 1;
-    if (mask->Constr_N(ncrz).IsActive()) {
-        mask->Constr_N(ncrz).Set_b_i(mask->Constr_N(ncrz).Get_b_i() + factor * mCt);
+    int ncrz = mask.nconstr - 1;
+    if (mask.Constr_N(ncrz).IsActive()) {
+        mask.Constr_N(ncrz).Set_b_i(mask.Constr_N(ncrz).Get_b_i() + factor * mCt);
     }
 }
 
@@ -229,12 +226,12 @@ void ChLinkMotorRotationSpeed::InjectVariables(ChSystemDescriptor& mdescriptor) 
 }
 
 void ChLinkMotorRotationSpeed::VariablesFbReset() {
-    variable.Get_fb().FillElem(0.0);
+    variable.Get_fb().setZero();
 }
 
 void ChLinkMotorRotationSpeed::VariablesFbLoadForces(double factor) {
     double imposed_speed = m_func->Get_y(this->GetChTime());
-    variable.Get_fb().ElementN(0) += imposed_speed * factor;
+    variable.Get_fb()(0) += imposed_speed * factor;
 }
 
 void ChLinkMotorRotationSpeed::VariablesFbIncrementMq() {
@@ -243,14 +240,14 @@ void ChLinkMotorRotationSpeed::VariablesFbIncrementMq() {
 
 void ChLinkMotorRotationSpeed::VariablesQbLoadSpeed() {
     // set current speed in 'qb', it can be used by the solver when working in incremental mode
-    variable.Get_qb().SetElement(0, 0, aux_dt);
+    variable.Get_qb()(0) = aux_dt;
 }
 
 void ChLinkMotorRotationSpeed::VariablesQbSetSpeed(double step) {
     double old_dt = aux_dt;
 
     // from 'qb' vector, sets body speed, and updates auxiliary data
-    aux_dt = variable.Get_qb().GetElement(0, 0);
+    aux_dt = variable.Get_qb()(0);
 
     // Compute accel. by BDF (approximate by differentiation); not needed
 }

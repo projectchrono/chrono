@@ -23,7 +23,7 @@
 
 #include <algorithm>
 
-#include "chrono/physics/ChGlobal.h"
+#include "chrono/core/ChGlobal.h"
 #include "chrono/assets/ChTexture.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
@@ -59,7 +59,7 @@ void ChWheel::AddVisualizationAssets(VisualizationType vis) {
     if (GetRadius() == 0 || GetWidth() == 0)
         return;
 
-    m_cyl_shape = std::make_shared<ChCylinderShape>();
+    m_cyl_shape = chrono_types::make_shared<ChCylinderShape>();
     m_cyl_shape->GetCylinderGeometry().rad = GetRadius();
     m_cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, GetWidth() / 2, 0);
     m_cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, -GetWidth() / 2, 0);

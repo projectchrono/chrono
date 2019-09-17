@@ -20,6 +20,7 @@
 // =============================================================================
 
 #include "chrono/ChConfig.h"
+#include "chrono/assets/ChSphereShape.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
@@ -67,7 +68,7 @@ ContactForceTest::ContactForceTest() {
             sys->GetSettings()->solver.use_material_properties = use_mat_properties;
             system = sys;
 
-            auto mat = std::make_shared<ChMaterialSurfaceSMC>();
+            auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
             mat->SetYoungModulus(young_modulus);
             mat->SetRestitution(restitution);
             mat->SetFriction(friction);
@@ -89,7 +90,7 @@ ContactForceTest::ContactForceTest() {
             sys->ChangeSolverType(SolverType::APGD);
             system = sys;
 
-            auto mat = std::make_shared<ChMaterialSurfaceNSC>();
+            auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
             mat->SetRestitution(restitution);
             mat->SetFriction(friction);
             material = mat;
@@ -134,7 +135,7 @@ ContactForceTest::ContactForceTest() {
         ball->GetCollisionModel()->AddSphere(radius);
         ball->GetCollisionModel()->BuildModel();
 
-        auto sphere = std::make_shared<ChSphereShape>();
+        auto sphere = chrono_types::make_shared<ChSphereShape>();
         sphere->GetSphereGeometry().rad = radius;
         sphere->SetColor(ChColor(1, 0, 1));
         ball->AddAsset(sphere);

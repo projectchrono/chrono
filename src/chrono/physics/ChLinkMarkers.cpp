@@ -147,10 +147,7 @@ void ChLinkMarkers::UpdateRelMarkerCoords() {
     dist = Vlength(PQw);                 // distance between origins, modulus
     dist_dt = Vdot(Vnorm(PQw), PQw_dt);  // speed between origins, modulus.
 
-    Vector vtemp1;
-    Vector vtemp2;
     Quaternion qtemp1;
-    ChMatrixNM<double, 3, 4> relGw;
 
     Quaternion temp1 = marker1->GetCoord_dt().rot;
     Quaternion temp2 = marker2->GetCoord_dt().rot;
@@ -247,28 +244,31 @@ void ChLinkMarkers::UpdateRelMarkerCoords() {
     ChMatrix33<> m2_Rel_A_dtdt;
     marker2->Compute_Adtdt(m2_Rel_A_dtdt);
 
-    vtemp1 = Body2->GetA_dt().MatrT_x_Vect(PQw);
-    vtemp2 = m2_Rel_A_dt.MatrT_x_Vect(vtemp1);
+    ChVector<> vtemp1;
+    ChVector<> vtemp2;
+
+    vtemp1 = Body2->GetA_dt().transpose() * PQw;
+    vtemp2 = m2_Rel_A_dt.transpose() * vtemp1;
     q_4 = Vmul(vtemp2, 2);  // 2[Aq_dt]'[Ao2_dt]'*Qpq,w
 
-    vtemp1 = Body2->GetA().MatrT_x_Vect(PQw_dt);
-    vtemp2 = m2_Rel_A_dt.MatrT_x_Vect(vtemp1);
+    vtemp1 = Body2->GetA().transpose() * PQw_dt;
+    vtemp2 = m2_Rel_A_dt.transpose() * vtemp1;
     vtemp2 = Vmul(vtemp2, 2);  // 2[Aq_dt]'[Ao2]'*Qpq,w_dt
     q_4 = Vadd(q_4, vtemp2);
 
-    vtemp1 = Body2->GetA_dt().MatrT_x_Vect(PQw_dt);
-    vtemp2 = marker2->GetA().MatrT_x_Vect(vtemp1);
+    vtemp1 = Body2->GetA_dt().transpose() * PQw_dt;
+    vtemp2 = marker2->GetA().transpose() * vtemp1;
     vtemp2 = Vmul(vtemp2, 2);  // 2[Aq]'[Ao2_dt]'*Qpq,w_dt
     q_4 = Vadd(q_4, vtemp2);
 
-    vtemp1 = Body2->GetA().MatrT_x_Vect(PQw);
-    vtemp2 = m2_Rel_A_dtdt.MatrT_x_Vect(vtemp1);
+    vtemp1 = Body2->GetA().transpose() * PQw;
+    vtemp2 = m2_Rel_A_dtdt.transpose() * vtemp1;
     q_4 = Vadd(q_4, vtemp2);  //  [Aq_dtdt]'[Ao2]'*Qpq,w
 
     // ----------- RELATIVE MARKER COORDINATES
 
     // relM.pos
-    relM.pos = marker2->GetA().MatrT_x_Vect(Body2->GetA().MatrT_x_Vect(PQw));
+    relM.pos = marker2->GetA().transpose() * (Body2->GetA().transpose() * PQw);
 
     // relM.rot
     relM.rot = Qcross(Qconjugate(marker2->GetCoord().rot),
@@ -276,17 +276,16 @@ void ChLinkMarkers::UpdateRelMarkerCoords() {
                              Qcross((marker1->GetBody()->GetCoord().rot), (marker1->GetCoord().rot))));
 
     // relM_dt.pos
-    relM_dt.pos = Vadd(Vadd(m2_Rel_A_dt.MatrT_x_Vect(Body2->GetA().MatrT_x_Vect(PQw)),
-                            marker2->GetA().MatrT_x_Vect(Body2->GetA_dt().MatrT_x_Vect(PQw))),
-                       marker2->GetA().MatrT_x_Vect(Body2->GetA().MatrT_x_Vect(PQw_dt)));
+    relM_dt.pos = m2_Rel_A_dt.transpose() * (Body2->GetA().transpose() * PQw) +
+                  marker2->GetA().transpose() * (Body2->GetA_dt().transpose() * PQw) +
+                  marker2->GetA().transpose() * (Body2->GetA().transpose() * PQw_dt);
 
     // relM_dt.rot
     relM_dt.rot = Qadd(q_AD, q_BC);
 
     // relM_dtdt.pos
-    relM_dtdt.pos = Vadd(Vadd(marker2->GetA().MatrT_x_Vect(Body2->GetA_dtdt().MatrT_x_Vect(PQw)),
-                              marker2->GetA().MatrT_x_Vect(Body2->GetA().MatrT_x_Vect(PQw_dtdt))),
-                         q_4);
+    relM_dtdt.pos = marker2->GetA().transpose() * (Body2->GetA_dtdt().transpose() * PQw) +
+                    marker2->GetA().transpose() * (Body2->GetA().transpose() * PQw_dtdt) + q_4;
 
     // relM_dtdt.rot
     qtemp1 = Qcross(Qconjugate(marker2->GetCoord().rot),
@@ -312,10 +311,10 @@ void ChLinkMarkers::UpdateRelMarkerCoords() {
     // rotation axis
     relRotaxis = Vmul(relAxis, relAngle);
     // relWvel
-    ChFrame<>::SetMatrix_Gw(relGw, relM.rot);  // relGw.Set_Gw_matrix(relM.rot);
-    relWvel = relGw.Matr34_x_Quat(relM_dt.rot);
+    ChGwMatrix34<> relGw(relM.rot);
+    relWvel = relGw * relM_dt.rot;
     // relWacc
-    relWacc = relGw.Matr34_x_Quat(relM_dtdt.rot);
+    relWacc = relGw * relM_dtdt.rot;
 }
 
 void ChLinkMarkers::UpdateForces(double mytime) {
@@ -338,26 +337,24 @@ void ChLinkMarkers::Update(double time, bool update_assets) {
 
 //// STATE BOOKKEEPING FUNCTIONS
 
-void ChLinkMarkers::IntLoadResidual_F(const unsigned int off,  // offset in R residual
-                                      ChVectorDynamic<>& R,    // result: the R residual, R += c*F
-                                      const double c           // a scaling factor
-) {
+// Load residual R += c * F, starting at specified offset.
+void ChLinkMarkers::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
     if (!Body1 || !Body2)
         return;
 
     Vector mbody_force;
     Vector mbody_torque;
     if (Vnotnull(C_force)) {
-        Vector m_abs_force = Body2->GetA().Matr_x_Vect(marker2->GetA().Matr_x_Vect(C_force));
+        Vector m_abs_force = Body2->GetA() * (marker2->GetA() * C_force);
 
         if (Body2->Variables().IsActive()) {
             Body2->To_abs_forcetorque(m_abs_force,
                                       marker1->GetAbsCoord().pos,  // absolute application point is always marker1
                                       false,                       // from abs. space
                                       mbody_force, mbody_torque);  // resulting force-torque, both in abs coords
-            R.PasteSumVector(mbody_force * -c, Body2->Variables().GetOffset(), 0);
-            R.PasteSumVector(Body2->TransformDirectionParentToLocal(mbody_torque) * -c,
-                             Body2->Variables().GetOffset() + 3, 0);
+            R.segment(Body2->Variables().GetOffset() + 0, 3) -= c * mbody_force.eigen();
+            R.segment(Body2->Variables().GetOffset() + 3, 3) -=
+                c * Body2->TransformDirectionParentToLocal(mbody_torque).eigen();
         }
 
         if (Body1->Variables().IsActive()) {
@@ -365,21 +362,21 @@ void ChLinkMarkers::IntLoadResidual_F(const unsigned int off,  // offset in R re
                                       marker1->GetAbsCoord().pos,  // absolute application point is always marker1
                                       false,                       // from abs. space
                                       mbody_force, mbody_torque);  // resulting force-torque, both in abs coords
-            R.PasteSumVector(mbody_force * c, Body1->Variables().GetOffset(), 0);
-            R.PasteSumVector(Body1->TransformDirectionParentToLocal(mbody_torque) * c,
-                             Body1->Variables().GetOffset() + 3, 0);
+            R.segment(Body1->Variables().GetOffset() + 0, 3) += c * mbody_force.eigen();
+            R.segment(Body1->Variables().GetOffset() + 3, 3) +=
+                c * Body1->TransformDirectionParentToLocal(mbody_torque).eigen();
         }
     }
     if (Vnotnull(C_torque)) {
-        Vector m_abs_torque = Body2->GetA().Matr_x_Vect(marker2->GetA().Matr_x_Vect(C_torque));
+        Vector m_abs_torque = Body2->GetA() * (marker2->GetA() * C_torque);
         // load torques in 'fb' vector accumulator of body variables (torques in local coords)
         if (Body1->Variables().IsActive()) {
-            R.PasteSumVector(Body1->TransformDirectionParentToLocal(m_abs_torque) * c,
-                             Body1->Variables().GetOffset() + 3, 0);
+            R.segment(Body1->Variables().GetOffset() + 3, 3) +=
+                c * Body1->TransformDirectionParentToLocal(m_abs_torque).eigen();
         }
         if (Body2->Variables().IsActive()) {
-            R.PasteSumVector(Body2->TransformDirectionParentToLocal(m_abs_torque) * -c,
-                             Body2->Variables().GetOffset() + 3, 0);
+            R.segment(Body2->Variables().GetOffset() + 3, 3) -=
+                c * Body2->TransformDirectionParentToLocal(m_abs_torque).eigen();
         }
     }
 }
@@ -390,31 +387,35 @@ void ChLinkMarkers::ConstraintsFbLoadForces(double factor) {
     if (!Body1 || !Body2)
         return;
 
-    Vector mbody_force;
-    Vector mbody_torque;
     if (Vnotnull(C_force)) {
-        Vector m_abs_force = Body2->GetA().Matr_x_Vect(marker2->GetA().Matr_x_Vect(C_force));
+        Vector mbody_force;
+        Vector mbody_torque;
+        Vector m_abs_force = Body2->GetA() * (marker2->GetA() * C_force);
+
         Body2->To_abs_forcetorque(m_abs_force,
                                   marker1->GetAbsCoord().pos,  // absolute application point is always marker1
                                   false,                       // from abs. space
                                   mbody_force, mbody_torque);  // resulting force-torque, both in abs coords
-        Body2->Variables().Get_fb().PasteSumVector(mbody_force * -factor, 0, 0);
-        Body2->Variables().Get_fb().PasteSumVector(Body2->TransformDirectionParentToLocal(mbody_torque) * -factor, 3,
-                                                   0);
+        Body2->Variables().Get_fb().segment(0, 3) -= factor * mbody_force.eigen();
+        Body2->Variables().Get_fb().segment(3, 3) -=
+            factor * Body2->TransformDirectionParentToLocal(mbody_torque).eigen();
 
         Body1->To_abs_forcetorque(m_abs_force,
                                   marker1->GetAbsCoord().pos,  // absolute application point is always marker1
                                   false,                       // from abs. space
                                   mbody_force, mbody_torque);  // resulting force-torque, both in abs coords
-        Body1->Variables().Get_fb().PasteSumVector(mbody_force * factor, 0, 0);
-        Body1->Variables().Get_fb().PasteSumVector(Body1->TransformDirectionParentToLocal(mbody_torque) * factor, 3, 0);
+        Body1->Variables().Get_fb().segment(0, 3) += factor * mbody_force.eigen();
+        Body1->Variables().Get_fb().segment(3, 3) +=
+            factor * Body1->TransformDirectionParentToLocal(mbody_torque).eigen();
     }
+
     if (Vnotnull(C_torque)) {
-        Vector m_abs_torque = Body2->GetA().Matr_x_Vect(marker2->GetA().Matr_x_Vect(C_torque));
+        Vector m_abs_torque = Body2->GetA() * (marker2->GetA() * C_torque);
         // load torques in 'fb' vector accumulator of body variables (torques in local coords)
-        Body1->Variables().Get_fb().PasteSumVector(Body1->TransformDirectionParentToLocal(m_abs_torque) * factor, 3, 0);
-        Body2->Variables().Get_fb().PasteSumVector(Body2->TransformDirectionParentToLocal(m_abs_torque) * -factor, 3,
-                                                   0);
+        Body1->Variables().Get_fb().segment(3, 3) +=
+            factor * Body1->TransformDirectionParentToLocal(m_abs_torque).eigen();
+        Body2->Variables().Get_fb().segment(3, 3) -=
+            factor * Body2->TransformDirectionParentToLocal(m_abs_torque).eigen();
     }
 }
 

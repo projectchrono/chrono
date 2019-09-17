@@ -75,7 +75,7 @@ ContactForceTest::ContactForceTest() {
             float kt = 0;
             float gt = 0;
 
-            auto mat = std::make_shared<ChMaterialSurfaceSMC>();
+            auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
             mat->SetYoungModulus(young_modulus);
             mat->SetRestitution(restitution);
             mat->SetFriction(friction);
@@ -96,7 +96,7 @@ ContactForceTest::ContactForceTest() {
             float friction = 0.4f;
             float restitution = 0;
 
-            auto mat = std::make_shared<ChMaterialSurfaceNSC>();
+            auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
             mat->SetRestitution(restitution);
             mat->SetFriction(friction);
             material = mat;
@@ -166,7 +166,7 @@ ContactForceTest::ContactForceTest() {
     system->SetTolForce(1e-6);
 
     ////std::cout << "Using MINRES solver." << std::endl;
-    ////auto minres_solver = std::make_shared<ChSolverMINRES>();
+    ////auto minres_solver = chrono_types::make_shared<ChSolverMINRES>();
     ////minres_solver->SetDiagonalPreconditioning(true);
     ////system->SetSolver(minres_solver);
     ////system->SetMaxItersSolverSpeed(100);

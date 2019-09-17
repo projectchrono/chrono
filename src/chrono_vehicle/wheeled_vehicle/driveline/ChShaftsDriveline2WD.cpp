@@ -52,13 +52,13 @@ void ChShaftsDriveline2WD::Initialize(std::shared_ptr<ChBody> chassis,
 
     // Create the driveshaft, a 1 d.o.f. object with rotational inertia which
     // represents the connection of the driveline to the transmission box.
-    m_driveshaft = std::make_shared<ChShaft>();
+    m_driveshaft = chrono_types::make_shared<ChShaft>();
     m_driveshaft->SetInertia(GetDriveshaftInertia());
     my_system->Add(m_driveshaft);
 
     // Create a 1 d.o.f. object: a 'shaft' with rotational inertia.
     // This represents the inertia of the rotating box of the differential.
-    m_differentialbox = std::make_shared<ChShaft>();
+    m_differentialbox = chrono_types::make_shared<ChShaft>();
     m_differentialbox->SetInertia(GetDifferentialBoxInertia());
     my_system->Add(m_differentialbox);
 
@@ -67,7 +67,7 @@ void ChShaftsDriveline2WD::Initialize(std::shared_ptr<ChBody> chassis,
     // differential. Note that, differently from the basic ChShaftsGear, this also
     // provides the possibility of transmitting a reaction torque to the box
     // (the truss).
-    m_conicalgear = std::make_shared<ChShaftsGearboxAngled>();
+    m_conicalgear = chrono_types::make_shared<ChShaftsGearboxAngled>();
     m_conicalgear->Initialize(m_driveshaft, m_differentialbox, chassis, m_dir_motor_block, m_dir_axle);
     m_conicalgear->SetTransmissionRatio(GetConicalGearRatio());
     my_system->Add(m_conicalgear);
@@ -77,14 +77,14 @@ void ChShaftsDriveline2WD::Initialize(std::shared_ptr<ChBody> chassis,
     // ChShaftsPlanetary; a proper 'ordinary' transmission ratio t0 must be
     // assigned according to Willis formula. The case of the differential is
     // simple: t0=-1.
-    m_differential = std::make_shared<ChShaftsPlanetary>();
+    m_differential = chrono_types::make_shared<ChShaftsPlanetary>();
     m_differential->Initialize(m_differentialbox, suspensions[m_driven_axles[0]]->GetAxle(LEFT),
                                suspensions[m_driven_axles[0]]->GetAxle(RIGHT));
     m_differential->SetTransmissionRatioOrdinary(GetDifferentialRatio());
     my_system->Add(m_differential);
 
     // Create the clutch for differential locking. By default, unlocked.
-    m_clutch = std::make_shared<ChShaftsClutch>();
+    m_clutch = chrono_types::make_shared<ChShaftsClutch>();
     m_clutch->Initialize(suspensions[m_driven_axles[0]]->GetAxle(LEFT), suspensions[m_driven_axles[0]]->GetAxle(RIGHT));
     m_clutch->SetTorqueLimit(GetAxleDifferentialLockingLimit());
     m_clutch->SetModulation(0);

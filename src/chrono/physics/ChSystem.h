@@ -24,6 +24,7 @@
 #include <list>
 
 #include "chrono/collision/ChCCollisionSystem.h"
+#include "chrono/core/ChGlobal.h"
 #include "chrono/core/ChLog.h"
 #include "chrono/core/ChMath.h"
 #include "chrono/core/ChTimer.h"
@@ -31,7 +32,6 @@
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChContactContainer.h"
 #include "chrono/physics/ChControls.h"
-#include "chrono/physics/ChGlobal.h"
 #include "chrono/physics/ChLinksAll.h"
 #include "chrono/physics/ChProbe.h"
 #include "chrono/solver/ChSystemDescriptor.h"

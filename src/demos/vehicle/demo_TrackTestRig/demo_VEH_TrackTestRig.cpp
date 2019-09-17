@@ -18,8 +18,10 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/tracked_vehicle/utils/ChIrrGuiDriverTTR.h"
-#include "chrono_vehicle/tracked_vehicle/utils/ChTrackTestRig.h"
+#include "chrono_vehicle/tracked_vehicle/test_rig/ChIrrGuiDriverTTR.h"
+#include "chrono_vehicle/tracked_vehicle/test_rig/ChDataDriverTTR.h"
+#include "chrono_vehicle/tracked_vehicle/test_rig/ChRoadDriverTTR.h"
+#include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRig.h"
 #include "chrono_vehicle/utils/ChVehicleIrrApp.h"
 
 #include "chrono_models/vehicle/m113/M113_TrackAssemblyDoublePin.h"
@@ -46,14 +48,23 @@ using std::endl;
 // USER SETTINGS
 // =============================================================================
 
+// Simulation step size
+double step_size = 1e-3;
+
+// Specification of test rig inputs
+enum DriverMode {
+    KEYBOARD,    // interactive (Irrlicht) driver
+    DATAFILE,    // inputs from data file
+    ROADPROFILE  // inputs to follow road profile
+};
+std::string driver_file("M113/test_rig/TTR_inputs.dat");  // used for mode=DATAFILE
+std::string road_file("M113/test_rig/TTR_road.dat");      // used for mode=ROADPROFILE
+double road_speed = 10;                                   // used for mode=ROADPROFILE
+DriverMode driver_mode = DATAFILE;
+
 bool use_JSON = false;
 std::string filename("M113/track_assembly/M113_TrackAssemblySinglePin_Left.json");
 ////std::string filename("M113/track_assembly/M113_TrackAssemblyDoublePin_Left.json");
-
-double post_limit = 0.2;
-
-// Simulation step size
-double step_size = 1e-3;
 
 // Use HHT + MKL / MUMPS
 bool use_mkl = false;
@@ -62,24 +73,26 @@ bool use_mumps = true;
 // Solver output level (MKL and MUMPS)
 bool verbose_solver = false;
 
-// Time interval between two render frames
-double render_step_size = 1.0 / 50;
-
-// Output (screenshot captures)
-bool img_output = false;
-
 const std::string out_dir = GetChronoOutputPath() + "TRACK_TEST_RIG";
 
 // =============================================================================
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
+    // -----------------
+    // Initialize output
+    // -----------------
+
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+
     // -----------------------
     // Construct rig mechanism
     // -----------------------
 
-    ChTrackTestRig* rig = nullptr;
-    ChVector<> attach_loc(0, 1, 0);
+    bool create_track = true;
     ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC;
 
     //// NOTE
@@ -89,32 +102,104 @@ int main(int argc, char* argv[]) {
     ////
     //// For now, use ChMaterialSurface::NSC for a double-pin track model
 
+    ChTrackTestRig* rig = nullptr;
     if (use_JSON) {
-        rig = new ChTrackTestRig(vehicle::GetDataFile(filename), attach_loc, contact_method);
+        rig = new ChTrackTestRig(vehicle::GetDataFile(filename), create_track, contact_method);
         std::cout << "Rig uses track assembly from JSON file: " << vehicle::GetDataFile(filename) << std::endl;
     } else {
         VehicleSide side = LEFT;
-        TrackShoeType type = TrackShoeType::SINGLE_PIN;
+        TrackShoeType type = TrackShoeType::DOUBLE_PIN;
         std::shared_ptr<ChTrackAssembly> track_assembly;
         switch (type) {
             case TrackShoeType::SINGLE_PIN: {
-                auto assembly = std::make_shared<M113_TrackAssemblySinglePin>(side);
+                auto assembly = chrono_types::make_shared<M113_TrackAssemblySinglePin>(side);
                 track_assembly = assembly;
                 break;
             }
             case TrackShoeType::DOUBLE_PIN: {
-                auto assembly = std::make_shared<M113_TrackAssemblyDoublePin>(side);
+                auto assembly = chrono_types::make_shared<M113_TrackAssemblyDoublePin>(side);
                 track_assembly = assembly;
                 break;
             }
             default:
                 GetLog() << "Track type NOT supported\n";
-                break;
+                return 1;
         }
 
-        rig = new ChTrackTestRig(track_assembly, attach_loc, contact_method);
+        rig = new ChTrackTestRig(track_assembly, create_track, contact_method);
         std::cout << "Rig uses M113 track assembly:  type " << (int)type << " side " << side << std::endl;
     }
+
+    // ---------------------------------------
+    // Create the vehicle Irrlicht application
+    // ---------------------------------------
+
+    ////ChVector<> target_point = rig->GetPostPosition();
+    ////ChVector<> target_point = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
+    ChVector<> target_point = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
+
+    ChVehicleIrrApp app(rig, NULL, L"Suspension Test Rig");
+    app.SetSkyBox();
+    app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
+    app.SetChaseCamera(ChVector<>(0), 3.0, 0.0);
+    app.SetChaseCameraPosition(target_point + ChVector<>(-2, 3, 0));
+    app.SetChaseCameraState(utils::ChChaseCamera::Free);
+    app.SetChaseCameraAngle(-CH_C_PI_2);
+    app.SetChaseCameraMultipliers(1e-4, 10);
+    app.SetTimestep(step_size);
+
+    // -----------------------------------
+    // Create and attach the driver system
+    // -----------------------------------
+
+    std::unique_ptr<ChDriverTTR> driver;
+    switch (driver_mode) {
+        case KEYBOARD: {
+            auto irr_driver = new ChIrrGuiDriverTTR(app);
+            irr_driver->SetThrottleDelta(1.0 / 50);
+            irr_driver->SetDisplacementDelta(1.0 / 250);
+            driver = std::unique_ptr<ChDriverTTR>(irr_driver);
+            break;
+        }
+        case DATAFILE: {
+            // Driver with inputs from file
+            auto data_driver = new ChDataDriverTTR(vehicle::GetDataFile(driver_file));
+            driver = std::unique_ptr<ChDriverTTR>(data_driver);
+            break;
+        }
+        case ROADPROFILE: {
+            auto road_driver = new ChRoadDriverTTR(vehicle::GetDataFile(road_file), road_speed);
+            driver = std::unique_ptr<ChDriverTTR>(road_driver);
+            break;
+        }
+    }
+
+    rig->SetDriver(std::move(driver));
+
+    // ----------------------------
+    // Initialize the rig mechanism
+    // ----------------------------
+
+    rig->SetInitialRideHeight(0.55);
+    rig->SetDisplacementDelay(0.4);
+    rig->SetDisplacementLimit(0.15);
+    rig->SetMaxTorque(6000);
+
+    ////rig->SetCollide(TrackedCollisionFlag::NONE);
+    ////rig->SetCollide(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SHOES_LEFT);
+
+    rig->SetSprocketVisualizationType(VisualizationType::PRIMITIVES);
+    rig->SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
+    rig->SetRoadWheelAssemblyVisualizationType(VisualizationType::PRIMITIVES);
+    rig->SetRoadWheelVisualizationType(VisualizationType::PRIMITIVES);
+    rig->SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
+
+    rig->SetDriverLogFilename(out_dir + "/TTR_driver.out");
+
+    rig->Initialize();
+
+    app.AssetBindAll();
+    app.AssetUpdateAll();
 
     // ------------------------------
     // Solver and integrator settings
@@ -136,7 +221,7 @@ int main(int argc, char* argv[]) {
     if (use_mkl) {
 #ifdef CHRONO_MKL
         std::cout << "Solver: MKL" << std::endl;
-        auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+        auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
         mkl_solver->SetSparsityPatternLock(true);
         mkl_solver->SetVerbose(verbose_solver);
         rig->GetSystem()->SetSolver(mkl_solver);
@@ -144,7 +229,7 @@ int main(int argc, char* argv[]) {
     } else if (use_mumps) {
 #ifdef CHRONO_MUMPS
         std::cout << "Solver: MUMPS" << std::endl;
-        auto mumps_solver = std::make_shared<ChSolverMumps>();
+        auto mumps_solver = chrono_types::make_shared<ChSolverMumps>();
         mumps_solver->SetSparsityPatternLock(true);
         mumps_solver->SetNullPivotDetection(true);
         mumps_solver->SetVerbose(verbose_solver);
@@ -178,119 +263,38 @@ int main(int argc, char* argv[]) {
         std::cout << "Solver: Default" << std::endl;
     }
 
-    // Disable gravity in this simulation
-    ////rig->GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
-
-    // ----------------------------
-    // Initialize the rig mechanism
-    // ----------------------------
-
-    rig->SetMaxTorque(6000);
-
-    ChVector<> rig_loc(0, 0, 2);
-    ChQuaternion<> rig_rot(1, 0, 0, 0);
-    rig->Initialize(ChCoordsys<>(rig_loc, rig_rot));
-
-    rig->GetTrackAssembly()->SetSprocketVisualizationType(VisualizationType::PRIMITIVES);
-    rig->GetTrackAssembly()->SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
-    rig->GetTrackAssembly()->SetRoadWheelAssemblyVisualizationType(VisualizationType::PRIMITIVES);
-    rig->GetTrackAssembly()->SetRoadWheelVisualizationType(VisualizationType::PRIMITIVES);
-    rig->GetTrackAssembly()->SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
-
-    ////rig->SetCollide(TrackedCollisionFlag::NONE);
-    ////rig->SetCollide(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SHOES_LEFT);
-    ////rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->SetCollide(false);
-
-    // ---------------------------------------
-    // Create the vehicle Irrlicht application
-    // ---------------------------------------
-
-    ////ChVector<> target_point = rig->GetPostPosition();
-    ////ChVector<> target_point = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
-    ChVector<> target_point = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
-
-    ChVehicleIrrApp app(rig, NULL, L"Suspension Test Rig");
-    app.SetSkyBox();
-    app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
-    app.SetChaseCamera(ChVector<>(0), 3.0, 0.0);
-    app.SetChaseCameraPosition(target_point + ChVector<>(0, 3, 0));
-    app.SetChaseCameraState(utils::ChChaseCamera::Free);
-    app.SetChaseCameraAngle(-CH_C_PI_2);
-    app.SetChaseCameraMultipliers(1e-4, 10);
-    app.SetTimestep(step_size);
-    app.AssetBindAll();
-    app.AssetUpdateAll();
-
-    // ------------------------
-    // Create the driver system
-    // ------------------------
-
-    ChIrrGuiDriverTTR driver(app, post_limit);
-    double steering_time = 1.0;      // time to go from 0 to max
-    double displacement_time = 2.0;  // time to go from 0 to max applied post motion
-    driver.SetSteeringDelta(render_step_size / steering_time);
-    driver.SetDisplacementDelta(render_step_size / displacement_time * post_limit);
-    driver.Initialize();
-
-    // -----------------
-    // Initialize output
-    // -----------------
-
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        std::cout << "Error creating directory " << out_dir << std::endl;
-        return 1;
-    }
-
     // ---------------
     // Simulation loop
     // ---------------
 
-    // Inter-module communication data
-    TerrainForces shoe_forces(1);
-
-    // Number of simulation steps between two 3D view render frames
-    int render_steps = (int)std::ceil(render_step_size / step_size);
-
     // Initialize simulation frame counter
     int step_number = 0;
-    int render_frame = 0;
 
     while (app.GetDevice()->run()) {
-        // Debugging output
-        const ChFrameMoving<>& c_ref = rig->GetChassisBody()->GetFrame_REF_to_abs();
-        const ChVector<>& i_pos_abs = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
-        const ChVector<>& s_pos_abs = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
-        ChVector<> i_pos_rel = c_ref.TransformPointParentToLocal(i_pos_abs);
-        ChVector<> s_pos_rel = c_ref.TransformPointParentToLocal(s_pos_abs);
-        ////cout << "Time: " << rig->GetSystem()->GetChTime() << endl;
-        ////cout << "      idler:    " << i_pos_rel.x << "  " << i_pos_rel.y << "  " << i_pos_rel.z << endl;
-        ////cout << "      sprocket: " << s_pos_rel.x << "  " << s_pos_rel.y << "  " << s_pos_rel.z << endl;
+        double time = rig->GetChTime();
 
         // Render scene
         app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         app.DrawAll();
         app.EndScene();
 
-        if (img_output && step_number > 1000 && step_number % render_steps == 0) {
-            char filename[100];
-            sprintf(filename, "%s/img_%03d.jpg", out_dir.c_str(), render_frame + 1);
-            app.WriteImageToFile(filename);
-            render_frame++;
-        }
+        // Debugging output
+        ////rig->LogDriverInputs();
 
-        // Collect output data from modules
-        double throttle_input = driver.GetThrottle();
-        double post_input = driver.GetDisplacement();
+        const ChFrameMoving<>& c_ref = rig->GetChassisBody()->GetFrame_REF_to_abs();
+        const ChVector<>& i_pos_abs = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
+        const ChVector<>& s_pos_abs = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
+        ChVector<> i_pos_rel = c_ref.TransformPointParentToLocal(i_pos_abs);
+        ChVector<> s_pos_rel = c_ref.TransformPointParentToLocal(s_pos_abs);
+        ////cout << "Time: " << time << endl;
+        ////cout << "      idler:    " << i_pos_rel.x() << "  " << i_pos_rel.y() << "  " << i_pos_rel.z() << endl;
+        ////cout << "      sprocket: " << s_pos_rel.x() << "  " << s_pos_rel.y() << "  " << s_pos_rel.z() << endl;
 
-        // Update modules (process inputs from other modules)
-        double time = rig->GetChTime();
-        driver.Synchronize(time);
-        rig->Synchronize(time, post_input, throttle_input, shoe_forces);
-        app.Synchronize("", 0, throttle_input, 0);
-
-        // Advance simulation for one timestep for all modules
-        driver.Advance(step_size);
+        // Advance simulation of the rig
         rig->Advance(step_size);
+
+        // Update visualization app
+        app.Synchronize(rig->GetDriverMessage(), 0, rig->GetThrottleInput(), 0);
         app.Advance(step_size);
 
         // Increment frame number

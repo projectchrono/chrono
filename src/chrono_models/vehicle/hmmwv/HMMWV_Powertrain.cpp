@@ -29,12 +29,17 @@ const double HMMWV_Powertrain::m_motorblock_inertia = 10.5;
 const double HMMWV_Powertrain::m_crankshaft_inertia = 1.1;
 const double HMMWV_Powertrain::m_ingear_shaft_inertia = 0.3;
 
+const double HMMWV_Powertrain::m_upshift_RPM = 2500;
+const double HMMWV_Powertrain::m_downshift_RPM = 1200;
+
 // -----------------------------------------------------------------------------
 // Constructor of the HMMW_Powertrain.
 // the direction of the motor block is along the X axis, while the directions of
 // the axles is along the Y axis (relative to the chassis coordinate frame),
 // -----------------------------------------------------------------------------
-HMMWV_Powertrain::HMMWV_Powertrain(const std::string& name) : ChShaftsPowertrain(name, ChVector<>(1, 0, 0)) {}
+HMMWV_Powertrain::HMMWV_Powertrain(const std::string& name) : ChShaftsPowertrain(name, ChVector<>(1, 0, 0)) {
+    SetGearShiftLatency(1.0);
+}
 
 // -----------------------------------------------------------------------------
 // Initialize vector of gear ratios

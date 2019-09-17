@@ -18,7 +18,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChPathShape)
 
 ChPathShape::ChPathShape() : npoints(200) {
-    gpath = std::make_shared<geometry::ChLinePath>();
+    gpath = chrono_types::make_shared<geometry::ChLinePath>();
 }
 
 ChPathShape::ChPathShape(std::shared_ptr<geometry::ChLinePath>& mpath) : npoints(200), gpath(mpath) {}

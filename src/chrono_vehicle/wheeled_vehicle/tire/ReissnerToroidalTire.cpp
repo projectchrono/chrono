@@ -37,7 +37,7 @@ ReissnerToroidalTire::ReissnerToroidalTire(const std::string& name)
 
 void ReissnerToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) {
     // Create an isotropic material (shared by all elements)
-    auto mat = std::make_shared<ChMaterialShellReissnerIsothropic>(500, 9.0e7, 0.3);
+    auto mat = chrono_types::make_shared<ChMaterialShellReissnerIsothropic>(500, 9.0e7, 0.3);
 
     // Create the mesh nodes.
     // The nodes are first created in the wheel local frame, assuming Y as the tire axis,
@@ -59,7 +59,7 @@ void ReissnerToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame, Vehicl
             ChVector<> dir = wheel_frame.TransformDirectionLocalToParent(ChVector<>(nx, ny, nz));
             ChMatrix33<> mrot; mrot.Set_A_Xdir(dir,VECT_Y);
 
-            auto node = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(loc, mrot));         
+            auto node = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(loc, mrot));         
 
             m_mesh->AddNode(node);
         }
@@ -92,7 +92,7 @@ void ReissnerToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame, Vehicl
             auto node3 = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(m_mesh->GetNode(inode3));
 
             // Create the element and set its nodes.
-            auto element = std::make_shared<ChElementShellReissner4>();
+            auto element = chrono_types::make_shared<ChElementShellReissner4>();
             element->SetNodes(node0, node1, node2, node3);
 
             // Add a single layers with a fiber angle of 0 degrees.

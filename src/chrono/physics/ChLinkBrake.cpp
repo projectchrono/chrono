@@ -22,10 +22,8 @@ CH_FACTORY_REGISTER(ChLinkBrake)
 ChLinkBrake::ChLinkBrake()
     : brake_torque(0), stick_ratio(1.1), brake_mode(BRAKE_ROTATION), last_dir(0), must_stick(false) {
     // Mask: initialize our LinkMaskLF (lock formulation mask)
-    // because this class inherited from LinkLock.
-    ((ChLinkMaskLF*)mask)->SetLockMask(false, false, false, false, false, false, false);
-
-    ChangedLinkMask();
+    mask.SetLockMask(false, false, false, false, false, false, false);
+    BuildLink();
 }
 
 ChLinkBrake::ChLinkBrake(const ChLinkBrake& other) : ChLinkLock(other) {
@@ -42,20 +40,18 @@ void ChLinkBrake::Set_brake_mode(int mmode) {
         brake_mode = mmode;
 
         // reset mask for default free brake
-        ((ChLinkMaskLF*)mask)->Constr_E3().SetMode(CONSTRAINT_FREE);
-        ((ChLinkMaskLF*)mask)->Constr_X().SetMode(CONSTRAINT_FREE);
-
-        ChangedLinkMask();
+        mask.Constr_E3().SetMode(CONSTRAINT_FREE);
+        mask.Constr_X().SetMode(CONSTRAINT_FREE);
+        BuildLink();
     }
 }
 
 void ChLinkBrake::SetDisabled(bool mdis) {
     ChLinkLock::SetDisabled(mdis);
 
-    ((ChLinkMaskLF*)mask)->Constr_E3().SetMode(CONSTRAINT_FREE);
-    ((ChLinkMaskLF*)mask)->Constr_X().SetMode(CONSTRAINT_FREE);
-
-    ChangedLinkMask();
+    mask.Constr_E3().SetMode(CONSTRAINT_FREE);
+    mask.Constr_X().SetMode(CONSTRAINT_FREE);
+    BuildLink();
 }
 
 // Update time: just change internal time!
@@ -74,7 +70,7 @@ void ChLinkBrake::UpdateForces(double mytime) {
     // then, if not sticking,
     if (this->brake_torque) {
         if (brake_mode == BRAKE_ROTATION) {
-            if (((ChLinkMaskLF*)mask)->Constr_E3().IsActive() == false) {
+            if (mask.Constr_E3().IsActive() == false) {
                 int mdir;
 
                 Vector mv_torque = Vmul(VECT_Z, this->brake_torque);
@@ -94,7 +90,7 @@ void ChLinkBrake::UpdateForces(double mytime) {
             }
         }
         if (brake_mode == BRAKE_TRANSLATEX) {
-            if (((ChLinkMaskLF*)mask)->Constr_X().IsActive() == false) {
+            if (mask.Constr_X().IsActive() == false) {
                 int mdir;
 
                 Vector mv_force = Vmul(VECT_X, this->brake_torque);

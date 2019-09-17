@@ -7,6 +7,8 @@ using namespace chrono;
 
 %}
 
+%shared_ptr(chrono::ChColorAsset)
+
 /* Parse the header file to generate wrappers */
 %include "../chrono/assets/ChColorAsset.h"    
 

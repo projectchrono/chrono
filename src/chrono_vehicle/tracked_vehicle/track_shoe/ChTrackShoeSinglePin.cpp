@@ -17,7 +17,7 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChGlobal.h"
+#include "chrono/core/ChGlobal.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChColorAsset.h"
@@ -124,62 +124,62 @@ void ChTrackShoeSinglePin::AddVisualizationAssets(VisualizationType vis) {
     double p2y = 0.5 * (pad_box_dims.y() / 2);
 
     // Render the revolute pin
-    auto rev_axis = std::make_shared<ChCylinderShape>();
+    auto rev_axis = chrono_types::make_shared<ChCylinderShape>();
     rev_axis->GetCylinderGeometry().p1 = ChVector<>(pitch / 2, -p0y, 0);
     rev_axis->GetCylinderGeometry().p2 = ChVector<>(pitch / 2, p0y, 0);
     rev_axis->GetCylinderGeometry().rad = cyl_radius / 1.5;
     m_shoe->AddAsset(rev_axis);
 
     // Render boxes between pins
-    auto box_L = std::make_shared<ChBoxShape>();
+    auto box_L = chrono_types::make_shared<ChBoxShape>();
     box_L->GetBoxGeometry().SetLengths(ChVector<>(pitch - 1.5 * cyl_radius, 0.95 * (p0y - p1y), pad_box_dims.z() / 3));
     box_L->Pos = ChVector<>(0, +0.95 * (p0y + p1y) / 2, 0);
     m_shoe->AddAsset(box_L);
 
-    auto box_R = std::make_shared<ChBoxShape>();
+    auto box_R = chrono_types::make_shared<ChBoxShape>();
     box_R->GetBoxGeometry().SetLengths(ChVector<>(pitch - 1.5 * cyl_radius, 0.95 * (p0y - p1y), pad_box_dims.z() / 3));
     box_R->Pos = ChVector<>(0, -0.95 * (p0y + p1y) / 2, 0);
     m_shoe->AddAsset(box_R);
 
     // Render the contact cylinders (for contact with sprocket)
-    auto cyl_FR = std::make_shared<ChCylinderShape>();
+    auto cyl_FR = chrono_types::make_shared<ChCylinderShape>();
     cyl_FR->GetCylinderGeometry().p1 = ChVector<>(front_cyl_loc, -p1y, 0);
     cyl_FR->GetCylinderGeometry().p2 = ChVector<>(front_cyl_loc, -p2y, 0);
     cyl_FR->GetCylinderGeometry().rad = cyl_radius;
     m_shoe->AddAsset(cyl_FR);
 
-    auto cyl_RR = std::make_shared<ChCylinderShape>();
+    auto cyl_RR = chrono_types::make_shared<ChCylinderShape>();
     cyl_RR->GetCylinderGeometry().p1 = ChVector<>(rear_cyl_loc, -p1y, 0);
     cyl_RR->GetCylinderGeometry().p2 = ChVector<>(rear_cyl_loc, -p2y, 0);
     cyl_RR->GetCylinderGeometry().rad = cyl_radius;
     m_shoe->AddAsset(cyl_RR);
 
-    auto cyl_FL = std::make_shared<ChCylinderShape>();
+    auto cyl_FL = chrono_types::make_shared<ChCylinderShape>();
     cyl_FL->GetCylinderGeometry().p1 = ChVector<>(front_cyl_loc, p1y, 0);
     cyl_FL->GetCylinderGeometry().p2 = ChVector<>(front_cyl_loc, p2y, 0);
     cyl_FL->GetCylinderGeometry().rad = cyl_radius;
     m_shoe->AddAsset(cyl_FL);
 
-    auto cyl_RL = std::make_shared<ChCylinderShape>();
+    auto cyl_RL = chrono_types::make_shared<ChCylinderShape>();
     cyl_RL->GetCylinderGeometry().p1 = ChVector<>(rear_cyl_loc, p1y, 0);
     cyl_RL->GetCylinderGeometry().p2 = ChVector<>(rear_cyl_loc, p2y, 0);
     cyl_RL->GetCylinderGeometry().rad = cyl_radius;
     m_shoe->AddAsset(cyl_RL);
 
     // Render the pad contact box
-    auto box_shoe = std::make_shared<ChBoxShape>();
+    auto box_shoe = chrono_types::make_shared<ChBoxShape>();
     box_shoe->GetBoxGeometry().SetLengths(pad_box_dims);
     box_shoe->Pos = GetPadBoxLocation();
     m_shoe->AddAsset(box_shoe);
 
     // Render the guiding pin contact box
-    auto box_pin = std::make_shared<ChBoxShape>();
+    auto box_pin = chrono_types::make_shared<ChBoxShape>();
     box_pin->GetBoxGeometry().SetLengths(guide_box_dims);
     box_pin->Pos = GetGuideBoxLocation();
     m_shoe->AddAsset(box_pin);
 
     // Assign color (based on track shoe index)
-    auto col = std::make_shared<ChColorAsset>();
+    auto col = chrono_types::make_shared<ChColorAsset>();
     if (m_index == 0)
         col->SetColor(ChColor(0.6f, 0.3f, 0.3f));
     else if (m_index % 2 == 0)
@@ -202,7 +202,7 @@ void ChTrackShoeSinglePin::Connect(std::shared_ptr<ChTrackShoe> next) {
         // Create and initialize a point-line joint (sliding line along X)
         ChQuaternion<> rot = m_shoe->GetRot() * Q_from_AngZ(CH_C_PI_2);
 
-        auto pointline = std::make_shared<ChLinkLockPointLine>();
+        auto pointline = chrono_types::make_shared<ChLinkLockPointLine>();
         pointline->SetNameString(m_name + "_pointline");
         pointline->Initialize(m_shoe, next->GetShoeBody(), ChCoordsys<>(loc, rot));
         m_shoe->GetSystem()->AddLink(pointline);
@@ -210,7 +210,7 @@ void ChTrackShoeSinglePin::Connect(std::shared_ptr<ChTrackShoe> next) {
         // Create and initialize the revolute joint (rotation axis along Z)
         ChQuaternion<> rot = m_shoe->GetRot() * Q_from_AngX(CH_C_PI_2);
 
-        auto revolute = std::make_shared<ChLinkLockRevolute>();
+        auto revolute = chrono_types::make_shared<ChLinkLockRevolute>();
         revolute->SetNameString(m_name + "_revolute");
         revolute->Initialize(m_shoe, next->GetShoeBody(), ChCoordsys<>(loc, rot));
         m_shoe->GetSystem()->AddLink(revolute);

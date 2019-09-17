@@ -27,6 +27,9 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChSolverAPGD)
 
+ChSolverAPGD::ChSolverAPGD(int mmax_iters, bool mwarm_start, double mtolerance)
+    : ChIterativeSolver(mmax_iters, mwarm_start, mtolerance, 0.0001), nc(0), residual(0.0) {}
+
 void ChSolverAPGD::ShurBvectorCompute(ChSystemDescriptor& sysd) {
     // ***TO DO*** move the following thirty lines in a short function ChSystemDescriptor::ShurBvectorCompute() ?
 
@@ -44,7 +47,7 @@ void ChSolverAPGD::ShurBvectorCompute(ChSystemDescriptor& sysd) {
                                                          sysd.GetVariablesList()[iv]->Get_fb());  // q = [M]'*fb
 
     // ...and now do  b_shur = - D'*q = - D'*(M^-1)*k ..
-    r.Reset();
+    r.setZero();
     int s_i = 0;
     for (unsigned int ic = 0; ic < sysd.GetConstraintsList().size(); ic++)
         if (sysd.GetConstraintsList()[ic]->IsActive()) {
@@ -54,22 +57,19 @@ void ChSolverAPGD::ShurBvectorCompute(ChSystemDescriptor& sysd) {
 
     // ..and finally do   b_shur = b_shur - c
     sysd.BuildBiVector(tmp);  // b_i   =   -c   = phi/h
-    r.MatrInc(tmp);
+    r += tmp;
 }
 
 double ChSolverAPGD::Res4(ChSystemDescriptor& sysd) {
     // Project the gradient (for rollback strategy)
     // g_proj = (l-project_orthogonal(l - gdiff*g, fric))/gdiff;
-    double gdiff = 1.0 / pow(nc, 2.0);
-    sysd.ShurComplementProduct(tmp, &gammaNew);
-    tmp.MatrInc(r);
-    tmp.MatrScale(-gdiff);
-    tmp.MatrInc(gammaNew);
-    sysd.ConstraintsProject(tmp);
-    tmp.MatrSub(gammaNew, tmp);
-    tmp.MatrScale(1.0 / gdiff);
+    double gdiff = 1.0 / (nc * nc);
+    sysd.ShurComplementProduct(tmp, gammaNew);  // tmp = N * gammaNew
+    tmp = gammaNew - gdiff * (tmp + r);         // Note: no aliasing issues here
+    sysd.ConstraintsProject(tmp);               // tmp = ProjectionOperator(gammaNew - gdiff * g)
+    tmp = (gammaNew - tmp) / gdiff;             // Note: no aliasing issues here
 
-    return tmp.NormTwo();
+    return tmp.norm();
 }
 
 double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
@@ -92,14 +92,14 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
     double obj1, obj2;
 
     nc = sysd.CountActiveConstraints();
-    gamma_hat.Resize(nc, 1);
-    gammaNew.Resize(nc, 1);
-    g.Resize(nc, 1);
-    y.Resize(nc, 1);
-    gamma.Resize(nc, 1);
-    yNew.Resize(nc, 1);
-    r.Resize(nc, 1);
-    tmp.Resize(nc, 1);
+    gamma_hat.resize(nc);
+    gammaNew.resize(nc);
+    g.resize(nc);
+    y.resize(nc);
+    gamma.resize(nc);
+    yNew.resize(nc);
+    r.resize(nc);
+    tmp.resize(nc);
 
     residual = 10e30;
 
@@ -110,9 +110,15 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
     // Compute the b_shur vector in the Shur complement equation N*l = b_shur
     ShurBvectorCompute(sysd);
 
+    // If no constraints, return now. Variables contain M^-1 * f after call to ShurBvectorCompute.
+    // This early exit is needed, else we get division by zero and a potential infinite loop.
+    if (nc == 0) {
+        return 0;
+    }
+
     // Optimization: backup the  q  sparse data computed above,
     // because   (M^-1)*k   will be needed at the end when computing primals.
-    ChMatrixDynamic<> Minvk;
+    ChVectorDynamic<> Minvk;
     sysd.FromVariablesToVector(Minvk, true);
 
     // (1) gamma_0 = zeros(nc,1)
@@ -127,49 +133,42 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
     sysd.FromConstraintsToVector(gamma);
 
     // (2) gamma_hat_0 = ones(nc,1)
-    gamma_hat.FillElem(1);
+    gamma_hat.setConstant(1.0);
 
     // (3) y_0 = gamma_0
-    y.CopyFromMatrix(gamma);
+    y = gamma;
 
     // (4) theta_0 = 1
     theta = 1.0;
 
     // (5) L_k = norm(N * (gamma_0 - gamma_hat_0)) / norm(gamma_0 - gamma_hat_0)
-    tmp.MatrSub(gamma, gamma_hat);
-    L = tmp.NormTwo();
-    sysd.ShurComplementProduct(yNew, &tmp, 0);
-    L = yNew.NormTwo() / L;
-    yNew.FillElem(0);  // reset yNew to be all zeros
+    tmp = gamma - gamma_hat;
+    L = tmp.norm();
+    sysd.ShurComplementProduct(yNew, tmp, nullptr);  // yNew = N * tmp = N * (gamma - gamma_hat)
+    L = yNew.norm() / L;
+    yNew.setZero();  //// RADU  is this really necessary here?
 
     // (6) t_k = 1 / L_k
     t = 1.0 / L;
 
+    //// RADU
+    //// Check correctness (e.g. sign of 'r' in comments vs. code)
+
     // (7) for k := 0 to N_max
     for (tot_iterations = 0; tot_iterations < max_iterations; tot_iterations++) {
         // (8) g = N * y_k - r
-        sysd.ShurComplementProduct(g, &y);
-        g.MatrInc(r);
-
         // (9) gamma_(k+1) = ProjectionOperator(y_k - t_k * g)
-        gammaNew.CopyFromMatrix(g);
-        gammaNew.MatrScale(-t);
-        gammaNew.MatrInc(y);
+        sysd.ShurComplementProduct(g, y);  // g = N * y
+        gammaNew = y - t * (g + r);
         sysd.ConstraintsProject(gammaNew);
 
-        // (10) while 0.5 * gamma_(k+1)' * N * gamma_(k+1) - gamma_(k+1)' * r >= 0.5 * y_k' * N * y_k - y_k' * r + g' *
-        // (gamma_(k+1) - y_k) + 0.5 * L_k * norm(gamma_(k+1) - y_k)^2
-        sysd.ShurComplementProduct(tmp, &gammaNew);  // Here tmp is equal to N*gammaNew;
-        tmp.MatrScale(0.5);
-        tmp.MatrInc(r);
-        obj1 = tmp.MatrDot(gammaNew, tmp);
+        // (10) while 0.5 * gamma_(k+1)' * N * gamma_(k+1) - gamma_(k+1)' * r >=
+        //            0.5 * y_k' * N * y_k - y_k' * r + g' * (gamma_(k+1) - y_k) + 0.5 * L_k * norm(gamma_(k+1) - y_k)^2
+        sysd.ShurComplementProduct(tmp, gammaNew);  // tmp = N * gammaNew;
+        obj1 = gammaNew.dot(0.5 * tmp + r);
 
-        sysd.ShurComplementProduct(tmp, &y);  // Here tmp is equal to N*y;
-        tmp.MatrScale(0.5);
-        tmp.MatrInc(r);
-        obj2 = tmp.MatrDot(y, tmp);
-        tmp.MatrSub(gammaNew, y);  // Here tmp is equal to gammaNew - y
-        obj2 = obj2 + tmp.MatrDot(tmp, g) + 0.5 * L * tmp.MatrDot(tmp, tmp);
+        sysd.ShurComplementProduct(tmp, y);  // tmp = N * y;
+        obj2 = y.dot(0.5 * tmp + r) + (gammaNew - y).dot(g + 0.5 * L * (gammaNew - y));
 
         while (obj1 >= obj2) {
             // (11) L_k = 2 * L_k
@@ -179,71 +178,42 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
             t = 1.0 / L;
 
             // (13) gamma_(k+1) = ProjectionOperator(y_k - t_k * g)
-            gammaNew.CopyFromMatrix(g);
-            gammaNew.MatrScale(-t);
-            gammaNew.MatrInc(y);
+            gammaNew = y - t * g;
             sysd.ConstraintsProject(gammaNew);
 
-            // Update the components of the while condition
-            sysd.ShurComplementProduct(tmp, &gammaNew);  // Here tmp is equal to N*gammaNew;
-            tmp.MatrScale(0.5);
-            tmp.MatrInc(r);
-            obj1 = tmp.MatrDot(gammaNew, tmp);
+            // Update obj1 and obj2
+            sysd.ShurComplementProduct(tmp, gammaNew);  // tmp = N * gammaNew;
+            obj1 = gammaNew.dot(0.5 * tmp + r);
 
-            sysd.ShurComplementProduct(tmp, &y);  // Here tmp is equal to N*y;
-            tmp.MatrScale(0.5);
-            tmp.MatrInc(r);
-            obj2 = tmp.MatrDot(y, tmp);
-            tmp.MatrSub(gammaNew, y);  // Here tmp is equal to gammaNew - y
-            obj2 = obj2 + tmp.MatrDot(tmp, g) + 0.5 * L * tmp.MatrDot(tmp, tmp);
-
-            // (14) endwhile
-        }
+            sysd.ShurComplementProduct(tmp, y);  // tmp = N * y;
+            obj2 = y.dot(0.5 * tmp + r) + (gammaNew - y).dot(g + 0.5 * L * (gammaNew - y));
+        }  // (14) endwhile
 
         // (15) theta_(k+1) = (-theta_k^2 + theta_k * sqrt(theta_k^2 + 4)) / 2
-        thetaNew = (-pow(theta, 2.0) + theta * sqrt(pow(theta, 2.0) + 4.0)) / 2.0;
+        thetaNew = (-theta * theta + theta * sqrt(theta * theta + 4.0)) / 2.0;
 
         // (16) Beta_(k+1) = theta_k * (1 - theta_k) / (theta_k^2 + theta_(k+1))
-        Beta = theta * (1.0 - theta) / (pow(theta, 2) + thetaNew);
+        Beta = theta * (1.0 - theta) / (theta * theta + thetaNew);
 
         // (17) y_(k+1) = gamma_(k+1) + Beta_(k+1) * (gamma_(k+1) - gamma_k)
-        tmp.MatrSub(gammaNew, gamma);  // Here tmp is equal to gammaNew - gamma;
-        tmp.MatrScale(Beta);
-        yNew.MatrAdd(gammaNew, tmp);
+        yNew = gammaNew + Beta * (gammaNew - gamma);
 
         // (18) r = r(gamma_(k+1))
         double res = Res4(sysd);
 
-        // (19) if r < epsilon_min
-        if (res < residual) {
-            // (20) r_min = r
-            residual = res;
+        if (res < residual) {      // (19) if r < epsilon_min
+            residual = res;        // (20) r_min = r
+            gamma_hat = gammaNew;  // (21) gamma_hat = gamma_(k+1)
+        }                          // (22) endif
 
-            // (21) gamma_hat = gamma_(k+1)
-            gamma_hat.CopyFromMatrix(gammaNew);
+        if (residual < this->tolerance) {  // (23) if r < Tau
+            break;                         // (24) break
+        }                                  // (25) endif
 
-            // (22) endif
-        }
-
-        // (23) if r < Tau
-        if (residual < this->tolerance) {
-            // (24) break
-            break;
-
-            // (25) endif
-        }
-
-        // (26) if g' * (gamma_(k+1) - gamma_k) > 0
-        tmp.MatrSub(gammaNew, gamma);
-        if (tmp.MatrDot(tmp, g) > 0) {
-            // (27) y_(k+1) = gamma_(k+1)
-            yNew.CopyFromMatrix(gammaNew);
-
-            // (28) theta_(k+1) = 1
-            thetaNew = 1.0;
-
-            // (29) endif
-        }
+        if (g.dot(gammaNew - gamma) > 0) {  // (26) if g' * (gamma_(k+1) - gamma_k) > 0
+            yNew = gammaNew;                // (27) y_(k+1) = gamma_(k+1)
+            thetaNew = 1.0;                 // (28) theta_(k+1) = 1
+        }                                   // (29) endif
 
         // (30) L_k = 0.9 * L_k
         L = 0.9 * L;
@@ -253,17 +223,14 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
 
         // perform some tasks at the end of the iteration
         if (this->record_violation_history) {
-            tmp.MatrSub(gammaNew, gamma);
-            AtIterationEnd(residual, tmp.NormInf(), tot_iterations);
+            AtIterationEnd(residual, (gammaNew - gamma).lpNorm<Eigen::Infinity>(), tot_iterations);
         }
 
         // Update iterates
         theta = thetaNew;
-        gamma.CopyFromMatrix(gammaNew);
-        y.CopyFromMatrix(yNew);
-
-        // (32) endfor
-    }
+        gamma = gammaNew;
+        y = yNew;
+    }  // (32) endfor
 
     if (verbose)
         std::cout << "Residual: " << residual << ", Iter: " << tot_iterations << std::endl;
@@ -284,5 +251,18 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
 
     return residual;
 }
+
+void ChSolverAPGD::Dump_Rhs(std::vector<double>& temp) {
+    for (int i = 0; i < r.size(); i++) {
+        temp.push_back(r(i));
+    }
+}
+
+void ChSolverAPGD::Dump_Lambda(std::vector<double>& temp) {
+    for (int i = 0; i < gamma_hat.size(); i++) {
+        temp.push_back(gamma_hat(i));
+    }
+}
+
 
 }  // end namespace chrono

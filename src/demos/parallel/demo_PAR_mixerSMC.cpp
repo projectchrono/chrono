@@ -53,13 +53,13 @@ void AddContainer(ChSystemParallelSMC* sys) {
     int mixerId = -201;
 
     // Create a common material
-    auto mat = std::make_shared<ChMaterialSurfaceSMC>();
+    auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     mat->SetYoungModulus(2e5f);
     mat->SetFriction(0.4f);
     mat->SetRestitution(0.1f);
 
     // Create the containing bin (2 x 2 x 1)
-    auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelParallel>(), ChMaterialSurface::SMC);
+    auto bin = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>(), ChMaterialSurface::SMC);
     bin->SetMaterialSurface(mat);
     bin->SetIdentifier(binId);
     bin->SetMass(1);
@@ -88,7 +88,7 @@ void AddContainer(ChSystemParallelSMC* sys) {
     sys->AddBody(bin);
 
     // The rotating mixer body (1.6 x 0.2 x 0.4)
-    auto mixer = std::make_shared<ChBody>(std::make_shared<ChCollisionModelParallel>(), ChMaterialSurface::SMC);
+    auto mixer = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>(), ChMaterialSurface::SMC);
     mixer->SetMaterialSurface(mat);
     mixer->SetIdentifier(mixerId);
     mixer->SetMass(10.0);
@@ -107,9 +107,9 @@ void AddContainer(ChSystemParallelSMC* sys) {
     sys->AddBody(mixer);
 
     // Create a motor between the two bodies, constrained to rotate at 90 deg/s
-    auto motor = std::make_shared<ChLinkMotorRotationAngle>();
+    auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     motor->Initialize(mixer, bin, ChFrame<>(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
-    motor->SetAngleFunction(std::make_shared<ChFunction_Ramp>(0, CH_C_PI / 2));
+    motor->SetAngleFunction(chrono_types::make_shared<ChFunction_Ramp>(0, CH_C_PI / 2));
     sys->AddLink(motor);
 }
 
@@ -118,7 +118,7 @@ void AddContainer(ChSystemParallelSMC* sys) {
 // -----------------------------------------------------------------------------
 void AddFallingBalls(ChSystemParallelSMC* sys) {
     // Common material
-    auto ballMat = std::make_shared<ChMaterialSurfaceSMC>();
+    auto ballMat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     ballMat->SetYoungModulus(2e5f);
     ballMat->SetFriction(0.4f);
     ballMat->SetRestitution(0.1f);
@@ -133,7 +133,7 @@ void AddFallingBalls(ChSystemParallelSMC* sys) {
         for (int iy = -2; iy < 3; iy++) {
             ChVector<> pos(0.4 * ix, 0.4 * iy, 1);
 
-            auto ball = std::make_shared<ChBody>(std::make_shared<ChCollisionModelParallel>(), ChMaterialSurface::SMC);
+            auto ball = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>(), ChMaterialSurface::SMC);
             ball->SetMaterialSurface(ballMat);
 
             ball->SetIdentifier(ballId++);

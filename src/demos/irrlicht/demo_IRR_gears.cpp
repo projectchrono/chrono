@@ -62,54 +62,54 @@ int main(int argc, char* argv[]) {
     double radB = 4;
 
     // ...the truss
-    auto mbody_truss = std::make_shared<ChBodyEasyBox>(20, 10, 2, 1000, false, true);
+    auto mbody_truss = chrono_types::make_shared<ChBodyEasyBox>(20, 10, 2, 1000, false, true);
     mphysicalSystem.Add(mbody_truss);
     mbody_truss->SetBodyFixed(true);
     mbody_truss->SetPos(ChVector<>(0, 0, 3));
 
     // ...a texture asset that will be shared among the four wheels
-    auto cylinder_texture = std::make_shared<ChTexture>(GetChronoDataFile("pinkwhite.png"));
+    auto cylinder_texture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("pinkwhite.png"));
 
     // ...the rotating bar support for the two epicycloidal wheels
-    auto mbody_train = std::make_shared<ChBodyEasyBox>(8, 1.5, 1.0, 1000, false, true);
+    auto mbody_train = chrono_types::make_shared<ChBodyEasyBox>(8, 1.5, 1.0, 1000, false, true);
     mphysicalSystem.Add(mbody_train);
     mbody_train->SetPos(ChVector<>(3, 0, 0));
 
     // ...which must rotate respect to truss along Z axis, in 0,0,0,
-    auto link_revoluteTT = std::make_shared<ChLinkLockRevolute>();
+    auto link_revoluteTT = chrono_types::make_shared<ChLinkLockRevolute>();
     link_revoluteTT->Initialize(mbody_truss, mbody_train,
                                 ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));
     mphysicalSystem.AddLink(link_revoluteTT);
 
     // ...the first gear
-    auto mbody_gearA = std::make_shared<ChBodyEasyCylinder>(radA, 0.5, 1000, false, true);
+    auto mbody_gearA = chrono_types::make_shared<ChBodyEasyCylinder>(radA, 0.5, 1000, false, true);
     mphysicalSystem.Add(mbody_gearA);
     mbody_gearA->SetPos(ChVector<>(0, 0, -1));
     mbody_gearA->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
     mbody_gearA->AddAsset(cylinder_texture);
     // for aesthetic reasons, also add a thin cylinder only as a visualization:
-    auto mshaft_shape = std::make_shared<ChCylinderShape>();
+    auto mshaft_shape = chrono_types::make_shared<ChCylinderShape>();
     mshaft_shape->GetCylinderGeometry().p1 = ChVector<>(0,-3,0);
     mshaft_shape->GetCylinderGeometry().p2 = ChVector<>(0, 10,0);
     mshaft_shape->GetCylinderGeometry().rad = radA*0.4;
     mbody_gearA->AddAsset(mshaft_shape);
 
     // ...impose rotation speed between the first gear and the fixed truss
-    auto link_motor = std::make_shared<ChLinkMotorRotationSpeed>();
+    auto link_motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     link_motor->Initialize(mbody_gearA, mbody_truss, ChFrame<>(ChVector<>(0, 0, 0), QUNIT));
-    link_motor->SetSpeedFunction(std::make_shared<ChFunction_Const>(6));
+    link_motor->SetSpeedFunction(chrono_types::make_shared<ChFunction_Const>(6));
     mphysicalSystem.AddLink(link_motor);
 
     // ...the second gear
     double interaxis12 = radA + radB;
-    auto mbody_gearB = std::make_shared<ChBodyEasyCylinder>(radB, 0.4, 1000, false, true);
+    auto mbody_gearB = chrono_types::make_shared<ChBodyEasyCylinder>(radB, 0.4, 1000, false, true);
     mphysicalSystem.Add(mbody_gearB);
     mbody_gearB->SetPos(ChVector<>(interaxis12, 0, -1));
     mbody_gearB->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
     mbody_gearB->AddAsset(cylinder_texture);
 
     // ... the second gear is fixed to the rotating bar
-    auto link_revolute = std::make_shared<ChLinkLockRevolute>();
+    auto link_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
     link_revolute->Initialize(mbody_gearB, mbody_train,
                               ChCoordsys<>(ChVector<>(interaxis12, 0, 0), QUNIT));
     mphysicalSystem.AddLink(link_revolute);
@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
     //    we use Set_local_shaft1() and pass some local ChFrame. Note that, since the Z axis of that frame
     //    will be considered the axis of the wheel, we must rotate the frame 90° with Q_from_AngAxis(), because
     //    we created the wheel with ChBodyEasyCylinder() which created a cylinder with Y as axis.
-    auto link_gearAB = std::make_shared<ChLinkGear>();
+    auto link_gearAB = chrono_types::make_shared<ChLinkGear>();
     link_gearAB->Initialize(mbody_gearA, mbody_gearB, CSYSNORM);
     link_gearAB->Set_local_shaft1(ChFrame<>(VNULL, chrono::Q_from_AngAxis(-CH_C_PI / 2, VECT_X)));
     link_gearAB->Set_local_shaft2(ChFrame<>(VNULL, chrono::Q_from_AngAxis(-CH_C_PI / 2, VECT_X)));
@@ -137,7 +137,7 @@ int main(int argc, char* argv[]) {
     //    does not necessarily need to be created as a new body because it is the 'fixed' part of the
     //    epicycloidal reducer, so, as wheel C, we will simply use the ground object 'mbody_truss'.
     double radC = 2 * radB + radA;
-    auto link_gearBC = std::make_shared<ChLinkGear>();
+    auto link_gearBC = chrono_types::make_shared<ChLinkGear>();
     link_gearBC->Initialize(mbody_gearB, mbody_truss, CSYSNORM);
     link_gearBC->Set_local_shaft1(ChFrame<>(VNULL, chrono::Q_from_AngAxis(-CH_C_PI / 2, VECT_X)));
     link_gearBC->Set_local_shaft2(ChFrame<>(ChVector<>(0, 0, -4), QUNIT));
@@ -147,7 +147,7 @@ int main(int argc, char* argv[]) {
 
     // ...the bevel gear at the side,
     double radD = 5;
-    auto mbody_gearD = std::make_shared<ChBodyEasyCylinder>(radD, 0.8, 1000, false, true);
+    auto mbody_gearD = chrono_types::make_shared<ChBodyEasyCylinder>(radD, 0.8, 1000, false, true);
     mphysicalSystem.Add(mbody_gearD);
     mbody_gearD->SetPos(ChVector<>(-10, 0, -9));
     mbody_gearD->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_Z));
@@ -155,14 +155,14 @@ int main(int argc, char* argv[]) {
 
     // ... it is fixed to the truss using a revolute joint with horizontal axis (must rotate
     //     default ChLink creation coordys 90° on the Y vertical, since the revolute axis is the Z axis).
-    auto link_revoluteD = std::make_shared<ChLinkLockRevolute>();
+    auto link_revoluteD = chrono_types::make_shared<ChLinkLockRevolute>();
     link_revoluteD->Initialize(mbody_gearD, mbody_truss,
                                ChCoordsys<>(ChVector<>(-10, 0, -9), Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
     mphysicalSystem.AddLink(link_revoluteD);
 
     // ... Let's make a 1:1 gear between wheel A and wheel D as a bevel gear: Chrono does not require
     //     special info for this case -the position of the two shafts and the transmission ratio are enough-
-    auto link_gearAD = std::make_shared<ChLinkGear>();
+    auto link_gearAD = chrono_types::make_shared<ChLinkGear>();
     link_gearAD->Initialize(mbody_gearA, mbody_gearD, CSYSNORM);
     link_gearAD->Set_local_shaft1(ChFrame<>(ChVector<>(0, -7, 0), chrono::Q_from_AngAxis(-CH_C_PI / 2, VECT_X)));
     link_gearAD->Set_local_shaft2(ChFrame<>(ChVector<>(0, -7, 0), chrono::Q_from_AngAxis(-CH_C_PI / 2, VECT_X)));
@@ -171,7 +171,7 @@ int main(int argc, char* argv[]) {
 
     // ...the pulley at the side,
     double radE = 2;
-    auto mbody_pulleyE = std::make_shared<ChBodyEasyCylinder>(radE, 0.8, 1000, false, true);
+    auto mbody_pulleyE = chrono_types::make_shared<ChBodyEasyCylinder>(radE, 0.8, 1000, false, true);
     mphysicalSystem.Add(mbody_pulleyE);
     mbody_pulleyE->SetPos(ChVector<>(-10, -11, -9));
     mbody_pulleyE->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_Z));
@@ -179,14 +179,14 @@ int main(int argc, char* argv[]) {
 
     // ... it is fixed to the truss using a revolute joint with horizontal axis (must rotate
     //     default ChLink creation coordys 90° on the Y vertical, since the revolute axis is the Z axis).
-    auto link_revoluteE = std::make_shared<ChLinkLockRevolute>();
+    auto link_revoluteE = chrono_types::make_shared<ChLinkLockRevolute>();
     link_revoluteE->Initialize(mbody_pulleyE, mbody_truss,
                                ChCoordsys<>(ChVector<>(-10, -11, -9), Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
     mphysicalSystem.AddLink(link_revoluteE);
 
     // ... Let's make a synchro belt constraint between pulley D and pulley E. The user must be
     //     sure that the two shafts are parallel in absolute space. Also, interaxial distance should not change.
-    auto link_pulleyDE = std::make_shared<ChLinkPulley>();
+    auto link_pulleyDE = chrono_types::make_shared<ChLinkPulley>();
     link_pulleyDE->Initialize(mbody_gearD, mbody_pulleyE, CSYSNORM);
     link_pulleyDE->Set_local_shaft1(ChFrame<>(VNULL, chrono::Q_from_AngAxis(-CH_C_PI / 2, VECT_X)));
     link_pulleyDE->Set_local_shaft2(ChFrame<>(VNULL, chrono::Q_from_AngAxis(-CH_C_PI / 2, VECT_X)));

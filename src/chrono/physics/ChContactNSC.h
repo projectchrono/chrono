@@ -16,7 +16,6 @@
 #define CH_CONTACT_NSC_H
 
 #include "chrono/core/ChFrame.h"
-#include "chrono/core/ChVectorDynamic.h"
 #include "chrono/solver/ChConstraintTwoTuplesContactN.h"
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/collision/ChCCollisionModel.h"
@@ -184,7 +183,7 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
                 Vector V1_w = this->objA->GetContactPointSpeed(this->p1);
                 Vector V2_w = this->objB->GetContactPointSpeed(this->p2);
                 Vector Vrel_w = V2_w - V1_w;
-                Vector Vrel_cplane = this->contact_plane.MatrT_x_Vect(Vrel_w);
+                Vector Vrel_cplane = this->contact_plane.transpose() * Vrel_w;
 
                 double h = this->container->GetSystem()->GetStep();  // = 1.0 / c;  // not all steppers have c = 1/h
 
@@ -283,7 +282,7 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
                 Vector V1_w = this->objA->GetContactPointSpeed(this->p1);
                 Vector V2_w = this->objB->GetContactPointSpeed(this->p2);
                 Vector Vrel_w = V2_w - V1_w;
-                Vector Vrel_cplane = this->contact_plane.MatrT_x_Vect(Vrel_w);
+                Vector Vrel_cplane = this->contact_plane.transpose() * Vrel_w;
 
                 double h = 1.0 / factor;  // inverse timestep is factor
 

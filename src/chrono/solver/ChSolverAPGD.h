@@ -24,18 +24,16 @@ namespace chrono {
 /// passed to the solver.
 
 class ChApi ChSolverAPGD : public ChIterativeSolver {
-
   protected:
-    double residual = 0;
-    int nc = 0;
-    ChMatrixDynamic<> gamma_hat, gammaNew, g, y, gamma, yNew, r, tmp;
+    double residual;
+    int nc;
+    ChVectorDynamic<> gamma_hat, gammaNew, g, y, gamma, yNew, r, tmp;
 
   public:
     ChSolverAPGD(int mmax_iters = 1000,     ///< max.number of iterations
                  bool mwarm_start = false,  ///< uses warm start?
                  double mtolerance = 0.0    ///< tolerance for termination criterion
-                 )
-        : ChIterativeSolver(mmax_iters, mwarm_start, mtolerance, 0.0001) {}
+    );
 
     virtual ~ChSolverAPGD() {}
 
@@ -49,19 +47,10 @@ class ChApi ChSolverAPGD : public ChIterativeSolver {
 
     double GetResidual() { return residual; }
 
-    void Dump_Rhs(std::vector<double>& temp) {
-        for (int i = 0; i < r.GetRows(); i++) {
-            temp.push_back(r(i, 0));
-        }
-    }
-
-    void Dump_Lambda(std::vector<double>& temp) {
-        for (int i = 0; i < gamma_hat.GetRows(); i++) {
-            temp.push_back(gamma_hat(i, 0));
-        }
-    }
+    void Dump_Rhs(std::vector<double>& temp);
+    void Dump_Lambda(std::vector<double>& temp);
 };
 
-} // end namespace chrono
+}  // end namespace chrono
 
 #endif

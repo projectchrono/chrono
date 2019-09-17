@@ -79,9 +79,9 @@ void UAZBUS_TMeasyTireFront::GenerateCharacteristicPlots(const std::string& dirn
 // -----------------------------------------------------------------------------
 void UAZBUS_TMeasyTireFront::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
         trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
-        m_trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+        m_trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         m_trimesh_shape->SetMesh(trimesh);
         m_trimesh_shape->SetName(m_meshName);
         m_trimesh_shape->SetStatic(true);
@@ -151,9 +151,9 @@ void UAZBUS_TMeasyTireRear::GenerateCharacteristicPlots(const std::string& dirna
 // -----------------------------------------------------------------------------
 void UAZBUS_TMeasyTireRear::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
         trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
-        m_trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+        m_trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         m_trimesh_shape->SetMesh(trimesh);
         m_trimesh_shape->SetName(m_meshName);
         m_trimesh_shape->SetStatic(true);

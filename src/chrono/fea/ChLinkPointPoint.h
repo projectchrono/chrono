@@ -64,7 +64,7 @@ class ChApi ChLinkPointPoint : public ChLinkBase {
     virtual ChVector<> Get_react_force() override { return GetReactionOnNode(); }
 
     // Get constraint violations
-    ChMatrixNM<double, 3, 1> GetC() const;
+    ChVectorN<double, 3> GetC() const;
 
     //
     // STATE FUNCTIONS

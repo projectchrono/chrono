@@ -75,12 +75,12 @@ void ChLinkDirFrame::Update(double mytime, bool update_assets) {
     // ...
 }
 
-ChMatrixNM<double, 2, 1> ChLinkDirFrame::GetC() const {
+ChVectorN<double, 2> ChLinkDirFrame::GetC() const {
     ChMatrix33<> Arw = m_csys.rot >> m_body->coord.rot;
-    ChVector<> res = Arw.MatrT_x_Vect(m_node->GetD());
-    ChMatrixNM<double, 2, 1> C;
-    C(0, 0) = res.y();
-    C(1, 0) = res.z();
+    ChVector<> res = Arw.transpose() * m_node->GetD();
+    ChVectorN<double, 2> C;
+    C(0) = res.y();
+    C(1) = res.z();
     return C;
 }
 
@@ -90,18 +90,15 @@ ChVector<> ChLinkDirFrame::GetReactionOnBody() const {
     ChMatrix33<> C(m_csys.rot);
 
     // (A^T*d)  and  ~(A^T*d)
-    ChVector<> z = A.MatrT_x_Vect(m_node->GetD());
-    ChMatrix33<> ztilde;
-    ztilde.Set_X_matrix(z);
+    ChVector<> z = A.transpose() * m_node->GetD();
+    ChStarMatrix33<> ztilde(z);
 
     // Constraint Jacobians  PhiQ = C^T * ~(A^T*d)
-    ChMatrix33<> PhiQ;
-    PhiQ.MatrTMultiply(C, ztilde);
+    ChMatrix33<> PhiQ = C.transpose() * ztilde;
 
     // Reaction torque  T = C^T * PhiQ^T * lambda
     // Note that lambda = [0, l1, l2]
-    ChVector<> trq = PhiQ.MatrT_x_Vect(m_react);
-    trq = C.MatrT_x_Vect(trq);
+    ChVector<> trq = C.transpose() * (PhiQ.transpose() * m_react);
 
     return trq;
 }
@@ -140,8 +137,7 @@ void ChLinkDirFrame::IntLoadConstraint_C(const unsigned int off_L,  // offset in
         return;
 
     ChMatrix33<> Arw = m_csys.rot >> m_body->coord.rot;
-    ChVector<> res = Arw.MatrT_x_Vect(m_node->GetD());
-    ChVector<> cres = res * c;
+    ChVector<> cres = c * (Arw.transpose() * m_node->GetD());
 
     if (do_clamp) {
         cres.y() = ChMin(ChMax(cres.y(), -recovery_clamp), recovery_clamp);
@@ -199,7 +195,7 @@ void ChLinkDirFrame::ConstraintsBiLoad_C(double factor, double recovery_clamp, b
     //	return;
 
     ChMatrix33<> Arw = m_csys.rot >> m_body->coord.rot;
-    ChVector<> res = Arw.MatrT_x_Vect(m_node->GetD());
+    ChVector<> res = Arw.transpose() * m_node->GetD();
 
     constraint1.Set_b_i(constraint1.Get_b_i() + factor * res.y());
     constraint2.Set_b_i(constraint2.Get_b_i() + factor * res.z());
@@ -218,22 +214,19 @@ void ChLinkDirFrame::ConstraintsLoadJacobians() {
     ChMatrix33<> Aro(m_csys.rot);
     ChMatrix33<> Arw(m_csys.rot >> m_body->coord.rot);
 
-    ChVector<> Zo = Aow.MatrT_x_Vect(m_node->GetD());
+    ChVector<> Zo = Aow.transpose() * m_node->GetD();
 
-    ChMatrix33<> ztilde;
-    ztilde.Set_X_matrix(Zo);
+    ChStarMatrix33<> ztilde(Zo);
 
-    ChMatrix33<> Jrb;
-    Jrb.MatrTMultiply(Aro, ztilde);
+    ChMatrix33<> Jrb = Aro.transpose() * ztilde;
 
-    ChMatrix33<> Jra;
-    Jra.CopyFromMatrixT(Arw);
+    ChMatrix33<> Jra = Arw.transpose();
 
-    constraint1.Get_Cq_a()->PasteClippedMatrix(Jra, 1, 0, 1, 3, 0, 0);
-    constraint2.Get_Cq_a()->PasteClippedMatrix(Jra, 2, 0, 1, 3, 0, 0);
+    constraint1.Get_Cq_a().segment(0, 3) = Jra.row(1);
+    constraint2.Get_Cq_a().segment(0, 3) = Jra.row(2);
 
-    constraint1.Get_Cq_b()->PasteClippedMatrix(Jrb, 1, 0, 1, 3, 0, 3);
-    constraint2.Get_Cq_b()->PasteClippedMatrix(Jrb, 2, 0, 1, 3, 0, 3);
+    constraint1.Get_Cq_b().segment(3, 3) = Jrb.row(1);
+    constraint2.Get_Cq_b().segment(3, 3) = Jrb.row(2);
 }
 
 void ChLinkDirFrame::ConstraintsFetch_react(double factor) {

@@ -23,7 +23,7 @@ ChLinkMotorLinearSpeed::ChLinkMotorLinearSpeed() {
     variable.GetMass()(0, 0) = 1.0;
     variable.GetInvMass()(0, 0) = 1.0;
 
-    m_func = std::make_shared<ChFunction_Const>(1.0);
+    m_func = chrono_types::make_shared<ChFunction_Const>(1.0);
 
     pos_offset = 0;
 
@@ -51,14 +51,14 @@ void ChLinkMotorLinearSpeed::Update(double mytime, bool update_assets) {
     //   C = d_error - d_setpoint - d_offset
     // with d_error = x_pos_A- x_pos_B, and d_setpoint = x(t)
     if (this->avoid_position_drift)
-        C->ElementN(0) = this->mpos - aux_dt - this->pos_offset;
+        C(0) = this->mpos - aux_dt - this->pos_offset;
     else
-        C->ElementN(0) = 0.0;
+        C(0) = 0.0;
 }
 
 void ChLinkMotorLinearSpeed::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynamic<>& Qc, const double c) {
     double mCt = -m_func->Get_y(this->GetChTime());
-    if (mask->Constr_N(0).IsActive()) {
+    if (mask.Constr_N(0).IsActive()) {
         Qc(off_L + 0) += c * mCt;
     }
 }
@@ -68,8 +68,8 @@ void ChLinkMotorLinearSpeed::ConstraintsBiLoad_Ct(double factor) {
         return;
 
     double mCt = -m_func->Get_y(this->GetChTime());
-    if (mask->Constr_N(0).IsActive()) {
-        mask->Constr_N(0).Set_b_i(mask->Constr_N(0).Get_b_i() + factor * mCt);
+    if (mask.Constr_N(0).IsActive()) {
+        mask.Constr_N(0).Set_b_i(mask.Constr_N(0).Get_b_i() + factor * mCt);
     }
 }
 
@@ -151,12 +151,12 @@ void ChLinkMotorLinearSpeed::InjectVariables(ChSystemDescriptor& mdescriptor) {
 }
 
 void ChLinkMotorLinearSpeed::VariablesFbReset() {
-    variable.Get_fb().FillElem(0.0);
+    variable.Get_fb().setZero();
 }
 
 void ChLinkMotorLinearSpeed::VariablesFbLoadForces(double factor) {
     double imposed_speed = m_func->Get_y(this->GetChTime());
-    variable.Get_fb().ElementN(0) += imposed_speed * factor;
+    variable.Get_fb()(0) += imposed_speed * factor;
 }
 
 void ChLinkMotorLinearSpeed::VariablesFbIncrementMq() {
@@ -165,14 +165,14 @@ void ChLinkMotorLinearSpeed::VariablesFbIncrementMq() {
 
 void ChLinkMotorLinearSpeed::VariablesQbLoadSpeed() {
     // set current speed in 'qb', it can be used by the solver when working in incremental mode
-    variable.Get_qb().SetElement(0, 0, aux_dt);
+    variable.Get_qb()(0) = aux_dt;
 }
 
 void ChLinkMotorLinearSpeed::VariablesQbSetSpeed(double step) {
     double old_dt = aux_dt;
 
     // from 'qb' vector, sets body speed, and updates auxiliary data
-    aux_dt = variable.Get_qb().GetElement(0, 0);
+    aux_dt = variable.Get_qb()(0);
 
     // Compute accel. by BDF (approximate by differentiation); not needed
 }

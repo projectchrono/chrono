@@ -23,41 +23,17 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLinkLock)
 
-ChLinkLock::ChLinkLock()
-    : type(LinkType::SPHERICAL),
-      ndoc_d(0),
-      ndoc_c(0),
-      ndoc(0),
-      d_restlength(0),
-      mask(nullptr),
-      C(nullptr),
-      C_dt(nullptr),
-      C_dtdt(nullptr),
-      react(nullptr),
-      Qc(nullptr),
-      Ct(nullptr),
-      Cq1(nullptr),
-      Cq2(nullptr),
-      Cqw1(nullptr),
-      Cqw2(nullptr) {
-    // Matrices used by lock formulation
-    Cq1_temp = new ChMatrixDynamic<>(7, BODY_QDOF);
-    Cq2_temp = new ChMatrixDynamic<>(7, BODY_QDOF);
-    Qc_temp = new ChMatrixDynamic<>(7, 1);
-
+ChLinkLock::ChLinkLock() : type(LinkType::FREE), ndoc_d(0), ndoc_c(0), ndoc(0), d_restlength(0) {
     // Need to zero out the bottom-right 4x3 block
-    Cq1_temp->Reset();
-    Cq2_temp->Reset();
+    Cq1_temp.setZero();
+    Cq2_temp.setZero();
 
-    // Default type: spherical link
-    // Sets the mask, all the matrices, and number of DOC and DOF
-    BuildLinkType(LinkType::SPHERICAL);
+    // Note: the joint is not completely built at this time.
+    // Requires definition of the mask (based on concrete joint type)
 }
 
 ChLinkLock::ChLinkLock(const ChLinkLock& other) : ChLinkMarkers(other) {
-    DestroyLink();
-
-    mask = other.mask->Clone();
+    mask = other.mask;
 
     force_D.reset(other.force_D->Clone());
     force_R.reset(other.force_R->Clone());
@@ -86,16 +62,7 @@ ChLinkLock::ChLinkLock(const ChLinkLock& other) : ChLinkMarkers(other) {
     BuildLinkType(other.type);
 }
 
-ChLinkLock::~ChLinkLock() {
-    delete Cq1_temp;
-    delete Cq2_temp;
-    delete Qc_temp;
-
-    DestroyLink();
-
-    delete mask;
-    mask = nullptr;
-}
+ChLinkLock::~ChLinkLock() {}
 
 //// Note: ability to explicitly provide joint forces was removed.
 //// If ever needed, these functions can be re-enabled. In that case,
@@ -245,176 +212,127 @@ ChLinkLimit& ChLinkLock::GetLimit_D() {
     return *limit_D;
 }
 
-void ChLinkLock::ChangeLinkMask(ChLinkMask* new_mask) {
-    DestroyLink();
-    BuildLink(new_mask);
-}
-
-void ChLinkLock::ChangedLinkMask() {
-    DestroyLink();
-    BuildLink();
-}
-
 void ChLinkLock::SetDisabled(bool mdis) {
     ChLinkMarkers::SetDisabled(mdis);
 
-    if (mask->SetAllDisabled(mdis) > 0)
-        ChangedLinkMask();
+    if (mask.SetAllDisabled(mdis) > 0)
+        BuildLink();
 }
 
 void ChLinkLock::SetBroken(bool mbro) {
     ChLinkMarkers::SetBroken(mbro);
 
-    if (mask->SetAllBroken(mbro) > 0)
-        ChangedLinkMask();
+    if (mask.SetAllBroken(mbro) > 0)
+        BuildLink();
 }
 
 int ChLinkLock::RestoreRedundant() {
-    int mchanges = mask->RestoreRedundant();
+    int mchanges = mask.RestoreRedundant();
     if (mchanges)
-        ChangedLinkMask();
+        BuildLink();
+
     return mchanges;
 }
 
 void ChLinkLock::SetUpMarkers(ChMarker* mark1, ChMarker* mark2) {
     ChLinkMarkers::SetUpMarkers(mark1, mark2);
+    assert(this->Body1 && this->Body2);
 
-    // could the line below be:     assert(this->Body1 && this->Body2); ?
-    if (this->Body1 && this->Body2) {
-        ((ChLinkMaskLF*)this->mask)->SetTwoBodiesVariables(&Body1->Variables(), &Body2->Variables());
-        // This is needed because only if all constraints in mask are now active, and C,Ct,etc.
-        // matrices must be allocated accordingly, otherwise are null.
-        DestroyLink();
-        BuildLink();
-    }
+    mask.SetTwoBodiesVariables(&Body1->Variables(), &Body2->Variables());
+
+    // We must call BuildLink here again, because only now are the constraints properly activated
+    // (and hence the correct NDOC available).
+    BuildLink();
 }
 
 void ChLinkLock::BuildLink() {
     // set ndoc by counting non-dofs
-    ndoc = mask->GetMaskDoc();
-    ndoc_c = mask->GetMaskDoc_c();
-    ndoc_d = mask->GetMaskDoc_d();
+    ndoc = mask.GetMaskDoc();
+    ndoc_c = mask.GetMaskDoc_c();
+    ndoc_d = mask.GetMaskDoc_d();
 
     // create matrices
-    if (ndoc > 0) {
-        C = new ChMatrixDynamic<>(ndoc, 1);
-        C_dt = new ChMatrixDynamic<>(ndoc, 1);
-        C_dtdt = new ChMatrixDynamic<>(ndoc, 1);
-        react = new ChMatrixDynamic<>(ndoc, 1);
-        Qc = new ChMatrixDynamic<>(ndoc, 1);
-        Ct = new ChMatrixDynamic<>(ndoc, 1);
-        Cq1 = new ChMatrixDynamic<>(ndoc, BODY_QDOF);
-        Cq2 = new ChMatrixDynamic<>(ndoc, BODY_QDOF);
-        Cqw1 = new ChMatrixDynamic<>(ndoc, BODY_DOF);
-        Cqw2 = new ChMatrixDynamic<>(ndoc, BODY_DOF);
+    C.resize(ndoc);
+    C_dt.resize(ndoc);
+    C_dtdt.resize(ndoc);
+    react.resize(ndoc);
+    Qc.resize(ndoc);
+    Ct.resize(ndoc);
+    Cq1.resize(ndoc, BODY_QDOF);
+    Cq2.resize(ndoc, BODY_QDOF);
+    Cqw1.resize(ndoc, BODY_DOF);
+    Cqw2.resize(ndoc, BODY_DOF);
 
-        // Zero out vectors of constraint violations
-        C->Reset();
-        C_dt->Reset();
-        C_dtdt->Reset();
-        react->Reset();
+    // Zero out vectors of constraint violations
+    C.setZero();
+    C_dt.setZero();
+    C_dtdt.setZero();
+    react.setZero();
 
-        // Need to zero out the first 3 entries in rows corrsponding to rotation constraints
-        Cq1->Reset();
-        Cq2->Reset();
-    } else {
-        C = nullptr;
-        C_dt = nullptr;
-        C_dtdt = nullptr;
-        react = nullptr;
-        Qc = nullptr;
-        Ct = nullptr;
-        Cq1 = nullptr;
-        Cq2 = nullptr;
-        Cqw1 = nullptr;
-        Cqw2 = nullptr;
-    }
+    // Need to zero out the first 3 entries in rows corrsponding to rotation constraints
+    Cq1.setZero();
+    Cq2.setZero();
 }
 
-void ChLinkLock::BuildLink(ChLinkMask* new_mask) {
-    // set mask
-    delete mask;
-    mask = new_mask->Clone();
-
-    // setup matrices;
+void ChLinkLock::BuildLink(bool x, bool y, bool z, bool e0, bool e1, bool e2, bool e3) {
+    mask.SetLockMask(x, y, z, e0, e1, e2, e3);
     BuildLink();
-}
-
-void ChLinkLock::DestroyLink() {
-    delete C;
-    delete C_dt;
-    delete C_dtdt;
-
-    delete react;
-    delete Qc;
-    delete Ct;
-    delete Cq1;
-    delete Cq2;
-    delete Cqw1;
-    delete Cqw2;
-
-    ndoc = 0;
 }
 
 void ChLinkLock::BuildLinkType(LinkType link_type) {
     type = link_type;
 
-    ChLinkMaskLF m_mask;
-
     // SetLockMask() sets the constraints for the link coordinates: (X,Y,Z, E0,E1,E2,E3)
     switch (type) {
         case LinkType::FREE:
-            m_mask.SetLockMask(false, false, false, false, false, false, false);
+            BuildLink(false, false, false, false, false, false, false);
             break;
         case LinkType::LOCK:
             // this should never happen
-            m_mask.SetLockMask(true, true, true, false, true, true, true);
+            BuildLink(true, true, true, false, true, true, true);
             break;
         case LinkType::SPHERICAL:
-            m_mask.SetLockMask(true, true, true, false, false, false, false);
+            BuildLink(true, true, true, false, false, false, false);
             break;
         case LinkType::POINTPLANE:
-            m_mask.SetLockMask(false, false, true, false, false, false, false);
+            BuildLink(false, false, true, false, false, false, false);
             break;
         case LinkType::POINTLINE:
-            m_mask.SetLockMask(false, true, true, false, false, false, false);
+            BuildLink(false, true, true, false, false, false, false);
             break;
         case LinkType::REVOLUTE:
-            m_mask.SetLockMask(true, true, true, false, true, true, false);
+            BuildLink(true, true, true, false, true, true, false);
             break;
         case LinkType::CYLINDRICAL:
-            m_mask.SetLockMask(true, true, false, false, true, true, false);
+            BuildLink(true, true, false, false, true, true, false);
             break;
         case LinkType::PRISMATIC:
-            m_mask.SetLockMask(true, true, false, false, true, true, true);
+            BuildLink(true, true, false, false, true, true, true);
             break;
         case LinkType::PLANEPLANE:
-            m_mask.SetLockMask(false, false, true, false, true, true, false);
+            BuildLink(false, false, true, false, true, true, false);
             break;
         case LinkType::OLDHAM:
-            m_mask.SetLockMask(false, false, true, false, true, true, true);
+            BuildLink(false, false, true, false, true, true, true);
             break;
         case LinkType::ALIGN:
-            m_mask.SetLockMask(false, false, false, false, true, true, true);
+            BuildLink(false, false, false, false, true, true, true);
         case LinkType::PARALLEL:
-            m_mask.SetLockMask(false, false, false, false, true, true, false);
+            BuildLink(false, false, false, false, true, true, false);
             break;
         case LinkType::PERPEND:
-            m_mask.SetLockMask(false, false, false, false, true, false, true);
+            BuildLink(false, false, false, false, true, false, true);
             break;
         case LinkType::REVOLUTEPRISMATIC:
-            m_mask.SetLockMask(false, true, true, false, true, true, false);
+            BuildLink(false, true, true, false, true, true, false);
             break;
         default:
-            m_mask.SetLockMask(false, false, false, false, false, false, false);
+            BuildLink(false, false, false, false, false, false, false);
             break;
     }
-
-    BuildLink(&m_mask);
 }
 
 void ChLinkLock::ChangeLinkType(LinkType new_link_type) {
-    DestroyLink();
     BuildLinkType(new_link_type);
 
     limit_X.reset(nullptr);
@@ -444,41 +362,15 @@ void ChLinkLock::Update(double time, bool update_assets) {
     ChPhysicsItem::Update(ChTime, update_assets);
 }
 
+// Updates Cq1_temp, Cq2_temp, Qc_temp, etc., i.e. all LOCK-FORMULATION temp.matrices
 void ChLinkLock::UpdateState() {
-    // ---------------------
-    // Updates Cq1_temp, Cq2_temp, Qc_temp,
-    // etc., i.e. all LOCK-FORMULATION temp.matrices
-    // ---------------------
-
-    ChVector<> vtemp1;  // for intermediate calculus
-    ChVector<> vtemp2;
-
-    ChMatrix33<> mtemp1;
-    ChMatrix33<> mtemp2;
-    ChMatrix33<> mtemp3;
-    ChMatrixNM<double, 4, 4> mtempQ1;
-    ChMatrixNM<double, 4, 4> mtempQ2;
-
-    ChMatrix33<> CqxT;              // the 3x3 piece of Cq_temp for trasl. link, trasl.coords,
-    ChMatrixNM<double, 3, 4> CqxR;  // the 3x4 piece of Cq_temp for trasl. link,   rotat. coords,
-    ChMatrixNM<double, 4, 4> CqrR;  // the 4x4 piece of Cq_temp for rotat..link,   rotat. coords,
-    ChVector<> Qcx;                 // the 3x1 vector of Qc     for trasl. link
-
-    // [Cq_temp]= [[CqxT] [CqxR]]     {Qc_temp} ={[Qcx]}
-    //            [[ 0  ] [CqrR]]                {[Qcr]}
-
     // ----------- SOME PRECALCULATED VARIABLES, to optimize speed
 
-    ChMatrix33<> P1star;  // [P] star matrix of rel pos of mark1
-    P1star.Set_X_matrix(marker1->GetCoord().pos);
-    ChMatrix33<> Q2star;  // [Q] star matrix of rel pos of mark2
-    Q2star.Set_X_matrix(marker2->GetCoord().pos);
+    ChStarMatrix33<> P1star(marker1->GetCoord().pos);  // [P] star matrix of rel pos of mark1
+    ChStarMatrix33<> Q2star(marker2->GetCoord().pos);  // [Q] star matrix of rel pos of mark2
 
-    ChMatrixNM<double, 3, 4> body1Gl;
-    ChMatrixNM<double, 3, 4> body2Gl;
-
-    ChFrame<>::SetMatrix_Gl(body1Gl, Body1->GetCoord().rot);
-    ChFrame<>::SetMatrix_Gl(body2Gl, Body2->GetCoord().rot);
+    ChGlMatrix34<> body1Gl(Body1->GetCoord().rot);
+    ChGlMatrix34<> body2Gl(Body2->GetCoord().rot);
 
     // COMPUTE THE  Cq Ct Qc    matrices (temporary, for complete lock constraint)
 
@@ -488,95 +380,71 @@ void ChLinkLock::UpdateState() {
     marker2->Compute_Adtdt(m2_Rel_A_dtdt);
 
     // ----------- PARTIAL DERIVATIVE Ct OF CONSTRAINT
-    Ct_temp.pos = Vadd(m2_Rel_A_dt.MatrT_x_Vect(Body2->GetA().MatrT_x_Vect(PQw)),
-                       marker2->GetA().MatrT_x_Vect(
-                           Vsub(Body2->GetA().MatrT_x_Vect(Body1->GetA().Matr_x_Vect(marker1->GetCoord_dt().pos)),
-                                marker2->GetCoord_dt().pos)));
+    Ct_temp.pos =
+        m2_Rel_A_dt.transpose() * (Body2->GetA().transpose() * PQw) +
+        marker2->GetA().transpose() *
+            (Body2->GetA().transpose() * (Body1->GetA() * marker1->GetCoord_dt().pos) - marker2->GetCoord_dt().pos);
+
     Ct_temp.rot = q_AD;
 
     //------------ COMPLETE JACOBIANS Cq1_temp AND Cq2_temp AND Qc_temp VECTOR.
+    // [Cq_temp]= [[CqxT] [CqxR]]     {Qc_temp} ={[Qcx]}
+    //            [[ 0  ] [CqrR]]                {[Qcr]}
 
     //  JACOBIANS Cq1_temp, Cq2_temp:
 
-    mtemp1.CopyFromMatrixT(marker2->GetA());
-    CqxT.MatrMultiplyT(mtemp1, Body2->GetA());  // [CqxT]=[Aq]'[Ao2]'
+    ChMatrix33<> CqxT = marker2->GetA().transpose() * Body2->GetA().transpose();  // [CqxT]=[Aq]'[Ao2]'
+    ChStarMatrix33<> tmpStar(Body2->GetA().transpose() * PQw);
 
-    Cq1_temp->PasteMatrix(CqxT, 0, 0);  // *- -- Cq1_temp(1-3)  =[Aqo2]
+    Cq1_temp.topLeftCorner<3, 3>() = CqxT;                                              // *- -- Cq1_temp(1-3) =  [Aqo2]
+    Cq2_temp.topLeftCorner<3, 3>() = -CqxT;                                             // -- *- Cq2_temp(1-3) = -[Aqo2]
+    Cq1_temp.topRightCorner<3, 4>() = -CqxT * Body1->GetA() * P1star * body1Gl;         // -* -- Cq1_temp(4-7)
+    Cq2_temp.topRightCorner<3, 4>() = CqxT * Body2->GetA() * Q2star * body2Gl +         //
+                                      marker2->GetA().transpose() * tmpStar * body2Gl;  // -- -* Cq2_temp(4-7)
 
-    CqxT.MatrNeg();
-    Cq2_temp->PasteMatrix(CqxT, 0, 0);  // -- *- Cq2_temp(1-3)  =-[Aqo2]
+    {
+        ChStarMatrix44<> stempQ1(Qcross(Qconjugate(marker2->GetCoord().rot), Qconjugate(Body2->GetCoord().rot)));
+        ChStarMatrix44<> stempQ2(marker1->GetCoord().rot);
+        stempQ2.semiTranspose();
+        Cq1_temp.bottomRightCorner<4, 4>() = stempQ1 * stempQ2;  // =* == Cq1_temp(col 4-7, row 4-7) ... CqrR
+    }
 
-    mtemp1.MatrMultiply(CqxT, Body1->GetA());
-    mtemp2.MatrMultiply(mtemp1, P1star);
-
-    CqxR.MatrMultiply(mtemp2, body1Gl);
-
-    Cq1_temp->PasteMatrix(CqxR, 0, 3);  // -* -- Cq1_temp(4-7)
-
-    CqxT.MatrNeg();
-    mtemp1.MatrMultiply(CqxT, Body2->GetA());
-    mtemp2.MatrMultiply(mtemp1, Q2star);
-    CqxR.MatrMultiply(mtemp2, body2Gl);
-    Cq2_temp->PasteMatrix(CqxR, 0, 3);
-
-    mtemp1.CopyFromMatrixT(marker2->GetA());
-    mtemp2.Set_X_matrix(Body2->GetA().MatrT_x_Vect(PQw));
-    mtemp3.MatrMultiply(mtemp1, mtemp2);
-    CqxR.MatrMultiply(mtemp3, body2Gl);
-
-    Cq2_temp->PasteSumMatrix(CqxR, 0, 3);  // -- -* Cq2_temp(4-7)
-
-    mtempQ1.Set_Xq_matrix(Qcross(Qconjugate(marker2->GetCoord().rot), Qconjugate(Body2->GetCoord().rot)));
-    CqrR.Set_Xq_matrix(marker1->GetCoord().rot);
-    CqrR.MatrXq_SemiTranspose();
-    mtempQ2.MatrMultiply(mtempQ1, CqrR);
-    CqrR = mtempQ2;
-
-    Cq1_temp->PasteMatrix(CqrR, 3, 3);  // =* == Cq1_temp(col 4-7, row 4-7)
-
-    mtempQ1.Set_Xq_matrix(Qconjugate(marker2->GetCoord().rot));
-    CqrR.Set_Xq_matrix(Qcross(Body1->GetCoord().rot, marker1->GetCoord().rot));
-    CqrR.MatrXq_SemiTranspose();
-    CqrR.MatrXq_SemiNeg();
-    mtempQ2.MatrMultiply(mtempQ1, CqrR);
-    CqrR = mtempQ2;
-
-    Cq2_temp->PasteMatrix(CqrR, 3, 3);  // == =* Cq2_temp(col 4-7, row 4-7)
+    {
+        ChStarMatrix44<> stempQ1(Qconjugate(marker2->GetCoord().rot));
+        ChStarMatrix44<> stempQ2(Qcross(Body1->GetCoord().rot, marker1->GetCoord().rot));
+        stempQ2.semiTranspose();
+        stempQ2.semiNegate();
+        Cq2_temp.bottomRightCorner<4, 4>() = stempQ1 * stempQ2;  // == =* Cq2_temp(col 4-7, row 4-7) ... CqrR
+    }
 
     //--------- COMPLETE Qc VECTOR
+    ChVector<> Qcx;
+    ChVector<> vtemp1;
+    ChVector<> vtemp2;
 
     vtemp1 = Vcross(Body1->GetWvel_loc(), Vcross(Body1->GetWvel_loc(), marker1->GetCoord().pos));
     vtemp1 = Vadd(vtemp1, marker1->GetCoord_dtdt().pos);
     vtemp1 = Vadd(vtemp1, Vmul(Vcross(Body1->GetWvel_loc(), marker1->GetCoord_dt().pos), 2));
-    vtemp1 = Body1->GetA().Matr_x_Vect(vtemp1);
 
     vtemp2 = Vcross(Body2->GetWvel_loc(), Vcross(Body2->GetWvel_loc(), marker2->GetCoord().pos));
     vtemp2 = Vadd(vtemp2, marker2->GetCoord_dtdt().pos);
     vtemp2 = Vadd(vtemp2, Vmul(Vcross(Body2->GetWvel_loc(), marker2->GetCoord_dt().pos), 2));
-    vtemp2 = Body2->GetA().Matr_x_Vect(vtemp2);
 
-    vtemp1 = Vsub(vtemp1, vtemp2);
-    Qcx = CqxT.Matr_x_Vect(vtemp1);
+    Qcx = CqxT * (Body1->GetA() * vtemp1 - Body2->GetA() * vtemp2);
 
-    mtemp1.Set_X_matrix(Body2->GetWvel_loc());
-    mtemp2.MatrMultiply(mtemp1, mtemp1);
-    mtemp3.MatrMultiply(Body2->GetA(), mtemp2);
-    mtemp3.MatrTranspose();
-    vtemp1 = mtemp3.Matr_x_Vect(PQw);
-    vtemp2 = marker2->GetA().MatrT_x_Vect(vtemp1);  // [Aq]'[[A2][w2][w2]]'*Qpq,w
+    ChStarMatrix33<> mtemp1(Body2->GetWvel_loc());
+    ChMatrix33<> mtemp3 = Body2->GetA() * mtemp1 * mtemp1;
+    vtemp2 = marker2->GetA().transpose() * (mtemp3.transpose() * PQw);  // [Aq]'[[A2][w2][w2]]'*Qpq,w
     Qcx = Vadd(Qcx, vtemp2);
-
     Qcx = Vadd(Qcx, q_4);  // [Adtdt]'[A]'q + 2[Adt]'[Adt]'q + 2[Adt]'[A]'qdt + 2[A]'[Adt]'qdt
 
-    Qc_temp->PasteVector(Qcx, 0, 0);  // * Qc_temp, for all translational coords
-
-    Qc_temp->PasteQuaternion(q_8, 3, 0);  // * Qc_temp, for all rotational coords (Qcr = q_8)
+    Qc_temp.segment(0, 3) = Qcx.eigen();  // * Qc_temp, for all translational coords
+    Qc_temp.segment(3, 4) = q_8.eigen();  // * Qc_temp, for all rotational coords (Qcr = q_8)
 
     // *** NOTE! The final Qc must change sign, to be used in
     // lagrangian equation:    [Cq]*q_dtdt = Qc
     // because until now we have computed it as [Cq]*q_dtdt + "Qc" = 0
-
-    Qc_temp->MatrNeg();
+    Qc_temp *= -1;
 
     // ---------------------
     // Updates Cq1, Cq2, Qc,
@@ -584,143 +452,134 @@ void ChLinkLock::UpdateState() {
     // ---------------------
     int index = 0;
 
-    ChLinkMaskLF* mmask = (ChLinkMaskLF*)this->mask;
+    if (mask.Constr_X().IsActive()) {
+        Cq1.block<1, 7>(index, 0) = Cq1_temp.block<1, 7>(0, 0);
+        Cq2.block<1, 7>(index, 0) = Cq2_temp.block<1, 7>(0, 0);
 
-    if (mmask->Constr_X().IsActive()) {
-        Cq1->PasteClippedMatrix(*Cq1_temp, 0, 0, 1, 7, index, 0);
-        Cq2->PasteClippedMatrix(*Cq2_temp, 0, 0, 1, 7, index, 0);
+        Qc(index) = Qc_temp(0);
 
-        Qc->SetElement(index, 0, Qc_temp->GetElement(0, 0));
+        C(index) = relM.pos.x();
+        C_dt(index) = relM_dt.pos.x();
+        C_dtdt(index) = relM_dtdt.pos.x();
 
-        C->SetElement(index, 0, relM.pos.x());
-        C_dt->SetElement(index, 0, relM_dt.pos.x());
-        C_dtdt->SetElement(index, 0, relM_dtdt.pos.x());
-
-        Ct->SetElement(index, 0, Ct_temp.pos.x());
+        Ct(index) = Ct_temp.pos.x();
 
         index++;
     }
 
-    if (mmask->Constr_Y().IsActive()) {
-        Cq1->PasteClippedMatrix(*Cq1_temp, 1, 0, 1, 7, index, 0);
-        Cq2->PasteClippedMatrix(*Cq2_temp, 1, 0, 1, 7, index, 0);
+    if (mask.Constr_Y().IsActive()) {
+        Cq1.block<1, 7>(index, 0) = Cq1_temp.block<1, 7>(1, 0);
+        Cq2.block<1, 7>(index, 0) = Cq2_temp.block<1, 7>(1, 0);
 
-        Qc->SetElement(index, 0, Qc_temp->GetElement(1, 0));
+        Qc(index) = Qc_temp(1);
 
-        C->SetElement(index, 0, relM.pos.y());
-        C_dt->SetElement(index, 0, relM_dt.pos.y());
-        C_dtdt->SetElement(index, 0, relM_dtdt.pos.y());
+        C(index) = relM.pos.y();
+        C_dt(index) = relM_dt.pos.y();
+        C_dtdt(index) = relM_dtdt.pos.y();
 
-        Ct->SetElement(index, 0, Ct_temp.pos.y());
-
-        index++;
-    }
-
-    if (mmask->Constr_Z().IsActive()) {
-        Cq1->PasteClippedMatrix(*Cq1_temp, 2, 0, 1, 7, index, 0);
-        Cq2->PasteClippedMatrix(*Cq2_temp, 2, 0, 1, 7, index, 0);
-
-        Qc->SetElement(index, 0, Qc_temp->GetElement(2, 0));
-
-        C->SetElement(index, 0, relM.pos.z());
-        C_dt->SetElement(index, 0, relM_dt.pos.z());
-        C_dtdt->SetElement(index, 0, relM_dtdt.pos.z());
-
-        Ct->SetElement(index, 0, Ct_temp.pos.z());
+        Ct(index) = Ct_temp.pos.y();
 
         index++;
     }
 
-    if (mmask->Constr_E0().IsActive()) {
-        Cq1->PasteClippedMatrix(*Cq1_temp, 3, 3, 1, 4, index, 3);
-        Cq2->PasteClippedMatrix(*Cq2_temp, 3, 3, 1, 4, index, 3);
+    if (mask.Constr_Z().IsActive()) {
+        Cq1.block<1, 7>(index, 0) = Cq1_temp.block<1, 7>(2, 0);
+        Cq2.block<1, 7>(index, 0) = Cq2_temp.block<1, 7>(2, 0);
 
-        Qc->SetElement(index, 0, Qc_temp->GetElement(3, 0));
+        Qc(index) = Qc_temp(2);
 
-        C->SetElement(index, 0, relM.rot.e0());
-        C_dt->SetElement(index, 0, relM_dt.rot.e0());
-        C_dtdt->SetElement(index, 0, relM_dtdt.rot.e0());
+        C(index) = relM.pos.z();
+        C_dt(index) = relM_dt.pos.z();
+        C_dtdt(index) = relM_dtdt.pos.z();
 
-        Ct->SetElement(index, 0, Ct_temp.rot.e0());
-
-        index++;
-    }
-
-    if (mmask->Constr_E1().IsActive()) {
-        Cq1->PasteClippedMatrix(*Cq1_temp, 4, 3, 1, 4, index, 3);
-        Cq2->PasteClippedMatrix(*Cq2_temp, 4, 3, 1, 4, index, 3);
-
-        Qc->SetElement(index, 0, Qc_temp->GetElement(4, 0));
-
-        C->SetElement(index, 0, relM.rot.e1());
-        C_dt->SetElement(index, 0, relM_dt.rot.e1());
-        C_dtdt->SetElement(index, 0, relM_dtdt.rot.e1());
-
-        Ct->SetElement(index, 0, Ct_temp.rot.e1());
+        Ct(index) = Ct_temp.pos.z();
 
         index++;
     }
 
-    if (mmask->Constr_E2().IsActive()) {
-        Cq1->PasteClippedMatrix(*Cq1_temp, 5, 3, 1, 4, index, 3);
-        Cq2->PasteClippedMatrix(*Cq2_temp, 5, 3, 1, 4, index, 3);
+    if (mask.Constr_E0().IsActive()) {
+        Cq1.block<1, 4>(index, 3) = Cq1_temp.block<1, 4>(3, 3);
+        Cq2.block<1, 4>(index, 3) = Cq2_temp.block<1, 4>(3, 3);
 
-        Qc->SetElement(index, 0, Qc_temp->GetElement(5, 0));
+        Qc(index) = Qc_temp(3);
 
-        C->SetElement(index, 0, relM.rot.e2());
-        C_dt->SetElement(index, 0, relM_dt.rot.e2());
-        C_dtdt->SetElement(index, 0, relM_dtdt.rot.e2());
+        C(index) = relM.rot.e0();
+        C_dt(index) = relM_dt.rot.e0();
+        C_dtdt(index) = relM_dtdt.rot.e0();
 
-        Ct->SetElement(index, 0, Ct_temp.rot.e2());
+        Ct(index) = Ct_temp.rot.e0();
 
         index++;
     }
 
-    if (mmask->Constr_E3().IsActive()) {
-        Cq1->PasteClippedMatrix(*Cq1_temp, 6, 3, 1, 4, index, 3);
-        Cq2->PasteClippedMatrix(*Cq2_temp, 6, 3, 1, 4, index, 3);
+    if (mask.Constr_E1().IsActive()) {
+        Cq1.block<1, 4>(index, 3) = Cq1_temp.block<1, 4>(4, 3);
+        Cq2.block<1, 4>(index, 3) = Cq2_temp.block<1, 4>(4, 3);
 
-        Qc->SetElement(index, 0, Qc_temp->GetElement(6, 0));
+        Qc(index) = Qc_temp(4);
 
-        C->SetElement(index, 0, relM.rot.e3());
-        C_dt->SetElement(index, 0, relM_dt.rot.e3());
-        C_dtdt->SetElement(index, 0, relM_dtdt.rot.e3());
+        C(index) = relM.rot.e1();
+        C_dt(index) = relM_dt.rot.e1();
+        C_dtdt(index) = relM_dtdt.rot.e1();
 
-        Ct->SetElement(index, 0, Ct_temp.rot.e3());
+        Ct(index) = Ct_temp.rot.e1();
+
+        index++;
+    }
+
+    if (mask.Constr_E2().IsActive()) {
+        Cq1.block<1, 4>(index, 3) = Cq1_temp.block<1, 4>(5, 3);
+        Cq2.block<1, 4>(index, 3) = Cq2_temp.block<1, 4>(5, 3);
+
+        Qc(index) = Qc_temp(5);
+
+        C(index) = relM.rot.e2();
+        C_dt(index) = relM_dt.rot.e2();
+        C_dtdt(index) = relM_dtdt.rot.e2();
+
+        Ct(index) = Ct_temp.rot.e2();
+
+        index++;
+    }
+
+    if (mask.Constr_E3().IsActive()) {
+        Cq1.block<1, 4>(index, 3) = Cq1_temp.block<1, 4>(6, 3);
+        Cq2.block<1, 4>(index, 3) = Cq2_temp.block<1, 4>(6, 3);
+
+        Qc(index) = Qc_temp(6);
+
+        C(index) = relM.rot.e3();
+        C_dt(index) = relM_dt.rot.e3();
+        C_dtdt(index) = relM_dtdt.rot.e3();
+
+        Ct(index) = Ct_temp.rot.e3();
 
         index++;
     }
 }
 
-static void Transform_Cq_to_Cqw(ChMatrix<>* mCq, ChMatrix<>* mCqw, ChBodyFrame* mbody) {
-    if (!mCq)
-        return;
-
+static void Transform_Cq_to_Cqw(const ChLinkLock::ChConstraintMatrixX7& mCq,
+                                ChLinkLock::ChConstraintMatrixX6& mCqw,
+                                ChBodyFrame* mbody) {
     // translational part - not changed
-    mCqw->PasteClippedMatrix(*mCq, 0, 0, mCq->GetRows(), 3, 0, 0);
+    mCqw.block(0, 0, mCq.rows(), 3) = mCq.block(0, 0, mCq.rows(), 3);
 
     // rotational part [Cq_w] = [Cq_q]*[Gl]'*1/4
-    int col, row, colres;
-    double sum;
-
-    ChMatrixNM<double, 3, 4> mGl;
-    ChFrame<>::SetMatrix_Gl(mGl, mbody->GetCoord().rot);
-
-    for (colres = 0; colres < 3; colres++) {
-        for (row = 0; row < (mCq->GetRows()); row++) {
-            sum = 0;
-            for (col = 0; col < 4; col++) {
-                sum += ((mCq->GetElement(row, col + 3)) * (mGl.GetElement(colres, col)));
+    ChGlMatrix34<> mGl(mbody->GetCoord().rot);
+    for (int colres = 0; colres < 3; colres++) {
+        for (int row = 0; row < mCq.rows(); row++) {
+            double sum = 0;
+            for (int col = 0; col < 4; col++) {
+                sum += mCq(row, col + 3) * mGl(colres, col);
             }
-            mCqw->SetElement(row, colres + 3, sum * 0.25);
+            mCqw(row, colres + 3) = sum * 0.25;
         }
     }
+    //// RADU: explicit loop slightly more performant than Eigen expressions
+    ////mCqw.block(0, 3, mCq.rows(), 3) = 0.25 * mCq.block(0, 3, mCq.rows(), 4) * mGl.transpose();
 }
 
 void ChLinkLock::UpdateCqw() {
-    if (!Cq1 || !Cq2)
-        return;
-
     Transform_Cq_to_Cqw(Cq1, Cqw1, Body1);
     Transform_Cq_to_Cqw(Cq2, Cqw2, Body2);
 }
@@ -896,8 +755,7 @@ void ChLinkLock::IntStateScatterReactions(const unsigned int off_L, const ChVect
     react_force = VNULL;
     react_torque = VNULL;
 
-    if (react)
-        react->PasteClippedMatrix(L, off_L, 0, react->GetRows(), 1, 0, 0);
+    react = L.segment(off_L, react.size());
 
     // From react vector to the 'intuitive' react_force and react_torque
     const ChQuaternion<>& q2 = Body2->GetRot();
@@ -905,10 +763,7 @@ void ChLinkLock::IntStateScatterReactions(const unsigned int off_L, const ChVect
     const ChQuaternion<>& qs = marker2->GetCoord().rot;
     const ChMatrix33<>& Cs = marker2->GetA();
 
-    ChMatrixNM<double, 3, 4> Gl_q2;
-    Body1->SetMatrix_Gl(Gl_q2, q2);
-
-    ChMatrixNM<double, 4, 4> Chi__q1p_barT;  //[Chi] * [transpose(bar(q1p))]
+    ChMatrix44<> Chi__q1p_barT;  //[Chi] * [transpose(bar(q1p))]
     Chi__q1p_barT(0, 0) = q1p.e0();
     Chi__q1p_barT(0, 1) = q1p.e1();
     Chi__q1p_barT(0, 2) = q1p.e2();
@@ -926,7 +781,7 @@ void ChLinkLock::IntStateScatterReactions(const unsigned int off_L, const ChVect
     Chi__q1p_barT(3, 2) = -q1p.e1();
     Chi__q1p_barT(3, 3) = -q1p.e0();
 
-    ChMatrixNM<double, 4, 4> qs_tilde;
+    ChMatrix44<> qs_tilde;
     qs_tilde(0, 0) = qs.e0();
     qs_tilde(0, 1) = -qs.e1();
     qs_tilde(0, 2) = -qs.e2();
@@ -945,58 +800,50 @@ void ChLinkLock::IntStateScatterReactions(const unsigned int off_L, const ChVect
     qs_tilde(3, 3) = qs.e0();
 
     // Ts = 0.5*CsT*G(q2)*Chi*(q1 qp)_barT*qs~*KT*lambda
-    ChMatrixNM<double, 3, 4> Ts;
-    ChMatrixNM<double, 3, 4> Temp;  // temp matrix since MatrMultiply overwrites
-                                    // "this" during the calculation.  i.e.
-                                    // Ts.MatrMultiply(Ts,A) ~= Ts=[Ts]*[A]
-
-    Ts.MatrTMultiply(Cs, Gl_q2);
-    Ts.MatrScale(0.25);
-    Temp.MatrMultiply(Ts, Chi__q1p_barT);
-    Ts.MatrMultiply(Temp, qs_tilde);
+    ChGlMatrix34<> Gl_q2(q2);
+    ChMatrix34<> Ts = 0.25 * Cs.transpose() * Gl_q2 * Chi__q1p_barT * qs_tilde;
 
     // Translational constraint reaction force = -lambda_translational
     // Translational constraint reaction torque = -d~''(t)*lambda_translational
     // No reaction force from the rotational constraints
-    ChLinkMaskLF* mmask = static_cast<ChLinkMaskLF*>(mask);
 
     int local_off = 0;
 
-    if (mmask->Constr_X().IsActive()) {
-        react_force.x() = -react->GetElement(local_off, 0);
-        react_torque.y() = -relM.pos.z() * react->GetElement(local_off, 0);
-        react_torque.z() = relM.pos.y() * react->GetElement(local_off, 0);
+    if (mask.Constr_X().IsActive()) {
+        react_force.x() = -react(local_off);
+        react_torque.y() = -relM.pos.z() * react(local_off);
+        react_torque.z() = relM.pos.y() * react(local_off);
         local_off++;
     }
-    if (mmask->Constr_Y().IsActive()) {
-        react_force.y() = -react->GetElement(local_off, 0);
-        react_torque.x() = relM.pos.z() * react->GetElement(local_off, 0);
-        react_torque.z() += -relM.pos.x() * react->GetElement(local_off, 0);
+    if (mask.Constr_Y().IsActive()) {
+        react_force.y() = -react(local_off);
+        react_torque.x() = relM.pos.z() * react(local_off);
+        react_torque.z() += -relM.pos.x() * react(local_off);
         local_off++;
     }
-    if (mmask->Constr_Z().IsActive()) {
-        react_force.z() = -react->GetElement(local_off, 0);
-        react_torque.x() += -relM.pos.y() * react->GetElement(local_off, 0);
-        react_torque.y() += relM.pos.x() * react->GetElement(local_off, 0);
+    if (mask.Constr_Z().IsActive()) {
+        react_force.z() = -react(local_off);
+        react_torque.x() += -relM.pos.y() * react(local_off);
+        react_torque.y() += relM.pos.x() * react(local_off);
         local_off++;
     }
 
-    if (mmask->Constr_E1().IsActive()) {
-        react_torque.x() += Ts(0, 1) * (react->GetElement(local_off, 0));
-        react_torque.y() += Ts(1, 1) * (react->GetElement(local_off, 0));
-        react_torque.z() += Ts(2, 1) * (react->GetElement(local_off, 0));
+    if (mask.Constr_E1().IsActive()) {
+        react_torque.x() += Ts(0, 1) * (react(local_off));
+        react_torque.y() += Ts(1, 1) * (react(local_off));
+        react_torque.z() += Ts(2, 1) * (react(local_off));
         local_off++;
     }
-    if (mmask->Constr_E2().IsActive()) {
-        react_torque.x() += Ts(0, 2) * (react->GetElement(local_off, 0));
-        react_torque.y() += Ts(1, 2) * (react->GetElement(local_off, 0));
-        react_torque.z() += Ts(2, 2) * (react->GetElement(local_off, 0));
+    if (mask.Constr_E2().IsActive()) {
+        react_torque.x() += Ts(0, 2) * (react(local_off));
+        react_torque.y() += Ts(1, 2) * (react(local_off));
+        react_torque.z() += Ts(2, 2) * (react(local_off));
         local_off++;
     }
-    if (mmask->Constr_E3().IsActive()) {
-        react_torque.x() += Ts(0, 3) * (react->GetElement(local_off, 0));
-        react_torque.y() += Ts(1, 3) * (react->GetElement(local_off, 0));
-        react_torque.z() += Ts(2, 3) * (react->GetElement(local_off, 0));
+    if (mask.Constr_E3().IsActive()) {
+        react_torque.x() += Ts(0, 3) * (react(local_off));
+        react_torque.y() += Ts(1, 3) * (react(local_off));
+        react_torque.z() += Ts(2, 3) * (react(local_off));
         local_off++;
     }
 
@@ -1074,8 +921,7 @@ void ChLinkLock::IntStateScatterReactions(const unsigned int off_L, const ChVect
 }
 
 void ChLinkLock::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
-    if (react)
-        L.PasteMatrix(*react, off_L, 0);
+    L.segment(off_L, react.size()) = react;
 
     int local_off = this->GetDOC_c();
 
@@ -1089,9 +935,9 @@ void ChLinkLock::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L
                                      const double c)              // a scaling factor
 {
     int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
-            mask->Constr_N(i).MultiplyTandAdd(R, L(off_L + cnt) * c);
+    for (int i = 0; i < mask.nconstr; i++) {
+        if (mask.Constr_N(i).IsActive()) {
+            mask.Constr_N(i).MultiplyTandAdd(R, L(off_L + cnt) * c);
             cnt++;
         }
     }
@@ -1167,15 +1013,15 @@ void ChLinkLock::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc 
                                      double recovery_clamp)     // value for min/max clamping of c*C
 {
     int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
+    for (int i = 0; i < mask.nconstr; i++) {
+        if (mask.Constr_N(i).IsActive()) {
             if (do_clamp) {
-                if (mask->Constr_N(i).IsUnilateral())
-                    Qc(off_L + cnt) += ChMax(c * C->ElementN(cnt), -recovery_clamp);
+                if (mask.Constr_N(i).IsUnilateral())
+                    Qc(off_L + cnt) += ChMax(c * C(cnt), -recovery_clamp);
                 else
-                    Qc(off_L + cnt) += ChMin(ChMax(c * C->ElementN(cnt), -recovery_clamp), recovery_clamp);
+                    Qc(off_L + cnt) += ChMin(ChMax(c * C(cnt), -recovery_clamp), recovery_clamp);
             } else
-                Qc(off_L + cnt) += c * C->ElementN(cnt);
+                Qc(off_L + cnt) += c * C(cnt);
             cnt++;
         }
     }
@@ -1252,9 +1098,9 @@ void ChLinkLock::IntLoadConstraint_Ct(const unsigned int off_L,  // offset in Qc
                                       const double c)            // a scaling factor
 {
     int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
-            Qc(off_L + cnt) += c * Ct->ElementN(cnt);
+    for (int i = 0; i < mask.nconstr; i++) {
+        if (mask.Constr_N(i).IsActive()) {
+            Qc(off_L + cnt) += c * Ct(cnt);
             cnt++;
         }
     }
@@ -1269,10 +1115,10 @@ void ChLinkLock::IntToDescriptor(const unsigned int off_v,
                                  const ChVectorDynamic<>& L,
                                  const ChVectorDynamic<>& Qc) {
     int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
-            mask->Constr_N(i).Set_l_i(L(off_L + cnt));
-            mask->Constr_N(i).Set_b_i(Qc(off_L + cnt));
+    for (int i = 0; i < mask.nconstr; i++) {
+        if (mask.Constr_N(i).IsActive()) {
+            mask.Constr_N(i).Set_l_i(L(off_L + cnt));
+            mask.Constr_N(i).Set_b_i(Qc(off_L + cnt));
             cnt++;
         }
     }
@@ -1358,9 +1204,9 @@ void ChLinkLock::IntFromDescriptor(const unsigned int off_v,
                                    const unsigned int off_L,
                                    ChVectorDynamic<>& L) {
     int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
-            L(off_L + cnt) = mask->Constr_N(i).Get_l_i();
+    for (int i = 0; i < mask.nconstr; i++) {
+        if (mask.Constr_N(i).IsActive()) {
+            L(off_L + cnt) = mask.Constr_N(i).Get_l_i();
             cnt++;
         }
     }
@@ -1433,9 +1279,9 @@ void ChLinkLock::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     if (!this->IsActive())
         return;
 
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive())
-            mdescriptor.InsertConstraint(&mask->Constr_N(i));
+    for (int i = 0; i < mask.nconstr; i++) {
+        if (mask.Constr_N(i).IsActive())
+            mdescriptor.InsertConstraint(&mask.Constr_N(i));
     }
 
     if (limit_X && limit_X->IsActive()) {
@@ -1501,8 +1347,8 @@ void ChLinkLock::InjectConstraints(ChSystemDescriptor& mdescriptor) {
 }
 
 void ChLinkLock::ConstraintsBiReset() {
-    for (int i = 0; i < mask->nconstr; i++) {
-        mask->Constr_N(i).Set_b_i(0.);
+    for (int i = 0; i < mask.nconstr; i++) {
+        mask.Constr_N(i).Set_b_i(0.);
     }
 
     if (limit_X && limit_X->IsActive()) {
@@ -1557,17 +1403,16 @@ void ChLinkLock::ConstraintsBiReset() {
 
 void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
     int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
+    for (int i = 0; i < mask.nconstr; i++) {
+        if (mask.Constr_N(i).IsActive()) {
             if (do_clamp) {
-                if (mask->Constr_N(i).IsUnilateral())
-                    mask->Constr_N(i).Set_b_i(mask->Constr_N(i).Get_b_i() +
-                                              ChMax(factor * C->ElementN(cnt), -recovery_clamp));
+                if (mask.Constr_N(i).IsUnilateral())
+                    mask.Constr_N(i).Set_b_i(mask.Constr_N(i).Get_b_i() + ChMax(factor * C(cnt), -recovery_clamp));
                 else
-                    mask->Constr_N(i).Set_b_i(mask->Constr_N(i).Get_b_i() +
-                                              ChMin(ChMax(factor * C->ElementN(cnt), -recovery_clamp), recovery_clamp));
+                    mask.Constr_N(i).Set_b_i(mask.Constr_N(i).Get_b_i() +
+                                             ChMin(ChMax(factor * C(cnt), -recovery_clamp), recovery_clamp));
             } else
-                mask->Constr_N(i).Set_b_i(mask->Constr_N(i).Get_b_i() + factor * C->ElementN(cnt));
+                mask.Constr_N(i).Set_b_i(mask.Constr_N(i).Get_b_i() + factor * C(cnt));
 
             cnt++;
         }
@@ -1703,9 +1548,9 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
 
 void ChLinkLock::ConstraintsBiLoad_Ct(double factor) {
     int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
-            mask->Constr_N(i).Set_b_i(mask->Constr_N(i).Get_b_i() + factor * Ct->ElementN(cnt));
+    for (int i = 0; i < mask.nconstr; i++) {
+        if (mask.Constr_N(i).IsActive()) {
+            mask.Constr_N(i).Set_b_i(mask.Constr_N(i).Get_b_i() + factor * Ct(cnt));
             cnt++;
         }
     }
@@ -1713,41 +1558,39 @@ void ChLinkLock::ConstraintsBiLoad_Ct(double factor) {
 
 void ChLinkLock::ConstraintsBiLoad_Qc(double factor) {
     int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
-            mask->Constr_N(i).Set_b_i(mask->Constr_N(i).Get_b_i() + factor * Qc->ElementN(cnt));
+    for (int i = 0; i < mask.nconstr; i++) {
+        if (mask.Constr_N(i).IsActive()) {
+            mask.Constr_N(i).Set_b_i(mask.Constr_N(i).Get_b_i() + factor * Qc(cnt));
             cnt++;
         }
     }
 }
 
-void Transform_Cq_to_Cqw_row(ChMatrix<>* mCq, int qrow, ChMatrix<>* mCqw, int qwrow, ChBodyFrame* mbody) {
+void Transform_Cq_to_Cqw_row(const ChMatrixNM<double, 7, BODY_QDOF>& mCq, int qrow, ChMatrixRef mCqw, int qwrow, const ChGlMatrix34<>& Gl) {
     // translational part - not changed
-    mCqw->PasteClippedMatrix(*mCq, qrow, 0, 1, 3, qwrow, 0);
+    mCqw.block<1, 3>(qwrow, 0) = mCq.block<1, 3>(qrow, 0);
 
     // rotational part [Cq_w] = [Cq_q]*[Gl]'*1/4
-    int col, colres;
-    double sum;
-    ChMatrixNM<double, 3, 4> mGl;
-    ChFrame<>::SetMatrix_Gl(mGl, mbody->GetCoord().rot);
-    for (colres = 0; colres < 3; colres++) {
-        sum = 0;
-        for (col = 0; col < 4; col++) {
-            sum += ((mCq->GetElement(qrow, col + 3)) * (mGl.GetElement(colres, col)));
+    for (int colres = 0; colres < 3; colres++) {
+        double sum = 0;
+        for (int col = 0; col < 4; col++) {
+            sum += mCq(qrow, col + 3) * Gl(colres, col);
         }
-        mCqw->SetElement(qwrow, colres + 3, sum * 0.25);
+        mCqw(qwrow, colres + 3) = sum * 0.25;
     }
+    //// RADU: explicit loop slightly more performant than Eigen expressions
+    ////mCqw.block<1, 3>(qwrow, 3) = 0.25 * mCq.block<1, 4>(qrow, 3) * Gl.transpose();
 }
 
 void ChLinkLock::ConstraintsLoadJacobians() {
-    if (!this->ndoc)
+    if (ndoc == 0)
         return;
 
     int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
-            mask->Constr_N(i).Get_Cq_a()->PasteClippedMatrix(*Cqw1, cnt, 0, 1, this->Cqw1->GetColumns(), 0, 0);
-            mask->Constr_N(i).Get_Cq_b()->PasteClippedMatrix(*Cqw2, cnt, 0, 1, this->Cqw2->GetColumns(), 0, 0);
+    for (int i = 0; i < mask.nconstr; i++) {
+        if (mask.Constr_N(i).IsActive()) {
+            mask.Constr_N(i).Get_Cq_a().block(0, 0, 1, Cqw1.cols()) = Cqw1.block(cnt, 0, 1, Cqw1.cols());
+            mask.Constr_N(i).Get_Cq_b().block(0, 0, 1, Cqw2.cols()) = Cqw2.block(cnt, 0, 1, Cqw2.cols());
             cnt++;
 
             // sets also the CFM term
@@ -1755,88 +1598,91 @@ void ChLinkLock::ConstraintsLoadJacobians() {
         }
     }
 
+    ChGlMatrix34<> Gl1(Body1->GetCoord().rot);
+    ChGlMatrix34<> Gl2(Body2->GetCoord().rot);
+
     if (limit_X && limit_X->IsActive()) {
         if (limit_X->constr_lower.IsActive()) {
             limit_X->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
-            Transform_Cq_to_Cqw_row(Cq1_temp, 0, limit_X->constr_lower.Get_Cq_a(), 0, Body1);
-            Transform_Cq_to_Cqw_row(Cq2_temp, 0, limit_X->constr_lower.Get_Cq_b(), 0, Body2);
+            Transform_Cq_to_Cqw_row(Cq1_temp, 0, limit_X->constr_lower.Get_Cq_a(), 0, Gl1);
+            Transform_Cq_to_Cqw_row(Cq2_temp, 0, limit_X->constr_lower.Get_Cq_b(), 0, Gl2);
         }
         if (limit_X->constr_upper.IsActive()) {
             limit_X->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
-            Transform_Cq_to_Cqw_row(Cq1_temp, 0, limit_X->constr_upper.Get_Cq_a(), 0, Body1);
-            Transform_Cq_to_Cqw_row(Cq2_temp, 0, limit_X->constr_upper.Get_Cq_b(), 0, Body2);
-            limit_X->constr_upper.Get_Cq_a()->MatrNeg();
-            limit_X->constr_upper.Get_Cq_b()->MatrNeg();
+            Transform_Cq_to_Cqw_row(Cq1_temp, 0, limit_X->constr_upper.Get_Cq_a(), 0, Gl1);
+            Transform_Cq_to_Cqw_row(Cq2_temp, 0, limit_X->constr_upper.Get_Cq_b(), 0, Gl2);
+            limit_X->constr_upper.Get_Cq_a() *= -1;
+            limit_X->constr_upper.Get_Cq_b() *= -1;
         }
     }
     if (limit_Y && limit_Y->IsActive()) {
         if (limit_Y->constr_lower.IsActive()) {
             limit_Y->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
-            Transform_Cq_to_Cqw_row(Cq1_temp, 1, limit_Y->constr_lower.Get_Cq_a(), 0, Body1);
-            Transform_Cq_to_Cqw_row(Cq2_temp, 1, limit_Y->constr_lower.Get_Cq_b(), 0, Body2);
+            Transform_Cq_to_Cqw_row(Cq1_temp, 1, limit_Y->constr_lower.Get_Cq_a(), 0, Gl1);
+            Transform_Cq_to_Cqw_row(Cq2_temp, 1, limit_Y->constr_lower.Get_Cq_b(), 0, Gl2);
         }
         if (limit_Y->constr_upper.IsActive()) {
             limit_Y->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
-            Transform_Cq_to_Cqw_row(Cq1_temp, 1, limit_Y->constr_upper.Get_Cq_a(), 0, Body1);
-            Transform_Cq_to_Cqw_row(Cq2_temp, 1, limit_Y->constr_upper.Get_Cq_b(), 0, Body2);
-            limit_Y->constr_upper.Get_Cq_a()->MatrNeg();
-            limit_Y->constr_upper.Get_Cq_b()->MatrNeg();
+            Transform_Cq_to_Cqw_row(Cq1_temp, 1, limit_Y->constr_upper.Get_Cq_a(), 0, Gl1);
+            Transform_Cq_to_Cqw_row(Cq2_temp, 1, limit_Y->constr_upper.Get_Cq_b(), 0, Gl2);
+            limit_Y->constr_upper.Get_Cq_a() *= -1;
+            limit_Y->constr_upper.Get_Cq_b() *= -1;
         }
     }
     if (limit_Z && limit_Z->IsActive()) {
         if (limit_Z->constr_lower.IsActive()) {
             limit_Z->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
-            Transform_Cq_to_Cqw_row(Cq1_temp, 2, limit_Z->constr_lower.Get_Cq_a(), 0, Body1);
-            Transform_Cq_to_Cqw_row(Cq2_temp, 2, limit_Z->constr_lower.Get_Cq_b(), 0, Body2);
+            Transform_Cq_to_Cqw_row(Cq1_temp, 2, limit_Z->constr_lower.Get_Cq_a(), 0, Gl1);
+            Transform_Cq_to_Cqw_row(Cq2_temp, 2, limit_Z->constr_lower.Get_Cq_b(), 0, Gl2);
         }
         if (limit_Z->constr_upper.IsActive()) {
             limit_Z->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
-            Transform_Cq_to_Cqw_row(Cq1_temp, 2, limit_Z->constr_upper.Get_Cq_a(), 0, Body1);
-            Transform_Cq_to_Cqw_row(Cq2_temp, 2, limit_Z->constr_upper.Get_Cq_b(), 0, Body2);
-            limit_Z->constr_upper.Get_Cq_a()->MatrNeg();
-            limit_Z->constr_upper.Get_Cq_b()->MatrNeg();
+            Transform_Cq_to_Cqw_row(Cq1_temp, 2, limit_Z->constr_upper.Get_Cq_a(), 0, Gl1);
+            Transform_Cq_to_Cqw_row(Cq2_temp, 2, limit_Z->constr_upper.Get_Cq_b(), 0, Gl2);
+            limit_Z->constr_upper.Get_Cq_a() *= -1;
+            limit_Z->constr_upper.Get_Cq_b() *= -1;
         }
     }
     if (limit_Rx && limit_Rx->IsActive()) {
         if (limit_Rx->constr_lower.IsActive()) {
             limit_Rx->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
-            Transform_Cq_to_Cqw_row(Cq1_temp, 4, limit_Rx->constr_lower.Get_Cq_a(), 0, Body1);
-            Transform_Cq_to_Cqw_row(Cq2_temp, 4, limit_Rx->constr_lower.Get_Cq_b(), 0, Body2);
+            Transform_Cq_to_Cqw_row(Cq1_temp, 4, limit_Rx->constr_lower.Get_Cq_a(), 0, Gl1);
+            Transform_Cq_to_Cqw_row(Cq2_temp, 4, limit_Rx->constr_lower.Get_Cq_b(), 0, Gl2);
         }
         if (limit_Rx->constr_upper.IsActive()) {
             limit_Rx->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
-            Transform_Cq_to_Cqw_row(Cq1_temp, 4, limit_Rx->constr_upper.Get_Cq_a(), 0, Body1);
-            Transform_Cq_to_Cqw_row(Cq2_temp, 4, limit_Rx->constr_upper.Get_Cq_b(), 0, Body2);
-            limit_Rx->constr_upper.Get_Cq_a()->MatrNeg();
-            limit_Rx->constr_upper.Get_Cq_b()->MatrNeg();
+            Transform_Cq_to_Cqw_row(Cq1_temp, 4, limit_Rx->constr_upper.Get_Cq_a(), 0, Gl1);
+            Transform_Cq_to_Cqw_row(Cq2_temp, 4, limit_Rx->constr_upper.Get_Cq_b(), 0, Gl2);
+            limit_Rx->constr_upper.Get_Cq_a() *= -1;
+            limit_Rx->constr_upper.Get_Cq_b() *= -1;
         }
     }
     if (limit_Ry && limit_Ry->IsActive()) {
         if (limit_Ry->constr_lower.IsActive()) {
             limit_Ry->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
-            Transform_Cq_to_Cqw_row(Cq1_temp, 5, limit_Ry->constr_lower.Get_Cq_a(), 0, Body1);
-            Transform_Cq_to_Cqw_row(Cq2_temp, 5, limit_Ry->constr_lower.Get_Cq_b(), 0, Body2);
+            Transform_Cq_to_Cqw_row(Cq1_temp, 5, limit_Ry->constr_lower.Get_Cq_a(), 0, Gl1);
+            Transform_Cq_to_Cqw_row(Cq2_temp, 5, limit_Ry->constr_lower.Get_Cq_b(), 0, Gl2);
         }
         if (limit_Ry->constr_upper.IsActive()) {
             limit_Ry->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
-            Transform_Cq_to_Cqw_row(Cq1_temp, 5, limit_Ry->constr_upper.Get_Cq_a(), 0, Body1);
-            Transform_Cq_to_Cqw_row(Cq2_temp, 5, limit_Ry->constr_upper.Get_Cq_b(), 0, Body2);
-            limit_Ry->constr_upper.Get_Cq_a()->MatrNeg();
-            limit_Ry->constr_upper.Get_Cq_b()->MatrNeg();
+            Transform_Cq_to_Cqw_row(Cq1_temp, 5, limit_Ry->constr_upper.Get_Cq_a(), 0, Gl1);
+            Transform_Cq_to_Cqw_row(Cq2_temp, 5, limit_Ry->constr_upper.Get_Cq_b(), 0, Gl2);
+            limit_Ry->constr_upper.Get_Cq_a() *= -1;
+            limit_Ry->constr_upper.Get_Cq_b() *= -1;
         }
     }
     if (limit_Rz && limit_Rz->IsActive()) {
         if (limit_Rz->constr_lower.IsActive()) {
             limit_Rz->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
-            Transform_Cq_to_Cqw_row(Cq1_temp, 6, limit_Rz->constr_lower.Get_Cq_a(), 0, Body1);
-            Transform_Cq_to_Cqw_row(Cq2_temp, 6, limit_Rz->constr_lower.Get_Cq_b(), 0, Body2);
+            Transform_Cq_to_Cqw_row(Cq1_temp, 6, limit_Rz->constr_lower.Get_Cq_a(), 0, Gl1);
+            Transform_Cq_to_Cqw_row(Cq2_temp, 6, limit_Rz->constr_lower.Get_Cq_b(), 0, Gl2);
         }
         if (limit_Rz->constr_upper.IsActive()) {
             limit_Rz->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
-            Transform_Cq_to_Cqw_row(Cq1_temp, 6, limit_Rz->constr_upper.Get_Cq_a(), 0, Body1);
-            Transform_Cq_to_Cqw_row(Cq2_temp, 6, limit_Rz->constr_upper.Get_Cq_b(), 0, Body2);
-            limit_Rz->constr_upper.Get_Cq_a()->MatrNeg();
-            limit_Rz->constr_upper.Get_Cq_b()->MatrNeg();
+            Transform_Cq_to_Cqw_row(Cq1_temp, 6, limit_Rz->constr_upper.Get_Cq_a(), 0, Gl1);
+            Transform_Cq_to_Cqw_row(Cq2_temp, 6, limit_Rz->constr_upper.Get_Cq_b(), 0, Gl2);
+            limit_Rz->constr_upper.Get_Cq_a() *= -1;
+            limit_Rz->constr_upper.Get_Cq_b() *= -1;
         }
     }
 }
@@ -1847,9 +1693,9 @@ void ChLinkLock::ConstraintsFetch_react(double factor) {
 
     // From constraints to react vector:
     int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
-            react->ElementN(cnt) = mask->Constr_N(i).Get_l_i() * factor;
+    for (int i = 0; i < mask.nconstr; i++) {
+        if (mask.Constr_N(i).IsActive()) {
+            react(cnt) = mask.Constr_N(i).Get_l_i() * factor;
             cnt++;
         }
     }
@@ -1860,10 +1706,7 @@ void ChLinkLock::ConstraintsFetch_react(double factor) {
     const ChQuaternion<>& qs = marker2->GetCoord().rot;
     const ChMatrix33<>& Cs = marker2->GetA();
 
-    ChMatrixNM<double, 3, 4> Gl_q2;
-    Body1->SetMatrix_Gl(Gl_q2, q2);
-
-    ChMatrixNM<double, 4, 4> Chi__q1p_barT;  //[Chi] * [transpose(bar(q1p))]
+    ChMatrix44<> Chi__q1p_barT;  //[Chi] * [transpose(bar(q1p))]
     Chi__q1p_barT(0, 0) = q1p.e0();
     Chi__q1p_barT(0, 1) = q1p.e1();
     Chi__q1p_barT(0, 2) = q1p.e2();
@@ -1881,7 +1724,7 @@ void ChLinkLock::ConstraintsFetch_react(double factor) {
     Chi__q1p_barT(3, 2) = -q1p.e1();
     Chi__q1p_barT(3, 3) = -q1p.e0();
 
-    ChMatrixNM<double, 4, 4> qs_tilde;
+    ChMatrix44<> qs_tilde;
     qs_tilde(0, 0) = qs.e0();
     qs_tilde(0, 1) = -qs.e1();
     qs_tilde(0, 2) = -qs.e2();
@@ -1900,57 +1743,50 @@ void ChLinkLock::ConstraintsFetch_react(double factor) {
     qs_tilde(3, 3) = qs.e0();
 
     // Ts = 0.5*CsT*G(q2)*Chi*(q1 qp)_barT*qs~*KT*lambda
-    ChMatrixNM<double, 3, 4> Ts;
-    ChMatrixNM<double, 3, 4> Temp;  // temp matrix since MatrMultiply overwrites
-                                    // "this" during the calculation.  i.e.
-                                    // Ts.MatrMultiply(Ts,A) ~= Ts=[Ts]*[A]
-
-    Ts.MatrTMultiply(Cs, Gl_q2);
-    Ts.MatrScale(0.25);
-    Temp.MatrMultiply(Ts, Chi__q1p_barT);
-    Ts.MatrMultiply(Temp, qs_tilde);
+    ChGlMatrix34<> Gl_q2(q2);
+    ChMatrix34<> Ts = 0.25 * Cs.transpose() * Gl_q2 * Chi__q1p_barT * qs_tilde;
 
     // Translational constraint reaction force = -lambda_translational
     // Translational constraint reaction torque = -d~''(t)*lambda_translational
     // No reaction force from the rotational constraints
-    ChLinkMaskLF* mmask = static_cast<ChLinkMaskLF*>(mask);
+
     int n_constraint = 0;
 
-    if (mmask->Constr_X().IsActive()) {
-        react_force.x() = -react->GetElement(n_constraint, 0);
-        react_torque.y() = -relM.pos.z() * react->GetElement(n_constraint, 0);
-        react_torque.z() = relM.pos.y() * react->GetElement(n_constraint, 0);
+    if (mask.Constr_X().IsActive()) {
+        react_force.x() = -react(n_constraint);
+        react_torque.y() = -relM.pos.z() * react(n_constraint);
+        react_torque.z() = relM.pos.y() * react(n_constraint);
         n_constraint++;
     }
-    if (mmask->Constr_Y().IsActive()) {
-        react_force.y() = -react->GetElement(n_constraint, 0);
-        react_torque.x() = relM.pos.z() * react->GetElement(n_constraint, 0);
-        react_torque.z() += -relM.pos.x() * react->GetElement(n_constraint, 0);
+    if (mask.Constr_Y().IsActive()) {
+        react_force.y() = -react(n_constraint);
+        react_torque.x() = relM.pos.z() * react(n_constraint);
+        react_torque.z() += -relM.pos.x() * react(n_constraint);
         n_constraint++;
     }
-    if (mmask->Constr_Z().IsActive()) {
-        react_force.z() = -react->GetElement(n_constraint, 0);
-        react_torque.x() += -relM.pos.y() * react->GetElement(n_constraint, 0);
-        react_torque.y() += relM.pos.x() * react->GetElement(n_constraint, 0);
+    if (mask.Constr_Z().IsActive()) {
+        react_force.z() = -react(n_constraint);
+        react_torque.x() += -relM.pos.y() * react(n_constraint);
+        react_torque.y() += relM.pos.x() * react(n_constraint);
         n_constraint++;
     }
 
-    if (mmask->Constr_E1().IsActive()) {
-        react_torque.x() += Ts(0, 1) * (react->GetElement(n_constraint, 0));
-        react_torque.y() += Ts(1, 1) * (react->GetElement(n_constraint, 0));
-        react_torque.z() += Ts(2, 1) * (react->GetElement(n_constraint, 0));
+    if (mask.Constr_E1().IsActive()) {
+        react_torque.x() += Ts(0, 1) * (react(n_constraint));
+        react_torque.y() += Ts(1, 1) * (react(n_constraint));
+        react_torque.z() += Ts(2, 1) * (react(n_constraint));
         n_constraint++;
     }
-    if (mmask->Constr_E2().IsActive()) {
-        react_torque.x() += Ts(0, 2) * (react->GetElement(n_constraint, 0));
-        react_torque.y() += Ts(1, 2) * (react->GetElement(n_constraint, 0));
-        react_torque.z() += Ts(2, 2) * (react->GetElement(n_constraint, 0));
+    if (mask.Constr_E2().IsActive()) {
+        react_torque.x() += Ts(0, 2) * (react(n_constraint));
+        react_torque.y() += Ts(1, 2) * (react(n_constraint));
+        react_torque.z() += Ts(2, 2) * (react(n_constraint));
         n_constraint++;
     }
-    if (mmask->Constr_E3().IsActive()) {
-        react_torque.x() += Ts(0, 3) * (react->GetElement(n_constraint, 0));
-        react_torque.y() += Ts(1, 3) * (react->GetElement(n_constraint, 0));
-        react_torque.z() += Ts(2, 3) * (react->GetElement(n_constraint, 0));
+    if (mask.Constr_E3().IsActive()) {
+        react_torque.x() += Ts(0, 3) * (react(n_constraint));
+        react_torque.y() += Ts(1, 3) * (react(n_constraint));
+        react_torque.z() += Ts(2, 3) * (react(n_constraint));
         n_constraint++;
     }
 
@@ -2135,23 +1971,19 @@ ChLinkLockLock::ChLinkLockLock()
       deltaC_dt(CSYSNULL),
       deltaC_dtdt(CSYSNULL) {
     type = LinkType::LOCK;
-    ChLinkMaskLF m_mask;
-    m_mask.SetLockMask(true, true, true, false, true, true, true);
-    BuildLink(&m_mask);
+    BuildLink(true, true, true, false, true, true, true);
 
-    motion_X = std::make_shared<ChFunction_Const>(0);  // default: no motion
-    motion_Y = std::make_shared<ChFunction_Const>(0);
-    motion_Z = std::make_shared<ChFunction_Const>(0);
-    motion_ang = std::make_shared<ChFunction_Const>(0);
-    motion_ang2 = std::make_shared<ChFunction_Const>(0);
-    motion_ang3 = std::make_shared<ChFunction_Const>(0);
+    motion_X = chrono_types::make_shared<ChFunction_Const>(0);  // default: no motion
+    motion_Y = chrono_types::make_shared<ChFunction_Const>(0);
+    motion_Z = chrono_types::make_shared<ChFunction_Const>(0);
+    motion_ang = chrono_types::make_shared<ChFunction_Const>(0);
+    motion_ang2 = chrono_types::make_shared<ChFunction_Const>(0);
+    motion_ang3 = chrono_types::make_shared<ChFunction_Const>(0);
 }
 
 ChLinkLockLock::ChLinkLockLock(const ChLinkLockLock& other) : ChLinkLock(other) {
     type = LinkType::LOCK;
-    ChLinkMaskLF m_mask;
-    m_mask.SetLockMask(true, true, true, false, true, true, true);
-    BuildLink(&m_mask);
+    BuildLink(true, true, true, false, true, true, true);
 
     motion_X = std::shared_ptr<ChFunction>(other.motion_X->Clone());
     motion_Y = std::shared_ptr<ChFunction>(other.motion_Y->Clone());
@@ -2272,42 +2104,15 @@ void ChLinkLockLock::UpdateTime(double time) {
     }
 }
 
+// Updates Cq1_temp, Cq2_temp, Qc_temp, etc., i.e. all LOCK-FORMULATION temp.matrices
 void ChLinkLockLock::UpdateState() {
-    // ---------------------
-    // Updates Cq1_temp, Cq2_temp, Qc_temp,
-    // etc., i.e. all LOCK-FORMULATION temp.matrices
-    // ---------------------
-
-    ChVector<> vtemp1;  // for intermediate calculus
-    ChVector<> vtemp2;
-
-    ChMatrix33<> mtemp1;
-    ChMatrix33<> mtemp2;
-    ChMatrix33<> mtemp3;
-    ChMatrixNM<double, 4, 4> mtempQ1;
-    ChMatrixNM<double, 4, 4> mtempQ2;
-
-    ChMatrix33<> CqxT;              // the 3x3 piece of Cq_temp for trasl. link, trasl.coords,
-    ChMatrixNM<double, 3, 4> CqxR;  // the 3x4 piece of Cq_temp for trasl. link,   rotat. coords,
-    ChMatrixNM<double, 4, 4> CqrR;  // the 4x4 piece of Cq_temp for rotat..link,   rotat. coords,
-    ChVector<> Qcx;                 // the 3x1 vector of Qc     for trasl. link
-    ChQuaternion<> Qcr;             // the 4x1 quaternion of Qc for rotat. link
-
-    // [Cq_temp]= [[CqxT] [CqxR]]     {Qc_temp} ={[Qcx]}
-    //            [[ 0  ] [CqrR]]                {[Qcr]}
-
     // ----------- SOME PRECALCULATED VARIABLES, to optimize speed
 
-    ChMatrix33<> P1star;  // [P] star matrix of rel pos of mark1
-    P1star.Set_X_matrix(marker1->GetCoord().pos);
-    ChMatrix33<> Q2star;  // [Q] star matrix of rel pos of mark2
-    Q2star.Set_X_matrix(marker2->GetCoord().pos);
+    ChStarMatrix33<> P1star(marker1->GetCoord().pos);  // [P] star matrix of rel pos of mark1
+    ChStarMatrix33<> Q2star(marker2->GetCoord().pos);  // [Q] star matrix of rel pos of mark2
 
-    ChMatrixNM<double, 3, 4> body1Gl;
-    ChMatrixNM<double, 3, 4> body2Gl;
-
-    ChFrame<>::SetMatrix_Gl(body1Gl, Body1->GetCoord().rot);
-    ChFrame<>::SetMatrix_Gl(body2Gl, Body2->GetCoord().rot);
+    ChGlMatrix34<> body1Gl(Body1->GetCoord().rot);
+    ChGlMatrix34<> body2Gl(Body2->GetCoord().rot);
 
     // ----------- RELATIVE LINK-LOCK COORDINATES (violations)
 
@@ -2339,108 +2144,83 @@ void ChLinkLockLock::UpdateState() {
     marker2->Compute_Adtdt(m2_Rel_A_dtdt);
 
     // ----------- PARTIAL DERIVATIVE Ct OF CONSTRAINT
-    Ct_temp.pos = Vadd(m2_Rel_A_dt.MatrT_x_Vect(Body2->GetA().MatrT_x_Vect(PQw)),
-                       marker2->GetA().MatrT_x_Vect(
-                           Vsub(Body2->GetA().MatrT_x_Vect(Body1->GetA().Matr_x_Vect(marker1->GetCoord_dt().pos)),
-                                marker2->GetCoord_dt().pos)));
-    Ct_temp.pos = Vsub(Ct_temp.pos, deltaC_dt.pos);  // the deltaC contribute
+    Ct_temp.pos =
+        m2_Rel_A_dt.transpose() * (Body2->GetA().transpose() * PQw) +
+        marker2->GetA().transpose() *
+            (Body2->GetA().transpose() * (Body1->GetA() * marker1->GetCoord_dt().pos) - marker2->GetCoord_dt().pos);
+    Ct_temp.pos -= deltaC_dt.pos;  // the deltaC contribute
 
-    Ct_temp.rot =  // deltaC^*(q_AD) + deltaC_dt^*q_pq
-        Qadd(Qcross(Qconjugate(deltaC.rot), q_AD), Qcross(Qconjugate(deltaC_dt.rot), relM.rot));
+    // deltaC^*(q_AD) + deltaC_dt^*q_pq
+    Ct_temp.rot = Qcross(Qconjugate(deltaC.rot), q_AD) + Qcross(Qconjugate(deltaC_dt.rot), relM.rot);
 
     //------------ COMPLETE JACOBIANS Cq1_temp AND Cq2_temp AND Qc_temp VECTOR.
+    // [Cq_temp]= [[CqxT] [CqxR]]     {Qc_temp} ={[Qcx]}
+    //            [[ 0  ] [CqrR]]                {[Qcr]}
 
     //  JACOBIANS Cq1_temp, Cq2_temp:
 
-    mtemp1.CopyFromMatrixT(marker2->GetA());
-    CqxT.MatrMultiplyT(mtemp1, Body2->GetA());  // [CqxT]=[Aq]'[Ao2]'
+    ChMatrix33<> CqxT = marker2->GetA().transpose() * Body2->GetA().transpose();  // [CqxT]=[Aq]'[Ao2]'
+    ChStarMatrix33<> tmpStar(Body2->GetA().transpose() * PQw);
 
-    Cq1_temp->PasteMatrix(CqxT, 0, 0);  // *- -- Cq1_temp(1-3)  =[Aqo2]
+    Cq1_temp.topLeftCorner<3, 3>() = CqxT;                                              // *- -- Cq1_temp(1-3)  =[Aqo2]
+    Cq2_temp.topLeftCorner<3, 3>() = -CqxT;                                             // -- *- Cq2_temp(1-3)  =-[Aqo2]
+    Cq1_temp.topRightCorner<3, 4>() = -CqxT * Body1->GetA() * P1star * body1Gl;         // -* -- Cq1_temp(4-7)
+    Cq2_temp.topRightCorner<3, 4>() = CqxT * Body2->GetA() * Q2star * body2Gl +         //
+                                      marker2->GetA().transpose() * tmpStar * body2Gl;  // -- -* Cq2_temp(4-7)
 
-    CqxT.MatrNeg();
-    Cq2_temp->PasteMatrix(CqxT, 0, 0);  // -- *- Cq2_temp(1-3)  =-[Aqo2]
+    {
+        ChStarMatrix44<> stempQ1(Qcross(Qconjugate(marker2->GetCoord().rot), Qconjugate(Body2->GetCoord().rot)));
+        ChStarMatrix44<> stempQ2(marker1->GetCoord().rot);
+        ChStarMatrix44<> stempDC(Qconjugate(deltaC.rot));
+        stempQ2.semiTranspose();
+        Cq1_temp.bottomRightCorner<4, 4>() = stempDC * stempQ1 * stempQ2;  // =* == Cq1_temp(col 4-7, row 4-7) ... CqrR
+    }
 
-    mtemp1.MatrMultiply(CqxT, Body1->GetA());
-    mtemp2.MatrMultiply(mtemp1, P1star);
-
-    CqxR.MatrMultiply(mtemp2, body1Gl);
-
-    Cq1_temp->PasteMatrix(CqxR, 0, 3);  // -* -- Cq1_temp(4-7)
-
-    CqxT.MatrNeg();
-    mtemp1.MatrMultiply(CqxT, Body2->GetA());
-    mtemp2.MatrMultiply(mtemp1, Q2star);
-    CqxR.MatrMultiply(mtemp2, body2Gl);
-    Cq2_temp->PasteMatrix(CqxR, 0, 3);
-
-    mtemp1.CopyFromMatrixT(marker2->GetA());
-    mtemp2.Set_X_matrix(Body2->GetA().MatrT_x_Vect(PQw));
-    mtemp3.MatrMultiply(mtemp1, mtemp2);
-    CqxR.MatrMultiply(mtemp3, body2Gl);
-
-    Cq2_temp->PasteSumMatrix(CqxR, 0, 3);  // -- -* Cq2_temp(4-7)
-
-    mtempQ1.Set_Xq_matrix(Qcross(Qconjugate(marker2->GetCoord().rot), Qconjugate(Body2->GetCoord().rot)));
-    CqrR.Set_Xq_matrix(marker1->GetCoord().rot);
-    CqrR.MatrXq_SemiTranspose();
-    mtempQ2.MatrMultiply(mtempQ1, CqrR);
-    mtempQ1.Set_Xq_matrix(Qconjugate(deltaC.rot));
-    CqrR.MatrMultiply(mtempQ1, mtempQ2);
-
-    Cq1_temp->PasteMatrix(CqrR, 3, 3);  // =* == Cq1_temp(col 4-7, row 4-7)
-
-    mtempQ1.Set_Xq_matrix(Qconjugate(marker2->GetCoord().rot));
-    CqrR.Set_Xq_matrix(Qcross(Body1->GetCoord().rot, marker1->GetCoord().rot));
-    CqrR.MatrXq_SemiTranspose();
-    CqrR.MatrXq_SemiNeg();
-    mtempQ2.MatrMultiply(mtempQ1, CqrR);
-    mtempQ1.Set_Xq_matrix(Qconjugate(deltaC.rot));
-    CqrR.MatrMultiply(mtempQ1, mtempQ2);
-
-    Cq2_temp->PasteMatrix(CqrR, 3, 3);  // == =* Cq2_temp(col 4-7, row 4-7)
+    {
+        ChStarMatrix44<> stempQ1(Qconjugate(marker2->GetCoord().rot));
+        ChStarMatrix44<> stempQ2(Qcross(Body1->GetCoord().rot, marker1->GetCoord().rot));
+        ChStarMatrix44<> stempDC(Qconjugate(deltaC.rot));
+        stempQ2.semiTranspose();
+        stempQ2.semiNegate();
+        Cq2_temp.bottomRightCorner<4, 4>() = stempDC * stempQ1 * stempQ2;  // == =* Cq2_temp(col 4-7, row 4-7) ... CqrR
+    }
 
     //--------- COMPLETE Qc VECTOR
+    ChVector<> Qcx;
+    ChQuaternion<> Qcr;
+    ChVector<> vtemp1;
+    ChVector<> vtemp2;
 
     vtemp1 = Vcross(Body1->GetWvel_loc(), Vcross(Body1->GetWvel_loc(), marker1->GetCoord().pos));
     vtemp1 = Vadd(vtemp1, marker1->GetCoord_dtdt().pos);
     vtemp1 = Vadd(vtemp1, Vmul(Vcross(Body1->GetWvel_loc(), marker1->GetCoord_dt().pos), 2));
-    vtemp1 = Body1->GetA().Matr_x_Vect(vtemp1);
 
     vtemp2 = Vcross(Body2->GetWvel_loc(), Vcross(Body2->GetWvel_loc(), marker2->GetCoord().pos));
     vtemp2 = Vadd(vtemp2, marker2->GetCoord_dtdt().pos);
     vtemp2 = Vadd(vtemp2, Vmul(Vcross(Body2->GetWvel_loc(), marker2->GetCoord_dt().pos), 2));
-    vtemp2 = Body2->GetA().Matr_x_Vect(vtemp2);
 
-    vtemp1 = Vsub(vtemp1, vtemp2);
-    Qcx = CqxT.Matr_x_Vect(vtemp1);
+    Qcx = CqxT * (Body1->GetA() * vtemp1 - Body2->GetA() * vtemp2);
 
-    mtemp1.Set_X_matrix(Body2->GetWvel_loc());
-    mtemp2.MatrMultiply(mtemp1, mtemp1);
-    mtemp3.MatrMultiply(Body2->GetA(), mtemp2);
-    mtemp3.MatrTranspose();
-    vtemp1 = mtemp3.Matr_x_Vect(PQw);
-    vtemp2 = marker2->GetA().MatrT_x_Vect(vtemp1);  // [Aq]'[[A2][w2][w2]]'*Qpq,w
+    ChStarMatrix33<> mtemp1(Body2->GetWvel_loc());
+    ChMatrix33<> mtemp3 = Body2->GetA() * mtemp1 * mtemp1;
+    vtemp2 = marker2->GetA().transpose() * (mtemp3.transpose() * PQw);  // [Aq]'[[A2][w2][w2]]'*Qpq,w
     Qcx = Vadd(Qcx, vtemp2);
-
-    Qcx = Vadd(Qcx, q_4);  // [Adtdt]'[A]'q + 2[Adt]'[Adt]'q + 2[Adt]'[A]'qdt + 2[A]'[Adt]'qdt
-
+    Qcx = Vadd(Qcx, q_4);              // [Adtdt]'[A]'q + 2[Adt]'[Adt]'q + 2[Adt]'[A]'qdt + 2[A]'[Adt]'qdt
     Qcx = Vsub(Qcx, deltaC_dtdt.pos);  // ... - deltaC_dtdt
-
-    Qc_temp->PasteVector(Qcx, 0, 0);  // * Qc_temp, for all translational coords
 
     Qcr = Qcross(Qconjugate(deltaC.rot), q_8);
     Qcr = Qadd(Qcr, Qscale(Qcross(Qconjugate(deltaC_dt.rot), relM_dt.rot), 2));
     Qcr = Qadd(Qcr, Qcross(Qconjugate(deltaC_dtdt.rot), relM.rot));  // = deltaC'*q_8 + 2*deltaC_dt'*q_dt,po +
                                                                      // deltaC_dtdt'*q,po
 
-    Qc_temp->PasteQuaternion(Qcr, 3, 0);  // * Qc_temp, for all rotational coords
+    Qc_temp.segment(0, 3) = Qcx.eigen();  // * Qc_temp, for all translational coords
+    Qc_temp.segment(3, 4) = Qcr.eigen();  // * Qc_temp, for all rotational coords
 
     // *** NOTE! The definitive  Qc must change sign, to be used in
     // lagrangian equation:    [Cq]*q_dtdt = Qc
     // because until now we have computed it as [Cq]*q_dtdt + "Qc" = 0,
     // but the most used form is the previous, so let's change sign!!
-
-    Qc_temp->MatrNeg();
+    Qc_temp *= -1;
 
     // ---------------------
     // Updates Cq1, Cq2, Qc,
@@ -2448,109 +2228,107 @@ void ChLinkLockLock::UpdateState() {
     // ---------------------
     int index = 0;
 
-    ChLinkMaskLF* mmask = (ChLinkMaskLF*)this->mask;
+    if (mask.Constr_X().IsActive()) {
+        Cq1.block<1, 7>(index, 0) = Cq1_temp.block<1, 7>(0, 0);
+        Cq2.block<1, 7>(index, 0) = Cq2_temp.block<1, 7>(0, 0);
 
-    if (mmask->Constr_X().IsActive()) {
-        Cq1->PasteClippedMatrix(*Cq1_temp, 0, 0, 1, 7, index, 0);
-        Cq2->PasteClippedMatrix(*Cq2_temp, 0, 0, 1, 7, index, 0);
+        Qc(index) = Qc_temp(0);
 
-        Qc->SetElement(index, 0, Qc_temp->GetElement(0, 0));
+        C(index) = relC.pos.x();
+        C_dt(index) = relC_dt.pos.x();
+        C_dtdt(index) = relC_dtdt.pos.x();
 
-        C->SetElement(index, 0, relC.pos.x());
-        C_dt->SetElement(index, 0, relC_dt.pos.x());
-        C_dtdt->SetElement(index, 0, relC_dtdt.pos.x());
-
-        Ct->SetElement(index, 0, Ct_temp.pos.x());
+        Ct(index) = Ct_temp.pos.x();
 
         index++;
     }
 
-    if (mmask->Constr_Y().IsActive()) {
-        Cq1->PasteClippedMatrix(*Cq1_temp, 1, 0, 1, 7, index, 0);
-        Cq2->PasteClippedMatrix(*Cq2_temp, 1, 0, 1, 7, index, 0);
+    if (mask.Constr_Y().IsActive()) {
+        Cq1.block<1, 7>(index, 0) = Cq1_temp.block<1, 7>(1, 0);
+        Cq2.block<1, 7>(index, 0) = Cq2_temp.block<1, 7>(1, 0);
 
-        Qc->SetElement(index, 0, Qc_temp->GetElement(1, 0));
+        Qc(index) = Qc_temp(1);
 
-        C->SetElement(index, 0, relC.pos.y());
-        C_dt->SetElement(index, 0, relC_dt.pos.y());
-        C_dtdt->SetElement(index, 0, relC_dtdt.pos.y());
+        C(index) = relC.pos.y();
+        C_dt(index) = relC_dt.pos.y();
+        C_dtdt(index) = relC_dtdt.pos.y();
 
-        Ct->SetElement(index, 0, Ct_temp.pos.y());
-
-        index++;
-    }
-
-    if (mmask->Constr_Z().IsActive()) {
-        Cq1->PasteClippedMatrix(*Cq1_temp, 2, 0, 1, 7, index, 0);
-        Cq2->PasteClippedMatrix(*Cq2_temp, 2, 0, 1, 7, index, 0);
-
-        Qc->SetElement(index, 0, Qc_temp->GetElement(2, 0));
-
-        C->SetElement(index, 0, relC.pos.z());
-        C_dt->SetElement(index, 0, relC_dt.pos.z());
-        C_dtdt->SetElement(index, 0, relC_dtdt.pos.z());
-
-        Ct->SetElement(index, 0, Ct_temp.pos.z());
+        Ct(index) = Ct_temp.pos.y();
 
         index++;
     }
 
-    if (mmask->Constr_E0().IsActive()) {
-        Cq1->PasteClippedMatrix(*Cq1_temp, 3, 3, 1, 4, index, 3);
-        Cq2->PasteClippedMatrix(*Cq2_temp, 3, 3, 1, 4, index, 3);
+    if (mask.Constr_Z().IsActive()) {
+        Cq1.block<1, 7>(index, 0) = Cq1_temp.block<1, 7>(2, 0);
+        Cq2.block<1, 7>(index, 0) = Cq2_temp.block<1, 7>(2, 0);
 
-        Qc->SetElement(index, 0, Qc_temp->GetElement(3, 0));
+        Qc(index) = Qc_temp(2);
 
-        C->SetElement(index, 0, relC.rot.e0());
-        C_dt->SetElement(index, 0, relC_dt.rot.e0());
-        C_dtdt->SetElement(index, 0, relC_dtdt.rot.e0());
+        C(index) = relC.pos.z();
+        C_dt(index) = relC_dt.pos.z();
+        C_dtdt(index) = relC_dtdt.pos.z();
 
-        Ct->SetElement(index, 0, Ct_temp.rot.e0());
-
-        index++;
-    }
-
-    if (mmask->Constr_E1().IsActive()) {
-        Cq1->PasteClippedMatrix(*Cq1_temp, 4, 3, 1, 4, index, 3);
-        Cq2->PasteClippedMatrix(*Cq2_temp, 4, 3, 1, 4, index, 3);
-
-        Qc->SetElement(index, 0, Qc_temp->GetElement(4, 0));
-
-        C->SetElement(index, 0, relC.rot.e1());
-        C_dt->SetElement(index, 0, relC_dt.rot.e1());
-        C_dtdt->SetElement(index, 0, relC_dtdt.rot.e1());
-
-        Ct->SetElement(index, 0, Ct_temp.rot.e1());
+        Ct(index) = Ct_temp.pos.z();
 
         index++;
     }
 
-    if (mmask->Constr_E2().IsActive()) {
-        Cq1->PasteClippedMatrix(*Cq1_temp, 5, 3, 1, 4, index, 3);
-        Cq2->PasteClippedMatrix(*Cq2_temp, 5, 3, 1, 4, index, 3);
+    if (mask.Constr_E0().IsActive()) {
+        Cq1.block<1, 4>(index, 3) = Cq1_temp.block<1, 4>(3, 3);
+        Cq2.block<1, 4>(index, 3) = Cq2_temp.block<1, 4>(3, 3);
 
-        Qc->SetElement(index, 0, Qc_temp->GetElement(5, 0));
+        Qc(index) = Qc_temp(3);
 
-        C->SetElement(index, 0, relC.rot.e2());
-        C_dt->SetElement(index, 0, relC_dt.rot.e2());
-        C_dtdt->SetElement(index, 0, relC_dtdt.rot.e2());
+        C(index) = relC.rot.e0();
+        C_dt(index) = relC_dt.rot.e0();
+        C_dtdt(index) = relC_dtdt.rot.e0();
 
-        Ct->SetElement(index, 0, Ct_temp.rot.e2());
+        Ct(index) = Ct_temp.rot.e0();
 
         index++;
     }
 
-    if (mmask->Constr_E3().IsActive()) {
-        Cq1->PasteClippedMatrix(*Cq1_temp, 6, 3, 1, 4, index, 3);
-        Cq2->PasteClippedMatrix(*Cq2_temp, 6, 3, 1, 4, index, 3);
+    if (mask.Constr_E1().IsActive()) {
+        Cq1.block<1, 4>(index, 3) = Cq1_temp.block<1, 4>(4, 3);
+        Cq2.block<1, 4>(index, 3) = Cq2_temp.block<1, 4>(4, 3);
 
-        Qc->SetElement(index, 0, Qc_temp->GetElement(6, 0));
+        Qc(index) = Qc_temp(4);
 
-        C->SetElement(index, 0, relC.rot.e3());
-        C_dt->SetElement(index, 0, relC_dt.rot.e3());
-        C_dtdt->SetElement(index, 0, relC_dtdt.rot.e3());
+        C(index) = relC.rot.e1();
+        C_dt(index) = relC_dt.rot.e1();
+        C_dtdt(index) = relC_dtdt.rot.e1();
 
-        Ct->SetElement(index, 0, Ct_temp.rot.e3());
+        Ct(index) = Ct_temp.rot.e1();
+
+        index++;
+    }
+
+    if (mask.Constr_E2().IsActive()) {
+        Cq1.block<1, 4>(index, 3) = Cq1_temp.block<1, 4>(5, 3);
+        Cq2.block<1, 4>(index, 3) = Cq2_temp.block<1, 4>(5, 3);
+
+        Qc(index) = Qc_temp(5);
+
+        C(index) = relC.rot.e2();
+        C_dt(index) = relC_dt.rot.e2();
+        C_dtdt(index) = relC_dtdt.rot.e2();
+
+        Ct(index) = Ct_temp.rot.e2();
+
+        index++;
+    }
+
+    if (mask.Constr_E3().IsActive()) {
+        Cq1.block<1, 4>(index, 3) = Cq1_temp.block<1, 4>(6, 3);
+        Cq2.block<1, 4>(index, 3) = Cq2_temp.block<1, 4>(6, 3);
+
+        Qc(index) = Qc_temp(6);
+
+        C(index) = relC.rot.e3();
+        C_dt(index) = relC_dt.rot.e3();
+        C_dtdt(index) = relC_dtdt.rot.e3();
+
+        Ct(index) = Ct_temp.rot.e3();
 
         index++;
     }

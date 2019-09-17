@@ -23,7 +23,7 @@
 #include <algorithm>
 #include <cmath>
 
-#include "chrono/physics/ChGlobal.h"
+#include "chrono/core/ChGlobal.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChLugreTire.h"
 
@@ -67,14 +67,14 @@ void ChLugreTire::AddVisualizationAssets(VisualizationType vis) {
 
     m_cyl_shapes.resize(GetNumDiscs());
     for (int id = 0; id < GetNumDiscs(); id++) {
-        m_cyl_shapes[id] = std::make_shared<ChCylinderShape>();
+        m_cyl_shapes[id] = chrono_types::make_shared<ChCylinderShape>();
         m_cyl_shapes[id]->GetCylinderGeometry().rad = disc_radius;
         m_cyl_shapes[id]->GetCylinderGeometry().p1 = ChVector<>(0, disc_locs[id] + discWidth / 2, 0);
         m_cyl_shapes[id]->GetCylinderGeometry().p2 = ChVector<>(0, disc_locs[id] - discWidth / 2, 0);
         m_wheel->AddAsset(m_cyl_shapes[id]);
     }
 
-    m_texture = std::make_shared<ChTexture>();
+    m_texture = chrono_types::make_shared<ChTexture>();
     m_texture->SetTextureFilename(GetChronoDataFile("greenwhite.png"));
     m_wheel->AddAsset(m_texture);
 }
@@ -147,7 +147,7 @@ void ChLugreTire::Synchronize(double time,
         // are reduced to the wheel center). If the resulting force is negative, the
         // disc is moving away from the terrain so fast that no contact force is
         // generated.
-        double Fn_mag = GetNormalStiffness() * depth - GetNormalDamping() * m_data[id].vel.z();
+        double Fn_mag = (GetNormalStiffness() * depth - GetNormalDamping() * m_data[id].vel.z()) / GetNumDiscs();
 
         if (Fn_mag < 0)
             Fn_mag = 0;

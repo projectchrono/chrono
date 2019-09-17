@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
     system.Set_G_acc(ChVector<>(0, 0, -9.81));
 
     // Create the ground body
-    auto ground = std::make_shared<ChBodyEasyBox>(0.6, 0.6, 0.15, 10000, false, true);
+    auto ground = chrono_types::make_shared<ChBodyEasyBox>(0.6, 0.6, 0.15, 10000, false, true);
     system.Add(ground);
     ground->SetBodyFixed(true);
     
@@ -47,19 +47,19 @@ int main(int argc, char* argv[]) {
     // Create a moving body that will 'bounce' thanks to a flexible bushing.
     // Give it an initial angular velocity and attach also a small sphere 
     // to show the anchoring of the bushing.
-    auto body = std::make_shared<ChBodyEasyBox>(0.9, 0.9, 0.15, 1000, false, true);
+    auto body = chrono_types::make_shared<ChBodyEasyBox>(0.9, 0.9, 0.15, 1000, false, true);
     system.Add(body);
     body->SetBodyFixed(false);
     body->SetPos(ChVector<>(1.0, 0.0, 0.0));
     body->SetWvel_loc(ChVector<>(1.5, 1.5, -1.5));
     body->SetPos_dt(ChVector<>(1.0, -0.4, 0.2));
 
-    auto symbol_bushing = std::make_shared<ChSphereShape>();
+    auto symbol_bushing = chrono_types::make_shared<ChSphereShape>();
     symbol_bushing->GetSphereGeometry().center = ChVector<>(-1,0,0);
     symbol_bushing->GetSphereGeometry().rad =0.1;
     body->AddAsset(symbol_bushing);
 
-    auto body_col = std::make_shared<ChColorAsset>();
+    auto body_col = chrono_types::make_shared<ChColorAsset>();
     body_col->SetColor(ChColor(0.6f, 0, 0));
     body->AddAsset(body_col);
 
@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
 
     // Bushings are inherited from ChLoad, so they require a 'load container'
 
-    auto my_loadcontainer = std::make_shared<ChLoadContainer>();
+    auto my_loadcontainer = chrono_types::make_shared<ChLoadContainer>();
     system.Add(my_loadcontainer);
 
 
@@ -90,16 +90,16 @@ int main(int argc, char* argv[]) {
         R_matrix(ii, ii) = 1000.0;
     }
 
-    auto my_loadbushingg = std::make_shared<ChLoadBodyBodyBushingGeneric>(
-                                    body, // body A
-                                    ground, // body B
-                                    ChFrame<>(ChVector<>(0.5, 0.0, 0.0)), //initial frame of bushing in abs space
-                                    K_matrix,  // the 6x6 (translation+rotation) K matrix in local frame
-                                    R_matrix   // the 6x6 (translation+rotation) R matrix in local frame 
-                                    ); 
-     my_loadbushingg->SetNeutralForce(ChVector<>(100,0,0));
-     my_loadbushingg->NeutralDisplacement().SetPos(ChVector<>(0.02,0,0));
-     my_loadcontainer->Add(my_loadbushingg);
+    auto my_loadbushingg = chrono_types::make_shared<ChLoadBodyBodyBushingGeneric>(
+        body,                                  // body A
+        ground,                                // body B
+        ChFrame<>(ChVector<>(0.5, 0.0, 0.0)),  // initial frame of bushing in abs space
+        K_matrix,                              // the 6x6 (translation+rotation) K matrix in local frame
+        R_matrix                               // the 6x6 (translation+rotation) R matrix in local frame
+    );
+    my_loadbushingg->SetNeutralForce(ChVector<>(100, 0, 0));
+    my_loadbushingg->NeutralDisplacement().SetPos(ChVector<>(0.02, 0, 0));
+    my_loadcontainer->Add(my_loadbushingg);
 
 
     // EXAMPLE 2: use  ChLoadBodyBodyBushingMate
@@ -108,33 +108,31 @@ int main(int argc, char* argv[]) {
     // ChLoadBodyBodyBushingGeneric, it adds compliance to both translation 
     // and rotation, using three x y z and three Rx Ry Rz stiffness values.
 
-    auto my_loadbushing = std::make_shared<ChLoadBodyBodyBushingMate>(
-                                    body, // body A
-                                    ground, // body B
-                                    ChFrame<>(ChVector<>(0.5, 0.0, 0.0)), //initial frame of bushing in abs space
-                                    ChVector<>(95000.0),    // K stiffness in local frame  [N/m]
-                                    ChVector<>(100.0),      // R damping in local frame  [N/m/s]
-                                    ChVector<>(95000.0),    // K rotational stiffness,in local frame [Nm/rad]
-                                    ChVector<>(100.0)       // R rotational damping, in local frame [Nm/rad/s]
-                                    ); 
+    auto my_loadbushing = chrono_types::make_shared<ChLoadBodyBodyBushingMate>(
+        body,                                  // body A
+        ground,                                // body B
+        ChFrame<>(ChVector<>(0.5, 0.0, 0.0)),  // initial frame of bushing in abs space
+        ChVector<>(95000.0),                   // K stiffness in local frame  [N/m]
+        ChVector<>(100.0),                     // R damping in local frame  [N/m/s]
+        ChVector<>(95000.0),                   // K rotational stiffness,in local frame [Nm/rad]
+        ChVector<>(100.0)                      // R rotational damping, in local frame [Nm/rad/s]
+    );
     // my_loadcontainer->Add(my_loadbushing);
-
 
     // EXAMPLE 3: use  ChLoadBodyBodyBushingPlastic
     //
     // A special type of ChLoadBodyBodyBushingSpherical 
-    // that also provides plastic deformation with a plastic yeld. 
+    // that also provides plastic deformation with a plastic yeld.
 
-     auto my_loadbushingp = std::make_shared<ChLoadBodyBodyBushingPlastic>(
-                                    body, // body A
-                                    ground, // body B
-                                    ChFrame<>(ChVector<>(0.5, 0.0, 0.0)), //initial frame of bushing in abs space
-                                    ChVector<>(95000.0),    // K stiffness in local frame  [N/m]
-                                    ChVector<>(100.0),      // R damping in local frame  [N/m/s]
-                                    ChVector<>(18000.0)     // plastic yield [N/m]
-                                    );  
-    //my_loadcontainer->Add(my_loadbushingp);
-
+    auto my_loadbushingp = chrono_types::make_shared<ChLoadBodyBodyBushingPlastic>(
+        body,                                  // body A
+        ground,                                // body B
+        ChFrame<>(ChVector<>(0.5, 0.0, 0.0)),  // initial frame of bushing in abs space
+        ChVector<>(95000.0),                   // K stiffness in local frame  [N/m]
+        ChVector<>(100.0),                     // R damping in local frame  [N/m/s]
+        ChVector<>(18000.0)                    // plastic yield [N/m]
+    );
+    // my_loadcontainer->Add(my_loadbushingp);
 
     // EXAMPLE 4: use  ChLinkBushing
     //
@@ -146,7 +144,7 @@ int main(int argc, char* argv[]) {
     // ChLinkBushing::Revolute: One rotational dof is free, rest of dofs defined by stiffness/damping matrices
     // ChLinkBushing::Mount: All six dofs defined by stiffness/damping matrices
 
-    auto my_linkbushing = std::make_shared<ChLinkBushing>(ChLinkBushing::Mount);
+    auto my_linkbushing = chrono_types::make_shared<ChLinkBushing>(ChLinkBushing::Mount);
     my_linkbushing->Initialize( body,   // body A 
                                 ground, // body B 
                                 ChCoordsys<>(ChVector<>(0.5, 0.0, 0.0), ChQuaternion<>(1, 0, 0, 0)), //initial frame of bushing in abs space    
@@ -157,13 +155,8 @@ int main(int argc, char* argv[]) {
 
     // Finally, add a force that tends to bend the body:
 
-    auto my_loadforce = std::make_shared<ChLoadBodyForce>(
-                                    body, 
-                                    ChVector<>(0,0, -8000), 
-                                    false, 
-                                    ChVector<>(1,0,0));
+    auto my_loadforce = chrono_types::make_shared<ChLoadBodyForce>(body, ChVector<>(0, 0, -8000), false, ChVector<>(1, 0, 0));
     my_loadcontainer->Add(my_loadforce);
-
 
     // Create the Irrlicht application
     ChIrrApp application(&system, L"ChLinkBushing", irr::core::dimension2d<irr::u32>(800, 600), false, true);

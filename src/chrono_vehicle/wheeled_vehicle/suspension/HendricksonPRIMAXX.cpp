@@ -70,8 +70,8 @@ void HendricksonPRIMAXX::Create(const rapidjson::Document& d) {
     assert(d["Spindle"].IsObject());
 
     m_spindleMass = d["Spindle"]["Mass"].GetDouble();
-    m_points[SPINDLE] = LoadVectorJSON(d["Spindle"]["COM"]);
-    m_spindleInertia = LoadVectorJSON(d["Spindle"]["Inertia"]);
+    m_points[SPINDLE] = ReadVectorJSON(d["Spindle"]["COM"]);
+    m_spindleInertia = ReadVectorJSON(d["Spindle"]["Inertia"]);
     m_spindleRadius = d["Spindle"]["Radius"].GetDouble();
     m_spindleWidth = d["Spindle"]["Width"].GetDouble();
 

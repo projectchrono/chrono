@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora 
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
 #include "chrono/solver/ChConstraintNgeneric.h"
@@ -19,13 +19,11 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChConstraintNgeneric)
 
-
 ChConstraintNgeneric::ChConstraintNgeneric(const ChConstraintNgeneric& other) : ChConstraint(other) {
-	this->variables = other.variables;
-	this->Cq = other.Cq;
-	this->Eq = other.Eq;
+    variables = other.variables;
+    Cq = other.Cq;
+    Eq = other.Eq;
 }
-
 
 ChConstraintNgeneric& ChConstraintNgeneric::operator=(const ChConstraintNgeneric& other) {
     if (&other == this)
@@ -34,9 +32,9 @@ ChConstraintNgeneric& ChConstraintNgeneric::operator=(const ChConstraintNgeneric
     // copy parent class data
     ChConstraint::operator=(other);
 
-	this->variables = other.variables;
-	this->Cq = other.Cq;
-	this->Eq = other.Eq;
+    variables = other.variables;
+    Cq = other.Cq;
+    Eq = other.Eq;
 
     return *this;
 }
@@ -55,12 +53,10 @@ void ChConstraintNgeneric::SetVariables(std::vector<ChVariables*> mvars) {
             return;
         }
 
-        Cq.push_back(ChMatrixDynamic<double>(1, variables[i]->Get_ndof()));
-        Eq.push_back(ChMatrixDynamic<double>(variables[i]->Get_ndof(), 1));
-    }
+        Cq.push_back(ChRowVectorDynamic<double>(variables[i]->Get_ndof()));
+        Eq.push_back(ChRowVectorDynamic<double>(variables[i]->Get_ndof()));
 
-    for (size_t i = 0; i < variables.size(); ++i) {
-        Cq[i].Reset();
+        Cq.back().setZero();
     }
 }
 
@@ -68,25 +64,20 @@ void ChConstraintNgeneric::Update_auxiliary() {
     // 1- Assuming jacobians are already computed, now compute
     //   the matrices [Eq_a]=[invM_a]*[Cq_a]' and [Eq_b]
 
-	for (size_t i=0; i <  variables.size(); ++i) {
-		if (variables[i]->IsActive())
-			if (variables[i]->Get_ndof()) {
-				ChMatrixDynamic<double> mtemp1(variables[i]->Get_ndof(), 1);
-				mtemp1.CopyFromMatrixT(Cq[i]);
-				variables[i]->Compute_invMb_v(Eq[i], mtemp1);
-			}
-	}
+    for (size_t i = 0; i < variables.size(); ++i) {
+        if (variables[i]->IsActive())
+            if (variables[i]->Get_ndof()) {
+                variables[i]->Compute_invMb_v(Eq[i], Cq[i].transpose());
+            }
+    }
 
     // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
-    ChMatrixDynamic<double> res(1, 1);
     g_i = 0;
-	for (size_t i=0; i < variables.size(); ++i) {
-		if (variables[i]->IsActive())
-			if (variables[i]->Get_ndof()) {
-				res.MatrMultiply(Cq[i], Eq[i]);
-				g_i += res(0, 0);
-			}
-	}
+    for (size_t i = 0; i < variables.size(); ++i) {
+        if (variables[i]->IsActive() && variables[i]->Get_ndof() > 0) {
+            g_i += Cq[i] * Eq[i];
+        }
+    }
 
     // 3- adds the constraint force mixing term (usually zero):
     if (cfm_i)
@@ -96,54 +87,51 @@ void ChConstraintNgeneric::Update_auxiliary() {
 double ChConstraintNgeneric::Compute_Cq_q() {
     double ret = 0;
 
-	for (size_t i=0; i <  variables.size(); ++i) {
-		if (variables[i]->IsActive())
-			for (int i = 0; i < Cq[i].GetColumns(); i++)
-				ret += Cq[i].ElementN(i) * variables[i]->Get_qb().ElementN(i);
-	}
-    
+    for (size_t i = 0; i < variables.size(); ++i) {
+        if (variables[i]->IsActive()) {
+            ret += Cq[i] * variables[i]->Get_qb();
+        }
+    }
+
     return ret;
 }
 
 void ChConstraintNgeneric::Increment_q(const double deltal) {
-
-	for (size_t i=0; i <  variables.size(); ++i) {
-		if (variables[i]->IsActive())
-			for (int i = 0; i < Eq[i].GetRows(); i++)
-				variables[i]->Get_qb()(i) += Eq[i].ElementN(i) * deltal;
-	}
- 
+    for (size_t i = 0; i < variables.size(); ++i) {
+        if (variables[i]->IsActive()) {
+            variables[i]->Get_qb() += Eq[i] * deltal;
+        }
+    }
 }
 
-void ChConstraintNgeneric::MultiplyAndAdd(double& result, const ChMatrix<double>& vect) const {
-
-	for (size_t i=0; i <  variables.size(); ++i) {
-		if (variables[i]->IsActive())
-			for (int i = 0; i < Cq[i].GetRows(); i++)
-				result += vect(variables[i]->GetOffset() + i) * Cq[i].ElementN(i);
-	}
+void ChConstraintNgeneric::MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const {
+    for (size_t i = 0; i < variables.size(); ++i) {
+        if (variables[i]->IsActive()) {
+            result += Cq[i] * vect.segment(variables[i]->GetOffset(), Cq[i].size());
+        }
+    }
 }
 
-void ChConstraintNgeneric::MultiplyTandAdd(ChMatrix<double>& result, double l) {
-	for (size_t i=0; i <  variables.size(); ++i) {
-		if (variables[i]->IsActive())
-			for (int i = 0; i < Cq[i].GetRows(); i++)
-				result(variables[i]->GetOffset() + i) += Cq[i].ElementN(i) * l;
-	}
+void ChConstraintNgeneric::MultiplyTandAdd(ChVectorDynamic<double>& result, double l) {
+    for (size_t i = 0; i < variables.size(); ++i) {
+        if (variables[i]->IsActive()) {
+            result.segment(variables[i]->GetOffset(), Cq[i].size()) += Cq[i].transpose() * l;
+        }
+    }
 }
 
 void ChConstraintNgeneric::Build_Cq(ChSparseMatrix& storage, int insrow) {
-	for (size_t i=0; i <  variables.size(); ++i) {
-		if (variables[i]->IsActive())
-			storage.PasteMatrix(Cq[i], insrow, variables[i]->GetOffset());
-	}
+    for (size_t i = 0; i < variables.size(); ++i) {
+        if (variables[i]->IsActive())
+            storage.PasteMatrix(Cq[i], insrow, variables[i]->GetOffset());
+    }
 }
 
 void ChConstraintNgeneric::Build_CqT(ChSparseMatrix& storage, int inscol) {
-	for (size_t i=0; i <  variables.size(); ++i) {
-		if (variables[i]->IsActive())
-			storage.PasteTranspMatrix(Cq[i], variables[i]->GetOffset(), inscol);
-	}
+    for (size_t i = 0; i < variables.size(); ++i) {
+        if (variables[i]->IsActive())
+            storage.PasteTranspMatrix(Cq[i], variables[i]->GetOffset(), inscol);
+    }
 }
 
 void ChConstraintNgeneric::ArchiveOUT(ChArchiveOut& marchive) {
@@ -154,7 +142,7 @@ void ChConstraintNgeneric::ArchiveOUT(ChArchiveOut& marchive) {
     ChConstraint::ArchiveOUT(marchive);
 
     // serialize all member data:
-    // NOTHING INTERESTING TO SERIALIZE 
+    // NOTHING INTERESTING TO SERIALIZE
 }
 
 void ChConstraintNgeneric::ArchiveIN(ChArchiveIn& marchive) {
@@ -165,7 +153,7 @@ void ChConstraintNgeneric::ArchiveIN(ChArchiveIn& marchive) {
     ChConstraint::ArchiveIN(marchive);
 
     // deserialize all member data:
-    // NOTHING INTERESTING TO SERIALIZE 
+    // NOTHING INTERESTING TO SERIALIZE
 }
 
 }  // end namespace chrono

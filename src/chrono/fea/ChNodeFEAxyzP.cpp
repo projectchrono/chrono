@@ -93,12 +93,12 @@ void ChNodeFEAxyzP::NodeIntLoadResidual_Mv(const unsigned int off,
 }
 
 void ChNodeFEAxyzP::NodeIntToDescriptor(const unsigned int off_v, const ChStateDelta& v, const ChVectorDynamic<>& R) {
-    variables.Get_qb().PasteClippedMatrix(v, off_v, 0, 1, 1, 0, 0);
-    variables.Get_fb().PasteClippedMatrix(R, off_v, 0, 1, 1, 0, 0);
+    variables.Get_qb()(0) = v(off_v);
+    variables.Get_fb()(0) = R(off_v);
 }
 
 void ChNodeFEAxyzP::NodeIntFromDescriptor(const unsigned int off_v, ChStateDelta& v) {
-    v.PasteMatrix(variables.Get_qb(), off_v, 0);
+    v(off_v) = variables.Get_qb()(0);
 }
 
 // -----------------------------------------------------------------------------
@@ -108,27 +108,27 @@ void ChNodeFEAxyzP::InjectVariables(ChSystemDescriptor& mdescriptor) {
 }
 
 void ChNodeFEAxyzP::VariablesFbReset() {
-    variables.Get_fb().FillElem(0.0);
+    variables.Get_fb()(0) = 0;
 }
 
 void ChNodeFEAxyzP::VariablesFbLoadForces(double factor) {
     if (variables.IsDisabled())
         return;
-    variables.Get_fb().ElementN(0) += F * factor;
+    variables.Get_fb()(0) += F * factor;
 }
 
 void ChNodeFEAxyzP::VariablesQbLoadSpeed() {
     if (variables.IsDisabled())
         return;
     // not really a 'speed', just the field derivative (may be used in incremental solver)
-    variables.Get_qb().SetElement(0, 0, P_dt);
+    variables.Get_qb()(0) = P_dt;
 }
 
 void ChNodeFEAxyzP::VariablesQbSetSpeed(double step) {
     if (variables.IsDisabled())
         return;
     // not really a 'speed', just the field derivative (may be used in incremental solver)
-    P_dt = variables.Get_qb().GetElement(0, 0);
+    P_dt = variables.Get_qb()(0);
 }
 
 void ChNodeFEAxyzP::VariablesFbIncrementMq() {
@@ -141,7 +141,7 @@ void ChNodeFEAxyzP::VariablesQbIncrementPosition(double step) {
     if (variables.IsDisabled())
         return;
 
-    double pseudospeed = variables.Get_qb().GetElement(0, 0);
+    double pseudospeed = variables.Get_qb()(0);
 
     // ADVANCE FIELD: pos' = pos + dt * vel
     P = P + pseudospeed * step;

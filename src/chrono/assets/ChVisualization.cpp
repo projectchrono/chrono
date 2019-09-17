@@ -25,7 +25,7 @@ void ChVisualization::ArchiveOUT(ChArchiveOut& marchive) {
     ChAsset::ArchiveOUT(marchive);
     // serialize all member data:
     marchive << CHNVP(Pos);
-    marchive << CHNVP(Rot);
+    ////marchive << CHNVP(Rot);
     marchive << CHNVP(visible);
     marchive << CHNVP(color);
     marchive << CHNVP(fading);
@@ -38,7 +38,7 @@ void ChVisualization::ArchiveIN(ChArchiveIn& marchive) {
     ChAsset::ArchiveIN(marchive);
     // stream in all member data:
     marchive >> CHNVP(Pos);
-    marchive >> CHNVP(Rot);
+    ////marchive >> CHNVP(Rot);
     marchive >> CHNVP(visible);
     marchive >> CHNVP(color);
     marchive >> CHNVP(fading);

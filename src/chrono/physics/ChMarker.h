@@ -198,13 +198,11 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
     // UPDATING
     //
 
-    /// Updates the time.dependant variables (ex: ChFunction objects
-    /// which impose the body-relative motion, etc.)
+    /// Updates the time.dependant variables (ex: ChFunction objects which impose the body-relative motion, etc.)
     void UpdateTime(double mytime);
 
-    /// Given current state, updates auxiliary variables (for example
-    /// the abs_frame data, containing the absolute pos/speed/acc of
-    /// the marker.
+    /// Given current state, updates auxiliary variables (for example the abs_frame data, containing the absolute
+    /// pos/speed/acc of the marker.
     void UpdateState();
 
     /// Both UpdateTime() and UpdateState() at once.
@@ -219,10 +217,10 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
     // UTILITIES
     //
 
-    Vector Point_World2Ref(Vector* mpoint);
-    Vector Point_Ref2World(Vector* mpoint);
-    Vector Dir_World2Ref(Vector* mpoint);
-    Vector Dir_Ref2World(Vector* mpoint);
+    ChVector<> Point_World2Ref(const ChVector<>& point) const;
+    ChVector<> Point_Ref2World(const ChVector<>& point) const;
+    ChVector<> Dir_World2Ref(const ChVector<>& dir) const;
+    ChVector<> Dir_Ref2World(const ChVector<>& dir) const;
 
     //
     // SERIALIZATION

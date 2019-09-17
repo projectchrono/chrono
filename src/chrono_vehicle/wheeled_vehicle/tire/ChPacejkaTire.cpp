@@ -21,7 +21,8 @@
 #include <cstdlib>
 
 #include "chrono/core/ChTimer.h"
-#include "chrono/physics/ChGlobal.h"
+#include "chrono/core/ChGlobal.h"
+#include "chrono/core/ChLog.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChPacejkaTire.h"
 
@@ -185,13 +186,13 @@ void ChPacejkaTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
 
-    m_cyl_shape = std::make_shared<ChCylinderShape>();
+    m_cyl_shape = chrono_types::make_shared<ChCylinderShape>();
     m_cyl_shape->GetCylinderGeometry().rad = GetRadius();
     m_cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, GetVisualizationWidth() / 2, 0);
     m_cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, -GetVisualizationWidth() / 2, 0);
     m_wheel->AddAsset(m_cyl_shape);
 
-    m_texture = std::make_shared<ChTexture>();
+    m_texture = chrono_types::make_shared<ChTexture>();
     m_texture->SetTextureFilename(GetChronoDataFile("greenwhite.png"));
     m_wheel->AddAsset(m_texture);
 }
@@ -1788,7 +1789,7 @@ void ChPacejkaTire::WriteOutData(double time, const std::string& outFilename) {
         m_outFilename = outFilename;
         std::ofstream oFile(outFilename.c_str(), std::ios_base::out);
         if (!oFile.is_open()) {
-            std::cout << " couldn't open file for writing: " << outFilename << " \n\n";
+            GetLog() << " couldn't open file for writing: " << outFilename << " \n\n";
             return;
         } else {
             // write the headers, Fx, Fy are pure forces, Fxc and Fyc are the combined forces

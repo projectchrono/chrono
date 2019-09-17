@@ -49,23 +49,21 @@ class ChApi ChElementSpring : public ChElementGeneric {
     // FEA functions
     //
 
-    /// Fills the D vector (column matrix) with the current
-    /// field values at the nodes of the element, with proper ordering.
+    /// Fills the D vector with the current field values at the nodes of the element, with proper ordering.
     /// If the D vector has not the size of this->GetNdofs(), it will be resized.
-    virtual void GetStateBlock(ChMatrixDynamic<>& mD) override;
+    virtual void GetStateBlock(ChVectorDynamic<>& mD) override;
 
     /// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
     /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
     /// (For the spring matrix there is no need to corotate local matrices: we already know a closed form expression.)
-    virtual void ComputeKRMmatricesGlobal(ChMatrix<>& H,
+    virtual void ComputeKRMmatricesGlobal(ChMatrixRef H,
                                           double Kfactor,
                                           double Rfactor = 0,
                                           double Mfactor = 0) override;
 
-    /// Computes the internal forces (ex. the actual position of
-    /// nodes is not in relaxed reference position) and set values
-    /// in the Fi vector.
-    virtual void ComputeInternalForces(ChMatrixDynamic<>& Fi) override;
+    /// Computes the internal forces (ex. the actual position of nodes is not in relaxed reference position) and set
+    /// values in the Fi vector.
+    virtual void ComputeInternalForces(ChVectorDynamic<>& Fi) override;
 
     /// Setup. Precompute mass and matrices that do not change during the
     /// simulation, such as the local tangent stiffness Kl of each element, if needed, etc.

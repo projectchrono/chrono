@@ -64,11 +64,11 @@ double ANCF_test(ChSystem& mysys, float beam_tip_load, int NofEl) {
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
     // Remember to add it to the system.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
     my_mesh->SetAutomaticGravity(false);
     mysys.GetSystem()->Add(my_mesh);
 
-    auto material = std::make_shared<ChMaterialBeamANCF>(rho, E_mod, nu_rat, E_mod * nu_rat, k1, k2);
+    auto material = chrono_types::make_shared<ChMaterialBeamANCF>(rho, E_mod, nu_rat, E_mod * nu_rat, k1, k2);
 
     ChBuilderBeamANCFFullyPar builder;
     builder.BuildBeam(my_mesh, material, NofEl, ChVector<>(0, 0, 0), ChVector<>(beamL, 0, 0), beam_wy, beam_wz, VECT_Y,
@@ -98,16 +98,16 @@ void IGA_test(ChSystem& mysys, float beam_tip_load, double ANCF_res, int nsectio
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
     // Remember to add it to the system.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
     my_mesh->SetAutomaticGravity(false);
     mysys.Add(my_mesh);
 
-    auto melasticity = std::make_shared<ChElasticityCosseratSimple>();
+    auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
     melasticity->SetYoungModulus(E_mod);
     melasticity->SetGshearModulus(E_mod * nu_rat);
     melasticity->SetBeamRaleyghDamping(0.0000);
 
-    auto msection = std::make_shared<ChBeamSectionCosserat>(melasticity);
+    auto msection = chrono_types::make_shared<ChBeamSectionCosserat>(melasticity);
     msection->SetDensity(rho);
     msection->SetAsRectangularSection(beam_wy, beam_wz);
 
@@ -169,7 +169,7 @@ int main(int argc, char* argv[]) {
     msolver->SetDiagonalPreconditioning(true);
 
 #ifdef USE_MKL
-    auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+    auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
     my_system.SetSolver(mkl_solver);
 #endif
 

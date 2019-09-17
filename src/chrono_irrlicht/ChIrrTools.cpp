@@ -34,19 +34,23 @@ void ChIrrTools::alignIrrlichtNodeToChronoCsys(scene::ISceneNode* mnode, const C
     // Get the rigid body actual rotation, as a 3x3 matrix [A]
     ChMatrix33<> chMat(mcoords.rot);
 
+    //// RADU
+    //// Is this correct?   ChMatrix33 is also stored row-major (even pre-Eigen)!
+    //// Or is Irrlicht actually using column-major?
+
     // Fill the upper 3x3 submatrix with the [A] matrix
     // transposed, since Irrlicht uses the row-major style as in D3D
-    irrMat[0] = (irr::f32)chMat.GetElementN(0);
-    irrMat[1] = (irr::f32)chMat.GetElementN(3);
-    irrMat[2] = (irr::f32)chMat.GetElementN(6);
+    irrMat[0] = (irr::f32)chMat(0);
+    irrMat[1] = (irr::f32)chMat(3);
+    irrMat[2] = (irr::f32)chMat(6);
 
-    irrMat[4] = (irr::f32)chMat.GetElementN(1);
-    irrMat[5] = (irr::f32)chMat.GetElementN(4);
-    irrMat[6] = (irr::f32)chMat.GetElementN(7);
+    irrMat[4] = (irr::f32)chMat(1);
+    irrMat[5] = (irr::f32)chMat(4);
+    irrMat[6] = (irr::f32)chMat(7);
 
-    irrMat[8] = (irr::f32)chMat.GetElementN(2);
-    irrMat[9] = (irr::f32)chMat.GetElementN(5);
-    irrMat[10] = (irr::f32)chMat.GetElementN(8);
+    irrMat[8] = (irr::f32)chMat(2);
+    irrMat[9] = (irr::f32)chMat(5);
+    irrMat[10] = (irr::f32)chMat(8);
 
     irrMat[12] = (irr::f32)mcoords.pos.x();
     irrMat[13] = (irr::f32)mcoords.pos.y();
@@ -857,9 +861,9 @@ void ChIrrTools::drawCollisionShapes(ChSystem& asystem,
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChIrrTools::drawPlot3D(irr::video::IVideoDriver* driver,
-                            ChMatrix<> X,
-                            ChMatrix<> Y,
-                            ChMatrix<> Z,
+                            ChMatrixConstRef X,
+                            ChMatrixConstRef Y,
+                            ChMatrixConstRef Z,
                             ChCoordsys<> mpos,
                             irr::video::SColor mcol,
                             bool use_Zbuffer) {
@@ -869,14 +873,14 @@ void ChIrrTools::drawPlot3D(irr::video::IVideoDriver* driver,
     mattransp.Lighting = false;
     driver->setMaterial(mattransp);
 
-    if ((X.GetColumns() != Y.GetColumns()) || (X.GetColumns() != Z.GetColumns()) || (X.GetRows() != Y.GetRows()) ||
-        (X.GetRows() != Z.GetRows())) {
+    if ((X.cols() != Y.cols()) || (X.cols() != Z.cols()) || (X.rows() != Y.rows()) ||
+        (X.rows() != Z.rows())) {
         GetLog() << "drawPlot3D: X Y Z matrices must have the same size, as n.rows and n.columns \n";
         return;
     }
 
-    for (int iy = 0; iy < X.GetColumns(); ++iy) {
-        for (int ix = 0; ix < X.GetRows(); ++ix) {
+    for (int iy = 0; iy < X.cols(); ++iy) {
+        for (int ix = 0; ix < X.rows(); ++ix) {
             if (ix > 0) {
                 ChVector<> Vx1(X(ix - 1, iy), Y(ix - 1, iy), Z(ix - 1, iy));
                 ChVector<> Vx2(X(ix, iy), Y(ix, iy), Z(ix, iy));

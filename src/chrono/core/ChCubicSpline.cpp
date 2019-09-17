@@ -22,7 +22,7 @@
 #include <sstream>
 
 #include "chrono/core/ChCubicSpline.h"
-#include "chrono/core/ChMatrixDynamic.h"
+#include "chrono/core/ChMatrix.h"
 
 namespace chrono {
 

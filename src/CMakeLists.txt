@@ -205,6 +205,27 @@ set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${NEON_FLAGS}")
 set(CH_C_FLAGS "${CH_C_FLAGS} ${NEON_FLAGS}")
 
 #-----------------------------------------------------------------------------
+# Eigen library
+#-----------------------------------------------------------------------------
+
+find_package(Eigen3 3.3.0)
+if(EIGEN3_FOUND)
+  message(STATUS "Eigen3 version: ${EIGEN3_VERSION}")
+  message(STATUS "Eigen3 include directory: ${EIGEN3_INCLUDE_DIR}")
+else()
+  mark_as_advanced(CLEAR EIGEN3_INCLUDE_DIR)
+  mark_as_advanced(FORCE Eigen3_DIR)
+  message(FATAL_ERROR "Eigen3 not found. Specify EIGEN3_INCLUDE_DIR")
+endif()
+
+# Fix for VS 2017 15.8 and newer to handle alignment specification with Eigen.
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	if(MSVC AND ${MSVC_VERSION} GREATER_EQUAL 1915)
+	  add_definitions( "-D_ENABLE_EXTENDED_ALIGNED_STORAGE" )
+	endif()
+endif()
+
+#-----------------------------------------------------------------------------
 # MPI support
 #-----------------------------------------------------------------------------
 
@@ -379,6 +400,7 @@ add_definitions( "-DBP_USE_FIXEDPOINT_INT_32" )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${PROJECT_BINARY_DIR})
+include_directories(${EIGEN3_INCLUDE_DIR})
 
 #------------------------------------------------------------
 # Build submodules
@@ -461,8 +483,8 @@ include_directories(${CH_INCLUDES})
 add_subdirectory(chrono_mkl)
 add_subdirectory(chrono_mumps)
 add_subdirectory(chrono_matlab)
-add_subdirectory(chrono_cascade)
 add_subdirectory(chrono_irrlicht)
+add_subdirectory(chrono_cascade)
 add_subdirectory(chrono_postprocess)
 add_subdirectory(chrono_cosimulation)
 add_subdirectory(chrono_python)
@@ -625,11 +647,12 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono/ChVersion.h"
 
 # For the BUILD tree
 set(CH_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/src")
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono" )
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono/collision/bullet" )
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono/collision/gimpact" )
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono/collision/convexdecomposition/HACD" )
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono")
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono/collision/bullet")
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono/collision/gimpact")
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono/collision/convexdecomposition/HACD")
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_BINARY_DIR}")
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${EIGEN3_INCLUDE_DIR}")
 set(CH_BINARY_DIR "${PROJECT_BINARY_DIR}")
 set(CH_DATA_DIR "${PROJECT_SOURCE_DIR}/data/")
 
@@ -639,10 +662,11 @@ configure_file("${PROJECT_SOURCE_DIR}/cmake/ChronoConfig.cmake.in"
 
 # For the INSTALL tree
 set(CH_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono" )
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono/collision/bullet" )
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono/collision/gimpact" )
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono/collision/convexdecomposition/HACD" )
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono")
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono/collision/bullet")
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono/collision/gimpact")
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono/collision/convexdecomposition/HACD")
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${EIGEN3_INCLUDE_DIR}")
 set(CH_BINARY_DIR ${CMAKE_INSTALL_PREFIX})
 set(CH_DATA_DIR "${CMAKE_INSTALL_PREFIX}/${CH_INSTALL_DATA}/")
 

@@ -64,7 +64,7 @@ class ChApi ChMaterialShellReissner {
     /// change for instance in case of hardening or softening materials, etc.
     /// By default, it is computed by backward differentiation from the ComputeStress() function,
     /// but inherited classes should better provide an analytical form, if possible.
-    virtual void ComputeTangentC(ChMatrix<>& mC,           ///< tangent matrix
+    virtual void ComputeTangentC(ChMatrixRef mC,           ///< tangent matrix
                                  const ChVector<>& eps_u,  ///< strains along \e u direction
                                  const ChVector<>& eps_v,  ///< strains along \e v direction
                                  const ChVector<>& kur_u,  ///< curvature along \e u direction
@@ -120,7 +120,7 @@ class ChApi ChMaterialShellReissnerIsothropic : public ChMaterialShellReissner {
     /// Compute [C] , that is [ds/de], the tangent of the constitutive relation
     /// per-unit-length forces/torques vs strains.
     virtual void ComputeTangentC(
-        ChMatrix<>& mC,           ///< tangent matrix
+        ChMatrixRef mC,           ///< tangent matrix
         const ChVector<>& eps_u,  ///< strains along \e u direction
         const ChVector<>& eps_v,  ///< strains along \e v direction
         const ChVector<>& kur_u,  ///< curvature along \e u direction
@@ -202,7 +202,7 @@ class ChApi ChMaterialShellReissnerOrthotropic : public ChMaterialShellReissner 
     /// Compute [C] , that is [ds/de], the tangent of the constitutive relation
     /// per-unit-length forces/torques  vs strains.
     virtual void ComputeTangentC(
-        ChMatrix<>& mC,           ///< tangent matrix
+        ChMatrixRef mC,           ///< tangent matrix
         const ChVector<>& eps_u,  ///< strains along \e u direction
         const ChVector<>& eps_v,  ///< strains along \e v direction
         const ChVector<>& kur_u,  ///< curvature along \e u direction

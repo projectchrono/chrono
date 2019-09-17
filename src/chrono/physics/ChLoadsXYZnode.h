@@ -44,9 +44,7 @@ class ChLoaderXYZnode : public ChLoaderUVWatomic {
 
   public:
     // Useful: a constructor that also sets ChLoadable
-    ChLoaderXYZnode(std::shared_ptr<ChLoadableUVW> mloadable) : ChLoaderUVWatomic(mloadable, 0, 0, 0) {
-        this->force = VNULL;
-    };
+    ChLoaderXYZnode(std::shared_ptr<ChLoadableUVW> mloadable) : ChLoaderUVWatomic(mloadable, 0, 0, 0), force(VNULL) {}
 
     // Compute F=F(u,v,w)
     // Implement it from base class.
@@ -57,13 +55,14 @@ class ChLoaderXYZnode : public ChLoaderUVWatomic {
                           ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate F
                           ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate F
                           ) {
-        F.PasteVector(this->force, 0, 0);  // load, force part
+        F.segment(0, 3) = force.eigen();
     }
 
-    /// Set force (ex. in [N] units), assumed to be constant in space and time,
-    /// assumed applied at the node.
-    void SetForce(const ChVector<>& mf) { this->force = mf; }
-    ChVector<> GetForce() const { return this->force; }
+    /// Set the force, assumed to be constant in space and time and assumed applied at the node.
+    void SetForce(const ChVector<>& mf) { force = mf; }
+
+    /// Get the applied force.
+    const ChVector<>& GetForce() const { return force; }
 };
 
 /// Force at XYZ node (ready to use load)

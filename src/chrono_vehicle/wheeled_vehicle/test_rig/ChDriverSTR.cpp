@@ -31,8 +31,8 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChDriverSTR::ChDriverSTR(ChSuspensionTestRig& rig)
-    : m_rig(rig), m_displLeft(0), m_displRight(0), m_steering(0), m_log_filename("") {
+ChDriverSTR::ChDriverSTR()
+    : m_displLeft(0), m_displRight(0), m_steering(0), m_delay(0), m_log_filename("") {
 }
 
 // -----------------------------------------------------------------------------

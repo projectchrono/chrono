@@ -32,7 +32,7 @@ class ChApi ChLinkRevolute : public ChLink {
   public:
     ChLinkRevolute();
     ChLinkRevolute(const ChLinkRevolute& other);
-    ~ChLinkRevolute();
+    ~ChLinkRevolute() {}
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkRevolute* Clone() const override { return new ChLinkRevolute(*this); }
@@ -54,7 +54,7 @@ class ChApi ChLinkRevolute : public ChLink {
     ChFrame<> GetFrame2Abs() const { return m_frame2 >> *Body2; }
 
     /// Get the joint violation (residuals of the constraint equations)
-    ChMatrix<>* GetC() { return m_C; }
+    const ChVectorN<double, 5>& GetC() const { return m_C; }
 
     /// Initialize this joint by specifying the two bodies to be connected and a
     /// joint frame specified in the absolute frame. The revolute joint is
@@ -148,7 +148,7 @@ class ChApi ChLinkRevolute : public ChLink {
     ChConstraintTwoBodies m_cnstr_vw;  ///< dot(u1_abs, w2_abs) = 0
 
     // Current constraint violations
-    ChMatrix<>* m_C;
+    ChVectorN<double, 5> m_C;
 
     // Lagrange multipliers
     double m_multipliers[5];

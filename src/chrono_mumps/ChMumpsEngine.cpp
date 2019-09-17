@@ -49,7 +49,7 @@ ChMumpsEngine::~ChMumpsEngine() {
     MPI_Finalize();
 }
 
-void ChMumpsEngine::SetProblem(const ChCOOMatrix& Z, const ChMatrix<>& rhs) {
+void ChMumpsEngine::SetProblem(const ChCOOMatrix& Z, ChVectorRef rhs) {
     SetMatrix(Z);
     SetRhsVector(rhs);
 }
@@ -85,8 +85,8 @@ void ChMumpsEngine::SetMatrixSymmetry(mumps_SYM mat_type) {
     mumps_id.sym = mat_type;
 }
 
-void ChMumpsEngine::SetRhsVector(const ChMatrix<>& b) {
-    mumps_id.rhs = const_cast<double*>(b.GetAddress());
+void ChMumpsEngine::SetRhsVector(ChVectorRef b) {
+    mumps_id.rhs = b.data();
 }
 
 void ChMumpsEngine::SetRhsVector(double* b) {

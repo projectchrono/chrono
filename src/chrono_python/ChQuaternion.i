@@ -2,9 +2,11 @@
 
 /* Includes the header in the wrapper code */
 #include "chrono/core/ChQuaternion.h"
-
+#include <Eigen/Core>
 %}
  
+ %import "ChMatrix.i"
+
 // Undefine ChApi otherwise SWIG gives a syntax error
 #define ChApi  
 
@@ -22,6 +24,9 @@
 %attributeref(chrono::ChQuaternion<float>, float, e2);
 %attributeref(chrono::ChQuaternion<float>, float, e3);
 
+%import "ChMatrix.i"
+
+%ignore chrono::ChQuaternion::eigen;
 
 /* Parse the header file to generate wrappers */
 %include "../chrono/core/ChQuaternion.h"  

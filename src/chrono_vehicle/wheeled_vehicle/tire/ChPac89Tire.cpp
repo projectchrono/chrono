@@ -31,7 +31,7 @@
 #include <algorithm>
 #include <cmath>
 
-#include "chrono/physics/ChGlobal.h"
+#include "chrono/core/ChGlobal.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChPac89Tire.h"
 
@@ -69,13 +69,13 @@ void ChPac89Tire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
 
-    m_cyl_shape = std::make_shared<ChCylinderShape>();
+    m_cyl_shape = chrono_types::make_shared<ChCylinderShape>();
     m_cyl_shape->GetCylinderGeometry().rad = m_unloaded_radius;
     m_cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, GetVisualizationWidth() / 2, 0);
     m_cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, -GetVisualizationWidth() / 2, 0);
     m_wheel->AddAsset(m_cyl_shape);
 
-    m_texture = std::make_shared<ChTexture>();
+    m_texture = chrono_types::make_shared<ChTexture>();
     m_texture->SetTextureFilename(GetChronoDataFile("greenwhite.png"));
     m_wheel->AddAsset(m_texture);
 }
@@ -289,7 +289,7 @@ void ChPac89Tire::Advance(double step) {
         My = myStartUp * m_rolling_resistance * m_data.normal_force * Lrad * ChSignum(m_states.omega);
     }
 
-    // std::cout << "Fx:" << Fx
+    // GetLog() << "Fx:" << Fx
     //    << " Fy:" << Fy
     //    << " Fz:" << Fz
     //    << " Mx:" << Mx
@@ -300,7 +300,7 @@ void ChPac89Tire::Advance(double step) {
     //    << " A:" << alpha
     //    << " K:" << kappa
     //    << " O:" << m_states.omega
-    //    << std::endl;
+    //    << "\n";
 
     // Compile the force and moment vectors so that they can be
     // transformed into the global coordinate system.

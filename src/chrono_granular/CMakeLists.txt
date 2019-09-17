@@ -9,10 +9,18 @@ option(ENABLE_MODULE_GRANULAR "Enable the Chrono Granular module" OFF)
 
 # Return now if this module is not enabled
 if(NOT ENABLE_MODULE_GRANULAR)
-	return()
+  return()
 endif()
 
 message(STATUS "==== Chrono Granular module ====")
+
+if(EIGEN3_VERSION VERSION_LESS "3.3.6")
+  message("Chrono::Granular requires Eigen version 3.3.6 or better")
+  message("Current Eigen version: ${EIGEN3_VERSION}")
+  message("Chrono::Granular disabled")
+  set(ENABLE_MODULE_GRANULAR OFF CACHE BOOL "Enable the Chrono Granular module" FORCE)
+  return()
+endif()
 
 # ------------------------------------------------------------------------------
 # Additional compiler flags
@@ -163,6 +171,13 @@ set_target_properties(ChronoEngine_granular PROPERTIES
 											COMPILE_DEFINITIONS "CH_API_COMPILE_GRANULAR")
 
 target_link_libraries(ChronoEngine_granular ${CHRONO_GRANULAR_LINKED_LIBRARIES})
+
+if(HDF5_FOUND)
+    set(COMPILE_DEFS "${COMPILE_DEFS} ${H5_BUILT_AS_DYNAMIC_LIB}")
+    include_directories(${HDF5_INCLUDE_DIRS})
+    target_link_libraries(ChronoEngine_granular ${HDF5_CXX_LIBRARIES})
+    add_definitions(-DUSE_HDF5)
+endif()
 
 install(TARGETS ChronoEngine_granular
 				RUNTIME DESTINATION bin

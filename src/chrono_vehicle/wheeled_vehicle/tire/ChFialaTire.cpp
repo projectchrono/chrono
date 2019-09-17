@@ -28,7 +28,8 @@
 #include <algorithm>
 #include <cmath>
 
-#include "chrono/physics/ChGlobal.h"
+#include "chrono/core/ChGlobal.h"
+#include "chrono/core/ChLog.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChFialaTire.h"
 
@@ -66,13 +67,13 @@ void ChFialaTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
 
-    m_cyl_shape = std::make_shared<ChCylinderShape>();
+    m_cyl_shape = chrono_types::make_shared<ChCylinderShape>();
     m_cyl_shape->GetCylinderGeometry().rad = GetRadius();
     m_cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, GetVisualizationWidth() / 2, 0);
     m_cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, -GetVisualizationWidth() / 2, 0);
     m_wheel->AddAsset(m_cyl_shape);
 
-    m_texture = std::make_shared<ChTexture>();
+    m_texture = chrono_types::make_shared<ChTexture>();
     m_texture->SetTextureFilename(GetChronoDataFile("greenwhite.png"));
     m_wheel->AddAsset(m_texture);
 }
@@ -294,7 +295,7 @@ void ChFialaTire::FialaPatchForces(double& fx, double& fy, double& mz, double ka
 
 void ChFialaTire::WritePlots(const std::string& plFileName, const std::string& plTireFormat) {
     if (m_c_slip == 0.0 || m_c_alpha == 0.0) {
-        std::cout << "Fiala Tire Object is not yet initialized! No Plots available." << std::endl;
+        GetLog() << "Fiala Tire Object is not yet initialized! No Plots available.\n";
         return;
     }
     const double Fz_nom = 1.0;

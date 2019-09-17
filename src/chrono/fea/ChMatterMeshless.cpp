@@ -16,7 +16,6 @@
 #include <algorithm>
 
 #include "chrono/collision/ChCModelBullet.h"
-#include "chrono/core/ChLinearAlgebra.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/fea/ChMatterMeshless.h"
 #include "chrono/fea/ChProximityContainerMeshless.h"
@@ -114,7 +113,7 @@ void ChNodeMeshless::SetCollisionRadius(double mr) {
 void ChNodeMeshless::ContactForceLoadResidual_F(const ChVector<>& F,
                                                 const ChVector<>& abs_point,
                                                 ChVectorDynamic<>& R) {
-    R.PasteSumVector(F, NodeGetOffset_w() + 0, 0);
+    R.segment(NodeGetOffset_w(),3) += F.eigen();
 }
 
 void ChNodeMeshless::ComputeJacobianForContactPart(const ChVector<>& abs_point,
@@ -123,15 +122,13 @@ void ChNodeMeshless::ComputeJacobianForContactPart(const ChVector<>& abs_point,
                                                    type_constraint_tuple& jacobian_tuple_U,
                                                    type_constraint_tuple& jacobian_tuple_V,
                                                    bool second) {
-    ChMatrix33<> Jx1;
-
-    Jx1.CopyFromMatrixT(contact_plane);
+    ChMatrix33<> Jx1 = contact_plane.transpose();
     if (!second)
-        Jx1.MatrNeg();
+        Jx1 *= -1;
 
-    jacobian_tuple_N.Get_Cq()->PasteClippedMatrix(Jx1, 0, 0, 1, 3, 0, 0);
-    jacobian_tuple_U.Get_Cq()->PasteClippedMatrix(Jx1, 1, 0, 1, 3, 0, 0);
-    jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(Jx1, 2, 0, 1, 3, 0, 0);
+    jacobian_tuple_N.Get_Cq().segment(0,3) = Jx1.row(0);
+    jacobian_tuple_U.Get_Cq().segment(0,3) = Jx1.row(1);
+    jacobian_tuple_V.Get_Cq().segment(0,3) = Jx1.row(2);
 }
 
 std::shared_ptr<ChMaterialSurface>& ChNodeMeshless::GetMaterialSurface() {
@@ -148,10 +145,10 @@ ChPhysicsItem* ChNodeMeshless::GetPhysicsItem() {
 
 ChMatterMeshless::ChMatterMeshless() : do_collide(false), viscosity(0) {
     // Default: VonMises material
-    material = std::make_shared<ChContinuumPlasticVonMises>();
+    material = chrono_types::make_shared<ChContinuumPlasticVonMises>();
 
     // Default: NSC material
-    matsurface = std::make_shared<ChMaterialSurfaceNSC>();
+    matsurface = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 }
 
 ChMatterMeshless::ChMatterMeshless(const ChMatterMeshless& other) : ChIndexedNodes(other) {
@@ -186,7 +183,7 @@ void ChMatterMeshless::ResizeNnodes(int newsize) {
     nodes.resize(newsize);
 
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        nodes[j] = std::make_shared<ChNodeMeshless>();
+        nodes[j] = chrono_types::make_shared<ChNodeMeshless>();
 
         nodes[j]->variables.SetUserData((void*)this);  // UserData unuseful in future cuda solver?
 
@@ -198,7 +195,7 @@ void ChMatterMeshless::ResizeNnodes(int newsize) {
 }
 
 void ChMatterMeshless::AddNode(ChVector<double> initial_state) {
-    auto newp = std::make_shared<ChNodeMeshless>();
+    auto newp = chrono_types::make_shared<ChNodeMeshless>();
 
     newp->SetPos(initial_state);
     newp->SetPosReference(initial_state);
@@ -274,8 +271,8 @@ void ChMatterMeshless::IntStateGather(const unsigned int off_x,  // offset in x 
                                       double& T                  // time
                                       ) {
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        x.PasteVector(nodes[j]->pos, off_x + 3 * j, 0);
-        v.PasteVector(nodes[j]->pos_dt, off_v + 3 * j, 0);
+        x.segment(off_x + 3 * j, 3) = nodes[j]->pos.eigen();
+        v.segment(off_v + 3 * j, 3) = nodes[j]->pos_dt.eigen();
     }
     T = GetChTime();
 }
@@ -287,8 +284,8 @@ void ChMatterMeshless::IntStateScatter(const unsigned int off_x,  // offset in x
                                        const double T             // time
                                        ) {
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        nodes[j]->pos = x.ClipVector(off_x + 3 * j, 0);
-        nodes[j]->pos_dt = v.ClipVector(off_v + 3 * j, 0);
+        nodes[j]->pos = x.segment(off_x + 3 * j, 3);
+        nodes[j]->pos_dt = v.segment(off_v + 3 * j, 3);
     }
     SetChTime(T);
     Update();
@@ -296,13 +293,13 @@ void ChMatterMeshless::IntStateScatter(const unsigned int off_x,  // offset in x
 
 void ChMatterMeshless::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        a.PasteVector(nodes[j]->pos_dtdt, off_a + 3 * j, 0);
+        a.segment(off_a + 3 * j, 3) = nodes[j]->pos_dtdt.eigen();
     }
 }
 
 void ChMatterMeshless::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        nodes[j]->SetPos_dtdt(a.ClipVector(off_a + 3 * j, 0));
+        nodes[j]->SetPos_dtdt(a.segment(off_a + 3 * j, 3));
     }
 }
 
@@ -326,10 +323,10 @@ void ChMatterMeshless::IntLoadResidual_F(
     // 1- Per-node initialization
 
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        nodes[j]->J.FillElem(0.0);
-        nodes[j]->Amoment.FillElem(0.0);
-        nodes[j]->t_strain.FillElem(0.0);
-        nodes[j]->e_stress.FillElem(0.0);
+        nodes[j]->J.setZero();
+        nodes[j]->Amoment.setZero();
+        nodes[j]->t_strain.setZero();
+        nodes[j]->e_stress.setZero();
         nodes[j]->UserForce = VNULL;
         nodes[j]->density = 0;
     }
@@ -352,24 +349,25 @@ void ChMatterMeshless::IntLoadResidual_F(
 
         // Compute A inverse
         ChMatrix33<> M_tmp = mnode->Amoment;
-        double det = M_tmp.FastInvert(mnode->Amoment);
-        if (fabs(det) < 0.00003) {
-            mnode->Amoment.FillElem(0);     // deactivate if not possible to invert
-            mnode->e_strain.FillElem(0.0);  // detach
+
+        if (std::abs(M_tmp.determinant()) < 0.00003) {
+            mnode->Amoment.setZero();   // deactivate if not possible to invert
+            mnode->e_strain.setZero();  // detach
         } else {
+            mnode->Amoment = M_tmp.inverse();
+
             // Compute J = ( A^-1 * [dwg | dwg | dwg] )' + I
-            M_tmp.MatrMultiply(mnode->Amoment, mnode->J);
-            M_tmp.Element(0, 0) += 1;
-            M_tmp.Element(1, 1) += 1;
-            M_tmp.Element(2, 2) += 1;
-            mnode->J.CopyFromMatrixT(M_tmp);
+            M_tmp = mnode->Amoment * mnode->J;
+            M_tmp(0, 0) += 1;
+            M_tmp(1, 1) += 1;
+            M_tmp(2, 2) += 1;
+            mnode->J = M_tmp.transpose();
 
             // Compute step strain tensor  de = J'*J - I
-            ChMatrix33<> mtensor;
-            mtensor.MatrMultiply(M_tmp, mnode->J);
-            mtensor.Element(0, 0) -= 1;
-            mtensor.Element(1, 1) -= 1;
-            mtensor.Element(2, 2) -= 1;
+            ChMatrix33<> mtensor = M_tmp * mnode->J;
+            mtensor(0, 0) -= 1;
+            mtensor(1, 1) -= 1;
+            mtensor(2, 2) -= 1;
 
             mnode->t_strain.ConvertFromMatrix(mtensor);  // store 'step strain' de, change in total strain
 
@@ -379,9 +377,7 @@ void ChMatterMeshless::IntLoadResidual_F(
                                            nodes[j]->e_strain,  // last elastic strain
                                            nodes[j]->p_strain   // last plastic strain
                                            );
-            ChStrainTensor<> proj_e_strain;
-            proj_e_strain.MatrSub(nodes[j]->e_strain, strainplasticflow);
-            proj_e_strain.MatrInc(nodes[j]->t_strain);
+            ChStrainTensor<> proj_e_strain = nodes[j]->e_strain - strainplasticflow + nodes[j]->t_strain;
             GetMaterial()->ComputeElasticStress(mnode->e_stress, proj_e_strain);
             mnode->e_stress.ConvertToMatrix(mtensor);
 
@@ -396,8 +392,7 @@ void ChMatterMeshless::IntLoadResidual_F(
             */
 
             // Precompute 2*v*J*sigma*A^-1
-            mnode->FA = mnode->J * (mtensor * (mnode->Amoment));
-            mnode->FA.MatrScale(2 * mnode->volume);
+            mnode->FA = (2 * mnode->volume) * mnode->J * mtensor * mnode->Amoment;
         }
     }
 
@@ -418,7 +413,7 @@ void ChMatterMeshless::IntLoadResidual_F(
         std::shared_ptr<ChNodeMeshless> mnode(nodes[j]);
         assert(mnode);
 
-        R.PasteSumVector(TotForce * c, off + 3 * j, 0);
+        R.segment(off + 3 * j, 3) += c * TotForce.eigen();
     }
 }
 
@@ -441,8 +436,8 @@ void ChMatterMeshless::IntToDescriptor(const unsigned int off_v,
                                        const ChVectorDynamic<>& L,
                                        const ChVectorDynamic<>& Qc) {
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        nodes[j]->variables.Get_qb().PasteClippedMatrix(v, off_v + 3 * j, 0, 3, 1, 0, 0);
-        nodes[j]->variables.Get_fb().PasteClippedMatrix(R, off_v + 3 * j, 0, 3, 1, 0, 0);
+        nodes[j]->variables.Get_qb() = v.segment(off_v + 3 * j, 3);
+        nodes[j]->variables.Get_fb() = R.segment(off_v + 3 * j, 3);
     }
 }
 
@@ -451,7 +446,7 @@ void ChMatterMeshless::IntFromDescriptor(const unsigned int off_v,
                                          const unsigned int off_L,
                                          ChVectorDynamic<>& L) {
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        v.PasteMatrix(nodes[j]->variables.Get_qb(), off_v + 3 * j, 0);
+        v.segment(off_v + 3 * j, 3) = nodes[j]->variables.Get_qb();
     }
 }
 
@@ -464,7 +459,7 @@ void ChMatterMeshless::InjectVariables(ChSystemDescriptor& mdescriptor) {
 
 void ChMatterMeshless::VariablesFbReset() {
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        nodes[j]->variables.Get_fb().FillElem(0.0);
+        nodes[j]->variables.Get_fb().setZero();
     }
 }
 
@@ -484,10 +479,10 @@ void ChMatterMeshless::VariablesFbLoadForces(double factor) {
     // 1- Per-node initialization
 
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        nodes[j]->J.FillElem(0.0);
-        nodes[j]->Amoment.FillElem(0.0);
-        nodes[j]->t_strain.FillElem(0.0);
-        nodes[j]->e_stress.FillElem(0.0);
+        nodes[j]->J.setZero();
+        nodes[j]->Amoment.setZero();
+        nodes[j]->t_strain.setZero();
+        nodes[j]->e_stress.setZero();
         nodes[j]->UserForce = VNULL;
         nodes[j]->density = 0;
     }
@@ -510,24 +505,25 @@ void ChMatterMeshless::VariablesFbLoadForces(double factor) {
 
         // Compute A inverse
         ChMatrix33<> M_tmp = mnode->Amoment;
-        double det = M_tmp.FastInvert(mnode->Amoment);
-        if (fabs(det) < 0.00003) {
-            mnode->Amoment.FillElem(0);     // deactivate if not possible to invert
-            mnode->e_strain.FillElem(0.0);  // detach
+
+        if (std::abs(M_tmp.determinant()) < 0.00003) {
+            mnode->Amoment.setZero();     // deactivate if not possible to invert
+            mnode->e_strain.setZero();  // detach
         } else {
+            mnode->Amoment = M_tmp.inverse();
+
             // Compute J = ( A^-1 * [dwg | dwg | dwg] )' + I
-            M_tmp.MatrMultiply(mnode->Amoment, mnode->J);
-            M_tmp.Element(0, 0) += 1;
-            M_tmp.Element(1, 1) += 1;
-            M_tmp.Element(2, 2) += 1;
-            mnode->J.CopyFromMatrixT(M_tmp);
+            M_tmp = mnode->Amoment * mnode->J;
+            M_tmp(0, 0) += 1;
+            M_tmp(1, 1) += 1;
+            M_tmp(2, 2) += 1;
+            mnode->J = M_tmp.transpose();
 
             // Compute step strain tensor  de = J'*J - I
-            ChMatrix33<> mtensor;
-            mtensor.MatrMultiply(M_tmp, mnode->J);
-            mtensor.Element(0, 0) -= 1;
-            mtensor.Element(1, 1) -= 1;
-            mtensor.Element(2, 2) -= 1;
+            ChMatrix33<> mtensor = M_tmp * mnode->J;
+            mtensor(0, 0) -= 1;
+            mtensor(1, 1) -= 1;
+            mtensor(2, 2) -= 1;
 
             mnode->t_strain.ConvertFromMatrix(mtensor);  // store 'step strain' de, change in total strain
 
@@ -537,9 +533,7 @@ void ChMatterMeshless::VariablesFbLoadForces(double factor) {
                                            nodes[j]->e_strain,  // last elastic strain
                                            nodes[j]->p_strain   // last plastic strain
                                            );
-            ChStrainTensor<> proj_e_strain;
-            proj_e_strain.MatrSub(nodes[j]->e_strain, strainplasticflow);
-            proj_e_strain.MatrInc(nodes[j]->t_strain);
+            ChStrainTensor<> proj_e_strain = nodes[j]->e_strain - strainplasticflow + nodes[j]->t_strain;
             GetMaterial()->ComputeElasticStress(mnode->e_stress, proj_e_strain);
             mnode->e_stress.ConvertToMatrix(mtensor);
 
@@ -554,8 +548,7 @@ void ChMatterMeshless::VariablesFbLoadForces(double factor) {
             */
 
             // Precompute 2*v*J*sigma*A^-1
-            mnode->FA = mnode->J * (mtensor * (mnode->Amoment));
-            mnode->FA.MatrScale(2 * mnode->volume);
+            mnode->FA = (2 * mnode->volume) * mnode->J * mtensor * mnode->Amoment;
         }
     }
 
@@ -576,7 +569,7 @@ void ChMatterMeshless::VariablesFbLoadForces(double factor) {
         std::shared_ptr<ChNodeMeshless> mnode(nodes[j]);
         assert(mnode);
 
-        mnode->variables.Get_fb().PasteSumVector(TotForce * factor, 0, 0);
+        mnode->variables.Get_fb() += factor * TotForce.eigen();
     }
 }
 
@@ -589,7 +582,7 @@ void ChMatterMeshless::VariablesFbIncrementMq() {
 void ChMatterMeshless::VariablesQbLoadSpeed() {
     for (unsigned int j = 0; j < nodes.size(); j++) {
         // set current speed in 'qb', it can be used by the solver when working in incremental mode
-        nodes[j]->variables.Get_qb().PasteVector(nodes[j]->GetPos_dt(), 0, 0);
+        nodes[j]->variables.Get_qb() = nodes[j]->GetPos_dt().eigen();
     }
 }
 
@@ -598,7 +591,7 @@ void ChMatterMeshless::VariablesQbSetSpeed(double step) {
         ChVector<> old_pos_dt = nodes[j]->GetPos_dt();
 
         // from 'qb' vector, sets body speed, and updates auxiliary data
-        nodes[j]->SetPos_dt(nodes[j]->variables.Get_qb().ClipVector(0, 0));
+        nodes[j]->SetPos_dt(nodes[j]->variables.Get_qb());
 
         // Compute accel. by BDF (approximate by differentiation);
         if (step) {
@@ -626,20 +619,20 @@ void ChMatterMeshless::VariablesQbIncrementPosition(double dt_step) {
         if (dtpfact > 1.0)
             dtpfact = 1.0;  // clamp if dt is larger than plastic flow duration
 
-        nodes[j]->p_strain.MatrInc(strainplasticflow * dtpfact);
+        nodes[j]->p_strain += strainplasticflow * dtpfact;
 
         // Increment total elastic tensor and proceed for next step
         nodes[j]->pos_ref = nodes[j]->pos;
-        nodes[j]->e_strain.MatrInc(nodes[j]->t_strain);
+        nodes[j]->e_strain += nodes[j]->t_strain;
         //	nodes[j]->e_strain.MatrDec(strainplasticflow*dtpfact);
-        nodes[j]->t_strain.FillElem(0.0);  // unuseful? will be overwritten anyway
+        nodes[j]->t_strain.setZero();  // unuseful? will be overwritten anyway
     }
 
     for (unsigned int j = 0; j < nodes.size(); j++) {
         // Updates position with incremental action of speed contained in the
         // 'qb' vector:  pos' = pos + dt * speed   , like in an Eulero step.
 
-        ChVector<> newspeed = nodes[j]->variables.Get_qb().ClipVector(0, 0);
+        ChVector<> newspeed(nodes[j]->variables.Get_qb());
 
         // ADVANCE POSITION: pos' = pos + dt * vel
         nodes[j]->SetPos(nodes[j]->GetPos() + newspeed * dt_step);

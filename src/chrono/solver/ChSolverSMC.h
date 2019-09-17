@@ -24,13 +24,12 @@ namespace chrono {
 /// passed to the solver.
 
 class ChApi ChSolverSMC : public ChIterativeSolver {
-
   public:
     ChSolverSMC(int mmax_iters = 50,       ///< max.number of iterations
                 bool mwarm_start = false,  ///< uses warm start?
                 double mtolerance = 0.0,   ///< tolerance for termination criterion
-                double momega = 1.0)       ///< overrelaxation criterion
-        : ChIterativeSolver(mmax_iters, mwarm_start, mtolerance, momega) {}
+                double momega = 1.0        ///< overrelaxation criterion
+    );
 
     ~ChSolverSMC() {}
 

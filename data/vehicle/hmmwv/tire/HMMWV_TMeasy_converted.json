@@ -99,5 +99,11 @@
                 0.6781638113282699
             ]
         }
-    }
+    },
+
+   "Visualization": {
+      "Mesh Filename": "hmmwv/hmmwv_tire.obj",
+      "Mesh Name": "hmmwv_tire_POV_geom"
+   }
+
 }

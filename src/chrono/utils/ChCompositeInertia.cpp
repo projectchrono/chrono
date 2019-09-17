@@ -18,22 +18,22 @@ namespace chrono {
 namespace utils {
 
 CompositeInertia::CompositeInertia() : m_mass(0) {
-    m_inertia.Reset();
+    m_inertia.setZero();
 }
 
 // Calculate and return the inertia tensor of the composite body, with respect
 // to its centroidal frame.
 ChMatrix33<> CompositeInertia::GetInertia() const {
     ChMatrix33<> offset;
-    offset.Set33Element(0, 0, m_com.y() * m_com.y() + m_com.z() * m_com.z());
-    offset.Set33Element(1, 1, m_com.x() * m_com.x() + m_com.z() * m_com.z());
-    offset.Set33Element(2, 2, m_com.x() * m_com.x() + m_com.y() * m_com.y());
-    offset.Set33Element(0, 1, -m_com.x() * m_com.y());
-    offset.Set33Element(1, 0, -m_com.x() * m_com.y());
-    offset.Set33Element(0, 2, -m_com.x() * m_com.z());
-    offset.Set33Element(2, 0, -m_com.x() * m_com.z());
-    offset.Set33Element(1, 2, -m_com.y() * m_com.z());
-    offset.Set33Element(2, 1, -m_com.y() * m_com.z());
+    offset(0, 0) = m_com.y() * m_com.y() + m_com.z() * m_com.z();
+    offset(1, 1) = m_com.x() * m_com.x() + m_com.z() * m_com.z();
+    offset(2, 2) = m_com.x() * m_com.x() + m_com.y() * m_com.y();
+    offset(0, 1) = -m_com.x() * m_com.y();
+    offset(1, 0) = -m_com.x() * m_com.y();
+    offset(0, 2) = -m_com.x() * m_com.z();
+    offset(2, 0) = -m_com.x() * m_com.z();
+    offset(1, 2) = -m_com.y() * m_com.z();
+    offset(2, 1) = -m_com.y() * m_com.z();
 
     return m_inertia - offset * m_mass;
 }
@@ -59,20 +59,21 @@ void CompositeInertia::AddComponent(
     // Express sub-component inertia w.r.t. the reference frame
     // and update composite inertia
     ChMatrix33<> offset;
-    offset.Set33Element(0, 0, com.y() * com.y() + com.z() * com.z());
-    offset.Set33Element(1, 1, com.x() * com.x() + com.z() * com.z());
-    offset.Set33Element(2, 2, com.x() * com.x() + com.y() * com.y());
-    offset.Set33Element(0, 1, -com.x() * com.y());
-    offset.Set33Element(1, 0, -com.x() * com.y());
-    offset.Set33Element(0, 2, -com.x() * com.z());
-    offset.Set33Element(2, 0, -com.x() * com.z());
-    offset.Set33Element(1, 2, -com.y() * com.z());
-    offset.Set33Element(2, 1, -com.y() * com.z());
+    offset(0, 0) = com.y() * com.y() + com.z() * com.z();
+    offset(1, 1) = com.x() * com.x() + com.z() * com.z();
+    offset(2, 2) = com.x() * com.x() + com.y() * com.y();
+    offset(0, 1) = -com.x() * com.y();
+    offset(1, 0) = -com.x() * com.y();
+    offset(0, 2) = -com.x() * com.z();
+    offset(2, 0) = -com.x() * com.z();
+    offset(1, 2) = -com.y() * com.z();
+    offset(2, 1) = -com.y() * com.z();
 
-    ChMatrix33<> tmp;
-    tmp.MatrTMultiply(A, inertia);  // tmp = A^T * inertia
-    ChMatrix33<> increment = tmp * A + offset * mass;
-    m_inertia = (is_void) ? m_inertia - increment : m_inertia + increment;
+    ChMatrix33<> increment = A.transpose() * inertia * A + offset * mass;
+    if (is_void)
+        m_inertia -= increment;
+    else
+        m_inertia += increment;
 }
 
 }  // end namespace utils

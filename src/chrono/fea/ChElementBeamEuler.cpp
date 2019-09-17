@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
 //#define BEAM_VERBOSE
@@ -30,7 +30,7 @@ ChElementBeamEuler::ChElementBeamEuler()
 {
     nodes.resize(2);
 
-    StiffnessMatrix.Reset(this->GetNdofs(), this->GetNdofs());
+    StiffnessMatrix.setZero(this->GetNdofs(), this->GetNdofs());
 }
 
 void ChElementBeamEuler::SetNodes(std::shared_ptr<ChNodeFEAxyzrot> nodeA, std::shared_ptr<ChNodeFEAxyzrot> nodeB) {
@@ -45,7 +45,7 @@ void ChElementBeamEuler::SetNodes(std::shared_ptr<ChNodeFEAxyzrot> nodeA, std::s
     Kmatr.SetVariables(mvars);
 }
 
-void ChElementBeamEuler::ShapeFunctions(ChMatrix<>& N, double eta) {
+void ChElementBeamEuler::ShapeFunctions(ShapeVector& N, double eta) {
     double Nx1 = (1. / 2.) * (1 - eta);
     double Nx2 = (1. / 2.) * (1 + eta);
     double Ny1 = (1. / 4.) * pow((1 - eta), 2) * (2 + eta);
@@ -111,11 +111,11 @@ void ChElementBeamEuler::UpdateRotation() {
         q_element_abs_rot = Aabs.Get_A_quaternion();
     }
 
-    this->A.MatrTMultiply(A0, Aabs);
+    this->A = A0.transpose() * Aabs;
 }
 
-void ChElementBeamEuler::GetStateBlock(ChMatrixDynamic<>& mD) {
-    mD.Reset(12, 1);
+void ChElementBeamEuler::GetStateBlock(ChVectorDynamic<>& mD) {
+    mD.resize(12);
 
     ChVector<> delta_rot_dir;
     double delta_rot_angle;
@@ -124,7 +124,7 @@ void ChElementBeamEuler::GetStateBlock(ChMatrixDynamic<>& mD) {
     //     d = [Atw]' Xt - [A0w]'X0
     ChVector<> displ = this->q_element_abs_rot.RotateBack(nodes[0]->Frame().GetPos()) -
                        this->q_element_ref_rot.RotateBack(nodes[0]->GetX0().GetPos());
-    mD.PasteVector(displ, 0, 0);
+    mD.segment(0, 3) = displ.eigen();
 
     // Node 0, x,y,z small rotations (in local element frame)
     ChQuaternion<> q_delta0 = q_element_abs_rot.GetConjugate() % nodes[0]->Frame().GetRot() % q_refrotA.GetConjugate();
@@ -134,13 +134,13 @@ void ChElementBeamEuler::GetStateBlock(ChMatrixDynamic<>& mD) {
     if (delta_rot_angle > CH_C_PI)
         delta_rot_angle -= CH_C_2PI;  // no 0..360 range, use -180..+180
 
-    mD.PasteVector(delta_rot_dir * delta_rot_angle, 3, 0);
+    mD.segment(3, 3) = delta_rot_angle * delta_rot_dir.eigen();
 
     // Node 1, displacement (in local element frame, corotated back)
     //     d = [Atw]' Xt - [A0w]'X0
     displ = this->q_element_abs_rot.RotateBack(nodes[1]->Frame().GetPos()) -
             this->q_element_ref_rot.RotateBack(nodes[1]->GetX0().GetPos());
-    mD.PasteVector(displ, 6, 0);
+    mD.segment(6, 3) = displ.eigen();
 
     // Node 1, x,y,z small rotations (in local element frame)
     ChQuaternion<> q_delta1 = q_element_abs_rot.GetConjugate() % nodes[1]->Frame().GetRot() % q_refrotB.GetConjugate();
@@ -150,23 +150,23 @@ void ChElementBeamEuler::GetStateBlock(ChMatrixDynamic<>& mD) {
     if (delta_rot_angle > CH_C_PI)
         delta_rot_angle -= CH_C_2PI;  // no 0..360 range, use -180..+180
 
-    mD.PasteVector(delta_rot_dir * delta_rot_angle, 9, 0);
+    mD.segment(9, 3) = delta_rot_angle * delta_rot_dir.eigen();
 }
 
-void ChElementBeamEuler::GetField_dt(ChMatrixDynamic<>& mD_dt) {
-    mD_dt.Reset(12, 1);
+void ChElementBeamEuler::GetField_dt(ChVectorDynamic<>& mD_dt) {
+    mD_dt.resize(12);
 
     // Node 0, velocity (in local element frame, corotated back by A' )
-    mD_dt.PasteVector(this->q_element_abs_rot.RotateBack(nodes[0]->Frame().GetPos_dt()), 0, 0);
+    mD_dt.segment(0, 3) = q_element_abs_rot.RotateBack(nodes[0]->Frame().GetPos_dt()).eigen();
 
     // Node 0, x,y,z ang.velocity (in local element frame, corotated back by A' )
-    mD_dt.PasteVector(this->q_element_abs_rot.RotateBack(nodes[0]->Frame().GetWvel_par()), 3, 0);
+    mD_dt.segment(3, 3) = q_element_abs_rot.RotateBack(nodes[0]->Frame().GetWvel_par()).eigen();
 
     // Node 1, velocity (in local element frame, corotated back by A' )
-    mD_dt.PasteVector(this->q_element_abs_rot.RotateBack(nodes[1]->Frame().GetPos_dt()), 6, 0);
+    mD_dt.segment(6, 3) = q_element_abs_rot.RotateBack(nodes[1]->Frame().GetPos_dt()).eigen();
 
     // Node 1, x,y,z ang.velocity (in local element frame, corotated back by A' )
-    mD_dt.PasteVector(this->q_element_abs_rot.RotateBack(nodes[1]->Frame().GetWvel_par()), 9, 0);
+    mD_dt.segment(9, 3) = q_element_abs_rot.RotateBack(nodes[1]->Frame().GetWvel_par()).eigen();
 }
 
 void ChElementBeamEuler::ComputeStiffnessMatrix() {
@@ -253,9 +253,9 @@ void ChElementBeamEuler::ComputeStiffnessMatrix() {
         ChMatrix33<> Rotsect;
         Rotsect.Set_A_Rxyz(ChVector<>(-section->alpha, 0, 0));
         ChMatrixDynamic<> CKtemp(12, 12);
-        CKtemp.Reset();
-        ChMatrixCorotation<>::ComputeCK(this->StiffnessMatrix, Rotsect, 4, CKtemp);
-        ChMatrixCorotation<>::ComputeKCt(CKtemp, Rotsect, 4, this->StiffnessMatrix);
+        CKtemp.setZero();
+        ChMatrixCorotation::ComputeCK(this->StiffnessMatrix, Rotsect, 4, CKtemp);
+        ChMatrixCorotation::ComputeKCt(CKtemp, Rotsect, 4, this->StiffnessMatrix);
     }
     // In case the section has a centroid displacement:
     if (this->section->Cy || this->section->Cz) {
@@ -320,8 +320,8 @@ void ChElementBeamEuler::SetupInitial(ChSystem* system) {
     ComputeStiffnessMatrix();
 }
 
-void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor, double Mfactor) {
-    assert((H.GetRows() == 12) && (H.GetColumns() == 12));
+void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
+    assert((H.rows() == 12) && (H.cols() == 12));
     assert(section);
 
     // Corotational K stiffness:
@@ -335,22 +335,16 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor,
 
         // compute [H(theta)]'[K_loc] [H(theta]
 
-        ChMatrixDynamic<> displ(12, 1);
-        this->GetStateBlock(displ);
+        ChVectorDynamic<> displ(12);
+        GetStateBlock(displ);
 
-        ChMatrix33<> mI;
-        mI.Set33Identity();
-
-        ChMatrix33<> LambdaA;
-        ChMatrix33<> LambdaB;
-        ChMatrix33<> MthetaA;
-        ChMatrix33<> MthetaB;
         ChVector<> VthetaA(displ(3), displ(4), displ(5));
         ChVector<> VthetaB(displ(9), displ(10), displ(11));
-        MthetaA.Set_X_matrix(VthetaA);
-        MthetaB.Set_X_matrix(VthetaB);
+        ChStarMatrix33<> MthetaA(VthetaA);
+        ChStarMatrix33<> MthetaB(VthetaB);
         double thetaA = VthetaA.Length();
         double thetaB = VthetaB.Length();
+
         double zetaA;
         double zetaB;
         if (fabs(thetaA) > 0.05)
@@ -361,11 +355,13 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor,
             zetaB = (1.0 - 0.5 * thetaB * (1.0 / tan(0.5 * thetaB))) / (pow(thetaB, 2));
         else
             zetaB = 1.0 / 12.0 + pow(thetaB, 2) / 720.0 + pow(thetaB, 4) / 30240.0 + pow(thetaB, 6) / 1209600.0;
-        LambdaA = mI - MthetaA * 0.5 + (MthetaA * MthetaA) * zetaA;
-        LambdaB = mI - MthetaB * 0.5 + (MthetaB * MthetaB) * zetaB;
 
-        LambdaA.MatrTranspose();
-        LambdaB.MatrTranspose();
+        ChMatrix33<> mI(1);
+        ChMatrix33<> LambdaA = mI - MthetaA * 0.5 + (MthetaA * MthetaA) * zetaA;
+        ChMatrix33<> LambdaB = mI - MthetaB * 0.5 + (MthetaB * MthetaB) * zetaB;
+        LambdaA.transposeInPlace();
+        LambdaB.transposeInPlace();
+
         ChMatrixDynamic<> HtKH(12, 12);
         std::vector<ChMatrix33<>*> Ht;
         Ht.push_back(&mI);
@@ -373,8 +369,8 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor,
         Ht.push_back(&mI);
         Ht.push_back(&LambdaB);
 
-        ChMatrixCorotation<>::ComputeCK(this->StiffnessMatrix, Ht, 4, CK);  // CK = [H(theta)]'[K_loc]
-        ChMatrixCorotation<>::ComputeKCt(CK, Ht, 4, HtKH);                  // HtKH = [H(theta)]'[K_loc] [H(theta)]
+        ChMatrixCorotation::ComputeCK(this->StiffnessMatrix, Ht, 4, CK);  // CK = [H(theta)]'[K_loc]
+        ChMatrixCorotation::ComputeKCt(CK, Ht, 4, HtKH);                  // HtKH = [H(theta)]'[K_loc] [H(theta)]
 
         // compute K_m, K_gr, K_gm, K_gp
 
@@ -383,19 +379,14 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor,
         ChVector<> vX_b_loc = this->q_element_abs_rot.RotateBack(nodes[1]->Frame().GetPos() - vC);
         double Lel = (nodes[0]->Frame().GetPos() - nodes[1]->Frame().GetPos()).Length();
 
-        ChMatrix33<> mX_a;
-        ChMatrix33<> mX_b;
-        mX_a.Set_X_matrix(-vX_a_loc);
-        mX_b.Set_X_matrix(-vX_b_loc);
-
         ChMatrixDynamic<> mS(12, 3);  // [S] = [ -skew[X_a_loc];  [I];  -skew[X_b_loc];  [I] ]
-        mS.PasteMatrix(mX_a, 0, 0);
-        mS.PasteMatrix(mI, 3, 0);
-        mS.PasteMatrix(mX_b, 6, 0);
-        mS.PasteMatrix(mI, 9, 0);
+        mS.block(0, 0, 3, 3) = ChStarMatrix33<>(-vX_a_loc);
+        mS.block(3, 0, 3, 3) = mI;
+        mS.block(6, 0, 3, 3) = ChStarMatrix33<>(-vX_b_loc);
+        mS.block(9, 0, 3, 3) = mI;
 
         ChMatrixDynamic<> mG(3, 12);  // [G] = [dw_frame/du_a; dw_frame/dw_a; dw_frame/du_b; dw_frame/dw_b]
-        mG.Reset();
+        mG.setZero();
         mG(2, 1) = -1. / Lel;
         mG(1, 2) = 1. / Lel;
         mG(2, 7) = 1. / Lel;
@@ -403,72 +394,54 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor,
         mG(0, 4) = 0.5;
         mG(0, 10) = 0.5;
 
-        ChMatrixDynamic<> mP(12, 12);  // [P] = [I]-[S][G]
-        mP.MatrMultiply(mS, mG);
-        mP.MatrNeg();
-        for (int k = 0; k < 12; ++k)
-            mP(k, k) += 1.0;
+        ChMatrixDynamic<> mP = ChMatrixDynamic<>::Identity(12, 12) - mS * mG;  // [P] = [I]-[S][G]
+        ChVectorDynamic<> f_local = StiffnessMatrix * displ;                   // f_loc = [K_loc]*u_loc
 
-        ChMatrixDynamic<> f_local(12, 1);  // f_loc = [K_loc]*u_loc
-        f_local.MatrMultiply(StiffnessMatrix, displ);
+        ChVectorDynamic<> f_h(12);  // f_h = [H(theta)]' [K_loc]*u_loc
+        f_h.segment(0, 3) = f_local.segment(0, 3);
+        f_h.segment(3, 3) = LambdaA * f_local.segment(3, 3);
+        f_h.segment(6, 3) = f_local.segment(6, 3);
+        f_h.segment(9, 3) = LambdaB * f_local.segment(9, 3);
 
-        ChMatrixDynamic<> f_h(12, 1);  // f_h = [H(theta)]' [K_loc]*u_loc
-        f_h.PasteVector(f_local.ClipVector(0, 0), 0, 0);
-        f_h.PasteVector(LambdaA * f_local.ClipVector(3, 0), 3, 0);  // LambdaA is already transposed
-        f_h.PasteVector(f_local.ClipVector(6, 0), 6, 0);
-        f_h.PasteVector(LambdaB * f_local.ClipVector(9, 0), 9, 0);  // LambdaB is already transposed
-
-        ChMatrixDynamic<> f_p(12, 1);  // f_p = [P]' [H(theta)]' [K_loc]*u_loc
-        f_p.MatrTMultiply(mP, f_h);
+        ChVectorDynamic<> f_p = mP.transpose() * f_h;  // f_p = [P]' [H(theta)]' [K_loc]*u_loc
 
         ChMatrixDynamic<> mFnm(12, 3);
         ChMatrixDynamic<> mFn(12, 3);
-        ChMatrix33<> skew_f;
 
         if (!force_symmetric_stiffness) {
-            mFn.Reset();
-            skew_f.Set_X_matrix(f_p.ClipVector(0, 0));
-            mFnm.PasteMatrix(skew_f, 0, 0);
-            mFn.PasteMatrix(skew_f, 0, 0);
-            skew_f.Set_X_matrix(f_p.ClipVector(3, 0));
-            mFnm.PasteMatrix(skew_f, 3, 0);
-            skew_f.Set_X_matrix(f_p.ClipVector(6, 0));
-            mFnm.PasteMatrix(skew_f, 6, 0);
-            mFn.PasteMatrix(skew_f, 6, 0);
-            skew_f.Set_X_matrix(f_p.ClipVector(9, 0));
-            mFnm.PasteMatrix(skew_f, 9, 0);
+            {
+                ChStarMatrix33<> skew_f(f_p.segment(0, 3));
+                mFnm.block(0, 0, 3, 3) = skew_f;
+                mFn.block(0, 0, 3, 3) = skew_f;
+            }
+            {
+                mFnm.block(3, 0, 3, 3) = ChStarMatrix33<>(f_p.segment(3, 3));
+                mFn.block(3, 0, 3, 3) = ChMatrix33<>::Zero();
+            }
+            {
+                ChStarMatrix33<> skew_f(f_p.segment(6, 3));
+                mFnm.block(6, 0, 3, 3) = skew_f;
+                mFn.block(6, 0, 3, 3) = skew_f;
+            }
+            {
+                mFnm.block(9, 0, 3, 3) = ChStarMatrix33<>(f_p.segment(9, 3));
+                mFn.block(9, 0, 3, 3) = ChMatrix33<>::Zero();
+            }
         } else {
-            skew_f.Set_X_matrix(f_p.ClipVector(0, 0));
-            mFnm.PasteMatrix(skew_f, 0, 0);
-            skew_f.Set_X_matrix(f_p.ClipVector(3, 0) * 0.5);
-            mFnm.PasteMatrix(skew_f, 3, 0);
-            skew_f.Set_X_matrix(f_p.ClipVector(6, 0));
-            mFnm.PasteMatrix(skew_f, 6, 0);
-            skew_f.Set_X_matrix(f_p.ClipVector(9, 0) * 0.5);
-            mFnm.PasteMatrix(skew_f, 9, 0);
+            mFnm.block(0, 0, 3, 3) = ChStarMatrix33<>(f_p.segment(0, 3));
+            mFnm.block(3, 0, 3, 3) = ChStarMatrix33<>(f_p.segment(3, 3) * 0.5);
+            mFnm.block(6, 0, 3, 3) = ChStarMatrix33<>(f_p.segment(6, 3));
+            mFnm.block(9, 0, 3, 3) = ChStarMatrix33<>(f_p.segment(9, 3) * 0.5);
             mFn = mFnm;
         }
 
-        ChMatrixDynamic<> mtemp(12, 12);
-
-        ChMatrixDynamic<> K_m(12, 12);  // [K_m]  = [P]' [H(theta)]'[K_loc] [H(theta] [P]
-        mtemp.MatrMultiply(HtKH, mP);
-        K_m.MatrTMultiply(mP, mtemp);
-
-        ChMatrixDynamic<> K_gr(12, 12);  // [K_gr] = [F_nm][G]
-        K_gr.MatrMultiply(mFnm, mG);
-
-        ChMatrixDynamic<> K_gp(12, 12);  // [K_gp] = [G]'[F_n]'[P] = ([F_n][G])'[P]
-        mtemp.MatrMultiply(mFn, mG);
-        K_gp.MatrTMultiply(mtemp, mP);
+        ChMatrixDynamic<> K_m = mP.transpose() * HtKH * mP;  // [K_m]  = [P]' [H(theta)]'[K_loc] [H(theta] [P]
+        ChMatrixDynamic<> K_gr = mFnm * mG;                  // [K_gr] = [F_nm][G]
+        ChMatrixDynamic<> K_gp = mG.transpose() * mFn.transpose() * mP;  // [K_gp] = [G]'[F_n]'[P] = ([F_n][G])'[P]
 
         // ...							// [K_gm] = [P]'[L][P]  (simplify: avoid computing this)
-
-        ChMatrixDynamic<> K_tang(12, 12);  // [K_tang] = [K_m] - [K_gr] - [K_gp] + [K_gm]
-        K_tang.Reset();
-        K_tang.MatrInc(K_m);
-        K_tang.MatrDec(K_gr);
-        K_tang.MatrDec(K_gp);
+      
+        ChMatrixDynamic<> K_tang = K_m - K_gr - K_gp;  // [K_tang] = [K_m] - [K_gr] - [K_gp] + [K_gm]
 
         // finally, do :   [K_tang_global] = [R][K_tang][R]'
         ChMatrix33<> Atoabs(this->q_element_abs_rot);
@@ -480,8 +453,8 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor,
         R.push_back(&Atoabs);
         R.push_back(&AtolocwelB);
 
-        ChMatrixCorotation<>::ComputeCK(K_tang, R, 4, CK);
-        ChMatrixCorotation<>::ComputeKCt(CK, R, 4, CKCt);
+        ChMatrixCorotation::ComputeCK(K_tang, R, 4, CK);
+        ChMatrixCorotation::ComputeKCt(CK, R, 4, CKCt);
     } else {
         //
         // Simplified (inexact, faster) corotational approach
@@ -496,30 +469,31 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor,
         R.push_back(&Atoabs);
         R.push_back(&AtolocwelB);
 
-        ChMatrixCorotation<>::ComputeCK(this->StiffnessMatrix, R, 4, CK);
-        ChMatrixCorotation<>::ComputeKCt(CK, R, 4, CKCt);
+        ChMatrixCorotation::ComputeCK(this->StiffnessMatrix, R, 4, CK);
+        ChMatrixCorotation::ComputeKCt(CK, R, 4, CKCt);
     }
 
     // For strict symmetry, copy L=U because the computations above might
     // lead to small errors because of numerical roundoff even with force_symmetric_stiffness
     if (force_symmetric_stiffness) {
-        for (int row = 0; row < CKCt.GetRows() - 1; ++row)
-            for (int col = row + 1; col < CKCt.GetColumns(); ++col)
+        for (int row = 0; row < CKCt.rows() - 1; ++row)
+            for (int col = row + 1; col < CKCt.cols(); ++col)
                 CKCt(row, col) = CKCt(col, row);
     }
 
+    //// RADU
+    //// Check if the above can be done with the one-liner:
+    ////CKCt.triangularView<Eigen::Upper>() = CKCt.transpose();
+
     // For K stiffness matrix and R matrix: scale by factors
+    CKCt *= Kfactor + Rfactor * this->section->rdamping;
 
-    double mkrfactor = Kfactor + Rfactor * this->section->rdamping;
-
-    CKCt.MatrScale(mkrfactor);
-
-    H.PasteMatrix(CKCt, 0, 0);  // because [R] = r*[K] , so kf*[K]+rf*[R] = (kf+rf*r)*[K]
+    H.block(0, 0, 12, 12) = CKCt;  // because [R] = r*[K] , so kf*[K]+rf*[R] = (kf+rf*r)*[K]
 
     // For M mass matrix, do mass lumping:
 
     ChMatrixDynamic<> Mloc(12, 12);
-    Mloc.Reset();
+    Mloc.setZero();
 
     double lmass = mass * 0.5;
     double lineryz = (1. / 50.) * mass * pow(length, 2);  // note: 1/50 can be even less (this is 0 in many texts)
@@ -552,61 +526,54 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor,
     R.push_back(&Atoabs);
     R.push_back(&AtolocwelB);
 
-    ChMatrixCorotation<>::ComputeCK(Mloc, R, 4, CK);
-    ChMatrixCorotation<>::ComputeKCt(CK, R, 4, CKCt);
+    ChMatrixCorotation::ComputeCK(Mloc, R, 4, CK);
+    ChMatrixCorotation::ComputeKCt(CK, R, 4, CKCt);
 
-    H.PasteSumMatrix(CKCt,0,0);
+    H.block(0,0,12,12) += CKCt;
     */
+
     // ..rather do this because lumped mass matrix does not need rotation transf.
-    H.PasteSumMatrix(Mloc, 0, 0);
+    H.block(0, 0, 12, 12) += Mloc;
 
     //***TO DO*** better per-node lumping, or 4x4 consistent mass matrices, maybe with integration if not uniform
     // materials.
 }
 
-void ChElementBeamEuler::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
-    assert((Fi.GetRows() == 12) && (Fi.GetColumns() == 1));
+void ChElementBeamEuler::ComputeInternalForces(ChVectorDynamic<>& Fi) {
+    assert(Fi.size() == 12);
     assert(section);
 
     // set up vector of nodal displacements and small rotations (in local element system)
-    ChMatrixDynamic<> displ(12, 1);
+    ChVectorDynamic<> displ(12);
     this->GetStateBlock(displ);
 
     // [local Internal Forces] = [Klocal] * displ + [Rlocal] * displ_dt
-    ChMatrixDynamic<> FiK_local(12, 1);
-    FiK_local.MatrMultiply(StiffnessMatrix, displ);
+    ChVectorDynamic<> FiK_local = StiffnessMatrix * displ;
 
     // set up vector of nodal velocities (in local element system)
-    ChMatrixDynamic<> displ_dt(12, 1);
+    ChVectorDynamic<> displ_dt(12);
     this->GetField_dt(displ_dt);
 
-    ChMatrixDynamic<> FiR_local(12, 1);
-    FiR_local.MatrMultiply(StiffnessMatrix, displ_dt);
-    FiR_local.MatrScale(this->section->GetBeamRaleyghDamping());
+    ChMatrixDynamic<> FiR_local = section->GetBeamRaleyghDamping() * StiffnessMatrix * displ_dt;
 
-    FiK_local.MatrInc(FiR_local);
-
-    FiK_local.MatrScale(-1.0);
+    FiK_local += FiR_local;
+    FiK_local *= -1.0;
 
     if (!disable_projector) {
         //
         // Corotational approach as in G.Felippa
         //
 
-        ChMatrixDynamic<> displ(12, 1);
-        this->GetStateBlock(displ);
-        ChMatrix33<> mI;
-        mI.Set33Identity();
-        ChMatrix33<> LambdaA;
-        ChMatrix33<> LambdaB;
-        ChMatrix33<> MthetaA;
-        ChMatrix33<> MthetaB;
+        ChVectorDynamic<> displ(12);
+        GetStateBlock(displ);
+
         ChVector<> VthetaA(displ(3), displ(4), displ(5));
         ChVector<> VthetaB(displ(9), displ(10), displ(11));
-        MthetaA.Set_X_matrix(VthetaA);
-        MthetaB.Set_X_matrix(VthetaB);
+        ChStarMatrix33<> MthetaA(VthetaA);
+        ChStarMatrix33<> MthetaB(VthetaB);
         double thetaA = VthetaA.Length();
         double thetaB = VthetaB.Length();
+
         double zetaA;
         double zetaB;
         if (fabs(thetaA) > 0.05)
@@ -617,30 +584,26 @@ void ChElementBeamEuler::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
             zetaB = (1.0 - 0.5 * thetaB * (1.0 / tan(0.5 * thetaB))) / (pow(thetaB, 2));
         else
             zetaB = 1.0 / 12.0 + pow(thetaB, 2) / 720.0 + pow(thetaB, 4) / 30240.0 + pow(thetaB, 6) / 1209600.0;
-        LambdaA = mI - MthetaA * 0.5 + (MthetaA * MthetaA) * zetaA;
-        LambdaB = mI - MthetaB * 0.5 + (MthetaB * MthetaB) * zetaB;
 
-        LambdaA.MatrTranspose();
-        LambdaB.MatrTranspose();
+        ChMatrix33<> mI(1);
+        ChMatrix33<> LambdaA = mI - MthetaA * 0.5 + (MthetaA * MthetaA) * zetaA;
+        ChMatrix33<> LambdaB = mI - MthetaB * 0.5 + (MthetaB * MthetaB) * zetaB;
+        LambdaA.transposeInPlace();
+        LambdaB.transposeInPlace();
 
         ChVector<> vC = 0.5 * (nodes[0]->Frame().GetPos() + nodes[1]->Frame().GetPos());  // centroid
         ChVector<> vX_a_loc = this->q_element_abs_rot.RotateBack(nodes[0]->Frame().GetPos() - vC);
         ChVector<> vX_b_loc = this->q_element_abs_rot.RotateBack(nodes[1]->Frame().GetPos() - vC);
         double Lel = (nodes[0]->Frame().GetPos() - nodes[1]->Frame().GetPos()).Length();
 
-        ChMatrix33<> mX_a;
-        ChMatrix33<> mX_b;
-        mX_a.Set_X_matrix(-vX_a_loc);
-        mX_b.Set_X_matrix(-vX_b_loc);
-
         ChMatrixDynamic<> mS(12, 3);  // [S] = [ -skew[X_a_loc];  [I];  -skew[X_b_loc];  [I] ]
-        mS.PasteMatrix(mX_a, 0, 0);
-        mS.PasteMatrix(mI, 3, 0);
-        mS.PasteMatrix(mX_b, 6, 0);
-        mS.PasteMatrix(mI, 9, 0);
+        mS.block(0, 0, 3, 3) = ChStarMatrix33<>(-vX_a_loc);
+        mS.block(3, 0, 3, 3) = mI;
+        mS.block(6, 0, 3, 3) = ChStarMatrix33<>(-vX_b_loc);
+        mS.block(9, 0, 3, 3) = mI;
 
         ChMatrixDynamic<> mG(3, 12);  // [G] = [dw_frame/du_a; dw_frame/dw_a; dw_frame/du_b; dw_frame/dw_b]
-        mG.Reset();
+        mG.setZero();
         mG(2, 1) = -1. / Lel;
         mG(1, 2) = 1. / Lel;
         mG(2, 7) = 1. / Lel;
@@ -648,20 +611,15 @@ void ChElementBeamEuler::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
         mG(0, 4) = 0.5;
         mG(0, 10) = 0.5;
 
-        ChMatrixDynamic<> mP(12, 12);  // [P] = [I]-[S][G]
-        mP.MatrMultiply(mS, mG);
-        mP.MatrNeg();
-        for (int k = 0; k < 12; ++k)
-            mP(k, k) += 1.0;
+        ChMatrixDynamic<> mP = ChMatrixDynamic<>::Identity(12,12) - mS * mG;  // [P] = [I]-[S][G]
 
-        ChMatrixDynamic<> HF(12, 1);  //  HF =  [H(theta)]' F_local
-        HF.PasteVector(FiK_local.ClipVector(0, 0), 0, 0);
-        HF.PasteVector(LambdaA * FiK_local.ClipVector(3, 0), 3, 0);
-        HF.PasteVector(FiK_local.ClipVector(6, 0), 6, 0);
-        HF.PasteVector(LambdaB * FiK_local.ClipVector(9, 0), 9, 0);
+        ChVectorDynamic<> HF(12);  //  HF =  [H(theta)]' F_local
+        HF.segment(0, 3) = FiK_local.segment(0, 3);
+        HF.segment(3, 3) = LambdaA * FiK_local.segment(3, 3);
+        HF.segment(6, 3) = FiK_local.segment(6, 3);
+        HF.segment(9, 3) = LambdaB * FiK_local.segment(9, 3);
 
-        ChMatrixDynamic<> PHF(12, 1);
-        PHF.MatrTMultiply(mP, HF);
+        ChVectorDynamic<> PHF = mP.transpose() * HF;
 
         ChMatrix33<> Atoabs(this->q_element_abs_rot);
         ChMatrix33<> AtolocwelA(this->GetNodeA()->Frame().GetRot().GetConjugate() % this->q_element_abs_rot);
@@ -671,7 +629,7 @@ void ChElementBeamEuler::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
         R.push_back(&AtolocwelA);
         R.push_back(&Atoabs);
         R.push_back(&AtolocwelB);
-        ChMatrixCorotation<>::ComputeCK(PHF, R, 4, Fi);
+        ChMatrixCorotation::ComputeCK(PHF, R, 4, Fi);
     } else {
         //
         // Simplified (inexact, faster) corotational approach
@@ -686,7 +644,7 @@ void ChElementBeamEuler::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
         R.push_back(&AtolocwelA);
         R.push_back(&Atoabs);
         R.push_back(&AtolocwelB);
-        ChMatrixCorotation<>::ComputeCK(FiK_local, R, 4, Fi);
+        ChMatrixCorotation::ComputeCK(FiK_local, R, 4, Fi);
     }
 
 #ifdef BEAM_VERBOSE
@@ -707,12 +665,11 @@ void ChElementBeamEuler::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
 }
 
 void ChElementBeamEuler::EvaluateSectionDisplacement(const double eta, ChVector<>& u_displ, ChVector<>& u_rotaz) {
-    ChMatrixDynamic<> displ(this->GetNdofs(), 1);
+    ChVectorDynamic<> displ(this->GetNdofs());
     this->GetStateBlock(displ);
 
-    ChMatrixNM<double, 1, 12> N;
-
-    this->ShapeFunctions(N, eta);  // Evaluate compressed shape functions
+    ShapeVector N;
+    ShapeFunctions(N, eta);  // Evaluate compressed shape functions
 
     u_displ.x() = N(0) * displ(0) + N(3) * displ(6);     // x_a   x_b
     u_displ.y() = N(1) * displ(1) + N(4) * displ(7)      // y_a   y_b
@@ -750,14 +707,13 @@ void ChElementBeamEuler::EvaluateSectionFrame(const double eta, ChVector<>& poin
 void ChElementBeamEuler::EvaluateSectionForceTorque(const double eta, ChVector<>& Fforce, ChVector<>& Mtorque) {
     assert(section);
 
-    ChMatrixDynamic<> displ(this->GetNdofs(), 1);
+    ChVectorDynamic<> displ(this->GetNdofs());
     this->GetStateBlock(displ);
 
     double Jpolar = section->J;
 
-    // ChMatrixNM<double, 1, 12> N;
-
-    // this->ShapeFunctions(N, eta);  // Evaluate compressed shape functions
+    // ShapeVector N;
+    // ShapeFunctions(N, eta);  // Evaluate compressed shape functions
 
     // shape function derivatives are computed here on-the-fly
     double dN_xa = -(1. / length);
@@ -772,7 +728,7 @@ void ChElementBeamEuler::EvaluateSectionForceTorque(const double eta, ChVector<>
     double dddN_rb = (6.0 / (length * length));
 
     // generalized strains/curvatures;
-    ChMatrixNM<double, 6, 1> sect_ek;
+    ChVectorN<double, 6> sect_ek;
 
     // e_x
     sect_ek(0) = (dN_xa * displ(0) + dN_xb * displ(6));  // x_a   x_b
@@ -822,7 +778,7 @@ void ChElementBeamEuler::EvaluateSectionForceTorque(const double eta, ChVector<>
 
         // ..unrolled rotated constitutive matrix..
         ChMatrixNM<double, 6, 6> Klaw_r;
-        Klaw_r.Reset();
+        Klaw_r.setZero();
 
         Klaw_r(0, 0) = Klaw_d0;
         Klaw_r(1, 1) = Klaw_d1 * cb * cb + Klaw_d2 * sb * sb;
@@ -846,28 +802,28 @@ void ChElementBeamEuler::EvaluateSectionForceTorque(const double eta, ChVector<>
             Klaw_r(i, 3) += Sz * Klaw_r(i, 1) - Sy * Klaw_r(i, 2);
 
         // .. compute wrench = Klaw_l * sect_ek
-        ChMatrixNM<double, 6, 1> wrench;
-        wrench.MatrMultiply(Klaw_r, sect_ek);
-        Fforce = wrench.ClipVector(0, 0);
-        Mtorque = wrench.ClipVector(3, 0);
+        ChVectorN<double, 6> wrench = Klaw_r * sect_ek;
+        Fforce = wrench.segment(0, 3);
+        Mtorque = wrench.segment(3, 3);
 
         // Note: to be checked.
-        // Note: can be improved with more unrolling.
     }
 }
 
 void ChElementBeamEuler::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
-    mD.PasteVector(this->nodes[0]->GetPos(), block_offset, 0);
-    mD.PasteQuaternion(this->nodes[0]->GetRot(), block_offset + 3, 0);
-    mD.PasteVector(this->nodes[1]->GetPos(), block_offset + 7, 0);
-    mD.PasteQuaternion(this->nodes[1]->GetRot(), block_offset + 10, 0);
+    mD.segment(block_offset + 0, 3) = nodes[0]->GetPos().eigen();
+    mD.segment(block_offset + 3, 4) = nodes[0]->GetRot().eigen();
+
+    mD.segment(block_offset + 7, 3) = nodes[1]->GetPos().eigen();
+    mD.segment(block_offset + 10, 4) = nodes[1]->GetRot().eigen();
 }
 
 void ChElementBeamEuler::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
-    mD.PasteVector(this->nodes[0]->GetPos_dt(), block_offset, 0);
-    mD.PasteVector(this->nodes[0]->GetWvel_loc(), block_offset + 3, 0);
-    mD.PasteVector(this->nodes[1]->GetPos_dt(), block_offset + 6, 0);
-    mD.PasteVector(this->nodes[1]->GetWvel_loc(), block_offset + 9, 0);
+    mD.segment(block_offset + 0, 3) = nodes[0]->GetPos_dt().eigen();
+    mD.segment(block_offset + 3, 3) = nodes[0]->GetWvel_loc().eigen();
+
+    mD.segment(block_offset + 6, 3) = nodes[1]->GetPos_dt().eigen();
+    mD.segment(block_offset + 9, 3) = nodes[1]->GetWvel_loc().eigen();
 }
 
 void ChElementBeamEuler::LoadableStateIncrement(const unsigned int off_x,
@@ -890,8 +846,8 @@ void ChElementBeamEuler::ComputeNF(const double U,
                                    const ChVectorDynamic<>& F,
                                    ChVectorDynamic<>* state_x,
                                    ChVectorDynamic<>* state_w) {
-    ChMatrixNM<double, 1, 12> N;
-    this->ShapeFunctions(N, U);  // evaluate shape functions (in compressed vector), btw. not dependant on state
+    ShapeVector N;
+    ShapeFunctions(N, U);  // evaluate shape functions (in compressed vector), btw. not dependant on state
 
     detJ = this->GetRestLength() / 2.0;
 

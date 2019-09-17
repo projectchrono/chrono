@@ -18,10 +18,10 @@ namespace chrono {
 
 void ChLoadJacobians::SetVariables(std::vector<ChVariables*> mvariables) {
     KRM.SetVariables(mvariables);
-    int nscalar_coords = KRM.Get_K()->GetColumns();
-    K.Reset(nscalar_coords, nscalar_coords);
-    R.Reset(nscalar_coords, nscalar_coords);
-    M.Reset(nscalar_coords, nscalar_coords);
+    auto nscalar_coords = KRM.Get_K().cols();
+    K.setZero(nscalar_coords, nscalar_coords);
+    R.setZero(nscalar_coords, nscalar_coords);
+    M.setZero(nscalar_coords, nscalar_coords);
 }
 
 // -----------------------------------------------------------------------------
@@ -29,45 +29,44 @@ void ChLoadJacobians::SetVariables(std::vector<ChVariables*> mvariables) {
 ChLoadBase::ChLoadBase() : jacobians(nullptr) {}
 
 ChLoadBase::~ChLoadBase() {
-    if (jacobians)
-        delete jacobians;
+    delete jacobians;
 }
 
 void ChLoadBase::Update(double time) {
     // current state speed & position
-    ChState mstate_x(this->LoadGet_ndof_x(), 0);
-    this->LoadGetStateBlock_x(mstate_x);
-    ChStateDelta mstate_w(this->LoadGet_ndof_w(), 0);
-    this->LoadGetStateBlock_w(mstate_w);
+    ChState mstate_x(LoadGet_ndof_x(), 0);
+    LoadGetStateBlock_x(mstate_x);
+    ChStateDelta mstate_w(LoadGet_ndof_w(), 0);
+    LoadGetStateBlock_w(mstate_w);
     // compute the applied load, at current state
-    this->ComputeQ(&mstate_x, &mstate_w);
+    ComputeQ(&mstate_x, &mstate_w);
     // compute the jacobian, at current state
-    if (this->IsStiff()) {
-        if (!this->jacobians)
-            this->CreateJacobianMatrices();
-        this->ComputeJacobian(&mstate_x, &mstate_w, this->jacobians->K, this->jacobians->R, this->jacobians->M);
+    if (IsStiff()) {
+        if (!jacobians)
+            CreateJacobianMatrices();
+        ComputeJacobian(&mstate_x, &mstate_w, jacobians->K, jacobians->R, jacobians->M);
     }
 };
 
 void ChLoadBase::InjectKRMmatrices(ChSystemDescriptor& mdescriptor) {
-    if (this->jacobians) {
-        mdescriptor.InsertKblock(&this->jacobians->KRM);
+    if (jacobians) {
+        mdescriptor.InsertKblock(&jacobians->KRM);
     }
 }
 
 void ChLoadBase::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
-    if (this->jacobians) {
-        this->jacobians->KRM.Get_K()->FillElem(0);
-        this->jacobians->KRM.Get_K()->MatrInc(this->jacobians->K * Kfactor);
-        this->jacobians->KRM.Get_K()->MatrInc(this->jacobians->R * Rfactor);
-        this->jacobians->KRM.Get_K()->MatrInc(this->jacobians->M * Mfactor);
+    if (jacobians) {
+        jacobians->KRM.Get_K().setZero();
+        jacobians->KRM.Get_K() += jacobians->K * Kfactor;
+        jacobians->KRM.Get_K() += jacobians->R * Rfactor;
+        jacobians->KRM.Get_K() += jacobians->M * Mfactor;
     }
 }
 
 // -----------------------------------------------------------------------------
 
 ChLoadCustom::ChLoadCustom(std::shared_ptr<ChLoadable> mloadable) : loadable(mloadable) {
-    load_Q.Reset(this->LoadGet_ndof_w());
+    load_Q.setZero(LoadGet_ndof_w());
 }
 
 int ChLoadCustom::LoadGet_ndof_x() {
@@ -91,19 +90,19 @@ int ChLoadCustom::LoadGet_field_ncoords() {
 
 void ChLoadCustom::ComputeJacobian(ChState* state_x,       // state position to evaluate jacobians
                                    ChStateDelta* state_w,  // state speed to evaluate jacobians
-                                   ChMatrix<>& mK,         // result dQ/dx
-                                   ChMatrix<>& mR,         // result dQ/dv
-                                   ChMatrix<>& mM)         // result dQ/da
+                                   ChMatrixRef mK,         // result dQ/dx
+                                   ChMatrixRef mR,         // result dQ/dv
+                                   ChMatrixRef mM)         // result dQ/da
 {
     double Delta = 1e-8;
 
-    int mrows_w = this->LoadGet_ndof_w();
-    int mrows_x = this->LoadGet_ndof_x();
+    int mrows_w = LoadGet_ndof_w();
+    int mrows_x = LoadGet_ndof_x();
 
     // compute Q at current speed & position, x_0, v_0
     ChVectorDynamic<> Q0(mrows_w);
-    this->ComputeQ(state_x, state_w);  // Q0 = Q(x, v)
-    Q0 = this->load_Q;
+    ComputeQ(state_x, state_w);  // Q0 = Q(x, v)
+    Q0 = load_Q;
 
     ChVectorDynamic<> Q1(mrows_w);
     ChVectorDynamic<> Jcolumn(mrows_w);
@@ -111,50 +110,50 @@ void ChLoadCustom::ComputeJacobian(ChState* state_x,       // state position to 
     ChStateDelta state_delta(mrows_w, nullptr);
 
     // Compute K=-dQ(x,v)/dx by backward differentiation
-    state_delta.Reset(mrows_w, nullptr);
+    state_delta.setZero(mrows_w, nullptr);
 
     for (int i = 0; i < mrows_w; ++i) {
         state_delta(i) += Delta;
-        this->LoadStateIncrement(*state_x, state_delta,
+        LoadStateIncrement(*state_x, state_delta,
                                  state_x_inc);  // exponential, usually state_x_inc(i) = state_x(i) + Delta;
-        this->ComputeQ(&state_x_inc, state_w);  // Q1 = Q(x+Dx, v)
-        Q1 = this->load_Q;
+        ComputeQ(&state_x_inc, state_w);  // Q1 = Q(x+Dx, v)
+        Q1 = load_Q;
         state_delta(i) -= Delta;
 
         Jcolumn = (Q1 - Q0) * (-1.0 / Delta);  // - sign because K=-dQ/dx
-        this->jacobians->K.PasteMatrix(Jcolumn, 0, i);
+        jacobians->K.block(0, i, mrows_w, 1) = Jcolumn;
     }
     // Compute R=-dQ(x,v)/dv by backward differentiation
     for (int i = 0; i < mrows_w; ++i) {
         (*state_w)(i) += Delta;
-        this->ComputeQ(state_x, state_w);  // Q1 = Q(x, v+Dv)
-        Q1 = this->load_Q;
+        ComputeQ(state_x, state_w);  // Q1 = Q(x, v+Dv)
+        Q1 = load_Q;
         (*state_w)(i) -= Delta;
 
         Jcolumn = (Q1 - Q0) * (-1.0 / Delta);  // - sign because R=-dQ/dv
-        this->jacobians->R.PasteMatrix(Jcolumn, 0, i);
+        jacobians->R.block(0, i, mrows_w, 1) = Jcolumn;
     }
 }
 
 void ChLoadCustom::LoadIntLoadResidual_F(ChVectorDynamic<>& R, const double c) {
     unsigned int rowQ = 0;
-    for (int i = 0; i < this->loadable->GetSubBlocks(); ++i) {
-        unsigned int moffset = this->loadable->GetSubBlockOffset(i);
-        for (unsigned int row = 0; row < this->loadable->GetSubBlockSize(i); ++row) {
-            R(row + moffset) += this->load_Q(rowQ) * c;
+    for (int i = 0; i < loadable->GetSubBlocks(); ++i) {
+        unsigned int moffset = loadable->GetSubBlockOffset(i);
+        for (unsigned int row = 0; row < loadable->GetSubBlockSize(i); ++row) {
+            R(row + moffset) += load_Q(rowQ) * c;
             ++rowQ;
         }
     }
 }
 
 void ChLoadCustom::CreateJacobianMatrices() {
-    if (!this->jacobians) {
+    if (!jacobians) {
         // create jacobian structure
-        this->jacobians = new ChLoadJacobians;
+        jacobians = new ChLoadJacobians;
         // set variables forsparse KRM block
         std::vector<ChVariables*> mvars;
         loadable->LoadableGetVariables(mvars);
-        this->jacobians->SetVariables(mvars);
+        jacobians->SetVariables(mvars);
     }
 }
 
@@ -162,14 +161,14 @@ void ChLoadCustom::CreateJacobianMatrices() {
 
 ChLoadCustomMultiple::ChLoadCustomMultiple(std::vector<std::shared_ptr<ChLoadable>>& mloadables)
     : loadables(mloadables) {
-    load_Q.Reset(this->LoadGet_ndof_w());
+    load_Q.setZero(LoadGet_ndof_w());
 }
 
 ChLoadCustomMultiple::ChLoadCustomMultiple(std::shared_ptr<ChLoadable> mloadableA,
                                            std::shared_ptr<ChLoadable> mloadableB) {
     loadables.push_back(mloadableA);
     loadables.push_back(mloadableB);
-    load_Q.Reset(this->LoadGet_ndof_w());
+    load_Q.setZero(LoadGet_ndof_w());
 }
 
 ChLoadCustomMultiple::ChLoadCustomMultiple(std::shared_ptr<ChLoadable> mloadableA,
@@ -178,7 +177,7 @@ ChLoadCustomMultiple::ChLoadCustomMultiple(std::shared_ptr<ChLoadable> mloadable
     loadables.push_back(mloadableA);
     loadables.push_back(mloadableB);
     loadables.push_back(mloadableC);
-    load_Q.Reset(this->LoadGet_ndof_w());
+    load_Q.setZero(LoadGet_ndof_w());
 }
 
 int ChLoadCustomMultiple::LoadGet_ndof_x() {
@@ -227,19 +226,19 @@ int ChLoadCustomMultiple::LoadGet_field_ncoords() {
 
 void ChLoadCustomMultiple::ComputeJacobian(ChState* state_x,       // state position to evaluate jacobians
                                            ChStateDelta* state_w,  // state speed to evaluate jacobians
-                                           ChMatrix<>& mK,         // result dQ/dx
-                                           ChMatrix<>& mR,         // result dQ/dv
-                                           ChMatrix<>& mM)         // result dQ/da
+                                           ChMatrixRef mK,         // result dQ/dx
+                                           ChMatrixRef mR,         // result dQ/dv
+                                           ChMatrixRef mM)         // result dQ/da
 {
     double Delta = 1e-8;
 
-    int mrows_w = this->LoadGet_ndof_w();
-    int mrows_x = this->LoadGet_ndof_x();
+    int mrows_w = LoadGet_ndof_w();
+    int mrows_x = LoadGet_ndof_x();
 
     // compute Q at current speed & position, x_0, v_0
     ChVectorDynamic<> Q0(mrows_w);
-    this->ComputeQ(state_x, state_w);  // Q0 = Q(x, v)
-    Q0 = this->load_Q;
+    ComputeQ(state_x, state_w);  // Q0 = Q(x, v)
+    Q0 = load_Q;
 
     ChVectorDynamic<> Q1(mrows_w);
     ChVectorDynamic<> Jcolumn(mrows_w);
@@ -247,28 +246,28 @@ void ChLoadCustomMultiple::ComputeJacobian(ChState* state_x,       // state posi
     ChStateDelta state_delta(mrows_w, nullptr);
 
     // Compute K=-dQ(x,v)/dx by backward differentiation
-    state_delta.Reset(mrows_w, nullptr);
+    state_delta.setZero(mrows_w, nullptr);
 
     for (int i = 0; i < mrows_w; ++i) {
         state_delta(i) += Delta;
-        this->LoadStateIncrement(*state_x, state_delta,
+        LoadStateIncrement(*state_x, state_delta,
                                  state_x_inc);  // exponential, usually state_x_inc(i) = state_x(i) + Delta;
-        this->ComputeQ(&state_x_inc, state_w);  // Q1 = Q(x+Dx, v)
-        Q1 = this->load_Q;
+        ComputeQ(&state_x_inc, state_w);  // Q1 = Q(x+Dx, v)
+        Q1 = load_Q;
         state_delta(i) -= Delta;
 
         Jcolumn = (Q1 - Q0) * (-1.0 / Delta);  // - sign because K=-dQ/dx
-        this->jacobians->K.PasteMatrix(Jcolumn, 0, i);
+        jacobians->K.block(0, i, mrows_w, 1) = Jcolumn;
     }
     // Compute R=-dQ(x,v)/dv by backward differentiation
     for (int i = 0; i < mrows_w; ++i) {
         (*state_w)(i) += Delta;
-        this->ComputeQ(state_x, state_w);  // Q1 = Q(x, v+Dv)
-        Q1 = this->load_Q;
+        ComputeQ(state_x, state_w);  // Q1 = Q(x, v+Dv)
+        Q1 = load_Q;
         (*state_w)(i) -= Delta;
 
         Jcolumn = (Q1 - Q0) * (-1.0 / Delta);  // - sign because R=-dQ/dv
-        this->jacobians->R.PasteMatrix(Jcolumn, 0, i);
+        jacobians->R.block(0, i, mrows_w, 1) = Jcolumn;
     }
 }
 
@@ -281,7 +280,7 @@ void ChLoadCustomMultiple::LoadIntLoadResidual_F(ChVectorDynamic<>& R, const dou
             if (kvars[i]->IsActive()) {
                 unsigned int mblockoffset = loadables[k]->GetSubBlockOffset(i);
                 for (unsigned int row = 0; row < loadables[k]->GetSubBlockSize(i); ++row) {
-                    R(row + mblockoffset) += this->load_Q(row + mQoffset) * c;
+                    R(row + mblockoffset) += load_Q(row + mQoffset) * c;
                 }
             }
             mQoffset += loadables[k]->GetSubBlockSize(i);
@@ -291,14 +290,14 @@ void ChLoadCustomMultiple::LoadIntLoadResidual_F(ChVectorDynamic<>& R, const dou
 }
 
 void ChLoadCustomMultiple::CreateJacobianMatrices() {
-    if (!this->jacobians) {
+    if (!jacobians) {
         // create jacobian structure
-        this->jacobians = new ChLoadJacobians;
+        jacobians = new ChLoadJacobians;
         // set variables for sparse KRM block appending them to mvars list
         std::vector<ChVariables*> mvars;
         for (int i = 0; i < loadables.size(); ++i)
             loadables[i]->LoadableGetVariables(mvars);
-        this->jacobians->SetVariables(mvars);
+        jacobians->SetVariables(mvars);
     }
 }
 

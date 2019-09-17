@@ -43,22 +43,22 @@ int main(int argc, char* argv[]) {
         // Note that we use shared pointers, so you don't
         // have to care about the deletion (never use delete.. for
         // objects managed with shared pointers! it will be automatic!)
-        auto my_body_A = std::make_shared<ChBody>();
-        auto my_body_B = std::make_shared<ChBody>();
-        auto my_body_C = std::make_shared<ChBody>();
+        auto my_body_A = chrono_types::make_shared<ChBody>();
+        auto my_body_B = chrono_types::make_shared<ChBody>();
+        auto my_body_C = chrono_types::make_shared<ChBody>();
 
         // Create some markers..
         // Markers are 'auxiliary coordinate systems' to be added
         // to rigid bodies.
         // Again, note that they are managed by shared pointers.
-        auto my_marker_a1 = std::make_shared<ChMarker>();
-        auto my_marker_a2 = std::make_shared<ChMarker>();
-        auto my_marker_b1 = std::make_shared<ChMarker>();
-        auto my_marker_b2 = std::make_shared<ChMarker>();
+        auto my_marker_a1 = chrono_types::make_shared<ChMarker>();
+        auto my_marker_a2 = chrono_types::make_shared<ChMarker>();
+        auto my_marker_b1 = chrono_types::make_shared<ChMarker>();
+        auto my_marker_b2 = chrono_types::make_shared<ChMarker>();
 
         // You can create some forces too...
-        auto my_force_a1 = std::make_shared<ChForce>();
-        auto my_force_a2 = std::make_shared<ChForce>();
+        auto my_force_a1 = chrono_types::make_shared<ChForce>();
+        auto my_force_a2 = chrono_types::make_shared<ChForce>();
 
         // Here you will add forces and markers to rigid
         // bodies.
@@ -112,9 +112,9 @@ int main(int argc, char* argv[]) {
         ChSystemNSC my_system;
 
         // Create three rigid bodies and add them to the system:
-        auto my_body_A = std::make_shared<ChBody>();
-        auto my_body_B = std::make_shared<ChBody>();
-        auto my_body_C = std::make_shared<ChBody>();
+        auto my_body_A = chrono_types::make_shared<ChBody>();
+        auto my_body_B = chrono_types::make_shared<ChBody>();
+        auto my_body_C = chrono_types::make_shared<ChBody>();
 
         my_body_A->SetName("truss");
         my_body_B->SetName("crank");
@@ -131,8 +131,8 @@ int main(int argc, char* argv[]) {
 
         // Create two markers and add them to two bodies:
         // they will be used as references for 'rod-crank'link.
-        auto my_marker_b = std::make_shared<ChMarker>();
-        auto my_marker_c = std::make_shared<ChMarker>();
+        auto my_marker_b = chrono_types::make_shared<ChMarker>();
+        auto my_marker_c = chrono_types::make_shared<ChMarker>();
 
         my_marker_b->SetName("crank_rev");
         my_marker_c->SetName("rod_rev");
@@ -147,7 +147,7 @@ int main(int argc, char* argv[]) {
 
         // Now create a mechanical link (a revolute joint)
         // between these two markers, and insert in system:
-        auto my_link_BC = std::make_shared<ChLinkLockRevolute>();
+        auto my_link_BC = chrono_types::make_shared<ChLinkLockRevolute>();
         my_link_BC->Initialize(my_marker_b, my_marker_c);
         my_link_BC->SetName("REVOLUTE crank-rod");
         my_system.AddLink(my_link_BC);
@@ -158,7 +158,7 @@ int main(int argc, char* argv[]) {
         // automatically created and added to the two bodies)
         // i.e. is using two bodies and a position as arguments..
         // For example, to create the rod-truss constraint:
-        auto my_link_CA = std::make_shared<ChLinkLockPointLine>();
+        auto my_link_CA = chrono_types::make_shared<ChLinkLockPointLine>();
         my_link_CA->Initialize(my_body_C, my_body_A, ChCoordsys<>(ChVector<>(6, 0, 0)));
         my_system.AddLink(my_link_CA);
 
@@ -167,10 +167,10 @@ int main(int argc, char* argv[]) {
         my_link_CA->SetName("POINTLINE rod-truss");
 
         // Now create a 'motor' link between crank and truss, in 'imposed speed' mode:
-        auto my_motor_AB = std::make_shared<ChLinkMotorRotationSpeed>();
+        auto my_motor_AB = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
         my_motor_AB->SetName("MOTOR truss-crank");
         my_motor_AB->Initialize(my_body_A, my_body_B, ChFrame<>(ChVector<>(0, 0, 0)));
-        my_motor_AB->SetSpeedFunction(std::make_shared<ChFunction_Const>(CH_C_PI));
+        my_motor_AB->SetSpeedFunction(chrono_types::make_shared<ChFunction_Const>(CH_C_PI));
         my_system.AddLink(my_motor_AB);
 
         GetLog() << "\n\n\nHere's the system hierarchy for slider-crank: \n\n ";

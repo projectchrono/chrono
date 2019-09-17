@@ -42,16 +42,16 @@ const ChCoordsys<> M113_Chassis::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuate
 // -----------------------------------------------------------------------------
 M113_Chassis::M113_Chassis(const std::string& name, bool fixed, ChassisCollisionType chassis_collision_type)
     : ChRigidChassis(name, fixed) {
-    m_inertia.SetElement(0, 0, m_inertiaXX.x());
-    m_inertia.SetElement(1, 1, m_inertiaXX.y());
-    m_inertia.SetElement(2, 2, m_inertiaXX.z());
+    m_inertia(0, 0) = m_inertiaXX.x();
+    m_inertia(1, 1) = m_inertiaXX.y();
+    m_inertia(2, 2) = m_inertiaXX.z();
 
-    m_inertia.SetElement(0, 1, m_inertiaXY.x());
-    m_inertia.SetElement(0, 2, m_inertiaXY.y());
-    m_inertia.SetElement(1, 2, m_inertiaXY.z());
-    m_inertia.SetElement(1, 0, m_inertiaXY.x());
-    m_inertia.SetElement(2, 0, m_inertiaXY.y());
-    m_inertia.SetElement(2, 1, m_inertiaXY.z());
+    m_inertia(0, 1) = m_inertiaXY.x();
+    m_inertia(0, 2) = m_inertiaXY.y();
+    m_inertia(1, 2) = m_inertiaXY.z();
+    m_inertia(1, 0) = m_inertiaXY.x();
+    m_inertia(2, 0) = m_inertiaXY.y();
+    m_inertia(2, 1) = m_inertiaXY.z();
 
     // Belly shape (all dimensions in cm)
     // width: 170

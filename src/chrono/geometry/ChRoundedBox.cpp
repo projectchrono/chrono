@@ -26,7 +26,7 @@ CH_FACTORY_REGISTER(ChRoundedBox)
 ChRoundedBox::ChRoundedBox(const ChRoundedBox& source) {
     Pos = source.Pos;
     Size = source.Size;
-    Rot.CopyFromMatrix(source.Rot);
+    Rot = source.Rot;
 }
 
 ChRoundedBox::ChRoundedBox(const ChVector<>& mC0, const ChVector<>& mC1, const ChVector<>& mC2, const ChVector<>& mC3) {
@@ -161,14 +161,14 @@ void ChRoundedBox::GetBoundingBox(double& xmin,
         p7 = GetP7();
         p8 = GetP8();
     } else {
-        p1 = bbRot->MatrT_x_Vect(GetP1());
-        p2 = bbRot->MatrT_x_Vect(GetP2());
-        p3 = bbRot->MatrT_x_Vect(GetP3());
-        p4 = bbRot->MatrT_x_Vect(GetP4());
-        p5 = bbRot->MatrT_x_Vect(GetP5());
-        p6 = bbRot->MatrT_x_Vect(GetP6());
-        p7 = bbRot->MatrT_x_Vect(GetP7());
-        p8 = bbRot->MatrT_x_Vect(GetP8());
+        p1 = bbRot->transpose() * GetP1();
+        p2 = bbRot->transpose() * GetP2();
+        p3 = bbRot->transpose() * GetP3();
+        p4 = bbRot->transpose() * GetP4();
+        p5 = bbRot->transpose() * GetP5();
+        p6 = bbRot->transpose() * GetP6();
+        p7 = bbRot->transpose() * GetP7();
+        p8 = bbRot->transpose() * GetP8();
     }
 
     if (p1.x() > xmax)
@@ -316,7 +316,7 @@ void ChRoundedBox::ArchiveIN(ChArchiveIn& marchive) {
     ChVolume::ArchiveIN(marchive);
     // stream in all member data:
     marchive >> CHNVP(Pos);
-    marchive >> CHNVP(Rot);
+    ////marchive >> CHNVP(Rot);
     ChVector<> Lengths;
     marchive >> CHNVP(Lengths);
     SetLengths(Lengths);

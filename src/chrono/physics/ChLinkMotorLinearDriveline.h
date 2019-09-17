@@ -107,6 +107,9 @@ class ChApi ChLinkMotorLinearDriveline : public ChLinkMotorLinear {
     /// Get the current actuator reaction torque [Nm]
     virtual double GetMotorForce() const override { return GetInnerForce1();}
 
+	// Setup. Compute offsets of sub-objects, offsetting all the contained sub objects (the inner shafts)
+    virtual void Setup() override;
+
     // Update. Also relinks the innerconstraints.
     void Update(double mytime, bool update_assets) override;
 

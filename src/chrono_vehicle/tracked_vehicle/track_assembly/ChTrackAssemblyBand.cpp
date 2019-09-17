@@ -27,6 +27,7 @@
 
 #include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblyBand.h"
 
+#include "chrono/core/ChLog.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 namespace chrono {
@@ -313,7 +314,7 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
     double LengthOfArcs = 0;
     double LengthOfTangents = 0;
 
-    for (int i = 0; i < Arcs.GetRows(); i++) {
+    for (int i = 0; i < Arcs.rows(); i++) {
         LengthOfArcs += (Arcs(i, 0) * CircleRadius[i]);
         LengthOfTangents += (TangentPoints[i].second - TangentPoints[i].first).Length();
     }
@@ -410,7 +411,7 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
             ChVector2<> StartingPoint = shoe_points[shoeidx - 1];
 
             // Make sure that all the features are only searched once to prevent and endless loop
-            for (int c = 0; c < Features.GetRows(); c++) {
+            for (int c = 0; c < Features.rows(); c++) {
                 if (Features(CurrentFeature, 0) == 0) {
                     CheckCircleCircle(FoundPoint, Point, Features, CurrentFeature, StartingPoint,
                                       connection_lengths[shoelinktype]);
@@ -425,13 +426,13 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
 
                 InitalSprocketWrap = false;
                 CurrentFeature += 1;
-                if (CurrentFeature >= Features.GetRows()) {
+                if (CurrentFeature >= Features.rows()) {
                     CurrentFeature = 0;
                 }
             }
 
             if (!FoundPoint) {
-                std::cout << "Belt Assembly ERROR: Something went wrong" << std::endl;
+                GetLog() << "Belt Assembly ERROR: Something went wrong\n";
                 assert(FoundPoint);
                 return true;
             }
@@ -475,8 +476,8 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
         }
 
         if (std::abs(ExtraLength) < Tolerance) {
-            std::cout << "Belt Wrap Algorithm Conveged after " << iter << " iterations - Extra Length: " << ExtraLength
-                      << " - Length Tolerance: " << Tolerance << std::endl;
+            GetLog() << "Belt Wrap Algorithm Conveged after " << iter << " iterations - Extra Length: " << ExtraLength
+                      << " - Length Tolerance: " << Tolerance << "\n";
             break;
         }
 

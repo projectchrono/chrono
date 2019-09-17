@@ -155,12 +155,12 @@ int out_fps = 60;
 double CreateParticles(ChSystem* system) {
     // Create a material
 #ifdef USE_SMC
-    auto mat_g = std::make_shared<ChMaterialSurfaceSMC>();
+    auto mat_g = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     mat_g->SetYoungModulus(1e8f);
     mat_g->SetFriction(mu_g);
     mat_g->SetRestitution(0.4f);
 #else
-    auto mat_g = std::make_shared<ChMaterialSurfaceNSC>();
+    auto mat_g = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     mat_g->SetFriction(mu_g);
 #endif
 
@@ -313,12 +313,12 @@ int main(int argc, char* argv[]) {
 
     // Contact material
 #ifdef USE_SMC
-    auto mat_g = std::make_shared<ChMaterialSurfaceSMC>();
+    auto mat_g = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     mat_g->SetYoungModulus(1e8f);
     mat_g->SetFriction(mu_g);
     mat_g->SetRestitution(0.4f);
 #else
-    auto mat_g = std::make_shared<ChMaterialSurfaceNSC>();
+    auto mat_g = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     mat_g->SetFriction(mu_g);
 #endif
 

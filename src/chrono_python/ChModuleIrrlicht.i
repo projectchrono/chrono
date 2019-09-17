@@ -20,6 +20,7 @@
 // Turn on the documentation of members, for more intuitive IDE typing
 
 %feature("autodoc", "1");
+%feature("flatnested", "1");
 
 
 // Turn on the exception handling to intercept C++ exceptions
@@ -45,6 +46,9 @@
 // Include C++ headers this way...
 
 %{
+#include "chrono/solver/ChSolver.h"
+#include "chrono/solver/ChIterativeSolver.h"
+#include "chrono/solver/ChSolverMINRES.h"
 
 #include <irrlicht.h>
 #include "chrono_irrlicht/ChIrrAppInterface.h"
@@ -127,10 +131,11 @@ using namespace gui;
 // in the .i file, before the %include of the .h, even if already forwarded in .h
 
 
-%import  "ChClassFactory.i"
-%import  "ChSystem.i"
-%import  "ChAsset.i"
-%import  "ChVector.i"
+%import(module = "pychrono.core")  "ChClassFactory.i"
+%import(module = "pychrono.core")  "ChSystem.i"
+%import(module = "pychrono.core")  "ChAsset.i"
+%import(module = "pychrono.core")  "ChVector.i"
+%import(module = "pychrono.core")  "ChCoordsys.i"
 
 %include "IReferenceCounted.h"
 %include "IImage.h"
@@ -146,6 +151,8 @@ using namespace gui;
 %template(vector3di) irr::core::vector3d<irr::s32>;
 %include "SColor.h"
 %include "IVideoDriver.h"
+%include "ISceneNode.h"
+%include "ICameraSceneNode.h"
 %include "IrrlichtDevice.h"
 %include "ISceneNode.h"
 %include "ISceneManager.h"

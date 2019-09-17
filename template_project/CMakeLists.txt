@@ -97,6 +97,16 @@ endif()
 
 include_directories(${CHRONO_INCLUDE_DIRS})
 
+#-----------------------------------------------------------------------------
+# Fix for VS 2017 15.8 and newer to handle alignment specification with Eigen
+#-----------------------------------------------------------------------------
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  if(MSVC AND ${MSVC_VERSION} GREATER_EQUAL 1915)
+    add_definitions( "-D_ENABLE_EXTENDED_ALIGNED_STORAGE" )
+  endif()
+endif()
+
 #--------------------------------------------------------------
 # Tweaks to disable some warnings with MSVC
 #--------------------------------------------------------------

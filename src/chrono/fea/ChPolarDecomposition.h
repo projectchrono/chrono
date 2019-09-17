@@ -105,7 +105,7 @@ class ChApi ChPolarDecomposition {
                           ChMatrix33<Real>& S,        ///< resulting 3x3 symmetric output matrix
                           double tolerance = 1e-6     ///< tolerance of the computation
     ) {
-        return PolarDecomposition::Compute(M.GetAddress(), Q.GetAddress(), S.GetAddress());
+        return PolarDecomposition::Compute(M.data(), Q.data(), S.data());
     }
 };
 

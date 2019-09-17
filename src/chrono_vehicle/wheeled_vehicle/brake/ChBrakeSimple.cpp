@@ -25,7 +25,7 @@ namespace chrono {
 namespace vehicle {
 
 ChBrakeSimple::ChBrakeSimple(const std::string& name) : ChBrake(name), m_modulation(0) {
-    m_brake = std::make_shared<ChLinkBrake>();
+    m_brake = chrono_types::make_shared<ChLinkBrake>();
 }
 
 void ChBrakeSimple::Initialize(std::shared_ptr<ChLinkLockRevolute> hub) {

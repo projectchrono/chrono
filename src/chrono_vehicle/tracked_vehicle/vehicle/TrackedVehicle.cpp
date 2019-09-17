@@ -16,26 +16,11 @@
 //
 // =============================================================================
 
-#include <cstdio>
-
-#include "chrono/ChConfig.h"
-
-#include "chrono/assets/ChColorAsset.h"
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChSphereShape.h"
-#include "chrono/assets/ChTexture.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
-#include "chrono/physics/ChGlobal.h"
-
-#include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/chassis/RigidChassis.h"
-#include "chrono_vehicle/tracked_vehicle/driveline/SimpleTrackDriveline.h"
-#include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyBandBushing.h"
-#include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyDoublePin.h"
-#include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblySinglePin.h"
-#include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyBandANCF.h"
 #include "chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
 
+#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
+//
 #include "chrono_thirdparty/rapidjson/document.h"
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
 
@@ -43,117 +28,6 @@ using namespace rapidjson;
 
 namespace chrono {
 namespace vehicle {
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void TrackedVehicle::LoadChassis(const std::string& filename, int output) {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
-
-    // Check that the given file is a chassis specification file.
-    assert(d.HasMember("Type"));
-    std::string type = d["Type"].GetString();
-    assert(type.compare("Chassis") == 0);
-
-    // Extract the chassis type.
-    assert(d.HasMember("Template"));
-    std::string subtype = d["Template"].GetString();
-
-    // Create the steering using the appropriate template.
-    if (subtype.compare("RigidChassis") == 0) {
-        m_chassis = std::make_shared<RigidChassis>(d);
-    }
-
-    // A non-zero value of 'output' indicates overwriting the subsystem's flag
-    if (output != 0) {
-        m_chassis->SetOutput(output == +1);
-    }
-
-    GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void TrackedVehicle::LoadTrackAssembly(const std::string& filename, VehicleSide side, int output) {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
-
-    // Check that the given file is a steering specification file.
-    assert(d.HasMember("Type"));
-    std::string type = d["Type"].GetString();
-    assert(type.compare("TrackAssembly") == 0);
-
-    // Extract the track assembly type.
-    assert(d.HasMember("Template"));
-    std::string subtype = d["Template"].GetString();
-
-    // Create the steering using the appropriate template.
-    if (subtype.compare("TrackAssemblySinglePin") == 0) {
-        m_tracks[side] = std::make_shared<TrackAssemblySinglePin>(d);
-    } else if (subtype.compare("TrackAssemblyDoublePin") == 0) {
-        m_tracks[side] = std::make_shared<TrackAssemblyDoublePin>(d);
-    } else if (subtype.compare("TrackAssemblyBandBushing") == 0) {
-        m_tracks[side] = std::make_shared<TrackAssemblyBandBushing>(d);
-    } else if (subtype.compare("TrackAssemblyBandANCF") == 0) {
-        m_tracks[side] = std::make_shared<TrackAssemblyBandANCF>(d);
-    }
-
-    // A non-zero value of 'output' indicates overwriting the subsystem's flag
-    if (output != 0) {
-        m_tracks[side]->SetOutput(output == +1);
-    }
-
-    GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void TrackedVehicle::LoadDriveline(const std::string& filename, int output) {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
-
-    // Check that the given file is a driveline specification file.
-    assert(d.HasMember("Type"));
-    std::string type = d["Type"].GetString();
-    assert(type.compare("TrackDriveline") == 0);
-
-    // Extract the driveline type.
-    assert(d.HasMember("Template"));
-    std::string subtype = d["Template"].GetString();
-
-    // Create the driveline using the appropriate template.
-    if (subtype.compare("SimpleTrackDriveline") == 0) {
-        m_driveline = std::make_shared<SimpleTrackDriveline>(d);
-    }
-
-    // A non-zero value of 'output' indicates overwriting the subsystem's flag
-    if (output != 0) {
-        m_driveline->SetOutput(output == +1);
-    }
-
-    GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
-}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -202,11 +76,10 @@ void TrackedVehicle::Create(const std::string& filename) {
 
     {
         std::string file_name = d["Chassis"]["Input File"].GetString();
-        int output = 0;
+        m_chassis = ReadChassisJSON(vehicle::GetDataFile(file_name));
         if (d["Chassis"].HasMember("Output")) {
-            output = d["Chassis"]["Output"].GetBool() ? +1 : -1;
+            m_chassis->SetOutput(d["Chassis"]["Output"].GetBool());
         }
-        LoadChassis(vehicle::GetDataFile(file_name), output);
     }
 
     // ------------------------------------
@@ -220,20 +93,18 @@ void TrackedVehicle::Create(const std::string& filename) {
 
     {
         std::string file_name = d["Track Assemblies"][0u]["Input File"].GetString();
-        int output = 0;
+        m_tracks[VehicleSide::LEFT] = ReadTrackAssemblySON(vehicle::GetDataFile(file_name));
         if (d["Track Assemblies"][0u].HasMember("Output")) {
-            output = d["Track Assemblies"][0u]["Output"].GetBool() ? +1 : -1;
+            m_tracks[VehicleSide::LEFT]->SetOutput(d["Track Assemblies"][0u]["Output"].GetBool());
         }
-        LoadTrackAssembly(vehicle::GetDataFile(file_name), VehicleSide::LEFT, output);
         m_track_offset[LEFT] = d["Track Assemblies"][0u]["Offset"].GetDouble();
     }
     {
         std::string file_name = d["Track Assemblies"][1u]["Input File"].GetString();
-        int output = 0;
+        m_tracks[VehicleSide::RIGHT] = ReadTrackAssemblySON(vehicle::GetDataFile(file_name));
         if (d["Track Assemblies"][1u].HasMember("Output")) {
-            output = d["Track Assemblies"][1u]["Output"].GetBool() ? +1 : -1;
+            m_tracks[VehicleSide::RIGHT]->SetOutput(d["Track Assemblies"][1u]["Output"].GetBool());
         }
-        LoadTrackAssembly(vehicle::GetDataFile(file_name), VehicleSide::RIGHT, output);
         m_track_offset[RIGHT] = d["Track Assemblies"][1u]["Offset"].GetDouble();
     }
 
@@ -245,11 +116,10 @@ void TrackedVehicle::Create(const std::string& filename) {
 
     {
         std::string file_name = d["Driveline"]["Input File"].GetString();
-        int output = 0;
+        m_driveline = ReadTrackDrivelineJSON(vehicle::GetDataFile(file_name));
         if (d["Driveline"].HasMember("Output")) {
-            output = d["Driveline"]["Output"].GetBool() ? +1 : -1;
+            m_driveline->SetOutput(d["Driveline"]["Output"].GetBool());
         }
-        LoadDriveline(vehicle::GetDataFile(file_name), output);
     }
 
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";

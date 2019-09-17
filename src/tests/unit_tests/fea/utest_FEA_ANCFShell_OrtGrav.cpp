@@ -50,7 +50,7 @@ const double precision = 5e-7;  // Used to accept/reject implementation
 int main(int argc, char* argv[]) {
     // Utils to open/read files: Load reference solution ("golden") file
     ChMatrixDynamic<> FileInputMat(2000, 4);
-    std::string LamGravShell_Val_File = GetChronoDataPath() + "testing/" + "UT_ANCFShellOrtGrav.txt";
+    std::string LamGravShell_Val_File = GetChronoDataPath() + "testing/fea/UT_ANCFShellOrtGrav.txt";
     std::ifstream fileMid(LamGravShell_Val_File);
     if (!fileMid.is_open()) {
         fileMid.open(LamGravShell_Val_File);
@@ -60,7 +60,7 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
     for (int x = 0; x < 2000; x++) {
-        fileMid >> FileInputMat[x][0] >> FileInputMat[x][1] >> FileInputMat[x][2] >> FileInputMat[x][3];
+        fileMid >> FileInputMat(x, 0) >> FileInputMat(x, 1) >> FileInputMat(x, 2) >> FileInputMat(x, 3);
     }
     fileMid.close();
 
@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
     double dz = plate_lenght_z / numDiv_z;
 
     // Create the mesh
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     // Create and add the nodes
     for (int i = 0; i < TotalNumNodes; i++) {
@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
         double dir_z = cos(CH_C_PI / 2 / numDiv_x * (i % (numDiv_x + 1)));
 
         // Create the node
-        auto node = std::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z));
+        auto node = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z));
 
         node->SetMass(0);
 
@@ -137,7 +137,7 @@ int main(int argc, char* argv[]) {
     ChVector<> E(6e8, 3e8, 3e8);
     ChVector<> nu(0.3, 0.3, 0.3);
     ChVector<> G(1.1538e8, 1.1538e8, 1.1538e8);
-    auto mat = std::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
+    auto mat = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
 
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
@@ -147,7 +147,7 @@ int main(int argc, char* argv[]) {
         int node2 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + 1 + N_x;
         int node3 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + N_x;
         // Create the element and set its nodes.
-        auto element = std::make_shared<ChElementShellANCF>();
+        auto element = chrono_types::make_shared<ChElementShellANCF>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node2)),
@@ -214,7 +214,7 @@ int main(int argc, char* argv[]) {
         // std::cout << "nodetip->pos.z = " << nodetip->pos.z << "\n";
         // std::cout << "mystepper->GetNumIterations()= " << mystepper->GetNumIterations() << "\n";
         // Check vertical displacement of the shell tip
-        double AbsVal = std::abs(nodetip->pos.z() - FileInputMat[it][1]);
+        double AbsVal = std::abs(nodetip->pos.z() - FileInputMat(it, 1));
         if (AbsVal > precision) {
             std::cout << "Unit test check failed \n";
             return 1;

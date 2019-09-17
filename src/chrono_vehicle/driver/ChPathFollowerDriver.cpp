@@ -22,6 +22,7 @@
 #include <algorithm>
 
 #include "chrono/core/ChMathematics.h"
+#include "chrono/assets/ChLineShape.h"
 #include "chrono/geometry/ChLineBezier.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
@@ -71,8 +72,8 @@ void ChPathFollowerDriver::Create() {
 
     auto bezier_curve = m_steeringPID.GetPath();
     auto num_points = static_cast<unsigned int>(bezier_curve->getNumPoints());
-    auto path_asset = std::make_shared<ChLineShape>();
-    path_asset->SetLineGeometry(std::make_shared<geometry::ChLineBezier>(bezier_curve));
+    auto path_asset = chrono_types::make_shared<ChLineShape>();
+    path_asset->SetLineGeometry(chrono_types::make_shared<geometry::ChLineBezier>(bezier_curve));
     path_asset->SetColor(ChColor(0.0f, 0.8f, 0.0f));
     path_asset->SetName(m_pathName);
     path_asset->SetNumRenderPoints(std::max<unsigned int>(2 * num_points, 400));
@@ -158,8 +159,8 @@ void ChPathFollowerDriverXT::Create() {
 
     auto bezier_curve = m_steeringXT.GetPath();
     auto num_points = static_cast<unsigned int>(bezier_curve->getNumPoints());
-    auto path_asset = std::make_shared<ChLineShape>();
-    path_asset->SetLineGeometry(std::make_shared<geometry::ChLineBezier>(bezier_curve));
+    auto path_asset = chrono_types::make_shared<ChLineShape>();
+    path_asset->SetLineGeometry(chrono_types::make_shared<geometry::ChLineBezier>(bezier_curve));
     path_asset->SetColor(ChColor(0.0f, 0.8f, 0.0f));
     path_asset->SetName(m_pathName);
     path_asset->SetNumRenderPoints(std::max<unsigned int>(2 * num_points, 400));
@@ -247,8 +248,8 @@ void ChPathFollowerDriverSR::Create() {
 
     auto bezier_curve = m_steeringSR.GetPath();
     auto num_points = static_cast<unsigned int>(bezier_curve->getNumPoints());
-    auto path_asset = std::make_shared<ChLineShape>();
-    path_asset->SetLineGeometry(std::make_shared<geometry::ChLineBezier>(bezier_curve));
+    auto path_asset = chrono_types::make_shared<ChLineShape>();
+    path_asset->SetLineGeometry(chrono_types::make_shared<geometry::ChLineBezier>(bezier_curve));
     path_asset->SetColor(ChColor(0.0f, 0.8f, 0.0f));
     path_asset->SetName(m_pathName);
     path_asset->SetNumRenderPoints(std::max<unsigned int>(2 * num_points, 400));

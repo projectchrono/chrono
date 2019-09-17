@@ -15,7 +15,6 @@
 
 #include "chrono/solver/ChConstraintTuple.h"
 #include "chrono/physics/ChMaterialSurface.h"
-#include "chrono/core/ChVectorDynamic.h"
 #include "chrono/core/ChMatrix33.h"
 #include "chrono/timestepper/ChState.h"
 
@@ -135,7 +134,7 @@ class ChContactable_1vars : public ChContactable, public ChVariableTupleCarrier_
                                                       type_constraint_tuple& jacobian_tuple_N,
                                                       type_constraint_tuple& jacobian_tuple_U,
                                                       type_constraint_tuple& jacobian_tuple_V,
-                                                      bool second){};
+                                                      bool second) {}
 };
 
 // Note that template T1 and T2 are the number of DOFs in the referenced ChVariable s, 
@@ -163,7 +162,7 @@ class ChContactable_2vars : public ChContactable, public ChVariableTupleCarrier_
                                                       type_constraint_tuple& jacobian_tuple_N,
                                                       type_constraint_tuple& jacobian_tuple_U,
                                                       type_constraint_tuple& jacobian_tuple_V,
-                                                      bool second){};
+                                                      bool second) {}
 };
 
 // Note that template T1 and T2 and T3 are the number of DOFs in the referenced ChVariable s, 
@@ -191,8 +190,7 @@ class ChContactable_3vars : public ChContactable, public ChVariableTupleCarrier_
                                                       type_constraint_tuple& jacobian_tuple_N,
                                                       type_constraint_tuple& jacobian_tuple_U,
                                                       type_constraint_tuple& jacobian_tuple_V,
-                                                      bool second){};
-
+                                                      bool second) {}
 };
 
 }  // end namespace chrono

@@ -46,43 +46,43 @@ void Sedan_Vehicle::Create(bool fixed, ChassisCollisionType chassis_collision_ty
     // -------------------------------------------
     // Create the chassis subsystem
     // -------------------------------------------
-    m_chassis = std::make_shared<Sedan_Chassis>("Chassis", fixed, chassis_collision_type);
+    m_chassis = chrono_types::make_shared<Sedan_Chassis>("Chassis", fixed, chassis_collision_type);
 
     // -------------------------------------------
     // Create the suspension subsystems
     // -------------------------------------------
     m_suspensions.resize(2);
-    m_suspensions[0] = std::make_shared<Sedan_DoubleWishbone>("FrontSusp");
-    m_suspensions[1] = std::make_shared<Sedan_MultiLink>("RearSusp");
+    m_suspensions[0] = chrono_types::make_shared<Sedan_DoubleWishbone>("FrontSusp");
+    m_suspensions[1] = chrono_types::make_shared<Sedan_MultiLink>("RearSusp");
 
     // -----------------------------
     // Create the steering subsystem
     // -----------------------------
     m_steerings.resize(1);
-    m_steerings[0] = std::make_shared<Sedan_RackPinion>("Steering");
+    m_steerings[0] = chrono_types::make_shared<Sedan_RackPinion>("Steering");
 
     // -----------------
     // Create the wheels
     // -----------------
     m_wheels.resize(4);
-    m_wheels[0] = std::make_shared<Sedan_WheelLeft>("Wheel_FL");
-    m_wheels[1] = std::make_shared<Sedan_WheelRight>("Wheel_FR");
-    m_wheels[2] = std::make_shared<Sedan_WheelLeft>("Wheel_RL");
-    m_wheels[3] = std::make_shared<Sedan_WheelRight>("Wheel_RR");
+    m_wheels[0] = chrono_types::make_shared<Sedan_WheelLeft>("Wheel_FL");
+    m_wheels[1] = chrono_types::make_shared<Sedan_WheelRight>("Wheel_FR");
+    m_wheels[2] = chrono_types::make_shared<Sedan_WheelLeft>("Wheel_RL");
+    m_wheels[3] = chrono_types::make_shared<Sedan_WheelRight>("Wheel_RR");
 
     // --------------------
     // Create the driveline
     // --------------------
-    m_driveline = std::make_shared<Sedan_Driveline2WD>("Driveline");
+    m_driveline = chrono_types::make_shared<Sedan_Driveline2WD>("Driveline");
 
     // -----------------
     // Create the brakes
     // -----------------
     m_brakes.resize(4);
-    m_brakes[0] = std::make_shared<Sedan_BrakeSimple>("Brake_FL");
-    m_brakes[1] = std::make_shared<Sedan_BrakeSimple>("Brake_FR");
-    m_brakes[2] = std::make_shared<Sedan_BrakeSimple>("Brake_RL");
-    m_brakes[3] = std::make_shared<Sedan_BrakeSimple>("Brake_RR");
+    m_brakes[0] = chrono_types::make_shared<Sedan_BrakeSimple>("Brake_FL");
+    m_brakes[1] = chrono_types::make_shared<Sedan_BrakeSimple>("Brake_FR");
+    m_brakes[2] = chrono_types::make_shared<Sedan_BrakeSimple>("Brake_RL");
+    m_brakes[3] = chrono_types::make_shared<Sedan_BrakeSimple>("Brake_RR");
 }
 
 Sedan_Vehicle::~Sedan_Vehicle() {}

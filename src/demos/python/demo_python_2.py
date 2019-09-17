@@ -21,6 +21,7 @@ my_system = chrono.ChSystemNSC()
 # Add two bodies
 my_shbodyA = chrono.ChBody()
 my_shbodyA.SetMass(20)
+my_shbodyA.SetName('BodyA')
 my_shbodyA.SetInertiaXX( chrono.ChVectorD(10,10,10) )
 print (my_shbodyA.GetInertia() )
 my_shbodyA.SetPos(chrono.ChVectorD(1,-1,0))
@@ -29,6 +30,7 @@ my_shbodyA.SetBodyFixed(True)
 my_shbodyA.SetCollide(True)
 
 my_shbodyB = chrono.ChBody()
+my_shbodyB.SetName('BodyB')
 my_shbodyB.SetPos(chrono.ChVectorD(0,2,0))
 my_shbodyB.GetCollisionModel().AddBox(1,1,1)
 my_shbodyB.SetCollide(True)
@@ -61,11 +63,15 @@ my_shbodyB.SetMaterialSurface(my_shmaterial)
 ##my_system.SetCustomCollisionPointCallback(my_call)
 
 # Report Contact callback
-class MyReportContactCallback(chrono.ChReportContactCallbackP):
+class MyReportContactCallback(chrono.ReportContactCallback):
     def __init__(self):
-         chrono.ChReportContactCallbackP.__init__(self)
+         chrono.ReportContactCallback.__init__(self)
     def OnReportContact(self,vA,vB,cA,dist,rad,force,torque,modA,modB):
-         print ('  contact: point A=' , vA,  '  dist=',dist)
+         bodyUpA = chrono.CastContactableToChBody(modA)
+         nameA = bodyUpA.GetName()
+         bodyUpB = chrono.CastContactableToChBody(modB)
+         nameB = bodyUpB.GetName()
+         print ('  contact: point A=' , vA,  '  dist=',dist, 'Body A:', nameA, 'Body B:', nameB)
          return True        # return False to stop reporting contacts
 
 my_rep = MyReportContactCallback()

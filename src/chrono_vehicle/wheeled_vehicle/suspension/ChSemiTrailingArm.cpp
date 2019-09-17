@@ -121,7 +121,7 @@ void ChSemiTrailingArm::InitializeSide(VehicleSide side,
 
     // Create and initialize the revolute joint between arm and spindle.
     ChCoordsys<> rev_csys(points[SPINDLE], chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
-    m_revolute[side] = std::make_shared<ChLinkLockRevolute>();
+    m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
     m_revolute[side]->Initialize(m_spindle[side], m_arm[side], rev_csys);
     chassis->GetSystem()->AddLink(m_revolute[side]);
@@ -137,20 +137,20 @@ void ChSemiTrailingArm::InitializeSide(VehicleSide side,
     u = Vcross(v, w);
     rot.Set_A_axis(u, v, w);
 
-    m_revoluteArm[side] = std::make_shared<ChLinkLockRevolute>();
+    m_revoluteArm[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revoluteArm[side]->SetNameString(m_name + "_revoluteArm" + suffix);
     m_revoluteArm[side]->Initialize(chassis, m_arm[side],
                                     ChCoordsys<>((points[TA_O] + points[TA_I]) / 2, rot.Get_A_quaternion()));
     chassis->GetSystem()->AddLink(m_revoluteArm[side]);
 
     // Create and initialize the spring/damper
-    m_shock[side] = std::make_shared<ChLinkSpringCB>();
+    m_shock[side] = chrono_types::make_shared<ChLinkSpringCB>();
     m_shock[side]->SetNameString(m_name + "_shock" + suffix);
     m_shock[side]->Initialize(chassis, m_arm[side], false, points[SHOCK_C], points[SHOCK_A]);
     m_shock[side]->RegisterForceFunctor(getShockForceFunctor());
     chassis->GetSystem()->AddLink(m_shock[side]);
 
-    m_spring[side] = std::make_shared<ChLinkSpringCB>();
+    m_spring[side] = chrono_types::make_shared<ChLinkSpringCB>();
     m_spring[side]->SetNameString(m_name + "_spring" + suffix);
     m_spring[side]->Initialize(chassis, m_arm[side], false, points[SPRING_C], points[SPRING_A], false,
                                getSpringRestLength());
@@ -159,13 +159,13 @@ void ChSemiTrailingArm::InitializeSide(VehicleSide side,
 
     // Create and initialize the axle shaft and its connection to the spindle. Note that the
     // spindle rotates about the Y axis.
-    m_axle[side] = std::make_shared<ChShaft>();
+    m_axle[side] = chrono_types::make_shared<ChShaft>();
     m_axle[side]->SetNameString(m_name + "_axle" + suffix);
     m_axle[side]->SetInertia(getAxleInertia());
     m_axle[side]->SetPos_dt(-ang_vel);
     chassis->GetSystem()->Add(m_axle[side]);
 
-    m_axle_to_spindle[side] = std::make_shared<ChShaftsBody>();
+    m_axle_to_spindle[side] = chrono_types::make_shared<ChShaftsBody>();
     m_axle_to_spindle[side]->SetNameString(m_name + "_axle_to_spindle" + suffix);
     m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector<>(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
@@ -216,22 +216,22 @@ void ChSemiTrailingArm::LogHardpointLocations(const ChVector<>& ref, bool inches
 // -----------------------------------------------------------------------------
 void ChSemiTrailingArm::LogConstraintViolations(VehicleSide side) {
     {
-        ChMatrix<>* C = m_revoluteArm[side]->GetC();
+        ChVectorDynamic<> C = m_revoluteArm[side]->GetC();
         GetLog() << "LCA revolute          ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "  ";
-        GetLog() << "  " << C->GetElement(3, 0) << "  ";
-        GetLog() << "  " << C->GetElement(4, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "  ";
+        GetLog() << "  " << C(4) << "\n";
     }
     {
-        ChMatrix<>* C = m_revolute[side]->GetC();
+        ChVectorDynamic<> C = m_revolute[side]->GetC();
         GetLog() << "Spindle revolute      ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "  ";
-        GetLog() << "  " << C->GetElement(3, 0) << "  ";
-        GetLog() << "  " << C->GetElement(4, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "  ";
+        GetLog() << "  " << C(4) << "\n";
     }
 }
 
@@ -250,11 +250,11 @@ void ChSemiTrailingArm::AddVisualizationAssets(VisualizationType vis) {
                         getArmRadius());
 
     // Add visualization for the springs and shocks
-    m_spring[LEFT]->AddAsset(std::make_shared<ChPointPointSpring>(0.06, 150, 15));
-    m_spring[RIGHT]->AddAsset(std::make_shared<ChPointPointSpring>(0.06, 150, 15));
+    m_spring[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.06, 150, 15));
+    m_spring[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.06, 150, 15));
 
-    m_shock[LEFT]->AddAsset(std::make_shared<ChPointPointSegment>());
-    m_shock[RIGHT]->AddAsset(std::make_shared<ChPointPointSegment>());
+    m_shock[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
+    m_shock[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
 }
 
 void ChSemiTrailingArm::RemoveVisualizationAssets() {
@@ -286,27 +286,27 @@ void ChSemiTrailingArm::AddVisualizationArm(std::shared_ptr<ChBody> arm,
     ChVector<> p_AS = arm->TransformPointParentToLocal(pt_AS);
     ChVector<> p_S = arm->TransformPointParentToLocal(pt_S);
 
-    auto cyl_O = std::make_shared<ChCylinderShape>();
+    auto cyl_O = chrono_types::make_shared<ChCylinderShape>();
     cyl_O->GetCylinderGeometry().p1 = p_AC_O;
     cyl_O->GetCylinderGeometry().p2 = p_AS;
     cyl_O->GetCylinderGeometry().rad = radius;
     arm->AddAsset(cyl_O);
 
-    auto cyl_I = std::make_shared<ChCylinderShape>();
+    auto cyl_I = chrono_types::make_shared<ChCylinderShape>();
     cyl_I->GetCylinderGeometry().p1 = p_AC_I;
     cyl_I->GetCylinderGeometry().p2 = p_AS;
     cyl_I->GetCylinderGeometry().rad = radius;
     arm->AddAsset(cyl_I);
 
     if ((p_AS - p_S).Length2() > threshold2) {
-        auto cyl_S = std::make_shared<ChCylinderShape>();
+        auto cyl_S = chrono_types::make_shared<ChCylinderShape>();
         cyl_S->GetCylinderGeometry().p1 = p_AS;
         cyl_S->GetCylinderGeometry().p2 = p_S;
         cyl_S->GetCylinderGeometry().rad = radius;
         arm->AddAsset(cyl_S);
     }
 
-    auto col = std::make_shared<ChColorAsset>();
+    auto col = chrono_types::make_shared<ChColorAsset>();
     col->SetColor(ChColor(0.2f, 0.2f, 0.6f));
     arm->AddAsset(col);
 }

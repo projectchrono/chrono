@@ -70,4 +70,8 @@ Project Chrono represents a community effort aimed at producing a physics-based 
 - Scripting via Python.
 - Makefile system based on CMake (cross-platform, on Windows 32/64 bit, Linux, OSX).
 
+## CI/CD Status
+| Branch | Status |
+| ------ | ------ |
+| develop | [![pipeline status](https://gitlab.com/uwsbel/chrono/badges/develop/pipeline.svg)](https://gitlab.com/uwsbel/chrono/commits/develop) |
 

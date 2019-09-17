@@ -15,6 +15,7 @@
 
 #include "chrono/core/ChStream.h"
 #include "chrono/core/ChMatrix.h"
+#include "chrono/core/ChVector.h"
 #include "chrono/core/ChVector2.h"
 
 namespace chrono {
@@ -275,11 +276,11 @@ class ChApi ChFile_ps : public ChStreamOutAsciiFile {
 
     /// Draw a line into graph viewport, where the xy coords are stored in two
     /// separate arrays:
-    void DrawGraphXY(ChMatrix<>* Yvalues, ChMatrix<>* Xvalues);
+    void DrawGraphXY(const ChArray<>& Yvalues, const ChArray<>& Xvalues);
 
     /// Draw a line into graph viewport, where the y coords are into an array
     /// and x coords run form Xfrom... with steps Xsteps-
-    void DrawGraphXY(ChMatrix<>* Yvalues, double Xfrom, double Xstep);
+    void DrawGraphXY(const ChArray<>& Yvalues, double Xfrom, double Xstep);
 
     /// Draws a text label (with "fontsize" size) with potion relative to low-left corner
     /// of graph. If "dolinesample= true", also draws a little horizontal sample of line

@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
 
     // Create the floor:
 
-    auto floorBody = std::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true);
+    auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true);
     floorBody->SetPos(ChVector<>(0, -5, 0));
     floorBody->SetBodyFixed(true);
     floorBody->GetCollisionModel()->ClearModel();
@@ -79,12 +79,12 @@ int main(int argc, char* argv[]) {
     floorBody->GetCollisionModel()->AddBox(10, 12, 1, ChVector<>(0, 0, 5));
     floorBody->GetCollisionModel()->BuildModel();
 
-    auto mvisual = std::make_shared<ChColorAsset>();
+    auto mvisual = chrono_types::make_shared<ChColorAsset>();
     mvisual->SetColor(ChColor(0.0f, 1.0f, (float)ChRandom()));
     floorBody->AddAsset(mvisual);
 
     // Custom rendering in POVray:
-    auto mPOVcustom = std::make_shared<ChPovRayAssetCustom>();
+    auto mPOVcustom = chrono_types::make_shared<ChPovRayAssetCustom>();
     mPOVcustom->SetCommands(
         "texture{ pigment{ color rgb<1,1,1>}} \n\
                              texture{ Raster(4, 0.02, rgb<0.8,0.8,0.8>) } \n\
@@ -95,7 +95,7 @@ int main(int argc, char* argv[]) {
     floorBody->AddAsset(mPOVcustom);
 
     // Attach asset for marking it as renderable in PovRay
-    auto mpov_asset = std::make_shared<ChPovRayAsset>();
+    auto mpov_asset = chrono_types::make_shared<ChPovRayAsset>();
     floorBody->AddAsset(mpov_asset);
 
     mphysicalSystem.Add(floorBody);
@@ -123,7 +123,7 @@ int main(int argc, char* argv[]) {
     // inherit your own class from these randomizers if the choice is not enough).
 
     // ---Initialize the randomizer for positions
-    auto emitter_positions = std::make_shared<ChRandomParticlePositionRectangleOutlet>();
+    auto emitter_positions = chrono_types::make_shared<ChRandomParticlePositionRectangleOutlet>();
     emitter_positions->Outlet() =
         ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X));  // center and alignment of the outlet
     emitter_positions->OutletWidth() = 3.0;
@@ -131,11 +131,11 @@ int main(int argc, char* argv[]) {
     emitter.SetParticlePositioner(emitter_positions);
 
     // ---Initialize the randomizer for alignments
-    auto emitter_rotations = std::make_shared<ChRandomParticleAlignmentUniform>();
+    auto emitter_rotations = chrono_types::make_shared<ChRandomParticleAlignmentUniform>();
     emitter.SetParticleAligner(emitter_rotations);
 
     // ---Initialize the randomizer for velocities, with statistical distribution
-    auto mvelo = std::make_shared<ChRandomParticleVelocityConstantDirection>();
+    auto mvelo = chrono_types::make_shared<ChRandomParticleVelocityConstantDirection>();
     mvelo->SetDirection(-VECT_Y);
     mvelo->SetModulusDistribution(0.0);
 
@@ -148,10 +148,10 @@ int main(int argc, char* argv[]) {
     // A)
     // Create a ChRandomShapeCreator object (ex. here for sphere particles)
 
-    auto mcreator_spheres = std::make_shared<ChRandomShapeCreatorSpheres>();
+    auto mcreator_spheres = chrono_types::make_shared<ChRandomShapeCreatorSpheres>();
     mcreator_spheres->SetDiameterDistribution(
-        std::make_shared<ChZhangDistribution>(0.15, 0.03));  // Zhang parameters: average val, min val.
-    mcreator_spheres->SetDensityDistribution(std::make_shared<ChConstantDistribution>(1600));
+        chrono_types::make_shared<ChZhangDistribution>(0.15, 0.03));  // Zhang parameters: average val, min val.
+    mcreator_spheres->SetDensityDistribution(chrono_types::make_shared<ChConstantDistribution>(1600));
 
     // Optional: define a callback to be exectuted at each creation of a sphere particle:
     class MyCreator_spheres : public ChRandomShapeCreator::AddBodyCallback {
@@ -161,11 +161,11 @@ int main(int argc, char* argv[]) {
                                ChCoordsys<> mcoords,
                                ChRandomShapeCreator& mcreator) override {
             // Ex.: attach some optional assets, ex for visualization
-            auto mvisual = std::make_shared<ChColorAsset>();
+            auto mvisual = chrono_types::make_shared<ChColorAsset>();
             mvisual->SetColor(ChColor(0.4f, 0.4f, 0.4f));
             mbody->AddAsset(mvisual);
 
-            auto mPOVcustom = std::make_shared<ChPovRayAssetCustom>();
+            auto mPOVcustom = chrono_types::make_shared<ChPovRayAssetCustom>();
             mPOVcustom->SetCommands(" texture {finish { specular 0.9 } pigment{ color rgb<0.4,0.4,0.45>} }  \n");
             mbody->AddAsset(mPOVcustom);
         }
@@ -176,12 +176,12 @@ int main(int argc, char* argv[]) {
     // B)
     // Create a ChRandomShapeCreator object (ex. here for box particles)
 
-    auto mcreator_boxes = std::make_shared<ChRandomShapeCreatorBoxes>();
+    auto mcreator_boxes = chrono_types::make_shared<ChRandomShapeCreatorBoxes>();
     mcreator_boxes->SetXsizeDistribution(
-        std::make_shared<ChZhangDistribution>(0.20, 0.09));  // Zhang parameters: average val, min val.
-    mcreator_boxes->SetSizeRatioZDistribution(std::make_shared<ChMinMaxDistribution>(0.8, 1.0));
-    mcreator_boxes->SetSizeRatioYZDistribution(std::make_shared<ChMinMaxDistribution>(0.2, 0.3));
-    mcreator_boxes->SetDensityDistribution(std::make_shared<ChConstantDistribution>(1000));
+        chrono_types::make_shared<ChZhangDistribution>(0.20, 0.09));  // Zhang parameters: average val, min val.
+    mcreator_boxes->SetSizeRatioZDistribution(chrono_types::make_shared<ChMinMaxDistribution>(0.8, 1.0));
+    mcreator_boxes->SetSizeRatioYZDistribution(chrono_types::make_shared<ChMinMaxDistribution>(0.2, 0.3));
+    mcreator_boxes->SetDensityDistribution(chrono_types::make_shared<ChConstantDistribution>(1000));
 
     // Optional: define a callback to be exectuted at each creation of a box particle:
     class MyCreator_plastic : public ChRandomShapeCreator::AddBodyCallback {
@@ -192,7 +192,7 @@ int main(int argc, char* argv[]) {
                                ChRandomShapeCreator& mcreator) override {
             // Ex.: attach some optional assets, ex for visualization
             // Here do a quick randomization of POV colors, without using the ChRandomShapeCreatorFromFamilies
-            auto mPOVcustom = std::make_shared<ChPovRayAssetCustom>();
+            auto mPOVcustom = chrono_types::make_shared<ChPovRayAssetCustom>();
             mbody->AddAsset(mPOVcustom);
 
             double icol = ChRandom();
@@ -210,10 +210,10 @@ int main(int argc, char* argv[]) {
     // C)
     // Create a ChRandomShapeCreator object (ex. here for sphere particles)
 
-    auto mcreator_hulls = std::make_shared<ChRandomShapeCreatorConvexHulls>();
+    auto mcreator_hulls = chrono_types::make_shared<ChRandomShapeCreatorConvexHulls>();
     mcreator_hulls->SetChordDistribution(
-        std::make_shared<ChZhangDistribution>(0.3, 0.14));  // Zhang parameters: average val, min val.
-    mcreator_hulls->SetDensityDistribution(std::make_shared<ChConstantDistribution>(1600));
+        chrono_types::make_shared<ChZhangDistribution>(0.3, 0.14));  // Zhang parameters: average val, min val.
+    mcreator_hulls->SetDensityDistribution(chrono_types::make_shared<ChConstantDistribution>(1600));
 
     // Optional: define a callback to be exectuted at each creation of a sphere particle:
     class MyCreator_hulls : public ChRandomShapeCreator::AddBodyCallback {
@@ -223,11 +223,11 @@ int main(int argc, char* argv[]) {
                                ChCoordsys<> mcoords,
                                ChRandomShapeCreator& mcreator) override {
             // Ex.: attach some optional assets, ex for visualization
-            auto mvisual = std::make_shared<ChColorAsset>();
+            auto mvisual = chrono_types::make_shared<ChColorAsset>();
             mvisual->SetColor(ChColor(0.4f, 0.4f, 0.4f));
             mbody->AddAsset(mvisual);
 
-            auto mPOVcustom = std::make_shared<ChPovRayAssetCustom>();
+            auto mPOVcustom = chrono_types::make_shared<ChPovRayAssetCustom>();
             mPOVcustom->SetCommands(" texture {finish { specular 0.9 } pigment{ color rgb<0.3,0.4,0.6>} }  \n");
             mbody->AddAsset(mPOVcustom);
         }
@@ -238,12 +238,12 @@ int main(int argc, char* argv[]) {
     // D)
     // Create a ChRandomShapeCreator object (ex. here for sphere particles)
 
-    auto mcreator_shavings = std::make_shared<ChRandomShapeCreatorShavings>();
-    mcreator_shavings->SetDiameterDistribution(std::make_shared<ChMinMaxDistribution>(0.06, 0.1));
-    mcreator_shavings->SetLengthRatioDistribution(std::make_shared<ChMinMaxDistribution>(3, 6));
-    mcreator_shavings->SetTwistDistributionU(std::make_shared<ChMinMaxDistribution>(5, 9));
-    mcreator_shavings->SetTwistDistributionV(std::make_shared<ChMinMaxDistribution>(2, 3));
-    mcreator_shavings->SetDensityDistribution(std::make_shared<ChConstantDistribution>(1600));
+    auto mcreator_shavings = chrono_types::make_shared<ChRandomShapeCreatorShavings>();
+    mcreator_shavings->SetDiameterDistribution(chrono_types::make_shared<ChMinMaxDistribution>(0.06, 0.1));
+    mcreator_shavings->SetLengthRatioDistribution(chrono_types::make_shared<ChMinMaxDistribution>(3, 6));
+    mcreator_shavings->SetTwistDistributionU(chrono_types::make_shared<ChMinMaxDistribution>(5, 9));
+    mcreator_shavings->SetTwistDistributionV(chrono_types::make_shared<ChMinMaxDistribution>(2, 3));
+    mcreator_shavings->SetDensityDistribution(chrono_types::make_shared<ChConstantDistribution>(1600));
 
     // Optional: define a callback to be exectuted at each creation of a sphere particle:
     class MyCreator_shavings : public ChRandomShapeCreator::AddBodyCallback {
@@ -254,7 +254,7 @@ int main(int argc, char* argv[]) {
                                ChRandomShapeCreator& mcreator) override {
             // Ex.: attach some optional assets, ex for visualization
             float acolscale = (float)ChRandom();
-            auto mvisual = std::make_shared<ChColorAsset>();
+            auto mvisual = chrono_types::make_shared<ChColorAsset>();
             mvisual->SetColor(ChColor(0.3f + acolscale * 0.6f, 0.2f + acolscale * 0.7f, 0.2f + acolscale * 0.7f));
             mbody->AddAsset(mvisual);
         }
@@ -265,7 +265,7 @@ int main(int argc, char* argv[]) {
     // Create a parent ChRandomShapeCreator that 'mixes' some generators above,
     // mixing them with a given percentual:
 
-    auto mcreatorTot = std::make_shared<ChRandomShapeCreatorFromFamilies>();
+    auto mcreatorTot = chrono_types::make_shared<ChRandomShapeCreatorFromFamilies>();
     //    mcreatorTot->AddFamily(mcreator_metal, 1.0);    // 1st creator family, with percentual
     //    mcreatorTot->AddFamily(mcreator_boxes, 1.0);    // nth creator family, with percentual
     //    mcreatorTot->AddFamily(mcreator_hulls, 1.0);    // nth creator family, with percentual
@@ -293,7 +293,7 @@ int main(int argc, char* argv[]) {
             airrlicht_application->AssetUpdate(mbody);
 
             // Enable PovRay rendering
-            auto mpov_asset = std::make_shared<ChPovRayAsset>();
+            auto mpov_asset = chrono_types::make_shared<ChPovRayAsset>();
             mbody->AddAsset(mpov_asset);
 
             // Other stuff, ex. disable gyroscopic forces for increased integrator stabilty

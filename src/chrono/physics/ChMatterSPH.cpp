@@ -19,7 +19,6 @@
 #include "chrono/physics/ChSystem.h"
 
 #include "chrono/collision/ChCModelBullet.h"
-#include "chrono/core/ChLinearAlgebra.h"
 #include "chrono/physics/ChProximityContainerSPH.h"
 
 namespace chrono {
@@ -97,7 +96,7 @@ void ChNodeSPH::SetCollisionRadius(double mr) {
 }
 
 void ChNodeSPH::ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, ChVectorDynamic<>& R) {
-    R.PasteSumVector(F, NodeGetOffset_w() + 0, 0);
+    R.segment(NodeGetOffset_w(), 3) += F.eigen();
 }
 
 void ChNodeSPH::ComputeJacobianForContactPart(const ChVector<>& abs_point,
@@ -106,15 +105,13 @@ void ChNodeSPH::ComputeJacobianForContactPart(const ChVector<>& abs_point,
                                               type_constraint_tuple& jacobian_tuple_U,
                                               type_constraint_tuple& jacobian_tuple_V,
                                               bool second) {
-    ChMatrix33<> Jx1;
-
-    Jx1.CopyFromMatrixT(contact_plane);
+    ChMatrix33<> Jx1 = contact_plane.transpose();
     if (!second)
-        Jx1.MatrNeg();
+        Jx1 *= -1;
 
-    jacobian_tuple_N.Get_Cq()->PasteClippedMatrix(Jx1, 0, 0, 1, 3, 0, 0);
-    jacobian_tuple_U.Get_Cq()->PasteClippedMatrix(Jx1, 1, 0, 1, 3, 0, 0);
-    jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(Jx1, 2, 0, 1, 3, 0, 0);
+    jacobian_tuple_N.Get_Cq().segment(0, 3) = Jx1.row(0);
+    jacobian_tuple_U.Get_Cq().segment(0, 3) = Jx1.row(1);
+    jacobian_tuple_V.Get_Cq().segment(0, 3) = Jx1.row(2);
 }
 
 std::shared_ptr<ChMaterialSurface>& ChNodeSPH::GetMaterialSurface() {
@@ -210,7 +207,7 @@ void ChContinuumSPH::ArchiveIN(ChArchiveIn& marchive) {
 CH_FACTORY_REGISTER(ChMatterSPH)
 
 ChMatterSPH::ChMatterSPH() : do_collide(false) {
-    matsurface = std::make_shared<ChMaterialSurfaceNSC>();
+    matsurface = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 }
 
 ChMatterSPH::ChMatterSPH(const ChMatterSPH& other) : ChIndexedNodes(other) {
@@ -241,7 +238,7 @@ void ChMatterSPH::ResizeNnodes(int newsize) {
     nodes.resize(newsize);
 
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        nodes[j] = std::make_shared<ChNodeSPH>();
+        nodes[j] = chrono_types::make_shared<ChNodeSPH>();
 
         nodes[j]->SetContainer(this);
 
@@ -255,7 +252,7 @@ void ChMatterSPH::ResizeNnodes(int newsize) {
 }
 
 void ChMatterSPH::AddNode(ChVector<double> initial_state) {
-    auto newp = std::make_shared<ChNodeSPH>();
+    auto newp = chrono_types::make_shared<ChNodeSPH>();
 
     newp->SetContainer(this);
 
@@ -331,8 +328,8 @@ void ChMatterSPH::IntStateGather(const unsigned int off_x,  // offset in x state
                                  double& T)                 // time
 {
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        x.PasteVector(nodes[j]->pos, off_x + 3 * j, 0);
-        v.PasteVector(nodes[j]->pos_dt, off_v + 3 * j, 0);
+        x.segment(off_x + 3 * j, 3) = nodes[j]->pos.eigen();
+        v.segment(off_v + 3 * j, 3) = nodes[j]->pos_dt.eigen();
     }
     T = GetChTime();
 }
@@ -344,8 +341,8 @@ void ChMatterSPH::IntStateScatter(const unsigned int off_x,  // offset in x stat
                                   const double T)            // time
 {
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        nodes[j]->pos = x.ClipVector(off_x + 3 * j, 0);
-        nodes[j]->pos_dt = v.ClipVector(off_v + 3 * j, 0);
+        nodes[j]->pos = x.segment(off_x + 3 * j, 3);
+        nodes[j]->pos_dt = v.segment(off_v + 3 * j, 3);
     }
     SetChTime(T);
     Update();
@@ -353,13 +350,13 @@ void ChMatterSPH::IntStateScatter(const unsigned int off_x,  // offset in x stat
 
 void ChMatterSPH::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        a.PasteVector(nodes[j]->pos_dtdt, off_a + 3 * j, 0);
+        a.segment(off_a + 3 * j, 3) = nodes[j]->pos_dtdt.eigen();
     }
 }
 
 void ChMatterSPH::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        nodes[j]->pos_dtdt = a.ClipVector(off_a + 3 * j, 0);
+        nodes[j]->pos_dtdt = a.segment(off_a + 3 * j, 3);
     }
 }
 
@@ -427,7 +424,7 @@ void ChMatterSPH::IntLoadResidual_F(
         std::shared_ptr<ChNodeSPH> mnode(nodes[j]);
         assert(mnode);
 
-        R.PasteSumVector(TotForce * c, off + 3 * j, 0);
+        R.segment(off + 3 * j, 3) += c * TotForce.eigen();
     }
 }
 
@@ -450,8 +447,8 @@ void ChMatterSPH::IntToDescriptor(const unsigned int off_v,  // offset in v, R
                                   const ChVectorDynamic<>& L,
                                   const ChVectorDynamic<>& Qc) {
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        nodes[j]->variables.Get_qb().PasteClippedMatrix(v, off_v + 3 * j, 0, 3, 1, 0, 0);
-        nodes[j]->variables.Get_fb().PasteClippedMatrix(R, off_v + 3 * j, 0, 3, 1, 0, 0);
+        nodes[j]->variables.Get_qb() = v.segment(off_v + 3 * j, 3);
+        nodes[j]->variables.Get_fb() = R.segment(off_v + 3 * j, 3);
     }
 }
 
@@ -460,7 +457,7 @@ void ChMatterSPH::IntFromDescriptor(const unsigned int off_v,  // offset in v
                                     const unsigned int off_L,  // offset in L
                                     ChVectorDynamic<>& L) {
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        v.PasteMatrix(nodes[j]->variables.Get_qb(), off_v + 3 * j, 0);
+        v.segment(off_v + 3 * j, 3) = nodes[j]->variables.Get_qb();
     }
 }
 
@@ -474,7 +471,7 @@ void ChMatterSPH::InjectVariables(ChSystemDescriptor& mdescriptor) {
 
 void ChMatterSPH::VariablesFbReset() {
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        nodes[j]->variables.Get_fb().FillElem(0.0);
+        nodes[j]->variables.Get_fb().setZero();
     }
 }
 
@@ -537,14 +534,14 @@ void ChMatterSPH::VariablesFbLoadForces(double factor) {
         std::shared_ptr<ChNodeSPH> mnode(nodes[j]);
         assert(mnode);
 
-        mnode->variables.Get_fb().PasteSumVector(TotForce * factor, 0, 0);
+        mnode->variables.Get_fb() += factor * TotForce.eigen();
     }
 }
 
 void ChMatterSPH::VariablesQbLoadSpeed() {
     for (unsigned int j = 0; j < nodes.size(); j++) {
         // set current speed in 'qb', it can be used by the solver when working in incremental mode
-        nodes[j]->variables.Get_qb().PasteVector(nodes[j]->GetPos_dt(), 0, 0);
+        nodes[j]->variables.Get_qb() = nodes[j]->GetPos_dt().eigen();
     }
 }
 
@@ -559,7 +556,7 @@ void ChMatterSPH::VariablesQbSetSpeed(double step) {
         ChVector<> old_pos_dt = nodes[j]->GetPos_dt();
 
         // from 'qb' vector, sets body speed, and updates auxiliary data
-        nodes[j]->SetPos_dt(nodes[j]->variables.Get_qb().ClipVector(0, 0));
+        nodes[j]->SetPos_dt(nodes[j]->variables.Get_qb().segment(0, 3));
 
         // Compute accel. by BDF (approximate by differentiation);
         if (step) {
@@ -576,7 +573,7 @@ void ChMatterSPH::VariablesQbIncrementPosition(double dt_step) {
         // Updates position with incremental action of speed contained in the
         // 'qb' vector:  pos' = pos + dt * speed   , like in an Eulero step.
 
-        ChVector<> newspeed = nodes[j]->variables.Get_qb().ClipVector(0, 0);
+        ChVector<> newspeed(nodes[j]->variables.Get_qb().segment(0, 3));
 
         // ADVANCE POSITION: pos' = pos + dt * vel
         nodes[j]->SetPos(nodes[j]->GetPos() + newspeed * dt_step);

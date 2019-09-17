@@ -29,8 +29,7 @@ namespace vehicle {
 // ChShaftsBody could transfer rolling torque to the chassis.
 // -----------------------------------------------------------------------------
 ChShaftsPowertrain::ChShaftsPowertrain(const std::string& name, const ChVector<>& dir_motor_block)
-    : ChPowertrain(name), m_dir_motor_block(dir_motor_block), m_last_time_gearshift(0), m_gear_shift_latency(0.5) {
-}
+    : ChPowertrain(name), m_dir_motor_block(dir_motor_block), m_last_time_gearshift(0), m_gear_shift_latency(0.5) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -40,6 +39,10 @@ void ChShaftsPowertrain::Initialize(std::shared_ptr<ChBody> chassis, std::shared
     assert(chassis->GetSystem());
 
     ChSystem* my_system = chassis->GetSystem();
+
+    // Cache the upshift and downshift speeds (in rad/s)
+    m_upshift_speed = GetUpshiftRPM() * CH_C_2PI / 60.0;
+    m_downshift_speed = GetDownshiftRPM() * CH_C_2PI / 60.0;
 
     // Let the derived class specify the gear ratios
     SetGearRatios(m_gear_ratios);
@@ -53,69 +56,69 @@ void ChShaftsPowertrain::Initialize(std::shared_ptr<ChBody> chassis, std::shared
     // this object, but here we prefer to leave it free and use a ChShaftsBody
     // constraint to connect it to the car chassis (so the car can 'roll' when
     // pressing the throttle, like in muscle cars)
-    m_motorblock = std::make_shared<ChShaft>();
+    m_motorblock = chrono_types::make_shared<ChShaft>();
     m_motorblock->SetInertia(GetMotorBlockInertia());
     my_system->Add(m_motorblock);
 
     // CREATE  a connection between the motor block and the 3D rigid body that
     // represents the chassis. This allows to get the effect of the car 'rolling'
     // when the longitudinal engine accelerates suddenly.
-    m_motorblock_to_body = std::make_shared<ChShaftsBody>();
+    m_motorblock_to_body = chrono_types::make_shared<ChShaftsBody>();
     m_motorblock_to_body->Initialize(m_motorblock, chassis, m_dir_motor_block);
     my_system->Add(m_motorblock_to_body);
 
     // CREATE  a 1 d.o.f. object: a 'shaft' with rotational inertia.
     // This represents the crankshaft plus flywheel.
-    m_crankshaft = std::make_shared<ChShaft>();
+    m_crankshaft = chrono_types::make_shared<ChShaft>();
     m_crankshaft->SetInertia(GetCrankshaftInertia());
     my_system->Add(m_crankshaft);
 
     // CREATE  a thermal engine model between motor block and crankshaft (both
     // receive the torque, but with opposite sign).
-    m_engine = std::make_shared<ChShaftsThermalEngine>();
+    m_engine = chrono_types::make_shared<ChShaftsThermalEngine>();
     m_engine->Initialize(m_crankshaft, m_motorblock);
     my_system->Add(m_engine);
     // The thermal engine requires a torque curve:
-    auto mTw = std::make_shared<ChFunction_Recorder>();
+    auto mTw = chrono_types::make_shared<ChFunction_Recorder>();
     SetEngineTorqueMap(mTw);
     m_engine->SetTorqueCurve(mTw);
 
     // CREATE  an engine brake model that represents the losses of the engine because
     // of inner friction/turbulence/etc. Without this, the engine at 0% throttle
     // in neutral position would rotate forever at constant speed.
-    m_engine_losses = std::make_shared<ChShaftsThermalEngine>();
+    m_engine_losses = chrono_types::make_shared<ChShaftsThermalEngine>();
     m_engine_losses->Initialize(m_crankshaft, m_motorblock);
     my_system->Add(m_engine_losses);
     // The engine brake model requires a torque curve:
-    auto mTw_losses = std::make_shared<ChFunction_Recorder>();
+    auto mTw_losses = chrono_types::make_shared<ChFunction_Recorder>();
     SetEngineLossesMap(mTw_losses);
     m_engine_losses->SetTorqueCurve(mTw_losses);
 
     // CREATE  a 1 d.o.f. object: a 'shaft' with rotational inertia.
     // This represents the shaft that collects all inertias from torque converter to the gear.
-    m_shaft_ingear = std::make_shared<ChShaft>();
+    m_shaft_ingear = chrono_types::make_shared<ChShaft>();
     m_shaft_ingear->SetInertia(GetIngearShaftInertia());
     my_system->Add(m_shaft_ingear);
 
     // CREATE a torque converter and connect the shafts:
     // A (input),B (output), C(truss stator).
     // The input is the m_crankshaft, output is m_shaft_ingear; for stator, reuse the motor block 1D item.
-    m_torqueconverter = std::make_shared<ChShaftsTorqueConverter>();
+    m_torqueconverter = chrono_types::make_shared<ChShaftsTorqueConverter>();
     m_torqueconverter->Initialize(m_crankshaft, m_shaft_ingear, m_motorblock);
     my_system->Add(m_torqueconverter);
     // To complete the setup of the torque converter, a capacity factor curve is needed:
-    auto mK = std::make_shared<ChFunction_Recorder>();
+    auto mK = chrono_types::make_shared<ChFunction_Recorder>();
     SetTorqueConverterCapacityFactorMap(mK);
     m_torqueconverter->SetCurveCapacityFactor(mK);
     // To complete the setup of the torque converter, a torque ratio curve is needed:
-    auto mT = std::make_shared<ChFunction_Recorder>();
+    auto mT = chrono_types::make_shared<ChFunction_Recorder>();
     SetTorqeConverterTorqueRatioMap(mT);
     m_torqueconverter->SetCurveTorqueRatio(mT);
 
     // CREATE a gearbox, i.e a transmission ratio constraint between two
     // shafts. Note that differently from the basic ChShaftsGear, this also provides
     // the possibility of transmitting a reaction torque to the box (the truss).
-    m_gears = std::make_shared<ChShaftsGearbox>();
+    m_gears = chrono_types::make_shared<ChShaftsGearbox>();
     m_gears->Initialize(m_shaft_ingear, driveshaft, chassis, m_dir_motor_block);
     m_gears->SetTransmissionRatio(m_gear_ratios[m_current_gear]);
     my_system->Add(m_gears);
@@ -179,13 +182,13 @@ void ChShaftsPowertrain::Synchronize(double time, double throttle, double shaft_
 
     double gearshaft_speed = m_shaft_ingear->GetPos_dt();
 
-    if (gearshaft_speed > 2500 * CH_C_2PI / 60.0) {
+    if (gearshaft_speed > m_upshift_speed) {
         // upshift if possible
         if (m_current_gear + 1 < m_gear_ratios.size()) {
             SetSelectedGear(m_current_gear + 1);
             m_last_time_gearshift = time;
         }
-    } else if (gearshaft_speed < 1500 * CH_C_2PI / 60.0) {
+    } else if (gearshaft_speed < m_downshift_speed) {
         // downshift if possible
         if (m_current_gear - 1 > 0) {
             SetSelectedGear(m_current_gear - 1);

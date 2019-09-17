@@ -395,9 +395,7 @@ ChQuaternion<double> Angle_to_Quat(AngleSet angset, const ChVector<double>& mang
 
 ChVector<double> Quat_to_Angle(AngleSet angset, const ChQuaternion<double>& mquat) {
     ChVector<double> res;
-    ChMatrix33<> Acoord;
-
-    Acoord.Set_A_quaternion(mquat);
+    ChMatrix33<> Acoord(mquat);
 
     switch (angset) {
         case AngleSet::EULERO:

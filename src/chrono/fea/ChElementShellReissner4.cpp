@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 // Four node shell with geom.exact kinematics
 // =============================================================================
@@ -18,7 +18,6 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/timestepper/ChState.h"
 #include "chrono/fea/ChElementShellReissner4.h"
-#include "chrono/fea/ChUtilsFEA.h"
 #include "chrono/fea/ChRotUtils.h"
 #include <cmath>
 
@@ -152,7 +151,7 @@ double ChElementShellReissner4::xi_0[2] = {0., 0.};
 void ChElementShellReissner4::UpdateNodalAndAveragePosAndOrientation() {
     ChMatrix33<> Tn[NUMNODES];
     ChMatrix33<> T_avg;
-    T_avg.Reset();
+    T_avg.setZero();
     for (int i = 0; i < NUMNODES; i++) {
         xa[i] = this->m_nodes[i]->GetPos();
         Tn[i] = this->m_nodes[i]->GetA() * iTa[i];
@@ -179,7 +178,7 @@ void ChElementShellReissner4::UpdateNodalAndAveragePosAndOrientation() {
 
     ChMatrix33<> R_tilde_n[NUMNODES];
     for (int i = 0; i < NUMNODES; i++) {
-        R_tilde_n[i].MatrTMultiply(T_overline, Tn[i]);  // = T_overline.MulTM(Tn[i]);
+        R_tilde_n[i] = T_overline.transpose() * Tn[i];
         phi_tilde_n[i] = ChRotUtils::VecRot(R_tilde_n[i]);
         // if (phi_tilde_n[i].Length()*CH_C_RAD_TO_DEG > 15)
         //    GetLog() << "WARNING phi_tilde_n[" << i << "]=" <<  phi_tilde_n[i].Length()*CH_C_RAD_TO_DEG << "°\n";
@@ -198,9 +197,8 @@ void ChElementShellReissner4::ComputeInitialNodeOrientation() {
         ChVector<> t3 = Vcross(t1, t2);
         t3 = t3 / t3.Length();
         t2 = Vcross(t3, t1);
-        ChMatrix33<> t123;
-        t123.Set_A_axis(t1, t2, t3);
-        iTa[i].MatrTMultiply(this->m_nodes[i]->GetA(), t123);
+        ChMatrix33<> t123(t1, t2, t3);
+        iTa[i] = m_nodes[i]->GetA().transpose() * t123;
     }
     for (int i = 0; i < NUMIP; i++) {
         iTa_i[i] = ChMatrix33<>(1);
@@ -218,9 +216,8 @@ void ChElementShellReissner4::ComputeInitialNodeOrientation() {
         ChVector<> t3 = Vcross(t1, t2);
         t3 = t3 / t3.Length();
         t2 = Vcross(t3, t1);
-        ChMatrix33<> t123;
-        t123.Set_A_axis(t1, t2, t3);
-        iTa_i[i].MatrTMultiply(T_i[i], t123);
+        ChMatrix33<> t123(t1, t2, t3);
+        iTa_i[i] = T_i[i].transpose() * t123;
     }
     for (int i = 0; i < NUMSSEP; i++) {
         ChVector<> t1 = InterpDeriv_xi1(xa, xi_A[i]);
@@ -230,9 +227,8 @@ void ChElementShellReissner4::ComputeInitialNodeOrientation() {
         ChVector<> t3 = Vcross(t1, t2);
         t3 = t3 / t3.Length();
         t2 = Vcross(t3, t1);
-        ChMatrix33<> t123;
-        t123.Set_A_axis(t1, t2, t3);
-        iTa_A[i].MatrTMultiply(T_A[i], t123);
+        ChMatrix33<> t123(t1, t2, t3);
+        iTa_A[i] = T_A[i].transpose() * t123;
     }
     InterpolateOrientation();
 }
@@ -245,7 +241,7 @@ void ChElementShellReissner4::InterpolateOrientation() {
 #ifdef CHSIMPLIFY_DROT
         mDrot_I = ChMatrix33<>(1);
 #endif
-        DRot_I_phi_tilde_n_MT_T_overline[n].MatrMultiplyT(mDrot_I, T_overline);
+        DRot_I_phi_tilde_n_MT_T_overline[n] = mDrot_I * T_overline.transpose();
     }
     for (int i = 0; i < NUMIP; i++) {
         phi_tilde_i[i] = Interp(phi_tilde_n, xi_i[i]);
@@ -282,7 +278,7 @@ void ChElementShellReissner4::ComputeIPCurvature() {
 #ifdef CHSIMPLIFY_DROT
         mDrot_I = ChMatrix33<>(1);
 #endif
-        Gamma_I_n_MT_T_overline[n].MatrMultiplyT(mDrot_I, T_overline);
+        Gamma_I_n_MT_T_overline[n] = mDrot_I * T_overline.transpose();
     }
     for (int i = 0; i < NUMIP; i++) {
         ChVector<> phi_tilde_1_i;
@@ -316,15 +312,15 @@ ChElementShellReissner4::ChElementShellReissner4() : tot_thickness(0) {
 
     // add here other constructor-time initializations
     for (int i = 0; i < NUMIP; i++) {
-        L_alpha_beta_i[i].Reset();
-        B_overline_i[i].Reset();
-        D_overline_i[i].Reset();
-        G_i[i].Reset();
-        P_i[i].Reset();
+        L_alpha_beta_i[i].setZero();
+        B_overline_i[i].setZero();
+        D_overline_i[i].setZero();
+        G_i[i].setZero();
+        P_i[i].setZero();
     }
 
     for (int i = 0; i < NUMSSEP; i++)
-        L_alpha_beta_A[i].Reset();
+        L_alpha_beta_A[i].setZero();
 }
 
 ChElementShellReissner4::~ChElementShellReissner4() {}
@@ -472,8 +468,7 @@ void ChElementShellReissner4::SetupInitial(ChSystem* system) {
         M_0(3, 2) = S_alpha_beta_0(0, 1) * S_alpha_beta_0(1, 0);
         M_0(3, 3) = S_alpha_beta_0(0, 0) * S_alpha_beta_0(1, 1);
 
-        M_0_Inv = M_0;
-        M_0_Inv.MatrInverse();
+        M_0_Inv = M_0.inverse();
     }
 
     for (int i = 0; i < NUMIP; i++) {
@@ -489,8 +484,7 @@ void ChElementShellReissner4::SetupInitial(ChSystem* system) {
             S_alpha_beta_i[i](0, 0) * S_alpha_beta_i[i](1, 1) - S_alpha_beta_i[i](0, 1) * S_alpha_beta_i[i](1, 0);
 
         ChMatrixNM<double, 2, 2> xi_i_i;
-        xi_i_i = S_alpha_beta_i[i];
-        xi_i_i.MatrInverse();
+        xi_i_i = S_alpha_beta_i[i].inverse();
 
         for (int n = 0; n < NUMNODES; n++) {
             for (int ii = 0; ii < 2; ii++) {
@@ -498,11 +492,11 @@ void ChElementShellReissner4::SetupInitial(ChSystem* system) {
             }
         }
 
-        L_alpha_beta_i[i].MatrMultiply(L_alpha_B_i, xi_i_i);
+        L_alpha_beta_i[i] = L_alpha_B_i * xi_i_i;
 
         double t = xi_i[i][0] * xi_i[i][1];
         ChMatrixNM<double, 4, IDOFS> H;
-        H.Reset();
+        H.setZero();
 
         H(0, 0) = xi_i[i][0];
         H(0, 1) = t;
@@ -517,7 +511,7 @@ void ChElementShellReissner4::SetupInitial(ChSystem* system) {
         H(3, 5) = t;
 
         ChMatrixNM<double, 12, 4> Perm;
-        Perm.Reset();
+        Perm.setZero();
 
         // 1, 5, 4, 2, 3, 6
         Perm(0, 0) = 1.;
@@ -525,20 +519,18 @@ void ChElementShellReissner4::SetupInitial(ChSystem* system) {
         Perm(3, 3) = 1.;
         Perm(4, 1) = 1.;
 
-        ChMatrixNM<double, 4, IDOFS> tmpP;
-        tmpP.MatrTMultiply(M_0_Inv, H);
+        ChMatrixNM<double, 4, IDOFS> tmpP = M_0_Inv.transpose() * H;
 
-        P_i[i].MatrMultiply(Perm, tmpP);
-        P_i[i].MatrScale(alpha_0 / alpha_i[i]);
+        P_i[i] = (alpha_0 / alpha_i[i]) * Perm * tmpP;
     }
     // save initial axial values
     ComputeIPCurvature();
     for (int i = 0; i < NUMIP; i++) {
         InterpDeriv(xa, L_alpha_beta_i[i], y_i_1[i], y_i_2[i]);
-        eps_tilde_1_0_i[i] = T_i[i].MatrT_x_Vect(y_i_1[i]);
-        eps_tilde_2_0_i[i] = T_i[i].MatrT_x_Vect(y_i_2[i]);
-        k_tilde_1_0_i[i] = T_i[i].MatrT_x_Vect(k_1_i[i]);
-        k_tilde_2_0_i[i] = T_i[i].MatrT_x_Vect(k_2_i[i]);
+        eps_tilde_1_0_i[i] = T_i[i].transpose() * y_i_1[i];
+        eps_tilde_2_0_i[i] = T_i[i].transpose() * y_i_2[i];
+        k_tilde_1_0_i[i] = T_i[i].transpose() * k_1_i[i];
+        k_tilde_2_0_i[i] = T_i[i].transpose() * k_2_i[i];
     }
     for (int i = 0; i < NUMSSEP; i++) {
         ChMatrixNM<double, 4, 2> L_alpha_B_A;
@@ -552,13 +544,12 @@ void ChElementShellReissner4::SetupInitial(ChSystem* system) {
         ChVector<> y_A_1;
         ChVector<> y_A_2;
         InterpDeriv(xa, L_alpha_beta_A[i], y_A_1, y_A_2);
-        eps_tilde_1_0_A[i] = T_A[i].MatrT_x_Vect(y_A_1);
-        eps_tilde_2_0_A[i] = T_A[i].MatrT_x_Vect(y_A_2);
+        eps_tilde_1_0_A[i] = T_A[i].transpose() * y_A_1;
+        eps_tilde_2_0_A[i] = T_A[i].transpose() * y_A_2;
 
         // xi_A_i = S_alpha_beta_A^{-1}
         ChMatrixNM<double, 2, 2> xi_A_i;
-        xi_A_i = S_alpha_beta_A[i];
-        xi_A_i.MatrInverse();
+        xi_A_i = S_alpha_beta_A[i].inverse();
 
         for (int n = 0; n < NUMNODES; n++) {
             for (int ii = 0; ii < 2; ii++) {
@@ -566,15 +557,15 @@ void ChElementShellReissner4::SetupInitial(ChSystem* system) {
             }
         }
 
-        L_alpha_beta_A[i].MatrMultiply(L_alpha_B_A, xi_A_i);
+        L_alpha_beta_A[i] = L_alpha_B_A * xi_A_i;
     }
     {
         ChVector<> y_A_1;
         ChVector<> y_A_2;
         for (int i = 0; i < NUMSSEP; i++) {
             InterpDeriv(xa, L_alpha_beta_A[i], y_A_1, y_A_2);
-            eps_tilde_1_0_A[i] = T_A[i].MatrT_x_Vect(y_A_1);
-            eps_tilde_2_0_A[i] = T_A[i].MatrT_x_Vect(y_A_2);
+            eps_tilde_1_0_A[i] = T_A[i].transpose() * y_A_1;
+            eps_tilde_2_0_A[i] = T_A[i].transpose() * y_A_2;
         }
     }
 
@@ -601,16 +592,20 @@ void ChElementShellReissner4::Update() {
 }
 
 // Fill the D vector with the current field values at the element nodes.
-void ChElementShellReissner4::GetStateBlock(ChMatrixDynamic<>& mD) {
-    mD.Reset(4 * 7, 1);
-    mD.PasteVector(m_nodes[0]->GetPos(), 0, 0);
-    mD.PasteQuaternion(m_nodes[0]->GetRot(), 3, 0);
-    mD.PasteVector(m_nodes[1]->GetPos(), 7, 0);
-    mD.PasteQuaternion(m_nodes[1]->GetRot(), 10, 0);
-    mD.PasteVector(m_nodes[2]->GetPos(), 14, 0);
-    mD.PasteQuaternion(m_nodes[2]->GetRot(), 17, 0);
-    mD.PasteVector(m_nodes[3]->GetPos(), 21, 0);
-    mD.PasteQuaternion(m_nodes[3]->GetRot(), 24, 0);
+void ChElementShellReissner4::GetStateBlock(ChVectorDynamic<>& mD) {
+    mD.resize(4 * 7, 1);
+
+    mD.segment(0, 3) = m_nodes[0]->GetPos().eigen();
+    mD.segment(3, 4) = m_nodes[0]->GetRot().eigen();
+
+    mD.segment(7, 3) = m_nodes[1]->GetPos().eigen();
+    mD.segment(10, 4) = m_nodes[1]->GetRot().eigen();
+
+    mD.segment(14, 3) = m_nodes[2]->GetPos().eigen();
+    mD.segment(17, 4) = m_nodes[2]->GetRot().eigen();
+
+    mD.segment(21, 3) = m_nodes[3]->GetPos().eigen();
+    mD.segment(24, 4) = m_nodes[3]->GetRot().eigen();
 }
 
 // Calculate the global matrix H as a linear combination of K, R, and M:
@@ -618,8 +613,8 @@ void ChElementShellReissner4::GetStateBlock(ChMatrixDynamic<>& mD) {
 // NOTE! we assume that this function is computed after one computed
 // ComputeInternalForces(), that updates inner data for the given node states.
 
-void ChElementShellReissner4::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor, double Mfactor) {
-    assert((H.GetRows() == 24) && (H.GetColumns() == 24));
+void ChElementShellReissner4::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
+    assert((H.rows() == 24) && (H.cols() == 24));
 
     // Calculate the mass matrix
     ComputeMassMatrix();
@@ -634,7 +629,7 @@ void ChElementShellReissner4::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfa
 }
 
 // Return the mass matrix.
-void ChElementShellReissner4::ComputeMmatrixGlobal(ChMatrix<>& M) {
+void ChElementShellReissner4::ComputeMmatrixGlobal(ChMatrixRef M) {
     // Calculate the mass matrix
     ComputeMassMatrix();
 
@@ -646,7 +641,7 @@ void ChElementShellReissner4::ComputeMmatrixGlobal(ChMatrix<>& M) {
 // -----------------------------------------------------------------------------
 
 void ChElementShellReissner4::ComputeMassMatrix() {
-    m_MassMatrix.Reset();
+    m_MassMatrix.setZero();
 
     // loop over all layers, to compute total "mass per area" = sum(rho_i*thickness_i) = average_rho * sum(thickness_i)
     double avg_density = this->GetDensity();
@@ -670,22 +665,21 @@ void ChElementShellReissner4::ComputeMassMatrix() {
         double Ixx = (pow(this->GetLengthY(), 2) + pow(tot_thickness, 2)) * (1. / 12.) * (1. / 4.) * nodemass;
         double Iyy = (pow(this->GetLengthX(), 2) + pow(tot_thickness, 2)) * (1. / 12.) * (1. / 4.) * nodemass;
         double Izz = (pow(this->GetLengthX(), 2) + pow(this->GetLengthY(), 2)) * (1. / 12.) * (1. / 4.) * nodemass;
-        ChMatrix33<> box_inertia(Ixx, 0., 0., 0., Iyy, 0., 0., 0., Izz);
+        ChMatrix33<> box_inertia(ChVector<>(Ixx, Iyy, Izz));
         // ..and rotate inertia in local system of node: (local because ystem-level rotational coords of nodes are
         // ang.vel in loc sys)
         // I' = A'* T * I * T' * A
         //    = Rot * I * Rot'
-        ChMatrix33<> Rot;
-        Rot.MatrTMultiply(this->m_nodes[n]->GetA(), this->T_i[igp]);
+        ChMatrix33<> Rot = m_nodes[n]->GetA().transpose() * T_i[igp];
         ChMatrix33<> Rot_I(Rot * box_inertia);
         ChMatrix33<> inertia_n;
-        inertia_n.MatrMultiplyT(Rot_I, Rot);
+        inertia_n = Rot_I * Rot.transpose();
 
         int node_off = n * 6;
         m_MassMatrix(node_off + 0, node_off + 0) = nodemass;
         m_MassMatrix(node_off + 1, node_off + 1) = nodemass;
         m_MassMatrix(node_off + 2, node_off + 2) = nodemass;
-        m_MassMatrix.PasteMatrix(inertia_n, node_off + 3, node_off + 3);
+        m_MassMatrix.block(node_off + 3, node_off + 3, 3, 3) = inertia_n;
 
     }  // end loop on nodes
 }
@@ -694,8 +688,8 @@ void ChElementShellReissner4::ComputeMassMatrix() {
 // Elastic force calculation
 // -----------------------------------------------------------------------------
 
-void ChElementShellReissner4::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
-    Fi.Reset();
+void ChElementShellReissner4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
+    Fi.setZero();
 
     UpdateNodalAndAveragePosAndOrientation();
     InterpolateOrientation();
@@ -709,21 +703,15 @@ void ChElementShellReissner4::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
     ComputeIPCurvature();
     for (int i = 0; i < NUMIP; i++) {
         InterpDeriv(xa, L_alpha_beta_i[i], y_i_1[i], y_i_2[i]);
-        eps_tilde_1_i[i] = T_i[i].MatrT_x_Vect(y_i_1[i]) - eps_tilde_1_0_i[i];
-        eps_tilde_2_i[i] = T_i[i].MatrT_x_Vect(y_i_2[i]) - eps_tilde_2_0_i[i];
-        k_tilde_1_i[i] = T_i[i].MatrT_x_Vect(k_1_i[i]) - k_tilde_1_0_i[i];
-        k_tilde_2_i[i] = T_i[i].MatrT_x_Vect(k_2_i[i]) - k_tilde_2_0_i[i];
+        eps_tilde_1_i[i] = T_i[i].transpose() * y_i_1[i] - eps_tilde_1_0_i[i];
+        eps_tilde_2_i[i] = T_i[i].transpose() * y_i_2[i] - eps_tilde_2_0_i[i];
+        k_tilde_1_i[i] = T_i[i].transpose() * k_1_i[i] - k_tilde_1_0_i[i];
+        k_tilde_2_i[i] = T_i[i].transpose() * k_2_i[i] - k_tilde_2_0_i[i];
 
-        ChMatrix33<> T_i_t(T_i[i]);
-        T_i_t.MatrTranspose();
-        ChMatrix33<> myi_1_X;
-        myi_1_X.Set_X_matrix(y_i_1[i]);
-        ChMatrix33<> myi_2_X;
-        myi_2_X.Set_X_matrix(y_i_2[i]);
-        ChMatrix33<> mk_1_X;
-        mk_1_X.Set_X_matrix(k_1_i[i]);
-        ChMatrix33<> mk_2_X;
-        mk_2_X.Set_X_matrix(k_2_i[i]);
+        ChStarMatrix33<> myi_1_X(y_i_1[i]);
+        ChStarMatrix33<> myi_2_X(y_i_2[i]);
+        ChStarMatrix33<> mk_1_X(k_1_i[i]);
+        ChStarMatrix33<> mk_2_X(k_2_i[i]);
         ChMatrix33<> block;
 
         // parte variabile di B_overline_i
@@ -732,55 +720,51 @@ void ChElementShellReissner4::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
 
             // delta epsilon_tilde_1_i
             block = T_i[i] * L_alpha_beta_i[i](n, 0);
-            B_overline_i[i].PasteTranspMatrix(block, 0, 6 * n);
-            block = T_i_t * myi_1_X * Phi_Delta_i_n_LI_i;
-            block = block * this->m_nodes[n]->GetA();  //***NEEDED because in chrono rotations are body-relative
-            B_overline_i[i].PasteMatrix(block, 0, 3 + 6 * n);
+            B_overline_i[i].block(0, 6 * n, 3, 3) = block.transpose();
+            block = T_i[i].transpose() * myi_1_X * Phi_Delta_i_n_LI_i;
+            block = block * m_nodes[n]->GetA();  //***NEEDED because rotations are body-relative
+            B_overline_i[i].block(0, 3 + 6 * n, 3, 3) = block;
 
             // delta epsilon_tilde_2_i
             block = T_i[i] * L_alpha_beta_i[i](n, 1);
-            B_overline_i[i].PasteTranspMatrix(block, 3, 6 * n);
-            block = T_i_t * myi_2_X * Phi_Delta_i_n_LI_i;
-            block = block * this->m_nodes[n]->GetA();  //***NEEDED because in chrono rotations are body-relative
-            B_overline_i[i].PasteMatrix(block, 3, 3 + 6 * n);
+            B_overline_i[i].block(3, 6 * n, 3, 3) = block.transpose();
+            block = T_i[i].transpose() * myi_2_X * Phi_Delta_i_n_LI_i;
+            block = block * m_nodes[n]->GetA();  //***NEEDED because rotations are body-relative
+            B_overline_i[i].block(3, 3 + 6 * n, 3, 3) = block;
 
             ChVector<> phi_tilde_1_i;
             ChVector<> phi_tilde_2_i;
             InterpDeriv(phi_tilde_n, L_alpha_beta_i[i], phi_tilde_1_i, phi_tilde_2_i);
 
             // delta k_tilde_1_i
-            block = T_i_t * mk_1_X * Phi_Delta_i_n_LI_i + T_i_t * Kappa_delta_i_1[i][n];
-            block = block * this->m_nodes[n]->GetA();  //***NEEDED because in chrono rotations are body-relative
-            B_overline_i[i].PasteMatrix(block, 6, 3 + 6 * n);
+            block = T_i[i].transpose() * mk_1_X * Phi_Delta_i_n_LI_i + T_i[i].transpose() * Kappa_delta_i_1[i][n];
+            block = block * m_nodes[n]->GetA();  //***NEEDED because rotations are body-relative
+            B_overline_i[i].block(6, 3 + 6 * n, 3, 3) = block;
 
             // delta k_tilde_2_i
-            block = T_i_t * mk_2_X * Phi_Delta_i_n_LI_i + T_i_t * Kappa_delta_i_2[i][n];
-            block = block * this->m_nodes[n]->GetA();  //***NEEDED because in chrono rotations are body-relative
-            B_overline_i[i].PasteMatrix(block, 9, 3 + 6 * n);
+            block = T_i[i].transpose() * mk_2_X * Phi_Delta_i_n_LI_i + T_i[i].transpose() * Kappa_delta_i_2[i][n];
+            block = block * m_nodes[n]->GetA();  //***NEEDED because rotations are body-relative
+            B_overline_i[i].block(9, 3 + 6 * n, 3, 3) = block;
 
-            ChMatrix33<> Ieye(1);
             // delta y_alpha_1
-            block = Ieye * L_alpha_beta_i[i](n, 0);
-            D_overline_i[i].PasteMatrix(block, 0, 6 * n);
+            block = ChMatrix33<>::Identity() * L_alpha_beta_i[i](n, 0);
+            D_overline_i[i].block(0, 6 * n, 3, 3) = block;
 
             // delta y_alpha_2
-            block = Ieye * L_alpha_beta_i[i](n, 1);
-            D_overline_i[i].PasteMatrix(block, 3, 6 * n);
+            block = ChMatrix33<>::Identity() * L_alpha_beta_i[i](n, 1);
+            D_overline_i[i].block(3, 6 * n, 3, 3) = block;
 
             // delta k_1_i
-            block = Kappa_delta_i_1[i][n] *
-                    this->m_nodes[n]->GetA();  //***NEEDED because in chrono rotations are body-relative
-            D_overline_i[i].PasteMatrix(block, 6, 3 + 6 * n);
+            block = Kappa_delta_i_1[i][n] * m_nodes[n]->GetA();  //***NEEDED because rotations are body-relative
+            D_overline_i[i].block(6, 3 + 6 * n, 3, 3) = block;
 
             // delta k_2_i
-            block = Kappa_delta_i_2[i][n] *
-                    this->m_nodes[n]->GetA();  //***NEEDED because in chrono rotations are body-relative
-            D_overline_i[i].PasteMatrix(block, 9, 3 + 6 * n);
+            block = Kappa_delta_i_2[i][n] * m_nodes[n]->GetA();  //***NEEDED because rotations are body-relative
+            D_overline_i[i].block(9, 3 + 6 * n, 3, 3) = block;
 
             // phi_delta
-            block = Phi_Delta_i_n_LI_i *
-                    this->m_nodes[n]->GetA();  //***NEEDED because in chrono rotations are body-relative
-            D_overline_i[i].PasteMatrix(block, 12, 3 + 6 * n);
+            block = Phi_Delta_i_n_LI_i * m_nodes[n]->GetA();  //***NEEDED because rotations are body-relative
+            D_overline_i[i].block(12, 3 + 6 * n, 3, 3) = block;
         }
     }
 
@@ -794,41 +778,37 @@ void ChElementShellReissner4::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
     ChMatrixNM<double, 4, 24> B_overline_6_ABCD;
 
     for (int i = 0; i < NUMSSEP; i++) {
-        B_overline_A.Reset();
+        B_overline_A.setZero();
         InterpDeriv(xa, L_alpha_beta_A[i], y_A_1, y_A_2);
-        eps_tilde_1_A[i] = T_A[i].MatrT_x_Vect(y_A_1) - eps_tilde_1_0_A[i];
-        eps_tilde_2_A[i] = T_A[i].MatrT_x_Vect(y_A_2) - eps_tilde_2_0_A[i];
+        eps_tilde_1_A[i] = T_A[i].transpose() * y_A_1 - eps_tilde_1_0_A[i];
+        eps_tilde_2_A[i] = T_A[i].transpose() * y_A_2 - eps_tilde_2_0_A[i];
 
-        ChMatrix33<> T_A_t(T_A[i]);
-        T_A_t.MatrTranspose();
-        ChMatrix33<> myA_1_X;
-        myA_1_X.Set_X_matrix(y_A_1);
-        ChMatrix33<> myA_2_X;
-        myA_2_X.Set_X_matrix(y_A_2);
+        ChStarMatrix33<> myA_1_X(y_A_1);
+        ChStarMatrix33<> myA_2_X(y_A_2);
         ChMatrix33<> block;
 
         for (int n = 0; n < NUMNODES; n++) {
             ChMatrix33<> Phi_Delta_A_n_LI_i = Phi_Delta_A[i][n] * LI[n](xi_A[i]);
 
             // delta epsilon_tilde_1_A
-            block = T_A_t * L_alpha_beta_A[i](n, 0);
-            B_overline_A.PasteMatrix(block, 0, 6 * n);
-            block = T_A_t * myA_1_X * Phi_Delta_A_n_LI_i;
+            block = T_A[i].transpose() * L_alpha_beta_A[i](n, 0);
+            B_overline_A.block(0, 6 * n, 3, 3) = block;
+            block = T_A[i].transpose() * myA_1_X * Phi_Delta_A_n_LI_i;
             block = block * this->m_nodes[n]->GetA();  //***NEEDED because in chrono rotations are body-relative
-            B_overline_A.PasteMatrix(block, 0, 3 + 6 * n);
+            B_overline_A.block(0, 3 + 6 * n, 3, 3) = block;
 
             // delta epsilon_tilde_2_A
-            block = T_A_t * L_alpha_beta_A[i](n, 1);
-            B_overline_A.PasteMatrix(block, 3, 6 * n);
-            block = T_A_t * myA_2_X * Phi_Delta_A_n_LI_i;
+            block = T_A[i].transpose() * L_alpha_beta_A[i](n, 1);
+            B_overline_A.block(3, 6 * n, 3, 3) = block;
+            block = T_A[i].transpose() * myA_2_X * Phi_Delta_A_n_LI_i;
             block = block * this->m_nodes[n]->GetA();  //***NEEDED because in chrono rotations are body-relative
-            B_overline_A.PasteMatrix(block, 3, 3 + 6 * n);
+            B_overline_A.block(3, 3 + 6 * n, 3, 3) = block;
         }
 
-        B_overline_3_ABCD.PasteClippedMatrix(B_overline_A, 2, 0, 1, 24, i, 0);
-        B_overline_6_ABCD.PasteClippedMatrix(B_overline_A, 5, 0, 1, 24, i, 0);
+        B_overline_3_ABCD.row(i) = B_overline_A.row(2);
+        B_overline_6_ABCD.row(i) = B_overline_A.row(5);
     }
-    ChMatrixNM<double, 1, 24> tmp_B_ANS;
+
     for (int i = 0; i < NUMIP; i++) {
         ChMatrixNM<double, 1, 4> sh1;
         ChMatrixNM<double, 1, 4> sh2;
@@ -845,13 +825,8 @@ void ChElementShellReissner4::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
         eps_tilde_1_i[i].z() = sh1(0, 0) * eps_tilde_1_A[0].z() + sh1(0, 2) * eps_tilde_1_A[2].z();
         eps_tilde_2_i[i].z() = sh2(0, 1) * eps_tilde_2_A[1].z() + sh2(0, 3) * eps_tilde_2_A[3].z();
 
-        tmp_B_ANS.MatrMultiply(sh1, B_overline_3_ABCD);
-
-        B_overline_i[i].PasteClippedMatrix(tmp_B_ANS, 0, 0, 1, 24, 2, 0);
-
-        tmp_B_ANS.MatrMultiply(sh2, B_overline_6_ABCD);
-
-        B_overline_i[i].PasteClippedMatrix(tmp_B_ANS, 0, 0, 1, 24, 5, 0);
+        B_overline_i[i].row(2) = sh1 * B_overline_3_ABCD;
+        B_overline_i[i].row(5) = sh2 * B_overline_6_ABCD;
     }
 
 #endif
@@ -871,20 +846,19 @@ void ChElementShellReissner4::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
 
     /* Calcola le azioni interne */
     for (int i = 0; i < NUMIP; i++) {
-        epsilon.PasteVector(eps_tilde_1_i[i], 0, 0);
-        epsilon.PasteVector(eps_tilde_2_i[i], 3, 0);
-        epsilon.PasteVector(k_tilde_1_i[i], 6, 0);
-        epsilon.PasteVector(k_tilde_2_i[i], 9, 0);
+        epsilon.segment(0, 3) = eps_tilde_1_i[i].eigen();
+        epsilon.segment(3, 3) = eps_tilde_2_i[i].eigen();
+        epsilon.segment(6, 3) = k_tilde_1_i[i].eigen();
+        epsilon.segment(9, 3) = k_tilde_2_i[i].eigen();
 
         //***TODO*** add the EAS effect using the epsilon_hat
         // epsilon_hat.MatrMultiply(P_i[i], beta);
         // epsilon += epsilon_hat;
 
-        ChVector<> eps_tot_1, eps_tot_2, k_tot_1, k_tot_2;
-        eps_tot_1 = epsilon.ClipVector(0, 0);
-        eps_tot_2 = epsilon.ClipVector(3, 0);
-        k_tot_1 = epsilon.ClipVector(6, 0);
-        k_tot_2 = epsilon.ClipVector(9, 0);
+        ChVector<> eps_tot_1(epsilon.segment(0, 3));
+        ChVector<> eps_tot_2(epsilon.segment(3, 3));
+        ChVector<> k_tot_1(epsilon.segment(6, 3));
+        ChVector<> k_tot_2(epsilon.segment(9, 3));
 
         // Compute strains using
         // constitutive law of material
@@ -902,10 +876,10 @@ void ChElementShellReissner4::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
             m2 += l_m2;
         }
 
-        stress_i[i].PasteVector(n1, 0, 0);
-        stress_i[i].PasteVector(n2, 3, 0);
-        stress_i[i].PasteVector(m1, 6, 0);
-        stress_i[i].PasteVector(m2, 9, 0);
+        stress_i[i].segment(0,3) = n1.eigen();
+        stress_i[i].segment(3,3) = n2.eigen();
+        stress_i[i].segment(6,3) = m1.eigen();
+        stress_i[i].segment(9,3) = m2.eigen();
 
         ChMatrix33<> Hh;
         ChVector<> Tn1 = T_i[i] * n1;
@@ -916,37 +890,32 @@ void ChElementShellReissner4::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
              ChMatrix33<>(Tn2 ^ y_i_2[i]) + TensorProduct(Tm1, k_1_i[i]) - ChMatrix33<>(Tm1 ^ k_1_i[i]) +
              TensorProduct(Tm2, k_2_i[i]) - ChMatrix33<>(Tm2 ^ k_2_i[i]);
 
-        ChMatrix33<> block;
-        block.Set_X_matrix(Tn1);
-        G_i[i].PasteMatrix(block, 12, 0);
-        block.Set_X_matrix(Tn2);
-        G_i[i].PasteMatrix(block, 12, 3);
-        block.Set_X_matrix(Tm1);
-        G_i[i].PasteMatrix(block, 12, 6);
-        block.Set_X_matrix(Tm2);
-        G_i[i].PasteMatrix(block, 12, 9);
-        block.Set_X_matrix(Tn1);
-        G_i[i].PasteTranspMatrix(block, 0, 12);
-        block.Set_X_matrix(Tn2);
-        G_i[i].PasteTranspMatrix(block, 3, 12);
-        G_i[i].PasteMatrix(Hh, 12, 12);
+        ChStarMatrix33<> Tn1_tilde(Tn1);
+        ChStarMatrix33<> Tn2_tilde(Tn2);
+        ChStarMatrix33<> Tm1_tilde(Tm1);
+        ChStarMatrix33<> Tm2_tilde(Tm2);
+
+        G_i[i].block(12, 0, 3, 3) = Tn1_tilde;
+        G_i[i].block(12, 3, 3, 3) = Tn2_tilde;
+        G_i[i].block(12, 6, 3, 3) = Tm1_tilde;
+        G_i[i].block(12, 9, 3, 3) = Tm2_tilde;
+        G_i[i].block(0, 12, 3, 3) = Tn1_tilde.transpose();
+        G_i[i].block(3, 12, 3, 3) = Tn2_tilde.transpose();
+        G_i[i].block(12, 12, 3, 3) = Hh;
     }
 
     // Residual
 
-    ChMatrixNM<double, 24, 1> rd;
-    ChMatrixNM<double, IDOFS, 1> rbeta;
+    ChVectorN<double, 24> rd;
     for (int i = 0; i < NUMIP; i++) {
-        rd.MatrTMultiply(B_overline_i[i], stress_i[i]);
-
-        rd *= (-alpha_i[i] * w_i[i]);
-        Fi.PasteSumMatrix(rd, 0, 0);
+        rd = (-alpha_i[i] * w_i[i]) * B_overline_i[i].transpose() * stress_i[i];
+        Fi.segment(0, 24) += rd;
 
 #ifdef CHUSE_EAS
-        rbeta.MatrTMultiply(P_i[i], stress_i[i]);
         double dCoef = 1.0;  //***TODO*** autoset this
-        rbeta *= (-alpha_i[i] * w_i[i] / dCoef);
-        Fi.PasteSumMatrix(rbeta, 24, 0);
+        ChVectorN<double, IDOFS> rbeta;
+        rbeta = (-alpha_i[i] * w_i[i] / dCoef) * P_i[i].transpose() * stress_i[i];
+        Fi.segment(24, IDOFS) = rbeta;
 #endif
     }
 
@@ -971,17 +940,16 @@ void ChElementShellReissner4::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
         //   Alpha*[Km]*v = sum_integraton_points ( [B_i]' * (   stress_damp_i    ) * a_i * w_i )
         // where for convenience we denoted stress_damp = Alpha*[C]*[B_i]*v
 
-        ChMatrixNM<double, 12, 1> strain_dt;
-        ChMatrixNM<double, 12, 1> stress_damp;
+        ChVectorN<double, 12> strain_dt;
+        ChVectorN<double, 12> stress_damp;
 
         for (int i = 0; i < NUMIP; i++) {
-            strain_dt.MatrMultiply(B_overline_i[i], velocities);  // [B_i] *v
+            strain_dt = B_overline_i[i] * velocities;  // [B_i] *v
 
-            ChVector<> eps_dt_1, eps_dt_2, k_dt_1, k_dt_2;
-            eps_dt_1 = strain_dt.ClipVector(0, 0);
-            eps_dt_2 = strain_dt.ClipVector(3, 0);
-            k_dt_1 = strain_dt.ClipVector(6, 0);
-            k_dt_2 = strain_dt.ClipVector(9, 0);
+            ChVector<> eps_dt_1(strain_dt.segment(0, 3));
+            ChVector<> eps_dt_2(strain_dt.segment(3, 3));
+            ChVector<> k_dt_1(strain_dt.segment(6, 3));
+            ChVector<> k_dt_2(strain_dt.segment(9, 3));
             ChVector<> n1, n2, m1, m2;
             ChVector<> l_n1, l_n2, l_m1, l_m2;
             // loop on layers
@@ -994,16 +962,13 @@ void ChElementShellReissner4::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                 m1 += l_m1;
                 m2 += l_m2;
             }
-            stress_damp.PasteVector(n1, 0, 0);
-            stress_damp.PasteVector(n2, 3, 0);
-            stress_damp.PasteVector(m1, 6, 0);
-            stress_damp.PasteVector(m2, 9, 0);
-            stress_damp.MatrScale(this->m_Alpha);
+            stress_damp.segment(0, 3) = n1.eigen();
+            stress_damp.segment(3, 3) = n2.eigen();
+            stress_damp.segment(6, 3) = m1.eigen();
+            stress_damp.segment(9, 3) = m2.eigen();
+            stress_damp *= m_Alpha;
 
-            ChMatrixNM<double, 24, 1> rd_damp;
-            rd_damp.MatrTMultiply(B_overline_i[i], stress_damp);
-            rd_damp *= (-alpha_i[i] * w_i[i]);
-            Fi.PasteSumMatrix(rd_damp, 0, 0);
+            Fi.segment(0, 24) += (-alpha_i[i] * w_i[i]) * B_overline_i[i].transpose() * stress_damp;
         }
 
     }  // end Rayleigh damping
@@ -1014,7 +979,7 @@ void ChElementShellReissner4::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
 // -----------------------------------------------------------------------------
 
 void ChElementShellReissner4::ComputeInternalJacobians(double Kfactor, double Rfactor) {
-    m_JacobianMatrix.Reset();
+    m_JacobianMatrix.setZero();
 
     // tangente
 
@@ -1023,46 +988,36 @@ void ChElementShellReissner4::ComputeInternalJacobians(double Kfactor, double Rf
     ChMatrixNM<double, IDOFS, 24> K_beta_q;
     ChMatrixNM<double, IDOFS, IDOFS> K_beta_beta;
 
-    ChMatrixNM<double, 24, 15> Ktg;
-    ChMatrixNM<double, 24, 12> Ktm;
-
-    ChMatrixNM<double, IDOFS, 12> Ktbetaq;
-
     ChMatrixNM<double, 12, 12> C;
 
     for (int i = 0; i < NUMIP; i++) {
         // GEOMETRIC STIFFNESS Kg:
 
-        Ktg.MatrTMultiply(D_overline_i[i], G_i[i]);
-        Kg.MatrMultiply(Ktg, D_overline_i[i]);
+        Kg = D_overline_i[i].transpose() * G_i[i] * D_overline_i[i];
 
         // MATERIAL STIFFNESS Km:
 
         ChMatrixNM<double, 12, 12> C;
         ChMatrixNM<double, 12, 12> l_C;
-        C.Reset();
-        l_C.Reset();
+        C.setZero();
+        l_C.setZero();
         // loop on layers
-        for (size_t il = 0; il < this->m_layers.size(); ++il) {
+        for (size_t il = 0; il < m_layers.size(); ++il) {
             // compute layer tang. material stiff, and accumulate
             m_layers[il].GetMaterial()->ComputeTangentC(
                 l_C, eps_tilde_1_i[i], eps_tilde_2_i[i], k_tilde_1_i[i], k_tilde_2_i[i], m_layers_z[il],
                 m_layers_z[il + 1],
                 m_layers[il].Get_theta());  // ***TODO*** use the total epsilon including the 'hat' component from EAS
-            C.MatrInc(l_C);
+            C += l_C;
         }
 
-        Ktm.MatrTMultiply(B_overline_i[i], C);
-        Km.MatrMultiply(Ktm, B_overline_i[i]);
+        Km = B_overline_i[i].transpose() * C * B_overline_i[i];
 
         // EAS STIFFNESS K_beta_q:
-
-        Ktbetaq.MatrTMultiply(P_i[i], C);
-        K_beta_q.MatrMultiply(Ktbetaq, B_overline_i[i]);
+        K_beta_q = P_i[i].transpose() * C * B_overline_i[i];
 
         // EAS STIFFNESS K_beta_beta:
-
-        K_beta_beta.MatrMultiply(Ktbetaq, P_i[i]);
+        K_beta_beta = P_i[i].transpose() * C * P_i[i];
 
         // Assembly the entire jacobian
         //  [ Km   Kbq' ]
@@ -1070,21 +1025,21 @@ void ChElementShellReissner4::ComputeInternalJacobians(double Kfactor, double Rf
 
         double dCoef = 1.0;  //***TODO*** autoset this
 
-        Km *= (alpha_i[i] * w_i[i] * dCoef * (Kfactor + Rfactor * this->m_Alpha));
-        this->m_JacobianMatrix.PasteSumMatrix(Km, 0, 0);
+        Km *= (alpha_i[i] * w_i[i] * dCoef * (Kfactor + Rfactor * m_Alpha));
+        m_JacobianMatrix += Km;
 
 #ifdef CHUSE_KGEOMETRIC
         Kg *= (alpha_i[i] * w_i[i] * dCoef * Kfactor);
-        this->m_JacobianMatrix.PasteSumMatrix(Kg, 0, 0);
+        m_JacobianMatrix += Kg;
 #endif
 
 #ifdef CHUSE_EAS
         K_beta_q *= (alpha_i[i] * w_i[i] * Kfactor);
-        this->m_JacobianMatrix.PasteSumMatrix(K_beta_q, 24, 0);
-        this->m_JacobianMatrix.PasteSumTranspMatrix(K_beta_q, 0, 24);
-
         K_beta_beta *= (alpha_i[i] * (w_i[i] / dCoef) * Kfactor);
-        this->m_JacobianMatrix.PasteSumMatrix(K_beta_beta, 24, 4);
+
+        m_JacobianMatrix.block(24, 0, 7, 24) += K_beta_q;
+        m_JacobianMatrix.block(0, 24, 24, 7) += K_beta_q.transpose();
+        m_JacobianMatrix.block(24, 4, 7, 7) += K_beta_beta;
 #endif
     }
 }
@@ -1093,7 +1048,7 @@ void ChElementShellReissner4::ComputeInternalJacobians(double Kfactor, double Rf
 // Shape functions
 // -----------------------------------------------------------------------------
 
-void ChElementShellReissner4::ShapeFunctions(ChMatrix<>& N, double x, double y) {
+void ChElementShellReissner4::ShapeFunctions(ShapeVector& N, double x, double y) {
     double xi[2];
     xi[0] = x, xi[1] = y;
 
@@ -1103,7 +1058,7 @@ void ChElementShellReissner4::ShapeFunctions(ChMatrix<>& N, double x, double y) 
     N(3) = L4(xi);
 }
 
-void ChElementShellReissner4::ShapeFunctionsDerivativeX(ChMatrix<>& Nx, double x, double y) {
+void ChElementShellReissner4::ShapeFunctionsDerivativeX(ShapeVector& Nx, double x, double y) {
     double xi[2];
     xi[0] = x, xi[1] = y;
     Nx(0) = L1_1(xi);
@@ -1112,7 +1067,7 @@ void ChElementShellReissner4::ShapeFunctionsDerivativeX(ChMatrix<>& Nx, double x
     Nx(3) = L4_1(xi);
 }
 
-void ChElementShellReissner4::ShapeFunctionsDerivativeY(ChMatrix<>& Ny, double x, double y) {
+void ChElementShellReissner4::ShapeFunctionsDerivativeY(ShapeVector& Ny, double x, double y) {
     double xi[2];
     xi[0] = x, xi[1] = y;
     Ny(0) = L1_2(xi);
@@ -1150,7 +1105,7 @@ void ChElementShellReissner4::EvaluateSectionFrame(const double u,
 void ChElementShellReissner4::EvaluateSectionPoint(const double u,
                                                    const double v,
                                                    ChVector<>& point) {
-    ChMatrixNM<double, 1, 4> N;
+    ShapeVector N;
     this->ShapeFunctions(N, u, v);
 
     const ChVector<>& pA = m_nodes[0]->GetPos();
@@ -1167,26 +1122,26 @@ void ChElementShellReissner4::EvaluateSectionPoint(const double u,
 
 // Gets all the DOFs packed in a single vector (position part).
 void ChElementShellReissner4::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
-    mD.PasteVector(m_nodes[0]->GetPos(), block_offset, 0);
-    mD.PasteQuaternion(m_nodes[0]->GetRot(), block_offset + 3, 0);
-    mD.PasteVector(m_nodes[1]->GetPos(), block_offset + 7, 0);
-    mD.PasteQuaternion(m_nodes[1]->GetRot(), block_offset + 10, 0);
-    mD.PasteVector(m_nodes[2]->GetPos(), block_offset + 14, 0);
-    mD.PasteQuaternion(m_nodes[2]->GetRot(), block_offset + 17, 0);
-    mD.PasteVector(m_nodes[3]->GetPos(), block_offset + 21, 0);
-    mD.PasteQuaternion(m_nodes[3]->GetRot(), block_offset + 24, 0);
+    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos().eigen();
+    mD.segment(block_offset + 3, 4) = m_nodes[0]->GetRot().eigen();
+    mD.segment(block_offset + 7, 3) = m_nodes[1]->GetPos().eigen();
+    mD.segment(block_offset + 10, 4) = m_nodes[1]->GetRot().eigen();
+    mD.segment(block_offset + 14, 3) = m_nodes[2]->GetPos().eigen();
+    mD.segment(block_offset + 17, 4) = m_nodes[2]->GetRot().eigen();
+    mD.segment(block_offset + 21, 3) = m_nodes[3]->GetPos().eigen();
+    mD.segment(block_offset + 24, 4) = m_nodes[3]->GetRot().eigen();
 }
 
 // Gets all the DOFs packed in a single vector (velocity part).
 void ChElementShellReissner4::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
-    mD.PasteVector(m_nodes[0]->GetPos_dt(), block_offset, 0);
-    mD.PasteVector(m_nodes[0]->GetWvel_loc(), block_offset + 3, 0);
-    mD.PasteVector(m_nodes[1]->GetPos_dt(), block_offset + 6, 0);
-    mD.PasteVector(m_nodes[1]->GetWvel_loc(), block_offset + 9, 0);
-    mD.PasteVector(m_nodes[2]->GetPos_dt(), block_offset + 12, 0);
-    mD.PasteVector(m_nodes[2]->GetWvel_loc(), block_offset + 15, 0);
-    mD.PasteVector(m_nodes[3]->GetPos_dt(), block_offset + 18, 0);
-    mD.PasteVector(m_nodes[3]->GetWvel_loc(), block_offset + 21, 0);
+    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos_dt().eigen();
+    mD.segment(block_offset + 3, 3) = m_nodes[0]->GetWvel_loc().eigen();
+    mD.segment(block_offset + 6, 3) = m_nodes[1]->GetPos_dt().eigen();
+    mD.segment(block_offset + 9, 3) = m_nodes[1]->GetWvel_loc().eigen();
+    mD.segment(block_offset + 12, 3) = m_nodes[2]->GetPos_dt().eigen();
+    mD.segment(block_offset + 15, 3) = m_nodes[2]->GetWvel_loc().eigen();
+    mD.segment(block_offset + 18, 3) = m_nodes[3]->GetPos_dt().eigen();
+    mD.segment(block_offset + 21, 3) = m_nodes[3]->GetWvel_loc().eigen();
 }
 
 void ChElementShellReissner4::LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv)  {
@@ -1196,7 +1151,7 @@ void ChElementShellReissner4::LoadableStateIncrement(const unsigned int off_x, C
 }
 
 void ChElementShellReissner4::EvaluateSectionVelNorm(double U, double V, ChVector<>& Result) {
-    ChMatrixNM<double, 4, 1> N;
+    ShapeVector N;
     ShapeFunctions(N, U, V);
     for (unsigned int ii = 0; ii < 4; ii++) {
         Result += N(ii) * m_nodes[ii]->GetPos_dt();
@@ -1220,31 +1175,23 @@ void ChElementShellReissner4::ComputeNF(
     ChVectorDynamic<>* state_x,  // if != 0, update state (pos. part) to this, then evaluate Q
     ChVectorDynamic<>* state_w   // if != 0, update state (speed part) to this, then evaluate Q
     ) {
-    ChMatrixNM<double, 1, 4> N;
+    ShapeVector N;
     ShapeFunctions(N, U, V);
 
     //***TODO*** exact det of jacobian at u,v
     detJ = GetLengthX() * GetLengthY() / 4.0;  // approximate
 
-    ChVector<> tmp;
-    ChVector<> Fv = F.ClipVector(0, 0);
-    ChVector<> Mv = F.ClipVector(3, 0);
-    tmp = N(0) * Fv;
-    Qi.PasteVector(tmp, 0, 0);
-    tmp = N(0) * Mv;
-    Qi.PasteVector(tmp, 3, 0);
-    tmp = N(1) * Fv;
-    Qi.PasteVector(tmp, 6, 0);
-    tmp = N(1) * Mv;
-    Qi.PasteVector(tmp, 9, 0);
-    tmp = N(2) * Fv;
-    Qi.PasteVector(tmp, 12, 0);
-    tmp = N(2) * Mv;
-    Qi.PasteVector(tmp, 15, 0);
-    tmp = N(3) * Fv;
-    Qi.PasteVector(tmp, 18, 0);
-    tmp = N(3) * Mv;
-    Qi.PasteVector(tmp, 21, 0);
+    Qi.segment(0, 3) = N(0) * F.segment(0, 3);
+    Qi.segment(3, 3) = N(0) * F.segment(3, 3);
+
+    Qi.segment(6, 3) = N(1) * F.segment(0, 3);
+    Qi.segment(9, 3) = N(1) * F.segment(3, 3);
+
+    Qi.segment(12, 3) = N(2) * F.segment(0, 3);
+    Qi.segment(15, 3) = N(2) * F.segment(3, 3);
+
+    Qi.segment(18, 3) = N(3) * F.segment(0, 3);
+    Qi.segment(21, 3) = N(3) * F.segment(3, 3);
 }
 
 // Evaluate N'*F , where N is the shape function evaluated at (U,V,W) coordinates of the surface.
@@ -1258,31 +1205,23 @@ void ChElementShellReissner4::ComputeNF(
     ChVectorDynamic<>* state_x,  // if != 0, update state (pos. part) to this, then evaluate Q
     ChVectorDynamic<>* state_w   // if != 0, update state (speed part) to this, then evaluate Q
     ) {
-    ChMatrixNM<double, 1, 4> N;
+    ShapeVector N;
     ShapeFunctions(N, U, V);
 
     detJ = GetLengthX() * GetLengthY() / 4.0;  // approximate
     detJ *= GetThickness();
 
-    ChVector<> tmp;
-    ChVector<> Fv = F.ClipVector(0, 0);
-    ChVector<> Mv = F.ClipVector(3, 0);
-    tmp = N(0) * Fv;
-    Qi.PasteVector(tmp, 0, 0);
-    tmp = N(0) * Mv;
-    Qi.PasteVector(tmp, 3, 0);
-    tmp = N(1) * Fv;
-    Qi.PasteVector(tmp, 6, 0);
-    tmp = N(1) * Mv;
-    Qi.PasteVector(tmp, 9, 0);
-    tmp = N(2) * Fv;
-    Qi.PasteVector(tmp, 12, 0);
-    tmp = N(2) * Mv;
-    Qi.PasteVector(tmp, 15, 0);
-    tmp = N(3) * Fv;
-    Qi.PasteVector(tmp, 18, 0);
-    tmp = N(3) * Mv;
-    Qi.PasteVector(tmp, 21, 0);
+    Qi.segment(0,3) = N(0) * F.segment(0,3);
+    Qi.segment(3,3) = N(0) * F.segment(3,3);
+
+    Qi.segment(6, 3) = N(1) * F.segment(0, 3);
+    Qi.segment(9, 3) = N(1) * F.segment(3, 3);
+
+    Qi.segment(12, 3) = N(2) * F.segment(0, 3);
+    Qi.segment(15, 3) = N(2) * F.segment(3, 3);
+
+    Qi.segment(18, 3) = N(3) * F.segment(0, 3);
+    Qi.segment(21, 3) = N(3) * F.segment(3, 3);
 }
 
 // -----------------------------------------------------------------------------
@@ -1302,8 +1241,8 @@ double ChElementShellReissner4::GetDensity() {
 
 // Calculate normal to the surface at (U,V) coordinates.
 ChVector<> ChElementShellReissner4::ComputeNormal(const double U, const double V) {
-    ChMatrixNM<double, 1, 4> Nx;
-    ChMatrixNM<double, 1, 4> Ny;
+    ShapeVector Nx;
+    ShapeVector Ny;
     ShapeFunctionsDerivativeX(Nx, U, V);
     ShapeFunctionsDerivativeY(Ny, U, V);
 

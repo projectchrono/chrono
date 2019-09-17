@@ -66,7 +66,10 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     virtual int ContactableGet_ndof_w() override { return 6; }
 
     /// Get all the DOFs packed in a single vector (position part)
-    virtual void ContactableGetStateBlock_x(ChState& x) override { x.PasteCoordsys(this->GetCoord(), 0, 0); }
+    virtual void ContactableGetStateBlock_x(ChState& x) override {
+        x.segment(0, 3) = GetCoord().pos.eigen();
+        x.segment(3, 4) = GetCoord().rot.eigen();
+    }
 
     /// Get all the DOFs packed in a single vector (speed part)
     virtual void ContactableGetStateBlock_w(ChStateDelta& w) override;

@@ -71,10 +71,10 @@ bool test_collisionsystem() {
 	//create parallel system
 	ChSystemParallelNSC* system = new ChSystemParallelNSC();
 	bool passed = true;
-	auto material = std::make_shared<ChMaterialSurfaceNSC>();
+	auto material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
 	//add a chbody with a sphere model
-	std::shared_ptr<ChBody> sphere_model = std::make_shared<ChBody>(new ChCollisionModelParallel);
+	std::shared_ptr<ChBody> sphere_model = chrono_types::make_shared<ChBody>(new ChCollisionModelParallel);
 	InitializeObject(sphere_model, 1, material, Vector(0, 0, 0), Quaternion(1, 0, 0, 0), true, true, 0, 0);
 	AddSphereGeometry(sphere_model.get(), 1, Vector(0, 0, 0), Quaternion(1, 0, 0, 0));
 	FinalizeObject(sphere_model, (ChSystemParallel*)system);
@@ -87,7 +87,7 @@ bool test_collisionsystem() {
 
 
 	//add chbody with two collision models
-	std::shared_ptr<ChBody> double_model = std::make_shared<ChBody>(new ChCollisionModelParallel);
+	std::shared_ptr<ChBody> double_model = chrono_types::make_shared<ChBody>(new ChCollisionModelParallel);
 	InitializeObject(double_model, 1, material, Vector(0, 0, 0), Quaternion(1, 0, 0, 0), true, true, 0, 0);
 	AddSphereGeometry(double_model.get(), 1, Vector(0, 0, 0), Quaternion(1, 0, 0, 0));
 	AddSphereGeometry(double_model.get(), 1, Vector(0, 0, 0), Quaternion(1, 0, 0, 0));

@@ -182,6 +182,12 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     /// Export all patch meshes as macros in PovRay include files.
     void ExportMeshPovray(const std::string& out_dir);
 
+    /// Evaluate terrain height, normal, and coefficient of friction at the specified (x,y) location.
+    /// The point on the terrain surface is obtained through ray casting into the terrain contact model.
+    /// The return value is 'true' if the ray intersection succeeded and 'false' otherwise (in which case
+    /// the output is set to heigh=0, normal=[0,0,1], and friction=0.8).
+    bool FindPoint(double x, double y, double& height, ChVector<>& normal, float& friction) const;
+
   private:
     ChSystem* m_system;
     int m_num_patches;
@@ -191,8 +197,6 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
 
     std::shared_ptr<Patch> AddPatch(const ChCoordsys<>& position);
     void LoadPatch(const rapidjson::Value& a);
-
-    bool FindPoint(double x, double y, double& height, ChVector<>& normal, float& friction) const;
 };
 
 /// @} vehicle_terrain

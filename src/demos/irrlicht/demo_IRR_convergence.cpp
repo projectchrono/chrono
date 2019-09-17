@@ -44,7 +44,7 @@ std::vector<std::shared_ptr<ChBody> > mspheres;
 void create_items(ChIrrAppInterface& application) {
     // Create some spheres in a vertical stack
 
-    auto material = std::make_shared<ChMaterialSurfaceNSC>();
+    auto material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     material->SetFriction(0.4f);
     material->SetCompliance(0.001f / 1200);               // as 1/K, in m/N. es: 1mm/1200N
     material->SetComplianceT(material->GetCompliance());  // use tangential compliance as normal compliance
@@ -78,21 +78,21 @@ void create_items(ChIrrAppInterface& application) {
             std::shared_ptr<ChBody> mrigidBody;
 
             if (do_spheres) {
-                mrigidBody = std::make_shared<ChBodyEasySphere>(sphrad,  // radius
+                mrigidBody = chrono_types::make_shared<ChBodyEasySphere>(sphrad,  // radius
                                                                 dens,    // density
                                                                 true,    // collide enable?
                                                                 true);   // visualization?
                 mrigidBody->SetPos(ChVector<>(0.5, sphrad + level, 0.7));
-                mrigidBody->AddAsset(std::make_shared<ChTexture>(GetChronoDataFile("bluwhite.png")));
+                mrigidBody->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("bluwhite.png")));
 
                 application.GetSystem()->Add(mrigidBody);
             } else {
-                mrigidBody = std::make_shared<ChBodyEasyBox>(sphrad, sphrad, sphrad,  // x,y,z size
+                mrigidBody = chrono_types::make_shared<ChBodyEasyBox>(sphrad, sphrad, sphrad,  // x,y,z size
                                                              dens,                    // density
                                                              true,                    // collide enable?
                                                              true);                   // visualization?
                 mrigidBody->SetPos(ChVector<>(0.5, sphrad + level, 0.7));
-                mrigidBody->AddAsset(std::make_shared<ChTexture>(GetChronoDataFile("cubetexture_bluwhite.png")));
+                mrigidBody->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("cubetexture_bluwhite.png")));
 
                 application.GetSystem()->Add(mrigidBody);
             }
@@ -115,12 +115,12 @@ void create_items(ChIrrAppInterface& application) {
             {
                 for (int ui = 0; ui < 15; ui++)  // N. of hor. bricks
                 {
-                    auto mrigidWall = std::make_shared<ChBodyEasyBox>(0.396, 0.2, 0.4,  // size
+                    auto mrigidWall = chrono_types::make_shared<ChBodyEasyBox>(0.396, 0.2, 0.4,  // size
                                                                       dens,             // density
                                                                       true,             // collide enable?
                                                                       true);            // visualization?
                     mrigidWall->SetPos(ChVector<>(-0.8 + ui * 0.4 + 0.2 * (bi % 2), 0.10 + bi * 0.2, -0.5 + ai * 0.6));
-                    mrigidWall->AddAsset(std::make_shared<ChTexture>(GetChronoDataFile("cubetexture_bluwhite.png")));
+                    mrigidWall->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("cubetexture_bluwhite.png")));
                     mrigidWall->SetMaterialSurface(material);
 
                     application.GetSystem()->Add(mrigidWall);
@@ -133,12 +133,12 @@ void create_items(ChIrrAppInterface& application) {
         double dens = 1000;
         double hfactor = 100;
 
-        auto mrigidHeavy = std::make_shared<ChBodyEasySphere>(sphrad,          // radius
+        auto mrigidHeavy = chrono_types::make_shared<ChBodyEasySphere>(sphrad,          // radius
                                                               dens * hfactor,  // density
                                                               true,            // collide enable?
                                                               true);           // visualization?
         mrigidHeavy->SetPos(ChVector<>(0.5, sphrad + 0.6, -1));
-        mrigidHeavy->AddAsset(std::make_shared<ChTexture>(GetChronoDataFile("pinkwhite.png")));
+        mrigidHeavy->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("pinkwhite.png")));
         mrigidHeavy->SetMaterialSurface(material);
 
         application.GetSystem()->Add(mrigidHeavy);
@@ -149,7 +149,7 @@ void create_items(ChIrrAppInterface& application) {
 
     // Create the floor using a fixed rigid body of 'box' type:
 
-    auto mrigidFloor = std::make_shared<ChBodyEasyBox>(50, 4, 50,  // radius
+    auto mrigidFloor = chrono_types::make_shared<ChBodyEasyBox>(50, 4, 50,  // radius
                                                        dens,       // density
                                                        true,       // collide enable?
                                                        true);      // visualization?
@@ -157,7 +157,7 @@ void create_items(ChIrrAppInterface& application) {
     mrigidFloor->SetBodyFixed(true);
 	mrigidFloor->SetMaterialSurface(material);
     //mrigidFloor->GetMaterialSurfaceNSC()->SetFriction(0.6f);
-    mrigidFloor->AddAsset(std::make_shared<ChTexture>(GetChronoDataFile("concrete.jpg")));
+    mrigidFloor->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("concrete.jpg")));
 
     application.GetSystem()->Add(mrigidFloor);
 }

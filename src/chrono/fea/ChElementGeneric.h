@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Andrea Favali, Alessandro Tasora
+// Authors: Andrea Favali, Alessandro Tasora, Radu Serban
 // =============================================================================
 
 #ifndef CHELEMENTGENERIC_H
@@ -62,7 +62,7 @@ class ChApi ChElementGeneric : public ChElementBase {
     /// Returns the global mass matrix.
     /// This is the default implementation, POTENTIALLY VERY INEFFICIENT.
     /// Children classes may need to override this with a more efficient version.
-    virtual void ComputeMmatrixGlobal(ChMatrix<>& M) override { ComputeKRMmatricesGlobal(M, 0, 0, 1.0); }
+    virtual void ComputeMmatrixGlobal(ChMatrixRef M) override { ComputeKRMmatricesGlobal(M, 0, 0, 1.0); }
 
     //
     // Functions for interfacing to the solver
@@ -76,7 +76,7 @@ class ChApi ChElementGeneric : public ChElementBase {
     /// ChKblock item(s), if any. The K, R, M matrices are load with scaling
     /// values Kfactor, Rfactor, Mfactor.
     virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override {
-        this->ComputeKRMmatricesGlobal(*this->Kmatr.Get_K(), Kfactor, Rfactor, Mfactor);
+        this->ComputeKRMmatricesGlobal(this->Kmatr.Get_K(), Kfactor, Rfactor, Mfactor);
     }
 
     /// Adds the internal forces, expressed as nodal forces, into the

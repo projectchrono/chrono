@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChGlobal.h"
+#include "chrono/core/ChGlobal.h"
 
 #include "chrono_vehicle/powertrain/ShaftsPowertrain.h"
 
@@ -75,6 +75,13 @@ void ShaftsPowertrain::Create(const rapidjson::Document& d) {
     m_fwd_gear.resize(np);
     for (unsigned int i = 0; i < np; i++)
         m_fwd_gear[i] = d["Transmission"]["Forward Gear Ratios"][i].GetDouble();
+
+    m_upshift_RPM = d["Transmission"]["Upshift RPM"].GetDouble();
+    m_downshift_RPM = d["Transmission"]["Downshift RPM"].GetDouble();
+
+    if (d["Transmission"].HasMember("Shift Latency")) {
+        SetGearShiftLatency(d["Transmission"]["Shift Latency"].GetDouble());
+    }
 
     // Read torque converter data
     assert(d.HasMember("Torque Converter"));

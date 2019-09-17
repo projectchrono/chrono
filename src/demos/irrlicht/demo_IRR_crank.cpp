@@ -59,20 +59,20 @@ int main(int argc, char* argv[]) {
     //   their center of mass (COG) etc.
 
     // ..the truss
-    auto my_body_A = std::make_shared<ChBody>();
+    auto my_body_A = chrono_types::make_shared<ChBody>();
     my_system.AddBody(my_body_A);
     my_body_A->SetBodyFixed(true);  // truss does not move!
     my_body_A->SetName("Ground-Truss");
 
     // ..the crank
-    auto my_body_B = std::make_shared<ChBody>();
+    auto my_body_B = chrono_types::make_shared<ChBody>();
     my_system.AddBody(my_body_B);
     my_body_B->SetPos(ChVector<>(1, 0, 0));  // position of COG of crank
     my_body_B->SetMass(2);
     my_body_B->SetName("Crank");
 
     // ..the rod
-    auto my_body_C = std::make_shared<ChBody>();
+    auto my_body_C = chrono_types::make_shared<ChBody>();
     my_system.AddBody(my_body_C);
     my_body_C->SetPos(ChVector<>(4, 0, 0));  // position of COG of rod
     my_body_C->SetMass(3);
@@ -81,23 +81,23 @@ int main(int argc, char* argv[]) {
     // 3- Create constraints: the mechanical joints between the rigid bodies.
 
     // .. a revolute joint between crank and rod
-    auto my_link_BC = std::make_shared<ChLinkLockRevolute>();
+    auto my_link_BC = chrono_types::make_shared<ChLinkLockRevolute>();
     my_link_BC->SetName("RevJointCrankRod");
     my_link_BC->Initialize(my_body_B, my_body_C, ChCoordsys<>(ChVector<>(2, 0, 0)));
     my_system.AddLink(my_link_BC);
 
     // .. a slider joint between rod and truss
-    auto my_link_CA = std::make_shared<ChLinkLockPointLine>();
+    auto my_link_CA = chrono_types::make_shared<ChLinkLockPointLine>();
     my_link_CA->SetName("TransJointRodGround");
     my_link_CA->Initialize(my_body_C, my_body_A, ChCoordsys<>(ChVector<>(6, 0, 0)));
     my_system.AddLink(my_link_CA);
 
     // .. a motor between crank and truss
-    auto my_link_AB = std::make_shared<ChLinkMotorRotationSpeed>();
+    auto my_link_AB = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     my_link_AB->Initialize(my_body_A, my_body_B, ChFrame<>(ChVector<>(0, 0, 0)));
     my_link_AB->SetName("RotationalMotor");
     my_system.AddLink(my_link_AB);
-    auto my_speed_function = std::make_shared<ChFunction_Const>(CH_C_PI);  // speed w=3.145 rad/sec
+    auto my_speed_function = chrono_types::make_shared<ChFunction_Const>(CH_C_PI);  // speed w=3.145 rad/sec
     my_link_AB->SetSpeedFunction(my_speed_function);
     
 

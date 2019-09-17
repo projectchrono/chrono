@@ -112,22 +112,22 @@ int main(int argc, char* argv[]) {
     //   position/mass/inertias of their center of mass (COG) etc.
 
     // ..the truss
-    auto my_body_A = std::make_shared<ChBody>();
+    auto my_body_A = chrono_types::make_shared<ChBody>();
     my_system.AddBody(my_body_A);
     my_body_A->SetBodyFixed(true);  // truss does not move!
 
     // ..the flywheel
-    auto my_body_B = std::make_shared<ChBody>();
+    auto my_body_B = chrono_types::make_shared<ChBody>();
     my_system.AddBody(my_body_B);
     my_body_B->SetPos(ChVector<>(0, 0, 0));  // position of COG of flywheel
 
     // ..the rod
-    auto my_body_C = std::make_shared<ChBody>();
+    auto my_body_C = chrono_types::make_shared<ChBody>();
     my_system.AddBody(my_body_C);
     my_body_C->SetPos(ChVector<>(4, 0, 0));  // position of COG of rod
 
     // ..the rocker
-    auto my_body_D = std::make_shared<ChBody>();
+    auto my_body_D = chrono_types::make_shared<ChBody>();
     my_system.AddBody(my_body_D);
     my_body_D->SetPos(ChVector<>(8, -4, 0));  // position of COG of rod
 
@@ -135,24 +135,24 @@ int main(int argc, char* argv[]) {
     //    rigid bodies. Doesn't matter if some constraints are redundant.
 
     // .. a motor between flywheel and truss
-    auto my_link_AB = std::make_shared<ChLinkMotorRotationSpeed>();
+    auto my_link_AB = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     my_link_AB->Initialize(my_body_A, my_body_B, ChFrame<>(ChVector<>(0, 0, 0)));
     my_system.AddLink(my_link_AB);
-    auto my_speed_function = std::make_shared<ChFunction_Const>(CH_C_PI);  // speed w=3.145 rad/sec
+    auto my_speed_function = chrono_types::make_shared<ChFunction_Const>(CH_C_PI);  // speed w=3.145 rad/sec
     my_link_AB->SetSpeedFunction(my_speed_function);
 
     // .. a revolute joint between flywheel and rod
-    auto my_link_BC = std::make_shared<ChLinkLockRevolute>();
+    auto my_link_BC = chrono_types::make_shared<ChLinkLockRevolute>();
     my_link_BC->Initialize(my_body_B, my_body_C, ChCoordsys<>(ChVector<>(2, 0, 0)));
     my_system.AddLink(my_link_BC);
 
     // .. a revolute joint between rod and rocker
-    auto my_link_CD = std::make_shared<ChLinkLockRevolute>();
+    auto my_link_CD = chrono_types::make_shared<ChLinkLockRevolute>();
     my_link_CD->Initialize(my_body_C, my_body_D, ChCoordsys<>(ChVector<>(8, 0, 0)));
     my_system.AddLink(my_link_CD);
 
     // .. a revolute joint between rocker and truss
-    auto my_link_DA = std::make_shared<ChLinkLockRevolute>();
+    auto my_link_DA = chrono_types::make_shared<ChLinkLockRevolute>();
     my_link_DA->Initialize(my_body_D, my_body_A, ChCoordsys<>(ChVector<>(8, -8, 0)));
     my_system.AddLink(my_link_DA);
 

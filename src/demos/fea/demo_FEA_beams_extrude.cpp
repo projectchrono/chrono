@@ -60,7 +60,7 @@ std::shared_ptr<ChBody> CreateLobedGear (
             std::shared_ptr<ChMaterialSurface> mysurfmaterial
             )  {
 
-    auto mgear = std::make_shared<ChBody>();
+    auto mgear = chrono_types::make_shared<ChBody>();
     mgear->SetMaterialSurface(mysurfmaterial);
     mgear->SetPos(gear_center);
     my_system.Add(mgear);
@@ -111,14 +111,14 @@ int main(int argc, char* argv[]) {
 
 
     // Create a ground object, useful reference for connecting constraints etc.
-    auto mground = std::make_shared<ChBody>();
+    auto mground = chrono_types::make_shared<ChBody>();
     mground->SetBodyFixed(true);
     my_system.Add(mground);
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
 
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
     my_system.Add(my_mesh);
 
     // Create a section, i.e. thickness and material properties
@@ -126,20 +126,20 @@ int main(int argc, char* argv[]) {
 
     double wire_diameter = 0.010;
 
-	auto melasticity = std::make_shared<ChElasticityCosseratSimple>();
+	auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
 	melasticity->SetYoungModulus(0.5e9);
 	melasticity->SetGshearModulus(0.5e9 * 0.7);
 
-	auto mdamping = std::make_shared<ChDampingCosseratLinear>();
+	auto mdamping = chrono_types::make_shared<ChDampingCosseratLinear>();
 	mdamping->SetDampingCoefficientsRe((1e-3)*ChVector<>(1, 1, 1)); 
 	mdamping->SetDampingCoefficientsRk((1e-4)*ChVector<>(1, 1, 1)); //***??? -/+
 
-	auto mplasticity = std::make_shared<ChPlasticityCosseratLumped>();
-	mplasticity->n_yeld_Mx = std::make_shared<ChFunction_Ramp>(1, 0.01);
-	mplasticity->n_yeld_My = std::make_shared<ChFunction_Ramp>(0.2, 0.001);
-	mplasticity->n_yeld_Mz = std::make_shared<ChFunction_Ramp>(0.2, 0.001);
+	auto mplasticity = chrono_types::make_shared<ChPlasticityCosseratLumped>();
+	mplasticity->n_yeld_Mx = chrono_types::make_shared<ChFunction_Ramp>(1, 0.01);
+	mplasticity->n_yeld_My = chrono_types::make_shared<ChFunction_Ramp>(0.2, 0.001);
+	mplasticity->n_yeld_Mz = chrono_types::make_shared<ChFunction_Ramp>(0.2, 0.001);
 
-	auto msection = std::make_shared<ChBeamSectionCosserat>(melasticity, mplasticity, mdamping);
+	auto msection = chrono_types::make_shared<ChBeamSectionCosserat>(melasticity, mplasticity, mdamping);
 	msection->SetDensity(1000);
 	msection->SetAsCircularSection(wire_diameter);
 
@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
     /*
     // option A: Hertz contact force model
     my_system.SetContactForceModel(ChSystemSMC::ContactForceModel::Hertz);
-    auto mysurfmaterial = std::make_shared<ChMaterialSurfaceSMC>();
+    auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     mysurfmaterial->SetYoungModulus(20e3);  // to adjust heuristically..
     mysurfmaterial->SetRestitution(0.1f);
     mysurfmaterial->SetFriction(0.2f);
@@ -159,7 +159,7 @@ int main(int argc, char* argv[]) {
     // Option B: Hooke force model 
     my_system.SetContactForceModel(ChSystemSMC::ContactForceModel::Hooke);
     my_system.UseMaterialProperties(false);
-    auto mysurfmaterial = std::make_shared<ChMaterialSurfaceSMC>();
+    auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     mysurfmaterial->SetKn(350); // contact normal stiffness
     mysurfmaterial->SetKt(350); // contact tangential stiffness
     mysurfmaterial->SetGn(25);   // contact normal damping
@@ -171,7 +171,7 @@ int main(int argc, char* argv[]) {
     // Add the EXTRUDER
     //
 
-    auto extruder = std::make_shared<ChExtruderBeamIGA>(
+    auto extruder = chrono_types::make_shared<ChExtruderBeamIGA>(
             &my_system,                 // the physical system 
             my_mesh,                    // the mesh where to add the beams
             msection,                   // section for created beam
@@ -194,14 +194,14 @@ int main(int argc, char* argv[]) {
     // Attach a visualization of the FEM mesh.
     //
 
-    auto mvisualizebeamA = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizebeamA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_ELEM_BEAM_MZ);
     mvisualizebeamA->SetColorscaleMinMax(-0.4, 0.4);
     mvisualizebeamA->SetSmoothFaces(true);
     mvisualizebeamA->SetWireframe(false);
     my_mesh->AddAsset(mvisualizebeamA);
 
-    auto mvisualizebeamC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizebeamC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
     mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     mvisualizebeamC->SetSymbolsThickness(0.006);
@@ -230,22 +230,22 @@ int main(int argc, char* argv[]) {
     auto gearLOW =  CreateLobedGear (gear_centerLOW, lobe_copies, lobe_width, lobe_primitive_rad, 
                     lobe_inner_rad, lobe_outer_rad, lobe_thickness, my_system, mysurfmaterial); 
 
-    auto mgear_motorLOW = std::make_shared<ChLinkMotorRotationSpeed>();
+    auto mgear_motorLOW = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     mgear_motorLOW->Initialize(gearLOW, mground, ChFrame<>(gear_centerLOW));
     my_system.Add(mgear_motorLOW);
 
-    auto mgear_speedLOW = std::make_shared<ChFunction_Const>(-0.2); // [rad/s]
+    auto mgear_speedLOW = chrono_types::make_shared<ChFunction_Const>(-0.2); // [rad/s]
     mgear_motorLOW->SetSpeedFunction(mgear_speedLOW);
 
     auto gearHI =  CreateLobedGear (gear_centerHI, lobe_copies, lobe_width, lobe_primitive_rad, 
                     lobe_inner_rad, lobe_outer_rad, lobe_thickness, my_system, mysurfmaterial);
     gearHI->SetRot(Q_from_AngZ(0.5*CH_C_2PI/lobe_copies)); // to phase half step respect to other gear 
 
-    auto mgear_motorHI = std::make_shared<ChLinkMotorRotationSpeed>();
+    auto mgear_motorHI = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     mgear_motorHI->Initialize(gearHI, mground, ChFrame<>(gear_centerHI));
     my_system.Add(mgear_motorHI);
 
-    auto mgear_speedHI = std::make_shared<ChFunction_Const>( 0.2); // [rad/s]
+    auto mgear_speedHI = chrono_types::make_shared<ChFunction_Const>( 0.2); // [rad/s]
     mgear_motorHI->SetSpeedFunction(mgear_speedHI);
 
 
@@ -291,7 +291,7 @@ int main(int argc, char* argv[]) {
     msolver->SetVerbose(false);
     msolver->SetDiagonalPreconditioning(true);
 
-    auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+    auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
     my_system.SetSolver(mkl_solver);
             
     application.SetTimestep(0.0002);

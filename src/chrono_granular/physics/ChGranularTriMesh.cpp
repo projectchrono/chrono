@@ -20,7 +20,7 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #endif
-#include "chrono/physics/ChGlobal.h"
+#include "chrono/core/ChGlobal.h"
 #include "chrono/core/ChVector.h"
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChMatrix33.h"
@@ -100,13 +100,15 @@ void ChSystemGranularSMC_trimesh::initialize() {
 }
 
 void ChSystemGranularSMC_trimesh::load_meshes(std::vector<std::string> objfilenames,
-                                              std::vector<float3> scalings,
+                                              std::vector<ChMatrix33<float>> rotscale,
+                                              std::vector<float3> translations,
                                               std::vector<float> masses,
                                               std::vector<bool> inflated,
                                               std::vector<float> inflation_radii) {
     unsigned int size = objfilenames.size();
-    if (size != scalings.size() || size != masses.size() || size != inflated.size() || size != inflation_radii.size()) {
-        GRANULAR_ERROR("Vectors of obj files, scalings, and masses must have same size\n");
+    if (size != rotscale.size() || size != translations.size() || size != masses.size() || size != inflated.size() ||
+        size != inflation_radii.size()) {
+        GRANULAR_ERROR("Mesh loading vectors must all have same size\n");
     }
 
     if (size == 0) {
@@ -117,12 +119,17 @@ void ChSystemGranularSMC_trimesh::load_meshes(std::vector<std::string> objfilena
     unsigned int numTriangleFamilies = 0;
     std::vector<ChTriangleMeshConnected> all_meshes;
     for (unsigned int i = 0; i < objfilenames.size(); i++) {
-        INFO_PRINTF("importing %s\n", objfilenames[i].c_str());
+        INFO_PRINTF("Importing %s...\n", objfilenames[i].c_str());
         all_meshes.push_back(ChTriangleMeshConnected());
         ChTriangleMeshConnected& mesh = all_meshes[all_meshes.size() - 1];
 
         mesh.LoadWavefrontMesh(objfilenames[i], true, false);
-        mesh.Transform({0, 0, 0}, ChMatrix33<>(ChVector<>(scalings[i].x, scalings[i].y, scalings[i].z)));
+
+        // Apply displacement
+        ChVector<> displ(translations[i].x, translations[i].y, translations[i].z);
+
+        // Apply scaling and then rotation
+        mesh.Transform(displ, rotscale[i].cast<double>());
 
         unsigned int num_triangles_curr = mesh.getNumTriangles();
 

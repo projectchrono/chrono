@@ -54,13 +54,13 @@ class ChApiCosimulation ChCosimulation {
     /// vector of floating point values over TCP socket
     /// connection (values are double precision, little endian, 4 bytes each)
     /// Simulator actual time is also passed as first value.
-    bool SendData(double mtime, ChMatrix<double>* mdata);
+    bool SendData(double mtime, ChVectorConstRef mdata);
 
     /// Exchange data with the client, by receiving a
     /// vector of floating point values over TCP socket
     /// connection (values are double precision, little endian, 4 bytes each)
     /// External time is also received as first value.
-    bool ReceiveData(double& mtime, ChMatrix<double>* mdata);
+    bool ReceiveData(double& mtime, ChVectorRef mdata);
 
   private:
     ChSocketTCP* myServer;

@@ -42,7 +42,7 @@
 #include "chrono/core/ChBezierCurve.h"
 
 #include "chrono/core/ChMathematics.h"
-#include "chrono/core/ChMatrixDynamic.h"
+#include "chrono/core/ChMatrix.h"
 
 namespace chrono {
 
@@ -577,8 +577,7 @@ int ChBezierCurveTracker::calcClosestPoint(const ChVector<>& loc, ChFrame<>& tnb
         B = Vcross(T, N);
     }
 
-    ChMatrix33<> A;
-    A.Set_A_axis(T, N, B);
+    ChMatrix33<> A(T, N, B);
 
     tnb.SetRot(A);
     tnb.SetPos(r);

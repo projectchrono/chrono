@@ -33,6 +33,8 @@
 
 #include "chrono_models/vehicle/sedan/Sedan_Driveline2WD.h"
 
+#include "chrono_models/vehicle/citybus/CityBus_Driveline2WD.h"
+
 %}
 
 
@@ -42,6 +44,7 @@
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_Driveline4WD)
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_SimpleDriveline)
 %shared_ptr(chrono::vehicle::sedan::Sedan_Driveline2WD)
+%shared_ptr(chrono::vehicle::citybus::CityBus_Driveline2WD)
 
 
 /* Parse the header file to generate wrappers */
@@ -56,3 +59,5 @@
 %include "../chrono_models/vehicle/hmmwv/HMMWV_SimpleDriveline.h"
 
 %include "../chrono_models/vehicle/sedan/Sedan_Driveline2WD.h"
+
+%include "../chrono_models/vehicle/citybus/CityBus_Driveline2WD.h"

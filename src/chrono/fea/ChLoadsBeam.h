@@ -57,9 +57,9 @@ class ChLoaderBeamWrench : public ChLoaderUatomic {
                           ChVectorDynamic<>& F,  ///< Result F vector here, size must be = n.field coords.of loadable
                           ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate F
                           ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate F
-                          ) {
-        F.PasteVector(this->force, 0, 0);   // load, force part
-        F.PasteVector(this->torque, 3, 0);  // load, torque part
+    ) {
+        F.segment(0, 3) = this->force.eigen();   // load, force part
+        F.segment(3, 3) = this->torque.eigen();  // load, torque part
     }
 
     /// Set force (ex. in [N] units)
@@ -109,8 +109,8 @@ class ChLoaderBeamWrenchDistributed : public ChLoaderUdistributed {
                           ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate F
                           ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate F
                           ) {
-        F.PasteVector(this->forceperunit, 0, 0);   // load, force part
-        F.PasteVector(this->torqueperunit, 3, 0);  // load, torque part
+        F.segment(0, 3) = this->forceperunit.eigen();   // load, force part
+        F.segment(3, 3) = this->torqueperunit.eigen();  // load, torque part
     }
 
     virtual int GetIntegrationPointsU() { return 1; }

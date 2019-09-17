@@ -54,6 +54,9 @@ class ChApi ChMaterialShellANCF {
 
     double m_rho;                      ///< density
     ChMatrixNM<double, 6, 6> m_E_eps;  ///< matrix of elastic coefficients
+
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 /// @} fea_elements

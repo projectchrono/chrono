@@ -39,19 +39,19 @@ ChSystemSMC::ChSystemSMC(bool use_material_properties, unsigned int max_objects,
       m_adhesion_model(Constant),
       m_tdispl_model(OneStep),
       m_stiff_contact(false) {
-    descriptor = std::make_shared<ChSystemDescriptor>();
+    descriptor = chrono_types::make_shared<ChSystemDescriptor>();
     descriptor->SetNumThreads(parallel_thread_number);
 
-    solver_speed = std::make_shared<ChSolverSMC>();
-    solver_stab = std::make_shared<ChSolverSMC>();
+    solver_speed = chrono_types::make_shared<ChSolverSMC>();
+    solver_stab = chrono_types::make_shared<ChSolverSMC>();
 
-    collision_system = std::make_shared<collision::ChCollisionSystemBullet>(max_objects, scene_size);
+    collision_system = chrono_types::make_shared<collision::ChCollisionSystemBullet>(max_objects, scene_size);
 
     // For default SMC there is no need to create contacts 'in advance'
     // when models are closer than the safety envelope, so set default envelope to 0
     collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0);
 
-    contact_container = std::make_shared<ChContactContainerSMC>();
+    contact_container = chrono_types::make_shared<ChContactContainerSMC>();
     contact_container->SetSystem(this);
 
     m_minSlipVelocity = 1e-4;

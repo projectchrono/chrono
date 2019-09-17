@@ -67,7 +67,7 @@ TEST(CompositeInertia, hemispheres) {
     // Check
     ASSERT_NEAR(c_mass, s_mass, tol);
     TestVector(c_com, s_com, tol);
-    ASSERT_NEAR((c_inertia - s_inertia).NormTwo(), 0.0, tol);
+    ASSERT_NEAR((c_inertia - s_inertia).norm(), 0.0, tol);
 }
 
 // ====================================================================================
@@ -118,7 +118,7 @@ TEST(CompositeInertia, boxes) {
     // Check
     ASSERT_NEAR(c_mass, b_mass, tol);
     TestVector(c_com, b_com, tol);
-    ASSERT_NEAR((c_inertia - b_inertia).NormTwo(), 0.0, tol);
+    ASSERT_NEAR((c_inertia - b_inertia).norm(), 0.0, tol);
 }
 
 // ====================================================================================
@@ -153,5 +153,5 @@ TEST(CompositeInertia, hollow_sphere) {
     // Check
     ASSERT_NEAR(c_mass, s_mass, tol);
     ASSERT_NEAR(c_com.Length(), 0.0, tol);
-    ASSERT_NEAR((c_inertia - s_inertia).NormTwo(), 0.0, tol);
+    ASSERT_NEAR((c_inertia - s_inertia).norm(), 0.0, tol);
 }

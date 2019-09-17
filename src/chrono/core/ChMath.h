@@ -22,8 +22,6 @@
 #include "chrono/core/ChVector.h"
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChMatrix.h"
-#include "chrono/core/ChMatrixDynamic.h"
-#include "chrono/core/ChMatrixNM.h"
 #include "chrono/core/ChMatrix33.h"
 #include "chrono/core/ChCoordsys.h"
 

@@ -68,19 +68,19 @@ int main(int argc, char* argv[]) {
     // Create the ground body with two visualization spheres
     // -----------------------------------------------------
 
-    auto ground = std::make_shared<ChBody>();
+    auto ground = chrono_types::make_shared<ChBody>();
     system.AddBody(ground);
     ground->SetIdentifier(-1);
     ground->SetBodyFixed(true);
     ground->SetCollide(false);
 
     {
-        auto sph_1 = std::make_shared<ChSphereShape>();
+        auto sph_1 = chrono_types::make_shared<ChSphereShape>();
         sph_1->GetSphereGeometry().rad = 0.1;
         sph_1->Pos = ChVector<>(-1, 0, 0);
         ground->AddAsset(sph_1);
 
-        auto sph_2 = std::make_shared<ChSphereShape>();
+        auto sph_2 = chrono_types::make_shared<ChSphereShape>();
         sph_2->GetSphereGeometry().rad = 0.1;
         sph_2->Pos = ChVector<>(1, 0, 0);
         ground->AddAsset(sph_2);
@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
     // Create a body suspended through a ChLinkSpring
     // ----------------------------------------------
 
-    auto body_1 = std::make_shared<ChBody>();
+    auto body_1 = chrono_types::make_shared<ChBody>();
     system.AddBody(body_1);
     body_1->SetPos(ChVector<>(-1, -3, 0));
     body_1->SetIdentifier(1);
@@ -99,16 +99,16 @@ int main(int argc, char* argv[]) {
     body_1->SetInertiaXX(ChVector<>(1, 1, 1));
 
     // Attach a visualization asset.
-    auto box_1 = std::make_shared<ChBoxShape>();
+    auto box_1 = chrono_types::make_shared<ChBoxShape>();
     box_1->GetBoxGeometry().SetLengths(ChVector<>(1, 1, 1));
     body_1->AddAsset(box_1);
-    auto col_1 = std::make_shared<ChColorAsset>();
+    auto col_1 = chrono_types::make_shared<ChColorAsset>();
     col_1->SetColor(ChColor(0.6f, 0, 0));
     body_1->AddAsset(col_1);
 
     // Create the spring between body_1 and ground. The spring end points are
     // specified in the body relative frames.
-    auto spring_1 = std::make_shared<ChLinkSpring>();
+    auto spring_1 = chrono_types::make_shared<ChLinkSpring>();
     spring_1->Initialize(body_1, ground, true, ChVector<>(0, 0, 0), ChVector<>(-1, 0, 0), false, rest_length);
     spring_1->Set_SpringK(spring_coef);
     spring_1->Set_SpringR(damping_coef);
@@ -116,12 +116,12 @@ int main(int argc, char* argv[]) {
 
 	// Attach a visualization asset.
 	spring_1->AddAsset(col_1);
-	spring_1->AddAsset(std::make_shared<ChPointPointSpring>(0.05, 80, 15));
+	spring_1->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.05, 80, 15));
 
     // Create a body suspended through a ChLinkSpringCB
     // ------------------------------------------------
 
-    auto body_2 = std::make_shared<ChBody>();
+    auto body_2 = chrono_types::make_shared<ChBody>();
     system.AddBody(body_2);
     body_2->SetPos(ChVector<>(1, -3, 0));
     body_2->SetIdentifier(1);
@@ -131,10 +131,10 @@ int main(int argc, char* argv[]) {
     body_2->SetInertiaXX(ChVector<>(1, 1, 1));
 
     // Attach a visualization asset.
-    auto box_2 = std::make_shared<ChBoxShape>();
+    auto box_2 = chrono_types::make_shared<ChBoxShape>();
     box_2->GetBoxGeometry().SetLengths(ChVector<>(1, 1, 1));
     body_2->AddAsset(box_1);
-    auto col_2 = std::make_shared<ChColorAsset>();
+    auto col_2 = chrono_types::make_shared<ChColorAsset>();
     col_2->SetColor(ChColor(0, 0, 0.6f));
     body_2->AddAsset(col_2);
 
@@ -142,14 +142,14 @@ int main(int argc, char* argv[]) {
     // specified in the body relative frames.
     MySpringForce force;
 
-    auto spring_2 = std::make_shared<ChLinkSpringCB>();
+    auto spring_2 = chrono_types::make_shared<ChLinkSpringCB>();
     spring_2->Initialize(body_2, ground, true, ChVector<>(0, 0, 0), ChVector<>(1, 0, 0), false, rest_length);
     spring_2->RegisterForceFunctor(&force);
     system.AddLink(spring_2);
 
 	// Attach a visualization asset.
 	spring_2->AddAsset(col_2);
-	spring_2->AddAsset(std::make_shared<ChPointPointSpring>(0.05, 80, 15));
+	spring_2->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.05, 80, 15));
 
     // Create the Irrlicht application
     // -------------------------------

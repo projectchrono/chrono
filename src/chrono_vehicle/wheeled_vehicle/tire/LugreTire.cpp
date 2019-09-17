@@ -62,7 +62,7 @@ void LugreTire::Create(const rapidjson::Document& d) {
     // Read tire radius, mass, and inertia
     m_radius = d["Radius"].GetDouble();
     m_mass = d["Mass"].GetDouble();
-    m_inertia = LoadVectorJSON(d["Inertia"]);
+    m_inertia = ReadVectorJSON(d["Inertia"]);
 
     // Read disc locations
     m_numDiscs = d["Disc Locations"].Size();
@@ -107,9 +107,9 @@ void LugreTire::Create(const rapidjson::Document& d) {
 // -----------------------------------------------------------------------------
 void LugreTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH && m_has_mesh) {
-        auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
         trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
-        m_trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+        m_trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         m_trimesh_shape->SetMesh(trimesh);
         m_trimesh_shape->SetName(m_meshName);
         m_trimesh_shape->SetStatic(true);

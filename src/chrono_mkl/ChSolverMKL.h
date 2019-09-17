@@ -12,10 +12,12 @@
 // Authors: Dario Mangoni, Radu Serban
 // =============================================================================
 
+//// RADU
+//// Move implementation to cpp file
+
 #ifndef CHSOLVERMKL_H
 #define CHSOLVERMKL_H
 
-#include "chrono/core/ChMatrixDynamic.h"
 #include "chrono/core/ChSparseMatrix.h"
 #include "chrono/core/ChTimer.h"
 #include "chrono/solver/ChSolver.h"
@@ -57,7 +59,7 @@ lock.
 
 Minimal usage example, to be put anywhere in the code, before starting the main simulation loop:
 \code{.cpp}
-auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
 application.GetSystem()->SetSolver(mkl_solver);
 \endcode
 
@@ -207,7 +209,7 @@ class ChSolverMKL : public ChSolver {
         // Assemble the problem right-hand side vector.
         m_timer_solve_assembly.start();
         sysd.ConvertToMatrixForm(nullptr, &m_rhs);
-        m_sol.Resize(m_rhs.GetRows(), 1);
+        m_sol.resize(m_rhs.size());
         m_engine.SetRhsVector(m_rhs);
         m_engine.SetSolutionVector(m_sol);
         m_timer_solve_assembly.stop();
@@ -266,8 +268,8 @@ class ChSolverMKL : public ChSolver {
   private:
     ChMklEngine m_engine = {0, ChSparseMatrix::GENERAL};  ///< interface to MKL solver
     Matrix m_mat = {1, 1};                                ///< problem matrix
-    ChMatrixDynamic<double> m_rhs;                        ///< right-hand side vector
-    ChMatrixDynamic<double> m_sol;                        ///< solution vector
+    ChVectorDynamic<double> m_rhs;                        ///< right-hand side vector
+    ChVectorDynamic<double> m_sol;                        ///< solution vector
 
     int m_dim = 0;         ///< problem size
     int m_nnz = 0;         ///< user-supplied estimate of NNZ

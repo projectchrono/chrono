@@ -46,13 +46,13 @@ void test_1() {
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     // Create some nodes. These are the classical point-like
     // nodes with x,y,z degrees of freedom, that can be used
     // for many types of FEM elements in space.
-    auto mnodeA = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
-    auto mnodeB = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 1, 0));
+    auto mnodeA = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
+    auto mnodeB = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 1, 0));
 
     // Default mass for FEM nodes is zero, so set point-like
     // masses because the ChElementSpring FEM element that we
@@ -72,7 +72,7 @@ void test_1() {
 
     // Create some elements of 'spring-damper' type, each connecting
     // two 3D nodes:
-    auto melementA = std::make_shared<ChElementSpring>();
+    auto melementA = chrono_types::make_shared<ChElementSpring>();
     melementA->SetNodes(mnodeA, mnodeB);
     melementA->SetSpringK(2000);
     melementA->SetDamperR(0);
@@ -84,12 +84,12 @@ void test_1() {
     my_system.Add(my_mesh);
 
     // Create also a truss
-    auto truss = std::make_shared<ChBody>();
+    auto truss = chrono_types::make_shared<ChBody>();
     truss->SetBodyFixed(true);
     my_system.Add(truss);
 
     // Create a constraint between a node and the truss
-    auto constraintA = std::make_shared<ChLinkPointFrame>();
+    auto constraintA = chrono_types::make_shared<ChLinkPointFrame>();
 
     constraintA->Initialize(mnodeA,  // node
                             truss);  // body to be connected to
@@ -128,13 +128,13 @@ void test_2() {
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     // Create some nodes. These are the classical point-like
     // nodes with x,y,z degrees of freedom, that can be used
     // for many types of FEM elements in space.
-    auto mnodeA = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
-    auto mnodeB = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 1, 0));
+    auto mnodeA = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
+    auto mnodeB = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 1, 0));
 
     // Set no point-like masses because mass is already in bar element:
     mnodeA->SetMass(0.0);
@@ -152,7 +152,7 @@ void test_2() {
 
     // Create some elements of 'bar' type, each connecting
     // two 3D nodes:
-    auto melementA = std::make_shared<ChElementBar>();
+    auto melementA = chrono_types::make_shared<ChElementBar>();
     melementA->SetNodes(mnodeA, mnodeB);
     melementA->SetBarArea(0.1 * 0.02);
     melementA->SetBarYoungModulus(0.01e9);  // rubber 0.01e9, steel 200e9
@@ -167,12 +167,12 @@ void test_2() {
     my_system.Add(my_mesh);
 
     // Create also a truss
-    auto truss = std::make_shared<ChBody>();
+    auto truss = chrono_types::make_shared<ChBody>();
     truss->SetBodyFixed(true);
     my_system.Add(truss);
 
     // Create a constraint between a node and the truss
-    auto constraintA = std::make_shared<ChLinkPointFrame>();
+    auto constraintA = chrono_types::make_shared<ChLinkPointFrame>();
 
     constraintA->Initialize(mnodeA,  // node
                             truss);  // body to be connected to
@@ -214,13 +214,13 @@ void test_2b() {
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     // Create some nodes. These are the classical point-like
     // nodes with x,y,z degrees of freedom, that can be used
     // for many types of FEM elements in space.
-    auto mnodeA = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
-    auto mnodeB = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 1, 0));
+    auto mnodeA = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
+    auto mnodeB = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 1, 0));
 
     // Default mass for FEM nodes is zero, so set point-like
     // masses because the ChElementSpring FEM element that we
@@ -240,7 +240,7 @@ void test_2b() {
 
     // Create some elements of 'spring-damper' type, each connecting
     // two 3D nodes:
-    auto melementA = std::make_shared<ChElementSpring>();
+    auto melementA = chrono_types::make_shared<ChElementSpring>();
     melementA->SetNodes(mnodeA, mnodeB);
     melementA->SetSpringK(20000);
     melementA->SetDamperR(200);
@@ -252,12 +252,12 @@ void test_2b() {
     my_system.Add(my_mesh);
 
     // Create also a truss
-    auto truss = std::make_shared<ChBody>();
+    auto truss = chrono_types::make_shared<ChBody>();
     truss->SetBodyFixed(true);
     my_system.Add(truss);
 
     // Create a constraint between a node and the truss
-    auto constraintA = std::make_shared<ChLinkPointFrame>();
+    auto constraintA = chrono_types::make_shared<ChLinkPointFrame>();
 
     constraintA->Initialize(mnodeA,  // node
                             truss);  // body to be connected to
@@ -296,11 +296,11 @@ void test_3() {
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     // Create a material, that must be assigned to each element,
     // and set its parameters
-    auto mmaterial = std::make_shared<ChContinuumElastic>();
+    auto mmaterial = chrono_types::make_shared<ChContinuumElastic>();
     mmaterial->Set_E(0.01e9);  // rubber 0.01e9, steel 200e9
     mmaterial->Set_v(0.3);
     mmaterial->Set_RayleighDampingK(0.01);
@@ -309,10 +309,10 @@ void test_3() {
     // Create some nodes. These are the classical point-like
     // nodes with x,y,z degrees of freedom, that can be used
     // for many types of FEM elements in space.
-    auto mnode1 = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
-    auto mnode2 = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 1));
-    auto mnode3 = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 1, 0));
-    auto mnode4 = std::make_shared<ChNodeFEAxyz>(ChVector<>(1, 0, 0));
+    auto mnode1 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
+    auto mnode2 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 1));
+    auto mnode3 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 1, 0));
+    auto mnode4 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(1, 0, 0));
 
     // For example, set a point-like mass at a node:
     mnode1->SetMass(200);
@@ -330,7 +330,7 @@ void test_3() {
 
     // Create the tetrahedron element, and assign
     // nodes and material
-    auto melement1 = std::make_shared<ChElementTetra_4>();
+    auto melement1 = chrono_types::make_shared<ChElementTetra_4>();
     melement1->SetNodes(mnode1, mnode2, mnode3, mnode4);
     melement1->SetMaterial(mmaterial);
 
@@ -341,14 +341,14 @@ void test_3() {
     my_system.Add(my_mesh);
 
     // Create also a truss
-    auto truss = std::make_shared<ChBody>();
+    auto truss = chrono_types::make_shared<ChBody>();
     truss->SetBodyFixed(true);
     my_system.Add(truss);
 
     // Create a constraint between a node and the truss
-    auto constraint1 = std::make_shared<ChLinkPointFrame>();
-    auto constraint2 = std::make_shared<ChLinkPointFrame>();
-    auto constraint3 = std::make_shared<ChLinkPointFrame>();
+    auto constraint1 = chrono_types::make_shared<ChLinkPointFrame>();
+    auto constraint2 = chrono_types::make_shared<ChLinkPointFrame>();
+    auto constraint3 = chrono_types::make_shared<ChLinkPointFrame>();
 
     constraint1->Initialize(mnode1,  // node
                             truss);  // body to be connected to
@@ -392,14 +392,14 @@ void test_4() {
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     // Create some nodes. These are the classical point-like
     // nodes with x,y,z degrees of freedom, that can be used
     // for many types of FEM elements in space.
-    auto mnodeA = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
-    auto mnodeB = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 1, 0));
-    auto mnodeC = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 2, 0));
+    auto mnodeA = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
+    auto mnodeB = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 1, 0));
+    auto mnodeC = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 2, 0));
 
     // Set no point-like masses because mass is already in bar element:
     mnodeA->SetMass(0.0);
@@ -421,14 +421,14 @@ void test_4() {
 
     // Create some elements of 'bar' type, each connecting
     // two 3D nodes:
-    auto melementA = std::make_shared<ChElementBar>();
+    auto melementA = chrono_types::make_shared<ChElementBar>();
     melementA->SetNodes(mnodeA, mnodeB);
     melementA->SetBarArea(0.1 * 0.02);
     melementA->SetBarYoungModulus(0.01e9);  // rubber 0.01e9, steel 200e9
     melementA->SetBarRaleyghDamping(0.01);
     melementA->SetBarDensity(2. * 0.1 / (melementA->GetBarArea() * 1.0));
 
-    auto melementB = std::make_shared<ChElementBar>();
+    auto melementB = chrono_types::make_shared<ChElementBar>();
     melementB->SetNodes(mnodeB, mnodeC);
     melementB->SetBarArea(0.1 * 0.02);
     melementB->SetBarYoungModulus(0.01e9);  // rubber 0.01e9, steel 200e9
@@ -443,12 +443,12 @@ void test_4() {
     my_system.Add(my_mesh);
 
     // Create also a truss
-    auto truss = std::make_shared<ChBody>();
+    auto truss = chrono_types::make_shared<ChBody>();
     truss->SetBodyFixed(true);
     my_system.Add(truss);
 
     // Create a constraint between a node and the truss
-    auto constraintA = std::make_shared<ChLinkPointFrame>();
+    auto constraintA = chrono_types::make_shared<ChLinkPointFrame>();
 
     constraintA->Initialize(mnodeA,  // node
                             truss);  // body to be connected to

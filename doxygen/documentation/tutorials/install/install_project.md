@@ -79,6 +79,18 @@ If your program is split in multiple .cpp sources, simply list them in this line
  `add_executable(myexe my_simulator.cpp  my_foo_source.cpp  my_bar_source.cpp)` 
 </div>
 
+<div class="ce-warning">
+As of version 2017 15.8, Visual Studio has changed its handling of aligned memory allocation.
+To properly deal with aligned memory allocation for classes that have members fixed-size vectorizable Eigen objects, make sure your CMakeLists.txt **retains** lines 104-108:
+~~~
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  if(MSVC AND ${MSVC_VERSION} GREATER_EQUAL 1915)
+    add_definitions( "-D_ENABLE_EXTENDED_ALIGNED_STORAGE" )
+  endif()
+endif()
+~~~
+which conditionally defines `_ENABLE_EXTENDED_ALIGNED_STORAGE`.
+</div>
 
 4) Start CMake 
 --------------------------------------------------

@@ -49,15 +49,15 @@ M113a_Vehicle::M113a_Vehicle(bool fixed, ChSystem* system, ChassisCollisionType 
 
 void M113a_Vehicle::Create(bool fixed, ChassisCollisionType chassis_collision_type) {
     // Create the chassis subsystem
-    m_chassis = std::make_shared<M113a_Chassis>("Chassis", fixed, chassis_collision_type);
+    m_chassis = chrono_types::make_shared<M113a_Chassis>("Chassis", fixed, chassis_collision_type);
 
     // Create the track assembly subsystems
-    m_tracks[0] = std::make_shared<M113a_TrackAssemblySinglePin>(LEFT);
-    m_tracks[1] = std::make_shared<M113a_TrackAssemblySinglePin>(RIGHT);
+    m_tracks[0] = chrono_types::make_shared<M113a_TrackAssemblySinglePin>(LEFT);
+    m_tracks[1] = chrono_types::make_shared<M113a_TrackAssemblySinglePin>(RIGHT);
 
     // Create the driveline
-    m_driveline = std::make_shared<M113a_SimpleDriveline>();
-    ////m_driveline = std::make_shared<M113a_DrivelineBDS>();
+    m_driveline = chrono_types::make_shared<M113a_SimpleDriveline>();
+    ////m_driveline = chrono_types::make_shared<M113a_DrivelineBDS>();
 
     GetLog() << "M113 vehicle mass = " << GetVehicleMass() << " kg.\n";
 }

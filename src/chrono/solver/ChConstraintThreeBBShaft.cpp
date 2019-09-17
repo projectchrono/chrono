@@ -72,44 +72,34 @@ void ChConstraintThreeBBShaft::SetVariables(ChVariables* mvariables_a,
     variables_a = mvariables_a;
     variables_b = mvariables_b;
     variables_c = mvariables_c;
-    Cq_a.Reset();
-    Cq_b.Reset();
-    Cq_c.Reset();
+    Cq_a.setZero();
+    Cq_b.setZero();
+    Cq_c.setZero();
 }
 
 void ChConstraintThreeBBShaft::Update_auxiliary() {
     // 1- Assuming jacobians are already computed, now compute
     //   the matrices [Eq_a]=[invM_a]*[Cq_a]'  etc
     if (variables_a->IsActive()) {
-        ChMatrixNM<double, 6, 1> mtemp1;
-        mtemp1.CopyFromMatrixT(Cq_a);
-        variables_a->Compute_invMb_v(Eq_a, mtemp1);
+        variables_a->Compute_invMb_v(Eq_a, Cq_a.transpose());
     }
     if (variables_b->IsActive()) {
-        ChMatrixNM<double, 6, 1> mtemp1;
-        mtemp1.CopyFromMatrixT(Cq_b);
-        variables_b->Compute_invMb_v(Eq_b, mtemp1);
+        variables_b->Compute_invMb_v(Eq_b, Cq_b.transpose());
     }
     if (variables_c->IsActive()) {
-        ChMatrixNM<double, 1, 1> mtemp1;
-        mtemp1.CopyFromMatrixT(Cq_c);
-        variables_c->Compute_invMb_v(Eq_c, mtemp1);
+        variables_c->Compute_invMb_v(Eq_c, Cq_c.transpose());
     }
 
     // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
-    ChMatrixNM<double, 1, 1> res;
     g_i = 0;
     if (variables_a->IsActive()) {
-        res.MatrMultiply(Cq_a, Eq_a);
-        g_i = res(0, 0);
+        g_i += Cq_a * Eq_a;
     }
     if (variables_b->IsActive()) {
-        res.MatrMultiply(Cq_b, Eq_b);
-        g_i += res(0, 0);
+        g_i += Cq_b * Eq_b;
     }
     if (variables_c->IsActive()) {
-        res.MatrMultiply(Cq_c, Eq_c);
-        g_i += res(0, 0);
+        g_i += Cq_c * Eq_c;
     }
 
     // 3- adds the constraint force mixing term (usually zero):
@@ -120,57 +110,61 @@ void ChConstraintThreeBBShaft::Update_auxiliary() {
 double ChConstraintThreeBBShaft::Compute_Cq_q() {
     double ret = 0;
 
-    if (variables_a->IsActive())
-        for (int i = 0; i < 6; i++)
-            ret += Cq_a.ElementN(i) * variables_a->Get_qb().ElementN(i);
+    if (variables_a->IsActive()) {
+        ret += Cq_a * variables_a->Get_qb();
+    }
 
-    if (variables_b->IsActive())
-        for (int i = 0; i < 6; i++)
-            ret += Cq_b.ElementN(i) * variables_b->Get_qb().ElementN(i);
+    if (variables_b->IsActive()) {
+        ret += Cq_b * variables_b->Get_qb();
+    }
 
-    if (variables_c->IsActive())
-        ret += Cq_c.ElementN(0) * variables_c->Get_qb().ElementN(0);
+    if (variables_c->IsActive()) {
+        ret += Cq_c(0) * variables_c->Get_qb()(0);
+    }
 
     return ret;
 }
 
 void ChConstraintThreeBBShaft::Increment_q(const double deltal) {
-    if (variables_a->IsActive())
-        for (int i = 0; i < Eq_a.GetRows(); i++)
-            variables_a->Get_qb()(i) += Eq_a.ElementN(i) * deltal;
+    if (variables_a->IsActive()) {
+        variables_a->Get_qb() += Eq_a * deltal;
+    }
 
-    if (variables_b->IsActive())
-        for (int i = 0; i < Eq_b.GetRows(); i++)
-            variables_b->Get_qb()(i) += Eq_b.ElementN(i) * deltal;
+    if (variables_b->IsActive()) {
+        variables_b->Get_qb() += Eq_b * deltal;
+    }
 
-    if (variables_c->IsActive())
-        variables_c->Get_qb()(0) += Eq_c.ElementN(0) * deltal;
+    if (variables_c->IsActive()) {
+        variables_c->Get_qb()(0) += Eq_c(0) * deltal;
+    }
 }
 
-void ChConstraintThreeBBShaft::MultiplyAndAdd(double& result, const ChMatrix<double>& vect) const {
-    if (variables_a->IsActive())
-        for (int i = 0; i < Cq_a.GetRows(); i++)
-            result += vect(variables_a->GetOffset() + i) * Cq_a.ElementN(i);
+void ChConstraintThreeBBShaft::MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const {
+    if (variables_a->IsActive()) {
+        result += Cq_a * vect.segment(variables_a->GetOffset(), 6);
+    }
 
-    if (variables_b->IsActive())
-        for (int i = 0; i < Cq_b.GetRows(); i++)
-            result += vect(variables_b->GetOffset() + i) * Cq_b.ElementN(i);
+    if (variables_b->IsActive()) {
+        result += Cq_b * vect.segment(variables_b->GetOffset(), 6);
+    }
 
-    if (variables_c->IsActive())
-        result += vect(variables_c->GetOffset()) * Cq_c.ElementN(0);
+    if (variables_c->IsActive()) {
+        result += vect(variables_c->GetOffset()) * Cq_c(0);
+    }
 }
 
-void ChConstraintThreeBBShaft::MultiplyTandAdd(ChMatrix<double>& result, double l) {
-    if (variables_a->IsActive())
-        for (int i = 0; i < Cq_a.GetRows(); i++)
-            result(variables_a->GetOffset() + i) += Cq_a.ElementN(i) * l;
+void ChConstraintThreeBBShaft::MultiplyTandAdd(ChVectorDynamic<double>& result, double l) {
+    if (variables_a->IsActive()) {
+        result.segment(variables_a->GetOffset(), 6) += Cq_a.transpose() * l;
+    }
 
-    if (variables_b->IsActive())
-        for (int i = 0; i < Cq_b.GetRows(); i++)
-            result(variables_b->GetOffset() + i) += Cq_b.ElementN(i) * l;
+    if (variables_b->IsActive()) {
+        result.segment(variables_b->GetOffset(), 6) += Cq_b.transpose() * l;
+    }
 
-    if (variables_c->IsActive())
-        result(variables_c->GetOffset()) += Cq_c.ElementN(0) * l;
+    if (variables_c->IsActive()) {
+        result(variables_c->GetOffset()) += Cq_c(0) * l;
+    }
 }
 
 void ChConstraintThreeBBShaft::Build_Cq(ChSparseMatrix& storage, int insrow) {
@@ -220,7 +214,5 @@ void ChConstraintThreeBBShaft::ArchiveIN(ChArchiveIn& marchive) {
     // mstream << Cq_a;
     // mstream << Cq_b;
 }
-
-
 
 }  // end namespace chrono

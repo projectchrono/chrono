@@ -38,7 +38,7 @@ class ChApi ChConstraintThree : public ChConstraint {
 
   public:
     /// Default constructor
-    ChConstraintThree() : variables_a(NULL), variables_b(NULL), variables_c(NULL) {}
+    ChConstraintThree() : variables_a(nullptr), variables_b(nullptr), variables_c(nullptr) {}
 
     /// Copy constructor
     ChConstraintThree(const ChConstraintThree& other);
@@ -48,25 +48,25 @@ class ChApi ChConstraintThree : public ChConstraint {
     /// Assignment operator: copy from other object
     ChConstraintThree& operator=(const ChConstraintThree& other);
 
-    /// Access jacobian matrix
-    virtual ChMatrix<double>* Get_Cq_a() = 0;
-    /// Access jacobian matrix
-    virtual ChMatrix<double>* Get_Cq_b() = 0;
-    /// Access jacobian matrix
-    virtual ChMatrix<double>* Get_Cq_c() = 0;
+    /// Access jacobian vector.
+    virtual ChRowVectorRef Get_Cq_a() = 0;
+    /// Access jacobian vector.
+    virtual ChRowVectorRef Get_Cq_b() = 0;
+    /// Access jacobian vector.
+    virtual ChRowVectorRef Get_Cq_c() = 0;
 
-    /// Access auxiliary matrix (ex: used by iterative solvers)
-    virtual ChMatrix<double>* Get_Eq_a() = 0;
-    /// Access auxiliary matrix (ex: used by iterative solvers)
-    virtual ChMatrix<double>* Get_Eq_b() = 0;
-    /// Access auxiliary matrix (ex: used by iterative solvers)
-    virtual ChMatrix<double>* Get_Eq_c() = 0;
+    /// Access auxiliary vector (ex: used by iterative solvers).
+    virtual ChVectorRef Get_Eq_a() = 0;
+    /// Access auxiliary vector (ex: used by iterative solvers).
+    virtual ChVectorRef Get_Eq_b() = 0;
+    /// Access auxiliary vector (ex: used by iterative solvers).
+    virtual ChVectorRef Get_Eq_c() = 0;
 
-    /// Access the first variable object
+    /// Access the first variable object.
     ChVariables* GetVariables_a() { return variables_a; }
-    /// Access the second variable object
+    /// Access the second variable object.
     ChVariables* GetVariables_b() { return variables_b; }
-    /// Access the second variable object
+    /// Access the second variable object.
     ChVariables* GetVariables_c() { return variables_c; }
 
     /// Set references to the constrained objects, each of ChVariables type,

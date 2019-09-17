@@ -15,18 +15,8 @@
 #include "gtest/gtest.h"
 
 #include "chrono/core/ChCSMatrix.h"
-#include "chrono/core/ChMatrixDynamic.h"
 
 using namespace chrono;
-
-void PrintMatrix(const ChMatrixDynamic<>& mat) {
-    for (int ii = 0; ii < mat.GetRows(); ii++) {
-        for (int jj = 0; jj < mat.GetColumns(); jj++)
-            std::cout << mat.GetElement(ii, jj) << "\t";
-        std::cout << std::endl;
-    }
-    std::cout << std::endl;
-}
 
 void PrintMatrix(ChSparseMatrix& mat) {
     for (int ii = 0; ii < mat.GetNumRows(); ii++) {
@@ -63,8 +53,20 @@ void PrintMatrixCS(const ChCSMatrix& mat) {
 }
 
 // true if matrices equal
-template <typename mat_t>
-bool CompareMatrix(const ChCSMatrix& mat1, const mat_t& mat2) {
+template <typename Derived>
+bool CompareMatrix(const ChCSMatrix& mat1, const Eigen::MatrixBase<Derived>& mat2) {
+    for (int i = 0; i < mat1.GetNumRows(); i++)
+        for (int j = 0; j < mat1.GetNumColumns(); j++) {
+            if (mat1.GetElement(i, j) != mat2(i, j)) {
+                return false;
+            }
+        }
+
+    return true;
+}
+
+// true if matrices equal
+bool CompareMatrix(const ChCSMatrix& mat1, const ChCSMatrix& mat2) {
     for (int i = 0; i < mat1.GetNumRows(); i++)
         for (int j = 0; j < mat1.GetNumColumns(); j++) {
             if (mat1.GetElement(i, j) != mat2.GetElement(i, j)) {
@@ -168,14 +170,14 @@ TEST(ChCSMatrixTest, compress) {
     mat.SetElement(1, 2, 1.2);
 
     ChMatrixDynamic<double> matDYN(3, 3);
-    matDYN.Reset();
+    matDYN.setZero();
     
-    matDYN.SetElement(0, 0, 10.0);
-    matDYN.SetElement(2, 2, 2.2);
-    matDYN.SetElement(1, 1, 1.1);
-    matDYN.SetElement(0, 1, 0.1);
-    matDYN.SetElement(2, 1, 2.1);
-    matDYN.SetElement(1, 2, 1.2);
+    matDYN(0, 0) = 10.0;
+    matDYN(2, 2) = 2.2;
+    matDYN(1, 1) = 1.1;
+    matDYN(0, 1) = 0.1;
+    matDYN(2, 1) = 2.1;
+    matDYN(1, 2) = 1.2;
 
     ASSERT_TRUE(CompareMatrix(mat, matDYN));
 
@@ -214,12 +216,12 @@ TEST(ChCSMatrixTest, column_major) {
 
 TEST(ChCSMatrixTest, mat_mult) {
     ChMatrixDynamic<double> matB(3, 2);
-    matB.SetElement(0, 0, 7.1);
-    matB.SetElement(1, 0, 3.7);
-    matB.SetElement(2, 0, 9.4);
-    matB.SetElement(0, 1, 6.2);
-    matB.SetElement(1, 1, 5.2);
-    matB.SetElement(2, 1, 7.1);
+    matB(0, 0) = 7.1;
+    matB(1, 0) = 3.7;
+    matB(2, 0) = 9.4;
+    matB(0, 1) = 6.2;
+    matB(1, 1) = 5.2;
+    matB(2, 1) = 7.1;
 
     ChCSMatrix matA_rm(3, 3, true);   // row-major format
     matA_rm.SetElement(0, 0, 3.1);
@@ -236,17 +238,18 @@ TEST(ChCSMatrixTest, mat_mult) {
     ChMatrixDynamic<double> mat_outR(3, 2), mat_outC(3, 2);
     matA_rm.MatrMultiply(matB, mat_outR, false);
     matA_cm.MatrMultiply(matB, mat_outC, false);
-    ////PrintMatrix(mat_outR);
-    ////PrintMatrix(mat_outC);
-    ASSERT_TRUE(mat_outR.Equals(mat_outC));
+    std::cout << "A_rm * B\n" << mat_outR << std::endl;
+    std::cout << "A_cm * B\n" << mat_outC << std::endl;
+    ASSERT_TRUE(mat_outR == mat_outC);
 
     // Test A' * B
     matA_rm.MatrMultiply(matB, mat_outR, true);
     matA_cm.MatrMultiply(matB, mat_outC, true);
-    ////PrintMatrix(mat_outR);
-    ////PrintMatrix(mat_outC);
-    ASSERT_TRUE(mat_outR.Equals(mat_outC));
+    std::cout << "A_rm' * B\n" << mat_outR << std::endl;
+    std::cout << "A_cm' * B\n" << mat_outC << std::endl;
+    ASSERT_TRUE(mat_outR == mat_outC);
 }
+
 
 TEST(ChCSMatrixTest, mat_mult_clipped) {
     ChCSMatrix matA_cm(6, 4);
@@ -282,21 +285,21 @@ TEST(ChCSMatrixTest, mat_mult_clipped) {
     matA_cmT.SetElement(2, 5, 4.4);
 
     ChMatrixDynamic<double> matB(6, 8);
-    matB.Reset();
+    matB.setZero();
 
-    matB.SetElement(2, 0, 1.7);
-    matB.SetElement(3, 0, 1.3);
-    matB.SetElement(5, 0, 0.6);
+    matB(2, 0) = 1.7;
+    matB(3, 0) = 1.3;
+    matB(5, 0) = 0.6;
 
-    matB.SetElement(2, 1, 0.7);
-    matB.SetElement(3, 1, 0.8);
-    matB.SetElement(4, 1, 0.1);
+    matB(2, 1) = 0.7;
+    matB(3, 1) = 0.8;
+    matB(4, 1) = 0.1;
 
-    matB.SetElement(4, 2, 2.4);
+    matB(4, 2) = 2.4;
 
-    matB.SetElement(4, 3, 5.1);
-    matB.SetElement(4, 4, 8.2);
-    matB.SetElement(4, 5, 4.4);
+    matB(4, 3) = 5.1;
+    matB(4, 4) = 8.2;
+    matB(4, 5) = 4.4;
 
     ////std::cout << "matA_cm" << std::endl;
     ////PrintMatrix(matA_cm);
@@ -306,22 +309,19 @@ TEST(ChCSMatrixTest, mat_mult_clipped) {
     ////PrintMatrix(matB);
 
     ChMatrixDynamic<double> mat_out1(8, 6);
-    mat_out1.Reset();
+    mat_out1.setZero();
     matA_cm.MatrMultiplyClipped(matB, mat_out1, 1, 3, 1, 2, 3, 1, false, 1, 3, 1);
-    ////std::cout << "mat_out1" << std::endl;
-    ////PrintMatrix(mat_out1);
+    std::cout << "mat_out1\n" << mat_out1 << std::endl;
 
     ChMatrixDynamic<double> mat_out2(8, 6);
-    mat_out2.Reset();
+    mat_out2.setZero();
     matA_cm.MatrMultiplyClipped(matB, mat_out2, 1, 3, 1, 2, 3, 1, true, 1, 3, 1);
-    ////std::cout << "mat_out2" << std::endl;
-    PrintMatrix(mat_out2);
+    std::cout << "mat_out2\n" << mat_out2 << std::endl;
 
     ChMatrixDynamic<double> mat_out3(8, 6);
-    mat_out3.Reset();
+    mat_out3.setZero();
     matA_cmT.MatrMultiplyClipped(matB, mat_out3, 1, 3, 1, 2, 3, 1, false, 1, 3, 1);
-    ////std::cout << "mat_out3" << std::endl;
-    PrintMatrix(mat_out3);
+    std::cout << "mat3_out\n" << mat_out3 << std::endl;
 
-    ASSERT_TRUE(mat_out2.Equals(mat_out3));
+    ASSERT_TRUE(mat_out2 == mat_out3);
 }

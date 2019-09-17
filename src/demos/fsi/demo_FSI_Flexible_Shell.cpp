@@ -180,7 +180,7 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.SetupInitial();
 
 #ifdef CHRONO_MKL
-    auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+    auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
     mkl_solver->SetSparsityPatternLock(true);
     mphysicalSystem.SetSolver(mkl_solver);
 #else
@@ -228,8 +228,8 @@ int main(int argc, char* argv[]) {
         time += paramsH->dT;
         SaveParaViewFiles(myFsiSystem, mphysicalSystem, my_mesh, NodeNeighborElement_mesh, paramsH, next_frame, time);
 
-	if (time > paramsH->tFinal)
-		break;
+        if (time > paramsH->tFinal)
+            break;
     }
 
     return 0;
@@ -241,7 +241,7 @@ int main(int argc, char* argv[]) {
 //------------------------------------------------------------------
 void Create_MB_FE(ChSystemSMC& mphysicalSystem, fsi::ChSystemFsi& myFsiSystem, fsi::SimParams* paramsH) {
     mphysicalSystem.Set_G_acc(ChVector<>(0, 0, 0));
-    auto mysurfmaterial = std::make_shared<ChMaterialSurfaceSMC>();
+    auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
 
     // Set common material Properties
     mysurfmaterial->SetYoungModulus(6e4);
@@ -249,7 +249,7 @@ void Create_MB_FE(ChSystemSMC& mphysicalSystem, fsi::ChSystemFsi& myFsiSystem, f
     mysurfmaterial->SetRestitution(0.2f);
     mysurfmaterial->SetAdhesion(0);
 
-    auto ground = std::make_shared<ChBody>();
+    auto ground = chrono_types::make_shared<ChBody>();
     ground->SetIdentifier(-1);
     ground->SetBodyFixed(true);
     ground->SetCollide(true);
@@ -291,7 +291,7 @@ void Create_MB_FE(ChSystemSMC& mphysicalSystem, fsi::ChSystemFsi& myFsiSystem, f
 
     // ******************************* Flexible bodies ***********************************
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<fea::ChMesh>();
+    auto my_mesh = chrono_types::make_shared<fea::ChMesh>();
     std::vector<std::vector<int>> _1D_elementsNodes_mesh;
     std::vector<std::vector<int>> _2D_elementsNodes_mesh;
 
@@ -333,7 +333,7 @@ void Create_MB_FE(ChSystemSMC& mphysicalSystem, fsi::ChSystemFsi& myFsiSystem, f
 
             // Create the node
             auto node =
-                std::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z));
+                chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z));
 
             node->SetMass(0);
             // Fix all nodes along the axis X=0
@@ -353,7 +353,7 @@ void Create_MB_FE(ChSystemSMC& mphysicalSystem, fsi::ChSystemFsi& myFsiSystem, f
     double rho = 8000;
     double E = 5e6;
     double nu = 0.3;
-    auto mat = std::make_shared<ChMaterialShellANCF>(rho, E, nu);
+    auto mat = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu);
     // Create the elements
 
     int num_elem = 0;
@@ -373,7 +373,7 @@ void Create_MB_FE(ChSystemSMC& mphysicalSystem, fsi::ChSystemFsi& myFsiSystem, f
             NodeNeighborElement_mesh[node2].push_back(num_elem);
             NodeNeighborElement_mesh[node3].push_back(num_elem);
             // Create the element and set its nodes.
-            auto element = std::make_shared<ChElementShellANCF>();
+            auto element = chrono_types::make_shared<ChElementShellANCF>();
             element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node0)),
                               std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node1)),
                               std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node2)),

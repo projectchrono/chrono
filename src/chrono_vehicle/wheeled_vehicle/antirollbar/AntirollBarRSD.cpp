@@ -54,7 +54,7 @@ void AntirollBarRSD::Create(const rapidjson::Document& d) {
 
     // Read arm data
     m_arm_mass = d["Arm"]["Mass"].GetDouble();
-    m_arm_inertia = LoadVectorJSON(d["Arm"]["Inertia"]);
+    m_arm_inertia = ReadVectorJSON(d["Arm"]["Inertia"]);
     m_arm_length = d["Arm"]["Length"].GetDouble();
     m_arm_width = d["Arm"]["Width"].GetDouble();
     m_arm_radius = d["Arm"]["Radius"].GetDouble();

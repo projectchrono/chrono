@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
 #ifndef CHELEMENTBEAMEULER_H
@@ -58,9 +58,11 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
     bool force_symmetric_stiffness;
 
   public:
+    using ShapeVector = ChMatrixNM<double, 1, 10>;
+
     ChElementBeamEuler();
 
-    virtual ~ChElementBeamEuler() {}
+    ~ChElementBeamEuler() {}
 
     virtual int GetNnodes() override { return 2; }
     virtual int GetNdofs() override { return 2 * 6; }
@@ -129,7 +131,7 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
     ///      | .    .   .   0   .   .   .   .   .   3   .   .   |
     ///      | .    .   -6  .   8   .   .   .   -7  .   9   .   |
     ///      | .    6   .   .   .   8   .   7   .   .   .   9   |
-    virtual void ShapeFunctions(ChMatrix<>& N, double eta);
+    void ShapeFunctions(ShapeVector& N, double eta);
 
     virtual void Update() override;
 
@@ -137,27 +139,25 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
     /// The reference frame of this Euler-Bernoulli beam has X aligned to two nodes and Y parallel to Y of 1st node
     virtual void UpdateRotation() override;
 
-    /// Fills the D vector (column matrix) with the current
-    /// field values at the nodes of the element, with proper ordering.
+    /// Fills the D vector with the current field values at the nodes of the element, with proper ordering.
     /// If the D vector has not the size of this->GetNdofs(), it will be resized.
     /// For corotational elements, field is assumed in local reference!
-    /// Give that this element includes rotations at nodes, this gives:
+    /// Given that this element includes rotations at nodes, this gives:
     ///  {x_a y_a z_a Rx_a Ry_a Rz_a x_b y_b z_b Rx_b Ry_b Rz_b}
-    virtual void GetStateBlock(ChMatrixDynamic<>& mD) override;
+    virtual void GetStateBlock(ChVectorDynamic<>& mD) override;
 
-    /// Fills the Ddt vector (column matrix) with the current
-    /// tme derivatives of field values at the nodes of the element, with proper ordering.
+    /// Fills the Ddt vector with the current time derivatives of field values at the nodes of the element, with proper ordering.
     /// If the D vector has not the size of this->GetNdofs(), it will be resized.
     /// For corotational elements, field is assumed in local reference!
     /// Give that this element includes rotations at nodes, this gives:
     ///  {v_a v_a v_a wx_a wy_a wz_a v_b v_b v_b wx_b wy_b wz_b}
-    virtual void GetField_dt(ChMatrixDynamic<>& mD_dt);
+    void GetField_dt(ChVectorDynamic<>& mD_dt);
 
     /// Computes the local STIFFNESS MATRIX of the element:
     /// K = integral( [B]' * [D] * [B] ),
     /// Note: in this 'basic' implementation, constant section and
     /// constant material are assumed, so the explicit result of quadrature is used.
-    virtual void ComputeStiffnessMatrix();
+    void ComputeStiffnessMatrix();
 
     /// Setup. Precompute mass and matrices that do not change during the
     /// simulation, such as the local tangent stiffness Kl of each element, if needed, etc.
@@ -165,14 +165,14 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
 
     /// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
     /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
-    virtual void ComputeKRMmatricesGlobal(ChMatrix<>& H,
+    virtual void ComputeKRMmatricesGlobal(ChMatrixRef H,
                                           double Kfactor,
                                           double Rfactor = 0,
                                           double Mfactor = 0) override;
 
-    /// Computes the internal forces (e.g. the actual position of nodes is not in relaxed reference position)
-    /// and set values in the Fi vector.
-    virtual void ComputeInternalForces(ChMatrixDynamic<>& Fi) override;
+    /// Computes the internal forces (e.g. the actual position of nodes is not in relaxed reference position) and set
+    /// values in the Fi vector.
+    virtual void ComputeInternalForces(ChVectorDynamic<>& Fi) override;
 
     //
     // Beam-specific functions

@@ -17,12 +17,12 @@
 #include <memory.h>
 
 #include "chrono/collision/ChCCollisionUtils.h"
+#include "chrono/core/ChGlobal.h"
 #include "chrono/core/ChTransform.h"
 #include "chrono/geometry/ChBox.h"
 #include "chrono/geometry/ChSphere.h"
 #include "chrono/geometry/ChTriangle.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
-#include "chrono/physics/ChGlobal.h"
 #include "chrono/physics/ChNlsolver.h"
 #include "chrono/physics/ChSolvmin.h"
 
@@ -147,15 +147,14 @@ double ChCollisionUtils::PointTriangleDistance(Vector B,
 
     Dy = Vmul(Dy, 1.0 / dylen);
 
-    ChMatrix33<> mA;
-    mA.Set_A_axis(Dx, Dy, Dz);
+    ChMatrix33<> mA(Dx, Dy, Dz);
 
     // invert triangle coordinate matrix -if singular matrix, was degenerate triangle-.
-    ChMatrix33<> mAi;
-    if (fabs(mA.FastInvert(mAi)) < 0.000001)
+    if (std::abs(mA.determinant()) < 0.000001)
         return mdistance;
 
-    T1 = mAi.Matr_x_Vect(Vsub(B, A1));
+    ChMatrix33<> mAi = mA.inverse();
+    T1 = mAi * (B - A1);
     T1p = T1;
     T1p.y() = 0;
     mu = T1.x();
@@ -163,7 +162,7 @@ double ChCollisionUtils::PointTriangleDistance(Vector B,
     mdistance = -T1.y();
     if (mu >= 0 && mv >= 0 && mv <= 1.0 - mu) {
         is_into = 1;
-        Bprojected = Vadd(A1, mA.Matr_x_Vect(T1p));
+        Bprojected = A1 + mA* T1p;
     }
 
     return mdistance;

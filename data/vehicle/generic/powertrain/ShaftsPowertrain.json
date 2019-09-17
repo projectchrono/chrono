@@ -43,7 +43,10 @@
   {
     "Input Shaft Inertia":   0.3,
     "Reverse Gear Ratio":    -0.1,
-    "Forward Gear Ratios":   [0.2, 0.4, 0.8]
+    "Forward Gear Ratios":   [ 0.2, 0.4, 0.8 ],
+    "Upshift RPM":           2500,
+    "Downshift RPM":         1500,
+    "Shift Latency":         0.5
   },
 
   "Torque Converter":

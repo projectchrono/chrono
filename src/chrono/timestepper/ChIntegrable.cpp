@@ -23,9 +23,19 @@ namespace chrono {
 // -----------------------------------------------------------------------------
 
 void ChIntegrable::StateIncrement(ChState& y_new, const ChState& y, const ChStateDelta& Dy) {
-    assert(y_new.GetRows() == y.GetRows() && y.GetRows() == Dy.GetRows());
-    y_new.Resize(y.GetRows(), y.GetColumns());
-    for (int i = 0; i < y.GetRows(); ++i) {
+    //// RADU
+    //// The next two lines don't make sense: we assert y and y_new are of the same size, then we resize y_new!!!
+
+    assert(y_new.size() == y.size() && y.size() == Dy.size());
+
+    //// RADU
+    //// Fix this poor implementation!
+    //// We cannot do the natural thing here (i.e, y_new = y + Dy) because this would lead to stack overflow!!!
+    //// Indeed, see implementation of overloaded operator+()
+
+    ////y_new = y + Dy;
+    y_new.resize(y.size());
+    for (int i = 0; i < y.size(); ++i) {
         y_new(i) = y(i) + Dy(i);
     }
 }
@@ -35,9 +45,9 @@ void ChIntegrable::StateIncrement(ChState& y_new, const ChState& y, const ChStat
 // -----------------------------------------------------------------------------
 
 void ChIntegrableIIorder::StateSetup(ChState& x, ChStateDelta& v, ChStateDelta& a) {
-    x.Resize(GetNcoords_x());
-    v.Resize(GetNcoords_v());
-    a.Resize(GetNcoords_a());
+    x.resize(GetNcoords_x());
+    v.resize(GetNcoords_v());
+    a.resize(GetNcoords_a());
 }
 
 bool ChIntegrableIIorder::StateSolveA(ChStateDelta& Dvdt,       // result: computed a for a=dv/dt
@@ -55,14 +65,16 @@ bool ChIntegrableIIorder::StateSolveA(ChStateDelta& Dvdt,       // result: compu
     ChVectorDynamic<> Qc(GetNconstr());
     const double Delta = 1e-6;
 
-    LoadResidual_F(R, 1.0);
+    R.setZero();
+    Qc.setZero();
 
+    LoadResidual_F(R, 1.0);
     LoadConstraint_C(Qc, -2.0 / (Delta * Delta));
 
     // numerical differentiation to get the Qc term in constraints
     ChStateDelta dx(v);
     dx *= Delta;
-    ChState xdx(x.GetRows(), this);
+    ChState xdx(x.size(), this);
 
     StateIncrement(xdx, x, dx);
     StateScatter(xdx, v, T + Delta);
@@ -79,12 +91,15 @@ bool ChIntegrableIIorder::StateSolveA(ChStateDelta& Dvdt,       // result: compu
     return success;
 }
 
-void ChIntegrableIIorder::StateIncrementX(ChState& x_new,         // resulting x_new = x + Dx
-                                          const ChState& x,       // initial state x
-                                          const ChStateDelta& Dx  // state increment Dx
-                                          ) {
-    x_new.Resize(x.GetRows(), x.GetColumns());
-    for (int i = 0; i < x.GetRows(); ++i) {
+void ChIntegrableIIorder::StateIncrementX(ChState& x_new, const ChState& x, const ChStateDelta& Dx) {
+    //// RADU
+    //// Fix this poor implementation!
+    //// We cannot do the natural thing here (y_new = y + Dy) because this would lead to stack overflow!!!
+    //// Indeed, see implementation of overloaded operator+()
+
+    ////x_new = x + Dx;
+    x_new.resize(x.size());
+    for (int i = 0; i < x.size(); ++i) {
         x_new(i) = x(i) + Dx(i);
     }
 }
@@ -92,16 +107,16 @@ void ChIntegrableIIorder::StateIncrementX(ChState& x_new,         // resulting x
 void ChIntegrableIIorder::StateGather(ChState& y, double& T)  {
     ChState mx(GetNcoords_x(), y.GetIntegrable());
     ChStateDelta mv(GetNcoords_v(), y.GetIntegrable());
-    this->StateGather(mx, mv, T);
-    y.PasteMatrix(mx, 0, 0);
-    y.PasteMatrix(mv, GetNcoords_x(), 0);
+    StateGather(mx, mv, T);
+    y.segment(0, mx.size()) = mx;
+    y.segment(GetNcoords_x(), mv.size()) = mv;
 }
 
 void ChIntegrableIIorder::StateScatter(const ChState& y, const double T) {
     ChState mx(GetNcoords_x(), y.GetIntegrable());
     ChStateDelta mv(GetNcoords_v(), y.GetIntegrable());
-    mx.PasteClippedMatrix(y, 0, 0, GetNcoords_x(), 1, 0, 0);
-    mv.PasteClippedMatrix(y, GetNcoords_x(), 0, GetNcoords_v(), 1, 0, 0);
+    mx = y.segment(0, GetNcoords_x());
+    mv = y.segment(GetNcoords_x(), GetNcoords_v());
     StateScatter(mx, mv, T);
 }
 
@@ -109,13 +124,13 @@ void ChIntegrableIIorder::StateGatherDerivative(ChStateDelta& Dydt) {
     ChStateDelta mv(GetNcoords_v(), Dydt.GetIntegrable());
     ChStateDelta ma(GetNcoords_v(), Dydt.GetIntegrable());
     StateGatherAcceleration(ma);
-    Dydt.PasteMatrix(mv, 0, 0);
-    Dydt.PasteMatrix(ma, GetNcoords_v(), 0);
+    Dydt.segment(0, GetNcoords_v()) = mv;
+    Dydt.segment(GetNcoords_v(), GetNcoords_v()) = ma;
 }
 
 void ChIntegrableIIorder::StateScatterDerivative(const ChStateDelta& Dydt) {
     ChStateDelta ma(GetNcoords_v(), Dydt.GetIntegrable());
-    ma.PasteClippedMatrix(Dydt, GetNcoords_v(), 0, GetNcoords_v(), 1, 0, 0);
+    ma = Dydt.segment(GetNcoords_v(), GetNcoords_v());
     StateScatterAcceleration(ma);
 }
 
@@ -123,35 +138,38 @@ void ChIntegrableIIorder::StateIncrement(ChState& y_new,         // resulting y_
                                          const ChState& y,       // initial state y
                                          const ChStateDelta& Dy  // state increment Dy
                                          ) {
-    if (y.GetRows() == this->GetNcoords_x()) {
+    if (y.size() == GetNcoords_x()) {
         // Incrementing the x part only, user provided only x  in y={x, dx/dt}
         StateIncrementX(y_new, y, Dy);
 
         return;
     }
 
-    if (y.GetRows() == this->GetNcoords_y()) {
+    if (y.size() == GetNcoords_y()) {
         // Incrementing y in y={x, dx/dt}.
-        // PERFORMANCE WARNING! temporary vectors allocated on heap. This is only to support
-        // compatibility with 1st order integrators.
-        ChState mx(this->GetNcoords_x(), y.GetIntegrable());
-        ChStateDelta mv(this->GetNcoords_v(), y.GetIntegrable());
-        mx.PasteClippedMatrix(y, 0, 0, this->GetNcoords_x(), 1, 0, 0);
-        mv.PasteClippedMatrix(y, this->GetNcoords_x(), 0, this->GetNcoords_v(), 1, 0, 0);
-        ChStateDelta mDx(this->GetNcoords_v(), y.GetIntegrable());
-        ChStateDelta mDv(this->GetNcoords_a(), y.GetIntegrable());
-        mDx.PasteClippedMatrix(Dy, 0, 0, this->GetNcoords_v(), 1, 0, 0);
-        mDv.PasteClippedMatrix(Dy, this->GetNcoords_v(), 0, this->GetNcoords_a(), 1, 0, 0);
-        ChState mx_new(this->GetNcoords_x(), y.GetIntegrable());
-        ChStateDelta mv_new(this->GetNcoords_v(), y.GetIntegrable());
+        // PERFORMANCE WARNING! temporary vectors allocated on heap.
+        // This is only to support compatibility with 1st order integrators.
+        ChState mx(GetNcoords_x(), y.GetIntegrable());
+        ChStateDelta mv(GetNcoords_v(), y.GetIntegrable());
+        mx = y.segment(0, GetNcoords_x());
+        mv = y.segment(GetNcoords_x(), GetNcoords_v());
 
+        ChStateDelta mDx(GetNcoords_v(), y.GetIntegrable());
+        ChStateDelta mDv(GetNcoords_a(), y.GetIntegrable());
+        mDx = Dy.segment(0, GetNcoords_v());
+        mDv = Dy.segment(GetNcoords_v(), GetNcoords_a());
+        
+        ChState mx_new(GetNcoords_x(), y.GetIntegrable());
+        ChStateDelta mv_new(GetNcoords_v(), y.GetIntegrable());
         StateIncrementX(mx_new, mx, mDx);  // increment positions
         mv_new = mv + mDv;                 // increment speeds
 
-        y_new.PasteMatrix(mx_new, 0, 0);
-        y_new.PasteMatrix(mv_new, this->GetNcoords_x(), 0);
+        y_new.segment(0, GetNcoords_x()) = mx_new;
+        y_new.segment(GetNcoords_x(), GetNcoords_v()) = mv_new;
+    
         return;
     }
+
     throw ChException("StateIncrement() called with a wrong number of elements");
 }
 
@@ -164,17 +182,17 @@ bool ChIntegrableIIorder::StateSolve(ChStateDelta& dydt,       // result: comput
                                      ) {
     ChState mx(GetNcoords_x(), y.GetIntegrable());
     ChStateDelta mv(GetNcoords_v(), y.GetIntegrable());
-    mx.PasteClippedMatrix(y, 0, 0, GetNcoords_x(), 1, 0, 0);
-    mv.PasteClippedMatrix(y, GetNcoords_x(), 0, GetNcoords_v(), 1, 0, 0);
-    ChStateDelta ma(GetNcoords_v(), y.GetIntegrable());
+    mx = y.segment(0, GetNcoords_x());
+    mv = y.segment(GetNcoords_x(), GetNcoords_v());
 
     // Solve with custom II order solver
+    ChStateDelta ma(GetNcoords_v(), y.GetIntegrable());
     if (!StateSolveA(ma, L, mx, mv, T, dt, force_state_scatter)) {
         return false;
     }
 
-    dydt.PasteMatrix(mv, 0, 0);
-    dydt.PasteMatrix(ma, GetNcoords_v(), 0);
+    dydt.segment(0, GetNcoords_v()) = mv;
+    dydt.segment(GetNcoords_v(), GetNcoords_v()) = ma;
 
     return true;
 }

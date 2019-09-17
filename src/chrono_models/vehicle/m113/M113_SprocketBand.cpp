@@ -74,7 +74,7 @@ void M113_SprocketBand::AddVisualizationAssets(VisualizationType vis) {
 
         ////geometry::ChTriangleMeshConnected trimesh;
         ////trimesh.LoadWavefrontMesh(GetMeshFile(), false, false);
-        ////auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+        ////auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         ////trimesh_shape->SetMesh(trimesh);
         ////trimesh_shape->SetName(GetMeshName());
         ////trimesh_shape->SetStatic(true);

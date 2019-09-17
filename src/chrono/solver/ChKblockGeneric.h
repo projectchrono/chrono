@@ -16,33 +16,30 @@
 #define CHKBLOCKGENERIC_H
 
 #include "chrono/solver/ChKblock.h"
+#include "chrono/solver/ChVariables.h"
 
 namespace chrono {
 
-/// Class that represent nxn sparse blocks to put into K global
-/// matrix, that is blocks that connect N 'variables'
-/// and build a matrix K in a sparse variational inequality VI(Z*x-d,K):
+/// Class that represent nxn sparse blocks to put into K global matrix, that is blocks that connect N 'variables' and
+/// build a matrix K in a sparse variational inequality VI(Z*x-d,K):
 ///
-/// See ChSystemDescriptor for more information about the overall
-/// problem and data representation.
+/// See ChSystemDescriptor for more information about the overall problem and data representation.
 ///
-/// Note that K blocks often have a physical interpretation as stiffness,
-/// but not always, for example they can represent hessians.
-/// Note that all blocks in K, all masses and constraint
-/// jacobians Cq are not really assembled in large matrices, so to
-/// exploit sparsity.
+/// Note that K blocks often have a physical interpretation as stiffness, but not always, for example they can represent
+/// hessians. Note that all blocks in K, all masses and constraint jacobians Cq are not really assembled in large
+/// matrices, so to exploit sparsity.
 
 class ChApi ChKblockGeneric : public ChKblock {
 
   private:
-    ChMatrixDynamic<double>* K;
+    ChMatrixDynamic<double> K;
     std::vector<ChVariables*> variables;
 
   public:
-    ChKblockGeneric() : K(NULL) {}
+    ChKblockGeneric() {}
     ChKblockGeneric(std::vector<ChVariables*> mvariables);
     ChKblockGeneric(ChVariables* mvariableA, ChVariables* mvariableB);
-    virtual ~ChKblockGeneric();
+    virtual ~ChKblockGeneric() {}
 
     /// Assignment operator: copy from other object
     ChKblockGeneric& operator=(const ChKblockGeneric& other);
@@ -59,21 +56,19 @@ class ChApi ChKblockGeneric : public ChKblock {
 
     /// Access the K stiffness matrix as a single block,
     /// referring only to the referenced ChVariable objects
-    virtual ChMatrix<double>* Get_K() override { return K; }
+    virtual ChMatrixRef Get_K() override { return K; }
 
-    /// Computes the product of the corresponding blocks in the
-    /// system matrix (ie. the K matrix blocks) by 'vect', and add to 'result'.
-    /// NOTE: the 'vect' and 'result' vectors must already have
-    /// the size of the total variables&constraints in the system; the procedure
-    /// will use the ChVariable offsets (that must be already updated) to know the
-    /// indexes in result and vect.
-    virtual void MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect) const override;
+    /// Computes the product of the corresponding blocks in the system matrix (ie. the K matrix blocks) by 'vect', and
+    /// add to 'result'.
+    /// NOTE: the 'vect' and 'result' vectors must already have the size of the total variables & constraints in the
+    /// system; the procedure will use the ChVariable offsets (that must be already updated) to know the indexes in
+    /// result and vect.
+    virtual void MultiplyAndAdd(ChVectorRef result, ChVectorConstRef vect) const override;
 
     /// Add the diagonal of the stiffness matrix block(s) as a column vector to 'result'.
-    /// NOTE: the 'result' vector must already have the size of system unknowns, ie
-    /// the size of the total variables&constraints in the system; the procedure
-    /// will use the ChVariable offsets (that must be already updated) as index.
-    virtual void DiagonalAdd(ChMatrix<double>& result) override;
+    /// NOTE: the 'result' vector must already have the size of system unknowns, ie the size of the total variables &
+    /// constraints in the system; the procedure will use the ChVariable offsets (that must be already updated).
+    virtual void DiagonalAdd(ChVectorRef result) override;
 
     /// Writes the K matrix associated to these variables into
     /// a global 'storage' matrix, at the offsets of variables.
