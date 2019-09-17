@@ -329,7 +329,6 @@ int main(int argc, char* argv[]) {
     gran_sys.load_meshes(mesh_filenames, mesh_scalings, mesh_masses, mesh_inflated, mesh_inflation_radii);
 
     // Output preferences
-    gran_sys.setOutputDirectory(out_dir);
     if (run_mode == RUN_MODE::SETTLING) {
         // Force csv for generating the checkpoint
         gran_sys.setOutputMode(GRAN_OUTPUT_MODE::CSV);

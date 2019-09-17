@@ -118,7 +118,6 @@ int main(int argc, char* argv[]) {
 
     gran_sys.setOutputMode(params.write_mode);
     string out_dir(argv[2]);
-    gran_sys.setOutputDirectory(out_dir);
     filesystem::create_directory(filesystem::path(out_dir));
 
     gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
@@ -157,21 +156,23 @@ int main(int argc, char* argv[]) {
     gran_sys.setParticlePositions(body_points);
 
     vector<string> mesh_filenames;
-    vector<float3> mesh_scalings;
+    vector<ChMatrix33<float>> mesh_rotscales;
+    vector<float3> mesh_translations;
     vector<float> mesh_masses;
     const float mass = 10;
 
     string mesh_filename("../data/granular/commvessels/cylinder_refined.obj");
     mesh_filenames.push_back(mesh_filename);
-    mesh_scalings.push_back(scaling);
+    mesh_rotscales.push_back(ChMatrix33<float>(ChVector<float>(scaling.x, scaling.y, scaling.z)));
+    mesh_translations.push_back(make_float3(0, 0, 0));
     mesh_masses.push_back(mass);
 
     vector<bool> mesh_inflated;
     mesh_inflated.push_back(false);
     vector<float> mesh_inflation_radii;
     mesh_inflation_radii.push_back(0);
-
-    gran_sys.load_meshes(mesh_filenames, mesh_scalings, mesh_masses, mesh_inflated, mesh_inflation_radii);
+    gran_sys.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses, mesh_inflated,
+                         mesh_inflation_radii);
 
     double* meshPosRot = new double[7];
     float* meshVel = new float[6]();

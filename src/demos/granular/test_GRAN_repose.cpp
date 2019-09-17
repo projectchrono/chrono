@@ -154,7 +154,6 @@ int main(int argc, char* argv[]) {
 
     m_sys.setOutputMode(params.write_mode);
     string out_dir(argv[2]);
-    m_sys.setOutputDirectory(out_dir);
     filesystem::create_directory(filesystem::path(out_dir));
 
     m_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
@@ -189,7 +188,8 @@ int main(int argc, char* argv[]) {
     m_sys.setParticlePositions(body_points);
 
     vector<string> mesh_filenames;
-    vector<float3> mesh_scalings;
+    vector<ChMatrix33<float>> mesh_rotscales;
+    vector<float3> mesh_translations;
     vector<float> mesh_masses;
     const float mass = 10;
 
@@ -207,8 +207,10 @@ int main(int argc, char* argv[]) {
     const float dish_height = scale * 0.1;   // Assumes obj height is 0.1
     float3 scaling_dish = make_float3(scale + dish_inflation, scale + dish_inflation, scale);
     float3 scaling_ledge = make_float3(scale, scale, scale);
-    mesh_scalings.push_back(scaling_dish);
-    mesh_scalings.push_back(scaling_ledge);
+    mesh_rotscales.push_back(ChMatrix33<float>(ChVector<float>(scaling_dish.x, scaling_dish.y, scaling_dish.z)));
+    mesh_translations.push_back(make_float3(0, 0, 0));
+    mesh_rotscales.push_back(ChMatrix33<float>(ChVector<float>(scaling_ledge.x, scaling_ledge.y, scaling_ledge.z)));
+    mesh_translations.push_back(make_float3(0, 0, 0));
 
     mesh_masses.push_back(mass);
     mesh_masses.push_back(mass);
@@ -221,7 +223,8 @@ int main(int argc, char* argv[]) {
     mesh_inflation_radii.push_back(0);
     mesh_inflation_radii.push_back(0);
 
-    m_sys.load_meshes(mesh_filenames, mesh_scalings, mesh_masses, mesh_inflated, mesh_inflation_radii);
+    m_sys.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses, mesh_inflated,
+                      mesh_inflation_radii);
 
     unsigned int nSoupFamilies = 2;
     cout << nSoupFamilies << " soup families" << endl;

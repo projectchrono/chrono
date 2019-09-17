@@ -147,7 +147,6 @@ int main(int argc, char* argv[]) {
     m_sys.setOutputMode(params.write_mode);
 
     string output_dir(argv[2]);
-    m_sys.setOutputDirectory(output_dir);
     filesystem::create_directory(filesystem::path(output_dir));
 
     m_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
@@ -191,7 +190,8 @@ int main(int argc, char* argv[]) {
     m_sys.setParticlePositions(final_points);
 
     vector<string> mesh_filenames;
-    vector<float3> mesh_scalings;
+    vector<ChMatrix33<float>> mesh_rotscales;
+    vector<float3> mesh_translations;
     vector<float> mesh_masses;
     vector<bool> mesh_inflated;
     vector<float> mesh_inflation_radii;
@@ -207,19 +207,22 @@ int main(int argc, char* argv[]) {
 
     if (test_mode == DOUBLE) {
         mesh_filenames.push_back(inner_filename);
-        mesh_scalings.push_back(inner_scaling);
+        mesh_rotscales.push_back(ChMatrix33<float>(ChVector<float>(inner_scaling.x, inner_scaling.y, inner_scaling.z)));
+        mesh_translations.push_back(make_float3(0, 0, 0));
         mesh_masses.push_back(mass);
         mesh_inflated.push_back(false);
         mesh_inflation_radii.push_back(0);
     }
 
     mesh_filenames.push_back(outer_filename);
-    mesh_scalings.push_back(outer_scaling);
+    mesh_rotscales.push_back(ChMatrix33<float>(ChVector<float>(outer_scaling.x, outer_scaling.y, outer_scaling.z)));
+    mesh_translations.push_back(make_float3(0, 0, 0));
     mesh_masses.push_back(mass);
     mesh_inflated.push_back(false);
     mesh_inflation_radii.push_back(0);
 
-    m_sys.load_meshes(mesh_filenames, mesh_scalings, mesh_masses, mesh_inflated, mesh_inflation_radii);
+    m_sys.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses, mesh_inflated,
+                      mesh_inflation_radii);
 
     m_sys.initialize();
 
@@ -287,7 +290,7 @@ int main(int argc, char* argv[]) {
             cout << "Rendering frame " << currframe << endl;
             char filename[100];
             sprintf(filename, "%s/step%06u", output_dir.c_str(), currframe++);
-            m_sys.writeFile(string(filename), true);
+            m_sys.writeFile(string(filename));
             // m_sys.write_meshes(string(filename));
             string mesh_output = string(filename) + "_meshframes.csv";
 

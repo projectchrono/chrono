@@ -70,7 +70,6 @@ void setupBasicSystem(ChSystemGranularSMC& gran_sys, float3 box_size) {
     gran_sys.set_Cohesion_ratio(0);
     gran_sys.set_Adhesion_ratio_S2W(0);
     gran_sys.set_gravitational_acceleration(0.f, 0.f, grav_acceleration);
-    gran_sys.setOutputDirectory(output_prefix);
     gran_sys.setOutputMode(write_mode);
 
     // Fill the bottom half with material

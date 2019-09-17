@@ -204,13 +204,15 @@ int main(int argc, char* argv[]) {
     m_sys.setParticlePositions(body_points);
 
     vector<string> mesh_filenames;
-    vector<float3> mesh_scalings;
+    vector<ChMatrix33<float>> mesh_rotscales;
+    vector<float3> mesh_translations;
     vector<float> mesh_masses;
     const float mass = 10;
 
     string mesh_filename("data/granular/cylinder_lift/cylinder_refined.obj");
     mesh_filenames.push_back(mesh_filename);
-    mesh_scalings.push_back(scaling);
+    mesh_rotscales.push_back(ChMatrix33<float>(ChVector<float>(scaling.x, scaling.y, scaling.z)));
+    mesh_translations.push_back(make_float3(0, 0, 0));
     mesh_masses.push_back(mass);
 
     vector<bool> mesh_inflated;
@@ -218,7 +220,8 @@ int main(int argc, char* argv[]) {
     vector<float> mesh_inflation_radii;
     mesh_inflation_radii.push_back(0);
 
-    m_sys.load_meshes(mesh_filenames, mesh_scalings, mesh_masses, mesh_inflated, mesh_inflation_radii);
+    m_sys.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses, mesh_inflated,
+                      mesh_inflation_radii);
 
     unsigned int nSoupFamilies = 1;
     cout << nSoupFamilies << " soup families" << endl;

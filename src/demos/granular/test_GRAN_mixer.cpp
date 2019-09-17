@@ -132,7 +132,6 @@ int main(int argc, char* argv[]) {
 
     gran_sys.setOutputMode(params.write_mode);
 
-    gran_sys.setOutputDirectory(out_dir);
     filesystem::create_directory(filesystem::path(out_dir));
 
     gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
@@ -211,11 +210,14 @@ int main(int argc, char* argv[]) {
 
     mesh_filenames.push_back(mesh_filename);
 
-    vector<float3> mesh_scalings;
+    vector<ChMatrix33<float>> mesh_rotscales;
+    vector<float3> mesh_translations;
+
     float scale_xy = Bx / 2.f;
     float scale_z = chamber_height;  // TODO fix this / make switch on mixer_type
     float3 scaling = make_float3(scale_xy, scale_xy, scale_z);
-    mesh_scalings.push_back(scaling);
+    mesh_rotscales.push_back(ChMatrix33<float>(ChVector<float>(scaling.x, scaling.y, scaling.z)));
+    mesh_translations.push_back(make_float3(0, 0, 0));
 
     vector<float> mesh_masses;
     float mixer_mass = 10;
@@ -226,7 +228,8 @@ int main(int argc, char* argv[]) {
     mesh_inflated.push_back(false);
     mesh_inflation_radii.push_back(0);
 
-    gran_sys.load_meshes(mesh_filenames, mesh_scalings, mesh_masses, mesh_inflated, mesh_inflation_radii);
+    gran_sys.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses, mesh_inflated,
+                         mesh_inflation_radii);
 
     unsigned int nSoupFamilies = gran_sys.getNumTriangleFamilies();
     cout << nSoupFamilies << " soup families" << endl;

@@ -344,7 +344,6 @@ int main(int argc, char* argv[]) {
     gran_sys.disableMeshCollision();  // disable meshes for settling
 
     /// output preferences
-    gran_sys.setOutputDirectory(params.output_dir);
     gran_sys.setOutputMode(params.write_mode);
     gran_sys.setVerbose(params.verbose);
     filesystem::create_directory(filesystem::path(params.output_dir));

@@ -89,7 +89,6 @@ void SetupGranSystem(ChSystemGranularSMC_trimesh& m_sys, sim_param_holder& param
     m_sys.set_friction_mode(chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP);
 
     m_sys.setOutputMode(GRAN_OUTPUT_MODE::CSV);
-    m_sys.setOutputDirectory(out_dir);
     filesystem::create_directory(filesystem::path(out_dir));
 
     m_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
@@ -122,9 +121,12 @@ void SetupGranSystem(ChSystemGranularSMC_trimesh& m_sys, sim_param_holder& param
     string mesh_filename("granular/downward_square.obj");
     mesh_filenames.push_back(mesh_filename);
 
-    vector<float3> mesh_scalings;
-    float3 scaling = make_float3(params.box_X / 2, params.box_Y / 2, 1);
-    mesh_scalings.push_back(scaling);
+    vector<ChMatrix33<float>> mesh_rotscales;
+    vector<float3> mesh_translations;
+
+    ChMatrix33<float> scaling(ChVector<float>(params.box_X / 2, params.box_Y / 2, 1));
+    mesh_rotscales.push_back(scaling);
+    mesh_translations.push_back(make_float3(0, 0, 0));
 
     vector<float> mesh_masses;
     mesh_masses.push_back(block_mass);
@@ -133,7 +135,8 @@ void SetupGranSystem(ChSystemGranularSMC_trimesh& m_sys, sim_param_holder& param
     mesh_inflated.push_back(false);
     mesh_inflation_radii.push_back(0);
 
-    m_sys.load_meshes(mesh_filenames, mesh_scalings, mesh_masses, mesh_inflated, mesh_inflation_radii);
+    m_sys.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses, mesh_inflated,
+                      mesh_inflation_radii);
 }
 
 int main(int argc, char* argv[]) {

@@ -94,7 +94,6 @@ void SetupGranSystem(ChSystemGranularSMC_trimesh& m_sys, sim_param_holder& param
     m_sys.set_friction_mode(chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP);  // TODO multi-step
 
     m_sys.setOutputMode(GRAN_OUTPUT_MODE::CSV);
-    m_sys.setOutputDirectory(params.output_dir);
 
     m_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
     m_sys.set_fixed_stepSize(params.step_size);
@@ -129,11 +128,15 @@ void SetupGranSystem(ChSystemGranularSMC_trimesh& m_sys, sim_param_holder& param
     mesh_filenames.push_back(string("granular/shear_top.obj"));
     mesh_filenames.push_back(string("granular/downward_square.obj"));
 
-    vector<float3> mesh_scalings;
-    float3 scale = make_float3(box_r, box_r, box_r);
-    mesh_scalings.push_back(scale);
-    mesh_scalings.push_back(scale);
-    mesh_scalings.push_back(scale);
+    vector<ChMatrix33<float>> mesh_rotscales;
+    vector<float3> mesh_translations;
+    ChMatrix33<float> scale(ChVector<float>(box_r, box_r, box_r));
+    mesh_rotscales.push_back(scale);
+    mesh_rotscales.push_back(scale);
+    mesh_rotscales.push_back(scale);
+    mesh_translations.push_back(make_float3(0, 0, 0));
+    mesh_translations.push_back(make_float3(0, 0, 0));
+    mesh_translations.push_back(make_float3(0, 0, 0));
 
     vector<float> mesh_masses;
     mesh_masses.push_back(1000);
@@ -149,7 +152,8 @@ void SetupGranSystem(ChSystemGranularSMC_trimesh& m_sys, sim_param_holder& param
     mesh_inflation_radii.push_back(0);
     mesh_inflation_radii.push_back(0);
 
-    m_sys.load_meshes(mesh_filenames, mesh_scalings, mesh_masses, mesh_inflated, mesh_inflation_radii);
+    m_sys.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses, mesh_inflated,
+                      mesh_inflation_radii);
 }
 
 void SetInitialMeshes(double* meshPosRot, float* meshVel, const std::shared_ptr<ChBody> plate) {

@@ -74,7 +74,8 @@ constexpr double chassis_length_x = 2 * METERS_TO_CM;
 constexpr double chassis_length_y = 2 * METERS_TO_CM;
 constexpr double chassis_length_z = 1.5 * METERS_TO_CM;
 
-constexpr float3 wheel_scaling = {wheel_rad * 2, wheel_width, wheel_rad * 2};
+const ChMatrix33<float> wheel_scaling =
+    ChMatrix33<float>(ChVector<float>(wheel_rad * 2, wheel_width, wheel_rad * 2));
 
 constexpr double wheel_inertia_x = (1. / 4.) * wheel_mass * wheel_rad * wheel_rad + (1 / 12.) * wheel_mass;
 constexpr double wheel_inertia_y = (1. / 2.) * wheel_mass * wheel_rad * wheel_rad;
@@ -93,7 +94,8 @@ enum ROVER_BODY_ID { WHEEL_FRONT_LEFT, WHEEL_FRONT_RIGHT, WHEEL_REAR_LEFT, WHEEL
 std::vector<std::shared_ptr<chrono::ChBody>> wheel_bodies;
 
 std::vector<string> mesh_filenames;
-std::vector<float3> mesh_scalings;
+std::vector<ChMatrix33<float>> mesh_rotscales;
+std::vector<float3> mesh_translations;
 std::vector<float> mesh_masses;
 std::vector<bool> mesh_inflated;
 std::vector<float> mesh_inflation_radii;
@@ -174,15 +176,16 @@ void addWheelBody(ChSystemNSC& rover_sys,
     mesh_masses.push_back(wheel_mass);
     mesh_inflated.push_back(false);
     mesh_inflation_radii.push_back(0);
-    mesh_scalings.push_back(wheel_scaling);
+    mesh_rotscales.push_back(wheel_scaling);
     mesh_filenames.push_back(wheel_filename);
+    mesh_translations.push_back(make_float3(0, 0, 0));
     wheel_bodies.push_back(wheel_body);
 }
 
 void writeMeshFrames(std::ostringstream& outstream,
                      std::shared_ptr<ChBody> body,
                      std::string obj_name,
-                     float3 mesh_scaling) {
+                     ChMatrix33<float> mesh_scaling) {
     outstream << obj_name << ",";
 
     // Get frame position
@@ -216,7 +219,7 @@ void writeMeshFrames(std::ostringstream& outstream,
     outstream << vz.z() << ",";
 
     // printf("wheel scaling is %f, %f, %f\n", mesh_scaling.x, mesh_scaling.y, mesh_scaling.z);
-    outstream << mesh_scaling.x << "," << mesh_scaling.y << "," << mesh_scaling.z;
+    outstream << mesh_scaling(0, 0) << "," << mesh_scaling(1, 1) << "," << mesh_scaling(2, 2);
     outstream << "\n";
 }
 
@@ -308,9 +311,11 @@ int main(int argc, char* argv[]) {
         mesh_masses.push_back(chassis_mass);
         mesh_inflated.push_back(false);
         mesh_inflation_radii.push_back(0);
-        float3 terrain_mesh_scaling = {params.box_X, params.box_Y, params.box_Z};
-        mesh_scalings.push_back(terrain_mesh_scaling);
+        ChMatrix33<float> terrain_mesh_scaling =
+            ChMatrix33<float>(ChVector<float>({params.box_X, params.box_Y, params.box_Z}));
+        mesh_rotscales.push_back(terrain_mesh_scaling);
         mesh_filenames.push_back(terrain_mesh_filename);
+        mesh_translations.push_back(make_float3(0, 0, 0));
     }
 
     std::shared_ptr<ChBody> chassis_body(rover_sys.NewBody());
@@ -346,9 +351,9 @@ int main(int argc, char* argv[]) {
     addWheelBody(rover_sys, chassis_body, ChVector<>(rear_wheel_offset_x, -rear_wheel_offset_y, wheel_offset_z));
 
     // Load in meshes
-    gran_sys.load_meshes(mesh_filenames, mesh_scalings, mesh_masses, mesh_inflated, mesh_inflation_radii);
+    gran_sys.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses, mesh_inflated,
+                         mesh_inflation_radii);
 
-    gran_sys.setOutputDirectory(params.output_dir);
     gran_sys.setOutputMode(params.write_mode);
     gran_sys.setVerbose(params.verbose);
     filesystem::create_directory(filesystem::path(params.output_dir));
