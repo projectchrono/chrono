@@ -39,7 +39,7 @@ using std::vector;
 
 void ShowUsage() {
     cout << "usage: ./test_GRAN_repose <json_file> <output_dir> <static_friction> <rolling_model 0:constant, "
-            "1:viscous 2:elastic_plastic 3:none> <rolling_friction> <cohesion_ratio>"
+            "1:viscous 2:elastic_plastic 3:none 4:schwartz> <rolling_friction> <spinning_friction> <cohesion_ratio>"
          << endl;
 }
 
@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
     sim_param_holder params;
 
     // Some of the default values might be overwritten by user via command line
-    if (argc != 7 || ParseJSON(argv[1], params) == false) {
+    if (argc != 8 || ParseJSON(argv[1], params) == false) {
         ShowUsage();
         return 1;
     }
@@ -105,7 +105,7 @@ int main(int argc, char* argv[]) {
     m_sys.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
     m_sys.set_Gamma_t_SPH2MESH(params.tangentDampS2M);
 
-    params.cohesion_ratio = std::stof(argv[6]);
+    params.cohesion_ratio = std::stof(argv[7]);
     cout << "Cohesion Ratio: " << params.cohesion_ratio << endl;
     m_sys.set_Cohesion_ratio(params.cohesion_ratio);
     m_sys.set_Adhesion_ratio_S2M(params.adhesion_ratio_s2m);
@@ -121,6 +121,19 @@ int main(int argc, char* argv[]) {
     m_sys.set_static_friction_coeff_SPH2MESH(static_friction);
 
     int rolling_mode = std::atoi(argv[4]);
+    float rolling_coeff = std::stof(argv[5]);
+    cout << "Rolling resistance coefficient: " << rolling_coeff << endl;
+    cout << "Expected angle from rolling: " << std::atan(rolling_coeff) << endl;
+
+    m_sys.set_rolling_coeff_SPH2SPH(rolling_coeff);
+    m_sys.set_rolling_coeff_SPH2WALL(rolling_coeff);
+    m_sys.set_rolling_coeff_SPH2MESH(rolling_coeff);
+
+    float spinning_coeff = std::stof(argv[6]);
+    m_sys.set_spinning_coeff_SPH2SPH(spinning_coeff);
+    m_sys.set_spinning_coeff_SPH2WALL(spinning_coeff);
+    m_sys.set_spinning_coeff_SPH2MESH(spinning_coeff);
+
     switch (rolling_mode) {
         case 0:
             m_sys.set_rolling_mode(GRAN_ROLLING_MODE::CONSTANT_TORQUE);
@@ -140,19 +153,16 @@ int main(int argc, char* argv[]) {
             m_sys.set_rolling_mode(GRAN_ROLLING_MODE::NO_RESISTANCE);
             cout << "No rolling resistance" << endl;
             break;
+        case 4:
+            m_sys.set_rolling_mode(GRAN_ROLLING_MODE::SCHWARTZ);
+            cout << "Schwartz rolling and spinning friction" << endl;
+            cout << "Spinning resistance coefficient: " << spinning_coeff << endl;
+            break;
         default:
             cout << "Invalid rolling mode" << endl;
             ShowUsage();
             return 1;
     }
-
-    float rolling_coeff = std::stof(argv[5]);
-    cout << "Rolling resistance coefficient: " << rolling_coeff << endl;
-    cout << "Expected angle from rolling: " << std::atan(rolling_coeff) << endl;
-
-    m_sys.set_rolling_coeff_SPH2SPH(rolling_coeff);
-    m_sys.set_rolling_coeff_SPH2WALL(rolling_coeff);
-    m_sys.set_rolling_coeff_SPH2MESH(rolling_coeff);
 
     m_sys.setOutputMode(params.write_mode);
     string out_dir(argv[2]);
