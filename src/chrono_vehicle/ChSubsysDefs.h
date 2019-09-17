@@ -525,7 +525,8 @@ enum class TireModelType {
     REISSNER,    ///< Reissner 6-field shell element-based tire
     FEA,         ///< FEA co-rotational tire
     PAC89,       ///< Pacejka 89 (magic formula) tire
-    TMEASY       ///< Tire Model Made Easy tire (G. Rill)
+    TMEASY,      ///< Tire Model Made Easy tire (G. Rill)
+    PAC02        ///< Pacejka 02 (magic formula) tire, redesign of PACEJKA
 };
 
 /// Enum for available powertrain model templates.
