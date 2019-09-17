@@ -54,7 +54,9 @@ ChSystemGranularSMC::ChSystemGranularSMC(float sphere_rad, float density, float3
       Gamma_t_s2s_UU(0),
       Gamma_t_s2w_UU(0),
       rolling_coeff_s2s_UU(0),
-      rolling_coeff_s2w_UU(0) {
+      rolling_coeff_s2w_UU(0),
+      spinning_coeff_s2s_UU(0),
+      spinning_coeff_s2w_UU(0) {
     gpuErrchk(cudaMallocManaged(&gran_params, sizeof(ChGranParams), cudaMemAttachGlobal));
     gpuErrchk(cudaMallocManaged(&sphere_data, sizeof(ChGranSphereData), cudaMemAttachGlobal));
     psi_T = PSI_T_DEFAULT;

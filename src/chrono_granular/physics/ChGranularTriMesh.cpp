@@ -41,6 +41,7 @@ ChSystemGranularSMC_trimesh::ChSystemGranularSMC_trimesh(float sphere_rad, float
       Gamma_n_s2m_UU(0),
       Gamma_t_s2m_UU(0),
       rolling_coeff_s2m_UU(0),
+      spinning_coeff_s2m_UU(0),
       adhesion_s2m_over_gravity(0) {
     // Allocate triangle collision parameters
     gpuErrchk(cudaMallocManaged(&tri_params, sizeof(ChGranParams_trimesh), cudaMemAttachGlobal));

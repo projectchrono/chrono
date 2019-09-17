@@ -508,9 +508,9 @@ __global__ void interactionTerrain_TriangleSoup(
                 force_accum = force_accum - hertz_force_factor * mesh_params->Gamma_n_s2m_SU * m_eff * vrel_n;
 
                 if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
-                    float3 roll_ang_acc =
-                        computeRollingAngAcc(sphere_data, gran_params, mesh_params->rolling_coeff_s2m_SU, force_accum,
-                                             omega[sphereIDLocal], d_triangleSoup->omega[fam], delta);
+                    float3 roll_ang_acc = computeRollingAngAcc(
+                        sphere_data, gran_params, mesh_params->rolling_coeff_s2m_SU, mesh_params->spinning_coeff_s2m_SU,
+                        force_accum, omega[sphereIDLocal], d_triangleSoup->omega[fam], delta);
 
                     // sphere_AngAcc = sphere_AngAcc + roll_ang_acc;
 

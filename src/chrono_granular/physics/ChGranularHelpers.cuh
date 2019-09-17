@@ -238,6 +238,7 @@ inline __device__ bool checkSpheresContacting_int(const int3& sphereA_pos,
 inline __device__ float3 computeRollingAngAcc(GranSphereDataPtr sphere_data,
                                               GranParamsPtr gran_params,
                                               float rolling_coeff,
+                                              float spinning_coeff,
                                               const float3& normal_force,
                                               const float3& my_omega,
                                               const float3& their_omega,
@@ -277,9 +278,34 @@ inline __device__ float3 computeRollingAngAcc(GranSphereDataPtr sphere_data,
                 delta_Ang_Acc = 1.f / (gran_params->sphereInertia_by_r * gran_params->sphereRadius_SU) * torque;
                 break;
             }
+            case GRAN_ROLLING_MODE::SCHWARTZ: {
+                // Rolling component
+                // v_rot = l_p (w_p x n) - l_n (w_n x n)
+                const float dr = Length(delta_r);
+                const float3 n = delta_r / dr;
+                const float3 v_rot = 0.5 * dr * Cross((omega_rel * omega_rel_mag), n);
+
+                // m_roll = mu_r l_p (f_n x v_rot) / ||v_rot||
+                float3 torque = (rolling_coeff * 0.5 * dr * Cross(normal_force, v_rot)) / Length(v_rot);
+
+                // Spinning component
+                // x_c = (r_p^2 - r_n^2) / (2 (r_p + r_n - delta_n)) + 0.5 (r_p + r_n - delta_n)
+                const float x_c = 0.5 * dr;
+
+                // r_c = sqrt(r_p^2 - x_c^2)
+                const float r_c = sqrt(gran_params->sphereRadius_SU * gran_params->sphereRadius_SU - x_c * x_c);
+
+                // m_spin = -mu_t r_c (((w_n - w_p) . f_n) / ||w_n - w_p||) n
+                torque = torque + -spinning_coeff * r_c * Dot(omega_rel, normal_force) * n;
+
+                // d_aa = torque / inertia
+                delta_Ang_Acc = 1.f / (gran_params->sphereInertia_by_r * gran_params->sphereRadius_SU) * torque;
+                break;
+            }
             default: { ABORTABORTABORT("Rolling mode not implemented\n"); }
         }
     }
+
     return delta_Ang_Acc;
 }
 
@@ -312,6 +338,20 @@ inline __device__ void computeMultiStepDisplacement(GranParamsPtr gran_params,
 
     // write back the updated displacement
     sphere_data->contact_history_map[contact_id] = delta_t;
+}
+
+inline __device__ void updateMultiStepDisplacement(GranSphereDataPtr sphere_data,
+                                                   const size_t& contact_index,
+                                                   const float3& rel_vel,
+                                                   const float3& contact_normal,
+                                                   const float k_t,
+                                                   const float gamma_t,
+                                                   const float m_eff,
+                                                   const float force_model_multiplier,
+                                                   const float3& tangent_force) {
+    // Reverse engineer the delta_t from the clamped force and update the map
+    sphere_data->contact_history_map[contact_index] =
+        ((tangent_force / force_model_multiplier) + gamma_t * m_eff * rel_vel) / -k_t;
 }
 
 /// compute friction forces for a contact
@@ -349,7 +389,14 @@ inline __device__ float3 computeFrictionForces(GranParamsPtr gran_params,
     const float ft_max = Length(normal_force) * static_friction_coeff;
     if (ft > ft_max) {
         return tangent_force * ft_max / ft;  // TODO stability
+
+        if (gran_params->friction_mode == GRAN_FRICTION_MODE::MULTI_STEP) {
+            updateMultiStepDisplacement(sphere_data, contact_index, rel_vel, contact_normal, k_t, gamma_t, m_eff,
+                                        force_model_multiplier, tangent_force);
+        }
     }
+
+    return tangent_force;
 }
 
 // overload for if the body ids are given rather than contact id
