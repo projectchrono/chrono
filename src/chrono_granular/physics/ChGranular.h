@@ -469,7 +469,8 @@ class CH_GRANULAR_API ChSystemGranularSMC {
     void set_BD_Fixed(bool fixed) { BD_is_fixed = fixed; }
 
     /// Set initial particle positions. MUST be called only once and MUST be called before initialize
-    void setParticlePositions(const std::vector<ChVector<float>>& points);
+    void setParticlePositions(const std::vector<ChVector<float>>& points,
+                              const std::vector<ChVector<float>>& vels = std::vector<ChVector<float>>());
 
     /// Set particle fixity. MUST be called only once and MUST be called before initialize
     void setParticleFixed(const std::vector<bool>& fixed);
@@ -765,6 +766,9 @@ class CH_GRANULAR_API ChSystemGranularSMC {
 
     /// User-provided sphere positions in UU
     std::vector<ChVector<float>> user_sphere_positions;
+
+    /// User-provided sphere velocities in UU
+    std::vector<ChVector<float>> user_sphere_vel;
 
     /// User-provided sphere fixity as bools
     std::vector<bool> user_sphere_fixed;
