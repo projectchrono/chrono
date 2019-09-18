@@ -353,7 +353,9 @@ windows:vs2019:deploy:
     - conda install --yes conda-build anaconda-client -n deploy_$env:CI_JOB_ID
     - conda install --yes -c conda-forge -c dlr-sc -c pythonocc -c oce -c 3dhubs oce=0.18 -n deploy_$env:CI_JOB_ID
     - conda install --yes -c intel mkl-devel=2018.0.3 -n deploy_$env:CI_JOB_ID
-    - conda build ./contrib/packaging-python --python=3.6 --no-remove-work-dir --dirty
+    - activate.ps1 deploy_$env:CI_JOB_ID
+    - conda build ./contrib/packaging-python --python=3.6 --no-remove-work-dir --dirty -n deploy_$env:CI_JOB_ID
+    - deactivate.ps1 deploy_$env:CI_JOB_ID
     - anaconda --token $env:ANACONDA_TOKEN upload C:\Users\buildbot\.conda\envs\deploy_$env:CI_JOB_ID\win-64\pychrono-4.0.0*.bz2
     - conda remove --name deploy_$env:CI_JOB_ID --all
   environment:
