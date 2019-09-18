@@ -19,7 +19,7 @@
 #ifndef CH_GENERIC_SIMPLE_DRIVELINE_H
 #define CH_GENERIC_SIMPLE_DRIVELINE_H
 
-#include "chrono_vehicle/wheeled_vehicle/ChDriveline.h"
+#include "chrono_vehicle/wheeled_vehicle/ChDrivelineWV.h"
 #include "chrono_models/ChApiModels.h"
 
 namespace chrono {
@@ -30,7 +30,7 @@ namespace generic {
 /// @{
 
 /// Simple driveline model for the generic vehicle (purely kinematic).
-class CH_MODELS_API Generic_SimpleDriveline : public ChDriveline {
+class CH_MODELS_API Generic_SimpleDriveline : public ChDrivelineWV {
   public:
     Generic_SimpleDriveline(const std::string& name);
     virtual ~Generic_SimpleDriveline() {}

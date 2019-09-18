@@ -131,7 +131,7 @@ void WheeledVehicle::Create(const std::string& filename) {
 
     {
         std::string file_name = d["Driveline"]["Input File"].GetString();
-        m_driveline = ReadDrivelineJSON(vehicle::GetDataFile(file_name));
+        m_driveline = ReadDrivelineWVJSON(vehicle::GetDataFile(file_name));
         if (d["Driveline"].HasMember("Output")) {
             m_driveline->SetOutput(d["Driveline"]["Output"].GetBool());
         }

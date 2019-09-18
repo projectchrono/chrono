@@ -31,7 +31,7 @@ const double Generic_SimpleDriveline::m_conicalgear_ratio = -0.2433;
 // -----------------------------------------------------------------------------
 // Construct a 2WD open differential simple driveline.
 // -----------------------------------------------------------------------------
-Generic_SimpleDriveline::Generic_SimpleDriveline(const std::string& name) : ChDriveline(name) {}
+Generic_SimpleDriveline::Generic_SimpleDriveline(const std::string& name) : ChDrivelineWV(name) {}
 
 // -----------------------------------------------------------------------------
 // Initialize the driveline subsystem.

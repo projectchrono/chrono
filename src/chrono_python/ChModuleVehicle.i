@@ -269,7 +269,7 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 
 // Wheeled parts
 %include "ChSuspension.i"
-%include "ChDriveline.i"
+%include "ChDrivelineWV.i"
 %include "ChSteering.i"
 
 %include "../chrono_vehicle/wheeled_vehicle/ChWheel.h"

@@ -21,7 +21,7 @@
 #define CH_SHAFTS_DRIVELINE_2WD_H
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/wheeled_vehicle/ChDriveline.h"
+#include "chrono_vehicle/wheeled_vehicle/ChDrivelineWV.h"
 
 #include "chrono/physics/ChShaftsBody.h"
 #include "chrono/physics/ChShaftsClutch.h"
@@ -39,7 +39,7 @@ namespace vehicle {
 
 /// 2WD driveline model template based on ChShaft objects. This template can be
 /// used to model either a FWD or a RWD driveline.
-class CH_VEHICLE_API ChShaftsDriveline2WD : public ChDriveline {
+class CH_VEHICLE_API ChShaftsDriveline2WD : public ChDrivelineWV {
   public:
     ChShaftsDriveline2WD(const std::string& name);
 

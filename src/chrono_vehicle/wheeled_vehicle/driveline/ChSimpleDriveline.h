@@ -22,7 +22,7 @@
 #define CH_SIMPLE_DRIVELINE_H
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/wheeled_vehicle/ChDriveline.h"
+#include "chrono_vehicle/wheeled_vehicle/ChDrivelineWV.h"
 
 namespace chrono {
 namespace vehicle {
@@ -33,7 +33,7 @@ namespace vehicle {
 /// Simple driveline model. This template can be used to model a 4WD driveline.
 /// It uses a constant front/rear torque split (a value between 0 and 1) and a
 /// simple model for Torsen limited-slip differentials.
-class CH_VEHICLE_API ChSimpleDriveline : public ChDriveline {
+class CH_VEHICLE_API ChSimpleDriveline : public ChDrivelineWV {
   public:
     ChSimpleDriveline(const std::string& name);
 

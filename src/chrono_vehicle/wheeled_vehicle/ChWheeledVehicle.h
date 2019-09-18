@@ -29,7 +29,7 @@
 #include "chrono_vehicle/wheeled_vehicle/ChAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/ChAntirollBar.h"
 #include "chrono_vehicle/wheeled_vehicle/ChBrake.h"
-#include "chrono_vehicle/wheeled_vehicle/ChDriveline.h"
+#include "chrono_vehicle/wheeled_vehicle/ChDrivelineWV.h"
 #include "chrono_vehicle/wheeled_vehicle/ChSteering.h"
 #include "chrono_vehicle/wheeled_vehicle/ChSuspension.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
@@ -83,7 +83,7 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     std::shared_ptr<ChWheel> GetWheel(int axle, VehicleSide side, WheelLocation location = SINGLE) const;
 
     /// Get a handle to the vehicle's driveline subsystem.
-    std::shared_ptr<ChDriveline> GetDriveline() const { return m_driveline; }
+    std::shared_ptr<ChDrivelineWV> GetDriveline() const { return m_driveline; }
 
     /// Get the vehicle total mass.
     /// This includes the mass of the chassis and all vehicle subsystems, but not the mass of tires.
@@ -213,9 +213,9 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     virtual void Output(int frame, ChVehicleOutput& database) const override;
 
   protected:
-    ChAxleList m_axles;                        ///< list of axle subsystems
-    ChSteeringList m_steerings;                ///< list of steering subsystems
-    std::shared_ptr<ChDriveline> m_driveline;  ///< driveline subsystem
+    ChAxleList m_axles;                          ///< list of axle subsystems
+    ChSteeringList m_steerings;                  ///< list of steering subsystems
+    std::shared_ptr<ChDrivelineWV> m_driveline;  ///< driveline subsystem
 };
 
 /// @} vehicle_wheeled

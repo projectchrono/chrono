@@ -12,7 +12,7 @@
 // Authors: Radu Serban, Justin Madsen
 // =============================================================================
 //
-// Base class for a vehicle driveline.
+// Base class for a wheeled vehicle driveline.
 //
 // =============================================================================
 
@@ -32,12 +32,12 @@ namespace vehicle {
 /// @addtogroup vehicle_wheeled_driveline
 /// @{
 
-/// Base class for a driveline subsystem.
-class CH_VEHICLE_API ChDriveline : public ChPart {
+/// Base class for a wheeled vehicle driveline subsystem.
+class CH_VEHICLE_API ChDrivelineWV : public ChPart {
   public:
-    ChDriveline(const std::string& name);
+    ChDrivelineWV(const std::string& name);
 
-    virtual ~ChDriveline() {}
+    virtual ~ChDrivelineWV() {}
 
     /// Return the number of driven axles.
     virtual int GetNumDrivenAxles() const = 0;

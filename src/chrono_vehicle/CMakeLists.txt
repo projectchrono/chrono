@@ -279,8 +279,8 @@ set(CV_WV_BASE_FILES
     wheeled_vehicle/ChAntirollBar.cpp
     wheeled_vehicle/ChBrake.h
     wheeled_vehicle/ChBrake.cpp
-    wheeled_vehicle/ChDriveline.h
-    wheeled_vehicle/ChDriveline.cpp
+    wheeled_vehicle/ChDrivelineWV.h
+    wheeled_vehicle/ChDrivelineWV.cpp
     wheeled_vehicle/ChSuspension.h
     wheeled_vehicle/ChSuspension.cpp
     wheeled_vehicle/ChSteering.h
@@ -524,8 +524,8 @@ set(CV_TV_BASE_FILES
     tracked_vehicle/ChTrackAssembly.cpp
     tracked_vehicle/ChTrackBrake.h
     tracked_vehicle/ChTrackBrake.cpp
-    tracked_vehicle/ChTrackDriveline.h
-    tracked_vehicle/ChTrackDriveline.cpp
+    tracked_vehicle/ChDrivelineTV.h
+    tracked_vehicle/ChDrivelineTV.cpp
     tracked_vehicle/ChTrackedVehicle.h
     tracked_vehicle/ChTrackedVehicle.cpp
     tracked_vehicle/ChTrackShoe.h

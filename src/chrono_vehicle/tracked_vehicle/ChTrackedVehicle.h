@@ -25,8 +25,8 @@
 #include <vector>
 
 #include "chrono_vehicle/ChVehicle.h"
+#include "chrono_vehicle/tracked_vehicle/ChDrivelineTV.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
-#include "chrono_vehicle/tracked_vehicle/ChTrackDriveline.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackContactManager.h"
 
 namespace chrono {
@@ -70,7 +70,7 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     std::shared_ptr<ChTrackAssembly> GetTrackAssembly(VehicleSide side) const { return m_tracks[side]; }
 
     /// Get a handle to the vehicle's driveline subsystem.
-    std::shared_ptr<ChTrackDriveline> GetDriveline() const { return m_driveline; }
+    std::shared_ptr<ChDrivelineTV> GetDriveline() const { return m_driveline; }
 
     /// Get a handle to the vehicle's driveshaft body.
     virtual std::shared_ptr<ChShaft> GetDriveshaft() const override { return m_driveline->GetDriveshaft(); }
@@ -208,8 +208,8 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     virtual void Output(int frame, ChVehicleOutput& database) const override;
 
   protected:
-    std::shared_ptr<ChTrackAssembly> m_tracks[2];   ///< handles to the track assemblies (left/right)
-    std::shared_ptr<ChTrackDriveline> m_driveline;  ///< handle to the driveline subsystem
+    std::shared_ptr<ChTrackAssembly> m_tracks[2];  ///< track assemblies (left/right)
+    std::shared_ptr<ChDrivelineTV> m_driveline;    ///< driveline subsystem
 
     ChTrackContactManager* m_contacts;  ///< manager for internal contacts
 

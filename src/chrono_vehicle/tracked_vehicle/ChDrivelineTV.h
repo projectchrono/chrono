@@ -36,12 +36,11 @@ namespace vehicle {
 /// @{
 
 /// Base class for a tracked vehicle driveline.
-class CH_VEHICLE_API ChTrackDriveline : public ChPart {
+class CH_VEHICLE_API ChDrivelineTV : public ChPart {
   public:
-    ChTrackDriveline(const std::string& name  ///< [in] name of the subsystem
-                     );
+    ChDrivelineTV(const std::string& name);
 
-    virtual ~ChTrackDriveline() {}
+    virtual ~ChDrivelineTV() {}
 
     /// Get a handle to the driveshaft.
     /// Return a shared pointer to the shaft that connects this driveline to a

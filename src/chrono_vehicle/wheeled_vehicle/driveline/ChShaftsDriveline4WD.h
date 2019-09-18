@@ -20,7 +20,7 @@
 #define CH_SHAFTS_DRIVELINE_4WD_H
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/wheeled_vehicle/ChDriveline.h"
+#include "chrono_vehicle/wheeled_vehicle/ChDrivelineWV.h"
 
 #include "chrono/physics/ChShaftsBody.h"
 #include "chrono/physics/ChShaftsClutch.h"
@@ -37,7 +37,7 @@ namespace vehicle {
 /// @{
 
 /// 4WD driveline model template based on ChShaft objects.
-class CH_VEHICLE_API ChShaftsDriveline4WD : public ChDriveline {
+class CH_VEHICLE_API ChShaftsDriveline4WD : public ChDrivelineWV {
   public:
     ChShaftsDriveline4WD(const std::string& name);
 
