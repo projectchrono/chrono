@@ -9,10 +9,10 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Michael Taylor, Rainer Gericke
+// Authors: Radu Serban, Michael Taylor
 // =============================================================================
 //
-// Template for a tire model based on the MSC ADAMS PAC02 Tire Model
+// Template for a tire model based on the MSC ADAMS PAC2002 Tire Model
 //
 // Ref: Adams/Tire help - Adams 2017.1.
 // https://simcompanion.mscsoftware.com/infocenter/index?page=content&id=DOC11293&cat=2017.1_ADAMS_DOCS&actp=LIST
@@ -41,7 +41,15 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChPac02Tire::ChPac02Tire(const std::string& name)
-    : ChTire(name), m_kappa(0), m_alpha(0), m_gamma(0), m_gamma_limit(3), m_mu(0), m_mu0(0.8) {
+    : ChTire(name),
+      m_kappa(0),
+      m_alpha(0),
+      m_gamma(0),
+      m_gamma_limit(3.0 * CH_C_DEG_TO_RAD),
+      m_mu(0),
+      m_mu0(0.8),
+      m_PacScal({1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}),
+      m_PacCoeff({0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}) {
     m_tireforce.force = ChVector<>(0, 0, 0);
     m_tireforce.point = ChVector<>(0, 0, 0);
     m_tireforce.moment = ChVector<>(0, 0, 0);
@@ -201,77 +209,43 @@ void ChPac02Tire::Advance(double step) {
     // See reference for details on the calculations.
     double Fx = 0;
     double Fy = 0;
-    double Fz = m_data.normal_force / 1000;
+    double Fz = m_data.normal_force;
     double Mx = 0;
     double My = 0;
     double Mz = 0;
 
-    // Express alpha and gamma in degrees. Express kappa as percentage.
-    // Flip sign of alpha to convert to PAC89 modified SAE coordinates.
-    m_gamma = 90.0 - std::acos(m_states.disc_normal.z()) * CH_C_RAD_TO_DEG;
-    m_alpha = -m_states.cp_side_slip * CH_C_RAD_TO_DEG;
-    m_kappa = m_states.cp_long_slip * 100.0;
+    // Express alpha and gamma in rad. Express kappa as ratio.
+    m_gamma = CH_C_PI_2 - std::acos(m_states.disc_normal.z());
+    m_alpha = m_states.cp_side_slip;
+    m_kappa = m_states.cp_long_slip;
 
-    // Clamp |gamma| to specified value: Limit due to tire testing, avoids erratic extrapolation.
+    // Clamp |gamma| to specified value: Limit due to tire testing, avoids erratic extrapolation. m_gamma_limit is in
+    // rad too.
     double gamma = ChClamp(m_gamma, -m_gamma_limit, m_gamma_limit);
 
     // Longitudinal Force
-    {
-        double C = m_PacCoeff.B0;
-        double D = (m_PacCoeff.B1 * std::pow(Fz, 2) + m_PacCoeff.B2 * Fz);
-        double BCD = (m_PacCoeff.B3 * std::pow(Fz, 2) + m_PacCoeff.B4 * Fz) * std::exp(-m_PacCoeff.B5 * Fz);
-        double B = BCD / (C * D);
-        double Sh = m_PacCoeff.B9 * Fz + m_PacCoeff.B10;
-        double Sv = 0.0;
-        double X1 = (m_kappa + Sh);
-        double E = (m_PacCoeff.B6 * std::pow(Fz, 2) + m_PacCoeff.B7 * Fz + m_PacCoeff.B8);
-
-        Fx = mu_scale * (D * std::sin(C * std::atan(B * X1 - E * (B * X1 - std::atan(B * X1))))) + Sv;
-    }
+    double Fx0 = mu_scale * CalcFx1(m_kappa, Fz);
 
     // Lateral Force
-    {
-        double C = m_PacCoeff.A0;
-        double D = (m_PacCoeff.A1 * std::pow(Fz, 2) + m_PacCoeff.A2 * Fz);
-        double BCD =
-            m_PacCoeff.A3 * std::sin(std::atan(Fz / m_PacCoeff.A4) * 2.0) * (1.0 - m_PacCoeff.A5 * std::abs(gamma));
-        double B = BCD / (C * D);
-        double Sh = m_PacCoeff.A9 * Fz + m_PacCoeff.A10 + m_PacCoeff.A8 * gamma;
-        double Sv = m_PacCoeff.A11 * Fz * gamma + m_PacCoeff.A12 * Fz + m_PacCoeff.A13;
-        double X1 = m_alpha + Sh;
-        double E = m_PacCoeff.A6 * Fz + m_PacCoeff.A7;
+    double Fy0 = mu_scale * CalcFy1(m_alpha, Fz);
+    double as = sin(m_alpha_c);
+    double beta = acos(std::abs(m_kappa_c) / sqrt(pow(m_kappa_c, 2.0) + pow(as, 2.0)));
+    double den = sqrt(pow(1.0 / m_mu_x_act, 2.0) + pow(tan(beta) / m_mu_y_act, 2.0));
+    double mux = 1.0 / den;
+    double muy = tan(beta) / den;
 
-        // Ensure that X1 stays within +/-90 deg minus a little bit
-        ChClampValue(X1, -89.5, 89.5);
-
-        Fy = mu_scale * (D * std::sin(C * std::atan(B * X1 - E * (B * X1 - std::atan(B * X1))))) + Sv;
-    }
+    // Combined Forces (Friction Ellipsis Method)
+    Fx = mux / m_mu_x_act * Fx0;
+    Fy = muy / m_mu_y_act * Fy0;
 
     // Self-Aligning Torque
-    {
-        double C = m_PacCoeff.C0;
-        double D = (m_PacCoeff.C1 * std::pow(Fz, 2) + m_PacCoeff.C2 * Fz);
-        double BCD = (m_PacCoeff.C3 * std::pow(Fz, 2) + m_PacCoeff.C4 * Fz) * (1 - m_PacCoeff.C6 * std::abs(gamma)) *
-                     std::exp(-m_PacCoeff.C5 * Fz);
-        double B = BCD / (C * D);
-        double Sh = m_PacCoeff.C11 * gamma + m_PacCoeff.C12 * Fz + m_PacCoeff.C13;
-        double Sv =
-            (m_PacCoeff.C14 * std::pow(Fz, 2) + m_PacCoeff.C15 * Fz) * gamma + m_PacCoeff.C16 * Fz + m_PacCoeff.C17;
-        double X1 = m_alpha + Sh;
-        double E = (m_PacCoeff.C7 * std::pow(Fz, 2) + m_PacCoeff.C8 * Fz + m_PacCoeff.C9) *
-                   (1.0 - m_PacCoeff.C10 * std::abs(gamma));
-
-        // Ensure that X1 stays within +/-90 deg minus a little bit
-        ChClampValue(X1, -89.5, 89.5);
-
-        Mz = mu_scale * (D * std::sin(C * std::atan(B * X1 - E * (B * X1 - std::atan(B * X1))))) + Sv;
-    }
+    Mz = 0.0;
 
     // Overturning Moment
     {
         double deflection = Fy / m_lateral_stiffness;
 
-        Mx = -(Fz * 1000) * deflection;
+        Mx = -(Fz)*deflection;
         Mz = Mz + Fx * deflection;
     }
 
@@ -312,6 +286,50 @@ void ChPac02Tire::Advance(double step) {
     // Move the tire forces from the contact patch to the wheel center
     m_tireforce.moment +=
         Vcross((m_data.frame.pos + m_data.depth * m_data.frame.rot.GetZaxis()) - m_tireforce.point, m_tireforce.force);
+}
+
+double ChPac02Tire::CalcFx1(double kappa, double Fz) {
+    // calculates the longitudinal force based on a limited parameter set.
+    // gamma, Pi are not considered
+    double Fz0s = m_PacCoeff.FzNomin * m_PacScal.lfz0;
+    double dFz = (Fz - Fz0s) / Fz0s;
+    double C = m_PacCoeff.pcx1 * m_PacScal.lcx1;
+    double Mu = (m_PacCoeff.pdx1 + m_PacCoeff.pdx2 * dFz) * m_PacScal.lmux;
+    double D = Mu * Fz * m_PacScal.xsi1;
+    double E = (m_PacCoeff.pex1 + m_PacCoeff.pex2 * dFz + m_PacCoeff.pex3 * dFz * dFz) * m_PacScal.lex;
+    double BCD = Fz * (m_PacCoeff.pkx1 + m_PacCoeff.pkx2) * m_PacScal.lkx;  // BCD = Kx
+    double B = BCD / (C * D);
+    double Sh = (m_PacCoeff.phx1 + m_PacCoeff.phx2 * dFz) * m_PacScal.lhx;
+    double Sv = Fz * (m_PacCoeff.pvx1 + m_PacCoeff.pvx2 * dFz) * m_PacScal.lvx * m_PacScal.lmux * m_PacScal.xsi1;
+    m_kappa_c = kappa + Sh + Sv / BCD;
+    double X1 = B * (kappa + Sh);
+    double Fx0 = D * sin(C * atan(X1 - E * (X1 - atan(X1)))) + Sv;
+    m_mu_x_act = (Fx0 - Sv) / Fz;
+    m_mu_x_max = D / Fz;
+    return Fx0;
+}
+
+double ChPac02Tire::CalcFy1(double alpha, double Fz) {
+    double Fz0s = m_PacCoeff.FzNomin * m_PacScal.lfz0;
+    double dFz = (Fz - Fz0s) / Fz0s;
+    double C = m_PacCoeff.pcy1 * m_PacScal.lcy;
+    double Mu = (m_PacCoeff.pdy1 + m_PacCoeff.pdy2 * dFz) * m_PacScal.lmuy;
+    double D = Mu * Fz * m_PacScal.xsi2;
+    double E = (m_PacCoeff.pey1 + m_PacCoeff.pey2 * dFz) * m_PacScal.ley;
+    double Ky0 = m_PacCoeff.pky1 * m_PacCoeff.FzNomin * sin(2.0 * atan(Fz / (m_PacCoeff.pky2 * Fz0s))) *
+                 m_PacScal.lfz0 * m_PacScal.lky;
+    double BCD = Ky0 * m_PacScal.xsi3;  // BCD = Ky
+    double B = BCD / (C * D);
+    double Sh = (m_PacCoeff.phy1 + m_PacCoeff.phy2 * dFz) * m_PacScal.lhy + m_PacScal.xsi4 - 1.0;
+    double Sv = Fz * ((m_PacCoeff.pvy1 + m_PacCoeff.pvy2 * dFz) * m_PacScal.lvy) * m_PacScal.lmuy * m_PacScal.xsi2;
+    m_alpha_c = alpha - Sh + Sv / BCD;
+    double X1 = B * (alpha + Sh);
+    X1 =
+        ChClamp(X1, -CH_C_PI_2 + 0.001, CH_C_PI_2 - 0.001);  // Ensure that X1 stays within +/-90 deg minus a little bit
+    double Fy0 = D * sin(C * atan(X1 - E * (X1 - atan(X1)))) + Sv;
+    m_mu_y_act = (Fy0 - Sv) / Fz;
+    m_mu_y_max = D / Fz;
+    return Fy0;
 }
 
 }  // end namespace vehicle

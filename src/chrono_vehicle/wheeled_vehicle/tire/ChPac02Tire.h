@@ -12,7 +12,7 @@
 // Authors: Radu Serban, Michael Taylor, Rainer Gericke
 // =============================================================================
 //
-// Template for a PAC89 tire model
+// Template for a PAC02 tire model
 //
 // =============================================================================
 
@@ -34,7 +34,7 @@ namespace vehicle {
 /// @addtogroup vehicle_wheeled_tire
 /// @{
 
-/// Pacjeka 02 tire model.
+/// Pacjeka 89 tire model.
 class CH_VEHICLE_API ChPac02Tire : public ChTire {
   public:
     ChPac02Tire(const std::string& name);
@@ -68,16 +68,16 @@ class CH_VEHICLE_API ChPac02Tire : public ChTire {
     /// Get visualization width.
     virtual double GetVisualizationWidth() const { return m_width; }
 
-    /// Get the slip angle used in Pac02 (expressed in radians).
+    /// Get the slip angle used in Pac89 (expressed in radians).
     /// The reported value will have opposite sign to that reported by ChTire::GetSlipAngle
-    /// because ChPac02 uses internally a different frame convention.
+    /// because ChPac89 uses internally a different frame convention.
     double GetSlipAngle_internal() const { return m_states.cp_side_slip; }
 
-    /// Get the longitudinal slip used in Pac02.
+    /// Get the longitudinal slip used in Pac89.
     /// The reported value will be similar to that reported by ChTire::GetLongitudinalSlip.
     double GetLongitudinalSlip_internal() const { return m_states.cp_long_slip; }
 
-    /// Get the camber angle used in Pac02 (expressed in radians).
+    /// Get the camber angle used in Pac89 (expressed in radians).
     /// The reported value will be similar to that reported by ChTire::GetCamberAngle.
     double GetCamberAngle_internal() { return m_gamma * CH_C_DEG_TO_RAD; }
 
@@ -91,11 +91,11 @@ class CH_VEHICLE_API ChPac02Tire : public ChTire {
     /// Set the parameters in the Pac89 model.
     virtual void SetPac02Params() = 0;
 
-    double m_kappa;  ///< longitudinal slip (percentage)
-    double m_alpha;  ///< slip angle (degrees)
-    double m_gamma;  ///< camber angle (degrees)
+    double m_kappa;  ///< longitudinal slip ratio
+    double m_alpha;  ///< slip angle
+    double m_gamma;  ///< camber angle
 
-    double m_gamma_limit;  ///< limit camber angle (degrees)
+    double m_gamma_limit;  ///< limit camber angle
 
     /// Road friction
     double m_mu;
@@ -109,55 +109,66 @@ class CH_VEHICLE_API ChPac02Tire : public ChTire {
     double m_lateral_stiffness;
     VehicleSide m_measured_side;
 
-    struct PacCoeff {
-        double A0;
-        double A1;
-        double A2;
-        double A3;
-        double A4;
-        double A5;
-        double A6;
-        double A7;
-        double A8;
-        double A9;
-        double A10;
-        double A11;
-        double A12;
-        double A13;
+    // combined forces calculation
+    double m_kappa_c;
+    double m_alpha_c;
+    double m_mu_x_act;
+    double m_mu_x_max;
+    double m_mu_y_act;
+    double m_mu_y_max;
 
-        double B0;
-        double B1;
-        double B2;
-        double B3;
-        double B4;
-        double B5;
-        double B6;
-        double B7;
-        double B8;
-        double B9;
-        double B10;
+    struct Pac02ScalingFactors {
+        double xsi1;
+        double lfz0;
+        double lcx1;
+        double lex;
+        double lkx;
+        double lhx;
+        double lmux;
+        double lvx;
 
-        double C0;
-        double C1;
-        double C2;
-        double C3;
-        double C4;
-        double C5;
-        double C6;
-        double C7;
-        double C8;
-        double C9;
-        double C10;
-        double C11;
-        double C12;
-        double C13;
-        double C14;
-        double C15;
-        double C16;
-        double C17;
+        double xsi2;
+        double xsi3;
+        double xsi4;
+        double lcy;
+        double ley;
+        double lhy;
+        double lky;
+        double lmuy;
+        double lvy;
     };
 
-    PacCoeff m_PacCoeff;
+    struct Pac02Coeff {
+        double FzNomin;
+        // Longitudinal Coefficients
+        double pcx1;
+        double pdx1;
+        double pdx2;
+        double pex1;
+        double pex2;
+        double pex3;
+        double phx1;
+        double phx2;
+        double pkx1;
+        double pkx2;
+        double pvx1;
+        double pvx2;
+        // Lateral Coefficients
+        double pcy1;
+        double pdy1;
+        double pdy2;
+        double pey1;
+        double pey2;
+        double phy1;
+        double phy2;
+        double pky1;
+        double pky2;
+        double pvy1;
+        double pvy2;
+    };
+
+    Pac02ScalingFactors m_PacScal;
+    Pac02Coeff m_PacCoeff;
 
   private:
     /// Get the tire force and moment.
@@ -206,6 +217,9 @@ class CH_VEHICLE_API ChPac02Tire : public ChTire {
 
     std::shared_ptr<ChCylinderShape> m_cyl_shape;  ///< visualization cylinder asset
     std::shared_ptr<ChTexture> m_texture;          ///< visualization texture asset
+
+    double CalcFx1(double kappa, double Fz);
+    double CalcFy1(double alpha, double Fz);
 };
 
 /// @} vehicle_wheeled_tire
