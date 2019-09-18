@@ -86,47 +86,43 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
 
     /// Access the coordinate system considered attached to body2.
     /// Its position is expressed in the coordinate system of body2.
-    ChFrame<>& GetFrame2() { return frame2; };
+    ChFrame<>& GetFrame2() { return frame2; }
 
-    bool IsConstrainedX() { return c_x; }
-    bool IsConstrainedY() { return c_y; }
-    bool IsConstrainedZ() { return c_z; }
-    bool IsConstrainedRx() { return c_rx; }
-    bool IsConstrainedRy() { return c_ry; }
-    bool IsConstrainedRz() { return c_rz; }
+    bool IsConstrainedX() const { return c_x; }
+    bool IsConstrainedY() const { return c_y; }
+    bool IsConstrainedZ() const { return c_z; }
+    bool IsConstrainedRx() const { return c_rx; }
+    bool IsConstrainedRy() const { return c_ry; }
+    bool IsConstrainedRz() const { return c_rz; }
 
     /// Sets which movements (of frame 1 respect to frame 2) are constrained
     void SetConstrainedCoords(bool mc_x, bool mc_y, bool mc_z, bool mc_rx, bool mc_ry, bool mc_rz);
 
-    /// Specialized initialization for generic mate, given the two bodies to be connected, the
-    /// positions of the two frames to connect on the bodies (each expressed
-    /// in body or abs. coordinates).
+    /// Initialize the generic mate, given the two bodies to be connected, and the absolute position of
+    /// the mate (the two frames to connect on the bodies will be initially coincindent to that frame).
     virtual void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
                             std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
-                            bool pos_are_relative,                ///< true: following pos. are relative to bodies.
-                            ChFrame<> mframe1,  ///< mate frame (slave), for 1st body (rel. or abs., see flag above)
-                            ChFrame<> mframe2   ///< mate frame (master), for 2nd body (rel. or abs., see flag above)
+                            ChFrame<> mabsframe                   ///< mate frame, in abs. coordinate
     );
 
-    /// Specialized initialization for generic mate, given the two bodies to be connected, and
-    /// the absolute position of the mate (the two frames to connect on the bodies will be initially cohincindent to
-    /// that frame)
+    /// Initialize the generic mate, given the two bodies to be connected, the positions of the two frames
+    /// to connect on the bodies (each expressed in body or abs. coordinates).
     virtual void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
                             std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
-                            ChFrame<> mabsframe  ///< mate frame (both for slave and master), in abs. coordinate
+                            bool pos_are_relative,                ///< true: following pos. are relative to bodies
+                            ChFrame<> mframe1,                    ///< slave frame 1 (rel. or abs.)
+                            ChFrame<> mframe2                     ///< master frame 2 (rel. or abs.)
     );
 
-    /// Initialization based on passing two vectors (point + dir) on the
-    /// two bodies, they will represent the X axes of the two frames (Y and Z will
-    /// be built from the X vector via Gram Schmidt orthonormalization).
-    /// Use the other ChLinkMateGeneric::Initialize() if you want to set the two frames directly.
+    /// Initialization based on passing two vectors (point + dir) on the two bodies, which will represent the X axes of
+    /// the two frames (Y and Z will be built from the X vector via Gram Schmidt orthonormalization).
     virtual void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
                             std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
-                            bool pos_are_relative,                ///< true: following pos. are relative to bodies.
-                            ChVector<> mpt1,  ///< origin of slave frame 1, for 1st body (rel. or abs., see flag above)
-                            ChVector<> mpt2,  ///< origin of master frame 2, for 2nd body (rel. or abs., see flag above)
-                            ChVector<> mnorm1,  ///< X axis of slave plane, for 1st body (rel. or abs., see flag above)
-                            ChVector<> mnorm2   ///< X axis of master plane, for 2nd body (rel. or abs., see flag above)
+                            bool pos_are_relative,                ///< true: following pos. are relative to bodies
+                            ChVector<> mpt1,                      ///< origin of slave frame 1 (rel. or abs.)
+                            ChVector<> mpt2,                      ///< origin of master frame 2 (rel. or abs.)
+                            ChVector<> mnorm1,                    ///< X axis of slave plane 1 (rel. or abs.)
+                            ChVector<> mnorm2                     ///< X axis of master plane 2 (rel. or abs.)
     );
 
     //
@@ -251,24 +247,22 @@ class ChApi ChLinkMatePlane : public ChLinkMateGeneric {
 
     /// Tell if the two normals must be opposed (flipped=false) or must have the same verse (flipped=true)
     void SetFlipped(bool doflip);
-    bool IsFlipped() { return flipped; }
+    bool IsFlipped() const { return flipped; }
 
     /// Set the distance between the two planes, in normal direction
     void SetSeparation(double msep) { separation = msep; }
     /// Get the requested distance between the two planes, in normal direction
-    double GetSeparation() { return separation; }
+    double GetSeparation() const { return separation; }
 
-    /// Specialized initialization for plane-plane mate, given the two bodies to be connected,
-    /// two points on the two faces, two normals on the faces (each expressed
-    /// in body or abs. coordinates).
-    /// Use ChLinkMateGeneric::Initialize() if you want to set the two frames directly.
+    /// Specialized initialization for plane-plane mate, given the two bodies to be connected, two points on the two
+    /// faces, two normals on the faces (each expressed in body or abs. coordinates).
     virtual void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
                             std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
-                            bool pos_are_relative,                ///< true: following pos. are relative to bodies.
-                            ChVector<> mpt1,    ///< point on slave plane, for 1st body (rel. or abs., see flag above)
-                            ChVector<> mpt2,    ///< point on master plane, for 2nd body (rel. or abs., see flag above)
-                            ChVector<> mnorm1,  ///< normal of slave plane, for 1st body (rel. or abs., see flag above)
-                            ChVector<> mnorm2   ///< normal of master plane, for 2nd body (rel. or abs., see flag above)
+                            bool pos_are_relative,                ///< true: following pos. are relative to bodies
+                            ChVector<> mpt1,                      ///< point on slave plane 1 (rel. or abs.)
+                            ChVector<> mpt2,                      ///< point on master plane 2 (rel. or abs.)
+                            ChVector<> mnorm1,                    ///< normal of slave plane 1 (rel. or abs.)
+                            ChVector<> mnorm2                     ///< normal of master plane 2 (rel. or abs.)
                             ) override;
 
     /// Override _all_ time, jacobian etc. updating, inheriting parent but also adding the effect of separation
@@ -303,18 +297,17 @@ class ChApi ChLinkMateCoaxial : public ChLinkMateGeneric {
 
     /// Tell if the two axes must be opposed (flipped=false) or must have the same verse (flipped=true)
     void SetFlipped(bool doflip);
-    bool IsFlipped() { return flipped; }
+    bool IsFlipped() const { return flipped; }
 
-    /// Specialized initialization for coaxial mate, given the two bodies to be connected,
-    /// two points, two directions (each expressed in body or abs. coordinates).
-    /// Use ChLinkMateGeneric::Initialize() if you want to set the two frames directly.
+    /// Specialized initialization for coaxial mate, given the two bodies to be connected, two points, two directions
+    /// (each expressed in body or abs. coordinates).
     virtual void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
                             std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
-                            bool pos_are_relative,                ///< true: following pos. are relative to bodies.
-                            ChVector<> mpt1,   ///< point on slave axis, for 1st body (rel. or abs., see flag above)
-                            ChVector<> mpt2,   ///< point on master axis, for 2nd body (rel. or abs., see flag above)
-                            ChVector<> mdir1,  ///< direction of slave axis, for 1st body (rel. or abs., see flag above)
-                            ChVector<> mdir2  ///< direction of master axis, for 2nd body (rel. or abs., see flag above)
+                            bool pos_are_relative,                ///< true: following pos. are relative to bodies
+                            ChVector<> mpt1,                      ///< point on slave axis 1 (rel. or abs.)
+                            ChVector<> mpt2,                      ///< point on master axis 2 (rel. or abs.)
+                            ChVector<> mdir1,                     ///< direction of slave axis 1 (rel. or abs.)
+                            ChVector<> mdir2                      ///< direction of master axis 2 (rel. or abs.)
                             ) override;
 
     /// Method to allow serialization of transient data to archives.
@@ -340,14 +333,13 @@ class ChApi ChLinkMateSpherical : public ChLinkMateGeneric {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMateSpherical* Clone() const override { return new ChLinkMateSpherical(*this); }
 
-    /// Specialized initialization for coincident mate, given the two bodies to be connected,
-    /// and two points (each expressed in body or abs. coordinates).
-    /// Use ChLinkMateGeneric::Initialize() if you want to set the two frames directly.
+    /// Specialized initialization for coincident mate, given the two bodies to be connected, and two points
+    /// (each expressed in body or abs. coordinates). 
     void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
                     std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
                     bool pos_are_relative,                ///< true: following pos. are relative to bodies.
-                    ChVector<> mpt1,                      ///< point, slave, for 1st body (rel. or abs., see flag above)
-                    ChVector<> mpt2  ///< point, master, for 2nd body (rel. or abs., see flag above)
+                    ChVector<> mpt1,                      ///< point slave 1 (rel. or abs.)
+                    ChVector<> mpt2                       ///< point master 2 (rel. or abs.)
     );
 };
 
@@ -372,17 +364,16 @@ class ChApi ChLinkMateXdistance : public ChLinkMateGeneric {
     /// Set the distance on X of frame 2
     void SetDistance(double msep) { distance = msep; }
     /// Get the requested distance on X of frame 2
-    double GetDistance() { return distance; }
+    double GetDistance() const { return distance; }
 
-    /// Specialized initialization for X distance mate, given the two bodies to be connected,
-    /// and two points (each expressed in body or abs. coordinates).
-    /// Use ChLinkMateGeneric::Initialize() if you want to set the two frames directly.
+    /// Specialized initialization for X distance mate, given the two bodies to be connected, and two points
+    /// (each expressed in body or abs. coordinates).
     void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
                     std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
                     bool pos_are_relative,                ///< true: following pos. are relative to bodies
-                    ChVector<> mpt1,                      ///< point, slave, for 1st body (rel. or abs., see flag above)
-                    ChVector<> mpt2,  ///< point, master, for 2nd body (rel. or abs., see flag above)
-                    ChVector<> mdir2  ///< direction of master axis, for 2nd body (rel. or abs., see flag above)
+                    ChVector<> mpt1,                      ///< point slave 1 (rel. or abs.)
+                    ChVector<> mpt2,                      ///< point master 2 (rel. or abs.)
+                    ChVector<> mdir2                      ///< direction of master axis 2 (rel. or abs.)
     );
 
     /// Override _all_ time, jacobian etc. updating, inheriting parent but also adding the effect of separation
@@ -418,18 +409,17 @@ class ChApi ChLinkMateParallel : public ChLinkMateGeneric {
 
     /// Tell if the two axes must be opposed (flipped=false) or must have the same verse (flipped=true)
     void SetFlipped(bool doflip);
-    bool IsFlipped() { return flipped; }
+    bool IsFlipped() const { return flipped; }
 
-    /// Specialized initialization for parallel mate, given the two bodies to be connected,
-    /// two points and two directions (each expressed in body or abs. coordinates).
-    /// Use ChLinkMateGeneric::Initialize() if you want to set the two frames directly.
+    /// Specialized initialization for parallel mate, given the two bodies to be connected, two points and two
+    /// directions (each expressed in body or abs. coordinates).
     virtual void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
                             std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
                             bool pos_are_relative,                ///< true: following pos. are relative to bodies
-                            ChVector<> mpt1,   ///< point on slave axis, for 1st body (rel. or abs., see flag above)
-                            ChVector<> mpt2,   ///< point on master axis, for 2nd body (rel. or abs., see flag above)
-                            ChVector<> mdir1,  ///< direction of slave axis, for 1st body (rel. or abs., see flag above)
-                            ChVector<> mdir2   ///< direction of master axis, for 2nd body (rel. or abs., see flag above
+                            ChVector<> mpt1,                      ///< point on slave axis 1 (rel. or abs.)
+                            ChVector<> mpt2,                      ///< point on master axis 2 (rel. or abs.)
+                            ChVector<> mdir1,                     ///< direction of slave axis 1 (rel. or abs.)
+                            ChVector<> mdir2                      ///< direction of master axis 2 (rel. or abs.)
                             ) override;
 
     /// Method to allow serialization of transient data to archives.
@@ -462,16 +452,15 @@ class ChApi ChLinkMateOrthogonal : public ChLinkMateGeneric {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMateOrthogonal* Clone() const override { return new ChLinkMateOrthogonal(*this); }
 
-    /// Specialized initialization for orthogonal mate, given the two bodies to be connected,
-    /// two points and two directions (each expressed in body or abs. coordinates).
-    /// Use ChLinkMateGeneric::Initialize() if you want to set the two frames directly.
+    /// Specialized initialization for orthogonal mate, given the two bodies to be connected, two points and two
+    /// directions (each expressed in body or abs. coordinates).
     virtual void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
                             std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
                             bool pos_are_relative,                ///< true: following pos. are relative to bodies
-                            ChVector<> mpt1,   ///< point on slave axis, for 1st body (rel. or abs., see flag above)
-                            ChVector<> mpt2,   ///< point on master axis, for 2nd body (rel. or abs., see flag above)
-                            ChVector<> mdir1,  ///< direction of slave axis, for 1st body (rel. or abs., see flag above)
-                            ChVector<> mdir2   ///< direction of master axis, for 2nd body (rel. or abs., see flag above
+                            ChVector<> mpt1,                      ///< point on slave axis 1 (rel. or abs.)
+                            ChVector<> mpt2,                      ///< point on master axis 2 (rel. or abs.)
+                            ChVector<> mdir1,                     ///< direction of slave axis 1 (rel. or abs.)
+                            ChVector<> mdir2                      ///< direction of master axis 2 (rel. or abs.)
                             ) override;
 
     /// Override _all_ time, jacobian etc. updating, inheriting parent but also adding the effect of separation
@@ -500,11 +489,10 @@ class ChApi ChLinkMateFix : public ChLinkMateGeneric {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMateFix* Clone() const override { return new ChLinkMateFix(*this); }
 
-    /// Specialized initialization for "fix" mate, given the two bodies to be connected;
-    /// the positions of the two auxiliary frames where the two bodies are connected are
-    /// both automatically initialized as the current absolute position of mbody1.
-    /// Use ChLinkMateGeneric::Initialize() if you want to set the two frames directly.
-    void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link, also frame for
+    /// Specialized initialization for "fix" mate, given the two bodies to be connected, the positions of the two
+    /// auxiliary frames where the two bodies are connected are both automatically initialized as the current absolute
+    /// position of mbody1. 
+    void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
                     std::shared_ptr<ChBodyFrame> mbody2   ///< second body to link
     );
 };

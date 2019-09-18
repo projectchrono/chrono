@@ -62,7 +62,7 @@ class ChApi ChLinkMotorRotationSpeed : public ChLinkMotorRotation {
     /// Get the current actuator reaction torque [Nm]
     virtual double GetMotorTorque() const override { return -this->react_torque.z(); }
 
-    void Update(double mytime, bool update_assets) override;
+    void Update(double mytime, bool update_assets = true) override;
 
     //
     // STATE FUNCTIONS

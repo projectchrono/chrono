@@ -169,6 +169,8 @@ void ChLinkMotorRotationSpeed::IntStateScatter(const unsigned int off_x,  // off
 ) {
     // aux = x(off_x);
     aux_dt = v(off_v);
+
+    Update(T);
 }
 
 void ChLinkMotorRotationSpeed::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {

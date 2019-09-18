@@ -377,8 +377,8 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// bodies, forces, links, given their current state.
     virtual void Update(bool update_assets = true) override;
 
-    // (Overload interfaces for global state vectors, see ChPhysicsItem for comments.)
-    // (The following must be overload because there may be ChContactContainer objects in addition to base ChAssembly)
+    // Overload interfaces for global state vectors, see ChPhysicsItem for comments.
+    // The following must be overload because there may be ChContactContainer objects in addition to base ChAssembly.
     virtual void IntStateGather(const unsigned int off_x,
                                 ChState& x,
                                 const unsigned int off_v,
@@ -586,14 +586,12 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     /// Specify a callback object to be invoked at each collision detection step.
     /// Multiple such callback objects can be registered with a system. If present,
-    /// their OnCustomCollision() method is invoked 
+    /// their OnCustomCollision() method is invoked
     /// Use this if you want that some specific callback function is executed at each
     /// collision detection step (ex. all the times that ComputeCollisions() is automatically
     /// called by the integration method). For example some other collision engine could
     /// add further contacts using this callback.
-    void RegisterCustomCollisionCallback(CustomCollisionCallback* mcallb) {
-        collision_callbacks.push_back(mcallb);
-    }
+    void RegisterCustomCollisionCallback(CustomCollisionCallback* mcallb) { collision_callbacks.push_back(mcallb); }
 
     /// For higher performance (ex. when GPU coprocessors are available) you can create your own custom
     /// collision engine (inherited from ChCollisionSystem) and plug it into the system using this function. 
@@ -798,6 +796,8 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     std::shared_ptr<ChContactContainer> contact_container;  ///< the container of contacts
 
     ChVector<> G_acc;  ///< gravitational acceleration
+
+    bool is_modified;  ///< flag indicating a system modification occured
 
     double end_time;  ///< end of simulation
     double step;      ///< time step
