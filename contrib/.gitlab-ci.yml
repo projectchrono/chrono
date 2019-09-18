@@ -349,12 +349,10 @@ windows:vs2019:deploy:
   script:
     - rm -r build
     - conda create --name deploy_$env:CI_JOB_ID python=3.6
-    - conda activate deploy_$env:CI_JOB_ID
-    - conda update --yes conda
-    - conda install --yes conda-build anaconda-client
-    - conda install --yes -c conda-forge -c dlr-sc -c pythonocc -c oce -c 3dhubs oce=0.18
-    - conda install --yes -c intel mkl-devel=2018.0.3
-    - conda deactivate
+    - conda update --yes conda -n deploy_$env:CI_JOB_ID
+    - conda install --yes conda-build anaconda-client -n deploy_$env:CI_JOB_ID
+    - conda install --yes -c conda-forge -c dlr-sc -c pythonocc -c oce -c 3dhubs oce=0.18 -n deploy_$env:CI_JOB_ID
+    - conda install --yes -c intel mkl-devel=2018.0.3 -n deploy_$env:CI_JOB_ID
     - conda remove --name deploy_$env:CI_JOB_ID --all
   environment:
     name: pychrono-win64
