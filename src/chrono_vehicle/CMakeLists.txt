@@ -148,6 +148,8 @@ set(CV_BASE_FILES
     ChDriver.cpp
     ChPart.h
     ChPart.cpp
+    ChDriveline.h
+    ChDriveline.cpp
     ChPowertrain.h
     ChPowertrain.cpp
     ChSubsysDefs.h

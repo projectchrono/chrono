@@ -16,14 +16,10 @@
 //
 // =============================================================================
 
-#ifndef CH_DRIVELINE_H
-#define CH_DRIVELINE_H
+#ifndef CH_DRIVELINE_WV_H
+#define CH_DRIVELINE_WV_H
 
-#include "chrono/core/ChVector.h"
-#include "chrono/physics/ChShaft.h"
-
-#include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChPart.h"
+#include "chrono_vehicle/ChDriveline.h"
 #include "chrono_vehicle/wheeled_vehicle/ChAxle.h"
 
 namespace chrono {
@@ -33,7 +29,7 @@ namespace vehicle {
 /// @{
 
 /// Base class for a wheeled vehicle driveline subsystem.
-class CH_VEHICLE_API ChDrivelineWV : public ChPart {
+class CH_VEHICLE_API ChDrivelineWV : public ChDriveline {
   public:
     ChDrivelineWV(const std::string& name);
 
@@ -57,23 +53,6 @@ class CH_VEHICLE_API ChDrivelineWV : public ChPart {
     /// By convention, central differentials are counted from front to back, starting with index 0.
     virtual void LockCentralDifferential(int which, bool lock);
 
-    /// Get a handle to the driveshaft.
-    /// Return a shared pointer to the shaft that connects this driveline to a
-    /// powertrain system (i.e., right after the transmission box).
-    std::shared_ptr<ChShaft> GetDriveshaft() const { return m_driveshaft; }
-
-    /// Get the angular speed of the driveshaft.
-    /// This represents the output from the driveline subsystem that is passed to
-    /// the powertrain system. The default implementation returns the driveline's
-    /// driveshaft speed.
-    virtual double GetDriveshaftSpeed() const { return m_driveshaft->GetPos_dt(); }
-
-    /// Update the driveline subsystem: apply the specified motor torque.
-    /// This represents the input to the driveline subsystem from the powertrain
-    /// system. The default implementation applies this torque to the driveline's
-    /// driveshaft.
-    virtual void Synchronize(double torque) { m_driveshaft->SetAppliedTorque(torque); }
-
     /// Get the indexes of the vehicle's axles driven by this driveline subsystem.
     const std::vector<int>& GetDrivenAxleIndexes() const { return m_driven_axles; }
 
@@ -81,8 +60,6 @@ class CH_VEHICLE_API ChDrivelineWV : public ChPart {
     virtual double GetSpindleTorque(int axle, VehicleSide side) const = 0;
 
   protected:
-    std::shared_ptr<ChShaft> m_driveshaft;  ///< shaft connection to the powertrain
-
     std::vector<int> m_driven_axles;  ///< indexes of the driven vehicle axles
 };
 

@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Justin Madsen
+// Authors: Radu Serban
 // =============================================================================
 //
 // Base class for a wheeled vehicle driveline.
@@ -21,7 +21,7 @@
 namespace chrono {
 namespace vehicle {
 
-ChDrivelineWV::ChDrivelineWV(const std::string& name) : ChPart(name) {}
+ChDrivelineWV::ChDrivelineWV(const std::string& name) : ChDriveline(name) {}
 
 void ChDrivelineWV::LockAxleDifferential(int axle, bool lock) {
     GetLog() << "WARNING: Differential locking not yet implemented for " << GetTemplateName() << "\n";
