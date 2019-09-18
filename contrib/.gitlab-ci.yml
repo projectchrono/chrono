@@ -347,7 +347,6 @@ windows:vs2019:deploy:
   needs: ["windows:vs2019:test"]
   extends: .windows
   script:
-    - Out-Host "Build PyChrono and deploy via Anaconda..."
     - rm -r build
     - conda create --name deploy_$env:CI_JOB_ID python=3.6
     - conda activate deploy_$env:CI_JOB_ID
@@ -357,7 +356,6 @@ windows:vs2019:deploy:
     - conda install --yes -c intel mkl-devel=2018.0.3
     - conda deactivate
     - conda remove --name deploy_$env:CI_JOB_ID --all
-    - Out-Host "**NOT YET IMPLEMENTED**"
   environment:
     name: pychrono-win64
     url: https://anaconda.org/projectchrono/pychrono
