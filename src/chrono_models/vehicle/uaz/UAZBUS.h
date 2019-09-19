@@ -61,13 +61,11 @@ class CH_MODELS_API UAZBUS {
     void SetVehicleStepSize(double step_size) { m_vehicle_step_size = step_size; }
     void SetTireStepSize(double step_size) { m_tire_step_size = step_size; }
 
-    void DisconnectPowertrain() { m_powertrain_connected = false; }
-
     ChSystem* GetSystem() const { return m_vehicle->GetSystem(); }
     ChWheeledVehicle& GetVehicle() const { return *m_vehicle; }
     std::shared_ptr<ChChassis> GetChassis() const { return m_vehicle->GetChassis(); }
     std::shared_ptr<ChBodyAuxRef> GetChassisBody() const { return m_vehicle->GetChassisBody(); }
-    ChPowertrain& GetPowertrain() const { return *m_powertrain; }
+    std::shared_ptr<ChPowertrain> GetPowertrain() const { return m_vehicle->GetPowertrain(); }
     double GetTotalMass() const;
 
     void Initialize();
@@ -115,11 +113,8 @@ class CH_MODELS_API UAZBUS {
     double m_area;
     double m_air_density;
 
-    bool m_powertrain_connected;
-
     ChSystem* m_system;
     UAZBUS_Vehicle* m_vehicle;
-    ChPowertrain* m_powertrain;
 
     double m_tire_mass;
 };

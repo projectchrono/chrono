@@ -43,7 +43,6 @@ namespace hmmwv {
 HMMWV::HMMWV()
     : m_system(nullptr),
       m_vehicle(nullptr),
-      m_powertrain(nullptr),
       m_contactMethod(ChMaterialSurface::NSC),
       m_chassisCollisionType(ChassisCollisionType::NONE),
       m_fixed(false),
@@ -61,7 +60,6 @@ HMMWV::HMMWV()
 HMMWV::HMMWV(ChSystem* system)
     : m_system(system),
       m_vehicle(nullptr),
-      m_powertrain(nullptr),
       m_contactMethod(ChMaterialSurface::NSC),
       m_chassisCollisionType(ChassisCollisionType::NONE),
       m_fixed(false),
@@ -78,7 +76,6 @@ HMMWV::HMMWV(ChSystem* system)
 
 HMMWV::~HMMWV() {
     delete m_vehicle;
-    delete m_powertrain;
 }
 
 // -----------------------------------------------------------------------------
@@ -109,28 +106,26 @@ void HMMWV::Initialize() {
     // Create and initialize the powertrain system
     switch (m_powertrainType) {
         case PowertrainModelType::SHAFTS: {
-            HMMWV_Powertrain* ptrain = new HMMWV_Powertrain("Powertrain");
-            m_powertrain = ptrain;
+            auto powertrain = chrono_types::make_shared<HMMWV_Powertrain>("Powertrain");
+            m_vehicle->InitializePowertrain(powertrain);
             break;
         }
         case PowertrainModelType::SIMPLE_MAP: {
-            HMMWV_SimpleMapPowertrain* ptrain = new HMMWV_SimpleMapPowertrain("Powertrain");
-            m_powertrain = ptrain;
+            auto powertrain = chrono_types::make_shared<HMMWV_SimpleMapPowertrain>("Powertrain");
+            m_vehicle->InitializePowertrain(powertrain);
             break;
         }
         case PowertrainModelType::SIMPLE: {
-            HMMWV_SimplePowertrain* ptrain = new HMMWV_SimplePowertrain("Powertrain");
-            m_powertrain = ptrain;
+            auto powertrain = chrono_types::make_shared<HMMWV_SimplePowertrain>("Powertrain");
+            m_vehicle->InitializePowertrain(powertrain);
             break;
         }
         case PowertrainModelType::SIMPLE_CVT: {
-            HMMWV_SimpleCVTPowertrain* ptrain = new HMMWV_SimpleCVTPowertrain("Powertrain");
-            m_powertrain = ptrain;
+            auto powertrain = chrono_types::make_shared<HMMWV_SimpleCVTPowertrain>("Powertrain");
+            m_vehicle->InitializePowertrain(powertrain);
             break;
         }
     }
-
-    m_powertrain->Initialize(GetChassisBody(), m_vehicle->GetDriveshaft());
 
     // Create the tires and set parameters depending on type.
     switch (m_tireType) {
@@ -290,16 +285,11 @@ void HMMWV::Synchronize(double time,
                         double braking_input,
                         double throttle_input,
                         const ChTerrain& terrain) {
-    double powertrain_torque = m_powertrain->GetOutputTorque();
-    double driveshaft_speed = m_vehicle->GetDriveshaftSpeed();
-
-    m_powertrain->Synchronize(time, throttle_input, driveshaft_speed);
-    m_vehicle->Synchronize(time, steering_input, braking_input, powertrain_torque, terrain);
+    m_vehicle->Synchronize(time, steering_input, braking_input, throttle_input, terrain);
 }
 
 // -----------------------------------------------------------------------------
 void HMMWV::Advance(double step) {
-    m_powertrain->Advance(step);
     m_vehicle->Advance(step);
 }
 

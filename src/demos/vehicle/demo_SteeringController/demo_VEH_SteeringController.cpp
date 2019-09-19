@@ -278,15 +278,15 @@ int main(int argc, char* argv[]) {
 // ---------------------------------------
 
 #ifdef USE_PID
-    ChVehicleIrrApp app(&my_hmmwv.GetVehicle(), &my_hmmwv.GetPowertrain(), L"Steering PID Controller Demo",
+    ChVehicleIrrApp app(&my_hmmwv.GetVehicle(), my_hmmwv.GetPowertrain().get(), L"Steering PID Controller Demo",
                         irr::core::dimension2d<irr::u32>(800, 640));
 #endif
 #ifdef USE_XT
-    ChVehicleIrrApp app(&my_hmmwv.GetVehicle(), &my_hmmwv.GetPowertrain(), L"Steering XT Controller Demo",
+    ChVehicleIrrApp app(&my_hmmwv.GetVehicle(), my_hmmwv.GetPowertrain().get(), L"Steering XT Controller Demo",
                         irr::core::dimension2d<irr::u32>(800, 640));
 #endif
 #ifdef USE_SR
-    ChVehicleIrrApp app(&my_hmmwv.GetVehicle(), &my_hmmwv.GetPowertrain(), L"Steering SR Controller Demo",
+    ChVehicleIrrApp app(&my_hmmwv.GetVehicle(), my_hmmwv.GetPowertrain().get(), L"Steering SR Controller Demo",
                         irr::core::dimension2d<irr::u32>(800, 640));
 #endif
     app.SetHUDLocation(500, 20);
@@ -425,7 +425,7 @@ int main(int argc, char* argv[]) {
         if (time >= t_end)
             break;
 
-        // Collect output data from modules (for inter-module communication)
+        // Driver inputs
         double throttle_input = selector.GetDriver()->GetThrottle();
         double steering_input = selector.GetDriver()->GetSteering();
         double braking_input = selector.GetDriver()->GetBraking();

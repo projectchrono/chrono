@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) {
     // driver.GetSpeedController().SetGains(0.4, 0, 0);
     driver.Initialize();
 
-    ChVehicleIrrApp app(&my_hmmwv.GetVehicle(), &my_hmmwv.GetPowertrain(),
+    ChVehicleIrrApp app(&my_hmmwv.GetVehicle(), my_hmmwv.GetPowertrain().get(),
                         L"OpenCRG Demo Simple Realistic Human Driver", irr::core::dimension2d<irr::u32>(800, 640));
     // ---------------------------------------
     // Create the vehicle Irrlicht application
@@ -183,7 +183,7 @@ int main(int argc, char* argv[]) {
         if (time >= t_end)
             break;
 
-        // Collect output data from modules (for inter-module communication)
+        // Driver inputs
         double throttle_input = driver.GetThrottle();
         double steering_input = driver.GetSteering();
         double braking_input = driver.GetBraking();

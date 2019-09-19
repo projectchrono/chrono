@@ -31,7 +31,6 @@ namespace uaz {
 UAZBUS::UAZBUS()
     : m_system(nullptr),
       m_vehicle(nullptr),
-      m_powertrain(nullptr),
       m_contactMethod(ChMaterialSurface::NSC),
       m_chassisCollisionType(ChassisCollisionType::NONE),
       m_fixed(false),
@@ -42,13 +41,11 @@ UAZBUS::UAZBUS()
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
       m_initOmega({0, 0, 0, 0}),
-      m_apply_drag(false),
-      m_powertrain_connected(true) {}
+      m_apply_drag(false) {}
 
 UAZBUS::UAZBUS(ChSystem* system)
     : m_system(system),
       m_vehicle(nullptr),
-      m_powertrain(nullptr),
       m_contactMethod(ChMaterialSurface::NSC),
       m_chassisCollisionType(ChassisCollisionType::NONE),
       m_fixed(false),
@@ -59,12 +56,10 @@ UAZBUS::UAZBUS(ChSystem* system)
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
       m_initOmega({0, 0, 0, 0}),
-      m_apply_drag(false),
-      m_powertrain_connected(true) {}
+      m_apply_drag(false) {}
 
 UAZBUS::~UAZBUS() {
     delete m_vehicle;
-    delete m_powertrain;
 }
 
 // -----------------------------------------------------------------------------
@@ -95,8 +90,8 @@ void UAZBUS::Initialize() {
     }
 
     // Create and initialize the powertrain system
-    m_powertrain = new UAZBUS_SimpleMapPowertrain("powertrain");
-    m_powertrain->Initialize(GetChassisBody(), m_vehicle->GetDriveshaft());
+    auto powertrain = chrono_types::make_shared<UAZBUS_SimpleMapPowertrain>("powertrain");
+    m_vehicle->InitializePowertrain(powertrain);
 
     // Create the tires and set parameters depending on type.
     switch (m_tireType) {
@@ -160,20 +155,11 @@ void UAZBUS::Synchronize(double time,
                          double braking_input,
                          double throttle_input,
                          const ChTerrain& terrain) {
-    double powertrain_torque = 0;
-    double driveshaft_speed = 0;
-    if (m_powertrain_connected) {
-        powertrain_torque = m_powertrain->GetOutputTorque();
-        driveshaft_speed = m_vehicle->GetDriveshaftSpeed();
-    }
-
-    m_powertrain->Synchronize(time, throttle_input, driveshaft_speed);
-    m_vehicle->Synchronize(time, steering_input, braking_input, powertrain_torque, terrain);
+    m_vehicle->Synchronize(time, steering_input, braking_input, throttle_input, terrain);
 }
 
 // -----------------------------------------------------------------------------
 void UAZBUS::Advance(double step) {
-    m_powertrain->Advance(step);
     m_vehicle->Advance(step);
 }
 

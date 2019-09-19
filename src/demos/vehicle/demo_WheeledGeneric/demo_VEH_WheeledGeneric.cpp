@@ -121,9 +121,8 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     // Create and initialize the powertrain system
-    Generic_SimplePowertrain powertrain("powertrain");
-
-    powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
+    auto powertrain = chrono_types::make_shared<Generic_SimplePowertrain>("powertrain");
+    vehicle.InitializePowertrain(powertrain);
 
     // Create the tires
     auto tire_FL = chrono_types::make_shared<Generic_RigidTire>("FL");
@@ -138,7 +137,7 @@ int main(int argc, char* argv[]) {
 
 #ifdef USE_IRRLICHT
 
-    ChWheeledVehicleIrrApp app(&vehicle, &powertrain, L"Generic Vehicle Demo");
+    ChWheeledVehicleIrrApp app(&vehicle, powertrain.get(), L"Generic Vehicle Demo");
 
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
@@ -198,8 +197,6 @@ int main(int argc, char* argv[]) {
 #endif
 
     // Inter-module communication data
-    double driveshaft_speed;
-    double powertrain_torque;
     double throttle_input;
     double steering_input;
     double braking_input;
@@ -239,21 +236,17 @@ int main(int argc, char* argv[]) {
         }
 #endif
 
-        // Collect output data from modules (for inter-module communication)
+        // Driver inputs
         throttle_input = driver.GetThrottle();
         steering_input = driver.GetSteering();
         braking_input = driver.GetBraking();
-
-        powertrain_torque = powertrain.GetOutputTorque();
-        driveshaft_speed = vehicle.GetDriveshaftSpeed();
 
         // Update modules (process inputs from other modules)
         time = vehicle.GetSystem()->GetChTime();
 
         driver.Synchronize(time);
         terrain.Synchronize(time);
-        powertrain.Synchronize(time, throttle_input, driveshaft_speed);
-        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, terrain);
+        vehicle.Synchronize(time, steering_input, braking_input, throttle_input, terrain);
 
         app.Synchronize(driver.GetInputModeAsString(), steering_input, throttle_input, braking_input);
 
@@ -263,8 +256,6 @@ int main(int argc, char* argv[]) {
         driver.Advance(step);
 
         terrain.Advance(step);
-
-        powertrain.Advance(step);
 
         vehicle.Advance(step);
 
@@ -308,13 +299,10 @@ int main(int argc, char* argv[]) {
             render_frame++;
         }
 
-        // Collect output data from modules (for inter-module communication)
+        // Driver inputs
         throttle_input = driver.GetThrottle();
         steering_input = driver.GetSteering();
         braking_input = driver.GetBraking();
-
-        powertrain_torque = powertrain.GetOutputTorque();
-        driveshaft_speed = vehicle.GetDriveshaftSpeed();
 
         // Update modules (process inputs from other modules)
         time = vehicle.GetSystem()->GetChTime();
@@ -323,14 +311,10 @@ int main(int argc, char* argv[]) {
 
         terrain.Synchronize(time);
 
-        powertrain.Synchronize(time, throttle_input, driveshaft_speed);
-
-        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque);
+        vehicle.Synchronize(time, steering_input, braking_input, throttle_input, terrain);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
-
-        terrain.Advance(step_size);
 
         powertrain.Advance(step_size);
 

@@ -31,7 +31,6 @@ namespace sedan {
 Sedan::Sedan()
     : m_system(nullptr),
       m_vehicle(nullptr),
-      m_powertrain(nullptr),
       m_contactMethod(ChMaterialSurface::NSC),
       m_chassisCollisionType(ChassisCollisionType::NONE),
       m_fixed(false),
@@ -46,7 +45,6 @@ Sedan::Sedan()
 Sedan::Sedan(ChSystem* system)
     : m_system(system),
       m_vehicle(nullptr),
-      m_powertrain(nullptr),
       m_contactMethod(ChMaterialSurface::NSC),
       m_chassisCollisionType(ChassisCollisionType::NONE),
       m_fixed(false),
@@ -60,7 +58,6 @@ Sedan::Sedan(ChSystem* system)
 
 Sedan::~Sedan() {
     delete m_vehicle;
-    delete m_powertrain;
 }
 
 // -----------------------------------------------------------------------------
@@ -91,8 +88,8 @@ void Sedan::Initialize() {
     }
 
     // Create and initialize the powertrain system
-    m_powertrain = new Sedan_SimpleMapPowertrain("Powertrain");
-    m_powertrain->Initialize(GetChassisBody(), m_vehicle->GetDriveshaft());
+    auto powertrain = chrono_types::make_shared<Sedan_SimpleMapPowertrain>("Powertrain");
+    m_vehicle->InitializePowertrain(powertrain);
 
     // Create the tires and set parameters depending on type.
     switch (m_tireType) {
@@ -153,20 +150,15 @@ void Sedan::SetTireVisualizationType(VisualizationType vis) {
 
 // -----------------------------------------------------------------------------
 void Sedan::Synchronize(double time,
-                      double steering_input,
-                      double braking_input,
-                      double throttle_input,
-                      const ChTerrain& terrain) {
-    double powertrain_torque = m_powertrain->GetOutputTorque();
-    double driveshaft_speed = m_vehicle->GetDriveshaftSpeed();
-
-    m_powertrain->Synchronize(time, throttle_input, driveshaft_speed);
-    m_vehicle->Synchronize(time, steering_input, braking_input, powertrain_torque, terrain);
+                        double steering_input,
+                        double braking_input,
+                        double throttle_input,
+                        const ChTerrain& terrain) {
+    m_vehicle->Synchronize(time, steering_input, braking_input, throttle_input, terrain);
 }
 
 // -----------------------------------------------------------------------------
 void Sedan::Advance(double step) {
-    m_powertrain->Advance(step);
     m_vehicle->Advance(step);
 }
 

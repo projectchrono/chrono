@@ -113,7 +113,7 @@ template <typename EnumClass, EnumClass TIRE_MODEL>
 void HmmwvDlcTest<EnumClass, TIRE_MODEL>::ExecuteStep() {
     double time = m_hmmwv->GetSystem()->GetChTime();
 
-    // Collect output data from modules (for inter-module communication)
+    // Driver inputs
     double throttle_input = m_driver->GetThrottle();
     double steering_input = m_driver->GetSteering();
     double braking_input = m_driver->GetBraking();
@@ -132,7 +132,7 @@ void HmmwvDlcTest<EnumClass, TIRE_MODEL>::ExecuteStep() {
 template <typename EnumClass, EnumClass TIRE_MODEL>
 void HmmwvDlcTest<EnumClass, TIRE_MODEL>::SimulateVis() {
 #ifdef CHRONO_IRRLICHT
-    ChWheeledVehicleIrrApp app(&m_hmmwv->GetVehicle(), &m_hmmwv->GetPowertrain(), L"HMMWV acceleration test");
+    ChWheeledVehicleIrrApp app(&m_hmmwv->GetVehicle(), m_hmmwv->GetPowertrain().get(), L"HMMWV acceleration test");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);

@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     // Create the vehicle Irrlicht interface
-    ChWheeledVehicleIrrApp app(&my_sedan.GetVehicle(), &my_sedan.GetPowertrain(), L"Sedan Demo Locked Diff");
+    ChWheeledVehicleIrrApp app(&my_sedan.GetVehicle(), my_sedan.GetPowertrain().get(), L"Sedan Demo Locked Diff");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.5), 4.0, 0.5);

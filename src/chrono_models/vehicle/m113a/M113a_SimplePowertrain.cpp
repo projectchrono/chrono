@@ -32,7 +32,8 @@ M113a_SimplePowertrain::M113a_SimplePowertrain(const std::string& name) : ChPowe
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void M113a_SimplePowertrain::Initialize(std::shared_ptr<ChBody> chassis, std::shared_ptr<ChShaft> driveshaft) {
+void M113a_SimplePowertrain::Initialize(std::shared_ptr<ChChassis> chassis, std::shared_ptr<ChDriveline> driveline) {
+    ChPowertrain::Initialize(chassis, driveline);
     m_current_gear_ratio = 1;
 }
 
@@ -55,7 +56,9 @@ void M113a_SimplePowertrain::SetDriveMode(ChPowertrain::DriveMode mode) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void M113a_SimplePowertrain::Synchronize(double time, double throttle, double shaft_speed) {
+void M113a_SimplePowertrain::Synchronize(double time, double throttle) {
+    double shaft_speed = m_driveline->GetDriveshaftSpeed();
+
     // The motor speed is the shaft speed multiplied by gear ratio inversed:
     m_motorSpeed = std::abs(shaft_speed / m_current_gear_ratio);
 

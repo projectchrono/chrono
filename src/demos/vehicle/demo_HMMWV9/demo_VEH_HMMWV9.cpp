@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     // Create the vehicle Irrlicht interface
-    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), &my_hmmwv.GetPowertrain(), L"HMMWV-9 Demo",
+    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), my_hmmwv.GetPowertrain().get(), L"HMMWV-9 Demo",
                                irr::core::dimension2d<irr::u32>(1000, 800), irr::ELL_NONE);
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
@@ -189,7 +189,7 @@ int main(int argc, char* argv[]) {
             render_frame++;
         }
 
-        // Collect output data from modules (for inter-module communication)
+        // Driver inputs
         double throttle_input = driver.GetThrottle();
         double steering_input = driver.GetSteering();
         double braking_input = driver.GetBraking();

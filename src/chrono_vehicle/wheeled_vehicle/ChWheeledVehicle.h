@@ -26,6 +26,7 @@
 
 #include "chrono_vehicle/ChVehicle.h"
 #include "chrono_vehicle/ChTerrain.h"
+#include "chrono_vehicle/ChPowertrain.h"
 #include "chrono_vehicle/wheeled_vehicle/ChAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/ChAntirollBar.h"
 #include "chrono_vehicle/wheeled_vehicle/ChBrake.h"
@@ -63,6 +64,9 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
 
     /// Get the name of the vehicle system template.
     virtual std::string GetTemplateName() const override { return "WheeledVehicle"; }
+
+    /// Get the powertrain attached to this vehicle.
+    std::shared_ptr<ChPowertrain> GetPowertrain() const { return m_powertrain; }
 
     /// Get all vehicle axle subsystems.
     const ChAxleList& GetAxles() const { return m_axles; }
@@ -145,6 +149,10 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
                         VisualizationType tire_vis = VisualizationType::PRIMITIVES,
                         ChTire::CollisionType tire_coll = ChTire::CollisionType::SINGLE_POINT);
 
+    /// Initialize the given powertrain system and associate it to this vehicle.
+    /// The powertrain is initialized by connecting it to this vehicle's chassis and driveline shaft.
+    void InitializePowertrain(std::shared_ptr<ChPowertrain> powertrain);
+
     /// Set visualization type for the suspension subsystems.
     /// This function should be called only after vehicle initialization.
     void SetSuspensionVisualizationType(VisualizationType vis);
@@ -176,11 +184,11 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// Update the state of this vehicle at the current time.
     /// The vehicle system is provided the current driver inputs (throttle between 0 and 1, steering between -1 and +1,
     /// braking between 0 and 1), and the torque from the powertrain.
-    virtual void Synchronize(double time,               ///< [in] current time
-                             double steering,           ///< [in] current steering input [-1,+1]
-                             double braking,            ///< [in] current braking input [0,1]
-                             double powertrain_torque,  ///< [in] input torque from powertrain
-                             const ChTerrain& terrain   ///< [in] reference to the terrain system
+    virtual void Synchronize(double time,              ///< [in] current time
+                             double steering,          ///< [in] current steering input [-1,+1]
+                             double braking,           ///< [in] current braking input [0,1]
+                             double throttle,          ///< [in] current throttle input [0,1]
+                             const ChTerrain& terrain  ///< [in] reference to the terrain system
     );
 
     /// Advance the state of this vehicle by the specified time step.
@@ -216,6 +224,7 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     ChAxleList m_axles;                          ///< list of axle subsystems
     ChSteeringList m_steerings;                  ///< list of steering subsystems
     std::shared_ptr<ChDrivelineWV> m_driveline;  ///< driveline subsystem
+    std::shared_ptr<ChPowertrain> m_powertrain;  ///< associated powertrain system
 };
 
 /// @} vehicle_wheeled
