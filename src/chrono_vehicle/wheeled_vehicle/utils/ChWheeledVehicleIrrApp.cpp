@@ -30,17 +30,16 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChWheeledVehicleIrrApp::ChWheeledVehicleIrrApp(ChVehicle* vehicle,
-                                               ChPowertrain* powertrain,
                                                const wchar_t* title,
                                                irr::core::dimension2d<irr::u32> dims,
                                                irr::ELOG_LEVEL log_level)
-    : ChVehicleIrrApp(vehicle, powertrain, title, dims, log_level) {
+    : ChVehicleIrrApp(vehicle, title, dims, log_level) {
     m_wvehicle = dynamic_cast<ChWheeledVehicle*>(vehicle);
     assert(m_wvehicle);
 }
 
 // -----------------------------------------------------------------------------
-// Render stats for the vehicle and powertrain systems (render the HUD).
+// Render stats for the vehicle driveline.
 // -----------------------------------------------------------------------------
 void ChWheeledVehicleIrrApp::renderOtherStats(int left, int top) {
     char msg[100];

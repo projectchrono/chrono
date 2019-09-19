@@ -119,12 +119,12 @@ int main(int argc, char* argv[]) {
     // driver.GetSpeedController().SetGains(0.4, 0, 0);
     driver.Initialize();
 
-    ChVehicleIrrApp app(&my_hmmwv.GetVehicle(), my_hmmwv.GetPowertrain().get(),
-                        L"OpenCRG Demo Simple Realistic Human Driver", irr::core::dimension2d<irr::u32>(800, 640));
     // ---------------------------------------
     // Create the vehicle Irrlicht application
     // ---------------------------------------
 
+    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"OpenCRG Demo Simple Realistic Human Driver",
+                               irr::core::dimension2d<irr::u32>(800, 640));
     app.SetHUDLocation(500, 20);
     app.SetSkyBox();
     app.AddTypicalLogo();

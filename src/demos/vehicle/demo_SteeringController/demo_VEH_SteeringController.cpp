@@ -278,15 +278,15 @@ int main(int argc, char* argv[]) {
 // ---------------------------------------
 
 #ifdef USE_PID
-    ChVehicleIrrApp app(&my_hmmwv.GetVehicle(), my_hmmwv.GetPowertrain().get(), L"Steering PID Controller Demo",
-                        irr::core::dimension2d<irr::u32>(800, 640));
+    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"Steering PID Controller Demo",
+                               irr::core::dimension2d<irr::u32>(800, 640));
 #endif
 #ifdef USE_XT
-    ChVehicleIrrApp app(&my_hmmwv.GetVehicle(), my_hmmwv.GetPowertrain().get(), L"Steering XT Controller Demo",
-                        irr::core::dimension2d<irr::u32>(800, 640));
+    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"Steering XT Controller Demo",
+                               irr::core::dimension2d<irr::u32>(800, 640));
 #endif
 #ifdef USE_SR
-    ChVehicleIrrApp app(&my_hmmwv.GetVehicle(), my_hmmwv.GetPowertrain().get(), L"Steering SR Controller Demo",
+    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"Steering SR Controller Demo",
                         irr::core::dimension2d<irr::u32>(800, 640));
 #endif
     app.SetHUDLocation(500, 20);

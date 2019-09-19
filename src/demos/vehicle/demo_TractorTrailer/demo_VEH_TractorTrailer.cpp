@@ -145,7 +145,7 @@ int main(int argc, char* argv[]) {
     trailer.InitializeTire(tr_tire_RL, trailer.GetAxle(1)->m_wheels[0], VisualizationType::PRIMITIVES);
     trailer.InitializeTire(tr_tire_RR, trailer.GetAxle(1)->m_wheels[1], VisualizationType::PRIMITIVES);
 
-    ChWheeledVehicleIrrApp app(&vehicle, powertrain.get(), L"Articulated Vehicle Demo");
+    ChWheeledVehicleIrrApp app(&vehicle, L"Articulated Vehicle Demo");
 
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);

@@ -25,7 +25,6 @@
 #include <vector>
 
 #include "chrono_vehicle/ChVehicle.h"
-#include "chrono_vehicle/ChPowertrain.h"
 #include "chrono_vehicle/tracked_vehicle/ChDrivelineTV.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackContactManager.h"
@@ -68,7 +67,7 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     }
 
     /// Get the powertrain attached to this vehicle.
-    std::shared_ptr<ChPowertrain> GetPowertrain() const { return m_powertrain; }
+    virtual std::shared_ptr<ChPowertrain> GetPowertrain() const override { return m_powertrain; }
 
     /// Get the specified suspension subsystem.
     std::shared_ptr<ChTrackAssembly> GetTrackAssembly(VehicleSide side) const { return m_tracks[side]; }

@@ -26,7 +26,6 @@
 
 #include "chrono_vehicle/ChVehicle.h"
 #include "chrono_vehicle/ChTerrain.h"
-#include "chrono_vehicle/ChPowertrain.h"
 #include "chrono_vehicle/wheeled_vehicle/ChAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/ChAntirollBar.h"
 #include "chrono_vehicle/wheeled_vehicle/ChBrake.h"
@@ -66,7 +65,7 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     virtual std::string GetTemplateName() const override { return "WheeledVehicle"; }
 
     /// Get the powertrain attached to this vehicle.
-    std::shared_ptr<ChPowertrain> GetPowertrain() const { return m_powertrain; }
+    virtual std::shared_ptr<ChPowertrain> GetPowertrain() const override { return m_powertrain; }
 
     /// Get all vehicle axle subsystems.
     const ChAxleList& GetAxles() const { return m_axles; }

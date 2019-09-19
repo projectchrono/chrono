@@ -176,7 +176,7 @@ int main(int argc, char* argv[]) {
     vehicle.InitializePowertrain(powertrain);
 
     // Create the vehicle Irrlicht application
-    ChTrackedVehicleIrrApp app(&vehicle, powertrain.get(), L"M113 Vehicle Demo");
+    ChTrackedVehicleIrrApp app(&vehicle, L"M113 Vehicle Demo");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(trackPoint, 4.0, 1.0);

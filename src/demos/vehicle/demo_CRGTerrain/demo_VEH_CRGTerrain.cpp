@@ -117,8 +117,8 @@ int main(int argc, char* argv[]) {
     driver.GetSpeedController().SetGains(0.4, 0, 0);
     driver.Initialize();
 
-    ChVehicleIrrApp app(&my_hmmwv.GetVehicle(), &my_hmmwv.GetPowertrain(), L"OpenCRG Demo PID Steering",
-                        irr::core::dimension2d<irr::u32>(800, 640));
+    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"OpenCRG Demo PID Steering",
+                               irr::core::dimension2d<irr::u32>(800, 640));
 #endif
 #ifdef USE_XT
     // Create the driver system based on XT steering controller
@@ -129,8 +129,8 @@ int main(int argc, char* argv[]) {
     driver.GetSpeedController().SetGains(0.4, 0, 0);
     driver.Initialize();
 
-    ChVehicleIrrApp app(&my_hmmwv.GetVehicle(), &my_hmmwv.GetPowertrain(), L"OpenCRG Demo XT Steering",
-                        irr::core::dimension2d<irr::u32>(800, 640));
+    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"OpenCRG Demo XT Steering",
+                               irr::core::dimension2d<irr::u32>(800, 640));
 #endif
 #ifdef USE_SR
     ChPathFollowerDriverSR driver(my_hmmwv.GetVehicle(), path, "my_path", target_speed, path_is_closed,
@@ -140,9 +140,10 @@ int main(int argc, char* argv[]) {
     driver.GetSpeedController().SetGains(0.4, 0, 0);
     driver.Initialize();
 
-    ChVehicleIrrApp app(&my_hmmwv.GetVehicle(), my_hmmwv.GetPowertrain().get(), L"OpenCRG Demo SR Steering",
-                        irr::core::dimension2d<irr::u32>(800, 640));
+    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"OpenCRG Demo SR Steering",
+                               irr::core::dimension2d<irr::u32>(800, 640));
 #endif
+
     // ---------------------------------------
     // Create the vehicle Irrlicht application
     // ---------------------------------------

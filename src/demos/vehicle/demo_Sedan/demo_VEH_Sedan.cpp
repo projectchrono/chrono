@@ -148,7 +148,7 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     // Create the vehicle Irrlicht interface
-    ChWheeledVehicleIrrApp app(&my_sedan.GetVehicle(), my_sedan.GetPowertrain().get(), L"Sedan Demo");
+    ChWheeledVehicleIrrApp app(&my_sedan.GetVehicle(), L"Sedan Demo");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(trackPoint, 6.0, 0.5);

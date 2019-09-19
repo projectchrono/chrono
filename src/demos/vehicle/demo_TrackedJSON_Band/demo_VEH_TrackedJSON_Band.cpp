@@ -189,7 +189,7 @@ int main(int argc, char* argv[]) {
     // Create the vehicle Irrlicht application
     // ---------------------------------------
 
-    ChTrackedVehicleIrrApp app(&vehicle, powertrain.get(), L"JSON Band-Tracked Vehicle Demo");
+    ChTrackedVehicleIrrApp app(&vehicle, L"JSON Band-Tracked Vehicle Demo");
     app.SetSkyBox();
     irrlicht::ChIrrWizard::add_typical_Logo(app.GetDevice());
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);

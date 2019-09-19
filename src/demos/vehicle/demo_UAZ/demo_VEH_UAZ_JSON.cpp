@@ -142,7 +142,7 @@ int main(int argc, char* argv[]) {
     vehicle.InitializeTire(tireRR, vehicle.GetAxle(1)->m_wheels[1]);
 
     // Create the Irrlicht visualization
-    ChVehicleIrrApp app(&vehicle, powertrain.get(), L"UAZ (JSON) Vehicle Demo");
+    ChWheeledVehicleIrrApp app(&vehicle, L"UAZ (JSON) Vehicle Demo");
 
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);

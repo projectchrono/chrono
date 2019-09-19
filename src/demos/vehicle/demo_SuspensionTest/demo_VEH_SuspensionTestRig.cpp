@@ -49,10 +49,10 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehicleIrrApp.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRig.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChIrrGuiDriverSTR.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChDataDriverSTR.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -130,7 +130,7 @@ int main(int argc, char* argv[]) {
     rig->SetTireVisualizationType(VisualizationType::MESH);
 
     // Create the vehicle Irrlicht application.
-    ChVehicleIrrApp app(rig.get(), NULL, L"Suspension Test Rig");
+    ChVehicleIrrApp app(rig.get(), L"Suspension Test Rig");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(0.5 * (rig->GetSpindlePos(LEFT) + rig->GetSpindlePos(RIGHT)), 2.0, 0.5);
