@@ -426,9 +426,7 @@ int main(int argc, char* argv[]) {
             break;
 
         // Driver inputs
-        double throttle_input = selector.GetDriver()->GetThrottle();
-        double steering_input = selector.GetDriver()->GetSteering();
-        double braking_input = selector.GetDriver()->GetBraking();
+        ChDriver::Inputs driver_inputs = selector.GetDriver()->GetInputs();
 
         /*
         // Hack for acceleration-braking maneuver
@@ -463,7 +461,7 @@ int main(int argc, char* argv[]) {
             }
 
             if (state_output) {
-                csv << time << steering_input << throttle_input << braking_input;
+                csv << time << driver_inputs.m_steering << driver_inputs.m_throttle << driver_inputs.m_braking;
                 csv << my_hmmwv.GetVehicle().GetVehicleSpeed();
                 csv << acc_CG.x() << fwd_acc_CG << acc_CG.y() << lat_acc_CG;
                 csv << acc_driver.x() << fwd_acc_driver << acc_driver.y() << lat_acc_driver;
@@ -485,9 +483,9 @@ int main(int argc, char* argv[]) {
         driver_follower.Synchronize(time);
         driver_gui.Synchronize(time);
         terrain.Synchronize(time);
-        my_hmmwv.Synchronize(time, steering_input, braking_input, throttle_input, terrain);
+        my_hmmwv.Synchronize(time, driver_inputs, terrain);
         std::string msg = selector.UsingGUI() ? "GUI driver" : "Follower driver";
-        app.Synchronize(msg, steering_input, throttle_input, braking_input);
+        app.Synchronize(msg, driver_inputs);
 
         // Advance simulation for one timestep for all modules
         double step = realtime_timer.SuggestSimulationStep(step_size);

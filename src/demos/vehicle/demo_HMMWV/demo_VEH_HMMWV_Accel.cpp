@@ -183,20 +183,18 @@ int main(int argc, char* argv[]) {
         app.DrawAll();
 
         // Driver inputs
-        double throttle_input = driver.GetThrottle();
-        double steering_input = driver.GetSteering();
-        double braking_input = driver.GetBraking();
+        ChDriver::Inputs driver_inputs = driver.GetInputs();
 
         if (done) {
-            throttle_input = 0.1;
-            braking_input = 0.8;
+            driver_inputs.m_throttle = 0.1;
+            driver_inputs.m_braking = 0.8;
         }
 
         // Update modules (process inputs from other modules)
         driver.Synchronize(time);
         terrain.Synchronize(time);
-        my_hmmwv.Synchronize(time, steering_input, braking_input, throttle_input, terrain);
-        app.Synchronize("Acceleration test", steering_input, throttle_input, braking_input);
+        my_hmmwv.Synchronize(time, driver_inputs, terrain);
+        app.Synchronize("Acceleration test", driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);

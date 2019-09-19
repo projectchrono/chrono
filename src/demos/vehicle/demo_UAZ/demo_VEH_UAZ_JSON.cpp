@@ -192,11 +192,6 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    // Inter-module communication data
-    double throttle_input;
-    double steering_input;
-    double braking_input;
-
     // Initialize simulation frame counter and simulation time
     int step_number = 0;
     double time = 0;
@@ -208,16 +203,14 @@ int main(int argc, char* argv[]) {
         app.DrawAll();
 
         // Get driver inputs
-        throttle_input = driver.GetThrottle();
-        steering_input = driver.GetSteering();
-        braking_input = driver.GetBraking();
+        ChDriver::Inputs driver_inputs = driver.GetInputs();
 
         // Update modules (process inputs from other modules)
         time = vehicle.GetSystem()->GetChTime();
         driver.Synchronize(time);
-        vehicle.Synchronize(time, steering_input, braking_input, throttle_input, terrain);
+        vehicle.Synchronize(time, driver_inputs, terrain);
         terrain.Synchronize(time);
-        app.Synchronize(driver.GetInputModeAsString(), steering_input, throttle_input, braking_input);
+        app.Synchronize(driver.GetInputModeAsString(), driver_inputs);
 
         // Advance simulation for one timestep for all modules
         double step = realtime_timer.SuggestSimulationStep(step_size);

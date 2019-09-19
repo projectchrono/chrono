@@ -218,7 +218,7 @@ int main(int argc, char* argv[]) {
         rig->Advance(step_size);
 
         // Update visualization app
-        app.Synchronize(tire_L->GetTemplateName(), rig->GetSteeringInput(), 0, 0);
+        app.Synchronize(tire_L->GetTemplateName(), { rig->GetSteeringInput(), 0, 0 });
         app.Advance(step_size);
 
         // Increment frame number

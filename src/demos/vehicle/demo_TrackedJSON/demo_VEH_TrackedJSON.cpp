@@ -183,9 +183,6 @@ int main(int argc, char* argv[]) {
     BodyStates shoe_states_right(vehicle.GetNumTrackShoes(RIGHT));
     TerrainForces shoe_forces_left(vehicle.GetNumTrackShoes(LEFT));
     TerrainForces shoe_forces_right(vehicle.GetNumTrackShoes(RIGHT));
-    double throttle_input;
-    double steering_input;
-    double braking_input;
 
     // Number of simulation steps between two 3D view render frames
     int render_steps = (int)std::ceil(render_step_size / step_size);
@@ -203,17 +200,15 @@ int main(int argc, char* argv[]) {
         app.EndScene();
 
         // Collect output data from modules (for inter-module communication)
-        throttle_input = driver.GetThrottle();
-        steering_input = driver.GetSteering();
-        braking_input = driver.GetBraking();
+        ChDriver::Inputs driver_inputs = driver.GetInputs();
         vehicle.GetTrackShoeStates(LEFT, shoe_states_left);
         vehicle.GetTrackShoeStates(RIGHT, shoe_states_right);
 
         // Update modules (process inputs from other modules)
         double time = vehicle.GetSystem()->GetChTime();
         driver.Synchronize(time);
-        vehicle.Synchronize(time, steering_input, braking_input, throttle_input, shoe_forces_left, shoe_forces_right);
-        app.Synchronize("", steering_input, throttle_input, braking_input);
+        vehicle.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
+        app.Synchronize("", driver_inputs);
 
         // Advance simulation for one timestep for all modules
         double step = realtime_timer.SuggestSimulationStep(step_size);
@@ -255,16 +250,14 @@ int main(int argc, char* argv[]) {
         }
 
         // Collect output data from modules (for inter-module communication)
-        throttle_input = driver.GetThrottle();
-        steering_input = driver.GetSteering();
-        braking_input = driver.GetBraking();
+        ChDriver::Inputs driver_inputs = driver.GetInputs();
         vehicle.GetTrackShoeStates(LEFT, shoe_states_left);
         vehicle.GetTrackShoeStates(RIGHT, shoe_states_right);
 
         // Update modules (process inputs from other modules)
         time = vehicle.GetSystem()->GetChTime();
         driver.Synchronize(time);
-        vehicle.Synchronize(time, steering_input, braking_input, throttle_input, shoe_forces_left, shoe_forces_right);
+        vehicle.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
         terrain.Synchronize(time);
 
         // Advance simulation for one timestep for all modules

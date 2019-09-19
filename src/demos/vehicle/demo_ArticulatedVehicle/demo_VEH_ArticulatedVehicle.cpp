@@ -177,11 +177,6 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    // Inter-module communication data
-    double throttle_input;
-    double steering_input;
-    double braking_input;
-
     // Number of simulation steps between two 3D view render frames
     int render_steps = (int)std::ceil(render_step_size / step_size);
 
@@ -198,9 +193,9 @@ int main(int argc, char* argv[]) {
         }
 
         // Get driver inputs
-        throttle_input = driver.GetThrottle();
-        steering_input = driver.GetSteering();
-        braking_input = driver.GetBraking();
+        ChDriver::Inputs driver_inputs = driver.GetInputs();
+        double steering_input = driver.GetSteering();
+        double braking_input = driver.GetBraking();
 
         // Update modules (process inputs from other modules)
         time = front_side.GetSystem()->GetChTime();
@@ -210,9 +205,9 @@ int main(int argc, char* argv[]) {
         terrain.Synchronize(time);
 
         rear_side.Synchronize(time, steering_input, braking_input, terrain);
-        front_side.Synchronize(time, steering_input, braking_input, throttle_input, terrain);
+        front_side.Synchronize(time, driver_inputs, terrain);
 
-        app.Synchronize(driver.GetInputModeAsString(), steering_input, throttle_input, braking_input);
+        app.Synchronize(driver.GetInputModeAsString(), driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);

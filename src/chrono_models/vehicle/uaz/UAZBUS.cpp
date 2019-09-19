@@ -150,14 +150,9 @@ void UAZBUS::SetTireVisualizationType(VisualizationType vis) {
 }
 
 // -----------------------------------------------------------------------------
-void UAZBUS::Synchronize(double time,
-                         double steering_input,
-                         double braking_input,
-                         double throttle_input,
-                         const ChTerrain& terrain) {
-    m_vehicle->Synchronize(time, steering_input, braking_input, throttle_input, terrain);
+void UAZBUS::Synchronize(double time, const ChDriver::Inputs& driver_inputs, const ChTerrain& terrain) {
+    m_vehicle->Synchronize(time, driver_inputs, terrain);
 }
-
 // -----------------------------------------------------------------------------
 void UAZBUS::Advance(double step) {
     m_vehicle->Advance(step);

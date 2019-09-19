@@ -119,13 +119,11 @@ int main(int argc, char* argv[]) {
         app.EndScene();
 
         // Driver inputs
-        double steering_input = 0;
-        double braking_input = 0;
-        double throttle_input = 0;
+        ChDriver::Inputs driver_inputs = { 0, 0, 0 };
         if (time > 2)
-            throttle_input = 0.6;
+            driver_inputs.m_throttle = 0.6;
         else if (time > 1)
-            throttle_input = 0.6 * (time - 1);
+            driver_inputs.m_throttle = 0.6 * (time - 1);
 
         // Output
         double omega_front_left = my_sedan.GetVehicle().GetSuspension(0)->GetAxleSpeed(LEFT);
@@ -134,8 +132,8 @@ int main(int argc, char* argv[]) {
 
         // Synchronize subsystems
         terrain.Synchronize(time);
-        my_sedan.Synchronize(time, steering_input, braking_input, throttle_input, terrain);
-        app.Synchronize("", steering_input, throttle_input, braking_input);
+        my_sedan.Synchronize(time, driver_inputs, terrain);
+        app.Synchronize("", driver_inputs);
 
         // Advance simulation for all subsystems
         terrain.Advance(step_size);

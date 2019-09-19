@@ -57,27 +57,23 @@ void ChWheeledVehicle::InitializePowertrain(std::shared_ptr<ChPowertrain> powert
 
 // -----------------------------------------------------------------------------
 // Update the state of this vehicle at the current time.
-// The vehicle system is provided the current driver inputs (throttle between
-// 0 and 1, steering between -1 and +1, braking between 0 and 1), and the torque
-// from the powertrain.
+// The vehicle system is provided the current driver inputs (throttle between 0
+// and 1, steering between -1 and +1, braking between 0 and 1), and a reference
+// to the terrain system.
 // -----------------------------------------------------------------------------
-void ChWheeledVehicle::Synchronize(double time,
-                                   double steering,
-                                   double braking,
-                                   double throttle,
-                                   const ChTerrain& terrain) {
+void ChWheeledVehicle::Synchronize(double time, const ChDriver::Inputs& driver_inputs, const ChTerrain& terrain) {
     // Extract the torque from the powertrain.
     double powertrain_torque = m_powertrain->GetOutputTorque();
 
     // Synchronize the associated powertrain system (pass throttle input).
-    m_powertrain->Synchronize(time, throttle);
+    m_powertrain->Synchronize(time, driver_inputs.m_throttle);
 
     // Apply powertrain torque to the driveline's input shaft.
     m_driveline->Synchronize(powertrain_torque);
 
     // Let the steering subsystems process the steering input.
     for (unsigned int i = 0; i < m_steerings.size(); i++) {
-        m_steerings[i]->Synchronize(time, steering);
+        m_steerings[i]->Synchronize(time, driver_inputs.m_steering);
     }
 
     // Synchronize the vehicle's axle subsystems
@@ -86,7 +82,7 @@ void ChWheeledVehicle::Synchronize(double time,
             if (wheel->m_tire)
                 wheel->m_tire->Synchronize(time, terrain);
         }
-        axle->Synchronize(braking);
+        axle->Synchronize(driver_inputs.m_braking);
     }
 
     m_chassis->Synchronize(time);

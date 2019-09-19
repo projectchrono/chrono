@@ -114,14 +114,12 @@ void HmmwvDlcTest<EnumClass, TIRE_MODEL>::ExecuteStep() {
     double time = m_hmmwv->GetSystem()->GetChTime();
 
     // Driver inputs
-    double throttle_input = m_driver->GetThrottle();
-    double steering_input = m_driver->GetSteering();
-    double braking_input = m_driver->GetBraking();
+    ChDriver::Inputs driver_inputs = m_driver->GetInputs();
 
     // Update modules (process inputs from other modules)
     m_driver->Synchronize(time);
     m_terrain->Synchronize(time);
-    m_hmmwv->Synchronize(time, steering_input, braking_input, throttle_input, *m_terrain);
+    m_hmmwv->Synchronize(time, driver_inputs, *m_terrain);
 
     // Advance simulation for one timestep for all modules
     m_driver->Advance(m_step_veh);
@@ -152,10 +150,12 @@ void HmmwvDlcTest<EnumClass, TIRE_MODEL>::SimulateVis() {
         ballS->setPosition(irr::core::vector3df((irr::f32)pS.x(), (irr::f32)pS.y(), (irr::f32)pS.z()));
         ballT->setPosition(irr::core::vector3df((irr::f32)pT.x(), (irr::f32)pT.y(), (irr::f32)pT.z()));
 
+        ChDriver::Inputs driver_inputs = m_driver->GetInputs();
+
         app.BeginScene();
         app.DrawAll();
         ExecuteStep();
-        app.Synchronize("Acceleration test", m_driver->GetSteering(), m_driver->GetThrottle(), m_driver->GetBraking());
+        app.Synchronize("Acceleration test", driver_inputs);
         app.Advance(m_step_veh);
         app.EndScene();
     }

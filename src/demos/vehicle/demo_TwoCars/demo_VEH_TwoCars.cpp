@@ -134,6 +134,9 @@ int main(int argc, char* argv[]) {
         app.DrawAll();
 
         // Driver inputs
+        ChDriver::Inputs driver_inputs_1 = driver_1.GetInputs();
+        ChDriver::Inputs driver_inputs_2 = driver_2.GetInputs();
+
         double throttle_input_1 = driver_1.GetThrottle();
         double steering_input_1 = driver_1.GetSteering();
         double braking_input_1 = driver_1.GetBraking();
@@ -145,10 +148,10 @@ int main(int argc, char* argv[]) {
         // Update modules (process inputs from other modules)
         driver_1.Synchronize(time);
         driver_2.Synchronize(time);
-        hmmwv_1.Synchronize(time, steering_input_1, braking_input_1, throttle_input_1, terrain);
-        hmmwv_2.Synchronize(time, steering_input_2, braking_input_2, throttle_input_2, terrain);
+        hmmwv_1.Synchronize(time, driver_inputs_1, terrain);
+        hmmwv_2.Synchronize(time, driver_inputs_2, terrain);
         terrain.Synchronize(time);
-        app.Synchronize("", steering_input_1, throttle_input_1, braking_input_1);
+        app.Synchronize("", driver_inputs_1);
 
         // Advance simulation for one timestep for all modules.
         double step = realtime_timer.SuggestSimulationStep(step_size);

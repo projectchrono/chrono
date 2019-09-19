@@ -238,11 +238,6 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    // Inter-module communication data
-    double throttle_input;
-    double steering_input;
-    double braking_input;
-
     // Logging of seat acceleration data on flat road surface is useless
     double xstart = 100.0;  // start logging when the vehicle crosses this x position
     double xend = 160.0;    // end logging here, this also the end of our world
@@ -255,16 +250,14 @@ int main(int argc, char* argv[]) {
         app.DrawAll();
 
         // Driver inputs
-        throttle_input = driver.GetThrottle();
-        steering_input = driver.GetSteering();
-        braking_input = driver.GetBraking();
+        ChDriver::Inputs driver_inputs = driver.GetInputs();
 
         // Update modules (process inputs from other modules)
         double time = vehicle.GetSystem()->GetChTime();
         driver.Synchronize(time);
-        vehicle.Synchronize(time, steering_input, braking_input, throttle_input, terrain);
+        vehicle.Synchronize(time, driver_inputs, terrain);
         terrain.Synchronize(time);
-        app.Synchronize("", steering_input, throttle_input, braking_input);
+        app.Synchronize("", driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
@@ -290,14 +283,12 @@ int main(int argc, char* argv[]) {
     double v_pos;
     while ((v_pos = vehicle.GetSpindlePos(0, LEFT).x()) < xend) {
         // Driver inputs
-        throttle_input = driver.GetThrottle();
-        steering_input = driver.GetSteering();
-        braking_input = driver.GetBraking();
+        ChDriver::Inputs driver_inputs = driver.GetInputs();
 
         // Update modules (process inputs from other modules)
         double time = vehicle.GetSystem()->GetChTime();
         driver.Synchronize(time);
-        vehicle.Synchronize(time, steering_input, braking_input, throttle_input, terrain);
+        vehicle.Synchronize(time, driver_inputs, terrain);
         terrain.Synchronize(time);
 
         // Advance simulation for one timestep for all modules

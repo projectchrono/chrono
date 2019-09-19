@@ -129,14 +129,12 @@ void M113AccTest<EnumClass, SHOE_TYPE>::ExecuteStep() {
     }
 
     // Driver inputs
-    double throttle_input = m_driver->GetThrottle();
-    double steering_input = m_driver->GetSteering();
-    double braking_input = m_driver->GetBraking();
+    ChDriver::Inputs driver_inputs = m_driver->GetInputs();
 
     // Update modules (process inputs from other modules)
     m_driver->Synchronize(time);
     m_terrain->Synchronize(time);
-    m_m113->Synchronize(time, steering_input, braking_input, throttle_input, m_shoeL, m_shoeR);
+    m_m113->Synchronize(time, driver_inputs, m_shoeL, m_shoeR);
 
     // Advance simulation for one timestep for all modules
     m_driver->Advance(m_step);
@@ -156,10 +154,12 @@ void M113AccTest<EnumClass, SHOE_TYPE>::SimulateVis() {
     app.AssetUpdateAll();
 
     while (app.GetDevice()->run()) {
+        ChDriver::Inputs driver_inputs = m_driver->GetInputs();
+
         app.BeginScene();
         app.DrawAll();
         ExecuteStep();
-        app.Synchronize("Acceleration test", m_driver->GetSteering(), m_driver->GetThrottle(), m_driver->GetBraking());
+        app.Synchronize("Acceleration test", driver_inputs);
         app.Advance(m_step);
         app.EndScene();
     }

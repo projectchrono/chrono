@@ -81,12 +81,7 @@ class CH_MODELS_API UAZBUS {
     void SetWheelVisualizationType(VisualizationType vis) { m_vehicle->SetWheelVisualizationType(vis); }
     void SetTireVisualizationType(VisualizationType vis);
 
-    void Synchronize(double time,
-                     double steering_input,
-                     double braking_input,
-                     double throttle_input,
-                     const ChTerrain& terrain);
-
+    void Synchronize(double time, const ChDriver::Inputs& driver_inputs, const ChTerrain& terrain);
     void Advance(double step);
 
     void LogHardpointLocations() { m_vehicle->LogHardpointLocations(); }

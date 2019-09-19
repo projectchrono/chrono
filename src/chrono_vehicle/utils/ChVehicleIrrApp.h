@@ -32,6 +32,7 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChVehicle.h"
+#include "chrono_vehicle/ChDriver.h"
 
 #ifdef CHRONO_IRRKLANG
 #include <irrKlang.h>
@@ -108,7 +109,7 @@ class CH_VEHICLE_API ChVehicleIrrApp : public irrlicht::ChIrrApp {
     virtual void DrawAll() override;
 
     /// Update information related to driver inputs.
-    void Synchronize(const std::string& msg, double steering, double throttle, double braking);
+    void Synchronize(const std::string& msg, const ChDriver::Inputs& driver_inputs);
 
     /// Advance the dynamics of the chase camera.
     /// The integration of the underlying ODEs is performed using as many steps as needed to advance

@@ -149,12 +149,8 @@ void Sedan::SetTireVisualizationType(VisualizationType vis) {
 }
 
 // -----------------------------------------------------------------------------
-void Sedan::Synchronize(double time,
-                        double steering_input,
-                        double braking_input,
-                        double throttle_input,
-                        const ChTerrain& terrain) {
-    m_vehicle->Synchronize(time, steering_input, braking_input, throttle_input, terrain);
+void Sedan::Synchronize(double time, const ChDriver::Inputs& driver_inputs, const ChTerrain& terrain) {
+    m_vehicle->Synchronize(time, driver_inputs, terrain);
 }
 
 // -----------------------------------------------------------------------------

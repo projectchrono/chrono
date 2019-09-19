@@ -250,16 +250,14 @@ int main(int argc, char* argv[]) {
         app.DrawAll();
 
         // Get driver inputs
-        double throttle_input = driver.GetThrottle();
-        double steering_input = driver.GetSteering();
-        double braking_input = driver.GetBraking();
+        ChDriver::Inputs driver_inputs = driver.GetInputs();
 
         // Update modules (process inputs from other modules)
         double time = vehicle.GetSystem()->GetChTime();
         driver.Synchronize(time);
-        vehicle.Synchronize(time, steering_input, braking_input, throttle_input, terrain);
+        vehicle.Synchronize(time, driver_inputs, terrain);
         terrain.Synchronize(time);
-        app.Synchronize("", steering_input, throttle_input, braking_input);
+        app.Synchronize("", driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
@@ -285,14 +283,12 @@ int main(int argc, char* argv[]) {
     double xpos;
     while ((xpos = vehicle.GetSpindlePos(0, LEFT).x()) < xend) {
         // Driver inputs
-        double throttle_input = driver.GetThrottle();
-        double steering_input = driver.GetSteering();
-        double braking_input = driver.GetBraking();
+        ChDriver::Inputs driver_inputs = driver.GetInputs();
 
         // Update modules (process inputs from other modules)
         double time = vehicle.GetSystem()->GetChTime();
         driver.Synchronize(time);
-        vehicle.Synchronize(time, steering_input, braking_input, throttle_input, terrain);
+        vehicle.Synchronize(time, driver_inputs);
         terrain.Synchronize(time);
 
         // Advance simulation for one timestep for all modules

@@ -207,8 +207,7 @@ int main(int argc, char* argv[]) {
 #endif
 
         // Driver inputs
-        double throttle_input = driver.GetThrottle();
-        double steering_input = driver.GetSteering();
+        ChDriver::Inputs driver_inputs = driver.GetInputs();
         double braking_input = driver.GetBraking();
 
         // Update modules (process inputs from other modules)
@@ -219,9 +218,9 @@ int main(int argc, char* argv[]) {
         terrain.Synchronize(time);
 
         trailer.Synchronize(time, braking_input, terrain);
-        vehicle.Synchronize(time, steering_input, braking_input, throttle_input, terrain);
+        vehicle.Synchronize(time, driver_inputs, terrain);
 
-        app.Synchronize(driver.GetInputModeAsString(), steering_input, throttle_input, braking_input);
+        app.Synchronize(driver.GetInputModeAsString(), driver_inputs);
 
         // Advance simulation for one timestep for all modules
         double step = realtime_timer.SuggestSimulationStep(step_size);

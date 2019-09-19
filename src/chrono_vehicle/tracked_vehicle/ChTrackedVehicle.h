@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "chrono_vehicle/ChVehicle.h"
+#include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/tracked_vehicle/ChDrivelineTV.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackContactManager.h"
@@ -186,11 +187,9 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
 
     /// Update the state of this vehicle at the current time.
     /// The vehicle system is provided the current driver inputs (throttle between 0 and 1, steering between -1 and +1,
-    /// braking between 0 and 1), and tire forces (expressed in the global reference frame).
+    /// braking between 0 and 1) and terrain forces on the track shoes (expressed in the global reference frame).
     void Synchronize(double time,                            ///< [in] current time
-                     double steering,                        ///< [in] current steering input [-1,+1]
-                     double braking,                         ///< [in] current braking input [0,1]
-                     double throttle,                        ///< [in] current throttle input [0,1]
+                     const ChDriver::Inputs& driver_inputs,  /// [in] current driver inputs
                      const TerrainForces& shoe_forces_left,  ///< [in] vector of track shoe forces (left side)
                      const TerrainForces& shoe_forces_right  ///< [in] vector of track shoe forces (left side)
     );

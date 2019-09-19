@@ -544,11 +544,9 @@ int main(int argc, char* argv[]) {
         app.DrawAll();
 
         // Driver inputs
-        double throttle_input = driver.GetThrottle();
-        double steering_input = driver.GetSteering();
-        double braking_input = driver.GetBraking();
+        ChDriver::Inputs driver_inputs = driver.GetInputs();
 
-        double steer = steering_gear_ratio * steer_filter.Filter(steering_input);
+        double steer = steering_gear_ratio * steer_filter.Filter(driver_inputs.m_steering);
         steer_recorder.AddPoint(time, steer);
         double angspeed = ang_diff.Filter(steer);
         angspeed_recorder.AddPoint(time, angspeed);
@@ -556,8 +554,8 @@ int main(int argc, char* argv[]) {
         // Update modules (process inputs from other modules)
         driver.Synchronize(time);
         terrain.Synchronize(time);
-        my_hmmwv.Synchronize(time, steering_input, braking_input, throttle_input, terrain);
-        app.Synchronize("Double lane change test", steering_input, throttle_input, braking_input);
+        my_hmmwv.Synchronize(time, driver_inputs, terrain);
+        app.Synchronize("Double lane change test", driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);

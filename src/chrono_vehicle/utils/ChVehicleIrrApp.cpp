@@ -200,11 +200,11 @@ void ChVehicleIrrApp::SetChaseCamera(const ChVector<>& ptOnChassis, double chase
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChVehicleIrrApp::Synchronize(const std::string& msg, double steering, double throttle, double braking) {
+void ChVehicleIrrApp::Synchronize(const std::string& msg, const ChDriver::Inputs& driver_inputs) {
     m_driver_msg = msg;
-    m_steering = steering;
-    m_throttle = throttle;
-    m_braking = braking;
+    m_steering = driver_inputs.m_steering;
+    m_throttle = driver_inputs.m_throttle;
+    m_braking = driver_inputs.m_braking;
 }
 
 // -----------------------------------------------------------------------------
