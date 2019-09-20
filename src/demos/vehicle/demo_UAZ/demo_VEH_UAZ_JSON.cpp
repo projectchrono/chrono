@@ -133,13 +133,13 @@ int main(int argc, char* argv[]) {
     // Create and initialize the tires
     auto tireFL = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_front_tire_file));
     auto tireFR = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_front_tire_file));
-    vehicle.InitializeTire(tireFL, vehicle.GetAxle(0)->m_wheels[0]);
-    vehicle.InitializeTire(tireFR, vehicle.GetAxle(0)->m_wheels[1]);
+    vehicle.InitializeTire(tireFL, vehicle.GetAxle(0)->m_wheels[0], VisualizationType::NONE);
+    vehicle.InitializeTire(tireFR, vehicle.GetAxle(0)->m_wheels[1], VisualizationType::NONE);
 
     auto tireRL = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_rear_tire_file));
     auto tireRR = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_rear_tire_file));
-    vehicle.InitializeTire(tireRL, vehicle.GetAxle(1)->m_wheels[0]);
-    vehicle.InitializeTire(tireRR, vehicle.GetAxle(1)->m_wheels[1]);
+    vehicle.InitializeTire(tireRL, vehicle.GetAxle(1)->m_wheels[0], VisualizationType::NONE);
+    vehicle.InitializeTire(tireRR, vehicle.GetAxle(1)->m_wheels[1], VisualizationType::NONE);
 
     // Create the Irrlicht visualization
     ChWheeledVehicleIrrApp app(&vehicle, L"UAZ (JSON) Vehicle Demo");
