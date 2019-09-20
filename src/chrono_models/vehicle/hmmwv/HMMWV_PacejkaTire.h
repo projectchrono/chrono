@@ -16,8 +16,8 @@
 //
 // =============================================================================
 
-#ifndef HMMWV_PAC02_TIRE_H
-#define HMMWV_PAC02_TIRE_H
+#ifndef HMMWV_PACEJKA_TIRE_H
+#define HMMWV_PACEJKA_TIRE_H
 
 #include "chrono/assets/ChTriangleMeshShape.h"
 
@@ -33,10 +33,10 @@ namespace hmmwv {
 /// @{
 
 /// Pacejka 2002 tire model for the HMMWV vehicle.
-class CH_MODELS_API HMMWV_Pac02Tire : public ChPacejkaTire {
+class CH_MODELS_API HMMWV_PacejkaTire : public ChPacejkaTire {
   public:
-    HMMWV_Pac02Tire(const std::string& name);
-    ~HMMWV_Pac02Tire() {}
+    HMMWV_PacejkaTire(const std::string& name);
+    ~HMMWV_PacejkaTire() {}
 
     virtual double GetMass() const override { return m_mass; }
     virtual ChVector<> GetInertia() const override { return m_inertia; }

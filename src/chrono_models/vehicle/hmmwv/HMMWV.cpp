@@ -25,7 +25,7 @@
 #include "chrono_models/vehicle/hmmwv/HMMWV_ANCFTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_FialaTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_LugreTire.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_Pac02Tire.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_PacejkaTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Pac89Tire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Powertrain.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_ReissnerTire.h"
@@ -208,10 +208,10 @@ void HMMWV::Initialize() {
             break;
         }
         case TireModelType::PACEJKA: {
-            auto tire_FL = chrono_types::make_shared<HMMWV_Pac02Tire>("FL");
-            auto tire_FR = chrono_types::make_shared<HMMWV_Pac02Tire>("FR");
-            auto tire_RL = chrono_types::make_shared<HMMWV_Pac02Tire>("RL");
-            auto tire_RR = chrono_types::make_shared<HMMWV_Pac02Tire>("RR");
+            auto tire_FL = chrono_types::make_shared<HMMWV_PacejkaTire>("FL");
+            auto tire_FR = chrono_types::make_shared<HMMWV_PacejkaTire>("FR");
+            auto tire_RL = chrono_types::make_shared<HMMWV_PacejkaTire>("RL");
+            auto tire_RR = chrono_types::make_shared<HMMWV_PacejkaTire>("RR");
 
             tire_FL->SetDrivenWheel(false);
             tire_FR->SetDrivenWheel(false);
