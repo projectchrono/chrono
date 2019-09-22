@@ -48,7 +48,8 @@ ChSystem::ChSystem()
       step_max(0.04),
       tol(2e-4),
       tol_force(1e-3),
-      is_modified(true),
+      is_initialized(false),
+      is_updated(false),
       maxiter(6),
       max_iter_solver_speed(30),
       max_iter_solver_stab(10),
@@ -93,7 +94,8 @@ ChSystem::ChSystem(const ChSystem& other) : ChAssembly(other) {
     SetTimestepperType(other.GetTimestepperType());
     tol = other.tol;
     tol_force = other.tol_force;
-    is_modified = true;
+    is_initialized = false;
+    is_updated = false;
     maxiter = other.maxiter;
 
     min_bounce_speed = other.min_bounce_speed;
@@ -326,6 +328,8 @@ void ChSystem::SetupInitial() {
         otherphysicslist[ip]->SetupInitial();
     }
     this->Update();
+
+	is_initialized = true;
 }
 
 // PROBE STUFF
@@ -659,11 +663,11 @@ void ChSystem::Setup() {
 
     ndof = ncoords - ndoc;  // number of degrees of freedom (approximate - does not consider constr. redundancy, etc)
 
-// BOOKKEEPING SANITY CHECK
-// Test if the bookkeeping is properly aligned, at least for state gather/scatters,
-// by filling a marked vector, and see if some gaps or overlaps are remaining.
-
 #ifdef _DEBUG
+    // BOOKKEEPING SANITY CHECK
+    // Test if the bookkeeping is properly aligned, at least for state gather/scatters,
+    // by filling a marked vector, and see if some gaps or overlaps are remaining.
+
     bool check_bookkeeping = false;
     if (check_bookkeeping) {
         ChState test_x(GetNcoords_x(), this);
@@ -1283,7 +1287,7 @@ double ChSystem::ComputeCollisions() {
     for (size_t ic = 0; ic < collision_callbacks.size(); ic++)
         collision_callbacks[ic]->OnCustomCollision(this);
 
-    // Count the contacts of body-body type.
+    // Cache the total number of contacts
     ncontacts = contact_container->GetNcontacts();
 
     timer_collision.stop();
@@ -1380,12 +1384,8 @@ void ChSystem::DumpSystemMatrices(bool save_M, bool save_K, bool save_R, bool sa
         ChStreamOutAsciiFile file_Cq(filename);
         file_Cq.SetNumFormat(numformat);
         mCq.StreamOUTsparseMatlabFormat(file_Cq);
-    }  
+    }
 }
-
-
-
-
 
 // -----------------------------------------------------------------------------
 //  PERFORM AN INTEGRATION STEP.  ----
@@ -1419,7 +1419,12 @@ bool ChSystem::Integrate_Y() {
     setupcount = 0;
 
     // Compute contacts and create contact constraints
+    int ncontacts_old = ncontacts;
     ComputeCollisions();
+
+	// Declare an NSC system as "out of date" if there are contacts
+    if (GetContactMethod() == ChMaterialSurface::NSC && (ncontacts_old != 0 || ncontacts != 0))
+        is_updated = false;
 
     // Counts dofs, statistics, etc. (not needed because already in Advance()...? )
     Setup();
@@ -1461,8 +1466,11 @@ bool ChSystem::Integrate_Y() {
     // Call method to gather contact forces/torques in rigid bodies
     contact_container->ComputeContactForces();
 
-    // Time elapsed for step..
+    // Time elapsed for step
     timer_step.stop();
+
+	// Tentatively mark system as unchanged (i.e., no updated necessary)
+    is_updated = true;
 
     return true;
 }

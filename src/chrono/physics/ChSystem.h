@@ -269,7 +269,8 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     const ChVector<>& Get_G_acc() const { return G_acc; }
 
     /// Initial system setup before analysis.
-    /// This function must be called once the system construction is completed.
+    /// This function performs an initial system setup, once system construction is completed and before an analysis.
+	/// In typical use, this function need not be called by the user (it is automatically invoked).
     void SetupInitial() override;
 
     //
@@ -790,14 +791,15 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     int FileWriteChR(ChStreamOutBinary& m_file);
 
   protected:
-    std::vector<std::shared_ptr<ChProbe> > probelist;        ///< list of 'probes' (variable-recording objects)
-    std::vector<std::shared_ptr<ChControls> > controlslist;  ///< list of 'controls' script objects
+    std::vector<std::shared_ptr<ChProbe>> probelist;        ///< list of 'probes' (variable-recording objects)
+    std::vector<std::shared_ptr<ChControls>> controlslist;  ///< list of 'controls' script objects
 
     std::shared_ptr<ChContactContainer> contact_container;  ///< the container of contacts
 
     ChVector<> G_acc;  ///< gravitational acceleration
 
-    bool is_modified;  ///< flag indicating a system modification occured
+    bool is_initialized;  ///< if false, an initial setup is required (i.e. a call to SetupInitial)
+    bool is_updated;      ///< if false, a new update is required (i.e. a call to Update)
 
     double end_time;  ///< end of simulation
     double step;      ///< time step
@@ -853,6 +855,8 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     bool last_err;  ///< indicates error over the last kinematic/dynamics/statics
 
     // Friend class declarations
+
+	friend class ChAssembly;
 
     template <class Ta, class Tb>
     friend class ChContactNSC;
