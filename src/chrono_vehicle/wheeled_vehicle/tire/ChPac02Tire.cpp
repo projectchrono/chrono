@@ -48,11 +48,145 @@ ChPac02Tire::ChPac02Tire(const std::string& name)
       m_gamma_limit(3.0 * CH_C_DEG_TO_RAD),
       m_mu(0),
       m_mu0(0.8),
-      m_PacScal({1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}),
-      m_PacCoeff({0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}) {
+      use_mode(1) {
     m_tireforce.force = ChVector<>(0, 0, 0);
     m_tireforce.point = ChVector<>(0, 0, 0);
     m_tireforce.moment = ChVector<>(0, 0, 0);
+
+    // standard settings for scaling factors
+    m_PacScal.lfz0 = 1.0;
+    m_PacScal.lcx1 = 1.0;
+    m_PacScal.lex = 1.0;
+    m_PacScal.lkx = 1.0;
+    m_PacScal.lhx = 1.0;
+    m_PacScal.lmux = 1.0;
+    m_PacScal.lvx = 1.0;
+
+    m_PacScal.lcy = 1.0;
+    m_PacScal.ley = 1.0;
+    m_PacScal.lhy = 1.0;
+    m_PacScal.lky = 1.0;
+    m_PacScal.lmuy = 1.0;
+    m_PacScal.lvy = 1.0;
+
+    m_PacScal.ltr = 1.0;
+
+    m_PacCoeff.R0 = 0.0;       // unloaded radius
+    m_PacCoeff.width = 0.0;    // tire width = 0.0;
+    m_PacCoeff.FzNomin = 0.0;  // nominla wheel load
+    m_PacCoeff.Cz = 0.0;       // vertical tire stiffness
+    m_PacCoeff.Kz = 0.0;       // vertical tire damping
+
+    // Longitudinal Coefficients
+    m_PacCoeff.pcx1 = 0.0;
+    m_PacCoeff.pdx1 = 0.0;
+    m_PacCoeff.pdx2 = 0.0;
+    m_PacCoeff.pdx3 = 0.0;
+    m_PacCoeff.pex1 = 0.0;
+    m_PacCoeff.pex2 = 0.0;
+    m_PacCoeff.pex3 = 0.0;
+    m_PacCoeff.pex4 = 0.0;
+    m_PacCoeff.phx1 = 0.0;
+    m_PacCoeff.phx2 = 0.0;
+    m_PacCoeff.pkx1 = 0.0;
+    m_PacCoeff.pkx2 = 0.0;
+    m_PacCoeff.pkx3 = 0.0;
+    m_PacCoeff.pvx1 = 0.0;
+    m_PacCoeff.pvx2 = 0.0;
+    m_PacCoeff.rbx1 = 0.0;
+    m_PacCoeff.rbx2 = 0.0;
+    m_PacCoeff.rex1 = 0.0;
+    m_PacCoeff.rex2 = 0.0;
+    m_PacCoeff.rhx1 = 0.0;
+    m_PacCoeff.ptx1 = 0.0;
+    m_PacCoeff.ptx2 = 0.0;
+    m_PacCoeff.ptx3 = 0.0;
+    m_PacCoeff.ptx4 = 0.0;
+
+    // overturning coefficients
+    m_PacCoeff.qsx1 = 0.0;
+    m_PacCoeff.qsx2 = 0.0;
+    m_PacCoeff.qsx3 = 0.0;
+
+    // overturning coefficients
+    m_PacCoeff.qsy1 = 0.0;
+    m_PacCoeff.qsy2 = 0.0;
+    m_PacCoeff.qsy3 = 0.0;
+    m_PacCoeff.qsy4 = 0.0;
+    m_PacCoeff.qsy5 = 0.0;
+    m_PacCoeff.qsy6 = 0.0;
+    m_PacCoeff.qsy7 = 0.0;
+    m_PacCoeff.qsy8 = 0.0;
+
+    // Lateral Coefficients
+    m_PacCoeff.pcy1 = 0.0;
+    m_PacCoeff.pdy1 = 0.0;
+    m_PacCoeff.pdy2 = 0.0;
+    m_PacCoeff.pdy3 = 0.0;
+    m_PacCoeff.pey1 = 0.0;
+    m_PacCoeff.pey2 = 0.0;
+    m_PacCoeff.pey3 = 0.0;
+    m_PacCoeff.pey4 = 0.0;
+    m_PacCoeff.phy1 = 0.0;
+    m_PacCoeff.phy2 = 0.0;
+    m_PacCoeff.phy3 = 0.0;
+    m_PacCoeff.pky1 = 0.0;
+    m_PacCoeff.pky2 = 0.0;
+    m_PacCoeff.pky3 = 0.0;
+    m_PacCoeff.pvy1 = 0.0;
+    m_PacCoeff.pvy2 = 0.0;
+    m_PacCoeff.pvy3 = 0.0;
+    m_PacCoeff.pvy4 = 0.0;
+    m_PacCoeff.rby1 = 0.0;
+    m_PacCoeff.rby2 = 0.0;
+    m_PacCoeff.rby3 = 0.0;
+    m_PacCoeff.rcy1 = 0.0;
+    m_PacCoeff.rey1 = 0.0;
+    m_PacCoeff.rey2 = 0.0;
+    m_PacCoeff.rhy1 = 0.0;
+    m_PacCoeff.rhy2 = 0.0;
+    m_PacCoeff.rvy1 = 0.0;
+    m_PacCoeff.rvy2 = 0.0;
+    m_PacCoeff.rvy3 = 0.0;
+    m_PacCoeff.rvy4 = 0.0;
+    m_PacCoeff.rvy5 = 0.0;
+    m_PacCoeff.rvy6 = 0.0;
+    m_PacCoeff.pty1 = 0.0;
+    m_PacCoeff.pty2 = 0.0;
+
+    // alignment coefficients
+    m_PacCoeff.qbz1 = 0.0;
+    m_PacCoeff.qbz2 = 0.0;
+    m_PacCoeff.qbz3 = 0.0;
+    m_PacCoeff.qbz4 = 0.0;
+    m_PacCoeff.qbz5 = 0.0;
+    m_PacCoeff.qbz9 = 0.0;
+    m_PacCoeff.qbz10 = 0.0;
+    m_PacCoeff.qcz1 = 0.0;
+    m_PacCoeff.qdz1 = 0.0;
+    m_PacCoeff.qdz2 = 0.0;
+    m_PacCoeff.qdz3 = 0.0;
+    m_PacCoeff.qdz4 = 0.0;
+    m_PacCoeff.qdz5 = 0.0;
+    m_PacCoeff.qdz6 = 0.0;
+    m_PacCoeff.qdz7 = 0.0;
+    m_PacCoeff.qdz8 = 0.0;
+    m_PacCoeff.qdz9 = 0.0;
+    m_PacCoeff.qez1 = 0.0;
+    m_PacCoeff.qez2 = 0.0;
+    m_PacCoeff.qez3 = 0.0;
+    m_PacCoeff.qez4 = 0.0;
+    m_PacCoeff.qez5 = 0.0;
+    m_PacCoeff.qhz1 = 0.0;
+    m_PacCoeff.qhz2 = 0.0;
+    m_PacCoeff.qhz3 = 0.0;
+    m_PacCoeff.qhz4 = 0.0;
+    m_PacCoeff.ssz1 = 0.0;
+    m_PacCoeff.ssz2 = 0.0;
+    m_PacCoeff.ssz3 = 0.0;
+    m_PacCoeff.ssz4 = 0.0;
+    m_PacCoeff.qtz1 = 0.0;
+    m_PacCoeff.mbelt = 0.0;
 }
 
 // -----------------------------------------------------------------------------
@@ -61,12 +195,23 @@ void ChPac02Tire::Initialize(std::shared_ptr<ChWheel> wheel) {
     ChTire::Initialize(wheel);
 
     SetPac02Params();
-
+    GetLog() << "Parset R0 = " << m_PacCoeff.R0 << "\n";
+    GetLog() << "Parset Cz = " << m_PacCoeff.Cz << "\n";
     // Build the lookup table for penetration depth as function of intersection area
     // (used only with the ChTire::ENVELOPE method for terrain-tire collision detection)
-    ConstructAreaDepthTable(m_unloaded_radius, m_areaDep);
+    ConstructAreaDepthTable(m_PacCoeff.R0, m_areaDep);
 
     // Initialize contact patch state variables to 0;
+    m_data.normal_force = 0;
+    m_states.R_eff = m_PacCoeff.R0;
+    m_states.cp_long_slip = 0;
+    m_states.cp_side_slip = 0;
+    m_states.vx = 0;
+    m_states.vsx = 0;
+    m_states.vsy = 0;
+    m_states.omega = 0;
+    m_states.disc_normal = ChVector<>(0, 0, 0);
+
     m_states.cp_long_slip = 0;
     m_states.cp_side_slip = 0;
 }
@@ -78,7 +223,7 @@ void ChPac02Tire::AddVisualizationAssets(VisualizationType vis) {
         return;
 
     m_cyl_shape = chrono_types::make_shared<ChCylinderShape>();
-    m_cyl_shape->GetCylinderGeometry().rad = m_unloaded_radius;
+    m_cyl_shape->GetCylinderGeometry().rad = m_PacCoeff.R0;
     m_cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, GetOffset() + GetVisualizationWidth() / 2, 0);
     m_cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, GetOffset() - GetVisualizationWidth() / 2, 0);
     m_wheel->GetSpindle()->AddAsset(m_cyl_shape);
@@ -123,15 +268,15 @@ void ChPac02Tire::Synchronize(double time, const ChTerrain& terrain) {
     // Assuming the tire is a disc, check contact with terrain
     switch (m_collision_type) {
         case ChTire::CollisionType::SINGLE_POINT:
-            m_data.in_contact = DiscTerrainCollision(terrain, wheel_state.pos, disc_normal, m_unloaded_radius,
-                                                     m_data.frame, m_data.depth);
+            m_data.in_contact =
+                DiscTerrainCollision(terrain, wheel_state.pos, disc_normal, m_PacCoeff.R0, m_data.frame, m_data.depth);
             break;
         case ChTire::CollisionType::FOUR_POINTS:
-            m_data.in_contact = DiscTerrainCollision4pt(terrain, wheel_state.pos, disc_normal, m_unloaded_radius,
-                                                        m_width, m_data.frame, m_data.depth, dum_cam);
+            m_data.in_contact = DiscTerrainCollision4pt(terrain, wheel_state.pos, disc_normal, m_PacCoeff.R0,
+                                                        m_PacCoeff.width, m_data.frame, m_data.depth, dum_cam);
             break;
         case ChTire::CollisionType::ENVELOPE:
-            m_data.in_contact = DiscTerrainCollisionEnvelope(terrain, wheel_state.pos, disc_normal, m_unloaded_radius,
+            m_data.in_contact = DiscTerrainCollisionEnvelope(terrain, wheel_state.pos, disc_normal, m_PacCoeff.R0,
                                                              m_areaDep, m_data.frame, m_data.depth);
             break;
     }
@@ -153,7 +298,7 @@ void ChPac02Tire::Synchronize(double time, const ChTerrain& terrain) {
         }
 
         m_data.normal_force = Fn_mag;
-        m_states.R_eff = m_unloaded_radius - m_data.depth;
+        m_states.R_eff = m_PacCoeff.R0 - m_data.depth;
         m_states.vx = std::abs(m_data.vel.x());
         m_states.vsx = m_data.vel.x() - wheel_state.omega * m_states.R_eff;
         m_states.vsy = -m_data.vel.y();  // PAC89 is defined in a modified SAE coordinate system
@@ -162,7 +307,7 @@ void ChPac02Tire::Synchronize(double time, const ChTerrain& terrain) {
     } else {
         // Reset all states if the tire comes off the ground.
         m_data.normal_force = 0;
-        m_states.R_eff = m_unloaded_radius;
+        m_states.R_eff = m_PacCoeff.R0;
         m_states.cp_long_slip = 0;
         m_states.cp_side_slip = 0;
         m_states.vx = 0;
@@ -185,13 +330,12 @@ void ChPac02Tire::Advance(double step) {
     if (!m_data.in_contact)
         return;
 
-    if (m_states.vx != 0) {
-        m_states.cp_long_slip = -m_states.vsx / m_states.vx;
-    } else {
-        m_states.cp_long_slip = 0;
-    }
+    // prevent singularity for kappa, when vx == 0
+    const double epsilon = 0.1;
+    m_states.cp_long_slip = -m_states.vsx / (m_states.vx + epsilon);
+
     if (m_states.omega != 0) {
-        m_states.cp_side_slip = std::atan(m_states.vsy / std::abs(m_states.omega * (m_unloaded_radius - m_data.depth)));
+        m_states.cp_side_slip = std::atan(m_states.vsy / std::abs(m_states.omega * (m_PacCoeff.R0 - m_data.depth)));
     } else {
         m_states.cp_side_slip = 0;
     }
@@ -223,55 +367,33 @@ void ChPac02Tire::Advance(double step) {
     // rad too.
     double gamma = ChClamp(m_gamma, -m_gamma_limit, m_gamma_limit);
 
-    // Longitudinal Force
-    double Fx0 = mu_scale * CalcFx1(m_kappa, Fz);
-
-    // Lateral Force
-    double Fy0 = mu_scale * CalcFy1(m_alpha, Fz);
-    double as = sin(m_alpha_c);
-    double beta = acos(std::abs(m_kappa_c) / sqrt(pow(m_kappa_c, 2.0) + pow(as, 2.0)));
-    double den = sqrt(pow(1.0 / m_mu_x_act, 2.0) + pow(tan(beta) / m_mu_y_act, 2.0));
-    double mux = 1.0 / den;
-    double muy = tan(beta) / den;
-
-    // Combined Forces (Friction Ellipsis Method)
-    Fx = mux / m_mu_x_act * Fx0;
-    Fy = muy / m_mu_y_act * Fy0;
-
-    // Self-Aligning Torque
-    Mz = 0.0;
-
-    // Overturning Moment
-    {
-        double deflection = Fy / m_lateral_stiffness;
-
-        Mx = -(Fz)*deflection;
-        Mz = Mz + Fx * deflection;
+    switch (use_mode) {
+        case 1:
+            break;
+        case 2:
+            Fx = mu_scale * CalcFx1(m_kappa, Fz);
+            break;
+        case 3:
+            Fx = mu_scale * CalcFx1(m_kappa, Fz);
+            Fy = mu_scale * CalcFy1(m_alpha, Fz);
+            break;
     }
 
+    // Overturning Torque
+    {
+        double cg = std::pow(m_PacCoeff.width, 2.0) * m_PacCoeff.Cz / 12.0;
+        Mx = -cg * gamma;
+    }
     // Rolling Resistance
     {
-        double Lrad = (m_unloaded_radius - m_data.depth);
-        // Smoothing interval for My
-        const double vx_min = 0.125;
-        const double vx_max = 0.5;
-        // Smoothing factor dependend on m_state.abs_vx, allows soft switching of My
-        double myStartUp = ChSineStep(std::abs(m_states.vx), vx_min, 0.0, vx_max, 1.0);
-        My = myStartUp * m_rolling_resistance * m_data.normal_force * Lrad * ChSignum(m_states.omega);
+        double v0 = sqrt(9.81 * m_PacCoeff.R0);
+        double vstar = std::abs(m_states.vx / v0);
+        My = ChSineStep(std::abs(m_states.vx), 0.5, 0, 1.0, 1.0) * ChSignum(m_states.vx) * Fz * m_PacCoeff.R0 *
+             (m_PacCoeff.qsy1 + m_PacCoeff.qsy2 * Fx / m_PacCoeff.FzNomin + m_PacCoeff.qsy3 * vstar +
+              m_PacCoeff.qsy4 * pow(vstar, 4) +
+              (m_PacCoeff.qsy5 + m_PacCoeff.qsy6 * Fz / m_PacCoeff.FzNomin) * pow(gamma, 2)) *
+             pow(Fz / m_PacCoeff.FzNomin, m_PacCoeff.qsy7) * m_PacScal.lmuy;
     }
-
-    // GetLog() << "Fx:" << Fx
-    //    << " Fy:" << Fy
-    //    << " Fz:" << Fz
-    //    << " Mx:" << Mx
-    //    << " My:" << My
-    //    << " Mz:" << Mz
-    //    << std::endl
-    //    << " G:" << gamma
-    //    << " A:" << alpha
-    //    << " K:" << kappa
-    //    << " O:" << m_states.omega
-    //    << "\n";
 
     // Compile the force and moment vectors so that they can be
     // transformed into the global coordinate system.
@@ -295,17 +417,14 @@ double ChPac02Tire::CalcFx1(double kappa, double Fz) {
     double dFz = (Fz - Fz0s) / Fz0s;
     double C = m_PacCoeff.pcx1 * m_PacScal.lcx1;
     double Mu = (m_PacCoeff.pdx1 + m_PacCoeff.pdx2 * dFz) * m_PacScal.lmux;
-    double D = Mu * Fz * m_PacScal.xsi1;
+    double D = Mu * Fz;
     double E = (m_PacCoeff.pex1 + m_PacCoeff.pex2 * dFz + m_PacCoeff.pex3 * dFz * dFz) * m_PacScal.lex;
     double BCD = Fz * (m_PacCoeff.pkx1 + m_PacCoeff.pkx2) * m_PacScal.lkx;  // BCD = Kx
     double B = BCD / (C * D);
     double Sh = (m_PacCoeff.phx1 + m_PacCoeff.phx2 * dFz) * m_PacScal.lhx;
-    double Sv = Fz * (m_PacCoeff.pvx1 + m_PacCoeff.pvx2 * dFz) * m_PacScal.lvx * m_PacScal.lmux * m_PacScal.xsi1;
-    m_kappa_c = kappa + Sh + Sv / BCD;
+    double Sv = Fz * (m_PacCoeff.pvx1 + m_PacCoeff.pvx2 * dFz) * m_PacScal.lvx * m_PacScal.lmux;
     double X1 = B * (kappa + Sh);
     double Fx0 = D * sin(C * atan(X1 - E * (X1 - atan(X1)))) + Sv;
-    m_mu_x_act = (Fx0 - Sv) / Fz;
-    m_mu_x_max = D / Fz;
     return Fx0;
 }
 
@@ -314,23 +433,48 @@ double ChPac02Tire::CalcFy1(double alpha, double Fz) {
     double dFz = (Fz - Fz0s) / Fz0s;
     double C = m_PacCoeff.pcy1 * m_PacScal.lcy;
     double Mu = (m_PacCoeff.pdy1 + m_PacCoeff.pdy2 * dFz) * m_PacScal.lmuy;
-    double D = Mu * Fz * m_PacScal.xsi2;
+    double D = Mu * Fz;
     double E = (m_PacCoeff.pey1 + m_PacCoeff.pey2 * dFz) * m_PacScal.ley;
     double Ky0 = m_PacCoeff.pky1 * m_PacCoeff.FzNomin * sin(2.0 * atan(Fz / (m_PacCoeff.pky2 * Fz0s))) *
                  m_PacScal.lfz0 * m_PacScal.lky;
-    double BCD = Ky0 * m_PacScal.xsi3;  // BCD = Ky
+    double BCD = Ky0;  // BCD = Ky
     double B = BCD / (C * D);
-    double Sh = (m_PacCoeff.phy1 + m_PacCoeff.phy2 * dFz) * m_PacScal.lhy + m_PacScal.xsi4 - 1.0;
-    double Sv = Fz * ((m_PacCoeff.pvy1 + m_PacCoeff.pvy2 * dFz) * m_PacScal.lvy) * m_PacScal.lmuy * m_PacScal.xsi2;
-    m_alpha_c = alpha - Sh + Sv / BCD;
-    double X1 = B * (alpha + Sh);
-    X1 =
-        ChClamp(X1, -CH_C_PI_2 + 0.001, CH_C_PI_2 - 0.001);  // Ensure that X1 stays within +/-90 deg minus a little bit
+    double Sh = (m_PacCoeff.phy1 + m_PacCoeff.phy2 * dFz) * m_PacScal.lhy;
+    double Sv = Fz * ((m_PacCoeff.pvy1 + m_PacCoeff.pvy2 * dFz) * m_PacScal.lvy) * m_PacScal.lmuy;
+    double X1 = ChClamp(B * (alpha + Sh), -CH_C_PI_2 + 0.001,
+                        CH_C_PI_2 - 0.001);  // Ensure that X1 stays within +/-90 deg minus a little bit
     double Fy0 = D * sin(C * atan(X1 - E * (X1 - atan(X1)))) + Sv;
-    m_mu_y_act = (Fy0 - Sv) / Fz;
-    m_mu_y_max = D / Fz;
     return Fy0;
 }
 
+void ChPac02Tire::GeneratePlotFile(std::string pltFileName) {
+    std::ofstream plt(pltFileName);
+    double kstep = 0.01;
+    double astep = 1.0 * CH_C_DEG_TO_RAD;
+    plt << "Cz = " << m_PacCoeff.Cz << std::endl;
+    plt << "$Fx << EOD" << std::endl;
+    for (size_t i = 0; i <= 201; i++) {
+        double k = -1.0 + kstep * double(i);
+        plt << k << "\t" << CalcFx1(k, m_PacCoeff.FzNomin / 2.0) << "\t" << CalcFx1(k, m_PacCoeff.FzNomin) << std::endl;
+    }
+    plt << "EOD" << std::endl;
+    plt << "$Fy << EOD" << std::endl;
+    for (size_t i = 0; i <= 181; i++) {
+        double a = -CH_C_PI_2 + astep * double(i);
+        plt << a << "\t" << CalcFy1(a, m_PacCoeff.FzNomin / 2.0) << "\t" << CalcFy1(a, m_PacCoeff.FzNomin) << std::endl;
+    }
+    plt << "EOD" << std::endl;
+    plt << "set ylabel 'Fx [N]'" << std::endl;
+    plt << "set xlabel 'kappa []'" << std::endl;
+    plt << "plot ";
+    plt << "$Fx u 1:2 with lines, $Fx u 1:3 with lines" << std::endl;
+    plt << "pause -1" << std::endl;
+    plt << "set ylabel 'Fy [N]'" << std::endl;
+    plt << "set xlabel 'alpha []'" << std::endl;
+    plt << "plot ";
+    plt << "$Fy u 1:2 with lines, $Fy u 1:3 with lines" << std::endl;
+    plt << "pause -1" << std::endl;
+    plt.close();
+}
 }  // end namespace vehicle
 }  // end namespace chrono

@@ -34,7 +34,7 @@ namespace vehicle {
 /// @addtogroup vehicle_wheeled_tire
 /// @{
 
-/// Pacjeka 89 tire model.
+/// Pacjeka 02 tire model.
 class CH_VEHICLE_API ChPac02Tire : public ChTire {
   public:
     ChPac02Tire(const std::string& name);
@@ -60,13 +60,13 @@ class CH_VEHICLE_API ChPac02Tire : public ChTire {
     void SetGammaLimit(double gamma_limit) { m_gamma_limit = gamma_limit; }
 
     /// Get the width of the tire.
-    double GetWidth() const { return m_width; }
+    double GetWidth() const { return m_PacCoeff.width; }
 
     /// Get the tire deflection
     virtual double GetDeflection() const override { return m_data.depth; }
 
     /// Get visualization width.
-    virtual double GetVisualizationWidth() const { return m_width; }
+    virtual double GetVisualizationWidth() const { return m_PacCoeff.width; }
 
     /// Get the slip angle used in Pac89 (expressed in radians).
     /// The reported value will have opposite sign to that reported by ChTire::GetSlipAngle
@@ -80,6 +80,8 @@ class CH_VEHICLE_API ChPac02Tire : public ChTire {
     /// Get the camber angle used in Pac89 (expressed in radians).
     /// The reported value will be similar to that reported by ChTire::GetCamberAngle.
     double GetCamberAngle_internal() { return m_gamma * CH_C_DEG_TO_RAD; }
+
+    void GeneratePlotFile(std::string pltFileName);
 
   protected:
     /// Return the vertical tire stiffness contribution to the normal force.
@@ -102,13 +104,9 @@ class CH_VEHICLE_API ChPac02Tire : public ChTire {
     /// Tire reference friction
     double m_mu0;
 
-    /// Pac89 tire model parameters
-    double m_unloaded_radius;
-    double m_width;
-    double m_rolling_resistance;
-    double m_lateral_stiffness;
     VehicleSide m_measured_side;
 
+    unsigned int use_mode;
     // combined forces calculation
     double m_kappa_c;
     double m_alpha_c;
@@ -118,7 +116,6 @@ class CH_VEHICLE_API ChPac02Tire : public ChTire {
     double m_mu_y_max;
 
     struct Pac02ScalingFactors {
-        double xsi1;
         double lfz0;
         double lcx1;
         double lex;
@@ -127,44 +124,133 @@ class CH_VEHICLE_API ChPac02Tire : public ChTire {
         double lmux;
         double lvx;
 
-        double xsi2;
-        double xsi3;
-        double xsi4;
         double lcy;
         double ley;
         double lhy;
         double lky;
         double lmuy;
         double lvy;
+
+        double ltr;
     };
 
     struct Pac02Coeff {
-        double FzNomin;
+        double R0;       // unloaded radius
+        double width;    // tire width;
+        double FzNomin;  // nominla wheel load
+        double Cz;       // vertical tire stiffness
+        double Kz;       // vertical tire damping
+
         // Longitudinal Coefficients
         double pcx1;
         double pdx1;
         double pdx2;
+        double pdx3;
         double pex1;
         double pex2;
         double pex3;
+        double pex4;
         double phx1;
         double phx2;
         double pkx1;
         double pkx2;
+        double pkx3;
         double pvx1;
         double pvx2;
+        double rbx1;
+        double rbx2;
+        double rex1;
+        double rex2;
+        double rhx1;
+        double ptx1;
+        double ptx2;
+        double ptx3;
+        double ptx4;
+
+        // overturning coefficients
+        double qsx1;
+        double qsx2;
+        double qsx3;
+
+        // rolling resistance coefficients
+        double qsy1;
+        double qsy2;
+        double qsy3;
+        double qsy4;
+        double qsy5;
+        double qsy6;
+        double qsy7;
+        double qsy8;
+
         // Lateral Coefficients
         double pcy1;
         double pdy1;
         double pdy2;
+        double pdy3;
         double pey1;
         double pey2;
+        double pey3;
+        double pey4;
         double phy1;
         double phy2;
+        double phy3;
         double pky1;
         double pky2;
+        double pky3;
         double pvy1;
         double pvy2;
+        double pvy3;
+        double pvy4;
+        double rby1;
+        double rby2;
+        double rby3;
+        double rcy1;
+        double rey1;
+        double rey2;
+        double rhy1;
+        double rhy2;
+        double rvy1;
+        double rvy2;
+        double rvy3;
+        double rvy4;
+        double rvy5;
+        double rvy6;
+        double pty1;
+        double pty2;
+
+        // alignment coefficients
+        double qbz1;
+        double qbz2;
+        double qbz3;
+        double qbz4;
+        double qbz5;
+        double qbz9;
+        double qbz10;
+        double qcz1;
+        double qdz1;
+        double qdz2;
+        double qdz3;
+        double qdz4;
+        double qdz5;
+        double qdz6;
+        double qdz7;
+        double qdz8;
+        double qdz9;
+        double qez1;
+        double qez2;
+        double qez3;
+        double qez4;
+        double qez5;
+        double qhz1;
+        double qhz2;
+        double qhz3;
+        double qhz4;
+        double ssz1;
+        double ssz2;
+        double ssz3;
+        double ssz4;
+        double qtz1;
+        double mbelt;
     };
 
     Pac02ScalingFactors m_PacScal;

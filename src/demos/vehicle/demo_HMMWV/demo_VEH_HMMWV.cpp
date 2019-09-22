@@ -72,8 +72,8 @@ DrivelineType drive_type = DrivelineType::AWD;
 // Steering type (PITMAN_ARM or PITMAN_ARM_SHAFTS)
 SteeringType steering_type = SteeringType::PITMAN_ARM;
 
-// Type of tire model (RIGID, RIGID_MESH, TMEASY, PACEJKA, LUGRE, FIALA, PAC89)
-TireModelType tire_model = TireModelType::TMEASY;
+// Type of tire model (RIGID, RIGID_MESH, TMEASY, PACEJKA, LUGRE, FIALA, PAC89, PAC02)
+TireModelType tire_model = TireModelType::PAC02;
 
 // Rigid terrain
 RigidTerrain::Type terrain_model = RigidTerrain::BOX;
@@ -280,8 +280,10 @@ int main(int argc, char* argv[]) {
             auto marker_driver = my_hmmwv.GetChassis()->GetMarkers()[0]->GetAbsCoord().pos;
             auto marker_com = my_hmmwv.GetChassis()->GetMarkers()[1]->GetAbsCoord().pos;
             GetLog() << "Markers\n";
-            std::cout << "  Driver loc:      " << marker_driver.x() << " " << marker_driver.y() << " " << marker_driver.z() << std::endl;
-            std::cout << "  Chassis COM loc: " << marker_com.x() << " " << marker_com.y() << " " << marker_com.z() << std::endl;
+            std::cout << "  Driver loc:      " << marker_driver.x() << " " << marker_driver.y() << " "
+                      << marker_driver.z() << std::endl;
+            std::cout << "  Chassis COM loc: " << marker_com.x() << " " << marker_com.y() << " " << marker_com.z()
+                      << std::endl;
         }
 
         // Driver inputs
@@ -289,7 +291,8 @@ int main(int argc, char* argv[]) {
 
         // Driver output
         if (driver_mode == RECORD) {
-            driver_csv << time << driver_inputs.m_steering << driver_inputs.m_throttle << driver_inputs.m_braking << std::endl;
+            driver_csv << time << driver_inputs.m_steering << driver_inputs.m_throttle << driver_inputs.m_braking
+                       << std::endl;
         }
 
         // Update modules (process inputs from other modules)

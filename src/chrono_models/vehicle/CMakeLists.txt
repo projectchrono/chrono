@@ -41,6 +41,8 @@ set(CVM_HMMWV_FILES
     hmmwv/HMMWV_PacejkaTire.h
     hmmwv/HMMWV_Pac89Tire.cpp
     hmmwv/HMMWV_Pac89Tire.h
+    hmmwv/HMMWV_Pac02Tire.cpp
+    hmmwv/HMMWV_Pac02Tire.h
     hmmwv/HMMWV_TMeasyTire.cpp
     hmmwv/HMMWV_TMeasyTire.h
     hmmwv/HMMWV_ANCFTire.cpp
