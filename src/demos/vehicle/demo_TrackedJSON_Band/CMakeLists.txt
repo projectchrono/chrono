@@ -60,7 +60,8 @@ foreach(DEMO ${DEMOS})
     source_group("" FILES ${DEMO}.cpp)
     set_target_properties(${DEMO} PROPERTIES 
                           COMPILE_FLAGS "${COMPILER_FLAGS}"
-                          LINK_FLAGS "${LINKER_FLAGS}")
+                          LINK_FLAGS "${LINKER_FLAGS}"
+                          VS_DEBUGGER_WORKING_DIRECTORY "$(OutDir)")
     target_link_libraries(${DEMO} ${LIBRARIES})
     install(TARGETS ${DEMO} DESTINATION ${CH_INSTALL_DEMO})
 

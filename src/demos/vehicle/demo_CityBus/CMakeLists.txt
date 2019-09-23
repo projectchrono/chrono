@@ -29,7 +29,8 @@ FOREACH(DEMO ${DEMOS})
     SOURCE_GROUP("" FILES ${DEMO}.cpp)
     SET_TARGET_PROPERTIES(${DEMO} PROPERTIES
                           COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
-                          LINK_FLAGS "${CH_LINKERFLAG_EXE}")
+                          LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+                          VS_DEBUGGER_WORKING_DIRECTORY "$(OutDir)")
     TARGET_LINK_LIBRARIES(${DEMO}
                           ChronoEngine
                           ChronoEngine_irrlicht
