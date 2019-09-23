@@ -19,6 +19,7 @@ FOREACH(PROGRAM ${DEMOS})
         FOLDER cosimulation
         COMPILE_FLAGS "${CH_CXX_FLAGS}"
         LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+        VS_DEBUGGER_WORKING_DIRECTORY "$(OutDir)"
     )
 
     TARGET_LINK_LIBRARIES(${PROGRAM} ChronoEngine ChronoEngine_cosimulation)

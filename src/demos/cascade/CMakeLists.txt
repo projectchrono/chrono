@@ -16,9 +16,9 @@ ENDIF()
 # List of all Cascade demos which also require Irrlicht support
 
 set(DEMOS_CAS
-	demo_CAS_converter
-	demo_CAS_stepfile
-	demo_CAS_robot
+    demo_CAS_converter
+    demo_CAS_stepfile
+    demo_CAS_robot
 )
 
 message(STATUS "Demo programs for CASCADE module...")
@@ -38,7 +38,8 @@ if(ENABLE_MODULE_IRRLICHT)
         SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES 
             FOLDER demos
             COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
-            LINK_FLAGS "${CH_LINKERFLAG_EXE}")
+            LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+            VS_DEBUGGER_WORKING_DIRECTORY "$(OutDir)")
         TARGET_LINK_LIBRARIES(${PROGRAM}
             ChronoEngine
             ChronoEngine_cascade

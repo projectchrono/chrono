@@ -46,6 +46,7 @@ foreach(PROGRAM ${TEST_PROGRAMS})
     FOLDER tests
     COMPILE_FLAGS "${COMPILER_FLAGS}"
     LINK_FLAGS "${LINKER_FLAGS}"
+    VS_DEBUGGER_WORKING_DIRECTORY "$(OutDir)"
     )
 
   target_link_libraries(${PROGRAM} ${LIBRARIES} gtest_main)
