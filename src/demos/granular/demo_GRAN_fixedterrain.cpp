@@ -34,13 +34,8 @@
 using namespace chrono;
 using namespace chrono::granular;
 
-using std::cout;
-using std::endl;
-using std::string;
-using std::vector;
-
 void ShowUsage() {
-    cout << "usage: ./demo_GRAN_fixedterrain <json_file>" << endl;
+    std::cout << "usage: ./demo_GRAN_fixedterrain <json_file>" << std::endl;
 }
 
 int main(int argc, char* argv[]) {
@@ -50,6 +45,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    // Chrono::Granular system
     ChSystemGranularSMC gran_sys(params.sphere_radius, params.sphere_density,
                                  make_float3(params.box_X, params.box_Y, params.box_Z));
 
@@ -83,6 +79,7 @@ int main(int argc, char* argv[]) {
     vector<ChVector<float>> material_points =
         utils::PDLayerSampler_BOX<float>(fill_center, fill_hdims, 2.0 * params.sphere_radius);
 
+    // Vectors of all particle positions and fixities
     vector<ChVector<float>> body_points;
     vector<bool> fixed;
 
@@ -92,7 +89,7 @@ int main(int argc, char* argv[]) {
     body_points.insert(body_points.end(), material_points.begin(), material_points.end());
     fixed.insert(fixed.end(), material_points.size(), false);
 
-    cout << "Adding " << body_points.size() << " spheres." << endl;
+    std::cout << "Adding " << body_points.size() << " spheres." << std::endl;
     gran_sys.setParticlePositions(body_points);
     gran_sys.setParticleFixed(fixed);
 
@@ -151,21 +148,20 @@ int main(int argc, char* argv[]) {
     gran_sys.setOutputFlags(GRAN_OUTPUT_FLAGS::ABSV | GRAN_OUTPUT_FLAGS::ANG_VEL_COMPONENTS |
                             GRAN_OUTPUT_FLAGS::FIXITY);
 
+    // Create data directory
     filesystem::create_directory(filesystem::path(params.output_dir));
 
+    // Finalize initialization of the Chrono::Granular system
     gran_sys.initialize();
 
     unsigned int out_fps = 50;
-
     double frame_step = 1.0 / out_fps;
-
     int currframe = 0;
-
     for (float t = 0; t < params.time_end; t += frame_step, currframe++) {
-        cout << "Rendering frame " << currframe << endl;
+        std::cout << "Rendering frame " << currframe << std::endl;
         char filename[100];
         sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe);
-        gran_sys.writeFile(string(filename));
+        gran_sys.writeFile(std::string(filename));
 
         gran_sys.advance_simulation(frame_step);
     }
