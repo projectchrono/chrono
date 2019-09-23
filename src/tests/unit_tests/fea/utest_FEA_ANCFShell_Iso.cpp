@@ -170,9 +170,6 @@ int main(int argc, char* argv[]) {
     // Add the mesh to the system
     my_system.Add(my_mesh);
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
 #ifndef CHRONO_MKL
     use_mkl = false;
 #endif

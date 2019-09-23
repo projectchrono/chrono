@@ -114,8 +114,6 @@ TEST(IGA_Beam, Sim_vs_Analytical) {
 		//Model model1;
 		Model model(sections[i], order[i]);
 
-		// Mark completion of system construction
-        model.GetSystem()->SetupInitial();
         // Do a linear static analysis.
         model.GetSystem()->DoStaticLinear();
         

@@ -179,9 +179,6 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
     // Setup solver
     my_system.SetSolverType(ChSolver::Type::MINRES);
     auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());

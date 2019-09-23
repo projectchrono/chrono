@@ -91,9 +91,6 @@ void test_1() {
     // Set no gravity
     // my_system.Set_G_acc(VNULL);
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
     // Perform a linear static analysis
     my_system.SetSolverType(ChSolver::Type::MINRES);
     auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
@@ -189,9 +186,6 @@ void test_2() {
 
     // Set no gravity
     // my_system.Set_G_acc(VNULL);
-
-    // Mark completion of system construction
-    my_system.SetupInitial();
 
     // Perform a linear static analysis
     my_system.SetSolverType(ChSolver::Type::MINRES);
@@ -305,9 +299,6 @@ void test_3() {
 
     // Set no gravity
     // my_system.Set_G_acc(VNULL);
-
-    // Mark completion of system construction
-    my_system.SetupInitial();
 
     // Perform a linear static analysis
     my_system.SetSolverType(ChSolver::Type::MINRES);
@@ -425,9 +416,6 @@ void test_4() {
 
     // Set no gravity
     // my_system.Set_G_acc(VNULL);
-
-    // Mark completion of system construction
-    my_system.SetupInitial();
 
     // Perform a linear static analysis
     my_system.SetSolverType(ChSolver::Type::MINRES);
@@ -581,9 +569,6 @@ void test_5() {
 
     // Set no gravity
     // my_system.Set_G_acc(VNULL);
-
-    // Mark completion of system construction
-    my_system.SetupInitial();
 
     // Perform a linear static analysis
     my_system.SetSolverType(ChSolver::Type::MINRES);

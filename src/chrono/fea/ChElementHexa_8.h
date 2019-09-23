@@ -27,16 +27,6 @@ namespace fea {
 /// Class for FEA elements of hexahedron type (isoparametric 3D bricks) with 8 nodes.
 /// This element has a linear displacement field.
 class ChApi ChElementHexa_8 : public ChElementHexahedron, public ChLoadableUVW {
-  protected:
-    std::vector<std::shared_ptr<ChNodeFEAxyz> > nodes;
-    std::shared_ptr<ChContinuumElastic> Material;
-    // std::vector< ChMatrixDynamic<> > MatrB;	// matrices of shape function's partial derivatives (one for each
-    // integration point)
-    // we use a vector to keep in memory all the 8 matrices (-> 8 integr. point)
-    // NO! each matrix is stored in the respective gauss point
-
-    ChMatrixDynamic<> StiffnessMatrix;
-
   public:
     using ShapeVector = ChMatrixNM<double, 1, 8>;
 
@@ -101,8 +91,6 @@ class ChApi ChElementHexa_8 : public ChElementHexahedron, public ChLoadableUVW {
     /// K = sum (w_i * [B]' * [D] * [B])
     /// The number of Gauss Point is defined by SetIntegrationRule function (default: 8 Gp).
     virtual void ComputeStiffnessMatrix();
-
-    virtual void SetupInitial(ChSystem* system) override { ComputeStiffnessMatrix(); }
 
     // compute large rotation of element for corotational approach
     virtual void UpdateRotation() override;
@@ -198,6 +186,18 @@ class ChApi ChElementHexa_8 : public ChElementHexahedron, public ChLoadableUVW {
 
     /// This is needed so that it can be accessed by ChLoaderVolumeGravity
     virtual double GetDensity() override { return this->Material->Get_density(); }
+
+  private:
+    virtual void SetupInitial(ChSystem* system) override { ComputeStiffnessMatrix(); }
+
+    std::vector<std::shared_ptr<ChNodeFEAxyz> > nodes;
+    std::shared_ptr<ChContinuumElastic> Material;
+    // std::vector< ChMatrixDynamic<> > MatrB;	// matrices of shape function's partial derivatives (one for each
+    // integration point)
+    // we use a vector to keep in memory all the 8 matrices (-> 8 integr. point)
+    // NO! each matrix is stored in the respective gauss point
+
+    ChMatrixDynamic<> StiffnessMatrix;
 };
 
 /// @} fea_elements

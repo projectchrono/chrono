@@ -183,9 +183,6 @@ application.AssetUpdateAll()
 # Perform a dynamic time integration
 # ----------------------------------
 
-# Mark completion of system construction
-my_system.SetupInitial()
-
 # Set up solver
 #my_system.SetSolverType(chrono.ChSolver.Type_MINRES)
 #msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver())

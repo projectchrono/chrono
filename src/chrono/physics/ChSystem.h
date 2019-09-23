@@ -268,11 +268,6 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// Gets the G (gravity) acceleration vector affecting all the bodies in the system.
     const ChVector<>& Get_G_acc() const { return G_acc; }
 
-    /// Initial system setup before analysis.
-    /// This function performs an initial system setup, once system construction is completed and before an analysis.
-	/// In typical use, this function need not be called by the user (it is automatically invoked).
-    void SetupInitial() override;
-
     //
     // DATABASE HANDLING.
     //
@@ -359,9 +354,15 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     }
 
   protected:
-    /// Pushes all ChConstraints and ChVariables contained in links, bodies, etc.
-    /// into the system descriptor.
+    /// Pushes all ChConstraints and ChVariables contained in links, bodies, etc. into the system descriptor.
     virtual void DescriptorPrepareInject(ChSystemDescriptor& mdescriptor);
+
+  private:
+    // Note: SetupInitial need not be typically called by a user, so it is currently marked private.
+
+    /// Initial system setup before analysis.
+    /// This function performs an initial system setup, once system construction is completed and before an analysis.
+    void SetupInitial() override;
 
   public:
     //
@@ -369,9 +370,8 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     //
 
     /// Counts the number of bodies and links.
-    /// Computes the offsets of object states in the global state.
-    /// Assumes that offset_x, offset_w, and offset_L are already set
-    /// as starting point for offsetting all the contained sub objects.
+    /// Computes the offsets of object states in the global state. Assumes that offset_x, offset_w, and offset_L are
+    /// already set as starting point for offsetting all the contained sub objects.
     virtual void Setup() override;
 
     /// Updates all the auxiliary data and children of
@@ -379,7 +379,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     virtual void Update(bool update_assets = true) override;
 
     // Overload interfaces for global state vectors, see ChPhysicsItem for comments.
-    // The following must be overload because there may be ChContactContainer objects in addition to base ChAssembly.
+    // The following must be overloaded because there may be ChContactContainer objects in addition to base ChAssembly.
     virtual void IntStateGather(const unsigned int off_x,
                                 ChState& x,
                                 const unsigned int off_v,

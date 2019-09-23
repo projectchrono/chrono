@@ -190,9 +190,6 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
 #ifndef CHRONO_MKL
     use_mkl = false;
 #endif

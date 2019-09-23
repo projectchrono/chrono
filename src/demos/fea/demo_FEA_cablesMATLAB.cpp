@@ -90,14 +90,10 @@ int main(int argc, char* argv[]) {
     // that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
     application.AssetUpdateAll();
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
-    // Change solver to Matlab external linear solver, for max precision in benchmarks
+    // Change solver to Matlab external linear solver.
     ChMatlabEngine matlab_engine;
     auto matlab_solver = chrono_types::make_shared<ChSolverMatlab>(matlab_engine);
     my_system.SetSolver(matlab_solver);
-    my_system.Update();
 
     // Change type of integrator:
     my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise

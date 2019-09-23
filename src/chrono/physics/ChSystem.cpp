@@ -327,7 +327,6 @@ void ChSystem::SetupInitial() {
     for (int ip = 0; ip < otherphysicslist.size(); ++ip) {
         otherphysicslist[ip]->SetupInitial();
     }
-    this->Update();
 
 	is_initialized = true;
 }
@@ -711,7 +710,10 @@ void ChSystem::Setup() {
 // - updates all markers (automatic, as children of bodies).
 
 void ChSystem::Update(bool update_assets) {
-    CH_PROFILE( "Update");
+    CH_PROFILE("Update");
+
+    if (!is_initialized)
+        SetupInitial();
 
     timer_update.start();  // Timer for profiling
 
@@ -1396,6 +1398,9 @@ void ChSystem::DumpSystemMatrices(bool save_M, bool save_K, bool save_R, bool sa
 // -----------------------------------------------------------------------------
 
 int ChSystem::DoStepDynamics(double m_step) {
+    if (!is_initialized)
+        SetupInitial();
+
     step = m_step;
     return Integrate_Y();
 }
@@ -1483,7 +1488,10 @@ bool ChSystem::Integrate_Y() {
 // -----------------------------------------------------------------------------
 
 bool ChSystem::DoAssembly(int action) {
-    solvecount = 0;
+    if (!is_initialized)
+        SetupInitial();
+
+	solvecount = 0;
     setupcount = 0;
 
     Setup();
@@ -1520,6 +1528,9 @@ bool ChSystem::DoAssembly(int action) {
 // -----------------------------------------------------------------------------
 
 bool ChSystem::DoStaticLinear() {
+    if (!is_initialized)
+        SetupInitial();
+
     solvecount = 0;
     setupcount = 0;
 
@@ -1568,6 +1579,9 @@ bool ChSystem::DoStaticLinear() {
 // -----------------------------------------------------------------------------
 
 bool ChSystem::DoStaticNonlinear(int nsteps) {
+    if (!is_initialized)
+        SetupInitial();
+
     solvecount = 0;
     setupcount = 0;
 
@@ -1597,7 +1611,10 @@ bool ChSystem::DoStaticNonlinear(int nsteps) {
 // -----------------------------------------------------------------------------
 
 bool ChSystem::DoStaticRelaxing(int nsteps) {
-    solvecount = 0;
+    if (!is_initialized)
+        SetupInitial();
+
+	solvecount = 0;
     setupcount = 0;
 
     int err = 0;
@@ -1647,7 +1664,10 @@ bool ChSystem::DoStaticRelaxing(int nsteps) {
 // -----------------------------------------------------------------------------
 
 bool ChSystem::DoEntireKinematics() {
-    Setup();
+    if (!is_initialized)
+        SetupInitial();
+
+	Setup();
 
     int action = AssemblyLevel::POSITION | AssemblyLevel::VELOCITY | AssemblyLevel::ACCELERATION;
 
@@ -1677,7 +1697,10 @@ bool ChSystem::DoEntireKinematics() {
 // -----------------------------------------------------------------------------
 
 bool ChSystem::DoEntireDynamics() {
-    Setup();
+    if (!is_initialized)
+        SetupInitial();
+
+	Setup();
 
     // the system may have wrong layout, or too large
     // clearances in constraints, so it is better to
@@ -1712,7 +1735,10 @@ bool ChSystem::DoEntireDynamics() {
 // requested to reach m_endtime, the step is lowered.
 
 bool ChSystem::DoFrameDynamics(double m_endtime) {
-    double frame_step;
+    if (!is_initialized)
+        SetupInitial();
+
+	double frame_step;
     double old_step;
     double left_time;
     bool restore_oldstep = false;
@@ -1765,8 +1791,10 @@ bool ChSystem::DoFrameDynamics(double m_endtime) {
 // command).
 
 bool ChSystem::DoEntireUniformDynamics(double frame_step) {
-    // the initial system may have wrong layout, or too large
-    // clearances in constraints.
+    if (!is_initialized)
+        SetupInitial();
+
+	// the initial system may have wrong layout, or too large clearances in constraints.
     Setup();
     DoAssembly(AssemblyLevel::POSITION | AssemblyLevel::VELOCITY | AssemblyLevel::ACCELERATION);
 
@@ -1782,7 +1810,10 @@ bool ChSystem::DoEntireUniformDynamics(double frame_step) {
 // Like DoFrameDynamics, but performs kinematics instead of dynamics
 
 bool ChSystem::DoFrameKinematics(double m_endtime) {
-    double frame_step;
+    if (!is_initialized)
+        SetupInitial();
+
+	double frame_step;
     double old_step;
     double left_time;
     int restore_oldstep;
@@ -1824,7 +1855,10 @@ bool ChSystem::DoFrameKinematics(double m_endtime) {
 }
 
 bool ChSystem::DoStepKinematics(double m_step) {
-    ChTime += m_step;
+    if (!is_initialized)
+        SetupInitial();
+
+	ChTime += m_step;
 
     Update();
 

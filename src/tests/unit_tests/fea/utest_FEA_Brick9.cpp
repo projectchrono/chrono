@@ -244,9 +244,6 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
 
     my_system.Set_G_acc(ChVector<>(0.0, 0.0, 0.0));
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
     // Set up solver
     my_system.SetSolverType(ChSolver::Type::MINRES);
     auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
@@ -448,9 +445,6 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     my_system.Set_G_acc(ChVector<>(0.0, 0.0, -9.81));
     my_mesh->SetAutomaticGravity(false);
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
     // ----------------------------------
     // Perform a dynamic time integration
     // ----------------------------------
@@ -651,9 +645,6 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     my_system.Add(my_mesh);
 
     my_system.Set_G_acc(ChVector<>(0.0, 0.0, 0.0));
-
-    // Mark completion of system construction
-    my_system.SetupInitial();
 
     // Set up solver
     my_system.SetSolverType(ChSolver::Type::MINRES);
@@ -862,9 +853,6 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     my_system.Add(my_mesh);
 
     my_system.Set_G_acc(ChVector<>(0.0, 0.0, 0.0));
-
-    // Mark completion of system construction
-    my_system.SetupInitial();
 
     // Set up solver
     my_system.SetSolverType(ChSolver::Type::MINRES);

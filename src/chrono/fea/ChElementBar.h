@@ -30,18 +30,9 @@ namespace fea {
 /// but also adds mass along the element, hence point-like mass in the two nodes
 /// is not needed.
 class ChApi ChElementBar : public ChElementGeneric {
-  protected:
-    std::vector<std::shared_ptr<ChNodeFEAxyz> > nodes;
-    double area;
-    double density;
-    double E;
-    double rdamping;
-    double mass;
-    double length;
-
   public:
     ChElementBar();
-    virtual ~ChElementBar();
+    ~ChElementBar();
 
     virtual int GetNnodes() override { return 2; }
     virtual int GetNdofs() override { return 2 * 3; }
@@ -66,10 +57,6 @@ class ChApi ChElementBar : public ChElementGeneric {
                                           double Kfactor,
                                           double Rfactor = 0,
                                           double Mfactor = 0) override;
-
-    /// Setup. Precompute mass and matrices that do not change during the
-    /// simulation, such as the local tangent stiffness Kl of each element, if needed, etc.
-    virtual void SetupInitial(ChSystem* system) override;
 
     /// Computes the internal forces (ex. the actual position of nodes is not in relaxed reference position) and set
     /// values in the Fi vector.
@@ -113,6 +100,19 @@ class ChApi ChElementBar : public ChElementGeneric {
     //
     // Functions for interfacing to the solver
     //            (***not needed, thank to bookkeeping in parent class ChElementGeneric)
+
+  private:
+    /// Initial setup. Precompute mass and matrices that do not change during the simulation, such as the local tangent
+    /// stiffness Kl of each element, if needed, etc.
+    virtual void SetupInitial(ChSystem* system) override;
+
+    std::vector<std::shared_ptr<ChNodeFEAxyz> > nodes;
+    double area;
+    double density;
+    double E;
+    double rdamping;
+    double mass;
+    double length;
 };
 
 /// @} fea_elements

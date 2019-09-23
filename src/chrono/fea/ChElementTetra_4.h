@@ -33,19 +33,11 @@ namespace fea {
 /// This is a classical element with linear displacement, hence with constant stress
 /// and constant strain. It can be easily used for 3D FEA problems.
 class ChApi ChElementTetra_4 : public ChElementTetrahedron, public ChLoadableUVW {
-  protected:
-    std::vector<std::shared_ptr<ChNodeFEAxyz> > nodes;
-    std::shared_ptr<ChContinuumElastic> Material;
-    ChMatrixDynamic<> MatrB;            // matrix of shape function's partial derivatives
-    ChMatrixDynamic<> StiffnessMatrix;  // undeformed local stiffness matrix
-
-    ChMatrixNM<double, 4, 4> mM;  // for speeding up corotational approach
-
   public:
     using ShapeVector = ChMatrixNM<double, 1, 4>;
 
     ChElementTetra_4();
-    virtual ~ChElementTetra_4();
+    ~ChElementTetra_4();
 
     virtual int GetNnodes() override { return 4; }
     virtual int GetNdofs() override { return 4 * 3; }
@@ -82,9 +74,6 @@ class ChApi ChElementTetra_4 : public ChElementTetrahedron, public ChLoadableUVW
     /// Computes the local STIFFNESS MATRIX of the element:
     /// K = Volume * [B]' * [D] * [B]
     virtual void ComputeStiffnessMatrix();
-
-    /// set up the element's parameters and matrices
-    virtual void SetupInitial(ChSystem* system) override;
 
     /// compute large rotation of element for corotational approach
     virtual void UpdateRotation() override;
@@ -188,6 +177,17 @@ class ChApi ChElementTetra_4 : public ChElementTetrahedron, public ChLoadableUVW
     /// otherwise use quadrature over u,v,w in [-1..+1] as box isoparametric coords.
     virtual bool IsTetrahedronIntegrationNeeded() override { return true; }
 
+  private:
+    /// Initial setup: set up the element's parameters and matrices
+    virtual void SetupInitial(ChSystem* system) override;
+
+    std::vector<std::shared_ptr<ChNodeFEAxyz> > nodes;
+    std::shared_ptr<ChContinuumElastic> Material;
+    ChMatrixDynamic<> MatrB;            // matrix of shape function's partial derivatives
+    ChMatrixDynamic<> StiffnessMatrix;  // undeformed local stiffness matrix
+
+    ChMatrixNM<double, 4, 4> mM;  // for speeding up corotational approach
+
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
@@ -198,20 +198,12 @@ class ChApi ChElementTetra_4 : public ChElementTetrahedron, public ChLoadableUVW
 /// This is a classical element with linear displacement.
 /// ***EXPERIMENTAL***
 class ChApi ChElementTetra_4_P : public ChElementTetrahedron, public ChLoadableUVW {
-  protected:
-    std::vector<std::shared_ptr<ChNodeFEAxyzP> > nodes;
-    std::shared_ptr<ChContinuumPoisson3D> Material;
-    ChMatrixDynamic<> MatrB;            // matrix of shape function's partial derivatives
-    ChMatrixDynamic<> StiffnessMatrix;  // local stiffness matrix
-
-    ChMatrixNM<double, 4, 4> mM;  // for speeding up corotational approach
-
   public:
     using ShapeVector = ChMatrixNM<double, 1, 4>;
 
     ChElementTetra_4_P();
 
-    virtual ~ChElementTetra_4_P() {}
+    ~ChElementTetra_4_P() {}
 
     virtual int GetNnodes() override { return 4; }
     virtual int GetNdofs() override { return 4 * 1; }
@@ -248,9 +240,6 @@ class ChApi ChElementTetra_4_P : public ChElementTetrahedron, public ChLoadableU
     /// Computes the local STIFFNESS MATRIX of the element:
     /// K = Volume * [B]' * [D] * [B]
     virtual void ComputeStiffnessMatrix();
-
-    /// set up the element's parameters and matrices
-    virtual void SetupInitial(ChSystem* system) override;
 
     // compute large rotation of element for corotational approach
     // Btw: NOT really needed for Poisson problems
@@ -345,6 +334,17 @@ class ChApi ChElementTetra_4_P : public ChElementTetrahedron, public ChLoadableU
     /// If true, use quadrature over u,v,w in [0..1] range as tetrahedron volumetric coords, with z=1-u-v-w
     /// otherwise use quadrature over u,v,w in [-1..+1] as box isoparametric coords.
     virtual bool IsTetrahedronIntegrationNeeded() override { return true; }
+
+  private:
+    /// Initial setup: set up the element's parameters and matrices
+    virtual void SetupInitial(ChSystem* system) override;
+
+    std::vector<std::shared_ptr<ChNodeFEAxyzP> > nodes;
+    std::shared_ptr<ChContinuumPoisson3D> Material;
+    ChMatrixDynamic<> MatrB;            // matrix of shape function's partial derivatives
+    ChMatrixDynamic<> StiffnessMatrix;  // local stiffness matrix
+
+    ChMatrixNM<double, 4, 4> mM;  // for speeding up corotational approach
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW

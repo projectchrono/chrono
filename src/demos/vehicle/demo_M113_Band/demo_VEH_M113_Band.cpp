@@ -323,9 +323,6 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    // IMPORTANT: Mark completion of system construction
-    vehicle.GetSystem()->SetupInitial();
-
     // Inter-module communication data
     BodyStates shoe_states_left(vehicle.GetNumTrackShoes(LEFT));
     BodyStates shoe_states_right(vehicle.GetNumTrackShoes(RIGHT));
