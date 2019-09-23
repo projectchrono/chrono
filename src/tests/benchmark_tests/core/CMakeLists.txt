@@ -23,7 +23,6 @@ foreach(PROGRAM ${TESTS})
         FOLDER demos
         COMPILE_FLAGS "${COMPILER_FLAGS}"
         LINK_FLAGS "${LINKER_FLAGS}"
-        VS_DEBUGGER_WORKING_DIRECTORY "$(OutDir)"
     )
     target_link_libraries(${PROGRAM} ${LIBS} benchmark_main)
 endforeach(PROGRAM)

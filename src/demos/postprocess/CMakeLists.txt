@@ -2,16 +2,16 @@
 
 # List of demos with no additional dependencies 
 set(POST_DEMOS
-    demo_POST_povray
-    demo_POST_gnuplot
-    demo_POST_timestepping
-    )
+	demo_POST_povray
+	demo_POST_gnuplot
+	demo_POST_timestepping
+	)
 
 # List of demos requiring the Chrono::Irrlicht module
 set(POST_DEMOS_IRR
-    demo_POST_emit_creation
-    demo_POST_emitter_asset
-    )
+	demo_POST_emit_creation
+	demo_POST_emitter_asset
+	)
 
 #--------------------------------------------------------------
 
@@ -25,8 +25,7 @@ foreach(PROGRAM ${POST_DEMOS})
     set_target_properties(${PROGRAM} PROPERTIES 
         FOLDER demos
         COMPILE_FLAGS "${CH_CXX_FLAGS}"
-        LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-        VS_DEBUGGER_WORKING_DIRECTORY "$(OutDir)")
+        LINK_FLAGS "${CH_LINKERFLAG_EXE}")
     target_link_libraries(${PROGRAM} ChronoEngine ChronoEngine_postprocess)
     add_dependencies(${PROGRAM} ChronoEngine ChronoEngine_postprocess)
     install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
@@ -44,10 +43,9 @@ if(ENABLE_MODULE_IRRLICHT)
         set_target_properties(${PROGRAM} PROPERTIES 
             FOLDER demos
             COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
-            LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-            VS_DEBUGGER_WORKING_DIRECTORY "$(OutDir)")
+            LINK_FLAGS "${CH_LINKERFLAG_EXE}")
         target_link_libraries(${PROGRAM} 
-            ChronoEngine
+        	ChronoEngine
             ChronoEngine_postprocess
             ChronoEngine_irrlicht)
         add_dependencies(${PROGRAM} ChronoEngine ChronoEngine_postprocess ChronoEngine_irrlicht)

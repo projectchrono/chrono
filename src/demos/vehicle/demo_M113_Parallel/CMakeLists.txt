@@ -30,8 +30,7 @@ MESSAGE(STATUS "...add ${DEMO}")
 ADD_EXECUTABLE(${DEMO} ${DEMO}.cpp ${MODEL_FILES})
 SET_TARGET_PROPERTIES(${DEMO} PROPERTIES 
                       COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_PARALLEL_CXX_FLAGS}"
-                      LINK_FLAGS "${LINKERFLAG_EXE}"
-                      VS_DEBUGGER_WORKING_DIRECTORY "$(OutDir)")
+                      LINK_FLAGS "${LINKERFLAG_EXE}")
 TARGET_LINK_LIBRARIES(${DEMO}
                       ChronoEngine
                       ChronoEngine_vehicle

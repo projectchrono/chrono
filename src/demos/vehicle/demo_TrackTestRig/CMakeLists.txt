@@ -42,8 +42,7 @@ MESSAGE(STATUS "...add ${DEMO}")
 ADD_EXECUTABLE(${DEMO} ${DEMO}.cpp ${MODEL_FILES})
 SET_TARGET_PROPERTIES(${DEMO} PROPERTIES 
                       COMPILE_FLAGS "${COMPILER_FLAGS}"
-                      LINK_FLAGS "${LINKER_FLAGS}"
-                      VS_DEBUGGER_WORKING_DIRECTORY "$(OutDir)")
+                      LINK_FLAGS "${LINKER_FLAGS}")
 TARGET_LINK_LIBRARIES(${DEMO} 
                       ChronoEngine
                       ChronoEngine_irrlicht

@@ -16,8 +16,7 @@ FOREACH(PROGRAM ${MUMPS_DEMOS})
     ADD_EXECUTABLE(${PROGRAM} ${PROGRAM}.cpp)
     SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES 
                           FOLDER demos
-                          LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-                          VS_DEBUGGER_WORKING_DIRECTORY "$(OutDir)")
+                          LINK_FLAGS "${CH_LINKERFLAG_EXE}")
     TARGET_LINK_LIBRARIES(${PROGRAM} ChronoEngine ChronoEngine_mumps)
     INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 ENDFOREACH()
