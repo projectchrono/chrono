@@ -541,30 +541,36 @@ void ChAssembly::IntStateScatter(const unsigned int off_x,
                                  const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const double T) {
+    // Notes:
+    // 1. All IntStateScatter() calls below will automatically call Update() for each object, therefore:
+    //    - do not call Update() on this (assembly).
+    //    - do not call ChPhysicsItem::IntStateScatter() as this will also result in a redundant Update()
+    // 2. Order below is *important*
+    //    - in particular, bodies and meshes must be processed *before* links, so that links can use
+    //      up-to-date body and node information
+
     unsigned int displ_x = off_x - this->offset_x;
     unsigned int displ_v = off_v - this->offset_w;
 
     for (auto& body : bodylist) {
         if (body->IsActive())
             body->IntStateScatter(displ_x + body->GetOffset_x(), x, displ_v + body->GetOffset_w(), v, T);
+        else
+            body->Update(T);
+    }
+    for (auto& mesh : meshlist) {
+        mesh->IntStateScatter(displ_x + mesh->GetOffset_x(), x, displ_v + mesh->GetOffset_w(), v, T);
     }
     for (auto& link : linklist) {
         if (link->IsActive())
             link->IntStateScatter(displ_x + link->GetOffset_x(), x, displ_v + link->GetOffset_w(), v, T);
-    }
-    for (auto& mesh : meshlist) {
-        mesh->IntStateScatter(displ_x + mesh->GetOffset_x(), x, displ_v + mesh->GetOffset_w(), v, T);
+        else
+            link->Update(T);
     }
     for (auto& item : otherphysicslist) {
         item->IntStateScatter(displ_x + item->GetOffset_x(), x, displ_v + item->GetOffset_w(), v, T);
     }
     SetChTime(T);
-
-    // Note: all those IntStateScatter() above should call Update() automatically
-    // for each object in the loop, therefore:
-    // -do not call Update() on this.
-    // -do not call ChPhysicsItem::IntStateScatter() -it calls this->Update() anyway-
-    // because this would cause redundant updates.
 }
 
 void ChAssembly::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
