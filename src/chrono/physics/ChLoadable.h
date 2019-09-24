@@ -74,7 +74,7 @@ class ChApi ChLoadable {
 /// distributed along UVW coordinates of the object.
 /// For instance finite elements like 3D bricks, ex.for gravitational loads.
 
-class ChApi ChLoadableUVW : public ChLoadable {
+class ChApi ChLoadableUVW : virtual public ChLoadable {
   public:
     virtual ~ChLoadableUVW() {}
 
@@ -105,7 +105,7 @@ class ChApi ChLoadableUVW : public ChLoadable {
 /// distributed along UV coordinates of the object.
 /// For instance finite elements like shells, ex.for applied pressure.
 
-class ChApi ChLoadableUV : public ChLoadable {
+class ChApi ChLoadableUV : virtual public ChLoadable {
   public:
     virtual ~ChLoadableUV() {}
 
@@ -135,7 +135,7 @@ class ChApi ChLoadableUV : public ChLoadable {
 /// distributed along U coordinate of the object.
 /// For instance finite elements like beams.
 
-class ChApi ChLoadableU : public ChLoadable {
+class ChApi ChLoadableU : virtual public ChLoadable {
   public:
     virtual ~ChLoadableU() {}
 
