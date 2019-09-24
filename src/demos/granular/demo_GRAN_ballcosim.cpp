@@ -14,6 +14,8 @@
 // Chrono::Granular demo using SMC method. A body whose geometry is described
 // by an OBJ file is time-integrated in Chrono and interacts with a Granular
 // wave tank in Chrono::Granular via the co-simulation framework.
+//
+// Pass param file: data/granular/ballcosim/gran_ballcosim.json
 // =============================================================================
 
 #include <iostream>

@@ -16,6 +16,8 @@
 // the Poisson Disk sampler. The terrain is read in from a triangle OBJ mesh
 // file and decomposed into spheres which are set as fixed for the simulation.
 // Note that the sphere size should be small enough to capture each triangle.
+//
+// Pass data/granular/fixedterrain/demo_GRAN_fixedterrain.json as the param file
 // =============================================================================
 
 #include <iostream>
@@ -76,12 +78,12 @@ int main(int argc, char* argv[]) {
     ChVector<> fill_hdims(params.box_X / 2 - boundary_padding - 2.0 * params.sphere_radius,
                           params.box_Y / 2 - boundary_padding - 2.0 * params.sphere_radius,
                           (fill_top - fill_bottom) / 2.0);
-    vector<ChVector<float>> material_points =
+    std::vector<ChVector<float>> material_points =
         utils::PDLayerSampler_BOX<float>(fill_center, fill_hdims, 2.0 * params.sphere_radius);
 
     // Vectors of all particle positions and fixities
-    vector<ChVector<float>> body_points;
-    vector<bool> fixed;
+    std::vector<ChVector<float>> body_points;
+    std::vector<bool> fixed;
 
     body_points.insert(body_points.end(), terrain_points.begin(), terrain_points.end());
     fixed.insert(fixed.end(), terrain_points.size(), true);
