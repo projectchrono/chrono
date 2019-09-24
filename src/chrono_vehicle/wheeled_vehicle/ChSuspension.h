@@ -40,8 +40,7 @@ namespace vehicle {
 /// Base class for a suspension subsystem.
 class CH_VEHICLE_API ChSuspension : public ChPart {
   public:
-    ChSuspension(const std::string& name  ///< [in] name of the subsystem
-                 );
+    ChSuspension(const std::string& name);
 
     virtual ~ChSuspension() {}
 
@@ -88,12 +87,14 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     /// Get the index of the associated steering index (-1 if non-steered).
     int GetSteeringIndex() const { return m_steering_index; }
 
-    /// Update the suspension subsystem: apply the provided tire forces.
-    /// The given tire force and moment is applied to the specified (left or
-    /// right) spindle body. This function provides the interface to the tire
-    /// system (intermediated by the vehicle system).
-    void Synchronize(VehicleSide side,               ///< side (left or right) on which forces should be applied
-                     const TerrainForce& tire_force  ///< generalized tire forces
+    /// Synchronize this suspension subsystem.
+    /// This function must be called before any call to AccumulateTireForce.
+    void Synchronize();
+
+    /// Apply the given tire force to the suspension's spindle body.
+    /// Typically, this function is called by a wheel subsystem associated with this suspension.
+    void AccumulateTireForce(VehicleSide side,               ///< side (left or right) on which forces should be applied
+                             const TerrainForce& tire_force  ///< generalized tire forces
     );
 
     /// Apply the provided motor torque.
@@ -101,8 +102,8 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     /// function provides the interface to the drivetrain subsystem (intermediated
     /// by the vehicle system).
     void ApplyAxleTorque(VehicleSide side,  ///< indicates the axle (left or right) where the torque should be applied
-                         double torque        ///< value of applied torque
-                         );
+                         double torque      ///< value of applied torque
+    );
 
     /// Initialize this suspension subsystem.
     /// The suspension subsystem is initialized by attaching it to the specified

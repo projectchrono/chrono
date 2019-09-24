@@ -20,7 +20,7 @@
 #define CH_TRACK_DRIVELINE_BDS_H
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/tracked_vehicle/ChTrackDriveline.h"
+#include "chrono_vehicle/tracked_vehicle/ChDrivelineTV.h"
 
 #include "chrono/physics/ChShaftsGear.h"
 #include "chrono/physics/ChShaftsGearboxAngled.h"
@@ -36,7 +36,7 @@ namespace vehicle {
 /// @{
 
 /// Track driveline model template based on ChShaft objects.
-class CH_VEHICLE_API ChTrackDrivelineBDS : public ChTrackDriveline {
+class CH_VEHICLE_API ChTrackDrivelineBDS : public ChDrivelineTV {
   public:
     ChTrackDrivelineBDS(const std::string& name  ///< [in] name of the subsystem
                         );

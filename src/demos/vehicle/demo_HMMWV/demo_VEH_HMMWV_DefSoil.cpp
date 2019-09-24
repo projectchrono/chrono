@@ -214,13 +214,17 @@ int main(int argc, char* argv[]) {
     // Set wheel contact material.
     // If needed, modify wheel contact and visualization models
     // --------------------------------------------------------
-    for (int i = 0; i < 4; i++) {
-        auto wheelBody = my_hmmwv.GetVehicle().GetWheelBody(i);
-        wheelBody->GetMaterialSurfaceSMC()->SetFriction(mu_t);
-        wheelBody->GetMaterialSurfaceSMC()->SetYoungModulus(Y_t);
-        wheelBody->GetMaterialSurfaceSMC()->SetRestitution(cr_t);
-
-        CreateLuggedGeometry(wheelBody);
+    for (auto& axle : my_hmmwv.GetVehicle().GetAxles()) {
+        auto wheelBodyL = axle->m_wheels[0]->GetSpindle();
+        wheelBodyL->GetMaterialSurfaceSMC()->SetFriction(mu_t);
+        wheelBodyL->GetMaterialSurfaceSMC()->SetYoungModulus(Y_t);
+        wheelBodyL->GetMaterialSurfaceSMC()->SetRestitution(cr_t);
+        CreateLuggedGeometry(wheelBodyL);
+        auto wheelBodyR = axle->m_wheels[1]->GetSpindle();
+        wheelBodyR->GetMaterialSurfaceSMC()->SetFriction(mu_t);
+        wheelBodyR->GetMaterialSurfaceSMC()->SetYoungModulus(Y_t);
+        wheelBodyR->GetMaterialSurfaceSMC()->SetRestitution(cr_t);
+        CreateLuggedGeometry(wheelBodyR);
     }
 
     // --------------------
@@ -293,7 +297,7 @@ int main(int argc, char* argv[]) {
     // ---------------------------------------
     // Create the vehicle Irrlicht application
     // ---------------------------------------
-    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), &my_hmmwv.GetPowertrain(), L"HMMWV Deformable Soil Demo");
+    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"HMMWV Deformable Soil Demo");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(trackPoint, 6.0, 0.5);
@@ -342,9 +346,6 @@ int main(int argc, char* argv[]) {
     while (app.GetDevice()->run()) {
         double time = system->GetChTime();
 
-        ////auto frc = static_cast<ChRigidTire*>(my_hmmwv.GetTire(0))->ReportTireForce(terrain);
-        ////std::cout << frc.force.x() << " " << frc.force.y() << " " << frc.force.z() << std::endl;
-
         // Render scene
         app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         app.DrawAll();
@@ -357,15 +358,14 @@ int main(int argc, char* argv[]) {
             render_frame++;
         }
 
-        double throttle_input = driver.GetThrottle();
-        double steering_input = driver.GetSteering();
-        double braking_input = driver.GetBraking();
+        // Driver inputs
+        ChDriver::Inputs driver_inputs = driver.GetInputs();
 
         // Update modules
         driver.Synchronize(time);
         terrain->Synchronize(time);
-        my_hmmwv.Synchronize(time, steering_input, braking_input, throttle_input, *terrain);
-        app.Synchronize("", steering_input, throttle_input, braking_input);
+        my_hmmwv.Synchronize(time, driver_inputs, *terrain);
+        app.Synchronize("", driver_inputs);
 
         // Advance dynamics
         double step = realtime_timer.SuggestSimulationStep(step_size);

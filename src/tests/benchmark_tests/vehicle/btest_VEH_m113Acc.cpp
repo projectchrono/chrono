@@ -50,7 +50,6 @@ public:
 
 private:
     M113_Vehicle* m_m113;
-    M113_SimplePowertrain* m_powertrain;
     RigidTerrain* m_terrain;
     ChPathFollowerDriver* m_driver;
 
@@ -77,8 +76,8 @@ M113AccTest<EnumClass, SHOE_TYPE>::M113AccTest() : m_step(1e-3) {
     m_m113->SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
 
     // Create the powertrain
-    m_powertrain = new M113_SimplePowertrain("Powertrain");
-    m_powertrain->Initialize(m_m113->GetChassisBody(), m_m113->GetDriveshaft());
+    auto powertrain = chrono_types::make_shared<M113_SimplePowertrain>("Powertrain");
+    m_m113->InitializePowertrain(powertrain);
 
     // Create the terrain
     m_terrain = new RigidTerrain(m_m113->GetSystem());
@@ -115,7 +114,6 @@ M113AccTest<EnumClass, SHOE_TYPE>::M113AccTest() : m_step(1e-3) {
 template <typename EnumClass, EnumClass SHOE_TYPE>
 M113AccTest<EnumClass, SHOE_TYPE>::~M113AccTest() {
     delete m_m113;
-    delete m_powertrain;
     delete m_terrain;
     delete m_driver;
 }
@@ -130,30 +128,24 @@ void M113AccTest<EnumClass, SHOE_TYPE>::ExecuteStep() {
         m_driver->SetDesiredSpeed(1000);
     }
 
-    // Collect output data from modules (for inter-module communication)
-    double throttle_input = m_driver->GetThrottle();
-    double steering_input = m_driver->GetSteering();
-    double braking_input = m_driver->GetBraking();
-    double powertrain_torque = m_powertrain->GetOutputTorque();
-    double driveshaft_speed = m_m113->GetDriveshaftSpeed();
+    // Driver inputs
+    ChDriver::Inputs driver_inputs = m_driver->GetInputs();
 
     // Update modules (process inputs from other modules)
     m_driver->Synchronize(time);
     m_terrain->Synchronize(time);
-    m_m113->Synchronize(time, steering_input, braking_input, powertrain_torque, m_shoeL, m_shoeR);
-    m_powertrain->Synchronize(time, throttle_input, driveshaft_speed);
+    m_m113->Synchronize(time, driver_inputs, m_shoeL, m_shoeR);
 
     // Advance simulation for one timestep for all modules
     m_driver->Advance(m_step);
     m_terrain->Advance(m_step);
     m_m113->Advance(m_step);
-    m_powertrain->Advance(m_step);
 }
 
 template <typename EnumClass, EnumClass SHOE_TYPE>
 void M113AccTest<EnumClass, SHOE_TYPE>::SimulateVis() {
 #ifdef CHRONO_IRRLICHT
-    ChTrackedVehicleIrrApp app(m_m113, m_powertrain, L"M113 acceleration test");
+    ChTrackedVehicleIrrApp app(m_m113, L"M113 acceleration test");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(-200.f, -30.f, 100.f), irr::core::vector3df(-200.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(ChVector<>(0.0, 0.0, 0.0), 6.0, 0.5);
@@ -162,10 +154,12 @@ void M113AccTest<EnumClass, SHOE_TYPE>::SimulateVis() {
     app.AssetUpdateAll();
 
     while (app.GetDevice()->run()) {
+        ChDriver::Inputs driver_inputs = m_driver->GetInputs();
+
         app.BeginScene();
         app.DrawAll();
         ExecuteStep();
-        app.Synchronize("Acceleration test", m_driver->GetSteering(), m_driver->GetThrottle(), m_driver->GetBraking());
+        app.Synchronize("Acceleration test", driver_inputs);
         app.Advance(m_step);
         app.EndScene();
     }

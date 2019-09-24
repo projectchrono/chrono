@@ -22,7 +22,6 @@
 #ifndef CH_BRAKESIMPLE_H
 #define CH_BRAKESIMPLE_H
 
-#include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChLinkBrake.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChBrake.h"
@@ -47,8 +46,10 @@ class CH_VEHICLE_API ChBrakeSimple : public ChBrake {
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "BrakeSimple"; }
 
-    /// Initialize the brake by providing the wheel's revolute link.
-    virtual void Initialize(std::shared_ptr<ChLinkLockRevolute> hub) override;
+    /// Initialize the brake by associating it to an existing suspension subsystem.
+    virtual void Initialize(std::shared_ptr<ChSuspension> suspension,  ///< associated suspension subsystem
+                            VehicleSide side                           ///< brake mounted on left/right side
+                            ) override;
 
     /// Update the brake subsystem: set the brake modulation, in 0..1 range:
     /// <pre>

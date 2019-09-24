@@ -35,7 +35,6 @@ class CH_VEHICLE_API ChTrackedVehicleIrrApp : public ChVehicleIrrApp {
     /// Construct a tracked vehicle Irrlicht application.
     ChTrackedVehicleIrrApp(
         ChVehicle* vehicle,        ///< pointer to the associated vehicle system
-        ChPowertrain* powertrain,  ///< pointer to the associated powertrain system
         const wchar_t* title = 0,  ///< window title
         irr::core::dimension2d<irr::u32> dims = irr::core::dimension2d<irr::u32>(1000, 800),  ///< window dimensions
         irr::ELOG_LEVEL log_level = irr::ELL_INFORMATION  ///< Irrlicht logging level

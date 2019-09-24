@@ -31,8 +31,8 @@
 #include "chrono_irrlicht/ChIrrApp.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChPowertrain.h"
 #include "chrono_vehicle/ChVehicle.h"
+#include "chrono_vehicle/ChDriver.h"
 
 #ifdef CHRONO_IRRKLANG
 #include <irrKlang.h>
@@ -58,7 +58,6 @@ class CH_VEHICLE_API ChVehicleIrrApp : public irrlicht::ChIrrApp {
     /// Construct a vehicle Irrlicht application.
     ChVehicleIrrApp(
         ChVehicle* vehicle,        ///< pointer to the associated vehicle system
-        ChPowertrain* powertrain,  ///< pointer to the associated powertrain system
         const wchar_t* title = 0,  ///< window title
         irr::core::dimension2d<irr::u32> dims = irr::core::dimension2d<irr::u32>(1000, 800),  ///< window dimensions
         irr::ELOG_LEVEL log_level = irr::ELL_INFORMATION  ///< Irrlicht logging level
@@ -110,7 +109,7 @@ class CH_VEHICLE_API ChVehicleIrrApp : public irrlicht::ChIrrApp {
     virtual void DrawAll() override;
 
     /// Update information related to driver inputs.
-    void Synchronize(const std::string& msg, double steering, double throttle, double braking);
+    void Synchronize(const std::string& msg, const ChDriver::Inputs& driver_inputs);
 
     /// Advance the dynamics of the chase camera.
     /// The integration of the underlying ODEs is performed using as many steps as needed to advance
@@ -143,8 +142,7 @@ class CH_VEHICLE_API ChVehicleIrrApp : public irrlicht::ChIrrApp {
                        int height = 15,
                        irr::video::SColor color = irr::video::SColor(255, 20, 20, 20));
 
-    ChVehicle* m_vehicle;        ///< pointer to the associated vehicle system
-    ChPowertrain* m_powertrain;  ///< pointer to the associated powertrain system
+    ChVehicle* m_vehicle;  ///< pointer to the associated vehicle system
 
   protected:
     void renderGrid();

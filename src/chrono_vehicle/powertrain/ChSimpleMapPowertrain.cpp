@@ -34,7 +34,9 @@ ChSimpleMapPowertrain::ChSimpleMapPowertrain(const std::string& name)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChSimpleMapPowertrain::Initialize(std::shared_ptr<ChBody> chassis, std::shared_ptr<ChShaft> driveshaft) {
+void ChSimpleMapPowertrain::Initialize(std::shared_ptr<ChChassis> chassis, std::shared_ptr<ChDriveline> driveline) {
+    ChPowertrain::Initialize(chassis, driveline);
+
     // Let the derived class specify the gear ratios
     SetGearRatios(m_gear_ratios, m_rev_gear_ratio);
     assert(m_gear_ratios.size() > 0);
@@ -127,9 +129,11 @@ void ChSimpleMapPowertrain::CheckShift() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChSimpleMapPowertrain::Synchronize(double time, double throttle, double shaft_speed) {
+void ChSimpleMapPowertrain::Synchronize(double time, double throttle) {
     if (m_automatic && m_drive_mode == DriveMode::FORWARD)
         CheckShift();
+
+    double shaft_speed = m_driveline->GetDriveshaftSpeed();
 
     // Calculate engine speed and clamp to specified maximum:
     m_motor_speed = shaft_speed / m_current_gear_ratio;
