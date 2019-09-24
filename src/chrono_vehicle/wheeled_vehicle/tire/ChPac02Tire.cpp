@@ -47,8 +47,8 @@ ChPac02Tire::ChPac02Tire(const std::string& name)
       m_gamma(0),
       m_gamma_limit(3.0 * CH_C_DEG_TO_RAD),
       m_mu(0),
-      m_mu0(0.8),
-      use_mode(1) {
+      m_use_mode(1),
+      m_Shf(0) {
     m_tireforce.force = ChVector<>(0, 0, 0);
     m_tireforce.point = ChVector<>(0, 0, 0);
     m_tireforce.moment = ChVector<>(0, 0, 0);
@@ -61,6 +61,7 @@ ChPac02Tire::ChPac02Tire(const std::string& name)
     m_PacScal.lhx = 1.0;
     m_PacScal.lmux = 1.0;
     m_PacScal.lvx = 1.0;
+    m_PacScal.lxal = 1.0;
 
     m_PacScal.lcy = 1.0;
     m_PacScal.ley = 1.0;
@@ -68,9 +69,13 @@ ChPac02Tire::ChPac02Tire(const std::string& name)
     m_PacScal.lky = 1.0;
     m_PacScal.lmuy = 1.0;
     m_PacScal.lvy = 1.0;
+    m_PacScal.lyka = 1.0;
+    m_PacScal.lvyka = 1.0;
 
     m_PacScal.ltr = 1.0;
+    m_PacScal.lgaz = 1.0;
 
+    m_PacCoeff.mu0 = 0.8;      // reference friction coefficient
     m_PacCoeff.R0 = 0.0;       // unloaded radius
     m_PacCoeff.width = 0.0;    // tire width = 0.0;
     m_PacCoeff.FzNomin = 0.0;  // nominla wheel load
@@ -93,8 +98,10 @@ ChPac02Tire::ChPac02Tire(const std::string& name)
     m_PacCoeff.pkx3 = 0.0;
     m_PacCoeff.pvx1 = 0.0;
     m_PacCoeff.pvx2 = 0.0;
+    m_PacCoeff.rcx1 = 0.0;
     m_PacCoeff.rbx1 = 0.0;
     m_PacCoeff.rbx2 = 0.0;
+    m_PacCoeff.rbx3 = 0.0;
     m_PacCoeff.rex1 = 0.0;
     m_PacCoeff.rex2 = 0.0;
     m_PacCoeff.rhx1 = 0.0;
@@ -107,8 +114,16 @@ ChPac02Tire::ChPac02Tire(const std::string& name)
     m_PacCoeff.qsx1 = 0.0;
     m_PacCoeff.qsx2 = 0.0;
     m_PacCoeff.qsx3 = 0.0;
+    m_PacCoeff.qsx4 = 0.0;
+    m_PacCoeff.qsx5 = 0.0;
+    m_PacCoeff.qsx6 = 0.0;
+    m_PacCoeff.qsx7 = 0.0;
+    m_PacCoeff.qsx8 = 0.0;
+    m_PacCoeff.qsx9 = 0.0;
+    m_PacCoeff.qsx10 = 0.0;
+    m_PacCoeff.qsx11 = 0.0;
 
-    // overturning coefficients
+    // rolling coefficients
     m_PacCoeff.qsy1 = 0.0;
     m_PacCoeff.qsy2 = 0.0;
     m_PacCoeff.qsy3 = 0.0;
@@ -127,6 +142,7 @@ ChPac02Tire::ChPac02Tire(const std::string& name)
     m_PacCoeff.pey2 = 0.0;
     m_PacCoeff.pey3 = 0.0;
     m_PacCoeff.pey4 = 0.0;
+    m_PacCoeff.pey5 = 0.0;
     m_PacCoeff.phy1 = 0.0;
     m_PacCoeff.phy2 = 0.0;
     m_PacCoeff.phy3 = 0.0;
@@ -140,6 +156,7 @@ ChPac02Tire::ChPac02Tire(const std::string& name)
     m_PacCoeff.rby1 = 0.0;
     m_PacCoeff.rby2 = 0.0;
     m_PacCoeff.rby3 = 0.0;
+    m_PacCoeff.rby4 = 0.0;
     m_PacCoeff.rcy1 = 0.0;
     m_PacCoeff.rey1 = 0.0;
     m_PacCoeff.rey2 = 0.0;
@@ -345,8 +362,6 @@ void ChPac02Tire::Advance(double step) {
     // Ensure that cp_side_slip stays between -pi()/2 & pi()/2 (a little less to prevent tan from going to infinity)
     ChClampValue(m_states.cp_side_slip, -CH_C_PI_2 + 0.001, CH_C_PI_2 - 0.001);
 
-    double mu_scale = m_mu / m_mu0;
-
     // Calculate the new force and moment values (normal force and moment have already been accounted for in
     // Synchronize()).
     // Express Fz in kN (note that all other forces and moments are in N and Nm).
@@ -367,22 +382,45 @@ void ChPac02Tire::Advance(double step) {
     // rad too.
     double gamma = ChClamp(m_gamma, -m_gamma_limit, m_gamma_limit);
 
-    switch (use_mode) {
+    switch (m_use_mode) {
+        case 0:
+            // vertical spring & damper mode
+            break;
         case 1:
+            // steady state pure longitudinal slip
+            Fx = CalcFx(m_kappa, Fz, gamma);
             break;
         case 2:
-            Fx = mu_scale * CalcFx1(m_kappa, Fz);
+            // steady state pure lateral slip
+            Fy = CalcFy(m_alpha, Fz, gamma);
             break;
         case 3:
-            Fx = mu_scale * CalcFx1(m_kappa, Fz);
-            Fy = mu_scale * CalcFy1(m_alpha, Fz);
+            // steady state pure lateral slip uncombined
+            Fx = CalcFx(m_kappa, Fz, gamma);
+            Fy = CalcFy(m_alpha, Fz, gamma);
+            Mz = -CalcTrail(m_alpha, Fz, gamma) * Fy + CalcMres(m_alpha, Fz, gamma);
+            break;
+        case 4:
+            // steady state combined slip
+            double Fx_u = CalcFx(m_kappa, Fz, gamma);
+            double Fy_u = CalcFy(m_alpha, Fz, gamma);
+            double as = sin(m_alpha_c);
+            double beta = acos(std::abs(m_kappa_c) / sqrt(pow(m_kappa_c, 2) + pow(as, 2)));
+            double mux = 1.0 / sqrt(pow(1.0 / m_mu_x_act, 2) + pow(tan(beta) / m_mu_y_max, 2));
+            double muy = tan(beta) / sqrt(pow(1.0 / m_mu_x_max, 2) + pow(tan(beta) / m_mu_y_act, 2));
+            Fx = mux / m_mu_x_act * Fx_u;
+            Fy = muy / m_mu_y_act * Fy_u;
+            Mz = -CalcTrail(m_alpha, Fz, gamma) * Fy + CalcMres(m_alpha, Fz, gamma);
             break;
     }
 
     // Overturning Torque
     {
-        double cg = std::pow(m_PacCoeff.width, 2.0) * m_PacCoeff.Cz / 12.0;
-        Mx = -cg * gamma;
+        Mx = m_PacCoeff.R0 * Fz *
+             (m_PacCoeff.qsx1 * m_PacScal.lvx - m_PacCoeff.qsx2 * gamma + m_PacCoeff.qsx3 * Fy / m_PacCoeff.FzNomin +
+              m_PacCoeff.qsx4 * cos(m_PacCoeff.qsx5 * pow(atan(m_PacCoeff.qsx6 * Fz / m_PacCoeff.FzNomin), 2)) *
+                  sin(m_PacCoeff.qsx7 * gamma + m_PacCoeff.qsx8 * atan(m_PacCoeff.qsx9 * Fy / m_PacCoeff.FzNomin)) +
+              m_PacCoeff.qsx10 * atan(m_PacCoeff.qsx11 * Fz / m_PacCoeff.FzNomin) * gamma);
     }
     // Rolling Resistance
     {
@@ -410,31 +448,127 @@ void ChPac02Tire::Advance(double step) {
         Vcross((m_data.frame.pos + m_data.depth * m_data.frame.rot.GetZaxis()) - m_tireforce.point, m_tireforce.force);
 }
 
-double ChPac02Tire::CalcFx1(double kappa, double Fz) {
+double ChPac02Tire::CalcFx(double kappa, double Fz, double gamma) {
     // calculates the longitudinal force based on a limited parameter set.
-    // gamma, Pi are not considered
+    // Pi is not considered
     double Fz0s = m_PacCoeff.FzNomin * m_PacScal.lfz0;
     double dFz = (Fz - Fz0s) / Fz0s;
     double C = m_PacCoeff.pcx1 * m_PacScal.lcx1;
-    double Mu = (m_PacCoeff.pdx1 + m_PacCoeff.pdx2 * dFz) * m_PacScal.lmux;
-    double D = Mu * Fz;
+    double Mu = (m_PacCoeff.pdx1 + m_PacCoeff.pdx2 * dFz) * (1.0 - m_PacCoeff.pdx3 * pow(gamma, 2)) * m_PacScal.lmux;
+    double D = Mu * Fz * m_mu / m_PacCoeff.mu0;
     double E = (m_PacCoeff.pex1 + m_PacCoeff.pex2 * dFz + m_PacCoeff.pex3 * dFz * dFz) * m_PacScal.lex;
+    if (E > 1.0)
+        E = 1.0;
+    double BCD = Fz * (m_PacCoeff.pkx1 + m_PacCoeff.pkx2) * m_PacScal.lkx;  // BCD = Kx
+    double B = BCD / (C * D);
+    double Sh = (m_PacCoeff.phx1 + m_PacCoeff.phx2 * dFz) * m_PacScal.lhx;
+    double Sv = Fz * (m_PacCoeff.pvx1 + m_PacCoeff.pvx2 * dFz) * m_PacScal.lvx * m_PacScal.lmux;
+    m_kappa_c = kappa + Sh + Sv / BCD;
+    double X1 = B * (kappa + Sh);
+    double Fx0 = D * sin(C * atan(X1 - E * (X1 - atan(X1)))) + Sv;
+    m_mu_x_act = std::abs((Fx0 - Sv) / Fz);
+    m_mu_x_max = std::abs(D / Fz);
+    return Fx0;
+}
+
+double ChPac02Tire::CalcFy(double alpha, double Fz, double gamma) {
+    double Fz0s = m_PacCoeff.FzNomin * m_PacScal.lfz0;
+    double dFz = (Fz - Fz0s) / Fz0s;
+    double C = m_PacCoeff.pcy1 * m_PacScal.lcy;
+    m_Cy = C;
+    double Mu = (m_PacCoeff.pdy1 + m_PacCoeff.pdy2 * dFz) * (1.0 - m_PacCoeff.pdy3 * pow(gamma, 2)) * m_PacScal.lmuy;
+    double D = Mu * Fz * m_mu / m_PacCoeff.mu0;
+    double E = (m_PacCoeff.pey1 + m_PacCoeff.pey2 * dFz) *
+               (1.0 + m_PacCoeff.pey5 * pow(gamma, 2) - (m_PacCoeff.pey3 + m_PacCoeff.pey4 * gamma) * ChSignum(alpha)) *
+               m_PacScal.ley;
+    if (E > 1.0)
+        E = 1.0;
+    double Ky0 = m_PacCoeff.pky1 * m_PacCoeff.FzNomin * sin(2.0 * atan(Fz / (m_PacCoeff.pky2 * Fz0s))) *
+                 m_PacScal.lfz0 * m_PacScal.lky;
+    double BCD = Ky0;  // BCD = Ky
+    double B = BCD / (C * D);
+    m_By = B;
+    double Sh = (m_PacCoeff.phy1 + m_PacCoeff.phy2 * dFz) * m_PacScal.lhy;
+    double Sv = Fz * ((m_PacCoeff.pvy1 + m_PacCoeff.pvy2 * dFz) * m_PacScal.lvy) * m_PacScal.lmuy;
+    m_alpha_c = alpha + Sh + Sv / BCD;
+    double X1 = ChClamp(B * (alpha + Sh), -CH_C_PI_2 + 0.001,
+                        CH_C_PI_2 - 0.001);  // Ensure that X1 stays within +/-90 deg minus a little bit
+    double Fy0 = D * sin(C * atan(X1 - E * (X1 - atan(X1)))) + Sv;
+    m_Shf = Sh + Sv / BCD;
+    m_mu_y_act = std::abs((Fy0 - Sv) / Fz);
+    m_mu_y_max = std::abs(D / Fz);
+    return Fy0;
+}
+
+double ChPac02Tire::CalcTrail(double alpha, double Fz, double gamma) {
+    double Fz0s = m_PacCoeff.FzNomin * m_PacScal.lfz0;
+    double dFz = (Fz - Fz0s) / Fz0s;
+    double C = m_PacCoeff.qcz1;
+    double gamma_z = gamma * m_PacScal.lgaz;
+    double Sh = m_PacCoeff.qhz1 + m_PacCoeff.qhz2 * dFz + (m_PacCoeff.qhz3 + m_PacCoeff.qhz4 * dFz) * gamma_z;
+    double alpha_t = alpha + Sh;
+    double B = (m_PacCoeff.qbz1 + m_PacCoeff.qbz2 * dFz + m_PacCoeff.qbz3 * pow(dFz, 2)) *
+               (1.0 + m_PacCoeff.qbz4 * gamma_z + m_PacCoeff.qbz5 * std::abs(gamma_z)) * m_PacScal.lky / m_PacScal.lmuy;
+    double D = Fz * (m_PacCoeff.qdz1 + m_PacCoeff.qdz2 * dFz) *
+               (1.0 + m_PacCoeff.qdz3 * gamma_z + m_PacCoeff.qdz4 * pow(gamma_z, 2)) * m_PacCoeff.R0 / Fz0s *
+               m_PacScal.ltr;
+    double E = (m_PacCoeff.qez1 + m_PacCoeff.qez2 * dFz + m_PacCoeff.qez3 * pow(dFz, 2)) *
+               (1.0 + (m_PacCoeff.qez4 + m_PacCoeff.qez5 * gamma_z) * atan(B * C * alpha_t) / CH_C_PI_2);
+    double X1 = B * alpha_t;
+    return D * cos(C * atan(B * X1 - E * (B * X1 - atan(B * X1)))) * cos(alpha);
+}
+
+double ChPac02Tire::CalcMres(double alpha, double Fz, double gamma) {
+    double Fz0s = m_PacCoeff.FzNomin * m_PacScal.lfz0;
+    double dFz = (Fz - Fz0s) / Fz0s;
+    double alpha_r = alpha + m_Shf;
+    double gamma_z = gamma * m_PacScal.lgaz;
+    double C = 1.0;
+    double B = (m_PacCoeff.qbz9 * m_PacScal.lky / m_PacScal.lmuy + m_PacCoeff.qbz10 * m_By * m_Cy);
+    double D = Fz *
+               ((m_PacCoeff.qdz6 + m_PacCoeff.qdz7 * dFz) * m_PacScal.ltr +
+                (m_PacCoeff.qdz8 + m_PacCoeff.qdz9 * dFz) * gamma_z) *
+               m_PacCoeff.R0 * m_PacScal.lmuy;
+    return D * cos(C * atan(B * alpha_r)) * cos(alpha);
+}
+
+double ChPac02Tire::CalcFxComb(double kappa, double alpha, double Fz, double gamma) {
+    double Fz0s = m_PacCoeff.FzNomin * m_PacScal.lfz0;
+    double dFz = (Fz - Fz0s) / Fz0s;
+    double C = m_PacCoeff.pcx1 * m_PacScal.lcx1;
+    double Mu = (m_PacCoeff.pdx1 + m_PacCoeff.pdx2 * dFz) * (1.0 - m_PacCoeff.pdx3 * pow(gamma, 2)) * m_PacScal.lmux;
+    double D = Mu * Fz * m_mu / m_PacCoeff.mu0;
+    double E = (m_PacCoeff.pex1 + m_PacCoeff.pex2 * dFz + m_PacCoeff.pex3 * dFz * dFz) * m_PacScal.lex;
+    if (E > 1.0)
+        E = 1.0;
     double BCD = Fz * (m_PacCoeff.pkx1 + m_PacCoeff.pkx2) * m_PacScal.lkx;  // BCD = Kx
     double B = BCD / (C * D);
     double Sh = (m_PacCoeff.phx1 + m_PacCoeff.phx2 * dFz) * m_PacScal.lhx;
     double Sv = Fz * (m_PacCoeff.pvx1 + m_PacCoeff.pvx2 * dFz) * m_PacScal.lvx * m_PacScal.lmux;
     double X1 = B * (kappa + Sh);
     double Fx0 = D * sin(C * atan(X1 - E * (X1 - atan(X1)))) + Sv;
-    return Fx0;
+    double Shxa = m_PacCoeff.rhx1;
+    double alpha_s = alpha + Shxa;
+    double Cxa = m_PacCoeff.rcx1;
+    double Bxa =
+        (m_PacCoeff.rbx1 + m_PacCoeff.rbx3 * pow(gamma, 2)) * cos(atan(m_PacCoeff.rbx2 * kappa)) * m_PacScal.lxal;
+    double Exa = m_PacCoeff.pex1 + m_PacCoeff.pex2 * dFz;
+    double Gxa0 = cos(Cxa * atan(Bxa * Shxa - Exa * (Bxa * Shxa - atan(Bxa * Shxa))));
+    double Gxa = cos(Cxa * atan(Bxa * alpha_s - Exa * (Bxa * alpha_s - atan(Bxa * alpha_s)))) / Gxa0;
+    return Fx0 * Gxa;
 }
 
-double ChPac02Tire::CalcFy1(double alpha, double Fz) {
+double ChPac02Tire::CalcFyComb(double kappa, double alpha, double Fz, double gamma) {
     double Fz0s = m_PacCoeff.FzNomin * m_PacScal.lfz0;
     double dFz = (Fz - Fz0s) / Fz0s;
     double C = m_PacCoeff.pcy1 * m_PacScal.lcy;
-    double Mu = (m_PacCoeff.pdy1 + m_PacCoeff.pdy2 * dFz) * m_PacScal.lmuy;
-    double D = Mu * Fz;
-    double E = (m_PacCoeff.pey1 + m_PacCoeff.pey2 * dFz) * m_PacScal.ley;
+    double Mu = (m_PacCoeff.pdy1 + m_PacCoeff.pdy2 * dFz) * (1.0 - m_PacCoeff.pdy3 * pow(gamma, 2)) * m_PacScal.lmuy;
+    double D = Mu * Fz * m_mu / m_PacCoeff.mu0;
+    double E = (m_PacCoeff.pey1 + m_PacCoeff.pey2 * dFz) *
+               (1.0 + m_PacCoeff.pey5 * pow(gamma, 2) - (m_PacCoeff.pey3 + m_PacCoeff.pey4 * gamma) * ChSignum(alpha)) *
+               m_PacScal.ley;
+    if (E > 1.0)
+        E = 1.0;
     double Ky0 = m_PacCoeff.pky1 * m_PacCoeff.FzNomin * sin(2.0 * atan(Fz / (m_PacCoeff.pky2 * Fz0s))) *
                  m_PacScal.lfz0 * m_PacScal.lky;
     double BCD = Ky0;  // BCD = Ky
@@ -444,37 +578,19 @@ double ChPac02Tire::CalcFy1(double alpha, double Fz) {
     double X1 = ChClamp(B * (alpha + Sh), -CH_C_PI_2 + 0.001,
                         CH_C_PI_2 - 0.001);  // Ensure that X1 stays within +/-90 deg minus a little bit
     double Fy0 = D * sin(C * atan(X1 - E * (X1 - atan(X1)))) + Sv;
-    return Fy0;
+    double Shyk = m_PacCoeff.rhy1 + m_PacCoeff.rhy2 * dFz;
+    double kappa_s = kappa + Shyk;
+    double Cyk = m_PacCoeff.pcy1;
+    double Eyk = m_PacCoeff.rey1 + m_PacCoeff.rey2 * dFz;
+    double Byk = (m_PacCoeff.rby1 + m_PacCoeff.rby4 * pow(gamma, 2)) *
+                 cos(atan(m_PacCoeff.rby2 * (alpha - m_PacCoeff.rby3))) * m_PacScal.lyka;
+    double Dyk = Mu * Fz * (m_PacCoeff.rvy1 + m_PacCoeff.rvy2 * dFz + m_PacCoeff.rvy3 * gamma) *
+                 cos(atan(m_PacCoeff.rvy4 * alpha));
+    double Svyk = Dyk * sin(m_PacCoeff.rvy5 * atan(m_PacCoeff.rvy6 * kappa)) * m_PacScal.lvyka;
+    double Gky0 = cos(Cyk * atan(Byk * Shyk + Eyk * (Byk * Shyk - atan(Byk * Shyk))));
+    double Gyk = cos(Cyk * atan(Byk * kappa_s + Eyk * (Byk * kappa_s - atan(Byk * kappa_s)))) / Gky0;
+    return Fy0 * Gyk + Svyk;
 }
 
-void ChPac02Tire::GeneratePlotFile(std::string pltFileName) {
-    std::ofstream plt(pltFileName);
-    double kstep = 0.01;
-    double astep = 1.0 * CH_C_DEG_TO_RAD;
-    plt << "Cz = " << m_PacCoeff.Cz << std::endl;
-    plt << "$Fx << EOD" << std::endl;
-    for (size_t i = 0; i <= 201; i++) {
-        double k = -1.0 + kstep * double(i);
-        plt << k << "\t" << CalcFx1(k, m_PacCoeff.FzNomin / 2.0) << "\t" << CalcFx1(k, m_PacCoeff.FzNomin) << std::endl;
-    }
-    plt << "EOD" << std::endl;
-    plt << "$Fy << EOD" << std::endl;
-    for (size_t i = 0; i <= 181; i++) {
-        double a = -CH_C_PI_2 + astep * double(i);
-        plt << a << "\t" << CalcFy1(a, m_PacCoeff.FzNomin / 2.0) << "\t" << CalcFy1(a, m_PacCoeff.FzNomin) << std::endl;
-    }
-    plt << "EOD" << std::endl;
-    plt << "set ylabel 'Fx [N]'" << std::endl;
-    plt << "set xlabel 'kappa []'" << std::endl;
-    plt << "plot ";
-    plt << "$Fx u 1:2 with lines, $Fx u 1:3 with lines" << std::endl;
-    plt << "pause -1" << std::endl;
-    plt << "set ylabel 'Fy [N]'" << std::endl;
-    plt << "set xlabel 'alpha []'" << std::endl;
-    plt << "plot ";
-    plt << "$Fy u 1:2 with lines, $Fy u 1:3 with lines" << std::endl;
-    plt << "pause -1" << std::endl;
-    plt.close();
-}
 }  // end namespace vehicle
-}  // end namespace chrono
+}  // namespace chrono

@@ -81,8 +81,6 @@ class CH_VEHICLE_API ChPac02Tire : public ChTire {
     /// The reported value will be similar to that reported by ChTire::GetCamberAngle.
     double GetCamberAngle_internal() { return m_gamma * CH_C_DEG_TO_RAD; }
 
-    void GeneratePlotFile(std::string pltFileName);
-
   protected:
     /// Return the vertical tire stiffness contribution to the normal force.
     virtual double GetNormalStiffnessForce(double depth) const = 0;
@@ -99,14 +97,18 @@ class CH_VEHICLE_API ChPac02Tire : public ChTire {
 
     double m_gamma_limit;  ///< limit camber angle
 
+    bool m_use_friction_ellipsis;
+
     /// Road friction
     double m_mu;
-    /// Tire reference friction
-    double m_mu0;
+
+    double m_Shf;
+    double m_Cy;
+    double m_By;
 
     VehicleSide m_measured_side;
 
-    unsigned int use_mode;
+    unsigned int m_use_mode;
     // combined forces calculation
     double m_kappa_c;
     double m_alpha_c;
@@ -123,6 +125,7 @@ class CH_VEHICLE_API ChPac02Tire : public ChTire {
         double lhx;
         double lmux;
         double lvx;
+        double lxal;
 
         double lcy;
         double ley;
@@ -130,11 +133,14 @@ class CH_VEHICLE_API ChPac02Tire : public ChTire {
         double lky;
         double lmuy;
         double lvy;
-
+        double lyka;
+        double lvyka;
         double ltr;
+        double lgaz;
     };
 
     struct Pac02Coeff {
+        double mu0;      // road friction coefficient at test conditions for the handling parameters
         double R0;       // unloaded radius
         double width;    // tire width;
         double FzNomin;  // nominla wheel load
@@ -159,6 +165,8 @@ class CH_VEHICLE_API ChPac02Tire : public ChTire {
         double pvx2;
         double rbx1;
         double rbx2;
+        double rbx3;
+        double rcx1;
         double rex1;
         double rex2;
         double rhx1;
@@ -171,6 +179,14 @@ class CH_VEHICLE_API ChPac02Tire : public ChTire {
         double qsx1;
         double qsx2;
         double qsx3;
+        double qsx4;
+        double qsx5;
+        double qsx6;
+        double qsx7;
+        double qsx8;
+        double qsx9;
+        double qsx10;
+        double qsx11;
 
         // rolling resistance coefficients
         double qsy1;
@@ -191,6 +207,7 @@ class CH_VEHICLE_API ChPac02Tire : public ChTire {
         double pey2;
         double pey3;
         double pey4;
+        double pey5;
         double phy1;
         double phy2;
         double phy3;
@@ -204,6 +221,7 @@ class CH_VEHICLE_API ChPac02Tire : public ChTire {
         double rby1;
         double rby2;
         double rby3;
+        double rby4;
         double rcy1;
         double rey1;
         double rey2;
@@ -304,8 +322,12 @@ class CH_VEHICLE_API ChPac02Tire : public ChTire {
     std::shared_ptr<ChCylinderShape> m_cyl_shape;  ///< visualization cylinder asset
     std::shared_ptr<ChTexture> m_texture;          ///< visualization texture asset
 
-    double CalcFx1(double kappa, double Fz);
-    double CalcFy1(double alpha, double Fz);
+    double CalcFx(double kappa, double Fz, double gamma);
+    double CalcFy(double alpha, double Fz, double gamma);
+    double CalcTrail(double alpha, double Fz, double gamma);
+    double CalcMres(double alpha, double Fz, double gamma);
+    double CalcFxComb(double kappa, double alpha, double Fz, double gamma);
+    double CalcFyComb(double kappa, double alpha, double Fz, double gamma);
 };
 
 /// @} vehicle_wheeled_tire

@@ -221,7 +221,6 @@ void HMMWV::Initialize() {
 
             m_tire_mass = tire_FL->ReportMass();
 
-            tire_FL->GeneratePlotFile("Basic.plt");
             break;
         }
         case TireModelType::PACEJKA: {

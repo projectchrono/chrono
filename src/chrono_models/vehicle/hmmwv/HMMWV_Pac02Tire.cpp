@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Michael Taylor
+// Authors: Radu Serban, Michael Taylor, Rainer Gericke
 // =============================================================================
 //
 // HMMWV PAC02 tire subsystem
@@ -47,7 +47,7 @@ HMMWV_Pac02Tire::HMMWV_Pac02Tire(const std::string& name) : ChPac02Tire(name) {}
 // -----------------------------------------------------------------------------
 void HMMWV_Pac02Tire::SetPac02Params() {
     m_measured_side = LEFT;
-    use_mode = 3;
+    m_use_mode = 4;
     // Parameter Set Converted from an Adams Tire file, gained by scaling
     m_PacScal.lfz0 = 0.59;
     m_PacScal.ltr = 0.8;
