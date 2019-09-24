@@ -729,6 +729,10 @@ void ChSystem::Update(bool update_assets) {
     timer_update.stop();
 }
 
+void ChSystem::ForceUpdate() {
+    is_updated = false;
+}
+
 void ChSystem::IntStateGather(const unsigned int off_x,  // offset in x state vector
                               ChState& x,                // state vector, position part
                               const unsigned int off_v,  // offset in v state vector
@@ -1427,16 +1431,19 @@ bool ChSystem::Integrate_Y() {
     int ncontacts_old = ncontacts;
     ComputeCollisions();
 
-	// Declare an NSC system as "out of date" if there are contacts
+    // Declare an NSC system as "out of date" if there are contacts
     if (GetContactMethod() == ChMaterialSurface::NSC && (ncontacts_old != 0 || ncontacts != 0))
         is_updated = false;
 
-    // Counts dofs, statistics, etc. (not needed because already in Advance()...? )
+    // Counts dofs, number of constraints, statistics, etc.
+    // Note: this must be invoked at all times (regardless of the flag is_updated), as various physics items may use
+    // their own Setup to perform operations at the beginning of a step.
     Setup();
 
-    // Update everything - and put to sleep bodies that need it (not needed because already in Advance()...? )
-    // No need to update visualization assets here.
-    Update(false);
+    // If needed, update everything. No need to update visualization assets here.
+    if (!is_updated) {
+        Update(false);
+    }
 
     // Re-wake the bodies that cannot sleep because they are in contact with
     // some body that is not in sleep state.

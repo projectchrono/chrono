@@ -374,9 +374,15 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// already set as starting point for offsetting all the contained sub objects.
     virtual void Setup() override;
 
-    /// Updates all the auxiliary data and children of
-    /// bodies, forces, links, given their current state.
+    /// Updates all the auxiliary data and children of bodies, forces, links, given their current state.
     virtual void Update(bool update_assets = true) override;
+
+    /// In normal usage, no system update is necessary at the beginning of a new dynamics step (since an update is
+    /// performed at the end of a step). However, this is not the case if external changes to the system are made. Most
+    /// such changes are discovered automatically (addition/removal of items, input of mesh loads). For special cases,
+    /// this function allows the user to trigger a system update at the beginning of the step immediately following this
+    /// call.
+    void ForceUpdate();
 
     // Overload interfaces for global state vectors, see ChPhysicsItem for comments.
     // The following must be overloaded because there may be ChContactContainer objects in addition to base ChAssembly.
@@ -856,7 +862,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     // Friend class declarations
 
-	friend class ChAssembly;
+    friend class ChAssembly;
 
     template <class Ta, class Tb>
     friend class ChContactNSC;
