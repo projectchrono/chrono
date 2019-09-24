@@ -385,8 +385,8 @@ int main(int argc, char* argv[]) {
     ////vehicle.SetCollide(TrackCollide::ALL & (~TrackCollide::SPROCKET_LEFT) & (~TrackCollide::SPROCKET_RIGHT));
 
     // Create the powertrain system
-    M113_SimplePowertrain powertrain("Powertrain");
-    powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
+    auto powertrain = chrono_types::make_shared<M113_SimplePowertrain>("Powertrain");
+    vehicle.InitializePowertrain(powertrain);
 
     // Create the driver system
     ChDataDriver driver(vehicle, vehicle::GetDataFile("M113/driver/Acceleration.txt"));
@@ -423,11 +423,7 @@ int main(int argc, char* argv[]) {
 
     while (time < time_end) {
         // Collect output data from modules
-        double throttle_input = driver.GetThrottle();
-        double steering_input = driver.GetSteering();
-        double braking_input = driver.GetBraking();
-        double powertrain_torque = powertrain.GetOutputTorque();
-        double driveshaft_speed = vehicle.GetDriveshaftSpeed();
+        ChDriver::Inputs driver_inputs = driver.GetInputs();
         vehicle.GetTrackShoeStates(LEFT, shoe_states_left);
         vehicle.GetTrackShoeStates(RIGHT, shoe_states_right);
 
@@ -438,9 +434,9 @@ int main(int argc, char* argv[]) {
             cout << "     Sim frame:      " << sim_frame << endl;
             cout << "     Time:           " << time << endl;
             cout << "     Avg. contacts:  " << num_contacts / out_steps << endl;
-            cout << "     Throttle input: " << throttle_input << endl;
-            cout << "     Braking input:  " << braking_input << endl;
-            cout << "     Steering input: " << steering_input << endl;
+            cout << "     Throttle input: " << driver_inputs.m_throttle << endl;
+            cout << "     Braking input:  " << driver_inputs.m_braking << endl;
+            cout << "     Steering input: " << driver_inputs.m_steering << endl;
             cout << "     Execution time: " << exec_time << endl;
 
             if (povray_output) {
@@ -462,12 +458,10 @@ int main(int argc, char* argv[]) {
 
         // Update modules (process inputs from other modules)
         driver.Synchronize(time);
-        powertrain.Synchronize(time, throttle_input, driveshaft_speed);
-        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, shoe_forces_left, shoe_forces_right);
+        vehicle.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(time_step);
-        powertrain.Advance(time_step);
         vehicle.Advance(time_step);
         system->DoStepDynamics(time_step);
 

@@ -61,14 +61,11 @@ class CH_MODELS_API UAZBUS {
     void SetVehicleStepSize(double step_size) { m_vehicle_step_size = step_size; }
     void SetTireStepSize(double step_size) { m_tire_step_size = step_size; }
 
-    void DisconnectPowertrain() { m_powertrain_connected = false; }
-
     ChSystem* GetSystem() const { return m_vehicle->GetSystem(); }
     ChWheeledVehicle& GetVehicle() const { return *m_vehicle; }
     std::shared_ptr<ChChassis> GetChassis() const { return m_vehicle->GetChassis(); }
     std::shared_ptr<ChBodyAuxRef> GetChassisBody() const { return m_vehicle->GetChassisBody(); }
-    ChPowertrain& GetPowertrain() const { return *m_powertrain; }
-    ChTire* GetTire(WheelID which) const { return m_tires[which.id()]; }
+    std::shared_ptr<ChPowertrain> GetPowertrain() const { return m_vehicle->GetPowertrain(); }
     double GetTotalMass() const;
 
     void Initialize();
@@ -84,12 +81,7 @@ class CH_MODELS_API UAZBUS {
     void SetWheelVisualizationType(VisualizationType vis) { m_vehicle->SetWheelVisualizationType(vis); }
     void SetTireVisualizationType(VisualizationType vis);
 
-    void Synchronize(double time,
-                     double steering_input,
-                     double braking_input,
-                     double throttle_input,
-                     const ChTerrain& terrain);
-
+    void Synchronize(double time, const ChDriver::Inputs& driver_inputs, const ChTerrain& terrain);
     void Advance(double step);
 
     void LogHardpointLocations() { m_vehicle->LogHardpointLocations(); }
@@ -116,12 +108,8 @@ class CH_MODELS_API UAZBUS {
     double m_area;
     double m_air_density;
 
-    bool m_powertrain_connected;
-
     ChSystem* m_system;
     UAZBUS_Vehicle* m_vehicle;
-    ChPowertrain* m_powertrain;
-    std::array<ChTire*, 4> m_tires;
 
     double m_tire_mass;
 };

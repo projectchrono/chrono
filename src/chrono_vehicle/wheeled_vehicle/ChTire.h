@@ -29,6 +29,7 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChPart.h"
 #include "chrono_vehicle/ChTerrain.h"
+#include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
 
 namespace chrono {
 namespace vehicle {
@@ -49,24 +50,6 @@ class CH_VEHICLE_API ChTire : public ChPart {
 
     virtual ~ChTire() {}
 
-    /// Initialize this tire subsystem.
-    /// Cache the associated wheel body and vehicle side flag, and add tire mass and
-    /// inertia to the wheel body. A derived class must first call this base implementation.
-    virtual void Initialize(std::shared_ptr<ChBody> wheel,  ///< [in] associated wheel body
-                            VehicleSide side                ///< [in] left/right vehicle side
-                            );
-
-    /// Update the state of this tire system at the current time.
-    /// The tire system is provided the current state of its associated wheel and
-    /// a handle to the terrain system.
-    virtual void Synchronize(double time,                    ///< [in] current time
-                             const WheelState& wheel_state,  ///< [in] current state of associated wheel body
-                             const ChTerrain& terrain,       ///< [in] reference to the terrain system
-                             CollisionType collision_type = CollisionType::SINGLE_POINT  ///< [in] collision method
-                             ) {
-        CalculateKinematics(time, wheel_state, terrain);
-    }
-
     /// Set the value of the integration step size for the underlying dynamics (if applicable).
     /// Default value: 1ms.
     void SetStepsize(double val) { m_stepsize = val; }
@@ -74,8 +57,9 @@ class CH_VEHICLE_API ChTire : public ChPart {
     /// Get the current value of the integration step size.
     double GetStepsize() const { return m_stepsize; }
 
-    /// Advance the state of this tire by the specified time step.
-    virtual void Advance(double step) {}
+    /// Set the collision type for tire-terrain interaction.
+    /// Default: SINGLE_POINT
+    void SetCollisionType(CollisionType collision_type) { m_collision_type = collision_type; }
 
     /// Get the tire radius.
     virtual double GetRadius() const = 0;
@@ -93,16 +77,6 @@ class CH_VEHICLE_API ChTire : public ChPart {
     /// Get the tire moments of inertia.
     /// Note that these should not include the inertia of the wheel (rim).
     virtual ChVector<> GetInertia() const = 0;
-
-    /// Get the tire force and moment.
-    /// This represents the output from this tire system that is passed to the
-    /// vehicle system. Typically, the vehicle subsystem will pass the tire force
-    /// to the appropriate suspension subsystem which applies it as an external
-    /// force on the wheel body.
-    /// NOTE: tire models that rely on underlying Chrono functionality (e.g., the
-    /// Chrono contact system or Chrono constraints) must always return zero forces
-    /// and moments, else tire forces are double counted.
-    virtual TerrainForce GetTireForce() const = 0;
 
     /// Report the tire force and moment.
     /// This function can be used for reporting purposes or else to calculate tire
@@ -136,7 +110,45 @@ class CH_VEHICLE_API ChTire : public ChPart {
     /// Report the tire deflection.
     virtual double GetDeflection() const { return 0; }
 
+  public:
+    // NOTE: Typically, users should not directly call these functions. They are public for use in special cases and to
+    // allow extensions to Chrono::Vehicle in user code.
+
+    /// Initialize this tire subsystem by associating it to an existing wheel subsystem.
+    /// The tire mass and inertia are used to increment those of the associated suspension spindle body.
+    virtual void Initialize(std::shared_ptr<ChWheel> wheel);
+
+    /// Update the state of this tire system at the current time.
+    virtual void Synchronize(double time,              ///< [in] current time
+                             const ChTerrain& terrain  ///< [in] reference to the terrain system
+    ) {
+        CalculateKinematics(time, m_wheel->GetState(), terrain);
+    }
+
+    /// Advance the state of this tire by the specified time step.
+    virtual void Advance(double step) {}
+
   protected:
+    /// Calculate kinematics quantities based on the given state of the associated wheel body.
+    void CalculateKinematics(double time,                    ///< [in] current time
+                             const WheelState& wheel_state,  ///< [in] current state of associated wheel body
+                             const ChTerrain& terrain        ///< [in] reference to the terrain system
+    );
+
+    /// Get offset from spindle center.
+    /// This queries the associated wheel, so it must be called only after the wheel was initialized.
+    double GetOffset() const { return m_wheel->m_offset; }
+
+    /// Get the tire force and moment.
+    /// This represents the output from this tire system that is passed to the
+    /// vehicle system. Typically, the vehicle subsystem will pass the tire force
+    /// to the appropriate suspension subsystem which applies it as an external
+    /// force on the wheel body.
+    /// NOTE: tire models that rely on underlying Chrono functionality (e.g., the
+    /// Chrono contact system or Chrono constraints) must always return zero forces
+    /// and moments, else tire forces are double counted.
+    virtual TerrainForce GetTireForce() const = 0;
+
     /// Perform disc-terrain collision detection.
     /// This utility function checks for contact between a disc of specified
     /// radius with given position and orientation (specified as the location of
@@ -194,20 +206,16 @@ class CH_VEHICLE_API ChTire : public ChPart {
     /// for a given tire radius.  The return map can be used in DiscTerrainCollisionEnvelope.
     static void ConstructAreaDepthTable(double disc_radius, ChFunction_Recorder& areaDep);
 
-    VehicleSide m_side;               ///< tire mounted on left/right side
-    std::shared_ptr<ChBody> m_wheel;  ///< associated wheel body
-    double m_stepsize;                ///< tire integration step size (if applicable)
+    std::shared_ptr<ChWheel> m_wheel;  ///< associated wheel subsystem
+    double m_stepsize;                 ///< tire integration step size (if applicable)
+    CollisionType m_collision_type;    ///< method used for tire-terrain collision
 
   private:
-    /// Calculate kinematics quantities based on the current state of the associated wheel body.
-    void CalculateKinematics(double time,                    ///< [in] current time
-                             const WheelState& wheel_state,  ///< [in] current state of associated wheel body
-                             const ChTerrain& terrain        ///< [in] reference to the terrain system
-                             );
-
     double m_slip_angle;
     double m_longitudinal_slip;
     double m_camber_angle;
+
+    friend class ChWheel;
 };
 
 /// Vector of handles to tire subsystems.

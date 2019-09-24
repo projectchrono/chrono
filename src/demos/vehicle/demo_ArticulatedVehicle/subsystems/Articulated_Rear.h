@@ -32,39 +32,40 @@ class Articulated_Rear {
 
     void Initialize();
 
-    void Synchronize(double time, double steering, double braking, const chrono::vehicle::TerrainForces& tire_forces);
+    void InitializeTire(
+        std::shared_ptr<chrono::vehicle::ChTire> tire,
+        std::shared_ptr<chrono::vehicle::ChWheel> wheel,
+        chrono::vehicle::VisualizationType tire_vis = chrono::vehicle::VisualizationType::PRIMITIVES,
+        chrono::vehicle::ChTire::CollisionType tire_coll = chrono::vehicle::ChTire::CollisionType::SINGLE_POINT);
+
+    void Synchronize(double time, double steering, double braking, const chrono::vehicle::ChTerrain& terrain);
+
+    void Advance(double step);
 
     void SetSuspensionVisualizationType(chrono::vehicle::VisualizationType vis);
     void SetWheelVisualizationType(chrono::vehicle::VisualizationType vis);
 
-    /// Get a handle to the specified wheel body.
-    std::shared_ptr<chrono::ChBody> GetWheelBody(const chrono::vehicle::WheelID& wheel_id) const;
+    /// Get the axle subsystem.
+    std::shared_ptr<chrono::vehicle::ChAxle> GetAxle() const { return m_axle; }
 
-    /// Get the global location of the specified wheel.
-    const chrono::ChVector<>& GetWheelPos(const chrono::vehicle::WheelID& wheel_id) const;
+    /// Get the global location of the specified spindle.
+    const chrono::ChVector<>& GetSpindlePos(chrono::vehicle::VehicleSide side) const;
 
-    /// Get the orientation of the specified wheel.
-    const chrono::ChQuaternion<>& GetWheelRot(const chrono::vehicle::WheelID& wheel_id) const;
+    /// Get the orientation of the specified spindle.
+    const chrono::ChQuaternion<>& GetSpindleRot(chrono::vehicle::VehicleSide side) const;
 
-    /// Get the linear velocity of the specified wheel.
-    const chrono::ChVector<>& GetWheelLinVel(const chrono::vehicle::WheelID& wheel_id) const;
+    /// Get the linear velocity of the specified spindle.
+    const chrono::ChVector<>& GetSpindleLinVel(chrono::vehicle::VehicleSide side) const;
 
-    /// Get the angular velocity of the specified wheel.
-    chrono::ChVector<> GetWheelAngVel(const chrono::vehicle::WheelID& wheel_id) const;
-
-    /// Get the complete state for the specified wheel.
-    chrono::vehicle::WheelState GetWheelState(const chrono::vehicle::WheelID& wheel_id) const;
+    /// Get the angular velocity of the specified spindle.
+    chrono::ChVector<> GetSpindleAngVel(chrono::vehicle::VehicleSide side) const;
 
   private:
     std::shared_ptr<Articulated_Chassis> m_front;  ///< handle to front side
 
-    std::shared_ptr<chrono::ChBodyAuxRef> m_chassis;  ///< handle to the chassis body
-
-    chrono::vehicle::ChSuspensionList m_suspensions;  ///< list of handles to suspension subsystems
-    chrono::vehicle::ChWheelList m_wheels;            ///< list of handles to wheel subsystems
-    chrono::vehicle::ChBrakeList m_brakes;            ///< list of handles to brake subsystems
-
-    std::shared_ptr<chrono::ChLinkMotorRotationAngle> m_motor;
+    std::shared_ptr<chrono::ChBodyAuxRef> m_chassis;            ///< chassis body
+    std::shared_ptr<chrono::vehicle::ChAxle> m_axle;            ///< axle subsystem (suspension + brakes + wheels)
+    std::shared_ptr<chrono::ChLinkMotorRotationAngle> m_motor;  ///< steering motor
 
     // Chassis mass properties
     static const double m_chassisMass;

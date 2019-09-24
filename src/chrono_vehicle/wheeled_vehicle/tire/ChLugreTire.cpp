@@ -40,8 +40,8 @@ ChLugreTire::ChLugreTire(const std::string& name) : ChTire(name) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChLugreTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
-    ChTire::Initialize(wheel, side);
+void ChLugreTire::Initialize(std::shared_ptr<ChWheel> wheel) {
+    ChTire::Initialize(wheel);
 
     m_data.resize(GetNumDiscs());
     m_state.resize(GetNumDiscs());
@@ -69,29 +69,30 @@ void ChLugreTire::AddVisualizationAssets(VisualizationType vis) {
     for (int id = 0; id < GetNumDiscs(); id++) {
         m_cyl_shapes[id] = chrono_types::make_shared<ChCylinderShape>();
         m_cyl_shapes[id]->GetCylinderGeometry().rad = disc_radius;
-        m_cyl_shapes[id]->GetCylinderGeometry().p1 = ChVector<>(0, disc_locs[id] + discWidth / 2, 0);
-        m_cyl_shapes[id]->GetCylinderGeometry().p2 = ChVector<>(0, disc_locs[id] - discWidth / 2, 0);
-        m_wheel->AddAsset(m_cyl_shapes[id]);
+        m_cyl_shapes[id]->GetCylinderGeometry().p1 = ChVector<>(0, GetOffset() + disc_locs[id] + discWidth / 2, 0);
+        m_cyl_shapes[id]->GetCylinderGeometry().p2 = ChVector<>(0, GetOffset() + disc_locs[id] - discWidth / 2, 0);
+        m_wheel->GetSpindle()->AddAsset(m_cyl_shapes[id]);
     }
 
     m_texture = chrono_types::make_shared<ChTexture>();
     m_texture->SetTextureFilename(GetChronoDataFile("greenwhite.png"));
-    m_wheel->AddAsset(m_texture);
+    m_wheel->GetSpindle()->AddAsset(m_texture);
 }
 
 void ChLugreTire::RemoveVisualizationAssets() {
     // Make sure we only remove the assets added by ChLugreTire::AddVisualizationAssets.
     // This is important for the ChTire object because a wheel may add its own assets
     // to the same body (the spindle/wheel).
+    auto& assets = m_wheel->GetSpindle()->GetAssets();
     for (int id = 0; id < m_cyl_shapes.size(); id++) {
-        auto it = std::find(m_wheel->GetAssets().begin(), m_wheel->GetAssets().end(), m_cyl_shapes[id]);
-        if (it != m_wheel->GetAssets().end())
-            m_wheel->GetAssets().erase(it);
+        auto it = std::find(assets.begin(), assets.end(), m_cyl_shapes[id]);
+        if (it != assets.end())
+            assets.erase(it);
     }
     {
-        auto it = std::find(m_wheel->GetAssets().begin(), m_wheel->GetAssets().end(), m_texture);
-        if (it != m_wheel->GetAssets().end())
-            m_wheel->GetAssets().erase(it);
+        auto it = std::find(assets.begin(), assets.end(), m_texture);
+        if (it != assets.end())
+            assets.erase(it);
     }
     m_cyl_shapes.clear();
 }
@@ -105,11 +106,9 @@ double ChLugreTire::GetWidth() const {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChLugreTire::Synchronize(double time,
-                              const WheelState& wheel_state,
-                              const ChTerrain& terrain,
-                              CollisionType collision_type) {
-    // Invoke the base class function.
-    ChTire::Synchronize(time, wheel_state, terrain);
+                              const ChTerrain& terrain) {
+    WheelState wheel_state = m_wheel->GetState();
+    CalculateKinematics(time, wheel_state, terrain);
 
     double disc_radius = GetRadius();
     const double* disc_locs = GetDiscLocations();

@@ -33,17 +33,16 @@ namespace vehicle {
 // could transfer pitch torque to the chassis.
 // -----------------------------------------------------------------------------
 ChShaftsDriveline2WD::ChShaftsDriveline2WD(const std::string& name)
-    : ChDriveline(name), m_dir_motor_block(ChVector<>(1, 0, 0)), m_dir_axle(ChVector<>(0, 1, 0)) {}
+    : ChDrivelineWV(name), m_dir_motor_block(ChVector<>(1, 0, 0)), m_dir_axle(ChVector<>(0, 1, 0)) {}
 
 // -----------------------------------------------------------------------------
 // Initialize the driveline subsystem.
-// This function connects this driveline subsystem to the axles of the specified
-// suspension subsystems.
+// This function connects this driveline to the specified axle.
 // -----------------------------------------------------------------------------
 void ChShaftsDriveline2WD::Initialize(std::shared_ptr<ChBody> chassis,
-                                      const ChSuspensionList& suspensions,
+                                      const ChAxleList& axles,
                                       const std::vector<int>& driven_axles) {
-    assert(suspensions.size() >= 1);
+    assert(axles.size() >= 1);
     assert(driven_axles.size() == 1);
 
     m_driven_axles = driven_axles;
@@ -78,14 +77,15 @@ void ChShaftsDriveline2WD::Initialize(std::shared_ptr<ChBody> chassis,
     // assigned according to Willis formula. The case of the differential is
     // simple: t0=-1.
     m_differential = chrono_types::make_shared<ChShaftsPlanetary>();
-    m_differential->Initialize(m_differentialbox, suspensions[m_driven_axles[0]]->GetAxle(LEFT),
-                               suspensions[m_driven_axles[0]]->GetAxle(RIGHT));
+    m_differential->Initialize(m_differentialbox, axles[m_driven_axles[0]]->m_suspension->GetAxle(LEFT),
+                               axles[m_driven_axles[0]]->m_suspension->GetAxle(RIGHT));
     m_differential->SetTransmissionRatioOrdinary(GetDifferentialRatio());
     my_system->Add(m_differential);
 
     // Create the clutch for differential locking. By default, unlocked.
     m_clutch = chrono_types::make_shared<ChShaftsClutch>();
-    m_clutch->Initialize(suspensions[m_driven_axles[0]]->GetAxle(LEFT), suspensions[m_driven_axles[0]]->GetAxle(RIGHT));
+    m_clutch->Initialize(axles[m_driven_axles[0]]->m_suspension->GetAxle(LEFT),
+                         axles[m_driven_axles[0]]->m_suspension->GetAxle(RIGHT));
     m_clutch->SetTorqueLimit(GetAxleDifferentialLockingLimit());
     m_clutch->SetModulation(0);
     my_system->Add(m_clutch);
@@ -101,9 +101,9 @@ void ChShaftsDriveline2WD::LockCentralDifferential(int which, bool lock) {
 }
 
 // -----------------------------------------------------------------------------
-double ChShaftsDriveline2WD::GetWheelTorque(const WheelID& wheel_id) const {
-    if (wheel_id.axle() == m_driven_axles[0]) {
-        switch (wheel_id.side()) {
+double ChShaftsDriveline2WD::GetSpindleTorque(int axle, VehicleSide side) const {
+    if (axle == m_driven_axles[0]) {
+        switch (side) {
             case LEFT:
                 return -m_differential->GetTorqueReactionOn2() - m_clutch->GetTorqueReactionOn1();
             case RIGHT:

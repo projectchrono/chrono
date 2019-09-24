@@ -9,10 +9,10 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Radu Serban, Michael Taylor, Rainer Gericke
 // =============================================================================
 //
-// HMMWV Pacejka 2002 tire subsystem
+// HMMWV PAC02 tire subsystem
 //
 // =============================================================================
 
@@ -21,7 +21,7 @@
 
 #include "chrono/assets/ChTriangleMeshShape.h"
 
-#include "chrono_vehicle/wheeled_vehicle/tire/ChPacejkaTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChPac02Tire.h"
 
 #include "chrono_models/ChApiModels.h"
 
@@ -32,14 +32,23 @@ namespace hmmwv {
 /// @addtogroup vehicle_models_hmmwv
 /// @{
 
-/// Pacejka 2002 tire model for the HMMWV vehicle.
-class CH_MODELS_API HMMWV_Pac02Tire : public ChPacejkaTire {
+/// PAC89 tire model for the HMMWV vehicle.
+class CH_MODELS_API HMMWV_Pac02Tire : public ChPac02Tire {
   public:
     HMMWV_Pac02Tire(const std::string& name);
     ~HMMWV_Pac02Tire() {}
 
+    virtual double GetNormalStiffnessForce(double depth) const override;
+    virtual double GetNormalDampingForce(double depth, double velocity) const override {
+        return m_PacCoeff.Kz * velocity;
+    }
+
     virtual double GetMass() const override { return m_mass; }
     virtual ChVector<> GetInertia() const override { return m_inertia; }
+
+    virtual double GetVisualizationWidth() const override { return m_PacCoeff.width; }
+
+    virtual void SetPac02Params() override;
 
     virtual void AddVisualizationAssets(VisualizationType vis) override;
     virtual void RemoveVisualizationAssets() override final;
@@ -47,8 +56,7 @@ class CH_MODELS_API HMMWV_Pac02Tire : public ChPacejkaTire {
   private:
     static const double m_mass;
     static const ChVector<> m_inertia;
-
-    static const std::string m_pacTireFile;
+    ChFunction_Recorder m_vert_map;
 
     static const std::string m_meshName;
     static const std::string m_meshFile;

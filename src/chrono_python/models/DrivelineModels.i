@@ -16,7 +16,8 @@
 #include "chrono_vehicle/ChPart.h"
 #include "chrono_vehicle/wheeled_vehicle/ChSuspension.h"
 
-#include "chrono_vehicle/wheeled_vehicle/ChDriveline.h"
+#include "chrono_vehicle/ChDriveline.h"
+#include "chrono_vehicle/wheeled_vehicle/ChDrivelineWV.h"
 #include "chrono_vehicle/wheeled_vehicle/driveline/ChShaftsDriveline2WD.h"
 #include "chrono_vehicle/wheeled_vehicle/driveline/ChShaftsDriveline4WD.h"
 #include "chrono_vehicle/wheeled_vehicle/driveline/ChSimpleDriveline.h"
@@ -48,7 +49,7 @@
 
 
 /* Parse the header file to generate wrappers */
-%import "ChDriveline.i"
+%import "ChDrivelineWV.i"
 
 // Model:
 %include "../chrono_models/vehicle/generic/Generic_Driveline2WD.h"

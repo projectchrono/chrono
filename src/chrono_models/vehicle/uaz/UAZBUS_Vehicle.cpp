@@ -47,47 +47,36 @@ UAZBUS_Vehicle::UAZBUS_Vehicle(ChSystem* system,
 }
 
 void UAZBUS_Vehicle::Create(bool fixed, SteeringType steering_model, ChassisCollisionType chassis_collision_type) {
-    // -------------------------------------------
     // Create the chassis subsystem
-    // -------------------------------------------
     m_chassis = chrono_types::make_shared<UAZBUS_Chassis>("Chassis", fixed, chassis_collision_type);
 
-    // -------------------------------------------
-    // Create the suspension subsystems
-    // -------------------------------------------
-    m_suspensions.resize(2);
-    m_suspensions[0] = chrono_types::make_shared<UAZBUS_ToeBarLeafspringAxle>("FrontSusp");
-    m_suspensions[1] = chrono_types::make_shared<UAZBUS_LeafspringAxle>("RearSusp");
-
-    // -----------------------------
     // Create the steering subsystem
-    // -----------------------------
     m_steerings.resize(1);
     m_steerings[0] = chrono_types::make_shared<UAZBUS_RotaryArm>("Steering");
 
-    // -----------------
-    // Create the wheels
-    // -----------------
-    m_wheels.resize(4);
-    m_wheels[0] = chrono_types::make_shared<UAZBUS_WheelLeft>("Wheel_FL");
-    m_wheels[1] = chrono_types::make_shared<UAZBUS_WheelRight>("Wheel_FR");
-    m_wheels[2] = chrono_types::make_shared<UAZBUS_WheelLeft>("Wheel_RL");
-    m_wheels[3] = chrono_types::make_shared<UAZBUS_WheelRight>("Wheel_RR");
+    // Create the axle subsystems
+    m_axles.resize(2);
+    m_axles[0] = chrono_types::make_shared<ChAxle>();
+    m_axles[1] = chrono_types::make_shared<ChAxle>();
 
-    // --------------------
+    m_axles[0]->m_suspension = chrono_types::make_shared<UAZBUS_ToeBarLeafspringAxle>("FrontSusp");
+    m_axles[1]->m_suspension = chrono_types::make_shared<UAZBUS_LeafspringAxle>("RearSusp");
+
+    m_axles[0]->m_wheels.resize(2);
+    m_axles[0]->m_wheels[0] = chrono_types::make_shared<UAZBUS_WheelLeft>("Wheel_FL");
+    m_axles[0]->m_wheels[1] = chrono_types::make_shared<UAZBUS_WheelRight>("Wheel_FR");
+    m_axles[1]->m_wheels.resize(2);
+    m_axles[1]->m_wheels[0] = chrono_types::make_shared<UAZBUS_WheelLeft>("Wheel_RL");
+    m_axles[1]->m_wheels[1] = chrono_types::make_shared<UAZBUS_WheelRight>("Wheel_RR");
+
+    m_axles[0]->m_brake_left = chrono_types::make_shared<UAZBUS_BrakeSimpleFront>("Brake_FL");
+    m_axles[0]->m_brake_right = chrono_types::make_shared<UAZBUS_BrakeSimpleFront>("Brake_FR");
+    m_axles[1]->m_brake_left = chrono_types::make_shared<UAZBUS_BrakeSimpleFront>("Brake_RL");
+    m_axles[1]->m_brake_right = chrono_types::make_shared<UAZBUS_BrakeSimpleFront>("Brake_RR");
+
     // Create the driveline
-    // --------------------
     m_driveline = chrono_types::make_shared<UAZBUS_Driveline4WD>("Driveline");
-    // m_driveline = chrono_types::make_shared<UAZBUS_SimpleDriveline>("Driveline");
-
-    // -----------------
-    // Create the brakes
-    // -----------------
-    m_brakes.resize(4);
-    m_brakes[0] = chrono_types::make_shared<UAZBUS_BrakeSimpleFront>("Brake_FL");
-    m_brakes[1] = chrono_types::make_shared<UAZBUS_BrakeSimpleFront>("Brake_FR");
-    m_brakes[2] = chrono_types::make_shared<UAZBUS_BrakeSimpleRear>("Brake_RL");
-    m_brakes[3] = chrono_types::make_shared<UAZBUS_BrakeSimpleRear>("Brake_RR");
+    ////m_driveline = chrono_types::make_shared<UAZBUS_SimpleDriveline>("Driveline");
 }
 
 UAZBUS_Vehicle::~UAZBUS_Vehicle() {}
@@ -95,27 +84,20 @@ UAZBUS_Vehicle::~UAZBUS_Vehicle() {}
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void UAZBUS_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
-    // Invoke base class method to initialize the chassis.
-    ChWheeledVehicle::Initialize(chassisPos, chassisFwdVel);
+    // Initialize the chassis subsystem.
+    m_chassis->Initialize(m_system, chassisPos, chassisFwdVel, WheeledCollisionFamily::CHASSIS);
 
-    // Initialize the steering subsystem (specify the steering subsystem's frame
-    // relative to the chassis reference frame).
+    // Initialize the steering subsystem (specify the steering subsystem's frame relative to the chassis reference
+    // frame).
     ChVector<> offset = ChVector<>(0, 0, 0);
     ChQuaternion<> rotation = Q_from_AngAxis(0, ChVector<>(0, 1, 0));
     m_steerings[0]->Initialize(m_chassis->GetBody(), offset, rotation);
 
-    // Initialize the suspension subsystems (specify the suspension subsystems'
-    // frames relative to the chassis reference frame).
-    m_suspensions[0]->Initialize(m_chassis->GetBody(), ChVector<>(0, 0, 0), m_steerings[0]->GetSteeringLink(), 0,
-                                 m_omega[0], m_omega[1]);
-    m_suspensions[1]->Initialize(m_chassis->GetBody(), ChVector<>(-2.3, 0, 0), m_chassis->GetBody(), -1, m_omega[2],
-                                 m_omega[3]);
-
-    // Initialize wheels
-    m_wheels[0]->Initialize(m_suspensions[0]->GetSpindle(LEFT));
-    m_wheels[1]->Initialize(m_suspensions[0]->GetSpindle(RIGHT));
-    m_wheels[2]->Initialize(m_suspensions[1]->GetSpindle(LEFT));
-    m_wheels[3]->Initialize(m_suspensions[1]->GetSpindle(RIGHT));
+    // Initialize the axle subsystems.
+    m_axles[0]->Initialize(m_chassis->GetBody(), ChVector<>(0, 0, 0), ChVector<>(0), m_steerings[0]->GetSteeringLink(),
+                           0, 0.0, m_omega[0], m_omega[1]);
+    m_axles[1]->Initialize(m_chassis->GetBody(), ChVector<>(-2.3, 0, 0), ChVector<>(0), m_chassis->GetBody(), -1, 0.0,
+                           m_omega[2], m_omega[3]);
 
     // Initialize the driveline subsystem
     std::vector<int> driven_susp_indexes(m_driveline->GetNumDrivenAxles());
@@ -123,47 +105,35 @@ void UAZBUS_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
     driven_susp_indexes[0] = 1;
     driven_susp_indexes[1] = 1;
 
-    m_driveline->Initialize(m_chassis->GetBody(), m_suspensions, driven_susp_indexes);
-
-    // Initialize the four brakes
-    m_brakes[0]->Initialize(m_suspensions[0]->GetRevolute(LEFT));
-    m_brakes[1]->Initialize(m_suspensions[0]->GetRevolute(RIGHT));
-    m_brakes[2]->Initialize(m_suspensions[1]->GetRevolute(LEFT));
-    m_brakes[3]->Initialize(m_suspensions[1]->GetRevolute(RIGHT));
+    m_driveline->Initialize(m_chassis->GetBody(), m_axles, driven_susp_indexes);
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-double UAZBUS_Vehicle::GetSpringForce(const WheelID& wheel_id) const {
-    return std::static_pointer_cast<ChToeBarLeafspringAxle>(m_suspensions[wheel_id.axle()])
-        ->GetSpringForce(wheel_id.side());
+double UAZBUS_Vehicle::GetSpringForce(int axle, VehicleSide side) const {
+    return std::static_pointer_cast<ChToeBarLeafspringAxle>(m_axles[axle]->m_suspension)->GetSpringForce(side);
 }
 
-double UAZBUS_Vehicle::GetSpringLength(const WheelID& wheel_id) const {
-    return std::static_pointer_cast<ChToeBarLeafspringAxle>(m_suspensions[wheel_id.axle()])
-        ->GetSpringLength(wheel_id.side());
+double UAZBUS_Vehicle::GetSpringLength(int axle, VehicleSide side) const {
+    return std::static_pointer_cast<ChToeBarLeafspringAxle>(m_axles[axle]->m_suspension)->GetSpringLength(side);
 }
 
-double UAZBUS_Vehicle::GetSpringDeformation(const WheelID& wheel_id) const {
-    return std::static_pointer_cast<ChToeBarLeafspringAxle>(m_suspensions[wheel_id.axle()])
-        ->GetSpringDeformation(wheel_id.side());
+double UAZBUS_Vehicle::GetSpringDeformation(int axle, VehicleSide side) const {
+    return std::static_pointer_cast<ChToeBarLeafspringAxle>(m_axles[axle]->m_suspension)->GetSpringDeformation(side);
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-double UAZBUS_Vehicle::GetShockForce(const WheelID& wheel_id) const {
-    return std::static_pointer_cast<ChToeBarLeafspringAxle>(m_suspensions[wheel_id.axle()])
-        ->GetShockForce(wheel_id.side());
+double UAZBUS_Vehicle::GetShockForce(int axle, VehicleSide side) const {
+    return std::static_pointer_cast<ChToeBarLeafspringAxle>(m_axles[axle]->m_suspension)->GetShockForce(side);
 }
 
-double UAZBUS_Vehicle::GetShockLength(const WheelID& wheel_id) const {
-    return std::static_pointer_cast<ChToeBarLeafspringAxle>(m_suspensions[wheel_id.axle()])
-        ->GetShockLength(wheel_id.side());
+double UAZBUS_Vehicle::GetShockLength(int axle, VehicleSide side) const {
+    return std::static_pointer_cast<ChToeBarLeafspringAxle>(m_axles[axle]->m_suspension)->GetShockLength(side);
 }
 
-double UAZBUS_Vehicle::GetShockVelocity(const WheelID& wheel_id) const {
-    return std::static_pointer_cast<ChToeBarLeafspringAxle>(m_suspensions[wheel_id.axle()])
-        ->GetShockVelocity(wheel_id.side());
+double UAZBUS_Vehicle::GetShockVelocity(int axle, VehicleSide side) const {
+    return std::static_pointer_cast<ChToeBarLeafspringAxle>(m_axles[axle]->m_suspension)->GetShockVelocity(side);
 }
 
 // -----------------------------------------------------------------------------
@@ -174,11 +144,11 @@ void UAZBUS_Vehicle::LogHardpointLocations() {
     GetLog().SetNumFormat("%7.3f");
 
     GetLog() << "\n---- FRONT suspension hardpoint locations (LEFT side)\n";
-    std::static_pointer_cast<ChToeBarLeafspringAxle>(m_suspensions[0])
+    std::static_pointer_cast<ChToeBarLeafspringAxle>(m_axles[0]->m_suspension)
         ->LogHardpointLocations(ChVector<>(0, 0, 0), false);
 
     GetLog() << "\n---- REAR suspension hardpoint locations (LEFT side)\n";
-    std::static_pointer_cast<ChToeBarLeafspringAxle>(m_suspensions[1])
+    std::static_pointer_cast<ChToeBarLeafspringAxle>(m_axles[1]->m_suspension)
         ->LogHardpointLocations(ChVector<>(0, 0, 0), false);
 
     GetLog() << "\n\n";
@@ -198,22 +168,22 @@ void UAZBUS_Vehicle::DebugLog(int what) {
 
     if (what & OUT_SPRINGS) {
         GetLog() << "\n---- Spring (front-left, front-right, rear-left, rear-right)\n";
-        GetLog() << "Length [m]       " << GetSpringLength(FRONT_LEFT) << "  " << GetSpringLength(FRONT_RIGHT) << "  "
-                 << GetSpringLength(REAR_LEFT) << "  " << GetSpringLength(REAR_RIGHT) << "\n";
-        GetLog() << "Deformation [m]  " << GetSpringDeformation(FRONT_LEFT) << "  " << GetSpringDeformation(FRONT_RIGHT)
-                 << "  " << GetSpringDeformation(REAR_LEFT) << "  " << GetSpringDeformation(REAR_RIGHT) << "\n";
-        GetLog() << "Force [N]         " << GetSpringForce(FRONT_LEFT) << "  " << GetSpringForce(FRONT_RIGHT) << "  "
-                 << GetSpringForce(REAR_LEFT) << "  " << GetSpringForce(REAR_RIGHT) << "\n";
+        GetLog() << "Length [m]       " << GetSpringLength(0, LEFT) << "  " << GetSpringLength(0, RIGHT) << "  "
+                 << GetSpringLength(1, LEFT) << "  " << GetSpringLength(1, RIGHT) << "\n";
+        GetLog() << "Deformation [m]  " << GetSpringDeformation(0, LEFT) << "  " << GetSpringDeformation(0, RIGHT)
+                 << "  " << GetSpringDeformation(1, LEFT) << "  " << GetSpringDeformation(1, RIGHT) << "\n";
+        GetLog() << "Force [N]         " << GetSpringForce(0, LEFT) << "  " << GetSpringForce(0, RIGHT) << "  "
+                 << GetSpringForce(1, LEFT) << "  " << GetSpringForce(1, RIGHT) << "\n";
     }
 
     if (what & OUT_SHOCKS) {
         GetLog() << "\n---- Shock (front-left, front-right, rear-left, rear-right)\n";
-        GetLog() << "Length [m]       " << GetShockLength(FRONT_LEFT) << "  " << GetShockLength(FRONT_RIGHT) << "  "
-                 << GetShockLength(REAR_LEFT) << "  " << GetShockLength(REAR_RIGHT) << "\n";
-        GetLog() << "Velocity [m/s]   " << GetShockVelocity(FRONT_LEFT) << "  " << GetShockVelocity(FRONT_RIGHT) << "  "
-                 << GetShockVelocity(REAR_LEFT) << "  " << GetShockVelocity(REAR_RIGHT) << "\n";
-        GetLog() << "Force [N]         " << GetShockForce(FRONT_LEFT) << "  " << GetShockForce(FRONT_RIGHT) << "  "
-                 << GetShockForce(REAR_LEFT) << "  " << GetShockForce(REAR_RIGHT) << "\n";
+        GetLog() << "Length [m]       " << GetShockLength(0, LEFT) << "  " << GetShockLength(0, RIGHT) << "  "
+                 << GetShockLength(1, LEFT) << "  " << GetShockLength(1, RIGHT) << "\n";
+        GetLog() << "Velocity [m/s]   " << GetShockVelocity(0, LEFT) << "  " << GetShockVelocity(0, RIGHT) << "  "
+                 << GetShockVelocity(1, LEFT) << "  " << GetShockVelocity(1, RIGHT) << "\n";
+        GetLog() << "Force [N]         " << GetShockForce(0, LEFT) << "  " << GetShockForce(0, RIGHT) << "  "
+                 << GetShockForce(1, LEFT) << "  " << GetShockForce(1, RIGHT) << "\n";
     }
 
     if (what & OUT_CONSTRAINTS) {

@@ -118,15 +118,15 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event) {
             SetThrottle(0);
             /// Gear is set to reverse
             if (event.JoystickEvent.IsButtonPressed(22)) {
-                m_app.m_powertrain->SetDriveMode(ChPowertrain::REVERSE);
+                m_app.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::REVERSE);
 
             } else if (event.JoystickEvent.IsButtonPressed(12) || event.JoystickEvent.IsButtonPressed(13) ||
                        event.JoystickEvent.IsButtonPressed(14) || event.JoystickEvent.IsButtonPressed(15) ||
                        event.JoystickEvent.IsButtonPressed(16) || event.JoystickEvent.IsButtonPressed(17)) {
                 // All 'forward' gears set drive mode to forward, regardless of gear
-                m_app.m_powertrain->SetDriveMode(ChPowertrain::FORWARD);
+                m_app.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::FORWARD);
             } else {
-                m_app.m_powertrain->SetDriveMode(ChPowertrain::NEUTRAL);
+                m_app.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::NEUTRAL);
             }
         }
 
@@ -186,15 +186,15 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event) {
 
             case KEY_KEY_Z:
                 if (m_mode == KEYBOARD)
-                    m_app.m_powertrain->SetDriveMode(ChPowertrain::FORWARD);
+                    m_app.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::FORWARD);
                 return true;
             case KEY_KEY_X:
                 if (m_mode == KEYBOARD)
-                    m_app.m_powertrain->SetDriveMode(ChPowertrain::NEUTRAL);
+                    m_app.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::NEUTRAL);
                 return true;
             case KEY_KEY_C:
                 if (m_mode == KEYBOARD)
-                    m_app.m_powertrain->SetDriveMode(ChPowertrain::REVERSE);
+                    m_app.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::REVERSE);
                 return true;
             default:
                 break;

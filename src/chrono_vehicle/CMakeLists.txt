@@ -148,10 +148,11 @@ set(CV_BASE_FILES
     ChDriver.cpp
     ChPart.h
     ChPart.cpp
+    ChDriveline.h
+    ChDriveline.cpp
     ChPowertrain.h
     ChPowertrain.cpp
     ChSubsysDefs.h
-	ChSubsysDefs.cpp
     ChTerrain.h
     ChTerrain.cpp
     ChVehicle.h
@@ -163,11 +164,11 @@ set(CV_BASE_FILES
 source_group("base" FILES ${CV_BASE_FILES})
 
 set(CV_CHASSIS_FILES
-	chassis/ChRigidChassis.h
-	chassis/ChRigidChassis.cpp
+    chassis/ChRigidChassis.h
+    chassis/ChRigidChassis.cpp
 
-	chassis/RigidChassis.h
-	chassis/RigidChassis.cpp
+    chassis/RigidChassis.h
+    chassis/RigidChassis.cpp
 )
 source_group("chassis" FILES ${CV_CHASSIS_FILES})
 
@@ -274,12 +275,14 @@ source_group("output" FILES ${CV_OUTPUT_FILES} ${CVHDF5_OUTPUT_FILES})
 # --------------- WHEELED VEHICLE FILES
 
 set(CV_WV_BASE_FILES
+    wheeled_vehicle/ChAxle.h
+    wheeled_vehicle/ChAxle.cpp
     wheeled_vehicle/ChAntirollBar.h
     wheeled_vehicle/ChAntirollBar.cpp
     wheeled_vehicle/ChBrake.h
     wheeled_vehicle/ChBrake.cpp
-    wheeled_vehicle/ChDriveline.h
-    wheeled_vehicle/ChDriveline.cpp
+    wheeled_vehicle/ChDrivelineWV.h
+    wheeled_vehicle/ChDrivelineWV.cpp
     wheeled_vehicle/ChSuspension.h
     wheeled_vehicle/ChSuspension.cpp
     wheeled_vehicle/ChSteering.h
@@ -421,6 +424,8 @@ set(CV_WV_TIRE_FILES
     wheeled_vehicle/tire/ChRigidTire.cpp
     wheeled_vehicle/tire/ChPacejkaTire.h
     wheeled_vehicle/tire/ChPacejkaTire.cpp
+    wheeled_vehicle/tire/ChPac02Tire.h
+    wheeled_vehicle/tire/ChPac02Tire.cpp
     wheeled_vehicle/tire/ChPac89Tire.h
     wheeled_vehicle/tire/ChPac89Tire.cpp
     wheeled_vehicle/tire/ChLugreTire.h
@@ -521,8 +526,8 @@ set(CV_TV_BASE_FILES
     tracked_vehicle/ChTrackAssembly.cpp
     tracked_vehicle/ChTrackBrake.h
     tracked_vehicle/ChTrackBrake.cpp
-    tracked_vehicle/ChTrackDriveline.h
-    tracked_vehicle/ChTrackDriveline.cpp
+    tracked_vehicle/ChDrivelineTV.h
+    tracked_vehicle/ChDrivelineTV.cpp
     tracked_vehicle/ChTrackedVehicle.h
     tracked_vehicle/ChTrackedVehicle.cpp
     tracked_vehicle/ChTrackShoe.h
