@@ -103,26 +103,20 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     /// Advance the state of the suspension test rig by the specified time step.
     virtual void Advance(double step) override;
 
-    /// Get a handle to the specified wheel body.
-    std::shared_ptr<ChBody> GetWheelBody(VehicleSide side) const { return m_suspension->GetSpindle(side); }
+    /// Get the global location of the specified spindle.
+    const ChVector<>& GetSpindlePos(VehicleSide side) const { return m_suspension->GetSpindlePos(side); }
 
-    /// Get the global location of the specified wheel.
-    const ChVector<>& GetWheelPos(VehicleSide side) const { return m_suspension->GetSpindlePos(side); }
+    /// Get the global rotation of the specified spindle.
+    const ChQuaternion<>& GetSpindleRot(VehicleSide side) const { return m_suspension->GetSpindleRot(side); }
 
-    /// Get the global rotation of the specified wheel.
-    const ChQuaternion<>& GetWheelRot(VehicleSide side) const { return m_suspension->GetSpindleRot(side); }
+    /// Get the global linear velocity of the specified spindle.
+    const ChVector<>& GetSpindleLinVel(VehicleSide side) const { return m_suspension->GetSpindleLinVel(side); }
 
-    /// Get the global linear velocity of wheel.
-    const ChVector<>& GetWheelLinVel(VehicleSide side) const { return m_suspension->GetSpindleLinVel(side); }
+    /// Get the global angular velocity of the specified spindle.
+    ChVector<> GetSpindleAngVel(VehicleSide side) const { return m_suspension->GetSpindleAngVel(side); }
 
-    /// Get the global angular velocity of wheel.
-    ChVector<> GetWheelAngVel(VehicleSide side) const { return m_suspension->GetSpindleAngVel(side); }
-
-    /// Get the angular speed of the specified wheel (about its rotation axis).
-    double GetWheelOmega(VehicleSide side) const;
-
-    /// Get the complete state for the specified wheel.
-    WheelState GetWheelState(VehicleSide side) const;
+    /// Get the angular speed of the specified spindle (about its rotation axis).
+    double GetSpindleOmega(VehicleSide side) const;
 
     double GetSteeringInput() const { return m_steering_input; }
     double GetDisplacementLeftInput() const { return m_left_input; }
@@ -156,7 +150,7 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     double GetMass() const;
 
     /// Get the tire force and moment on the specified side.
-    const TerrainForce& GetTireForce(VehicleSide side) const { return m_tireforce[side]; }
+    const TerrainForce& ReportTireForce(VehicleSide side) const { return m_tireforce[side]; }
 
     /// Get current ride height (relative to the chassis reference frame).
     /// This estimate uses the average of the left and right posts.

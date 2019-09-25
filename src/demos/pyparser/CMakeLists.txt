@@ -27,8 +27,7 @@ foreach(PROGRAM ${PY_DEMOS})
     set_target_properties(${PROGRAM} PROPERTIES 
         FOLDER demos
         COMPILE_FLAGS "${CH_CXX_FLAGS}"
-        LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-        VS_DEBUGGER_WORKING_DIRECTORY "$(OutDir)")
+        LINK_FLAGS "${CH_LINKERFLAG_EXE}")
     target_link_libraries(${PROGRAM} ChronoEngine ChronoEngine_pyparser)
     add_dependencies(${PROGRAM} ChronoEngine ChronoEngine_pyparser)
     install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
@@ -46,8 +45,7 @@ if(ENABLE_MODULE_IRRLICHT)
         set_target_properties(${PROGRAM} PROPERTIES 
             FOLDER demos
             COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
-            LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-            VS_DEBUGGER_WORKING_DIRECTORY "$(OutDir)")
+            LINK_FLAGS "${CH_LINKERFLAG_EXE}")
         target_link_libraries(${PROGRAM} 
             ChronoEngine
             ChronoEngine_pyparser

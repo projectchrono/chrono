@@ -24,7 +24,8 @@
 #include "chrono/physics/ChShaft.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChPart.h"
+#include "chrono_vehicle/ChChassis.h"
+#include "chrono_vehicle/ChDriveline.h"
 
 namespace chrono {
 namespace vehicle {
@@ -75,25 +76,30 @@ class CH_VEHICLE_API ChPowertrain : public ChPart {
     /// Set the mode of the transmission.
     virtual void SetDriveMode(DriveMode mmode) = 0;
 
-    /// Initialize this powertrain system.
-    virtual void Initialize(std::shared_ptr<ChBody> chassis,     ///< [in] chassis o the associated vehicle
-                            std::shared_ptr<ChShaft> driveshaft  ///< [in] shaft connection to the vehicle driveline
-                            ) = 0;
+  protected:
+    // Note: Users should not directly call these functions. The vehicle system (whether wheeled or tracked)
+    // intermediates calls to these functions.
+
+    /// Initialize this powertrain system by attaching it to an existing vehicle chassis and associating it with an
+    /// existing driveline subsystem. A derived class override must first call this base class version.
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,     ///< [in] chassis of the associated vehicle
+                            std::shared_ptr<ChDriveline> driveline  ///< [in] driveline of the associated vehicle
+    );
 
     /// Synchronize the state of this powertrain system at the current time.
-    /// The powertrain system is provided the current driver throttle input, a
-    /// value in the range [0,1], and the current angular speed of the transmission
-    /// shaft (from the driveline).
-    virtual void Synchronize(double time,        ///< [in] current time
-                             double throttle,    ///< [in] current throttle input [0,1]
-                             double shaft_speed  ///< [in] current angular speed of the transmission shaft
+    /// The powertrain system is provided the current driver throttle input, a value in the range [0,1].
+    virtual void Synchronize(double time,     ///< [in] current time
+                             double throttle  ///< [in] current throttle input [0,1]
                              ) = 0;
 
     /// Advance the state of this powertrain system by the specified time step.
     virtual void Advance(double step) {}
 
-  protected:
-    DriveMode m_drive_mode;
+    DriveMode m_drive_mode;                    ///< drive mode (neutral, forward, or reverse)
+    std::shared_ptr<ChDriveline> m_driveline;  ///< associated driveline subsystem
+
+    friend class ChWheeledVehicle;
+    friend class ChTrackedVehicle;
 };
 
 /// @} vehicle_powertrain

@@ -19,6 +19,8 @@
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChBoxShape.h"
 
+#include "chrono_vehicle/wheeled_vehicle/ChTire.h"
+
 #include "chrono_models/vehicle/generic/Generic_SolidAxle.h"
 #include "chrono_models/vehicle/generic/Generic_MultiLink.h"
 #include "chrono_models/vehicle/generic/Generic_Wheel.h"
@@ -100,20 +102,22 @@ TT_Trailer::TT_Trailer(ChSystem* mysystem, const bool fixed, SuspensionType susp
     mysystem->Add(m_joint);
 
     // -------------------------------------------
-    // Create the suspension subsystems
+    // Create the axle subsystems
     // -------------------------------------------
-    m_suspensions.resize(2);
+    m_axles.resize(2);
+    m_axles[0] = chrono_types::make_shared<ChAxle>();
+    m_axles[1] = chrono_types::make_shared<ChAxle>();
 
     assert(m_suspType == SuspensionType::SOLID_AXLE || m_suspType == SuspensionType::MULTI_LINK);
 
     switch (m_suspType) {
         case SuspensionType::SOLID_AXLE:
-            m_suspensions[0] = chrono_types::make_shared<Generic_SolidAxle>("FrontSusp");
-            m_suspensions[1] = chrono_types::make_shared<Generic_SolidAxle>("RearSusp");
+            m_axles[0]->m_suspension = chrono_types::make_shared<Generic_SolidAxle>("FrontSusp");
+            m_axles[1]->m_suspension = chrono_types::make_shared<Generic_SolidAxle>("RearSusp");
             break;
         case SuspensionType::MULTI_LINK:
-            m_suspensions[0] = chrono_types::make_shared<Generic_MultiLink>("FrontSusp");
-            m_suspensions[1] = chrono_types::make_shared<Generic_MultiLink>("RearSusp");
+            m_axles[0]->m_suspension = chrono_types::make_shared<Generic_MultiLink>("FrontSusp");
+            m_axles[1]->m_suspension = chrono_types::make_shared<Generic_MultiLink>("RearSusp");
             break;
         default:
             break;
@@ -122,20 +126,20 @@ TT_Trailer::TT_Trailer(ChSystem* mysystem, const bool fixed, SuspensionType susp
     // -----------------
     // Create the wheels
     // -----------------
-    m_wheels.resize(4);
-    m_wheels[0] = chrono_types::make_shared<Generic_Wheel>("Wheel_FL");
-    m_wheels[1] = chrono_types::make_shared<Generic_Wheel>("Wheel_FR");
-    m_wheels[2] = chrono_types::make_shared<Generic_Wheel>("Wheel_RL");
-    m_wheels[3] = chrono_types::make_shared<Generic_Wheel>("Wheel_RR");
+    m_axles[0]->m_wheels.resize(2);
+    m_axles[0]->m_wheels[0] = chrono_types::make_shared<Generic_Wheel>("Wheel_FL");
+    m_axles[0]->m_wheels[1] = chrono_types::make_shared<Generic_Wheel>("Wheel_FR");
+    m_axles[1]->m_wheels.resize(2);
+    m_axles[1]->m_wheels[0] = chrono_types::make_shared<Generic_Wheel>("Wheel_RL");
+    m_axles[1]->m_wheels[1] = chrono_types::make_shared<Generic_Wheel>("Wheel_RR");
 
     // -----------------
     // Create the brakes
     // -----------------
-    m_brakes.resize(4);
-    m_brakes[0] = chrono_types::make_shared<Generic_BrakeSimple>("Brake_FL");
-    m_brakes[1] = chrono_types::make_shared<Generic_BrakeSimple>("Brake_FR");
-    m_brakes[2] = chrono_types::make_shared<Generic_BrakeSimple>("Brake_RL");
-    m_brakes[3] = chrono_types::make_shared<Generic_BrakeSimple>("Brake_RR");
+    m_axles[0]->m_brake_left = chrono_types::make_shared<Generic_BrakeSimple>("Brake_FL");
+    m_axles[0]->m_brake_right = chrono_types::make_shared<Generic_BrakeSimple>("Brake_FR");
+    m_axles[1]->m_brake_left = chrono_types::make_shared<Generic_BrakeSimple>("Brake_RL");
+    m_axles[1]->m_brake_right = chrono_types::make_shared<Generic_BrakeSimple>("Brake_RR");
 }
 
 // -----------------------------------------------------------------------------
@@ -157,116 +161,71 @@ void TT_Trailer::Initialize(const ChCoordsys<>& chassisPos,
         pulling_vehicle->GetSystem()->Add(m_puller);
     }
 
-    // Initialize the suspension subsystems (specify the suspension subsystems'
-    // frames relative to the chassis reference frame).
-    m_suspensions[0]->Initialize(m_frontaxle, ChVector<>(0, 0, 0), m_frontaxle, -1);
-    m_suspensions[1]->Initialize(m_chassis, ChVector<>(-2, 0, 0), m_chassis, -1);
+    // Initialize the axle subsystems.
+    m_axles[0]->Initialize(m_frontaxle, ChVector<>(0, 0, 0), ChVector<>(0), m_frontaxle, -1, 0.0);
+    m_axles[1]->Initialize(m_chassis, ChVector<>(-2, 0, 0), ChVector<>(0), m_chassis, -1, 0.0);
+}
 
-    // Initialize wheels
-    m_wheels[0]->Initialize(m_suspensions[0]->GetSpindle(LEFT));
-    m_wheels[1]->Initialize(m_suspensions[0]->GetSpindle(RIGHT));
-    m_wheels[2]->Initialize(m_suspensions[1]->GetSpindle(LEFT));
-    m_wheels[3]->Initialize(m_suspensions[1]->GetSpindle(RIGHT));
-
-    // Initialize the four brakes
-    m_brakes[0]->Initialize(m_suspensions[0]->GetRevolute(LEFT));
-    m_brakes[1]->Initialize(m_suspensions[0]->GetRevolute(RIGHT));
-    m_brakes[2]->Initialize(m_suspensions[1]->GetRevolute(LEFT));
-    m_brakes[3]->Initialize(m_suspensions[1]->GetRevolute(RIGHT));
+// -----------------------------------------------------------------------------
+// Initialize the given tire and attach to the specified wheel
+// -----------------------------------------------------------------------------
+void TT_Trailer::InitializeTire(std::shared_ptr<ChTire> tire,
+                                std::shared_ptr<ChWheel> wheel,
+                                VisualizationType tire_vis,
+                                ChTire::CollisionType tire_coll) {
+    wheel->SetTire(tire);
+    tire->Initialize(wheel);
+    tire->SetVisualizationType(tire_vis);
+    tire->SetCollisionType(tire_coll);
 }
 
 // -----------------------------------------------------------------------------
 // Set visualization type for the various subsystems
 // -----------------------------------------------------------------------------
 void TT_Trailer::SetSuspensionVisualizationType(VisualizationType vis) {
-    for (size_t i = 0; i < m_suspensions.size(); ++i) {
-        m_suspensions[i]->SetVisualizationType(vis);
+    for (auto& axle : m_axles) {
+        axle->m_suspension->SetVisualizationType(vis);
     }
 }
 
 void TT_Trailer::SetWheelVisualizationType(VisualizationType vis) {
-    for (size_t i = 0; i < m_wheels.size(); ++i) {
-        m_wheels[i]->SetVisualizationType(vis);
+    for (auto& axle : m_axles) {
+        for (auto& wheel : axle->m_wheels) {
+            wheel->SetVisualizationType(vis);
+        }
     }
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-double TT_Trailer::GetSpringForce(const WheelID& wheel_id) const {
+double TT_Trailer::GetSpringForce(int axle, VehicleSide side) const {
     switch (m_suspType) {
         case SuspensionType::SOLID_AXLE:
-            return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])
-                ->GetSpringForce(wheel_id.side());
+            return std::static_pointer_cast<ChSolidAxle>(m_axles[axle]->m_suspension)->GetSpringForce(side);
         case SuspensionType::MULTI_LINK:
-            return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])
-                ->GetSpringForce(wheel_id.side());
+            return std::static_pointer_cast<ChMultiLink>(m_axles[axle]->m_suspension)->GetSpringForce(side);
         default:
             return -1;
     }
 }
 
-double TT_Trailer::GetSpringLength(const WheelID& wheel_id) const {
+double TT_Trailer::GetSpringLength(int axle, VehicleSide side) const {
     switch (m_suspType) {
         case SuspensionType::SOLID_AXLE:
-            return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])
-                ->GetSpringLength(wheel_id.side());
+            return std::static_pointer_cast<ChSolidAxle>(m_axles[axle]->m_suspension)->GetSpringLength(side);
         case SuspensionType::MULTI_LINK:
-            return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])
-                ->GetSpringLength(wheel_id.side());
+            return std::static_pointer_cast<ChMultiLink>(m_axles[axle]->m_suspension)->GetSpringLength(side);
         default:
             return -1;
     }
 }
 
-double TT_Trailer::GetSpringDeformation(const WheelID& wheel_id) const {
+double TT_Trailer::GetSpringDeformation(int axle, VehicleSide side) const {
     switch (m_suspType) {
         case SuspensionType::SOLID_AXLE:
-            return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])
-                ->GetSpringDeformation(wheel_id.side());
+            return std::static_pointer_cast<ChSolidAxle>(m_axles[axle]->m_suspension)->GetSpringDeformation(side);
         case SuspensionType::MULTI_LINK:
-            return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])
-                ->GetSpringDeformation(wheel_id.side());
-        default:
-            return -1;
-    }
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-double TT_Trailer::GetShockForce(const WheelID& wheel_id) const {
-    switch (m_suspType) {
-        case SuspensionType::SOLID_AXLE:
-            return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])
-                ->GetShockForce(wheel_id.side());
-        case SuspensionType::MULTI_LINK:
-            return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])
-                ->GetShockForce(wheel_id.side());
-        default:
-            return -1;
-    }
-}
-
-double TT_Trailer::GetShockLength(const WheelID& wheel_id) const {
-    switch (m_suspType) {
-        case SuspensionType::SOLID_AXLE:
-            return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])
-                ->GetShockLength(wheel_id.side());
-        case SuspensionType::MULTI_LINK:
-            return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])
-                ->GetShockLength(wheel_id.side());
-        default:
-            return -1;
-    }
-}
-
-double TT_Trailer::GetShockVelocity(const WheelID& wheel_id) const {
-    switch (m_suspType) {
-        case SuspensionType::SOLID_AXLE:
-            return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])
-                ->GetShockVelocity(wheel_id.side());
-        case SuspensionType::MULTI_LINK:
-            return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])
-                ->GetShockVelocity(wheel_id.side());
+            return std::static_pointer_cast<ChMultiLink>(m_axles[axle]->m_suspension)->GetSpringDeformation(side);
         default:
             return -1;
     }
@@ -274,18 +233,58 @@ double TT_Trailer::GetShockVelocity(const WheelID& wheel_id) const {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void TT_Trailer::Synchronize(double time, double braking, const TerrainForces& tire_forces) {
-    // Apply tire forces to spindle bodies.
-    m_suspensions[0]->Synchronize(LEFT, tire_forces[FRONT_LEFT.id()]);
-    m_suspensions[0]->Synchronize(RIGHT, tire_forces[FRONT_RIGHT.id()]);
-    m_suspensions[1]->Synchronize(LEFT, tire_forces[REAR_LEFT.id()]);
-    m_suspensions[1]->Synchronize(RIGHT, tire_forces[REAR_RIGHT.id()]);
+double TT_Trailer::GetShockForce(int axle, VehicleSide side) const {
+    switch (m_suspType) {
+        case SuspensionType::SOLID_AXLE:
+            return std::static_pointer_cast<ChSolidAxle>(m_axles[axle]->m_suspension)->GetShockForce(side);
+        case SuspensionType::MULTI_LINK:
+            return std::static_pointer_cast<ChMultiLink>(m_axles[axle]->m_suspension)->GetShockForce(side);
+        default:
+            return -1;
+    }
+}
 
-    // Apply braking
-    m_brakes[0]->Synchronize(braking);
-    m_brakes[1]->Synchronize(braking);
-    m_brakes[2]->Synchronize(braking);
-    m_brakes[3]->Synchronize(braking);
+double TT_Trailer::GetShockLength(int axle, VehicleSide side) const {
+    switch (m_suspType) {
+        case SuspensionType::SOLID_AXLE:
+            return std::static_pointer_cast<ChSolidAxle>(m_axles[axle]->m_suspension)->GetShockLength(side);
+        case SuspensionType::MULTI_LINK:
+            return std::static_pointer_cast<ChMultiLink>(m_axles[axle]->m_suspension)->GetShockLength(side);
+        default:
+            return -1;
+    }
+}
+
+double TT_Trailer::GetShockVelocity(int axle, VehicleSide side) const {
+    switch (m_suspType) {
+        case SuspensionType::SOLID_AXLE:
+            return std::static_pointer_cast<ChSolidAxle>(m_axles[axle]->m_suspension)->GetShockVelocity(side);
+        case SuspensionType::MULTI_LINK:
+            return std::static_pointer_cast<ChMultiLink>(m_axles[axle]->m_suspension)->GetShockVelocity(side);
+        default:
+            return -1;
+    }
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void TT_Trailer::Synchronize(double time, double braking, const ChTerrain& terrain) {
+    // Synchronize the trailer's axle subsystems
+    // (this applies tire forces to suspension spindles and braking input)
+    for (auto axle : m_axles) {
+        for (auto& wheel : axle->GetWheels()) {
+            wheel->GetTire()->Synchronize(time, terrain);
+            axle->Synchronize(braking);
+        }
+    }
+}
+
+void TT_Trailer::Advance(double step) {
+    for (auto axle : m_axles) {
+        for (auto& wheel : axle->GetWheels()) {
+            wheel->GetTire()->Advance(step);
+        }
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -298,15 +297,19 @@ void TT_Trailer::LogHardpointLocations() {
     switch (m_suspType) {
         case SuspensionType::SOLID_AXLE:
             GetLog() << "\n---- FRONT suspension hardpoint locations (RIGHT side)\n";
-            std::static_pointer_cast<ChSolidAxle>(m_suspensions[0])->LogHardpointLocations(ChVector<>(0, 0, 0), true);
+            std::static_pointer_cast<ChSolidAxle>(m_axles[0]->m_suspension)
+                ->LogHardpointLocations(ChVector<>(0, 0, 0), true);
             GetLog() << "\n---- REAR suspension hardpoint locations (RIGHT side)\n";
-            std::static_pointer_cast<ChSolidAxle>(m_suspensions[1])->LogHardpointLocations(ChVector<>(0, 0, 0), true);
+            std::static_pointer_cast<ChSolidAxle>(m_axles[1]->m_suspension)
+                ->LogHardpointLocations(ChVector<>(0, 0, 0), true);
             break;
         case SuspensionType::MULTI_LINK:
             GetLog() << "\n---- FRONT suspension hardpoint locations (RIGHT side)\n";
-            std::static_pointer_cast<ChMultiLink>(m_suspensions[0])->LogHardpointLocations(ChVector<>(0, 0, 0), true);
+            std::static_pointer_cast<ChMultiLink>(m_axles[0]->m_suspension)
+                ->LogHardpointLocations(ChVector<>(0, 0, 0), true);
             GetLog() << "\n---- REAR suspension hardpoint locations (RIGHT side)\n";
-            std::static_pointer_cast<ChMultiLink>(m_suspensions[1])->LogHardpointLocations(ChVector<>(0, 0, 0), true);
+            std::static_pointer_cast<ChMultiLink>(m_axles[1]->m_suspension)
+                ->LogHardpointLocations(ChVector<>(0, 0, 0), true);
             break;
         default:
             break;
@@ -329,28 +332,23 @@ void TT_Trailer::DebugLog(int what) {
 
     if (what & OUT_SPRINGS) {
         GetLog() << "\n---- Spring (front-left, front-right, rear-left, rear-right)\n";
-        GetLog() << "Length [inch]       " << GetSpringLength(FRONT_LEFT) << "  " << GetSpringLength(FRONT_RIGHT)
-                 << "  " << GetSpringLength(REAR_LEFT) << "  " << GetSpringLength(REAR_RIGHT) << "\n";
-        GetLog() << "Deformation [inch]  " << GetSpringDeformation(FRONT_LEFT) << "  "
-                 << GetSpringDeformation(FRONT_RIGHT) << "  " << GetSpringDeformation(REAR_LEFT) << "  "
-                 << GetSpringDeformation(REAR_RIGHT) << "\n";
-        GetLog() << "Force [lbf]         " << GetSpringForce(FRONT_LEFT) << "  " << GetSpringForce(FRONT_RIGHT) << "  "
-                 << GetSpringForce(REAR_LEFT) << "  " << GetSpringForce(REAR_RIGHT) << "\n";
+        GetLog() << "Length [inch]       " << GetSpringLength(0, LEFT) << "  " << GetSpringLength(0, RIGHT) << "  "
+                 << GetSpringLength(1, LEFT) << "  " << GetSpringLength(1, RIGHT) << "\n";
+        GetLog() << "Deformation [inch]  " << GetSpringDeformation(0, LEFT) << "  " << GetSpringDeformation(0, RIGHT)
+                 << "  " << GetSpringDeformation(1, LEFT) << "  " << GetSpringDeformation(1, RIGHT) << "\n";
+        GetLog() << "Force [lbf]         " << GetSpringForce(0, LEFT) << "  " << GetSpringForce(0, RIGHT) << "  "
+                 << GetSpringForce(1, LEFT) << "  " << GetSpringForce(1, RIGHT) << "\n";
     }
 
     if (what & OUT_SHOCKS) {
         GetLog() << "\n---- Shock (front-left, front-right, rear-left, rear-right)\n";
-        GetLog() << "Length [inch]       " << GetShockLength(FRONT_LEFT) << "  " << GetShockLength(FRONT_RIGHT) << "  "
-                 << GetShockLength(REAR_LEFT) << "  " << GetShockLength(REAR_RIGHT) << "\n";
-        GetLog() << "Velocity [inch/s]   " << GetShockVelocity(FRONT_LEFT) << "  " << GetShockVelocity(FRONT_RIGHT)
-                 << "  " << GetShockVelocity(REAR_LEFT) << "  " << GetShockVelocity(REAR_RIGHT) << "\n";
-        GetLog() << "Force [lbf]         " << GetShockForce(FRONT_LEFT) << "  " << GetShockForce(FRONT_RIGHT) << "  "
-                 << GetShockForce(REAR_LEFT) << "  " << GetShockForce(REAR_RIGHT) << "\n";
+        GetLog() << "Length [inch]       " << GetShockLength(0, LEFT) << "  " << GetShockLength(0, RIGHT) << "  "
+                 << GetShockLength(1, LEFT) << "  " << GetShockLength(1, RIGHT) << "\n";
+        GetLog() << "Velocity [inch/s]   " << GetShockVelocity(0, LEFT) << "  " << GetShockVelocity(0, RIGHT) << "  "
+                 << GetShockVelocity(1, LEFT) << "  " << GetShockVelocity(1, RIGHT) << "\n";
+        GetLog() << "Force [lbf]         " << GetShockForce(0, LEFT) << "  " << GetShockForce(0, RIGHT) << "  "
+                 << GetShockForce(1, LEFT) << "  " << GetShockForce(1, RIGHT) << "\n";
     }
 
     GetLog().SetNumFormat("%g");
-}
-
-std::shared_ptr<ChBody> TT_Trailer::GetWheelBody(const WheelID& wheel_id) const {
-    return m_suspensions[wheel_id.axle()]->GetSpindle(wheel_id.side());
 }

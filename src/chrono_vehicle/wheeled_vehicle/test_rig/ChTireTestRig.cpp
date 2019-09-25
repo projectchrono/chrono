@@ -48,10 +48,11 @@ ChTireTestRig::ChTireTestRig(std::shared_ptr<ChWheel> wheel, std::shared_ptr<ChT
       m_terrain_offset(0),
       m_terrain_height(0),
       m_tire_step(1e-3),
-      m_collision_type(ChTire::CollisionType::SINGLE_POINT),
       m_tire_vis(VisualizationType::PRIMITIVES) {
     // Default motion function for slip angle control
     m_sa_fun = chrono_types::make_shared<ChFunction_Const>(0);
+    // Default tire-terrain collision method
+    m_tire->SetCollisionType(ChTire::CollisionType::SINGLE_POINT);
 }
 
 // -----------------------------------------------------------------------------
@@ -64,6 +65,10 @@ void ChTireTestRig::SetLongSpeedFunction(std::shared_ptr<ChFunction> funct) {
 void ChTireTestRig::SetAngSpeedFunction(std::shared_ptr<ChFunction> funct) { 
     m_rs_fun = funct; 
     m_rs_actuated = true;
+}
+
+void ChTireTestRig::SetTireCollisionType(ChTire::CollisionType coll_type) {
+    m_tire->SetCollisionType(coll_type);
 }
 
 // -----------------------------------------------------------------------------
@@ -202,21 +207,10 @@ void ChTireTestRig::Advance(double step) {
     m_chassis_body->Accumulate_force(ChVector<>(0, 0, external_force), ChVector<>(0, 0, 0), true);
 
     // Synchronize subsystems
-    auto tire_force = m_tire->GetTireForce();
-
-    WheelState wheel_state;
-    wheel_state.pos = m_spindle_body->GetPos();
-    wheel_state.rot = m_spindle_body->GetRot();
-    wheel_state.lin_vel = m_spindle_body->GetPos_dt();
-    wheel_state.ang_vel = m_spindle_body->GetWvel_par();
-    ChVector<> ang_vel_loc = wheel_state.rot.RotateBack(wheel_state.ang_vel);
-    wheel_state.omega = ang_vel_loc.y();
-
     m_terrain->Synchronize(time);
-    m_tire->Synchronize(time, wheel_state, *m_terrain.get(), m_collision_type);
-    m_spindle_body->Empty_forces_accumulators();
-    m_spindle_body->Accumulate_force(tire_force.force, tire_force.point, false);
-    m_spindle_body->Accumulate_torque(tire_force.moment, false);
+    m_tire->Synchronize(time, *m_terrain.get());
+    m_susp->Synchronize();
+    m_wheel->Synchronize();
 
     // Advance state
     m_terrain->Advance(step);
@@ -225,6 +219,29 @@ void ChTireTestRig::Advance(double step) {
 }
 
 // -----------------------------------------------------------------------------
+
+// Dummy suspension subsystem (simply a carrier for the spindle body)
+class RigSuspension : public ChSuspension {
+  public:
+    RigSuspension(ChSystem* system) : ChSuspension("rig_suspension") {
+        m_spindle[LEFT] = std::shared_ptr<ChBody>(system->NewBody());
+        m_spindle[RIGHT] = std::shared_ptr<ChBody>(system->NewBody());
+    }
+    virtual std::string GetTemplateName() const override { return "rig_suspension"; }
+    virtual bool IsSteerable() const final override { return false; }
+    virtual bool IsIndependent() const final override { return false; }
+    virtual double GetMass() const override { return 0; }
+    virtual ChVector<> GetCOMPos() const override { return ChVector<>(0, 0, 0); }
+    virtual double GetTrack() override { return 0; }
+    virtual double getSpindleRadius() const { return 0; }
+    virtual double getSpindleWidth() const { return 0; }
+    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
+                            const ChVector<>& location,
+                            std::shared_ptr<ChBody> tierod_body,
+                            int steering_index,
+                            double left_ang_vel = 0,
+                            double right_ang_vel = 0) override {}
+};
 
 void ChTireTestRig::CreateMechanism() {
     m_system->Set_G_acc(ChVector<>(0, 0, -m_grav));
@@ -301,9 +318,11 @@ void ChTireTestRig::CreateMechanism() {
         m_slip_body->AddAsset(chrono_types::make_shared<ChColorAsset>(0.2f, 0.2f, 0.8f));
     }
 
+    m_susp = chrono_types::make_shared<RigSuspension>(m_system);
+    m_spindle_body = m_susp->GetSpindle(LEFT);
+
     ChQuaternion<> qc;
     qc.Q_from_AngX(-m_camber_angle);
-    m_spindle_body = std::shared_ptr<ChBody>(m_system->NewBody());
     m_system->AddBody(m_spindle_body);
     m_spindle_body->SetName("rig_spindle");
     m_spindle_body->SetIdentifier(4);
@@ -368,10 +387,11 @@ void ChTireTestRig::CreateMechanism() {
     */
 
     // Initialize subsystems
-    m_wheel->Initialize(m_spindle_body);
+    m_wheel->Initialize(m_susp, LEFT);
     m_wheel->SetVisualizationType(VisualizationType::NONE);
+    m_wheel->SetTire(m_tire);
     m_tire->SetStepsize(m_tire_step);
-    m_tire->Initialize(m_spindle_body, LEFT);
+    m_tire->Initialize(m_wheel);
     m_tire->SetVisualizationType(m_tire_vis);
 
     // Set terrain offset (based on wheel center) and terrain height (below tire)
@@ -505,7 +525,7 @@ void ChTireTestRig::GetSuggestedCollisionSettings(double& collision_envelope, Ch
 
 // -----------------------------------------------------------------------------
 
-TerrainForce ChTireTestRig::GetTireForce() const {
+TerrainForce ChTireTestRig::ReportTireForce() const {
     return m_tire->ReportTireForce(m_terrain.get());
 }
 

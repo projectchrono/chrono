@@ -37,18 +37,12 @@ namespace vehicle {
 /// Fiala based tire model.
 class CH_VEHICLE_API ChFialaTire : public ChTire {
   public:
-    ChFialaTire(const std::string& name  ///< [in] name of this tire system
-                );
+    ChFialaTire(const std::string& name);
 
     virtual ~ChFialaTire() {}
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "FialaTire"; }
-
-    /// Initialize this tire system.
-    virtual void Initialize(std::shared_ptr<ChBody> wheel,  ///< [in] associated wheel body
-                            VehicleSide side                ///< [in] left/right vehicle side
-                            ) override;
 
     /// Add visualization assets for the rigid tire subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
@@ -60,26 +54,8 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
     /// For a Fiala tire, this is the unloaded tire radius.
     virtual double GetRadius() const override { return m_unloaded_radius; }
 
-    /// Get the tire force and moment.
-    /// This represents the output from this tire system that is passed to the
-    /// vehicle system.  Typically, the vehicle subsystem will pass the tire force
-    /// to the appropriate suspension subsystem which applies it as an external
-    /// force one the wheel body.
-    virtual TerrainForce GetTireForce() const override { return m_tireforce; }
-
     /// Report the tire force and moment.
     virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override { return m_tireforce; }
-
-    /// Update the state of this tire system at the current time.
-    /// The tire system is provided the current state of its associated wheel.
-    virtual void Synchronize(double time,                    ///< [in] current time
-                             const WheelState& wheel_state,  ///< [in] current state of associated wheel body
-                             const ChTerrain& terrain,       ///< [in] reference to the terrain system
-                             CollisionType collision_type = CollisionType::SINGLE_POINT  ///< [in] collision type
-                             ) override;
-
-    /// Advance the state of this tire by the specified time step.
-    virtual void Advance(double step) override;
 
     /// Get the width of the tire.
     double GetWidth() const { return m_width; }
@@ -140,6 +116,24 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
     double m_time_trans;  // end of start transient
 
   private:
+    /// Get the tire force and moment.
+    /// This represents the output from this tire system that is passed to the
+    /// vehicle system.  Typically, the vehicle subsystem will pass the tire force
+    /// to the appropriate suspension subsystem which applies it as an external
+    /// force one the wheel body.
+    virtual TerrainForce GetTireForce() const override { return m_tireforce; }
+
+    /// Initialize this tire by associating it to the specified wheel.
+    virtual void Initialize(std::shared_ptr<ChWheel> wheel) override;
+
+    /// Update the state of this tire system at the current time.
+    virtual void Synchronize(double time,              ///< [in] current time
+                             const ChTerrain& terrain  ///< [in] reference to the terrain system
+                             ) override;
+
+    /// Advance the state of this tire by the specified time step.
+    virtual void Advance(double step) override;
+
     struct ContactData {
         bool in_contact;      // true if disc in contact with terrain
         ChCoordsys<> frame;   // contact frame (x: long, y: lat, z: normal)

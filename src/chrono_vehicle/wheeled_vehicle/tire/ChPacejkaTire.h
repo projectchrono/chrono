@@ -78,11 +78,6 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
     /// By default, the wheel is assumed not driven.
     void SetDrivenWheel(bool val) { m_driven = val; }
 
-    /// specify the file name to read the Pactire input from
-    virtual void Initialize(std::shared_ptr<ChBody> wheel,  ///< handle to the associated wheel body
-                            VehicleSide side                ///< [in] left/right vehicle side
-                            ) override;
-
     /// Add visualization assets for the rigid tire subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
@@ -95,13 +90,6 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
     /// Get visualization tire width.
     virtual double GetVisualizationWidth() const { return 0.25; }
 
-    /// Get the tire force and moment.
-    /// This represents the output from this tire system that is passed to the
-    /// vehicle system.  Typically, the vehicle subsystem will pass the tire force
-    /// to the appropriate suspension subsystem which applies it as an external
-    /// force one the wheel body.
-    virtual TerrainForce GetTireForce() const override;
-
     /// Report the tire force and moment.
     virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override;
 
@@ -110,14 +98,6 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
 
     /// Return the reactions for the combined slip EQs, in local or global coords
     TerrainForce GetTireForce_combinedSlip(const bool local = true) const;
-
-    /// Update the state of this tire system at the current time.
-    /// Set the PacTire spindle state data from the global wheel body state.
-    virtual void Synchronize(double time,                    ///< [in] current time
-                             const WheelState& wheel_state,  ///< [in] current state of associated wheel body
-                             const ChTerrain& terrain,       ///< [in] reference to the terrain system
-                             CollisionType collision_type = CollisionType::SINGLE_POINT  ///< [in] collision type
-                             ) override;
 
     /// Get the tire slip angle computed internally by the Pacejka model (in radians).
     /// The reported value will be the same as that reported by ChTire::GetSlipAngle.
@@ -130,11 +110,6 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
     /// Get the camber angle for the Pacejka tire model (in radians).
     /// The reported value will be the same as that reported by ChTire::GetCamberAngle.
     double GetCamberAngle_internal() const { return m_slip->gamma; }
-
-    /// Advance the state of this tire by the specified time step.
-    /// Use the new body state, calculate all the relevant quantities over the
-    /// time increment.
-    virtual void Advance(double step) override;
 
     /// Write output data to a file.
     void WriteOutData(double time, const std::string& outFilename);
@@ -200,6 +175,26 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
   private:
     virtual void Create(const rapidjson::Document& d) override {}
 
+    /// Get the tire force and moment.
+    /// This represents the output from this tire system that is passed to the
+    /// vehicle system.  Typically, the vehicle subsystem will pass the tire force
+    /// to the appropriate suspension subsystem which applies it as an external
+    /// force one the wheel body.
+    virtual TerrainForce GetTireForce() const override;
+
+    /// Initialize this tire by associating it to the specified wheel.
+    virtual void Initialize(std::shared_ptr<ChWheel> wheel) override;
+
+    /// Update the state of this tire system at the current time.
+    /// Set the PacTire spindle state data from the global wheel body state.
+    virtual void Synchronize(double time,              ///< [in] current time
+                             const ChTerrain& terrain  ///< [in] reference to the terrain system
+                             ) override;
+
+    /// Advance the state of this tire by the specified time step.
+    /// Use the new body state, calculate all the relevant quantities over the time increment.
+    virtual void Advance(double step) override;
+
     // look for this data file
     void loadPacTireParamFile();
 
@@ -223,7 +218,7 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
 
     /// update the tire contact coordinate system, TYDEX W-Axis
     /// checks for contact, sets m_in_contact and m_depth
-    void update_W_frame(const ChTerrain& terrain, CollisionType collisionType);
+    void update_W_frame(const ChTerrain& terrain);
 
     // update the vertical load, tire deflection, and tire rolling radius
     void update_verticalLoad(double step);

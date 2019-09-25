@@ -9,26 +9,27 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Justin Madsen
+// Authors: Radu Serban
 // =============================================================================
 //
-// Base class for a vehicle driveline.
+// Base class for a tracked vehicle driveline.
+//
+// The reference frame for a vehicle follows the ISO standard: Z-axis up, X-axis
+// pointing forward, and Y-axis towards the left of the vehicle.
 //
 // =============================================================================
 
-#include "chrono_vehicle/wheeled_vehicle/ChDriveline.h"
+#include "chrono_vehicle/tracked_vehicle/ChDrivelineTV.h"
 
 namespace chrono {
 namespace vehicle {
 
-ChDriveline::ChDriveline(const std::string& name) : ChPart(name) {}
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+ChDrivelineTV::ChDrivelineTV(const std::string& name) : ChDriveline(name), m_gyration_mode(false) {}
 
-void ChDriveline::LockAxleDifferential(int axle, bool lock) {
-    GetLog() << "WARNING: Differential locking not yet implemented for " << GetTemplateName() << "\n";
-}
-
-void ChDriveline::LockCentralDifferential(int which, bool lock) {
-    GetLog() << "WARNING: Differential locking not yet implemented for " << GetTemplateName() << "\n";
+void ChDrivelineTV::Synchronize(double steering, double torque) { 
+    ChDriveline::Synchronize(torque);
 }
 
 }  // end namespace vehicle

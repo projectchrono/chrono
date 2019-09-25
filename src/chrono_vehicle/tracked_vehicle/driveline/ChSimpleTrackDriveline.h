@@ -22,7 +22,7 @@
 #define CH_SIMPLE_TRACK_DRIVELINE_H
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/tracked_vehicle/ChTrackDriveline.h"
+#include "chrono_vehicle/tracked_vehicle/ChDrivelineTV.h"
 
 namespace chrono {
 namespace vehicle {
@@ -33,7 +33,7 @@ namespace vehicle {
 /// Simple driveline model for a tracked vehicle.
 /// This template splits the input torque to the left and right tracks using a simple
 /// analytical model of a Torsen limited-slip differential and the given driver steering input.
-class CH_VEHICLE_API ChSimpleTrackDriveline : public ChTrackDriveline {
+class CH_VEHICLE_API ChSimpleTrackDriveline : public ChDrivelineTV {
   public:
     ChSimpleTrackDriveline(const std::string& name);
 

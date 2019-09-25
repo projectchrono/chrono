@@ -201,8 +201,8 @@ std::shared_ptr<ChSteering> ReadSteeringJSON(const std::string& filename) {
     return steering;
 }
 
-std::shared_ptr<ChDriveline> ReadDrivelineJSON(const std::string& filename) {
-    std::shared_ptr<ChDriveline> driveline;
+std::shared_ptr<ChDrivelineWV> ReadDrivelineWVJSON(const std::string& filename) {
+    std::shared_ptr<ChDrivelineWV> driveline;
 
     FILE* fp = fopen(filename.c_str(), "r");
     char readBuffer[65536];
@@ -229,7 +229,7 @@ std::shared_ptr<ChDriveline> ReadDrivelineJSON(const std::string& filename) {
     } else if (subtype.compare("SimpleDriveline") == 0) {
         driveline = chrono_types::make_shared<SimpleDriveline>(d);
     } else {
-        throw ChException("Driveline type not supported in ReadDrivelineJSON.");
+        throw ChException("Driveline type not supported in ReadDrivelineWVJSON.");
     }
 
     return driveline;
@@ -408,8 +408,8 @@ std::shared_ptr<ChTrackAssembly> ReadTrackAssemblySON(const std::string& filenam
     return track;
 }
 
-std::shared_ptr<ChTrackDriveline> ReadTrackDrivelineJSON(const std::string& filename) {
-    std::shared_ptr<ChTrackDriveline> driveline;
+std::shared_ptr<ChDrivelineTV> ReadDrivelineTVJSON(const std::string& filename) {
+    std::shared_ptr<ChDrivelineTV> driveline;
 
     FILE* fp = fopen(filename.c_str(), "r");
     char readBuffer[65536];

@@ -138,7 +138,7 @@ int main(int argc, char* argv[]) {
     ////ChVector<> target_point = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
     ChVector<> target_point = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
 
-    ChVehicleIrrApp app(rig, NULL, L"Suspension Test Rig");
+    ChVehicleIrrApp app(rig, L"Suspension Test Rig");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(ChVector<>(0), 3.0, 0.0);
@@ -294,7 +294,7 @@ int main(int argc, char* argv[]) {
         rig->Advance(step_size);
 
         // Update visualization app
-        app.Synchronize(rig->GetDriverMessage(), 0, rig->GetThrottleInput(), 0);
+        app.Synchronize(rig->GetDriverMessage(), { 0, rig->GetThrottleInput(), 0 });
         app.Advance(step_size);
 
         // Increment frame number

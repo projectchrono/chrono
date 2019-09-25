@@ -116,8 +116,8 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     // Create the vehicle Irrlicht interface
-    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), &my_hmmwv.GetPowertrain(), L"HMMWV-9 Demo",
-                               irr::core::dimension2d<irr::u32>(1000, 800), irr::ELL_NONE);
+    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"HMMWV-9 Demo", irr::core::dimension2d<irr::u32>(1000, 800),
+                               irr::ELL_NONE);
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(trackPoint, 6.0, 0.5);
@@ -189,16 +189,14 @@ int main(int argc, char* argv[]) {
             render_frame++;
         }
 
-        // Collect output data from modules (for inter-module communication)
-        double throttle_input = driver.GetThrottle();
-        double steering_input = driver.GetSteering();
-        double braking_input = driver.GetBraking();
+        // Driver inputs
+        ChDriver::Inputs driver_inputs = driver.GetInputs();
 
         // Update modules (process inputs from other modules)
         driver.Synchronize(time);
         terrain.Synchronize(time);
-        my_hmmwv.Synchronize(time, steering_input, braking_input, throttle_input, terrain);
-        app.Synchronize(driver.GetInputModeAsString(), steering_input, throttle_input, braking_input);
+        my_hmmwv.Synchronize(time, driver_inputs, terrain);
+        app.Synchronize(driver.GetInputModeAsString(), driver_inputs);
 
         // Advance simulation for one timestep for all modules
         double step = enforce_soft_real_time ? realtime_timer.SuggestSimulationStep(step_size) : step_size;

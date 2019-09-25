@@ -28,6 +28,7 @@
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/ChVehicleOutput.h"
 #include "chrono_vehicle/ChChassis.h"
+#include "chrono_vehicle/ChPowertrain.h"
 
 namespace chrono {
 namespace vehicle {
@@ -63,6 +64,9 @@ class CH_VEHICLE_API ChVehicle {
 
     /// Get a handle to the vehicle's chassis body.
     std::shared_ptr<ChBodyAuxRef> GetChassisBody() const { return m_chassis->GetBody(); }
+
+    /// Get the powertrain attached to this vehicle.
+    virtual std::shared_ptr<ChPowertrain> GetPowertrain() const { return nullptr; }
 
     /// Get the vehicle total mass.
     /// This includes the mass of the chassis and all vehicle subsystems.

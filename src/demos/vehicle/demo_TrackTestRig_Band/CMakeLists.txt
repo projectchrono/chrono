@@ -59,8 +59,7 @@ foreach(DEMO ${DEMOS})
     set_target_properties(${DEMO} PROPERTIES
                           FOLDER demos 
                           COMPILE_FLAGS "${COMPILER_FLAGS}"
-                          LINK_FLAGS "${LINKER_FLAGS}"
-                          VS_DEBUGGER_WORKING_DIRECTORY "$(OutDir)")
+                          LINK_FLAGS "${LINKER_FLAGS}")
     target_link_libraries(${DEMO} ${LIBRARIES})
     install(TARGETS ${DEMO} DESTINATION ${CH_INSTALL_DEMO})
 

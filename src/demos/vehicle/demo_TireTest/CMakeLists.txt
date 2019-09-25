@@ -39,7 +39,6 @@ message(STATUS "...add ${DEMO}")
 add_executable(${DEMO} ${DEMO}.cpp)
 set_target_properties(${DEMO} PROPERTIES 
                       COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
-                      LINK_FLAGS "${LINKERFLAG_EXE}"
-                      VS_DEBUGGER_WORKING_DIRECTORY "$(OutDir)")
+                      LINK_FLAGS "${LINKERFLAG_EXE}")
 target_link_libraries(${DEMO} ${LIBRARIES})
 install(TARGETS ${DEMO} DESTINATION ${CH_INSTALL_DEMO})
