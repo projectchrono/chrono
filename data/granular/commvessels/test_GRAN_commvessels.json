@@ -1,0 +1,30 @@
+{
+    "sphere_radius": 0.1, /* Default - overwritten by command line */
+    "sphere_density": 1.5,  /* Default - overwritten by command line */
+
+    "box_X": 100,
+    "box_Y": 100,
+    "box_Z": 100,
+
+    "step_size": 5e-6,
+    "grav_X": 0,
+    "grav_Y": 0,
+    "grav_Z": -980,
+
+    "normalStiffS2S": 1e8,
+    "normalStiffS2W": 1e8,
+    "normalStiffS2M": 1e8,
+    "normalDampS2S": 40000,
+    "normalDampS2W": 40000,
+    "normalDampS2M": 40000,
+
+    "cohesion_ratio": 0,
+    "adhesion_ratio_s2w": 0,
+    "adhesion_ratio_s2m": 0,
+    "verbose": 0,
+
+    "psi_T": 32,
+    "psi_L": 16,
+
+    "write_mode": "binary"
+}

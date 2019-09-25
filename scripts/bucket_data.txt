@@ -1,0 +1,1435 @@
+curr time is 0.000000
+force on plane 0 is (0.000000, 0.000000, 0.000000) Newtons
+force on plane 1 is (0.000000, 0.000000, 0.000000) Newtons
+force on plane 2 is (0.000000, 0.000000, 0.000000) Newtons
+force on plane 3 is (0.000000, 0.000000, 0.000000) Newtons
+force on plane 4 is (0.000000, 0.000000, 0.000000) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.010000
+force on plane 0 is (-42.763988, 2.431763, -1.238270) Newtons
+force on plane 1 is (37.078667, -3.505172, -1.928346) Newtons
+force on plane 2 is (2.016552, -62.828827, -1.627705) Newtons
+force on plane 3 is (7.751139, 44.051373, -2.166651) Newtons
+force on plane 4 is (0.000000, 0.000000, 0.000000) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.020000
+force on plane 0 is (-34.128986, 0.681661, -1.675257) Newtons
+force on plane 1 is (34.011169, -3.996278, -3.259439) Newtons
+force on plane 2 is (0.621342, -25.266005, -1.609812) Newtons
+force on plane 3 is (1.675949, 33.252277, -2.827530) Newtons
+force on plane 4 is (0.000000, 0.000000, 0.000000) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.030000
+force on plane 0 is (-38.242676, 0.926135, -6.087074) Newtons
+force on plane 1 is (16.090904, -1.312318, -2.635683) Newtons
+force on plane 2 is (1.200196, -7.873231, -1.053786) Newtons
+force on plane 3 is (-1.055798, 11.366199, -0.488366) Newtons
+force on plane 4 is (0.000000, 0.000000, 0.000000) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 1
+curr time is 0.040000
+force on plane 0 is (-14.737092, -0.508121, -2.686402) Newtons
+force on plane 1 is (17.260151, 1.800286, -4.466752) Newtons
+force on plane 2 is (3.521449, -17.337421, -0.751467) Newtons
+force on plane 3 is (1.770021, 6.590726, -0.530820) Newtons
+force on plane 4 is (0.000000, 0.000000, 0.000000) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.050000
+force on plane 0 is (-18.605396, 2.933364, -1.399398) Newtons
+force on plane 1 is (14.344249, 1.440258, -3.340331) Newtons
+force on plane 2 is (2.189963, -9.146194, -1.639961) Newtons
+force on plane 3 is (2.613810, 14.637344, -3.772746) Newtons
+force on plane 4 is (1.144405, 2.390078, -244.854813) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.060000
+force on plane 0 is (-6.402934, -0.528681, -1.506464) Newtons
+force on plane 1 is (6.923071, 0.314837, -2.306318) Newtons
+force on plane 2 is (0.065654, -9.743511, -2.877416) Newtons
+force on plane 3 is (-1.753765, 7.875718, -1.418004) Newtons
+force on plane 4 is (10.789639, 10.071812, -657.595154) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.070000
+force on plane 0 is (-4.174301, -0.040120, -1.269894) Newtons
+force on plane 1 is (7.309572, -0.237581, -1.541506) Newtons
+force on plane 2 is (-1.423849, -11.047136, -3.977390) Newtons
+force on plane 3 is (0.327349, 5.805297, -1.563858) Newtons
+force on plane 4 is (2.524205, -5.053747, -714.706970) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 2
+curr time is 0.080000
+force on plane 0 is (-5.218294, -0.884124, -1.643496) Newtons
+force on plane 1 is (4.229144, -0.645626, -1.835468) Newtons
+force on plane 2 is (0.659792, -5.972410, -2.241332) Newtons
+force on plane 3 is (0.955816, 4.746426, -2.088856) Newtons
+force on plane 4 is (-3.862597, 0.973870, -969.879639) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.090000
+force on plane 0 is (-4.629793, 1.063272, -1.827021) Newtons
+force on plane 1 is (4.413273, -0.644845, -1.559454) Newtons
+force on plane 2 is (1.567530, -7.814792, -3.048204) Newtons
+force on plane 3 is (-0.198154, 8.647177, -2.970527) Newtons
+force on plane 4 is (1.114371, 2.036268, -1030.938843) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.100000
+force on plane 0 is (-2.097695, 0.303276, -1.027429) Newtons
+force on plane 1 is (3.470580, -0.164529, -1.628964) Newtons
+force on plane 2 is (-0.172828, -6.638954, -1.842341) Newtons
+force on plane 3 is (0.462447, 4.767736, -2.001965) Newtons
+force on plane 4 is (-0.181456, 0.459783, -1187.880005) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.110000
+force on plane 0 is (-5.019622, 0.346583, -2.284407) Newtons
+force on plane 1 is (7.490452, 0.832054, 0.491460) Newtons
+force on plane 2 is (0.290953, -5.775873, -2.179937) Newtons
+force on plane 3 is (0.676209, 7.262717, -2.585503) Newtons
+force on plane 4 is (-8.879612, 1.015180, -1461.172729) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 3
+curr time is 0.120000
+force on plane 0 is (-5.349135, 0.422380, -1.460981) Newtons
+force on plane 1 is (3.721553, -0.060025, -1.100918) Newtons
+force on plane 2 is (-0.738162, -5.497067, -2.279614) Newtons
+force on plane 3 is (-0.633008, 8.613103, -1.292664) Newtons
+force on plane 4 is (-7.010104, -3.893952, -1570.388428) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.130000
+force on plane 0 is (-5.175211, -0.491583, -2.355183) Newtons
+force on plane 1 is (10.496597, -0.244120, -3.992669) Newtons
+force on plane 2 is (0.428821, -8.343012, -2.280292) Newtons
+force on plane 3 is (-0.066245, 12.476089, -1.863863) Newtons
+force on plane 4 is (-20.631956, 5.273545, -1746.349731) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.140000
+force on plane 0 is (-8.786407, 0.288643, -2.298724) Newtons
+force on plane 1 is (10.058002, 0.108592, -0.907836) Newtons
+force on plane 2 is (1.982325, -20.239965, -3.371896) Newtons
+force on plane 3 is (0.298840, 21.143440, -0.963062) Newtons
+force on plane 4 is (-19.008347, -11.900551, -2026.403931) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.150000
+force on plane 0 is (-12.194283, 0.146481, -3.268312) Newtons
+force on plane 1 is (28.895002, 0.185416, -3.185278) Newtons
+force on plane 2 is (-2.929439, -40.091553, -2.944721) Newtons
+force on plane 3 is (1.475865, 34.029751, -2.031147) Newtons
+force on plane 4 is (-21.241087, -26.823994, -2219.192383) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 4
+curr time is 0.160000
+force on plane 0 is (-47.200115, 0.056372, -5.507843) Newtons
+force on plane 1 is (49.449535, 2.157457, -4.801878) Newtons
+force on plane 2 is (0.644193, -45.583389, -4.235501) Newtons
+force on plane 3 is (-1.195839, 59.877087, -4.494532) Newtons
+force on plane 4 is (-6.247058, 3.031330, -2509.776367) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.170000
+force on plane 0 is (-100.544861, -1.423260, -11.448913) Newtons
+force on plane 1 is (81.073814, 4.757287, -10.590326) Newtons
+force on plane 2 is (-0.032473, -68.091316, -7.173048) Newtons
+force on plane 3 is (-2.939625, 80.304955, 1.591125) Newtons
+force on plane 4 is (-21.495682, 16.902010, -2658.774902) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.180000
+force on plane 0 is (-167.118805, 3.669121, -11.410439) Newtons
+force on plane 1 is (137.624481, -3.430996, -13.902763) Newtons
+force on plane 2 is (-2.296291, -149.840714, -13.718916) Newtons
+force on plane 3 is (-0.126413, 103.980461, -5.343174) Newtons
+force on plane 4 is (-19.256393, -28.489351, -2782.692139) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.190000
+force on plane 0 is (-188.412048, -7.190880, -4.699399) Newtons
+force on plane 1 is (211.595612, 3.027419, -12.971112) Newtons
+force on plane 2 is (-3.435431, -242.419998, -17.216927) Newtons
+force on plane 3 is (-2.403698, 134.776001, -2.829262) Newtons
+force on plane 4 is (-13.497880, -9.128699, -3122.022217) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 5
+curr time is 0.200000
+force on plane 0 is (-287.568085, -0.142210, -13.108708) Newtons
+force on plane 1 is (277.173828, -4.167133, -17.004480) Newtons
+force on plane 2 is (-4.945451, -298.549744, -15.213880) Newtons
+force on plane 3 is (-0.292885, 262.719818, -14.831448) Newtons
+force on plane 4 is (1.989826, 25.928652, -3373.047363) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.210000
+force on plane 0 is (-338.432617, 9.313708, -15.459085) Newtons
+force on plane 1 is (384.376160, -3.054493, -30.141445) Newtons
+force on plane 2 is (-8.921956, -413.197021, -36.562889) Newtons
+force on plane 3 is (0.644061, 401.725067, -12.742642) Newtons
+force on plane 4 is (-6.059075, 38.573860, -3839.408203) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.220000
+force on plane 0 is (-466.996277, 0.039222, -24.522964) Newtons
+force on plane 1 is (520.874695, 2.350324, -31.035374) Newtons
+force on plane 2 is (12.996770, -550.740906, -45.472023) Newtons
+force on plane 3 is (-11.171427, 575.215210, -13.588583) Newtons
+force on plane 4 is (-10.932161, 37.586945, -4300.261230) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.230000
+force on plane 0 is (-632.605164, -10.851230, -52.999477) Newtons
+force on plane 1 is (599.996399, -0.870677, -42.304668) Newtons
+force on plane 2 is (3.872547, -682.176758, -51.009750) Newtons
+force on plane 3 is (-13.665733, 695.336060, -44.800415) Newtons
+force on plane 4 is (15.617699, 3.635689, -4718.620605) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 6
+curr time is 0.240000
+force on plane 0 is (-770.336243, 6.347345, -66.496048) Newtons
+force on plane 1 is (762.502930, 5.704452, -57.972633) Newtons
+force on plane 2 is (5.009868, -813.093323, -53.724659) Newtons
+force on plane 3 is (-8.621827, 822.640076, -34.586754) Newtons
+force on plane 4 is (32.355492, -7.776538, -5253.268066) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.250000
+force on plane 0 is (-945.218140, -17.367546, -71.096146) Newtons
+force on plane 1 is (895.744141, -0.585433, -62.541180) Newtons
+force on plane 2 is (4.216139, -942.438721, -87.918671) Newtons
+force on plane 3 is (-25.910444, 988.128235, -58.087708) Newtons
+force on plane 4 is (17.695677, -17.913246, -5577.890625) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.260000
+force on plane 0 is (-1159.586792, -14.776646, -81.828911) Newtons
+force on plane 1 is (1133.639526, -2.089032, -94.626991) Newtons
+force on plane 2 is (-2.976299, -1174.341309, -102.409515) Newtons
+force on plane 3 is (-25.082888, 1137.655151, -75.240295) Newtons
+force on plane 4 is (2.064167, -36.771683, -5804.867676) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.270000
+force on plane 0 is (-1369.707153, -3.227560, -128.309067) Newtons
+force on plane 1 is (1326.126587, -6.659449, -139.459747) Newtons
+force on plane 2 is (-24.401190, -1384.890869, -112.844368) Newtons
+force on plane 3 is (-30.462734, 1274.771973, -102.265648) Newtons
+force on plane 4 is (-7.228423, -11.336100, -6055.185059) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 7
+curr time is 0.280000
+force on plane 0 is (-1596.269775, 22.003597, -166.899902) Newtons
+force on plane 1 is (1567.411621, 5.348377, -173.168198) Newtons
+force on plane 2 is (-8.747194, -1635.913696, -161.653275) Newtons
+force on plane 3 is (-26.105675, 1570.120117, -183.600800) Newtons
+force on plane 4 is (9.112128, -0.245191, -6488.967285) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.290000
+force on plane 0 is (-1785.724243, -5.382617, -196.488647) Newtons
+force on plane 1 is (1762.527832, -18.370195, -210.684860) Newtons
+force on plane 2 is (22.889881, -1885.188110, -230.246689) Newtons
+force on plane 3 is (-13.257326, 1773.557251, -241.535889) Newtons
+force on plane 4 is (36.165989, 24.247604, -6978.958496) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.300000
+force on plane 0 is (-2112.418457, 4.693511, -258.421295) Newtons
+force on plane 1 is (2172.899414, 12.433206, -257.705078) Newtons
+force on plane 2 is (12.315253, -2161.512695, -281.082031) Newtons
+force on plane 3 is (-27.787987, 2076.364990, -249.866699) Newtons
+force on plane 4 is (61.064602, 66.820763, -7279.044922) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.310000
+force on plane 0 is (-2323.210938, 13.101851, -317.339478) Newtons
+force on plane 1 is (2360.604980, -8.145427, -274.103149) Newtons
+force on plane 2 is (20.870510, -2444.792969, -330.307159) Newtons
+force on plane 3 is (-16.470516, 2455.789307, -342.755035) Newtons
+force on plane 4 is (81.114334, 98.112839, -7454.782715) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 8
+curr time is 0.320000
+force on plane 0 is (-2791.333252, 23.341404, -417.480988) Newtons
+force on plane 1 is (2611.056152, -10.119668, -385.690460) Newtons
+force on plane 2 is (-24.527359, -2656.077393, -389.257233) Newtons
+force on plane 3 is (-45.736694, 2682.282471, -394.418823) Newtons
+force on plane 4 is (26.428387, 74.225510, -7557.959473) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.330000
+force on plane 0 is (-3182.090576, 9.520201, -522.977173) Newtons
+force on plane 1 is (3008.718750, -24.521366, -440.647583) Newtons
+force on plane 2 is (-0.190509, -2994.113770, -424.143616) Newtons
+force on plane 3 is (-11.563673, 3015.738770, -494.671295) Newtons
+force on plane 4 is (-9.743078, 25.875551, -7912.266602) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.340000
+force on plane 0 is (-3396.046631, 2.436378, -567.392334) Newtons
+force on plane 1 is (3308.017090, -30.739231, -476.668152) Newtons
+force on plane 2 is (10.663054, -3318.862549, -507.636261) Newtons
+force on plane 3 is (10.911852, 3383.059082, -573.817017) Newtons
+force on plane 4 is (39.498898, -14.624805, -8238.788086) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.350000
+force on plane 0 is (-3781.028076, 42.127914, -622.275635) Newtons
+force on plane 1 is (3780.910400, -7.029418, -630.436523) Newtons
+force on plane 2 is (16.474728, -3681.728027, -607.243774) Newtons
+force on plane 3 is (9.823191, 3790.133545, -672.121887) Newtons
+force on plane 4 is (67.344574, -30.486816, -8669.435547) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 9
+curr time is 0.360000
+force on plane 0 is (-4141.155273, 58.005020, -658.013489) Newtons
+force on plane 1 is (4200.759766, 18.899467, -732.718323) Newtons
+force on plane 2 is (0.773976, -3941.566650, -655.165161) Newtons
+force on plane 3 is (14.353896, 4223.909668, -746.296692) Newtons
+force on plane 4 is (48.627857, -12.320559, -9060.488281) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.370000
+force on plane 0 is (-4463.078613, 77.591690, -725.725098) Newtons
+force on plane 1 is (4646.870605, 49.662968, -814.332947) Newtons
+force on plane 2 is (1.989156, -4659.927246, -807.237732) Newtons
+force on plane 3 is (30.448412, 4525.344238, -797.944275) Newtons
+force on plane 4 is (16.855286, 2.892568, -9312.128906) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.380000
+force on plane 0 is (-4977.541016, 70.032097, -855.780762) Newtons
+force on plane 1 is (5041.750488, 28.259151, -922.673889) Newtons
+force on plane 2 is (41.346664, -5145.709473, -935.944031) Newtons
+force on plane 3 is (24.710556, 5072.117188, -939.100159) Newtons
+force on plane 4 is (1.297911, 5.954568, -9528.431641) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.390000
+force on plane 0 is (-5510.335449, 24.493750, -967.321106) Newtons
+force on plane 1 is (5679.534180, -26.155746, -998.311951) Newtons
+force on plane 2 is (-2.033556, -5556.214355, -1024.225220) Newtons
+force on plane 3 is (-25.929325, 5567.152344, -980.923340) Newtons
+force on plane 4 is (-9.772033, 0.955982, -9699.768555) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 10
+curr time is 0.400000
+force on plane 0 is (-5850.729492, 15.254600, -1050.569336) Newtons
+force on plane 1 is (5929.850098, -9.132639, -1048.461670) Newtons
+force on plane 2 is (3.269446, -6056.204590, -1197.504028) Newtons
+force on plane 3 is (-32.519608, 5921.547852, -1105.359985) Newtons
+force on plane 4 is (4.821851, -2.233068, -9858.716797) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.410000
+force on plane 0 is (-6313.452637, 0.741009, -1182.346558) Newtons
+force on plane 1 is (6600.540039, 38.367260, -1211.357422) Newtons
+force on plane 2 is (36.972351, -6682.707031, -1350.604248) Newtons
+force on plane 3 is (-46.977444, 6235.823242, -1174.002441) Newtons
+force on plane 4 is (11.980639, -0.724146, -10173.636719) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.420000
+force on plane 0 is (-6980.099609, 38.900070, -1278.216431) Newtons
+force on plane 1 is (7237.479004, 66.626831, -1363.757446) Newtons
+force on plane 2 is (-36.071117, -7401.502930, -1437.757935) Newtons
+force on plane 3 is (-62.283520, 7016.666504, -1304.298706) Newtons
+force on plane 4 is (13.648472, 6.549194, -10562.255859) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.430000
+force on plane 0 is (-7498.511230, 53.061554, -1472.852905) Newtons
+force on plane 1 is (7746.675781, 1.373460, -1524.966064) Newtons
+force on plane 2 is (-3.181050, -8029.307129, -1615.563354) Newtons
+force on plane 3 is (-66.446320, 7516.919922, -1434.038696) Newtons
+force on plane 4 is (10.447843, 9.979622, -10829.779297) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 11
+curr time is 0.440000
+force on plane 0 is (-8119.442871, 44.470669, -1606.626953) Newtons
+force on plane 1 is (8280.815430, 15.215494, -1619.261230) Newtons
+force on plane 2 is (8.240838, -8255.916992, -1710.932129) Newtons
+force on plane 3 is (-31.889893, 8237.993164, -1603.787842) Newtons
+force on plane 4 is (-3.550958, 38.887405, -11124.776367) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.450000
+force on plane 0 is (-8898.708008, 95.060196, -1811.134888) Newtons
+force on plane 1 is (8941.876953, 33.734882, -1800.232910) Newtons
+force on plane 2 is (-71.593651, -8769.286133, -1864.625732) Newtons
+force on plane 3 is (-95.482368, 8963.707031, -1782.541748) Newtons
+force on plane 4 is (-13.930622, 49.381920, -11436.828125) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.460000
+force on plane 0 is (-9580.975586, 60.295509, -1897.384766) Newtons
+force on plane 1 is (9442.075195, 13.898229, -1855.094971) Newtons
+force on plane 2 is (-49.434242, -9525.073242, -1948.103027) Newtons
+force on plane 3 is (-74.537926, 9675.543945, -1941.967285) Newtons
+force on plane 4 is (-31.128704, 19.639647, -11620.616211) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.470000
+force on plane 0 is (-10400.675781, 88.085701, -2079.079834) Newtons
+force on plane 1 is (10088.386719, 5.419892, -1918.226562) Newtons
+force on plane 2 is (-87.509285, -10130.323242, -2154.614746) Newtons
+force on plane 3 is (-36.386303, 10152.155273, -2081.258545) Newtons
+force on plane 4 is (-40.559418, -7.849062, -11696.035156) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 12
+curr time is 0.480000
+force on plane 0 is (-11170.262695, 29.874823, -2286.717285) Newtons
+force on plane 1 is (10959.618164, 125.360367, -2105.106201) Newtons
+force on plane 2 is (-37.327579, -10979.490234, -2221.170898) Newtons
+force on plane 3 is (-8.945480, 10966.522461, -2217.758301) Newtons
+force on plane 4 is (-40.626663, -21.683506, -11771.716797) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.490000
+force on plane 0 is (-11836.098633, 13.472517, -2414.276855) Newtons
+force on plane 1 is (11632.193359, 16.087582, -2261.726074) Newtons
+force on plane 2 is (-19.849918, -11866.449219, -2482.151367) Newtons
+force on plane 3 is (27.555082, 11863.942383, -2440.089844) Newtons
+force on plane 4 is (-20.907393, -40.138855, -11955.300781) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.500000
+force on plane 0 is (-12703.896484, -31.687130, -2595.712646) Newtons
+force on plane 1 is (12707.437500, -5.788312, -2546.740723) Newtons
+force on plane 2 is (-47.443264, -12497.042969, -2660.458984) Newtons
+force on plane 3 is (38.340633, 12556.541992, -2513.569580) Newtons
+force on plane 4 is (57.930729, -78.531395, -12215.816406) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.510000
+force on plane 0 is (-13286.335938, 18.834518, -2638.344238) Newtons
+force on plane 1 is (13581.880859, -35.115475, -2798.313477) Newtons
+force on plane 2 is (15.326477, -13227.338867, -2838.179199) Newtons
+force on plane 3 is (3.842458, 13400.460938, -2732.844727) Newtons
+force on plane 4 is (89.297546, -105.467216, -12304.146484) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 13
+curr time is 0.520000
+force on plane 0 is (-14099.205078, 72.653198, -2844.397461) Newtons
+force on plane 1 is (14621.987305, 22.344841, -3054.325928) Newtons
+force on plane 2 is (-53.514717, -14116.614258, -3035.754883) Newtons
+force on plane 3 is (62.688183, 14157.360352, -2913.855225) Newtons
+force on plane 4 is (93.046875, -98.277298, -12348.791992) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.530000
+force on plane 0 is (-14927.303711, 55.182793, -2912.100098) Newtons
+force on plane 1 is (15433.686523, -51.184731, -3272.891113) Newtons
+force on plane 2 is (22.609055, -15081.244141, -3192.607178) Newtons
+force on plane 3 is (33.738842, 15092.767578, -3040.183838) Newtons
+force on plane 4 is (64.640106, -53.676300, -12472.055664) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.540000
+force on plane 0 is (-15948.360352, 28.336994, -3130.476807) Newtons
+force on plane 1 is (15977.331055, -54.827969, -3369.834473) Newtons
+force on plane 2 is (-37.925625, -16075.775391, -3374.360352) Newtons
+force on plane 3 is (14.653462, 16126.246094, -3392.780029) Newtons
+force on plane 4 is (-17.230696, -29.275757, -12682.971680) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.550000
+force on plane 0 is (-17158.681641, 32.270420, -3493.983154) Newtons
+force on plane 1 is (16882.017578, 2.679800, -3449.597412) Newtons
+force on plane 2 is (-120.130585, -17392.443359, -3716.762207) Newtons
+force on plane 3 is (109.179634, 17138.355469, -3533.412109) Newtons
+force on plane 4 is (-81.898331, -33.920284, -12837.079102) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 14
+curr time is 0.560000
+force on plane 0 is (-18043.904297, 6.139455, -3722.667969) Newtons
+force on plane 1 is (17852.822266, 6.274297, -3618.574219) Newtons
+force on plane 2 is (-87.168739, -17946.136719, -3855.494385) Newtons
+force on plane 3 is (-51.683132, 17994.529297, -3745.126221) Newtons
+force on plane 4 is (-78.714722, -42.413723, -12970.176758) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.570000
+force on plane 0 is (-18888.443359, 31.692585, -3967.584961) Newtons
+force on plane 1 is (18851.179688, 22.882187, -3871.672852) Newtons
+force on plane 2 is (-124.637428, -19070.314453, -4156.625000) Newtons
+force on plane 3 is (-61.013264, 19301.498047, -4022.219482) Newtons
+force on plane 4 is (-58.618008, -47.130650, -13049.703125) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.580000
+force on plane 0 is (-19850.876953, 61.147839, -4083.326904) Newtons
+force on plane 1 is (19803.638672, 98.370468, -4130.982422) Newtons
+force on plane 2 is (-110.160126, -20230.810547, -4381.430176) Newtons
+force on plane 3 is (-22.982481, 20245.916016, -4330.387695) Newtons
+force on plane 4 is (-36.945713, -47.691700, -13067.704102) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.590000
+force on plane 0 is (-20835.281250, -18.184559, -4251.213867) Newtons
+force on plane 1 is (21062.873047, 59.256927, -4396.202637) Newtons
+force on plane 2 is (-58.117939, -21141.861328, -4530.582031) Newtons
+force on plane 3 is (23.898754, 21238.150391, -4416.017578) Newtons
+force on plane 4 is (-21.090584, -45.561813, -13065.802734) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 15
+curr time is 0.600000
+force on plane 0 is (-22099.412109, -33.411404, -4375.509766) Newtons
+force on plane 1 is (22167.656250, 36.313152, -4492.267578) Newtons
+force on plane 2 is (21.470367, -22009.701172, -4694.729004) Newtons
+force on plane 3 is (8.175096, 21737.033203, -4387.455078) Newtons
+force on plane 4 is (6.203740, -41.715515, -13060.268555) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.610000
+force on plane 0 is (-22925.716797, -47.669498, -4544.067383) Newtons
+force on plane 1 is (23071.804688, -82.655548, -4667.261719) Newtons
+force on plane 2 is (12.125261, -22828.871094, -4734.750977) Newtons
+force on plane 3 is (45.577560, 22643.099609, -4476.358887) Newtons
+force on plane 4 is (46.883617, -28.835567, -13146.290039) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.620000
+force on plane 0 is (-22956.582031, 12.404886, -4376.170410) Newtons
+force on plane 1 is (23315.777344, 18.270399, -4815.717285) Newtons
+force on plane 2 is (-19.593472, -23059.537109, -4553.350098) Newtons
+force on plane 3 is (1.160574, 23169.187500, -4419.958008) Newtons
+force on plane 4 is (60.038200, -3.982908, -13353.620117) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.630000
+force on plane 0 is (-22215.814453, -30.007761, -3831.838867) Newtons
+force on plane 1 is (22541.912109, -37.524681, -4071.001709) Newtons
+force on plane 2 is (-28.751467, -22517.341797, -3860.806396) Newtons
+force on plane 3 is (-32.630775, 22650.910156, -3929.146484) Newtons
+force on plane 4 is (47.050335, -11.761812, -13406.992188) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 16
+curr time is 0.640000
+force on plane 0 is (-21070.087891, 18.100054, -2971.818604) Newtons
+force on plane 1 is (20952.875000, -33.061104, -2974.590576) Newtons
+force on plane 2 is (-100.414848, -21037.667969, -3006.860840) Newtons
+force on plane 3 is (-76.069618, 20978.257812, -3069.584473) Newtons
+force on plane 4 is (34.203793, -17.819088, -13408.049805) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.650000
+force on plane 0 is (-19400.035156, 4.911910, -2050.779541) Newtons
+force on plane 1 is (19225.607422, -35.432732, -2089.104980) Newtons
+force on plane 2 is (-68.407631, -19044.316406, -2168.116943) Newtons
+force on plane 3 is (-56.209053, 19166.425781, -2221.191650) Newtons
+force on plane 4 is (-0.282765, -27.747700, -13389.367188) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.660000
+force on plane 0 is (-17387.109375, 38.974003, -1366.367676) Newtons
+force on plane 1 is (17263.162109, 34.749855, -1446.358521) Newtons
+force on plane 2 is (-33.474380, -17093.078125, -1504.275146) Newtons
+force on plane 3 is (-16.057848, 17242.207031, -1495.809570) Newtons
+force on plane 4 is (-26.872711, -41.445599, -13287.499023) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.670000
+force on plane 0 is (-15510.036133, 53.839569, -804.652466) Newtons
+force on plane 1 is (15372.244141, 27.001980, -892.298523) Newtons
+force on plane 2 is (2.025929, -15426.204102, -923.994324) Newtons
+force on plane 3 is (-7.038432, 15472.068359, -895.731323) Newtons
+force on plane 4 is (-38.568218, -51.070305, -12986.809570) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 17
+curr time is 0.680000
+force on plane 0 is (-13828.165039, 36.645672, -399.230499) Newtons
+force on plane 1 is (13734.319336, 16.853170, -482.449219) Newtons
+force on plane 2 is (-6.007786, -13781.246094, -556.907471) Newtons
+force on plane 3 is (5.961831, 13817.339844, -474.671936) Newtons
+force on plane 4 is (-21.700651, -67.524139, -12667.382812) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.690000
+force on plane 0 is (-12303.276367, 42.244270, -142.393448) Newtons
+force on plane 1 is (12207.499023, 33.401089, -193.816620) Newtons
+force on plane 2 is (14.365916, -12338.764648, -249.895355) Newtons
+force on plane 3 is (12.114404, 12327.165039, -164.928436) Newtons
+force on plane 4 is (4.975325, -44.728451, -12306.279297) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.700000
+force on plane 0 is (-10958.196289, 42.433365, 63.710655) Newtons
+force on plane 1 is (10921.105469, 21.069801, 32.402386) Newtons
+force on plane 2 is (28.645409, -11004.862305, 10.346678) Newtons
+force on plane 3 is (19.089642, 10894.434570, 54.028702) Newtons
+force on plane 4 is (13.738673, -28.229033, -11842.280273) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.710000
+force on plane 0 is (-9730.038086, 39.230068, 189.456711) Newtons
+force on plane 1 is (9657.051758, 41.375217, 188.520981) Newtons
+force on plane 2 is (11.238880, -9765.216797, 189.705734) Newtons
+force on plane 3 is (5.930849, 9627.113281, 225.783417) Newtons
+force on plane 4 is (16.075525, -19.474920, -11302.410156) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 18
+curr time is 0.720000
+force on plane 0 is (-8526.505859, 30.684929, 280.254639) Newtons
+force on plane 1 is (8552.478516, 35.145103, 296.055939) Newtons
+force on plane 2 is (2.894918, -8653.931641, 314.993988) Newtons
+force on plane 3 is (-7.768654, 8526.446289, 337.673737) Newtons
+force on plane 4 is (15.537024, -16.457027, -10715.258789) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.730000
+force on plane 0 is (-7522.038086, 6.696868, 352.675842) Newtons
+force on plane 1 is (7526.921875, 47.865562, 359.321259) Newtons
+force on plane 2 is (9.564543, -7579.262695, 373.061798) Newtons
+force on plane 3 is (-11.456287, 7456.385254, 353.348297) Newtons
+force on plane 4 is (14.289647, -11.599521, -10096.391602) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.740000
+force on plane 0 is (-6599.007812, 22.344011, 400.187378) Newtons
+force on plane 1 is (6576.579590, 15.408511, 382.507599) Newtons
+force on plane 2 is (0.678003, -6625.901367, 391.086182) Newtons
+force on plane 3 is (-6.142382, 6577.314453, 369.002838) Newtons
+force on plane 4 is (9.257479, -8.965304, -9458.769531) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.750000
+force on plane 0 is (-5776.530273, 12.393362, 385.991760) Newtons
+force on plane 1 is (5742.560547, 6.846766, 396.089661) Newtons
+force on plane 2 is (-2.743044, -5796.208496, 375.908875) Newtons
+force on plane 3 is (-20.724894, 5757.749023, 395.299561) Newtons
+force on plane 4 is (5.218007, -6.858574, -8793.738281) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 19
+curr time is 0.760000
+force on plane 0 is (-4985.834961, 28.496468, 359.506744) Newtons
+force on plane 1 is (5038.208496, 25.399817, 381.897430) Newtons
+force on plane 2 is (21.332767, -5076.503418, 384.164398) Newtons
+force on plane 3 is (-8.884570, 5029.422363, 376.467712) Newtons
+force on plane 4 is (11.932431, -8.109620, -8136.930176) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.770000
+force on plane 0 is (-4369.146973, 12.700194, 355.684937) Newtons
+force on plane 1 is (4438.169922, 21.082348, 375.442352) Newtons
+force on plane 2 is (20.864019, -4429.385742, 369.578705) Newtons
+force on plane 3 is (-14.613784, 4418.293457, 367.798279) Newtons
+force on plane 4 is (17.295137, -6.381766, -7470.585449) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.780000
+force on plane 0 is (-3880.370117, 14.380606, 334.779205) Newtons
+force on plane 1 is (3886.089111, 13.795455, 343.679199) Newtons
+force on plane 2 is (21.623177, -3909.420410, 343.738068) Newtons
+force on plane 3 is (-6.333663, 3924.680908, 350.014069) Newtons
+force on plane 4 is (22.080797, 7.969777, -6804.843262) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.790000
+force on plane 0 is (-3535.012939, 17.634407, 309.766846) Newtons
+force on plane 1 is (3449.572998, 0.408954, 306.755829) Newtons
+force on plane 2 is (8.189887, -3515.526855, 310.650604) Newtons
+force on plane 3 is (-3.937656, 3506.498047, 303.626892) Newtons
+force on plane 4 is (17.804358, 12.082691, -6172.062500) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 20
+curr time is 0.800000
+force on plane 0 is (-3170.724121, 17.870661, 265.368408) Newtons
+force on plane 1 is (3099.550293, -7.091983, 269.470093) Newtons
+force on plane 2 is (15.959914, -3157.597656, 258.212524) Newtons
+force on plane 3 is (-19.225454, 3150.714111, 256.737244) Newtons
+force on plane 4 is (19.676798, 13.468712, -5582.562012) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.810000
+force on plane 0 is (-2906.977783, 21.434322, 210.079651) Newtons
+force on plane 1 is (2897.649170, -1.482135, 218.073853) Newtons
+force on plane 2 is (9.455279, -2909.858887, 214.323578) Newtons
+force on plane 3 is (-13.975904, 2886.914551, 213.749390) Newtons
+force on plane 4 is (27.286524, 11.607504, -5068.018066) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.820000
+force on plane 0 is (-2755.624023, 16.473879, 149.125168) Newtons
+force on plane 1 is (2694.131836, 1.280972, 171.892059) Newtons
+force on plane 2 is (14.414603, -2746.235107, 143.607712) Newtons
+force on plane 3 is (-17.854986, 2700.405762, 170.005630) Newtons
+force on plane 4 is (24.853802, 12.246696, -4664.645508) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.830000
+force on plane 0 is (-2658.447021, 19.212450, 77.122978) Newtons
+force on plane 1 is (2612.377930, -6.701902, 94.497208) Newtons
+force on plane 2 is (14.512851, -2697.150391, 62.812275) Newtons
+force on plane 3 is (-13.554388, 2603.809814, 95.011444) Newtons
+force on plane 4 is (26.082897, 12.048005, -4413.232422) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 21
+curr time is 0.839999
+force on plane 0 is (-2691.587891, 20.724533, -21.680712) Newtons
+force on plane 1 is (2613.897217, 0.368741, -5.353995) Newtons
+force on plane 2 is (12.662294, -2715.879883, -42.272713) Newtons
+force on plane 3 is (-8.726950, 2630.158936, 5.965893) Newtons
+force on plane 4 is (22.280380, 13.788572, -4337.234375) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.849999
+force on plane 0 is (-2770.583496, 13.783255, -132.718414) Newtons
+force on plane 1 is (2715.631348, 7.095522, -119.470497) Newtons
+force on plane 2 is (10.480849, -2803.826416, -154.322815) Newtons
+force on plane 3 is (-3.467791, 2741.427979, -119.321968) Newtons
+force on plane 4 is (18.887081, 15.383941, -4399.282227) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.859999
+force on plane 0 is (-2923.451416, 10.555699, -261.421967) Newtons
+force on plane 1 is (2887.105957, 8.425627, -253.058258) Newtons
+force on plane 2 is (8.397822, -2935.142578, -278.636261) Newtons
+force on plane 3 is (-2.832052, 2895.062988, -246.190201) Newtons
+force on plane 4 is (17.134085, 14.666401, -4848.406738) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.869999
+force on plane 0 is (-3126.535889, 9.869235, -385.057587) Newtons
+force on plane 1 is (3102.601562, 15.912828, -378.348541) Newtons
+force on plane 2 is (13.477888, -3149.025146, -399.997620) Newtons
+force on plane 3 is (-7.538385, 3099.975342, -366.009521) Newtons
+force on plane 4 is (15.398042, 11.761792, -5261.600098) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 22
+curr time is 0.879999
+force on plane 0 is (-3371.580322, 15.586442, -506.493774) Newtons
+force on plane 1 is (3356.568848, 13.547831, -508.635986) Newtons
+force on plane 2 is (14.320498, -3385.062256, -508.003601) Newtons
+force on plane 3 is (-5.517882, 3358.086426, -484.441101) Newtons
+force on plane 4 is (19.996395, 8.910110, -5580.982910) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.889999
+force on plane 0 is (-3660.459961, 18.192879, -616.193542) Newtons
+force on plane 1 is (3649.896240, 10.194866, -623.395142) Newtons
+force on plane 2 is (28.142977, -3721.328613, -649.122070) Newtons
+force on plane 3 is (-2.182165, 3666.594727, -619.104614) Newtons
+force on plane 4 is (19.913628, 6.570769, -5885.226074) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.899999
+force on plane 0 is (-4052.984619, 19.121935, -758.773499) Newtons
+force on plane 1 is (4023.138428, 11.774184, -777.765686) Newtons
+force on plane 2 is (22.066057, -4077.831787, -794.070618) Newtons
+force on plane 3 is (-12.449103, 4060.117676, -760.975403) Newtons
+force on plane 4 is (15.054994, 5.231973, -6183.741699) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.909999
+force on plane 0 is (-4489.711914, 29.241447, -912.906128) Newtons
+force on plane 1 is (4519.600098, 12.693176, -946.474548) Newtons
+force on plane 2 is (20.982363, -4531.072754, -952.720154) Newtons
+force on plane 3 is (-10.010746, 4536.355957, -941.600525) Newtons
+force on plane 4 is (11.838412, -0.143199, -6508.150879) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 23
+curr time is 0.919999
+force on plane 0 is (-5046.831543, 18.902950, -1103.983765) Newtons
+force on plane 1 is (5095.419922, 1.445555, -1162.373535) Newtons
+force on plane 2 is (25.293232, -5032.409668, -1135.533447) Newtons
+force on plane 3 is (-5.755064, 5121.191406, -1125.760498) Newtons
+force on plane 4 is (12.635124, -1.013428, -6867.976562) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.929999
+force on plane 0 is (-5648.953613, 31.335514, -1311.585571) Newtons
+force on plane 1 is (5676.441895, -7.354739, -1349.182373) Newtons
+force on plane 2 is (32.337872, -5658.253418, -1349.937988) Newtons
+force on plane 3 is (1.151763, 5668.630371, -1304.625854) Newtons
+force on plane 4 is (14.196987, -3.303193, -7267.823242) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.939999
+force on plane 0 is (-6268.037109, 28.759317, -1503.766357) Newtons
+force on plane 1 is (6311.965332, -11.489120, -1564.944336) Newtons
+force on plane 2 is (21.931988, -6277.255371, -1564.297363) Newtons
+force on plane 3 is (-11.396261, 6275.942383, -1502.028320) Newtons
+force on plane 4 is (20.230436, -7.682994, -7690.754395) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.949999
+force on plane 0 is (-6921.231934, 28.006792, -1707.946167) Newtons
+force on plane 1 is (6904.438965, -30.143175, -1736.811523) Newtons
+force on plane 2 is (47.574364, -6906.787598, -1761.286621) Newtons
+force on plane 3 is (-23.709244, 6901.541016, -1691.446167) Newtons
+force on plane 4 is (24.044020, -13.027431, -8084.796387) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 24
+curr time is 0.959999
+force on plane 0 is (-7505.661133, 20.304470, -1855.901611) Newtons
+force on plane 1 is (7507.685059, -36.452827, -1920.002808) Newtons
+force on plane 2 is (44.779243, -7532.161133, -1963.455688) Newtons
+force on plane 3 is (-6.859894, 7541.526855, -1885.730469) Newtons
+force on plane 4 is (23.614805, -13.721789, -8437.136719) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.969999
+force on plane 0 is (-8043.854004, 36.362125, -2017.981201) Newtons
+force on plane 1 is (8028.574707, -65.644730, -2059.872314) Newtons
+force on plane 2 is (46.831528, -8032.116211, -2099.821533) Newtons
+force on plane 3 is (-21.208834, 8091.291992, -2029.096436) Newtons
+force on plane 4 is (22.140917, -13.187838, -8748.085938) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.979999
+force on plane 0 is (-8524.949219, 23.368652, -2134.861816) Newtons
+force on plane 1 is (8447.842773, -61.012157, -2164.759033) Newtons
+force on plane 2 is (56.907059, -8484.957031, -2196.951904) Newtons
+force on plane 3 is (-23.321022, 8507.026367, -2151.988281) Newtons
+force on plane 4 is (20.867075, -10.791995, -9016.421875) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 0.989999
+force on plane 0 is (-8831.803711, 7.504937, -2198.940674) Newtons
+force on plane 1 is (8782.057617, -65.339432, -2223.838135) Newtons
+force on plane 2 is (41.322880, -8744.908203, -2217.263428) Newtons
+force on plane 3 is (-33.995869, 8835.704102, -2225.177979) Newtons
+force on plane 4 is (23.473330, -7.864607, -9237.561523) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 25
+curr time is 0.999999
+force on plane 0 is (-9014.032227, -0.004452, -2201.122070) Newtons
+force on plane 1 is (8979.164062, -63.247929, -2230.841064) Newtons
+force on plane 2 is (49.637413, -8987.868164, -2228.591309) Newtons
+force on plane 3 is (-40.444275, 9053.867188, -2231.119629) Newtons
+force on plane 4 is (25.095387, -9.961431, -9404.333008) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.009999
+force on plane 0 is (-9142.613281, 0.196092, -2114.943359) Newtons
+force on plane 1 is (9066.562500, -68.339706, -2164.291016) Newtons
+force on plane 2 is (39.379070, -9078.750977, -2154.409912) Newtons
+force on plane 3 is (-39.371895, 9187.750000, -2172.796143) Newtons
+force on plane 4 is (19.910143, -9.003785, -9497.420898) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.019999
+force on plane 0 is (-9142.509766, 0.654889, -1928.891479) Newtons
+force on plane 1 is (9075.790039, -66.762390, -2007.554565) Newtons
+force on plane 2 is (34.883739, -9082.397461, -1966.339478) Newtons
+force on plane 3 is (-44.910858, 9224.319336, -2002.768311) Newtons
+force on plane 4 is (18.337032, -9.625820, -9525.036133) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.029999
+force on plane 0 is (-9053.091797, -6.544577, -1614.549438) Newtons
+force on plane 1 is (9030.339844, -75.018402, -1725.769897) Newtons
+force on plane 2 is (36.055134, -8981.132812, -1684.002197) Newtons
+force on plane 3 is (-44.807644, 9143.496094, -1680.973755) Newtons
+force on plane 4 is (18.450430, -8.826170, -9522.178711) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 26
+curr time is 1.039999
+force on plane 0 is (-8874.484375, -1.064973, -1260.434570) Newtons
+force on plane 1 is (8890.083008, -81.797935, -1387.402710) Newtons
+force on plane 2 is (31.299646, -8832.694336, -1345.985840) Newtons
+force on plane 3 is (-45.079002, 8959.754883, -1321.913818) Newtons
+force on plane 4 is (18.504118, -8.908215, -9516.871094) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.049999
+force on plane 0 is (-8681.865234, 9.544255, -951.830444) Newtons
+force on plane 1 is (8690.469727, -65.356606, -1070.915283) Newtons
+force on plane 2 is (16.963713, -8655.964844, -1039.038208) Newtons
+force on plane 3 is (-36.148746, 8771.659180, -1001.405640) Newtons
+force on plane 4 is (18.750832, -6.892022, -9339.523438) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.059999
+force on plane 0 is (-8474.653320, 16.956629, -710.078369) Newtons
+force on plane 1 is (8447.382812, -63.550385, -796.791199) Newtons
+force on plane 2 is (7.662641, -8441.415039, -763.781250) Newtons
+force on plane 3 is (-27.868528, 8548.082031, -737.974731) Newtons
+force on plane 4 is (17.024401, -1.369651, -9004.232422) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.069999
+force on plane 0 is (-8245.496094, 12.164771, -540.651855) Newtons
+force on plane 1 is (8193.244141, -57.863205, -604.532166) Newtons
+force on plane 2 is (6.395767, -8218.245117, -604.079041) Newtons
+force on plane 3 is (-34.968079, 8296.955078, -552.574951) Newtons
+force on plane 4 is (6.752956, 2.946172, -8825.699219) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 27
+curr time is 1.079999
+force on plane 0 is (-8026.635742, 19.754524, -424.872375) Newtons
+force on plane 1 is (7960.525879, -50.719555, -494.936462) Newtons
+force on plane 2 is (8.943134, -7993.222168, -493.168549) Newtons
+force on plane 3 is (-21.380877, 8049.426270, -444.032654) Newtons
+force on plane 4 is (9.488124, -1.289701, -8784.314453) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.089999
+force on plane 0 is (-7798.694824, 13.457134, -365.647919) Newtons
+force on plane 1 is (7707.193359, -44.971195, -417.763031) Newtons
+force on plane 2 is (17.760586, -7761.997070, -442.758789) Newtons
+force on plane 3 is (-27.324610, 7787.229980, -389.424744) Newtons
+force on plane 4 is (11.121172, -1.944229, -8786.170898) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.099999
+force on plane 0 is (-7565.682129, 18.432978, -324.596802) Newtons
+force on plane 1 is (7473.722168, -38.038300, -375.503845) Newtons
+force on plane 2 is (26.299009, -7536.091309, -410.651428) Newtons
+force on plane 3 is (-31.540924, 7532.243652, -356.232697) Newtons
+force on plane 4 is (12.451239, -2.893542, -8791.286133) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.109999
+force on plane 0 is (-7357.223633, 17.680555, -278.291962) Newtons
+force on plane 1 is (7263.501953, -31.052341, -340.511505) Newtons
+force on plane 2 is (35.959167, -7343.638184, -386.509308) Newtons
+force on plane 3 is (-21.914532, 7342.774414, -308.385101) Newtons
+force on plane 4 is (14.099346, -4.047155, -8784.125977) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 28
+curr time is 1.119999
+force on plane 0 is (-7206.569824, 10.988253, -253.382111) Newtons
+force on plane 1 is (7114.163574, -33.183456, -299.573425) Newtons
+force on plane 2 is (38.068676, -7202.676270, -351.926483) Newtons
+force on plane 3 is (-17.648371, 7175.172852, -270.488251) Newtons
+force on plane 4 is (16.589752, -4.907316, -8709.144531) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.129999
+force on plane 0 is (-7113.654297, 17.642395, -230.426697) Newtons
+force on plane 1 is (7031.757812, -43.293400, -263.692047) Newtons
+force on plane 2 is (43.770020, -7099.201172, -315.044922) Newtons
+force on plane 3 is (-8.025853, 7066.223633, -247.179733) Newtons
+force on plane 4 is (21.277588, -6.128083, -8567.655273) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.139999
+force on plane 0 is (-7059.675293, 16.181782, -222.449432) Newtons
+force on plane 1 is (6986.550293, -41.591923, -250.889359) Newtons
+force on plane 2 is (47.148773, -7044.262695, -302.215363) Newtons
+force on plane 3 is (-5.321630, 7009.311035, -240.972931) Newtons
+force on plane 4 is (24.012329, -6.142502, -8505.538086) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.149999
+force on plane 0 is (-7035.772461, 17.275501, -242.127670) Newtons
+force on plane 1 is (6997.119141, -34.472733, -275.966156) Newtons
+force on plane 2 is (53.021847, -7031.648438, -317.519684) Newtons
+force on plane 3 is (-6.580685, 7023.330566, -264.089966) Newtons
+force on plane 4 is (24.139156, -6.492270, -8482.800781) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 29
+curr time is 1.159999
+force on plane 0 is (-7047.817871, 21.635952, -289.509888) Newtons
+force on plane 1 is (7015.706543, -29.801722, -328.405640) Newtons
+force on plane 2 is (57.183273, -7041.587891, -365.076904) Newtons
+force on plane 3 is (-4.596680, 7045.072266, -316.638885) Newtons
+force on plane 4 is (23.338055, -6.594442, -8479.839844) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.169999
+force on plane 0 is (-7084.235352, 23.344807, -367.465271) Newtons
+force on plane 1 is (7047.692383, -33.954430, -415.141998) Newtons
+force on plane 2 is (58.467308, -7079.203613, -444.977142) Newtons
+force on plane 3 is (-4.145278, 7085.413086, -403.727295) Newtons
+force on plane 4 is (23.229616, -6.536728, -8479.313477) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.179999
+force on plane 0 is (-7132.728027, 20.473846, -476.219696) Newtons
+force on plane 1 is (7100.546875, -35.089237, -550.013916) Newtons
+force on plane 2 is (61.042610, -7134.235840, -564.335815) Newtons
+force on plane 3 is (-5.072917, 7144.019043, -528.235291) Newtons
+force on plane 4 is (22.654634, -6.424723, -8479.898438) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.189999
+force on plane 0 is (-7196.926758, 22.698822, -609.066162) Newtons
+force on plane 1 is (7172.863770, -38.629330, -688.819092) Newtons
+force on plane 2 is (65.179665, -7186.750977, -697.976929) Newtons
+force on plane 3 is (-7.384561, 7214.500488, -656.752441) Newtons
+force on plane 4 is (22.829191, -6.665986, -8481.579102) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 30
+curr time is 1.199999
+force on plane 0 is (-7265.180664, 25.556541, -743.204834) Newtons
+force on plane 1 is (7254.185547, -34.808643, -816.991272) Newtons
+force on plane 2 is (66.759369, -7259.094727, -823.598328) Newtons
+force on plane 3 is (-9.801393, 7291.603027, -781.557007) Newtons
+force on plane 4 is (22.500055, -7.750360, -8553.732422) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.209999
+force on plane 0 is (-7346.027832, 21.946562, -851.035339) Newtons
+force on plane 1 is (7330.922852, -37.298946, -922.603638) Newtons
+force on plane 2 is (61.688969, -7324.863770, -928.558960) Newtons
+force on plane 3 is (-8.685725, 7362.546875, -880.951965) Newtons
+force on plane 4 is (21.617012, -7.747193, -8642.919922) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.219999
+force on plane 0 is (-7418.418945, 20.386631, -925.340454) Newtons
+force on plane 1 is (7396.350098, -37.858559, -996.357971) Newtons
+force on plane 2 is (57.639900, -7401.420410, -1003.926208) Newtons
+force on plane 3 is (-13.612354, 7425.707520, -954.690125) Newtons
+force on plane 4 is (21.830381, -7.393144, -8668.501953) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.229999
+force on plane 0 is (-7480.657227, 19.746462, -975.255432) Newtons
+force on plane 1 is (7447.357422, -40.753292, -1044.436401) Newtons
+force on plane 2 is (52.539642, -7461.175293, -1048.449219) Newtons
+force on plane 3 is (-15.048216, 7486.274414, -1009.978394) Newtons
+force on plane 4 is (22.246740, -6.507841, -8670.788086) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 31
+curr time is 1.239999
+force on plane 0 is (-7520.713379, 20.648684, -995.846191) Newtons
+force on plane 1 is (7486.410645, -41.641003, -1075.658691) Newtons
+force on plane 2 is (47.144367, -7511.851562, -1072.972656) Newtons
+force on plane 3 is (-20.716192, 7533.339844, -1038.277222) Newtons
+force on plane 4 is (22.266970, -5.865315, -8670.267578) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.249999
+force on plane 0 is (-7546.107910, 19.817135, -996.312927) Newtons
+force on plane 1 is (7514.894043, -37.538654, -1080.705933) Newtons
+force on plane 2 is (44.063797, -7529.502441, -1072.722168) Newtons
+force on plane 3 is (-20.167534, 7560.111816, -1046.468018) Newtons
+force on plane 4 is (21.940342, -5.387457, -8670.755859) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.259999
+force on plane 0 is (-7561.375000, 19.027351, -985.487549) Newtons
+force on plane 1 is (7522.726074, -36.456097, -1065.552368) Newtons
+force on plane 2 is (42.931110, -7537.473145, -1059.845459) Newtons
+force on plane 3 is (-21.218775, 7571.895996, -1031.171265) Newtons
+force on plane 4 is (21.697231, -4.682750, -8672.405273) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.269999
+force on plane 0 is (-7559.830078, 19.997942, -964.790833) Newtons
+force on plane 1 is (7516.251953, -37.317352, -1033.795044) Newtons
+force on plane 2 is (41.775391, -7533.573730, -1034.109619) Newtons
+force on plane 3 is (-19.481918, 7568.157715, -994.189270) Newtons
+force on plane 4 is (21.191759, -4.903719, -8673.695312) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 32
+curr time is 1.279999
+force on plane 0 is (-7552.964844, 17.481541, -894.112671) Newtons
+force on plane 1 is (7503.006348, -38.434959, -958.496155) Newtons
+force on plane 2 is (39.879150, -7525.220703, -960.756348) Newtons
+force on plane 3 is (-22.349762, 7559.894043, -915.050354) Newtons
+force on plane 4 is (20.068798, -4.609253, -8674.263672) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.289999
+force on plane 0 is (-7536.587891, 14.824162, -806.890137) Newtons
+force on plane 1 is (7481.100098, -35.305065, -872.899109) Newtons
+force on plane 2 is (41.591938, -7506.877441, -875.244934) Newtons
+force on plane 3 is (-21.976830, 7539.570801, -826.682312) Newtons
+force on plane 4 is (19.696053, -4.852241, -8674.506836) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.299999
+force on plane 0 is (-7501.894043, 17.047165, -732.721741) Newtons
+force on plane 1 is (7445.415527, -38.843693, -792.528809) Newtons
+force on plane 2 is (42.668335, -7477.621582, -801.682068) Newtons
+force on plane 3 is (-18.799997, 7502.448242, -750.928833) Newtons
+force on plane 4 is (19.100544, -5.014233, -8674.559570) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.309999
+force on plane 0 is (-7455.162109, 15.905256, -664.646240) Newtons
+force on plane 1 is (7406.303711, -35.829582, -724.424438) Newtons
+force on plane 2 is (42.344715, -7438.624512, -737.324768) Newtons
+force on plane 3 is (-21.881752, 7452.086914, -689.159180) Newtons
+force on plane 4 is (18.704794, -5.059138, -8674.525391) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 33
+curr time is 1.319999
+force on plane 0 is (-7419.508301, 19.926258, -615.327271) Newtons
+force on plane 1 is (7368.448242, -38.774605, -675.953003) Newtons
+force on plane 2 is (39.365284, -7400.107910, -686.336731) Newtons
+force on plane 3 is (-22.710264, 7418.682129, -638.508240) Newtons
+force on plane 4 is (18.807039, -5.372116, -8674.462891) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.329999
+force on plane 0 is (-7395.083984, 15.838631, -583.984253) Newtons
+force on plane 1 is (7348.899414, -40.229836, -647.221130) Newtons
+force on plane 2 is (40.417587, -7371.337402, -655.160217) Newtons
+force on plane 3 is (-20.297205, 7394.455078, -604.965210) Newtons
+force on plane 4 is (18.467966, -5.411012, -8673.319336) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.339999
+force on plane 0 is (-7384.367188, 17.216059, -573.538025) Newtons
+force on plane 1 is (7332.548828, -43.625099, -638.880127) Newtons
+force on plane 2 is (40.971313, -7361.886719, -643.769653) Newtons
+force on plane 3 is (-20.720621, 7381.903809, -594.668274) Newtons
+force on plane 4 is (18.503584, -5.491996, -8665.272461) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.349999
+force on plane 0 is (-7382.079590, 17.902798, -574.945923) Newtons
+force on plane 1 is (7329.397461, -43.279938, -642.150818) Newtons
+force on plane 2 is (40.802597, -7360.762695, -644.023743) Newtons
+force on plane 3 is (-19.124174, 7376.633301, -594.777039) Newtons
+force on plane 4 is (18.656378, -5.721741, -8650.306641) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 34
+curr time is 1.359999
+force on plane 0 is (-7381.071289, 18.558735, -578.341858) Newtons
+force on plane 1 is (7328.147461, -43.274303, -647.427795) Newtons
+force on plane 2 is (42.832573, -7361.543457, -649.440857) Newtons
+force on plane 3 is (-20.522409, 7374.820312, -601.237183) Newtons
+force on plane 4 is (17.595404, -5.933053, -8637.415039) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.369999
+force on plane 0 is (-7378.068359, 18.923071, -604.535095) Newtons
+force on plane 1 is (7327.580078, -42.003948, -674.954712) Newtons
+force on plane 2 is (42.641884, -7355.873047, -675.338867) Newtons
+force on plane 3 is (-21.368862, 7372.245117, -629.507507) Newtons
+force on plane 4 is (17.135792, -6.459979, -8632.128906) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.379999
+force on plane 0 is (-7377.078613, 20.099768, -645.933105) Newtons
+force on plane 1 is (7335.208008, -42.298759, -716.324280) Newtons
+force on plane 2 is (41.205799, -7359.381348, -718.039490) Newtons
+force on plane 3 is (-20.301741, 7377.383301, -671.714966) Newtons
+force on plane 4 is (16.716450, -6.543059, -8630.613281) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.389999
+force on plane 0 is (-7386.353027, 20.666475, -693.293762) Newtons
+force on plane 1 is (7351.813477, -40.674419, -760.628357) Newtons
+force on plane 2 is (42.010693, -7373.311035, -763.591003) Newtons
+force on plane 3 is (-19.377895, 7396.155273, -721.892395) Newtons
+force on plane 4 is (16.653297, -6.698823, -8630.264648) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 35
+curr time is 1.399999
+force on plane 0 is (-7406.450195, 20.562098, -732.057190) Newtons
+force on plane 1 is (7368.199707, -38.624249, -800.806763) Newtons
+force on plane 2 is (42.252258, -7388.843750, -803.449890) Newtons
+force on plane 3 is (-18.805807, 7423.549316, -762.522034) Newtons
+force on plane 4 is (16.809715, -6.913949, -8630.190430) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.409999
+force on plane 0 is (-7426.769043, 19.597694, -755.420471) Newtons
+force on plane 1 is (7384.074707, -36.320423, -825.581421) Newtons
+force on plane 2 is (40.735332, -7406.496582, -825.835876) Newtons
+force on plane 3 is (-20.466335, 7440.761230, -786.843018) Newtons
+force on plane 4 is (16.675861, -6.881428, -8630.249023) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.419999
+force on plane 0 is (-7438.700684, 18.864801, -764.128784) Newtons
+force on plane 1 is (7394.143066, -37.577553, -834.255798) Newtons
+force on plane 2 is (40.437572, -7417.067871, -835.101074) Newtons
+force on plane 3 is (-20.483389, 7447.288574, -793.438538) Newtons
+force on plane 4 is (16.954636, -7.165942, -8630.357422) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.429999
+force on plane 0 is (-7444.379395, 19.165155, -767.218933) Newtons
+force on plane 1 is (7402.049805, -36.586647, -836.555176) Newtons
+force on plane 2 is (40.993336, -7421.252930, -837.664856) Newtons
+force on plane 3 is (-20.335587, 7452.524414, -794.468445) Newtons
+force on plane 4 is (16.942873, -7.140746, -8630.587891) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 36
+curr time is 1.439999
+force on plane 0 is (-7446.715332, 19.369081, -767.342834) Newtons
+force on plane 1 is (7404.397949, -36.695011, -836.779968) Newtons
+force on plane 2 is (41.557461, -7424.480957, -838.499207) Newtons
+force on plane 3 is (-20.648470, 7455.501465, -795.469971) Newtons
+force on plane 4 is (16.930382, -7.103235, -8631.500977) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.449999
+force on plane 0 is (-7446.570801, 19.339674, -766.411194) Newtons
+force on plane 1 is (7405.848145, -36.711285, -836.716003) Newtons
+force on plane 2 is (41.609612, -7425.567871, -838.613831) Newtons
+force on plane 3 is (-21.249445, 7455.991699, -794.152649) Newtons
+force on plane 4 is (17.235775, -7.276746, -8633.037109) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.459999
+force on plane 0 is (-7444.910645, 19.710676, -761.564758) Newtons
+force on plane 1 is (7405.457031, -38.178749, -829.286377) Newtons
+force on plane 2 is (42.249660, -7427.468750, -834.867004) Newtons
+force on plane 3 is (-21.427410, 7458.791504, -784.950195) Newtons
+force on plane 4 is (17.207067, -7.134165, -8634.901367) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.469999
+force on plane 0 is (-7443.681152, 18.169699, -744.829041) Newtons
+force on plane 1 is (7403.785645, -37.448040, -812.676208) Newtons
+force on plane 2 is (42.315884, -7423.464355, -817.742249) Newtons
+force on plane 3 is (-21.856609, 7457.279297, -769.559448) Newtons
+force on plane 4 is (17.510580, -7.259363, -8636.905273) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 37
+curr time is 1.479999
+force on plane 0 is (-7438.234863, 16.989323, -727.608948) Newtons
+force on plane 1 is (7401.376953, -37.431599, -794.495972) Newtons
+force on plane 2 is (43.117695, -7420.097168, -799.986755) Newtons
+force on plane 3 is (-21.285088, 7453.206055, -751.567261) Newtons
+force on plane 4 is (17.496004, -7.171995, -8638.789062) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.489999
+force on plane 0 is (-7433.728027, 16.344473, -714.189209) Newtons
+force on plane 1 is (7394.260742, -38.492920, -781.096863) Newtons
+force on plane 2 is (43.683765, -7416.313477, -784.334839) Newtons
+force on plane 3 is (-20.873569, 7446.004883, -737.352295) Newtons
+force on plane 4 is (17.541216, -7.025553, -8640.279297) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.499999
+force on plane 0 is (-7427.720703, 16.149584, -705.190613) Newtons
+force on plane 1 is (7389.314941, -37.639587, -774.142639) Newtons
+force on plane 2 is (43.072914, -7411.215820, -775.084045) Newtons
+force on plane 3 is (-21.035927, 7441.033203, -728.545166) Newtons
+force on plane 4 is (17.813555, -7.174762, -8641.558594) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.509999
+force on plane 0 is (-7423.378418, 16.539349, -700.499023) Newtons
+force on plane 1 is (7385.576172, -38.218330, -770.377014) Newtons
+force on plane 2 is (43.400719, -7406.849121, -771.443848) Newtons
+force on plane 3 is (-21.135187, 7436.862305, -725.509094) Newtons
+force on plane 4 is (17.632868, -6.989084, -8642.537109) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 38
+curr time is 1.519999
+force on plane 0 is (-7421.986328, 16.043480, -698.385986) Newtons
+force on plane 1 is (7383.490234, -37.918133, -769.045715) Newtons
+force on plane 2 is (43.451065, -7404.175781, -769.450195) Newtons
+force on plane 3 is (-20.283451, 7434.427246, -723.978394) Newtons
+force on plane 4 is (17.865559, -7.072389, -8643.333984) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.529999
+force on plane 0 is (-7420.874512, 16.488682, -697.216125) Newtons
+force on plane 1 is (7382.221191, -38.066498, -767.470276) Newtons
+force on plane 2 is (43.068359, -7402.775391, -768.460938) Newtons
+force on plane 3 is (-20.112213, 7432.890625, -722.820312) Newtons
+force on plane 4 is (17.951681, -7.133699, -8643.896484) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.539999
+force on plane 0 is (-7420.291016, 16.501194, -696.464966) Newtons
+force on plane 1 is (7381.411133, -38.053207, -766.900513) Newtons
+force on plane 2 is (43.202038, -7401.511719, -767.698853) Newtons
+force on plane 3 is (-20.080181, 7432.031250, -721.228394) Newtons
+force on plane 4 is (17.809341, -7.068822, -8644.313477) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.549999
+force on plane 0 is (-7420.603516, 16.322329, -696.317932) Newtons
+force on plane 1 is (7381.083496, -37.700615, -767.716553) Newtons
+force on plane 2 is (42.709045, -7401.184570, -767.366699) Newtons
+force on plane 3 is (-19.966551, 7431.460449, -722.284241) Newtons
+force on plane 4 is (18.070333, -7.239424, -8644.570312) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 39
+curr time is 1.559999
+force on plane 0 is (-7420.882812, 16.580585, -697.705750) Newtons
+force on plane 1 is (7381.275879, -38.052486, -769.844482) Newtons
+force on plane 2 is (42.535233, -7400.628418, -768.918884) Newtons
+force on plane 3 is (-19.982229, 7432.204102, -724.869690) Newtons
+force on plane 4 is (17.875193, -7.115952, -8644.694336) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.569999
+force on plane 0 is (-7421.992188, 17.517128, -700.797852) Newtons
+force on plane 1 is (7381.751953, -37.765244, -772.491577) Newtons
+force on plane 2 is (42.480648, -7402.108398, -772.011230) Newtons
+force on plane 3 is (-20.351120, 7433.066895, -727.585266) Newtons
+force on plane 4 is (17.914522, -7.131166, -8644.718750) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.579999
+force on plane 0 is (-7422.897949, 17.262415, -702.966797) Newtons
+force on plane 1 is (7382.772461, -37.844421, -775.399902) Newtons
+force on plane 2 is (42.311989, -7403.759766, -774.351807) Newtons
+force on plane 3 is (-20.197536, 7434.645020, -729.538879) Newtons
+force on plane 4 is (18.036612, -7.303638, -8644.743164) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.589999
+force on plane 0 is (-7423.782227, 17.615192, -705.299255) Newtons
+force on plane 1 is (7384.428711, -37.216141, -777.287598) Newtons
+force on plane 2 is (42.178398, -7404.971191, -776.668640) Newtons
+force on plane 3 is (-20.066153, 7435.510742, -730.987244) Newtons
+force on plane 4 is (17.826704, -7.146746, -8644.656250) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 40
+curr time is 1.599999
+force on plane 0 is (-7424.774902, 17.179106, -706.795105) Newtons
+force on plane 1 is (7384.919434, -37.439781, -778.360596) Newtons
+force on plane 2 is (42.401356, -7406.459961, -778.766602) Newtons
+force on plane 3 is (-19.807367, 7436.527832, -731.729919) Newtons
+force on plane 4 is (18.070629, -7.323075, -8644.535156) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.609999
+force on plane 0 is (-7425.461426, 17.277969, -708.158325) Newtons
+force on plane 1 is (7385.458984, -37.201283, -779.205078) Newtons
+force on plane 2 is (42.519665, -7407.267578, -779.361206) Newtons
+force on plane 3 is (-19.664751, 7437.150391, -732.337585) Newtons
+force on plane 4 is (17.957891, -7.230240, -8644.380859) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.619999
+force on plane 0 is (-7426.029785, 16.935745, -708.736450) Newtons
+force on plane 1 is (7385.649902, -37.156517, -779.845581) Newtons
+force on plane 2 is (42.010017, -7408.128418, -779.914673) Newtons
+force on plane 3 is (-19.883814, 7437.519043, -732.778625) Newtons
+force on plane 4 is (17.951445, -7.230626, -8644.180664) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.629999
+force on plane 0 is (-7426.360840, 16.943018, -709.706787) Newtons
+force on plane 1 is (7386.028809, -37.438320, -780.351196) Newtons
+force on plane 2 is (42.428753, -7408.914551, -780.554810) Newtons
+force on plane 3 is (-19.865307, 7438.175781, -733.546448) Newtons
+force on plane 4 is (18.117775, -7.343145, -8643.981445) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 41
+curr time is 1.639999
+force on plane 0 is (-7426.896973, 16.696205, -710.156860) Newtons
+force on plane 1 is (7386.939453, -37.910625, -780.494751) Newtons
+force on plane 2 is (42.516739, -7409.061035, -780.935364) Newtons
+force on plane 3 is (-19.871607, 7438.681641, -734.004211) Newtons
+force on plane 4 is (17.898552, -7.187882, -8643.789062) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.649999
+force on plane 0 is (-7427.477539, 16.597645, -710.364075) Newtons
+force on plane 1 is (7386.779785, -37.891357, -780.833313) Newtons
+force on plane 2 is (42.746975, -7409.351074, -780.994202) Newtons
+force on plane 3 is (-19.615580, 7439.161621, -734.309753) Newtons
+force on plane 4 is (18.097174, -7.330742, -8643.583984) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.659999
+force on plane 0 is (-7427.603027, 16.849472, -710.706116) Newtons
+force on plane 1 is (7387.361816, -38.215378, -781.119324) Newtons
+force on plane 2 is (42.698090, -7409.407227, -781.549988) Newtons
+force on plane 3 is (-19.613901, 7439.578125, -734.671448) Newtons
+force on plane 4 is (18.035542, -7.278701, -8643.400391) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.669999
+force on plane 0 is (-7427.966309, 16.971695, -710.708008) Newtons
+force on plane 1 is (7387.913574, -38.290916, -781.163025) Newtons
+force on plane 2 is (42.591934, -7409.860352, -782.112305) Newtons
+force on plane 3 is (-19.794666, 7439.868652, -734.771606) Newtons
+force on plane 4 is (17.957106, -7.229233, -8643.246094) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 42
+curr time is 1.679999
+force on plane 0 is (-7428.429688, 17.050570, -710.934998) Newtons
+force on plane 1 is (7387.821777, -38.639183, -781.185486) Newtons
+force on plane 2 is (42.447388, -7410.043457, -781.864868) Newtons
+force on plane 3 is (-19.863295, 7440.315430, -734.932129) Newtons
+force on plane 4 is (18.160488, -7.372167, -8643.108398) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.689999
+force on plane 0 is (-7428.953613, 16.909327, -711.203369) Newtons
+force on plane 1 is (7387.563477, -38.633217, -781.202271) Newtons
+force on plane 2 is (42.945351, -7410.282227, -781.805115) Newtons
+force on plane 3 is (-19.619371, 7440.602539, -735.306274) Newtons
+force on plane 4 is (17.942003, -7.214660, -8642.970703) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.699999
+force on plane 0 is (-7429.430664, 17.085791, -711.035034) Newtons
+force on plane 1 is (7387.860840, -38.339626, -781.216309) Newtons
+force on plane 2 is (42.805428, -7410.736328, -781.921875) Newtons
+force on plane 3 is (-19.732147, 7440.494629, -735.296082) Newtons
+force on plane 4 is (18.091019, -7.328888, -8642.855469) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.709999
+force on plane 0 is (-7429.553223, 17.068426, -711.283325) Newtons
+force on plane 1 is (7387.876953, -38.398026, -781.430237) Newtons
+force on plane 2 is (42.718639, -7410.609863, -782.179260) Newtons
+force on plane 3 is (-19.882248, 7440.336914, -735.320801) Newtons
+force on plane 4 is (18.091373, -7.324930, -8642.759766) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+rendering frame 43
+curr time is 1.719999
+force on plane 0 is (-7429.436523, 17.023092, -711.329529) Newtons
+force on plane 1 is (7388.091797, -38.168121, -781.541199) Newtons
+force on plane 2 is (42.911263, -7410.433594, -781.965027) Newtons
+force on plane 3 is (-19.886471, 7440.258789, -735.330078) Newtons
+force on plane 4 is (17.949509, -7.231117, -8642.672852) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------
+curr time is 1.729999
+force on plane 0 is (-7429.323730, 16.852924, -711.209839) Newtons
+force on plane 1 is (7388.167969, -38.141621, -781.453796) Newtons
+force on plane 2 is (42.776268, -7410.692871, -782.083557) Newtons
+force on plane 3 is (-19.896935, 7440.363281, -735.313660) Newtons
+force on plane 4 is (18.169546, -7.390777, -8642.599609) Newtons
+force on plane 5 is (0.000000, 0.000000, 0.000000) Newtons
+--------------------------------

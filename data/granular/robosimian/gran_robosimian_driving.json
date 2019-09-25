@@ -1,0 +1,26 @@
+{
+	"sphere_radius": 0.5,
+	"sphere_density": 6,
+	"box_X": 400,
+	"box_Y": 200,
+	"box_Z": 200,
+	"step_size": 1e-5,
+	"time_end": 60,
+	"grav_X": 0,
+	"grav_Y": 0,
+	"grav_Z": -980,
+	"normalStiffS2S": 1e7,
+	"normalStiffS2W": 1e7,
+	"normalStiffS2M": 1e7,
+	"normalDampS2S": 5e3,
+	"normalDampS2W": 5e3,
+	"normalDampS2M": 1e3,
+	"cohesion_ratio": 40,
+	"verbose": false,
+
+	"psi_T": 32,
+	"psi_L": 16,
+	"run_mode" : 0,
+	"output_dir": "robo_drive",
+	"write_mode": "csv"
+}

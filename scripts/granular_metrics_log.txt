@@ -1,0 +1,1484 @@
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Thu, 17 May 2018 13:18:57 -0500
+commit 975acf02a84b7b4bc9a5a6470133d4849157d462 Author: Conlain Kelly <conlain.k@gmail.com> Date: Thu May 17 13:18:46 2018 -0500 Hopefully last attempt at a metrics log
+Results:
+Running wavetank test!
+50 thousand bodies took 2.22229 seconds!
+500 thousand bodies took 15.7309 seconds!
+1 million bodies took 35.2941 seconds!
+Running settling test!
+50 thousand bodies took 2.15361 seconds!
+500 thousand bodies took 15.556 seconds!
+1 million bodies took 36.1197 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 18 May 2018 09:37:38 -0500
+commit 21284f82e2f3e55158c6f4120aa81c32462311b0 Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri May 18 09:35:00 2018 -0500 Add basic triangle collision utilities, needs much more work
+Results:
+Running wavetank test!
+50 thousand bodies took 2.33077 seconds!
+500 thousand bodies took 15.3 seconds!
+1 million bodies took 35.8518 seconds!
+Running settling test!
+50 thousand bodies took 2.162 seconds!
+500 thousand bodies took 15.8062 seconds!
+1 million bodies took 35.1044 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 18 May 2018 09:39:52 -0500
+commit 81a62ee67ec31aae6325a9845f362a3fe6ba0edd Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri May 18 09:39:46 2018 -0500 Darn script finally works
+Results:
+Running wavetank test!
+50 thousand bodies took 2.27803 seconds!
+500 thousand bodies took 15.4699 seconds!
+1 million bodies took 35.7025 seconds!
+Running settling test!
+50 thousand bodies took 2.20555 seconds!
+500 thousand bodies took 15.7488 seconds!
+1 million bodies took 34.3664 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 18 May 2018 18:05:18 -0500
+commit 5ce193cd6a582ce9987ab6894a7f894a8a95ad55 Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri May 18 18:03:39 2018 -0500 add basic defrag, 6% speedup, cleanup some api
+Results:
+Running wavetank test!
+50 thousand bodies took 2.14007 seconds!
+500 thousand bodies took 15.122 seconds!
+1 million bodies took 32.3188 seconds!
+Running settling test!
+50 thousand bodies took 2.16289 seconds!
+500 thousand bodies took 15.0861 seconds!
+1 million bodies took 32.1105 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Thu, 05 Jul 2018 16:34:59 -0500
+commit 73ed7843b72ec1c6b3a5f5b7cd76cd85a8ada6ec Merge: 5b9c2ce5c 99aa9be61 Author: Conlain Kelly <conlain.k@gmail.com> Date: Thu Jul 5 16:34:55 2018 -0500 Merge branch 'sandbox/chrono_granular_mesh_hierarchy' into sandbox/chrono_granular
+Results:
+Running wavetank test!
+50 thousand bodies took 2.23262 seconds!
+500 thousand bodies took 15.4141 seconds!
+1 million bodies took 34.2009 seconds!
+Running settling test!
+50 thousand bodies took 2.11571 seconds!
+500 thousand bodies took 14.8395 seconds!
+1 million bodies took 33.8274 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Thu, 05 Jul 2018 16:54:19 -0500
+commit 6d4444071b54fc9c1eb685aee26306e81c2276c6 Author: Conlain Kelly <conlain.k@gmail.com> Date: Thu Jul 5 16:54:10 2018 -0500 add initialization call, still needs cleanup
+Results:
+Running wavetank test!
+50 thousand bodies took 2.18414 seconds!
+500 thousand bodies took 15.1172 seconds!
+1 million bodies took 34.8307 seconds!
+Running settling test!
+50 thousand bodies took 2.19273 seconds!
+500 thousand bodies took 16.1369 seconds!
+1 million bodies took 36.0991 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 06 Jul 2018 18:20:00 -0500
+commit f7d705f93f5a4219badb5554c2826fccfbcb9da1 Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Jul 6 18:19:26 2018 -0500 massive and painful changeover to a params holder and modular gpu utils
+Results:
+Running wavetank test!
+50 thousand bodies took 2.53357 seconds!
+500 thousand bodies took 17.7205 seconds!
+1 million bodies took 39.9154 seconds!
+Running settling test!
+50 thousand bodies took 2.56917 seconds!
+500 thousand bodies took 17.8368 seconds!
+1 million bodies took 39.4652 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Mon, 09 Jul 2018 11:30:41 -0500
+commit 125c6c7c199e5e0e87c08469dabe533488ac7005 Author: Conlain Kelly <conlain.k@gmail.com> Date: Mon Jul 9 11:30:25 2018 -0500 Cleanup file structure, add inlines
+Results:
+Running wavetank test!
+50 thousand bodies took 2.6946 seconds!
+500 thousand bodies took 18.9055 seconds!
+1 million bodies took 42.3278 seconds!
+Running settling test!
+50 thousand bodies took 2.63346 seconds!
+500 thousand bodies took 17.9619 seconds!
+1 million bodies took 41.4885 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Mon, 09 Jul 2018 16:59:40 -0500
+commit afb92b433d0a947c0c606c83f44f7e2cbdac8408 Author: Conlain Kelly <conlain.k@gmail.com> Date: Mon Jul 9 16:58:33 2018 -0500 more cleanup, still very messy
+Results:
+Running settling test!
+50 thousand bodies took 3.03217 seconds!
+500 thousand bodies took 23.1526 seconds!
+1 million bodies took 50.763 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Mon, 09 Jul 2018 17:53:21 -0500
+commit 510606ddb7e7cedfefeb8c821afa11640c575d35 Author: Conlain Kelly <conlain.k@gmail.com> Date: Mon Jul 9 17:52:13 2018 -0500 ouch this hurts Major file organization refactor, also performance hurts compiles but is messy
+Results:
+Running wavetank test!
+50 thousand bodies took 2.76704 seconds!
+500 thousand bodies took 17.6386 seconds!
+1 million bodies took 41.1923 seconds!
+Running settling test!
+50 thousand bodies took 2.70511 seconds!
+500 thousand bodies took 23.6705 seconds!
+1 million bodies took 42.1372 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Mon, 09 Jul 2018 18:17:28 -0500
+commit 400376adeb12a6d24ffca11143018304455f2dcf Author: Conlain Kelly <conlain.k@gmail.com> Date: Mon Jul 9 18:17:28 2018 -0500 style fix
+Results:
+Running wavetank test!
+50 thousand bodies took 2.6759 seconds!
+500 thousand bodies took 18.6806 seconds!
+1 million bodies took 42.5901 seconds!
+Running settling test!
+50 thousand bodies took 2.7685 seconds!
+500 thousand bodies took 18.0938 seconds!
+1 million bodies took 42.2136 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 10 Jul 2018 11:54:06 -0500
+commit ed3bf84ef1aed6f530212c0d4999031e13d8ca62 Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Jul 10 11:53:52 2018 -0500 Cleanup shared memory in sphere-sphere broadphase
+Results:
+Running wavetank test!
+50 thousand bodies took 3.47281 seconds!
+500 thousand bodies took 18.5562 seconds!
+1 million bodies took 39.9928 seconds!
+Running settling test!
+50 thousand bodies took 2.479 seconds!
+500 thousand bodies took 17.6614 seconds!
+1 million bodies took 40.2821 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 10 Jul 2018 13:12:00 -0500
+commit 4b6d28e83725a736c07588db202ec2d69285bc74 Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Jul 10 13:11:50 2018 -0500 Make updatePositions do the velocity updates as well
+Results:
+Running wavetank test!
+50 thousand bodies took 2.46908 seconds!
+500 thousand bodies took 16.6476 seconds!
+1 million bodies took 36.756 seconds!
+Running settling test!
+50 thousand bodies took 2.39957 seconds!
+500 thousand bodies took 16.0057 seconds!
+1 million bodies took 37.0916 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 10 Jul 2018 17:29:45 -0500
+commit c871352d2eab0cb7aed51f14e7b483a50b6bd4f2 Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Jul 10 17:29:34 2018 -0500 use unified pointer for device soup
+Results:
+Running wavetank test!
+50 thousand bodies took 2.36007 seconds!
+500 thousand bodies took 15.8482 seconds!
+1 million bodies took 37.6909 seconds!
+Running settling test!
+50 thousand bodies took 2.46331 seconds!
+500 thousand bodies took 16.3056 seconds!
+1 million bodies took 36.5936 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 13 Jul 2018 12:25:42 -0500
+commit d317c3d8e667b941743972a1f9ea1c718d7bafa9 Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Jul 13 12:25:42 2018 -0500 at least it builds
+Results:
+Running wavetank test!
+50 thousand bodies took 2.60141 seconds!
+500 thousand bodies took 17.067 seconds!
+1 million bodies took 34.775 seconds!
+Running settling test!
+50 thousand bodies took 2.67945 seconds!
+500 thousand bodies took 16.4307 seconds!
+1 million bodies took 34.6095 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 13 Jul 2018 13:49:39 -0500
+commit c9aa9099dd8d514652089ea8408a65ea1ed0abff Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Jul 13 13:47:21 2018 -0500 fix timestep for metrics tests
+Results:
+Running wavetank test!
+50 thousand bodies took 2.59113 seconds!
+500 thousand bodies took 16.5729 seconds!
+1 million bodies took 34.8987 seconds!
+Running settling test!
+50 thousand bodies took 2.57918 seconds!
+500 thousand bodies took 16.2688 seconds!
+1 million bodies took 34.4176 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 13 Jul 2018 13:52:02 -0500
+commit b23691bcaa3c8fe2d0a1e6f70f6de7f3aad811cd Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Jul 13 13:51:45 2018 -0500 Fix force computation, I think this was a stability issue
+Results:
+Running wavetank test!
+50 thousand bodies took 2.92054 seconds!
+500 thousand bodies took 16.41 seconds!
+1 million bodies took 35.1411 seconds!
+Running settling test!
+50 thousand bodies took 2.47396 seconds!
+500 thousand bodies took 17.0874 seconds!
+1 million bodies took 34.228 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 13 Jul 2018 15:17:57 -0500
+commit ba463b7b440a7ed6d74b8925c408f3e3e2277743 Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Jul 13 15:17:37 2018 -0500 Cleanup velocity updates, fix dump broadphase overflow
+Results:
+Running wavetank test!
+50 thousand bodies took 2.65567 seconds!
+500 thousand bodies took 16.4418 seconds!
+1 million bodies took 34.4515 seconds!
+Running settling test!
+50 thousand bodies took 2.44682 seconds!
+500 thousand bodies took 16.4265 seconds!
+1 million bodies took 34.4685 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Mon, 13 Aug 2018 13:40:07 -0500
+commit 1aa49f832c69221303e6f7bbc066670549681043 Author: Nicholas <nicholas.olsen@wisc.edu> Date: Tue Aug 7 16:33:24 2018 -0500 Adds test options to mesh unit test
+Results:
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Mon, 13 Aug 2018 13:40:31 -0500
+commit b4a6bcf7f8deb62faaa40bae457d58a1ee9f2be8 Author: Conlain Kelly <conlain.k@gmail.com> Date: Mon Aug 13 13:40:31 2018 -0500 cleanup granular cmakelists
+Results:
+Running wavetank test!
+50 thousand bodies took 2.88634 seconds!
+500 thousand bodies took 21.8905 seconds!
+1 million bodies took 44.6597 seconds!
+Running settling test!
+50 thousand bodies took 2.94631 seconds!
+500 thousand bodies took 20.862 seconds!
+1 million bodies took 44.7035 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Mon, 13 Aug 2018 16:21:01 -0500
+commit 01f90bf4675996fdc522876765a378dc2d5174f4 Author: Conlain Kelly <conlain.k@gmail.com> Date: Mon Aug 13 16:20:40 2018 -0500 moar cmake fix
+Results:
+Running wavetank test!
+50 thousand bodies took 2.4217 seconds!
+500 thousand bodies took 15.8231 seconds!
+1 million bodies took 35.1712 seconds!
+Running settling test!
+50 thousand bodies took 2.31921 seconds!
+500 thousand bodies took 15.9756 seconds!
+1 million bodies took 34.163 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 14 Aug 2018 14:52:40 -0500
+commit 26e8acbbeb721fe5a2cef099d9f21c1002c3b80a Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Aug 14 14:50:30 2018 -0500 cleanup sphere-sphere narrowphase
+Results:
+Running wavetank test!
+50 thousand bodies took 2.1165 seconds!
+500 thousand bodies took 13.8687 seconds!
+1 million bodies took 29.6562 seconds!
+Running settling test!
+50 thousand bodies took 2.14155 seconds!
+500 thousand bodies took 13.7708 seconds!
+1 million bodies took 29.5196 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 14 Aug 2018 16:00:36 -0500
+commit 9a6111521fb52a8e412b03e8c233514d593ef281 Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Aug 14 16:00:36 2018 -0500 change fps for box sim, why did I push 100
+Results:
+Running wavetank test!
+50 thousand bodies took 2.19621 seconds!
+500 thousand bodies took 13.6646 seconds!
+1 million bodies took 28.6438 seconds!
+Running settling test!
+50 thousand bodies took 2.07246 seconds!
+500 thousand bodies took 14.0861 seconds!
+1 million bodies took 29.0623 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Wed, 15 Aug 2018 08:54:31 -0500
+commit e340b572f3c41eac32fda687445034c538255030 Author: Conlain Kelly <conlain.k@gmail.com> Date: Wed Aug 15 08:54:31 2018 -0500 fix silly 64 bit int assignment issue, replace size_t->uint64_t
+Results:
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Wed, 15 Aug 2018 08:56:30 -0500
+commit 7a06ad0b0ebfb220bd69d61eb42285b758e7606e Author: Conlain Kelly <conlain.k@gmail.com> Date: Wed Aug 15 08:54:31 2018 -0500 fix silly 64 bit int assignment issue, replace size_t->uint64_t
+Results:
+Running wavetank test!
+50 thousand bodies took 2.23347 seconds!
+500 thousand bodies took 15.9625 seconds!
+1 million bodies took 32.2398 seconds!
+Running settling test!
+50 thousand bodies took 2.1192 seconds!
+500 thousand bodies took 15.6178 seconds!
+1 million bodies took 32.6834 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Wed, 15 Aug 2018 11:17:43 -0500
+commit 8be2c0903e0027aa1e7f74526c9a23433e50191d Author: Conlain Kelly <conlain.k@gmail.com> Date: Wed Aug 15 11:17:33 2018 -0500 ok maybe this is the int overflow fix
+Results:
+Running wavetank test!
+50 thousand bodies took 2.10726 seconds!
+500 thousand bodies took 14.1852 seconds!
+1 million bodies took 32.4428 seconds!
+Running settling test!
+50 thousand bodies took 2.23191 seconds!
+500 thousand bodies took 14.2117 seconds!
+1 million bodies took 31.9788 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Wed, 15 Aug 2018 15:26:59 -0500
+commit 79d7c507416ad1ca27d783b18d4f1ae2ed39848d Author: Conlain Kelly <conlain.k@gmail.com> Date: Wed Aug 15 15:26:32 2018 -0500 Convert to more helpful parameter names, remove 'd' warts
+Results:
+Running wavetank test!
+50 thousand bodies took 1.85111 seconds!
+500 thousand bodies took 13.3984 seconds!
+1 million bodies took 30.9475 seconds!
+Running settling test!
+50 thousand bodies took 1.89149 seconds!
+500 thousand bodies took 13.4822 seconds!
+1 million bodies took 30.4867 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Wed, 15 Aug 2018 15:33:46 -0500
+commit 1b7d6febb456295734f4752cc88dd8d9166a7c48 Author: Conlain Kelly <conlain.k@gmail.com> Date: Wed Aug 15 15:33:37 2018 -0500 move safety check up
+Results:
+Running wavetank test!
+50 thousand bodies took 2.05327 seconds!
+500 thousand bodies took 13.3101 seconds!
+1 million bodies took 30.3104 seconds!
+Running settling test!
+50 thousand bodies took 2.05312 seconds!
+500 thousand bodies took 13.3445 seconds!
+1 million bodies took 30.8343 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Wed, 15 Aug 2018 15:46:33 -0500
+commit 1b4ca3710999d07ee8efecc5c792051dfed36336 Author: Conlain Kelly <conlain.k@gmail.com> Date: Wed Aug 15 15:46:25 2018 -0500 re-implement old changes
+Results:
+Running wavetank test!
+50 thousand bodies took 1.99988 seconds!
+500 thousand bodies took 13.2775 seconds!
+1 million bodies took 30.4339 seconds!
+Running settling test!
+50 thousand bodies took 2.05715 seconds!
+500 thousand bodies took 13.4082 seconds!
+1 million bodies took 31.2856 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Wed, 15 Aug 2018 17:39:20 -0500
+commit fb71fa16f6c9a815c420c2a02489fedfb8c981eb Author: Conlain Kelly <conlain.k@gmail.com> Date: Wed Aug 15 17:39:20 2018 -0500 remove old/unused code
+Results:
+Running wavetank test!
+50 thousand bodies took 1.9545 seconds!
+500 thousand bodies took 13.3127 seconds!
+1 million bodies took 30.6902 seconds!
+Running settling test!
+50 thousand bodies took 1.97951 seconds!
+500 thousand bodies took 13.2813 seconds!
+1 million bodies took 30.3378 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Thu, 16 Aug 2018 09:22:23 -0500
+commit 3f0bfbca5b09b9e5d5371eed1f3446068e899852 Author: Conlain Kelly <conlain.k@gmail.com> Date: Thu Aug 16 09:22:23 2018 -0500 update scaling script
+Results:
+Running wavetank test!
+50 thousand bodies took 2.00439 seconds!
+500 thousand bodies took 14.0609 seconds!
+1 million bodies took 31.4875 seconds!
+Running settling test!
+50 thousand bodies took 1.98374 seconds!
+500 thousand bodies took 13.6322 seconds!
+1 million bodies took 32.1213 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 17 Aug 2018 12:22:56 -0500
+commit 0226a8321e3a21fc750ecf04b4d4877b1d12b38b Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Aug 17 12:22:46 2018 -0500 Fix loop increment counter, no more clipping
+Results:
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 17 Aug 2018 14:26:10 -0500
+commit 1e4adfd054b839a4c8d51af2cdccabfbed300081 Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Aug 17 14:26:10 2018 -0500 add cmake option for verbose ptxas
+Results:
+Running wavetank test!
+50 thousand bodies took 1.89794 seconds!
+500 thousand bodies took 14.3146 seconds!
+1 million bodies took 32.3041 seconds!
+Running settling test!
+50 thousand bodies took 2.02512 seconds!
+500 thousand bodies took 14.4336 seconds!
+1 million bodies took 31.5135 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Wed, 22 Aug 2018 12:39:50 -0500
+commit dee0c28ba0fef52aba85b48364f267d1067d46c2 Author: Conlain Kelly <conlain.k@gmail.com> Date: Wed Aug 22 12:39:50 2018 -0500 add adaptive timestep, more functionality in box settle demo
+Results:
+Running wavetank test!
+50 thousand bodies took 1.84997 seconds!
+500 thousand bodies took 13.8393 seconds!
+1 million bodies took 30.6431 seconds!
+Running settling test!
+50 thousand bodies took 1.91813 seconds!
+500 thousand bodies took 13.3303 seconds!
+1 million bodies took 29.9703 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Wed, 22 Aug 2018 14:48:29 -0500
+commit 36faf2f093a269b49606f8e6178fe61f8df511a6 Author: Conlain Kelly <conlain.k@gmail.com> Date: Wed Aug 22 14:48:29 2018 -0500 cleanup how parameters are handled, make PSIs runtime
+Results:
+Running wavetank test!
+50 thousand bodies took 2.24023 seconds!
+500 thousand bodies took 15.704 seconds!
+1 million bodies took 36.1435 seconds!
+Running settling test!
+50 thousand bodies took 1.98061 seconds!
+500 thousand bodies took 13.5302 seconds!
+1 million bodies took 31.3075 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Wed, 22 Aug 2018 15:47:43 -0500
+commit ac348701d5a624992b4139457011a15ace624c3a Author: Conlain Kelly <conlain.k@gmail.com> Date: Wed Aug 22 15:47:33 2018 -0500 overall cleanup, move away from l,d,h
+Results:
+Running wavetank test!
+50 thousand bodies took 1.9532 seconds!
+500 thousand bodies took 14.4338 seconds!
+1 million bodies took 31.636 seconds!
+Running settling test!
+50 thousand bodies took 1.97413 seconds!
+500 thousand bodies took 13.6718 seconds!
+1 million bodies took 31.4931 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Mon, 03 Sep 2018 10:54:35 -0500
+commit fb587448209bd6659f5a76a1b06a884a67313105 Author: Conlain Kelly <conlain.k@gmail.com> Date: Mon Sep 3 10:54:23 2018 -0500 add run mode to json file
+Results:
+Running wavetank test!
+50 thousand bodies took 2.32941 seconds!
+500 thousand bodies took 16.1874 seconds!
+1 million bodies took 31.9443 seconds!
+Running settling test!
+50 thousand bodies took 1.96308 seconds!
+500 thousand bodies took 14.2697 seconds!
+1 million bodies took 31.6361 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Thu, 06 Sep 2018 18:40:19 -0500
+commit 562f0ec16f8eaaec5cb7be0dbc8542c421053d5d Author: Conlain Kelly <conlain.k@gmail.com> Date: Thu Sep 6 18:39:56 2018 -0500 update metrics to do same test as before, add s2w to json file
+Results:
+Running wavetank test!
+50 thousand bodies took 2.94459 seconds!
+500 thousand bodies took 15.0757 seconds!
+1 million bodies took 29.5533 seconds!
+Running settling test!
+50 thousand bodies took 2.94954 seconds!
+500 thousand bodies took 15.0401 seconds!
+1 million bodies took 30.0515 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Thu, 06 Sep 2018 19:17:22 -0500
+commit 1646092eb9bcb6da72e556485df9ada0bcdf2c98 Author: Conlain Kelly <conlain.k@gmail.com> Date: Thu Sep 6 19:17:07 2018 -0500 remove all numerical integration from narrowphase, rename that kernel
+Results:
+Running wavetank test!
+50 thousand bodies took 1.71318 seconds!
+500 thousand bodies took 11.1316 seconds!
+1 million bodies took 22.4727 seconds!
+Running settling test!
+50 thousand bodies took 1.49015 seconds!
+500 thousand bodies took 10.9845 seconds!
+1 million bodies took 22.4947 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Thu, 06 Sep 2018 20:44:13 -0500
+commit 5784976b27fb4da641105b7704c0b19b49f1629d Author: Conlain Kelly <conlain.k@gmail.com> Date: Thu Sep 6 20:43:55 2018 -0500 change out integrator, implement chung
+Results:
+Running wavetank test!
+50 thousand bodies took 1.37128 seconds!
+500 thousand bodies took 10.3644 seconds!
+1 million bodies took 21.4946 seconds!
+Running settling test!
+50 thousand bodies took 1.44191 seconds!
+500 thousand bodies took 10.4667 seconds!
+1 million bodies took 21.6277 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 11 Sep 2018 14:05:34 -0500
+commit 0dcb13dca3d1c0808012787c2d8c55e906d4a320 Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Sep 11 14:05:18 2018 -0500 Update some trimesh internals for better performance
+Results:
+Running wavetank test!
+50 thousand bodies took 1.41068 seconds!
+500 thousand bodies took 10.324 seconds!
+1 million bodies took 21.6163 seconds!
+Running settling test!
+50 thousand bodies took 1.34125 seconds!
+500 thousand bodies took 10.3409 seconds!
+1 million bodies took 21.01 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 18 Sep 2018 17:51:19 -0500
+commit 6862a708400ae39fd0b6e0019a5668ff20e3ad0b Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Sep 18 17:51:00 2018 -0500 Rewrite/streamline mesh stuff, update some demos
+Results:
+Running wavetank test!
+50 thousand bodies took 1.3457 seconds!
+500 thousand bodies took 10.2264 seconds!
+1 million bodies took 21.3923 seconds!
+Running settling test!
+50 thousand bodies took 1.36677 seconds!
+500 thousand bodies took 10.4299 seconds!
+1 million bodies took 21.4586 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 18 Sep 2018 17:59:47 -0500
+commit e69849b80f7bb44a6b57be68c70db5cdddcb4a04 Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Sep 18 17:59:13 2018 -0500 Upgrade demos and start robosimian setup
+Results:
+Running wavetank test!
+50 thousand bodies took 2.0476 seconds!
+500 thousand bodies took 10.5909 seconds!
+1 million bodies took 22.0707 seconds!
+Running settling test!
+50 thousand bodies took 1.35347 seconds!
+500 thousand bodies took 10.566 seconds!
+1 million bodies took 21.9454 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 18 Sep 2018 18:27:12 -0500
+commit 8e7dd58425bf6f014b8ea2b90c59c729103f6421 Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Sep 18 18:26:54 2018 -0500 Add extra data, models for robosimian; cleanup cmake
+Results:
+Running wavetank test!
+50 thousand bodies took 1.40108 seconds!
+500 thousand bodies took 10.7842 seconds!
+1 million bodies took 21.4854 seconds!
+Running settling test!
+50 thousand bodies took 1.36415 seconds!
+500 thousand bodies took 10.3529 seconds!
+1 million bodies took 21.7185 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 18 Sep 2018 18:45:19 -0500
+commit fe998e4c2d69fbdf1e6a4d8caa9e115e33080757 Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Sep 18 18:45:18 2018 -0500 fix granular robosimian cmake
+Results:
+Running wavetank test!
+50 thousand bodies took 1.52954 seconds!
+500 thousand bodies took 10.8266 seconds!
+1 million bodies took 22.0536 seconds!
+Running settling test!
+50 thousand bodies took 2.03551 seconds!
+500 thousand bodies took 10.7719 seconds!
+1 million bodies took 22.0778 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Mon, 24 Sep 2018 14:32:03 -0500
+commit 3ff5bd3e16f67729e970a2be08a77b4afb5b5a73 Author: Conlain Kelly <conlain.k@gmail.com> Date: Mon Sep 24 14:32:03 2018 -0500 ugly commit, cleanup granular and add cosim support
+Results:
+Running wavetank test!
+50 thousand bodies took 2.11858 seconds!
+500 thousand bodies took 17.5668 seconds!
+1 million bodies took 32.1079 seconds!
+Running settling test!
+50 thousand bodies took 1.92752 seconds!
+500 thousand bodies took 15.0624 seconds!
+1 million bodies took 30.4242 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Thu, 27 Sep 2018 16:32:50 -0500
+commit f77dcb734654704b1bac7fdffa2396eda936c788 Author: Conlain Kelly <conlain.k@gmail.com> Date: Thu Sep 27 16:32:50 2018 -0500 add initial friction implementation, very much WIP
+Results:
+Running wavetank test!
+50 thousand bodies took 2.14084 seconds!
+500 thousand bodies took 15.8861 seconds!
+1 million bodies took 33.3923 seconds!
+Running settling test!
+50 thousand bodies took 1.98388 seconds!
+500 thousand bodies took 16.6513 seconds!
+1 million bodies took 33.1315 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Mon, 08 Oct 2018 12:16:01 -0500
+commit 74e706320d7d801df1c8a58a75401a0f06485095 Author: Conlain Kelly <conlain.k@gmail.com> Date: Mon Oct 8 12:16:01 2018 -0500 fix grouser normals
+Results:
+Running wavetank test!
+50 thousand bodies took 2.2255 seconds!
+500 thousand bodies took 15.9205 seconds!
+1 million bodies took 33.4926 seconds!
+Running settling test!
+50 thousand bodies took 2.15697 seconds!
+500 thousand bodies took 16.0861 seconds!
+1 million bodies took 33.8607 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Mon, 08 Oct 2018 12:18:37 -0500
+commit 03ef763710cdd05e222fbb5c15c3dc0912b9da8b Author: Conlain Kelly <conlain.k@gmail.com> Date: Mon Oct 8 12:18:37 2018 -0500 cleanup and start affine mesh output
+Results:
+Running wavetank test!
+50 thousand bodies took 2.15332 seconds!
+500 thousand bodies took 15.8338 seconds!
+1 million bodies took 33.8294 seconds!
+Running settling test!
+50 thousand bodies took 2.00991 seconds!
+500 thousand bodies took 16.7608 seconds!
+1 million bodies took 33.1271 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Mon, 08 Oct 2018 13:47:47 -0500
+commit ea6c94a48986eddcebbbf3d3072d57344b6aee41 Author: Conlain Kelly <conlain.k@gmail.com> Date: Mon Oct 8 13:47:47 2018 -0500 fix end time
+Results:
+Running wavetank test!
+50 thousand bodies took 2.09463 seconds!
+500 thousand bodies took 16.0695 seconds!
+1 million bodies took 33.7155 seconds!
+Running settling test!
+50 thousand bodies took 2.12031 seconds!
+500 thousand bodies took 15.9175 seconds!
+1 million bodies took 32.8133 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Wed, 17 Oct 2018 16:42:44 -0500
+commit f2e7bb475df92984fc243a1c9b203d246097cddc Author: Conlain Kelly <conlain.k@gmail.com> Date: Wed Oct 17 16:42:36 2018 -0500 Cleanup robosimian and prepare for cluster runs
+Results:
+Running wavetank test!
+50 thousand bodies took 2.26614 seconds!
+500 thousand bodies took 16.3703 seconds!
+1 million bodies took 33.6506 seconds!
+Running settling test!
+50 thousand bodies took 2.10037 seconds!
+500 thousand bodies took 16.2035 seconds!
+1 million bodies took 34.8273 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Thu, 18 Oct 2018 17:01:29 -0500
+commit d3f43db3be5fe77d7886819686de118f6700cd15 Author: Conlain Kelly <conlain.k@gmail.com> Date: Thu Oct 18 17:00:10 2018 -0500 Add sled support and set up for cluster runs, fix force buggo
+Results:
+Running wavetank test!
+50 thousand bodies took 2.29349 seconds!
+500 thousand bodies took 16.5214 seconds!
+1 million bodies took 35.2612 seconds!
+Running settling test!
+50 thousand bodies took 2.31169 seconds!
+500 thousand bodies took 17.0054 seconds!
+1 million bodies took 35.3206 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 19 Oct 2018 15:16:06 -0500
+commit fc8ae2e7d14c9f3fe33ed6cc03faa563607d4ef1 Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Oct 19 15:15:57 2018 -0500 maybe kill the last bugs?
+Results:
+Running wavetank test!
+50 thousand bodies took 2.32686 seconds!
+500 thousand bodies took 17.2937 seconds!
+1 million bodies took 33.8355 seconds!
+Running settling test!
+50 thousand bodies took 2.05537 seconds!
+500 thousand bodies took 16.6195 seconds!
+1 million bodies took 36.2687 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Wed, 24 Oct 2018 16:57:41 -0500
+commit 2beea1c177bd47a8256add498ff19be4a3518717 Author: Conlain Kelly <conlain.k@gmail.com> Date: Wed Oct 24 16:57:40 2018 -0500 rename to prepare for friction
+Results:
+Running wavetank test!
+50 thousand bodies took 2.03713 seconds!
+500 thousand bodies took 15.7711 seconds!
+1 million bodies took 33.5976 seconds!
+Running settling test!
+50 thousand bodies took 1.9546 seconds!
+500 thousand bodies took 15.8739 seconds!
+1 million bodies took 33.3883 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Thu, 25 Oct 2018 18:08:54 -0500
+commit 5b3dbc9946e04431ad22d1f453f1be4e1fe57d8d Author: Conlain Kelly <conlain.k@gmail.com> Date: Thu Oct 25 18:08:54 2018 -0500 get rid of some doubles, some speedup here
+Results:
+Running wavetank test!
+50 thousand bodies took 1.68583 seconds!
+500 thousand bodies took 14.4142 seconds!
+1 million bodies took 27.8121 seconds!
+Running settling test!
+50 thousand bodies took 1.69428 seconds!
+500 thousand bodies took 13.1489 seconds!
+1 million bodies took 28.266 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 26 Oct 2018 11:26:29 -0500
+commit f3438e65d57f5ae5b0d311008de0cd2706297bbb Merge: 3a215e1e4 0811b306a Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Oct 26 11:26:28 2018 -0500 merge nic's changes
+Results:
+Running wavetank test!
+50 thousand bodies took 1.60226 seconds!
+500 thousand bodies took 12.8539 seconds!
+1 million bodies took 26.5733 seconds!
+Running settling test!
+50 thousand bodies took 2.55531 seconds!
+500 thousand bodies took 12.6242 seconds!
+1 million bodies took 26.4487 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 26 Oct 2018 11:33:42 -0500
+commit 061861ed9025538ad018236a37a5f629c650a5e0 Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Oct 26 11:33:33 2018 -0500 fix build, sled file
+Results:
+Running wavetank test!
+50 thousand bodies took 1.60873 seconds!
+500 thousand bodies took 12.7692 seconds!
+1 million bodies took 26.5604 seconds!
+Running settling test!
+50 thousand bodies took 1.57676 seconds!
+500 thousand bodies took 12.7579 seconds!
+1 million bodies took 26.5557 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 26 Oct 2018 11:43:35 -0500
+commit 7d6a16bf3e9f01cc20f7174699b3f7c27eb90afd Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Oct 26 11:43:23 2018 -0500 move some declarations around
+Results:
+Running wavetank test!
+50 thousand bodies took 1.80554 seconds!
+500 thousand bodies took 14.3076 seconds!
+1 million bodies took 29.8652 seconds!
+Running settling test!
+50 thousand bodies took 1.75256 seconds!
+500 thousand bodies took 14.1758 seconds!
+1 million bodies took 29.554 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 26 Oct 2018 16:31:46 -0500
+commit 9decc4c335752e250f75151cf49c90fbdae6d1a9 Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Oct 26 16:31:36 2018 -0500 modularize friction into bool
+Results:
+Running wavetank test!
+50 thousand bodies took 1.61153 seconds!
+500 thousand bodies took 12.6128 seconds!
+1 million bodies took 26.4282 seconds!
+Running settling test!
+50 thousand bodies took 1.54414 seconds!
+500 thousand bodies took 12.6881 seconds!
+1 million bodies took 26.595 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 26 Oct 2018 16:40:26 -0500
+commit 8d66d6639ccdce3c4f359c207ee1e7e80a094fcc Merge: 0d79248a4 62a94d3a1 Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Oct 26 16:40:23 2018 -0500 Merge branch 'sandbox/chrono_granular' of https://github.com/uwsbel/chrono-dev into sandbox/chrono_granular_onestep_fric
+Results:
+Running wavetank test!
+50 thousand bodies took 1.6498 seconds!
+500 thousand bodies took 13.6301 seconds!
+1 million bodies took 27.143 seconds!
+Running settling test!
+50 thousand bodies took 1.68498 seconds!
+500 thousand bodies took 13.0624 seconds!
+1 million bodies took 27.2891 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 26 Oct 2018 17:19:00 -0500
+commit bbcf598dbcc71f2a62c7c6502689a2fe45946d96 Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Oct 26 17:19:00 2018 -0500 get more of nic's changes? bad merge maybe
+Results:
+Running wavetank test!
+50 thousand bodies took 1.58793 seconds!
+500 thousand bodies took 12.9158 seconds!
+1 million bodies took 29.8126 seconds!
+Running settling test!
+50 thousand bodies took 1.60769 seconds!
+500 thousand bodies took 13.2165 seconds!
+1 million bodies took 27.2951 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 02 Nov 2018 16:13:52 -0500
+commit b02e60c2090ba65eb29fbf1ce23decf1111fd41f Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Nov 2 16:13:41 2018 -0500 Cleanup BC code, still needs love and friction
+Results:
+Running wavetank test!
+50 thousand bodies took 1.58742 seconds!
+500 thousand bodies took 12.5996 seconds!
+1 million bodies took 26.6144 seconds!
+Running settling test!
+50 thousand bodies took 1.50367 seconds!
+500 thousand bodies took 12.6945 seconds!
+1 million bodies took 27.1803 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 02 Nov 2018 17:09:25 -0500
+commit 7c4384efbc445874b2859e4e61cd5af962b4e13a Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Nov 2 17:09:25 2018 -0500 restructure class API
+Results:
+Running wavetank test!
+50 thousand bodies took 1.82599 seconds!
+500 thousand bodies took 15.3024 seconds!
+1 million bodies took 32.613 seconds!
+Running settling test!
+50 thousand bodies took 1.75779 seconds!
+500 thousand bodies took 14.6743 seconds!
+1 million bodies took 30.204 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Mon, 05 Nov 2018 11:44:09 -0600
+commit c4509d0b598fcb0a1f81141869e931428be82d7e Author: Conlain Kelly <conlain.k@gmail.com> Date: Mon Nov 5 11:43:29 2018 -0600 fix potential signed bug in max position, fix output omega bug
+Results:
+Running wavetank test!
+50 thousand bodies took 1.72198 seconds!
+500 thousand bodies took 14.1394 seconds!
+1 million bodies took 29.6759 seconds!
+Running settling test!
+50 thousand bodies took 1.79427 seconds!
+500 thousand bodies took 14.3366 seconds!
+1 million bodies took 29.7479 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Mon, 05 Nov 2018 13:30:27 -0600
+commit 4821db12543d12b04877e4ab099a8f78365b6c89 Author: Conlain Kelly <conlain.k@gmail.com> Date: Mon Nov 5 13:30:27 2018 -0600 fix normals bug
+Results:
+Running wavetank test!
+50 thousand bodies took 1.82681 seconds!
+500 thousand bodies took 15.8042 seconds!
+1 million bodies took 29.8964 seconds!
+Running settling test!
+50 thousand bodies took 1.6999 seconds!
+500 thousand bodies took 14.0608 seconds!
+1 million bodies took 29.1986 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Mon, 05 Nov 2018 16:33:59 -0600
+commit cbee4fc3ccbd8386bc9a938302cf992d9435d087 Author: Conlain Kelly <conlain.k@gmail.com> Date: Mon Nov 5 16:33:33 2018 -0600 fix kn vs k_n, add plane bc, cleanup bc code, add dam break demo
+Results:
+Running wavetank test!
+50 thousand bodies took 1.69687 seconds!
+500 thousand bodies took 14.0311 seconds!
+1 million bodies took 29.8053 seconds!
+Running settling test!
+50 thousand bodies took 1.74914 seconds!
+500 thousand bodies took 14.2536 seconds!
+1 million bodies took 30.58 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Mon, 05 Nov 2018 16:47:13 -0600
+commit 02681fea0e9ad46a8b5faeb9cd2aff350c956516 Author: Conlain Kelly <conlain.k@gmail.com> Date: Mon Nov 5 16:45:55 2018 -0600 add missing file, minor formatting
+Results:
+Running wavetank test!
+50 thousand bodies took 1.82823 seconds!
+500 thousand bodies took 15.349 seconds!
+1 million bodies took 29.7183 seconds!
+Running settling test!
+50 thousand bodies took 1.72925 seconds!
+500 thousand bodies took 14.1922 seconds!
+1 million bodies took 29.8572 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Mon, 05 Nov 2018 19:13:37 -0600
+commit d757d3fc13ed435edb48d1ce9d25c38cd242f926 Author: Conlain Kelly <conlain.k@gmail.com> Date: Mon Nov 5 19:12:43 2018 -0600 Massive cleanup, large renamings, clarify torque/alpha, fix bugs Fixes the Y-wall sphere friction Fixes a copy bug remove old cosim stuff
+Results:
+Running wavetank test!
+50 thousand bodies took 1.56587 seconds!
+500 thousand bodies took 13.1677 seconds!
+1 million bodies took 26.2409 seconds!
+Running settling test!
+50 thousand bodies took 1.47352 seconds!
+500 thousand bodies took 12.6821 seconds!
+1 million bodies took 25.7882 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Thu, 08 Nov 2018 11:58:39 -0600
+commit f9a5d3c0926827daa282e7b80959bbd4dbaee658 Author: Conlain Kelly <conlain.k@gmail.com> Date: Thu Nov 8 11:58:29 2018 -0600 Fix some sphere-sphere friction bugs
+Results:
+Running wavetank test!
+50 thousand bodies took 1.70892 seconds!
+500 thousand bodies took 13.6268 seconds!
+1 million bodies took 26.7341 seconds!
+Running settling test!
+50 thousand bodies took 1.57805 seconds!
+500 thousand bodies took 13.4725 seconds!
+1 million bodies took 28.2562 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Thu, 08 Nov 2018 16:36:18 -0600
+commit c43abaecc71ebfdaee7e9fcaa5c7b8d147d90a2d Author: Conlain Kelly <conlain.k@gmail.com> Date: Thu Nov 8 16:36:07 2018 -0600 start cleaning up BCs, fix some demos
+Results:
+Running wavetank test!
+50 thousand bodies took 1.62353 seconds!
+500 thousand bodies took 13.2412 seconds!
+1 million bodies took 26.8575 seconds!
+Running settling test!
+50 thousand bodies took 1.74765 seconds!
+500 thousand bodies took 13.9649 seconds!
+1 million bodies took 27.9511 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Thu, 08 Nov 2018 16:54:06 -0600
+commit e2fc5a80b83dbfe627078544b122395f3d05e15c Merge: dba4c0961 0a0dfb862 Author: Conlain Kelly <conlain.k@gmail.com> Date: Thu Nov 8 16:54:02 2018 -0600 Merge branch 'sandbox/chrono_granular' of https://github.com/uwsbel/chrono-dev into sandbox/chrono_granular
+Results:
+Running wavetank test!
+50 thousand bodies took 1.65476 seconds!
+500 thousand bodies took 13.3213 seconds!
+1 million bodies took 27.5668 seconds!
+Running settling test!
+50 thousand bodies took 1.73923 seconds!
+500 thousand bodies took 13.9156 seconds!
+1 million bodies took 28.0709 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Thu, 08 Nov 2018 17:12:29 -0600
+commit 1f15a90ed3cf3d5a1d83dd4bd600a6d794907d2b Author: Conlain Kelly <conlain.k@gmail.com> Date: Thu Nov 8 17:12:18 2018 -0600 cleanup some demos, cmake stuff
+Results:
+Running wavetank test!
+50 thousand bodies took 1.62269 seconds!
+500 thousand bodies took 13.4918 seconds!
+1 million bodies took 27.4093 seconds!
+Running settling test!
+50 thousand bodies took 1.61664 seconds!
+500 thousand bodies took 13.3057 seconds!
+1 million bodies took 27.4236 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Thu, 08 Nov 2018 18:33:24 -0600
+commit cc20dece5a88c446e3f16d6d1d7ed80270d5cddf Author: Conlain Kelly <conlain.k@gmail.com> Date: Thu Nov 8 18:33:24 2018 -0600 fix BC ref bug
+Results:
+Running wavetank test!
+50 thousand bodies took 1.68014 seconds!
+500 thousand bodies took 14.1259 seconds!
+1 million bodies took 28.735 seconds!
+Running settling test!
+50 thousand bodies took 1.57094 seconds!
+500 thousand bodies took 13.3039 seconds!
+1 million bodies took 26.6606 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Mon, 12 Nov 2018 11:01:53 -0600
+commit 099e2aab20812650cea942fc2cd9dfdd9b08d97d Author: Conlain Kelly <conlain.k@gmail.com> Date: Mon Nov 12 11:01:39 2018 -0600 refactor some files for cleaner structure
+Results:
+Running wavetank test!
+50 thousand bodies took 1.58152 seconds!
+500 thousand bodies took 13.3504 seconds!
+1 million bodies took 27.2307 seconds!
+Running settling test!
+50 thousand bodies took 1.56077 seconds!
+500 thousand bodies took 13.3688 seconds!
+1 million bodies took 26.371 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Mon, 12 Nov 2018 14:05:27 -0600
+commit 59c4ef6689135e42571bac40ea171ab6fbbb842a Author: Conlain Kelly <conlain.k@gmail.com> Date: Mon Nov 12 14:05:17 2018 -0600 rename paramsptr, some API cleanup
+Results:
+Running wavetank test!
+50 thousand bodies took 1.51084 seconds!
+500 thousand bodies took 12.7752 seconds!
+1 million bodies took 25.5187 seconds!
+Running settling test!
+50 thousand bodies took 1.51493 seconds!
+500 thousand bodies took 12.6784 seconds!
+1 million bodies took 26.5789 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Mon, 12 Nov 2018 18:15:01 -0600
+commit 8877e294a63569d56f368b731c408b207c5a97f4 Author: Conlain Kelly <conlain.k@gmail.com> Date: Mon Nov 12 18:14:52 2018 -0600 fix plane bc, clean things up
+Results:
+Running wavetank test!
+50 thousand bodies took 1.57231 seconds!
+500 thousand bodies took 13.1153 seconds!
+1 million bodies took 26.3753 seconds!
+Running settling test!
+50 thousand bodies took 1.51932 seconds!
+500 thousand bodies took 12.944 seconds!
+1 million bodies took 25.991 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 13 Nov 2018 13:21:48 -0600
+commit b40ad933d89a70045243b445e5ade9b5619e7bc8 Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Nov 13 13:21:48 2018 -0600 fix su mass bug
+Results:
+Running wavetank test!
+50 thousand bodies took 1.61539 seconds!
+500 thousand bodies took 13.0041 seconds!
+1 million bodies took 26.7239 seconds!
+Running settling test!
+50 thousand bodies took 1.71853 seconds!
+500 thousand bodies took 13.8826 seconds!
+1 million bodies took 27.645 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 13 Nov 2018 13:33:02 -0600
+commit bb94d692322858b295483bf36675b096f583f964 Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Nov 13 13:32:53 2018 -0600 add output dir arg to dam break sweep
+Results:
+Running wavetank test!
+50 thousand bodies took 1.77685 seconds!
+500 thousand bodies took 14.7131 seconds!
+1 million bodies took 27.517 seconds!
+Running settling test!
+50 thousand bodies took 1.52669 seconds!
+500 thousand bodies took 13.5998 seconds!
+1 million bodies took 27.1718 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Wed, 14 Nov 2018 12:35:22 -0600
+commit c1112eae0db391be4c9050cd7208593bfb8d77de Author: Conlain Kelly <conlain.k@gmail.com> Date: Wed Nov 14 12:35:22 2018 -0600 add back binary writes, general cleanup
+Results:
+Running wavetank test!
+50 thousand bodies took 1.61467 seconds!
+500 thousand bodies took 13.4826 seconds!
+1 million bodies took 27.5625 seconds!
+Running settling test!
+50 thousand bodies took 1.46725 seconds!
+500 thousand bodies took 12.9453 seconds!
+1 million bodies took 26.33 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 16 Nov 2018 09:41:08 -0600
+commit c73d02a8ae96d42f9cbb13d723791c78ec96e761 Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Nov 16 09:41:08 2018 -0600 fix cuda warpsize, biggify dam break
+Results:
+Running wavetank test!
+50 thousand bodies took 1.62853 seconds!
+500 thousand bodies took 13.1356 seconds!
+1 million bodies took 27.372 seconds!
+Running settling test!
+50 thousand bodies took 1.58167 seconds!
+500 thousand bodies took 13.8103 seconds!
+1 million bodies took 26.4594 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Mon, 19 Nov 2018 11:24:03 -0600
+commit 90c025b4aedab259b95dbe03e0158d38130b64bd Author: Conlain Kelly <conlain.k@gmail.com> Date: Mon Nov 19 11:23:40 2018 -0600 remove old code unrelated to this branch
+Results:
+Running wavetank test!
+50 thousand bodies took 1.87339 seconds!
+500 thousand bodies took 14.9107 seconds!
+1 million bodies took 29.2649 seconds!
+Running settling test!
+50 thousand bodies took 2.2062 seconds!
+500 thousand bodies took 13.4295 seconds!
+1 million bodies took 28.1419 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Mon, 19 Nov 2018 11:39:50 -0600
+commit b9fc6a49be161e706d14d2e4b56e906286cbc2e0 Author: Conlain Kelly <conlain.k@gmail.com> Date: Mon Nov 19 11:39:22 2018 -0600 fix mesh pointers in robosim granular demo
+Results:
+Running wavetank test!
+50 thousand bodies took 1.72577 seconds!
+500 thousand bodies took 13.8867 seconds!
+1 million bodies took 27.8252 seconds!
+Running settling test!
+50 thousand bodies took 1.65066 seconds!
+500 thousand bodies took 13.5991 seconds!
+1 million bodies took 27.4327 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Mon, 19 Nov 2018 13:29:48 -0600
+commit 789f3bc916d5c6ab8596d9136c7b230d6a9d01f7 Author: Conlain Kelly <conlain.k@gmail.com> Date: Mon Nov 19 13:29:38 2018 -0600 setup terrain sweep demo
+Results:
+Running wavetank test!
+50 thousand bodies took 1.88423 seconds!
+500 thousand bodies took 15.8542 seconds!
+1 million bodies took 30.241 seconds!
+Running settling test!
+50 thousand bodies took 1.57341 seconds!
+500 thousand bodies took 14.1159 seconds!
+1 million bodies took 28.4216 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 20 Nov 2018 11:22:07 -0600
+commit 1e33bef22f79202e5e3ed8465171e526685bb4a9 Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Nov 20 11:21:53 2018 -0600 cleanup sphere broadphase, can probably be optimized more
+Results:
+Running wavetank test!
+50 thousand bodies took 1.61526 seconds!
+500 thousand bodies took 14.2983 seconds!
+1 million bodies took 29.0389 seconds!
+Running settling test!
+50 thousand bodies took 1.69314 seconds!
+500 thousand bodies took 14.4726 seconds!
+1 million bodies took 29.0463 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 20 Nov 2018 12:05:16 -0600
+commit 5848ac3aeb7a1c1fed30be184dd7dbab890e484a Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Nov 20 12:05:06 2018 -0600 fix build, add sweep capability to terrain sim
+Results:
+Running wavetank test!
+50 thousand bodies took 1.56555 seconds!
+500 thousand bodies took 14.2737 seconds!
+1 million bodies took 28.4653 seconds!
+Running settling test!
+50 thousand bodies took 1.71546 seconds!
+500 thousand bodies took 14.5251 seconds!
+1 million bodies took 29.2317 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 20 Nov 2018 17:48:07 -0600
+commit a8c7808c733dddbfc98a8b5bef0f66916e21c689 Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Nov 20 17:48:07 2018 -0600 fix terrain demo
+Results:
+Running wavetank test!
+50 thousand bodies took 1.65074 seconds!
+500 thousand bodies took 14.4549 seconds!
+1 million bodies took 28.8912 seconds!
+Running settling test!
+50 thousand bodies took 1.57613 seconds!
+500 thousand bodies took 14.2936 seconds!
+1 million bodies took 29.021 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 07 Dec 2018 13:15:46 -0600
+commit 489b2fecdb879005705da2a64ab9248bc9a0ba98 Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Dec 7 13:15:28 2018 -0600 cleanup BC code, still needs more work, AAB and Cyl implementations
+Results:
+Running wavetank test!
+50 thousand bodies took 1.77853 seconds!
+500 thousand bodies took 15.0047 seconds!
+1 million bodies took 29.7828 seconds!
+Running settling test!
+50 thousand bodies took 1.91675 seconds!
+500 thousand bodies took 15.3284 seconds!
+1 million bodies took 31.3105 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 07 Dec 2018 15:47:01 -0600
+commit 731cb82a4235795b7334fa86c33a45ad133f8fcc Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Dec 7 15:46:56 2018 -0600 fix silly timestep issue
+Results:
+Running wavetank test!
+50 thousand bodies took 2.04854 seconds!
+500 thousand bodies took 15.0747 seconds!
+1 million bodies took 30.4268 seconds!
+Running settling test!
+50 thousand bodies took 2.73863 seconds!
+500 thousand bodies took 14.7019 seconds!
+1 million bodies took 29.1598 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Mon, 10 Dec 2018 18:04:15 -0600
+commit e0acde94c09aa31f4ee78c4f63b27814dbabbcae Author: Conlain Kelly <conlain.k@gmail.com> Date: Mon Dec 10 18:03:53 2018 -0600 general cleanup, slight slowdown, fix some memory bugs and parameter bugs
+Results:
+Running wavetank test!
+50 thousand bodies took 1.98083 seconds!
+500 thousand bodies took 15.9235 seconds!
+1 million bodies took 32.3977 seconds!
+Running settling test!
+50 thousand bodies took 1.94265 seconds!
+500 thousand bodies took 15.9833 seconds!
+1 million bodies took 32.5584 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 11 Dec 2018 12:27:52 -0600
+commit f46aa60683cd3440e303d6ae1f34bcafa6f28c6e Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Dec 11 12:27:40 2018 -0600 improve terrain benchmark packing, set up file
+Results:
+Running wavetank test!
+50 thousand bodies took 1.99901 seconds!
+500 thousand bodies took 16.1568 seconds!
+1 million bodies took 32.7177 seconds!
+Running settling test!
+50 thousand bodies took 2.0086 seconds!
+500 thousand bodies took 16.1374 seconds!
+1 million bodies took 33.3265 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Thu, 20 Dec 2018 15:58:37 -0600
+commit acb9bae2602011dd736eaed69b26611d3ec395a6 Author: Conlain Kelly <conlain.k@gmail.com> Date: Thu Dec 20 15:58:28 2018 -0600 add initial multistep friction, some cleanup
+Results:
+Running wavetank test!
+50 thousand bodies took 2.92476 seconds!
+500 thousand bodies took 24.2738 seconds!
+1 million bodies took 49.4107 seconds!
+Running settling test!
+50 thousand bodies took 2.90593 seconds!
+500 thousand bodies took 24.4276 seconds!
+1 million bodies took 50.0284 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 21 Dec 2018 14:04:59 -0600
+commit 25ecddfa90fdbb8e2681a685e1efaecb31b3bff1 Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Dec 21 14:03:58 2018 -0600 cleanup multi-step friction, add cohesion magic speedup
+Results:
+Running wavetank test!
+50 thousand bodies took 2.38387 seconds!
+500 thousand bodies took 20.3304 seconds!
+1 million bodies took 41.4026 seconds!
+Running settling test!
+50 thousand bodies took 2.48554 seconds!
+500 thousand bodies took 20.648 seconds!
+1 million bodies took 43.1629 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 28 Dec 2018 12:29:00 -0600
+commit 91ed0060401436819c0066a744c264b647e41857 Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Dec 28 12:28:45 2018 -0600 cleanup friction, big changes coming
+Results:
+Running wavetank test!
+50 thousand bodies took 2.52403 seconds!
+500 thousand bodies took 20.4608 seconds!
+1 million bodies took 41.2053 seconds!
+Running settling test!
+50 thousand bodies took 2.46817 seconds!
+500 thousand bodies took 20.5455 seconds!
+1 million bodies took 42.1337 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Wed, 02 Jan 2019 17:04:32 -0600
+commit 4262eb094e5d1405bfd4d46ff921ee3e449324ce Author: Conlain Kelly <conlain.k@gmail.com> Date: Wed Jan 2 17:00:23 2019 -0600 move to prefix-scan based broadphase, needs more testing multi-step friction has overcompression issues that break the contact map, might be a bigger bug hiding there
+Results:
+Running wavetank test!
+50 thousand bodies took 5.14838 seconds!
+500 thousand bodies took 33.6185 seconds!
+1 million bodies took 67.8574 seconds!
+Running settling test!
+50 thousand bodies took 5.08754 seconds!
+500 thousand bodies took 35.2847 seconds!
+1 million bodies took 68.0894 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 04 Jan 2019 15:04:11 -0600
+commit 909a727d5081df07bba77d0c505ddbf3ac73b2ab Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Jan 4 15:02:24 2019 -0600 rewrite much of sphere-triangle code, needs more testing, optimization
+Results:
+Running wavetank test!
+50 thousand bodies took 5.06192 seconds!
+500 thousand bodies took 33.2977 seconds!
+1 million bodies took 67.3913 seconds!
+Running settling test!
+50 thousand bodies took 5.23894 seconds!
+500 thousand bodies took 33.9055 seconds!
+1 million bodies took 67.871 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Mon, 07 Jan 2019 09:40:32 -0600
+commit 78a4f0f67fcdd82402ca27eccf187710a8e979bd Author: Conlain Kelly <conlain.k@gmail.com> Date: Mon Jan 7 09:39:31 2019 -0600 move triangle broadphase to prefix scan, convert DEs->spheres
+Results:
+Running wavetank test!
+50 thousand bodies took 5.07554 seconds!
+500 thousand bodies took 34.6068 seconds!
+1 million bodies took 70.0964 seconds!
+Running settling test!
+50 thousand bodies took 5.16454 seconds!
+500 thousand bodies took 34.486 seconds!
+1 million bodies took 69.748 seconds!
+
+Running wavetank test!
+50 thousand bodies took 3.14048 seconds!
+500 thousand bodies took 21.8088 seconds!
+1 million bodies took 43.1047 seconds!
+Running settling test!
+50 thousand bodies took 3.03003 seconds!
+500 thousand bodies took 20.7747 seconds!
+1 million bodies took 41.1593 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 08 Jan 2019 13:45:45 -0600
+commit 927048218946f360bb1c0f350034ba6a26bcf7dd Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Jan 8 13:45:26 2019 -0600 add inital outline for triangle prefix broadphase, add BC force support
+Results:
+Running wavetank test!
+50 thousand bodies took 3.28216 seconds!
+500 thousand bodies took 21.8283 seconds!
+1 million bodies took 43.4538 seconds!
+Running settling test!
+50 thousand bodies took 3.00012 seconds!
+500 thousand bodies took 21.0314 seconds!
+1 million bodies took 41.5225 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 08 Jan 2019 16:11:32 -0600
+commit 65a122a642841327e310ac5383b3165f52f6dd0e Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Jan 8 16:11:08 2019 -0600 implement semi-host side triangle broadphase, better occupancy and more robust
+Results:
+Running wavetank test!
+50 thousand bodies took 3.25539 seconds!
+500 thousand bodies took 21.6618 seconds!
+1 million bodies took 43.6828 seconds!
+Running settling test!
+50 thousand bodies took 3.05032 seconds!
+500 thousand bodies took 21.0293 seconds!
+1 million bodies took 41.4406 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 08 Jan 2019 16:15:23 -0600
+commit 31fe0b4b89ceef85c6173827fb248a85ce657247 Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Jan 8 16:15:14 2019 -0600 update metrics script to match name changes
+Results:
+Running wavetank test!
+50 thousand bodies took 3.25804 seconds!
+500 thousand bodies took 21.8437 seconds!
+1 million bodies took 43.6041 seconds!
+Running settling test!
+50 thousand bodies took 3.03797 seconds!
+500 thousand bodies took 21.1805 seconds!
+1 million bodies took 41.6413 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 08 Jan 2019 16:39:18 -0600
+commit ec0207c3708ff252baf4bdc2f3213ad0e5705741 Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Jan 8 16:38:57 2019 -0600 update granular to latest Chrono changes
+Results:
+Running wavetank test!
+50 thousand bodies took 3.37396 seconds!
+500 thousand bodies took 22.0448 seconds!
+1 million bodies took 44.417 seconds!
+Running settling test!
+50 thousand bodies took 2.93973 seconds!
+500 thousand bodies took 21.2749 seconds!
+1 million bodies took 42.1314 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Wed, 09 Jan 2019 12:58:35 -0600
+commit 9159dd08a4815a8dda73276e45e555d17a5ad8dd Author: Conlain Kelly <conlain.k@gmail.com> Date: Wed Jan 9 12:58:26 2019 -0600 prep terrain box for benchmark runs
+Results:
+Running wavetank test!
+50 thousand bodies took 3.22617 seconds!
+500 thousand bodies took 22.5425 seconds!
+1 million bodies took 42.77 seconds!
+Running settling test!
+50 thousand bodies took 2.89748 seconds!
+500 thousand bodies took 20.2407 seconds!
+1 million bodies took 40.6319 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Thu, 10 Jan 2019 15:16:36 -0600
+commit bf1abe9edd92970563066585e82d92f7a8afe487 Author: Conlain Kelly <conlain.k@gmail.com> Date: Thu Jan 10 15:16:06 2019 -0600 cleanup, setup for BC friction, convert 3int to int3, move helpers around
+Results:
+Running wavetank test!
+50 thousand bodies took 2.36701 seconds!
+500 thousand bodies took 18.6248 seconds!
+1 million bodies took 38.022 seconds!
+Running settling test!
+50 thousand bodies took 2.53954 seconds!
+500 thousand bodies took 17.773 seconds!
+1 million bodies took 37.0546 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 11 Jan 2019 16:40:40 -0600
+commit 483e15035e6c215d9124258c12405953feaf1422 Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Jan 11 16:38:54 2019 -0600 cleanup and fix BCs, prep for cone flow sweeps
+Results:
+Running wavetank test!
+50 thousand bodies took 2.26463 seconds!
+500 thousand bodies took 19.0278 seconds!
+1 million bodies took 38.6013 seconds!
+Running settling test!
+50 thousand bodies took 2.6032 seconds!
+500 thousand bodies took 18.0091 seconds!
+1 million bodies took 36.3571 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 15 Jan 2019 14:07:08 -0600
+commit 0040c6721fb66709c4595ce3758c98979ab84285 Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Jan 15 14:06:39 2019 -0600 fix multistep bugs, cleanup coneflow tests, cleanup files
+Results:
+Running wavetank test!
+50 thousand bodies took 2.24673 seconds!
+500 thousand bodies took 19.2624 seconds!
+1 million bodies took 38.9924 seconds!
+Running settling test!
+50 thousand bodies took 2.49218 seconds!
+500 thousand bodies took 18.3926 seconds!
+1 million bodies took 37.0379 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Wed, 16 Jan 2019 11:06:18 -0600
+commit f35a1fbcc8ee347245ce7449baa12eb491eeb261 Author: Conlain Kelly <conlain.k@gmail.com> Date: Wed Jan 16 11:05:57 2019 -0600 cleanup internals and API, fix tri broadphase bug, work on bucket test
+Results:
+Running wavetank test!
+50 thousand bodies took 2.3635 seconds!
+500 thousand bodies took 19.9911 seconds!
+1 million bodies took 40.5491 seconds!
+Running settling test!
+50 thousand bodies took 2.59187 seconds!
+500 thousand bodies took 18.7841 seconds!
+1 million bodies took 39.1447 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Thu, 17 Jan 2019 12:37:04 -0600
+commit 735b43525565ce940e1444a4a7847d838d9ace18 Author: Conlain Kelly <conlain.k@gmail.com> Date: Thu Jan 17 12:36:35 2019 -0600 cleanup assets, add friction to dam break
+Results:
+Running wavetank test!
+50 thousand bodies took 2.32285 seconds!
+500 thousand bodies took 19.0568 seconds!
+1 million bodies took 38.5645 seconds!
+Running settling test!
+50 thousand bodies took 2.625 seconds!
+500 thousand bodies took 18.2163 seconds!
+1 million bodies took 36.814 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 18 Jan 2019 17:21:37 -0600
+commit 460608721a7adfb81310bc62e7c06dcec9ca49e2 Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Jan 18 17:21:26 2019 -0600 add chung and velocity verlet for full friction
+Results:
+Running wavetank test!
+50 thousand bodies took 8.88984 seconds!
+500 thousand bodies took 20.2646 seconds!
+1 million bodies took 40.8518 seconds!
+Running settling test!
+50 thousand bodies took 2.65979 seconds!
+500 thousand bodies took 19.2472 seconds!
+1 million bodies took 38.5133 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 18 Jan 2019 17:26:25 -0600
+commit 7a96dbd859262045b02c2d1fd37e093eeb52643c Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Jan 18 17:26:17 2019 -0600 remove atomics in updatePositions
+Results:
+Running wavetank test!
+50 thousand bodies took 4.48419 seconds!
+500 thousand bodies took 19.3033 seconds!
+1 million bodies took 38.8859 seconds!
+Running settling test!
+50 thousand bodies took 2.5854 seconds!
+500 thousand bodies took 18.1969 seconds!
+1 million bodies took 36.7289 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 22 Jan 2019 11:06:14 -0600
+commit d76415e8d92608f05dc34aa9fbe2a0a101328964 Merge: 9c72ea020 80638e7cd Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Jan 22 11:02:02 2019 -0600 Merge branch 'develop' into sandbox/chrono_granular
+Results:
+Running wavetank test!
+50 thousand bodies took 2.4685 seconds!
+500 thousand bodies took 19.6819 seconds!
+1 million bodies took 40.7998 seconds!
+Running settling test!
+50 thousand bodies took 2.76234 seconds!
+500 thousand bodies took 19.2262 seconds!
+1 million bodies took 37.8492 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 22 Jan 2019 15:06:30 -0600
+commit 2ba427f3e6db9587acd6261bad538dedb3dd9f63 Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Jan 22 15:06:20 2019 -0600 fix granular vehicle irrlicht build
+Results:
+Running wavetank test!
+50 thousand bodies took 2.38886 seconds!
+500 thousand bodies took 19.8176 seconds!
+1 million bodies took 39.3376 seconds!
+Running settling test!
+50 thousand bodies took 2.56142 seconds!
+500 thousand bodies took 18.637 seconds!
+1 million bodies took 37.299 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 25 Jan 2019 18:44:59 -0600
+commit c4d9f23e9acf846e124744a92bdde1db4b34c133 Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Jan 25 18:44:31 2019 -0600 convert force->acc in data structures, outline checkpoints, add scripts
+Results:
+Running wavetank test!
+50 thousand bodies took 2.3533 seconds!
+500 thousand bodies took 19.5031 seconds!
+1 million bodies took 39.9952 seconds!
+Running settling test!
+50 thousand bodies took 3.57117 seconds!
+500 thousand bodies took 18.567 seconds!
+1 million bodies took 37.9996 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 29 Jan 2019 11:11:58 -0600
+commit 120cf0f4cb42128fdf054516855975bb7c0ce591 Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Jan 29 11:11:49 2019 -0600 fix verlet integrator build, need more testing
+Results:
+Running wavetank test!
+50 thousand bodies took 2.44738 seconds!
+500 thousand bodies took 18.7148 seconds!
+1 million bodies took 38.7178 seconds!
+Running settling test!
+50 thousand bodies took 2.44901 seconds!
+500 thousand bodies took 17.8566 seconds!
+1 million bodies took 36.2191 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 01 Feb 2019 13:54:26 -0600
+commit e754316f44484faf6fb773853763f2aa86fd0332 Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Feb 1 13:53:54 2019 -0600 allow proscribed BC motion, cleanup BD motion functions, rearrange some files
+Results:
+Running settling test!
+50 thousand bodies took 19.0924 seconds!
+500 thousand bodies took 44.0332 seconds!
+1 million bodies took 88.1357 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 01 Feb 2019 17:08:22 -0600
+commit f78c11559045655a7592e0df6c3e02b555babe21 Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Feb 1 17:08:06 2019 -0600 add preliminary local coords implementation, needs testing and debugging
+Results:
+Running settling test!
+50 thousand bodies took 2.81292 seconds!
+500 thousand bodies took 7.14055 seconds!
+1 million bodies took 12.7924 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 05 Feb 2019 14:21:49 -0600
+commit 3de3b945136cb0337973bef507a798aee9dea7c5 Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Feb 5 14:20:39 2019 -0600 Monolithic local coords conversion - Change BD to plane BCs - Convert positions to local-coord form - Start storing global positions as int64_t or double - Store local pos as int or float - Box dims are now permanently set at system construction
+Results:
+Running settling test!
+50 thousand bodies took 4.63383 seconds!
+500 thousand bodies took 22.8026 seconds!
+1 million bodies took 44.0309 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 05 Feb 2019 17:48:47 -0600
+commit 628a67ce91b5ccc8041d722a44e1aabaa3a1b8fe Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Feb 5 17:48:13 2019 -0600 improve local coords, switch sphere data to a pointer
+Results:
+Running settling test!
+50 thousand bodies took 5.04297 seconds!
+500 thousand bodies took 24.2691 seconds!
+1 million bodies took 48.081 seconds!<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 12 Feb 2019 14:12:07 -0600
+commit c9c5d471c5ec877750069df5e427ee87809f126a Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Feb 12 14:07:45 2019 -0600 move everything over to local coords, fix moving BC, test with meshes
+Results:
+Running test suite!
+Frictionless took 47.8904 seconds!
+Single Step took 56.5946 seconds!
+Multistep took 85.3858 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 12 Feb 2019 14:21:51 -0600
+commit afb697bdb6e019f1984dcb47d7e20017772f69b3 Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Feb 12 14:21:43 2019 -0600 fix cmakelists SMs
+Results:
+Running test suite!
+Frictionless took 46.8522 seconds!
+Single Step took 55.6729 seconds!
+Multistep took 84.6886 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 22 Feb 2019 13:48:43 -0600
+commit 3fcad7b150b46ab87ee72266f54fc25089ac1754 Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Feb 22 13:48:14 2019 -0600 fix bug in forward euler integrator, add ET and make extended taylor default
+Results:
+Running test suite!
+Frictionless took 50.3898 seconds!
+Single Step took 58.1443 seconds!
+Multistep took 88.7134 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 01 Mar 2019 15:26:11 -0600
+commit 40dee0d7ec1e58cbae8883b7df7ed7a59ce1657b Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Mar 1 15:25:36 2019 -0600 massive changeover to hertz force model, convert vel verlet -> Cent. Diff.
+Results:
+Running test suite!
+Frictionless took 46.4004 seconds!
+Single Step took 58.144 seconds!
+Multistep took 87.6289 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Mon, 11 Mar 2019 10:26:32 -0500
+commit 7670855e200aa8f6ee8e747262e9de21e6707dd9 Author: Conlain Kelly <conlain.k@gmail.com> Date: Mon Mar 11 10:26:24 2019 -0500 fix integrator bug with omegas
+Results:
+Running test suite!
+Frictionless took 43.8894 seconds!
+Single Step took 57.8487 seconds!
+Multistep took 85.7192 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Mon, 11 Mar 2019 13:02:49 -0500
+commit 34cc8cc32f494a983fafc611dbe9d8bfcab5bb5f Author: Conlain Kelly <conlain.k@gmail.com> Date: Mon Mar 11 13:02:49 2019 -0500 add mini gran test for driver/nvprof checks
+Results:
+Running test suite!
+Frictionless took 46.2591 seconds!
+Single Step took 59.1936 seconds!
+Multistep took 87.7473 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 05 Apr 2019 16:16:25 -0500
+commit c859338ff04d710ab39190f25ddef39b7e5c9e5f Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Apr 5 16:16:01 2019 -0500 Convert unit dimensions to hertzian base, a little cleanup
+Results:
+Running test suite!
+Frictionless took 44.7291 seconds!
+Single Step took 60.3925 seconds!
+Multistep took 89.8441 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Wed, 24 Apr 2019 14:56:08 -0500
+commit f321c1dde23f7e6ec008d5b27ee37bf8e71d5c7d Author: Conlain Kelly <conlain.k@gmail.com> Date: Wed Apr 24 14:54:57 2019 -0500 several bug fixes, add rover and test suite, rewrite BC friction fix triangle bug (zero triangle crash) fix hertz tangential clamping bug (TODO better way)
+Results:
+Running test suite!
+Frictionless took 42.4476 seconds!
+Single Step took 55.5818 seconds!
+Multistep took 83.4554 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Wed, 24 Apr 2019 17:00:10 -0500
+commit b1f95ed3ef139ef3ea5bdd037efb4b49fc73fa66 Author: Conlain Kelly <conlain.k@gmail.com> Date: Wed Apr 24 16:59:59 2019 -0500 cleanup rolling resistance and add to BC code
+Results:
+Running test suite!
+Frictionless took 43.6621 seconds!
+Single Step took 57.0067 seconds!
+Multistep took 86.7274 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Wed, 24 Apr 2019 17:33:56 -0500
+commit df8febf471cf9430a01737e94c1f54b464cd2846 Author: Conlain Kelly <conlain.k@gmail.com> Date: Wed Apr 24 17:33:47 2019 -0500 fix build and rover demo
+Results:
+Running test suite!
+Frictionless took 45.4499 seconds!
+Single Step took 58.1371 seconds!
+Multistep took 84.92 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 26 Apr 2019 16:36:21 -0500
+commit 71954accaaee66a91e8fbb870ac9e1ac5a8377aa Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Apr 26 16:36:03 2019 -0500 cleanup sphere-sphere friction, convert to new formulation fix some buggos
+Results:
+Running test suite!
+Frictionless took 45.5477 seconds!
+Single Step took 57.5128 seconds!
+Multistep took 83.8955 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 10 May 2019 09:59:32 -0500
+commit a35f033f4c137b445d8f960dad6fc4519a222faa Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri May 10 09:59:06 2019 -0500 massive cleanup, doxygen added, triangle friction, three friction coeffs
+Results:
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Mon, 20 May 2019 11:05:26 -0500
+commit 565ac363d05bfb7481c6ba40526a0dc69c6c7d66 Author: Conlain Kelly <conlain.k@gmail.com> Date: Mon May 20 11:05:19 2019 -0500 cleanup some friction stuff
+Results:
+Running test suite!
+Frictionless took 45.8294 seconds!
+Single Step took 59.7743 seconds!
+Multistep took 85.8025 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Mon, 20 May 2019 15:14:38 -0500
+commit e2170bb84b49a898d1275342503ce0d6f66fb636 Author: Conlain Kelly <conlain.k@gmail.com> Date: Mon May 20 15:14:09 2019 -0500 huge cleanup, remove psi_h, add comments, remove dead code
+Results:
+Running test suite!
+Frictionless took 43.7877 seconds!
+Single Step took 57.6814 seconds!
+Multistep took 83.7284 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Wed, 22 May 2019 11:40:58 -0500
+commit 3eacd2eabfe6bede6f902efe496814e36dfd0d52 Author: Conlain Kelly <conlain.k@gmail.com> Date: Wed May 22 11:40:49 2019 -0500 cleanup demos for merge with mainline
+Results:
+Running test suite!
+Frictionless took 46.6629 seconds!
+Single Step took 58.9628 seconds!
+Multistep took 84.9102 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Wed, 22 May 2019 14:30:04 -0500
+commit f2524cfb1ed79dc6a29f18637187ee64cb8fa69e Merge: f0503d3c8 afc407ce6 Author: Conlain Kelly <conlain.k@gmail.com> Date: Wed May 22 14:29:51 2019 -0500 Merge branch 'develop' into sandbox/chrono_granular
+Results:
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Wed, 22 May 2019 14:37:52 -0500
+commit 329379e2406ab9b9660200d4d70c5ea1e95867a8 Author: Conlain Kelly <conlain.k@gmail.com> Date: Wed May 22 14:37:43 2019 -0500 check for near-zero tangential creep
+Results:
+Running test suite!
+Frictionless took 55.0263 seconds!
+Single Step took 64.137 seconds!
+Multistep took 87.1606 seconds!
