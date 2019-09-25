@@ -219,7 +219,8 @@ inline __device__ bool addBCForces_ZCone(unsigned int sphID,
             unsigned int BC_histmap_label = gran_params->nSpheres + BC_id + 1;
 
             float3 roll_acc = computeRollingAngAcc(sphere_data, gran_params, gran_params->rolling_coeff_s2w_SU,
-                                                   force_accum, sphOmega, make_float3(0, 0, 0), dist * contact_normal);
+                                                   gran_params->spinning_coeff_s2w_SU, force_accum, sphOmega,
+                                                   make_float3(0, 0, 0), dist * contact_normal);
 
             // assume bc mass is infinite
             constexpr float m_eff = gran_params->sphere_mass_SU;
@@ -351,8 +352,9 @@ inline __device__ bool addBCForces_Plane(unsigned int sphID,
                                                          gran_params->Gamma_t_s2w_SU, force_model_multiplier, m_eff,
                                                          force_accum, rel_vel, contact_normal);
 
-            float3 roll_acc = computeRollingAngAcc(sphere_data, gran_params, gran_params->static_friction_coeff_s2w,
-                                                   force_accum, sphOmega, make_float3(0, 0, 0), dist * contact_normal);
+            float3 roll_acc = computeRollingAngAcc(sphere_data, gran_params, gran_params->rolling_coeff_s2w_SU,
+                                                   gran_params->spinning_coeff_s2w_SU, force_accum, sphOmega,
+                                                   make_float3(0, 0, 0), dist * contact_normal);
 
             ang_acc_from_BCs =
                 ang_acc_from_BCs + (Cross(-1 * contact_normal, tangent_force) / gran_params->sphereInertia_by_r);
@@ -473,7 +475,8 @@ inline __device__ bool addBCForces_Zcyl(unsigned int sphID,
             unsigned int BC_histmap_label = gran_params->nSpheres + BC_id + 1;
 
             float3 roll_acc = computeRollingAngAcc(sphere_data, gran_params, gran_params->rolling_coeff_s2w_SU,
-                                                   force_accum, sphOmega, make_float3(0, 0, 0), dist * contact_normal);
+                                                   gran_params->spinning_coeff_s2w_SU, force_accum, sphOmega,
+                                                   make_float3(0, 0, 0), dist * contact_normal);
 
             // assume bc mass is infinite
             constexpr float m_eff = gran_params->sphere_mass_SU;

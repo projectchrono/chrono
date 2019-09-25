@@ -59,7 +59,9 @@ ChSystemGranularSMC::ChSystemGranularSMC(float sphere_rad, float density, float3
       Gamma_t_s2s_UU(0),
       Gamma_t_s2w_UU(0),
       rolling_coeff_s2s_UU(0),
-      rolling_coeff_s2w_UU(0) {
+      rolling_coeff_s2w_UU(0),
+      spinning_coeff_s2s_UU(0),
+      spinning_coeff_s2w_UU(0) {
     gpuErrchk(cudaMallocManaged(&gran_params, sizeof(ChGranParams), cudaMemAttachGlobal));
     gpuErrchk(cudaMallocManaged(&sphere_data, sizeof(ChGranSphereData), cudaMemAttachGlobal));
     psi_T = PSI_T_DEFAULT;
@@ -744,8 +746,10 @@ void ChSystemGranularSMC::initialize() {
 }
 
 // Set particle positions in UU
-void ChSystemGranularSMC::setParticlePositions(const std::vector<ChVector<float>>& points) {
+void ChSystemGranularSMC::setParticlePositions(const std::vector<ChVector<float>>& points,
+                                               const std::vector<ChVector<float>>& vels) {
     user_sphere_positions = points;  // Copy points to class vector
+    user_sphere_vel = vels;
 }
 
 void ChSystemGranularSMC::setParticleFixed(const std::vector<bool>& fixed) {

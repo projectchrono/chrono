@@ -14,6 +14,8 @@
 // Chrono::Granular simulation of a rectangular bed of granular material which
 // is first let to settle and then compressed by advancing one of the box walls
 // into the material.
+//
+// Pass param file: data/granular/shearband/GranShearBand.json
 // =============================================================================
 
 #include <iostream>
