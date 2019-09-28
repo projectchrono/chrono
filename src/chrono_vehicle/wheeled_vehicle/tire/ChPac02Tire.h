@@ -137,6 +137,7 @@ class CH_VEHICLE_API ChPac02Tire : public ChTire {
         double lvyka;
         double ltr;
         double lgaz;
+        double ls;
     };
 
     struct Pac02Coeff {
@@ -242,6 +243,7 @@ class CH_VEHICLE_API ChPac02Tire : public ChTire {
         double qbz3;
         double qbz4;
         double qbz5;
+        double qbz6;
         double qbz9;
         double qbz10;
         double qcz1;
@@ -324,10 +326,12 @@ class CH_VEHICLE_API ChPac02Tire : public ChTire {
 
     double CalcFx(double kappa, double Fz, double gamma);
     double CalcFy(double alpha, double Fz, double gamma);
+    double CalcMz(double alpha, double Fz, double gamma, double Fy);
     double CalcTrail(double alpha, double Fz, double gamma);
     double CalcMres(double alpha, double Fz, double gamma);
     double CalcFxComb(double kappa, double alpha, double Fz, double gamma);
     double CalcFyComb(double kappa, double alpha, double Fz, double gamma);
+    double CalcMzComb(double kappa, double alpha, double Fz, double gamma, double Fx, double Fy);
 };
 
 /// @} vehicle_wheeled_tire

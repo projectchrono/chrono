@@ -48,6 +48,7 @@ HMMWV_Pac02Tire::HMMWV_Pac02Tire(const std::string& name) : ChPac02Tire(name) {}
 void HMMWV_Pac02Tire::SetPac02Params() {
     m_measured_side = LEFT;
     m_use_mode = 4;
+    m_use_friction_ellipsis = false;
     // Parameter Set Converted from an Adams Tire file, gained by scaling
     m_PacScal.lfz0 = 0.59;
     m_PacScal.ltr = 0.8;
