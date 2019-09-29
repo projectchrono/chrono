@@ -57,7 +57,7 @@ ChPac02Tire::ChPac02Tire(const std::string& name)
 
     // standard settings for scaling factors
     m_PacScal.lfz0 = 1.0;
-    m_PacScal.lcx1 = 1.0;
+    m_PacScal.lcx = 1.0;
     m_PacScal.lex = 1.0;
     m_PacScal.lkx = 1.0;
     m_PacScal.lhx = 1.0;
@@ -75,13 +75,22 @@ ChPac02Tire::ChPac02Tire(const std::string& name)
     m_PacScal.lvyka = 1.0;
 
     m_PacScal.ltr = 1.0;
+    m_PacScal.lgax = 1.0;
+    m_PacScal.lgay = 1.0;
     m_PacScal.lgaz = 1.0;
+    m_PacScal.lres = 1.0;
     m_PacScal.ls = 1.0;
+    m_PacScal.lsgkp = 1.0;
+    m_PacScal.lsgal = 1.0;
+    m_PacScal.lgyr = 1.0;
 
     m_PacCoeff.mu0 = 0.8;      // reference friction coefficient
     m_PacCoeff.R0 = 0.0;       // unloaded radius
     m_PacCoeff.width = 0.0;    // tire width = 0.0;
-    m_PacCoeff.FzNomin = 0.0;  // nominla wheel load
+    m_PacCoeff.aspect_ratio = 0.8;  // actually unused
+    m_PacCoeff.rim_radius = 0.0;  // actually unused
+    m_PacCoeff.rim_width = 0.0;  // actually unused
+    m_PacCoeff.FzNomin = 0.0;       // nominla wheel load
     m_PacCoeff.Cz = 0.0;       // vertical tire stiffness
     m_PacCoeff.Kz = 0.0;       // vertical tire damping
 
@@ -463,7 +472,7 @@ double ChPac02Tire::CalcFx(double kappa, double Fz, double gamma) {
     // Pi is not considered
     double Fz0s = m_PacCoeff.FzNomin * m_PacScal.lfz0;
     double dFz = (Fz - Fz0s) / Fz0s;
-    double C = m_PacCoeff.pcx1 * m_PacScal.lcx1;
+    double C = m_PacCoeff.pcx1 * m_PacScal.lcx;
     double Mu = (m_PacCoeff.pdx1 + m_PacCoeff.pdx2 * dFz) * (1.0 - m_PacCoeff.pdx3 * pow(gamma, 2)) * m_PacScal.lmux;
     double D = Mu * Fz * m_mu / m_PacCoeff.mu0;
     double E = (m_PacCoeff.pex1 + m_PacCoeff.pex2 * dFz + m_PacCoeff.pex3 * dFz * dFz) * m_PacScal.lex;
@@ -545,7 +554,7 @@ double ChPac02Tire::CalcMres(double alpha, double Fz, double gamma) {
 double ChPac02Tire::CalcFxComb(double kappa, double alpha, double Fz, double gamma) {
     double Fz0s = m_PacCoeff.FzNomin * m_PacScal.lfz0;
     double dFz = (Fz - Fz0s) / Fz0s;
-    double C = m_PacCoeff.pcx1 * m_PacScal.lcx1;
+    double C = m_PacCoeff.pcx1 * m_PacScal.lcx;
     double Mux = (m_PacCoeff.pdx1 + m_PacCoeff.pdx2 * dFz) * (1.0 - m_PacCoeff.pdx3 * pow(gamma, 2)) * m_PacScal.lmux;
     double D = Mux * Fz * m_mu / m_PacCoeff.mu0;
     double E = (m_PacCoeff.pex1 + m_PacCoeff.pex2 * dFz + m_PacCoeff.pex3 * dFz * dFz) * m_PacScal.lex;

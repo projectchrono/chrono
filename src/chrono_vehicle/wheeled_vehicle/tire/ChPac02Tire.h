@@ -119,13 +119,16 @@ class CH_VEHICLE_API ChPac02Tire : public ChTire {
 
     struct Pac02ScalingFactors {
         double lfz0;
-        double lcx1;
+        double lcx;
         double lex;
         double lkx;
         double lhx;
         double lmux;
         double lvx;
         double lxal;
+        double lmx;
+        double lvmx;
+        double lmy;
 
         double lcy;
         double ley;
@@ -136,14 +139,23 @@ class CH_VEHICLE_API ChPac02Tire : public ChTire {
         double lyka;
         double lvyka;
         double ltr;
+        double lgax;
+        double lgay;
         double lgaz;
+        double lres;
+        double lsgkp;
+        double lsgal;
+        double lgyr;
         double ls;
     };
 
     struct Pac02Coeff {
         double mu0;      // road friction coefficient at test conditions for the handling parameters
         double R0;       // unloaded radius
-        double width;    // tire width;
+        double width;    // tire width
+        double aspect_ratio;	// actually unused
+        double rim_width;       // actually unused
+        double rim_radius;      // actually unused
         double FzNomin;  // nominla wheel load
         double Cz;       // vertical tire stiffness
         double Kz;       // vertical tire damping
