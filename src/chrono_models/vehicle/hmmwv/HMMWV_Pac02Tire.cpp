@@ -58,6 +58,8 @@ void HMMWV_Pac02Tire::SetPac02Params() {
     m_PacCoeff.FzNomin = 35000;
     m_PacCoeff.Cz = 420810;
     m_PacCoeff.Kz = 398;
+    m_PacCoeff.rim_radius = 0.16;
+    m_PacCoeff.rim_width = 0.16;
 
     // longitudinal parameters
     m_PacCoeff.pcx1 = 1.7204;        // Shape factor Cfx for longitudinal force

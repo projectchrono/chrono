@@ -338,6 +338,8 @@ class CH_VEHICLE_API ChPac02Tire : public ChTire {
 
     double CalcFx(double kappa, double Fz, double gamma);
     double CalcFy(double alpha, double Fz, double gamma);
+    double CalcMx(double Fy, double Fz, double gamma);
+    double ChPac02Tire::CalcMy(double Fx, double Fy, double gamma);
     double CalcMz(double alpha, double Fz, double gamma, double Fy);
     double CalcTrail(double alpha, double Fz, double gamma);
     double CalcMres(double alpha, double Fz, double gamma);

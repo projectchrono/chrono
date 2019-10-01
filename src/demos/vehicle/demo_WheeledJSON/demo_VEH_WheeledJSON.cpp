@@ -39,6 +39,7 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/FialaTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/TMeasyTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/Pac89Tire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/Pac02Tire.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
 
@@ -95,8 +96,10 @@ std::string tmeasytire_file("hmmwv/tire/HMMWV_TMeasy_converted.json");
 // JSON files tire models (Pac89)
 std::string pac89tire_file("hmmwv/tire/HMMWV_Pac89.json");
 
+std::string pac02tire_file("hmmwv/tire/HMMWV_Pac02.json");
+
 // Type of tire model (RIGID, FIALA, TMEASY, PAC89)
-TireModelType tire_model = TireModelType::FIALA;
+TireModelType tire_model = TireModelType::PAC02;
 
 // Driver input file (if not using Irrlicht)
 std::string driver_file("generic/driver/Sample_Maneuver.txt");
@@ -186,6 +189,13 @@ int main(int argc, char* argv[]) {
             case TireModelType::PAC89: {
                 auto tireL = chrono_types::make_shared<Pac89Tire>(vehicle::GetDataFile(pac89tire_file));
                 auto tireR = chrono_types::make_shared<Pac89Tire>(vehicle::GetDataFile(pac89tire_file));
+                vehicle.InitializeTire(tireL, axle->m_wheels[0], VisualizationType::MESH);
+                vehicle.InitializeTire(tireR, axle->m_wheels[1], VisualizationType::MESH);
+                break;
+            }
+            case TireModelType::PAC02: {
+                auto tireL = chrono_types::make_shared<Pac02Tire>(vehicle::GetDataFile(pac02tire_file));
+                auto tireR = chrono_types::make_shared<Pac02Tire>(vehicle::GetDataFile(pac02tire_file));
                 vehicle.InitializeTire(tireL, axle->m_wheels[0], VisualizationType::MESH);
                 vehicle.InitializeTire(tireR, axle->m_wheels[1], VisualizationType::MESH);
                 break;

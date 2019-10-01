@@ -12,7 +12,7 @@
 // Authors: Radu Serban, Michael Taylor
 // =============================================================================
 //
-// JSON Pac02 tire subsystem
+// JSON PAC89 tire subsystem
 //
 // =============================================================================
 
@@ -32,7 +32,7 @@ namespace vehicle {
 /// @addtogroup vehicle_models_hmmwv
 /// @{
 
-/// Pac02 tire model from JSON file.
+/// PAC89 tire model from JSON file.
 class CH_VEHICLE_API Pac02Tire : public ChPac02Tire {
   public:
     Pac02Tire(const std::string& filename);
@@ -43,19 +43,18 @@ class CH_VEHICLE_API Pac02Tire : public ChPac02Tire {
         if (m_has_vert_table) {
             return m_vert_map.Get_y(depth);
         } else {
-            return m_normalStiffness * depth;
+            return m_PacCoeff.Cz * depth;
         }
     }
     virtual double GetNormalDampingForce(double depth, double velocity) const override {
-        return m_normalDamping * velocity;
+        return m_PacCoeff.Kz * velocity;
     }
 
     virtual double GetMass() const override { return m_mass; }
     virtual ChVector<> GetInertia() const override { return m_inertia; }
+    virtual void SetPac02Params() override {}
 
     virtual double GetVisualizationWidth() const override { return m_visualization_width; }
-
-    virtual void SetPac02Params() override { m_measured_side = LEFT; }
 
     virtual void AddVisualizationAssets(VisualizationType vis) override;
     virtual void RemoveVisualizationAssets() override final;
@@ -63,8 +62,6 @@ class CH_VEHICLE_API Pac02Tire : public ChPac02Tire {
   private:
     virtual void Create(const rapidjson::Document& d) override;
 
-    double m_normalStiffness;
-    double m_normalDamping;
     double m_mass;
     ChVector<> m_inertia;
     bool m_has_mesh;
