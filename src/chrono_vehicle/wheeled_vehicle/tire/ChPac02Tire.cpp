@@ -505,27 +505,28 @@ double ChPac02Tire::CalcFy(double alpha, double Fz, double gamma) {
     m_mu_y_max = std::abs(D / Fz);
     return Fy0;
 }
+
 // Oeverturning Couple
 double ChPac02Tire::CalcMx(double Fy, double Fz, double gamma) {
     double Mx = m_PacCoeff.R0 * Fz *
-         (m_PacCoeff.qsx1 * m_PacScal.lvx - m_PacCoeff.qsx2 * gamma + m_PacCoeff.qsx3 * Fy / m_PacCoeff.FzNomin +
-          m_PacCoeff.qsx4 * cos(m_PacCoeff.qsx5 * pow(atan(m_PacCoeff.qsx6 * Fz / m_PacCoeff.FzNomin), 2)) *
-              sin(m_PacCoeff.qsx7 * gamma + m_PacCoeff.qsx8 * atan(m_PacCoeff.qsx9 * Fy / m_PacCoeff.FzNomin)) +
-          m_PacCoeff.qsx10 * atan(m_PacCoeff.qsx11 * Fz / m_PacCoeff.FzNomin) * gamma);
+                (m_PacCoeff.qsx1 * m_PacScal.lvx - m_PacCoeff.qsx2 * gamma + m_PacCoeff.qsx3 * Fy / m_PacCoeff.FzNomin +
+                 m_PacCoeff.qsx4 * cos(m_PacCoeff.qsx5 * pow(atan(m_PacCoeff.qsx6 * Fz / m_PacCoeff.FzNomin), 2)) *
+                     sin(m_PacCoeff.qsx7 * gamma + m_PacCoeff.qsx8 * atan(m_PacCoeff.qsx9 * Fy / m_PacCoeff.FzNomin)) +
+                 m_PacCoeff.qsx10 * atan(m_PacCoeff.qsx11 * Fz / m_PacCoeff.FzNomin) * gamma);
     return Mx;
-	}
+}
+
 // Rolling Resistance
-    double ChPac02Tire::CalcMy(double Fx, double Fz, double gamma) {
+double ChPac02Tire::CalcMy(double Fx, double Fz, double gamma) {
     double v0 = sqrt(9.81 * m_PacCoeff.R0);
     double vstar = std::abs(m_states.vx / v0);
     double My = ChSineStep(std::abs(m_states.vx), 0.5, 0, 1.0, 1.0) * ChSignum(m_states.vx) * Fz * m_PacCoeff.R0 *
-         (m_PacCoeff.qsy1 + m_PacCoeff.qsy2 * Fx / m_PacCoeff.FzNomin + m_PacCoeff.qsy3 * vstar +
-          m_PacCoeff.qsy4 * pow(vstar, 4) +
-          (m_PacCoeff.qsy5 + m_PacCoeff.qsy6 * Fz / m_PacCoeff.FzNomin) * pow(gamma, 2)) *
-         pow(Fz / m_PacCoeff.FzNomin, m_PacCoeff.qsy7) * m_PacScal.lmuy;
+                (m_PacCoeff.qsy1 + m_PacCoeff.qsy2 * Fx / m_PacCoeff.FzNomin + m_PacCoeff.qsy3 * vstar +
+                 m_PacCoeff.qsy4 * pow(vstar, 4) +
+                 (m_PacCoeff.qsy5 + m_PacCoeff.qsy6 * Fz / m_PacCoeff.FzNomin) * pow(gamma, 2)) *
+                pow(Fz / m_PacCoeff.FzNomin, m_PacCoeff.qsy7) * m_PacScal.lmuy;
     return My;
 }
-
 
 double ChPac02Tire::CalcTrail(double alpha, double Fz, double gamma) {
     double Fz0s = m_PacCoeff.FzNomin * m_PacScal.lfz0;
