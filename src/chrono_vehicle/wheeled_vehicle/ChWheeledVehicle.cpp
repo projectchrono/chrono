@@ -62,11 +62,13 @@ void ChWheeledVehicle::InitializePowertrain(std::shared_ptr<ChPowertrain> powert
 // to the terrain system.
 // -----------------------------------------------------------------------------
 void ChWheeledVehicle::Synchronize(double time, const ChDriver::Inputs& driver_inputs, const ChTerrain& terrain) {
-    // Extract the torque from the powertrain.
-    double powertrain_torque = m_powertrain->GetOutputTorque();
-
-    // Synchronize the associated powertrain system (pass throttle input).
-    m_powertrain->Synchronize(time, driver_inputs.m_throttle);
+    double powertrain_torque = 0;
+    if (m_powertrain) {
+        // Extract the torque from the powertrain.
+        powertrain_torque = m_powertrain->GetOutputTorque();
+        // Synchronize the associated powertrain system (pass throttle input).
+        m_powertrain->Synchronize(time, driver_inputs.m_throttle);
+    }
 
     // Apply powertrain torque to the driveline's input shaft.
     m_driveline->Synchronize(powertrain_torque);
@@ -95,8 +97,10 @@ void ChWheeledVehicle::Synchronize(double time, const ChDriver::Inputs& driver_i
 // the states of all associated tires.
 // -----------------------------------------------------------------------------
 void ChWheeledVehicle::Advance(double step) {
-    // Advance state of the associated powertrain.
-    m_powertrain->Advance(step);
+    if (m_powertrain) {
+        // Advance state of the associated powertrain.
+        m_powertrain->Advance(step);
+    }
 
     // Advance state of all vehicle tires.
     // This is done before advancing the state of the multibody system in order to use

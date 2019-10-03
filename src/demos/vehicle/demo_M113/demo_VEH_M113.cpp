@@ -83,11 +83,6 @@ bool dbg_output = false;
 
 // =============================================================================
 
-// Simple powertrain model
-std::string simplepowertrain_file("generic/powertrain/SimplePowertrain.json");
-
-// =============================================================================
-
 // Forward declarations
 void AddFixedObstacles(ChSystem* system);
 void AddFallingObjects(ChSystem* system);
