@@ -72,8 +72,6 @@ void Pac02Tire::Create(const rapidjson::Document& d) {  // Invoke base class met
         m_PacCoeff.aspect_ratio = d["Dimension"]["Aspect Ratio"].GetDouble();
         m_PacCoeff.rim_radius = d["Dimension"]["Rim Radius"].GetDouble();
         m_PacCoeff.rim_width = d["Dimension"]["Rim Width"].GetDouble();
-        GetLog() << "Dimension:  R0=" << m_PacCoeff.R0 << "\n";
-        GetLog() << "Dimension:  W=" << m_PacCoeff.width << "\n";
     } else {
         GetLog() << "Couldn't find mandatory block 'Dimension' in JSON file.\n";
     }
@@ -91,10 +89,6 @@ void Pac02Tire::Create(const rapidjson::Document& d) {  // Invoke base class met
             m_has_vert_table = true;
             GetLog() << "numPts = " << num_points << "\n";
         }
-
-        GetLog() << "Vertical:  Cz=" << m_PacCoeff.Cz << "\n";
-        GetLog() << "Vertical:  Kz=" << m_PacCoeff.Kz << "\n";
-        GetLog() << "Vertical:  FzN=" << m_PacCoeff.FzNomin << "\n";
     }
     if (d.HasMember("Scaling Factors")) {
         if (d["Scaling Factors"].HasMember("lfz0")) {
@@ -181,7 +175,6 @@ void Pac02Tire::Create(const rapidjson::Document& d) {  // Invoke base class met
         if (d["Scaling Factors"].HasMember("lmy")) {
             m_PacScal.lmy = d["Scaling Factors"]["lmy"].GetDouble();
         }
-        GetLog() << "Modified Scaling factor lfz0 = " << m_PacScal.lfz0 << "\n";
     } else {
         GetLog() << "All scaling factors have been set to 1.0\n";
     }
@@ -288,7 +281,6 @@ void Pac02Tire::Create(const rapidjson::Document& d) {  // Invoke base class met
         if (d["Lateral Coefficients"].HasMember("pty2")) {
             m_PacCoeff.pty2 = d["Lateral Coefficients"]["pty2"].GetDouble();
         }
-        GetLog() << "Read in pcy1 = " << m_PacCoeff.pcy1 << "\n";
     }
     if (d.HasMember("Longitudinal Coefficients")) {
         if (d["Longitudinal Coefficients"].HasMember("pcx1")) {
@@ -363,7 +355,6 @@ void Pac02Tire::Create(const rapidjson::Document& d) {  // Invoke base class met
         if (d["Longitudinal Coefficients"].HasMember("ptx3")) {
             m_PacCoeff.ptx3 = d["Longitudinal Coefficients"]["ptx3"].GetDouble();
         }
-        GetLog() << "Read in pcx1 = " << m_PacCoeff.pcx1 << "\n";
     }
        
     if (d.HasMember("Aligning Coefficients")) {
@@ -466,8 +457,6 @@ void Pac02Tire::Create(const rapidjson::Document& d) {  // Invoke base class met
         if (d["Aligning Coefficients"].HasMember("mbelt")) {
             m_PacCoeff.mbelt = d["Aligning Coefficients"]["mbelt"].GetDouble();
         }
-        GetLog() << "Read in qcz1  = " << m_PacCoeff.qcz1 << "\n";
-        GetLog() << "Read in mbelt = " << m_PacCoeff.mbelt << "\n";
     }
     if (d.HasMember("Rolling Coefficients")) {
         // m_PacCoeff.A0 = d["Lateral Coefficients"]["a0"].GetDouble();
@@ -495,8 +484,6 @@ void Pac02Tire::Create(const rapidjson::Document& d) {  // Invoke base class met
         if (d["Rolling Coefficients"].HasMember("qsy8")) {
             m_PacCoeff.qsy1 = d["Rolling Coefficients"]["qsy8"].GetDouble();
         }
-        GetLog() << "Read in qsy1  = " << m_PacCoeff.qsy1 << "\n";
-        GetLog() << "Read in qsy8 = " << m_PacCoeff.qsy8 << "\n";
     }
     if (d.HasMember("Overturning Coefficients")) {
         if (d["Overturning Coefficients"].HasMember("qsx1")) {
@@ -532,8 +519,6 @@ void Pac02Tire::Create(const rapidjson::Document& d) {  // Invoke base class met
         if (d["Overturning Coefficients"].HasMember("qsx11")) {
             m_PacCoeff.qsx11 = d["Overturning Coefficients"]["qsx11"].GetDouble();
         }
-        GetLog() << "Read in qsx1  = " << m_PacCoeff.qsx1 << "\n";
-        GetLog() << "Read in qsy11 = " << m_PacCoeff.qsx11 << "\n";
     }
 
     m_visualization_width = m_PacCoeff.width;

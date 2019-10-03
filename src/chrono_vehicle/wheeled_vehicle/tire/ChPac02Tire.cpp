@@ -12,20 +12,11 @@
 // Authors: Radu Serban, Michael Taylor, Rainer Gericke
 // =============================================================================
 //
-// Template for a tire model based on the MSC ADAMS PAC2002 Tire Model, adapted
-// by scaling
-//
-// Ref: Adams/Tire help - Adams 2017.1.
-// https://simcompanion.mscsoftware.com/infocenter/index?page=content&id=DOC11293&cat=2017.1_ADAMS_DOCS&actp=LIST
-//
-// This implementation does not include transient slip state modifications.
+// Template for a tire model based on the Pacejka 2002 Tire Model
 //
 // =============================================================================
 // =============================================================================
 // STILL UNDERDEVELOPMENT
-//  - Still need to check F&M Outputs
-//  - Need to check to see if there is a need to account for what side the tire
-//    is mounted on
 // =============================================================================
 // =============================================================================
 
@@ -225,8 +216,6 @@ void ChPac02Tire::Initialize(std::shared_ptr<ChWheel> wheel) {
     ChTire::Initialize(wheel);
 
     SetPac02Params();
-    GetLog() << "Parset R0 = " << m_PacCoeff.R0 << "\n";
-    GetLog() << "Parset Cz = " << m_PacCoeff.Cz << "\n";
     // Build the lookup table for penetration depth as function of intersection area
     // (used only with the ChTire::ENVELOPE method for terrain-tire collision detection)
     ConstructAreaDepthTable(m_PacCoeff.R0, m_areaDep);

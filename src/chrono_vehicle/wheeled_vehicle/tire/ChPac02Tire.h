@@ -14,6 +14,16 @@
 //
 // Template for a PAC02 tire model
 //
+// ChPac02Tire is based on the Pacejka 2002 formulae as written in
+// Hans B. Pacejka's "Tire and Vehicle Dynamics" Third Edition, Elsevier 2012
+// ISBN: 978-0-08-097016-5
+//
+// Actually implemented: 
+// - steady state longitudinal, lateral force, alignment torque, overturning torque
+// - can run in combined (Pacejka or Friction Ellipsis Method) or uncombined mode
+// 
+// Aim of this implementation is the replacement of ChPacejkaTire, which is more
+// complete but unreliable in practical usage.
 // =============================================================================
 
 #ifndef CH_PAC02TIRE_H
