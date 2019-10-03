@@ -119,13 +119,16 @@ class CH_VEHICLE_API ChPac02Tire : public ChTire {
 
     struct Pac02ScalingFactors {
         double lfz0;
-        double lcx1;
+        double lcx;
         double lex;
         double lkx;
         double lhx;
         double lmux;
         double lvx;
         double lxal;
+        double lmx;
+        double lvmx;
+        double lmy;
 
         double lcy;
         double ley;
@@ -136,13 +139,23 @@ class CH_VEHICLE_API ChPac02Tire : public ChTire {
         double lyka;
         double lvyka;
         double ltr;
+        double lgax;
+        double lgay;
         double lgaz;
+        double lres;
+        double lsgkp;
+        double lsgal;
+        double lgyr;
+        double ls;
     };
 
     struct Pac02Coeff {
         double mu0;      // road friction coefficient at test conditions for the handling parameters
         double R0;       // unloaded radius
-        double width;    // tire width;
+        double width;    // tire width
+        double aspect_ratio;	// actually unused
+        double rim_width;       // actually unused
+        double rim_radius;      // actually unused
         double FzNomin;  // nominla wheel load
         double Cz;       // vertical tire stiffness
         double Kz;       // vertical tire damping
@@ -242,6 +255,7 @@ class CH_VEHICLE_API ChPac02Tire : public ChTire {
         double qbz3;
         double qbz4;
         double qbz5;
+        double qbz6;
         double qbz9;
         double qbz10;
         double qcz1;
@@ -324,10 +338,14 @@ class CH_VEHICLE_API ChPac02Tire : public ChTire {
 
     double CalcFx(double kappa, double Fz, double gamma);
     double CalcFy(double alpha, double Fz, double gamma);
+    double CalcMx(double Fy, double Fz, double gamma);
+    double CalcMy(double Fx, double Fy, double gamma);
+    double CalcMz(double alpha, double Fz, double gamma, double Fy);
     double CalcTrail(double alpha, double Fz, double gamma);
     double CalcMres(double alpha, double Fz, double gamma);
     double CalcFxComb(double kappa, double alpha, double Fz, double gamma);
     double CalcFyComb(double kappa, double alpha, double Fz, double gamma);
+    double CalcMzComb(double kappa, double alpha, double Fz, double gamma, double Fx, double Fy);
 };
 
 /// @} vehicle_wheeled_tire

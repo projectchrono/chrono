@@ -44,7 +44,7 @@ linux:arch-gcc:build:
   - cmake ../ $CHRONO_UNIX_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE 
     -DENABLE_MODULE_FSI=TRUE -DCMAKE_C_COMPILER=/usr/bin/gcc 
     -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCUDA_HOST_COMPILER=/usr/bin/gcc-8 
-    -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
+    -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3 -DENABLE_MODULE_GRANULAR=TRUE
   - make -j 8
   artifacts:
     expire_in: 60m
@@ -104,7 +104,8 @@ linux:arch-llvm:build:
   - cmake ../ $CHRONO_UNIX_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE 
     -DENABLE_MODULE_FSI=TRUE -DCMAKE_C_COMPILER=/usr/bin/clang 
     -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DCUDA_HOST_COMPILER=/usr/bin/gcc-8 
-    -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
+    -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3 -DENABLE_MODULE_GRANULAR=TRUE
+
   - make -j 8
   artifacts:
     expire_in: 60m
@@ -175,8 +176,9 @@ linux:centos:build:
   - cmake ../ $CHRONO_UNIX_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE
       -DCMAKE_C_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/gcc 
       -DCMAKE_CXX_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/g++ 
-#      -DCUDA_HOST_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/gcc
-#      -DENABLE_MODULE_FSI=TRUE 
+      -DENABLE_MODULE_GRANULAR=TRUE
+      -DCUDA_HOST_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/gcc
+      # -DENABLE_MODULE_FSI=TRUE 
   - make -j 8
   artifacts:
     expire_in: 60m
@@ -228,7 +230,8 @@ linux:ubuntu1804:build:
     - cd build
     - cmake ../ $CHRONO_UNIX_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE
         -DCMAKE_C_COMPILER=/usr/bin/gcc -DCMAKE_CXX_COMPILER=/usr/bin/g++
-        -DPYTHON_EXECUTABLE=/usr/bin/python3
+        -DPYTHON_EXECUTABLE=/usr/bin/python3 -DENABLE_MODULE_GRANULAR=TRUE
+        -DCUDA_HOST_COMPILER=/usr/bin/gcc
     - make -j 8
   artifacts:
     expire_in: 60m

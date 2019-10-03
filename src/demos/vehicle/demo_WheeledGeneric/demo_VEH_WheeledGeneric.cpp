@@ -240,18 +240,13 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time);
         terrain.Synchronize(time);
         vehicle.Synchronize(time, driver_inputs, terrain);
-
         app.Synchronize(driver.GetInputModeAsString(), driver_inputs);
 
         // Advance simulation for one timestep for all modules
         double step = realtime_timer.SuggestSimulationStep(step_size);
-
         driver.Advance(step);
-
         terrain.Advance(step);
-
         vehicle.Advance(step);
-
         app.Advance(step);
 
         // Increment frame number
@@ -299,16 +294,12 @@ int main(int argc, char* argv[]) {
         time = vehicle.GetSystem()->GetChTime();
 
         driver.Synchronize(time);
-
         terrain.Synchronize(time);
-
         vehicle.Synchronize(time, driver_inputs, terrain);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
-
-        powertrain.Advance(step_size);
-
+        terrain.Advance(step_size);
         vehicle.Advance(step_size);
 
         // Increment frame number

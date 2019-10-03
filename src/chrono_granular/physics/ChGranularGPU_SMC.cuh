@@ -774,9 +774,9 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
                     vrel_t = vrel_t + Cross((my_omega + their_omega), -1.f * delta_r * sphereRadius_SU);
 
                     // compute alpha due to rolling resistance
-                    float3 rolling_resist_ang_acc =
-                        computeRollingAngAcc(sphere_data, gran_params, gran_params->rolling_coeff_s2s_SU, force_accum,
-                                             my_omega, their_omega, delta_r * sphereRadius_SU);
+                    float3 rolling_resist_ang_acc = computeRollingAngAcc(
+                        sphere_data, gran_params, gran_params->rolling_coeff_s2s_SU, gran_params->spinning_coeff_s2s_SU,
+                        force_accum, my_omega, their_omega, delta_r * sphereRadius_SU);
                     bodyA_AngAcc = bodyA_AngAcc + rolling_resist_ang_acc;
 
                     constexpr float m_eff = gran_params->sphere_mass_SU / 2.f;
