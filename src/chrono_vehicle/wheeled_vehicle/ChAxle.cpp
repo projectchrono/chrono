@@ -52,14 +52,14 @@ void ChAxle::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_brake_right->Initialize(m_suspension, RIGHT);
     if (wheel_separation > 0) {
         assert(m_wheels.size() == 4);
-        m_wheels[0]->Initialize(m_suspension, LEFT, -wheel_separation / 2);   // inner left
-        m_wheels[1]->Initialize(m_suspension, RIGHT, -wheel_separation / 2);  // inner right
-        m_wheels[2]->Initialize(m_suspension, LEFT, +wheel_separation / 2);   // outer left
-        m_wheels[3]->Initialize(m_suspension, RIGHT, +wheel_separation / 2);  // outer right
+        m_wheels[0]->Initialize(m_suspension->GetSpindle(LEFT), LEFT, -wheel_separation / 2);    // inner left
+        m_wheels[1]->Initialize(m_suspension->GetSpindle(RIGHT), RIGHT, -wheel_separation / 2);  // inner right
+        m_wheels[2]->Initialize(m_suspension->GetSpindle(LEFT), LEFT, +wheel_separation / 2);    // outer left
+        m_wheels[3]->Initialize(m_suspension->GetSpindle(RIGHT), RIGHT, +wheel_separation / 2);  // outer right
     } else {
         assert(m_wheels.size() == 2);
-        m_wheels[0]->Initialize(m_suspension, LEFT);   // left
-        m_wheels[1]->Initialize(m_suspension, RIGHT);  // right
+        m_wheels[0]->Initialize(m_suspension->GetSpindle(LEFT), LEFT);    // left
+        m_wheels[1]->Initialize(m_suspension->GetSpindle(RIGHT), RIGHT);  // right
     }
     if (m_antirollbar) {
         assert(m_suspension->IsIndependent());

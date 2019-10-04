@@ -293,8 +293,8 @@ void ChSuspensionTestRig::Create() {
     }
 
     // Initialize the two wheels
-    m_wheel[LEFT]->Initialize(m_suspension, LEFT);
-    m_wheel[RIGHT]->Initialize(m_suspension, RIGHT);
+    m_wheel[LEFT]->Initialize(m_suspension->GetSpindle(LEFT), LEFT);
+    m_wheel[RIGHT]->Initialize(m_suspension->GetSpindle(RIGHT), RIGHT);
 
     // Associate tires to wheels
     m_wheel[LEFT]->SetTire(m_tire[LEFT]);

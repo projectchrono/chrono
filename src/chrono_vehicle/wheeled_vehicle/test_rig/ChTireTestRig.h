@@ -186,13 +186,12 @@ class CH_VEHICLE_API ChTireTestRig {
 
     ChSystem* m_system;  ///< pointer to the Chrono system
 
-    std::shared_ptr<ChTerrain> m_terrain;    ///< handle to underlying terrain subsystem
-    std::shared_ptr<ChSuspension> m_susp;    ///< dummy suspension subsystem
-    std::shared_ptr<ChWheel> m_wheel;        ///< handle to wheel subsystem
-    std::shared_ptr<ChTire> m_tire;          ///< handle to tire subsystem
-    VisualizationType m_tire_vis;            ///< visualization type for tire subsystem
-    double m_tire_step;                      ///< step size for tire integration
-    double m_camber_angle;                   ///< camber angle
+    std::shared_ptr<ChTerrain> m_terrain;  ///< handle to underlying terrain subsystem
+    std::shared_ptr<ChWheel> m_wheel;      ///< handle to wheel subsystem
+    std::shared_ptr<ChTire> m_tire;        ///< handle to tire subsystem
+    VisualizationType m_tire_vis;          ///< visualization type for tire subsystem
+    double m_tire_step;                    ///< step size for tire integration
+    double m_camber_angle;                 ///< camber angle
 
     double m_grav;          ///< gravitational acceleration
     double m_normal_load;   ///< desired normal load
@@ -212,7 +211,7 @@ class CH_VEHICLE_API ChTireTestRig {
     std::shared_ptr<ChBody> m_carrier_body;  ///< rig carrier body
     std::shared_ptr<ChBody> m_chassis_body;  ///< "chassis" body which carries normal load
     std::shared_ptr<ChBody> m_slip_body;     ///< intermediate body for controlling slip angle
-    std::shared_ptr<ChBody> m_spindle_body;  ///< wheel body
+    std::shared_ptr<ChBody> m_spindle_body;  ///< wheel spindle body
 
     bool m_ls_actuated;                    ///< is linear spped actuated?
     bool m_rs_actuated;                    ///< is angular speed actuated?

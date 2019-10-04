@@ -209,7 +209,7 @@ void ChTireTestRig::Advance(double step) {
     // Synchronize subsystems
     m_terrain->Synchronize(time);
     m_tire->Synchronize(time, *m_terrain.get());
-    m_susp->Synchronize();
+    m_spindle_body->Empty_forces_accumulators();
     m_wheel->Synchronize();
 
     // Advance state
@@ -219,29 +219,6 @@ void ChTireTestRig::Advance(double step) {
 }
 
 // -----------------------------------------------------------------------------
-
-// Dummy suspension subsystem (simply a carrier for the spindle body)
-class RigSuspension : public ChSuspension {
-  public:
-    RigSuspension(ChSystem* system) : ChSuspension("rig_suspension") {
-        m_spindle[LEFT] = std::shared_ptr<ChBody>(system->NewBody());
-        m_spindle[RIGHT] = std::shared_ptr<ChBody>(system->NewBody());
-    }
-    virtual std::string GetTemplateName() const override { return "rig_suspension"; }
-    virtual bool IsSteerable() const final override { return false; }
-    virtual bool IsIndependent() const final override { return false; }
-    virtual double GetMass() const override { return 0; }
-    virtual ChVector<> GetCOMPos() const override { return ChVector<>(0, 0, 0); }
-    virtual double GetTrack() override { return 0; }
-    virtual double getSpindleRadius() const { return 0; }
-    virtual double getSpindleWidth() const { return 0; }
-    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
-                            const ChVector<>& location,
-                            std::shared_ptr<ChBody> tierod_body,
-                            int steering_index,
-                            double left_ang_vel = 0,
-                            double right_ang_vel = 0) override {}
-};
 
 void ChTireTestRig::CreateMechanism() {
     m_system->Set_G_acc(ChVector<>(0, 0, -m_grav));
@@ -318,9 +295,7 @@ void ChTireTestRig::CreateMechanism() {
         m_slip_body->AddAsset(chrono_types::make_shared<ChColorAsset>(0.2f, 0.2f, 0.8f));
     }
 
-    m_susp = chrono_types::make_shared<RigSuspension>(m_system);
-    m_spindle_body = m_susp->GetSpindle(LEFT);
-
+    m_spindle_body = std::shared_ptr<ChBody>(m_system->NewBody());
     ChQuaternion<> qc;
     qc.Q_from_AngX(-m_camber_angle);
     m_system->AddBody(m_spindle_body);
@@ -387,7 +362,7 @@ void ChTireTestRig::CreateMechanism() {
     */
 
     // Initialize subsystems
-    m_wheel->Initialize(m_susp, LEFT);
+    m_wheel->Initialize(m_spindle_body, LEFT);
     m_wheel->SetVisualizationType(VisualizationType::NONE);
     m_wheel->SetTire(m_tire);
     m_tire->SetStepsize(m_tire_step);

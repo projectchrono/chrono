@@ -31,8 +31,6 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChPart.h"
-#include "chrono_vehicle/ChTerrain.h"
-#include "chrono_vehicle/wheeled_vehicle/ChSuspension.h"
 
 namespace chrono {
 namespace vehicle {
@@ -71,18 +69,18 @@ class CH_VEHICLE_API ChWheel : public ChPart {
     /// Get the wheel width (for visualization only).
     virtual double GetWidth() const { return 0; }
 
-    /// Initialize this wheel subsystem by associating it to an existing suspension subsystem.
-    /// The optional 'offset' argument allows models with double wheels(tires).
-    /// The default value offset=0 corresponds to an axle with a single tire. A positive offset
-    /// corresponds to an "outer" wheel, while a negative offset corresponds to an "inner" wheel.
-    /// The wheel mass and inertia are used to increment those of the associated spindle body.
-    virtual void Initialize(std::shared_ptr<ChSuspension> suspension,  ///< associated suspension subsystem
-                            VehicleSide side,                          ///< wheel mounted on left/right side
-                            double offset = 0                          ///< offset from associated spindle center
+    /// Initialize this wheel subsystem by associating it to an existing spindle of a suspension subsystem.
+    /// The optional 'offset' argument allows models with double wheels(tires). The default value offset=0 corresponds
+    /// to an axle with a single tire. A positive offset corresponds to an "outer" wheel, while a negative offset
+    /// corresponds to an "inner" wheel. The wheel mass and inertia are used to increment those of the associated
+    /// spindle body.
+    virtual void Initialize(std::shared_ptr<ChBody> spindle,  ///< associated suspension spindle body
+                            VehicleSide side,                 ///< wheel mounted on left/right side
+                            double offset = 0                 ///< offset from associated spindle center
     );
 
     /// Synchronize the wheel subsystem. 
-    /// This querries the forces from the attached tire and passes it to the associated suspension.
+    /// This queries the forces from the attached tire and passes it to the associated suspension.
     void Synchronize();
 
     /// Get the tire attached to this wheel.
@@ -92,7 +90,7 @@ class CH_VEHICLE_API ChWheel : public ChPart {
     void SetTire(std::shared_ptr<ChTire> tire) { m_tire = tire; }
 
     /// Get the associated spindle body.
-    std::shared_ptr<ChBody> GetSpindle() const { return m_suspension->GetSpindle(m_side); }
+    std::shared_ptr<ChBody> GetSpindle() const { return m_spindle; }
 
     /// Get the vehicle side on which this wheel is mounted.
     VehicleSide GetSide() const { return m_side; }
@@ -114,7 +112,7 @@ class CH_VEHICLE_API ChWheel : public ChPart {
     virtual void RemoveVisualizationAssets() override;
 
   protected:
-    std::shared_ptr<ChSuspension> m_suspension;    ///< associated suspension subsystem
+    std::shared_ptr<ChBody> m_spindle;             ///< associated suspension spindle body
     std::shared_ptr<ChTire> m_tire;                ///< attached tire subsystem
     VehicleSide m_side;                            ///< wheel mounted on left/right side
     double m_offset;                               ///< offset from spindle center
