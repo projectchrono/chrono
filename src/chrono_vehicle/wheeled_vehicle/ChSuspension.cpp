@@ -34,11 +34,6 @@ void ChSuspension::Synchronize() {
     m_spindle[RIGHT]->Empty_forces_accumulators();
 }
 
-void ChSuspension::AccumulateTireForce(VehicleSide side, const TerrainForce& tire_force) {
-    m_spindle[side]->Accumulate_force(tire_force.force, tire_force.point, false);
-    m_spindle[side]->Accumulate_torque(tire_force.moment, false);
-}
-
 void ChSuspension::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
