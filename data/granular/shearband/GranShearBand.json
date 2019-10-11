@@ -5,7 +5,7 @@
 	"box_Y": 200,
 	"box_Z": 100,
 	"step_size": 1e-4,
-	"time_end": 30,
+	"time_end": 18,
 	"grav_X": 0,
 	"grav_Y": 0,
 	"grav_Z": -980,
@@ -25,6 +25,7 @@
 
 	"psi_T": 32,
 	"psi_L": 16,
+
 	"output_dir": "gran_shear",
 	"write_mode": "csv"
 }

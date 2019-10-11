@@ -28,7 +28,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // Construct a default simple track driveline.
 // -----------------------------------------------------------------------------
-ChSimpleTrackDriveline::ChSimpleTrackDriveline(const std::string& name) : ChTrackDriveline(name) {
+ChSimpleTrackDriveline::ChSimpleTrackDriveline(const std::string& name) : ChDrivelineTV(name) {
 }
 
 // -----------------------------------------------------------------------------

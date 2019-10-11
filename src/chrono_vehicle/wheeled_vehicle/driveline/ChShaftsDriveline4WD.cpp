@@ -32,17 +32,16 @@ namespace vehicle {
 // could transfer pitch torque to the chassis.
 // -----------------------------------------------------------------------------
 ChShaftsDriveline4WD::ChShaftsDriveline4WD(const std::string& name)
-    : ChDriveline(name), m_dir_motor_block(ChVector<>(1, 0, 0)), m_dir_axle(ChVector<>(0, 1, 0)) {}
+    : ChDrivelineWV(name), m_dir_motor_block(ChVector<>(1, 0, 0)), m_dir_axle(ChVector<>(0, 1, 0)) {}
 
 // -----------------------------------------------------------------------------
 // Initialize the driveline subsystem.
-// This function connects this driveline subsystem to the axles of the specified
-// suspension subsystems.
+// This function connects this driveline to the specified axles.
 // -----------------------------------------------------------------------------
 void ChShaftsDriveline4WD::Initialize(std::shared_ptr<ChBody> chassis,
-                                      const ChSuspensionList& suspensions,
+                                      const ChAxleList& axles,
                                       const std::vector<int>& driven_axles) {
-    assert(suspensions.size() >= 2);
+    assert(axles.size() >= 2);
     assert(driven_axles.size() == 2);
 
     m_driven_axles = driven_axles;
@@ -111,15 +110,15 @@ void ChShaftsDriveline4WD::Initialize(std::shared_ptr<ChBody> chassis,
     // assigned according to Willis formula. The case of the differential is
     // simple: t0=-1.
     m_rear_differential = chrono_types::make_shared<ChShaftsPlanetary>();
-    m_rear_differential->Initialize(m_rear_differentialbox, suspensions[m_driven_axles[1]]->GetAxle(LEFT),
-                                    suspensions[m_driven_axles[1]]->GetAxle(RIGHT));
+    m_rear_differential->Initialize(m_rear_differentialbox, axles[m_driven_axles[1]]->m_suspension->GetAxle(LEFT),
+                                    axles[m_driven_axles[1]]->m_suspension->GetAxle(RIGHT));
     m_rear_differential->SetTransmissionRatioOrdinary(GetRearDifferentialRatio());
     my_system->Add(m_rear_differential);
 
     // Create the clutch for rear differential locking. By default, unlocked.
     m_rear_clutch = chrono_types::make_shared<ChShaftsClutch>();
-    m_rear_clutch->Initialize(suspensions[m_driven_axles[1]]->GetAxle(LEFT),
-                              suspensions[m_driven_axles[1]]->GetAxle(RIGHT));
+    m_rear_clutch->Initialize(axles[m_driven_axles[1]]->m_suspension->GetAxle(LEFT),
+                              axles[m_driven_axles[1]]->m_suspension->GetAxle(RIGHT));
     m_rear_clutch->SetTorqueLimit(GetAxleDifferentialLockingLimit());
     m_rear_clutch->SetModulation(0);
     my_system->Add(m_rear_clutch);
@@ -148,30 +147,31 @@ void ChShaftsDriveline4WD::Initialize(std::shared_ptr<ChBody> chassis,
     // assigned according to Willis formula. The case of the differential is
     // simple: t0=-1.
     m_front_differential = chrono_types::make_shared<ChShaftsPlanetary>();
-    m_front_differential->Initialize(m_front_differentialbox, suspensions[m_driven_axles[0]]->GetAxle(LEFT),
-                                     suspensions[m_driven_axles[0]]->GetAxle(RIGHT));
+    m_front_differential->Initialize(m_front_differentialbox, axles[m_driven_axles[0]]->m_suspension->GetAxle(LEFT),
+                                     axles[m_driven_axles[0]]->m_suspension->GetAxle(RIGHT));
     m_front_differential->SetTransmissionRatioOrdinary(GetFrontDifferentialRatio());
     my_system->Add(m_front_differential);
 
     // Create the clutch for front differential locking. By default, unlocked.
     m_front_clutch = chrono_types::make_shared<ChShaftsClutch>();
-    m_front_clutch->Initialize(suspensions[m_driven_axles[0]]->GetAxle(LEFT),
-                               suspensions[m_driven_axles[0]]->GetAxle(RIGHT));
+    m_front_clutch->Initialize(axles[m_driven_axles[0]]->m_suspension->GetAxle(LEFT),
+                               axles[m_driven_axles[0]]->m_suspension->GetAxle(RIGHT));
     m_front_clutch->SetTorqueLimit(GetAxleDifferentialLockingLimit());
     m_front_clutch->SetModulation(0);
     my_system->Add(m_front_clutch);
 
     // ---Initialize shaft angular velocities based on the initial wheel angular velocities.
 
-    double omega_axle_FL = suspensions[m_driven_axles[0]]->GetAxleSpeed(LEFT);
-    double omega_axle_FR = suspensions[m_driven_axles[0]]->GetAxleSpeed(RIGHT);
-    double omega_axle_RL = suspensions[m_driven_axles[1]]->GetAxleSpeed(LEFT);
-    double omega_axle_RR = suspensions[m_driven_axles[1]]->GetAxleSpeed(RIGHT);
+    double omega_axle_FL = axles[m_driven_axles[0]]->m_suspension->GetAxleSpeed(LEFT);
+    double omega_axle_FR = axles[m_driven_axles[0]]->m_suspension->GetAxleSpeed(RIGHT);
+    double omega_axle_RL = axles[m_driven_axles[1]]->m_suspension->GetAxleSpeed(LEFT);
+    double omega_axle_RR = axles[m_driven_axles[1]]->m_suspension->GetAxleSpeed(RIGHT);
 
     // Front differential 
-    //// TODO : Note that we assume here that the front diff ratio = -1.
-    ////        This is how it should always be anyway ->  MUST MODIFY TEMPLATE
-    ////        REMOVE GetFrontDifferentialRatio() and GetRearDifferentialRatio()
+    //// RADU
+    ////  Note that we assume here that the front diff ratio = -1.
+    ////  This is how it should always be anyway ->  MUST MODIFY TEMPLATE
+    ////  REMOVE GetFrontDifferentialRatio() and GetRearDifferentialRatio()
     double omega_front_differentialbox = 0.5 * (omega_axle_FL + omega_axle_FR);
     m_front_differentialbox->SetPos_dt(omega_front_differentialbox);
 
@@ -215,9 +215,9 @@ void ChShaftsDriveline4WD::LockCentralDifferential(int which, bool lock) {
 }
 
 // -----------------------------------------------------------------------------
-double ChShaftsDriveline4WD::GetWheelTorque(const WheelID& wheel_id) const {
-    if (wheel_id.axle() == m_driven_axles[0]) {
-        switch (wheel_id.side()) {
+double ChShaftsDriveline4WD::GetSpindleTorque(int axle, VehicleSide side) const {
+    if (axle == m_driven_axles[0]) {
+        switch (side) {
             case LEFT:
                 return -m_front_differential->GetTorqueReactionOn2() - m_front_clutch->GetTorqueReactionOn1();
             case RIGHT:
@@ -225,8 +225,8 @@ double ChShaftsDriveline4WD::GetWheelTorque(const WheelID& wheel_id) const {
         }
     }
 
-    if (wheel_id.axle() == m_driven_axles[1]) {
-        switch (wheel_id.side()) {
+    if (axle == m_driven_axles[1]) {
+        switch (side) {
             case LEFT:
                 return -m_rear_differential->GetTorqueReactionOn2() - m_rear_clutch->GetTorqueReactionOn1();
             case RIGHT:

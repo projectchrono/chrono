@@ -9,6 +9,7 @@ PyChrono {#pychrono_introduction}
 * @subpage pychrono_installation
 * @subpage pychrono_reference
 * [Tutorials](@ref tutorial_table_of_content_pychrono)
+* [gym-chrono](https://github.com/projectchrono/gym-chrono): OpenAI Gym robotic environments based on PyChrono
 
 This is an introduction on how to use PyChrono, that is Chrono::Engine for Python.
 
@@ -115,7 +116,7 @@ print ('vector length =', my_len)
 ~~~~~~~~~~~~~~~
 
 -   You can use most of the classes that you would use in C++, for
-    example let's play with quaternions and matrices:
+    example let's play with quaternions and vectors:
 
 ~~~~~~~~~~~~~{.py}
 my_quat = chrono.ChQuaternionD(1,2,3,4)
@@ -123,15 +124,19 @@ my_qconjugate = ~my_quat
 print ('quat. conjugate  =', my_qconjugate)
 print ('quat. dot product=', my_qconjugate ^ my_quat)
 print ('quat. product=',     my_qconjugate % my_quat)
-ma = chrono.ChMatrixDynamicD(4,4)
-ma.FillDiag(-2)
+my_vec = chrono.ChVectorD(1,2,3)
+my_vec_rot = my_quat.Rotate(my_vec)
+~~~~~~~~~~~~~
+PyChrono linear algebra (ChMatrixDynamicD and ChVectorDynamicD) are interfaced with Python lists, this allows to use any third-party packege to perform linear algevra operation. In the following example we use NumPy:
+~~~~~~~~~~~~~{.py}
+mlist = [[1,2,3,4], [5,6,7,8], [9,10,11,12], [13,14,15,16]]
+ma = chrono.ChMatrixDynamicD() 
+ma.SetMatr(mlist)   # Create a Matrix from a list. Size is adjusted automatically.
+npmat = np.asarray(ma.GetMatr()) # Create a 2D npy array from the list extracted from ChMatrixDynamic
+w, v = LA.eig(npmat)  # get eigenvalues and eigenvectors using numpy
 mb = chrono.ChMatrixDynamicD(4,4)
-mb.FillElem(10)
-mc = (ma-mb)*0.1;   # operator overloading of +,-,* is supported
-print (mc);
-mr = chrono.ChMatrix33D()
-mr.FillDiag(20)
-print  (mr*my_vect1);
+prod = v * npmat  
+mb.SetMatr(v.tolist())    
 ~~~~~~~~~~~~~
 
 -   If you want to know the list of methods and/or properties that are

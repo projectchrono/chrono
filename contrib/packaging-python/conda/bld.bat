@@ -27,8 +27,9 @@ cmake -G "%CMAKE_GENERATOR%" ^
  -DBUILD_TESTING=OFF ^
  -DBUILD_GMOCK=OFF ^
  -DBUILD_BENCHMARKING=OFF ^
- -DIRRLICHT_ROOT="C:\irrlicht-1.8.2" ^
- -DIRRLICHT_LIBRARY="C:\irrlicht-1.8.2\lib\Win64-visualStudio\Irrlicht.lib" ^
+ -DIRRLICHT_ROOT="C:\Users\Public\Documents\irrlicht-1.8.4" ^
+ -DIRRLICHT_LIBRARY="C:\Users\Public\Documents\irrlicht-1.8.4\lib\Win64-visualStudio\Irrlicht.lib" ^
+ -DEIGEN3_INCLUDE_DIR="C:\Users\Public\Documents\eigen-3.3.7" ^
  -DENABLE_MODULE_CASCADE=ON ^
  -DCASCADE_INCLUDE_DIR="%CONDA_INSTALL_LOCN%"\envs\myenv\Library\include\oce ^
  -DCASCADE_LIBDIR="%CONDA_INSTALL_LOCN%"\envs\myenv\Library\lib ^

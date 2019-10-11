@@ -80,9 +80,6 @@ class CH_VEHICLE_API LeafspringAxle : public ChLeafspringAxle {
 
     ChVector<> m_points[NUM_POINTS];
 
-    double m_springMinLength;
-    double m_springMaxLength;
-
     double m_damperDegressivityCompression;
     double m_damperDegressivityExpansion;
 

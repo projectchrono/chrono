@@ -12,19 +12,15 @@
 // Authors: Radu Serban, Justin Madsen
 // =============================================================================
 //
-// Base class for a vehicle driveline.
+// Base class for a wheeled vehicle driveline.
 //
 // =============================================================================
 
-#ifndef CH_DRIVELINE_H
-#define CH_DRIVELINE_H
+#ifndef CH_DRIVELINE_WV_H
+#define CH_DRIVELINE_WV_H
 
-#include "chrono/core/ChVector.h"
-#include "chrono/physics/ChShaft.h"
-
-#include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChPart.h"
-#include "chrono_vehicle/wheeled_vehicle/ChSuspension.h"
+#include "chrono_vehicle/ChDriveline.h"
+#include "chrono_vehicle/wheeled_vehicle/ChAxle.h"
 
 namespace chrono {
 namespace vehicle {
@@ -32,22 +28,20 @@ namespace vehicle {
 /// @addtogroup vehicle_wheeled_driveline
 /// @{
 
-/// Base class for a driveline subsystem.
-class CH_VEHICLE_API ChDriveline : public ChPart {
+/// Base class for a wheeled vehicle driveline subsystem.
+class CH_VEHICLE_API ChDrivelineWV : public ChDriveline {
   public:
-    ChDriveline(const std::string& name  ///< [in] name of the subsystem
-                );
+    ChDrivelineWV(const std::string& name);
 
-    virtual ~ChDriveline() {}
+    virtual ~ChDrivelineWV() {}
 
     /// Return the number of driven axles.
     virtual int GetNumDrivenAxles() const = 0;
 
     /// Initialize the driveline subsystem.
-    /// This function connects this driveline subsystem to the axles of the
-    /// specified suspension subsystems.
+    /// This function connects this driveline subsystem to the specified axle subsystems.
     virtual void Initialize(std::shared_ptr<ChBody> chassis,      ///< handle to the chassis body
-                            const ChSuspensionList& suspensions,  ///< list of all vehicle suspension subsystems
+                            const ChAxleList& axles,              ///< list of all vehicle axle subsystems
                             const std::vector<int>& driven_axles  ///< indexes of the driven vehicle axles
                             ) = 0;
 
@@ -59,32 +53,13 @@ class CH_VEHICLE_API ChDriveline : public ChPart {
     /// By convention, central differentials are counted from front to back, starting with index 0.
     virtual void LockCentralDifferential(int which, bool lock);
 
-    /// Get a handle to the driveshaft.
-    /// Return a shared pointer to the shaft that connects this driveline to a
-    /// powertrain system (i.e., right after the transmission box).
-    std::shared_ptr<ChShaft> GetDriveshaft() const { return m_driveshaft; }
-
-    /// Get the angular speed of the driveshaft.
-    /// This represents the output from the driveline subsystem that is passed to
-    /// the powertrain system. The default implementation returns the driveline's
-    /// driveshaft speed.
-    virtual double GetDriveshaftSpeed() const { return m_driveshaft->GetPos_dt(); }
-
-    /// Update the driveline subsystem: apply the specified motor torque.
-    /// This represents the input to the driveline subsystem from the powertrain
-    /// system. The default implementation applies this torque to the driveline's
-    /// driveshaft.
-    virtual void Synchronize(double torque) { m_driveshaft->SetAppliedTorque(torque); }
-
     /// Get the indexes of the vehicle's axles driven by this driveline subsystem.
     const std::vector<int>& GetDrivenAxleIndexes() const { return m_driven_axles; }
 
-    /// Get the motor torque to be applied to the specified wheel.
-    virtual double GetWheelTorque(const WheelID& wheel_id) const = 0;
+    /// Get the motor torque to be applied to the specified spindle.
+    virtual double GetSpindleTorque(int axle, VehicleSide side) const = 0;
 
   protected:
-    std::shared_ptr<ChShaft> m_driveshaft;  ///< handle to the shaft connection to the powertrain
-
     std::vector<int> m_driven_axles;  ///< indexes of the driven vehicle axles
 };
 
