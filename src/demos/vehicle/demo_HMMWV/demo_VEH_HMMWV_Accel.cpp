@@ -87,7 +87,6 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetDriveType(drive_type);
     my_hmmwv.SetTireType(tire_model);
     my_hmmwv.SetTireStepSize(tire_step_size);
-    my_hmmwv.SetVehicleStepSize(step_size);
     my_hmmwv.SetAerodynamicDrag(0.5, 5.0, 1.2);
     my_hmmwv.Initialize();
 

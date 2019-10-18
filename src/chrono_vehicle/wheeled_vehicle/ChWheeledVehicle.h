@@ -190,10 +190,9 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     );
 
     /// Advance the state of this vehicle by the specified time step.
-    /// This function must be called if the vehicle system owns the underlying Chrono system.
-    /// In addition to advancing the state of the multibody system, this function also advances
-    /// the states of all associated tires.
-    virtual void Advance(double step);
+    /// In addition to advancing the state of the multibody system (if the vehicle owns the underlying system), this
+    /// function also advances the state of the associated powertrain and the states of all associated tires.
+    virtual void Advance(double step) override final;
 
     /// Lock/unlock the differential on the specified axle.
     /// By convention, axles are counted front to back, starting with index 0.

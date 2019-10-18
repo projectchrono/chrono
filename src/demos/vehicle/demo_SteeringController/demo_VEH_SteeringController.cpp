@@ -238,7 +238,6 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetSteeringType(steering_type);
     my_hmmwv.SetTireType(tire_model);
     my_hmmwv.SetTireStepSize(tire_step_size);
-    my_hmmwv.SetVehicleStepSize(step_size);
     my_hmmwv.Initialize();
 
     my_hmmwv.SetChassisVisualizationType(chassis_vis_type);

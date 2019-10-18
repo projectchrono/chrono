@@ -90,7 +90,6 @@ my_bus.SetChassisFixed(False)
 my_bus.SetInitPosition(chrono.ChCoordsysD(initLoc, initRot))
 my_bus.SetTireType(tire_model)
 my_bus.SetTireStepSize(tire_step_size)
-my_bus.SetVehicleStepSize(step_size)
 my_bus.Initialize()
 
 tire_vis_type = veh.VisualizationType_MESH  # : VisualizationType::PRIMITIVES

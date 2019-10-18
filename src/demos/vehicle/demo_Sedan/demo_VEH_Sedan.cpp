@@ -111,7 +111,6 @@ int main(int argc, char* argv[]) {
     my_sedan.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     my_sedan.SetTireType(tire_model);
     my_sedan.SetTireStepSize(tire_step_size);
-    my_sedan.SetVehicleStepSize(step_size);
     my_sedan.Initialize();
 
     VisualizationType tire_vis_type = VisualizationType::MESH;

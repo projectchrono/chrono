@@ -18,7 +18,6 @@ def main() :
     vehicle = veh.WheeledVehicle(vehicle_file ,chrono.ChMaterialSurface.NSC)
     vehicle.Initialize(chrono.ChCoordsysD(initLoc, initRot))
     #vehicle.GetChassis().SetFixed(True)
-    vehicle.SetStepsize(step_size)
     vehicle.SetChassisVisualizationType(veh.VisualizationType_PRIMITIVES)
     vehicle.SetSuspensionVisualizationType(veh.VisualizationType_PRIMITIVES)
     vehicle.SetSteeringVisualizationType(veh.VisualizationType_PRIMITIVES)

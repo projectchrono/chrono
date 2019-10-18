@@ -106,7 +106,6 @@ int main(int argc, char* argv[]) {
 
     // Initialize the vehicle at the specified position.
     vehicle.Initialize(ChCoordsys<>(ChVector<>(0, 0, 1.2), QUNIT));
-    vehicle.SetStepsize(step_size);
 
     // Set visualization type for vehicle components
     vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);

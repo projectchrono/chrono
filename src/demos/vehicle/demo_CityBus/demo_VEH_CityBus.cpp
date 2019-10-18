@@ -112,7 +112,6 @@ int main(int argc, char* argv[]) {
     my_bus.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     my_bus.SetTireType(tire_model);
     my_bus.SetTireStepSize(tire_step_size);
-    my_bus.SetVehicleStepSize(step_size);
     my_bus.Initialize();
 
     my_bus.SetChassisVisualizationType(chassis_vis_type);

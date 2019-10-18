@@ -117,7 +117,6 @@ int main(int argc, char* argv[]) {
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
     ////vehicle.GetChassis()->SetFixed(true);
-    vehicle.SetStepsize(step_size);
     vehicle.SetChassisVisualizationType(VisualizationType::MESH);
     vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);

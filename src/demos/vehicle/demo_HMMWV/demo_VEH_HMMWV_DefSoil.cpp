@@ -201,7 +201,6 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetPowertrainType(powertrain_model);
     my_hmmwv.SetDriveType(drive_type);
     my_hmmwv.SetTireType(TireModelType::RIGID);
-    my_hmmwv.SetVehicleStepSize(step_size);
     my_hmmwv.Initialize();
 
     VisualizationType wheel_vis = (wheel_type == CYLINDRICAL) ? VisualizationType::MESH : VisualizationType::NONE;

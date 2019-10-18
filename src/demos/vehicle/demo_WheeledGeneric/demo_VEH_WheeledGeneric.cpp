@@ -103,7 +103,6 @@ int main(int argc, char* argv[]) {
     // and visualization mode for the various vehicle components.
     Generic_Vehicle vehicle(false, SuspensionType::MACPHERSON_STRUT);
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
-    vehicle.SetStepsize(step_size);
     vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
