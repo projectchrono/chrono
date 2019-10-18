@@ -20,6 +20,8 @@
 //
 // =============================================================================
 
+#include "chrono/core/ChRealtimeStep.h"
+
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
@@ -161,6 +163,8 @@ int main(int argc, char* argv[]) {
     int step_number = 0;
 
     double maxKingpinAngle = 0.0;
+
+    ChRealtimeStepTimer realtime_timer;
     while (app.GetDevice()->run()) {
         double time = uaz.GetSystem()->GetChTime();
 
@@ -196,8 +200,12 @@ int main(int argc, char* argv[]) {
         terrain.Advance(step_size);
         uaz.Advance(step_size);
         app.Advance(step_size);
+
         // Increment frame number
         step_number++;
+
+        // Spin in place for real time to catch up
+        realtime_timer.Spin(step_size);
     }
 
     std::cout << "Maximum Kingpin Angle = " << maxKingpinAngle << " deg" << std::endl;

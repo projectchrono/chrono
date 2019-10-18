@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/core/ChRealtimeStep.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
@@ -307,6 +308,7 @@ int main(int argc, char* argv[]) {
     int step_number = 0;
     int render_frame = 0;
 
+    ChRealtimeStepTimer realtime_timer;
     while (app.GetDevice()->run()) {
         // Debugging output
         if (dbg_output) {
@@ -345,6 +347,7 @@ int main(int argc, char* argv[]) {
         // Render scene
         app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         app.DrawAll();
+        app.EndScene();
 
         if (step_number % render_steps == 0) {
             if (povray_output) {
@@ -386,7 +389,8 @@ int main(int argc, char* argv[]) {
         // Increment frame number
         step_number++;
 
-        app.EndScene();
+        // Spin in place for real time to catch up
+        realtime_timer.Spin(step_size);
     }
 
     vehicle.WriteContacts("M113_contacts.out");

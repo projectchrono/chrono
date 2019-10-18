@@ -407,10 +407,10 @@ int main(int argc, char* argv[]) {
     int debug_steps = (int)std::ceil(debug_step_size / step_size);
 
     // Initialize simulation frame counter and simulation time
-    ChRealtimeStepTimer realtime_timer;
     int sim_frame = 0;
     int render_frame = 0;
 
+    ChRealtimeStepTimer realtime_timer;
     while (app.GetDevice()->run()) {
         // Extract system state
         double time = my_hmmwv.GetSystem()->GetChTime();
@@ -451,6 +451,7 @@ int main(int argc, char* argv[]) {
 
         app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         app.DrawAll();
+        app.EndScene();
 
         // Output POV-Ray data
         if (sim_frame % render_steps == 0) {
@@ -488,17 +489,17 @@ int main(int argc, char* argv[]) {
         app.Synchronize(msg, driver_inputs);
 
         // Advance simulation for one timestep for all modules
-        double step = realtime_timer.SuggestSimulationStep(step_size);
-        driver_follower.Advance(step);
-        driver_gui.Advance(step);
-        terrain.Advance(step);
-        my_hmmwv.Advance(step);
-        app.Advance(step);
+        driver_follower.Advance(step_size);
+        driver_gui.Advance(step_size);
+        terrain.Advance(step_size);
+        my_hmmwv.Advance(step_size);
+        app.Advance(step_size);
 
         // Increment simulation frame number
         sim_frame++;
 
-        app.EndScene();
+        // Spin in place for real time to catch up
+        realtime_timer.Spin(step_size);
     }
 
     if (state_output)

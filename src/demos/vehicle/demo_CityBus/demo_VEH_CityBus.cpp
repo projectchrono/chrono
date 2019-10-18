@@ -20,6 +20,7 @@
 // =============================================================================
 
 #include "chrono/core/ChStream.h"
+#include "chrono/core/ChRealtimeStep.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
@@ -214,45 +215,18 @@ int main(int argc, char* argv[]) {
     int render_steps = (int)std::ceil(render_step_size / step_size);
     int debug_steps = (int)std::ceil(debug_step_size / step_size);
 
-    // Initialize simulation frame counter and simulation time
+    // Initialize simulation frame counters
     int step_number = 0;
     int render_frame = 0;
-    double time = 0;
 
     if (contact_vis) {
         app.SetSymbolscale(1e-4);
         app.SetContactsDrawMode(ChIrrTools::eCh_ContactsDrawMode::CONTACT_FORCES);
     }
 
-    /*using namespace std;
-    ofstream myfile;
-    myfile.open("DEMO_OUTPUT/CityBus/exampleRight.txt");
-
-    int count = 0;
-    */
-
+    ChRealtimeStepTimer realtime_timer;
     while (app.GetDevice()->run()) {
-        time = my_bus.GetSystem()->GetChTime();
-        /*count++;
-        if (count % 50 == 0) {
-
-
-            myfile << "VEHICLE pos: " << my_bus.GetVehicle().GetVehiclePointLocation(ChVector<>(0.0, 1.25, 0.0)).x();
-            myfile << " " << my_bus.GetVehicle().GetVehiclePointLocation(ChVector<>(0.0, 1.25, 0.0)).y();
-
-            myfile << " " << my_bus.GetVehicle().GetVehiclePointLocation(ChVector<>(0.0, -1.25, 0.0)).x();
-            myfile << " " << my_bus.GetVehicle().GetVehiclePointLocation(ChVector<>(0.0, -1.25, 0.0)).y();
-
-            myfile << " " << my_bus.GetVehicle().GetVehiclePointLocation(ChVector<>(-7.184, 1.25,0.0)).x();
-            myfile << " " << my_bus.GetVehicle().GetVehiclePointLocation(ChVector<>(-7.184, 1.25, 0.0)).y();
-
-            myfile << " " << my_bus.GetVehicle().GetVehiclePointLocation(ChVector<>(-7.184, -1.25, 0.0)).x();
-            myfile << " " << my_bus.GetVehicle().GetVehiclePointLocation(ChVector<>(-7.184, -1.25, 0.0)).y()<<
-        std::endl;
-        }
-        if (time > 50)
-            myfile.close();
-        */
+        double time = my_bus.GetSystem()->GetChTime();
 
         // End simulation
         if (time >= t_end)
@@ -302,6 +276,9 @@ int main(int argc, char* argv[]) {
 
         // Increment frame number
         step_number++;
+
+        // Spin in place for real time to catch up
+        realtime_timer.Spin(step_size);
     }
 
     if (driver_mode == RECORD) {

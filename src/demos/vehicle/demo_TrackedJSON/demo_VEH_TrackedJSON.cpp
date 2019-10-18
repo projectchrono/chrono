@@ -192,7 +192,6 @@ int main(int argc, char* argv[]) {
 #ifdef USE_IRRLICHT
 
     ChRealtimeStepTimer realtime_timer;
-
     while (app.GetDevice()->run()) {
         // Render scene
         app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
@@ -211,11 +210,13 @@ int main(int argc, char* argv[]) {
         app.Synchronize("", driver_inputs);
 
         // Advance simulation for one timestep for all modules
-        double step = realtime_timer.SuggestSimulationStep(step_size);
-        driver.Advance(step);
-        vehicle.Advance(step);
-        terrain.Advance(step);
-        app.Advance(step);
+        driver.Advance(step_size);
+        vehicle.Advance(step_size);
+        terrain.Advance(step_size);
+        app.Advance(step_size);
+
+        // Spin in place for real time to catch up
+        realtime_timer.Spin(step_size);
     }
 
 #else
