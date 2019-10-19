@@ -35,29 +35,6 @@ using namespace chrono::vehicle;
 
 using namespace irr;
 
-// Dummy suspension subsystem (simply a carrier for the spindle body)
-class DummySuspension : public ChSuspension {
-public:
-    DummySuspension(ChSystem* system) : ChSuspension("rig_suspension") {
-        m_spindle[LEFT] = std::shared_ptr<ChBody>(system->NewBody());
-        m_spindle[RIGHT] = std::shared_ptr<ChBody>(system->NewBody());
-    }
-    virtual std::string GetTemplateName() const override { return "rig_suspension"; }
-    virtual bool IsSteerable() const final override { return false; }
-    virtual bool IsIndependent() const final override { return false; }
-    virtual double GetMass() const override { return 0; }
-    virtual ChVector<> GetCOMPos() const override { return ChVector<>(0, 0, 0); }
-    virtual double GetTrack() override { return 0; }
-    virtual double getSpindleRadius() const { return 0; }
-    virtual double getSpindleWidth() const { return 0; }
-    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
-        const ChVector<>& location,
-        std::shared_ptr<ChBody> tierod_body,
-        int steering_index,
-        double left_ang_vel = 0,
-        double right_ang_vel = 0) override {}
-};
-
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
@@ -92,11 +69,8 @@ int main(int argc, char* argv[]) {
     // CREATE A DEFORMABLE TIRE
     //
  
-    // Crete a dummy suspension:
-    auto susp = chrono_types::make_shared<DummySuspension>(&my_system);
-    auto mrim = susp->GetSpindle(LEFT);
-
     // The rim body: 
+    auto mrim = chrono_types::make_shared<ChBody>();
     my_system.Add(mrim);
     mrim->SetMass(80);
     mrim->SetInertiaXX(ChVector<>(1,1,1));
@@ -105,7 +79,7 @@ int main(int argc, char* argv[]) {
 
     // The wheel object:
     auto wheel = chrono_types::make_shared<Wheel>(vehicle::GetDataFile("hmmwv/wheel/HMMWV_Wheel_FrontLeft.json"));
-    wheel->Initialize(susp, LEFT);
+    wheel->Initialize(mrim, LEFT);
 
     // The tire:
     auto tire_reissner = chrono_types::make_shared<ReissnerTire>(vehicle::GetDataFile("hmmwv/tire/HMMWV_ReissnerTire.json"));

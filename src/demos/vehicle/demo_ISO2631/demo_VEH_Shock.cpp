@@ -142,7 +142,6 @@ int main(int argc, char* argv[]) {
     WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChMaterialSurface::NSC);
     vehicle.Initialize(ChCoordsys<>(initLoc, QUNIT));
     ////vehicle.GetChassis()->SetFixed(true);
-    vehicle.SetStepsize(step_size);
     vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);

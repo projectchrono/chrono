@@ -19,8 +19,6 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChRealtimeStep.h"
-
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChHumanDriver.h"
 #include "chrono_vehicle/terrain/CRGTerrain.h"
@@ -82,7 +80,6 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetDriveType(DrivelineType::RWD);
     my_hmmwv.SetTireType(tire_model);
     my_hmmwv.SetTireStepSize(tire_step_size);
-    my_hmmwv.SetVehicleStepSize(step_size);
     my_hmmwv.Initialize();
 
     my_hmmwv.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
@@ -174,7 +171,6 @@ int main(int argc, char* argv[]) {
     int render_steps = (int)std::ceil(render_step_size / step_size);
 
     // Initialize frame counters
-    ChRealtimeStepTimer realtime_timer;
     int sim_frame = 0;
     int render_frame = 0;
 
@@ -211,11 +207,10 @@ int main(int argc, char* argv[]) {
         app.Synchronize("", driver_inputs);
 
         // Advance simulation for one timestep for all modules
-        double step = realtime_timer.SuggestSimulationStep(step_size);
-        driver.Advance(step);
-        terrain.Advance(step);
-        my_hmmwv.Advance(step);
-        app.Advance(step);
+        driver.Advance(step_size);
+        terrain.Advance(step_size);
+        my_hmmwv.Advance(step_size);
+        app.Advance(step_size);
 
         // Increment simulation frame number
         sim_frame++;

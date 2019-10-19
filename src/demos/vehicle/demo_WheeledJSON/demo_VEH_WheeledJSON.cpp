@@ -148,7 +148,6 @@ int main(int argc, char* argv[]) {
     WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChMaterialSurface::NSC);
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
     ////vehicle.GetChassis()->SetFixed(true);
-    vehicle.SetStepsize(step_size);
     vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
@@ -280,14 +279,9 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    // Initialize simulation frame counter and simulation time
-    int step_number = 0;
-    double time = 0;
-
 #ifdef USE_IRRLICHT
 
     ChRealtimeStepTimer realtime_timer;
-
     while (app.GetDevice()->run()) {
         // Update the position of the shadow mapping so that it follows the car
         ////if (do_shadows) {
@@ -303,28 +297,26 @@ int main(int argc, char* argv[]) {
         // Render scene
         app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         app.DrawAll();
+        app.EndScene();
 
         // Get driver inputs
         ChDriver::Inputs driver_inputs = driver.GetInputs();
 
         // Update modules (process inputs from other modules)
-        time = vehicle.GetSystem()->GetChTime();
+        double time = vehicle.GetSystem()->GetChTime();
         driver.Synchronize(time);
         vehicle.Synchronize(time, driver_inputs, terrain);
         terrain.Synchronize(time);
         app.Synchronize("", driver_inputs);
 
         // Advance simulation for one timestep for all modules
-        double step = realtime_timer.SuggestSimulationStep(step_size);
-        driver.Advance(step);
-        vehicle.Advance(step);
-        terrain.Advance(step);
-        app.Advance(step);
+        driver.Advance(step_size);
+        vehicle.Advance(step_size);
+        terrain.Advance(step_size);
+        app.Advance(step_size);
 
-        // Increment frame number
-        step_number++;
-
-        app.EndScene();
+        // Spin in place for real time to catch up
+        realtime_timer.Spin(step_size);
     }
 
 #else
@@ -332,6 +324,8 @@ int main(int argc, char* argv[]) {
     // Number of simulation steps between two 3D view render frames
     int render_steps = (int)std::ceil(render_step_size / step_size);
 
+    double time = 0;
+    int step_number = 0;
     int render_frame = 0;
     char filename[100];
 

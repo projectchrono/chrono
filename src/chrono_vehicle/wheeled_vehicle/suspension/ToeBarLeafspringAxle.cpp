@@ -112,7 +112,7 @@ void ToeBarLeafspringAxle::Create(const rapidjson::Document& d) {
     m_points[TIEROD_K] = ReadVectorJSON(d["Tierod"]["Location Knuckle"]);
     m_tierodRadius = d["Tierod"]["Radius"].GetDouble();
 
-    // Read spring data and create force callback
+    // Read Draglink data
     assert(d.HasMember("Draglink"));
     assert(d["Draglink"].IsObject());
 
@@ -121,27 +121,41 @@ void ToeBarLeafspringAxle::Create(const rapidjson::Document& d) {
     m_points[DRAGLINK_C] = ReadVectorJSON(d["Draglink"]["Location Chassis"]);
     m_draglinkRadius = d["Draglink"]["Radius"].GetDouble();
 
-    // Read Draglink data
-    assert(d.HasMember("Tierod"));
-    assert(d["Tierod"].IsObject());
+    // Read spring data and create force callback
+    assert(d.HasMember("Spring"));
+    assert(d["Spring"].IsObject());
 
     m_points[SPRING_C] = ReadVectorJSON(d["Spring"]["Location Chassis"]);
     m_points[SPRING_A] = ReadVectorJSON(d["Spring"]["Location Axle"]);
     m_springRestLength = d["Spring"]["Free Length"].GetDouble();
-    m_springMinLength = d["Spring"]["Minimal Length"].GetDouble();
-    m_springMaxLength = d["Spring"]["Maximal Length"].GetDouble();
 
-    if (d["Spring"].HasMember("Spring Coefficient")) {
-        m_springForceCB = new LinearSpringBistopForce(d["Spring"]["Spring Coefficient"].GetDouble(), m_springMinLength,
-                                                      m_springMaxLength);
-    } else if (d["Spring"].HasMember("Curve Data")) {
-        int num_points = d["Spring"]["Curve Data"].Size();
-        MapSpringForce* springForceCB = new MapSpringForce();
-        for (int i = 0; i < num_points; i++) {
-            springForceCB->add_point(d["Spring"]["Curve Data"][i][0u].GetDouble(),
-                                     d["Spring"]["Curve Data"][i][1u].GetDouble());
+    if (d["Spring"].HasMember("Minimum Length") && d["Spring"].HasMember("Maximum Length")) {
+        if (d["Spring"].HasMember("Spring Coefficient")) {
+            m_springForceCB = new LinearSpringBistopForce(d["Spring"]["Spring Coefficient"].GetDouble(),
+                                                          d["Spring"]["Minimum Length"].GetDouble(),
+                                                          d["Spring"]["Maximum Length"].GetDouble());
+        } else if (d["Spring"].HasMember("Curve Data")) {
+            int num_points = d["Spring"]["Curve Data"].Size();
+            MapSpringBistopForce* springForceCB = new MapSpringBistopForce(d["Spring"]["Minimum Length"].GetDouble(),
+                                                                           d["Spring"]["Maximum Length"].GetDouble());
+            for (int i = 0; i < num_points; i++) {
+                springForceCB->add_point(d["Spring"]["Curve Data"][i][0u].GetDouble(),
+                                         d["Spring"]["Curve Data"][i][1u].GetDouble());
+            }
+            m_springForceCB = springForceCB;
         }
-        m_springForceCB = springForceCB;
+    } else {
+        if (d["Spring"].HasMember("Spring Coefficient")) {
+            m_springForceCB = new LinearSpringForce(d["Spring"]["Spring Coefficient"].GetDouble());
+        } else if (d["Spring"].HasMember("Curve Data")) {
+            int num_points = d["Spring"]["Curve Data"].Size();
+            MapSpringForce* springForceCB = new MapSpringForce();
+            for (int i = 0; i < num_points; i++) {
+                springForceCB->add_point(d["Spring"]["Curve Data"][i][0u].GetDouble(),
+                                         d["Spring"]["Curve Data"][i][1u].GetDouble());
+            }
+            m_springForceCB = springForceCB;
+        }
     }
 
     // Read shock data and create force callback
@@ -174,7 +188,7 @@ void ToeBarLeafspringAxle::Create(const rapidjson::Document& d) {
     assert(d["Axle"].IsObject());
 
     m_axleInertia = d["Axle"]["Inertia"].GetDouble();
-}
+    }
 
 }  // end namespace vehicle
 }  // end namespace chrono

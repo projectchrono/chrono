@@ -60,7 +60,6 @@ int main(int argc, char* argv[]) {
     my_sedan.SetInitPosition(ChCoordsys<>(ChVector<>(-40, 0, 1.0)));
     my_sedan.SetTireType(TireModelType::RIGID);
     my_sedan.SetTireStepSize(1e-3);
-    my_sedan.SetVehicleStepSize(step_size);
     my_sedan.Initialize();
 
     my_sedan.SetChassisVisualizationType(VisualizationType::NONE);

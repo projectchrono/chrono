@@ -129,7 +129,6 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetSteeringType(steering_type);
     my_hmmwv.SetTireType(tire_model);
     my_hmmwv.SetTireStepSize(tire_step_size);
-    my_hmmwv.SetVehicleStepSize(step_size);
     my_hmmwv.Initialize();
 
     VisualizationType tire_vis_type =
@@ -242,19 +241,18 @@ int main(int argc, char* argv[]) {
     int render_steps = (int)std::ceil(render_step_size / step_size);
     int debug_steps = (int)std::ceil(debug_step_size / step_size);
 
-    // Initialize simulation frame counter and simulation time
-    ChRealtimeStepTimer realtime_timer;
+    // Initialize simulation frame counters
     int step_number = 0;
     int render_frame = 0;
-    double time = 0;
 
     if (contact_vis) {
         app.SetSymbolscale(1e-4);
         app.SetContactsDrawMode(ChIrrTools::eCh_ContactsDrawMode::CONTACT_FORCES);
     }
 
+    ChRealtimeStepTimer realtime_timer;
     while (app.GetDevice()->run()) {
-        time = my_hmmwv.GetSystem()->GetChTime();
+        double time = my_hmmwv.GetSystem()->GetChTime();
 
         // End simulation
         if (time >= t_end)
@@ -262,6 +260,7 @@ int main(int argc, char* argv[]) {
 
         app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         app.DrawAll();
+        app.EndScene();
 
         // Output POV-Ray data
         if (povray_output && step_number % render_steps == 0) {
@@ -302,16 +301,16 @@ int main(int argc, char* argv[]) {
         app.Synchronize(driver.GetInputModeAsString(), driver_inputs);
 
         // Advance simulation for one timestep for all modules
-        double step = realtime_timer.SuggestSimulationStep(step_size);
-        driver.Advance(step);
-        terrain.Advance(step);
-        my_hmmwv.Advance(step);
-        app.Advance(step);
+        driver.Advance(step_size);
+        terrain.Advance(step_size);
+        my_hmmwv.Advance(step_size);
+        app.Advance(step_size);
 
         // Increment frame number
         step_number++;
 
-        app.EndScene();
+        // Spin in place for real time to catch up
+        realtime_timer.Spin(step_size);
     }
 
     if (driver_mode == RECORD) {

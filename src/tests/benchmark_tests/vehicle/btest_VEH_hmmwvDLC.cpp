@@ -73,7 +73,6 @@ HmmwvDlcTest<EnumClass, TIRE_MODEL>::HmmwvDlcTest() : m_step_veh(2e-3), m_step_t
     m_hmmwv->SetDriveType(drive_type);
     m_hmmwv->SetTireType(TIRE_MODEL);
     m_hmmwv->SetTireStepSize(m_step_tire);
-    m_hmmwv->SetVehicleStepSize(m_step_veh);
     m_hmmwv->SetAerodynamicDrag(0.5, 5.0, 1.2);
     m_hmmwv->Initialize();
 

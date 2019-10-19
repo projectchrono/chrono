@@ -88,14 +88,8 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     int GetSteeringIndex() const { return m_steering_index; }
 
     /// Synchronize this suspension subsystem.
-    /// This function must be called before any call to AccumulateTireForce.
+    /// This function must be called before synchronizing any wheels associated with this suspension.
     void Synchronize();
-
-    /// Apply the given tire force to the suspension's spindle body.
-    /// Typically, this function is called by a wheel subsystem associated with this suspension.
-    void AccumulateTireForce(VehicleSide side,               ///< side (left or right) on which forces should be applied
-                             const TerrainForce& tire_force  ///< generalized tire forces
-    );
 
     /// Apply the provided motor torque.
     /// The given torque is applied to the specified (left or right) axle. This

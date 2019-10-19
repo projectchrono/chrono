@@ -1,3 +1,4 @@
+
 #####################################
 ## ProjectChrono Default CI Config ##
 #####################################
@@ -297,19 +298,19 @@ linux:ubuntu1804:deploy:
     #  - wget -UseBasicParsing https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.5.tar.gz -OutFile blaze-3.5.tar.gz
     #  - tar -xf .\blaze-3.5.tar.gz blaze-3.5/blaze
   - $CHRONO_W64_LIBRARIES = @(
-    "-DBLAZE_DIR=C:/Users/Public/Documents/blaze-3.1",
-    "-DSWIG_EXECUTABLE=C:/Users/Public/Documents/swigwin-3.0.12/swig.exe",
-    "-DBOOST_ROOT=C:/Users/Public/Documents/boost_1_68_0",
-    "-DGLM_INCLUDE_DIR=C:/Users/Public/Documents/glm-0.9.9.5",
-    "-DGLEW_DLL=C:/Users/Public/Documents/glew-2.1.0/bin/Release/x64/glew32.dll",
-    "-DGLEW_INCLUDE_DIR=C:/Users/Public/Documents/glew-2.1.0/include",
-    "-DGLEW_LIBRARY=C:/Users/Public/Documents/glew-2.1.0/lib/Release/x64/glew32.lib",
-    "-DGLFW_DLL=C:/Users/Public/Documents/glfw-3.3/lib-vc2015/glfw3.dll",
-    "-DGLFW_INCLUDE_DIR=C:/Users/Public/Documents/glfw-3.3/include/GLFW",
-    "-DGLFW_LIBRARY=C:/Users/Public/Documents/glfw-3.3/lib-vc2015/glfw3dll.lib",
-    "-DIRRLICHT_LIBRARY=C:/Users/Public/Documents/irrlicht-1.8.4/lib/Win64-visualStudio/Irrlicht.lib",
-    "-DIRRLICHT_ROOT=C:/Users/Public/Documents/irrlicht-1.8.4",
-    "-DEIGEN3_INCLUDE_DIR=C:/Users/Public/Documents/eigen-3.3.7"
+    "-DBLAZE_DIR=C:/Users/builder/Documents/blaze-3.6",
+    "-DSWIG_EXECUTABLE=C:/Users/builder/Documents/swigwin-4.0.1/swig.exe",
+    "-DBOOST_ROOT=C:/Users/builder/Documents/boost_1_71_0",
+    "-DGLM_INCLUDE_DIR=C:/Users/builder/Documents/glm-0.9.9.6",
+    "-DGLEW_DLL=C:/Users/builder/Documents/glew-2.1.0/bin/Release/x64/glew32.dll",
+    "-DGLEW_INCLUDE_DIR=C:/Users/builder/Documents/glew-2.1.0/include",
+    "-DGLEW_LIBRARY=C:/Users/builder/Documents/glew-2.1.0/lib/Release/x64/glew32.lib",
+    "-DGLFW_DLL=C:/Users/builder/Documents/glfw-3.3/lib-vc2015/glfw3.dll",
+    "-DGLFW_INCLUDE_DIR=C:/Users/builder/Documents/glfw-3.3/include/GLFW",
+    "-DGLFW_LIBRARY=C:/Users/builder/Documents/glfw-3.3/lib-vc2015/glfw3dll.lib",
+    "-DIRRLICHT_LIBRARY=C:/Users/builder/Documents/irrlicht-1.8.4/lib/Win64-visualStudio/Irrlicht.lib",
+    "-DIRRLICHT_ROOT=C:/Users/builder/Documents/irrlicht-1.8.4",
+    "-DEIGEN3_INCLUDE_DIR=C:/Users/builder/Documents/eigen-3.3.7"
     )
   - git submodule init
   - git submodule update
@@ -349,8 +350,13 @@ windows:vs2019:deploy:
   needs: ["windows:vs2019:test"]
   extends: .windows
   script:
-    - Out-Host "Build PyChrono and deploy via Anaconda..."
-    - Out-Host "**NOT YET IMPLEMENTED**"
+    - rm -r build
+    - conda install --yes conda
+    - conda install --yes conda-build anaconda-client
+    - conda install --yes -c conda-forge -c dlr-sc -c pythonocc -c oce -c 3dhubs oce=0.18
+    - conda install --yes -c intel mkl-devel=2018.0.3
+    - conda build ./contrib/packaging-python --python=3.6 --no-remove-work-dir --dirty
+    - anaconda --token $env:ANACONDA_TOKEN upload C:\Users\buildbot\Miniconda3\envs\base\win-64\pychrono-4.0.0*.bz2
   environment:
     name: pychrono-win64
     url: https://anaconda.org/projectchrono/pychrono
@@ -478,3 +484,6 @@ macos:highsierra:test:
   - cd build
   - make test
   dependencies: ["freebsd:llvm:build"]
+
+
+
