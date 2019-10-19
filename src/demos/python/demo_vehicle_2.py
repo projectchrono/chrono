@@ -41,10 +41,10 @@ def main() :
 
     app.SetSkyBox()
     app.AddTypicalLights(chronoirr.vector3df(30, -30, 100), chronoirr.vector3df(30, 50, 100), 250, 130)
+    app.AddTypicalLogo(chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
+
     app.SetChaseCamera(trackPoint, 6.0, 0.5)
-
     app.SetTimestep(step_size)
-
     app.AssetBindAll()
     app.AssetUpdateAll()
 
@@ -79,16 +79,13 @@ def main() :
     # Simulation loop
     # ---------------
 
-    # Initialize simulation frame counter and simulation time
-    step_number = 0
-    time = 0
     realtime_timer = chrono.ChRealtimeStepTimer()
-
     while (app.GetDevice().run()) :
 
         # Render scene
         app.BeginScene(True, True, chronoirr.SColor(255, 140, 161, 192))
         app.DrawAll()
+        app.EndScene()
 
         # Collect output data from modules (for inter-module communication)
         driver_inputs = driver.GetInputs()
@@ -101,16 +98,13 @@ def main() :
         app.Synchronize(driver.GetInputModeAsString(), driver_inputs)
 
         # Advance simulation for one timestep for all modules
-        step = realtime_timer.SuggestSimulationStep(step_size)
-        driver.Advance(step)
-        vehicle.Advance(step)
-        terrain.Advance(step)
-        app.Advance(step)
+        driver.Advance(step_size)
+        vehicle.Advance(step_size)
+        terrain.Advance(step_size)
+        app.Advance(step_size)
 
-        # Increment frame number
-        step_number += 1
-
-        app.EndScene()
+        # Spin in place for real time to catch up
+        realtime_timer.Spin(step_size)
 
 # =============================================================================
 

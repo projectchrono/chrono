@@ -62,6 +62,7 @@ def main():
     patch.SetContactFrictionCoefficient(0.9)
     patch.SetContactRestitutionCoefficient(0.01)
     patch.SetContactMaterialProperties(2e7, 0.3)
+    patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
     patch.SetColor(chrono.ChColor(0.8, 0.8, 0.5))
     terrain.Initialize()
 
@@ -71,6 +72,7 @@ def main():
 
     app.SetSkyBox()
     app.AddTypicalLights(chronoirr.vector3df(30, -30, 100), chronoirr.vector3df(30, 50, 100), 250, 130)
+    app.AddTypicalLogo(chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
 
     app.SetChaseCamera(trackPoint, 6.0, 0.5)
     app.SetTimestep(step_size)
@@ -115,15 +117,14 @@ def main():
     debug_steps = m.ceil(debug_step_size / step_size)
 
     # Initialize simulation frame counter and simulation time
-    realtime_timer = chrono.ChRealtimeStepTimer()
     step_number = 0
     render_frame = 0
-    time = 0
 
     if (contact_vis):
         app.SetSymbolscale(1e-4);
         #app.SetContactsDrawMode(chronoirr.eCh_ContactsDrawMode::CONTACT_FORCES);
 
+    realtime_timer = chrono.ChRealtimeStepTimer()
     while (app.GetDevice().run()):
         time = my_hmmwv.GetSystem().GetChTime()
 
@@ -133,18 +134,18 @@ def main():
 
         app.BeginScene(True, True, chronoirr.SColor(255, 140, 161, 192))
         app.DrawAll()
-        app.AddTypicalLogo(chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
+        app.EndScene()
 
         #Debug logging
         if (debug_output and step_number % debug_steps == 0) :
-            print ("\n\n============ System Information ============\n")
+            print("\n\n============ System Information ============\n")
             print( "Time = " << time << "\n\n")
             #my_hmmwv.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS)
 
             marker_driver = my_hmmwv.GetChassis().GetMarkers()[0].GetAbsCoord().pos
             marker_com = my_hmmwv.GetChassis().GetMarkers()[1].GetAbsCoord().pos
-            print ( "Markers\n")
-            print ( "  Driver loc:      " , marker_driver.x , " " , marker_driver.y , " " , marker_driver.z)
+            print( "Markers\n")
+            print( "  Driver loc:      " , marker_driver.x , " " , marker_driver.y , " " , marker_driver.z)
             print( "  Chassis COM loc: " , marker_com.x, " ", marker_com.y, " ",marker_com.z)
 
         # Get driver inputs
@@ -157,16 +158,16 @@ def main():
         app.Synchronize(driver.GetInputModeAsString(), driver_inputs)
 
         # Advance simulation for one timestep for all modules
-        step = realtime_timer.SuggestSimulationStep(step_size)
-        driver.Advance(step)
-        terrain.Advance(step)
-        my_hmmwv.Advance(step)
-        app.Advance(step)
+        driver.Advance(step_size)
+        terrain.Advance(step_size)
+        my_hmmwv.Advance(step_size)
+        app.Advance(step_size)
 
         # Increment frame number
         step_number += 1
 
-        app.EndScene()
+        # Spin in place for real time to catch up
+        realtime_timer.Spin(step_size)
 
     return 0
 
@@ -235,4 +236,4 @@ debug_step_size = 1.0 / 1  # FPS = 1
 # POV-Ray output
 povray_output = False
 
-main() 
+main()

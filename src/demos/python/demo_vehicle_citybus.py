@@ -103,11 +103,12 @@ my_bus.SetTireVisualizationType(tire_vis_type)
 # Create the terrain
 terrain = veh.RigidTerrain(my_bus.GetSystem())
 patch = terrain.AddPatch(chrono.ChCoordsysD(chrono.ChVectorD(0, 0, terrainHeight - 5), chrono.QUNIT),
-                             chrono.ChVectorD(terrainLength, terrainWidth, 10))
+                         chrono.ChVectorD(terrainLength, terrainWidth, 10))
 
 patch.SetContactFrictionCoefficient(0.9)
 patch.SetContactRestitutionCoefficient(0.01)
 patch.SetContactMaterialProperties(2e7, 0.3)
+patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
 patch.SetColor(chrono.ChColor(0.8, 0.8, 0.5))
 terrain.Initialize()
 
@@ -115,7 +116,7 @@ terrain.Initialize()
 app = veh.ChWheeledVehicleIrrApp(my_bus.GetVehicle())
 app.SetSkyBox()
 app.AddTypicalLights(irr.vector3df(30, -30, 100), irr.vector3df(30, 50, 100), 250, 130)
-app.SetChaseCamera(trackPoint, 12.0, 0.5)
+app.SetChaseCamera(trackPoint, 15.0, 0.5)
 app.SetTimestep(step_size)
 app.AssetBindAll()
 app.AssetUpdateAll()
@@ -143,11 +144,10 @@ print( "VEHICLE MASS: ",  my_bus.GetVehicle().GetVehicleMass())
 # Number of simulation steps between miscellaneous events
 render_steps = math.ceil(render_step_size / step_size)
 
-# Initialize simulation frame counter and simulation time
+# Initialize simulation frame counter s
 realtime_timer = chrono.ChRealtimeStepTimer()
 step_number = 0
 render_frame = 0
-time = 0
 
 while (app.GetDevice().run()) :
     time = my_bus.GetSystem().GetChTime()
@@ -174,13 +174,15 @@ while (app.GetDevice().run()) :
     app.Synchronize(driver.GetInputModeAsString(), driver_inputs)
 
     # Advance simulation for one timestep for all modules
-    step = realtime_timer.SuggestSimulationStep(step_size)
-    driver.Advance(step)
-    terrain.Advance(step)
-    my_bus.Advance(step)
-    app.Advance(step)
+    driver.Advance(step_size)
+    terrain.Advance(step_size)
+    my_bus.Advance(step_size)
+    app.Advance(step_size)
 
     # Increment frame number
     step_number += 1
+
+    # Spin in place for real time to catch up
+    realtime_timer.Spin(step_size)
 
 del app
