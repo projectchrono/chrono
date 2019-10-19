@@ -26,7 +26,6 @@
 // =============================================================================
 
 #include <algorithm>
-#include <cstdio>
 #include "chrono/core/ChMathematics.h"
 #include "chrono/assets/ChLineShape.h"
 #include "chrono/geometry/ChLineBezier.h"
@@ -35,6 +34,8 @@
 #include "chrono_vehicle/driver/ChHumanDriver.h"
 #include "chrono_thirdparty/rapidjson/document.h"
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
+#include "chrono_thirdparty/rapidjson/istreamwrapper.h"
+#include <fstream>
 
 using namespace rapidjson;
 
@@ -119,31 +120,83 @@ ChHumanDriver::ChHumanDriver(const std::string& filename,
       m_speed_min(1.0e99),
       m_left_acc(0),
       m_right_acc(0) {
-    GetLog() << "Open File: " << filename << "\n";
-    FILE* fp = fopen(filename.c_str(), "r");
-    if (fp == nullptr) {
-        GetLog() << "Cannot open file: " << filename << "\n";
+    GetLog() << "Opening File: " << filename << "\n";
+    std::ifstream ifs(filename);
+    if (!ifs.good()) {
+        GetLog() << "JSON file: " << filename << " could not be opened!\n";
         return;
     }
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
+    IStreamWrapper isw(ifs);
 
     Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(isw);
 
-    m_Tp = d["Preview Time"].GetDouble();
+    if (d.HasMember("Preview Time")) {
+        m_Tp = d["Preview Time"].GetDouble();
+        GetLog() << "Preview Time read from JSON file. Tp = " << m_Tp << " secs\n";
+    } else {
+        GetLog() << "Caution: I am using the default value for Preview Time Tp = " << m_Tp << " secs\n";
+    }
 
-    m_u0 = d["Speed Range"]["MinSpeed"].GetDouble();
-    m_umax = d["Speed Range"]["MaxSpeed"].GetDouble();
+    if (d.HasMember("Speed Range")) {
+        if (d["Speed Range"].HasMember("MinSpeed")) {
+            m_u0 = d["Speed Range"]["MinSpeed"].GetDouble();
+            GetLog() << "Minimal speed U0 read from JSON file. U0 = " << m_u0 << " m/s\n";
+        } else {
+            GetLog() << "Caution: I am using the default value for U0 = " << m_u0 << " m/s\n";
+        }
+        if (d["Speed Range"].HasMember("MaxSpeed")) {
+            m_umax = d["Speed Range"]["MaxSpeed"].GetDouble();
+            GetLog() << "Minimal speed Umax read from JSON file. Umax = " << m_umax << " m/s\n";
+        } else {
+            GetLog() << "Caution: I am using the default value for Umax = " << m_umax << " m/s\n";
+        }
+    } else {
+        GetLog() << "Caution: I am using the default values for U0 = " << m_u0 << " m/s  and  Umax = " << m_umax
+                 << " m/s\n";
+    }
 
-    m_Klat = d["Lateral Gains"]["Klat"].GetDouble();
-    m_Kug = d["Lateral Gains"]["Kug"].GetDouble();
+    if (d.HasMember("Lateral Gains")) {
+        if (d["Lateral Gains"].HasMember("Klat")) {
+            m_Klat = d["Lateral Gains"]["Klat"].GetDouble();
+            GetLog() << "Lateral gain Klat read from JSON file. Klat = " << m_Klat << "\n";
+        } else {
+            GetLog() << "Caution: I am using the default value for Klat = " << m_Klat << "\n";
+        }
+        if (d["Lateral Gains"].HasMember("Kug")) {
+            m_Kug = d["Lateral Gains"]["Kug"].GetDouble();
+            GetLog() << "Lateral gain Kug read from JSON file. Kug = " << m_Kug << " deg/g\n";
+        } else {
+            GetLog() << "Caution: I am using the default value for Kug = " << m_Kug << " deg/g\n";
+        }
+    } else {
+        GetLog() << "Caution: I am using the default values for Klat= " << m_Klat << "  and  Kug = " << m_Kug
+                 << " deg/g\n";
+    }
 
-    m_Klong = d["Longitudinal Gains"]["Klong"].GetDouble();
-    m_Kplus = d["Longitudinal Gains"]["Kplus"].GetDouble();
-    m_Kminus = d["Longitudinal Gains"]["Kminus"].GetDouble();
+    if (d.HasMember("Longitudinal Gains")) {
+        if (d["Longitudinal Gains"].HasMember("Klong")) {
+            m_Klong = d["Longitudinal Gains"]["Klong"].GetDouble();
+            GetLog() << "Longitudinal gain Klong read from JSON file. Klong = " << m_Klong << " m/s\n";
+        } else {
+            GetLog() << "Caution: I am using the default value for Klong = " << m_Klong << " \n";
+        }
+        if (d["Longitudinal Gains"].HasMember("Kplus")) {
+            m_Kplus = d["Longitudinal Gains"]["Kplus"].GetDouble();
+            GetLog() << "Longitudinal gain Kplus read from JSON file. Kplus = " << m_Kplus << " m/s\n";
+        } else {
+            GetLog() << "Caution: I am using the default value for Kplus = " << m_Kplus << " \n";
+        }
+        if (d["Longitudinal Gains"].HasMember("Kminus")) {
+            m_Kminus = d["Longitudinal Gains"]["Kminus"].GetDouble();
+            GetLog() << "Longitudinal gain Kminus read from JSON file. Kminus = " << m_Kminus << " m/s\n";
+        } else {
+            GetLog() << "Caution: I am using the default value for Kminus = " << m_Kminus << " \n";
+        }
+    } else {
+        GetLog() << "Caution: I am using the default values for Klong= " << m_Klong << "  ,  Kplus = " << m_Kplus
+                 << "  ,  Kminus = " << m_Kminus << " \n";
+    }
 
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 
