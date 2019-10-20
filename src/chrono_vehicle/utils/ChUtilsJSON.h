@@ -43,6 +43,12 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 
+/// Load and return a RapidJSON document from the specified file.
+/// A Null document is returned if the file cannot be opened.
+CH_VEHICLE_API rapidjson::Document ReadFileJSON(const std::string& filename);
+
+// -----------------------------------------------------------------------------
+
 /// Load and return a ChVector from the specified JSON array
 CH_VEHICLE_API ChVector<> ReadVectorJSON(const rapidjson::Value& a);
 

@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include <fstream>
+
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 //
 #include "chrono_vehicle/chassis/RigidChassis.h"
@@ -63,11 +65,26 @@
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblySinglePin.h"
 //
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
+#include "chrono_thirdparty/rapidjson/istreamwrapper.h"
 
 using namespace rapidjson;
 
 namespace chrono {
 namespace vehicle {
+
+// -----------------------------------------------------------------------------
+
+Document ReadFileJSON(const std::string& filename) {
+    Document d;
+    std::ifstream ifs(filename);
+    if (!ifs.good()) {
+        GetLog() << "ERROR: Could not open JSON file: " << filename << "\n";
+    } else {
+        IStreamWrapper isw(ifs);
+        d.ParseStream<ParseFlag::kParseCommentsFlag>(isw);
+    }
+    return d;
+}
 
 // -----------------------------------------------------------------------------
 
@@ -94,13 +111,9 @@ ChColor ReadColorJSON(const Value& a) {
 std::shared_ptr<ChChassis> ReadChassisJSON(const std::string& filename) {
     std::shared_ptr<ChChassis> chassis;
 
-    FILE* fp = fopen(filename.c_str(), "r");
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return nullptr;
 
     // Check that the given file is a chassis specification file.
     assert(d.HasMember("Type"));
@@ -124,13 +137,9 @@ std::shared_ptr<ChChassis> ReadChassisJSON(const std::string& filename) {
 std::shared_ptr<ChSuspension> ReadSuspensionJSON(const std::string& filename) {
     std::shared_ptr<ChSuspension> suspension;
 
-    FILE* fp = fopen(filename.c_str(), "r");
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return nullptr;
 
     // Check that the given file is a suspension specification file.
     assert(d.HasMember("Type"));
@@ -170,13 +179,9 @@ std::shared_ptr<ChSuspension> ReadSuspensionJSON(const std::string& filename) {
 std::shared_ptr<ChSteering> ReadSteeringJSON(const std::string& filename) {
     std::shared_ptr<ChSteering> steering;
 
-    FILE* fp = fopen(filename.c_str(), "r");
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return nullptr;
 
     // Check that the given file is a steering specification file.
     assert(d.HasMember("Type"));
@@ -204,13 +209,9 @@ std::shared_ptr<ChSteering> ReadSteeringJSON(const std::string& filename) {
 std::shared_ptr<ChDrivelineWV> ReadDrivelineWVJSON(const std::string& filename) {
     std::shared_ptr<ChDrivelineWV> driveline;
 
-    FILE* fp = fopen(filename.c_str(), "r");
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return nullptr;
 
     // Check that the given file is a driveline specification file.
     assert(d.HasMember("Type"));
@@ -238,13 +239,9 @@ std::shared_ptr<ChDrivelineWV> ReadDrivelineWVJSON(const std::string& filename) 
 std::shared_ptr<ChAntirollBar> ReadAntirollbarJSON(const std::string& filename) {
     std::shared_ptr<ChAntirollBar> antirollbar;
 
-    FILE* fp = fopen(filename.c_str(), "r");
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return nullptr;
 
     // Check that the given file is an antirollbar specification file.
     assert(d.HasMember("Type"));
@@ -268,13 +265,9 @@ std::shared_ptr<ChAntirollBar> ReadAntirollbarJSON(const std::string& filename) 
 std::shared_ptr<ChWheel> ReadWheelJSON(const std::string& filename) {
     std::shared_ptr<ChWheel> wheel;
 
-    FILE* fp = fopen(filename.c_str(), "r");
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return nullptr;
 
     // Check that the given file is a wheel specification file.
     assert(d.HasMember("Type"));
@@ -298,13 +291,9 @@ std::shared_ptr<ChWheel> ReadWheelJSON(const std::string& filename) {
 std::shared_ptr<ChBrake> ReadBrakeJSON(const std::string& filename) {
     std::shared_ptr<ChBrake> brake;
 
-    FILE* fp = fopen(filename.c_str(), "r");
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return nullptr;
 
     // Check that the given file is a brake specification file.
     assert(d.HasMember("Type"));
@@ -328,13 +317,9 @@ std::shared_ptr<ChBrake> ReadBrakeJSON(const std::string& filename) {
 std::shared_ptr<ChTire> ReadTireJSON(const std::string& filename) {
     std::shared_ptr<ChTire> tire;
 
-    FILE* fp = fopen(filename.c_str(), "r");
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return nullptr;
 
     // Check that the given file is a tire specification file.
     assert(d.HasMember("Type"));
@@ -374,13 +359,9 @@ std::shared_ptr<ChTire> ReadTireJSON(const std::string& filename) {
 std::shared_ptr<ChTrackAssembly> ReadTrackAssemblySON(const std::string& filename) {
     std::shared_ptr<ChTrackAssembly> track;
 
-    FILE* fp = fopen(filename.c_str(), "r");
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return nullptr;
 
     // Check that the given file is a steering specification file.
     assert(d.HasMember("Type"));
@@ -411,13 +392,9 @@ std::shared_ptr<ChTrackAssembly> ReadTrackAssemblySON(const std::string& filenam
 std::shared_ptr<ChDrivelineTV> ReadDrivelineTVJSON(const std::string& filename) {
     std::shared_ptr<ChDrivelineTV> driveline;
 
-    FILE* fp = fopen(filename.c_str(), "r");
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return nullptr;
 
     // Check that the given file is a driveline specification file.
     assert(d.HasMember("Type"));
@@ -443,13 +420,9 @@ std::shared_ptr<ChDrivelineTV> ReadDrivelineTVJSON(const std::string& filename) 
 std::shared_ptr<ChTrackBrake> ReadTrackBrakeJSON(const std::string& filename) {
     std::shared_ptr<ChTrackBrake> brake;
 
-    FILE* fp = fopen(filename.c_str(), "r");
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return nullptr;
 
     // Check that the given file is a brake specification file.
     assert(d.HasMember("Type"));
@@ -473,13 +446,9 @@ std::shared_ptr<ChTrackBrake> ReadTrackBrakeJSON(const std::string& filename) {
 std::shared_ptr<ChIdler> ReadIdlerJSON(const std::string& filename) {
     std::shared_ptr<ChIdler> idler;
 
-    FILE* fp = fopen(filename.c_str(), "r");
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return nullptr;
 
     // Check that the given file is an idler specification file.
     assert(d.HasMember("Type"));
@@ -505,13 +474,9 @@ std::shared_ptr<ChIdler> ReadIdlerJSON(const std::string& filename) {
 std::shared_ptr<ChRoadWheelAssembly> ReadRoadWheelAssemblyJSON(const std::string& filename, bool has_shock) {
     std::shared_ptr<ChRoadWheelAssembly> suspension;
 
-    FILE* fp = fopen(filename.c_str(), "r");
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return nullptr;
 
     // Check that the given file is a road-wheel assembly specification file.
     assert(d.HasMember("Type"));
@@ -537,13 +502,9 @@ std::shared_ptr<ChRoadWheelAssembly> ReadRoadWheelAssemblyJSON(const std::string
 std::shared_ptr<ChRoller> ReadRollerJSON(const std::string& filename) {
     std::shared_ptr<ChRoller> roller;
 
-    FILE* fp = fopen(filename.c_str(), "r");
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return nullptr;
 
     // Check that the given file is a roller specification file.
     assert(d.HasMember("Type"));
@@ -567,13 +528,9 @@ std::shared_ptr<ChRoller> ReadRollerJSON(const std::string& filename) {
 std::shared_ptr<ChRoadWheel> ReadRoadWheelJSON(const std::string& filename) {
     std::shared_ptr<ChRoadWheel> wheel;
 
-    FILE* fp = fopen(filename.c_str(), "r");
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return nullptr;
 
     // Check that the given file is a road-wheel specification file.
     assert(d.HasMember("Type"));
