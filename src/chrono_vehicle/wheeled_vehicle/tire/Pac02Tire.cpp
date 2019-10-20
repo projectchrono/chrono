@@ -22,8 +22,6 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
-#include "chrono_thirdparty/rapidjson/filereadstream.h"
-
 using namespace rapidjson;
 
 namespace chrono {
@@ -32,15 +30,9 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 Pac02Tire::Pac02Tire(const std::string& filename) : ChPac02Tire(""), m_mass(0), m_has_mesh(false) {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     Create(d);
 
@@ -56,7 +48,6 @@ void Pac02Tire::Create(const rapidjson::Document& d) {  // Invoke base class met
 
     m_has_vert_table = false;
     m_mass = d["Mass"].GetDouble();
-    GetLog() << "Masse = " << m_mass << "\n";
     m_inertia = ReadVectorJSON(d["Inertia"]);
     if (d.HasMember("Use Mode")) {
         // Default value = 3
@@ -87,7 +78,6 @@ void Pac02Tire::Create(const rapidjson::Document& d) {  // Invoke base class met
                                     d["Vertical"]["Vertical Curve Data"][i][1u].GetDouble());
             }
             m_has_vert_table = true;
-            GetLog() << "numPts = " << num_points << "\n";
         }
     }
     if (d.HasMember("Scaling Factors")) {

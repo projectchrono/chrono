@@ -22,8 +22,7 @@
 // =============================================================================
 
 #include "chrono_vehicle/powertrain/SimpleMapPowertrain.h"
-
-#include "chrono_thirdparty/rapidjson/filereadstream.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 using namespace rapidjson;
 
@@ -36,15 +35,9 @@ const double rpm2rads = CH_C_PI / 30;
 // Constructor for a powertrain using data from the specified JSON file.
 // -----------------------------------------------------------------------------
 SimpleMapPowertrain::SimpleMapPowertrain(const std::string& filename) : ChSimpleMapPowertrain("") {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     Create(d);
 

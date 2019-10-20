@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Rainer Gericke
+// Authors: Rainer Gericke
 // =============================================================================
 //
 // A driver model that combines a path steering controller and a speed controller.
@@ -19,6 +19,7 @@
 //
 // BEST, M.C., 2012. A simple realistic driver model. Presented at:
 // AVEC `12: The 11th International Symposium on Advanced Vehicle Control, 9th-12th September 2012, Seoul, Korea.
+//
 // The path to be followed is specified as a ChBezierCurve object and the the original
 // definition points are extracted automatically. Open and closed course definitions
 // can be handled. The ChBezier is still used for visualization.
@@ -26,16 +27,14 @@
 // =============================================================================
 
 #include <algorithm>
+
 #include "chrono/core/ChMathematics.h"
 #include "chrono/assets/ChLineShape.h"
 #include "chrono/geometry/ChLineBezier.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/driver/ChHumanDriver.h"
-#include "chrono_thirdparty/rapidjson/document.h"
-#include "chrono_thirdparty/rapidjson/filereadstream.h"
-#include "chrono_thirdparty/rapidjson/istreamwrapper.h"
-#include <fstream>
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 using namespace rapidjson;
 
@@ -120,16 +119,9 @@ ChHumanDriver::ChHumanDriver(const std::string& filename,
       m_speed_min(1.0e99),
       m_left_acc(0),
       m_right_acc(0) {
-    GetLog() << "Opening File: " << filename << "\n";
-    std::ifstream ifs(filename);
-    if (!ifs.good()) {
-        GetLog() << "JSON file: " << filename << " could not be opened!\n";
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
         return;
-    }
-    IStreamWrapper isw(ifs);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(isw);
 
     if (d.HasMember("Preview Time")) {
         m_Tp = d["Preview Time"].GetDouble();
@@ -204,21 +196,17 @@ ChHumanDriver::ChHumanDriver(const std::string& filename,
 }
 
 void ChHumanDriver::Create() {
-    GetLog() << "Create begin\n";
     // Create a fixed body to carry a visualization asset for the path
     auto road = std::shared_ptr<ChBody>(m_vehicle.GetSystem()->NewBody());
     road->SetBodyFixed(true);
     m_vehicle.GetSystem()->AddBody(road);
-    GetLog() << "road body added\n";
     auto num_points = static_cast<unsigned int>(m_path->getNumPoints());
-    GetLog() << "here?\n";
     auto path_asset = chrono_types::make_shared<ChLineShape>();
     path_asset->SetLineGeometry(chrono_types::make_shared<geometry::ChLineBezier>(m_path));
     path_asset->SetColor(ChColor(0.0f, 0.8f, 0.0f));
     path_asset->SetName(m_pathName);
     path_asset->SetNumRenderPoints(std::max<unsigned int>(2 * num_points, 400));
     road->AddAsset(path_asset);
-    GetLog() << "Create end\n";
 }
 
 void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
@@ -353,15 +341,15 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
             break;
         }
     }
-    m_udem = std::min(m_Klong * d_long + m_u0, m_umax);
+    double udem = std::min(m_Klong * d_long + m_u0, m_umax);
 
     double tau = 0;
-    if (m_udem < u) {
+    if (udem < u) {
         // u is too high, brake!
-        tau = m_Kminus * (m_udem - u);
+        tau = m_Kminus * (udem - u);
     } else {
         // u is too low, accelerate!
-        tau = m_Kplus * (m_udem - u);
+        tau = m_Kplus * (udem - u);
     }
     if (tau >= 0.0) {
         m_throttle = ChClamp(std::abs(tau), 0.0, 1.0);
@@ -416,7 +404,6 @@ void ChHumanDriver::Initialize() {
         m_Li[np - 1] = m_S_l[np - 1] - 0.5 * m_road_width * m_R_lu[np - 1].Cross(ChVector<>(0, 0, 1));
         m_Rj[np - 1] = m_S_l[np - 1] + 0.5 * m_road_width * m_R_lu[np - 1].Cross(ChVector<>(0, 0, 1));
     }
-    GetLog() << "Init end\n";
 }
 
 void ChHumanDriver::SetSpeedRange(double u0, double umax) {

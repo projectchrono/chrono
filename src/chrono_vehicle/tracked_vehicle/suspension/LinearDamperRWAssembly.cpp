@@ -18,12 +18,9 @@
 // =============================================================================
 
 #include "chrono_vehicle/tracked_vehicle/suspension/LinearDamperRWAssembly.h"
-//
+
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
-//
-#include "chrono_thirdparty/rapidjson/document.h"
-#include "chrono_thirdparty/rapidjson/filereadstream.h"
 
 using namespace rapidjson;
 
@@ -34,15 +31,9 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 LinearDamperRWAssembly::LinearDamperRWAssembly(const std::string& filename, bool has_shock)
     : ChLinearDamperRWAssembly("", has_shock), m_spring_torqueCB(nullptr), m_shock_forceCB(nullptr) {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     Create(d);
 

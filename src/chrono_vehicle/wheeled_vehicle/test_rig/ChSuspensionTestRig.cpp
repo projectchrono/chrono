@@ -39,8 +39,6 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 //
-#include "chrono_thirdparty/rapidjson/document.h"
-#include "chrono_thirdparty/rapidjson/filereadstream.h"
 #include "chrono_thirdparty/rapidjson/prettywriter.h"
 #include "chrono_thirdparty/rapidjson/stringbuffer.h"
 
@@ -137,15 +135,9 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
       m_vis_wheel(VisualizationType::NONE),
       m_vis_tire(VisualizationType::PRIMITIVES) {
     // Open and parse the input file (vehicle JSON specification file)
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     // Read top-level data
     assert(d.HasMember("Type"));
@@ -205,15 +197,9 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
       m_vis_wheel(VisualizationType::NONE),
       m_vis_tire(VisualizationType::PRIMITIVES) {
     // Open and parse the input file (rig JSON specification file)
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     // Read top-level data
     assert(d.HasMember("Type"));

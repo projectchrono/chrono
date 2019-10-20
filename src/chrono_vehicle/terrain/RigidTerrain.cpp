@@ -32,7 +32,6 @@
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 #include "chrono_thirdparty/Easy_BMP/EasyBMP.h"
-#include "chrono_thirdparty/rapidjson/filereadstream.h"
 
 using namespace rapidjson;
 
@@ -50,16 +49,10 @@ RigidTerrain::RigidTerrain(ChSystem* system)
 // -----------------------------------------------------------------------------
 RigidTerrain::RigidTerrain(ChSystem* system, const std::string& filename)
     : m_system(system), m_num_patches(0), m_use_friction_functor(false), m_contact_callback(nullptr) {
-    // Open the JSON file and read data
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    // Open and parse the input file
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     // Read top-level data
     assert(d.HasMember("Type"));

@@ -31,10 +31,6 @@
 #include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
 
 #include "chrono_thirdparty/Easy_BMP/EasyBMP.h"
-#include "chrono_thirdparty/rapidjson/document.h"
-#include "chrono_thirdparty/rapidjson/filereadstream.h"
-
-using namespace rapidjson;
 
 namespace chrono {
 namespace vehicle {
