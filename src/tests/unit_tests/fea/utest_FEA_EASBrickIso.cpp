@@ -242,9 +242,6 @@ int main(int argc, char* argv[]) {
     mystepper->SetMode(ChTimestepperHHT::POSITION);
     mystepper->SetScaling(true);
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
     // Simulation loop
     double T_F = 10;
     double t_sim = 0;

@@ -124,7 +124,6 @@ Model::Model() {
     m_system->Add(constraint_dir3);
 
     m_system->Add(my_mesh);
-    m_system->SetupInitial();
 
     // Set integrator
     m_system->SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);

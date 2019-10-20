@@ -290,9 +290,6 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    // Complete system construction
-    system->SetupInitial();
-
     // ---------------------------------------
     // Create the vehicle Irrlicht application
     // ---------------------------------------

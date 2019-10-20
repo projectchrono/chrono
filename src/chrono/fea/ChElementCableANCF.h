@@ -40,17 +40,6 @@ namespace fea {
 /// "On the Validation and Applications of a Parallel Flexible Multi-body Dynamics Implementation"
 ///  D. MELANZ
 class ChApi ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLoadableUVW {
-  protected:
-    std::vector<std::shared_ptr<ChNodeFEAxyzD> > nodes;
-
-    std::shared_ptr<ChBeamSectionCable> section;
-    ChVectorN<double, 12> m_GenForceVec0;
-    ChMatrixNM<double, 12, 12> m_JacobianMatrix;  ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
-    ChMatrixNM<double, 12, 12> m_MassMatrix;      ///< mass matrix
-
-  public:
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
   public:
     using ShapeVector = ChMatrixNM<double, 1, 4>;
 
@@ -58,7 +47,7 @@ class ChApi ChElementCableANCF : public ChElementBeam, public ChLoadableU, publi
     double m_alpha;      ///< Scaling factor for internal damping
 
     ChElementCableANCF();
-    virtual ~ChElementCableANCF() {}
+    ~ChElementCableANCF() {}
 
     virtual int GetNnodes() override { return 2; }
     virtual int GetNdofs() override { return 2 * 6; }
@@ -119,9 +108,6 @@ class ChApi ChElementCableANCF : public ChElementBeam, public ChLoadableU, publi
     /// Computes the mass matrix of the element.
     /// Note: in this 'basic' implementation, constant section and constant material are assumed.
     virtual void ComputeMassMatrix();
-
-    /// Setup: precompute mass and matrices that do not change during the simulation.
-    virtual void SetupInitial(ChSystem* system) override;
 
     /// Sets M as the global mass matrix.
     virtual void ComputeMmatrixGlobal(ChMatrixRef M) override { M = m_MassMatrix; }
@@ -240,6 +226,9 @@ class ChApi ChElementCableANCF : public ChElementBeam, public ChLoadableU, publi
     virtual double GetDensity() override { return this->section->Area * this->section->density; }
 
   private:
+    /// Initial setup: precompute mass and matrices that do not change during the simulation.
+    virtual void SetupInitial(ChSystem* system) override;
+
     /// Worker function for computing the internal forces.
     /// This function takes the nodal coordinates as arguments and is therefore thread-safe.
     /// (Typically invoked by ComputeInternalForces. Used explicitly in the FD Jacobian approximation).
@@ -252,6 +241,16 @@ class ChApi ChElementCableANCF : public ChElementBeam, public ChLoadableU, publi
                                     const ChVector<>& pB_dt,
                                     const ChVector<>& dB_dt,
                                     ChVectorDynamic<>& Fi);
+
+    std::vector<std::shared_ptr<ChNodeFEAxyzD> > nodes;
+
+    std::shared_ptr<ChBeamSectionCable> section;
+    ChVectorN<double, 12> m_GenForceVec0;
+    ChMatrixNM<double, 12, 12> m_JacobianMatrix;  ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
+    ChMatrixNM<double, 12, 12> m_MassMatrix;      ///< mass matrix
+
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 /// @} fea_elements

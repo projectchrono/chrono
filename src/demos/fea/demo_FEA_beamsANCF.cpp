@@ -77,7 +77,6 @@ double ANCF_test(ChSystem& mysys, float beam_tip_load, int NofEl) {
     double y_init = builder.GetLastBeamNodes().back()->GetPos().y();
 
     // Mark completion of system construction
-    mysys.SetupInitial();
     builder.GetLastBeamNodes().back()->SetForce(ChVector<>(0, beam_tip_load, 0));
     mysys.DoStaticLinear();
     double numerical_displ = builder.GetLastBeamNodes().back()->GetPos().y() - y_init;
@@ -125,9 +124,6 @@ void IGA_test(ChSystem& mysys, float beam_tip_load, double ANCF_res, int nsectio
     builder.GetLastBeamNodes().front()->SetFixed(true);
     builder.GetLastBeamNodes().back()->SetForce(ChVector<>(0, beam_tip_load, 0));
     // This is needed if you want to see things in Irrlicht 3D view.
-
-    // Mark completion of system construction
-    mysys.SetupInitial();
 
     // Do a linear static analysis.
     mysys.DoStaticLinear();

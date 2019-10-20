@@ -461,9 +461,6 @@ int main(int argc, char* argv[]) {
 
     // -----------------------------------------------------------------
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
     // Setup a MINRES solver. For FEA one cannot use the default SOR type solver.
     my_system.SetSolverType(ChSolver::Type::MINRES);
     my_system.SetSolverWarmStarting(true);

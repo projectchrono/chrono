@@ -332,9 +332,6 @@ int main(int argc, char* argv[]) {
     mystepper->SetScaling(true);
     mystepper->SetVerbose(true);
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
     m_data.resize(16);
     for (size_t col = 0; col < 16; col++)
         m_data[col].resize(num_steps);

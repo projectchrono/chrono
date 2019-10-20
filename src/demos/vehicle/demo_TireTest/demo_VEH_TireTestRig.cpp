@@ -118,8 +118,6 @@ int main() {
     // Perform the simulation
     // ----------------------
 
-    system.SetupInitial();
-
     while (application.GetDevice()->run()) {
         auto& loc = rig.GetPos();
         auto x = (irr::f32)loc.x();

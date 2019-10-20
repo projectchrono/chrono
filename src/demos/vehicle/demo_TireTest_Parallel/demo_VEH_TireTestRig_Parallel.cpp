@@ -154,8 +154,6 @@ int main() {
     // Perform the simulation
     // ----------------------
 
-    system.SetupInitial();
-
     while (gl_window.Active()) {
         rig.Advance(step_size);
 
