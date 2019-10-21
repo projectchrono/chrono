@@ -1193,7 +1193,7 @@ double ChISO2631_Shock_SeatCushionLogger::GetSe() {
 double ChISO2631_Shock_SeatCushionLogger::GetLegacyAz() {
     const double to_g = 0.1019716213;
     double az_max = 0;
-    size_t nInDat = static_cast<int>(std::floor(m_logging_time / m_step_inp));
+    size_t nInDat = static_cast<size_t>(std::floor(m_logging_time / m_step_inp));
 
     std::vector<double> legacy_az;
     for (size_t i = 0; i < nInDat; i++) {
