@@ -380,7 +380,7 @@ windows:vs2017:build:
     paths:
       - build/
 
-windows:vs2015:build:
+.windows:vs2015:build:
   stage: build
   extends: .windows
   script:
