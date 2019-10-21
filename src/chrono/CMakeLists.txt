@@ -64,6 +64,7 @@ set(ChronoEngine_core_HEADERS
     core/ChMathematics.h
     core/ChMatrix.h
     core/ChMatrixEigenExtensions.h
+    core/ChSparseMatrixEigenExtensions.h
     core/ChMatrix33.h
     core/ChMatrixMBD.h
     core/ChPlatform.h
@@ -76,6 +77,7 @@ set(ChronoEngine_core_HEADERS
     core/ChVector2.h
     core/ChSparseMatrix.h
     core/ChCSMatrix.h
+    core/ChCSMatrix_Eigen.h
     core/ChCOOMatrix.h
     core/ChAlignedAllocator.h
     core/ChDistribution.h

@@ -72,10 +72,13 @@ SET(ChronoEngine_MKL_HEADERS
   ChApiMkl.h
   ChSolverMKL.h
   ChMklEngine.h
+  ChSolverMKL_Eigen.h
+  ChMklEngine_Eigen.h
 )
 
 SET(ChronoEngine_MKL_SOURCES
   ChMklEngine.cpp
+  ChMklEngine_Eigen.cpp
 )
 
 SOURCE_GROUP("" FILES ${ChronoEngine_MKL_HEADERS} ${ChronoEngine_MKL_SOURCES})

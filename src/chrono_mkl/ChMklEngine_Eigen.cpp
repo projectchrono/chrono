@@ -17,7 +17,7 @@
 #include <algorithm>
 #include <cmath>
 
-#include "chrono_mkl/ChMklEngine.h"
+#include "chrono_mkl/ChMklEngine_Eigen.h"
 
 namespace chrono {
 
@@ -26,7 +26,7 @@ namespace chrono {
 // m_maxfct - max. number of factors with identical sparsity structure that must be kept in
 //            memory at the same time
 // m_mnum   - actual matrix for the solution phase (1 ≤ m_mnum ≤ m_maxfct)
-ChMklEngine::ChMklEngine(int pb_size, ChSparseMatrix::SymmetryType matrix_type)
+ChMklEngine_Eigen::ChMklEngine_Eigen(int pb_size, ChSparseMatrix::SymmetryType matrix_type)
     : m_a(nullptr),
       m_ia(nullptr),
       m_ja(nullptr),
@@ -41,7 +41,7 @@ ChMklEngine::ChMklEngine(int pb_size, ChSparseMatrix::SymmetryType matrix_type)
     ResetSolver();
 }
 
-ChMklEngine::~ChMklEngine() {
+ChMklEngine_Eigen::~ChMklEngine_Eigen() {
     int phase = RELEASE_ALL;
     int msglvl = 1;
     int error;
@@ -51,60 +51,49 @@ ChMklEngine::~ChMklEngine() {
         printf("Error while releasing memory: %d", error);
 }
 
-void ChMklEngine::SetMatrix(ChSparseMatrix& Z) {
-    assert(Z.GetNumRows() == Z.GetNumColumns());
+void ChMklEngine_Eigen::SetMatrix(ChCSMatrix_Eigen& Z) {
+    assert(Z.rows() == Z.cols());
 
-    m_n = Z.GetNumRows();
+    m_n = Z.rows();
 
-    m_a = Z.GetCS_ValueArray();
-    m_ia = Z.GetCS_LeadingIndexArray();
-    m_ja = Z.GetCS_TrailingIndexArray();
+    m_a = Z.valuePtr();
+    m_ia = Z.outerIndexPtr();
+    m_ja = Z.innerIndexPtr();
 
-    int type = GetPardisoMatrixType(Z.GetType());
-    if (m_type != type) {
-        m_type = type;
-        ResetSolver();
-    }
 }
 
-void ChMklEngine::SetMatrix(int pb_size, double* a, int* ia, int* ja) {
+void ChMklEngine_Eigen::SetMatrix(int pb_size, double* a, int* ia, int* ja) {
     m_n = pb_size;
     m_a = a;
     m_ia = ia;
     m_ja = ja;
 }
 
-void ChMklEngine::SetSolutionVector(ChVectorRef x) {
+void ChMklEngine_Eigen::SetSolutionVector(ChVectorRef x) {
     assert(x.size() >= m_n);
     m_x = x.data();
 }
 
-void ChMklEngine::SetSolutionVector(double* x) {
+void ChMklEngine_Eigen::SetSolutionVector(double* x) {
     m_x = x;
 }
 
-void ChMklEngine::SetRhsVector(ChVectorRef b) {
+void ChMklEngine_Eigen::SetRhsVector(ChVectorRef b) {
     assert(b.size() >= m_n);
     m_b = b.data();
 }
 
-void ChMklEngine::SetRhsVector(double* b) {
+void ChMklEngine_Eigen::SetRhsVector(double* b) {
     m_b = b;
 }
 
-void ChMklEngine::SetProblem(ChSparseMatrix& Z, ChVectorRef b, ChVectorRef x) {
+void ChMklEngine_Eigen::SetProblem(ChCSMatrix_Eigen& Z, ChVectorRef b, ChVectorRef x) {
     SetMatrix(Z);
     SetRhsVector(b);
     SetSolutionVector(x);
 }
 
-void ChMklEngine::SetProblem(ChSparseMatrix& Z, ChVectorRef b, ChVectorRef x) {
-    SetMatrix(Z);
-    SetRhsVector(b);
-    SetSolutionVector(x);
-}
-
-void ChMklEngine::UsePermutationVector(bool val) {
+void ChMklEngine_Eigen::UsePermutationVector(bool val) {
     // The perm array is not set yet; it is built by Pardiso during the next factorization phase.
     // iparm[4]=2 (perm as output) says to Pardiso to output the perm vector used by the factorization;
     // PardisoCall() will then switch iparm[4] to 1 (perm as input)
@@ -117,7 +106,7 @@ void ChMklEngine::UsePermutationVector(bool val) {
     }
 }
 
-void ChMklEngine::resetIparmElement(int iparm_num, int reset_value) {
+void ChMklEngine_Eigen::resetIparmElement(int iparm_num, int reset_value) {
     if (m_iparm[iparm_num] != reset_value) {
         m_iparm[iparm_num] = reset_value;
 
@@ -146,7 +135,7 @@ void ChMklEngine::resetIparmElement(int iparm_num, int reset_value) {
     }
 }
 
-void ChMklEngine::UsePartialSolution(int option, int start_row, int end_row) {
+void ChMklEngine_Eigen::UsePartialSolution(int option, int start_row, int end_row) {
     assert(option == 0 || option == 1 || option == 2 || option == 3);
 
     m_iparm[30] = option;
@@ -171,7 +160,7 @@ void ChMklEngine::UsePartialSolution(int option, int start_row, int end_row) {
 }
 
 
-void ChMklEngine::OutputSchurComplement(int option, int start_row, int end_row) {
+void ChMklEngine_Eigen::OutputSchurComplement(int option, int start_row, int end_row) {
     m_iparm[35] = option;
 
     if (option) {
@@ -190,7 +179,7 @@ void ChMklEngine::OutputSchurComplement(int option, int start_row, int end_row) 
     }
 }
 
-void ChMklEngine::SetPreconditionedCGS(bool val, int L) {
+void ChMklEngine_Eigen::SetPreconditionedCGS(bool val, int L) {
     if (val) {
         int K = (m_type == 11 || m_type == 1) ? 1 : 2;
         m_iparm[3] = 10 * L + K;
@@ -199,7 +188,7 @@ void ChMklEngine::SetPreconditionedCGS(bool val, int L) {
     }
 }
 
-int ChMklEngine::PardisoCall(int phase, int message_level) {
+int ChMklEngine_Eigen::PardisoCall(int phase, int message_level) {
     int error;
     m_last_phase = phase;
     PARDISO(m_pt, &m_maxfct, &m_mnum, &m_type, &phase, &m_n, m_a, m_ia, m_ja, m_perm.data(), &m_nrhs, m_iparm,
@@ -212,7 +201,7 @@ int ChMklEngine::PardisoCall(int phase, int message_level) {
 }
 
 // Convert the symmetry matrix type to the corresponding Pardiso code.
-MKL_INT ChMklEngine::GetPardisoMatrixType(ChSparseMatrix::SymmetryType type) {
+MKL_INT ChMklEngine_Eigen::GetPardisoMatrixType(ChSparseMatrix::SymmetryType type) {
     switch (type) {
         case ChSparseMatrix::GENERAL:
             return 11;
@@ -227,7 +216,7 @@ MKL_INT ChMklEngine::GetPardisoMatrixType(ChSparseMatrix::SymmetryType type) {
     return 11;
 }
 
-void ChMklEngine::ResetSolver() {
+void ChMklEngine_Eigen::ResetSolver() {
     // After the first call to pardiso do not directly modify m_pt, as that could cause a serious memory leak.
     pardisoinit(m_pt, &m_type, m_iparm);
 
@@ -254,12 +243,12 @@ void ChMklEngine::ResetSolver() {
     m_iparm[7] = 10;  // Maximum number of iterative refinement steps
 }
 
-void ChMklEngine::GetResidual(ChVectorRef res) const {
+void ChMklEngine_Eigen::GetResidual(ChVectorRef res) const {
     assert(res.size() >= m_n);
     GetResidual(res.data());
 }
 
-void ChMklEngine::GetResidual(double* res) const {
+void ChMklEngine_Eigen::GetResidual(double* res) const {
     // Calculate A*x
     mkl_cspblas_dcsrgemv("N", &m_n, m_a, m_ia, m_ja, m_x, res);
     // Calculate b - A*x
@@ -268,7 +257,7 @@ void ChMklEngine::GetResidual(double* res) const {
     }
 }
 
-double ChMklEngine::GetResidualNorm() const {
+double ChMklEngine_Eigen::GetResidualNorm() const {
     std::vector<double> res(m_n);
     GetResidual(res.data());
     double norm = 0;
@@ -278,7 +267,7 @@ double ChMklEngine::GetResidualNorm() const {
     return std::sqrt(norm);
 }
 
-void ChMklEngine::PrintPardisoParameters() const {
+void ChMklEngine_Eigen::PrintPardisoParameters() const {
     printf("\n[6] Number of iterative refinement steps performed: %d", m_iparm[6]);
     if (m_type == 11 || m_type == 13 || m_type == -2 || m_type == -4 || m_type == -6)
         printf("\n[13] Number of perturbed pivots: %d", m_iparm[13]);

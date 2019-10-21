@@ -1,5 +1,6 @@
 set(MKL_DEMOS
     demo_MKL_MklEngine
+    demo_MKL_MklEngine_Eigen
  )
 
 # Additional include paths
