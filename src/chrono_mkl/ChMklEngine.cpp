@@ -98,12 +98,6 @@ void ChMklEngine::SetProblem(ChSparseMatrix& Z, ChVectorRef b, ChVectorRef x) {
     SetSolutionVector(x);
 }
 
-void ChMklEngine::SetProblem(ChSparseMatrix& Z, ChVectorRef b, ChVectorRef x) {
-    SetMatrix(Z);
-    SetRhsVector(b);
-    SetSolutionVector(x);
-}
-
 void ChMklEngine::UsePermutationVector(bool val) {
     // The perm array is not set yet; it is built by Pardiso during the next factorization phase.
     // iparm[4]=2 (perm as output) says to Pardiso to output the perm vector used by the factorization;

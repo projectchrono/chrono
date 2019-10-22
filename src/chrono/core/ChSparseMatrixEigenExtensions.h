@@ -36,7 +36,7 @@ void SetElement(int row_sel, int col_sel, double insval, bool overwrite) {
     if (insval == 0 && !m_lock)
         return;
 
-    coeffRef(row_sel, col_sel, insval);
+    coeffRef(row_sel, col_sel) = insval;
 }
 
 

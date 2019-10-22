@@ -266,10 +266,10 @@ class ChSolverMKL_Eigen : public ChSolver {
     }
 
   private:
-    ChMklEngine m_engine = {0, ChSparseMatrix::GENERAL};  ///< interface to MKL solver
-    Matrix m_mat = {1, 1};                                ///< problem matrix
-    ChVectorDynamic<double> m_rhs;                        ///< right-hand side vector
-    ChVectorDynamic<double> m_sol;                        ///< solution vector
+    ChMklEngine_Eigen m_engine = {0, ChSparseMatrix::GENERAL};  ///< interface to MKL solver
+    Matrix m_mat = {1, 1};                                      ///< problem matrix
+    ChVectorDynamic<double> m_rhs;                              ///< right-hand side vector
+    ChVectorDynamic<double> m_sol;                              ///< solution vector
 
     int m_dim = 0;         ///< problem size
     int m_nnz = 0;         ///< user-supplied estimate of NNZ
