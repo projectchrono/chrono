@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Rainer Gericke
+// Authors: Rainer Gericke
 // =============================================================================
 //
 // A driver model that combines a path steering controller and a speed controller.
@@ -120,7 +120,6 @@ class CH_VEHICLE_API ChHumanDriver : public ChDriver {
     double m_Kminus;
     double m_u0;
     double m_umax;
-    double m_udem;
     double m_uthres;
     double m_ny;
     ChVector<> m_target;

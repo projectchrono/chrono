@@ -27,19 +27,25 @@
 #include "chrono_vehicle/ChChassis.h"
 #include "chrono_vehicle/wheeled_vehicle/ChAntirollBar.h"
 #include "chrono_vehicle/wheeled_vehicle/ChBrake.h"
-#include "chrono_vehicle/wheeled_vehicle/ChDriveline.h"
+#include "chrono_vehicle/wheeled_vehicle/ChDrivelineWV.h"
 #include "chrono_vehicle/wheeled_vehicle/ChSteering.h"
 #include "chrono_vehicle/wheeled_vehicle/ChSuspension.h"
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
 //
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
-#include "chrono_vehicle/tracked_vehicle/ChTrackDriveline.h"
+#include "chrono_vehicle/tracked_vehicle/ChDrivelineTV.h"
 //
 #include "chrono_thirdparty/rapidjson/document.h"
 
 namespace chrono {
 namespace vehicle {
+
+// -----------------------------------------------------------------------------
+
+/// Load and return a RapidJSON document from the specified file.
+/// A Null document is returned if the file cannot be opened.
+CH_VEHICLE_API rapidjson::Document ReadFileJSON(const std::string& filename);
 
 // -----------------------------------------------------------------------------
 
@@ -64,7 +70,7 @@ CH_VEHICLE_API std::shared_ptr<ChSuspension> ReadSuspensionJSON(const std::strin
 CH_VEHICLE_API std::shared_ptr<ChSteering> ReadSteeringJSON(const std::string& filename);
 
 ///  Load and return a driveline subsystem from the specified JSON file.
-CH_VEHICLE_API std::shared_ptr<ChDriveline> ReadDrivelineJSON(const std::string& filename);
+CH_VEHICLE_API std::shared_ptr<ChDrivelineWV> ReadDrivelineWVJSON(const std::string& filename);
 
 ///  Load and return a steering subsystem from the specified JSON file.
 CH_VEHICLE_API std::shared_ptr<ChAntirollBar> ReadAntirollbarJSON(const std::string& filename);
@@ -84,7 +90,7 @@ CH_VEHICLE_API std::shared_ptr<ChTire> ReadTireJSON(const std::string& filename)
 CH_VEHICLE_API std::shared_ptr<ChTrackAssembly> ReadTrackAssemblySON(const std::string& filename);
 
 /// Load and return a track driveline from the specified JSON file.
-CH_VEHICLE_API std::shared_ptr<ChTrackDriveline> ReadTrackDrivelineJSON(const std::string& filename);
+CH_VEHICLE_API std::shared_ptr<ChDrivelineTV> ReadDrivelineTVJSON(const std::string& filename);
 
 /// Load and return a track brake from the specified JSON file.
 CH_VEHICLE_API std::shared_ptr<ChTrackBrake> ReadTrackBrakeJSON(const std::string& filename);

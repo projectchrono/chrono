@@ -22,6 +22,8 @@
 //
 // =============================================================================
 
+#include "chrono/core/ChRealtimeStep.h"
+
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
@@ -99,63 +101,57 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     // Create and initialize the powertrain system
-    Generic_SimplePowertrain powertrain("Powertrain");
-    powertrain.Initialize(front_side.GetChassisBody(), front_side.GetDriveshaft());
+    auto powertrain = chrono_types::make_shared<Generic_SimplePowertrain>("Powertrain");
+    front_side.InitializePowertrain(powertrain);
 
-    // Create the front tires
-    std::unique_ptr<ChTire> tire_FL;
-    std::unique_ptr<ChTire> tire_FR;
+    // Create and initialize the front and rear tires
     switch (tire_model) {
-        case TireModelType::RIGID:
-            tire_FL = std::unique_ptr<ChTire>(new Generic_RigidTire("FL"));
-            tire_FR = std::unique_ptr<ChTire>(new Generic_RigidTire("FR"));
+        case TireModelType::RIGID: {
+            auto tire_FL = chrono_types::make_shared<Generic_RigidTire>("FL");
+            auto tire_FR = chrono_types::make_shared<Generic_RigidTire>("FR");
+            front_side.InitializeTire(tire_FL, front_side.GetAxle(0)->m_wheels[0], VisualizationType::MESH);
+            front_side.InitializeTire(tire_FR, front_side.GetAxle(0)->m_wheels[1], VisualizationType::MESH);
+
+            auto tire_RL = chrono_types::make_shared<Generic_RigidTire>("RL");
+            auto tire_RR = chrono_types::make_shared<Generic_RigidTire>("RR");
+            rear_side.InitializeTire(tire_RL, rear_side.GetAxle()->m_wheels[0], VisualizationType::MESH);
+            rear_side.InitializeTire(tire_RR, rear_side.GetAxle()->m_wheels[1], VisualizationType::MESH);
+
             break;
-        case TireModelType::RIGID_MESH:
-            tire_FL = std::unique_ptr<ChTire>(new Generic_RigidMeshTire("FL"));
-            tire_FR = std::unique_ptr<ChTire>(new Generic_RigidMeshTire("FR"));
+        }
+        case TireModelType::RIGID_MESH: {
+            auto tire_FL = chrono_types::make_shared<Generic_RigidMeshTire>("FL");
+            auto tire_FR = chrono_types::make_shared<Generic_RigidMeshTire>("FR");
+            front_side.InitializeTire(tire_FL, front_side.GetAxle(0)->m_wheels[0], VisualizationType::MESH);
+            front_side.InitializeTire(tire_FR, front_side.GetAxle(0)->m_wheels[1], VisualizationType::MESH);
+ 
+            auto tire_RL = chrono_types::make_shared<Generic_RigidMeshTire>("RL");
+            auto tire_RR = chrono_types::make_shared<Generic_RigidMeshTire>("RR");
+            rear_side.InitializeTire(tire_RL, rear_side.GetAxle()->m_wheels[0], VisualizationType::MESH);
+            rear_side.InitializeTire(tire_RR, rear_side.GetAxle()->m_wheels[1], VisualizationType::MESH);
+
             break;
-        case TireModelType::FIALA:
-            tire_FL = std::unique_ptr<ChTire>(new Generic_FialaTire("FL"));
-            tire_FR = std::unique_ptr<ChTire>(new Generic_FialaTire("FR"));
+        }
+        case TireModelType::FIALA: {
+            auto tire_FL = chrono_types::make_shared<Generic_FialaTire>("FL");
+            auto tire_FR = chrono_types::make_shared<Generic_FialaTire>("FR");
+            front_side.InitializeTire(tire_FL, front_side.GetAxle(0)->m_wheels[0], VisualizationType::MESH);
+            front_side.InitializeTire(tire_FR, front_side.GetAxle(0)->m_wheels[1], VisualizationType::MESH);
+ 
+            auto tire_RL = chrono_types::make_shared<Generic_FialaTire>("RL");
+            auto tire_RR = chrono_types::make_shared<Generic_FialaTire>("RR");
+            rear_side.InitializeTire(tire_RL, rear_side.GetAxle()->m_wheels[0], VisualizationType::MESH);
+            rear_side.InitializeTire(tire_RR, rear_side.GetAxle()->m_wheels[1], VisualizationType::MESH);
+
             break;
+        }
         default:
             std::cout << "Tire type not supported!" << std::endl;
             return 1;
     }
-
-    tire_FL->Initialize(front_side.GetWheelBody(FRONT_LEFT), LEFT);
-    tire_FR->Initialize(front_side.GetWheelBody(FRONT_RIGHT), RIGHT);
-    tire_FL->SetVisualizationType(VisualizationType::MESH);
-    tire_FR->SetVisualizationType(VisualizationType::MESH);
-
-    // Create the rear tires
-    std::unique_ptr<ChTire> tire_RL;
-    std::unique_ptr<ChTire> tire_RR;
-    switch (tire_model) {
-        case TireModelType::RIGID:
-            tire_RL = std::unique_ptr<ChTire>(new Generic_RigidTire("RL"));
-            tire_RR = std::unique_ptr<ChTire>(new Generic_RigidTire("RR"));
-            break;
-        case TireModelType::RIGID_MESH:
-            tire_RL = std::unique_ptr<ChTire>(new Generic_RigidMeshTire("RL"));
-            tire_RR = std::unique_ptr<ChTire>(new Generic_RigidMeshTire("RR"));
-            break;
-        case TireModelType::FIALA:
-            tire_RL = std::unique_ptr<ChTire>(new Generic_FialaTire("RL"));
-            tire_RR = std::unique_ptr<ChTire>(new Generic_FialaTire("RR"));
-            break;
-        default:
-            std::cout << "Tire type not supported!" << std::endl;
-            return 1;
-    }
-
-    tire_RL->Initialize(rear_side.GetWheelBody(FRONT_LEFT), LEFT);
-    tire_RR->Initialize(rear_side.GetWheelBody(FRONT_RIGHT), RIGHT);
-    tire_RL->SetVisualizationType(VisualizationType::MESH);
-    tire_RR->SetVisualizationType(VisualizationType::MESH);
 
     // Initialize Irrlicht app
-    ChWheeledVehicleIrrApp app(&front_side, &powertrain, L"Articulated Vehicle Demo");
+    ChWheeledVehicleIrrApp app(&front_side, L"Articulated Vehicle Demo");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(trackPoint, 6.0, 0.5);
@@ -183,22 +179,13 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    // Inter-module communication data
-    TerrainForces tire_front_forces(2);
-    TerrainForces tire_rear_forces(2);
-    double driveshaft_speed;
-    double powertrain_torque;
-    double throttle_input;
-    double steering_input;
-    double braking_input;
-
     // Number of simulation steps between two 3D view render frames
     int render_steps = (int)std::ceil(render_step_size / step_size);
 
-    // Initialize simulation frame counter and simulation time
+    // Initialize simulation frame counter
     int step_number = 0;
-    double time = 0;
 
+    ChRealtimeStepTimer realtime_timer;
     while (app.GetDevice()->run()) {
         // Render scene
         if (step_number % render_steps == 0) {
@@ -207,63 +194,31 @@ int main(int argc, char* argv[]) {
             app.EndScene();
         }
 
-        // Collect output data from modules (for inter-module communication)
-        throttle_input = driver.GetThrottle();
-        steering_input = driver.GetSteering();
-        braking_input = driver.GetBraking();
-
-        powertrain_torque = powertrain.GetOutputTorque();
-
-        tire_front_forces[0] = tire_FL->GetTireForce();
-        tire_front_forces[1] = tire_FR->GetTireForce();
-        tire_rear_forces[0] = tire_RL->GetTireForce();
-        tire_rear_forces[1] = tire_RR->GetTireForce();
-
-        driveshaft_speed = front_side.GetDriveshaftSpeed();
-
-        WheelState wheel_FL = front_side.GetWheelState(FRONT_LEFT);
-        WheelState wheel_FR = front_side.GetWheelState(FRONT_RIGHT);
-
-        WheelState wheel_RL = rear_side.GetWheelState(FRONT_LEFT);
-        WheelState wheel_RR = rear_side.GetWheelState(FRONT_RIGHT);
+        // Get driver inputs
+        ChDriver::Inputs driver_inputs = driver.GetInputs();
+        double steering_input = driver.GetSteering();
+        double braking_input = driver.GetBraking();
 
         // Update modules (process inputs from other modules)
-        time = front_side.GetSystem()->GetChTime();
-
+        double time = front_side.GetSystem()->GetChTime();
         driver.Synchronize(time);
-
         terrain.Synchronize(time);
-
-        tire_FL->Synchronize(time, wheel_FL, terrain);
-        tire_FR->Synchronize(time, wheel_FR, terrain);
-        tire_RL->Synchronize(time, wheel_RL, terrain);
-        tire_RR->Synchronize(time, wheel_RR, terrain);
-
-        powertrain.Synchronize(time, throttle_input, driveshaft_speed);
-
-        front_side.Synchronize(time, steering_input, braking_input, powertrain_torque, tire_front_forces);
-        rear_side.Synchronize(time, steering_input, braking_input, tire_rear_forces);
-
-        app.Synchronize(driver.GetInputModeAsString(), steering_input, throttle_input, braking_input);
+        rear_side.Synchronize(time, steering_input, braking_input, terrain);
+        front_side.Synchronize(time, driver_inputs, terrain);
+        app.Synchronize(driver.GetInputModeAsString(), driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
-
         terrain.Advance(step_size);
-
-        tire_FL->Advance(step_size);
-        tire_FR->Advance(step_size);
-        tire_RL->Advance(step_size);
-        tire_RR->Advance(step_size);
-
-        powertrain.Advance(step_size);
-
+        rear_side.Advance(step_size);
         front_side.Advance(step_size);
-
         app.Advance(step_size);
 
         // Increment frame number
         step_number++;
+
+        // Spin in place for real time to catch up
+        realtime_timer.Spin(step_size);
     }
 
     return 0;

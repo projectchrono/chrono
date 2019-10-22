@@ -28,18 +28,26 @@ namespace chrono {
 namespace vehicle {
 
 ChTire::ChTire(const std::string& name)
-    : ChPart(name), m_stepsize(1e-3), m_slip_angle(0), m_longitudinal_slip(0), m_camber_angle(0) {}
+    : ChPart(name),
+      m_collision_type(CollisionType::SINGLE_POINT),
+      m_stepsize(1e-3),
+      m_slip_angle(0),
+      m_longitudinal_slip(0),
+      m_camber_angle(0) {}
 
 // -----------------------------------------------------------------------------
-// Base class implementation of the initialization function.
+// Initialize this tire by associating it to the specified wheel.
+// Increment the mass and inertia of the associated suspension spindle body to
+// account for the tire mass and inertia.
 // -----------------------------------------------------------------------------
-void ChTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
+void ChTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     m_wheel = wheel;
-    m_side = side;
 
-    // Increment mass and inertia of the wheel body.
-    wheel->SetMass(wheel->GetMass() + GetMass());
-    wheel->SetInertiaXX(wheel->GetInertiaXX() + GetInertia());
+    //// RADU
+    //// Todo:  Properly account for offset in adjusting inertia.
+    ////        This requires changing the spindle to a ChBodyAuxRef.
+    wheel->GetSpindle()->SetMass(wheel->GetSpindle()->GetMass() + GetMass());
+    wheel->GetSpindle()->SetInertiaXX(wheel->GetSpindle()->GetInertiaXX() + GetInertia());
 }
 
 // -----------------------------------------------------------------------------
@@ -53,7 +61,7 @@ double ChTire::ReportMass() const {
 
 // -----------------------------------------------------------------------------
 // Calculate kinematics quantities (slip angle, longitudinal slip, camber angle,
-// and toe-in angle using the current state of the associated wheel body.
+// and toe-in angle) using the given state of the associated wheel.
 // -----------------------------------------------------------------------------
 void ChTire::CalculateKinematics(double time, const WheelState& state, const ChTerrain& terrain) {
     // Wheel normal (expressed in global frame)

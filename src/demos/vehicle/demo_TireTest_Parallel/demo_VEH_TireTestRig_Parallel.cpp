@@ -154,8 +154,6 @@ int main() {
     // Perform the simulation
     // ----------------------
 
-    system.SetupInitial();
-
     while (gl_window.Active()) {
         rig.Advance(step_size);
 
@@ -172,7 +170,7 @@ int main() {
         ////auto slip_angle = tire->GetSlipAngle();
         ////auto camber_angle = tire->GetCamberAngle();
         ////std::cout << "   " << long_slip << " " << slip_angle << " " << camber_angle << std::endl;
-        ////auto tforce = rig.GetTireForce();
+        ////auto tforce = rig.ReportTireForce();
         ////auto frc = tforce.force;
         ////auto pnt = tforce.point;
         ////auto trq = tforce.moment;

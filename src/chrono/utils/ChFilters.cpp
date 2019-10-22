@@ -922,8 +922,8 @@ static double rms(const std::vector<double>& v) {
 }
 
 static double maxval(const std::vector<double>& v) {
-    double vm = 0.0;
-    for (size_t i = 0; i < v.size(); i++) {
+    double vm = v[0];
+    for (size_t i = 1; i < v.size(); i++) {
         if (v[i] > vm) {
             vm = v[i];
         }
@@ -1193,10 +1193,10 @@ double ChISO2631_Shock_SeatCushionLogger::GetSe() {
 double ChISO2631_Shock_SeatCushionLogger::GetLegacyAz() {
     const double to_g = 0.1019716213;
     double az_max = 0;
-    int nInDat = static_cast<int>(std::floor(m_logging_time / m_step_inp));
+    size_t nInDat = static_cast<size_t>(std::floor(m_logging_time / m_step_inp));
 
     std::vector<double> legacy_az;
-    for (int i = 0; i < nInDat; i++) {
+    for (size_t i = 0; i < nInDat; i++) {
         double t = m_step_inp * i;
         legacy_az.push_back(m_legacy_lpz.Filter(m_raw_inp_z.Get_y(t) * to_g));
         if (legacy_az[i] > az_max) {

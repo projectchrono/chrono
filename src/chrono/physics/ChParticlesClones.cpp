@@ -354,7 +354,7 @@ void ChParticlesClones::IntStateScatter(const unsigned int off_x,  // offset in 
         particles[j]->SetWvel_loc(v.segment(off_v + 6 * j + 3, 3));
     }
     SetChTime(T);
-    Update();
+    Update(T);
 }
 
 void ChParticlesClones::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {

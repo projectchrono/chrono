@@ -33,9 +33,6 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
-#include "chrono_thirdparty/rapidjson/document.h"
-#include "chrono_thirdparty/rapidjson/filereadstream.h"
-
 using namespace rapidjson;
 
 namespace chrono {
@@ -44,15 +41,9 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void TrackAssemblyDoublePin::ReadSprocket(const std::string& filename, int output) {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     // Check that the given file is a sprocket specification file.
     assert(d.HasMember("Type"));
@@ -78,15 +69,9 @@ void TrackAssemblyDoublePin::ReadSprocket(const std::string& filename, int outpu
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void TrackAssemblyDoublePin::ReadTrackShoes(const std::string& filename, int num_shoes, int output) {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     // Check that the given file is a track shoe specification file.
     assert(d.HasMember("Type"));
@@ -114,15 +99,9 @@ void TrackAssemblyDoublePin::ReadTrackShoes(const std::string& filename, int num
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 TrackAssemblyDoublePin::TrackAssemblyDoublePin(const std::string& filename) : ChTrackAssemblyDoublePin("", LEFT) {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     Create(d);
 

@@ -22,8 +22,6 @@
 #include "chrono_vehicle/tracked_vehicle/track_shoe/TrackShoeBandBushing.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
-#include "chrono_thirdparty/rapidjson/filereadstream.h"
-
 using namespace rapidjson;
 
 namespace chrono {
@@ -33,15 +31,9 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 TrackShoeBandBushing::TrackShoeBandBushing(const std::string& filename)
     : ChTrackShoeBandBushing(""), m_has_mesh(false) {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     Create(d);
 

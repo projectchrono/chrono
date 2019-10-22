@@ -177,9 +177,6 @@ int main(int argc, char* argv[]) {
 
     application.AssetUpdateAll();
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
     //
     // THE SOFT-REAL-TIME CYCLE
     //

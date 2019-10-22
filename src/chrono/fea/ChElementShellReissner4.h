@@ -51,7 +51,7 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     using ShapeVector = ChMatrixNM<double, 1, 4>;
 
     ChElementShellReissner4();
-    virtual ~ChElementShellReissner4();
+    ~ChElementShellReissner4();
 
     /// Definition of a layer
     class Layer {
@@ -187,6 +187,11 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     virtual unsigned int iGetNumDof(void) const { return 7; };
 
   private:
+    /// Initial setup.
+    /// This is used mostly to precompute matrices that do not change during the simulation,
+    /// such as the local stiffness of each element (if any), the mass, etc.
+    virtual void SetupInitial(ChSystem* system) override;
+
     void UpdateNodalAndAveragePosAndOrientation();
     void ComputeInitialNodeOrientation();
     void InterpolateOrientation();
@@ -397,11 +402,6 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     /// Computes the internal forces.
     /// (E.g. the actual position of nodes is not in relaxed reference position) and set values in the Fi vector.
     virtual void ComputeInternalForces(ChVectorDynamic<>& Fi) override;
-
-    /// Initial setup.
-    /// This is used mostly to precompute matrices that do not change during the simulation,
-    /// such as the local stiffness of each element (if any), the mass, etc.
-    virtual void SetupInitial(ChSystem* system) override;
 
     /// Update the state of this element.
     virtual void Update() override;

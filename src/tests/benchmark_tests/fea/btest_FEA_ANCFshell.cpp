@@ -125,8 +125,6 @@ ANCFshell<N>::ANCFshell() {
         nodeA = nodeC;
         nodeB = nodeD;
     }
-
-    m_system->SetupInitial();
 }
 
 template <int N>

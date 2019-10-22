@@ -19,6 +19,7 @@
 #ifndef TT_TRAILER_H
 #define TT_TRAILER_H
 
+#include "chrono_vehicle/ChTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 
 class TT_Trailer {
@@ -27,21 +28,29 @@ class TT_Trailer {
 
     ~TT_Trailer() {}
 
-    virtual int GetNumberAxles() const { return 2; }
+    int GetNumberAxles() const { return 2; }
 
-    double GetSpringForce(const chrono::vehicle::WheelID& wheel_id) const;
-    double GetSpringLength(const chrono::vehicle::WheelID& wheel_id) const;
-    double GetSpringDeformation(const chrono::vehicle::WheelID& wheel_id) const;
+    double GetSpringForce(int axle, chrono::vehicle::VehicleSide side) const;
+    double GetSpringLength(int axle, chrono::vehicle::VehicleSide side) const;
+    double GetSpringDeformation(int axle, chrono::vehicle::VehicleSide side) const;
 
-    double GetShockForce(const chrono::vehicle::WheelID& wheel_id) const;
-    double GetShockLength(const chrono::vehicle::WheelID& wheel_id) const;
-    double GetShockVelocity(const chrono::vehicle::WheelID& wheel_id) const;
+    double GetShockForce(int axle, chrono::vehicle::VehicleSide side) const;
+    double GetShockLength(int axle, chrono::vehicle::VehicleSide side) const;
+    double GetShockVelocity(int axle, chrono::vehicle::VehicleSide side) const;
 
-    virtual void Initialize(const chrono::ChCoordsys<>& chassisPos,
+    void Initialize(const chrono::ChCoordsys<>& chassisPos,
                             const bool connect_to_puller,
                             std::shared_ptr<chrono::ChBodyAuxRef> pulling_vehicle);
 
-    virtual void Synchronize(double time, double braking, const chrono::vehicle::TerrainForces& tire_forces);
+    void InitializeTire(
+        std::shared_ptr<chrono::vehicle::ChTire> tire,
+        std::shared_ptr<chrono::vehicle::ChWheel> wheel,
+        chrono::vehicle::VisualizationType tire_vis = chrono::vehicle::VisualizationType::PRIMITIVES,
+        chrono::vehicle::ChTire::CollisionType tire_coll = chrono::vehicle::ChTire::CollisionType::SINGLE_POINT);
+
+    void Synchronize(double time, double braking, const chrono::vehicle::ChTerrain& terrain);
+
+    void Advance(double step);
 
     void SetSuspensionVisualizationType(chrono::vehicle::VisualizationType vis);
     void SetWheelVisualizationType(chrono::vehicle::VisualizationType vis);
@@ -50,20 +59,21 @@ class TT_Trailer {
     void LogHardpointLocations();  /// suspension hardpoints at design
     void DebugLog(int what);       /// shock forces and lengths, constraints, etc.
 
-    /// Get a handle to the specified wheel body.
-    std::shared_ptr<chrono::ChBody> GetWheelBody(const chrono::vehicle::WheelID& wheelID) const;
+    /// Get all trailer axle subsystems.
+    const chrono::vehicle::ChAxleList& GetAxles() const { return m_axles; }
+
+    /// Get the specified trailer axle subsystem.
+    std::shared_ptr<chrono::vehicle::ChAxle> GetAxle(int id) const { return m_axles[id]; }
 
   private:
     chrono::vehicle::SuspensionType m_suspType;
 
-    std::shared_ptr<chrono::ChBodyAuxRef> m_chassis;    ///< handle to the chassis body
-    std::shared_ptr<chrono::ChBodyAuxRef> m_frontaxle;  ///< handle to the steering axle
-    chrono::vehicle::ChSuspensionList m_suspensions;    ///< list of handles to suspension subsystems
-    chrono::vehicle::ChWheelList m_wheels;              ///< list of handles to wheel subsystems
-    chrono::vehicle::ChBrakeList m_brakes;              ///< list of handles to brake subsystems
+    std::shared_ptr<chrono::ChBodyAuxRef> m_chassis;    ///< chassis body
+    std::shared_ptr<chrono::ChBodyAuxRef> m_frontaxle;  ///< steering axle
+    chrono::vehicle::ChAxleList m_axles;                ///< list of axle subsystems
 
-    std::shared_ptr<chrono::ChLinkLockSpherical> m_joint;   ///< handle to the joint between chassis and front axle
-    std::shared_ptr<chrono::ChLinkLockSpherical> m_puller;  ///< handle to the joint between trailer and pulling vehicle
+    std::shared_ptr<chrono::ChLinkLockSpherical> m_joint;   ///< joint between chassis and front axle
+    std::shared_ptr<chrono::ChLinkLockSpherical> m_puller;  ///< joint between trailer and pulling vehicle
 
     // Chassis mass properties
     static const double m_chassisMass;

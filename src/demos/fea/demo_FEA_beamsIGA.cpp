@@ -138,9 +138,6 @@ void MakeAndRunDemo0(ChIrrApp& myapp) {
 	myapp.AssetBindAll();
 	myapp.AssetUpdateAll();
 
-	// Mark completion of system construction
-	myapp.GetSystem()->SetupInitial();
-
 	while (ID_current_example == 1 && myapp.GetDevice()->run()) {
 		myapp.BeginScene();
 		myapp.DrawAll();
@@ -228,9 +225,6 @@ void MakeAndRunDemo1(ChIrrApp& myapp, int nsections=32, int order=2) {
 	// This is needed if you want to see things in Irrlicht 3D view.
 	myapp.AssetBindAll();
 	myapp.AssetUpdateAll();
-
-	// Mark completion of system construction
-	myapp.GetSystem()->SetupInitial();
 
 	// Do a linear static analysis.
 	myapp.GetSystem()->DoStaticLinear();
@@ -334,9 +328,6 @@ void MakeAndRunDemo2(ChIrrApp& myapp) {
 	// This is needed if you want to see things in Irrlicht 3D view.
 	myapp.AssetBindAll();
 	myapp.AssetUpdateAll();
-
-	// Mark completion of system construction
-	myapp.GetSystem()->SetupInitial();
 
 	while (ID_current_example == 2 && myapp.GetDevice()->run()) {
 		myapp.BeginScene();
@@ -450,9 +441,6 @@ void MakeAndRunDemo3(ChIrrApp& myapp) {
 	// This is needed if you want to see things in Irrlicht 3D view.
 	myapp.AssetBindAll();
 	myapp.AssetUpdateAll();
-
-	// Mark completion of system construction
-	myapp.GetSystem()->SetupInitial();
 
 	ChStreamOutAsciiFile my_plasticfile("plasticity.txt");
 
@@ -625,9 +613,6 @@ void MakeAndRunDemo4(ChIrrApp& myapp) {
 	// This is needed if you want to see things in Irrlicht 3D view.
 	myapp.AssetBindAll();
 	myapp.AssetUpdateAll();
-
-	// Mark completion of system construction
-	myapp.GetSystem()->SetupInitial();
 	
 	// Prepare file for output data
 	const std::string out_dir = GetChronoOutputPath() + "JEFFCOTT_ROTOR";

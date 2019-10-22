@@ -176,10 +176,8 @@ int main(int argc, char* argv[]) {
     mystepper->SetVerbose(true);
     mystepper->SetModifiedNewton(false);
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
+	// Simulation loop
     unsigned int num_steps = 50;
-
     double time_Step = 0.01;
     std::cout << std::fixed << std::setprecision(12);
     for (unsigned int it = 0; it < num_steps; it++) {

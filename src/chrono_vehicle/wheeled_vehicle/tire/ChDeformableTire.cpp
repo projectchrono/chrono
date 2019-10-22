@@ -16,6 +16,10 @@
 //
 // =============================================================================
 
+//// RADU
+//// Todo: extend this and derived classes to allow use in a double-wheel setup.
+////       in particular, check how the tire FEA mesh is attached to the rim.
+
 #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
 
 namespace chrono {
@@ -37,10 +41,10 @@ ChDeformableTire::ChDeformableTire(const std::string& name)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChDeformableTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
-    ChTire::Initialize(wheel, side);
+void ChDeformableTire::Initialize(std::shared_ptr<ChWheel> wheel) {
+    ChTire::Initialize(wheel);
 
-    ChSystemSMC* system = dynamic_cast<ChSystemSMC*>(wheel->GetSystem());
+    ChSystemSMC* system = dynamic_cast<ChSystemSMC*>(wheel->GetSpindle()->GetSystem());
     assert(system);
 
     // Create the tire mesh
@@ -48,7 +52,7 @@ void ChDeformableTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide sid
     system->Add(m_mesh);
 
     // Create the FEA nodes and elements
-    CreateMesh(*(wheel.get()), side);
+    CreateMesh(*(wheel->GetSpindle().get()), wheel->GetSide());
 
     // Create a load container
     m_load_container = chrono_types::make_shared<ChLoadContainer>();
@@ -84,7 +88,7 @@ void ChDeformableTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide sid
     // Enable tire connection to rim
     if (m_connection_enabled) {
         // Let the derived class create the constraints and add them to the system.
-        CreateRimConnections(wheel);
+        CreateRimConnections(wheel->GetSpindle());
     }
 }
 
@@ -149,7 +153,7 @@ TerrainForce ChDeformableTire::ReportTireForce(ChTerrain* terrain) const {
     for (size_t ic = 0; ic < m_connections.size(); ic++) {
         ChCoordsys<> csys = m_connections[ic]->GetLinkAbsoluteCoords();
         ChVector<> react = csys.TransformDirectionLocalToParent(m_connections[ic]->GetReactionOnBody());
-        m_wheel->To_abs_forcetorque(react, csys.pos, false, force, moment);
+        m_wheel->GetSpindle()->To_abs_forcetorque(react, csys.pos, false, force, moment);
         tire_force.force += force;
         tire_force.moment += moment;
     }
@@ -157,14 +161,14 @@ TerrainForce ChDeformableTire::ReportTireForce(ChTerrain* terrain) const {
     for (size_t ic = 0; ic < m_connectionsD.size(); ic++) {
         ChCoordsys<> csys = m_connectionsD[ic]->GetLinkAbsoluteCoords();
         ChVector<> react = csys.TransformDirectionLocalToParent(m_connectionsD[ic]->GetReactionOnBody());
-        m_wheel->To_abs_torque(react, false, moment);
+        m_wheel->GetSpindle()->To_abs_torque(react, false, moment);
         tire_force.moment += moment;
     }
 
     for (size_t ic = 0; ic < m_connectionsF.size(); ic++) {
         ChCoordsys<> csys = m_connectionsF[ic]->GetLinkAbsoluteCoords();
         ChVector<> react = csys.TransformDirectionLocalToParent(m_connectionsF[ic]->Get_react_force());
-        m_wheel->To_abs_forcetorque(react, csys.pos, false, force, moment);
+        m_wheel->GetSpindle()->To_abs_forcetorque(react, csys.pos, false, force, moment);
         tire_force.force += force;
         tire_force.moment += moment;
         ChVector<> reactMoment = csys.TransformDirectionLocalToParent(m_connectionsF[ic]->Get_react_torque());

@@ -288,7 +288,7 @@ void ChMatterMeshless::IntStateScatter(const unsigned int off_x,  // offset in x
         nodes[j]->pos_dt = v.segment(off_v + 3 * j, 3);
     }
     SetChTime(T);
-    Update();
+    Update(T);
 }
 
 void ChMatterMeshless::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {

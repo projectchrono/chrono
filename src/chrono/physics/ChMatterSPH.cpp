@@ -345,7 +345,7 @@ void ChMatterSPH::IntStateScatter(const unsigned int off_x,  // offset in x stat
         nodes[j]->pos_dt = v.segment(off_v + 3 * j, 3);
     }
     SetChTime(T);
-    Update();
+    Update(T);
 }
 
 void ChMatterSPH::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {

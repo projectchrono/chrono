@@ -227,6 +227,12 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
 
 void ChLinkMateGeneric::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
                                    std::shared_ptr<ChBodyFrame> mbody2,
+                                   ChFrame<> mabsframe) {
+    this->Initialize(mbody1, mbody2, false, mabsframe, mabsframe);
+}
+
+void ChLinkMateGeneric::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
+                                   std::shared_ptr<ChBodyFrame> mbody2,
                                    bool pos_are_relative,
                                    ChFrame<> mpos1,
                                    ChFrame<> mpos2) {
@@ -247,15 +253,6 @@ void ChLinkMateGeneric::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
         static_cast<ChFrame<>*>(this->Body2)->TransformParentToLocal(mpos2, this->frame2);
     }
 }
-
- 
-void ChLinkMateGeneric::Initialize(std::shared_ptr<ChBodyFrame> mbody1, 
-                            std::shared_ptr<ChBodyFrame> mbody2,  
-                            ChFrame<> mabsframe                 
-                            ) {
-    this->Initialize(mbody1, mbody2, false, mabsframe, mabsframe);
-}
-
 
 void ChLinkMateGeneric::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
                                    std::shared_ptr<ChBodyFrame> mbody2,

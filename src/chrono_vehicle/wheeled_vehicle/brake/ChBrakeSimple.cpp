@@ -28,22 +28,22 @@ ChBrakeSimple::ChBrakeSimple(const std::string& name) : ChBrake(name), m_modulat
     m_brake = chrono_types::make_shared<ChLinkBrake>();
 }
 
-void ChBrakeSimple::Initialize(std::shared_ptr<ChLinkLockRevolute> hub) {
-    ChSystem* my_system = hub->GetSystem();
+void ChBrakeSimple::Initialize(std::shared_ptr<ChSuspension> suspension, VehicleSide side) {
+    auto hub = suspension->GetRevolute(side);
 
     // Reuse the same bodies and link coordinate of the hub revolute joint
     // Note that we wrap raw pointers in local shared_ptr.  For this, we must provide
     // custom empty deleters (to prevent deleting the objects when the local shared_ptr
     // go out of scope).
-    std::shared_ptr<ChBodyFrame> mbf1(hub->GetBody1(), [](ChBodyFrame*){});
-    std::shared_ptr<ChBodyFrame> mbf2(hub->GetBody2(), [](ChBodyFrame*){});
+    std::shared_ptr<ChBodyFrame> mbf1(hub->GetBody1(), [](ChBodyFrame*) {});
+    std::shared_ptr<ChBodyFrame> mbf2(hub->GetBody2(), [](ChBodyFrame*) {});
 
     // Downcast to ChBody shared_ptr
     auto mb1 = std::dynamic_pointer_cast<ChBody>(mbf1);
     auto mb2 = std::dynamic_pointer_cast<ChBody>(mbf2);
 
     m_brake->Initialize(mb1, mb2, true, hub->GetMarker1()->GetCoord(), hub->GetMarker2()->GetCoord());
-    my_system->AddLink(m_brake);
+    hub->GetSystem()->AddLink(m_brake);
 }
 
 void ChBrakeSimple::Synchronize(double modulation) {

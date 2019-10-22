@@ -73,7 +73,6 @@ HmmwvDlcTest<EnumClass, TIRE_MODEL>::HmmwvDlcTest() : m_step_veh(2e-3), m_step_t
     m_hmmwv->SetDriveType(drive_type);
     m_hmmwv->SetTireType(TIRE_MODEL);
     m_hmmwv->SetTireStepSize(m_step_tire);
-    m_hmmwv->SetVehicleStepSize(m_step_veh);
     m_hmmwv->SetAerodynamicDrag(0.5, 5.0, 1.2);
     m_hmmwv->Initialize();
 
@@ -113,15 +112,13 @@ template <typename EnumClass, EnumClass TIRE_MODEL>
 void HmmwvDlcTest<EnumClass, TIRE_MODEL>::ExecuteStep() {
     double time = m_hmmwv->GetSystem()->GetChTime();
 
-    // Collect output data from modules (for inter-module communication)
-    double throttle_input = m_driver->GetThrottle();
-    double steering_input = m_driver->GetSteering();
-    double braking_input = m_driver->GetBraking();
+    // Driver inputs
+    ChDriver::Inputs driver_inputs = m_driver->GetInputs();
 
     // Update modules (process inputs from other modules)
     m_driver->Synchronize(time);
     m_terrain->Synchronize(time);
-    m_hmmwv->Synchronize(time, steering_input, braking_input, throttle_input, *m_terrain);
+    m_hmmwv->Synchronize(time, driver_inputs, *m_terrain);
 
     // Advance simulation for one timestep for all modules
     m_driver->Advance(m_step_veh);
@@ -132,7 +129,7 @@ void HmmwvDlcTest<EnumClass, TIRE_MODEL>::ExecuteStep() {
 template <typename EnumClass, EnumClass TIRE_MODEL>
 void HmmwvDlcTest<EnumClass, TIRE_MODEL>::SimulateVis() {
 #ifdef CHRONO_IRRLICHT
-    ChWheeledVehicleIrrApp app(&m_hmmwv->GetVehicle(), &m_hmmwv->GetPowertrain(), L"HMMWV acceleration test");
+    ChWheeledVehicleIrrApp app(&m_hmmwv->GetVehicle(), L"HMMWV acceleration test");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
@@ -152,10 +149,12 @@ void HmmwvDlcTest<EnumClass, TIRE_MODEL>::SimulateVis() {
         ballS->setPosition(irr::core::vector3df((irr::f32)pS.x(), (irr::f32)pS.y(), (irr::f32)pS.z()));
         ballT->setPosition(irr::core::vector3df((irr::f32)pT.x(), (irr::f32)pT.y(), (irr::f32)pT.z()));
 
+        ChDriver::Inputs driver_inputs = m_driver->GetInputs();
+
         app.BeginScene();
         app.DrawAll();
         ExecuteStep();
-        app.Synchronize("Acceleration test", m_driver->GetSteering(), m_driver->GetThrottle(), m_driver->GetBraking());
+        app.Synchronize("Acceleration test", driver_inputs);
         app.Advance(m_step_veh);
         app.EndScene();
     }

@@ -12,22 +12,16 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Base class for a tracked vehicle driveline.
-//
-// The reference frame for a vehicle follows the ISO standard: Z-axis up, X-axis
-// pointing forward, and Y-axis towards the left of the vehicle.
+// Base class for a vehicle driveline.
 //
 // =============================================================================
 
-#include "chrono_vehicle/tracked_vehicle/ChTrackDriveline.h"
+#include "chrono_vehicle/ChDriveline.h"
 
 namespace chrono {
 namespace vehicle {
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-ChTrackDriveline::ChTrackDriveline(const std::string& name) : ChPart(name), m_gyration_mode(false) {
-}
+ChDriveline::ChDriveline(const std::string& name) : ChPart(name) {}
 
 }  // end namespace vehicle
 }  // end namespace chrono

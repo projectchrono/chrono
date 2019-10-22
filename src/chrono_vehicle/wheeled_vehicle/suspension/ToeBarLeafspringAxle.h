@@ -106,9 +106,6 @@ class CH_VEHICLE_API ToeBarLeafspringAxle : public ChToeBarLeafspringAxle {
 
     ChVector<> m_points[NUM_POINTS];
 
-    double m_springMinLength;
-    double m_springMaxLength;
-
     double m_damperDegressivityCompression;
     double m_damperDegressivityExpansion;
 

@@ -40,23 +40,6 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
                                  public ChLoadableU,
                                  public ChLoadableUVW,
                                  public ChElementCorotational {
-  protected:
-    std::vector<std::shared_ptr<ChNodeFEAxyzrot> > nodes;
-
-    std::shared_ptr<ChBeamSectionAdvanced> section;
-
-    ChMatrixDynamic<> StiffnessMatrix;  ///< undeformed local stiffness matrix
-
-    ChQuaternion<> q_refrotA;
-    ChQuaternion<> q_refrotB;
-
-    ChQuaternion<> q_element_abs_rot;
-    ChQuaternion<> q_element_ref_rot;
-
-    bool disable_corotate;
-    bool disable_projector;
-    bool force_symmetric_stiffness;
-
   public:
     using ShapeVector = ChMatrixNM<double, 1, 10>;
 
@@ -158,10 +141,6 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
     /// Note: in this 'basic' implementation, constant section and
     /// constant material are assumed, so the explicit result of quadrature is used.
     void ComputeStiffnessMatrix();
-
-    /// Setup. Precompute mass and matrices that do not change during the
-    /// simulation, such as the local tangent stiffness Kl of each element, if needed, etc.
-    virtual void SetupInitial(ChSystem* system) override;
 
     /// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
     /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
@@ -271,6 +250,29 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
 
     /// This is needed so that it can be accessed by ChLoaderVolumeGravity
     virtual double GetDensity() override;
+
+  private:
+    /// Initial setup. Precompute mass and matrices that do not change during the simulation, such as the local tangent
+    /// stiffness Kl of each element, if needed, etc.
+    virtual void SetupInitial(ChSystem* system) override;
+
+    std::vector<std::shared_ptr<ChNodeFEAxyzrot> > nodes;
+
+    std::shared_ptr<ChBeamSectionAdvanced> section;
+
+    ChMatrixDynamic<> StiffnessMatrix;  ///< undeformed local stiffness matrix
+
+    ChQuaternion<> q_refrotA;
+    ChQuaternion<> q_refrotB;
+
+    ChQuaternion<> q_element_abs_rot;
+    ChQuaternion<> q_element_ref_rot;
+
+    bool disable_corotate;
+    bool disable_projector;
+    bool force_symmetric_stiffness;
+
+	friend class ChExtruderBeamEuler;
 };
 
 /// @} fea_elements

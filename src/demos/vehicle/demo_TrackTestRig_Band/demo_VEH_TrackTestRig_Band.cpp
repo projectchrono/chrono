@@ -175,7 +175,7 @@ int main(int argc, char* argv[]) {
     ////ChVector<> target_point = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
     ChVector<> target_point = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
 
-    ChVehicleIrrApp app(rig, NULL, L"Continuous Band Track Test Rig");
+    ChVehicleIrrApp app(rig, L"Continuous Band Track Test Rig");
     app.SetSkyBox();
     irrlicht::ChIrrWizard::add_typical_Logo(app.GetDevice());
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
@@ -283,9 +283,6 @@ int main(int argc, char* argv[]) {
     integrator->SetScaling(true);
     integrator->SetVerbose(verbose_integrator);
 
-    // IMPORTANT: Mark completion of system construction
-    rig->GetSystem()->SetupInitial();
-
     // -----------------
     // Print model stats
     // -----------------
@@ -349,7 +346,7 @@ int main(int argc, char* argv[]) {
         rig->Advance(step_size);
 
         // Update visualization app
-        app.Synchronize(rig->GetDriverMessage(), 0, rig->GetThrottleInput(), 0);
+        app.Synchronize(rig->GetDriverMessage(), { 0, rig->GetThrottleInput(), 0 });
         app.Advance(step_size);
 
         // Parse all contacts in system

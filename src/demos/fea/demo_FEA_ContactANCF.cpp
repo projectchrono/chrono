@@ -200,7 +200,6 @@ int main(int argc, char* argv[]) {
     application.AssetBindAll();
     application.AssetUpdateAll();
     application.AddShadowAll();
-    my_system.SetupInitial();
 
     // ---------------
     // Simulation loop

@@ -24,8 +24,6 @@
 
 #include "chrono_vehicle/utils/ChVehicleIrrApp.h"
 
-#include "chrono_vehicle/powertrain/ChShaftsPowertrain.h"
-
 using namespace irr;
 
 namespace chrono {
@@ -108,13 +106,11 @@ bool ChCameraEventReceiver::OnEvent(const SEvent& event) {
 // Construct a vehicle Irrlicht application.
 // -----------------------------------------------------------------------------
 ChVehicleIrrApp::ChVehicleIrrApp(ChVehicle* vehicle,
-                                 ChPowertrain* powertrain,
                                  const wchar_t* title,
                                  irr::core::dimension2d<irr::u32> dims,
-    irr::ELOG_LEVEL log_level)
+                                 irr::ELOG_LEVEL log_level)
     : ChIrrApp(vehicle->GetSystem(), title, dims, false, false, true, irr::video::EDT_OPENGL, log_level),
       m_vehicle(vehicle),
-      m_powertrain(powertrain),
       m_camera(vehicle->GetChassisBody()),
       m_stepsize(1e-3),
       m_HUD_x(700),
@@ -204,11 +200,11 @@ void ChVehicleIrrApp::SetChaseCamera(const ChVector<>& ptOnChassis, double chase
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChVehicleIrrApp::Synchronize(const std::string& msg, double steering, double throttle, double braking) {
+void ChVehicleIrrApp::Synchronize(const std::string& msg, const ChDriver::Inputs& driver_inputs) {
     m_driver_msg = msg;
-    m_steering = steering;
-    m_throttle = throttle;
-    m_braking = braking;
+    m_steering = driver_inputs.m_steering;
+    m_throttle = driver_inputs.m_throttle;
+    m_braking = driver_inputs.m_braking;
 }
 
 // -----------------------------------------------------------------------------
@@ -239,9 +235,9 @@ void ChVehicleIrrApp::Advance(double step) {
     static int stepsbetweensound = 0;
 
     // Update sound pitch
-    if (m_car_sound && m_powertrain) {
+    if (m_car_sound && m_vehicle->GetPowertrain()) {
         stepsbetweensound++;
-        double engine_rpm = m_powertrain->GetMotorSpeed() * 60 / chrono::CH_C_2PI;
+        double engine_rpm = m_vehicle->GetPowertrain()->GetMotorSpeed() * 60 / chrono::CH_C_2PI;
         double soundspeed = engine_rpm / (8000.);  // denominator: to guess
         if (soundspeed < 0.1)
             soundspeed = 0.1;
@@ -335,29 +331,30 @@ void ChVehicleIrrApp::renderStats() {
 
     // Display information from powertrain system.
 
-    if (m_powertrain) {
-        double engine_rpm = m_powertrain->GetMotorSpeed() * 60 / chrono::CH_C_2PI;
+    auto powertrain = m_vehicle->GetPowertrain();
+    if (powertrain) {
+        double engine_rpm = powertrain->GetMotorSpeed() * 60 / chrono::CH_C_2PI;
         sprintf(msg, "Eng. RPM: %+.2f", engine_rpm);
         renderLinGauge(std::string(msg), engine_rpm / 7000, false, m_HUD_x, m_HUD_y + 50, 120, 15);
 
-        double engine_torque = m_powertrain->GetMotorTorque();
+        double engine_torque = powertrain->GetMotorTorque();
         sprintf(msg, "Eng. Nm: %+.2f", engine_torque);
         renderLinGauge(std::string(msg), engine_torque / 600, false, m_HUD_x, m_HUD_y + 70, 120, 15);
 
-        double tc_slip = m_powertrain->GetTorqueConverterSlippage();
+        double tc_slip = powertrain->GetTorqueConverterSlippage();
         sprintf(msg, "T.conv. slip: %+.2f", tc_slip);
         renderLinGauge(std::string(msg), tc_slip / 1, false, m_HUD_x, m_HUD_y + 90, 120, 15);
 
-        double tc_torquein = m_powertrain->GetTorqueConverterInputTorque();
+        double tc_torquein = powertrain->GetTorqueConverterInputTorque();
         sprintf(msg, "T.conv. in  Nm: %+.2f", tc_torquein);
         renderLinGauge(std::string(msg), tc_torquein / 600, false, m_HUD_x, m_HUD_y + 110, 120, 15);
 
-        double tc_torqueout = m_powertrain->GetTorqueConverterOutputTorque();
+        double tc_torqueout = powertrain->GetTorqueConverterOutputTorque();
         sprintf(msg, "T.conv. out Nm: %+.2f", tc_torqueout);
         renderLinGauge(std::string(msg), tc_torqueout / 600, false, m_HUD_x, m_HUD_y + 130, 120, 15);
 
-        int ngear = m_powertrain->GetCurrentTransmissionGear();
-        ChPowertrain::DriveMode drivemode = m_powertrain->GetDriveMode();
+        int ngear = powertrain->GetCurrentTransmissionGear();
+        ChPowertrain::DriveMode drivemode = powertrain->GetDriveMode();
         switch (drivemode) {
             case ChPowertrain::FORWARD:
                 sprintf(msg, "Gear: forward, n.gear: %d", ngear);

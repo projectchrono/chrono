@@ -19,7 +19,7 @@
 #ifndef CH_GENERIC_SIMPLE_DRIVELINE_H
 #define CH_GENERIC_SIMPLE_DRIVELINE_H
 
-#include "chrono_vehicle/wheeled_vehicle/ChDriveline.h"
+#include "chrono_vehicle/wheeled_vehicle/ChDrivelineWV.h"
 #include "chrono_models/ChApiModels.h"
 
 namespace chrono {
@@ -30,7 +30,7 @@ namespace generic {
 /// @{
 
 /// Simple driveline model for the generic vehicle (purely kinematic).
-class CH_MODELS_API Generic_SimpleDriveline : public ChDriveline {
+class CH_MODELS_API Generic_SimpleDriveline : public ChDrivelineWV {
   public:
     Generic_SimpleDriveline(const std::string& name);
     virtual ~Generic_SimpleDriveline() {}
@@ -42,10 +42,9 @@ class CH_MODELS_API Generic_SimpleDriveline : public ChDriveline {
     virtual int GetNumDrivenAxles() const final override { return 1; }
 
     /// Initialize the driveline subsystem.
-    /// This function connects this driveline subsystem to the axles of the
-    /// specified suspension subsystems.
+    /// This function connects this driveline subsystem to the specified axles.
     virtual void Initialize(std::shared_ptr<ChBody> chassis,      ///< handle to the chassis body
-                            const ChSuspensionList& suspensions,  ///< list of all vehicle suspension subsystems
+                            const ChAxleList& axles,              ///< list of all vehicle axle subsystems
                             const std::vector<int>& driven_axles  ///< indexes of the driven vehicle axles
                             ) override;
 
@@ -59,8 +58,8 @@ class CH_MODELS_API Generic_SimpleDriveline : public ChDriveline {
     /// system.
     virtual void Synchronize(double torque) override;
 
-    /// Get the motor torque to be applied to the specified wheel.
-    virtual double GetWheelTorque(const WheelID& wheel_id) const override;
+    /// Get the motor torque to be applied to the specified spindle.
+    virtual double GetSpindleTorque(int axle, VehicleSide side) const override;
 
   private:
     static const double m_conicalgear_ratio;

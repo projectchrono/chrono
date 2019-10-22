@@ -20,7 +20,7 @@
 #define CH_SHAFTS_DRIVELINE_4WD_H
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/wheeled_vehicle/ChDriveline.h"
+#include "chrono_vehicle/wheeled_vehicle/ChDrivelineWV.h"
 
 #include "chrono/physics/ChShaftsBody.h"
 #include "chrono/physics/ChShaftsClutch.h"
@@ -37,7 +37,7 @@ namespace vehicle {
 /// @{
 
 /// 4WD driveline model template based on ChShaft objects.
-class CH_VEHICLE_API ChShaftsDriveline4WD : public ChDriveline {
+class CH_VEHICLE_API ChShaftsDriveline4WD : public ChDrivelineWV {
   public:
     ChShaftsDriveline4WD(const std::string& name);
 
@@ -75,15 +75,14 @@ class CH_VEHICLE_API ChShaftsDriveline4WD : public ChDriveline {
     virtual int GetNumDrivenAxles() const final override { return 2; }
 
     /// Initialize the driveline subsystem.
-    /// This function connects this driveline subsystem to the axles of the
-    /// specified suspension subsystems.
+    /// This function connects this driveline subsystem to the specified axle subsystems.
     virtual void Initialize(std::shared_ptr<ChBody> chassis,      ///< handle to the chassis body
-                            const ChSuspensionList& suspensions,  ///< list of all vehicle suspension subsystems
+                            const ChAxleList& axles,              ///< list of all vehicle axles subsystems
                             const std::vector<int>& driven_axles  ///< indexes of the driven vehicle axles
                             ) override;
 
-    /// Get the motor torque to be applied to the specified wheel.
-    virtual double GetWheelTorque(const WheelID& wheel_id) const override;
+    /// Get the motor torque to be applied to the specified spindle.
+    virtual double GetSpindleTorque(int axle, VehicleSide side) const override;
 
   protected:
     /// Return the inertia of the driveshaft.
