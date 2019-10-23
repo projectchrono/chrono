@@ -10,6 +10,7 @@
     ],
     "Use Mode": 3, 
     "Coefficient of Friction": 0.8, // these parameters have been measured on a road with this friction
+    "Tire Side": "left",
     "Dimension": {
         "Unloaded Radius": 0.464,
         "Width": 0.318,

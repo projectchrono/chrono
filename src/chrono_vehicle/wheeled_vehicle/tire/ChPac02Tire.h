@@ -18,10 +18,10 @@
 // Hans B. Pacejka's "Tire and Vehicle Dynamics" Third Edition, Elsevier 2012
 // ISBN: 978-0-08-097016-5
 //
-// Actually implemented: 
+// Actually implemented:
 // - steady state longitudinal, lateral force, alignment torque, overturning torque
 // - can run in combined (Pacejka or Friction Ellipsis Method) or uncombined mode
-// 
+//
 // Aim of this implementation is the replacement of ChPacejkaTire, which is more
 // complete but unreliable in practical usage.
 // =============================================================================
@@ -117,6 +117,7 @@ class CH_VEHICLE_API ChPac02Tire : public ChTire {
     double m_By;
 
     VehicleSide m_measured_side;
+    bool m_allow_mirroring;
 
     unsigned int m_use_mode;
     // combined forces calculation
@@ -160,15 +161,15 @@ class CH_VEHICLE_API ChPac02Tire : public ChTire {
     };
 
     struct Pac02Coeff {
-        double mu0;      // road friction coefficient at test conditions for the handling parameters
-        double R0;       // unloaded radius
-        double width;    // tire width
-        double aspect_ratio;	// actually unused
-        double rim_width;       // actually unused
-        double rim_radius;      // actually unused
-        double FzNomin;  // nominla wheel load
-        double Cz;       // vertical tire stiffness
-        double Kz;       // vertical tire damping
+        double mu0;           // road friction coefficient at test conditions for the handling parameters
+        double R0;            // unloaded radius
+        double width;         // tire width
+        double aspect_ratio;  // actually unused
+        double rim_width;     // actually unused
+        double rim_radius;    // actually unused
+        double FzNomin;       // nominla wheel load
+        double Cz;            // vertical tire stiffness
+        double Kz;            // vertical tire damping
 
         // Longitudinal Coefficients
         double pcx1;

@@ -46,6 +46,7 @@ HMMWV_Pac02Tire::HMMWV_Pac02Tire(const std::string& name) : ChPac02Tire(name) {}
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void HMMWV_Pac02Tire::SetPac02Params() {
+    m_allow_mirroring = true;
     m_measured_side = LEFT;
     m_use_mode = 4;
     m_use_friction_ellipsis = false;
