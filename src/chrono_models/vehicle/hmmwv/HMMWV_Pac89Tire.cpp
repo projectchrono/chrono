@@ -33,7 +33,7 @@ namespace hmmwv {
 // Static variables
 // -----------------------------------------------------------------------------
 
-const double HMMWV_Pac89Tire::m_normalDamping = 350;
+const double HMMWV_Pac89Tire::m_normalDamping = 3500;
 
 const double HMMWV_Pac89Tire::m_mass = 37.6;
 const ChVector<> HMMWV_Pac89Tire::m_inertia(3.84, 6.69, 3.84);
