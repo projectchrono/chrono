@@ -53,7 +53,7 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 PowertrainModelType powertrain_model = PowertrainModelType::SIMPLE;
 
 // Type of tire model (RIGID, RIGID_MESH, TMEASY, PACEJKA, PAC89, FIALA)
-TireModelType tire_model = TireModelType::RIGID;
+TireModelType tire_model = TireModelType::PAC89;
 
 // Rigid terrain dimensions
 double terrainHeight = 0;

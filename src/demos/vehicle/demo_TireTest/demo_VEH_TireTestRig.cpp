@@ -25,6 +25,8 @@
 #include "chrono_models/vehicle/hmmwv/HMMWV_ReissnerTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_RigidTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_TMeasyTire.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_Pac89Tire.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_Pac02Tire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Wheel.h"
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
@@ -55,7 +57,9 @@ int main() {
 
     ////auto tire = chrono_types::make_shared<hmmwv::HMMWV_RigidTire>("Rigid tire");
     ////auto tire = chrono_types::make_shared<hmmwv::HMMWV_TMeasyTire>("TMeasy tire");
-    auto tire = chrono_types::make_shared<hmmwv::HMMWV_FialaTire>("Fiala tire");
+    ////auto tire = chrono_types::make_shared<hmmwv::HMMWV_FialaTire>("Fiala tire");
+    ////auto tire = chrono_types::make_shared<hmmwv::HMMWV_Pac02Tire>("Pac89 tire");
+    auto tire = chrono_types::make_shared<hmmwv::HMMWV_Pac02Tire>("Pac02 tire");
     ////auto tire = chrono_types::make_shared<hmmwv::HMMWV_LugreTire>("Lugre tire");
 
     // Create and configure test rig
