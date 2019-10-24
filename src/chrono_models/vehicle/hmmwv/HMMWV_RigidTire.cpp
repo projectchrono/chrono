@@ -29,7 +29,7 @@ namespace hmmwv {
 // Static variables
 // -----------------------------------------------------------------------------
 
-const double HMMWV_RigidTire::m_radius = 0.4673;
+const double HMMWV_RigidTire::m_radius = 0.467;
 const double HMMWV_RigidTire::m_width = 0.254;
 
 const double HMMWV_RigidTire::m_mass = 37.6;

@@ -39,10 +39,8 @@ class CH_VEHICLE_API FialaTire : public ChFialaTire {
     FialaTire(const rapidjson::Document& d);
     ~FialaTire();
 
-    virtual double GetNormalStiffnessForce(double depth) const override { return m_normalStiffness * depth; }
-    virtual double GetNormalDampingForce(double depth, double velocity) const override {
-        return m_normalDamping * velocity;
-    }
+    virtual double GetNormalStiffnessForce(double depth) const override;
+    virtual double GetNormalDampingForce(double depth, double velocity) const override;
 
     virtual void SetFialaParams() override {}
     virtual double GetMass() const override { return m_mass; }
@@ -55,6 +53,12 @@ class CH_VEHICLE_API FialaTire : public ChFialaTire {
 
   private:
     virtual void Create(const rapidjson::Document& d) override;
+
+    bool m_has_vert_table;
+    ChFunction_Recorder m_vert_map;
+    double m_max_depth;
+    double m_max_val;
+    double m_slope;
 
     double m_normalStiffness;
     double m_normalDamping;
