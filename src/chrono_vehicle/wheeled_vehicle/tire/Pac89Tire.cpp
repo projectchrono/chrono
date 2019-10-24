@@ -84,6 +84,7 @@ void Pac89Tire::Create(const rapidjson::Document& d) {  // Invoke base class met
         m_PacCoeff.A10 = d["Lateral Coefficients"]["a10"].GetDouble();
         m_PacCoeff.A11 = d["Lateral Coefficients"]["a11"].GetDouble();
         m_PacCoeff.A12 = d["Lateral Coefficients"]["a12"].GetDouble();
+        m_PacCoeff.A13 = d["Lateral Coefficients"]["a13"].GetDouble();
         GetLog() << "A0 = " << m_PacCoeff.A0 << "\n";
     }
     if (d.HasMember("Longitudinal Coefficients")) {
@@ -117,6 +118,7 @@ void Pac89Tire::Create(const rapidjson::Document& d) {  // Invoke base class met
         m_PacCoeff.C14 = d["Aligning Coefficients"]["c14"].GetDouble();
         m_PacCoeff.C15 = d["Aligning Coefficients"]["c15"].GetDouble();
         m_PacCoeff.C16 = d["Aligning Coefficients"]["c16"].GetDouble();
+        m_PacCoeff.C17 = d["Aligning Coefficients"]["c17"].GetDouble();
     }
 
     m_visualization_width = m_width;

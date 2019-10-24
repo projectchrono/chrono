@@ -61,6 +61,7 @@ void ChPac89Tire::Initialize(std::shared_ptr<ChWheel> wheel) {
     // Initialize contact patch state variables to 0;
     m_states.cp_long_slip = 0;
     m_states.cp_side_slip = 0;
+    m_states.R_eff = m_unloaded_radius;
 }
 
 // -----------------------------------------------------------------------------
