@@ -32,9 +32,7 @@
 #include "chrono/core/ChMathematics.h"
 
 #include "chrono_vehicle/utils/ChSteeringController.h"
-
-#include "chrono_thirdparty/rapidjson/document.h"
-#include "chrono_thirdparty/rapidjson/filereadstream.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 using namespace rapidjson;
 
@@ -52,15 +50,9 @@ ChSteeringController::ChSteeringController()
 
 ChSteeringController::ChSteeringController(const std::string& filename)
     : m_sentinel(0, 0, 0), m_target(0, 0, 0), m_collect(false), m_csv(NULL) {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     m_Kp = d["Gains"]["Kp"].GetDouble();
     m_Ki = d["Gains"]["Ki"].GetDouble();
@@ -232,15 +224,9 @@ ChPathSteeringControllerXT::ChPathSteeringControllerXT(const std::string& filena
         m_max_wheel_turn_angle = max_wheel_turn_angle;
     }
 
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     m_Kp = d["Gains"]["Kp"].GetDouble();
     m_Wy = d["Gains"]["Wy"].GetDouble();
@@ -472,15 +458,9 @@ ChPathSteeringControllerSR::ChPathSteeringControllerSR(const std::string& filena
     // retireve points
     CalcPathPoints();
 
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     m_Klat = d["Gains"]["Klat"].GetDouble();
     m_Kug = d["Gains"]["Kug"].GetDouble();

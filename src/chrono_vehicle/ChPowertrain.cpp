@@ -23,5 +23,9 @@ namespace vehicle {
 
 ChPowertrain::ChPowertrain(const std::string& name) : ChPart(name), m_drive_mode(FORWARD) {}
 
+void ChPowertrain::Initialize(std::shared_ptr<ChChassis> chassis, std::shared_ptr<ChDriveline> driveline) {
+    m_driveline = driveline;
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

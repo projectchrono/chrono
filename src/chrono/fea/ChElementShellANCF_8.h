@@ -201,29 +201,6 @@ class ChApi ChElementShellANCF_8 : public ChElementShell, public ChLoadableUV, p
     /// Return a vector with three strain components
     ChVector<> EvaluateSectionStrains();
 
-  private:
-    std::vector<std::shared_ptr<ChNodeFEAxyzDD>> m_nodes;          ///< element nodes
-    std::vector<Layer, Eigen::aligned_allocator<Layer>> m_layers;  ///< element layers
-    size_t m_numLayers;                                            ///< number of layers for this element
-    double m_lenX;                                                 ///< element length in X direction
-    double m_lenY;                                                 ///< element length in Y direction
-    double m_thickness;                                            ///< total element thickness
-    std::vector<double> m_GaussZ;                                  ///< layer separation z values (scaled to [-1,1])
-    double m_GaussScaling;                        ///< scaling factor due to change of integration intervals
-    double m_Alpha;                               ///< structural damping
-    bool m_gravity_on;                            ///< enable/disable gravity calculation
-    ChVectorN<double, 72> m_GravForce;            ///< Gravity Force
-    ChMatrixNM<double, 72, 72> m_MassMatrix;      ///< mass matrix
-    ChMatrixNM<double, 72, 72> m_JacobianMatrix;  ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
-    ChMatrixNM<double, 24, 3> m_d0;               ///< initial nodal coordinates
-    ChMatrixNM<double, 24, 24> m_d0d0T;           ///< matrix m_d0 * m_d0^T
-    ChMatrixNM<double, 24, 3> m_d;                ///< current nodal coordinates
-    ChMatrixNM<double, 24, 24> m_ddT;             ///< matrix m_d * m_d^T
-    ChVectorN<double, 72> m_d_dt;                 ///< current nodal velocities
-
-  public:
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
   public:
     // Interface to ChElementBase base class
     // -------------------------------------
@@ -259,11 +236,6 @@ class ChApi ChElementShellANCF_8 : public ChElementShell, public ChLoadableUV, p
     /// Computes the internal forces.
     /// (E.g. the actual position of nodes is not in relaxed reference position) and set values in the Fi vector.
     virtual void ComputeInternalForces(ChVectorDynamic<>& Fi) override;
-
-    /// Initial setup.
-    /// This is used mostly to precompute matrices that do not change during the simulation,
-    /// such as the local stiffness of each element (if any), the mass, etc.
-    virtual void SetupInitial(ChSystem* system) override;
 
     /// Update the state of this element.
     virtual void Update() override;
@@ -394,6 +366,33 @@ class ChApi ChElementShellANCF_8 : public ChElementShell, public ChLoadableUV, p
     /// Gets the normal to the surface at the parametric coordinate U,V.
     /// Each coordinate ranging in -1..+1.
     virtual ChVector<> ComputeNormal(const double U, const double V) override;
+
+  private:
+    /// Initial setup. This is used to precompute matrices that do not change during the simulation, such as the local
+    /// stiffness of each element (if any), the mass, etc.
+    virtual void SetupInitial(ChSystem* system) override;
+
+    std::vector<std::shared_ptr<ChNodeFEAxyzDD>> m_nodes;          ///< element nodes
+    std::vector<Layer, Eigen::aligned_allocator<Layer>> m_layers;  ///< element layers
+    size_t m_numLayers;                                            ///< number of layers for this element
+    double m_lenX;                                                 ///< element length in X direction
+    double m_lenY;                                                 ///< element length in Y direction
+    double m_thickness;                                            ///< total element thickness
+    std::vector<double> m_GaussZ;                                  ///< layer separation z values (scaled to [-1,1])
+    double m_GaussScaling;                        ///< scaling factor due to change of integration intervals
+    double m_Alpha;                               ///< structural damping
+    bool m_gravity_on;                            ///< enable/disable gravity calculation
+    ChVectorN<double, 72> m_GravForce;            ///< Gravity Force
+    ChMatrixNM<double, 72, 72> m_MassMatrix;      ///< mass matrix
+    ChMatrixNM<double, 72, 72> m_JacobianMatrix;  ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
+    ChMatrixNM<double, 24, 3> m_d0;               ///< initial nodal coordinates
+    ChMatrixNM<double, 24, 24> m_d0d0T;           ///< matrix m_d0 * m_d0^T
+    ChMatrixNM<double, 24, 3> m_d;                ///< current nodal coordinates
+    ChMatrixNM<double, 24, 24> m_ddT;             ///< matrix m_d * m_d^T
+    ChVectorN<double, 72> m_d_dt;                 ///< current nodal velocities
+
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     friend class ShellANCF8_Mass;
     friend class ShellANCF8_Gravity;

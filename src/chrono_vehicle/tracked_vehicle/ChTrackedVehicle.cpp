@@ -60,24 +60,37 @@ void ChTrackedVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassis
 }
 
 // -----------------------------------------------------------------------------
+// Initialize a powertrain system and associate it with this vehicle.
+// -----------------------------------------------------------------------------
+void ChTrackedVehicle::InitializePowertrain(std::shared_ptr<ChPowertrain> powertrain) {
+    m_powertrain = powertrain;
+    powertrain->Initialize(m_chassis, m_driveline);
+}
+
+// -----------------------------------------------------------------------------
 // Update the state of this vehicle at the current time.
-// The vehicle system is provided the current driver inputs (throttle between
-// 0 and 1, steering between -1 and +1, braking between 0 and 1), the torque
-// from the powertrain, and tire forces (expressed in the global reference
-// frame).
+// The vehicle system is provided the current driver inputs (throttle between 0
+// and 1, steering between -1 and +1, braking between 0 and 1) and terrain
+// forces on the track shoes (expressed in the global reference frame).
 // -----------------------------------------------------------------------------
 void ChTrackedVehicle::Synchronize(double time,
-                                   double steering,
-                                   double braking,
-                                   double powertrain_torque,
+                                   const ChDriver::Inputs& driver_inputs,
                                    const TerrainForces& shoe_forces_left,
                                    const TerrainForces& shoe_forces_right) {
+    double powertrain_torque = 0;
+    if (m_powertrain) {
+        // Extract the torque from the powertrain.
+        powertrain_torque = m_powertrain->GetOutputTorque();
+        // Synchronize the associated powertrain system (pass throttle input).
+        m_powertrain->Synchronize(time, driver_inputs.m_throttle);
+    }
+
     // Apply powertrain torque to the driveline's input shaft.
-    m_driveline->Synchronize(steering, powertrain_torque);
+    m_driveline->Synchronize(driver_inputs.m_steering, powertrain_torque);
 
     // Apply contact track shoe forces.
-    m_tracks[LEFT]->Synchronize(time, braking, shoe_forces_left);
-    m_tracks[RIGHT]->Synchronize(time, braking, shoe_forces_right);
+    m_tracks[LEFT]->Synchronize(time, driver_inputs.m_braking, shoe_forces_left);
+    m_tracks[RIGHT]->Synchronize(time, driver_inputs.m_braking, shoe_forces_right);
 
     m_chassis->Synchronize(time);
 }
@@ -86,7 +99,12 @@ void ChTrackedVehicle::Synchronize(double time,
 // Advance the state of this vehicle by the specified time step.
 // -----------------------------------------------------------------------------
 void ChTrackedVehicle::Advance(double step) {
-    // Invoke the base class method to perform the actual work.
+    if (m_powertrain) {
+        // Advance state of the associated powertrain.
+        m_powertrain->Advance(step);
+    }
+
+    // Invoke base class function to advance state of underlying Chrono system.
     ChVehicle::Advance(step);
 
     // Process contacts.

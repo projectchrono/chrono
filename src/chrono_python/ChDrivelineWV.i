@@ -17,7 +17,8 @@
 #include "chrono_vehicle/ChPart.h"
 #include "chrono_vehicle/wheeled_vehicle/ChSuspension.h"
 
-#include "chrono_vehicle/wheeled_vehicle/ChDriveline.h"
+#include "chrono_vehicle/ChDriveline.h"
+#include "chrono_vehicle/wheeled_vehicle/ChDrivelineWV.h"
 #include "chrono_vehicle/wheeled_vehicle/driveline/ChShaftsDriveline2WD.h"
 #include "chrono_vehicle/wheeled_vehicle/driveline/ChShaftsDriveline4WD.h"
 #include "chrono_vehicle/wheeled_vehicle/driveline/ChSimpleDriveline.h"
@@ -30,6 +31,7 @@
 %}
 
 %shared_ptr(chrono::vehicle::ChDriveline)
+%shared_ptr(chrono::vehicle::ChDrivelineWV)
 %shared_ptr(chrono::vehicle::ChShaftsDriveline2WD)
 %shared_ptr(chrono::vehicle::ChShaftsDriveline4WD)
 %shared_ptr(chrono::vehicle::ChSimpleDriveline)
@@ -46,7 +48,8 @@
 //%shared_ptr(chrono::vehicle::RigidTerrain::Patch)
 
 /* Parse the header file to generate wrappers */
-%include "../chrono_vehicle/wheeled_vehicle/ChDriveline.h"
+%include "../chrono_vehicle/ChDriveline.h"
+%include "../chrono_vehicle/wheeled_vehicle/ChDrivelineWV.h"
 %include "../chrono_vehicle/wheeled_vehicle/driveline/ChShaftsDriveline2WD.h"
 %include "../chrono_vehicle/wheeled_vehicle/driveline/ChShaftsDriveline4WD.h"
 %include "../chrono_vehicle/wheeled_vehicle/driveline/ChSimpleDriveline.h"

@@ -24,9 +24,7 @@
 #include "chrono/core/ChMathematics.h"
 
 #include "chrono_vehicle/utils/ChSpeedController.h"
-
-#include "chrono_thirdparty/rapidjson/document.h"
-#include "chrono_thirdparty/rapidjson/filereadstream.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 using namespace rapidjson;
 
@@ -43,15 +41,9 @@ ChSpeedController::ChSpeedController() : m_speed(0), m_err(0), m_erri(0), m_errd
 
 ChSpeedController::ChSpeedController(const std::string& filename)
     : m_speed(0), m_err(0), m_erri(0), m_errd(0), m_collect(false), m_csv(NULL) {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     m_Kp = d["Gains"]["Kp"].GetDouble();
     m_Ki = d["Gains"]["Ki"].GetDouble();

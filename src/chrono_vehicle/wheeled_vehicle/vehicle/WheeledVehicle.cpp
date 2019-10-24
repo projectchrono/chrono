@@ -16,13 +16,13 @@
 //
 // =============================================================================
 
+//// RADU
+//// Todo: extend to allow axles with double wheels
+
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
-//
-#include "chrono_thirdparty/rapidjson/document.h"
-#include "chrono_thirdparty/rapidjson/filereadstream.h"
 
 using namespace rapidjson;
 
@@ -43,18 +43,10 @@ WheeledVehicle::WheeledVehicle(ChSystem* system, const std::string& filename) : 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void WheeledVehicle::Create(const std::string& filename) {
-    // -------------------------------------------
     // Open and parse the input file
-    // -------------------------------------------
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     // Read top-level data
     assert(d.HasMember("Type"));
@@ -87,11 +79,10 @@ void WheeledVehicle::Create(const std::string& filename) {
     m_num_strs = d["Steering Subsystems"].Size();
 
     // Resize arrays
-    m_suspensions.resize(m_num_axles);
+    m_axles.resize(m_num_axles);
     m_suspLocations.resize(m_num_axles);
     m_suspSteering.resize(m_num_axles, -1);
-    m_wheels.resize(2 * m_num_axles);
-    m_brakes.resize(2 * m_num_axles);
+    m_arbLocations.resize(m_num_axles);
 
     m_steerings.resize(m_num_strs);
     m_strLocations.resize(m_num_strs);
@@ -129,17 +120,17 @@ void WheeledVehicle::Create(const std::string& filename) {
 
     {
         std::string file_name = d["Driveline"]["Input File"].GetString();
-        m_driveline = ReadDrivelineJSON(vehicle::GetDataFile(file_name));
+        m_driveline = ReadDrivelineWVJSON(vehicle::GetDataFile(file_name));
         if (d["Driveline"].HasMember("Output")) {
             m_driveline->SetOutput(d["Driveline"]["Output"].GetBool());
         }
-        SizeType num_driven_susp = d["Driveline"]["Suspension Indexes"].Size();
-        m_driven_susp.resize(num_driven_susp);
-        for (SizeType i = 0; i < num_driven_susp; i++) {
-            m_driven_susp[i] = d["Driveline"]["Suspension Indexes"][i].GetInt();
+        SizeType num_driven_axles = d["Driveline"]["Suspension Indexes"].Size();
+        m_driven_axles.resize(num_driven_axles);
+        for (SizeType i = 0; i < num_driven_axles; i++) {
+            m_driven_axles[i] = d["Driveline"]["Suspension Indexes"][i].GetInt();
         }
 
-        assert(num_driven_susp == GetDriveline()->GetNumDrivenAxles());
+        assert(num_driven_axles == GetDriveline()->GetNumDrivenAxles());
     }
 
     // ---------------------------------------------------
@@ -147,9 +138,11 @@ void WheeledVehicle::Create(const std::string& filename) {
     // ---------------------------------------------------
 
     for (int i = 0; i < m_num_axles; i++) {
+        m_axles[i] = chrono_types::make_shared<ChAxle>();
+
         // Suspension
         std::string file_name = d["Axles"][i]["Suspension Input File"].GetString();
-        m_suspensions[i] = ReadSuspensionJSON(vehicle::GetDataFile(file_name));
+        m_axles[i]->m_suspension = ReadSuspensionJSON(vehicle::GetDataFile(file_name));
         m_suspLocations[i] = ReadVectorJSON(d["Axles"][i]["Suspension Location"]);
 
         // Index of steering subsystem (if applicable)
@@ -159,35 +152,32 @@ void WheeledVehicle::Create(const std::string& filename) {
 
         // Antirollbar (if applicable)
         if (d["Axles"][i].HasMember("Antirollbar Input File")) {
-            assert(m_suspensions[i]->IsIndependent());
+            assert(m_axles[i]->m_suspension->IsIndependent());
             assert(d["Axles"][i].HasMember("Antirollbar Location"));
             file_name = d["Axles"][i]["Antirollbar Input File"].GetString();
-            m_antirollbars.push_back(ReadAntirollbarJSON(vehicle::GetDataFile(file_name)));
-            m_arbLocations.push_back(ReadVectorJSON(d["Axles"][i]["Antirollbar Location"]));
-            m_arbSuspension.push_back(i);
+            m_axles[i]->m_antirollbar = ReadAntirollbarJSON(vehicle::GetDataFile(file_name));
+            m_arbLocations[i] = ReadVectorJSON(d["Axles"][i]["Antirollbar Location"]);
         }
 
         // Left and right wheels
+        int num_wheels = 2;
+        m_axles[i]->m_wheels.resize(num_wheels);
         file_name = d["Axles"][i]["Left Wheel Input File"].GetString();
-        m_wheels[2 * i + VehicleSide::LEFT] = ReadWheelJSON(vehicle::GetDataFile(file_name));
+        m_axles[i]->m_wheels[0] = ReadWheelJSON(vehicle::GetDataFile(file_name));
 
         file_name = d["Axles"][i]["Right Wheel Input File"].GetString();
-        m_wheels[2 * i + VehicleSide::RIGHT] = ReadWheelJSON(vehicle::GetDataFile(file_name));
+        m_axles[i]->m_wheels[1] = ReadWheelJSON(vehicle::GetDataFile(file_name));
 
         // Left and right brakes
         file_name = d["Axles"][i]["Left Brake Input File"].GetString();
-        m_brakes[2 * i + VehicleSide::LEFT] = ReadBrakeJSON(vehicle::GetDataFile(file_name));
+        m_axles[i]->m_brake_left = ReadBrakeJSON(vehicle::GetDataFile(file_name));
 
         file_name = d["Axles"][i]["Right Brake Input File"].GetString();
-        m_brakes[2 * i + VehicleSide::RIGHT] = ReadBrakeJSON(vehicle::GetDataFile(file_name));
+        m_axles[i]->m_brake_right = ReadBrakeJSON(vehicle::GetDataFile(file_name));
 
         if (d["Axles"][i].HasMember("Output")) {
             bool output = d["Axles"][i]["Output"].GetBool();
-            m_suspensions[i]->SetOutput(output);
-            m_wheels[2 * i + VehicleSide::LEFT]->SetOutput(output);
-            m_wheels[2 * i + VehicleSide::RIGHT]->SetOutput(output);
-            m_brakes[2 * i + VehicleSide::LEFT]->SetOutput(output);
-            m_brakes[2 * i + VehicleSide::RIGHT]->SetOutput(output);
+            m_axles[i]->SetOutput(output);
         }
     }
 
@@ -222,38 +212,28 @@ void WheeledVehicle::Create(const std::string& filename) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void WheeledVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
-    // Invoke base class method to initialize the chassis.
-    ChWheeledVehicle::Initialize(chassisPos, chassisFwdVel);
+    // Initialize the chassis subsystem.
+    m_chassis->Initialize(m_system, chassisPos, chassisFwdVel, WheeledCollisionFamily::CHASSIS);
 
     // Initialize the steering subsystems.
     for (int i = 0; i < m_num_strs; i++) {
         m_steerings[i]->Initialize(m_chassis->GetBody(), m_strLocations[i], m_strRotations[i]);
     }
 
-    // Initialize the suspension, wheel, and brake subsystems.
+    // Initialize the axles (suspension + brakes + wheels + antirollbar)
     for (int i = 0; i < m_num_axles; i++) {
-        if (m_suspSteering[i] >= 0)
-            m_suspensions[i]->Initialize(m_chassis->GetBody(), m_suspLocations[i],
-                                         m_steerings[m_suspSteering[i]]->GetSteeringLink(), m_suspSteering[i]);
-        else
-            m_suspensions[i]->Initialize(m_chassis->GetBody(), m_suspLocations[i], m_chassis->GetBody(), -1);
-
-        m_wheels[2 * i]->Initialize(m_suspensions[i]->GetSpindle(LEFT));
-        m_wheels[2 * i + 1]->Initialize(m_suspensions[i]->GetSpindle(RIGHT));
-
-        m_brakes[2 * i]->Initialize(m_suspensions[i]->GetRevolute(LEFT));
-        m_brakes[2 * i + 1]->Initialize(m_suspensions[i]->GetRevolute(RIGHT));
-    }
-
-    // Initialize the antirollbar subsystems.
-    for (unsigned int i = 0; i < m_antirollbars.size(); i++) {
-        int j = m_arbSuspension[i];
-        m_antirollbars[i]->Initialize(m_chassis->GetBody(), m_arbLocations[i], m_suspensions[j]->GetLeftBody(),
-                                      m_suspensions[j]->GetRightBody());
+        int str_index = m_suspSteering[i];
+        if (str_index == -1) {
+            m_axles[i]->Initialize(m_chassis->GetBody(), m_suspLocations[i], m_arbLocations[i], m_chassis->GetBody(),
+                                   -1, 0.0);
+        } else {
+            m_axles[i]->Initialize(m_chassis->GetBody(), m_suspLocations[i], m_arbLocations[i],
+                                   m_steerings[str_index]->GetSteeringLink(), str_index, 0.0);
+        }
     }
 
     // Initialize the driveline
-    m_driveline->Initialize(m_chassis->GetBody(), m_suspensions, m_driven_susp);
+    m_driveline->Initialize(m_chassis->GetBody(), m_axles, m_driven_axles);
 }
 
 }  // end namespace vehicle

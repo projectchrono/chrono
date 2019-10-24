@@ -3,7 +3,7 @@
 SET(FEA_DEMOS
     demo_FEA_basic
     demo_FEA_dynamics
-    demo_FEA_loads
+    demo_FEA_loads_statics
 )
 
 SET(FEA_DEMOS_MKL
@@ -21,7 +21,7 @@ SET(FEA_DEMOS_IRR
     demo_FEA_ancfShell_8
     demo_FEA_brick
     demo_FEA_cosimulate_load
-# demo_FEA_beamsIGA
+    demo_FEA_loads_dynamics
 )
 
 # List all FEA demos that use both Irrlicht and Matlab

@@ -28,14 +28,9 @@ namespace fea {
 /// This element is mass-less, so if used in dynamic analysis, the two nodes must
 /// be set with non-zero point mass.
 class ChApi ChElementSpring : public ChElementGeneric {
-  protected:
-    std::vector<std::shared_ptr<ChNodeFEAxyz> > nodes;
-    double spring_k;
-    double damper_r;
-
   public:
     ChElementSpring();
-    virtual ~ChElementSpring();
+    ~ChElementSpring();
 
     virtual int GetNnodes() override { return 2; }
     virtual int GetNdofs() override { return 2 * 3; }
@@ -65,11 +60,6 @@ class ChApi ChElementSpring : public ChElementGeneric {
     /// values in the Fi vector.
     virtual void ComputeInternalForces(ChVectorDynamic<>& Fi) override;
 
-    /// Setup. Precompute mass and matrices that do not change during the
-    /// simulation, such as the local tangent stiffness Kl of each element, if needed, etc.
-    /// (**Not needed for the spring element because global K is computed on-the-fly in ComputeAddKRmatricesGlobal() )
-    virtual void SetupInitial(ChSystem* system) override {}
-
     //
     // Custom properties functions
     //
@@ -85,6 +75,15 @@ class ChApi ChElementSpring : public ChElementGeneric {
     //
     // Functions for interfacing to the solver
     //            (***not needed, thank to bookkeeping in parent class ChElementGeneric)
+
+  private:
+    /// Initial setup.
+    /// No override needed for the spring element because global K is computed on-the-fly in ComputeAddKRmatricesGlobal()
+    ////virtual void SetupInitial(ChSystem* system) override {}
+
+	std::vector<std::shared_ptr<ChNodeFEAxyz> > nodes;
+    double spring_k;
+    double damper_r;
 };
 
 /// @} fea_elements

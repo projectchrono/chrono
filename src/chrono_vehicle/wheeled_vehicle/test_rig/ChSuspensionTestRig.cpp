@@ -23,6 +23,9 @@
 //
 // =============================================================================
 
+//// RADU
+//// Todo: what do we want to do for axles with double wheels?
+
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRig.h"
 
 #include <algorithm>
@@ -36,8 +39,6 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 //
-#include "chrono_thirdparty/rapidjson/document.h"
-#include "chrono_thirdparty/rapidjson/filereadstream.h"
 #include "chrono_thirdparty/rapidjson/prettywriter.h"
 #include "chrono_thirdparty/rapidjson/stringbuffer.h"
 
@@ -103,8 +104,8 @@ ChSuspensionTestRig::ChSuspensionTestRig(ChWheeledVehicle& vehicle,
     m_suspLoc = m_suspension->GetLocation();
 
     // Load wheel subsystems
-    m_wheel[LEFT] = vehicle.GetWheel(WheelID(axle_index, LEFT));
-    m_wheel[RIGHT] = vehicle.GetWheel(WheelID(axle_index, RIGHT));
+    m_wheel[LEFT] = vehicle.GetAxle(axle_index)->m_wheels[0];
+    m_wheel[RIGHT] = vehicle.GetAxle(axle_index)->m_wheels[1];
 
     // Load steering subsystem (if needed)
     int steering_index = m_suspension->GetSteeringIndex();
@@ -134,15 +135,9 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
       m_vis_wheel(VisualizationType::NONE),
       m_vis_tire(VisualizationType::PRIMITIVES) {
     // Open and parse the input file (vehicle JSON specification file)
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     // Read top-level data
     assert(d.HasMember("Type"));
@@ -202,15 +197,9 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
       m_vis_wheel(VisualizationType::NONE),
       m_vis_tire(VisualizationType::PRIMITIVES) {
     // Open and parse the input file (rig JSON specification file)
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     // Read top-level data
     assert(d.HasMember("Type"));
@@ -290,12 +279,16 @@ void ChSuspensionTestRig::Create() {
     }
 
     // Initialize the two wheels
-    m_wheel[LEFT]->Initialize(m_suspension->GetSpindle(LEFT));
-    m_wheel[RIGHT]->Initialize(m_suspension->GetSpindle(RIGHT));
+    m_wheel[LEFT]->Initialize(m_suspension->GetSpindle(LEFT), LEFT);
+    m_wheel[RIGHT]->Initialize(m_suspension->GetSpindle(RIGHT), RIGHT);
+
+    // Associate tires to wheels
+    m_wheel[LEFT]->SetTire(m_tire[LEFT]);
+    m_wheel[RIGHT]->SetTire(m_tire[RIGHT]);
 
     // Initialize the tire subsystem
-    m_tire[LEFT]->Initialize(GetWheelBody(LEFT), LEFT);
-    m_tire[RIGHT]->Initialize(GetWheelBody(RIGHT), RIGHT);
+    m_tire[LEFT]->Initialize(m_wheel[LEFT]);
+    m_tire[RIGHT]->Initialize(m_wheel[RIGHT]);
 
     // --------------------------------------------
     // Imobilize wheels
@@ -395,32 +388,18 @@ void ChSuspensionTestRig::SetDriver(std::unique_ptr<ChDriverSTR> driver) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-double ChSuspensionTestRig::GetWheelOmega(VehicleSide side) const {
-    auto rot = GetWheelRot(side);
-    auto ang_vel = GetWheelAngVel(side);
+double ChSuspensionTestRig::GetSpindleOmega(VehicleSide side) const {
+    auto rot = GetSpindleRot(side);
+    auto ang_vel = GetSpindleAngVel(side);
     auto ang_vel_loc = rot.RotateBack(ang_vel);
     return ang_vel_loc.y();
 }
 
-WheelState ChSuspensionTestRig::GetWheelState(VehicleSide side) const {
-    WheelState state;
-
-    state.pos = GetWheelPos(side);
-    state.rot = GetWheelRot(side);
-    state.lin_vel = GetWheelLinVel(side);
-    state.ang_vel = GetWheelAngVel(side);
-
-    ChVector<> ang_vel_loc = state.rot.RotateBack(state.ang_vel);
-    state.omega = ang_vel_loc.y();
-
-    return state;
-}
-
 double ChSuspensionTestRig::GetMass() const {
+    // Note: do not include mass of the wheels, as these are already accounted for in suspension.
     double mass = m_suspension->GetMass();
     if (HasSteering())
         mass += m_steering->GetMass();
-    mass += m_wheel[LEFT]->GetMass() + m_wheel[RIGHT]->GetMass();
 
     return mass;
 }
@@ -467,30 +446,29 @@ void ChSuspensionTestRig::Advance(double step) {
         displ_right = m_displ_offset + m_displ_limit * m_right_input;
     }
 
+    // Extract tire forces for reporting purposes
     m_tireforce[LEFT] = m_tire[LEFT]->ReportTireForce(&m_terrain);
     m_tireforce[RIGHT] = m_tire[RIGHT]->ReportTireForce(&m_terrain);
-
-    auto tire_force_L = m_tire[LEFT]->GetTireForce();
-    auto tire_force_R = m_tire[RIGHT]->GetTireForce();
-
-    auto wheel_state_L = GetWheelState(LEFT);
-    auto wheel_state_R = GetWheelState(RIGHT);
 
     // Synchronize driver system
     m_driver->Synchronize(time);
 
     // Synchronize the tire subsystems
-    m_tire[LEFT]->Synchronize(time, wheel_state_L, m_terrain);
-    m_tire[RIGHT]->Synchronize(time, wheel_state_R, m_terrain);
+    m_tire[LEFT]->Synchronize(time, m_terrain);
+    m_tire[RIGHT]->Synchronize(time, m_terrain);
 
     // Let the steering subsystem process the steering input
     if (HasSteering()) {
         m_steering->Synchronize(time, m_steering_input);
     }
 
-    // Apply tire forces to spindle bodies
-    m_suspension->Synchronize(LEFT, tire_force_L);
-    m_suspension->Synchronize(RIGHT, tire_force_R);
+    // Prepare suspension for accepting tire forces
+    m_suspension->Synchronize();
+
+    // Synchronize wheels (this applies tire forces to spindle bodies)
+    for (auto wheel : m_wheel) {
+        wheel->Synchronize();
+    }
 
     // Update post displacements
     auto func_L = std::static_pointer_cast<ChFunction_Const>(m_post_linact[LEFT]->GetMotionFunction());

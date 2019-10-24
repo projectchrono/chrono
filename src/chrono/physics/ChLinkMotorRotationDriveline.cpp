@@ -39,6 +39,34 @@ ChLinkMotorRotationDriveline::ChLinkMotorRotationDriveline(const ChLinkMotorRota
 
 ChLinkMotorRotationDriveline::~ChLinkMotorRotationDriveline() {}
 
+void ChLinkMotorRotationDriveline::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
+                                              std::shared_ptr<ChBodyFrame> mbody2,
+                                              ChFrame<> mabsframe) {
+    this->Initialize(mbody1, mbody2, false, mabsframe, mabsframe);
+}
+
+void ChLinkMotorRotationDriveline::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
+                                              std::shared_ptr<ChBodyFrame> mbody2,
+                                              bool pos_are_relative,
+                                              ChFrame<> mframe1,
+                                              ChFrame<> mframe2) {
+    ChLinkMotorRotation::Initialize(mbody1, mbody2, pos_are_relative, mframe1, mframe2);
+    innerconstraint1->Initialize(innershaft1, mbody1, VECT_Z);
+    innerconstraint2->Initialize(innershaft2, mbody2, VECT_Z);
+}
+
+void ChLinkMotorRotationDriveline::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
+                                              std::shared_ptr<ChBodyFrame> mbody2,
+                                              bool pos_are_relative,
+                                              ChVector<> mpt1,
+                                              ChVector<> mpt2,
+                                              ChVector<> mnorm1,
+                                              ChVector<> mnorm2) {
+    ChLinkMotorRotation::Initialize(mbody1, mbody2, pos_are_relative, mpt1, mpt2, mnorm1, mnorm2);
+    innerconstraint1->Initialize(innershaft1, mbody1, VECT_Z);
+    innerconstraint2->Initialize(innershaft2, mbody2, VECT_Z);
+}
+
 void ChLinkMotorRotationDriveline::Setup() {
 	if (innershaft1->IsActive()) {
         innershaft1->SetOffset_x(this->offset_x + 0);
@@ -51,36 +79,20 @@ void ChLinkMotorRotationDriveline::Setup() {
     int nc = mask.nconstr;
     innerconstraint1->SetOffset_L(this->offset_L + nc + 0);
     innerconstraint2->SetOffset_L(this->offset_L + nc + 1);
-} 
-
-void ChLinkMotorRotationDriveline::Update(double mytime, bool update_assets) {
-
-     // Inherit parent class:
-    ChLinkMotorRotation::Update(mytime, update_assets);
-
-    if (Body1 && Body2) {
-        // Note: we wrap Body1 and Body2 in shared_ptr with custom no-op destructors
-        // so that the two objects are not destroyed when these shared_ptr go out of
-        // scope (since Body1 and Body2 are still managed through other shared_ptr).
-        std::shared_ptr<ChBodyFrame> b1(Body1, [](ChBodyFrame*) {});
-        std::shared_ptr<ChBodyFrame> b2(Body2, [](ChBodyFrame*) {});
-        if (innerconstraint1)
-            innerconstraint1->Initialize(innershaft1, b1, VECT_Z);
-        if (innerconstraint2)
-            innerconstraint2->Initialize(innershaft2, b2, VECT_Z);
-        // btw. The above initialization code could be moved in a place that is executed once per simulation
-
-        // Update the direction of 1D-3D ChShaftBody constraints:
-        ChVector<> abs_shaftdir = this->GetLinkAbsoluteCoords().TransformDirectionLocalToParent(VECT_Z);
-        ChVector<> shaftdir_b1 = this->Body1->TransformDirectionParentToLocal(abs_shaftdir);
-        ChVector<> shaftdir_b2 = this->Body2->TransformDirectionParentToLocal(abs_shaftdir);
-
-        innerconstraint1->SetShaftDirection(shaftdir_b1);
-        innerconstraint2->SetShaftDirection(shaftdir_b2);
-    }
-
 }
 
+void ChLinkMotorRotationDriveline::Update(double mytime, bool update_assets) {
+    // Inherit parent class:
+    ChLinkMotorRotation::Update(mytime, update_assets);
+
+    // Update the direction of 1D-3D ChShaftBody constraints:
+    ChVector<> abs_shaftdir = this->GetLinkAbsoluteCoords().TransformDirectionLocalToParent(VECT_Z);
+    ChVector<> shaftdir_b1 = this->Body1->TransformDirectionParentToLocal(abs_shaftdir);
+    ChVector<> shaftdir_b2 = this->Body2->TransformDirectionParentToLocal(abs_shaftdir);
+
+    innerconstraint1->SetShaftDirection(shaftdir_b1);
+    innerconstraint2->SetShaftDirection(shaftdir_b2);
+}
 
 int ChLinkMotorRotationDriveline::GetDOF() {
     return 2 + ChLinkMotorRotation::GetDOF();
@@ -116,6 +128,8 @@ void ChLinkMotorRotationDriveline::IntStateScatter(const unsigned int off_x,
 
     innershaft1->IntStateScatter(off_x + 0, x, off_v + 0, v, T);
     innershaft2->IntStateScatter(off_x + 1, x, off_v + 1, v, T);
+
+    Update(T);
 }
 
 void ChLinkMotorRotationDriveline::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {

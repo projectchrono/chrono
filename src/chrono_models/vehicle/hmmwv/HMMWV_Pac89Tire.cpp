@@ -33,7 +33,7 @@ namespace hmmwv {
 // Static variables
 // -----------------------------------------------------------------------------
 
-const double HMMWV_Pac89Tire::m_normalDamping = 350;
+const double HMMWV_Pac89Tire::m_normalDamping = 3500;
 
 const double HMMWV_Pac89Tire::m_mass = 37.6;
 const ChVector<> HMMWV_Pac89Tire::m_inertia(3.84, 6.69, 3.84);
@@ -150,11 +150,12 @@ void HMMWV_Pac89Tire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
         auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
         trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
+        trimesh->Transform(ChVector<>(0, GetOffset(), 0), ChMatrix33<>(1));
         m_trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         m_trimesh_shape->SetMesh(trimesh);
         m_trimesh_shape->SetName(m_meshName);
         m_trimesh_shape->SetStatic(true);
-        m_wheel->AddAsset(m_trimesh_shape);
+        m_wheel->GetSpindle()->AddAsset(m_trimesh_shape);
     } else {
         ChPac89Tire::AddVisualizationAssets(vis);
     }
@@ -163,12 +164,13 @@ void HMMWV_Pac89Tire::AddVisualizationAssets(VisualizationType vis) {
 void HMMWV_Pac89Tire::RemoveVisualizationAssets() {
     ChPac89Tire::RemoveVisualizationAssets();
 
-    // Make sure we only remove the assets added by HMMWV_FialaTire::AddVisualizationAssets.
+    // Make sure we only remove the assets added by HMMWV_Pac89Tire::AddVisualizationAssets.
     // This is important for the ChTire object because a wheel may add its own assets
     // to the same body (the spindle/wheel).
-    auto it = std::find(m_wheel->GetAssets().begin(), m_wheel->GetAssets().end(), m_trimesh_shape);
-    if (it != m_wheel->GetAssets().end())
-        m_wheel->GetAssets().erase(it);
+    auto& assets = m_wheel->GetSpindle()->GetAssets();
+    auto it = std::find(assets.begin(), assets.end(), m_trimesh_shape);
+    if (it != assets.end())
+        assets.erase(it);
 }
 
 }  // end namespace hmmwv

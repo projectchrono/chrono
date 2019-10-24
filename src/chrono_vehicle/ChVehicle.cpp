@@ -38,7 +38,12 @@ namespace vehicle {
 // Specify default step size and solver parameters.
 // -----------------------------------------------------------------------------
 ChVehicle::ChVehicle(const std::string& name, ChMaterialSurface::ContactMethod contact_method)
-    : m_name(name), m_ownsSystem(true), m_stepsize(1e-3), m_output(false), m_output_db(nullptr), m_next_output_time(0), m_output_frame(0) {
+    : m_name(name),
+      m_ownsSystem(true),
+      m_output(false),
+      m_output_db(nullptr),
+      m_next_output_time(0),
+      m_output_frame(0) {
     m_system = (contact_method == ChMaterialSurface::NSC) ? static_cast<ChSystem*>(new ChSystemNSC)
                                                           : static_cast<ChSystem*>(new ChSystemSMC);
 
@@ -65,7 +70,6 @@ ChVehicle::ChVehicle(const std::string& name, ChSystem* system)
     : m_name(name),
       m_system(system),
       m_ownsSystem(false),
-      m_stepsize(1e-3),
       m_output(false),
       m_output_db(nullptr),
       m_next_output_time(0),
@@ -106,8 +110,7 @@ void ChVehicle::SetOutput(ChVehicleOutput::Type type,
 }
 
 // -----------------------------------------------------------------------------
-// Advance the state of the system, taking as many steps as needed to exactly
-// reach the specified value 'step'.
+// Advance the state of the system.
 // ---------------------------------------------------------------------------- -
 void ChVehicle::Advance(double step) {
     if (m_output && m_system->GetChTime() >= m_next_output_time) {
@@ -116,14 +119,8 @@ void ChVehicle::Advance(double step) {
         m_output_frame++;
     }
 
-    if (!m_ownsSystem)
-        return;
-
-    double t = 0;
-    while (t < step) {
-        double h = std::min<>(m_stepsize, step - t);
-        m_system->DoStepDynamics(h);
-        t += h;
+    if (m_ownsSystem) {
+        m_system->DoStepDynamics(step);
     }
 }
 

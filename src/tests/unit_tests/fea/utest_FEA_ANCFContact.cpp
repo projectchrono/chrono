@@ -288,7 +288,6 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
     my_system.Add(my_meshes_1);
     my_system.Add(my_meshes_2);
 
-    my_system.SetupInitial();
     // ---------------
 
     my_system.SetSolverType(ChSolver::Type::MINRES);

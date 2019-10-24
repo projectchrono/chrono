@@ -99,9 +99,6 @@ void test_1() {
     // Set no gravity
     // my_system.Set_G_acc(VNULL);
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
     // Perform a dynamic time integration:
 
     my_system.SetSolverType(ChSolver::Type::MINRES);
@@ -181,9 +178,6 @@ void test_2() {
 
     // Set no gravity
     // my_system.Set_G_acc(VNULL);
-
-    // Mark completion of system construction
-    my_system.SetupInitial();
 
     // Perform a dynamic time integration:
 
@@ -266,9 +260,6 @@ void test_2b() {
 
     // Set no gravity
     // my_system.Set_G_acc(VNULL);
-
-    // Mark completion of system construction
-    my_system.SetupInitial();
 
     // Perform a dynamic time integration:
 
@@ -363,9 +354,6 @@ void test_3() {
     my_system.Add(constraint2);
     my_system.Add(constraint3);
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
     // Perform a dynamic time integration:
 
     my_system.SetSolverType(ChSolver::Type::MINRES);
@@ -457,9 +445,6 @@ void test_4() {
 
     // Set no gravity
     // my_system.Set_G_acc(VNULL);
-
-    // Mark completion of system construction
-    my_system.SetupInitial();
 
     // Perform a dynamic time integration:
 

@@ -22,8 +22,6 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
-#include "chrono_thirdparty/rapidjson/filereadstream.h"
-
 using namespace rapidjson;
 
 namespace chrono {
@@ -32,15 +30,9 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 Pac89Tire::Pac89Tire(const std::string& filename) : ChPac89Tire(""), m_mass(0), m_normalDamping(0), m_has_mesh(false) {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     Create(d);
 
@@ -56,7 +48,6 @@ void Pac89Tire::Create(const rapidjson::Document& d) {  // Invoke base class met
 
     m_has_vert_table = false;
     m_mass = d["Mass"].GetDouble();
-    GetLog() << "Masse = " << m_mass << "\n";
     m_inertia = ReadVectorJSON(d["Inertia"]);
     if (d.HasMember("Coefficient of Friction")) {
         // Default value = 0.8
@@ -75,7 +66,6 @@ void Pac89Tire::Create(const rapidjson::Document& d) {  // Invoke base class met
                                     d["Design Parameters"]["Vertical Curve Data"][i][1u].GetDouble());
             }
             m_has_vert_table = true;
-            GetLog() << "numPts = " << num_points << "\n";
         }
         m_normalDamping = d["Design Parameters"]["Vertical Damping"].GetDouble();
         m_rolling_resistance = d["Design Parameters"]["Rolling Resistance"].GetDouble();
@@ -94,6 +84,7 @@ void Pac89Tire::Create(const rapidjson::Document& d) {  // Invoke base class met
         m_PacCoeff.A10 = d["Lateral Coefficients"]["a10"].GetDouble();
         m_PacCoeff.A11 = d["Lateral Coefficients"]["a11"].GetDouble();
         m_PacCoeff.A12 = d["Lateral Coefficients"]["a12"].GetDouble();
+        m_PacCoeff.A13 = d["Lateral Coefficients"]["a13"].GetDouble();
         GetLog() << "A0 = " << m_PacCoeff.A0 << "\n";
     }
     if (d.HasMember("Longitudinal Coefficients")) {
@@ -127,6 +118,7 @@ void Pac89Tire::Create(const rapidjson::Document& d) {  // Invoke base class met
         m_PacCoeff.C14 = d["Aligning Coefficients"]["c14"].GetDouble();
         m_PacCoeff.C15 = d["Aligning Coefficients"]["c15"].GetDouble();
         m_PacCoeff.C16 = d["Aligning Coefficients"]["c16"].GetDouble();
+        m_PacCoeff.C17 = d["Aligning Coefficients"]["c17"].GetDouble();
     }
 
     m_visualization_width = m_width;
@@ -152,7 +144,7 @@ void Pac89Tire::AddVisualizationAssets(VisualizationType vis) {
         m_trimesh_shape->SetMesh(trimesh);
         m_trimesh_shape->SetName(m_meshName);
         m_trimesh_shape->SetStatic(true);
-        m_wheel->AddAsset(m_trimesh_shape);
+        m_wheel->GetSpindle()->AddAsset(m_trimesh_shape);
     } else {
         ChPac89Tire::AddVisualizationAssets(vis);
     }
@@ -164,9 +156,10 @@ void Pac89Tire::RemoveVisualizationAssets() {
     // Make sure we only remove the assets added by Pac89Tire::AddVisualizationAssets.
     // This is important for the ChTire object because a wheel may add its own assets
     // to the same body (the spindle/wheel).
-    auto it = std::find(m_wheel->GetAssets().begin(), m_wheel->GetAssets().end(), m_trimesh_shape);
-    if (it != m_wheel->GetAssets().end())
-        m_wheel->GetAssets().erase(it);
+    auto& assets = m_wheel->GetSpindle()->GetAssets();
+    auto it = std::find(assets.begin(), assets.end(), m_trimesh_shape);
+    if (it != assets.end())
+        assets.erase(it);
 }
 }  // namespace vehicle
 }  // namespace chrono

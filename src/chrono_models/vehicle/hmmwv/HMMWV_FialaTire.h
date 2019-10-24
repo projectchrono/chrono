@@ -39,9 +39,7 @@ class CH_MODELS_API HMMWV_FialaTire : public ChFialaTire {
     ~HMMWV_FialaTire() {}
 
     virtual double GetNormalStiffnessForce(double depth) const override;
-    virtual double GetNormalDampingForce(double depth, double velocity) const override {
-        return m_normalDamping * velocity;
-    }
+    virtual double GetNormalDampingForce(double depth, double velocity) const override;
 
     virtual double GetVisualizationWidth() const override { return 0.25; }
 
@@ -54,6 +52,11 @@ class CH_MODELS_API HMMWV_FialaTire : public ChFialaTire {
     virtual void RemoveVisualizationAssets() override final;
 
   private:
+    ChFunction_Recorder m_vert_map;
+    double m_max_depth;
+    double m_max_val;
+    double m_slope;
+
     static const double m_normalDamping;
     static const double m_mass;
     static const ChVector<> m_inertia;

@@ -177,8 +177,6 @@ int main(int argc, char* argv[]) {
     int step_count = 0;
     double mTime = 0;
 
-    mphysicalSystem.SetupInitial();
-
 #ifdef CHRONO_MKL
     auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
     mkl_solver->SetSparsityPatternLock(true);

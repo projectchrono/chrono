@@ -30,16 +30,17 @@
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono_thirdparty/rapidjson/document.h"
-#include "chrono_thirdparty/rapidjson/filereadstream.h"
-#include "chrono_thirdparty/rapidjson/prettywriter.h"
-#include "chrono_thirdparty/rapidjson/stringbuffer.h"
+
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/chassis/ChRigidChassis.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
+
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyDoublePin.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblySinglePin.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+
+#include "chrono_thirdparty/rapidjson/prettywriter.h"
+#include "chrono_thirdparty/rapidjson/stringbuffer.h"
 
 using namespace rapidjson;
 
@@ -93,15 +94,9 @@ ChTrackTestRig::ChTrackTestRig(const std::string& filename,
       m_vis_roadwheel(VisualizationType::NONE),
       m_vis_shoe(VisualizationType::NONE) {
     // Open and parse the input file (track assembly JSON specification file)
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     // Read top-level data
     assert(d.HasMember("Type"));

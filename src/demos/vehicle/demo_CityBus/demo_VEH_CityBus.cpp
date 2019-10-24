@@ -19,8 +19,8 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChRealtimeStep.h"
 #include "chrono/core/ChStream.h"
+#include "chrono/core/ChRealtimeStep.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
@@ -30,8 +30,6 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 
-#include <fstream>
-#include <iostream>
 #include "chrono_models/vehicle/citybus/CityBus.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -46,28 +44,19 @@ using namespace chrono::vehicle::citybus;
 // Initial vehicle location and orientation
 ChVector<> initLoc(0, 0, 0.5);
 ChQuaternion<> initRot(1, 0, 0, 0);
-// ChQuaternion<> initRot(0.866025, 0, 0, 0.5);
-// ChQuaternion<> initRot(0.7071068, 0, 0, 0.7071068);
-// ChQuaternion<> initRot(0.25882, 0, 0, 0.965926);
-// ChQuaternion<> initRot(0, 0, 0, 1);
 
 enum DriverMode { DEFAULT, RECORD, PLAYBACK };
 DriverMode driver_mode = DEFAULT;
 
 // Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
-VisualizationType chassis_vis_type = VisualizationType::MESH;
+VisualizationType chassis_vis_type = VisualizationType::NONE;
 VisualizationType suspension_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType wheel_vis_type = VisualizationType::MESH;
+VisualizationType tire_vis_type = VisualizationType::MESH;
 
 // Collision type for chassis (PRIMITIVES, MESH, or NONE)
 ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE;
-
-// Type of powertrain model (SHAFTS, SIMPLE)
-// PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
-
-// Drive type (FWD)
-// DrivelineType drive_type = DrivelineType::FWD;
 
 // Type of tire model (RIGID, TMEASY)
 TireModelType tire_model = TireModelType::TMEASY;
@@ -86,7 +75,7 @@ ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::SMC;
 bool contact_vis = false;
 
 // Simulation step sizes
-double step_size = 3e-3;
+double step_size = 1e-3;
 double tire_step_size = step_size;
 
 // Simulation end time
@@ -121,14 +110,9 @@ int main(int argc, char* argv[]) {
     my_bus.SetChassisCollisionType(chassis_collision_type);
     my_bus.SetChassisFixed(false);
     my_bus.SetInitPosition(ChCoordsys<>(initLoc, initRot));
-    // my_bus.SetPowertrainType(powertrain_model);
-    // my_bus.SetDriveType(drive_type);
     my_bus.SetTireType(tire_model);
     my_bus.SetTireStepSize(tire_step_size);
-    my_bus.SetVehicleStepSize(step_size);
     my_bus.Initialize();
-
-    VisualizationType tire_vis_type = VisualizationType::MESH;  // : VisualizationType::PRIMITIVES;
 
     my_bus.SetChassisVisualizationType(chassis_vis_type);
     my_bus.SetSuspensionVisualizationType(suspension_vis_type);
@@ -163,10 +147,10 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     // Create the vehicle Irrlicht interface
-    ChWheeledVehicleIrrApp app(&my_bus.GetVehicle(), &my_bus.GetPowertrain(), L"City Bus Demo");
+    ChWheeledVehicleIrrApp app(&my_bus.GetVehicle(), L"City Bus Demo");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
-    app.SetChaseCamera(trackPoint, 6.0, 0.5);
+    app.SetChaseCamera(trackPoint, 10.0, 0.5);
     app.SetTimestep(step_size);
     app.AssetBindAll();
     app.AssetUpdateAll();
@@ -230,46 +214,18 @@ int main(int argc, char* argv[]) {
     int render_steps = (int)std::ceil(render_step_size / step_size);
     int debug_steps = (int)std::ceil(debug_step_size / step_size);
 
-    // Initialize simulation frame counter and simulation time
-    ChRealtimeStepTimer realtime_timer;
+    // Initialize simulation frame counters
     int step_number = 0;
     int render_frame = 0;
-    double time = 0;
 
     if (contact_vis) {
         app.SetSymbolscale(1e-4);
         app.SetContactsDrawMode(ChIrrTools::eCh_ContactsDrawMode::CONTACT_FORCES);
     }
 
-    /*using namespace std;
-    ofstream myfile;
-    myfile.open("DEMO_OUTPUT/CityBus/exampleRight.txt");
-
-    int count = 0;
-    */
-
+    ChRealtimeStepTimer realtime_timer;
     while (app.GetDevice()->run()) {
-        time = my_bus.GetSystem()->GetChTime();
-        /*count++;
-        if (count % 50 == 0) {
-
-
-            myfile << "VEHICLE pos: " << my_bus.GetVehicle().GetVehiclePointLocation(ChVector<>(0.0, 1.25, 0.0)).x();
-            myfile << " " << my_bus.GetVehicle().GetVehiclePointLocation(ChVector<>(0.0, 1.25, 0.0)).y();
-
-            myfile << " " << my_bus.GetVehicle().GetVehiclePointLocation(ChVector<>(0.0, -1.25, 0.0)).x();
-            myfile << " " << my_bus.GetVehicle().GetVehiclePointLocation(ChVector<>(0.0, -1.25, 0.0)).y();
-
-            myfile << " " << my_bus.GetVehicle().GetVehiclePointLocation(ChVector<>(-7.184, 1.25,0.0)).x();
-            myfile << " " << my_bus.GetVehicle().GetVehiclePointLocation(ChVector<>(-7.184, 1.25, 0.0)).y();
-
-            myfile << " " << my_bus.GetVehicle().GetVehiclePointLocation(ChVector<>(-7.184, -1.25, 0.0)).x();
-            myfile << " " << my_bus.GetVehicle().GetVehiclePointLocation(ChVector<>(-7.184, -1.25, 0.0)).y()<<
-        std::endl;
-        }
-        if (time > 50)
-            myfile.close();
-        */
+        double time = my_bus.GetSystem()->GetChTime();
 
         // End simulation
         if (time >= t_end)
@@ -298,30 +254,30 @@ int main(int argc, char* argv[]) {
         }
 
         // Collect output data from modules (for inter-module communication)
-        double throttle_input = driver.GetThrottle();
-        double steering_input = driver.GetSteering();
-        double braking_input = driver.GetBraking();
+        ChDriver::Inputs driver_inputs = driver.GetInputs();
 
         // Driver output
         if (driver_mode == RECORD) {
-            driver_csv << time << steering_input << throttle_input << braking_input << std::endl;
+            driver_csv << time << driver_inputs.m_steering << driver_inputs.m_throttle << driver_inputs.m_braking << std::endl;
         }
 
         // Update modules (process inputs from other modules)
         driver.Synchronize(time);
         terrain.Synchronize(time);
-        my_bus.Synchronize(time, steering_input, braking_input, throttle_input, terrain);
-        app.Synchronize(driver.GetInputModeAsString(), steering_input, throttle_input, braking_input);
+        my_bus.Synchronize(time, driver_inputs, terrain);
+        app.Synchronize(driver.GetInputModeAsString(), driver_inputs);
 
         // Advance simulation for one timestep for all modules
-        double step = realtime_timer.SuggestSimulationStep(step_size);
-        driver.Advance(step);
-        terrain.Advance(step);
-        my_bus.Advance(step);
-        app.Advance(step);
+        driver.Advance(step_size);
+        terrain.Advance(step_size);
+        my_bus.Advance(step_size);
+        app.Advance(step_size);
 
         // Increment frame number
         step_number++;
+
+        // Spin in place for real time to catch up
+        realtime_timer.Spin(step_size);
     }
 
     if (driver_mode == RECORD) {

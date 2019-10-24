@@ -44,7 +44,7 @@
 
 %import(module = "pychrono.core") "ChMaterialSurface.i"
 %import "ChSuspension.i"
-%import "ChDriveline.i"
+%import "ChDrivelineWV.i"
 %import "ChSteering.i"
 %import "ChPowertrain.i"
 %import "ChChassis.i"

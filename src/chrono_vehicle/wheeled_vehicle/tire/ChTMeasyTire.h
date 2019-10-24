@@ -58,18 +58,12 @@ namespace vehicle {
 /// TMeasy tire model.
 class CH_VEHICLE_API ChTMeasyTire : public ChTire {
   public:
-    ChTMeasyTire(const std::string& name  ///< [in] name of this tire system
-                 );
+    ChTMeasyTire(const std::string& name);
 
     virtual ~ChTMeasyTire() {}
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "TMeasyTire"; }
-
-    /// Initialize this tire system.
-    virtual void Initialize(std::shared_ptr<ChBody> wheel,  ///< [in] associated wheel body
-                            VehicleSide side                ///< [in] left/right vehicle side
-                            ) override;
 
     /// Add visualization assets for the rigid tire subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
@@ -80,26 +74,8 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     /// Get the tire radius.
     virtual double GetRadius() const override { return m_states.R_eff; }
 
-    /// Get the tire force and moment.
-    /// This represents the output from this tire system that is passed to the
-    /// vehicle system.  Typically, the vehicle subsystem will pass the tire force
-    /// to the appropriate suspension subsystem which applies it as an external
-    /// force one the wheel body.
-    virtual TerrainForce GetTireForce() const override { return m_tireforce; }
-
     /// Report the tire force and moment.
     virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override { return m_tireforce; }
-
-    /// Update the state of this tire system at the current time.
-    /// The tire system is provided the current state of its associated wheel.
-    virtual void Synchronize(double time,                    ///< [in] current time
-                             const WheelState& wheel_state,  ///< [in] current state of associated wheel body
-                             const ChTerrain& terrain,       ///< [in] reference to the terrain system
-                             CollisionType collision_type = CollisionType::SINGLE_POINT  ///< [in] collision type
-                             ) override;
-
-    /// Advance the state of this tire by the specified time step.
-    virtual void Advance(double step) override;
 
     /// Set the limit for camber angle (in degrees).  Default: 3 degrees.
     void SetGammaLimit(double gamma_limit) { m_gamma_limit = gamma_limit; }
@@ -286,6 +262,24 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
 
   private:
     void UpdateVerticalStiffness();
+
+    /// Get the tire force and moment.
+    /// This represents the output from this tire system that is passed to the
+    /// vehicle system.  Typically, the vehicle subsystem will pass the tire force
+    /// to the appropriate suspension subsystem which applies it as an external
+    /// force one the wheel body.
+    virtual TerrainForce GetTireForce() const override { return m_tireforce; }
+
+    /// Initialize this tire by associating it to the specified wheel.
+    virtual void Initialize(std::shared_ptr<ChWheel> wheel) override;
+
+    /// Update the state of this tire system at the current time.
+    virtual void Synchronize(double time,              ///< [in] current time
+                             const ChTerrain& terrain  ///< [in] reference to the terrain system
+                             ) override;
+
+    /// Advance the state of this tire by the specified time step.
+    virtual void Advance(double step) override;
 
     std::vector<double> m_tire_test_defl;  // set, when test data are used for vertical
     std::vector<double> m_tire_test_frc;   // stiffness calculation

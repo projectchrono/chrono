@@ -184,9 +184,6 @@ myapplication.AssetBindAll()
 
 myapplication.AssetUpdateAll()
 
-# Mark completion of system construction
-my_system.SetupInitial();
-
 
 # THE SOFT-REAL-TIME CYCLE
 

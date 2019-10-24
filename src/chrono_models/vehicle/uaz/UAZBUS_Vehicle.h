@@ -72,13 +72,13 @@ class CH_MODELS_API UAZBUS_Vehicle : public ChWheeledVehicle {
         m_omega = omega;
     }
 
-    double GetSpringForce(const WheelID& wheel_id) const;
-    double GetSpringLength(const WheelID& wheel_id) const;
-    double GetSpringDeformation(const WheelID& wheel_id) const;
+    double GetSpringForce(int axle, VehicleSide side) const;
+    double GetSpringLength(int axle, VehicleSide side) const;
+    double GetSpringDeformation(int axle, VehicleSide side) const;
 
-    double GetShockForce(const WheelID& wheel_id) const;
-    double GetShockLength(const WheelID& wheel_id) const;
-    double GetShockVelocity(const WheelID& wheel_id) const;
+    double GetShockForce(int axle, VehicleSide side) const;
+    double GetShockLength(int axle, VehicleSide side) const;
+    double GetShockVelocity(int axle, VehicleSide side) const;
 
     virtual void Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel = 0) override;
 

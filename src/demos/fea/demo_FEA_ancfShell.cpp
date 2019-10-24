@@ -184,9 +184,6 @@ int main(int argc, char* argv[]) {
     // Perform a dynamic time integration
     // ----------------------------------
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
     // Set up solver
     my_system.SetSolverType(ChSolver::Type::MINRES);
     auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());

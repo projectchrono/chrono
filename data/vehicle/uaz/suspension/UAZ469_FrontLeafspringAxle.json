@@ -54,8 +54,8 @@
     "Location Axle":                [0.0, 0.5142, 0.0476],
     "Spring Coefficient":           102643.885771329,
     "Free Length":                  0.2621225507207084,
-    "Minimal Length":               0.28,
-    "Maximal Length":               0.12
+    "Minimum Length":               0.28,
+    "Maximum Length":               0.12
   },
 
   "Shock":

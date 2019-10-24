@@ -26,20 +26,11 @@ namespace fea {
 
 /// Class for FEA elements of hexahedron type (isoparametric 3D bricks) with 20 nodes.
 class ChApi ChElementHexa_20 : public ChElementHexahedron, public ChLoadableUVW {
-  protected:
-    std::vector<std::shared_ptr<ChNodeFEAxyz> > nodes;
-    std::shared_ptr<ChContinuumElastic> Material;
-    // std::vector< ChMatrixDynamic<> > MatrB;		// matrices of shape function's partial derivatives (one for each
-    // integration point)
-    // we use a vector to keep in memory all the 27 matrices (-> 27 integr. point)
-    // NO! each matrix is stored in the respective gauss point
-    ChMatrixDynamic<> StiffnessMatrix;
-
   public:
     using ShapeVector = ChMatrixNM<double, 1, 20>;
 
     ChElementHexa_20();
-    virtual ~ChElementHexa_20();
+    ~ChElementHexa_20();
 
     virtual int GetNnodes() override { return 20; }
     virtual int GetNdofs() override { return 20 * 3; }
@@ -111,8 +102,6 @@ class ChApi ChElementHexa_20 : public ChElementHexahedron, public ChLoadableUVW 
     /// K = Volume * [B]' * [D] * [B]
     /// The number of Gauss Point is defined by SetIntegrationRule function (default: 27 Gp)
     virtual void ComputeStiffnessMatrix();
-
-    virtual void SetupInitial(ChSystem* system) override { ComputeStiffnessMatrix(); }
 
     // compute large rotation of element for corotational approach
     virtual void UpdateRotation() override;
@@ -208,6 +197,17 @@ class ChApi ChElementHexa_20 : public ChElementHexahedron, public ChLoadableUVW 
 
     /// This is needed so that it can be accessed by ChLoaderVolumeGravity
     virtual double GetDensity() override { return this->Material->Get_density(); }
+
+  private:
+    virtual void SetupInitial(ChSystem* system) override { ComputeStiffnessMatrix(); }
+
+    std::vector<std::shared_ptr<ChNodeFEAxyz> > nodes;
+    std::shared_ptr<ChContinuumElastic> Material;
+    // std::vector< ChMatrixDynamic<> > MatrB;		// matrices of shape function's partial derivatives (one for each
+    // integration point)
+    // we use a vector to keep in memory all the 27 matrices (-> 27 integr. point)
+    // NO! each matrix is stored in the respective gauss point
+    ChMatrixDynamic<> StiffnessMatrix;
 };
 
 /// @} fea_elements

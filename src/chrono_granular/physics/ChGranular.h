@@ -127,7 +127,7 @@ enum GRAN_TIME_INTEGRATOR { FORWARD_EULER, CHUNG, CENTERED_DIFFERENCE, EXTENDED_
 enum GRAN_FRICTION_MODE { FRICTIONLESS, SINGLE_STEP, MULTI_STEP };
 
 /// Rolling resistance models -- ELASTIC_PLASTIC not implemented yet
-enum GRAN_ROLLING_MODE { NO_RESISTANCE, CONSTANT_TORQUE, VISCOUS, ELASTIC_PLASTIC };
+enum GRAN_ROLLING_MODE { NO_RESISTANCE, CONSTANT_TORQUE, VISCOUS, ELASTIC_PLASTIC, SCHWARTZ };
 
 enum GRAN_OUTPUT_FLAGS { ABSV = 1, VEL_COMPONENTS = 2, FIXITY = 4, ANG_VEL_COMPONENTS = 8 };
 #define GET_OUTPUT_SETTING(setting) (this->output_flags & setting)
@@ -158,6 +158,11 @@ struct ChGranParams {
     float rolling_coeff_s2s_SU;
     /// Coefficient of rolling resistance sphere-to-wall
     float rolling_coeff_s2w_SU;
+
+    /// Coefficient of spinning resistance sphere-to-sphere
+    float spinning_coeff_s2s_SU;
+    /// Coefficient of spinning resistance sphere-to-wall
+    float spinning_coeff_s2w_SU;
 
     /// sphere-to-sphere normal contact damping coefficient, expressed in SU
     float Gamma_n_s2s_SU;
@@ -432,6 +437,11 @@ class CH_GRANULAR_API ChSystemGranularSMC {
     /// Set sphere-to-wall rolling friction coefficient -- units and use vary by rolling friction mode
     void set_rolling_coeff_SPH2WALL(float mu) { rolling_coeff_s2w_UU = mu; }
 
+    /// Set sphere-to-sphere spinning friction coefficient -- units and use vary by spinning friction mode
+    void set_spinning_coeff_SPH2SPH(float mu) { spinning_coeff_s2s_UU = mu; }
+    /// Set sphere-to-wall spinning friction coefficient -- units and use vary by spinning friction mode
+    void set_spinning_coeff_SPH2WALL(float mu) { spinning_coeff_s2w_UU = mu; }
+
     /// Set sphere-to-sphere normal contact stiffness
     void set_K_n_SPH2SPH(double someValue) { K_n_s2s_UU = someValue; }
     /// Set sphere-to-wall normal contact stiffness
@@ -462,7 +472,8 @@ class CH_GRANULAR_API ChSystemGranularSMC {
     void set_BD_Fixed(bool fixed) { BD_is_fixed = fixed; }
 
     /// Set initial particle positions. MUST be called only once and MUST be called before initialize
-    void setParticlePositions(const std::vector<ChVector<float>>& points);
+    void setParticlePositions(const std::vector<ChVector<float>>& points,
+                              const std::vector<ChVector<float>>& vels = std::vector<ChVector<float>>());
 
     /// Set particle fixity. MUST be called only once and MUST be called before initialize
     void setParticleFixed(const std::vector<bool>& fixed);
@@ -721,6 +732,13 @@ class CH_GRANULAR_API ChSystemGranularSMC {
     /// Units and use are dependent on the rolling friction model used
     double rolling_coeff_s2w_UU;
 
+    /// Spinning friction coefficient for sphere-to-sphere
+    double spinning_coeff_s2s_UU;
+
+    /// Spinning friction coefficient for sphere-to-wall
+    /// Units and use are dependent on the spinning friction model used
+    double spinning_coeff_s2w_UU;
+
     /// Store the ratio of the acceleration due to cohesion vs the acceleration due to gravity, makes simple API
     float cohesion_over_gravity;
 
@@ -753,6 +771,9 @@ class CH_GRANULAR_API ChSystemGranularSMC {
 
     /// User-provided sphere positions in UU
     std::vector<ChVector<float>> user_sphere_positions;
+
+    /// User-provided sphere velocities in UU
+    std::vector<ChVector<float>> user_sphere_vel;
 
     /// User-provided sphere fixity as bools
     std::vector<bool> user_sphere_fixed;

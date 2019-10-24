@@ -49,10 +49,10 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehicleIrrApp.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRig.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChIrrGuiDriverSTR.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChDataDriverSTR.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -120,7 +120,7 @@ int main(int argc, char* argv[]) {
             new ChSuspensionTestRig(vehicle::GetDataFile(str_file), tire_L, tire_R));
     }
 
-    rig->SetInitialRideHeight(0.4);
+    rig->SetInitialRideHeight(0.5);
 
     rig->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     rig->SetWheelVisualizationType(VisualizationType::NONE);
@@ -130,10 +130,10 @@ int main(int argc, char* argv[]) {
     rig->SetTireVisualizationType(VisualizationType::MESH);
 
     // Create the vehicle Irrlicht application.
-    ChVehicleIrrApp app(rig.get(), NULL, L"Suspension Test Rig");
+    ChVehicleIrrApp app(rig.get(), L"Suspension Test Rig");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
-    app.SetChaseCamera(0.5 * (rig->GetWheelPos(LEFT) + rig->GetWheelPos(RIGHT)), 2.0, 0.5);
+    app.SetChaseCamera(0.5 * (rig->GetSpindlePos(LEFT) + rig->GetSpindlePos(RIGHT)), 2.0, 0.5);
     app.SetTimestep(step_size);
 
     // Create and attach the driver system.
@@ -186,12 +186,12 @@ int main(int argc, char* argv[]) {
         app.EndScene();
 
         // Current tire forces
-        auto tire_force_L = rig->GetTireForce(VehicleSide::LEFT);
-        auto tire_force_R = rig->GetTireForce(VehicleSide::RIGHT);
+        auto tire_force_L = rig->ReportTireForce(VehicleSide::LEFT);
+        auto tire_force_R = rig->ReportTireForce(VehicleSide::RIGHT);
 
         // Tire kinematics
-        auto omega_L = rig->GetWheelOmega(VehicleSide::LEFT);
-        auto omega_R = rig->GetWheelOmega(VehicleSide::RIGHT);
+        auto omega_L = rig->GetSpindleOmega(VehicleSide::LEFT);
+        auto omega_R = rig->GetSpindleOmega(VehicleSide::RIGHT);
 
         double kappa_L = tire_L->GetLongitudinalSlip();
         double alpha_L = tire_L->GetSlipAngle();
@@ -218,7 +218,7 @@ int main(int argc, char* argv[]) {
         rig->Advance(step_size);
 
         // Update visualization app
-        app.Synchronize(tire_L->GetTemplateName(), rig->GetSteeringInput(), 0, 0);
+        app.Synchronize(tire_L->GetTemplateName(), { rig->GetSteeringInput(), 0, 0 });
         app.Advance(step_size);
 
         // Increment frame number

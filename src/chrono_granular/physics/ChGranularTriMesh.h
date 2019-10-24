@@ -93,6 +93,9 @@ struct ChGranParams_trimesh {
     /// Coefficient of rolling resistance. Units and effect depend on the system rolling resistance model
     float rolling_coeff_s2m_SU;
 
+    /// Coefficient of spinning resistance. Units and effect depend on the system spinning resistance model
+    float spinning_coeff_s2m_SU;
+
     /// Number of triangle families
     unsigned int num_triangle_families;
 
@@ -154,6 +157,7 @@ class CH_GRANULAR_API ChSystemGranularSMC_trimesh : public ChSystemGranularSMC {
     void set_static_friction_coeff_SPH2MESH(float mu) { tri_params->static_friction_coeff_s2m = mu; }
     // set internally and convert later
     void set_rolling_coeff_SPH2MESH(float mu) { rolling_coeff_s2s_UU = mu; }
+    void set_spinning_coeff_SPH2MESH(float mu) { spinning_coeff_s2s_UU = mu; }
 
     /// Enable mesh contact
     void enableMeshCollision() { mesh_collision_enabled = true; }
@@ -181,6 +185,9 @@ class CH_GRANULAR_API ChSystemGranularSMC_trimesh : public ChSystemGranularSMC {
 
     /// Rolling friction coefficient for sphere-to-mesh -- units and effect depend on rolling resistance model
     double rolling_coeff_s2m_UU;
+
+    /// Spinning friction coefficient for sphere-to-mesh -- units and effect depend on spinning resistance model
+    double spinning_coeff_s2m_UU;
 
     /// Ratio of sphere-to-mesh adhesion to gravity (constant adhesion model)
     float adhesion_s2m_over_gravity;

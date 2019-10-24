@@ -49,8 +49,8 @@ ChPac89Tire::ChPac89Tire(const std::string& name)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChPac89Tire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
-    ChTire::Initialize(wheel, side);
+void ChPac89Tire::Initialize(std::shared_ptr<ChWheel> wheel) {
+    ChTire::Initialize(wheel);
 
     SetPac89Params();
 
@@ -61,6 +61,7 @@ void ChPac89Tire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
     // Initialize contact patch state variables to 0;
     m_states.cp_long_slip = 0;
     m_states.cp_side_slip = 0;
+    m_states.R_eff = m_unloaded_radius;
 }
 
 // -----------------------------------------------------------------------------
@@ -71,48 +72,41 @@ void ChPac89Tire::AddVisualizationAssets(VisualizationType vis) {
 
     m_cyl_shape = chrono_types::make_shared<ChCylinderShape>();
     m_cyl_shape->GetCylinderGeometry().rad = m_unloaded_radius;
-    m_cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, GetVisualizationWidth() / 2, 0);
-    m_cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, -GetVisualizationWidth() / 2, 0);
-    m_wheel->AddAsset(m_cyl_shape);
+    m_cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, GetOffset() + GetVisualizationWidth() / 2, 0);
+    m_cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, GetOffset() - GetVisualizationWidth() / 2, 0);
+    m_wheel->GetSpindle()->AddAsset(m_cyl_shape);
 
     m_texture = chrono_types::make_shared<ChTexture>();
     m_texture->SetTextureFilename(GetChronoDataFile("greenwhite.png"));
-    m_wheel->AddAsset(m_texture);
+    m_wheel->GetSpindle()->AddAsset(m_texture);
 }
 
 void ChPac89Tire::RemoveVisualizationAssets() {
     // Make sure we only remove the assets added by ChPac89Tire::AddVisualizationAssets.
     // This is important for the ChTire object because a wheel may add its own assets
     // to the same body (the spindle/wheel).
+    auto& assets = m_wheel->GetSpindle()->GetAssets();
     {
-        auto it = std::find(m_wheel->GetAssets().begin(), m_wheel->GetAssets().end(), m_cyl_shape);
-        if (it != m_wheel->GetAssets().end())
-            m_wheel->GetAssets().erase(it);
+        auto it = std::find(assets.begin(), assets.end(), m_cyl_shape);
+        if (it != assets.end())
+            assets.erase(it);
     }
     {
-        auto it = std::find(m_wheel->GetAssets().begin(), m_wheel->GetAssets().end(), m_texture);
-        if (it != m_wheel->GetAssets().end())
-            m_wheel->GetAssets().erase(it);
+        auto it = std::find(assets.begin(), assets.end(), m_texture);
+        if (it != assets.end())
+            assets.erase(it);
     }
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChPac89Tire::Synchronize(double time,
-                              const WheelState& wheel_state,
-                              const ChTerrain& terrain,
-                              CollisionType collision_type) {
-    // Invoke the base class function.
-    ChTire::Synchronize(time, wheel_state, terrain, collision_type);
+                              const ChTerrain& terrain) {
+    WheelState wheel_state = m_wheel->GetState();
+    CalculateKinematics(time, wheel_state, terrain);
 
-    m_mu = terrain.GetCoefficientFriction(m_tireforce.point.x(), m_tireforce.point.y());
-
-    ChCoordsys<> contact_frame;
-    // Clear the force accumulators and set the application point to the wheel
-    // center.
-    m_tireforce.force = ChVector<>(0, 0, 0);
-    m_tireforce.moment = ChVector<>(0, 0, 0);
-    m_tireforce.point = wheel_state.pos;
+    // Get mu at wheel location
+    m_mu = terrain.GetCoefficientFriction(wheel_state.pos.x(), wheel_state.pos.y());
 
     // Extract the wheel normal (expressed in global frame)
     ChMatrix33<> A(wheel_state.rot);
@@ -121,7 +115,7 @@ void ChPac89Tire::Synchronize(double time,
     double dum_cam;
 
     // Assuming the tire is a disc, check contact with terrain
-    switch (collision_type) {
+    switch (m_collision_type) {
         case ChTire::CollisionType::SINGLE_POINT:
             m_data.in_contact = DiscTerrainCollision(terrain, wheel_state.pos, disc_normal, m_unloaded_radius,
                                                      m_data.frame, m_data.depth);
@@ -176,7 +170,12 @@ void ChPac89Tire::Synchronize(double time,
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChPac89Tire::Advance(double step) {
-    // Return now if no contact.  Tire force and moment are already set to 0 in Synchronize().
+    // Set tire forces to zero.
+    m_tireforce.point = m_wheel->GetPos();
+    m_tireforce.force = ChVector<>(0, 0, 0);
+    m_tireforce.moment = ChVector<>(0, 0, 0);
+
+    // Return now if no contact.
     if (!m_data.in_contact)
         return;
 

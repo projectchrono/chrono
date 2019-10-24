@@ -198,9 +198,6 @@ int main(int argc, char* argv[]) {
         mystepper->SetAbsTolerances(1e-14);
     }
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
     /* m_data.resize(7);
      utils::CSV_writer csv(" ");
      std::ifstream file2("UT_ANCFBeam.txt");

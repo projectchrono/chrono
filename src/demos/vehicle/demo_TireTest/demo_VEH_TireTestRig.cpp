@@ -17,16 +17,19 @@
 #include <algorithm>
 
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/physics/ChSystemSMC.h"
 #include "chrono_irrlicht/ChIrrApp.h"
+
 #include "chrono_models/vehicle/hmmwv/HMMWV_ANCFTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_FialaTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_LugreTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_ReissnerTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_RigidTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_TMeasyTire.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_Pac89Tire.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_Pac02Tire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Wheel.h"
-#include "chrono_thirdparty/filesystem/path.h"
+
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChTireTestRig.h"
 
@@ -55,8 +58,17 @@ int main() {
 
     ////auto tire = chrono_types::make_shared<hmmwv::HMMWV_RigidTire>("Rigid tire");
     ////auto tire = chrono_types::make_shared<hmmwv::HMMWV_TMeasyTire>("TMeasy tire");
-    auto tire = chrono_types::make_shared<hmmwv::HMMWV_FialaTire>("Fiala tire");
+    ////auto tire = chrono_types::make_shared<hmmwv::HMMWV_FialaTire>("Fiala tire");
+    ////auto tire = chrono_types::make_shared<hmmwv::HMMWV_Pac89Tire>("Pac89 tire");
+    auto tire = chrono_types::make_shared<hmmwv::HMMWV_Pac02Tire>("Pac02 tire");
     ////auto tire = chrono_types::make_shared<hmmwv::HMMWV_LugreTire>("Lugre tire");
+
+    ////std::string tire_file("hmmwv/tire/HMMWV_RigidTire.json");
+    ////std::string tire_file("hmmwv/tire/HMMWV_FialaTire.json");
+    ////std::string tire_file("hmmwv/tire/HMMWV_TMeasyTire.json");
+    ////std::string tire_file("hmmwv/tire/HMMWV_Pac89.json");
+    ////std::string tire_file("hmmwv/tire/HMMWV_Pac02.json");
+    ////auto tire = ReadTireJSON(vehicle::GetDataFile(tire_file));
 
     // Create and configure test rig
     // -----------------------------
@@ -118,8 +130,6 @@ int main() {
     // Perform the simulation
     // ----------------------
 
-    system.SetupInitial();
-
     while (application.GetDevice()->run()) {
         auto& loc = rig.GetPos();
         auto x = (irr::f32)loc.x();
@@ -138,7 +148,7 @@ int main() {
         ////auto slip_angle = tire->GetSlipAngle();
         ////auto camber_angle = tire->GetCamberAngle();
         ////std::cout << "   " << long_slip << " " << slip_angle << " " << camber_angle << std::endl;
-        ////auto tforce = rig.GetTireForce();
+        ////auto tforce = rig.ReportTireForce();
         ////auto frc = tforce.force;
         ////auto pnt = tforce.point;
         ////auto trq = tforce.moment;

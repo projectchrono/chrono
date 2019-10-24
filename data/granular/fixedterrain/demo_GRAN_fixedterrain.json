@@ -1,5 +1,5 @@
 {
-    "sphere_radius": 0.25,
+    "sphere_radius": 0.75,
     "sphere_density": 1,
     
     "box_X": 400,
@@ -8,8 +8,8 @@
     
     "time_integrator" : "centered_difference",
     
-    "step_size": 1e-5,
-    "time_end": 4,
+    "step_size": 1e-4,
+    "time_end": 1,
 
     "grav_X": 0,
     "grav_Y": 0,
