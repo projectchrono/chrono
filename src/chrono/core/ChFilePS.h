@@ -14,7 +14,7 @@
 #define CHFILEPS_H
 
 #include "chrono/core/ChStream.h"
-#include "chrono/core/ChMatrix.h"
+//#include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChVector.h"
 #include "chrono/core/ChVector2.h"
 

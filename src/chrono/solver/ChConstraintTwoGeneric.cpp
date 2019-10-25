@@ -136,19 +136,19 @@ void ChConstraintTwoGeneric::MultiplyTandAdd(ChVectorDynamic<double>& result, do
     }
 }
 
-void ChConstraintTwoGeneric::Build_Cq(ChSparseMatrix& storage, int insrow) {
+void ChConstraintTwoGeneric::Build_Cq(ChSparseMatrixRef storage, int insrow) {
     if (variables_a->IsActive())
-        storage.PasteMatrix(Cq_a, insrow, variables_a->GetOffset());
+        PasteMatrix(storage, Cq_a, insrow, variables_a->GetOffset());
     if (variables_b->IsActive())
-        storage.PasteMatrix(Cq_b, insrow, variables_b->GetOffset());
+        PasteMatrix(storage, Cq_b, insrow, variables_b->GetOffset());
 }
 
-void ChConstraintTwoGeneric::Build_CqT(ChSparseMatrix& storage, int inscol) {
+void ChConstraintTwoGeneric::Build_CqT(ChSparseMatrixRef storage, int inscol) {
     // Recall that Cq_a and Cq_b are column vectors.
     if (variables_a->IsActive())
-        storage.PasteTranspMatrix(Cq_a, variables_a->GetOffset(), inscol);
+        PasteTranspMatrix(storage, Cq_a, variables_a->GetOffset(), inscol);
     if (variables_b->IsActive())
-        storage.PasteTranspMatrix(Cq_b, variables_b->GetOffset(), inscol);
+        PasteTranspMatrix(storage, Cq_b, variables_b->GetOffset(), inscol);
 }
 
 void ChConstraintTwoGeneric::ArchiveOUT(ChArchiveOut& marchive) {

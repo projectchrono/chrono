@@ -71,9 +71,9 @@ class ChApi ChVariablesNode : public ChVariables {
     /// it in 'storage' sparse matrix, at given column/row offset.
     /// Note, most iterative solvers don't need to know mass matrix explicitly.
     /// Optimized: doesn't fill unneeded elements except mass.
-    virtual void Build_M(ChSparseMatrix& storage, int insrow, int inscol, const double c_a) override;
+    virtual void Build_M(ChSparseMatrixRef storage, int insrow, int inscol, const double c_a) override;
 
-    /// Method to allow serialization of transient data to archives.
+    /// Method to allow sChSparseMatrixRef transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow de-serialization of transient data from archives.

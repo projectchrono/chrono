@@ -19,11 +19,11 @@
 #define CHSOLVERMKL_H
 
 #include "chrono/core/ChSparseMatrix.h"
+#include "chrono/core/ChSparsityPatternLearner.h"
 #include "chrono/core/ChTimer.h"
 #include "chrono/solver/ChSolver.h"
 #include "chrono/solver/ChSystemDescriptor.h"
 
-#include "chrono/core/ChCSMatrix.h"
 #include "chrono_mkl/ChMklEngine.h"
 
 namespace chrono {
@@ -68,7 +68,6 @@ passed to the solver.
 
 \tparam Matrix type of the matrix used by the solver;
 */
-template <typename Matrix = ChCSMatrix>
 class ChSolverMKL : public ChSolver {
   public:
     ChSolverMKL() { SetSparsityPatternLock(true); }

@@ -115,11 +115,11 @@ class ChConstraintTwoTuples : public ChConstraint {
     /// where both portions of the jacobian are shifted in order to match the
     /// offset of the corresponding ChVariable.The same is done
     /// on the 'insrow' column, so that the sparse matrix is kept symmetric.
-    virtual void Build_Cq(ChSparseMatrix& storage, int insrow) override {
+    virtual void Build_Cq(ChSparseMatrixRef storage, int insrow) override {
         tuple_a.Build_Cq(storage, insrow);
         tuple_b.Build_Cq(storage, insrow);
     }
-    virtual void Build_CqT(ChSparseMatrix& storage, int inscol) override {
+    virtual void Build_CqT(ChSparseMatrixRef storage, int inscol) override {
         tuple_a.Build_CqT(storage, inscol);
         tuple_b.Build_CqT(storage, inscol);
     }

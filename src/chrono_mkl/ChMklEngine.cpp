@@ -51,7 +51,7 @@ ChMklEngine::~ChMklEngine() {
         printf("Error while releasing memory: %d", error);
 }
 
-void ChMklEngine::SetMatrix(ChSparseMatrix& Z) {
+void ChMklEngine::SetMatrix(ChSparseMatrixRef Z) {
     assert(Z.GetNumRows() == Z.GetNumColumns());
 
     m_n = Z.GetNumRows();
@@ -92,7 +92,7 @@ void ChMklEngine::SetRhsVector(double* b) {
     m_b = b;
 }
 
-void ChMklEngine::SetProblem(ChSparseMatrix& Z, ChVectorRef b, ChVectorRef x) {
+void ChMklEngine::SetProblem(ChSparseMatrixRef Z, ChVectorRef b, ChVectorRef x) {
     SetMatrix(Z);
     SetRhsVector(b);
     SetSolutionVector(x);

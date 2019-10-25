@@ -16,7 +16,8 @@
 #define CHVARIABLES_H
 
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChSparseMatrix.h"
+#include "chrono/core/ChMatrix.h"
+
 
 namespace chrono {
 
@@ -116,7 +117,7 @@ class ChApi ChVariables {
     /// Most iterative solvers don't need to know this matrix explicitly.
     /// *** This function MUST BE OVERRIDDEN by specialized
     /// inherited classes
-    virtual void Build_M(ChSparseMatrix& storage, int insrow, int inscol, const double c_a) = 0;
+    virtual void Build_M(ChSparseMatrixRef storage, int insrow, int inscol, const double c_a) = 0;
 
     /// Set offset in global q vector (set automatically by ChSystemDescriptor)
     void SetOffset(int moff) { offset = moff; }

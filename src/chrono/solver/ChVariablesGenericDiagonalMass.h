@@ -63,7 +63,7 @@ class ChApi ChVariablesGenericDiagonalMass : public ChVariables {
     /// Build the mass matrix (for these variables) scaled by c_a, storing
     /// it in 'storage' sparse matrix, at given column/row offset.
     /// Note, most iterative solvers don't need to know mass matrix explicitly.
-    virtual void Build_M(ChSparseMatrix& storage, int insrow, int inscol, const double c_a) override;
+    virtual void Build_M(ChSparseMatrixRef storage, int insrow, int inscol, const double c_a) override;
 };
 
 }  // end namespace chrono

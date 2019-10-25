@@ -17,7 +17,7 @@
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChClassFactory.h"
-#include "chrono/core/ChSparseMatrix.h"
+#include "chrono/core/ChMatrix.h"
 
 namespace chrono {
 
@@ -291,10 +291,10 @@ class ChApi ChConstraint {
     /// Puts the jacobian portions into the 'insrow' row of a sparse matrix,
     /// where each portion of jacobian is shifted in order to match the
     /// offset of the corresponding ChVariable.
-    virtual void Build_Cq(ChSparseMatrix& storage, int insrow) = 0;
+    virtual void Build_Cq(ChSparseMatrixRef storage, int insrow) = 0;
 
     /// Same as Build_Cq, but puts the _transposed_ jacobian row as a column.
-    virtual void Build_CqT(ChSparseMatrix& storage, int inscol) = 0;
+    virtual void Build_CqT(ChSparseMatrixRef storage, int inscol) = 0;
 
     /// Set offset in global q vector (set automatically by ChSystemDescriptor)
     void SetOffset(int moff) { offset = moff; }

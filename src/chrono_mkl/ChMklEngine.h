@@ -56,7 +56,7 @@ class ChApiMkl ChMklEngine {
 
     /// Set the problem matrix.
     /// This will also update the problem dimension as well as the matrix symmetry type.
-    void SetMatrix(ChSparseMatrix& Z);
+    void SetMatrix(ChSparseMatrixRef Z);
 
     /// Set directly the CSR matrix arrays.
     /// Note that it is implied that the matrix symmetry type is GENERAL.
@@ -75,7 +75,7 @@ class ChApiMkl ChMklEngine {
     void SetRhsVector(double* b);
 
     /// Set the matrix, as well as the right-hand side and solution arrays.
-    void SetProblem(ChSparseMatrix& Z, ChVectorRef b, ChVectorRef x);
+    void SetProblem(ChSparseMatrixRef Z, ChVectorRef b, ChVectorRef x);
 
     /// Solver routine.
     int PardisoCall(int phase, int message_level = 0);

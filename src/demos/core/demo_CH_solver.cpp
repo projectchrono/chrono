@@ -15,7 +15,7 @@
 // Include some headers used by this tutorial...
 
 #include "chrono/core/ChGlobal.h"
-#include "chrono/core/ChCSMatrix.h"
+#include "chrono/core/ChMatrix.h"
 
 #include "chrono/solver/ChVariablesGeneric.h"
 #include "chrono/solver/ChVariablesBodyOwnMass.h"
@@ -153,8 +153,8 @@ void test_1(const std::string& out_dir) {
 
     // If needed, dump the full system M and Cq matrices
     // on disk, in Matlab sparse format:
-    ChCSMatrix matrM;
-    ChCSMatrix matrCq;
+    ChSparseMatrix matrM;
+    ChSparseMatrix matrCq;
 
     mdescriptor.ConvertToMatrixForm(&matrCq, &matrM, 0, 0, 0, 0, false, false);
 
@@ -230,9 +230,9 @@ void test_2(const std::string& out_dir) {
 
     try {
         std::string filename;
-        ChCSMatrix mdM;
-        ChCSMatrix mdCq;
-        ChCSMatrix mdE;
+        ChSparseMatrix mdM;
+        ChSparseMatrix mdCq;
+        ChSparseMatrix mdE;
         ChVectorDynamic<double> mdf;
         ChVectorDynamic<double> mdb;
         ChVectorDynamic<double> mdfric;

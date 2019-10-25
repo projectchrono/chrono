@@ -96,7 +96,7 @@ void ChKblockGeneric::DiagonalAdd(ChVectorRef result) {
     }
 }
 
-void ChKblockGeneric::Build_K(ChSparseMatrix& storage, bool add) {
+void ChKblockGeneric::Build_K(ChSparseMatrixRef storage, bool add) {
     if (K.rows() == 0)
         return;
 
@@ -113,9 +113,9 @@ void ChKblockGeneric::Build_K(ChSparseMatrix& storage, bool add) {
 
                 if (this->GetVariableN(jv)->IsActive()) {
                     if (add)
-                        storage.PasteSumClippedMatrix(K, kio, kjo, in, jn, io, jo);
+                        PasteSumClippedMatrix(storage, K, kio, kjo, in, jn, io, jo);
                     else
-                        storage.PasteClippedMatrix(K, kio, kjo, in, jn, io, jo);
+                        PasteClippedMatrix(storage, K, kio, kjo, in, jn, io, jo);
                 }
 
                 kjo += jn;
