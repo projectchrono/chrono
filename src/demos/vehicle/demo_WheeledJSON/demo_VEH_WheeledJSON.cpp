@@ -96,7 +96,7 @@ std::string tmeasytire_file("hmmwv/tire/HMMWV_TMeasy_converted.json");
 // JSON files tire models (Pac89)
 std::string pac89tire_file("hmmwv/tire/HMMWV_Pac89.json");
 
-std::string pac02tire_file("hmmwv/tire/HMMWV_Pac02.json");
+std::string pac02tire_file("hmmwv/tire/HMMWV_Pac02Tire.json");
 
 // Type of tire model (RIGID, FIALA, TMEASY, PAC89)
 TireModelType tire_model = TireModelType::PAC02;
