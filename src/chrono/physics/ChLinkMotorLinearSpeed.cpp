@@ -94,6 +94,8 @@ void ChLinkMotorLinearSpeed::IntStateScatter(const unsigned int off_x,  // offse
 ) {
     // aux = x(off_x);
     aux_dt = v(off_v);
+
+    Update(T);
 }
 
 void ChLinkMotorLinearSpeed::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {

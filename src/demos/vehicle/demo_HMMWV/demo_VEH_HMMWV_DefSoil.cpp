@@ -201,7 +201,6 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetPowertrainType(powertrain_model);
     my_hmmwv.SetDriveType(drive_type);
     my_hmmwv.SetTireType(TireModelType::RIGID);
-    my_hmmwv.SetVehicleStepSize(step_size);
     my_hmmwv.Initialize();
 
     VisualizationType wheel_vis = (wheel_type == CYLINDRICAL) ? VisualizationType::MESH : VisualizationType::NONE;
@@ -291,9 +290,6 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    // Complete system construction
-    system->SetupInitial();
-
     // ---------------------------------------
     // Create the vehicle Irrlicht application
     // ---------------------------------------
@@ -341,7 +337,6 @@ int main(int argc, char* argv[]) {
     // Initialize simulation frame counter
     int step_number = 0;
     int render_frame = 0;
-    ChRealtimeStepTimer realtime_timer;
 
     while (app.GetDevice()->run()) {
         double time = system->GetChTime();
@@ -368,9 +363,8 @@ int main(int argc, char* argv[]) {
         app.Synchronize("", driver_inputs);
 
         // Advance dynamics
-        double step = realtime_timer.SuggestSimulationStep(step_size);
-        system->DoStepDynamics(step);
-        app.Advance(step);
+        system->DoStepDynamics(step_size);
+        app.Advance(step_size);
 
         // Increment frame number
         step_number++;

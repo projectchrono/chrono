@@ -16,7 +16,6 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChRealtimeStep.h"
 #include "chrono/physics/ChSystemNSC.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -124,8 +123,6 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    ChRealtimeStepTimer realtime_timer;
-
     while (app.GetDevice()->run()) {
         double time = sys.GetChTime();
 
@@ -154,16 +151,15 @@ int main(int argc, char* argv[]) {
         app.Synchronize("", driver_inputs_1);
 
         // Advance simulation for one timestep for all modules.
-        double step = realtime_timer.SuggestSimulationStep(step_size);
-        driver_1.Advance(step);
-        driver_2.Advance(step);
-        hmmwv_1.Advance(step);
-        hmmwv_2.Advance(step);
-        terrain.Advance(step);
-        app.Advance(step);
+        driver_1.Advance(step_size);
+        driver_2.Advance(step_size);
+        hmmwv_1.Advance(step_size);
+        hmmwv_2.Advance(step_size);
+        terrain.Advance(step_size);
+        app.Advance(step_size);
 
         // Advance state of entire system (containing both vehicles)
-        sys.DoStepDynamics(step);
+        sys.DoStepDynamics(step_size);
 
         app.EndScene();
     }

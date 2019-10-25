@@ -22,6 +22,8 @@
 //
 // =============================================================================
 
+#include "chrono/core/ChRealtimeStep.h"
+
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
@@ -180,10 +182,10 @@ int main(int argc, char* argv[]) {
     // Number of simulation steps between two 3D view render frames
     int render_steps = (int)std::ceil(render_step_size / step_size);
 
-    // Initialize simulation frame counter and simulation time
+    // Initialize simulation frame counter
     int step_number = 0;
-    double time = 0;
 
+    ChRealtimeStepTimer realtime_timer;
     while (app.GetDevice()->run()) {
         // Render scene
         if (step_number % render_steps == 0) {
@@ -198,29 +200,25 @@ int main(int argc, char* argv[]) {
         double braking_input = driver.GetBraking();
 
         // Update modules (process inputs from other modules)
-        time = front_side.GetSystem()->GetChTime();
-
+        double time = front_side.GetSystem()->GetChTime();
         driver.Synchronize(time);
-
         terrain.Synchronize(time);
-
         rear_side.Synchronize(time, steering_input, braking_input, terrain);
         front_side.Synchronize(time, driver_inputs, terrain);
-
         app.Synchronize(driver.GetInputModeAsString(), driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
-
         terrain.Advance(step_size);
-
         rear_side.Advance(step_size);
         front_side.Advance(step_size);
-
         app.Advance(step_size);
 
         // Increment frame number
         step_number++;
+
+        // Spin in place for real time to catch up
+        realtime_timer.Spin(step_size);
     }
 
     return 0;

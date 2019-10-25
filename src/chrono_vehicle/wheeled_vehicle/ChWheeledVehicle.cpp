@@ -92,9 +92,6 @@ void ChWheeledVehicle::Synchronize(double time, const ChDriver::Inputs& driver_i
 
 // -----------------------------------------------------------------------------
 // Advance the state of this vehicle by the specified time step.
-// This function must be called if the vehicle system owns the underlying Chrono system.
-// In addition to advancing the state of the multibody system, this function also advances
-// the states of all associated tires.
 // -----------------------------------------------------------------------------
 void ChWheeledVehicle::Advance(double step) {
     if (m_powertrain) {

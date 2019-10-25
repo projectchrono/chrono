@@ -283,9 +283,6 @@ int main(int argc, char* argv[]) {
     integrator->SetScaling(true);
     integrator->SetVerbose(verbose_integrator);
 
-    // IMPORTANT: Mark completion of system construction
-    rig->GetSystem()->SetupInitial();
-
     // -----------------
     // Print model stats
     // -----------------

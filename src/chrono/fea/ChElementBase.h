@@ -29,10 +29,9 @@ namespace fea {
 
 /// Base class for all finite elements, that can be used in the ChMesh physics item.
 class ChApi ChElementBase {
-  protected:
   public:
     ChElementBase(){};
-    virtual ~ChElementBase(){};
+    virtual ~ChElementBase(){}
 
     /// Gets the number of nodes used by this element.
     virtual int GetNnodes() = 0;
@@ -74,11 +73,6 @@ class ChApi ChElementBase {
     /// Computes the internal forces (ex. the actual position of nodes is not in relaxed reference position) and set
     /// values in the Fi vector, with n.rows = n.of dof of element.
     virtual void ComputeInternalForces(ChVectorDynamic<>& Fi) = 0;
-
-    /// Initial setup: This is used mostly to precompute matrices
-    /// that do not change during the simulation, i.e. the local
-    /// stiffness of each element, if any, the mass, etc.
-    virtual void SetupInitial(ChSystem* system) {}
 
     /// Update: this is called at least at each time step. If the
     /// element has to keep updated some auxiliary data, such as the rotation
@@ -127,6 +121,13 @@ class ChApi ChElementBase {
     /// timestepping schemes that do: M*v_new = M*v_old + forces*dt
     /// WILL BE DEPRECATED
     virtual void VariablesFbIncrementMq() {}
+
+  private:
+    /// Initial setup: This is used mostly to precompute matrices that do not change during the simulation, i.e. the
+    /// local stiffness of each element, if any, the mass, etc.
+    virtual void SetupInitial(ChSystem* system) {}
+
+	friend class ChMesh;
 };
 
 /// @} fea_elements

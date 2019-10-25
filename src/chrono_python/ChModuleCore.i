@@ -64,12 +64,15 @@
 #include "chrono/assets/ChSurfaceShape.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/assets/ChEllipsoidShape.h"
+#include "chrono/assets/ChGlyphs.h"
 #include "chrono/collision/ChCCollisionUtils.h"
+#include "chrono/collision/ChCCollisionSystem.h"
 #include "chrono/geometry/ChTriangleMesh.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/geometry/ChTriangleMeshSoup.h"
 #include "chrono/core/ChBezierCurve.h"
 #include "Eigen/src/Core/util/Memory.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
 using namespace chrono;
 using namespace chrono::collision;
 using namespace chrono::geometry;
@@ -134,6 +137,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChPointPointSpring)
 %shared_ptr(chrono::ChTriangleMeshShape)
 %shared_ptr(chrono::ChBezierCurve)
+%shared_ptr(chrono::ChGlyphs)
 
 %shared_ptr(chrono::ChFunction)  
 %shared_ptr(chrono::ChFunction_Const)
@@ -296,6 +300,7 @@ using namespace chrono::fea;
 
 %include "ChCollisionModel.i"
 %include "../chrono/collision/ChCCollisionUtils.h"
+%include "../chrono/collision/ChCCollisionSystem.h"
 
 // assets
 %include "ChAsset.i"
@@ -315,6 +320,8 @@ using namespace chrono::fea;
 %include "../chrono/assets/ChSurfaceShape.h"
 %include "../chrono/assets/ChTriangleMeshShape.h"
 %include "../chrono/assets/ChEllipsoidShape.h"
+%include "../chrono/assets/ChGlyphs.h"
+
 
 // physics/  classes
 //%include "../chrono/physics/ChTensors.h"
@@ -371,6 +378,10 @@ using namespace chrono::fea;
 %include "ChShaft.i"
 %include "ChShaftMotor.i"
 %include "ChLinkMotor.i"
+
+// Utils
+
+%include "../chrono/utils/ChUtilsInputOutput.h"
 
 //
 // C- DOWNCASTING OF SHARED POINTERS

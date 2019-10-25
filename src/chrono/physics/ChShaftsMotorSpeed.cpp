@@ -97,6 +97,8 @@ void ChShaftsMotorSpeed::IntStateScatter(const unsigned int off_x,  // offset in
                               ) {
     //aux = x(off_x);
     aux_dt = v(off_v);
+
+    Update(T);
 }
 
 void ChShaftsMotorSpeed::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {

@@ -251,9 +251,6 @@ bool test_computecontact(ChMaterialSurface::ContactMethod method) {
     // Remember to add the mesh to the system!
     system->Add(my_mesh);
 
-    // Mark completion of system construction
-    system->SetupInitial();
-
     // Create container box
     auto ground =
         utils::CreateBoxContainer(system, binId, material, ChVector<>(bin_width, bin_length, 200 * dy), bin_thickness,

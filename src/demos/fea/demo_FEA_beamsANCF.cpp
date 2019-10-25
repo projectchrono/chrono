@@ -18,33 +18,21 @@
 
 #include <chrono>
 
-#include "chrono/physics/ChBodyEasy.h"
-#include "chrono/physics/ChLinkMate.h"
-#include "chrono/physics/ChLinkMotorLinearPosition.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChSolverMINRES.h"
-#include "chrono/solver/ChSolverPMINRES.h"
 #include "chrono/timestepper/ChTimestepper.h"
 
 #include "chrono/fea/ChBuilderBeam.h"
 #include "chrono/fea/ChElementBeamIGA.h"
-#include "chrono/fea/ChLinkDirFrame.h"
-#include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChMesh.h"
-#include "chrono/fea/ChVisualizationFEAmesh.h"
-#include "chrono/physics/ChLinkMotorRotationAngle.h"
-#include "chrono/physics/ChLinkMotorRotationSpeed.h"
 
-#define USE_MKL
-
-#ifdef USE_MKL
 #include "chrono_mkl/ChSolverMKL.h"
-#endif
 
 using namespace chrono;
 using namespace chrono::fea;
 
-int ID_current_example = 1;
+bool use_MKL = true;
+int num_tests = 5;
 
 const float beam_tip_init_load = -2.0f;
 const double beamL = 0.4;
@@ -56,7 +44,20 @@ const double beam_wz = 0.025;
 const double k1 = 10 * (1 + nu_rat) / (12 + 11 * nu_rat);  // Timoshenko coefficient
 const double k2 = k1;                                      // Timoshenko coefficient
 
-double ANCF_test(ChSystem& mysys, float beam_tip_load, int NofEl) {
+double AnalyticalSol(float beam_tip_load) {
+    double G_mod = E_mod * nu_rat;
+    double poisson = E_mod / (2.0 * G_mod) - 1.0;
+    double Ks_y = 10.0 * (1.0 + poisson) / (12.0 + 11.0 * poisson);
+
+    // (P*L^3)/(3*E*I) + (P*L)/(k*A*G)
+    double analytical_timoshenko_displ =
+        (beam_tip_load * pow(beamL, 3)) / (3 * E_mod * (1. / 12.) * beam_wz * pow(beam_wy, 3)) +
+        (beam_tip_load * beamL) / (Ks_y * G_mod * beam_wz * beam_wy);
+
+    return analytical_timoshenko_displ;
+}
+
+void ANCF_test(ChSystem& mysys, float beam_tip_load, int NofEl, double analytical_displ) {
     // Clear previous demo, if any:
     mysys.Clear();
     mysys.SetChTime(0);
@@ -74,23 +75,19 @@ double ANCF_test(ChSystem& mysys, float beam_tip_load, int NofEl) {
     builder.BuildBeam(my_mesh, material, NofEl, ChVector<>(0, 0, 0), ChVector<>(beamL, 0, 0), beam_wy, beam_wz, VECT_Y,
                       VECT_Z);
     builder.GetLastBeamNodes().front()->SetFixed(true);
+    builder.GetLastBeamNodes().back()->SetForce(ChVector<>(0, beam_tip_load, 0));
+
     double y_init = builder.GetLastBeamNodes().back()->GetPos().y();
 
-    // Mark completion of system construction
-    mysys.SetupInitial();
-    builder.GetLastBeamNodes().back()->SetForce(ChVector<>(0, beam_tip_load, 0));
+    // Do a linear static analysis.
     mysys.DoStaticLinear();
+
     double numerical_displ = builder.GetLastBeamNodes().back()->GetPos().y() - y_init;
-    return numerical_displ;
+    GetLog() << "LINEAR STATIC ANCF cantilever, num. elements = " << NofEl
+             << "  rel.error=  " << fabs((numerical_displ - analytical_displ) / analytical_displ) << "\n\n";
 }
 
-//
-// Example B: Automatic creation of the nodes and knots
-// using the ChBuilderBeamIGA tool for creating a straight
-// rod automatically divided in Nel elements:
-//
-
-void IGA_test(ChSystem& mysys, float beam_tip_load, double ANCF_res, int nsections = 32, int order = 2) {
+void IGA_test(ChSystem& mysys, float beam_tip_load, int nsections, int order, double analytical_displ) {
     // Clear previous demo, if any:
     mysys.GetSystem()->Clear();
     mysys.GetSystem()->SetChTime(0);
@@ -111,9 +108,7 @@ void IGA_test(ChSystem& mysys, float beam_tip_load, double ANCF_res, int nsectio
     msection->SetDensity(rho);
     msection->SetAsRectangularSection(beam_wy, beam_wz);
 
-    // Use the ChBuilderBeamIGA tool for creating a straight rod
-    // divided in Nel elements:
-
+    // Use the ChBuilderBeamIGA tool for creating a straight rod divided in Nel elements
     ChBuilderBeamIGA builder;
     builder.BuildBeam(my_mesh,                  // the mesh to put the elements in
                       msection,                 // section of the beam
@@ -124,74 +119,54 @@ void IGA_test(ChSystem& mysys, float beam_tip_load, double ANCF_res, int nsectio
                       order);                   // order (3 = cubic, etc)
     builder.GetLastBeamNodes().front()->SetFixed(true);
     builder.GetLastBeamNodes().back()->SetForce(ChVector<>(0, beam_tip_load, 0));
-    // This is needed if you want to see things in Irrlicht 3D view.
 
-    // Mark completion of system construction
-    mysys.SetupInitial();
+    double y_init = builder.GetLastBeamNodes().back()->GetX0().GetPos().y();
 
     // Do a linear static analysis.
     mysys.DoStaticLinear();
 
-    // For comparison with analytical results.
-    double poisson = melasticity->GetYoungModulus() / (2.0 * melasticity->GetGshearModulus()) - 1.0;
-    double Ks_y = 10.0 * (1.0 + poisson) / (12.0 + 11.0 * poisson);
-    double analytic_timoshenko_displ =
-        (beam_tip_load * pow(beamL, 3)) /
-            (3 * melasticity->GetYoungModulus() * (1. / 12.) * beam_wz * pow(beam_wy, 3)) +
-        (beam_tip_load * beamL) /
-            (Ks_y * melasticity->GetGshearModulus() * beam_wz * beam_wy);  // = (P*L^3)/(3*E*I) + (P*L)/(k*A*G)
-    double numerical_displ =
-        builder.GetLastBeamNodes().back()->GetPos().y() - builder.GetLastBeamNodes().back()->GetX0().GetPos().y();
-
-    GetLog() << "\n LINEAR STATIC IGA cantilever, order= " << order << "  nsections= " << nsections
-             << "  rel.error=  " << fabs((numerical_displ - analytic_timoshenko_displ) / analytic_timoshenko_displ)
-             << "\n";
-
-    GetLog() << "\n LINEAR STATIC ANCF cantilever, nsections= " << nsections
-             << "  rel.error=  " << fabs((ANCF_res - analytic_timoshenko_displ) / analytic_timoshenko_displ) << "\n";
+    double numerical_displ = builder.GetLastBeamNodes().back()->GetPos().y() - y_init;
+    GetLog() << "LINEAR STATIC IGA cantilever, order= " << order << "  nsections= " << nsections
+             << "  rel.error=  " << fabs((numerical_displ - analytical_displ) / analytical_displ) << "\n\n";
 }
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
-    int test_number = 5;
+
     // Create a Chrono::Engine physical system
     ChSystemNSC my_system;
 
-    // Solver default settings for all the sub demos:
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
-    my_system.SetMaxItersSolverSpeed(500);
-    my_system.SetMaxItersSolverStab(500);
-    my_system.SetTolForce(1e-14);
+    // Solver settings
+    if (use_MKL) {
+        auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
+        mkl_solver->SetVerbose(true);
+        my_system.SetSolver(mkl_solver);
+    } else {
+        my_system.SetSolverType(ChSolver::Type::MINRES);
+        my_system.SetSolverWarmStarting(true);
+        my_system.SetMaxItersSolverSpeed(500);
+        my_system.SetMaxItersSolverStab(500);
+        my_system.SetTolForce(1e-14);
+        auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
+        msolver->SetDiagonalPreconditioning(true);
+        msolver->SetVerbose(false);
+    }
 
-    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    msolver->SetVerbose(false);
-    msolver->SetDiagonalPreconditioning(true);
-
-#ifdef USE_MKL
-    auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
-    my_system.SetSolver(mkl_solver);
-#endif
-
-    // Run the sub-demos:
-
-    for (int i = 1; i <= test_number; i++) {
+    // Run all tests
+    for (int i = 1; i <= num_tests; i++) {
+        std::cout << "\n============================\nTest # " << i << "\n" << std::endl;
+        double analytical_displ = AnalyticalSol(i * beam_tip_init_load);
         std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
-
-        double ancfres = ANCF_test(my_system, i * beam_tip_init_load, i + 2);
-
+        ANCF_test(my_system, i * beam_tip_init_load, i + 2, analytical_displ);
         std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-        IGA_test(my_system, i * beam_tip_init_load, ancfres, i + 2, 3);
-
+        IGA_test(my_system, i * beam_tip_init_load, i + 2, 3, analytical_displ);
         std::chrono::high_resolution_clock::time_point t3 = std::chrono::high_resolution_clock::now();
 
         auto ANCFduration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
         auto IGAduration = std::chrono::duration_cast<std::chrono::microseconds>(t3 - t2).count();
 
-        /*GetLog() << "\n ANCF Elapsed Time: " << ANCFduration << "\n\n";
-        GetLog() << "\n IGA Elapsed Time: " << IGAduration << "\n\n";*/
-        std::cout << "\n ANCF Elapsed Time: " << ANCFduration << "\n\n";
-        std::cout << "\n IGA Elapsed Time: " << IGAduration << "\n\n";
+        std::cout << "ANCF Elapsed Time: " << ANCFduration << "\n";
+        std::cout << "IGA Elapsed Time:  " << IGAduration << "\n\n";
     }
 
     return 0;

@@ -76,8 +76,6 @@ FEAcontactTest::FEAcontactTest() {
     CreateFloor(cmat);
     CreateBeams(cmat);
     CreateCables(cmat);
-
-    m_system->SetupInitial();
 }
 
 void FEAcontactTest::CreateFloor(std::shared_ptr<ChMaterialSurfaceSMC> cmat) {

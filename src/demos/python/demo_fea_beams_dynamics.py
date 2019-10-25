@@ -175,8 +175,6 @@ myapplication.AssetUpdateAll()
 #
 
 
-my_system.SetupInitial();
-
 # Set to a more precise HHT timestepper if needed
 # my_system.SetTimestepperType(chrono.ChTimestepper.Type_HHT)
 

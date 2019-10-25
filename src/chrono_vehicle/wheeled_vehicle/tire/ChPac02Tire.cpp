@@ -41,7 +41,9 @@ ChPac02Tire::ChPac02Tire(const std::string& name)
       m_mu(0),
       m_use_mode(1),
       m_Shf(0),
-      m_use_friction_ellipsis(false) {
+      m_use_friction_ellipsis(false),
+      m_allow_mirroring(false),
+      m_measured_side(LEFT) {
     m_tireforce.force = ChVector<>(0, 0, 0);
     m_tireforce.point = ChVector<>(0, 0, 0);
     m_tireforce.moment = ChVector<>(0, 0, 0);
@@ -75,15 +77,15 @@ ChPac02Tire::ChPac02Tire(const std::string& name)
     m_PacScal.lsgal = 1.0;
     m_PacScal.lgyr = 1.0;
 
-    m_PacCoeff.mu0 = 0.8;      // reference friction coefficient
-    m_PacCoeff.R0 = 0.0;       // unloaded radius
-    m_PacCoeff.width = 0.0;    // tire width = 0.0;
+    m_PacCoeff.mu0 = 0.8;           // reference friction coefficient
+    m_PacCoeff.R0 = 0.0;            // unloaded radius
+    m_PacCoeff.width = 0.0;         // tire width = 0.0;
     m_PacCoeff.aspect_ratio = 0.8;  // actually unused
-    m_PacCoeff.rim_radius = 0.0;  // actually unused
-    m_PacCoeff.rim_width = 0.0;  // actually unused
+    m_PacCoeff.rim_radius = 0.0;    // actually unused
+    m_PacCoeff.rim_width = 0.0;     // actually unused
     m_PacCoeff.FzNomin = 0.0;       // nominla wheel load
-    m_PacCoeff.Cz = 0.0;       // vertical tire stiffness
-    m_PacCoeff.Kz = 0.0;       // vertical tire damping
+    m_PacCoeff.Cz = 0.0;            // vertical tire stiffness
+    m_PacCoeff.Kz = 0.0;            // vertical tire damping
 
     // Longitudinal Coefficients
     m_PacCoeff.pcx1 = 0.0;
@@ -220,19 +222,48 @@ void ChPac02Tire::Initialize(std::shared_ptr<ChWheel> wheel) {
     // (used only with the ChTire::ENVELOPE method for terrain-tire collision detection)
     ConstructAreaDepthTable(m_PacCoeff.R0, m_areaDep);
 
-    // Initialize contact patch state variables to 0;
-    m_data.normal_force = 0;
-    m_states.R_eff = m_PacCoeff.R0;
-    m_states.cp_long_slip = 0;
-    m_states.cp_side_slip = 0;
-    m_states.vx = 0;
-    m_states.vsx = 0;
-    m_states.vsy = 0;
-    m_states.omega = 0;
-    m_states.disc_normal = ChVector<>(0, 0, 0);
+    // all parameters are known now pepare mirroring
+    if (m_allow_mirroring) {
+        if (wheel->GetSide() != m_measured_side) {
+            // we flip the sign of some parameters
+            m_PacCoeff.rhx1 *= -1.0;
+            m_PacCoeff.qsx1 *= -1.0;
+            m_PacCoeff.pey3 *= -1.0;
+            m_PacCoeff.phy1 *= -1.0;
+            m_PacCoeff.phy2 *= -1.0;
+            m_PacCoeff.pvy1 *= -1.0;
+            m_PacCoeff.pvy2 *= -1.0;
+            m_PacCoeff.rby3 *= -1.0;
+            m_PacCoeff.rvy1 *= -1.0;
+            m_PacCoeff.rvy2 *= -1.0;
+            m_PacCoeff.qbz4 *= -1.0;
+            m_PacCoeff.qdz3 *= -1.0;
+            m_PacCoeff.qdz6 *= -1.0;
+            m_PacCoeff.qdz7 *= -1.0;
+            m_PacCoeff.qez4 *= -1.0;
+            m_PacCoeff.qhz1 *= -1.0;
+            m_PacCoeff.qhz2 *= -1.0;
+            m_PacCoeff.ssz1 *= -1.0;
+            if (m_measured_side == LEFT) {
+                GetLog() << "Tire is measured as left tire but mounted on the right vehicle side -> mirroring.\n";
+            } else {
+                GetLog() << "Tire is measured as right tire but mounted on the lleft vehicle side -> mirroring.\n";
+            }
+        }
+        // Initialize contact patch state variables to 0;
+        m_data.normal_force = 0;
+        m_states.R_eff = m_PacCoeff.R0;
+        m_states.cp_long_slip = 0;
+        m_states.cp_side_slip = 0;
+        m_states.vx = 0;
+        m_states.vsx = 0;
+        m_states.vsy = 0;
+        m_states.omega = 0;
+        m_states.disc_normal = ChVector<>(0, 0, 0);
 
-    m_states.cp_long_slip = 0;
-    m_states.cp_side_slip = 0;
+        m_states.cp_long_slip = 0;
+        m_states.cp_side_slip = 0;
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -380,8 +411,8 @@ void ChPac02Tire::Advance(double step) {
     m_alpha = m_states.cp_side_slip;
     m_kappa = m_states.cp_long_slip;
 
-    // Clamp |gamma| to specified value: Limit due to tire testing, avoids erratic extrapolation. m_gamma_limit is in
-    // rad too.
+    // Clamp |gamma| to specified value: Limit due to tire testing, avoids erratic extrapolation. m_gamma_limit is
+    // in rad too.
     double gamma = ChClamp(m_gamma, -m_gamma_limit, m_gamma_limit);
 
     switch (m_use_mode) {
@@ -636,29 +667,31 @@ double ChPac02Tire::CalcMzComb(double kappa, double alpha, double Fz, double gam
     double alpha_t = alpha_s + Sht;
     double Ct = m_PacCoeff.qcz1;
     double gamma_s = sin(gamma);
-	// pneumatic trail
-    double Dt0 = Fz * (m_PacCoeff.R0 / Fz0s) * (m_PacCoeff.qdz1 + m_PacCoeff.qdz2*dFz)*m_PacScal.ltr*ChSignum(m_data.vel.x());
-    double Dt = Dt0 * (1.0+m_PacCoeff.qdz3*std::abs(gamma_s)+m_PacCoeff.qdz4*pow(gamma_s,2));
-    double Bt = (m_PacCoeff.qbz1 + m_PacCoeff.qbz2 * dFz + m_PacCoeff.qbz3 * pow(dFz, 2))
-		*(1.0+m_PacCoeff.qbz5*std::abs(gamma_s)+m_PacCoeff.qbz6*pow(gamma_s,2))*m_PacScal.lky/m_PacScal.lmuy;
-    double Et = (m_PacCoeff.qez1 + m_PacCoeff.qez2 * dFz + m_PacCoeff.qez3 * pow(dFz, 2))
-		*((1.0+m_PacCoeff.qez4+m_PacCoeff.qez5*gamma_s)*atan(Bt*Ct*alpha_t/CH_C_PI_2));
+    // pneumatic trail
+    double Dt0 = Fz * (m_PacCoeff.R0 / Fz0s) * (m_PacCoeff.qdz1 + m_PacCoeff.qdz2 * dFz) * m_PacScal.ltr *
+                 ChSignum(m_data.vel.x());
+    double Dt = Dt0 * (1.0 + m_PacCoeff.qdz3 * std::abs(gamma_s) + m_PacCoeff.qdz4 * pow(gamma_s, 2));
+    double Bt = (m_PacCoeff.qbz1 + m_PacCoeff.qbz2 * dFz + m_PacCoeff.qbz3 * pow(dFz, 2)) *
+                (1.0 + m_PacCoeff.qbz5 * std::abs(gamma_s) + m_PacCoeff.qbz6 * pow(gamma_s, 2)) * m_PacScal.lky /
+                m_PacScal.lmuy;
+    double Et = (m_PacCoeff.qez1 + m_PacCoeff.qez2 * dFz + m_PacCoeff.qez3 * pow(dFz, 2)) *
+                ((1.0 + m_PacCoeff.qez4 + m_PacCoeff.qez5 * gamma_s) * atan(Bt * Ct * alpha_t / CH_C_PI_2));
     double Kxk = Fz * (m_PacCoeff.pkx1 + m_PacCoeff.pkx2) * m_PacScal.lkx;
     double Kya = m_PacCoeff.pky1 * m_PacCoeff.FzNomin * sin(2.0 * atan(Fz / (m_PacCoeff.pky2 * Fz0s))) *
                  m_PacScal.lfz0 * m_PacScal.lky;
-    double alpha_teq = sqrt(pow(alpha_t, 2) + pow(Kxk, 2) * pow(kappa, 2) / pow(Kya, 2))*ChSignum(alpha_t);
+    double alpha_teq = sqrt(pow(alpha_t, 2) + pow(Kxk, 2) * pow(kappa, 2) / pow(Kya, 2)) * ChSignum(alpha_t);
     double t = Dt * (Ct * atan(Bt * alpha_t - Et * (Bt * alpha_t - atan(Bt * alpha_t))));
-	// residual moment
-    double Shf = 0.0; // todo!!
+    // residual moment
+    double Shf = 0.0;  // todo!!
     double alpha_r = alpha + Shf;
     double alpha_req = sqrt(pow(alpha_r, 2) + pow(Kxk, 2) * pow(kappa, 2) / pow(Kya, 2)) * ChSignum(alpha_r);
     double gamma_z = gamma * m_PacScal.lgaz;
     double Cr = 1.0;
     double Br = (m_PacCoeff.qbz9 * m_PacScal.lky / m_PacScal.lmuy + m_PacCoeff.qbz10 * m_By * m_Cy);
     double Dr = Fz *
-               ((m_PacCoeff.qdz6 + m_PacCoeff.qdz7 * dFz) * m_PacScal.ltr +
-                (m_PacCoeff.qdz8 + m_PacCoeff.qdz9 * dFz) * gamma_z) *
-               m_PacCoeff.R0 * m_PacScal.lmuy;
+                ((m_PacCoeff.qdz6 + m_PacCoeff.qdz7 * dFz) * m_PacScal.ltr +
+                 (m_PacCoeff.qdz8 + m_PacCoeff.qdz9 * dFz) * gamma_z) *
+                m_PacCoeff.R0 * m_PacScal.lmuy;
     double Mr = Dr * cos(Cr * atan(Br * alpha_req));
     // moment caused by longitudinal force
     double s = m_PacCoeff.R0 *

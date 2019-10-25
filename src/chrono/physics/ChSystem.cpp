@@ -48,6 +48,8 @@ ChSystem::ChSystem()
       step_max(0.04),
       tol(2e-4),
       tol_force(1e-3),
+      is_initialized(false),
+      is_updated(false),
       maxiter(6),
       max_iter_solver_speed(30),
       max_iter_solver_stab(10),
@@ -92,6 +94,8 @@ ChSystem::ChSystem(const ChSystem& other) : ChAssembly(other) {
     SetTimestepperType(other.GetTimestepperType());
     tol = other.tol;
     tol_force = other.tol_force;
+    is_initialized = false;
+    is_updated = false;
     maxiter = other.maxiter;
 
     min_bounce_speed = other.min_bounce_speed;
@@ -115,8 +119,7 @@ ChSystem::ChSystem(const ChSystem& other) : ChAssembly(other) {
 ChSystem::~ChSystem() {
     // Before proceeding, anticipate Clear(). This would be called also by base ChAssembly destructor, anyway, but
     // it would happen after this destructor, so the ith_body->SetSystem(0) in Clear() would not be able to remove
-    // body's collision
-    // models from the collision_system. Here it is possible, since the collision_system is still alive.
+    // body collision models from the collision_system. Here it is possible, since the collision_system is still alive.
     Clear();
 
     RemoveAllProbes();
@@ -324,7 +327,8 @@ void ChSystem::SetupInitial() {
     for (int ip = 0; ip < otherphysicslist.size(); ++ip) {
         otherphysicslist[ip]->SetupInitial();
     }
-    this->Update();
+
+	is_initialized = true;
 }
 
 // PROBE STUFF
@@ -658,11 +662,11 @@ void ChSystem::Setup() {
 
     ndof = ncoords - ndoc;  // number of degrees of freedom (approximate - does not consider constr. redundancy, etc)
 
-// BOOKKEEPING SANITY CHECK
-// Test if the bookkeeping is properly aligned, at least for state gather/scatters,
-// by filling a marked vector, and see if some gaps or overlaps are remaining.
-
 #ifdef _DEBUG
+    // BOOKKEEPING SANITY CHECK
+    // Test if the bookkeeping is properly aligned, at least for state gather/scatters,
+    // by filling a marked vector, and see if some gaps or overlaps are remaining.
+
     bool check_bookkeeping = false;
     if (check_bookkeeping) {
         ChState test_x(GetNcoords_x(), this);
@@ -706,7 +710,10 @@ void ChSystem::Setup() {
 // - updates all markers (automatic, as children of bodies).
 
 void ChSystem::Update(bool update_assets) {
-    CH_PROFILE( "Update");
+    CH_PROFILE("Update");
+
+    if (!is_initialized)
+        SetupInitial();
 
     timer_update.start();  // Timer for profiling
 
@@ -720,6 +727,10 @@ void ChSystem::Update(bool update_assets) {
     contact_container->Update(ChTime, update_assets);
 
     timer_update.stop();
+}
+
+void ChSystem::ForceUpdate() {
+    is_updated = false;
 }
 
 void ChSystem::IntStateGather(const unsigned int off_x,  // offset in x state vector
@@ -747,8 +758,10 @@ void ChSystem::IntStateScatter(const unsigned int off_x,  // offset in x state v
     unsigned int displ_x = off_x - offset_x;
     unsigned int displ_v = off_v - offset_w;
 
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
+    // Let each object (bodies, links, etc.) in the assembly extract its own states.
+    // Note that each object also performs an update
     ChAssembly::IntStateScatter(off_x, x, off_v, v, T);
+
     // Use also on contact container:
     contact_container->IntStateScatter(displ_x + contact_container->GetOffset_x(), x,
                                        displ_v + contact_container->GetOffset_w(), v, T);
@@ -763,7 +776,7 @@ void ChSystem::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta
     contact_container->IntStateGatherAcceleration(displ_a + contact_container->GetOffset_w(), a);
 }
 
-/// From state derivative (acceleration) to system, sometimes might be needed
+// From state derivative (acceleration) to system, sometimes might be needed
 void ChSystem::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
     unsigned int displ_a = off_a - offset_w;
 
@@ -773,7 +786,7 @@ void ChSystem::IntStateScatterAcceleration(const unsigned int off_a, const ChSta
     contact_container->IntStateScatterAcceleration(displ_a + contact_container->GetOffset_w(), a);
 }
 
-/// From system to reaction forces (last computed) - some timestepper might need this
+// From system to reaction forces (last computed) - some timestepper might need this
 void ChSystem::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
     unsigned int displ_L = off_L - offset_L;
 
@@ -783,7 +796,7 @@ void ChSystem::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic
     contact_container->IntStateGatherReactions(displ_L + contact_container->GetOffset_L(), L);
 }
 
-/// From reaction forces to system, ex. store last computed reactions in ChLink objects for plotting etc.
+// From reaction forces to system, ex. store last computed reactions in ChLink objects for plotting etc.
 void ChSystem::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
     unsigned int displ_L = off_L - offset_L;
 
@@ -1036,8 +1049,7 @@ void ChSystem::StateGather(ChState& x, ChStateDelta& v, double& T) {
 // From state Y={x,v} to system.
 void ChSystem::StateScatter(const ChState& x, const ChStateDelta& v, const double T) {
     IntStateScatter(0, x, 0, v, T);
-
-    Update();  //***TODO*** optimize because maybe IntStateScatter above might have already called Update?
+    // Note that there is no need to perform an update here, as this was done above.
 }
 
 // From system to state derivative (acceleration), some timesteppers might need last computed accel.
@@ -1281,7 +1293,7 @@ double ChSystem::ComputeCollisions() {
     for (size_t ic = 0; ic < collision_callbacks.size(); ic++)
         collision_callbacks[ic]->OnCustomCollision(this);
 
-    // Count the contacts of body-body type.
+    // Cache the total number of contacts
     ncontacts = contact_container->GetNcontacts();
 
     timer_collision.stop();
@@ -1378,12 +1390,8 @@ void ChSystem::DumpSystemMatrices(bool save_M, bool save_K, bool save_R, bool sa
         ChStreamOutAsciiFile file_Cq(filename);
         file_Cq.SetNumFormat(numformat);
         mCq.StreamOUTsparseMatlabFormat(file_Cq);
-    }  
+    }
 }
-
-
-
-
 
 // -----------------------------------------------------------------------------
 //  PERFORM AN INTEGRATION STEP.  ----
@@ -1394,6 +1402,9 @@ void ChSystem::DumpSystemMatrices(bool save_M, bool save_K, bool save_R, bool sa
 // -----------------------------------------------------------------------------
 
 int ChSystem::DoStepDynamics(double m_step) {
+    if (!is_initialized)
+        SetupInitial();
+
     step = m_step;
     return Integrate_Y();
 }
@@ -1417,14 +1428,22 @@ bool ChSystem::Integrate_Y() {
     setupcount = 0;
 
     // Compute contacts and create contact constraints
+    int ncontacts_old = ncontacts;
     ComputeCollisions();
 
-    // Counts dofs, statistics, etc. (not needed because already in Advance()...? )
+    // Declare an NSC system as "out of date" if there are contacts
+    if (GetContactMethod() == ChMaterialSurface::NSC && (ncontacts_old != 0 || ncontacts != 0))
+        is_updated = false;
+
+    // Counts dofs, number of constraints, statistics, etc.
+    // Note: this must be invoked at all times (regardless of the flag is_updated), as various physics items may use
+    // their own Setup to perform operations at the beginning of a step.
     Setup();
 
-    // Update everything - and put to sleep bodies that need it (not needed because already in Advance()...? )
-    // No need to update visualization assets here.
-    Update(false);
+    // If needed, update everything. No need to update visualization assets here.
+    if (!is_updated) {
+        Update(false);
+    }
 
     // Re-wake the bodies that cannot sleep because they are in contact with
     // some body that is not in sleep state.
@@ -1459,8 +1478,11 @@ bool ChSystem::Integrate_Y() {
     // Call method to gather contact forces/torques in rigid bodies
     contact_container->ComputeContactForces();
 
-    // Time elapsed for step..
+    // Time elapsed for step
     timer_step.stop();
+
+	// Tentatively mark system as unchanged (i.e., no updated necessary)
+    is_updated = true;
 
     return true;
 }
@@ -1473,7 +1495,10 @@ bool ChSystem::Integrate_Y() {
 // -----------------------------------------------------------------------------
 
 bool ChSystem::DoAssembly(int action) {
-    solvecount = 0;
+    if (!is_initialized)
+        SetupInitial();
+
+	solvecount = 0;
     setupcount = 0;
 
     Setup();
@@ -1510,6 +1535,9 @@ bool ChSystem::DoAssembly(int action) {
 // -----------------------------------------------------------------------------
 
 bool ChSystem::DoStaticLinear() {
+    if (!is_initialized)
+        SetupInitial();
+
     solvecount = 0;
     setupcount = 0;
 
@@ -1558,6 +1586,9 @@ bool ChSystem::DoStaticLinear() {
 // -----------------------------------------------------------------------------
 
 bool ChSystem::DoStaticNonlinear(int nsteps) {
+    if (!is_initialized)
+        SetupInitial();
+
     solvecount = 0;
     setupcount = 0;
 
@@ -1587,7 +1618,10 @@ bool ChSystem::DoStaticNonlinear(int nsteps) {
 // -----------------------------------------------------------------------------
 
 bool ChSystem::DoStaticRelaxing(int nsteps) {
-    solvecount = 0;
+    if (!is_initialized)
+        SetupInitial();
+
+	solvecount = 0;
     setupcount = 0;
 
     int err = 0;
@@ -1637,7 +1671,10 @@ bool ChSystem::DoStaticRelaxing(int nsteps) {
 // -----------------------------------------------------------------------------
 
 bool ChSystem::DoEntireKinematics() {
-    Setup();
+    if (!is_initialized)
+        SetupInitial();
+
+	Setup();
 
     int action = AssemblyLevel::POSITION | AssemblyLevel::VELOCITY | AssemblyLevel::ACCELERATION;
 
@@ -1667,7 +1704,10 @@ bool ChSystem::DoEntireKinematics() {
 // -----------------------------------------------------------------------------
 
 bool ChSystem::DoEntireDynamics() {
-    Setup();
+    if (!is_initialized)
+        SetupInitial();
+
+	Setup();
 
     // the system may have wrong layout, or too large
     // clearances in constraints, so it is better to
@@ -1702,7 +1742,10 @@ bool ChSystem::DoEntireDynamics() {
 // requested to reach m_endtime, the step is lowered.
 
 bool ChSystem::DoFrameDynamics(double m_endtime) {
-    double frame_step;
+    if (!is_initialized)
+        SetupInitial();
+
+	double frame_step;
     double old_step;
     double left_time;
     bool restore_oldstep = false;
@@ -1755,8 +1798,10 @@ bool ChSystem::DoFrameDynamics(double m_endtime) {
 // command).
 
 bool ChSystem::DoEntireUniformDynamics(double frame_step) {
-    // the initial system may have wrong layout, or too large
-    // clearances in constraints.
+    if (!is_initialized)
+        SetupInitial();
+
+	// the initial system may have wrong layout, or too large clearances in constraints.
     Setup();
     DoAssembly(AssemblyLevel::POSITION | AssemblyLevel::VELOCITY | AssemblyLevel::ACCELERATION);
 
@@ -1772,7 +1817,10 @@ bool ChSystem::DoEntireUniformDynamics(double frame_step) {
 // Like DoFrameDynamics, but performs kinematics instead of dynamics
 
 bool ChSystem::DoFrameKinematics(double m_endtime) {
-    double frame_step;
+    if (!is_initialized)
+        SetupInitial();
+
+	double frame_step;
     double old_step;
     double left_time;
     int restore_oldstep;
@@ -1814,7 +1862,10 @@ bool ChSystem::DoFrameKinematics(double m_endtime) {
 }
 
 bool ChSystem::DoStepKinematics(double m_step) {
-    ChTime += m_step;
+    if (!is_initialized)
+        SetupInitial();
+
+	ChTime += m_step;
 
     Update();
 

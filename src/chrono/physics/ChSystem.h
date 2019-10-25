@@ -268,10 +268,6 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// Gets the G (gravity) acceleration vector affecting all the bodies in the system.
     const ChVector<>& Get_G_acc() const { return G_acc; }
 
-    /// Initial system setup before analysis.
-    /// This function must be called once the system construction is completed.
-    void SetupInitial() override;
-
     //
     // DATABASE HANDLING.
     //
@@ -358,9 +354,15 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     }
 
   protected:
-    /// Pushes all ChConstraints and ChVariables contained in links, bodies, etc.
-    /// into the system descriptor.
+    /// Pushes all ChConstraints and ChVariables contained in links, bodies, etc. into the system descriptor.
     virtual void DescriptorPrepareInject(ChSystemDescriptor& mdescriptor);
+
+  private:
+    // Note: SetupInitial need not be typically called by a user, so it is currently marked private.
+
+    /// Initial system setup before analysis.
+    /// This function performs an initial system setup, once system construction is completed and before an analysis.
+    void SetupInitial() override;
 
   public:
     //
@@ -368,17 +370,22 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     //
 
     /// Counts the number of bodies and links.
-    /// Computes the offsets of object states in the global state.
-    /// Assumes that offset_x, offset_w, and offset_L are already set
-    /// as starting point for offsetting all the contained sub objects.
+    /// Computes the offsets of object states in the global state. Assumes that offset_x, offset_w, and offset_L are
+    /// already set as starting point for offsetting all the contained sub objects.
     virtual void Setup() override;
 
-    /// Updates all the auxiliary data and children of
-    /// bodies, forces, links, given their current state.
+    /// Updates all the auxiliary data and children of bodies, forces, links, given their current state.
     virtual void Update(bool update_assets = true) override;
 
-    // (Overload interfaces for global state vectors, see ChPhysicsItem for comments.)
-    // (The following must be overload because there may be ChContactContainer objects in addition to base ChAssembly)
+    /// In normal usage, no system update is necessary at the beginning of a new dynamics step (since an update is
+    /// performed at the end of a step). However, this is not the case if external changes to the system are made. Most
+    /// such changes are discovered automatically (addition/removal of items, input of mesh loads). For special cases,
+    /// this function allows the user to trigger a system update at the beginning of the step immediately following this
+    /// call.
+    void ForceUpdate();
+
+    // Overload interfaces for global state vectors, see ChPhysicsItem for comments.
+    // The following must be overloaded because there may be ChContactContainer objects in addition to base ChAssembly.
     virtual void IntStateGather(const unsigned int off_x,
                                 ChState& x,
                                 const unsigned int off_v,
@@ -586,14 +593,12 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     /// Specify a callback object to be invoked at each collision detection step.
     /// Multiple such callback objects can be registered with a system. If present,
-    /// their OnCustomCollision() method is invoked 
+    /// their OnCustomCollision() method is invoked
     /// Use this if you want that some specific callback function is executed at each
     /// collision detection step (ex. all the times that ComputeCollisions() is automatically
     /// called by the integration method). For example some other collision engine could
     /// add further contacts using this callback.
-    void RegisterCustomCollisionCallback(CustomCollisionCallback* mcallb) {
-        collision_callbacks.push_back(mcallb);
-    }
+    void RegisterCustomCollisionCallback(CustomCollisionCallback* mcallb) { collision_callbacks.push_back(mcallb); }
 
     /// For higher performance (ex. when GPU coprocessors are available) you can create your own custom
     /// collision engine (inherited from ChCollisionSystem) and plug it into the system using this function. 
@@ -792,12 +797,15 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     int FileWriteChR(ChStreamOutBinary& m_file);
 
   protected:
-    std::vector<std::shared_ptr<ChProbe> > probelist;        ///< list of 'probes' (variable-recording objects)
-    std::vector<std::shared_ptr<ChControls> > controlslist;  ///< list of 'controls' script objects
+    std::vector<std::shared_ptr<ChProbe>> probelist;        ///< list of 'probes' (variable-recording objects)
+    std::vector<std::shared_ptr<ChControls>> controlslist;  ///< list of 'controls' script objects
 
     std::shared_ptr<ChContactContainer> contact_container;  ///< the container of contacts
 
     ChVector<> G_acc;  ///< gravitational acceleration
+
+    bool is_initialized;  ///< if false, an initial setup is required (i.e. a call to SetupInitial)
+    bool is_updated;      ///< if false, a new update is required (i.e. a call to Update)
 
     double end_time;  ///< end of simulation
     double step;      ///< time step
@@ -853,6 +861,8 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     bool last_err;  ///< indicates error over the last kinematic/dynamics/statics
 
     // Friend class declarations
+
+    friend class ChAssembly;
 
     template <class Ta, class Tb>
     friend class ChContactNSC;

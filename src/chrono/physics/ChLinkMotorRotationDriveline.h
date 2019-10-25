@@ -64,7 +64,7 @@ class ChApi ChLinkMotorRotationDriveline : public ChLinkMotorRotation {
     virtual ChLinkMotorRotationDriveline* Clone() const override { return new ChLinkMotorRotationDriveline(*this); }
 
 
-	void SetSystem(ChSystem* m_system) override {
+	virtual void SetSystem(ChSystem* m_system) override {
 		ChPhysicsItem::SetSystem(m_system);
 		innershaft1->SetSystem(m_system);
 		innershaft2->SetSystem(m_system);
@@ -87,17 +87,42 @@ class ChApi ChLinkMotorRotationDriveline : public ChLinkMotorRotation {
     /// Note, if driveline is not connected to outer 1D shafts, it should be GetInnerTorque2() = - GetInnerTorque1()
     double GetInnerTorque2() const { return innerconstraint2->GetTorqueReactionOnShaft(); }
 
-
     /// Get the current actuator reaction torque [Nm]
     virtual double GetMotorTorque() const override { return GetInnerTorque1();}
 
-	// Setup. Compute offsets of sub-objects, offsetting all the contained sub objects (the inner shafts)
+    /// Initialize the generic mate, given the two bodies to be connected, and the absolute position of
+    /// the mate (the two frames to connect on the bodies will be initially coincindent to that frame).
+    virtual void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
+                            std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
+                            ChFrame<> mabsframe                   ///< mate frame, in abs. coordinate
+    );
+
+    /// Specialized initialization for LinkMotorRotationDriveline, given the two bodies to be connected, the positions
+    /// of the two frames to connect on the bodies (each expressed in body or abs. coordinates).
+    virtual void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
+                            std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
+                            bool pos_are_relative,                ///< true: following pos. are relative to bodies
+                            ChFrame<> mframe1,                    ///< slave frame 1 (rel. or abs.)
+                            ChFrame<> mframe2                     ///< master frame 2 (rel. or abs.)
+                            ) override;
+
+    /// Specialized initialization for LinkMotorRotationDriveline based on passing two vectors (point + dir) on the two
+    /// bodies, which will represent the X axes of the two frames (Y and Z will be built from the X vector via Gram
+    /// Schmidt orthonormalization).
+    virtual void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
+                            std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
+                            bool pos_are_relative,                ///< true: following pos. are relative to bodies
+                            ChVector<> mpt1,                      ///< origin of slave frame 1 (rel. or abs.)
+                            ChVector<> mpt2,                      ///< origin of master frame 2 (rel. or abs.)
+                            ChVector<> mnorm1,                    ///< X axis of slave plane 1 (rel. or abs.)
+                            ChVector<> mnorm2                     ///< X axis of master plane 2 (rel. or abs.)
+                            ) override;
+
+    // Compute offsets of sub-objects, offsetting all the contained sub objects (the inner shafts)
 	virtual void Setup() override;
 
-    // Update. Also relinks the innerconstraints.
-    void Update(double mytime, bool update_assets) override;
-
-    
+    // Update this object. Also relinks the innerconstraints.
+    virtual void Update(double mytime, bool update_assets = true) override;
 
     //
     // STATE FUNCTIONS
