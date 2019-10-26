@@ -96,6 +96,8 @@ set(CVM_UAZ_FILES
     uaz/UAZBUS_SimpleMapPowertrain.h
     uaz/UAZBUS_TMeasyTire.cpp
     uaz/UAZBUS_TMeasyTire.h
+    uaz/UAZBUS_Pac02Tire.cpp
+    uaz/UAZBUS_Pac02Tire.h
     uaz/UAZBUS_ToeBarLeafspringAxle.cpp
     uaz/UAZBUS_ToeBarLeafspringAxle.h
     uaz/UAZBUS_Vehicle.cpp
@@ -167,6 +169,8 @@ set(CVM_SEDAN_FILES
     sedan/Sedan_RigidTire.h
     sedan/Sedan_TMeasyTire.cpp
     sedan/Sedan_TMeasyTire.h
+    sedan/Sedan_Pac02Tire.cpp
+    sedan/Sedan_Pac02Tire.h
     sedan/Sedan_RackPinion.cpp
     sedan/Sedan_RackPinion.h
     sedan/Sedan_SimpleMapPowertrain.cpp
@@ -199,6 +203,8 @@ set(CVM_CITYBUS_FILES
     citybus/CityBus_RigidTire.h
     citybus/CityBus_TMeasyTire.cpp
     citybus/CityBus_TMeasyTire.h
+    citybus/CityBus_Pac02Tire.cpp
+    citybus/CityBus_Pac02Tire.h
     citybus/CityBus_RackPinion.cpp
     citybus/CityBus_RackPinion.h
     citybus/CityBus_SimpleMapPowertrain.cpp
