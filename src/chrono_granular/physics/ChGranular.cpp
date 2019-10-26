@@ -431,7 +431,7 @@ void ChSystemGranularSMC::copyConstSphereDataToDevice() {
     gran_params->max_y_pos_unsigned = ((int64_t)gran_params->SD_size_Y_SU * gran_params->nSDs_Y);
     gran_params->max_z_pos_unsigned = ((int64_t)gran_params->SD_size_Z_SU * gran_params->nSDs_Z);
 
-    INFO_PRINTF("max pos is is %lu, %lu, %lu\n", gran_params->max_x_pos_unsigned, gran_params->max_y_pos_unsigned,
+    INFO_PRINTF("max pos is is %llu, %llu, %llu\n", gran_params->max_x_pos_unsigned, gran_params->max_y_pos_unsigned,
                 gran_params->max_z_pos_unsigned);
 
     int64_t true_max_pos = std::max(std::max(gran_params->max_x_pos_unsigned, gran_params->max_y_pos_unsigned),
@@ -746,8 +746,7 @@ void ChSystemGranularSMC::initialize() {
 }
 
 // Set particle positions in UU
-void ChSystemGranularSMC::setParticlePositions(const std::vector<ChVector<float>>& points,
-                                               const std::vector<ChVector<float>>& vels) {
+void ChSystemGranularSMC::setParticlePositions(const std::vector<float3>& points, const std::vector<float3>& vels) {
     user_sphere_positions = points;  // Copy points to class vector
     user_sphere_vel = vels;
 }
