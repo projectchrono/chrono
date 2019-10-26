@@ -20,7 +20,7 @@
     },
     "Vertical": {
         "Vertical Stiffness": 261600.0,
-        "Vertical damping": 1750.99,
+        "Vertical Damping": 1750.99,
         "Nominal Wheel Load": 4700.0
     },
     "Scaling Factors": {

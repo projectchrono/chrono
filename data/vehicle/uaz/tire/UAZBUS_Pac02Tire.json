@@ -20,7 +20,7 @@
     },
     "Vertical": {
         "Vertical Stiffness": 332736.8,
-        "Vertical damping": 2307.3,
+        "Vertical Damping": 2307.3,
         "Nominal Wheel Load": 4700.0
     },
     "Scaling Factors": {
@@ -154,7 +154,7 @@
     },
     "Visualization": {
         "Mesh Filename": "uaz/uazbus_tire.obj",
-        "Mesh Name": "uazbus_tire_POV_geom"
+        "Mesh Name": "uazbus_tire_POV_geom",
         "Width": 0.228
     }
 }
