@@ -94,7 +94,7 @@ std::string fialatire_file("hmmwv/tire/HMMWV_Fiala_converted.json");
 std::string tmeasytire_file("hmmwv/tire/HMMWV_TMeasy_converted.json");
 
 // JSON files tire models (Pac89)
-std::string pac89tire_file("hmmwv/tire/HMMWV_Pac89.json");
+std::string pac89tire_file("hmmwv/tire/HMMWV_Pac89Tire.json");
 
 std::string pac02tire_file("hmmwv/tire/HMMWV_Pac02Tire.json");
 

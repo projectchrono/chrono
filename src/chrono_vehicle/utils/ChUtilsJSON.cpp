@@ -84,6 +84,9 @@ Document ReadFileJSON(const std::string& filename) {
     } else {
         IStreamWrapper isw(ifs);
         d.ParseStream<ParseFlag::kParseCommentsFlag>(isw);
+        if (d.IsNull()) {
+            GetLog() << "ERROR: Invalid JSON file: " << filename << "\n";
+        }
     }
     return d;
 }

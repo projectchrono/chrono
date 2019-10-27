@@ -2,29 +2,29 @@
     "Name": "Pac02 Tire from ADAMS/Car TIR file",
     "Type": "Tire",
     "Template": "Pac02Tire",
-    "Mass": 37.6,
+    "Mass": 70.7,
     "Inertia": [
-        3.7563489439827375,
-        6.525821047042088,
-        3.7563489439827375
+        9.04686926076677,
+        16.46883755986738,
+        9.04686926076677
     ],
     "Use Mode": 3,
     "Coefficient of Friction": 0.8,
     "Tire Side": "unknown",
     "Dimension": {
-        "Unloaded Radius": 0.46482,
-        "Width": 0.3175,
-        "Aspect Ratio": 0.8,
-        "Rim Radius": 0.20955,
-        "Rim Width": 0.20933
+        "Unloaded Radius": 0.54485,
+        "Width": 0.305,
+        "Aspect Ratio": 0.85,
+        "Rim Radius": 0.28575,
+        "Rim Width": 0.2286
     },
     "Vertical": {
-        "Vertical Stiffness": 326332.0,
-        "Vertical Damping": 3502.8,
+        "Vertical Stiffness": 998303.9,
+        "Vertical Damping": 8401.195,
         "Nominal Wheel Load": 29912.0
     },
     "Scaling Factors": {
-        "lfz0": 0.567911935,
+        "lfz0": 1.219512195,
         "lcx": 1.0,
         "lmux": 1.0,
         "lex": 1.0,
@@ -38,7 +38,7 @@
         "lhy": 1.0,
         "lvy": 1.0,
         "lgay": 1.0,
-        "ltr": 1.031930943,
+        "ltr": 1.063870107,
         "lres": 1.0,
         "lgaz": 1.0,
         "lxal": 1.0,
@@ -142,8 +142,8 @@
         "qsy2": 0.0
     },
     "Visualization": {
-        "Mesh Filename": "hmmwv/hmmwv_tire.obj",
-        "Mesh Name": "hmmwv_tire_POV_geom",
-        "Width": 0.3175
+        "Mesh Filename": "citybus/CityBusTire.obj",
+        "Mesh Name": "citybus_tire_POV_geom",
+        "Width": 0.305
     }
 }
