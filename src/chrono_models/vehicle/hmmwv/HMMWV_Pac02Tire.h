@@ -56,8 +56,12 @@ class CH_MODELS_API HMMWV_Pac02Tire : public ChPac02Tire {
   private:
     static const double m_mass;
     static const ChVector<> m_inertia;
+
     ChFunction_Recorder m_vert_map;
     bool m_use_vert_map;
+
+    ChFunction_Recorder m_bott_map;
+    bool m_use_bott_map;
 
     static const std::string m_meshName;
     static const std::string m_meshFile;
