@@ -333,6 +333,23 @@ double ChHendricksonPRIMAXX::GetTrack() {
 }
 
 // -----------------------------------------------------------------------------
+// Return current suspension forces
+// -----------------------------------------------------------------------------
+ChSuspension::Force ChHendricksonPRIMAXX::ReportSuspensionForce(VehicleSide side) const {
+    ChSuspension::Force force;
+
+    force.spring_force = m_shockLB[side]->GetSpringReact();
+    force.spring_length = m_shockLB[side]->GetSpringLength();
+    force.spring_velocity = m_shockLB[side]->GetSpringVelocity();
+
+    force.shock_force = m_shockAH[side]->GetSpringReact();
+    force.shock_length = m_shockAH[side]->GetSpringLength();
+    force.shock_velocity = m_shockAH[side]->GetSpringVelocity();
+
+    return force;
+}
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChHendricksonPRIMAXX::LogHardpointLocations(const ChVector<>& ref, bool inches) {
     double unit = inches ? 1 / 0.0254 : 1.0;
