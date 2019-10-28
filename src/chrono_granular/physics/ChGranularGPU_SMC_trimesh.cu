@@ -12,7 +12,6 @@
 // Authors: Conlain Kelly, Nic Olsen, Dan Negrut
 // =============================================================================
 
-
 #include "chrono_granular/physics/ChGranularGPU_SMC_trimesh.cuh"
 #include "chrono_granular/physics/ChGranularTriMesh.h"
 #include "chrono_granular/physics/ChGranularGPU_SMC.cuh"
@@ -213,108 +212,7 @@ __host__ void ChSystemGranularSMC_trimesh::runTriangleBroadphase() {
     gpuErrchk(cudaPeekAtLastError());
     gpuErrchk(cudaDeviceSynchronize());
 }
-__host__ double ChSystemGranularSMC_trimesh::advance_simulation(float duration) {
-    // Figure our the number of blocks that need to be launched to cover the box
-    unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
-    // Settling simulation loop.
-    float duration_SU = duration / TIME_SU2UU;
-    unsigned int nsteps = std::round(duration_SU / stepSize_SU);
-
-    packSphereDataPointers();
-    // cudaMemAdvise(gran_params, sizeof(*gran_params), cudaMemAdviseSetReadMostly, dev_ID);
-
-    METRICS_PRINTF("advancing by %f at timestep %f, %u timesteps at approx user timestep %f\n", duration_SU,
-                   stepSize_SU, nsteps, duration / nsteps);
-
-    METRICS_PRINTF("Starting Main Simulation loop!\n");
-
-    float time_elapsed_SU = 0;  // time elapsed in this call (SU)
-    // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
-    for (; time_elapsed_SU < stepSize_SU * nsteps; time_elapsed_SU += stepSize_SU) {
-        updateBCPositions();
-
-        resetSphereAccelerations();
-        resetBCForces();
-        if (meshSoup->nTrianglesInSoup != 0 && mesh_collision_enabled) {
-            resetTriangleForces();
-            resetTriangleBroadphaseInformation();
-        }
-
-        gpuErrchk(cudaPeekAtLastError());
-        gpuErrchk(cudaDeviceSynchronize());
-
-        METRICS_PRINTF("Starting computeSphereForces!\n");
-
-        if (gran_params->friction_mode == FRICTIONLESS) {
-            // Compute sphere-sphere forces
-            computeSphereForces_frictionless<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(
-                sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(), BC_params_list_SU.size());
-            gpuErrchk(cudaPeekAtLastError());
-            gpuErrchk(cudaDeviceSynchronize());
-        } else if (gran_params->friction_mode == SINGLE_STEP || gran_params->friction_mode == MULTI_STEP) {
-            // figure out who is contacting
-            determineContactPairs<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(sphere_data, gran_params);
-            gpuErrchk(cudaPeekAtLastError());
-            gpuErrchk(cudaDeviceSynchronize());
-
-            computeSphereContactForces<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
-                sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(), BC_params_list_SU.size(),
-                nSpheres);
-            gpuErrchk(cudaPeekAtLastError());
-            gpuErrchk(cudaDeviceSynchronize());
-        }
-
-        if (meshSoup->nTrianglesInSoup != 0 && mesh_collision_enabled) {
-            gpuErrchk(cudaPeekAtLastError());
-            gpuErrchk(cudaDeviceSynchronize());
-            runTriangleBroadphase();
-        }
-        gpuErrchk(cudaPeekAtLastError());
-        gpuErrchk(cudaDeviceSynchronize());
-
-        if (meshSoup->numTriangleFamilies != 0 && mesh_collision_enabled) {
-            // TODO please do not use a template here
-            // triangle labels come after BC labels numerically
-            unsigned int triangleFamilyHistmapOffset = gran_params->nSpheres + 1 + BC_params_list_SU.size() + 1;
-            // compute sphere-triangle forces
-            interactionTerrain_TriangleSoup<CUDA_THREADS_PER_BLOCK><<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(
-                meshSoup, sphere_data, triangles_in_SD_composite.data(), SD_numTrianglesTouching.data(),
-                SD_TriangleCompositeOffsets.data(), gran_params, tri_params, triangleFamilyHistmapOffset);
-        }
-        gpuErrchk(cudaPeekAtLastError());
-        gpuErrchk(cudaDeviceSynchronize());
-
-        METRICS_PRINTF("Resetting broadphase info!\n");
-
-        resetBroadphaseInformation();
-
-        gpuErrchk(cudaPeekAtLastError());
-        gpuErrchk(cudaDeviceSynchronize());
-
-        METRICS_PRINTF("Starting integrateSpheres!\n");
-        integrateSpheres<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
-
-        gpuErrchk(cudaPeekAtLastError());
-        gpuErrchk(cudaDeviceSynchronize());
-
-        if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
-            updateFrictionData<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
-            gpuErrchk(cudaPeekAtLastError());
-            gpuErrchk(cudaDeviceSynchronize());
-        }
-
-        runSphereBroadphase();
-
-        packSphereDataPointers();
-
-        gpuErrchk(cudaPeekAtLastError());
-        gpuErrchk(cudaDeviceSynchronize());
-        elapsedSimTime += stepSize_SU * TIME_SU2UU;  // Advance current time
-    }
-
-    return time_elapsed_SU * TIME_SU2UU;  // return elapsed UU time
-}
 template <unsigned int N_CUDATHREADS>
 __global__ void interactionTerrain_TriangleSoup(
     TriangleSoupPtr d_triangleSoup,  //!< Contains information pertaining to triangle soup (in device mem.)
@@ -564,5 +462,108 @@ __global__ void interactionTerrain_TriangleSoup(
         }
     }  // end sphere id check
 }  // end kernel
+
+__host__ double ChSystemGranularSMC_trimesh::advance_simulation(float duration) {
+    // Figure our the number of blocks that need to be launched to cover the box
+    unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
+
+    // Settling simulation loop.
+    float duration_SU = duration / TIME_SU2UU;
+    unsigned int nsteps = std::round(duration_SU / stepSize_SU);
+
+    packSphereDataPointers();
+    // cudaMemAdvise(gran_params, sizeof(*gran_params), cudaMemAdviseSetReadMostly, dev_ID);
+
+    METRICS_PRINTF("advancing by %f at timestep %f, %u timesteps at approx user timestep %f\n", duration_SU,
+                   stepSize_SU, nsteps, duration / nsteps);
+
+    METRICS_PRINTF("Starting Main Simulation loop!\n");
+
+    float time_elapsed_SU = 0;  // time elapsed in this call (SU)
+    // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
+    for (; time_elapsed_SU < stepSize_SU * nsteps; time_elapsed_SU += stepSize_SU) {
+        updateBCPositions();
+
+        resetSphereAccelerations();
+        resetBCForces();
+        if (meshSoup->nTrianglesInSoup != 0 && mesh_collision_enabled) {
+            resetTriangleForces();
+            resetTriangleBroadphaseInformation();
+        }
+
+        gpuErrchk(cudaPeekAtLastError());
+        gpuErrchk(cudaDeviceSynchronize());
+
+        METRICS_PRINTF("Starting computeSphereForces!\n");
+
+        if (gran_params->friction_mode == FRICTIONLESS) {
+            // Compute sphere-sphere forces
+            computeSphereForces_frictionless<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(
+                sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(), BC_params_list_SU.size());
+            gpuErrchk(cudaPeekAtLastError());
+            gpuErrchk(cudaDeviceSynchronize());
+        } else if (gran_params->friction_mode == SINGLE_STEP || gran_params->friction_mode == MULTI_STEP) {
+            // figure out who is contacting
+            determineContactPairs<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(sphere_data, gran_params);
+            gpuErrchk(cudaPeekAtLastError());
+            gpuErrchk(cudaDeviceSynchronize());
+
+            computeSphereContactForces<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
+                sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(), BC_params_list_SU.size(),
+                nSpheres);
+            gpuErrchk(cudaPeekAtLastError());
+            gpuErrchk(cudaDeviceSynchronize());
+        }
+
+        if (meshSoup->nTrianglesInSoup != 0 && mesh_collision_enabled) {
+            gpuErrchk(cudaPeekAtLastError());
+            gpuErrchk(cudaDeviceSynchronize());
+            runTriangleBroadphase();
+        }
+        gpuErrchk(cudaPeekAtLastError());
+        gpuErrchk(cudaDeviceSynchronize());
+
+        if (meshSoup->numTriangleFamilies != 0 && mesh_collision_enabled) {
+            // TODO please do not use a template here
+            // triangle labels come after BC labels numerically
+            unsigned int triangleFamilyHistmapOffset = gran_params->nSpheres + 1 + BC_params_list_SU.size() + 1;
+            // compute sphere-triangle forces
+            interactionTerrain_TriangleSoup<CUDA_THREADS_PER_BLOCK><<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(
+                meshSoup, sphere_data, triangles_in_SD_composite.data(), SD_numTrianglesTouching.data(),
+                SD_TriangleCompositeOffsets.data(), gran_params, tri_params, triangleFamilyHistmapOffset);
+        }
+        gpuErrchk(cudaPeekAtLastError());
+        gpuErrchk(cudaDeviceSynchronize());
+
+        METRICS_PRINTF("Resetting broadphase info!\n");
+
+        resetBroadphaseInformation();
+
+        gpuErrchk(cudaPeekAtLastError());
+        gpuErrchk(cudaDeviceSynchronize());
+
+        METRICS_PRINTF("Starting integrateSpheres!\n");
+        integrateSpheres<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
+
+        gpuErrchk(cudaPeekAtLastError());
+        gpuErrchk(cudaDeviceSynchronize());
+
+        if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
+            updateFrictionData<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
+            gpuErrchk(cudaPeekAtLastError());
+            gpuErrchk(cudaDeviceSynchronize());
+        }
+
+        runSphereBroadphase();
+
+        packSphereDataPointers();
+
+        gpuErrchk(cudaPeekAtLastError());
+        gpuErrchk(cudaDeviceSynchronize());
+        elapsedSimTime += stepSize_SU * TIME_SU2UU;  // Advance current time
+    }
+
+    return time_elapsed_SU * TIME_SU2UU;  // return elapsed UU time
+}
 }  // namespace granular
 }  // namespace chrono

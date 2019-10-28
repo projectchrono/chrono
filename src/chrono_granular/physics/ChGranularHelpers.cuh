@@ -17,6 +17,7 @@
 #pragma once
 
 #include "chrono_granular/physics/ChGranular.h"
+#include "chrono_granular/utils/ChCudaMathUtils.cuh"
 
 #include "chrono_thirdparty/cub/cub.cuh"
 
