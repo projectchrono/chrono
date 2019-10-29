@@ -150,22 +150,17 @@ void ChSystemGranularSMC_trimesh::load_meshes(std::vector<std::string> objfilena
     INFO_PRINTF("Done allocating mesh unified memory\n");
 }
 
-// result = rot_mat * p + pos
-template <class T>
-ChVector<T> ChSystemGranularSMC_trimesh::ApplyFrameTransform(ChVector<T>& p, T* pos, T* rot_mat) {
-    ChVector<T> result;
+// p = pos + rot_mat * p
+void ChSystemGranularSMC_trimesh::ApplyFrameTransform(float3& p, float* pos, float* rot_mat) {
+    float3 result;
 
     // Apply rotation matrix to point
-    result[0] = rot_mat[0] * p[0] + rot_mat[1] * p[1] + rot_mat[2] * p[2];
-    result[1] = rot_mat[3] * p[0] + rot_mat[4] * p[1] + rot_mat[5] * p[2];
-    result[2] = rot_mat[6] * p[0] + rot_mat[7] * p[1] + rot_mat[8] * p[2];
+    result.x = pos[0] + rot_mat[0] * p.x + rot_mat[1] * p.y + rot_mat[2] * p.z;
+    result.y = pos[1] + rot_mat[3] * p.x + rot_mat[4] * p.y + rot_mat[5] * p.z;
+    result.z = pos[2] + rot_mat[6] * p.x + rot_mat[7] * p.y + rot_mat[8] * p.z;
 
-    // Apply translation
-    result[0] += pos[0];
-    result[1] += pos[1];
-    result[2] += pos[2];
-
-    return result;
+    // overwrite p only at the end
+    p = result;
 }
 
 void ChSystemGranularSMC_trimesh::write_meshes(std::string filename) {
@@ -186,21 +181,18 @@ void ChSystemGranularSMC_trimesh::write_meshes(std::string filename) {
 
     // Write all vertices
     for (unsigned int tri_i = 0; tri_i < meshSoup->nTrianglesInSoup; tri_i++) {
-        ChVector<float> p1(meshSoup->node1[tri_i].x, meshSoup->node1[tri_i].y, meshSoup->node1[tri_i].z);
-        ChVector<float> p2(meshSoup->node2[tri_i].x, meshSoup->node2[tri_i].y, meshSoup->node2[tri_i].z);
-        ChVector<float> p3(meshSoup->node3[tri_i].x, meshSoup->node3[tri_i].y, meshSoup->node3[tri_i].z);
+        float3 p1 = make_float3(meshSoup->node1[tri_i].x, meshSoup->node1[tri_i].y, meshSoup->node1[tri_i].z);
+        float3 p2 = make_float3(meshSoup->node2[tri_i].x, meshSoup->node2[tri_i].y, meshSoup->node2[tri_i].z);
+        float3 p3 = make_float3(meshSoup->node3[tri_i].x, meshSoup->node3[tri_i].y, meshSoup->node3[tri_i].z);
 
         unsigned int fam = meshSoup->triangleFamily_ID[tri_i];
-        p1 = ApplyFrameTransform<float>(p1, tri_params->fam_frame_broad[fam].pos,
-                                        tri_params->fam_frame_broad[fam].rot_mat);
-        p2 = ApplyFrameTransform<float>(p2, tri_params->fam_frame_broad[fam].pos,
-                                        tri_params->fam_frame_broad[fam].rot_mat);
-        p3 = ApplyFrameTransform<float>(p3, tri_params->fam_frame_broad[fam].pos,
-                                        tri_params->fam_frame_broad[fam].rot_mat);
+        ApplyFrameTransform(p1, tri_params->fam_frame_broad[fam].pos, tri_params->fam_frame_broad[fam].rot_mat);
+        ApplyFrameTransform(p2, tri_params->fam_frame_broad[fam].pos, tri_params->fam_frame_broad[fam].rot_mat);
+        ApplyFrameTransform(p3, tri_params->fam_frame_broad[fam].pos, tri_params->fam_frame_broad[fam].rot_mat);
 
-        ostream << p1.x() << " " << p1.y() << " " << p1.z() << "\n";
-        ostream << p2.x() << " " << p2.y() << " " << p2.z() << "\n";
-        ostream << p3.x() << " " << p3.y() << " " << p3.z() << "\n";
+        ostream << p1.x << " " << p1.y << " " << p1.z << "\n";
+        ostream << p2.x << " " << p2.y << " " << p2.z << "\n";
+        ostream << p3.x << " " << p3.y << " " << p3.z << "\n";
     }
 
     ostream << "\n\n";
