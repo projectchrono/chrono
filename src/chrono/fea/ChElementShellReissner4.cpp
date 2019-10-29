@@ -852,7 +852,7 @@ void ChElementShellReissner4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
         epsilon.segment(9, 3) = k_tilde_2_i[i].eigen();
 
         //***TODO*** add the EAS effect using the epsilon_hat
-        // epsilon_hat.MatrMultiply(P_i[i], beta);
+        // epsilon_hat = P_i[i] * beta;
         // epsilon += epsilon_hat;
 
         ChVector<> eps_tot_1(epsilon.segment(0, 3));

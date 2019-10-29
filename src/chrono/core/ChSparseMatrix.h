@@ -108,30 +108,6 @@ class ChApi ChSparseMatrix {
         }
     }
 
-    /// Paste a clipped portion of the given matrix into \a this sparse matrix at position (\a insrow, \a inscol).
-    /// So the clipped portion \a matra[cliprow : cliprow + nrows][[clipcol : clipcol + ncolumns]]
-    /// will be copied into \a this[insrow : insrow + nrows][[inscol : inscol + ncolumns]]
-    /// \param[in] matra The source matrix that will be copied;
-    /// \param[in] cliprow The row index of the first element of source matrix that will be copied;
-    /// \param[in] clipcol The column index of the first element of source matrix that will be copied;
-    /// \param[in] nrows The number of rows that will be copied;
-    /// \param[in] ncolumns The number of columns that will be copied;
-    /// \param[in] insrow The row index where the first element will be copied;
-    /// \param[in] inscol The column index where the first element will be copied;
-    /// \param[in] overwrite Tells if the copied element will overwrite an existing element or be summed to it.
-    virtual void PasteClippedMatrix(ChMatrixConstRef matra,
-                                    int cliprow,
-                                    int clipcol,
-                                    int nrows,
-                                    int ncols,
-                                    int insrow,
-                                    int inscol,
-                                    bool overwrite = true) {
-        for (auto i = 0; i < nrows; ++i)
-            for (auto j = 0; j < ncols; ++j)
-                this->SetElement(insrow + i, inscol + j, matra(i + cliprow, j + clipcol), overwrite);
-    }
-
     /// Return the row|column index array in the CSR|CSC representation of this matrix.
     virtual int* GetCS_LeadingIndexArray() const { return nullptr; }
 
@@ -140,38 +116,6 @@ class ChApi ChSparseMatrix {
 
     /// Return the array of matrix values in the CSR|CSC representation of this matrix.
     virtual double* GetCS_ValueArray() const { return nullptr; }
-
-    // Wrapper functions
-
-    /// Same as #PasteMatrix(), but with \a overwrite set to \c true and \a transp set to \c true.
-    /// The source matrix will be transposed and pasted into \a this matrix, overwriting existing elements.
-    virtual void PasteTranspMatrix(ChMatrixConstRef matra, int insrow, int inscol) {
-        PasteMatrix(matra.transpose(), insrow, inscol, true);
-    }
-
-    /// Same as #PasteMatrix(), but with \a overwrite set to \c false and \a transp set to \c false.
-    /// The source matrix will be summed to the current matrix and not transposed.
-    virtual void PasteSumMatrix(ChMatrixConstRef matra, int insrow, int inscol) {
-        PasteMatrix(matra, insrow, inscol, false);
-    }
-
-    /// Same as #PasteMatrix(), but with \a overwrite set to \c false and \a transp set to \c true.
-    /// The source matrix will be transposed and summed to the \a this matrix.
-    virtual void PasteSumTranspMatrix(ChMatrixConstRef matra, int insrow, int inscol) {
-        PasteMatrix(matra.transpose(), insrow, inscol, false);
-    }
-
-    /// Same as #PasteClippedMatrix(), but with \a overwrite set to \c false.
-    /// The clipped portion of the source matrix will be summed to \a this matrix.
-    virtual void PasteSumClippedMatrix(ChMatrixConstRef matra,
-                               int cliprow,
-                               int clipcol,
-                               int nrows,
-                               int ncols,
-                               int insrow,
-                               int inscol) {
-        PasteClippedMatrix(matra, cliprow, clipcol, nrows, ncols, insrow, inscol, false);
-    }
 
     /// Method to allow serializing transient data into in ASCII stream (e.g., a file) as a
     /// Matlab sparse matrix format; each row in file has three elements: {row, column, value}.
