@@ -367,6 +367,189 @@ class ChApi ChDampingReissner {
 };
 
 
+
+// ----------------------------------------------------------------------------
+
+/// Material for a single layer of a 6-field Reissner-Mindlin shells 
+/// (kinematically-exact shell theory as in Witkowski et al).
+/// This base implementation assumes that one creates a ChMaterialShellReissner
+/// by providing three components: 
+///
+/// - an elasticity model (from ChElasticityReissner classes)
+/// - a plasticity model (optional, from ChPlasticityReissner classes)
+/// - a damping model (optional, from ChDampingReissner classes)
+///
+/// Thickness is defined when adding a ChMaterialShellReissner material as a layer 
+/// in a shell finite element (ex. ChElementShellReissner4).
+/// A material can be shared between multiple layers.
+
+class ChApi ChMaterialShellReissner  {
+  public:
+    ChMaterialShellReissner(std::shared_ptr<ChElasticityReissner> melasticity  ///< elasticity model 
+    );
+
+    ChMaterialShellReissner(
+        std::shared_ptr<ChElasticityReissner> melasticity,  ///< elasticity model 
+        std::shared_ptr<ChPlasticityReissner> mplasticity   ///< plasticity model, if any
+    );
+
+    ChMaterialShellReissner(
+        std::shared_ptr<ChElasticityReissner> melasticity,  ///< elasticity model
+        std::shared_ptr<ChPlasticityReissner> mplasticity,  ///< plasticity model, if any
+        std::shared_ptr<ChDampingReissner>    mdamping      ///< damping model, if any
+    );
+
+    virtual ~ChMaterialShellReissner() {}
+
+    /// Compute the generalized cut force and cut torque, given the actual generalized section strain
+    /// expressed as deformation vector e and curvature k, that is: {F,M}=f({e,k}), and
+    /// given the actual material state required for plasticity if any (but if mdata=nullptr,
+    /// computes only the elastic force).
+    /// If there is plasticity, the stress is clamped by automatically performing an implicit return mapping.
+    /// In sake of generality, if possible this is the function that should be used by beam finite elements
+    /// to compute internal forces, ex.by some Gauss quadrature.
+    virtual void ComputeStress(
+        ChVector<>& n_u,          ///< forces along \e u direction (per unit length)
+        ChVector<>& n_v,          ///< forces along \e v direction (per unit length)
+        ChVector<>& m_u,          ///< torques along \e u direction (per unit length)
+        ChVector<>& m_v,          ///< torques along \e v direction (per unit length)
+        const ChVector<>& eps_u,  ///< strains along \e u direction
+        const ChVector<>& eps_v,  ///< strains along \e v direction
+        const ChVector<>& kur_u,  ///< curvature along \e u direction
+        const ChVector<>& kur_v,  ///< curvature along \e v direction
+        const double z_inf,       ///< layer lower z value (along thickness coord)
+        const double z_sup,       ///< layer upper z value (along thickness coord)
+        const double angle,       ///< layer angle respect to x (if needed) 
+        ChShellReissnerInternalData* mdata_new = nullptr,   ///< updated material internal variables, at this
+                                                            ///< point, including {p_strain_e, p_strain_k, p_strain_acc}
+        const ChShellReissnerInternalData* mdata = nullptr  ///< current material internal variables, at this point,
+                                                            ///< including {p_strain_e, p_strain_k, p_strain_acc}
+    ); 
+
+    /// Compute the 6x6 tangent material stiffness matrix [Km] =d\sigma/d\epsilon
+    /// at a given strain state, and at given internal data state (if mdata=nullptr,
+    /// computes only the elastic tangent stiffenss, regardless of plasticity).
+    virtual void ComputeStiffnessMatrix(
+        ChMatrixRef K,			  ///< 12x12 stiffness matrix
+        const ChVector<>& eps_u,  ///< strains along \e u direction
+        const ChVector<>& eps_v,  ///< strains along \e v direction
+        const ChVector<>& kur_u,  ///< curvature along \e u direction
+        const ChVector<>& kur_v,  ///< curvature along \e v direction
+        const double z_inf,       ///< layer lower z value (along thickness coord)
+        const double z_sup,       ///< layer upper z value (along thickness coord)
+        const double angle,       ///< layer angle respect to x (if needed) 
+        const ChShellReissnerInternalData* mdata = nullptr  ///< material internal variables, at this point, if any,
+                                                            ///< including {p_strain_e, p_strain_k, p_strain_acc}
+    );
+
+    /// Set the elasticity model for this section.
+    /// By default it uses a simple centered linear elastic model, but you can set more complex models.
+    void SetElasticity(std::shared_ptr<ChElasticityReissner> melasticity);
+
+    /// Get the elasticity model for this section.
+    /// Use this function to access parameters such as stiffness, Young modulus, etc.
+    /// By default it uses a simple centered linear elastic model.
+    std::shared_ptr<ChElasticityReissner> GetElasticity() { return this->elasticity; }
+
+    /// Set the plasticity model for this section.
+    /// This is independent from the elasticity model.
+    /// Note that by default there is no plasticity model,
+    /// so by default plasticity never happens.
+    void SetPlasticity(std::shared_ptr<ChPlasticityReissner> mplasticity);
+
+    /// Get the elasticity model for this section, if any.
+    /// Use this function to access parameters such as yeld limit, etc.
+    std::shared_ptr<ChPlasticityReissner> GetPlasticity() { return this->plasticity; }
+
+    /// Set the damping model for this section.
+    /// By default no damping.
+    void SetDamping(std::shared_ptr<ChDampingReissner> mdamping);
+
+    /// Get the damping model for this section.
+    /// By default no damping.
+    std::shared_ptr<ChDampingReissner> GetDamping() { return this->damping; }
+
+	/// Set the density of the shell (kg/m^3)
+    void SetDensity(double md) { this->density = md; }
+    double GetDensity() const { return this->density; }
+
+	///for backward compatibility - use GetDensity instead
+	double Get_rho() const { return this->density; }
+
+  private:
+
+    std::shared_ptr<ChElasticityReissner> elasticity;
+    std::shared_ptr<ChPlasticityReissner> plasticity;
+    std::shared_ptr<ChDampingReissner> damping;
+
+	double density;
+};
+
+
+//------------------------------------------------------------------
+
+//
+// ONLY FOR BACKWARD COMPATIBILITY
+//
+
+/// For backward compatibility only! 
+/// New approach: create a ChElasticityReissnerOrthotropic and create a ChMaterialShellReissner by passing the elasticity as a parameter.
+
+class ChApi ChMaterialShellReissnerIsothropic : public ChMaterialShellReissner {
+public:
+	/// Construct an isotropic material.
+	ChMaterialShellReissnerIsothropic(double mdensity,
+		double E,            ///< Young's modulus
+		double nu,           ///< Poisson ratio
+		double alpha = 1.0,  ///< shear factor
+		double beta = 0.1    ///< torque factor
+	) 
+		: ChMaterialShellReissner(chrono_types::make_shared<ChElasticityReissnerIsothropic>(E, nu, alpha, beta)) 
+	{
+		this->SetDensity(mdensity);
+	}
+
+};
+
+/// For backward compatibility only! 
+/// New approach: create a ChElasticityReissnerOrthotropic and create a ChMaterialShellReissner by passing the elasticity as a parameter.
+
+class ChApi ChMaterialShellReissnerOrthotropic : public ChMaterialShellReissner {
+public:
+	/// Construct an orthotropic material
+	ChMaterialShellReissnerOrthotropic(
+		double mdensity,
+		double m_E_x,    ///< Young's modulus on x
+		double m_E_y,    ///< Young's modulus on y
+		double m_nu_xy,  ///< Poisson ratio xy (for yx it holds: nu_yx*E_x = nu_xy*E_y)
+		double m_G_xy,   ///< Shear modulus, in plane
+		double m_G_xz,   ///< Shear modulus, transverse
+		double m_G_yz,   ///< Shear modulus, transverse
+		double m_alpha = 1.0,  ///< shear factor
+		double m_beta = 0.1    ///< torque factor
+	) 		
+		: ChMaterialShellReissner(chrono_types::make_shared<ChElasticityReissnerOrthotropic>(m_E_x, m_E_y, m_nu_xy, m_G_xy, m_G_xz, m_G_yz, m_alpha, m_beta)) 
+	{
+		this->SetDensity(mdensity);
+	}
+
+	/// Construct an orthotropic material as sub case isotropic
+	ChMaterialShellReissnerOrthotropic(
+		double mdensity,
+		double m_E,            ///< Young's modulus on x
+		double m_nu,           ///< Poisson ratio
+		double m_alpha = 1.0,  ///< shear factor
+		double m_beta = 0.1    ///< torque factor
+	) 
+		: ChMaterialShellReissner(chrono_types::make_shared<ChElasticityReissnerOrthotropic>(m_E, m_nu, m_alpha, m_beta)) 
+	{
+		this->SetDensity(mdensity);
+	}
+
+};
+
+
+
 /// @} fea_elements
 
 }  // end of namespace fea
