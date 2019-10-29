@@ -230,6 +230,92 @@ class ChApi ChElasticityReissnerOrthotropic : public ChElasticityReissner {
     double beta;   ///< torque factor
 };
 
+// ----------------------------------------------------------------------------
+
+/// Base class for internal variables of Reissner shells materials.
+/// Especially useful for plasticity, where internal variables are used
+/// to carry information on plastic flow, accumulated flow, etc.
+class ChApi ChShellReissnerInternalData {
+  public:
+    ChShellReissnerInternalData() : p_strain_acc(0) {}
+
+    virtual ~ChShellReissnerInternalData(){};
+
+    virtual void Copy(const ChShellReissnerInternalData& other) { p_strain_acc = other.p_strain_acc; }
+
+    double p_strain_acc;  // accumulated flow,  \overbar\eps^p  in Neto-Owen book
+};
+
+/// Base interface for plasticity of 6-field Reissner-Mindlin shells (kinematically-exact shell theory
+/// as in Witkowski et al.) to be used in a ChMaterialShellReissner.
+/// Children classes must implement the ComputeStressWithReturnMapping to compute
+/// effective stress and strain given a tentative strain that might violate the yeld function.
+/// Inherited materials do not define any thickness, which should be
+/// a property of the element or its layer(s) using this material.
+class ChApi ChPlasticityReissner {
+  public:
+    ChPlasticityReissner();
+
+    virtual ~ChPlasticityReissner() {}
+
+    /// Given a trial strain, it computes the effective stress and strain by
+    /// clamping against the yeld surface. An implicit return mapping integration
+    /// step is computed automatically per each call of this function.
+    /// Note: for the elastic part, it must use the elasticity model in this->section->elasticity.
+    /// If not beyond yeld, simply:
+    ///      elastic strain = tot strain - plastic strain
+    /// If it is beyond yeld:
+    ///      elastic strain is computed by fully implicit strain integration with return mapping,
+    ///      and plastic strains in "data_new" are updated.
+    /// Returns true if it had to do return mapping, false if it was in elastic regime
+	/// This MUST be implemented by subclasses.
+    virtual bool ComputeStressWithReturnMapping(
+		ChVector<>& n_u,          ///< forces along \e u direction (per unit length)
+        ChVector<>& n_v,          ///< forces along \e v direction (per unit length)
+        ChVector<>& m_u,          ///< torques along \e u direction (per unit length)
+        ChVector<>& m_v,          ///< torques along \e v direction (per unit length)
+        ChShellReissnerInternalData& data_new,  ///< updated material internal variables, at this point, including {p_strain_e, p_strain_k, p_strain_acc}
+        const ChVector<>& eps_u_trial,  ///< trial strains along \e u direction
+        const ChVector<>& eps_v_trial,  ///< trial strains along \e v direction
+        const ChVector<>& kur_u_trial,  ///< trial curvature along \e u direction
+        const ChVector<>& kur_v_trial,  ///< trial curvature along \e v direction
+        const ChShellReissnerInternalData& data,  ///< trial material internal variables, at this point, including {p_strain_e, p_strain_k, p_strain_acc}
+		const double z_inf,       ///< layer lower z value (along thickness coord)
+        const double z_sup,       ///< layer upper z value (along thickness coord)
+        const double angle        ///< layer angle respect to x (if needed) 
+        ) = 0;
+
+    /// Compute the 12x12 tangent material stiffness matrix [Km]=d\sigma/d\epsilon,
+    /// given actual internal data and deformation and curvature (if needed). If in
+    /// plastic regime, uses elastoplastic matrix, otherwise uses elastic.
+    /// This must be overridden by subclasses if an analytical solution is
+    /// known (preferred for high performance), otherwise the base behaviour here is to compute
+    /// [Km] by numerical differentiation calling ComputeStressWithReturnMapping() multiple times.
+    virtual void ComputeStiffnessMatrixElastoplastic(
+        ChMatrixRef K,        ///< 12x12 material elastoplastic stiffness matrix values here
+        const ChVector<>& eps_u,  ///< strains along \e u direction
+        const ChVector<>& eps_v,  ///< strains along \e v direction
+        const ChVector<>& kur_u,  ///< curvature along \e u direction
+        const ChVector<>& kur_v,  ///< curvature along \e v direction
+		const ChShellReissnerInternalData& data,  ///< updated material internal variables, at this point including {p_strain_e, p_strain_k, p_strain_acc}
+        const double z_inf,       ///< layer lower z value (along thickness coord)
+        const double z_sup,       ///< layer upper z value (along thickness coord)
+        const double angle        ///< layer angle respect to x (if needed) 
+    );
+
+    // Populate a vector with the appropriate ChBeamSectionPlasticity data structures.
+    // Children classes may override this. By default uses ChBeamMaterialInternalData for basic plasticity.
+    // Thanks to unique_ptr there is no need to call delete for the pointed objects.
+    virtual void CreatePlasticityData(int numpoints,
+                                      std::vector<std::unique_ptr<ChShellReissnerInternalData>>& plastic_data);
+
+
+    ChMaterialShellReissner* section;
+
+    double nr_yeld_tolerance;
+    int nr_yeld_maxiters;
+};
+
 /// @} fea_elements
 
 }  // end of namespace fea
