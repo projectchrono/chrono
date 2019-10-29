@@ -525,17 +525,18 @@ void ChPlasticityReissner::CreatePlasticityData(
 //-----------------------------------------------------------------------
 
 
-void ChDampingReissner::ComputeDampingMatrix( ChMatrixRef R,      ///< 12x12 material damping matrix values here
-										const ChVector<>& deps_u,  ///< time derivative of strains along \e u direction
-										const ChVector<>& deps_v,  ///< time derivative of strains along \e v direction
-										const ChVector<>& dkur_u,  ///< time derivative of curvature along \e u direction
-										const ChVector<>& dkur_v,  ///< time derivative of curvature along \e v direction
-										const double z_inf,       ///< layer lower z value (along thickness coord)
-										const double z_sup,       ///< layer upper z value (along thickness coord)
-										const double angle        ///< layer angle respect to x (if needed) -not used in this, isotropic+
-											) {
-    assert(mC.rows() == 12);
-    assert(mC.cols() == 12);
+void ChDampingReissner::ComputeDampingMatrix(
+    ChMatrixRef R,             // 12x12 material damping matrix values here
+    const ChVector<>& deps_u,  // time derivative of strains along \e u direction
+    const ChVector<>& deps_v,  // time derivative of strains along \e v direction
+    const ChVector<>& dkur_u,  // time derivative of curvature along \e u direction
+    const ChVector<>& dkur_v,  // time derivative of curvature along \e v direction
+    const double z_inf,        // layer lower z value (along thickness coord)
+    const double z_sup,        // layer upper z value (along thickness coord)
+    const double angle         // layer angle respect to x (if needed) -not used in this, isotropic+
+) {
+    assert(R.rows() == 12);
+    assert(R.cols() == 12);
 
     R.setZero();
 
