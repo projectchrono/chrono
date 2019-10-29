@@ -67,7 +67,6 @@ set(CH_GRANULAR_INCLUDES "${CH_GRANULAR_INCLUDES}" PARENT_SCOPE)
 # ------------------------------------------------------------------------------
 
 set(ChronoEngine_Granular_BASE
-		ChApiGranular.h
 		ChGranularDefines.h
 		)
 
@@ -92,6 +91,7 @@ set(ChronoEngine_Granular_CUDA
 		physics/ChGranularBoundaryConditions.cuh
 		physics/ChGranularHelpers.cuh
 		physics/ChGranularBoxTriangle.cuh
+		physics/ChGranularCUDAalloc.hpp
 		utils/ChCudaMathUtils.cuh
 		)
 
@@ -105,6 +105,14 @@ set(ChronoEngine_Granular_UTILITIES
 
 source_group(utilities FILES ${ChronoEngine_Granular_UTILITIES})
 
+set(ChronoEngine_Granular_API
+		api/ChApiGranular.h
+		api/ChApiGranularChrono.h
+		api/ChApiGranularChrono.cpp
+		)
+
+source_group(api FILES ${ChronoEngine_Granular_API})
+
 # ------------------------------------------------------------------------------
 # Add the ChronoEngine_granular library
 # ------------------------------------------------------------------------------
@@ -113,6 +121,8 @@ CUDA_ADD_LIBRARY(ChronoEngine_granular SHARED
 						${ChronoEngine_Granular_BASE}
 						${ChronoEngine_Granular_PHYSICS}
 						${ChronoEngine_Granular_CUDA}
+						${ChronoEngine_Granular_UTILITIES}
+						${ChronoEngine_Granular_API}
 						)
 set(CHRONO_GRANULAR_LINKED_LIBRARIES ChronoEngine ${CUDA_FRAMEWORK})
 
