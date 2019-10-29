@@ -316,6 +316,57 @@ class ChApi ChPlasticityReissner {
     int nr_yeld_maxiters;
 };
 
+
+// ----------------------------------------------------------------------------
+
+
+/// Base interface for plasticity of 6-field Reissner-Mindlin shells (kinematically-exact shell theory
+/// as in Witkowski et al.) to be used in a ChMaterialShellReissner.
+/// Children classes should implement a ComputeStress function that returns generalized stresses
+/// given time derivatives of strains as:
+///   {n,m}=f({e',k'})
+
+class ChApi ChDampingReissner {
+  public:
+    ChDampingReissner() : section(nullptr) {}
+
+    virtual ~ChDampingReissner() {}
+
+    /// Compute the generalized cut force and cut torque, caused by structural damping,
+    /// given actual deformation speed and curvature speed.
+    /// This MUST be implemented by subclasses.
+    virtual void ComputeStress(
+        ChVector<>& n_u,          ///< forces along \e u direction (per unit length)
+        ChVector<>& n_v,          ///< forces along \e v direction (per unit length)
+        ChVector<>& m_u,          ///< torques along \e u direction (per unit length)
+        ChVector<>& m_v,          ///< torques along \e v direction (per unit length)
+        const ChVector<>& deps_u,  ///< time derivative of strains along \e u direction
+        const ChVector<>& deps_v,  ///< time derivative of strains along \e v direction
+        const ChVector<>& dkur_u,  ///< time derivative of curvature along \e u direction
+        const ChVector<>& dkur_v,  ///< time derivative of curvature along \e v direction
+        const double z_inf,       ///< layer lower z value (along thickness coord)
+        const double z_sup,       ///< layer upper z value (along thickness coord)
+        const double angle        ///< layer angle respect to x (if needed) 
+        ) = 0;
+
+    /// Compute the 12x12 tangent material damping matrix, ie the jacobian [Rm]=dstress/dstrainspeed.
+    /// This must be overridden by subclasses if an analytical solution is
+    /// known (preferred for high performance), otherwise the base behaviour here is to compute
+    /// [Rm] by numerical differentiation calling ComputeStress() multiple times.
+    virtual void ComputeDampingMatrix(	ChMatrixRef R,      ///< 12x12 material damping matrix values here
+										const ChVector<>& deps_u,  ///< time derivative of strains along \e u direction
+										const ChVector<>& deps_v,  ///< time derivative of strains along \e v direction
+										const ChVector<>& dkur_u,  ///< time derivative of curvature along \e u direction
+										const ChVector<>& dkur_v,  ///< time derivative of curvature along \e v direction
+										const double z_inf,       ///< layer lower z value (along thickness coord)
+										const double z_sup,       ///< layer upper z value (along thickness coord)
+										const double angle        ///< layer angle respect to x (if needed) -not used in this, isotropic
+    );
+
+    ChMaterialShellReissner* section;
+};
+
+
 /// @} fea_elements
 
 }  // end of namespace fea
