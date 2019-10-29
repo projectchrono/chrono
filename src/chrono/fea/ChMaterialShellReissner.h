@@ -28,24 +28,27 @@ namespace fea {
 /// @addtogroup fea_elements
 /// @{
 
-// ----------------------------------------------------------------------------
 
-/// Base class for all materials to be used for
-/// 6-field Reissner-Mindlin shells (kinematically-exact shell theory)
-/// as in Witkowski et al.
+//  forward
+class ChMaterialShellReissner;
+
+
+
+/// Base interface for elasticity of 6-field Reissner-Mindlin shells (kinematically-exact shell theory
+/// as in Witkowski et al.) to be used in a ChMaterialShellReissner.
+/// Children classes must implement the ComputeStress function to get
+///    {n_u,n_v,m_u,m_v}=f({e_u,e_v,k_u,k_v})
 /// Inherited materials do not define any thickness, which should be
 /// a property of the element or its layer(s) using this material.
-class ChApi ChMaterialShellReissner {
+
+class ChApi ChElasticityReissner {
   public:
-    /// Construct an isotropic material.
-    ChMaterialShellReissner(){};
+    ChElasticityReissner() : section(nullptr) {}
 
-    /// Return the material density.
-    double Get_rho() const { return m_rho; }
+    virtual ~ChElasticityReissner() {}
 
-    /// The FE code will evaluate this function to compute
-    /// u,v stresses/torques given the u,v strains/curvatures.
-    /// Inherited classes MUST implement this.
+    /// Compute the generalized force and torque, given actual deformation and curvature.
+	/// This MUST be implemented by subclasses.
     virtual void ComputeStress(ChVector<>& n_u,          ///< forces along \e u direction (per unit length)
                                ChVector<>& n_v,          ///< forces along \e v direction (per unit length)
                                ChVector<>& m_u,          ///< torques along \e u direction (per unit length)
@@ -59,12 +62,11 @@ class ChApi ChMaterialShellReissner {
                                const double angle        ///< layer angle respect to x (if needed)
     ) = 0;
 
-    /// Compute [C] , that is [ds/de], the tangent of the constitutive relation
-    /// stresses/strains. In many cases this is a constant matrix, but it could
-    /// change for instance in case of hardening or softening materials, etc.
+    /// Compute the 12x12 stiffness matrix [Km] , that is [ds/de], the tangent of the constitutive relation
+    /// stresses/strains. 
     /// By default, it is computed by backward differentiation from the ComputeStress() function,
     /// but inherited classes should better provide an analytical form, if possible.
-    virtual void ComputeTangentC(ChMatrixRef mC,           ///< tangent matrix
+    virtual void ComputeStiffnessMatrix(ChMatrixRef mC,           ///< tangent matrix
                                  const ChVector<>& eps_u,  ///< strains along \e u direction
                                  const ChVector<>& eps_v,  ///< strains along \e v direction
                                  const ChVector<>& kur_u,  ///< curvature along \e u direction
@@ -74,19 +76,22 @@ class ChApi ChMaterialShellReissner {
                                  const double angle        ///< layer angle respect to x (if needed)
     );
 
-  protected:
-    double m_rho;  ///< density
+    ChMaterialShellReissner* section;
 };
 
-/// Material definition.
+
+
+/// Elasticity of 6-field Reissner-Mindlin shells (kinematically-exact shell theory
+/// as in Witkowski et al.) to be used in a ChMaterialShellReissner.
 /// This class implements material properties for a layer from the Reissner theory,
 /// for the case of isotropic linear linear elastic material.
 /// This is probably the material that you need most often when using 6-field shells.
-class ChApi ChMaterialShellReissnerIsothropic : public ChMaterialShellReissner {
+/// Previously: ChMaterialShellReissnerIsothropic
+
+class ChApi ChElasticityReissnerIsothropic : public ChElasticityReissner {
   public:
     /// Construct an isotropic material.
-    ChMaterialShellReissnerIsothropic(double rho,          ///< material density
-                                      double E,            ///< Young's modulus
+    ChElasticityReissnerIsothropic   (double E,            ///< Young's modulus
                                       double nu,           ///< Poisson ratio
                                       double alpha = 1.0,  ///< shear factor
                                       double beta = 0.1    ///< torque factor
@@ -117,9 +122,9 @@ class ChApi ChMaterialShellReissnerIsothropic : public ChMaterialShellReissner {
         const double angle        ///< layer angle respect to x (if needed) -not used in this, isotropic
     );
 
-    /// Compute [C] , that is [ds/de], the tangent of the constitutive relation
-    /// per-unit-length forces/torques vs strains.
-    virtual void ComputeTangentC(
+    /// Compute 12x12 stiffness matrix [Km] , that is [ds/de], the tangent of the constitutive relation
+    /// per-unit-length forces/torques vs generalized strains.
+    virtual void ComputeStiffnessMatrix(
         ChMatrixRef mC,           ///< tangent matrix
         const ChVector<>& eps_u,  ///< strains along \e u direction
         const ChVector<>& eps_v,  ///< strains along \e v direction
@@ -137,17 +142,20 @@ class ChApi ChMaterialShellReissnerIsothropic : public ChMaterialShellReissner {
     double m_beta;   ///< torque factor
 };
 
-/// Material definition.
+
+/// Elasticity of 6-field Reissner-Mindlin shells (kinematically-exact shell theory
+/// as in Witkowski et al.) to be used in a ChMaterialShellReissner.
 /// This class implements material properties for a layer from the Reissner theory,
 /// for the case of orthotropic linear elastic material.
 /// This is useful for laminated shells. One direction can be made softer than the other.
-/// Note that the angle and the thickness are defined when adding this material to
-/// a finite element as a layer.
-class ChApi ChMaterialShellReissnerOrthotropic : public ChMaterialShellReissner {
+/// Note that the angle and the thickness are defined when adding a material with this elasticity to
+/// a shell finite element (ex. ChElementShellReissner4) as a layer.
+/// Previously: ChMaterialShellReissnerOrthotropic
+
+class ChApi ChElasticityReissnerOrthotropic : public ChElasticityReissner {
   public:
     /// Construct an orthotropic material
-    ChMaterialShellReissnerOrthotropic(double m_rho,    ///< material density
-                                       double m_E_x,    ///< Young's modulus on x
+    ChElasticityReissnerOrthotropic   (double m_E_x,    ///< Young's modulus on x
                                        double m_E_y,    ///< Young's modulus on y
                                        double m_nu_xy,  ///< Poisson ratio xy (for yx it holds: nu_yx*E_x = nu_xy*E_y)
                                        double m_G_xy,   ///< Shear modulus, in plane
@@ -157,8 +165,7 @@ class ChApi ChMaterialShellReissnerOrthotropic : public ChMaterialShellReissner 
                                        double m_beta = 0.1    ///< torque factor
     );
     /// Construct an orthotropic material as sub case isotropic
-    ChMaterialShellReissnerOrthotropic(double m_rho,          ///< material density
-                                       double m_E,            ///< Young's modulus on x
+    ChElasticityReissnerOrthotropic   (double m_E,            ///< Young's modulus on x
                                        double m_nu,           ///< Poisson ratio
                                        double m_alpha = 1.0,  ///< shear factor
                                        double m_beta = 0.1    ///< torque factor
@@ -199,9 +206,9 @@ class ChApi ChMaterialShellReissnerOrthotropic : public ChMaterialShellReissner 
         const double angle        ///< layer angle respect to x (if needed) -not used in this, isotropic
     );
 
-    /// Compute [C] , that is [ds/de], the tangent of the constitutive relation
-    /// per-unit-length forces/torques  vs strains.
-    virtual void ComputeTangentC(
+    /// /// Compute the 12x12 stiffness matrix [Km] , that is [ds/de], the tangent of the constitutive relation
+    /// stresses/strains. 
+	virtual void ComputeStiffnessMatrix(
         ChMatrixRef mC,           ///< tangent matrix
         const ChVector<>& eps_u,  ///< strains along \e u direction
         const ChVector<>& eps_v,  ///< strains along \e v direction
