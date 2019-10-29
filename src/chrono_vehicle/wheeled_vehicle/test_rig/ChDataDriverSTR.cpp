@@ -34,8 +34,12 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
+static bool compare(const ChDataDriverSTR::Entry& a, const ChDataDriverSTR::Entry& b) {
+    return a.m_time < b.m_time;
+}
+
 // -----------------------------------------------------------------------------
-ChDataDriverSTR::ChDataDriverSTR(const std::string& filename, bool sorted) {
+ChDataDriverSTR::ChDataDriverSTR(const std::string& filename, bool sorted) : m_ended(false) {
     std::ifstream ifile(filename.c_str());
     std::string line;
 
@@ -55,17 +59,19 @@ ChDataDriverSTR::ChDataDriverSTR(const std::string& filename, bool sorted) {
     ifile.close();
 
     if (!sorted)
-        std::sort(m_data.begin(), m_data.end(), ChDataDriverSTR::compare);
+        std::sort(m_data.begin(), m_data.end(), compare);
 }
 
-ChDataDriverSTR::ChDataDriverSTR(const std::vector<Entry>& data, bool sorted) : m_data(data) {
+ChDataDriverSTR::ChDataDriverSTR(const std::vector<Entry>& data, bool sorted) : m_data(data), m_ended(false) {
     if (!sorted)
-        std::sort(m_data.begin(), m_data.end(), ChDataDriverSTR::compare);
+        std::sort(m_data.begin(), m_data.end(), compare);
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 void ChDataDriverSTR::Synchronize(double time) {
+    ChDriverSTR::Synchronize(time);
+
     if (time < m_delay) {
         m_displLeft = 0;
         m_displRight = 0;
@@ -84,11 +90,12 @@ void ChDataDriverSTR::Synchronize(double time) {
         m_displLeft = m_data.back().m_displLeft;
         m_displRight = m_data.back().m_displRight;
         m_steering = m_data.back().m_steering;
+        m_ended = true;
         return;
     }
 
     std::vector<Entry>::iterator right =
-        std::lower_bound(m_data.begin(), m_data.end(), Entry(time, 0, 0, 0), ChDataDriverSTR::compare);
+        std::lower_bound(m_data.begin(), m_data.end(), Entry(time, 0, 0, 0), compare);
 
     std::vector<Entry>::iterator left = right - 1;
 
@@ -97,6 +104,11 @@ void ChDataDriverSTR::Synchronize(double time) {
     m_displLeft = left->m_displLeft + tbar * (right->m_displLeft - left->m_displLeft);
     m_displRight = left->m_displRight + tbar * (right->m_displRight - left->m_displRight);
     m_steering = left->m_steering + tbar * (right->m_steering - left->m_steering);
+}
+
+// -----------------------------------------------------------------------------
+bool ChDataDriverSTR::Ended() const {
+    return m_ended;
 }
 
 }  // end namespace vehicle

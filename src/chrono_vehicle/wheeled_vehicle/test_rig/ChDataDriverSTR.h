@@ -51,7 +51,7 @@ class CH_VEHICLE_API ChDataDriverSTR : public ChDriverSTR {
   public:
     /// Definition of driver inputs at a given time.
     struct Entry {
-        Entry() {}
+        Entry() : m_time(0), m_displLeft(0), m_displRight(0), m_steering(0) {}
         Entry(double time, double displLeft, double displRight, double steering)
             : m_time(time), m_displLeft(displLeft), m_displRight(displRight), m_steering(steering) {}
         double m_time;
@@ -72,15 +72,16 @@ class CH_VEHICLE_API ChDataDriverSTR : public ChDriverSTR {
 
     ~ChDataDriverSTR() {}
 
-    /// Update the driver system at the specified time.
-    /// The driver inputs are obtained through linear interpolation between the
-    /// provided data points.
-    virtual void Synchronize(double time) override;
+    /// Return false when driver stopped producing inputs (end of data).
+    virtual bool Ended() const override;
 
   private:
-    static bool compare(const Entry& a, const Entry& b) { return a.m_time < b.m_time; }
+    /// Update the driver system at the specified time.
+    /// The driver inputs are obtained through linear interpolation between the provided data points.
+    virtual void Synchronize(double time) override;
 
     std::vector<Entry> m_data;
+    bool m_ended;
 };
 
 /// @} vehicle_wheeled_test_rig
