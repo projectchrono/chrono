@@ -41,7 +41,8 @@ const std::string HMMWV_Pac02Tire::m_meshFile = "hmmwv/hmmwv_tire.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV_Pac02Tire::HMMWV_Pac02Tire(const std::string& name) : ChPac02Tire(name), m_use_vert_map(false) {}
+HMMWV_Pac02Tire::HMMWV_Pac02Tire(const std::string& name)
+    : ChPac02Tire(name), m_use_vert_map(false), m_use_bott_map(false) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -169,14 +170,34 @@ void HMMWV_Pac02Tire::SetPac02Params() {
     // setting rolling coefficients
     m_PacCoeff.qsy1 = 0.015;
     m_PacCoeff.qsy2 = 0;
+    // setting bottoming table
+    m_use_bott_map = true;
+    m_bott_map.AddPoint(0, 0);
+    m_bott_map.AddPoint(0.09, 0);
+    m_bott_map.AddPoint(0.1, 100000);
+    m_bott_map.AddPoint(0.2, 200000);
+    m_bott_map.AddPoint(0.3, 300000);
+    m_bott_map.AddPoint(0.4, 400000);
+    m_bott_map.AddPoint(0.5, 500000);
+    m_bott_map.AddPoint(0.6, 600000);
+    m_bott_map.AddPoint(6, 6e+06);
 }
 
 double HMMWV_Pac02Tire::GetNormalStiffnessForce(double depth) const {
-    if (m_use_vert_map)
-        return m_vert_map.Get_y(depth);
-    else
-        return depth * m_PacCoeff.Cz;
-}
+    if (m_use_vert_map) {
+        if (m_use_bott_map) {
+            return m_vert_map.Get_y(depth) + m_bott_map.Get_y(depth);
+        } else {
+            return m_vert_map.Get_y(depth);
+        }
+    } else {
+        if (m_use_bott_map) {
+            return m_PacCoeff.Cz * depth + m_bott_map.Get_y(depth);
+        } else {
+            return m_PacCoeff.Cz * depth;
+        }
+    }
+}  // namespace hmmwv
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -207,6 +228,6 @@ void HMMWV_Pac02Tire::RemoveVisualizationAssets() {
         assets.erase(it);
 }
 
-}  // end namespace hmmwv
-}  // end namespace vehicle
+}  // namespace hmmwv
+}  // namespace vehicle
 }  // end namespace chrono
