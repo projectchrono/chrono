@@ -26,7 +26,7 @@ namespace chrono {
 // m_maxfct - max. number of factors with identical sparsity structure that must be kept in
 //            memory at the same time
 // m_mnum   - actual matrix for the solution phase (1 ≤ m_mnum ≤ m_maxfct)
-ChMklEngine::ChMklEngine(int pb_size, ChSparseMatrix::SymmetryType matrix_type)
+ChMklEngine::ChMklEngine(int pb_size, ChSparseMatrixType matrix_type)
     : m_a(nullptr),
       m_ia(nullptr),
       m_ja(nullptr),
@@ -52,13 +52,13 @@ ChMklEngine::~ChMklEngine() {
 }
 
 void ChMklEngine::SetMatrix(ChSparseMatrixRef Z) {
-    assert(Z.GetNumRows() == Z.GetNumColumns());
+    assert(Z.rows() == Z.cols());
 
-    m_n = Z.GetNumRows();
+    m_n = Z.rows();
 
-    m_a = Z.GetCS_ValueArray();
-    m_ia = Z.GetCS_LeadingIndexArray();
-    m_ja = Z.GetCS_TrailingIndexArray();
+    m_a = Z.valuePtr();
+    m_ia = Z.outerIndexPtr();
+    m_ja = Z.innerIndexPtr();
 
     int type = GetPardisoMatrixType(Z.GetType());
     if (m_type != type) {
@@ -206,15 +206,15 @@ int ChMklEngine::PardisoCall(int phase, int message_level) {
 }
 
 // Convert the symmetry matrix type to the corresponding Pardiso code.
-MKL_INT ChMklEngine::GetPardisoMatrixType(ChSparseMatrix::SymmetryType type) {
+MKL_INT ChMklEngine::GetPardisoMatrixType(ChSparseMatrixType type) {
     switch (type) {
-        case ChSparseMatrix::GENERAL:
+        case ChSparseMatrixType::GENERAL:
             return 11;
-        case ChSparseMatrix::SYMMETRIC_POSDEF:
+        case ChSparseMatrixType::SYMMETRIC_POSDEF:
             return 2;
-        case ChSparseMatrix::SYMMETRIC_INDEF:
+        case ChSparseMatrixType::SYMMETRIC_INDEF:
             return -2;
-        case ChSparseMatrix::STRUCTURAL_SYMMETRIC:
+        case ChSparseMatrixType::STRUCTURAL_SYMMETRIC:
             return 1;
     }
 

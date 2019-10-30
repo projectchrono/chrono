@@ -146,9 +146,9 @@ void ChConstraintTwoGeneric::Build_Cq(ChSparseMatrixRef storage, int insrow) {
 void ChConstraintTwoGeneric::Build_CqT(ChSparseMatrixRef storage, int inscol) {
     // Recall that Cq_a and Cq_b are column vectors.
     if (variables_a->IsActive())
-        PasteTranspMatrix(storage, Cq_a, variables_a->GetOffset(), inscol);
+        PasteMatrix(storage, Cq_a.transpose(), variables_a->GetOffset(), inscol);
     if (variables_b->IsActive())
-        PasteTranspMatrix(storage, Cq_b, variables_b->GetOffset(), inscol);
+        PasteMatrix(storage, Cq_b.transpose(), variables_b->GetOffset(), inscol);
 }
 
 void ChConstraintTwoGeneric::ArchiveOUT(ChArchiveOut& marchive) {

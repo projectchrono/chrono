@@ -852,7 +852,7 @@ void ChElementShellReissner4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
         epsilon.segment(9, 3) = k_tilde_2_i[i].eigen();
 
         //***TODO*** add the EAS effect using the epsilon_hat
-        // epsilon_hat.MatrMultiply(P_i[i], beta);
+        // epsilon_hat = P_i[i] * beta;
         // epsilon += epsilon_hat;
 
         ChVector<> eps_tot_1(epsilon.segment(0, 3));
@@ -1004,7 +1004,7 @@ void ChElementShellReissner4::ComputeInternalJacobians(double Kfactor, double Rf
         // loop on layers
         for (size_t il = 0; il < m_layers.size(); ++il) {
             // compute layer tang. material stiff, and accumulate
-            m_layers[il].GetMaterial()->ComputeTangentC(
+            m_layers[il].GetMaterial()->ComputeStiffnessMatrix(
                 l_C, eps_tilde_1_i[i], eps_tilde_2_i[i], k_tilde_1_i[i], k_tilde_2_i[i], m_layers_z[il],
                 m_layers_z[il + 1],
                 m_layers[il].Get_theta());  // ***TODO*** use the total epsilon including the 'hat' component from EAS

@@ -187,11 +187,11 @@ void ChConstraintThreeGeneric::Build_Cq(ChSparseMatrixRef storage, int insrow) {
 
 void ChConstraintThreeGeneric::Build_CqT(ChSparseMatrixRef storage, int inscol) {
     if (variables_a->IsActive())
-        PasteTranspMatrix(storage, Cq_a, variables_a->GetOffset(), inscol);
+        PasteMatrix(storage, Cq_a.transpose(), variables_a->GetOffset(), inscol);
     if (variables_b->IsActive())
-        PasteTranspMatrix(storage, Cq_b, variables_b->GetOffset(), inscol);
+        PasteMatrix(storage, Cq_b.transpose(), variables_b->GetOffset(), inscol);
     if (variables_c->IsActive())
-        PasteTranspMatrix(storage, Cq_c, variables_c->GetOffset(), inscol);
+        PasteMatrix(storage, Cq_c.transpose(), variables_c->GetOffset(), inscol);
 }
 
 void ChConstraintThreeGeneric::ArchiveOUT(ChArchiveOut& marchive) {

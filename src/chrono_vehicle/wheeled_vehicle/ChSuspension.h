@@ -40,6 +40,15 @@ namespace vehicle {
 /// Base class for a suspension subsystem.
 class CH_VEHICLE_API ChSuspension : public ChPart {
   public:
+    struct Force {
+        double spring_force;
+        double shock_force;
+        double spring_length;
+        double spring_velocity;
+        double shock_length;
+        double shock_velocity;
+    };
+
     ChSuspension(const std::string& name);
 
     virtual ~ChSuspension() {}
@@ -146,6 +155,10 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
 
     /// Get the wheel track for the suspension subsystem.
     virtual double GetTrack() = 0;
+
+    /// Return current suspension forces (spring and shock) on the specified side.
+    /// Different derived types (suspension templates) may load different quantities in the output struct.
+    virtual Force ReportSuspensionForce(VehicleSide side) const = 0;
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations(VehicleSide side) {}

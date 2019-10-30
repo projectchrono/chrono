@@ -169,7 +169,7 @@ void ChNodeFEAxyzDD::VariablesFbReset() {
 
 void ChNodeFEAxyzDD::VariablesFbLoadForces(double factor) {
     ChNodeFEAxyzD::VariablesFbLoadForces(factor);
-    // variables_DD->Get_fb().PasteSumVector( VNULL ,3,0); // TODO something related to inertia?
+    ////variables_D->Get_fb().segment(3, 3) += VNULL.eigen();  // TODO something related to inertia?
 }
 
 void ChNodeFEAxyzDD::VariablesQbLoadSpeed() {

@@ -13,7 +13,7 @@
         "Unloaded Radius": 0.464,
         "Width": 0.318,
         "Vertical Stiffness": 326332.4234,  // defines linear stiffness, when no curve table is present
-        "Vertical Damping": 348.3932502,
+        "Vertical Damping": 3483.932502,
             "Vertical Curve Data": [[0.0, 0.0], // defines nonlinear vertical stiffness, takes priority over the linear model
                    [0.01, 2830.0],
                    [0.02, 6212.0],

@@ -130,7 +130,7 @@ void ChConstraintNgeneric::Build_Cq(ChSparseMatrixRef storage, int insrow) {
 void ChConstraintNgeneric::Build_CqT(ChSparseMatrixRef storage, int inscol) {
     for (size_t i = 0; i < variables.size(); ++i) {
         if (variables[i]->IsActive())
-            PasteTranspMatrix(storage, Cq[i], variables[i]->GetOffset(), inscol);
+            PasteMatrix(storage, Cq[i].transpose(), variables[i]->GetOffset(), inscol);
     }
 }
 

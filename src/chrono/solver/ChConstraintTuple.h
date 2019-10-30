@@ -120,7 +120,7 @@ class ChConstraintTuple_1vars {
 
     void Build_CqT(ChSparseMatrixRef storage, int inscol) {
         if (variables->IsActive())
-            PasteTranspMatrix(storage, Cq, variables->GetOffset(), inscol);
+            PasteMatrix(storage, Cq.transpose(), variables->GetOffset(), inscol);
     }
 };
 
@@ -259,9 +259,9 @@ class ChConstraintTuple_2vars {
 
     void Build_CqT(ChSparseMatrixRef storage, int inscol) {
         if (variables_1->IsActive())
-            PasteTranspMatrix(storage, Cq_1, variables_1->GetOffset(), inscol);
+            PasteMatrix(storage, Cq_1.transpose(), variables_1->GetOffset(), inscol);
         if (variables_2->IsActive())
-            PasteTranspMatrix(storage, Cq_2, variables_2->GetOffset(), inscol);
+            PasteMatrix(storage, Cq_2.transpose(), variables_2->GetOffset(), inscol);
     }
 };
 
@@ -438,11 +438,11 @@ class ChConstraintTuple_3vars {
 
     void Build_CqT(ChSparseMatrixRef storage, int inscol) {
         if (variables_1->IsActive())
-            PasteTranspMatrix(storage, Cq_1, variables_1->GetOffset(), inscol);
+            PasteMatrix(storage, Cq_1.transpose(), variables_1->GetOffset(), inscol);
         if (variables_2->IsActive())
-            PasteTranspMatrix(storage, Cq_2, variables_2->GetOffset(), inscol);
+            PasteMatrix(storage, Cq_2.transpose(), variables_2->GetOffset(), inscol);
         if (variables_3->IsActive())
-            PasteTranspMatrix(storage, Cq_3, variables_3->GetOffset(), inscol);
+            PasteMatrix(storage, Cq_3.transpose(), variables_3->GetOffset(), inscol);
     }
 };
 
@@ -658,13 +658,13 @@ class ChConstraintTuple_4vars {
 
     void Build_CqT(ChSparseMatrixRef storage, int inscol) {
         if (variables_1->IsActive())
-            PasteTranspMatrix(storage, Cq_1, variables_1->GetOffset(), inscol);
+            PasteMatrix(storage, Cq_1.transpose(), variables_1->GetOffset(), inscol);
         if (variables_2->IsActive())
-            PasteTranspMatrix(storage, Cq_2, variables_2->GetOffset(), inscol);
+            PasteMatrix(storage, Cq_2.transpose(), variables_2->GetOffset(), inscol);
         if (variables_3->IsActive())
-            PasteTranspMatrix(storage, Cq_3, variables_3->GetOffset(), inscol);
+            PasteMatrix(storage, Cq_3.transpose(), variables_3->GetOffset(), inscol);
         if (variables_4->IsActive())
-            PasteTranspMatrix(storage, Cq_4, variables_4->GetOffset(), inscol);
+            PasteMatrix(storage, Cq_4.transpose(), variables_4->GetOffset(), inscol);
     }
 };
 

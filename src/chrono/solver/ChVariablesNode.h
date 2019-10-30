@@ -73,7 +73,7 @@ class ChApi ChVariablesNode : public ChVariables {
     /// Optimized: doesn't fill unneeded elements except mass.
     virtual void Build_M(ChSparseMatrixRef storage, int insrow, int inscol, const double c_a) override;
 
-    /// Method to allow sChSparseMatrixRef transient data to archives.
+    /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow de-serialization of transient data from archives.

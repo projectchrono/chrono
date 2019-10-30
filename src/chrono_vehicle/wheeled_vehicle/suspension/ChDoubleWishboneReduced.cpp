@@ -183,6 +183,23 @@ double ChDoubleWishboneReduced::GetTrack() {
 }
 
 // -----------------------------------------------------------------------------
+// Return current suspension forces
+// -----------------------------------------------------------------------------
+ChSuspension::Force ChDoubleWishboneReduced::ReportSuspensionForce(VehicleSide side) const {
+    ChSuspension::Force force;
+
+    force.spring_force = m_shock[side]->GetSpringReact();
+    force.spring_length = m_shock[side]->GetSpringLength();
+    force.spring_velocity = m_shock[side]->GetSpringVelocity();
+
+    force.shock_force = force.spring_force;
+    force.shock_length = force.spring_length;
+    force.shock_velocity = force.spring_velocity;
+
+    return force;
+}
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChDoubleWishboneReduced::AddVisualizationAssets(VisualizationType vis) {
     ChSuspension::AddVisualizationAssets(vis);

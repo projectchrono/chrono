@@ -20,7 +20,7 @@
 #include <mkl.h>
 
 #include "chrono_mkl/ChApiMkl.h"
-#include "chrono/core/ChSparseMatrix.h"
+#include "chrono/core/ChMatrix.h"
 
 namespace chrono {
 
@@ -33,7 +33,7 @@ namespace chrono {
 /// See demo_MKL_MklEngine for the related demo.
 class ChApiMkl ChMklEngine {
   public:
-    ChMklEngine(int pb_size = 0, ChSparseMatrix::SymmetryType matrix_type = ChSparseMatrix::GENERAL);
+    ChMklEngine(int pb_size = 0, ChSparseMatrixType matrix_type = ChSparseMatrixType::GENERAL);
     ~ChMklEngine();
 
     /// Pardiso phases
@@ -131,7 +131,7 @@ class ChApiMkl ChMklEngine {
   private:
     // Internal functions
 
-    static MKL_INT GetPardisoMatrixType(ChSparseMatrix::SymmetryType type);
+    static MKL_INT GetPardisoMatrixType(ChSparseMatrixType type);
     void resetIparmElement(int iparm_num, int reset_value = 0);
 
     // Data

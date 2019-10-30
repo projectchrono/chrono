@@ -18,7 +18,7 @@
 #ifndef CHSOLVERMKL_H
 #define CHSOLVERMKL_H
 
-#include "chrono/core/ChSparseMatrix.h"
+#include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChSparsityPatternLearner.h"
 #include "chrono/core/ChTimer.h"
 #include "chrono/solver/ChSolver.h"
@@ -78,7 +78,7 @@ class ChSolverMKL : public ChSolver {
     ChMklEngine& GetMklEngine() { return m_engine; }
 
     /// Get a handle to the underlying matrix.
-    Matrix& GetMatrix() { return m_mat; }
+    ChSparseMatrixRef GetMatrix() { return m_mat; }
 
     /// Enable/disable locking the sparsity pattern (default: false).\n
     /// If \a val is set to true, then the sparsity pattern of the problem matrix is assumed
@@ -147,7 +147,7 @@ class ChSolverMKL : public ChSolver {
         if (m_force_sparsity_pattern_update) {
             m_force_sparsity_pattern_update = false;
 
-            ChSparsityPatternLearner sparsity_learner(m_dim, m_dim, true);
+            ChSparsityPatternLearner sparsity_learner(m_dim, m_dim);
             sysd.ConvertToMatrixForm(&sparsity_learner, nullptr);
             m_mat.LoadSparsityPattern(sparsity_learner);
         } else {
@@ -165,7 +165,7 @@ class ChSolverMKL : public ChSolver {
         sysd.ConvertToMatrixForm(&m_mat, nullptr);
 
         // Allow the matrix to be compressed.
-        bool change = m_mat.Compress();
+        bool change = m_mat.makeCompressed();
 
         // Set current matrix in the MKL engine.
         m_engine.SetMatrix(m_mat);
@@ -265,8 +265,8 @@ class ChSolverMKL : public ChSolver {
     }
 
   private:
-    ChMklEngine m_engine = {0, ChSparseMatrix::GENERAL};  ///< interface to MKL solver
-    Matrix m_mat = {1, 1};                                ///< problem matrix
+    ChMklEngine m_engine = {0, ChSparseMatrixType::GENERAL};  ///< interface to MKL solver
+    ChSparseMatrix m_mat;                                 ///< problem matrix
     ChVectorDynamic<double> m_rhs;                        ///< right-hand side vector
     ChVectorDynamic<double> m_sol;                        ///< solution vector
 

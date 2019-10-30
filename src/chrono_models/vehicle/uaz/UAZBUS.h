@@ -30,6 +30,7 @@
 #include "chrono_models/vehicle/uaz/UAZBUS_SimpleMapPowertrain.h"
 #include "chrono_models/vehicle/uaz/UAZBUS_RigidTire.h"
 #include "chrono_models/vehicle/uaz/UAZBUS_TMeasyTire.h"
+#include "chrono_models/vehicle/uaz/UAZBUS_Pac02Tire.h"
 
 namespace chrono {
 namespace vehicle {
@@ -52,7 +53,7 @@ class CH_MODELS_API UAZBUS {
 
     void SetTireType(TireModelType val) { m_tireType = val; }
 
-    //void setSteeringType(SteeringType val) { m_steeringType = val; }
+    // void setSteeringType(SteeringType val) { m_steeringType = val; }
 
     void SetInitPosition(const ChCoordsys<>& pos) { m_initPos = pos; }
     void SetInitFwdVel(double fwdVel) { m_initFwdVel = fwdVel; }
@@ -92,7 +93,7 @@ class CH_MODELS_API UAZBUS {
     bool m_fixed;
 
     TireModelType m_tireType;
- 
+
     double m_tire_step_size;
 
     SteeringType m_steeringType;

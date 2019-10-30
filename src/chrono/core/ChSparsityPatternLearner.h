@@ -18,6 +18,8 @@
 
 #include "chrono/core/ChMatrix.h"
 
+namespace chrono {
+
 /** \class ChSparsityPatternLearner
 \brief A dummy matrix that acquires the sparsity pattern.
 
