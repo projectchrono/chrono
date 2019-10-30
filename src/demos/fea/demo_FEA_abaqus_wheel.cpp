@@ -290,7 +290,7 @@ int main(int argc, char* argv[]) {
     my_system.SetTolForce(1e-10);
 
     // Change solver to pluggable MKL
-    auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
+    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
 	mkl_solver->SetSparsityPatternLock(true);
     my_system.SetSolver(mkl_solver);
     my_system.Update();

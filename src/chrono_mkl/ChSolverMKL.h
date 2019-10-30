@@ -23,10 +23,14 @@
 #include "chrono/core/ChTimer.h"
 #include "chrono/solver/ChSolver.h"
 #include "chrono/solver/ChSystemDescriptor.h"
+#include "chrono_mkl/ChApiMkl.h"
 
-#include "chrono_mkl/ChMklEngine.h"
 
 #define SPM_DEF_FULLNESS 0.1  ///< default predicted density (in [0,1])
+
+#define EIGEN_USE_MKL
+
+#include <Eigen/PardisoSupport>
 
 namespace chrono {
 
@@ -61,7 +65,7 @@ lock.
 
 Minimal usage example, to be put anywhere in the code, before starting the main simulation loop:
 \code{.cpp}
-auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
+auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
 application.GetSystem()->SetSolver(mkl_solver);
 \endcode
 
@@ -70,14 +74,14 @@ passed to the solver.
 
 \tparam Matrix type of the matrix used by the solver;
 */
-class ChSolverMKL : public ChSolver {
+class ChApiMkl ChSolverMKL : public ChSolver {
   public:
     ChSolverMKL() { SetSparsityPatternLock(true); }
 
     ~ChSolverMKL() override {}
 
     /// Get a handle to the underlying MKL engine.
-    ChMklEngine& GetMklEngine() { return m_engine; }
+    Eigen::PardisoLU<ChSparseMatrix>& GetMklEngine() { return m_engine; }
 
     /// Get a handle to the underlying matrix.
     ChSparseMatrix& GetMatrix() { return m_mat; }
@@ -87,7 +91,7 @@ class ChSolverMKL : public ChSolver {
     /// to be unchanged from call to call.
     void SetSparsityPatternLock(bool val) {
         m_lock = val;
-        m_mat.SetSparsityPatternLock(m_lock);
+        // m_mat.SetSparsityPatternLock(m_lock);
     }
 
     /// Call an update of the sparsity pattern on the underlying matrix.\n
@@ -104,7 +108,7 @@ class ChSolverMKL : public ChSolver {
     void LeverageRhsSparsity(bool val) { m_use_rhs_sparsity = val; }
 
     /// Set the parameter that controls preconditioned CGS.
-    void SetPreconditionedCGS(bool val, int L) { m_engine.SetPreconditionedCGS(val, L); }
+    // void SetPreconditionedCGS(bool val, int L) { m_engine.SetPreconditionedCGS(val, L); }
 
     /// Set the number of non-zero entries in the problem matrix.
     void SetMatrixNNZ(int nnz) { m_nnz = nnz; }
@@ -137,110 +141,11 @@ class ChSolverMKL : public ChSolver {
     /// Perform the solver setup operations.
     /// For the MKL solver, this means assembling and factorizing the system matrix.
     /// Returns true if successful and false otherwise.
-    virtual bool Setup(ChSystemDescriptor& sysd) override {
-        m_timer_setup_assembly.start();
-
-        // Calculate problem size at first call.
-        if (m_setup_call == 0) {
-            m_dim = sysd.CountActiveVariables() + sysd.CountActiveConstraints();
-        }
-
-        // Let the matrix acquire the information about ChSystem
-        if (m_force_sparsity_pattern_update) {
-            m_force_sparsity_pattern_update = false;
-
-            ChSparsityPatternLearner sparsity_pattern(m_dim, m_dim);
-            sysd.ConvertToMatrixForm(&sparsity_pattern, nullptr);
-            sparsity_pattern.Apply(m_mat);
-        } else {
-            // If an NNZ value for the underlying matrix was specified, perform an initial resizing, *before*
-            // a call to ChSystemDescriptor::ConvertToMatrixForm(), to allow for possible size optimizations.
-            // Otherwise, do this only at the first call, using the default sparsity fill-in.
-
-            if (m_nnz == 0 && !m_lock || m_setup_call == 0)
-                m_mat.Reset(m_dim, m_dim, static_cast<int>(m_dim * (m_dim * SPM_DEF_FULLNESS)));
-            else if (m_nnz > 0)
-                m_mat.Reset(m_dim, m_dim, m_nnz);
-        }
-
-        // Please mind that Reset will be called again on m_mat, inside ConvertToMatrixForm
-        sysd.ConvertToMatrixForm(&m_mat, nullptr);
-
-        // Allow the matrix to be compressed.
-        bool change = m_mat.makeCompressed();
-
-        // Set current matrix in the MKL engine.
-        m_engine.SetMatrix(m_mat);
-
-        // If compression made any change, flag for update of permutation vector.
-        if (change && m_use_perm) {
-            m_engine.UsePermutationVector(true);
-        }
-
-        // The sparsity of rhs must be updated at every cycle (is this true?)
-        if (m_use_rhs_sparsity && !m_use_perm)
-            m_engine.UsePartialSolution(2);
-
-        m_timer_setup_assembly.stop();
-
-        // Perform the factorization with the Pardiso sparse direct solver.
-        m_timer_setup_solvercall.start();
-        int pardiso_message_phase12 = m_engine.PardisoCall(ChMklEngine::phase_t::ANALYSIS_NUMFACTORIZATION, 0);
-        m_timer_setup_solvercall.stop();
-
-        m_setup_call++;
-
-        if (verbose) {
-            GetLog() << " MKL setup n = " << m_dim << "  nnz = " << (int)m_mat.nonZeros() << "\n";
-            GetLog() << "  assembly: " << m_timer_setup_assembly.GetTimeSecondsIntermediate() << "s"
-                     << "  solver_call: " << m_timer_setup_solvercall.GetTimeSecondsIntermediate() << "\n";
-        }
-
-        if (pardiso_message_phase12 != 0) {
-            GetLog() << "Pardiso analyze+reorder+factorize error code = " << pardiso_message_phase12 << "\n";
-            return false;
-        }
-
-        return true;
-    }
+    virtual bool Setup(ChSystemDescriptor& sysd) override;
 
     /// Solve using the MKL Pardiso sparse direct solver.
     /// It uses the matrix factorization obtained at the last call to Setup().
-    virtual double Solve(ChSystemDescriptor& sysd) override {
-        // Assemble the problem right-hand side vector.
-        m_timer_solve_assembly.start();
-        sysd.ConvertToMatrixForm(nullptr, &m_rhs);
-        m_sol.resize(m_rhs.size());
-        m_engine.SetRhsVector(m_rhs);
-        m_engine.SetSolutionVector(m_sol);
-        m_timer_solve_assembly.stop();
-
-        // Solve the problem using Pardiso.
-        m_timer_solve_solvercall.start();
-        int pardiso_message_phase33 = m_engine.PardisoCall(ChMklEngine::phase_t::SOLVE, 0);
-        m_timer_solve_solvercall.stop();
-
-        m_solve_call++;
-
-        if (pardiso_message_phase33) {
-            GetLog() << "Pardiso solve+refine error code = " << pardiso_message_phase33 << "\n";
-            return -1.0;
-        }
-
-        if (verbose) {
-            double res_norm = m_engine.GetResidualNorm();
-            GetLog() << " MKL solve call " << m_solve_call << "  |residual| = " << res_norm << "\n";
-            GetLog() << "  assembly: " << m_timer_solve_assembly.GetTimeSecondsIntermediate() << "s\n"
-                     << "  solver_call: " << m_timer_solve_solvercall.GetTimeSecondsIntermediate() << "\n";
-        }
-
-        // Scatter solution vector to the system descriptor.
-        m_timer_solve_assembly.start();
-        sysd.FromVectorToUnknowns(m_sol);
-        m_timer_solve_assembly.stop();
-
-        return 0.0f;
-    }
+    virtual double Solve(ChSystemDescriptor& sysd) override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
@@ -267,10 +172,11 @@ class ChSolverMKL : public ChSolver {
     }
 
   private:
-    ChMklEngine m_engine = {0, ChSparseMatrixType::GENERAL};  ///< interface to MKL solver
-    ChSparseMatrix m_mat;                                 ///< problem matrix
-    ChVectorDynamic<double> m_rhs;                        ///< right-hand side vector
-    ChVectorDynamic<double> m_sol;                        ///< solution vector
+    // ChMklEngine m_engine = {0, ChSparseMatrixType::GENERAL};  ///< interface to MKL solver
+    Eigen::PardisoLU<ChSparseMatrix> m_engine;
+    ChSparseMatrix m_mat;           ///< problem matrix
+    ChVectorDynamic<double> m_rhs;  ///< right-hand side vector
+    ChVectorDynamic<double> m_sol;  ///< solution vector
 
     int m_dim = 0;         ///< problem size
     int m_nnz = 0;         ///< user-supplied estimate of NNZ
@@ -286,6 +192,20 @@ class ChSolverMKL : public ChSolver {
     ChTimer<> m_timer_setup_solvercall;  ///< timer for factorization
     ChTimer<> m_timer_solve_assembly;    ///< timer for RHS assembly
     ChTimer<> m_timer_solve_solvercall;  ///< timer for solution
+
+    void getErrorMessage(Eigen::ComputationInfo error) const {
+        switch (error) {
+            case Eigen::Success:
+				GetLog() << "computation was successful";
+                break;
+            case Eigen::NumericalIssue:
+				GetLog() << "provided data did not satisfy the prerequisites";
+                break;
+		     case Eigen::NoConvergence :
+				GetLog() << "inputs are invalid, or the algorithm has been improperly called";
+                break;
+        }
+    }
 };
 
 /// @} mkl_module

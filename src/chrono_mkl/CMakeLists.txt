@@ -71,14 +71,10 @@ SET(CH_MKL_INCLUDES "${CH_MKL_INCLUDES}" PARENT_SCOPE)
 SET(ChronoEngine_MKL_HEADERS
   ChApiMkl.h
   ChSolverMKL.h
-  ChMklEngine.h
-  ChSolverMKL_Eigen.h
-  ChMklEngine_Eigen.h
 )
 
 SET(ChronoEngine_MKL_SOURCES
-  ChMklEngine.cpp
-  ChMklEngine_Eigen.cpp
+  ChSolverMKL.cpp
 )
 
 SOURCE_GROUP("" FILES ${ChronoEngine_MKL_HEADERS} ${ChronoEngine_MKL_SOURCES})
@@ -94,12 +90,12 @@ ADD_LIBRARY(ChronoEngine_mkl SHARED
 SET_TARGET_PROPERTIES(ChronoEngine_mkl PROPERTIES
                       COMPILE_FLAGS "${CH_CXX_FLAGS}"
                       LINK_FLAGS "${CH_LINKERFLAG_SHARED} ${CH_MKL_LINK_FLAGS}"
-                      COMPILE_DEFINITIONS "CH_API_COMPILE_MKL")
+                      COMPILE_DEFINITIONS "CH_API_COMPILE_MKL;EIGEN_USE_MKL_ALL;MKL_LP64")
 
 TARGET_LINK_LIBRARIES(ChronoEngine_mkl
                       ChronoEngine
                       ${MKL_LIBRARIES}
-					  ${IOMP5_LIBRARY}
+					            ${IOMP5_LIBRARY}
 					  )
 
 INSTALL(TARGETS ChronoEngine_mkl

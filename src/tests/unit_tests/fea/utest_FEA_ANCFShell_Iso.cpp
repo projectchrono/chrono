@@ -177,7 +177,7 @@ int main(int argc, char* argv[]) {
     // Setup solver
     if (use_mkl) {
 #ifdef CHRONO_MKL
-        auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
+        auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
         mkl_solver->SetSparsityPatternLock(true);
         mkl_solver->SetVerbose(true);
         my_system.SetSolver(mkl_solver);

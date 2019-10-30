@@ -200,7 +200,7 @@ int main(int argc, char* argv[]) {
     // my_system.SetSolver(matlab_solver);
 
     //***TEST***
-    auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
+    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
     my_system.SetSolver(mkl_solver);
 
     application.SetTimestep(0.001);

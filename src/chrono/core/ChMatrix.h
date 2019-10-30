@@ -77,13 +77,6 @@ using ChArray = Eigen::Array<T, Eigen::Dynamic, 1, Eigen::ColMajor>;
 // Sparse matrices
 using ChSparseMatrix = Eigen::SparseMatrix<double, Eigen::RowMajor, int>;
 
-enum class ChSparseMatrixType {
-    GENERAL,              ///< unsymmetric matrix
-    SYMMETRIC_POSDEF,     ///< symmetric positive definite
-    SYMMETRIC_INDEF,      ///< symmetric indefinite
-    STRUCTURAL_SYMMETRIC  ///< structurally symmetric
-};
-
 // -----------------------------------------------------------------------------
 
 /// Serialization of a matrix into an ASCII stream (e.g. a file) as a Matlab .dat output.
