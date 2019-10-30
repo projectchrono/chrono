@@ -35,39 +35,43 @@ class ChSparsityPatternLearner : public Eigen::SparseMatrix<double, Eigen::RowMa
         rowVector_list[insrow].push_back(inscol);
     }
 
-    //// TODO: Is this needed at all?
-    ////       If not, eleminate Reset from ChSparseMatrixEigenExtensions
-    virtual void Reset(int row, int col, int nonzeros = 0) override {
-		resize(row, col);
-        rowVector_list.clear();
-        rowVector_list.resize(row);
-    }
-
-    //// TODO:  Complete Process() and Apply()
 
     void Apply(ChSparseMatrix& mat) {
-        if (!processed) {
-            Process();
-            processed = true;
-        }
+        if (!processed)
+			process();
 
         mat.resize(rows(), cols());
         mat.reserve(rowDimensions_list);
+		//int rowIndexCurrent = 0;
+		int col_el = 0;
         for (auto row_sel = 0; row_sel < rowVector_list.size(); ++row_sel) {
-            int col_el = 0;
-            for (auto it = rowVector_list.at(row_sel).begin(); it != rowVector_list.at(row_sel).end(); ++it) {
+
+			//mat.outerIndexPtr()[row_sel] = rowIndexCurrent;
+
+            for (auto it = rowVector_list[row_sel].begin(); it != rowVector_list[row_sel].end(); ++it) {
                 mat.innerIndexPtr()[col_el] = *it;
                 col_el++;
             }
+
+			//rowIndexCurrent += rowDimensions_list[row_sel];
         }
+		//mat.outerIndexPtr()[rows()] = rowIndexCurrent;
     }
 
   private:
-    void Process() {
-        rowDimensions_list.resize(rowVector_list.size());
-        for (auto i = 0; i < rowVector_list.size(); ++i) {
-            rowDimensions_list.at(i) = (int)rowVector_list.at(i).size();
+    void process() {
+
+		for (auto list_iter = rowVector_list.begin(); list_iter != rowVector_list.end(); ++list_iter) {
+            list_iter->sort();
+            list_iter->unique();
         }
+
+		rowDimensions_list.resize(rowVector_list.size());
+        for (auto i = 0; i < rowVector_list.size(); ++i) {
+            rowDimensions_list[i] = static_cast<int>(rowVector_list[i].size());
+        }
+
+		processed = true;
     }
 
     std::vector<std::list<int>> rowVector_list;

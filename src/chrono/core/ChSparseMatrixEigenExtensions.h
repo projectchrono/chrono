@@ -23,10 +23,5 @@ virtual void SetElement(int row, int col, double el, bool overwrite = true) {
     overwrite ? coeffRef(row, col) = el : coeffRef(row, col) += el;
 }
 
-virtual void Reset(int row, int col, int nonzeros = 0) {
-    resize(row, col);
-    if (nonzeros)
-        reserve(nonzeros);
-}
 
 #endif
