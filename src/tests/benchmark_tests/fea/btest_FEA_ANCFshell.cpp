@@ -30,35 +30,71 @@
 #include "chrono_irrlicht/ChIrrApp.h"
 #endif
 
+#ifdef CHRONO_MKL
+#include "chrono_mkl/ChSolverMKL.h"
+#endif
+
 using namespace chrono;
 using namespace chrono::fea;
 
 template <int N>
 class ANCFshell : public utils::ChBenchmarkTest {
   public:
-    ANCFshell();
-    ~ANCFshell() { delete m_system; }
+    virtual ~ANCFshell() { delete m_system; }
 
     ChSystem* GetSystem() override { return m_system; }
     void ExecuteStep() override { m_system->DoStepDynamics(1e-4); }
 
     void SimulateVis();
 
-  private:
+  protected:
+    ANCFshell(ChSolver::Type solver_type);
+
     ChSystemSMC* m_system;
 };
 
 template <int N>
-ANCFshell<N>::ANCFshell() {
+class ANCFshell_MINRES : public ANCFshell<N> {
+  public:
+    ANCFshell_MINRES() : ANCFshell<N>(ChSolver::Type::MINRES) {}
+};
+
+template <int N>
+class ANCFshell_MKL : public ANCFshell<N> {
+  public:
+    ANCFshell_MKL() : ANCFshell<N>(ChSolver::Type::CUSTOM) {}
+};
+
+template <int N>
+ANCFshell<N>::ANCFshell(ChSolver::Type solver_type) {
     m_system = new ChSystemSMC();
     m_system->Set_G_acc(ChVector<>(0, -9.8, 0));
 
     // Set solver parameters
-    m_system->SetSolverType(ChSolver::Type::MINRES);
-    auto minres_solver = std::static_pointer_cast<ChSolverMINRES>(m_system->GetSolver());
-    minres_solver->SetDiagonalPreconditioning(true);
-    m_system->SetMaxItersSolverSpeed(100);
-    m_system->SetTolForce(1e-10);
+#ifndef CHRONO_MKL
+    if (solver_type == ChSolver::Type::CUSTOM)
+        solver_type = ChSolver::Type::MINRES;
+#endif
+
+    switch (solver_type) {
+        case ChSolver::Type::MINRES: {
+            m_system->SetSolverType(ChSolver::Type::MINRES);
+            auto minres_solver = std::static_pointer_cast<ChSolverMINRES>(m_system->GetSolver());
+            minres_solver->SetDiagonalPreconditioning(true);
+            m_system->SetMaxItersSolverSpeed(100);
+            m_system->SetTolForce(1e-10);
+            break;
+        }
+        case ChSolver::Type::CUSTOM: {
+#ifdef CHRONO_MKL
+            auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
+            mkl_solver->SetSparsityPatternLock(true);
+            mkl_solver->SetVerbose(false);
+            m_system->SetSolver(mkl_solver);
+#endif
+            break;
+        }
+    }
 
     // Set up integrator
     m_system->SetTimestepperType(ChTimestepper::Type::HHT);
@@ -159,10 +195,17 @@ void ANCFshell<N>::SimulateVis() {
 #define NUM_SKIP_STEPS 10  // number of steps for hot start
 #define NUM_SIM_STEPS 100  // number of simulation steps for each benchmark
 
-CH_BM_SIMULATION_LOOP(ANCFshell08, ANCFshell<8>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
-CH_BM_SIMULATION_LOOP(ANCFshell16, ANCFshell<16>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
-CH_BM_SIMULATION_LOOP(ANCFshell32, ANCFshell<32>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
-CH_BM_SIMULATION_LOOP(ANCFshell64, ANCFshell<64>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
+CH_BM_SIMULATION_LOOP(ANCFshell08_MINRES, ANCFshell_MINRES<8>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
+CH_BM_SIMULATION_LOOP(ANCFshell16_MINRES, ANCFshell_MINRES<16>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
+CH_BM_SIMULATION_LOOP(ANCFshell32_MINRES, ANCFshell_MINRES<32>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
+CH_BM_SIMULATION_LOOP(ANCFshell64_MINRES, ANCFshell_MINRES<64>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
+
+#ifdef CHRONO_MKL
+CH_BM_SIMULATION_LOOP(ANCFshell08_MKL, ANCFshell_MKL<8>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
+CH_BM_SIMULATION_LOOP(ANCFshell16_MKL, ANCFshell_MKL<16>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
+CH_BM_SIMULATION_LOOP(ANCFshell32_MKL, ANCFshell_MKL<32>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
+CH_BM_SIMULATION_LOOP(ANCFshell64_MKL, ANCFshell_MKL<64>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
+#endif
 
 // =============================================================================
 
@@ -171,7 +214,7 @@ int main(int argc, char* argv[]) {
 
 #ifdef CHRONO_IRRLICHT
     if (::benchmark::ReportUnrecognizedArguments(argc, argv)) {
-        ANCFshell<16> test;
+        ANCFshell_MINRES<16> test;
         test.SimulateVis();
         return 0;
     }
