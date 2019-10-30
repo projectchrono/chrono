@@ -5,7 +5,6 @@ SET(DEMOS
   demo_CH_coords
   demo_CH_linalg
   demo_CH_matrix_ref
-  demo_CH_sparsematrix
   demo_CH_math
   demo_CH_stream
   demo_CH_archive
@@ -13,7 +12,6 @@ SET(DEMOS
   demo_CH_powertrain
   demo_CH_functions
   demo_CH_solver
-  demo_CH_sparse
   demo_CH_EulerAngles
 )
 

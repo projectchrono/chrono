@@ -9,24 +9,38 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Radu Serban
 // =============================================================================
 //
-//   Demo code about streams
+// Demo for working with Eigen references.
+// (Mostly for Chrono developers)
 //
 // =============================================================================
 
-#include <cmath>
+#include <iostream>
+#include <vector>
 
-#include "chrono/core/ChCSMatrix_Eigen.h"
+#include "chrono/core/ChMatrix.h"
+#include "chrono/core/ChSparsityPatternLearner.h"
 
+#include "gtest/gtest.h"
+
+using std::cout;
+using std::endl;
 using namespace chrono;
 
+// ------------------------------------------------------------------
 
-int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
-    
-    
+TEST(SparseMatrix, pattern_learner) {
+    ChSparsityPatternLearner spl(3, 3);
 
-    return 0;
+    spl.SetElement(0, 0, 1.1);
+    spl.SetElement(1, 1, 2.2);
+    spl.SetElement(2, 2, 3.3);
+
+    ChSparseMatrix spmat;
+
+    spl.Apply(spmat);
+
+    std::cout << spl << std::endl;
 }
