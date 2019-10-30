@@ -20,49 +20,59 @@
 
 namespace chrono {
 
-/** \class ChSparsityPatternLearner
-\brief A dummy matrix that acquires the sparsity pattern.
-
-ChSparsityPatternLearner estimates the sparsity pattern without actually allocating any value, but the elements indexes.
-Other matrices (like ChCSMatrix) can acquire the sparsity pattern information from this matrix.
-*/
-class ChApi ChSparsityPatternLearner : public Eigen::SparseMatrix<double, Eigen::RowMajor, int> {
-  protected:
-    std::vector<std::list<int>> rowVector_list;
-
+/// Utility class for extracting sparsity patter from a sparse matrix.
+/// Derived from ChSparseMatrix, ChSparsityPatternLearner does not allocate values, but only element indices.
+/// The sparsity pattern can then be applied to a given sparse matrix.
+class ChSparsityPatternLearner : public Eigen::SparseMatrix<double, Eigen::RowMajor, int> {
   public:
-    ChSparsityPatternLearner(int nrows, int ncols) : Eigen::SparseMatrix<double, Eigen::RowMajor, int>(nrows, ncols){
+    ChSparsityPatternLearner(int nrows, int ncols) : ChSparseMatrix(nrows, ncols), processed(false) {
         rowVector_list.resize(rows());
     }
 
-    virtual ~ChSparsityPatternLearner() {}
+    ~ChSparsityPatternLearner() {}
 
-    void SetElement(int insrow, int inscol, double insval, bool overwrite = true) override {
+    virtual void SetElement(int insrow, int inscol, double insval, bool overwrite = true) override {
         rowVector_list[insrow].push_back(inscol);
     }
 
-    void Reset(int row, int col, int nonzeros = 0) override {
+    //// TODO: Is this needed at all?
+    ////       If not, eleminate Reset from ChSparseMatrixEigenExtensions
+    virtual void Reset(int row, int col, int nonzeros = 0) override {
 		resize(row, col);
         rowVector_list.clear();
         rowVector_list.resize(row);
     }
 
+    //// TODO:  Complete Process() and Apply()
 
-    std::vector<std::list<int>>& GetSparsityPattern() {
-        for (auto list_iter = rowVector_list.begin(); list_iter != rowVector_list.end(); ++list_iter) {
-            list_iter->sort();
-            list_iter->unique();
+    void Apply(ChSparseMatrix& mat) {
+        if (!processed) {
+            Process();
+            processed = true;
         }
-        return rowVector_list;
+
+        mat.resize(rows(), cols());
+        mat.reserve(rowDimensions_list);
+        for (auto row_sel = 0; row_sel < rowVector_list.size(); ++row_sel) {
+            int col_el = 0;
+            for (auto it = rowVector_list.at(row_sel).begin(); it != rowVector_list.at(row_sel).end(); ++it) {
+                mat.innerIndexPtr()[col_el] = *it;
+                col_el++;
+            }
+        }
     }
 
-    int GetNNZ() const override {
-        int nnz_temp = 0;
-        for (auto list_iter = rowVector_list.begin(); list_iter != rowVector_list.end(); ++list_iter)
-            nnz_temp += static_cast<int>(list_iter->size());
-
-        return nnz_temp;
+  private:
+    void Process() {
+        rowDimensions_list.resize(rowVector_list.size());
+        for (auto i = 0; i < rowVector_list.size(); ++i) {
+            rowDimensions_list.at(i) = (int)rowVector_list.at(i).size();
+        }
     }
+
+    std::vector<std::list<int>> rowVector_list;
+    std::vector<int> rowDimensions_list;
+    bool processed;
 };
 
 /// @} chrono

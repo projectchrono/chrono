@@ -26,6 +26,8 @@
 
 #include "chrono_mkl/ChMklEngine.h"
 
+#define SPM_DEF_FULLNESS 0.1  ///< default predicted density (in [0,1])
+
 namespace chrono {
 
 /// @addtogroup mkl_module
@@ -78,7 +80,7 @@ class ChSolverMKL : public ChSolver {
     ChMklEngine& GetMklEngine() { return m_engine; }
 
     /// Get a handle to the underlying matrix.
-    ChSparseMatrixRef GetMatrix() { return m_mat; }
+    ChSparseMatrix& GetMatrix() { return m_mat; }
 
     /// Enable/disable locking the sparsity pattern (default: false).\n
     /// If \a val is set to true, then the sparsity pattern of the problem matrix is assumed
@@ -147,9 +149,9 @@ class ChSolverMKL : public ChSolver {
         if (m_force_sparsity_pattern_update) {
             m_force_sparsity_pattern_update = false;
 
-            ChSparsityPatternLearner sparsity_learner(m_dim, m_dim);
-            sysd.ConvertToMatrixForm(&sparsity_learner, nullptr);
-            m_mat.LoadSparsityPattern(sparsity_learner);
+            ChSparsityPatternLearner sparsity_pattern(m_dim, m_dim);
+            sysd.ConvertToMatrixForm(&sparsity_pattern, nullptr);
+            sparsity_pattern.Apply(m_mat);
         } else {
             // If an NNZ value for the underlying matrix was specified, perform an initial resizing, *before*
             // a call to ChSystemDescriptor::ConvertToMatrixForm(), to allow for possible size optimizations.
@@ -189,7 +191,7 @@ class ChSolverMKL : public ChSolver {
         m_setup_call++;
 
         if (verbose) {
-            GetLog() << " MKL setup n = " << m_dim << "  nnz = " << m_mat.GetNNZ() << "\n";
+            GetLog() << " MKL setup n = " << m_dim << "  nnz = " << (int)m_mat.nonZeros() << "\n";
             GetLog() << "  assembly: " << m_timer_setup_assembly.GetTimeSecondsIntermediate() << "s"
                      << "  solver_call: " << m_timer_setup_solvercall.GetTimeSecondsIntermediate() << "\n";
         }
