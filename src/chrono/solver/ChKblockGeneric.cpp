@@ -96,7 +96,7 @@ void ChKblockGeneric::DiagonalAdd(ChVectorRef result) {
     }
 }
 
-void ChKblockGeneric::Build_K(ChSparseMatrixRef storage, bool add) {
+void ChKblockGeneric::Build_K(ChSparseMatrix& storage, bool add) {
     if (K.rows() == 0)
         return;
 

@@ -113,12 +113,12 @@ class ChConstraintTuple_1vars {
         }
     }
 
-    void Build_Cq(ChSparseMatrixRef storage, int insrow) {
+    void Build_Cq(ChSparseMatrix& storage, int insrow) {
         if (variables->IsActive())
             PasteMatrix(storage, Cq, insrow, variables->GetOffset());
     }
 
-    void Build_CqT(ChSparseMatrixRef storage, int inscol) {
+    void Build_CqT(ChSparseMatrix& storage, int inscol) {
         if (variables->IsActive())
             PasteMatrix(storage, Cq.transpose(), variables->GetOffset(), inscol);
     }
@@ -250,14 +250,14 @@ class ChConstraintTuple_2vars {
         }
     }
 
-    void Build_Cq(ChSparseMatrixRef storage, int insrow) {
+    void Build_Cq(ChSparseMatrix& storage, int insrow) {
         if (variables_1->IsActive())
             PasteMatrix(storage, Cq_1, insrow, variables_1->GetOffset());
         if (variables_2->IsActive())
             PasteMatrix(storage, Cq_2, insrow, variables_2->GetOffset());
     }
 
-    void Build_CqT(ChSparseMatrixRef storage, int inscol) {
+    void Build_CqT(ChSparseMatrix& storage, int inscol) {
         if (variables_1->IsActive())
             PasteMatrix(storage, Cq_1.transpose(), variables_1->GetOffset(), inscol);
         if (variables_2->IsActive())
@@ -427,7 +427,7 @@ class ChConstraintTuple_3vars {
         }
     }
 
-    void Build_Cq(ChSparseMatrixRef storage, int insrow) {
+    void Build_Cq(ChSparseMatrix& storage, int insrow) {
         if (variables_1->IsActive())
             PasteMatrix(storage, Cq_1, insrow, variables_1->GetOffset());
         if (variables_2->IsActive())
@@ -436,7 +436,7 @@ class ChConstraintTuple_3vars {
             PasteMatrix(storage, Cq_3, insrow, variables_3->GetOffset());
     }
 
-    void Build_CqT(ChSparseMatrixRef storage, int inscol) {
+    void Build_CqT(ChSparseMatrix& storage, int inscol) {
         if (variables_1->IsActive())
             PasteMatrix(storage, Cq_1.transpose(), variables_1->GetOffset(), inscol);
         if (variables_2->IsActive())
@@ -645,7 +645,7 @@ class ChConstraintTuple_4vars {
         }
     }
 
-    void Build_Cq(ChSparseMatrixRef storage, int insrow) {
+    void Build_Cq(ChSparseMatrix& storage, int insrow) {
         if (variables_1->IsActive())
             PasteMatrix(storage, Cq_1, insrow, variables_1->GetOffset());
         if (variables_2->IsActive())
@@ -656,7 +656,7 @@ class ChConstraintTuple_4vars {
             PasteMatrix(storage, Cq_4, insrow, variables_4->GetOffset());
     }
 
-    void Build_CqT(ChSparseMatrixRef storage, int inscol) {
+    void Build_CqT(ChSparseMatrix& storage, int inscol) {
         if (variables_1->IsActive())
             PasteMatrix(storage, Cq_1.transpose(), variables_1->GetOffset(), inscol);
         if (variables_2->IsActive())

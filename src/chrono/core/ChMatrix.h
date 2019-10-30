@@ -77,18 +77,12 @@ using ChArray = Eigen::Array<T, Eigen::Dynamic, 1, Eigen::ColMajor>;
 // Sparse matrices
 using ChSparseMatrix = Eigen::SparseMatrix<double, Eigen::RowMajor, int>;
 
-using ChSparseMatrixRef = Eigen::Ref<Eigen::SparseMatrix<double, Eigen::RowMajor, int>>;
-using ChSparseMatrixConstRef = const Eigen::Ref<ChSparseMatrix>&;
-
 enum class ChSparseMatrixType {
     GENERAL,              ///< unsymmetric matrix
     SYMMETRIC_POSDEF,     ///< symmetric positive definite
     SYMMETRIC_INDEF,      ///< symmetric indefinite
     STRUCTURAL_SYMMETRIC  ///< structurally symmetric
 };
-
-#define SPM_DEF_FULLNESS 0.1       ///< default predicted density (in [0,1])
-#define SPM_DEF_MAXELEMENTS 10000  ///< default limit on initial number of off-diagonal elements
 
 // -----------------------------------------------------------------------------
 
@@ -112,43 +106,22 @@ inline void StreamOUTdenseMatlabFormat(ChMatrixConstRef A, ChStreamOutAscii& str
 
 // -----------------------------------------------------------------------------
 
-/*
-inline void LoadSparsityPattern(ChSparseMatrix& mat, const std::vector<std::list<int>>& rowVector_list) {
-    std::vector<int> rowDimensions_list;
-    rowDimensions_list.resize(rowVector_list.size());
-    for (auto i = 0; i < rowVector_list.size(); ++i) {
-        rowDimensions_list.at(i) = rowVector_list.at(i).size();
-    }
-
-    mat.reserve(rowDimensions_list);
-    for (auto row_sel = 0; row_sel < rowVector_list.size(); ++row_sel) {
-        int col_el = 0;
-        for (auto it = rowVector_list.at(row_sel).begin(); it != rowVector_list.at(row_sel).end(); ++it) {
-            mat.innerIndexPtr[col_el] = *it;
-            col_el++;
-        }
-    }
-}
-*/
-
 /// Paste a given matrix into \a this sparse matrix at position (\a insrow, \a inscol).
 /// The matrix \a matrFrom will be copied into \a this[insrow : insrow + \a matrFrom.GetRows()][[inscol : inscol +
 /// matrFrom.GetColumns()]] \param[in] matrFrom The source matrix that will be copied; \param[in] insrow The row index
 /// where the first element will be copied; \param[in] inscol The column index where the first element will be
 /// copied; \param[in] overwrite Tells if the copied element will overwrite an existing element or be summed to it;
-inline void PasteMatrix(ChSparseMatrixRef matrTo, ChMatrixConstRef matrFrom, int insrow, int inscol, bool overwrite = true) {
+inline void PasteMatrix(ChSparseMatrix& matrTo, ChMatrixConstRef matrFrom, int insrow, int inscol, bool overwrite = true) {
     if (overwrite) {
         for (auto i = 0; i < matrFrom.rows(); i++) {
             for (auto j = 0; j < matrFrom.cols(); j++) {
-                ////matrTo.SetElement(insrow + i, inscol + j, matrFrom(i, j), true);
-                matrTo.coeffRef(insrow + i, inscol + j) = matrFrom(i, j);
+                matrTo.SetElement(insrow + i, inscol + j, matrFrom(i, j), true);
             }
         }
     } else {
         for (auto i = 0; i < matrFrom.rows(); i++) {
             for (auto j = 0; j < matrFrom.cols(); j++) {
-                ////matrTo.SetElement(insrow + i, inscol + j, matrFrom(i, j), false);
-                matrTo.coeffRef(insrow + i, inscol + j) += matrFrom(i, j);
+                matrTo.SetElement(insrow + i, inscol + j, matrFrom(i, j), false);
             }
         }
     }
@@ -157,18 +130,18 @@ inline void PasteMatrix(ChSparseMatrixRef matrTo, ChMatrixConstRef matrFrom, int
 /// Method to allow serializing transient data into in ASCII stream (e.g., a file) as a
 /// Matlab sparse matrix format; each row in file has three elements: {row, column, value}.
 /// Note: the row and column indexes start from 1.
-inline void StreamOUTsparseMatlabFormat(ChSparseMatrixRef matr, ChStreamOutAscii& mstream) {
+inline void StreamOUTsparseMatlabFormat(ChSparseMatrix& matr, ChStreamOutAscii& mstream) {
     for (int ii = 0; ii < matr.rows(); ii++) {
         for (int jj = 0; jj < matr.cols(); jj++) {
             double elVal = matr.coeff(ii, jj);
-            if (elVal || (ii + 1 == matr.rows() && jj + 1 == matr.cols())) {
+            if (elVal || (ii == matr.rows() - 1 && jj == matr.cols() - 1)) {
                 mstream << ii + 1 << " " << jj + 1 << " " << elVal << "\n";
             }
         }
     }
 }
 
-inline void StreamOUT(ChSparseMatrixRef matr, ChStreamOutAscii& stream) {
+inline void StreamOUT(ChSparseMatrix& matr, ChStreamOutAscii& stream) {
 	int mrows = static_cast<int>(matr.rows());
 	int mcols = static_cast<int>(matr.cols());
     stream << "\n"

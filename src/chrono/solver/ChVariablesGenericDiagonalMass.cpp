@@ -71,7 +71,7 @@ void ChVariablesGenericDiagonalMass::DiagonalAdd(ChVectorRef result, const doubl
     result.segment(this->offset, ndof) += c_a * MmassDiag;
 }
 
-void ChVariablesGenericDiagonalMass::Build_M(ChSparseMatrixRef storage, int insrow, int inscol, const double c_a) {
+void ChVariablesGenericDiagonalMass::Build_M(ChSparseMatrix& storage, int insrow, int inscol, const double c_a) {
     for (int i = 0; i < MmassDiag.size(); ++i) {
         storage.SetElement(insrow + i, inscol + i, c_a * MmassDiag(i));
     }

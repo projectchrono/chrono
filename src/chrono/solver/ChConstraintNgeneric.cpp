@@ -120,14 +120,14 @@ void ChConstraintNgeneric::MultiplyTandAdd(ChVectorDynamic<double>& result, doub
     }
 }
 
-void ChConstraintNgeneric::Build_Cq(ChSparseMatrixRef storage, int insrow) {
+void ChConstraintNgeneric::Build_Cq(ChSparseMatrix& storage, int insrow) {
     for (size_t i = 0; i < variables.size(); ++i) {
         if (variables[i]->IsActive())
             PasteMatrix(storage, Cq[i], insrow, variables[i]->GetOffset());
     }
 }
 
-void ChConstraintNgeneric::Build_CqT(ChSparseMatrixRef storage, int inscol) {
+void ChConstraintNgeneric::Build_CqT(ChSparseMatrix& storage, int inscol) {
     for (size_t i = 0; i < variables.size(); ++i) {
         if (variables[i]->IsActive())
             PasteMatrix(storage, Cq[i].transpose(), variables[i]->GetOffset(), inscol);

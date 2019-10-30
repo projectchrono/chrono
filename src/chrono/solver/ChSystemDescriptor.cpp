@@ -279,7 +279,7 @@ void ChSystemDescriptor::DumpLastMatrices(bool assembled, const char* path) {
             sprintf(filename, "%s%s", path, "Z.dat");
             ChStreamOutAsciiFile file_Z(filename);
             file_Z.SetNumFormat(numformat);
-            //Z.StreamOUTsparseMatlabFormat(file_Z);
+            StreamOUTsparseMatlabFormat(Z, file_Z);
 
             sprintf(filename, "%s%s", path, "rhs.dat");
             ChStreamOutAsciiFile file_rhs(filename);
@@ -297,17 +297,17 @@ void ChSystemDescriptor::DumpLastMatrices(bool assembled, const char* path) {
             sprintf(filename, "%s%s", path, "M.dat");
             ChStreamOutAsciiFile file_M(filename);
             file_M.SetNumFormat(numformat);
-            //mdM.StreamOUTsparseMatlabFormat(file_M);
+            StreamOUTsparseMatlabFormat(mdM, file_M);
 
             sprintf(filename, "%s%s", path, "Cq.dat");
             ChStreamOutAsciiFile file_Cq(filename);
             file_Cq.SetNumFormat(numformat);
-            //mdCq.StreamOUTsparseMatlabFormat(file_Cq);
+            StreamOUTsparseMatlabFormat(mdCq, file_Cq);
 
             sprintf(filename, "%s%s", path, "E.dat");
             ChStreamOutAsciiFile file_E(filename);
             file_E.SetNumFormat(numformat);
-            //mdE.StreamOUTsparseMatlabFormat(file_E);
+            StreamOUTsparseMatlabFormat(mdE, file_E);
 
             sprintf(filename, "%s%s", path, "f.dat");
             ChStreamOutAsciiFile file_f(filename);

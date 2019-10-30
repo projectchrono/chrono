@@ -118,8 +118,8 @@ class ChApi ChConstraintThreeGeneric : public ChConstraintThree {
     /// Puts the three jacobian parts into the 'insrow' row of a sparse matrix,
     /// where both portions of the jacobian are shifted in order to match the
     /// offset of the corresponding ChVariable.
-    virtual void Build_Cq(ChSparseMatrixRef storage, int insrow) override;
-    virtual void Build_CqT(ChSparseMatrixRef storage, int inscol) override;
+    virtual void Build_Cq(ChSparseMatrix& storage, int insrow) override;
+    virtual void Build_CqT(ChSparseMatrix& storage, int inscol) override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;

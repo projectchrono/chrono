@@ -161,7 +161,7 @@ void ChVariablesBodySharedMass::DiagonalAdd(ChVectorRef result, const double c_a
 // it in 'storage' sparse matrix, at given column/row offset.
 // Note, most iterative solvers don't need to know mass matrix explicitly.
 // Optimized: doesn't fill unneeded elements except mass and 3x3 inertia.
-void ChVariablesBodySharedMass::Build_M(ChSparseMatrixRef storage, int insrow, int inscol, const double c_a) {
+void ChVariablesBodySharedMass::Build_M(ChSparseMatrix& storage, int insrow, int inscol, const double c_a) {
     storage.SetElement(insrow + 0, inscol + 0, c_a * sharedmass->mass);
     storage.SetElement(insrow + 1, inscol + 1, c_a * sharedmass->mass);
     storage.SetElement(insrow + 2, inscol + 2, c_a * sharedmass->mass);

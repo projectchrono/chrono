@@ -141,14 +141,14 @@ void ChConstraintTwoBodies::MultiplyTandAdd(ChVectorDynamic<double>& result, dou
     }
 }
 
-void ChConstraintTwoBodies::Build_Cq(ChSparseMatrixRef storage, int insrow) {
+void ChConstraintTwoBodies::Build_Cq(ChSparseMatrix& storage, int insrow) {
     if (variables_a->IsActive())
         PasteMatrix(storage, Cq_a, insrow, variables_a->GetOffset());
     if (variables_b->IsActive())
         PasteMatrix(storage, Cq_b, insrow, variables_b->GetOffset());
 }
 
-void ChConstraintTwoBodies::Build_CqT(ChSparseMatrixRef storage, int inscol) {
+void ChConstraintTwoBodies::Build_CqT(ChSparseMatrix& storage, int inscol) {
     if (variables_a->IsActive())
         PasteMatrix(storage, Cq_a.transpose(), variables_a->GetOffset(), inscol);
     if (variables_b->IsActive())

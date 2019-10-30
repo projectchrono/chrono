@@ -52,7 +52,7 @@ class ChApi ChKblock {
     /// Writes (and adds) the K matrix associated to these variables into a global 'storage' matrix, at the offsets of
     /// variables. Most solvers do not need this: the sparse 'storage' matrix is used for testing, for direct solvers,
     /// for dumping full matrix to Matlab for checks, etc.
-    virtual void Build_K(ChSparseMatrixRef storage, bool add = true) = 0;
+    virtual void Build_K(ChSparseMatrix& storage, bool add = true) = 0;
 };
 
 }  // end namespace chrono
