@@ -3,6 +3,10 @@ set(TESTS
     btest_FEA_contact
     )
 
+set(TESTS_MKL
+   btest_FEA_sparse_solver
+   )
+
 # ------------------------------------------------------------------------------
 
 include_directories(${CH_INCLUDES})
@@ -17,6 +21,8 @@ if(ENABLE_MODULE_IRRLICHT)
 endif()
 
 if(ENABLE_MODULE_MKL)
+  set(TESTS ${TESTS} ${TESTS_MKL})
+
   include_directories(${CH_MKL_INCLUDES})
   set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_MKL_CXX_FLAGS}")
   set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_MKL_LINK_FLAGS}")
