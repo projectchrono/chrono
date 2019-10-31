@@ -25,9 +25,6 @@
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono_mkl/ChApiMkl.h"
 
-
-#define SPM_DEF_FULLNESS 0.1  ///< default predicted density (in [0,1])
-
 #define EIGEN_USE_MKL
 
 #include <Eigen/PardisoSupport>
@@ -76,9 +73,8 @@ passed to the solver.
 */
 class ChApiMkl ChSolverMKL : public ChSolver {
   public:
-    ChSolverMKL() { SetSparsityPatternLock(true); }
-
-    ~ChSolverMKL() override {}
+    ChSolverMKL();
+    ~ChSolverMKL() {}
 
     /// Get a handle to the underlying MKL engine.
     Eigen::PardisoLU<ChSparseMatrix>& GetMklEngine() { return m_engine; }
@@ -89,10 +85,7 @@ class ChApiMkl ChSolverMKL : public ChSolver {
     /// Enable/disable locking the sparsity pattern (default: false).\n
     /// If \a val is set to true, then the sparsity pattern of the problem matrix is assumed
     /// to be unchanged from call to call.
-    void SetSparsityPatternLock(bool val) {
-        m_lock = val;
-        // m_mat.SetSparsityPatternLock(m_lock);
-    }
+    void SetSparsityPatternLock(bool val) { m_lock = val; }
 
     /// Call an update of the sparsity pattern on the underlying matrix.\n
     /// It is used to inform the solver (and the underlying matrices) that the sparsity pattern is changed.\n
@@ -107,19 +100,11 @@ class ChApiMkl ChSolverMKL : public ChSolver {
     /// Enable/disable leveraging sparsity in right-hand side vector (default: false).
     void LeverageRhsSparsity(bool val) { m_use_rhs_sparsity = val; }
 
-    /// Set the parameter that controls preconditioned CGS.
-    // void SetPreconditionedCGS(bool val, int L) { m_engine.SetPreconditionedCGS(val, L); }
-
     /// Set the number of non-zero entries in the problem matrix.
     void SetMatrixNNZ(int nnz) { m_nnz = nnz; }
 
     /// Reset timers for internal phases in Solve and Setup.
-    void ResetTimers() {
-        m_timer_setup_assembly.reset();
-        m_timer_setup_solvercall.reset();
-        m_timer_solve_assembly.reset();
-        m_timer_solve_solvercall.reset();
-    }
+    void ResetTimers();
 
     /// Get cumulative time for assembly operations in Solve phase.
     double GetTimeSolve_Assembly() const { return m_timer_solve_assembly(); }
@@ -148,64 +133,33 @@ class ChApiMkl ChSolverMKL : public ChSolver {
     virtual double Solve(ChSystemDescriptor& sysd) override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
-        // version number
-        marchive.VersionWrite<ChSolverMKL>();
-        // serialize parent class
-        ChSolver::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(m_lock);
-        marchive << CHNVP(m_use_perm);
-        marchive << CHNVP(m_use_rhs_sparsity);
-    }
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
-        // version number
-        int version = marchive.VersionRead<ChSolverMKL>();
-        // deserialize parent class
-        ChSolver::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(m_lock);
-        marchive >> CHNVP(m_use_perm);
-        marchive >> CHNVP(m_use_rhs_sparsity);
-    }
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
   private:
-    // ChMklEngine m_engine = {0, ChSparseMatrixType::GENERAL};  ///< interface to MKL solver
-    Eigen::PardisoLU<ChSparseMatrix> m_engine;
-    ChSparseMatrix m_mat;           ///< problem matrix
-    ChVectorDynamic<double> m_rhs;  ///< right-hand side vector
-    ChVectorDynamic<double> m_sol;  ///< solution vector
+    Eigen::PardisoLU<ChSparseMatrix> m_engine;  ///< underlying Eigen Pardiso interface
+    ChSparseMatrix m_mat;                       ///< problem matrix
+    ChVectorDynamic<double> m_rhs;              ///< right-hand side vector
+    ChVectorDynamic<double> m_sol;              ///< solution vector
 
-    int m_dim = 0;         ///< problem size
-    int m_nnz = 0;         ///< user-supplied estimate of NNZ
-    int m_solve_call = 0;  ///< counter for calls to Solve
-    int m_setup_call = 0;  ///< counter for calls to Setup
+    int m_dim;         ///< problem size
+    int m_nnz;         ///< user-supplied estimate of NNZ
+    int m_solve_call;  ///< counter for calls to Solve
+    int m_setup_call;  ///< counter for calls to Setup
 
-    bool m_lock = false;                           ///< is the matrix sparsity pattern locked?
-    bool m_force_sparsity_pattern_update = false;  ///< is the sparsity pattern changed compared to last call?
-    bool m_use_perm = false;                       ///< enable use of the permutation vector?
-    bool m_use_rhs_sparsity = false;               ///< leverage right-hand side sparsity?
+    bool m_lock;                           ///< is the matrix sparsity pattern locked?
+    bool m_force_sparsity_pattern_update;  ///< is the sparsity pattern changed compared to last call?
+    bool m_use_perm;                       ///< enable use of the permutation vector?
+    bool m_use_rhs_sparsity;               ///< leverage right-hand side sparsity?
 
     ChTimer<> m_timer_setup_assembly;    ///< timer for matrix assembly
     ChTimer<> m_timer_setup_solvercall;  ///< timer for factorization
     ChTimer<> m_timer_solve_assembly;    ///< timer for RHS assembly
     ChTimer<> m_timer_solve_solvercall;  ///< timer for solution
 
-    void getErrorMessage(Eigen::ComputationInfo error) const {
-        switch (error) {
-            case Eigen::Success:
-				GetLog() << "computation was successful";
-                break;
-            case Eigen::NumericalIssue:
-				GetLog() << "provided data did not satisfy the prerequisites";
-                break;
-		     case Eigen::NoConvergence :
-				GetLog() << "inputs are invalid, or the algorithm has been improperly called";
-                break;
-        }
-    }
+    void GetErrorMessage(Eigen::ComputationInfo error) const;
 };
 
 /// @} mkl_module

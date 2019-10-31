@@ -221,7 +221,7 @@ int main(int argc, char* argv[]) {
     if (use_mkl) {
 #ifdef CHRONO_MKL
         std::cout << "Solver: MKL" << std::endl;
-        auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
+        auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
         mkl_solver->SetSparsityPatternLock(true);
         mkl_solver->SetVerbose(verbose_solver);
         rig->GetSystem()->SetSolver(mkl_solver);

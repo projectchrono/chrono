@@ -17,12 +17,26 @@
 /// For the MKL solver, this means assembling and factorizing the system matrix.
 /// Returns true if successful and false otherwise.
 
-bool chrono::ChSolverMKL::Setup(ChSystemDescriptor& sysd) {
+#define SPM_DEF_FULLNESS 0.1  ///< default predicted density (in [0,1])
+
+namespace chrono {
+
+ChSolverMKL::ChSolverMKL()
+    : m_lock(true),
+      m_force_sparsity_pattern_update(false),
+      m_use_perm(false),
+      m_use_rhs_sparsity(false),
+      m_dim(0),
+      m_nnz(0),
+      m_solve_call(0),
+      m_setup_call(0) {}
+
+bool ChSolverMKL::Setup(ChSystemDescriptor& sysd) {
     m_timer_setup_assembly.start();
 
     // Calculate problem size at first call.
     if (m_setup_call == 0) {
-		sysd.UpdateCountsAndOffsets();
+        sysd.UpdateCountsAndOffsets();
         m_dim = sysd.CountActiveVariables() + sysd.CountActiveConstraints();
     }
 
@@ -47,18 +61,11 @@ bool chrono::ChSolverMKL::Setup(ChSystemDescriptor& sysd) {
         }
     }
 
-    // Please mind that Reset will be called again on m_mat, inside ConvertToMatrixForm
+    // Please mind that resize will be called again on m_mat, inside ConvertToMatrixForm
     sysd.ConvertToMatrixForm(&m_mat, nullptr);
-
 
     // Allow the matrix to be compressed.
     m_mat.makeCompressed();
-
-	{
-        ChStreamOutAsciiFile mySparseFile("C:/mySparseMat.dat");
-        StreamOUTsparseMatlabFormat(m_mat, mySparseFile);
-    }
-  
 
     m_timer_setup_assembly.stop();
 
@@ -75,7 +82,6 @@ bool chrono::ChSolverMKL::Setup(ChSystemDescriptor& sysd) {
                  << "  analyzePattern: " << m_timer_setup_solvercall.GetTimeSecondsIntermediate() << "s\n";
     }
 
-
     if (m_engine.info() != Eigen::Success) {
         GetLog() << "PardisoLU compute command exited with errors\n";
         return false;
@@ -84,7 +90,7 @@ bool chrono::ChSolverMKL::Setup(ChSystemDescriptor& sysd) {
     return true;
 }
 
-double chrono::ChSolverMKL::Solve(ChSystemDescriptor& sysd) {
+double ChSolverMKL::Solve(ChSystemDescriptor& sysd) {
     // Assemble the problem right-hand side vector.
     m_timer_solve_assembly.start();
     sysd.ConvertToMatrixForm(nullptr, &m_rhs);
@@ -95,14 +101,13 @@ double chrono::ChSolverMKL::Solve(ChSystemDescriptor& sysd) {
     m_timer_solve_solvercall.start();
     m_engine.factorize(m_mat);
 
-
     if (m_engine.info() != Eigen::Success) {
         GetLog() << "PardisoLU factorize exited with errors\n";
         return -1.0;
     }
 
     m_sol = m_engine.solve(m_rhs);
-	m_solve_call++;
+    m_solve_call++;
     m_timer_solve_solvercall.stop();
 
     // Scatter solution vector to the system descriptor.
@@ -110,13 +115,57 @@ double chrono::ChSolverMKL::Solve(ChSystemDescriptor& sysd) {
     sysd.FromVectorToUnknowns(m_sol);
     m_timer_solve_assembly.stop();
 
-	
     if (verbose) {
         GetLog() << "  assembly rhs+sol: " << m_timer_solve_assembly.GetTimeSecondsIntermediate() << "s\n"
                  << "  factorize+solve: " << m_timer_solve_solvercall.GetTimeSecondsIntermediate() << "\n";
-		double res_norm = (m_rhs - m_mat*m_sol).norm();
-		GetLog() << "residual norm = " << res_norm << "\n";
+        double res_norm = (m_rhs - m_mat * m_sol).norm();
+        GetLog() << "residual norm = " << res_norm << "\n";
     }
 
     return 0.0f;
 }
+
+void ChSolverMKL::ResetTimers() {
+    m_timer_setup_assembly.reset();
+    m_timer_setup_solvercall.reset();
+    m_timer_solve_assembly.reset();
+    m_timer_solve_solvercall.reset();
+}
+
+void ChSolverMKL::GetErrorMessage(Eigen::ComputationInfo error) const {
+    switch (error) {
+        case Eigen::Success:
+            GetLog() << "computation was successful";
+            break;
+        case Eigen::NumericalIssue:
+            GetLog() << "provided data did not satisfy the prerequisites";
+            break;
+        case Eigen::NoConvergence:
+            GetLog() << "inputs are invalid, or the algorithm has been improperly called";
+            break;
+    }
+}
+
+void ChSolverMKL::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChSolverMKL>();
+    // serialize parent class
+    ChSolver::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(m_lock);
+    marchive << CHNVP(m_use_perm);
+    marchive << CHNVP(m_use_rhs_sparsity);
+}
+
+void ChSolverMKL::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChSolverMKL>();
+    // deserialize parent class
+    ChSolver::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(m_lock);
+    marchive >> CHNVP(m_use_perm);
+    marchive >> CHNVP(m_use_rhs_sparsity);
+}
+
+}  // end of namespace chrono

@@ -290,7 +290,7 @@ int main(int argc, char* argv[]) {
 #endif
 #ifdef CHRONO_MKL
         case MKL: {
-            auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
+            auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
             mkl_solver->SetSparsityPatternLock(true);
             mkl_solver->SetVerbose(verbose_solver);
             vehicle.GetSystem()->SetSolver(mkl_solver);
