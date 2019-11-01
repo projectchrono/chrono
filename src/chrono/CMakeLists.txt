@@ -375,6 +375,7 @@ set(ChronoEngine_fea_SOURCES
     fea/ChLoadContactSurfaceMesh.cpp
     fea/ChMaterialShellANCF.cpp
     fea/ChMaterialShellReissner.cpp
+	fea/ChMaterialShellKirchhoff.cpp
     )
 
 set(ChronoEngine_fea_HEADERS
@@ -442,6 +443,7 @@ set(ChronoEngine_fea_HEADERS
     fea/ChRotUtils.h
     fea/ChMaterialShellANCF.h
     fea/ChMaterialShellReissner.h
+	fea/ChMaterialShellKirchhoff.h
 )
 
 source_group(fea FILES
