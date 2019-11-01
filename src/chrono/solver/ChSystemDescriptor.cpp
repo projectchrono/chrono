@@ -207,7 +207,8 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Z, ChVectorDynamic<
     n_q = CountActiveVariables();
 
     if (Z) {
-        Z->resize(n_q + mn_c, n_q + mn_c);
+        Z->conservativeResize(n_q + mn_c, n_q + mn_c);
+        Z->setZeroValues();        
 
         // Fill Z with masses and inertias.
         int s_q = 0;

@@ -100,8 +100,9 @@ class ChApiMkl ChSolverMKL : public ChSolver {
     /// Enable/disable leveraging sparsity in right-hand side vector (default: false).
     void LeverageRhsSparsity(bool val) { m_use_rhs_sparsity = val; }
 
-    /// Set the number of non-zero entries in the problem matrix.
-    void SetMatrixNNZ(int nnz) { m_nnz = nnz; }
+    /// Set estimate for matrix sparsity (in [0,1], with 0 indicating a fully dense matrix).
+    /// If not specifies, a default value 0.9 is used.
+    void SetSparsityEstimate(double sparsity) { m_sparsity = sparsity; }
 
     /// Reset timers for internal phases in Solve and Setup.
     void ResetTimers();
@@ -144,10 +145,10 @@ class ChApiMkl ChSolverMKL : public ChSolver {
     ChVectorDynamic<double> m_rhs;              ///< right-hand side vector
     ChVectorDynamic<double> m_sol;              ///< solution vector
 
-    int m_dim;         ///< problem size
-    int m_nnz;         ///< user-supplied estimate of NNZ
-    int m_solve_call;  ///< counter for calls to Solve
-    int m_setup_call;  ///< counter for calls to Setup
+    int m_dim;          ///< problem size
+    double m_sparsity;  ///< user-supplied estimate of matrix sparsity
+    int m_solve_call;   ///< counter for calls to Solve
+    int m_setup_call;   ///< counter for calls to Setup
 
     bool m_lock;                           ///< is the matrix sparsity pattern locked?
     bool m_force_sparsity_pattern_update;  ///< is the sparsity pattern changed compared to last call?
