@@ -320,11 +320,11 @@ class ChApi ChPlasticityReissner {
 // ----------------------------------------------------------------------------
 
 
-/// Base interface for plasticity of 6-field Reissner-Mindlin shells (kinematically-exact shell theory
+/// Base interface for damping of 6-field Reissner-Mindlin shells (kinematically-exact shell theory
 /// as in Witkowski et al.) to be used in a ChMaterialShellReissner.
 /// Children classes should implement a ComputeStress function that returns generalized stresses
 /// given time derivatives of strains as:
-///   {n,m}=f({e',k'})
+///   {n_u,n_v,m_u.m_v}=f({e_u',e_v',k_u',k_v'})
 
 class ChApi ChDampingReissner {
   public:
@@ -402,7 +402,7 @@ class ChApi ChMaterialShellReissner  {
     virtual ~ChMaterialShellReissner() {}
 
     /// Compute the generalized cut force and cut torque, given the actual generalized section strain
-    /// expressed as deformation vector e and curvature k, that is: {F,M}=f({e,k}), and
+    /// expressed as deformation vector e and curvature k, that is: {n_u,n_v,m_u,m_v}=f({e_u,e_v,k_u,k_v}), and
     /// given the actual material state required for plasticity if any (but if mdata=nullptr,
     /// computes only the elastic force).
     /// If there is plasticity, the stress is clamped by automatically performing an implicit return mapping.
