@@ -120,7 +120,7 @@ class ChConstraintTuple_1vars {
 
     void Build_CqT(ChSparseMatrix& storage, int inscol) {
         if (variables->IsActive())
-            storage.PasteTranspMatrix(Cq, variables->GetOffset(), inscol);
+            storage.PasteMatrix(Cq.transpose(), variables->GetOffset(), inscol);
     }
 };
 
@@ -259,9 +259,9 @@ class ChConstraintTuple_2vars {
 
     void Build_CqT(ChSparseMatrix& storage, int inscol) {
         if (variables_1->IsActive())
-            storage.PasteTranspMatrix(Cq_1, variables_1->GetOffset(), inscol);
+            storage.PasteMatrix(Cq_1.transpose(), variables_1->GetOffset(), inscol);
         if (variables_2->IsActive())
-            storage.PasteTranspMatrix(Cq_2, variables_2->GetOffset(), inscol);
+            storage.PasteMatrix(Cq_2.transpose(), variables_2->GetOffset(), inscol);
     }
 };
 
@@ -438,11 +438,11 @@ class ChConstraintTuple_3vars {
 
     void Build_CqT(ChSparseMatrix& storage, int inscol) {
         if (variables_1->IsActive())
-            storage.PasteTranspMatrix(Cq_1, variables_1->GetOffset(), inscol);
+            storage.PasteMatrix(Cq_1.transpose(), variables_1->GetOffset(), inscol);
         if (variables_2->IsActive())
-            storage.PasteTranspMatrix(Cq_2, variables_2->GetOffset(), inscol);
+            storage.PasteMatrix(Cq_2.transpose(), variables_2->GetOffset(), inscol);
         if (variables_3->IsActive())
-            storage.PasteTranspMatrix(Cq_3, variables_3->GetOffset(), inscol);
+            storage.PasteMatrix(Cq_3.transpose(), variables_3->GetOffset(), inscol);
     }
 };
 
@@ -658,13 +658,13 @@ class ChConstraintTuple_4vars {
 
     void Build_CqT(ChSparseMatrix& storage, int inscol) {
         if (variables_1->IsActive())
-            storage.PasteTranspMatrix(Cq_1, variables_1->GetOffset(), inscol);
+            storage.PasteMatrix(Cq_1.transpose(), variables_1->GetOffset(), inscol);
         if (variables_2->IsActive())
-            storage.PasteTranspMatrix(Cq_2, variables_2->GetOffset(), inscol);
+            storage.PasteMatrix(Cq_2.transpose(), variables_2->GetOffset(), inscol);
         if (variables_3->IsActive())
-            storage.PasteTranspMatrix(Cq_3, variables_3->GetOffset(), inscol);
+            storage.PasteMatrix(Cq_3.transpose(), variables_3->GetOffset(), inscol);
         if (variables_4->IsActive())
-            storage.PasteTranspMatrix(Cq_4, variables_4->GetOffset(), inscol);
+            storage.PasteMatrix(Cq_4.transpose(), variables_4->GetOffset(), inscol);
     }
 };
 

@@ -184,24 +184,6 @@ void ChElementTetra_4::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, d
     ChMatrixDynamic<> CKCt(12, 12);  // the global, corotated, K matrix
     ChMatrixCorotation::ComputeCK(StiffnessMatrix, this->A, 4, CK);
     ChMatrixCorotation::ComputeKCt(CK, this->A, 4, CKCt);
-    /*
-    // ***TEST***
-    ChMatrixDynamic<> testCKCt(12,12);
-    ChMatrixDynamic<> mC(12,12);
-    mC.PasteMatrix(this->A,0,0);
-    mC.PasteMatrix(this->A,3,3);
-    mC.PasteMatrix(this->A,6,6);
-    mC.PasteMatrix(this->A,9,9);
-    CK.MatrMultiply(mC,StiffnessMatrix);
-    testCKCt.MatrMultiplyT(CK,mC);
-    ChMatrixDynamic<> mdiff = testCKCt - CKCt;
-    double maxerr=0;
-    for (int row = 0; row < mdiff.GetRows()-1; ++row)
-        for (int col = 0; col < mdiff.GetColumns(); ++col)
-            if (fabs(mdiff(col,row)) > maxerr ) maxerr =  fabs(mdiff(col,row));
-    if (maxerr > 0)
-        GetLog() << " !!!corotation symmetry error!!!! "  << maxerr << "\n";
-    */
 
     // ***TEST*** SYMMETRIZE TO AVOID ROUNDOFF ASYMMETRY
     for (int row = 0; row < CKCt.rows() - 1; ++row)
@@ -241,20 +223,6 @@ void ChElementTetra_4::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, d
     if (max_err > 1e-10)
         GetLog() << "NONSYMMETRIC corotated matrix! err " << max_err << " at " << err_r << "," << err_c
                  << ",   maxval=" << maxval << "\n";
-
-    // DEBUG
-    /*
-    ChMatrixDynamic<> Ctest(12,12);
-    Ctest.PasteMatrix(A,0,0);
-    Ctest.PasteMatrix(A,3,3);
-    Ctest.PasteMatrix(A,6,6);
-    Ctest.PasteMatrix(A,9,9);
-    ChMatrixDynamic<> CKtest(12,12);
-    CKtest.MatrMultiply(Ctest,StiffnessMatrix);
-    ChMatrixDynamic<> CKCttest(12,12);
-    CKCttest.MatrMultiplyT(CKtest,Ctest);
-    GetLog() << "CKCt difference \n" << CKCt-CKCttest << "\n";
-    */
 
     // For K stiffness matrix and R damping matrix:
     double mkfactor = Kfactor + Rfactor * this->GetMaterial()->Get_RayleighDampingK();

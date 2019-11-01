@@ -160,24 +160,24 @@ void ChLinkBeamIGAslider::IntLoadConstraint_C(const unsigned int off_L,  // offs
     double u2 = m_beams[this->active_element]->GetU2();
     double eta = (2.0 * (this->tau - u1) / (u2 - u1)) - 1.0;
     m_beams[this->active_element]->EvaluateSectionPoint(eta, splinepoint);
-    GetLog() << "active_element = " << active_element << "\n";
-    GetLog() << "tau = " << tau << "\n";
-    GetLog() << "u1 = " << u1 << "\n";
-    GetLog() << "u2 = " << u2 << "\n";
-    GetLog() << "eta = " << eta << "\n";
-    GetLog() << "point = " << splinepoint << "\n";
+    ////GetLog() << "active_element = " << active_element << "\n";
+    ////GetLog() << "tau = " << tau << "\n";
+    ////GetLog() << "u1 = " << u1 << "\n";
+    ////GetLog() << "u2 = " << u2 << "\n";
+    ////GetLog() << "eta = " << eta << "\n";
+    ////GetLog() << "point = " << splinepoint << "\n";
     ChVector<> res = Arw.transpose() * (splinepoint - m_body->TransformPointLocalToParent(m_csys.pos));
     ChVector<> cres = res * c;
-    GetLog() << "res = " << res << "\n";
+    ////GetLog() << "res = " << res << "\n";
     if (do_clamp) {
         cres.x() = ChMin(ChMax(cres.x(), -recovery_clamp), recovery_clamp);
         cres.y() = ChMin(ChMax(cres.y(), -recovery_clamp), recovery_clamp);
         cres.z() = ChMin(ChMax(cres.z(), -recovery_clamp), recovery_clamp);
     }
-    //	GetLog() << "cres = " << cres << "\n";
-    // Qc(off_L + 0) += cres.x();
-    //    Qc(off_L + 0) += cres.y();
-    //    Qc(off_L + 1) += cres.z();
+    ////GetLog() << "cres = " << cres << "\n";
+    ////Qc(off_L + 0) += cres.x();
+    ////Qc(off_L + 0) += cres.y();
+    ////Qc(off_L + 1) += cres.z();
 }
 
 void ChLinkBeamIGAslider::IntToDescriptor(const unsigned int off_v,
@@ -284,17 +284,14 @@ void ChLinkBeamIGAslider::ConstraintsLoadJacobians() {
     ChMatrix33<> ArwT_N;
     for (int i = 0; i < this->m_nodes.size(); ++i) {
         ArwT_N = ArwT * N(i);
-        // constraint1.Get_Cq_N(i).PasteClippedMatrix(ArwT_N, 0, 0, 1, 3, 0, 0);
         constraint2.Get_Cq_N(i).segment(0, 3) = ArwT_N.row(1);
         constraint3.Get_Cq_N(i).segment(0, 3) = ArwT_N.row(2);
         ////GetLog() << "N" << i << "=" << N(i) << "\n";
     }
 
-    // constraint1.Get_Cq_N(this->m_nodes.size()).PasteClippedMatrix(Jxb, 0, 0, 1, 3, 0, 0);
     constraint2.Get_Cq_N(this->m_nodes.size()).segment(0, 3) = Jxb.row(1);
     constraint3.Get_Cq_N(this->m_nodes.size()).segment(0, 3) = Jxb.row(2);
 
-    // constraint1.Get_Cq_N(this->m_nodes.size()).PasteClippedMatrix(Jrb, 0, 0, 1, 3, 0, 3);
     constraint2.Get_Cq_N(this->m_nodes.size()).segment(3, 3) = Jrb.row(1);
     constraint3.Get_Cq_N(this->m_nodes.size()).segment(3, 3) = Jrb.row(2);
 }

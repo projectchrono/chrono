@@ -76,18 +76,15 @@ void ChLinkTrajectory::UpdateTime(double time) {
         // if line coordinate is relative to body2:
         marker2->Impose_Rel_Coord(CSYSNORM);
         deltaC.pos = result;
-        deltaC_dt.pos = (resultB - resultA) * 1 / (2 * tstep);
-        deltaC_dtdt.pos = (resultA + resultB - result * 2) * 4 / pow(2 * tstep, 2);
+        deltaC_dt.pos = (resultB - resultA) * (1 / (2 * tstep));
+        deltaC_dtdt.pos = (resultA + resultB - result * 2) * (4 / pow(2 * tstep, 2));
         /*
         // if line coordinate is relative to absolute space:
-        deltaC.pos = mw.MatrT_x_Vect(
-                            Vsub (result, marker2->GetAbsCoord().pos));  // ***  CORRECT?
-        deltaC_dt.pos =  mw.MatrT_x_Vect(
-                            Vmul( Vsub(resultB, resultA), 1/(2*tstep)) );
-        deltaC_dtdt.pos =  mw.MatrT_x_Vect (
-                            Vmul   ( Vadd (Vadd (resultA, resultB),
-                                   Vmul (result,-2)), 4/pow(2*tstep, 2) ) );
+        deltaC.pos = mw.transpose() * (result - marker2->GetAbsCoord().pos);  //// CORRECT?
+        deltaC_dt.pos = mw.transpose() * ((resultB - resultA) * (1 / (2 * tstep)));
+        deltaC_dtdt.pos = mw.transpose() * ((resultA + resultB - result * 2) * (4 / pow(2 * tstep, 2)));
         */
+
         deltaC.rot = QUNIT;
         deltaC_dt.rot = QNULL;
         deltaC_dtdt.rot = QNULL;

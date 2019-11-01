@@ -3,6 +3,10 @@ set(TESTS
     btest_FEA_contact
     )
 
+set(TESTS_MKL
+   btest_FEA_sparse_solver
+   )
+
 # ------------------------------------------------------------------------------
 
 include_directories(${CH_INCLUDES})
@@ -14,6 +18,15 @@ if(ENABLE_MODULE_IRRLICHT)
   include_directories(${CH_IRRLICHTINC})
   set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
   list(APPEND LIBS "ChronoEngine_irrlicht")
+endif()
+
+if(ENABLE_MODULE_MKL)
+  set(TESTS ${TESTS} ${TESTS_MKL})
+
+  include_directories(${CH_MKL_INCLUDES})
+  set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_MKL_CXX_FLAGS}")
+  set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_MKL_LINK_FLAGS}")
+  list(APPEND LIBS "ChronoEngine_mkl")
 endif()
 
 # ------------------------------------------------------------------------------

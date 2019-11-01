@@ -89,13 +89,13 @@ void ChLinkPointFrameGeneric::Update(double mytime, bool update_assets) {
 }
 
 /*
-ChMatrixNM<double, 3, 1> ChLinkPointFrameGeneric::GetC() const {
+ChVectorN<double, 3> ChLinkPointFrameGeneric::GetC() const {
     ChMatrix33<> Arw(m_csys.rot >> m_body->GetRot());
-    ChVector<> res = Arw.MatrT_x_Vect(m_node->GetPos() - m_body->TransformPointLocalToParent(m_csys.pos));
-    ChMatrixNM<double, 3, 1> C;
-    C(0, 0) = res.x();
-    C(1, 0) = res.y();
-    C(2, 0) = res.z();
+    ChVector<> res = Arw.transpose() * (m_node->GetPos() - m_body->TransformPointLocalToParent(m_csys.pos));
+    ChVectorN<double, 3> C;
+    C(0) = res.x();
+    C(1) = res.y();
+    C(2) = res.z();
     return C;
 }
 */
