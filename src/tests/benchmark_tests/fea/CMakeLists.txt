@@ -3,7 +3,7 @@ set(TESTS
     btest_FEA_contact
     )
 
-set(TESTS_MKL
+set(TESTS_MKL_MUMPS
    btest_FEA_sparse_solver
    )
 
@@ -21,12 +21,19 @@ if(ENABLE_MODULE_IRRLICHT)
 endif()
 
 if(ENABLE_MODULE_MKL)
-  set(TESTS ${TESTS} ${TESTS_MKL})
-
   include_directories(${CH_MKL_INCLUDES})
   set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_MKL_CXX_FLAGS}")
   set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_MKL_LINK_FLAGS}")
   list(APPEND LIBS "ChronoEngine_mkl")
+endif()
+
+if(ENABLE_MODULE_MUMPS)
+  include_directories(${CH_MUMPS_INCLUDES})
+  list(APPEND LIBS "ChronoEngine_mumps")
+endif()
+
+if(ENABLE_MODULE_MUMPS OR ENABLE_MODULE_MUMPS)
+  set(TESTS ${TESTS} ${TESTS_MKL_MUMPS})
 endif()
 
 # ------------------------------------------------------------------------------

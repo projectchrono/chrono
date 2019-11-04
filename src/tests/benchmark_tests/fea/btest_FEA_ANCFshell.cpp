@@ -12,7 +12,10 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Benchmark test for ANCF shell elements
+// Benchmark test for ANCF shell elements.
+//
+// Note that the MKL Pardiso and Mumps solvers are set to lock the sparsity
+// pattern, but not to use the sparsity pattern learner.
 //
 // =============================================================================
 
@@ -34,8 +37,14 @@
 #include "chrono_mkl/ChSolverMKL.h"
 #endif
 
+#ifdef CHRONO_MUMPS
+#include "chrono_mumps/ChSolverMumps.h"
+#endif
+
 using namespace chrono;
 using namespace chrono::fea;
+
+enum class SolverType {MINRES, MKL, MUMPS};
 
 template <int N>
 class ANCFshell : public utils::ChBenchmarkTest {
@@ -48,7 +57,7 @@ class ANCFshell : public utils::ChBenchmarkTest {
     void SimulateVis();
 
   protected:
-    ANCFshell(ChSolver::Type solver_type);
+    ANCFshell(SolverType solver_type);
 
     ChSystemSMC* m_system;
 };
@@ -56,28 +65,43 @@ class ANCFshell : public utils::ChBenchmarkTest {
 template <int N>
 class ANCFshell_MINRES : public ANCFshell<N> {
   public:
-    ANCFshell_MINRES() : ANCFshell<N>(ChSolver::Type::MINRES) {}
+    ANCFshell_MINRES() : ANCFshell<N>(SolverType::MINRES) {}
 };
 
 template <int N>
 class ANCFshell_MKL : public ANCFshell<N> {
   public:
-    ANCFshell_MKL() : ANCFshell<N>(ChSolver::Type::CUSTOM) {}
+    ANCFshell_MKL() : ANCFshell<N>(SolverType::MKL) {}
 };
 
 template <int N>
-ANCFshell<N>::ANCFshell(ChSolver::Type solver_type) {
+class ANCFshell_MUMPS : public ANCFshell<N> {
+  public:
+    ANCFshell_MUMPS() : ANCFshell<N>(SolverType::MUMPS) {}
+};
+
+template <int N>
+ANCFshell<N>::ANCFshell(SolverType solver_type) {
     m_system = new ChSystemSMC();
     m_system->Set_G_acc(ChVector<>(0, -9.8, 0));
 
     // Set solver parameters
 #ifndef CHRONO_MKL
-    if (solver_type == ChSolver::Type::CUSTOM)
-        solver_type = ChSolver::Type::MINRES;
+    if (solver_type == SolverType::MKL) {
+        solver_type = SolverType::MINRES;
+        std::cout << "WARNING! Chrono::MKL not enabled. Forcing use of MINRES solver" << std::endl;
+    }
+#endif
+
+#ifndef CHRONO_MUMPS
+    if (solver_type == SolverType::MUMPS) {
+        solver_type = SolverType::MINRES;
+        std::cout << "WARNING! Chrono::MUMPS not enabled. Forcing use of MINRES solver" << std::endl;
+    }
 #endif
 
     switch (solver_type) {
-        case ChSolver::Type::MINRES: {
+        case SolverType::MINRES: {
             m_system->SetSolverType(ChSolver::Type::MINRES);
             auto minres_solver = std::static_pointer_cast<ChSolverMINRES>(m_system->GetSolver());
             minres_solver->SetDiagonalPreconditioning(true);
@@ -85,9 +109,18 @@ ANCFshell<N>::ANCFshell(ChSolver::Type solver_type) {
             m_system->SetTolForce(1e-10);
             break;
         }
-        case ChSolver::Type::CUSTOM: {
+        case SolverType::MKL: {
 #ifdef CHRONO_MKL
             auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
+            mkl_solver->SetSparsityPatternLock(true);
+            mkl_solver->SetVerbose(false);
+            m_system->SetSolver(mkl_solver);
+#endif
+            break;
+        }
+        case SolverType::MUMPS: {
+#ifdef CHRONO_MUMPS
+            auto mkl_solver = chrono_types::make_shared<ChSolverMumps>();
             mkl_solver->SetSparsityPatternLock(true);
             mkl_solver->SetVerbose(false);
             m_system->SetSolver(mkl_solver);
@@ -205,6 +238,13 @@ CH_BM_SIMULATION_LOOP(ANCFshell08_MKL, ANCFshell_MKL<8>, NUM_SKIP_STEPS, NUM_SIM
 CH_BM_SIMULATION_LOOP(ANCFshell16_MKL, ANCFshell_MKL<16>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
 CH_BM_SIMULATION_LOOP(ANCFshell32_MKL, ANCFshell_MKL<32>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
 CH_BM_SIMULATION_LOOP(ANCFshell64_MKL, ANCFshell_MKL<64>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
+#endif
+
+#ifdef CHRONO_MUMPS
+CH_BM_SIMULATION_LOOP(ANCFshell08_MUMPS, ANCFshell_MUMPS<8>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
+CH_BM_SIMULATION_LOOP(ANCFshell16_MUMPS, ANCFshell_MUMPS<16>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
+CH_BM_SIMULATION_LOOP(ANCFshell32_MUMPS, ANCFshell_MUMPS<32>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
+CH_BM_SIMULATION_LOOP(ANCFshell64_MUMPS, ANCFshell_MUMPS<64>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
 #endif
 
 // =============================================================================
