@@ -125,7 +125,7 @@ FEAcontactTest::FEAcontactTest(SolverType solver_type) {
 #ifdef CHRONO_MUMPS
             auto solver = chrono_types::make_shared<ChSolverMumps>();
             solver->UseSparsityPatternLearner(false);
-            solver->SetSparsityPatternLock(true);
+            solver->LockSparsityPattern(true);
             solver->SetVerbose(false);
             m_system->SetSolver(solver);
 #endif

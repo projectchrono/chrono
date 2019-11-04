@@ -13,6 +13,9 @@
 // Authors: Dario Mangoni, Radu Serban
 // =============================================================================
 
+#include "chrono_mkl/ChSolverMKL.h"
+#include "chrono/core/ChSparsityPatternLearner.h"
+
 #define SPM_DEF_SPARSITY 0.9  ///< default predicted sparsity (in [0,1])
 
 namespace chrono {
@@ -85,7 +88,7 @@ bool ChSolverMKL::Setup(ChSystemDescriptor& sysd) {
     m_setup_call++;
 
     if (verbose) {
-        GetLog() << " MKL setup n = " << m_dim << "  nnz = " << (int)m_mat.nonZeros() << "\n";
+        GetLog() << " MKL setup [" << m_setup_call << "] n = " << m_dim << "  nnz = " << (int)m_mat.nonZeros() << "\n";
         GetLog() << "  assembly matrix:   " << m_timer_setup_assembly.GetTimeSecondsIntermediate() << "s\n"
                  << "  analyze+factorize: " << m_timer_setup_solvercall.GetTimeSecondsIntermediate() << "s\n";
     }
@@ -118,10 +121,10 @@ double ChSolverMKL::Solve(ChSystemDescriptor& sysd) {
     m_timer_solve_assembly.stop();
 
     if (verbose) {
+        double res_norm = (m_rhs - m_mat * m_sol).norm();
+        GetLog() << " MKL solve [" << m_solve_call << "]  |residual| = " << res_norm << "\n\n";
         GetLog() << "  assembly rhs+sol:  " << m_timer_solve_assembly.GetTimeSecondsIntermediate() << "s\n"
                  << "  solve:             " << m_timer_solve_solvercall.GetTimeSecondsIntermediate() << "\n";
-        double res_norm = (m_rhs - m_mat * m_sol).norm();
-        GetLog() << "residual norm = " << res_norm << "\n";
     }
 
     if (m_engine.info() != Eigen::Success) {

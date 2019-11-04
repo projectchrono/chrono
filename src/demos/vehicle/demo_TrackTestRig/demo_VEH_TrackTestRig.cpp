@@ -231,7 +231,7 @@ int main(int argc, char* argv[]) {
         std::cout << "Solver: MUMPS" << std::endl;
         auto mumps_solver = chrono_types::make_shared<ChSolverMumps>();
         mumps_solver->LockSparsityPattern(true);
-        mumps_solver->SetNullPivotDetection(true);
+        mumps_solver->EnableNullPivotDetection(true);
         mumps_solver->SetVerbose(verbose_solver);
         rig->GetSystem()->SetSolver(mumps_solver);
 #endif

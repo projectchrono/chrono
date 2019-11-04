@@ -19,7 +19,6 @@
 #define CHSOLVERMKL_H
 
 #include "chrono/core/ChMatrix.h"
-#include "chrono/core/ChSparsityPatternLearner.h"
 #include "chrono/core/ChTimer.h"
 #include "chrono/solver/ChSolver.h"
 #include "chrono/solver/ChSystemDescriptor.h"
@@ -123,15 +122,15 @@ class ChApiMkl ChSolverMKL : public ChSolver {
     /// Return the number of calls to the solver's Setup function.
     int GetNumSolveCalls() const { return m_solve_call; }
 
-    /// Indicate whether or not the #Solve() phase requires an up-to-date problem matrix.
-    /// As typical of direct solvers, the Pardiso solver only requires the matrix for its #Setup() phase.
-    virtual bool SolveRequiresMatrix() const override { return false; }
-
     /// Get a handle to the underlying MKL engine.
     Eigen::PardisoLU<ChSparseMatrix>& GetMklEngine() { return m_engine; }
 
     /// Get a handle to the underlying matrix.
     ChSparseMatrix& GetMatrix() { return m_mat; }
+
+    /// Indicate whether or not the #Solve() phase requires an up-to-date problem matrix.
+    /// As typical of direct solvers, the Pardiso solver only requires the matrix for its #Setup() phase.
+    virtual bool SolveRequiresMatrix() const override { return false; }
 
     /// Perform the solver setup operations.
     /// For the MKL solver, this means assembling and factorizing the system matrix.

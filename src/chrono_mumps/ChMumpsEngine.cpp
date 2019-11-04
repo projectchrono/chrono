@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Dario Mangoni
+// Authors: Dario Mangoni, Radu Serban
 // =============================================================================
 
 #include <mpi.h>
@@ -19,16 +19,16 @@
 
 namespace chrono {
 
-ChMumpsEngine::ChMumpsEngine(mumps_SYM symmetry, int mumps_mpi_comm, int activate_this_node) {
+ChMumpsEngine::ChMumpsEngine() {
     int myrank;
     MPI_Init(nullptr, nullptr);
     MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
 
     /* Initialize a MUMPS instance. Use MPI_COMM_WORLD */
     mumps_id.job = INIT;
-    mumps_id.par = activate_this_node;
-    mumps_id.sym = symmetry;
-    mumps_id.comm_fortran = mumps_mpi_comm;
+    mumps_id.par = 1;
+    mumps_id.sym = UNSYMMETRIC;
+    mumps_id.comm_fortran = -987654;
 
     dmumps_c(&mumps_id);
 
@@ -45,40 +45,39 @@ ChMumpsEngine::ChMumpsEngine(mumps_SYM symmetry, int mumps_mpi_comm, int activat
 
 ChMumpsEngine::~ChMumpsEngine() {
     mumps_id.job = END;
-    dmumps_c(&mumps_id); /* Terminate instance */
+    dmumps_c(&mumps_id);  // Terminate instance
     MPI_Finalize();
 }
 
-void ChMumpsEngine::SetProblem(const ChCOOMatrix& Z, ChVectorRef rhs) {
+void ChMumpsEngine::SetProblem(const ChSparseMatrix& Z, ChVectorRef rhs) {
     SetMatrix(Z);
     SetRhsVector(rhs);
 }
 
-void ChMumpsEngine::SetMatrix(const ChCOOMatrix& Z) {
-    /* Define the problem on the host */
-    mumps_id.n = Z.GetNumRows();
-    mumps_id.nz = Z.GetNNZ();
-    mumps_id.irn = Z.GetCOO_RowIndexArray();
-    mumps_id.jcn = Z.GetCOO_ColIndexArray();
-    mumps_id.a = Z.GetCOO_ValuesAddress();
+void ChMumpsEngine::SetMatrix(const ChSparseMatrix& Z) {
+    // Convert to COO representation (1-indexed)
+    int dim = (int)Z.rows();
+    int nnz = (int)Z.nonZeros();
 
-    switch (Z.GetType()) {
-        case ChSparseMatrix::GENERAL:
-            mumps_id.sym = mumps_SYM::UNSYMMETRIC;
-            break;
-        case ChSparseMatrix::SYMMETRIC_POSDEF:
-            mumps_id.sym = mumps_SYM::SYMMETRIC_POSDEF;
-            break;
-        case ChSparseMatrix::SYMMETRIC_INDEF:
-            mumps_id.sym = mumps_SYM::SYMMETRIC_GENERAL;
-            break;
-        case ChSparseMatrix::STRUCTURAL_SYMMETRIC:
-            mumps_id.sym = mumps_SYM::UNSYMMETRIC;
-            break;
-        default:
-            mumps_SYM::UNSYMMETRIC;
-            break;
+    m_irn.resize(nnz);
+    m_jcn.resize(nnz);
+    m_a.resize(nnz);
+
+    int i = 0;
+    for (int k = 0; k < Z.outerSize(); ++k) {
+        for (ChSparseMatrix::InnerIterator it(Z, k); it; ++it) {
+            m_irn[i] = (int)it.row() + 1;
+            m_jcn[i] = (int)it.col() + 1;
+            m_a[i] = it.value();
+            i++;
+        }
     }
+
+    mumps_id.n = dim;
+    mumps_id.nz = nnz;
+    mumps_id.irn = m_irn.data();
+    mumps_id.jcn = m_jcn.data();
+    mumps_id.a = m_a.data();
 }
 
 void ChMumpsEngine::SetMatrixSymmetry(mumps_SYM mat_type) {
@@ -92,6 +91,14 @@ void ChMumpsEngine::SetRhsVector(ChVectorRef b) {
 void ChMumpsEngine::SetRhsVector(double* b) {
     mumps_id.rhs = b;
 }
+
+void ChMumpsEngine::EnableNullPivotDetection(bool val, double threshold) {
+    mumps_id.ICNTL(24) = val;      ///< activates null pivot detection
+    mumps_id.ICNTL(25) = 0;        ///< tries to compute one of the many solutions of AX = B
+    mumps_id.CNTL(5) = 1e20;       ///< fixation value
+    mumps_id.CNTL(3) = threshold;  ///< pivot threshold
+}
+
 
 int ChMumpsEngine::MumpsCall(mumps_JOB job_call) {
     /* Call the MUMPS package. */
