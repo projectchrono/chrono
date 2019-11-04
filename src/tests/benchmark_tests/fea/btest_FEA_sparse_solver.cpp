@@ -132,27 +132,28 @@ class SystemFixture : public ::benchmark::Fixture {
     }                                                                                 \
     BENCHMARK_REGISTER_F(SystemFixture, TEST_NAME)->Unit(benchmark::kMillisecond);
 
+#ifdef CHRONO_MKL
 BM_SOLVER_MKL(MKL_learner_500, 500, true)
 BM_SOLVER_MKL(MKL_no_learner_500, 500, false)
-BM_SOLVER_MUMPS(MUMPS_learner_500, 500, true)
-BM_SOLVER_MUMPS(MUMPS_no_learner_500, 500, false)
-
 BM_SOLVER_MKL(MKL_learner_1000, 1000, true)
 BM_SOLVER_MKL(MKL_no_learner_1000, 1000, false)
-BM_SOLVER_MUMPS(MUMPS_learner_1000, 1000, true)
-BM_SOLVER_MUMPS(MUMPS_no_learner_1000, 1000, false)
-
 BM_SOLVER_MKL(MKL_learner_2000, 2000, true)
 BM_SOLVER_MKL(MKL_no_learner_2000, 2000, false)
-BM_SOLVER_MUMPS(MUMPS_learner_2000, 2000, true)
-BM_SOLVER_MUMPS(MUMPS_no_learner_2000, 2000, false)
-
 BM_SOLVER_MKL(MKL_learner_4000, 4000, true)
 BM_SOLVER_MKL(MKL_no_learner_4000, 4000, false)
-BM_SOLVER_MUMPS(MUMPS_learner_4000, 4000, true)
-BM_SOLVER_MUMPS(MUMPS_no_learner_4000, 4000, false)
-
 BM_SOLVER_MKL(MKL_learner_8000, 8000, true)
 BM_SOLVER_MKL(MKL_no_learner_8000, 8000, false)
+#endif
+
+#ifdef CHRONO_MUMPS
+BM_SOLVER_MUMPS(MUMPS_learner_500, 500, true)
+BM_SOLVER_MUMPS(MUMPS_no_learner_500, 500, false)
+BM_SOLVER_MUMPS(MUMPS_learner_1000, 1000, true)
+BM_SOLVER_MUMPS(MUMPS_no_learner_1000, 1000, false)
+BM_SOLVER_MUMPS(MUMPS_learner_2000, 2000, true)
+BM_SOLVER_MUMPS(MUMPS_no_learner_2000, 2000, false)
+BM_SOLVER_MUMPS(MUMPS_learner_4000, 4000, true)
+BM_SOLVER_MUMPS(MUMPS_no_learner_4000, 4000, false)
 BM_SOLVER_MUMPS(MUMPS_learner_8000, 8000, true)
 BM_SOLVER_MUMPS(MUMPS_no_learner_8000, 8000, false)
+#endif
