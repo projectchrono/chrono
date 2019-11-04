@@ -83,13 +83,14 @@ int main(int argc, char* argv[]) {
     // that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
     application.AssetUpdateAll();
 
-    // Change solver to MKL
+    // Configure MKL solver.
+    // For this simple and relatively small problem, use of the sparsity pattern learner may introduce additional
+    // overhead (if the sparsity pattern is not locked).
     auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
-    mkl_solver->SetSparsityPatternLock(false);
+    mkl_solver->UseSparsityPatternLearner(false);
+    mkl_solver->LockSparsityPattern(false);
     my_system.SetSolver(mkl_solver);
 
-    // WARNING: due to known issues on MKL Pardiso, if CSR matrix is used, sparsity pattern lock should be put OFF
-    // Look at ChCSMatrix::SetElement comments to further details.
     my_system.Update();
 
     // Change type of integrator:

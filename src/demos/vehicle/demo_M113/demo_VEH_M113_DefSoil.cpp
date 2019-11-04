@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_MKL
         GetLog() << "Using MKL solver\n";
         auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
-        mkl_solver->SetSparsityPatternLock(true);
+        mkl_solver->LockSparsityPattern(true);
         vehicle.GetSystem()->SetSolver(mkl_solver);
 
         vehicle.GetSystem()->SetTimestepperType(ChTimestepper::Type::HHT);

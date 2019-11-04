@@ -39,7 +39,7 @@ class SystemFixture : public ::benchmark::Fixture {
         m_system->Set_G_acc(ChVector<>(0, -9.8, 0));
 
         m_solver = chrono_types::make_shared<ChSolverMKL>();
-        m_solver->SetSparsityPatternLock(true);
+        m_solver->LockSparsityPattern(true);
         m_solver->SetVerbose(false);
         m_system->SetSolver(m_solver);
 
@@ -106,7 +106,7 @@ class SystemFixture : public ::benchmark::Fixture {
 #define BM_LEARNER(TEST_NAME, N)                                                      \
     BENCHMARK_TEMPLATE_DEFINE_F(SystemFixture, TEST_NAME, N)(benchmark::State & st) { \
         while (st.KeepRunning()) {                                                    \
-            m_solver->ForceSparsityPatternUpdate(true);                               \
+            m_solver->UseSparsityPatternLearner(true);                                \
             m_system->DoStaticLinear();                                               \
         }                                                                             \
         Report(st);                                                                   \
@@ -116,7 +116,8 @@ class SystemFixture : public ::benchmark::Fixture {
 #define BM_NO_LEARNER(TEST_NAME, N)                                                   \
     BENCHMARK_TEMPLATE_DEFINE_F(SystemFixture, TEST_NAME, N)(benchmark::State & st) { \
         while (st.KeepRunning()) {                                                    \
-            m_solver->SetSparsityPatternLock(false);                                  \
+            m_solver->UseSparsityPatternLearner(false);                               \
+            /*m_solver->SetSparsityEstimate(0.99);*/                                  \
             m_system->DoStaticLinear();                                               \
         }                                                                             \
         Report(st);                                                                   \

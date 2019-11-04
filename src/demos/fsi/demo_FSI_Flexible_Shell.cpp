@@ -179,7 +179,7 @@ int main(int argc, char* argv[]) {
 
 #ifdef CHRONO_MKL
     auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
-    mkl_solver->SetSparsityPatternLock(true);
+    mkl_solver->LockSparsityPattern(true);
     mphysicalSystem.SetSolver(mkl_solver);
 #else
     mphysicalSystem.SetSolverType(ChSolver::Type::MINRES);

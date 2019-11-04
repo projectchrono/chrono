@@ -340,7 +340,7 @@ void DPCapPress() {
     // Use the MKL Solver
     auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
     my_system.SetSolver(mkl_solver);
-    mkl_solver->SetSparsityPatternLock(true);
+    mkl_solver->LockSparsityPattern(true);
 
     // Set the time integrator parameters
     my_system.SetTimestepperType(ChTimestepper::Type::HHT);
@@ -689,7 +689,7 @@ void ShellBrickContact() {
     // Use the MKL Solver
     auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
     my_system.SetSolver(mkl_solver);
-    mkl_solver->SetSparsityPatternLock(true);
+    mkl_solver->LockSparsityPattern(true);
 
     // Set the time integrator parameters
     my_system.SetTimestepperType(ChTimestepper::Type::HHT);
@@ -1000,7 +1000,7 @@ void SimpleBoxContact() {
     // Use the MKL Solver
     auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
     my_system.SetSolver(mkl_solver);
-    mkl_solver->SetSparsityPatternLock(true);
+    mkl_solver->LockSparsityPattern(true);
 
     // Set the time integrator parameters
     my_system.SetTimestepperType(ChTimestepper::Type::HHT);
@@ -1330,7 +1330,7 @@ void SoilBin() {
     // Use the MKL Solver
     auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
     my_system.SetSolver(mkl_solver);
-    mkl_solver->SetSparsityPatternLock(true);
+    mkl_solver->LockSparsityPattern(true);
 
     // Set the time integrator parameters
     my_system.SetTimestepperType(ChTimestepper::Type::HHT);
@@ -1614,7 +1614,7 @@ void AxialDynamics() {
     // Use the MKL Solver
     auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
     my_system.SetSolver(mkl_solver);
-    mkl_solver->SetSparsityPatternLock(true);
+    mkl_solver->LockSparsityPattern(true);
 
     // Set the time integrator parameters
     my_system.SetTimestepperType(ChTimestepper::Type::HHT);
@@ -1857,7 +1857,7 @@ void BendingQuasiStatic() {
     // Use the MKL Solver
     auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
     my_system.SetSolver(mkl_solver);
-    mkl_solver->SetSparsityPatternLock(true);
+    mkl_solver->LockSparsityPattern(true);
 
     // Set the time integrator parameters
     my_system.SetTimestepperType(ChTimestepper::Type::HHT);
@@ -2098,7 +2098,7 @@ void SwingingShell() {
     // Use the MKL Solver
     auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
     my_system.SetSolver(mkl_solver);
-    mkl_solver->SetSparsityPatternLock(true);
+    mkl_solver->LockSparsityPattern(true);
 
     // Set the time integrator parameters
     my_system.SetTimestepperType(ChTimestepper::Type::HHT);

@@ -91,7 +91,8 @@ FEAcontactTest::FEAcontactTest(ChSolver::Type solver_type) {
         case ChSolver::Type::CUSTOM: {
 #ifdef CHRONO_MKL
             auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
-            mkl_solver->SetSparsityPatternLock(true);
+            mkl_solver->UseSparsityPatternLearner(false);
+            mkl_solver->LockSparsityPattern(true);
             mkl_solver->SetVerbose(false);
             m_system->SetSolver(mkl_solver);
 #endif
