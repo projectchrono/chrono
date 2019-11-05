@@ -57,8 +57,7 @@ int main(int argc, char* argv[]) {
     apiSMC.setGranSystemSMC(&gran_sys);
 
     // Add spherically-decomposed underlying terrain.
-    std::string objfilename("data/granular/fixedterrain/fixedterrain.obj");
-    // std::string objfilename("data/granular/fixedterrain/triangle.obj");
+    std::string objfilename(GetChronoDataFile("granular/fixedterrain/fixedterrain.obj"));
 
     ChVector<float> scaling(params.box_X / 2, params.box_Y / 2, params.box_Z);
 
