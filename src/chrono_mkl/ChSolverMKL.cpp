@@ -1,4 +1,3 @@
-#include "ChSolverMKL.h"
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
@@ -14,137 +13,22 @@
 // =============================================================================
 
 #include "chrono_mkl/ChSolverMKL.h"
-#include "chrono/core/ChSparsityPatternLearner.h"
-
-#define SPM_DEF_SPARSITY 0.9  ///< default predicted sparsity (in [0,1])
 
 namespace chrono {
 
-ChSolverMKL::ChSolverMKL()
-    : m_lock(false),
-      m_use_learner(true),
-      m_force_update(true),
-      m_use_perm(false),
-      m_use_rhs_sparsity(false),
-      m_dim(0),
-      m_sparsity(-1),
-      m_solve_call(0),
-      m_setup_call(0) {}
-
-bool ChSolverMKL::Setup(ChSystemDescriptor& sysd) {
-    m_timer_setup_assembly.start();
-
-    // Calculate problem size.
-    //// RADU: revisit this; what happens when a problem size does actually change?
-    if (m_setup_call == 0) {
-        sysd.UpdateCountsAndOffsets();
-        m_dim = sysd.CountActiveVariables() + sysd.CountActiveConstraints();
-    }
-
-    // If use of the sparsity pattern learner is enabled, call it if:
-    // (a) an explicit update was requested (by default this is true at the first call), or
-    // (b) the sparsity pattern is not locked and so has to be re-evaluated at each call
-    bool call_learner = m_use_learner && (m_force_update || !m_lock);
-
-    // If use of the sparsity pattern learner is disabled, reserve space for nonzeros,
-    // using the current sparsity level estimate, if:
-    // (a) this is the first call to setup, or
-    // (b) the sparsity pattern is not locked and so has to be re-evaluated at each call
-    bool call_reserve = !m_use_learner && (m_setup_call == 0 || !m_lock);
-
-    if (verbose) {
-        GetLog() << "MKL setup\n";
-        GetLog() << "  call number:    " << m_setup_call << "\n";
-        GetLog() << "  use learner?    " << m_use_learner << "\n";
-        GetLog() << "  pattern locked? " << m_lock << "\n";
-        GetLog() << "  CALL learner:   " << call_learner << "\n";
-        GetLog() << "  CALL reserve:   " << call_reserve << "\n";
-    }
-
-    if (call_learner) {
-        ChSparsityPatternLearner sparsity_pattern(m_dim, m_dim);
-        sysd.ConvertToMatrixForm(&sparsity_pattern, nullptr);
-        sparsity_pattern.Apply(m_mat);
-        m_force_update = false;
-    } else if (call_reserve) {
-        double density = (m_sparsity > 0) ? 1 - m_sparsity : 1 - SPM_DEF_SPARSITY;
-        m_mat.resize(m_dim, m_dim);
-        m_mat.reserve(Eigen::VectorXi::Constant(m_dim, static_cast<int>(m_dim * density)));
-    }
-
-    // Please mind that resize will be called again on m_mat, inside ConvertToMatrixForm
-    sysd.ConvertToMatrixForm(&m_mat, nullptr);
-
-    // Allow the matrix to be compressed.
-    m_mat.makeCompressed();
-
-    m_timer_setup_assembly.stop();
-
-    // Perform the factorization with the Pardiso sparse direct solver.
-    m_timer_setup_solvercall.start();
+bool ChSolverMKL::FactorizeMatrix() {
     m_engine.compute(m_mat);
-    m_timer_setup_solvercall.stop();
-
-    m_setup_call++;
-
-    if (verbose) {
-        GetLog() << " MKL setup [" << m_setup_call << "] n = " << m_dim << "  nnz = " << (int)m_mat.nonZeros() << "\n";
-        GetLog() << "  assembly matrix:   " << m_timer_setup_assembly.GetTimeSecondsIntermediate() << "s\n"
-                 << "  analyze+factorize: " << m_timer_setup_solvercall.GetTimeSecondsIntermediate() << "s\n";
-    }
-
-    if (m_engine.info() != Eigen::Success) {
-        GetLog() << "PardisoLU compute command exited with errors\n";
-        GetErrorMessage(m_engine.info());
-        return false;
-    }
-
-    return true;
+    return (m_engine.info() == Eigen::Success);
 }
 
-double ChSolverMKL::Solve(ChSystemDescriptor& sysd) {
-    // Assemble the problem right-hand side vector.
-    m_timer_solve_assembly.start();
-    sysd.ConvertToMatrixForm(nullptr, &m_rhs);
-    m_sol.resize(m_rhs.size());
-    m_timer_solve_assembly.stop();
-
-    // Solve the problem using Pardiso.
-    m_timer_solve_solvercall.start();
+bool ChSolverMKL::SolveSystem() {
     m_sol = m_engine.solve(m_rhs);
-    m_solve_call++;
-    m_timer_solve_solvercall.stop();
-
-    // Scatter solution vector to the system descriptor.
-    m_timer_solve_assembly.start();
-    sysd.FromVectorToUnknowns(m_sol);
-    m_timer_solve_assembly.stop();
-
-    if (verbose) {
-        double res_norm = (m_rhs - m_mat * m_sol).norm();
-        GetLog() << " MKL solve [" << m_solve_call << "]  |residual| = " << res_norm << "\n\n";
-        GetLog() << "  assembly rhs+sol:  " << m_timer_solve_assembly.GetTimeSecondsIntermediate() << "s\n"
-                 << "  solve:             " << m_timer_solve_solvercall.GetTimeSecondsIntermediate() << "\n";
-    }
-
-    if (m_engine.info() != Eigen::Success) {
-        GetLog() << "PardisoLU solve exited with errors\n";
-        GetErrorMessage(m_engine.info());
-        return -1;
-    }
-
-    return 0;
+    return (m_engine.info() == Eigen::Success);
 }
 
-void ChSolverMKL::ResetTimers() {
-    m_timer_setup_assembly.reset();
-    m_timer_setup_solvercall.reset();
-    m_timer_solve_assembly.reset();
-    m_timer_solve_solvercall.reset();
-}
-
-void ChSolverMKL::GetErrorMessage(Eigen::ComputationInfo error) const {
-    switch (error) {
+void ChSolverMKL::PrintErrorMessage() {
+    // There are only three possible return codes (see manageErrorCode in Eigen's PardisoSupport.h)
+    switch (m_engine.info()) {
         case Eigen::Success:
             GetLog() << "computation was successful";
             break;
@@ -155,30 +39,6 @@ void ChSolverMKL::GetErrorMessage(Eigen::ComputationInfo error) const {
             GetLog() << "inputs are invalid, or the algorithm has been improperly called";
             break;
     }
-}
-
-void ChSolverMKL::ArchiveOUT(ChArchiveOut& marchive) {
-    // version number
-    marchive.VersionWrite<ChSolverMKL>();
-    // serialize parent class
-    ChSolver::ArchiveOUT(marchive);
-    // serialize all member data:
-    marchive << CHNVP(m_lock);
-    marchive << CHNVP(m_use_learner);
-    marchive << CHNVP(m_use_perm);
-    marchive << CHNVP(m_use_rhs_sparsity);
-}
-
-void ChSolverMKL::ArchiveIN(ChArchiveIn& marchive) {
-    // version number
-    int version = marchive.VersionRead<ChSolverMKL>();
-    // deserialize parent class
-    ChSolver::ArchiveIN(marchive);
-    // stream in all member data:
-    marchive >> CHNVP(m_lock);
-    marchive >> CHNVP(m_use_learner);
-    marchive >> CHNVP(m_use_perm);
-    marchive >> CHNVP(m_use_rhs_sparsity);
 }
 
 }  // end of namespace chrono

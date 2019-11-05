@@ -25,7 +25,7 @@ using namespace chrono;
 
 int test_basic() {
     // Define the problem data structures and size:
-    // - main matrix in ChCOOMatrix format
+    // - matrix in sparse format
     // - rhs/solution vector
     int n = 3;
     ChSparseMatrix mat(n, n);
