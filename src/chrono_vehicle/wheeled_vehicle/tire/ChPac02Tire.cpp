@@ -250,20 +250,21 @@ void ChPac02Tire::Initialize(std::shared_ptr<ChWheel> wheel) {
                 GetLog() << "Tire is measured as right tire but mounted on the lleft vehicle side -> mirroring.\n";
             }
         }
-        // Initialize contact patch state variables to 0;
-        m_data.normal_force = 0;
-        m_states.R_eff = m_PacCoeff.R0;
-        m_states.cp_long_slip = 0;
-        m_states.cp_side_slip = 0;
-        m_states.vx = 0;
-        m_states.vsx = 0;
-        m_states.vsy = 0;
-        m_states.omega = 0;
-        m_states.disc_normal = ChVector<>(0, 0, 0);
-
-        m_states.cp_long_slip = 0;
-        m_states.cp_side_slip = 0;
     }
+
+    // Initialize contact patch state variables to 0
+    m_data.normal_force = 0;
+    m_states.R_eff = m_PacCoeff.R0;
+    m_states.cp_long_slip = 0;
+    m_states.cp_side_slip = 0;
+    m_states.vx = 0;
+    m_states.vsx = 0;
+    m_states.vsy = 0;
+    m_states.omega = 0;
+    m_states.disc_normal = ChVector<>(0, 0, 0);
+
+    m_states.cp_long_slip = 0;
+    m_states.cp_side_slip = 0;
 }
 
 // -----------------------------------------------------------------------------

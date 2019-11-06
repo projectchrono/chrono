@@ -20,8 +20,46 @@
     },
     "Vertical": {
         "Vertical Stiffness": 326332.0,
-        "Vertical damping": 3502.8,
-        "Nominal Wheel Load": 29912.0
+        "Vertical Damping": 3502.8,
+        "Nominal Wheel Load": 29912.0,
+        "Bottoming Curve Data": [
+            [
+                0.0,
+                0.0
+            ],
+            [
+                0.09,
+                0.0
+            ],
+            [
+                0.1,
+                100000.0
+            ],
+            [
+                0.2,
+                200000.0
+            ],
+            [
+                0.3,
+                300000.0
+            ],
+            [
+                0.4,
+                400000.0
+            ],
+            [
+                0.5,
+                500000.0
+            ],
+            [
+                0.6,
+                600000.0
+            ],
+            [
+                6.0,
+                6000000.0
+            ]
+        ]
     },
     "Scaling Factors": {
         "lfz0": 0.567911935,

@@ -1098,7 +1098,7 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
                                     const ChVectorDynamic<>& Qc,  // the Qc residual
                                     const double c_a,             // the factor in c_a*M
                                     const double c_v,             // the factor in c_v*dF/dv
-                                    const double c_x,             // the factor in c_x*dF/dv
+                                    const double c_x,             // the factor in c_x*dF/dx
                                     const ChState& x,             // current state, x part
                                     const ChStateDelta& v,        // current state, v part
                                     const double T,               // current time T

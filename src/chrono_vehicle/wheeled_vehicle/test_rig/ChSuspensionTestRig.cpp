@@ -47,12 +47,11 @@ using namespace rapidjson;
 namespace chrono {
 namespace vehicle {
 
-// -----------------------------------------------------------------------------
+// =============================================================================
 // Definition of a chassis for a suspension test rig
-// -----------------------------------------------------------------------------
-class ChSuspensionTestRigChassis : public ChRigidChassis {
+class TestRigChassis : public ChRigidChassis {
   public:
-    ChSuspensionTestRigChassis();
+    TestRigChassis();
     virtual double GetMass() const override { return m_mass; }
     virtual const ChMatrix33<>& GetInertia() const override { return m_inertia; }
     virtual const ChVector<>& GetLocalPosCOM() const override { return m_COM_loc; }
@@ -67,23 +66,52 @@ class ChSuspensionTestRigChassis : public ChRigidChassis {
     static const ChCoordsys<> m_driverCsys;
 };
 
-const double ChSuspensionTestRigChassis::m_mass = 1;
-const ChVector<> ChSuspensionTestRigChassis::m_inertiaXX(1, 1, 1);
-const ChVector<> ChSuspensionTestRigChassis::m_COM_loc(0, 0, 0);
-const ChCoordsys<> ChSuspensionTestRigChassis::m_driverCsys(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0));
+const double TestRigChassis::m_mass = 1;
+const ChVector<> TestRigChassis::m_inertiaXX(1, 1, 1);
+const ChVector<> TestRigChassis::m_COM_loc(0, 0, 0);
+const ChCoordsys<> TestRigChassis::m_driverCsys(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0));
 
-ChSuspensionTestRigChassis::ChSuspensionTestRigChassis() : ChRigidChassis("Ground") {
+TestRigChassis::TestRigChassis() : ChRigidChassis("Ground") {
     m_inertia = ChMatrix33<>(m_inertiaXX);
 }
 
-// -----------------------------------------------------------------------------
-// Static variables
-// -----------------------------------------------------------------------------
-const double ChSuspensionTestRig::m_post_hheight = 0.05;
-const double ChSuspensionTestRig::m_post_radius = 0.4;
+// =============================================================================
+// Definition of a terrain object for use by a suspension test rig.
+class TestRigTerrain : public ChTerrain {
+  public:
+    TestRigTerrain();
+    virtual double GetHeight(double x, double y) const override;
+    virtual ChVector<> GetNormal(double x, double y) const override;
+    virtual float GetCoefficientFriction(double x, double y) const override;
+    double m_height_L;
+    double m_height_R;
+};
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+TestRigTerrain::TestRigTerrain() : m_height_L(-1000), m_height_R(-1000) {}
+
+double TestRigTerrain::GetHeight(double x, double y) const {
+    return (y < 0) ? m_height_R : m_height_L;
+}
+
+ChVector<> TestRigTerrain::GetNormal(double x, double y) const {
+    return ChVector<>(0, 0, 1);
+}
+
+float TestRigTerrain::GetCoefficientFriction(double x, double y) const {
+    return 0.8f;
+}
+
+// =============================================================================
+// Static variables
+const double ChSuspensionTestRigPlatform::m_post_hheight = 0.05;
+const double ChSuspensionTestRigPlatform::m_post_radius = 0.4;
+
+const double ChSuspensionTestRigPushrod::m_rod_length = 3;
+const double ChSuspensionTestRigPushrod::m_rod_radius = 0.02;
+
+// =============================================================================
+// Base class implementation
+// =============================================================================
 ChSuspensionTestRig::ChSuspensionTestRig(ChWheeledVehicle& vehicle,
                                          int axle_index,
                                          double displ_limit,
@@ -117,8 +145,6 @@ ChSuspensionTestRig::ChSuspensionTestRig(ChWheeledVehicle& vehicle,
 
     m_tire[LEFT] = tire_left;
     m_tire[RIGHT] = tire_right;
-
-    Create();
 }
 
 ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
@@ -183,8 +209,6 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
 
     m_tire[LEFT] = tire_left;
     m_tire[RIGHT] = tire_right;
-
-    Create();
 }
 
 ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
@@ -248,21 +272,16 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
 
     m_tire[LEFT] = tire_left;
     m_tire[RIGHT] = tire_right;
-
-    Create();
 }
 
-void ChSuspensionTestRig::Create() {
-    // ----------------------------
+void ChSuspensionTestRig::InitializeSubsystems() {
     // Create the chassis subsystem
-    // ----------------------------
-    m_chassis = chrono_types::make_shared<ChSuspensionTestRigChassis>();
+    m_chassis = chrono_types::make_shared<TestRigChassis>();
     m_chassis->Initialize(m_system, ChCoordsys<>(), 0);
     m_chassis->SetFixed(true);
 
-    // ---------------------------------
-    // Initialize the vehicle subsystems
-    // ---------------------------------
+    // Create the terrain system
+    m_terrain = std::unique_ptr<ChTerrain>(new TestRigTerrain);
 
     // Initialize the suspension and steering subsystems.
     if (HasSteering()) {
@@ -290,68 +309,7 @@ void ChSuspensionTestRig::Create() {
     m_tire[LEFT]->Initialize(m_wheel[LEFT]);
     m_tire[RIGHT]->Initialize(m_wheel[RIGHT]);
 
-    // --------------------------------------------
     // Imobilize wheels
-    // --------------------------------------------
-
-    // --------------------------------------------
-    // Create and initialize the shaker post bodies
-    // --------------------------------------------
-
-    // Left post body (green)
-    ChVector<> spindle_L_pos = m_suspension->GetSpindlePos(LEFT);
-    ChVector<> post_L_pos = spindle_L_pos - ChVector<>(0, 0, m_tire[LEFT]->GetRadius());
-
-    m_post[LEFT] = std::shared_ptr<ChBody>(m_system->NewBody());
-    m_post[LEFT]->SetPos(post_L_pos);
-    m_post[LEFT]->SetMass(100);
-    m_post[LEFT]->SetCollide(true);
-    m_system->Add(m_post[LEFT]);
-    AddVisualize_post(LEFT, ChColor(0.1f, 0.8f, 0.15f));
-
-    m_post[LEFT]->GetCollisionModel()->ClearModel();
-    m_post[LEFT]->GetCollisionModel()->AddCylinder(m_post_radius, m_post_radius, m_post_hheight,
-                                                   ChVector<>(0, 0, -m_post_hheight),
-                                                   ChMatrix33<>(Q_from_AngX(CH_C_PI / 2)));
-    m_post[LEFT]->GetCollisionModel()->BuildModel();
-
-    // Right post body (red)
-    ChVector<> spindle_R_pos = m_suspension->GetSpindlePos(RIGHT);
-    ChVector<> post_R_pos = spindle_R_pos - ChVector<>(0, 0, m_tire[RIGHT]->GetRadius());
-
-    m_post[RIGHT] = std::shared_ptr<ChBody>(m_system->NewBody());
-    m_post[RIGHT]->SetPos(post_R_pos);
-    m_post[RIGHT]->SetMass(100);
-    m_post[RIGHT]->SetCollide(true);
-    m_system->Add(m_post[RIGHT]);
-    AddVisualize_post(RIGHT, ChColor(0.8f, 0.1f, 0.1f));
-
-    m_post[RIGHT]->GetCollisionModel()->ClearModel();
-    m_post[RIGHT]->GetCollisionModel()->AddCylinder(m_post_radius, m_post_radius, m_post_hheight,
-                                                    ChVector<>(0, 0, -m_post_hheight),
-                                                    ChMatrix33<>(Q_from_AngX(CH_C_PI / 2)));
-    m_post[RIGHT]->GetCollisionModel()->BuildModel();
-
-    // ------------------------------------------
-    // Create and initialize joints and actuators
-    // ------------------------------------------
-
-    auto func_L = chrono_types::make_shared<ChFunction_Const>();
-    auto func_R = chrono_types::make_shared<ChFunction_Const>();
-
-    m_post_linact[LEFT] = chrono_types::make_shared<ChLinkMotorLinearPosition>();
-    m_post_linact[LEFT]->SetNameString("L_post_linActuator");
-    m_post_linact[LEFT]->SetMotionFunction(func_L);
-    m_post_linact[LEFT]->Initialize(m_chassis->GetBody(), m_post[LEFT],
-                                    ChFrame<>(ChVector<>(post_L_pos), Q_from_AngY(CH_C_PI_2)));
-    m_system->AddLink(m_post_linact[LEFT]);
-
-    m_post_linact[RIGHT] = chrono_types::make_shared<ChLinkMotorLinearPosition>();
-    m_post_linact[RIGHT]->SetNameString("R_post_linActuator");
-    m_post_linact[RIGHT]->SetMotionFunction(func_R);
-    m_post_linact[RIGHT]->Initialize(m_chassis->GetBody(), m_post[RIGHT],
-                                     ChFrame<>(ChVector<>(post_R_pos), Q_from_AngY(CH_C_PI_2)));
-    m_system->AddLink(m_post_linact[RIGHT]);
 }
 
 void ChSuspensionTestRig::Initialize() {
@@ -359,11 +317,16 @@ void ChSuspensionTestRig::Initialize() {
         throw ChException("No driver system provided");
     }
 
-    // Calculate post displacement offset (if any) to set reference position at specified ride height
+    // Initialize reference spindle vertical positions at design configuration.
+    m_spindle_ref[LEFT] = m_suspension->GetSpindlePos(LEFT).z();
+    m_spindle_ref[RIGHT] = m_suspension->GetSpindlePos(RIGHT).z();
+
+    // Calculate displacement offset to set rig at specified ride height (if any).
+    // The rig will be moved dynamically to this configuration over a time interval m_displ_delay.
     m_displ_offset = 0;
     m_displ_delay = 0;
     if (m_ride_height > 0) {
-        m_displ_offset = -m_ride_height - m_post[LEFT]->GetPos().z();
+        m_displ_offset = CalcDisplacementOffset();
         m_displ_delay = 0.1;
     }
 
@@ -376,25 +339,18 @@ void ChSuspensionTestRig::Initialize() {
     m_tire[RIGHT]->SetVisualizationType(m_vis_tire);
 
     // Initialize the driver system
-    m_driver->SetTimeDelay(m_displ_delay);
+    m_driver->m_delay = m_displ_delay;
     m_driver->Initialize();
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChSuspensionTestRig::SetDriver(std::unique_ptr<ChDriverSTR> driver) {
-    m_driver = std::move(driver);
+void ChSuspensionTestRig::SetDriver(std::shared_ptr<ChDriverSTR> driver) {
+    m_driver = driver;
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-double ChSuspensionTestRig::GetSpindleOmega(VehicleSide side) const {
-    auto rot = GetSpindleRot(side);
-    auto ang_vel = GetSpindleAngVel(side);
-    auto ang_vel_loc = rot.RotateBack(ang_vel);
-    return ang_vel_loc.y();
-}
-
 double ChSuspensionTestRig::GetMass() const {
     // Note: do not include mass of the wheels, as these are already accounted for in suspension.
     double mass = m_suspension->GetMass();
@@ -404,22 +360,22 @@ double ChSuspensionTestRig::GetMass() const {
     return mass;
 }
 
-double ChSuspensionTestRig::GetActuatorDisp(VehicleSide side) {
-    double time = GetSystem()->GetChTime();
-    return m_post_linact[side]->GetMotionFunction()->Get_y(time);
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+TerrainForce ChSuspensionTestRig::ReportTireForce(VehicleSide side) const {
+    return m_tire[side]->ReportTireForce(m_terrain.get());
 }
 
-double ChSuspensionTestRig::GetActuatorForce(VehicleSide side) {
-    return m_post_linact[side]->Get_react_force().x();
+ChSuspension::Force ChSuspensionTestRig::ReportSuspensionForce(VehicleSide side) const {
+    return m_suspension->ReportSuspensionForce(side);
 }
 
-double ChSuspensionTestRig::GetActuatorMarkerDist(VehicleSide side) {
-    return m_post_linact[side]->GetMotorPos();
-}
-
-double ChSuspensionTestRig::GetRideHeight() const {
-    // Note: the chassis reference frame is constructed at a height of 0.
-    return -(m_post[LEFT]->GetPos().z() + m_post[RIGHT]->GetPos().z()) / 2;
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+double ChSuspensionTestRig::GetWheelTravel(VehicleSide side) const {
+    if (GetChTime() < m_displ_delay)
+        return 0;
+    return m_suspension->GetSpindlePos(side).z() - m_spindle_ref[side];
 }
 
 // -----------------------------------------------------------------------------
@@ -427,17 +383,23 @@ double ChSuspensionTestRig::GetRideHeight() const {
 void ChSuspensionTestRig::Advance(double step) {
     double time = GetChTime();
 
-    // Set post displacements
+    // Set actuator displacements
     double displ_left = 0;
     double displ_right = 0;
 
     if (time < m_displ_delay) {
+        // Automatic phase to bring rig at specified initial ride height
         m_steering_input = 0;
         m_left_input = 0;
         m_right_input = 0;
         displ_left = m_displ_offset * time / m_displ_delay;
         displ_right = m_displ_offset * time / m_displ_delay;
+
+        // Update spindle vertical reference positions
+        m_spindle_ref[LEFT] = m_suspension->GetSpindlePos(LEFT).z();
+        m_spindle_ref[RIGHT] = m_suspension->GetSpindlePos(RIGHT).z();
     } else {
+        // Use actual driver inputs to set current actuator displacements
         m_steering_input = m_driver->GetSteering();
         m_left_input = m_driver->GetDisplacementLeft();
         m_right_input = m_driver->GetDisplacementRight();
@@ -446,16 +408,12 @@ void ChSuspensionTestRig::Advance(double step) {
         displ_right = m_displ_offset + m_displ_limit * m_right_input;
     }
 
-    // Extract tire forces for reporting purposes
-    m_tireforce[LEFT] = m_tire[LEFT]->ReportTireForce(&m_terrain);
-    m_tireforce[RIGHT] = m_tire[RIGHT]->ReportTireForce(&m_terrain);
-
     // Synchronize driver system
     m_driver->Synchronize(time);
 
     // Synchronize the tire subsystems
-    m_tire[LEFT]->Synchronize(time, m_terrain);
-    m_tire[RIGHT]->Synchronize(time, m_terrain);
+    m_tire[LEFT]->Synchronize(time, *m_terrain);
+    m_tire[RIGHT]->Synchronize(time, *m_terrain);
 
     // Let the steering subsystem process the steering input
     if (HasSteering()) {
@@ -470,15 +428,12 @@ void ChSuspensionTestRig::Advance(double step) {
         wheel->Synchronize();
     }
 
-    // Update post displacements
-    auto func_L = std::static_pointer_cast<ChFunction_Const>(m_post_linact[LEFT]->GetMotionFunction());
-    auto func_R = std::static_pointer_cast<ChFunction_Const>(m_post_linact[RIGHT]->GetMotionFunction());
-    func_L->Set_yconst(displ_left);
-    func_R->Set_yconst(displ_right);
+    // Update actuators
+    UpdateActuators(displ_left, displ_right);
 
     // Update the height of the underlying terrain object, using the current z positions of the post bodies.
-    m_terrain.m_height_L = m_post[LEFT]->GetPos().z();
-    m_terrain.m_height_R = m_post[RIGHT]->GetPos().z();
+    static_cast<TestRigTerrain*>(m_terrain.get())->m_height_L = CalcTerrainHeight(LEFT);
+    static_cast<TestRigTerrain*>(m_terrain.get())->m_height_R = CalcTerrainHeight(RIGHT);
 
     // Advance states of tire subsystems
     m_tire[LEFT]->Advance(step);
@@ -509,9 +464,101 @@ void ChSuspensionTestRig::LogConstraintViolations() {
     GetLog().SetNumFormat("%g");
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChSuspensionTestRig::AddVisualize_post(VehicleSide side, const ChColor& color) {
+// =============================================================================
+// ChSuspensionTestRigPlatform class implementation
+// =============================================================================
+ChSuspensionTestRigPlatform::ChSuspensionTestRigPlatform(
+    ChWheeledVehicle& vehicle,                       // vehicle source
+    int axle_index,                                  // index of the suspension to be tested
+    double displ_limit,                              // limits for post displacement
+    std::shared_ptr<ChTire> tire_left,               // left tire
+    std::shared_ptr<ChTire> tire_right,              // right tire
+    ChMaterialSurface::ContactMethod contact_method  // contact method
+    )
+    : ChSuspensionTestRig(vehicle, axle_index, displ_limit, tire_left, tire_right, contact_method) {
+    InitializeSubsystems();
+    Create();
+}
+
+ChSuspensionTestRigPlatform::ChSuspensionTestRigPlatform(
+    const std::string& filename,                     // JSON file with vehicle specification
+    int axle_index,                                  // index of the suspension to be tested
+    double displ_limit,                              // limits for post displacement
+    std::shared_ptr<ChTire> tire_left,               // left tire
+    std::shared_ptr<ChTire> tire_right,              // right tire
+    ChMaterialSurface::ContactMethod contact_method  // contact method
+    )
+    : ChSuspensionTestRig(filename, axle_index, displ_limit, tire_left, tire_right, contact_method) {
+    InitializeSubsystems();
+    Create();
+}
+
+ChSuspensionTestRigPlatform::ChSuspensionTestRigPlatform(
+    const std::string& filename,                     // JSON file with test rig specification
+    std::shared_ptr<ChTire> tire_left,               // left tire
+    std::shared_ptr<ChTire> tire_right,              // right tire
+    ChMaterialSurface::ContactMethod contact_method  // contact method
+    )
+    : ChSuspensionTestRig(filename, tire_left, tire_right, contact_method) {
+    InitializeSubsystems();
+    Create();
+}
+
+void ChSuspensionTestRigPlatform::Create() {
+    // Create the left post body (green)
+    ChVector<> spindle_L_pos = m_suspension->GetSpindlePos(LEFT);
+    ChVector<> post_L_pos = spindle_L_pos - ChVector<>(0, 0, m_tire[LEFT]->GetRadius());
+
+    m_post[LEFT] = std::shared_ptr<ChBody>(m_system->NewBody());
+    m_post[LEFT]->SetPos(post_L_pos);
+    m_post[LEFT]->SetMass(100);
+    m_post[LEFT]->SetCollide(true);
+    m_system->Add(m_post[LEFT]);
+    AddPostVisualization(LEFT, ChColor(0.1f, 0.8f, 0.15f));
+
+    m_post[LEFT]->GetCollisionModel()->ClearModel();
+    m_post[LEFT]->GetCollisionModel()->AddCylinder(m_post_radius, m_post_radius, m_post_hheight,
+                                                   ChVector<>(0, 0, -m_post_hheight),
+                                                   ChMatrix33<>(Q_from_AngX(CH_C_PI / 2)));
+    m_post[LEFT]->GetCollisionModel()->BuildModel();
+
+    // Create the right post body (red)
+    ChVector<> spindle_R_pos = m_suspension->GetSpindlePos(RIGHT);
+    ChVector<> post_R_pos = spindle_R_pos - ChVector<>(0, 0, m_tire[RIGHT]->GetRadius());
+
+    m_post[RIGHT] = std::shared_ptr<ChBody>(m_system->NewBody());
+    m_post[RIGHT]->SetPos(post_R_pos);
+    m_post[RIGHT]->SetMass(100);
+    m_post[RIGHT]->SetCollide(true);
+    m_system->Add(m_post[RIGHT]);
+    AddPostVisualization(RIGHT, ChColor(0.8f, 0.1f, 0.1f));
+
+    m_post[RIGHT]->GetCollisionModel()->ClearModel();
+    m_post[RIGHT]->GetCollisionModel()->AddCylinder(m_post_radius, m_post_radius, m_post_hheight,
+                                                    ChVector<>(0, 0, -m_post_hheight),
+                                                    ChMatrix33<>(Q_from_AngX(CH_C_PI / 2)));
+    m_post[RIGHT]->GetCollisionModel()->BuildModel();
+
+    // Create and initialize joints and actuators
+    auto func_L = chrono_types::make_shared<ChFunction_Const>();
+    auto func_R = chrono_types::make_shared<ChFunction_Const>();
+
+    m_post_linact[LEFT] = chrono_types::make_shared<ChLinkMotorLinearPosition>();
+    m_post_linact[LEFT]->SetNameString("L_post_linActuator");
+    m_post_linact[LEFT]->SetMotionFunction(func_L);
+    m_post_linact[LEFT]->Initialize(m_chassis->GetBody(), m_post[LEFT],
+                                    ChFrame<>(ChVector<>(post_L_pos), Q_from_AngY(CH_C_PI_2)));
+    m_system->AddLink(m_post_linact[LEFT]);
+
+    m_post_linact[RIGHT] = chrono_types::make_shared<ChLinkMotorLinearPosition>();
+    m_post_linact[RIGHT]->SetNameString("R_post_linActuator");
+    m_post_linact[RIGHT]->SetMotionFunction(func_R);
+    m_post_linact[RIGHT]->Initialize(m_chassis->GetBody(), m_post[RIGHT],
+                                     ChFrame<>(ChVector<>(post_R_pos), Q_from_AngY(CH_C_PI_2)));
+    m_system->AddLink(m_post_linact[RIGHT]);
+}
+
+void ChSuspensionTestRigPlatform::AddPostVisualization(VehicleSide side, const ChColor& color) {
     // Platform (on post body)
     auto base_cyl = chrono_types::make_shared<ChCylinderShape>();
     base_cyl->GetCylinderGeometry().rad = m_post_radius;
@@ -538,20 +585,165 @@ void ChSuspensionTestRig::AddVisualize_post(VehicleSide side, const ChColor& col
     m_chassis->GetBody()->AddAsset(cyl);
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-ChSuspensionTestRig::Terrain::Terrain() : m_height_L(0), m_height_R(0) {}
-
-double ChSuspensionTestRig::Terrain::GetHeight(double x, double y) const {
-    return (y < 0) ? m_height_R : m_height_L;
+double ChSuspensionTestRigPlatform::CalcDisplacementOffset() {
+    return -m_ride_height - m_post[LEFT]->GetPos().z();
 }
 
-ChVector<> ChSuspensionTestRig::Terrain::GetNormal(double x, double y) const {
-    return ChVector<>(0, 0, 1);
+double ChSuspensionTestRigPlatform::CalcTerrainHeight(VehicleSide side) {
+    // Update the height of the underlying terrain object, using the current z positions of the post bodies.
+    return m_post[side]->GetPos().z();
 }
 
-float ChSuspensionTestRig::Terrain::GetCoefficientFriction(double x, double y) const {
-    return 0.8f;
+void ChSuspensionTestRigPlatform::UpdateActuators(double displ_left, double displ_right) {
+    auto func_L = std::static_pointer_cast<ChFunction_Const>(m_post_linact[LEFT]->GetMotionFunction());
+    auto func_R = std::static_pointer_cast<ChFunction_Const>(m_post_linact[RIGHT]->GetMotionFunction());
+    func_L->Set_yconst(displ_left);
+    func_R->Set_yconst(displ_right);
+}
+
+double ChSuspensionTestRigPlatform::GetActuatorDisp(VehicleSide side) {
+    double time = GetSystem()->GetChTime();
+    return m_post_linact[side]->GetMotionFunction()->Get_y(time);
+}
+
+double ChSuspensionTestRigPlatform::GetActuatorForce(VehicleSide side) {
+    return m_post_linact[side]->Get_react_force().x();
+}
+
+double ChSuspensionTestRigPlatform::GetRideHeight() const {
+    // Note: the chassis reference frame is constructed at a height of 0.
+    return -(m_post[LEFT]->GetPos().z() + m_post[RIGHT]->GetPos().z()) / 2;
+}
+
+// =============================================================================
+// ChSuspensionTestRigPushrod class implementation
+// =============================================================================
+ChSuspensionTestRigPushrod::ChSuspensionTestRigPushrod(
+    ChWheeledVehicle& vehicle,                       // vehicle source
+    int axle_index,                                  // index of the suspension to be tested
+    double displ_limit,                              // limits for post displacement
+    std::shared_ptr<ChTire> tire_left,               // left tire
+    std::shared_ptr<ChTire> tire_right,              // right tire
+    ChMaterialSurface::ContactMethod contact_method  // contact method
+    )
+    : ChSuspensionTestRig(vehicle, axle_index, displ_limit, tire_left, tire_right, contact_method) {
+    InitializeSubsystems();
+    Create();
+}
+
+ChSuspensionTestRigPushrod::ChSuspensionTestRigPushrod(
+    const std::string& filename,                     // JSON file with vehicle specification
+    int axle_index,                                  // index of the suspension to be tested
+    double displ_limit,                              // limits for post displacement
+    std::shared_ptr<ChTire> tire_left,               // left tire
+    std::shared_ptr<ChTire> tire_right,              // right tire
+    ChMaterialSurface::ContactMethod contact_method  // contact method
+    )
+    : ChSuspensionTestRig(filename, axle_index, displ_limit, tire_left, tire_right, contact_method) {
+    InitializeSubsystems();
+    Create();
+}
+
+ChSuspensionTestRigPushrod::ChSuspensionTestRigPushrod(
+    const std::string& filename,                     // JSON file with test rig specification
+    std::shared_ptr<ChTire> tire_left,               // left tire
+    std::shared_ptr<ChTire> tire_right,              // right tire
+    ChMaterialSurface::ContactMethod contact_method  // contact method
+    )
+    : ChSuspensionTestRig(filename, tire_left, tire_right, contact_method) {
+    InitializeSubsystems();
+    Create();
+}
+
+void ChSuspensionTestRigPushrod::Create() {
+    // Create and initialize the linear actuators.
+    // These connect the spindle centers with ground points directly below the spindles at the initial configuration.
+    auto func_L = chrono_types::make_shared<ChFunction_Const>();
+    auto func_R = chrono_types::make_shared<ChFunction_Const>();
+
+    auto pos_sL = m_suspension->GetSpindle(LEFT)->GetCoord();
+    auto pos_sR = m_suspension->GetSpindle(RIGHT)->GetCoord();
+
+    auto pos_gL = pos_sL;
+    auto pos_gR = pos_sR;
+    pos_gL.pos.z() = -m_rod_length;
+    pos_gR.pos.z() = -m_rod_length;
+
+    m_rod_linact[LEFT] = chrono_types::make_shared<ChLinkLinActuator>();
+    m_rod_linact[LEFT]->SetNameString("L_rod_actuator");
+    m_rod_linact[LEFT]->Set_dist_funct(func_L);
+    m_rod_linact[LEFT]->Initialize(m_chassis->GetBody(), m_suspension->GetSpindle(LEFT), false, pos_gL, pos_sL);
+    m_system->AddLink(m_rod_linact[LEFT]);
+
+    m_rod_linact[RIGHT] = chrono_types::make_shared<ChLinkLinActuator>();
+    m_rod_linact[RIGHT]->SetNameString("R_rod_actuator");
+    m_rod_linact[RIGHT]->Set_dist_funct(func_R);
+    m_rod_linact[RIGHT]->Initialize(m_chassis->GetBody(), m_suspension->GetSpindle(RIGHT), false, pos_gR, pos_sR);
+    m_system->AddLink(m_rod_linact[RIGHT]);
+
+    m_rod_linact[LEFT]->Set_lin_offset(m_rod_length);
+    m_rod_linact[RIGHT]->Set_lin_offset(m_rod_length);
+
+    // Create the two rod bodies (used only for visualization)
+    m_rod[LEFT] = std::shared_ptr<ChBody>(m_system->NewBody());
+    m_rod[LEFT]->SetPos(pos_sL.pos);
+    m_rod[LEFT]->SetBodyFixed(true);
+    m_system->Add(m_rod[LEFT]);
+    AddRodVisualization(LEFT, ChColor(0.1f, 0.8f, 0.15f));
+
+    m_rod[RIGHT] = std::shared_ptr<ChBody>(m_system->NewBody());
+    m_rod[RIGHT]->SetPos(pos_sR.pos);
+    m_rod[RIGHT]->SetBodyFixed(true);
+    m_system->Add(m_rod[RIGHT]);
+    AddRodVisualization(RIGHT, ChColor(0.8f, 0.1f, 0.1f));
+}
+
+void ChSuspensionTestRigPushrod::AddRodVisualization(VehicleSide side, const ChColor& color) {
+    auto cyl = chrono_types::make_shared<ChCylinderShape>();
+    cyl->GetCylinderGeometry().p1 = ChVector<>(0, 0, 0);
+    cyl->GetCylinderGeometry().p2 = ChVector<>(0, 0, -m_rod_length);
+    cyl->GetCylinderGeometry().rad = m_rod_radius;
+    m_rod[side]->AddAsset(cyl);
+    m_rod[side]->AddAsset(chrono_types::make_shared<ChColorAsset>(color));
+}
+
+double ChSuspensionTestRigPushrod::CalcDisplacementOffset() {
+    // Set initial spindle position based on tire radius (note: tire assumed rigid here)
+    return m_tire[LEFT]->GetRadius() - m_ride_height;
+}
+
+double ChSuspensionTestRigPushrod::CalcTerrainHeight(VehicleSide side) {
+    // No terrain used here
+    return -1000;
+}
+
+void ChSuspensionTestRigPushrod::UpdateActuators(double displ_left, double displ_right) {
+    auto func_L = std::static_pointer_cast<ChFunction_Const>(m_rod_linact[LEFT]->Get_dist_funct());
+    auto func_R = std::static_pointer_cast<ChFunction_Const>(m_rod_linact[RIGHT]->Get_dist_funct());
+    func_L->Set_yconst(displ_left);
+    func_R->Set_yconst(displ_right);
+
+    // Move the rod visualization bodies
+    m_rod[LEFT]->SetPos(m_suspension->GetSpindle(LEFT)->GetPos());
+    m_rod[RIGHT]->SetPos(m_suspension->GetSpindle(RIGHT)->GetPos());
+}
+
+double ChSuspensionTestRigPushrod::GetActuatorDisp(VehicleSide side) {
+    double time = GetSystem()->GetChTime();
+    return m_rod_linact[side]->Get_dist_funct()->Get_y(time);
+}
+
+double ChSuspensionTestRigPushrod::GetActuatorForce(VehicleSide side) {
+    //// TODO
+    ////ChVector<> react = m_rod_linact[side]->Get_react_force();
+    return 0;
+}
+
+double ChSuspensionTestRigPushrod::GetRideHeight() const {
+    // Estimated from average spindle positions and tire radius (note: tire assumed rigid here)
+    auto spindle_avg =
+        (m_suspension->GetSpindle(LEFT)->GetPos().z() + m_suspension->GetSpindle(RIGHT)->GetPos().z()) / 2;
+    return m_tire[LEFT]->GetRadius() - spindle_avg;
 }
 
 }  // end namespace vehicle

@@ -178,11 +178,11 @@ void ChConstraintThreeBBShaft::Build_Cq(ChSparseMatrix& storage, int insrow) {
 
 void ChConstraintThreeBBShaft::Build_CqT(ChSparseMatrix& storage, int inscol) {
     if (variables_a->IsActive())
-        storage.PasteTranspMatrix(Cq_a, variables_a->GetOffset(), inscol);
+        storage.PasteMatrix(Cq_a.transpose(), variables_a->GetOffset(), inscol);
     if (variables_b->IsActive())
-        storage.PasteTranspMatrix(Cq_b, variables_b->GetOffset(), inscol);
+        storage.PasteMatrix(Cq_b.transpose(), variables_b->GetOffset(), inscol);
     if (variables_c->IsActive())
-        storage.PasteTranspMatrix(Cq_c, variables_c->GetOffset(), inscol);
+        storage.PasteMatrix(Cq_c.transpose(), variables_c->GetOffset(), inscol);
 }
 
 void ChConstraintThreeBBShaft::ArchiveOUT(ChArchiveOut& marchive) {

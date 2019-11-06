@@ -385,6 +385,23 @@ double ChToeBarLeafspringAxle::GetTrack() {
 }
 
 // -----------------------------------------------------------------------------
+// Return current suspension forces
+// -----------------------------------------------------------------------------
+ChSuspension::Force ChToeBarLeafspringAxle::ReportSuspensionForce(VehicleSide side) const {
+    ChSuspension::Force force;
+
+    force.spring_force = m_spring[side]->GetSpringReact();
+    force.spring_length = m_spring[side]->GetSpringLength();
+    force.spring_velocity = m_spring[side]->GetSpringVelocity();
+
+    force.shock_force = m_shock[side]->GetSpringReact();
+    force.shock_length = m_shock[side]->GetSpringLength();
+    force.shock_velocity = m_shock[side]->GetSpringVelocity();
+
+    return force;
+}
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChToeBarLeafspringAxle::LogHardpointLocations(const ChVector<>& ref, bool inches) {
     double unit = inches ? 1 / 0.0254 : 1.0;

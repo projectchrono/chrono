@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
     my_sedan.SetChassisCollisionType(ChassisCollisionType::NONE);
     my_sedan.SetChassisFixed(false);
     my_sedan.SetInitPosition(ChCoordsys<>(ChVector<>(-40, 0, 1.0)));
-    my_sedan.SetTireType(TireModelType::RIGID);
+    my_sedan.SetTireType(TireModelType::PAC02);
     my_sedan.SetTireStepSize(1e-3);
     my_sedan.Initialize();
 
@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
         app.EndScene();
 
         // Driver inputs
-        ChDriver::Inputs driver_inputs = { 0, 0, 0 };
+        ChDriver::Inputs driver_inputs = {0, 0, 0};
         if (time > 2)
             driver_inputs.m_throttle = 0.6;
         else if (time > 1)

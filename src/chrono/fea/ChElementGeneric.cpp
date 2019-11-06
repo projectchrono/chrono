@@ -75,46 +75,10 @@ void ChElementGeneric::EleIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVecto
 
 void ChElementGeneric::VariablesFbLoadInternalForces(double factor) {
     throw(ChException("ChElementGeneric::VariablesFbLoadInternalForces is deprecated"));
-    /*
-    ChMatrixDynamic<> mFi(this->GetNdofs(), 1);
-    this->ComputeInternalForces(mFi);
-    mFi.MatrScale(factor);
-    int stride = 0;
-    for (int in = 0; in < this->GetNnodes(); in++) {
-        int nodedofs = GetNodeNdofs(in);
-        GetNodeN(in)->Variables().Get_fb().PasteSumClippedMatrix(mFi, stride, 0, nodedofs, 1, 0, 0);
-        stride += nodedofs;
-    }
-    */
 }
 
 void ChElementGeneric::VariablesFbIncrementMq() {
-    // This is a default (VERY UNOPTIMAL) book keeping so that in children classes you can avoid
-    // implementing this VariablesFbIncrementMq function, unless you need faster code)
-
     throw(ChException("ChElementGeneric::VariablesFbIncrementMq is deprecated"));
-    /*
-    ChMatrixDynamic<> mMi(this->GetNdofs(), this->GetNdofs());
-    this->ComputeKRMmatricesGlobal(mMi, 0, 0, 1.0);  // fill M mass matrix
-
-    ChMatrixDynamic<> mqi(this->GetNdofs(), 1);
-    int stride = 0;
-    for (int in = 0; in < this->GetNnodes(); in++) {
-        int nodedofs = GetNodeNdofs(in);
-        mqi.PasteMatrix(GetNodeN(in)->Variables().Get_qb(), stride, 0);
-        stride += nodedofs;
-    }
-
-    ChMatrixDynamic<> mFi(this->GetNdofs(), 1);
-    mFi.MatrMultiply(mMi, mqi);
-
-    stride = 0;
-    for (int in = 0; in < this->GetNnodes(); in++) {
-        int nodedofs = GetNodeNdofs(in);
-        GetNodeN(in)->Variables().Get_fb().PasteSumClippedMatrix(mFi, stride, 0, nodedofs, 1, 0, 0);
-        stride += nodedofs;
-    }
-    */
 }
 
 }  // end namespace fea

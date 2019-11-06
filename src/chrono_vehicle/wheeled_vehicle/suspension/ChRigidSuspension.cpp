@@ -137,6 +137,14 @@ double ChRigidSuspension::GetTrack() {
 }
 
 // -----------------------------------------------------------------------------
+// Return current suspension forces
+// -----------------------------------------------------------------------------
+ChSuspension::Force ChRigidSuspension::ReportSuspensionForce(VehicleSide side) const {
+    ChSuspension::Force force{0, 0, 0, 0, 0, 0};
+    return force;
+}
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRigidSuspension::LogConstraintViolations(VehicleSide side) {
     // Revolute joint
