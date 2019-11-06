@@ -69,6 +69,7 @@
 #include "chrono/fea/ChElementShell.h"
 #include "chrono/fea/ChMaterialShellReissner.h"
 #include "chrono/fea/ChMaterialShellANCF.h"
+#include "chrono/fea/ChMaterialShellKirchhoff.h"
 #include "chrono/fea/ChElementShellReissner4.h"
 #include "chrono/fea/ChElementShellANCF.h"
 #include "chrono/fea/ChElementShellANCF_8.h"
@@ -232,8 +233,15 @@ using namespace chrono::fea;
 %shared_ptr(chrono::fea::ChElasticityReissner)
 %shared_ptr(chrono::fea::ChElasticityReissnerIsothropic)
 %shared_ptr(chrono::fea::ChElasticityReissnerOrthotropic)
+%shared_ptr(chrono::fea::ChElasticityReissnerGeneric)
 %shared_ptr(chrono::fea::ChPlasticityReissner)
-%shared_ptr(chrono::fea::ChDampingReissner)
+%shared_ptr(chrono::fea::ChMaterialShellKirchhoff)
+%shared_ptr(chrono::fea::ChElasticityKirchhoff)
+%shared_ptr(chrono::fea::ChElasticityKirchhoffIsothropic)
+%shared_ptr(chrono::fea::ChElasticityKirchhoffOrthotropic)
+%shared_ptr(chrono::fea::ChElasticityKirchhoffGeneric)
+%shared_ptr(chrono::fea::ChPlasticityKirchhoff)
+%shared_ptr(chrono::fea::ChDampingKirchhoff)
 %shared_ptr(chrono::fea::ChElementShell)
 %shared_ptr(chrono::fea::ChElementShellReissner4)
 %shared_ptr(chrono::fea::ChElementShellANCF)
@@ -310,7 +318,7 @@ using namespace chrono::fea;
 %include "../chrono/fea/ChNodeFEAxyzD.h"
 %include "../chrono/fea/ChNodeFEAxyzDD.h"
 %include "../chrono/fea/ChNodeFEAxyzrot.h"
-// TODO: if eigen::ref can be wrapped, unignore these, ChMaterialShellReissner CTangent and ChNodeFEAbase matrix
+// TODO: if eigen::ref can be wrapped, unignore these
 %ignore chrono::fea::ChElementBase::ComputeKRMmatricesGlobal;
 %ignore chrono::fea::ChElementBase::ComputeMmatrixGlobal;
 %include "../chrono/fea/ChElementBase.h"
@@ -343,6 +351,12 @@ using namespace chrono::fea;
 %ignore chrono::fea::ChDampingReissner::ComputeDampingMatrix;
 %ignore chrono::fea::ChMaterialShellReissner::ComputeStiffnessMatrix;
 %include "../chrono/fea/ChMaterialShellReissner.h"
+// TODO: if eigen::ref can be wrapped, unignore these,
+%ignore chrono::fea::ChElasticityKirchhoff::ComputeStiffnessMatrix;
+%ignore chrono::fea::ChPlasticityKirchhoff::ComputeStiffnessMatrixElastoplastic;
+%ignore chrono::fea::ChDampingKirchhoff::ComputeDampingMatrix;
+%ignore chrono::fea::ChMaterialShellKirchhoff::ComputeStiffnessMatrix;
+%include "../chrono/fea/ChMaterialShellKirchhoff.h"
 %include "../chrono/fea/ChElementShell.h"
 %rename(ShellReissner4Layer) chrono::fea::ChElementShellReissner4::Layer;
 %include "../chrono/fea/ChElementShellReissner4.h"
@@ -388,6 +402,10 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono::fea,ChPlasticityCosserat,ChPlasticityCosseratLumped)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElasticityReissner,ChElasticityReissnerIsothropic)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElasticityReissner,ChElasticityReissnerOrthotropic)
+%DefSharedPtrDynamicDowncast(chrono::fea,ChElasticityReissner,ChElasticityReissnerGeneric)
+%DefSharedPtrDynamicDowncast(chrono::fea,ChElasticityKirchhoff,ChElasticityKirchhoffIsothropic)
+%DefSharedPtrDynamicDowncast(chrono::fea,ChElasticityKirchhoff,ChElasticityKirchhoffOrthotropic)
+%DefSharedPtrDynamicDowncast(chrono::fea,ChElasticityKirchhoff,ChElasticityKirchhoffGeneric)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementBar)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementSpring)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementTetra_4)
