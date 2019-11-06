@@ -12,7 +12,10 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Benchmark test for FEA contacts
+// Benchmark test for FEA contacts.
+//
+// Note that the MKL Pardiso and Mumps solvers are set to lock the sparsity
+// pattern, but not to use the sparsity pattern learner.
 //
 // =============================================================================
 
@@ -38,8 +41,14 @@
 #include "chrono_mkl/ChSolverMKL.h"
 #endif
 
+#ifdef CHRONO_MUMPS
+#include "chrono_mumps/ChSolverMumps.h"
+#endif
+
 using namespace chrono;
 using namespace chrono::fea;
+
+enum class SolverType { MINRES, MKL, MUMPS };
 
 class FEAcontactTest : public utils::ChBenchmarkTest {
   public:
@@ -51,7 +60,7 @@ class FEAcontactTest : public utils::ChBenchmarkTest {
     void SimulateVis();
 
   protected:
-    FEAcontactTest(ChSolver::Type solver_type);
+    FEAcontactTest(SolverType solver_type);
 
   private:
     void CreateFloor(std::shared_ptr<ChMaterialSurfaceSMC> cmat);
@@ -63,34 +72,57 @@ class FEAcontactTest : public utils::ChBenchmarkTest {
 
 class FEAcontactTest_MINRES : public FEAcontactTest {
   public:
-    FEAcontactTest_MINRES() : FEAcontactTest(ChSolver::Type::MINRES) {}
+    FEAcontactTest_MINRES() : FEAcontactTest(SolverType::MINRES) {}
 };
 
 class FEAcontactTest_MKL : public FEAcontactTest {
   public:
-    FEAcontactTest_MKL() : FEAcontactTest(ChSolver::Type::CUSTOM) {}
+    FEAcontactTest_MKL() : FEAcontactTest(SolverType::MKL) {}
 };
 
-FEAcontactTest::FEAcontactTest(ChSolver::Type solver_type) {
+class FEAcontactTest_MUMPS : public FEAcontactTest {
+  public:
+    FEAcontactTest_MUMPS() : FEAcontactTest(SolverType::MUMPS) {}
+};
+
+FEAcontactTest::FEAcontactTest(SolverType solver_type) {
     m_system = new ChSystemSMC();
 
     // Set solver parameters
 #ifndef CHRONO_MKL
-    if (solver_type == ChSolver::Type::CUSTOM)
-        solver_type = ChSolver::Type::MINRES;
+    if (solver_type == SolverType::MKL) {
+        solver_type = SolverType::MINRES;
+        std::cout << "WARNING! Chrono::MKL not enabled. Forcing use of MINRES solver" << std::endl;
+    }
+#endif
+
+#ifndef CHRONO_MUMPS
+    if (solver_type == SolverType::MUMPS) {
+        solver_type = SolverType::MINRES;
+        std::cout << "WARNING! Chrono::MUMPS not enabled. Forcing use of MINRES solver" << std::endl;
+    }
 #endif
 
     switch (solver_type) {
-        case ChSolver::Type::MINRES: {
+        case SolverType::MINRES: {
             m_system->SetSolverType(ChSolver::Type::MINRES);
             m_system->SetSolverWarmStarting(true);
             m_system->SetMaxItersSolverSpeed(40);
             m_system->SetTolForce(1e-10);
             m_system->SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
         }
-        case ChSolver::Type::CUSTOM: {
+        case SolverType::MKL: {
 #ifdef CHRONO_MKL
             auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
+            mkl_solver->SetSparsityPatternLock(true);
+            mkl_solver->SetVerbose(false);
+            m_system->SetSolver(mkl_solver);
+#endif
+            break;
+        }
+        case SolverType::MUMPS: {
+#ifdef CHRONO_MUMPS
+            auto mkl_solver = chrono_types::make_shared<ChSolverMumps>();
             mkl_solver->SetSparsityPatternLock(true);
             mkl_solver->SetVerbose(false);
             m_system->SetSolver(mkl_solver);
@@ -222,6 +254,10 @@ CH_BM_SIMULATION_ONCE(FEAcontact_MINRES, FEAcontactTest_MINRES, NUM_SKIP_STEPS, 
 
 #ifdef CHRONO_MKL
 CH_BM_SIMULATION_ONCE(FEAcontact_MKL, FEAcontactTest_MKL, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
+#endif
+
+#ifdef CHRONO_MUMPS
+CH_BM_SIMULATION_ONCE(FEAcontact_MUMPS, FEAcontactTest_MUMPS, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
 #endif
 
 // =============================================================================

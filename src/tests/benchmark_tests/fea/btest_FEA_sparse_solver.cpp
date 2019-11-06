@@ -26,7 +26,13 @@
 #include "chrono/fea/ChElementShellANCF.h"
 #include "chrono/fea/ChMesh.h"
 
+#ifdef CHRONO_MKL
 #include "chrono_mkl/ChSolverMKL.h"
+#endif
+
+#ifdef CHRONO_MUMPS
+#include "chrono_mumps/ChSolverMumps.h"
+#endif
 
 using namespace chrono;
 using namespace chrono::fea;
@@ -37,11 +43,6 @@ class SystemFixture : public ::benchmark::Fixture {
     void SetUp(const ::benchmark::State& st) override {
         m_system = new ChSystemSMC();
         m_system->Set_G_acc(ChVector<>(0, -9.8, 0));
-
-        m_solver = chrono_types::make_shared<ChSolverMKL<>>();
-        m_solver->SetSparsityPatternLock(true);
-        m_solver->SetVerbose(false);
-        m_system->SetSolver(m_solver);
 
         // Mesh properties
         double length = 1;
@@ -99,40 +100,60 @@ class SystemFixture : public ::benchmark::Fixture {
         st.counters["LS_Solve"] = m_system->GetTimerSolver() * 1e3 / num_it;
     }
 
+  protected:
     ChSystemSMC* m_system;
-    std::shared_ptr<ChSolverMKL<>> m_solver;
 };
 
-#define BM_LEARNER(TEST_NAME, N)                                                      \
+#define BM_SOLVER_MKL(TEST_NAME, N, WITH_LEARNER)                                     \
     BENCHMARK_TEMPLATE_DEFINE_F(SystemFixture, TEST_NAME, N)(benchmark::State & st) { \
+        auto solver = chrono_types::make_shared<ChSolverMKL<>>();                     \
+        solver->SetSparsityPatternLock(true);                                         \
+        solver->SetVerbose(false);                                                    \
+        m_system->SetSolver(solver);                                                  \
         while (st.KeepRunning()) {                                                    \
-            m_solver->ForceSparsityPatternUpdate(true);                               \
+            solver->ForceSparsityPatternUpdate(WITH_LEARNER);                         \
             m_system->DoStaticLinear();                                               \
         }                                                                             \
         Report(st);                                                                   \
     }                                                                                 \
     BENCHMARK_REGISTER_F(SystemFixture, TEST_NAME)->Unit(benchmark::kMillisecond);
 
-#define BM_NO_LEARNER(TEST_NAME, N)                                                   \
+#define BM_SOLVER_MUMPS(TEST_NAME, N, WITH_LEARNER)                                   \
     BENCHMARK_TEMPLATE_DEFINE_F(SystemFixture, TEST_NAME, N)(benchmark::State & st) { \
+        auto solver = chrono_types::make_shared<ChSolverMumps>();                     \
+        solver->SetSparsityPatternLock(true);                                         \
+        solver->SetVerbose(false);                                                    \
+        m_system->SetSolver(solver);                                                  \
         while (st.KeepRunning()) {                                                    \
+            solver->ForceSparsityPatternUpdate(WITH_LEARNER);                         \
             m_system->DoStaticLinear();                                               \
         }                                                                             \
         Report(st);                                                                   \
     }                                                                                 \
     BENCHMARK_REGISTER_F(SystemFixture, TEST_NAME)->Unit(benchmark::kMillisecond);
 
-BM_LEARNER(Learner_500, 500)
-BM_NO_LEARNER(NoLearner_500, 500)
+#ifdef CHRONO_MKL
+BM_SOLVER_MKL(MKL_learner_500, 500, true)
+BM_SOLVER_MKL(MKL_no_learner_500, 500, false)
+BM_SOLVER_MKL(MKL_learner_1000, 1000, true)
+BM_SOLVER_MKL(MKL_no_learner_1000, 1000, false)
+BM_SOLVER_MKL(MKL_learner_2000, 2000, true)
+BM_SOLVER_MKL(MKL_no_learner_2000, 2000, false)
+BM_SOLVER_MKL(MKL_learner_4000, 4000, true)
+BM_SOLVER_MKL(MKL_no_learner_4000, 4000, false)
+BM_SOLVER_MKL(MKL_learner_8000, 8000, true)
+BM_SOLVER_MKL(MKL_no_learner_8000, 8000, false)
+#endif
 
-BM_LEARNER(Learner_1000, 1000)
-BM_NO_LEARNER(NoLearner_1000, 1000)
-
-BM_LEARNER(Learner_2000, 2000)
-BM_NO_LEARNER(NoLearner_2000, 2000)
-
-BM_LEARNER(Learner_4000, 4000)
-BM_NO_LEARNER(NoLearner_4000, 4000)
-
-BM_LEARNER(Learner_8000, 8000)
-BM_NO_LEARNER(NoLearner_8000, 8000)
+#ifdef CHRONO_MUMPS
+BM_SOLVER_MUMPS(MUMPS_learner_500, 500, true)
+BM_SOLVER_MUMPS(MUMPS_no_learner_500, 500, false)
+BM_SOLVER_MUMPS(MUMPS_learner_1000, 1000, true)
+BM_SOLVER_MUMPS(MUMPS_no_learner_1000, 1000, false)
+BM_SOLVER_MUMPS(MUMPS_learner_2000, 2000, true)
+BM_SOLVER_MUMPS(MUMPS_no_learner_2000, 2000, false)
+BM_SOLVER_MUMPS(MUMPS_learner_4000, 4000, true)
+BM_SOLVER_MUMPS(MUMPS_no_learner_4000, 4000, false)
+BM_SOLVER_MUMPS(MUMPS_learner_8000, 8000, true)
+BM_SOLVER_MUMPS(MUMPS_no_learner_8000, 8000, false)
+#endif
