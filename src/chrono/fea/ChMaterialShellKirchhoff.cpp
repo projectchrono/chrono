@@ -255,6 +255,41 @@ void ChElasticityKirchhoffOrthotropic::ComputeStiffnessMatrix(ChMatrixRef mC,
 }
 
 
+//--------------------------------------------------------------
+
+ChElasticityKirchhoffGeneric::ChElasticityKirchhoffGeneric() {
+	mE.setIdentity();
+}
+
+void ChElasticityKirchhoffGeneric::ComputeStress(
+	ChVector<>& n,            ///< forces  n_11, n_22, n_12 (per unit length)
+	ChVector<>& m,            ///< torques m_11, m_22, m_12 (per unit length)
+	const ChVector<>& eps,    ///< strains   e_11, e_22, e_12
+	const ChVector<>& kur,    ///< curvature k_11, k_22, k_12
+	const double z_inf,       ///< layer lower z value (along thickness coord)
+	const double z_sup,       ///< layer upper z value (along thickness coord)
+	const double angle        ///< layer angle respect to x (if needed) -not used in this, isotropic
+) {
+	ChVectorN<double, 6> mstrain;
+    ChVectorN<double, 6> mstress;
+    mstrain.segment(0 , 3) = eps.eigen();
+    mstrain.segment(3 , 3) = kur.eigen();
+    mstress = this->mE * mstrain;
+    n = mstress.segment(0, 3);
+    m = mstress.segment(3, 3);
+}
+
+void ChElasticityKirchhoffGeneric::ComputeStiffnessMatrix(
+	ChMatrixRef mC,           ///< tangent matrix
+	const ChVector<>& eps,    ///< strains   e_11, e_22, e_12
+	const ChVector<>& kur,    ///< curvature k_11, k_22, k_12
+	const double z_inf,       ///< layer lower z value (along thickness coord)
+	const double z_sup,       ///< layer upper z value (along thickness coord)
+	const double angle        ///< layer angle respect to x (if needed)
+) {
+	mC = this->mE;
+}
+
 
 //----------------------------------------------------------------
 

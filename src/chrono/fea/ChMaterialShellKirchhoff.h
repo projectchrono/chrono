@@ -105,7 +105,7 @@ class ChApi ChElasticityKirchhoffIsothropic : public ChElasticityKirchhoff {
         const double z_inf,       ///< layer lower z value (along thickness coord)
         const double z_sup,       ///< layer upper z value (along thickness coord)
         const double angle        ///< layer angle respect to x (if needed) -not used in this, isotropic
-    );
+    ) override;
 
     /// Compute 12x12 stiffness matrix [Km] , that is [ds/de], the tangent of the constitutive relation
     /// per-unit-length forces/torques vs generalized strains.
@@ -116,7 +116,7 @@ class ChApi ChElasticityKirchhoffIsothropic : public ChElasticityKirchhoff {
         const double z_inf,       ///< layer lower z value (along thickness coord)
         const double z_sup,       ///< layer upper z value (along thickness coord)
         const double angle        ///< layer angle respect to x (if needed)
-    );
+    ) override;
 
   private:
     double m_E;      ///< elasticity moduli
@@ -166,7 +166,7 @@ class ChApi ChElasticityKirchhoffOrthotropic : public ChElasticityKirchhoff {
         const double z_inf,       ///< layer lower z value (along thickness coord)
         const double z_sup,       ///< layer upper z value (along thickness coord)
         const double angle        ///< layer angle respect to x (if needed) -not used in this, isotropic
-    );
+    ) override;
 
     /// Compute 12x12 stiffness matrix [Km] , that is [ds/de], the tangent of the constitutive relation
     /// per-unit-length forces/torques vs generalized strains.
@@ -177,7 +177,7 @@ class ChApi ChElasticityKirchhoffOrthotropic : public ChElasticityKirchhoff {
         const double z_inf,       ///< layer lower z value (along thickness coord)
         const double z_sup,       ///< layer upper z value (along thickness coord)
         const double angle        ///< layer angle respect to x (if needed)
-    );
+    ) override;
 
   private:
     double E_x;    ///< elasticity moduli
@@ -187,6 +187,60 @@ class ChApi ChElasticityKirchhoffOrthotropic : public ChElasticityKirchhoff {
     double G_xz;   ///< Shear factor, out of plane
     double G_yz;   ///< Shear factor, out of plane
 };
+
+
+/// Generic linear elasticity for thin shells (Kirchoff-Love shell theory,
+/// without shear effects) to be used in a ChMaterialShellKirchhoff. 
+/// This uses a 6x6 matrix [E] from user-input data. The [E] matrix can be 
+/// computed from a preprocessing stage using a FEA analysis over a detailed 3D model
+/// of a slab of shell, hence recovering the 6x6 matrix in the linear mapping:
+/// {n,m}=[E]{e,k}.
+
+class ChApi ChElasticityKirchhoffGeneric : public ChElasticityKirchhoff {
+  public:
+    ChElasticityKirchhoffGeneric();
+
+    virtual ~ChElasticityKirchhoffGeneric() {}
+
+    /// Access the E matrix, for getting/setting its values.
+    /// This is the matrix that defines the linear elastic constitutive model
+    /// as it maps  yxz displacements "e" and xyz rotations "k"
+    /// to the "n" force and  "m" torque as in
+    ///   {n,m}=[E]{e,k}.
+    ChMatrixNM<double, 6, 6>& Ematrix() { return this->mE; }
+
+
+    /// The FE code will evaluate this function to compute
+    /// per-unit-length forces/torques given the strains/curvatures.
+    virtual void ComputeStress(
+        ChVector<>& n,            ///< forces  n_11, n_22, n_12 (per unit length)
+        ChVector<>& m,            ///< torques m_11, m_22, m_12 (per unit length)
+        const ChVector<>& eps,    ///< strains   e_11, e_22, e_12
+        const ChVector<>& kur,    ///< curvature k_11, k_22, k_12
+        const double z_inf,       ///< layer lower z value (along thickness coord)
+        const double z_sup,       ///< layer upper z value (along thickness coord)
+        const double angle        ///< layer angle respect to x (if needed) -not used in this, isotropic
+    ) override;
+
+    /// Compute 12x12 stiffness matrix [Km] , that is [ds/de], the tangent of the constitutive relation
+    /// per-unit-length forces/torques vs generalized strains.
+    virtual void ComputeStiffnessMatrix(
+        ChMatrixRef mC,           ///< tangent matrix
+        const ChVector<>& eps,    ///< strains   e_11, e_22, e_12
+        const ChVector<>& kur,    ///< curvature k_11, k_22, k_12
+        const double z_inf,       ///< layer lower z value (along thickness coord)
+        const double z_sup,       ///< layer upper z value (along thickness coord)
+        const double angle        ///< layer angle respect to x (if needed)
+    ) override;
+
+  private:
+    ChMatrixNM<double, 6, 6> mE;
+
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+};
+
+
 
 // ----------------------------------------------------------------------------
 
