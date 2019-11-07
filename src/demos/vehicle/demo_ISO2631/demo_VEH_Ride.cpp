@@ -300,7 +300,7 @@ int main(int argc, char* argv[]) {
         // Update modules (process inputs from other modules)
         double time = vehicle.GetSystem()->GetChTime();
         driver.Synchronize(time);
-        vehicle.Synchronize(time, driver_inputs);
+        vehicle.Synchronize(time, driver_inputs, terrain);
         terrain.Synchronize(time);
 
         // Advance simulation for one timestep for all modules

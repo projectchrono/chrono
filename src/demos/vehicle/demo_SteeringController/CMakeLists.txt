@@ -1,6 +1,6 @@
 #=============================================================================
 # CMake configuration file for the STEERING_CONTROLLER demo.
-# This example program works only with Irrlicht run-time visualization
+# This example program requires Irrlicht run-time visualization.
 #=============================================================================
 
 IF(NOT ENABLE_MODULE_IRRLICHT)

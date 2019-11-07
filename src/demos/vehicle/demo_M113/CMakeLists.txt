@@ -1,6 +1,6 @@
 #=============================================================================
 # CMake configuration file for the M113 demos.
-# These example programs requires Irrlicht run-time visualization
+# These example programs require Irrlicht run-time visualization.
 #=============================================================================
 
 IF(NOT ENABLE_MODULE_IRRLICHT)
