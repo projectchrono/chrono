@@ -128,8 +128,10 @@ void ChLinkSpringCB::IntStateScatter(const unsigned int off_x,  // offset in x s
 }
 
 void ChLinkSpringCB::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
-    //// RADU: correct?!?
-    // do nothing here
+    if (!m_variables)
+        return;
+
+    a.segment(off_a, m_nstates) = m_rhs;
 }
 
 void ChLinkSpringCB::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
