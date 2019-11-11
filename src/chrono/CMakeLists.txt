@@ -85,6 +85,7 @@ set(ChronoEngine_core_HEADERS
     core/ChCubicSpline.h
     core/ChBitmaskEnums.h
     core/ChGlobal.h
+    core/ChFx.h
     core/ChTypes.h
     )
 
@@ -113,8 +114,6 @@ source_group(serialization FILES
 # Physics group
 
 set(ChronoEngine_physics_SOURCES
-    physics/ChNlsolver.cpp
-    physics/ChLimit.cpp
     physics/ChObject.cpp
     physics/ChMarker.cpp
     physics/ChForce.cpp
@@ -122,6 +121,92 @@ set(ChronoEngine_physics_SOURCES
     physics/ChBody.cpp
     physics/ChBodyAuxRef.cpp
     physics/ChBodyEasy.cpp
+    physics/ChSystem.cpp
+    physics/ChSystemNSC.cpp
+    physics/ChSystemSMC.cpp
+    physics/ChProbe.cpp
+    physics/ChControls.cpp
+    physics/ChController.cpp
+    physics/ChRef.cpp
+    physics/ChGenericConstraint.cpp
+    physics/ChPhysicsItem.cpp
+    physics/ChParticlesClones.cpp
+    physics/ChIndexedParticles.cpp
+    physics/ChIndexedNodes.cpp
+    physics/ChNodeBase.cpp
+    physics/ChNodeXYZ.cpp
+    physics/ChMatterSPH.cpp
+    physics/ChProximityContainer.cpp
+    physics/ChProximityContainerSPH.cpp
+    physics/ChConveyor.cpp
+    physics/ChAssembly.cpp
+    )
+
+set(ChronoEngine_physics_HEADERS
+    physics/ChBodyFrame.h
+    physics/ChBody.h
+    physics/ChBodyAuxRef.h
+    physics/ChBodyEasy.h
+    physics/ChGenericConstraint.h
+    physics/ChController.h
+    physics/ChControls.h
+    physics/ChConveyor.h
+    physics/ChForce.h
+    physics/ChIndexedNodes.h
+    physics/ChIndexedParticles.h
+    physics/ChMarker.h
+    physics/ChMatterSPH.h
+    physics/ChNodeBase.h
+    physics/ChNodeXYZ.h
+    physics/ChObject.h
+    physics/ChParticlesClones.h
+    physics/ChPhysicsItem.h
+    physics/ChProbe.h
+    physics/ChProximityContainer.h
+    physics/ChProximityContainerSPH.h
+    physics/ChRef.h
+    physics/ChSystem.h
+    physics/ChSystemNSC.h
+    physics/ChSystemSMC.h    
+    physics/ChAssembly.h
+    physics/ChTensors.h
+    physics/ChInertiaUtils.h
+    )
+
+source_group(physics FILES
+    ${ChronoEngine_physics_SOURCES}
+    ${ChronoEngine_physics_HEADERS})
+
+# PHYSICS sub-groups
+
+set(ChronoEngine_physics_contact_SOURCES
+    physics/ChContactContainer.cpp
+    physics/ChContactContainerNSC.cpp
+    physics/ChContactContainerSMC.cpp
+    physics/ChMaterialSurfaceSMC.cpp
+    physics/ChMaterialSurfaceNSC.cpp
+)
+
+set(ChronoEngine_physics_contact_HEADERS
+    physics/ChContactContainer.h
+    physics/ChContactContainerNSC.h
+    physics/ChContactContainerSMC.h
+    physics/ChContactable.h
+    physics/ChContactTuple.h
+    physics/ChContactSMC.h
+    physics/ChContactNSC.h
+    physics/ChContactNSCrolling.h
+    physics/ChMaterialSurface.h
+    physics/ChMaterialSurfaceNSC.h
+    physics/ChMaterialSurfaceSMC.h
+)
+
+source_group(physics\\contact FILES
+    ${ChronoEngine_physics_contact_SOURCES}
+    ${ChronoEngine_physics_contact_HEADERS})
+
+set(ChronoEngine_physics_links_SOURCES
+    physics/ChLimit.cpp
     physics/ChLinkForce.cpp
     physics/ChLinkMask.cpp
     physics/ChLinkBase.cpp
@@ -158,74 +243,9 @@ set(ChronoEngine_physics_SOURCES
     physics/ChLinkMotorLinearSpeed.cpp
     physics/ChLinkMotorLinearForce.cpp
     physics/ChLinkMotorLinearDriveline.cpp
-    physics/ChSystem.cpp
-    physics/ChSystemNSC.cpp
-    physics/ChSystemSMC.cpp
-    physics/ChSolvmin.cpp
-    physics/ChProbe.cpp
-    physics/ChControls.cpp
-    physics/ChController.cpp
-    physics/ChIterative.cpp
-    physics/ChRef.cpp
-    physics/ChGenericConstraint.cpp
-    physics/ChPhysicsItem.cpp
-    physics/ChParticlesClones.cpp
-    physics/ChIndexedParticles.cpp
-    physics/ChIndexedNodes.cpp
-    physics/ChNodeBase.cpp
-    physics/ChNodeXYZ.cpp
-    physics/ChMatterSPH.cpp
-    physics/ChContactContainer.cpp
-    physics/ChContactContainerNSC.cpp
-    physics/ChContactContainerSMC.cpp
-    physics/ChProximityContainer.cpp
-    physics/ChProximityContainerSPH.cpp
-    physics/ChShaft.cpp
-    physics/ChShaftsGear.cpp
-    physics/ChShaftsGearbox.cpp
-    physics/ChShaftsGearboxAngled.cpp
-    physics/ChShaftsClutch.cpp
-    physics/ChShaftsPlanetary.cpp
-    physics/ChShaftsMotor.cpp
-    physics/ChShaftsMotorAngle.cpp
-    physics/ChShaftsMotorSpeed.cpp
-    physics/ChShaftsMotorTorque.cpp
-    physics/ChShaftsBody.cpp
-    physics/ChShaftsTorqueBase.cpp
-    physics/ChShaftsTorque.cpp
-    physics/ChShaftsTorsionSpring.cpp
-    physics/ChShaftsTorqueConverter.cpp
-    physics/ChShaftsThermalEngine.cpp
-    physics/ChShaftsLoads.cpp
-    physics/ChConveyor.cpp
-    physics/ChFx.cpp
-    physics/ChAssembly.cpp
-    physics/ChMaterialSurfaceSMC.cpp
-    physics/ChMaterialSurfaceNSC.cpp
-    physics/ChLoadContainer.cpp
-    physics/ChLoad.cpp
-    physics/ChLoadsBody.cpp
-    physics/ChLoadsXYZnode.cpp
-    physics/ChLoadBodyMesh.cpp
-    )
+)
 
-set(ChronoEngine_physics_HEADERS
-    physics/ChBodyFrame.h
-    physics/ChBody.h
-    physics/ChBodyAuxRef.h
-    physics/ChBodyEasy.h
-    physics/ChGenericConstraint.h
-    physics/ChContactContainer.h
-    physics/ChContactContainerNSC.h
-    physics/ChContactContainerSMC.h
-    physics/ChController.h
-    physics/ChControls.h
-    physics/ChConveyor.h
-    physics/ChForce.h
-    physics/ChFx.h
-    physics/ChIndexedNodes.h
-    physics/ChIndexedParticles.h
-    physics/ChIterative.h
+set(ChronoEngine_physics_links_HEADERS
     physics/ChLimit.h
     physics/ChLinkBase.h
     physics/ChLink.h
@@ -264,21 +284,58 @@ set(ChronoEngine_physics_HEADERS
     physics/ChLinkMotorLinearSpeed.h
     physics/ChLinkMotorLinearForce.h
     physics/ChLinkMotorLinearDriveline.h
-    physics/ChMarker.h
-    physics/ChMaterialSurface.h
-    physics/ChMaterialSurfaceNSC.h
-    physics/ChMaterialSurfaceSMC.h
-    physics/ChMatterSPH.h
-    physics/ChNlsolver.h
-    physics/ChNodeBase.h
-    physics/ChNodeXYZ.h
-    physics/ChObject.h
-    physics/ChParticlesClones.h
-    physics/ChPhysicsItem.h
-    physics/ChProbe.h
-    physics/ChProximityContainer.h
-    physics/ChProximityContainerSPH.h
-    physics/ChRef.h
+)
+
+source_group(physics\\links FILES
+    ${ChronoEngine_physics_links_SOURCES}
+    ${ChronoEngine_physics_links_HEADERS})
+
+set(ChronoEngine_physics_loads_SOURCES
+    physics/ChLoadContainer.cpp
+    physics/ChLoad.cpp
+    physics/ChLoadsBody.cpp
+    physics/ChLoadsXYZnode.cpp
+    physics/ChLoadBodyMesh.cpp
+)
+
+set(ChronoEngine_physics_loads_HEADERS
+    physics/ChLoadable.h
+    physics/ChLoader.h
+    physics/ChLoaderU.h
+    physics/ChLoaderUV.h
+    physics/ChLoaderUVW.h
+    physics/ChLoad.h
+    physics/ChLoadsXYZnode.h
+    physics/ChLoadsBody.h
+    physics/ChLoadBodyMesh.h
+    physics/ChLoadContainer.h
+)
+
+source_group(physics\\loads FILES
+    ${ChronoEngine_physics_loads_SOURCES}
+    ${ChronoEngine_physics_loads_HEADERS})
+
+set(ChronoEngine_physics_shafts_SOURCES
+    physics/ChShaft.cpp
+    physics/ChShaftsGear.cpp
+    physics/ChShaftsGearbox.cpp
+    physics/ChShaftsGearboxAngled.cpp
+    physics/ChShaftsClutch.cpp
+    physics/ChShaftsPlanetary.cpp
+    physics/ChShaftsMotor.cpp
+    physics/ChShaftsMotorAngle.cpp
+    physics/ChShaftsMotorSpeed.cpp
+    physics/ChShaftsMotorTorque.cpp
+    physics/ChShaftsBody.cpp
+    physics/ChShaftsTorqueBase.cpp
+    physics/ChShaftsTorque.cpp
+    physics/ChShaftsTorsionSpring.cpp
+    physics/ChShaftsTorqueConverter.cpp
+    physics/ChShaftsThermalEngine.cpp
+    physics/ChShaftsLoads.cpp
+)
+
+set(ChronoEngine_physics_shafts_HEADERS
     physics/ChShaft.h
     physics/ChShaftsBody.h
     physics/ChShaftsClutch.h
@@ -297,33 +354,11 @@ set(ChronoEngine_physics_HEADERS
     physics/ChShaftsTorqueConverter.h
     physics/ChShaftsThermalEngine.h
     physics/ChShaftsLoads.h
-    physics/ChSolvmin.h
-    physics/ChSystem.h
-    physics/ChSystemNSC.h
-    physics/ChSystemSMC.h    
-    physics/ChAssembly.h
-    physics/ChContactSMC.h
-    physics/ChContactNSC.h
-    physics/ChContactNSCrolling.h
-    physics/ChTensors.h
-    physics/ChInertiaUtils.h
-    physics/ChContactable.h
-    physics/ChContactTuple.h
-    physics/ChLoadable.h
-    physics/ChLoader.h
-    physics/ChLoaderU.h
-    physics/ChLoaderUV.h
-    physics/ChLoaderUVW.h
-    physics/ChLoad.h
-    physics/ChLoadsXYZnode.h
-    physics/ChLoadsBody.h
-    physics/ChLoadBodyMesh.h
-    physics/ChLoadContainer.h
-    )
+)
 
-source_group(physics FILES
-    ${ChronoEngine_physics_SOURCES}
-    ${ChronoEngine_physics_HEADERS})
+source_group(physics\\shafts FILES
+    ${ChronoEngine_physics_shafts_SOURCES}
+    ${ChronoEngine_physics_shafts_HEADERS})
 
 # FEA group
 
@@ -332,27 +367,6 @@ set(ChronoEngine_fea_SOURCES
     fea/ChBeamSection.cpp
     fea/ChBeamSectionCosserat.cpp
     fea/ChContinuumMaterial.cpp
-    fea/ChElementBeamANCF.cpp
-    fea/ChElementBeamEuler.cpp
-    fea/ChElementCableANCF.cpp
-    fea/ChElementGeneric.cpp
-    fea/ChElementSpring.cpp
-    fea/ChElementBar.cpp
-    fea/ChElementTetra_4.cpp
-    fea/ChElementTetra_10.cpp
-    fea/ChElementHexa_8.cpp
-    fea/ChElementHexa_20.cpp 
-    fea/ChElementShellANCF.cpp
-    fea/ChElementShellANCF_8.cpp
-    fea/ChElementShellReissner4.cpp
-    fea/ChElementBrick.cpp
-    fea/ChElementBrick_9.cpp
-    fea/ChNodeFEAxyz.cpp
-    fea/ChNodeFEAxyzrot.cpp
-    fea/ChNodeFEAxyzP.cpp
-    fea/ChNodeFEAxyzD.cpp
-    fea/ChNodeFEAxyzDD.cpp
-    fea/ChNodeFEAcurv.cpp
     fea/ChGaussIntegrationRule.cpp
     fea/ChGaussPoint.cpp
     fea/ChMesh.cpp
@@ -385,36 +399,6 @@ set(ChronoEngine_fea_HEADERS
     fea/ChContinuumPoisson3D.h
     fea/ChContinuumThermal.h
     fea/ChContinuumElectrostatics.h
-    fea/ChNodeFEAbase.h 
-    fea/ChNodeFEAxyz.h
-    fea/ChNodeFEAxyzrot.h
-    fea/ChNodeFEAxyzP.h
-    fea/ChNodeFEAxyzD.h
-    fea/ChNodeFEAxyzDD.h
-    fea/ChNodeFEAcurv.h
-    fea/ChElementBase.h
-    fea/ChElementGeneric.h
-    fea/ChElementCorotational.h
-    fea/ChElementSpring.h
-    fea/ChElementBar.h
-    fea/ChElementBeam.h
-    fea/ChElementBeamANCF.h
-    fea/ChElementBeamEuler.h
-    fea/ChElementBeamIGA.h
-    fea/ChElementCableANCF.h
-    fea/ChElementBrick.h 
-    fea/ChElementBrick_9.h
-    fea/ChElement3D.h
-    fea/ChElementTetrahedron.h
-    fea/ChElementTetra_4.h
-    fea/ChElementTetra_10.h
-    fea/ChElementHexahedron.h
-    fea/ChElementHexa_8.h
-    fea/ChElementHexa_20.h
-    fea/ChElementShell.h
-    fea/ChElementShellANCF.h
-    fea/ChElementShellANCF_8.h
-    fea/ChElementShellReissner4.h
     fea/ChFaceTetra_4.h
     fea/ChFaceBrick_9.h
     fea/ChFaceHexa_8.h
@@ -447,6 +431,79 @@ set(ChronoEngine_fea_HEADERS
 source_group(fea FILES
     ${ChronoEngine_fea_SOURCES}
     ${ChronoEngine_fea_HEADERS})
+
+# FEA sub-groups
+
+set(ChronoEngine_fea_nodes_SOURCES
+    fea/ChNodeFEAxyz.cpp
+    fea/ChNodeFEAxyzrot.cpp
+    fea/ChNodeFEAxyzP.cpp
+    fea/ChNodeFEAxyzD.cpp
+    fea/ChNodeFEAxyzDD.cpp
+    fea/ChNodeFEAcurv.cpp
+)
+
+set(ChronoEngine_fea_nodes_HEADERS
+    fea/ChNodeFEAbase.h 
+    fea/ChNodeFEAxyz.h
+    fea/ChNodeFEAxyzrot.h
+    fea/ChNodeFEAxyzP.h
+    fea/ChNodeFEAxyzD.h
+    fea/ChNodeFEAxyzDD.h
+    fea/ChNodeFEAcurv.h
+)
+
+source_group(fea\\nodes FILES
+    ${ChronoEngine_fea_nodes_SOURCES}
+    ${ChronoEngine_fea_nodes_HEADERS})
+
+set(ChronoEngine_fea_elements_SOURCES
+    fea/ChElementBeamANCF.cpp
+    fea/ChElementBeamEuler.cpp
+    fea/ChElementCableANCF.cpp
+    fea/ChElementGeneric.cpp
+    fea/ChElementSpring.cpp
+    fea/ChElementBar.cpp
+    fea/ChElementTetra_4.cpp
+    fea/ChElementTetra_10.cpp
+    fea/ChElementHexa_8.cpp
+    fea/ChElementHexa_20.cpp 
+    fea/ChElementShellANCF.cpp
+    fea/ChElementShellANCF_8.cpp
+    fea/ChElementShellReissner4.cpp
+    fea/ChElementBrick.cpp
+    fea/ChElementBrick_9.cpp
+)
+
+set(ChronoEngine_fea_elements_HEADERS
+    fea/ChElementBase.h
+    fea/ChElementGeneric.h
+    fea/ChElementCorotational.h
+    fea/ChElementSpring.h
+    fea/ChElementBar.h
+    fea/ChElementBeam.h
+    fea/ChElementBeamANCF.h
+    fea/ChElementBeamEuler.h
+    fea/ChElementBeamIGA.h
+    fea/ChElementCableANCF.h
+    fea/ChElementBrick.h 
+    fea/ChElementBrick_9.h
+    fea/ChElement3D.h
+    fea/ChElementTetrahedron.h
+    fea/ChElementTetra_4.h
+    fea/ChElementTetra_10.h
+    fea/ChElementHexahedron.h
+    fea/ChElementHexa_8.h
+    fea/ChElementHexa_20.h
+    fea/ChElementShell.h
+    fea/ChElementShellANCF.h
+    fea/ChElementShellANCF_8.h
+    fea/ChElementShellReissner4.h
+)
+
+source_group(fea\\elements FILES
+    ${ChronoEngine_fea_elements_SOURCES}
+    ${ChronoEngine_fea_elements_HEADERS})
 
 # Geometry group
 
@@ -778,6 +835,67 @@ set(ChronoEngine_solver_SOURCES
     solver/ChSolverBB.cpp
     solver/ChSolverPCG.cpp
     solver/ChSolverAPGD.cpp
+    solver/ChSolverSMC.cpp
+    solver/ChKblockGeneric.cpp
+    solver/ChSolvmin.cpp
+    solver/ChNlsolver.cpp
+    solver/ChIterative.cpp
+    )
+
+set(ChronoEngine_solver_HEADERS
+    solver/ChSystemDescriptor.h
+    solver/ChSolver.h
+    solver/ChIterativeSolver.h
+    solver/ChSolverJacobi.h
+    solver/ChSolverMINRES.h
+    solver/ChSolverPMINRES.h
+    solver/ChSolverBB.h
+    solver/ChSolverPCG.h
+    solver/ChSolverAPGD.h
+    solver/ChSolverSOR.h
+    solver/ChSolverSORmultithread.h
+    solver/ChSolverSymmSOR.h
+    solver/ChSolverSMC.h
+    solver/ChKblock.h
+    solver/ChKblockGeneric.h
+    solver/ChSolvmin.h
+    solver/ChNlsolver.h
+    solver/ChIterative.h
+    )
+	 
+source_group(solver FILES
+    ${ChronoEngine_solver_SOURCES}
+    ${ChronoEngine_solver_HEADERS})
+
+#Solver sub-groups
+
+set(ChronoEngine_solver_variables_SOURCES
+    solver/ChVariables.cpp
+    solver/ChVariablesGeneric.cpp
+    solver/ChVariablesGenericDiagonalMass.cpp
+    solver/ChVariablesBody.cpp
+    solver/ChVariablesBodySharedMass.cpp
+    solver/ChVariablesBodyOwnMass.cpp
+    solver/ChVariablesShaft.cpp
+    solver/ChVariablesNode.cpp
+)
+
+set(ChronoEngine_solver_variables_HEADERS
+    solver/ChVariables.h
+    solver/ChVariablesBody.h
+    solver/ChVariablesBodyOwnMass.h
+    solver/ChVariablesBodySharedMass.h
+    solver/ChVariablesShaft.h
+    solver/ChVariablesGeneric.h
+    solver/ChVariablesGenericDiagonalMass.h
+    solver/ChVariablesNode.h
+)
+
+source_group(solver\\variables FILES
+    ${ChronoEngine_solver_variables_SOURCES}
+    ${ChronoEngine_solver_variables_HEADERS})
+
+set(ChronoEngine_solver_constraints_SOURCES
     solver/ChConstraint.cpp
     solver/ChConstraintTwo.cpp
     solver/ChConstraintTwoGeneric.cpp
@@ -787,19 +905,9 @@ set(ChronoEngine_solver_SOURCES
     solver/ChConstraintThreeGeneric.cpp
     solver/ChConstraintThreeBBShaft.cpp
     solver/ChConstraintNgeneric.cpp
-    solver/ChVariables.cpp
-    solver/ChVariablesGeneric.cpp
-    solver/ChVariablesGenericDiagonalMass.cpp
-    solver/ChVariablesBody.cpp
-    solver/ChVariablesBodySharedMass.cpp
-    solver/ChVariablesBodyOwnMass.cpp
-    solver/ChVariablesShaft.cpp
-    solver/ChVariablesNode.cpp
-    solver/ChKblockGeneric.cpp
-    solver/ChSolverSMC.cpp
-    )
+)
 
-set(ChronoEngine_solver_HEADERS
+set(ChronoEngine_solver_constraints_HEADERS
     solver/ChConstraint.h
     solver/ChConstraintThree.h
     solver/ChConstraintThreeBBShaft.h
@@ -815,34 +923,11 @@ set(ChronoEngine_solver_HEADERS
     solver/ChConstraintTwoTuplesRollingN.h
     solver/ChConstraintTwoTuplesRollingT.h
     solver/ChConstraintNgeneric.h
-    solver/ChSolver.h
-    solver/ChIterativeSolver.h
-    solver/ChSolverJacobi.h
-    solver/ChSolverMINRES.h
-    solver/ChSolverPMINRES.h
-    solver/ChSolverBB.h
-    solver/ChSolverPCG.h
-    solver/ChSolverAPGD.h
-    solver/ChSolverSOR.h
-    solver/ChSolverSORmultithread.h
-    solver/ChSolverSymmSOR.h
-    solver/ChSystemDescriptor.h
-    solver/ChVariables.h
-    solver/ChVariablesBody.h
-    solver/ChVariablesBodyOwnMass.h
-    solver/ChVariablesBodySharedMass.h
-    solver/ChVariablesShaft.h
-    solver/ChVariablesGeneric.h
-    solver/ChVariablesGenericDiagonalMass.h
-    solver/ChVariablesNode.h
-    solver/ChKblock.h
-    solver/ChKblockGeneric.h
-    solver/ChSolverSMC.h
-    )
-	 
-source_group(solver FILES
-    ${ChronoEngine_solver_SOURCES}
-    ${ChronoEngine_solver_HEADERS})
+)
+
+source_group(solver\\constraints FILES
+    ${ChronoEngine_solver_constraints_SOURCES}
+    ${ChronoEngine_solver_constraints_HEADERS})
 
 # Bullet collision group
 
@@ -1106,10 +1191,26 @@ set(ChronoEngine_FILES
     ${ChronoEngine_serialization_HEADERS}
     ${ChronoEngine_physics_SOURCES}
     ${ChronoEngine_physics_HEADERS}
+    ${ChronoEngine_physics_contact_SOURCES}
+    ${ChronoEngine_physics_contact_HEADERS}
+    ${ChronoEngine_physics_links_SOURCES}
+    ${ChronoEngine_physics_links_HEADERS}
+    ${ChronoEngine_physics_loads_SOURCES}
+    ${ChronoEngine_physics_loads_HEADERS}
+    ${ChronoEngine_physics_shafts_SOURCES}
+    ${ChronoEngine_physics_shafts_HEADERS}
     ${ChronoEngine_fea_SOURCES}
     ${ChronoEngine_fea_HEADERS}
+    ${ChronoEngine_fea_nodes_SOURCES}
+    ${ChronoEngine_fea_nodes_HEADERS}
+    ${ChronoEngine_fea_elements_SOURCES}
+    ${ChronoEngine_fea_elements_HEADERS}
     ${ChronoEngine_solver_SOURCES}
     ${ChronoEngine_solver_HEADERS}
+    ${ChronoEngine_solver_constraints_SOURCES}
+    ${ChronoEngine_solver_constraints_HEADERS}
+    ${ChronoEngine_solver_variables_SOURCES}
+    ${ChronoEngine_solver_variables_HEADERS}
     ${ChronoEngine_collision_SOURCES}
     ${ChronoEngine_collision_HEADERS}
     ${ChronoEngine_geometry_SOURCES}

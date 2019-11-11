@@ -12,7 +12,6 @@
 
 //// RADU
 //// Obsolete this?
-//// Otherwise, move to core/
 
 #ifndef CHFX_H
 #define CHFX_H
