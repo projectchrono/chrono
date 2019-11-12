@@ -49,7 +49,7 @@
 #include "chrono/solver/ChIterativeSolver.h"
 #include "chrono/solver/ChSolverMINRES.h"
 
-#include "chrono_mkl/ChMklEngine.h"
+#include "chrono_mkl/ChApiMkl.h"
 #include "chrono_mkl/ChSolverMKL.h"
 
 using namespace chrono;
@@ -89,9 +89,8 @@ using namespace chrono;
 // is enough that a single class in an inheritance tree uses %shared_ptr, and all other in the 
 // tree must be promoted to %shared_ptr too).
 
-%shared_ptr(chrono::ChSolver) // from core module
-%shared_ptr(chrono::ChSolverMKL<>)
-%shared_ptr(chrono::ChSolverMKL<ChCSMatrix>)
+
+%shared_ptr(chrono::ChSolverMKL)
 
 
 //
@@ -112,12 +111,11 @@ using namespace chrono;
 //  mynamespace { class myclass; }
 // in the .i file, before the %include of the .h, even if already forwarded in .h
 
-%import(module = "pychrono.core") "../chrono/solver/ChSolver.h"
+%import(module = "pychrono.core") "ChSolver.i"
 
 //%include "../chrono_mkl/ChMklEngine.h"
 %include "../chrono_mkl/ChSolverMKL.h"
 
-%template(ChSolverMKLcsm) chrono::ChSolverMKL<ChCSMatrix>;
 
 //
 // C- DOWNCASTING OF SHARED POINTERS
@@ -134,7 +132,7 @@ using namespace chrono;
 //  print ('Could be cast to visualization object?', !myvis.IsNull())
 
 //%DefSharedPtrDynamicDowncast(ChSolver,ChSolverMKL<ChCSMatrix>) // cannot use because of <> in generated function name, hence:
-%DefSharedPtrDynamicDowncastCustomName(chrono, chrono, ChSolver, ChSolverMKL<ChCSMatrix>, ChSolverMKLcsm)
+%DefSharedPtrDynamicDowncast(chrono, ChSolver, ChSolverMKL)
 
 //
 // ADDITIONAL C++ FUNCTIONS / CLASSES THAT ARE USED ONLY FOR PYTHON WRAPPER
