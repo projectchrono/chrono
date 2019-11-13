@@ -24,7 +24,47 @@ namespace chrono {
 /// @addtogroup chrono_solver
 /// @{
 
-/// Base class for sparse direct solvers.
+/** \class ChSolverDirect
+\brief Base class for sparse direct solvers.
+
+Sparse linear direct solvers.
+Cannot handle VI and complementarity problems, so it cannot be used with NSC formulations.
+
+This base class manages the setup and solution of sparse linear systems in Chrono and defers to derived classes for
+performing the actual matrix factorization and then computing the solution vector.
+See ChSolverMkl (which implements Eigen's interface to the Intel MKL Pardiso solver) and ChSolverMumps (which interfaces
+to the MUMPS solver).
+
+ChSolverDirect manages the detection and update of the matrix sparsity pattern, providing two main features:
+- sparsity pattern lock
+- sparsity pattern learning
+
+The sparsity pattern \e lock skips sparsity identification or reserving memory for nonzeros on all but the first call to
+Setup. This feature is intended for problems where the system matrix sparsity pattern does not change significantly from
+call to call.\n
+See #LockSparsityPattern();
+
+The sparsity pattern \e learning feature acquires the sparsity pattern in advance, in order to speed up matrix assembly.
+Enabled by default, the sparsity matrix learner identifies the exact matrix sparsity pattern (without actually setting
+any nonzeros).\n
+See #UseSparsityPatternLearner();
+
+A further option allows the user to provide an estimate for the matrix sparsity (a value in [0,1], with 0 corresponding
+to a fully dense matrix). This value is used if the sparsity pattern learner is disabled if/when required to reserve
+space for matrix indices and nonzeros.
+See #SetSparsityEstimate();
+
+<br>
+
+<div class="ce-warning">
+If appropriate and warranted by the problem setup, it is \e highly recommended to enable the sparsity pattern \e lock.
+This can significantly improve performance for more complex problems (larger size and/or problems which include
+constraints).
+</div>
+
+See ChSystemDescriptor for more information about the problem formulation and the data structures passed to the solver.
+*/
+
 class ChApi ChSolverDirect : public ChSolver {
   public:
     enum class MatrixSymmetryType {

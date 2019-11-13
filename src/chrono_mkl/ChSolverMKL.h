@@ -26,7 +26,7 @@ namespace chrono {
 /// @{
 
 /** \class ChSolverMKL
-\brief Interface to the Intel MKL Pardiso parallel direct solver.
+\brief Interface to the Intel MKL Pardiso parallel sparse direct solver.
 
 Sparse linear direct solver.
 Cannot handle VI and complementarity problems, so it cannot be used with NSC formulations.
@@ -35,22 +35,7 @@ The solver is equipped with two main features:
 - sparsity pattern lock
 - sparsity pattern learning
 
-The sparsity pattern \e lock skips sparsity identification or reserving memory for nonzeros on all but the first call to
-Setup. This feature is intended for problems where the system matrix sparsity pattern does not change significantly from
-call to call.\n
-See #LockSparsityPattern();
-
-The sparsity pattern \e learning feature acquires the sparsity pattern in advance, in order to speed up matrix assembly.
-Enabled by default, the sparsity matrix learner identifies the exact matrix sparsity pattern (without actually setting
-any nonzeros).\n 
-See #UseSparsityPatternLearner();
-
-A further option allows the user to provide an estimate for the matrix sparsity (a value in [0,1], with 0 corresponding
-to a fully dense matrix). This value is used if the sparsity pattern learner is disabled if/when required to reserve
-space for matrix indices and nonzeros.
-See #SetSparsityEstimate();
-
-<br>
+See ChSolverDirect for more details.
 
 <div class="ce-warning">
 If appropriate and warranted by the problem setup, it is \e highly recommended to enable the sparsity pattern \e lock.
@@ -61,7 +46,7 @@ constraints).
 Minimal usage example, to be put anywhere in the code, before starting the main simulation loop:
 \code{.cpp}
 auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
-application.GetSystem()->SetSolver(mkl_solver);
+system.SetSolver(mkl_solver);
 \endcode
 
 See ChSystemDescriptor for more information about the problem formulation and the data structures passed to the solver.

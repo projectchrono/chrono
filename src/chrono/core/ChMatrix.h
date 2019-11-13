@@ -15,8 +15,6 @@
 #ifndef CHMATRIX_H
 #define CHMATRIX_H
 
-#include <list>
-
 #define EIGEN_MATRIXBASE_PLUGIN "chrono/core/ChMatrixEigenExtensions.h"
 #define EIGEN_SPARSEMATRIX_PLUGIN "chrono/core/ChSparseMatrixEigenExtensions.h"
 #include "Eigen/Dense"

@@ -24,7 +24,33 @@ namespace chrono {
 /// @addtogroup mumps_module
 /// @{
 
-/// Interface to the MUMPS parallel direct solver.
+
+/** \class ChSolverMumps
+\brief Interface to the MUMPS parallel sparse direct solver.
+
+Sparse linear direct solver.
+Cannot handle VI and complementarity problems, so it cannot be used with NSC formulations.
+
+The solver is equipped with two main features:
+- sparsity pattern lock
+- sparsity pattern learning
+
+See ChSolverDirect for more details.
+
+<div class="ce-warning">
+If appropriate and warranted by the problem setup, it is \e highly recommended to enable the sparsity pattern \e lock.
+This can significantly improve performance for more complex problems (larger size and/or problems which include
+constraints).
+</div>
+
+Minimal usage example, to be put anywhere in the code, before starting the main simulation loop:
+\code{.cpp}
+auto mumps_solver = chrono_types::make_shared<ChSolverMumps>();
+system.SetSolver(mumps_solver);
+\endcode
+
+See ChSystemDescriptor for more information about the problem formulation and the data structures passed to the solver.
+*/
 class ChApiMumps ChSolverMumps : public ChSolverDirect {
   public:
     ChSolverMumps() {}
