@@ -12,7 +12,6 @@
 
 //// RADU
 //// Obsolete?
-//// Move to core/
 
 #ifndef CHITERATIVE_H
 #define CHITERATIVE_H

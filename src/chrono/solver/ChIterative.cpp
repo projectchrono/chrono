@@ -10,7 +10,7 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChIterative.h"
+#include "chrono/solver/ChIterative.h"
 
 namespace chrono {
 
