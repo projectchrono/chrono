@@ -42,12 +42,9 @@ void ChSolverDirect::ResetTimers() {
 bool ChSolverDirect::Setup(ChSystemDescriptor& sysd) {
     m_timer_setup_assembly.start();
 
-    // Calculate problem size
-    //// RADU: revisit this; what happens when a problem size does actually change?
-    if (m_setup_call == 0) {
-        sysd.UpdateCountsAndOffsets();
-        m_dim = sysd.CountActiveVariables() + sysd.CountActiveConstraints();
-    }
+    // Calculate problem size.  
+    // Note that ChSystemDescriptor::UpdateCountsAndOffsets was already called at the beginning of the step.
+    m_dim = sysd.CountActiveVariables() + sysd.CountActiveConstraints();
 
     // If use of the sparsity pattern learner is enabled, call it if:
     // (a) an explicit update was requested (by default this is true at the first call), or

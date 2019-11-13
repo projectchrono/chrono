@@ -1451,7 +1451,9 @@ bool ChSystem::Integrate_Y() {
 
     // Prepare lists of variables and constraints.
     DescriptorPrepareInject(*descriptor);
-    descriptor->UpdateCountsAndOffsets();
+
+    // No need to update counts and offsets, as already done by the above call (in ChSystemDescriptor::EndInsertion)
+    ////descriptor->UpdateCountsAndOffsets();
 
     // Set some settings in timestepper object
     timestepper->SetQcDoClamp(true);
