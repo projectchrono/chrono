@@ -301,7 +301,12 @@ int main(int argc, char* argv[]) {
 
         application.DoStep();
 
-        extruder->Update();    //***REMEMBER*** to do this to update the extrusion
+        bool modified = extruder->Update();    //***REMEMBER*** to do this to update the extrusion
+        if (modified) {
+            // A system change occurred: if using a sparse direct linear solver and if using the sparsity pattern
+            // learner (enabled by default), then we must force a re-evaluation of system matrix sparsity pattern!
+            mkl_solver->ForceSparsityPatternUpdate();
+        }
 
         application.EndScene();
     }
