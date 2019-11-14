@@ -18,7 +18,6 @@
 #include "chrono_matlab/ChApiMatlab.h"
 #include "chrono_matlab/ChMatlabEngine.h"
 
-#include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/solver/ChSolver.h"
 
 namespace chrono {

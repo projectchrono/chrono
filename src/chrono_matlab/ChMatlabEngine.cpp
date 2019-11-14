@@ -75,22 +75,20 @@ bool ChMatlabEngine::PutVariable(ChMatrixConstRef mmatr, string varname) {
 /// If a variable with the same name already exist, it is overwritten.
 bool ChMatlabEngine::PutSparseMatrix(const ChSparseMatrix& mmatr, string varname) {
     int nels = 0;
-    for (int ii = 0; ii < mmatr.GetNumRows(); ii++)
-        for (int jj = 0; jj < mmatr.GetNumColumns(); jj++) {
-            double elVal = ((ChSparseMatrix&)mmatr).GetElement(ii, jj);
-            if (elVal ||
-                (ii + 1 == ((ChSparseMatrix&)mmatr).GetNumRows() && jj + 1 == ((ChSparseMatrix&)mmatr).GetNumColumns()))
+    for (int ii = 0; ii < mmatr.rows(); ii++)
+        for (int jj = 0; jj < mmatr.cols(); jj++) {
+            double elVal = mmatr.coeff(ii, jj);
+            if (elVal || (ii + 1 == mmatr.rows() && jj + 1 == mmatr.cols()))
                 ++nels;
         }
 
     ChMatrixDynamic<> transfer(nels, 3);
 
     int eln = 0;
-    for (int ii = 0; ii < mmatr.GetNumRows(); ii++)
-        for (int jj = 0; jj < mmatr.GetNumColumns(); jj++) {
-            double elVal = ((ChSparseMatrix&)mmatr).GetElement(ii, jj);
-            if (elVal || (ii + 1 == ((ChSparseMatrix&)mmatr).GetNumRows() &&
-                          jj + 1 == ((ChSparseMatrix&)mmatr).GetNumColumns())) {
+    for (int ii = 0; ii < mmatr.rows(); ii++)
+        for (int jj = 0; jj < mmatr.cols(); jj++) {
+            double elVal = mmatr.coeff(ii, jj);
+            if (elVal || (ii + 1 == mmatr.rows() && jj + 1 == mmatr.cols())) {
                 transfer(eln, 0) = ii + 1;
                 transfer(eln, 1) = jj + 1;
                 transfer(eln, 2) = elVal;

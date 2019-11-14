@@ -13,14 +13,14 @@
 // =============================================================================
 //
 // FEA for 3D beams of 'cable' type (ANCF gradient-deficient beams)
-//       uses the Chrono MKL module
+//       uses the Chrono MUMPS module
 //
 // =============================================================================
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/timestepper/ChTimestepper.h"
 #include "chrono_irrlicht/ChIrrApp.h"
-#include "chrono_mkl/ChSolverMKL.h"
+#include "chrono_mumps/ChSolverMUMPS.h"
 
 #include "FEAcables.h"
 
@@ -86,7 +86,7 @@ int main(int argc, char* argv[]) {
     // Configure MKL solver.
     // For this simple and relatively small problem, use of the sparsity pattern learner may introduce additional
     // overhead (if the sparsity pattern is not locked).
-    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+    auto mkl_solver = chrono_types::make_shared<ChSolverMumps>();
     mkl_solver->UseSparsityPatternLearner(false);
     mkl_solver->LockSparsityPattern(false);
     my_system.SetSolver(mkl_solver);

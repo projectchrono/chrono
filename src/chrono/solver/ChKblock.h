@@ -16,7 +16,7 @@
 #define CHKBLOCK_H
 
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChSparseMatrix.h"
+#include "chrono/core/ChMatrix.h"
 
 namespace chrono {
 

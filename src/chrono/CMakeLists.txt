@@ -40,8 +40,6 @@ set(ChronoEngine_core_SOURCES
     core/ChQuaternion.cpp
     core/ChVector.cpp
     core/ChCoordsys.cpp
-    core/ChCSMatrix.cpp
-    core/ChCOOMatrix.cpp
     core/ChQuadrature.cpp
     core/ChBezierCurve.cpp
     core/ChCubicSpline.cpp
@@ -64,6 +62,8 @@ set(ChronoEngine_core_HEADERS
     core/ChMathematics.h
     core/ChMatrix.h
     core/ChMatrixEigenExtensions.h
+    core/ChSparseMatrixEigenExtensions.h
+    core/ChSparsityPatternLearner.h
     core/ChMatrix33.h
     core/ChMatrixMBD.h
     core/ChPlatform.h
@@ -74,9 +74,6 @@ set(ChronoEngine_core_HEADERS
     core/ChTransform.h
     core/ChVector.h
     core/ChVector2.h
-    core/ChSparseMatrix.h
-    core/ChCSMatrix.h
-    core/ChCOOMatrix.h
     core/ChAlignedAllocator.h
     core/ChDistribution.h
     core/ChQuadrature.h
@@ -836,6 +833,7 @@ set(ChronoEngine_solver_SOURCES
     solver/ChSolverPCG.cpp
     solver/ChSolverAPGD.cpp
     solver/ChSolverSMC.cpp
+    solver/ChSolverDirect.cpp
     solver/ChKblockGeneric.cpp
     solver/ChSolvmin.cpp
     solver/ChNlsolver.cpp
@@ -856,6 +854,7 @@ set(ChronoEngine_solver_HEADERS
     solver/ChSolverSORmultithread.h
     solver/ChSolverSymmSOR.h
     solver/ChSolverSMC.h
+    solver/ChSolverDirect.h
     solver/ChKblock.h
     solver/ChKblockGeneric.h
     solver/ChSolvmin.h

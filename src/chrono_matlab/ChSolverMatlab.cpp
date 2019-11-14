@@ -13,7 +13,6 @@
 // =============================================================================
 
 #include "chrono_matlab/ChSolverMatlab.h"
-#include "chrono/core/ChCSMatrix.h"
 
 namespace chrono {
 
@@ -30,9 +29,9 @@ ChSolverMatlab::ChSolverMatlab() {
 
 // Solve using the Matlab default direct solver (as in x=A\b)
 double ChSolverMatlab::Solve(ChSystemDescriptor& sysd) {
-    ChCSMatrix mdM;
-    ChCSMatrix mdCq;
-    ChCSMatrix mdE;
+    ChSparseMatrix mdM;
+    ChSparseMatrix mdCq;
+    ChSparseMatrix mdE;
     ChVectorDynamic<double> mdf;
     ChVectorDynamic<double> mdb;
     ChVectorDynamic<double> mdfric;

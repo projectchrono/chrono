@@ -122,7 +122,8 @@ class ChApi ChSystemDescriptor {
     /// Insert reference to a ChKblock object (a piece of matrix)
     virtual void InsertKblock(ChKblock* mk) { vstiffness.push_back(mk); }
 
-    /// End insertion of items
+    /// End insertion of items.
+    /// A derived class should always call UpdateCountsAndOffsets.
     virtual void EndInsertion() { UpdateCountsAndOffsets(); }
 
     /// Count & returns the scalar variables in the system (excluding ChVariable objects
