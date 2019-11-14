@@ -96,6 +96,37 @@ linux:arch-gcc:deploy:
   when: manual
 
 
+linux:doxygen:deploy:
+  tags:
+  - linux
+  image: 
+    name: archlinux/base
+    entrypoint: ["/usr/bin/bash", "-c"]
+  stage: deploy
+  before_script:
+    - pacman -Syyu --noconfirm base-devel git wget fish python python-pip doxygen graphviz openssh rsync
+    - eval $(ssh-agent -s)
+    - echo "$API_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 0700 ~/.ssh
+  script:
+    - cd doxygen
+    - doxygen Doxyfile
+    - doxygen Doxyfile_Generate_Search_Index
+    - rsync -ra /tmp/chrono_doxygen/html/* $API_HTML_ENDPOINT
+    - rsync /tmp/chrono_doxygen/searchdata.xml $API_SEARCH_ENDPOINT
+    - ssh $API_REINDEX_ENDPOINT /var/www/cgi-bin/doxyindexer.cgi /var/www/cgi-bin/searchdata.xml
+  environment:
+    name: doxygen
+    url: http://api.projectchrono.org/
+  rules:
+    - if: '$CI_COMMIT_REF_NAME != "develop"'
+      when: manual
+    - if: '$CI_COMMIT_REF_NAME == "develop"'
+      when: on_success
+  
+
+
 linux:arch-llvm:build:
   stage: build
   extends: .archlinux
