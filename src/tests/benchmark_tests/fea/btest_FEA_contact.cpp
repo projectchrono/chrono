@@ -12,7 +12,10 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Benchmark test for FEA contacts
+// Benchmark test for FEA contacts.
+//
+// Note that the MKL Pardiso and Mumps solvers are set to lock the sparsity
+// pattern, but not to use the sparsity pattern learner.
 //
 // =============================================================================
 
@@ -34,18 +37,30 @@
 #include "chrono_irrlicht/ChIrrApp.h"
 #endif
 
+#ifdef CHRONO_MKL
+#include "chrono_mkl/ChSolverMKL.h"
+#endif
+
+#ifdef CHRONO_MUMPS
+#include "chrono_mumps/ChSolverMumps.h"
+#endif
+
 using namespace chrono;
 using namespace chrono::fea;
 
+enum class SolverType { MINRES, MKL, MUMPS };
+
 class FEAcontactTest : public utils::ChBenchmarkTest {
   public:
-    FEAcontactTest();
-    ~FEAcontactTest() { delete m_system; }
+    virtual ~FEAcontactTest() { delete m_system; }
 
     ChSystem* GetSystem() override { return m_system; }
     void ExecuteStep() override { m_system->DoStepDynamics(1e-3); }
 
     void SimulateVis();
+
+  protected:
+    FEAcontactTest(SolverType solver_type);
 
   private:
     void CreateFloor(std::shared_ptr<ChMaterialSurfaceSMC> cmat);
@@ -55,14 +70,68 @@ class FEAcontactTest : public utils::ChBenchmarkTest {
     ChSystemSMC* m_system;
 };
 
-FEAcontactTest::FEAcontactTest() {
+class FEAcontactTest_MINRES : public FEAcontactTest {
+  public:
+    FEAcontactTest_MINRES() : FEAcontactTest(SolverType::MINRES) {}
+};
+
+class FEAcontactTest_MKL : public FEAcontactTest {
+  public:
+    FEAcontactTest_MKL() : FEAcontactTest(SolverType::MKL) {}
+};
+
+class FEAcontactTest_MUMPS : public FEAcontactTest {
+  public:
+    FEAcontactTest_MUMPS() : FEAcontactTest(SolverType::MUMPS) {}
+};
+
+FEAcontactTest::FEAcontactTest(SolverType solver_type) {
     m_system = new ChSystemSMC();
 
-    m_system->SetSolverType(ChSolver::Type::MINRES);
-    m_system->SetSolverWarmStarting(true);
-    m_system->SetMaxItersSolverSpeed(40);
-    m_system->SetTolForce(1e-10);
-    m_system->SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
+    // Set solver parameters
+#ifndef CHRONO_MKL
+    if (solver_type == SolverType::MKL) {
+        solver_type = SolverType::MINRES;
+        std::cout << "WARNING! Chrono::MKL not enabled. Forcing use of MINRES solver" << std::endl;
+    }
+#endif
+
+#ifndef CHRONO_MUMPS
+    if (solver_type == SolverType::MUMPS) {
+        solver_type = SolverType::MINRES;
+        std::cout << "WARNING! Chrono::MUMPS not enabled. Forcing use of MINRES solver" << std::endl;
+    }
+#endif
+
+    switch (solver_type) {
+        case SolverType::MINRES: {
+            m_system->SetSolverType(ChSolver::Type::MINRES);
+            m_system->SetSolverWarmStarting(true);
+            m_system->SetMaxItersSolverSpeed(40);
+            m_system->SetTolForce(1e-10);
+            m_system->SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
+        }
+        case SolverType::MKL: {
+#ifdef CHRONO_MKL
+            auto solver = chrono_types::make_shared<ChSolverMKL>();
+            solver->UseSparsityPatternLearner(false);
+            solver->LockSparsityPattern(true);
+            solver->SetVerbose(false);
+            m_system->SetSolver(solver);
+#endif
+            break;
+        }
+        case SolverType::MUMPS: {
+#ifdef CHRONO_MUMPS
+            auto solver = chrono_types::make_shared<ChSolverMumps>();
+            solver->UseSparsityPatternLearner(false);
+            solver->LockSparsityPattern(true);
+            solver->SetVerbose(false);
+            m_system->SetSolver(solver);
+#endif
+            break;
+        }
+    }
 
     collision::ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
     collision::ChCollisionModel::SetDefaultSuggestedMargin(0.006);
@@ -183,7 +252,15 @@ void FEAcontactTest::SimulateVis() {
 #define NUM_SKIP_STEPS 50  // number of steps for hot start
 #define NUM_SIM_STEPS 500  // number of simulation steps for each benchmark
 
-CH_BM_SIMULATION_ONCE(FEAcontact, FEAcontactTest, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
+CH_BM_SIMULATION_ONCE(FEAcontact_MINRES, FEAcontactTest_MINRES, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
+
+#ifdef CHRONO_MKL
+CH_BM_SIMULATION_ONCE(FEAcontact_MKL, FEAcontactTest_MKL, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
+#endif
+
+#ifdef CHRONO_MUMPS
+CH_BM_SIMULATION_ONCE(FEAcontact_MUMPS, FEAcontactTest_MUMPS, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
+#endif
 
 // =============================================================================
 
@@ -192,7 +269,7 @@ int main(int argc, char* argv[]) {
 
 #ifdef CHRONO_IRRLICHT
     if (::benchmark::ReportUnrecognizedArguments(argc, argv)) {
-        FEAcontactTest test;
+        FEAcontactTest_MINRES test;
         test.SimulateVis();
         return 0;
     }

@@ -85,10 +85,20 @@ void ChMesh::SetNoSpeedNoAcceleration() {
 void ChMesh::AddNode(std::shared_ptr<ChNodeFEAbase> m_node) {
     m_node->SetIndex(static_cast<unsigned int>(vnodes.size()) + 1);
     vnodes.push_back(m_node);
+
+    if (system) {
+        system->is_initialized = false;
+        system->is_updated = false;
+    }
 }
 
 void ChMesh::AddElement(std::shared_ptr<ChElementBase> m_elem) {
     velements.push_back(m_elem);
+
+    if (system) {
+        system->is_initialized = false;
+        system->is_updated = false;
+    }
 }
 
 void ChMesh::ClearElements() {

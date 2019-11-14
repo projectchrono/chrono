@@ -58,8 +58,8 @@ VisualizationType tire_vis_type = VisualizationType::MESH;
 // Collision type for chassis (PRIMITIVES, MESH, or NONE)
 ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE;
 
-// Type of tire model (RIGID, TMEASY)
-TireModelType tire_model = TireModelType::TMEASY;
+// Type of tire model (RIGID, TMEASY, PAC02)
+TireModelType tire_model = TireModelType::PAC02;
 
 // Rigid terrain
 RigidTerrain::Type terrain_model = RigidTerrain::BOX;
@@ -258,7 +258,8 @@ int main(int argc, char* argv[]) {
 
         // Driver output
         if (driver_mode == RECORD) {
-            driver_csv << time << driver_inputs.m_steering << driver_inputs.m_throttle << driver_inputs.m_braking << std::endl;
+            driver_csv << time << driver_inputs.m_steering << driver_inputs.m_throttle << driver_inputs.m_braking
+                       << std::endl;
         }
 
         // Update modules (process inputs from other modules)

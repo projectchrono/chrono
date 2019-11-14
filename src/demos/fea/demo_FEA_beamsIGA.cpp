@@ -726,7 +726,7 @@ int main(int argc, char* argv[]) {
     msolver->SetDiagonalPreconditioning(true);
 
     #ifdef USE_MKL
-        auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
+        auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
         my_system.SetSolver(mkl_solver);
     #endif
 

@@ -229,6 +229,11 @@ using namespace chrono::fea;
 %shared_ptr(chrono::fea::ChMaterialShellReissner)
 %shared_ptr(chrono::fea::ChMaterialShellReissnerIsothropic)
 %shared_ptr(chrono::fea::ChMaterialShellReissnerOrthotropic)
+%shared_ptr(chrono::fea::ChElasticityReissner)
+%shared_ptr(chrono::fea::ChElasticityReissnerIsothropic)
+%shared_ptr(chrono::fea::ChElasticityReissnerOrthotropic)
+%shared_ptr(chrono::fea::ChPlasticityReissner)
+%shared_ptr(chrono::fea::ChDampingReissner)
 %shared_ptr(chrono::fea::ChElementShell)
 %shared_ptr(chrono::fea::ChElementShellReissner4)
 %shared_ptr(chrono::fea::ChElementShellANCF)
@@ -297,6 +302,7 @@ using namespace chrono::fea;
 //  core/  classes
 %include "../chrono/physics/ChPhysicsItem.h"
 %include "../chrono/fea/ChContinuumMaterial.h"
+// TODO: if eigen::ref can be wrapped, unignore these,
 %ignore chrono::fea::ChNodeFEAbase::ComputeKRMmatricesGlobal;
 %include "../chrono/fea/ChNodeFEAbase.h"
 %include "../chrono/fea/ChNodeFEAxyz.h"
@@ -328,11 +334,14 @@ using namespace chrono::fea;
 %include "../chrono/fea/ChElementHexahedron.h"		
 %include "../chrono/fea/ChElementHexa_8.h"
 %include "../chrono/fea/ChElementHexa_20.h"
-
 %include "../chrono/fea/ChElementBrick.h"
 %include "../chrono/fea/ChElementBrick_9.h"
 %include "../chrono/fea/ChMaterialShellANCF.h"
-%ignore chrono::fea::ChMaterialShellReissner::ComputeTangentC;
+// TODO: if eigen::ref can be wrapped, unignore these,
+%ignore chrono::fea::ChElasticityReissner::ComputeStiffnessMatrix;
+%ignore chrono::fea::ChPlasticityReissner::ComputeStiffnessMatrixElastoplastic;
+%ignore chrono::fea::ChDampingReissner::ComputeDampingMatrix;
+%ignore chrono::fea::ChMaterialShellReissner::ComputeStiffnessMatrix;
 %include "../chrono/fea/ChMaterialShellReissner.h"
 %include "../chrono/fea/ChElementShell.h"
 %rename(ShellReissner4Layer) chrono::fea::ChElementShellReissner4::Layer;
@@ -377,6 +386,8 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElasticityCosserat,ChElasticityCosseratAdvanced)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElasticityCosserat,ChElasticityCosseratMesh)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChPlasticityCosserat,ChPlasticityCosseratLumped)
+%DefSharedPtrDynamicDowncast(chrono::fea,ChElasticityReissner,ChElasticityReissnerIsothropic)
+%DefSharedPtrDynamicDowncast(chrono::fea,ChElasticityReissner,ChElasticityReissnerOrthotropic)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementBar)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementSpring)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementTetra_4)

@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Rainer Gericke, Radu Serban 
+// Authors: Rainer Gericke, Radu Serban
 // =============================================================================
 //
 // Main driver function for a UAZ vehicle specified through JSON files.
@@ -37,6 +37,7 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/RigidTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/TMeasyTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/Pac02Tire.h"
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
@@ -69,8 +70,14 @@ std::string simple_map_powertrain_file("uaz/powertrain/UAZBUS_SimpleMapPowertrai
 std::string tmeasy_front_tire_file("uaz/tire/UAZBUS_TMeasyTireFront.json");
 std::string tmeasy_rear_tire_file("uaz/tire/UAZBUS_TMeasyTireRear.json");
 
+// JSON files tire models (Pac02)
+std::string pac02tire_file("uaz/tire/UAZBUS_Pac02Tire.json");
+
 // Driver input file (if not using Irrlicht)
 std::string driver_file("generic/driver/Sample_Maneuver.txt");
+
+// Type of tire model (TMEASY, PAC02)
+TireModelType tire_model = TireModelType::TMEASY;
 
 // Initial vehicle position, avoid big fall heights with TMeasy
 ChVector<> initLoc(0, 0, 0.38);
@@ -124,21 +131,39 @@ int main(int argc, char* argv[]) {
 
     // Create the ground
     RigidTerrain terrain(vehicle.GetSystem(), vehicle::GetDataFile(rigidterrain_file));
- 
+
     // Create and initialize the powertrain system
     auto powertrain = chrono_types::make_shared<SimpleMapPowertrain>(vehicle::GetDataFile(simple_map_powertrain_file));
     vehicle.InitializePowertrain(powertrain);
 
     // Create and initialize the tires
-    auto tireFL = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_front_tire_file));
-    auto tireFR = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_front_tire_file));
-    vehicle.InitializeTire(tireFL, vehicle.GetAxle(0)->m_wheels[0], VisualizationType::NONE);
-    vehicle.InitializeTire(tireFR, vehicle.GetAxle(0)->m_wheels[1], VisualizationType::NONE);
+    switch (tire_model) {
+        case TireModelType::TMEASY: {
+            auto tireFL = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_front_tire_file));
+            auto tireFR = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_front_tire_file));
+            auto tireRL = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_rear_tire_file));
+            auto tireRR = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_rear_tire_file));
+            vehicle.InitializeTire(tireFL, vehicle.GetAxle(0)->m_wheels[0], VisualizationType::NONE);
+            vehicle.InitializeTire(tireFR, vehicle.GetAxle(0)->m_wheels[1], VisualizationType::NONE);
+            vehicle.InitializeTire(tireRL, vehicle.GetAxle(1)->m_wheels[0], VisualizationType::NONE);
+            vehicle.InitializeTire(tireRR, vehicle.GetAxle(1)->m_wheels[1], VisualizationType::NONE);
+        } break;
 
-    auto tireRL = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_rear_tire_file));
-    auto tireRR = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_rear_tire_file));
-    vehicle.InitializeTire(tireRL, vehicle.GetAxle(1)->m_wheels[0], VisualizationType::NONE);
-    vehicle.InitializeTire(tireRR, vehicle.GetAxle(1)->m_wheels[1], VisualizationType::NONE);
+        case TireModelType::PAC02: {
+            auto tireFL = chrono_types::make_shared<Pac02Tire>(vehicle::GetDataFile(pac02tire_file));
+            auto tireFR = chrono_types::make_shared<Pac02Tire>(vehicle::GetDataFile(pac02tire_file));
+            auto tireRL = chrono_types::make_shared<Pac02Tire>(vehicle::GetDataFile(pac02tire_file));
+            auto tireRR = chrono_types::make_shared<Pac02Tire>(vehicle::GetDataFile(pac02tire_file));
+            vehicle.InitializeTire(tireFL, vehicle.GetAxle(0)->m_wheels[0], VisualizationType::NONE);
+            vehicle.InitializeTire(tireFR, vehicle.GetAxle(0)->m_wheels[1], VisualizationType::NONE);
+            vehicle.InitializeTire(tireRL, vehicle.GetAxle(1)->m_wheels[0], VisualizationType::NONE);
+            vehicle.InitializeTire(tireRR, vehicle.GetAxle(1)->m_wheels[1], VisualizationType::NONE);
+        } break;
+
+        default:
+            GetLog() << "Unsupported tire model selected!\n";
+            return 1;
+    }
 
     // Create the Irrlicht visualization
     ChWheeledVehicleIrrApp app(&vehicle, L"UAZ (JSON) Vehicle Demo");

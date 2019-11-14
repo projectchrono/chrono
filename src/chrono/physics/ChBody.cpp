@@ -869,30 +869,28 @@ void ChBody::ComputeJacobianForContactPart(const ChVector<>& abs_point,
                                            ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
                                            ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
                                            bool second) {
-	/*
-    ChVector<> m_p1_loc = this->Point_World2Body(abs_point);
-    ChMatrix33<> Jx1, Jr1;
-    ChMatrix33<> Ps1, Jtemp;
-    Ps1.Set_X_matrix(m_p1_loc);
+    /*
+    ChVector<> p1 = this->Point_World2Body(abs_point);
+    ChStarMatrix33<> Ps1(p1);
 
-    Jx1.CopyFromMatrixT(contact_plane);
+    ChMatrix33<> Jx1 = contact_plane.transpose();
     if (!second)
-        Jx1.MatrNeg();
+        Jx1 *= -1;
 
-    Jtemp.MatrMultiply(this->GetA(), Ps1);
-    Jr1.MatrTMultiply(contact_plane, Jtemp);
-    if (second)
-        Jr1.MatrNeg();
+    ChMatrix33<> Jr1 = contact_plane.transpose() * this->GetA() * Ps1;
+    if (!second)
+        Jr1 *= -1;
 
-    jacobian_tuple_N.Get_Cq()->PasteClippedMatrix(Jx1, 0, 0, 1, 3, 0, 0);
-    jacobian_tuple_U.Get_Cq()->PasteClippedMatrix(Jx1, 1, 0, 1, 3, 0, 0);
-    jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(Jx1, 2, 0, 1, 3, 0, 0);
-    jacobian_tuple_N.Get_Cq()->PasteClippedMatrix(Jr1, 0, 0, 1, 3, 0, 3);
-    jacobian_tuple_U.Get_Cq()->PasteClippedMatrix(Jr1, 1, 0, 1, 3, 0, 3);
-    jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(Jr1, 2, 0, 1, 3, 0, 3);
-	*/
-	
-	// UNROLLED VERSION - FASTER
+    jacobian_tuple_N.Get_Cq().segment(0, 3) = Jx1.row(0);
+    jacobian_tuple_U.Get_Cq().segment(0, 3) = Jx1.row(1);
+    jacobian_tuple_V.Get_Cq().segment(0, 3) = Jx1.row(2);
+
+    jacobian_tuple_N.Get_Cq().segment(3, 3) = Jr1.row(0);
+    jacobian_tuple_U.Get_Cq().segment(3, 3) = Jr1.row(1);
+    jacobian_tuple_V.Get_Cq().segment(3, 3) = Jr1.row(2);
+    */
+
+    // UNROLLED VERSION - FASTER
 	ChVector<> p1 = this->Point_World2Body(abs_point);
 	double temp00 = Amatrix(0,2)* contact_plane(0,0) +  Amatrix(1,2)* contact_plane(1,0) + Amatrix(2,2)* contact_plane(2,0);
 	double temp01 = Amatrix(0,2)* contact_plane(0,1) +  Amatrix(1,2)* contact_plane(1,1) + Amatrix(2,2)* contact_plane(2,1);

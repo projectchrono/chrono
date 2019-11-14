@@ -15,7 +15,7 @@
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/solver/ChConstraintTwoTuplesContactN.h"
 #include "chrono/solver/ChConstraintTwoTuplesFrictionT.h"
-#include "chrono/core/ChCSMatrix.h"
+#include "chrono/core/ChMatrix.h"
 
 namespace chrono {
 
@@ -131,11 +131,11 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Cq,
     // Reset and resize (if needed) auxiliary vectors
 
     if (Cq)
-        Cq->Reset(mn_c, n_q);
+        Cq->resize(mn_c, n_q);
     if (H)
-        H->Reset(n_q, n_q);
+        H->resize(n_q, n_q);
     if (E)
-        E->Reset(mn_c, mn_c);
+        E->resize(mn_c, mn_c);
     if (Fvector)
         Fvector->setZero(n_q);
     if (Bvector)
@@ -207,7 +207,8 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Z, ChVectorDynamic<
     n_q = CountActiveVariables();
 
     if (Z) {
-        Z->Reset(n_q + mn_c, n_q + mn_c);
+        Z->conservativeResize(n_q + mn_c, n_q + mn_c);
+        Z->setZeroValues();        
 
         // Fill Z with masses and inertias.
         int s_q = 0;
@@ -272,23 +273,23 @@ void ChSystemDescriptor::DumpLastMatrices(bool assembled, const char* path) {
         const char* numformat = "%.12g";
 
         if (assembled) {
-            ChCSMatrix Z;
+            ChSparseMatrix Z;
             ChVectorDynamic<double> rhs;
             ConvertToMatrixForm(&Z, &rhs);
 
             sprintf(filename, "%s%s", path, "Z.dat");
             ChStreamOutAsciiFile file_Z(filename);
             file_Z.SetNumFormat(numformat);
-            Z.StreamOUTsparseMatlabFormat(file_Z);
+            StreamOUTsparseMatlabFormat(Z, file_Z);
 
             sprintf(filename, "%s%s", path, "rhs.dat");
             ChStreamOutAsciiFile file_rhs(filename);
             file_rhs.SetNumFormat(numformat);
             StreamOUTdenseMatlabFormat(rhs, file_rhs);
         } else {
-            ChCSMatrix mdM;
-            ChCSMatrix mdCq;
-            ChCSMatrix mdE;
+            ChSparseMatrix mdM;
+            ChSparseMatrix mdCq;
+            ChSparseMatrix mdE;
             ChVectorDynamic<double> mdf;
             ChVectorDynamic<double> mdb;
             ChVectorDynamic<double> mdfric;
@@ -297,17 +298,17 @@ void ChSystemDescriptor::DumpLastMatrices(bool assembled, const char* path) {
             sprintf(filename, "%s%s", path, "M.dat");
             ChStreamOutAsciiFile file_M(filename);
             file_M.SetNumFormat(numformat);
-            mdM.StreamOUTsparseMatlabFormat(file_M);
+            StreamOUTsparseMatlabFormat(mdM, file_M);
 
             sprintf(filename, "%s%s", path, "Cq.dat");
             ChStreamOutAsciiFile file_Cq(filename);
             file_Cq.SetNumFormat(numformat);
-            mdCq.StreamOUTsparseMatlabFormat(file_Cq);
+            StreamOUTsparseMatlabFormat(mdCq, file_Cq);
 
             sprintf(filename, "%s%s", path, "E.dat");
             ChStreamOutAsciiFile file_E(filename);
             file_E.SetNumFormat(numformat);
-            mdE.StreamOUTsparseMatlabFormat(file_E);
+            StreamOUTsparseMatlabFormat(mdE, file_E);
 
             sprintf(filename, "%s%s", path, "f.dat");
             ChStreamOutAsciiFile file_f(filename);
