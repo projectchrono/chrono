@@ -106,7 +106,6 @@ linux:doxygen:deploy:
   before_script:
     - pacman -Syyu --noconfirm base-devel git wget fish python python-pip doxygen graphviz openssh rsync
     - eval $(ssh-agent -s)
-    - 
     - echo -e "-----BEGIN RSA PRIVATE KEY-----\n$API_PRIVATE_KEY\n-----END RSA PRIVATE KEY-----\n" | ssh-add -
     - mkdir -p ~/.ssh
     - chmod 0700 ~/.ssh
