@@ -1,13 +1,8 @@
 #=============================================================================
 # CMake configuration file for the M113 with continuous band track demos.
-# These example programs requires Irrlicht run-time visualization and the
-# MKL or MUMPS Chrono modules.
+# This example program works with and without Irrlicht run-time visualization
+# and requires the MKL or MUMPS Chrono modules.
 #=============================================================================
-
-# Irrlicht required
-if(NOT ENABLE_MODULE_IRRLICHT)
-    return()
-endif()
 
 # MUMPS or MKL required
 if (NOT ENABLE_MODULE_MKL AND NOT ENABLE_MODULE_MUMPS)

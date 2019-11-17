@@ -1,6 +1,6 @@
 #=============================================================================
 # CMake configuration file for the TIRE_TEST_RIG demo.
-# This example program works only with Irrlicht run-time visualization
+# This example program requires Irrlicht run-time visualization.
 #=============================================================================
 
 if(NOT ENABLE_MODULE_IRRLICHT)
