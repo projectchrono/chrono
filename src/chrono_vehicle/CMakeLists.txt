@@ -813,6 +813,9 @@ set_target_properties(ChronoEngine_vehicle PROPERTIES
 
 target_compile_definitions(ChronoEngine_vehicle PRIVATE "CH_API_COMPILE_VEHICLE")
 target_compile_definitions(ChronoEngine_vehicle PRIVATE "CH_IGNORE_DEPRECATED")
+if(HDF5_FOUND)
+target_compile_definitions(ChronoEngine_vehicle PRIVATE ${HDF5_COMPILE_DEFS})
+endif()
 
 target_link_libraries(ChronoEngine_vehicle ${LIBRARIES})
 

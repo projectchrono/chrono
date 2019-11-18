@@ -370,6 +370,8 @@ if(ENABLE_HDF5)
         if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
             set(HDF5_COMPILE_DEFS "H5_BUILT_AS_DYNAMIC_LIB")
             message(STATUS "  HDF5 compile defs  (HDF5_COMPILE_DEFS)  ${HDF5_COMPILE_DEFS}")
+        else()
+            set(HDF5_COMPILE_DEFS "")
         endif()
     
         set(CHRONO_HAS_HDF5 "#define CHRONO_HAS_HDF5")
