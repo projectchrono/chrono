@@ -217,6 +217,7 @@ set(ChronoEngine_physics_links_SOURCES
     physics/ChLinkPulley.cpp
     physics/ChLinkLinActuator.cpp
     physics/ChLinkScrew.cpp
+    physics/ChLinkTSDA.cpp
     physics/ChLinkSpring.cpp
     physics/ChLinkSpringCB.cpp
     physics/ChLinkRotSpringCB.cpp
@@ -259,6 +260,7 @@ set(ChronoEngine_physics_links_HEADERS
     physics/ChLinkPulley.h
     physics/ChLinksAll.h
     physics/ChLinkScrew.h
+    physics/ChLinkTSDA.h
     physics/ChLinkSpring.h
     physics/ChLinkSpringCB.h
     physics/ChLinkRotSpringCB.h

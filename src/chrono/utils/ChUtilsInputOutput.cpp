@@ -339,7 +339,7 @@ enum POVRayLinkType {
     DISTANCE = 4,
     ENGINE = 5,
     SPRING = 6,
-    SPRING_CB = 7
+    TSDA = 7
 };
 
 void WriteShapesPovray(ChSystem* system, const std::string& filename, bool body_info, const std::string& delim) {
@@ -482,7 +482,10 @@ void WriteShapesPovray(ChSystem* system, const std::string& filename, bool body_
             chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
             chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
 
-            csv << SPRING_CB << frA_abs.GetPos() << frB_abs.GetPos() << std::endl;
+            csv << SPRING << frA_abs.GetPos() << frB_abs.GetPos() << std::endl;
+            l_count++;
+        } else if (auto link = std::dynamic_pointer_cast<ChLinkTSDA>(ilink)) {
+            csv << TSDA << link->GetEndPoint1Abs() << link->GetEndPoint2Abs() << std::endl;
             l_count++;
         } else if (auto link = std::dynamic_pointer_cast<ChLinkDistance>(ilink)) {
             csv << DISTANCE << link->GetEndPoint1Abs() << link->GetEndPoint2Abs() << std::endl;
