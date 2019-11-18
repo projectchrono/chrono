@@ -111,8 +111,8 @@ int main(int argc, char* argv[]) {
     // specified in the body relative frames.
     auto spring_1 = chrono_types::make_shared<ChLinkTSDA>();
     spring_1->Initialize(body_1, ground, true, ChVector<>(0, 0, 0), ChVector<>(-1, 0, 0), false, rest_length);
-    spring_1->Set_SpringK(spring_coef);
-    spring_1->Set_SpringR(damping_coef);
+    spring_1->SetSpringCoefficient(spring_coef);
+    spring_1->SetDampingCoefficient(damping_coef);
     system.AddLink(spring_1);
 
     // Attach a visualization asset.
@@ -179,11 +179,11 @@ int main(int argc, char* argv[]) {
         application.DoStep();
 
         if (frame % 50 == 0) {
-            GetLog() << system.GetChTime() << "  " << spring_1->GetSpringLength() << "  "
-                     << spring_1->GetSpringVelocity() << "  " << spring_1->GetSpringReact() << "\n";
+            GetLog() << system.GetChTime() << "  " << spring_1->GetLength() << "  " << spring_1->GetVelocity() << "  "
+                     << spring_1->GetForce() << "\n";
 
-            GetLog() << "            " << spring_2->GetSpringLength() << "  " << spring_2->GetSpringVelocity() << "  "
-                     << spring_2->GetSpringReact() << "\n\n";
+            GetLog() << "            " << spring_2->GetLength() << "  " << spring_2->GetVelocity() << "  "
+                     << spring_2->GetForce() << "\n\n";
         }
 
         frame++;

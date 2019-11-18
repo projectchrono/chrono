@@ -135,7 +135,7 @@ void ChDoubleWishboneReduced::InitializeSide(VehicleSide side,
     m_shock[side] = chrono_types::make_shared<ChLinkTSDA>();
     m_shock[side]->SetNameString(m_name + "_shock" + suffix);
     m_shock[side]->Initialize(chassis, m_upright[side], false, points[SHOCK_C], points[SHOCK_U]);
-    m_shock[side]->SetSpringRestLength(getSpringRestLength());
+    m_shock[side]->SetRestLength(getSpringRestLength());
     m_shock[side]->RegisterForceFunctor(getShockForceFunctor());
     chassis->GetSystem()->AddLink(m_shock[side]);
 
@@ -188,9 +188,9 @@ double ChDoubleWishboneReduced::GetTrack() {
 ChSuspension::Force ChDoubleWishboneReduced::ReportSuspensionForce(VehicleSide side) const {
     ChSuspension::Force force;
 
-    force.spring_force = m_shock[side]->GetSpringReact();
-    force.spring_length = m_shock[side]->GetSpringLength();
-    force.spring_velocity = m_shock[side]->GetSpringVelocity();
+    force.spring_force = m_shock[side]->GetForce();
+    force.spring_length = m_shock[side]->GetLength();
+    force.spring_velocity = m_shock[side]->GetVelocity();
 
     force.shock_force = force.spring_force;
     force.shock_length = force.spring_length;

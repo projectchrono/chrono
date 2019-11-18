@@ -485,7 +485,7 @@ void WriteShapesPovray(ChSystem* system, const std::string& filename, bool body_
             csv << SPRING << frA_abs.GetPos() << frB_abs.GetPos() << std::endl;
             l_count++;
         } else if (auto link = std::dynamic_pointer_cast<ChLinkTSDA>(ilink)) {
-            csv << TSDA << link->GetEndPoint1Abs() << link->GetEndPoint2Abs() << std::endl;
+            csv << TSDA << link->GetPoint1Abs() << link->GetPoint2Abs() << std::endl;
             l_count++;
         } else if (auto link = std::dynamic_pointer_cast<ChLinkDistance>(ilink)) {
             csv << DISTANCE << link->GetEndPoint1Abs() << link->GetEndPoint2Abs() << std::endl;

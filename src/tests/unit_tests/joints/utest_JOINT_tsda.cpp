@@ -366,9 +366,9 @@ bool TestTranSpringCB(const ChVector<>& jointLocGnd,   // absolute location of t
             // global coordiantes
             // Torques are expressed in the link coordinate system. We convert them to
             // the coordinate system of Body2 (in our case this is the ground).
-            ChVector<> springVector = spring->GetEndPoint2Abs() - spring->GetEndPoint1Abs();
+            ChVector<> springVector = spring->GetPoint2Abs() - spring->GetPoint1Abs();
             springVector.Normalize();
-            double springForce = spring->GetSpringReact();
+            double springForce = spring->GetForce();
             ChVector<> springForceGlobal = springForce * springVector;
             out_rfrc << simTime << springForceGlobal << std::endl;
 

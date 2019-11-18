@@ -115,25 +115,25 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
     /// Get the force in the air spring (coil or spring) and a damper element
 
     /// Get the force in the spring-damper element.
-    double GetShockLBForce(VehicleSide side) const { return m_shockLB[side]->GetSpringReact(); }
+    double GetShockLBForce(VehicleSide side) const { return m_shockLB[side]->GetForce(); }
 
     /// Get the current length of the spring-damper element.
-    double GetShockLBLength(VehicleSide side) const { return m_shockLB[side]->GetSpringLength(); }
+    double GetShockLBLength(VehicleSide side) const { return m_shockLB[side]->GetLength(); }
 
     /// Get the current deformation velocity of the spring-damper element.
-    double GetShockLBVelocity(VehicleSide side) const { return m_shockLB[side]->GetSpringVelocity(); }
+    double GetShockLBVelocity(VehicleSide side) const { return m_shockLB[side]->GetVelocity(); }
 
     /// Spring (coil or air) and damper element between chassis and axle housing (AH)
     /// Get the force in the air spring (coil or spring) and a damper element
 
     /// Get the force in the spring-damper element.
-    double GetShockAHForce(VehicleSide side) const { return m_shockAH[side]->GetSpringReact(); }
+    double GetShockAHForce(VehicleSide side) const { return m_shockAH[side]->GetForce(); }
 
     /// Get the current length of the spring-damper element.
-    double GetShockAHLength(VehicleSide side) const { return m_shockAH[side]->GetSpringLength(); }
+    double GetShockAHLength(VehicleSide side) const { return m_shockAH[side]->GetLength(); }
 
     /// Get the current deformation velocity of the spring-damper element.
-    double GetShockAHVelocity(VehicleSide side) const { return m_shockAH[side]->GetSpringVelocity(); }
+    double GetShockAHVelocity(VehicleSide side) const { return m_shockAH[side]->GetVelocity(); }
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations(VehicleSide side) override;

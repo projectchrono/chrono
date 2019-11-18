@@ -215,13 +215,13 @@ double ChLeafspringAxle::GetTrack() {
 ChSuspension::Force ChLeafspringAxle::ReportSuspensionForce(VehicleSide side) const {
     ChSuspension::Force force;
 
-    force.spring_force = m_spring[side]->GetSpringReact();
-    force.spring_length = m_spring[side]->GetSpringLength();
-    force.spring_velocity = m_spring[side]->GetSpringVelocity();
+    force.spring_force = m_spring[side]->GetForce();
+    force.spring_length = m_spring[side]->GetLength();
+    force.spring_velocity = m_spring[side]->GetVelocity();
 
-    force.shock_force = m_shock[side]->GetSpringReact();
-    force.shock_length = m_shock[side]->GetSpringLength();
-    force.shock_velocity = m_shock[side]->GetSpringVelocity();
+    force.shock_force = m_shock[side]->GetForce();
+    force.shock_length = m_shock[side]->GetLength();
+    force.shock_velocity = m_shock[side]->GetVelocity();
 
     return force;
 }

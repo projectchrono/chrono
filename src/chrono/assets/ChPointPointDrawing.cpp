@@ -30,8 +30,8 @@ void ChPointPointDrawing::Update(ChPhysicsItem* updater, const ChCoordsys<>& coo
         UpdateLineGeometry(coords.TransformPointParentToLocal(link_rs->GetPoint1Abs()),
                            coords.TransformPointParentToLocal(link_rs->GetPoint2Abs()));
     } else if (auto link_tsda = dynamic_cast<ChLinkTSDA*>(updater)) {
-        UpdateLineGeometry(coords.TransformPointParentToLocal(link_tsda->GetEndPoint1Abs()),
-                           coords.TransformPointParentToLocal(link_tsda->GetEndPoint2Abs()));
+        UpdateLineGeometry(coords.TransformPointParentToLocal(link_tsda->GetPoint1Abs()),
+                           coords.TransformPointParentToLocal(link_tsda->GetPoint2Abs()));
     } else if (auto link = dynamic_cast<ChLink*>(updater)) {
         UpdateLineGeometry(coords.TransformPointParentToLocal(link->GetBody1()->GetPos()),
                            coords.TransformPointParentToLocal(link->GetBody2()->GetPos()));

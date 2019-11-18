@@ -108,22 +108,22 @@ class CH_VEHICLE_API ChSemiTrailingArm : public ChSuspension {
     virtual ChSuspension::Force ReportSuspensionForce(VehicleSide side) const override;
 
     /// Get the force in the spring element.
-    double GetSpringForce(VehicleSide side) const { return m_spring[side]->GetSpringReact(); }
+    double GetSpringForce(VehicleSide side) const { return m_spring[side]->GetForce(); }
 
     /// Get the current length of the spring element
-    double GetSpringLength(VehicleSide side) const { return m_spring[side]->GetSpringLength(); }
+    double GetSpringLength(VehicleSide side) const { return m_spring[side]->GetLength(); }
 
     /// Get the current deformation of the spring element.
-    double GetSpringDeformation(VehicleSide side) const { return m_spring[side]->GetSpringDeform(); }
+    double GetSpringDeformation(VehicleSide side) const { return m_spring[side]->GetDeformation(); }
 
     /// Get the force in the shock (damper) element.
-    double GetShockForce(VehicleSide side) const { return m_shock[side]->GetSpringReact(); }
+    double GetShockForce(VehicleSide side) const { return m_shock[side]->GetForce(); }
 
     /// Get the current length of the shock (damper) element.
-    double GetShockLength(VehicleSide side) const { return m_shock[side]->GetSpringLength(); }
+    double GetShockLength(VehicleSide side) const { return m_shock[side]->GetLength(); }
 
     /// Get the current deformation velocity of the shock (damper) element.
-    double GetShockVelocity(VehicleSide side) const { return m_shock[side]->GetSpringVelocity(); }
+    double GetShockVelocity(VehicleSide side) const { return m_shock[side]->GetVelocity(); }
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations(VehicleSide side) override;
