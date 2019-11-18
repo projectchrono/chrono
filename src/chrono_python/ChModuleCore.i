@@ -357,7 +357,8 @@ using namespace chrono::fea;
 %include "ChLinkPulley.i"
 %include "ChLinkScrew.i"
 %include "ChLinkSpring.i"
-%include "ChLinkSpringCB.i"
+%include "ChLinkTSDA.i"
+%include "ChLinkRSDA.i"
 %include "ChLinkGear.i"
 %include "ChLinkRevolute.i"
 %include "ChLinkRevoluteSpherical.i"
@@ -458,7 +459,8 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkPulley)
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkScrew)
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkSpring)
-%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkSpringCB)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkTSDA)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkRotSpringCB)
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkMotor)
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkMotorLinear)
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkMotorLinearDriveline)
