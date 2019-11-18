@@ -89,8 +89,12 @@ add_library(ChronoEngine_mkl SHARED
 
 set_target_properties(ChronoEngine_mkl PROPERTIES
                       COMPILE_FLAGS "${CH_CXX_FLAGS}"
-                      LINK_FLAGS "${CH_LINKERFLAG_SHARED} ${CH_MKL_LINK_FLAGS}"
-                      COMPILE_DEFINITIONS "CH_API_COMPILE_MKL;EIGEN_USE_MKL_ALL;MKL_LP64")
+                      LINK_FLAGS "${CH_LINKERFLAG_SHARED} ${CH_MKL_LINK_FLAGS}")
+
+target_compile_definitions(ChronoEngine_mkl PRIVATE "CH_API_COMPILE_MKL")
+target_compile_definitions(ChronoEngine_mkl PRIVATE "EIGEN_USE_MKL_ALL")
+target_compile_definitions(ChronoEngine_mkl PRIVATE "MKL_LP64")
+target_compile_definitions(ChronoEngine_mkl PRIVATE "CH_IGNORE_DEPRECATED")
 
 target_link_libraries(ChronoEngine_mkl
                       ChronoEngine

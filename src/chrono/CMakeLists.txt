@@ -1250,6 +1250,7 @@ endif()
 set_target_properties(ChronoEngine PROPERTIES LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
 
 target_compile_definitions(ChronoEngine PRIVATE "CH_API_COMPILE")
+target_compile_definitions(ChronoEngine PRIVATE "CH_IGNORE_DEPRECATED")
 
 if (USE_BULLET_DOUBLE)
     target_compile_definitions(ChronoEngine PRIVATE "BT_USE_DOUBLE_PRECISION")

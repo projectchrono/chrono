@@ -97,10 +97,10 @@ using namespace chrono::fea;
 %}
 
 
-// Undefine ChApiFea otherwise SWIG gives a syntax error
-#define ChApiFea 
+// Undefine ChApi otherwise SWIG gives a syntax error
 #define ChApi
 #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+#define CH_DEPRECATED(msg)
 
 // workaround for trouble
 %ignore chrono::fea::ChContactNodeXYZ::ComputeJacobianForContactPart;

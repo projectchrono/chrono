@@ -68,6 +68,7 @@ using namespace chrono::postprocess;
 #define ChApiPostProcess 
 #define ChApi 
 #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+#define CH_DEPRECATED(msg)
 
 // Include other .i configuration files for SWIG. 
 // These are divided in many .i files, each per a
