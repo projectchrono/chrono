@@ -25,8 +25,8 @@
 #include "chrono/assets/ChRoundedCylinderShape.h"
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
-
 #include "chrono/geometry/ChLineBezier.h"
+#include "chrono/physics/ChLinkSpringCB.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 namespace chrono {
