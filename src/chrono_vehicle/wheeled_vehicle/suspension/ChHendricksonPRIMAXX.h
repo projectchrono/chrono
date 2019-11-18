@@ -236,14 +236,14 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
     /// Return the free (rest) length of the spring element.
     virtual double getShockLBRestLength() const = 0;
     /// Return the functor object for shock force.
-    virtual ChLinkSpringCB::ForceFunctor* getShockLBForceCallback() const = 0;
+    virtual ChLinkTSDA::ForceFunctor* getShockLBForceCallback() const = 0;
 
     // Axle housing spring and damper
 
     /// Return the free (rest) length of the spring element.
     virtual double getShockAHRestLength() const = 0;
     /// Return the functor object for shock force.
-    virtual ChLinkSpringCB::ForceFunctor* getShockAHForceCallback() const = 0;
+    virtual ChLinkTSDA::ForceFunctor* getShockAHForceCallback() const = 0;
 
     std::shared_ptr<ChBody> m_knuckle[2];      ///< handles to the knuckle bodies (left/right)
     std::shared_ptr<ChBody> m_torquerod[2];    ///< handles to torquerod bodies (left/right)
@@ -269,8 +269,8 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
         m_sphericalTB[2];  ///< handles to the transversebeam-lower beam spherical joints (left/right)
     std::shared_ptr<ChLinkDistance> m_distTierod[2];  ///< handles to the tierod distance constraints (left/right)
 
-    std::shared_ptr<ChLinkSpringCB> m_shockLB[2];  ///< handles to the spring links (left/right)
-    std::shared_ptr<ChLinkSpringCB> m_shockAH[2];  ///< handles to the spring links (left/right)
+    std::shared_ptr<ChLinkTSDA> m_shockLB[2];  ///< handles to the spring links (left/right)
+    std::shared_ptr<ChLinkTSDA> m_shockAH[2];  ///< handles to the spring links (left/right)
 
   private:
     // Hardpoint absolute locations and directions

@@ -99,10 +99,10 @@ class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
     virtual double GetTrack() override;
 
     /// Get a handle to the specified spring element.
-    std::shared_ptr<ChLinkSpringCB> GetSpring(VehicleSide side) const { return m_spring[side]; }
+    std::shared_ptr<ChLinkTSDA> GetSpring(VehicleSide side) const { return m_spring[side]; }
  
     /// Get a handle to the specified shock (damper) element.
-    std::shared_ptr<ChLinkSpringCB> GetShock(VehicleSide side) const { return m_shock[side]; }
+    std::shared_ptr<ChLinkTSDA> GetShock(VehicleSide side) const { return m_shock[side]; }
 
     /// Return current suspension forces (spring and shock) on the specified side.
     virtual ChSuspension::Force ReportSuspensionForce(VehicleSide side) const override;
@@ -226,9 +226,9 @@ class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
     /// Return the free (rest) length of the spring element.
     virtual double getSpringRestLength() const = 0;
     /// Return the functor object for spring force.
-    virtual ChLinkSpringCB::ForceFunctor* getSpringForceFunctor() const = 0;
+    virtual ChLinkTSDA::ForceFunctor* getSpringForceFunctor() const = 0;
     /// Return the functor object for shock force.
-    virtual ChLinkSpringCB::ForceFunctor* getShockForceFunctor() const = 0;
+    virtual ChLinkTSDA::ForceFunctor* getShockForceFunctor() const = 0;
 
     std::shared_ptr<ChBody> m_upright[2];  ///< handles to the upright bodies (left/right)
     std::shared_ptr<ChBody> m_UCA[2];      ///< handles to the upper control arm bodies (left/right)
@@ -240,8 +240,8 @@ class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
     std::shared_ptr<ChLinkLockSpherical> m_sphericalLCA[2];  ///< handles to the upright-LCA spherical joints (left/right)
     std::shared_ptr<ChLinkDistance> m_distTierod[2];         ///< handles to the tierod distance constraints (left/right)
 
-    std::shared_ptr<ChLinkSpringCB> m_shock[2];   ///< handles to the spring links (left/right)
-    std::shared_ptr<ChLinkSpringCB> m_spring[2];  ///< handles to the shock links (left/right)
+    std::shared_ptr<ChLinkTSDA> m_shock[2];   ///< handles to the spring links (left/right)
+    std::shared_ptr<ChLinkTSDA> m_spring[2];  ///< handles to the shock links (left/right)
 
 
   private:

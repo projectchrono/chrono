@@ -72,7 +72,7 @@ private:
 // -----------------------------------------------------------------------------
 // M113 shock functor class - implements a (non)linear translational damper
 // -----------------------------------------------------------------------------
-class M113a_ShockForce : public ChLinkSpringCB::ForceFunctor {
+class M113a_ShockForce : public ChLinkTSDA::ForceFunctor {
   public:
     M113a_ShockForce(){}
 
@@ -80,7 +80,7 @@ class M113a_ShockForce : public ChLinkSpringCB::ForceFunctor {
                               double rest_length,
                               double length,
                               double vel,
-                              ChLinkSpringCB* link) override {
+                              ChLinkTSDA* link) override {
         // Clip the velocity to within +/- 0.254 m/s [10 in/s]
         ChClampValue(vel, -0.254, 0.254);
 

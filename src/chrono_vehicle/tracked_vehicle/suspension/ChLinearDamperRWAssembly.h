@@ -21,7 +21,7 @@
 #define CH_LINEAR_DAMPER_RWA_H
 
 #include "chrono/physics/ChLinkRotSpringCB.h"
-#include "chrono/physics/ChLinkSpringCB.h"
+#include "chrono/physics/ChLinkTSDA.h"
 #include "chrono/physics/ChLinkForce.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
@@ -107,7 +107,7 @@ class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
     virtual ChLinkRotSpringCB::TorqueFunctor* GetSpringTorqueFunctor() const = 0;
 
     /// Return the functor object for the translational shock force.
-    virtual ChLinkSpringCB::ForceFunctor* GetShockForceFunctor() const = 0;
+    virtual ChLinkTSDA::ForceFunctor* GetShockForceFunctor() const = 0;
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
@@ -116,7 +116,7 @@ class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
     std::shared_ptr<ChBody> m_arm;                   ///< handle to the trailing arm body
     std::shared_ptr<ChLinkLockRevolute> m_revolute;  ///< handle to the revolute joint arm-chassis
     std::shared_ptr<ChLinkRotSpringCB> m_spring;     ///< handle to the rotational spring link
-    std::shared_ptr<ChLinkSpringCB> m_shock;         ///< handle to the translational shock link
+    std::shared_ptr<ChLinkTSDA> m_shock;         ///< handle to the translational shock link
 
   private:
     // Points for arm visualization

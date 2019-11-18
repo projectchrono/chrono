@@ -71,7 +71,7 @@ const double CityBus_ToeBarLeafspringAxle::m_axleShaftInertia = 0.4 * 6.56;
 // ---------------------------------------------------------------------------------------
 // CityBus spring functor class - implements a linear spring + bump stop + rebound stop
 // ---------------------------------------------------------------------------------------
-class CityBus_SpringForceFront : public ChLinkSpringCB::ForceFunctor {
+class CityBus_SpringForceFront : public ChLinkTSDA::ForceFunctor {
   public:
     CityBus_SpringForceFront(double spring_constant, double min_length, double max_length);
 
@@ -79,7 +79,7 @@ class CityBus_SpringForceFront : public ChLinkSpringCB::ForceFunctor {
                               double rest_length,
                               double length,
                               double vel,
-                              ChLinkSpringCB* link) override;
+                              ChLinkTSDA* link) override;
 
   private:
     double m_spring_constant;
@@ -109,7 +109,7 @@ CityBus_SpringForceFront::CityBus_SpringForceFront(double spring_constant, doubl
 
 }
 
-double CityBus_SpringForceFront::operator()(double time, double rest_length, double length, double vel, ChLinkSpringCB* link) {
+double CityBus_SpringForceFront::operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) {
     /*
      * 
     */
@@ -136,7 +136,7 @@ double CityBus_SpringForceFront::operator()(double time, double rest_length, dou
 // -----------------------------------------------------------------------------
 // CityBus shock functor class - implements a nonlinear damper
 // -----------------------------------------------------------------------------
-class CityBus_ShockForceFront : public ChLinkSpringCB::ForceFunctor {
+class CityBus_ShockForceFront : public ChLinkTSDA::ForceFunctor {
   public:
     CityBus_ShockForceFront(double compression_slope,
                      double compression_degressivity,
@@ -147,7 +147,7 @@ class CityBus_ShockForceFront : public ChLinkSpringCB::ForceFunctor {
                               double rest_length,
                               double length,
                               double vel,
-                              ChLinkSpringCB* link) override;
+                              ChLinkTSDA* link) override;
 
   private:
     double m_slope_compr;
@@ -165,7 +165,7 @@ CityBus_ShockForceFront::CityBus_ShockForceFront(double compression_slope,
       m_slope_expand(expansion_slope),
       m_degres_expand(expansion_degressivity) {}
 
-double CityBus_ShockForceFront::operator()(double time, double rest_length, double length, double vel, ChLinkSpringCB* link) {
+double CityBus_ShockForceFront::operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) {
     /*
      * Simple model of a degressive damping characteristic
     */
