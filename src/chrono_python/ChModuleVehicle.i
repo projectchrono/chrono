@@ -166,7 +166,6 @@ using namespace chrono::vehicle::citybus;
 %shared_ptr(chrono::ChNodeXYZ) 
 %shared_ptr(chrono::ChTriangleMeshShape)
 %shared_ptr(chrono::geometry::ChTriangleMeshConnected)
-%shared_ptr(chrono::ChLinkSpring)
 %shared_ptr(chrono::ChFunction_Recorder)
 %shared_ptr(chrono::ChBezierCurve)
 %shared_ptr(chrono::ChLinkMarkers)

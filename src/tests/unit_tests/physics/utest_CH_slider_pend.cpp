@@ -229,10 +229,10 @@ ChronoModel::ChronoModel() {
 
     // Spring ground-cart
     // ------------------
-    auto spring = chrono_types::make_shared<ChLinkSpring>();
+    auto spring = chrono_types::make_shared<ChLinkTSDA>();
     spring->Initialize(m_slider, m_ground, false, ChVector<>(0, 0, 0), ChVector<>(0, 0, 0), true);
-    spring->Set_SpringK(k1);
-    spring->Set_SpringR(0);
+    spring->SetSpringCoefficient(k1);
+    spring->SetDampingCoefficient(0);
     m_system->AddLink(spring);
 }
 

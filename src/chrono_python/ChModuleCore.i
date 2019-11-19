@@ -209,6 +209,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChLinkRevoluteSpherical)
 %shared_ptr(chrono::ChLinkScrew)
 %shared_ptr(chrono::ChLinkSpring)
+%shared_ptr(chrono::ChLinkTSDA)
 %shared_ptr(chrono::ChLinkUniversal)
 %shared_ptr(chrono::ChLinkMotor)
 %shared_ptr(chrono::ChLinkMotorLinear)
@@ -503,6 +504,7 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkPulley)
 %DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkScrew)
 %DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkSpring)
+%DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkTSDA)
 %DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkPointSpline) 
 %DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkTrajectory)
 

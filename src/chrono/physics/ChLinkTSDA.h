@@ -93,6 +93,18 @@ class ChApi ChLinkTSDA : public ChLink {
     /// Get the endpoint location on 1st body (expressed in absolute coordinate system)
     const ChVector<>& GetPoint2Abs() const { return m_aloc2; }
 
+    /// Get the value of the spring coefficient.
+    /// Meaningful only if no force functor is provided.
+    double GetSpringCoefficient() const { return m_k; }
+
+    /// Get the value of the damping coefficient.
+    /// Meaningful only if no force functor is provided.
+    double GetDampingCoefficient() const { return m_r; }
+
+    /// Get the constant acutation force.
+    /// Meaningful only if no force functor is provided.
+    double GetActuatorForce() const { return m_f; }
+
     /// Class to be used as a callback interface for calculating the general spring-damper force.
     class ChApi ForceFunctor {
       public:

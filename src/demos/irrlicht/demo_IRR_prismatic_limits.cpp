@@ -116,17 +116,17 @@ int main(int argc, char* argv[]) {
     // Add linear springs to the sliders
     // ---------------------------------
 
-    auto spring1 = chrono_types::make_shared<ChLinkSpring>();
+    auto spring1 = chrono_types::make_shared<ChLinkTSDA>();
     spring1->Initialize(ground, slider1, true, ChVector<>(0, 0, -1), ChVector<>(0, 0, 0), false, 0);
-    spring1->Set_SpringK(10);
-    spring1->Set_SpringR(0);
+    spring1->SetSpringCoefficient(10);
+    spring1->SetDampingCoefficient(0);
     system.AddLink(spring1);
     spring1->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.1, 80, 15));
 
-    auto spring2 = chrono_types::make_shared<ChLinkSpring>();
+    auto spring2 = chrono_types::make_shared<ChLinkTSDA>();
     spring2->Initialize(ground, slider2, true, ChVector<>(0, 0, +1), ChVector<>(0, 0, 0), false, 0);
-    spring2->Set_SpringK(10);
-    spring2->Set_SpringR(0);
+    spring2->SetSpringCoefficient(10);
+    spring2->SetDampingCoefficient(0);
     system.AddLink(spring2);
     spring2->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.1, 80, 15));
 
