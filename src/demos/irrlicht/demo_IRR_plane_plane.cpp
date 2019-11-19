@@ -59,7 +59,9 @@ int main(int argc, char* argv[]) {
     system.AddLink(plane_plane);
 
     // Create a linear spring (with default spring & damping coefficients)
-    auto spring = chrono_types::make_shared<ChLinkSpring>();
+    auto spring = chrono_types::make_shared<ChLinkTSDA>();
+    spring->SetSpringCoefficient(100);
+    spring->SetDampingCoefficient(5);
     spring->Initialize(ground, body, true, ChVector<>(0, 0, 2), ChVector<>(0, 0, 0), false, 1.9);
     system.AddLink(spring);
 
@@ -79,7 +81,7 @@ int main(int argc, char* argv[]) {
     while (application.GetDevice()->run()) {
         application.BeginScene();
         application.DrawAll();
-        ChIrrTools::drawSpring(application.GetVideoDriver(), 0.05, spring->GetEndPoint1Abs(), spring->GetEndPoint2Abs(),
+        ChIrrTools::drawSpring(application.GetVideoDriver(), 0.05, spring->GetPoint1Abs(), spring->GetPoint2Abs(),
                                irr::video::SColor(0, 255, 255, 100), 80, 15, true);
         ChIrrTools::drawAllCOGs(system, application.GetVideoDriver(), 2);
         application.EndScene();

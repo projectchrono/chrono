@@ -98,16 +98,16 @@ int main(int argc, char* argv[]) {
         auto springFL = suspF->GetSpring(VehicleSide::LEFT);
         auto shockFL = suspF->GetShock(VehicleSide::RIGHT);
 
-        std::cout << "Spring rest length front: " << springFL->GetSpringRestLength() << std::endl;
-        std::cout << "Shock rest length front:  " << shockFL->GetSpringRestLength() << std::endl;
+        std::cout << "Spring rest length front: " << springFL->GetRestLength() << std::endl;
+        std::cout << "Shock rest length front:  " << shockFL->GetRestLength() << std::endl;
     }
     {
         auto suspR = std::static_pointer_cast<UAZBUS_LeafspringAxle>(uaz.GetVehicle().GetSuspension(1));
         auto springRL = suspR->GetSpring(VehicleSide::LEFT);
         auto shockRL = suspR->GetShock(VehicleSide::RIGHT);
 
-        std::cout << "Spring rest length rear: " << springRL->GetSpringRestLength() << std::endl;
-        std::cout << "Shock rest length rear:  " << shockRL->GetSpringRestLength() << std::endl;
+        std::cout << "Spring rest length rear: " << springRL->GetRestLength() << std::endl;
+        std::cout << "Shock rest length rear:  " << shockRL->GetRestLength() << std::endl;
     }
 
     std::cout << "Vehicle mass:               " << uaz.GetVehicle().GetVehicleMass() << std::endl;

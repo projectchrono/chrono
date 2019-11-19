@@ -523,7 +523,7 @@ global_settings { ambient_light rgb<1, 1, 1> }
             }
         #break
   
-        // Linkspring ------
+        // LinkSpring ------
         #case (6)
             #read (MyDataFile, p1x, p1y, p1z, p2x, p2y, p2z)
             cylinder {
@@ -535,7 +535,7 @@ global_settings { ambient_light rgb<1, 1, 1> }
             //sphere {<p2x,p2z,p2y> 1.01 * spring_radius pigment{Orange}} 
         #break
     
-        // LinkspringCB ------
+        // TSDA ------
         #case (7)
             #read (MyDataFile, p1x, p1y, p1z, p2x, p2y, p2z)
             cylinder {

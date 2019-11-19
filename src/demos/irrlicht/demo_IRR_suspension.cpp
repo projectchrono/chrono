@@ -14,7 +14,7 @@
 //
 // Demo code about
 // - modeling a complex mechanism (a quarter car model)
-// - using the ChLinkSpring to make spring-damper system
+// - using the ChLinkTSDA to make spring-damper system
 // - using the ChLinkDistance class to represent long and thin massless rods,
 //   whose mass is negligible for dynamical analysis (as often happens in
 //   mechanisms) so they can be modeled as 'distance' constraints instead of
@@ -67,8 +67,8 @@ class MySimpleCar {
     std::shared_ptr<ChLinkDistance> link_distRFU2;
     std::shared_ptr<ChLinkDistance> link_distRFL1;
     std::shared_ptr<ChLinkDistance> link_distRFL2;
-    std::shared_ptr<ChLinkSpring> link_springRF;
     std::shared_ptr<ChLinkDistance> link_distRSTEER;
+    std::shared_ptr<ChLinkTSDA> link_springRF;
     // .. left front suspension:
     std::shared_ptr<ChBody> spindleLF;
     std::shared_ptr<ChBody> wheelLF;
@@ -77,8 +77,8 @@ class MySimpleCar {
     std::shared_ptr<ChLinkDistance> link_distLFU2;
     std::shared_ptr<ChLinkDistance> link_distLFL1;
     std::shared_ptr<ChLinkDistance> link_distLFL2;
-    std::shared_ptr<ChLinkSpring> link_springLF;
     std::shared_ptr<ChLinkDistance> link_distLSTEER;
+    std::shared_ptr<ChLinkTSDA> link_springLF;
     // .. right back suspension:
     std::shared_ptr<ChBody> spindleRB;
     std::shared_ptr<ChBody> wheelRB;
@@ -87,8 +87,8 @@ class MySimpleCar {
     std::shared_ptr<ChLinkDistance> link_distRBU2;
     std::shared_ptr<ChLinkDistance> link_distRBL1;
     std::shared_ptr<ChLinkDistance> link_distRBL2;
-    std::shared_ptr<ChLinkSpring> link_springRB;
     std::shared_ptr<ChLinkDistance> link_distRBlat;
+    std::shared_ptr<ChLinkTSDA> link_springRB;
     std::shared_ptr<ChLinkMotorRotationTorque> link_motorL;
     // .. left back suspension:
     std::shared_ptr<ChBody> spindleLB;
@@ -98,8 +98,8 @@ class MySimpleCar {
     std::shared_ptr<ChLinkDistance> link_distLBU2;
     std::shared_ptr<ChLinkDistance> link_distLBL1;
     std::shared_ptr<ChLinkDistance> link_distLBL2;
-    std::shared_ptr<ChLinkSpring> link_springLB;
     std::shared_ptr<ChLinkDistance> link_distLBlat;
+    std::shared_ptr<ChLinkTSDA> link_springLB;
     std::shared_ptr<ChLinkMotorRotationTorque> link_motorR;
 
     // THE FUNCTIONS
@@ -172,10 +172,10 @@ class MySimpleCar {
         my_system.AddLink(link_distRFL2);
 
         // .. create the spring between the truss and the spindle
-        link_springRF = chrono_types::make_shared<ChLinkSpring>();
+        link_springRF = chrono_types::make_shared<ChLinkTSDA>();
         link_springRF->Initialize(chassis, spindleRF, false, ChVector<>(0.5, 1.2, 1.0), ChVector<>(1.25, 0.8, 1));
-        link_springRF->Set_SpringK(28300);
-        link_springRF->Set_SpringR(80);
+        link_springRF->SetSpringCoefficient(28300);
+        link_springRF->SetDampingCoefficient(80);
         my_system.AddLink(link_springRF);
 
         // .. create the rod for steering the wheel
@@ -226,10 +226,10 @@ class MySimpleCar {
         my_system.AddLink(link_distLFL2);
 
         // .. create the spring between the truss and the spindle
-        link_springLF = chrono_types::make_shared<ChLinkSpring>();
+        link_springLF = chrono_types::make_shared<ChLinkTSDA>();
         link_springLF->Initialize(chassis, spindleLF, false, ChVector<>(-0.5, 1.2, 1.0), ChVector<>(-1.25, 0.8, 1));
-        link_springLF->Set_SpringK(28300);
-        link_springLF->Set_SpringR(80);
+        link_springLF->SetSpringCoefficient(28300);
+        link_springLF->SetDampingCoefficient(80);
         my_system.AddLink(link_springLF);
 
         // .. create the rod for steering the wheel
@@ -287,10 +287,10 @@ class MySimpleCar {
         my_system.AddLink(link_distRBL2);
 
         // .. create the spring between the truss and the spindle
-        link_springRB = chrono_types::make_shared<ChLinkSpring>();
+        link_springRB = chrono_types::make_shared<ChLinkTSDA>();
         link_springRB->Initialize(chassis, spindleRB, false, ChVector<>(0.5, 1.2, -1.0), ChVector<>(1.25, 0.8, -1));
-        link_springRB->Set_SpringK(28300);
-        link_springRB->Set_SpringR(80);
+        link_springRB->SetSpringCoefficient(28300);
+        link_springRB->SetDampingCoefficient(80);
         my_system.AddLink(link_springRB);
 
         // .. create the rod for avoid the steering of the wheel
@@ -348,10 +348,10 @@ class MySimpleCar {
         my_system.AddLink(link_distLBL2);
 
         // .. create the spring between the truss and the spindle
-        link_springLB = chrono_types::make_shared<ChLinkSpring>();
+        link_springLB = chrono_types::make_shared<ChLinkTSDA>();
         link_springLB->Initialize(chassis, spindleLB, false, ChVector<>(-0.5, 1.2, -1.0), ChVector<>(-1.25, 0.8, -1));
-        link_springLB->Set_SpringK(28300);
-        link_springLB->Set_SpringR(80);
+        link_springLB->SetSpringCoefficient(28300);
+        link_springLB->SetDampingCoefficient(80);
         my_system.AddLink(link_springLB);
 
         // .. create the rod for avoid the steering of the wheel
@@ -460,33 +460,34 @@ class MyEventReceiver : public IEventReceiver {
         scrollbar_throttle = mdevice->getGUIEnvironment()->addScrollBar(true, rect<s32>(10, 85, 150, 100), 0, 100);
         scrollbar_throttle->setMax(100);
         scrollbar_throttle->setPos(0);
-        text_throttle = mdevice->getGUIEnvironment()->addStaticText(L"Throttle", rect<s32>(150, 85, 250, 100), false);
+        text_throttle = mdevice->getGUIEnvironment()->addStaticText(L"Throttle", rect<s32>(155, 85, 300, 100), false);
 
         // ..add a GUI slider to control steering via mouse
         scrollbar_steer = mdevice->getGUIEnvironment()->addScrollBar(true, rect<s32>(10, 105, 150, 120), 0, 101);
         scrollbar_steer->setMax(100);
         scrollbar_steer->setPos(50);
+        text_steer = mdevice->getGUIEnvironment()->addStaticText(L"Steering", rect<s32>(155, 105, 300, 120), false);
 
         // ..add a GUI text and GUI slider to control the stiffness
         scrollbar_FspringK = mdevice->getGUIEnvironment()->addScrollBar(true, rect<s32>(10, 125, 150, 140), 0, 102);
         scrollbar_FspringK->setMax(100);
-        scrollbar_FspringK->setPos((s32)(50 + 50.0 * (acar->link_springRF->Get_SpringK() - 80000.0) / 60000.0));
+        scrollbar_FspringK->setPos((s32)(50 + 50.0 * (acar->link_springRF->GetSpringCoefficient() - 80000.0) / 60000.0));
         text_FspringK =
-            mdevice->getGUIEnvironment()->addStaticText(L"Spring K [N/m]:", rect<s32>(150, 125, 250, 140), false);
+            mdevice->getGUIEnvironment()->addStaticText(L"Spring K [N/m]:", rect<s32>(155, 125, 300, 140), false);
 
         // ..add a GUI text and GUI slider to control the damping
         scrollbar_FdamperR = mdevice->getGUIEnvironment()->addScrollBar(true, rect<s32>(10, 145, 150, 160), 0, 103);
         scrollbar_FdamperR->setMax(100);
-        scrollbar_FdamperR->setPos((s32)(50 + 50.0 * (acar->link_springRF->Get_SpringR() - 800.0) / 800.0));
+        scrollbar_FdamperR->setPos((s32)(50 + 50.0 * (acar->link_springRF->GetDampingCoefficient() - 800.0) / 800.0));
         text_FdamperR =
-            mdevice->getGUIEnvironment()->addStaticText(L"Damper R [Ns/m]:", rect<s32>(150, 145, 250, 160), false);
+            mdevice->getGUIEnvironment()->addStaticText(L"Damper R [Ns/m]:", rect<s32>(155, 145, 300, 160), false);
 
         // ..add a GUI text and GUI slider to control the original undeformed spring length
         scrollbar_FspringL = mdevice->getGUIEnvironment()->addScrollBar(true, rect<s32>(10, 165, 150, 180), 0, 104);
         scrollbar_FspringL->setMax(100);
-        scrollbar_FspringL->setPos((s32)(50 + 50.0 * (acar->link_springRF->Get_SpringRestLength() - 0.9) / 0.1));
+        scrollbar_FspringL->setPos((s32)(50 + 50.0 * (acar->link_springRF->GetRestLength() - 0.9) / 0.1));
         text_FspringL =
-            mdevice->getGUIEnvironment()->addStaticText(L"Spring L [m]:", rect<s32>(150, 165, 250, 180), false);
+            mdevice->getGUIEnvironment()->addStaticText(L"Spring L [m]:", rect<s32>(155, 165, 300, 180), false);
     }
 
     bool OnEvent(const SEvent& event) {
@@ -510,14 +511,18 @@ class MyEventReceiver : public IEventReceiver {
                         s32 pos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
                         double newstiff = 80000 + 60000 * (((double)(pos - 50)) / 50.0);
                         // set the stiffness of all 4 springs
-                        this->mcar->link_springRF->Set_SpringK(newstiff);
-                        this->mcar->link_springLF->Set_SpringK(newstiff);
-                        this->mcar->link_springRB->Set_SpringK(newstiff);
-                        this->mcar->link_springLB->Set_SpringK(newstiff);
+                        this->mcar->link_springRF->SetSpringCoefficient(newstiff);
+                        this->mcar->link_springLF->SetSpringCoefficient(newstiff);
+                        this->mcar->link_springRB->SetSpringCoefficient(newstiff);
+                        this->mcar->link_springLB->SetSpringCoefficient(newstiff);
 
                         // show stiffness as formatted text in interface screen
-                        char message[50];
+                        char message[150];
                         sprintf(message, "Spring K [N/m]: %g", newstiff);
+
+                        std::cout << "K = " << newstiff << std::endl;
+
+
                         text_FspringK->setText(core::stringw(message).c_str());
                     }
                     if (id == 103)  // id of 'damping' slider..
@@ -525,14 +530,14 @@ class MyEventReceiver : public IEventReceiver {
                         s32 pos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
                         double newdamping = 800 + 800 * (((double)(pos - 50)) / 50.0);
                         // set the damping of all 4 springs
-                        this->mcar->link_springRF->Set_SpringR(newdamping);
-                        this->mcar->link_springLF->Set_SpringR(newdamping);
-                        this->mcar->link_springRB->Set_SpringR(newdamping);
-                        this->mcar->link_springLB->Set_SpringR(newdamping);
+                        this->mcar->link_springRF->SetDampingCoefficient(newdamping);
+                        this->mcar->link_springLF->SetDampingCoefficient(newdamping);
+                        this->mcar->link_springRB->SetDampingCoefficient(newdamping);
+                        this->mcar->link_springLB->SetDampingCoefficient(newdamping);
 
                         // show stiffness as formatted text in interface screen
-                        char message[50];
-                        sprintf(message, "Damping R [Ns/m]: %g", newdamping);
+                        char message[150];
+                        sprintf(message, "Damper R [Ns/m]: %g", newdamping);
                         text_FdamperR->setText(core::stringw(message).c_str());
                     }
                     if (id == 104)  // id of 'spring rest length' slider..
@@ -540,10 +545,10 @@ class MyEventReceiver : public IEventReceiver {
                         s32 pos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
                         double newlength = 0.9 + 0.1 * (((double)(pos - 50)) / 50.0);
                         // set the rest length of all 4 springs
-                        this->mcar->link_springRF->Set_SpringRestLength(newlength);
-                        this->mcar->link_springLF->Set_SpringRestLength(newlength);
-                        this->mcar->link_springRB->Set_SpringRestLength(newlength);
-                        this->mcar->link_springLB->Set_SpringRestLength(newlength);
+                        this->mcar->link_springRF->SetRestLength(newlength);
+                        this->mcar->link_springLF->SetRestLength(newlength);
+                        this->mcar->link_springRB->SetRestLength(newlength);
+                        this->mcar->link_springLB->SetRestLength(newlength);
 
                         // show stiffness as formatted text in interface screen
                         char message[50];
@@ -574,6 +579,7 @@ class MyEventReceiver : public IEventReceiver {
     IrrlichtDevice* mdevice;
     MySimpleCar* mcar;
 
+    IGUIStaticText* text_steer;
     IGUIScrollBar* scrollbar_steer;
     IGUIStaticText* text_FspringK;
     IGUIScrollBar* scrollbar_FspringK;
@@ -712,9 +718,9 @@ int main(int argc, char* argv[]) {
             if (auto linkdist = std::dynamic_pointer_cast<ChLinkDistance>(link)) {
                 ChIrrTools::drawSegment(application.GetVideoDriver(), linkdist->GetEndPoint1Abs(),
                                         linkdist->GetEndPoint2Abs(), video::SColor(255, 0, 20, 0), true);
-            } else if (auto linkspring = std::dynamic_pointer_cast<ChLinkSpring>(link)) {
-                ChIrrTools::drawSpring(application.GetVideoDriver(), 0.03, linkspring->GetEndPoint1Abs(),
-                                       linkspring->GetEndPoint2Abs(), video::SColor(255, 150, 20, 20), 80, 5, true);
+            } else if (auto linkspring = std::dynamic_pointer_cast<ChLinkTSDA>(link)) {
+                ChIrrTools::drawSpring(application.GetVideoDriver(), 0.03, linkspring->GetPoint1Abs(),
+                                       linkspring->GetPoint2Abs(), video::SColor(255, 150, 20, 20), 80, 10, true);
             }
         }
 

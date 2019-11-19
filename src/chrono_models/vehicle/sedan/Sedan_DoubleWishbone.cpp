@@ -64,7 +64,7 @@ const double Sedan_DoubleWishbone::m_springRestLength = 0.51; //0.306;
 // -----------------------------------------------------------------------------
 // Sedan shock functor class - implements a nonlinear damper
 // -----------------------------------------------------------------------------
-class Sedan_ShockForce : public ChLinkSpringCB::ForceFunctor {
+class Sedan_ShockForce : public ChLinkTSDA::ForceFunctor {
   public:
     Sedan_ShockForce(std::vector<double> vel, std::vector<double> frc);
 
@@ -72,7 +72,7 @@ class Sedan_ShockForce : public ChLinkSpringCB::ForceFunctor {
                               double rest_length,
                               double length,
                               double vel,
-                              ChLinkSpringCB* link) override;
+                              ChLinkTSDA* link) override;
 
   private:
     ChCubicSpline m_ShockTable;
@@ -89,7 +89,7 @@ double Sedan_ShockForce::operator()(double time,
                                       double rest_length,
                                       double length,
                                       double vel,
-                                      ChLinkSpringCB* link) {
+                                      ChLinkTSDA* link) {
     double force = 0;
     double dcurve = 0;
     double ddcurve = 0;

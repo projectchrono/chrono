@@ -93,7 +93,7 @@ const double HMMWV_DoubleWishboneRear::m_springRestLength = 0.382;
 // -----------------------------------------------------------------------------
 // HMMWV shock functor class - implements a nonlinear damper
 // -----------------------------------------------------------------------------
-class HMMWV_ShockForce : public ChLinkSpringCB::ForceFunctor {
+class HMMWV_ShockForce : public ChLinkTSDA::ForceFunctor {
   public:
     HMMWV_ShockForce(double midstroke_compression_slope,
                      double midstroke_rebound_slope,
@@ -110,7 +110,7 @@ class HMMWV_ShockForce : public ChLinkSpringCB::ForceFunctor {
                               double rest_length,
                               double length,
                               double vel,
-                              ChLinkSpringCB* link) override;
+                              ChLinkTSDA* link) override;
 
   private:
     double m_ms_compr;
@@ -146,7 +146,7 @@ HMMWV_ShockForce::HMMWV_ShockForce(double midstroke_compression_slope,
       m_min_length(metalmetal_lower_bound),
       m_max_length(metalmetal_upper_bound) {}
 
-double HMMWV_ShockForce::operator()(double time, double rest_length, double length, double vel, ChLinkSpringCB* link) {
+double HMMWV_ShockForce::operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) {
     /*
     // On midstroke curve
     if (length >= m_min_length && length <= m_max_length)

@@ -15,7 +15,7 @@
 // functor object.
 // Optionally, a ChLinkSpringCB can have internal dynamics, described by a
 // system of ODEs. The internal states are integrated simultaneous with the
-// containing system. They can be accessed and used in the force claculation.
+// containing system. They can be accessed and used in the force calculation.
 // Such objects can be used in active suspension models.
 // =============================================================================
 
@@ -29,14 +29,20 @@ namespace chrono {
 
 /// Class for spring-damper systems with the force specified through a functor object.
 /// Optionally, these objects may have internal dynamics, represented by a system of ODEs.
-class ChApi ChLinkSpringCB : public ChLinkMarkers {
+///
+/// \deprecated Use ChLinkTSDA instead. This class will be removed in a future Chrono release.
+class ChApi
+/// \cond
+CH_DEPRECATED("deprecated. Use ChLinkTSDA instead.")
+/// \endcond
+ChLinkSpringCB : public ChLinkMarkers {
   public:
     ChLinkSpringCB();
     ChLinkSpringCB(const ChLinkSpringCB& other);
     ~ChLinkSpringCB();
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChLinkSpringCB* Clone() const override { return new ChLinkSpringCB(*this); }
+    virtual ChLinkSpringCB* Clone() const override;
 
     // Set spring rest (free) length.
     // Optionally, the free length can be calculated from the initial configuration (see #Initialize).

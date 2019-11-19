@@ -288,13 +288,13 @@ void ChToeBarLeafspringAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddLink(m_revolute[side]);
 
     // Create and initialize the spring/damper
-    m_shock[side] = chrono_types::make_shared<ChLinkSpringCB>();
+    m_shock[side] = chrono_types::make_shared<ChLinkTSDA>();
     m_shock[side]->SetNameString(m_name + "_shock" + suffix);
     m_shock[side]->Initialize(chassis, m_axleTube, false, points[SHOCK_C], points[SHOCK_A]);
     m_shock[side]->RegisterForceFunctor(getShockForceFunctor());
     chassis->GetSystem()->AddLink(m_shock[side]);
 
-    m_spring[side] = chrono_types::make_shared<ChLinkSpringCB>();
+    m_spring[side] = chrono_types::make_shared<ChLinkTSDA>();
     m_spring[side]->SetNameString(m_name + "_spring" + suffix);
     m_spring[side]->Initialize(chassis, m_axleTube, false, points[SPRING_C], points[SPRING_A], false,
                                getSpringRestLength());
@@ -390,13 +390,13 @@ double ChToeBarLeafspringAxle::GetTrack() {
 ChSuspension::Force ChToeBarLeafspringAxle::ReportSuspensionForce(VehicleSide side) const {
     ChSuspension::Force force;
 
-    force.spring_force = m_spring[side]->GetSpringReact();
-    force.spring_length = m_spring[side]->GetSpringLength();
-    force.spring_velocity = m_spring[side]->GetSpringVelocity();
+    force.spring_force = m_spring[side]->GetForce();
+    force.spring_length = m_spring[side]->GetLength();
+    force.spring_velocity = m_spring[side]->GetVelocity();
 
-    force.shock_force = m_shock[side]->GetSpringReact();
-    force.shock_length = m_shock[side]->GetSpringLength();
-    force.shock_velocity = m_shock[side]->GetSpringVelocity();
+    force.shock_force = m_shock[side]->GetForce();
+    force.shock_length = m_shock[side]->GetLength();
+    force.shock_velocity = m_shock[side]->GetVelocity();
 
     return force;
 }
@@ -608,7 +608,7 @@ void ChToeBarLeafspringAxle::ExportComponentList(rapidjson::Document& jsonDocume
     joints.push_back(m_revoluteKingpin[1]);
     ChPart::ExportJointList(jsonDocument, joints);
 
-    std::vector<std::shared_ptr<ChLinkSpringCB>> springs;
+    std::vector<std::shared_ptr<ChLinkTSDA>> springs;
     springs.push_back(m_spring[0]);
     springs.push_back(m_spring[1]);
     springs.push_back(m_shock[0]);
@@ -646,7 +646,7 @@ void ChToeBarLeafspringAxle::Output(ChVehicleOutput& database) const {
     joints.push_back(m_revoluteKingpin[1]);
     database.WriteJoints(joints);
 
-    std::vector<std::shared_ptr<ChLinkSpringCB>> springs;
+    std::vector<std::shared_ptr<ChLinkTSDA>> springs;
     springs.push_back(m_spring[0]);
     springs.push_back(m_spring[1]);
     springs.push_back(m_shock[0]);
