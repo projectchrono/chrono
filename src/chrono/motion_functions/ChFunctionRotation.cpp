@@ -28,7 +28,9 @@ namespace chrono {
 ChVector<> ChFunctionRotation::Get_w_loc(double s) const { 
 		ChQuaternion<> q0 = Get_q(s);
 		ChQuaternion<> q1 = Get_q(s + BDF_STEP_LOW);
-		ChQuaternion<> qdt = (q0 - q1) / BDF_STEP_LOW;
+		if (q0.Dot(q1) < 0)
+			q1 = -q1; // because q1 and -q1 are the same rotation, but for finite difference we must use the closest to q0
+		ChQuaternion<> qdt = (q1 - q0) / BDF_STEP_LOW;
 		ChGlMatrix34<> Gl(q0);
         return Gl * qdt;
 }
