@@ -113,9 +113,9 @@ void ChKblockGeneric::Build_K(ChSparseMatrix& storage, bool add) {
 
                 if (this->GetVariableN(jv)->IsActive()) {
                     if (add)
-                        storage.PasteMatrix(K.block(kio, kjo, in, jn), io, jo, false);
+                        PasteMatrix(storage, K.block(kio, kjo, in, jn), io, jo, false);
                     else
-                        storage.PasteMatrix(K.block(kio, kjo, in, jn), io, jo, true);
+                        PasteMatrix(storage, K.block(kio, kjo, in, jn), io, jo, true);
                 }
 
                 kjo += jn;

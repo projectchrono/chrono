@@ -102,7 +102,7 @@ class CH_VEHICLE_API ChDoubleWishboneReduced : public ChSuspension {
     virtual double GetTrack() override;
 
     /// Get a handle to the specified shock (spring-damper) element.
-    std::shared_ptr<ChLinkSpringCB> GetShock(VehicleSide side) const { return m_shock[side]; }
+    std::shared_ptr<ChLinkTSDA> GetShock(VehicleSide side) const { return m_shock[side]; }
 
     /// Return current suspension forces (spring and shock) on the specified side.
     /// Since this suspension type has a combined spring-damper element, the same information is duplicated in the
@@ -161,7 +161,7 @@ class CH_VEHICLE_API ChDoubleWishboneReduced : public ChSuspension {
     /// Return the free (rest) length of the spring-damper element.
     virtual double getSpringRestLength() const = 0;
     /// Return the functor object for shock force (spring-damper).
-    virtual ChLinkSpringCB::ForceFunctor* getShockForceFunctor() const = 0;
+    virtual ChLinkTSDA::ForceFunctor* getShockForceFunctor() const = 0;
 
     std::shared_ptr<ChBody> m_upright[2];  ///< handles to the upright bodies (left/right)
 
@@ -171,7 +171,7 @@ class CH_VEHICLE_API ChDoubleWishboneReduced : public ChSuspension {
     std::shared_ptr<ChLinkDistance> m_distLCA_B[2];   ///< handles to the back LCA distance constraints (left/right)
     std::shared_ptr<ChLinkDistance> m_distTierod[2];  ///< handles to the tierod distance constraints (left/right)
 
-    std::shared_ptr<ChLinkSpringCB> m_shock[2];  ///< handles to the spring-damper force elements (left/right)
+    std::shared_ptr<ChLinkTSDA> m_shock[2];  ///< handles to the spring-damper force elements (left/right)
 
   private:
     // Hardpoint absolute locations

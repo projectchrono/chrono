@@ -475,8 +475,10 @@ if(MSVC)
 endif()
 
 SET_TARGET_PROPERTIES(ChronoEngine_parallel PROPERTIES
-                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}"
-                      COMPILE_DEFINITIONS "CH_API_COMPILE_PARALLEL")
+                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
+
+target_compile_definitions(ChronoEngine_parallel PRIVATE "CH_API_COMPILE_PARALLEL")
+target_compile_definitions(ChronoEngine_parallel PRIVATE "CH_IGNORE_DEPRECATED")
 
 TARGET_LINK_LIBRARIES(ChronoEngine_parallel ${CHRONO_PARALLEL_LINKED_LIBRARIES})
 

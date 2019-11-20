@@ -21,7 +21,7 @@
 #endif
 
 #include "chrono/core/ChLog.h"
-#include "chrono/physics/ChSolvmin.h"
+#include "chrono/solver/ChSolvmin.h"
 
 namespace chrono {
 
@@ -62,7 +62,7 @@ ChOptimizer::ChOptimizer() {
     user_break = 0;
 }
 
-ChOptimizer::ChOptimizer(const ChOptimizer& other) : ChObj(other) {
+ChOptimizer::ChOptimizer(const ChOptimizer& other) {
     // copy error message
     strcpy(err_message, other.err_message);
 
@@ -1314,9 +1314,6 @@ ChOptimizerHybrid::ChOptimizerHybrid(const ChOptimizerHybrid& other) : ChOptimiz
     current_phase = other.current_phase;
     use_genetic = other.use_genetic;
     use_local = other.use_local;
-
-    genetic_opt = other.genetic_opt->Clone();
-    local_opt = other.local_opt->Clone();
 }
 
 ChOptimizerHybrid::~ChOptimizerHybrid() {
@@ -1325,7 +1322,7 @@ ChOptimizerHybrid::~ChOptimizerHybrid() {
     delete local_opt;
 }
 
-//// OPTIMIZE FUNCTION  ,
+//// OPTIMIZE FUNCTION
 
 bool ChOptimizerHybrid::DoOptimize() {
     // set common optimization settings

@@ -14,13 +14,11 @@
 
 //// RADU
 //// Obsolete this?
-//// Otherwise, move to core/
 
 #ifndef CHSOLVMIN_H
 #define CHSOLVMIN_H
 
-#include "chrono/physics/ChFx.h"
-#include "chrono/physics/ChObject.h"
+#include "chrono/core/ChFx.h"
 
 // forward reference
 struct JSScript;
@@ -29,7 +27,7 @@ namespace chrono {
 
 /// Base class for multi-variable optimization.
 
-class ChApi ChOptimizer : public ChObj {
+class ChApi ChOptimizer {
   protected:
     ChFx* afunction;      ///< the function to be maximized
     ChFx* afunctionGrad;  ///< the gradient of the function to be maximized, or null for default BDF.
@@ -59,9 +57,6 @@ class ChApi ChOptimizer : public ChObj {
     ChOptimizer();
     ChOptimizer(const ChOptimizer& other);
     virtual ~ChOptimizer() {}
-
-    /// "Virtual" copy constructor (covariant return type).
-    virtual ChOptimizer* Clone() const override { return new ChOptimizer(*this); }
 
     /// Sets the objective function to maximize
     virtual void SetObjective(ChFx* mformula) { afunction = mformula; }
@@ -140,9 +135,6 @@ class ChApi ChOptimizerLocal : public ChOptimizer {
     ChOptimizerLocal();
     ChOptimizerLocal(const ChOptimizerLocal& other);
     virtual ~ChOptimizerLocal() {}
-
-    /// "Virtual" copy constructor (covariant return type).
-    virtual ChOptimizerLocal* Clone() const override { return new ChOptimizerLocal(*this); }
 
     // Performs the optimization of the PSystem pointed by "database"
     // (or whatever object which can evaluate the string "function" and the "optvarlist")
@@ -250,9 +242,6 @@ class ChApi ChOptimizerGenetic : public ChOptimizer {
     ChOptimizerGenetic(const ChOptimizerGenetic& other);
     virtual ~ChOptimizerGenetic();
 
-    /// "Virtual" copy constructor (covariant return type).
-    virtual ChOptimizerGenetic* Clone() const override { return new ChOptimizerGenetic(*this); }
-
     // The optimization procedure.
     // Performs the optimization of the PSystem pointed by "database"
     // using the current parameters. Returns false if some error occurred.
@@ -312,9 +301,6 @@ class ChApi ChOptimizerGradient : public ChOptimizer {
     ChOptimizerGradient(const ChOptimizerGradient& other);
     virtual ~ChOptimizerGradient() {}
 
-    /// "Virtual" copy constructor (covariant return type).
-    virtual ChOptimizerGradient* Clone() const override { return new ChOptimizerGradient(*this); }
-
     // Performs the optimization of the PSystem pointed by "database"
     // (or whatever object which can evaluate the string "function" and the "optvarlist")
     // using the current parameters. Returns false if some error occurred.
@@ -346,9 +332,6 @@ class ChApi ChOptimizerHybrid : public ChOptimizer {
     ChOptimizerHybrid();
     ChOptimizerHybrid(const ChOptimizerHybrid& other);
     virtual ~ChOptimizerHybrid();
-
-    /// "Virtual" copy constructor (covariant return type).
-    virtual ChOptimizerHybrid* Clone() const override { return new ChOptimizerHybrid(*this); }
 
     virtual void SetObjective(ChFx* mformula) override;
     virtual void SetObjectiveGrad(ChFx* mformula) override;

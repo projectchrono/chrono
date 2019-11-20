@@ -29,7 +29,7 @@
 #include "chrono/solver/ChSolverSORmultithread.h"
 #include "chrono/solver/ChSolverSymmSOR.h"
 #include "chrono/timestepper/ChStaticAnalysis.h"
-#include "chrono/core/ChCSMatrix.h"
+#include "chrono/core/ChMatrix.h"
 #include "chrono/utils/ChProfiler.h"
 
 using namespace chrono::collision;
@@ -1360,36 +1360,36 @@ void ChSystem::DumpSystemMatrices(bool save_M, bool save_K, bool save_R, bool sa
     const char* numformat = "%.12g";
 
     if (save_M) {
-        ChCSMatrix mM;
+        ChSparseMatrix mM;
         this->GetMassMatrix(&mM);
         sprintf(filename, "%s%s", path, "_M.dat");
         ChStreamOutAsciiFile file_M(filename);
         file_M.SetNumFormat(numformat);
-        mM.StreamOUTsparseMatlabFormat(file_M);
+        StreamOUTsparseMatlabFormat(mM, file_M);
     }
     if (save_K) {
-        ChCSMatrix mK;
+        ChSparseMatrix mK;
         this->GetStiffnessMatrix(&mK);
         sprintf(filename, "%s%s", path, "_K.dat");
         ChStreamOutAsciiFile file_K(filename);
         file_K.SetNumFormat(numformat);
-        mK.StreamOUTsparseMatlabFormat(file_K);
+        StreamOUTsparseMatlabFormat(mK, file_K);
     }
     if (save_R) {
-        ChCSMatrix mR;
+        ChSparseMatrix mR;
         this->GetDampingMatrix(&mR);
         sprintf(filename, "%s%s", path, "_R.dat");
         ChStreamOutAsciiFile file_R(filename);
         file_R.SetNumFormat(numformat);
-        mR.StreamOUTsparseMatlabFormat(file_R);
+        StreamOUTsparseMatlabFormat(mR, file_R);
     }
     if (save_Cq) {
-        ChCSMatrix mCq;
+        ChSparseMatrix mCq;
         this->GetConstraintJacobianMatrix(&mCq);
         sprintf(filename, "%s%s", path, "_Cq.dat");
         ChStreamOutAsciiFile file_Cq(filename);
         file_Cq.SetNumFormat(numformat);
-        mCq.StreamOUTsparseMatlabFormat(file_Cq);
+        StreamOUTsparseMatlabFormat(mCq, file_Cq);
     }
 }
 
@@ -1451,7 +1451,9 @@ bool ChSystem::Integrate_Y() {
 
     // Prepare lists of variables and constraints.
     DescriptorPrepareInject(*descriptor);
-    descriptor->UpdateCountsAndOffsets();
+
+    // No need to update counts and offsets, as already done by the above call (in ChSystemDescriptor::EndInsertion)
+    ////descriptor->UpdateCountsAndOffsets();
 
     // Set some settings in timestepper object
     timestepper->SetQcDoClamp(true);

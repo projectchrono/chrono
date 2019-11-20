@@ -310,6 +310,8 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
         add_definitions( "-D_SCL_SECURE_NO_DEPRECATE" )  # avoids deprecation warnings
         add_definitions( "-DNOMINMAX" ) # do not use MSVC's min/max macros
         add_definitions( "-MP" ) # perform parallel builds
+
+        set(CH_CXX_FLAGS "${CH_CXX_FLAGS} /Zc:__cplusplus")
     endif(MSVC)
 
     if(MINGW OR CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
@@ -368,6 +370,8 @@ if(ENABLE_HDF5)
         if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
             set(HDF5_COMPILE_DEFS "H5_BUILT_AS_DYNAMIC_LIB")
             message(STATUS "  HDF5 compile defs  (HDF5_COMPILE_DEFS)  ${HDF5_COMPILE_DEFS}")
+        else()
+            set(HDF5_COMPILE_DEFS "")
         endif()
     
         set(CHRONO_HAS_HDF5 "#define CHRONO_HAS_HDF5")

@@ -12,13 +12,9 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-//// RADU
-//// obsolete?
-//// move to core/
-
 #include <cmath>
 
-#include "chrono/physics/ChNlsolver.h"
+#include "chrono/solver/ChNlsolver.h"
 #include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChMathematics.h"
 

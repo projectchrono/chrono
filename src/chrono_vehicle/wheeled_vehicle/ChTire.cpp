@@ -246,7 +246,7 @@ bool ChTire::DiscTerrainCollision4pt(
 }
 
 void ChTire::ConstructAreaDepthTable(double disc_radius, ChFunction_Recorder& areaDep) {
-    const size_t n_lookup = 30;
+    const size_t n_lookup = 90;
     double depMax = disc_radius;  // should be high enough to avoid extrapolation
     double depStep = depMax / double(n_lookup - 1);
     for (size_t i = 0; i < n_lookup; i++) {
@@ -274,14 +274,14 @@ bool ChTire::DiscTerrainCollisionEnvelope(
     ChVector<> normal = terrain.GetNormal(disc_center.x(), disc_center.y());
     ChVector<> longitudinal = Vcross(disc_normal, normal);
     longitudinal.Normalize();
-    const size_t n_con_pts = 31;
+    const size_t n_con_pts = 181;
     double x_step = 2.0 * disc_radius / double(n_con_pts - 1);
     // ChVectorDynamic<> q(n_con_pts);  // road surface height values along 'longitudinal'
     // ChVectorDynamic<> x(n_con_pts);  // x values along disc_center + x*longitudinal
     double A = 0;   // overlapping area of tire disc and road surface contour
     double Xc = 0;  // relative x coordinate of area A centroid
     double Zc = 0;  // relative z (rsp. to road height) height of area A centroid, actually unused
-    for (size_t i = 0; i < n_con_pts; i++) {
+    for (size_t i = 1; i < n_con_pts - 1; i++) {
         double x = -disc_radius + x_step * double(i);
         ChVector<> pTest = disc_center + x * longitudinal;
         double q = terrain.GetHeight(pTest.x(), pTest.y());
@@ -291,25 +291,20 @@ bool ChTire::DiscTerrainCollisionEnvelope(
         if (Q1 < 0) {
             Q1 = 0;
         }
-        if (i == 0 || i == (n_con_pts - 1)) {
+        if (i == 1 || i == (n_con_pts - 2)) {
             A += 0.5 * Q1;
-            Xc += 0.5 * Q1 * x;
-            // Zc += 0.5 * Q1 * Q2 / 2.0;
         } else {
             A += Q1;
-            Xc += Q1 * x;
-            // Zc += Q1 * Q2 / 2.0;
         }
     }
     A *= x_step;
-    Xc *= x_step / A;
     // Zc *= x_step / A;
     if (A == 0) {
         return false;
     }
-
+    
     // Xc = negative means area centroid is in front of the disc_center
-    ChVector<> pXc = disc_center - Xc * longitudinal;
+    ChVector<> pXc = disc_center;
 
     // Zc relative to q(x)
     // Zc = terrain.GetHeight(disc_center.x(), disc_center.y()) + Zc;
@@ -374,7 +369,7 @@ ChVector<> ChTire::EstimateInertia(double tire_width,    // tire width [mm]
                                    double rim_diameter,  // rim diameter [in]
                                    double tire_mass,     // mass of the tire [kg]
                                    double t_factor       // tread to sidewall thickness factor
-                                   ) {
+) {
     double rho = 1050.0;  // rubber density in kg/m^3
 
     double width = tire_width / 1000;             // tire width in meters

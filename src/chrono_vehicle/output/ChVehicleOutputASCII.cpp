@@ -131,11 +131,11 @@ void ChVehicleOutputASCII::WriteCouples(const std::vector<std::shared_ptr<ChShaf
     }
 }
 
-void ChVehicleOutputASCII::WriteLinSprings(const std::vector<std::shared_ptr<ChLinkSpringCB>>& springs) {
+void ChVehicleOutputASCII::WriteLinSprings(const std::vector<std::shared_ptr<ChLinkTSDA>>& springs) {
     for (auto spring : springs) {
         m_stream << "    lin spring: " << spring->GetIdentifier() << " \"" << spring->GetNameString() << "\" ";
-        m_stream << spring->GetSpringLength() << " " << spring->GetSpringVelocity() << " ";
-        m_stream << spring->GetSpringReact() << " ";
+        m_stream << spring->GetLength() << " " << spring->GetVelocity() << " ";
+        m_stream << spring->GetForce() << " ";
         m_stream << std::endl;
         //// TODO
     }

@@ -6,6 +6,7 @@
 #include "chrono/solver/ChSolver.h"
 #include "chrono/solver/ChIterativeSolver.h"
 #include "chrono/solver/ChSolverMINRES.h"
+#include "chrono/solver/ChSolverDirect.h"
 
 using namespace chrono;
 %}
@@ -15,10 +16,12 @@ using namespace chrono;
 /* Parse the header file to generate wrappers */
 
 %shared_ptr(chrono::ChSolver)
+%shared_ptr(chrono::ChSolverDirect)
 %shared_ptr(chrono::ChIterativeSolver)
 %shared_ptr(chrono::ChSolverMINRES)
   
 %include "../chrono/solver/ChSolver.h"
+%include "../chrono/solver/ChSolverDirect.h"
 %include "../chrono/solver/ChIterativeSolver.h"
 %ignore chrono::ChSolverMINRES::GetType;
 %include "../chrono/solver/ChSolverMINRES.h"

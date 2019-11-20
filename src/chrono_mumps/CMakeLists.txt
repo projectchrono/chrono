@@ -164,8 +164,10 @@ ADD_LIBRARY(ChronoEngine_mumps SHARED
 
 SET_TARGET_PROPERTIES(ChronoEngine_mumps PROPERTIES
                       COMPILE_FLAGS "${CH_CXX_FLAGS}"
-                      LINK_FLAGS "${CH_LINKERFLAG_SHARED} ${CH_MUMPS_LINK_FLAGS}"
-                      COMPILE_DEFINITIONS "CH_API_COMPILE_MUMPS")
+                      LINK_FLAGS "${CH_LINKERFLAG_SHARED} ${CH_MUMPS_LINK_FLAGS}")
+
+target_compile_definitions(ChronoEngine_mumps PRIVATE "CH_API_COMPILE_MUMPS")
+target_compile_definitions(ChronoEngine_mumps PRIVATE "CH_IGNORE_DEPRECATED")
 
 TARGET_LINK_LIBRARIES(ChronoEngine_mumps
                       ChronoEngine

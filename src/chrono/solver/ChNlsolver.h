@@ -12,6 +12,9 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
+//// RADU
+//// obsolete?
+
 #ifndef CHNLSOLVER_H
 #define CHNLSOLVER_H
 

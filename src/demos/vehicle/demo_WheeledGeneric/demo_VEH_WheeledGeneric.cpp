@@ -50,7 +50,9 @@
 //#define DEBUG_LOG
 
 using namespace chrono;
+#ifdef USE_IRRLICHT
 using namespace chrono::irrlicht;
+#endif
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::generic;
 

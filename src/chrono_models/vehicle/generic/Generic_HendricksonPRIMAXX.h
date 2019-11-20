@@ -70,17 +70,17 @@ class CH_MODELS_API Generic_HendricksonPRIMAXX : public ChHendricksonPRIMAXX {
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
     virtual double getShockAHRestLength() const override { return m_shockAH_restLength; }
-    virtual ChLinkSpringCB::ForceFunctor* getShockAHForceCallback() const override { return m_shockAHForceCB; }
+    virtual ChLinkTSDA::ForceFunctor* getShockAHForceCallback() const override { return m_shockAHForceCB; }
 
     virtual double getShockLBRestLength() const override { return m_shockLB_restLength; }
-    virtual ChLinkSpringCB::ForceFunctor* getShockLBForceCallback() const override { return m_shockLBForceCB; }
+    virtual ChLinkTSDA::ForceFunctor* getShockLBForceCallback() const override { return m_shockLBForceCB; }
 
   private:
     virtual const ChVector<> getLocation(PointId which) override;
     virtual const ChVector<> getDirection(DirectionId which) override;
 
-    ChLinkSpringCB::ForceFunctor* m_shockAHForceCB;
-    ChLinkSpringCB::ForceFunctor* m_shockLBForceCB;
+    ChLinkTSDA::ForceFunctor* m_shockAHForceCB;
+    ChLinkTSDA::ForceFunctor* m_shockLBForceCB;
 
     static const double m_axlehousingMass;
     static const double m_knuckleMass;

@@ -1,7 +1,6 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "chrono/physics/ChLinkSpringCB.h"
 #include "chrono/physics/ChLinkRotSpringCB.h"
 
 using namespace chrono;
@@ -15,26 +14,23 @@ using namespace chrono;
 // STEP 1: do aliases for the c++ compiler when compiling the .cxx wrapper 
 
 // for this nested class, inherit stubs (not virtual) as outside class
-class ForceFunctorP : public chrono::ChLinkSpringCB::ForceFunctor {
+class TorqueFunctorP : public chrono::ChLinkRotSpringCB::TorqueFunctor {
 public:
-	ForceFunctorP() {}
-	virtual ~ForceFunctorP() {}
-
-	/// Calculate and return the general spring-damper force at the specified configuration.
-	virtual double operator()(double time,          ///< current time
-			double rest_length,   ///< undeformed length
-			double length,        ///< current length
-			double vel,           ///< current velocity (positive when extending)
-			ChLinkSpringCB* link  ///< back-pointer to associated link
-			)  {
-			GetLog() << "You must implement ForceFunctor::operator()!\n";
-			return 0;
-	}
+    TorqueFunctorP() {}
+    virtual ~TorqueFunctorP() {}
+    
+    /// Calculate and return the general spring-damper force at the specified configuration.
+    virtual double operator()(double time,             ///< current time
+                              double angle,            ///< relative angle of rotation
+                              double vel,              ///< relative angular speed
+                              ChLinkRotSpringCB* link  ///< back-pointer to associated link
+    ) {
+      return 0;
+    }
 };
 
 %}
 
-%shared_ptr(chrono::ChLinkSpringCB)
 %shared_ptr(chrono::ChLinkRotSpringCB)
 
  
@@ -43,26 +39,24 @@ public:
 
 // Cross-inheritance between Python and c++ for callbacks that must be inherited.
 // Put this 'director' feature _before_ class wrapping declaration.
-%feature("director") ForceFunctorP;
+%feature("director") TorqueFunctorP;
 
 // NESTED CLASSES - trick - step 2
 //
 // STEP 2: Now the nested classes  MyOutClass::MyNestedClass are declared  
 // as ::MyNestedClass (as non-nested), for SWIG interpreter _only_:
 
-class ForceFunctorP {
+class TorqueFunctorP {
 public:
-	ForceFunctorP() {}
-	virtual ~ForceFunctorP() {}
-	virtual double operator()(double time,          ///< current time
-		double rest_length,   ///< undeformed length
-		double length,        ///< current length
-		double vel,           ///< current velocity (positive when extending)
-		ChLinkSpringCB* link  ///< back-pointer to associated link
-		) {
-		GetLog() << "You must implement ForceFunctor::operator()!\n";
-		return 0;
-	}
+   TorqueFunctorP() {}
+   virtual ~TorqueFunctorP() {}
+   virtual double operator()(double time,             ///< current time
+                             double angle,            ///< relative angle of rotation
+                             double vel,              ///< relative angular speed
+                             ChLinkRotSpringCB* link  ///< back-pointer to associated link
+   ) {
+                             return 0;
+   }
 };
 
 // NESTED CLASSES - trick - step 3
@@ -76,12 +70,12 @@ public:
 // this will confuse the python runtime, so do override these functions so that they return 
 // a ::IteratorBody type (see step 2), that will be interpreted ok in the python runtime.
 
-%extend chrono::ChLinkSpringCB
+%extend chrono::ChLinkRotSpringCB
 {
-	void RegisterForceFunctor(::ForceFunctorP* functor)
-	{
-		$self->RegisterForceFunctor(functor);
-	}
+   void RegisterTorqueFunctor(::TorqueFunctorP* functor)
+   {
+      $self->RegisterTorqueFunctor(functor);
+   }
 };
 
 // NESTED CLASSES - trick - step 5
@@ -90,17 +84,8 @@ public:
 // original ones in the .h file, by using %ignore. NOTE that this must happen AFTER the %extend,
 // and BEFORE the %include !!!
 
-%ignore chrono::ChLinkSpringCB::RegisterForceFunctor();
+%ignore chrono::ChLinkRotSpringCB::RegisterTorqueFunctor();
 
 
 /* Parse the header file to generate wrappers */
-%include "../chrono/physics/ChLinkSpringCB.h"  
-%include "../chrono/physics/ChLinkRotSpringCB.h"  
-
-
-
-
-
-
-
-
+%include "../chrono/physics/ChLinkRotSpringCB.h"

@@ -1,7 +1,7 @@
 #=============================================================================
 # CMake configuration file for the GRANULAR_TERRAIN demo.
 # This example program requires Chrono:Parallel and the OpenGL module for
-# run-time visualization
+# run-time visualization.
 #=============================================================================
 
 IF(NOT ENABLE_MODULE_OPENGL OR NOT ENABLE_MODULE_PARALLEL)

@@ -83,6 +83,7 @@ using namespace chrono::fea;
 // Undefine ChApi otherwise SWIG gives a syntax error
 #define ChApi 
 #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+#define CH_DEPRECATED(msg)
 
 %ignore CH_ENUM_MAPPER_BEGIN;
 %ignore CH_ENUM_VAL;
@@ -208,6 +209,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChLinkRevoluteSpherical)
 %shared_ptr(chrono::ChLinkScrew)
 %shared_ptr(chrono::ChLinkSpring)
+%shared_ptr(chrono::ChLinkTSDA)
 %shared_ptr(chrono::ChLinkUniversal)
 %shared_ptr(chrono::ChLinkMotor)
 %shared_ptr(chrono::ChLinkMotorLinear)
@@ -356,7 +358,8 @@ using namespace chrono::fea;
 %include "ChLinkPulley.i"
 %include "ChLinkScrew.i"
 %include "ChLinkSpring.i"
-%include "ChLinkSpringCB.i"
+%include "ChLinkTSDA.i"
+%include "ChLinkRSDA.i"
 %include "ChLinkGear.i"
 %include "ChLinkRevolute.i"
 %include "ChLinkRevoluteSpherical.i"
@@ -457,7 +460,8 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkPulley)
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkScrew)
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkSpring)
-%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkSpringCB)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkTSDA)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkRotSpringCB)
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkMotor)
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkMotorLinear)
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkMotorLinearDriveline)
@@ -500,6 +504,7 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkPulley)
 %DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkScrew)
 %DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkSpring)
+%DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkTSDA)
 %DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkPointSpline) 
 %DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkTrajectory)
 
