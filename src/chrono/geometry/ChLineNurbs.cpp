@@ -115,8 +115,8 @@ void ChLineNurbs::ArchiveOUT(ChArchiveOut& marchive) {
     ChLine::ArchiveOUT(marchive);
     // serialize all member data:
     marchive << CHNVP(points);
-    marchive << CHNVP(weights);
-    marchive << CHNVP(knots);
+    ////marchive << CHNVP(weights); //**TODO MATRIX DESERIALIZATION
+    ////marchive << CHNVP(knots); //**TODO MATRIX DESERIALIZATION
     marchive << CHNVP(p);
 }
 
@@ -127,8 +127,8 @@ void ChLineNurbs::ArchiveIN(ChArchiveIn& marchive) {
     ChLine::ArchiveIN(marchive);
     // stream in all member data:
     marchive >> CHNVP(points);
-    ////marchive >> CHNVP(weights);
-    ////marchive >> CHNVP(knots);
+    ////marchive >> CHNVP(weights); //**TODO MATRIX DESERIALIZATION
+    ////marchive >> CHNVP(knots); //**TODO MATRIX DESERIALIZATION
     marchive >> CHNVP(p);
 }
 

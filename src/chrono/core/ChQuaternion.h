@@ -28,10 +28,10 @@ namespace chrono {
 /// Definitions of various angle sets for conversions.
 enum class AngleSet {
     ANGLE_AXIS,
-    EULERO,
-    CARDANO,
-    HPB,
-    RXYZ,
+    EULERO,		///< sequence: Z - X' - Z''
+    CARDANO,	///< sequence: Z - X' - Y''
+    HPB,		///< sequence: 
+    RXYZ,		///< sequence: X - Y' - Z''
     RODRIGUEZ,
     QUATERNION,
 };
