@@ -15,6 +15,7 @@
 
 
 #include "chrono/motion_functions/ChFunctionPosition_line.h"
+#include "chrono/motion_functions/ChFunction_Ramp.h"
 #include "chrono/geometry/ChLineSegment.h"
 
 namespace chrono {
@@ -26,6 +27,10 @@ ChFunctionPosition_line::ChFunctionPosition_line() {
 
 	// default trajectory is a segment
     this->trajectory_line = chrono_types::make_shared<geometry::ChLineSegment>();
+
+	// default s(t) function. User will provide better fx.
+    space_fx = chrono_types::make_shared<ChFunction_Ramp>(0, 1.);
+
 }
 
 
@@ -33,6 +38,9 @@ ChFunctionPosition_line::ChFunctionPosition_line(const ChFunctionPosition_line& 
 
 	//trajectory_line = other.trajectory_line;
     trajectory_line = std::shared_ptr<geometry::ChLine>((geometry::ChLine*)other.trajectory_line->Clone());  // deep copy
+	
+	//space_fx = other.space_fx;
+	space_fx = std::shared_ptr<ChFunction>(other.space_fx->Clone());            // deep copy
 }
 
 ChFunctionPosition_line::~ChFunctionPosition_line() {
@@ -42,15 +50,18 @@ ChFunctionPosition_line::~ChFunctionPosition_line() {
 
 
 ChVector<> ChFunctionPosition_line::Get_p(double s) const {
-	ChVector<> result;
-    trajectory_line->Evaluate(result, s);
-	return result;
+	ChVector<> p;
+	double u = space_fx->Get_y(s);
+    trajectory_line->Evaluate(p, u);
+	return p;
 }
 
 ChVector<> ChFunctionPosition_line::Get_p_ds(double s) const {
-	ChVector<> result;
-    trajectory_line->Derive(result, s);  // some chLine implement the Derive analytically, so better exploit this and do not fallback on BDF
-	return result;
+	ChVector<> dp_du;
+	double u = space_fx->Get_y(s);
+	double du_ds = space_fx->Get_y_dx(s);
+    trajectory_line->Derive(dp_du, u);  // some chLine implement the Derive analytically, so better exploit this and do not fallback on BDF
+	return dp_du * du_ds;
 }
 
 ChVector<> ChFunctionPosition_line::Get_p_dsds(double s) const {
@@ -78,6 +89,7 @@ void ChFunctionPosition_line::ArchiveOUT(ChArchiveOut& marchive) {
     ChFunctionPosition::ArchiveOUT(marchive);
     // serialize all member data:
     marchive << CHNVP(trajectory_line);
+	marchive << CHNVP(space_fx);
 
 }
 
@@ -88,6 +100,7 @@ void ChFunctionPosition_line::ArchiveIN(ChArchiveIn& marchive) {
     ChFunctionPosition::ArchiveIN(marchive);
     // deserialize all member data:
     marchive >> CHNVP(trajectory_line);
+	marchive >> CHNVP(space_fx);
 
 }
 

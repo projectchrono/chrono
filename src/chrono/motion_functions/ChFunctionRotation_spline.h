@@ -16,6 +16,7 @@
 #define CHFUNCTIONROTATION_SPLINE_H
 
 #include "chrono/motion_functions/ChFunctionRotation.h"
+#include "chrono/motion_functions/ChFunction_Base.h"
 
 
 namespace chrono {
@@ -85,6 +86,17 @@ class ChApi ChFunctionRotation_spline : public ChFunctionRotation {
     );
 	
 
+
+	/// Gets the address of the function u=u(s) telling
+    /// how the curvilinear parameter u of the spline changes in s (time).
+    std::shared_ptr<ChFunction> GetSpaceFunction() const { return space_fx; }
+
+    /// Sets the function u=u(s) telling how the curvilinear parameter
+    /// of the spline changes in s (time).
+	/// Otherwise, by default, is a linear ramp, so evaluates the spline from begin at s=0 to end at s=1 
+	void SetSpaceFunction(std::shared_ptr<ChFunction> m_funct) { space_fx = m_funct; }
+
+
 	/// Return the q value of the function, at s, as q=f(s).
 	/// Parameter s always work in 0..1 range, even if knots are not in 0..1 range.
     /// So if you want to use s in knot range, use ComputeUfromKnotU().
@@ -109,6 +121,8 @@ private:
 	std::vector<ChQuaternion<> > rotations;
     ChVectorDynamic<> knots;
     int p;
+
+	std::shared_ptr<ChFunction> space_fx;  
 };
 
 /// @} chrono_functions

@@ -137,6 +137,10 @@ int main(int argc, char* argv[]) {
 	// might use also other ChLine objects such as a ChLinePath, a ChLineArc, etc.)
 	auto f_line = chrono_types::make_shared<ChFunctionPosition_line>();
 	f_line->SetLine(mspline);
+	// Note that all ChLine will be evaluated in a 0..1 range, this means that at s=0
+	// one gets the start of the line, at s=1 one gets the end. For slower motion, one
+	// can use SetSpaceFunction(), here ramping a linear abscissa motion but at 1/5 of the default speed:
+	f_line->SetSpaceFunction( chrono_types::make_shared<ChFunction_Ramp>(0, 0.2) );
 
 	// Create a spline rotation interpolation based on quaternion splines.
 	// Note that if order=1, the quaternion spline boils down to a simple SLERP interpolation
@@ -145,10 +149,12 @@ int main(int argc, char* argv[]) {
 		std::vector<ChQuaternion<> >{								// std::vector with ChQuaternion<> rot.controlpoints 
 										{ 1, 0, 0, 0 },
 										{ 0, 0, 1, 0 },
-										ChQuaternion<>(0,1,1,0).GetNormalized(), 
+										Q_from_AngZ(1.2),
 										{ 1, 0, 0, 0 }
 									}  
 	);
+	// Optional: avoid default linear evaluation of spline, here use a sigma ramp:
+	f_rotspline->SetSpaceFunction( chrono_types::make_shared<ChFunction_Sigma>(1, 0, 4) ); // amp,start,end
 
 	// Create the constraint to impose motion and rotation:
 	auto impose_2 = chrono_types::make_shared<ChLinkMotionImposed>();

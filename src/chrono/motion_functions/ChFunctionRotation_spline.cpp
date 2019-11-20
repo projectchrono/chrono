@@ -16,6 +16,7 @@
 
 #include "chrono/motion_functions/ChFunctionRotation_spline.h"
 #include "chrono/motion_functions/ChFunction_Const.h"
+#include "chrono/motion_functions/ChFunction_Ramp.h"
 #include "chrono/geometry/ChBasisToolsBspline.h"
 
 namespace chrono {
@@ -26,6 +27,9 @@ CH_FACTORY_REGISTER(ChFunctionRotation_spline)
 ChFunctionRotation_spline::ChFunctionRotation_spline() {
     std::vector<ChQuaternion<> > mrotations = {QUNIT, QUNIT};
     this->SetupData(1, mrotations);
+
+	// default s(t) function. User will provide better fx.
+    space_fx = chrono_types::make_shared<ChFunction_Ramp>(0, 1.);
 }
 
 ChFunctionRotation_spline::ChFunctionRotation_spline(
@@ -34,12 +38,16 @@ ChFunctionRotation_spline::ChFunctionRotation_spline(
     ChVectorDynamic<>* mknots           ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
 ) {
     this->SetupData(morder, mrotations, mknots);
+
+	// default s(t) function. User will provide better fx.
+    space_fx = chrono_types::make_shared<ChFunction_Ramp>(0, 1.);
 }
 
 ChFunctionRotation_spline::ChFunctionRotation_spline(const ChFunctionRotation_spline& other) {
     this->rotations = other.rotations;
     this->p = other.p;
     this->knots = other.knots;
+	this->space_fx = other.space_fx;
 }
 
 ChFunctionRotation_spline::~ChFunctionRotation_spline() {
@@ -76,7 +84,10 @@ void ChFunctionRotation_spline::SetupData(
 
 
 ChQuaternion<> ChFunctionRotation_spline::Get_q(double s) const {
-    double u = ComputeKnotUfromU(s);
+	
+	double fs = space_fx->Get_y(s);
+
+    double u = ComputeKnotUfromU(fs);
 
     int spanU = geometry::ChBasisToolsBspline::FindSpan(this->p, u, this->knots);
 
@@ -122,6 +133,7 @@ void ChFunctionRotation_spline::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(rotations);
     ////marchive << CHNVP(knots);  //**TODO MATRIX DESERIALIZATION
     marchive << CHNVP(p);
+	marchive << CHNVP(space_fx);
 
 }
 
@@ -134,6 +146,7 @@ void ChFunctionRotation_spline::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(rotations);
     ////marchive >> CHNVP(knots);  //**TODO MATRIX DESERIALIZATION
     marchive >> CHNVP(p);
+	marchive >> CHNVP(space_fx);
 }
 
 

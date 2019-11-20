@@ -17,6 +17,7 @@
 
 #include "chrono/geometry/ChLine.h"
 #include "chrono/motion_functions/ChFunctionPosition.h"
+#include "chrono/motion_functions/ChFunction_Base.h"
 
 
 namespace chrono {
@@ -45,6 +46,16 @@ class ChApi ChFunctionPosition_line : public ChFunctionPosition {
 	void SetLine(std::shared_ptr<geometry::ChLine> mline) { trajectory_line = mline; }
 
 
+	/// Gets the address of the function u=u(s) telling
+    /// how the curvilinear parameter u of the spline changes in s (time).
+    std::shared_ptr<ChFunction> GetSpaceFunction() const { return space_fx; }
+
+    /// Sets the function u=u(s) telling how the curvilinear parameter
+    /// of the spline changes in s (time).
+	/// Otherwise, by default, is a linear ramp, so evaluates the spline from begin at s=0 to end at s=1 
+	void SetSpaceFunction(std::shared_ptr<ChFunction> m_funct) { space_fx = m_funct; }
+
+
     /// Return the p value of the function, at s, as p=f(s).
 	virtual ChVector<> Get_p(double s) const override;
 
@@ -62,6 +73,8 @@ class ChApi ChFunctionPosition_line : public ChFunctionPosition {
 
 private:
 	std::shared_ptr<geometry::ChLine> trajectory_line;
+
+	std::shared_ptr<ChFunction> space_fx;  
 };
 
 /// @} chrono_functions
