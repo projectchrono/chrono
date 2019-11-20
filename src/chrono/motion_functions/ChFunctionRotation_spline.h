@@ -43,7 +43,7 @@ class ChApi ChFunctionRotation_spline : public ChFunctionRotation {
     /// If the knots are not provided, a uniformly spaced knot vector is made.
     ChFunctionRotation_spline(
         int morder,                             ///< order p: 1= linear, 2=quadratic, etc.
-        std::vector<ChQuaternion<> >& mrotations,  ///< control points, size n. Each is a rotation. Required: at least n >= p+1
+        const std::vector<ChQuaternion<> >& mrotations,  ///< control points, size n. Each is a rotation. Required: at least n >= p+1
         ChVectorDynamic<>* mknots = 0           ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
     );
 
@@ -81,7 +81,7 @@ class ChApi ChFunctionRotation_spline : public ChFunctionRotation {
     /// If the weights are not provided, a constant weight vector is made.
     virtual void SetupData(
         int morder,                         ///< order p: 1= linear, 2=quadratic, etc.
-        std::vector<ChQuaternion<> >& mrotations,  ///< rotations, size n. Required: at least n >= p+1
+        const std::vector<ChQuaternion<> >& mrotations,  ///< rotations, size n. Required: at least n >= p+1
         ChVectorDynamic<>* mknots = 0  ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
     );
 	

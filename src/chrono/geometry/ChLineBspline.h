@@ -39,7 +39,7 @@ class ChApi ChLineBspline : public ChLine {
     /// If the knots are not provided, a uniformly spaced knot vector is made.
     ChLineBspline(
         int morder,                         ///< order p: 1= linear, 2=quadratic, etc.
-        std::vector<ChVector<> >& mpoints,  ///< control points, size n. Required: at least n >= p+1
+        const std::vector<ChVector<> >& mpoints,  ///< control points, size n. Required: at least n >= p+1
         ChVectorDynamic<>* mknots = 0  ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
     );
 
@@ -92,7 +92,7 @@ class ChApi ChLineBspline : public ChLine {
     /// If the weights are not provided, a constant weight vector is made.
     virtual void SetupData(
         int morder,                         ///< order p: 1= linear, 2=quadratic, etc.
-        std::vector<ChVector<> >& mpoints,  ///< control points, size n. Required: at least n >= p+1
+        const std::vector<ChVector<> >& mpoints,  ///< control points, size n. Required: at least n >= p+1
         ChVectorDynamic<>* mknots = 0  ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
     );
 

@@ -25,7 +25,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChFunctionRotation_spline) 
 
 ChFunctionRotation_spline::ChFunctionRotation_spline() {
-    std::vector<ChQuaternion<> > mrotations = {QUNIT, QUNIT};
+    const std::vector<ChQuaternion<> > mrotations = {QUNIT, QUNIT};
     this->SetupData(1, mrotations);
 
 	// default s(t) function. User will provide better fx.
@@ -34,7 +34,7 @@ ChFunctionRotation_spline::ChFunctionRotation_spline() {
 
 ChFunctionRotation_spline::ChFunctionRotation_spline(
     int morder,                         ///< order p: 1= linear, 2=quadratic, etc.
-    std::vector<ChQuaternion<> >& mrotations,  ///< control points, size n. Required: at least n >= p+1
+    const std::vector<ChQuaternion<> >& mrotations,  ///< control points, size n. Required: at least n >= p+1
     ChVectorDynamic<>* mknots           ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
 ) {
     this->SetupData(morder, mrotations, mknots);
@@ -56,7 +56,7 @@ ChFunctionRotation_spline::~ChFunctionRotation_spline() {
 
 void ChFunctionRotation_spline::SetupData(
     int morder,                         ///< order p: 1= linear, 2=quadratic, etc.
-    std::vector<ChQuaternion<> >& mrotations,  ///< rotation control points, size n. Required: at least n >= p+1
+    const std::vector<ChQuaternion<> >& mrotations,  ///< rotation control points, size n. Required: at least n >= p+1
     ChVectorDynamic<>* mknots           ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
 ) {
     if (morder < 1)

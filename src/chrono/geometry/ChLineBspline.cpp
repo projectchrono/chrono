@@ -21,13 +21,13 @@ namespace geometry {
 CH_FACTORY_REGISTER(ChLineBspline)
 
 ChLineBspline::ChLineBspline() {
-    std::vector<ChVector<> > mpoints = {ChVector<>(-1, 0, 0), ChVector<>(1, 0, 0)};
+    const std::vector<ChVector<> > mpoints = {ChVector<>(-1, 0, 0), ChVector<>(1, 0, 0)};
     this->SetupData(1, mpoints);
 }
 
 ChLineBspline::ChLineBspline(
     int morder,                         ///< order p: 1= linear, 2=quadratic, etc.
-    std::vector<ChVector<> >& mpoints,  ///< control points, size n. Required: at least n >= p+1
+    const std::vector<ChVector<> >& mpoints,  ///< control points, size n. Required: at least n >= p+1
     ChVectorDynamic<>* mknots           ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
 ) {
     this->SetupData(morder, mpoints, mknots);
@@ -71,7 +71,7 @@ void ChLineBspline::Derive(ChVector<>& dir, const double parU) const {
 
 void ChLineBspline::SetupData(
     int morder,                         ///< order p: 1= linear, 2=quadratic, etc.
-    std::vector<ChVector<> >& mpoints,  ///< control points, size n. Required: at least n >= p+1
+    const std::vector<ChVector<> >& mpoints,  ///< control points, size n. Required: at least n >= p+1
     ChVectorDynamic<>* mknots           ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
 ) {
     if (morder < 1)
