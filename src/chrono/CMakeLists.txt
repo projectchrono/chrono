@@ -241,6 +241,7 @@ set(ChronoEngine_physics_links_SOURCES
     physics/ChLinkMotorLinearSpeed.cpp
     physics/ChLinkMotorLinearForce.cpp
     physics/ChLinkMotorLinearDriveline.cpp
+	physics/ChLinkMotionImposed.cpp
 )
 
 set(ChronoEngine_physics_links_HEADERS
@@ -283,6 +284,7 @@ set(ChronoEngine_physics_links_HEADERS
     physics/ChLinkMotorLinearSpeed.h
     physics/ChLinkMotorLinearForce.h
     physics/ChLinkMotorLinearDriveline.h
+	physics/ChLinkMotionImposed.h
 )
 
 source_group(physics\\links FILES
@@ -388,6 +390,7 @@ set(ChronoEngine_fea_SOURCES
     fea/ChLoadContactSurfaceMesh.cpp
     fea/ChMaterialShellANCF.cpp
     fea/ChMaterialShellReissner.cpp
+	fea/ChMaterialShellKirchhoff.cpp
     )
 
 set(ChronoEngine_fea_HEADERS
@@ -425,6 +428,7 @@ set(ChronoEngine_fea_HEADERS
     fea/ChRotUtils.h
     fea/ChMaterialShellANCF.h
     fea/ChMaterialShellReissner.h
+	fea/ChMaterialShellKirchhoff.h
 )
 
 source_group(fea FILES
@@ -763,6 +767,15 @@ set(ChronoEngine_motion_functions_SOURCES
     motion_functions/ChFunction_Sigma.cpp
     motion_functions/ChFunction_Sine.cpp
     motion_functions/ChFunction_Setpoint.cpp
+	motion_functions/ChFunctionPosition.cpp
+	motion_functions/ChFunctionPosition_XYZfunctions.cpp
+	motion_functions/ChFunctionPosition_line.cpp
+	motion_functions/ChFunctionPosition_setpoint.cpp
+	motion_functions/ChFunctionRotation.cpp
+	motion_functions/ChFunctionRotation_axis.cpp
+	motion_functions/ChFunctionRotation_ABCfunctions.cpp
+	motion_functions/ChFunctionRotation_setpoint.cpp
+	motion_functions/ChFunctionRotation_spline.cpp
     )
 
 set(ChronoEngine_motion_functions_HEADERS
@@ -788,6 +801,15 @@ set(ChronoEngine_motion_functions_HEADERS
     motion_functions/ChFunction_Sigma.h
     motion_functions/ChFunction_Sine.h
     motion_functions/ChFunction_Setpoint.h
+	motion_functions/ChFunctionPosition.h
+	motion_functions/ChFunctionPosition_XYZfunctions.h
+	motion_functions/ChFunctionPosition_line.h
+	motion_functions/ChFunctionPosition_setpoint.h
+	motion_functions/ChFunctionRotation.h
+	motion_functions/ChFunctionRotation_axis.h
+	motion_functions/ChFunctionRotation_ABCfunctions.h
+	motion_functions/ChFunctionRotation_setpoint.h
+	motion_functions/ChFunctionRotation_spline.h
     )
 
 if(CH_CXX14)
