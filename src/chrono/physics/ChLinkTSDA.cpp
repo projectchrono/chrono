@@ -316,11 +316,12 @@ void ChLinkTSDA::IntStateScatter(const unsigned int off_x,  // offset in x state
                                  const ChStateDelta& v,     // state vector, speed part
                                  const double T             // time
 ) {
-    Update(T);  //// RADU: we don't need to update assets here, do we?
-
+    // Important: set the internal states first, as they will be used in Update.
     if (m_variables) {
         m_states = v.segment(off_v, m_nstates);
     }
+
+    Update(T);  //// RADU: we don't need to update assets here, do we?
 }
 
 void ChLinkTSDA::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
@@ -330,8 +331,7 @@ void ChLinkTSDA::IntStateGatherAcceleration(const unsigned int off_a, ChStateDel
 }
 
 void ChLinkTSDA::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
-    //// RADU: correct?!?
-    // do nothing here
+    // Nothing to do here
 }
 
 void ChLinkTSDA::IntLoadResidual_F(const unsigned int off,  // offset in R residual
@@ -389,14 +389,8 @@ void ChLinkTSDA::IntFromDescriptor(const unsigned int off_v,  // offset in v
 
 void ChLinkTSDA::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
     if (m_jacobians) {
-        ////m_jacobians->m_KRM.Get_K().setZero();
-
         // Recall to flip sign to load K = -dQ/dx and R = -dQ/dv
         m_jacobians->m_KRM.Get_K() = -Kfactor * m_jacobians->m_K - Rfactor * m_jacobians->m_R;
-
-        ////m_jacobians->m_KRM.Get_K().block(0, 0, 12 + m_nstates, 12) =
-        ////    -Kfactor * m_jacobians->m_K - Rfactor * m_jacobians->m_R;
-        ////m_jacobians->m_KRM.Get_K().block(12, 12, m_nstates, m_nstates) = -Rfactor * m_jacobians->m_J;
     }
 }
 
@@ -434,7 +428,7 @@ void ChLinkTSDA::VariablesFbIncrementMq() {
 
 void ChLinkTSDA::VariablesQbIncrementPosition(double dt_step) {
     //// RADU: correct?
-    // do nothing here
+    // nothing to do here
 }
 
 void ChLinkTSDA::ConstraintsFbLoadForces(double factor) {
