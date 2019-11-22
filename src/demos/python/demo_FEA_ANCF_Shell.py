@@ -31,6 +31,9 @@ def CastNode(nb):
     nodeFead = fea.CastToChNodeFEAxyzD(feaNB)
     return nodeFead
 
+
+chrono.SetChronoDataPath("../../../data/")
+
 time_step = 1e-3
 
 my_system = chrono.ChSystemSMC()
@@ -47,8 +50,8 @@ application.AddTypicalCamera(chronoirr.vector3df(-0.4, -0.3, 0.0),  # camera loc
                              chronoirr.vector3df(0.0, 0.5, -0.1))  # "look at" location
 
 print( "-----------------------------------------------------------\n")
-print("-----------------------------------------------------------\n")
-print("     ANCF Shell Elements demo with implicit integration \n")
+print("------------------------------------------------------------\n")
+print("     ANCF Shell Elements demo with implicit integration     \n")
 print( "-----------------------------------------------------------\n")
 
 # Create a mesh, that is a container for groups of elements and their referenced nodes.
@@ -60,27 +63,23 @@ plate_lenght_y = 0.1
 plate_lenght_z = 0.01
 # Specification of the mesh
 numDiv_x = 10
-numDiv_y = 10
-numDiv_z = 10
+numDiv_y = 2
 N_x = numDiv_x + 1
 N_y = numDiv_y + 1
-N_z = numDiv_z + 1
 # Number of elements in the z direction is considered as 1
 TotalNumElements = numDiv_x * numDiv_y
-TotalNumNodes = (numDiv_x + 1) * (numDiv_y + 1)
+TotalNumNodes = N_x * N_y
 # For uniform mesh
 dx = plate_lenght_x / numDiv_x
 dy = plate_lenght_y / numDiv_y
-dz = plate_lenght_z / numDiv_z
+dz = plate_lenght_z
 
 # Create and add the nodes
 for i in range(TotalNumNodes) :
     # Node location
-    # x incremented by dx at each iteration reastart at each 11*n
-    loc_x = (i % (numDiv_x + 1)) * dx
-    # y incremented by dy every Div_x iterations.
-    loc_y = (i / (numDiv_x + 1)) % (numDiv_y + 1) * dy
-    loc_z = (i) / ((numDiv_x + 1) * (numDiv_y + 1)) * dz
+    loc_x = (i % N_x) * dx;
+    loc_y = (i // N_x) % N_y * dy;
+    loc_z = 0;
 
     # Node direction
     dir_x = 0
@@ -115,10 +114,10 @@ mat = fea.ChMaterialShellANCF(rho, E, nu, G)
 # Create the elements
 for i in range(TotalNumElements):
     # Adjacent nodes
-    node0 = int( i % numDiv_x + (numDiv_x+1) * math.floor(i/numDiv_x))
-    node1 = int(i % numDiv_x + 1 + (numDiv_x+1) * math.floor(i/numDiv_x))
-    node2 = int(i % numDiv_x + 1 + N_x + (numDiv_x+1) * math.floor(i/numDiv_x))
-    node3 = int(i % numDiv_x + N_x + (numDiv_x+1) * math.floor(i/numDiv_x))
+    node0 = (i // numDiv_x) * N_x + i % numDiv_x
+    node1 = (i // numDiv_x) * N_x + i % numDiv_x + 1
+    node2 = (i // numDiv_x) * N_x + i % numDiv_x + 1 + N_x
+    node3 = (i // numDiv_x) * N_x + i % numDiv_x + N_x
 
     # Create the element and set its nodes.
     element = fea.ChElementShellANCF()
@@ -148,33 +147,32 @@ my_system.Add(my_mesh)
 # Options for visualization in irrlicht
 # -------------------------------------
 
-mvisualizemesh = fea.ChVisualizationFEAmesh(my_mesh)
-mvisualizemesh.SetFEMdataType(fea.ChVisualizationFEAmesh.E_PLOT_NODE_SPEED_NORM)
-mvisualizemesh.SetColorscaleMinMax(0.0, 5.50)
-mvisualizemesh.SetShrinkElements(True, 0.85)
-mvisualizemesh.SetSmoothFaces(True)
-my_mesh.AddAsset(mvisualizemesh)
+visualizemeshA = fea.ChVisualizationFEAmesh(my_mesh)
+visualizemeshA.SetFEMdataType(fea.ChVisualizationFEAmesh.E_PLOT_NODE_SPEED_NORM)
+visualizemeshA.SetColorscaleMinMax(0.0, 5.50)
+visualizemeshA.SetShrinkElements(True, 0.85)
+visualizemeshA.SetSmoothFaces(True)
+my_mesh.AddAsset(visualizemeshA)
 
-mvisualizemeshref = fea.ChVisualizationFEAmesh(my_mesh)
-mvisualizemeshref.SetFEMdataType(fea.ChVisualizationFEAmesh.E_PLOT_SURFACE)
-mvisualizemeshref.SetWireframe(True)
-mvisualizemeshref.SetDrawInUndeformedReference(True)
-my_mesh.AddAsset(mvisualizemeshref)
+visualizemeshB = fea.ChVisualizationFEAmesh(my_mesh)
+visualizemeshB.SetFEMdataType(fea.ChVisualizationFEAmesh.E_PLOT_SURFACE)
+visualizemeshB.SetWireframe(True)
+visualizemeshB.SetDrawInUndeformedReference(True)
+my_mesh.AddAsset(visualizemeshB)
 
-mvisualizemeshC = fea.ChVisualizationFEAmesh(my_mesh)
-mvisualizemeshC.SetFEMglyphType(fea.ChVisualizationFEAmesh.E_GLYPH_NODE_DOT_POS)
-mvisualizemeshC.SetFEMdataType(fea.ChVisualizationFEAmesh.E_PLOT_NONE)
-mvisualizemeshC.SetSymbolsThickness(0.004)
-my_mesh.AddAsset(mvisualizemeshC)
+visualizemeshC = fea.ChVisualizationFEAmesh(my_mesh)
+visualizemeshC.SetFEMglyphType(fea.ChVisualizationFEAmesh.E_GLYPH_NODE_DOT_POS)
+visualizemeshC.SetFEMdataType(fea.ChVisualizationFEAmesh.E_PLOT_NONE)
+visualizemeshC.SetSymbolsThickness(0.004)
+my_mesh.AddAsset(visualizemeshC)
 
-mvisualizemeshD = fea.ChVisualizationFEAmesh(my_mesh)
-# mvisualizemeshD.SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_VECT_SPEED)
-mvisualizemeshD.SetFEMglyphType(fea.ChVisualizationFEAmesh.E_GLYPH_ELEM_TENS_STRAIN)
-mvisualizemeshD.SetFEMdataType(fea.ChVisualizationFEAmesh.E_PLOT_NONE)
-mvisualizemeshD.SetSymbolsScale(1)
-mvisualizemeshD.SetColorscaleMinMax(-0.5, 5)
-mvisualizemeshD.SetZbufferHide(False)
-my_mesh.AddAsset(mvisualizemeshD)
+visualizemeshD = fea.ChVisualizationFEAmesh(my_mesh)
+visualizemeshD.SetFEMglyphType(fea.ChVisualizationFEAmesh.E_GLYPH_ELEM_TENS_STRAIN)
+visualizemeshD.SetFEMdataType(fea.ChVisualizationFEAmesh.E_PLOT_NONE)
+visualizemeshD.SetSymbolsScale(1)
+visualizemeshD.SetColorscaleMinMax(-0.5, 5)
+visualizemeshD.SetZbufferHide(False)
+my_mesh.AddAsset(visualizemeshD)
 
 application.AssetBindAll()
 application.AssetUpdateAll()
@@ -184,24 +182,33 @@ application.AssetUpdateAll()
 # ----------------------------------
 
 # Set up solver
-#my_system.SetSolverType(chrono.ChSolver.Type_MINRES)
-#msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver())
-msolver = chrono.ChSolverMINRES()
-my_system.SetSolver(msolver)
-msolver.SetDiagonalPreconditioning(True)
+
+solver = chrono.ChSolverMINRES()
+my_system.SetSolver(solver)
+
+solver.SetDiagonalPreconditioning(True)
+#solver.SetVerbose(True)
+
 my_system.SetMaxItersSolverSpeed(100)
 my_system.SetTolForce(1e-10)
 
 # Set up integrator
-#my_system.SetTimestepperType(ChTimestepper::Type::HHT)
-#auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper())
-mystepper = chrono.ChTimestepperHHT(my_system)
-mystepper.SetAlpha(-0.2)
-mystepper.SetMaxiters(100)
-mystepper.SetAbsTolerances(1e-5)
-mystepper.SetMode(chrono.ChTimestepperHHT.POSITION)
-mystepper.SetScaling(True)
-application.SetTimestep(0.001)
+
+stepper = chrono.ChTimestepperHHT(my_system)
+my_system.SetTimestepper(stepper)
+
+stepper.SetAlpha(-0.2)
+stepper.SetMaxiters(5)
+stepper.SetAbsTolerances(1e-5)
+stepper.SetMode(chrono.ChTimestepperHHT.POSITION)
+stepper.SetScaling(True)
+stepper.SetStepControl(True)
+stepper.SetMinStepSize(1e-4)
+#stepper.SetVerbose(True)
+
+# Simulation loop
+
+application.SetTimestep(0.01)
 
 while application.GetDevice().run() :
     application.BeginScene()
