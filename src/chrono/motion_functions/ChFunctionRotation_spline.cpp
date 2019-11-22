@@ -26,6 +26,7 @@ CH_FACTORY_REGISTER(ChFunctionRotation_spline)
 
 ChFunctionRotation_spline::ChFunctionRotation_spline() {
     const std::vector<ChQuaternion<> > mrotations = {QUNIT, QUNIT};
+	this->closed = false;
     this->SetupData(1, mrotations);
 
 	// default s(t) function. User will provide better fx.
@@ -37,6 +38,7 @@ ChFunctionRotation_spline::ChFunctionRotation_spline(
     const std::vector<ChQuaternion<> >& mrotations,  ///< control points, size n. Required: at least n >= p+1
     ChVectorDynamic<>* mknots           ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
 ) {
+	this->closed = false;
     this->SetupData(morder, mrotations, mknots);
 
 	// default s(t) function. User will provide better fx.
@@ -48,6 +50,7 @@ ChFunctionRotation_spline::ChFunctionRotation_spline(const ChFunctionRotation_sp
     this->p = other.p;
     this->knots = other.knots;
 	this->space_fx = other.space_fx;
+	this->closed = other.closed;
 }
 
 ChFunctionRotation_spline::~ChFunctionRotation_spline() {
@@ -87,7 +90,13 @@ ChQuaternion<> ChFunctionRotation_spline::Get_q(double s) const {
 	
 	double fs = space_fx->Get_y(s);
 
-    double u = ComputeKnotUfromU(fs);
+	double mU;
+	if (this->closed)
+		mU = fmod(fs, 1.0);
+	else
+		mU = fs;
+
+    double u = ComputeKnotUfromU(mU);
 
     int spanU = geometry::ChBasisToolsBspline::FindSpan(this->p, u, this->knots);
 
@@ -121,7 +130,40 @@ ChQuaternion<> ChFunctionRotation_spline::Get_q(double s) const {
 }
 
 
+void ChFunctionRotation_spline::SetClosed(bool mc) {
+	if (this->closed == mc)
+		return;
 
+	// switch open->closed
+	if (mc == true) {
+		// add p control points to be wrapped: resize knots and control points
+		int n = this->rotations.size();
+		n += p; 
+		this->rotations.resize(n);
+		this->knots.setZero(n + p + 1);
+		
+		// recompute knot vector spacing
+        geometry::ChBasisToolsBspline::ComputeKnotUniform(this->knots, p);
+		
+		// wrap last control points
+		for (int i = 0; i < p; ++i)
+			this->rotations[n - p + i] = this->rotations[i];
+	}
+	
+	// switch closed->open
+	if (mc == false) {
+		// remove p control points that was wrapped: resize knots and control points
+		int n = this->rotations.size();
+		n -= p; 
+		this->rotations.resize(n);
+		this->knots.setZero(n + p + 1);
+
+		// recompute knot vector spacing
+        geometry::ChBasisToolsBspline::ComputeKnotUniformMultipleEnds(this->knots, p);
+	}
+
+	this->closed = mc;
+}
 
 
 void ChFunctionRotation_spline::ArchiveOUT(ChArchiveOut& marchive) {
@@ -134,6 +176,7 @@ void ChFunctionRotation_spline::ArchiveOUT(ChArchiveOut& marchive) {
     ////marchive << CHNVP(knots);  //**TODO MATRIX DESERIALIZATION
     marchive << CHNVP(p);
 	marchive << CHNVP(space_fx);
+	marchive << CHNVP(closed);
 
 }
 
@@ -147,6 +190,7 @@ void ChFunctionRotation_spline::ArchiveIN(ChArchiveIn& marchive) {
     ////marchive >> CHNVP(knots);  //**TODO MATRIX DESERIALIZATION
     marchive >> CHNVP(p);
 	marchive >> CHNVP(space_fx);
+	marchive >> CHNVP(closed);
 }
 
 

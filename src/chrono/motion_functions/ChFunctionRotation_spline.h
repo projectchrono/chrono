@@ -96,6 +96,16 @@ class ChApi ChFunctionRotation_spline : public ChFunctionRotation {
 	/// Otherwise, by default, is a linear ramp, so evaluates the spline from begin at s=0 to end at s=1 
 	void SetSpaceFunction(std::shared_ptr<ChFunction> m_funct) { space_fx = m_funct; }
 
+	/// Set as closed periodic spline: start and end rotations will match at 0 and 1 abscyssa as q(0)=q(1),
+	/// and the Evaluate() and Derive() functions will operate in periodic way (abscyssa 
+	/// greater than 1 or smaller than 0 will wrap to 0..1 range).
+	/// The closure will change the knot vector (multiple start end knots will be lost) and
+	/// will create auxiliary p control points at the end that will be wrapped to the beginning control points.
+	void SetClosed(bool mc);
+
+	/// Tell if the rotation spline is closed periodic
+	bool GetClosed() {return closed;}
+
 
 	/// Return the q value of the function, at s, as q=f(s).
 	/// Parameter s always work in 0..1 range, even if knots are not in 0..1 range.
@@ -121,6 +131,7 @@ private:
 	std::vector<ChQuaternion<> > rotations;
     ChVectorDynamic<> knots;
     int p;
+	bool closed;
 
 	std::shared_ptr<ChFunction> space_fx;  
 };
