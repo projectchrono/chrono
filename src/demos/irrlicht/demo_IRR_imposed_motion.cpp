@@ -132,14 +132,16 @@ int main(int argc, char* argv[]) {
 										{  0, .5, .1 }
 								}
 	);
+	mspline->SetClosed(true);
 
 	// Create a line motion that uses the 3D ChLineBspline above (but in SetLine() you 
 	// might use also other ChLine objects such as a ChLinePath, a ChLineArc, etc.)
 	auto f_line = chrono_types::make_shared<ChFunctionPosition_line>();
 	f_line->SetLine(mspline);
-	// Note that all ChLine will be evaluated in a 0..1 range, this means that at s=0
+	// Note that all ChLine will be evaluated in a s=0..1 range, this means that at s=0
 	// one gets the start of the line, at s=1 one gets the end. For slower motion, one
-	// can use SetSpaceFunction(), here ramping a linear abscissa motion but at 1/5 of the default speed:
+	// can use SetSpaceFunction(), here ramping a linear abscissa motion but at 1/5 of the default speed
+	// i.e.a linear map s=0.2*t between absyssa s and time t
 	f_line->SetSpaceFunction( chrono_types::make_shared<ChFunction_Ramp>(0, 0.2) );
 
 	// Create a spline rotation interpolation based on quaternion splines.
@@ -150,11 +152,15 @@ int main(int argc, char* argv[]) {
 										{ 1, 0, 0, 0 },
 										{ 0, 0, 1, 0 },
 										Q_from_AngZ(1.2),
-										{ 1, 0, 0, 0 }
+										{ 0, 1, 0, 0 }
 									}  
 	);
-	// Optional: avoid default linear evaluation of spline, here use a sigma ramp:
-	f_rotspline->SetSpaceFunction( chrono_types::make_shared<ChFunction_Sigma>(1, 0, 4) ); // amp,start,end
+	// This will make the rotation spline evaluation periodic, otherwise by default it extrapolates if beyond s=1
+	f_rotspline->SetClosed(true);
+	// Make the rotation spline evaluation 1/5 slower using a linear map s=0.2*t between absyssa s and time t
+	f_rotspline->SetSpaceFunction( chrono_types::make_shared<ChFunction_Ramp>(0, 0.2) );
+	// Another example to test: use a sigma function between s and t:
+	// f_rotspline->SetSpaceFunction( chrono_types::make_shared<ChFunction_Sigma>(1, 0, 4) ); // amp,start,end
 
 	// Create the constraint to impose motion and rotation:
 	auto impose_2 = chrono_types::make_shared<ChLinkMotionImposed>();
@@ -169,6 +175,9 @@ int main(int argc, char* argv[]) {
     mglyphasset->SetLineGeometry(mspline);
     impose_2->AddAsset(mglyphasset);
 
+	// Btw for periodic closed splines, the 1st contr point is not exactly the start of spline,
+	// so better move the sample object exactly to beginning:
+	mmoved_2->SetPos(f_line->Get_p(0) >> impose_2->GetFrame2() >> impose_2->GetBody2()->GetCoord());
 
 	// 
 	// EXAMPLE 3
