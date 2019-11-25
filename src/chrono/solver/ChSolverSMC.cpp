@@ -21,7 +21,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChSolverSMC)
 
 ChSolverSMC::ChSolverSMC(int mmax_iters, bool mwarm_start, double mtolerance, double momega)
-    : ChIterativeSolver(mmax_iters, mwarm_start, mtolerance, momega) {}
+    : ChIterativeSolverVI(mmax_iters, mwarm_start, mtolerance, momega) {}
 
 double ChSolverSMC::Solve(ChSystemDescriptor& sysd) {
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();

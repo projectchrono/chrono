@@ -15,17 +15,15 @@
 #ifndef CHSOLVERBB_H
 #define CHSOLVERBB_H
 
-#include "chrono/solver/ChIterativeSolver.h"
+#include "chrono/solver/ChIterativeSolverVI.h"
 
 namespace chrono {
 
-/// An iterative solver based on modified
-/// Krylov iteration of spectral projected gradients
-/// with Barzilai-Borwein.\n
-/// See ChSystemDescriptor for more information about the problem formulation and the data structures
-/// passed to the solver.
+/// An iterative solver based on modified Krylov iteration of spectral projected gradients with Barzilai-Borwein.\n
+/// See ChSystemDescriptor for more information about the problem formulation and the data structures passed to the
+/// solver.
 
-class ChApi ChSolverBB : public ChIterativeSolver {
+class ChApi ChSolverBB : public ChIterativeSolverVI {
   protected:
     int n_armijo;
     int max_armijo_backtrace;

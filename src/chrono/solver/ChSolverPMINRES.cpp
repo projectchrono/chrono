@@ -21,7 +21,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChSolverPMINRES)
 
 ChSolverPMINRES::ChSolverPMINRES(int mmax_iters, bool mwarm_start, double mtolerance)
-    : ChIterativeSolver(mmax_iters, mwarm_start, mtolerance, 0.2),
+    : ChIterativeSolverVI(mmax_iters, mwarm_start, mtolerance, 0.2),
       grad_diffstep(0.01),  // too small can cause numerical roundoff troubles!
       rel_tolerance(0.0),
       diag_preconditioning(true) {}
@@ -505,7 +505,7 @@ void ChSolverPMINRES::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChSolverPMINRES>();
     // serialize parent class
-    ChIterativeSolver::ArchiveOUT(marchive);
+    ChIterativeSolverVI::ArchiveOUT(marchive);
     // serialize all member data:
     marchive << CHNVP(grad_diffstep);
     marchive << CHNVP(rel_tolerance);
@@ -516,7 +516,7 @@ void ChSolverPMINRES::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead<ChSolverPMINRES>();
     // deserialize parent class
-    ChIterativeSolver::ArchiveIN(marchive);
+    ChIterativeSolverVI::ArchiveIN(marchive);
     // stream in all member data:
     marchive >> CHNVP(grad_diffstep);
     marchive >> CHNVP(rel_tolerance);

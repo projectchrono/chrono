@@ -10,7 +10,7 @@
 //
 // =============================================================================
 
-#include "chrono/solver/ChIterativeSolver.h"
+#include "chrono/solver/ChIterativeSolverVI.h"
 #include "chrono/physics/ChContactContainer.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/assets/ChColor.h"
@@ -495,11 +495,11 @@ void ChIrrTools::drawHUDviolation(irr::video::IVideoDriver* driver,
                                   int sy,
                                   double spfact,
                                   double posfact) {
-    if (!std::dynamic_pointer_cast<ChIterativeSolver>(asystem.GetSolver()))
+    if (!std::dynamic_pointer_cast<ChIterativeSolverVI>(asystem.GetSolver()))
         return;
 
-    auto msolver_speed = std::static_pointer_cast<ChIterativeSolver>(asystem.GetSolver());
-    auto msolver_stab = std::static_pointer_cast<ChIterativeSolver>(asystem.GetStabSolver());
+    auto msolver_speed = std::static_pointer_cast<ChIterativeSolverVI>(asystem.GetSolver());
+    auto msolver_stab = std::static_pointer_cast<ChIterativeSolverVI>(asystem.GetStabSolver());
     msolver_speed->SetRecordViolation(true);
     msolver_stab->SetRecordViolation(true);
 

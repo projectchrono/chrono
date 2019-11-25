@@ -28,7 +28,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChSolverAPGD)
 
 ChSolverAPGD::ChSolverAPGD(int mmax_iters, bool mwarm_start, double mtolerance)
-    : ChIterativeSolver(mmax_iters, mwarm_start, mtolerance, 0.0001), nc(0), residual(0.0) {}
+    : ChIterativeSolverVI(mmax_iters, mwarm_start, mtolerance, 0.0001), nc(0), residual(0.0) {}
 
 void ChSolverAPGD::ShurBvectorCompute(ChSystemDescriptor& sysd) {
     // ***TO DO*** move the following thirty lines in a short function ChSystemDescriptor::ShurBvectorCompute() ?

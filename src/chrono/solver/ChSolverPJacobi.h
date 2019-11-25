@@ -15,7 +15,7 @@
 #ifndef CHSOLVERJACOBI_H
 #define CHSOLVERJACOBI_H
 
-#include "chrono/solver/ChIterativeSolver.h"
+#include "chrono/solver/ChIterativeSolverVI.h"
 
 namespace chrono {
 
@@ -24,7 +24,7 @@ namespace chrono {
 /// See ChSystemDescriptor for more information about the problem formulation and the data structures passed to the
 /// solver.
 
-class ChApi ChSolverPJacobi : public ChIterativeSolver {
+class ChApi ChSolverPJacobi : public ChIterativeSolverVI {
   public:
     ChSolverPJacobi(int mmax_iters = 50,       ///< max.number of iterations
                     bool mwarm_start = false,  ///< uses warm start?

@@ -847,6 +847,7 @@ source_group(parallel FILES
 set(ChronoEngine_solver_SOURCES
     solver/ChSystemDescriptor.cpp
     solver/ChSolver.cpp
+    solver/ChDirectSolverLS.cpp
     solver/ChSolverPSOR.cpp
     solver/ChSolverPJacobi.cpp
     solver/ChSolverPSSOR.cpp
@@ -854,7 +855,6 @@ set(ChronoEngine_solver_SOURCES
     solver/ChSolverBB.cpp
     solver/ChSolverAPGD.cpp
     solver/ChSolverSMC.cpp
-    solver/ChSolverDirect.cpp
     solver/ChKblockGeneric.cpp
     solver/ChSolvmin.cpp
     solver/ChNlsolver.cpp
@@ -863,7 +863,10 @@ set(ChronoEngine_solver_SOURCES
 set(ChronoEngine_solver_HEADERS
     solver/ChSystemDescriptor.h
     solver/ChSolver.h
-    solver/ChIterativeSolver.h
+    solver/ChSolverLS.h
+    solver/ChSolverVI.h
+    solver/ChDirectSolverLS.h
+    solver/ChIterativeSolverVI.h
     solver/ChSolverPJacobi.h
     solver/ChSolverPMINRES.h
     solver/ChSolverBB.h
@@ -871,7 +874,6 @@ set(ChronoEngine_solver_HEADERS
     solver/ChSolverPSOR.h
     solver/ChSolverPSSOR.h
     solver/ChSolverSMC.h
-    solver/ChSolverDirect.h
     solver/ChKblock.h
     solver/ChKblockGeneric.h
     solver/ChSolvmin.h

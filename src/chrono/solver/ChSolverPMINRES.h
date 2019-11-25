@@ -15,16 +15,16 @@
 #ifndef CHSOLVERPMINRES_H
 #define CHSOLVERPMINRES_H
 
-#include "chrono/solver/ChIterativeSolver.h"
+#include "chrono/solver/ChIterativeSolverVI.h"
 
 namespace chrono {
 
-/// An iterative solver based on modified Krylov iteration of MINRES type with gradient
-/// projections (similar to nonlinear CG with Polyak-Ribiere).\n
-/// See ChSystemDescriptor for more information about the problem formulation and the data structures
-/// passed to the solver.
+/// An iterative solver based on modified Krylov iteration of MINRES type with gradient projections (similar to
+/// nonlinear CG with Polyak-Ribiere).\n
+/// See ChSystemDescriptor for more information about the problem formulation and the data structures passed to the
+/// solver.
 
-class ChApi ChSolverPMINRES : public ChIterativeSolver {
+class ChApi ChSolverPMINRES : public ChIterativeSolverVI {
   protected:
     double grad_diffstep;
     double rel_tolerance;

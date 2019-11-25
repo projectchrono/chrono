@@ -21,7 +21,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChSolverBB)
 
 ChSolverBB::ChSolverBB(int mmax_iters, bool mwarm_start, double mtolerance)
-    : ChIterativeSolver(mmax_iters, mwarm_start, mtolerance, 0.2),
+    : ChIterativeSolverVI(mmax_iters, mwarm_start, mtolerance, 0.2),
       n_armijo(10),
       max_armijo_backtrace(3),
       diag_preconditioning(true) {}
@@ -359,7 +359,7 @@ void ChSolverBB::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChSolverBB>();
     // serialize parent class
-    ChIterativeSolver::ArchiveOUT(marchive);
+    ChIterativeSolverVI::ArchiveOUT(marchive);
     // serialize all member data:
     marchive << CHNVP(n_armijo);
     marchive << CHNVP(max_armijo_backtrace);
@@ -370,7 +370,7 @@ void ChSolverBB::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead<ChSolverBB>();
     // deserialize parent class
-    ChIterativeSolver::ArchiveIN(marchive);
+    ChIterativeSolverVI::ArchiveIN(marchive);
     // stream in all member data:
     marchive >> CHNVP(n_armijo);
     marchive >> CHNVP(max_armijo_backtrace);

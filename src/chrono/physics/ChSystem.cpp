@@ -183,7 +183,7 @@ std::shared_ptr<ChSolver> ChSystem::GetSolver() {
     // In case the solver is iterative, pre-configure it with the max. number of
     // iterations and with the convergence tolerance (convert the user-specified
     // tolerance for forces into a tolerance for impulses).
-    if (auto iter_solver = std::dynamic_pointer_cast<ChIterativeSolver>(solver_speed)) {
+    if (auto iter_solver = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver_speed)) {
         iter_solver->SetMaxIterations(GetMaxItersSolverSpeed());
         iter_solver->SetTolerance(tol_force * step);
     }
@@ -195,7 +195,7 @@ std::shared_ptr<ChSolver> ChSystem::GetStabSolver() {
     // In case the solver is iterative, pre-configure it with the max. number of
     // iterations and with the convergence tolerance (convert the user-specified
     // tolerance for forces into a tolerance for impulses).
-    if (auto iter_solver = std::dynamic_pointer_cast<ChIterativeSolver>(solver_stab)) {
+    if (auto iter_solver = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver_stab)) {
         iter_solver->SetMaxIterations(GetMaxItersSolverSpeed());
         iter_solver->SetTolerance(tol_force * step);
     }
@@ -204,48 +204,48 @@ std::shared_ptr<ChSolver> ChSystem::GetStabSolver() {
 }
 
 void ChSystem::SetSolverWarmStarting(bool usewarm) {
-    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolver>(solver_speed)) {
+    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver_speed)) {
         iter_solver_speed->SetWarmStart(usewarm);
     }
-    if (auto iter_solver_stab = std::dynamic_pointer_cast<ChIterativeSolver>(solver_stab)) {
+    if (auto iter_solver_stab = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver_stab)) {
         iter_solver_stab->SetWarmStart(usewarm);
     }
 }
 
 bool ChSystem::GetSolverWarmStarting() const {
-    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolver>(solver_speed)) {
+    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver_speed)) {
         return iter_solver_speed->GetWarmStart();
     }
     return false;
 }
 
 void ChSystem::SetSolverOverrelaxationParam(double momega) {
-    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolver>(solver_speed)) {
+    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver_speed)) {
         iter_solver_speed->SetOmega(momega);
     }
-    if (auto iter_solver_stab = std::dynamic_pointer_cast<ChIterativeSolver>(solver_stab)) {
+    if (auto iter_solver_stab = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver_stab)) {
         iter_solver_stab->SetOmega(momega);
     }
 }
 
 double ChSystem::GetSolverOverrelaxationParam() const {
-    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolver>(solver_speed)) {
+    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver_speed)) {
         return iter_solver_speed->GetOmega();
     }
     return 1.0;
 }
 
 void ChSystem::SetSolverSharpnessParam(double momega) {
-    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolver>(solver_speed)) {
+    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver_speed)) {
         iter_solver_speed->SetSharpnessLambda(momega);
     }
-    if (auto iter_solver_stab = std::dynamic_pointer_cast<ChIterativeSolver>(solver_stab)) {
+    if (auto iter_solver_stab = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver_stab)) {
         iter_solver_stab->SetSharpnessLambda(momega);
     }
 }
 
 double ChSystem::GetSolverSharpnessParam() const {
-    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolver>(solver_speed)) {
+    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver_speed)) {
         return iter_solver_speed->GetSharpnessLambda();
     }
     return 1.0;

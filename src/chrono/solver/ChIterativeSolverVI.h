@@ -12,29 +12,37 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#ifndef CHITERATIVESOLVER_H
-#define CHITERATIVESOLVER_H
+#ifndef CH_ITERATIVESOLVER_VI_H
+#define CH_ITERATIVESOLVER_VI_H
 
-#include "chrono/solver/ChSolver.h"
+#include "chrono/solver/ChSolverVI.h"
 
 namespace chrono {
 
-/// Base class for ITERATIVE solvers aimed at solving complementarity problems arising
-/// from QP optimization problems.
-/// This class does nothing: it is up to derived classes to implement specific solution
-/// methods.
-/// The problem is described by a variational inequality VI(Z*x-d,K):\n
-/// 
-///  | M -Cq'|*|q|- | f|= |0| , l \f$\in\f$ Y, C \f$\in\f$ Ny, normal cone to Y\n
-///  | Cq -E | |l|  |-b|  |c|
-/// 
-/// Also Z symmetric by flipping sign of l_i: |M  Cq'|*| q|-| f|=|0|\n
-///                                           |Cq  E | |-l| |-b| |c|
-/// * case linear problem:  all Y_i = R, Ny=0, ex. all bilaterals
-/// * case LCP: all Y_i = R+:  c>=0, l>=0, l*c=0
-/// * case CCP: Y_i are friction cones
+/// @addtogroup chrono_solver
+/// @{
 
-class ChApi ChIterativeSolver : public ChSolver {
+/// Base class for ITERATIVE solvers aimed at solving complementarity problems arising from QP optimization problems.
+/// This class does nothing: it is up to derived classes to implement specific solution methods.
+/// The problem is described by a variational inequality VI(Z*x-d,K):\n
+///
+/// <pre>
+///   | M -Cq'|*|q|- | f|= |0| 
+///   | Cq -E | |l|  |-b|  |c|
+/// </pre>
+/// with l \f$\in\f$ Y, C \f$\in\f$ Ny, normal cone to Y\n
+///
+/// Also Z symmetric by flipping sign of l_i: 
+/// <pre>
+///   |M  Cq'|*| q|-| f|=|0|
+///   |Cq  E | |-l| |-b| |c|
+/// </pre>
+///
+/// * case linear problem:  all Y_i = R, Ny=0, ex. all bilaterals \n
+/// * case LCP: all Y_i = R+:  c>=0, l>=0, l*c=0 \n
+/// * case CCP: Y_i are friction cones \n
+
+class ChApi ChIterativeSolverVI : public ChSolverVI {
 
   protected:
     int max_iterations;  ///< maximum allowed iterations
@@ -49,12 +57,12 @@ class ChApi ChIterativeSolver : public ChSolver {
     std::vector<double> dlambda_history;
 
   public:
-    ChIterativeSolver(int mmax_iters = 50,       ///< max.number of iterations
-                      bool mwarm_start = false,  ///< uses warm start?
-                      double mtolerance = 0.0,   ///< tolerance for termination criterion
-                      double momega = 1.0,       ///< overrelaxation, if any
-                      double mshlambda = 1.0     ///< sharpness, if any
-                      )
+    ChIterativeSolverVI(int mmax_iters = 50,       ///< max.number of iterations
+                        bool mwarm_start = false,  ///< uses warm start?
+                        double mtolerance = 0.0,   ///< tolerance for termination criterion
+                        double momega = 1.0,       ///< overrelaxation, if any
+                        double mshlambda = 1.0     ///< sharpness, if any
+                        )
         : max_iterations(mmax_iters),
           tot_iterations(0),
           warm_start(mwarm_start),
@@ -63,7 +71,7 @@ class ChApi ChIterativeSolver : public ChSolver {
           shlambda(mshlambda),
           record_violation_history(false) {}
 
-    virtual ~ChIterativeSolver() {}
+    virtual ~ChIterativeSolverVI() {}
 
     /// Indicate whether ot not the Solve() phase requires an up-to-date problem matrix.
     /// Typically, this is the case for iterative solvers (as the matrix is needed for
@@ -158,7 +166,7 @@ class ChApi ChIterativeSolver : public ChSolver {
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
-        marchive.VersionWrite<ChIterativeSolver>();
+        marchive.VersionWrite<ChIterativeSolverVI>();
         // serialize parent class
         ChSolver::ArchiveOUT(marchive);
         // serialize all member data:
@@ -173,7 +181,7 @@ class ChApi ChIterativeSolver : public ChSolver {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
-        int version = marchive.VersionRead<ChIterativeSolver>();
+        int version = marchive.VersionRead<ChIterativeSolverVI>();
         // deserialize parent class
         ChSolver::ArchiveIN(marchive);
         // stream in all member data:
@@ -185,6 +193,8 @@ class ChApi ChIterativeSolver : public ChSolver {
         marchive >> CHNVP(shlambda);
     }
 };
+
+/// @} chrono_solver
 
 }  // end namespace chrono
 

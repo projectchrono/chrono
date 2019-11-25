@@ -12,8 +12,8 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#ifndef CHSOLVER_H
-#define CHSOLVER_H
+#ifndef CH_SOLVER_H
+#define CH_SOLVER_H
 
 #include <vector>
 
@@ -26,11 +26,9 @@ namespace chrono {
 /// @addtogroup chrono_solver
 /// @{
 
-/// Base class for solvers aimed at solving complementarity problems arising from QP optimization
-/// problems. This is an abstract class and specific solution methods are implemented in derived
-/// classes (e.g., PSOR, APGD, etc.)\n
-/// See ChSystemDescriptor for more information about the problem formulation and the data structures
-/// passed to the solver.
+/// Base class for all Chrono solvers (for linear problems or complementarity problems). \n
+/// See ChSystemDescriptor for more information about the problem formulation and the data structures passed to the
+/// solver.
 
 class ChApi ChSolver {
 
@@ -47,8 +45,6 @@ class ChApi ChSolver {
           SOLVER_SMC,
           CUSTOM,
       };
-
-    ChSolver() : verbose(false) {}
 
     virtual ~ChSolver() {}
 
@@ -91,6 +87,8 @@ class ChApi ChSolver {
     virtual void ArchiveIN(ChArchiveIn& marchive);
 
   protected:
+    ChSolver() : verbose(false) {}
+
     bool verbose;
 };
 

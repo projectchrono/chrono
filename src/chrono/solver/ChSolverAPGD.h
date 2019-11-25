@@ -15,15 +15,15 @@
 #ifndef CHSOLVERAPGD_H
 #define CHSOLVERAPGD_H
 
-#include "chrono/solver/ChIterativeSolver.h"
+#include "chrono/solver/ChIterativeSolverVI.h"
 
 namespace chrono {
 
 /// An iterative solver based on Nesterov's Projected Gradient Descent.\n
-/// See ChSystemDescriptor for more information about the problem formulation and the data structures
-/// passed to the solver.
+/// See ChSystemDescriptor for more information about the problem formulation and the data structures passed to the
+/// solver.
 
-class ChApi ChSolverAPGD : public ChIterativeSolver {
+class ChApi ChSolverAPGD : public ChIterativeSolverVI {
   protected:
     double residual;
     int nc;
