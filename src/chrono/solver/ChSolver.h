@@ -29,22 +29,29 @@ namespace chrono {
 /// Base class for all Chrono solvers (for linear problems or complementarity problems). \n
 /// See ChSystemDescriptor for more information about the problem formulation and the data structures passed to the
 /// solver.
-
 class ChApi ChSolver {
 
   public:
-      /// Available types of solvers.
-      enum class Type {
-          PSOR = 0,
-          PSSOR,
-          PJACOBI,
-          PMINRES,
-          BARZILAIBORWEIN,
-          APGD,
-          MINRES,
-          SOLVER_SMC,
-          CUSTOM,
-      };
+    /// Available types of solvers.
+    enum class Type {
+        // Iterative VI solvers
+        PSOR = 0,         ///< Projected SOR (Successive Over-Relaxation)
+        PSSOR,            ///< Projected symmetric SOR
+        PJACOBI,          ///< Projected Jacobi
+        PMINRES,          ///< Projected MINRES
+        BARZILAIBORWEIN,  ///< Barzilai-Borwein
+        APGD,             ///< Accelerated Projected Gradient Descent
+        // Direct linear solvers
+        PARDISO,  ///< Pardiso
+        MUMPS,    ///< Mumps (MUltifrontal Massively Parallel sparse direct Solver)
+        // Iterative linear solvers
+        GMRES,     ///< Generalized Minimal RESidual Algorithm
+        MINRES,    ///< MINimum RESidual method
+        BICGSTAB,  ///< Bi-conjugate gradient stabilized
+        // Other
+        SOLVER_SMC,
+        CUSTOM,
+    };
 
     virtual ~ChSolver() {}
 
