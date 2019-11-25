@@ -28,11 +28,8 @@
 #include "chrono/solver/ChSolverAPGD.h"
 #include "chrono/solver/ChSolverBB.h"
 #include "chrono/solver/ChSolverJacobi.h"
-#include "chrono/solver/ChSolverMINRES.h"
-#include "chrono/solver/ChSolverPCG.h"
 #include "chrono/solver/ChSolverPMINRES.h"
 #include "chrono/solver/ChSolverSOR.h"
-#include "chrono/solver/ChSolverSORmultithread.h"
 #include "chrono/solver/ChSolverSymmSOR.h"
 
 #include "chrono/collision/ChCCollisionSystemBullet.h"

@@ -24,10 +24,8 @@ class my_enum_mappers : public ChSolver {
     CH_ENUM_VAL(Type::SOR);
     CH_ENUM_VAL(Type::SYMMSOR);
     CH_ENUM_VAL(Type::JACOBI);
-    CH_ENUM_VAL(Type::SOR_MULTITHREAD);
     CH_ENUM_VAL(Type::PMINRES);
     CH_ENUM_VAL(Type::BARZILAIBORWEIN);
-    CH_ENUM_VAL(Type::PCG);
     CH_ENUM_VAL(Type::APGD);
     CH_ENUM_VAL(Type::MINRES);
     CH_ENUM_VAL(Type::SOLVER_SMC);

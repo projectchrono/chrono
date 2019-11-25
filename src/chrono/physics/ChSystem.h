@@ -182,7 +182,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// in dynamical simulations (as well as in kinematics, statics, etc.)
     ///   - Suggested solver for speed, but lower precision: SOR
     ///   - Suggested solver for higher precision: BARZILAIBORWEIN or APGD
-    ///   - For problems that involve a stiffness matrix: MINRES
+    ///   - For problems that involve a stiffness matrix: GMRES, MINRES
     ///
     /// *Notes*:
     ///   - Do not use CUSTOM type, as this type is reserved for external solvers

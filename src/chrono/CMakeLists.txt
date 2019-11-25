@@ -848,13 +848,10 @@ set(ChronoEngine_solver_SOURCES
     solver/ChSystemDescriptor.cpp
     solver/ChSolver.cpp
     solver/ChSolverSOR.cpp
-    solver/ChSolverSORmultithread.cpp
     solver/ChSolverJacobi.cpp
     solver/ChSolverSymmSOR.cpp
-    solver/ChSolverMINRES.cpp
     solver/ChSolverPMINRES.cpp
     solver/ChSolverBB.cpp
-    solver/ChSolverPCG.cpp
     solver/ChSolverAPGD.cpp
     solver/ChSolverSMC.cpp
     solver/ChSolverDirect.cpp
@@ -869,13 +866,10 @@ set(ChronoEngine_solver_HEADERS
     solver/ChSolver.h
     solver/ChIterativeSolver.h
     solver/ChSolverJacobi.h
-    solver/ChSolverMINRES.h
     solver/ChSolverPMINRES.h
     solver/ChSolverBB.h
-    solver/ChSolverPCG.h
     solver/ChSolverAPGD.h
     solver/ChSolverSOR.h
-    solver/ChSolverSORmultithread.h
     solver/ChSolverSymmSOR.h
     solver/ChSolverSMC.h
     solver/ChSolverDirect.h

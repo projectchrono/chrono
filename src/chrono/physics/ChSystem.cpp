@@ -22,11 +22,8 @@
 #include "chrono/solver/ChSolverAPGD.h"
 #include "chrono/solver/ChSolverBB.h"
 #include "chrono/solver/ChSolverJacobi.h"
-#include "chrono/solver/ChSolverMINRES.h"
-#include "chrono/solver/ChSolverPCG.h"
 #include "chrono/solver/ChSolverPMINRES.h"
 #include "chrono/solver/ChSolverSOR.h"
-#include "chrono/solver/ChSolverSORmultithread.h"
 #include "chrono/solver/ChSolverSymmSOR.h"
 #include "chrono/timestepper/ChStaticAnalysis.h"
 #include "chrono/core/ChMatrix.h"
@@ -163,10 +160,6 @@ void ChSystem::SetSolverType(ChSolver::Type type) {
             solver_speed = chrono_types::make_shared<ChSolverJacobi>();
             solver_stab = chrono_types::make_shared<ChSolverJacobi>();
             break;
-        case ChSolver::Type::SOR_MULTITHREAD:
-            solver_speed = chrono_types::make_shared<ChSolverSORmultithread>("speedSolver", parallel_thread_number);
-            solver_stab = chrono_types::make_shared<ChSolverSORmultithread>("posSolver", parallel_thread_number);
-            break;
         case ChSolver::Type::PMINRES:
             solver_speed = chrono_types::make_shared<ChSolverPMINRES>();
             solver_stab = chrono_types::make_shared<ChSolverPMINRES>();
@@ -175,17 +168,9 @@ void ChSystem::SetSolverType(ChSolver::Type type) {
             solver_speed = chrono_types::make_shared<ChSolverBB>();
             solver_stab = chrono_types::make_shared<ChSolverBB>();
             break;
-        case ChSolver::Type::PCG:
-            solver_speed = chrono_types::make_shared<ChSolverPCG>();
-            solver_stab = chrono_types::make_shared<ChSolverPCG>();
-            break;
         case ChSolver::Type::APGD:
             solver_speed = chrono_types::make_shared<ChSolverAPGD>();
             solver_stab = chrono_types::make_shared<ChSolverAPGD>();
-            break;
-        case ChSolver::Type::MINRES:
-            solver_speed = chrono_types::make_shared<ChSolverMINRES>();
-            solver_stab = chrono_types::make_shared<ChSolverMINRES>();
             break;
         default:
             solver_speed = chrono_types::make_shared<ChSolverSymmSOR>();
@@ -273,11 +258,6 @@ void ChSystem::SetParallelThreadNumber(int mthreads) {
     parallel_thread_number = mthreads;
 
     descriptor->SetNumThreads(mthreads);
-
-    if (solver_speed->GetType() == ChSolver::Type::SOR_MULTITHREAD) {
-        std::static_pointer_cast<ChSolverSORmultithread>(solver_speed)->ChangeNumberOfThreads(mthreads);
-        std::static_pointer_cast<ChSolverSORmultithread>(solver_stab)->ChangeNumberOfThreads(mthreads);
-    }
 }
 
 // Plug-in components configuration

@@ -191,24 +191,12 @@ namespace irrlicht {
                         app->GetSystem()->SetSolverType(ChSolver::Type::JACOBI);
                         break;
                     case 3:
-                        app->GetSystem()->SetSolverType(ChSolver::Type::SOR_MULTITHREAD);
-                        break;
-                    case 4:
                         app->GetSystem()->SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
                         break;
-                    case 5:
-                        app->GetSystem()->SetSolverType(ChSolver::Type::PCG);
-                        break;
-                    case 6:
-                        app->GetSystem()->SetSolverType(ChSolver::Type::PMINRES);
-                        break;
-                    case 7:
+                    case 4:
                         app->GetSystem()->SetSolverType(ChSolver::Type::APGD);
                         break;
-                    case 8:
-                        app->GetSystem()->SetSolverType(ChSolver::Type::MINRES);
-                        break;
-                    case 9:
+                    case 5:
                         GetLog() << "WARNING.\nYou cannot change to a custom solver using the GUI. Use C++ instead.\n";
                         break;
                     }
@@ -466,12 +454,8 @@ namespace irrlicht {
         gad_ccpsolver->addItem(L"Projected SOR");
         gad_ccpsolver->addItem(L"Projected SSOR");
         gad_ccpsolver->addItem(L"Projected Jacobi");
-        gad_ccpsolver->addItem(L"Multithreaded SOR");
         gad_ccpsolver->addItem(L"Projected BB");
-        gad_ccpsolver->addItem(L"Projected PCG");
-        gad_ccpsolver->addItem(L"Projected MINRES");
-        gad_ccpsolver->addItem(L"APGD");
-        gad_ccpsolver->addItem(L"MINRES");
+        gad_ccpsolver->addItem(L"Projected APGD");
         gad_ccpsolver->addItem(L"(custom)");
         gad_ccpsolver->setSelected(5);
 
@@ -862,26 +846,14 @@ namespace irrlicht {
             case ChSolver::Type::JACOBI:
                 gad_ccpsolver->setSelected(2);
                 break;
-            case ChSolver::Type::SOR_MULTITHREAD:
+            case ChSolver::Type::BARZILAIBORWEIN:
                 gad_ccpsolver->setSelected(3);
                 break;
-            case ChSolver::Type::BARZILAIBORWEIN:
+            case ChSolver::Type::APGD:
                 gad_ccpsolver->setSelected(4);
                 break;
-            case ChSolver::Type::PCG:
-                gad_ccpsolver->setSelected(5);
-                break;
-            case ChSolver::Type::PMINRES:
-                gad_ccpsolver->setSelected(6);
-                break;
-            case ChSolver::Type::APGD:
-                gad_ccpsolver->setSelected(7);
-                break;
-            case ChSolver::Type::MINRES:
-                gad_ccpsolver->setSelected(8);
-                break;
             default:
-                gad_ccpsolver->setSelected(9);
+                gad_ccpsolver->setSelected(5);
                 break;
             }
 
