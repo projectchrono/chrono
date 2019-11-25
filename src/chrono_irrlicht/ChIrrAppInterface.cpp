@@ -182,13 +182,13 @@ namespace irrlicht {
                     int sel = ((irr::gui::IGUIComboBox*)event.GUIEvent.Caller)->getSelected();
                     switch(sel) {
                     case 0:
-                        app->GetSystem()->SetSolverType(ChSolver::Type::SOR);
+                        app->GetSystem()->SetSolverType(ChSolver::Type::PSOR);
                         break;
                     case 1:
-                        app->GetSystem()->SetSolverType(ChSolver::Type::SYMMSOR);
+                        app->GetSystem()->SetSolverType(ChSolver::Type::PSSOR);
                         break;
                     case 2:
-                        app->GetSystem()->SetSolverType(ChSolver::Type::JACOBI);
+                        app->GetSystem()->SetSolverType(ChSolver::Type::PJACOBI);
                         break;
                     case 3:
                         app->GetSystem()->SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
@@ -837,13 +837,13 @@ namespace irrlicht {
             gad_minbounce_info->setText(irr::core::stringw(message).c_str());
 
             switch(GetSystem()->GetSolverType()) {
-            case ChSolver::Type::SOR:
+            case ChSolver::Type::PSOR:
                 gad_ccpsolver->setSelected(0);
                 break;
-            case ChSolver::Type::SYMMSOR:
+            case ChSolver::Type::PSSOR:
                 gad_ccpsolver->setSelected(1);
                 break;
-            case ChSolver::Type::JACOBI:
+            case ChSolver::Type::PJACOBI:
                 gad_ccpsolver->setSelected(2);
                 break;
             case ChSolver::Type::BARZILAIBORWEIN:

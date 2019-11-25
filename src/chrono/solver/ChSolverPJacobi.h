@@ -19,24 +19,22 @@
 
 namespace chrono {
 
-/// An iterative solver for VI (VI/CCP/LCP/linear problems,..) based on projective fixed
-/// point method, similar to a projected Jacobi method.
-/// Note: this method is here mostly for comparison and tests: we suggest you to use the
-/// more efficient ChSolverSOR - similar, but faster & converges better.\n
-/// See ChSystemDescriptor for more information about the problem formulation and the data structures
-/// passed to the solver.
+/// An iterative solver for VI based on projective fixed point method (projected Jacobi). \n
+/// Note: this method is here mostly for comparison and tests: we suggest you to use the more efficient ChSolverPSOR.\n
+/// See ChSystemDescriptor for more information about the problem formulation and the data structures passed to the
+/// solver.
 
-class ChApi ChSolverJacobi : public ChIterativeSolver {
+class ChApi ChSolverPJacobi : public ChIterativeSolver {
   public:
-    ChSolverJacobi(int mmax_iters = 50,       ///< max.number of iterations
-                   bool mwarm_start = false,  ///< uses warm start?
-                   double mtolerance = 0.0,   ///< tolerance for termination criterion
-                   double momega = 0.2        ///< overrelaxation criterion
+    ChSolverPJacobi(int mmax_iters = 50,       ///< max.number of iterations
+                    bool mwarm_start = false,  ///< uses warm start?
+                    double mtolerance = 0.0,   ///< tolerance for termination criterion
+                    double momega = 0.2        ///< overrelaxation criterion
     );
 
-    virtual ~ChSolverJacobi() {}
+    virtual ~ChSolverPJacobi() {}
 
-    virtual Type GetType() const override { return Type::JACOBI; }
+    virtual Type GetType() const override { return Type::PJACOBI; }
 
     /// Performs the solution of the problem.
     /// \return  the maximum constraint violation after termination.

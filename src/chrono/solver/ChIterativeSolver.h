@@ -82,7 +82,7 @@ class ChApi ChIterativeSolver : public ChSolver {
     int GetTotalIterations() const { return tot_iterations; }
 
     /// Set the overrelaxation factor.
-    /// This factor may be used by SOR-like methods. Default: 1.
+    /// This factor may be used by PSOR-like methods. Default: 1.
     void SetOmega(double mval) {
         if (mval > 0.)
             omega = mval;
@@ -92,7 +92,7 @@ class ChApi ChIterativeSolver : public ChSolver {
     double GetOmega() const { return omega; }
 
     /// Set the sharpness factor.
-    /// This factor may be used by SOR-like methods with projection (see Mangasarian LCP method).
+    /// This factor may be used by PSOR-like methods with projection (see Mangasarian LCP method).
     /// Usually in the range [0,1]. Default: 1. 
     virtual void SetSharpnessLambda(double mval) {
         if (mval > 0.)

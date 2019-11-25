@@ -12,29 +12,29 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#ifndef CHSOLVERSOR_H
-#define CHSOLVERSOR_H
+#ifndef CHSOLVERSYMMSOR_H
+#define CHSOLVERSYMMSOR_H
 
 #include "chrono/solver/ChIterativeSolver.h"
 
 namespace chrono {
 
-/// An iterative solver based on projective fixed point method, with overrelaxation
-/// and immediate variable update as in SOR methods.\n
-/// See ChSystemDescriptor for more information about the problem formulation and the data structures
-/// passed to the solver.
+/// An iterative solver based on symmetric projective fixed point method, with overrelaxation and immediate variable
+/// update as in SSOR methods.\n
+/// See ChSystemDescriptor for more information about the problem formulation and the data structures passed to the
+/// solver.
 
-class ChApi ChSolverSOR : public ChIterativeSolver {
+class ChApi ChSolverPSSOR : public ChIterativeSolver {
   public:
-    ChSolverSOR(int mmax_iters = 50,       ///< max.number of iterations
-                bool mwarm_start = false,  ///< uses warm start?
-                double mtolerance = 0.0,   ///< tolerance for termination criterion
-                double momega = 1.0        ///< overrelaxation criterion
+    ChSolverPSSOR(int mmax_iters = 50,       ///< max.number of iterations
+                  bool mwarm_start = false,  ///< uses warm start?
+                  double mtolerance = 0.0,   ///< tolerance for termination criterion
+                  double momega = 1.0        ///< overrelaxation criterion
     );
 
-    virtual ~ChSolverSOR() {}
+    virtual ~ChSolverPSSOR() {}
 
-    virtual Type GetType() const override { return Type::SOR; }
+    virtual Type GetType() const override { return Type::PSSOR; }
 
     /// Performs the solution of the problem.
     /// \return  the maximum constraint violation after termination.

@@ -180,7 +180,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     /// Choose the solver type, to be used for the simultaneous solution of the constraints
     /// in dynamical simulations (as well as in kinematics, statics, etc.)
-    ///   - Suggested solver for speed, but lower precision: SOR
+    ///   - Suggested solver for speed, but lower precision: PSOR
     ///   - Suggested solver for higher precision: BARZILAIBORWEIN or APGD
     ///   - For problems that involve a stiffness matrix: GMRES, MINRES
     ///
@@ -194,13 +194,13 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// Gets the current solver type.
     ChSolver::Type GetSolverType() const { return solver_speed->GetType(); }
 
-    /// When using an iterative solver (es. SOR) set the maximum number of iterations.
+    /// When using an iterative solver (es. PSOR) set the maximum number of iterations.
     /// The higher the iteration number, the more precise the simulation (but more CPU time).
     void SetMaxItersSolverSpeed(int mval) { max_iter_solver_speed = mval; }
     /// Current maximum number of iterations, if using an iterative solver.
     int GetMaxItersSolverSpeed() const { return max_iter_solver_speed; }
 
-    /// When using an iterative solver (es. SOR) and a timestepping method
+    /// When using an iterative solver (es. PSOR) and a timestepping method
     /// requiring post-stabilization (e.g., EULER_IMPLICIT_PROJECTED), set the
     /// the maximum number of stabilization iterations. The higher the iteration
     /// number, the more precise the simulation (but more CPU time).

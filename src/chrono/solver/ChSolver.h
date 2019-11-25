@@ -28,7 +28,7 @@ namespace chrono {
 
 /// Base class for solvers aimed at solving complementarity problems arising from QP optimization
 /// problems. This is an abstract class and specific solution methods are implemented in derived
-/// classes (e.g., SOR, APGD, etc.)\n
+/// classes (e.g., PSOR, APGD, etc.)\n
 /// See ChSystemDescriptor for more information about the problem formulation and the data structures
 /// passed to the solver.
 
@@ -37,9 +37,9 @@ class ChApi ChSolver {
   public:
       /// Available types of solvers.
       enum class Type {
-          SOR = 0,
-          SYMMSOR,
-          JACOBI,
+          PSOR = 0,
+          PSSOR,
+          PJACOBI,
           PMINRES,
           BARZILAIBORWEIN,
           APGD,

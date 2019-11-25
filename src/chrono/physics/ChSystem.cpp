@@ -21,10 +21,10 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/solver/ChSolverAPGD.h"
 #include "chrono/solver/ChSolverBB.h"
-#include "chrono/solver/ChSolverJacobi.h"
+#include "chrono/solver/ChSolverPJacobi.h"
 #include "chrono/solver/ChSolverPMINRES.h"
-#include "chrono/solver/ChSolverSOR.h"
-#include "chrono/solver/ChSolverSymmSOR.h"
+#include "chrono/solver/ChSolverPSOR.h"
+#include "chrono/solver/ChSolverPSSOR.h"
 #include "chrono/timestepper/ChStaticAnalysis.h"
 #include "chrono/core/ChMatrix.h"
 #include "chrono/utils/ChProfiler.h"
@@ -148,17 +148,17 @@ void ChSystem::SetSolverType(ChSolver::Type type) {
     descriptor->SetNumThreads(parallel_thread_number);
 
     switch (type) {
-        case ChSolver::Type::SOR:
-            solver_speed = chrono_types::make_shared<ChSolverSOR>();
-            solver_stab = chrono_types::make_shared<ChSolverSOR>();
+        case ChSolver::Type::PSOR:
+            solver_speed = chrono_types::make_shared<ChSolverPSOR>();
+            solver_stab = chrono_types::make_shared<ChSolverPSOR>();
             break;
-        case ChSolver::Type::SYMMSOR:
-            solver_speed = chrono_types::make_shared<ChSolverSymmSOR>();
-            solver_stab = chrono_types::make_shared<ChSolverSymmSOR>();
+        case ChSolver::Type::PSSOR:
+            solver_speed = chrono_types::make_shared<ChSolverPSSOR>();
+            solver_stab = chrono_types::make_shared<ChSolverPSSOR>();
             break;
-        case ChSolver::Type::JACOBI:
-            solver_speed = chrono_types::make_shared<ChSolverJacobi>();
-            solver_stab = chrono_types::make_shared<ChSolverJacobi>();
+        case ChSolver::Type::PJACOBI:
+            solver_speed = chrono_types::make_shared<ChSolverPJacobi>();
+            solver_stab = chrono_types::make_shared<ChSolverPJacobi>();
             break;
         case ChSolver::Type::PMINRES:
             solver_speed = chrono_types::make_shared<ChSolverPMINRES>();
@@ -173,8 +173,8 @@ void ChSystem::SetSolverType(ChSolver::Type type) {
             solver_stab = chrono_types::make_shared<ChSolverAPGD>();
             break;
         default:
-            solver_speed = chrono_types::make_shared<ChSolverSymmSOR>();
-            solver_stab = chrono_types::make_shared<ChSolverSymmSOR>();
+            solver_speed = chrono_types::make_shared<ChSolverPSSOR>();
+            solver_stab = chrono_types::make_shared<ChSolverPSSOR>();
             break;
     }
 }

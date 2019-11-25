@@ -27,10 +27,10 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/solver/ChSolverAPGD.h"
 #include "chrono/solver/ChSolverBB.h"
-#include "chrono/solver/ChSolverJacobi.h"
+#include "chrono/solver/ChSolverPJacobi.h"
 #include "chrono/solver/ChSolverPMINRES.h"
-#include "chrono/solver/ChSolverSOR.h"
-#include "chrono/solver/ChSolverSymmSOR.h"
+#include "chrono/solver/ChSolverPSOR.h"
+#include "chrono/solver/ChSolverPSSOR.h"
 
 #include "chrono/collision/ChCCollisionSystemBullet.h"
 
@@ -54,7 +54,7 @@ ChSystemNSC::ChSystemNSC(unsigned int max_objects, double scene_size, bool init_
         descriptor->SetNumThreads(parallel_thread_number);
 
         // Set default solver
-        SetSolverType(ChSolver::Type::SYMMSOR);
+        SetSolverType(ChSolver::Type::PSSOR);
     }
 
     // Set default collision envelope and margin.
