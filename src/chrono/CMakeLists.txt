@@ -858,7 +858,6 @@ set(ChronoEngine_solver_SOURCES
     solver/ChKblockGeneric.cpp
     solver/ChSolvmin.cpp
     solver/ChNlsolver.cpp
-    solver/ChIterative.cpp
     )
 
 set(ChronoEngine_solver_HEADERS
@@ -877,7 +876,6 @@ set(ChronoEngine_solver_HEADERS
     solver/ChKblockGeneric.h
     solver/ChSolvmin.h
     solver/ChNlsolver.h
-    solver/ChIterative.h
     )
 	 
 source_group(solver FILES
