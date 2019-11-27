@@ -12,7 +12,15 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Chrono solvers based on Eigen iterative linear solvers
+// Chrono solvers based on Eigen iterative linear solvers.
+// All iterative linear solvers are implemented in a matrix-free context and
+// rely on the system descriptor for the required SPMV operations.
+// They can optionally use a diagonal preconditioner.
+//
+// Available solvers:
+//   GMRES
+//   BiCGSTAB
+//   MINRES
 //
 // =============================================================================
 
@@ -26,7 +34,7 @@
 namespace Eigen {
 namespace internal {
 
-// ChMatrixSPMV looks-like a ChSparseMatrix, so we inherits its traits
+// ChMatrixSPMV looks like a ChSparseMatrix, so we inherits its traits
 template <>
 struct traits<chrono::ChMatrixSPMV> : public Eigen::internal::traits<chrono::ChSparseMatrix> {};
 
@@ -55,7 +63,7 @@ class ChMatrixSPMV : public Eigen::EigenBase<ChMatrixSPMV> {
 
     // Custom API
     ChMatrixSPMV() : m_N(0), m_sysd(nullptr) {}
-    void Setup(int N, chrono::ChSystemDescriptor& sysd) {
+    void Setup(Index N, chrono::ChSystemDescriptor& sysd) {
         m_N = N;
         m_sysd = &sysd;
         m_vect.resize(m_N);
@@ -64,9 +72,63 @@ class ChMatrixSPMV : public Eigen::EigenBase<ChMatrixSPMV> {
     chrono::ChVectorDynamic<>& vect() { return m_vect; }
 
   private:
-    int m_N;                             // problem dimension
+    Index m_N;                           // problem dimension
     chrono::ChSystemDescriptor* m_sysd;  // pointer to system descriptor
     chrono::ChVectorDynamic<> m_vect;    // workspace for the result of the SPMV operation
+};
+
+/// Simple diagonal preconditioner
+class ChDiagonalPreconditioner {
+    typedef double Scalar;
+
+  public:
+    typedef int StorageIndex;
+    enum { ColsAtCompileTime = Eigen::Dynamic, MaxColsAtCompileTime = Eigen::Dynamic };
+
+    ChDiagonalPreconditioner() : m_N(0), m_diag_precond(false), m_invdiag(nullptr) {}
+
+    void Setup(Eigen::Index N, const ChVectorDynamic<>& invdiag) {
+        m_N = N;
+        m_invdiag = &invdiag;
+        m_diag_precond = (invdiag.size() > 0);
+    }
+
+    Eigen::Index rows() const { return m_N; }
+    Eigen::Index cols() const { return m_N; }
+
+    template <typename MatType>
+    ChDiagonalPreconditioner& analyzePattern(const MatType&) {
+        return *this;
+    }
+    template <typename MatType>
+    ChDiagonalPreconditioner& factorize(const MatType& mat) {
+        return *this;
+    }
+    template <typename MatType>
+    ChDiagonalPreconditioner& compute(const MatType& mat) {
+        return *this;
+    }
+
+    template <typename Rhs, typename Dest>
+    void _solve_impl(const Rhs& b, Dest& x) const {
+        if (m_diag_precond) {
+            x = m_invdiag->array() * b.array();
+        } else {
+            x = b;
+        }
+    }
+
+    template <typename Rhs>
+    inline const Eigen::Solve<ChDiagonalPreconditioner, Rhs> solve(const Eigen::MatrixBase<Rhs>& b) const {
+        return Eigen::Solve<ChDiagonalPreconditioner, Rhs>(*this, b.derived());
+    }
+
+    Eigen::ComputationInfo info() { return Eigen::Success; }
+
+  protected:
+    Eigen::Index m_N;                    // problem dimension
+    const ChVectorDynamic<>* m_invdiag;  // pointer to (invcerse) diagonal entries
+    bool m_diag_precond;                 // if false, no preconditioning
 };
 
 }  // namespace chrono
@@ -107,7 +169,8 @@ CH_FACTORY_REGISTER(ChSolverGMRES)
 CH_FACTORY_REGISTER(ChSolverBiCGSTAB)
 CH_FACTORY_REGISTER(ChSolverMINRES)
 
-ChIterativeSolverLS::ChIterativeSolverLS() : m_max_iterations(-1), m_tolerance(-1) {
+ChIterativeSolverLS::ChIterativeSolverLS()
+    : m_max_iterations(-1), m_tolerance(-1), m_use_precond(true), m_warm_start(false) {
     m_spmv = new ChMatrixSPMV();
 }
 
@@ -119,9 +182,29 @@ bool ChIterativeSolverLS::Setup(ChSystemDescriptor& sysd) {
     // Calculate problem size
     int dim = sysd.CountActiveVariables() + sysd.CountActiveConstraints();
 
-    // Setup the SPMV wrapper and associate it with the Eigen solver
+    // Set up the SPMV wrapper
     m_spmv->Setup(dim, sysd);
-    bool result = FactorizeMatrix();
+
+    // If needed, evaluate the inverse diagonal entries
+    if (m_use_precond) {
+        m_invdiag.resize(dim);
+        sysd.BuildDiagonalVector(m_invdiag);
+        for (int i = 0; i < dim; i++) {
+            if (std::abs(m_invdiag(i)) > 1e-9)
+                m_invdiag(i) = 1.0 / m_invdiag(i);
+            else
+                m_invdiag(i) = 1.0;
+        }
+    }
+
+    // If needed, evaluate the initial guess
+    if (m_warm_start) {
+        m_initguess.resize(dim);
+        sysd.FromUnknownsToVector(m_initguess);
+    }
+
+    // Let the concrete solver initialize itself
+    bool result = SetupProblem();
 
     //// DEBUGGING
     bool dump = false;
@@ -146,7 +229,14 @@ double ChIterativeSolverLS::Solve(ChSystemDescriptor& sysd) {
     sysd.ConvertToMatrixForm(nullptr, &m_rhs);
 
     // Let the concrete solver compute the solution
-    bool result = SolveSystem();
+    bool result = SolveProblem();
+
+    if (verbose) {
+        // Calculate exact residual and report its norm
+        ChVectorDynamic<> Ax(m_sol.size());
+        sysd.SystemProduct(Ax, m_sol);
+        std::cout << "  ||Ax-b|| = " << (Ax - m_rhs).norm() << std::endl;
+    }
 
     // Scatter solution vector to the system descriptor
     sysd.FromVectorToUnknowns(m_sol);
@@ -157,22 +247,20 @@ double ChIterativeSolverLS::Solve(ChSystemDescriptor& sysd) {
 // ---------------------------------------------------------------------------
 
 ChSolverGMRES::ChSolverGMRES() {
-    m_engine = new Eigen::GMRES<ChMatrixSPMV, Eigen::IdentityPreconditioner>();
-    ////m_engine = new Eigen::GMRES<ChMatrixSPMV, Eigen::DiagonalPreconditioner<double>>();
-
-    Eigen::DGMRES<ChMatrixSPMV, Eigen::IdentityPreconditioner> gmres;
+    m_engine = new Eigen::GMRES<ChMatrixSPMV, ChDiagonalPreconditioner>();
 }
 
 ChSolverGMRES::~ChSolverGMRES() {
     delete m_engine;
 }
 
-bool ChSolverGMRES::FactorizeMatrix() {
+bool ChSolverGMRES::SetupProblem() {
+    m_engine->preconditioner().Setup(m_rhs.size(), m_invdiag);
     m_engine->compute(*m_spmv);
     return (m_engine->info() == Eigen::Success);
 }
 
-bool ChSolverGMRES::SolveSystem() {
+bool ChSolverGMRES::SolveProblem() {
     if (m_max_iterations > 0) {
         m_engine->setMaxIterations(m_max_iterations);
     }
@@ -180,7 +268,11 @@ bool ChSolverGMRES::SolveSystem() {
         m_engine->setTolerance(m_tolerance);
     }
 
-    m_sol = m_engine->solve(m_rhs);
+    if (m_warm_start) {
+        m_sol = m_engine->solveWithGuess(m_rhs, m_initguess);
+    } else {
+        m_sol = m_engine->solve(m_rhs);
+    }
 
     if (verbose) {
         std::cout << "  GMRES iterations: " << m_engine->iterations() << " error: " << m_engine->error() << std::endl;
@@ -200,20 +292,20 @@ double ChSolverGMRES::GetError() const {
 // ---------------------------------------------------------------------------
 
 ChSolverBiCGSTAB::ChSolverBiCGSTAB() {
-    m_engine = new Eigen::BiCGSTAB<ChMatrixSPMV, Eigen::IdentityPreconditioner>();
-    ////m_engine = new Eigen::BiCGSTAB<ChMatrixSPMV, Eigen::DiagonalPreconditioner<double>>();
+    m_engine = new Eigen::BiCGSTAB<ChMatrixSPMV, ChDiagonalPreconditioner>();
 }
 
 ChSolverBiCGSTAB::~ChSolverBiCGSTAB() {
     delete m_engine;
 }
 
-bool ChSolverBiCGSTAB::FactorizeMatrix() {
+bool ChSolverBiCGSTAB::SetupProblem() {
+    m_engine->preconditioner().Setup(m_rhs.size(), m_invdiag);
     m_engine->compute(*m_spmv);
     return (m_engine->info() == Eigen::Success);
 }
 
-bool ChSolverBiCGSTAB::SolveSystem() {
+bool ChSolverBiCGSTAB::SolveProblem() {
     if (m_max_iterations > 0) {
         m_engine->setMaxIterations(m_max_iterations);
     }
@@ -221,7 +313,11 @@ bool ChSolverBiCGSTAB::SolveSystem() {
         m_engine->setTolerance(m_tolerance);
     }
 
-    m_sol = m_engine->solve(m_rhs);
+    if (m_warm_start) {
+        m_sol = m_engine->solveWithGuess(m_rhs, m_initguess);
+    } else {
+        m_sol = m_engine->solve(m_rhs);
+    }
 
     if (verbose) {
         std::cout << "  BiCGSTAB iterations: " << m_engine->iterations() << " error: " << m_engine->error()
@@ -242,20 +338,20 @@ double ChSolverBiCGSTAB::GetError() const {
 // ---------------------------------------------------------------------------
 
 ChSolverMINRES::ChSolverMINRES() {
-    m_engine = new Eigen::MINRES<ChMatrixSPMV, Eigen::Lower | Eigen::Upper, Eigen::IdentityPreconditioner>();
-    ////m_engine = new Eigen::MINRES<ChMatrixSPMV, Eigen::Lower | Eigen::Upper, Eigen::DiagonalPreconditioner<double>>();
+    m_engine = new Eigen::MINRES<ChMatrixSPMV, Eigen::Lower | Eigen::Upper, ChDiagonalPreconditioner>();
 }
 
 ChSolverMINRES::~ChSolverMINRES() {
     delete m_engine;
 }
 
-bool ChSolverMINRES::FactorizeMatrix() {
+bool ChSolverMINRES::SetupProblem() {
+    m_engine->preconditioner().Setup(m_rhs.size(), m_invdiag);
     m_engine->compute(*m_spmv);
     return (m_engine->info() == Eigen::Success);
 }
 
-bool ChSolverMINRES::SolveSystem() {
+bool ChSolverMINRES::SolveProblem() {
     if (m_max_iterations > 0) {
         m_engine->setMaxIterations(m_max_iterations);
     }
@@ -263,11 +359,14 @@ bool ChSolverMINRES::SolveSystem() {
         m_engine->setTolerance(m_tolerance);
     }
 
-    m_sol = m_engine->solve(m_rhs);
+    if (m_warm_start) {
+        m_sol = m_engine->solveWithGuess(m_rhs, m_initguess);
+    } else {
+        m_sol = m_engine->solve(m_rhs);
+    }
 
     if (verbose) {
-        std::cout << "  MINRES iterations: " << m_engine->iterations() << " error: " << m_engine->error()
-                  << std::endl;
+        std::cout << "  MINRES iterations: " << m_engine->iterations() << " error: " << m_engine->error() << std::endl;
     }
 
     return (m_engine->info() == Eigen::Success);
