@@ -34,6 +34,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_solver
+/// @{
+
 // ---------------------------------------------------------------------------
 
 // Forward declarations of wrapper class for SPMV operations and custom preconditioner
@@ -176,6 +179,8 @@ class ChApi ChSolverMINRES : public ChIterativeSolverLS {
 
     Eigen::MINRES<ChMatrixSPMV, Eigen::Lower | Eigen::Upper, ChDiagonalPreconditioner>* m_engine;
 };
+
+/// @} chrono_solver
 
 }  // end namespace chrono
 

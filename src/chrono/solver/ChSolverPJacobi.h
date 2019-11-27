@@ -19,6 +19,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_solver
+/// @{
+
 /// An iterative solver for VI based on projective fixed point method (projected Jacobi). \n
 /// Note: this method is here mostly for comparison and tests: we suggest you to use the more efficient ChSolverPSOR.\n
 /// See ChSystemDescriptor for more information about the problem formulation and the data structures passed to the
@@ -41,6 +44,8 @@ class ChApi ChSolverPJacobi : public ChIterativeSolverVI {
     virtual double Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
                          ) override;
 };
+
+/// @} chrono_solver
 
 }  // end namespace chrono
 

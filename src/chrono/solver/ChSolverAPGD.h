@@ -19,6 +19,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_solver
+/// @{
+
 /// An iterative solver based on Nesterov's Projected Gradient Descent.\n
 /// See ChSystemDescriptor for more information about the problem formulation and the data structures passed to the
 /// solver.
@@ -50,6 +53,8 @@ class ChApi ChSolverAPGD : public ChIterativeSolverVI {
     void Dump_Rhs(std::vector<double>& temp);
     void Dump_Lambda(std::vector<double>& temp);
 };
+
+/// @} chrono_solver
 
 }  // end namespace chrono
 

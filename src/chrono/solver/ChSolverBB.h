@@ -19,6 +19,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_solver
+/// @{
+
 /// An iterative solver based on modified Krylov iteration of spectral projected gradients with Barzilai-Borwein.\n
 /// See ChSystemDescriptor for more information about the problem formulation and the data structures passed to the
 /// solver.
@@ -65,6 +68,8 @@ class ChApi ChSolverBB : public ChIterativeSolverVI {
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+/// @} chrono_solver
 
 }  // end namespace chrono
 

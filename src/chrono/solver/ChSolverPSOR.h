@@ -19,6 +19,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_solver
+/// @{
+
 /// An iterative solver based on projective fixed point method, with overrelaxation and immediate variable update as in
 /// SOR methods.\n
 /// See ChSystemDescriptor for more information about the problem formulation and the data structures passed to the
@@ -41,6 +44,8 @@ class ChApi ChSolverPSOR : public ChIterativeSolverVI {
     virtual double Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
                          ) override;
 };
+
+/// @} chrono_solver
 
 }  // end namespace chrono
 
