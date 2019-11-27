@@ -148,50 +148,17 @@ class ChApi ChIterativeSolverVI : public ChSolverVI {
     /// (at the end). If history recording is enabled, this function will store the
     /// current values as passed as arguments.
     /// Note: 'iternum' starts at 0 for the first iteration.
-    void AtIterationEnd(double mmaxviolation, double mdeltalambda, unsigned int iternum) {
-        if (!record_violation_history)
-            return;
-        if (iternum != violation_history.size()) {
-            violation_history.clear();
-            violation_history.resize(iternum);
-        }
-        if (iternum != dlambda_history.size()) {
-            dlambda_history.clear();
-            dlambda_history.resize(iternum);
-        }
-        violation_history.push_back(mmaxviolation);
-        dlambda_history.push_back(mdeltalambda);
-    }
+    void AtIterationEnd(double mmaxviolation, double mdeltalambda, unsigned int iternum);
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
-        // version number
-        marchive.VersionWrite<ChIterativeSolverVI>();
-        // serialize parent class
-        ChSolver::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(max_iterations);
-        marchive << CHNVP(tot_iterations);
-        marchive << CHNVP(warm_start);
-        marchive << CHNVP(tolerance);
-        marchive << CHNVP(omega);
-        marchive << CHNVP(shlambda);
-    }
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
-        // version number
-        int version = marchive.VersionRead<ChIterativeSolverVI>();
-        // deserialize parent class
-        ChSolver::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(max_iterations);
-        marchive >> CHNVP(tot_iterations);
-        marchive >> CHNVP(warm_start);
-        marchive >> CHNVP(tolerance);
-        marchive >> CHNVP(omega);
-        marchive >> CHNVP(shlambda);
-    }
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+    /// Debugging
+    void SaveMatrix(ChSystemDescriptor& sysd);
+    double CheckSolution(ChSystemDescriptor& sysd, const ChVectorDynamic<>& x);
 };
 
 /// @} chrono_solver

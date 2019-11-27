@@ -25,12 +25,12 @@
 #include "chrono/physics/ChProximityContainer.h"
 
 #include "chrono/physics/ChSystem.h"
-#include "chrono/solver/ChSolverAPGD.h"
-#include "chrono/solver/ChSolverBB.h"
-#include "chrono/solver/ChSolverPJacobi.h"
-#include "chrono/solver/ChSolverPMINRES.h"
-#include "chrono/solver/ChSolverPSOR.h"
-#include "chrono/solver/ChSolverPSSOR.h"
+////#include "chrono/solver/ChSolverAPGD.h"
+////#include "chrono/solver/ChSolverBB.h"
+////#include "chrono/solver/ChSolverPJacobi.h"
+////#include "chrono/solver/ChSolverPMINRES.h"
+////#include "chrono/solver/ChSolverPSOR.h"
+////#include "chrono/solver/ChSolverPSSOR.h"
 
 #include "chrono/collision/ChCCollisionSystemBullet.h"
 
