@@ -26,8 +26,6 @@
 #include "chrono/physics/ChContactContainerSMC.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/solver/ChSolverMINRES.h"
-#include "chrono/solver/ChSolverSMC.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "gtest/gtest.h"
 
@@ -164,13 +162,6 @@ ContactForceTest::ContactForceTest() {
     std::cout << "Using default solver." << std::endl;
     system->SetMaxItersSolverSpeed(100);
     system->SetTolForce(1e-6);
-
-    ////std::cout << "Using MINRES solver." << std::endl;
-    ////auto minres_solver = chrono_types::make_shared<ChSolverMINRES>();
-    ////minres_solver->SetDiagonalPreconditioning(true);
-    ////system->SetSolver(minres_solver);
-    ////system->SetMaxItersSolverSpeed(100);
-    ////system->SetTolForce(1e-6);
 
     // ----------------
     // Setup integrator

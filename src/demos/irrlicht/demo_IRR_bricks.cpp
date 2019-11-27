@@ -221,7 +221,7 @@ int main(int argc, char* argv[]) {
 
     // Prepare the physical system for the simulation
 
-	mphysicalSystem.SetSolverType(ChSolver::Type::SOR); //SOR_MULTITHREAD);
+	mphysicalSystem.SetSolverType(ChSolver::Type::PSOR); //SOR_MULTITHREAD);
     mphysicalSystem.SetParallelThreadNumber(4);
     
 	//mphysicalSystem.SetUseSleeping(true);

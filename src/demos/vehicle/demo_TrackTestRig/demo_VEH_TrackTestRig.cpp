@@ -237,7 +237,7 @@ int main(int argc, char* argv[]) {
 #endif
     } else {
         std::cout << "Solver: SOR" << std::endl;
-        rig->GetSystem()->SetSolverType(ChSolver::Type::SOR);
+        rig->GetSystem()->SetSolverType(ChSolver::Type::PSOR);
         rig->GetSystem()->SetMaxItersSolverSpeed(50);
         rig->GetSystem()->SetMaxItersSolverStab(50);
         rig->GetSystem()->SetTol(0);

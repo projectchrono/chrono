@@ -18,7 +18,7 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/solver/ChSolverMINRES.h"
+#include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/fea/ChElementBrick_9.h"
 #include "chrono/fea/ChMesh.h"
 
@@ -176,7 +176,7 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
 
     for (int i = 0; i < TotalNumElements; i++) {
         auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
-                                                    ChVector<>(0.0, 0.0, 0.0));
+                                                             ChVector<>(0.0, 0.0, 0.0));
         node->SetMass(0);
         my_mesh->AddNode(node);
     }
@@ -245,10 +245,13 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
     my_system.Set_G_acc(ChVector<>(0.0, 0.0, 0.0));
 
     // Set up solver
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    msolver->SetDiagonalPreconditioning(true);
-    my_system.SetMaxItersSolverSpeed(900);
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    my_system.SetSolver(solver);
+    solver->SetMaxIterations(500);
+    solver->SetTolerance(1e-10);
+    solver->EnableDiagonalPreconditioner(true);
+    solver->SetVerbose(false);
+
     my_system.SetTolForce(1e-13);
 
     // Set the time integrator parameters
@@ -370,7 +373,7 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
 
     for (int i = 0; i < TotalNumElements; i++) {
         auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
-                                                    ChVector<>(0.0, 0.0, 0.0));
+                                                             ChVector<>(0.0, 0.0, 0.0));
         node->SetMass(0);
         my_mesh->AddNode(node);
     }
@@ -450,10 +453,13 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     // ----------------------------------
 
     // Set up solver
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    msolver->SetDiagonalPreconditioning(true);
-    my_system.SetMaxItersSolverSpeed(500);
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    my_system.SetSolver(solver);
+    solver->SetMaxIterations(500);
+    solver->SetTolerance(1e-10);
+    solver->EnableDiagonalPreconditioner(true);
+    solver->SetVerbose(false);
+
     my_system.SetTolForce(1e-08);
 
     // Set the time integrator parameters
@@ -565,7 +571,7 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
 
     for (int i = 0; i < TotalNumElements; i++) {
         auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
-                                                    ChVector<>(0.0, 0.0, 0.0));
+                                                             ChVector<>(0.0, 0.0, 0.0));
         node->SetMass(0);
         my_mesh->AddNode(node);
     }
@@ -647,10 +653,13 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     my_system.Set_G_acc(ChVector<>(0.0, 0.0, 0.0));
 
     // Set up solver
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    msolver->SetDiagonalPreconditioning(true);
-    my_system.SetMaxItersSolverSpeed(900);
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    my_system.SetSolver(solver);
+    solver->SetMaxIterations(500);
+    solver->SetTolerance(1e-10);
+    solver->EnableDiagonalPreconditioner(true);
+    solver->SetVerbose(false);
+
     my_system.SetTolForce(1e-13);
 
     // Set the time integrator parameters
@@ -768,7 +777,7 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
 
     for (int i = 0; i < TotalNumElements; i++) {
         auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
-                                                    ChVector<>(0.0, 0.0, 0.0));
+                                                             ChVector<>(0.0, 0.0, 0.0));
         node->SetMass(0);
         my_mesh->AddNode(node);
     }
@@ -855,10 +864,13 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     my_system.Set_G_acc(ChVector<>(0.0, 0.0, 0.0));
 
     // Set up solver
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    msolver->SetDiagonalPreconditioning(true);
-    my_system.SetMaxItersSolverSpeed(900);
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    my_system.SetSolver(solver);
+    solver->SetMaxIterations(500);
+    solver->SetTolerance(1e-10);
+    solver->EnableDiagonalPreconditioner(true);
+    solver->SetVerbose(false);
+
     my_system.SetTolForce(1e-13);
 
     // Set the time integrator parameters

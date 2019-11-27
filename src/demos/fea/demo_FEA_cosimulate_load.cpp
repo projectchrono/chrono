@@ -25,7 +25,7 @@
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChLoaderUV.h"
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/solver/ChSolverMINRES.h"
+#include "chrono/solver/ChIterativeSolverLS.h"
 
 #include "chrono/fea/ChElementTetra_4.h"
 #include "chrono/fea/ChLoadContactSurfaceMesh.h"
@@ -248,9 +248,14 @@ int main(int argc, char* argv[]) {
     // Change solver to embedded MINRES
     // NOTE! it is strongly advised that you compile the optional MKL module
     // if you need higher precision, and switch to its MKL solver - see demos for FEA & MKL.
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
-    my_system.SetMaxItersSolverSpeed(40);
+
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    my_system.SetSolver(solver);
+    solver->SetMaxIterations(40);
+    solver->SetTolerance(1e-10);
+    solver->EnableDiagonalPreconditioner(true);
+    solver->EnableWarmStart(true);  // Enable for better convergence if using Euler implicit linearized
+
     my_system.SetTolForce(1e-10);
 
     // Change type of integrator:

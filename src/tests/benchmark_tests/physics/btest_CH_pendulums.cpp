@@ -62,8 +62,8 @@ ChainTest<N>::ChainTest() : m_length(0.25), m_step(1e-3) {
 
     // Set solver parameters
     switch (solver_type) {
-        case ChSolver::Type::SOR: {
-            m_system->SetSolverType(ChSolver::Type::SOR);
+        case ChSolver::Type::PSOR: {
+            m_system->SetSolverType(ChSolver::Type::PSOR);
             m_system->SetMaxItersSolverSpeed(50);
             m_system->SetMaxItersSolverStab(50);
             m_system->SetTol(0);

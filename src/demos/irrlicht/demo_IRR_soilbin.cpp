@@ -956,7 +956,7 @@ int main(int argc, char* argv[]) {
 
     // Set some integrator settings
     // mphysicalSystem.SetSolverType(ChSolver::Type::APGD);
-    mphysicalSystem.SetSolverType(ChSolver::Type::SOR_MULTITHREAD);
+    mphysicalSystem.SetSolverType(ChSolver::Type::PSOR);
     mphysicalSystem.SetMaxItersSolverSpeed(70);
     mphysicalSystem.SetMaxItersSolverStab(15);
     mphysicalSystem.SetParallelThreadNumber(4);

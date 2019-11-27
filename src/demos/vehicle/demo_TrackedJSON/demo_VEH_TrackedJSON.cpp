@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
     ////vehicle.SetChassisVehicleCollide(false);
 
     // Solver settings.
-    vehicle.GetSystem()->SetSolverType(ChSolver::Type::SOR);
+    vehicle.GetSystem()->SetSolverType(ChSolver::Type::PSOR);
     vehicle.GetSystem()->SetMaxItersSolverSpeed(50);
     vehicle.GetSystem()->SetMaxItersSolverStab(50);
     vehicle.GetSystem()->SetTol(0);

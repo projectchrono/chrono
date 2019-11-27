@@ -98,7 +98,7 @@ M113AccTest<EnumClass, SHOE_TYPE>::M113AccTest() : m_step(1e-3) {
     m_driver->Initialize();
 
     // Solver settings
-    m_m113->GetSystem()->SetSolverType(ChSolver::Type::SOR);
+    m_m113->GetSystem()->SetSolverType(ChSolver::Type::PSOR);
     m_m113->GetSystem()->SetMaxItersSolverSpeed(50);
     m_m113->GetSystem()->SetMaxItersSolverStab(50);
     m_m113->GetSystem()->SetTol(0);

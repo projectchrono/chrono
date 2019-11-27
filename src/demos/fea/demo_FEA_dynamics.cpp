@@ -17,7 +17,7 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/solver/ChSolverMINRES.h"
+#include "chrono/solver/ChIterativeSolverLS.h"
 
 #include "chrono/fea/ChElementSpring.h"
 #include "chrono/fea/ChElementShellANCF.h"
@@ -100,10 +100,10 @@ void test_1() {
     // my_system.Set_G_acc(VNULL);
 
     // Perform a dynamic time integration:
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    my_system.SetSolver(solver);
+    solver->SetMaxIterations(40);
 
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    my_system.SetMaxItersSolverSpeed(40);
     my_system.SetTolForce(1e-10);
 
     my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
@@ -181,10 +181,12 @@ void test_2() {
 
     // Perform a dynamic time integration:
 
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    msolver->SetDiagonalPreconditioning(true);
-    my_system.SetMaxItersSolverSpeed(100);
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    my_system.SetSolver(solver);
+    solver->SetMaxIterations(100);
+    solver->SetTolerance(1e-8);
+    solver->EnableDiagonalPreconditioner(true);
+
     my_system.SetTolForce(1e-10);
 
     my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
@@ -263,9 +265,11 @@ void test_2b() {
 
     // Perform a dynamic time integration:
 
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    my_system.SetMaxItersSolverSpeed(200);
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    my_system.SetSolver(solver);
+    solver->SetMaxIterations(200);
+    solver->SetTolerance(1e-12);
+
     my_system.SetTolForce(1e-10);
 
     my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
@@ -356,9 +360,11 @@ void test_3() {
 
     // Perform a dynamic time integration:
 
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    my_system.SetMaxItersSolverSpeed(40);
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    my_system.SetSolver(solver);
+    solver->SetMaxIterations(40);
+    solver->SetTolerance(1e-8);
+
     my_system.SetTolForce(1e-10);
 
     my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
@@ -448,10 +454,12 @@ void test_4() {
 
     // Perform a dynamic time integration:
 
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    msolver->SetDiagonalPreconditioning(true);
-    my_system.SetMaxItersSolverSpeed(100);
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    my_system.SetSolver(solver);
+    solver->SetMaxIterations(100);
+    solver->SetTolerance(1e-8);
+    solver->EnableDiagonalPreconditioner(true);
+
     my_system.SetTolForce(1e-10);
 
     my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);

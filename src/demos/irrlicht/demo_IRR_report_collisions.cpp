@@ -81,7 +81,7 @@ int main(int argc, char* argv[]) {
 
     // Create the system.
     ChSystemNSC system;
-    system.SetSolverType(ChSolver::Type::SOR);
+    system.SetSolverType(ChSolver::Type::PSOR);
     system.SetMaxItersSolverSpeed(20);
     system.SetMaxItersSolverStab(5);
 

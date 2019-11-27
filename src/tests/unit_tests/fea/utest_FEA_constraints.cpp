@@ -24,7 +24,7 @@
 #include "chrono/fea/ChBuilderBeam.h"
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChLinkDirFrame.h"
-#include "chrono/solver/ChSolverMINRES.h"
+#include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/timestepper/ChTimestepper.h"
 #include "chrono_mkl/ChSolverMKL.h"
 
@@ -154,10 +154,13 @@ TEST(ANCFcables_rigid_constraints, Minres_MKL) {
     Model model2;
 
     // Model1 uses MINRES
-    model1.GetSystem()->SetSolverType(ChSolver::Type::MINRES);
-    model1.GetSystem()->SetSolverWarmStarting(true);
-    model1.GetSystem()->SetMaxItersSolverSpeed(200);
-    model1.GetSystem()->SetMaxItersSolverStab(200);
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    model1.GetSystem()->SetSolver(solver);
+    solver->SetMaxIterations(200);
+    solver->SetTolerance(1e-10);
+    solver->EnableDiagonalPreconditioner(true);
+    solver->SetVerbose(false);
+
     model1.GetSystem()->SetTolForce(1e-13);
 
     // MODEL2 uses MKL (Pardiso)
