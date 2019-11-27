@@ -109,6 +109,10 @@ linux:doxygen:deploy:
     - echo -e "-----BEGIN RSA PRIVATE KEY-----\n$API_PRIVATE_KEY\n-----END RSA PRIVATE KEY-----\n" | ssh-add -
     - mkdir -p ~/.ssh
     - chmod 0700 ~/.ssh
+# Remove any duplicate host key entries
+    - ssh-keygen -R $API_REINDEX_ENDPOINT
+# Cache a verified host pubkey from file to avoid MITM attacks
+    - cat $API_ENDPOINT_PUBKEY >> ~/.ssh/known_hosts
   script:
     - cd doxygen
     - doxygen Doxyfile
