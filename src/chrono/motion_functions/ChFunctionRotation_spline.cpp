@@ -137,7 +137,7 @@ void ChFunctionRotation_spline::SetClosed(bool mc) {
 	// switch open->closed
 	if (mc == true) {
 		// add p control points to be wrapped: resize knots and control points
-		int n = this->rotations.size();
+		auto n = this->rotations.size();
 		n += p; 
 		this->rotations.resize(n);
 		this->knots.setZero(n + p + 1);
@@ -153,7 +153,7 @@ void ChFunctionRotation_spline::SetClosed(bool mc) {
 	// switch closed->open
 	if (mc == false) {
 		// remove p control points that was wrapped: resize knots and control points
-		int n = this->rotations.size();
+		auto n = this->rotations.size();
 		n -= p; 
 		this->rotations.resize(n);
 		this->knots.setZero(n + p + 1);
