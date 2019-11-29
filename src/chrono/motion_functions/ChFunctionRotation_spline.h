@@ -78,7 +78,6 @@ class ChApi ChFunctionRotation_spline : public ChFunctionRotation {
 
     /// Initial easy setup from a given array of rotations (quaternion spline control points). Input data is copied.
     /// If the knots are not provided, a uniformly spaced knot vector is made.
-    /// If the weights are not provided, a constant weight vector is made.
     virtual void SetupData(
         int morder,                         ///< order p: 1= linear, 2=quadratic, etc.
         const std::vector<ChQuaternion<> >& mrotations,  ///< rotations, size n. Required: at least n >= p+1
