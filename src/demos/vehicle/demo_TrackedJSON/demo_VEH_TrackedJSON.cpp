@@ -124,7 +124,6 @@ int main(int argc, char* argv[]) {
     // Solver settings.
     vehicle.GetSystem()->SetSolverType(ChSolver::Type::PSOR);
     vehicle.GetSystem()->SetMaxItersSolverSpeed(50);
-    vehicle.GetSystem()->SetMaxItersSolverStab(50);
     vehicle.GetSystem()->SetTol(0);
     vehicle.GetSystem()->SetMaxPenetrationRecoverySpeed(1.5);
     vehicle.GetSystem()->SetMinBounceSpeed(2.0);

@@ -239,7 +239,6 @@ int main(int argc, char* argv[]) {
         std::cout << "Solver: SOR" << std::endl;
         rig->GetSystem()->SetSolverType(ChSolver::Type::PSOR);
         rig->GetSystem()->SetMaxItersSolverSpeed(50);
-        rig->GetSystem()->SetMaxItersSolverStab(50);
         rig->GetSystem()->SetTol(0);
         rig->GetSystem()->SetMaxPenetrationRecoverySpeed(1.5);
         rig->GetSystem()->SetMinBounceSpeed(2.0);

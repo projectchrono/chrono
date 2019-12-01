@@ -19,7 +19,7 @@ using namespace chrono;
 using namespace chrono::collision;
 
 ChSystemParallelSMC::ChSystemParallelSMC() : ChSystemParallel() {
-    solver_speed = chrono_types::make_shared<ChIterativeSolverParallelSMC>(data_manager);
+    solver = chrono_types::make_shared<ChIterativeSolverParallelSMC>(data_manager);
 
     data_manager->settings.collision.collision_envelope = 0;
 

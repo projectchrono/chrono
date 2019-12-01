@@ -154,10 +154,6 @@ namespace irrlicht {
                     app->GetSystem()->SetMaxItersSolverSpeed(
                         ((irr::gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos());
                     break;
-                case 9905:
-                    app->GetSystem()->SetMaxItersSolverStab(
-                        ((irr::gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos());
-                    break;
                 case 9909:
                     app->GetSystem()->SetSolverOverrelaxationParam(
                         (1.0 / 50.0) * ((irr::gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos());
@@ -436,12 +432,6 @@ namespace irrlicht {
         gad_speed_iternumber->setMax(120);
         gad_speed_iternumber_info = GetIGUIEnvironment()->addStaticText(
             L"", irr::core::rect<irr::s32>(155, 10, 220, 10 + 20), false, false, gad_tab2);
-
-        gad_pos_iternumber =
-            GetIGUIEnvironment()->addScrollBar(true, irr::core::rect<irr::s32>(10, 40, 150, 40 + 20), gad_tab2, 9905);
-        gad_pos_iternumber->setMax(120);
-        gad_pos_iternumber_info = GetIGUIEnvironment()->addStaticText(
-            L"", irr::core::rect<irr::s32>(155, 40, 220, 40 + 20), false, false, gad_tab2);
 
         gad_warmstart = GetIGUIEnvironment()->addCheckBox(
             false, irr::core::rect<irr::s32>(10, 70, 200, 70 + 20), gad_tab2, 9906, L"Warm starting");
@@ -747,10 +737,8 @@ namespace irrlicht {
         str += (int)(1000 * system->GetTimerSolver());
         str += " ms \n  CPU Update time      =";
         str += (int)(1000 * system->GetTimerUpdate());
-        str += " ms \n\nSolver vel.iters : ";
+        str += " ms \n\nSolver iters : ";
         str += system->GetMaxItersSolverSpeed();
-        str += "\nSolver pos.iters : ";
-        str += system->GetMaxItersSolverStab();
         str += "\n\nN.of active bodies  : ";
         str += system->GetNbodies();
         str += "\nN.of sleeping bodies  : ";
@@ -797,7 +785,7 @@ namespace irrlicht {
             ChIrrTools::drawCollisionShapes(*system, GetDevice());
 
         if(gad_plot_convergence->isChecked())
-            ChIrrTools::drawHUDviolation(GetVideoDriver(), GetDevice(), *system, 240, 370, 300, 100, 100.0, 500.0);
+            ChIrrTools::drawHUDviolation(GetVideoDriver(), GetDevice(), *system, 240, 370, 300, 100, 100.0);
 
         gad_tabbed->setVisible(show_infos);
         gad_treeview->setVisible(show_explorer);
@@ -813,12 +801,8 @@ namespace irrlicht {
             char message[50];
 
             gad_speed_iternumber->setPos(GetSystem()->GetMaxItersSolverSpeed());
-            sprintf(message, "%i vel.iters", GetSystem()->GetMaxItersSolverSpeed());
+            sprintf(message, "%i iters", GetSystem()->GetMaxItersSolverSpeed());
             gad_speed_iternumber_info->setText(irr::core::stringw(message).c_str());
-
-            gad_pos_iternumber->setPos(GetSystem()->GetMaxItersSolverStab());
-            sprintf(message, "%i pos.iters", GetSystem()->GetMaxItersSolverStab());
-            gad_pos_iternumber_info->setText(irr::core::stringw(message).c_str());
 
             gad_omega->setPos((irr::s32)(50.0 * (GetSystem()->GetSolverOverrelaxationParam())));
             sprintf(message, "%g omega", GetSystem()->GetSolverOverrelaxationParam());

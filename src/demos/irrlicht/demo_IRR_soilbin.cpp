@@ -958,7 +958,6 @@ int main(int argc, char* argv[]) {
     // mphysicalSystem.SetSolverType(ChSolver::Type::APGD);
     mphysicalSystem.SetSolverType(ChSolver::Type::PSOR);
     mphysicalSystem.SetMaxItersSolverSpeed(70);
-    mphysicalSystem.SetMaxItersSolverStab(15);
     mphysicalSystem.SetParallelThreadNumber(4);
 
     // Use real-time step of the simulation, OR...

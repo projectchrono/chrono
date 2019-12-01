@@ -254,7 +254,6 @@ int main(int argc, char* argv[]) {
 
     mphysicalSystem.SetSolverType(ChSolver::Type::PSOR);
     mphysicalSystem.SetMaxItersSolverSpeed(20);
-    // mphysicalSystem.SetMaxItersSolverStab(5);
 
     // Cohesion in a contact depends on the cohesion in the surface property of the
     // touching bodies, but the user can override this value when each contact is created,

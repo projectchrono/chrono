@@ -191,7 +191,6 @@ int main(int argc, char* argv[]) {
     // Modify some setting of the physical system for the simulation, if you want
     mphysicalSystem.SetSolverType(ChSolver::Type::PSOR);
     mphysicalSystem.SetMaxItersSolverSpeed(40);
-    mphysicalSystem.SetMaxItersSolverStab(5);
 
     // Turn off default -9.8 downward gravity
     mphysicalSystem.Set_G_acc(ChVector<>(0, 0, 0));

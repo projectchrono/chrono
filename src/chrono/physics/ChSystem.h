@@ -185,14 +185,12 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     ///   - For problems that involve a stiffness matrix: GMRES, MINRES
     ///
     /// *Notes*:
-    ///   - Do not use CUSTOM type, as this type is reserved for external solvers
-    ///     (set using SetSolver() and/or SetStabSolver())
-    ///   - This function is a shortcut, internally equivalent to two calls to
-    ///     SetSolver() and SetStabSolve()
+    ///   - Do not use CUSTOM type, as this type is reserved for external solvers (instead use SetSolver())
+    ///   - This function is a shortcut, internally equivalent to a call to SetSolver()
     virtual void SetSolverType(ChSolver::Type type);
 
     /// Gets the current solver type.
-    ChSolver::Type GetSolverType() const { return solver_speed->GetType(); }
+    ChSolver::Type GetSolverType() const { return solver->GetType(); }
 
     /// When using an iterative solver (es. PSOR) set the maximum number of iterations.
     /// The higher the iteration number, the more precise the simulation (but more CPU time).
@@ -200,45 +198,26 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// Current maximum number of iterations, if using an iterative solver.
     int GetMaxItersSolverSpeed() const { return max_iter_solver_speed; }
 
-    /// When using an iterative solver (es. PSOR) and a timestepping method
-    /// requiring post-stabilization (e.g., EULER_IMPLICIT_PROJECTED), set the
-    /// the maximum number of stabilization iterations. The higher the iteration
-    /// number, the more precise the simulation (but more CPU time).
-    void SetMaxItersSolverStab(int mval) { max_iter_solver_stab = mval; }
-    /// Current maxi. number of iterations, if using an iterative solver for stabilization.
-    int GetMaxItersSolverStab() const { return max_iter_solver_stab; }
-
-    /// If you want to easily turn ON/OFF the warm starting feature of both iterative solvers
-    /// (the one for speed and the other for pos.stabilization) you can simply use the
-    /// following instead of accessing them directly with GetSolver() and GetStabSolver()
+    /// If you want to easily turn ON/OFF the warm starting feature for the iterative solver,
+    /// you can simply use the following instead of accessing it directly with GetSolver().
     void SetSolverWarmStarting(bool usewarm = true);
     /// Tell if the warm starting is enabled for the speed solver, (if iterative type).
     bool GetSolverWarmStarting() const;
 
-    /// If you want to easily adjust the omega overrelaxation parameter of both iterative solvers
-    /// (the one for speed and the other for position stabilization) you can simply use the
-    /// following instead of accessing them directly with GetSolver() and GetStabSolver().
+    /// If you want to easily adjust the omega overrelaxation parameter of the iterative solver,
+    /// you can simply use the following instead of accessing it directly with GetSolver().
     /// Note, usually a good omega for Jacobi or GPU solver is 0.2; for other iter.solvers can be up to 1.0
     void SetSolverOverrelaxationParam(double momega = 1.0);
     /// Tell the omega overrelaxation factor for the speed solver, (if iterative type).
     double GetSolverOverrelaxationParam() const;
 
-    /// If you want to easily adjust the 'sharpness lambda' parameter of both iterative solvers
-    /// (the one for speed and the other for pos.stabilization) you can simply use the
-    /// following instead of accessing them directly with GetSolver() and GetStabSolver().
+    /// If you want to easily adjust the 'sharpness lambda' parameter of the iterative solver,
+    /// you can simply use the following instead of accessing it directly with GetSolver().
     /// Note, usually a good sharpness value is in 1..0.8 range (the lower, the more it helps exact
     /// convergence, but overall convergence gets also much slower so maybe better to tolerate some error)
     void SetSolverSharpnessParam(double momega = 1.0);
     /// Tell the 'sharpness lambda' factor for the speed solver, (if iterative type).
     double GetSolverSharpnessParam() const;
-
-    /// Instead of using SetSolverType(), you can create your own custom solver (inherited from ChSolver)
-    /// and plug it into the system using this function. 
-    virtual void SetStabSolver(std::shared_ptr<ChSolver> newsolver);
-
-    /// Access directly the stabilization solver, configured to be used for the stabilization
-    /// of constraints (solve delta positions).
-    virtual std::shared_ptr<ChSolver> GetStabSolver();
 
     /// Instead of using SetSolverType(), you can create your own custom solver (suffice it is inherited
     /// from ChSolver) and plug it into the system using this function.
@@ -819,12 +798,10 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     bool use_sleeping;  ///< if true, put to sleep objects that come to rest
 
-    std::shared_ptr<ChSystemDescriptor> descriptor;  ///< the system descriptor
-    std::shared_ptr<ChSolver> solver_speed;          ///< the solver for speed problem
-    std::shared_ptr<ChSolver> solver_stab;           ///< the solver for position (stabilization) problem, if any
+    std::shared_ptr<ChSystemDescriptor> descriptor;  ///< system descriptor
+    std::shared_ptr<ChSolver> solver;                ///< solver for DVI or DAE problem
 
     int max_iter_solver_speed;  ///< maximum num iterations for the iterative solver
-    int max_iter_solver_stab;   ///< maximum num iterations for the iterative solver for constraint stabilization
     int max_steps_simplex;      ///< maximum number of steps for the simplex solver.
 
     double min_bounce_speed;                ///< minimum speed for rebounce after impacts. Lower speeds are clamped to 0

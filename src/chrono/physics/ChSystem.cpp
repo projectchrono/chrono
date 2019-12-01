@@ -49,7 +49,6 @@ ChSystem::ChSystem()
       is_updated(false),
       maxiter(6),
       max_iter_solver_speed(30),
-      max_iter_solver_stab(10),
       ncontacts(0),
       min_bounce_speed(0.15),
       max_penetration_recovery_speed(0.6),
@@ -98,7 +97,6 @@ ChSystem::ChSystem(const ChSystem& other) : ChAssembly(other) {
     min_bounce_speed = other.min_bounce_speed;
     max_penetration_recovery_speed = other.max_penetration_recovery_speed;
     max_iter_solver_speed = other.max_iter_solver_speed;
-    max_iter_solver_stab = other.max_iter_solver_stab;
     SetSolverType(GetSolverType());
     parallel_thread_number = other.parallel_thread_number;
     use_sleeping = other.use_sleeping;
@@ -149,32 +147,25 @@ void ChSystem::SetSolverType(ChSolver::Type type) {
 
     switch (type) {
         case ChSolver::Type::PSOR:
-            solver_speed = chrono_types::make_shared<ChSolverPSOR>();
-            solver_stab = chrono_types::make_shared<ChSolverPSOR>();
+            solver = chrono_types::make_shared<ChSolverPSOR>();
             break;
         case ChSolver::Type::PSSOR:
-            solver_speed = chrono_types::make_shared<ChSolverPSSOR>();
-            solver_stab = chrono_types::make_shared<ChSolverPSSOR>();
+            solver = chrono_types::make_shared<ChSolverPSSOR>();
             break;
         case ChSolver::Type::PJACOBI:
-            solver_speed = chrono_types::make_shared<ChSolverPJacobi>();
-            solver_stab = chrono_types::make_shared<ChSolverPJacobi>();
+            solver = chrono_types::make_shared<ChSolverPJacobi>();
             break;
         case ChSolver::Type::PMINRES:
-            solver_speed = chrono_types::make_shared<ChSolverPMINRES>();
-            solver_stab = chrono_types::make_shared<ChSolverPMINRES>();
+            solver = chrono_types::make_shared<ChSolverPMINRES>();
             break;
         case ChSolver::Type::BARZILAIBORWEIN:
-            solver_speed = chrono_types::make_shared<ChSolverBB>();
-            solver_stab = chrono_types::make_shared<ChSolverBB>();
+            solver = chrono_types::make_shared<ChSolverBB>();
             break;
         case ChSolver::Type::APGD:
-            solver_speed = chrono_types::make_shared<ChSolverAPGD>();
-            solver_stab = chrono_types::make_shared<ChSolverAPGD>();
+            solver = chrono_types::make_shared<ChSolverAPGD>();
             break;
         default:
-            solver_speed = chrono_types::make_shared<ChSolverPSOR>();
-            solver_stab = chrono_types::make_shared<ChSolverPSOR>();
+            solver = chrono_types::make_shared<ChSolverPSOR>();
             break;
     }
 }
@@ -183,69 +174,48 @@ std::shared_ptr<ChSolver> ChSystem::GetSolver() {
     // In case the solver is iterative, pre-configure it with the max. number of
     // iterations and with the convergence tolerance (convert the user-specified
     // tolerance for forces into a tolerance for impulses).
-    if (auto iter_solver = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver_speed)) {
+    if (auto iter_solver = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver)) {
         iter_solver->SetMaxIterations(GetMaxItersSolverSpeed());
         iter_solver->SetTolerance(tol_force * step);
     }
 
-    return solver_speed;
-}
-
-std::shared_ptr<ChSolver> ChSystem::GetStabSolver() {
-    // In case the solver is iterative, pre-configure it with the max. number of
-    // iterations and with the convergence tolerance (convert the user-specified
-    // tolerance for forces into a tolerance for impulses).
-    if (auto iter_solver = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver_stab)) {
-        iter_solver->SetMaxIterations(GetMaxItersSolverSpeed());
-        iter_solver->SetTolerance(tol_force * step);
-    }
-
-    return solver_stab;
+    return solver;
 }
 
 void ChSystem::SetSolverWarmStarting(bool usewarm) {
-    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver_speed)) {
+    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver)) {
         iter_solver_speed->SetWarmStart(usewarm);
-    }
-    if (auto iter_solver_stab = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver_stab)) {
-        iter_solver_stab->SetWarmStart(usewarm);
     }
 }
 
 bool ChSystem::GetSolverWarmStarting() const {
-    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver_speed)) {
+    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver)) {
         return iter_solver_speed->GetWarmStart();
     }
     return false;
 }
 
 void ChSystem::SetSolverOverrelaxationParam(double momega) {
-    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver_speed)) {
+    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver)) {
         iter_solver_speed->SetOmega(momega);
-    }
-    if (auto iter_solver_stab = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver_stab)) {
-        iter_solver_stab->SetOmega(momega);
     }
 }
 
 double ChSystem::GetSolverOverrelaxationParam() const {
-    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver_speed)) {
+    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver)) {
         return iter_solver_speed->GetOmega();
     }
     return 1.0;
 }
 
 void ChSystem::SetSolverSharpnessParam(double momega) {
-    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver_speed)) {
+    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver)) {
         iter_solver_speed->SetSharpnessLambda(momega);
-    }
-    if (auto iter_solver_stab = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver_stab)) {
-        iter_solver_stab->SetSharpnessLambda(momega);
     }
 }
 
 double ChSystem::GetSolverSharpnessParam() const {
-    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver_speed)) {
+    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver)) {
         return iter_solver_speed->GetSharpnessLambda();
     }
     return 1.0;
@@ -268,12 +238,7 @@ void ChSystem::SetSystemDescriptor(std::shared_ptr<ChSystemDescriptor> newdescri
 }
 void ChSystem::SetSolver(std::shared_ptr<ChSolver> newsolver) {
     assert(newsolver);
-    solver_speed = newsolver;
-}
-
-void ChSystem::SetStabSolver(std::shared_ptr<ChSolver> newsolver) {
-    assert(newsolver);
-    solver_stab = newsolver;
+    solver = newsolver;
 }
 
 void ChSystem::SetContactContainer(std::shared_ptr<ChContactContainer> container) {
@@ -1897,11 +1862,9 @@ void ChSystem::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(use_sleeping);
 
     marchive << CHNVP(descriptor);
-    marchive << CHNVP(solver_speed);
-    marchive << CHNVP(solver_stab);
+    marchive << CHNVP(solver);
 
     marchive << CHNVP(max_iter_solver_speed);
-    marchive << CHNVP(max_iter_solver_stab);
     marchive << CHNVP(max_steps_simplex);
     marchive << CHNVP(min_bounce_speed);
     marchive << CHNVP(max_penetration_recovery_speed);
@@ -1940,11 +1903,9 @@ void ChSystem::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(use_sleeping);
 
     marchive >> CHNVP(descriptor);
-    marchive >> CHNVP(solver_speed);
-    marchive >> CHNVP(solver_stab);
+    marchive >> CHNVP(solver);
 
     marchive >> CHNVP(max_iter_solver_speed);
-    marchive >> CHNVP(max_iter_solver_stab);
     marchive >> CHNVP(max_steps_simplex);
     marchive >> CHNVP(min_bounce_speed);
     marchive >> CHNVP(max_penetration_recovery_speed);

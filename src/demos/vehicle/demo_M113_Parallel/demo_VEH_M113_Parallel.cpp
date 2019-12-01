@@ -265,7 +265,6 @@ int main(int argc, char* argv[]) {
 #ifdef USE_SEQ
 
     system->SetMaxItersSolverSpeed(50);
-    system->SetMaxItersSolverStab(50);
 
 #else
 

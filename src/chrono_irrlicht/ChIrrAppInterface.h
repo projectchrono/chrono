@@ -280,8 +280,6 @@ class ChApiIrr ChIrrAppInterface {
 
     irr::gui::IGUIScrollBar* gad_speed_iternumber;
     irr::gui::IGUIStaticText* gad_speed_iternumber_info;
-    irr::gui::IGUIScrollBar* gad_pos_iternumber;
-    irr::gui::IGUIStaticText* gad_pos_iternumber_info;
     irr::gui::IGUIScrollBar* gad_omega;
     irr::gui::IGUIStaticText* gad_omega_info;
     irr::gui::IGUIScrollBar* gad_lambda;

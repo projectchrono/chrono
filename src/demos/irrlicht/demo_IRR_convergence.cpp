@@ -207,7 +207,6 @@ int main(int argc, char* argv[]) {
 
     mphysicalSystem.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
     mphysicalSystem.SetMaxItersSolverSpeed(60);
-    mphysicalSystem.SetMaxItersSolverStab(5);
     mphysicalSystem.SetParallelThreadNumber(1);
 
 	// When using compliance, exp. for large compliances, the max. penetration recovery speed

@@ -51,7 +51,6 @@ ChVehicle::ChVehicle(const std::string& name, ChMaterialSurface::ContactMethod c
 
     // Integration and Solver settings
     m_system->SetMaxItersSolverSpeed(150);
-    m_system->SetMaxItersSolverStab(150);
     m_system->SetMaxPenetrationRecoverySpeed(4.0);
 
     switch (contact_method) {

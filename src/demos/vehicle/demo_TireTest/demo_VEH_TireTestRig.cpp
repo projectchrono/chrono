@@ -47,7 +47,6 @@ int main() {
     ChSystemNSC system;
 
     system.SetMaxItersSolverSpeed(150);
-    system.SetMaxItersSolverStab(150);
     system.SetMaxPenetrationRecoverySpeed(4.0);
     system.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
 
