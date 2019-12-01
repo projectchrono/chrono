@@ -100,7 +100,6 @@ M113AccTest<EnumClass, SHOE_TYPE>::M113AccTest() : m_step(1e-3) {
     // Solver settings
     m_m113->GetSystem()->SetSolverType(ChSolver::Type::PSOR);
     m_m113->GetSystem()->SetMaxItersSolverSpeed(50);
-    m_m113->GetSystem()->SetTol(0);
     m_m113->GetSystem()->SetMaxPenetrationRecoverySpeed(1.5);
     m_m113->GetSystem()->SetMinBounceSpeed(2.0);
     m_m113->GetSystem()->SetSolverOverrelaxationParam(0.8);

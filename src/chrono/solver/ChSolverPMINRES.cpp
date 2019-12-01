@@ -318,7 +318,6 @@ double ChSolverPMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
     ChVectorDynamic<> mtmp(nx);
     ChVectorDynamic<> mDi(nx);
 
-    this->tot_iterations = 0;
     double maxviolation = 0.;
 
     //

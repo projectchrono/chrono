@@ -494,10 +494,10 @@ void ChIrrTools::drawHUDviolation(irr::video::IVideoDriver* driver,
                                   int sx,
                                   int sy,
                                   double spfact) {
-    if (!std::dynamic_pointer_cast<ChIterativeSolverVI>(asystem.GetSolver()))
+    auto msolver_speed = std::dynamic_pointer_cast<ChIterativeSolverVI>(asystem.GetSolver());
+    if (!msolver_speed)
         return;
 
-    auto msolver_speed = std::static_pointer_cast<ChIterativeSolverVI>(asystem.GetSolver());
     msolver_speed->SetRecordViolation(true);
 
     irr::core::rect<s32> mrect(mx, my, mx + sx, my + sy);

@@ -94,7 +94,6 @@ int main(int argc, char* argv[]) {
     // Set solver settings
     system.SetMaxItersSolverSpeed(100);
     system.SetMaxPenetrationRecoverySpeed(1e8);
-    system.SetTol(0);
     system.SetTolForce(0);
 
     // ----------

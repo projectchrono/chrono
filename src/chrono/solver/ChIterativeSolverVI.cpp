@@ -38,7 +38,6 @@ void ChIterativeSolverVI::ArchiveOUT(ChArchiveOut& marchive) {
     ChSolver::ArchiveOUT(marchive);
     // serialize all member data:
     marchive << CHNVP(max_iterations);
-    marchive << CHNVP(tot_iterations);
     marchive << CHNVP(warm_start);
     marchive << CHNVP(tolerance);
     marchive << CHNVP(omega);
@@ -52,7 +51,6 @@ void ChIterativeSolverVI::ArchiveIN(ChArchiveIn& marchive) {
     ChSolver::ArchiveIN(marchive);
     // stream in all member data:
     marchive >> CHNVP(max_iterations);
-    marchive >> CHNVP(tot_iterations);
     marchive >> CHNVP(warm_start);
     marchive >> CHNVP(tolerance);
     marchive >> CHNVP(omega);

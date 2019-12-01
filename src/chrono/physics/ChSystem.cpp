@@ -97,7 +97,7 @@ ChSystem::ChSystem(const ChSystem& other) : ChAssembly(other) {
     min_bounce_speed = other.min_bounce_speed;
     max_penetration_recovery_speed = other.max_penetration_recovery_speed;
     max_iter_solver_speed = other.max_iter_solver_speed;
-    SetSolverType(GetSolverType());
+    SetSolverType(other.GetSolverType());
     parallel_thread_number = other.parallel_thread_number;
     use_sleeping = other.use_sleeping;
 

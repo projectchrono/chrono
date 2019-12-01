@@ -110,7 +110,6 @@ int main(int argc, char* argv[]) {
 
     // Set solver settings
     system.SetMaxItersSolverSpeed(100);
-    system.SetTol(0);
     system.SetTolForce(0);
 
     // Change default collision effective raiuds of curvature

@@ -65,7 +65,6 @@ ChainTest<N>::ChainTest() : m_length(0.25), m_step(1e-3) {
         case ChSolver::Type::PSOR: {
             m_system->SetSolverType(ChSolver::Type::PSOR);
             m_system->SetMaxItersSolverSpeed(50);
-            m_system->SetTol(0);
             m_system->SetMaxPenetrationRecoverySpeed(1.5);
             m_system->SetMinBounceSpeed(2.0);
             m_system->SetSolverOverrelaxationParam(0.8);
@@ -75,7 +74,6 @@ ChainTest<N>::ChainTest() : m_length(0.25), m_step(1e-3) {
         case ChSolver::Type::BARZILAIBORWEIN: {
             m_system->SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
             m_system->SetMaxItersSolverSpeed(50);
-            m_system->SetTol(0);
             m_system->SetMaxPenetrationRecoverySpeed(1.5);
             m_system->SetMinBounceSpeed(2.0);
             m_system->SetSolverOverrelaxationParam(0.8);

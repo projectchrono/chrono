@@ -59,7 +59,6 @@ TEST(FullAssembly, Assemble) {
     my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
     my_system.SetMaxItersSolverSpeed(100);
     my_system.SetSolverType(ChSolver::Type::PSOR);
-    my_system.SetTol(1e-6);
     my_system.SetTolForce(1e-4);
 
     // Create the ground body

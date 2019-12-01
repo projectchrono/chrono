@@ -142,12 +142,6 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// Gets iteration limit for assembly constraints.
     int GetMaxiter() const { return maxiter; }
 
-    /// Sets tolerance (in m) for assembly constraints. When trying to keep constraints together,
-    /// the iterative process is stopped if this tolerance (or max.number of iterations ) is reached
-    void SetTol(double tolerance) { tol = tolerance; }
-    /// Gets current tolerance for assembly constraints.
-    double GetTol() const { return tol; }
-
     /// Sets tolerance for satisfying constraints at the velocity level.
     /// The tolerance specified here is in fact a tolerance at the force level.
     /// this value is multiplied by the value of the current time step and then
