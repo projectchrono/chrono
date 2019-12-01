@@ -173,8 +173,8 @@ void ChSystem::SetSolverType(ChSolver::Type type) {
             solver_stab = chrono_types::make_shared<ChSolverAPGD>();
             break;
         default:
-            solver_speed = chrono_types::make_shared<ChSolverPSSOR>();
-            solver_stab = chrono_types::make_shared<ChSolverPSSOR>();
+            solver_speed = chrono_types::make_shared<ChSolverPSOR>();
+            solver_stab = chrono_types::make_shared<ChSolverPSOR>();
             break;
     }
 }

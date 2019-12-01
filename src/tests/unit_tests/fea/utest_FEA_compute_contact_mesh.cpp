@@ -28,7 +28,6 @@
 #include "chrono/physics/ChContactContainerSMC.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/solver/ChSolverSMC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/utils/ChUtilsCreators.h"
 

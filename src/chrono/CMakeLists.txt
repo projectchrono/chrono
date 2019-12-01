@@ -856,7 +856,6 @@ set(ChronoEngine_solver_SOURCES
     solver/ChSolverPMINRES.cpp
     solver/ChSolverBB.cpp
     solver/ChSolverAPGD.cpp
-    solver/ChSolverSMC.cpp
     solver/ChKblockGeneric.cpp
     solver/ChSolvmin.cpp
     solver/ChNlsolver.cpp
@@ -876,13 +875,12 @@ set(ChronoEngine_solver_HEADERS
     solver/ChSolverAPGD.h
     solver/ChSolverPSOR.h
     solver/ChSolverPSSOR.h
-    solver/ChSolverSMC.h
     solver/ChKblock.h
     solver/ChKblockGeneric.h
     solver/ChSolvmin.h
     solver/ChNlsolver.h
     )
-	 
+
 source_group(solver FILES
     ${ChronoEngine_solver_SOURCES}
     ${ChronoEngine_solver_HEADERS})

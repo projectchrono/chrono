@@ -49,7 +49,6 @@ class ChApi ChSolver {
         MINRES,    ///< MINimum RESidual method
         BICGSTAB,  ///< Bi-conjugate gradient stabilized
         // Other
-        SOLVER_SMC,
         CUSTOM,
     };
 

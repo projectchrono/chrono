@@ -213,7 +213,7 @@ int main(int argc, char* argv[]) {
     // Setup solver
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
     my_system.SetSolver(solver);
-    solver->SetMaxIterations(200);
+    solver->SetMaxIterations(150);
     solver->SetTolerance(1e-8);
     solver->EnableDiagonalPreconditioner(true);
     solver->EnableWarmStart(true);  // Enable for better convergence if using Euler implicit linearized
