@@ -206,8 +206,7 @@ int main(int argc, char* argv[]) {
     // Modify some setting of the physical system for the simulation, if you want
 
     mphysicalSystem.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
-    mphysicalSystem.SetMaxItersSolverSpeed(60);
-    mphysicalSystem.SetParallelThreadNumber(1);
+    mphysicalSystem.SetSolverMaxIterations(60);
 
 	// When using compliance, exp. for large compliances, the max. penetration recovery speed
 	// also affects reaction forces, thus it must be deactivated (or used as a very large value)

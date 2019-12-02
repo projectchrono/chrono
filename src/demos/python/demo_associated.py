@@ -155,11 +155,11 @@ myapplication.AssetUpdateAll();
 
 # Integration settings
 
+mysystem.SetSolverType(chrono.ChSolver.Type_BARZILAIBORWEIN);
+mysystem.SetSolverMaxIterations(500);
+mysystem.SetSolverWarmStarting(True);
 mysystem.SetMaxPenetrationRecoverySpeed(10.01);
 mysystem.SetMinBounceSpeed(10);
-mysystem.SetMaxItersSolverSpeed(500);
-mysystem.SetSolverWarmStarting(True);
-mysystem.SetSolverType(chrono.ChSolver.Type_BARZILAIBORWEIN);
 
 myapplication.SetTimestep(0.0005)
 

@@ -25,6 +25,7 @@
 #include "chrono/solver/ChSolverPMINRES.h"
 #include "chrono/solver/ChSolverPSOR.h"
 #include "chrono/solver/ChSolverPSSOR.h"
+#include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/timestepper/ChStaticAnalysis.h"
 #include "chrono/core/ChMatrix.h"
 #include "chrono/utils/ChProfiler.h"
@@ -48,7 +49,6 @@ ChSystem::ChSystem()
       is_initialized(false),
       is_updated(false),
       maxiter(6),
-      max_iter_solver_speed(30),
       ncontacts(0),
       min_bounce_speed(0.15),
       max_penetration_recovery_speed(0.6),
@@ -62,9 +62,6 @@ ChSystem::ChSystem()
       composition_strategy(new ChMaterialCompositionStrategy<float>) {
     // Required by ChAssembly
     system = this;
-
-    // Set default number of threads to be equal to number of available cores
-    parallel_thread_number = CHOMPfunctions::GetNumProcs();
 
     // Set default collision envelope and margin.
     collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.03);
@@ -96,9 +93,7 @@ ChSystem::ChSystem(const ChSystem& other) : ChAssembly(other) {
 
     min_bounce_speed = other.min_bounce_speed;
     max_penetration_recovery_speed = other.max_penetration_recovery_speed;
-    max_iter_solver_speed = other.max_iter_solver_speed;
     SetSolverType(other.GetSolverType());
-    parallel_thread_number = other.parallel_thread_number;
     use_sleeping = other.use_sleeping;
 
     ncontacts = other.ncontacts;
@@ -137,13 +132,38 @@ void ChSystem::Clear() {
 // Set/Get routines
 // -----------------------------------------------------------------------------
 
+void ChSystem::SetSolverMaxIterations(int max_iters) {
+    if (auto iter_solver = std::dynamic_pointer_cast<ChIterativeSolver>(solver)) {
+        iter_solver->SetMaxIterations(max_iters);
+    }
+}
+
+int ChSystem::GetSolverMaxIterations() const {
+    if (auto iter_solver = std::dynamic_pointer_cast<ChIterativeSolver>(solver)) {
+        return iter_solver->GetMaxIterations();
+    }
+    return 0;
+}
+
+void ChSystem::SetSolverTolerance(double tolerance) {
+    if (auto iter_solver = std::dynamic_pointer_cast<ChIterativeSolver>(solver)) {
+        iter_solver->SetTolerance(tolerance);
+    }
+}
+
+double ChSystem::GetSolverTolerance() const {
+    if (auto iter_solver = std::dynamic_pointer_cast<ChIterativeSolver>(solver)) {
+        return iter_solver->GetTolerance();
+    }
+    return 0;
+}
+
 void ChSystem::SetSolverType(ChSolver::Type type) {
     // Do nothing if changing to a CUSTOM solver.
     if (type == ChSolver::Type::CUSTOM)
         return;
 
     descriptor = chrono_types::make_shared<ChSystemDescriptor>();
-    descriptor->SetNumThreads(parallel_thread_number);
 
     switch (type) {
         case ChSolver::Type::PSOR:
@@ -164,70 +184,26 @@ void ChSystem::SetSolverType(ChSolver::Type type) {
         case ChSolver::Type::APGD:
             solver = chrono_types::make_shared<ChSolverAPGD>();
             break;
+        case ChSolver::Type::GMRES:
+            solver = chrono_types::make_shared<ChSolverGMRES>();
+            break;
+        case ChSolver::Type::MINRES:
+            solver = chrono_types::make_shared<ChSolverMINRES>();
+            break;
         default:
-            solver = chrono_types::make_shared<ChSolverPSOR>();
+            GetLog() << "Solver type not supported. Use SetSolver instead.\n";
             break;
     }
 }
 
 std::shared_ptr<ChSolver> ChSystem::GetSolver() {
-    // In case the solver is iterative, pre-configure it with the max. number of
-    // iterations and with the convergence tolerance (convert the user-specified
+    // In case the solver is iterative, pre-configure it with the convergence tolerance (convert the user-specified
     // tolerance for forces into a tolerance for impulses).
-    if (auto iter_solver = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver)) {
-        iter_solver->SetMaxIterations(GetMaxItersSolverSpeed());
+    if (auto iter_solver = std::dynamic_pointer_cast<ChIterativeSolver>(solver)) {
         iter_solver->SetTolerance(tol_force * step);
     }
 
     return solver;
-}
-
-void ChSystem::SetSolverWarmStarting(bool usewarm) {
-    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver)) {
-        iter_solver_speed->EnableWarmStart(usewarm);
-    }
-}
-
-bool ChSystem::GetSolverWarmStarting() const {
-    if (auto iter_solver = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver)) {
-        return iter_solver->m_warm_start;
-    }
-    return false;
-}
-
-void ChSystem::SetSolverOverrelaxationParam(double momega) {
-    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver)) {
-        iter_solver_speed->SetOmega(momega);
-    }
-}
-
-double ChSystem::GetSolverOverrelaxationParam() const {
-    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver)) {
-        return iter_solver_speed->GetOmega();
-    }
-    return 1.0;
-}
-
-void ChSystem::SetSolverSharpnessParam(double momega) {
-    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver)) {
-        iter_solver_speed->SetSharpnessLambda(momega);
-    }
-}
-
-double ChSystem::GetSolverSharpnessParam() const {
-    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver)) {
-        return iter_solver_speed->GetSharpnessLambda();
-    }
-    return 1.0;
-}
-
-void ChSystem::SetParallelThreadNumber(int mthreads) {
-    if (mthreads < 1)
-        mthreads = 1;
-
-    parallel_thread_number = mthreads;
-
-    descriptor->SetNumThreads(mthreads);
 }
 
 // Plug-in components configuration
@@ -273,7 +249,7 @@ void ChSystem::SetupInitial() {
         otherphysicslist[ip]->SetupInitial();
     }
 
-	is_initialized = true;
+    is_initialized = true;
 }
 
 // PROBE STUFF
@@ -345,7 +321,7 @@ void ChSystem::RemoveAllControls() {
 }
 
 void ChSystem::Reference_LM_byID() {
-    std::vector<std::shared_ptr<ChLinkBase> > toremove;
+    std::vector<std::shared_ptr<ChLinkBase>> toremove;
 
     for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
     {
@@ -507,34 +483,34 @@ bool ChSystem::ManageSleepingBodies() {
         my_waker.someone_sleeps = false;
 
         // scan all links and wake connected bodies
-		for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-		{
-			if (auto Lpointer = std::dynamic_pointer_cast<ChLink>(linklist[ip])) {
-				if (Lpointer->IsRequiringWaking()) {
-					ChBody* b1 = dynamic_cast<ChBody*>(Lpointer->GetBody1());
-					ChBody* b2 = dynamic_cast<ChBody*>(Lpointer->GetBody2());
-					if (b1 && b2) {
-						bool sleep1 = b1->GetSleeping();
-						bool sleep2 = b2->GetSleeping();
-						bool could_sleep1 = b1->BFlagGet(ChBody::BodyFlag::COULDSLEEP);
-						bool could_sleep2 = b2->BFlagGet(ChBody::BodyFlag::COULDSLEEP);
-						if (sleep1 && !(sleep2 || could_sleep2)) {
-							b1->SetSleeping(false);
-							need_Setup_L = true;
-						}
-						if (sleep2 && !(sleep1 || could_sleep1)) {
-							b2->SetSleeping(false);
-							need_Setup_L = true;
-						}
-						if (could_sleep1 && !(sleep2 || could_sleep2)) {
-							b1->BFlagSet(ChBody::BodyFlag::COULDSLEEP, false);
-						}
-						if (could_sleep2 && !(sleep1 || could_sleep1)) {
-							b2->BFlagSet(ChBody::BodyFlag::COULDSLEEP, false);
-						}
-					}
-				}
-			}
+        for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
+        {
+            if (auto Lpointer = std::dynamic_pointer_cast<ChLink>(linklist[ip])) {
+                if (Lpointer->IsRequiringWaking()) {
+                    ChBody* b1 = dynamic_cast<ChBody*>(Lpointer->GetBody1());
+                    ChBody* b2 = dynamic_cast<ChBody*>(Lpointer->GetBody2());
+                    if (b1 && b2) {
+                        bool sleep1 = b1->GetSleeping();
+                        bool sleep2 = b2->GetSleeping();
+                        bool could_sleep1 = b1->BFlagGet(ChBody::BodyFlag::COULDSLEEP);
+                        bool could_sleep2 = b2->BFlagGet(ChBody::BodyFlag::COULDSLEEP);
+                        if (sleep1 && !(sleep2 || could_sleep2)) {
+                            b1->SetSleeping(false);
+                            need_Setup_L = true;
+                        }
+                        if (sleep2 && !(sleep1 || could_sleep1)) {
+                            b2->SetSleeping(false);
+                            need_Setup_L = true;
+                        }
+                        if (could_sleep1 && !(sleep2 || could_sleep2)) {
+                            b1->BFlagSet(ChBody::BodyFlag::COULDSLEEP, false);
+                        }
+                        if (could_sleep2 && !(sleep1 || could_sleep1)) {
+                            b2->BFlagSet(ChBody::BodyFlag::COULDSLEEP, false);
+                        }
+                    }
+                }
+            }
         }
 
         // scan all contacts and wake neighboring bodies
@@ -588,7 +564,7 @@ void ChSystem::DescriptorPrepareInject(ChSystemDescriptor& mdescriptor) {
 // allocates or reallocate bookkeeping data/vectors, if any,
 
 void ChSystem::Setup() {
-    CH_PROFILE( "Setup");
+    CH_PROFILE("Setup");
     // inherit the parent class (compute offsets of bodies, links, etc.)
     ChAssembly::Setup();
 
@@ -770,7 +746,7 @@ void ChSystem::IntStateIncrement(const unsigned int off_x,  // offset in x state
 void ChSystem::IntLoadResidual_F(const unsigned int off,  // offset in R residual
                                  ChVectorDynamic<>& R,    // result: the R residual, R += c*F
                                  const double c           // a scaling factor
-                                 ) {
+) {
     unsigned int displ_v = off - offset_w;
 
     // Inherit: operate parent method on sub objects (bodies, links, etc.)
@@ -783,7 +759,7 @@ void ChSystem::IntLoadResidual_Mv(const unsigned int off,      // offset in R re
                                   ChVectorDynamic<>& R,        // result: the R residual, R += c*M*v
                                   const ChVectorDynamic<>& w,  // the w vector
                                   const double c               // a scaling factor
-                                  ) {
+) {
     unsigned int displ_v = off - offset_w;
 
     // Inherit: operate parent method on sub objects (bodies, links, etc.)
@@ -796,7 +772,7 @@ void ChSystem::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L m
                                    ChVectorDynamic<>& R,        // result: the R residual, R += c*Cq'*L
                                    const ChVectorDynamic<>& L,  // the L vector
                                    const double c               // a scaling factor
-                                   ) {
+) {
     unsigned int displ_L = off_L - offset_L;
 
     // Inherit: operate parent method on sub objects (bodies, links, etc.)
@@ -810,7 +786,7 @@ void ChSystem::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc re
                                    const double c,            // a scaling factor
                                    bool do_clamp,             // apply clamping to c*C?
                                    double recovery_clamp      // value for min/max clamping of c*C
-                                   ) {
+) {
     unsigned int displ_L = off_L - offset_L;
 
     // Inherit: operate parent method on sub objects (bodies, links, etc.)
@@ -822,7 +798,7 @@ void ChSystem::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc re
 void ChSystem::IntLoadConstraint_Ct(const unsigned int off_L,  // offset in Qc residual
                                     ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*Ct
                                     const double c             // a scaling factor
-                                    ) {
+) {
     unsigned int displ_L = off_L - offset_L;
 
     // Inherit: operate parent method on sub objects (bodies, links, etc.)
@@ -1024,7 +1000,7 @@ void ChSystem::StateScatterReactions(const ChVectorDynamic<>& L) {
 void ChSystem::StateIncrementX(ChState& x_new,         ///< resulting x_new = x + Dx
                                const ChState& x,       ///< initial state x
                                const ChStateDelta& Dx  ///< state increment Dx
-                               ) {
+) {
     IntStateIncrement(0, x_new, x, 0, Dx);
 }
 
@@ -1049,8 +1025,8 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
                                     const double T,               // current time T
                                     bool force_state_scatter,     // if false, x,v and T are not scattered to the system
                                     bool force_setup              // if true, call the solver's Setup() function
-                                    ) {
-    CH_PROFILE( "StateSolveCorrection");
+) {
+    CH_PROFILE("StateSolveCorrection");
 
     if (force_state_scatter)
         StateScatter(x, v, T);
@@ -1078,7 +1054,6 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
 
     // Diagnostics:
     if (dump_matrices) {
-
         const char* numformat = "%.12g";
         std::string sprefix = "solve_" + std::to_string(stepcount) + "_" + std::to_string(solvecount) + "_";
 
@@ -1110,7 +1085,6 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
     timer_solver.start();
     GetSolver()->Solve(*descriptor);
     timer_solver.stop();
-    
 
     // Dv and L vectors  <-- sparse solver structures
     IntFromDescriptor(0, Dv, 0, L);
@@ -1128,7 +1102,7 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
         file_L.SetNumFormat(numformat);
         StreamOUTdenseMatlabFormat(L, file_L);
 
-        // Just for diagnostic, dump also unscaled loads (forces,torques), 
+        // Just for diagnostic, dump also unscaled loads (forces,torques),
         // since the .._f.dat vector dumped in DumpLastMatrices() might contain scaled loads, and also +M*v
         ChVectorDynamic<> tempF(this->GetNcoords_v());
         tempF.setZero();
@@ -1137,7 +1111,7 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
         file_F.SetNumFormat(numformat);
         StreamOUTdenseMatlabFormat(tempF, file_F);
     }
-    
+
     solvecount++;
 
     return true;
@@ -1147,7 +1121,7 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
 //    R += c*F
 void ChSystem::LoadResidual_F(ChVectorDynamic<>& R,  ///< result: the R residual, R += c*F
                               const double c         ///< a scaling factor
-                              ) {
+) {
     IntLoadResidual_F(0, R, c);
 }
 
@@ -1156,7 +1130,7 @@ void ChSystem::LoadResidual_F(ChVectorDynamic<>& R,  ///< result: the R residual
 void ChSystem::LoadResidual_Mv(ChVectorDynamic<>& R,        ///< result: the R residual, R += c*M*v
                                const ChVectorDynamic<>& w,  ///< the w vector
                                const double c               ///< a scaling factor
-                               ) {
+) {
     IntLoadResidual_Mv(0, R, w, c);
 }
 
@@ -1165,7 +1139,7 @@ void ChSystem::LoadResidual_Mv(ChVectorDynamic<>& R,        ///< result: the R r
 void ChSystem::LoadResidual_CqL(ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
                                 const ChVectorDynamic<>& L,  ///< the L vector
                                 const double c               ///< a scaling factor
-                                ) {
+) {
     IntLoadResidual_CqL(0, R, L, c);
 }
 
@@ -1175,7 +1149,7 @@ void ChSystem::LoadConstraint_C(ChVectorDynamic<>& Qc,  ///< result: the Qc resi
                                 const double c,         ///< a scaling factor
                                 const bool mdo_clamp,   ///< enable optional clamping of Qc
                                 const double mclam      ///< clamping value
-                                ) {
+) {
     IntLoadConstraint_C(0, Qc, c, mdo_clamp, mclam);
 }
 
@@ -1183,7 +1157,7 @@ void ChSystem::LoadConstraint_C(ChVectorDynamic<>& Qc,  ///< result: the Qc resi
 //    Qc += c*Ct
 void ChSystem::LoadConstraint_Ct(ChVectorDynamic<>& Qc,  ///< result: the Qc residual, Qc += c*Ct
                                  const double c          ///< a scaling factor
-                                 ) {
+) {
     IntLoadConstraint_Ct(0, Qc, c);
 }
 // -----------------------------------------------------------------------------
@@ -1202,7 +1176,7 @@ void ChSystem::SynchronizeLastCollPositions() {
 }
 
 double ChSystem::ComputeCollisions() {
-    CH_PROFILE( "ComputeCollisions");
+    CH_PROFILE("ComputeCollisions");
 
     double mretC = 0.0;
 
@@ -1219,13 +1193,14 @@ double ChSystem::ComputeCollisions() {
     // for ChBody and ChParticles is used always.
 
     {
-        CH_PROFILE( "ReportContacts");
+        CH_PROFILE("ReportContacts");
 
         collision_system->ReportContacts(contact_container.get());
 
         for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip) {
             if (auto mcontactcontainer = std::dynamic_pointer_cast<ChContactContainer>(otherphysicslist[ip])) {
-                //collision_system->ReportContacts(mcontactcontainer.get()); ***TEST*** if one wants to populate a ChContactContainer this would clear it anyway...
+                // collision_system->ReportContacts(mcontactcontainer.get()); ***TEST*** if one wants to populate a
+                // ChContactContainer this would clear it anyway...
             }
 
             if (auto mproximitycontainer = std::dynamic_pointer_cast<ChProximityContainer>(otherphysicslist[ip])) {
@@ -1251,53 +1226,52 @@ double ChSystem::ComputeCollisions() {
 //   PHYSICAL OPERATIONS
 // =============================================================================
 
-
 void ChSystem::GetMassMatrix(ChSparseMatrix* M) {
-    //IntToDescriptor(0, Dv, R, 0, L, Qc);
-    //ConstraintsLoadJacobians();
-    
-        // Load all KRM matrices with the M part only
-    KRMmatricesLoad(0, 0, 1.0); 
-        // For ChVariable objects without a ChKblock, but still with a mass:
+    // IntToDescriptor(0, Dv, R, 0, L, Qc);
+    // ConstraintsLoadJacobians();
+
+    // Load all KRM matrices with the M part only
+    KRMmatricesLoad(0, 0, 1.0);
+    // For ChVariable objects without a ChKblock, but still with a mass:
     descriptor->SetMassFactor(1.0);
 
-        // Fill system-level M matrix
+    // Fill system-level M matrix
     this->GetSystemDescriptor()->ConvertToMatrixForm(nullptr, M, nullptr, nullptr, nullptr, nullptr, false, false);
 }
 
 void ChSystem::GetStiffnessMatrix(ChSparseMatrix* K) {
-    //IntToDescriptor(0, Dv, R, 0, L, Qc);
-    //ConstraintsLoadJacobians();
-    
-        // Load all KRM matrices with the K part only
-    this->KRMmatricesLoad(1.0, 0, 0); 
-        // For ChVariable objects without a ChKblock, but still with a mass:
+    // IntToDescriptor(0, Dv, R, 0, L, Qc);
+    // ConstraintsLoadJacobians();
+
+    // Load all KRM matrices with the K part only
+    this->KRMmatricesLoad(1.0, 0, 0);
+    // For ChVariable objects without a ChKblock, but still with a mass:
     descriptor->SetMassFactor(0.0);
 
-        // Fill system-level K matrix
+    // Fill system-level K matrix
     this->GetSystemDescriptor()->ConvertToMatrixForm(nullptr, K, nullptr, nullptr, nullptr, nullptr, false, false);
 }
 
 void ChSystem::GetDampingMatrix(ChSparseMatrix* R) {
-    //IntToDescriptor(0, Dv, R, 0, L, Qc);
-    //ConstraintsLoadJacobians();
-    
-        // Load all KRM matrices with the R part only
-    this->KRMmatricesLoad(0, 1.0, 0); 
-        // For ChVariable objects without a ChKblock, but still with a mass:
+    // IntToDescriptor(0, Dv, R, 0, L, Qc);
+    // ConstraintsLoadJacobians();
+
+    // Load all KRM matrices with the R part only
+    this->KRMmatricesLoad(0, 1.0, 0);
+    // For ChVariable objects without a ChKblock, but still with a mass:
     descriptor->SetMassFactor(0.0);
 
-        // Fill system-level R matrix
+    // Fill system-level R matrix
     this->GetSystemDescriptor()->ConvertToMatrixForm(nullptr, R, nullptr, nullptr, nullptr, nullptr, false, false);
 }
 
 void ChSystem::GetConstraintJacobianMatrix(ChSparseMatrix* Cq) {
-    //IntToDescriptor(0, Dv, R, 0, L, Qc);
+    // IntToDescriptor(0, Dv, R, 0, L, Qc);
 
-        // Load all jacobian matrices 
+    // Load all jacobian matrices
     this->ConstraintsLoadJacobians();
 
-        // Fill system-level R matrix
+    // Fill system-level R matrix
     this->GetSystemDescriptor()->ConvertToMatrixForm(Cq, nullptr, nullptr, nullptr, nullptr, nullptr, false, false);
 }
 
@@ -1410,7 +1384,7 @@ bool ChSystem::Integrate_Y() {
 
     // PERFORM TIME STEP HERE!
     {
-        CH_PROFILE( "Advance");
+        CH_PROFILE("Advance");
         timer_advance.start();
         timestepper->Advance(step);
         timer_advance.stop();
@@ -1429,7 +1403,7 @@ bool ChSystem::Integrate_Y() {
     // Time elapsed for step
     timer_step.stop();
 
-	// Tentatively mark system as unchanged (i.e., no updated necessary)
+    // Tentatively mark system as unchanged (i.e., no updated necessary)
     is_updated = true;
 
     return true;
@@ -1446,14 +1420,14 @@ bool ChSystem::DoAssembly(int action) {
     if (!is_initialized)
         SetupInitial();
 
-	solvecount = 0;
+    solvecount = 0;
     setupcount = 0;
 
     Setup();
     Update();
 
-    int old_maxsteps = GetMaxItersSolverSpeed();
-    SetMaxItersSolverSpeed(300);
+    int old_maxsteps = GetSolverMaxIterations();
+    SetSolverMaxIterations(std::max(old_maxsteps, 300));
 
     double old_step = GetStep();
     double new_step = 1e-6;
@@ -1471,7 +1445,7 @@ bool ChSystem::DoAssembly(int action) {
     // Perform analysis
     manalysis.AssemblyAnalysis(action, new_step);
 
-    SetMaxItersSolverSpeed(old_maxsteps);
+    SetSolverMaxIterations(old_maxsteps);
     SetStep(old_step);
     SetTolForce(old_tol);
 
@@ -1492,8 +1466,8 @@ bool ChSystem::DoStaticLinear() {
     Setup();
     Update();
 
-    int old_maxsteps = GetMaxItersSolverSpeed();
-    SetMaxItersSolverSpeed(300);
+    int old_maxsteps = GetSolverMaxIterations();
+    SetSolverMaxIterations(std::max(old_maxsteps, 300));
 
     // Prepare lists of variables and constraints.
     DescriptorPrepareInject(*descriptor);
@@ -1503,7 +1477,7 @@ bool ChSystem::DoStaticLinear() {
     // Perform analysis
     manalysis.StaticAnalysis();
 
-    SetMaxItersSolverSpeed(old_maxsteps);
+    SetSolverMaxIterations(old_maxsteps);
 
     bool dump_data = false;
 
@@ -1543,8 +1517,8 @@ bool ChSystem::DoStaticNonlinear(int nsteps) {
     Setup();
     Update();
 
-    int old_maxsteps = GetMaxItersSolverSpeed();
-    SetMaxItersSolverSpeed(300);
+    int old_maxsteps = GetSolverMaxIterations();
+    SetSolverMaxIterations(std::max(old_maxsteps, 300));
 
     // Prepare lists of variables and constraints.
     DescriptorPrepareInject(*descriptor);
@@ -1555,7 +1529,7 @@ bool ChSystem::DoStaticNonlinear(int nsteps) {
     // Perform analysis
     manalysis.StaticAnalysis();
 
-    SetMaxItersSolverSpeed(old_maxsteps);
+    SetSolverMaxIterations(old_maxsteps);
 
     return true;
 }
@@ -1569,7 +1543,7 @@ bool ChSystem::DoStaticRelaxing(int nsteps) {
     if (!is_initialized)
         SetupInitial();
 
-	solvecount = 0;
+    solvecount = 0;
     setupcount = 0;
 
     int err = 0;
@@ -1622,7 +1596,7 @@ bool ChSystem::DoEntireKinematics() {
     if (!is_initialized)
         SetupInitial();
 
-	Setup();
+    Setup();
 
     int action = AssemblyLevel::POSITION | AssemblyLevel::VELOCITY | AssemblyLevel::ACCELERATION;
 
@@ -1655,7 +1629,7 @@ bool ChSystem::DoEntireDynamics() {
     if (!is_initialized)
         SetupInitial();
 
-	Setup();
+    Setup();
 
     // the system may have wrong layout, or too large
     // clearances in constraints, so it is better to
@@ -1693,7 +1667,7 @@ bool ChSystem::DoFrameDynamics(double m_endtime) {
     if (!is_initialized)
         SetupInitial();
 
-	double frame_step;
+    double frame_step;
     double old_step;
     double left_time;
     bool restore_oldstep = false;
@@ -1749,7 +1723,7 @@ bool ChSystem::DoEntireUniformDynamics(double frame_step) {
     if (!is_initialized)
         SetupInitial();
 
-	// the initial system may have wrong layout, or too large clearances in constraints.
+    // the initial system may have wrong layout, or too large clearances in constraints.
     Setup();
     DoAssembly(AssemblyLevel::POSITION | AssemblyLevel::VELOCITY | AssemblyLevel::ACCELERATION);
 
@@ -1768,7 +1742,7 @@ bool ChSystem::DoFrameKinematics(double m_endtime) {
     if (!is_initialized)
         SetupInitial();
 
-	double frame_step;
+    double frame_step;
     double old_step;
     double left_time;
     int restore_oldstep;
@@ -1813,7 +1787,7 @@ bool ChSystem::DoStepKinematics(double m_step) {
     if (!is_initialized)
         SetupInitial();
 
-	ChTime += m_step;
+    ChTime += m_step;
 
     Update();
 
@@ -1835,7 +1809,6 @@ bool ChSystem::DoFullAssembly() {
 
 // -----------------------------------------------------------------------------
 //  STREAMING - FILE HANDLING
-
 
 void ChSystem::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
@@ -1864,11 +1837,8 @@ void ChSystem::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(descriptor);
     marchive << CHNVP(solver);
 
-    marchive << CHNVP(max_iter_solver_speed);
-    marchive << CHNVP(max_steps_simplex);
     marchive << CHNVP(min_bounce_speed);
     marchive << CHNVP(max_penetration_recovery_speed);
-    marchive << CHNVP(parallel_thread_number);
 
     marchive << CHNVP(collision_system);  // ChCollisionSystem should implement class factory for abstract create
 
@@ -1905,11 +1875,8 @@ void ChSystem::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(descriptor);
     marchive >> CHNVP(solver);
 
-    marchive >> CHNVP(max_iter_solver_speed);
-    marchive >> CHNVP(max_steps_simplex);
     marchive >> CHNVP(min_bounce_speed);
     marchive >> CHNVP(max_penetration_recovery_speed);
-    marchive >> CHNVP(parallel_thread_number);
 
     marchive >> CHNVP(collision_system);  // ChCollisionSystem should implement class factory for abstract create
 

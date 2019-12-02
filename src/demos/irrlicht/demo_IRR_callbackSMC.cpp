@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
     system.Set_G_acc(ChVector<>(0, -10, 0));
 
     // Set solver settings
-    system.SetMaxItersSolverSpeed(100);
+    system.SetSolverMaxIterations(100);
     system.SetTolForce(0);
 
     // Change default collision effective raiuds of curvature

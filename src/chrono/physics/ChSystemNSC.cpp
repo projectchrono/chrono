@@ -42,7 +42,6 @@ ChSystemNSC::ChSystemNSC(unsigned int max_objects, double scene_size, bool init_
 
         // Set the system descriptor
         descriptor = chrono_types::make_shared<ChSystemDescriptor>();
-        descriptor->SetNumThreads(parallel_thread_number);
 
         // Set default solver
         SetSolverType(ChSolver::Type::PSOR);

@@ -37,11 +37,11 @@ chrono.ChCollisionModel.SetDefaultSuggestedEnvelope(0.001)
 chrono.ChCollisionModel.SetDefaultSuggestedMargin(0.001)
 
 # Maybe you want to change some settings for the solver. For example you
-# might want to use SetMaxItersSolverSpeed to set the number of iterations
+# might want to use SetSolverMaxIterations to set the number of iterations
 # per timestep, etc.
 
 #my_system.SetSolverType(chrono.ChSolver.Type_BARZILAIBORWEIN) # precise, more slow
-my_system.SetMaxItersSolverSpeed(70)
+my_system.SetSolverMaxIterations(70)
 
 
 

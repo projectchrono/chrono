@@ -265,7 +265,6 @@ int main(int argc, char* argv[]) {
         std::cout << "Rank: " << my_rank << " Node name: " << my_sys.node_name << std::endl;
     }
 
-    my_sys.SetParallelThreadNumber(num_threads);
     CHOMPfunctions::SetNumThreads(num_threads);
 
     my_sys.Set_G_acc(ChVector<double>(0, 0, -9.8));

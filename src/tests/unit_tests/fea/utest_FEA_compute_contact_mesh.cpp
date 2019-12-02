@@ -262,7 +262,7 @@ bool test_computecontact(ChMaterialSurface::ContactMethod method) {
     switch (solver_type) {
         case DEFAULT_SOLVER: {
             GetLog() << "Using DEFAULT solver.\n";
-            system->SetMaxItersSolverSpeed(100);
+            system->SetSolverMaxIterations(100);
             system->SetTolForce(1e-6);
             break;
         }

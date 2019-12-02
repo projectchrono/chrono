@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
     // Create the system.
     ChSystemNSC system;
     system.SetSolverType(ChSolver::Type::PSOR);
-    system.SetMaxItersSolverSpeed(20);
+    system.SetSolverMaxIterations(20);
 
     // Create the Irrlicht application.
     ChIrrApp application(&system, L"Number of collisions", irr::core::dimension2d<irr::u32>(800, 600), false);

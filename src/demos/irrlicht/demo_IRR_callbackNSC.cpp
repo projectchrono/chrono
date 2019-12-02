@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
     system.Set_G_acc(ChVector<>(0, -10, 0));
 
     // Set solver settings
-    system.SetMaxItersSolverSpeed(100);
+    system.SetSolverMaxIterations(100);
     system.SetMaxPenetrationRecoverySpeed(1e8);
     system.SetTolForce(0);
 

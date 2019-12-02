@@ -160,7 +160,7 @@ ContactForceTest::ContactForceTest() {
     // -------------------
 
     std::cout << "Using default solver." << std::endl;
-    system->SetMaxItersSolverSpeed(100);
+    system->SetSolverMaxIterations(100);
     system->SetTolForce(1e-6);
 
     // ----------------

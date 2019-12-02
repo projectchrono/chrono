@@ -60,11 +60,10 @@ class ChShaftTest : public ::testing::TestWithParam<int> {
         }
 
         // Edit system settings
-        system->SetMaxItersSolverSpeed(150);
-
         if (GetParam() == ChMaterialSurface::NSC) {
             system->SetSolverType(ChSolver::Type::APGD);
         }
+        system->SetSolverMaxIterations(150);
     }
 
     ~ChShaftTest() { delete system; }

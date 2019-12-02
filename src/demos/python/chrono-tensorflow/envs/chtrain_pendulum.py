@@ -22,7 +22,7 @@ class Model(object):
       chrono.ChCollisionModel.SetDefaultSuggestedMargin(0.001)
 
     #rev_pend_sys.SetSolverType(chrono.ChSolver.Type_BARZILAIBORWEIN) # precise, more slow
-      self.rev_pend_sys.SetMaxItersSolverSpeed(70)
+      self.rev_pend_sys.SetSolverMaxIterations(70)
 
 
 

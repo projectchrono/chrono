@@ -147,6 +147,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// this value is multiplied by the value of the current time step and then
     /// used as a stopping criteria for the iterative speed solver.
     void SetTolForce(double tolerance) { tol_force = tolerance; }
+    
     /// Return the current value of the tolerance used in the speed solver.
     double GetTolForce() const { return tol_force; }
 
@@ -163,14 +164,22 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// If this is too low, aliasing problems can happen with small high frequency
     /// rebounces, and settling to static stacking might be more difficult.
     void SetMinBounceSpeed(double mval) { min_bounce_speed = mval; }
+    
     /// Objects will rebounce only if their relative colliding speed is above this threshold.
     double GetMinBounceSpeed() const { return min_bounce_speed; }
 
     /// For the default stepper, you can limit the speed of exiting from penetration
     /// situations. Usually set a positive value, about 0.1 .. 2 . (as exiting speed, in m/s)
     void SetMaxPenetrationRecoverySpeed(double mval) { max_penetration_recovery_speed = mval; }
+
     /// Get the limit on the speed for exiting from penetration situations (for Anitescu stepper)
     double GetMaxPenetrationRecoverySpeed() const { return max_penetration_recovery_speed; }
+
+    /// Attach a solver (derived from ChSolver) for use by this system.
+    virtual void SetSolver(std::shared_ptr<ChSolver> newsolver);
+
+    /// Access the solver currently associated with this system.
+    virtual std::shared_ptr<ChSolver> GetSolver();
 
     /// Choose the solver type, to be used for the simultaneous solution of the constraints
     /// in dynamical simulations (as well as in kinematics, statics, etc.)
@@ -179,47 +188,31 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     ///   - For problems that involve a stiffness matrix: GMRES, MINRES
     ///
     /// *Notes*:
-    ///   - Do not use CUSTOM type, as this type is reserved for external solvers (instead use SetSolver())
-    ///   - This function is a shortcut, internally equivalent to a call to SetSolver()
+    ///   - This function is a shortcut, internally equivalent to a call to SetSolver().
+    ///   - Only a subset of available Chrono solvers can be set through this mechanism.
+    ///   - Prefer explicitly creating a solver, setting solver parameters, and then attaching the solver with
+    ///     SetSolver.
+    ///
+    /// \deprecated This function does not support all available Chrono solvers. Prefer using SetSolver.
     virtual void SetSolverType(ChSolver::Type type);
 
     /// Gets the current solver type.
     ChSolver::Type GetSolverType() const { return solver->GetType(); }
 
-    /// When using an iterative solver (es. PSOR) set the maximum number of iterations.
-    /// The higher the iteration number, the more precise the simulation (but more CPU time).
-    void SetMaxItersSolverSpeed(int mval) { max_iter_solver_speed = mval; }
-    /// Current maximum number of iterations, if using an iterative solver.
-    int GetMaxItersSolverSpeed() const { return max_iter_solver_speed; }
+    /// Set the maximum number of iterations, if using an iterative solver.
+    /// \deprecated Prefer using SetSolver and setting solver parameters directly.
+    void SetSolverMaxIterations(int max_iters);
 
-    /// If you want to easily turn ON/OFF the warm starting feature for the iterative solver,
-    /// you can simply use the following instead of accessing it directly with GetSolver().
-    void SetSolverWarmStarting(bool usewarm = true);
-    /// Tell if the warm starting is enabled for the speed solver, (if iterative type).
-    bool GetSolverWarmStarting() const;
+    /// Get the current maximum number of iterations, if using an iterative solver.
+    /// \deprecated Prefer using GetSolver and accessing solver statistics directly.
+    int GetSolverMaxIterations() const;
 
-    /// If you want to easily adjust the omega overrelaxation parameter of the iterative solver,
-    /// you can simply use the following instead of accessing it directly with GetSolver().
-    /// Note, usually a good omega for Jacobi or GPU solver is 0.2; for other iter.solvers can be up to 1.0
-    void SetSolverOverrelaxationParam(double momega = 1.0);
-    /// Tell the omega overrelaxation factor for the speed solver, (if iterative type).
-    double GetSolverOverrelaxationParam() const;
+    /// Set the solver tolerance threshold, if using an iterative solver.
+    /// Note that the stopping criteria differs from solver to solver.
+    void SetSolverTolerance(double tolerance);
 
-    /// If you want to easily adjust the 'sharpness lambda' parameter of the iterative solver,
-    /// you can simply use the following instead of accessing it directly with GetSolver().
-    /// Note, usually a good sharpness value is in 1..0.8 range (the lower, the more it helps exact
-    /// convergence, but overall convergence gets also much slower so maybe better to tolerate some error)
-    void SetSolverSharpnessParam(double momega = 1.0);
-    /// Tell the 'sharpness lambda' factor for the speed solver, (if iterative type).
-    double GetSolverSharpnessParam() const;
-
-    /// Instead of using SetSolverType(), you can create your own custom solver (suffice it is inherited
-    /// from ChSolver) and plug it into the system using this function.
-    virtual void SetSolver(std::shared_ptr<ChSolver> newsolver);
-
-    /// Access directly the solver, configured to be used for the main differential
-    /// inclusion problem (on speed-impulses).
-    virtual std::shared_ptr<ChSolver> GetSolver();
+    /// Get the current tolerance value, if using an iterative solver.
+    double GetSolverTolerance() const;
 
     /// Instead of using the default 'system descriptor', you can create your own custom descriptor
     /// (inherited from ChSystemDescriptor) and plug it into the system using this function.
@@ -228,16 +221,9 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// Access directly the 'system descriptor'.
     std::shared_ptr<ChSystemDescriptor> GetSystemDescriptor() { return descriptor; }
 
-    /// Changes the number of parallel threads (by default is n.of cores).
-    /// Note that not all solvers use parallel computation.
-    /// If you have a N-core processor, this should be set at least =N for maximum performance.
-    void SetParallelThreadNumber(int mthreads = 2);
-    /// Get the number of parallel threads.
-    /// Note that not all solvers use parallel computation.
-    int GetParallelThreadNumber() { return parallel_thread_number; }
-
     /// Sets the G (gravity) acceleration vector, affecting all the bodies in the system.
     void Set_G_acc(const ChVector<>& m_acc) { G_acc = m_acc; }
+
     /// Gets the G (gravity) acceleration vector affecting all the bodies in the system.
     const ChVector<>& Get_G_acc() const { return G_acc; }
 
@@ -245,8 +231,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     // DATABASE HANDLING.
     //
 
-    /// Removes all bodies/marker/forces/links/contacts,
-    /// also resets timers and events.
+    /// Removes all bodies/marker/forces/links/contacts, also resets timers and events.
     void Clear();
 
     /// Return the contact method supported by this system.
@@ -795,13 +780,8 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     std::shared_ptr<ChSystemDescriptor> descriptor;  ///< system descriptor
     std::shared_ptr<ChSolver> solver;                ///< solver for DVI or DAE problem
 
-    int max_iter_solver_speed;  ///< maximum num iterations for the iterative solver
-    int max_steps_simplex;      ///< maximum number of steps for the simplex solver.
-
     double min_bounce_speed;                ///< minimum speed for rebounce after impacts. Lower speeds are clamped to 0
     double max_penetration_recovery_speed;  ///< limit for the speed of penetration recovery (positive, speed of exiting)
-
-    int parallel_thread_number;  ///< used for multithreaded solver
 
     size_t stepcount;  ///< internal counter for steps
 

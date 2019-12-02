@@ -40,7 +40,6 @@ ChSystemSMC::ChSystemSMC(bool use_material_properties, unsigned int max_objects,
       m_tdispl_model(OneStep),
       m_stiff_contact(false) {
     descriptor = chrono_types::make_shared<ChSystemDescriptor>();
-    descriptor->SetNumThreads(parallel_thread_number);
 
     SetSolverType(ChSolver::Type::PSOR);
 

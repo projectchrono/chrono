@@ -151,16 +151,8 @@ namespace irrlicht {
             case irr::gui::EGET_SCROLL_BAR_CHANGED:
                 switch(id) {
                 case 9904:
-                    app->GetSystem()->SetMaxItersSolverSpeed(
+                    app->GetSystem()->SetSolverMaxIterations(
                         ((irr::gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos());
-                    break;
-                case 9909:
-                    app->GetSystem()->SetSolverOverrelaxationParam(
-                        (1.0 / 50.0) * ((irr::gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos());
-                    break;
-                case 9910:
-                    app->GetSystem()->SetSolverSharpnessParam(
-                        (1.0 / 50.0) * ((irr::gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos());
                     break;
                 case 9911:
                     app->GetSystem()->SetMaxPenetrationRecoverySpeed(
@@ -245,10 +237,6 @@ namespace irrlicht {
 
             case irr::gui::EGET_CHECKBOX_CHANGED:
                 switch(id) {
-                case 9906:
-                    app->GetSystem()->SetSolverWarmStarting(
-                        ((irr::gui::IGUICheckBox*)event.GUIEvent.Caller)->isChecked());
-                    break;
                 case 9913:
                     app->GetSystem()->SetUseSleeping(((irr::gui::IGUICheckBox*)event.GUIEvent.Caller)->isChecked());
                     break;
@@ -433,9 +421,6 @@ namespace irrlicht {
         gad_speed_iternumber_info = GetIGUIEnvironment()->addStaticText(
             L"", irr::core::rect<irr::s32>(155, 10, 220, 10 + 20), false, false, gad_tab2);
 
-        gad_warmstart = GetIGUIEnvironment()->addCheckBox(
-            false, irr::core::rect<irr::s32>(10, 70, 200, 70 + 20), gad_tab2, 9906, L"Warm starting");
-
         gad_usesleep = GetIGUIEnvironment()->addCheckBox(
             false, irr::core::rect<irr::s32>(10, 100, 200, 100 + 20), gad_tab2, 9913, L"Enable sleeping");
 
@@ -465,18 +450,6 @@ namespace irrlicht {
         gad_stepper->addItem(L"(custom)");
 
         gad_stepper->setSelected(0);
-
-        gad_omega =
-            GetIGUIEnvironment()->addScrollBar(true, irr::core::rect<irr::s32>(10, 190, 150, 190 + 20), gad_tab2, 9909);
-        gad_omega->setMax(100);
-        gad_omega_info = GetIGUIEnvironment()->addStaticText(
-            L"", irr::core::rect<irr::s32>(155, 190, 220, 190 + 20), false, false, gad_tab2);
-
-        gad_lambda =
-            GetIGUIEnvironment()->addScrollBar(true, irr::core::rect<irr::s32>(10, 220, 150, 220 + 20), gad_tab2, 9910);
-        gad_lambda->setMax(100);
-        gad_lambda_info = GetIGUIEnvironment()->addStaticText(
-            L"", irr::core::rect<irr::s32>(155, 220, 220, 220 + 20), false, false, gad_tab2);
 
         gad_clamping =
             GetIGUIEnvironment()->addScrollBar(true, irr::core::rect<irr::s32>(10, 250, 150, 250 + 20), gad_tab2, 9911);
@@ -737,8 +710,6 @@ namespace irrlicht {
         str += (int)(1000 * system->GetTimerSolver());
         str += " ms \n  CPU Update time      =";
         str += (int)(1000 * system->GetTimerUpdate());
-        str += " ms \n\nSolver iters : ";
-        str += system->GetMaxItersSolverSpeed();
         str += "\n\nN.of active bodies  : ";
         str += system->GetNbodies();
         str += "\nN.of sleeping bodies  : ";
@@ -795,22 +766,13 @@ namespace irrlicht {
         }
 
         if(gad_speed_iternumber_info->isVisible()) {
-            gad_warmstart->setChecked(GetSystem()->GetSolverWarmStarting());
             gad_usesleep->setChecked(GetSystem()->GetUseSleeping());
 
             char message[50];
 
-            gad_speed_iternumber->setPos(GetSystem()->GetMaxItersSolverSpeed());
-            sprintf(message, "%i iters", GetSystem()->GetMaxItersSolverSpeed());
+            gad_speed_iternumber->setPos(GetSystem()->GetSolverMaxIterations());
+            sprintf(message, "%i iters", GetSystem()->GetSolverMaxIterations());
             gad_speed_iternumber_info->setText(irr::core::stringw(message).c_str());
-
-            gad_omega->setPos((irr::s32)(50.0 * (GetSystem()->GetSolverOverrelaxationParam())));
-            sprintf(message, "%g omega", GetSystem()->GetSolverOverrelaxationParam());
-            gad_omega_info->setText(irr::core::stringw(message).c_str());
-
-            gad_lambda->setPos((irr::s32)(50.0 * (GetSystem()->GetSolverSharpnessParam())));
-            sprintf(message, "%g lambda", GetSystem()->GetSolverSharpnessParam());
-            gad_lambda_info->setText(irr::core::stringw(message).c_str());
 
             gad_clamping->setPos((irr::s32)((50.0 / 3.0) * (GetSystem()->GetMaxPenetrationRecoverySpeed())));
             sprintf(message, "%g stab.clamp", GetSystem()->GetMaxPenetrationRecoverySpeed());

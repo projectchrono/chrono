@@ -207,7 +207,7 @@ int main(int argc, char* argv[]) {
 
     // Modify some setting of the physical system for the simulation, if you want
     mphysicalSystem.SetSolverType(ChSolver::Type::PSOR);
-    mphysicalSystem.SetMaxItersSolverSpeed(20);
+    mphysicalSystem.SetSolverMaxIterations(20);
 
     // mphysicalSystem.SetUseSleeping(true);
 

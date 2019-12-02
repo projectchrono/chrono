@@ -17,6 +17,8 @@
 // =============================================================================
 
 #include "chrono/ChConfig.h"
+#include "chrono/solver/ChSolverPSOR.h"
+#include "chrono/solver/ChSolverBB.h"
 #include "chrono/utils/ChBenchmark.h"
 
 #include "chrono/assets/ChColorAsset.h"
@@ -63,21 +65,25 @@ ChainTest<N>::ChainTest() : m_length(0.25), m_step(1e-3) {
     // Set solver parameters
     switch (solver_type) {
         case ChSolver::Type::PSOR: {
-            m_system->SetSolverType(ChSolver::Type::PSOR);
-            m_system->SetMaxItersSolverSpeed(50);
+            auto solver = chrono_types::make_shared<ChSolverPSOR>();
+            solver->SetMaxIterations(50);
+            solver->SetOmega(0.8);
+            solver->SetSharpnessLambda(1.0);
+            m_system->SetSolver(solver);
+
             m_system->SetMaxPenetrationRecoverySpeed(1.5);
             m_system->SetMinBounceSpeed(2.0);
-            m_system->SetSolverOverrelaxationParam(0.8);
-            m_system->SetSolverSharpnessParam(1.0);
+
             break;
         }
         case ChSolver::Type::BARZILAIBORWEIN: {
-            m_system->SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
-            m_system->SetMaxItersSolverSpeed(50);
+            auto solver = chrono_types::make_shared<ChSolverBB>();
+            solver->SetMaxIterations(50);
+            m_system->SetSolver(solver);
+
             m_system->SetMaxPenetrationRecoverySpeed(1.5);
             m_system->SetMinBounceSpeed(2.0);
-            m_system->SetSolverOverrelaxationParam(0.8);
-            m_system->SetSolverSharpnessParam(1.0);
+
             break;
         }
     }

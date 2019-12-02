@@ -322,7 +322,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Total vehicle mass: " << my_hmmwv.GetTotalMass() << std::endl;
 
     // Solver settings.
-    system->SetMaxItersSolverSpeed(50);
+    system->SetSolverMaxIterations(50);
 
     // Number of simulation steps between two 3D view render frames
     int render_steps = (int)std::ceil(render_step_size / step_size);

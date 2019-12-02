@@ -264,7 +264,7 @@ int main(int argc, char* argv[]) {
 
 #ifdef USE_SEQ
 
-    system->SetMaxItersSolverSpeed(50);
+    system->SetSolverMaxIterations(50);
 
 #else
 
@@ -272,7 +272,6 @@ int main(int argc, char* argv[]) {
     int max_threads = CHOMPfunctions::GetNumProcs();
     if (threads > max_threads)
         threads = max_threads;
-    system->SetParallelThreadNumber(threads);
     CHOMPfunctions::SetNumThreads(threads);
     std::cout << "Using " << threads << " threads" << std::endl;
 

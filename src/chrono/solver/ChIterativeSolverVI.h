@@ -58,13 +58,14 @@ class ChApi ChIterativeSolverVI : public ChSolverVI, public ChIterativeSolver {
 
     virtual ~ChIterativeSolverVI() {}
 
-    /// Set the overrelaxation factor.
-    /// This factor may be used by PSOR-like methods. Default: 1.
+    /// Set the overrelaxation factor (default: 1.0).
+    /// This factor may be used by PSOR-like methods. A good value for Jacobi solver is 0.2; for other iterative solvers
+    /// it can be up to 1.0
     void SetOmega(double mval);
 
-    /// Set the sharpness factor.
-    /// This factor may be used by PSOR-like methods with projection (see Mangasarian LCP method).
-    /// Usually in the range [0,1]. Default: 1.
+    /// Set the sharpness factor (default: 1.0).
+    /// This factor may be used by PSOR-like methods with projection (see Mangasarian LCP method). A good sharpness
+    /// value is in the 0.8 ... 1.0 range (lower values improve accuracy but at the cost of slower convergence)
     void SetSharpnessLambda(double mval);
 
     /// Enable/disable recording of the constraint violation history.
