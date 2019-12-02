@@ -867,6 +867,7 @@ set(ChronoEngine_solver_HEADERS
     solver/ChSolverLS.h
     solver/ChSolverVI.h
     solver/ChDirectSolverLS.h
+    solver/ChIterativeSolver.h
     solver/ChIterativeSolverLS.h
     solver/ChIterativeSolverVI.h
     solver/ChSolverPJacobi.h

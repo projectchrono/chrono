@@ -42,7 +42,7 @@ class ChApi ChSolver {
         BARZILAIBORWEIN,  ///< Barzilai-Borwein
         APGD,             ///< Accelerated Projected Gradient Descent
         // Direct linear solvers
-        PARDISO,  ///< Pardiso
+        PARDISO,  ///< Pardiso (super-nodal sparse direct solver)
         MUMPS,    ///< Mumps (MUltifrontal Massively Parallel sparse direct Solver)
         // Iterative linear solvers
         GMRES,     ///< Generalized Minimal RESidual Algorithm
@@ -55,13 +55,11 @@ class ChApi ChSolver {
     virtual ~ChSolver() {}
 
     /// Return type of the solver.
-    /// Default is CUSTOM. Derived classes should override this function.
     virtual Type GetType() const { return Type::CUSTOM; }
 
     /// Indicate whether or not the Solve() phase requires an up-to-date problem matrix.
-    /// Typically, direct solvers only need the matrix for the Setup() phase. However,
-    /// iterative solvers likely require the matrix to perform the necessary matrix-vector
-    /// operations.
+    /// Typically, direct solvers only need the matrix for the Setup() phase. However, iterative solvers likely require
+    /// the matrix to perform the necessary matrix-vector operations.
     virtual bool SolveRequiresMatrix() const = 0;
 
     /// Performs the solution of the problem.
@@ -82,9 +80,6 @@ class ChApi ChSolver {
 
     /// Set verbose output from solver.
     void SetVerbose(bool mv) { verbose = mv; }
-
-    // Return whether or not verbose output is enabled.
-    bool GetVerbose() const { return verbose; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive);

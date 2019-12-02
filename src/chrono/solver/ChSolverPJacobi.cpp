@@ -20,15 +20,16 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChSolverPJacobi)
 
-ChSolverPJacobi::ChSolverPJacobi(int mmax_iters, bool mwarm_start, double mtolerance, double momega)
-    : ChIterativeSolverVI(mmax_iters, mwarm_start, mtolerance, momega){};
+ChSolverPJacobi::ChSolverPJacobi() : maxviolation(0) {
+    m_omega = 0.2;
+}
 
 double ChSolverPJacobi::Solve(ChSystemDescriptor& sysd) {
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
     std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
 
-    tot_iterations = 0;
-    double maxviolation = 0.;
+    m_iterations = 0;
+    maxviolation = 0;
     double maxdeltalambda = 0;
     int i_friction_comp = 0;
     double old_lambda_friction[3];
@@ -66,7 +67,7 @@ double ChSolverPJacobi::Solve(ChSystemDescriptor& sysd) {
     // 3)  For all items with variables, add the effect of initial (guessed)
     //     lagrangian reactions of constraints, if a warm start is desired.
     //     Otherwise, if no warm start, simply resets initial lagrangians to zero.
-    if (warm_start) {
+    if (m_warm_start) {
     } else {
         for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
             mconstraints[ic]->Set_l_i(0.);
@@ -78,7 +79,7 @@ double ChSolverPJacobi::Solve(ChSystemDescriptor& sysd) {
     std::vector<double> delta_gammas;
     delta_gammas.resize(mconstraints.size());
 
-    for (int iter = 0; iter < max_iterations; iter++) {
+    for (int iter = 0; iter < m_max_iterations; iter++) {
         // The iteration on all constraints
         //
 
@@ -96,7 +97,7 @@ double ChSolverPJacobi::Solve(ChSystemDescriptor& sysd) {
                 double candidate_violation = fabs(mconstraints[ic]->Violation(mresidual));
 
                 // compute:  delta_lambda = -(omega/g_i) * ([Cq_i]*q + b_i + cfm_i*l_i )
-                double deltal = (omega / mconstraints[ic]->Get_g_i()) * (-mresidual);
+                double deltal = (m_omega / mconstraints[ic]->Get_g_i()) * (-mresidual);
 
                 if (mconstraints[ic]->GetMode() == CONSTRAINT_FRIC) {
                     candidate_violation = 0;
@@ -115,10 +116,10 @@ double ChSolverPJacobi::Solve(ChSystemDescriptor& sysd) {
                         double new_lambda_1 = mconstraints[ic - 1]->Get_l_i();
                         double new_lambda_2 = mconstraints[ic - 0]->Get_l_i();
                         // Apply the smoothing: lambda= sharpness*lambda_new_projected + (1-sharpness)*lambda_old
-                        if (this->shlambda != 1.0) {
-                            new_lambda_0 = shlambda * new_lambda_0 + (1.0 - shlambda) * old_lambda_friction[0];
-                            new_lambda_1 = shlambda * new_lambda_1 + (1.0 - shlambda) * old_lambda_friction[1];
-                            new_lambda_2 = shlambda * new_lambda_2 + (1.0 - shlambda) * old_lambda_friction[2];
+                        if (m_shlambda != 1.0) {
+                            new_lambda_0 = m_shlambda * new_lambda_0 + (1.0 - m_shlambda) * old_lambda_friction[0];
+                            new_lambda_1 = m_shlambda * new_lambda_1 + (1.0 - m_shlambda) * old_lambda_friction[1];
+                            new_lambda_2 = m_shlambda * new_lambda_2 + (1.0 - m_shlambda) * old_lambda_friction[2];
                             mconstraints[ic - 2]->Set_l_i(new_lambda_0);
                             mconstraints[ic - 1]->Set_l_i(new_lambda_1);
                             mconstraints[ic - 0]->Set_l_i(new_lambda_2);
@@ -149,8 +150,8 @@ double ChSolverPJacobi::Solve(ChSystemDescriptor& sysd) {
                     double new_lambda = mconstraints[ic]->Get_l_i();
 
                     // Apply the smoothing: lambda= sharpness*lambda_new_projected + (1-sharpness)*lambda_old
-                    if (this->shlambda != 1.0) {
-                        new_lambda = shlambda * new_lambda + (1.0 - shlambda) * old_lambda;
+                    if (m_shlambda != 1.0) {
+                        new_lambda = m_shlambda * new_lambda + (1.0 - m_shlambda) * old_lambda;
                         mconstraints[ic]->Set_l_i(new_lambda);
                     }
 
@@ -176,9 +177,10 @@ double ChSolverPJacobi::Solve(ChSystemDescriptor& sysd) {
         if (this->record_violation_history)
             AtIterationEnd(maxviolation, maxdeltalambda, iter);
 
-        tot_iterations++;
+        m_iterations++;
+
         // Terminate the loop if violation in constraints has been successfully limited.
-        if (maxviolation < tolerance)
+        if (maxviolation < m_tolerance)
             break;
     }
 

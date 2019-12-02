@@ -28,6 +28,7 @@
 #define CH_ITERATIVESOLVER_LS_H
 
 #include "chrono/solver/ChSolverLS.h"
+#include "chrono/solver/ChIterativeSolver.h"
 
 #include <Eigen/IterativeLinearSolvers>
 #include <unsupported/Eigen/IterativeSolvers>
@@ -54,34 +55,18 @@ Cannot handle VI and complementarity problems, so they cannot be used with NSC f
 All iterative solvers are implemented in a matrix-free context and rely on the system descriptor for the required
 SPMV operations. See ChSystemDescriptor for more information about the problem formulation and the data structures
 passed to the solver.
+
+The default value for the maximum number of iterations is twice the matrrix size.
+
+The threshold value specified through #SetTolerance is used by the stopping criteria as an upper bound to the relative
+residual error: |Ax - b|/|b|. Default: machine precision.
+
+By default, these solvers use a diagonal preconditioner and no warm start. Recall that the warm start option should
+be used **only** in conjunction with the Euler implicit linearized integrator.
 */
-class ChApi ChIterativeSolverLS : public ChSolverLS {
+class ChApi ChIterativeSolverLS : public ChSolverLS, public ChIterativeSolver {
   public:
     virtual ~ChIterativeSolverLS();
-
-    /// Set the maximum number of iterations.\n
-    /// Default is twice the matrix size.
-    void SetMaxIterations(int max_iterations) { m_max_iterations = max_iterations; }
-
-    /// Set the tolerance threshold used by the stopping criteria.\n
-    /// This value is used as an upper bound to the relative residual error: |Ax - b|/|b|. \n
-    /// The default value is the machine precision.
-    void SetTolerance(double tolerance) { m_tolerance = tolerance; }
-
-    /// Enable/disable use of a simple diagonal preconditioner (default: true).
-    void EnableDiagonalPreconditioner(bool val) { m_use_precond = val; }
-
-    /// Enable/disable warm starting by providing an initial guess (default: false).\n
-    /// If enabled, the solvers use as an initial guess the current values for [x; -lambda].\n
-    /// ATTENTION: enable this option *only* if using the Euler implicit linearized integrator!
-    void EnableWarmStart(bool val) { m_warm_start = val; }
-
-    /// Return the number of iterations performed during the last solve.
-    virtual int GetIterations() const = 0;
-
-    /// Return the tolerance error reached during the last solve.\n
-    /// It is a close approximation of the true relative residual error |Ax-b|/|b|.
-    virtual double GetError() const = 0;
 
     /// Perform the solver setup operations.\n
     /// Here, sysd is the system description with constraints and variables.
@@ -95,6 +80,9 @@ class ChApi ChIterativeSolverLS : public ChSolverLS {
   protected:
     ChIterativeSolverLS();
 
+    /// Indicate whether or not the #Solve() phase requires an up-to-date problem matrix.
+    virtual bool SolveRequiresMatrix() const override final { return true; }
+
     /// Initialize the solver with the current sparse matrix and return true if successful.
     virtual bool SetupProblem() = 0;
 
@@ -107,15 +95,6 @@ class ChApi ChIterativeSolverLS : public ChSolverLS {
     ChVectorDynamic<double> m_rhs;        ///< right-hand side vector
     ChVectorDynamic<double> m_invdiag;    ///< inverse diagonal entries (for preconditioning)
     ChVectorDynamic<double> m_initguess;  ///< initial guess (for warm start)
-
-    bool m_use_precond;    ///< use diagonal preconditioning?
-    bool m_warm_start;     ///< use initial guesss?
-    int m_max_iterations;  ///< maximum number of iterations
-    double m_tolerance;    ///< tolerance threshold in stopping criteria
-
-  private:
-    /// Indicate whether or not the #Solve() phase requires an up-to-date problem matrix.
-    virtual bool SolveRequiresMatrix() const override final { return true; }
 };
 
 // ---------------------------------------------------------------------------

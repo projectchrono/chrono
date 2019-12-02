@@ -184,13 +184,13 @@ std::shared_ptr<ChSolver> ChSystem::GetSolver() {
 
 void ChSystem::SetSolverWarmStarting(bool usewarm) {
     if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver)) {
-        iter_solver_speed->SetWarmStart(usewarm);
+        iter_solver_speed->EnableWarmStart(usewarm);
     }
 }
 
 bool ChSystem::GetSolverWarmStarting() const {
-    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver)) {
-        return iter_solver_speed->GetWarmStart();
+    if (auto iter_solver = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver)) {
+        return iter_solver->m_warm_start;
     }
     return false;
 }

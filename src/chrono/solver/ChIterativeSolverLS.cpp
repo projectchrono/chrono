@@ -169,8 +169,7 @@ CH_FACTORY_REGISTER(ChSolverGMRES)
 CH_FACTORY_REGISTER(ChSolverBiCGSTAB)
 CH_FACTORY_REGISTER(ChSolverMINRES)
 
-ChIterativeSolverLS::ChIterativeSolverLS()
-    : m_max_iterations(-1), m_tolerance(-1), m_use_precond(true), m_warm_start(false) {
+ChIterativeSolverLS::ChIterativeSolverLS() : ChIterativeSolver(-1, -1.0, true, false) {
     m_spmv = new ChMatrixSPMV();
 }
 

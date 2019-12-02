@@ -16,6 +16,23 @@
 
 namespace chrono {
 
+ChIterativeSolverVI::ChIterativeSolverVI()
+    : ChIterativeSolver(50, 0.0, true, false),
+      m_omega(1.0),
+      m_shlambda(1.0),
+      m_iterations(0),
+      record_violation_history(false) {}
+
+void ChIterativeSolverVI::SetOmega(double mval) {
+    if (mval > 0.)
+        m_omega = mval;
+}
+
+void ChIterativeSolverVI::SetSharpnessLambda(double mval) {
+    if (mval > 0.)
+        m_shlambda = mval;
+}
+
 void ChIterativeSolverVI::AtIterationEnd(double mmaxviolation, double mdeltalambda, unsigned int iternum) {
     if (!record_violation_history)
         return;
@@ -37,11 +54,11 @@ void ChIterativeSolverVI::ArchiveOUT(ChArchiveOut& marchive) {
     // serialize parent class
     ChSolver::ArchiveOUT(marchive);
     // serialize all member data:
-    marchive << CHNVP(max_iterations);
-    marchive << CHNVP(warm_start);
-    marchive << CHNVP(tolerance);
-    marchive << CHNVP(omega);
-    marchive << CHNVP(shlambda);
+    marchive << CHNVP(m_max_iterations);
+    marchive << CHNVP(m_warm_start);
+    marchive << CHNVP(m_tolerance);
+    marchive << CHNVP(m_omega);
+    marchive << CHNVP(m_shlambda);
 }
 
 void ChIterativeSolverVI::ArchiveIN(ChArchiveIn& marchive) {
@@ -50,11 +67,11 @@ void ChIterativeSolverVI::ArchiveIN(ChArchiveIn& marchive) {
     // deserialize parent class
     ChSolver::ArchiveIN(marchive);
     // stream in all member data:
-    marchive >> CHNVP(max_iterations);
-    marchive >> CHNVP(warm_start);
-    marchive >> CHNVP(tolerance);
-    marchive >> CHNVP(omega);
-    marchive >> CHNVP(shlambda);
+    marchive >> CHNVP(m_max_iterations);
+    marchive >> CHNVP(m_warm_start);
+    marchive >> CHNVP(m_tolerance);
+    marchive >> CHNVP(m_omega);
+    marchive >> CHNVP(m_shlambda);
 }
 
 void ChIterativeSolverVI::SaveMatrix(ChSystemDescriptor& sysd) {

@@ -16,124 +16,70 @@
 #define CH_ITERATIVESOLVER_VI_H
 
 #include "chrono/solver/ChSolverVI.h"
+#include "chrono/solver/ChIterativeSolver.h"
 
 namespace chrono {
 
 /// @addtogroup chrono_solver
 /// @{
+    
+/** \class ChIterativeSolverVI
+\brief Base class for iterative solvers aimed at solving complementarity problems arising from QP optimization problems.
 
-/// Base class for ITERATIVE solvers aimed at solving complementarity problems arising from QP optimization problems.
-/// This class does nothing: it is up to derived classes to implement specific solution methods.
-/// The problem is described by a variational inequality VI(Z*x-d,K):\n
-///
-/// <pre>
-///   | M -Cq'|*|q|- | f|= |0| 
-///   | Cq -E | |l|  |-b|  |c|
-/// </pre>
-/// with l \f$\in\f$ Y, C \f$\in\f$ Ny, normal cone to Y\n
-///
-/// Also Z symmetric by flipping sign of l_i: 
-/// <pre>
-///   |M  Cq'|*| q|-| f|=|0|
-///   |Cq  E | |-l| |-b| |c|
-/// </pre>
-///
-/// * case linear problem:  all Y_i = R, Ny=0, ex. all bilaterals \n
-/// * case LCP: all Y_i = R+:  c>=0, l>=0, l*c=0 \n
-/// * case CCP: Y_i are friction cones \n
+The problem is described by a variational inequality VI(Z*x-d,K):\n
 
-class ChApi ChIterativeSolverVI : public ChSolverVI {
+<pre>
+  | M -Cq'|*|q|- | f|= |0|
+  | Cq -E | |l|  |-b|  |c|
+</pre>
+with l \f$\in\f$ Y, C \f$\in\f$ Ny, normal cone to Y\n
 
-  protected:
-    int max_iterations;  ///< maximum allowed iterations
-    int tot_iterations;  ///< total number of iterations performed by the solver
-    bool warm_start;     ///< indicate whether or not to use warm starting
-    double tolerance;    ///< tolerance for termination criteria
-    double omega;        ///< over-relaxation factor
-    double shlambda;     ///< sharpness factor
+Also Z symmetric by flipping sign of l_i:
+<pre>
+  |M  Cq'|*| q|-| f|=|0|
+  |Cq  E | |-l| |-b| |c|
+</pre>
 
-    bool record_violation_history;
-    std::vector<double> violation_history;
-    std::vector<double> dlambda_history;
+- case linear problem:  all Y_i = R, Ny=0, ex. all bilaterals
+- case LCP: all Y_i = R+:  c>=0, l>=0, l*c=0
+- case CCP: Y_i are friction cones
 
+The default maximum number of iterations is 50.
+
+The 'tolerance' threshold value used in the stopping criteria may have different meaning for different solvers
+(threshold on maximum constraint violation, threshold on projected residual, etc). See the GetError method for an
+individual iterative VI solver for details.
+
+Diagonal preconditioning is enabled by default, but may not supported by all iterative VI solvers.
+*/
+class ChApi ChIterativeSolverVI : public ChSolverVI, public ChIterativeSolver {
   public:
-    ChIterativeSolverVI(int mmax_iters = 50,       ///< max.number of iterations
-                        bool mwarm_start = false,  ///< uses warm start?
-                        double mtolerance = 0.0,   ///< tolerance for termination criterion
-                        double momega = 1.0,       ///< overrelaxation, if any
-                        double mshlambda = 1.0     ///< sharpness, if any
-                        )
-        : max_iterations(mmax_iters),
-          tot_iterations(0),
-          warm_start(mwarm_start),
-          tolerance(mtolerance),
-          omega(momega),
-          shlambda(mshlambda),
-          record_violation_history(false) {}
+    ChIterativeSolverVI();
 
     virtual ~ChIterativeSolverVI() {}
 
-    /// Indicate whether ot not the Solve() phase requires an up-to-date problem matrix.
-    /// Typically, this is the case for iterative solvers (as the matrix is needed for
-    /// the matrix-vector operations).
-    virtual bool SolveRequiresMatrix() const override { return true; }
-
-    /// Set the maximum number of iterations.
-    /// If the solver exceed this limit, it should stop even if the required tolerance
-    /// isn't yet reached. Default limit: 50 iterations.
-    void SetMaxIterations(int mval) { max_iterations = mval; }
-
-    /// Get the current value for the maximum allowed number of iterations.
-    int GetMaxIterations() const { return max_iterations; }
-
-    /// Get the number of total iterations taken by the solver.
-    int GetTotalIterations() const { return tot_iterations; }
-
     /// Set the overrelaxation factor.
     /// This factor may be used by PSOR-like methods. Default: 1.
-    void SetOmega(double mval) {
-        if (mval > 0.)
-            omega = mval;
-    }
-
-    /// Return the current value of the overrelaxation factor.
-    double GetOmega() const { return omega; }
+    void SetOmega(double mval);
 
     /// Set the sharpness factor.
     /// This factor may be used by PSOR-like methods with projection (see Mangasarian LCP method).
-    /// Usually in the range [0,1]. Default: 1. 
-    virtual void SetSharpnessLambda(double mval) {
-        if (mval > 0.)
-            shlambda = mval;
-    }
-
-    /// Return the current value of the sharpness factor.
-    virtual double GetSharpnessLambda() const { return shlambda; }
-
-    /// Enable/disable 'warm start'.
-    /// If enabled, the initial guess is set to the current values of the unknowns.
-    ///	Useful if the variables are already near to the solution. In most iterative schemes,
-    /// this is often a good option.
-    void SetWarmStart(bool mval) { warm_start = mval; }
-
-    /// Return a flag indicating whether or not warm start is enabled.
-    bool GetWarmStart() const { return warm_start; }
-
-    /// Set the tolerance for stopping criterion.
-    /// The iteration is stopped when the constraint feasibility error is below this value.
-    /// Default: 0.0
-    void SetTolerance(double mval) { tolerance = mval; }
-
-    /// Return the current value of the solver tolerance.
-    double GetTolerance() const { return tolerance; }
+    /// Usually in the range [0,1]. Default: 1.
+    void SetSharpnessLambda(double mval);
 
     /// Enable/disable recording of the constraint violation history.
-    /// If enabled, the maximum constraint violation at the end of each iteration is
-    /// stored in a vector (see GetViolationHistory).
+    /// If enabled, the maximum constraint violation at the end of each iteration is stored in a vector (see
+    /// GetViolationHistory).
     void SetRecordViolation(bool mval) { record_violation_history = mval; }
 
-    /// Return a flag indicating whether or not constraint violations are recorded.
-    bool GetRecordViolation() const { return record_violation_history; }
+    /// Return the current value of the overrelaxation factor.
+    double GetOmega() const { return m_omega; }
+
+    /// Return the current value of the sharpness factor.
+    double GetSharpnessLambda() const { return m_shlambda; }
+
+    /// Return the number of iterations performed during the last solve.
+    virtual int GetIterations() const override { return m_iterations; }
 
     /// Access the vector of constraint violation history.
     /// Note that collection of constraint violations must be enabled through SetRecordViolation.
@@ -141,7 +87,7 @@ class ChApi ChIterativeSolverVI : public ChSolverVI {
 
     /// Access the vector with history of maximum change in Lagrange multipliers
     /// Note that collection of constraint violations must be enabled through SetRecordViolation.
-    const std::vector<double>& GetDeltalambdaHistory() const { return dlambda_history; };
+    const std::vector<double>& GetDeltalambdaHistory() const { return dlambda_history; }
 
   protected:
     /// This method MUST be called by all iterative methods INSIDE their iteration loops
@@ -159,6 +105,20 @@ class ChApi ChIterativeSolverVI : public ChSolverVI {
     /// Debugging
     void SaveMatrix(ChSystemDescriptor& sysd);
     double CheckSolution(ChSystemDescriptor& sysd, const ChVectorDynamic<>& x);
+
+  protected:
+    /// Indicate whether ot not the Solve() phase requires an up-to-date problem matrix.
+    /// Typically, this is the case for iterative solvers (as the matrix is needed for
+    /// the matrix-vector operations).
+    virtual bool SolveRequiresMatrix() const override { return true; }
+
+    int m_iterations;   ///< total number of iterations performed by the solver
+    double m_omega;     ///< over-relaxation factor
+    double m_shlambda;  ///< sharpness factor
+
+    bool record_violation_history;
+    std::vector<double> violation_history;
+    std::vector<double> dlambda_history;
 };
 
 /// @} chrono_solver

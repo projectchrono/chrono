@@ -135,10 +135,11 @@ void test_1(const std::string& out_dir) {
     // approximate (but very fast) solution:
     
     // Create the solver...
-    ChSolverPSOR solver(1,      // max iterations
-                        false,  // don't use warm start
-                        0.0,    // termination tolerance
-                        0.8);   // omega
+    ChSolverPSOR solver;
+    solver.SetMaxIterations(1);
+    solver.EnableWarmStart(false);
+    solver.SetTolerance(0.0);
+    solver.SetOmega(0.8);
 
     // .. pass the constraint and the variables to the solver to solve
     solver.Setup(mdescriptor);

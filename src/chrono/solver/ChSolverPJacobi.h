@@ -23,19 +23,15 @@ namespace chrono {
 /// @{
 
 /// An iterative solver for VI based on projective fixed point method (projected Jacobi). \n
-/// Note: this method is here mostly for comparison and tests: we suggest you to use the more efficient ChSolverPSOR.\n
+/// Note: this method is here mostly for comparison and tests; we suggest you to use the more efficient ChSolverPSOR.\n
+///
 /// See ChSystemDescriptor for more information about the problem formulation and the data structures passed to the
 /// solver.
-
 class ChApi ChSolverPJacobi : public ChIterativeSolverVI {
   public:
-    ChSolverPJacobi(int mmax_iters = 50,       ///< max.number of iterations
-                    bool mwarm_start = false,  ///< uses warm start?
-                    double mtolerance = 0.0,   ///< tolerance for termination criterion
-                    double momega = 0.2        ///< overrelaxation criterion
-    );
+    ChSolverPJacobi();
 
-    virtual ~ChSolverPJacobi() {}
+    ~ChSolverPJacobi() {}
 
     virtual Type GetType() const override { return Type::PJACOBI; }
 
@@ -43,6 +39,13 @@ class ChApi ChSolverPJacobi : public ChIterativeSolverVI {
     /// \return  the maximum constraint violation after termination.
     virtual double Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
                          ) override;
+
+    /// Return the tolerance error reached during the last solve.
+    /// For the PJacobi solver, this is the maximum constraint violation.
+    virtual double GetError() const override { return maxviolation; }
+
+  private:
+    double maxviolation;
 };
 
 /// @} chrono_solver

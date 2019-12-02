@@ -29,13 +29,9 @@ namespace chrono {
 
 class ChApi ChSolverPSOR : public ChIterativeSolverVI {
   public:
-    ChSolverPSOR(int mmax_iters = 50,       ///< max.number of iterations
-                 bool mwarm_start = false,  ///< uses warm start?
-                 double mtolerance = 0.0,   ///< tolerance for termination criterion
-                 double momega = 1.0        ///< overrelaxation criterion
-    );
+    ChSolverPSOR();
 
-    virtual ~ChSolverPSOR() {}
+    ~ChSolverPSOR() {}
 
     virtual Type GetType() const override { return Type::PSOR; }
 
@@ -43,6 +39,13 @@ class ChApi ChSolverPSOR : public ChIterativeSolverVI {
     /// \return  the maximum constraint violation after termination.
     virtual double Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
                          ) override;
+
+    /// Return the tolerance error reached during the last solve.
+    /// For the PSOR solver, this is the maximum constraint violation.
+    virtual double GetError() const override { return maxviolation; }
+
+  private:
+    double maxviolation;
 };
 
 /// @} chrono_solver

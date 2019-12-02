@@ -186,7 +186,7 @@ application.AssetUpdateAll()
 solver = chrono.ChSolverMINRES()
 my_system.SetSolver(solver)
 
-solver.SetDiagonalPreconditioning(True)
+solver.EnableDiagonalPreconditioner(True)
 #solver.SetVerbose(True)
 
 my_system.SetMaxItersSolverSpeed(100)

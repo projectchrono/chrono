@@ -277,7 +277,7 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
 }
 
 void ChOpenGLHUD::GenerateSolver(ChSystem* physics_system) {
-    double iters = std::static_pointer_cast<ChIterativeSolverVI>(physics_system->GetSolver())->GetTotalIterations();
+    double iters = std::static_pointer_cast<ChIterativeSolverVI>(physics_system->GetSolver())->GetIterations();
     const std::vector<double>& vhist =
         std::static_pointer_cast<ChIterativeSolverVI>(physics_system->GetSolver())->GetViolationHistory();
     const std::vector<double>& dhist =
