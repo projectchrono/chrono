@@ -850,6 +850,7 @@ set(ChronoEngine_solver_SOURCES
     solver/ChSystemDescriptor.cpp
     solver/ChSolver.cpp
     solver/ChDirectSolverLS.cpp
+    solver/ChIterativeSolver.cpp
     solver/ChIterativeSolverLS.cpp
     solver/ChIterativeSolverVI.cpp
     solver/ChSolverPSOR.cpp

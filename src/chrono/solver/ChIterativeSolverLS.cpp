@@ -205,20 +205,9 @@ bool ChIterativeSolverLS::Setup(ChSystemDescriptor& sysd) {
     // Let the concrete solver initialize itself
     bool result = SetupProblem();
 
-    //// DEBUGGING
-    bool dump = false;
-    if (dump) {
-        ChSparseMatrix Z;
-        sysd.ConvertToMatrixForm(&Z, nullptr);
-
-        const char* numformat = "%.12g";
-        char filename[300];
-        sprintf(filename, "%s%s", "matrix_", "Z.dat");
-        ChStreamOutAsciiFile file_Z(filename);
-        file_Z.SetNumFormat(numformat);
-        StreamOUTsparseMatlabFormat(Z, file_Z);
-    }
-    //// DEBUGGING
+    //// ---- DEBUGGING
+    ////SaveMatrix(sysd);
+    //// ---- DEBUGGING
 
     return result;
 }
@@ -227,7 +216,7 @@ double ChIterativeSolverLS::Solve(ChSystemDescriptor& sysd) {
     // Assemble the problem right-hand side vector
     sysd.ConvertToMatrixForm(nullptr, &m_rhs);
 
-    // Let the concrete solver compute the solution
+    // Let the concrete solver compute the solution (in m_sol)
     bool result = SolveProblem();
 
     if (verbose) {
@@ -236,6 +225,11 @@ double ChIterativeSolverLS::Solve(ChSystemDescriptor& sysd) {
         sysd.SystemProduct(Ax, m_sol);
         std::cout << "  ||Ax-b|| = " << (Ax - m_rhs).norm() << std::endl;
     }
+
+    //// DEBUGGING
+    ////SaveMatrix(sysd);
+    ////CheckSolution(sysd, m_sol);
+    //// DEBUGGING
 
     // Scatter solution vector to the system descriptor
     sysd.FromVectorToUnknowns(m_sol);

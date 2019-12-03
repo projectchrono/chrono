@@ -103,10 +103,6 @@ class ChApi ChIterativeSolverVI : public ChSolverVI, public ChIterativeSolver {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
-    /// Debugging
-    void SaveMatrix(ChSystemDescriptor& sysd);
-    double CheckSolution(ChSystemDescriptor& sysd, const ChVectorDynamic<>& x);
-
   protected:
     /// Indicate whether ot not the Solve() phase requires an up-to-date problem matrix.
     /// Typically, this is the case for iterative solvers (as the matrix is needed for

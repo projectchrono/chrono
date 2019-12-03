@@ -20,6 +20,7 @@
 #define CH_ITERATIVESOLVER_H
 
 #include "chrono/core/ChApiCE.h"
+#include "chrono/solver/ChSystemDescriptor.h"
 
 namespace chrono {
 
@@ -60,11 +61,11 @@ class ChApi ChIterativeSolver {
     virtual double GetError() const = 0;
 
   protected:
-    ChIterativeSolver(int max_iterations, double tolerance, bool use_precond, bool warm_start)
-        : m_max_iterations(max_iterations),
-          m_tolerance(tolerance),
-          m_use_precond(use_precond),
-          m_warm_start(warm_start) {}
+    ChIterativeSolver(int max_iterations, double tolerance, bool use_precond, bool warm_start);
+
+    // Debugging utilities
+    void SaveMatrix(ChSystemDescriptor& sysd);
+    double CheckSolution(ChSystemDescriptor& sysd, const ChVectorDynamic<>& x);
 
     bool m_use_precond;    ///< use diagonal preconditioning?
     bool m_warm_start;     ///< use initial guesss?

@@ -74,49 +74,4 @@ void ChIterativeSolverVI::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(m_shlambda);
 }
 
-void ChIterativeSolverVI::SaveMatrix(ChSystemDescriptor& sysd) {
-    // Assemble sparse matrix
-    ChSparseMatrix Z1;
-    sysd.ConvertToMatrixForm(&Z1, nullptr);
-
-    // Create sparse matrix with SPMV
-    ChMatrixDynamic<> Z2(Z1.rows(), Z1.cols());
-    ChVectorDynamic<> e = ChVectorDynamic<>::Zero(Z1.cols());
-    ChVectorDynamic<> v(Z1.cols());
-    for (int i = 0; i < Z1.cols(); i++) {
-        e(i) = 1;
-        sysd.SystemProduct(v, e);
-        Z2.col(i) = v;
-        e(i) = 0;
-    }
-    
-    // Save matrices to file
-    {
-        ChStreamOutAsciiFile file("matrix_Z1.dat");
-        file.SetNumFormat("%.12g");
-        StreamOUTsparseMatlabFormat(Z1, file);
-    }
-    {
-        ChStreamOutAsciiFile file("matrix_Z2.dat");
-        file.SetNumFormat("%.12g");
-        StreamOUTdenseMatlabFormat(Z2, file);
-    }
-
-    // Assemble RHS
-    ChVectorDynamic<> rhs1;
-    sysd.ConvertToMatrixForm(nullptr, &rhs1);
-
-    // RHS using d vector
-    ChVectorDynamic<> rhs2;
-    sysd.BuildDiVector(rhs2);
-}
-
-double ChIterativeSolverVI::CheckSolution(ChSystemDescriptor& sysd, const ChVectorDynamic<>& x) {
-    ChSparseMatrix A;
-    sysd.ConvertToMatrixForm(&A, nullptr);
-    ChVectorDynamic<> b;
-    sysd.ConvertToMatrixForm(nullptr, &b);
-    return (A * x - b).norm();
-}
-
 }  // end namespace chrono
