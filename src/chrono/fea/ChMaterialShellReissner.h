@@ -230,6 +230,70 @@ class ChApi ChElasticityReissnerOrthotropic : public ChElasticityReissner {
     double beta;   ///< torque factor
 };
 
+
+// ----------------------------------------------------------------------------
+
+/// Generic linear elasticity for 6-field Reissner-Mindlin shells (kinematically-exact shell theory
+/// as in Witkowski et al.) to be used in a ChMaterialShellReissner.
+/// This uses a 12x12 matrix [E] from user-input data. The [E] matrix can be 
+/// computed from a preprocessing stage using a FEA analysis over a detailed 3D model
+/// of a slab of shell, hence recovering the 6x6 matrix in the linear mapping:
+/// {n,m}=[E]{e,k}.
+
+class ChApi ChElasticityReissnerGeneric : public ChElasticityReissner {
+  public:
+    ChElasticityReissnerGeneric();
+
+    virtual ~ChElasticityReissnerGeneric() {}
+
+    /// Access the 12x12 [E] matrix, for getting/setting its values.
+    /// This is the matrix that defines the linear elastic constitutive model
+    /// as it maps  yxz displacements "e" and xyz rotations "k"
+    /// to the "n" force and  "m" torque as in
+    ///   {n_u,n_v,m_u,m_v}=[E]{e_u,e_v,k_u,k_v}.
+    ChMatrixNM<double, 12, 12>& Ematrix() { return this->mE; }
+
+    /// The FE code will evaluate this function to compute
+    /// per-unit-length forces/torques  given the u,v strains/curvatures.
+    virtual void ComputeStress(
+        ChVector<>& n_u,          ///< forces along \e u direction (per unit length)
+        ChVector<>& n_v,          ///< forces along \e v direction (per unit length)
+        ChVector<>& m_u,          ///< torques along \e u direction (per unit length)
+        ChVector<>& m_v,          ///< torques along \e v direction (per unit length)
+        const ChVector<>& eps_u,  ///< strains along \e u direction
+        const ChVector<>& eps_v,  ///< strains along \e v direction
+        const ChVector<>& kur_u,  ///< curvature along \e u direction
+        const ChVector<>& kur_v,  ///< curvature along \e v direction
+        const double z_inf,       ///< layer lower z value (along thickness coord)
+        const double z_sup,       ///< layer upper z value (along thickness coord)
+        const double angle        ///< layer angle respect to x (if needed) -not used in this, isotropic
+    ) override;
+
+    /// /// Compute the 12x12 stiffness matrix [Km] , that is [ds/de], the tangent of the constitutive relation
+    /// stresses/strains. 
+	virtual void ComputeStiffnessMatrix(
+        ChMatrixRef mC,           ///< tangent matrix
+        const ChVector<>& eps_u,  ///< strains along \e u direction
+        const ChVector<>& eps_v,  ///< strains along \e v direction
+        const ChVector<>& kur_u,  ///< curvature along \e u direction
+        const ChVector<>& kur_v,  ///< curvature along \e v direction
+        const double z_inf,       ///< layer lower z value (along thickness coord)
+        const double z_sup,       ///< layer upper z value (along thickness coord)
+        const double angle        ///< layer angle respect to x (if needed) -not used in this, isotropic
+    ) override;
+
+  private:
+    ChMatrixNM<double, 12, 12> mE;
+
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+};
+
+
+
+
+
+
 // ----------------------------------------------------------------------------
 
 /// Base class for internal variables of Reissner shells materials.
@@ -320,11 +384,11 @@ class ChApi ChPlasticityReissner {
 // ----------------------------------------------------------------------------
 
 
-/// Base interface for plasticity of 6-field Reissner-Mindlin shells (kinematically-exact shell theory
+/// Base interface for damping of 6-field Reissner-Mindlin shells (kinematically-exact shell theory
 /// as in Witkowski et al.) to be used in a ChMaterialShellReissner.
 /// Children classes should implement a ComputeStress function that returns generalized stresses
 /// given time derivatives of strains as:
-///   {n,m}=f({e',k'})
+///   {n_u,n_v,m_u.m_v}=f({e_u',e_v',k_u',k_v'})
 
 class ChApi ChDampingReissner {
   public:
@@ -402,7 +466,7 @@ class ChApi ChMaterialShellReissner  {
     virtual ~ChMaterialShellReissner() {}
 
     /// Compute the generalized cut force and cut torque, given the actual generalized section strain
-    /// expressed as deformation vector e and curvature k, that is: {F,M}=f({e,k}), and
+    /// expressed as deformation vector e and curvature k, that is: {n_u,n_v,m_u,m_v}=f({e_u,e_v,k_u,k_v}), and
     /// given the actual material state required for plasticity if any (but if mdata=nullptr,
     /// computes only the elastic force).
     /// If there is plasticity, the stress is clamped by automatically performing an implicit return mapping.

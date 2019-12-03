@@ -1,5 +1,6 @@
 #=============================================================================
 # CMake configuration file for the ARTICULATED_VEHICLE demo.
+# This example program requires Irrlicht run-time visualization.
 #=============================================================================
 
 IF(NOT ENABLE_MODULE_IRRLICHT)

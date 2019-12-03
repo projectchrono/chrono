@@ -14,7 +14,7 @@ set(TEST_PROGRAMS
     utest_JOINT_revsph
     utest_JOINT_linactuator
     utest_JOINT_transpring
-    utest_JOINT_transpringcb
+    utest_JOINT_tsda
     utest_JOINT_rotspring
 )
 

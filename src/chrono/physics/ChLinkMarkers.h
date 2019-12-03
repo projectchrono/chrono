@@ -21,13 +21,10 @@
 
 namespace chrono {
 
-/// Class for links which connect two 'markers'. The markers are two
-/// ChMarker objects each belonging to the two linked ChBody parts.
-/// Many specialized classes are based on this ChLinkMarkers class, for example
-/// the ChLinkSpring and all the family of the ChLinkLock classes - see them-.
-/// Also, ChLinkMarkers class allows an optional force vector and torque vector
-/// to be set between the two connected markers.
-
+/// Class for links which connect two 'markers'. The markers are two ChMarker objects each belonging to the two linked
+/// ChBody parts. Many specialized classes are based on this ChLinkMarkers class, for example the family of ChLinkLock
+/// classes. ChLinkMarkers class allows an optional force vector and torque vector to be set between the two connected
+/// markers.
 class ChApi ChLinkMarkers : public ChLink {
   protected:
     // Protected constructors.

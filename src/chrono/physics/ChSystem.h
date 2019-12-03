@@ -863,6 +863,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     // Friend class declarations
 
     friend class ChAssembly;
+    friend class ChBody;
     friend class fea::ChMesh;
 
     template <class Ta, class Tb>

@@ -317,8 +317,10 @@ add_library(ChronoModels_vehicle SHARED
 
 set_target_properties(ChronoModels_vehicle PROPERTIES
                       COMPILE_FLAGS "${CXX_FLAGS}"
-                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}"
-                      COMPILE_DEFINITIONS "CH_API_COMPILE_MODELS")
+                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
+
+target_compile_definitions(ChronoModels_vehicle PRIVATE "CH_API_COMPILE_MODELS")
+target_compile_definitions(ChronoModels_vehicle PRIVATE "CH_IGNORE_DEPRECATED")
 
 target_link_libraries(ChronoModels_vehicle ${LIBRARIES})
 

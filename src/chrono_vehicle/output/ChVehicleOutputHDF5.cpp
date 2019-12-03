@@ -465,7 +465,7 @@ void ChVehicleOutputHDF5::WriteCouples(const std::vector<std::shared_ptr<ChShaft
     set.write(info.data(), getCoupleType());
 }
 
-void ChVehicleOutputHDF5::WriteLinSprings(const std::vector<std::shared_ptr<ChLinkSpringCB>>& springs) {
+void ChVehicleOutputHDF5::WriteLinSprings(const std::vector<std::shared_ptr<ChLinkTSDA>>& springs) {
     if (springs.empty())
         return;
 
@@ -474,8 +474,8 @@ void ChVehicleOutputHDF5::WriteLinSprings(const std::vector<std::shared_ptr<ChLi
     H5::DataSpace dataspace(1, dim);
     std::vector<linspring_info> info(nsprings);
     for (auto i = 0; i < nsprings; i++) {
-        info[i] = {springs[i]->GetIdentifier(), springs[i]->GetSpringLength(), springs[i]->GetSpringVelocity(),
-                   springs[i]->GetSpringReact()};
+        info[i] = {springs[i]->GetIdentifier(), springs[i]->GetLength(), springs[i]->GetVelocity(),
+                   springs[i]->GetForce()};
     }
 
     H5::DataSet set = m_section_group->createDataSet("Lin Springs", getLinSpringType(), dataspace);

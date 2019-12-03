@@ -284,8 +284,11 @@ endif()
 
 SET_TARGET_PROPERTIES(ChronoEngine_opengl PROPERTIES 
   COMPILE_FLAGS "${CE_OpenGL_FLAGS}"
-  LINK_FLAGS "${CH_LINKERFLAG_SHARED}"
-  COMPILE_DEFINITIONS "CH_API_COMPILE_OPENGL;GLM_ENABLE_EXPERIMENTAL")
+  LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
+
+target_compile_definitions(ChronoEngine_opengl PRIVATE "CH_API_COMPILE_OPENGL")
+target_compile_definitions(ChronoEngine_opengl PRIVATE "GLM_ENABLE_EXPERIMENTAL")
+target_compile_definitions(ChronoEngine_opengl PRIVATE "CH_IGNORE_DEPRECATED")
 
 TARGET_LINK_LIBRARIES(ChronoEngine_opengl ${CE_OpenGL_LIBRARIES})
 

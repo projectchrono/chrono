@@ -1186,6 +1186,7 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
         // Just for diagnostic, dump also unscaled loads (forces,torques), 
         // since the .._f.dat vector dumped in DumpLastMatrices() might contain scaled loads, and also +M*v
         ChVectorDynamic<> tempF(this->GetNcoords_v());
+        tempF.setZero();
         this->IntLoadResidual_F(0, tempF, 1.0);
         chrono::ChStreamOutAsciiFile file_F((sprefix + "F_pre.dat").c_str());
         file_F.SetNumFormat(numformat);

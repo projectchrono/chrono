@@ -36,6 +36,10 @@ ChLinkSpringCB::ChLinkSpringCB(const ChLinkSpringCB& other) : ChLinkMarkers(othe
     }
 }
 
+ChLinkSpringCB* ChLinkSpringCB::Clone() const {
+    return new ChLinkSpringCB(*this);
+}
+
 ChLinkSpringCB::~ChLinkSpringCB() {
     delete m_variables;
 }

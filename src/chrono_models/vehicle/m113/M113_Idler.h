@@ -65,7 +65,7 @@ class CH_MODELS_API M113_Idler : public ChDoubleIdler {
     virtual double GetPrismaticPitchAngle() const override { return 0; }
 
     /// Return the functor object for spring force.
-    virtual ChLinkSpringCB::ForceFunctor* GetTensionerForceCallback() const override { return m_tensionerForceCB; }
+    virtual ChLinkTSDA::ForceFunctor* GetTensionerForceCallback() const override { return m_tensionerForceCB; }
 
     /// Return the free length for the tensioner spring.
     virtual double GetTensionerFreeLength() const override { return m_tensioner_l0; }
@@ -81,7 +81,7 @@ class CH_MODELS_API M113_Idler : public ChDoubleIdler {
     virtual std::string GetMeshName() const = 0;
     virtual std::string GetMeshFile() const = 0;
 
-    ChLinkSpringCB::ForceFunctor* m_tensionerForceCB;
+    ChLinkTSDA::ForceFunctor* m_tensionerForceCB;
 
     static const double m_wheel_mass;
     static const ChVector<> m_wheel_inertia;

@@ -60,6 +60,7 @@ using namespace chrono;
 // Undefine ChApi otherwise SWIG gives a syntax error
 #define ChApiMkl 
 #define ChApi 
+#define CH_DEPRECATED(msg)
 
 // Include other .i configuration files for SWIG. 
 // These are divided in many .i files, each per a

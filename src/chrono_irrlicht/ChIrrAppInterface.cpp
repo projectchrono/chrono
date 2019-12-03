@@ -12,7 +12,6 @@
 
 #include "chrono/collision/ChCModelBullet.h"
 #include "chrono/core/ChStream.h"
-#include "chrono/physics/ChLinkSpring.h"
 #include "chrono/serialization/ChArchiveAsciiDump.h"
 #include "chrono/serialization/ChArchiveJSON.h"
 #include "chrono/serialization/ChArchiveExplorer.h"
@@ -23,10 +22,8 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-namespace chrono
-{
-namespace irrlicht
-{
+namespace chrono {
+namespace irrlicht {
 
     // -----------------------------------------------------------------------------
     // ChIrrAppEventReceiver
@@ -145,66 +142,6 @@ namespace irrlicht
         }
 
         irr::core::dimension2d<irr::u32> ssize = app->GetVideoDriver()->getScreenSize();
-
-        // Process mouse events.
-        if(event.EventType == irr::EET_MOUSE_INPUT_EVENT) {
-            switch(event.MouseInput.Event) {
-            case irr::EMIE_MMOUSE_PRESSED_DOWN: {
-                irr::core::line3d<irr::f32> mline =
-                    app->GetSceneManager()->getSceneCollisionManager()->getRayFromScreenCoordinates(
-                        app->GetDevice()->getCursorControl()->getPosition());
-                ChVector<> mfrom(mline.start.X, mline.start.Y, mline.start.Z);
-                ChVector<> mto(mline.end.X, mline.end.Y, mline.end.Z);
-                collision::ChCollisionSystem::ChRayhitResult mresult;
-                app->GetSystem()->GetCollisionSystem()->RayHit(mfrom, mto, mresult);
-                if(mresult.hit) {
-                    if(ChBody* mbo = dynamic_cast<ChBody*>(mresult.hitModel->GetContactable())) {
-                        app->selectedmover = new std::shared_ptr<ChBody>(mbo);
-                        app->selectedpoint = (*(app->selectedmover))->Point_World2Body(mresult.abs_hitPoint);
-                        app->selecteddist = (mfrom - mresult.abs_hitPoint).Length();
-                        app->selectedspring = new std::shared_ptr<ChLinkSpring>(new ChLinkSpring);
-                        app->selectedtruss = new std::shared_ptr<ChBody>(new ChBody);
-                        (*(app->selectedtruss))->SetBodyFixed(true);
-                        app->GetSystem()->AddBody(*(app->selectedtruss));
-                        (*(app->selectedspring))
-                            ->Initialize(*app->selectedtruss, *app->selectedmover, false, mresult.abs_hitPoint,
-                                mresult.abs_hitPoint);
-                        app->GetSystem()->AddLink(*(app->selectedspring));
-                    }
-                }
-                break;
-            }
-            case irr::EMIE_MMOUSE_LEFT_UP:
-                if(app->selectedtruss) {
-                    app->GetSystem()->RemoveBody((*(app->selectedtruss)));
-                    app->GetSystem()->RemoveLink((*(app->selectedspring)));
-                    delete(app->selectedtruss);
-                    delete(app->selectedspring);
-                    app->selectedtruss = 0;
-                    app->selectedspring = 0;
-                }
-                break;
-            case irr::EMIE_MOUSE_MOVED:
-                if(app->selectedtruss) {
-                    irr::core::line3d<irr::f32> mline =
-                        app->GetSceneManager()->getSceneCollisionManager()->getRayFromScreenCoordinates(
-                            app->GetDevice()->getCursorControl()->getPosition());
-                    ChVector<> mfrom(mline.start.X, mline.start.Y, mline.start.Z);
-                    ChVector<> mto(mline.end.X, mline.end.Y, mline.end.Z);
-                    ChVector<> mdir = mto - mfrom;
-                    mdir.Normalize();
-                    ChVector<> springP1 = mfrom + mdir * app->selecteddist;
-                    ChVector<> springP2 = (*(app->selectedmover))->Point_Body2World(app->selectedpoint);
-                    (*(app->selectedspring))->SetEndPoint1Abs(springP1);
-                    (*(app->selectedspring))->SetEndPoint2Abs(springP2);
-                    (*(app->selectedspring))->Set_SpringK(25 * (*(app->selectedmover))->GetMass());
-                    (*(app->selectedspring))->Set_SpringR(3 * (*(app->selectedmover))->GetMass());
-                }
-                break;
-            default:
-                break;
-            }
-        }
 
         // Check if user moved the sliders with mouse.
         if(event.EventType == irr::EET_GUI_EVENT) {
@@ -387,9 +324,6 @@ namespace irrlicht
         , videoframe_each(1)
         , symbolscale(1.0)
         , camera_auto_rotate_speed(0.0)
-        , selectedtruss(0)
-        , selectedspring(0)
-        , selectedmover(0)
     {
         irr::SIrrlichtCreationParameters params = irr::SIrrlichtCreationParameters();
         params.AntiAlias = do_antialias;

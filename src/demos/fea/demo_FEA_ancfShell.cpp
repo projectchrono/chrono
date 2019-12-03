@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
 
     GetLog() << "-----------------------------------------------------------\n";
     GetLog() << "-----------------------------------------------------------\n";
-    GetLog() << "     ANCF Shell Elements demo with implicit integration \n";
+    GetLog() << "     ANCF Shell Elements demo with implicit integration    \n";
     GetLog() << "-----------------------------------------------------------\n";
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
@@ -64,25 +64,23 @@ int main(int argc, char* argv[]) {
     double plate_lenght_z = 0.01;
     // Specification of the mesh
     int numDiv_x = 10;
-    int numDiv_y = 1;
-    int numDiv_z = 1;
+    int numDiv_y = 4;
     int N_x = numDiv_x + 1;
     int N_y = numDiv_y + 1;
-    int N_z = numDiv_z + 1;
     // Number of elements in the z direction is considered as 1
     int TotalNumElements = numDiv_x * numDiv_y;
-    int TotalNumNodes = (numDiv_x + 1) * (numDiv_y + 1);
+    int TotalNumNodes = N_x * N_y;
     // For uniform mesh
     double dx = plate_lenght_x / numDiv_x;
     double dy = plate_lenght_y / numDiv_y;
-    double dz = plate_lenght_z / numDiv_z;
+    double dz = plate_lenght_z;
 
     // Create and add the nodes
     for (int i = 0; i < TotalNumNodes; i++) {
         // Node location
-        double loc_x = (i % (numDiv_x + 1)) * dx;
-        double loc_y = (i / (numDiv_x + 1)) % (numDiv_y + 1) * dy;
-        double loc_z = (i) / ((numDiv_x + 1) * (numDiv_y + 1)) * dz;
+        double loc_x = (i % N_x) * dx;
+        double loc_y = (i / N_x) % N_y * dy;
+        double loc_z = 0;
 
         // Node direction
         double dir_x = 0;
@@ -90,7 +88,8 @@ int main(int argc, char* argv[]) {
         double dir_z = 1;
 
         // Create the node
-        auto node = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z));
+        auto node =
+            chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z));
 
         node->SetMass(0);
 
@@ -116,10 +115,10 @@ int main(int argc, char* argv[]) {
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
         // Adjacent nodes
-        int node0 = (i / (numDiv_x)) * (N_x) + i % numDiv_x;
-        int node1 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + 1;
-        int node2 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + 1 + N_x;
-        int node3 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + N_x;
+        int node0 = (i / numDiv_x) * N_x + i % numDiv_x;
+        int node1 = (i / numDiv_x) * N_x + i % numDiv_x + 1;
+        int node2 = (i / numDiv_x) * N_x + i % numDiv_x + 1 + N_x;
+        int node3 = (i / numDiv_x) * N_x + i % numDiv_x + N_x;
 
         // Create the element and set its nodes.
         auto element = chrono_types::make_shared<ChElementShellANCF>();
@@ -149,33 +148,32 @@ int main(int argc, char* argv[]) {
     // Options for visualization in irrlicht
     // -------------------------------------
 
-    auto mvisualizemesh = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
-    mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
-    mvisualizemesh->SetShrinkElements(true, 0.85);
-    mvisualizemesh->SetSmoothFaces(true);
-    my_mesh->AddAsset(mvisualizemesh);
+    auto visualizemeshA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    visualizemeshA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
+    visualizemeshA->SetColorscaleMinMax(0.0, 5.50);
+    visualizemeshA->SetShrinkElements(true, 0.85);
+    visualizemeshA->SetSmoothFaces(true);
+    my_mesh->AddAsset(visualizemeshA);
 
-    auto mvisualizemeshref = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizemeshref->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
-    mvisualizemeshref->SetWireframe(true);
-    mvisualizemeshref->SetDrawInUndeformedReference(true);
-    my_mesh->AddAsset(mvisualizemeshref);
+    auto visualizemeshB = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    visualizemeshB->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+    visualizemeshB->SetWireframe(true);
+    visualizemeshB->SetDrawInUndeformedReference(true);
+    my_mesh->AddAsset(visualizemeshB);
 
-    auto mvisualizemeshC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
-    mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
-    mvisualizemeshC->SetSymbolsThickness(0.004);
-    my_mesh->AddAsset(mvisualizemeshC);
+    auto visualizemeshC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    visualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
+    visualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    visualizemeshC->SetSymbolsThickness(0.004);
+    my_mesh->AddAsset(visualizemeshC);
 
-    auto mvisualizemeshD = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    // mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_VECT_SPEED);
-    mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_ELEM_TENS_STRAIN);
-    mvisualizemeshD->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
-    mvisualizemeshD->SetSymbolsScale(1);
-    mvisualizemeshD->SetColorscaleMinMax(-0.5, 5);
-    mvisualizemeshD->SetZbufferHide(false);
-    my_mesh->AddAsset(mvisualizemeshD);
+    auto visualizemeshD = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    visualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_ELEM_TENS_STRAIN);
+    visualizemeshD->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    visualizemeshD->SetSymbolsScale(1);
+    visualizemeshD->SetColorscaleMinMax(-0.5, 5);
+    visualizemeshD->SetZbufferHide(false);
+    my_mesh->AddAsset(visualizemeshD);
 
     application.AssetBindAll();
     application.AssetUpdateAll();
@@ -185,21 +183,39 @@ int main(int argc, char* argv[]) {
     // ----------------------------------
 
     // Set up solver
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    msolver->SetDiagonalPreconditioning(true);
+
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    my_system.SetSolver(solver);
+    // Alternative way of changing the solver
+    ////my_system.SetSolverType(ChSolver::Type::MINRES);
+    ////auto solver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
+
+    solver->SetDiagonalPreconditioning(true);
+    ////solver->SetVerbose(true);
+
     my_system.SetMaxItersSolverSpeed(100);
     my_system.SetTolForce(1e-10);
 
     // Set up integrator
-    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
-    auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
-    mystepper->SetAlpha(-0.2);
-    mystepper->SetMaxiters(100);
-    mystepper->SetAbsTolerances(1e-5);
-    mystepper->SetMode(ChTimestepperHHT::POSITION);
-    mystepper->SetScaling(true);
-    application.SetTimestep(0.001);
+
+    auto stepper = chrono_types::make_shared<ChTimestepperHHT>(&my_system);
+    my_system.SetTimestepper(stepper);
+    // Alternative way of changing the integrator:
+    ////my_system.SetTimestepperType(ChTimestepper::Type::HHT);
+    ////auto stepper = std::static_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
+
+    stepper->SetAlpha(-0.2);
+    stepper->SetMaxiters(5);
+    stepper->SetAbsTolerances(1e-5);
+    stepper->SetMode(ChTimestepperHHT::POSITION);
+    stepper->SetScaling(true);
+    stepper->SetStepControl(true);
+    stepper->SetMinStepSize(1e-4);
+    ////stepper->SetVerbose(true);
+
+    // Simulation loop
+
+    application.SetTimestep(0.01);
 
     while (application.GetDevice()->run()) {
         application.BeginScene();

@@ -36,36 +36,35 @@ double CityBus_SimpleMapPowertrain::GetMaxEngineSpeed() {
 }
 
 void CityBus_SimpleMapPowertrain::SetEngineTorqueMaps(ChFunction_Recorder& map0, ChFunction_Recorder& mapF) {
-    map0.AddPoint(-100*rpm2rads, 0.000*lbft2nm);
-    map0.AddPoint(0*rpm2rads, -20.0*lbft2nm);
-    map0.AddPoint(100*rpm2rads, -20.0*lbft2nm);
-    map0.AddPoint(400*rpm2rads, -20.0*lbft2nm);
-    map0.AddPoint(600*rpm2rads, -20.0*lbft2nm);
-    map0.AddPoint(800*rpm2rads, -20.0*lbft2nm);
-    map0.AddPoint(1000*rpm2rads, -20.0*lbft2nm);
-    map0.AddPoint(1200*rpm2rads, -20.0*lbft2nm);
-    map0.AddPoint(1400*rpm2rads, -20.0*lbft2nm);
-    map0.AddPoint(1600*rpm2rads, -20.0*lbft2nm);
-    map0.AddPoint(1800*rpm2rads, -30.0*lbft2nm);
-    map0.AddPoint(2000*rpm2rads, -30.0*lbft2nm);
-    map0.AddPoint(2100*rpm2rads, -40.0*lbft2nm);
-    map0.AddPoint(2200*rpm2rads, -100.0*lbft2nm);
-
-
-    mapF.AddPoint(-100*rpm2rads, 0.000*lbft2nm);
-    mapF.AddPoint(0*rpm2rads, 300.0*lbft2nm);
-    mapF.AddPoint(100*rpm2rads, 400.0*lbft2nm);
-    mapF.AddPoint(400*rpm2rads, 500.0*lbft2nm);
-    mapF.AddPoint(600*rpm2rads, 600.0*lbft2nm);
-    mapF.AddPoint(800*rpm2rads, 800.0*lbft2nm);
-    mapF.AddPoint(1000*rpm2rads, 1200.0*lbft2nm);
-    mapF.AddPoint(1200*rpm2rads, 1250.0*lbft2nm);
-    mapF.AddPoint(1400*rpm2rads, 1250.0*lbft2nm);
-    mapF.AddPoint(1600*rpm2rads, 1150.0*lbft2nm);
-    mapF.AddPoint(1800*rpm2rads, 1000.0*lbft2nm);
-    mapF.AddPoint(2000*rpm2rads, 900.0*lbft2nm);
-    mapF.AddPoint(2100*rpm2rads, 820.0*lbft2nm);
-    mapF.AddPoint(2200*rpm2rads, -100.0*lbft2nm);
+    map0.AddPoint(-100 * rpm2rads, 0.000 * lbft2nm);
+    map0.AddPoint(0 * rpm2rads, 0.0 * lbft2nm);
+    map0.AddPoint(100 * rpm2rads, 0.0 * lbft2nm);
+    map0.AddPoint(400 * rpm2rads, -20.0 * lbft2nm);
+    map0.AddPoint(600 * rpm2rads, -20.0 * lbft2nm);
+    map0.AddPoint(800 * rpm2rads, -20.0 * lbft2nm);
+    map0.AddPoint(1000 * rpm2rads, -20.0 * lbft2nm);
+    map0.AddPoint(1200 * rpm2rads, -20.0 * lbft2nm);
+    map0.AddPoint(1400 * rpm2rads, -20.0 * lbft2nm);
+    map0.AddPoint(1600 * rpm2rads, -20.0 * lbft2nm);
+    map0.AddPoint(1800 * rpm2rads, -30.0 * lbft2nm);
+    map0.AddPoint(2000 * rpm2rads, -30.0 * lbft2nm);
+    map0.AddPoint(2100 * rpm2rads, -40.0 * lbft2nm);
+    map0.AddPoint(2200 * rpm2rads, -100.0 * lbft2nm);
+    
+    mapF.AddPoint(-100 * rpm2rads, 0.000 * lbft2nm);
+    mapF.AddPoint(0 * rpm2rads, 0.0 * lbft2nm);
+    mapF.AddPoint(100 * rpm2rads, 300.0 * lbft2nm);
+    mapF.AddPoint(400 * rpm2rads, 500.0 * lbft2nm);
+    mapF.AddPoint(600 * rpm2rads, 600.0 * lbft2nm);
+    mapF.AddPoint(800 * rpm2rads, 800.0 * lbft2nm);
+    mapF.AddPoint(1000 * rpm2rads, 1200.0 * lbft2nm);
+    mapF.AddPoint(1200 * rpm2rads, 1250.0 * lbft2nm);
+    mapF.AddPoint(1400 * rpm2rads, 1250.0 * lbft2nm);
+    mapF.AddPoint(1600 * rpm2rads, 1150.0 * lbft2nm);
+    mapF.AddPoint(1800 * rpm2rads, 1000.0 * lbft2nm);
+    mapF.AddPoint(2000 * rpm2rads, 900.0 * lbft2nm);
+    mapF.AddPoint(2100 * rpm2rads, 820.0 * lbft2nm);
+    mapF.AddPoint(2200 * rpm2rads, -100.0 * lbft2nm);
 }
 
 void CityBus_SimpleMapPowertrain::SetGearRatios(std::vector<double>& fwd_gear_ratios, double& reverse_gear_ratio) {

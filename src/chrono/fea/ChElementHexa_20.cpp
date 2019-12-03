@@ -114,7 +114,7 @@ void ChElementHexa_20::ShapeFunctions(ShapeVector& N, double r, double s, double
     // The mid-edge nodes
     N(8) = 0.25 * r2 * sm * tm;
     N(9) = 0.25 * s2 * rp * tm;
-    N(19) = 0.25 * r2 * sp * tm;
+    N(10) = 0.25 * r2 * sp * tm;
     N(11) = 0.25 * s2 * rm * tm;
     N(12) = 0.25 * r2 * sm * tp;
     N(13) = 0.25 * s2 * rp * tp;

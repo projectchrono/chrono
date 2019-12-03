@@ -25,7 +25,7 @@
 #include "chrono/physics/ChShaft.h"
 #include "chrono/physics/ChLink.h"
 #include "chrono/physics/ChShaftsCouple.h"
-#include "chrono/physics/ChLinkSpringCB.h"
+#include "chrono/physics/ChLinkTSDA.h"
 #include "chrono/physics/ChLinkRotSpringCB.h"
 #include "chrono/physics/ChLoadsBody.h"
 
@@ -159,7 +159,7 @@ class CH_VEHICLE_API ChPart {
 
     /// Export the list of translational springs to the specified JSON document.
     static void ExportLinSpringList(rapidjson::Document& jsonDocument,
-                                    std::vector<std::shared_ptr<ChLinkSpringCB>> springs);
+                                    std::vector<std::shared_ptr<ChLinkTSDA>> springs);
 
     /// Export the list of rotational springs to the specified JSON document.
     static void ExportRotSpringList(rapidjson::Document& jsonDocument,

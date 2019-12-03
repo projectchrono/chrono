@@ -1,7 +1,7 @@
 #=============================================================================
 # CMake configuration file for the M113_PARALLEL demo.
 # This example program requires Chrono:Parallel and the OpenGL module for
-# run-time visualization
+# run-time visualization.
 #=============================================================================
 
 #--------------------------------------------------------------

@@ -25,7 +25,6 @@
 #include "chrono/assets/ChRoundedCylinderShape.h"
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
-
 #include "chrono/geometry/ChLineBezier.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
@@ -339,7 +338,7 @@ enum POVRayLinkType {
     DISTANCE = 4,
     ENGINE = 5,
     SPRING = 6,
-    SPRING_CB = 7
+    TSDA = 7
 };
 
 void WriteShapesPovray(ChSystem* system, const std::string& filename, bool body_info, const std::string& delim) {
@@ -472,17 +471,8 @@ void WriteShapesPovray(ChSystem* system, const std::string& filename, bool body_
             csv << UNIVERSAL << frA_abs.GetPos() << frA_abs.GetA().Get_A_Xaxis() << frB_abs.GetA().Get_A_Yaxis()
                 << std::endl;
             l_count++;
-        } else if (auto link = std::dynamic_pointer_cast<ChLinkSpring>(ilink)) {
-            chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
-            chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
-
-            csv << SPRING << frA_abs.GetPos() << frB_abs.GetPos() << std::endl;
-            l_count++;
-        } else if (auto link = std::dynamic_pointer_cast<ChLinkSpringCB>(ilink)) {
-            chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
-            chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
-
-            csv << SPRING_CB << frA_abs.GetPos() << frB_abs.GetPos() << std::endl;
+        } else if (auto link = std::dynamic_pointer_cast<ChLinkTSDA>(ilink)) {
+            csv << TSDA << link->GetPoint1Abs() << link->GetPoint2Abs() << std::endl;
             l_count++;
         } else if (auto link = std::dynamic_pointer_cast<ChLinkDistance>(ilink)) {
             csv << DISTANCE << link->GetEndPoint1Abs() << link->GetEndPoint2Abs() << std::endl;

@@ -289,6 +289,7 @@ int main(int argc, char* argv[]) {
     msolver->SetDiagonalPreconditioning(true);
 
     auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+    mkl_solver->LockSparsityPattern(true);
     my_system.SetSolver(mkl_solver);
             
     application.SetTimestep(0.0002);
