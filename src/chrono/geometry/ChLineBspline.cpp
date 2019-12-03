@@ -118,7 +118,7 @@ void ChLineBspline::SetClosed(bool mc) {
 	// switch open->closed
 	if (mc == true) {
 		// add p control points to be wrapped: resize knots and control points
-		int n = this->points.size();
+		auto n = this->points.size();
 		n += p; 
 		this->points.resize(n);
 		this->knots.setZero(n + p + 1);
@@ -134,7 +134,7 @@ void ChLineBspline::SetClosed(bool mc) {
 	// switch closed->open
 	if (mc == false) {
 		// remove p control points that was wrapped: resize knots and control points
-		int n = this->points.size();
+		auto n = this->points.size();
 		n -= p; 
 		this->points.resize(n);
 		this->knots.setZero(n + p + 1);

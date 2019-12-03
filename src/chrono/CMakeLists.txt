@@ -776,6 +776,7 @@ set(ChronoEngine_motion_functions_SOURCES
 	motion_functions/ChFunctionRotation_ABCfunctions.cpp
 	motion_functions/ChFunctionRotation_setpoint.cpp
 	motion_functions/ChFunctionRotation_spline.cpp
+	motion_functions/ChFunctionRotation_SQUAD.cpp
     )
 
 set(ChronoEngine_motion_functions_HEADERS
@@ -810,6 +811,7 @@ set(ChronoEngine_motion_functions_HEADERS
 	motion_functions/ChFunctionRotation_ABCfunctions.h
 	motion_functions/ChFunctionRotation_setpoint.h
 	motion_functions/ChFunctionRotation_spline.h
+	motion_functions/ChFunctionRotation_SQUAD.h
     )
 
 if(CH_CXX14)

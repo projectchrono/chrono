@@ -12,12 +12,11 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#ifndef CHFUNCTIONROTATION_SPLINE_H
-#define CHFUNCTIONROTATION_SPLINE_H
+#ifndef CHFUNCTIONROTATION_SQUAD_H
+#define CHFUNCTIONROTATION_SQUAD_H
 
 #include "chrono/motion_functions/ChFunctionRotation.h"
 #include "chrono/motion_functions/ChFunction_Base.h"
-
 
 namespace chrono {
 
@@ -25,49 +24,49 @@ namespace chrono {
 /// @{
 
 
-/// A rotation function q=f(s) that interpolates n rotations using a "quaternion spline" of
-/// generic order. 
-/// For order 1 (linear) this boils down to a classical SLERP interpolation.
-/// For higher orders, this operates as in the paper  "A C^2-continuous B-spline quaternion curve interpolating
-/// a given sequence of solid orientations", Myoung-Jun Kim, Myung-Soo Kim. 1995. DOI:10.1109/CA.1995.393545.
-/// Note, except for order 1 (linear) the rotation does not pass through control points, 
-/// just like for positions in Bspline, except for first and last point. Exact interpolation requires the 'inversion' of the control points (to do).
+/// A rotation function q=f(s) that interpolates n rotations using a SQUAD 
+/// spherical quadrangle interpolation between quaternions. 
+/// Differently from the ChFunctionRotation_spline of order 3, 
+/// this cubic interpolation really passes through the control points.
+/// In the original single-span SQUAD algorithm, 4 quaternions are used: the interpolation
+/// passes exactly in 1st and 4th, whereas 2nd and 3rd are 'magnetic' as ctrl points 
+/// in splines; in our implementation the 2nd and 3rd are computed automatically
+/// given the sequence of the many SQUAD spans, per each span, enforcing continuity inter span.
 
-class ChApi ChFunctionRotation_spline : public ChFunctionRotation {
+class ChApi ChFunctionRotation_SQUAD : public ChFunctionRotation {
 
   public:
     /// Constructor. By default constructs a linear SLERP between two identical null rotations
-    ChFunctionRotation_spline();
+    ChFunctionRotation_SQUAD();
 
     /// Constructor from a given array of control points; each control point is a rotation to interpolate. Input data is copied.
     /// If the knots are not provided, a uniformly spaced knot vector is made.
-    ChFunctionRotation_spline(
-        int morder,                             ///< order p: 1= linear, 2=quadratic, etc.
-        const std::vector<ChQuaternion<> >& mrotations,  ///< control points, size n. Each is a rotation. Required: at least n >= p+1
-        ChVectorDynamic<>* mknots = 0           ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
+    ChFunctionRotation_SQUAD(
+        const std::vector<ChQuaternion<> >& mrotations,  ///< rotations, to interpolate. Required: at least n = 2. 
+        ChVectorDynamic<>* mknots = 0					 ///< knots, as many as control points. If not provided, initialized to uniform.
     );
 
-	ChFunctionRotation_spline(const ChFunctionRotation_spline& other);
-	virtual ~ChFunctionRotation_spline();
+	ChFunctionRotation_SQUAD(const ChFunctionRotation_SQUAD& other);
+	virtual ~ChFunctionRotation_SQUAD();
 
     /// "Virtual" copy constructor.
-    virtual ChFunctionRotation_spline* Clone() const override { return new ChFunctionRotation_spline(*this); }
+    virtual ChFunctionRotation_SQUAD* Clone() const override { return new ChFunctionRotation_SQUAD(*this); }
 
 
 	/// When using Evaluate() etc. you need U parameter to be in 0..1 range,
     /// but knot range is not necessarily in 0..1. So you can convert u->U,
     /// where u is in knot range, calling this:
     double ComputeUfromKnotU(const double u) const {
-        return (u - knots(p)) / (knots(knots.size() - 1-p) - knots(p));
+        return (u - knots(0)) / (knots(knots.size()-1) - knots(0));
     }
     /// When using Evaluate() etc. you need U parameter to be in 0..1 range,
     /// but knot range is not necessarily in 0..1. So you can convert U->u,
     /// where u is in knot range, calling this:
     double ComputeKnotUfromU(const double U) const {
-        return U * (knots(knots.size() - 1-p) - knots(p)) + knots(p);
+        return U * (knots(knots.size()-1) - knots(0)) + knots(0);
     }
 
-    /// Access the rotations, ie. quaternion spline control points
+    /// Access the rotations, ie. quaternion SQUAD control points
     std::vector<ChQuaternion<> >& Rotations() { return rotations; }
 
     /// Access the knots
@@ -76,12 +75,11 @@ class ChApi ChFunctionRotation_spline : public ChFunctionRotation {
     /// Get the order of spline
     int GetOrder() { return p; }
 
-    /// Initial easy setup from a given array of rotations (quaternion spline control points). Input data is copied.
+    /// Initial easy setup from a given array of rotations (quaternion control points). Input data is copied.
     /// If the knots are not provided, a uniformly spaced knot vector is made.
     virtual void SetupData(
-        int morder,                         ///< order p: 1= linear, 2=quadratic, etc.
-        const std::vector<ChQuaternion<> >& mrotations,  ///< rotations, size n. Required: at least n >= p+1
-        ChVectorDynamic<>* mknots = 0  ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
+        const std::vector<ChQuaternion<> >& mrotations,  ///< rotations, to interpolate. Required: at least n = 2. 
+        ChVectorDynamic<>* mknots = 0  ///< knots, as many as control points. If not provided, initialized to uniform.
     );
 	
 
@@ -137,7 +135,7 @@ private:
 
 /// @} chrono_functions
 
-CH_CLASS_VERSION(ChFunctionRotation_spline, 0)
+CH_CLASS_VERSION(ChFunctionRotation_SQUAD, 0)
 
 }  // end namespace chrono
 

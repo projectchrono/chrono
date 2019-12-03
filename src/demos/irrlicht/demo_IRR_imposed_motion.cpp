@@ -32,6 +32,7 @@
 #include "chrono/motion_functions/ChFunctionRotation_ABCfunctions.h"
 #include "chrono/motion_functions/ChFunctionRotation_setpoint.h"
 #include "chrono/motion_functions/ChFunctionRotation_axis.h"
+#include "chrono/motion_functions/ChFunctionRotation_SQUAD.h"
 
 #include "chrono/physics/ChLinkMotionImposed.h"
 
@@ -144,6 +145,7 @@ int main(int argc, char* argv[]) {
 	// i.e.a linear map s=0.2*t between absyssa s and time t
 	f_line->SetSpaceFunction( chrono_types::make_shared<ChFunction_Ramp>(0, 0.2) );
 
+
 	// Create a spline rotation interpolation based on quaternion splines.
 	// Note that if order=1, the quaternion spline boils down to a simple SLERP interpolation
 	auto f_rotspline = chrono_types::make_shared<ChFunctionRotation_spline>(
@@ -152,6 +154,8 @@ int main(int argc, char* argv[]) {
 										{ 1, 0, 0, 0 },
 										{ 0, 0, 1, 0 },
 										Q_from_AngZ(1.2),
+										Q_from_AngZ(2.2),
+										Q_from_AngZ(-1.2),
 										{ 0, 1, 0, 0 }
 									}  
 	);
@@ -159,8 +163,7 @@ int main(int argc, char* argv[]) {
 	f_rotspline->SetClosed(true);
 	// Make the rotation spline evaluation 1/5 slower using a linear map s=0.2*t between absyssa s and time t
 	f_rotspline->SetSpaceFunction( chrono_types::make_shared<ChFunction_Ramp>(0, 0.2) );
-	// Another example to test: use a sigma function between s and t:
-	// f_rotspline->SetSpaceFunction( chrono_types::make_shared<ChFunction_Sigma>(1, 0, 4) ); // amp,start,end
+
 
 	// Create the constraint to impose motion and rotation:
 	auto impose_2 = chrono_types::make_shared<ChLinkMotionImposed>();
@@ -238,6 +241,41 @@ int main(int argc, char* argv[]) {
 	impose_4->SetRotationFunction(f_abc_angles);
 
 
+	// 
+	// EXAMPLE 5
+	//
+	//
+	// In this example we impose rotation of a shape respect to absolute reference,
+	// using the following methods:
+	//
+	// rotation:  use a SQUAD (smooth interpolation of quaternion rotations as in Shoemake 1987 paper).
+
+
+	// Create the object to move 
+    auto mmoved_5 = chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("support.obj"),1000); // mesh file, density
+	mphysicalSystem.Add(mmoved_5);
+    mmoved_5->SetPos(ChVector<>(1, 1, 0));
+
+	// Create a spline rotation interpolation based on SQUAD smooth quaternion interpolation.
+	// Note that, differently from ChFunctionRotation_spline, the SQUAD interpolation passes exactly through the control points.
+	auto f_squad = chrono_types::make_shared<ChFunctionRotation_SQUAD>(
+		std::vector<ChQuaternion<> >{								// std::vector with ChQuaternion<> rot.controlpoints 
+										{ 1, 0, 0, 0 },
+										{ 0, 0, 1, 0 },
+										Q_from_AngZ(1.2),
+										Q_from_AngZ(2.2),
+										Q_from_AngZ(-1.2),
+										{ 0, 1, 0, 0 }
+									}  
+	);
+	f_squad->SetClosed(true);
+	f_squad->SetSpaceFunction( chrono_types::make_shared<ChFunction_Ramp>(0, 0.2) );
+
+	// Create the constraint to impose motion and rotation:
+	auto impose_5 = chrono_types::make_shared<ChLinkMotionImposed>();
+	mphysicalSystem.Add(impose_5);
+	impose_5->Initialize(mmoved_5, mfloor, ChFrame<>(mmoved_5->GetPos()));
+	impose_5->SetRotationFunction(f_squad);
 
 
 
@@ -286,11 +324,12 @@ int main(int argc, char* argv[]) {
 
 		if (application.GetSystem()->GetStepcount() % 10 == 0) {
 			f_pos_setpoint->SetSetpoint(0.2*ChVector<>(cos(t*12), sin(t*12), 0), t);
-			f_rot_setpoint->SetSetpoint(Q_from_AngAxis(t*0.5, VECT_Z), t );
+			//f_rot_setpoint->SetSetpoint(Q_from_AngAxis(t*0.5, VECT_Z), t );
 			//GetLog() << "set p = " << f_setpoint->Get_p(t).y() << " at t=" << t  << "\n";
 		}
 		//GetLog() << "p = " << f_setpoint->Get_p(t).y() << "  p_ds = " << f_setpoint->Get_p_ds(t).y() << "   p_dsds= " << f_setpoint->Get_p_dsds(t).y() << "\n";
-
+		//if (!application.GetPaused())
+		//	mmoved_5->SetRot(f_squad->Get_q(t));
 
         application.EndScene();
     }
