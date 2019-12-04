@@ -273,9 +273,6 @@ int main(int argc, char* argv[]) {
 
     application.AssetUpdateAll();
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
 
 
     //
@@ -291,7 +288,8 @@ int main(int argc, char* argv[]) {
     msolver->SetVerbose(false);
     msolver->SetDiagonalPreconditioning(true);
 
-    auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
+    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+    mkl_solver->LockSparsityPattern(true);
     my_system.SetSolver(mkl_solver);
             
     application.SetTimestep(0.0002);
@@ -304,7 +302,12 @@ int main(int argc, char* argv[]) {
 
         application.DoStep();
 
-        extruder->Update();    //***REMEMBER*** to do this to update the extrusion
+        bool modified = extruder->Update();    //***REMEMBER*** to do this to update the extrusion
+        if (modified) {
+            // A system change occurred: if using a sparse direct linear solver and if using the sparsity pattern
+            // learner (enabled by default), then we must force a re-evaluation of system matrix sparsity pattern!
+            mkl_solver->ForceSparsityPatternUpdate();
+        }
 
         application.EndScene();
     }

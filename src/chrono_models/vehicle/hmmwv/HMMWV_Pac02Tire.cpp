@@ -34,151 +34,170 @@ namespace hmmwv {
 // -----------------------------------------------------------------------------
 
 const double HMMWV_Pac02Tire::m_mass = 37.6;
-const ChVector<> HMMWV_Pac02Tire::m_inertia(3.84, 6.69, 3.84);
+const ChVector<> HMMWV_Pac02Tire::m_inertia(3.75635, 6.52582, 3.75635);
 
 const std::string HMMWV_Pac02Tire::m_meshName = "hmmwv_tire_POV_geom";
 const std::string HMMWV_Pac02Tire::m_meshFile = "hmmwv/hmmwv_tire.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV_Pac02Tire::HMMWV_Pac02Tire(const std::string& name) : ChPac02Tire(name) {}
+HMMWV_Pac02Tire::HMMWV_Pac02Tire(const std::string& name)
+    : ChPac02Tire(name), m_use_vert_map(false), m_use_bott_map(false) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void HMMWV_Pac02Tire::SetPac02Params() {
-    m_measured_side = LEFT;
-    m_use_mode = 4;
-    // Parameter Set Converted from an Adams Tire file, gained by scaling
-    m_PacScal.lfz0 = 0.59;
-    m_PacScal.ltr = 0.8;
-
+    // begin of variables set up
+    m_use_mode = 3;
+    m_allow_mirroring = false;
     m_PacCoeff.R0 = 0.46482;
     m_PacCoeff.width = 0.3175;
-    m_PacCoeff.FzNomin = 35000;
-    m_PacCoeff.Cz = 420810;
-    m_PacCoeff.Kz = 398;
-
-    // longitudinal parameters
-    m_PacCoeff.pcx1 = 1.7204;        // Shape factor Cfx for longitudinal force
-    m_PacCoeff.pdx1 = 0.77751;       // Longitudinal friction Mux at Fznom
-    m_PacCoeff.pdx2 = -0.24431;      // Variation of friction Mux with load
-    m_PacCoeff.pdx3 = -0.00015908;   // Variation of friction Mux with camber
-    m_PacCoeff.pex1 = 0.46659;       // Longitudinal curvature Efx at Fznom
-    m_PacCoeff.pex2 = 0.393;         // Variation of curvature Efx with load
-    m_PacCoeff.pex3 = 0.076024;      // Variation of curvature Efx with load squared
-    m_PacCoeff.pex4 = 2.6509e-006;   // Factor in curvature Efx while driving
-    m_PacCoeff.pkx1 = 14.848;        // Longitudinal slip stiffness Kfx/Fz at Fznom
-    m_PacCoeff.pkx2 = -9.8161;       // Variation of slip stiffness Kfx/Fz with load
-    m_PacCoeff.pkx3 = 0.15818;       // Exponent in slip stiffness Kfx/Fz with load
-    m_PacCoeff.phx1 = -0.00088873;   // Horizontal shift Shx at Fznom
-    m_PacCoeff.phx2 = -0.00067818;   // Variation of shift Shx with load
-    m_PacCoeff.pvx1 = -5.5714e-007;  // Vertical shift Svx/Fz at Fznom
-    m_PacCoeff.pvx2 = 6.2972e-006;   // Variation of shift Svx/Fz with load
-    m_PacCoeff.rbx1 = 11.13;         // Slope factor for combined slip Fx reduction
-    m_PacCoeff.rbx2 = -12.494;       // Variation of slope Fx reduction with kappa
-    m_PacCoeff.rbx1 = 0.97505;       // Shape factor for combined slip Fx reduction
-    m_PacCoeff.rex1 = -0.37196;      // Curvature factor of combined Fx
-    m_PacCoeff.rex2 = 0.0017379;     // Curvature factor of combined Fx with load
-    m_PacCoeff.rhx1 = 0.0045181;     // Shift factor for combined slip Fx reduction
-    m_PacCoeff.ptx1 = 1.5;           // Relaxation length SigKap0/Fz at Fznom
-    m_PacCoeff.ptx2 = 1.4;           // Variation of SigKap0/Fz with load
-    m_PacCoeff.ptx3 = 1;             // Variation of SigKap0/Fz with exponent of load
-    m_PacCoeff.ptx4 = 0.1;           // Low speed damping
-
-    // lateral coefficients
-    m_PacCoeff.pcy1 = 1.5874;        // Shape factor Cfy for lateral forces
-    m_PacCoeff.pdy1 = 0.73957;       // Lateral friction Muy
-    m_PacCoeff.pdy2 = -0.075004;     // Variation of friction Muy with load
-    m_PacCoeff.pdy3 = -8.0362;       // Variation of friction Muy with squared camber
-    m_PacCoeff.pey1 = 0.37562;       // Lateral curvature Efy at Fznom
-    m_PacCoeff.pey2 = -0.069325;     // Variation of curvature Efy with load
-    m_PacCoeff.pey3 = 0.29168;       // Zero order camber dependency of curvature Efy
-    m_PacCoeff.pey4 = 11.559;        // Variation of curvature Efy with camber
-    m_PacCoeff.pky1 = -10.289;       // Maximum value of stiffness Kfy/Fznom
-    m_PacCoeff.pky2 = 3.3343;        // Load at which Kfy reaches maximum value
-    m_PacCoeff.pky3 = -0.25732;      // Variation of Kfy/Fznom with camber
-    m_PacCoeff.phy1 = 0.0056509;     // Horizontal shift Shy at Fznom
-    m_PacCoeff.phy2 = -0.0020257;    // Variation of shift Shy with load
-    m_PacCoeff.phy3 = -0.038716;     // Variation of shift Shy with camber
-    m_PacCoeff.pvy1 = 0.015216;      // Vertical shift in Svy/Fz at Fznom
-    m_PacCoeff.pvy2 = -0.010365;     // Variation of shift Svy/Fz with load
-    m_PacCoeff.pvy3 = -0.31373;      // Variation of shift Svy/Fz with camber
-    m_PacCoeff.pvy4 = -0.055766;     // Variation of shift Svy/Fz with camber and load
-    m_PacCoeff.rby1 = 13.271;        // Slope factor for combined Fy reduction
-    m_PacCoeff.rby2 = 5.2405;        // Variation of slope Fy reduction with alpha
-    m_PacCoeff.rby3 = 1.1547e-005;   // Shift term for alpha in slope Fy reduction
-    m_PacCoeff.rcy1 = 1.01;          // Shape factor for combined Fy reduction
-    m_PacCoeff.rey1 = 0.010513;      // Curvature factor of combined Fy
-    m_PacCoeff.rey2 = 5.9816e-005;   // Curvature factor of combined Fy with load
-    m_PacCoeff.rhy1 = 0.028005;      // Shift factor for combined Fy reduction
-    m_PacCoeff.rhy2 = -4.8794e-005;  // Shift factor for combined Fy reduction with load
-    m_PacCoeff.rvy1 = 0.0066878;     // Kappa induced side force Svyk/Muy*Fz at Fznom
-    m_PacCoeff.rvy2 = -0.042813;     // Variation of Svyk/Muy*Fz with load
-    m_PacCoeff.rvy3 = -0.16227;      // Variation of Svyk/Muy*Fz with camber
-    m_PacCoeff.rvy4 = -0.019796;     // Variation of Svyk/Muy*Fz with alpha
-    m_PacCoeff.rvy5 = 1.9;           // Variation of Svyk/Muy*Fz with kappa
-    m_PacCoeff.rvy6 = -7.8097;       // Variation of Svyk/Muy*Fz with atan(kappa)
-    m_PacCoeff.pty1 = 1.2;           // Peak value of relaxation length SigAlp0/R0
-    m_PacCoeff.pty2 = 2.5;           // Value of Fz/Fznom where SigAlp0 is extreme
-
-    // overturning coefficients
-    m_PacCoeff.qsx1 = 0;  // Lateral force induced overturning moment
-    m_PacCoeff.qsx2 = 0;  // Camber induced overturning couple
-    m_PacCoeff.qsx3 = 0;  // Fy induced overturning couple
-
-    // rolling resistance
+    m_PacCoeff.aspect_ratio = 0.8;
+    m_PacCoeff.rim_radius = 0.20955;
+    m_PacCoeff.rim_width = 0.20933;
+    m_PacCoeff.Cz = 326332;
+    m_PacCoeff.Kz = 3502.8;
+    m_PacCoeff.FzNomin = 29912;
+    // begin scaling factors set up
+    m_PacScal.lfz0 = 0.567912;
+    m_PacScal.lcx = 1;
+    m_PacScal.lmux = 1;
+    m_PacScal.lex = 1;
+    m_PacScal.lkx = 1;
+    m_PacScal.lhx = 1;
+    m_PacScal.lvx = 1;
+    m_PacScal.lcy = 1;
+    m_PacScal.lmuy = 1;
+    m_PacScal.ley = 1;
+    m_PacScal.lky = 1;
+    m_PacScal.lhy = 1;
+    m_PacScal.lvy = 1;
+    m_PacScal.lgay = 1;
+    m_PacScal.ltr = 1.03193;
+    m_PacScal.lres = 1;
+    m_PacScal.lgaz = 1;
+    m_PacScal.lxal = 1;
+    m_PacScal.lyka = 1;
+    m_PacScal.lvyka = 1;
+    m_PacScal.ls = 1;
+    m_PacScal.lsgkp = 1;
+    m_PacScal.lsgal = 1;
+    m_PacScal.lgyr = 1;
+    m_PacScal.lmx = 1;
+    m_PacScal.lmy = 1;
+    // setting longitidunal coefficients
+    m_PacCoeff.pcx1 = 1.4;
+    m_PacCoeff.pdx1 = 0.84003;
+    m_PacCoeff.pdx2 = -0.065962;
+    m_PacCoeff.pex1 = -4.5309;
+    m_PacCoeff.pex2 = -3.0987;
+    m_PacCoeff.pex3 = 0.20647;
+    m_PacCoeff.pex4 = 0;
+    m_PacCoeff.pkx1 = 6.3425;
+    m_PacCoeff.pkx2 = -1.9878e-05;
+    m_PacCoeff.pkx3 = -0.16666;
+    m_PacCoeff.phx1 = 0;
+    m_PacCoeff.phx2 = 0;
+    m_PacCoeff.pvx1 = -0;
+    m_PacCoeff.pvx2 = 0;
+    m_PacCoeff.rbx1 = 10;
+    m_PacCoeff.rbx2 = 6;
+    m_PacCoeff.rcx1 = 1;
+    m_PacCoeff.rhx1 = 0;
+    // setting lateral coefficients
+    m_PacCoeff.pcy1 = 0.54764;
+    m_PacCoeff.pdy1 = -1.1188;
+    m_PacCoeff.pdy2 = 0.072812;
+    m_PacCoeff.pdy3 = -1.7244;
+    m_PacCoeff.pey1 = 0.056372;
+    m_PacCoeff.pey2 = -0.065607;
+    m_PacCoeff.pey3 = -0.28765;
+    m_PacCoeff.pey4 = 63.843;
+    m_PacCoeff.pky1 = -9.5432;
+    m_PacCoeff.pky2 = 2.4559;
+    m_PacCoeff.pky3 = 0.62823;
+    m_PacCoeff.phy1 = 0.0035499;
+    m_PacCoeff.phy2 = 0.0045166;
+    m_PacCoeff.phy3 = -0.035468;
+    m_PacCoeff.pvy1 = 0.0031041;
+    m_PacCoeff.pvy2 = 0.009559;
+    m_PacCoeff.pvy3 = -0.13882;
+    m_PacCoeff.pvy4 = -0.25693;
+    m_PacCoeff.rby1 = 0;
+    m_PacCoeff.rby2 = 0;
+    m_PacCoeff.rby3 = 0;
+    m_PacCoeff.rby1 = 0;
+    m_PacCoeff.rhy1 = 0;
+    m_PacCoeff.rvy1 = 0;
+    m_PacCoeff.rvy2 = 0;
+    m_PacCoeff.rvy3 = 0;
+    m_PacCoeff.rvy4 = 0;
+    m_PacCoeff.rvy5 = 0;
+    m_PacCoeff.rvy6 = 0;
+    // setting alignment coefficients
+    m_PacCoeff.qbz1 = 8.5499;
+    m_PacCoeff.qbz2 = -2.0123;
+    m_PacCoeff.qbz3 = -9.7502;
+    m_PacCoeff.qbz4 = 0.40886;
+    m_PacCoeff.qbz5 = -0.75474;
+    m_PacCoeff.qbz9 = 0.49999;
+    m_PacCoeff.qcz1 = 1.4;
+    m_PacCoeff.qdz1 = 0.080379;
+    m_PacCoeff.qdz2 = -0.02931;
+    m_PacCoeff.qdz3 = -0.032073;
+    m_PacCoeff.qdz4 = 0.29184;
+    m_PacCoeff.qdz6 = -0.0025776;
+    m_PacCoeff.qdz7 = -0.0014791;
+    m_PacCoeff.qdz8 = -0.020474;
+    m_PacCoeff.qdz9 = 0.0044162;
+    m_PacCoeff.qez1 = -0.017913;
+    m_PacCoeff.qez2 = -0.73133;
+    m_PacCoeff.qez3 = -4.7227;
+    m_PacCoeff.qez4 = 0.32329;
+    m_PacCoeff.qez5 = 2.5289;
+    m_PacCoeff.qhz1 = -0.0011513;
+    m_PacCoeff.qhz2 = -0.0057439;
+    m_PacCoeff.qhz3 = 0.12163;
+    m_PacCoeff.qhz4 = 0.10576;
+    m_PacCoeff.ssz1 = 0;
+    m_PacCoeff.ssz2 = 0;
+    m_PacCoeff.ssz3 = 0;
+    m_PacCoeff.ssz4 = 0;
+    // setting overturning coefficients
+    m_PacCoeff.qsx1 = 0;
+    m_PacCoeff.qsx2 = 0;
+    m_PacCoeff.qsx3 = 0;
+    // setting rolling coefficients
     m_PacCoeff.qsy1 = 0.015;
-
-    // aligning coefficients
-    m_PacCoeff.qbz1 = 5.8978;      // Trail slope factor for trail Bpt at Fznom
-    m_PacCoeff.qbz2 = -0.1535;     // Variation of slope Bpt with load
-    m_PacCoeff.qbz3 = -2.0052;     // Variation of slope Bpt with load squared
-    m_PacCoeff.qbz4 = 0.62731;     // Variation of slope Bpt with camber
-    m_PacCoeff.qbz5 = -0.92709;    // Variation of slope Bpt with absolute camber
-    m_PacCoeff.qbz9 = 10.637;      // Slope factor Br of residual torque Mzr
-    m_PacCoeff.qbz10 = 0;          // Slope factor Br of residual torque Mzr
-    m_PacCoeff.qcz1 = 1.4982;      // Shape factor Cpt for pneumatic trail
-    m_PacCoeff.qdz1 = 0.085549;    // Peak trail Dpt" = Dpt*(Fz/Fznom*R0)
-    m_PacCoeff.qdz2 = -0.025298;   // Variation of peak Dpt" with load
-    m_PacCoeff.qdz3 = 0.21486;     // Variation of peak Dpt" with camber
-    m_PacCoeff.qdz4 = -3.9098;     // Variation of peak Dpt" with camber squared
-    m_PacCoeff.qdz6 = -0.0013373;  // Peak residual torque Dmr" = Dmr/(Fz*R0)
-    m_PacCoeff.qdz7 = 0.0013869;   // Variation of peak factor Dmr" with load
-    m_PacCoeff.qdz8 = -0.053513;   // Variation of peak factor Dmr" with camber
-    m_PacCoeff.qdz9 = 0.025817;    // Variation of peak factor Dmr" with camber and load
-    m_PacCoeff.qez1 = -0.0084519;  // Trail curvature Ept at Fznom
-    m_PacCoeff.qez2 = 0.0097389;   // Variation of curvature Ept with load
-    m_PacCoeff.qez3 = 0;           // Variation of curvature Ept with load squared
-    m_PacCoeff.qez4 = 4.3583;      // Variation of curvature Ept with sign of Alpha-t
-    m_PacCoeff.qez5 = -645.04;     // Variation of Ept with camber and sign Alpha-t
-    m_PacCoeff.qhz1 = 0.0085657;   // Trail horizontal shift Sht at Fznom
-    m_PacCoeff.qhz2 = -0.0042922;  // Variation of shift Sht with load
-    m_PacCoeff.qhz3 = 0.14763;     // Variation of shift Sht with camber
-    m_PacCoeff.qhz4 = -0.29999;    // Variation of shift Sht with camber and load
-    m_PacCoeff.ssz1 = -0.019408;   // Nominal value of s/R0: effect of Fx on Mz
-    m_PacCoeff.ssz2 = 0.025786;    // Variation of distance s/R0 with Fy/Fznom
-    m_PacCoeff.ssz3 = 0.31908;     // Variation of distance s/R0 with camber
-    m_PacCoeff.ssz4 = -0.50765;    // Variation of distance s/R0 with load and camber
-    m_PacCoeff.qtz1 = 0;           // Gyration torque constant
-    m_PacCoeff.mbelt = 0;          // Belt mass of the wheel
-
-    // load the vertical stiffness table
-    m_vert_map.AddPoint(0.00, 0);
-    m_vert_map.AddPoint(0.01, 2830.0);
-    m_vert_map.AddPoint(0.02, 6212.0);
-    m_vert_map.AddPoint(0.03, 10146.0);
-    m_vert_map.AddPoint(0.04, 14632.0);
-    m_vert_map.AddPoint(0.05, 19670.0);
-    m_vert_map.AddPoint(0.06, 25260.0);
-    m_vert_map.AddPoint(0.07, 31402.0);
-    m_vert_map.AddPoint(0.08, 38096.0);
-    m_vert_map.AddPoint(0.09, 45342.0);
-    m_vert_map.AddPoint(0.10, 53140.0);
+    m_PacCoeff.qsy2 = 0;
+    // setting bottoming table
+    m_use_bott_map = true;
+    m_bott_map.AddPoint(0, 0);
+    m_bott_map.AddPoint(0.09, 0);
+    m_bott_map.AddPoint(0.1, 100000);
+    m_bott_map.AddPoint(0.2, 200000);
+    m_bott_map.AddPoint(0.3, 300000);
+    m_bott_map.AddPoint(0.4, 400000);
+    m_bott_map.AddPoint(0.5, 500000);
+    m_bott_map.AddPoint(0.6, 600000);
+    m_bott_map.AddPoint(6, 6e+06);
 }
 
 double HMMWV_Pac02Tire::GetNormalStiffnessForce(double depth) const {
-    return m_vert_map.Get_y(depth);
-}
+    if (m_use_vert_map) {
+        if (m_use_bott_map) {
+            return m_vert_map.Get_y(depth) + m_bott_map.Get_y(depth);
+        } else {
+            return m_vert_map.Get_y(depth);
+        }
+    } else {
+        if (m_use_bott_map) {
+            return m_PacCoeff.Cz * depth + m_bott_map.Get_y(depth);
+        } else {
+            return m_PacCoeff.Cz * depth;
+        }
+    }
+}  // namespace hmmwv
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -209,6 +228,6 @@ void HMMWV_Pac02Tire::RemoveVisualizationAssets() {
         assets.erase(it);
 }
 
-}  // end namespace hmmwv
-}  // end namespace vehicle
+}  // namespace hmmwv
+}  // namespace vehicle
 }  // end namespace chrono

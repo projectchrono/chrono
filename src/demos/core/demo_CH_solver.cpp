@@ -15,7 +15,7 @@
 // Include some headers used by this tutorial...
 
 #include "chrono/core/ChGlobal.h"
-#include "chrono/core/ChCSMatrix.h"
+#include "chrono/core/ChMatrix.h"
 
 #include "chrono/solver/ChVariablesGeneric.h"
 #include "chrono/solver/ChVariablesBodyOwnMass.h"
@@ -153,8 +153,8 @@ void test_1(const std::string& out_dir) {
 
     // If needed, dump the full system M and Cq matrices
     // on disk, in Matlab sparse format:
-    ChCSMatrix matrM;
-    ChCSMatrix matrCq;
+    ChSparseMatrix matrM;
+    ChSparseMatrix matrCq;
 
     mdescriptor.ConvertToMatrixForm(&matrCq, &matrM, 0, 0, 0, 0, false, false);
 
@@ -163,14 +163,14 @@ void test_1(const std::string& out_dir) {
         ChStreamOutAsciiFile fileM(filename.c_str());
         filename = out_dir + "/dump_Cq_1.dat";
         ChStreamOutAsciiFile fileCq(filename.c_str());
-        matrM.StreamOUTsparseMatlabFormat(fileM);
-        matrCq.StreamOUTsparseMatlabFormat(fileCq);
+        StreamOUTsparseMatlabFormat(matrM, fileM);
+        StreamOUTsparseMatlabFormat(matrCq, fileCq);
     } catch (ChException myex) {
         GetLog() << "FILE ERROR: " << myex.what();
     }
 
-    matrM.StreamOUT(GetLog());
-    matrCq.StreamOUT(GetLog());
+    StreamOUT(matrM, GetLog());
+    StreamOUT(matrCq, GetLog());
 
     GetLog() << "**** Using ChSolverSOR  ********** \n\n";
     GetLog() << "METRICS: max residual: " << max_res << "  max LCP error: " << max_LCPerr << "  \n\n";
@@ -230,9 +230,9 @@ void test_2(const std::string& out_dir) {
 
     try {
         std::string filename;
-        ChCSMatrix mdM;
-        ChCSMatrix mdCq;
-        ChCSMatrix mdE;
+        ChSparseMatrix mdM;
+        ChSparseMatrix mdCq;
+        ChSparseMatrix mdE;
         ChVectorDynamic<double> mdf;
         ChVectorDynamic<double> mdb;
         ChVectorDynamic<double> mdfric;
@@ -240,15 +240,15 @@ void test_2(const std::string& out_dir) {
 
         filename = out_dir + "/dump_M_2.dat";
         chrono::ChStreamOutAsciiFile file_M(filename.c_str());
-        mdM.StreamOUTsparseMatlabFormat(file_M);
+        StreamOUTsparseMatlabFormat(mdM, file_M);
         
         filename = out_dir + "/dump_Cq_2.dat";
         chrono::ChStreamOutAsciiFile file_Cq(filename.c_str());
-        mdCq.StreamOUTsparseMatlabFormat(file_Cq);
+        StreamOUTsparseMatlabFormat(mdCq, file_Cq);
         
         filename = out_dir + "/dump_E_2.dat";
         chrono::ChStreamOutAsciiFile file_E(filename.c_str());
-        mdE.StreamOUTsparseMatlabFormat(file_E);
+        StreamOUTsparseMatlabFormat(mdE, file_E);
         
         filename = out_dir + "/dump_f_2.dat";
         chrono::ChStreamOutAsciiFile file_f(filename.c_str());

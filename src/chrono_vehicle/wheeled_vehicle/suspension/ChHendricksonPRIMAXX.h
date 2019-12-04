@@ -103,6 +103,11 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
     /// Get the wheel track for the suspension subsystem.
     virtual double GetTrack() override;
 
+    /// Return current suspension forces (spring and shock) on the specified side.
+    /// For this particular suspension, the return struct contains information about the LB force element in its
+    /// "spring" members and information about the AH force element in its "shock" members.
+    virtual ChSuspension::Force ReportSuspensionForce(VehicleSide side) const override;
+
     /// There could be a spring (coil or air) and damper element between chassis and lower beam
     /// and a second spring and damper element between chassis and housing
 
@@ -110,25 +115,25 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
     /// Get the force in the air spring (coil or spring) and a damper element
 
     /// Get the force in the spring-damper element.
-    double GetShockLBForce(VehicleSide side) const { return m_shockLB[side]->GetSpringReact(); }
+    double GetShockLBForce(VehicleSide side) const { return m_shockLB[side]->GetForce(); }
 
     /// Get the current length of the spring-damper element.
-    double GetShockLBLength(VehicleSide side) const { return m_shockLB[side]->GetSpringLength(); }
+    double GetShockLBLength(VehicleSide side) const { return m_shockLB[side]->GetLength(); }
 
     /// Get the current deformation velocity of the spring-damper element.
-    double GetShockLBVelocity(VehicleSide side) const { return m_shockLB[side]->GetSpringVelocity(); }
+    double GetShockLBVelocity(VehicleSide side) const { return m_shockLB[side]->GetVelocity(); }
 
     /// Spring (coil or air) and damper element between chassis and axle housing (AH)
     /// Get the force in the air spring (coil or spring) and a damper element
 
     /// Get the force in the spring-damper element.
-    double GetShockAHForce(VehicleSide side) const { return m_shockAH[side]->GetSpringReact(); }
+    double GetShockAHForce(VehicleSide side) const { return m_shockAH[side]->GetForce(); }
 
     /// Get the current length of the spring-damper element.
-    double GetShockAHLength(VehicleSide side) const { return m_shockAH[side]->GetSpringLength(); }
+    double GetShockAHLength(VehicleSide side) const { return m_shockAH[side]->GetLength(); }
 
     /// Get the current deformation velocity of the spring-damper element.
-    double GetShockAHVelocity(VehicleSide side) const { return m_shockAH[side]->GetSpringVelocity(); }
+    double GetShockAHVelocity(VehicleSide side) const { return m_shockAH[side]->GetVelocity(); }
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations(VehicleSide side) override;
@@ -231,14 +236,14 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
     /// Return the free (rest) length of the spring element.
     virtual double getShockLBRestLength() const = 0;
     /// Return the functor object for shock force.
-    virtual ChLinkSpringCB::ForceFunctor* getShockLBForceCallback() const = 0;
+    virtual ChLinkTSDA::ForceFunctor* getShockLBForceCallback() const = 0;
 
     // Axle housing spring and damper
 
     /// Return the free (rest) length of the spring element.
     virtual double getShockAHRestLength() const = 0;
     /// Return the functor object for shock force.
-    virtual ChLinkSpringCB::ForceFunctor* getShockAHForceCallback() const = 0;
+    virtual ChLinkTSDA::ForceFunctor* getShockAHForceCallback() const = 0;
 
     std::shared_ptr<ChBody> m_knuckle[2];      ///< handles to the knuckle bodies (left/right)
     std::shared_ptr<ChBody> m_torquerod[2];    ///< handles to torquerod bodies (left/right)
@@ -264,8 +269,8 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
         m_sphericalTB[2];  ///< handles to the transversebeam-lower beam spherical joints (left/right)
     std::shared_ptr<ChLinkDistance> m_distTierod[2];  ///< handles to the tierod distance constraints (left/right)
 
-    std::shared_ptr<ChLinkSpringCB> m_shockLB[2];  ///< handles to the spring links (left/right)
-    std::shared_ptr<ChLinkSpringCB> m_shockAH[2];  ///< handles to the spring links (left/right)
+    std::shared_ptr<ChLinkTSDA> m_shockLB[2];  ///< handles to the spring links (left/right)
+    std::shared_ptr<ChLinkTSDA> m_shockAH[2];  ///< handles to the spring links (left/right)
 
   private:
     // Hardpoint absolute locations and directions

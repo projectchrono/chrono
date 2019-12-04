@@ -13,6 +13,7 @@
 // =============================================================================
 
 #include "chrono/physics/ChLoadBodyMesh.h"
+#include "chrono/physics/ChSystem.h"
 
 namespace chrono {
 
@@ -53,6 +54,9 @@ void ChLoadBodyMesh::InputSimpleForces(
             new ChLoadBodyForce(contactbody, vert_forces[i], false, rel_application, true));
         this->forces.push_back(mforce);
     }
+
+    // Force an update of the system containing the associated body
+    contactbody->GetSystem()->ForceUpdate();
 }
 
 void ChLoadBodyMesh::SetContactMesh(geometry::ChTriangleMeshConnected& mmesh) {

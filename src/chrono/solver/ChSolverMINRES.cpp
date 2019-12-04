@@ -366,8 +366,7 @@ double ChSolverMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
     int nx = nv + nc;  // total scalar unknowns, in x vector for full KKT system Z*x-d=0
 
     if (verbose)
-        GetLog() << "\n----- MINRES -supporting stiffness-, n.vars nx=" << nx << "  max.iters=" << max_iterations
-                 << "\n";
+        GetLog() << "  MINRES -supporting stiffness-, n.vars nx=" << nx << "  max.iters=" << max_iterations << "\n";
 
     ChVectorDynamic<> x(nx);
     ChVectorDynamic<> d(nx);
@@ -509,7 +508,7 @@ double ChSolverMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
     sysd.FromVectorToUnknowns(x);
 
     if (verbose)
-        GetLog() << "MINRES residual: " << r.norm() << " ---\n";
+        GetLog() << "  MINRES residual: " << r.norm() << "\n";
 
     return maxviolation;
 }

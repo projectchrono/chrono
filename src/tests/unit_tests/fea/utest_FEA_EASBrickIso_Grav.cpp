@@ -236,8 +236,8 @@ int main(int argc, char* argv[]) {
     // Setup solver
     if (use_mkl) {
 #ifdef CHRONO_MKL
-        auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
-        mkl_solver->SetSparsityPatternLock(true);
+        auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+        mkl_solver->LockSparsityPattern(true);
         mkl_solver->SetVerbose(true);
         my_system.SetSolver(mkl_solver);
 #endif
@@ -257,9 +257,6 @@ int main(int argc, char* argv[]) {
     mystepper->SetAbsTolerances(1e-09);
     mystepper->SetMode(ChTimestepperHHT::POSITION);
     mystepper->SetScaling(true);
-
-    // Mark completion of system construction
-    my_system.SetupInitial();
 
     // Simulation loop
     if (output) {

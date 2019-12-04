@@ -17,7 +17,6 @@
 
 #include "chrono_granular/physics/ChGranularGPU_SMC.cuh"
 #include "chrono_granular/utils/ChGranularUtilities.h"
-#include "chrono/core/ChTimer.h"
 
 namespace chrono {
 namespace granular {
@@ -127,10 +126,6 @@ __host__ int3 ChSystemGranularSMC::getSDTripletFromID(unsigned int SD_ID) const 
 /// Occurs entirely on host, not intended to be efficient
 /// ONLY DO AT BEGINNING OF SIMULATION
 __host__ void ChSystemGranularSMC::defragment_initial_positions() {
-    INFO_PRINTF("Starting defrag run!\n");
-    ChTimer<> timer;
-    timer.start();
-
     // key and value pointers
     std::vector<unsigned int, cudallocator<unsigned int>> sphere_ids;
 
@@ -189,9 +184,6 @@ __host__ void ChSystemGranularSMC::defragment_initial_positions() {
 
     sphere_fixed.swap(sphere_fixed_tmp);
     sphere_owner_SDs.swap(sphere_owner_SDs_tmp);
-
-    timer.stop();
-    INFO_PRINTF("finished defrag run in %f seconds!\n", timer.GetTimeSeconds());
 }
 __host__ void ChSystemGranularSMC::setupSphereDataStructures() {
     // Each fills user_sphere_positions with positions to be copied
@@ -237,19 +229,19 @@ __host__ void ChSystemGranularSMC::setupSphereDataStructures() {
 
         // Copy from array of structs to 3 arrays
         for (unsigned int i = 0; i < nSpheres; i++) {
-            auto vec = user_sphere_positions.at(i);
+            float3 vec = user_sphere_positions.at(i);
             // cast to double, convert to SU, then cast to int64_t
-            sphere_global_pos_X.at(i) = (int64_t)((double)vec.x() / LENGTH_SU2UU);
-            sphere_global_pos_Y.at(i) = (int64_t)((double)vec.y() / LENGTH_SU2UU);
-            sphere_global_pos_Z.at(i) = (int64_t)((double)vec.z() / LENGTH_SU2UU);
+            sphere_global_pos_X.at(i) = (int64_t)((double)vec.x / LENGTH_SU2UU);
+            sphere_global_pos_Y.at(i) = (int64_t)((double)vec.y / LENGTH_SU2UU);
+            sphere_global_pos_Z.at(i) = (int64_t)((double)vec.z / LENGTH_SU2UU);
 
             // Convert to not_stupid_bool
             sphere_fixed.at(i) = (not_stupid_bool)((user_provided_fixed) ? user_sphere_fixed[i] : false);
             if (user_provided_vel) {
                 auto vel = user_sphere_vel.at(i);
-                pos_X_dt.at(i) = vel.x() / VEL_SU2UU;
-                pos_Y_dt.at(i) = vel.y() / VEL_SU2UU;
-                pos_Z_dt.at(i) = vel.z() / VEL_SU2UU;
+                pos_X_dt.at(i) = vel.x / VEL_SU2UU;
+                pos_Y_dt.at(i) = vel.y / VEL_SU2UU;
+                pos_Z_dt.at(i) = vel.z / VEL_SU2UU;
             }
         }
 

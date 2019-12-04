@@ -306,13 +306,6 @@ class ChApiIrr ChIrrAppInterface {
 
     irr::gui::IGUITreeView* gad_treeview;
 
-  public:
-    std::shared_ptr<ChLinkSpring>* selectedspring;
-    std::shared_ptr<ChBody>* selectedtruss;
-    std::shared_ptr<ChBody>* selectedmover;
-    ChVector<> selectedpoint;
-    double selecteddist;
-
     friend class ChIrrAppEventReceiver;
 };
 

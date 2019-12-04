@@ -61,7 +61,6 @@ ChBody::ChBody(ChMaterialSurface::ContactMethod contact_method) {
 
     last_coll_pos = CSYSNORM;
 
-
     max_speed = 0.5f;
     max_wvel = 2.0f * float(CH_C_PI);
 
@@ -76,7 +75,8 @@ ChBody::ChBody(ChMaterialSurface::ContactMethod contact_method) {
     body_id = 0;
 }
 
-ChBody::ChBody(std::shared_ptr<collision::ChCollisionModel> new_collision_model, ChMaterialSurface::ContactMethod contact_method) {
+ChBody::ChBody(std::shared_ptr<collision::ChCollisionModel> new_collision_model,
+               ChMaterialSurface::ContactMethod contact_method) {
     marklist.clear();
     forcelist.clear();
 
@@ -172,7 +172,7 @@ void ChBody::IntStateGather(const unsigned int off_x,  // offset in x state vect
                             const unsigned int off_v,  // offset in v state vector
                             ChStateDelta& v,           // state vector, speed part
                             double& T                  // time
-                            ) {
+) {
     x.segment(off_x + 0, 3) = this->coord.pos.eigen();
     x.segment(off_x + 3, 4) = this->coord.rot.eigen();
     v.segment(off_v + 0, 3) = this->coord_dt.pos.eigen();
@@ -185,12 +185,12 @@ void ChBody::IntStateScatter(const unsigned int off_x,  // offset in x state vec
                              const unsigned int off_v,  // offset in v state vector
                              const ChStateDelta& v,     // state vector, speed part
                              const double T             // time
-                             ) {
+) {
     this->SetCoord(x.segment(off_x, 7));
     this->SetPos_dt(v.segment(off_v + 0, 3));
     this->SetWvel_loc(v.segment(off_v + 3, 3));
     this->SetChTime(T);
-    this->Update();
+    this->Update(T);
 }
 
 void ChBody::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
@@ -208,7 +208,7 @@ void ChBody::IntStateIncrement(const unsigned int off_x,  // offset in x state v
                                const ChState& x,          // state vector, initial position part
                                const unsigned int off_v,  // offset in v state vector
                                const ChStateDelta& Dv     // state vector, increment
-                               ) {
+) {
     // ADVANCE POSITION:
     x_new(off_x) = x(off_x) + Dv(off_v);
     x_new(off_x + 1) = x(off_x + 1) + Dv(off_v + 1);
@@ -228,7 +228,7 @@ void ChBody::IntStateIncrement(const unsigned int off_x,  // offset in x state v
 void ChBody::IntLoadResidual_F(const unsigned int off,  // offset in R residual
                                ChVectorDynamic<>& R,    // result: the R residual, R += c*F
                                const double c           // a scaling factor
-                               ) {
+) {
     // add applied forces to 'fb' vector
     R.segment(off, 3) += c * Xforce.eigen();
 
@@ -243,7 +243,7 @@ void ChBody::IntLoadResidual_Mv(const unsigned int off,      // offset in R resi
                                 ChVectorDynamic<>& R,        // result: the R residual, R += c*M*v
                                 const ChVectorDynamic<>& w,  // the w vector
                                 const double c               // a scaling factor
-                                ) {
+) {
     R(off + 0) += c * GetMass() * w(off + 0);
     R(off + 1) += c * GetMass() * w(off + 1);
     R(off + 2) += c * GetMass() * w(off + 2);
@@ -508,7 +508,7 @@ bool ChBody::TrySleeping() {
             (2.0 * this->coord_dt.rot.LengthInf() < this->sleep_minwvel)) {
             if ((this->GetChTime() - this->sleep_starttime) > this->sleep_time) {
                 BFlagSet(BodyFlag::COULDSLEEP, true);  // mark as sleep candidate
-                return true;                    // could go to sleep!
+                return true;                           // could go to sleep!
             }
         } else {
             this->sleep_starttime = float(this->GetChTime());
@@ -524,6 +524,12 @@ void ChBody::AddMarker(std::shared_ptr<ChMarker> amarker) {
 
     amarker->SetBody(this);
     marklist.push_back(amarker);
+
+    // If the body is already added to a system, mark the system uninitialized and out-of-date
+    if (system) {
+        system->is_initialized = false;
+        system->is_updated = false;
+    }
 }
 
 void ChBody::AddForce(std::shared_ptr<ChForce> aforce) {
@@ -533,6 +539,12 @@ void ChBody::AddForce(std::shared_ptr<ChForce> aforce) {
 
     aforce->SetBody(this);
     forcelist.push_back(aforce);
+
+    // If the body is already added to a system, mark the system uninitialized and out-of-date
+    if (system) {
+        system->is_initialized = false;
+        system->is_updated = false;
+    }
 }
 
 void ChBody::RemoveForce(std::shared_ptr<ChForce> mforce) {
@@ -545,6 +557,11 @@ void ChBody::RemoveForce(std::shared_ptr<ChForce> mforce) {
         std::find<std::vector<std::shared_ptr<ChForce>>::iterator>(forcelist.begin(), forcelist.end(), mforce));
 
     mforce->SetBody(0);
+
+    // If the body is already added to a system, mark the system out-of-date
+    if (system) {
+        system->is_updated = false;
+    }
 }
 
 void ChBody::RemoveMarker(std::shared_ptr<ChMarker> mmarker) {
@@ -557,6 +574,11 @@ void ChBody::RemoveMarker(std::shared_ptr<ChMarker> mmarker) {
         std::find<std::vector<std::shared_ptr<ChMarker>>::iterator>(marklist.begin(), marklist.end(), mmarker));
 
     mmarker->SetBody(0);
+
+    // If the body is already added to a system, mark the system out-of-date
+    if (system) {
+        system->is_updated = false;
+    }
 }
 
 void ChBody::RemoveAllForces() {
@@ -636,7 +658,6 @@ void ChBody::UpdateTime(double mytime) {
     ChTime = mytime;
 }
 
-
 // UpdateALL updates the state and time
 // of the object AND the dependant (linked)
 // markers and forces.
@@ -664,7 +685,6 @@ void ChBody::Update(double mytime, bool update_assets) {
 
     Update(update_assets);
 }
-
 
 // ---------------------------------------------------------------------------
 // Body flags management
@@ -699,7 +719,9 @@ void ChBody::SetBodyFixed(bool state) {
     // RecomputeCollisionModel(); // because one may use different model types for static or dynamic coll.shapes
 }
 
-bool ChBody::GetBodyFixed() const { return BFlagGet(BodyFlag::FIXED); }
+bool ChBody::GetBodyFixed() const {
+    return BFlagGet(BodyFlag::FIXED);
+}
 
 void ChBody::SetEvalContactCn(bool state) {
     BFlagSet(BodyFlag::EVAL_CONTACT_CN, state);
@@ -850,9 +872,43 @@ void ChBody::GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax) {
         ChPhysicsItem::GetTotalAABB(bbmin, bbmax);  // default: infinite aabb
 }
 
+void ChBody::ContactableGetStateBlock_x(ChState& x) {
+    x.segment(0, 3) = this->GetCoord().pos.eigen();
+    x.segment(3, 4) = this->GetCoord().rot.eigen();
+}
+
+void ChBody::ContactableGetStateBlock_w(ChStateDelta& w) {
+    w.segment(0, 3) = this->GetPos_dt().eigen();
+    w.segment(3, 3) = this->GetWvel_loc().eigen();
+}
+
+void ChBody::ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) {
+    IntStateIncrement(0, x_new, x, 0, dw);
+}
+
+ChVector<> ChBody::GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) {
+    ChCoordsys<> csys(state_x.segment(0, 7));
+    return csys.TransformPointLocalToParent(loc_point);
+}
+
+ChVector<> ChBody::GetContactPointSpeed(const ChVector<>& loc_point,
+                                        const ChState& state_x,
+                                        const ChStateDelta& state_w) {
+    ChCoordsys<> csys(state_x.segment(0, 7));
+    ChVector<> abs_vel(state_w.segment(0, 3));
+    ChVector<> loc_omg(state_w.segment(3, 3));
+    ChVector<> abs_omg = csys.TransformDirectionLocalToParent(loc_omg);
+
+    return abs_vel + Vcross(abs_omg, loc_point);
+}
+
 ChVector<> ChBody::GetContactPointSpeed(const ChVector<>& abs_point) {
     ChVector<> m_p1_loc = this->Point_World2Body(abs_point);
     return this->PointSpeedLocalToParent(m_p1_loc);
+}
+
+ChCoordsys<> ChBody::GetCsysForCollisionModel() {
+    return ChCoordsys<>(this->GetFrame_REF_to_abs().coord);
 }
 
 void ChBody::ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, ChVectorDynamic<>& R) {
@@ -863,55 +919,75 @@ void ChBody::ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& a
     R.segment(this->GetOffset_w() + 3, 3) += torque1_loc.eigen();
 }
 
+void ChBody::ContactForceLoadQ(const ChVector<>& F,
+                               const ChVector<>& point,
+                               const ChState& state_x,
+                               ChVectorDynamic<>& Q,
+                               int offset) {
+    ChCoordsys<> csys(state_x.segment(0, 7));
+    ChVector<> point_loc = csys.TransformPointParentToLocal(point);
+    ChVector<> force_loc = csys.TransformDirectionParentToLocal(F);
+    ChVector<> torque_loc = Vcross(point_loc, force_loc);
+    Q.segment(offset + 0, 3) = F.eigen();
+    Q.segment(offset + 3, 3) = torque_loc.eigen();
+}
+
 void ChBody::ComputeJacobianForContactPart(const ChVector<>& abs_point,
                                            ChMatrix33<>& contact_plane,
                                            ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
                                            ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
                                            ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
                                            bool second) {
-	/*
-    ChVector<> m_p1_loc = this->Point_World2Body(abs_point);
-    ChMatrix33<> Jx1, Jr1;
-    ChMatrix33<> Ps1, Jtemp;
-    Ps1.Set_X_matrix(m_p1_loc);
+    /*
+    ChVector<> p1 = this->Point_World2Body(abs_point);
+    ChStarMatrix33<> Ps1(p1);
 
-    Jx1.CopyFromMatrixT(contact_plane);
+    ChMatrix33<> Jx1 = contact_plane.transpose();
     if (!second)
-        Jx1.MatrNeg();
+        Jx1 *= -1;
 
-    Jtemp.MatrMultiply(this->GetA(), Ps1);
-    Jr1.MatrTMultiply(contact_plane, Jtemp);
-    if (second)
-        Jr1.MatrNeg();
+    ChMatrix33<> Jr1 = contact_plane.transpose() * this->GetA() * Ps1;
+    if (!second)
+        Jr1 *= -1;
 
-    jacobian_tuple_N.Get_Cq()->PasteClippedMatrix(Jx1, 0, 0, 1, 3, 0, 0);
-    jacobian_tuple_U.Get_Cq()->PasteClippedMatrix(Jx1, 1, 0, 1, 3, 0, 0);
-    jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(Jx1, 2, 0, 1, 3, 0, 0);
-    jacobian_tuple_N.Get_Cq()->PasteClippedMatrix(Jr1, 0, 0, 1, 3, 0, 3);
-    jacobian_tuple_U.Get_Cq()->PasteClippedMatrix(Jr1, 1, 0, 1, 3, 0, 3);
-    jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(Jr1, 2, 0, 1, 3, 0, 3);
-	*/
-	
-	// UNROLLED VERSION - FASTER
-	ChVector<> p1 = this->Point_World2Body(abs_point);
-	double temp00 = Amatrix(0,2)* contact_plane(0,0) +  Amatrix(1,2)* contact_plane(1,0) + Amatrix(2,2)* contact_plane(2,0);
-	double temp01 = Amatrix(0,2)* contact_plane(0,1) +  Amatrix(1,2)* contact_plane(1,1) + Amatrix(2,2)* contact_plane(2,1);
-	double temp02 = Amatrix(0,2)* contact_plane(0,2) +  Amatrix(1,2)* contact_plane(1,2) + Amatrix(2,2)* contact_plane(2,2);
-	double temp10 = Amatrix(0,1)* contact_plane(0,0) +  Amatrix(1,1)* contact_plane(1,0) + Amatrix(2,1)* contact_plane(2,0);
-	double temp11 = Amatrix(0,1)* contact_plane(0,1) +  Amatrix(1,1)* contact_plane(1,1) + Amatrix(2,1)* contact_plane(2,1);
-	double temp12 = Amatrix(0,1)* contact_plane(0,2) +  Amatrix(1,1)* contact_plane(1,2) + Amatrix(2,1)* contact_plane(2,2);
-	double temp20 = Amatrix(0,0)* contact_plane(0,0) +  Amatrix(1,0)* contact_plane(1,0) + Amatrix(2,0)* contact_plane(2,0);
-	double temp21 = Amatrix(0,0)* contact_plane(0,1) +  Amatrix(1,0)* contact_plane(1,1) + Amatrix(2,0)* contact_plane(2,1);
-	double temp22 = Amatrix(0,0)* contact_plane(0,2) +  Amatrix(1,0)* contact_plane(1,2) + Amatrix(2,0)* contact_plane(2,2);
+    jacobian_tuple_N.Get_Cq().segment(0, 3) = Jx1.row(0);
+    jacobian_tuple_U.Get_Cq().segment(0, 3) = Jx1.row(1);
+    jacobian_tuple_V.Get_Cq().segment(0, 3) = Jx1.row(2);
 
-	//Jx1 =
-	// [ c00, c10, c20]
-	// [ c01, c11, c21]	
-	// [ c02, c12, c22]
-	//Jr1 = [ p1y*(temp00) - p1z*(temp10), p1z*(temp20) - p1x*(temp00), p1x*(temp10) - p1y*(temp20);
+    jacobian_tuple_N.Get_Cq().segment(3, 3) = Jr1.row(0);
+    jacobian_tuple_U.Get_Cq().segment(3, 3) = Jr1.row(1);
+    jacobian_tuple_V.Get_Cq().segment(3, 3) = Jr1.row(2);
+    */
+
+    // UNROLLED VERSION - FASTER
+    ChVector<> p1 = this->Point_World2Body(abs_point);
+    double temp00 =
+        Amatrix(0, 2) * contact_plane(0, 0) + Amatrix(1, 2) * contact_plane(1, 0) + Amatrix(2, 2) * contact_plane(2, 0);
+    double temp01 =
+        Amatrix(0, 2) * contact_plane(0, 1) + Amatrix(1, 2) * contact_plane(1, 1) + Amatrix(2, 2) * contact_plane(2, 1);
+    double temp02 =
+        Amatrix(0, 2) * contact_plane(0, 2) + Amatrix(1, 2) * contact_plane(1, 2) + Amatrix(2, 2) * contact_plane(2, 2);
+    double temp10 =
+        Amatrix(0, 1) * contact_plane(0, 0) + Amatrix(1, 1) * contact_plane(1, 0) + Amatrix(2, 1) * contact_plane(2, 0);
+    double temp11 =
+        Amatrix(0, 1) * contact_plane(0, 1) + Amatrix(1, 1) * contact_plane(1, 1) + Amatrix(2, 1) * contact_plane(2, 1);
+    double temp12 =
+        Amatrix(0, 1) * contact_plane(0, 2) + Amatrix(1, 1) * contact_plane(1, 2) + Amatrix(2, 1) * contact_plane(2, 2);
+    double temp20 =
+        Amatrix(0, 0) * contact_plane(0, 0) + Amatrix(1, 0) * contact_plane(1, 0) + Amatrix(2, 0) * contact_plane(2, 0);
+    double temp21 =
+        Amatrix(0, 0) * contact_plane(0, 1) + Amatrix(1, 0) * contact_plane(1, 1) + Amatrix(2, 0) * contact_plane(2, 1);
+    double temp22 =
+        Amatrix(0, 0) * contact_plane(0, 2) + Amatrix(1, 0) * contact_plane(1, 2) + Amatrix(2, 0) * contact_plane(2, 2);
+
+    // Jx1 =
+    // [ c00, c10, c20]
+    // [ c01, c11, c21]
+    // [ c02, c12, c22]
+    // Jr1 = [ p1y*(temp00) - p1z*(temp10), p1z*(temp20) - p1x*(temp00), p1x*(temp10) - p1y*(temp20);
     //       p1y*(temp01) - p1z*(temp11), p1z*(temp21) - p1x*(temp01), p1x*(temp11) - p1y*(temp21);
     //       p1y*(temp02) - p1z*(temp12), p1z*(temp22) - p1x*(temp02), p1x*(temp12) - p1y*(temp22)];
-	if (!second) {
+    if (!second) {
         jacobian_tuple_N.Get_Cq()(0) = -contact_plane(0, 0);
         jacobian_tuple_N.Get_Cq()(1) = -contact_plane(1, 0);
         jacobian_tuple_N.Get_Cq()(2) = -contact_plane(2, 0);
@@ -981,6 +1057,59 @@ ChVector<> ChBody::GetContactForce() {
 
 ChVector<> ChBody::GetContactTorque() {
     return GetSystem()->GetContactContainer()->GetContactableTorque(this);
+}
+
+// ---------------------------------------------------------------------------
+
+void ChBody::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
+    mvars.push_back(&this->Variables());
+}
+
+void ChBody::LoadableStateIncrement(const unsigned int off_x,
+                                    ChState& x_new,
+                                    const ChState& x,
+                                    const unsigned int off_v,
+                                    const ChStateDelta& Dv) {
+    IntStateIncrement(off_x, x_new, x, off_v, Dv);
+}
+
+void ChBody::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
+    mD.segment(block_offset + 0, 3) = this->GetCoord().pos.eigen();
+    mD.segment(block_offset + 3, 4) = this->GetCoord().rot.eigen();
+}
+
+void ChBody::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
+    mD.segment(block_offset + 0, 3) = this->GetPos_dt().eigen();
+    mD.segment(block_offset + 3, 3) = this->GetWvel_loc().eigen();
+}
+
+void ChBody::ComputeNF(
+    const double U,              // x coordinate of application point in absolute space
+    const double V,              // y coordinate of application point in absolute space
+    const double W,              // z coordinate of application point in absolute space
+    ChVectorDynamic<>& Qi,       // Return result of N'*F  here, maybe with offset block_offset
+    double& detJ,                // Return det[J] here
+    const ChVectorDynamic<>& F,  // Input F vector, size is 6, it is {Force,Torque} in absolute coords.
+    ChVectorDynamic<>* state_x,  // if != 0, update state (pos. part) to this, then evaluate Q
+    ChVectorDynamic<>* state_w   // if != 0, update state (speed part) to this, then evaluate Q
+) {
+    ChVector<> abs_pos(U, V, W);
+    ChVector<> absF(F.segment(0, 3));
+    ChVector<> absT(F.segment(3, 3));
+    ChVector<> body_absF;
+    ChVector<> body_locT;
+    ChCoordsys<> bodycoord;
+    if (state_x)
+        bodycoord = state_x->segment(0, 7);  // the numerical jacobian algo might change state_x
+    else
+        bodycoord = this->coord;
+
+    // compute Q components F,T, given current state of body 'bodycoord'. Note T in Q is in local csys, F is an abs csys
+    body_absF = absF;
+    body_locT = bodycoord.rot.RotateBack(absT + ((abs_pos - bodycoord.pos) % absF));
+    Qi.segment(0, 3) = body_absF.eigen();
+    Qi.segment(3, 3) = body_locT.eigen();
+    detJ = 1;  // not needed because not used in quadrature.
 }
 
 // ---------------------------------------------------------------------------
@@ -1063,10 +1192,10 @@ void ChBody::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(mflag, "is_sleeping");
     BFlagSet(BodyFlag::SLEEPING, mflag);
 
-    std::vector< std::shared_ptr<ChMarker>> tempmarkers;
-    std::vector< std::shared_ptr<ChForce>> tempforces;
+    std::vector<std::shared_ptr<ChMarker>> tempmarkers;
+    std::vector<std::shared_ptr<ChForce>> tempforces;
     marchive >> CHNVP(tempmarkers, "markers");
-    marchive >> CHNVP(tempforces,  "forces");
+    marchive >> CHNVP(tempforces, "forces");
     // trick needed because the "Add...() functions are required
     this->RemoveAllMarkers();
     for (auto i : tempmarkers) {

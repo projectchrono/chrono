@@ -115,28 +115,31 @@ class CH_VEHICLE_API ChToeBarLeafspringAxle : public ChSuspension {
     virtual double GetTrack() override;
 
     /// Get a handle to the specified spring element.
-    std::shared_ptr<ChLinkSpringCB> GetSpring(VehicleSide side) const { return m_spring[side]; }
-
-    /// Get the force in the spring element.
-    double GetSpringForce(VehicleSide side) const { return m_spring[side]->GetSpringReact(); }
-
-    /// Get the current length of the spring element
-    double GetSpringLength(VehicleSide side) const { return m_spring[side]->GetSpringLength(); }
-
-    /// Get the current deformation of the spring element.
-    double GetSpringDeformation(VehicleSide side) const { return m_spring[side]->GetSpringDeform(); }
+    std::shared_ptr<ChLinkTSDA> GetSpring(VehicleSide side) const { return m_spring[side]; }
 
     /// Get a handle to the specified shock (damper) element.
-    std::shared_ptr<ChLinkSpringCB> GetShock(VehicleSide side) const { return m_shock[side]; }
+    std::shared_ptr<ChLinkTSDA> GetShock(VehicleSide side) const { return m_shock[side]; }
+
+    /// Return current suspension forces (spring and shock) on the specified side.
+    virtual ChSuspension::Force ReportSuspensionForce(VehicleSide side) const override;
+
+    /// Get the force in the spring element.
+    double GetSpringForce(VehicleSide side) const { return m_spring[side]->GetForce(); }
+
+    /// Get the current length of the spring element
+    double GetSpringLength(VehicleSide side) const { return m_spring[side]->GetLength(); }
+
+    /// Get the current deformation of the spring element.
+    double GetSpringDeformation(VehicleSide side) const { return m_spring[side]->GetDeformation(); }
 
     /// Get the force in the shock (damper) element.
-    double GetShockForce(VehicleSide side) const { return m_shock[side]->GetSpringReact(); }
+    double GetShockForce(VehicleSide side) const { return m_shock[side]->GetForce(); }
 
     /// Get the current length of the shock (damper) element.
-    double GetShockLength(VehicleSide side) const { return m_shock[side]->GetSpringLength(); }
+    double GetShockLength(VehicleSide side) const { return m_shock[side]->GetLength(); }
 
     /// Get the current deformation velocity of the shock (damper) element.
-    double GetShockVelocity(VehicleSide side) const { return m_shock[side]->GetSpringVelocity(); }
+    double GetShockVelocity(VehicleSide side) const { return m_shock[side]->GetVelocity(); }
 
     /// Get the current turning angle of the kingpin joint
     double GetKingpinAngleLeft() { return m_revoluteKingpin[0]->GetRelAngle(); }
@@ -208,9 +211,9 @@ class CH_VEHICLE_API ChToeBarLeafspringAxle : public ChSuspension {
     /// Return the free (rest) length of the spring element.
     virtual double getSpringRestLength() const = 0;
     /// Return the functor object for spring force.
-    virtual ChLinkSpringCB::ForceFunctor* getSpringForceFunctor() const = 0;
+    virtual ChLinkTSDA::ForceFunctor* getSpringForceFunctor() const = 0;
     /// Return the functor object for shock force.
-    virtual ChLinkSpringCB::ForceFunctor* getShockForceFunctor() const = 0;
+    virtual ChLinkTSDA::ForceFunctor* getShockForceFunctor() const = 0;
     /// Returns toplology flag for knuckle/draglink connection
     virtual bool isLeftKnuckleActuated() { return true; }
 
@@ -226,8 +229,8 @@ class CH_VEHICLE_API ChToeBarLeafspringAxle : public ChSuspension {
     std::shared_ptr<ChLinkUniversal> m_universalTierod;            ///< knuckle-tierod universal joint (right)
     std::shared_ptr<ChLinkLockRevolute> m_revoluteKingpin[2];      ///< knuckle-axle tube revolute joints (L/R)
 
-    std::shared_ptr<ChLinkSpringCB> m_shock[2];   ///< handles to the spring links (L/R)
-    std::shared_ptr<ChLinkSpringCB> m_spring[2];  ///< handles to the shock links (L/R)
+    std::shared_ptr<ChLinkTSDA> m_shock[2];   ///< handles to the spring links (L/R)
+    std::shared_ptr<ChLinkTSDA> m_spring[2];  ///< handles to the shock links (L/R)
 
   private:
     // Hardpoint absolute locations

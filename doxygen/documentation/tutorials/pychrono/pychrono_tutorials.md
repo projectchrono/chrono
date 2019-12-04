@@ -60,6 +60,11 @@ If you want to learn how to parse and execute Python programs
     - add soft shadows to the Irrlicht realtime simulation  
 
 <br>
+-   @subpage tutorial_pychrono_demo_vehicle
+
+    Simulate vehicle dynamics in Python. In the 2 related demos we show 2 ways of modelling the same HMMWV vehicle.
+	
+<br>
 -   @subpage tutorial_pychrono_demo_crank_plot
 
     Create a slider-crank. Learn how:

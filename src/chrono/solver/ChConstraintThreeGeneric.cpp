@@ -178,20 +178,20 @@ void ChConstraintThreeGeneric::MultiplyTandAdd(ChVectorDynamic<double>& result, 
 
 void ChConstraintThreeGeneric::Build_Cq(ChSparseMatrix& storage, int insrow) {
     if (variables_a->IsActive())
-        storage.PasteMatrix(Cq_a, insrow, variables_a->GetOffset());
+        PasteMatrix(storage, Cq_a, insrow, variables_a->GetOffset());
     if (variables_b->IsActive())
-        storage.PasteMatrix(Cq_b, insrow, variables_b->GetOffset());
+        PasteMatrix(storage, Cq_b, insrow, variables_b->GetOffset());
     if (variables_c->IsActive())
-        storage.PasteMatrix(Cq_c, insrow, variables_c->GetOffset());
+        PasteMatrix(storage, Cq_c, insrow, variables_c->GetOffset());
 }
 
 void ChConstraintThreeGeneric::Build_CqT(ChSparseMatrix& storage, int inscol) {
     if (variables_a->IsActive())
-        storage.PasteTranspMatrix(Cq_a, variables_a->GetOffset(), inscol);
+        PasteMatrix(storage, Cq_a.transpose(), variables_a->GetOffset(), inscol);
     if (variables_b->IsActive())
-        storage.PasteTranspMatrix(Cq_b, variables_b->GetOffset(), inscol);
+        PasteMatrix(storage, Cq_b.transpose(), variables_b->GetOffset(), inscol);
     if (variables_c->IsActive())
-        storage.PasteTranspMatrix(Cq_c, variables_c->GetOffset(), inscol);
+        PasteMatrix(storage, Cq_c.transpose(), variables_c->GetOffset(), inscol);
 }
 
 void ChConstraintThreeGeneric::ArchiveOUT(ChArchiveOut& marchive) {

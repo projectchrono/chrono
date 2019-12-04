@@ -9,13 +9,13 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Dario Mangoni
+// Authors: Dario Mangoni, Radu Serban
 // =============================================================================
 
 #ifndef CHMUMPSENGINE_H
 #define CHMUMPSENGINE_H
 
-#include "chrono/core/ChCOOMatrix.h"
+#include "chrono/core/ChMatrix.h"
 #include "chrono_mumps/ChApiMumps.h"
 
 #include <dmumps_c.h>
@@ -34,10 +34,8 @@ namespace chrono {
 /// @addtogroup mumps_module
 /// @{
 
-/// \class ChMumpsEngine
-/// Class that wraps the MUMPS direct linear solver.
-/// It can solve linear systems. It cannot solve VI and complementarity problems.
-
+/// Wrapper class for the MUMPS direct linear solver.
+/// This solver is not appropriate for VI and complementarity problems.
 class ChApiMumps ChMumpsEngine {
   public:
     enum mumps_SYM { UNSYMMETRIC = 0, SYMMETRIC_POSDEF = 1, SYMMETRIC_GENERAL = 2 };
@@ -53,36 +51,31 @@ class ChApiMumps ChMumpsEngine {
         COMPLETE = 6
     };
 
-    explicit ChMumpsEngine(mumps_SYM symmetry = UNSYMMETRIC, int mumps_mpi_comm = -987654, int activate_this_node = 1);
-    virtual ~ChMumpsEngine();
+    ChMumpsEngine();
+    ~ChMumpsEngine();
 
-    /// Set the problem matrix and the right-hand side, at the same time
-    void SetProblem(const ChCOOMatrix& Z, ChVectorRef rhs);
+    /// Set the problem matrix and the right-hand side.
+    void SetProblem(const ChSparseMatrix& Z, ChVectorRef rhs);
 
-    /// Set the problem matrix
-    void SetMatrix(const ChCOOMatrix& Z);
+    /// Set the problem matrix.
+    void SetMatrix(const ChSparseMatrix& Z);
 
-    /// Informs MUMPS of the matrix symmetry type
-    void SetMatrixSymmetry(mumps_SYM mat_type);
+    /// Informs MUMPS of the matrix symmetry type.
+    void SetMatrixSymmetry(mumps_SYM symmetry);
 
     /// Set the right-hand side vector.
     /// Note that it is the caller's responsibility to ensure that the size is appropriate.
     void SetRhsVector(ChVectorRef b);
     void SetRhsVector(double* b);
 
-    /// Submit jobs to MUMPS
+    /// Enable null-pivot detection in MUMPS.
+    void EnableNullPivotDetection(bool val, double threshold = 0);
+
+    /// Submit job to MUMPS.
     int MumpsCall(mumps_JOB job_call);
 
-    /// Print a detailed description of the current INFOG array of MUMPS
+    /// Print a detailed description of the current INFOG array of MUMPS.
     void PrintINFOG();
-
-    /// Set the null-pivot detection of MUMPS
-    void SetNullPivotDetection(bool val, double threshold = 0) {
-        mumps_id.ICNTL(24) = val;      ///< activates null pivot detection
-        mumps_id.ICNTL(25) = 0;        ///< tries to compute one of the many solutions of AX = B
-        mumps_id.CNTL(5) = 1e20;       ///< fixation value
-        mumps_id.CNTL(3) = threshold;  ///< pivot threshold
-    }
 
     /// Get the <tt>parnum</tt>th CoNTroL parameter (CNTL)
     double GetCNTL(int parnum) { return mumps_id.CNTL(parnum); }
@@ -107,7 +100,11 @@ class ChApiMumps ChMumpsEngine {
     DMUMPS_STRUC_C& GetMumpsStruc() { return mumps_id; }
 
   private:
-    DMUMPS_STRUC_C mumps_id;
+    DMUMPS_STRUC_C mumps_id;  ///< Mumps data structure
+
+    std::vector<int> m_irn;   ///< row indices (in COO matrix representation)
+    std::vector<int> m_jcn;   ///< column indices (in COO matrix representation)
+    std::vector<double> m_a;  ///< nonzero elements (in COO matrix representation)
 };
 
 /// @} mumps_module

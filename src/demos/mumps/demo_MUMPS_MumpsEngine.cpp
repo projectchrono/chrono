@@ -25,10 +25,10 @@ using namespace chrono;
 
 int test_basic() {
     // Define the problem data structures and size:
-    // - main matrix in ChCOOMatrix format
+    // - matrix in sparse format
     // - rhs/solution vector
     int n = 3;
-    ChCOOMatrix mat(n, n, true);
+    ChSparseMatrix mat(n, n);
     ChVectorDynamic<double> rhs_sol(n);
     ChMumpsEngine mumps_engine;
 
@@ -42,7 +42,7 @@ int test_basic() {
     mat.SetElement(0, 0, 1.3);
     mat.SetElement(1, 1, 2.7);
     mat.SetElement(2, 2, 3.9);
-    mat.Compress();
+    mat.makeCompressed();
 
     // Inform the Mumps Engine about the problem data structures being used
     mumps_engine.SetProblem(mat, rhs_sol);
@@ -63,7 +63,7 @@ int test_basic() {
 
 int test_null_pivot() {
     int n = 3;
-    ChCOOMatrix mat(n, n, true);
+    ChSparseMatrix mat(n, n);
     ChVectorDynamic<double> rhs_sol(n);
     ChMumpsEngine mumps_engine;
 
@@ -74,10 +74,10 @@ int test_null_pivot() {
     mat.SetElement(0, 0, 1.3);
     mat.SetElement(1, 1, 2.7);
     mat.SetElement(2, 2, 0);  // make the matrix rank-deficient
-    mat.Compress();
+    mat.makeCompressed();
 
     mumps_engine.SetProblem(mat, rhs_sol);
-    mumps_engine.SetNullPivotDetection(true);  // activate the null pivot detection
+    mumps_engine.EnableNullPivotDetection(true);  // activate the null pivot detection
     auto return_value = mumps_engine.MumpsCall(ChMumpsEngine::mumps_JOB::COMPLETE);
     mumps_engine.PrintINFOG();
     printf("Mumps return code: %d\n", return_value);

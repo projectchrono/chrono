@@ -30,6 +30,7 @@
 #include "chrono_models/vehicle/sedan/Sedan_SimpleMapPowertrain.h"
 #include "chrono_models/vehicle/sedan/Sedan_RigidTire.h"
 #include "chrono_models/vehicle/sedan/Sedan_TMeasyTire.h"
+#include "chrono_models/vehicle/sedan/Sedan_Pac02Tire.h"
 
 namespace chrono {
 namespace vehicle {
@@ -56,7 +57,6 @@ class CH_MODELS_API Sedan {
     void SetInitFwdVel(double fwdVel) { m_initFwdVel = fwdVel; }
     void SetInitWheelAngVel(const std::vector<double>& omega) { m_initOmega = omega; }
 
-    void SetVehicleStepSize(double step_size) { m_vehicle_step_size = step_size; }
     void SetTireStepSize(double step_size) { m_tire_step_size = step_size; }
 
     ChSystem* GetSystem() const { return m_vehicle->GetSystem(); }
@@ -91,7 +91,6 @@ class CH_MODELS_API Sedan {
 
     TireModelType m_tireType;
 
-    double m_vehicle_step_size;
     double m_tire_step_size;
 
     ChCoordsys<> m_initPos;

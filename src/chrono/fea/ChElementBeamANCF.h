@@ -178,32 +178,6 @@ class ChApi ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public
         CMNoPoisson  ///< Continuum-Mechanics formulation, disregarding Poisson effects
     };
 
-  private:
-    //// RADU
-    //// Inconsistent storage between m_d_dt and the rest.
-    //// Why not as a 9x3 matrix?
-
-    std::vector<std::shared_ptr<ChNodeFEAxyzDD> > m_nodes;  ///< element nodes
-    double m_lenX;                                          ///< total element length
-    double m_thicknessY;                                    ///< total element thickness along Y
-    double m_thicknessZ;                                    ///< total element thickness along Z
-    double m_GaussScaling;                                  ///< Gauss scaling for beam
-    double m_Alpha;                                         ///< structural damping
-    bool m_gravity_on;                                      ///< enable/disable gravity calculation
-    ChVectorN<double, 27> m_GravForce;                      ///< Gravity Force
-    ChMatrixNM<double, 27, 27> m_MassMatrix;                ///< mass matrix
-    ChMatrixNM<double, 27, 27> m_JacobianMatrix;            ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
-    ChMatrixNM<double, 9, 3> m_d0;                          ///< initial nodal coordinates
-    ChMatrixNM<double, 9, 9> m_d0d0T;                       ///< matrix m_d0 * m_d0^T
-    ChMatrixNM<double, 9, 3> m_d;                           ///< current nodal coordinates
-    ChMatrixNM<double, 9, 9> m_ddT;                         ///< matrix m_d * m_d^T
-    ChVectorN<double, 27> m_d_dt;                           ///< current nodal velocities
-    std::shared_ptr<ChMaterialBeamANCF> m_material;         ///< beam material
-    StrainFormulation m_strain_form;                        ///< Strain formulation
-
-  public:
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
   public:
     // Interface to ChElementBase base class
     // -------------------------------------
@@ -230,11 +204,6 @@ class ChApi ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public
     /// Computes the internal forces.
     /// (E.g. the actual position of nodes is not in relaxed reference position) and set values in the Fi vector.
     virtual void ComputeInternalForces(ChVectorDynamic<>& Fi) override;
-
-    /// Initial setup.
-    /// This is used mostly to precompute matrices that do not change during the simulation,
-    /// such as the local stiffness of each element (if any), the mass, etc.
-    virtual void SetupInitial(ChSystem* system) override;
 
     /// Update the state of this element.
     virtual void Update() override;
@@ -383,6 +352,36 @@ class ChApi ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public
     /// Gets the tangent to the centerline at the parametric coordinate U.
     /// Each coordinate ranging in -1..+1.
     ChVector<> ComputeTangent(const double U);
+
+  private:
+    /// Initial setup. This is used to precompute matrices that do not change during the simulation, such as the local
+    /// stiffness of each element (if any), the mass, etc.
+    virtual void SetupInitial(ChSystem* system) override;
+
+    //// RADU
+    //// Inconsistent storage between m_d_dt and the rest.
+    //// Why not as a 9x3 matrix?
+
+    std::vector<std::shared_ptr<ChNodeFEAxyzDD> > m_nodes;  ///< element nodes
+    double m_lenX;                                          ///< total element length
+    double m_thicknessY;                                    ///< total element thickness along Y
+    double m_thicknessZ;                                    ///< total element thickness along Z
+    double m_GaussScaling;                                  ///< Gauss scaling for beam
+    double m_Alpha;                                         ///< structural damping
+    bool m_gravity_on;                                      ///< enable/disable gravity calculation
+    ChVectorN<double, 27> m_GravForce;                      ///< Gravity Force
+    ChMatrixNM<double, 27, 27> m_MassMatrix;                ///< mass matrix
+    ChMatrixNM<double, 27, 27> m_JacobianMatrix;            ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
+    ChMatrixNM<double, 9, 3> m_d0;                          ///< initial nodal coordinates
+    ChMatrixNM<double, 9, 9> m_d0d0T;                       ///< matrix m_d0 * m_d0^T
+    ChMatrixNM<double, 9, 3> m_d;                           ///< current nodal coordinates
+    ChMatrixNM<double, 9, 9> m_ddT;                         ///< matrix m_d * m_d^T
+    ChVectorN<double, 27> m_d_dt;                           ///< current nodal velocities
+    std::shared_ptr<ChMaterialBeamANCF> m_material;         ///< beam material
+    StrainFormulation m_strain_form;                        ///< Strain formulation
+
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     friend class BeamANCF_Mass;
     friend class BeamANCF_Gravity;

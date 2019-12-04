@@ -301,9 +301,6 @@ int main(int argc, char* argv[]) {
     // Use shadows in realtime view
     application.AddShadowAll();
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
     //
     // THE SOFT-REAL-TIME CYCLE
     //

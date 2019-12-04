@@ -1065,8 +1065,6 @@ void BeamANCF_Jacobian::Evaluate(ChMatrixNM<double, 27, 27>& result, const doubl
 
     // Stress tensor calculation
     ChVectorN<double, 6> stress;
-
-    // Following loop does: stress.MatrMultiply(E_eps, strain);
     for (unsigned int i = 0; i < 6; i++) {
         stress(i) = E_eps(i, i) * strain(i);
     }

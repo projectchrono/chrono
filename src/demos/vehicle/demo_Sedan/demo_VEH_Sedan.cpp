@@ -20,6 +20,7 @@
 // =============================================================================
 
 #include "chrono/core/ChStream.h"
+#include "chrono/core/ChRealtimeStep.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
@@ -56,8 +57,8 @@ VisualizationType wheel_vis_type = VisualizationType::MESH;
 // Collision type for chassis (PRIMITIVES, MESH, or NONE)
 ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE;
 
-// Type of tire model (RIGID, TMEASY)
-TireModelType tire_model = TireModelType::RIGID;
+// Type of tire model (RIGID, TMEASY, PAC02)
+TireModelType tire_model = TireModelType::PAC02;
 
 // Rigid terrain
 RigidTerrain::Type terrain_model = RigidTerrain::BOX;
@@ -110,7 +111,6 @@ int main(int argc, char* argv[]) {
     my_sedan.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     my_sedan.SetTireType(tire_model);
     my_sedan.SetTireStepSize(tire_step_size);
-    my_sedan.SetVehicleStepSize(step_size);
     my_sedan.Initialize();
 
     VisualizationType tire_vis_type = VisualizationType::MESH;
@@ -208,25 +208,25 @@ int main(int argc, char* argv[]) {
         my_sedan.LogHardpointLocations();
     }
 
-    //output vehicle mass
-    std::cout<<"VEHICLE MASS: "<<my_sedan.GetVehicle().GetVehicleMass()<<std::endl;
+    // output vehicle mass
+    std::cout << "VEHICLE MASS: " << my_sedan.GetVehicle().GetVehicleMass() << std::endl;
 
     // Number of simulation steps between miscellaneous events
     int render_steps = (int)std::ceil(render_step_size / step_size);
     int debug_steps = (int)std::ceil(debug_step_size / step_size);
 
-    // Initialize simulation frame counter and simulation time
+    // Initialize simulation frame counters
     int step_number = 0;
     int render_frame = 0;
-    double time = 0;
 
     if (contact_vis) {
         app.SetSymbolscale(1e-4);
         app.SetContactsDrawMode(ChIrrTools::eCh_ContactsDrawMode::CONTACT_FORCES);
     }
 
+    ChRealtimeStepTimer realtime_timer;
     while (app.GetDevice()->run()) {
-        time = my_sedan.GetSystem()->GetChTime();
+        double time = my_sedan.GetSystem()->GetChTime();
 
         // End simulation
         if (time >= t_end)
@@ -259,7 +259,8 @@ int main(int argc, char* argv[]) {
 
         // Driver output
         if (driver_mode == RECORD) {
-            driver_csv << time << driver_inputs.m_steering << driver_inputs.m_throttle << driver_inputs.m_braking << std::endl;
+            driver_csv << time << driver_inputs.m_steering << driver_inputs.m_throttle << driver_inputs.m_braking
+                       << std::endl;
         }
 
         // Update modules (process inputs from other modules)
@@ -276,6 +277,9 @@ int main(int argc, char* argv[]) {
 
         // Increment frame number
         step_number++;
+
+        // Spin in place for real time to catch up
+        realtime_timer.Spin(step_size);
     }
 
     if (driver_mode == RECORD) {

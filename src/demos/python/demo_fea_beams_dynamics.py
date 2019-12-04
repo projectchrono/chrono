@@ -175,13 +175,11 @@ myapplication.AssetUpdateAll()
 #
 
 
-my_system.SetupInitial();
-
 # Set to a more precise HHT timestepper if needed
 # my_system.SetTimestepperType(chrono.ChTimestepper.Type_HHT)
 
 # Change the solver form the default SOR to the MKL Pardiso, more precise for fea.
-msolver = mkl.ChSolverMKLcsm()
+msolver = mkl.ChSolverMKL()
 my_system.SetSolver(msolver)
 
 myapplication.SetTimestep(0.002)

@@ -39,6 +39,7 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/FialaTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/TMeasyTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/Pac89Tire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/Pac02Tire.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
 
@@ -93,10 +94,12 @@ std::string fialatire_file("hmmwv/tire/HMMWV_Fiala_converted.json");
 std::string tmeasytire_file("hmmwv/tire/HMMWV_TMeasy_converted.json");
 
 // JSON files tire models (Pac89)
-std::string pac89tire_file("hmmwv/tire/HMMWV_Pac89.json");
+std::string pac89tire_file("hmmwv/tire/HMMWV_Pac89Tire.json");
+
+std::string pac02tire_file("hmmwv/tire/HMMWV_Pac02Tire.json");
 
 // Type of tire model (RIGID, FIALA, TMEASY, PAC89)
-TireModelType tire_model = TireModelType::FIALA;
+TireModelType tire_model = TireModelType::PAC02;
 
 // Driver input file (if not using Irrlicht)
 std::string driver_file("generic/driver/Sample_Maneuver.txt");
@@ -145,7 +148,6 @@ int main(int argc, char* argv[]) {
     WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChMaterialSurface::NSC);
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
     ////vehicle.GetChassis()->SetFixed(true);
-    vehicle.SetStepsize(step_size);
     vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
@@ -186,6 +188,13 @@ int main(int argc, char* argv[]) {
             case TireModelType::PAC89: {
                 auto tireL = chrono_types::make_shared<Pac89Tire>(vehicle::GetDataFile(pac89tire_file));
                 auto tireR = chrono_types::make_shared<Pac89Tire>(vehicle::GetDataFile(pac89tire_file));
+                vehicle.InitializeTire(tireL, axle->m_wheels[0], VisualizationType::MESH);
+                vehicle.InitializeTire(tireR, axle->m_wheels[1], VisualizationType::MESH);
+                break;
+            }
+            case TireModelType::PAC02: {
+                auto tireL = chrono_types::make_shared<Pac02Tire>(vehicle::GetDataFile(pac02tire_file));
+                auto tireR = chrono_types::make_shared<Pac02Tire>(vehicle::GetDataFile(pac02tire_file));
                 vehicle.InitializeTire(tireL, axle->m_wheels[0], VisualizationType::MESH);
                 vehicle.InitializeTire(tireR, axle->m_wheels[1], VisualizationType::MESH);
                 break;
@@ -270,14 +279,9 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    // Initialize simulation frame counter and simulation time
-    int step_number = 0;
-    double time = 0;
-
 #ifdef USE_IRRLICHT
 
     ChRealtimeStepTimer realtime_timer;
-
     while (app.GetDevice()->run()) {
         // Update the position of the shadow mapping so that it follows the car
         ////if (do_shadows) {
@@ -293,28 +297,26 @@ int main(int argc, char* argv[]) {
         // Render scene
         app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         app.DrawAll();
+        app.EndScene();
 
         // Get driver inputs
         ChDriver::Inputs driver_inputs = driver.GetInputs();
 
         // Update modules (process inputs from other modules)
-        time = vehicle.GetSystem()->GetChTime();
+        double time = vehicle.GetSystem()->GetChTime();
         driver.Synchronize(time);
         vehicle.Synchronize(time, driver_inputs, terrain);
         terrain.Synchronize(time);
         app.Synchronize("", driver_inputs);
 
         // Advance simulation for one timestep for all modules
-        double step = realtime_timer.SuggestSimulationStep(step_size);
-        driver.Advance(step);
-        vehicle.Advance(step);
-        terrain.Advance(step);
-        app.Advance(step);
+        driver.Advance(step_size);
+        vehicle.Advance(step_size);
+        terrain.Advance(step_size);
+        app.Advance(step_size);
 
-        // Increment frame number
-        step_number++;
-
-        app.EndScene();
+        // Spin in place for real time to catch up
+        realtime_timer.Spin(step_size);
     }
 
 #else
@@ -322,6 +324,8 @@ int main(int argc, char* argv[]) {
     // Number of simulation steps between two 3D view render frames
     int render_steps = (int)std::ceil(render_step_size / step_size);
 
+    double time = 0;
+    int step_number = 0;
     int render_frame = 0;
     char filename[100];
 

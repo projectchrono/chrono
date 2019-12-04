@@ -77,11 +77,13 @@ void ChTrackedVehicle::Synchronize(double time,
                                    const ChDriver::Inputs& driver_inputs,
                                    const TerrainForces& shoe_forces_left,
                                    const TerrainForces& shoe_forces_right) {
-    // Extract the torque from the powertrain.
-    double powertrain_torque = m_powertrain->GetOutputTorque();
-
-    // Synchronize the associated powertrain system (pass throttle input).
-    m_powertrain->Synchronize(time, driver_inputs.m_throttle);
+    double powertrain_torque = 0;
+    if (m_powertrain) {
+        // Extract the torque from the powertrain.
+        powertrain_torque = m_powertrain->GetOutputTorque();
+        // Synchronize the associated powertrain system (pass throttle input).
+        m_powertrain->Synchronize(time, driver_inputs.m_throttle);
+    }
 
     // Apply powertrain torque to the driveline's input shaft.
     m_driveline->Synchronize(driver_inputs.m_steering, powertrain_torque);
@@ -97,8 +99,10 @@ void ChTrackedVehicle::Synchronize(double time,
 // Advance the state of this vehicle by the specified time step.
 // -----------------------------------------------------------------------------
 void ChTrackedVehicle::Advance(double step) {
-    // Advance state of the associated powertrain.
-    m_powertrain->Advance(step);
+    if (m_powertrain) {
+        // Advance state of the associated powertrain.
+        m_powertrain->Advance(step);
+    }
 
     // Invoke base class function to advance state of underlying Chrono system.
     ChVehicle::Advance(step);

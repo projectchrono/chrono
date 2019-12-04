@@ -207,9 +207,6 @@ int main(int argc, char* argv[]) {
 
     application.AssetUpdateAll();
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
     //
     // THE SOFT-REAL-TIME CYCLE
     //
@@ -250,7 +247,7 @@ int main(int argc, char* argv[]) {
 
     GetLog() << "\n\n\n===========STATICS======== \n\n\n";
 
-    //	application.GetSystem()->DoStaticLinear();
+    application.GetSystem()->DoStaticLinear();
 
     GetLog() << "BEAM RESULTS (LINEAR STATIC ANALYSIS) \n\n";
 

@@ -36,8 +36,6 @@ namespace vehicle {
 /// variables m_displacementLeft, m_displacementRight, and m_steering.
 class CH_VEHICLE_API ChDriverSTR {
   public:
-    ChDriverSTR();
-
     virtual ~ChDriverSTR() {}
 
     /// Get the left post vertical displacement (in the range [-1,+1])
@@ -49,11 +47,12 @@ class CH_VEHICLE_API ChDriverSTR {
     /// Get the driver steering input (in the range [-1,+1])
     double GetSteering() const { return m_steering; }
 
-    /// Initialize this driver system.
-    virtual void Initialize() {}
+    /// Return false while driver inputs are ignored (while the rig is reaching the ride height configuration) and true
+    /// otherwise. In general, outputs from the test rig should only be collected while Started returns true.
+    bool Started() const;
 
-    /// Update the state of this driver system at the current time.
-    virtual void Synchronize(double time) {}
+    /// Return false when driver stopped producing inputs.
+    virtual bool Ended() const { return false; }
 
     /// Initialize output file for recording driver inputs.
     bool LogInit(const std::string& filename);
@@ -61,20 +60,24 @@ class CH_VEHICLE_API ChDriverSTR {
     /// Record the current driver inputs to the log file.
     bool Log(double time);
 
-    /// Set value of the time delay.
-    /// During this initial time period, no driver inputs are generated.
-    void SetTimeDelay(double delay) { m_delay = delay; }
+  protected:
+    ChDriverSTR();
 
-    /// Overwrite the value for the driver left post displacement input.
+    /// Initialize this driver system.
+    virtual void Initialize() {}
+
+    /// Update the state of this driver system at the current time.
+    virtual void Synchronize(double time);
+
+    /// Set the value for the driver left post displacement input.
     void SetDisplacementLeft(double val, double min_val = -1, double max_val = 1);
 
-    /// Overwrite the value for the driver right post displacement input.
+    /// Set the value for the driver right post displacement input.
     void SetDisplacementRight(double val, double min_val = -1, double max_val = 1);
 
-    /// Overwrite the value for the driver steering input.
+    /// Set the value for the driver steering input.
     void SetSteering(double val, double min_val = -1, double max_val = 1);
 
-  protected:
     double m_displLeft;   ///< current value of left post displacement
     double m_displRight;  ///< current value of right post displacement
     double m_steering;    ///< current value of steering input
@@ -82,7 +85,10 @@ class CH_VEHICLE_API ChDriverSTR {
     double m_delay;  ///< time delay before generating inputs
 
   private:
+    double m_time;               ///< time of last synchronization
     std::string m_log_filename;  ///< name of output file for recording driver inputs
+
+    friend class ChSuspensionTestRig;
 };
 
 /// @} vehicle_wheeled_test_rig

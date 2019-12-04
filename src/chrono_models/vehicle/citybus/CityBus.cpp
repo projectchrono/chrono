@@ -35,7 +35,6 @@ CityBus::CityBus()
       m_chassisCollisionType(ChassisCollisionType::NONE),
       m_fixed(false),
       m_tireType(TireModelType::TMEASY),
-      m_vehicle_step_size(-1),
       m_tire_step_size(-1),
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
@@ -49,7 +48,6 @@ CityBus::CityBus(ChSystem* system)
       m_chassisCollisionType(ChassisCollisionType::NONE),
       m_fixed(false),
       m_tireType(TireModelType::RIGID),
-      m_vehicle_step_size(-1),
       m_tire_step_size(-1),
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
@@ -77,10 +75,6 @@ void CityBus::Initialize() {
 
     m_vehicle->SetInitWheelAngVel(m_initOmega);
     m_vehicle->Initialize(m_initPos, m_initFwdVel);
-
-    if (m_vehicle_step_size > 0) {
-        m_vehicle->SetStepsize(m_vehicle_step_size);
-    }
 
     // If specified, enable aerodynamic drag
     if (m_apply_drag) {
@@ -127,6 +121,23 @@ void CityBus::Initialize() {
 
             break;
         }
+
+        case TireModelType::PAC02: {
+            auto tire_FL = chrono_types::make_shared<CityBus_Pac02Tire>("FL");
+            auto tire_FR = chrono_types::make_shared<CityBus_Pac02Tire>("FR");
+            auto tire_RL = chrono_types::make_shared<CityBus_Pac02Tire>("RL");
+            auto tire_RR = chrono_types::make_shared<CityBus_Pac02Tire>("RR");
+
+            m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
+
+            m_tire_mass = tire_FL->ReportMass();
+
+            break;
+        }
+
         default:
             break;
     }

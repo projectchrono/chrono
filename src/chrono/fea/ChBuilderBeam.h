@@ -305,9 +305,9 @@ class ChApi ChExtruderBeamIGA {
             double mcontact_radius  ///< radius of colliding spheres at each node (usually = to avg.beam thickness)
             );    
 
-    /// Create beam elements, if needed, and update the constraint that 
-    /// imposes the extrusion speed
-    void Update();
+    /// Create beam elements, if needed, and update the constraint that  imposes the extrusion speed.
+    /// Returns 'true' if any new nodes/elements were created (hence a system change) and 'false' otherwise.
+    bool Update();
 
     /// Access the list of created elements
     std::vector<std::shared_ptr<ChElementBeamIGA> >& GetLastBeamElements() { return beam_elems; }

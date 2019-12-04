@@ -64,12 +64,15 @@
 #include "chrono/assets/ChSurfaceShape.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/assets/ChEllipsoidShape.h"
+#include "chrono/assets/ChGlyphs.h"
 #include "chrono/collision/ChCCollisionUtils.h"
+#include "chrono/collision/ChCCollisionSystem.h"
 #include "chrono/geometry/ChTriangleMesh.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/geometry/ChTriangleMeshSoup.h"
 #include "chrono/core/ChBezierCurve.h"
 #include "Eigen/src/Core/util/Memory.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
 using namespace chrono;
 using namespace chrono::collision;
 using namespace chrono::geometry;
@@ -80,6 +83,7 @@ using namespace chrono::fea;
 // Undefine ChApi otherwise SWIG gives a syntax error
 #define ChApi 
 #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+#define CH_DEPRECATED(msg)
 
 %ignore CH_ENUM_MAPPER_BEGIN;
 %ignore CH_ENUM_VAL;
@@ -134,6 +138,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChPointPointSpring)
 %shared_ptr(chrono::ChTriangleMeshShape)
 %shared_ptr(chrono::ChBezierCurve)
+%shared_ptr(chrono::ChGlyphs)
 
 %shared_ptr(chrono::ChFunction)  
 %shared_ptr(chrono::ChFunction_Const)
@@ -204,6 +209,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChLinkRevoluteSpherical)
 %shared_ptr(chrono::ChLinkScrew)
 %shared_ptr(chrono::ChLinkSpring)
+%shared_ptr(chrono::ChLinkTSDA)
 %shared_ptr(chrono::ChLinkUniversal)
 %shared_ptr(chrono::ChLinkMotor)
 %shared_ptr(chrono::ChLinkMotorLinear)
@@ -296,6 +302,7 @@ using namespace chrono::fea;
 
 %include "ChCollisionModel.i"
 %include "../chrono/collision/ChCCollisionUtils.h"
+%include "../chrono/collision/ChCCollisionSystem.h"
 
 // assets
 %include "ChAsset.i"
@@ -315,6 +322,8 @@ using namespace chrono::fea;
 %include "../chrono/assets/ChSurfaceShape.h"
 %include "../chrono/assets/ChTriangleMeshShape.h"
 %include "../chrono/assets/ChEllipsoidShape.h"
+%include "../chrono/assets/ChGlyphs.h"
+
 
 // physics/  classes
 //%include "../chrono/physics/ChTensors.h"
@@ -349,7 +358,8 @@ using namespace chrono::fea;
 %include "ChLinkPulley.i"
 %include "ChLinkScrew.i"
 %include "ChLinkSpring.i"
-%include "ChLinkSpringCB.i"
+%include "ChLinkTSDA.i"
+%include "ChLinkRSDA.i"
 %include "ChLinkGear.i"
 %include "ChLinkRevolute.i"
 %include "ChLinkRevoluteSpherical.i"
@@ -371,6 +381,10 @@ using namespace chrono::fea;
 %include "ChShaft.i"
 %include "ChShaftMotor.i"
 %include "ChLinkMotor.i"
+
+// Utils
+
+%include "../chrono/utils/ChUtilsInputOutput.h"
 
 //
 // C- DOWNCASTING OF SHARED POINTERS
@@ -446,7 +460,8 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkPulley)
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkScrew)
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkSpring)
-%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkSpringCB)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkTSDA)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkRotSpringCB)
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkMotor)
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkMotorLinear)
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkMotorLinearDriveline)
@@ -489,6 +504,7 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkPulley)
 %DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkScrew)
 %DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkSpring)
+%DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkTSDA)
 %DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkPointSpline) 
 %DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkTrajectory)
 

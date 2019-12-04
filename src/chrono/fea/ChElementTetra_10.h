@@ -30,21 +30,11 @@ namespace fea {
 /// This is a quadratic element for displacements; stress and strain
 /// are interpolated depending on Gauss points.
 class ChApi ChElementTetra_10 : public ChElementTetrahedron, public ChLoadableUVW {
-  protected:
-    std::vector<std::shared_ptr<ChNodeFEAxyz> > nodes;
-    std::shared_ptr<ChContinuumElastic> Material;
-    // matrices of shape function's partial derivatives (one for each integration point)
-    // we use a vector to keep in memory all the four matrices (-> 4 integr. point)
-    std::vector<ChMatrixDynamic<> > MatrB;
-    ChMatrixDynamic<> StiffnessMatrix;
-
-    ChMatrixNM<double, 4, 4> mM;  // for speeding up corotational approach
-
   public:
     using ShapeVector = ChMatrixNM<double, 1, 10>;
 
     ChElementTetra_10();
-    virtual ~ChElementTetra_10();
+    ~ChElementTetra_10();
 
     virtual int GetNnodes() override { return 10; }
     virtual int GetNdofs() override { return 10 * 3; }
@@ -113,8 +103,6 @@ class ChApi ChElementTetra_10 : public ChElementTetrahedron, public ChLoadableUV
     /// Returns the stress tensor at given parameters.
     /// The tensor is in the original undeformed unrotated reference.
     ChStressTensor<> GetStress(double z1, double z2, double z3, double z4);
-
-    virtual void SetupInitial(ChSystem* system) override;
 
     // compute large rotation of element for corotational approach
     virtual void UpdateRotation() override;
@@ -204,6 +192,18 @@ class ChApi ChElementTetra_10 : public ChElementTetrahedron, public ChLoadableUV
     /// If true, use quadrature over u,v,w in [0..1] range as tetrahedron volumetric coords, with z=1-u-v-w
     /// otherwise use quadrature over u,v,w in [-1..+1] as box isoparametric coords.
     virtual bool IsTetrahedronIntegrationNeeded() override { return true; }
+
+  private:
+    virtual void SetupInitial(ChSystem* system) override;
+
+    std::vector<std::shared_ptr<ChNodeFEAxyz> > nodes;
+    std::shared_ptr<ChContinuumElastic> Material;
+    // matrices of shape function's partial derivatives (one for each integration point)
+    // we use a vector to keep in memory all the four matrices (-> 4 integr. point)
+    std::vector<ChMatrixDynamic<> > MatrB;
+    ChMatrixDynamic<> StiffnessMatrix;
+
+    ChMatrixNM<double, 4, 4> mM;  // for speeding up corotational approach
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW

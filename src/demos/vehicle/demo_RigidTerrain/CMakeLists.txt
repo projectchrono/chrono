@@ -1,6 +1,6 @@
 #=============================================================================
 # CMake configuration file for the RigidTerrain demos.
-# These example programs requires Irrlicht run-time visualization
+# This example program requires Irrlicht run-time visualization.
 #=============================================================================
 
 IF(NOT ENABLE_MODULE_IRRLICHT)

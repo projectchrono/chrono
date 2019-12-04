@@ -128,8 +128,10 @@ ADD_LIBRARY(ChronoEngine_irrlicht SHARED
 
 SET_TARGET_PROPERTIES(ChronoEngine_irrlicht PROPERTIES
   COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
-  LINK_FLAGS "${CH_LINKERFLAG_SHARED}"
-  COMPILE_DEFINITIONS "CH_API_COMPILE_IRRLICHT")
+  LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
+
+target_compile_definitions(ChronoEngine_irrlicht PRIVATE "CH_API_COMPILE_IRRLICHT")
+target_compile_definitions(ChronoEngine_irrlicht PRIVATE "CH_IGNORE_DEPRECATED")
 
 TARGET_LINK_LIBRARIES(ChronoEngine_irrlicht
   ChronoEngine

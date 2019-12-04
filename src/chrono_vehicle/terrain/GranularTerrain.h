@@ -186,7 +186,7 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
     unsigned int GetNumParticles() const { return m_num_particles; }
 
     /// Get the terrain height at the specified (x,y) location.
-    /// This function returns the heighest point over all granular particles.
+    /// This function returns the highest point over all granular particles.
     virtual double GetHeight(double x, double y) const override;
 
     /// Get the terrain normal at the specified (x,y) location.

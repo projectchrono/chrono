@@ -13,6 +13,8 @@
 // =============================================================================
 
 #include "chrono/fea/ChLoadContactSurfaceMesh.h"
+#include "chrono/fea/ChMesh.h"
+#include "chrono/physics/ChSystem.h"
 
 namespace chrono {
 namespace fea {
@@ -92,6 +94,9 @@ void ChLoadContactSurfaceMesh::InputSimpleForces(const std::vector<ChVector<>> v
         mforce->loader.SetForce(vert_forces[i]);
         this->forces.push_back(mforce);
     }
+
+    // Force an update of the system containing the associated mesh
+    contactmesh->GetMesh()->GetSystem()->ForceUpdate();
 }
 
 void ChLoadContactSurfaceMesh::SetContactMesh(std::shared_ptr<ChContactSurfaceMesh> mmesh) {

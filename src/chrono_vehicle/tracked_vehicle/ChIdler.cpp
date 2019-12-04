@@ -112,11 +112,11 @@ void ChIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>
     chassis->GetSystem()->AddLink(m_prismatic);
 
     // Create and initialize the tensioner force element.
-    m_tensioner = chrono_types::make_shared<ChLinkSpringCB>();
+    m_tensioner = chrono_types::make_shared<ChLinkTSDA>();
     m_tensioner->SetNameString(m_name + "_tensioner");
     m_tensioner->Initialize(chassis, m_carrier, false, points[TSDA_CHASSIS], points[TSDA_CARRIER]);
     m_tensioner->RegisterForceFunctor(GetTensionerForceCallback());
-    m_tensioner->SetSpringRestLength(GetTensionerFreeLength());
+    m_tensioner->SetRestLength(GetTensionerFreeLength());
     chassis->GetSystem()->AddLink(m_tensioner);
 }
 
@@ -207,7 +207,7 @@ void ChIdler::ExportComponentList(rapidjson::Document& jsonDocument) const {
     joints.push_back(m_prismatic);
     ChPart::ExportJointList(jsonDocument, joints);
 
-    std::vector<std::shared_ptr<ChLinkSpringCB>> springs;
+    std::vector<std::shared_ptr<ChLinkTSDA>> springs;
     springs.push_back(m_tensioner);
     ChPart::ExportLinSpringList(jsonDocument, springs);
 }
@@ -226,7 +226,7 @@ void ChIdler::Output(ChVehicleOutput& database) const {
     joints.push_back(m_prismatic);
     database.WriteJoints(joints);
 
-    std::vector<std::shared_ptr<ChLinkSpringCB>> springs;
+    std::vector<std::shared_ptr<ChLinkTSDA>> springs;
     springs.push_back(m_tensioner);
     database.WriteLinSprings(springs);
 }

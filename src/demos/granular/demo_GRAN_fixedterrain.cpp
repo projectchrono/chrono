@@ -32,6 +32,7 @@
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_granular/utils/ChGranularJsonParser.h"
 #include "chrono_granular/utils/ChGranularSphereDecomp.h"
+#include "chrono_granular/api/ChApiGranularChrono.h"
 
 using namespace chrono;
 using namespace chrono::granular;
@@ -47,13 +48,16 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // Chrono::Granular system
     ChSystemGranularSMC gran_sys(params.sphere_radius, params.sphere_density,
                                  make_float3(params.box_X, params.box_Y, params.box_Z));
 
+	// to do: don't expose the guts of granular at this level; work through an API
+    // but for now get it going like this
+    ChGranularSMC_API apiSMC;
+    apiSMC.setGranSystem(&gran_sys);
+
     // Add spherically-decomposed underlying terrain.
-    std::string objfilename("data/granular/fixedterrain/fixedterrain.obj");
-    // std::string objfilename("data/granular/fixedterrain/triangle.obj");
+    std::string objfilename(GetChronoDataFile("granular/fixedterrain/fixedterrain.obj"));
 
     ChVector<float> scaling(params.box_X / 2, params.box_Y / 2, params.box_Z);
 
@@ -92,7 +96,7 @@ int main(int argc, char* argv[]) {
     fixed.insert(fixed.end(), material_points.size(), false);
 
     std::cout << "Adding " << body_points.size() << " spheres." << std::endl;
-    gran_sys.setParticlePositions(body_points);
+    apiSMC.setElemsPositions(body_points);
     gran_sys.setParticleFixed(fixed);
 
     // Add internal planes to prevent leaking

@@ -19,11 +19,14 @@
 
 namespace chrono {
 
-/// Class for spring-damper systems, acting along the polar
-/// distance of two markers
-
-class ChApi ChLinkSpring : public ChLinkMarkers {
-
+/// Class for spring-damper systems, acting along the polar distance of two markers.
+///
+/// \deprecated Use ChLinkTSDA instead. This class will be removed in a future Chrono release.
+class ChApi 
+/// \cond
+CH_DEPRECATED("deprecated. Use ChLinkTSDA instead.")
+/// \endcond
+ChLinkSpring : public ChLinkMarkers {
   protected:
     double spr_restlength;                    ///< spring rest (undeformed) length
     double spr_k;                             ///< spring coefficient
@@ -42,7 +45,7 @@ class ChApi ChLinkSpring : public ChLinkMarkers {
     virtual ~ChLinkSpring() {}
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChLinkSpring* Clone() const override { return new ChLinkSpring(*this); }
+    virtual ChLinkSpring* Clone() const override;
 
     // data fetch/store
     double Get_SpringRestLength() const { return spr_restlength; }

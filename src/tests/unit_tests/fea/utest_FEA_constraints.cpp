@@ -124,7 +124,6 @@ Model::Model() {
     m_system->Add(constraint_dir3);
 
     m_system->Add(my_mesh);
-    m_system->SetupInitial();
 
     // Set integrator
     m_system->SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
@@ -162,8 +161,8 @@ TEST(ANCFcables_rigid_constraints, Minres_MKL) {
     model1.GetSystem()->SetTolForce(1e-13);
 
     // MODEL2 uses MKL (Pardiso)
-    auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
-    mkl_solver->SetSparsityPatternLock(false);
+    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+    mkl_solver->LockSparsityPattern(false);
     model2.GetSystem()->SetSolver(mkl_solver);
 
     // Simulate both systems and compare states of the two rigid boxes

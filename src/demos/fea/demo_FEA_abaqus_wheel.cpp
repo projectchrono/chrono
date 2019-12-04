@@ -279,9 +279,6 @@ int main(int argc, char* argv[]) {
     // Use shadows in realtime view
     application.AddShadowAll();
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
     //
     // THE SOFT-REAL-TIME CYCLE
     //
@@ -293,8 +290,8 @@ int main(int argc, char* argv[]) {
     my_system.SetTolForce(1e-10);
 
     // Change solver to pluggable MKL
-    auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
-	mkl_solver->SetSparsityPatternLock(true);
+    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+	mkl_solver->LockSparsityPattern(true);
     my_system.SetSolver(mkl_solver);
     my_system.Update();
 

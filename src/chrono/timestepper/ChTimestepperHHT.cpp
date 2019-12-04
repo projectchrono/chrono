@@ -157,12 +157,13 @@ void ChTimestepperHHT::Advance(const double dt) {
                 GetLog() << "  T = " << T + h << "  h = " << h << "\n";
             }
 
-            // if needed, adjust stepsize to reach exactly tfinal
-            if (std::abs(T + h - tfinal) < 1e-6)
-                h = tfinal - T;
-
-            // advance time and set the state
+            // Advance time (clamp to tfinal if close enough)
             T += h;
+            if (std::abs(T - tfinal) < std::min(h_min, 1e-6)) {
+                T = tfinal;
+            }
+
+            // Set the state
             X = Xnew;
             V = Vnew;
             A = Anew;

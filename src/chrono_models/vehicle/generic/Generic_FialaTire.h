@@ -37,9 +37,7 @@ class CH_MODELS_API Generic_FialaTire : public ChFialaTire {
     ~Generic_FialaTire() {}
 
     virtual double GetNormalStiffnessForce(double depth) const override;
-    virtual double GetNormalDampingForce(double depth, double velocity) const override {
-        return m_normalDamping * velocity;
-    }
+    virtual double GetNormalDampingForce(double depth, double velocity) const override;
 
     virtual double GetMass() const override { return m_mass; }
     virtual ChVector<> GetInertia() const override { return m_inertia; }

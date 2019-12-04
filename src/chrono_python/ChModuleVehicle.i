@@ -51,6 +51,7 @@
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChVector.h"
 #include "chrono/solver/ChSolver.h"
+#include "chrono/solver/ChSolverDirect.h"
 #include "chrono/solver/ChIterativeSolver.h"
 #include "chrono/solver/ChSolverMINRES.h"
 
@@ -62,7 +63,7 @@
 #include "chrono/physics/ChMarker.h"
 #include "chrono/physics/ChLink.h"
 #include "chrono/physics/ChShaftsCouple.h"
-#include "chrono/physics/ChLinkSpringCB.h"
+#include "chrono/physics/ChLinkTSDA.h"
 #include "chrono/physics/ChLinkRotSpringCB.h"
 #include "chrono/physics/ChLoadsBody.h"
 #include "chrono/physics/ChLoadsXYZnode.h"
@@ -109,11 +110,11 @@ using namespace chrono::vehicle::citybus;
 %}
 
 
-// Undefine ChApiFea otherwise SWIG gives a syntax error
+// Undefine ChApi otherwise SWIG gives a syntax error
 #define CH_VEHICLE_API 
 #define ChApi
 #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
+#define CH_DEPRECATED(msg)
 #define CH_MODELS_API
 
 
@@ -165,7 +166,6 @@ using namespace chrono::vehicle::citybus;
 %shared_ptr(chrono::ChNodeXYZ) 
 %shared_ptr(chrono::ChTriangleMeshShape)
 %shared_ptr(chrono::geometry::ChTriangleMeshConnected)
-%shared_ptr(chrono::ChLinkSpring)
 %shared_ptr(chrono::ChFunction_Recorder)
 %shared_ptr(chrono::ChBezierCurve)
 %shared_ptr(chrono::ChLinkMarkers)
@@ -227,7 +227,8 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %import(module = "pychrono.core")  "ChBodyAuxRef.i"
 %import(module = "pychrono.core")  "ChLinkBase.i"
 %import(module = "pychrono.core")  "ChLinkLock.i"
-%import(module = "pychrono.core")  "ChLinkSpringCB.i"
+%import(module = "pychrono.core")  "ChLinkTSDA.i"
+%import(module = "pychrono.core")  "ChLinkRSDA.i"
 %import(module = "pychrono.core") "ChLoad.i"
 %import(module = "pychrono.core") "ChShaft.i"
 %import(module = "pychrono.core") "ChAsset.i"

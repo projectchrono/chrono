@@ -21,15 +21,17 @@ namespace geometry {
 CH_FACTORY_REGISTER(ChLineBspline)
 
 ChLineBspline::ChLineBspline() {
-    std::vector<ChVector<> > mpoints = {ChVector<>(-1, 0, 0), ChVector<>(1, 0, 0)};
+    const std::vector<ChVector<> > mpoints = {ChVector<>(-1, 0, 0), ChVector<>(1, 0, 0)};
+	this->closed = false;
     this->SetupData(1, mpoints);
 }
 
 ChLineBspline::ChLineBspline(
     int morder,                         ///< order p: 1= linear, 2=quadratic, etc.
-    std::vector<ChVector<> >& mpoints,  ///< control points, size n. Required: at least n >= p+1
+    const std::vector<ChVector<> >& mpoints,  ///< control points, size n. Required: at least n >= p+1
     ChVectorDynamic<>* mknots           ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
 ) {
+	this->closed = false;
     this->SetupData(morder, mpoints, mknots);
 }
 
@@ -37,10 +39,17 @@ ChLineBspline::ChLineBspline(const ChLineBspline& source) : ChLine(source) {
     this->points = source.points;
     this->p = source.p;
     this->knots = source.knots;
+	this->closed = source.closed;
 }
 
 void ChLineBspline::Evaluate(ChVector<>& pos, const double parU) const {
-    double u = ComputeKnotUfromU(parU);
+	double mU;
+	if (this->closed)
+		mU = fmod(parU, 1.0);
+	else
+		mU = parU;
+
+    double u = ComputeKnotUfromU(mU);
 
     int spanU = ChBasisToolsBspline::FindSpan(this->p, u, this->knots);
 
@@ -55,7 +64,13 @@ void ChLineBspline::Evaluate(ChVector<>& pos, const double parU) const {
 }
 
 void ChLineBspline::Derive(ChVector<>& dir, const double parU) const {
-    double u = ComputeKnotUfromU(parU);
+	double mU;
+	if (this->closed)
+		mU = fmod(parU, 1.0);
+	else
+		mU = parU;
+
+    double u = ComputeKnotUfromU(mU);
 
     int spanU = ChBasisToolsBspline::FindSpan(this->p, u, this->knots);
 
@@ -71,7 +86,7 @@ void ChLineBspline::Derive(ChVector<>& dir, const double parU) const {
 
 void ChLineBspline::SetupData(
     int morder,                         ///< order p: 1= linear, 2=quadratic, etc.
-    std::vector<ChVector<> >& mpoints,  ///< control points, size n. Required: at least n >= p+1
+    const std::vector<ChVector<> >& mpoints,  ///< control points, size n. Required: at least n >= p+1
     ChVectorDynamic<>* mknots           ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
 ) {
     if (morder < 1)
@@ -96,6 +111,41 @@ void ChLineBspline::SetupData(
     }
 }
 
+void ChLineBspline::SetClosed(bool mc) {
+	if (this->closed == mc)
+		return;
+
+	// switch open->closed
+	if (mc == true) {
+		// add p control points to be wrapped: resize knots and control points
+		auto n = this->points.size();
+		n += p; 
+		this->points.resize(n);
+		this->knots.setZero(n + p + 1);
+		
+		// recompute knot vector spacing
+        ChBasisToolsBspline::ComputeKnotUniform(this->knots, p);
+		
+		// wrap last control points
+		for (int i = 0; i < p; ++i)
+			this->points[n - p + i] = this->points[i];
+	}
+	
+	// switch closed->open
+	if (mc == false) {
+		// remove p control points that was wrapped: resize knots and control points
+		auto n = this->points.size();
+		n -= p; 
+		this->points.resize(n);
+		this->knots.setZero(n + p + 1);
+
+		// recompute knot vector spacing
+        ChBasisToolsBspline::ComputeKnotUniformMultipleEnds(this->knots, p);
+	}
+
+	this->closed = mc;
+}
+
 void ChLineBspline::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChLineBspline>();
@@ -103,8 +153,9 @@ void ChLineBspline::ArchiveOUT(ChArchiveOut& marchive) {
     ChLine::ArchiveOUT(marchive);
     // serialize all member data:
     marchive << CHNVP(points);
-    marchive << CHNVP(knots);
+    ////marchive << CHNVP(knots); //**TODO MATRIX DESERIALIZATION
     marchive << CHNVP(p);
+	marchive << CHNVP(closed);
 }
 
 void ChLineBspline::ArchiveIN(ChArchiveIn& marchive) {
@@ -114,8 +165,9 @@ void ChLineBspline::ArchiveIN(ChArchiveIn& marchive) {
     ChLine::ArchiveIN(marchive);
     // stream in all member data:
     marchive >> CHNVP(points);
-    ////marchive >> CHNVP(knots);
+    ////marchive >> CHNVP(knots); //**TODO MATRIX DESERIALIZATION
     marchive >> CHNVP(p);
+	marchive >> CHNVP(closed);
 }
 
 }  // end namespace geometry

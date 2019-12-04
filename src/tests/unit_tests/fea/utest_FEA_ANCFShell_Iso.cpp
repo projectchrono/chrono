@@ -170,9 +170,6 @@ int main(int argc, char* argv[]) {
     // Add the mesh to the system
     my_system.Add(my_mesh);
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
 #ifndef CHRONO_MKL
     use_mkl = false;
 #endif
@@ -180,8 +177,8 @@ int main(int argc, char* argv[]) {
     // Setup solver
     if (use_mkl) {
 #ifdef CHRONO_MKL
-        auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
-        mkl_solver->SetSparsityPatternLock(true);
+        auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+        mkl_solver->LockSparsityPattern(true);
         mkl_solver->SetVerbose(true);
         my_system.SetSolver(mkl_solver);
 #endif

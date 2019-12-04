@@ -195,7 +195,9 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     );
 
     /// Advance the state of this vehicle by the specified time step.
-    virtual void Advance(double step) final;
+    /// In addition to advancing the state of the multibody system (if the vehicle owns the underlying system), this
+    /// function also advances the state of the associated powertrain.
+    virtual void Advance(double step) override final;
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;

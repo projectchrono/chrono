@@ -40,6 +40,15 @@ namespace vehicle {
 /// Base class for a suspension subsystem.
 class CH_VEHICLE_API ChSuspension : public ChPart {
   public:
+    struct Force {
+        double spring_force;
+        double shock_force;
+        double spring_length;
+        double spring_velocity;
+        double shock_length;
+        double shock_velocity;
+    };
+
     ChSuspension(const std::string& name);
 
     virtual ~ChSuspension() {}
@@ -88,14 +97,8 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     int GetSteeringIndex() const { return m_steering_index; }
 
     /// Synchronize this suspension subsystem.
-    /// This function must be called before any call to AccumulateTireForce.
+    /// This function must be called before synchronizing any wheels associated with this suspension.
     void Synchronize();
-
-    /// Apply the given tire force to the suspension's spindle body.
-    /// Typically, this function is called by a wheel subsystem associated with this suspension.
-    void AccumulateTireForce(VehicleSide side,               ///< side (left or right) on which forces should be applied
-                             const TerrainForce& tire_force  ///< generalized tire forces
-    );
 
     /// Apply the provided motor torque.
     /// The given torque is applied to the specified (left or right) axle. This
@@ -152,6 +155,10 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
 
     /// Get the wheel track for the suspension subsystem.
     virtual double GetTrack() = 0;
+
+    /// Return current suspension forces (spring and shock) on the specified side.
+    /// Different derived types (suspension templates) may load different quantities in the output struct.
+    virtual Force ReportSuspensionForce(VehicleSide side) const = 0;
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations(VehicleSide side) {}

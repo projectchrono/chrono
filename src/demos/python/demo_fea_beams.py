@@ -184,15 +184,12 @@ myapplication.AssetBindAll()
 
 myapplication.AssetUpdateAll()
 
-# Mark completion of system construction
-my_system.SetupInitial();
-
 
 # THE SOFT-REAL-TIME CYCLE
 
 
 # Change the solver form the default SOR to the MKL Pardiso, more precise for fea.
-msolver = mkl.ChSolverMKLcsm()
+msolver = mkl.ChSolverMKL()
 my_system.SetSolver(msolver)
 
 

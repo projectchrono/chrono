@@ -20,6 +20,8 @@
 //
 // =============================================================================
 
+#include "chrono/core/ChRealtimeStep.h"
+
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
@@ -48,8 +50,8 @@ VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType wheel_vis_type = VisualizationType::MESH;
 VisualizationType tire_vis_type = VisualizationType::NONE;
 
-// Type of tire model (RIGID, TMEASY)
-TireModelType tire_model = TireModelType::TMEASY;
+// Type of tire model (RIGID, TMEASY, PAC02)
+TireModelType tire_model = TireModelType::PAC02;
 
 // Point on chassis tracked by the camera
 ChVector<> trackPoint(0.0, 0.0, 1.75);
@@ -96,16 +98,16 @@ int main(int argc, char* argv[]) {
         auto springFL = suspF->GetSpring(VehicleSide::LEFT);
         auto shockFL = suspF->GetShock(VehicleSide::RIGHT);
 
-        std::cout << "Spring rest length front: " << springFL->GetSpringRestLength() << std::endl;
-        std::cout << "Shock rest length front:  " << shockFL->GetSpringRestLength() << std::endl;
+        std::cout << "Spring rest length front: " << springFL->GetRestLength() << std::endl;
+        std::cout << "Shock rest length front:  " << shockFL->GetRestLength() << std::endl;
     }
     {
         auto suspR = std::static_pointer_cast<UAZBUS_LeafspringAxle>(uaz.GetVehicle().GetSuspension(1));
         auto springRL = suspR->GetSpring(VehicleSide::LEFT);
         auto shockRL = suspR->GetShock(VehicleSide::RIGHT);
 
-        std::cout << "Spring rest length rear: " << springRL->GetSpringRestLength() << std::endl;
-        std::cout << "Shock rest length rear:  " << shockRL->GetSpringRestLength() << std::endl;
+        std::cout << "Spring rest length rear: " << springRL->GetRestLength() << std::endl;
+        std::cout << "Shock rest length rear:  " << shockRL->GetRestLength() << std::endl;
     }
 
     std::cout << "Vehicle mass:               " << uaz.GetVehicle().GetVehicleMass() << std::endl;
@@ -161,6 +163,8 @@ int main(int argc, char* argv[]) {
     int step_number = 0;
 
     double maxKingpinAngle = 0.0;
+
+    ChRealtimeStepTimer realtime_timer;
     while (app.GetDevice()->run()) {
         double time = uaz.GetSystem()->GetChTime();
 
@@ -196,8 +200,12 @@ int main(int argc, char* argv[]) {
         terrain.Advance(step_size);
         uaz.Advance(step_size);
         app.Advance(step_size);
+
         // Increment frame number
         step_number++;
+
+        // Spin in place for real time to catch up
+        realtime_timer.Spin(step_size);
     }
 
     std::cout << "Maximum Kingpin Angle = " << maxKingpinAngle << " deg" << std::endl;

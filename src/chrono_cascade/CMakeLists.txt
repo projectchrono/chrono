@@ -121,8 +121,7 @@ ADD_LIBRARY(ChronoEngine_cascade SHARED
 
 SET_TARGET_PROPERTIES(ChronoEngine_cascade PROPERTIES 
                       COMPILE_FLAGS "${CXX_FLAGS}"
-                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
-                      COMPILE_DEFINITIONS "CH_API_COMPILE_CASCADE")
+                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     ADD_DEFINITIONS( "/DWNT" )
@@ -130,6 +129,10 @@ ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     ADD_DEFINITIONS(-DHAVE_IOSTREAM)
     ADD_DEFINITIONS(-DHAVE_LIMITS_H)
 ENDIF()
+
+target_compile_definitions(ChronoEngine_cascade PRIVATE "CH_API_COMPILE_CASCADE")
+target_compile_definitions(ChronoEngine_cascade PRIVATE "CH_IGNORE_DEPRECATED")
+
 
 TARGET_LINK_LIBRARIES(ChronoEngine_cascade
         ${CASCADE_LIBRARIES} 

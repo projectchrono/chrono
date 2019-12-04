@@ -92,7 +92,7 @@ void ChLinearDamperRWAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
     // Create and initialize the translational shock force element.
     if (m_has_shock) {
-        m_shock = chrono_types::make_shared<ChLinkSpringCB>();
+        m_shock = chrono_types::make_shared<ChLinkTSDA>();
         m_shock->SetNameString(m_name + "_shock");
         m_shock->Initialize(chassis, m_arm, false, points[SHOCK_C], points[SHOCK_A]);
         m_shock->RegisterForceFunctor(GetShockForceFunctor());
@@ -216,7 +216,7 @@ void ChLinearDamperRWAssembly::ExportComponentList(rapidjson::Document& jsonDocu
     ChPart::ExportRotSpringList(jsonDocument, rot_springs);
 
     if (m_has_shock) {
-        std::vector<std::shared_ptr<ChLinkSpringCB>> lin_springs;
+        std::vector<std::shared_ptr<ChLinkTSDA>> lin_springs;
         lin_springs.push_back(m_shock);
         ChPart::ExportLinSpringList(jsonDocument, lin_springs);
     }
@@ -239,7 +239,7 @@ void ChLinearDamperRWAssembly::Output(ChVehicleOutput& database) const {
     database.WriteRotSprings(rot_springs);
 
     if (m_has_shock) {
-        std::vector<std::shared_ptr<ChLinkSpringCB>> lin_springs;
+        std::vector<std::shared_ptr<ChLinkTSDA>> lin_springs;
         lin_springs.push_back(m_shock);
         database.WriteLinSprings(lin_springs);
     }

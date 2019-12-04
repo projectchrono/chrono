@@ -146,15 +146,9 @@ class CH_VEHICLE_API ChVehicle {
     void SetChassisOutput(bool state);
 
     /// Advance the state of this vehicle by the specified time step.
-    /// This is done only if the vehicle owns the underlying Chrono system.
+    /// A call to ChSystem::DoStepDynamics is done only if the vehicle owns the underlying Chrono system.
     /// Otherwise, the caller is responsible for advancing the sate of the entire system.
     virtual void Advance(double step);
-
-    /// Set the integration step size for the vehicle system.
-    void SetStepsize(double val) { m_stepsize = val; }
-
-    /// Get the current value of the integration step size for the vehicle system.
-    double GetStepsize() const { return m_stepsize; }
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations() = 0;
@@ -201,8 +195,6 @@ class CH_VEHICLE_API ChVehicle {
     int m_output_frame;            ///< current output frame
 
     std::shared_ptr<ChChassis> m_chassis;  ///< handle to the chassis subsystem
-
-    double m_stepsize;  ///< integration step-size for the vehicle system
 };
 
 /// @} vehicle

@@ -132,10 +132,10 @@ void ChDoubleWishboneReduced::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddLink(m_distTierod[side]);
 
     // Create and initialize the spring/damper
-    m_shock[side] = chrono_types::make_shared<ChLinkSpringCB>();
+    m_shock[side] = chrono_types::make_shared<ChLinkTSDA>();
     m_shock[side]->SetNameString(m_name + "_shock" + suffix);
     m_shock[side]->Initialize(chassis, m_upright[side], false, points[SHOCK_C], points[SHOCK_U]);
-    m_shock[side]->SetSpringRestLength(getSpringRestLength());
+    m_shock[side]->SetRestLength(getSpringRestLength());
     m_shock[side]->RegisterForceFunctor(getShockForceFunctor());
     chassis->GetSystem()->AddLink(m_shock[side]);
 
@@ -180,6 +180,23 @@ ChVector<> ChDoubleWishboneReduced::GetCOMPos() const {
 // -----------------------------------------------------------------------------
 double ChDoubleWishboneReduced::GetTrack() {
     return 2 * getLocation(SPINDLE).y();
+}
+
+// -----------------------------------------------------------------------------
+// Return current suspension forces
+// -----------------------------------------------------------------------------
+ChSuspension::Force ChDoubleWishboneReduced::ReportSuspensionForce(VehicleSide side) const {
+    ChSuspension::Force force;
+
+    force.spring_force = m_shock[side]->GetForce();
+    force.spring_length = m_shock[side]->GetLength();
+    force.spring_velocity = m_shock[side]->GetVelocity();
+
+    force.shock_force = force.spring_force;
+    force.shock_length = force.spring_length;
+    force.shock_velocity = force.spring_velocity;
+
+    return force;
 }
 
 // -----------------------------------------------------------------------------
@@ -362,7 +379,7 @@ void ChDoubleWishboneReduced::ExportComponentList(rapidjson::Document& jsonDocum
     joints.push_back(m_distTierod[1]);
     ChPart::ExportJointList(jsonDocument, joints);
 
-    std::vector<std::shared_ptr<ChLinkSpringCB>> springs;
+    std::vector<std::shared_ptr<ChLinkTSDA>> springs;
     springs.push_back(m_shock[0]);
     springs.push_back(m_shock[1]);
     ChPart::ExportLinSpringList(jsonDocument, springs);
@@ -399,7 +416,7 @@ void ChDoubleWishboneReduced::Output(ChVehicleOutput& database) const {
     joints.push_back(m_distTierod[1]);
     database.WriteJoints(joints);
 
-    std::vector<std::shared_ptr<ChLinkSpringCB>> springs;
+    std::vector<std::shared_ptr<ChLinkTSDA>> springs;
     springs.push_back(m_shock[0]);
     springs.push_back(m_shock[1]);
     database.WriteLinSprings(springs);

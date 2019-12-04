@@ -90,9 +90,9 @@ class CH_VEHICLE_API ToeBarLeafspringAxle : public ChToeBarLeafspringAxle {
     virtual double getSpringRestLength() const override { return m_springRestLength; }
 
     /// Return the functor object for spring force.
-    virtual ChLinkSpringCB::ForceFunctor* getSpringForceFunctor() const override { return m_springForceCB; }
+    virtual ChLinkTSDA::ForceFunctor* getSpringForceFunctor() const override { return m_springForceCB; }
     /// Return the functor object for shock force.
-    virtual ChLinkSpringCB::ForceFunctor* getShockForceFunctor() const override { return m_shockForceCB; }
+    virtual ChLinkTSDA::ForceFunctor* getShockForceFunctor() const override { return m_shockForceCB; }
 
     virtual bool isLeftKnuckleActuated() override { return m_use_left_knuckle; }
 
@@ -101,13 +101,10 @@ class CH_VEHICLE_API ToeBarLeafspringAxle : public ChToeBarLeafspringAxle {
 
     virtual void Create(const rapidjson::Document& d) override;
 
-    ChLinkSpringCB::ForceFunctor* m_springForceCB;
-    ChLinkSpringCB::ForceFunctor* m_shockForceCB;
+    ChLinkTSDA::ForceFunctor* m_springForceCB;
+    ChLinkTSDA::ForceFunctor* m_shockForceCB;
 
     ChVector<> m_points[NUM_POINTS];
-
-    double m_springMinLength;
-    double m_springMaxLength;
 
     double m_damperDegressivityCompression;
     double m_damperDegressivityExpansion;

@@ -1,16 +1,26 @@
 Deep Reinforcement Learning with PyChrono and Tensorflow {#tutorial_pychrono_demo_tensorflow}
 ==========================
-[PYTHON CODES HERE](https://github.com/projectchrono/chrono/tree/develop/src/demos/python/chrono-tensorflow)
 
-## Introduction
+# Introduction
 Deep Reinforcement Learning (DRL) consits in using Reinforcement Learning to train Deep Neural Network. In the last few years it has been applied with success to various robotic control tasks. 
-The main advantage of this approach is its ability to deal with unstructured and mutable environemnts, while classical robotic control often fails in these challenges.
+The main advantage of this approach is its ability to deal with unstructured and mutable environments, while classical robotic control often fails when facing these challenges.
 To train a NN with DRL several interactions with the environment are needed. For this reason physical engines offer a valuable help, allowing to train the agent in a virtual environment instead of training it directly in the real world, reducing time and risks of the operation.
+With PyChrono you can easily build physical models and exchange data between the simulation and you favorite ML framework. 
+We suggest two ways to get started using PyChrono for DRL:
+
+# 1- [gym-chrono](https://github.com/projectchrono/gym-chrono)
+ 
+If you are looking for more complex and realistic environments and you want to leverage OpenAI Gym capabilities (i.e. using [OpenAI Baselines](https://github.com/openai/baselines)) we recommend to use gym-chrono, a set of PyChrono-based OpenAI Gym environments. 
+These environments provide an open-source alternative to MuJoCo environments.
+# 2- Tensorflow Demos
+We also provide 2 simple plug-and-play examples to kickstart you into DRL for robotic control. These demos only require Tensorflow and PyChrono to run; and are provided together with a standalon Proximal Policy optimization algorithm.
+
+[PYTHON CODES HERE](https://github.com/projectchrono/chrono/tree/develop/src/demos/python/chrono-tensorflow)
 ### Goal:
 We will train a Neural Network to solve robotic tasks using virtual training environment created with [PyChrono](@ref pychrono_introduction).
 The demo contains virtual environments and a learning model created with Tensorflow. 
 
-## Environments
+### Environments
 We provide two sample environments for robotic control. 
 
 **ChronoPendulum** 
@@ -22,7 +32,7 @@ Reverse pendulum, the goal is to balance a pole on a cart.  1 action (force alon
 ![](http://projectchrono.org/assets/manual/Tutorial_tensorflow_ant.jpg)
 A 4-legged walker, the goal is learning to walk straight as fast as possible. 8 actions (motor torques) and 30 observations.
 
-## DL algorithm
+### DL algorithm
 
 To train the Neural Networks to solve the tasks we used a reinforcement learning algorithm known as [Proximal Policy Optimization](https://arxiv.org/abs/1707.06347) (PPO). PPO is an on-policy actor-critic algorithm, thus you will find 2 NNs: the first one given the state prescribes an action (Policy), the second given the state evaluates the value function (VF).
 
@@ -68,12 +78,12 @@ Besides the environment name and the number of episodes, there are some other ar
  - **Kullback Leibler divergence target value**: -k, --kl_targ, default=0.003
  - **Batch size**: -b, --batch_size, default=20
 
-## Saving and restoring
+### Saving and restoring
 
 NN parameters and the other TF variables are stored inside the Policy and VF directories, while the scaler means and variances are stored in the scaler.dat saved numpy array. These files and folders are stored and used to restore a previous checkpoint.
 
 Since they use the same NN architecture using parallel or serial version does not matter when restoring checkpoints.
 
-## Tester
+### Tester
 
 To test the Policy without further improving it execute **tester.py**. Set ** --VideoSave ** to save screenshots from the render.
