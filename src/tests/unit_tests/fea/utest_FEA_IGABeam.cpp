@@ -60,7 +60,7 @@ Model::Model(int sec, int ord) {
     solver->EnableDiagonalPreconditioner(true);
     solver->SetVerbose(false);
 
-    m_system->SetTolForce(1e-13);
+    m_system->SetSolverForceTolerance(1e-13);
 
     auto my_mesh = chrono_types::make_shared<ChMesh>();
     my_mesh->SetAutomaticGravity(false);

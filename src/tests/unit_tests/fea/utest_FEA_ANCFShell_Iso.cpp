@@ -189,8 +189,6 @@ int main(int argc, char* argv[]) {
         solver->SetTolerance(1e-10);
         solver->EnableDiagonalPreconditioner(true);
         solver->SetVerbose(false);
-
-        my_system.SetTolForce(1e-6);
     }
 
     // Setup integrator

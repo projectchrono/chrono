@@ -252,8 +252,6 @@ int main(int argc, char* argv[]) {
     solver->EnableDiagonalPreconditioner(true);
     solver->SetVerbose(false);
 
-    my_system.SetTolForce(1e-08);
-
     my_system.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(-0.2);

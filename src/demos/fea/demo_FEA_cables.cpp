@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
     solver->EnableWarmStart(true);  // IMPORTANT for convergence when using EULER_IMPLICIT_LINEARIZED
     solver->SetVerbose(false);
 
-    my_system.SetTolForce(1e-13);
+    my_system.SetSolverForceTolerance(1e-13);
 
     // Set integrator
     my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);

@@ -158,7 +158,7 @@ int main(int argc, char* argv[]) {
     // note that by default all solid elements in the mesh will already
     // get gravitational force, if you want to bypass this automatic gravity, do:
     mesh->SetAutomaticGravity(false);
-#endif LOAD_3
+#endif
 
 #ifdef LOAD_4
     // Example 4:
@@ -469,7 +469,7 @@ int main(int argc, char* argv[]) {
     solver->EnableDiagonalPreconditioner(true);
     solver->SetVerbose(false);
 
-    my_system.SetTolForce(1e-13);
+    my_system.SetSolverForceTolerance(1e-13);
 
     // Set integrator type
     my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);

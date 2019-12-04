@@ -189,8 +189,6 @@ int main(int argc, char* argv[]) {
     solver->SetTolerance(1e-10);
     solver->EnableDiagonalPreconditioner(true);
 
-    my_system.SetTolForce(1e-10);
-
     // Set up integrator
     auto stepper = chrono_types::make_shared<ChTimestepperHHT>(&my_system);
     my_system.SetTimestepper(stepper);

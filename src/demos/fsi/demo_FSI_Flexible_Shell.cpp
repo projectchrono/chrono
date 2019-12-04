@@ -189,7 +189,7 @@ int main(int argc, char* argv[]) {
     solver->EnableDiagonalPreconditioner(true);
     solver->SetVerbose(false);
 
-    mphysicalSystem.SetTolForce(1e-10);
+    mphysicalSystem.SetSolverForceTolerance(1e-10);
 #endif
 
     //    mphysicalSystem.SetTimestepperType(ChTimestepper::Type::HHT);

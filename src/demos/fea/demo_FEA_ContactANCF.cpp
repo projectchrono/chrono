@@ -218,8 +218,6 @@ int main(int argc, char* argv[]) {
     solver->EnableDiagonalPreconditioner(true);
     solver->EnableWarmStart(true);  // Enable for better convergence if using Euler implicit linearized
 
-    my_system.SetTolForce(1e-6);
-
     // HHT or EULER_IMPLICIT_LINEARIZED
     my_system.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());

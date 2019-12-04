@@ -142,15 +142,6 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// Gets iteration limit for assembly constraints.
     int GetMaxiter() const { return maxiter; }
 
-    /// Sets tolerance for satisfying constraints at the velocity level.
-    /// The tolerance specified here is in fact a tolerance at the force level.
-    /// this value is multiplied by the value of the current time step and then
-    /// used as a stopping criteria for the iterative speed solver.
-    void SetTolForce(double tolerance) { tol_force = tolerance; }
-    
-    /// Return the current value of the tolerance used in the speed solver.
-    double GetTolForce() const { return tol_force; }
-
     /// Change the default composition laws for contact surface materials
     /// (coefficient of friction, cohesion, compliance, etc.)
     void SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy<float>>&& strategy);
@@ -207,12 +198,21 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// \deprecated Prefer using GetSolver and accessing solver statistics directly.
     int GetSolverMaxIterations() const;
 
-    /// Set the solver tolerance threshold, if using an iterative solver.
+    /// Set the solver tolerance threshold (used with iterative solvers only).
     /// Note that the stopping criteria differs from solver to solver.
     void SetSolverTolerance(double tolerance);
 
-    /// Get the current tolerance value, if using an iterative solver.
+    /// Get the current tolerance value (used with iterative solvers only).
     double GetSolverTolerance() const;
+
+    /// Set a solver tolerance threshold at force level (default: not specified).
+    /// Specify this value **only** if solving the problem at velocity level (e.g. solving a DVI problem).
+    /// If this tolerance is specified, it is multiplied by the current integration stepsize and overwrites the current
+    /// solver tolerance.  By default, this tolerance is invalid and hence the solver's own tolerance threshold is used.
+    void SetSolverForceTolerance(double tolerance) { tol_force = tolerance; }
+
+    /// Get the current value of the force-level tolerance (used with iterative solvers only).
+    double GetSolverForceTolerance() const { return tol_force; }
 
     /// Instead of using the default 'system descriptor', you can create your own custom descriptor
     /// (inherited from ChSystemDescriptor) and plug it into the system using this function.
@@ -770,7 +770,6 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     double step_min;  ///< min time step
     double step_max;  ///< max time step
 
-    double tol;        ///< tolerance
     double tol_force;  ///< tolerance for forces (used to obtain a tolerance for impulses)
 
     int maxiter;  ///< max iterations for nonlinear convergence in DoAssembly()

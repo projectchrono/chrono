@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
     // Set solver settings
     system.SetSolverMaxIterations(100);
     system.SetMaxPenetrationRecoverySpeed(1e8);
-    system.SetTolForce(0);
+    system.SetSolverForceTolerance(0);
 
     // ----------
     // Add bodies

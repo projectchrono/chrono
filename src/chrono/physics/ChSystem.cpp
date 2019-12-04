@@ -44,8 +44,7 @@ ChSystem::ChSystem()
       step(0.04),
       step_min(0.002),
       step_max(0.04),
-      tol(2e-4),
-      tol_force(1e-3),
+      tol_force(-1),
       is_initialized(false),
       is_updated(false),
       maxiter(6),
@@ -85,7 +84,6 @@ ChSystem::ChSystem(const ChSystem& other) : ChAssembly(other) {
     setupcount = other.setupcount;
     dump_matrices = other.dump_matrices;
     SetTimestepperType(other.GetTimestepperType());
-    tol = other.tol;
     tol_force = other.tol_force;
     is_initialized = false;
     is_updated = false;
@@ -197,10 +195,12 @@ void ChSystem::SetSolverType(ChSolver::Type type) {
 }
 
 std::shared_ptr<ChSolver> ChSystem::GetSolver() {
-    // In case the solver is iterative, pre-configure it with the convergence tolerance (convert the user-specified
-    // tolerance for forces into a tolerance for impulses).
+    // In case the solver is iterative, and if the user specified a force-level tolerance,
+    // overwrite the solver's tolerance threshold.
     if (auto iter_solver = std::dynamic_pointer_cast<ChIterativeSolver>(solver)) {
-        iter_solver->SetTolerance(tol_force * step);
+        if (tol_force > 0) {
+            iter_solver->SetTolerance(tol_force * step);
+        }
     }
 
     return solver;
@@ -1426,15 +1426,18 @@ bool ChSystem::DoAssembly(int action) {
     Setup();
     Update();
 
-    int old_maxsteps = GetSolverMaxIterations();
-    SetSolverMaxIterations(std::max(old_maxsteps, 300));
-
-    double old_step = GetStep();
+    // Overwrite various parameters
+    int new_max_iters = 300;        // if using an iterative solver
+    double new_tolerance = 1e-10;   // if using an iterative solver
     double new_step = 1e-6;
-    SetStep(new_step);
 
-    double old_tol = GetTolForce();
-    SetTolForce(1e-4);
+    int old_max_iters = GetSolverMaxIterations();
+    double old_tolerance = GetSolverTolerance();
+    double old_step = GetStep();
+
+    SetSolverMaxIterations(std::max(old_max_iters, new_max_iters));
+    SetSolverTolerance(new_tolerance);
+    SetStep(new_step);
 
     // Prepare lists of variables and constraints.
     DescriptorPrepareInject(*descriptor);
@@ -1445,9 +1448,10 @@ bool ChSystem::DoAssembly(int action) {
     // Perform analysis
     manalysis.AssemblyAnalysis(action, new_step);
 
-    SetSolverMaxIterations(old_maxsteps);
+    // Restore parameters
+    SetSolverMaxIterations(old_max_iters);
+    SetSolverTolerance(old_tolerance);
     SetStep(old_step);
-    SetTolForce(old_tol);
 
     return true;
 }
@@ -1829,7 +1833,6 @@ void ChSystem::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(stepcount);
     marchive << CHNVP(dump_matrices);
 
-    marchive << CHNVP(tol);
     marchive << CHNVP(tol_force);
     marchive << CHNVP(maxiter);
     marchive << CHNVP(use_sleeping);
@@ -1867,7 +1870,6 @@ void ChSystem::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(stepcount);
     marchive >> CHNVP(dump_matrices);
 
-    marchive >> CHNVP(tol);
     marchive >> CHNVP(tol_force);
     marchive >> CHNVP(maxiter);
     marchive >> CHNVP(use_sleeping);

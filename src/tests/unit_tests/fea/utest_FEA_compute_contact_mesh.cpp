@@ -263,7 +263,7 @@ bool test_computecontact(ChMaterialSurface::ContactMethod method) {
         case DEFAULT_SOLVER: {
             GetLog() << "Using DEFAULT solver.\n";
             system->SetSolverMaxIterations(100);
-            system->SetTolForce(1e-6);
+            system->SetSolverForceTolerance(1e-6);
             break;
         }
         case MINRES_SOLVER: {
@@ -275,7 +275,7 @@ bool test_computecontact(ChMaterialSurface::ContactMethod method) {
             solver->EnableDiagonalPreconditioner(true);
             solver->SetVerbose(false);
 
-            system->SetTolForce(1e-6);
+            system->SetSolverForceTolerance(1e-6);
             break;
         }
         default:

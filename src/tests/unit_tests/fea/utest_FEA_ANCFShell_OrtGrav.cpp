@@ -187,8 +187,6 @@ int main(int argc, char* argv[]) {
     solver->EnableDiagonalPreconditioner(true);
     solver->SetVerbose(false);
 
-    my_system.SetTolForce(1e-09);
-
     // Setup integrator
     my_system.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());

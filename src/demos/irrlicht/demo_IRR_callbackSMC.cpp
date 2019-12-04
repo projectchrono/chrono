@@ -110,9 +110,9 @@ int main(int argc, char* argv[]) {
 
     // Set solver settings
     system.SetSolverMaxIterations(100);
-    system.SetTolForce(0);
+    system.SetSolverForceTolerance(0);
 
-    // Change default collision effective raiuds of curvature
+    // Change default collision effective radius of curvature
     ////collision::ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
 
     // ----------

@@ -166,7 +166,7 @@ int main(int argc, char* argv[]) {
     solver->EnableDiagonalPreconditioner(true);
     solver->SetVerbose(true);
 
-    my_system.SetTolForce(1e-20);
+    my_system.SetSolverForceTolerance(1e-20);
 
 
     // Note: in electrostatics, here you can have only a single linear (non transient) solution

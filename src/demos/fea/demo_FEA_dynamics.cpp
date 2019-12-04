@@ -104,7 +104,7 @@ void test_1() {
     my_system.SetSolver(solver);
     solver->SetMaxIterations(40);
 
-    my_system.SetTolForce(1e-10);
+    my_system.SetSolverForceTolerance(1e-10);
 
     my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
 
@@ -187,7 +187,7 @@ void test_2() {
     solver->SetTolerance(1e-8);
     solver->EnableDiagonalPreconditioner(true);
 
-    my_system.SetTolForce(1e-10);
+    my_system.SetSolverForceTolerance(1e-10);
 
     my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
 
@@ -270,7 +270,7 @@ void test_2b() {
     solver->SetMaxIterations(200);
     solver->SetTolerance(1e-12);
 
-    my_system.SetTolForce(1e-10);
+    my_system.SetSolverForceTolerance(1e-10);
 
     my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
 
@@ -365,7 +365,7 @@ void test_3() {
     solver->SetMaxIterations(40);
     solver->SetTolerance(1e-8);
 
-    my_system.SetTolForce(1e-10);
+    my_system.SetSolverForceTolerance(1e-10);
 
     my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
 
@@ -460,7 +460,7 @@ void test_4() {
     solver->SetTolerance(1e-8);
     solver->EnableDiagonalPreconditioner(true);
 
-    my_system.SetTolForce(1e-10);
+    my_system.SetSolverForceTolerance(1e-10);
 
     my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
 

@@ -320,8 +320,6 @@ int main(int argc, char* argv[]) {
     solver->EnableDiagonalPreconditioner(true);
     solver->SetVerbose(true);
 
-    my_system.SetTolForce(1e-7);
-
     // Set up integrator
     my_system.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
@@ -342,7 +340,7 @@ int main(int argc, char* argv[]) {
 
     ChVectorN<double, 3> Cp;
     ChVectorN<double, 2> Cd;  // Matrices for storing constraint violations
-    double dot;
+    double dot = 0;
     ChVector<> tip;  // Position of body 3 tip (constrained to ANCF mesh)
     ChVectorDynamic<> C12;
     ChVectorDynamic<> C23;

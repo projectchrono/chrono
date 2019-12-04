@@ -252,8 +252,6 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
     solver->EnableDiagonalPreconditioner(true);
     solver->SetVerbose(false);
 
-    my_system.SetTolForce(1e-13);
-
     // Set the time integrator parameters
     my_system.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
@@ -460,8 +458,6 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     solver->EnableDiagonalPreconditioner(true);
     solver->SetVerbose(false);
 
-    my_system.SetTolForce(1e-08);
-
     // Set the time integrator parameters
     my_system.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
@@ -659,8 +655,6 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     solver->SetTolerance(1e-10);
     solver->EnableDiagonalPreconditioner(true);
     solver->SetVerbose(false);
-
-    my_system.SetTolForce(1e-13);
 
     // Set the time integrator parameters
     my_system.SetTimestepperType(ChTimestepper::Type::HHT);
@@ -870,8 +864,6 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     solver->SetTolerance(1e-10);
     solver->EnableDiagonalPreconditioner(true);
     solver->SetVerbose(false);
-
-    my_system.SetTolForce(1e-13);
 
     // Set the time integrator parameters
     my_system.SetTimestepperType(ChTimestepper::Type::HHT);

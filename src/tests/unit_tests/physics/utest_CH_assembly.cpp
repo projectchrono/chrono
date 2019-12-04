@@ -59,7 +59,7 @@ TEST(FullAssembly, Assemble) {
     my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
     my_system.SetSolverType(ChSolver::Type::PSOR);
     my_system.SetSolverMaxIterations(100);
-    my_system.SetTolForce(1e-4);
+    my_system.SetSolverForceTolerance(1e-4);
 
     // Create the ground body
     auto ground = chrono_types::make_shared<ChBody>();

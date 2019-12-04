@@ -113,7 +113,7 @@ FEAcontactTest::FEAcontactTest(SolverType solver_type) {
             solver->EnableDiagonalPreconditioner(true);
             solver->SetVerbose(false);
 
-            m_system->SetTolForce(1e-10);
+            m_system->SetSolverForceTolerance(1e-10);
             
             m_system->SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
         }

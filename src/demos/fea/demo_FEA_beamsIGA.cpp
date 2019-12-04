@@ -722,7 +722,7 @@ int main(int argc, char* argv[]) {
     solver->EnableWarmStart(true);  // IMPORTANT for convergence when using EULER_IMPLICIT_LINEARIZED
     solver->SetVerbose(false);
 
-    my_system.SetTolForce(1e-14);
+    my_system.SetSolverForceTolerance(1e-14);
 
 #ifdef USE_MKL
     auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();

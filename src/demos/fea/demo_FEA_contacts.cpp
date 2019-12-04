@@ -310,7 +310,7 @@ int main(int argc, char* argv[]) {
     solver->EnableDiagonalPreconditioner(true);
     solver->EnableWarmStart(true);  // Enable for better convergence when using Euler implicit linearized
 
-    my_system.SetTolForce(1e-10);
+    my_system.SetSolverForceTolerance(1e-10);
 
     application.SetTimestep(0.001);
 

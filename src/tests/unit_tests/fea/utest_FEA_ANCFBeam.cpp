@@ -163,7 +163,7 @@ int main(int argc, char* argv[]) {
         solver->EnableDiagonalPreconditioner(true);
         solver->SetVerbose(false);
 
-        my_system.SetTolForce(1e-14);
+        my_system.SetSolverForceTolerance(1e-14);
     }
 
     // Setup integrator
