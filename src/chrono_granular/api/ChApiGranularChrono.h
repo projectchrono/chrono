@@ -42,19 +42,6 @@ class CH_GRANULAR_API ChGranularChronoTriMeshAPI {
     enum MESH_VERBOSITY { QUIET = 0, INFO = 1 };
     ~ChGranularChronoTriMeshAPI() { delete pGranSystemSMC_TriMesh; }
 
-  private:
-    MESH_VERBOSITY mesh_verbosity;
-    /// Clean copy of mesh soup interacting with granular material in unified memory. Stored in UU
-    chrono::granular::ChSystemGranularSMC_trimesh* pGranSystemSMC_TriMesh;
-
-    /// Setup data structures associated with triangle mesh
-    void setupTriMesh(const std::vector<chrono::geometry::ChTriangleMeshConnected>& all_meshes,
-                      unsigned int nTriangles,
-                      std::vector<float> masses,
-                      std::vector<bool> inflated,
-                      std::vector<float> inflation_radii);
-
-  public:
     /// Load triangle meshes into granular system. MUST happen before initialize is called
     void load_meshes(std::vector<std::string> objfilenames,
                      std::vector<chrono::ChMatrix33<float>> rotscale,
@@ -70,19 +57,31 @@ class CH_GRANULAR_API ChGranularChronoTriMeshAPI {
 
     /// Set simualtion verbosity -- used to check on very large, slow simulations or debug
     void setVerbosity(MESH_VERBOSITY level) { mesh_verbosity = level; }
+
+  private:
+    MESH_VERBOSITY mesh_verbosity;
+    /// Clean copy of mesh soup interacting with granular material in unified memory. Stored in UU
+    chrono::granular::ChSystemGranularSMC_trimesh* pGranSystemSMC_TriMesh;
+
+    /// Setup data structures associated with triangle mesh
+    void setupTriMesh(const std::vector<chrono::geometry::ChTriangleMeshConnected>& all_meshes,
+                      unsigned int nTriangles,
+                      std::vector<float> masses,
+                      std::vector<bool> inflated,
+                      std::vector<float> inflation_radii);
 };
 
 class CH_GRANULAR_API ChGranularSMC_API {
-  private:
-    chrono::granular::ChSystemGranularSMC* pSMCgranSystem;
-
   public:
-    ChGranularSMC_API() : pSMCgranSystem(NULL) {}
+    ChGranularSMC_API() : gran_sys(NULL) {}
     // Set particle positions in UU
     void setElemsPositions(const std::vector<chrono::ChVector<float>>& points);
 
-    // set the gran systems that the user talks to; beef up the API so that the gran system is bulid through the API,
+    // set the gran systems that the user talks to; beef up the API so that the gran system is built through the API,
     // instead of passing a gran system pointer to the API (the API builds the gran system; not the API coming in after
     // gran system is up
-    void setGranSystemSMC(chrono::granular::ChSystemGranularSMC* granSystem) { pSMCgranSystem = granSystem; }
+    void setGranSystem(chrono::granular::ChSystemGranularSMC* granSystem) { gran_sys = granSystem; }
+
+  private:
+    chrono::granular::ChSystemGranularSMC* gran_sys;
 };

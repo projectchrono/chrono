@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
 	// to do: don't expose the guts of granular at this level; work through an API
 	// but for now get it going like this
     ChGranularSMC_API apiSMC;
-    apiSMC.setGranSystemSMC(&gran_sys);
+    apiSMC.setGranSystem(&gran_sys);
 
     gran_sys.setPsiFactors(params.psi_T, params.psi_L);
 
