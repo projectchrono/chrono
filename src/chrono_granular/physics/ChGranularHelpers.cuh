@@ -303,7 +303,9 @@ inline __device__ float3 computeRollingAngAcc(GranSphereDataPtr sphere_data,
                 delta_Ang_Acc = 1.f / (gran_params->sphereInertia_by_r * gran_params->sphereRadius_SU) * torque;
                 break;
             }
-            default: { ABORTABORTABORT("Rolling mode not implemented\n"); }
+            default: {
+                ABORTABORTABORT("Rolling mode not implemented\n");
+            }
         }
     }
 

@@ -99,7 +99,6 @@ void ChSystemGranularSMC_trimesh::initialize() {
     initializeTriangles();
 }
 
-
 // p = pos + rot_mat * p
 void ChSystemGranularSMC_trimesh::ApplyFrameTransform(float3& p, float* pos, float* rot_mat) {
     float3 result;
@@ -179,7 +178,6 @@ void ChSystemGranularSMC_trimesh::cleanupTriMesh() {
     cudaFree(meshSoup);
     cudaFree(tri_params);
 }
-
 
 void ChSystemGranularSMC_trimesh::collectGeneralizedForcesOnMeshSoup(float* genForcesOnSoup) {
     // pull directly from unified memory

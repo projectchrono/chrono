@@ -155,7 +155,7 @@ class CH_GRANULAR_API ChSystemGranularSMC_trimesh : public ChSystemGranularSMC {
     /// Disable mesh contact
     void disableMeshCollision() { mesh_collision_enabled = false; }
 
-	ChTriangleSoup<float3>* getMeshSoup() { return meshSoup; }
+    ChTriangleSoup<float3>* getMeshSoup() { return meshSoup; }
     ChGranParams_trimesh* getTriParams() { return tri_params; }
 
   protected:
@@ -214,7 +214,7 @@ class CH_GRANULAR_API ChSystemGranularSMC_trimesh : public ChSystemGranularSMC {
     template <typename T>
     void generate_rot_matrix(double* ep, T* rot_mat);
 
-	void ApplyFrameTransform(float3& p, float* pos, float* rot_mat);
+    void ApplyFrameTransform(float3& p, float* pos, float* rot_mat);
 };
 /// @} granular_physics
 

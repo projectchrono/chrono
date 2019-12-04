@@ -126,7 +126,6 @@ __host__ int3 ChSystemGranularSMC::getSDTripletFromID(unsigned int SD_ID) const 
 /// Occurs entirely on host, not intended to be efficient
 /// ONLY DO AT BEGINNING OF SIMULATION
 __host__ void ChSystemGranularSMC::defragment_initial_positions() {
-
     // key and value pointers
     std::vector<unsigned int, cudallocator<unsigned int>> sphere_ids;
 
@@ -185,7 +184,6 @@ __host__ void ChSystemGranularSMC::defragment_initial_positions() {
 
     sphere_fixed.swap(sphere_fixed_tmp);
     sphere_owner_SDs.swap(sphere_owner_SDs_tmp);
-
 }
 __host__ void ChSystemGranularSMC::setupSphereDataStructures() {
     // Each fills user_sphere_positions with positions to be copied

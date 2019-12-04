@@ -19,7 +19,6 @@
 #include "chrono_granular/physics/ChGranularHelpers.cuh"
 #include "ChGranularCUDAalloc.hpp"
 
-
 // these define things that mess with cub
 #include "chrono_granular/physics/ChGranularCollision.cuh"
 #include "chrono_granular/physics/ChGranularBoxTriangle.cuh"
@@ -311,4 +310,3 @@ __global__ void triangleSoup_StoreSDsTouched(
         }
     }
 }
-
