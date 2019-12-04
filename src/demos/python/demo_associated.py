@@ -155,9 +155,11 @@ myapplication.AssetUpdateAll();
 
 # Integration settings
 
-mysystem.SetSolverType(chrono.ChSolver.Type_BARZILAIBORWEIN);
-mysystem.SetSolverMaxIterations(500);
-mysystem.SetSolverWarmStarting(True);
+solver = chrono.ChSolverBB()
+mysystem.SetSolver(solver)
+solver.SetMaxIterations(500)
+solver.EnableWarmStart(True);
+
 mysystem.SetMaxPenetrationRecoverySpeed(10.01);
 mysystem.SetMinBounceSpeed(10);
 
