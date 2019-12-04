@@ -205,9 +205,9 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    ////auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
+    ////auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
     ////my_system.SetSolver(mkl_solver);
-    ////mkl_solver->SetSparsityPatternLock(true);
+    ////mkl_solver->LockSparsityPattern(true);
     ////my_system.Update();
 
     // Setup solver

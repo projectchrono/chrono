@@ -137,7 +137,7 @@ void ChVariablesBodyOwnMass::Build_M(ChSparseMatrix& storage, int insrow, int in
     storage.SetElement(insrow + 1, inscol + 1, c_a * mass);
     storage.SetElement(insrow + 2, inscol + 2, c_a * mass);
     ChMatrix33<> scaledJ = inertia * c_a;
-    storage.PasteMatrix(scaledJ, insrow + 3, inscol + 3);
+    PasteMatrix(storage, scaledJ, insrow + 3, inscol + 3);
 }
 
 void ChVariablesBodyOwnMass::ArchiveOUT(ChArchiveOut& marchive) {

@@ -90,9 +90,11 @@ add_library(ChronoEngine_pyparser SHARED
             ${ChronoEngine_PYPARSER_HEADERS})
 
 set_target_properties(ChronoEngine_pyparser PROPERTIES 
-                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
-                      COMPILE_DEFINITIONS "CH_API_COMPILE_PYPARSER")
+                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
                           
+target_compile_definitions(ChronoEngine_pyparser PRIVATE "CH_API_COMPILE_PYPARSER")
+target_compile_definitions(ChronoEngine_pyparser PRIVATE "CH_IGNORE_DEPRECATED")
+
 target_link_libraries(ChronoEngine_pyparser ${CH_PYTHONLIB} ChronoEngine)
 
 ADD_DEPENDENCIES(ChronoEngine_pyparser ChronoEngine)
@@ -171,6 +173,8 @@ set_target_properties(${SWIG_MODULE_${CHPY_CORE}_REAL_NAME} PROPERTIES
                       LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
                       )
 
+target_compile_definitions(${SWIG_MODULE_${CHPY_CORE}_REAL_NAME} PRIVATE "CH_IGNORE_DEPRECATED")
+
 ADD_DEPENDENCIES (${SWIG_MODULE_${CHPY_CORE}_REAL_NAME} ChronoEngine)
 
 # Copy PY file in a package dir
@@ -247,6 +251,8 @@ if(ENABLE_MODULE_POSTPROCESS)
                         LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
                         )
 
+  target_compile_definitions(${SWIG_MODULE_${CHPY_POSTPROCESS}_REAL_NAME} PRIVATE "CH_IGNORE_DEPRECATED")
+
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_POSTPROCESS}_REAL_NAME} ChronoEngine)
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_POSTPROCESS}_REAL_NAME} ChronoEngine_postprocess)
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_POSTPROCESS}_REAL_NAME} ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME})
@@ -313,6 +319,8 @@ SWIG_LINK_LIBRARIES(${CHPY_FEA} ${PYTHON_LIBRARY} ChronoEngine)
                         OUTPUT_NAME   "${SWIG_MODULE_${CHPY_FEA}_REAL_NAME}"
                         LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
                         )
+
+  target_compile_definitions(${SWIG_MODULE_${CHPY_FEA}_REAL_NAME} PRIVATE "CH_IGNORE_DEPRECATED")
 
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_FEA}_REAL_NAME} ChronoEngine)
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_FEA}_REAL_NAME} ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME})
@@ -381,6 +389,8 @@ if(ENABLE_MODULE_IRRLICHT)
                         OUTPUT_NAME   "${SWIG_MODULE_${CHPY_IRRLICHT}_REAL_NAME}"
                         LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
                         )
+
+  target_compile_definitions(${SWIG_MODULE_${CHPY_IRRLICHT}_REAL_NAME} PRIVATE "CH_IGNORE_DEPRECATED")
 
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_IRRLICHT}_REAL_NAME} ChronoEngine)
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_IRRLICHT}_REAL_NAME} ChronoEngine_irrlicht)
@@ -454,6 +464,8 @@ if(ENABLE_MODULE_MKL)
                         LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
                         )
 
+  target_compile_definitions(${SWIG_MODULE_${CHPY_MKL}_REAL_NAME} PRIVATE "CH_IGNORE_DEPRECATED")
+
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_MKL}_REAL_NAME} ChronoEngine)
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_MKL}_REAL_NAME} ChronoEngine_mkl)
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_MKL}_REAL_NAME} ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME})
@@ -525,6 +537,8 @@ if(ENABLE_MODULE_CASCADE)
                         OUTPUT_NAME   "${SWIG_MODULE_${CHPY_CASCADE}_REAL_NAME}"
                         LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
                         )
+
+  target_compile_definitions(${SWIG_MODULE_${CHPY_CASCADE}_REAL_NAME} PRIVATE "CH_IGNORE_DEPRECATED")
 
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_CASCADE}_REAL_NAME} ChronoEngine)
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_CASCADE}_REAL_NAME} ChronoEngine_cascade)
@@ -598,6 +612,8 @@ if(ENABLE_MODULE_VEHICLE)
                         OUTPUT_NAME   "${SWIG_MODULE_${CHPY_VEHICLE}_REAL_NAME}"
                         LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
                         )
+
+  target_compile_definitions(${SWIG_MODULE_${CHPY_VEHICLE}_REAL_NAME} PRIVATE "CH_IGNORE_DEPRECATED")
 
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_VEHICLE}_REAL_NAME} ChronoEngine)
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_VEHICLE}_REAL_NAME} ChronoEngine_vehicle)

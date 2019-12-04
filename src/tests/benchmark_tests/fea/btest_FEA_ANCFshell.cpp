@@ -111,19 +111,21 @@ ANCFshell<N>::ANCFshell(SolverType solver_type) {
         }
         case SolverType::MKL: {
 #ifdef CHRONO_MKL
-            auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
-            mkl_solver->SetSparsityPatternLock(true);
-            mkl_solver->SetVerbose(false);
-            m_system->SetSolver(mkl_solver);
+            auto solver = chrono_types::make_shared<ChSolverMKL>();
+            solver->UseSparsityPatternLearner(false);
+            solver->LockSparsityPattern(true);
+            solver->SetVerbose(false);
+            m_system->SetSolver(solver);
 #endif
             break;
         }
         case SolverType::MUMPS: {
 #ifdef CHRONO_MUMPS
-            auto mkl_solver = chrono_types::make_shared<ChSolverMumps>();
-            mkl_solver->SetSparsityPatternLock(true);
-            mkl_solver->SetVerbose(false);
-            m_system->SetSolver(mkl_solver);
+            auto solver = chrono_types::make_shared<ChSolverMumps>();
+            solver->UseSparsityPatternLearner(false);
+            solver->LockSparsityPattern(true);
+            solver->SetVerbose(false);
+            m_system->SetSolver(solver);
 #endif
             break;
         }

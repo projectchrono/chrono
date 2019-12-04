@@ -23,8 +23,6 @@
 #include "chrono/geometry/ChSphere.h"
 #include "chrono/geometry/ChTriangle.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
-#include "chrono/physics/ChNlsolver.h"
-#include "chrono/physics/ChSolvmin.h"
 
 namespace chrono {
 namespace collision {

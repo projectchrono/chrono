@@ -85,6 +85,8 @@ int main(int argc, char* argv[]) {
     ChMatrixNM<double, 6, 6> K_matrix;
     ChMatrixNM<double, 6, 6> R_matrix;
 
+    K_matrix.setZero();
+    R_matrix.setZero();
     for (unsigned int ii = 0; ii < 6; ii++) {
         K_matrix(ii, ii) = 95000.0;
         R_matrix(ii, ii) = 1000.0;

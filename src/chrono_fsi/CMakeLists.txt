@@ -154,8 +154,10 @@ cuda_add_library(ChronoEngine_fsi SHARED
 
 set_target_properties(ChronoEngine_fsi PROPERTIES
                       COMPILE_FLAGS "${CH_CXX_FLAGS}"
-                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}"
-                      COMPILE_DEFINITIONS "CH_API_COMPILE_FSI")
+                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
+
+target_compile_definitions(ChronoEngine_fsi PRIVATE "CH_API_COMPILE_FSI")
+target_compile_definitions(ChronoEngine_fsi PRIVATE "CH_IGNORE_DEPRECATED")
 
 target_link_libraries(ChronoEngine_fsi ${LIBRARIES})
 

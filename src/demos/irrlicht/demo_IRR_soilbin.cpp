@@ -22,6 +22,7 @@
 
 #include <algorithm>
 
+#include "chrono/assets/ChPointPointDrawing.h"
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBodyEasy.h"
@@ -308,7 +309,7 @@ class TestMech {
     std::shared_ptr<ChBodyEasyBox> wall2;
     std::shared_ptr<ChBodyEasyBox> wall3;
     std::shared_ptr<ChBodyEasyBox> wall4;
-    std::shared_ptr<ChLinkSpring> spring;
+    std::shared_ptr<ChLinkTSDA> spring;
     std::shared_ptr<ChLinkMotorRotationTorque> torqueDriver;
     std::shared_ptr<ChLinkLockRevolute> spindle;
 
@@ -412,11 +413,15 @@ class TestMech {
         system->AddLink(translational);
 
         // create a spring between spindle truss and weight
-        spring = chrono_types::make_shared<ChLinkSpring>();
+        spring = chrono_types::make_shared<ChLinkTSDA>();
         spring->Initialize(truss, suspweight, false, trussCM, suspweight->GetPos());
-        spring->Set_SpringK(springK);
-        spring->Set_SpringR(springD);
+        spring->SetSpringCoefficient(springK);
+        spring->SetDampingCoefficient(springD);
         system->AddLink(spring);
+
+        spring->AddAsset(chrono_types::make_shared<ChColorAsset>(0.6, 0.1, 0.1));
+        spring->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.05, 80, 15));
+
 
         // create a prismatic constraint between the weight and the ground
         auto weightLink = chrono_types::make_shared<ChLinkLockOldham>();
@@ -427,8 +432,8 @@ class TestMech {
 
     // set the spring and damper constants
     void setSpringKD(double k, double d) {
-        this->spring->Set_SpringK(k);
-        this->spring->Set_SpringR(d);
+        this->spring->SetSpringCoefficient(k);
+        this->spring->SetDampingCoefficient(d);
     }
 
     // for now, just use the slider value as directly as the torque
@@ -770,15 +775,6 @@ class MyEventReceiver : public IEventReceiver {
         return false;
     }
 
-    void drawSprings() {
-        // .. draw the spring constraints as simplified spring helix
-        for (auto link : mapp->GetSystem()->Get_linklist()) {
-            if (auto linkspring = std::dynamic_pointer_cast<ChLinkSpring>(link))
-                ChIrrTools::drawSpring(mapp->GetVideoDriver(), 0.05, linkspring->GetEndPoint1Abs(),
-                                       linkspring->GetEndPoint2Abs(), video::SColor(255, 150, 20, 20), 80, 15, true);
-        }
-    }
-
     void drawGrid() {
         // wall 1
         ChCoordsys<> wall1Csys = this->mtester->wall1->GetCoord();
@@ -975,7 +971,6 @@ int main(int argc, char* argv[]) {
         application.DrawAll();
 
         // draw the custom links
-        receiver.drawSprings();
         receiver.drawGrid();
 
         // output relevant soil, wheel data if the tab is selected

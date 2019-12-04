@@ -300,6 +300,7 @@ linux:ubuntu1804:deploy:
   - $CHRONO_W64_LIBRARIES = @(
     "-DBLAZE_DIR=C:/Users/builder/Documents/blaze-3.6",
     "-DSWIG_EXECUTABLE=C:/Users/builder/Documents/swigwin-4.0.1/swig.exe",
+    "-DPYTHON_EXECUTABLE=C:/Users/builder/AppData/Local/Programs/Python/Python37/python.exe",
     "-DBOOST_ROOT=C:/Users/builder/Documents/boost_1_71_0",
     "-DGLM_INCLUDE_DIR=C:/Users/builder/Documents/glm-0.9.9.6",
     "-DGLEW_DLL=C:/Users/builder/Documents/glew-2.1.0/bin/Release/x64/glew32.dll",

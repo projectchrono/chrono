@@ -221,8 +221,8 @@ int main(int argc, char* argv[]) {
     if (use_mkl) {
 #ifdef CHRONO_MKL
         std::cout << "Solver: MKL" << std::endl;
-        auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
-        mkl_solver->SetSparsityPatternLock(true);
+        auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+        mkl_solver->LockSparsityPattern(true);
         mkl_solver->SetVerbose(verbose_solver);
         rig->GetSystem()->SetSolver(mkl_solver);
 #endif
@@ -230,8 +230,8 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_MUMPS
         std::cout << "Solver: MUMPS" << std::endl;
         auto mumps_solver = chrono_types::make_shared<ChSolverMumps>();
-        mumps_solver->SetSparsityPatternLock(true);
-        mumps_solver->SetNullPivotDetection(true);
+        mumps_solver->LockSparsityPattern(true);
+        mumps_solver->EnableNullPivotDetection(true);
         mumps_solver->SetVerbose(verbose_solver);
         rig->GetSystem()->SetSolver(mumps_solver);
 #endif

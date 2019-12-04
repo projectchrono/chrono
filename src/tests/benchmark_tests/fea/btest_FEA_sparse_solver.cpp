@@ -21,7 +21,7 @@
 #include "chrono/ChConfig.h"
 #include "chrono/utils/ChBenchmark.h"
 
-#include "chrono/core/ChCSMatrix.h"
+#include "chrono/core/ChMatrix.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/fea/ChElementShellANCF.h"
 #include "chrono/fea/ChMesh.h"
@@ -101,17 +101,18 @@ class SystemFixture : public ::benchmark::Fixture {
     }
 
   protected:
-    ChSystemSMC* m_system;
+    ChSystemSMC* m_system; 
 };
 
 #define BM_SOLVER_MKL(TEST_NAME, N, WITH_LEARNER)                                     \
     BENCHMARK_TEMPLATE_DEFINE_F(SystemFixture, TEST_NAME, N)(benchmark::State & st) { \
-        auto solver = chrono_types::make_shared<ChSolverMKL<>>();                     \
-        solver->SetSparsityPatternLock(true);                                         \
+        auto solver = chrono_types::make_shared<ChSolverMKL>();                       \
+        solver->UseSparsityPatternLearner(WITH_LEARNER);                              \
+        solver->LockSparsityPattern(true);                                            \
         solver->SetVerbose(false);                                                    \
         m_system->SetSolver(solver);                                                  \
         while (st.KeepRunning()) {                                                    \
-            solver->ForceSparsityPatternUpdate(WITH_LEARNER);                         \
+            solver->ForceSparsityPatternUpdate();                                     \
             m_system->DoStaticLinear();                                               \
         }                                                                             \
         Report(st);                                                                   \
@@ -121,11 +122,12 @@ class SystemFixture : public ::benchmark::Fixture {
 #define BM_SOLVER_MUMPS(TEST_NAME, N, WITH_LEARNER)                                   \
     BENCHMARK_TEMPLATE_DEFINE_F(SystemFixture, TEST_NAME, N)(benchmark::State & st) { \
         auto solver = chrono_types::make_shared<ChSolverMumps>();                     \
-        solver->SetSparsityPatternLock(true);                                         \
+        solver->UseSparsityPatternLearner(WITH_LEARNER);                              \
+        solver->LockSparsityPattern(true);                                            \
         solver->SetVerbose(false);                                                    \
         m_system->SetSolver(solver);                                                  \
         while (st.KeepRunning()) {                                                    \
-            solver->ForceSparsityPatternUpdate(WITH_LEARNER);                         \
+            solver->ForceSparsityPatternUpdate();                                     \
             m_system->DoStaticLinear();                                               \
         }                                                                             \
         Report(st);                                                                   \

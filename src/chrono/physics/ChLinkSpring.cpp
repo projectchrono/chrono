@@ -49,6 +49,10 @@ ChLinkSpring::ChLinkSpring(const ChLinkSpring& other) : ChLinkMarkers(other) {
     mod_r_speed = std::shared_ptr<ChFunction>(other.mod_r_speed->Clone());
 }
 
+ChLinkSpring* ChLinkSpring::Clone() const {
+    return new ChLinkSpring(*this);
+}
+
 void ChLinkSpring::Initialize(std::shared_ptr<ChBody> mbody1,
                               std::shared_ptr<ChBody> mbody2,
                               bool pos_are_relative,

@@ -1,7 +1,7 @@
 #=============================================================================
 # CMake configuration file for the VEHICLE demo - an example program for using
 # a wheeled vehicle model specified entirely through JSON specification files.
-# This example program works with and without Irrlicht run-time visualization
+# This example program works with and without Irrlicht run-time visualization.
 #=============================================================================
 
 #--------------------------------------------------------------

@@ -66,14 +66,14 @@ class CH_MODELS_API HMMWV_DoubleWishboneFront : public ChDoubleWishbone {
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
     virtual double getSpringRestLength() const override { return m_springRestLength; }
-    virtual ChLinkSpringCB::ForceFunctor* getSpringForceFunctor() const override { return m_springForceCB; }
-    virtual ChLinkSpringCB::ForceFunctor* getShockForceFunctor() const override { return m_shockForceCB; }
+    virtual ChLinkTSDA::ForceFunctor* getSpringForceFunctor() const override { return m_springForceCB; }
+    virtual ChLinkTSDA::ForceFunctor* getShockForceFunctor() const override { return m_shockForceCB; }
 
   private:
     virtual const ChVector<> getLocation(PointId which) override;
 
-    ChLinkSpringCB::ForceFunctor* m_springForceCB;
-    ChLinkSpringCB::ForceFunctor* m_shockForceCB;
+    ChLinkTSDA::ForceFunctor* m_springForceCB;
+    ChLinkTSDA::ForceFunctor* m_shockForceCB;
 
     static const double m_spindleMass;
     static const double m_UCAMass;
@@ -131,14 +131,14 @@ class CH_MODELS_API HMMWV_DoubleWishboneRear : public ChDoubleWishbone {
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
     virtual double getSpringRestLength() const override { return m_springRestLength; }
-    virtual ChLinkSpringCB::ForceFunctor* getSpringForceFunctor() const override { return m_springForceCB; }
-    virtual ChLinkSpringCB::ForceFunctor* getShockForceFunctor() const override { return m_shockForceCB; }
+    virtual ChLinkTSDA::ForceFunctor* getSpringForceFunctor() const override { return m_springForceCB; }
+    virtual ChLinkTSDA::ForceFunctor* getShockForceFunctor() const override { return m_shockForceCB; }
 
   private:
     virtual const ChVector<> getLocation(PointId which) override;
 
-    ChLinkSpringCB::ForceFunctor* m_springForceCB;
-    ChLinkSpringCB::ForceFunctor* m_shockForceCB;
+    ChLinkTSDA::ForceFunctor* m_springForceCB;
+    ChLinkTSDA::ForceFunctor* m_shockForceCB;
 
     static const double m_spindleMass;
     static const double m_UCAMass;

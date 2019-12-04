@@ -24,7 +24,7 @@
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChVector.h"
 #include "chrono/physics/ChLinkRotSpringCB.h"
-#include "chrono/physics/ChLinkSpringCB.h"
+#include "chrono/physics/ChLinkTSDA.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 
@@ -91,14 +91,14 @@ typedef std::vector<TerrainForce> TerrainForces;
 // -----------------------------------------------------------------------------
 
 /// Utility class for specifying a linear translational spring force.
-class LinearSpringForce : public ChLinkSpringCB::ForceFunctor {
+class LinearSpringForce : public ChLinkTSDA::ForceFunctor {
   public:
     LinearSpringForce(double k) : m_k(k) {}
     virtual double operator()(double time,
                               double rest_length,
                               double length,
                               double vel,
-                              ChLinkSpringCB* link) override {
+                              ChLinkTSDA* link) override {
         return -m_k * (length - rest_length);
     }
 
@@ -107,14 +107,14 @@ class LinearSpringForce : public ChLinkSpringCB::ForceFunctor {
 };
 
 /// Utility class for specifying a linear translational damper force.
-class LinearDamperForce : public ChLinkSpringCB::ForceFunctor {
+class LinearDamperForce : public ChLinkTSDA::ForceFunctor {
   public:
     LinearDamperForce(double c) : m_c(c) {}
     virtual double operator()(double time,
                               double rest_length,
                               double length,
                               double vel,
-                              ChLinkSpringCB* link) override {
+                              ChLinkTSDA* link) override {
         return -m_c * vel;
     }
 
@@ -123,14 +123,14 @@ class LinearDamperForce : public ChLinkSpringCB::ForceFunctor {
 };
 
 /// Utility class for specifying a linear translational spring-damper force.
-class LinearSpringDamperForce : public ChLinkSpringCB::ForceFunctor {
+class LinearSpringDamperForce : public ChLinkTSDA::ForceFunctor {
   public:
     LinearSpringDamperForce(double k, double c) : m_k(k), m_c(c) {}
     virtual double operator()(double time,
                               double rest_length,
                               double length,
                               double vel,
-                              ChLinkSpringCB* link) override {
+                              ChLinkTSDA* link) override {
         return -m_k * (length - rest_length) - m_c * vel;
     }
 
@@ -140,14 +140,14 @@ class LinearSpringDamperForce : public ChLinkSpringCB::ForceFunctor {
 };
 
 /// Utility class for specifying a linear translational spring-damper force with pre-tension.
-class LinearSpringDamperActuatorForce : public ChLinkSpringCB::ForceFunctor {
+class LinearSpringDamperActuatorForce : public ChLinkTSDA::ForceFunctor {
   public:
     LinearSpringDamperActuatorForce(double k, double c, double f) : m_k(k), m_c(c), m_f(f) {}
     virtual double operator()(double time,
                               double rest_length,
                               double length,
                               double vel,
-                              ChLinkSpringCB* link) override {
+                              ChLinkTSDA* link) override {
         return m_f - m_k * (length - rest_length) - m_c * vel;
     }
 
@@ -158,7 +158,7 @@ class LinearSpringDamperActuatorForce : public ChLinkSpringCB::ForceFunctor {
 };
 
 /// Utility class for specifying a map translational spring force.
-class MapSpringForce : public ChLinkSpringCB::ForceFunctor {
+class MapSpringForce : public ChLinkTSDA::ForceFunctor {
   public:
     MapSpringForce() {}
     MapSpringForce(const std::vector<std::pair<double, double>>& data) {
@@ -171,7 +171,7 @@ class MapSpringForce : public ChLinkSpringCB::ForceFunctor {
                               double rest_length,
                               double length,
                               double vel,
-                              ChLinkSpringCB* link) override {
+                              ChLinkTSDA* link) override {
         return -m_map.Get_y(length - rest_length);
     }
 
@@ -180,7 +180,7 @@ class MapSpringForce : public ChLinkSpringCB::ForceFunctor {
 };
 
 /// Utility class for specifying a map translational spring force with bump and rebound stop.
-class MapSpringBistopForce : public ChLinkSpringCB::ForceFunctor {
+class MapSpringBistopForce : public ChLinkTSDA::ForceFunctor {
   public:
     MapSpringBistopForce(double spring_min_length, double spring_max_length)
         : m_min_length(spring_min_length), m_max_length(spring_max_length) {
@@ -200,7 +200,7 @@ class MapSpringBistopForce : public ChLinkSpringCB::ForceFunctor {
                               double rest_length,
                               double length,
                               double vel,
-                              ChLinkSpringCB* link) override {
+                              ChLinkTSDA* link) override {
         double defl_bump = 0.0;
         double defl_rebound = 0.0;
 
@@ -249,7 +249,7 @@ class MapSpringBistopForce : public ChLinkSpringCB::ForceFunctor {
 };
 
 /// Utility class for specifying a linear translational spring force with bump and rebound stop.
-class LinearSpringBistopForce : public ChLinkSpringCB::ForceFunctor {
+class LinearSpringBistopForce : public ChLinkTSDA::ForceFunctor {
   public:
     /// Use default bump stop and rebound stop maps
     LinearSpringBistopForce(double k, double min_length, double max_length)
@@ -284,7 +284,7 @@ class LinearSpringBistopForce : public ChLinkSpringCB::ForceFunctor {
                               double rest_length,
                               double length,
                               double vel,
-                              ChLinkSpringCB* link) override {
+                              ChLinkTSDA* link) override {
         double force = 0;
 
         double defl_spring = rest_length - length;
@@ -314,7 +314,7 @@ class LinearSpringBistopForce : public ChLinkSpringCB::ForceFunctor {
 };
 
 /// Utility class for specifying a degressive translational damper force.
-class DegressiveDamperForce : public ChLinkSpringCB::ForceFunctor {
+class DegressiveDamperForce : public ChLinkTSDA::ForceFunctor {
   public:
     /// Fallback to LinearDamperForce
     DegressiveDamperForce(double c_compression)
@@ -342,7 +342,7 @@ class DegressiveDamperForce : public ChLinkSpringCB::ForceFunctor {
                               double rest_length,
                               double length,
                               double vel,
-                              ChLinkSpringCB* link) override {
+                              ChLinkTSDA* link) override {
         if (vel >= 0) {
             return -m_c_expansion * vel / (1.0 + m_degr_expansion * vel);
         } else {
@@ -358,7 +358,7 @@ class DegressiveDamperForce : public ChLinkSpringCB::ForceFunctor {
 };
 
 /// Utility class for specifying a map translational damper force.
-class MapDamperForce : public ChLinkSpringCB::ForceFunctor {
+class MapDamperForce : public ChLinkTSDA::ForceFunctor {
   public:
     MapDamperForce() {}
     MapDamperForce(const std::vector<std::pair<double, double>>& data) {
@@ -371,7 +371,7 @@ class MapDamperForce : public ChLinkSpringCB::ForceFunctor {
                               double rest_length,
                               double length,
                               double vel,
-                              ChLinkSpringCB* link) override {
+                              ChLinkTSDA* link) override {
         return -m_map.Get_y(vel);
     }
 
@@ -380,7 +380,7 @@ class MapDamperForce : public ChLinkSpringCB::ForceFunctor {
 };
 
 /// Utility class for specifying a map translational spring-damper force with pre-tension.
-class MapSpringDamperActuatorForce : public ChLinkSpringCB::ForceFunctor {
+class MapSpringDamperActuatorForce : public ChLinkTSDA::ForceFunctor {
   public:
     MapSpringDamperActuatorForce() {}
     MapSpringDamperActuatorForce(const std::vector<std::pair<double, double>>& dataK,
@@ -400,7 +400,7 @@ class MapSpringDamperActuatorForce : public ChLinkSpringCB::ForceFunctor {
                               double rest_length,
                               double length,
                               double vel,
-                              ChLinkSpringCB* link) override {
+                              ChLinkTSDA* link) override {
         return m_f - m_mapK.Get_y(length - rest_length) - m_mapC.Get_y(vel);
     }
 

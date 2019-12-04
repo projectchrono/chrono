@@ -435,6 +435,52 @@ void ChElasticityReissnerOrthotropic::ComputeStiffnessMatrix(ChMatrixRef mC,
 }
 
 
+//----------------------------------------------------------------
+
+ChElasticityReissnerGeneric::ChElasticityReissnerGeneric() {
+	mE.setIdentity();
+}
+
+void ChElasticityReissnerGeneric::ComputeStress(
+	ChVector<>& n_u,          ///< forces along \e u direction (per unit length)
+	ChVector<>& n_v,          ///< forces along \e v direction (per unit length)
+	ChVector<>& m_u,          ///< torques along \e u direction (per unit length)
+	ChVector<>& m_v,          ///< torques along \e v direction (per unit length)
+	const ChVector<>& eps_u,  ///< strains along \e u direction
+	const ChVector<>& eps_v,  ///< strains along \e v direction
+	const ChVector<>& kur_u,  ///< curvature along \e u direction
+	const ChVector<>& kur_v,  ///< curvature along \e v direction
+	const double z_inf,       ///< layer lower z value (along thickness coord)
+	const double z_sup,       ///< layer upper z value (along thickness coord)
+	const double angle        ///< layer angle respect to x (if needed) -not used in this, isotropic
+) {
+	ChVectorN<double, 12> mstrain;
+    ChVectorN<double, 12> mstress;
+    mstrain.segment(0 , 3) = eps_u.eigen();
+	mstrain.segment(3 , 3) = eps_v.eigen();
+    mstrain.segment(6 , 3) = kur_u.eigen();
+	mstrain.segment(9 , 3) = kur_v.eigen();
+    mstress = this->mE * mstrain;
+    n_u = mstress.segment(0, 3);
+	n_v = mstress.segment(3, 3);
+	m_u = mstress.segment(6, 3);
+	m_v = mstress.segment(9, 3);
+}
+
+void ChElasticityReissnerGeneric::ComputeStiffnessMatrix(
+	ChMatrixRef mC,           ///< tangent matrix
+	const ChVector<>& eps_u,  ///< strains along \e u direction
+	const ChVector<>& eps_v,  ///< strains along \e v direction
+	const ChVector<>& kur_u,  ///< curvature along \e u direction
+	const ChVector<>& kur_v,  ///< curvature along \e v direction
+	const double z_inf,       ///< layer lower z value (along thickness coord)
+	const double z_sup,       ///< layer upper z value (along thickness coord)
+	const double angle        ///< layer angle respect to x (if needed) -not used in this, isotropic
+) {
+	mC = this->mE;
+}
+
+
 
 //----------------------------------------------------------------
 

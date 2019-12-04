@@ -59,16 +59,16 @@ class CH_VEHICLE_API DoubleWishbone : public ChDoubleWishbone {
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
     virtual double getSpringRestLength() const override { return m_springRestLength; }
-    virtual ChLinkSpringCB::ForceFunctor* getSpringForceFunctor() const override { return m_springForceCB; }
-    virtual ChLinkSpringCB::ForceFunctor* getShockForceFunctor() const override { return m_shockForceCB; }
+    virtual ChLinkTSDA::ForceFunctor* getSpringForceFunctor() const override { return m_springForceCB; }
+    virtual ChLinkTSDA::ForceFunctor* getShockForceFunctor() const override { return m_shockForceCB; }
 
   private:
     virtual const ChVector<> getLocation(PointId which) override { return m_points[which]; }
 
     virtual void Create(const rapidjson::Document& d) override;
 
-    ChLinkSpringCB::ForceFunctor* m_springForceCB;
-    ChLinkSpringCB::ForceFunctor* m_shockForceCB;
+    ChLinkTSDA::ForceFunctor* m_springForceCB;
+    ChLinkTSDA::ForceFunctor* m_shockForceCB;
 
     ChVector<> m_points[NUM_POINTS];
 

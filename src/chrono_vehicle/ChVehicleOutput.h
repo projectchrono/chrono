@@ -30,7 +30,7 @@
 #include "chrono/physics/ChShaft.h"
 #include "chrono/physics/ChLink.h"
 #include "chrono/physics/ChShaftsCouple.h"
-#include "chrono/physics/ChLinkSpringCB.h"
+#include "chrono/physics/ChLinkTSDA.h"
 #include "chrono/physics/ChLinkRotSpringCB.h"
 #include "chrono/physics/ChLoadsBody.h"
 
@@ -62,7 +62,7 @@ class CH_VEHICLE_API ChVehicleOutput {
     virtual void WriteShafts(const std::vector<std::shared_ptr<ChShaft>>& shafts) = 0;
     virtual void WriteJoints(const std::vector<std::shared_ptr<ChLink>>& joints) = 0;
     virtual void WriteCouples(const std::vector<std::shared_ptr<ChShaftsCouple>>& couples) = 0;
-    virtual void WriteLinSprings(const std::vector<std::shared_ptr<ChLinkSpringCB>>& springs) = 0;
+    virtual void WriteLinSprings(const std::vector<std::shared_ptr<ChLinkTSDA>>& springs) = 0;
     virtual void WriteRotSprings(const std::vector<std::shared_ptr<ChLinkRotSpringCB>>& springs) = 0;
     virtual void WriteBodyLoads(const std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) = 0;
 };

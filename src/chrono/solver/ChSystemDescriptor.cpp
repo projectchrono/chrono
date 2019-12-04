@@ -15,7 +15,7 @@
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/solver/ChConstraintTwoTuplesContactN.h"
 #include "chrono/solver/ChConstraintTwoTuplesFrictionT.h"
-#include "chrono/core/ChCSMatrix.h"
+#include "chrono/core/ChMatrix.h"
 
 namespace chrono {
 
@@ -131,11 +131,11 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Cq,
     // Reset and resize (if needed) auxiliary vectors
 
     if (Cq)
-        Cq->Reset(mn_c, n_q);
+        Cq->resize(mn_c, n_q);
     if (H)
-        H->Reset(n_q, n_q);
+        H->resize(n_q, n_q);
     if (E)
-        E->Reset(mn_c, mn_c);
+        E->resize(mn_c, mn_c);
     if (Fvector)
         Fvector->setZero(n_q);
     if (Bvector)
@@ -175,7 +175,7 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Cq,
                     if (Cq)
                         mconstraints[ic]->Build_Cq(*Cq, s_c);  // .. fills Cq
                     if (E)
-                        E->SetElement(s_c, s_c, -mconstraints[ic]->Get_cfm_i());  // .. fills E ( = - cfm )
+                        E->SetElement(s_c, s_c, mconstraints[ic]->Get_cfm_i());  // .. fills E ( = cfm )
                     if (Bvector)
                         (*Bvector)(s_c) = mconstraints[ic]->Get_b_i();  // .. fills 'b'
                     if (Frict)                                          // .. fills vector of friction coefficients
@@ -207,7 +207,8 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Z, ChVectorDynamic<
     n_q = CountActiveVariables();
 
     if (Z) {
-        Z->Reset(n_q + mn_c, n_q + mn_c);
+        Z->conservativeResize(n_q + mn_c, n_q + mn_c);
+        Z->setZeroValues();        
 
         // Fill Z with masses and inertias.
         int s_q = 0;
@@ -233,9 +234,8 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Z, ChVectorDynamic<
                 mconstraints[ic]->Build_Cq(*Z, n_q + s_c);
                 // Transposed constraint Jacobian in upper-right block of Z
                 mconstraints[ic]->Build_CqT(*Z, n_q + s_c);
-                // -E ( = cfm ) in lower-right block of Z
+                // E ( = cfm ) in lower-right block of Z
                 Z->SetElement(n_q + s_c, n_q + s_c, mconstraints[ic]->Get_cfm_i());
-                // Z->Element(n_q + s_c, n_q + s_c) = mconstraints[ic]->Get_cfm_i();
                 s_c++;
             }
         }
@@ -272,23 +272,23 @@ void ChSystemDescriptor::DumpLastMatrices(bool assembled, const char* path) {
         const char* numformat = "%.12g";
 
         if (assembled) {
-            ChCSMatrix Z;
+            ChSparseMatrix Z;
             ChVectorDynamic<double> rhs;
             ConvertToMatrixForm(&Z, &rhs);
 
             sprintf(filename, "%s%s", path, "Z.dat");
             ChStreamOutAsciiFile file_Z(filename);
             file_Z.SetNumFormat(numformat);
-            Z.StreamOUTsparseMatlabFormat(file_Z);
+            StreamOUTsparseMatlabFormat(Z, file_Z);
 
             sprintf(filename, "%s%s", path, "rhs.dat");
             ChStreamOutAsciiFile file_rhs(filename);
             file_rhs.SetNumFormat(numformat);
             StreamOUTdenseMatlabFormat(rhs, file_rhs);
         } else {
-            ChCSMatrix mdM;
-            ChCSMatrix mdCq;
-            ChCSMatrix mdE;
+            ChSparseMatrix mdM;
+            ChSparseMatrix mdCq;
+            ChSparseMatrix mdE;
             ChVectorDynamic<double> mdf;
             ChVectorDynamic<double> mdb;
             ChVectorDynamic<double> mdfric;
@@ -297,17 +297,17 @@ void ChSystemDescriptor::DumpLastMatrices(bool assembled, const char* path) {
             sprintf(filename, "%s%s", path, "M.dat");
             ChStreamOutAsciiFile file_M(filename);
             file_M.SetNumFormat(numformat);
-            mdM.StreamOUTsparseMatlabFormat(file_M);
+            StreamOUTsparseMatlabFormat(mdM, file_M);
 
             sprintf(filename, "%s%s", path, "Cq.dat");
             ChStreamOutAsciiFile file_Cq(filename);
             file_Cq.SetNumFormat(numformat);
-            mdCq.StreamOUTsparseMatlabFormat(file_Cq);
+            StreamOUTsparseMatlabFormat(mdCq, file_Cq);
 
             sprintf(filename, "%s%s", path, "E.dat");
             ChStreamOutAsciiFile file_E(filename);
             file_E.SetNumFormat(numformat);
-            mdE.StreamOUTsparseMatlabFormat(file_E);
+            StreamOUTsparseMatlabFormat(mdE, file_E);
 
             sprintf(filename, "%s%s", path, "f.dat");
             ChStreamOutAsciiFile file_f(filename);
@@ -396,10 +396,10 @@ int ChSystemDescriptor::BuildDiagonalVector(ChVectorDynamic<>& Diagonal_vect) {
         }
     }
 
-    // Get the 'E' diagonal terms (note the sign: E_i = -cfm_i )
+    // Get the 'E' diagonal terms (E_i = cfm_i )
     for (int ic = 0; ic < (int)vconstraints.size(); ic++) {
         if (vconstraints[ic]->IsActive()) {
-            Diagonal_vect(vconstraints[ic]->GetOffset() + n_q) = -vconstraints[ic]->Get_cfm_i();
+            Diagonal_vect(vconstraints[ic]->GetOffset() + n_q) = vconstraints[ic]->Get_cfm_i();
         }
     }
 
@@ -555,7 +555,7 @@ void ChSystemDescriptor::ShurComplementProduct(ChVectorDynamic<>& result,
                 //  NOTE! concurrent update to same q data, risk of collision if parallel.
                 vconstraints[ic]->Increment_q(li);  // computationally intensive
 
-                // Add constraint force mixing term  result = cfm * l_i = -[E]*l_i
+                // Add constraint force mixing term  result = cfm * l_i = [E]*l_i
                 result(s_c) = vconstraints[ic]->Get_cfm_i() * li;
             }
         }
@@ -608,7 +608,7 @@ void ChSystemDescriptor::SystemProduct(ChVectorDynamic<>& result, const ChVector
         if (vconstraints[ic]->IsActive()) {
             int s_c = vconstraints[ic]->GetOffset() + n_q;
             vconstraints[ic]->MultiplyAndAdd(result(s_c), x);       // result.l_i += [C_q_i]*x.q
-            result(s_c) -= vconstraints[ic]->Get_cfm_i() * x(s_c);  // result.l_i += [E]*x.l_i  NOTE:  cfm = -E
+            result(s_c) += vconstraints[ic]->Get_cfm_i() * x(s_c);  // result.l_i += [E]*x.l_i
         }
     }
 }

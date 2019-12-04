@@ -134,8 +134,10 @@ ADD_LIBRARY(ChronoEngine_distributed SHARED
 
 SET_TARGET_PROPERTIES(ChronoEngine_distributed PROPERTIES
 	                  COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_PARALLEL_CXX_FLAGS} ${CH_DISTRIBUTED_CXX_FLAGS}"
-                      LINK_FLAGS "${CH_LINKERFLAG_SHARED} ${CH_DISTRIBUTED_LINK_FLAGS}"
-                      COMPILE_DEFINITIONS "CH_API_COMPILE_DISTRIBUTED")
+                      LINK_FLAGS "${CH_LINKERFLAG_SHARED} ${CH_DISTRIBUTED_LINK_FLAGS}")
+
+target_compile_definitions(ChronoEngine_distributed PRIVATE "CH_API_COMPILE_DISTRIBUTED")
+target_compile_definitions(ChronoEngine_distributed PRIVATE "CH_IGNORE_DEPRECATED")
 
 TARGET_LINK_LIBRARIES(ChronoEngine_distributed
                       ChronoEngine

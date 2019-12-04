@@ -116,7 +116,7 @@ const double Generic_DoubleWishboneRear::m_springRestLength = (511.4685 + (300 -
 // -----------------------------------------------------------------------------
 // Generic shock functor class - implements a nonlinear damper
 // -----------------------------------------------------------------------------
-class Generic_ShockForce : public ChLinkSpringCB::ForceFunctor {
+class Generic_ShockForce : public ChLinkTSDA::ForceFunctor {
   public:
     Generic_ShockForce(std::vector<double> vel, std::vector<double> frc);
 
@@ -124,7 +124,7 @@ class Generic_ShockForce : public ChLinkSpringCB::ForceFunctor {
                               double rest_length,
                               double length,
                               double vel,
-                              ChLinkSpringCB* link) override;
+                              ChLinkTSDA* link) override;
 
   private:
     ChCubicSpline m_ShockTable;
@@ -141,7 +141,7 @@ double Generic_ShockForce::operator()(double time,
                                       double rest_length,
                                       double length,
                                       double vel,
-                                      ChLinkSpringCB* link) {
+                                      ChLinkTSDA* link) {
     double force = 0;
     double dcurve = 0;
     double ddcurve = 0;

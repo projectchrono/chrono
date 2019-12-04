@@ -255,7 +255,7 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_MUMPS
         case MUMPS: {
             auto mumps_solver = chrono_types::make_shared<ChSolverMumps>();
-            mumps_solver->SetSparsityPatternLock(true);
+            mumps_solver->LockSparsityPattern(true);
             mumps_solver->SetVerbose(verbose_solver);
             rig->GetSystem()->SetSolver(mumps_solver);
             break;
@@ -263,8 +263,8 @@ int main(int argc, char* argv[]) {
 #endif
 #ifdef CHRONO_MKL
         case MKL: {
-            auto mkl_solver = chrono_types::make_shared<ChSolverMKL<>>();
-            mkl_solver->SetSparsityPatternLock(true);
+            auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+            mkl_solver->LockSparsityPattern(true);
             mkl_solver->SetVerbose(verbose_solver);
             rig->GetSystem()->SetSolver(mkl_solver);
             break;

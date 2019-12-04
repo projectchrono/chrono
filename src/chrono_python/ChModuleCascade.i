@@ -64,6 +64,7 @@ using namespace chrono::cascade;
 #define Handle(ClassName)  Handle_##ClassName
 #define Standard_EXPORT
 #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+#define CH_DEPRECATED(msg)
 
 // Include other .i configuration files for SWIG. 
 // These are divided in many .i files, each per a

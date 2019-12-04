@@ -21,6 +21,7 @@
 
 #include "chrono/fea/ChElementShellANCF.h"
 #include "chrono/fea/ChMesh.h"
+#include "chrono/core/ChMatrix.h"
 
 namespace chrono {
 namespace fea {

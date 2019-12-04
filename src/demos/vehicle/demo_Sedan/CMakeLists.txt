@@ -1,6 +1,6 @@
 #=============================================================================
 # CMake configuration file for the Sedan demos.
-# These example programs requires Irrlicht run-time visualization
+# These example programs require Irrlicht run-time visualization.
 #=============================================================================
 
 IF(NOT ENABLE_MODULE_IRRLICHT)

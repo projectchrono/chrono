@@ -73,8 +73,10 @@ ADD_LIBRARY(ChronoEngine_cosimulation SHARED
 			${ChronoEngine_COSIMULATION_HEADERS})
 
 SET_TARGET_PROPERTIES(ChronoEngine_cosimulation PROPERTIES 
-                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
-                      COMPILE_DEFINITIONS "CH_API_COMPILE_COSIMULATION")
+                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
+
+target_compile_definitions(ChronoEngine_cosimulation PRIVATE "CH_API_COMPILE_COSIMULATION")
+target_compile_definitions(ChronoEngine_cosimulation PRIVATE "CH_IGNORE_DEPRECATED")
 
 TARGET_LINK_LIBRARIES(ChronoEngine_cosimulation 
                       ChronoEngine

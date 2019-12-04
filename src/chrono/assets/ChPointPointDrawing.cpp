@@ -14,6 +14,7 @@
 #include "chrono/physics/ChLinkMarkers.h"
 #include "chrono/physics/ChLinkDistance.h"
 #include "chrono/physics/ChLinkRevoluteSpherical.h"
+#include "chrono/physics/ChLinkTSDA.h"
 
 namespace chrono {
 
@@ -28,6 +29,9 @@ void ChPointPointDrawing::Update(ChPhysicsItem* updater, const ChCoordsys<>& coo
     } else if (auto link_rs = dynamic_cast<ChLinkRevoluteSpherical*>(updater)) {
         UpdateLineGeometry(coords.TransformPointParentToLocal(link_rs->GetPoint1Abs()),
                            coords.TransformPointParentToLocal(link_rs->GetPoint2Abs()));
+    } else if (auto link_tsda = dynamic_cast<ChLinkTSDA*>(updater)) {
+        UpdateLineGeometry(coords.TransformPointParentToLocal(link_tsda->GetPoint1Abs()),
+                           coords.TransformPointParentToLocal(link_tsda->GetPoint2Abs()));
     } else if (auto link = dynamic_cast<ChLink*>(updater)) {
         UpdateLineGeometry(coords.TransformPointParentToLocal(link->GetBody1()->GetPos()),
                            coords.TransformPointParentToLocal(link->GetBody2()->GetPos()));

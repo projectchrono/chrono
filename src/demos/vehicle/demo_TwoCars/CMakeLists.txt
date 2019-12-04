@@ -1,6 +1,6 @@
 #=============================================================================
 # CMake configuration file for the TwoCars demo.
-# This example program requires Irrlicht run-time visualization
+# This example program requires Irrlicht run-time visualization.
 #=============================================================================
 
 IF(NOT ENABLE_MODULE_IRRLICHT)

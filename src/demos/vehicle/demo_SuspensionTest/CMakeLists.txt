@@ -1,6 +1,6 @@
 #=============================================================================
 # CMake configuration file for the SUSPENSION_TEST_RIG demo.
-# This example program works only with Irrlicht run-time visualization
+# These example programs require Irrlicht run-time visualization.
 #=============================================================================
 
 IF(NOT ENABLE_MODULE_IRRLICHT)

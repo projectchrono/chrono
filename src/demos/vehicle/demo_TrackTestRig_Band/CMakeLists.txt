@@ -1,7 +1,7 @@
 #=============================================================================
 # CMake configuration file for the test rig with continuous band track demo.
-# This example program works only with Irrlicht run-time visualization and 
-# requires the MKL or MUMPS Chrono modules.
+# This example program requires Irrlicht run-time visualization and the
+# MKL or MUMPS Chrono modules.
 #=============================================================================
 
 # Irrlicht required

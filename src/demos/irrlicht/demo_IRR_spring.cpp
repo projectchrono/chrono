@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Simple example demonstrating the use of ChLinkSpring and ChLinkSpringCB.
+// Simple example demonstrating the use of ChLinkTSDA.
 //
 // Two bodies, connected with identical (but modeled differently) spring-dampers
 // are created side by side.
@@ -44,13 +44,14 @@ double damping_coef = 1;
 
 // =============================================================================
 
-// Functor class implementing the force for a ChLinkSpringCB link.
-class MySpringForce : public ChLinkSpringCB::ForceFunctor {
-    virtual double operator()(double time,          // current time
-                              double rest_length,   // undeformed length
-                              double length,        // current length
-                              double vel,           // current velocity (positive when extending)
-                              ChLinkSpringCB* link  // back-pointer to associated link
+// Functor class implementing the force for a ChLinkTSDA link.
+// In this simple demonstration, we just reimplement the default linear spring-damper.
+class MySpringForce : public ChLinkTSDA::ForceFunctor {
+    virtual double operator()(double time,         // current time
+                              double rest_length,  // undeformed length
+                              double length,       // current length
+                              double vel,          // current velocity (positive when extending)
+                              ChLinkTSDA* link     // back-pointer to associated link
                               ) override {
         double force = -spring_coef * (length - rest_length) - damping_coef * vel;
         return force;
@@ -86,8 +87,8 @@ int main(int argc, char* argv[]) {
         ground->AddAsset(sph_2);
     }
 
-    // Create a body suspended through a ChLinkSpring
-    // ----------------------------------------------
+    // Create a body suspended through a ChLinkTSDA (default linear)
+    // -------------------------------------------------------------
 
     auto body_1 = chrono_types::make_shared<ChBody>();
     system.AddBody(body_1);
@@ -108,18 +109,18 @@ int main(int argc, char* argv[]) {
 
     // Create the spring between body_1 and ground. The spring end points are
     // specified in the body relative frames.
-    auto spring_1 = chrono_types::make_shared<ChLinkSpring>();
+    auto spring_1 = chrono_types::make_shared<ChLinkTSDA>();
     spring_1->Initialize(body_1, ground, true, ChVector<>(0, 0, 0), ChVector<>(-1, 0, 0), false, rest_length);
-    spring_1->Set_SpringK(spring_coef);
-    spring_1->Set_SpringR(damping_coef);
+    spring_1->SetSpringCoefficient(spring_coef);
+    spring_1->SetDampingCoefficient(damping_coef);
     system.AddLink(spring_1);
 
-	// Attach a visualization asset.
-	spring_1->AddAsset(col_1);
-	spring_1->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.05, 80, 15));
+    // Attach a visualization asset.
+    spring_1->AddAsset(col_1);
+    spring_1->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.05, 80, 15));
 
-    // Create a body suspended through a ChLinkSpringCB
-    // ------------------------------------------------
+    // Create a body suspended through a ChLinkTSDA (custom force functor)
+    // -------------------------------------------------------------------
 
     auto body_2 = chrono_types::make_shared<ChBody>();
     system.AddBody(body_2);
@@ -142,19 +143,19 @@ int main(int argc, char* argv[]) {
     // specified in the body relative frames.
     MySpringForce force;
 
-    auto spring_2 = chrono_types::make_shared<ChLinkSpringCB>();
+    auto spring_2 = chrono_types::make_shared<ChLinkTSDA>();
     spring_2->Initialize(body_2, ground, true, ChVector<>(0, 0, 0), ChVector<>(1, 0, 0), false, rest_length);
     spring_2->RegisterForceFunctor(&force);
     system.AddLink(spring_2);
 
-	// Attach a visualization asset.
-	spring_2->AddAsset(col_2);
-	spring_2->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.05, 80, 15));
+    // Attach a visualization asset.
+    spring_2->AddAsset(col_2);
+    spring_2->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.05, 80, 15));
 
     // Create the Irrlicht application
     // -------------------------------
 
-    ChIrrApp application(&system, L"ChBodyAuxRef demo", core::dimension2d<u32>(800, 600), false, true);
+    ChIrrApp application(&system, L"ChLinkTSDA demo", core::dimension2d<u32>(800, 600), false, true);
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();
@@ -178,11 +179,11 @@ int main(int argc, char* argv[]) {
         application.DoStep();
 
         if (frame % 50 == 0) {
-            GetLog() << system.GetChTime() << "  " << spring_1->Get_SpringLength() << "  "
-                     << spring_1->Get_SpringVelocity() << "  " << spring_1->Get_SpringReact() << "\n";
+            GetLog() << system.GetChTime() << "  " << spring_1->GetLength() << "  " << spring_1->GetVelocity() << "  "
+                     << spring_1->GetForce() << "\n";
 
-            GetLog() << "            " << spring_2->GetSpringLength() << "  " << spring_2->GetSpringVelocity() << "  "
-                     << spring_2->GetSpringReact() << "\n\n";
+            GetLog() << "            " << spring_2->GetLength() << "  " << spring_2->GetVelocity() << "  "
+                     << spring_2->GetForce() << "\n\n";
         }
 
         frame++;
