@@ -28,7 +28,9 @@ variables:
     entrypoint: ["/usr/bin/bash", "-c"]
   before_script:
   - uname -a
-  - pacman -Syyu --noconfirm base-devel cuda git eigen cmake glfw glm glew glut irrlicht wget boost fish python python-pip openmpi swig
+  - pacman -Syyu --noconfirm base-devel cuda git eigen cmake glfw glm glew glut irrlicht wget boost python python-pip openmpi swig
+# Clean up the package cache to make more space for the build
+  - pacman -Scc --noconfirm
   - ldconfig
   - wget https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.5.tar.gz
   - tar -xf blaze-3.5.tar.gz
@@ -94,6 +96,41 @@ linux:arch-gcc:deploy:
     name: pychrono-archlinux
     url: https://anaconda.org/projectchrono/pychrono
   when: manual
+
+
+linux:doxygen:deploy:
+  tags:
+  - linux
+  image: 
+    name: archlinux/base
+    entrypoint: ["/usr/bin/bash", "-c"]
+  stage: deploy
+  before_script:
+    - pacman -Syyu --noconfirm base-devel git wget fish python python-pip doxygen graphviz openssh rsync
+    - eval $(ssh-agent -s)
+    - echo -e "-----BEGIN RSA PRIVATE KEY-----\n$API_PRIVATE_KEY\n-----END RSA PRIVATE KEY-----\n" | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 0700 ~/.ssh
+# Remove any duplicate host key entries, if necessary
+    - if test -f ~/.ssh/known_hosts; then ssh-keygen -R $API_REINDEX_ENDPOINT; fi
+# Cache a verified host pubkey from file to avoid MITM attacks
+    - cat $API_ENDPOINT_PUBKEY >> ~/.ssh/known_hosts
+  script:
+    - cd doxygen
+    - doxygen Doxyfile
+    - doxygen Doxyfile_Generate_Search_Index
+    - rsync -ra /tmp/chrono_doxygen/html/* $API_HTML_ENDPOINT
+    - rsync /tmp/chrono_doxygen/searchdata.xml $API_SEARCH_ENDPOINT
+    - ssh $API_REINDEX_ENDPOINT /var/www/cgi-bin/doxyindexer.cgi /var/www/cgi-bin/searchdata.xml
+  environment:
+    name: doxygen
+    url: http://api.projectchrono.org/
+  rules:
+    - if: '$CI_COMMIT_REF_NAME != "develop"'
+      when: manual
+    - if: '$CI_COMMIT_REF_NAME == "develop"'
+      when: on_success
+  
 
 
 linux:arch-llvm:build:
