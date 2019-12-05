@@ -114,7 +114,7 @@ linux:doxygen:deploy:
 # Remove any duplicate host key entries, if necessary
     - if test -f ~/.ssh/known_hosts; then ssh-keygen -R $API_REINDEX_ENDPOINT; fi
 # Cache a verified host pubkey from file to avoid MITM attacks
-    - cat $API_ENDPOINT_PUBKEY >> ~/.ssh/known_hosts
+    - cat $API_ENDPOINT_PUBKEY >> ~/.ssh/id_rsa.pub
   script:
     - cd doxygen
     - doxygen Doxyfile
