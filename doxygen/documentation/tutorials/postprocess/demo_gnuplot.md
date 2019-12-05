@@ -178,7 +178,7 @@ One can use, for instance:
 - @ref chrono::ChFunction y(x) objects,
 - @ref chrono::ChFunction_Recorder and @ref chrono::ChFunction_Oscilloscope objects, that 
   are optimized for recording xy pairs,
-- columns from a @ref chrono::ChMatrix, etc.
+- columns from a @ref chrono::ChMatrixDynamic, etc.
 
 The data values will be saved _embedded_ in the .gpl file.
 

@@ -12,35 +12,43 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#ifndef CHSOLVERSOR_H
-#define CHSOLVERSOR_H
+#ifndef CHSOLVER_PSOR_H
+#define CHSOLVER_PSOR_H
 
-#include "chrono/solver/ChIterativeSolver.h"
+#include "chrono/solver/ChIterativeSolverVI.h"
 
 namespace chrono {
 
-/// An iterative solver based on projective fixed point method, with overrelaxation
-/// and immediate variable update as in SOR methods.\n
-/// See ChSystemDescriptor for more information about the problem formulation and the data structures
-/// passed to the solver.
+/// @addtogroup chrono_solver
+/// @{
 
-class ChApi ChSolverSOR : public ChIterativeSolver {
+/// An iterative solver based on projective fixed point method, with overrelaxation and immediate variable update as in
+/// SOR methods.\n
+/// See ChSystemDescriptor for more information about the problem formulation and the data structures passed to the
+/// solver.
+
+class ChApi ChSolverPSOR : public ChIterativeSolverVI {
   public:
-    ChSolverSOR(int mmax_iters = 50,       ///< max.number of iterations
-                bool mwarm_start = false,  ///< uses warm start?
-                double mtolerance = 0.0,   ///< tolerance for termination criterion
-                double momega = 1.0        ///< overrelaxation criterion
-    );
+    ChSolverPSOR();
 
-    virtual ~ChSolverSOR() {}
+    ~ChSolverPSOR() {}
 
-    virtual Type GetType() const override { return Type::SOR; }
+    virtual Type GetType() const override { return Type::PSOR; }
 
     /// Performs the solution of the problem.
     /// \return  the maximum constraint violation after termination.
     virtual double Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
                          ) override;
+
+    /// Return the tolerance error reached during the last solve.
+    /// For the PSOR solver, this is the maximum constraint violation.
+    virtual double GetError() const override { return maxviolation; }
+
+  private:
+    double maxviolation;
 };
+
+/// @} chrono_solver
 
 }  // end namespace chrono
 

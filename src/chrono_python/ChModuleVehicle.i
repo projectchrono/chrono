@@ -51,9 +51,6 @@
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChVector.h"
 #include "chrono/solver/ChSolver.h"
-#include "chrono/solver/ChSolverDirect.h"
-#include "chrono/solver/ChIterativeSolver.h"
-#include "chrono/solver/ChSolverMINRES.h"
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChShaft.h"

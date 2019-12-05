@@ -159,11 +159,9 @@ bool TestRotSpring(const ChVector<>& jointLoc,      // absolute location of join
     my_system.Set_G_acc(ChVector<>(0.0, 0.0, -g));
 
     my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
-    my_system.SetMaxItersSolverSpeed(100);
-    my_system.SetMaxItersSolverStab(100);  // Tasora stepper uses this, Anitescu does not
-    my_system.SetSolverType(ChSolver::Type::SOR);
-    my_system.SetTol(1e-6);
-    my_system.SetTolForce(1e-4);
+    my_system.SetSolverType(ChSolver::Type::PSOR);
+    my_system.SetSolverMaxIterations(100);
+    my_system.SetSolverForceTolerance(1e-4);
 
     // Create the ground body
 

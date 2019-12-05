@@ -262,7 +262,7 @@ myapplication.AddShadowAll();
 
 mysystem.SetSolverType(chrono.ChSolver.Type_BARZILAIBORWEIN);
 #mysystem.SetSolverType(chrono.ChSolver.Type_MINRES);
-mysystem.SetMaxItersSolverSpeed(300)
+mysystem.SetSolverMaxIterations(300)
 
 myapplication.SetTimestep(0.01)
 

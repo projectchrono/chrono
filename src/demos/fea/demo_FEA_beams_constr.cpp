@@ -21,8 +21,6 @@
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/physics/ChSystemNSC.h"
 
-#include "chrono/solver/ChSolverMINRES.h"
-
 #include "chrono/fea/ChBuilderBeam.h"
 #include "chrono/fea/ChElementBeamEuler.h"
 #include "chrono/fea/ChMesh.h"
@@ -257,30 +255,9 @@ int main(int argc, char* argv[]) {
 
     application.AssetUpdateAll();
 
-    //
-    // THE SOFT-REAL-TIME CYCLE
-    //
+    // SIMULATION LOOP
 
     // Use a solver that can handle stiffnss matrices:
-
-    //***TEST***
-    /*
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    my_system.SetSolverWarmStarting(true);
-    my_system.SetMaxItersSolverSpeed(600);
-    my_system.SetMaxItersSolverStab(600);
-    my_system.SetTolForce(1e-20);
-    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    msolver->SetVerbose(true);
-    msolver->SetDiagonalPreconditioning(false);
-    */
-
-    //***TEST***
-    /*ChMatlabEngine matlab_engine;
-    auto matlab_solver = chrono_types::make_shared<ChSolverMatlab>(matlab_engine);
-    my_system.SetSolver(matlab_solver);*/
-
-    //***TEST***
     auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
     my_system.SetSolver(mkl_solver);
 

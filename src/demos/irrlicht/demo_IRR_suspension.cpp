@@ -684,7 +684,7 @@ int main(int argc, char* argv[]) {
     // SETTINGS
     //
 
-    my_system.SetMaxItersSolverSpeed(20);  // the higher, the easier to keep the constraints 'mounted'.
+    my_system.SetSolverMaxIterations(20);  // the higher, the easier to keep the constraints satisifed.
 
     //
     // THE SOFT-REAL-TIME CYCLE, SHOWING THE SIMULATION

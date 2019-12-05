@@ -15,28 +15,31 @@
 #ifndef CHSOLVERPMINRES_H
 #define CHSOLVERPMINRES_H
 
-#include "chrono/solver/ChIterativeSolver.h"
+#include "chrono/solver/ChIterativeSolverVI.h"
 
 namespace chrono {
 
-/// An iterative solver based on modified Krylov iteration of MINRES type with gradient
-/// projections (similar to nonlinear CG with Polyak-Ribiere).\n
-/// See ChSystemDescriptor for more information about the problem formulation and the data structures
-/// passed to the solver.
+/// @addtogroup chrono_solver
+/// @{
 
-class ChApi ChSolverPMINRES : public ChIterativeSolver {
-  protected:
-    double grad_diffstep;
-    double rel_tolerance;
-    bool diag_preconditioning;
-
+/// An iterative solver based on modified Krylov iteration of MINRES type with gradient projections (similar to
+/// nonlinear CG with Polyak-Ribiere).
+///
+/// The PMINRES solver can use diagonal precondityioning (enabled by default).
+///
+/// See ChSystemDescriptor for more information about the problem formulation and the data structures passed to the
+/// solver.
+///
+/// \deprecated Use ChSolverMINRES instead. This class will be removed in a future Chrono release.
+class ChApi
+/// \cond
+CH_DEPRECATED("deprecated. Use ChSolverMINRES instead.")
+/// \endcond
+ChSolverPMINRES : public ChIterativeSolverVI {
   public:
-    ChSolverPMINRES(int mmax_iters = 50,       ///< max.number of iterations
-                    bool mwarm_start = false,  ///< uses warm start?
-                    double mtolerance = 0.0    ///< tolerance for termination criterion
-    );
+    ChSolverPMINRES();
 
-    virtual ~ChSolverPMINRES() {}
+    ~ChSolverPMINRES() {}
 
     virtual Type GetType() const override { return Type::PMINRES; }
 
@@ -66,19 +69,24 @@ class ChApi ChSolverPMINRES : public ChIterativeSolver {
     void SetRelTolerance(double mrt) { this->rel_tolerance = mrt; }
     double GetRelTolerance() { return this->rel_tolerance; }
 
-    /// Enable diagonal preconditioning. It a simple but fast
-    /// preconditioning technique that is especially useful to
-    /// fix slow convergence in case variables have very different orders
-    /// of magnitude.
-    void SetDiagonalPreconditioning(bool mp) { this->diag_preconditioning = mp; }
-    bool GetDiagonalPreconditioning() { return this->diag_preconditioning; }
+    
+    /// Return the tolerance error reached during the last solve.
+    /// For the PMINRES solver, this is the norm of the projected residual.
+    virtual double GetError() const override { return r_proj_resid; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+  private:
+    double grad_diffstep;
+    double rel_tolerance;
+    double r_proj_resid;
 };
+
+/// @} chrono_solver
 
 }  // end namespace chrono
 

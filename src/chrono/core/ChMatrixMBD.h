@@ -24,14 +24,20 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_linalg
+/// @{
+
 // =============================================================================
 
+/// 3x4 dense matrix (fixed-size, row-major ordering)
 template <typename T = double>
 using ChMatrix34 = Eigen::Matrix<T, 3, 4, Eigen::RowMajor>;
 
+/// 4x3 dense matrix (fixed-size, row-major ordering)
 template <typename T = double>
 using ChMatrix43 = Eigen::Matrix<T, 4, 3, Eigen::ColMajor>;
 
+/// 4x4 dense matrix (fixed-size, row-major ordering)
 template <typename T = double>
 using ChMatrix44 = Eigen::Matrix<T, 4, 4, Eigen::RowMajor>;
 
@@ -291,6 +297,8 @@ ChQuaternion<T> operator*(const ChMatrix44<T>& A, const ChQuaternion<U>& q) {
                            A(2, 0) * (T)q.e0() + A(2, 1) * (T)q.e1() + A(2, 2) * (T)q.e2() + A(2, 3) * (T)q.e3(),
                            A(3, 0) * (T)q.e0() + A(3, 1) * (T)q.e1() + A(3, 2) * (T)q.e2() + A(3, 3) * (T)q.e3());
 }
+
+/// @} chrono_linalg
 
 }  // end namespace chrono
 

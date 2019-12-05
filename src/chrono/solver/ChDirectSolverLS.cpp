@@ -12,14 +12,14 @@
 // Authors: Radu Serban
 // =============================================================================
 
-#include "chrono/solver/ChSolverDirect.h"
+#include "chrono/solver/ChDirectSolverLS.h"
 #include "chrono/core/ChSparsityPatternLearner.h"
 
 #define SPM_DEF_SPARSITY 0.9  ///< default predicted sparsity (in [0,1])
 
 namespace chrono {
 
-ChSolverDirect::ChSolverDirect()
+ChDirectSolverLS::ChDirectSolverLS()
     : m_lock(false),
       m_use_learner(true),
       m_force_update(true),
@@ -32,14 +32,14 @@ ChSolverDirect::ChSolverDirect()
       m_solve_call(0),
       m_setup_call(0) {}
 
-void ChSolverDirect::ResetTimers() {
+void ChDirectSolverLS::ResetTimers() {
     m_timer_setup_assembly.reset();
     m_timer_setup_solvercall.reset();
     m_timer_solve_assembly.reset();
     m_timer_solve_solvercall.reset();
 }
 
-bool ChSolverDirect::Setup(ChSystemDescriptor& sysd) {
+bool ChDirectSolverLS::Setup(ChSystemDescriptor& sysd) {
     m_timer_setup_assembly.start();
 
     // Calculate problem size.  
@@ -108,7 +108,7 @@ bool ChSolverDirect::Setup(ChSystemDescriptor& sysd) {
     return result;
 }
 
-double ChSolverDirect::Solve(ChSystemDescriptor& sysd) {
+double ChDirectSolverLS::Solve(ChSystemDescriptor& sysd) {
     // Assemble the problem right-hand side vector
     m_timer_solve_assembly.start();
     sysd.ConvertToMatrixForm(nullptr, &m_rhs);
@@ -141,9 +141,9 @@ double ChSolverDirect::Solve(ChSystemDescriptor& sysd) {
     return result;
 }
 
-void ChSolverDirect::ArchiveOUT(ChArchiveOut& marchive) {
+void ChDirectSolverLS::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite<ChSolverDirect>();
+    marchive.VersionWrite<ChDirectSolverLS>();
 
     // serialize parent class
     ChSolver::ArchiveOUT(marchive);
@@ -155,9 +155,9 @@ void ChSolverDirect::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(m_use_rhs_sparsity);
 }
 
-void ChSolverDirect::ArchiveIN(ChArchiveIn& marchive) {
+void ChDirectSolverLS::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChSolverDirect>();
+    int version = marchive.VersionRead<ChDirectSolverLS>();
 
     // deserialize parent class
     ChSolver::ArchiveIN(marchive);

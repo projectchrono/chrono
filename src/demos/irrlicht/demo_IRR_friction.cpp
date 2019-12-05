@@ -182,12 +182,11 @@ int main(int argc, char* argv[]) {
     application.AssetBindAll();
     application.AssetUpdateAll();
 
-    // Modify some setting of the physical system for the simulation, if you want
-    mphysicalSystem.SetMaxItersSolverSpeed(100);
-	mphysicalSystem.SetSolverType(ChSolver::Type::APGD);
-    //
-    // THE SOFT-REAL-TIME CYCLE
-    //
+    // Modify some setting of the physical system for the simulation
+    mphysicalSystem.SetSolverType(ChSolver::Type::APGD);
+    mphysicalSystem.SetSolverMaxIterations(100);
+
+    // Simulation loop
 
     application.SetStepManage(true);
     application.SetTimestep(0.01);

@@ -21,8 +21,7 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMotorLinearPosition.h"
 #include "chrono/timestepper/ChTimestepper.h"
-#include "chrono/solver/ChSolverPMINRES.h"
-#include "chrono/solver/ChSolverMINRES.h"
+#include "chrono/solver/ChIterativeSolverLS.h"
 
 #include "chrono/fea/ChElementBeamIGA.h"
 #include "chrono/fea/ChBuilderBeam.h"
@@ -715,18 +714,18 @@ int main(int argc, char* argv[]) {
 	
 
 	// Solver default settings for all the sub demos:
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
-    my_system.SetMaxItersSolverSpeed(500);
-    my_system.SetMaxItersSolverStab(500);
-    my_system.SetTolForce(1e-14);
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    my_system.SetSolver(solver);
+    solver->SetMaxIterations(500);
+    solver->SetTolerance(1e-15);
+    solver->EnableDiagonalPreconditioner(true);
+    solver->EnableWarmStart(true);  // IMPORTANT for convergence when using EULER_IMPLICIT_LINEARIZED
+    solver->SetVerbose(false);
 
-    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    msolver->SetVerbose(false);
-    msolver->SetDiagonalPreconditioning(true);
+    my_system.SetSolverForceTolerance(1e-14);
 
-    #ifdef USE_MKL
-        auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+#ifdef USE_MKL
+    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
         my_system.SetSolver(mkl_solver);
     #endif
 

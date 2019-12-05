@@ -12,20 +12,20 @@
 // Authors: Radu Serban
 // =============================================================================
 
-#ifndef CHSOLVERDIRECT_H
-#define CHSOLVERDIRECT_H
+#ifndef CH_DIRECTSOLVER_LS_H
+#define CH_DIRECTSOLVER_LS_H
 
 #include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChTimer.h"
-#include "chrono/solver/ChSolver.h"
+#include "chrono/solver/ChSolverLS.h"
 
 namespace chrono {
 
 /// @addtogroup chrono_solver
 /// @{
 
-/** \class ChSolverDirect
-\brief Base class for sparse direct solvers.
+/** \class ChDirectSolverLS
+\brief Base class for sparse direct linear solvers.
 
 Sparse linear direct solvers.
 Cannot handle VI and complementarity problems, so it cannot be used with NSC formulations.
@@ -35,7 +35,7 @@ performing the actual matrix factorization and then computing the solution vecto
 See ChSolverMkl (which implements Eigen's interface to the Intel MKL Pardiso solver) and ChSolverMumps (which interfaces
 to the MUMPS solver).
 
-ChSolverDirect manages the detection and update of the matrix sparsity pattern, providing two main features:
+ChDirectSolverLS manages the detection and update of the matrix sparsity pattern, providing two main features:
 - sparsity pattern lock
 - sparsity pattern learning
 
@@ -65,7 +65,7 @@ constraints).
 See ChSystemDescriptor for more information about the problem formulation and the data structures passed to the solver.
 */
 
-class ChApi ChSolverDirect : public ChSolver {
+class ChApi ChDirectSolverLS : public ChSolverLS {
   public:
     enum class MatrixSymmetryType {
         GENERAL,              ///< unsymmetric matrix
@@ -74,7 +74,7 @@ class ChApi ChSolverDirect : public ChSolver {
         STRUCTURAL_SYMMETRIC  ///< structurally symmetric
     };
 
-    virtual ~ChSolverDirect() {}
+    virtual ~ChDirectSolverLS() {}
 
     /// Enable/disable locking the sparsity pattern (default: false).\n
     /// If enabled, the sparsity pattern of the problem matrix is assumed to be unchanged from call to call.
@@ -145,7 +145,7 @@ class ChApi ChSolverDirect : public ChSolver {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
   protected:
-    ChSolverDirect();
+    ChDirectSolverLS();
 
     /// Factorize the current sparse matrix and return true if successful.
     virtual bool FactorizeMatrix() = 0;

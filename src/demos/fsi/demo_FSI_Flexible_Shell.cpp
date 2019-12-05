@@ -28,7 +28,7 @@
 #include "chrono_mkl/ChSolverMKL.h"
 #endif
 
-#include "chrono/solver/ChSolverMINRES.h"
+#include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsGeometry.h"
@@ -176,16 +176,20 @@ int main(int argc, char* argv[]) {
 
     int step_count = 0;
     double mTime = 0;
-
+#undef CHRONO_MKL
 #ifdef CHRONO_MKL
     auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
     mkl_solver->LockSparsityPattern(true);
     mphysicalSystem.SetSolver(mkl_solver);
 #else
-    mphysicalSystem.SetSolverType(ChSolver::Type::MINRES);
-    mphysicalSystem.SetSolverWarmStarting(true);
-    mphysicalSystem.SetMaxItersSolverSpeed(10000);
-    mphysicalSystem.SetTolForce(1e-10);
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    mphysicalSystem.SetSolver(solver);
+    solver->SetMaxIterations(500);
+    solver->SetTolerance(1e-10);
+    solver->EnableDiagonalPreconditioner(true);
+    solver->SetVerbose(false);
+
+    mphysicalSystem.SetSolverForceTolerance(1e-10);
 #endif
 
     //    mphysicalSystem.SetTimestepperType(ChTimestepper::Type::HHT);

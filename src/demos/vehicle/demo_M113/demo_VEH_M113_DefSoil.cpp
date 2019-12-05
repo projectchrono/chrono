@@ -118,8 +118,7 @@ int main(int argc, char* argv[]) {
         integrator->SetVerbose(true);
 #endif
     } else {
-        vehicle.GetSystem()->SetMaxItersSolverSpeed(50);
-        vehicle.GetSystem()->SetMaxItersSolverStab(50);
+        vehicle.GetSystem()->SetSolverMaxIterations(50);
     }
 
     // Control steering type (enable crossdrive capability)

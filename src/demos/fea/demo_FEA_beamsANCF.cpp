@@ -19,8 +19,7 @@
 #include <chrono>
 
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/solver/ChSolverMINRES.h"
-#include "chrono/timestepper/ChTimestepper.h"
+#include "chrono/solver/ChIterativeSolverLS.h"
 
 #include "chrono/fea/ChBuilderBeam.h"
 #include "chrono/fea/ChElementBeamIGA.h"
@@ -31,7 +30,7 @@
 using namespace chrono;
 using namespace chrono::fea;
 
-bool use_MKL = true;
+bool use_MKL = false;
 int num_tests = 5;
 
 const float beam_tip_init_load = -2.0f;
@@ -142,14 +141,12 @@ int main(int argc, char* argv[]) {
         mkl_solver->SetVerbose(true);
         my_system.SetSolver(mkl_solver);
     } else {
-        my_system.SetSolverType(ChSolver::Type::MINRES);
-        my_system.SetSolverWarmStarting(true);
-        my_system.SetMaxItersSolverSpeed(500);
-        my_system.SetMaxItersSolverStab(500);
-        my_system.SetTolForce(1e-14);
-        auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-        msolver->SetDiagonalPreconditioning(true);
-        msolver->SetVerbose(false);
+        auto solver = chrono_types::make_shared<ChSolverMINRES>();
+        my_system.SetSolver(solver);
+        solver->SetMaxIterations(500);
+        solver->SetTolerance(1e-14);
+        solver->EnableDiagonalPreconditioner(true);
+        solver->SetVerbose(true);
     }
 
     // Run all tests

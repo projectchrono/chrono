@@ -17,7 +17,7 @@
 
 #include "chrono_mumps/ChApiMumps.h"
 #include "chrono_mumps/ChMumpsEngine.h"
-#include "chrono/solver/ChSolverDirect.h"
+#include "chrono/solver/ChDirectSolverLS.h"
 
 namespace chrono {
 
@@ -35,7 +35,7 @@ The solver is equipped with two main features:
 - sparsity pattern lock
 - sparsity pattern learning
 
-See ChSolverDirect for more details.
+See ChDirectSolverLS for more details.
 
 <div class="ce-warning">
 If appropriate and warranted by the problem setup, it is \e highly recommended to enable the sparsity pattern \e lock.
@@ -51,7 +51,7 @@ system.SetSolver(mumps_solver);
 
 See ChSystemDescriptor for more information about the problem formulation and the data structures passed to the solver.
 */
-class ChApiMumps ChSolverMumps : public ChSolverDirect {
+class ChApiMumps ChSolverMumps : public ChDirectSolverLS {
   public:
     ChSolverMumps() {}
     ~ChSolverMumps() {}

@@ -536,11 +536,11 @@ int main(int argc, char* argv[]) {
     // SETTINGS
     //
 
-    my_system.SetMaxItersSolverSpeed(100);  // the higher, the easier to keep the constraints 'mounted'.
-    my_system.SetSolverType(ChSolver::Type::SOR);
+    my_system.SetSolverType(ChSolver::Type::PSOR);
+    my_system.SetSolverMaxIterations(100);  // the higher, the easier to keep the constraints satisfied.
 
     //
-    // THE SOFT-REAL-TIME CYCLE, SHOWING THE SIMULATION
+    // Simulation loop
     //
 
     application.SetStepManage(true);

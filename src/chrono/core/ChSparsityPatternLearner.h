@@ -20,6 +20,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_linalg
+/// @{
+
 /// Utility class for extracting sparsity patter from a sparse matrix.
 /// Derived from ChSparseMatrix, ChSparsityPatternLearner does not allocate values, but only element indices.
 /// The sparsity pattern can then be applied to a given sparse matrix.
@@ -79,7 +82,7 @@ class ChSparsityPatternLearner : public Eigen::SparseMatrix<double, Eigen::RowMa
     bool processed;
 };
 
-/// @} chrono
+/// @} chrono_linalg
 
 };  // end namespace chrono
 

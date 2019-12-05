@@ -10,7 +10,7 @@
 //
 // =============================================================================
 
-#include "chrono/solver/ChIterativeSolver.h"
+#include "chrono/solver/ChIterativeSolverVI.h"
 #include "chrono/physics/ChContactContainer.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/assets/ChColor.h"
@@ -493,15 +493,12 @@ void ChIrrTools::drawHUDviolation(irr::video::IVideoDriver* driver,
                                   int my,
                                   int sx,
                                   int sy,
-                                  double spfact,
-                                  double posfact) {
-    if (!std::dynamic_pointer_cast<ChIterativeSolver>(asystem.GetSolver()))
+                                  double spfact) {
+    auto msolver_speed = std::dynamic_pointer_cast<ChIterativeSolverVI>(asystem.GetSolver());
+    if (!msolver_speed)
         return;
 
-    auto msolver_speed = std::static_pointer_cast<ChIterativeSolver>(asystem.GetSolver());
-    auto msolver_stab = std::static_pointer_cast<ChIterativeSolver>(asystem.GetStabSolver());
     msolver_speed->SetRecordViolation(true);
-    msolver_stab->SetRecordViolation(true);
 
     irr::core::rect<s32> mrect(mx, my, mx + sx, my + sy);
     driver->draw2DRectangle(irr::video::SColor(100, 200, 200, 230), mrect);
@@ -519,21 +516,6 @@ void ChIrrTools::drawHUDviolation(irr::video::IVideoDriver* driver,
                                  mx + (i + 1) * 4 - 2, sy + my),
             &mrect);
     }
-    for (unsigned int i = 0; i < msolver_stab->GetViolationHistory().size(); i++) {
-        driver->draw2DRectangle(
-            irr::video::SColor(90, 0, 255, 0),
-            irr::core::rect<s32>(mx + sx / 2 + i * 4, sy + my - (int)(posfact * msolver_stab->GetViolationHistory()[i]),
-                                 mx + sx / 2 + (i + 1) * 4 - 1, sy + my),
-            &mrect);
-    }
-    for (unsigned int i = 0; i < msolver_stab->GetDeltalambdaHistory().size(); i++) {
-        driver->draw2DRectangle(
-            irr::video::SColor(100, 0, 255, 255),
-            irr::core::rect<s32>(mx + sx / 2 + i * 4,
-                                 sy + my - (int)(posfact * msolver_stab->GetDeltalambdaHistory()[i]),
-                                 mx + sx / 2 + (i + 1) * 4 - 2, sy + my),
-            &mrect);
-    }
 
     if (mdevice->getGUIEnvironment()) {
         gui::IGUIFont* font = mdevice->getGUIEnvironment()->getBuiltInFont();
@@ -544,12 +526,6 @@ void ChIrrTools::drawHUDviolation(irr::video::IVideoDriver* driver,
             sprintf(buffer, "%g", sy / spfact);
             font->draw(irr::core::stringw(buffer).c_str(), irr::core::rect<s32>(mx, my, mx + 30, my + 10),
                        irr::video::SColor(200, 100, 0, 0));
-            font->draw(L"Solver position violation", irr::core::rect<s32>(mx + sx - 100, my, mx + sx, my + 10),
-                       irr::video::SColor(200, 0, 100, 0));
-            sprintf(buffer, "%g", sy / posfact);
-            font->draw(irr::core::stringw(buffer).c_str(),
-                       irr::core::rect<s32>(mx + sx / 2, my, mx + sx / 2 + 10, my + 10),
-                       irr::video::SColor(200, 0, 100, 0));
         }
     }
 }

@@ -17,7 +17,7 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/solver/ChSolverMINRES.h"
+#include "chrono/solver/ChIterativeSolverLS.h"
 
 #include "chrono/fea/ChContinuumElectrostatics.h"
 #include "chrono/fea/ChElementBar.h"
@@ -157,20 +157,17 @@ int main(int argc, char* argv[]) {
 
     application.AssetUpdateAll();
 
-    //
-    // THE SOFT-REAL-TIME CYCLE
-    //
+    // SIMULATION LOOP
 
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    my_system.SetSolverWarmStarting(false);
-    my_system.SetMaxItersSolverSpeed(538);
-    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    msolver->SetRelTolerance(1e-20);
-    msolver->SetTolerance(1e-20);
-    // msolver->SetVerbose(true);
-    msolver->SetDiagonalPreconditioning(true);
-    my_system.SetTolForce(1e-20);
-    // my_system.SetParallelThreadNumber(1);
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    my_system.SetSolver(solver);
+    solver->SetMaxIterations(300);
+    solver->SetTolerance(1e-20);
+    solver->EnableDiagonalPreconditioner(true);
+    solver->SetVerbose(true);
+
+    my_system.SetSolverForceTolerance(1e-20);
+
 
     // Note: in electrostatics, here you can have only a single linear (non transient) solution
     // so at this point you must do:
