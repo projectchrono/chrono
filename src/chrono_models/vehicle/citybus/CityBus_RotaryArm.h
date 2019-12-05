@@ -27,6 +27,8 @@ namespace chrono {
 namespace vehicle {
 namespace citybus {
 
+/// @addtogroup vehicle_models_citybus
+/// @{
 
 class CH_MODELS_API CityBus_RotaryArm : public ChRotaryArm {
   public:
@@ -56,7 +58,7 @@ class CH_MODELS_API CityBus_RotaryArm : public ChRotaryArm {
     static const ChVector<> m_pitmanArmInertiaProducts;
 };
 
-
+/// @} vehicle_models_citybus
 
 }  // end namespace citybus
 }  // end namespace vehicle

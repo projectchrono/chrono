@@ -41,6 +41,9 @@ namespace sedan {}
 /// Namespace for the UAZ vehicle model
 namespace uaz {}
 
+/// Namespace for the bus vehicle model
+namespace citybus {}
+
 /// Namespace for the generic wheeled vehicle model
 namespace generic {}
 

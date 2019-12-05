@@ -27,6 +27,8 @@ namespace chrono {
 namespace vehicle {
 namespace citybus {
 
+/// @addtogroup vehicle_models_citybus
+/// @{
 
 class CH_MODELS_API CityBus_LeafspringAxle : public ChLeafspringAxle {
   public:
@@ -83,6 +85,8 @@ class CH_MODELS_API CityBus_LeafspringAxle : public ChLeafspringAxle {
     static const double m_damperDegressivityExpansion;
     static const double m_damperDegressivityCompression;
 };
+
+/// @} vehicle_models_citybus
 
 }  // end namespace citybus
 }  // end namespace vehicle
