@@ -14,23 +14,15 @@ However, for higher accuracy results, a direct solver could still be needed.
 
 This module provides access to the third-party Intel MKL Pardiso solver. The interface to Pardiso is provided by [Eigen](https://eigen.tuxfamily.org/dox/classEigen_1_1PardisoLU.html).
 
-
 ## Features
-
-The MKL module allows to plug the Intel MKL Pardiso solver into Chrono::Engine and provides two interface:
-- an interface for Chrono - namely @ref chrono::ChSolverMKL<> - that is **not** intended to be used directly by the user.<br>
-This is the interface that the user should plug into the Chrono environment.
-- an interface for the end-user - namely @ref chrono::ChMklEngine - that allows to directly operate with Pardiso using the Chrono data classes (if the user would ever have this need).<br>
-The demo_MKL_MklEngine.cpp shows its usage, but the average usare should not be interested in it.
 
 Two Chrono-specific features are implemented:
 - **sparsity pattern _lock_**<br>
     In many cases, the internal data structures undergo very little changes between different timesteps.
-	In these cases it is useful to inform the solver that the sparsity pattern does not change consistently in order to speed up the matrix assembling.
-- **sparsity pattern _update_**<br>
-    At the very first step, the matrix that has to be assembled does not know the sparsity pattern of the problem. In order to speed up the assembly phase it could be useful to pre-acquire the sparsity pattern.
-
-Look at the [API section](group__mkl__module.html) of this module for a more in-depth discussion.
+	In these cases it is useful to inform the solver that the sparsity pattern does not change consistently in order to speed up the matrix assembly.
+- **sparsity pattern _learner_**<br>
+    The sparsity pattern \e learning feature acquires the sparsity pattern in advance, in order to speed up matrix assembly. Enabled by default, the sparsity matrix learner identifies the exact matrix sparsity pattern (without actually setting any nonzeros)
+Look at the [API section](group__mkl__module.html) of this module for a more details.
 
 ## Requirements
 [Intel MKL Library]: https://software.intel.com/en-us/mkl
@@ -111,7 +103,7 @@ my_system.SetSolver(mkl_solver);
 ~~~
 
 
-- (Optional) Turn on the sparsity pattern lock (see @ref chrono::ChSolverMKL and @ref chrono::ChSolverDirect for further details)
+- (Optional) Turn on the sparsity pattern lock (see @ref chrono::ChSolverMKL and @ref chrono::ChDirectSolverLS for further details)
 ~~~{.cpp}
 auto mkl_solver = std::make_shared<ChSolverMKL>();
 mkl_solver->SetSparsityPatternLock(true);
@@ -119,7 +111,7 @@ my_system.SetSolver(mkl_solver);
 ~~~
 
 
-- By default, this solver uses the sparsity pattern learner (see @ref chrono::ChSolverDirect) to infer the sparsity pattern before actually loading the non-zero elements.  To disable the use of the sparsity pattern learner, call 
+- By default, this solver uses the sparsity pattern learner (see @ref chrono::ChDirectSolverLS) to infer the sparsity pattern before actually loading the non-zero elements.  To disable the use of the sparsity pattern learner, call 
 ~~~{.cpp}
 mkl_solver->UseSparsityPatternLearner(false);
 ~~~
