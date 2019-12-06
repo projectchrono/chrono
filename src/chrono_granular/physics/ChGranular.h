@@ -24,7 +24,7 @@
 #define _USE_MATH_DEFINES
 #endif
 #include <cmath>
-#include "chrono_granular/ChApiGranular.h"
+#include "chrono_granular/api/ChApiGranular.h"
 #include "chrono_granular/ChGranularDefines.h"
 #include "chrono_granular/physics/ChGranularBoundaryConditions.h"
 #include "ChGranularCUDAalloc.hpp"
