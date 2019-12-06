@@ -205,6 +205,8 @@ class CH_MODELS_API CityBus_SolidAxleRear : public ChSolidAxle {
     static const double m_springCoefficient;
     static const double m_dampingCoefficient;
     static const double m_springRestLength;
+
+    static const double m_twin_tire_dist;
 };
 
 /// @} vehicle_models_citybus
