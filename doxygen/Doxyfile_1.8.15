@@ -516,7 +516,7 @@ HIDE_UNDOC_MEMBERS     = NO
 # has no effect if EXTRACT_ALL is enabled.
 # The default value is: NO.
 
-HIDE_UNDOC_CLASSES     = NO
+HIDE_UNDOC_CLASSES     = YES
 
 # If the HIDE_FRIEND_COMPOUNDS tag is set to YES, doxygen will hide all friend
 # (class|struct|union) declarations. If set to NO, these declarations will be
@@ -891,6 +891,7 @@ EXCLUDE_SYMLINKS       = NO
 EXCLUDE_PATTERNS       = */src/demos/* \
                          */src/unit_tests/* \
                          */src/tests/* \
+                         */src/chrono_ogre/* \
                          */src/chrono_thirdparty/*
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names
