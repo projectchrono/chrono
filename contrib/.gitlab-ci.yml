@@ -107,14 +107,15 @@ linux:doxygen:deploy:
   stage: deploy
   before_script:
     - pacman -Syyu --noconfirm base-devel git wget fish python python-pip doxygen graphviz openssh rsync
-    - eval $(ssh-agent -s)
-    - echo -e "-----BEGIN RSA PRIVATE KEY-----\n$API_PRIVATE_KEY\n-----END RSA PRIVATE KEY-----\n" | ssh-add -
     - mkdir -p ~/.ssh
     - chmod 0700 ~/.ssh
+# This private key is only useable from specific IPs, so it should be okay to
+# be included here.
+    - cp $API_PRIVATE_KEY ~/.ssh/id_rsa
 # Remove any duplicate host key entries, if necessary
     - if test -f ~/.ssh/known_hosts; then ssh-keygen -R $API_REINDEX_ENDPOINT; fi
 # Cache a verified host pubkey from file to avoid MITM attacks
-    - cat $API_ENDPOINT_PUBKEY >> ~/.ssh/id_rsa.pub
+    - cat $API_ENDPOINT_PUBKEY >> ~/.ssh/known_hosts
   script:
     - cd doxygen
     - doxygen Doxyfile
