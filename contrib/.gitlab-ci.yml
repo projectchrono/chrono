@@ -112,6 +112,7 @@ linux:doxygen:deploy:
 # This private key is only useable from specific IPs, so it should be okay to
 # be included here.
     - cp $API_PRIVATE_KEY ~/.ssh/id_rsa
+    - chmod 0600 ~/.ssh/id_rsa
 # Remove any duplicate host key entries, if necessary
     - if test -f ~/.ssh/known_hosts; then ssh-keygen -R $API_REINDEX_ENDPOINT; fi
 # Cache a verified host pubkey from file to avoid MITM attacks
@@ -144,7 +145,6 @@ linux:arch-llvm:build:
     -DENABLE_MODULE_FSI=TRUE -DCMAKE_C_COMPILER=/usr/bin/clang 
     -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DCUDA_HOST_COMPILER=/usr/bin/gcc-8 
     -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3 -DENABLE_MODULE_GRANULAR=TRUE
-
   - make -j 8
   artifacts:
     expire_in: 60m
