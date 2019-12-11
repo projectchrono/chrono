@@ -31,6 +31,8 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChDriverSTR.h"
 
+#include "chrono/core/ChCubicSpline.h"
+
 namespace chrono {
 namespace vehicle {
 
@@ -45,8 +47,8 @@ namespace vehicle {
 /// </pre>
 /// It is assumed that the time values are unique.
 /// If the time values are not sorted, this must be specified at construction.
-/// Inputs for post_left, post_right, and steering are assumed to be in [-1,1].
-/// Driver inputs at intermediate times are obtained through linear interpolation.
+/// Inputs for post_left, post_right, and steering are assumed to be normalized in the range [-1,1].
+/// Driver inputs at intermediate times are obtained through cubic spline interpolation.
 class CH_VEHICLE_API ChDataDriverSTR : public ChDriverSTR {
   public:
     /// Definition of driver inputs at a given time.
@@ -54,6 +56,7 @@ class CH_VEHICLE_API ChDataDriverSTR : public ChDriverSTR {
         Entry() : m_time(0), m_displLeft(0), m_displRight(0), m_steering(0) {}
         Entry(double time, double displLeft, double displRight, double steering)
             : m_time(time), m_displLeft(displLeft), m_displRight(displRight), m_steering(steering) {}
+        Entry& operator=(const Entry& other);
         double m_time;
         double m_displLeft;
         double m_displRight;
@@ -70,18 +73,25 @@ class CH_VEHICLE_API ChDataDriverSTR : public ChDriverSTR {
                     bool sorted = true               ///< indicate whether entries are sorted by time stamps
                     );
 
-    ~ChDataDriverSTR() {}
+    ~ChDataDriverSTR();
 
-    /// Return false when driver stopped producing inputs (end of data).
+    /// Return true when driver stopped producing inputs (end of data).
     virtual bool Ended() const override;
 
   private:
+    /// Sort data and create the cubic spline objects.
+    void Process(std::vector<Entry>& data, bool sorted);
+
     /// Update the driver system at the specified time.
-    /// The driver inputs are obtained through linear interpolation between the provided data points.
+    /// The driver inputs are obtained through cubic spline interpolation using the provided data points.
     virtual void Synchronize(double time) override;
 
-    std::vector<Entry> m_data;
+    ChCubicSpline* m_curve_left;
+    ChCubicSpline* m_curve_right;
+    ChCubicSpline* m_curve_steering;
+
     bool m_ended;
+    Entry m_last;
 };
 
 /// @} vehicle_wheeled_test_rig

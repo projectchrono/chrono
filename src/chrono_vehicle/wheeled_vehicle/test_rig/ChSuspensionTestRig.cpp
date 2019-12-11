@@ -405,6 +405,8 @@ void ChSuspensionTestRig::Advance(double step) {
     // Set actuator displacements
     double displ_left = 0;
     double displ_right = 0;
+    double displ_speed_left = 0;
+    double displ_speed_right = 0;
 
     if (time < m_displ_delay) {
         // Automatic phase to bring rig at specified initial ride height
@@ -422,9 +424,13 @@ void ChSuspensionTestRig::Advance(double step) {
         m_steering_input = m_driver->GetSteering();
         m_left_input = m_driver->GetDisplacementLeft();
         m_right_input = m_driver->GetDisplacementRight();
+        double left_input_speed = m_driver->GetDisplacementSpeedLeft();
+        double right_input_speed = m_driver->GetDisplacementSpeedRight();
 
         displ_left = m_displ_offset + m_displ_limit * m_left_input;
         displ_right = m_displ_offset + m_displ_limit * m_right_input;
+        displ_speed_left = m_displ_limit * left_input_speed;
+        displ_speed_right = m_displ_limit * right_input_speed;
     }
 
     // Synchronize driver system
@@ -448,7 +454,7 @@ void ChSuspensionTestRig::Advance(double step) {
     }
 
     // Update actuators
-    UpdateActuators(displ_left, displ_right);
+    UpdateActuators(displ_left, displ_speed_left, displ_right, displ_speed_right);
 
     // Update the height of the underlying terrain object, using the current z positions of the post bodies.
     static_cast<TestRigTerrain*>(m_terrain.get())->m_height_L = CalcTerrainHeight(LEFT);
@@ -609,8 +615,8 @@ void ChSuspensionTestRigPlatform::Create() {
     m_post[RIGHT]->GetCollisionModel()->BuildModel();
 
     // Create and initialize joints and actuators
-    auto func_L = chrono_types::make_shared<ChFunction_Const>();
-    auto func_R = chrono_types::make_shared<ChFunction_Const>();
+    auto func_L = chrono_types::make_shared<ChFunction_Setpoint>();
+    auto func_R = chrono_types::make_shared<ChFunction_Setpoint>();
 
     m_post_linact[LEFT] = chrono_types::make_shared<ChLinkMotorLinearPosition>();
     m_post_linact[LEFT]->SetNameString("L_post_linActuator");
@@ -663,11 +669,15 @@ double ChSuspensionTestRigPlatform::CalcTerrainHeight(VehicleSide side) {
     return m_post[side]->GetPos().z();
 }
 
-void ChSuspensionTestRigPlatform::UpdateActuators(double displ_left, double displ_right) {
-    auto func_L = std::static_pointer_cast<ChFunction_Const>(m_post_linact[LEFT]->GetMotionFunction());
-    auto func_R = std::static_pointer_cast<ChFunction_Const>(m_post_linact[RIGHT]->GetMotionFunction());
-    func_L->Set_yconst(displ_left);
-    func_R->Set_yconst(displ_right);
+void ChSuspensionTestRigPlatform::UpdateActuators(double displ_left,
+                                                  double displ_speed_left,
+                                                  double displ_right,
+                                                  double displ_speed_right) {
+    double time = GetSystem()->GetChTime();
+    auto func_L = std::static_pointer_cast<ChFunction_Setpoint>(m_post_linact[LEFT]->GetMotionFunction());
+    auto func_R = std::static_pointer_cast<ChFunction_Setpoint>(m_post_linact[RIGHT]->GetMotionFunction());
+    func_L->SetSetpointAndDerivatives(displ_left, displ_speed_left, 0.0);
+    func_R->SetSetpointAndDerivatives(displ_right, displ_speed_right, 0.0);
 }
 
 double ChSuspensionTestRigPlatform::GetActuatorDisp(VehicleSide side) {
@@ -799,8 +809,8 @@ ChSuspensionTestRigPushrod::ChSuspensionTestRigPushrod(
 void ChSuspensionTestRigPushrod::Create() {
     // Create and initialize the linear actuators.
     // These connect the spindle centers with ground points directly below the spindles at the initial configuration.
-    auto func_L = chrono_types::make_shared<ChFunction_Const>();
-    auto func_R = chrono_types::make_shared<ChFunction_Const>();
+    auto func_L = chrono_types::make_shared<ChFunction_Setpoint>();
+    auto func_R = chrono_types::make_shared<ChFunction_Setpoint>();
 
     auto pos_sL = m_suspension->GetSpindle(LEFT)->GetCoord();
     auto pos_sR = m_suspension->GetSpindle(RIGHT)->GetCoord();
@@ -858,11 +868,15 @@ double ChSuspensionTestRigPushrod::CalcTerrainHeight(VehicleSide side) {
     return -1000;
 }
 
-void ChSuspensionTestRigPushrod::UpdateActuators(double displ_left, double displ_right) {
-    auto func_L = std::static_pointer_cast<ChFunction_Const>(m_rod_linact[LEFT]->Get_dist_funct());
-    auto func_R = std::static_pointer_cast<ChFunction_Const>(m_rod_linact[RIGHT]->Get_dist_funct());
-    func_L->Set_yconst(displ_left);
-    func_R->Set_yconst(displ_right);
+void ChSuspensionTestRigPushrod::UpdateActuators(double displ_left,
+                                                 double displ_speed_left,
+                                                 double displ_right,
+                                                 double displ_speed_right) {
+    double time = GetSystem()->GetChTime();
+    auto func_L = std::static_pointer_cast<ChFunction_Setpoint>(m_rod_linact[LEFT]->Get_dist_funct());
+    auto func_R = std::static_pointer_cast<ChFunction_Setpoint>(m_rod_linact[RIGHT]->Get_dist_funct());
+    func_L->SetSetpointAndDerivatives(displ_left, displ_speed_left, 0.0);
+    func_R->SetSetpointAndDerivatives(displ_right, displ_speed_right, 0.0);
 
     // Move the rod visualization bodies
     m_rod[LEFT]->SetPos(m_suspension->GetSpindle(LEFT)->GetPos());

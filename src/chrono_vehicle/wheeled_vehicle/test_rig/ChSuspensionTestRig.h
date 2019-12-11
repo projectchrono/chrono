@@ -200,7 +200,10 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     virtual double CalcTerrainHeight(VehicleSide side) = 0;
 
     // Update actuators at current time
-    virtual void UpdateActuators(double displ_left, double displ_right) = 0;
+    virtual void UpdateActuators(double displ_left,
+                                 double displ_speed_left,
+                                 double displ_right,
+                                 double displ_speed_right) = 0;
 
     // Collect data for plot output.
     virtual void CollectPlotData(double time) = 0;
@@ -321,7 +324,10 @@ class CH_VEHICLE_API ChSuspensionTestRigPlatform : public ChSuspensionTestRig {
     void Create();
     virtual double CalcDisplacementOffset() override;
     virtual double CalcTerrainHeight(VehicleSide side) override;
-    virtual void UpdateActuators(double displ_left, double displ_right) override;
+    virtual void UpdateActuators(double displ_left,
+                                 double displ_speed_left,
+                                 double displ_right,
+                                 double displ_speed_right) override;
     virtual void CollectPlotData(double time) override;
 
     void AddPostVisualization(VehicleSide side, const ChColor& color);
@@ -394,7 +400,10 @@ class CH_VEHICLE_API ChSuspensionTestRigPushrod : public ChSuspensionTestRig {
     void Create();
     virtual double CalcDisplacementOffset() override;
     virtual double CalcTerrainHeight(VehicleSide side) override;
-    virtual void UpdateActuators(double displ_left, double displ_right) override;
+    virtual void UpdateActuators(double displ_left,
+                                 double displ_speed_left,
+                                 double displ_right,
+                                 double displ_speed_right) override;
     virtual void CollectPlotData(double time) override;
 
     void AddRodVisualization(VehicleSide side, const ChColor& color);
