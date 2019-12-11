@@ -29,8 +29,6 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChBodyEasy.h"
 
-#include "chrono/solver/ChSolverMINRES.h"
-
 #include "chrono/fea/ChElementBrick_9.h"
 #include "chrono/fea/ChElementShellANCF.h"
 #include "chrono/fea/ChMesh.h"
@@ -1847,13 +1845,6 @@ void BendingQuasiStatic() {
     // Perform a dynamic time integration
     // ----------------------------------
 
-    // Set up solver
-    // my_system.SetSolverType(ChSolver::Type::MINRES);
-    // auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    // msolver->SetDiagonalPreconditioning(true);
-    // my_system.SetMaxItersSolverSpeed(100);
-    // my_system.SetTolForce(1e-10);
-
     // Use the MKL Solver
     auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
     my_system.SetSolver(mkl_solver);
@@ -2087,13 +2078,6 @@ void SwingingShell() {
     // ----------------------------------
     // Perform a dynamic time integration
     // ----------------------------------
-
-    // Set up solver
-    // my_system.SetSolverType(ChSolver::Type::MINRES);
-    // auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    // msolver->SetDiagonalPreconditioning(true);
-    // my_system.SetMaxItersSolverSpeed(100);
-    // my_system.SetTolForce(1e-10);
 
     // Use the MKL Solver
     auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();

@@ -314,7 +314,6 @@ int main(int argc, char* argv[]) {
     int max_threads = CHOMPfunctions::GetNumProcs();
     if (threads > max_threads)
         threads = max_threads;
-    system->SetParallelThreadNumber(threads);
     CHOMPfunctions::SetNumThreads(threads);
 #pragma omp parallel
 #pragma omp master
@@ -636,7 +635,7 @@ void TimingOutput(chrono::ChSystem* mSys, chrono::ChStreamOutAsciiFile* ofile) {
     int CNTC = mSys->GetNcontacts();
     if (chrono::ChSystemParallel* parallel_sys = dynamic_cast<chrono::ChSystemParallel*>(mSys)) {
         RESID = std::static_pointer_cast<chrono::ChIterativeSolverParallel>(mSys->GetSolver())->GetResidual();
-        REQ_ITS = std::static_pointer_cast<chrono::ChIterativeSolverParallel>(mSys->GetSolver())->GetTotalIterations();
+        REQ_ITS = std::static_pointer_cast<chrono::ChIterativeSolverParallel>(mSys->GetSolver())->GetIterations();
         BODS = parallel_sys->GetNbodies();
         CNTC = parallel_sys->GetNcontacts();
     }

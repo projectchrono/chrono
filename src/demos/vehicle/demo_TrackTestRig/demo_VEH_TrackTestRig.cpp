@@ -16,6 +16,7 @@
 // =============================================================================
 
 #include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/solver/ChSolverPSOR.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChIrrGuiDriverTTR.h"
@@ -237,14 +238,14 @@ int main(int argc, char* argv[]) {
 #endif
     } else {
         std::cout << "Solver: SOR" << std::endl;
-        rig->GetSystem()->SetSolverType(ChSolver::Type::SOR);
-        rig->GetSystem()->SetMaxItersSolverSpeed(50);
-        rig->GetSystem()->SetMaxItersSolverStab(50);
-        rig->GetSystem()->SetTol(0);
+        auto solver = chrono_types::make_shared<ChSolverPSOR>();
+        solver->SetMaxIterations(50);
+        solver->SetOmega(0.8);
+        solver->SetSharpnessLambda(1.0);
+        rig->GetSystem()->SetSolver(solver);
+
         rig->GetSystem()->SetMaxPenetrationRecoverySpeed(1.5);
         rig->GetSystem()->SetMinBounceSpeed(2.0);
-        rig->GetSystem()->SetSolverOverrelaxationParam(0.8);
-        rig->GetSystem()->SetSolverSharpnessParam(1.0);
     }
 
     if (use_mkl || use_mumps) {

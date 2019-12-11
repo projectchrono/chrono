@@ -17,7 +17,7 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/solver/ChSolverMINRES.h"
+#include "chrono/solver/ChIterativeSolverLS.h"
 
 #include "chrono/fea/ChElementSpring.h"
 #include "chrono/fea/ChElementBar.h"
@@ -216,26 +216,18 @@ int main(int argc, char* argv[]) {
 
     application.AssetUpdateAll();
 
-    //
-    // THE SOFT-REAL-TIME CYCLE
-    //
+    // Simulation loop
 
     my_system.SetTimestepperType(chrono::ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
 
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    my_system.SetSolverWarmStarting(true);
-    my_system.SetMaxItersSolverSpeed(40);
-    my_system.SetTolForce(1e-10);
-    // auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    // msolver->SetVerbose(true);
-    // msolver->SetDiagonalPreconditioning(true);
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    my_system.SetSolver(solver);
+    solver->SetMaxIterations(40);
+    solver->SetTolerance(1e-10);
+    solver->EnableDiagonalPreconditioner(true);
+    solver->EnableWarmStart(true);  // IMPORTANT for convergence when using EULER_IMPLICIT_LINEARIZED
+    solver->SetVerbose(false);
 
-    /*
-    //// TEST
-    ChMatlabEngine matlab_engine;
-    auto matlab_solver = chrono_types::make_shared<ChSolverMatlab>(matlab_engine);
-    my_system.SetSolver(matlab_solver);
-    */
     application.SetTimestep(0.001);
 
     while (application.GetDevice()->run()) {

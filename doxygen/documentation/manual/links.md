@@ -14,7 +14,7 @@ Thus, some of the ChLinkMate and ChLinkLock derived classes may overlap. The lat
 ![](http://www.projectchrono.org/assets/manual/pic_ChLink.png)
 
 Some general information are fundamental to effectively use these classes:
-- links often refer to a pair @ref chrono:ChMarker, but such markers can be automatically added to bodies during link initialization; see below;
+- links often refer to a pair @ref chrono::ChMarker, but such markers can be automatically added to bodies during link initialization; see below;
 - each link has a reference/master frame; reaction forces and axis direction are computed with respect to this reference marker;
 - it's worth to set the initial position of the markers/bodies to a feasible position;
 - it's generally useful to set the solver parameters to finer values when constraints are present; see [Solvers](@ref solvers);
@@ -45,7 +45,7 @@ Some general information are fundamental to effectively use these classes:
 | 1 | Gear | Couple rotation over Z axes; gear-specific features | @ref chrono::ChLinkGear |
 | 0 | Free | No constraints | @ref chrono::ChLinkLockFree |
 
-Additionally, if a body has to be fixed to the global frame and reaction forces are of no interest, it is possible to use the @ref chrono::ChBody::SetFixed() method; this will also eliminate the state from the system.
+Additionally, if a body has to be fixed to the global frame and reaction forces are of no interest, it is possible to use the @ref chrono::ChBody::SetBodyFixed() method; this will also eliminate the state from the system.
 
 ## Actuators
 | ConDOF | MotDOF | Task | Description | Class |
@@ -66,7 +66,7 @@ the two bodies, and then call ```Initialize()``` by passing the two markers.
 
 In general, the process involves the following steps:
 
-1. Create one of the links of the @ref chrono::ChLink derived class (e.g. @ref chrono:ChLinkLockSpherical)
+1. Create one of the links of the @ref chrono::ChLink derived class (e.g. @ref chrono::ChLinkLockSpherical)
    ~~~{.cpp}
    auto mylink =  std::make_shared<ChLinkLockSpherical>();
    ~~~

@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "chrono_granular/ChApiGranular.h"
+#include "chrono_granular/api/ChApiGranular.h"
 #include "chrono_granular/ChGranularDefines.h"
 
 namespace chrono {

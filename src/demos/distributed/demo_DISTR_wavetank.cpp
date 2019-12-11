@@ -143,7 +143,7 @@ void Monitor(chrono::ChSystemParallel* system, int rank) {
     int BODS = system->GetNbodies();
     int CNTC = system->GetNcontacts();
     double RESID = std::static_pointer_cast<chrono::ChIterativeSolverParallel>(system->GetSolver())->GetResidual();
-    int ITER = std::static_pointer_cast<chrono::ChIterativeSolverParallel>(system->GetSolver())->GetTotalIterations();
+    int ITER = std::static_pointer_cast<chrono::ChIterativeSolverParallel>(system->GetSolver())->GetIterations();
 
     printf("%d|   %8.5f | %7.4f | E%7.4f | B%7.4f | N%7.4f | %7.4f | %7.4f | %7d | %7d | %7d | %7.4f\n", rank, TIME,
            STEP, EXCH, BROD, NARR, SOLVER, UPDT, BODS, CNTC, ITER, RESID);
@@ -317,7 +317,6 @@ int main(int argc, char* argv[]) {
         std::cout << "Rank: " << my_rank << " Node name: " << my_sys.node_name << std::endl;
     }
 
-    my_sys.SetParallelThreadNumber(num_threads);
     CHOMPfunctions::SetNumThreads(num_threads);
 
     my_sys.Set_G_acc(ChVector<double>(0, 0, -9.8));

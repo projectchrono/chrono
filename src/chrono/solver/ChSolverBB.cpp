@@ -20,11 +20,7 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChSolverBB)
 
-ChSolverBB::ChSolverBB(int mmax_iters, bool mwarm_start, double mtolerance)
-    : ChIterativeSolver(mmax_iters, mwarm_start, mtolerance, 0.2),
-      n_armijo(10),
-      max_armijo_backtrace(3),
-      diag_preconditioning(true) {}
+ChSolverBB::ChSolverBB() : n_armijo(10), max_armijo_backtrace(3), lastgoodres(1e30) {}
 
 double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
@@ -42,7 +38,6 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
     double alpha = 0.0001;
     double gamma = 1e-4;
     double gdiff = 0.000001;
-    bool do_preconditioning = this->diag_preconditioning;
 
     bool do_BB1e2 = true;
     bool do_BB1 = false;
@@ -51,7 +46,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
     double neg_BB2_fallback = 0.12;
 
     int i_friction_comp = 0;
-    tot_iterations = 0;
+    m_iterations = 0;
     // Allocate auxiliary vectors;
 
     int nc = sysd.CountActiveConstraints();
@@ -135,7 +130,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
     sysd.FromVariablesToVector(mq, true);
 
     // Initialize lambdas
-    if (warm_start)
+    if (m_warm_start)
         sysd.FromConstraintsToVector(ml);
     else
         ml.setZero();
@@ -144,8 +139,8 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
     sysd.ConstraintsProject(ml);
 
     // Fallback solution
-    double lastgoodres = 10e30;
-    double lastgoodfval = 10e30;
+    double lastgoodfval = 1e30;
+    lastgoodres = 1e30;
     ml_candidate = ml;
 
     // g = gradient of 0.5*l'*N*l-l'*b
@@ -163,10 +158,10 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
     double mf = 1e29;
     std::vector<double> f_hist;
 
-    for (int iter = 0; iter < max_iterations; iter++) {
+    for (int iter = 0; iter < m_max_iterations; iter++) {
         // Dg = Di*g;
         mDg = mg;
-        if (do_preconditioning)
+        if (m_use_precond)
             mDg = mDg.array() / mD.array();
 
         // dir  = [P(l - alpha*Dg) - l]
@@ -237,7 +232,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
         mg = mg_p;       // g = g_p;
 
         if (((do_BB1e2) && (iter % 2 == 0)) || do_BB1) {
-            if (do_preconditioning)
+            if (m_use_precond)
                 mb_tmp = ms.array() * mD.array();
             else
                 mb_tmp = ms;
@@ -257,7 +252,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
         {
             double ss = ms.MatrDot(ms,ms);
             mb_tmp = my;
-            if (do_preconditioning)
+            if (m_use_precond)
                 mb_tmp.MatrDivScale(mD);
             double sDy = ms.MatrDot(ms, mb_tmp);
             if (sDy <= 0)
@@ -274,7 +269,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
 
         if (((do_BB1e2) && (iter % 2 != 0)) || do_BB2) {
             double sy = ms.dot(my);
-            if (do_preconditioning)
+            if (m_use_precond)
                 mb_tmp = my.array() / mD.array();
             else
                 mb_tmp = my;
@@ -314,12 +309,12 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
         if (verbose)
             GetLog() << "  iter=" << iter << "   f=" << mf_p << "  |d|=" << maxd << "  |s|=" << maxdeltalambda << "\n";
 
-        tot_iterations++;
+        m_iterations++;
 
         // Terminate the loop if violation in constraints has been successfully limited.
         // ***TO DO*** a reliable termination criterion..
         /*
-        if (maxd < this->tolerance)
+        if (maxd < m_tolerance)
         {
             GetLog() <<"BB premature proj.gradient break at i=" << iter << "\n";
             break;
@@ -359,22 +354,22 @@ void ChSolverBB::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChSolverBB>();
     // serialize parent class
-    ChIterativeSolver::ArchiveOUT(marchive);
+    ChIterativeSolverVI::ArchiveOUT(marchive);
     // serialize all member data:
     marchive << CHNVP(n_armijo);
     marchive << CHNVP(max_armijo_backtrace);
-    marchive << CHNVP(diag_preconditioning);
+    marchive << CHNVP(m_use_precond);
 }
 
 void ChSolverBB::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead<ChSolverBB>();
     // deserialize parent class
-    ChIterativeSolver::ArchiveIN(marchive);
+    ChIterativeSolverVI::ArchiveIN(marchive);
     // stream in all member data:
     marchive >> CHNVP(n_armijo);
     marchive >> CHNVP(max_armijo_backtrace);
-    marchive >> CHNVP(diag_preconditioning);
+    marchive >> CHNVP(m_use_precond);
 }
 
 }  // end namespace chrono

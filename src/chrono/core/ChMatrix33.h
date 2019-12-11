@@ -23,6 +23,10 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_linalg
+/// @{
+
+/// Definition of a 3x3 fixed size matrix to represent 3D rotations and inertia tensors.
 template <typename Real = double>
 class ChMatrix33 : public Eigen::Matrix<Real, 3, 3, Eigen::RowMajor> {
   public:
@@ -592,6 +596,8 @@ inline void ChMatrix33<Real>::SelfAdjointEigenSolve(ChMatrix33<Real>& evec, ChVe
     evals = es.eigenvalues();
     evec = es.eigenvectors();
 }
+
+/// @} chrono_linalg
 
 }  // end namespace chrono
 

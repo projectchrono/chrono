@@ -224,11 +224,11 @@ class ChApi ChLoadXYZnodeXYZnode : public ChLoadCustomMultiple {
 /// directed as the distance between the two.
 class ChApi ChLoadXYZnodeXYZnodeSpring : public ChLoadXYZnodeXYZnode {
   public:
-	  ChLoadXYZnodeXYZnodeSpring(std::shared_ptr<ChNodeXYZ> mnodeA,  ///< node to apply load to
-								  std::shared_ptr<ChNodeXYZ> mnodeB,   ///< node to apply load to as reaction
-								  double mK,	///< stiffness,
-								  double mR,	///< damping,
-								  double mD0=0	///< initial rest length
+    ChLoadXYZnodeXYZnodeSpring(std::shared_ptr<ChNodeXYZ> mnodeA,  ///< node to apply load to
+                               std::shared_ptr<ChNodeXYZ> mnodeB,  ///< node to apply load to as reaction
+                               double mK,                          ///< stiffness,
+                               double mR,                          ///< damping,
+                               double mD0 = 0                      ///< initial rest length
     );
 
     /// "Virtual" copy constructor (covariant return type).
@@ -272,8 +272,9 @@ class ChApi ChLoadXYZnodeXYZnodeSpring : public ChLoadXYZnodeXYZnode {
 /// with spring stiffness as a ChFunction of displacement, for each X,Y,Z direction.
 class ChApi ChLoadXYZnodeXYZnodeBushing : public ChLoadXYZnodeXYZnode {
   public:
-	  ChLoadXYZnodeXYZnodeBushing(std::shared_ptr<ChNodeXYZ> mnodeA,  ///< node to apply load to
-								  std::shared_ptr<ChNodeXYZ> mnodeB);   ///< node to apply load to as reaction
+    ChLoadXYZnodeXYZnodeBushing(std::shared_ptr<ChNodeXYZ> mnodeA,  ///< node to apply load to
+                                std::shared_ptr<ChNodeXYZ> mnodeB   ///< node to apply load to as reaction
+    );
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLoadXYZnodeXYZnodeBushing* Clone() const override { return new ChLoadXYZnodeXYZnodeBushing(*this); }

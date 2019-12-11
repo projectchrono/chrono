@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Justin Madsen
+// Authors: Radu Serban
 // =============================================================================
 //
 // Implementation of a suspension testing mechanism (as a vehicle).
@@ -33,14 +33,17 @@
 
 #include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChCylinderShape.h"
-//
+
 #include "chrono_vehicle/chassis/ChRigidChassis.h"
-//
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
-//
+
 #include "chrono_thirdparty/rapidjson/prettywriter.h"
 #include "chrono_thirdparty/rapidjson/stringbuffer.h"
+
+#ifdef CHRONO_POSTPROCESS
+#include "chrono_postprocess/ChGnuPlot.h"
+#endif
 
 using namespace rapidjson;
 
@@ -124,7 +127,11 @@ ChSuspensionTestRig::ChSuspensionTestRig(ChWheeledVehicle& vehicle,
       m_vis_suspension(VisualizationType::PRIMITIVES),
       m_vis_steering(VisualizationType::PRIMITIVES),
       m_vis_wheel(VisualizationType::NONE),
-      m_vis_tire(VisualizationType::PRIMITIVES) {
+      m_vis_tire(VisualizationType::PRIMITIVES),
+      m_plot_output(false),
+      m_plot_output_step(0),
+      m_next_plot_output_time(0),
+      m_csv(nullptr) {
     assert(axle_index >= 0 && axle_index < vehicle.GetNumberAxles());
 
     // Load suspension subsystem
@@ -159,7 +166,11 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
       m_vis_suspension(VisualizationType::PRIMITIVES),
       m_vis_steering(VisualizationType::PRIMITIVES),
       m_vis_wheel(VisualizationType::NONE),
-      m_vis_tire(VisualizationType::PRIMITIVES) {
+      m_vis_tire(VisualizationType::PRIMITIVES),
+      m_plot_output(false),
+      m_plot_output_step(0),
+      m_next_plot_output_time(0),
+      m_csv(nullptr) {
     // Open and parse the input file (vehicle JSON specification file)
     Document d = ReadFileJSON(filename);
     if (d.IsNull())
@@ -219,7 +230,11 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
       m_vis_suspension(VisualizationType::PRIMITIVES),
       m_vis_steering(VisualizationType::PRIMITIVES),
       m_vis_wheel(VisualizationType::NONE),
-      m_vis_tire(VisualizationType::PRIMITIVES) {
+      m_vis_tire(VisualizationType::PRIMITIVES),
+      m_plot_output(false),
+      m_plot_output_step(0),
+      m_next_plot_output_time(0),
+      m_csv(nullptr) {
     // Open and parse the input file (rig JSON specification file)
     Document d = ReadFileJSON(filename);
     if (d.IsNull())
@@ -272,6 +287,10 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
 
     m_tire[LEFT] = tire_left;
     m_tire[RIGHT] = tire_right;
+}
+
+ChSuspensionTestRig::~ChSuspensionTestRig() {
+    delete m_csv;
 }
 
 void ChSuspensionTestRig::InitializeSubsystems() {
@@ -386,6 +405,8 @@ void ChSuspensionTestRig::Advance(double step) {
     // Set actuator displacements
     double displ_left = 0;
     double displ_right = 0;
+    double displ_speed_left = 0;
+    double displ_speed_right = 0;
 
     if (time < m_displ_delay) {
         // Automatic phase to bring rig at specified initial ride height
@@ -403,9 +424,13 @@ void ChSuspensionTestRig::Advance(double step) {
         m_steering_input = m_driver->GetSteering();
         m_left_input = m_driver->GetDisplacementLeft();
         m_right_input = m_driver->GetDisplacementRight();
+        double left_input_speed = m_driver->GetDisplacementSpeedLeft();
+        double right_input_speed = m_driver->GetDisplacementSpeedRight();
 
         displ_left = m_displ_offset + m_displ_limit * m_left_input;
         displ_right = m_displ_offset + m_displ_limit * m_right_input;
+        displ_speed_left = m_displ_limit * left_input_speed;
+        displ_speed_right = m_displ_limit * right_input_speed;
     }
 
     // Synchronize driver system
@@ -429,7 +454,7 @@ void ChSuspensionTestRig::Advance(double step) {
     }
 
     // Update actuators
-    UpdateActuators(displ_left, displ_right);
+    UpdateActuators(displ_left, displ_speed_left, displ_right, displ_speed_right);
 
     // Update the height of the underlying terrain object, using the current z positions of the post bodies.
     static_cast<TestRigTerrain*>(m_terrain.get())->m_height_L = CalcTerrainHeight(LEFT);
@@ -441,6 +466,15 @@ void ChSuspensionTestRig::Advance(double step) {
 
     // Invoke the base class method
     ChVehicle::Advance(step);
+
+    // Generate output for plotting if requested
+    time = GetChTime();
+    if (!m_driver->Started()) {
+        m_next_plot_output_time = time + m_plot_output_step;
+    } else if (m_plot_output && time > m_next_plot_output_time) {
+        CollectPlotData(time);
+        m_next_plot_output_time += m_plot_output_step;
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -462,6 +496,47 @@ void ChSuspensionTestRig::LogConstraintViolations() {
     }
 
     GetLog().SetNumFormat("%g");
+}
+
+// -----------------------------------------------------------------------------
+
+void ChSuspensionTestRig::SetSuspensionOutput(bool state) {
+    m_suspension->SetOutput(state);
+}
+
+void ChSuspensionTestRig::SetSteeringOutput(bool state) {
+    if (m_steering)
+        m_steering->SetOutput(state);
+}
+
+void ChSuspensionTestRig::SetAntirollbarOutput(bool state) {
+    if (m_antirollbar)
+        m_antirollbar->SetOutput(state);
+}
+
+void ChSuspensionTestRig::Output(int frame, ChVehicleOutput& database) const {
+    database.WriteTime(frame, m_system->GetChTime());
+
+    if (m_suspension->OutputEnabled()) {
+        database.WriteSection(m_suspension->GetName());
+        m_suspension->Output(database);
+    }
+
+    if (m_steering && m_steering->OutputEnabled()) {
+        database.WriteSection(m_steering->GetName());
+        m_steering->Output(database);
+    }
+
+    if (m_antirollbar && m_antirollbar->OutputEnabled()) {
+        database.WriteSection(m_antirollbar->GetName());
+        m_antirollbar->Output(database);
+    }
+}
+
+void ChSuspensionTestRig::SetPlotOutput(double output_step) {
+    m_plot_output = true;
+    m_plot_output_step = output_step;
+    m_csv = new utils::CSV_writer(" ");
 }
 
 // =============================================================================
@@ -540,8 +615,8 @@ void ChSuspensionTestRigPlatform::Create() {
     m_post[RIGHT]->GetCollisionModel()->BuildModel();
 
     // Create and initialize joints and actuators
-    auto func_L = chrono_types::make_shared<ChFunction_Const>();
-    auto func_R = chrono_types::make_shared<ChFunction_Const>();
+    auto func_L = chrono_types::make_shared<ChFunction_Setpoint>();
+    auto func_R = chrono_types::make_shared<ChFunction_Setpoint>();
 
     m_post_linact[LEFT] = chrono_types::make_shared<ChLinkMotorLinearPosition>();
     m_post_linact[LEFT]->SetNameString("L_post_linActuator");
@@ -594,11 +669,15 @@ double ChSuspensionTestRigPlatform::CalcTerrainHeight(VehicleSide side) {
     return m_post[side]->GetPos().z();
 }
 
-void ChSuspensionTestRigPlatform::UpdateActuators(double displ_left, double displ_right) {
-    auto func_L = std::static_pointer_cast<ChFunction_Const>(m_post_linact[LEFT]->GetMotionFunction());
-    auto func_R = std::static_pointer_cast<ChFunction_Const>(m_post_linact[RIGHT]->GetMotionFunction());
-    func_L->Set_yconst(displ_left);
-    func_R->Set_yconst(displ_right);
+void ChSuspensionTestRigPlatform::UpdateActuators(double displ_left,
+                                                  double displ_speed_left,
+                                                  double displ_right,
+                                                  double displ_speed_right) {
+    double time = GetSystem()->GetChTime();
+    auto func_L = std::static_pointer_cast<ChFunction_Setpoint>(m_post_linact[LEFT]->GetMotionFunction());
+    auto func_R = std::static_pointer_cast<ChFunction_Setpoint>(m_post_linact[RIGHT]->GetMotionFunction());
+    func_L->SetSetpointAndDerivatives(displ_left, displ_speed_left, 0.0);
+    func_R->SetSetpointAndDerivatives(displ_right, displ_speed_right, 0.0);
 }
 
 double ChSuspensionTestRigPlatform::GetActuatorDisp(VehicleSide side) {
@@ -613,6 +692,78 @@ double ChSuspensionTestRigPlatform::GetActuatorForce(VehicleSide side) {
 double ChSuspensionTestRigPlatform::GetRideHeight() const {
     // Note: the chassis reference frame is constructed at a height of 0.
     return -(m_post[LEFT]->GetPos().z() + m_post[RIGHT]->GetPos().z()) / 2;
+}
+
+void ChSuspensionTestRigPlatform::CollectPlotData(double time) {
+    // Suspension forces
+    auto frc_left = ReportSuspensionForce(LEFT);
+    auto frc_right = ReportSuspensionForce(RIGHT);
+
+    // Tire forces
+    auto tire_force_L = ReportTireForce(VehicleSide::LEFT);
+    auto tire_force_R = ReportTireForce(VehicleSide::RIGHT);
+
+    // Tire camber angles (flip sign of reported camber angle on the left to get common definition)
+    double gamma_L = -m_tire[LEFT]->GetCamberAngle() * CH_C_RAD_TO_DEG;
+    double gamma_R = m_tire[RIGHT]->GetCamberAngle() * CH_C_RAD_TO_DEG;
+
+    *m_csv << time;
+
+    *m_csv << GetLeftInput() << GetSpindlePos(LEFT).z() << GetSpindleLinVel(LEFT).z() << GetWheelTravel(LEFT);
+    *m_csv << frc_left.spring_force << frc_left.shock_force;
+
+    *m_csv << GetRightInput() << GetSpindlePos(RIGHT).z() << GetSpindleLinVel(RIGHT).z() << GetWheelTravel(RIGHT);
+    *m_csv << frc_right.spring_force << frc_right.shock_force;
+
+    *m_csv << GetRideHeight() << gamma_L << gamma_R;
+
+    *m_csv << tire_force_L.point << tire_force_L.force << tire_force_L.moment;
+    *m_csv << tire_force_R.point << tire_force_R.force << tire_force_R.moment;
+
+    *m_csv << std::endl;
+}
+
+void ChSuspensionTestRigPlatform::PlotOutput(const std::string& out_dir, const std::string& out_name) {
+    if (!m_plot_output)
+        return;
+
+    std::string out_file = out_dir + "/" + out_name + ".txt";
+    m_csv->write_to_file(out_file);
+
+#ifdef CHRONO_POSTPROCESS
+    std::string gplfile = out_dir + "/tmp.gpl";
+    postprocess::ChGnuPlot mplot(gplfile.c_str());
+
+    std::string title = "Suspension test rig - Spring forces";
+    mplot.OutputWindow(0);
+    mplot.SetTitle(title.c_str());
+    mplot.SetLabelX("wheel travel [m]");
+    mplot.SetLabelY("spring force [N]");
+    mplot.SetCommand("set format y '%4.1e'");
+    mplot.SetCommand("set terminal wxt size 800, 600");
+    mplot.Plot(out_file.c_str(), 5, 6, "left", " with lines lw 2");
+    mplot.Plot(out_file.c_str(), 11, 12, "right", " with lines lw 2");
+
+    title = "Suspension test rig - Shock forces";
+    mplot.OutputWindow(1);
+    mplot.SetTitle(title.c_str());
+    mplot.SetLabelX("wheel veertical speed [m/s]");
+    mplot.SetLabelY("shock force [N]");
+    mplot.SetCommand("set format y '%4.1e'");
+    mplot.SetCommand("set terminal wxt size 800, 600");
+    mplot.Plot(out_file.c_str(), 4, 7, "left", " with lines lw 2");
+    mplot.Plot(out_file.c_str(), 10, 13, "right", " with lines lw 2");
+    
+    title = "Suspension test rig - Camber angle";
+    mplot.OutputWindow(2);
+    mplot.SetTitle(title.c_str());
+    mplot.SetLabelX("wheel travel [m]");
+    mplot.SetLabelY("camber angle [deg]");
+    mplot.SetCommand("set format y '%4.1f'");
+    mplot.SetCommand("set terminal wxt size 800, 600");
+    mplot.Plot(out_file.c_str(), 5, 15, "left", " with lines lw 2");
+    mplot.Plot(out_file.c_str(), 11, 16, "right", " with lines lw 2");
+#endif
 }
 
 // =============================================================================
@@ -658,8 +809,8 @@ ChSuspensionTestRigPushrod::ChSuspensionTestRigPushrod(
 void ChSuspensionTestRigPushrod::Create() {
     // Create and initialize the linear actuators.
     // These connect the spindle centers with ground points directly below the spindles at the initial configuration.
-    auto func_L = chrono_types::make_shared<ChFunction_Const>();
-    auto func_R = chrono_types::make_shared<ChFunction_Const>();
+    auto func_L = chrono_types::make_shared<ChFunction_Setpoint>();
+    auto func_R = chrono_types::make_shared<ChFunction_Setpoint>();
 
     auto pos_sL = m_suspension->GetSpindle(LEFT)->GetCoord();
     auto pos_sR = m_suspension->GetSpindle(RIGHT)->GetCoord();
@@ -717,11 +868,15 @@ double ChSuspensionTestRigPushrod::CalcTerrainHeight(VehicleSide side) {
     return -1000;
 }
 
-void ChSuspensionTestRigPushrod::UpdateActuators(double displ_left, double displ_right) {
-    auto func_L = std::static_pointer_cast<ChFunction_Const>(m_rod_linact[LEFT]->Get_dist_funct());
-    auto func_R = std::static_pointer_cast<ChFunction_Const>(m_rod_linact[RIGHT]->Get_dist_funct());
-    func_L->Set_yconst(displ_left);
-    func_R->Set_yconst(displ_right);
+void ChSuspensionTestRigPushrod::UpdateActuators(double displ_left,
+                                                 double displ_speed_left,
+                                                 double displ_right,
+                                                 double displ_speed_right) {
+    double time = GetSystem()->GetChTime();
+    auto func_L = std::static_pointer_cast<ChFunction_Setpoint>(m_rod_linact[LEFT]->Get_dist_funct());
+    auto func_R = std::static_pointer_cast<ChFunction_Setpoint>(m_rod_linact[RIGHT]->Get_dist_funct());
+    func_L->SetSetpointAndDerivatives(displ_left, displ_speed_left, 0.0);
+    func_R->SetSetpointAndDerivatives(displ_right, displ_speed_right, 0.0);
 
     // Move the rod visualization bodies
     m_rod[LEFT]->SetPos(m_suspension->GetSpindle(LEFT)->GetPos());
@@ -744,6 +899,71 @@ double ChSuspensionTestRigPushrod::GetRideHeight() const {
     auto spindle_avg =
         (m_suspension->GetSpindle(LEFT)->GetPos().z() + m_suspension->GetSpindle(RIGHT)->GetPos().z()) / 2;
     return m_tire[LEFT]->GetRadius() - spindle_avg;
+}
+
+void ChSuspensionTestRigPushrod::CollectPlotData(double time) {
+    // Suspension forces
+    auto frc_left = ReportSuspensionForce(LEFT);
+    auto frc_right = ReportSuspensionForce(RIGHT);
+
+    // Tire camber angles (flip sign of reported camber angle on the left to get common definition)
+    double gamma_L = -m_tire[LEFT]->GetCamberAngle() * CH_C_RAD_TO_DEG;
+    double gamma_R = m_tire[RIGHT]->GetCamberAngle() * CH_C_RAD_TO_DEG;
+
+    *m_csv << time;
+
+    *m_csv << GetLeftInput() << GetSpindlePos(LEFT).z() << GetSpindleLinVel(LEFT).z() << GetWheelTravel(LEFT);
+    *m_csv << frc_left.spring_force << frc_left.shock_force;
+
+    *m_csv << GetRightInput() << GetSpindlePos(RIGHT).z() << GetSpindleLinVel(RIGHT).z() << GetWheelTravel(RIGHT);
+    *m_csv << frc_right.spring_force << frc_right.shock_force;
+
+    *m_csv << GetRideHeight() << gamma_L << gamma_R;
+
+    *m_csv << std::endl;
+}
+
+void ChSuspensionTestRigPushrod::PlotOutput(const std::string& out_dir, const std::string& out_name) {
+    if (!m_plot_output)
+        return;
+
+    std::string out_file = out_dir + "/" + out_name + ".txt";
+    m_csv->write_to_file(out_file);
+
+#ifdef CHRONO_POSTPROCESS
+    std::string gplfile = out_dir + "/tmp.gpl";
+    postprocess::ChGnuPlot mplot(gplfile.c_str());
+
+    std::string title = "Suspension test rig - Spring forces";
+    mplot.OutputWindow(0);
+    mplot.SetTitle(title.c_str());
+    mplot.SetLabelX("wheel travel [m]");
+    mplot.SetLabelY("spring force [N]");
+    mplot.SetCommand("set format y '%4.1e'");
+    mplot.SetCommand("set terminal wxt size 800, 600");
+    mplot.Plot(out_file.c_str(), 5, 6, "left", " with lines lw 2");
+    mplot.Plot(out_file.c_str(), 11, 12, "right", " with lines lw 2");
+
+    title = "Suspension test rig - Shock forces";
+    mplot.OutputWindow(1);
+    mplot.SetTitle(title.c_str());
+    mplot.SetLabelX("wheel veertical speed [m/s]");
+    mplot.SetLabelY("shock force [N]");
+    mplot.SetCommand("set format y '%4.1e'");
+    mplot.SetCommand("set terminal wxt size 800, 600");
+    mplot.Plot(out_file.c_str(), 4, 7, "left", " with lines lw 2");
+    mplot.Plot(out_file.c_str(), 10, 13, "right", " with lines lw 2");
+
+    title = "Suspension test rig - Camber angle";
+    mplot.OutputWindow(2);
+    mplot.SetTitle(title.c_str());
+    mplot.SetLabelX("wheel travel [m]");
+    mplot.SetLabelY("camber angle [deg]");
+    mplot.SetCommand("set format y '%4.1f'");
+    mplot.SetCommand("set terminal wxt size 800, 600");
+    mplot.Plot(out_file.c_str(), 5, 15, "left", " with lines lw 2");
+    mplot.Plot(out_file.c_str(), 11, 16, "right", " with lines lw 2");
+#endif
 }
 
 }  // end namespace vehicle

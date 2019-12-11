@@ -31,8 +31,7 @@
 #include "chrono/core/ChVector.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/solver/ChSolverMINRES.h"
-#include "chrono/solver/ChSolverPMINRES.h"
+#include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/timestepper/ChTimestepper.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtilsValidation.h"
@@ -176,14 +175,15 @@ int main(int argc, char* argv[]) {
     mloadcontainer->Add(mgravity4);
 
     // Change solver settings
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
-    my_system.SetMaxItersSolverSpeed(200);
-    my_system.SetMaxItersSolverStab(200);
-    my_system.SetTolForce(1e-14);
-    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    msolver->SetVerbose(false);
-    msolver->SetDiagonalPreconditioning(true);
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    my_system.SetSolver(solver);
+    solver->SetMaxIterations(200);
+    solver->SetTolerance(1e-15);
+    solver->EnableDiagonalPreconditioner(true);
+    solver->EnableWarmStart(true);  // IMPORTANT for convergence when using EULER_IMPLICIT_LINEARIZED
+    solver->SetVerbose(false);
+
+    my_system.SetSolverForceTolerance(1e-14);
 
     my_system.SetEndTime(12.5);
 

@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "chrono/solver/ChIterativeSolver.h"
+#include "chrono/solver/ChIterativeSolverVI.h"
 
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/ChDataManager.h"
@@ -35,7 +35,7 @@ namespace chrono {
 /// @{
 
 /// Base class for all iterative solvers.
-class CH_PARALLEL_API ChIterativeSolverParallel : public ChIterativeSolver {
+class CH_PARALLEL_API ChIterativeSolverParallel : public ChIterativeSolverVI {
   public:
     virtual ~ChIterativeSolverParallel();
 
@@ -53,7 +53,8 @@ class CH_PARALLEL_API ChIterativeSolverParallel : public ChIterativeSolver {
     /// Solves just the bilaterals so that they can be warm started.
     void PerformStabilization();
 
-    real GetResidual();
+    real GetResidual() const;
+    virtual double GetError() const override { return (double)GetResidual(); }
 
     ChParallelDataManager* data_manager;
     ChSolverParallel* solver;

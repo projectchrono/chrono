@@ -19,8 +19,8 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLoadContainer.h"
-#include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
+#include "chrono/solver/ChIterativeSolverLS.h"
 
 #include "chrono/fea/ChElementTetra_4.h"
 #include "chrono/fea/ChMesh.h"
@@ -301,25 +301,23 @@ int main(int argc, char* argv[]) {
     // Use shadows in realtime view
     application.AddShadowAll();
 
-    //
-    // THE SOFT-REAL-TIME CYCLE
-    //
+    // SIMULATION LOOP
 
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    my_system.SetSolverWarmStarting(true);
-    my_system.SetMaxItersSolverSpeed(40);
-    my_system.SetTolForce(1e-10);
-    my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    my_system.SetSolver(solver);
+    solver->SetMaxIterations(40);
+    solver->SetTolerance(1e-12);
+    solver->EnableDiagonalPreconditioner(true);
+    solver->EnableWarmStart(true);  // Enable for better convergence when using Euler implicit linearized
+
+    my_system.SetSolverForceTolerance(1e-10);
 
     application.SetTimestep(0.001);
 
     while (application.GetDevice()->run()) {
         application.BeginScene();
-
         application.DrawAll();
-
         application.DoStep();
-
         application.EndScene();
     }
 

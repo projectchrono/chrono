@@ -12,33 +12,43 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#ifndef CHSOLVERPCG_H
-#define CHSOLVERPCG_H
+#ifndef CHSOLVERJACOBI_H
+#define CHSOLVERJACOBI_H
 
-#include "chrono/solver/ChIterativeSolver.h"
+#include "chrono/solver/ChIterativeSolverVI.h"
 
 namespace chrono {
 
-/// An iterative solver based on modified Krylov iteration of projected conjugate gradient.\n
-/// See ChSystemDescriptor for more information about the problem formulation and the data structures
-/// passed to the solver.
+/// @addtogroup chrono_solver
+/// @{
 
-class ChApi ChSolverPCG : public ChIterativeSolver {
+/// An iterative solver for VI based on projective fixed point method (projected Jacobi). \n
+/// Note: this method is here mostly for comparison and tests; we suggest you to use the more efficient ChSolverPSOR.\n
+///
+/// See ChSystemDescriptor for more information about the problem formulation and the data structures passed to the
+/// solver.
+class ChApi ChSolverPJacobi : public ChIterativeSolverVI {
   public:
-    ChSolverPCG(int mmax_iters = 50,       ///< max.number of iterations
-                bool mwarm_start = false,  ///< uses warm start?
-                double mtolerance = 0.0    ///< tolerance for termination criterion
-    );
+    ChSolverPJacobi();
 
-    virtual ~ChSolverPCG() {}
+    ~ChSolverPJacobi() {}
 
-    virtual Type GetType() const override { return Type::PCG; }
+    virtual Type GetType() const override { return Type::PJACOBI; }
 
     /// Performs the solution of the problem.
     /// \return  the maximum constraint violation after termination.
     virtual double Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
                          ) override;
+
+    /// Return the tolerance error reached during the last solve.
+    /// For the PJacobi solver, this is the maximum constraint violation.
+    virtual double GetError() const override { return maxviolation; }
+
+  private:
+    double maxviolation;
 };
+
+/// @} chrono_solver
 
 }  // end namespace chrono
 

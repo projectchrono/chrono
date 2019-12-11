@@ -29,7 +29,7 @@ class Model(object):
       chrono.ChCollisionModel.SetDefaultSuggestedMargin(0.001)
 
     #ant_sys.SetSolverType(chrono.ChSolver.Type_BARZILAIBORWEIN) # precise, more slow
-      self.ant_sys.SetMaxItersSolverSpeed(70)
+      self.ant_sys.SetSolverMaxIterations(70)
       
 
       self.ant_material = chrono.ChMaterialSurfaceNSC()

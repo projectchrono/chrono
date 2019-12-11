@@ -30,12 +30,12 @@ ChSurfaceNurbs::ChSurfaceNurbs() {
 }
 
 ChSurfaceNurbs::ChSurfaceNurbs(
-    int morder_u,                          ///< order pu: 1= linear, 2=quadratic, etc.
-    int morder_v,                          ///< order pv: 1= linear, 2=quadratic, etc.
-    ChMatrixDynamic<ChVector<>>& mpoints,  ///< control points, size nuxnv. Required: at least nu >= pu+1, same for v
-    ChVectorDynamic<>* mknots_u,  ///< knots, size ku. Required ku=nu+pu+1. If not provided, initialized to uniform.
-    ChVectorDynamic<>* mknots_v,  ///< knots, size kv. Required ku=nu+pu+1. If not provided, initialized to uniform.
-    ChMatrixDynamic<>* weights    ///< weights, size nuxnv. If not provided, all weights as 1.
+    int morder_u,                          // order pu: 1= linear, 2=quadratic, etc.
+    int morder_v,                          // order pv: 1= linear, 2=quadratic, etc.
+    ChMatrixDynamic<ChVector<>>& mpoints,  // control points, size nuxnv. Required: at least nu >= pu+1, same for v
+    ChVectorDynamic<>* mknots_u,  // knots, size ku. Required ku=nu+pu+1. If not provided, initialized to uniform.
+    ChVectorDynamic<>* mknots_v,  // knots, size kv. Required ku=nu+pu+1. If not provided, initialized to uniform.
+    ChMatrixDynamic<>* weights    // weights, size nuxnv. If not provided, all weights as 1.
 ) {
     this->SetupData(morder_u, morder_v, mpoints, mknots_u, mknots_v, weights);
 }
@@ -70,12 +70,12 @@ void ChSurfaceNurbs::Evaluate(ChVector<>& pos, const double parU, const double p
 }
 
 void ChSurfaceNurbs::SetupData(
-    int morder_u,                          ///< order pu: 1= linear, 2=quadratic, etc.
-    int morder_v,                          ///< order pv: 1= linear, 2=quadratic, etc.
-    ChMatrixDynamic<ChVector<>>& mpoints,  ///< control points, size nuxnv. Required: at least nu >= pu+1, same for v
-    ChVectorDynamic<>* mknots_u,  ///< knots u, size ku. Required ku=nu+pu+1. If not provided, initialized to uniform.
-    ChVectorDynamic<>* mknots_v,  ///< knots v, size kv. Required ku=nu+pu+1. If not provided, initialized to uniform.
-    ChMatrixDynamic<>* weights    ///< weights, size nuxnv. If not provided, all weights as 1.
+    int morder_u,                          // order pu: 1= linear, 2=quadratic, etc.
+    int morder_v,                          // order pv: 1= linear, 2=quadratic, etc.
+    ChMatrixDynamic<ChVector<>>& mpoints,  // control points, size nuxnv. Required: at least nu >= pu+1, same for v
+    ChVectorDynamic<>* mknots_u,  // knots u, size ku. Required ku=nu+pu+1. If not provided, initialized to uniform.
+    ChVectorDynamic<>* mknots_v,  // knots v, size kv. Required ku=nu+pu+1. If not provided, initialized to uniform.
+    ChMatrixDynamic<>* weights    // weights, size nuxnv. If not provided, all weights as 1.
 ) {
     if (morder_u < 1)
         throw ChException("ChSurfaceNurbs::SetupData requires u order >= 1.");

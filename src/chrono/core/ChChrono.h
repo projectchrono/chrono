@@ -23,6 +23,7 @@
         @defgroup chrono_geometry Geometric objects
         @defgroup chrono_collision Collision objects
         @defgroup chrono_assets Asset objects
+        @defgroup chrono_linalg Linear algebra
         @defgroup chrono_solver Solver
         @defgroup chrono_timestepper Time integrators
         @defgroup chrono_functions Function objects

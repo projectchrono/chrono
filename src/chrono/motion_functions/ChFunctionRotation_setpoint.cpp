@@ -85,7 +85,7 @@ void ChFunctionRotation_setpoint::SetSetpoint(ChQuaternion<> q_setpoint, double 
 		double ds = s - last_s;
 		if (ds > 0) {
 			W = (Q - last_Q) / ds;
-			A = (W - last_W) / ds; //***TO DO - intrinsic W and lastW, but rotation Q might have changed too much.. require better formula?
+			A = (W - last_W) / ds; //// TO DO - intrinsic W and lastW, but rotation Q might have changed too much.. require better formula?
 		}
 	}
 	*/
@@ -96,14 +96,14 @@ ChQuaternion<> ChFunctionRotation_setpoint::Get_q(double s) const {
     if (mode == eChSetpointMode::OVERRIDE)
         return Q;
 	ChQuaternion<> dQ;
-	dQ.Q_from_Rotv(W * (s - S)); // + A * pow((s - S), 2)); //***TO DO - intrinsic W and A, but rotation Q might have changed too much.. require better formula?
+	dQ.Q_from_Rotv(W * (s - S)); // + A * pow((s - S), 2)); //// TO DO - intrinsic W and A, but rotation Q might have changed too much.. require better formula?
 	return Q*dQ; 
 }
 
 ChVector<> ChFunctionRotation_setpoint::Get_w_loc(double s) const {
     if (mode == eChSetpointMode::OVERRIDE)
         return W;
-	return W; // +A * (s - S); //***TO DO - intrinsic W and A, but rotation Q might have changed too much.. require better formula?
+	return W; // +A * (s - S); //// TO DO - intrinsic W and A, but rotation Q might have changed too much.. require better formula?
 }
 
 ChVector<> ChFunctionRotation_setpoint::Get_a_loc(double s) const {

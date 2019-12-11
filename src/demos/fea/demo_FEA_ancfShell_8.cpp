@@ -20,7 +20,6 @@
 //
 // =============================================================================
 
-#include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/fea/ChElementShellANCF_8.h"
@@ -28,6 +27,7 @@
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 
 using namespace chrono;
@@ -242,11 +242,12 @@ int main(int argc, char* argv[]) {
     // ----------------------------------
 
     // Set up solver
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    msolver->SetDiagonalPreconditioning(true);
-    my_system.SetMaxItersSolverSpeed(10000);
-    my_system.SetTolForce(1e-10);
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    my_system.SetSolver(solver);
+    solver->SetMaxIterations(300);
+    solver->SetTolerance(1e-14);
+    solver->EnableDiagonalPreconditioner(true);
+    solver->SetVerbose(true);
 
     // Set up integrator
     my_system.SetTimestepperType(ChTimestepper::Type::HHT);

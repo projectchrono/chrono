@@ -142,20 +142,6 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// Gets iteration limit for assembly constraints.
     int GetMaxiter() const { return maxiter; }
 
-    /// Sets tolerance (in m) for assembly constraints. When trying to keep constraints together,
-    /// the iterative process is stopped if this tolerance (or max.number of iterations ) is reached
-    void SetTol(double tolerance) { tol = tolerance; }
-    /// Gets current tolerance for assembly constraints.
-    double GetTol() const { return tol; }
-
-    /// Sets tolerance for satisfying constraints at the velocity level.
-    /// The tolerance specified here is in fact a tolerance at the force level.
-    /// this value is multiplied by the value of the current time step and then
-    /// used as a stopping criteria for the iterative speed solver.
-    void SetTolForce(double tolerance) { tol_force = tolerance; }
-    /// Return the current value of the tolerance used in the speed solver.
-    double GetTolForce() const { return tol_force; }
-
     /// Change the default composition laws for contact surface materials
     /// (coefficient of friction, cohesion, compliance, etc.)
     void SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy<float>>&& strategy);
@@ -169,84 +155,64 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// If this is too low, aliasing problems can happen with small high frequency
     /// rebounces, and settling to static stacking might be more difficult.
     void SetMinBounceSpeed(double mval) { min_bounce_speed = mval; }
+    
     /// Objects will rebounce only if their relative colliding speed is above this threshold.
     double GetMinBounceSpeed() const { return min_bounce_speed; }
 
     /// For the default stepper, you can limit the speed of exiting from penetration
     /// situations. Usually set a positive value, about 0.1 .. 2 . (as exiting speed, in m/s)
     void SetMaxPenetrationRecoverySpeed(double mval) { max_penetration_recovery_speed = mval; }
+
     /// Get the limit on the speed for exiting from penetration situations (for Anitescu stepper)
     double GetMaxPenetrationRecoverySpeed() const { return max_penetration_recovery_speed; }
 
+    /// Attach a solver (derived from ChSolver) for use by this system.
+    virtual void SetSolver(std::shared_ptr<ChSolver> newsolver);
+
+    /// Access the solver currently associated with this system.
+    virtual std::shared_ptr<ChSolver> GetSolver();
+
     /// Choose the solver type, to be used for the simultaneous solution of the constraints
     /// in dynamical simulations (as well as in kinematics, statics, etc.)
-    ///   - Suggested solver for speed, but lower precision: SOR
+    ///   - Suggested solver for speed, but lower precision: PSOR
     ///   - Suggested solver for higher precision: BARZILAIBORWEIN or APGD
-    ///   - For problems that involve a stiffness matrix: MINRES
+    ///   - For problems that involve a stiffness matrix: GMRES, MINRES
     ///
     /// *Notes*:
-    ///   - Do not use CUSTOM type, as this type is reserved for external solvers
-    ///     (set using SetSolver() and/or SetStabSolver())
-    ///   - This function is a shortcut, internally equivalent to two calls to
-    ///     SetSolver() and SetStabSolve()
+    ///   - This function is a shortcut, internally equivalent to a call to SetSolver().
+    ///   - Only a subset of available Chrono solvers can be set through this mechanism.
+    ///   - Prefer explicitly creating a solver, setting solver parameters, and then attaching the solver with
+    ///     SetSolver.
+    ///
+    /// \deprecated This function does not support all available Chrono solvers. Prefer using SetSolver.
     virtual void SetSolverType(ChSolver::Type type);
 
     /// Gets the current solver type.
-    ChSolver::Type GetSolverType() const { return solver_speed->GetType(); }
+    ChSolver::Type GetSolverType() const { return solver->GetType(); }
 
-    /// When using an iterative solver (es. SOR) set the maximum number of iterations.
-    /// The higher the iteration number, the more precise the simulation (but more CPU time).
-    void SetMaxItersSolverSpeed(int mval) { max_iter_solver_speed = mval; }
-    /// Current maximum number of iterations, if using an iterative solver.
-    int GetMaxItersSolverSpeed() const { return max_iter_solver_speed; }
+    /// Set the maximum number of iterations, if using an iterative solver.
+    /// \deprecated Prefer using SetSolver and setting solver parameters directly.
+    void SetSolverMaxIterations(int max_iters);
 
-    /// When using an iterative solver (es. SOR) and a timestepping method
-    /// requiring post-stabilization (e.g., EULER_IMPLICIT_PROJECTED), set the
-    /// the maximum number of stabilization iterations. The higher the iteration
-    /// number, the more precise the simulation (but more CPU time).
-    void SetMaxItersSolverStab(int mval) { max_iter_solver_stab = mval; }
-    /// Current maxi. number of iterations, if using an iterative solver for stabilization.
-    int GetMaxItersSolverStab() const { return max_iter_solver_stab; }
+    /// Get the current maximum number of iterations, if using an iterative solver.
+    /// \deprecated Prefer using GetSolver and accessing solver statistics directly.
+    int GetSolverMaxIterations() const;
 
-    /// If you want to easily turn ON/OFF the warm starting feature of both iterative solvers
-    /// (the one for speed and the other for pos.stabilization) you can simply use the
-    /// following instead of accessing them directly with GetSolver() and GetStabSolver()
-    void SetSolverWarmStarting(bool usewarm = true);
-    /// Tell if the warm starting is enabled for the speed solver, (if iterative type).
-    bool GetSolverWarmStarting() const;
+    /// Set the solver tolerance threshold (used with iterative solvers only).
+    /// Note that the stopping criteria differs from solver to solver.
+    void SetSolverTolerance(double tolerance);
 
-    /// If you want to easily adjust the omega overrelaxation parameter of both iterative solvers
-    /// (the one for speed and the other for position stabilization) you can simply use the
-    /// following instead of accessing them directly with GetSolver() and GetStabSolver().
-    /// Note, usually a good omega for Jacobi or GPU solver is 0.2; for other iter.solvers can be up to 1.0
-    void SetSolverOverrelaxationParam(double momega = 1.0);
-    /// Tell the omega overrelaxation factor for the speed solver, (if iterative type).
-    double GetSolverOverrelaxationParam() const;
+    /// Get the current tolerance value (used with iterative solvers only).
+    double GetSolverTolerance() const;
 
-    /// If you want to easily adjust the 'sharpness lambda' parameter of both iterative solvers
-    /// (the one for speed and the other for pos.stabilization) you can simply use the
-    /// following instead of accessing them directly with GetSolver() and GetStabSolver().
-    /// Note, usually a good sharpness value is in 1..0.8 range (the lower, the more it helps exact
-    /// convergence, but overall convergence gets also much slower so maybe better to tolerate some error)
-    void SetSolverSharpnessParam(double momega = 1.0);
-    /// Tell the 'sharpness lambda' factor for the speed solver, (if iterative type).
-    double GetSolverSharpnessParam() const;
+    /// Set a solver tolerance threshold at force level (default: not specified).
+    /// Specify this value **only** if solving the problem at velocity level (e.g. solving a DVI problem).
+    /// If this tolerance is specified, it is multiplied by the current integration stepsize and overwrites the current
+    /// solver tolerance.  By default, this tolerance is invalid and hence the solver's own tolerance threshold is used.
+    void SetSolverForceTolerance(double tolerance) { tol_force = tolerance; }
 
-    /// Instead of using SetSolverType(), you can create your own custom solver (inherited from ChSolver)
-    /// and plug it into the system using this function. 
-    virtual void SetStabSolver(std::shared_ptr<ChSolver> newsolver);
-
-    /// Access directly the stabilization solver, configured to be used for the stabilization
-    /// of constraints (solve delta positions).
-    virtual std::shared_ptr<ChSolver> GetStabSolver();
-
-    /// Instead of using SetSolverType(), you can create your own custom solver (suffice it is inherited
-    /// from ChSolver) and plug it into the system using this function.
-    virtual void SetSolver(std::shared_ptr<ChSolver> newsolver);
-
-    /// Access directly the solver, configured to be used for the main differential
-    /// inclusion problem (on speed-impulses).
-    virtual std::shared_ptr<ChSolver> GetSolver();
+    /// Get the current value of the force-level tolerance (used with iterative solvers only).
+    double GetSolverForceTolerance() const { return tol_force; }
 
     /// Instead of using the default 'system descriptor', you can create your own custom descriptor
     /// (inherited from ChSystemDescriptor) and plug it into the system using this function.
@@ -255,16 +221,9 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// Access directly the 'system descriptor'.
     std::shared_ptr<ChSystemDescriptor> GetSystemDescriptor() { return descriptor; }
 
-    /// Changes the number of parallel threads (by default is n.of cores).
-    /// Note that not all solvers use parallel computation.
-    /// If you have a N-core processor, this should be set at least =N for maximum performance.
-    void SetParallelThreadNumber(int mthreads = 2);
-    /// Get the number of parallel threads.
-    /// Note that not all solvers use parallel computation.
-    int GetParallelThreadNumber() { return parallel_thread_number; }
-
     /// Sets the G (gravity) acceleration vector, affecting all the bodies in the system.
     void Set_G_acc(const ChVector<>& m_acc) { G_acc = m_acc; }
+
     /// Gets the G (gravity) acceleration vector affecting all the bodies in the system.
     const ChVector<>& Get_G_acc() const { return G_acc; }
 
@@ -272,8 +231,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     // DATABASE HANDLING.
     //
 
-    /// Removes all bodies/marker/forces/links/contacts,
-    /// also resets timers and events.
+    /// Removes all bodies/marker/forces/links/contacts, also resets timers and events.
     void Clear();
 
     /// Return the contact method supported by this system.
@@ -812,25 +770,17 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     double step_min;  ///< min time step
     double step_max;  ///< max time step
 
-    double tol;        ///< tolerance
     double tol_force;  ///< tolerance for forces (used to obtain a tolerance for impulses)
 
     int maxiter;  ///< max iterations for nonlinear convergence in DoAssembly()
 
     bool use_sleeping;  ///< if true, put to sleep objects that come to rest
 
-    std::shared_ptr<ChSystemDescriptor> descriptor;  ///< the system descriptor
-    std::shared_ptr<ChSolver> solver_speed;          ///< the solver for speed problem
-    std::shared_ptr<ChSolver> solver_stab;           ///< the solver for position (stabilization) problem, if any
-
-    int max_iter_solver_speed;  ///< maximum num iterations for the iterative solver
-    int max_iter_solver_stab;   ///< maximum num iterations for the iterative solver for constraint stabilization
-    int max_steps_simplex;      ///< maximum number of steps for the simplex solver.
+    std::shared_ptr<ChSystemDescriptor> descriptor;  ///< system descriptor
+    std::shared_ptr<ChSolver> solver;                ///< solver for DVI or DAE problem
 
     double min_bounce_speed;                ///< minimum speed for rebounce after impacts. Lower speeds are clamped to 0
     double max_penetration_recovery_speed;  ///< limit for the speed of penetration recovery (positive, speed of exiting)
-
-    int parallel_thread_number;  ///< used for multithreaded solver
 
     size_t stepcount;  ///< internal counter for steps
 

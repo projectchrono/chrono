@@ -376,8 +376,7 @@ int main(int argc, char* argv[]) {
 
     // Modify some setting of the physical system for the simulation, if you want
     mphysicalSystem.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
-    mphysicalSystem.SetMaxItersSolverSpeed(30);
-    mphysicalSystem.SetMaxItersSolverStab(5);
+    mphysicalSystem.SetSolverMaxIterations(30);
 
     application.SetTimestep(0.02);
 

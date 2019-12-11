@@ -32,7 +32,7 @@
 #include "chrono/assets/ChRoundedCylinderShape.h"
 #include "chrono/assets/ChCapsuleShape.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
-#include "chrono/solver/ChIterativeSolver.h"
+#include "chrono/solver/ChIterativeSolverVI.h"
 #include "chrono/assets/ChLineShape.h"
 #include "chrono/assets/ChPathShape.h"
 

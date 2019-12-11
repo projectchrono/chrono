@@ -151,20 +151,8 @@ namespace irrlicht {
             case irr::gui::EGET_SCROLL_BAR_CHANGED:
                 switch(id) {
                 case 9904:
-                    app->GetSystem()->SetMaxItersSolverSpeed(
+                    app->GetSystem()->SetSolverMaxIterations(
                         ((irr::gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos());
-                    break;
-                case 9905:
-                    app->GetSystem()->SetMaxItersSolverStab(
-                        ((irr::gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos());
-                    break;
-                case 9909:
-                    app->GetSystem()->SetSolverOverrelaxationParam(
-                        (1.0 / 50.0) * ((irr::gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos());
-                    break;
-                case 9910:
-                    app->GetSystem()->SetSolverSharpnessParam(
-                        (1.0 / 50.0) * ((irr::gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos());
                     break;
                 case 9911:
                     app->GetSystem()->SetMaxPenetrationRecoverySpeed(
@@ -182,33 +170,21 @@ namespace irrlicht {
                     int sel = ((irr::gui::IGUIComboBox*)event.GUIEvent.Caller)->getSelected();
                     switch(sel) {
                     case 0:
-                        app->GetSystem()->SetSolverType(ChSolver::Type::SOR);
+                        app->GetSystem()->SetSolverType(ChSolver::Type::PSOR);
                         break;
                     case 1:
-                        app->GetSystem()->SetSolverType(ChSolver::Type::SYMMSOR);
+                        app->GetSystem()->SetSolverType(ChSolver::Type::PSSOR);
                         break;
                     case 2:
-                        app->GetSystem()->SetSolverType(ChSolver::Type::JACOBI);
+                        app->GetSystem()->SetSolverType(ChSolver::Type::PJACOBI);
                         break;
                     case 3:
-                        app->GetSystem()->SetSolverType(ChSolver::Type::SOR_MULTITHREAD);
-                        break;
-                    case 4:
                         app->GetSystem()->SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
                         break;
-                    case 5:
-                        app->GetSystem()->SetSolverType(ChSolver::Type::PCG);
-                        break;
-                    case 6:
-                        app->GetSystem()->SetSolverType(ChSolver::Type::PMINRES);
-                        break;
-                    case 7:
+                    case 4:
                         app->GetSystem()->SetSolverType(ChSolver::Type::APGD);
                         break;
-                    case 8:
-                        app->GetSystem()->SetSolverType(ChSolver::Type::MINRES);
-                        break;
-                    case 9:
+                    case 5:
                         GetLog() << "WARNING.\nYou cannot change to a custom solver using the GUI. Use C++ instead.\n";
                         break;
                     }
@@ -261,10 +237,6 @@ namespace irrlicht {
 
             case irr::gui::EGET_CHECKBOX_CHANGED:
                 switch(id) {
-                case 9906:
-                    app->GetSystem()->SetSolverWarmStarting(
-                        ((irr::gui::IGUICheckBox*)event.GUIEvent.Caller)->isChecked());
-                    break;
                 case 9913:
                     app->GetSystem()->SetUseSleeping(((irr::gui::IGUICheckBox*)event.GUIEvent.Caller)->isChecked());
                     break;
@@ -449,15 +421,6 @@ namespace irrlicht {
         gad_speed_iternumber_info = GetIGUIEnvironment()->addStaticText(
             L"", irr::core::rect<irr::s32>(155, 10, 220, 10 + 20), false, false, gad_tab2);
 
-        gad_pos_iternumber =
-            GetIGUIEnvironment()->addScrollBar(true, irr::core::rect<irr::s32>(10, 40, 150, 40 + 20), gad_tab2, 9905);
-        gad_pos_iternumber->setMax(120);
-        gad_pos_iternumber_info = GetIGUIEnvironment()->addStaticText(
-            L"", irr::core::rect<irr::s32>(155, 40, 220, 40 + 20), false, false, gad_tab2);
-
-        gad_warmstart = GetIGUIEnvironment()->addCheckBox(
-            false, irr::core::rect<irr::s32>(10, 70, 200, 70 + 20), gad_tab2, 9906, L"Warm starting");
-
         gad_usesleep = GetIGUIEnvironment()->addCheckBox(
             false, irr::core::rect<irr::s32>(10, 100, 200, 100 + 20), gad_tab2, 9913, L"Enable sleeping");
 
@@ -466,12 +429,8 @@ namespace irrlicht {
         gad_ccpsolver->addItem(L"Projected SOR");
         gad_ccpsolver->addItem(L"Projected SSOR");
         gad_ccpsolver->addItem(L"Projected Jacobi");
-        gad_ccpsolver->addItem(L"Multithreaded SOR");
         gad_ccpsolver->addItem(L"Projected BB");
-        gad_ccpsolver->addItem(L"Projected PCG");
-        gad_ccpsolver->addItem(L"Projected MINRES");
-        gad_ccpsolver->addItem(L"APGD");
-        gad_ccpsolver->addItem(L"MINRES");
+        gad_ccpsolver->addItem(L"Projected APGD");
         gad_ccpsolver->addItem(L"(custom)");
         gad_ccpsolver->setSelected(5);
 
@@ -491,18 +450,6 @@ namespace irrlicht {
         gad_stepper->addItem(L"(custom)");
 
         gad_stepper->setSelected(0);
-
-        gad_omega =
-            GetIGUIEnvironment()->addScrollBar(true, irr::core::rect<irr::s32>(10, 190, 150, 190 + 20), gad_tab2, 9909);
-        gad_omega->setMax(100);
-        gad_omega_info = GetIGUIEnvironment()->addStaticText(
-            L"", irr::core::rect<irr::s32>(155, 190, 220, 190 + 20), false, false, gad_tab2);
-
-        gad_lambda =
-            GetIGUIEnvironment()->addScrollBar(true, irr::core::rect<irr::s32>(10, 220, 150, 220 + 20), gad_tab2, 9910);
-        gad_lambda->setMax(100);
-        gad_lambda_info = GetIGUIEnvironment()->addStaticText(
-            L"", irr::core::rect<irr::s32>(155, 220, 220, 220 + 20), false, false, gad_tab2);
 
         gad_clamping =
             GetIGUIEnvironment()->addScrollBar(true, irr::core::rect<irr::s32>(10, 250, 150, 250 + 20), gad_tab2, 9911);
@@ -763,10 +710,6 @@ namespace irrlicht {
         str += (int)(1000 * system->GetTimerSolver());
         str += " ms \n  CPU Update time      =";
         str += (int)(1000 * system->GetTimerUpdate());
-        str += " ms \n\nSolver vel.iters : ";
-        str += system->GetMaxItersSolverSpeed();
-        str += "\nSolver pos.iters : ";
-        str += system->GetMaxItersSolverStab();
         str += "\n\nN.of active bodies  : ";
         str += system->GetNbodies();
         str += "\nN.of sleeping bodies  : ";
@@ -813,7 +756,7 @@ namespace irrlicht {
             ChIrrTools::drawCollisionShapes(*system, GetDevice());
 
         if(gad_plot_convergence->isChecked())
-            ChIrrTools::drawHUDviolation(GetVideoDriver(), GetDevice(), *system, 240, 370, 300, 100, 100.0, 500.0);
+            ChIrrTools::drawHUDviolation(GetVideoDriver(), GetDevice(), *system, 240, 370, 300, 100, 100.0);
 
         gad_tabbed->setVisible(show_infos);
         gad_treeview->setVisible(show_explorer);
@@ -823,26 +766,13 @@ namespace irrlicht {
         }
 
         if(gad_speed_iternumber_info->isVisible()) {
-            gad_warmstart->setChecked(GetSystem()->GetSolverWarmStarting());
             gad_usesleep->setChecked(GetSystem()->GetUseSleeping());
 
             char message[50];
 
-            gad_speed_iternumber->setPos(GetSystem()->GetMaxItersSolverSpeed());
-            sprintf(message, "%i vel.iters", GetSystem()->GetMaxItersSolverSpeed());
+            gad_speed_iternumber->setPos(GetSystem()->GetSolverMaxIterations());
+            sprintf(message, "%i iters", GetSystem()->GetSolverMaxIterations());
             gad_speed_iternumber_info->setText(irr::core::stringw(message).c_str());
-
-            gad_pos_iternumber->setPos(GetSystem()->GetMaxItersSolverStab());
-            sprintf(message, "%i pos.iters", GetSystem()->GetMaxItersSolverStab());
-            gad_pos_iternumber_info->setText(irr::core::stringw(message).c_str());
-
-            gad_omega->setPos((irr::s32)(50.0 * (GetSystem()->GetSolverOverrelaxationParam())));
-            sprintf(message, "%g omega", GetSystem()->GetSolverOverrelaxationParam());
-            gad_omega_info->setText(irr::core::stringw(message).c_str());
-
-            gad_lambda->setPos((irr::s32)(50.0 * (GetSystem()->GetSolverSharpnessParam())));
-            sprintf(message, "%g lambda", GetSystem()->GetSolverSharpnessParam());
-            gad_lambda_info->setText(irr::core::stringw(message).c_str());
 
             gad_clamping->setPos((irr::s32)((50.0 / 3.0) * (GetSystem()->GetMaxPenetrationRecoverySpeed())));
             sprintf(message, "%g stab.clamp", GetSystem()->GetMaxPenetrationRecoverySpeed());
@@ -853,35 +783,23 @@ namespace irrlicht {
             gad_minbounce_info->setText(irr::core::stringw(message).c_str());
 
             switch(GetSystem()->GetSolverType()) {
-            case ChSolver::Type::SOR:
+            case ChSolver::Type::PSOR:
                 gad_ccpsolver->setSelected(0);
                 break;
-            case ChSolver::Type::SYMMSOR:
+            case ChSolver::Type::PSSOR:
                 gad_ccpsolver->setSelected(1);
                 break;
-            case ChSolver::Type::JACOBI:
+            case ChSolver::Type::PJACOBI:
                 gad_ccpsolver->setSelected(2);
                 break;
-            case ChSolver::Type::SOR_MULTITHREAD:
+            case ChSolver::Type::BARZILAIBORWEIN:
                 gad_ccpsolver->setSelected(3);
                 break;
-            case ChSolver::Type::BARZILAIBORWEIN:
+            case ChSolver::Type::APGD:
                 gad_ccpsolver->setSelected(4);
                 break;
-            case ChSolver::Type::PCG:
-                gad_ccpsolver->setSelected(5);
-                break;
-            case ChSolver::Type::PMINRES:
-                gad_ccpsolver->setSelected(6);
-                break;
-            case ChSolver::Type::APGD:
-                gad_ccpsolver->setSelected(7);
-                break;
-            case ChSolver::Type::MINRES:
-                gad_ccpsolver->setSelected(8);
-                break;
             default:
-                gad_ccpsolver->setSelected(9);
+                gad_ccpsolver->setSelected(5);
                 break;
             }
 

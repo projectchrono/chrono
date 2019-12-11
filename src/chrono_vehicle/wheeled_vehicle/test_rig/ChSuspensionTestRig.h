@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Justin Madsen
+// Authors: Radu Serban
 // =============================================================================
 //
 // Definition of a suspension testing mechanism (as a vehicle).
@@ -31,7 +31,8 @@
 
 #include "chrono/assets/ChColor.h"
 #include "chrono/physics/ChLinkMotorLinearPosition.h"
-//
+#include "chrono/utils/ChUtilsInputOutput.h"
+
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChDriverSTR.h"
@@ -46,7 +47,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
   public:
     /// Destructor
-    virtual ~ChSuspensionTestRig() {}
+    virtual ~ChSuspensionTestRig();
 
     /// Set driver system.
     void SetDriver(std::shared_ptr<ChDriverSTR> driver);
@@ -70,6 +71,18 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     /// Set visualization type for the tire subsystems (default: PRIMITIVES).
     void SetTireVisualizationType(VisualizationType vis) { m_vis_tire = vis; }
 
+    /// Enable/disable output from the suspension subsystem.
+    /// See also ChVehicle::SetOuput.
+    void SetSuspensionOutput(bool state);
+
+    /// Enable/disable output from the steering subsystem (if one exists).
+    /// See also ChVehicle::SetOuput.
+    void SetSteeringOutput(bool state);
+
+    /// Enable/disable output from the anti-roll bar subsystem (if one exists).
+    /// See also ChVehicle::SetOuput.
+    void SetAntirollbarOutput(bool state);
+
     /// Initialize this suspension test rig.
     void Initialize();
 
@@ -81,6 +94,12 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
 
     /// Get the global rotation of the specified spindle.
     const ChQuaternion<>& GetSpindleRot(VehicleSide side) const { return m_suspension->GetSpindleRot(side); }
+
+    /// Get the linear velocity of the specified spindle (expressed in the global reference frame).
+    const ChVector<>& GetSpindleLinVel(VehicleSide side) const { return m_suspension->GetSpindleLinVel(side); }
+
+    /// Get the angular velocity of the specified spindle (expressed in the global reference frame).
+    ChVector<> GetSpindleAngVel(VehicleSide side) const { return m_suspension->GetSpindleAngVel(side); }
 
     double GetSteeringInput() const { return m_steering_input; }
     double GetLeftInput() const { return m_left_input; }
@@ -129,6 +148,17 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;
 
+    /// Enable/disable data collection for plot generation (default: false).
+    /// See ChSuspensionTestRigPlatform::plotOutput and ChSuspensionTestRigPushrod::plotOutput for details on data
+    /// collected for a specific type of test rig.
+    void SetPlotOutput(double output_step);
+
+    /// Plot collected data.
+    /// When called (typically at the end of the simulation loop), the collected data is saved in ASCII format in a file
+    /// with the specified name (and 'txt' extension) in the specified output directory. If the Chrono::Postprocess
+    /// module is available (with gnuplot support), selected plots are generated.
+    virtual void PlotOutput(const std::string& out_dir, const std::string& out_name) = 0;
+
   protected:
     /// Construct a test rig for a specified axle of a given vehicle.
     /// This version uses a concrete vehicle object.
@@ -160,6 +190,9 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     /// Initialize all underlying vehicle subsystems
     void InitializeSubsystems();
 
+    /// Output data for all modeling components in the suspension test rig system.
+    virtual void Output(int frame, ChVehicleOutput& database) const override;
+
     // Calculate required actuator displacement offset to impose specified ride height
     virtual double CalcDisplacementOffset() = 0;
 
@@ -167,7 +200,13 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     virtual double CalcTerrainHeight(VehicleSide side) = 0;
 
     // Update actuators at current time
-    virtual void UpdateActuators(double displ_left, double displ_right) = 0;
+    virtual void UpdateActuators(double displ_left,
+                                 double displ_speed_left,
+                                 double displ_right,
+                                 double displ_speed_right) = 0;
+
+    // Collect data for plot output.
+    virtual void CollectPlotData(double time) = 0;
 
     std::shared_ptr<ChSuspension> m_suspension;    ///< suspension subsystem
     std::shared_ptr<ChSteering> m_steering;        ///< steering subsystem
@@ -181,13 +220,17 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     double m_displ_delay;   ///< time interval for assuming reference position
     double m_displ_limit;   ///< scale factor for post displacement
 
+    bool m_plot_output;
+    double m_plot_output_step;
+    double m_next_plot_output_time;
+    utils::CSV_writer* m_csv;
+
   private:
     // Overrides of ChVehicle methods
     virtual std::string GetTemplateName() const override { return "SuspensionTestRig"; }
     virtual std::shared_ptr<ChShaft> GetDriveshaft() const override { return m_dummy_shaft; }
     virtual double GetDriveshaftSpeed() const override { return 0; }
     virtual ChVector<> GetVehicleCOMPos() const override { return ChVector<>(0, 0, 0); }
-    virtual void Output(int frame, ChVehicleOutput& database) const override {}
     virtual std::string ExportComponentList() const override { return ""; }
     virtual void ExportComponentList(const std::string& filename) const override {}
     virtual void Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel = 0) override { Initialize(); }
@@ -255,11 +298,37 @@ class CH_VEHICLE_API ChSuspensionTestRigPlatform : public ChSuspensionTestRig {
     /// This estimate uses the average of the left and right posts.
     virtual double GetRideHeight() const override;
 
+    /// Plot collected data.
+    /// When called (typically at the end of the simulation loop), the collected data is saved in ASCII format in a file
+    /// with the specified name (and 'txt' extension) in the specified output directory. If the Chrono::Postprocess
+    /// module is available (with gnuplot support), selected plots are generated.\n
+    /// Collected data includes:
+    ///  - [col 1]      time (s)
+    ///  - [col 2-5]    left input, left spindle z (m), left spindle z velocity (m/s), left wheel travel (m)
+    ///  - [col 6-7]    left spring force (N), left shock force (N)
+    ///  - [col 8-11]   right input, right spindle z (m), right spindle z velocity (m/s), right wheel travel (m)
+    ///  - [col 12-13]  right spring force (N), right shock force (N)
+    ///  - [col 14]     estimated ride height (m)
+    ///  - [col 15]     left camber angle, gamma (deg)
+    ///  - [col 16]     right camber angle, gamma (deg)
+    ///  - [col 17-19]  application point for left tire force (m)
+    ///  - [col 20-22]  left tire force (N)
+    ///  - [col 23-25]  left tire moment (Nm)
+    ///  - [col 26-28]  application point for right tire force (m)
+    ///  - [col 29-31]  right tire force (N)
+    ///  - [col 32-34]  right tire moment (Nm)
+    /// Tire forces are expressed in the global frame, as applied to the center of the associated wheel.
+    virtual void PlotOutput(const std::string& out_dir, const std::string& out_name) override;
+
   private:
     void Create();
     virtual double CalcDisplacementOffset() override;
     virtual double CalcTerrainHeight(VehicleSide side) override;
-    virtual void UpdateActuators(double displ_left, double displ_right) override;
+    virtual void UpdateActuators(double displ_left,
+                                 double displ_speed_left,
+                                 double displ_right,
+                                 double displ_speed_right) override;
+    virtual void CollectPlotData(double time) override;
 
     void AddPostVisualization(VehicleSide side, const ChColor& color);
 
@@ -312,11 +381,30 @@ class CH_VEHICLE_API ChSuspensionTestRigPushrod : public ChSuspensionTestRig {
     /// This estimate uses the average of the left and right posts.
     virtual double GetRideHeight() const override;
 
+    /// Plot collected data.
+    /// When called (typically at the end of the simulation loop), the collected data is saved in ASCII format in a file
+    /// with the specified name (and 'txt' extension) in the specified output directory. If the Chrono::Postprocess
+    /// module is available (with gnuplot support), selected plots are generated.\n
+    /// Collected data includes:
+    ///  - [col 1]      time (s)
+    ///  - [col 2-5]    left input, left spindle z (m), left spindle z velocity (m/s), left wheel travel (m)
+    ///  - [col 6-7]    left spring force (N), left shock force (N)
+    ///  - [col 8-11]   right input, right spindle z (m), right spindle z velocity (m/s), right wheel travel (m)
+    ///  - [col 12-13]  right spring force (N), right shock force (N)
+    ///  - [col 14]     estimated ride height (m)
+    ///  - [col 15]     left camber angle, gamma (deg)
+    ///  - [col 16]     right camber angle, gamma (deg)
+    virtual void PlotOutput(const std::string& out_dir, const std::string& out_name) override;
+
   private:
     void Create();
     virtual double CalcDisplacementOffset() override;
     virtual double CalcTerrainHeight(VehicleSide side) override;
-    virtual void UpdateActuators(double displ_left, double displ_right) override;
+    virtual void UpdateActuators(double displ_left,
+                                 double displ_speed_left,
+                                 double displ_right,
+                                 double displ_speed_right) override;
+    virtual void CollectPlotData(double time) override;
 
     void AddRodVisualization(VehicleSide side, const ChColor& color);
 

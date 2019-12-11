@@ -50,10 +50,6 @@ ChVehicle::ChVehicle(const std::string& name, ChMaterialSurface::ContactMethod c
     m_system->Set_G_acc(ChVector<>(0, 0, -9.81));
 
     // Integration and Solver settings
-    m_system->SetMaxItersSolverSpeed(150);
-    m_system->SetMaxItersSolverStab(150);
-    m_system->SetMaxPenetrationRecoverySpeed(4.0);
-
     switch (contact_method) {
         case ChMaterialSurface::NSC:
             m_system->SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
@@ -61,6 +57,9 @@ ChVehicle::ChVehicle(const std::string& name, ChMaterialSurface::ContactMethod c
         default:
             break;
     }
+
+    m_system->SetSolverMaxIterations(150);
+    m_system->SetMaxPenetrationRecoverySpeed(4.0);
 }
 
 // -----------------------------------------------------------------------------

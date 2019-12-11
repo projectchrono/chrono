@@ -283,7 +283,7 @@ ChQuaternion<double> Qdtdt_from_Aabs(const ChVector<double>& a,
     return ret;
 }
 
-///	Get the quaternion second derivative from the vector of angular acceleration with a specified in _relative_ coords.
+//	Get the quaternion second derivative from the vector of angular acceleration with a specified in _relative_ coords.
 ChQuaternion<double> Qdtdt_from_Arel(const ChVector<double>& a,
                                      const ChQuaternion<double>& q,
                                      const ChQuaternion<double>& q_dt) {

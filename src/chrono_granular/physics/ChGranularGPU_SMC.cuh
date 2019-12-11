@@ -27,7 +27,6 @@
 #include <sstream>
 #include <string>
 #include <cstdint>
-#include "chrono/core/ChVector.h"
 #include "chrono_granular/ChGranularDefines.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_granular/utils/ChCudaMathUtils.cuh"

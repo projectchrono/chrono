@@ -87,7 +87,6 @@ int main(int argc, char* argv[]) {
     int max_threads = CHOMPfunctions::GetNumProcs();
     if (threads > max_threads)
         threads = max_threads;
-    system->SetParallelThreadNumber(threads);
     CHOMPfunctions::SetNumThreads(threads);
 
     // Edit system settings

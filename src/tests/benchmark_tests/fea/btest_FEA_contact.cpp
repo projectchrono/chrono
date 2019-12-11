@@ -25,6 +25,7 @@
 #include "chrono/assets/ChTexture.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemSMC.h"
+#include "chrono/solver/ChIterativeSolverLS.h"
 
 #include "chrono/fea/ChBuilderBeam.h"
 #include "chrono/fea/ChContactSurfaceMesh.h"
@@ -105,10 +106,15 @@ FEAcontactTest::FEAcontactTest(SolverType solver_type) {
 
     switch (solver_type) {
         case SolverType::MINRES: {
-            m_system->SetSolverType(ChSolver::Type::MINRES);
-            m_system->SetSolverWarmStarting(true);
-            m_system->SetMaxItersSolverSpeed(40);
-            m_system->SetTolForce(1e-10);
+            auto solver = chrono_types::make_shared<ChSolverMINRES>();
+            m_system->SetSolver(solver);
+            solver->SetMaxIterations(40);
+            solver->SetTolerance(1e-10);
+            solver->EnableDiagonalPreconditioner(true);
+            solver->SetVerbose(false);
+
+            m_system->SetSolverForceTolerance(1e-10);
+            
             m_system->SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
         }
         case SolverType::MKL: {

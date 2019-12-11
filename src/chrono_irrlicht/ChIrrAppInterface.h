@@ -280,19 +280,12 @@ class ChApiIrr ChIrrAppInterface {
 
     irr::gui::IGUIScrollBar* gad_speed_iternumber;
     irr::gui::IGUIStaticText* gad_speed_iternumber_info;
-    irr::gui::IGUIScrollBar* gad_pos_iternumber;
-    irr::gui::IGUIStaticText* gad_pos_iternumber_info;
-    irr::gui::IGUIScrollBar* gad_omega;
-    irr::gui::IGUIStaticText* gad_omega_info;
-    irr::gui::IGUIScrollBar* gad_lambda;
-    irr::gui::IGUIStaticText* gad_lambda_info;
     irr::gui::IGUIScrollBar* gad_clamping;
     irr::gui::IGUIStaticText* gad_clamping_info;
     irr::gui::IGUIScrollBar* gad_minbounce;
     irr::gui::IGUIStaticText* gad_minbounce_info;
     irr::gui::IGUIScrollBar* gad_dt;
     irr::gui::IGUIStaticText* gad_dt_info;
-    irr::gui::IGUICheckBox* gad_warmstart;
     irr::gui::IGUICheckBox* gad_usesleep;
     irr::gui::IGUIComboBox* gad_ccpsolver;
     irr::gui::IGUIComboBox* gad_stepper;

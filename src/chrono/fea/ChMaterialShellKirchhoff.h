@@ -293,7 +293,7 @@ class ChApi ChPlasticityKirchhoff {
         const double angle        ///< layer angle respect to x (if needed) 
         ) = 0;
 
-    /// Compute the 12x12 tangent material stiffness matrix [Km]=d\sigma/d\epsilon,
+    /// Compute the 12x12 tangent material stiffness matrix [Km] = d&sigma;/d&epsilon;,
     /// given actual internal data and deformation and curvature (if needed). If in
     /// plastic regime, uses elastoplastic matrix, otherwise uses elastic.
     /// This must be overridden by subclasses if an analytical solution is
@@ -422,7 +422,7 @@ class ChApi ChMaterialShellKirchhoff  {
                                                             ///< including {p_strain_e, p_strain_k, p_strain_acc}
     ); 
 
-    /// Compute the 6x6 tangent material stiffness matrix [Km] =d\sigma/d\epsilon
+    /// Compute the 6x6 tangent material stiffness matrix [Km] = d&sigma;/d&epsilon;
     /// at a given strain state, and at given internal data state (if mdata=nullptr,
     /// computes only the elastic tangent stiffenss, regardless of plasticity).
     virtual void ComputeStiffnessMatrix(

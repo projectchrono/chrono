@@ -92,7 +92,7 @@ ChLinkSpringCB : public ChLinkMarkers {
 
         /// Calculate and return the ODE right-hand side at the provided time and states.
         /// Must load f(t,y).
-        virtual void CalculateRHS(double time,
+        virtual void CalculateRHS(double time,                      ///< current time
                                   const ChVectorDynamic<>& states,  ///< current states
                                   ChVectorDynamic<>& rhs,           ///< output ODE right-hand side vector
                                   ChLinkSpringCB* link              ///< back-pointer to associated link

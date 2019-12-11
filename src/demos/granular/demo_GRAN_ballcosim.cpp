@@ -21,8 +21,8 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include "chrono/core/ChGlobal.h"
 #include "chrono_thirdparty/filesystem/path.h"
-#include "chrono/core/ChTimer.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChForce.h"
@@ -31,7 +31,7 @@
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_granular/physics/ChGranularTriMesh.h"
 #include "chrono/utils/ChUtilsCreators.h"
-
+#include "chrono_granular/api/ChApiGranularChrono.h"
 #include "chrono_granular/utils/ChGranularJsonParser.h"
 
 using namespace chrono;
@@ -43,7 +43,7 @@ using std::string;
 using std::vector;
 
 void ShowUsage() {
-    cout << "usage: ./metrics_GRAN_ballcosim <json_file>" << endl;
+    cout << "usage: ./demo_GRAN_ballcosim <json_file>" << endl;
 }
 
 void writeMeshFrames(std::ostringstream& outstream, ChBody& body, string obj_name, float mesh_scaling) {
@@ -85,10 +85,12 @@ int main(int argc, char* argv[]) {
 
     double iteration_step = params.step_size;
 
-    // Setup granular simulation
-    ChSystemGranularSMC_trimesh gran_sys(params.sphere_radius, params.sphere_density,
-                                         make_float3(params.box_X, params.box_Y, params.box_Z));
+	// to do: don't expose the guts of granular at this level; work through an API
+    // but for now get it going like this
+    ChGranularChronoTriMeshAPI apiSMC_TriMesh(params.sphere_radius, params.sphere_density,
+                                              make_float3(params.box_X, params.box_Y, params.box_Z));
 
+	ChSystemGranularSMC_trimesh& gran_sys = apiSMC_TriMesh.getGranSystemSMC_TriMesh();
     double fill_bottom = -params.box_Z / 2.0;
     double fill_top = params.box_Z / 4.0;
 
@@ -109,7 +111,7 @@ int main(int argc, char* argv[]) {
         center.z() += 2.05 * params.sphere_radius;
     }
 
-    gran_sys.setParticlePositions(body_points);
+    apiSMC_TriMesh.setElemsPositions(body_points);
 
     gran_sys.set_BD_Fixed(true);
     std::function<double3(float)> pos_func_wave = [&params](float t) {
@@ -154,7 +156,7 @@ int main(int argc, char* argv[]) {
     gran_sys.set_static_friction_coeff_SPH2WALL(params.static_friction_coeffS2W);
     gran_sys.set_static_friction_coeff_SPH2MESH(params.static_friction_coeffS2M);
 
-    string mesh_filename("data/granular/ballcosim/sphere.obj");
+    string mesh_filename(GetChronoDataFile("granular/ballcosim/sphere.obj"));
     vector<string> mesh_filenames(1, mesh_filename);
 
     vector<float3> mesh_translations(1, make_float3(0, 0, 0));
@@ -169,7 +171,7 @@ int main(int argc, char* argv[]) {
     vector<bool> mesh_inflated(1, false);
     vector<float> mesh_inflation_radii(1, 0);
 
-    gran_sys.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses, mesh_inflated,
+    apiSMC_TriMesh.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses, mesh_inflated,
                          mesh_inflation_radii);
 
     gran_sys.setOutputMode(params.write_mode);
