@@ -106,7 +106,7 @@ linux:doxygen:deploy:
     entrypoint: ["/usr/bin/bash", "-c"]
   stage: deploy
   before_script:
-    - pacman -Syyu --noconfirm base-devel git wget fish python python-pip doxygen graphviz openssh rsync
+    - pacman -Syyu --noconfirm base-devel git python python-pip doxygen graphviz openssh rsync clang
     - mkdir -p ~/.ssh
     - chmod 0700 ~/.ssh
 # This private key is only useable from specific IPs, so it should be okay to
