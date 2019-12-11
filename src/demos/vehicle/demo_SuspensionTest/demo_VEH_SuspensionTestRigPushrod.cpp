@@ -25,18 +25,10 @@
 // an interactive driver system (of type ChIrrGuiDriverSTR) or from a data file
 // (using a driver system of type ChDataDriverSTR).
 //
-// If data collection is enabled, an output file named 'output.dat' will be
-// generated in the directory specified by the variable out_dir. This ASCII file
-// contains one line per output time, each with the following information:
-//  [col 1]      time
-//  [col 2-4]    left input, left spindle z, left wheel travel
-//  [col 5-6]    left spring force, left shock force
-//  [col 7-9]    right input, right spindle z, right wheel travel
-//  [col 10-11]  right spring force, right shock force
+// See the description of ChSuspensionTestRigPushrod::PlotOutput for details
+// on data collected (if output is enabled).
 //
 // =============================================================================
-
-#include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
@@ -62,14 +54,14 @@ double step_size = 1e-3;
 //   'false': use JSON suspension test rig file
 bool use_vehicle_file = true;
 
-// JSON file for vehicle and axle index
+// JSON file for vehicle and axle index (axle_index=0: front axle, axle_index=1: rear axle)
 std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle.json");
 int axle_index = 0;
 double post_limit = 0.15;
 
 // JSON file for suspension test rig
-////std::string str_file("hmmwv/suspensionTest/HMMWV_ST_front.json");
-std::string str_file("hmmwv/suspensionTest/HMMWV_ST_rear.json");
+std::string str_file("hmmwv/suspensionTest/HMMWV_ST_front.json");
+////std::string str_file("hmmwv/suspensionTest/HMMWV_ST_rear.json");
 
 // Specification of test rig inputs:
 //   'true':  use driver inputs from file
@@ -77,7 +69,7 @@ std::string str_file("hmmwv/suspensionTest/HMMWV_ST_rear.json");
 bool use_data_driver = true;
 std::string driver_file("hmmwv/suspensionTest/ST_inputs.dat");
 
-// JSON files for tire models (rigid)
+// JSON files for tire models
 ////std::string tire_file("hmmwv/tire/HMMWV_RigidTire.json");
 ////std::string tire_file("hmmwv/tire/HMMWV_RigidMeshTire_Coarse.json");
 ////std::string tire_file("hmmwv/tire/HMMWV_Fiala_converted.json");
@@ -86,9 +78,9 @@ std::string tire_file("hmmwv/tire/HMMWV_TMeasyTire.json");
 ////std::string tire_file("hmmwv/tire/HMMWV_Pac89Tire.json");
 
 // Output collection
-bool collect_output = true;
+bool output = true;
 std::string out_dir = GetChronoOutputPath() + "SUSPENSION_TEST_RIG_PUSHROD";
-double out_step_size = 1.0 / 100;
+double out_step_size = 1e-2;
 
 // =============================================================================
 int main(int argc, char* argv[]) {
@@ -147,44 +139,29 @@ int main(int argc, char* argv[]) {
     app.AssetBindAll();
     app.AssetUpdateAll();
 
-    // Initialize output
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        std::cout << "Error creating directory " << out_dir << std::endl;
-        return 1;
+    // Set up rig output
+    if (output) {
+        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+            std::cout << "Error creating directory " << out_dir << std::endl;
+            return 1;
+        }
+        rig->SetSuspensionOutput(true);
+        rig->SetSteeringOutput(true);
+        rig->SetOutput(ChVehicleOutput::ASCII, out_dir, "output", out_step_size);
+        rig->SetPlotOutput(out_step_size);
     }
-    std::string out_file = out_dir + "/" + rig->GetSuspension()->GetTemplateName() + ".dat";
-    utils::CSV_writer out_csv(" ");
-
-    std::cout << "Rig mass: " << rig->GetMass() << std::endl;
 
     // ---------------
     // Simulation loop
     // ---------------
 
-    // Number of simulation steps between two data collection frames
-    int out_steps = (int)std::ceil(out_step_size / step_size);
-
-    // Initialize simulation frame counter
-    int step_number = 0;
+    std::cout << "Rig mass: " << rig->GetMass() << std::endl;
 
     while (app.GetDevice()->run()) {
         // Render scene
         app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         app.DrawAll();
         app.EndScene();
-
-        // Write output data
-        if (collect_output && driver->Started() && step_number % out_steps == 0) {
-            double time = rig->GetChTime();
-            auto frc_left = rig->ReportSuspensionForce(LEFT);
-            auto frc_right = rig->ReportSuspensionForce(RIGHT);
-            out_csv << time;
-            out_csv << rig->GetLeftInput() << rig->GetSpindlePos(LEFT).z() << rig->GetWheelTravel(LEFT);
-            out_csv << frc_left.spring_force << frc_left.shock_force;
-            out_csv << rig->GetRightInput() << rig->GetSpindlePos(RIGHT).z() << rig->GetWheelTravel(RIGHT);
-            out_csv << frc_right.spring_force << frc_right.shock_force;
-            out_csv << std::endl;
-        }
 
         // Advance simulation of the rig
         rig->Advance(step_size);
@@ -195,15 +172,10 @@ int main(int argc, char* argv[]) {
 
         if (driver->Ended())
             break;
-
-        // Increment frame number
-        step_number++;
     }
 
-    // Write output file
-    if (collect_output) {
-        out_csv.write_to_file(out_file);
-    }
+    // Write output file and plot (no-op if SetPlotOutput was not called)
+    rig->PlotOutput(out_dir, "output_plot");
 
     return 0;
 }

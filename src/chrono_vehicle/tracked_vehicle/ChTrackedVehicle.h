@@ -175,6 +175,7 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     void WriteContacts(const std::string& filename) { m_contacts->WriteContacts(filename); }
 
     /// Enable/disable output for the track assemblies.
+    /// See also ChVehicle::SetOuput.
     void SetTrackAssemblyOutput(VehicleSide side, bool state);
 
     /// Initialize this vehicle at the specified global location and orientation.
@@ -210,10 +211,10 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     /// These include bodies, shafts, joints, spring-damper elements, markers, etc.
     virtual void ExportComponentList(const std::string& filename) const override;
 
+  protected:
     /// Output data for all modeling components in the vehicle system.
     virtual void Output(int frame, ChVehicleOutput& database) const override;
 
-  protected:
     std::shared_ptr<ChTrackAssembly> m_tracks[2];  ///< track assemblies (left/right)
     std::shared_ptr<ChDrivelineTV> m_driveline;    ///< driveline subsystem
     std::shared_ptr<ChPowertrain> m_powertrain;    ///< associated powertrain system
