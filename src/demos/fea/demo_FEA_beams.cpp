@@ -20,8 +20,7 @@
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/timestepper/ChTimestepper.h"
-#include "chrono/solver/ChSolverPMINRES.h"
-#include "chrono/solver/ChSolverMINRES.h"
+#include "chrono/solver/ChIterativeSolverLS.h"
 
 #include "chrono/fea/ChElementBeamEuler.h"
 #include "chrono/fea/ChBuilderBeam.h"
@@ -207,39 +206,26 @@ int main(int argc, char* argv[]) {
 
     application.AssetUpdateAll();
 
-    //
-    // THE SOFT-REAL-TIME CYCLE
-    //
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
-    my_system.SetMaxItersSolverSpeed(460);
-    my_system.SetMaxItersSolverStab(460);
-    my_system.SetTolForce(1e-13);
+    // THE SIMULATION LOOP
 
-    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    msolver->SetVerbose(false);
-    msolver->SetDiagonalPreconditioning(true);
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    my_system.SetSolver(solver);
+    solver->SetMaxIterations(500);
+    solver->SetTolerance(1e-14);
+    solver->EnableDiagonalPreconditioner(true);
+    solver->EnableWarmStart(true);  // IMPORTANT for convergence when using EULER_IMPLICIT_LINEARIZED
+    solver->SetVerbose(false);
 
-    /*
-        // TEST: The Matlab external linear solver, for max precision in benchmarks
-    ChMatlabEngine matlab_engine;
-    auto matlab_solver = ats::make_shared<ChMatlabSolver>(matlab_engine);
-    my_system.SetSolver(matlab_solver);
-    my_system.Update();
-    application.SetPaused(true);
-    */
+    my_system.SetSolverForceTolerance(1e-13);
 
     // Change type of integrator:
-    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
-
-    // if later you want to change integrator settings:
-    if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper())) {
-        mystepper->SetAlpha(-0.2);
-        mystepper->SetMaxiters(6);
-        mystepper->SetAbsTolerances(1e-12);
-        mystepper->SetVerbose(true);
-        mystepper->SetStepControl(false);
-    }
+    ////auto stepper = chrono_types::make_shared<ChTimestepperHHT>();
+    ////my_system.SetTimestepper(stepper);
+    ////stepper->SetAlpha(-0.2);
+    ////stepper->SetMaxiters(6);
+    ////stepper->SetAbsTolerances(1e-12);
+    ////stepper->SetVerbose(true);
+    ////stepper->SetStepControl(false);
 
     my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
 

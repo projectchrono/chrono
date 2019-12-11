@@ -25,7 +25,6 @@
 #include <valarray>
 
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/physics/ChLinkLock.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
@@ -332,14 +331,6 @@ bool test_HHT(double step, int num_steps, const utils::Data& ref_data, double to
     std::shared_ptr<ChSystemNSC> system = model.GetSystem();
 
     std::cout << "HHT integrator *** " << model.GetJointType() << std::endl;
-
-    // Set solver and modify parameters.
-    ////system->SetMaxItersSolverSpeed(200);
-    ////system->SetMaxItersSolverStab(200);
-    ////system->SetTolForce(1e-5);
-
-    ////system->SetSolverType(ChSolver::Type::MINRES);
-    ////auto solver = std::static_pointer_cast<ChSolverMINRES>(system.GetSolver());
 
     // Set integrator and modify parameters.
     system->SetTimestepperType(ChTimestepper::Type::HHT);

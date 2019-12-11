@@ -47,10 +47,9 @@ int main(int argc, char* argv[]) {
     // Chrono system
     ChSystemNSC sys;
     sys.Set_G_acc(ChVector<>(0, 0, -9.81));
-    sys.SetMaxItersSolverSpeed(150);
-    sys.SetMaxItersSolverStab(150);
-    sys.SetMaxPenetrationRecoverySpeed(4.0);
     sys.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
+    sys.SetSolverMaxIterations(150);
+    sys.SetMaxPenetrationRecoverySpeed(4.0);
 
     // Create the terrain
     RigidTerrain terrain(&sys);

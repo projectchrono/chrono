@@ -33,7 +33,7 @@ class ChCustomCollisionCallbackP : public chrono::ChSystem::CustomCollisionCallb
 // Forward ref
 %import "ChAssembly.i"
 %import "ChTimestepper.i"
-%import "ChSolver.i"
+//%import "ChSolver.i"
 %import "ChCollisionModel.i"
 %import "ChCollisionInfo.i"
 

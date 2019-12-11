@@ -146,8 +146,7 @@ class ChApiIrr ChIrrTools {
                                  int my = 290,
                                  int sx = 300,
                                  int sy = 100,
-                                 double spfact = 100.0,
-                                 double posfact = 500.0);
+                                 double spfact = 100.0);
 
     /// --
     static void drawChFunction(irr::IrrlichtDevice* mdevice,

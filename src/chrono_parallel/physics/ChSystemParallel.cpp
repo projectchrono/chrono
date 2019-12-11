@@ -120,7 +120,7 @@ bool ChSystemParallel::Integrate_Y() {
     data_manager->system_timer.stop("collision");
 
     data_manager->system_timer.start("advance");
-    std::static_pointer_cast<ChIterativeSolverParallel>(solver_speed)->RunTimeStep();
+    std::static_pointer_cast<ChIterativeSolverParallel>(solver)->RunTimeStep();
     data_manager->system_timer.stop("advance");
 
     data_manager->system_timer.start("update");

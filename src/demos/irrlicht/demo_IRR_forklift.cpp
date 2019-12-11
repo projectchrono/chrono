@@ -482,9 +482,8 @@ int main(int argc, char* argv[]) {
     // SETTINGS
     //
 
-    my_system.SetMaxItersSolverSpeed(20);  // the higher, the easier to keep the constraints 'mounted'.
-
-    my_system.SetSolverType(ChSolver::Type::SOR);
+    my_system.SetSolverType(ChSolver::Type::PSOR);
+    my_system.SetSolverMaxIterations(20);  // the higher, the easier to keep the constraints satisfied.
 
     //
     // THE SOFT-REAL-TIME CYCLE, SHOWING THE SIMULATION

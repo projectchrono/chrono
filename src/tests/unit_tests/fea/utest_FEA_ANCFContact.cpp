@@ -28,7 +28,7 @@
 #include "chrono/physics/ChContactable.h"
 #include "chrono/physics/ChMaterialSurfaceSMC.h"
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/solver/ChSolverMINRES.h"
+#include "chrono/solver/ChIterativeSolverLS.h"
 
 #include "chrono/fea/ChElementShellANCF.h"
 #include "chrono/fea/ChMesh.h"
@@ -290,13 +290,16 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
 
     // ---------------
 
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    msolver->SetDiagonalPreconditioning(true);
-    my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
-    my_system.SetMaxItersSolverSpeed(100000);
-    my_system.SetMaxItersSolverStab(100);
-    my_system.SetTolForce(1e-6);
+    // Attention:  this test is not properly set up from a dynamics point of view, as it is only concerned with
+    // collision checks.  However, this means that the resulting system matrix has negative diagonal elements and this
+    // would result in a non-PD diagonal preconditioner which is not allowed with MINRES. For this reason, we use GMRES.
+    // Alternatively, we could use MINRES with *no* preconditioning.
+    auto solver = chrono_types::make_shared<ChSolverGMRES>();
+    my_system.SetSolver(solver);
+    solver->SetMaxIterations(200);
+    solver->SetTolerance(1e-10);
+    //solver->EnableDiagonalPreconditioner(false);
+    solver->SetVerbose(false);
 
     my_system.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());

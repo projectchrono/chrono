@@ -57,7 +57,6 @@ int main(int argc, char** argv) {
     system.Set_G_acc(ChVector<>(0, -9.81, 0));
 
     // Set number of threads
-    system.SetParallelThreadNumber(num_threads);
     CHOMPfunctions::SetNumThreads(num_threads);
     ////#pragma omp parallel
     ////#pragma omp master

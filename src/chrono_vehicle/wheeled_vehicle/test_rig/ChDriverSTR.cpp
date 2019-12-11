@@ -31,7 +31,15 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChDriverSTR::ChDriverSTR() : m_time(0), m_displLeft(0), m_displRight(0), m_steering(0), m_delay(0), m_log_filename("") {}
+ChDriverSTR::ChDriverSTR()
+    : m_time(0),
+      m_displLeft(0),
+      m_displRight(0),
+      m_displSpeedLeft(0),
+      m_displSpeedRight(0),
+      m_steering(0),
+      m_delay(0),
+      m_log_filename("") {}
 
 void ChDriverSTR::Synchronize(double time) {
     m_time = time;

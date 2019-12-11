@@ -30,8 +30,6 @@ ChSystemDescriptor::ChSystemDescriptor() : n_q(0), n_c(0), c_a(1.0), freeze_coun
     vvariables.clear();
     vstiffness.clear();
 
-    num_threads = CHOMPfunctions::GetNumProcs();
-
     spinlocktable = new ChSpinlock[CH_SPINLOCK_HASHSIZE];
 }
 
@@ -648,13 +646,6 @@ void ChSystemDescriptor::UnknownsProject(ChVectorDynamic<>& mx) {
             mx(vconstraints[ic]->GetOffset() + n_q) = -vconstraints[ic]->Get_l_i();
         }
     }
-}
-
-void ChSystemDescriptor::SetNumThreads(int nthreads) {
-    if (nthreads == num_threads)
-        return;
-
-    num_threads = nthreads;
 }
 
 }  // end namespace chrono

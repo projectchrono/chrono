@@ -20,7 +20,7 @@
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChLoadContainer.h"
 
-#include "chrono/solver/ChSolverMINRES.h"
+#include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/timestepper/ChTimestepperHHT.h"
 
 #include "chrono/fea/ChMesh.h"
@@ -158,7 +158,7 @@ int main(int argc, char* argv[]) {
     // note that by default all solid elements in the mesh will already
     // get gravitational force, if you want to bypass this automatic gravity, do:
     mesh->SetAutomaticGravity(false);
-#endif LOAD_3
+#endif
 
 #ifdef LOAD_4
     // Example 4:
@@ -461,16 +461,15 @@ int main(int argc, char* argv[]) {
 
     // -----------------------------------------------------------------
 
-    // Setup a MINRES solver. For FEA one cannot use the default SOR type solver.
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    my_system.SetSolverWarmStarting(true);
-    my_system.SetMaxItersSolverSpeed(200);
-    my_system.SetMaxItersSolverStab(200);
-    my_system.SetTolForce(1e-13);
+    // Setup a MINRES solver. For FEA one cannot use the default PSOR type solver.
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    my_system.SetSolver(solver);
+    solver->SetMaxIterations(200);
+    solver->SetTolerance(1e-15);
+    solver->EnableDiagonalPreconditioner(true);
+    solver->SetVerbose(false);
 
-    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    msolver->SetVerbose(false);
-    msolver->SetDiagonalPreconditioning(true);
+    my_system.SetSolverForceTolerance(1e-13);
 
     // Set integrator type
     my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);

@@ -93,13 +93,21 @@ void CityBus::Initialize() {
 
             auto tire_FL = chrono_types::make_shared<CityBus_RigidTire>("FL", use_mesh);
             auto tire_FR = chrono_types::make_shared<CityBus_RigidTire>("FR", use_mesh);
-            auto tire_RL = chrono_types::make_shared<CityBus_RigidTire>("RL", use_mesh);
-            auto tire_RR = chrono_types::make_shared<CityBus_RigidTire>("RR", use_mesh);
+
+            auto tire_RLi = chrono_types::make_shared<CityBus_RigidTire>("RLi", use_mesh);
+            auto tire_RRi = chrono_types::make_shared<CityBus_RigidTire>("RRi", use_mesh);
+
+            auto tire_RLo = chrono_types::make_shared<CityBus_RigidTire>("RLo", use_mesh);
+            auto tire_RRo = chrono_types::make_shared<CityBus_RigidTire>("RRo", use_mesh);
 
             m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
+
+            m_vehicle->InitializeTire(tire_RLi, m_vehicle->GetAxle(1)->GetWheel(LEFT, INNER), VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_RRi, m_vehicle->GetAxle(1)->GetWheel(RIGHT, INNER), VisualizationType::NONE);
+
+            m_vehicle->InitializeTire(tire_RLo, m_vehicle->GetAxle(1)->GetWheel(LEFT, OUTER), VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_RRo, m_vehicle->GetAxle(1)->GetWheel(RIGHT, OUTER), VisualizationType::NONE);
 
             m_tire_mass = tire_FL->ReportMass();
 
@@ -109,13 +117,21 @@ void CityBus::Initialize() {
         case TireModelType::TMEASY: {
             auto tire_FL = chrono_types::make_shared<CityBus_TMeasyTire>("FL");
             auto tire_FR = chrono_types::make_shared<CityBus_TMeasyTire>("FR");
-            auto tire_RL = chrono_types::make_shared<CityBus_TMeasyTire>("RL");
-            auto tire_RR = chrono_types::make_shared<CityBus_TMeasyTire>("RR");
+
+            auto tire_RLi = chrono_types::make_shared<CityBus_TMeasyTire>("RLi");
+            auto tire_RRi = chrono_types::make_shared<CityBus_TMeasyTire>("RRi");
+
+            auto tire_RLo = chrono_types::make_shared<CityBus_TMeasyTire>("RLo");
+            auto tire_RRo = chrono_types::make_shared<CityBus_TMeasyTire>("RRo");
 
             m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
+
+            m_vehicle->InitializeTire(tire_RLi, m_vehicle->GetAxle(1)->GetWheel(LEFT, INNER), VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_RRi, m_vehicle->GetAxle(1)->GetWheel(RIGHT, INNER), VisualizationType::NONE);
+
+            m_vehicle->InitializeTire(tire_RLo, m_vehicle->GetAxle(1)->GetWheel(LEFT, OUTER), VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_RRo, m_vehicle->GetAxle(1)->GetWheel(RIGHT, OUTER), VisualizationType::NONE);
 
             m_tire_mass = tire_FL->ReportMass();
 
@@ -125,13 +141,21 @@ void CityBus::Initialize() {
         case TireModelType::PAC02: {
             auto tire_FL = chrono_types::make_shared<CityBus_Pac02Tire>("FL");
             auto tire_FR = chrono_types::make_shared<CityBus_Pac02Tire>("FR");
-            auto tire_RL = chrono_types::make_shared<CityBus_Pac02Tire>("RL");
-            auto tire_RR = chrono_types::make_shared<CityBus_Pac02Tire>("RR");
+
+            auto tire_RLi = chrono_types::make_shared<CityBus_Pac02Tire>("RLi");
+            auto tire_RRi = chrono_types::make_shared<CityBus_Pac02Tire>("RRi");
+
+            auto tire_RLo = chrono_types::make_shared<CityBus_Pac02Tire>("RLo");
+            auto tire_RRo = chrono_types::make_shared<CityBus_Pac02Tire>("RRo");
 
             m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
+
+            m_vehicle->InitializeTire(tire_RLi, m_vehicle->GetAxle(1)->GetWheel(LEFT, INNER), VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_RRi, m_vehicle->GetAxle(1)->GetWheel(RIGHT, INNER), VisualizationType::NONE);
+
+            m_vehicle->InitializeTire(tire_RLo, m_vehicle->GetAxle(1)->GetWheel(LEFT, OUTER), VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_RRo, m_vehicle->GetAxle(1)->GetWheel(RIGHT, OUTER), VisualizationType::NONE);
 
             m_tire_mass = tire_FL->ReportMass();
 

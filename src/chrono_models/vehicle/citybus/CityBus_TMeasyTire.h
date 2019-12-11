@@ -29,7 +29,7 @@ namespace chrono {
 namespace vehicle {
 namespace citybus {
 
-/// @addtogroup vehicle_models_wvp
+/// @addtogroup vehicle_models_citybus
 /// @{
 
 /// TMeasy tire model for the WVP vehicle.

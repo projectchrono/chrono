@@ -703,7 +703,7 @@ void ChIterativeSolverParallelSMC::RunTimeStep() {
         AtIterationEnd(data_manager->measures.solver.maxd_hist[i], data_manager->measures.solver.maxdeltalambda_hist[i],
                        i);
     }
-    tot_iterations = (int)data_manager->measures.solver.maxd_hist.size();
+    m_iterations = (int)data_manager->measures.solver.maxd_hist.size();
 }
 
 void ChIterativeSolverParallelSMC::ComputeImpulses() {

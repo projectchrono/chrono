@@ -19,7 +19,7 @@
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/solver/ChSolverMINRES.h"
+#include "chrono/solver/ChIterativeSolverLS.h"
 
 #include "chrono/fea/ChElementBar.h"
 #include "chrono/fea/ChElementBeamEuler.h"
@@ -390,16 +390,14 @@ void test_1() {
 
     ///////////////////////////////////////
 
-    // Setup a MINRES solver. For FEA one cannot use the default SOR type solver.
+    // Setup a MINRES solver. For FEA one cannot use the default PSOR type solver.
 
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    my_system.SetSolverWarmStarting(true);
-    my_system.SetMaxItersSolverSpeed(100);
-    my_system.SetMaxItersSolverStab(100);
-    my_system.SetTolForce(1e-13);
-    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    msolver->SetVerbose(false);
-    msolver->SetDiagonalPreconditioning(true);
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    my_system.SetSolver(solver);
+    solver->SetMaxIterations(100);
+    solver->SetTolerance(1e-10);
+    solver->EnableDiagonalPreconditioner(true);
+    solver->SetVerbose(true);
 
     // Perform a static analysis:
     my_system.DoStaticLinear();

@@ -18,7 +18,6 @@
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChContactContainerSMC.h"
-#include "chrono/solver/ChSolverSMC.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"

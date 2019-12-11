@@ -24,9 +24,9 @@
 using namespace chrono;
 
 ChIterativeSolverParallel::ChIterativeSolverParallel(ChParallelDataManager* dc) : data_manager(dc) {
-    tolerance = 1e-7;
+    m_tolerance = 1e-7;
     record_violation_history = true;
-    warm_start = false;
+    m_warm_start = false;
     solver = new ChSolverParallelAPGD();
     bilateral_solver = new ChSolverParallelMinRes();
     data_manager->rigid_rigid = new ChConstraintRigidRigid();
@@ -262,6 +262,6 @@ void ChIterativeSolverParallel::PerformStabilization() {
     data_manager->system_timer.stop("ChIterativeSolverParallel_Stab");
 }
 
-real ChIterativeSolverParallel::GetResidual() {
+real ChIterativeSolverParallel::GetResidual() const {
     return data_manager->measures.solver.maxd_hist.size() > 0 ? data_manager->measures.solver.maxd_hist.back() : 0.0;
 }

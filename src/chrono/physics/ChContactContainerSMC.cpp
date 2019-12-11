@@ -173,8 +173,8 @@ void _OptimalContactInsert(std::list<Tcont*>& contactlist,
                            Titer& lastcontact,
                            int& n_added,
                            ChContactContainer* mcontainer,
-                           Ta* objA,  ///< collidable object A
-                           Tb* objB,  ///< collidable object B
+                           Ta* objA,  // collidable object A
+                           Tb* objB,  // collidable object B
                            const collision::ChCollisionInfo& cinfo) {
     if (lastcontact != contactlist.end()) {
         // reuse old contacts

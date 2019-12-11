@@ -24,17 +24,18 @@
 #define _USE_MATH_DEFINES
 #endif
 #include <cmath>
-#include "chrono_granular/ChApiGranular.h"
+#include "chrono_granular/api/ChApiGranular.h"
 #include "chrono_granular/ChGranularDefines.h"
 #include "chrono_granular/physics/ChGranularBoundaryConditions.h"
 #include "ChGranularCUDAalloc.hpp"
 
 typedef unsigned char not_stupid_bool;
 
-/// @addtogroup granular_physics
-/// @{
 namespace chrono {
 namespace granular {
+
+/// @addtogroup granular_physics
+/// @{
 
 /// Used to compute position as a function of time
 typedef std::function<double3(float)> GranPositionFunction;
@@ -254,6 +255,9 @@ struct ChGranParams {
     /// Used as a safety check to determine whether a system has lost stability
     float max_safe_vel = (float)UINT_MAX;
 };
+
+/// @} granular_physics
+
 }  // namespace granular
 }  // namespace chrono
 
@@ -262,8 +266,12 @@ struct ChGranParams {
 typedef const chrono::granular::ChGranParams* GranParamsPtr;
 /// Get handle for the sphere data that skips namespacing and enforces const-ness
 typedef const chrono::granular::ChGranSphereData* GranSphereDataPtr;
+
 namespace chrono {
 namespace granular {
+
+/// @addtogroup granular_physics
+/// @{
 
 /**
  * \brief Main Chrono::Granular system class used to control and dispatch the GPU
@@ -782,7 +790,7 @@ class CH_GRANULAR_API ChSystemGranularSMC {
     bool BD_is_fixed = true;
 };
 
+/// @} granular_physics
+
 }  // namespace granular
 }  // namespace chrono
-
-/// @} granular_physics

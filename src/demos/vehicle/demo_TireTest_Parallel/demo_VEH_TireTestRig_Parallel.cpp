@@ -47,7 +47,6 @@ int main() {
     int max_threads = CHOMPfunctions::GetNumProcs();
     if (threads > max_threads)
         threads = max_threads;
-    system.SetParallelThreadNumber(threads);
     CHOMPfunctions::SetNumThreads(threads);
 #pragma omp parallel
 #pragma omp master

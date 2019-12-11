@@ -47,10 +47,6 @@
 
 %{
 #include "chrono/solver/ChSolver.h"
-#include "chrono/solver/ChSolverDirect.h"
-#include "chrono/solver/ChIterativeSolver.h"
-#include "chrono/solver/ChSolverMINRES.h"
-
 #include "chrono_postprocess/ChPostProcessBase.h"
 #include "chrono_postprocess/ChPovRay.h"
 #include "chrono_postprocess/ChPovRayAssetCustom.h"

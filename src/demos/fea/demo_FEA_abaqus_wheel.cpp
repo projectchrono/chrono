@@ -22,7 +22,6 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLoaderUV.h"
 #include "chrono/physics/ChLoadContainer.h"
-#include "chrono/solver/ChSolverMINRES.h"
 
 #include "chrono/fea/ChElementTetra_4.h"
 #include "chrono/fea/ChMesh.h"
@@ -280,18 +279,12 @@ int main(int argc, char* argv[]) {
     application.AddShadowAll();
 
     //
-    // THE SOFT-REAL-TIME CYCLE
+    // SIMULATION LOOP
     //
 
-    // Change solver to embedded MINRES
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
-    my_system.SetMaxItersSolverSpeed(40);
-    my_system.SetTolForce(1e-10);
-
-    // Change solver to pluggable MKL
+    // Change solver to Pardiso from Chrono::MKL
     auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
-	mkl_solver->LockSparsityPattern(true);
+    mkl_solver->LockSparsityPattern(true);
     my_system.SetSolver(mkl_solver);
     my_system.Update();
 
@@ -300,7 +293,6 @@ int main(int argc, char* argv[]) {
     // my_system.SetTimestepperType(chrono::ChTimestepper::Type::HHT);  // precise,slower, might iterate each step
 
     // if later you want to change integrator settings:
-
     if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper())) {
         mystepper->SetAlpha(-0.2);
         mystepper->SetMaxiters(2);
@@ -311,11 +303,8 @@ int main(int argc, char* argv[]) {
 
     while (application.GetDevice()->run()) {
         application.BeginScene();
-
         application.DrawAll();
-
         application.DoStep();
-
         application.EndScene();
     }
 

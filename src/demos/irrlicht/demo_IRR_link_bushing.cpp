@@ -21,11 +21,13 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
-#include "chrono_irrlicht/ChIrrApp.h"
 #include "chrono/physics/ChLinkBushing.h"
 #include "chrono/physics/ChLinkForce.h"
 #include "chrono/physics/ChLoadsBody.h"
 #include "chrono/physics/ChLoadContainer.h"
+#include "chrono/solver/ChIterativeSolverLS.h"
+
+#include "chrono_irrlicht/ChIrrApp.h"
 
 using namespace chrono;
 using namespace chrono::irrlicht;
@@ -172,14 +174,28 @@ int main(int argc, char* argv[]) {
 
     application.SetPlotCOGFrames(true);
 
-    // Change some solver settings;
-    application.SetTimestep(0.001);
-    system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED); 
-    //system.SetSolverType(ChSolver::Type::BARZILAIBORWEIN); // does NOT support stiffness matrices, so explicit integration holds for stiff bushings 
-    system.SetSolverType(ChSolver::Type::MINRES); // supports stiffness matrices, so implicit integration holds for stiff bushings 
-    system.SetMaxItersSolverSpeed(200);
-    //system.SetTolForce(1e-12);
-    
+    // Change some solver settings
+
+    // Barzilai-Borwein does not support stiffness matrics => explicit integration for stiff bushings
+    // system.SetSolverType(ChSolver::Type::BARZILAIBORWEIN); // does NOT support stiffness matrices, so explicit
+    // integration holds for stiff bushings
+
+    // MINRES (or GMRES) support stiffness matrices => implicit integration of the stiff bushings
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    system.SetSolver(solver);
+    solver->SetMaxIterations(200);
+    solver->SetTolerance(1e-10);
+    solver->EnableDiagonalPreconditioner(true);
+    solver->EnableWarmStart(true);  // IMPORTANT for convergence when using EULER_IMPLICIT_LINEARIZED
+    solver->SetVerbose(false);
+
+    // system.SetSolverForceTolerance(1e-12);
+
+    system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
+
+    application.SetTimestep(1e-4);
+
+    // Simulation loop
     while (application.GetDevice()->run()) {
         application.BeginScene();
         application.DrawAll();

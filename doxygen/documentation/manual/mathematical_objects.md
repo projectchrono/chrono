@@ -3,7 +3,7 @@ Mathematical objects in Chrono        {#mathematical_objects}
 ==============================
 
 This documentation component focuses on Chrono mathematical functions and classes. 
-These concepts are quite ubiquitous in the rest of the Chrono API and they are discussed also in the @ref chrono::ChMatrix API documentation.
+These concepts are quite ubiquitous in the rest of the Chrono API and they are discussed also in the @ref chrono_linalg API documentation.
 
 \tableofcontents
 
@@ -27,7 +27,7 @@ a_{n_{rows}-1,0} & ... & ... & a_{n_{rows}-1,n_{cols}-1}
 \right]
 \f]
 
-There are many specializations of ChMatrix and some of their basic features are outlined next.
+There are many matrix and vector specializations and some of their basic features are outlined next.
 
 
 ##ChMatrixDynamic##
@@ -53,7 +53,7 @@ See @ref chrono::ChMatrixNM for API details.
 
 ##ChMatrix33##
 
-Use ChMatrix33<> to create 3x3 matrices, which are mostly used for coordinate transformations.
+Use @ref chrono::ChMatrix33<> to create 3x3 matrices, which are mostly used for coordinate transformations.
 It inherits the same high-performance features of ChMatrixNM<> and offers additional dedicated functions for coordinate and rotation operations.
 
 ~~~{.cpp}

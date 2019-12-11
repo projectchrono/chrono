@@ -60,7 +60,7 @@ my_system.SetSolver(mumps_solver);
 ~~~
 
 
-- (Optional) Turn on the sparsity pattern lock (see @ref chrono::ChSolverMumps and @ref chrono::ChSolverDirect for further details)
+- (Optional) Turn on the sparsity pattern lock (see @ref chrono::ChSolverMumps and @ref chrono::ChDirectSolverLS for further details)
 ~~~{.cpp}
 auto mumps_solver = std::make_shared<ChSolverMumps>();
 mumps_solver->SetSparsityPatternLock(true);
@@ -68,7 +68,7 @@ my_system.SetSolver(mumps_solver);
 ~~~
 
 
-- By default, this solver uses the sparsity pattern learner (see @ref chrono::ChSolverDirect) to infer the sparsity pattern before actually loading the non-zero elements.  To disable the use of the sparsity pattern learner, call 
+- By default, this solver uses the sparsity pattern learner (see @ref chrono::ChDirectSolverLS) to infer the sparsity pattern before actually loading the non-zero elements.  To disable the use of the sparsity pattern learner, call 
 ~~~{.cpp}
 mumps_solver->UseSparsityPatternLearner(false);
 ~~~

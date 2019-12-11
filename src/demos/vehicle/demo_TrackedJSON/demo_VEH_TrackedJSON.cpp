@@ -26,6 +26,7 @@
 #include "chrono/core/ChStream.h"
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/physics/ChLinkDistance.h"
+#include "chrono/solver/ChSolverPSOR.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
@@ -122,14 +123,14 @@ int main(int argc, char* argv[]) {
     ////vehicle.SetChassisVehicleCollide(false);
 
     // Solver settings.
-    vehicle.GetSystem()->SetSolverType(ChSolver::Type::SOR);
-    vehicle.GetSystem()->SetMaxItersSolverSpeed(50);
-    vehicle.GetSystem()->SetMaxItersSolverStab(50);
-    vehicle.GetSystem()->SetTol(0);
+    auto solver = chrono_types::make_shared<ChSolverPSOR>();
+    solver->SetMaxIterations(50);
+    solver->SetOmega(0.8);
+    solver->SetSharpnessLambda(1.0);
+    vehicle.GetSystem()->SetSolver(solver);
+
     vehicle.GetSystem()->SetMaxPenetrationRecoverySpeed(1.5);
     vehicle.GetSystem()->SetMinBounceSpeed(2.0);
-    vehicle.GetSystem()->SetSolverOverrelaxationParam(0.8);
-    vehicle.GetSystem()->SetSolverSharpnessParam(1.0);
 
     // Create the ground
     RigidTerrain terrain(vehicle.GetSystem(), vehicle::GetDataFile(rigidterrain_file));

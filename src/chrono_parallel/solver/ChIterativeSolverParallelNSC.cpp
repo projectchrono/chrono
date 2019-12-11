@@ -190,14 +190,14 @@ void ChIterativeSolverParallelNSC::RunTimeStep() {
         AtIterationEnd(data_manager->measures.solver.maxd_hist[i], data_manager->measures.solver.maxdeltalambda_hist[i],
                        i);
     }
-    tot_iterations = (int)data_manager->measures.solver.maxd_hist.size();
+    m_iterations = (int)data_manager->measures.solver.maxd_hist.size();
 
     LOG(TRACE) << "ChIterativeSolverParallelNSC::RunTimeStep E solve: "
                << data_manager->system_timer.GetTime("ChIterativeSolverParallel_Solve")
                << " shur: " << data_manager->system_timer.GetTime("ShurProduct")
                //<< " residual: " << data_manager->measures.solver.residual
                //<< " objective: " << data_manager->measures.solver.maxdeltalambda_hist.back()
-               << " iterations: " << tot_iterations;
+               << " iterations: " << m_iterations;
 }
 
 void ChIterativeSolverParallelNSC::ComputeD() {

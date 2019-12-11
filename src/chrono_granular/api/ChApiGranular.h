@@ -58,12 +58,12 @@
     analytical boundary conditions and triangle meshes.
 
     For additional information, see:
-    -- the [installation guide](@ref module_granular_installation)
-    -- the [tutorials](@ref tutorial_root)
+    - the [installation guide](@ref module_granular_installation)
+    - the [tutorials](@ref tutorial_root)
 
 
     @{
-        @defgroup granular_physics Granular Physics objects
+        @defgroup granular_physics Granular physics objects
         @defgroup granular_solver Granular solver infrastructure
     @}
 */

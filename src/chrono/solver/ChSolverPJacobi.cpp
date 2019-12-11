@@ -12,24 +12,25 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/solver/ChSolverSOR.h"
+#include "chrono/solver/ChSolverPJacobi.h"
 #include "chrono/core/ChMathematics.h"
 
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChSolverSOR)
+CH_FACTORY_REGISTER(ChSolverPJacobi)
 
-ChSolverSOR::ChSolverSOR(int mmax_iters, bool mwarm_start, double mtolerance, double momega)
-    : ChIterativeSolver(mmax_iters, mwarm_start, mtolerance, momega) {}
+ChSolverPJacobi::ChSolverPJacobi() : maxviolation(0) {
+    m_omega = 0.2;
+}
 
-double ChSolverSOR::Solve(ChSystemDescriptor& sysd) {
+double ChSolverPJacobi::Solve(ChSystemDescriptor& sysd) {
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
     std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
 
-    tot_iterations = 0;
-    double maxviolation = 0.;
-    double maxdeltalambda = 0.;
+    m_iterations = 0;
+    maxviolation = 0;
+    double maxdeltalambda = 0;
     int i_friction_comp = 0;
     double old_lambda_friction[3];
 
@@ -59,18 +60,14 @@ double ChSolverSOR::Solve(ChSystemDescriptor& sysd) {
     // 2)  Compute, for all items with variables, the initial guess for
     //     still unconstrained system:
 
-    for (unsigned int iv = 0; iv < mvariables.size(); iv++) {
+    for (unsigned int iv = 0; iv < mvariables.size(); iv++)
         if (mvariables[iv]->IsActive())
             mvariables[iv]->Compute_invMb_v(mvariables[iv]->Get_qb(), mvariables[iv]->Get_fb());  // q = [M]'*fb
-    }
 
     // 3)  For all items with variables, add the effect of initial (guessed)
     //     lagrangian reactions of constraints, if a warm start is desired.
     //     Otherwise, if no warm start, simply resets initial lagrangians to zero.
-    if (warm_start) {
-        for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
-            if (mconstraints[ic]->IsActive())
-                mconstraints[ic]->Increment_q(mconstraints[ic]->Get_l_i());
+    if (m_warm_start) {
     } else {
         for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
             mconstraints[ic]->Set_l_i(0.);
@@ -79,13 +76,15 @@ double ChSolverSOR::Solve(ChSystemDescriptor& sysd) {
     // 4)  Perform the iteration loops
     //
 
-    for (int iter = 0; iter < max_iterations; iter++) {
+    std::vector<double> delta_gammas;
+    delta_gammas.resize(mconstraints.size());
+
+    for (int iter = 0; iter < m_max_iterations; iter++) {
         // The iteration on all constraints
         //
 
         maxviolation = 0;
         maxdeltalambda = 0;
-        i_friction_comp = 0;
 
         for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
             // skip computations if constraint not active.
@@ -98,7 +97,7 @@ double ChSolverSOR::Solve(ChSystemDescriptor& sysd) {
                 double candidate_violation = fabs(mconstraints[ic]->Violation(mresidual));
 
                 // compute:  delta_lambda = -(omega/g_i) * ([Cq_i]*q + b_i + cfm_i*l_i )
-                double deltal = (omega / mconstraints[ic]->Get_g_i()) * (-mresidual);
+                double deltal = (m_omega / mconstraints[ic]->Get_g_i()) * (-mresidual);
 
                 if (mconstraints[ic]->GetMode() == CONSTRAINT_FRIC) {
                     candidate_violation = 0;
@@ -117,25 +116,24 @@ double ChSolverSOR::Solve(ChSystemDescriptor& sysd) {
                         double new_lambda_1 = mconstraints[ic - 1]->Get_l_i();
                         double new_lambda_2 = mconstraints[ic - 0]->Get_l_i();
                         // Apply the smoothing: lambda= sharpness*lambda_new_projected + (1-sharpness)*lambda_old
-                        if (this->shlambda != 1.0) {
-                            new_lambda_0 = shlambda * new_lambda_0 + (1.0 - shlambda) * old_lambda_friction[0];
-                            new_lambda_1 = shlambda * new_lambda_1 + (1.0 - shlambda) * old_lambda_friction[1];
-                            new_lambda_2 = shlambda * new_lambda_2 + (1.0 - shlambda) * old_lambda_friction[2];
+                        if (m_shlambda != 1.0) {
+                            new_lambda_0 = m_shlambda * new_lambda_0 + (1.0 - m_shlambda) * old_lambda_friction[0];
+                            new_lambda_1 = m_shlambda * new_lambda_1 + (1.0 - m_shlambda) * old_lambda_friction[1];
+                            new_lambda_2 = m_shlambda * new_lambda_2 + (1.0 - m_shlambda) * old_lambda_friction[2];
                             mconstraints[ic - 2]->Set_l_i(new_lambda_0);
                             mconstraints[ic - 1]->Set_l_i(new_lambda_1);
                             mconstraints[ic - 0]->Set_l_i(new_lambda_2);
                         }
-                        double true_delta_0 = new_lambda_0 - old_lambda_friction[0];
-                        double true_delta_1 = new_lambda_1 - old_lambda_friction[1];
-                        double true_delta_2 = new_lambda_2 - old_lambda_friction[2];
-                        mconstraints[ic - 2]->Increment_q(true_delta_0);
-                        mconstraints[ic - 1]->Increment_q(true_delta_1);
-                        mconstraints[ic - 0]->Increment_q(true_delta_2);
+                        delta_gammas[ic - 2] = new_lambda_0 - old_lambda_friction[0];
+                        delta_gammas[ic - 1] = new_lambda_1 - old_lambda_friction[1];
+                        delta_gammas[ic - 0] = new_lambda_2 - old_lambda_friction[2];
+                        // Now do NOT update the primal variables , posticipate
+                        // mconstraints[xx]->Increment_q(true_delta_xx);
 
                         if (this->record_violation_history) {
-                            maxdeltalambda = ChMax(maxdeltalambda, fabs(true_delta_0));
-                            maxdeltalambda = ChMax(maxdeltalambda, fabs(true_delta_1));
-                            maxdeltalambda = ChMax(maxdeltalambda, fabs(true_delta_2));
+                            maxdeltalambda = ChMax(maxdeltalambda, fabs(delta_gammas[ic - 2]));
+                            maxdeltalambda = ChMax(maxdeltalambda, fabs(delta_gammas[ic - 1]));
+                            maxdeltalambda = ChMax(maxdeltalambda, fabs(delta_gammas[ic - 0]));
                         }
                         i_friction_comp = 0;
                     }
@@ -152,37 +150,39 @@ double ChSolverSOR::Solve(ChSystemDescriptor& sysd) {
                     double new_lambda = mconstraints[ic]->Get_l_i();
 
                     // Apply the smoothing: lambda= sharpness*lambda_new_projected + (1-sharpness)*lambda_old
-                    if (this->shlambda != 1.0) {
-                        new_lambda = shlambda * new_lambda + (1.0 - shlambda) * old_lambda;
+                    if (m_shlambda != 1.0) {
+                        new_lambda = m_shlambda * new_lambda + (1.0 - m_shlambda) * old_lambda;
                         mconstraints[ic]->Set_l_i(new_lambda);
                     }
 
-                    double true_delta = new_lambda - old_lambda;
-
-                    // For all items with variables, add the effect of incremented
-                    // (and projected) lagrangian reactions:
-                    mconstraints[ic]->Increment_q(true_delta);
+                    // Now do NOT update the primal variables , posticipate
+                    // mconstraints[ic]->Increment_q(true_delta_xx);
+                    delta_gammas[ic] = new_lambda - old_lambda;
 
                     if (this->record_violation_history)
-                        maxdeltalambda = ChMax(maxdeltalambda, fabs(true_delta));
+                        maxdeltalambda = ChMax(maxdeltalambda, fabs(delta_gammas[ic]));
                 }
 
                 maxviolation = ChMax(maxviolation, fabs(candidate_violation));
+            }
+        }
 
-            }  // end IsActive()
-
-        }  // end loop on constraints
+        // Now, after all deltas are updated, sweep through all constraints and increment  q += [invM][Cq]'* delta_l
+        for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
+            if (mconstraints[ic]->IsActive())
+                mconstraints[ic]->Increment_q(delta_gammas[ic]);
+        }
 
         // For recording into violation history, if debugging
         if (this->record_violation_history)
             AtIterationEnd(maxviolation, maxdeltalambda, iter);
 
-        tot_iterations++;
-        // Terminate the loop if violation in constraints has been successfully limited.
-        if (maxviolation < tolerance)
-            break;
+        m_iterations++;
 
-    }  // end iteration loop
+        // Terminate the loop if violation in constraints has been successfully limited.
+        if (maxviolation < m_tolerance)
+            break;
+    }
 
     return maxviolation;
 }
