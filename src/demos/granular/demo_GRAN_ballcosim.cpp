@@ -28,10 +28,10 @@
 #include "chrono/physics/ChForce.h"
 #include "chrono/utils/ChUtilsSamplers.h"
 #include "chrono/timestepper/ChTimestepper.h"
+#include "chrono_granular/api/ChApiGranularChrono.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_granular/physics/ChGranularTriMesh.h"
 #include "chrono/utils/ChUtilsCreators.h"
-#include "chrono_granular/api/ChApiGranularChrono.h"
 #include "chrono_granular/utils/ChGranularJsonParser.h"
 
 using namespace chrono;
@@ -85,12 +85,12 @@ int main(int argc, char* argv[]) {
 
     double iteration_step = params.step_size;
 
-	// to do: don't expose the guts of granular at this level; work through an API
+    // to do: don't expose the guts of granular at this level; work through an API
     // but for now get it going like this
     ChGranularChronoTriMeshAPI apiSMC_TriMesh(params.sphere_radius, params.sphere_density,
                                               make_float3(params.box_X, params.box_Y, params.box_Z));
 
-	ChSystemGranularSMC_trimesh& gran_sys = apiSMC_TriMesh.getGranSystemSMC_TriMesh();
+    ChSystemGranularSMC_trimesh& gran_sys = apiSMC_TriMesh.getGranSystemSMC_TriMesh();
     double fill_bottom = -params.box_Z / 2.0;
     double fill_top = params.box_Z / 4.0;
 
@@ -172,7 +172,7 @@ int main(int argc, char* argv[]) {
     vector<float> mesh_inflation_radii(1, 0);
 
     apiSMC_TriMesh.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses, mesh_inflated,
-                         mesh_inflation_radii);
+                               mesh_inflation_radii);
 
     gran_sys.setOutputMode(params.write_mode);
     gran_sys.setVerbose(params.verbose);

@@ -17,6 +17,7 @@
 #include <iostream>
 #include <string>
 #include "chrono_thirdparty/filesystem/path.h"
+#include "chrono_granular/api/ChApiGranularChrono.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_granular/utils/ChGranularJsonParser.h"
 #include "ChGranularDemoUtils.hpp"
@@ -179,7 +180,9 @@ int main(int argc, char* argv[]) {
     std::vector<ChVector<float>> body_points_first;
     body_points_first.push_back(body_points[0]);
 
-    gran_sys.setParticlePositions(body_points);
+    ChGranularSMC_API apiSMC;
+    apiSMC.setGranSystem(&gran_sys);
+    apiSMC.setElemsPositions(body_points);
 
     float sphere_mass =
         (4.f / 3.f) * params.sphere_density * params.sphere_radius * params.sphere_radius * params.sphere_radius;

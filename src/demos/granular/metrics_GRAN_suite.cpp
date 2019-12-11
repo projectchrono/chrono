@@ -19,6 +19,7 @@
 #include <string>
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono/core/ChTimer.h"
+#include "chrono_granular/api/ChApiGranularChrono.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_thirdparty/SimpleOpt/SimpleOpt.h"
 #include "chrono/utils/ChUtilsSamplers.h"
@@ -77,7 +78,9 @@ void setupBasicSystem(ChSystemGranularSMC& gran_sys, float3 box_size) {
     ChVector<float> center(0, 0, -.25 * box_size.z);
     ChVector<float> hdims(box_size.x / 2 - ballRadius, box_size.y / 2 - ballRadius, box_size.z / 4 - ballRadius);
     std::vector<ChVector<float>> body_points = sampler.SampleBox(center, hdims);
-    gran_sys.setParticlePositions(body_points);
+    ChGranularSMC_API apiSMC;
+    apiSMC.setGranSystem(&gran_sys);
+    apiSMC.setElemsPositions(body_points);
 
     gran_sys.set_BD_Fixed(true);
     gran_sys.setVerbose(GRAN_VERBOSITY::INFO);

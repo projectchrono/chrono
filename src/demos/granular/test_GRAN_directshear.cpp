@@ -24,6 +24,7 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono/utils/ChUtilsSamplers.h"
+#include "chrono_granular/api/ChApiGranularChrono.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_granular/physics/ChGranularTriMesh.h"
 #include "chrono/utils/ChUtilsSamplers.h"
@@ -73,31 +74,33 @@ void ShowUsage() {
     cout << "usage: ./test_GRAN_bulkcompress <json_file> <normal_stress_index>" << endl;
 }
 
-void SetupGranSystem(ChSystemGranularSMC_trimesh& m_sys, sim_param_holder& params) {
-    m_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
-    m_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
-    m_sys.set_K_n_SPH2MESH(params.normalStiffS2M);
-    m_sys.set_K_t_SPH2SPH(params.tangentStiffS2S);
-    m_sys.set_K_t_SPH2WALL(params.tangentStiffS2W);
-    m_sys.set_K_t_SPH2MESH(params.tangentStiffS2M);
-    m_sys.set_Gamma_n_SPH2SPH(params.normalDampS2S);
-    m_sys.set_Gamma_n_SPH2WALL(params.normalDampS2W);
-    m_sys.set_Gamma_n_SPH2MESH(params.normalDampS2M);
-    m_sys.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
-    m_sys.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
-    m_sys.set_Gamma_t_SPH2MESH(params.tangentDampS2M);
+void SetupGranSystem(ChGranularChronoTriMeshAPI& apiSMC_TriMesh, sim_param_holder& params) {
+    ChSystemGranularSMC_trimesh& gran_sys = apiSMC_TriMesh.getGranSystemSMC_TriMesh();
 
-    m_sys.set_Cohesion_ratio(params.cohesion_ratio);
-    m_sys.set_Adhesion_ratio_S2M(params.adhesion_ratio_s2m);
-    m_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
-    m_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
-    m_sys.set_friction_mode(chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP);  // TODO multi-step
+    gran_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
+    gran_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
+    gran_sys.set_K_n_SPH2MESH(params.normalStiffS2M);
+    gran_sys.set_K_t_SPH2SPH(params.tangentStiffS2S);
+    gran_sys.set_K_t_SPH2WALL(params.tangentStiffS2W);
+    gran_sys.set_K_t_SPH2MESH(params.tangentStiffS2M);
+    gran_sys.set_Gamma_n_SPH2SPH(params.normalDampS2S);
+    gran_sys.set_Gamma_n_SPH2WALL(params.normalDampS2W);
+    gran_sys.set_Gamma_n_SPH2MESH(params.normalDampS2M);
+    gran_sys.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
+    gran_sys.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
+    gran_sys.set_Gamma_t_SPH2MESH(params.tangentDampS2M);
 
-    m_sys.setOutputMode(GRAN_OUTPUT_MODE::CSV);
+    gran_sys.set_Cohesion_ratio(params.cohesion_ratio);
+    gran_sys.set_Adhesion_ratio_S2M(params.adhesion_ratio_s2m);
+    gran_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
+    gran_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
+    gran_sys.set_friction_mode(chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP);  // TODO multi-step
 
-    m_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
-    m_sys.set_fixed_stepSize(params.step_size);
-    m_sys.set_BD_Fixed(true);
+    gran_sys.setOutputMode(GRAN_OUTPUT_MODE::CSV);
+
+    gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
+    gran_sys.set_fixed_stepSize(params.step_size);
+    gran_sys.set_BD_Fixed(true);
 
     double epsilon = 0.02 * params.sphere_radius;
     double spacing = 2 * params.sphere_radius + epsilon;
@@ -119,7 +122,7 @@ void SetupGranSystem(ChSystemGranularSMC_trimesh& m_sys, sim_param_holder& param
 
     cout << "Created " << body_points.size() << " spheres" << endl;
 
-    m_sys.setParticlePositions(body_points);
+    apiSMC_TriMesh.setElemsPositions(body_points);
 
     // Mesh values
     vector<string> mesh_filenames;
@@ -152,8 +155,8 @@ void SetupGranSystem(ChSystemGranularSMC_trimesh& m_sys, sim_param_holder& param
     mesh_inflation_radii.push_back(0);
     mesh_inflation_radii.push_back(0);
 
-    m_sys.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses, mesh_inflated,
-                      mesh_inflation_radii);
+    apiSMC_TriMesh.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses, mesh_inflated,
+                               mesh_inflation_radii);
 }
 
 void SetInitialMeshes(double* meshPosRot, float* meshVel, const std::shared_ptr<ChBody> plate) {
@@ -223,17 +226,19 @@ int main(int argc, char* argv[]) {
 
     float iteration_step = params.step_size;  // TODO
 
-    ChSystemGranularSMC_trimesh m_sys(params.sphere_radius, params.sphere_density,
-                                      make_float3(params.box_X, params.box_Y, params.box_Z));
-    SetupGranSystem(m_sys, params);
+    ChGranularChronoTriMeshAPI apiSMC_TriMesh(params.sphere_radius, params.sphere_density,
+                                              make_float3(params.box_X, params.box_Y, params.box_Z));
+
+    ChSystemGranularSMC_trimesh& gran_sys = apiSMC_TriMesh.getGranSystemSMC_TriMesh();
+    SetupGranSystem(apiSMC_TriMesh, params);
     filesystem::create_directory(filesystem::path(params.output_dir));
 
-    unsigned int nFamilies = m_sys.getNumTriangleFamilies();
+    unsigned int nFamilies = gran_sys.getNumTriangleFamilies();
     cout << nFamilies << " soup families" << endl;
     double* meshPosRot = new double[FAM_ENTRIES_POS * nFamilies]();
     float* meshVel = new float[FAM_ENTRIES_VEL * nFamilies]();
 
-    m_sys.initialize();
+    gran_sys.initialize();
 
     unsigned int currframe = 0;
     double out_fps = 100;
@@ -260,7 +265,7 @@ int main(int argc, char* argv[]) {
     ch_sys.AddBody(plate);
 
     SetInitialMeshes(meshPosRot, meshVel, plate);
-    m_sys.meshSoup_applyRigidBodyMotion(meshPosRot, meshVel);
+    gran_sys.meshSoup_applyRigidBodyMotion(meshPosRot, meshVel);
 
     cout << "Running settling..." << endl;
     for (; m_time < time_settle; m_time += iteration_step, step++) {
@@ -268,14 +273,14 @@ int main(int argc, char* argv[]) {
             cout << "Rendering frame " << currframe << endl;
             char filename[100];
             sprintf(filename, "%s/step%06u", params.output_dir.c_str(), currframe++);
-            m_sys.writeFile(string(filename));
-            m_sys.write_meshes(string(filename));
+            gran_sys.writeFile(string(filename));
+            gran_sys.write_meshes(string(filename));
         }
-        m_sys.advance_simulation(iteration_step);
+        gran_sys.advance_simulation(iteration_step);
     }
 
     // Add a weighted top plate
-    double plate_z = m_sys.get_max_z() + 2 * params.sphere_radius;
+    double plate_z = gran_sys.get_max_z() + 2 * params.sphere_radius;
     cout << "Adding plate at "
          << "(0, 0, " << plate_z << ")" << endl;
     plate->SetPos(ChVector<>(0, 0, plate_z));
@@ -305,19 +310,19 @@ int main(int argc, char* argv[]) {
         meshVel[plate_i * FAM_ENTRIES_VEL + 4] = 0;
         meshVel[plate_i * FAM_ENTRIES_VEL + 5] = 0;
 
-        m_sys.meshSoup_applyRigidBodyMotion(meshPosRot, meshVel);
+        gran_sys.meshSoup_applyRigidBodyMotion(meshPosRot, meshVel);
         if (step % out_steps == 0) {
             cout << "Rendering frame " << currframe << endl;
             char filename[100];
             sprintf(filename, "%s/step%06u", params.output_dir.c_str(), currframe++);
-            m_sys.writeFile(string(filename));
-            m_sys.write_meshes(string(filename));
+            gran_sys.writeFile(string(filename));
+            gran_sys.write_meshes(string(filename));
         }
 
         ch_sys.DoStepDynamics(iteration_step);
-        m_sys.advance_simulation(iteration_step);
+        gran_sys.advance_simulation(iteration_step);
 
-        m_sys.collectGeneralizedForcesOnMeshSoup(forces);
+        gran_sys.collectGeneralizedForcesOnMeshSoup(forces);
         plate->Empty_forces_accumulators();
         plate->Accumulate_force(ChVector<>(0, 0, forces[plate_i * FAM_ENTRIES_FORCE + 2]), plate->GetPos(), false);
     }
@@ -366,11 +371,11 @@ int main(int argc, char* argv[]) {
         meshVel[top_i * FAM_ENTRIES_VEL + 4] = 0;
         meshVel[top_i * FAM_ENTRIES_VEL + 5] = 0;
 
-        m_sys.meshSoup_applyRigidBodyMotion(meshPosRot, meshVel);
-        m_sys.advance_simulation(iteration_step);
+        gran_sys.meshSoup_applyRigidBodyMotion(meshPosRot, meshVel);
+        gran_sys.advance_simulation(iteration_step);
         ch_sys.DoStepDynamics(iteration_step);
 
-        m_sys.collectGeneralizedForcesOnMeshSoup(forces);
+        gran_sys.collectGeneralizedForcesOnMeshSoup(forces);
         double shear_force = forces[top_i * FAM_ENTRIES_FORCE + 0];
         shear_force += forces[plate_i * FAM_ENTRIES_FORCE + 0];
 
@@ -384,8 +389,8 @@ int main(int argc, char* argv[]) {
             cout << "Rendering frame " << currframe << endl;
             char filename[100];
             sprintf(filename, "%s/step%06u", params.output_dir.c_str(), currframe++);
-            m_sys.writeFile(string(filename));
-            m_sys.write_meshes(string(filename));
+            gran_sys.writeFile(string(filename));
+            gran_sys.write_meshes(string(filename));
 
             double shear_area = box_xy * (box_xy - m_time * shear_velocity * 2);
             double normal_stress = (plate_mass * grav_mag) / shear_area;

@@ -42,6 +42,7 @@
 
 #include "chrono/timestepper/ChTimestepper.h"
 
+#include "chrono_granular/api/ChApiGranularChrono.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_granular/physics/ChGranularTriMesh.h"
 
@@ -289,7 +290,9 @@ int main(int argc, char* argv[]) {
         cp_file.close();
     }
 
-    gran_sys.setParticlePositions(body_points);
+ChGranularSMC_API apiSMC;
+apiSMC.setGranSystem(&    gran_sys);
+apiSMC.setElemsPositions(body_points);
 
     gran_sys.set_BD_Fixed(true);
 
@@ -326,7 +329,7 @@ int main(int argc, char* argv[]) {
     gran_sys.set_static_friction_coeff_SPH2WALL(mu_static);
     gran_sys.set_static_friction_coeff_SPH2MESH(mu_static);
 
-    gran_sys.load_meshes(mesh_filenames, mesh_scalings, mesh_masses, mesh_inflated, mesh_inflation_radii);
+apiSMC.load_meshes(mesh_filenames, mesh_scalings, mesh_masses, mesh_inflated, mesh_inflation_radii);
 
     // Output preferences
     if (run_mode == RUN_MODE::SETTLING) {

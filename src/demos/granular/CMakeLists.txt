@@ -14,10 +14,28 @@ SET(LIBRARIES
 # ------------------------------------------------------------------------------
 
 SET(DEMOS
-		demo_GRAN_terrainBox_SMC
-		demo_GRAN_ballcosim
-		demo_GRAN_ShearBand
-		demo_GRAN_fixedterrain
+        demo_GRAN_terrainBox_SMC
+        demo_GRAN_ballcosim
+        demo_GRAN_ShearBand
+        demo_GRAN_fixedterrain
+        demo_GRAN_Bucket
+        demo_GRAN_DamBreak
+        demo_GRAN_rover
+
+        test_GRAN_repose
+        test_GRAN_directshear
+        test_GRAN_mixer
+        test_GRAN_couette
+        test_GRAN_Coneflow
+        test_GRAN_commvessels
+        test_GRAN_CylinderLift
+        test_GRAN_bulkcompress
+
+        metrics_GRAN_settling
+        metrics_GRAN_suite
+        metrics_GRAN_milsettle
+
+        utest_GRAN_testsuite
 )
 
 # ------------------------------------------------------------------------------

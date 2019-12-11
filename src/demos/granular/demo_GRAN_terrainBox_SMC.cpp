@@ -22,9 +22,9 @@
 #include <math.h>
 #endif
 #include "chrono_thirdparty/filesystem/path.h"
+#include "chrono_granular/api/ChApiGranularChrono.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_granular/utils/ChGranularJsonParser.h"
-#include "chrono_granular/api/ChApiGranularChrono.h"
 #include "ChGranularDemoUtils.hpp"
 #include "chrono/utils/ChUtilsSamplers.h"
 

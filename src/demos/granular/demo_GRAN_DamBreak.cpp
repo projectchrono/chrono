@@ -18,6 +18,7 @@
 #include <iostream>
 #include <string>
 #include "chrono_thirdparty/filesystem/path.h"
+#include "chrono_granular/api/ChApiGranularChrono.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_granular/utils/ChGranularJsonParser.h"
 #include "chrono/utils/ChUtilsSamplers.h"
@@ -192,7 +193,9 @@ int main(int argc, char* argv[]) {
     std::vector<ChVector<float>> first_points;
 
     cout << "Adding " << body_points.size() << " particles" << endl;
-    gran_system.setParticlePositions(body_points);
+    ChGranularSMC_API apiSMC;
+    apiSMC.setGranSystem(&gran_system);
+    apiSMC.setElemsPositions(body_points);
 
     // just at end of material
     float plane_center[3] = {center.x() + hdims.x() + sphere_diam, 0, 0};
@@ -200,8 +203,8 @@ int main(int argc, char* argv[]) {
     // face in -y, hold material in
     float plane_normal[3] = {-1, 0, 0};
 
-    printf("fill center is %f, %f, %f, plane center is %f, %f, %f\n", center[0], center[1], center[2],
-           plane_center[0], plane_center[1], plane_center[2]);
+    printf("fill center is %f, %f, %f, plane center is %f, %f, %f\n", center[0], center[1], center[2], plane_center[0],
+           plane_center[1], plane_center[2]);
     size_t plane_bc_id = gran_system.Create_BC_Plane(plane_center, plane_normal, true);
 
     float cyl_center[3] = {params.box_X / 2.f - 200.f, 0, 0};
@@ -275,7 +278,7 @@ int main(int argc, char* argv[]) {
                 }
             }
         }
-        
+
         gran_system.advance_simulation(frame_step);
         curr_time += frame_step;
         printf("rendering frame %u\n", currframe);

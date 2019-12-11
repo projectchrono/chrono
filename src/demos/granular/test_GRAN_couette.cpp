@@ -16,6 +16,7 @@
 #include <string>
 #include <cmath>
 #include "chrono_thirdparty/filesystem/path.h"
+#include "chrono_granular/api/ChApiGranularChrono.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_granular/physics/ChGranularTriMesh.h"
 #include "chrono/utils/ChUtilsSamplers.h"
@@ -113,7 +114,9 @@ int main(int argc, char* argv[]) {
     const float fill_bottom = cyl_bottom + 2.0 * sphere_radius;
     const float fill_height = 2.0 * material_height;  // TODO tune this
 
-    ChSystemGranularSMC_trimesh m_sys(sphere_radius, params.sphere_density, make_float3(Bx, By, Bz));
+    ChGranularChronoTriMeshAPI apiSMC_TriMesh(params.sphere_radius, params.sphere_density, make_float3(Bx, By, Bz));
+
+    ChSystemGranularSMC_trimesh& m_sys = apiSMC_TriMesh.getGranSystemSMC_TriMesh();
 
     m_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
     m_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
@@ -187,7 +190,7 @@ int main(int argc, char* argv[]) {
     }
 
     unsigned int n_spheres = final_points.size();
-    m_sys.setParticlePositions(final_points);
+    apiSMC_TriMesh.setElemsPositions(final_points);
 
     vector<string> mesh_filenames;
     vector<ChMatrix33<float>> mesh_rotscales;
@@ -221,8 +224,8 @@ int main(int argc, char* argv[]) {
     mesh_inflated.push_back(false);
     mesh_inflation_radii.push_back(0);
 
-    m_sys.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses, mesh_inflated,
-                      mesh_inflation_radii);
+    apiSMC_TriMesh.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses, mesh_inflated,
+                               mesh_inflation_radii);
 
     m_sys.initialize();
 

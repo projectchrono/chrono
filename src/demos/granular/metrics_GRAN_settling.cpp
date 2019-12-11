@@ -22,6 +22,7 @@
 #include <ctime>
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono/utils/ChUtilsSamplers.h"
+#include "chrono_granular/api/ChApiGranularChrono.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_granular/physics/ChGranularTriMesh.h"
 #include "chrono/utils/ChUtilsSamplers.h"
@@ -45,27 +46,29 @@ void ShowUsage() {
     cout << "usage: ./metrics_GRAN_settling <json_file> <optional: test index for single test>" << endl;
 }
 
-void SetupGranSystem(ChSystemGranularSMC& m_sys, sim_param_holder& params) {
-    m_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
-    m_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
-    m_sys.set_K_t_SPH2SPH(params.tangentStiffS2S);
-    m_sys.set_K_t_SPH2WALL(params.tangentStiffS2W);
-    m_sys.set_Gamma_n_SPH2SPH(params.normalDampS2S);
-    m_sys.set_Gamma_n_SPH2WALL(params.normalDampS2W);
-    m_sys.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
-    m_sys.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
+void SetupGranSystem(ChSystemGranularSMC& gran_sys, sim_param_holder& params) {
+    gran_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
+    gran_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
+    gran_sys.set_K_t_SPH2SPH(params.tangentStiffS2S);
+    gran_sys.set_K_t_SPH2WALL(params.tangentStiffS2W);
+    gran_sys.set_Gamma_n_SPH2SPH(params.normalDampS2S);
+    gran_sys.set_Gamma_n_SPH2WALL(params.normalDampS2W);
+    gran_sys.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
+    gran_sys.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
 
-    m_sys.set_Cohesion_ratio(params.cohesion_ratio);
-    m_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
-    m_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
-    m_sys.set_friction_mode(chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP);
+    gran_sys.set_Cohesion_ratio(params.cohesion_ratio);
+    gran_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
+    gran_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
+    gran_sys.set_friction_mode(chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP);
 
-    m_sys.setOutputMode(params.write_mode);
+    gran_sys.setOutputMode(params.write_mode);
 
-    m_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::EXTENDED_TAYLOR);
-    m_sys.set_fixed_stepSize(params.step_size);
-    m_sys.set_BD_Fixed(true);
+    gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::EXTENDED_TAYLOR);
+    gran_sys.set_fixed_stepSize(params.step_size);
+    gran_sys.set_BD_Fixed(true);
+}
 
+vector<ChVector<float>> SampleParticles(const sim_param_holder& params) {
     // Fill domain with particles
     vector<ChVector<float>> body_points;
     double epsilon = 0.2 * params.sphere_radius;
@@ -83,18 +86,18 @@ void SetupGranSystem(ChSystemGranularSMC& m_sys, sim_param_holder& params) {
     }
 
     cout << "Created " << body_points.size() << " spheres" << endl;
-
-    m_sys.setParticlePositions(body_points);
+    return body_points;
 }
 
-void SetupGranTriSystem(ChSystemGranularSMC_trimesh& m_sys, sim_param_holder& params) {
-    SetupGranSystem(m_sys, params);
+void SetupGranTriSystem(ChGranularChronoTriMeshAPI& apiSMC_TriMesh, sim_param_holder& params) {
+    ChSystemGranularSMC_trimesh& gran_sys = apiSMC_TriMesh.getGranSystemSMC_TriMesh();
+    SetupGranSystem(gran_sys, params);
 
-    m_sys.set_K_n_SPH2MESH(params.normalStiffS2M);
-    m_sys.set_K_t_SPH2MESH(params.tangentStiffS2M);
-    m_sys.set_Gamma_n_SPH2MESH(params.normalDampS2M);
-    m_sys.set_Gamma_t_SPH2MESH(params.tangentDampS2M);
-    m_sys.set_Adhesion_ratio_S2M(params.adhesion_ratio_s2m);
+    gran_sys.set_K_n_SPH2MESH(params.normalStiffS2M);
+    gran_sys.set_K_t_SPH2MESH(params.tangentStiffS2M);
+    gran_sys.set_Gamma_n_SPH2MESH(params.normalDampS2M);
+    gran_sys.set_Gamma_t_SPH2MESH(params.tangentDampS2M);
+    gran_sys.set_Adhesion_ratio_S2M(params.adhesion_ratio_s2m);
 
     // Mesh values
     vector<string> mesh_filenames;
@@ -115,8 +118,8 @@ void SetupGranTriSystem(ChSystemGranularSMC_trimesh& m_sys, sim_param_holder& pa
     mesh_inflated.push_back(false);
     mesh_inflation_radii.push_back(0);
 
-    m_sys.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses, mesh_inflated,
-                      mesh_inflation_radii);
+    apiSMC_TriMesh.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses, mesh_inflated,
+                               mesh_inflation_radii);
 }
 
 double RunTest(sim_param_holder& params, RUN_MODE run_mode) {
@@ -127,37 +130,46 @@ double RunTest(sim_param_holder& params, RUN_MODE run_mode) {
     switch (run_mode) {
         case RUN_MODE::GRAN: {
             cout << "Running Granular system test..." << endl;
-            ChSystemGranularSMC m_sys(params.sphere_radius, params.sphere_density,
-                                      make_float3(params.box_X, params.box_Y, params.box_Z));
-            SetupGranSystem(m_sys, params);
+            ChSystemGranularSMC gran_sys(params.sphere_radius, params.sphere_density,
+                                         make_float3(params.box_X, params.box_Y, params.box_Z));
+            ChGranularSMC_API apiSMC;
+            apiSMC.setGranSystem(&gran_sys);
+
+            SetupGranSystem(gran_sys, params);
+            apiSMC.setElemsPositions(SampleParticles(params));
+
             filesystem::create_directory(filesystem::path(params.output_dir));
-            m_sys.initialize();
+            gran_sys.initialize();
 
             unsigned int currframe = 0;
             for (float t = 0; t < params.time_end; t += frame_step) {
                 cout << "Rendering frame " << currframe << endl;
                 char filename[100];
                 sprintf(filename, "%s/step%06u", params.output_dir.c_str(), currframe++);
-                m_sys.writeFile(string(filename));
+                gran_sys.writeFile(string(filename));
 
-                m_sys.advance_simulation(frame_step);
+                gran_sys.advance_simulation(frame_step);
             }
             break;
         }
         case RUN_MODE::GRAN_TRI_DISABLED: {
             cout << "Running Granular system with disabled mesh test..." << endl;
-            ChSystemGranularSMC_trimesh m_sys(params.sphere_radius, params.sphere_density,
-                                              make_float3(params.box_X, params.box_Y, params.box_Z));
-            SetupGranTriSystem(m_sys, params);
-            m_sys.disableMeshCollision();
+            ChGranularChronoTriMeshAPI apiSMC_TriMesh(params.sphere_radius, params.sphere_density,
+                                                      make_float3(params.box_X, params.box_Y, params.box_Z));
+
+            SetupGranTriSystem(apiSMC_TriMesh, params);
+            apiSMC_TriMesh.setElemsPositions(SampleParticles(params));
+
+            ChSystemGranularSMC_trimesh& gran_sys = apiSMC_TriMesh.getGranSystemSMC_TriMesh();
+            gran_sys.disableMeshCollision();
             filesystem::create_directory(filesystem::path(params.output_dir));
 
-            unsigned int nSoupFamilies = m_sys.getNumTriangleFamilies();
+            unsigned int nSoupFamilies = gran_sys.getNumTriangleFamilies();
             cout << nSoupFamilies << " soup families" << endl;
             double* meshSoupLocOri = new double[7 * nSoupFamilies];
             float* meshVel = new float[6 * nSoupFamilies]();
 
-            m_sys.initialize();
+            gran_sys.initialize();
 
             unsigned int currframe = 0;
             for (float t = 0; t < params.time_end; t += frame_step) {
@@ -170,14 +182,14 @@ double RunTest(sim_param_holder& params, RUN_MODE run_mode) {
                 meshSoupLocOri[5] = 0;
                 meshSoupLocOri[6] = 0;
 
-                m_sys.meshSoup_applyRigidBodyMotion(meshSoupLocOri, meshVel);
+                gran_sys.meshSoup_applyRigidBodyMotion(meshSoupLocOri, meshVel);
                 cout << "Rendering frame " << currframe << endl;
                 char filename[100];
                 sprintf(filename, "%s/step%06u", params.output_dir.c_str(), currframe++);
-                m_sys.writeFile(string(filename));
-                m_sys.write_meshes(string(filename));
+                gran_sys.writeFile(string(filename));
+                gran_sys.write_meshes(string(filename));
 
-                m_sys.advance_simulation(frame_step);
+                gran_sys.advance_simulation(frame_step);
             }
             delete[] meshSoupLocOri;
 
@@ -185,18 +197,21 @@ double RunTest(sim_param_holder& params, RUN_MODE run_mode) {
         }
         case RUN_MODE::GRAN_TRI_ENABLED: {
             cout << "Running Granular system with enabled mesh test..." << endl;
-            ChSystemGranularSMC_trimesh m_sys(params.sphere_radius, params.sphere_density,
-                                              make_float3(params.box_X, params.box_Y, params.box_Z));
-            SetupGranTriSystem(m_sys, params);
-            m_sys.enableMeshCollision();
+            ChGranularChronoTriMeshAPI apiSMC_TriMesh(params.sphere_radius, params.sphere_density,
+                                                      make_float3(params.box_X, params.box_Y, params.box_Z));
+            SetupGranTriSystem(apiSMC_TriMesh, params);
+            apiSMC_TriMesh.setElemsPositions(SampleParticles(params));
+            ChSystemGranularSMC_trimesh& gran_sys = apiSMC_TriMesh.getGranSystemSMC_TriMesh();
+
+            gran_sys.enableMeshCollision();
             filesystem::create_directory(filesystem::path(params.output_dir));
 
-            unsigned int nSoupFamilies = m_sys.getNumTriangleFamilies();
+            unsigned int nSoupFamilies = gran_sys.getNumTriangleFamilies();
             cout << nSoupFamilies << " soup families" << endl;
             double* meshSoupLocOri = new double[7 * nSoupFamilies];
             float* meshVel = new float[6 * nSoupFamilies]();
 
-            m_sys.initialize();
+            gran_sys.initialize();
 
             unsigned int currframe = 0;
             for (float t = 0; t < params.time_end; t += frame_step) {
@@ -209,14 +224,14 @@ double RunTest(sim_param_holder& params, RUN_MODE run_mode) {
                 meshSoupLocOri[5] = 0;
                 meshSoupLocOri[6] = 0;
 
-                m_sys.meshSoup_applyRigidBodyMotion(meshSoupLocOri, meshVel);
+                gran_sys.meshSoup_applyRigidBodyMotion(meshSoupLocOri, meshVel);
                 cout << "Rendering frame " << currframe << endl;
                 char filename[100];
                 sprintf(filename, "%s/step%06u", params.output_dir.c_str(), currframe++);
-                m_sys.writeFile(string(filename));
-                m_sys.write_meshes(string(filename));
+                gran_sys.writeFile(string(filename));
+                gran_sys.write_meshes(string(filename));
 
-                m_sys.advance_simulation(frame_step);
+                gran_sys.advance_simulation(frame_step);
             }
             delete[] meshSoupLocOri;
 

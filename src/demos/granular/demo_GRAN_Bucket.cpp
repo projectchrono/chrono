@@ -22,6 +22,8 @@
 #include <math.h>
 #endif
 #include "chrono_thirdparty/filesystem/path.h"
+#include "chrono_granular/api/ChApiGranularChrono.h"
+#include "chrono_granular/api/ChApiGranularChrono.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_granular/utils/ChGranularJsonParser.h"
 #include "chrono/utils/ChUtilsSamplers.h"
@@ -163,7 +165,10 @@ int main(int argc, char* argv[]) {
         // Fill box with bodies
         body_points = utils::PDLayerSampler_BOX<float>(center, hdims, 2. * params.sphere_radius, 1.01);
     }
-    gran_sys.setParticlePositions(body_points);
+
+    ChGranularSMC_API apiSMC;
+    apiSMC.setGranSystem(&gran_sys);
+    apiSMC.setElemsPositions(body_points);
 
     // face in upwards
     float bottom_plane_normal_X[3] = {1, 0, 0};

@@ -25,9 +25,9 @@
 #include <math.h>
 #endif
 #include "chrono_thirdparty/filesystem/path.h"
+#include "chrono_granular/api/ChApiGranularChrono.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_granular/utils/ChGranularJsonParser.h"
-#include "chrono_granular/api/ChApiGranularChrono.h"
 #include "chrono/utils/ChUtilsSamplers.h"
 
 using namespace chrono;
@@ -56,8 +56,8 @@ int main(int argc, char* argv[]) {
     ChSystemGranularSMC gran_sys(params.sphere_radius, params.sphere_density,
                                  make_float3(params.box_X, params.box_Y, params.box_Z));
 
-	// to do: don't expose the guts of granular at this level; work through an API
-	// but for now get it going like this
+    // to do: don't expose the guts of granular at this level; work through an API
+    // but for now get it going like this
     ChGranularSMC_API apiSMC;
     apiSMC.setGranSystem(&gran_sys);
 

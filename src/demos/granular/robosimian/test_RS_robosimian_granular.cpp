@@ -36,6 +36,7 @@
 
 #include "chrono/timestepper/ChTimestepper.h"
 
+#include "chrono_granular/api/ChApiGranularChrono.h"
 #include "chrono_granular/physics/ChGranular.h"
 
 #include "chrono_granular/physics/ChGranularTriMesh.h"
@@ -322,7 +323,9 @@ int main(int argc, char* argv[]) {
         center.z() += 2.05 * params.sphere_radius;
     }
 
-    gran_sys.setParticlePositions(body_points);
+ChGranularSMC_API apiSMC;
+apiSMC.setGranSystem(&    gran_sys);
+apiSMC.setElemsPositions(body_points);
 
     gran_sys.set_BD_Fixed(true);
 
@@ -339,7 +342,7 @@ int main(int argc, char* argv[]) {
     gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CHUNG);
     gran_sys.set_fixed_stepSize(params.step_size);
 
-    gran_sys.load_meshes(mesh_filenames, mesh_scalings, mesh_masses, mesh_inflated, mesh_inflation_radii);
+apiSMC.load_meshes(mesh_filenames, mesh_scalings, mesh_masses, mesh_inflated, mesh_inflation_radii);
 
     gran_sys.disableMeshCollision();  // disable meshes for settling
 

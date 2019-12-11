@@ -19,6 +19,7 @@
 #include <string>
 #include <cmath>
 #include "chrono_thirdparty/filesystem/path.h"
+#include "chrono_granular/api/ChApiGranularChrono.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_granular/physics/ChGranularTriMesh.h"
 #include "chrono_granular/utils/ChGranularJsonParser.h"
@@ -82,7 +83,9 @@ void ShowUsage() {
     std::cout << "usage: ./utest_GRAN_testsuite <TEST_TYPE>" << std::endl;
 }
 // Set common set of parameters for all demos
-void setCommonParameters(ChSystemGranularSMC& gran_sys) {
+void setCommonParameters(ChGranularChronoTriMeshAPI& apiSMC_TriMesh) {
+    ChSystemGranularSMC& gran_sys = apiSMC_TriMesh.getGranSystemSMC_TriMesh();
+
     gran_sys.setPsiFactors(psi_T, psi_L);
     gran_sys.set_K_n_SPH2SPH(normalStiffness_S2S);
     gran_sys.set_K_n_SPH2WALL(normalStiffness_S2W);
@@ -110,7 +113,9 @@ void setCommonParameters(ChSystemGranularSMC& gran_sys) {
     gran_sys.set_BD_Fixed(true);
 }
 
-void setCommonMeshParameters(ChSystemGranularSMC_trimesh& gran_sys) {
+void setCommonMeshParameters(ChGranularChronoTriMeshAPI& apiSMC_TriMesh) {
+    ChSystemGranularSMC_trimesh& gran_sys = apiSMC_TriMesh.getGranSystemSMC_TriMesh();
+
     gran_sys.set_K_n_SPH2MESH(normalStiffness_S2M);
     gran_sys.set_Gamma_n_SPH2MESH(normalDampS2M);
     gran_sys.set_K_t_SPH2MESH(tangentStiffness_S2M);
@@ -130,8 +135,9 @@ void advanceGranSim(ChSystemGranularSMC& gran_sys) {
 }
 
 void run_ROTF() {
-    ChSystemGranularSMC gran_sys(sphere_radius, sphere_density, make_float3(box_X, box_Y, box_Z));
-    setCommonParameters(gran_sys);
+    ChGranularChronoTriMeshAPI apiSMC_TriMesh(sphere_radius, sphere_density, make_float3(box_X, box_Y, box_Z));
+    setCommonParameters(apiSMC_TriMesh);
+    ChSystemGranularSMC_trimesh& gran_sys = apiSMC_TriMesh.getGranSystemSMC_TriMesh();
 
     float ramp_angle = CH_C_PI / 4;
     // ramp normal is 45 degrees about y
@@ -147,7 +153,7 @@ void run_ROTF() {
     // start at far-x wall, halfway up
     ChVector<float> sphere_pos(-box_X / 2.f + 2.f * sphere_radius, 0, 2 * sphere_radius);
     points.push_back(sphere_pos);
-    gran_sys.setParticlePositions(points);
+    apiSMC_TriMesh.setElemsPositions(points);
 
     printf("Plane pos: (%f, %f, %f)\n", plane_pos[0], plane_pos[1], plane_pos[2]);
 
@@ -193,10 +199,11 @@ void run_ROTF() {
 
 void run_ROTF_MESH() {
     // overwrite olds system
-    ChSystemGranularSMC_trimesh gran_sys(sphere_radius, sphere_density, make_float3(box_X, box_Y, box_Z));
-    setCommonParameters(gran_sys);
+    ChGranularChronoTriMeshAPI apiSMC_TriMesh(sphere_radius, sphere_density, make_float3(box_X, box_Y, box_Z));
+    ChSystemGranularSMC_trimesh& gran_sys = apiSMC_TriMesh.getGranSystemSMC_TriMesh();
+    setCommonParameters(apiSMC_TriMesh);
 
-    setCommonMeshParameters(gran_sys);
+    setCommonMeshParameters(apiSMC_TriMesh);
 
     // place so that plane intersects wall near z = 0
     float plane_pos[] = {-box_X / 2.f, 0.f, 0.};
@@ -205,7 +212,7 @@ void run_ROTF_MESH() {
     // start at far-x wall, halfway up
     ChVector<float> sphere_pos(-box_X / 2.f + 2.f * sphere_radius, 0, 2 * sphere_radius);
     points.push_back(sphere_pos);
-    gran_sys.setParticlePositions(points);
+    apiSMC_TriMesh.setElemsPositions(points);
 
     printf("Plane pos: (%f, %f, %f)\n", plane_pos[0], plane_pos[1], plane_pos[2]);
 
@@ -237,8 +244,8 @@ void run_ROTF_MESH() {
     mesh_inflated.push_back(false);
     mesh_inflation_radii.push_back(0);
 
-    gran_sys.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses, mesh_inflated,
-                         mesh_inflation_radii);
+    apiSMC_TriMesh.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses, mesh_inflated,
+                               mesh_inflation_radii);
 
     // Finalize settings and initialize for runtime
     gran_sys.set_friction_mode(chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP);
@@ -282,8 +289,10 @@ void run_ROTF_MESH() {
 }
 
 void run_PYRAMID() {
-    ChSystemGranularSMC gran_sys(sphere_radius, sphere_density, make_float3(box_X, box_Y, box_Z));
-    setCommonParameters(gran_sys);
+    ChGranularChronoTriMeshAPI apiSMC_TriMesh(sphere_radius, sphere_density, make_float3(box_X, box_Y, box_Z));
+    ChSystemGranularSMC_trimesh& gran_sys = apiSMC_TriMesh.getGranSystemSMC_TriMesh();
+
+    setCommonParameters(apiSMC_TriMesh);
 
     timeEnd = 1;
     // slightly inflated diameter to ensure no penetration
@@ -315,7 +324,7 @@ void run_PYRAMID() {
     points.push_back(base_sphere_2);
     points.push_back(base_sphere_3);
     points.push_back(top_sphere);
-    gran_sys.setParticlePositions(points);
+    apiSMC_TriMesh.setElemsPositions(points);
 
     gran_sys.initialize();
 
@@ -326,10 +335,11 @@ void run_PYRAMID() {
 }
 
 void run_PYRAMID_MESH() {
-    ChSystemGranularSMC_trimesh gran_sys(sphere_radius, sphere_density, make_float3(box_X, box_Y, box_Z));
-    setCommonParameters(gran_sys);
+    ChGranularChronoTriMeshAPI apiSMC_TriMesh(sphere_radius, sphere_density, make_float3(box_X, box_Y, box_Z));
+    ChSystemGranularSMC_trimesh& gran_sys = apiSMC_TriMesh.getGranSystemSMC_TriMesh();
+    setCommonParameters(apiSMC_TriMesh);
 
-    setCommonMeshParameters(gran_sys);
+    setCommonMeshParameters(apiSMC_TriMesh);
 
     timeEnd = 1;
     // slightly inflated diameter to ensure no penetration
@@ -353,8 +363,8 @@ void run_PYRAMID_MESH() {
     mesh_masses.push_back(10.f);  // who cares?
     mesh_inflated.push_back(false);
     mesh_inflation_radii.push_back(0);
-    gran_sys.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses, mesh_inflated,
-                         mesh_inflation_radii);
+    apiSMC_TriMesh.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses, mesh_inflated,
+                               mesh_inflation_radii);
 
     gran_sys.set_friction_mode(chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP);
     gran_sys.set_rolling_mode(chrono::granular::GRAN_ROLLING_MODE::NO_RESISTANCE);
@@ -378,7 +388,7 @@ void run_PYRAMID_MESH() {
     points.push_back(base_sphere_2);
     points.push_back(base_sphere_3);
     points.push_back(top_sphere);
-    gran_sys.setParticlePositions(points);
+    apiSMC_TriMesh.setElemsPositions(points);
 
     gran_sys.initialize();
 
@@ -412,9 +422,10 @@ void run_PYRAMID_MESH() {
 }
 
 void run_MESH_STEP() {
-    ChSystemGranularSMC_trimesh gran_sys(sphere_radius, sphere_density, make_float3(box_X, box_Y, box_Z));
-    setCommonParameters(gran_sys);
-    setCommonMeshParameters(gran_sys);
+    ChGranularChronoTriMeshAPI apiSMC_TriMesh(sphere_radius, sphere_density, make_float3(box_X, box_Y, box_Z));
+    ChSystemGranularSMC_trimesh& gran_sys = apiSMC_TriMesh.getGranSystemSMC_TriMesh();
+    setCommonParameters(apiSMC_TriMesh);
+    setCommonMeshParameters(apiSMC_TriMesh);
 
     std::vector<string> mesh_filenames;
     string mesh_filename("granular/test_suite/step.obj");
@@ -435,8 +446,8 @@ void run_MESH_STEP() {
 
     std::vector<float> mesh_inflation_radii;
     mesh_inflation_radii.push_back(0);
-    gran_sys.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses, mesh_inflated,
-                         mesh_inflation_radii);
+    apiSMC_TriMesh.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses, mesh_inflated,
+                               mesh_inflation_radii);
 
     // Fill domain with particles
     std::vector<ChVector<float>> body_points;
@@ -455,7 +466,7 @@ void run_MESH_STEP() {
 
     std::cout << "Created " << body_points.size() << " spheres" << endl;
 
-    gran_sys.setParticlePositions(body_points);
+    apiSMC_TriMesh.setElemsPositions(body_points);
 
     unsigned int nSoupFamilies = gran_sys.getNumTriangleFamilies();
     std::cout << nSoupFamilies << " soup families" << endl;
@@ -488,9 +499,10 @@ void run_MESH_STEP() {
 }
 
 void run_MESH_FORCE() {
-    ChSystemGranularSMC_trimesh gran_sys(sphere_radius, sphere_density, make_float3(box_X, box_Y, box_Z));
-    setCommonParameters(gran_sys);
-    setCommonMeshParameters(gran_sys);
+    ChGranularChronoTriMeshAPI apiSMC_TriMesh(sphere_radius, sphere_density, make_float3(box_X, box_Y, box_Z));
+    ChSystemGranularSMC_trimesh& gran_sys = apiSMC_TriMesh.getGranSystemSMC_TriMesh();
+    setCommonParameters(apiSMC_TriMesh);
+    setCommonMeshParameters(apiSMC_TriMesh);
 
     utils::HCPSampler<float> sampler(2.1 * sphere_radius);
     auto pos = sampler.SampleBox(ChVector<>(0, 0, 26), ChVector<>(38, 38, 10));
@@ -503,7 +515,7 @@ void run_MESH_FORCE() {
     double sphere_weight = sphere_mass * std::abs(grav_Z);
     double total_weight = total_mass * std::abs(grav_Z);
 
-    gran_sys.setParticlePositions(pos);
+    apiSMC_TriMesh.setElemsPositions(pos);
 
     // Mesh values
     std::vector<string> mesh_filenames;
@@ -525,8 +537,8 @@ void run_MESH_FORCE() {
     mesh_inflated.push_back(false);
     mesh_inflation_radii.push_back(0);
 
-    gran_sys.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses, mesh_inflated,
-                         mesh_inflation_radii);
+    apiSMC_TriMesh.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses, mesh_inflated,
+                               mesh_inflation_radii);
 
     unsigned int nSoupFamilies = gran_sys.getNumTriangleFamilies();
     std::cout << nSoupFamilies << " soup families" << endl;

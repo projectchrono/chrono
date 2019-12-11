@@ -25,6 +25,7 @@
 #include "chrono/physics/ChForce.h"
 #include "chrono/utils/ChUtilsSamplers.h"
 #include "chrono/timestepper/ChTimestepper.h"
+#include "chrono_granular/api/ChApiGranularChrono.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_granular/physics/ChGranularTriMesh.h"
 #include "chrono/utils/ChUtilsCreators.h"
@@ -74,8 +75,7 @@ constexpr double chassis_length_x = 2 * METERS_TO_CM;
 constexpr double chassis_length_y = 2 * METERS_TO_CM;
 constexpr double chassis_length_z = 1.5 * METERS_TO_CM;
 
-const ChMatrix33<float> wheel_scaling =
-    ChMatrix33<float>(ChVector<float>(wheel_rad * 2, wheel_width, wheel_rad * 2));
+const ChMatrix33<float> wheel_scaling = ChMatrix33<float>(ChVector<float>(wheel_rad * 2, wheel_width, wheel_rad * 2));
 
 constexpr double wheel_inertia_x = (1. / 4.) * wheel_mass * wheel_rad * wheel_rad + (1 / 12.) * wheel_mass;
 constexpr double wheel_inertia_y = (1. / 2.) * wheel_mass * wheel_rad * wheel_rad;
@@ -246,8 +246,9 @@ int main(int argc, char* argv[]) {
     double iteration_step = params.step_size;
 
     // Setup granular simulation
-    ChSystemGranularSMC_trimesh gran_sys(params.sphere_radius, params.sphere_density,
-                                         make_float3(params.box_X, params.box_Y, params.box_Z));
+    ChGranularChronoTriMeshAPI apiSMC_TriMesh(params.sphere_radius, params.sphere_density,
+                                              make_float3(params.box_X, params.box_Y, params.box_Z));
+    ChSystemGranularSMC_trimesh& gran_sys = apiSMC_TriMesh.getGranSystemSMC_TriMesh();
 
     double fill_bottom = 0;  // TODO
     double fill_top = params.box_Z / 2.0;
@@ -266,7 +267,7 @@ int main(int argc, char* argv[]) {
     std::vector<ChVector<float>> first_points;
 
     first_points.push_back(body_points.at(0));
-    gran_sys.setParticlePositions(body_points);
+    apiSMC_TriMesh.setElemsPositions(body_points);
 
     gran_sys.set_BD_Fixed(true);
 
@@ -301,7 +302,7 @@ int main(int argc, char* argv[]) {
     // Create rigid wheel simulation
     ChSystemNSC rover_sys;
 
-    rover_sys.SetMaxItersSolverSpeed(200);
+    // rover_sys.SetMaxItersSolverSpeed(200);
 
     // rover_sys.SetContactForceModel(ChSystemNSC::ContactForceModel::Hooke);
     // rover_sys.SetTimestepperType(ChTimestepper::Type::EULER_EXPLICIT);
@@ -351,8 +352,8 @@ int main(int argc, char* argv[]) {
     addWheelBody(rover_sys, chassis_body, ChVector<>(rear_wheel_offset_x, -rear_wheel_offset_y, wheel_offset_z));
 
     // Load in meshes
-    gran_sys.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses, mesh_inflated,
-                         mesh_inflation_radii);
+    apiSMC_TriMesh.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses, mesh_inflated,
+                               mesh_inflation_radii);
 
     gran_sys.setOutputMode(params.write_mode);
     gran_sys.setVerbose(params.verbose);
