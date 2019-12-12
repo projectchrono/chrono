@@ -109,6 +109,7 @@ linux:doxygen:deploy:
 #    - pacman -Syyu --noconfirm base-devel git python python-pip doxygen graphviz openssh rsync clang
     - pacman -Syyu --noconfirm base-devel git python python-pip graphviz openssh rsync
     - wget https://svwh.dl.sourceforge.net/project/doxygen/rel-1.8.16/doxygen-1.8.16.linux.bin.tar.gz
+    - tar -xf doxygen-1.8.16.linux.bin.tar.gz
     - mkdir -p ~/.ssh
     - chmod 0700 ~/.ssh
 # This private key is only useable from specific IPs, so it should be okay to
@@ -120,6 +121,7 @@ linux:doxygen:deploy:
 # Cache a verified host pubkey from file to avoid MITM attacks
     - cat $API_ENDPOINT_PUBKEY >> ~/.ssh/known_hosts
   script:
+    - export PATH="$PWD/doxygen-1.8.16/bin:$PATH"
     - cd doxygen
     - doxygen Doxyfile
     - doxygen Doxyfile_Generate_Search_Index
