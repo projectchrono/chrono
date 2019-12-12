@@ -15,6 +15,8 @@ Additional Chrono functionality is provided through optional modules. Building o
 
 -   [FSI module](@ref module_fsi_installation)
 
+-   [GRANULAR module](@ref module_granular_installation)
+
 -   [IRRLICHT module](@ref module_irrlicht_installation)
 
 -   [MATLAB module](@ref module_matlab_installation)
