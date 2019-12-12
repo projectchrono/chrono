@@ -1309,7 +1309,7 @@ struct FaceData {
     FaceData(const uvec3& t, int face, uint e) : tri(t), f(face), element(e) {}
 };
 
-struct {
+struct FaceCompare {
     bool operator()(const FaceData& face1, const FaceData& face2) {
         uvec3 a = face1.tri;
         uvec3 b = face2.tri;
@@ -1334,7 +1334,7 @@ struct {
         }
         return false;
     }
-} customSort;
+};
 
 bool customCompare(const FaceData& face1, const FaceData& face2) {
     uvec3 a = face1.tri;
@@ -1376,6 +1376,7 @@ void ChFEAContainer::FindSurface() {
         faces[4 * e + 3] = FaceData(Sort(_make_uvec3(i, j, k)), 3, e);
     }
 
+    FaceCompare customSort;
     std::sort(faces.begin(), faces.end(), customSort);
 
     uint face = 0;

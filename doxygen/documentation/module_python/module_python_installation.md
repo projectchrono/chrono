@@ -68,19 +68,19 @@ If you have multiple Python installations on the same machine, you may need to e
 
 After successful compilation, the [PyChrono](@ref pychrono_introduction) modules can be used either from the *BUILD* tree or, after installation, from the *INSTALL* tree.  In order for the generated Python modules to be accessible, you must set/append to the <tt>PYTHONPATH</tt> environment variable.  During configuration, the Chrono CMake script will output the proper paths to be used in setting the PYTHONPATH environment variables; for example:
 
-- Windows:
+- Windows:<br>
 <img src="http://www.projectchrono.org/assets/manual/ChronoPython_config.png" width="500">
 
-- Linux:
+- Linux:<br>
 <img src="http://www.projectchrono.org/assets/manual/ChronoPython_config_linux.png" width="600">
 
 Setting/changing environment variables is platform-specific.
 
-- On Windows, you can (globally) set environment variables in 'Control Panel -> System -> Advanced system settings':
-  <img src="http://www.projectchrono.org/assets/manual/Windows_env.png" width="500">
+- On Windows, you can (globally) set environment variables in 'Control Panel -> System -> Advanced system settings':<br>
+  <img src="http://www.projectchrono.org/assets/manual/Windows_env.png" width="500"><br>
 
-- On Linux, using bash shell:
-  <img src="http://www.projectchrono.org/assets/manual/Linux_env.png" width="600">
+- On Linux, using bash shell:<br>
+  <img src="http://www.projectchrono.org/assets/manual/Linux_env.png" width="600"><br>
   To permanently set <tt>PYTHONPATH</tt>, you can add the above to your .bashrc file (or the appropriate initialization file for your shell). 
 
 
@@ -117,7 +117,7 @@ for one or two minutes when SWIG does its job.
 
 <div class="ce-info">
 This module is tested with Python 3.3 and 3.2. 
-Support of the previous version Python 2.7 is discontinued.  
+Support of the previous version Python 2.7 is discontinued.
 </div>
 
 <div class="ce-warning">
@@ -132,23 +132,18 @@ In some distributions of Python, the debug library 'python33_d.lib' (the debug v
 If you need it because you recompile the python module in debug mode, either you recompile the entire Python source, or you modify pyconfig.h to force the use of python33.lib by following these steps:
 <br>
 1. Comment out the line:
-	<br>
-	<tt>
-	//#define Py_DEBUG
-	</tt>
-2. Modify 
-	<br>
-	<tt>
-	#if defined(_DEBUG)
-	  #pragma comment(lib,"python33_d.lib")
-	</tt>
-	<br>
-	to
-	<br>
-	<tt>
-	#if defined(_DEBUG)
-	  #pragma comment(lib,"python33.lib")
-	</tt>
+
+        //#define Py_DEBUG
+
+2. Modify
+
+        #if defined(_DEBUG)
+        #pragma comment(lib,"python33_d.lib")
+
+   to
+
+        #if defined(_DEBUG)
+        #pragma comment(lib,"python33.lib")
+
 3. Press 'Advanced' in CMake, set the PYTHON_DEBUG_LIBRARY to the same lib that you have in PYTHON_LIBRARY, and press 'Generate' so that your project will link 'python33.lib' instead than 'python33_d.lib'.
 </div>
-

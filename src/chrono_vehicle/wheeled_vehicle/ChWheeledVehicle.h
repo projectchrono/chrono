@@ -189,7 +189,7 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// The vehicle system is provided the current driver inputs (throttle between 0 and 1, steering between -1 and +1,
     /// braking between 0 and 1), and a reference to the terrain system.
     virtual void Synchronize(double time,                            ///< [in] current time
-                             const ChDriver::Inputs& driver_inputs,  /// [in] current driver inputs
+                             const ChDriver::Inputs& driver_inputs,  ///< [in] current driver inputs
                              const ChTerrain& terrain                ///< [in] reference to the terrain system
     );
 
