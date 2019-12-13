@@ -124,7 +124,7 @@ linux:doxygen:deploy:
     - export PATH="$PWD/doxygen-1.8.16/bin:$PATH"
     - cd doxygen
     - doxygen Doxyfile
-    - doxygen Doxyfile_Generate_Search_Index
+    # - doxygen Doxyfile_Generate_Search_Index
     - rsync -ra /tmp/chrono_doxygen/html/* $API_HTML_ENDPOINT
     - rsync /tmp/chrono_doxygen/searchdata.xml $API_SEARCH_ENDPOINT
     - ssh $API_REINDEX_ENDPOINT /var/www/cgi-bin/doxyindexer.cgi /var/www/cgi-bin/searchdata.xml
