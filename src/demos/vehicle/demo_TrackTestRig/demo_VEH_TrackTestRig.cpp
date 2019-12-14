@@ -53,7 +53,7 @@ using std::endl;
 double step_size = 1e-3;
 
 // Specification of test rig inputs
-enum DriverMode {
+enum class DriverMode {
     KEYBOARD,    // interactive (Irrlicht) driver
     DATAFILE,    // inputs from data file
     ROADPROFILE  // inputs to follow road profile
@@ -61,7 +61,7 @@ enum DriverMode {
 std::string driver_file("M113/test_rig/TTR_inputs.dat");  // used for mode=DATAFILE
 std::string road_file("M113/test_rig/TTR_road.dat");      // used for mode=ROADPROFILE
 double road_speed = 10;                                   // used for mode=ROADPROFILE
-DriverMode driver_mode = DATAFILE;
+DriverMode driver_mode = DriverMode::ROADPROFILE;
 
 bool use_JSON = false;
 std::string filename("M113/track_assembly/M113_TrackAssemblySinglePin_Left.json");
@@ -153,29 +153,27 @@ int main(int argc, char* argv[]) {
     // Create and attach the driver system
     // -----------------------------------
 
-    std::unique_ptr<ChDriverTTR> driver;
+    std::shared_ptr<ChDriverTTR> driver;
     switch (driver_mode) {
-        case KEYBOARD: {
-            auto irr_driver = new ChIrrGuiDriverTTR(app);
+        case DriverMode::KEYBOARD : {
+            auto irr_driver = chrono_types::make_shared<ChIrrGuiDriverTTR>(app);
             irr_driver->SetThrottleDelta(1.0 / 50);
             irr_driver->SetDisplacementDelta(1.0 / 250);
-            driver = std::unique_ptr<ChDriverTTR>(irr_driver);
+            driver = irr_driver;
             break;
         }
-        case DATAFILE: {
-            // Driver with inputs from file
-            auto data_driver = new ChDataDriverTTR(vehicle::GetDataFile(driver_file));
-            driver = std::unique_ptr<ChDriverTTR>(data_driver);
+        case DriverMode::DATAFILE: {
+            auto data_driver = chrono_types::make_shared<ChDataDriverTTR>(vehicle::GetDataFile(driver_file));
+            driver = data_driver;
             break;
         }
-        case ROADPROFILE: {
-            auto road_driver = new ChRoadDriverTTR(vehicle::GetDataFile(road_file), road_speed);
-            driver = std::unique_ptr<ChDriverTTR>(road_driver);
+        case DriverMode::ROADPROFILE: {
+            auto road_driver = chrono_types::make_shared<ChRoadDriverTTR>(vehicle::GetDataFile(road_file), road_speed);
+            driver = road_driver;
             break;
         }
     }
-
-    rig->SetDriver(std::move(driver));
+    rig->SetDriver(driver);
 
     // ----------------------------
     // Initialize the rig mechanism
@@ -295,8 +293,11 @@ int main(int argc, char* argv[]) {
         rig->Advance(step_size);
 
         // Update visualization app
-        app.Synchronize(rig->GetDriverMessage(), { 0, rig->GetThrottleInput(), 0 });
+        app.Synchronize(rig->GetDriverMessage(), {0, rig->GetThrottleInput(), 0});
         app.Advance(step_size);
+
+        if (driver->Ended())
+            break;
 
         // Increment frame number
         step_number++;

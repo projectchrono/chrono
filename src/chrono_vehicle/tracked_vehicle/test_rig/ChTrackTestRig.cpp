@@ -184,7 +184,7 @@ void ChTrackTestRig::Create() {
 
         auto linact = chrono_types::make_shared<ChLinkMotorLinearPosition>();
         linact->SetNameString("post_actuator");
-        linact->SetMotionFunction(chrono_types::make_shared<ChFunction_Const>());
+        linact->SetMotionFunction(chrono_types::make_shared<ChFunction_Setpoint>());
         linact->Initialize(m_chassis->GetBody(), post, ChFrame<>(ChVector<>(post_pos), Q_from_AngY(CH_C_PI_2)));
         m_system->AddLink(linact);
 
@@ -238,7 +238,7 @@ void ChTrackTestRig::Initialize() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChTrackTestRig::SetDriver(std::unique_ptr<ChDriverTTR> driver) {
+void ChTrackTestRig::SetDriver(std::shared_ptr<ChDriverTTR> driver) {
     m_driver = std::move(driver);
 }
 
@@ -270,6 +270,7 @@ void ChTrackTestRig::Advance(double step) {
 
     // Driver inputs
     std::vector<double> displ(m_post.size(), 0.0);
+    std::vector<double> displ_speed(m_post.size(), 0.0);
     if (time < m_displ_delay) {
         m_throttle_input = 0;
         for (int i = 0; i < m_post.size(); i++) {
@@ -280,7 +281,9 @@ void ChTrackTestRig::Advance(double step) {
         m_throttle_input = m_driver->GetThrottle();
         for (int i = 0; i < m_post.size(); i++) {
             m_displ_input[i] = m_driver->GetDisplacement(i);
+            double displ_input_speed = m_driver->GetDisplacementSpeed(i);
             displ[i] = m_displ_offset + m_displ_limit * m_displ_input[i];
+            displ_speed[i] = m_displ_limit * displ_input_speed;
         }
     }
 
@@ -297,8 +300,8 @@ void ChTrackTestRig::Advance(double step) {
 
     // Update post displacements
     for (int i = 0; i < m_post.size(); i++) {
-        auto func = std::static_pointer_cast<ChFunction_Const>(m_post_linact[i]->GetMotionFunction());
-        func->Set_yconst(displ[i]);
+        auto func = std::static_pointer_cast<ChFunction_Setpoint>(m_post_linact[i]->GetMotionFunction());
+        func->SetSetpointAndDerivatives(displ[i], displ_speed[i], 0.0);
     }
 
     // Advance state of entire system

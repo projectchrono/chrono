@@ -59,7 +59,7 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     ~ChTrackTestRig() {}
 
     /// Set driver system.
-    void SetDriver(std::unique_ptr<ChDriverTTR> driver);
+    void SetDriver(std::shared_ptr<ChDriverTTR> driver);
 
     /// Set the initial ride height (relative to the sprocket reference frame).
     /// If not specified, the reference height is the track assembly design configuration.
@@ -157,7 +157,7 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     std::vector<std::shared_ptr<ChBody>> m_post;                            ///< post bodies
     std::vector<std::shared_ptr<ChLinkMotorLinearPosition>> m_post_linact;  ///< post linear actuators
 
-    std::unique_ptr<ChDriverTTR> m_driver;  ///< driver system
+    std::shared_ptr<ChDriverTTR> m_driver;  ///< driver system
     double m_throttle_input;                ///< current driver throttle input
     std::vector<double> m_displ_input;      ///< current post displacement inputs
     std::string m_driver_logfile;           ///< name of optioinal driver log file
