@@ -74,20 +74,14 @@ bool use_mumps = true;
 // Solver output level (MKL and MUMPS)
 bool verbose_solver = false;
 
+// Output collection
+bool output = true;
 const std::string out_dir = GetChronoOutputPath() + "TRACK_TEST_RIG";
+double out_step_size = 1e-2;
 
 // =============================================================================
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
-
-    // -----------------
-    // Initialize output
-    // -----------------
-
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        std::cout << "Error creating directory " << out_dir << std::endl;
-        return 1;
-    }
 
     // -----------------------
     // Construct rig mechanism
@@ -193,12 +187,25 @@ int main(int argc, char* argv[]) {
     rig->SetRoadWheelVisualizationType(VisualizationType::PRIMITIVES);
     rig->SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
 
-    rig->SetDriverLogFilename(out_dir + "/TTR_driver.out");
-
     rig->Initialize();
 
     app.AssetBindAll();
     app.AssetUpdateAll();
+
+    // Set up rig output
+    if (output) {
+        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+            std::cout << "Error creating directory " << out_dir << std::endl;
+            return 1;
+        }
+
+        ////rig->SetDriverLogFilename(out_dir + "/TTR_driver.txt");
+
+        rig->SetTrackAssemblyOutput(true);
+        rig->SetOutput(ChVehicleOutput::ASCII, out_dir, "output", out_step_size);
+
+        rig->SetPlotOutput(out_step_size * 0.1);
+    }
 
     // ------------------------------
     // Solver and integrator settings
@@ -280,15 +287,6 @@ int main(int argc, char* argv[]) {
         // Debugging output
         ////rig->LogDriverInputs();
 
-        const ChFrameMoving<>& c_ref = rig->GetChassisBody()->GetFrame_REF_to_abs();
-        const ChVector<>& i_pos_abs = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
-        const ChVector<>& s_pos_abs = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
-        ChVector<> i_pos_rel = c_ref.TransformPointParentToLocal(i_pos_abs);
-        ChVector<> s_pos_rel = c_ref.TransformPointParentToLocal(s_pos_abs);
-        ////cout << "Time: " << time << endl;
-        ////cout << "      idler:    " << i_pos_rel.x() << "  " << i_pos_rel.y() << "  " << i_pos_rel.z() << endl;
-        ////cout << "      sprocket: " << s_pos_rel.x() << "  " << s_pos_rel.y() << "  " << s_pos_rel.z() << endl;
-
         // Advance simulation of the rig
         rig->Advance(step_size);
 
@@ -302,6 +300,9 @@ int main(int argc, char* argv[]) {
         // Increment frame number
         step_number++;
     }
+
+    // Write output file and plot (no-op if SetPlotOutput was not called)
+    rig->PlotOutput(out_dir, "output_plot");
 
     delete rig;
 

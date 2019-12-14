@@ -42,6 +42,10 @@
 #include "chrono_thirdparty/rapidjson/prettywriter.h"
 #include "chrono_thirdparty/rapidjson/stringbuffer.h"
 
+#ifdef CHRONO_POSTPROCESS
+#include "chrono_postprocess/ChGnuPlot.h"
+#endif
+
 using namespace rapidjson;
 
 namespace chrono {
@@ -92,7 +96,11 @@ ChTrackTestRig::ChTrackTestRig(const std::string& filename,
       m_vis_idler(VisualizationType::NONE),
       m_vis_roadwheel_assembly(VisualizationType::NONE),
       m_vis_roadwheel(VisualizationType::NONE),
-      m_vis_shoe(VisualizationType::NONE) {
+      m_vis_shoe(VisualizationType::NONE),
+      m_plot_output(false),
+      m_plot_output_step(0),
+      m_next_plot_output_time(0),
+      m_csv(nullptr) {
     // Open and parse the input file (track assembly JSON specification file)
     Document d = ReadFileJSON(filename);
     if (d.IsNull())
@@ -132,8 +140,16 @@ ChTrackTestRig::ChTrackTestRig(std::shared_ptr<ChTrackAssembly> assembly,
       m_vis_idler(VisualizationType::NONE),
       m_vis_roadwheel_assembly(VisualizationType::NONE),
       m_vis_roadwheel(VisualizationType::NONE),
-      m_vis_shoe(VisualizationType::NONE) {
+      m_vis_shoe(VisualizationType::NONE),
+      m_plot_output(false),
+      m_plot_output_step(0),
+      m_next_plot_output_time(0),
+      m_csv(nullptr) {
     Create();
+}
+
+ChTrackTestRig::~ChTrackTestRig() {
+    delete m_csv;
 }
 
 void ChTrackTestRig::Create() {
@@ -306,6 +322,15 @@ void ChTrackTestRig::Advance(double step) {
 
     // Advance state of entire system
     ChVehicle::Advance(step);
+
+    // Generate output for plotting if requested
+    time = GetChTime();
+    if (!m_driver->Started()) {
+        m_next_plot_output_time = time + m_plot_output_step;
+    } else if (m_plot_output && time > m_next_plot_output_time) {
+        CollectPlotData(time);
+        m_next_plot_output_time += m_plot_output_step;
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -335,8 +360,8 @@ void ChTrackTestRig::LogConstraintViolations() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChTrackTestRig::AddPostVisualization(std::shared_ptr<ChBody> post,
-                                       std::shared_ptr<ChBody> chassis,
-                                       const ChColor& color) {
+                                          std::shared_ptr<ChBody> chassis,
+                                          const ChColor& color) {
     // Platform (on post body)
     auto base_cyl = chrono_types::make_shared<ChCylinderShape>();
     base_cyl->GetCylinderGeometry().rad = m_post_radius;
@@ -361,6 +386,75 @@ void ChTrackTestRig::AddPostVisualization(std::shared_ptr<ChBody> post,
     cyl->GetCylinderGeometry().p1 = post->GetPos() - ChVector<>(0, 0, 16 * m_post_hheight);
     cyl->GetCylinderGeometry().p2 = post->GetPos() - ChVector<>(0, 0, 32 * m_post_hheight);
     chassis->AddAsset(cyl);
+}
+
+// -----------------------------------------------------------------------------
+
+void ChTrackTestRig::SetTrackAssemblyOutput(bool state) {
+    m_track->SetOutput(state);
+}
+
+void ChTrackTestRig::Output(int frame, ChVehicleOutput& database) const {
+    database.WriteTime(frame, m_system->GetChTime());
+
+    if (m_track->OutputEnabled()) {
+        m_track->Output(database);
+    }
+}
+
+void ChTrackTestRig::SetPlotOutput(double output_step) {
+    m_plot_output = true;
+    m_plot_output_step = output_step;
+    m_csv = new utils::CSV_writer(" ");
+}
+
+void ChTrackTestRig::CollectPlotData(double time) {
+    *m_csv << time;
+
+    ////const ChFrameMoving<>& c_ref = GetChassisBody()->GetFrame_REF_to_abs();
+    ////const ChVector<>& i_pos_abs = m_track->GetIdler()->GetWheelBody()->GetPos();
+    ////const ChVector<>& s_pos_abs = m_track->GetSprocket()->GetGearBody()->GetPos();
+    ////ChVector<> i_pos_rel = c_ref.TransformPointParentToLocal(i_pos_abs);
+    ////ChVector<> s_pos_rel = c_ref.TransformPointParentToLocal(s_pos_abs);
+
+    *m_csv << m_track->GetSprocket()->GetGearBody()->GetPos();
+    *m_csv << m_track->GetIdler()->GetWheelBody()->GetPos();
+
+    for (auto suspension : m_track->GetRoadWheelAssemblies()) {
+        *m_csv << suspension->GetRoadWheel()->GetWheelBody()->GetPos();
+        //// TODO: spring and shock forces
+    }
+
+    *m_csv << std::endl;
+}
+
+void ChTrackTestRig::PlotOutput(const std::string& out_dir, const std::string& out_name) {
+    if (!m_plot_output)
+        return;
+
+    std::string out_file = out_dir + "/" + out_name + ".txt";
+    m_csv->write_to_file(out_file);
+
+#ifdef CHRONO_POSTPROCESS
+    std::string gplfile = out_dir + "/tmp.gpl";
+    postprocess::ChGnuPlot mplot(gplfile.c_str());
+
+    std::string title = "Suspension test rig - Wheel positions";
+    mplot.OutputWindow(0);
+    mplot.SetTitle(title.c_str());
+    mplot.SetLabelX("time [s]");
+    mplot.SetLabelY("wheel z [m]");
+    mplot.SetCommand("set format y '%4.1e'");
+    mplot.SetCommand("set terminal wxt size 800, 600");
+    mplot.Plot(out_file.c_str(), 1, 4, "sprocket", " with lines lw 2");
+    mplot.Plot(out_file.c_str(), 1, 7, "idler", " with lines lw 2");
+    for (int i = 0; i < m_track->GetNumRoadWheelAssemblies(); i++) {
+        std::string label = "wheel #" + std::to_string(i);
+        mplot.Plot(out_file.c_str(), 1, 7 + 3 * i + 3, label.c_str(), " with lines lw 2");
+    }
+
+    //// TODO: spring and shock forces
+#endif
 }
 
 }  // end namespace vehicle
