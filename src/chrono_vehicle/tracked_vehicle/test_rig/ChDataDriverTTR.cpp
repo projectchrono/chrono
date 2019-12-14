@@ -29,6 +29,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <cstring>
 
 namespace chrono {
 namespace vehicle {
@@ -70,7 +71,7 @@ void ChDataDriverTTR::Initialize(size_t num_posts, const std::vector<double>& lo
     // Read data from file
     std::ifstream ifile(m_filename.c_str());
     if (!ifile.is_open()) {
-        std::cout << "failed to open " << m_filename << "    " << strerror(errno) << std::endl;
+        std::cout << "failed to open " << m_filename << "    " << std::strerror(errno) << std::endl;
         return;
     }
     std::string line;
