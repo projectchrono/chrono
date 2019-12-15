@@ -12,7 +12,6 @@
 // Authors: Dario Mangoni, Radu Serban
 // =============================================================================
 
-
 #ifndef CHSPARSITYPATTERNLEARNER_H
 #define CHSPARSITYPATTERNLEARNER_H
 
@@ -29,56 +28,62 @@ namespace chrono {
 class ChSparsityPatternLearner : public Eigen::SparseMatrix<double, Eigen::RowMajor, int> {
   public:
     ChSparsityPatternLearner(int nrows, int ncols) : ChSparseMatrix(nrows, ncols), processed(false) {
-        rowVector_list.resize(rows());
+        // RowMajor: outerSize == nrows
+        // ColMajor: outerSize == ncols
+        innerVectors.resize(outerSize());
     }
 
     ~ChSparsityPatternLearner() {}
 
-    virtual void SetElement(int insrow, int inscol, double insval, bool overwrite = true) override {
-        rowVector_list[insrow].push_back(inscol);
+    virtual void SetElement(int row, int col, double val, bool overwrite = true) override {
+        const Index outer = IsRowMajor ? row : col;
+        const Index inner = IsRowMajor ? col : row;
+        innerVectors[outer].push_back((int)inner);
     }
-
 
     void Apply(ChSparseMatrix& mat) {
         if (!processed)
-			process();
+            process();
 
+        // Resize the matrix and reserve space for non-zero elements in each inner vector
         mat.resize(rows(), cols());
-        mat.reserve(rowDimensions_list);
-		//int rowIndexCurrent = 0;
-		int col_el = 0;
-        for (auto row_sel = 0; row_sel < rowVector_list.size(); ++row_sel) {
+        mat.reserve(innerVectors_size);
 
-			//mat.outerIndexPtr()[row_sel] = rowIndexCurrent;
-
-            for (auto it = rowVector_list[row_sel].begin(); it != rowVector_list[row_sel].end(); ++it) {
-                mat.innerIndexPtr()[col_el] = *it;
+        int col_el = 0;
+        for (auto outer = 0; outer < innerVectors.size(); ++outer) {
+            for (auto inner = innerVectors[outer].begin(); inner != innerVectors[outer].end(); ++inner) {
+                mat.innerIndexPtr()[col_el] = *inner;
                 col_el++;
             }
-
-			//rowIndexCurrent += rowDimensions_list[row_sel];
         }
-		//mat.outerIndexPtr()[rows()] = rowIndexCurrent;
     }
 
   private:
     void process() {
-
-		for (auto list_iter = rowVector_list.begin(); list_iter != rowVector_list.end(); ++list_iter) {
-            list_iter->sort();
-            list_iter->unique();
+        // Find the unique indices of non-zero elements in each inner vector
+        for (auto vec = innerVectors.begin(); vec != innerVectors.end(); ++vec) {
+            vec->sort();
+            vec->unique();
         }
 
-		rowDimensions_list.resize(rowVector_list.size());
-        for (auto i = 0; i < rowVector_list.size(); ++i) {
-            rowDimensions_list[i] = static_cast<int>(rowVector_list[i].size());
+        // Cache the number of non-zero elements in each inner vector
+        // (in each row if RowMajor, in each column if ColMajor)
+        innerVectors_size.resize(innerVectors.size());
+        for (auto i = 0; i < innerVectors.size(); ++i) {
+            innerVectors_size[i] = static_cast<int>(innerVectors[i].size());
         }
 
-		processed = true;
+        processed = true;
     }
 
-    std::vector<std::list<int>> rowVector_list;
-    std::vector<int> rowDimensions_list;
+    // RowMajor:  innerVectors[i] contains the column indices of non-zero elements in row i
+    // ColMajor:  innerVectors[i] contains the row indices of non-zero elements in column i
+    std::vector<std::list<int>> innerVectors;
+
+    // RowMajor: innerVectors_size[i] contains the number of non-zero elements in row i
+    // ColMajor: innerVectors_size[i] contains the number of non-zero elements in column i
+    std::vector<int> innerVectors_size;
+
     bool processed;
 };
 
