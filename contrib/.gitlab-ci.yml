@@ -106,19 +106,25 @@ linux:doxygen:deploy:
     entrypoint: ["/usr/bin/bash", "-c"]
   stage: deploy
   before_script:
-    - pacman -Syyu --noconfirm base-devel git wget fish python python-pip doxygen graphviz openssh rsync
-    - eval $(ssh-agent -s)
-    - echo -e "-----BEGIN RSA PRIVATE KEY-----\n$API_PRIVATE_KEY\n-----END RSA PRIVATE KEY-----\n" | ssh-add -
+#    - pacman -Syyu --noconfirm base-devel git python python-pip doxygen graphviz openssh rsync clang
+    - pacman -Syyu --noconfirm base-devel git python python-pip graphviz openssh rsync wget
+    - wget https://svwh.dl.sourceforge.net/project/doxygen/rel-1.8.16/doxygen-1.8.16.linux.bin.tar.gz
+    - tar -xf doxygen-1.8.16.linux.bin.tar.gz
     - mkdir -p ~/.ssh
     - chmod 0700 ~/.ssh
+# This private key is only useable from specific IPs, so it should be okay to
+# be included here.
+    - cp $API_PRIVATE_KEY ~/.ssh/id_rsa
+    - chmod 0600 ~/.ssh/id_rsa
 # Remove any duplicate host key entries, if necessary
     - if test -f ~/.ssh/known_hosts; then ssh-keygen -R $API_REINDEX_ENDPOINT; fi
 # Cache a verified host pubkey from file to avoid MITM attacks
     - cat $API_ENDPOINT_PUBKEY >> ~/.ssh/known_hosts
   script:
+    - export PATH="$PWD/doxygen-1.8.16/bin:$PATH"
     - cd doxygen
     - doxygen Doxyfile
-    - doxygen Doxyfile_Generate_Search_Index
+    # - doxygen Doxyfile_Generate_Search_Index
     - rsync -ra /tmp/chrono_doxygen/html/* $API_HTML_ENDPOINT
     - rsync /tmp/chrono_doxygen/searchdata.xml $API_SEARCH_ENDPOINT
     - ssh $API_REINDEX_ENDPOINT /var/www/cgi-bin/doxyindexer.cgi /var/www/cgi-bin/searchdata.xml
@@ -143,7 +149,6 @@ linux:arch-llvm:build:
     -DENABLE_MODULE_FSI=TRUE -DCMAKE_C_COMPILER=/usr/bin/clang 
     -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DCUDA_HOST_COMPILER=/usr/bin/gcc-8 
     -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3 -DENABLE_MODULE_GRANULAR=TRUE
-
   - make -j 8
   artifacts:
     expire_in: 60m

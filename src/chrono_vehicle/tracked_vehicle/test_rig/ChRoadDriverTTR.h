@@ -29,6 +29,8 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChDriverTTR.h"
 
+#include "chrono/core/ChCubicSpline.h"
+
 namespace chrono {
 namespace vehicle {
 
@@ -46,7 +48,10 @@ class CH_VEHICLE_API ChRoadDriverTTR : public ChDriverTTR {
                     double speed                  ///< translation speed
     );
 
-    ~ChRoadDriverTTR() {}
+    ~ChRoadDriverTTR();
+    
+    /// Return true when driver stopped producing inputs (end of data).
+    virtual bool Ended() const override;
 
   private:
     /// Initialize the driver system.
@@ -58,9 +63,12 @@ class CH_VEHICLE_API ChRoadDriverTTR : public ChDriverTTR {
     /// Get string message.
     virtual std::string GetInfoMessage() const override { return "Road driver inputs"; }
 
-    std::string m_filename;
-    double m_speed;
-    std::vector<std::pair<double, double>> m_data;
+    std::string m_filename;       ///< input file name
+    double m_speed;               ///< vehicle speed over road profile
+    ChCubicSpline* m_curve_road;  ///< spline for road profile
+    double m_min;                 ///< first value of road x
+    double m_max;                 ///< last value fo road x
+    bool m_ended;                 ///< flag indicating end of input data
 };
 
 /// @} vehicle_tracked_test_rig

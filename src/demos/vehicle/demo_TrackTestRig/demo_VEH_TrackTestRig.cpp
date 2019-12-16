@@ -53,7 +53,7 @@ using std::endl;
 double step_size = 1e-3;
 
 // Specification of test rig inputs
-enum DriverMode {
+enum class DriverMode {
     KEYBOARD,    // interactive (Irrlicht) driver
     DATAFILE,    // inputs from data file
     ROADPROFILE  // inputs to follow road profile
@@ -61,7 +61,7 @@ enum DriverMode {
 std::string driver_file("M113/test_rig/TTR_inputs.dat");  // used for mode=DATAFILE
 std::string road_file("M113/test_rig/TTR_road.dat");      // used for mode=ROADPROFILE
 double road_speed = 10;                                   // used for mode=ROADPROFILE
-DriverMode driver_mode = DATAFILE;
+DriverMode driver_mode = DriverMode::ROADPROFILE;
 
 bool use_JSON = false;
 std::string filename("M113/track_assembly/M113_TrackAssemblySinglePin_Left.json");
@@ -74,20 +74,14 @@ bool use_mumps = true;
 // Solver output level (MKL and MUMPS)
 bool verbose_solver = false;
 
+// Output collection
+bool output = true;
 const std::string out_dir = GetChronoOutputPath() + "TRACK_TEST_RIG";
+double out_step_size = 1e-2;
 
 // =============================================================================
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
-
-    // -----------------
-    // Initialize output
-    // -----------------
-
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        std::cout << "Error creating directory " << out_dir << std::endl;
-        return 1;
-    }
 
     // -----------------------
     // Construct rig mechanism
@@ -153,29 +147,27 @@ int main(int argc, char* argv[]) {
     // Create and attach the driver system
     // -----------------------------------
 
-    std::unique_ptr<ChDriverTTR> driver;
+    std::shared_ptr<ChDriverTTR> driver;
     switch (driver_mode) {
-        case KEYBOARD: {
-            auto irr_driver = new ChIrrGuiDriverTTR(app);
+        case DriverMode::KEYBOARD : {
+            auto irr_driver = chrono_types::make_shared<ChIrrGuiDriverTTR>(app);
             irr_driver->SetThrottleDelta(1.0 / 50);
             irr_driver->SetDisplacementDelta(1.0 / 250);
-            driver = std::unique_ptr<ChDriverTTR>(irr_driver);
+            driver = irr_driver;
             break;
         }
-        case DATAFILE: {
-            // Driver with inputs from file
-            auto data_driver = new ChDataDriverTTR(vehicle::GetDataFile(driver_file));
-            driver = std::unique_ptr<ChDriverTTR>(data_driver);
+        case DriverMode::DATAFILE: {
+            auto data_driver = chrono_types::make_shared<ChDataDriverTTR>(vehicle::GetDataFile(driver_file));
+            driver = data_driver;
             break;
         }
-        case ROADPROFILE: {
-            auto road_driver = new ChRoadDriverTTR(vehicle::GetDataFile(road_file), road_speed);
-            driver = std::unique_ptr<ChDriverTTR>(road_driver);
+        case DriverMode::ROADPROFILE: {
+            auto road_driver = chrono_types::make_shared<ChRoadDriverTTR>(vehicle::GetDataFile(road_file), road_speed);
+            driver = road_driver;
             break;
         }
     }
-
-    rig->SetDriver(std::move(driver));
+    rig->SetDriver(driver);
 
     // ----------------------------
     // Initialize the rig mechanism
@@ -195,12 +187,25 @@ int main(int argc, char* argv[]) {
     rig->SetRoadWheelVisualizationType(VisualizationType::PRIMITIVES);
     rig->SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
 
-    rig->SetDriverLogFilename(out_dir + "/TTR_driver.out");
-
     rig->Initialize();
 
     app.AssetBindAll();
     app.AssetUpdateAll();
+
+    // Set up rig output
+    if (output) {
+        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+            std::cout << "Error creating directory " << out_dir << std::endl;
+            return 1;
+        }
+
+        ////rig->SetDriverLogFilename(out_dir + "/TTR_driver.txt");
+
+        rig->SetTrackAssemblyOutput(true);
+        rig->SetOutput(ChVehicleOutput::ASCII, out_dir, "output", out_step_size);
+
+        rig->SetPlotOutput(out_step_size * 0.1);
+    }
 
     // ------------------------------
     // Solver and integrator settings
@@ -282,25 +287,22 @@ int main(int argc, char* argv[]) {
         // Debugging output
         ////rig->LogDriverInputs();
 
-        const ChFrameMoving<>& c_ref = rig->GetChassisBody()->GetFrame_REF_to_abs();
-        const ChVector<>& i_pos_abs = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
-        const ChVector<>& s_pos_abs = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
-        ChVector<> i_pos_rel = c_ref.TransformPointParentToLocal(i_pos_abs);
-        ChVector<> s_pos_rel = c_ref.TransformPointParentToLocal(s_pos_abs);
-        ////cout << "Time: " << time << endl;
-        ////cout << "      idler:    " << i_pos_rel.x() << "  " << i_pos_rel.y() << "  " << i_pos_rel.z() << endl;
-        ////cout << "      sprocket: " << s_pos_rel.x() << "  " << s_pos_rel.y() << "  " << s_pos_rel.z() << endl;
-
         // Advance simulation of the rig
         rig->Advance(step_size);
 
         // Update visualization app
-        app.Synchronize(rig->GetDriverMessage(), { 0, rig->GetThrottleInput(), 0 });
+        app.Synchronize(rig->GetDriverMessage(), {0, rig->GetThrottleInput(), 0});
         app.Advance(step_size);
+
+        if (driver->Ended())
+            break;
 
         // Increment frame number
         step_number++;
     }
+
+    // Write output file and plot (no-op if SetPlotOutput was not called)
+    rig->PlotOutput(out_dir, "output_plot");
 
     delete rig;
 

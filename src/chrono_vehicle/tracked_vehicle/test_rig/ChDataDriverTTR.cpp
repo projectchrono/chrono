@@ -18,7 +18,8 @@
 // It is assumed that the time values are unique.
 // If the time values are not sorted, this must be specified at construction.
 // Inputs for post displacements and throttle are assumed to be in [-1,1].
-// Driver inputs at intermediate times are obtained through linear interpolation.
+// Driver inputs at intermediate times are obtained through cubic spline
+// interpolation.
 //
 // =============================================================================
 
@@ -28,78 +29,129 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <cstring>
 
 namespace chrono {
 namespace vehicle {
 
-ChDataDriverTTR::ChDataDriverTTR(const std::string& filename, bool sorted) : m_filename(filename), m_sorted(sorted) {}
+// -----------------------------------------------------------------------------
+
+// Definition of driver inputs at a given time.
+struct DataEntryTTR {
+    DataEntryTTR() : m_time(0), m_throttle(0) {}
+    DataEntryTTR(double time, const std::vector<double>& displ, double throttle)
+        : m_time(time), m_displ(displ), m_throttle(throttle) {}
+    double m_time;
+    double m_throttle;
+    std::vector<double> m_displ;
+};
+
+static bool compare(const DataEntryTTR& a, const DataEntryTTR& b) {
+    return a.m_time < b.m_time;
+}
+
+// -----------------------------------------------------------------------------
+
+ChDataDriverTTR::ChDataDriverTTR(const std::string& filename)
+    : m_filename(filename), m_ended(false), m_curve_throttle(nullptr) {}
+
+ChDataDriverTTR::~ChDataDriverTTR() {
+    delete m_curve_throttle;
+}
 
 void ChDataDriverTTR::Initialize(size_t num_posts, const std::vector<double>& locations) {
     ChDriverTTR::Initialize(num_posts, locations);
+    m_curve_displ.resize(num_posts, nullptr);
 
-    std::ifstream ifile(m_filename.c_str());
-    std::string line;
-
+    std::vector<DataEntryTTR> data;  // data table (for sorting)
     double time;
     std::vector<double> displ(num_posts);
     double throttle;
 
+    // Read data from file
+    std::ifstream ifile(m_filename.c_str());
+    if (!ifile.is_open()) {
+        std::cout << "failed to open " << m_filename << "    " << std::strerror(errno) << std::endl;
+        return;
+    }
+    std::string line;
     while (std::getline(ifile, line)) {
         std::istringstream iss(line);
-
         iss >> time;
         for (int i = 0; i < num_posts; i++)
             iss >> displ[i];
         iss >> throttle;
-
         if (iss.fail())
             break;
-
-        m_data.push_back(Entry(time, displ, throttle));
+        data.push_back(DataEntryTTR(time, displ, throttle));
     }
-
     ifile.close();
 
-    if (!m_sorted)
-        std::sort(m_data.begin(), m_data.end(), ChDataDriverTTR::compare);
+    // Ensure data is sorted
+    std::sort(data.begin(), data.end(), compare);
+
+    // Create cubic splines
+    std::vector<double> t;                          // time points
+    std::vector<std::vector<double>> d(num_posts);  // displacement input values
+    std::vector<double> r;                          // throttle values
+
+    t.push_back(data.begin()->m_time - 1);
+    for (int i = 0; i < num_posts; i++)
+        d[i].push_back(0);
+    r.push_back(0);
+
+    for (auto& entry : data) {
+        t.push_back(entry.m_time);
+        for (int i = 0; i < num_posts; i++)
+            d[i].push_back(entry.m_displ[i]);
+        r.push_back(entry.m_throttle);
+    }
+
+    for (int i = 0; i < num_posts; i++)
+        m_curve_displ[i] = new ChCubicSpline(t, d[i]);
+    m_curve_throttle = new ChCubicSpline(t, r);
+
+    // Cache the last data entry
+    m_last_time = data.back().m_time;
+    m_last_displ = data.back().m_displ;
+    m_last_throttle = data.back().m_throttle;
 }
 
-static void Zero(std::vector<double> &vec) {
+static void Zero(std::vector<double>& vec) {
     for (auto& x : vec) {
         x = 0;
     }
 }
 
 void ChDataDriverTTR::Synchronize(double time) {
+    ChDriverTTR::Synchronize(time);
+
     if (time < m_delay) {
         Zero(m_displ);
+        Zero(m_displSpeed);
         m_throttle = 0;
         return;
     }
 
     time -= m_delay;
 
-    if (time <= m_data[0].m_time) {
-        m_displ = m_data[0].m_displ;
-        m_throttle = m_data[0].m_throttle;
-        return;
-    } else if (time >= m_data.back().m_time) {
-        m_displ = m_data.back().m_displ;
-        m_throttle = m_data.back().m_throttle;
+    if (time > m_last_time) {
+        m_ended = true;
+        m_displ = m_last_displ;
+        m_throttle = m_last_throttle;
+        Zero(m_displSpeed);
         return;
     }
 
-    std::vector<Entry>::iterator right =
-        std::lower_bound(m_data.begin(), m_data.end(), Entry(time), ChDataDriverTTR::compare);
-
-    std::vector<Entry>::iterator left = right - 1;
-
-    double tbar = (time - left->m_time) / (right->m_time - left->m_time);
-
+    double dummy;
     for (size_t i = 0; i < m_displ.size(); i++) {
-        m_displ[i] = left->m_displ[i] + tbar * (right->m_displ[i] - left->m_displ[i]);
-    }        
-    m_throttle = left->m_throttle + tbar * (right->m_throttle - left->m_throttle);
+        m_curve_displ[i]->Evaluate(time, m_displ[i], m_displSpeed[i], dummy);
+    }
+    m_curve_throttle->Evaluate(time, m_throttle, dummy, dummy);
+}
+
+bool ChDataDriverTTR::Ended() const {
+    return m_ended;
 }
 
 }  // end namespace vehicle

@@ -25,9 +25,10 @@
 #define CH_TRACK_TEST_RIG_H
 
 #include <string>
-//
+
 #include "chrono/physics/ChLinkMotorLinearPosition.h"
-//
+#include "chrono/utils/ChUtilsInputOutput.h"
+
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChDriverTTR.h"
 
@@ -56,10 +57,10 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     );
 
     /// Destructor
-    ~ChTrackTestRig() {}
+    ~ChTrackTestRig();
 
     /// Set driver system.
-    void SetDriver(std::unique_ptr<ChDriverTTR> driver);
+    void SetDriver(std::shared_ptr<ChDriverTTR> driver);
 
     /// Set the initial ride height (relative to the sprocket reference frame).
     /// If not specified, the reference height is the track assembly design configuration.
@@ -93,6 +94,10 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
 
     /// Set filename for optional driver log
     void SetDriverLogFilename(const std::string& filename) { m_driver_logfile = filename; }
+
+    /// Enable/disable output for the track assembly.
+    /// See also ChVehicle::SetOuput.
+    void SetTrackAssemblyOutput(bool state);
 
     /// Initialize this track test rig.
     void Initialize();
@@ -129,6 +134,23 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;
 
+    /// Enable/disable data collection for plot generation (default: false).
+    /// See PlotOutput details on data collected.
+    void SetPlotOutput(double output_step);
+
+    /// Plot collected data.
+    /// When called (typically at the end of the simulation loop), the collected data is saved in ASCII format in a file
+    /// with the specified name (and 'txt' extension) in the specified output directory. If the Chrono::Postprocess
+    /// module is available (with gnuplot support), selected plots are generated.\n
+    /// Collected data includes:
+    ///  - [col 1]      time (s)
+    ///  - [col 2-4]    sprocket location (m)
+    ///  - [col 5-7]    idler location (m)
+    ///  - [col 8-10]   road wheel 1 location (m)
+    ///  - [col 11-13]  road wheel 2 location (m)
+    ///  - ...          ...
+    virtual void PlotOutput(const std::string& out_dir, const std::string& out_name);
+
   private:
     // Create the rig mechanism
     void Create();
@@ -138,13 +160,18 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
                               std::shared_ptr<ChBody> chassis_body,
                               const ChColor& color);
 
+    /// Output data for all modeling components in the track test rig system.
+    virtual void Output(int frame, ChVehicleOutput& database) const override;
+
+    /// Collect data for plotting
+    void CollectPlotData(double time);
+
     // Overrides of ChVehicle methods
     virtual std::string GetTemplateName() const override { return "TrackTestRig"; }
     virtual std::shared_ptr<ChShaft> GetDriveshaft() const override { return m_dummy_shaft; }
     virtual double GetDriveshaftSpeed() const override { return 0; }
     virtual double GetVehicleMass() const override { return GetMass(); }
     virtual ChVector<> GetVehicleCOMPos() const override { return ChVector<>(0, 0, 0); }
-    virtual void Output(int frame, ChVehicleOutput& database) const override {}
     virtual std::string ExportComponentList() const override { return ""; }
     virtual void ExportComponentList(const std::string& filename) const override {}
     virtual void Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel = 0) override { Initialize(); }
@@ -157,7 +184,7 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     std::vector<std::shared_ptr<ChBody>> m_post;                            ///< post bodies
     std::vector<std::shared_ptr<ChLinkMotorLinearPosition>> m_post_linact;  ///< post linear actuators
 
-    std::unique_ptr<ChDriverTTR> m_driver;  ///< driver system
+    std::shared_ptr<ChDriverTTR> m_driver;  ///< driver system
     double m_throttle_input;                ///< current driver throttle input
     std::vector<double> m_displ_input;      ///< current post displacement inputs
     std::string m_driver_logfile;           ///< name of optioinal driver log file
@@ -177,6 +204,11 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
 
     double m_post_radius;   ///< radius of the post cylindrical platform
     double m_post_hheight;  ///< half-height of the post cylindrical platform
+
+    bool m_plot_output;
+    double m_plot_output_step;
+    double m_next_plot_output_time;
+    utils::CSV_writer* m_csv;
 };
 
 /// @} vehicle_tracked_test_rig

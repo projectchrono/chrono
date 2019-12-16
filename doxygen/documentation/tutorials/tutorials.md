@@ -21,12 +21,12 @@ auto my_body = chrono_types::make_shared<ChBody>();
 -   @subpage tutorial_table_of_content_chrono
 
     Examples about the core functionalities of the Chrono library.
-	
+
 -   @subpage tutorial_table_of_content_chrono_irrlicht
 
     Examples with 3D interactive view, using Irrlicht.
 
-	
+
 ## Optional modules
 
 -   @subpage tutorial_table_of_content_chrono_fea
@@ -36,7 +36,7 @@ auto my_body = chrono_types::make_shared<ChBody>();
 -   @subpage tutorial_table_of_content_chrono_vehicle
  
     Modeling and simulating ground vehicles in Chrono.
-	
+
 -   @subpage tutorial_table_of_content_chrono_postprocess
 
     Examples on producing postprocessing data (e.g. POVray or GNUplot output).
@@ -51,16 +51,16 @@ auto my_body = chrono_types::make_shared<ChBody>();
 
 -   @subpage tutorial_table_of_content_chrono_cosimulation
 
-    Examples for cosimulation with Simulink. 
+    Examples for cosimulation with Simulink.
 
 -   @subpage tutorial_table_of_content_chrono_cascade
 
     Examples for loading CAD models.
-	
+
 -   @subpage tutorial_table_of_content_chrono_parallel
 
     Examples on using the Parallel module.
-	
+
 -   @subpage tutorial_table_of_content_chrono_distributed
 
     Examples on using the Distributed module.
@@ -71,8 +71,12 @@ auto my_body = chrono_types::make_shared<ChBody>();
 
 -   @subpage tutorial_table_of_content_chrono_fsi
 
-    Examples of fluid-solid interaction using the FSI module.	
-	
+    Examples of fluid-solid interaction problems using the FSI module.
+
+-   @subpage tutorial_table_of_content_chrono_granular
+
+    Examples of granular dynamics problems (GPU).
+
 
 ## Other tools
 
@@ -92,7 +96,7 @@ auto my_body = chrono_types::make_shared<ChBody>();
 
     Set of tutorial slides for Chrono release 3.0.0
 
-	
+
 ## Documentation guides
 
 -    @subpage tutorial_table_of_content_documentation

@@ -425,11 +425,11 @@ class PDSampler : public Sampler<T> {
 
 /// Wraps the Poisson disk sampler for sampling in layers to improve efficiency.
 template <typename T>
-std::vector<ChVector<T>> PDLayerSampler_BOX(ChVector<T> center,       ///!< Center of axis-aligned box to fill
-                                            ChVector<T> hdims,        ///!< Half-dimensions along the x, y, and z axes
-                                            T diam,                   ///!< Particle diameter
-                                            T padding_factor = 1.02,  ///!< Multiplier on particle diameter for spacing
-                                            bool verbose = false      ///!< Output progress during generation
+std::vector<ChVector<T>> PDLayerSampler_BOX(ChVector<T> center,       ///< Center of axis-aligned box to fill
+                                            ChVector<T> hdims,        ///< Half-dimensions along the x, y, and z axes
+                                            T diam,                   ///< Particle diameter
+                                            T padding_factor = 1.02,  ///< Multiplier on particle diameter for spacing
+                                            bool verbose = false      ///< Output progress during generation
 ) {
     T fill_bottom = center.z() - hdims.z();
     T fill_top = center.z() + hdims.z();
