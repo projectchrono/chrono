@@ -307,10 +307,11 @@ class  ChElementBeamIGA :   public ChElementBeam,
         ComputeInternalForces_impl(Fi, mstate_x, mstate_w);
     }
 
-    void ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
-                                    ChState& state_x,       ///< state position to evaluate Fi
-                                    ChStateDelta& state_w,  ///< state speed to evaluate Fi
-                                    bool used_for_differentiation = false) {
+    void ComputeInternalForces_impl(ChVectorDynamic<>& Fi,                 ///< output vector of internal forces
+                                    ChState& state_x,                      ///< state position to evaluate Fi
+                                    ChStateDelta& state_w,                 ///< state speed to evaluate Fi
+                                    bool used_for_differentiation = false  ///< used during FD Jacobian evaluation?
+    ) {
         // get two values of absyssa at extreme of span
         double u1 = knots(order);
         double u2 = knots(knots.size() - order - 1);
@@ -318,7 +319,7 @@ class  ChElementBeamIGA :   public ChElementBeam,
         double c1 = (u2 - u1) / 2;
         double c2 = (u2 + u1) / 2;
 
-        // zeroes the Fi accumulator
+        // zero the Fi accumulator
         Fi.setZero();
 
         // Do quadrature over the "s" shear Gauss points 

@@ -29,26 +29,39 @@
 namespace chrono {
 namespace vehicle {
 
-ChRoadDriverTTR::ChRoadDriverTTR(const std::string& filename, double speed) : m_filename(filename), m_speed(speed) {}
+ChRoadDriverTTR::ChRoadDriverTTR(const std::string& filename, double speed)
+    : m_filename(filename), m_speed(speed), m_ended(false), m_curve_road(nullptr) {}
+
+ChRoadDriverTTR::~ChRoadDriverTTR() {
+    delete m_curve_road;
+}
 
 void ChRoadDriverTTR::Initialize(size_t num_posts, const std::vector<double>& locations) {
     ChDriverTTR::Initialize(num_posts, locations);
 
-    std::ifstream ifile(m_filename.c_str());
+    std::vector<double> vx;  // road profile x
+    std::vector<double> vz;  // road profile z
 
+    std::ifstream ifile(m_filename.c_str());
     std::string line;
-    double x;
-    double z;
     while (std::getline(ifile, line)) {
         std::istringstream iss(line);
+        double x, z;
         iss >> x;
         iss >> z;
         if (iss.fail())
             break;
-        m_data.push_back(std::make_pair(x, z));
+        vx.push_back(x);
+        vz.push_back(z);
     }
-
     ifile.close();
+
+    // Create spline
+    m_curve_road = new ChCubicSpline(vx, vz);
+
+    // Cache min/max x values
+    m_min = vx.front();
+    m_max = vx.back();
 }
 
 static void Zero(std::vector<double>& vec) {
@@ -58,24 +71,33 @@ static void Zero(std::vector<double>& vec) {
 }
 
 void ChRoadDriverTTR::Synchronize(double time) {
+    ChDriverTTR::Synchronize(time);
+
     Zero(m_displ);
     m_throttle = 0;
-    
+
     if (time < m_delay) {
         return;
     }
 
     time -= m_delay;
 
+    m_ended = true;
     for (size_t i = 0; i < m_displ.size(); i++) {
         double x = time * m_speed + m_locations[i];
-        if (x <= m_data.front().first || x >= m_data.back().first)
+        if (x < m_max) {
+            // Not done as long as at least one post didn't reach the end of data
+            m_ended = false;
+        }
+        if (x <= m_min || x >= m_max)
             continue;
-        auto right = std::lower_bound(m_data.begin(), m_data.end(), std::make_pair(x, -1.0));
-        auto left = right - 1;
-        double xbar = (x - left->first) / (right->first - left->first);
-        m_displ[i] = left->second + xbar * (right->second - left->second);
+        double dummy;
+        m_curve_road->Evaluate(x, m_displ[i], m_displSpeed[i], dummy);
     }
+}
+
+bool ChRoadDriverTTR::Ended() const {
+    return m_ended;
 }
 
 }  // end namespace vehicle

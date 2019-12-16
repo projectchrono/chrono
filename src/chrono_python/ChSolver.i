@@ -41,6 +41,8 @@ using namespace chrono;
 %shared_ptr(chrono::ChSolverAPGD)
 %shared_ptr(chrono::ChSolverPSOR)
 %shared_ptr(chrono::ChSolverPJacobi)
+%shared_ptr(chrono::ChSolverSparseLU)
+%shared_ptr(chrono::ChSolverSparseQR)
 
 %include "../chrono/solver/ChSolver.h"
 %include "../chrono/solver/ChSolverVI.h"

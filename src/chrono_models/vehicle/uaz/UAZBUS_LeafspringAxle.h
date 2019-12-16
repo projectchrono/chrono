@@ -32,7 +32,6 @@ namespace uaz {
 
 /// Leafspring axle subsystem for the uaz vehicle.
 
-/// @} vehicle_models_uaz
 class CH_MODELS_API UAZBUS_LeafspringAxle : public ChLeafspringAxle {
   public:
     UAZBUS_LeafspringAxle(const std::string& name);

@@ -50,9 +50,9 @@ int main(int argc, char* argv[]) {
     auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     // Create one of the available models (defined in FEAcables.h)
-    // model1(my_system, my_mesh);
-    // model2(my_system, my_mesh);
-    model3(my_system, my_mesh);
+    ////auto model = Model1(my_system, my_mesh);
+    ////auto model = Model2(my_system, my_mesh);
+    auto model = Model3(my_system, my_mesh);
 
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
@@ -116,6 +116,7 @@ int main(int argc, char* argv[]) {
         application.DrawAll();
         application.DoStep();
         application.EndScene();
+        ////model.PrintBodyPositions();
     }
 
     return 0;

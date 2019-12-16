@@ -680,7 +680,7 @@ __global__ void Function_Gradient_Laplacian_Operator(Real4* sortedPosRad,  // in
                                                      Real* sumWij_inv,
                                                      Real* G_tensor,
                                                      Real* L_tensor,
-                                                     Real* A_L,   // velcotiy Laplacian matrix;
+                                                     Real* A_L,   // velocity Laplacian matrix;
                                                      Real3* A_G,  // This is a matrix in a way that A*p gives the gradp
                                                      Real* A_f,
                                                      uint* csrColInd,
@@ -746,9 +746,9 @@ __global__ void Calc_Splits_and_Merges(Real4* sortedPosRad,
                                        Real4* sortedRhoPreMu,
                                        Real3* sortedVelMas,
                                        Real3* helpers_normal,
-                                       Real* A_L,   /// Laplacian Operator matrix
-                                       Real3* A_G,  /// Gradient Operator matrix
-                                       Real* A_f,   /// Function Operator matrix
+                                       Real* A_L,   // Laplacian Operator matrix
+                                       Real3* A_G,  // Gradient Operator matrix
+                                       Real* A_f,   // Function Operator matrix
                                        const uint* csrColInd,
                                        const uint* numContacts,
                                        uint* splitMe,
@@ -766,9 +766,9 @@ __global__ void Split(Real4* sortedPosRad,
                       Real4* sortedRhoPreMu,
                       Real3* sortedVelMas,
                       Real3* helpers_normal,
-                      Real* A_L,   /// Laplacian Operator matrix
-                      Real3* A_G,  /// Gradient Operator matrix
-                      Real* A_f,   /// Function Operator matrix
+                      Real* A_L,   // Laplacian Operator matrix
+                      Real3* A_G,  // Gradient Operator matrix
+                      Real* A_f,   // Function Operator matrix
                       const uint* csrColInd,
                       const uint* numContacts,
                       uint* splitMe,

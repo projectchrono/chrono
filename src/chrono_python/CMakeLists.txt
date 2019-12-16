@@ -587,6 +587,12 @@ if(ENABLE_MODULE_VEHICLE)
   set_source_files_properties(${CHPY_VEHICLE_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
 
   # Create the SWIG module.
+
+  # Make sure CHRONO_IRRLICHT is defined for the SWIG processor
+  if (ENABLE_MODULE_IRRLICHT)
+    set(CMAKE_SWIG_FLAGS -DCHRONO_IRRLICHT)
+  endif()
+
   if(${CMAKE_VERSION} VERSION_LESS "3.8.0")
     SWIG_ADD_MODULE(${CHPY_VEHICLE} python ${CHPY_VEHICLE_MODULE_FILE})
   else()

@@ -31,10 +31,10 @@ namespace granular {
 /// Returns the number of spheres added as a result of the decomposition.
 template <typename Real>
 std::vector<ChVector<Real>> MeshSphericalDecomposition(
-    std::string objfilename,  ///!< OBJ mesh file path
-    ChVector<Real> scaling,   ///!< Scaling vector to apply to the mesh before decomposition
-    ChVector<Real> offset,    ///!< Displacement to apply to the mesh before decomposition
-    Real sphere_radius        ///!< Radius to use for all spheres in the decomposition
+    std::string objfilename,  ///< OBJ mesh file path
+    ChVector<Real> scaling,   ///< Scaling vector to apply to the mesh before decomposition
+    ChVector<Real> offset,    ///< Displacement to apply to the mesh before decomposition
+    Real sphere_radius        ///< Radius to use for all spheres in the decomposition
 ) {
     std::vector<ChVector<Real>> sphere_points;
     std::string mesh_filename = objfilename;

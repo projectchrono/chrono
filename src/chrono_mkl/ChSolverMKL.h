@@ -55,6 +55,7 @@ class ChApiMkl ChSolverMKL : public ChDirectSolverLS {
   public:
     ChSolverMKL() {}
     ~ChSolverMKL() {}
+    virtual Type GetType() const override { return Type::PARDISO; }
 
     /// Get a handle to the underlying MKL engine.
     Eigen::PardisoLU<ChSparseMatrix>& GetMklEngine() { return m_engine; }

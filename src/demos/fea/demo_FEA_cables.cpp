@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystemNSC.h"
+#include "chrono/solver/ChDirectSolverLS.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/timestepper/ChTimestepper.h"
 #include "chrono_irrlicht/ChIrrApp.h"
@@ -28,6 +29,9 @@ using namespace chrono::fea;
 using namespace chrono::irrlicht;
 
 using namespace irr;
+
+// Select solver type (SPARSE_QR, SPARSE_LU, or MINRES).
+ChSolver::Type solver_type = ChSolver::Type::SPARSE_QR;
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
@@ -50,9 +54,9 @@ int main(int argc, char* argv[]) {
     auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     // Create one of the available models (defined in FEAcables.h)
-    // model1(my_system, my_mesh);
-    // model2(my_system, my_mesh);
-    model3(my_system, my_mesh);
+    ////auto model = Model1(my_system, my_mesh);
+    ////auto model = Model2(my_system, my_mesh);
+    auto model = Model3(my_system, my_mesh);
 
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
@@ -91,13 +95,37 @@ int main(int argc, char* argv[]) {
     application.AssetUpdateAll();
 
     // Set solver and solver settings
-    auto solver = chrono_types::make_shared<ChSolverMINRES>();
-    my_system.SetSolver(solver);
-    solver->SetMaxIterations(200);
-    solver->SetTolerance(1e-10);
-    solver->EnableDiagonalPreconditioner(true);
-    solver->EnableWarmStart(true);  // IMPORTANT for convergence when using EULER_IMPLICIT_LINEARIZED
-    solver->SetVerbose(false);
+    switch (solver_type) {
+        case ChSolver::Type::SPARSE_QR: {
+            std::cout << "Using SparseQR solver" << std::endl;
+            auto solver = chrono_types::make_shared<ChSolverSparseQR>();
+            my_system.SetSolver(solver);
+            solver->UseSparsityPatternLearner(true);
+            solver->LockSparsityPattern(true);
+            solver->SetVerbose(false);
+            break;
+        }
+        case ChSolver::Type::SPARSE_LU: {
+            std::cout << "Using SparseLU solver" << std::endl;
+            auto solver = chrono_types::make_shared<ChSolverSparseLU>();
+            my_system.SetSolver(solver);
+            solver->UseSparsityPatternLearner(true);
+            solver->LockSparsityPattern(true);
+            solver->SetVerbose(false);
+            break;
+        }
+        case ChSolver::Type::MINRES: {
+            std::cout << "Using MINRES solver" << std::endl;
+            auto solver = chrono_types::make_shared<ChSolverMINRES>();
+            my_system.SetSolver(solver);
+            solver->SetMaxIterations(200);
+            solver->SetTolerance(1e-10);
+            solver->EnableDiagonalPreconditioner(true);
+            solver->EnableWarmStart(true);  // IMPORTANT for convergence when using EULER_IMPLICIT_LINEARIZED
+            solver->SetVerbose(false);
+            break;
+        }
+    }
 
     my_system.SetSolverForceTolerance(1e-13);
 
@@ -112,6 +140,7 @@ int main(int argc, char* argv[]) {
         application.DrawAll();
         application.DoStep();
         application.EndScene();
+        ////model.PrintBodyPositions();
     }
 
     return 0;

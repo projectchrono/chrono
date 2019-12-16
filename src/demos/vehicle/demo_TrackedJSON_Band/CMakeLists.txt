@@ -6,8 +6,8 @@
 # and requires the MKL or MUMPS Chrono modules.
 #=============================================================================
 
-# MUMPS or MKL required
-if (NOT ENABLE_MODULE_MKL AND NOT ENABLE_MODULE_MUMPS)
+# MUMPS or MKL required. IRRLICHT required
+if ((NOT ENABLE_MODULE_MKL AND NOT ENABLE_MODULE_MUMPS) OR NOT ENABLE_MODULE_IRRLICHT)
     return()
 endif()
 
