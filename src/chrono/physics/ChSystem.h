@@ -442,7 +442,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// From reaction forces to system, ex. store last computed reactions in ChLink objects for plotting etc.
     virtual void StateScatterReactions(const ChVectorDynamic<>& L) override;
 
-    /// Perform x_new = x + dx    for x in    Y = {x, dx/dt}
+    /// Perform x_new = x + dx, for x in Y = {x, dx/dt}.\n
     /// It takes care of the fact that x has quaternions, dx has angular vel etc.
     /// NOTE: the system is not updated automatically after the state increment, so one might
     /// need to call StateScatter() if needed.
@@ -452,13 +452,17 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
                                  ) override;
 
     /// Assuming a DAE of the form
+    /// <pre>
     ///       M*a = F(x,v,t) + Cq'*L
     ///       C(x,t) = 0
+    /// </pre>
     /// this function computes the solution of the change Du (in a or v or x) for a Newton
     /// iteration within an implicit integration scheme.
+    /// <pre>
     ///  |Du| = [ G   Cq' ]^-1 * | R |
     ///  |DL|   [ Cq  0   ]      | Qc|
-    /// for residual R and  G = [ c_a*M + c_v*dF/dv + c_x*dF/dx ]
+    /// </pre>
+    /// for residual R and  G = [ c_a*M + c_v*dF/dv + c_x*dF/dx ].\n
     /// This function returns true if successful and false otherwise.
     virtual bool StateSolveCorrection(
         ChStateDelta& Dv,                 ///< result: computed Dv
@@ -648,8 +652,11 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     ///    dump_f.dat   has the applied loads
     ///    dump_b.dat   has the constraint rhs
     /// as passed to the solver in the problem
-    ///  | H -Cq'|*|q|- | f|= |0| , l \f$\in Y, c \in Ny\f$, normal cone to Y
+    /// <pre>
+    ///  | H -Cq'|*|q|- | f|= |0|
     ///  | Cq -E | |l|  |-b|  |c|
+    /// </pre>
+    /// where l \f$\in Y, c \in Ny\f$, normal cone to Y
 
     void SetDumpSolverMatrices(bool md) { dump_matrices = md; }
     bool GetDumpSolverMatrices() const { return dump_matrices; }
