@@ -172,8 +172,7 @@ void ChDirectSolverLS::ArchiveIN(ChArchiveIn& marchive) {
 // ---------------------------------------------------------------------------
 
 bool ChSolverSparseLU::FactorizeMatrix() {
-    Eigen::SparseMatrix<double, Eigen::ColMajor, int> mat = m_mat;
-    m_engine.compute(mat);
+    m_engine.compute(m_mat);
     return (m_engine.info() == Eigen::Success);
 }
 
@@ -200,8 +199,7 @@ void ChSolverSparseLU::PrintErrorMessage() {
 // ---------------------------------------------------------------------------
 
 bool ChSolverSparseQR::FactorizeMatrix() {
-    Eigen::SparseMatrix<double, Eigen::ColMajor, int> mat = m_mat;
-    m_engine.compute(mat);
+    m_engine.compute(m_mat);
     return (m_engine.info() == Eigen::Success);
 }
 
