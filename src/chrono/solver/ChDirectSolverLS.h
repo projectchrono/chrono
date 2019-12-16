@@ -19,6 +19,8 @@
 #include "chrono/core/ChTimer.h"
 #include "chrono/solver/ChSolverLS.h"
 
+#include <Eigen/SparseLU>
+
 namespace chrono {
 
 /// @addtogroup chrono_solver
@@ -184,6 +186,58 @@ class ChApi ChDirectSolverLS : public ChSolverLS {
     ChTimer<> m_timer_setup_solvercall;  ///< timer for factorization
     ChTimer<> m_timer_solve_assembly;    ///< timer for RHS assembly
     ChTimer<> m_timer_solve_solvercall;  ///< timer for solution
+};
+
+// ---------------------------------------------------------------------------
+
+/// Sparse LU direct solver.\n
+/// Interface to Eigen's SparseLU solver, a supernodal LU factorization for general matrices.\n
+/// Cannot handle VI and complementarity problems, so it cannot be used with NSC formulations.\n
+/// See ChDirectSolverLS for more details.
+class ChApi ChSolverSparseLU : public ChDirectSolverLS {
+  public:
+    ChSolverSparseLU() {}
+    ~ChSolverSparseLU() {}
+    virtual Type GetType() const override { return Type::SPARSE_LU; }
+
+  private:
+    /// Factorize the current sparse matrix and return true if successful.
+    virtual bool FactorizeMatrix() override;
+
+    /// Solve the linear system using the current factorization and right-hand side vector.
+    /// Load the solution vector (already of appropriate size) and return true if succesful.
+    virtual bool SolveSystem() override;
+
+    /// Display an error message corresponding to the last failure.
+    /// This function is only called if Factorize or Solve returned false.
+    virtual void PrintErrorMessage() override;
+
+    Eigen::SparseLU<ChSparseMatrix, Eigen::COLAMDOrdering<int>> m_engine;  ///< Eigen SparseLU solver
+};
+
+/// Sparse LU direct solver.\n
+/// Interface to Eigen's SparseQR solver, a left-looking rank-revealing QR factorization.\n
+/// Cannot handle VI and complementarity problems, so it cannot be used with NSC formulations.\n
+/// See ChDirectSolverLS for more details.
+class ChApi ChSolverSparseQR : public ChDirectSolverLS {
+  public:
+    ChSolverSparseQR() {}
+    ~ChSolverSparseQR() {}
+    virtual Type GetType() const override { return Type::SPARSE_QR; }
+
+  private:
+    /// Factorize the current sparse matrix and return true if successful.
+    virtual bool FactorizeMatrix() override;
+
+    /// Solve the linear system using the current factorization and right-hand side vector.
+    /// Load the solution vector (already of appropriate size) and return true if succesful.
+    virtual bool SolveSystem() override;
+
+    /// Display an error message corresponding to the last failure.
+    /// This function is only called if Factorize or Solve returned false.
+    virtual void PrintErrorMessage() override;
+
+    Eigen::SparseQR<ChSparseMatrix, Eigen::COLAMDOrdering<int>> m_engine;  ///< Eigen SparseQR solver
 };
 
 /// @} chrono_solver

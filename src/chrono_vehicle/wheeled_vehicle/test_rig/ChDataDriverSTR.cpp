@@ -18,7 +18,8 @@
 // It is assumed that the time values are unique.
 // If the time values are not sorted, this must be specified at construction.
 // Inputs for post_left, post_right, and steering are assumed to be in [-1,1].
-// Driver inputs at intermediate times are obtained through linear interpolation.
+// Driver inputs at intermediate times are obtained through cubic spline
+// interpolation.
 //
 // =============================================================================
 
@@ -34,24 +35,36 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-static bool compare(const ChDataDriverSTR::Entry& a, const ChDataDriverSTR::Entry& b) {
+/// Definition of driver inputs at a given time.
+struct DataEntrySTR {
+    DataEntrySTR() : m_time(0), m_displLeft(0), m_displRight(0), m_steering(0) {}
+    DataEntrySTR(double time, double displLeft, double displRight, double steering)
+        : m_time(time), m_displLeft(displLeft), m_displRight(displRight), m_steering(steering) {}
+    DataEntrySTR& operator=(const DataEntrySTR& other) {
+        if (this != &other) {
+            m_time = other.m_time;
+            m_displLeft = other.m_displLeft;
+            m_displRight = other.m_displRight;
+            m_steering = other.m_steering;
+        }
+        return *this;
+    }
+    double m_time;
+    double m_displLeft;
+    double m_displRight;
+    double m_steering;
+};
+
+static bool compare(const DataEntrySTR& a, const DataEntrySTR& b) {
     return a.m_time < b.m_time;
 }
 
-ChDataDriverSTR::Entry& ChDataDriverSTR::Entry::operator=(const ChDataDriverSTR::Entry& other) {
-    if (this != &other) {
-        m_time = other.m_time;
-        m_displLeft = other.m_displLeft;
-        m_displRight = other.m_displRight;
-        m_steering = other.m_steering;
-    }
-    return *this;
-}
-
 // -----------------------------------------------------------------------------
-ChDataDriverSTR::ChDataDriverSTR(const std::string& filename, bool sorted)
+ChDataDriverSTR::ChDataDriverSTR(const std::string& filename)
     : m_ended(false), m_curve_left(nullptr), m_curve_right(nullptr), m_curve_steering(nullptr) {
-    std::vector<Entry> mdata;
+    std::vector<DataEntrySTR> data;  // data table (for sorting)
+
+    // Read data from file
     std::ifstream ifile(filename.c_str());
     std::string line;
     while (std::getline(ifile, line)) {
@@ -60,30 +73,14 @@ ChDataDriverSTR::ChDataDriverSTR(const std::string& filename, bool sorted)
         iss >> time >> left >> right >> steering;
         if (iss.fail())
             break;
-        mdata.push_back(Entry(time, left, right, steering));
+        data.push_back(DataEntrySTR(time, left, right, steering));
     }
     ifile.close();
 
-    Process(mdata, sorted);
-}
+    // Ensure data is sorted
+    std::sort(data.begin(), data.end(), compare);
 
-ChDataDriverSTR::ChDataDriverSTR(const std::vector<Entry>& data, bool sorted)
-    : m_ended(false), m_curve_left(nullptr), m_curve_right(nullptr), m_curve_steering(nullptr) {
-    // Make a copy of data (may need to be sorted)
-    std::vector<Entry> mdata = data;
-    Process(mdata, sorted);
-}
-
-ChDataDriverSTR::~ChDataDriverSTR() {
-    delete m_curve_left;
-    delete m_curve_right;
-    delete m_curve_steering;
-}
-
-void ChDataDriverSTR::Process(std::vector<Entry>& data, bool sorted) {
-    if (!sorted)
-        std::sort(data.begin(), data.end(), compare);
-
+    // Create cubic splines
     std::vector<double> t;  // time points
     std::vector<double> l;  // left input values
     std::vector<double> r;  // right input values
@@ -105,7 +102,17 @@ void ChDataDriverSTR::Process(std::vector<Entry>& data, bool sorted) {
     m_curve_right = new ChCubicSpline(t, r);
     m_curve_steering = new ChCubicSpline(t, s);
 
-    m_last = data.back();  // cache the last data entry
+    // Cache the last data entry
+    m_last_time = data.back().m_time;
+    m_last_displLeft = data.back().m_displLeft;
+    m_last_displRight = data.back().m_displRight;
+    m_last_steering = data.back().m_steering;
+}
+
+ChDataDriverSTR::~ChDataDriverSTR() {
+    delete m_curve_left;
+    delete m_curve_right;
+    delete m_curve_steering;
 }
 
 // -----------------------------------------------------------------------------
@@ -124,11 +131,11 @@ void ChDataDriverSTR::Synchronize(double time) {
 
     time -= m_delay;
 
-    if (time > m_last.m_time) {
+    if (time > m_last_time) {
         m_ended = true;
-        m_displLeft = m_last.m_displLeft;
-        m_displRight = m_last.m_displRight;
-        m_steering = m_last.m_steering;
+        m_displLeft = m_last_displLeft;
+        m_displRight = m_last_displRight;
+        m_steering = m_last_steering;
         m_displSpeedLeft = 0;
         m_displSpeedRight = 0;
         return;

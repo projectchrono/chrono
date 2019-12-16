@@ -560,16 +560,15 @@ class ChApi ChMaterialShellReissner  {
 /// New approach: create a ChElasticityReissnerOrthotropic and create a ChMaterialShellReissner by passing the elasticity as a parameter.
 
 class ChApi ChMaterialShellReissnerIsothropic : public ChMaterialShellReissner {
-public:
-	/// Construct an isotropic material.
-	ChMaterialShellReissnerIsothropic(double mdensity,
-		double E,            ///< Young's modulus
-		double nu,           ///< Poisson ratio
-		double alpha = 1.0,  ///< shear factor
-		double beta = 0.1    ///< torque factor
-	) 
-		: ChMaterialShellReissner(chrono_types::make_shared<ChElasticityReissnerIsothropic>(E, nu, alpha, beta)) 
-	{
+  public:
+    /// Construct an isotropic material.
+    ChMaterialShellReissnerIsothropic(double mdensity,     ///< material density
+                                      double E,            ///< Young's modulus
+                                      double nu,           ///< Poisson ratio
+                                      double alpha = 1.0,  ///< shear factor
+                                      double beta = 0.1    ///< torque factor
+                                      )
+        : ChMaterialShellReissner(chrono_types::make_shared<ChElasticityReissnerIsothropic>(E, nu, alpha, beta)) {
 		this->SetDensity(mdensity);
 	}
 
@@ -580,32 +579,31 @@ public:
 
 class ChApi ChMaterialShellReissnerOrthotropic : public ChMaterialShellReissner {
 public:
-	/// Construct an orthotropic material
-	ChMaterialShellReissnerOrthotropic(
-		double mdensity,
-		double m_E_x,    ///< Young's modulus on x
-		double m_E_y,    ///< Young's modulus on y
-		double m_nu_xy,  ///< Poisson ratio xy (for yx it holds: nu_yx*E_x = nu_xy*E_y)
-		double m_G_xy,   ///< Shear modulus, in plane
-		double m_G_xz,   ///< Shear modulus, transverse
-		double m_G_yz,   ///< Shear modulus, transverse
-		double m_alpha = 1.0,  ///< shear factor
-		double m_beta = 0.1    ///< torque factor
-	) 		
+    /// Construct an orthotropic material
+    ChMaterialShellReissnerOrthotropic(double mdensity,  ///< material density
+                                       double m_E_x,     ///< Young's modulus on x
+                                       double m_E_y,     ///< Young's modulus on y
+                                       double m_nu_xy,   ///< Poisson ratio xy (for yx it holds: nu_yx*E_x = nu_xy*E_y)
+                                       double m_G_xy,    ///< Shear modulus, in plane
+                                       double m_G_xz,    ///< Shear modulus, transverse
+                                       double m_G_yz,    ///< Shear modulus, transverse
+                                       double m_alpha = 1.0,  ///< shear factor
+                                       double m_beta = 0.1    ///< torque factor
+                                       ) 		
 		: ChMaterialShellReissner(chrono_types::make_shared<ChElasticityReissnerOrthotropic>(m_E_x, m_E_y, m_nu_xy, m_G_xy, m_G_xz, m_G_yz, m_alpha, m_beta)) 
 	{
 		this->SetDensity(mdensity);
 	}
 
 	/// Construct an orthotropic material as sub case isotropic
-	ChMaterialShellReissnerOrthotropic(
-		double mdensity,
-		double m_E,            ///< Young's modulus on x
-		double m_nu,           ///< Poisson ratio
-		double m_alpha = 1.0,  ///< shear factor
-		double m_beta = 0.1    ///< torque factor
-	) 
-		: ChMaterialShellReissner(chrono_types::make_shared<ChElasticityReissnerOrthotropic>(m_E, m_nu, m_alpha, m_beta)) 
+    ChMaterialShellReissnerOrthotropic(double mdensity,       ///< material density
+                                       double m_E,            ///< Young's modulus on x
+                                       double m_nu,           ///< Poisson ratio
+                                       double m_alpha = 1.0,  ///< shear factor
+                                       double m_beta = 0.1    ///< torque factor
+                                       )
+        : ChMaterialShellReissner(
+              chrono_types::make_shared<ChElasticityReissnerOrthotropic>(m_E, m_nu, m_alpha, m_beta)) 
 	{
 		this->SetDensity(mdensity);
 	}

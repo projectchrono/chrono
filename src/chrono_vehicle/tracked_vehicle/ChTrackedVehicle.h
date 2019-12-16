@@ -190,7 +190,7 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     /// The vehicle system is provided the current driver inputs (throttle between 0 and 1, steering between -1 and +1,
     /// braking between 0 and 1) and terrain forces on the track shoes (expressed in the global reference frame).
     void Synchronize(double time,                            ///< [in] current time
-                     const ChDriver::Inputs& driver_inputs,  /// [in] current driver inputs
+                     const ChDriver::Inputs& driver_inputs,  ///< [in] current driver inputs
                      const TerrainForces& shoe_forces_left,  ///< [in] vector of track shoe forces (left side)
                      const TerrainForces& shoe_forces_right  ///< [in] vector of track shoe forces (left side)
     );
