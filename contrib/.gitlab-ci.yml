@@ -132,8 +132,6 @@ linux:doxygen:deploy:
     name: doxygen
     url: http://api.projectchrono.org/
   rules:
-    - if: '$CI_COMMIT_REF_NAME != "develop"'
-      when: manual
     - if: '$CI_COMMIT_REF_NAME == "develop"'
       when: on_success
   
