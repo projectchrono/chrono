@@ -55,6 +55,7 @@ class ChApiMumps ChSolverMumps : public ChDirectSolverLS {
   public:
     ChSolverMumps() {}
     ~ChSolverMumps() {}
+    virtual Type GetType() const override { return Type::MUMPS; }
 
     /// Enable detection of null pivots.
     virtual void EnableNullPivotDetection(bool val, double threshold = 0) override;

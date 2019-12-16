@@ -42,7 +42,7 @@ void ChDirectSolverLS::ResetTimers() {
 bool ChDirectSolverLS::Setup(ChSystemDescriptor& sysd) {
     m_timer_setup_assembly.start();
 
-    // Calculate problem size.  
+    // Calculate problem size.
     // Note that ChSystemDescriptor::UpdateCountsAndOffsets was already called at the beginning of the step.
     m_dim = sysd.CountActiveVariables() + sysd.CountActiveConstraints();
 
@@ -167,6 +167,60 @@ void ChDirectSolverLS::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(m_use_learner);
     marchive >> CHNVP(m_use_perm);
     marchive >> CHNVP(m_use_rhs_sparsity);
+}
+
+// ---------------------------------------------------------------------------
+
+bool ChSolverSparseLU::FactorizeMatrix() {
+    m_engine.compute(m_mat);
+    return (m_engine.info() == Eigen::Success);
+}
+
+bool ChSolverSparseLU::SolveSystem() {
+    m_sol = m_engine.solve(m_rhs);
+    return (m_engine.info() == Eigen::Success);
+}
+
+void ChSolverSparseLU::PrintErrorMessage() {
+    // There are only three possible return codes (see Eigen SparseLU.h)
+    switch (m_engine.info()) {
+        case Eigen::Success:
+            GetLog() << "computation was successful\n";
+            break;
+        case Eigen::NumericalIssue:
+            GetLog() << "LU factorization reported a problem, zero diagonal for instance\n";
+            break;
+        case Eigen::InvalidInput:
+            GetLog() << "inputs are invalid, or the algorithm has been improperly called\n";
+            break;
+    }
+}
+
+// ---------------------------------------------------------------------------
+
+bool ChSolverSparseQR::FactorizeMatrix() {
+    m_engine.compute(m_mat);
+    return (m_engine.info() == Eigen::Success);
+}
+
+bool ChSolverSparseQR::SolveSystem() {
+    m_sol = m_engine.solve(m_rhs);
+    return (m_engine.info() == Eigen::Success);
+}
+
+void ChSolverSparseQR::PrintErrorMessage() {
+    // There are only three possible return codes (see Eigen SparseLU.h)
+    switch (m_engine.info()) {
+        case Eigen::Success:
+            GetLog() << "computation was successful\n";
+            break;
+        case Eigen::NumericalIssue:
+            GetLog() << "QR factorization reported a problem\n";
+            break;
+        case Eigen::InvalidInput:
+            GetLog() << "inputs are invalid, or the algorithm has been improperly called\n";
+            break;
+    }
 }
 
 }  // end namespace chrono
