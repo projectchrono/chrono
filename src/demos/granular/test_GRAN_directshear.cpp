@@ -22,6 +22,7 @@
 #include <string>
 #include <iomanip>
 
+#include "chrono/core/ChGlobal.h"
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono/utils/ChUtilsSamplers.h"
 #include "chrono_granular/api/ChApiGranularChrono.h"
@@ -33,11 +34,6 @@
 #include "chrono/physics/ChBody.h"
 
 #include "chrono_granular/utils/ChGranularJsonParser.h"
-
-using std::cout;
-using std::endl;
-using std::string;
-using std::vector;
 
 using namespace chrono;
 using namespace chrono::granular;
@@ -70,8 +66,8 @@ const size_t plate_i = 2;
 
 double fill_top;
 
-void ShowUsage() {
-    cout << "usage: ./test_GRAN_bulkcompress <json_file> <normal_stress_index>" << endl;
+void ShowUsage(std::string name) {
+    std::cout << "usage: " + name + " <json_file> <normal_stress_index>" << std::endl;
 }
 
 void SetupGranSystem(ChGranularChronoTriMeshAPI& apiSMC_TriMesh, sim_param_holder& params) {
@@ -105,7 +101,7 @@ void SetupGranSystem(ChGranularChronoTriMeshAPI& apiSMC_TriMesh, sim_param_holde
     double epsilon = 0.02 * params.sphere_radius;
     double spacing = 2 * params.sphere_radius + epsilon;
 
-    vector<ChVector<float>> body_points;
+    std::vector<ChVector<float>> body_points;
 
     // utils::HCPSampler<float> sampler(spacing);
     utils::PDSampler<float> sampler(spacing);
@@ -120,19 +116,19 @@ void SetupGranSystem(ChGranularChronoTriMeshAPI& apiSMC_TriMesh, sim_param_holde
         body_points.insert(body_points.end(), points.begin(), points.end());
     }
 
-    cout << "Created " << body_points.size() << " spheres" << endl;
+    std::cout << "Created " << body_points.size() << " spheres" << std::endl;
 
     apiSMC_TriMesh.setElemsPositions(body_points);
 
     // Mesh values
-    vector<string> mesh_filenames;
+    std::vector<string> mesh_filenames;
     // TODO dull the corners and fix nans
-    mesh_filenames.push_back(string("granular/shear_bottom.obj"));
-    mesh_filenames.push_back(string("granular/shear_top.obj"));
-    mesh_filenames.push_back(string("granular/downward_square.obj"));
+    mesh_filenames.push_back(std::string(GetChronoDataFile("granular/test_GRAN_directshear/shear_bottom.obj")));
+    mesh_filenames.push_back(std::string(GetChronoDataFile("granular/test_GRAN_directshear/shear_top.obj")));
+    mesh_filenames.push_back(std::string(GetChronoDataFile("granular/test_GRAN_directshear/downward_square.obj")));
 
-    vector<ChMatrix33<float>> mesh_rotscales;
-    vector<float3> mesh_translations;
+    std::vector<ChMatrix33<float>> mesh_rotscales;
+    std::vector<float3> mesh_translations;
     ChMatrix33<float> scale(ChVector<float>(box_r, box_r, box_r));
     mesh_rotscales.push_back(scale);
     mesh_rotscales.push_back(scale);
@@ -141,7 +137,7 @@ void SetupGranSystem(ChGranularChronoTriMeshAPI& apiSMC_TriMesh, sim_param_holde
     mesh_translations.push_back(make_float3(0, 0, 0));
     mesh_translations.push_back(make_float3(0, 0, 0));
 
-    vector<float> mesh_masses;
+    std::vector<float> mesh_masses;
     mesh_masses.push_back(1000);
     mesh_masses.push_back(1000);
     mesh_masses.push_back(plate_mass);
@@ -220,7 +216,7 @@ int main(int argc, char* argv[]) {
     sim_param_holder params;
 
     if (argc != 3 || ParseJSON(argv[1], params) == false) {
-        ShowUsage();
+        ShowUsage(argv[0]);
         return 1;
     }
 
@@ -234,7 +230,7 @@ int main(int argc, char* argv[]) {
     filesystem::create_directory(filesystem::path(params.output_dir));
 
     unsigned int nFamilies = gran_sys.getNumTriangleFamilies();
-    cout << nFamilies << " soup families" << endl;
+    std::cout << nFamilies << " soup families" << std::endl;
     double* meshPosRot = new double[FAM_ENTRIES_POS * nFamilies]();
     float* meshVel = new float[FAM_ENTRIES_VEL * nFamilies]();
 
@@ -244,7 +240,7 @@ int main(int argc, char* argv[]) {
     double out_fps = 100;
     float frame_step = 1.f / out_fps;  // Duration of a frame
     unsigned int out_steps = frame_step / iteration_step;
-    cout << "out_steps " << out_steps << endl;
+    std::cout << "out_steps " << out_steps << std::endl;
 
     double m_time = 0;
     unsigned int step = 0;
@@ -267,29 +263,29 @@ int main(int argc, char* argv[]) {
     SetInitialMeshes(meshPosRot, meshVel, plate);
     gran_sys.meshSoup_applyRigidBodyMotion(meshPosRot, meshVel);
 
-    cout << "Running settling..." << endl;
+    std::cout << "Running settling..." << std::endl;
     for (; m_time < time_settle; m_time += iteration_step, step++) {
         if (step % out_steps == 0) {
-            cout << "Rendering frame " << currframe << endl;
+            std::cout << "Rendering frame " << currframe << std::endl;
             char filename[100];
             sprintf(filename, "%s/step%06u", params.output_dir.c_str(), currframe++);
-            gran_sys.writeFile(string(filename));
-            gran_sys.write_meshes(string(filename));
+            gran_sys.writeFile(std::string(filename));
+            gran_sys.write_meshes(std::string(filename));
         }
         gran_sys.advance_simulation(iteration_step);
     }
 
     // Add a weighted top plate
     double plate_z = gran_sys.get_max_z() + 2 * params.sphere_radius;
-    cout << "Adding plate at "
-         << "(0, 0, " << plate_z << ")" << endl;
+    std::cout << "Adding plate at "
+              << "(0, 0, " << plate_z << ")" << std::endl;
     plate->SetPos(ChVector<>(0, 0, plate_z));
     plate->SetBodyFixed(false);
 
     float* forces = new float[nFamilies * FAM_ENTRIES_FORCE];
 
     // Compress the material under the weight of the plate
-    cout << "Running compression..." << endl;
+    std::cout << "Running compression..." << std::endl;
     m_time = 0;
     for (; m_time < time_compress; m_time += iteration_step, step++) {
         // Update Plate
@@ -312,11 +308,11 @@ int main(int argc, char* argv[]) {
 
         gran_sys.meshSoup_applyRigidBodyMotion(meshPosRot, meshVel);
         if (step % out_steps == 0) {
-            cout << "Rendering frame " << currframe << endl;
+            std::cout << "Rendering frame " << currframe << std::endl;
             char filename[100];
             sprintf(filename, "%s/step%06u", params.output_dir.c_str(), currframe++);
-            gran_sys.writeFile(string(filename));
-            gran_sys.write_meshes(string(filename));
+            gran_sys.writeFile(std::string(filename));
+            gran_sys.write_meshes(std::string(filename));
         }
 
         ch_sys.DoStepDynamics(iteration_step);
@@ -327,7 +323,7 @@ int main(int argc, char* argv[]) {
         plate->Accumulate_force(ChVector<>(0, 0, forces[plate_i * FAM_ENTRIES_FORCE + 2]), plate->GetPos(), false);
     }
 
-    cout << endl << "Running shear test..." << endl;
+    std::cout << std::endl << "Running shear test..." << std::endl;
     // 5 Hz low pass filter
     // utils::ChButterworth_Lowpass fm_lowpass5(1, dt, 5.0);
     double shear_area;  // Evolving area of overlap between the boxes
@@ -386,20 +382,21 @@ int main(int argc, char* argv[]) {
 
         // Output displacement and force
         if (step % out_steps == 0) {
-            cout << "Rendering frame " << currframe << endl;
+            std::cout << "Rendering frame " << currframe << std::endl;
             char filename[100];
             sprintf(filename, "%s/step%06u", params.output_dir.c_str(), currframe++);
-            gran_sys.writeFile(string(filename));
-            gran_sys.write_meshes(string(filename));
+            gran_sys.writeFile(std::string(filename));
+            gran_sys.write_meshes(std::string(filename));
 
             double shear_area = box_xy * (box_xy - m_time * shear_velocity * 2);
             double normal_stress = (plate_mass * grav_mag) / shear_area;
             double shear_stress = shear_force / shear_area;
-            cout << std::setprecision(4) << "Time: " << m_time << endl;
-            cout << std::setprecision(4) << "\tShear displacement: " << pos << endl;
-            cout << std::setprecision(4) << "\tNormal stress: " << normal_stress << endl;
-            cout << std::setprecision(4) << "\tShear stress: " << shear_stress << endl;
-            cout << std::setprecision(4) << "\tShear stress / Normal stress: " << shear_stress / normal_stress << endl;
+            std::cout << std::setprecision(4) << "Time: " << m_time << std::endl;
+            std::cout << std::setprecision(4) << "\tShear displacement: " << pos << std::endl;
+            std::cout << std::setprecision(4) << "\tNormal stress: " << normal_stress << std::endl;
+            std::cout << std::setprecision(4) << "\tShear stress: " << shear_stress << std::endl;
+            std::cout << std::setprecision(4) << "\tShear stress / Normal stress: " << shear_stress / normal_stress
+                      << std::endl;
         }
     }
 

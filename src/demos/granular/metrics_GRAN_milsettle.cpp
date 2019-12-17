@@ -106,7 +106,7 @@ double run_test(float box_size_X, float box_size_Y, float box_size_Z) {
 
 int main(int argc, char* argv[]) {
     if (argc != 2) {
-        std::cout << "USAGE: ./test_gran_milsettle <results_log_file>" << std::endl;
+        std::cout << "usage: " + std::string(argv[0]) + " <results_log_file>" << std::endl;
     }
 
     // up to one million bodies

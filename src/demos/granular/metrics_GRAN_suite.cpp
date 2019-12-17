@@ -206,8 +206,8 @@ double runSingleStepTest() {
 }
 
 int main(int argc, char* argv[]) {
-    if (argc != 2) {
-        std::cout << "USAGE: ./test_gran_milsettle <results_log_file>" << std::endl;
+    if (argc > 3) {
+        std::cout << "usage: " + std::string(argv[0]) + " [<results_log_file>]" << std::endl;
     }
 
     filesystem::create_directory(filesystem::path(output_prefix));

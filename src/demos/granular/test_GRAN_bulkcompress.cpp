@@ -33,11 +33,6 @@
 using namespace chrono;
 using namespace chrono::granular;
 
-using std::cout;
-using std::endl;
-using std::string;
-using std::vector;
-
 /*
  * Lommen 2014:
  * Settle particles then drop box
@@ -65,11 +60,11 @@ double fill_top;
 const double block_mass = 50000;  // 50kg
 const double drop_height = 20;    // 0.2m
 
-void ShowUsage() {
-    cout << "usage: ./test_GRAN_bulkcompress <json_file> <output_dir>" << endl;
+void ShowUsage(std::string name) {
+    std::cout << "usage: " + name + " <json_file> <output_dir>" << std::endl;
 }
 
-void SetupGranSystem(ChGranularChronoTriMeshAPI& apiSMC_TriMesh, sim_param_holder& params, string out_dir) {
+void SetupGranSystem(ChGranularChronoTriMeshAPI& apiSMC_TriMesh, sim_param_holder& params, std::string out_dir) {
     ChSystemGranularSMC_trimesh& gran_sys = apiSMC_TriMesh.getGranSystemSMC_TriMesh();
 
     gran_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
@@ -101,7 +96,7 @@ void SetupGranSystem(ChGranularChronoTriMeshAPI& apiSMC_TriMesh, sim_param_holde
     double epsilon = 0.2 * params.sphere_radius;
     double spacing = 2 * params.sphere_radius + epsilon;
 
-    vector<ChVector<float>> body_points;
+    std::vector<ChVector<float>> body_points;
 
     // utils::HCPSampler<float> sampler(spacing);
     utils::PDSampler<float> sampler(2 * params.sphere_radius + epsilon);
@@ -115,23 +110,23 @@ void SetupGranSystem(ChGranularChronoTriMeshAPI& apiSMC_TriMesh, sim_param_holde
         body_points.insert(body_points.end(), points.begin(), points.end());
     }
 
-    cout << "Created " << body_points.size() << " spheres" << endl;
+    std::cout << "Created " << body_points.size() << " spheres" << std::endl;
 
     apiSMC_TriMesh.setElemsPositions(body_points);
 
     // Mesh values
-    vector<string> mesh_filenames;
-    string mesh_filename("granular/downward_square.obj");
+    std::vector<string> mesh_filenames;
+    std::string mesh_filename = GetChronoDataFile("granular/test_GRAN_bulkcompress/downward_square.obj");
     mesh_filenames.push_back(mesh_filename);
 
-    vector<ChMatrix33<float>> mesh_rotscales;
-    vector<float3> mesh_translations;
+    std::vector<ChMatrix33<float>> mesh_rotscales;
+    std::vector<float3> mesh_translations;
 
     ChMatrix33<float> scaling(ChVector<float>(params.box_X / 2, params.box_Y / 2, 1));
     mesh_rotscales.push_back(scaling);
     mesh_translations.push_back(make_float3(0, 0, 0));
 
-    vector<float> mesh_masses;
+    std::vector<float> mesh_masses;
     mesh_masses.push_back(block_mass);
     std::vector<bool> mesh_inflated;
     std::vector<float> mesh_inflation_radii;
@@ -146,7 +141,7 @@ int main(int argc, char* argv[]) {
     sim_param_holder params;
 
     if (argc != 3 || ParseJSON(argv[1], params) == false) {
-        ShowUsage();
+        ShowUsage(argv[0]);
         return 1;
     }
 
@@ -154,7 +149,7 @@ int main(int argc, char* argv[]) {
     ChGranularChronoTriMeshAPI apiSMC_TriMesh(params.sphere_radius, params.sphere_density,
                                               make_float3(params.box_X, params.box_Y, params.box_Z));
 
-    string out_dir(argv[2]);
+    std::string out_dir(argv[2]);
     SetupGranSystem(apiSMC_TriMesh, params, out_dir);
     ChSystemGranularSMC_trimesh& gran_sys = apiSMC_TriMesh.getGranSystemSMC_TriMesh();
 
@@ -167,7 +162,7 @@ int main(int argc, char* argv[]) {
     ch_sys.AddBody(block);
 
     unsigned int nSoupFamilies = gran_sys.getNumTriangleFamilies();
-    cout << nSoupFamilies << " soup families" << endl;
+    std::cout << nSoupFamilies << " soup families" << std::endl;
     double* meshSoupLocOri = new double[7 * nSoupFamilies];
     float* meshVel = new float[6 * nSoupFamilies]();
 
@@ -176,7 +171,7 @@ int main(int argc, char* argv[]) {
     double out_fps = 100;
     float frame_step = 1.f / out_fps;  // Duration of a frame
     unsigned int out_steps = frame_step / iteration_step;
-    cout << "out_steps " << out_steps << endl;
+    std::cout << "out_steps " << out_steps << std::endl;
 
     unsigned int step = 0;
     bool box_released = false;
@@ -190,7 +185,7 @@ int main(int argc, char* argv[]) {
             block->SetPos(ChVector<>(0, 0, max_z + params.sphere_radius + drop_height));
 
             box_released = true;
-            cout << "Releasing box" << endl;
+            std::cout << "Releasing box" << std::endl;
         }
 
         meshSoupLocOri[0] = 0;
@@ -204,13 +199,13 @@ int main(int argc, char* argv[]) {
 
         gran_sys.meshSoup_applyRigidBodyMotion(meshSoupLocOri, meshVel);
         if (step % out_steps == 0) {
-            cout << "Rendering frame " << currframe << endl;
+            std::cout << "Rendering frame " << currframe << std::endl;
             char filename[100];
             sprintf(filename, "%s/step%06u", out_dir.c_str(), currframe++);
-            gran_sys.writeFile(string(filename));
-            gran_sys.write_meshes(string(filename));
+            gran_sys.writeFile(std::string(filename));
+            gran_sys.write_meshes(std::string(filename));
             if (box_released) {
-                cout << block->GetPos().z() << endl;
+                std::cout << block->GetPos().z() << std::endl;
             }
         }
 

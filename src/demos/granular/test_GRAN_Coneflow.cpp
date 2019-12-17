@@ -16,6 +16,7 @@
 
 #include <iostream>
 #include <string>
+#include "chrono/core/ChGlobal.h"
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_granular/api/ChApiGranularChrono.h"
 #include "chrono_granular/physics/ChGranular.h"
@@ -32,14 +33,14 @@ constexpr int num_args_full = 7;
 // -----------------------------------------------------------------------------
 // Show command line usage
 // -----------------------------------------------------------------------------
-void ShowUsage() {
-    std::cout << "usage: ./test_GRAN_Coneflow <json_file> [<aperture_diameter> <particle_radius> <grac_acc> "
+void ShowUsage(std::string name) {
+    std::cout << "usage: " + name + " <json_file> [<aperture_diameter> <particle_radius> <grac_acc> "
                  "<material_density> <output_dir>]"
               << std::endl;
     std::cout << "must have either 1 or " << num_args_full - 1 << " arguments" << std::endl;
 }
 
-std::string cyl_filename = "Gran_cylinder_transparent.obj";
+std::string cyl_filename = GetChronoDataFile("granular/shared/Gran_cylinder_transparent.obj");
 
 // Take a ChBody and write its
 void writeZCylinderMesh(std::ostringstream& outstream, ChVector<> pos, float rad, float height) {
@@ -106,7 +107,7 @@ int main(int argc, char* argv[]) {
 
     // Some of the default values might be overwritten by user via command line
     if (argc < 2 || (argc > 2 && argc != num_args_full) || ParseJSON(argv[1], params) == false) {
-        ShowUsage();
+        ShowUsage(argv[0]);
         return 1;
     }
 
@@ -220,7 +221,7 @@ int main(int argc, char* argv[]) {
         std::ofstream meshfile{params.output_dir + "/" + meshes_file};
         std::ostringstream outstream;
         outstream << "mesh_name,dx,dy,dz,x1,x2,x3,y1,y2,y3,z1,z2,z3\n";
-        writeZConeMesh(outstream, cone_top_pos, "granular/gran_zcone.obj");
+        writeZConeMesh(outstream, cone_top_pos, GetChronoDataFile("granular/shared/gran_zcone.obj"));
         writeZCylinderMesh(outstream, ChVector<>(zvec[0], zvec[1], zvec[2]), cyl_rad, params.box_Z);
 
         meshfile << outstream.str();

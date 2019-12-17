@@ -20,6 +20,7 @@
 #include <string>
 #include <cmath>
 #include <ctime>
+#include "chrono/core/ChGlobal.h"
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono/utils/ChUtilsSamplers.h"
 #include "chrono_granular/api/ChApiGranularChrono.h"
@@ -32,18 +33,13 @@
 using namespace chrono;
 using namespace chrono::granular;
 
-using std::cout;
-using std::endl;
-using std::string;
-using std::vector;
-
 enum RUN_MODE { GRAN = 0, GRAN_TRI_DISABLED = 1, GRAN_TRI_ENABLED = 2 };
 
 double fill_top;
 double block_mass = 1;
 
-void ShowUsage() {
-    cout << "usage: ./metrics_GRAN_settling <json_file> <optional: test index for single test>" << endl;
+void ShowUsage(std::string name) {
+    std::cout << "usage: " + name + " <json_file> <optional: test index for single test>" << std::endl;
 }
 
 void SetupGranSystem(ChSystemGranularSMC& gran_sys, sim_param_holder& params) {
@@ -68,9 +64,9 @@ void SetupGranSystem(ChSystemGranularSMC& gran_sys, sim_param_holder& params) {
     gran_sys.set_BD_Fixed(true);
 }
 
-vector<ChVector<float>> SampleParticles(const sim_param_holder& params) {
+std::vector<ChVector<float>> SampleParticles(const sim_param_holder& params) {
     // Fill domain with particles
-    vector<ChVector<float>> body_points;
+    std::vector<ChVector<float>> body_points;
     double epsilon = 0.2 * params.sphere_radius;
     double spacing = 2 * params.sphere_radius + epsilon;
 
@@ -85,7 +81,7 @@ vector<ChVector<float>> SampleParticles(const sim_param_holder& params) {
         body_points.insert(body_points.end(), points.begin(), points.end());
     }
 
-    cout << "Created " << body_points.size() << " spheres" << endl;
+    std::cout << "Created " << body_points.size() << " spheres" << std::endl;
     return body_points;
 }
 
@@ -100,17 +96,17 @@ void SetupGranTriSystem(ChGranularChronoTriMeshAPI& apiSMC_TriMesh, sim_param_ho
     gran_sys.set_Adhesion_ratio_S2M(params.adhesion_ratio_s2m);
 
     // Mesh values
-    vector<string> mesh_filenames;
-    string mesh_filename("granular/upward_plane_refined.obj");
+    std::vector<string> mesh_filenames;
+    std::string mesh_filename = GetChronoDataFile("granular/metrics_GRAN_settling/upward_plane_refined.obj");
     mesh_filenames.push_back(mesh_filename);
 
-    vector<ChMatrix33<float>> mesh_rotscales;
-    vector<float3> mesh_translations;
+    std::vector<ChMatrix33<float>> mesh_rotscales;
+    std::vector<float3> mesh_translations;
     ChMatrix33<float> scaling(ChVector<float>(params.box_X / 2, params.box_Y / 2, 1));
     mesh_rotscales.push_back(scaling);
     mesh_translations.push_back(make_float3(0, 0, 0));
 
-    vector<float> mesh_masses;
+    std::vector<float> mesh_masses;
     mesh_masses.push_back(block_mass);
 
     std::vector<bool> mesh_inflated;
@@ -129,7 +125,7 @@ double RunTest(sim_param_holder& params, RUN_MODE run_mode) {
     clock_t start = std::clock();
     switch (run_mode) {
         case RUN_MODE::GRAN: {
-            cout << "Running Granular system test..." << endl;
+            std::cout << "Running Granular system test..." << std::endl;
             ChSystemGranularSMC gran_sys(params.sphere_radius, params.sphere_density,
                                          make_float3(params.box_X, params.box_Y, params.box_Z));
             ChGranularSMC_API apiSMC;
@@ -143,17 +139,17 @@ double RunTest(sim_param_holder& params, RUN_MODE run_mode) {
 
             unsigned int currframe = 0;
             for (float t = 0; t < params.time_end; t += frame_step) {
-                cout << "Rendering frame " << currframe << endl;
+                std::cout << "Rendering frame " << currframe << std::endl;
                 char filename[100];
                 sprintf(filename, "%s/step%06u", params.output_dir.c_str(), currframe++);
-                gran_sys.writeFile(string(filename));
+                gran_sys.writeFile(std::string(filename));
 
                 gran_sys.advance_simulation(frame_step);
             }
             break;
         }
         case RUN_MODE::GRAN_TRI_DISABLED: {
-            cout << "Running Granular system with disabled mesh test..." << endl;
+            std::cout << "Running Granular system with disabled mesh test..." << std::endl;
             ChGranularChronoTriMeshAPI apiSMC_TriMesh(params.sphere_radius, params.sphere_density,
                                                       make_float3(params.box_X, params.box_Y, params.box_Z));
 
@@ -165,7 +161,7 @@ double RunTest(sim_param_holder& params, RUN_MODE run_mode) {
             filesystem::create_directory(filesystem::path(params.output_dir));
 
             unsigned int nSoupFamilies = gran_sys.getNumTriangleFamilies();
-            cout << nSoupFamilies << " soup families" << endl;
+            std::cout << nSoupFamilies << " soup families" << std::endl;
             double* meshSoupLocOri = new double[7 * nSoupFamilies];
             float* meshVel = new float[6 * nSoupFamilies]();
 
@@ -183,11 +179,11 @@ double RunTest(sim_param_holder& params, RUN_MODE run_mode) {
                 meshSoupLocOri[6] = 0;
 
                 gran_sys.meshSoup_applyRigidBodyMotion(meshSoupLocOri, meshVel);
-                cout << "Rendering frame " << currframe << endl;
+                std::cout << "Rendering frame " << currframe << std::endl;
                 char filename[100];
                 sprintf(filename, "%s/step%06u", params.output_dir.c_str(), currframe++);
-                gran_sys.writeFile(string(filename));
-                gran_sys.write_meshes(string(filename));
+                gran_sys.writeFile(std::string(filename));
+                gran_sys.write_meshes(std::string(filename));
 
                 gran_sys.advance_simulation(frame_step);
             }
@@ -196,7 +192,7 @@ double RunTest(sim_param_holder& params, RUN_MODE run_mode) {
             break;
         }
         case RUN_MODE::GRAN_TRI_ENABLED: {
-            cout << "Running Granular system with enabled mesh test..." << endl;
+            std::cout << "Running Granular system with enabled mesh test..." << std::endl;
             ChGranularChronoTriMeshAPI apiSMC_TriMesh(params.sphere_radius, params.sphere_density,
                                                       make_float3(params.box_X, params.box_Y, params.box_Z));
             SetupGranTriSystem(apiSMC_TriMesh, params);
@@ -207,7 +203,7 @@ double RunTest(sim_param_holder& params, RUN_MODE run_mode) {
             filesystem::create_directory(filesystem::path(params.output_dir));
 
             unsigned int nSoupFamilies = gran_sys.getNumTriangleFamilies();
-            cout << nSoupFamilies << " soup families" << endl;
+            std::cout << nSoupFamilies << " soup families" << std::endl;
             double* meshSoupLocOri = new double[7 * nSoupFamilies];
             float* meshVel = new float[6 * nSoupFamilies]();
 
@@ -225,11 +221,11 @@ double RunTest(sim_param_holder& params, RUN_MODE run_mode) {
                 meshSoupLocOri[6] = 0;
 
                 gran_sys.meshSoup_applyRigidBodyMotion(meshSoupLocOri, meshVel);
-                cout << "Rendering frame " << currframe << endl;
+                std::cout << "Rendering frame " << currframe << std::endl;
                 char filename[100];
                 sprintf(filename, "%s/step%06u", params.output_dir.c_str(), currframe++);
-                gran_sys.writeFile(string(filename));
-                gran_sys.write_meshes(string(filename));
+                gran_sys.writeFile(std::string(filename));
+                gran_sys.write_meshes(std::string(filename));
 
                 gran_sys.advance_simulation(frame_step);
             }
@@ -249,7 +245,7 @@ int main(int argc, char* argv[]) {
 
     // Some of the default values might be overwritten by user via command line
     if (!(argc != 2 || argc != 3) || ParseJSON(argv[1], params) == false) {
-        ShowUsage();
+        ShowUsage(argv[0]);
         return 1;
     }
     int single_run = -1;
@@ -272,10 +268,10 @@ int main(int argc, char* argv[]) {
         time_tri_enabled = RunTest(params, RUN_MODE::GRAN_TRI_ENABLED);
     }
 
-    cout << "================== Results ==================" << endl;
-    cout << "Granular system: " << time_gran << " seconds" << endl;
-    cout << "Granular system with disabled triangles: " << time_tri_disabled << " seconds" << endl;
-    cout << "Granular system with enabled triangles: " << time_tri_enabled << " seconds" << endl;
+    std::cout << "================== Results ==================" << std::endl;
+    std::cout << "Granular system: " << time_gran << " seconds" << std::endl;
+    std::cout << "Granular system with disabled triangles: " << time_tri_disabled << " seconds" << std::endl;
+    std::cout << "Granular system with enabled triangles: " << time_tri_enabled << " seconds" << std::endl;
 
     return 0;
 }

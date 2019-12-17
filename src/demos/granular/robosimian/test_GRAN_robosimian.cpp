@@ -9,11 +9,9 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Radu Serban, Conlain Kelly
 // =============================================================================
-//
-// RoboSimian on rigid terrain
-//
+// RoboSimian on granular terrain
 // =============================================================================
 
 #include <cmath>
@@ -104,8 +102,8 @@ double RobotDriverCallback::GetAvgSpeed() const {
     return GetDistance() / GetDuration();
 }
 
-void ShowUsage() {
-    cout << "usage: ./test_RS_robosimian_granular <json_file>" << endl;
+void ShowUsage(std::string name) {
+    cout << "usage: " + name + " <json_file>" << endl;
 }
 
 // Take a ChBody and write its
@@ -160,7 +158,7 @@ int main(int argc, char* argv[]) {
     sim_param_holder params;
     // Some of the default values might be overwritten by user via command line
     if (argc != 2 || ParseJSON(argv[1], params) == false) {
-        ShowUsage();
+        ShowUsage(argv[0]);
         return 1;
     }
     // ------------

@@ -17,6 +17,7 @@
 
 #include <iostream>
 #include <string>
+#include "chrono/core/ChGlobal.h"
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_granular/api/ChApiGranularChrono.h"
 #include "chrono_granular/physics/ChGranular.h"
@@ -26,23 +27,19 @@
 using namespace chrono;
 using namespace chrono::granular;
 
-using std::cout;
-using std::endl;
-using std::string;
-
 enum run_mode { FRICTIONLESS_NOCYL = 0, FRICTIONLESS_WITHCYL = 1, MULTI_STEP_NOCYL = 2, MULTI_STEP_WITHCYL = 3 };
 
 // whether or not to have a cylinder blocking the flow. Set by run_mode.
 bool use_cylinder = false;
 
-void ShowUsage() {
-    cout << "usage: ./demo_GRAN_DamBreak <json_file> <radius> <density> <run_mode: 0-FRICTIONLESS_NOCYL, "
-            "1-FRICTIONLESS_WITHCYL, 2-MULTI_STEP_NOCYL, 3-MULTI_STEP_WITHCYL> <box_Y> <output_dir>"
-         << endl;
+void ShowUsage(std::string name) {
+    std::cout << "usage: " + name + " <json_file> <radius> <density> <run_mode: 0-FRICTIONLESS_NOCYL, "
+                 "1-FRICTIONLESS_WITHCYL, 2-MULTI_STEP_NOCYL, 3-MULTI_STEP_WITHCYL> <box_Y> <output_dir>"
+              << std::endl;
 }
 
-std::string box_filename = "BD_Box.obj";
-std::string cyl_filename = "Gran_cylinder.obj";
+std::string box_filename = GetChronoDataFile("granular/shared/BD_Box.obj");
+std::string cyl_filename = GetChronoDataFile("granular/shared/Gran_cylinder.obj");
 
 sim_param_holder params;
 
@@ -108,7 +105,7 @@ void writeZCylinderMesh(std::ostringstream& outstream, ChVector<> pos, float rad
 int main(int argc, char* argv[]) {
     // Some of the default values might be overwritten by user via command line
     if (argc != 7 || ParseJSON(argv[1], params) == false) {
-        ShowUsage();
+        ShowUsage(argv[0]);
         return 1;
     }
 
@@ -118,11 +115,11 @@ int main(int argc, char* argv[]) {
     params.box_Y = std::atof(argv[5]);
     params.output_dir = std::string(argv[6]);
 
-    cout << "Radius " << params.sphere_radius << endl;
-    cout << "Density " << params.sphere_density << endl;
-    cout << "Run Mode " << params.run_mode << endl;
-    cout << "box_Y " << params.box_Y << endl;
-    cout << "output_dir " << params.output_dir << endl;
+    std::cout << "Radius " << params.sphere_radius << std::endl;
+    std::cout << "Density " << params.sphere_density << std::endl;
+    std::cout << "Run Mode " << params.run_mode << std::endl;
+    std::cout << "box_Y " << params.box_Y << std::endl;
+    std::cout << "output_dir " << params.output_dir << std::endl;
 
     // Setup simulation
     ChSystemGranularSMC gran_system(params.sphere_radius, params.sphere_density,
@@ -168,8 +165,8 @@ int main(int argc, char* argv[]) {
             use_cylinder = false;
             break;
         default:
-            cout << "Invalid run_mode" << endl;
-            ShowUsage();
+            std::cout << "Invalid run_mode" << std::endl;
+            ShowUsage(argv[0]);
             return 1;
     }
 
@@ -192,7 +189,7 @@ int main(int argc, char* argv[]) {
 
     std::vector<ChVector<float>> first_points;
 
-    cout << "Adding " << body_points.size() << " particles" << endl;
+    std::cout << "Adding " << body_points.size() << " particles" << std::endl;
     ChGranularSMC_API apiSMC;
     apiSMC.setGranSystem(&gran_system);
     apiSMC.setElemsPositions(body_points);
@@ -226,7 +223,7 @@ int main(int argc, char* argv[]) {
     float curr_time = 0;
     int currframe = 0;
 
-    cout << "frame step is " << frame_step << endl;
+    std::cout << "frame step is " << frame_step << std::endl;
     bool plane_active = true;
     float reaction_forces[3] = {0, 0, 0};
 
@@ -284,7 +281,7 @@ int main(int argc, char* argv[]) {
         printf("rendering frame %u\n", currframe);
         char filename[100];
         sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
-        gran_system.writeFile(string(filename));
+        gran_system.writeFile(std::string(filename));
     }
 
     return 0;

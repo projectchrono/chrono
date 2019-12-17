@@ -21,6 +21,7 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #endif
+#include "chrono/core/ChGlobal.h"
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_granular/api/ChApiGranularChrono.h"
 #include "chrono_granular/api/ChApiGranularChrono.h"
@@ -30,9 +31,6 @@
 
 using namespace chrono;
 using namespace chrono::granular;
-using std::cout;
-using std::endl;
-using std::string;
 
 // expected number of args for param sweep
 constexpr int num_args_full = 5;
@@ -43,14 +41,14 @@ int currframe = 0;
 // -----------------------------------------------------------------------------
 // Show command line usage
 // -----------------------------------------------------------------------------
-void ShowUsage() {
-    cout << "usage: ./demo_GRAN_Bucket <json_file> [<run_mode> <box_Z> <output_dir>]" << endl;
-    cout << "must have either 1 or " << num_args_full - 1 << " arguments" << endl;
+void ShowUsage(std::string name) {
+    std::cout << "usage: " + name + " <json_file> [<run_mode> <box_Z> <output_dir>]" << std::endl;
+    std::cout << "must have either 1 or " << num_args_full - 1 << " arguments" << std::endl;
 }
 
 sim_param_holder params;
 
-std::string box_filename = "BD_Box.obj";
+std::string box_filename = GetChronoDataFile("granular/shared/BD_Box.obj");
 
 // Take a ChBody and write its
 void writeBoxMesh(std::ostringstream& outstream) {
@@ -121,7 +119,7 @@ void writeForcesFile(ChSystemGranularSMC& gran_sys) {
 int main(int argc, char* argv[]) {
     // Some of the default values might be overwritten by user via command line
     if (argc < 2 || argc > 2 && argc != num_args_full || ParseJSON(argv[1], params) == false) {
-        ShowUsage();
+        ShowUsage(argv[0]);
         return 1;
     }
 

@@ -18,6 +18,7 @@
 #include <iostream>
 #include <string>
 #include <cmath>
+#include "chrono/core/ChGlobal.h"
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_granular/api/ChApiGranularChrono.h"
 #include "chrono_granular/physics/ChGranular.h"
@@ -77,11 +78,12 @@ float curr_time = 0;
 int currframe = 0;
 
 // Bowling ball starts on incline to accelerate
-enum TEST_TYPE { ROTF = 0, PYRAMID = 1, ROTF_MESH = 2, PYRAMID_MESH = 3, MESH_STEP = 4, MESH_FORCE };
+enum TEST_TYPE { ROTF = 0, PYRAMID = 1, ROTF_MESH = 2, PYRAMID_MESH = 3, MESH_STEP = 4, MESH_FORCE = 5};
 
-void ShowUsage() {
-    std::cout << "usage: ./utest_GRAN_testsuite <TEST_TYPE>" << std::endl;
+void ShowUsage(std::string name) {
+    std::cout << "usage: " + name + " <TEST_TYPE: 0:ROTF 1:PYRAMID 2:ROTF_MESH 3:PYRAMID_MESH 4:MESH_STEP 5:MESH_FORCE>" << std::endl;
 }
+
 // Set common set of parameters for all demos
 void setCommonParameters(ChGranularChronoTriMeshAPI& apiSMC_TriMesh) {
     ChSystemGranularSMC& gran_sys = apiSMC_TriMesh.getGranSystemSMC_TriMesh();
@@ -230,17 +232,17 @@ void run_ROTF_MESH() {
     ChMatrix33<float> mesh_scaling = ChMatrix33<float>(ChVector<float>(100, 100, 100));
 
     // make two plane meshes, one for ramp and one for bottom
-    mesh_filenames.push_back("granular/test_suite/square_plane_fine.obj");
+    mesh_filenames.push_back(GetChronoDataFile("granular/utest_GRAN_testsuite/square_plane_fine.obj"));
     mesh_rotscales.push_back(mesh_scaling);
     mesh_translations.push_back(make_float3(0, 0, 0));
-    mesh_masses.push_back(10.f);  // who cares?
+    mesh_masses.push_back(10.f);
     mesh_inflated.push_back(false);
     mesh_inflation_radii.push_back(0);
 
-    mesh_filenames.push_back("granular/test_suite/square_plane_fine.obj");
+    mesh_filenames.push_back(GetChronoDataFile("granular/utest_GRAN_testsuite/square_plane_fine.obj"));
     mesh_rotscales.push_back(mesh_scaling);
     mesh_translations.push_back(make_float3(0, 0, 0));
-    mesh_masses.push_back(10.f);  // who cares?
+    mesh_masses.push_back(10.f);
     mesh_inflated.push_back(false);
     mesh_inflation_radii.push_back(0);
 
@@ -357,10 +359,10 @@ void run_PYRAMID_MESH() {
 
     ChMatrix33<float> mesh_scaling = ChMatrix33<float>(ChVector<float>(1, 1, 1));
     // make two plane meshes, one for ramp and one for bottom
-    mesh_filenames.push_back("granular/test_suite/tiny_triangle.obj");
+    mesh_filenames.push_back(GetChronoDataFile("granular/utest_GRAN_testsuite/tiny_triangle.obj"));
     mesh_rotscales.push_back(mesh_scaling);
     mesh_translations.push_back(make_float3(0, 0, 0));
-    mesh_masses.push_back(10.f);  // who cares?
+    mesh_masses.push_back(10.f);
     mesh_inflated.push_back(false);
     mesh_inflation_radii.push_back(0);
     apiSMC_TriMesh.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses, mesh_inflated,
@@ -428,7 +430,7 @@ void run_MESH_STEP() {
     setCommonMeshParameters(apiSMC_TriMesh);
 
     std::vector<string> mesh_filenames;
-    string mesh_filename("granular/test_suite/step.obj");
+    std::string mesh_filename(GetChronoDataFile("granular/utest_GRAN_testsuite/step.obj"));
     mesh_filenames.push_back(mesh_filename);
 
     std::vector<ChMatrix33<float>> mesh_rotscales;
@@ -464,12 +466,12 @@ void run_MESH_STEP() {
         body_points.insert(body_points.end(), points.begin(), points.end());
     }
 
-    std::cout << "Created " << body_points.size() << " spheres" << endl;
+    std::cout << "Created " << body_points.size() << " spheres" << std::endl;
 
     apiSMC_TriMesh.setElemsPositions(body_points);
 
     unsigned int nSoupFamilies = gran_sys.getNumTriangleFamilies();
-    std::cout << nSoupFamilies << " soup families" << endl;
+    std::cout << nSoupFamilies << " soup families" << std::endl;
     double* meshSoupLocOri = new double[7 * nSoupFamilies];
 
     meshSoupLocOri[0] = 0;
@@ -487,7 +489,7 @@ void run_MESH_STEP() {
 
     for (float t = 0; t < timeEnd; t += frame_step) {
         gran_sys.meshSoup_applyRigidBodyMotion(meshSoupLocOri, meshVel);
-        std::cout << "Rendering frame " << currframe << endl;
+        std::cout << "Rendering frame " << currframe << std::endl;
         char filename[100];
         sprintf(filename, "%s/step%06u", output_dir.c_str(), currframe);
         writeGranFile(gran_sys);
@@ -499,6 +501,10 @@ void run_MESH_STEP() {
 }
 
 void run_MESH_FORCE() {
+    // TODO Adapt sizing
+    std::cout << "MESH_FORCE not implemented" << std::endl;
+    return;
+    
     ChGranularChronoTriMeshAPI apiSMC_TriMesh(sphere_radius, sphere_density, make_float3(box_X, box_Y, box_Z));
     ChSystemGranularSMC_trimesh& gran_sys = apiSMC_TriMesh.getGranSystemSMC_TriMesh();
     setCommonParameters(apiSMC_TriMesh);
@@ -508,7 +514,7 @@ void run_MESH_FORCE() {
     auto pos = sampler.SampleBox(ChVector<>(0, 0, 26), ChVector<>(38, 38, 10));
 
     unsigned int n_spheres = pos.size();
-    std::cout << "Created " << n_spheres << " spheres" << endl;
+    std::cout << "Created " << n_spheres << " spheres" << std::endl;
     double sphere_mass = sphere_density * 4.0 * CH_C_PI * sphere_radius * sphere_radius * sphere_radius / 3.0;
 
     double total_mass = sphere_mass * n_spheres;
@@ -519,7 +525,7 @@ void run_MESH_FORCE() {
 
     // Mesh values
     std::vector<string> mesh_filenames;
-    string mesh_filename("square_box.obj");
+    std::string mesh_filename(GetChronoDataFile("granular/utest_GRAN_testsuite/square_box.obj"));
     mesh_filenames.push_back(mesh_filename);
 
     std::vector<ChMatrix33<float>> mesh_rotscales;
@@ -541,7 +547,7 @@ void run_MESH_FORCE() {
                                mesh_inflation_radii);
 
     unsigned int nSoupFamilies = gran_sys.getNumTriangleFamilies();
-    std::cout << nSoupFamilies << " soup families" << endl;
+    std::cout << nSoupFamilies << " soup families" << std::endl;
     float* genForcesOnMeshSoup = new float[6 * nSoupFamilies];
     double* meshSoupLocOri = new double[7 * nSoupFamilies];
     float* meshVel = new float[6 * nSoupFamilies]();
@@ -561,17 +567,17 @@ void run_MESH_FORCE() {
     // particles. Conversely, the particles impress a force and torque upon the mesh soup
     for (float t = 0; t < timeEnd; t += frame_step) {
         gran_sys.meshSoup_applyRigidBodyMotion(meshSoupLocOri, meshVel);
-        std::cout << "Rendering frame " << currframe << endl;
+        std::cout << "Rendering frame " << currframe << std::endl;
         char filename[100];
         sprintf(filename, "%s/step%06u", output_dir.c_str(), currframe);
         writeGranFile(gran_sys);
-        gran_sys.write_meshes(string(filename));
+        gran_sys.write_meshes(std::string(filename));
         // gran_sys.checkSDCounts(std::string(filename) + "SU", true, false);
         float forces[6];
         gran_sys.collectGeneralizedForcesOnMeshSoup(forces);
         std::cout << "force_z: " << forces[2] << "; total weight: " << total_weight << "; sphere weight "
-                  << sphere_weight << endl;
-        std::cout << "torque: " << forces[3] << ", " << forces[4] << ", " << forces[5] << endl;
+                  << sphere_weight << std::endl;
+        std::cout << "torque: " << forces[3] << ", " << forces[4] << ", " << forces[5] << std::endl;
 
         advanceGranSim(gran_sys);
     }
@@ -584,7 +590,7 @@ void run_MESH_FORCE() {
 int main(int argc, char* argv[]) {
     TEST_TYPE curr_test = ROTF;
     if (argc != 2) {
-        ShowUsage();
+        ShowUsage(argv[0]);
         return 1;
     }
 
@@ -616,6 +622,10 @@ int main(int argc, char* argv[]) {
         case MESH_FORCE: {
             run_MESH_FORCE();
             break;
+        }
+        default: {
+            std::cout << "Invalid test" << std::endl;
+            return 1;
         }
     }
     return 0;

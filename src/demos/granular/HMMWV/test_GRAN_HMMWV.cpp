@@ -16,8 +16,8 @@
 //
 // The vehicle reference frame has Z up, X towards the front of the vehicle, and
 // Y pointing to the left.
-//
 // =============================================================================
+
 #include <cmath>
 #include <cstdio>
 #include <vector>
@@ -53,11 +53,6 @@ using namespace chrono::granular;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::hmmwv;
 
-using std::cout;
-using std::endl;
-using std::string;
-using std::vector;
-
 enum RUN_MODE { SETTLING = 0, TESTING = 1 };
 enum WHEEL_ID { FL = 0, FR = 1, RL = 2, RR = 3 };
 enum WHEEL_TYPE { GROUSER = 0, DETAILED = 1, LUGGED = 2 };
@@ -73,12 +68,12 @@ const double time_settling = 1;
 const double time_drop = 0.0;
 const double hmmwv_step_size = 1e-5;
 
-string checkpoint_file;
+std::string checkpoint_file;
 double throttle_max;
 
 void writeMeshFrames(std::ostringstream& outstream,
                      ChBody& body,
-                     string obj_name,
+                     std::string obj_name,
                      float mesh_scaling,
                      ChVector<> gran_offset) {
     outstream << obj_name << ",";
@@ -110,10 +105,10 @@ void writeMeshFrames(std::ostringstream& outstream,
     outstream << "\n";
 }
 
-void ShowUsage() {
-    cout << "usage: test_GRAN_HMMWV <json_file> <out_dir> <run_mode: 0-settling, 1-testing> <checkpoint_file abs path, "
+void ShowUsage(std::string name) {
+    std::cout << "usage: " + name + " <json_file> <out_dir> <run_mode: 0-settling, 1-testing> <checkpoint_file abs path, "
             "if run_mode == 1> <throttle 0-1 if run_mode == 1>"
-         << endl;
+         << std::endl;
 }
 
 int main(int argc, char* argv[]) {
@@ -123,7 +118,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    string out_dir(argv[2]);
+    std::string out_dir(argv[2]);
     if (out_dir.back() != '/') {
         out_dir = out_dir + "/";
     }
@@ -135,11 +130,11 @@ int main(int argc, char* argv[]) {
             ShowUsage();
             return 1;
         }
-        checkpoint_file = string(argv[4]);
-        cout << "Checkpoint: " << checkpoint_file << endl;
+        checkpoint_file = std::string(argv[4]);
+        std::cout << "Checkpoint: " << checkpoint_file << std::endl;
 
         throttle_max = std::stof(argv[5]);
-        cout << "Throttle: " << throttle_max << endl;
+        std::cout << "Throttle: " << throttle_max << std::endl;
     }
 
     double fill_bottom = -params.box_Z / 2 + 2.05 * params.sphere_radius;
@@ -181,9 +176,9 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     // Mesh values
-    vector<string> mesh_filenames;
-    vector<float3> mesh_scalings;
-    vector<float> mesh_masses;
+    std::vector<std::string> mesh_filenames;
+    std::vector<float3> mesh_scalings;
+    std::vector<float> mesh_masses;
 
     float wheel_radius = hmmwv.GetTire(WHEEL_ID::FL)->GetRadius() * L_mks_to_cgs;
     float wheel_mass = hmmwv.GetTire(WHEEL_ID::FL)->GetMass() * M_mks_to_cgs;
@@ -192,43 +187,43 @@ int main(int argc, char* argv[]) {
     hmmwv.SetInitPosition(ChCoordsys<>(ChVector<>(-params.box_X * L_cgs_to_mks / 2, 0, hmmwv_init_height), QUNIT));
 
     WHEEL_TYPE wheel_type = WHEEL_TYPE::LUGGED;
-    cout << "Wheel Radius: " << wheel_radius << " cm" << endl;
+    std::cout << "Wheel Radius: " << wheel_radius << " cm" << std::endl;
     float3 scaling;
-    string wheel_mesh_filename;
+    std::string wheel_mesh_filename;
     switch (wheel_type) {
         case WHEEL_TYPE::GROUSER:
             scaling.x = wheel_radius;
             scaling.y = wheel_radius;
             scaling.z = wheel_radius;
-            wheel_mesh_filename = "granular/grouser_wheel.obj";
+            wheel_mesh_filename = GetChronoDataFile("granular/test_GRAN_HMMWV/grouser_wheel.obj");
             break;
         case WHEEL_TYPE::DETAILED:
             scaling.x = L_mks_to_cgs;
             scaling.y = L_mks_to_cgs;
             scaling.z = L_mks_to_cgs;
-            wheel_mesh_filename = "granular/HMMWV/hmmwv_tire_detailed.obj";
+            wheel_mesh_filename = GetChronoDataFile("granular/test_GRAN_HMMWV/hmmwv_tire_detailed.obj");
             break;
         case WHEEL_TYPE::LUGGED:
             scaling.x = L_mks_to_cgs;
             scaling.y = L_mks_to_cgs;
             scaling.z = L_mks_to_cgs;
-            wheel_mesh_filename = "granular/HMMWV/hmmwv_tire_lugged.obj";
+            wheel_mesh_filename = GetChronoDataFile("granular/test_GRAN_HMMWV/hmmwv_tire_lugged.obj");
             break;
     }
 
-    vector<std::pair<string, std::shared_ptr<ChBody>>> gran_collision_bodies;
+    std::vector<std::pair<std::string, std::shared_ptr<ChBody>>> gran_collision_bodies;
     gran_collision_bodies.push_back(
-        std::pair<string, std::shared_ptr<ChBody>>(wheel_mesh_filename, hmmwv.GetVehicle().GetWheelBody(WHEEL_ID::FL)));
+        std::pair<std::string, std::shared_ptr<ChBody>>(wheel_mesh_filename, hmmwv.GetVehicle().GetWheelBody(WHEEL_ID::FL)));
     gran_collision_bodies.push_back(
-        std::pair<string, std::shared_ptr<ChBody>>(wheel_mesh_filename, hmmwv.GetVehicle().GetWheelBody(WHEEL_ID::FR)));
+        std::pair<std::string, std::shared_ptr<ChBody>>(wheel_mesh_filename, hmmwv.GetVehicle().GetWheelBody(WHEEL_ID::FR)));
     gran_collision_bodies.push_back(
-        std::pair<string, std::shared_ptr<ChBody>>(wheel_mesh_filename, hmmwv.GetVehicle().GetWheelBody(WHEEL_ID::RL)));
+        std::pair<std::string, std::shared_ptr<ChBody>>(wheel_mesh_filename, hmmwv.GetVehicle().GetWheelBody(WHEEL_ID::RL)));
     gran_collision_bodies.push_back(
-        std::pair<string, std::shared_ptr<ChBody>>(wheel_mesh_filename, hmmwv.GetVehicle().GetWheelBody(WHEEL_ID::RR)));
+        std::pair<std::string, std::shared_ptr<ChBody>>(wheel_mesh_filename, hmmwv.GetVehicle().GetWheelBody(WHEEL_ID::RR)));
 
     // Add wheel masses
-    vector<bool> mesh_inflated;
-    vector<float> mesh_inflation_radii;
+    std::vector<bool> mesh_inflated;
+    std::vector<float> mesh_inflation_radii;
     const unsigned int num_mesh_bodies = 4;
     for (unsigned int i = 0; i < num_mesh_bodies; i++) {
         mesh_masses.push_back(wheel_mass);
@@ -243,7 +238,7 @@ int main(int argc, char* argv[]) {
     double max_gran_z = -1000000;
 
     // Fill box with bodies
-    vector<ChVector<float>> body_points;
+    std::vector<ChVector<float>> body_points;
     if (run_mode == RUN_MODE::SETTLING) {
         chrono::utils::PDSampler<float> sampler(2.05 * params.sphere_radius);
         // chrono::utils::HCPSampler<float> sampler(2.05 * params.sphere_radius);
@@ -255,26 +250,26 @@ int main(int argc, char* argv[]) {
         // Shift up for bottom of box
         center.z() += 3 * params.sphere_radius;
         while (center.z() < fill_top) {
-            cout << "Create layer at " << center.z() << endl;
+            std::cout << "Create layer at " << center.z() << std::endl;
             auto points = sampler.SampleBox(center, hdims);
             body_points.insert(body_points.end(), points.begin(), points.end());
             center.z() += 2.05 * params.sphere_radius;
         }
     } else if (run_mode == RUN_MODE::TESTING) {
         // Read in checkpoint file
-        string line;
+        std::string line;
         std::ifstream cp_file(checkpoint_file);
         if (!cp_file.is_open()) {
-            cout << "ERROR reading checkpoint file" << endl;
+            std::cout << "ERROR reading checkpoint file" << std::endl;
             return 1;
         }
 
-        string d = ",";
+        std::string d = ",";
         std::getline(cp_file, line);  // Skip the header
         while (std::getline(cp_file, line)) {
             size_t pos = line.find(d);
-            string tok;
-            string d = ",";
+            std::string tok;
+            std::string d = ",";
             ChVector<float> point;
             for (size_t i = 0; i < 3; i++) {
                 pos = line.find(d);
@@ -324,7 +319,7 @@ apiSMC.setElemsPositions(body_points);
     gran_sys.set_fixed_stepSize(params.step_size);
 
     float mu_static = 0.7;
-    cout << "Static friciton coefficient: " << mu_static << endl;
+    std::cout << "Static friciton coefficient: " << mu_static << std::endl;
     gran_sys.set_static_friction_coeff_SPH2SPH(mu_static);
     gran_sys.set_static_friction_coeff_SPH2WALL(mu_static);
     gran_sys.set_static_friction_coeff_SPH2MESH(mu_static);
@@ -342,7 +337,7 @@ apiSMC.load_meshes(mesh_filenames, mesh_scalings, mesh_masses, mesh_inflated, me
     filesystem::create_directory(filesystem::path(out_dir));
 
     unsigned int nSoupFamilies = gran_sys.getNumTriangleFamilies();
-    cout << nSoupFamilies << " soup families" << endl;
+    std::cout << nSoupFamilies << " soup families" << std::endl;
     double* meshPosRot = new double[7 * nSoupFamilies];
     float* meshVel = new float[6 * nSoupFamilies]();
 
@@ -367,9 +362,9 @@ apiSMC.load_meshes(mesh_filenames, mesh_scalings, mesh_masses, mesh_inflated, me
     double render_fps = 100;
     int render_steps = (int)std::ceil((1.0 / render_fps) / hmmwv_step_size);
 
-    cout << "Rendering at " << render_fps << " FPS" << endl;
-    cout << "Time setting " << time_settling << endl;
-    cout << "Time drop " << time_drop << endl;
+    std::cout << "Rendering at " << render_fps << " FPS" << std::endl;
+    std::cout << "Time setting " << time_settling << std::endl;
+    std::cout << "Time drop " << time_drop << std::endl;
 
     int sim_frame = 0;
     int render_frame = 0;
@@ -384,7 +379,7 @@ apiSMC.load_meshes(mesh_filenames, mesh_scalings, mesh_masses, mesh_inflated, me
 
         gran_offset.x() = -params.box_X / 2 - rear_wheel_x + x_offset_extra;
         gran_offset.z() = max_gran_z - wheel_z;
-        cout << "gran_offset.z() = " << gran_offset.z() << endl;
+        std::cout << "gran_offset.z() = " << gran_offset.z() << std::endl;
         gran_sys.enableMeshCollision();
         hmmwv.SetChassisFixed(false);
 
@@ -466,16 +461,16 @@ apiSMC.load_meshes(mesh_filenames, mesh_scalings, mesh_masses, mesh_inflated, me
 
             // Output particles and meshes from chrono_granular
             if (sim_frame % render_steps == 0) {
-                cout << "Rendering frame " << render_frame << endl;
+                std::cout << "Rendering frame " << render_frame << std::endl;
                 auto omega = gran_collision_bodies[0].second->GetWvel_loc();
-                cout << "Local angular velocity of tire 0: " << omega.x() << " " << omega.y() << " " << omega.z()
-                     << endl;
+                std::cout << "Local angular velocity of tire 0: " << omega.x() << " " << omega.y() << " " << omega.z()
+                     << std::endl;
 
                 char filename[100];
                 std::sprintf(filename, "%s/step%06d", out_dir.c_str(), render_frame);
-                gran_sys.writeFile(string(filename));
-                // gran_sys.write_meshes(string(filename));
-                string mesh_output = string(filename) + "_meshframes.csv";
+                gran_sys.writeFile(std::string(filename));
+                // gran_sys.write_meshes(std::string(filename));
+                std::string mesh_output = std::string(filename) + "_meshframes.csv";
 
                 std::ofstream meshfile(mesh_output);
                 std::ostringstream outstream;
@@ -499,7 +494,7 @@ apiSMC.load_meshes(mesh_filenames, mesh_scalings, mesh_masses, mesh_inflated, me
                 }
 
                 // Write chassis
-                writeMeshFrames(outstream, *hmmwv.GetChassis()->GetBody(), "granular/HMMWV/hmmwv_chassis.obj",
+                writeMeshFrames(outstream, *hmmwv.GetChassis()->GetBody(), GetChronoDataFile("granular/test_GRAN_HMMWV/hmmwv_chassis.obj"),
                                 L_mks_to_cgs, gran_offset);
 
                 meshfile << outstream.str();

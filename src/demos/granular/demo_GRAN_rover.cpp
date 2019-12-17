@@ -39,9 +39,6 @@
 using namespace chrono;
 using namespace chrono::granular;
 
-using std::cout;
-using std::endl;
-
 constexpr double mars_grav_mag = 370;
 
 constexpr double time_settling = 1.0;  // TODO
@@ -87,7 +84,7 @@ double terrain_height_offset = 0;
 
 enum RUN_MODE { SETTLING = 0, TESTING = 1 };
 
-std::string chassis_filename = "granular/rover/MER_body.obj";  // For output only
+std::string chassis_filename = GetChronoDataFile("granular/demo_GRAN_rover/MER_body.obj");  // For output only
 
 enum ROVER_BODY_ID { WHEEL_FRONT_LEFT, WHEEL_FRONT_RIGHT, WHEEL_REAR_LEFT, WHEEL_REAR_RIGHT };
 
@@ -100,18 +97,16 @@ std::vector<float> mesh_masses;
 std::vector<bool> mesh_inflated;
 std::vector<float> mesh_inflation_radii;
 
-bool use_base_mesh = true;
-std::string terrain_mesh_filename = "data/granular/fixedterrain.obj";
-
 // y is height, x and z are radial
 // starts as height=1, diameter = 1
 
-std::string wheel_filename = std::string("data/granular/rover/wheel_scaled.obj");
+std::string wheel_filename = GetChronoDataFile("granular/demo_GRAN_rover/wheel_scaled.obj");
 
-void ShowUsage() {
-    cout << "usage: ./demo_GRAN_rover <json_file> <run_mode: 0-settling, 1-running> <checkpoint_file_base> <gravity "
-            "angle (deg)>"
-         << endl;
+void ShowUsage(std::string name) {
+    std::cout << "usage: " + name +
+                     " <json_file> <run_mode: 0-settling, 1-running> <checkpoint_file_base> <gravity "
+                     "angle (deg)>"
+              << std::endl;
 }
 
 std::vector<ChVector<float>> loadCheckpointFile(std::string checkpoint_file) {
@@ -121,7 +116,7 @@ std::vector<ChVector<float>> loadCheckpointFile(std::string checkpoint_file) {
     std::string line;
     std::ifstream cp_file(checkpoint_file);
     if (!cp_file.is_open()) {
-        cout << "ERROR reading checkpoint file" << endl;
+        std::cout << "ERROR reading checkpoint file" << std::endl;
         exit(1);
     }
 
@@ -226,7 +221,7 @@ void writeMeshFrames(std::ostringstream& outstream,
 int main(int argc, char* argv[]) {
     sim_param_holder params;
     if (argc != 5 || ParseJSON(argv[1], params) == false) {
-        ShowUsage();
+        ShowUsage(argv[0]);
         return 1;
     }
 
@@ -264,9 +259,6 @@ int main(int argc, char* argv[]) {
         body_points = loadCheckpointFile(checkpoint_file_base + ".csv");
     }
 
-    std::vector<ChVector<float>> first_points;
-
-    first_points.push_back(body_points.at(0));
     apiSMC_TriMesh.setElemsPositions(body_points);
 
     gran_sys.set_BD_Fixed(true);
@@ -307,17 +299,6 @@ int main(int argc, char* argv[]) {
     // rover_sys.SetContactForceModel(ChSystemNSC::ContactForceModel::Hooke);
     // rover_sys.SetTimestepperType(ChTimestepper::Type::EULER_EXPLICIT);
     rover_sys.Set_G_acc(ChVector<>(Gx, Gy, Gz));
-
-    if (use_base_mesh) {
-        mesh_masses.push_back(chassis_mass);
-        mesh_inflated.push_back(false);
-        mesh_inflation_radii.push_back(0);
-        ChMatrix33<float> terrain_mesh_scaling =
-            ChMatrix33<float>(ChVector<float>({params.box_X, params.box_Y, params.box_Z}));
-        mesh_rotscales.push_back(terrain_mesh_scaling);
-        mesh_filenames.push_back(terrain_mesh_filename);
-        mesh_translations.push_back(make_float3(0, 0, 0));
-    }
 
     std::shared_ptr<ChBody> chassis_body(rover_sys.NewBody());
 
@@ -360,13 +341,13 @@ int main(int argc, char* argv[]) {
     filesystem::create_directory(filesystem::path(params.output_dir));
 
     unsigned int nSoupFamilies = gran_sys.getNumTriangleFamilies();
-    cout << nSoupFamilies << " soup families" << endl;
+    std::cout << nSoupFamilies << " soup families" << std::endl;
     double* meshPosRot = new double[7 * nSoupFamilies];
     float* meshVel = new float[6 * nSoupFamilies]();
 
     gran_sys.initialize();
 
-    cout << "Rendering at " << out_fps << "FPS" << endl;
+    std::cout << "Rendering at " << out_fps << "FPS" << std::endl;
 
     unsigned int out_steps = 1 / (out_fps * iteration_step);
 
@@ -382,7 +363,7 @@ int main(int argc, char* argv[]) {
     }
 
     printf("Chassis mass: %f g, each wheel mass: %f g\n", chassis_mass, wheel_mass);
-    printf("Total Chassis weight in CGS: %f\n", std::abs((chassis_mass + 4 * wheel_mass) * params.grav_Z));
+    printf("Total Chassis Mars weight in CGS: %f\n", std::abs((chassis_mass + 4 * wheel_mass) * mars_grav_mag));
 
     clock_t start = std::clock();
     for (float t = 0; t < params.time_end; t += iteration_step, curr_step++) {
@@ -426,8 +407,8 @@ int main(int argc, char* argv[]) {
         gran_sys.advance_simulation(iteration_step);
         rover_sys.DoStepDynamics(iteration_step);
 
-        float wheel_force[6 * wheel_bodies.size()];
-        gran_sys.collectGeneralizedForcesOnMeshSoup(wheel_force);
+        std::vector<float> wheel_forces(6 * wheel_bodies.size());
+        gran_sys.collectGeneralizedForcesOnMeshSoup(wheel_forces.data());
 
         for (unsigned int i = 0; i < wheel_bodies.size(); i++) {
             auto curr_body = wheel_bodies.at(i);
@@ -435,15 +416,15 @@ int main(int argc, char* argv[]) {
 
             curr_body->Empty_forces_accumulators();
             curr_body->Accumulate_force(
-                ChVector<>(wheel_force[6 * i + 0], wheel_force[6 * i + 1], wheel_force[6 * i + 2]), wheel_pos, false);
+                ChVector<>(wheel_forces[6 * i + 0], wheel_forces[6 * i + 1], wheel_forces[6 * i + 2]), wheel_pos, false);
             curr_body->Accumulate_torque(
-                ChVector<>(wheel_force[6 * i + 3], wheel_force[6 * i + 4], wheel_force[6 * i + 5]), false);
+                ChVector<>(wheel_forces[6 * i + 3], wheel_forces[6 * i + 4], wheel_forces[6 * i + 5]), false);
         }
 
         if (curr_step % out_steps == 0) {
-            cout << "Rendering frame " << currframe << endl;
-            printf("Wheel forces: %f, %f, %f\n", wheel_force[0], wheel_force[1], wheel_force[2]);
-            printf("Wheel torques: %f, %f, %f\n", wheel_force[3], wheel_force[4], wheel_force[5]);
+            std::cout << "Rendering frame " << currframe << std::endl;
+            printf("Wheel forces: %f, %f, %f\n", wheel_forces[0], wheel_forces[1], wheel_forces[2]);
+            printf("Wheel torques: %f, %f, %f\n", wheel_forces[3], wheel_forces[4], wheel_forces[5]);
             char filename[100];
             sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
             gran_sys.writeFile(std::string(filename));
@@ -473,7 +454,7 @@ int main(int argc, char* argv[]) {
     clock_t end = std::clock();
     double total_time = ((double)(end - start)) / CLOCKS_PER_SEC;
 
-    cout << "Time: " << total_time << " seconds" << endl;
+    std::cout << "Time: " << total_time << " seconds" << std::endl;
 
     delete[] meshPosRot;
     delete[] meshVel;

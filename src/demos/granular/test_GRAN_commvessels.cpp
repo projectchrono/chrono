@@ -19,6 +19,7 @@
 #include <iostream>
 #include <string>
 #include <cmath>
+#include "chrono/core/ChGlobal.h"
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_granular/api/ChApiGranularChrono.h"
 #include "chrono_granular/physics/ChGranular.h"
@@ -30,17 +31,12 @@
 using namespace chrono;
 using namespace chrono::granular;
 
-using std::cout;
-using std::endl;
-using std::string;
-using std::vector;
-
-void ShowUsage() {
-    cout << "usage: ./test_GRAN_commvessels <json_file> <output_dir> <radius> <density>" << endl;
+void ShowUsage(std::string name) {
+    std::cout << "usage: " + name + " <json_file> <output_dir> <radius> <density>" << std::endl;
 }
 
 void writeMeshFrames(std::ostringstream& outstream,
-                     const string obj_name,
+                     const std::string obj_name,
                      const ChVector<>& pos,
                      const float3 mesh_scaling) {
     outstream << obj_name << ",";
@@ -72,7 +68,7 @@ int main(int argc, char* argv[]) {
 
     // Some of the default values might be overwritten by user via command line
     if (argc != 5 || ParseJSON(argv[1], params) == false) {
-        ShowUsage();
+        ShowUsage(argv[0]);
         return 1;
     }
 
@@ -84,8 +80,8 @@ int main(int argc, char* argv[]) {
     // Overwrite parameters from the command line
     params.sphere_radius = std::stof(argv[3]);
     params.sphere_density = std::stof(argv[4]);
-    cout << "sphere_radius " << params.sphere_radius << endl;
-    cout << "sphere_density " << params.sphere_density << endl;
+    std::cout << "sphere_radius " << params.sphere_radius << std::endl;
+    std::cout << "sphere_density " << params.sphere_density << std::endl;
 
     ChGranularChronoTriMeshAPI apiSMC_TriMesh(params.sphere_radius, params.sphere_density, make_float3(Bx, By, Bz));
 
@@ -121,7 +117,7 @@ int main(int argc, char* argv[]) {
     gran_sys.set_rolling_mode(GRAN_ROLLING_MODE::NO_RESISTANCE);  // TODO may want to play with this
 
     gran_sys.setOutputMode(params.write_mode);
-    string out_dir(argv[2]);
+    std::string out_dir(argv[2]);
     filesystem::create_directory(filesystem::path(out_dir));
 
     gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
@@ -136,16 +132,16 @@ int main(int argc, char* argv[]) {
     // Cylinder mesh has interior radius 1 and total radius 1.1
     float cyl_center[3] = {0, 0, 0};
     const float3 scaling = make_float3(Bx / 4.f, Bx / 4.f, Bz);
-    cout << "Cylinder radius: " << scaling.x << endl;
+    std::cout << "Cylinder radius: " << scaling.x << std::endl;
 
     utils::PDSampler<float> sampler(2.05 * params.sphere_radius);
-    vector<ChVector<float>> body_points;
+    std::vector<ChVector<float>> body_points;
 
     const float fill_radius = scaling.x - 2.f * params.sphere_radius;
     const float fill_top = fill_bottom + fill_height;
-    cout << "Fill radius " << fill_radius << endl;
-    cout << "Fill bottom " << fill_bottom << endl;
-    cout << "Fill top " << fill_top << endl;
+    std::cout << "Fill radius " << fill_radius << std::endl;
+    std::cout << "Fill bottom " << fill_bottom << std::endl;
+    std::cout << "Fill top " << fill_top << std::endl;
 
     ChVector<float> center(0, 0, fill_bottom);
     center.z() += 2 * params.sphere_radius;
@@ -156,24 +152,24 @@ int main(int argc, char* argv[]) {
     }
 
     unsigned int n_spheres = body_points.size();
-    cout << "Adding " << n_spheres << " particles" << endl;
+    std::cout << "Adding " << n_spheres << " particles" << std::endl;
     apiSMC_TriMesh.setElemsPositions(body_points);
 
-    vector<string> mesh_filenames;
-    vector<ChMatrix33<float>> mesh_rotscales;
-    vector<float3> mesh_translations;
-    vector<float> mesh_masses;
+    std::vector<string> mesh_filenames;
+    std::vector<ChMatrix33<float>> mesh_rotscales;
+    std::vector<float3> mesh_translations;
+    std::vector<float> mesh_masses;
     const float mass = 10;
 
-    string mesh_filename("../data/granular/commvessels/cylinder_refined.obj");
+    std::string mesh_filename = GetChronoDataFile("granular/test_GRAN_commvessels/cylinder_refined.obj");
     mesh_filenames.push_back(mesh_filename);
     mesh_rotscales.push_back(ChMatrix33<float>(ChVector<float>(scaling.x, scaling.y, scaling.z)));
     mesh_translations.push_back(make_float3(0, 0, 0));
     mesh_masses.push_back(mass);
 
-    vector<bool> mesh_inflated;
+    std::vector<bool> mesh_inflated;
     mesh_inflated.push_back(false);
-    vector<float> mesh_inflation_radii;
+    std::vector<float> mesh_inflation_radii;
     mesh_inflation_radii.push_back(0);
     apiSMC_TriMesh.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses, mesh_inflated,
                                mesh_inflation_radii);
@@ -182,8 +178,8 @@ int main(int argc, char* argv[]) {
     float* meshVel = new float[6]();
 
     gran_sys.initialize();
-    cout << "Writing init..." << endl;
-    gran_sys.writeFile(out_dir + string("/init"));
+    std::cout << "Writing init..." << std::endl;
+    gran_sys.writeFile(out_dir + std::string("/init"));
 
     const double time_settling = std::sqrt(-2.0 * (params.box_Z) / params.grav_Z);
     const double raising_vel = 1.0;
@@ -192,11 +188,11 @@ int main(int argc, char* argv[]) {
     const double time_raising = raising_dist / raising_vel;
     const double time_sitting = 10.0;  // TODO no idea how much is enough
 
-    cout << "Time settling " << time_settling << endl;
-    cout << "Raising velocity " << raising_vel << endl;
-    cout << "Raising distance " << raising_dist << endl;
-    cout << "Time raising " << time_raising << endl;
-    cout << "Time sitting " << time_sitting << endl;
+    std::cout << "Time settling " << time_settling << std::endl;
+    std::cout << "Raising velocity " << raising_vel << std::endl;
+    std::cout << "Raising distance " << raising_dist << std::endl;
+    std::cout << "Time raising " << time_raising << std::endl;
+    std::cout << "Time sitting " << time_sitting << std::endl;
 
     double mesh_z = 0.0;
     double mesh_vz = raising_vel;
@@ -216,19 +212,19 @@ int main(int argc, char* argv[]) {
     double out_fps = 60;
     float frame_step = 1.f / out_fps;  // Duration of a frame
     unsigned int out_steps = frame_step / iteration_step;
-    cout << "Writing at " << out_fps << " FPS" << endl;
+    std::cout << "Writing at " << out_fps << " FPS" << std::endl;
 
     unsigned int step = 0;
     bool settled = false;
     bool raised = false;
     ChVector<> pos_mesh(0, 0, mesh_z);
 
-    cout << "Settling..." << endl;
+    std::cout << "Settling..." << std::endl;
     for (float t = 0; t < time_settling + time_raising + time_sitting; t += iteration_step, step++) {
         if (t >= time_settling && t <= time_settling + time_raising) {
             // Raising phase
             if (!settled) {
-                cout << "Raising..." << endl;
+                std::cout << "Raising..." << std::endl;
                 settled = true;
             }
 
@@ -239,7 +235,7 @@ int main(int argc, char* argv[]) {
             gran_sys.meshSoup_applyRigidBodyMotion(meshPosRot, meshVel);
         } else if (t > time_settling + time_raising) {
             if (!raised) {
-                cout << "Raised." << endl;
+                std::cout << "Raised." << std::endl;
                 raised = true;
                 meshVel[2] = 0;
                 gran_sys.meshSoup_applyRigidBodyMotion(meshPosRot, meshVel);
@@ -247,12 +243,12 @@ int main(int argc, char* argv[]) {
         }
 
         if (step % out_steps == 0) {
-            cout << "Rendering frame " << currframe << endl;
+            std::cout << "Rendering frame " << currframe << std::endl;
             char filename[100];
             sprintf(filename, "%s/step%06u", out_dir.c_str(), currframe++);
-            gran_sys.writeFile(string(filename));
-            // gran_sys.write_meshes(string(filename));
-            string mesh_output = string(filename) + "_meshframes.csv";
+            gran_sys.writeFile(std::string(filename));
+            // gran_sys.write_meshes(std::string(filename));
+            std::string mesh_output = std::string(filename) + "_meshframes.csv";
 
             std::ofstream meshfile(mesh_output);
             std::ostringstream outstream;
