@@ -19,8 +19,11 @@
 
 namespace chrono {
 
-/// SINE FUNCTION:
-/// y = sin (phase + w*x )     w=2*PI*freq
+/// @addtogroup chrono_functions
+/// @{
+
+/// Sine function
+/// `y = sin (phase + w*x )` where w=2*PI*freq
 class ChApi ChFunction_Sine : public ChFunction {
   private:
     double amp;
@@ -66,6 +69,8 @@ class ChApi ChFunction_Sine : public ChFunction {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+/// @} chrono_functions
 
 }  // end namespace chrono
 

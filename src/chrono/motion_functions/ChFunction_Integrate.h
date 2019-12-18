@@ -19,7 +19,10 @@
 
 namespace chrono {
 
-/// Integral of a function: y = int{ f(x) dx.
+/// @addtogroup chrono_functions
+/// @{
+
+/// Integral of a function: `y = int{ f(x) dx`
 ///
 /// Uses a numerical quadrature method to compute the definite integral.
 class ChApi ChFunction_Integrate : public ChFunction {
@@ -89,6 +92,8 @@ class ChApi ChFunction_Integrate : public ChFunction {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+/// @} chrono_functions
 
 CH_CLASS_VERSION(ChFunction_Integrate, 0)
 

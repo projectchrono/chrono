@@ -20,8 +20,11 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_functions
+/// @{
+
 /// Repeat function:
-///     y = __/__/__/
+///     `y = __/__/__/`
 ///
 /// Repeats a 'window' of a function, periodically.
 /// Evaluates a fa(t) function as:
@@ -69,6 +72,8 @@ class ChApi ChFunction_Repeat : public ChFunction {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+/// @} chrono_functions
 
 CH_CLASS_VERSION(ChFunction_Repeat, 0)
 

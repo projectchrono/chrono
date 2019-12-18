@@ -27,11 +27,13 @@ class ChApi ChGlyphs : public ChVisualization {
   public:
     enum eCh_GlyphType { GLYPH_POINT = 0, GLYPH_VECTOR, GLYPH_COORDSYS };
 
+    /// @cond
     CH_ENUM_MAPPER_BEGIN(eCh_GlyphType);
     CH_ENUM_VAL(GLYPH_POINT);
     CH_ENUM_VAL(GLYPH_VECTOR);
     CH_ENUM_VAL(GLYPH_COORDSYS);
     CH_ENUM_MAPPER_END(eCh_GlyphType);
+    /// @endcond
 
   public:
     std::vector<ChVector<double> > points;

@@ -19,8 +19,11 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_functions
+/// @{
+
 /// POLYNOMIAL FUNCTION:
-/// y = a + bx + cx^2 + dx^3 + ...
+/// `y = a + bx + cx^2 + dx^3 + ...`
 class ChApi ChFunction_Poly : public ChFunction {
   private:
     static const int POLY_COEFF_ARRAY = 6;
@@ -69,6 +72,8 @@ class ChApi ChFunction_Poly : public ChFunction {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+/// @} chrono_functions
 
 CH_CLASS_VERSION(ChFunction_Poly, 0)
 

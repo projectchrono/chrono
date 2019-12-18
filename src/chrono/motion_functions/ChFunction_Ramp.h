@@ -19,8 +19,11 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_functions
+/// @{
+
 /// Linear function (like a straight ramp):
-/// y = y0 + x * speed
+/// `y = y0 + x * speed`
 class ChApi ChFunction_Ramp : public ChFunction {
   private:
     double y0;
@@ -55,6 +58,8 @@ class ChApi ChFunction_Ramp : public ChFunction {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+/// @} chrono_functions
 
 CH_CLASS_VERSION(ChFunction_Ramp, 0)
 

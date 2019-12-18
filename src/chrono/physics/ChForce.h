@@ -37,62 +37,15 @@ class ChBody;
 /// represent either forces and torques, depending on a flag.
 
 class ChApi ChForce : public ChObj {
-
   public:
-    // Types of force application
+    /// Types of force application
     enum ForceType { FORCE, TORQUE };
 
-    // Reference for position frame
+    /// Reference for position frame
     enum ReferenceFrame { BODY, WORLD };
 
-    // Reference for alignment
+    /// Reference for alignment
     enum AlignmentFrame { BODY_DIR, WORLD_DIR };
-
-  private:
-    CH_ENUM_MAPPER_BEGIN(ForceType);
-    CH_ENUM_VAL(FORCE);
-    CH_ENUM_VAL(TORQUE);
-    CH_ENUM_MAPPER_END(ForceType);
-
-    CH_ENUM_MAPPER_BEGIN(ReferenceFrame);
-    CH_ENUM_VAL(BODY);
-    CH_ENUM_VAL(WORLD);
-    CH_ENUM_MAPPER_END(ReferenceFrame);
-
-    CH_ENUM_MAPPER_BEGIN(AlignmentFrame);
-    CH_ENUM_VAL(BODY_DIR);
-    CH_ENUM_VAL(WORLD_DIR);
-    CH_ENUM_MAPPER_END(AlignmentFrame);
-
-  private:
-    ChBody* Body;  ///< object of application
-
-    ForceType mode;        ///< force or torque
-    ReferenceFrame frame;  ///< fix position in body csys or world csys
-    AlignmentFrame align;  ///< fix direction in body csys or world csys
-
-    ChVector<> vpoint;     ///< absolute point of application
-    ChVector<> vrelpoint;  ///< relative point of application
-
-    std::shared_ptr<ChFunction> move_x;  ///< motion x (abs or rel, depends on 'frame')
-    std::shared_ptr<ChFunction> move_y;  ///< motion y  ""
-    std::shared_ptr<ChFunction> move_z;  ///< motion z  ""
-    ChVector<> restpos;                  ///< t=0 position (abs or rel, depends on 'frame')
-
-    std::shared_ptr<ChFunction> f_x;  ///< fv strengh x (abs or rel, see 'align')
-    std::shared_ptr<ChFunction> f_y;  ///< fv strengh y  ""
-    std::shared_ptr<ChFunction> f_z;  ///< fv strengh z  ""
-
-    double mforce;                       ///< fm scalar force strenght
-    std::shared_ptr<ChFunction> modula;  ///< scalar force fm modulation
-
-    ChVector<> vdir;     ///< force/torque abs.direction
-    ChVector<> vreldir;  ///< force/torque rel direction
-
-    ChVector<> force;     ///< TOTAL force vect (abs.coord) = fm*vdir +fx+fy+fz
-    ChVector<> relforce;  ///< TOTAL force vect (rel.coord) = fm*vdir +fx+fy+fz
-
-    ChVectorN<double, 7> Qf;  ///< Lagrangian force
 
   public:
     ChForce();
@@ -180,7 +133,7 @@ class ChApi ChForce : public ChObj {
     double GetForceMod() const { return force.Length(); }
 
     /// Gets force-torque applied to rigid body, as lagrangian generalized force (7x1 matrix).
-    const ChVectorN<double, 7>& GetQf() const{ return Qf; }
+    const ChVectorN<double, 7>& GetQf() const { return Qf; }
     /// Gets force-torque applied to rigid body, as force vector (in absol.coords)
     /// and torque vector (in body coords).
     void GetBodyForceTorque(ChVector<>& body_force, ChVector<>& body_torque) const;
@@ -202,10 +155,55 @@ class ChApi ChForce : public ChObj {
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+  private:
+    CH_ENUM_MAPPER_BEGIN(ForceType);
+    CH_ENUM_VAL(FORCE);
+    CH_ENUM_VAL(TORQUE);
+    CH_ENUM_MAPPER_END(ForceType);
+
+    CH_ENUM_MAPPER_BEGIN(ReferenceFrame);
+    CH_ENUM_VAL(BODY);
+    CH_ENUM_VAL(WORLD);
+    CH_ENUM_MAPPER_END(ReferenceFrame);
+
+    CH_ENUM_MAPPER_BEGIN(AlignmentFrame);
+    CH_ENUM_VAL(BODY_DIR);
+    CH_ENUM_VAL(WORLD_DIR);
+    CH_ENUM_MAPPER_END(AlignmentFrame);
+
+  private:
+    ChBody* Body;  ///< object of application
+
+    ForceType mode;        ///< force or torque
+    ReferenceFrame frame;  ///< fix position in body csys or world csys
+    AlignmentFrame align;  ///< fix direction in body csys or world csys
+
+    ChVector<> vpoint;     ///< absolute point of application
+    ChVector<> vrelpoint;  ///< relative point of application
+
+    std::shared_ptr<ChFunction> move_x;  ///< motion x (abs or rel, depends on 'frame')
+    std::shared_ptr<ChFunction> move_y;  ///< motion y  ""
+    std::shared_ptr<ChFunction> move_z;  ///< motion z  ""
+    ChVector<> restpos;                  ///< t=0 position (abs or rel, depends on 'frame')
+
+    std::shared_ptr<ChFunction> f_x;  ///< fv strengh x (abs or rel, see 'align')
+    std::shared_ptr<ChFunction> f_y;  ///< fv strengh y  ""
+    std::shared_ptr<ChFunction> f_z;  ///< fv strengh z  ""
+
+    double mforce;                       ///< fm scalar force strenght
+    std::shared_ptr<ChFunction> modula;  ///< scalar force fm modulation
+
+    ChVector<> vdir;     ///< force/torque abs.direction
+    ChVector<> vreldir;  ///< force/torque rel direction
+
+    ChVector<> force;     ///< TOTAL force vect (abs.coord) = fm*vdir +fx+fy+fz
+    ChVector<> relforce;  ///< TOTAL force vect (rel.coord) = fm*vdir +fx+fy+fz
+
+    ChVectorN<double, 7> Qf;  ///< Lagrangian force
 };
 
-CH_CLASS_VERSION(ChForce,0)
-
+CH_CLASS_VERSION(ChForce, 0)
 
 }  // end namespace chrono
 

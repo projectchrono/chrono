@@ -20,7 +20,10 @@
 
 namespace chrono {
 
-/// Derivative of a function: y = df/dx
+/// @addtogroup chrono_functions
+/// @{
+
+/// Derivative of a function: `y = df/dx`
 ///
 /// Uses a numerical differentiation method to compute the derivative
 /// of a generic function.
@@ -55,6 +58,8 @@ class ChApi ChFunction_Derive : public ChFunction {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+/// @} chrono_functions
 
 CH_CLASS_VERSION(ChFunction_Derive, 0)
 

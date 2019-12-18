@@ -444,7 +444,7 @@ void GranularTerrain::Initialize(const ChVector<>& center,
     // Set the starting value for particle body identifiers.
     utils::Generator generator(m_ground->GetSystem());
     generator.setBodyIdentifier(m_start_id + 1);
-    std::shared_ptr<utils::MixtureIngredient> m1 = generator.AddMixtureIngredient(utils::SPHERE, 1.0);
+    std::shared_ptr<utils::MixtureIngredient> m1 = generator.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
     m1->setDefaultMaterial(mat);
     m1->setDefaultDensity(density);
     m1->setDefaultSize(radius);
@@ -459,7 +459,7 @@ void GranularTerrain::Initialize(const ChVector<>& center,
     while (layer < num_layers || m_num_particles < m_min_num_particles) {
         if (m_verbose)
             GetLog() << "Create layer at height: " << layer_center.z() << "\n";
-        generator.createObjectsBox(utils::POISSON_DISK, 2 * r, layer_center, layer_hdims, init_vel);
+        generator.createObjectsBox(utils::SamplingType::POISSON_DISK, 2 * r, layer_center, layer_hdims, init_vel);
         layer_center.z() += 2 * r;
         m_num_particles = generator.getTotalNumBodies();
         layer++;

@@ -161,6 +161,7 @@ ChVector<Real> operator*(const Eigen::Transpose<const Eigen::Matrix<Real, 3, 3, 
                           A(2, 0) * v.x() + A(2, 1) * v.y() + A(2, 2) * v.z());
 }
 
+/// Return the outer product (a 3x3 matrix) of two vectors. 
 template <class Real>
 ChMatrix33<Real> TensorProduct(const ChVector<Real>& vA, const ChVector<Real>& vB) {
     ChMatrix33<Real> T;
