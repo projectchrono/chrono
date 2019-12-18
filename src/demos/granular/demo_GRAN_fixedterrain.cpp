@@ -16,8 +16,6 @@
 // the Poisson Disk sampler. The terrain is read in from a triangle OBJ mesh
 // file and decomposed into spheres which are set as fixed for the simulation.
 // Note that the sphere size should be small enough to capture each triangle.
-//
-// Pass data/granular/fixedterrain/demo_GRAN_fixedterrain.json as the param file
 // =============================================================================
 
 #include <iostream>
@@ -29,35 +27,33 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
+#include "chrono_granular/api/ChApiGranularChrono.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_granular/utils/ChGranularJsonParser.h"
 #include "chrono_granular/utils/ChGranularSphereDecomp.h"
-#include "chrono_granular/api/ChApiGranularChrono.h"
 
 using namespace chrono;
 using namespace chrono::granular;
 
-void ShowUsage() {
-    std::cout << "usage: ./demo_GRAN_fixedterrain <json_file>" << std::endl;
+void ShowUsage(std::string name) {
+    std::cout << "usage: " + name + " <json_file>" << std::endl;
 }
 
 int main(int argc, char* argv[]) {
     sim_param_holder params;
     if (argc != 2 || ParseJSON(argv[1], params, true) == false) {
-        ShowUsage();
+        ShowUsage(argv[0]);
         return 1;
     }
 
     ChSystemGranularSMC gran_sys(params.sphere_radius, params.sphere_density,
                                  make_float3(params.box_X, params.box_Y, params.box_Z));
 
-	// to do: don't expose the guts of granular at this level; work through an API
-    // but for now get it going like this
     ChGranularSMC_API apiSMC;
     apiSMC.setGranSystem(&gran_sys);
 
     // Add spherically-decomposed underlying terrain.
-    std::string objfilename(GetChronoDataFile("granular/fixedterrain/fixedterrain.obj"));
+    std::string objfilename(GetChronoDataFile("granular/demo_GRAN_fixedterrain/fixedterrain.obj"));
 
     ChVector<float> scaling(params.box_X / 2, params.box_Y / 2, params.box_Z);
 

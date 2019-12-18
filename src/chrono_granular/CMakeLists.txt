@@ -68,6 +68,8 @@ set(CH_GRANULAR_INCLUDES "${CH_GRANULAR_INCLUDES}" PARENT_SCOPE)
 
 set(ChronoEngine_Granular_BASE
 		ChGranularDefines.h
+		ChGranularData.h
+		ChGranularData.cpp
 		)
 
 source_group("" FILES ${ChronoEngine_Granular_BASE})
