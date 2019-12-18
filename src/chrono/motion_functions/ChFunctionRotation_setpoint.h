@@ -54,12 +54,14 @@ class ChApi ChFunctionRotation_setpoint : public ChFunctionRotation {
 		OVERRIDE ///< p, w, a are set via SetSetpointAndDerivatives() and will be considered constant in Get_q(s) regardless of s until next SetSetpointAndDerivatives()
 	};
 
+	/// @cond
     CH_ENUM_MAPPER_BEGIN(eChSetpointMode);
     CH_ENUM_VAL(ZOH);
     CH_ENUM_VAL(FOH);
 	//CH_ENUM_VAL(SOH);
     CH_ENUM_VAL(OVERRIDE);
     CH_ENUM_MAPPER_END(eChSetpointMode);
+	/// @endcond
 
 	/// Sets the extrapolation/interpolation mode
 	void SetMode(eChSetpointMode mmode) {

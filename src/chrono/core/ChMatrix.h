@@ -167,6 +167,7 @@ inline void StreamOUTsparseMatlabFormat(ChSparseMatrix& matr, ChStreamOutAscii& 
     }
 }
 
+/// Serialization of a sparse matrix to an ASCII stream (for debugging; only the top-left 8x8 corner is printed).
 inline void StreamOUT(ChSparseMatrix& matr, ChStreamOutAscii& stream) {
 	int mrows = static_cast<int>(matr.rows());
 	int mcols = static_cast<int>(matr.cols());

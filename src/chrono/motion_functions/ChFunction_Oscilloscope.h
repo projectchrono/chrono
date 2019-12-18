@@ -19,6 +19,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_functions
+/// @{
+
 /// Oscilloscope function
 ///
 /// y = interpolation of array of (x,y) data,
@@ -93,6 +96,8 @@ class ChApi ChFunction_Oscilloscope : public ChFunction {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+/// @} chrono_functions
 
 CH_CLASS_VERSION(ChFunction_Oscilloscope, 0)
 
