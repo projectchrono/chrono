@@ -346,7 +346,7 @@ class DegressiveDamperForce : public ChLinkTSDA::ForceFunctor {
         if (vel >= 0) {
             return -m_c_expansion * vel / (1.0 + m_degr_expansion * vel);
         } else {
-            return -m_c_compression * vel / (1.0 + m_degr_compression * std::abs(vel));
+            return -m_c_compression * vel / (1.0 - m_degr_compression * vel);
         }
     }
 
