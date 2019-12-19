@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
         double3 pos = {0, 0, 0};
 
         double t0 = 0.5;
-        double freq = M_PI / 4;
+        double freq = CH_C_PI / 4;
 
         if (t > t0) {
             pos.x = 0.1 * params.box_X * std::sin((t - t0) * freq);

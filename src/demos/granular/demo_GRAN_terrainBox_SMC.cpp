@@ -17,10 +17,7 @@
 
 #include <iostream>
 #include <string>
-#ifdef _WINDOWS
-#define _USE_MATH_DEFINES
-#include <math.h>
-#endif
+#include <cmath>
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_granular/api/ChApiGranularChrono.h"
 #include "chrono_granular/physics/ChGranular.h"

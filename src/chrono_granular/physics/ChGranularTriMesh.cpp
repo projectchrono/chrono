@@ -16,10 +16,7 @@
 #include <algorithm>
 #include <fstream>
 #include <string>
-#ifdef _WINDOWS
-#define _USE_MATH_DEFINES
-#include <math.h>
-#endif
+#include <cmath>
 #include "chrono/core/ChGlobal.h"
 #include "chrono/core/ChVector.h"
 #include "chrono/core/ChQuaternion.h"

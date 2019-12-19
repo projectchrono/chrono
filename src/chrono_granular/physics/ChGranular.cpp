@@ -810,7 +810,7 @@ void ChSystemGranularSMC::partitionBD() {
 // Convert unit parameters from UU to SU
 void ChSystemGranularSMC::switchToSimUnits() {
     // Compute sphere mass, highest system stiffness, and gravity magnitude
-    double massSphere = (4. / 3.) * M_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU * sphere_density_UU;
+    double massSphere = (4. / 3.) * CH_C_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU * sphere_density_UU;
     double K_star = get_max_K();
     double magGravAcc = sqrt(X_accGrav * X_accGrav + Y_accGrav * Y_accGrav + Z_accGrav * Z_accGrav);
 
