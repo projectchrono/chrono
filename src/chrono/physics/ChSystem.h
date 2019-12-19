@@ -40,6 +40,7 @@
 #include "chrono/timestepper/ChIntegrable.h"
 #include "chrono/timestepper/ChTimestepper.h"
 #include "chrono/timestepper/ChTimestepperHHT.h"
+#include "chrono/timestepper/ChStaticAnalysis.h"
 
 namespace chrono {
 
@@ -723,23 +724,24 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     // ---- STATICS
 
-    /// Solve the position of static equilibrium (and the
-    /// reactions). This is a one-step only approach that solves
-    /// the _linear_ equilibrium. To be used mostly for FEM
-    /// problems with small deformations.
+    /// Solve the position of static equilibrium (and the reactions).
+    /// This is a one-step only approach that solves the **linear** equilibrium.
+    /// Appropriate mostly for FEM problems with small deformations.
     bool DoStaticLinear();
 
-    /// Solve the position of static equilibrium (and the
-    /// reactions). This tries to solve the equilibrium for the nonlinear
-    /// problem (large displacements). The larger nsteps, the more the CPU time
-    /// but the less likely the divergence.
-    bool DoStaticNonlinear(int nsteps = 10);
+    /// Solve the position of static equilibrium (and the reactions).
+    /// This function solves the equilibrium for the nonlinear problem (large displacements).
+    /// This version uses a nonlinear static analysis solver with default parameters.
+    bool DoStaticNonlinear(int nsteps = 10, bool verbose = false);
 
-    /// Finds the position of static equilibrium (and the
-    /// reactions) starting from the current position.
-    /// Since a truncated iterative method is used, you may need
-    /// to call this method multiple times in case of large nonlinearities
-    /// before coming to the precise static solution.
+    /// Solve the position of static equilibrium (and the reactions).
+    /// This function solves the equilibrium for the nonlinear problem (large displacements).
+    /// This version uses the provided nonlinear static analysis solver. 
+    bool DoStaticNonlinear(std::shared_ptr<ChStaticNonLinearAnalysis> analysis);
+
+    /// Finds the position of static equilibrium (and the reactions) starting from the current position.
+    /// Since a truncated iterative method is used, you may need to call this method multiple times in case of large
+    /// nonlinearities before coming to the precise static solution.
     bool DoStaticRelaxing(int nsteps = 10);
 
     //

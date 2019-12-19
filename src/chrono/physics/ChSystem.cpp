@@ -26,7 +26,6 @@
 #include "chrono/solver/ChSolverPSOR.h"
 #include "chrono/solver/ChSolverPSSOR.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
-#include "chrono/timestepper/ChStaticAnalysis.h"
 #include "chrono/core/ChMatrix.h"
 #include "chrono/utils/ChProfiler.h"
 
@@ -1511,7 +1510,7 @@ bool ChSystem::DoStaticLinear() {
 // **** PERFORM THE NONLINEAR STATIC ANALYSIS
 // -----------------------------------------------------------------------------
 
-bool ChSystem::DoStaticNonlinear(int nsteps) {
+bool ChSystem::DoStaticNonlinear(int nsteps, bool verbose) {
     if (!is_initialized)
         SetupInitial();
 
@@ -1528,12 +1527,27 @@ bool ChSystem::DoStaticNonlinear(int nsteps) {
     DescriptorPrepareInject(*descriptor);
 
     ChStaticNonLinearAnalysis manalysis(*this);
-    manalysis.SetMaxiters(nsteps);
+    manalysis.SetMaxIterations(nsteps);
+    manalysis.SetVerbose(verbose);
 
     // Perform analysis
     manalysis.StaticAnalysis();
 
     SetSolverMaxIterations(old_maxsteps);
+
+    return true;
+}
+
+bool ChSystem::DoStaticNonlinear(std::shared_ptr<ChStaticNonLinearAnalysis> analysis) {
+    if (!is_initialized)
+        SetupInitial();
+
+    Setup();
+    Update();
+
+    DescriptorPrepareInject(*descriptor);
+
+    analysis->StaticAnalysis();
 
     return true;
 }
