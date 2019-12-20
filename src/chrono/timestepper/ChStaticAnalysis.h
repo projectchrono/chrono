@@ -94,7 +94,7 @@ class ChApi ChStaticNonLinearAnalysis : public ChStaticAnalysis {
     bool m_verbose;
     int m_maxiters;
     int m_incremental_steps;
-    bool m_use_correction_criteria;
+    bool m_use_correction_test;
     double m_reltol;
     double m_abstol;
 };

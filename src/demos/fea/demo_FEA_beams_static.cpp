@@ -184,7 +184,7 @@ int main(int argc, char* argv[]) {
     application.SetVideoframeSaveInterval(10);
 
     // Perform nonlinear statics
-    my_system.DoStaticNonlinear(20);
+    my_system.DoStaticNonlinear(20, true);
     application.SetPaused(true);
 
     // Output data
