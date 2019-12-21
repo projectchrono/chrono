@@ -1296,10 +1296,10 @@ void ChElementShellANCF::EvaluateDeflection(double& def) {
     def = defVec.Length();
 }
 
-ChVector<> ChElementShellANCF::EvaluateSectionStrains() {
+const std::array<ChVectorN<double, 6>, 2> ChElementShellANCF::EvaluateSectionStrains(double x, double y, double z, int layer_number) {
     // Element shape function
     ShapeVector N;
-    ShapeFunctions(N, 0, 0, 0);
+    ShapeFunctions(N, x, y, z);
 
     // Determinant of position vector gradient matrix: Initial configuration
     ShapeVector Nx;
@@ -1308,13 +1308,13 @@ ChVector<> ChElementShellANCF::EvaluateSectionStrains() {
     ChMatrixNM<double, 1, 3> Nx_d0;
     ChMatrixNM<double, 1, 3> Ny_d0;
     ChMatrixNM<double, 1, 3> Nz_d0;
-    double detJ0 = this->Calc_detJ0(0, 0, 0, Nx, Ny, Nz, Nx_d0, Ny_d0, Nz_d0);
+    double detJ0 = this->Calc_detJ0(x, y, z, Nx, Ny, Nz, Nx_d0, Ny_d0, Nz_d0);
 
     // ANS shape function
     ChMatrixNM<double, 1, 4> S_ANS;  // Shape function vector for Assumed Natural Strain
     ChMatrixNM<double, 6, 5> M;      // Shape function vector for Enhanced Assumed Strain
-    this->ShapeFunctionANSbilinearShell(S_ANS, 0, 0);
-    this->Basis_M(M, 0, 0, 0);
+    this->ShapeFunctionANSbilinearShell(S_ANS, x, y);
+    this->Basis_M(M, x, y, z);
 
     // Transformation : Orthogonal transformation (A and J)
     ChVector<double> G1xG2;  // Cross product of first and second column of
@@ -1389,12 +1389,6 @@ ChVector<> ChElementShellANCF::EvaluateSectionStrains() {
     // Determinant of the initial position vector gradient at the element center
     double detJ0C = this->GetLayer(0).Get_detJ0C();
 
-    // Enhanced Assumed Strain
-
-    // Enhanced Assumed Strain
-    ChMatrixNM<double, 6, 5> G = T0 * M * (detJ0C / detJ0);
-    ChVectorN<double, 6> strain_EAS = G * this->m_alphaEAS[0];
-
     ChVectorN<double, 8> ddNx = m_ddT * Nx.transpose();
     ChVectorN<double, 8> ddNy = m_ddT * Ny.transpose();
     ChVectorN<double, 8> ddNz = m_ddT * Nz.transpose();
@@ -1438,7 +1432,10 @@ ChVector<> ChElementShellANCF::EvaluateSectionStrains() {
                 strain_til(4) * (beta(2) * beta(7) + beta(1) * beta(8)) +
                 strain_til(5) * (beta(5) * beta(7) + beta(4) * beta(8));
 
-    return ChVector<>(strain(0), strain(1), strain(2));
+    const ChMatrixNM<double, 6, 6>& E_eps = GetLayer(layer_number).GetMaterial()->Get_E_eps();
+    const ChVectorN<double, 6>& stress = E_eps * strain;
+    const std::array<ChVectorN<double, 6>, 2> strainStressOut{{strain, stress}};
+    return strainStressOut;
 }
 void ChElementShellANCF::EvaluateSectionDisplacement(const double u,
                                                      const double v,

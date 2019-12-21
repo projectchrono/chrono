@@ -179,9 +179,10 @@ void ChMeshExporter::writeFrame(std::shared_ptr<ChMesh> my_mesh, char SaveAsBuff
     for (unsigned int iele = 0; iele < my_mesh->GetNelements(); iele++) {
         if (auto element = std::dynamic_pointer_cast<ChElementCableANCF>(my_mesh->GetElement(iele)))
             element->EvaluateSectionStrain(0.0, StrainV);
-        else if (auto element = std::dynamic_pointer_cast<ChElementShellANCF>(my_mesh->GetElement(iele)))
-            StrainV = element->EvaluateSectionStrains();
-
+        else if (auto element = std::dynamic_pointer_cast<ChElementShellANCF>(my_mesh->GetElement(iele))) {
+             const std::array<ChVectorN<double, 6>, 2> strainStressOut = element->EvaluateSectionStrains(0,0,0,0);
+             StrainV.Set(strainStressOut[0][0], strainStressOut[0][1], strainStressOut[0][3]);
+        }
         StrainV += ChVector<>(1e-20);
         output << StrainV.x() << " " << StrainV.y() << " " << StrainV.z() << "\n";
     }

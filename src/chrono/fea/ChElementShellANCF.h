@@ -176,9 +176,11 @@ class ChApi ChElementShellANCF : public ChElementShell, public ChLoadableUV, pub
     /// it stores only the four values in a 1 row, 8 columns matrix!
     void ShapeFunctionsDerivativeZ(ShapeVector& Nz, double x, double y, double z);
 
-    /// Return a vector with three strain components
-    ChVector<> EvaluateSectionStrains();
-    void EvaluateDeflection(double& defVec);
+	/// Return a an array with 6-component strain and stress vectors evaluated at a
+    /// given quadrature point and layer number.
+    const std::array<ChVectorN<double, 6>, 2> EvaluateSectionStrains(
+			double x, double y, double z, int layer_number);
+	void EvaluateDeflection(double &defVec);
 
   public:
     // Interface to ChElementBase base class

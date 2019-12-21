@@ -1360,10 +1360,8 @@ void ChElementShellANCF_8::CalcCoordDerivMatrix(ChVectorN<double, 72>& dt) {
     dt(71) = ddH_dt.z();
 }
 
-// -----------------------------------------------------------------------------
-// Interface to ChElementShell base class
-// -----------------------------------------------------------------------------
-ChVector<> ChElementShellANCF_8::EvaluateSectionStrains() {
+const std::array<ChVectorN<double, 6>, 2> ChElementShellANCF_8::EvaluateSectionStrains(
+		double x, double y, double z, int layer_number) {
     // Element shape function
     ShapeVector N;
     this->ShapeFunctions(N, 0, 0, 0);
@@ -1492,7 +1490,10 @@ ChVector<> ChElementShellANCF_8::EvaluateSectionStrains() {
                 strain_til(4) * (beta(2) * beta(7) + beta(1) * beta(8)) +
                 strain_til(5) * (beta(5) * beta(7) + beta(4) * beta(8));
 
-    return ChVector<>(strain(0), strain(1), strain(2));
+    const ChMatrixNM<double, 6, 6>& E_eps = GetLayer(layer_number).GetMaterial()->Get_E_eps();
+    const ChVectorN<double, 6>& stress = E_eps * strain;
+    const std::array<ChVectorN<double, 6>, 2> strainStressOut{{strain, stress}};
+    return strainStressOut;
 }
 void ChElementShellANCF_8::EvaluateSectionDisplacement(const double u,
                                                        const double v,
