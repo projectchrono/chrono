@@ -12,6 +12,7 @@
 // Authors: Milad Rakhsha
 // =============================================================================
 #include "chrono/fea/ChMeshExporter.h"
+
 namespace chrono {
 namespace fea {
 
@@ -180,8 +181,8 @@ void ChMeshExporter::writeFrame(std::shared_ptr<ChMesh> my_mesh, char SaveAsBuff
         if (auto element = std::dynamic_pointer_cast<ChElementCableANCF>(my_mesh->GetElement(iele)))
             element->EvaluateSectionStrain(0.0, StrainV);
         else if (auto element = std::dynamic_pointer_cast<ChElementShellANCF>(my_mesh->GetElement(iele))) {
-             const std::array<ChVectorN<double, 6>, 2> strainStressOut = element->EvaluateSectionStrains(0,0,0,0);
-             StrainV.Set(strainStressOut[0][0], strainStressOut[0][1], strainStressOut[0][3]);
+             const ChStrainStress3D strainStressOut = element->EvaluateSectionStrainStress(ChVector<double>(0,0,0),0);
+             StrainV.Set(strainStressOut.strain[0], strainStressOut.strain[1], strainStressOut.strain[3]);
         }
         StrainV += ChVector<>(1e-20);
         output << StrainV.x() << " " << StrainV.y() << " " << StrainV.z() << "\n";

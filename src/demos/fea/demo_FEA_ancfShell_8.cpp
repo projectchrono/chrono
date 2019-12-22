@@ -270,20 +270,22 @@ int main(int argc, char* argv[]) {
 			nodetip2->SetForce(ChVector<>(0, 0, -2 / 3.0));
 			nodetip3->SetForce(ChVector<>(0, 0, -2 / 3.0));
 		}
-		// std::cout << "Node tip vertical position: " << nodetip1->GetPos().z << "\n";
-		GetLog() << "Node tip vertical position: " << nodetip1->GetPos().z()
+
+        GetLog() << "Node tip vertical position: " << nodetip1->GetPos().z()
 				<< "\n";
 
 		auto element = std::dynamic_pointer_cast<ChElementShellANCF_8>(
 				my_mesh->GetElement(TotalNumElements - 1));
-		const std::array<ChVectorN<double, 6>, 2> strainStressOut =
-				element->EvaluateSectionStrains(0, 0, 0, 0);
+		const ChStrainStress3D strainStressOut =
+				element->EvaluateSectionStrainStress(ChVector<double> (0, 0, 0), 0);
 
-		std::cout << "Strain xx: " << strainStressOut.at(0)[0] << " \n";
-		std::cout << "Stress xx: " << strainStressOut.at(1)[0] << " \n";
-		std::cout << "Stress yy: " << strainStressOut.at(1)[1] << " \n";
-		std::cout << "Stress xy: " << strainStressOut.at(1)[2] << " \n";
+		std::cout << "Strain xx: " << strainStressOut.strain[0] << " \n";
+		std::cout << "Strain yy: " << strainStressOut.strain[1] << " \n";
+		std::cout << "Strain xy: " << strainStressOut.strain[2] << " \n";
 
+		std::cout << "Stress xx: " << strainStressOut.stress[0] << " \n";
+		std::cout << "Stress yy: " << strainStressOut.stress[1] << " \n";
+		std::cout << "Stress xy: " << strainStressOut.stress[2] << " \n";
 
         application.BeginScene();
         application.DrawAll();

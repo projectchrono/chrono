@@ -27,6 +27,11 @@ namespace fea {
 /// @addtogroup fea_elements
 /// @{
 
+struct ChStrainStress3D {
+    ChVectorN<double, 6> strain;
+    ChVectorN<double, 6> stress;
+};
+
 /// Base class for all finite elements, that can be used in the ChMesh physics item.
 class ChApi ChElementBase {
   public:

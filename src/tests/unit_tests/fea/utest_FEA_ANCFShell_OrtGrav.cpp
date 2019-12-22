@@ -211,14 +211,6 @@ int main(int argc, char* argv[]) {
         // std::cout << "mystepper->GetNumIterations()= " << mystepper->GetNumIterations() << "\n";
         // Check vertical displacement of the shell tip
         double AbsVal = std::abs(nodetip->pos.z() - FileInputMat(it, 1));
-
-        /*auto element = std::dynamic_pointer_cast<ChElementShellANCF>(my_mesh->GetElement(TotalNumElements - 1));
-        const std::array<ChVectorN<double, 6>, 2> strainStressOut = element->EvaluateSectionStrains(0,0,0,0);
-
-        std::cout << "Strain xx: " << strainStressOut.at(0)[0] << " \n";
-        std::cout << "Stress xx: " << strainStressOut.at(1)[0] << " \n";
-        std::cout << "Stress xy: " << strainStressOut.at(1)[2] << " \n"; */
-
         if (AbsVal > precision) {
             std::cout << "Unit test check failed \n";
             return 1;
