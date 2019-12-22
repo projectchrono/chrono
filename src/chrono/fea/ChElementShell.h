@@ -25,11 +25,8 @@ namespace fea {
 
 /// Base class for most structural elements of 'shell' type.
 class ChApi ChElementShell : public ChElementGeneric {
-  protected:
-    double mass;
-
   public:
-    ChElementShell() {}
+    ChElementShell() : mass(0) {}
 
     virtual ~ChElementShell() {}
 
@@ -74,6 +71,9 @@ class ChApi ChElementShell : public ChElementGeneric {
                                                 ChVector<>& Fforce,
                                                 ChVector<>& Mtorque) = 0;
     */
+
+  protected:
+    double mass;
 };
 
 /// @} fea_elements

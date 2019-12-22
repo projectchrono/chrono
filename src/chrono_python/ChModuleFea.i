@@ -197,7 +197,6 @@ using namespace chrono::fea;
 %shared_ptr(chrono::fea::ChElementGeneric)
 %shared_ptr(chrono::fea::ChElementSpring)
 %shared_ptr(chrono::fea::ChElementBar)
-%shared_ptr(chrono::fea::ChElement3D)
 %shared_ptr(chrono::fea::ChElementCorotational)
 %shared_ptr(chrono::fea::ChElementTetrahedron)
 %shared_ptr(chrono::fea::ChElementTetra_4)
@@ -325,7 +324,6 @@ using namespace chrono::fea;
 %include "../chrono/fea/ChElementGeneric.h"
 %include "../chrono/fea/ChElementBar.h"
 %include "../chrono/fea/ChElementSpring.h"
-%include "../chrono/fea/ChElement3D.h"
 %include "../chrono/fea/ChElementCorotational.h"
 %include "../chrono/fea/ChBeamSection.h"
 %include "../chrono/fea/ChBeamSectionCosserat.h"
