@@ -83,12 +83,14 @@ class ChApi ChMaterialBeamANCF {
 /// This class implements a continuum-based elastic force formulation.
 ///
 /// The node numbering, as follows:
+/// <pre>
 ///               v
 ///               ^
 ///               |
 /// A o-----+-----o-----+-----o B -> u
 ///              /C
 ///             w
+/// </pre>
 /// where C is the third and central node.
 
 class ChApi ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoadableUVW {

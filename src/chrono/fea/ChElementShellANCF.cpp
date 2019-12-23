@@ -1296,7 +1296,8 @@ void ChElementShellANCF::EvaluateDeflection(double& def) {
     def = defVec.Length();
 }
 
-ChStrainStress3D  ChElementShellANCF::EvaluateSectionStrainStress(const ChVector<>& loc, int layer_id) {    // Element shape function
+ChStrainStress3D ChElementShellANCF::EvaluateSectionStrainStress(const ChVector<>& loc, int layer_id) {
+    // Element shape function
     ShapeVector N;
     ShapeFunctions(N, loc.x(), loc.y(), loc.z());
 
@@ -1433,11 +1434,7 @@ ChStrainStress3D  ChElementShellANCF::EvaluateSectionStrainStress(const ChVector
 
     const ChMatrixNM<double, 6, 6>& E_eps = GetLayer(layer_id).GetMaterial()->Get_E_eps();
     const ChVectorN<double, 6>& stress = E_eps * strain;
-
-    ChStrainStress3D strainStressOut = {
-        strain,
-		stress,
-    };
+    ChStrainStress3D strainStressOut = {strain, stress};
 
     return strainStressOut;
 }

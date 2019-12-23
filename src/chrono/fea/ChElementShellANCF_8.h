@@ -41,14 +41,16 @@ namespace fea {
 /// This class implements composite material elastic force formulations.
 ///
 /// The node numbering is in ccw fashion as in the following scheme:
+/// <pre>
 ///         v
 ///         ^
+///         |
 /// D o-----G-----o C
 ///   |     |     |
-/// --H-----+-----F-> u
+/// --H-----+-----F----> u
 ///   |     |     |
 /// A o-----E-----o B
-///
+/// </pre>
 class ChApi ChElementShellANCF_8 : public ChElementShell, public ChLoadableUV, public ChLoadableUVW {
   public:
     using ShapeVector = ChMatrixNM<double, 1, 24>;
