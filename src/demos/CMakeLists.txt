@@ -82,10 +82,6 @@ if(ENABLE_MODULE_MUMPS)
   endif()
 endif()
 
-#if(ENABLE_MODULE_MPI)
-#	add_subdirectory(mpi)
-#endif()
-
 if(ENABLE_MODULE_CASCADE)
 	option(BUILD_DEMOS_CASCADE "Build demo programs for Cascade module" TRUE)
 	mark_as_advanced(FORCE BUILD_DEMOS_CASCADE)
