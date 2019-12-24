@@ -30,6 +30,7 @@ namespace vehicle {
 /// @addtogroup vehicle_powertrain
 /// @{
 
+/// Simple CVT-like powertrain subsystem (specified through JSON file).
 class CH_VEHICLE_API SimpleCVTPowertrain : public ChSimpleCVTPowertrain {
   public:
     SimpleCVTPowertrain(const std::string& filename);
