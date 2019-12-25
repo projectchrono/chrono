@@ -44,7 +44,7 @@ class CH_VEHICLE_API ShaftsPowertrain : public ChShaftsPowertrain {
     virtual double GetIngearShaftInertia() const override { return m_ingear_shaft_inertia; }
 
     virtual double GetUpshiftRPM() const override { return m_upshift_RPM; }
-    virtual double GetDownshiftRPM() const { return m_downshift_RPM; }
+    virtual double GetDownshiftRPM() const override { return m_downshift_RPM; }
 
     virtual void SetEngineTorqueMap(std::shared_ptr<ChFunction_Recorder>& map) override { SetMapData(m_engine_torque, map); }
     virtual void SetEngineLossesMap(std::shared_ptr<ChFunction_Recorder>& map) override { SetMapData(m_engine_losses, map); }
