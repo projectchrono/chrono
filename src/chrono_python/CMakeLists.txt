@@ -372,6 +372,9 @@ if(ENABLE_MODULE_IRRLICHT)
 
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set_source_files_properties(${CHPY_IRRLICHT_MODULE_FILE} PROPERTIES COMPILE_FLAGS "-D_WIN32")
+    if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+      add_compile_options(/wd4275)
+    endif()
   endif()
   set_source_files_properties(${CHPY_IRRLICHT_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
 
@@ -391,6 +394,7 @@ if(ENABLE_MODULE_IRRLICHT)
                         )
 
   target_compile_definitions(${SWIG_MODULE_${CHPY_IRRLICHT}_REAL_NAME} PRIVATE "CH_IGNORE_DEPRECATED")
+  target_compile_definitions(${SWIG_MODULE_${CHPY_IRRLICHT}_REAL_NAME} PRIVATE "IGNORE_DEPRECATED_WARNING")
 
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_IRRLICHT}_REAL_NAME} ChronoEngine)
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_IRRLICHT}_REAL_NAME} ChronoEngine_irrlicht)
