@@ -62,7 +62,7 @@ void ChMeshFileLoader::FromTetGenFile(std::shared_ptr<ChMesh> mesh,
         string line;
         while (getline(fin, line)) {
             // trims white space from the beginning of the string
-            line.erase(line.begin(), find_if(line.begin(), line.end(), not1(ptr_fun<int, int>(isspace))));
+            line.erase(line.begin(), std::find_if(line.begin(), line.end(), [](int c) { return !std::isspace(c); }));
 
             if (line[0] == '#')
                 continue;  // skip comment
@@ -132,7 +132,7 @@ void ChMeshFileLoader::FromTetGenFile(std::shared_ptr<ChMesh> mesh,
         string line;
         while (getline(fin, line)) {
             // trims white space from the beginning of the string
-            line.erase(line.begin(), find_if(line.begin(), line.end(), not1(ptr_fun<int, int>(isspace))));
+            line.erase(line.begin(), std::find_if(line.begin(), line.end(), [](int c) { return !std::isspace(c); }));
 
             if (line[0] == '#')
                 continue;  // skip comment
@@ -197,7 +197,6 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
                                       ChVector<> pos_transform,
                                       ChMatrix33<> rot_transform,
                                       bool discard_unused_nodes) {
-
     std::map<unsigned int, std::pair<shared_ptr<ChNodeFEAbase>, bool>> parsed_nodes;
     std::vector<std::shared_ptr<ChNodeFEAbase>>* current_nodeset_vector = nullptr;
 
@@ -218,7 +217,8 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
     string line;
     while (getline(fin, line)) {
         // trims white space from the beginning of the string
-        line.erase(line.begin(), find_if(line.begin(), line.end(), not1(ptr_fun<int, int>(isspace))));
+        line.erase(line.begin(), std::find_if(line.begin(), line.end(), [](int c) { return !std::isspace(c); }));
+
         // convert parsed line to uppercase (since string::find is case sensitive and Abaqus INP is not)
         std::for_each(line.begin(), line.end(), [](char& c) { c = toupper(static_cast<unsigned char>(c)); });
 
@@ -273,21 +273,20 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
                     string::size_type ncom = line.find(",", nse);
                     string s_node_set = line.substr(nse + 5, ncom - (nse + 5));
                     GetLog() << "| parsing nodeset: " << s_node_set << "\n";
-                    auto new_node = node_sets.insert(std::pair < std::string, std::vector<std::shared_ptr<ChNodeFEAbase>>>(
-                                         s_node_set, std::vector<std::shared_ptr<ChNodeFEAbase>>()));
-                    if (new_node.second)
-                    {
+                    auto new_node =
+                        node_sets.insert(std::pair<std::string, std::vector<std::shared_ptr<ChNodeFEAbase>>>(
+                            s_node_set, std::vector<std::shared_ptr<ChNodeFEAbase>>()));
+                    if (new_node.second) {
                         current_nodeset_vector = &new_node.first->second;
                     } else
                         throw ChException("ERROR in .inp file, multiple NSET with same name has been specified\n");
-                     
                 }
                 e_parse_section = E_PARSE_NODESET;
             }
 
             continue;
         }
-        
+
         // node parsing
         if (e_parse_section == E_PARSE_NODES_XYZ) {
             int idnode = 0;
@@ -386,7 +385,7 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
                         parsed_nodes.at(static_cast<unsigned int>(tokenvals[node_sel + 1]));
 
                     element_nodes[node_sel] = node_found.first;
-                    node_found.second = true;  
+                    node_found.second = true;
                 }
 
                 if (std::dynamic_pointer_cast<ChContinuumElastic>(my_material)) {
@@ -414,7 +413,7 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
 
         // parsing nodesets
         if (e_parse_section == E_PARSE_NODESET) {
-            unsigned int tokenvals[20]; // strictly speaking, the maximum is 16 nodes for each line
+            unsigned int tokenvals[20];  // strictly speaking, the maximum is 16 nodes for each line
             int ntoken = 0;
 
             string token;
@@ -437,7 +436,7 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
                     node_found.second = true;
 
                 } else
-                    throw ChException("ERROR in .inp file, negative node ID: " + std::to_string(tokenvals[node_sel])); 
+                    throw ChException("ERROR in .inp file, negative node ID: " + std::to_string(tokenvals[node_sel]));
             }
         }
 
@@ -488,7 +487,7 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
     std::string line;
     while (getline(fin, line)) {
         // trims white space from the beginning of the string
-        line.erase(line.begin(), find_if(line.begin(), line.end(), not1(ptr_fun<int, int>(isspace))));
+        line.erase(line.begin(), std::find_if(line.begin(), line.end(), [](int c) { return !std::isspace(c); }));
 
         if (line[0] == 0)
             continue;  // skip empty linesnodes_offset
