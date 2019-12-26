@@ -20,6 +20,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <cctype>
 
 #include "chrono/core/ChMath.h"
 #include "chrono/physics/ChSystem.h"
@@ -62,7 +63,8 @@ void ChMeshFileLoader::FromTetGenFile(std::shared_ptr<ChMesh> mesh,
         string line;
         while (getline(fin, line)) {
             // trims white space from the beginning of the string
-            line.erase(line.begin(), std::find_if(line.begin(), line.end(), [](int c) { return !std::isspace(c); }));
+            line.erase(line.begin(),
+                       std::find_if(line.begin(), line.end(), [](unsigned char c) { return !std::isspace(c); }));
 
             if (line[0] == '#')
                 continue;  // skip comment
@@ -132,7 +134,8 @@ void ChMeshFileLoader::FromTetGenFile(std::shared_ptr<ChMesh> mesh,
         string line;
         while (getline(fin, line)) {
             // trims white space from the beginning of the string
-            line.erase(line.begin(), std::find_if(line.begin(), line.end(), [](int c) { return !std::isspace(c); }));
+            line.erase(line.begin(),
+                       std::find_if(line.begin(), line.end(), [](unsigned char c) { return !std::isspace(c); }));
 
             if (line[0] == '#')
                 continue;  // skip comment
@@ -217,7 +220,8 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
     string line;
     while (getline(fin, line)) {
         // trims white space from the beginning of the string
-        line.erase(line.begin(), std::find_if(line.begin(), line.end(), [](int c) { return !std::isspace(c); }));
+        line.erase(line.begin(),
+                   std::find_if(line.begin(), line.end(), [](unsigned char c) { return !std::isspace(c); }));
 
         // convert parsed line to uppercase (since string::find is case sensitive and Abaqus INP is not)
         std::for_each(line.begin(), line.end(), [](char& c) { c = toupper(static_cast<unsigned char>(c)); });
@@ -487,7 +491,8 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
     std::string line;
     while (getline(fin, line)) {
         // trims white space from the beginning of the string
-        line.erase(line.begin(), std::find_if(line.begin(), line.end(), [](int c) { return !std::isspace(c); }));
+        line.erase(line.begin(),
+                   std::find_if(line.begin(), line.end(), [](unsigned char c) { return !std::isspace(c); }));
 
         if (line[0] == 0)
             continue;  // skip empty linesnodes_offset
