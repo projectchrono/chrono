@@ -1067,47 +1067,72 @@ static __global__ void updateFrictionData(const float stepsize_SU,
                                           GranSphereDataPtr sphere_data,
                                           unsigned int nSpheres,
                                           GranParamsPtr gran_params) {
-    // Figure out what sphereID this thread will handle. We work with a 1D block structure and a 1D grid
-    // structure
+    // Figure out what sphereID this thread will handle. 
+    // We work with a 1D block structure and a 1D grid structure
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
+    unsigned int threadID = threadIdx.x;
 
-    // if we're in multistep mode, clean up contact histories
+    
     if (mySphereID < nSpheres) {
+        // if we're in multistep mode, clean up contact histories
         cleanupContactMap(sphere_data, mySphereID, gran_params);
-    }
+
+    // Declare and assign shared memory for subsequent operations
+        // Indices are *9 to avoid bank conflicts
+    __shared__ float omega_X[CUDA_THREADS_PER_BLOCK*9];
+    __shared__ float omega_Y[CUDA_THREADS_PER_BLOCK*9];
+    __shared__ float omega_Z[CUDA_THREADS_PER_BLOCK*9];
+
+    __shared__ float ang_acc_X[CUDA_THREADS_PER_BLOCK*9];
+    ang_acc_X[threadID*9] = sphere_data->sphere_ang_acc_X[mySphereID];
+    __shared__ float ang_acc_Y[CUDA_THREADS_PER_BLOCK*9];
+    ang_acc_Y[threadID*9] = sphere_data->sphere_ang_acc_Y[mySphereID];
+    __shared__ float ang_acc_Z[CUDA_THREADS_PER_BLOCK*9];
+    ang_acc_Z[threadID*9] = sphere_data->sphere_ang_acc_Z[mySphereID];
+
+    __syncthreads();
 
     // Write back velocity updates
-    if (mySphereID < nSpheres) {
-        float omega_update_X = 0;
-        float omega_update_Y = 0;
-        float omega_update_Z = 0;
 
-        // no divergence, same for every thread in block
+    // no divergence, same for every thread in block, use vels
         switch (gran_params->time_integrator) {
             case GRAN_TIME_INTEGRATOR::EXTENDED_TAYLOR:      // fall through to Euler for this one
             case GRAN_TIME_INTEGRATOR::CENTERED_DIFFERENCE:  // both of these have the smae signature as forward Euler
-                                                             // vels
             case GRAN_TIME_INTEGRATOR::FORWARD_EULER: {
                 // tau = I alpha => alpha = tau / I, we already computed these alphas
-                omega_update_X = integrateForwardEuler(stepsize_SU, sphere_data->sphere_ang_acc_X[mySphereID]);
-                omega_update_Y = integrateForwardEuler(stepsize_SU, sphere_data->sphere_ang_acc_Y[mySphereID]);
-                omega_update_Z = integrateForwardEuler(stepsize_SU, sphere_data->sphere_ang_acc_Z[mySphereID]);
+
+                //stepsize_SU * val_dt
+                omega_X[threadID*9] = stepsize_SU * ang_acc_X[threadID*9];
+                omega_Y[threadID*9] = stepsize_SU * ang_acc_Y[threadID*9];
+                omega_Z[threadID*9] = stepsize_SU * ang_acc_Z[threadID*9];
+                __syncthreads();
                 break;
             }
             case GRAN_TIME_INTEGRATOR::CHUNG: {
-                omega_update_X = integrateChung_vel(stepsize_SU, sphere_data->sphere_ang_acc_X[mySphereID],
-                                                    sphere_data->sphere_ang_acc_X_old[mySphereID]);
-                omega_update_Y = integrateChung_vel(stepsize_SU, sphere_data->sphere_ang_acc_Y[mySphereID],
-                                                    sphere_data->sphere_ang_acc_Y_old[mySphereID]);
-                omega_update_Z = integrateChung_vel(stepsize_SU, sphere_data->sphere_ang_acc_Z[mySphereID],
-                                                    sphere_data->sphere_ang_acc_Z_old[mySphereID]);
+                __shared__ float ang_acc_X_old[CUDA_THREADS_PER_BLOCK*9];
+                ang_acc_X_old[threadID*9] = sphere_data->sphere_ang_acc_X[mySphereID];
+                __shared__ float ang_acc_Y_old[CUDA_THREADS_PER_BLOCK*9];
+                ang_acc_Y_old[threadID*9] = sphere_data->sphere_ang_acc_Y[mySphereID];
+                __shared__ float ang_acc_Z_old[CUDA_THREADS_PER_BLOCK*9];
+                ang_acc_Z_old[threadID*9] = sphere_data->sphere_ang_acc_Z[mySphereID];
+                __syncthreads();
+
+                constexpr float gamma_hat = -1.f / 2.f;
+                constexpr float gamma = 3.f / 2.f;
+
+                //stepsize_SU * (acc * gamma + acc_old * gamma_hat)
+                omega_X[threadID*9] = stepsize_SU * (ang_acc_X[threadID*9] * gamma + ang_acc_X_old[threadID*9] * gamma_hat);
+                omega_Y[threadID*9] = stepsize_SU * (ang_acc_Y[threadID*9] * gamma + ang_acc_Y_old[threadID*9] * gamma_hat);
+                omega_Z[threadID*9] = stepsize_SU * (ang_acc_Z[threadID*9] * gamma + ang_acc_Z_old[threadID*9] * gamma_hat);
+                __syncthreads();
                 break;
             }
         }
 
-        sphere_data->sphere_Omega_X[mySphereID] += omega_update_X;
-        sphere_data->sphere_Omega_Y[mySphereID] += omega_update_Y;
-        sphere_data->sphere_Omega_Z[mySphereID] += omega_update_Z;
+        sphere_data->sphere_Omega_X[mySphereID] += omega_X[threadID*9];
+        sphere_data->sphere_Omega_Y[mySphereID] += omega_Y[threadID*9];
+        sphere_data->sphere_Omega_Z[mySphereID] += omega_Z[threadID*9];
+        __syncthreads();
     }
 }
 
