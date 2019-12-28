@@ -115,7 +115,7 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     /// Set visualization type for the sprocket subsystem.
     void SetSprocketVisualizationType(VisualizationType vis);
 
-    // Set visualization type for the idler subsystem.
+    /// Set visualization type for the idler subsystem.
     void SetIdlerVisualizationType(VisualizationType vis);
 
     /// Set visualization type for the suspension subsystems.
@@ -175,6 +175,7 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     void WriteContacts(const std::string& filename) { m_contacts->WriteContacts(filename); }
 
     /// Enable/disable output for the track assemblies.
+    /// See also ChVehicle::SetOuput.
     void SetTrackAssemblyOutput(VehicleSide side, bool state);
 
     /// Initialize this vehicle at the specified global location and orientation.
@@ -189,7 +190,7 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     /// The vehicle system is provided the current driver inputs (throttle between 0 and 1, steering between -1 and +1,
     /// braking between 0 and 1) and terrain forces on the track shoes (expressed in the global reference frame).
     void Synchronize(double time,                            ///< [in] current time
-                     const ChDriver::Inputs& driver_inputs,  /// [in] current driver inputs
+                     const ChDriver::Inputs& driver_inputs,  ///< [in] current driver inputs
                      const TerrainForces& shoe_forces_left,  ///< [in] vector of track shoe forces (left side)
                      const TerrainForces& shoe_forces_right  ///< [in] vector of track shoe forces (left side)
     );
@@ -210,10 +211,10 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     /// These include bodies, shafts, joints, spring-damper elements, markers, etc.
     virtual void ExportComponentList(const std::string& filename) const override;
 
+  protected:
     /// Output data for all modeling components in the vehicle system.
     virtual void Output(int frame, ChVehicleOutput& database) const override;
 
-  protected:
     std::shared_ptr<ChTrackAssembly> m_tracks[2];  ///< track assemblies (left/right)
     std::shared_ptr<ChDrivelineTV> m_driveline;    ///< driveline subsystem
     std::shared_ptr<ChPowertrain> m_powertrain;    ///< associated powertrain system

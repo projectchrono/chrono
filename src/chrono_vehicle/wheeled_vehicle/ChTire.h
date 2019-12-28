@@ -46,7 +46,7 @@ class CH_VEHICLE_API ChTire : public ChPart {
     enum class CollisionType { SINGLE_POINT, FOUR_POINTS, ENVELOPE };
 
     ChTire(const std::string& name  ///< [in] name of this tire system
-           );
+    );
 
     virtual ~ChTire() {}
 
@@ -105,7 +105,7 @@ class CH_VEHICLE_API ChTire : public ChPart {
                                       double rim_diameter,  ///< rim diameter [in]
                                       double tire_mass,     ///< mass of the tire [kg]
                                       double t_factor = 2   ///< tread to sidewall thickness factor
-                                      );
+    );
 
     /// Report the tire deflection.
     virtual double GetDeflection() const { return 0; }
@@ -165,7 +165,7 @@ class CH_VEHICLE_API ChTire : public ChPart {
         double disc_radius,             ///< [in] disc radius
         ChCoordsys<>& contact,          ///< [out] contact coordinate system (relative to the global frame)
         double& depth                   ///< [out] penetration depth (positive if contact occurred)
-        );
+    );
 
     /// Perform disc-terrain collision detection considering the curvature of the road
     /// surface. The surface normal is calculated based on 4 different height values below
@@ -188,7 +188,7 @@ class CH_VEHICLE_API ChTire : public ChPart {
         ChCoordsys<>& contact,          ///< [out] contact coordinate system (relative to the global frame)
         double& depth,                  ///< [out] penetration depth (positive if contact occurred)
         double& camber_angle            ///< [out] tire camber angle
-        );
+    );
 
     /// Collsion algorithm based on a paper of J. Shane Sui and John A. Hirshey II:
     /// "A New Analytical Tire Model for Vehicle Dynamic Analysis" presented at 2001 MSC User Meeting

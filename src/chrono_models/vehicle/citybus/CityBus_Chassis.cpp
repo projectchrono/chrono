@@ -71,6 +71,8 @@ CityBus_Chassis::CityBus_Chassis(const std::string& name, bool fixed, ChassisCol
         case ChassisCollisionType::MESH:
             m_coll_mesh_names.push_back("citybus/CityBus_Col.obj");
             break;
+        default:
+            break;
     }
 }
 

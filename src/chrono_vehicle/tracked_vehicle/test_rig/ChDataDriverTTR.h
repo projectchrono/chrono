@@ -18,7 +18,8 @@
 // It is assumed that the time values are unique.
 // If the time values are not sorted, this must be specified at construction.
 // Inputs for post displacements and throttle are assumed to be in [-1,1].
-// Driver inputs at intermediate times are obtained through linear interpolation.
+// Driver inputs at intermediate times are obtained through cubic spline
+// interpolation.
 //
 // =============================================================================
 
@@ -30,6 +31,8 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChDriverTTR.h"
+
+#include "chrono/core/ChCubicSpline.h"
 
 namespace chrono {
 namespace vehicle {
@@ -50,24 +53,14 @@ namespace vehicle {
 class CH_VEHICLE_API ChDataDriverTTR : public ChDriverTTR {
   public:
     /// Construct using data from the specified file.
-    ChDataDriverTTR(const std::string& filename,  ///< name of data file
-                    bool sorted = true            ///< indicate whether entries are sorted by time stamps
-    );
+    ChDataDriverTTR(const std::string& filename);
 
-    ~ChDataDriverTTR() {}
+    ~ChDataDriverTTR();
+
+    /// Return true when driver stopped producing inputs (end of data).
+    virtual bool Ended() const override;
 
   private:
-    /// Definition of driver inputs at a given time.
-    struct Entry {
-        Entry() {}
-        Entry(double time) : m_time(time) {}
-        Entry(double time, std::vector<double> displ, double throttle)
-            : m_time(time), m_displ(displ), m_throttle(throttle) {}
-        double m_time;
-        std::vector<double> m_displ;
-        double m_throttle;
-    };
-
     /// Initialize the driver system.
     virtual void Initialize(size_t num_posts, const std::vector<double>& locations) override;
 
@@ -77,11 +70,13 @@ class CH_VEHICLE_API ChDataDriverTTR : public ChDriverTTR {
 
     virtual std::string GetInfoMessage() const override { return "Data driver inputs"; }
 
-    static bool compare(const Entry& a, const Entry& b) { return a.m_time < b.m_time; }
-
-    std::string m_filename;
-    bool m_sorted;
-    std::vector<Entry> m_data;
+    std::string m_filename;                     ///< input file name
+    std::vector<ChCubicSpline*> m_curve_displ;  ///< splines for post displacements
+    ChCubicSpline* m_curve_throttle;            ///< spline for throttle
+    bool m_ended;                               ///< flag indicating end of input data
+    double m_last_time;                         ///< last time entry in input file
+    std::vector<double> m_last_displ;           ///< last displacements in input file
+    double m_last_throttle;                     ///< last throttle value in input file
 };
 
 /// @} vehicle_tracked_test_rig

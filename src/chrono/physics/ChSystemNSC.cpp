@@ -21,20 +21,8 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChContactContainerNSC.h"
-
 #include "chrono/physics/ChProximityContainer.h"
-
 #include "chrono/physics/ChSystem.h"
-#include "chrono/solver/ChSolverAPGD.h"
-#include "chrono/solver/ChSolverBB.h"
-#include "chrono/solver/ChSolverJacobi.h"
-#include "chrono/solver/ChSolverMINRES.h"
-#include "chrono/solver/ChSolverPCG.h"
-#include "chrono/solver/ChSolverPMINRES.h"
-#include "chrono/solver/ChSolverSOR.h"
-#include "chrono/solver/ChSolverSORmultithread.h"
-#include "chrono/solver/ChSolverSymmSOR.h"
-
 #include "chrono/collision/ChCCollisionSystemBullet.h"
 
 namespace chrono {
@@ -54,10 +42,9 @@ ChSystemNSC::ChSystemNSC(unsigned int max_objects, double scene_size, bool init_
 
         // Set the system descriptor
         descriptor = chrono_types::make_shared<ChSystemDescriptor>();
-        descriptor->SetNumThreads(parallel_thread_number);
 
         // Set default solver
-        SetSolverType(ChSolver::Type::SYMMSOR);
+        SetSolverType(ChSolver::Type::PSOR);
     }
 
     // Set default collision envelope and margin.

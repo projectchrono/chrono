@@ -172,13 +172,13 @@ void ChContactContainerNSC::EndAddContact() {
 }
 
 template <class Tcont, class Titer, class Ta, class Tb>
-void _OptimalContactInsert(std::list<Tcont*>& contactlist,          ///< contact list
-                           Titer& lastcontact,                      ///< last contact acquired
-                           int& n_added,                            ///< number of contact inserted
-                           ChContactContainer* mcontainer,          ///< contact container
-                           Ta* objA,                                ///< collidable object A
-                           Tb* objB,                                ///< collidable object B
-                           const collision::ChCollisionInfo& cinfo  ///< collision informations
+void _OptimalContactInsert(std::list<Tcont*>& contactlist,          // contact list
+                           Titer& lastcontact,                      // last contact acquired
+                           int& n_added,                            // number of contact inserted
+                           ChContactContainer* mcontainer,          // contact container
+                           Ta* objA,                                // collidable object A
+                           Tb* objB,                                // collidable object B
+                           const collision::ChCollisionInfo& cinfo  // collision informations
 ) {
     if (lastcontact != contactlist.end()) {
         // reuse old contacts
@@ -323,9 +323,11 @@ void ChContactContainerNSC::AddContact(const collision::ChCollisionInfo& mcontac
             }
         } break;
 
-    }  // switch (contactableA->GetContactableType())
+        default: {
+            //// TODO Fallback to some dynamic-size allocated constraint for cases that were not trapped by the switch
+        } break; 
 
-    // ***TODO*** Fallback to some dynamic-size allocated constraint for cases that were not trapped by the switch
+    }  // switch (contactableA->GetContactableType())
 }
 
 void ChContactContainerNSC::ComputeContactForces() {
@@ -463,13 +465,13 @@ void ChContactContainerNSC::IntStateScatterReactions(const unsigned int off_L, c
 }
 
 template <class Tcont>
-void _IntLoadResidual_CqL(unsigned int& coffset,           ///< offset of the contacts
-                          std::list<Tcont*>& contactlist,  ///< list of contacts
-                          const unsigned int off_L,        ///< offset in L multipliers
-                          ChVectorDynamic<>& R,            ///< result: the R residual, R += c*Cq'*L
-                          const ChVectorDynamic<>& L,      ///< the L vector
-                          const double c,                  ///< a scaling factor
-                          const int stride                 ///< stride
+void _IntLoadResidual_CqL(unsigned int& coffset,           // offset of the contacts
+                          std::list<Tcont*>& contactlist,  // list of contacts
+                          const unsigned int off_L,        // offset in L multipliers
+                          ChVectorDynamic<>& R,            // result: the R residual, R += c*Cq'*L
+                          const ChVectorDynamic<>& L,      // the L vector
+                          const double c,                  // a scaling factor
+                          const int stride                 // stride
 ) {
     typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
@@ -498,14 +500,14 @@ void ChContactContainerNSC::IntLoadResidual_CqL(const unsigned int off_L,
 }
 
 template <class Tcont>
-void _IntLoadConstraint_C(unsigned int& coffset,           ///< contact offset
-                          std::list<Tcont*>& contactlist,  ///< contact list
-                          const unsigned int off,          ///< offset in Qc residual
-                          ChVectorDynamic<>& Qc,           ///< result: the Qc residual, Qc += c*C
-                          const double c,                  ///< a scaling factor
-                          bool do_clamp,                   ///< apply clamping to c*C?
-                          double recovery_clamp,           ///< value for min/max clamping of c*C
-                          const int stride                 ///< stride
+void _IntLoadConstraint_C(unsigned int& coffset,           // contact offset
+                          std::list<Tcont*>& contactlist,  // contact list
+                          const unsigned int off,          // offset in Qc residual
+                          ChVectorDynamic<>& Qc,           // result: the Qc residual, Qc += c*C
+                          const double c,                  // a scaling factor
+                          bool do_clamp,                   // apply clamping to c*C?
+                          double recovery_clamp,           // value for min/max clamping of c*C
+                          const int stride                 // stride
 ) {
     typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {

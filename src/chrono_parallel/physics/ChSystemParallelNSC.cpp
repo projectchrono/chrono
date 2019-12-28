@@ -21,7 +21,7 @@
 using namespace chrono;
 
 ChSystemParallelNSC::ChSystemParallelNSC() : ChSystemParallel() {
-    solver_speed = chrono_types::make_shared<ChIterativeSolverParallelNSC>(data_manager);
+    solver = chrono_types::make_shared<ChIterativeSolverParallelNSC>(data_manager);
 
     // Set this so that the CD can check what type of system it is (needed for narrowphase)
     data_manager->settings.system_type = SystemType::SYSTEM_NSC;
@@ -54,7 +54,7 @@ ChBody* ChSystemParallelNSC::NewBody() {
 }
 
 void ChSystemParallelNSC::ChangeSolverType(SolverType type) {
-    std::static_pointer_cast<ChIterativeSolverParallelNSC>(solver_speed)->ChangeSolverType(type);
+    std::static_pointer_cast<ChIterativeSolverParallelNSC>(solver)->ChangeSolverType(type);
 }
 
 ChBodyAuxRef* ChSystemParallelNSC::NewBodyAuxRef() {
@@ -155,7 +155,7 @@ void ChSystemParallelNSC::SolveSystem() {
     collision_system->ReportContacts(this->contact_container.get());
     data_manager->system_timer.stop("collision");
     data_manager->system_timer.start("advance");
-    std::static_pointer_cast<ChIterativeSolverParallelNSC>(solver_speed)->RunTimeStep();
+    std::static_pointer_cast<ChIterativeSolverParallelNSC>(solver)->RunTimeStep();
     data_manager->system_timer.stop("advance");
     data_manager->system_timer.stop("step");
 }

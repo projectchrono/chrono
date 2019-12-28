@@ -27,8 +27,7 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChSolverAPGD)
 
-ChSolverAPGD::ChSolverAPGD(int mmax_iters, bool mwarm_start, double mtolerance)
-    : ChIterativeSolver(mmax_iters, mwarm_start, mtolerance, 0.0001), nc(0), residual(0.0) {}
+ChSolverAPGD::ChSolverAPGD() : nc(0), residual(0.0) {}
 
 void ChSolverAPGD::ShurBvectorCompute(ChSystemDescriptor& sysd) {
     // ***TO DO*** move the following thirty lines in a short function ChSystemDescriptor::ShurBvectorCompute() ?
@@ -122,7 +121,7 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
     sysd.FromVariablesToVector(Minvk, true);
 
     // (1) gamma_0 = zeros(nc,1)
-    if (warm_start) {
+    if (m_warm_start) {
         for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
             if (mconstraints[ic]->IsActive())
                 mconstraints[ic]->Increment_q(mconstraints[ic]->Get_l_i());
@@ -155,7 +154,7 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
     //// Check correctness (e.g. sign of 'r' in comments vs. code)
 
     // (7) for k := 0 to N_max
-    for (tot_iterations = 0; tot_iterations < max_iterations; tot_iterations++) {
+    for (m_iterations = 0; m_iterations < m_max_iterations; m_iterations++) {
         // (8) g = N * y_k - r
         // (9) gamma_(k+1) = ProjectionOperator(y_k - t_k * g)
         sysd.ShurComplementProduct(g, y);  // g = N * y
@@ -206,7 +205,7 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
             gamma_hat = gammaNew;  // (21) gamma_hat = gamma_(k+1)
         }                          // (22) endif
 
-        if (residual < this->tolerance) {  // (23) if r < Tau
+        if (residual < m_tolerance) {  // (23) if r < Tau
             break;                         // (24) break
         }                                  // (25) endif
 
@@ -223,7 +222,7 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
 
         // perform some tasks at the end of the iteration
         if (this->record_violation_history) {
-            AtIterationEnd(residual, (gammaNew - gamma).lpNorm<Eigen::Infinity>(), tot_iterations);
+            AtIterationEnd(residual, (gammaNew - gamma).lpNorm<Eigen::Infinity>(), m_iterations);
         }
 
         // Update iterates
@@ -233,7 +232,7 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
     }  // (32) endfor
 
     if (verbose)
-        std::cout << "Residual: " << residual << ", Iter: " << tot_iterations << std::endl;
+        std::cout << "Residual: " << residual << ", Iter: " << m_iterations << std::endl;
 
     // (33) return Value at time step t_(l+1), gamma_(l+1) := gamma_hat
     sysd.FromVectorToConstraints(gamma_hat);

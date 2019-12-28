@@ -25,14 +25,10 @@ namespace chrono {
 /// It can be used also to simulate curvilinear glyphs, etc.
 
 class ChApi ChLinkPointSpline : public ChLinkLockLock {
-
-  protected:
-    std::shared_ptr<geometry::ChLine> trajectory_line;  ///< The line for the trajectory.
-
   public:
     ChLinkPointSpline();
     ChLinkPointSpline(const ChLinkPointSpline& other);
-    virtual ~ChLinkPointSpline() {}
+    ~ChLinkPointSpline() {}
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkPointSpline* Clone() const override { return new ChLinkPointSpline(*this); }
@@ -43,10 +39,10 @@ class ChApi ChLinkPointSpline : public ChLinkLockLock {
     /// Sets the trajectory line (take ownership - does not copy line)
     void Set_trajectory_line(std::shared_ptr<geometry::ChLine> mline);
 
-    // UPDATING FUNCTIONS - "lock formulation" custom implementations
+    /// Set the tolerance controlling the accuracy of nearest point search (default: 1e-6)
+    void SetTolerance(double tol) { tolerance = tol; }
 
-    // Overrides the parent class function. Here it moves the
-    // constraint mmain marker tangent to the line.
+    /// Update link at current configuration (moves the constraint main marker tangent to the line).
     virtual void UpdateTime(double mytime) override;
 
     /// Method to allow serialization of transient data to archives.
@@ -54,9 +50,13 @@ class ChApi ChLinkPointSpline : public ChLinkLockLock {
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+  private:
+    std::shared_ptr<geometry::ChLine> trajectory_line;  ///< line for the trajectory
+    double tolerance;                                   ///< tolerance for nearest point search
 };
 
-CH_CLASS_VERSION(ChLinkPointSpline,0)
+CH_CLASS_VERSION(ChLinkPointSpline, 0)
 
 }  // end namespace chrono
 

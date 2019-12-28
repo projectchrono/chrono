@@ -14,32 +14,25 @@
 // Chrono::Granular simulation of a rectangular bed of granular material which
 // is first let to settle and then compressed by advancing one of the box walls
 // into the material.
-//
-// Pass param file: data/granular/shearband/GranShearBand.json
 // =============================================================================
 
 #include <iostream>
 #include <string>
-#ifdef _WINDOWS
-#define _USE_MATH_DEFINES
-#include <math.h>
-#endif
+#include <cmath>
 #include "chrono_thirdparty/filesystem/path.h"
+#include "chrono_granular/api/ChApiGranularChrono.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_granular/utils/ChGranularJsonParser.h"
 #include "chrono/utils/ChUtilsSamplers.h"
 
 using namespace chrono;
 using namespace chrono::granular;
-using std::cout;
-using std::endl;
-using std::string;
 
 // -----------------------------------------------------------------------------
 // Show command line usage
 // -----------------------------------------------------------------------------
-void ShowUsage() {
-    cout << "usage: ./demo_GRAN_ShearBand <json_file>" << endl;
+void ShowUsage(std::string name) {
+    std::cout << "usage: " + name + " <json_file>" << std::endl;
 }
 
 int main(int argc, char* argv[]) {
@@ -47,13 +40,17 @@ int main(int argc, char* argv[]) {
 
     // Some of the default values might be overwritten by user via command line
     if (argc != 2 || ParseJSON(argv[1], params) == false) {
-        ShowUsage();
+        ShowUsage(argv[0]);
         return 1;
     }
 
     // Setup simulation
     ChSystemGranularSMC gran_sys(params.sphere_radius, params.sphere_density,
                                  make_float3(params.box_X, params.box_Y, params.box_Z));
+
+    ChGranularSMC_API apiSMC;
+    apiSMC.setGranSystem(&gran_sys);
+
     gran_sys.setPsiFactors(params.psi_T, params.psi_L);
 
     gran_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
@@ -82,7 +79,7 @@ int main(int argc, char* argv[]) {
     std::vector<ChVector<float>> body_points =
         utils::PDLayerSampler_BOX<float>(center, hdims, 2. * params.sphere_radius, 1.05);
 
-    gran_sys.setParticlePositions(body_points);
+    apiSMC.setElemsPositions(body_points);
 
     // Set the position of the BD
     gran_sys.set_BD_Fixed(true);

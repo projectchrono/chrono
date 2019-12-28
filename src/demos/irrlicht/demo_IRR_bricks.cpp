@@ -20,6 +20,7 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
+#include "chrono/solver/ChSolverPSOR.h"
 #include "chrono/assets/ChTexture.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
@@ -221,19 +222,15 @@ int main(int argc, char* argv[]) {
 
     // Prepare the physical system for the simulation
 
-	mphysicalSystem.SetSolverType(ChSolver::Type::SOR); //SOR_MULTITHREAD);
-    mphysicalSystem.SetParallelThreadNumber(4);
-    
+    auto solver = chrono_types::make_shared<ChSolverPSOR>();
+    solver->SetMaxIterations(40);
+    solver->EnableWarmStart(true);
+    mphysicalSystem.SetSolver(solver);
+
 	//mphysicalSystem.SetUseSleeping(true);
+    mphysicalSystem.SetMaxPenetrationRecoverySpeed(1.0);
 
-    mphysicalSystem.SetMaxItersSolverSpeed(40);
-    mphysicalSystem.SetSolverWarmStarting(false);
-
-
-    //
-    // THE SOFT-REAL-TIME CYCLE
-    //
-	mphysicalSystem.SetMaxPenetrationRecoverySpeed(1.0);
+    // Simulation loop
 
     application.SetStepManage(true);
     application.SetTimestep(0.02);

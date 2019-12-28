@@ -23,6 +23,10 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_linalg
+/// @{
+
+/// Definition of a 3x3 fixed size matrix to represent 3D rotations and inertia tensors.
 template <typename Real = double>
 class ChMatrix33 : public Eigen::Matrix<Real, 3, 3, Eigen::RowMajor> {
   public:
@@ -157,6 +161,7 @@ ChVector<Real> operator*(const Eigen::Transpose<const Eigen::Matrix<Real, 3, 3, 
                           A(2, 0) * v.x() + A(2, 1) * v.y() + A(2, 2) * v.z());
 }
 
+/// Return the outer product (a 3x3 matrix) of two vectors. 
 template <class Real>
 ChMatrix33<Real> TensorProduct(const ChVector<Real>& vA, const ChVector<Real>& vB) {
     ChMatrix33<Real> T;
@@ -592,6 +597,8 @@ inline void ChMatrix33<Real>::SelfAdjointEigenSolve(ChMatrix33<Real>& evec, ChVe
     evals = es.eigenvalues();
     evec = es.eigenvectors();
 }
+
+/// @} chrono_linalg
 
 }  // end namespace chrono
 

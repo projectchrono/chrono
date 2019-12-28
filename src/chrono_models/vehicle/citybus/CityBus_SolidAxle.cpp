@@ -33,14 +33,14 @@ namespace citybus {
 // Static variables
 // -----------------------------------------------------------------------------
 
-const double CityBus_SolidAxleFront::m_ULMass = 25.0;//1.446;
-const double CityBus_SolidAxleFront::m_LLMass = 25.0;//2.892;
-const double CityBus_SolidAxleFront::m_knuckleMass = 15.0;//1.356;
-const double CityBus_SolidAxleFront::m_spindleMass = 5.0;//0.248;
-const double CityBus_SolidAxleFront::m_axleTubeMass = 100.0;//44.958;
-const double CityBus_SolidAxleFront::m_tierodMass = 5.0;//1.633;
-const double CityBus_SolidAxleFront::m_draglinkMass = 2.5;//0.464;
-const double CityBus_SolidAxleFront::m_bellCrankMass = 2.5;//0.218;
+const double CityBus_SolidAxleFront::m_ULMass = 25.0;         // 1.446;
+const double CityBus_SolidAxleFront::m_LLMass = 25.0;         // 2.892;
+const double CityBus_SolidAxleFront::m_knuckleMass = 15.0;    // 1.356;
+const double CityBus_SolidAxleFront::m_spindleMass = 5.0;     // 0.248;
+const double CityBus_SolidAxleFront::m_axleTubeMass = 100.0;  // 44.958;
+const double CityBus_SolidAxleFront::m_tierodMass = 5.0;      // 1.633;
+const double CityBus_SolidAxleFront::m_draglinkMass = 2.5;    // 0.464;
+const double CityBus_SolidAxleFront::m_bellCrankMass = 2.5;   // 0.218;
 
 const double CityBus_SolidAxleFront::m_spindleRadius = 0.10;
 const double CityBus_SolidAxleFront::m_spindleWidth = 0.05;
@@ -54,31 +54,31 @@ const double CityBus_SolidAxleFront::m_bellCrankRadius = 0.01;
 
 const ChVector<> CityBus_SolidAxleFront::m_axleTubeCOM(0, 0, 0);
 
-const ChVector<> CityBus_SolidAxleFront::m_axleTubeInertia(52.333, .5, 52.333);//(7.744, 0.045, 7.744);
-const ChVector<> CityBus_SolidAxleFront::m_spindleInertia(.0135, .025, .0135);//(0.0558, 0.0279, 0.0558);
-const ChVector<> CityBus_SolidAxleFront::m_ULInertia(1.023, .005, 1.023);//(0.011, 0.011, 0.00142);
-const ChVector<> CityBus_SolidAxleFront::m_LLInertia(1.023, .005, 1.023);//(0.0514, 0.0514, 0.0037);
-const ChVector<> CityBus_SolidAxleFront::m_knuckleInertia(.0219, .019, .0219);//(0.0255, 0.0134, 0.0196);
-const ChVector<> CityBus_SolidAxleFront::m_tierodInertia(2.604, .00025, 2.604);//(0.252, 0.01, 0.252);
-const ChVector<> CityBus_SolidAxleFront::m_draglinkInertia(.05,.0001,.05);//(0.005, 0.005, 0.001);
-const ChVector<> CityBus_SolidAxleFront::m_bellCrankInertia(.05,.0001,.05);//(0.001, 0.001, 0.001);
+const ChVector<> CityBus_SolidAxleFront::m_axleTubeInertia(52.333, .5, 52.333);  //(7.744, 0.045, 7.744);
+const ChVector<> CityBus_SolidAxleFront::m_spindleInertia(.0135, .025, .0135);   //(0.0558, 0.0279, 0.0558);
+const ChVector<> CityBus_SolidAxleFront::m_ULInertia(1.023, .005, 1.023);        //(0.011, 0.011, 0.00142);
+const ChVector<> CityBus_SolidAxleFront::m_LLInertia(1.023, .005, 1.023);        //(0.0514, 0.0514, 0.0037);
+const ChVector<> CityBus_SolidAxleFront::m_knuckleInertia(.0219, .019, .0219);   //(0.0255, 0.0134, 0.0196);
+const ChVector<> CityBus_SolidAxleFront::m_tierodInertia(2.604, .00025, 2.604);  //(0.252, 0.01, 0.252);
+const ChVector<> CityBus_SolidAxleFront::m_draglinkInertia(.05, .0001, .05);     //(0.005, 0.005, 0.001);
+const ChVector<> CityBus_SolidAxleFront::m_bellCrankInertia(.05, .0001, .05);    //(0.001, 0.001, 0.001);
 
 const double CityBus_SolidAxleFront::m_axleInertia = 0.4;
 
-const double CityBus_SolidAxleFront::m_springCoefficient = 500000;//26706.20;
-const double CityBus_SolidAxleFront::m_dampingCoefficient = 20000;//22459.0;
-const double CityBus_SolidAxleFront::m_springRestLength = .7;//0.3948;
+const double CityBus_SolidAxleFront::m_springCoefficient = 500000;  // 26706.20;
+const double CityBus_SolidAxleFront::m_dampingCoefficient = 20000;  // 22459.0;
+const double CityBus_SolidAxleFront::m_springRestLength = .7;       // 0.3948;
 
 // -----------------------------------------------------------------------------
 
-const double CityBus_SolidAxleRear::m_ULMass = 25.0;//1.446;
-const double CityBus_SolidAxleRear::m_LLMass = 25.0;//2.892;
-const double CityBus_SolidAxleRear::m_knuckleMass = 15.0;//1.356;
-const double CityBus_SolidAxleRear::m_spindleMass = 5.0;//0.248;
-const double CityBus_SolidAxleRear::m_axleTubeMass = 100.0;//44.958;
-const double CityBus_SolidAxleRear::m_tierodMass = 5.0;//1.633;
-const double CityBus_SolidAxleRear::m_draglinkMass = 2.5;//0.464;
-const double CityBus_SolidAxleRear::m_bellCrankMass = 2.5;//0.218;
+const double CityBus_SolidAxleRear::m_ULMass = 25.0;         // 1.446;
+const double CityBus_SolidAxleRear::m_LLMass = 25.0;         // 2.892;
+const double CityBus_SolidAxleRear::m_knuckleMass = 15.0;    // 1.356;
+const double CityBus_SolidAxleRear::m_spindleMass = 5.0;     // 0.248;
+const double CityBus_SolidAxleRear::m_axleTubeMass = 100.0;  // 44.958;
+const double CityBus_SolidAxleRear::m_tierodMass = 5.0;      // 1.633;
+const double CityBus_SolidAxleRear::m_draglinkMass = 2.5;    // 0.464;
+const double CityBus_SolidAxleRear::m_bellCrankMass = 2.5;   // 0.218;
 
 const double CityBus_SolidAxleRear::m_spindleRadius = 0.10;
 const double CityBus_SolidAxleRear::m_spindleWidth = 0.05;
@@ -92,20 +92,22 @@ const double CityBus_SolidAxleRear::m_bellCrankRadius = 0.01;
 
 const ChVector<> CityBus_SolidAxleRear::m_axleTubeCOM(0, 0, 0);
 
-const ChVector<> CityBus_SolidAxleRear::m_axleTubeInertia(52.333, .5, 52.333);//(7.744, 0.045, 7.744);
-const ChVector<> CityBus_SolidAxleRear::m_spindleInertia(.0135, .025, .0135);//(0.0558, 0.0279, 0.0558);
-const ChVector<> CityBus_SolidAxleRear::m_ULInertia(1.023, .005, 1.023);//(0.011, 0.011, 0.00142);
-const ChVector<> CityBus_SolidAxleRear::m_LLInertia(1.023, .005, 1.023);//(0.0514, 0.0514, 0.0037);
-const ChVector<> CityBus_SolidAxleRear::m_knuckleInertia(.0219, .019, .0219);//(0.0255, 0.0134, 0.0196);
-const ChVector<> CityBus_SolidAxleRear::m_tierodInertia(2.604, .00025, 2.604);//(0.252, 0.01, 0.252);
-const ChVector<> CityBus_SolidAxleRear::m_draglinkInertia(.05,.0001,.05);//(0.005, 0.005, 0.001);
-const ChVector<> CityBus_SolidAxleRear::m_bellCrankInertia(.05,.0001,.05);//(0.001, 0.001, 0.001);
+const ChVector<> CityBus_SolidAxleRear::m_axleTubeInertia(52.333, .5, 52.333);  //(7.744, 0.045, 7.744);
+const ChVector<> CityBus_SolidAxleRear::m_spindleInertia(.0135, .025, .0135);   //(0.0558, 0.0279, 0.0558);
+const ChVector<> CityBus_SolidAxleRear::m_ULInertia(1.023, .005, 1.023);        //(0.011, 0.011, 0.00142);
+const ChVector<> CityBus_SolidAxleRear::m_LLInertia(1.023, .005, 1.023);        //(0.0514, 0.0514, 0.0037);
+const ChVector<> CityBus_SolidAxleRear::m_knuckleInertia(.0219, .019, .0219);   //(0.0255, 0.0134, 0.0196);
+const ChVector<> CityBus_SolidAxleRear::m_tierodInertia(2.604, .00025, 2.604);  //(0.252, 0.01, 0.252);
+const ChVector<> CityBus_SolidAxleRear::m_draglinkInertia(.05, .0001, .05);     //(0.005, 0.005, 0.001);
+const ChVector<> CityBus_SolidAxleRear::m_bellCrankInertia(.05, .0001, .05);    //(0.001, 0.001, 0.001);
 
 const double CityBus_SolidAxleRear::m_axleInertia = 0.4;
 
-const double CityBus_SolidAxleRear::m_springCoefficient = 900000; //26706.20;
-const double CityBus_SolidAxleRear::m_dampingCoefficient = 35000;//22459.0;
+const double CityBus_SolidAxleRear::m_springCoefficient = 900000;  // 26706.20;
+const double CityBus_SolidAxleRear::m_dampingCoefficient = 35000;  // 22459.0;
 const double CityBus_SolidAxleRear::m_springRestLength = 0.7;
+
+const double CityBus_SolidAxleRear::m_twin_tire_dist = 0.33528;
 
 // -----------------------------------------------------------------------------
 // Constructors
@@ -207,7 +209,8 @@ const ChVector<> CityBus_SolidAxleRear::getLocation(PointId which) {
         case TIEROD_K:
             return ChVector<>(-0.3, 1, -0.05);
         case SPINDLE:
-            return ChVector<>(0, 1.1275, 0);
+            // return ChVector<>(0, 1.1275, 0); axle with single wheels
+            return ChVector<>(0, 1.1275 - m_twin_tire_dist / 2.0, 0);  // axle with double wheels
         case KNUCKLE_CM:
             return ChVector<>(0, 1.09, 0);
         case LL_CM:

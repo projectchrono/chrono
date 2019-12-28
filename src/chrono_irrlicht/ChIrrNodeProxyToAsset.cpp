@@ -396,10 +396,10 @@ void ChIrrNodeProxyToAsset::UpdateSurface(std::shared_ptr<ChSurfaceShape> surfac
     scene::CDynamicMeshBuffer* irrmesh = (scene::CDynamicMeshBuffer*)amesh->getMeshBuffer(0);
 
     if (!surface->IsWireframe()) {
-        size_t sections_u = surface->GetResolutionU() * 4;  //***TEST***
-        size_t sections_v = surface->GetResolutionV() * 4;  //***TEST***
-        size_t nvertexes = (sections_u + 1) * (sections_v + 1);
-        size_t ntriangles = (sections_u) * (sections_v)*2;
+        auto sections_u = surface->GetResolutionU() * 4;  //***TEST***
+        auto sections_v = surface->GetResolutionV() * 4;  //***TEST***
+        auto nvertexes = (sections_u + 1) * (sections_v + 1);
+        auto ntriangles = (sections_u) * (sections_v)*2;
 
         // smart inflating of allocated buffers, only if necessary, and once in a while shrinking
         if (irrmesh->getIndexBuffer().allocated_size() > (ntriangles * 3) * 1.5)
@@ -412,10 +412,10 @@ void ChIrrNodeProxyToAsset::UpdateSurface(std::shared_ptr<ChSurfaceShape> surfac
 
         int itri = 0;
 
-        for (unsigned int iv = 0; iv <= sections_v; ++iv) {
+        for (auto iv = 0; iv <= sections_v; ++iv) {
             double mV = 1.0 * ((double)iv / (double)(sections_v));  // v abscissa
 
-            for (unsigned int iu = 0; iu <= sections_u; ++iu) {
+            for (auto iu = 0; iu <= sections_u; ++iu) {
                 double mU = 1.0 * ((double)iu / (double)(sections_u));  // u abscissa
 
                 ChVector<> P;
@@ -455,13 +455,13 @@ void ChIrrNodeProxyToAsset::UpdateSurface(std::shared_ptr<ChSurfaceShape> surfac
         meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, false);
         meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true);
     } else {                    // if wirewrame u v isolines
-        size_t isolines_u = 4;  //***TEST***
-        size_t isolines_v = 3;  //***TEST***
-        size_t sections_u = surface->GetResolutionU() * isolines_u;
-        size_t sections_v = surface->GetResolutionV() * isolines_v;
+        auto isolines_u = 4;  //***TEST***
+        auto isolines_v = 3;  //***TEST***
+        auto sections_u = surface->GetResolutionU() * isolines_u;
+        auto sections_v = surface->GetResolutionV() * isolines_v;
 
-        size_t nvertexes = (sections_u + 1) * (isolines_v) + (sections_v + 1) * (isolines_u);
-        size_t ntriangles = (sections_u) * (isolines_v) + (sections_v) * (isolines_u);
+        auto nvertexes = (sections_u + 1) * (isolines_v) + (sections_v + 1) * (isolines_u);
+        auto ntriangles = (sections_u) * (isolines_v) + (sections_v) * (isolines_u);
 
         // smart inflating of allocated buffers, only if necessary, and once in a while shrinking
         if (irrmesh->getIndexBuffer().allocated_size() > (ntriangles * 3) * 1.5)
@@ -474,10 +474,10 @@ void ChIrrNodeProxyToAsset::UpdateSurface(std::shared_ptr<ChSurfaceShape> surfac
 
         int itri = 0;
 
-        for (unsigned int iv = 0; iv < isolines_v; ++iv) {
+        for (auto iv = 0; iv < isolines_v; ++iv) {
             double mV = 1.0 * ((double)iv / (double)(isolines_v - 1));  // v abscissa
 
-            for (unsigned int iu = 0; iu <= sections_u; ++iu) {
+            for (auto iu = 0; iu <= sections_u; ++iu) {
                 double mU = 1.0 * ((double)iu / (double)(sections_u));  // u abscissa
 
                 ChVector<> P;
@@ -495,11 +495,11 @@ void ChIrrNodeProxyToAsset::UpdateSurface(std::shared_ptr<ChSurfaceShape> surfac
                 }
             }
         }
-        size_t stride = (sections_u + 1) * isolines_v;
-        for (unsigned int iu = 0; iu < isolines_u; ++iu) {
+        auto stride = (sections_u + 1) * isolines_v;
+        for (auto iu = 0; iu < isolines_u; ++iu) {
             double mU = 1.0 * ((double)iu / (double)(isolines_u - 1));  // u abscissa
 
-            for (unsigned int iv = 0; iv <= sections_v; ++iv) {
+            for (auto iv = 0; iv <= sections_v; ++iv) {
                 double mV = 1.0 * ((double)iv / (double)(sections_v));  // v abscissa
 
                 ChVector<> P;

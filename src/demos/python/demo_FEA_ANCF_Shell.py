@@ -186,11 +186,11 @@ application.AssetUpdateAll()
 solver = chrono.ChSolverMINRES()
 my_system.SetSolver(solver)
 
-solver.SetDiagonalPreconditioning(True)
+solver.EnableDiagonalPreconditioner(True)
 #solver.SetVerbose(True)
 
-my_system.SetMaxItersSolverSpeed(100)
-my_system.SetTolForce(1e-10)
+my_system.SetSolverMaxIterations(100)
+my_system.SetSolverForceTolerance(1e-10)
 
 # Set up integrator
 

@@ -46,11 +46,12 @@ class CH_DISTR_API ChCollisionModelDistributed : public ChCollisionModelParallel
     virtual bool AddSphere(double radius, const ChVector<>& pos = ChVector<>()) override;
 
     /// Adds a triangle collision shape to the model
-    virtual bool AddTriangle(ChVector<> A,  ///< Vertex of triangle
-                             ChVector<> B,  ///< Vertex of triangle
-                             ChVector<> C,  ///< Vertex of triangle
-                             const ChVector<>& pos = ChVector<>(),
-                             const ChMatrix33<>& rot = ChMatrix33<>(1)) override;
+    virtual bool AddTriangle(ChVector<> A,                              ///< Vertex of triangle
+                             ChVector<> B,                              ///< Vertex of triangle
+                             ChVector<> C,                              ///< Vertex of triangle
+                             const ChVector<>& pos = ChVector<>(),      ///< Triangle position
+                             const ChMatrix33<>& rot = ChMatrix33<>(1)  ///< Triangle orientation
+                             ) override;
 
     /// Gets the axis-aligned bounding box for the entire model
     /// Only valid at beginning of simulation

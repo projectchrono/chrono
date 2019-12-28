@@ -29,56 +29,6 @@ endif()
 set(CH_GRANULAR_CXX_FLAGS "")
 set(CH_GRANULAR_C_FLAGS "")
 
-# ------------------------------------------------------------------------------
-# Additional dependencies, specific to this module
-# ------------------------------------------------------------------------------
-
-# ----- CUDA support -----
-# Return now if CUDA is not available
-if(NOT CUDA_FOUND)
-  message("Chrono::Granular requires CUDA")
-  message(STATUS "Chrono::Granular disabled")
-  set(ENABLE_MODULE_FSI OFF CACHE BOOL "Enable the Chrono Granular module" FORCE)
-  return()
-endif()
-
-option(GRANULAR_VERBOSE_PTXAS "Enable verbose output from ptxas during compilation" OFF)
-mark_as_advanced(GRANULAR_VERBOSE_PTXAS)
-
-if(GRANULAR_VERBOSE_PTXAS)
-	set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} --ptxas-options=-v)
-endif()
-
-message(STATUS "NVCC Flags are " ${CUDA_NVCC_FLAGS})
-set(CUDA_SEPARABLE_COMPILATION OFF)
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-		set(CUDA_SEPARABLE_COMPILATION ON)
-		set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -G -lineinfo)
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-		set(CUDA_NVCC_FLAGS_DEBUG ${CUDA_NVCC_FLAGS_DEBUG} -G -Xcompiler -g)
-		set(CUDA_NVCC_FLAGS_RELEASE ${CUDA_NVCC_FLAGS_RELEASE} -Xcompiler -O3 -Xptxas -O3 -Xcompiler -DNDEBUG)
-		set(CUDA_NVCC_FLAGS_RELWITHDEBINFO ${CUDA_NVCC_FLAGS_RELWITHDEBINFO} -Xcompiler -O2 -Xcompiler -g -Xcompiler -DNDEBUG)
-		set(CUDA_NVCC_FLAGS_MINSIZEREL ${CUDA_NVCC_FLAGS_MINSIZEREL} -Xcompiler -Os -Xcompiler -DNDEBUG)
-		message(STATUS "NVCC Flags are " ${CUDA_NVCC_FLAGS})
-		message(STATUS "NVCC Release flags are" ${CUDA_NVCC_FLAGS_RELEASE})
-		
-		
-		if(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
-			if(${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER 4.9)
-				set(CUDA_PROPAGATE_HOST_FLAGS OFF)
-			ELSE()
-				message(FATAL_ERROR "Using GCC version:  ${CMAKE_CXX_COMPILER_VERSION}. GCC <= 4.9 is not supported! Please use a newer compiler")
-			endif()
-		endif()
-		set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; --compiler-options -fPIC --compiler-options -Wall -lineinfo)
-		elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-		message(FATAL_ERROR "macOS is not supported!")
-endif()
-
-set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_60,code=sm_60 -gencode=arch=compute_50,code=sm_50 -gencode=arch=compute_35,code=sm_35)
-message(STATUS "NVCC Flags are " ${CUDA_NVCC_FLAGS})
-
-
 
 # ----------------------------------------------------------------------------
 # Generate and install configuration header file.
@@ -117,8 +67,9 @@ set(CH_GRANULAR_INCLUDES "${CH_GRANULAR_INCLUDES}" PARENT_SCOPE)
 # ------------------------------------------------------------------------------
 
 set(ChronoEngine_Granular_BASE
-		ChApiGranular.h
 		ChGranularDefines.h
+		ChGranularData.h
+		ChGranularData.cpp
 		)
 
 source_group("" FILES ${ChronoEngine_Granular_BASE})
@@ -142,6 +93,7 @@ set(ChronoEngine_Granular_CUDA
 		physics/ChGranularBoundaryConditions.cuh
 		physics/ChGranularHelpers.cuh
 		physics/ChGranularBoxTriangle.cuh
+		physics/ChGranularCUDAalloc.hpp
 		utils/ChCudaMathUtils.cuh
 		)
 
@@ -155,6 +107,14 @@ set(ChronoEngine_Granular_UTILITIES
 
 source_group(utilities FILES ${ChronoEngine_Granular_UTILITIES})
 
+set(ChronoEngine_Granular_API
+		api/ChApiGranular.h
+		api/ChApiGranularChrono.h
+		api/ChApiGranularChrono.cpp
+		)
+
+source_group(api FILES ${ChronoEngine_Granular_API})
+
 # ------------------------------------------------------------------------------
 # Add the ChronoEngine_granular library
 # ------------------------------------------------------------------------------
@@ -163,6 +123,8 @@ CUDA_ADD_LIBRARY(ChronoEngine_granular SHARED
 						${ChronoEngine_Granular_BASE}
 						${ChronoEngine_Granular_PHYSICS}
 						${ChronoEngine_Granular_CUDA}
+						${ChronoEngine_Granular_UTILITIES}
+						${ChronoEngine_Granular_API}
 						)
 set(CHRONO_GRANULAR_LINKED_LIBRARIES ChronoEngine ${CUDA_FRAMEWORK})
 
@@ -195,3 +157,58 @@ mark_as_advanced(FORCE
 		CUDA_SDK_ROOT_DIR
 		CUDA_VERBOSE_BUILD
 		CUDA_HOST_COMPILER)
+
+# ------------------------------------------------------------------------------
+# Additional dependencies, specific to this module
+# ------------------------------------------------------------------------------
+
+# ----- CUDA support -----
+# Return now if CUDA is not available
+if(NOT CUDA_FOUND)
+  message("Chrono::Granular requires CUDA")
+  message(STATUS "Chrono::Granular disabled")
+  set(ENABLE_MODULE_FSI OFF CACHE BOOL "Enable the Chrono Granular module" FORCE)
+  return()
+endif()
+
+option(GRANULAR_VERBOSE_PTXAS "Enable verbose output from ptxas during compilation" OFF)
+mark_as_advanced(GRANULAR_VERBOSE_PTXAS)
+
+if(GRANULAR_VERBOSE_PTXAS)
+	set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} --ptxas-options=-v)
+endif()
+
+message(STATUS "NVCC Flags are " ${CUDA_NVCC_FLAGS})
+set(CUDA_SEPARABLE_COMPILATION OFF)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+		set(CUDA_SEPARABLE_COMPILATION ON)
+		#set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -G -lineinfo)
+        target_compile_options(ChronoEngine_granular PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
+                       --generate-line-info
+                       --device-debug
+                       >)
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+		set(CUDA_NVCC_FLAGS_DEBUG ${CUDA_NVCC_FLAGS_DEBUG} -G -Xcompiler -g)
+		set(CUDA_NVCC_FLAGS_RELEASE ${CUDA_NVCC_FLAGS_RELEASE} -Xcompiler -O3 -Xptxas -O3 -Xcompiler -DNDEBUG)
+		set(CUDA_NVCC_FLAGS_RELWITHDEBINFO ${CUDA_NVCC_FLAGS_RELWITHDEBINFO} -Xcompiler -O2 -Xcompiler -g -Xcompiler -DNDEBUG)
+		set(CUDA_NVCC_FLAGS_MINSIZEREL ${CUDA_NVCC_FLAGS_MINSIZEREL} -Xcompiler -Os -Xcompiler -DNDEBUG)
+		message(STATUS "NVCC Flags are " ${CUDA_NVCC_FLAGS})
+		message(STATUS "NVCC Release flags are" ${CUDA_NVCC_FLAGS_RELEASE})
+		
+		
+		if(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
+			if(${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER 4.9)
+				set(CUDA_PROPAGATE_HOST_FLAGS OFF)
+			ELSE()
+				message(FATAL_ERROR "Using GCC version:  ${CMAKE_CXX_COMPILER_VERSION}. GCC <= 4.9 is not supported! Please use a newer compiler")
+			endif()
+		endif()
+		set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; --compiler-options -fPIC --compiler-options -Wall -lineinfo)
+		elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+		message(FATAL_ERROR "macOS is not supported!")
+endif()
+
+message(STATUS "NVCC Flags are " ${CUDA_NVCC_FLAGS})
+
+
+		

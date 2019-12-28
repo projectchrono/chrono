@@ -170,22 +170,26 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     virtual void SetChassisVehicleCollide(bool state) override;
 
     /// Enable/disable output from the suspension subsystems.
+    /// See also ChVehicle::SetOuput.
     void SetSuspensionOutput(int id, bool state);
 
     /// Enable/disable output from the steering subsystems.
+    /// See also ChVehicle::SetOuput.
     void SetSteeringOutput(int id, bool state);
 
     /// Enable/disable output from the anti-roll bar subsystems.
+    /// See also ChVehicle::SetOuput.
     void SetAntirollbarOutput(int id, bool state);
 
     /// Enable/disable output from the driveline subsystem.
+    /// See also ChVehicle::SetOuput.
     void SetDrivelineOutput(bool state);
 
     /// Update the state of this vehicle at the current time.
     /// The vehicle system is provided the current driver inputs (throttle between 0 and 1, steering between -1 and +1,
     /// braking between 0 and 1), and a reference to the terrain system.
     virtual void Synchronize(double time,                            ///< [in] current time
-                             const ChDriver::Inputs& driver_inputs,  /// [in] current driver inputs
+                             const ChDriver::Inputs& driver_inputs,  ///< [in] current driver inputs
                              const ChTerrain& terrain                ///< [in] reference to the terrain system
     );
 
@@ -214,10 +218,10 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// These include bodies, shafts, joints, spring-damper elements, markers, etc.
     virtual void ExportComponentList(const std::string& filename) const override;
 
+  protected:
     /// Output data for all modeling components in the vehicle system.
     virtual void Output(int frame, ChVehicleOutput& database) const override;
 
-  protected:
     ChAxleList m_axles;                          ///< list of axle subsystems
     ChSteeringList m_steerings;                  ///< list of steering subsystems
     std::shared_ptr<ChDrivelineWV> m_driveline;  ///< driveline subsystem

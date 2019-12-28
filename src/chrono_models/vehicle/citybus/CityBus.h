@@ -36,6 +36,12 @@ namespace chrono {
 namespace vehicle {
 namespace citybus {
 
+/// @addtogroup vehicle_models_citybus
+/// @{
+
+/// Definition of the city bus assembly.
+/// This class encapsulates a concrete wheeled vehicle model with parameters corresponding to
+/// a city bus, the powertrain model, and the tires.
 class CH_MODELS_API CityBus {
   public:
     CityBus();
@@ -102,6 +108,8 @@ class CH_MODELS_API CityBus {
 
     double m_tire_mass;
 };
+
+/// @} vehicle_models_citybus
 
 }  // end namespace citybus
 }  // end namespace vehicle

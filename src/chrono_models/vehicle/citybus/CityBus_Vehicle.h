@@ -44,6 +44,10 @@ namespace chrono {
 namespace vehicle {
 namespace citybus {
 
+/// @addtogroup vehicle_models_citybus
+/// @{
+
+/// Bus model with two axles and double tires on rear axle.
 class CH_MODELS_API CityBus_Vehicle : public ChWheeledVehicle {
   public:
     CityBus_Vehicle(const bool fixed = false,
@@ -85,6 +89,8 @@ class CH_MODELS_API CityBus_Vehicle : public ChWheeledVehicle {
 
     std::vector<double> m_omega;
 };
+
+/// @} vehicle_models_citybus
 
 }  // end namespace citybus
 }  // end namespace vehicle

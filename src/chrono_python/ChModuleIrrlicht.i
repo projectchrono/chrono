@@ -47,9 +47,6 @@
 
 %{
 #include "chrono/solver/ChSolver.h"
-#include "chrono/solver/ChSolverDirect.h"
-#include "chrono/solver/ChIterativeSolver.h"
-#include "chrono/solver/ChSolverMINRES.h"
 
 #include <irrlicht.h>
 #include "chrono_irrlicht/ChIrrAppInterface.h"

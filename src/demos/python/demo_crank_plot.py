@@ -152,7 +152,7 @@ while(myapplication.GetDevice().run()):
     myapplication.EndScene()
     
     # stop simulation after 2 seconds
-    if mysystem.GetChTime() > 2:
+    if mysystem.GetChTime() > 20:
           myapplication.GetDevice().closeDevice()
 
 

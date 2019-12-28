@@ -43,12 +43,9 @@ class ChApi ChSurfaceNurbs : public ChSurface {
     /// If the weights are not provided, a constant weight vector is made.
     ChSurfaceNurbs(int morder_u,  ///< order pu: 1= linear, 2=quadratic, etc.
                    int morder_v,  ///< order pv: 1= linear, 2=quadratic, etc.
-                   ChMatrixDynamic<ChVector<> >&
-                       mpoints,  ///< control points, size nuxnv. Required: at least nu >= pu+1, same for v
-                   ChVectorDynamic<>* mknots_u =
-                       0,  ///< knots, size ku. Required ku=nu+pu+1. If not provided, initialized to uniform.
-                   ChVectorDynamic<>* mknots_v =
-                       0,  ///< knots, size kv. Required ku=nu+pu+1. If not provided, initialized to uniform.
+                   ChMatrixDynamic<ChVector<>>& mpoints,  ///< control points, size nuxnv. Required: nu at least pu+1, same for v
+                   ChVectorDynamic<>* mknots_u = 0,  ///< knots, size ku. Required ku=nu+pu+1. If not provided, initialized to uniform.
+                   ChVectorDynamic<>* mknots_v = 0,  ///< knots, size kv. Required ku=nu+pu+1. If not provided, initialized to uniform.
                    ChMatrixDynamic<>* weights = 0  ///< weights, size nuxnv. If not provided, all weights as 1.
     );
 

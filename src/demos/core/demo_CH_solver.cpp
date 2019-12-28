@@ -23,9 +23,8 @@
 #include "chrono/solver/ChConstraintTwoBodies.h"
 #include "chrono/solver/ChKblockGeneric.h"
 #include "chrono/solver/ChSystemDescriptor.h"
-#include "chrono/solver/ChSolverSOR.h"
-#include "chrono/solver/ChSolverPMINRES.h"
-#include "chrono/solver/ChSolverBB.h"
+#include "chrono/solver/ChSolverPSOR.h"
+#include "chrono/solver/ChIterativeSolverLS.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -134,17 +133,17 @@ void test_1(const std::string& out_dir) {
 
     // Solve the problem with an iterative fixed-point solver, for an
     // approximate (but very fast) solution:
-    //
-    // .. create the solver
+    
+    // Create the solver...
+    ChSolverPSOR solver;
+    solver.SetMaxIterations(1);
+    solver.EnableWarmStart(false);
+    solver.SetTolerance(0.0);
+    solver.SetOmega(0.8);
 
-    ChSolverSOR msolver_iter(1,      // max iterations
-                             false,  // don't use warm start
-                             0.0,    // termination tolerance
-                             0.8);   // omega
-
-    // .. pass the constraint and the variables to the solver
-    //    to solve - that's all.
-    msolver_iter.Solve(mdescriptor);
+    // .. pass the constraint and the variables to the solver to solve
+    solver.Setup(mdescriptor);
+    solver.Solve(mdescriptor);
 
     // Ok, now present the result to the user, with some
     // statistical information:
@@ -172,7 +171,7 @@ void test_1(const std::string& out_dir) {
     StreamOUT(matrM, GetLog());
     StreamOUT(matrCq, GetLog());
 
-    GetLog() << "**** Using ChSolverSOR  ********** \n\n";
+    GetLog() << "**** Using ChSolverPSOR  ********** \n\n";
     GetLog() << "METRICS: max residual: " << max_res << "  max LCP error: " << max_LCPerr << "  \n\n";
     GetLog() << "vars q_a and q_b -------------------\n";
     GetLog() << mvarA.Get_qb();
@@ -196,7 +195,7 @@ void test_1(const std::string& out_dir) {
 
 void test_2(const std::string& out_dir) {
     GetLog() << "\n-------------------------------------------------\n";
-    GetLog() << "TEST: 1D vertical pendulum - ChSolverPMINRES \n\n";
+    GetLog() << "TEST: 1D vertical pendulum \n\n";
 
     ChSystemDescriptor mdescriptor;
 
@@ -265,14 +264,15 @@ void test_2(const std::string& out_dir) {
         chrono::GetLog() << myexc.what();
     }
 
-    // Create a solver of Krylov type
-    ChSolverPMINRES msolver_krylov(20,        // max iterations
-                                   false,     // warm start
-                                   0.00001);  // tolerance
-
-    // .. pass the constraint and the variables to the solver
-    //    to solve - that's all.
-    msolver_krylov.Solve(mdescriptor);
+    // Create the solver...
+    ChSolverMINRES solver;
+    solver.SetMaxIterations(20);
+    solver.SetTolerance(1e-5);
+    solver.SetVerbose(true);
+    
+    // .. pass the constraint and the variables to the solver to solve
+    solver.Setup(mdescriptor);
+    solver.Solve(mdescriptor);
 
     // Output values
     GetLog() << "VARIABLES: \n";
@@ -387,44 +387,22 @@ void test_3(const std::string& out_dir) {
 
     mdescriptor.EndInsertion();  // ----- system description ends here
 
-    // SOLVE the problem with an iterative Krylov solver.
-    // In this case we use a MINRES-like solver, that features
-    // very good convergence, it supports indefinite cases (ex.
-    // redundant constraints) and also supports the presence
-    // of ChStiffness blocks (other solvers cannot cope with this!)
-
-    // .. create the solver
-
-    ChSolverPMINRES msolver_mr(80,      // max iterations
-                               false,   // don't use warm start
-                               1e-12);  // termination tolerance
-
-    // .. set optional parameters of solver
-    msolver_mr.SetDiagonalPreconditioning(true);
-    msolver_mr.SetVerbose(true);
+    // Create the solver (MINRES) ...
+    ChSolverMINRES solver;
+    solver.SetMaxIterations(100);
+    solver.SetTolerance(1e-12);
+    solver.EnableDiagonalPreconditioner(true);
+    solver.SetVerbose(true);
 
     // .. solve the system (passing variables, constraints, stiffness
     //    blocks with the ChSystemDescriptor that we populated above)
-
-    msolver_mr.Solve(mdescriptor);
+    solver.Setup(mdescriptor);
+    solver.Solve(mdescriptor);
 
     // .. optional: get the result as a single vector (it collects all q_i and l_i
     //    solved values stored in variables and constraints), just for check.
     chrono::ChVectorDynamic<double> mx;
     mdescriptor.FromUnknownsToVector(mx);  // x ={q,-l}
-
-    // CHECK. Test if, with the solved x, we really have Z*x-d=0 ...
-    // to this end do the multiplication with the special function
-    // SystemProduct() that is 'sparse-friendly' and does not build Z explicitly:
-
-    chrono::ChVectorDynamic<double> md;
-    mdescriptor.BuildDiVector(md);  // d={f;-b}
-
-    chrono::ChVectorDynamic<double> mZx;
-    mdescriptor.SystemProduct(mZx, mx);  // Zx = Z*x
-
-    GetLog() << "CHECK: norm of solver residual: ||Z*x-d|| -------------------\n";
-    GetLog() << (mZx - md).lpNorm<Eigen::Infinity>() << "\n";
 
     /*
     // Alternatively, instead of using FromUnknownsToVector, to fetch

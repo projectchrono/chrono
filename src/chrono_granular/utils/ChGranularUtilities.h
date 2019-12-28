@@ -28,16 +28,16 @@
 extern size_t gran_approx_bytes_used;
 
 // Add verbose checks easily
-#define TRACK_VECTOR_RESIZE(vec, newsize, name, val)                                                             \
-    {                                                                                                            \
-        size_t item_size = sizeof(decltype(vec)::value_type);                                                    \
-        size_t old_size = vec.size();                                                                            \
-        vec.resize(newsize, val);                                                                                \
-        size_t new_size = vec.size();                                                                            \
-        size_t byte_delta = item_size * (new_size - old_size);                                                   \
-        gran_approx_bytes_used += byte_delta;                                                                    \
-        INFO_PRINTF("Resizing vector %s, old size %lu, new size %lu, byte delta %s\n", name, old_size, new_size, \
-                    pretty_format_bytes(byte_delta).c_str());                                                    \
+#define TRACK_VECTOR_RESIZE(vec, newsize, name, val)                                                               \
+    {                                                                                                              \
+        size_t item_size = sizeof(decltype(vec)::value_type);                                                      \
+        size_t old_size = vec.size();                                                                              \
+        vec.resize(newsize, val);                                                                                  \
+        size_t new_size = vec.size();                                                                              \
+        size_t byte_delta = item_size * (new_size - old_size);                                                     \
+        gran_approx_bytes_used += byte_delta;                                                                      \
+        INFO_PRINTF("Resizing vector %s, old size %llu, new size %llu, byte delta %s\n", name, old_size, new_size, \
+                    pretty_format_bytes(byte_delta).c_str());                                                      \
     }
 
 inline std::string pretty_format_bytes(size_t bytes) {

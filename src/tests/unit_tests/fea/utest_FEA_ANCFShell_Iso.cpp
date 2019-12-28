@@ -32,7 +32,7 @@
 
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/solver/ChSolverMINRES.h"
+#include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtilsValidation.h"
 
@@ -183,13 +183,12 @@ int main(int argc, char* argv[]) {
         my_system.SetSolver(mkl_solver);
 #endif
     } else {
-        my_system.SetSolverType(ChSolver::Type::MINRES);
-        auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-        msolver->SetDiagonalPreconditioning(true);
-        my_system.SetSolverWarmStarting(true);
-        my_system.SetMaxItersSolverSpeed(100);
-        my_system.SetMaxItersSolverStab(100);
-        my_system.SetTolForce(1e-6);
+        auto solver = chrono_types::make_shared<ChSolverMINRES>();
+        my_system.SetSolver(solver);
+        solver->SetMaxIterations(100);
+        solver->SetTolerance(1e-10);
+        solver->EnableDiagonalPreconditioner(true);
+        solver->SetVerbose(false);
     }
 
     // Setup integrator

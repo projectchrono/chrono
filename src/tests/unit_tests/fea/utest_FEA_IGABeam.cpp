@@ -21,7 +21,7 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/fea/ChBuilderBeam.h"
-#include "chrono/solver/ChSolverMINRES.h"
+#include "chrono/solver/ChIterativeSolverLS.h"
 
 #include "gtest/gtest.h"
 
@@ -48,16 +48,19 @@ class Model {
     std::shared_ptr<ChSystemNSC> m_system;
     std::shared_ptr<ChNodeFEAxyzrot> tip_node;
     std::shared_ptr<ChElasticityCosseratSimple> melasticity;
-    };
+};
 
-Model::Model(int sec, int ord ) {
+Model::Model(int sec, int ord) {
     m_system = chrono_types::make_shared<ChSystemNSC>();
 
-    m_system->SetSolverType(ChSolver::Type::MINRES);
-    m_system->SetSolverWarmStarting(true);
-    m_system->SetMaxItersSolverSpeed(200);
-    m_system->SetMaxItersSolverStab(200);
-    m_system->SetTolForce(1e-13);
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    m_system->SetSolver(solver);
+    solver->SetMaxIterations(200);
+    solver->SetTolerance(1e-15);
+    solver->EnableDiagonalPreconditioner(true);
+    solver->SetVerbose(false);
+
+    m_system->SetSolverForceTolerance(1e-13);
 
     auto my_mesh = chrono_types::make_shared<ChMesh>();
     my_mesh->SetAutomaticGravity(false);

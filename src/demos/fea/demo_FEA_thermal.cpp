@@ -17,7 +17,7 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/solver/ChSolverMINRES.h"
+#include "chrono/solver/ChIterativeSolverLS.h"
 
 #include "chrono/fea/ChElementSpring.h"
 #include "chrono/fea/ChElementBar.h"
@@ -165,15 +165,17 @@ int main(int argc, char* argv[]) {
 
     application.AssetUpdateAll();
 
-    //
-    // THE SOFT-REAL-TIME CYCLE
-    //
+    // SIMULATION LOOP
 
-    // Use MINRES solver because other solvers cannot handle stiffness matrices.
-    // For improved convergence, use warm starting.
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    my_system.SetSolverWarmStarting(false);
-    my_system.SetMaxItersSolverSpeed(160);
+    // Use MINRES solver to handle stiffness matrices.
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    my_system.SetSolver(solver);
+    solver->SetMaxIterations(150);
+    solver->SetTolerance(1e-6);
+    solver->EnableDiagonalPreconditioner(true);
+    solver->EnableWarmStart(true);  // IMPORTANT for convergence when using EULER_IMPLICIT_LINEARIZED
+    solver->SetVerbose(false);
+
     my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
 
     // Note: if you are interested only in a single LINEAR STATIC solution
@@ -195,6 +197,8 @@ int main(int argc, char* argv[]) {
         application.DoStep();
 
         application.EndScene();
+        if (my_system.GetChTime() > 5)
+            break;
     }
 
     // Print some node temperatures..

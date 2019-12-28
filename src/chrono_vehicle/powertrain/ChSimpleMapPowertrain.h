@@ -37,7 +37,7 @@ namespace vehicle {
 /// @addtogroup vehicle_powertrain
 /// @{
 
-/// Simple powertrain model, based on speed-torque engine maps.
+/// Template for simple powertrain model based on speed-torque engine maps.
 /// This model has no torque converter and can have either a manual or an automatic transmission.
 /// It accepts a single reverse gear and any number of forward gears.
 /// In automatic mode, gear shifting is done based on specified ideal shift points.

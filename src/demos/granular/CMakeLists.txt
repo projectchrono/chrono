@@ -14,10 +14,10 @@ SET(LIBRARIES
 # ------------------------------------------------------------------------------
 
 SET(DEMOS
-		demo_GRAN_terrainBox_SMC
-		demo_GRAN_ballcosim
-		demo_GRAN_ShearBand
-		demo_GRAN_fixedterrain
+        demo_GRAN_terrainBox_SMC
+        demo_GRAN_ballcosim
+        demo_GRAN_ShearBand
+        demo_GRAN_fixedterrain
 )
 
 # ------------------------------------------------------------------------------

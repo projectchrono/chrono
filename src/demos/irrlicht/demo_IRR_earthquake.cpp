@@ -166,9 +166,8 @@ int main(int argc, char* argv[]) {
     application.AddShadowAll();
 
     // Modify some setting of the physical system for the simulation, if you want
-    mphysicalSystem.SetSolverType(ChSolver::Type::SOR);
-    mphysicalSystem.SetMaxItersSolverSpeed(50);
-    mphysicalSystem.SetMaxItersSolverStab(5);
+    mphysicalSystem.SetSolverType(ChSolver::Type::PSOR);
+    mphysicalSystem.SetSolverMaxIterations(50);
 
     // mphysicalSystem.SetUseSleeping(true);
 

@@ -13,231 +13,90 @@
 #ifndef CHSTATICANALYSIS_H
 #define CHSTATICANALYSIS_H
 
-#include <cstdlib>
-
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChMath.h"
 #include "chrono/timestepper/ChState.h"
 #include "chrono/timestepper/ChIntegrable.h"
 
 namespace chrono {
 
 /// Base class for static analysis
-
-class ChStaticAnalysis {
-  protected:
-    ChIntegrableIIorder* integrable;
-
-    ChState X;
-    ChStateDelta V;
-    ChStateDelta A;
-    ChVectorDynamic<> L;
-
+class ChApi ChStaticAnalysis {
   public:
-    /// Constructor
-    ChStaticAnalysis(ChIntegrableIIorder& mintegrable) {
-        integrable = &mintegrable;
-        X.setZero(1, &mintegrable);
-        V.setZero(1, &mintegrable);
-        A.setZero(1, &mintegrable);
-    };
+    ChStaticAnalysis(ChIntegrableIIorder& integrable);
 
-    /// Destructor
-    virtual ~ChStaticAnalysis(){};
+    virtual ~ChStaticAnalysis() {}
 
-    /// Performs the static analysis
+    /// Performs the static analysis.
     virtual void StaticAnalysis() = 0;
 
-    /// Access the lagrangian multipliers, if any
-    virtual ChVectorDynamic<>& get_L() { return L; }
+    /// Get the integrable object.
+    ChIntegrable* GetIntegrable() { return m_integrable; }
 
-    /// Get the integrable object
-    ChIntegrable* GetIntegrable() { return integrable; }
+    /// Access the state, position part, at current analysis.
+    const ChState& GetX() const { return X; }
 
-    /// Access the state, position part, at current analysis
-    virtual ChState& get_X() { return X; }
+    /// Access the Lagrange multipliers, if any.
+    const ChVectorDynamic<>& GetL() const { return L; }
 
-    /// Access the state, speed part, at current analysis
-    virtual ChStateDelta& get_V() { return V; }
-
-    /// Access the acceleration, at current analysis
-    virtual ChStateDelta& get_A() { return A; }
+  protected:
+    ChIntegrableIIorder* m_integrable;
+    ChState X;
+    ChVectorDynamic<> L;
 };
 
 /// Linear static analysis
-
-class ChStaticLinearAnalysis : public ChStaticAnalysis {
-  protected:
+class ChApi ChStaticLinearAnalysis : public ChStaticAnalysis {
   public:
-    /// Constructor
-    ChStaticLinearAnalysis(ChIntegrableIIorder& mintegrable) : ChStaticAnalysis(mintegrable){};
+    ChStaticLinearAnalysis(ChIntegrableIIorder& integrable);
+    ~ChStaticLinearAnalysis() {}
 
-    /// Destructor
-    virtual ~ChStaticLinearAnalysis(){};
-
-    /// Performs the static analysis,
-    /// doing a linear solve.
-
-    virtual void StaticAnalysis() {
-        ChIntegrableIIorder* mintegrable = (ChIntegrableIIorder*)this->integrable;
-
-        // setup main vectors
-        mintegrable->StateSetup(X, V, A);
-
-        ChStateDelta Dx;
-        ChVectorDynamic<> R;
-        ChVectorDynamic<> Qc;
-        double T;
-
-        // setup auxiliary vectors
-        Dx.setZero(mintegrable->GetNcoords_v(), mintegrable);
-        R.setZero(mintegrable->GetNcoords_v());
-        Qc.setZero(mintegrable->GetNconstr());
-        L.setZero(mintegrable->GetNconstr());
-
-        mintegrable->StateGather(X, V, T);  // state <- system
-
-        // Set V speed to zero
-        V.setZero(mintegrable->GetNcoords_v(), mintegrable);
-        mintegrable->StateScatter(X, V, T);  // state -> system
-
-        // Solve:
-        //
-        // [-dF/dx     Cq' ] [ dx  ] = [ f]
-        // [ Cq        0   ] [  l  ] = [ C]
-
-        mintegrable->LoadResidual_F(R, 1.0);
-        mintegrable->LoadConstraint_C(Qc, 1.0);
-
-        mintegrable->StateSolveCorrection(
-            Dx, L, R, Qc,
-            0,        // factor for  M
-            0,        // factor for  dF/dv
-            -1.0,     // factor for  dF/dx (the stiffness matrix)
-            X, V, T,  // not needed here
-            false,    // do not StateScatter update to Xnew Vnew T+dt before computing correction
-            true      // force a call to the solver's Setup() function
-            );
-
-        X += Dx;
-
-        mintegrable->StateScatter(X, V, T);  // state -> system
-        mintegrable->StateScatterReactions(L);  // -> system auxiliary data 
-    }
+    /// Performs the static analysis, doing a linear solve.
+    virtual void StaticAnalysis() override;
 };
 
-/// Non-Linear static analysis
-
-class ChStaticNonLinearAnalysis : public ChStaticAnalysis {
-  protected:
-    int maxiters;
-    double tolerance;
-    int incremental_steps;
-
+/// Nonlinear static analysis
+class ChApi ChStaticNonLinearAnalysis : public ChStaticAnalysis {
   public:
-    /// Constructor
-    ChStaticNonLinearAnalysis(ChIntegrableIIorder& mintegrable)
-        : ChStaticAnalysis(mintegrable), maxiters(20), incremental_steps(6), tolerance(1e-10){};
+    ChStaticNonLinearAnalysis(ChIntegrableIIorder& integrable);
+    ~ChStaticNonLinearAnalysis() {}
 
-    /// Destructor
-    virtual ~ChStaticNonLinearAnalysis(){};
+    /// Performs the static analysis, doing a non-linear solve.
+    virtual void StaticAnalysis() override;
 
-    /// Performs the static analysis,
-    /// doing a linear solve.
+    /// Enable/disable verbose output (default: false)
+    void SetVerbose(bool verbose) { m_verbose = verbose; }
 
-    virtual void StaticAnalysis() {
-        ChIntegrableIIorder* mintegrable = (ChIntegrableIIorder*)this->integrable;
+    /// Set the max number of iterations for the Newton Raphson procedure (default: 10).
+    void SetMaxIterations(int max_iters);
 
-        // setup main vectors
-        mintegrable->StateSetup(X, V, A);
+    /// Set the number of steps that, for the first iterations, make the residual grow linearly (default: 6).
+    /// If =0, no incremental application of residual, so it is a classic Newton Raphson iteration, otherwise acts as a
+    /// continuation strategy. For values > 0 , it might help convergence. Must be less than maxiters.
+    void SetIncrementalSteps(int incr_steps);
 
-        ChState Xnew;
-        ChStateDelta Dx;
-        ChVectorDynamic<> R;
-        ChVectorDynamic<> Qc;
-        double T;
+    /// Set stopping criteria based on WRMS norm of correction and the specified relative and absolute tolerances.
+    /// This is the default, with reltol = 1e-4, abstol = 1e-8.
+    /// The Newton Raphson procedure is stopped if the WRMS norm of the correction vector (based on the current state)
+    /// is less than 1.
+    void SetCorrectionTolerance(double reltol, double abstol);
 
-        // setup auxiliary vectors
-        Dx.setZero(mintegrable->GetNcoords_v(), mintegrable);
-        Xnew.setZero(mintegrable->GetNcoords_x(), mintegrable);
-        R.setZero(mintegrable->GetNcoords_v());
-        Qc.setZero(mintegrable->GetNconstr());
-        L.setZero(mintegrable->GetNconstr());
+    /// Set stopping criteria based on norm of residual and the specified tolerance.
+    /// The Newton Raphson is stopped when the infinity norm of the residual is below the tolerance.
+    void SetResidualTolerance(double tol);
 
-        mintegrable->StateGather(X, V, T);  // state <- system
+    /// Get the max number of iterations for the Newton Raphson procedure.
+    int GetMaxIterations() const { return m_maxiters; }
 
-        // Set speed to zero
-        V.setZero(mintegrable->GetNcoords_v(), mintegrable);
+    /// Set the number of steps that, for the first iterations, make the residual grow linearly.
+    int GetIncrementalSteps() const { return m_incremental_steps; }
 
-        // Extrapolate a prediction as warm start
-        Xnew = X;
-
-        // use Newton Raphson iteration to solve implicit Euler for v_new
-        //
-        // [ - dF/dx    Cq' ] [ Dx  ] = [ f ]
-        // [ Cq         0   ] [ L   ] = [ C ]
-
-        for (int i = 0; i < this->GetMaxiters(); ++i) {
-            mintegrable->StateScatter(Xnew, V, T);  // state -> system
-            R.setZero();
-            Qc.setZero();
-            mintegrable->LoadResidual_F(R, 1.0);
-            mintegrable->LoadConstraint_C(Qc, 1.0);
-
-            double cfactor = ChMin(1.0, ((double)(i + 2) / (double)(incremental_steps + 1)));
-            R *= cfactor;
-            Qc *= cfactor;
-
-            //	GetLog()<< "Non-linear statics iteration=" << i << "  |R|=" << R.lpNorm<Eigen::Infinity>() << "  |Qc|=" << Qc.lpNorm<Eigen::Infinity>()
-            //<< "\n";
-            if ((R.lpNorm<Eigen::Infinity>() < this->GetTolerance()) && (Qc.lpNorm<Eigen::Infinity>() < this->GetTolerance()))
-                break;
-
-            mintegrable->StateSolveCorrection(
-                Dx, L, R, Qc,
-                0,           // factor for  M
-                0,           // factor for  dF/dv
-                -1.0,        // factor for  dF/dx (the stiffness matrix)
-                Xnew, V, T,  // not needed here
-                false,       // do not StateScatter update to Xnew Vnew T+dt before computing correction
-                true         // force a call to the solver's Setup() function
-                );
-
-            Xnew += Dx;
-        }
-
-        X = Xnew;
-
-        mintegrable->StateScatter(X, V, T);  // state -> system
-        mintegrable->StateScatterReactions(L);  // -> system auxiliary data 
-    }
-
-    /// Set the max number of iterations using the Newton Raphson procedure
-    void SetMaxiters(int miters) {
-        maxiters = miters;
-        if (incremental_steps > miters)
-            incremental_steps = miters;
-    }
-    /// Get the max number of iterations using the Newton Raphson procedure
-    double GetMaxiters() { return maxiters; }
-
-    /// Set the number of steps that, for the first iterations, make the residual
-    /// growing linearly. If =0, no incremental application of residual, so it is
-    /// a classic Newton Raphson iteration, otherwise acts as  continuation strategy.
-    /// For values > 0 , it might help convergence. Must be less than maxiters.
-    void SetIncrementalSteps(int mist) {
-        incremental_steps = mist;
-        if (maxiters < incremental_steps)
-            maxiters = incremental_steps;
-    }
-    /// Set the number of steps that, for the first iterations, make the residual
-    /// growing linearly.
-    double GetIncrementalSteps() { return incremental_steps; }
-
-    /// Set the tolerance for terminating the Newton Raphson procedure
-    void SetTolerance(double mtol) { tolerance = mtol; }
-    /// Get the tolerance for terminating the Newton Raphson procedure
-    double GetTolerance() { return tolerance; }
+  private:
+    bool m_verbose;
+    int m_maxiters;
+    int m_incremental_steps;
+    bool m_use_correction_test;
+    double m_reltol;
+    double m_abstol;
 };
 
 }  // end namespace chrono

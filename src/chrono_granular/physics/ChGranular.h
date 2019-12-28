@@ -19,22 +19,19 @@
 #include <string>
 #include <vector>
 #include <algorithm>
-// make windows behave with math
-#define _USE_MATH_DEFINES
 #include <cmath>
-#include "chrono_granular/ChApiGranular.h"
-#include "chrono/core/ChVector.h"
+#include "chrono_granular/api/ChApiGranular.h"
 #include "chrono_granular/ChGranularDefines.h"
 #include "chrono_granular/physics/ChGranularBoundaryConditions.h"
-#include "chrono/core/ChMathematics.h"
-#include "cudalloc.hpp"
+#include "ChGranularCUDAalloc.hpp"
 
 typedef unsigned char not_stupid_bool;
 
-/// @addtogroup granular_physics
-/// @{
 namespace chrono {
 namespace granular {
+
+/// @addtogroup granular_physics
+/// @{
 
 /// Used to compute position as a function of time
 typedef std::function<double3(float)> GranPositionFunction;
@@ -254,6 +251,9 @@ struct ChGranParams {
     /// Used as a safety check to determine whether a system has lost stability
     float max_safe_vel = (float)UINT_MAX;
 };
+
+/// @} granular_physics
+
 }  // namespace granular
 }  // namespace chrono
 
@@ -262,8 +262,12 @@ struct ChGranParams {
 typedef const chrono::granular::ChGranParams* GranParamsPtr;
 /// Get handle for the sphere data that skips namespacing and enforces const-ness
 typedef const chrono::granular::ChGranSphereData* GranSphereDataPtr;
+
 namespace chrono {
 namespace granular {
+
+/// @addtogroup granular_physics
+/// @{
 
 /**
  * \brief Main Chrono::Granular system class used to control and dispatch the GPU
@@ -317,12 +321,12 @@ class CH_GRANULAR_API ChSystemGranularSMC {
     bool disable_BC_by_ID(size_t BC_id) {
         size_t max_id = BC_params_list_SU.size();
         if (BC_id >= max_id) {
-            printf("ERROR: Trying to disable invalid BC ID %lu\n", BC_id);
+            printf("ERROR: Trying to disable invalid BC ID %zu\n", BC_id);
             return false;
         }
 
         if (BC_id <= NUM_RESERVED_BC_IDS - 1) {
-            printf("ERROR: Trying to modify reserved BC ID %lu\n", BC_id);
+            printf("ERROR: Trying to modify reserved BC ID %zu\n", BC_id);
             return false;
         }
         BC_params_list_UU.at(BC_id).active = false;
@@ -334,11 +338,11 @@ class CH_GRANULAR_API ChSystemGranularSMC {
     bool enable_BC_by_ID(size_t BC_id) {
         size_t max_id = BC_params_list_SU.size();
         if (BC_id >= max_id) {
-            printf("ERROR: Trying to enable invalid BC ID %lu\n", BC_id);
+            printf("ERROR: Trying to enable invalid BC ID %zu\n", BC_id);
             return false;
         }
         if (BC_id <= NUM_RESERVED_BC_IDS - 1) {
-            printf("ERROR: Trying to modify reserved BC ID %lu\n", BC_id);
+            printf("ERROR: Trying to modify reserved BC ID %zu\n", BC_id);
             return false;
         }
         BC_params_list_UU.at(BC_id).active = true;
@@ -350,11 +354,11 @@ class CH_GRANULAR_API ChSystemGranularSMC {
     bool set_BC_offset_function(size_t BC_id, const GranPositionFunction& offset_function) {
         size_t max_id = BC_params_list_SU.size();
         if (BC_id >= max_id) {
-            printf("ERROR: Trying to set offset function for invalid BC ID %lu\n", BC_id);
+            printf("ERROR: Trying to set offset function for invalid BC ID %zu\n", BC_id);
             return false;
         }
         if (BC_id <= NUM_RESERVED_BC_IDS - 1) {
-            printf("ERROR: Trying to modify reserved BC ID %lu\n", BC_id);
+            printf("ERROR: Trying to modify reserved BC ID %zu\n", BC_id);
             return false;
         }
         BC_offset_function_list.at(BC_id) = offset_function;
@@ -367,19 +371,19 @@ class CH_GRANULAR_API ChSystemGranularSMC {
     bool getBCReactionForces(size_t BC_id, float forces[3]) const {
         size_t max_id = BC_params_list_SU.size();
         if (BC_id >= max_id) {
-            printf("ERROR: Trying to get forces for invalid BC ID %lu\n", BC_id);
+            printf("ERROR: Trying to get forces for invalid BC ID %zu\n", BC_id);
             return false;
         }
         if (BC_id <= NUM_RESERVED_BC_IDS - 1) {
-            printf("ERROR: Trying to modify reserved BC ID %lu\n", BC_id);
+            printf("ERROR: Trying to modify reserved BC ID %zu\n", BC_id);
             return false;
         }
         if (BC_params_list_SU.at(BC_id).track_forces == false) {
-            printf("ERROR: Trying to get forces for non-force-tracking BC ID %lu\n", BC_id);
+            printf("ERROR: Trying to get forces for non-force-tracking BC ID %zu\n", BC_id);
             return false;
         }
         if (BC_params_list_SU.at(BC_id).active == false) {
-            printf("ERROR: Trying to get forces for inactive BC ID %lu\n", BC_id);
+            printf("ERROR: Trying to get forces for inactive BC ID %zu\n", BC_id);
             return false;
         }
         float3 reaction_forces = BC_params_list_SU.at(BC_id).reaction_forces;
@@ -472,8 +476,8 @@ class CH_GRANULAR_API ChSystemGranularSMC {
     void set_BD_Fixed(bool fixed) { BD_is_fixed = fixed; }
 
     /// Set initial particle positions. MUST be called only once and MUST be called before initialize
-    void setParticlePositions(const std::vector<ChVector<float>>& points,
-                              const std::vector<ChVector<float>>& vels = std::vector<ChVector<float>>());
+    void setParticlePositions(const std::vector<float3>& points,
+                              const std::vector<float3>& vels = std::vector<float3>());
 
     /// Set particle fixity. MUST be called only once and MUST be called before initialize
     void setParticleFixed(const std::vector<bool>& fixed);
@@ -770,10 +774,10 @@ class CH_GRANULAR_API ChSystemGranularSMC {
     const float box_size_Z;
 
     /// User-provided sphere positions in UU
-    std::vector<ChVector<float>> user_sphere_positions;
+    std::vector<float3> user_sphere_positions;
 
     /// User-provided sphere velocities in UU
-    std::vector<ChVector<float>> user_sphere_vel;
+    std::vector<float3> user_sphere_vel;
 
     /// User-provided sphere fixity as bools
     std::vector<bool> user_sphere_fixed;
@@ -782,7 +786,7 @@ class CH_GRANULAR_API ChSystemGranularSMC {
     bool BD_is_fixed = true;
 };
 
+/// @} granular_physics
+
 }  // namespace granular
 }  // namespace chrono
-
-/// @} granular_physics

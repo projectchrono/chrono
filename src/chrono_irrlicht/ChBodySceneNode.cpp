@@ -21,7 +21,11 @@ using namespace irr::scene;
 // Initialize static variables
 int ChBodySceneNode::body_identifier = 0;
 
-ChBodySceneNode::ChBodySceneNode(ChSystem* msystem, IAnimatedMesh* mesh, ISceneNode* parent, ISceneManager* mgr, s32 id)
+ChBodySceneNode::ChBodySceneNode(ChSystem* msystem,
+                                 irr::scene::IAnimatedMesh* mesh,
+                                 irr::scene::ISceneNode* parent,
+                                 irr::scene::ISceneManager* mgr,
+                                 irr::s32 id)
     : ISceneNode(parent, mgr, id), ChronoControlled(true) {
     assert(msystem);
 
@@ -52,10 +56,10 @@ ChBodySceneNode::ChBodySceneNode(ChSystem* msystem, IAnimatedMesh* mesh, ISceneN
 }
 
 ChBodySceneNode::ChBodySceneNode(ChSystem* msystem,
-                                 IAnimatedMesh* mesh,
-                                 ISceneNode* parent,
-                                 ISceneManager* mgr,
-                                 s32 id,
+                                 irr::scene::IAnimatedMesh* mesh,
+                                 irr::scene::ISceneNode* parent,
+                                 irr::scene::ISceneManager* mgr,
+                                 irr::s32 id,
                                  const ChVector<>& offset)
     : ISceneNode(parent, mgr, id), ChronoControlled(true) {
     assert(msystem);

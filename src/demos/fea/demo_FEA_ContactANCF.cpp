@@ -22,9 +22,9 @@
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChLoaderUV.h"
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
+#include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono_mkl/ChSolverMKL.h"
 
 #include "chrono/fea/ChContactSurfaceMesh.h"
@@ -211,15 +211,14 @@ int main(int argc, char* argv[]) {
     ////my_system.Update();
 
     // Setup solver
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    msolver->SetDiagonalPreconditioning(true);
-    my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of
-    my_system.SetMaxItersSolverSpeed(4000000);
-    my_system.SetTolForce(1e-6);
-    msolver->SetVerbose(false);
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    my_system.SetSolver(solver);
+    solver->SetMaxIterations(150);
+    solver->SetTolerance(1e-8);
+    solver->EnableDiagonalPreconditioner(true);
+    solver->EnableWarmStart(true);  // Enable for better convergence if using Euler implicit linearized
 
-    // HHT or EULER_IMPLICIT
+    // HHT or EULER_IMPLICIT_LINEARIZED
     my_system.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(-0.2);

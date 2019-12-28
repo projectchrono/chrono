@@ -20,6 +20,7 @@
 #include <string>
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono/core/ChTimer.h"
+#include "chrono_granular/api/ChApiGranularChrono.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_thirdparty/SimpleOpt/SimpleOpt.h"
 #include "chrono/utils/ChUtilsSamplers.h"
@@ -64,7 +65,10 @@ double run_test(float box_size_X, float box_size_Y, float box_size_Z) {
     ChVector<float> center(0, 0, -.25 * box_size_Z);
     ChVector<float> hdims(box_size_X / 2 - sphereRadius, box_size_X / 2 - sphereRadius, box_size_Z / 4 - sphereRadius);
     std::vector<ChVector<float>> body_points = sampler.SampleBox(center, hdims);
-    gran_system.setParticlePositions(body_points);
+
+    ChGranularSMC_API apiSMC;
+    apiSMC.setGranSystem(&gran_system);
+    apiSMC.setElemsPositions(body_points);
 
     gran_system.set_BD_Fixed(true);
     gran_system.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);

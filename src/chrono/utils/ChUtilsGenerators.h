@@ -46,23 +46,20 @@
 namespace chrono {
 namespace utils {
 
-// Enumeration of various geometric shapes
-enum MixtureType { SPHERE, ELLIPSOID, BOX, CYLINDER, CONE, CAPSULE, BISPHERE, ROUNDEDCYLINDER };
+/// @addtogroup chrono_utils
+/// @{
+
+/// Enumeration of various geometric shapes available for mixtures.
+enum class MixtureType { SPHERE, ELLIPSOID, BOX, CYLINDER, CONE, CAPSULE, BISPHERE, ROUNDEDCYLINDER };
 
 // Forward declarations
 class Generator;
 class MixtureIngredient;
 
-// -----------------------------------------------------------------------------
-// MixtureIngredient
-//
-// This class encapsulates an ingredient of one of the supported types in a
-// mixture. Such an object is defined size, mass properties and material
-// properties, all of which can be constant for all mixture components of this
-// type or else obtained from associated truncated normal distributions.
-// In addition, a mixture ingredient defines the ratio of this particular type
-// in the containing mixture.
-// -----------------------------------------------------------------------------
+/// Encapsulation of an ingredient of one of the supported types in a mixture.
+/// Such an object defines size, mass properties and material properties for, all of which can be constant for all
+/// mixture components of this type or else obtained from associated truncated normal distributions. In addition, a
+/// mixture ingredient defines the ratio of this particular type in the containing mixture.
 class ChApi MixtureIngredient {
   public:
     MixtureIngredient(Generator* generator, MixtureType type, double ratio);
@@ -143,12 +140,9 @@ class ChApi MixtureIngredient {
     friend class Generator;
 };
 
-// -----------------------------------------------------------------------------
-// Generator
-//
-// This class encapsulates functionality for generating sets of bodies with
-// positions drawn from a specified sampler and various mixture properties.
-// -----------------------------------------------------------------------------
+/// Provides functionality for generating sets of bodies with positions drawn from a specified sampler and various
+/// mixture properties. Bodies can be generated in different bounding volumes (boxes or cylinders) which can be
+/// degenerate (to a rectangle or circle, repsectively).
 class ChApi Generator {
   public:
     typedef Types<double>::PointVector PointVector;
@@ -156,50 +150,55 @@ class ChApi Generator {
     Generator(ChSystem* system);
     ~Generator();
 
-    // Add a new mixture ingredient of the specified type and in the given ratio
-    // (note that the ratios are normalized before creating bodies)
+    /// Add a new mixture ingredient of the specified type and in the given ratio (note that the ratios are normalized
+    /// before creating bodies).
     std::shared_ptr<MixtureIngredient> AddMixtureIngredient(MixtureType type, double ratio);
 
-    // Get/Set the identifier that will be assigned to the next body.
-    // Identifiers are incremented for successively created bodies.
+    /// Get/Set the identifier that will be assigned to the next body.
+    /// Identifiers are incremented for successively created bodies.
     int getBodyIdentifier() const { return m_crtBodyId; }
     void setBodyIdentifier(int id) { m_crtBodyId = id; }
 
-    // Create bodies, according to the current mixture setup, with initial
-    // positions given by the specified sampler in the box domain specified by
-    // 'pos' and 'hdims'. Optionally, a constant initial linear velocity can be set
-    // for all created bodies.
+    /// Create bodies, according to the current mixture setup, with initial positions given by the specified sampler in
+    /// the box domain specified by 'pos' and 'hdims'. Optionally, a constant initial linear velocity can be set for all
+    /// created bodies.
     void createObjectsBox(SamplingType sType,
                           double dist,
                           const ChVector<>& pos,
                           const ChVector<>& hdims,
                           const ChVector<>& vel = ChVector<>(0, 0, 0));
 
-    // Create bodies, according to the current mixture setup, with initial
-    // positions on a uniform grid with given separations (in x,y,z directions)
-    // in the box domain specified by 'pos' and 'hdims'. Optionally, a constant
-    // initial linear velocity can be set for all created bodies.
+    /// Create bodies, according to the current mixture setup, with initial positions on a uniform grid with given
+    /// separations (in x,y,z directions) in the box domain specified by 'pos' and 'hdims'. Optionally, a constant
+    /// initial linear velocity can be set for all created bodies.
     void createObjectsBox(const ChVector<>& dist,
                           const ChVector<>& pos,
                           const ChVector<>& hdims,
                           const ChVector<>& vel = ChVector<>(0, 0, 0));
 
-    // Create bodies, according to the current mixture setup, with initial
-    // positions given by the specified sampler in the cylinder domain specified
-    // by 'pos', 'radius' and 'halfHeight'. Optionally, a constant initial linear
-    // velocity can be set for all created bodies.
+    /// Create bodies, according to the current mixture setup, with initial positions given by the specified sampler in
+    /// the X-aligned cylinder domain specified by 'pos', 'radius' and 'halfHeight'. Optionally, a constant initial
+    /// linear velocity can be set for all created bodies.
     void createObjectsCylinderX(SamplingType sType,
                                 double dist,
                                 const ChVector<>& pos,
                                 float radius,
                                 float halfHeight,
                                 const ChVector<>& vel = ChVector<>(0, 0, 0));
+
+    /// Create bodies, according to the current mixture setup, with initial positions given by the specified sampler in
+    /// the Y-aligned cylinder domain specified by 'pos', 'radius' and 'halfHeight'. Optionally, a constant initial
+    /// linear velocity can be set for all created bodies.
     void createObjectsCylinderY(SamplingType sType,
                                 double dist,
                                 const ChVector<>& pos,
                                 float radius,
                                 float halfHeight,
                                 const ChVector<>& vel = ChVector<>(0, 0, 0));
+
+    /// Create bodies, according to the current mixture setup, with initial positions given by the specified sampler in
+    /// the Z-aligned cylinder domain specified by 'pos', 'radius' and 'halfHeight'. Optionally, a constant initial
+    /// linear velocity can be set for all created bodies.
     void createObjectsCylinderZ(SamplingType sType,
                                 double dist,
                                 const ChVector<>& pos,
@@ -226,8 +225,7 @@ class ChApi Generator {
     /// at which bodies will be initialized.
     void RegisterCreateObjectsCallback(std::shared_ptr<CreateObjectsCallback> callback) { m_callback = callback; }
 
-    // Write information about the bodies created so far to the specified file
-    // (CSV format)
+    /// Write information about the bodies created so far to the specified file (CSV format).
     void writeObjectInfo(const std::string& filename);
 
     unsigned int getTotalNumBodies() const { return m_totalNumBodies; }
@@ -266,6 +264,8 @@ class ChApi Generator {
 
     friend class MixtureIngredient;
 };
+
+/// @} chrono_utils
 
 }  // end namespace utils
 }  // end namespace chrono

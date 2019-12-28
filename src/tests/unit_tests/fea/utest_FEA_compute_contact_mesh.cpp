@@ -28,8 +28,7 @@
 #include "chrono/physics/ChContactContainerSMC.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/solver/ChSolverSMC.h"
-#include "chrono/solver/ChSolverMINRES.h"
+#include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
@@ -263,17 +262,20 @@ bool test_computecontact(ChMaterialSurface::ContactMethod method) {
     switch (solver_type) {
         case DEFAULT_SOLVER: {
             GetLog() << "Using DEFAULT solver.\n";
-            system->SetMaxItersSolverSpeed(100);
-            system->SetTolForce(1e-6);
+            system->SetSolverMaxIterations(100);
+            system->SetSolverForceTolerance(1e-6);
             break;
         }
         case MINRES_SOLVER: {
             GetLog() << "Using MINRES solver.\n";
-            auto minres_solver = chrono_types::make_shared<ChSolverMINRES>();
-            minres_solver->SetDiagonalPreconditioning(true);
-            system->SetSolver(minres_solver);
-            system->SetMaxItersSolverSpeed(100);
-            system->SetTolForce(1e-6);
+            auto solver = chrono_types::make_shared<ChSolverMINRES>();
+            system->SetSolver(solver);
+            solver->SetMaxIterations(100);
+            solver->SetTolerance(1e-8);
+            solver->EnableDiagonalPreconditioner(true);
+            solver->SetVerbose(false);
+
+            system->SetSolverForceTolerance(1e-6);
             break;
         }
         default:

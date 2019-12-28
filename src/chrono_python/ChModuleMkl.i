@@ -46,8 +46,18 @@
 
 %{
 #include "chrono/solver/ChSolver.h"
+#include "chrono/solver/ChSolverVI.h"
+#include "chrono/solver/ChSolverLS.h"
+#include "chrono/solver/ChDirectSolverLS.h"
 #include "chrono/solver/ChIterativeSolver.h"
-#include "chrono/solver/ChSolverMINRES.h"
+#include "chrono/solver/ChIterativeSolverLS.h"
+#include "chrono/solver/ChIterativeSolverVI.h"
+
+//#include "chrono/solver/ChSolverPMINRES.h"
+#include "chrono/solver/ChSolverBB.h"
+#include "chrono/solver/ChSolverAPGD.h"
+#include "chrono/solver/ChSolverPSOR.h"
+#include "chrono/solver/ChSolverPJacobi.h"
 
 #include "chrono_mkl/ChApiMkl.h"
 #include "chrono_mkl/ChSolverMKL.h"

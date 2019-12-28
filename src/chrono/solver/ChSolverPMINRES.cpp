@@ -20,15 +20,12 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChSolverPMINRES)
 
-ChSolverPMINRES::ChSolverPMINRES(int mmax_iters, bool mwarm_start, double mtolerance)
-    : ChIterativeSolver(mmax_iters, mwarm_start, mtolerance, 0.2),
-      grad_diffstep(0.01),  // too small can cause numerical roundoff troubles!
+ChSolverPMINRES::ChSolverPMINRES()
+    : grad_diffstep(0.01),  // too small can cause numerical roundoff troubles!
       rel_tolerance(0.0),
-      diag_preconditioning(true) {}
+      r_proj_resid(1e30) {}
 
 double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
-    bool do_preconditioning = this->diag_preconditioning;
-
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
     std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
 
@@ -56,8 +53,7 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
     ChVectorDynamic<> mtmp(nc);
     ChVectorDynamic<> mDi(nc);
 
-    this->tot_iterations = 0;
-    double maxviolation = 0.;
+    m_iterations = 0;
 
     // Update auxiliary data in all constraints before starting,
     // that is: g_i=[Cq_i]*[invM_i]*[Cq_i]' and  [Eq_i]=[invM_i]*[Cq_i]'
@@ -124,11 +120,11 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
     sysd.FromVariablesToVector(mq, true);
 
     double rel_tol = this->rel_tolerance;
-    double abs_tol = this->tolerance;
+    double abs_tol = m_tolerance;
     double rel_tol_b = mb.lpNorm<Eigen::Infinity>() * rel_tol;
 
     // Initialize lambdas
-    if (warm_start)
+    if (m_warm_start)
         sysd.FromConstraintsToVector(ml);
     else
         ml.setZero();
@@ -146,7 +142,7 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
     mr = (mr - ml) / grad_diffstep;  // r = (P(l + diff*r) - l)/diff
 
     // p = Mi * r;
-    if (do_preconditioning)
+    if (m_use_precond)
         mp = mr.array() * mDi.array();
     else
         mp = mr;
@@ -169,9 +165,9 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
 
     std::vector<double> f_hist;
 
-    for (int iter = 0; iter < max_iterations; iter++) {
+    for (int iter = 0; iter < m_max_iterations; iter++) {
         // MNp = Mi*Np; % = Mi*N*p                  %% -- Precond
-        if (do_preconditioning)
+        if (m_use_precond)
             mMNp = mNp.array() * mDi.array();
         else
             mMNp = mNp;
@@ -206,10 +202,10 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
         sysd.ConstraintsProject(mr);     // r = P(l+diff*r)
         mr = (mr - ml) / grad_diffstep;  // r = (P(l+diff*r)-l)/diff
 
-        this->tot_iterations++;
+        m_iterations++;
 
         // Terminate iteration when the projected r is small, if (norm(r,2) <= max(rel_tol_b,abs_tol))
-        double r_proj_resid = mr.norm();
+        r_proj_resid = mr.norm();
         if (r_proj_resid < ChMax(rel_tol_b, abs_tol)) {
             if (verbose)
                 GetLog() << "Iter=" << iter << " P(r)-converged!  |P(r)|=" << r_proj_resid << "\n";
@@ -220,7 +216,7 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
         mz_old = mz;
 
         // z = Mi*r;                                 %% -- Precond
-        if (do_preconditioning)
+        if (m_use_precond)
             mz = mr.array() * mDi.array();
         else
             mz = mr;
@@ -280,20 +276,18 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
     if (verbose)
         GetLog() << "-----\n";
 
-    return maxviolation;
+    return r_proj_resid;
 }
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 
 double ChSolverPMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
-    bool do_preconditioning = this->diag_preconditioning;
-
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
     std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
     std::vector<ChKblock*>& mstiffness = sysd.GetKblocksList();
 
-    this->tot_iterations = 0;
+    m_iterations = 0;
 
     // Allocate auxiliary vectors;
 
@@ -303,7 +297,7 @@ double ChSolverPMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
 
     if (verbose)
         GetLog() << "\n-----Projected MINRES -supporting stiffness-, n.vars nx=" << nx
-                 << "  max.iters=" << max_iterations << "\n";
+                 << "  max.iters=" << m_max_iterations << "\n";
 
     ChVectorDynamic<> mx(nx);
     ChVectorDynamic<> md(nx);
@@ -317,9 +311,6 @@ double ChSolverPMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
     ChVectorDynamic<> mZMr_old(nx);
     ChVectorDynamic<> mtmp(nx);
     ChVectorDynamic<> mDi(nx);
-
-    this->tot_iterations = 0;
-    double maxviolation = 0.;
 
     //
     // --- Compute a diagonal (scaling) preconditioner for the KKT system:
@@ -345,7 +336,7 @@ double ChSolverPMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
 
     // Initialize the x vector of unknowns x ={q; -l} (if warm starting needed, initialize
     // x with current values of q and l in variables and constraints)
-    if (warm_start)
+    if (m_warm_start)
         sysd.FromUnknownsToVector(mx);
     else
         mx.setZero();
@@ -358,7 +349,7 @@ double ChSolverPMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
     //
 
     double rel_tol = this->rel_tolerance;
-    double abs_tol = this->tolerance;
+    double abs_tol = m_tolerance;
     double rel_tol_d = md.lpNorm<Eigen::Infinity>() * rel_tol;
 
     // Initial projection of mx   ***TO DO***?
@@ -368,7 +359,7 @@ double ChSolverPMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
     sysd.SystemProduct(mr, mx);  // r = Z*x
     mr = md - mr;                 // r =-Z*x+d
 
-    if (do_preconditioning)
+    if (m_use_precond)
         mp = mr.array() * mDi.array();
     else
         mp = mr;
@@ -386,9 +377,9 @@ double ChSolverPMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
     // THE LOOP
     //
 
-    for (int iter = 0; iter < max_iterations; iter++) {
+    for (int iter = 0; iter < m_max_iterations; iter++) {
         // MZp = Mi*Zp; % = Mi*Z*p                  %% -- Precond
-        if (do_preconditioning)
+        if (m_use_precond)
             mMZp = mZp.array() * mDi.array();
         else
             mMZp = mZp;
@@ -434,10 +425,10 @@ double ChSolverPMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
         sysd.SystemProduct(mr, mx);  // r = Z*x
         mr = md - mr;                 // r =-Z*x+d
 
-        this->tot_iterations++;
+        m_iterations++;
 
         // Terminate iteration when the projected r is small, if (norm(r,2) <= max(rel_tol_d,abs_tol))
-        double r_proj_resid = mr.norm();
+        r_proj_resid = mr.norm();
         if (r_proj_resid < ChMax(rel_tol_d, abs_tol)) {
             if (verbose)
                 GetLog() << "P(r)-converged! iter=" << iter << " |P(r)|=" << r_proj_resid << "\n";
@@ -448,7 +439,7 @@ double ChSolverPMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
         mz_old = mz;
 
         // z = Mi*r;                                 %% -- Precond
-        if (do_preconditioning)
+        if (m_use_precond)
             mz = mr.array() * mDi.array();
         else
             mz = mr;
@@ -498,29 +489,29 @@ double ChSolverPMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
     if (verbose)
         GetLog() << "residual: " << mr.norm() << " ---\n";
 
-    return maxviolation;
+    return r_proj_resid;
 }
 
 void ChSolverPMINRES::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChSolverPMINRES>();
     // serialize parent class
-    ChIterativeSolver::ArchiveOUT(marchive);
+    ChIterativeSolverVI::ArchiveOUT(marchive);
     // serialize all member data:
     marchive << CHNVP(grad_diffstep);
     marchive << CHNVP(rel_tolerance);
-    marchive << CHNVP(diag_preconditioning);
+    marchive << CHNVP(m_use_precond);
 }
 
 void ChSolverPMINRES::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead<ChSolverPMINRES>();
     // deserialize parent class
-    ChIterativeSolver::ArchiveIN(marchive);
+    ChIterativeSolverVI::ArchiveIN(marchive);
     // stream in all member data:
     marchive >> CHNVP(grad_diffstep);
     marchive >> CHNVP(rel_tolerance);
-    marchive >> CHNVP(diag_preconditioning);
+    marchive >> CHNVP(m_use_precond);
 }
 
 }  // end namespace chrono

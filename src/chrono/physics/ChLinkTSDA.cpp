@@ -436,8 +436,8 @@ void ChLinkTSDA::ConstraintsFbLoadForces(double factor) {
     Body1->Variables().Get_fb().segment(0, 3) += factor * m_Qforce.segment(0, 3);
     Body1->Variables().Get_fb().segment(3, 3) += factor * m_Qforce.segment(3, 3);
 
-    Body2->Variables().Get_fb().segment(0, 3) -= factor * m_Qforce.segment(6, 3);
-    Body2->Variables().Get_fb().segment(3, 3) -= factor * m_Qforce.segment(9, 3);
+    Body2->Variables().Get_fb().segment(0, 3) += factor * m_Qforce.segment(6, 3);
+    Body2->Variables().Get_fb().segment(3, 3) += factor * m_Qforce.segment(9, 3);
 }
 
 // -----------------------------------------------------------------------------

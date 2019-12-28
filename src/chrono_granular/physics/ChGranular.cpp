@@ -172,10 +172,11 @@ void ChSystemGranularSMC::packSphereDataPointers() {
         sphere_data->contact_history_map = contact_history_map.data();
     }
 
-    // force prefetch the sphere data pointer after update
-    int dev_ID;
-    gpuErrchk(cudaGetDevice(&dev_ID));
-    gpuErrchk(cudaMemPrefetchAsync(sphere_data, sizeof(*sphere_data), dev_ID));
+    // DN: had to comment this prefetch for now; crashing on Windows
+    //// force prefetch the sphere data pointer after update:
+    // int dev_ID;
+    // gpuErrchk(cudaGetDevice(&dev_ID));
+    // gpuErrchk(cudaMemPrefetchAsync(sphere_data, sizeof(*sphere_data), dev_ID));
 }
 
 void ChSystemGranularSMC::writeFile(std::string ofile) const {
@@ -431,7 +432,7 @@ void ChSystemGranularSMC::copyConstSphereDataToDevice() {
     gran_params->max_y_pos_unsigned = ((int64_t)gran_params->SD_size_Y_SU * gran_params->nSDs_Y);
     gran_params->max_z_pos_unsigned = ((int64_t)gran_params->SD_size_Z_SU * gran_params->nSDs_Z);
 
-    INFO_PRINTF("max pos is is %lu, %lu, %lu\n", gran_params->max_x_pos_unsigned, gran_params->max_y_pos_unsigned,
+    INFO_PRINTF("max pos is is %llu, %llu, %llu\n", gran_params->max_x_pos_unsigned, gran_params->max_y_pos_unsigned,
                 gran_params->max_z_pos_unsigned);
 
     int64_t true_max_pos = std::max(std::max(gran_params->max_x_pos_unsigned, gran_params->max_y_pos_unsigned),
@@ -746,8 +747,7 @@ void ChSystemGranularSMC::initialize() {
 }
 
 // Set particle positions in UU
-void ChSystemGranularSMC::setParticlePositions(const std::vector<ChVector<float>>& points,
-                                               const std::vector<ChVector<float>>& vels) {
+void ChSystemGranularSMC::setParticlePositions(const std::vector<float3>& points, const std::vector<float3>& vels) {
     user_sphere_positions = points;  // Copy points to class vector
     user_sphere_vel = vels;
 }
@@ -810,7 +810,7 @@ void ChSystemGranularSMC::partitionBD() {
 // Convert unit parameters from UU to SU
 void ChSystemGranularSMC::switchToSimUnits() {
     // Compute sphere mass, highest system stiffness, and gravity magnitude
-    double massSphere = (4. / 3.) * M_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU * sphere_density_UU;
+    double massSphere = (4. / 3.) * CH_C_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU * sphere_density_UU;
     double K_star = get_max_K();
     double magGravAcc = sqrt(X_accGrav * X_accGrav + Y_accGrav * Y_accGrav + Z_accGrav * Z_accGrav);
 

@@ -27,7 +27,6 @@
 #include <sstream>
 #include <string>
 #include <cstdint>
-#include "chrono/core/ChVector.h"
 #include "chrono_granular/ChGranularDefines.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_granular/utils/ChCudaMathUtils.cuh"
@@ -147,10 +146,10 @@ inline __device__ void figureOutTouchedSD(int64_t sphCenter_X_relative,
  * box. Usually, there is no sphere in this SD (THIS IS NOT IMPLEMENTED AS SUCH FOR NOW)
  *
  */
-template <unsigned int CUB_THREADS>  //!< Number of CUB threads engaged in block-collective CUB operations. Should be a
-                                     //!< multiple of 32
+template <unsigned int CUB_THREADS>  // Number of CUB threads engaged in block-collective CUB operations. Should be a
+                                     // multiple of 32
 __global__ void sphereBroadphase_dryrun(GranSphereDataPtr sphere_data,
-                                        unsigned int nSpheres,  //!< Number of spheres in the box
+                                        unsigned int nSpheres,  // Number of spheres in the box
                                         GranParamsPtr gran_params) {
     /// Set aside shared memory
     volatile __shared__ bool shMem_head_flags[CUB_THREADS * MAX_SDs_TOUCHED_BY_SPHERE];
@@ -226,10 +225,10 @@ __global__ void sphereBroadphase_dryrun(GranSphereDataPtr sphere_data,
     }
 }
 
-template <unsigned int CUB_THREADS>  //!< Number of CUB threads engaged in block-collective CUB operations. Should be a
-                                     //!< multiple of 32
+template <unsigned int CUB_THREADS>  // Number of CUB threads engaged in block-collective CUB operations. Should be a
+                                     // multiple of 32
 __global__ void sphereBroadphase(GranSphereDataPtr sphere_data,
-                                 unsigned int nSpheres,  //!< Number of spheres in the box
+                                 unsigned int nSpheres,  // Number of spheres in the box
                                  GranParamsPtr gran_params) {
     /// Set aside shared memory
     // SD component of offset into composite array
@@ -462,8 +461,8 @@ inline __device__ void applyGravity(float3& sphere_force, GranParamsPtr gran_par
 
 /// Compute forces on a sphere from walls, BCs, and gravity
 inline __device__ void applyExternalForces_frictionless(unsigned int ownerSD,
-                                                        const int3& sphPos_local,  //!< local X position of DE
-                                                        const float3& sphVel,      //!< Global X velocity of DE
+                                                        const int3& sphPos_local,  // local X position of DE
+                                                        const float3& sphVel,      // Global X velocity of DE
                                                         float3& sphere_force,
                                                         GranParamsPtr gran_params,
                                                         GranSphereDataPtr sphere_data,
@@ -509,8 +508,8 @@ inline __device__ void applyExternalForces_frictionless(unsigned int ownerSD,
 /// Compute forces on a sphere from walls, BCs, and gravity
 inline __device__ void applyExternalForces(unsigned int currSphereID,
                                            unsigned int ownerSD,
-                                           const int3& sphPos_local,  //!< Global X position of DE
-                                           const float3& sphVel,      //!< Global X velocity of DE
+                                           const int3& sphPos_local,  // Global X position of DE
+                                           const float3& sphVel,      // Global X velocity of DE
                                            const float3& sphOmega,
                                            float3& sphere_force,
                                            float3& sphere_ang_acc,

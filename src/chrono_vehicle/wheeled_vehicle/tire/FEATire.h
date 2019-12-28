@@ -30,7 +30,7 @@ namespace vehicle {
 /// @addtogroup vehicle_wheeled_tire
 /// @{
 
-/// ANCF tire constructed with data from file (JSON format).
+/// Co-rotational FEA tire constructed with data from file (JSON format).
 class CH_VEHICLE_API FEATire : public ChFEATire {
   public:
     FEATire(const std::string& filename);

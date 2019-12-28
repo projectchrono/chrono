@@ -27,11 +27,16 @@ namespace fea {
 /// @addtogroup fea_elements
 /// @{
 
+struct ChStrainStress3D {
+    ChVectorN<double, 6> strain;
+    ChVectorN<double, 6> stress;
+};
+
 /// Base class for all finite elements, that can be used in the ChMesh physics item.
 class ChApi ChElementBase {
   public:
-    ChElementBase(){};
-    virtual ~ChElementBase(){}
+    ChElementBase() {}
+    virtual ~ChElementBase() {}
 
     /// Gets the number of nodes used by this element.
     virtual int GetNnodes() = 0;
@@ -85,7 +90,7 @@ class ChApi ChElementBase {
 
 	/// This is optionally implemented if there is some internal state
 	/// that requires integration.
-	virtual void EleDoIntegration() {};
+	virtual void EleDoIntegration() {}
 
     /// Adds the internal forces (pasted at global nodes offsets) into
     /// a global vector R, multiplied by a scaling factor c, as

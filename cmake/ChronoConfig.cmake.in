@@ -30,7 +30,7 @@
 # CHRONO_VEHICLE_DATA_DIR
 #       path to the Chrono::Vehicle data directory
 # CHRONO_FSI_DATA_DIR
-#       path to the Chrono::fsi data directory
+#       path to the Chrono::FSI data directory
 # 
 # In addition, for each requested component [COMPONENT], the following variable
 # is set to true (ON) or false (OFF):
@@ -179,6 +179,8 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
 
     elseif(${COMPONENT_UPPER} MATCHES "GRANULAR")
  
+      set(CHRONO_CXX_FLAGS "${CHRONO_CXX_FLAGS} @CH_GRANULAR_CXX_FLAGS@")
+
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_GRANULAR_INCLUDES@")
       list(APPEND CHRONO_LIB_NAMES "ChronoEngine_granular")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_granular.dll")
@@ -306,7 +308,7 @@ message(STATUS "   CHRONO_DLL_NAMES         (Chrono DLL names): ${CHRONO_DLL_NAM
 message(STATUS "   CHRONO_DLLS              (Chrono DLLs): ${CHRONO_DLLS}")
 message(STATUS "   CHRONO_DATA_DIR          (Path to Chrono data folder): ${CHRONO_DATA_DIR}")
 message(STATUS "   CHRONO_VEHICLE_DATA_DIR  (Path to Chrono::Vehicle data folder): ${CHRONO_VEHICLE_DATA_DIR}")
-message(STATUS "   CHRONO_FSI_DATA_DIR      (Path to Chrono::fsi data folder): ${CHRONO_FSI_DATA_DIR}")
+message(STATUS "   CHRONO_FSI_DATA_DIR      (Path to Chrono::FSI data folder): ${CHRONO_FSI_DATA_DIR}")
 
 #===============================================================================
 # Provide a CMake function which adds a custom command (COPY_DLLS), invoked

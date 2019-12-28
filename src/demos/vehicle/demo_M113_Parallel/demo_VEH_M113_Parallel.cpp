@@ -166,7 +166,7 @@ double CreateParticles(ChSystem* system) {
 
     // Create a particle generator and a mixture entirely made out of spheres
     utils::Generator gen(system);
-    std::shared_ptr<utils::MixtureIngredient> m1 = gen.AddMixtureIngredient(utils::SPHERE, 1.0);
+    std::shared_ptr<utils::MixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
     m1->setDefaultMaterial(mat_g);
     m1->setDefaultDensity(rho_g);
     m1->setDefaultSize(r_g);
@@ -180,7 +180,7 @@ double CreateParticles(ChSystem* system) {
     ChVector<> center(0, 0, 2 * r);
 
     while (gen.getTotalNumBodies() < num_particles) {
-        gen.createObjectsBox(utils::POISSON_DISK, 2 * r, center, hdims);
+        gen.createObjectsBox(utils::SamplingType::POISSON_DISK, 2 * r, center, hdims);
         center.z() += 2 * r;
     }
 
@@ -264,14 +264,7 @@ int main(int argc, char* argv[]) {
 
 #ifdef USE_SEQ
 
-    ////system->SetSolverType(ChSolver::Type::MINRES);
-    system->SetMaxItersSolverSpeed(50);
-    system->SetMaxItersSolverStab(50);
-    ////system->SetTol(0);
-    ////system->SetMaxPenetrationRecoverySpeed(1.5);
-    ////system->SetMinBounceSpeed(2.0);
-    ////system->SetSolverOverrelaxationParam(0.8);
-    ////system->SetSolverSharpnessParam(1.0);
+    system->SetSolverMaxIterations(50);
 
 #else
 
@@ -279,7 +272,6 @@ int main(int argc, char* argv[]) {
     int max_threads = CHOMPfunctions::GetNumProcs();
     if (threads > max_threads)
         threads = max_threads;
-    system->SetParallelThreadNumber(threads);
     CHOMPfunctions::SetNumThreads(threads);
     std::cout << "Using " << threads << " threads" << std::endl;
 

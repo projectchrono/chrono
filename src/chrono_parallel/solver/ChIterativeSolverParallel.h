@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "chrono/solver/ChIterativeSolver.h"
+#include "chrono/solver/ChIterativeSolverVI.h"
 
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/ChDataManager.h"
@@ -35,12 +35,12 @@ namespace chrono {
 /// @{
 
 /// Base class for all iterative solvers.
-class CH_PARALLEL_API ChIterativeSolverParallel : public ChIterativeSolver {
+class CH_PARALLEL_API ChIterativeSolverParallel : public ChIterativeSolverVI {
   public:
     virtual ~ChIterativeSolverParallel();
 
     /// Each child class must define its own solve method.
-    virtual double Solve(ChSystemDescriptor& sysd) { return 0; }
+    virtual double Solve(ChSystemDescriptor& sysd) override { return 0; }
     /// Similarly, the run timestep function needs to be defined.
     virtual void RunTimeStep() = 0;
     /// This function computes the new velocities based on the lagrange multipliers.
@@ -53,7 +53,8 @@ class CH_PARALLEL_API ChIterativeSolverParallel : public ChIterativeSolver {
     /// Solves just the bilaterals so that they can be warm started.
     void PerformStabilization();
 
-    real GetResidual();
+    real GetResidual() const;
+    virtual double GetError() const override { return (double)GetResidual(); }
 
     ChParallelDataManager* data_manager;
     ChSolverParallel* solver;

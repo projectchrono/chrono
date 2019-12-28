@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include "chrono/ChConfig.h"
+#include "chrono/solver/ChSolverPSOR.h"
 #include "chrono/utils/ChBenchmark.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -98,14 +99,14 @@ M113AccTest<EnumClass, SHOE_TYPE>::M113AccTest() : m_step(1e-3) {
     m_driver->Initialize();
 
     // Solver settings
-    m_m113->GetSystem()->SetSolverType(ChSolver::Type::SOR);
-    m_m113->GetSystem()->SetMaxItersSolverSpeed(50);
-    m_m113->GetSystem()->SetMaxItersSolverStab(50);
-    m_m113->GetSystem()->SetTol(0);
+    auto solver = chrono_types::make_shared<ChSolverPSOR>();
+    solver->SetMaxIterations(50);
+    solver->SetOmega(0.8);
+    solver->SetSharpnessLambda(1.0);
+    m_m113->GetSystem()->SetSolver(solver);
+
     m_m113->GetSystem()->SetMaxPenetrationRecoverySpeed(1.5);
     m_m113->GetSystem()->SetMinBounceSpeed(2.0);
-    m_m113->GetSystem()->SetSolverOverrelaxationParam(0.8);
-    m_m113->GetSystem()->SetSolverSharpnessParam(1.0);
 
     m_shoeL.resize(m_m113->GetNumTrackShoes(LEFT));
     m_shoeR.resize(m_m113->GetNumTrackShoes(RIGHT));

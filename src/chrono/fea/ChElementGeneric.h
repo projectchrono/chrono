@@ -37,8 +37,8 @@ class ChApi ChElementGeneric : public ChElementBase {
     ChKblockGeneric Kmatr;
 
   public:
-    ChElementGeneric(){};
-    virtual ~ChElementGeneric(){};
+    ChElementGeneric() {}
+    virtual ~ChElementGeneric() {}
 
     /// Access the proxy to stiffness, for sparse solver
     ChKblockGeneric& Kstiffness() { return Kmatr; }

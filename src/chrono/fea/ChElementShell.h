@@ -25,11 +25,8 @@ namespace fea {
 
 /// Base class for most structural elements of 'shell' type.
 class ChApi ChElementShell : public ChElementGeneric {
-  protected:
-    double mass;
-
   public:
-    ChElementShell() {}
+    ChElementShell() : mass(0) {}
 
     virtual ~ChElementShell() {}
 
@@ -76,9 +73,13 @@ class ChApi ChElementShell : public ChElementGeneric {
                                                 ChVector<>& Mtorque) = 0;
     */
 
+
 	/// Return false if quadrilateral shell - hence u,v parametric coordinates assumed in -1..+1,
 	/// return true if triangular shell - hence u,v are triangle natural coordinates assumed in 0..+1
 	virtual bool IsTriangleShell() { return false; }
+
+  protected:
+    double mass;
 
 };
 

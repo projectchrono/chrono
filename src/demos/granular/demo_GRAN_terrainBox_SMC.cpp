@@ -17,11 +17,9 @@
 
 #include <iostream>
 #include <string>
-#ifdef _WINDOWS
-#define _USE_MATH_DEFINES
-#include <math.h>
-#endif
+#include <cmath>
 #include "chrono_thirdparty/filesystem/path.h"
+#include "chrono_granular/api/ChApiGranularChrono.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_granular/utils/ChGranularJsonParser.h"
 #include "ChGranularDemoUtils.hpp"
@@ -29,9 +27,6 @@
 
 using namespace chrono;
 using namespace chrono::granular;
-using std::cout;
-using std::endl;
-using std::string;
 
 // expected number of args for param sweep
 constexpr int num_args_full = 6;
@@ -39,9 +34,10 @@ constexpr int num_args_full = 6;
 // -----------------------------------------------------------------------------
 // Show command line usage
 // -----------------------------------------------------------------------------
-void ShowUsage() {
-    cout << "usage: ./demo_GRAN_terrainBox_SMC <json_file> [<radius> <run_mode> <box_width> <output_dir>]" << endl;
-    cout << "must have either 1 or " << num_args_full - 1 << " arguments" << endl;
+void ShowUsage(std::string name) {
+    std::cout << "usage: " + name + " <json_file> [<radius> <run_mode> <box_width> <output_dir>]"
+              << std::endl;
+    std::cout << "must have either 1 or " << num_args_full - 1 << " arguments" << std::endl;
 }
 
 enum run_mode { FRICTIONLESS = 0, ONE_STEP = 1, MULTI_STEP = 2 };
@@ -51,7 +47,7 @@ int main(int argc, char* argv[]) {
 
     // Some of the default values are overwritten by user via command line
     if (argc < 2 || argc > 2 && argc != num_args_full || ParseJSON(argv[1], params) == false) {
-        ShowUsage();
+        ShowUsage(argv[0]);
         return 1;
     }
 
@@ -60,7 +56,7 @@ int main(int argc, char* argv[]) {
         params.run_mode = std::atoi(argv[3]);
         params.box_Y = std::atof(argv[4]);
         params.box_X = params.box_Y;
-        params.output_dir = string(argv[5]);
+        params.output_dir = std::string(argv[5]);
         printf("new parameters: r is %f, run_mode is %d, width is %f, %s\n", params.sphere_radius, params.run_mode,
                params.box_Y, params.output_dir.c_str());
     }
@@ -68,6 +64,10 @@ int main(int argc, char* argv[]) {
     // Setup simulation
     ChSystemGranularSMC gran_sys(params.sphere_radius, params.sphere_density,
                                  make_float3(params.box_X, params.box_Y, params.box_Z));
+
+    ChGranularSMC_API apiSMC;
+    apiSMC.setGranSystem(&gran_sys);
+
     gran_sys.setPsiFactors(params.psi_T, params.psi_L);
 
     gran_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
         body_points = sampler.SampleBox(center, hdims);
     }
 
-    gran_sys.setParticlePositions(body_points);
+    apiSMC.setElemsPositions(body_points);
 
     switch (params.run_mode) {
         case run_mode::MULTI_STEP:
@@ -142,16 +142,16 @@ int main(int argc, char* argv[]) {
     // write an initial frame
     char filename[100];
     sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
-    gran_sys.writeFile(string(filename));
+    gran_sys.writeFile(std::string(filename));
 
-    cout << "frame step is " << frame_step << endl;
+    std::cout << "frame step is " << frame_step << std::endl;
 
     while (curr_time < params.time_end) {
         gran_sys.advance_simulation(frame_step);
         curr_time += frame_step;
         printf("rendering frame %u\n", currframe);
         sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
-        gran_sys.writeFile(string(filename));
+        gran_sys.writeFile(std::string(filename));
     }
 
     return 0;

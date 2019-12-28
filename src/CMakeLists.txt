@@ -496,7 +496,6 @@ add_subdirectory(chrono_parallel)
 add_subdirectory(chrono_granular)
 add_subdirectory(chrono_opengl)
 add_subdirectory(chrono_distributed)
-#add_subdirectory(chrono_ogre)
 add_subdirectory(chrono_vehicle)
 add_subdirectory(chrono_fsi)
 

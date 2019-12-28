@@ -57,9 +57,17 @@ void CityBus_Vehicle::Create(bool fixed, ChassisCollisionType chassis_collision_
     m_axles[0]->m_wheels.resize(2);
     m_axles[0]->m_wheels[0] = chrono_types::make_shared<CityBus_WheelLeft>("Wheel_FL");
     m_axles[0]->m_wheels[1] = chrono_types::make_shared<CityBus_WheelRight>("Wheel_FR");
+    /* Solid axle with two single wheels/tires
     m_axles[1]->m_wheels.resize(2);
     m_axles[1]->m_wheels[0] = chrono_types::make_shared<CityBus_WheelLeft>("Wheel_RL");
     m_axles[1]->m_wheels[1] = chrono_types::make_shared<CityBus_WheelRight>("Wheel_RR");
+    */
+    // Solid axle with two twin wheels/tires
+    m_axles[1]->m_wheels.resize(4);
+    m_axles[1]->m_wheels[0] = chrono_types::make_shared<CityBus_WheelLeft>("Wheel_RLi");
+    m_axles[1]->m_wheels[1] = chrono_types::make_shared<CityBus_WheelRight>("Wheel_RRi");
+    m_axles[1]->m_wheels[2] = chrono_types::make_shared<CityBus_WheelLeft>("Wheel_RLo");
+    m_axles[1]->m_wheels[3] = chrono_types::make_shared<CityBus_WheelRight>("Wheel_RRo");
 
     m_axles[0]->m_brake_left = chrono_types::make_shared<CityBus_BrakeSimple>("Brake_FL");
     m_axles[0]->m_brake_right = chrono_types::make_shared<CityBus_BrakeSimple>("Brake_FR");
@@ -91,8 +99,9 @@ void CityBus_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisF
     // Initialize the axle subsystems.
     m_axles[0]->Initialize(m_chassis->GetBody(), ChVector<>(0, 0, .545), ChVector<>(0),
                            m_steerings[0]->GetSteeringLink(), 0, 0.0, m_omega[0], m_omega[1]);
+    const double twin_tire_dist = 0.33528;  // Michelin for 305/85 R22.5
     m_axles[1]->Initialize(m_chassis->GetBody(), ChVector<>(-7.184, 0, .545), ChVector<>(0), m_chassis->GetBody(), -1,
-                           0.0, m_omega[2], m_omega[3]);
+                           twin_tire_dist, m_omega[2], m_omega[3]);
 
     // Initialize the driveline subsystem (RWD)
     std::vector<int> driven_susp_indexes = {1};

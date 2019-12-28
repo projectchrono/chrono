@@ -119,7 +119,7 @@ class CH_VEHICLE_API ChVehicle {
     ChVector<> GetDriverPos() const { return m_chassis->GetDriverPos(); }
 
     /// Enable output for this vehicle system.
-    void SetOutput(ChVehicleOutput::Type type,   ///< [int] type of ooutput DB
+    void SetOutput(ChVehicleOutput::Type type,   ///< [int] type of output DB
                    const std::string& out_dir,   ///< [in] output directory name
                    const std::string& out_name,  ///< [in] rootname of output file
                    double output_step            ///< [in] interval between output times

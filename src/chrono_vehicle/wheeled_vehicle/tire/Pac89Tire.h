@@ -29,7 +29,7 @@
 namespace chrono {
 namespace vehicle {
 
-/// @addtogroup vehicle_models_hmmwv
+/// @addtogroup vehicle_wheeled_tire
 /// @{
 
 /// PAC89 tire model from JSON file.
@@ -77,7 +77,7 @@ class CH_VEHICLE_API Pac89Tire : public ChPac89Tire {
     std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
 };
 
-/// @} vehicle_models_hmmwv
+/// @} vehicle_wheeled_tire
 
 }  // namespace vehicle
 }  // end namespace chrono

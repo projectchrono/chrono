@@ -73,7 +73,6 @@ class CH_FSI_API ChFsiInterface : public ChFsiGeneral {
                    FsiMeshDataH* other_fsiMeshH,
                    chrono::ChSystem* other_mphysicalSystem,
                    std::vector<std::shared_ptr<chrono::ChBody>>* other_fsiBodeisPtr,
-
                    std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>* other_fsiNodesPtr,
                    std::vector<std::shared_ptr<fea::ChElementCableANCF>>* other_fsiCablesPtr,
                    std::vector<std::shared_ptr<fea::ChElementShellANCF>>* other_fsiShellsPtr,

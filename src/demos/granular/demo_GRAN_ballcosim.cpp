@@ -14,39 +14,32 @@
 // Chrono::Granular demo using SMC method. A body whose geometry is described
 // by an OBJ file is time-integrated in Chrono and interacts with a Granular
 // wave tank in Chrono::Granular via the co-simulation framework.
-//
-// Pass param file: data/granular/ballcosim/gran_ballcosim.json
 // =============================================================================
 
 #include <iostream>
 #include <vector>
 #include <string>
+#include "chrono/core/ChGlobal.h"
 #include "chrono_thirdparty/filesystem/path.h"
-#include "chrono/core/ChTimer.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChForce.h"
 #include "chrono/utils/ChUtilsSamplers.h"
 #include "chrono/timestepper/ChTimestepper.h"
+#include "chrono_granular/api/ChApiGranularChrono.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_granular/physics/ChGranularTriMesh.h"
 #include "chrono/utils/ChUtilsCreators.h"
-
 #include "chrono_granular/utils/ChGranularJsonParser.h"
 
 using namespace chrono;
 using namespace chrono::granular;
 
-using std::cout;
-using std::endl;
-using std::string;
-using std::vector;
-
-void ShowUsage() {
-    cout << "usage: ./metrics_GRAN_ballcosim <json_file>" << endl;
+void ShowUsage(std::string name) {
+    std::cout << "usage: " + name + " <json_file>" << std::endl;
 }
 
-void writeMeshFrames(std::ostringstream& outstream, ChBody& body, string obj_name, float mesh_scaling) {
+void writeMeshFrames(std::ostringstream& outstream, ChBody& body, std::string obj_name, float mesh_scaling) {
     outstream << obj_name << ",";
 
     // Get frame position
@@ -79,16 +72,16 @@ void writeMeshFrames(std::ostringstream& outstream, ChBody& body, string obj_nam
 int main(int argc, char* argv[]) {
     sim_param_holder params;
     if (argc != 2 || ParseJSON(argv[1], params) == false) {
-        ShowUsage();
+        ShowUsage(argv[0]);
         return 1;
     }
 
     double iteration_step = params.step_size;
 
-    // Setup granular simulation
-    ChSystemGranularSMC_trimesh gran_sys(params.sphere_radius, params.sphere_density,
-                                         make_float3(params.box_X, params.box_Y, params.box_Z));
+    ChGranularChronoTriMeshAPI apiSMC_TriMesh(params.sphere_radius, params.sphere_density,
+                                              make_float3(params.box_X, params.box_Y, params.box_Z));
 
+    ChSystemGranularSMC_trimesh& gran_sys = apiSMC_TriMesh.getGranSystemSMC_TriMesh();
     double fill_bottom = -params.box_Z / 2.0;
     double fill_top = params.box_Z / 4.0;
 
@@ -98,25 +91,25 @@ int main(int argc, char* argv[]) {
     // leave a 4cm margin at edges of sampling
     ChVector<> hdims(params.box_X / 2 - 4.0, params.box_Y / 2 - 4.0, 0);
     ChVector<> center(0, 0, fill_bottom + 2.0 * params.sphere_radius);
-    vector<ChVector<float>> body_points;
+    std::vector<ChVector<float>> body_points;
 
     // Shift up for bottom of box
     center.z() += 3 * params.sphere_radius;
     while (center.z() < fill_top) {
-        cout << "Create layer at " << center.z() << endl;
+        std::cout << "Create layer at " << center.z() << std::endl;
         auto points = sampler.SampleBox(center, hdims);
         body_points.insert(body_points.end(), points.begin(), points.end());
         center.z() += 2.05 * params.sphere_radius;
     }
 
-    gran_sys.setParticlePositions(body_points);
+    apiSMC_TriMesh.setElemsPositions(body_points);
 
     gran_sys.set_BD_Fixed(true);
     std::function<double3(float)> pos_func_wave = [&params](float t) {
         double3 pos = {0, 0, 0};
 
         double t0 = 0.5;
-        double freq = M_PI / 4;
+        double freq = CH_C_PI / 4;
 
         if (t > t0) {
             pos.x = 0.1 * params.box_X * std::sin((t - t0) * freq);
@@ -154,30 +147,30 @@ int main(int argc, char* argv[]) {
     gran_sys.set_static_friction_coeff_SPH2WALL(params.static_friction_coeffS2W);
     gran_sys.set_static_friction_coeff_SPH2MESH(params.static_friction_coeffS2M);
 
-    string mesh_filename("data/granular/ballcosim/sphere.obj");
-    vector<string> mesh_filenames(1, mesh_filename);
+    std::string mesh_filename(GetChronoDataFile("granular/demo_GRAN_ballcosim/sphere.obj"));
+    std::vector<string> mesh_filenames(1, mesh_filename);
 
-    vector<float3> mesh_translations(1, make_float3(0, 0, 0));
+    std::vector<float3> mesh_translations(1, make_float3(0, 0, 0));
 
     float ball_radius = 20;
-    vector<ChMatrix33<float>> mesh_rotscales(1, ChMatrix33<float>(ball_radius));
+    std::vector<ChMatrix33<float>> mesh_rotscales(1, ChMatrix33<float>(ball_radius));
 
     float ball_density = params.sphere_density / 100;
     float ball_mass = 4.0 / 3.0 * CH_C_PI * ball_radius * ball_radius * ball_radius * ball_density;
-    vector<float> mesh_masses(1, ball_mass);
+    std::vector<float> mesh_masses(1, ball_mass);
 
-    vector<bool> mesh_inflated(1, false);
-    vector<float> mesh_inflation_radii(1, 0);
+    std::vector<bool> mesh_inflated(1, false);
+    std::vector<float> mesh_inflation_radii(1, 0);
 
-    gran_sys.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses, mesh_inflated,
-                         mesh_inflation_radii);
+    apiSMC_TriMesh.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses, mesh_inflated,
+                               mesh_inflation_radii);
 
     gran_sys.setOutputMode(params.write_mode);
     gran_sys.setVerbose(params.verbose);
     filesystem::create_directory(filesystem::path(params.output_dir));
 
     unsigned int nSoupFamilies = gran_sys.getNumTriangleFamilies();
-    cout << nSoupFamilies << " soup families" << endl;
+    std::cout << nSoupFamilies << " soup families" << std::endl;
     double* meshPosRot = new double[7 * nSoupFamilies];
     float* meshVel = new float[6 * nSoupFamilies]();
 
@@ -198,7 +191,7 @@ int main(int argc, char* argv[]) {
     ball_body->SetPos(ball_initial_pos);
     sys_ball.AddBody(ball_body);
     unsigned int out_fps = 50;
-    cout << "Rendering at " << out_fps << "FPS" << endl;
+    std::cout << "Rendering at " << out_fps << "FPS" << std::endl;
 
     unsigned int out_steps = 1 / (out_fps * iteration_step);
 
@@ -242,12 +235,12 @@ int main(int argc, char* argv[]) {
         ball_body->Accumulate_torque(ChVector<>(ball_force[3], ball_force[4], ball_force[5]), false);
 
         if (curr_step % out_steps == 0) {
-            cout << "Rendering frame " << currframe << endl;
+            std::cout << "Rendering frame " << currframe << std::endl;
             char filename[100];
             sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
-            gran_sys.writeFile(string(filename));
+            gran_sys.writeFile(std::string(filename));
 
-            string mesh_output = string(filename) + "_meshframes.csv";
+            std::string mesh_output = std::string(filename) + "_meshframes.csv";
             std::ofstream meshfile(mesh_output);
             std::ostringstream outstream;
             outstream << "mesh_name,dx,dy,dz,x1,x2,x3,y1,y2,y3,z1,z2,z3,sx,sy,sz\n";
@@ -259,7 +252,7 @@ int main(int argc, char* argv[]) {
     clock_t end = std::clock();
     double total_time = ((double)(end - start)) / CLOCKS_PER_SEC;
 
-    cout << "Time: " << total_time << " seconds" << endl;
+    std::cout << "Time: " << total_time << " seconds" << std::endl;
 
     delete[] meshPosRot;
     delete[] meshVel;

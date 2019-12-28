@@ -282,10 +282,8 @@ int main(int argc, char* argv[]) {
 
     mphysicalSystem.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_PROJECTED);
 
-    mphysicalSystem.SetSolverType(ChSolver::Type::SOR);
-
-    mphysicalSystem.SetMaxItersSolverSpeed(30);
-    mphysicalSystem.SetMaxItersSolverStab(30);
+    mphysicalSystem.SetSolverType(ChSolver::Type::PSOR);
+    mphysicalSystem.SetSolverMaxIterations(30);
 
     //
     // THE SOFT-REAL-TIME CYCLE

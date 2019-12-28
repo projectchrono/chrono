@@ -26,8 +26,11 @@
 #include "chrono_models/vehicle/m113/M113_SimplePowertrain.h"
 #include "chrono_models/vehicle/m113/M113_Vehicle.h"
 
+#ifdef CHRONO_IRRLICHT
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
+#define USE_IRRLICHT
+#endif
 
 #ifdef CHRONO_MUMPS
 #include "chrono_mumps/ChSolverMumps.h"
@@ -38,8 +41,6 @@
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
-
-#define USE_IRRLICHT
 
 using namespace chrono;
 using namespace chrono::vehicle;

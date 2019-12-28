@@ -29,7 +29,7 @@ namespace chrono {
 namespace vehicle {
 namespace citybus {
 
-/// @addtogroup vehicle_models_hmmwv
+/// @addtogroup vehicle_models_citybus
 /// @{
 
 /// PAC89 tire model for the CityBus vehicle.
@@ -64,7 +64,7 @@ class CH_MODELS_API CityBus_Pac02Tire : public ChPac02Tire {
     std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
 };
 
-/// @} vehicle_models_hmmwv
+/// @} vehicle_models_citybus
 
 }  // namespace citybus
 }  // end namespace vehicle
