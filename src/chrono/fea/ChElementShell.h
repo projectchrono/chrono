@@ -74,6 +74,11 @@ class ChApi ChElementShell : public ChElementGeneric {
                                                 ChVector<>& Fforce,
                                                 ChVector<>& Mtorque) = 0;
     */
+
+	/// Return false if quadrilateral shell - hence u,v parametric coordinates assumed in -1..+1,
+	/// return true if triangular shell - hence u,v are triangle natural coordinates assumed in 0..+1
+	virtual bool IsTriangleShell() { return false; }
+
 };
 
 /// @} fea_elements
