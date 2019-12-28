@@ -46,6 +46,7 @@ set(FEA_DEMOS ${FEA_DEMOS}
     demo_FEA_cablesMKL
     demo_FEA_abaqus_wheel
     demo_FEA_shells
+	demo_FEA_shellsBST
     demo_FEA_ContactANCF
     demo_FEA_Brick9
     demo_FEA_beamsIGA
