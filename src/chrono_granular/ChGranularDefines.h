@@ -32,7 +32,7 @@ constexpr size_t NUM_RESERVED_BC_IDS = 6;
 
 /// At most 8 domains are touched by a sphere
 #define MAX_SDs_TOUCHED_BY_SPHERE 8
-/// At most 8 domains are touched by a sphere
+/// At most 12 domains are touched by a sphere
 #define MAX_SPHERES_TOUCHED_BY_SPHERE 12
 /// The L-size of an SD should contain, on average, about these many spheres
 #define AVERAGE_SPHERES_PER_SD_X_DIR 3.5
