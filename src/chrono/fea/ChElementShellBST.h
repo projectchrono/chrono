@@ -40,6 +40,7 @@ namespace fea {
 ///
 /// The node numbering is as in the following scheme, where 0-1-2 are the nodes of the 
 /// triangle, and 3-4-5 are the nodes from neighbouring elements in the mesh:
+/// <pre>
 ///         
 ///          2     
 ///   4 o----o---o 3
@@ -51,7 +52,7 @@ namespace fea {
 ///            \ |
 ///             \|
 ///              o 5
-///
+/// </pre>
 class ChApi ChElementShellBST : public ChElementShell , public ChLoadableUV, public ChLoadableUVW 
 {
   public:
