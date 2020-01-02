@@ -382,7 +382,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
 						n_vcols += idp;
 						n_vnorms += idp;
 					}
-					n_triangles += (shell_resolution - 1) * (shell_resolution - 1);  // n. triangle faces
+					n_triangles += 2*(shell_resolution - 1) * (shell_resolution - 1);  // n. triangle faces (double as twin-triangles for back lightning)
 				}
             }
 
@@ -894,15 +894,17 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
 							}
 						}
 				}
-
+				
+				
 				if (myshell->IsTriangleShell()) {
 
+					need_automatic_smoothing = false; 
+					
 					int triangle_pt = 0;
 					for (int iu = 0; iu < shell_resolution; ++iu) {
 						for (int iv = 0; iv + iu < shell_resolution; ++iv) {
-							double u = (iu / (shell_resolution - 1));
-							double v = (iv / (shell_resolution - 1));
-
+							double u = ((double)iu / (double)(shell_resolution - 1));
+							double v = ((double)iv / (double)(shell_resolution - 1));
 							ChVector<> P;
 							myshell->EvaluateSectionPoint(u, v, P);  // compute abs. pos and rot of section plane
 
@@ -930,39 +932,76 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
 
 							++i_vnorms;
 
-							if (triangle_pt > 0 && iu < shell_resolution-1) {
+							if (iu < shell_resolution-1) {
 								ChVector<int> ivert_offset(ivert_el, ivert_el, ivert_el);
+								ChVector<int> inorm_offset(inorm_el, inorm_el, inorm_el);
 
-								trianglemesh->getIndicesVertexes()[i_triindex] =
-									ChVector<int>(triangle_pt - 1,
-										triangle_pt,
-										triangle_pt + shell_resolution - iu - 1
-										) +
-									ivert_offset;
-								++i_triindex;
-
-								if (iv > 1) {
+								if (iv>0) {
 									trianglemesh->getIndicesVertexes()[i_triindex] =
-										ChVector<int>(triangle_pt - 1,
-											triangle_pt + shell_resolution - iu - 1,
-											triangle_pt + shell_resolution - iu - 2) +
+										ChVector<int>(
+											triangle_pt,
+											triangle_pt - 1,
+											triangle_pt + shell_resolution - iu - 1
+											) +
 										ivert_offset;
+									trianglemesh->getIndicesVertexes()[i_triindex+1] =
+										ChVector<int>(
+											triangle_pt - 1,
+											triangle_pt,
+											triangle_pt + shell_resolution - iu - 1
+											) +
+										ivert_offset;
+
+									if (this->smooth_faces) {
+										ChVector<int> inorm_offset = ChVector<int>(inorm_el, inorm_el, inorm_el);
+										trianglemesh->getIndicesNormals()[i_triindex] =
+											ChVector<int>(
+												triangle_pt,
+												triangle_pt - 1,
+												triangle_pt + shell_resolution - iu - 1) +
+											inorm_offset;
+										trianglemesh->getIndicesNormals()[i_triindex+1] =
+											ChVector<int>(
+												triangle_pt - 1,
+												triangle_pt,
+												triangle_pt + shell_resolution - iu - 1) +
+											inorm_offset;
+									}
+									++i_triindex;
 									++i_triindex;
 								}
 
-								/*
-								if (this->smooth_faces) {
-									ChVector<int> inorm_offset = ChVector<int>(inorm_el, inorm_el, inorm_el);
-									trianglemesh->getIndicesNormals()[i_triindex - 2] =
-										ChVector<int>(iu * shell_resolution + iv, (iu - 1) * shell_resolution + iv,
-											iu * shell_resolution + iv - 1) +
-										inorm_offset;
-									trianglemesh->getIndicesNormals()[i_triindex - 1] =
-										ChVector<int>(iu * shell_resolution + iv - 1, (iu - 1) * shell_resolution + iv,
-										(iu - 1) * shell_resolution + iv - 1) +
-										inorm_offset;
+								if (iv > 1) {
+									trianglemesh->getIndicesVertexes()[i_triindex] =
+										ChVector<int>(
+											triangle_pt - 1,
+											triangle_pt + shell_resolution - iu - 2,
+											triangle_pt + shell_resolution - iu - 1) +
+										ivert_offset;
+									trianglemesh->getIndicesVertexes()[i_triindex+1] =
+										ChVector<int>(
+											triangle_pt - 1,
+											triangle_pt + shell_resolution - iu - 1,
+											triangle_pt + shell_resolution - iu - 2) +
+										ivert_offset;
+
+									if (this->smooth_faces) {
+										ChVector<int> inorm_offset = ChVector<int>(inorm_el, inorm_el, inorm_el);
+										trianglemesh->getIndicesNormals()[i_triindex] =
+											ChVector<int>(triangle_pt - 1,
+														  triangle_pt + shell_resolution - iu - 2,
+														  triangle_pt + shell_resolution - iu - 1) +
+											inorm_offset;
+										trianglemesh->getIndicesNormals()[i_triindex+1] =
+											ChVector<int>(triangle_pt - 1,
+														  triangle_pt + shell_resolution - iu - 1,
+														  triangle_pt + shell_resolution - iu - 2) +
+											inorm_offset;
+									}
+									++i_triindex;
+									++i_triindex;
 								}
-								*/
+
 							}
 							++triangle_pt;
 
