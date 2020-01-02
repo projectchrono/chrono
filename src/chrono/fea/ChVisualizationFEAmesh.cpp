@@ -50,6 +50,7 @@ ChVisualizationFEAmesh::ChVisualizationFEAmesh(ChMesh& mymesh) {
     symbols_thickness = 0.002;
 
     wireframe = false;
+	backface_cull = false;
 
     zbuffer_hide = true;
 
@@ -1098,7 +1099,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
 
     // other flags
     mesh_asset->SetWireframe(this->wireframe);
-
+	mesh_asset->SetBackfaceCull(this->backface_cull);
     //
     // GLYPHS
     //

@@ -99,6 +99,7 @@ class ChApi ChVisualizationFEAmesh : public ChAssetLevel {
     double shrink_factor;
 
     bool wireframe;
+	bool backface_cull;
 
     bool zbuffer_hide;
 
@@ -178,6 +179,9 @@ class ChApi ChVisualizationFEAmesh : public ChAssetLevel {
 
     // Set as wireframe visualization
     void SetWireframe(bool mwireframe) { this->wireframe = mwireframe; }
+
+	// Set backface cull speedup (default false, but must be true for shells and in general where already double-sided twin triangles are used)
+    void SetBackfaceCull(bool mbc) { this->backface_cull = mbc; }
 
     // Set the Z buffer enable/disable (for those rendering systems that can do this)
     // If hide= false, symbols will appear even if hidden by meshes/geometries. Default true.
