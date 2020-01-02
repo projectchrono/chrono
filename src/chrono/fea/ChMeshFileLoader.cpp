@@ -31,6 +31,9 @@
 #include "chrono/fea/ChMeshFileLoader.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
 
+#include "chrono_thirdparty/tinyobjloader/tiny_obj_loader.h"
+#include "chrono/geometry/ChTriangleMeshConnected.h"
+
 using namespace std;
 
 namespace chrono {
@@ -695,6 +698,102 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
         }
     }
 }
+
+
+
+void ChMeshFileLoader::BSTShellFromObjFile(
+	std::shared_ptr<ChMesh> mesh,                      ///< destination mesh
+	const char* filename,                              ///< .obj mesh complete filename
+	std::shared_ptr<ChMaterialShellKirchhoff> my_material,  ///< material to be given to the shell elements
+	double my_thickness,							   ///< thickness to be given to shell elements
+	ChVector<> pos_transform,                  ///< optional displacement of imported mesh
+	ChMatrix33<> rot_transform      ///< optional rotation/scaling of imported mesh
+) {
+	auto mmesh = geometry::ChTriangleMeshConnected();
+	mmesh.LoadWavefrontMesh(std::string(filename), false, false);
+
+	std::map<std::pair<int, int>, std::pair<int, int>> winged_edges;
+	mmesh.ComputeWingedEdges(winged_edges);
+
+	std::vector< shared_ptr<ChNodeFEAxyz>> shapenodes;
+
+	for (size_t i = 0; i < mmesh.m_vertices.size(); i++) {
+		ChVector<double> pos = mmesh.m_vertices[i];
+		pos = rot_transform * pos;
+		pos += pos_transform;
+		auto mnode = chrono_types::make_shared<ChNodeFEAxyz>();
+		mnode->SetPos(pos);
+		mesh->AddNode(mnode);
+		shapenodes.push_back(mnode); // for future reference when adding faces
+	}
+
+	for (size_t j = 0; j < mmesh.m_face_v_indices.size(); j++) {
+		size_t i0 = mmesh.m_face_v_indices[j][0];
+		size_t i1 = mmesh.m_face_v_indices[j][1];
+		size_t i2 = mmesh.m_face_v_indices[j][2];
+		GetLog() << "nodes 012 ids= " << i0 << " " << i1 << " " << i2 << " " << "\n";
+
+		std::pair<int, int> medge0(i1, i2);
+		std::pair<int, int> medge1(i2, i0);
+		std::pair<int, int> medge2(i0, i1);
+		if (medge0.first > medge0.second)
+            medge0 = std::pair<int, int>(medge0.second, medge0.first);
+		if (medge1.first > medge1.second)
+            medge1 = std::pair<int, int>(medge1.second, medge1.first);
+		if (medge0.first > medge0.second)
+            medge2 = std::pair<int, int>(medge2.second, medge2.first);
+		shared_ptr<ChNodeFEAxyz> node3 = nullptr;
+		shared_ptr<ChNodeFEAxyz> node4 = nullptr;
+		shared_ptr<ChNodeFEAxyz> node5 = nullptr;
+		int itri = -1;
+		int ivert = -1;
+		if (winged_edges[medge0].second == j) 
+			itri = winged_edges[medge0].first;
+		else
+			itri = winged_edges[medge0].second;
+		for (int vi = 0; vi < 3; ++vi) {
+			if (mmesh.m_face_v_indices[itri][vi] != medge0.first && mmesh.m_face_v_indices[itri][vi] != medge0.second)
+				ivert = mmesh.m_face_v_indices[itri][vi];
+		}
+		if (ivert != -1)
+			node3 = shapenodes[ivert];
+
+		itri = -1;
+		ivert = -1;
+		if (winged_edges[medge1].second == j) 
+			itri = winged_edges[medge1].first;
+		else
+			itri = winged_edges[medge1].second;
+		for (int vi = 0; vi < 3; ++vi) {
+			if (mmesh.m_face_v_indices[itri][vi] != medge1.first && mmesh.m_face_v_indices[itri][vi] != medge1.second)
+				ivert = mmesh.m_face_v_indices[itri][vi];
+		}
+		if (ivert != -1)
+			node4 = shapenodes[ivert];
+
+		itri = -1;
+		ivert = -1;
+		if (winged_edges[medge2].second == j) 
+			itri = winged_edges[medge2].first;
+		else
+			itri = winged_edges[medge2].second;
+		for (int vi = 0; vi < 3; ++vi) {
+			if (mmesh.m_face_v_indices[itri][vi] != medge2.first && mmesh.m_face_v_indices[itri][vi] != medge2.second)
+				ivert = mmesh.m_face_v_indices[itri][vi];
+		}
+		if (ivert != -1)
+			node5 = shapenodes[ivert];
+
+		
+		auto melement = chrono_types::make_shared<ChElementShellBST>();
+		melement->SetNodes(shapenodes[i0], shapenodes[i1], shapenodes[i2], node3, node4, node5);
+		mesh->AddElement(melement);
+		melement->AddLayer(my_thickness, 0, my_material);
+	}
+
+	
+}
+
 
 }  // end namespace fea
 }  // end namespace chrono
