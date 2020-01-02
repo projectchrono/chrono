@@ -21,12 +21,14 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChSystemNSC.h"
+#include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/timestepper/ChTimestepper.h"
 
 #include "chrono/fea/ChElementShellBST.h"
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/fea/ChMeshFileLoader.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
@@ -174,8 +176,9 @@ int main(int argc, char* argv[]) {
 	//
     // BENCHMARK n.2
     //
-    // Add a cantilever of BST elements:
+    // Add a rectangular mesh of BST elements:
     //
+
 	std::shared_ptr<ChNodeFEAxyz> mnodemonitor;
 	std::shared_ptr<ChElementShellBST> melementmonitor;
 
@@ -276,6 +279,25 @@ int main(int argc, char* argv[]) {
 	
     }
 
+	//
+    // BENCHMARK n.3
+    //
+    // Load and create shells from a .obj file containing a triangle mesh surface
+    //
+
+	if (false) {
+		double density = 100;
+        double E = 6e5;
+        double nu = 0.0;
+		double thickness = 0.01;
+
+		auto melasticity = chrono_types::make_shared<ChElasticityKirchhoffIsothropic>(E, nu);
+        auto material = chrono_types::make_shared<ChMaterialShellKirchhoff>(melasticity);
+		material->SetDensity(density);
+
+		ChMeshFileLoader::BSTShellFromObjFile(my_mesh, GetChronoDataFile("cube.obj").c_str(), material, thickness);
+
+	}
     
 
     // ==Asset== attach a visualization of the FEM mesh.
@@ -288,11 +310,11 @@ int main(int argc, char* argv[]) {
 
 	
     auto mvisualizeshellA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizeshellA->SetSmoothFaces(true);
+    //mvisualizeshellA->SetSmoothFaces(true);
     mvisualizeshellA->SetWireframe(true);
 	mvisualizeshellA->SetShellResolution(2);
+	//mvisualizeshellA->SetBackfaceCull(true);
     my_mesh->AddAsset(mvisualizeshellA);
-    
 
     auto mvisualizeshellB = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizeshellB->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
@@ -344,17 +366,11 @@ int main(int argc, char* argv[]) {
     mkl_solver->LockSparsityPattern(true);
     my_system.SetSolver(mkl_solver);
 
-    // Change type of integrator:
-    //nmy_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
-    // my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
-    // my_system.SetTimestepperType(ChTimestepper::NEWMARK);
-	/*
-    if (auto mint = std::dynamic_pointer_cast<ChImplicitIterativeTimestepper>(my_system.GetTimestepper())) {
-        mint->SetMaxiters(5);
-        mint->SetAbsTolerances(1e-12, 1e-12);
-    }
-	*/
+	//auto gmres_solver = chrono_types::make_shared<ChSolverGMRES>();
+	//gmres_solver->SetMaxIterations(100);
+    //my_system.SetSolver(gmres_solver);
 
+    
     double timestep = 0.01;
     application.SetTimestep(timestep);
     my_system.Setup();
