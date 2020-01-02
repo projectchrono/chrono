@@ -99,7 +99,7 @@ class ChApi ChElementShellBST : public ChElementShell , public ChLoadableUV, pub
 	/// The node numbering is as in the following scheme, where 0-1-2 are the nodes of the 
 	/// triangle, and 3-4-5 are the nodes from neighbouring elements in the mesh:
 	/// On the boundary, one or more of nodes 3,4,5 might be "nullptr".
-	///         
+	/// <pre>     
 	///          2     
 	///   4 o----o---o 3
 	///      \   |\  |
@@ -110,6 +110,7 @@ class ChApi ChElementShellBST : public ChElementShell , public ChLoadableUV, pub
 	///            \ |
 	///             \|
 	///              o 5
+	/// </pre>
     void SetNodes(std::shared_ptr<ChNodeFEAxyz> node0,
                   std::shared_ptr<ChNodeFEAxyz> node1,
                   std::shared_ptr<ChNodeFEAxyz> node2,
