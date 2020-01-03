@@ -52,12 +52,28 @@ void ChElementBar::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, doubl
     double Rdamping = this->rdamping * Kstiffness;
     // note that stiffness and damping matrices are the same, so join stuff here
     double commonfactor = Kstiffness * Kfactor + Rdamping * Rfactor;
-    ChMatrix33<> submatr = commonfactor * dircolumn * dircolumn.transpose();
+	ChMatrix33<> V = dircolumn * dircolumn.transpose();
+    ChMatrix33<> keV = commonfactor * V;
 
-    H.block(0,0,3,3) = submatr;
-    H.block(3,3,3,3) = submatr;
-    H.block(0,3,3,3) = -submatr;
-    H.block(3,0,3,3) = -submatr;
+    H.block(0,0,3,3) = keV;
+    H.block(3,3,3,3) = keV;
+    H.block(0,3,3,3) = -keV;
+    H.block(3,0,3,3) = -keV;
+
+	// add geometric stiffness - in future it might become an option to switch off if not needed.
+	// See for ex. http://shodhbhagirathi.iitr.ac.in:8081/jspui/handle/123456789/8433 pag. 14-15
+	if (true) {
+		double L_ref = (nodes[1]->GetX0() - nodes[0]->GetX0()).Length();
+		double L = (nodes[1]->GetPos() - nodes[0]->GetPos()).Length();
+		double Kstiffness = ((this->area * this->E) / this->length);
+		double internal_Kforce_local = Kstiffness * (L - L_ref);
+
+		ChMatrix33<> kgV = Kfactor * (internal_Kforce_local / L_ref) * (ChMatrix33<>(1) - V);
+		H.block(0, 0, 3, 3) += kgV;
+		H.block(3, 3, 3, 3) += kgV;
+		H.block(0, 3, 3, 3) += -kgV;
+		H.block(3, 0, 3, 3) += -kgV;
+	}
 
     // For M mass matrix, do mass lumping:
     H(0, 0) += Mfactor * mass * 0.5;  // node A x,y,z
