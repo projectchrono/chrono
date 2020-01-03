@@ -89,5 +89,15 @@ void ChElementSpring::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     Fi.segment(3, 3) = int_forceB.eigen();
 }
 
+double ChElementSpring::GetCurrentForce() {
+	ChVector<> dir = (nodes[1]->GetPos() - nodes[0]->GetPos()).GetNormalized();
+	double L_ref = (nodes[1]->GetX0() - nodes[0]->GetX0()).Length();
+    double L = (nodes[1]->GetPos() - nodes[0]->GetPos()).Length();
+    double L_dt = Vdot((nodes[1]->GetPos_dt() - nodes[0]->GetPos_dt()), dir);
+    double internal_Kforce_local = this->spring_k * (L - L_ref);
+    double internal_Rforce_local = this->damper_r * L_dt;
+    return internal_Kforce_local + internal_Rforce_local;
+}
+
 }  // end namespace fea
 }  // end namespace chrono
