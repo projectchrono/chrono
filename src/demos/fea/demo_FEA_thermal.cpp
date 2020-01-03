@@ -19,7 +19,6 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 
-#include "chrono/fea/ChElementSpring.h"
 #include "chrono/fea/ChElementBar.h"
 #include "chrono/fea/ChElementTetra_4.h"
 #include "chrono/fea/ChElementTetra_10.h"
