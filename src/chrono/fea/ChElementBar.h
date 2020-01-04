@@ -91,10 +91,10 @@ class ChApi ChElementBar : public ChElementGeneric {
     /// The current length of the bar (might be after deformation)
     double GetCurrentLength() { return (nodes[1]->GetPos() - nodes[0]->GetPos()).Length(); }
 
-    /// Get the strain epsilon, after deformation.
+    /// Get the strain (epsilon), after deformation.
     double GetStrain() { return (GetCurrentLength() - GetRestLength()) / GetRestLength(); }
 
-    /// Get the stress sigma, after deformation.
+    /// Get the elastic stress (sigma), after deformation.
     double GetStress() { return GetBarYoungModulus() * GetStrain(); }
 
 	/// Get the current force transmitted along the bar direction, 
