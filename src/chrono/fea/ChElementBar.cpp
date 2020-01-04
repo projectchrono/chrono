@@ -93,7 +93,17 @@ void ChElementBar::SetupInitial(ChSystem* system) {
 void ChElementBar::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     assert(Fi.size() == 6);
 
-    ChVector<> dir = (nodes[1]->GetPos() - nodes[0]->GetPos()).GetNormalized();
+	ChVector<> dir = (nodes[1]->GetPos() - nodes[0]->GetPos()).GetNormalized();
+	double internal_force_local = GetCurrentForce();
+    ChVector<> int_forceA = dir * internal_force_local;
+    ChVector<> int_forceB = -dir * internal_force_local;
+
+    Fi.segment(0, 3) = int_forceA.eigen();
+    Fi.segment(3, 3) = int_forceB.eigen();
+}
+
+double ChElementBar::GetCurrentForce() {
+	ChVector<> dir = (nodes[1]->GetPos() - nodes[0]->GetPos()).GetNormalized();
     double L_ref = (nodes[1]->GetX0() - nodes[0]->GetX0()).Length();
     double L = (nodes[1]->GetPos() - nodes[0]->GetPos()).Length();
     double L_dt = Vdot((nodes[1]->GetPos_dt() - nodes[0]->GetPos_dt()), dir);
@@ -101,13 +111,9 @@ void ChElementBar::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     double Rdamping = this->rdamping * Kstiffness;
     double internal_Kforce_local = Kstiffness * (L - L_ref);
     double internal_Rforce_local = Rdamping * L_dt;
-    double internal_force_local = internal_Kforce_local + internal_Rforce_local;
-    ChVector<> int_forceA = dir * internal_force_local;
-    ChVector<> int_forceB = -dir * internal_force_local;
-
-    Fi.segment(0, 3) = int_forceA.eigen();
-    Fi.segment(3, 3) = int_forceB.eigen();
+    return internal_Kforce_local + internal_Rforce_local;
 }
+
 
 }  // end namespace fea
 }  // end namespace chrono
