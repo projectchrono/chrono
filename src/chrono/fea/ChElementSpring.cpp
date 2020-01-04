@@ -96,7 +96,7 @@ double ChElementSpring::GetCurrentForce() {
     double L_dt = Vdot((nodes[1]->GetPos_dt() - nodes[0]->GetPos_dt()), dir);
     double internal_Kforce_local = this->spring_k * (L - L_ref);
     double internal_Rforce_local = this->damper_r * L_dt;
-    return internal_Kforce_local + internal_Rforce_local;
+	return internal_Kforce_local + internal_Rforce_local;
 }
 
 }  // end namespace fea

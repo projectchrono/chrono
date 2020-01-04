@@ -73,8 +73,8 @@ class ChApi ChElementSpring : public ChElementGeneric {
     virtual double GetDamperR() { return damper_r; }
 
 	/// Get the current force transmitted along the spring direction, 
-	/// including the effect of the damper. (N)
-	virtual double ChElementSpring::GetCurrentForce();
+	/// including the effect of the damper. Positive if pulled. (N)
+	virtual double GetCurrentForce();
 
     //
     // Functions for interfacing to the solver
