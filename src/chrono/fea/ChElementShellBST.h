@@ -286,7 +286,7 @@ class ChApi ChElementShellBST : public ChElementShell , public ChLoadableUV, pub
 
 	virtual void EvaluateSectionVelNorm(double U, double V, ChVector<>& Result) override;
 
-	virtual bool IsTriangleShell() { return true; }
+	virtual bool IsTriangleShell() override { return true; }
 
     // Internal computations
     // ---------------------
