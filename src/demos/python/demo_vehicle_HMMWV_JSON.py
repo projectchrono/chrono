@@ -42,7 +42,6 @@ def main() :
     app.SetSkyBox()
     app.AddTypicalLights(chronoirr.vector3df(30, -30, 100), chronoirr.vector3df(30, 50, 100), 250, 130)
     app.AddTypicalLogo(chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
-
     app.SetChaseCamera(trackPoint, 6.0, 0.5)
     app.SetTimestep(step_size)
     app.AssetBindAll()

@@ -1,25 +1,23 @@
-"""
-// =============================================================================
-// PROJECT CHRONO - http://projectchrono.org
-//
-// Copyright (c) 2014 projectchrono.org
-// All rights reserved.
-//
-// Use of this source code is governed by a BSD-style license that can be found
-// in the LICENSE file at the top level of the distribution and at
-// http://projectchrono.org/license-chrono.txt.
-//
-// =============================================================================
-// Authors: Radu Serban, Justin Madsen
-// =============================================================================
-//
-// Main driver function for the HMMWV full model.
-//
-// The vehicle reference frame has Z up, X towards the front of the vehicle, and
-// Y pointing to the left.
-//
-// =============================================================================
-"""
+# =============================================================================
+# PROJECT CHRONO - http://projectchrono.org
+#
+# Copyright (c) 2014 projectchrono.org
+# All rights reserved.
+#
+# Use of this source code is governed by a BSD-style license that can be found
+# in the LICENSE file at the top level of the distribution and at
+# http://projectchrono.org/license-chrono.txt.
+#
+# =============================================================================
+# Authors: Simone Benatti, Radu Serban
+# =============================================================================
+#
+# Main driver function for the HMMWV full model.
+#
+# The vehicle reference frame has Z up, X towards the front of the vehicle, and
+# Y pointing to the left.
+#
+# =============================================================================
 
 import pychrono as chrono
 import pychrono.vehicle as veh
@@ -73,7 +71,6 @@ def main():
     app.SetSkyBox()
     app.AddTypicalLights(chronoirr.vector3df(30, -30, 100), chronoirr.vector3df(30, 50, 100), 250, 130)
     app.AddTypicalLogo(chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
-
     app.SetChaseCamera(trackPoint, 6.0, 0.5)
     app.SetTimestep(step_size)
     app.AssetBindAll()

@@ -22,9 +22,11 @@
 #include "chrono_vehicle/wheeled_vehicle/driveline/ChShaftsDriveline2WD.h"
 #include "chrono_vehicle/wheeled_vehicle/driveline/ChShaftsDriveline4WD.h"
 #include "chrono_vehicle/wheeled_vehicle/driveline/ChSimpleDriveline.h"
+#include "chrono_vehicle/wheeled_vehicle/driveline/ChSimpleDrivelineXWD.h"
 #include "chrono_vehicle/wheeled_vehicle/driveline/ShaftsDriveline2WD.h"
 #include "chrono_vehicle/wheeled_vehicle/driveline/SimpleDriveline.h"
 #include "chrono_vehicle/wheeled_vehicle/driveline/ShaftsDriveline4WD.h"
+#include "chrono_vehicle/wheeled_vehicle/driveline/SimpleDrivelineXWD.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
 
@@ -35,10 +37,11 @@
 %shared_ptr(chrono::vehicle::ChShaftsDriveline2WD)
 %shared_ptr(chrono::vehicle::ChShaftsDriveline4WD)
 %shared_ptr(chrono::vehicle::ChSimpleDriveline)
+%shared_ptr(chrono::vehicle::ChSimpleDrivelineXWD)
 %shared_ptr(chrono::vehicle::ShaftsDriveline2WD)
 %shared_ptr(chrono::vehicle::SimpleDriveline)
 %shared_ptr(chrono::vehicle::ShaftsDriveline4WD)
-
+%shared_ptr(chrono::vehicle::SimpleDrivelineXWD)
 
 %import(module = "pychrono.core") "ChShaft.i"
 //TODO: import these once it is done!!!!
@@ -53,7 +56,10 @@
 %include "../chrono_vehicle/wheeled_vehicle/driveline/ChShaftsDriveline2WD.h"
 %include "../chrono_vehicle/wheeled_vehicle/driveline/ChShaftsDriveline4WD.h"
 %include "../chrono_vehicle/wheeled_vehicle/driveline/ChSimpleDriveline.h"
+%include "../chrono_vehicle/wheeled_vehicle/driveline/ChSimpleDrivelineXWD.h"
 %include "../chrono_vehicle/wheeled_vehicle/driveline/ShaftsDriveline2WD.h"
 %include "../chrono_vehicle/wheeled_vehicle/driveline/SimpleDriveline.h"
 %include "../chrono_vehicle/wheeled_vehicle/driveline/ShaftsDriveline4WD.h"
+%include "../chrono_vehicle/wheeled_vehicle/driveline/SimpleDrivelineXWD.h"
+
 %include "models/DrivelineModels.i"
