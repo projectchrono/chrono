@@ -30,7 +30,6 @@ namespace chrono {
 namespace vehicle {
 namespace m113 {
 
-/// M113 chassis subsystem.
 class CH_MODELS_API M113a_Chassis : public ChRigidChassis {
   public:
     M113a_Chassis(const std::string& name,

@@ -32,7 +32,7 @@ namespace citybus {
 /// @addtogroup vehicle_models_citybus
 /// @{
 
-/// TMeasy tire model for the WVP vehicle.
+/// TMeasy tire model for the Citybus vehicle.
 class CH_MODELS_API CityBus_TMeasyTire : public ChTMeasyTire {
   public:
     CityBus_TMeasyTire(const std::string& name);
