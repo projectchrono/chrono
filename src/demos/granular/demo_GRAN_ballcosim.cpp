@@ -159,11 +159,7 @@ int main(int argc, char* argv[]) {
     float ball_mass = 4.0 / 3.0 * CH_C_PI * ball_radius * ball_radius * ball_radius * ball_density;
     std::vector<float> mesh_masses(1, ball_mass);
 
-    std::vector<bool> mesh_inflated(1, false);
-    std::vector<float> mesh_inflation_radii(1, 0);
-
-    apiSMC_TriMesh.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses, mesh_inflated,
-                               mesh_inflation_radii);
+    apiSMC_TriMesh.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses);
 
     gran_sys.setOutputMode(params.write_mode);
     gran_sys.setVerbose(params.verbose);

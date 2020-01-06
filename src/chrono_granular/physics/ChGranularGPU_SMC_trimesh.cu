@@ -342,8 +342,7 @@ __global__ void interactionTerrain_TriangleSoup(
                 double3 sphCntr =
                     int64_t3_to_double3(convertPosLocalToGlobal(thisSD, sphere_pos_local[sphereIDLocal], gran_params));
                 valid_contact = face_sphere_cd(node1[triangleLocalID], node2[triangleLocalID], node3[triangleLocalID],
-                                               sphCntr, gran_params->sphereRadius_SU, d_triangleSoup->inflated[fam],
-                                               d_triangleSoup->inflation_radii[fam], normal, depth, pt1);
+                                               sphCntr, gran_params->sphereRadius_SU, normal, depth, pt1);
 
                 valid_contact = valid_contact &&
                                 SDTripletID(pointSDTriplet(pt1.x, pt1.y, pt1.z, gran_params), gran_params) == thisSD;

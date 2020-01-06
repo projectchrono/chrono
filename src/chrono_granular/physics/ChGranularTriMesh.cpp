@@ -75,7 +75,6 @@ void ChSystemGranularSMC_trimesh::initializeTriangles() {
 
     for (unsigned int fam = 0; fam < meshSoup->numTriangleFamilies; fam++) {
         meshSoup->familyMass_SU[fam] = meshSoup->familyMass_SU[fam] / MASS_SU2UU;
-        meshSoup->inflation_radii[fam] = meshSoup->inflation_radii[fam] / LENGTH_SU2UU;
     }
 
     double rolling_scalingFactor = 1.;
@@ -159,8 +158,6 @@ void ChSystemGranularSMC_trimesh::write_meshes(std::string filename) {
 void ChSystemGranularSMC_trimesh::cleanupTriMesh() {
     cudaFree(meshSoup->triangleFamily_ID);
     cudaFree(meshSoup->familyMass_SU);
-    cudaFree(meshSoup->inflated);
-    cudaFree(meshSoup->inflation_radii);
 
     cudaFree(meshSoup->node1);
     cudaFree(meshSoup->node2);

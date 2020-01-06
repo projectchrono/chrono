@@ -46,9 +46,7 @@ class CH_GRANULAR_API ChGranularChronoTriMeshAPI {
     void load_meshes(std::vector<std::string> objfilenames,
                      std::vector<chrono::ChMatrix33<float>> rotscale,
                      std::vector<float3> translations,
-                     std::vector<float> masses,
-                     std::vector<bool> inflated,
-                     std::vector<float> inflation_radii);
+                     std::vector<float> masses);
 
     chrono::granular::ChSystemGranularSMC_trimesh& getGranSystemSMC_TriMesh() { return *pGranSystemSMC_TriMesh; }
 
@@ -66,9 +64,7 @@ class CH_GRANULAR_API ChGranularChronoTriMeshAPI {
     /// Setup data structures associated with triangle mesh
     void setupTriMesh(const std::vector<chrono::geometry::ChTriangleMeshConnected>& all_meshes,
                       unsigned int nTriangles,
-                      std::vector<float> masses,
-                      std::vector<bool> inflated,
-                      std::vector<float> inflation_radii);
+                      std::vector<float> masses);
 };
 
 class CH_GRANULAR_API ChGranularSMC_API {

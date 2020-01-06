@@ -24,12 +24,9 @@ ChGranularChronoTriMeshAPI::ChGranularChronoTriMeshAPI(float sphere_rad, float d
 void ChGranularChronoTriMeshAPI::load_meshes(std::vector<std::string> objfilenames,
                                              std::vector<chrono::ChMatrix33<float>> rotscale,
                                              std::vector<float3> translations,
-                                             std::vector<float> masses,
-                                             std::vector<bool> inflated,
-                                             std::vector<float> inflation_radii) {
+                                             std::vector<float> masses) {
     unsigned int size = objfilenames.size();
-    if (size != rotscale.size() || size != translations.size() || size != masses.size() || size != inflated.size() ||
-        size != inflation_radii.size()) {
+    if (size != rotscale.size() || size != translations.size() || size != masses.size()) {
         GRANULAR_ERROR("Mesh loading vectors must all have same size\n");
     }
 
@@ -68,15 +65,13 @@ void ChGranularChronoTriMeshAPI::load_meshes(std::vector<std::string> objfilenam
 
     // Allocate memory to store mesh soup in unified memory
     // work on this later: INFO_PRINTF("Allocating mesh unified memory\n");
-    setupTriMesh(all_meshes, nTriangles, masses, inflated, inflation_radii);
+    setupTriMesh(all_meshes, nTriangles, masses);
     // work on this later: INFO_PRINTF("Done allocating mesh unified memory\n");
 }
 
 void ChGranularChronoTriMeshAPI::setupTriMesh(const std::vector<chrono::geometry::ChTriangleMeshConnected>& all_meshes,
                                               unsigned int nTriangles,
-                                              std::vector<float> masses,
-                                              std::vector<bool> inflated,
-                                              std::vector<float> inflation_radii) {
+                                              std::vector<float> masses) {
     chrono::granular::ChTriangleSoup<float3>* pMeshSoup = pGranSystemSMC_TriMesh->getMeshSoup();
     pMeshSoup->nTrianglesInSoup = nTriangles;
 
@@ -131,14 +126,10 @@ void ChGranularChronoTriMeshAPI::setupTriMesh(const std::vector<chrono::geometry
 
     if (pMeshSoup->nTrianglesInSoup != 0) {
         gpuErrchk(cudaMallocManaged(&pMeshSoup->familyMass_SU, family * sizeof(float), cudaMemAttachGlobal));
-        gpuErrchk(cudaMallocManaged(&pMeshSoup->inflated, family * sizeof(float), cudaMemAttachGlobal));
-        gpuErrchk(cudaMallocManaged(&pMeshSoup->inflation_radii, family * sizeof(float), cudaMemAttachGlobal));
 
         for (unsigned int i = 0; i < family; i++) {
             // NOTE The SU conversion is done in initialize after the scaling is determined
             pMeshSoup->familyMass_SU[i] = masses[i];
-            pMeshSoup->inflated[i] = inflated[i];
-            pMeshSoup->inflation_radii[i] = inflation_radii[i];
         }
 
         gpuErrchk(cudaMallocManaged(&pMeshSoup->generalizedForcesPerFamily,

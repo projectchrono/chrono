@@ -92,53 +92,29 @@ __device__ bool snap_to_face(const double3& A, const double3& B, const double3& 
     return false;
 }
 
-__device__ bool face_sphere_cd_inflated(const double3& A,           //!< First vertex of the triangle
-                                        const double3& B,           //!< Second vertex of the triangle
-                                        const double3& C,           //!< Third vertex of the triangle
-                                        const double3& sphere_pos,  //!< Location of the center of the sphere
-                                        const int radius,           //!< Sphere radius
-                                        const float inflation_radius,
-                                        float3& normal,
-                                        float& depth,
-                                        double3& pt1) {
-    // Calculate face normal
-    double3 face_n = face_normal(A, B, C);
+/**
+/brief TRIANGLE FACE - SPHERE NARROW-PHASE COLLISION DETECTION
 
-    // Calculate signed height of sphere center above face plane
-    float h = Dot(sphere_pos - A, face_n);
+The triangular face is defined by points A, B, C. The sequence is important as it defines the positive face via a
+right-hand rule.
+The sphere is centered at sphere_pos and has radius.
+The index "1" is associated with the triangle. The index "2" is associated with the sphere.
+The coordinates of the face and sphere are assumed to be provided in the same reference frame.
 
-    if (h >= radius || h <= -radius) {
-        return false;
-    }
-
-    // Find the closest point on the face to the sphere center and determine
-    // whether or not this location is inside the face or on an edge.
-    double3 faceLoc;
-
-    // Collision detection between sphere and an sphere at the nearest point on the triangle
-    snap_to_face(A, B, C, sphere_pos, faceLoc);  // Get faceLoc
-    {
-        double3 normal_d = sphere_pos - faceLoc;
-        normal = make_float3(normal_d.x, normal_d.y, normal_d.z);
-    }
-    float dist = Length(normal);
-    depth = dist - radius - inflation_radius;
-    if (depth > 0) {
-        return false;
-    }
-    normal = (1.f / dist) * normal;
-    pt1 = faceLoc;  // TODO
-    return true;
-}
-
-__device__ bool face_sphere_cd_regular(const double3& A,           //!< First vertex of the triangle
-                                       const double3& B,           //!< Second vertex of the triangle
-                                       const double3& C,           //!< Third vertex of the triangle
-                                       const double3& sphere_pos,  //!< Location of the center of the sphere
-                                       const int radius,           //!< Sphere radius
-                                       float3& normal,
-                                       float& depth,
-                                       double3& pt1) {
+Output:
+  - pt1:      contact point on triangle
+  - depth:    penetration distance (a negative value means that overlap exists)
+  - normal:     contact normal, from pt2 to pt1
+A return value of "true" signals collision.
+*/
+__device__ bool face_sphere_cd(const double3& A,           //!< First vertex of the triangle
+                               const double3& B,           //!< Second vertex of the triangle
+                               const double3& C,           //!< Third vertex of the triangle
+                               const double3& sphere_pos,  //!< Location of the center of the sphere
+                               const int radius,           //!< Sphere radius
+                               float3& normal,
+                               float& depth,
+                               double3& pt1) {
     // Calculate face normal using RHR
     double3 face_n = face_normal(A, B, C);
 
@@ -177,37 +153,5 @@ __device__ bool face_sphere_cd_regular(const double3& A,           //!< First ve
         normal = (1.f / dist) * normal;
         pt1 = faceLoc;
         return true;
-    }
-}
-
-/**
-/brief TRIANGLE FACE - SPHERE NARROW-PHASE COLLISION DETECTION
-
-The triangular face is defined by points A, B, C. The sequence is important as it defines the positive face via a
-right-hand rule.
-The sphere is centered at sphere_pos and has radius.
-The index "1" is associated with the triangle. The index "2" is associated with the sphere.
-The coordinates of the face and sphere are assumed to be provided in the same reference frame.
-
-Output:
-  - pt1:      contact point on triangle
-  - depth:    penetration distance (a negative value means that overlap exists)
-  - normal:     contact normal, from pt2 to pt1
-A return value of "true" signals collision.
-*/
-__device__ bool face_sphere_cd(const double3& A,           //!< First vertex of the triangle
-                               const double3& B,           //!< Second vertex of the triangle
-                               const double3& C,           //!< Third vertex of the triangle
-                               const double3& sphere_pos,  //!< Location of the center of the sphere
-                               const int radius,           //!< Sphere radius
-                               const bool inflated,
-                               const float inflation_radius,
-                               float3& normal,
-                               float& depth,
-                               double3& pt1) {
-    if (inflated) {
-        return face_sphere_cd_inflated(A, B, C, sphere_pos, radius, inflation_radius, normal, depth, pt1);
-    } else {
-        return face_sphere_cd_regular(A, B, C, sphere_pos, radius, normal, depth, pt1);
     }
 }

@@ -58,7 +58,6 @@ __device__ void convert_pos_UU2SU(T3& pos, GranParamsPtr gran_params) {
 __inline__ __device__ void triangle_figureOutSDBox(const float3& vA,
                                                    const float3& vB,
                                                    const float3& vC,
-                                                   const bool inflated,
                                                    int* L,
                                                    int* U,
                                                    GranParamsPtr gran_params) {
@@ -71,13 +70,6 @@ __inline__ __device__ void triangle_figureOutSDBox(const float3& vA,
     max_pt.x = MAX(vA.x, MAX(vB.x, vC.x));
     max_pt.y = MAX(vA.y, MAX(vB.y, vC.y));
     max_pt.z = MAX(vA.z, MAX(vB.z, vC.z));
-
-    if (inflated) {
-        int3 offset =
-            make_int3(gran_params->sphereRadius_SU, gran_params->sphereRadius_SU, gran_params->sphereRadius_SU);
-        min_pt = min_pt - offset;
-        max_pt = max_pt + offset;
-    }
 
     int3 tmp = pointSDTriplet(min_pt.x, min_pt.y, min_pt.z, gran_params);
     L[0] = tmp.x;
@@ -116,8 +108,7 @@ inline __device__ unsigned int triangle_countTouchedSDs(unsigned int triangleID,
     // bottom-left and top-right corners
     int L[3];
     int U[3];
-    const bool inflated = triangleSoup->inflated[fam];
-    triangle_figureOutSDBox(vA, vB, vC, inflated, L, U, gran_params);
+    triangle_figureOutSDBox(vA, vB, vC, L, U, gran_params);
     // Case 1: All vetices are in the same SD
     if (L[0] == U[0] && L[1] == U[1] && L[2] == U[2]) {
         unsigned int currSD = SDTripletID(L, gran_params);
@@ -169,7 +160,7 @@ inline __device__ unsigned int triangle_countTouchedSDs(unsigned int triangleID,
                 SDcenter[1] = gran_params->BD_frame_Y + (j * 2 + 1) * SDhalfSizes[1];
                 SDcenter[2] = gran_params->BD_frame_Z + (k * 2 + 1) * SDhalfSizes[2];
 
-                if (inflated || check_TriangleBoxOverlap(SDcenter, SDhalfSizes, vA, vB, vC)) {
+                if (check_TriangleBoxOverlap(SDcenter, SDhalfSizes, vA, vB, vC)) {
                     unsigned int currSD = SDTripletID(i, j, k, gran_params);
                     if (currSD != NULL_GRANULAR_ID) {
                         numSDsTouched++;
@@ -208,8 +199,7 @@ inline __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
     // bottom-left and top-right corners
     int L[3];
     int U[3];
-    const bool inflated = triangleSoup->inflated[fam];
-    triangle_figureOutSDBox(vA, vB, vC, inflated, L, U, gran_params);
+    triangle_figureOutSDBox(vA, vB, vC, L, U, gran_params);
 
     // TODO modularize more code
     // Case 1: All vetices are in the same SD
@@ -262,8 +252,7 @@ inline __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
                 SDcenter[1] = gran_params->BD_frame_Y + (j * 2 + 1) * SDhalfSizes[1];
                 SDcenter[2] = gran_params->BD_frame_Z + (k * 2 + 1) * SDhalfSizes[2];
 
-                // If mesh is inflated, we don't have a higher-resultion check yet
-                if (inflated || check_TriangleBoxOverlap(SDcenter, SDhalfSizes, vA, vB, vC)) {
+                if (check_TriangleBoxOverlap(SDcenter, SDhalfSizes, vA, vB, vC)) {
                     unsigned int currSD = SDTripletID(i, j, k, gran_params);
                     if (currSD != NULL_GRANULAR_ID) {
                         touchedSDs[SD_count++] = currSD;
