@@ -16,8 +16,8 @@
 //
 // =============================================================================
 
-#ifndef MAN5T_VEHICLE_H
-#define MAN5T_VEHICLE_H
+#ifndef MAN7T_VEHICLE_H
+#define MAN7T_VEHICLE_H
 
 #include <vector>
 
