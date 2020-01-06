@@ -319,6 +319,8 @@ set(CV_WV_DRIVELINE_FILES
     wheeled_vehicle/driveline/ChShaftsDriveline2WD.cpp
     wheeled_vehicle/driveline/ChShaftsDriveline4WD.h
     wheeled_vehicle/driveline/ChShaftsDriveline4WD.cpp
+    wheeled_vehicle/driveline/ChSimpleDrivelineXWD.h
+    wheeled_vehicle/driveline/ChSimpleDrivelineXWD.cpp
     wheeled_vehicle/driveline/ChSimpleDriveline.h
     wheeled_vehicle/driveline/ChSimpleDriveline.cpp
 
@@ -328,6 +330,8 @@ set(CV_WV_DRIVELINE_FILES
     wheeled_vehicle/driveline/ShaftsDriveline4WD.cpp
     wheeled_vehicle/driveline/SimpleDriveline.h
     wheeled_vehicle/driveline/SimpleDriveline.cpp
+    wheeled_vehicle/driveline/SimpleDrivelineXWD.h
+    wheeled_vehicle/driveline/SimpleDrivelineXWD.cpp
 )
 source_group("wheeled_vehicle\\driveline" FILES ${CV_WV_DRIVELINE_FILES})
 

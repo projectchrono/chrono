@@ -27,6 +27,7 @@
 #include "chrono_vehicle/wheeled_vehicle/driveline/ShaftsDriveline2WD.h"
 #include "chrono_vehicle/wheeled_vehicle/driveline/ShaftsDriveline4WD.h"
 #include "chrono_vehicle/wheeled_vehicle/driveline/SimpleDriveline.h"
+#include "chrono_vehicle/wheeled_vehicle/driveline/SimpleDrivelineXWD.h"
 #include "chrono_vehicle/wheeled_vehicle/steering/PitmanArm.h"
 #include "chrono_vehicle/wheeled_vehicle/steering/RackPinion.h"
 #include "chrono_vehicle/wheeled_vehicle/steering/RotaryArm.h"
@@ -240,6 +241,8 @@ std::shared_ptr<ChDrivelineWV> ReadDrivelineWVJSON(const std::string& filename) 
         driveline = chrono_types::make_shared<ShaftsDriveline4WD>(d);
     } else if (subtype.compare("SimpleDriveline") == 0) {
         driveline = chrono_types::make_shared<SimpleDriveline>(d);
+    } else if (subtype.compare("SimpleDrivelineXWD") == 0) {
+        driveline = chrono_types::make_shared<SimpleDrivelineXWD>(d);
     } else {
         throw ChException("Driveline type not supported in ReadDrivelineWVJSON.");
     }
