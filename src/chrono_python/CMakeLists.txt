@@ -25,6 +25,26 @@ if(DEFINED CH_INSTALL_PYTHON_PACKAGE)
 endif()
 
 #-----------------------------------------------------------------------------
+# CMake policy settings
+# TODO: switch to new behavior
+#-----------------------------------------------------------------------------
+
+# this to fix warnings about the use of LOCATION with CMake version >= 3.0
+if(POLICY CMP0026)
+    cmake_policy(SET CMP0026 OLD)
+endif()
+
+# this to fix warnings about the use of SWIG_MODULE_${mymodulename}_REAL_NAME with CMake version >= 3.13
+if(POLICY CMP0078)
+    cmake_policy(SET CMP0078 OLD)
+endif()
+
+# UseSWIG honors SWIG_MODULE_NAME via -module flag.
+if(POLICY CMP0086)
+	cmake_policy(SET CMP0086 OLD)
+endif()
+
+#-----------------------------------------------------------------------------
 # Enable debugging CMake output
 #-----------------------------------------------------------------------------
 
@@ -55,14 +75,31 @@ set(CH_PYTHONDIR  "${CH_PYTHONDIR}"  PARENT_SCOPE)
 set(CH_PYTHONINC  "${CH_PYTHONINC}"  PARENT_SCOPE)
 set(CH_PYTHONLIB  "${CH_PYTHONLIB}"  PARENT_SCOPE)
 
-# this to fix warnings about the use of LOCATION with CMake version >= 3.0
-if(POLICY CMP0026)
-    cmake_policy(SET CMP0026 OLD)
+#-----------------------------------------------------------------------------
+# Find SWIG
+#-----------------------------------------------------------------------------
+
+message(STATUS "...find SWIG")
+
+find_package(SWIG REQUIRED)
+include(${SWIG_USE_FILE})
+
+# The generated .cxx wrapper can be so huge that the /bigobj flag is required in VC++
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG}   /bigobj")
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /bigobj")
 endif()
 
-# this to fix warnings about the use of SWIG_MODULE_${mymodulename}_REAL_NAME with CMake version >= 3.13
-if(POLICY CMP0078)
-    cmake_policy(SET CMP0078 OLD)
+# Set location of SWIG-generated files.
+# Note that *.py files are also generated in this location.
+set(CMAKE_SWIG_OUTDIR "${PROJECT_BINARY_DIR}/swig")
+SET(CMAKE_SWIG_FLAGS "-c++")
+
+if(DBG_SCRIPT)
+  message("SWIG_USE_FILE:      ${SWIG_USE_FILE}")
+  message("CMAKE_SWIG_OUTDIR:  ${CMAKE_SWIG_OUTDIR}")
+  message("Installation path:  ${CMAKE_INSTALL_PREFIX}/${CH_INSTALL_PYTHON}")
+  message("Installation prefix path:  ${CMAKE_INSTALL_PREFIX}")
 endif()
 
 #-----------------------------------------------------------------------------
@@ -103,33 +140,6 @@ install(TARGETS ChronoEngine_pyparser
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
-
-#-----------------------------------------------------------------------------
-# Find SWIG
-#-----------------------------------------------------------------------------
-
-message(STATUS "...find SWIG")
-
-find_package(SWIG REQUIRED)
-include(${SWIG_USE_FILE})
-
-# The generated .cxx wrapper can be so huge that the /bigobj flag is required in VC++
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG}   /bigobj")
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /bigobj")
-endif()
-
-# Set location of SWIG-generated files.
-# Note that *.py files are also generated in this location.
-set(CMAKE_SWIG_OUTDIR "${PROJECT_BINARY_DIR}/swig")
-SET(CMAKE_SWIG_FLAGS "-c++")
-
-if(DBG_SCRIPT)
-  message("SWIG_USE_FILE:      ${SWIG_USE_FILE}")
-  message("CMAKE_SWIG_OUTDIR:  ${CMAKE_SWIG_OUTDIR}")
-  message("Installation path:  ${CMAKE_INSTALL_PREFIX}/${CH_INSTALL_PYTHON}")
-  message("Installation prefix path:  ${CMAKE_INSTALL_PREFIX}")
-endif()
 
 #-----------------------------------------------------------------------------
 # MODULE for the core wrapper, including most of the C::E
