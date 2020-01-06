@@ -39,6 +39,7 @@
          @defgroup vehicle_models_generic Generic wheeled vehicle
          @defgroup vehicle_models_m113 M113 tracked vehicle model
          @defgroup vehicle_models_uaz UAZ model
+         @defgroup vehicle_models_man MAN truck models
        @}
     @}
 */

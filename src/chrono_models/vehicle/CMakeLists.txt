@@ -107,6 +107,64 @@ set(CVM_UAZ_FILES
 )
 source_group("uaz" FILES ${CVM_UAZ_FILES})
 
+set(CVM_MAN_FILES
+    man/MAN_5t_BellcrankSolid3LinkAxle.cpp
+    man/MAN_5t_BellcrankSolid3LinkAxle.h
+    man/MAN_5t_BrakeSimple.cpp
+    man/MAN_5t_BrakeSimple.h
+    man/MAN_5t_Chassis.cpp
+    man/MAN_5t_Chassis.h
+    man/MAN_5t_Driveline4WD.cpp
+    man/MAN_5t_Driveline4WD.h
+    man/MAN_5t_RotaryArm.cpp
+    man/MAN_5t_RotaryArm.h
+    man/MAN_5t_SimpleDriveline.cpp
+    man/MAN_5t_SimpleDriveline.h
+    man/MAN_5t_SimpleDrivelineXWD.cpp
+    man/MAN_5t_SimpleDrivelineXWD.h
+    man/MAN_5t_SimpleCVTPowertrain.cpp
+    man/MAN_5t_SimpleCVTPowertrain.h
+    man/MAN_5t_SimpleMapPowertrain.cpp
+    man/MAN_5t_SimpleMapPowertrain.h
+    man/MAN_5t_Solid3LinkAxle.cpp
+    man/MAN_5t_Solid3LinkAxle.h
+    man/MAN_5t_TMeasyTire.cpp
+    man/MAN_5t_TMeasyTire.h
+    man/MAN_5t_Wheel.cpp
+    man/MAN_5t_Wheel.h
+    man/MAN_5t_Vehicle.cpp
+    man/MAN_5t_Vehicle.h
+    man/MAN_5t.cpp
+    man/MAN_5t.h
+
+    man/MAN_7t_Chassis.cpp
+    man/MAN_7t_Chassis.h
+    man/MAN_7t_SimpleCVTPowertrain.cpp
+    man/MAN_7t_SimpleCVTPowertrain.h
+    man/MAN_7t_SimpleMapPowertrain.cpp
+    man/MAN_7t_SimpleMapPowertrain.h
+    man/MAN_7t_Solid3LinkAxle.cpp
+    man/MAN_7t_Solid3LinkAxle.h
+    man/MAN_7t_Vehicle.cpp
+    man/MAN_7t_Vehicle.h
+    man/MAN_7t.cpp
+    man/MAN_7t.h
+
+    man/MAN_10t_Chassis.cpp
+    man/MAN_10t_Chassis.h
+    man/MAN_10t_Front1Axle.cpp
+    man/MAN_10t_Front1Axle.h
+    man/MAN_10t_Front2Axle.cpp
+    man/MAN_10t_Front2Axle.h
+    man/MAN_10t_RotaryArm2.cpp
+    man/MAN_10t_RotaryArm2.h
+    man/MAN_10t_Vehicle.cpp
+    man/MAN_10t_Vehicle.h
+    man/MAN_10t.cpp
+    man/MAN_10t.h
+)
+source_group("man" FILES ${CVM_MAN_FILES})
+
 set(CVM_GENERIC_FILES
     generic/Generic_AntirollBarRSD.h
     generic/Generic_AntirollBarRSD.cpp
@@ -313,6 +371,7 @@ add_library(ChronoModels_vehicle SHARED
     ${CVM_CITYBUS_FILES}
     ${CVM_M113_FILES}
     ${CVM_M113_A_FILES}
+    ${CVM_MAN_FILES}
  )
 
 set_target_properties(ChronoModels_vehicle PROPERTIES
