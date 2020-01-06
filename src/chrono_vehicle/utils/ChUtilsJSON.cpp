@@ -37,6 +37,8 @@
 #include "chrono_vehicle/wheeled_vehicle/suspension/MultiLink.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/SemiTrailingArm.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/SolidAxle.h"
+#include "chrono_vehicle/wheeled_vehicle/suspension/SolidBellcrankThreeLinkAxle.h"
+#include "chrono_vehicle/wheeled_vehicle/suspension/SolidThreeLinkAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/ThreeLinkIRS.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/ToeBarLeafspringAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
@@ -174,6 +176,10 @@ std::shared_ptr<ChSuspension> ReadSuspensionJSON(const std::string& filename) {
         suspension = chrono_types::make_shared<ToeBarLeafspringAxle>(d);
     } else if (subtype.compare("LeafspringAxle") == 0) {
         suspension = chrono_types::make_shared<LeafspringAxle>(d);
+    } else if (subtype.compare("SolidThreeLinkAxle") == 0) {
+        suspension = chrono_types::make_shared<SolidThreeLinkAxle>(d);
+    } else if (subtype.compare("SolidBellcrankThreeLinkAxle") == 0) {
+        suspension = chrono_types::make_shared<SolidBellcrankThreeLinkAxle>(d);
     } else {
         throw ChException("Suspension type not supported in ReadSuspensionJSON.");
     }
@@ -390,8 +396,7 @@ std::shared_ptr<ChTrackAssembly> ReadTrackAssemblySON(const std::string& filenam
         track = chrono_types::make_shared<TrackAssemblyBandBushing>(d);
     } else if (subtype.compare("TrackAssemblyBandANCF") == 0) {
         track = chrono_types::make_shared<TrackAssemblyBandANCF>(d);
-    }
-    else {
+    } else {
         throw ChException("TrackAssembly type not supported in ReadTrackAssemblySON.");
     }
 

@@ -373,6 +373,10 @@ set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/ChRigidPinnedAxle.cpp
     wheeled_vehicle/suspension/ChLeafspringAxle.h
     wheeled_vehicle/suspension/ChLeafspringAxle.cpp
+    wheeled_vehicle/suspension/ChSolidBellcrankThreeLinkAxle.h
+    wheeled_vehicle/suspension/ChSolidBellcrankThreeLinkAxle.cpp
+    wheeled_vehicle/suspension/ChSolidThreeLinkAxle.h
+    wheeled_vehicle/suspension/ChSolidThreeLinkAxle.cpp
     wheeled_vehicle/suspension/ChToeBarLeafspringAxle.h
     wheeled_vehicle/suspension/ChToeBarLeafspringAxle.cpp
 
@@ -394,6 +398,10 @@ set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/ThreeLinkIRS.cpp
     wheeled_vehicle/suspension/LeafspringAxle.h
     wheeled_vehicle/suspension/LeafspringAxle.cpp
+    wheeled_vehicle/suspension/SolidBellcrankThreeLinkAxle.h
+    wheeled_vehicle/suspension/SolidBellcrankThreeLinkAxle.cpp
+    wheeled_vehicle/suspension/SolidThreeLinkAxle.h
+    wheeled_vehicle/suspension/SolidThreeLinkAxle.cpp
     wheeled_vehicle/suspension/ToeBarLeafspringAxle.h
     wheeled_vehicle/suspension/ToeBarLeafspringAxle.cpp
 )
