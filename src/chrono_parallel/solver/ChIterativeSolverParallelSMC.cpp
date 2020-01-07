@@ -56,6 +56,7 @@ void function_CalcContactForces(
     bool use_mat_props,                                   // flag specifying how coefficients are obtained
     real char_vel,                                        // characteristic velocity (Hooke)
     real min_slip_vel,                                    // threshold tangential velocity
+    real min_roll_vel,                                    // threshold rolling velocity
     real dT,                                              // integration time step
     real* mass,                                           // body masses
     real3* pos,                                           // body positions
@@ -65,6 +66,7 @@ void function_CalcContactForces(
     real* cr,                                             // coefficient of restitution (per body)
     real4* smc_coeffs,                                    // stiffness and damping coefficients (per body)
     real* mu,                                             // coefficient of friction (per body)
+    real* muRoll,                                         // coefficient of rolling friction (per body)
     real* adhesion,                                       // constant force (per body)
     real* adhesionMultDMT,                                // Adhesion force multiplier (per body), in DMT model.
     vec2* body_id,                                        // body IDs (per contact)
@@ -77,6 +79,7 @@ void function_CalcContactForces(
     vec3* shear_neigh,      // neighbor list of contacting bodies and shapes (max_shear per body)
     char* shear_touch,      // flag if contact in neighbor list is persistent (max_shear per body)
     real3* shear_disp,      // accumulated shear displacement for each neighbor (max_shear per body)
+    real* contact_duration, // accumulates duration of persistant contact between contact pairs
     int* ext_body_id,       // [output] body IDs (two per contact)
     real3* ext_body_force,  // [output] body force (two per contact)
     real3* ext_body_torque  // [output] body torque (two per contact)
@@ -131,6 +134,7 @@ void function_CalcContactForces(
     real m_eff = mass[body1] * mass[body2] / (mass[body1] + mass[body2]);
 
     real mu_eff = strategy->CombineFriction(mu[body1], mu[body2]);
+    real muRoll_eff = strategy->CombineFriction(muRoll[body1], muRoll[body2]);
     real adhesion_eff = strategy->CombineCohesion(adhesion[body1], adhesion[body2]);
     real adhesionMultDMT_eff = strategy->CombineAdhesionMultiplier(adhesionMultDMT[body1], adhesionMultDMT[body2]);
 
@@ -167,7 +171,10 @@ void function_CalcContactForces(
     real kt;
     real gn;
     real gt;
-
+    real kn_simple;
+    real gn_simple;
+	
+	real t_contact = 0;
     real delta_n = -depth[index];
     real3 delta_t = real3(0);
 
@@ -204,7 +211,8 @@ void function_CalcContactForces(
             int ctIdUnrolled = max_shear * shear_body1 + i;
             if (shear_neigh[ctIdUnrolled].x == shear_body2 && shear_neigh[ctIdUnrolled].y == shear_shape1 &&
                 shear_neigh[ctIdUnrolled].z == shear_shape2) {
-                contact_id = i;
+                contact_duration[ctIdUnrolled] += dT;
+				contact_id = i;
                 newcontact = false;
                 break;
             }
@@ -220,6 +228,7 @@ void function_CalcContactForces(
                     shear_disp[ctIdUnrolled].x = 0;
                     shear_disp[ctIdUnrolled].y = 0;
                     shear_disp[ctIdUnrolled].z = 0;
+                    contact_duration[ctIdUnrolled] = 0;
                     break;
                 }
             }
@@ -241,6 +250,9 @@ void function_CalcContactForces(
             shear_disp[ctSaveId] -= Dot(shear_disp[ctSaveId], normal[index]) * normal[index];
             delta_t = -shear_disp[ctSaveId];
         }
+
+		// Load the contact_duration from the contact history
+        t_contact = contact_duration[ctSaveId];
     }
 
     double eps = std::numeric_limits<double>::epsilon();
@@ -264,6 +276,9 @@ void function_CalcContactForces(
                 gt = m_eff * user_gt;
             }
 
+			kn_simple = kn;
+            gn_simple = gn;
+
             break;
 
         case ChSystemSMC::ContactForceModel::Hertz:
@@ -285,6 +300,9 @@ void function_CalcContactForces(
                 gt = tmp * m_eff * user_gt;
             }
 
+			kn_simple = kn / Sqrt(delta_n);
+            gn_simple = gn / Pow(delta_n, 1.0 / 4.0);
+
             break;
 
         case ChSystemSMC::ContactForceModel::PlainCoulomb:
@@ -302,6 +320,9 @@ void function_CalcContactForces(
                 gn = tmp * user_gn;
             }
 
+			kn_simple = kn / Sqrt(delta_n);
+            gn_simple = gn / Pow(delta_n, 1.0 / 4.0);
+
             kt = 0;
             gt = 0;
 
@@ -318,6 +339,28 @@ void function_CalcContactForces(
                 real3 torque1_loc = Cross(pt1_loc, RotateT(force, rot[body1]));
                 real3 torque2_loc = Cross(pt2_loc, RotateT(force, rot[body2]));
 
+				// If the duration of the current contact is less than the durration of a typical collision,
+                // do not apply friction. Rolling friction should only be applied to persistant contacts
+                real d_coeff = gn_simple / (2.0 * m_eff * Sqrt(kn_simple / m_eff));
+                real t_collision = CH_C_PI * Sqrt(m_eff / (kn_simple * (1 - d_coeff * d_coeff)));
+
+                if (t_contact <= t_collision) {
+                    muRoll_eff = 0.0;
+                }
+
+                // Compute some additional vales needed for the rolling friction calculation
+                real3 v_rot = Rotate(Cross(o_body2, pt2_loc), rot[body2]) - Rotate(Cross(o_body1, pt1_loc), rot[body1]);
+
+                // Calculate rolling friction torque as M_roll = mu_r * R * (F_N x v_rot) / |v_rot| (Schwartz et al.
+                // 2012)
+                real3 m_roll1 = real3(0);
+                real3 m_roll2 = real3(0);
+
+                if (Length(v_rot) > min_roll_vel) {
+                    m_roll1 = muRoll_eff * Cross(forceN_mag * pt1_loc, RotateT(v_rot, rot[body1])) / Length(v_rot);
+                    m_roll2 = muRoll_eff * Cross(forceN_mag * pt2_loc, RotateT(v_rot, rot[body2])) / Length(v_rot);
+                }
+
 				// Account for adhesion
 				switch (adhesion_model) {
                     case ChSystemSMC::AdhesionForceModel::Constant:
@@ -332,8 +375,8 @@ void function_CalcContactForces(
                 ext_body_id[2 * index + 1] = body2;
                 ext_body_force[2 * index] = -force;
                 ext_body_force[2 * index + 1] = force;
-                ext_body_torque[2 * index] = -torque1_loc;
-                ext_body_torque[2 * index + 1] = torque2_loc;
+                ext_body_torque[2 * index] = -torque1_loc + m_roll1;
+                ext_body_torque[2 * index + 1] = torque2_loc - m_roll2;
             }
 
             return;
@@ -395,6 +438,27 @@ void function_CalcContactForces(
     real3 torque1_loc = Cross(pt1_loc, RotateT(force, rot[body1]));
     real3 torque2_loc = Cross(pt2_loc, RotateT(force, rot[body2]));
 
+	// If the duration of the current contact is less than the durration of a typical collision,
+    // do not apply friction. Rolling friction should only be applied to persistant contacts
+    real d_coeff = gn_simple / (2.0 * m_eff * Sqrt(kn_simple / m_eff));
+    real t_collision = CH_C_PI * Sqrt(m_eff / (kn_simple * (1 - d_coeff * d_coeff)));
+
+    if (t_contact <= t_collision) {
+        muRoll_eff = 0.0;
+    }
+
+    // Compute some additional vales needed for the rolling friction calculation
+    real3 v_rot = Rotate(Cross(o_body2, pt2_loc), rot[body2]) - Rotate(Cross(o_body1, pt1_loc), rot[body1]);
+
+    // Calculate rolling friction torque as M_roll = mu_r * R * (F_N x v_rot) / |v_rot| (Schwartz et al. 2012)
+    real3 m_roll1 = real3(0);
+    real3 m_roll2 = real3(0);
+
+    if (Length(v_rot) > min_roll_vel) {
+        m_roll1 = muRoll_eff * Cross(forceN_mag * pt1_loc, RotateT(v_rot, rot[body1])) / Length(v_rot);
+        m_roll2 = muRoll_eff * Cross(forceN_mag * pt2_loc, RotateT(v_rot, rot[body2])) / Length(v_rot);
+    }
+
 	// Account for adhesion
     switch (adhesion_model) {
         case ChSystemSMC::AdhesionForceModel::Constant:
@@ -410,8 +474,8 @@ void function_CalcContactForces(
     ext_body_id[2 * index + 1] = body2;
     ext_body_force[2 * index] = -force;
     ext_body_force[2 * index + 1] = force;
-    ext_body_torque[2 * index] = -torque1_loc;
-    ext_body_torque[2 * index + 1] = torque2_loc;
+    ext_body_torque[2 * index] = -torque1_loc + m_roll1;
+    ext_body_torque[2 * index + 1] = torque2_loc - m_roll2;
 }
 
 // -----------------------------------------------------------------------------
@@ -430,17 +494,17 @@ void ChIterativeSolverParallelSMC::host_CalcContactForces(custom_vector<int>& ex
             data_manager->settings.solver.adhesion_force_model, data_manager->settings.solver.tangential_displ_mode,
             data_manager->composition_strategy.get(), data_manager->settings.solver.use_material_properties,
             data_manager->settings.solver.characteristic_vel, data_manager->settings.solver.min_slip_vel,
-            data_manager->settings.step_size, data_manager->host_data.mass_rigid.data(),
+            data_manager->settings.solver.min_roll_vel, data_manager->settings.step_size, data_manager->host_data.mass_rigid.data(),
             data_manager->host_data.pos_rigid.data(), data_manager->host_data.rot_rigid.data(),
             data_manager->host_data.v.data(), data_manager->host_data.elastic_moduli.data(),
-            data_manager->host_data.cr.data(), data_manager->host_data.smc_coeffs.data(),
-            data_manager->host_data.mu.data(), data_manager->host_data.cohesion_data.data(),
+            data_manager->host_data.cr.data(), data_manager->host_data.smc_coeffs.data(), data_manager->host_data.mu.data(),
+            data_manager->host_data.muRoll.data(), data_manager->host_data.cohesion_data.data(),
             data_manager->host_data.adhesionMultDMT_data.data(), data_manager->host_data.bids_rigid_rigid.data(),
             shape_pairs.data(), data_manager->host_data.cpta_rigid_rigid.data(),
             data_manager->host_data.cptb_rigid_rigid.data(), data_manager->host_data.norm_rigid_rigid.data(),
             data_manager->host_data.dpth_rigid_rigid.data(), data_manager->host_data.erad_rigid_rigid.data(),
             data_manager->host_data.shear_neigh.data(), shear_touch.data(), data_manager->host_data.shear_disp.data(),
-            ext_body_id.data(), ext_body_force.data(), ext_body_torque.data());
+            data_manager->host_data.contact_duration.data(), ext_body_id.data(), ext_body_force.data(), ext_body_torque.data());
     }
 }
 

@@ -120,6 +120,7 @@ class solver_settings {
         use_material_properties = true;
         characteristic_vel = 1;
         min_slip_vel = 1e-4;
+        min_roll_vel = 1e-4;
         cache_step_length = false;
         precondition = false;
         use_power_iteration = false;
@@ -186,6 +187,7 @@ class solver_settings {
     real characteristic_vel;
     /// Threshold tangential velocity.
     real min_slip_vel;
+    real min_roll_vel;
 
     /// Along with setting the solver mode, the total number of iterations for each
     /// type of constraints can be performed.

@@ -53,6 +53,7 @@ void ChSystemParallelSMC::AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody
     // Reserve space for material properties for the specified body. Not that the
     // actual data is set in UpdateMaterialProperties().
     data_manager->host_data.mu.push_back(0);
+    data_manager->host_data.muRoll.push_back(0);
     data_manager->host_data.cohesion_data.push_back(0);
     data_manager->host_data.adhesionMultDMT_data.push_back(0);
 
@@ -69,6 +70,7 @@ void ChSystemParallelSMC::AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody
         for (int i = 0; i < max_shear; i++) {
             data_manager->host_data.shear_neigh.push_back(vec3(-1, -1, -1));
             data_manager->host_data.shear_disp.push_back(real3(0, 0, 0));
+            data_manager->host_data.contact_duration.push_back(0);
         }
     }
 }
@@ -79,6 +81,7 @@ void ChSystemParallelSMC::UpdateMaterialSurfaceData(int index, ChBody* body) {
     custom_vector<real>& adhesion = data_manager->host_data.cohesion_data;
     custom_vector<real>& adhesionMult = data_manager->host_data.adhesionMultDMT_data;
     custom_vector<real>& mu = data_manager->host_data.mu;
+    custom_vector<real>& muRoll = data_manager->host_data.muRoll;
     custom_vector<real>& cr = data_manager->host_data.cr;
     custom_vector<real4>& smc_coeffs = data_manager->host_data.smc_coeffs;
 
@@ -91,6 +94,7 @@ void ChSystemParallelSMC::UpdateMaterialSurfaceData(int index, ChBody* body) {
 
     mass[index] = body->GetMass();
     mu[index] = mat_ptr->GetSfriction();
+    muRoll[index] = mat_ptr->GetRollingFriction();
     adhesion[index] = mat_ptr->GetAdhesion();
     adhesionMult[index] = mat_ptr->GetAdhesionMultDMT();
 

@@ -295,6 +295,7 @@ struct host_container {
     // Contact shear history (SMC)
     custom_vector<vec3> shear_neigh;  ///< Neighbor list of contacting bodies and shapes
     custom_vector<real3> shear_disp;  ///< Accumulated shear displacement for each neighbor
+    custom_vector<real> contact_duration;  ///< Accumulated contact duration, per contact pair
 
     /// Mapping from all bodies in the system to bodies involved in a contact.
     /// For bodies that are currently not in contact, the mapping entry is -1.
@@ -357,7 +358,8 @@ struct host_container {
     // Material properties (SMC)
     custom_vector<real2> elastic_moduli;       ///< Young's modulus and Poisson ratio (SMC only)
     custom_vector<real> mu;                    ///< Coefficient of friction (SMC only)
-    custom_vector<real> cr;                    ///< Coefficient of restitution (SMC only)
+    custom_vector<real> muRoll;                ///< Coefficient of rolling friction (SMC only)
+	custom_vector<real> cr;                    ///< Coefficient of restitution (SMC only)
     custom_vector<real4> smc_coeffs;           ///< Stiffness and damping coefficients (SMC only)
     custom_vector<real> adhesionMultDMT_data;  ///< Adhesion multipliers used in DMT model (SMC only)
     // Derjaguin-Muller-Toporov (DMT) model:
