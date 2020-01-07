@@ -388,15 +388,15 @@ inline __device__ float3 computeFrictionForces(GranParamsPtr gran_params,
         return make_float3(0.f, 0.f, 0.f);
     }
 
-    // If the force is beyond the coulomb criternion, clamp it
+    // If the force is beyond the coulomb criterion, clamp it
     const float ft_max = Length(normal_force) * static_friction_coeff;
     if (ft > ft_max) {
-        return tangent_force * ft_max / ft;  // TODO stability
-
         if (gran_params->friction_mode == GRAN_FRICTION_MODE::MULTI_STEP) {
             updateMultiStepDisplacement(sphere_data, contact_index, rel_vel, contact_normal, k_t, gamma_t, m_eff,
-                                        force_model_multiplier, tangent_force);
+                                        force_model_multiplier, tangent_force);  // TODO check this out
         }
+
+        return tangent_force * ft_max / ft;  // TODO stability
     }
 
     return tangent_force;
