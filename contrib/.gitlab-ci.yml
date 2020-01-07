@@ -108,7 +108,7 @@ linux:doxygen:deploy:
   before_script:
 #    - pacman -Syyu --noconfirm base-devel git python python-pip doxygen graphviz openssh rsync clang
     - pacman -Syyu --noconfirm base-devel git python python-pip graphviz openssh rsync wget
-    - wget https://svwh.dl.sourceforge.net/project/doxygen/rel-1.8.16/doxygen-1.8.16.linux.bin.tar.gz
+    - wget https://downloads.sourceforge.net/project/doxygen/rel-1.8.16/doxygen-1.8.16.linux.bin.tar.gz
     - tar -xf doxygen-1.8.16.linux.bin.tar.gz
     - mkdir -p ~/.ssh
     - chmod 0700 ~/.ssh
