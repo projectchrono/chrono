@@ -280,6 +280,11 @@ std::shared_ptr<ChBody> ChAssembly::SearchBody(const char* name) {
         name, bodylist.begin(), bodylist.end());
 }
 
+std::shared_ptr<ChBody> ChAssembly::SearchBodyID(int markID) {
+    return ChContainerSearchFromID<std::shared_ptr<ChBody>, std::vector<std::shared_ptr<ChBody>>::iterator>(
+        markID, bodylist.begin(), bodylist.end());
+}
+
 std::shared_ptr<ChLinkBase> ChAssembly::SearchLink(const char* name) {
     return ChContainerSearchFromName<std::shared_ptr<ChLinkBase>, std::vector<std::shared_ptr<ChLinkBase>>::iterator>(
         name, linklist.begin(), linklist.end());
