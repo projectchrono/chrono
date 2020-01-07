@@ -57,6 +57,7 @@ void function_CalcContactForces(
     real char_vel,                                        // characteristic velocity (Hooke)
     real min_slip_vel,                                    // threshold tangential velocity
     real min_roll_vel,                                    // threshold rolling velocity
+    real min_spin_vel,                                    // threshold spinning velocity
     real dT,                                              // integration time step
     real* mass,                                           // body masses
     real3* pos,                                           // body positions
@@ -67,6 +68,7 @@ void function_CalcContactForces(
     real4* smc_coeffs,                                    // stiffness and damping coefficients (per body)
     real* mu,                                             // coefficient of friction (per body)
     real* muRoll,                                         // coefficient of rolling friction (per body)
+    real* muSpin,                                         // coefficient of spinning friction (per body)
     real* adhesion,                                       // constant force (per body)
     real* adhesionMultDMT,                                // Adhesion force multiplier (per body), in DMT model.
     vec2* body_id,                                        // body IDs (per contact)
@@ -135,6 +137,7 @@ void function_CalcContactForces(
 
     real mu_eff = strategy->CombineFriction(mu[body1], mu[body2]);
     real muRoll_eff = strategy->CombineFriction(muRoll[body1], muRoll[body2]);
+    real muSpin_eff = strategy->CombineFriction(muSpin[body1], muSpin[body2]);
     real adhesion_eff = strategy->CombineCohesion(adhesion[body1], adhesion[body2]);
     real adhesionMultDMT_eff = strategy->CombineAdhesionMultiplier(adhesionMultDMT[body1], adhesionMultDMT[body2]);
 
@@ -340,16 +343,18 @@ void function_CalcContactForces(
                 real3 torque2_loc = Cross(pt2_loc, RotateT(force, rot[body2]));
 
 				// If the duration of the current contact is less than the durration of a typical collision,
-                // do not apply friction. Rolling friction should only be applied to persistant contacts
+                // do not apply friction. Rolling and spinning friction should only be applied to persistant contacts
                 real d_coeff = gn_simple / (2.0 * m_eff * Sqrt(kn_simple / m_eff));
                 real t_collision = CH_C_PI * Sqrt(m_eff / (kn_simple * (1 - d_coeff * d_coeff)));
 
                 if (t_contact <= t_collision) {
                     muRoll_eff = 0.0;
+                    muSpin_eff = 0.0;
                 }
 
-                // Compute some additional vales needed for the rolling friction calculation
+                // Compute some additional vales needed for the rolling and spinning friction calculations
                 real3 v_rot = Rotate(Cross(o_body2, pt2_loc), rot[body2]) - Rotate(Cross(o_body1, pt1_loc), rot[body1]);
+                real3 rel_o = Rotate(o_body2, rot[body2]) - Rotate(o_body1, rot[body1]);
 
                 // Calculate rolling friction torque as M_roll = mu_r * R * (F_N x v_rot) / |v_rot| (Schwartz et al.
                 // 2012)
@@ -359,6 +364,26 @@ void function_CalcContactForces(
                 if (Length(v_rot) > min_roll_vel) {
                     m_roll1 = muRoll_eff * Cross(forceN_mag * pt1_loc, RotateT(v_rot, rot[body1])) / Length(v_rot);
                     m_roll2 = muRoll_eff * Cross(forceN_mag * pt2_loc, RotateT(v_rot, rot[body2])) / Length(v_rot);
+                }
+
+				// Calculate spinning friction torque as M_spin = -mu_t * r_c * ((w_n - w_p) . F_n / |w_n - w_p|) * n
+                // r_c is the radius of the circle resulting from the intersecting body surfaces (Schwartz et al. 2012)
+                real3 m_spin1 = real3(0);
+                real3 m_spin2 = real3(0);
+
+                if (Length(rel_o) > min_spin_vel) {
+                    real r1 = Length(pt1_loc);  // r1 = eff_radius[index];
+                    real r2 = Length(pt2_loc);  // r2 = r1;
+                    real xc = (r1 * r1 - r2 * r2) / (2 * (r1 + r2 - delta_n)) + 0.5 * (r1 + r2 - delta_n);
+                    real rc = r1 * r1 - xc * xc;
+                    rc = (rc < eps) ? eps : sqrt(rc);
+
+                    m_spin1 = muSpin_eff * rc *
+                              RotateT(Dot(rel_o, forceN_mag * normal[index]) * normal[index], rot[body1]) /
+                              Length(rel_o);
+                    m_spin2 = muSpin_eff * rc *
+                              RotateT(Dot(rel_o, forceN_mag * normal[index]) * normal[index], rot[body2]) /
+                              Length(rel_o);
                 }
 
 				// Account for adhesion
@@ -375,8 +400,8 @@ void function_CalcContactForces(
                 ext_body_id[2 * index + 1] = body2;
                 ext_body_force[2 * index] = -force;
                 ext_body_force[2 * index + 1] = force;
-                ext_body_torque[2 * index] = -torque1_loc + m_roll1;
-                ext_body_torque[2 * index + 1] = torque2_loc - m_roll2;
+                ext_body_torque[2 * index] = -torque1_loc + m_roll1 + m_spin1;
+                ext_body_torque[2 * index + 1] = torque2_loc - m_roll2 - m_spin2;
             }
 
             return;
@@ -439,16 +464,18 @@ void function_CalcContactForces(
     real3 torque2_loc = Cross(pt2_loc, RotateT(force, rot[body2]));
 
 	// If the duration of the current contact is less than the durration of a typical collision,
-    // do not apply friction. Rolling friction should only be applied to persistant contacts
+    // do not apply friction. Rolling and spinning friction should only be applied to persistant contacts
     real d_coeff = gn_simple / (2.0 * m_eff * Sqrt(kn_simple / m_eff));
     real t_collision = CH_C_PI * Sqrt(m_eff / (kn_simple * (1 - d_coeff * d_coeff)));
 
     if (t_contact <= t_collision) {
         muRoll_eff = 0.0;
+        muSpin_eff = 0.0;
     }
 
-    // Compute some additional vales needed for the rolling friction calculation
+    // Compute some additional vales needed for the rolling and spinning friction calculations
     real3 v_rot = Rotate(Cross(o_body2, pt2_loc), rot[body2]) - Rotate(Cross(o_body1, pt1_loc), rot[body1]);
+    real3 rel_o = Rotate(o_body2, rot[body2]) - Rotate(o_body1, rot[body1]);
 
     // Calculate rolling friction torque as M_roll = mu_r * R * (F_N x v_rot) / |v_rot| (Schwartz et al. 2012)
     real3 m_roll1 = real3(0);
@@ -457,6 +484,24 @@ void function_CalcContactForces(
     if (Length(v_rot) > min_roll_vel) {
         m_roll1 = muRoll_eff * Cross(forceN_mag * pt1_loc, RotateT(v_rot, rot[body1])) / Length(v_rot);
         m_roll2 = muRoll_eff * Cross(forceN_mag * pt2_loc, RotateT(v_rot, rot[body2])) / Length(v_rot);
+    }
+
+	// Calculate spinning friction torque as M_spin = -mu_t * r_c * ((w_n - w_p) . F_n / |w_n - w_p|) * n
+    // r_c is the radius of the circle resulting from the intersecting body surfaces (Schwartz et al. 2012)
+    real3 m_spin1 = real3(0);
+    real3 m_spin2 = real3(0);
+
+    if (Length(rel_o) > min_spin_vel) {
+        real r1 = Length(pt1_loc);  // r1 = eff_radius[index];
+        real r2 = Length(pt2_loc);  // r2 = r1;
+        real xc = (r1 * r1 - r2 * r2) / (2 * (r1 + r2 - delta_n)) + 0.5 * (r1 + r2 - delta_n);
+        real rc = r1 * r1 - xc * xc;
+        rc = (rc < eps) ? eps : sqrt(rc);
+
+        m_spin1 = muSpin_eff * rc * RotateT(Dot(rel_o, forceN_mag * normal[index]) * normal[index], rot[body1]) /
+                  Length(rel_o);
+        m_spin2 = muSpin_eff * rc * RotateT(Dot(rel_o, forceN_mag * normal[index]) * normal[index], rot[body2]) /
+                  Length(rel_o);
     }
 
 	// Account for adhesion
@@ -474,8 +519,8 @@ void function_CalcContactForces(
     ext_body_id[2 * index + 1] = body2;
     ext_body_force[2 * index] = -force;
     ext_body_force[2 * index + 1] = force;
-    ext_body_torque[2 * index] = -torque1_loc + m_roll1;
-    ext_body_torque[2 * index + 1] = torque2_loc - m_roll2;
+    ext_body_torque[2 * index] = -torque1_loc + m_roll1 + m_spin1;
+    ext_body_torque[2 * index + 1] = torque2_loc - m_roll2 - m_spin2;
 }
 
 // -----------------------------------------------------------------------------
@@ -494,11 +539,12 @@ void ChIterativeSolverParallelSMC::host_CalcContactForces(custom_vector<int>& ex
             data_manager->settings.solver.adhesion_force_model, data_manager->settings.solver.tangential_displ_mode,
             data_manager->composition_strategy.get(), data_manager->settings.solver.use_material_properties,
             data_manager->settings.solver.characteristic_vel, data_manager->settings.solver.min_slip_vel,
-            data_manager->settings.solver.min_roll_vel, data_manager->settings.step_size, data_manager->host_data.mass_rigid.data(),
+            data_manager->settings.solver.min_roll_vel, data_manager->settings.solver.min_spin_vel, 
+			data_manager->settings.step_size, data_manager->host_data.mass_rigid.data(),
             data_manager->host_data.pos_rigid.data(), data_manager->host_data.rot_rigid.data(),
             data_manager->host_data.v.data(), data_manager->host_data.elastic_moduli.data(),
-            data_manager->host_data.cr.data(), data_manager->host_data.smc_coeffs.data(), data_manager->host_data.mu.data(),
-            data_manager->host_data.muRoll.data(), data_manager->host_data.cohesion_data.data(),
+            data_manager->host_data.cr.data(), data_manager->host_data.smc_coeffs.data(), data_manager->host_data.mu.data(), 
+			data_manager->host_data.muRoll.data(), data_manager->host_data.muSpin.data(), data_manager->host_data.cohesion_data.data(),
             data_manager->host_data.adhesionMultDMT_data.data(), data_manager->host_data.bids_rigid_rigid.data(),
             shape_pairs.data(), data_manager->host_data.cpta_rigid_rigid.data(),
             data_manager->host_data.cptb_rigid_rigid.data(), data_manager->host_data.norm_rigid_rigid.data(),

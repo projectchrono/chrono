@@ -359,6 +359,7 @@ struct host_container {
     custom_vector<real2> elastic_moduli;       ///< Young's modulus and Poisson ratio (SMC only)
     custom_vector<real> mu;                    ///< Coefficient of friction (SMC only)
     custom_vector<real> muRoll;                ///< Coefficient of rolling friction (SMC only)
+    custom_vector<real> muSpin;                ///< Coefficient of spinning friction (SMC only)
 	custom_vector<real> cr;                    ///< Coefficient of restitution (SMC only)
     custom_vector<real4> smc_coeffs;           ///< Stiffness and damping coefficients (SMC only)
     custom_vector<real> adhesionMultDMT_data;  ///< Adhesion multipliers used in DMT model (SMC only)
