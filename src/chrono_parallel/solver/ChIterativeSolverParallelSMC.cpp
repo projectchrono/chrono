@@ -310,20 +310,25 @@ void function_CalcContactForces(
                 if (forceN_mag < 0)
                     forceN_mag = 0;
                 real forceT_mag = mu_eff * Tanh(5.0 * relvel_t_mag) * forceN_mag;
-                switch (adhesion_model) {
-                    case ChSystemSMC::AdhesionForceModel::Constant:
-                        forceN_mag -= adhesion_eff;
-                        break;
-                    case ChSystemSMC::AdhesionForceModel::DMT:
-                        forceN_mag -= adhesionMultDMT_eff * Sqrt(eff_radius[index]);
-                        break;
-                }
+                
+				// Accumulate normal and tangential forces
                 real3 force = forceN_mag * normal[index];
-                if (relvel_t_mag >= (real)1e-4)
+                if (relvel_t_mag >= min_slip_vel)
                     force -= (forceT_mag / relvel_t_mag) * relvel_t;
 
+                // Convert force into the local body frames and calculate induced torques
                 real3 torque1_loc = Cross(pt1_loc, RotateT(force, rot[body1]));
                 real3 torque2_loc = Cross(pt2_loc, RotateT(force, rot[body2]));
+
+				// Account for adhesion
+				switch (adhesion_model) {
+                    case ChSystemSMC::AdhesionForceModel::Constant:
+                        force -= adhesion_eff * normal[index];
+                        break;
+                    case ChSystemSMC::AdhesionForceModel::DMT:
+                        force -= adhesionMultDMT_eff * Sqrt(eff_radius[index]) * normal[index];
+                        break;
+                }
 
                 ext_body_id[2 * index] = body1;
                 ext_body_id[2 * index + 1] = body2;
@@ -356,18 +361,6 @@ void function_CalcContactForces(
         forceT_damp.x = 0;
         forceT_damp.y = 0;
         forceT_damp.z = 0;
-    }
-
-    // Include adhesion force.
-    switch (adhesion_model) {
-        case ChSystemSMC::AdhesionForceModel::Constant:
-            // (This is a very simple model, which can perhaps be improved later.)
-            forceN_mag -= adhesion_eff;
-            break;
-        case ChSystemSMC::AdhesionForceModel::DMT:
-            // Derjaguin, Muller and Toporov (DMT) adhesion force,
-            forceN_mag -= adhesionMultDMT_eff * Sqrt(eff_radius[index]);
-            break;
     }
 
     // Apply Coulomb friction law.
@@ -415,6 +408,16 @@ void function_CalcContactForces(
     //    n' = s' x F' = s' x (A*F)
     real3 torque1_loc = Cross(pt1_loc, RotateT(force, rot[body1]));
     real3 torque2_loc = Cross(pt2_loc, RotateT(force, rot[body2]));
+
+	// Account for adhesion
+    switch (adhesion_model) {
+        case ChSystemSMC::AdhesionForceModel::Constant:
+            force -= adhesion_eff * normal[index];
+            break;
+        case ChSystemSMC::AdhesionForceModel::DMT:
+            force -= adhesionMultDMT_eff * Sqrt(eff_radius[index]) * normal[index];
+            break;
+    }
 
     // Store body forces and torques, duplicated for the two bodies.
     ext_body_id[2 * index] = body1;
