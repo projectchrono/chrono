@@ -27,7 +27,7 @@ namespace chrono {
 namespace vehicle {
 namespace man {
 
-/// @addtogroup vehicle_models_uaz
+/// @addtogroup vehicle_models_man
 /// @{
 
 /// RotaryArm steering subsystem for the uaz vehicle.
@@ -59,7 +59,7 @@ class CH_MODELS_API MAN_10t_RotaryArm2 : public ChRotaryArm {
     static const ChVector<> m_pitmanArmInertiaProducts;
 };
 
-/// @} vehicle_models_uaz
+/// @} vehicle_models_man
 
 }  // namespace man
 }  // end namespace vehicle

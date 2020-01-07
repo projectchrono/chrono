@@ -111,7 +111,7 @@ def main() :
 !!!! Set this path before running the demo!
 """
 chrono.SetChronoDataPath('../../../../Library/data/')
-veh.SetDataPath('../../../../Library/data/Vehicle/')
+veh.SetDataPath('../../../../Library/data/vehicle/')
 
 # JSON file for vehicle model
 vehicle_file = veh.GetDataPath() +"hmmwv/vehicle/HMMWV_Vehicle.json"

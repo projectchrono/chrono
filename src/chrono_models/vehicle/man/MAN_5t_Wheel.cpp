@@ -37,10 +37,10 @@ const double MAN_5t_Wheel::m_radius = 0.254;
 const double MAN_5t_Wheel::m_width = 0.254;
 
 const std::string MAN_5t_WheelLeft::m_meshName = "wheel_L_POV_geom";
-const std::string MAN_5t_WheelLeft::m_meshFile = "MAN_5t/MAN_5t_wheel_L.obj";
+const std::string MAN_5t_WheelLeft::m_meshFile = "MAN_Kat1/meshes/MAN_5t_wheel_L.obj";
 
 const std::string MAN_5t_WheelRight::m_meshName = "wheel_R_POV_geom";
-const std::string MAN_5t_WheelRight::m_meshFile = "MAN_5t/MAN_5t_wheel_R.obj";
+const std::string MAN_5t_WheelRight::m_meshFile = "MAN_Kat1/meshes/MAN_5t_wheel_R.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
