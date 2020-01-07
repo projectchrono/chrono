@@ -185,7 +185,6 @@ __host__ void ChSystemGranularSMC::defragment_initial_positions() {
     sphere_fixed.swap(sphere_fixed_tmp);
     sphere_owner_SDs.swap(sphere_owner_SDs_tmp);
 }
-
 __host__ void ChSystemGranularSMC::setupSphereDataStructures() {
     // Each fills user_sphere_positions with positions to be copied
     if (user_sphere_positions.size() == 0) {

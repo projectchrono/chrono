@@ -75,7 +75,7 @@ inline __device__ int3 pointSDTriplet(double sphCenter_X,
 }
 
 // Conver SD ID to SD triplet
-inline __device__ __host__ int3 SDIDTriplet(unsigned int SD_ID, GranParamsPtr gran_params) {
+inline __host__ __device__ int3 SDIDTriplet(unsigned int SD_ID, GranParamsPtr gran_params) {
     int3 SD_trip = {0, 0, 0};
 
     // printf("ID is %u\n", SD_ID);
@@ -175,19 +175,15 @@ inline __device__ void cleanupContactMap(GranSphereDataPtr sphere_data,
     unsigned int* contact_partners = sphere_data->contact_partners_map + body_A_offset;
     not_stupid_bool* contact_active = sphere_data->contact_active_map + body_A_offset;
 
-    __shared__ GRAN_FRICTION_MODE friction[1];  // Store to shared memory for broadcast to all threads
-    friction[0] = gran_params->friction_mode;
-
-        // sweep through each available contact slot and reset it if that slot wasn't active last timestep
-        for (unsigned int contact_id = 0; contact_id < MAX_SPHERES_TOUCHED_BY_SPHERE; contact_id++) {
+    // sweep through each available contact slot and reset it if that slot wasn't active last timestep
+    for (unsigned int contact_id = 0; contact_id < MAX_SPHERES_TOUCHED_BY_SPHERE; contact_id++) {
         // printf("contact map for sphere %u entry %u is other %u, active %u \t history is %f, %f, %f\n", body_A,
         //        contact_id, contact_partners[contact_id], contact_active[contact_id], contact_history[contact_id].x,
         //        contact_history[contact_id].y, contact_history[contact_id].z);
-        
         // if the contact is not active, reset it
         if (contact_active[contact_id] == false) {
             contact_partners[contact_id] = NULL_GRANULAR_ID;
-            if (friction[0] == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP) {
+            if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP) {
                 constexpr float3 null_history = {0, 0, 0};
                 contact_history[contact_id] = null_history;
             }
