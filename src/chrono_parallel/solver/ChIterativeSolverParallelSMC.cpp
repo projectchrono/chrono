@@ -37,7 +37,6 @@
 #include <cstdint>
 #endif
 
-
 using namespace chrono;
 
 // -----------------------------------------------------------------------------
@@ -78,14 +77,14 @@ void function_CalcContactForces(
     real3* normal,                                        // contact normal (per contact)
     real* depth,                                          // penetration depth (per contact)
     real* eff_radius,                                     // effective contact radius (per contact)
-    vec3* shear_neigh,      // neighbor list of contacting bodies and shapes (max_shear per body)
-    char* shear_touch,      // flag if contact in neighbor list is persistent (max_shear per body)
-    real3* shear_disp,      // accumulated shear displacement for each neighbor (max_shear per body)
-    real* contact_duration, // accumulates duration of persistant contact between contact pairs
-    int* ext_body_id,       // [output] body IDs (two per contact)
-    real3* ext_body_force,  // [output] body force (two per contact)
-    real3* ext_body_torque  // [output] body torque (two per contact)
-    ) {
+    vec3* shear_neigh,       // neighbor list of contacting bodies and shapes (max_shear per body)
+    char* shear_touch,       // flag if contact in neighbor list is persistent (max_shear per body)
+    real3* shear_disp,       // accumulated shear displacement for each neighbor (max_shear per body)
+    real* contact_duration,  // accumulates duration of persistant contact between contact pairs
+    int* ext_body_id,        // [output] body IDs (two per contact)
+    real3* ext_body_force,   // [output] body force (two per contact)
+    real3* ext_body_torque   // [output] body torque (two per contact)
+) {
     // Identify the two bodies in contact.
     int body1 = body_id[index].x;
     int body2 = body_id[index].y;
@@ -176,8 +175,8 @@ void function_CalcContactForces(
     real gt;
     real kn_simple;
     real gn_simple;
-	
-	real t_contact = 0;
+
+    real t_contact = 0;
     real delta_n = -depth[index];
     real3 delta_t = real3(0);
 
@@ -215,7 +214,7 @@ void function_CalcContactForces(
             if (shear_neigh[ctIdUnrolled].x == shear_body2 && shear_neigh[ctIdUnrolled].y == shear_shape1 &&
                 shear_neigh[ctIdUnrolled].z == shear_shape2) {
                 contact_duration[ctIdUnrolled] += dT;
-				contact_id = i;
+                contact_id = i;
                 newcontact = false;
                 break;
             }
@@ -254,7 +253,7 @@ void function_CalcContactForces(
             delta_t = -shear_disp[ctSaveId];
         }
 
-		// Load the contact_duration from the contact history
+        // Load the contact_duration from the contact history
         t_contact = contact_duration[ctSaveId];
     }
 
@@ -279,7 +278,7 @@ void function_CalcContactForces(
                 gt = m_eff * user_gt;
             }
 
-			kn_simple = kn;
+            kn_simple = kn;
             gn_simple = gn;
 
             break;
@@ -303,7 +302,7 @@ void function_CalcContactForces(
                 gt = tmp * m_eff * user_gt;
             }
 
-			kn_simple = kn / Sqrt(delta_n);
+            kn_simple = kn / Sqrt(delta_n);
             gn_simple = gn / Pow(delta_n, 1.0 / 4.0);
 
             break;
@@ -323,7 +322,7 @@ void function_CalcContactForces(
                 gn = tmp * user_gn;
             }
 
-			kn_simple = kn / Sqrt(delta_n);
+            kn_simple = kn / Sqrt(delta_n);
             gn_simple = gn / Pow(delta_n, 1.0 / 4.0);
 
             kt = 0;
@@ -332,8 +331,8 @@ void function_CalcContactForces(
             {
                 real forceN_mag = kn * delta_n - gn * relvel_n_mag;
                 real forceT_mag = mu_eff * Tanh(5.0 * relvel_t_mag) * forceN_mag;
-                
-				// Accumulate normal and tangential forces
+
+                // Accumulate normal and tangential forces
                 real3 force = forceN_mag * normal[index];
                 if (relvel_t_mag >= min_slip_vel)
                     force -= (forceT_mag / relvel_t_mag) * relvel_t;
@@ -342,7 +341,7 @@ void function_CalcContactForces(
                 real3 torque1_loc = Cross(pt1_loc, RotateT(force, rot[body1]));
                 real3 torque2_loc = Cross(pt2_loc, RotateT(force, rot[body2]));
 
-				// If the duration of the current contact is less than the durration of a typical collision,
+                // If the duration of the current contact is less than the durration of a typical collision,
                 // do not apply friction. Rolling and spinning friction should only be applied to persistant contacts
                 real d_coeff = gn_simple / (2.0 * m_eff * Sqrt(kn_simple / m_eff));
                 real t_collision = CH_C_PI * Sqrt(m_eff / (kn_simple * (1 - d_coeff * d_coeff)));
@@ -366,7 +365,7 @@ void function_CalcContactForces(
                     m_roll2 = muRoll_eff * Cross(forceN_mag * pt2_loc, RotateT(v_rot, rot[body2])) / Length(v_rot);
                 }
 
-				// Calculate spinning friction torque as M_spin = -mu_t * r_c * ((w_n - w_p) . F_n / |w_n - w_p|) * n
+                // Calculate spinning friction torque as M_spin = -mu_t * r_c * ((w_n - w_p) . F_n / |w_n - w_p|) * n
                 // r_c is the radius of the circle resulting from the intersecting body surfaces (Schwartz et al. 2012)
                 real3 m_spin1 = real3(0);
                 real3 m_spin2 = real3(0);
@@ -386,8 +385,8 @@ void function_CalcContactForces(
                               Length(rel_o);
                 }
 
-				// Account for adhesion
-				switch (adhesion_model) {
+                // Account for adhesion
+                switch (adhesion_model) {
                     case ChSystemSMC::AdhesionForceModel::Constant:
                         force -= adhesion_eff * normal[index];
                         break;
@@ -422,38 +421,30 @@ void function_CalcContactForces(
     // If force_T_mag > mu_eff * |forceN_mag| and there is shear displacement
     // due to contact history, then the shear displacement is scaled so that
     // the tangential force will be correct if force_T_mag subsequently drops
-    // below the Coulomb limit.  Also, if there is sliding, then there is no
-    // viscous damping in the tangential direction (to keep the Coulomb limit
-    // strict, and independent of velocity).
-    //  real forceT_mag = Length(forceT_stiff + forceT_damp);  // This seems correct
-    real forceT_stiff_mag = Length(forceT_stiff);  // This is what LAMMPS/LIGGGHTS does
-    real delta_t_mag = Length(delta_t);
-    real forceT_slide = mu_eff * Abs(forceN_mag);
-    if (forceT_stiff_mag > forceT_slide) {
-        if (delta_t_mag > eps) {
-            real ratio = forceT_slide / forceT_stiff_mag;
-            forceT_stiff *= ratio;
+    // below the Coulomb limit.
+    real3 forceT = forceT_stiff + forceT_damp;
+    real forceT_mag = Length(forceT);
+    real forceT_slide = mu_eff * forceN_mag;
+    if (forceT_mag > abs(forceT_slide)) {
+        if (forceT_mag > eps && kt > eps) {
+            real3 forceT_dir = forceT / forceT_mag;
+            forceT_mag = forceT_slide;
+            forceT = forceT_mag * forceT_dir;
             if (displ_mode == ChSystemSMC::TangentialDisplacementModel::MultiStep) {
+                delta_t = (forceT - forceT_damp) / kt;
                 if (shear_body1 == body1) {
-                    shear_disp[max_shear * shear_body1 + contact_id] = forceT_stiff / kt;
+                    shear_disp[max_shear * shear_body1 + contact_id] = delta_t;
                 } else {
-                    shear_disp[max_shear * shear_body1 + contact_id] = -forceT_stiff / kt;
+                    shear_disp[max_shear * shear_body1 + contact_id] = -delta_t;
                 }
             }
         } else {
-            forceT_stiff.x = 0.0;
-            forceT_stiff.y = 0.0;
-            forceT_stiff.z = 0.0;
+            forceT = real3(0);
         }
-        forceT_damp.x = 0.0;
-        forceT_damp.y = 0.0;
-        forceT_damp.z = 0.0;
-    }
+    } 
 
     // Accumulate normal and tangential forces
-    real3 force = forceN_mag * normal[index];
-    force -= forceT_stiff;
-    force -= forceT_damp;
+    real3 force = forceN_mag * normal[index] - forceT;
 
     // Body forces (in global frame) & torques (in local frame)
     // --------------------------------------------------------
@@ -463,7 +454,7 @@ void function_CalcContactForces(
     real3 torque1_loc = Cross(pt1_loc, RotateT(force, rot[body1]));
     real3 torque2_loc = Cross(pt2_loc, RotateT(force, rot[body2]));
 
-	// If the duration of the current contact is less than the durration of a typical collision,
+    // If the duration of the current contact is less than the durration of a typical collision,
     // do not apply friction. Rolling and spinning friction should only be applied to persistant contacts
     real d_coeff = gn_simple / (2.0 * m_eff * Sqrt(kn_simple / m_eff));
     real t_collision = CH_C_PI * Sqrt(m_eff / (kn_simple * (1 - d_coeff * d_coeff)));
@@ -486,7 +477,7 @@ void function_CalcContactForces(
         m_roll2 = muRoll_eff * Cross(forceN_mag * pt2_loc, RotateT(v_rot, rot[body2])) / Length(v_rot);
     }
 
-	// Calculate spinning friction torque as M_spin = -mu_t * r_c * ((w_n - w_p) . F_n / |w_n - w_p|) * n
+    // Calculate spinning friction torque as M_spin = -mu_t * r_c * ((w_n - w_p) . F_n / |w_n - w_p|) * n
     // r_c is the radius of the circle resulting from the intersecting body surfaces (Schwartz et al. 2012)
     real3 m_spin1 = real3(0);
     real3 m_spin2 = real3(0);
@@ -504,7 +495,7 @@ void function_CalcContactForces(
                   Length(rel_o);
     }
 
-	// Account for adhesion
+    // Account for adhesion
     switch (adhesion_model) {
         case ChSystemSMC::AdhesionForceModel::Constant:
             force -= adhesion_eff * normal[index];
@@ -539,18 +530,20 @@ void ChIterativeSolverParallelSMC::host_CalcContactForces(custom_vector<int>& ex
             data_manager->settings.solver.adhesion_force_model, data_manager->settings.solver.tangential_displ_mode,
             data_manager->composition_strategy.get(), data_manager->settings.solver.use_material_properties,
             data_manager->settings.solver.characteristic_vel, data_manager->settings.solver.min_slip_vel,
-            data_manager->settings.solver.min_roll_vel, data_manager->settings.solver.min_spin_vel, 
-			data_manager->settings.step_size, data_manager->host_data.mass_rigid.data(),
+            data_manager->settings.solver.min_roll_vel, data_manager->settings.solver.min_spin_vel,
+            data_manager->settings.step_size, data_manager->host_data.mass_rigid.data(),
             data_manager->host_data.pos_rigid.data(), data_manager->host_data.rot_rigid.data(),
             data_manager->host_data.v.data(), data_manager->host_data.elastic_moduli.data(),
-            data_manager->host_data.cr.data(), data_manager->host_data.smc_coeffs.data(), data_manager->host_data.mu.data(), 
-			data_manager->host_data.muRoll.data(), data_manager->host_data.muSpin.data(), data_manager->host_data.cohesion_data.data(),
+            data_manager->host_data.cr.data(), data_manager->host_data.smc_coeffs.data(),
+            data_manager->host_data.mu.data(), data_manager->host_data.muRoll.data(),
+            data_manager->host_data.muSpin.data(), data_manager->host_data.cohesion_data.data(),
             data_manager->host_data.adhesionMultDMT_data.data(), data_manager->host_data.bids_rigid_rigid.data(),
             shape_pairs.data(), data_manager->host_data.cpta_rigid_rigid.data(),
             data_manager->host_data.cptb_rigid_rigid.data(), data_manager->host_data.norm_rigid_rigid.data(),
             data_manager->host_data.dpth_rigid_rigid.data(), data_manager->host_data.erad_rigid_rigid.data(),
             data_manager->host_data.shear_neigh.data(), shear_touch.data(), data_manager->host_data.shear_disp.data(),
-            data_manager->host_data.contact_duration.data(), ext_body_id.data(), ext_body_force.data(), ext_body_torque.data());
+            data_manager->host_data.contact_duration.data(), ext_body_id.data(), ext_body_force.data(),
+            ext_body_torque.data());
     }
 }
 
@@ -658,18 +651,19 @@ void ChIterativeSolverParallelSMC::ProcessContacts() {
     // zip iterators.
     uint ct_body_count =
         (uint)(thrust::reduce_by_key(
-            THRUST_PAR ext_body_id.begin(), ext_body_id.end(),
-            thrust::make_zip_iterator(thrust::make_tuple(ext_body_force.begin(), ext_body_torque.begin())),
-            ct_body_id.begin(),
-            thrust::make_zip_iterator(thrust::make_tuple(ct_body_force.begin(), ct_body_torque.begin())),
-            #if defined _WIN32
-            // Windows compilers require an explicit-width type
-                thrust::equal_to<int64_t>(), sum_tuples()
-            #else
-                thrust::equal_to<int>(), sum_tuples()
-            #endif
-            ).first -
-        ct_body_id.begin());
+                   THRUST_PAR ext_body_id.begin(), ext_body_id.end(),
+                   thrust::make_zip_iterator(thrust::make_tuple(ext_body_force.begin(), ext_body_torque.begin())),
+                   ct_body_id.begin(),
+                   thrust::make_zip_iterator(thrust::make_tuple(ct_body_force.begin(), ct_body_torque.begin())),
+#if defined _WIN32
+                   // Windows compilers require an explicit-width type
+                   thrust::equal_to<int64_t>(), sum_tuples()
+#else
+                   thrust::equal_to<int>(), sum_tuples()
+#endif
+                       )
+                   .first -
+               ct_body_id.begin());
 
     ct_body_force.resize(ct_body_count);
     ct_body_torque.resize(ct_body_count);
