@@ -81,6 +81,7 @@ void function_CalcContactForces(
     vec3* shear_neigh,       // neighbor list of contacting bodies and shapes (max_shear per body)
     char* shear_touch,       // flag if contact in neighbor list is persistent (max_shear per body)
     real3* shear_disp,       // accumulated shear displacement for each neighbor (max_shear per body)
+    real* contact_relvel_init, // initial relative normal velocity manitude per contact pair
     real* contact_duration,  // accumulates duration of persistant contact between contact pairs
     int* ext_body_id,        // [output] body IDs (two per contact)
     real3* ext_body_force,   // [output] body force (two per contact)
@@ -179,6 +180,7 @@ void function_CalcContactForces(
     real gn_simple;
 
     real t_contact = 0;
+    real relvel_init = abs(relvel_n_mag);
     real delta_n = -depth[index];
     real3 delta_t = real3(0);
 
@@ -232,6 +234,7 @@ void function_CalcContactForces(
                     shear_disp[ctIdUnrolled].x = 0;
                     shear_disp[ctIdUnrolled].y = 0;
                     shear_disp[ctIdUnrolled].z = 0;
+                    contact_relvel_init[ctIdUnrolled] = relvel_init;
                     contact_duration[ctIdUnrolled] = 0;
                     break;
                 }
@@ -255,7 +258,8 @@ void function_CalcContactForces(
             delta_t = -shear_disp[ctSaveId];
         }
 
-        // Load the contact_duration from the contact history
+        // Load the initial collision velocity and accumulated contact duration from the contact history
+        relvel_init = contact_relvel_init[ctSaveId];
         t_contact = contact_duration[ctSaveId];
     }
 
@@ -306,6 +310,33 @@ void function_CalcContactForces(
 
             kn_simple = kn / Sqrt(delta_n);
             gn_simple = gn / Pow(delta_n, 1.0 / 4.0);
+
+            break;
+
+        case ChSystemSMC::Flores:
+            if (use_mat_props) {
+                real sqrt_Rd = Sqrt(eff_radius[index] * delta_n);
+                real Sn = 2 * E_eff * sqrt_Rd;
+                real St = 8 * G_eff * sqrt_Rd;
+                real loge = (cr_eff < eps) ? Log(eps) : Log(cr_eff);
+                real beta = loge / Sqrt(loge * loge + CH_C_PI * CH_C_PI);
+                real cr = (cr_eff < eps) ? 0.01 : cr_eff;
+                cr = (cr_eff > 1.0 - eps) ? 1.0 - eps : cr;
+                char_vel = (displ_mode == ChSystemSMC::TangentialDisplacementModel::MultiStep) ? relvel_init : char_vel;
+                kn = (2.0 / 3.0) * Sn;
+                kt = (2.0 / 3.0) * St;
+                gn = 8.0 * (1.0 - cr) * kn * delta_n / (5.0 * cr * char_vel);
+                gt = -2 * Sqrt(5.0 / 6) * beta * Sqrt(St * m_eff);  // Need to multiply St by 2/3 here as well ?
+            } else {
+                real tmp = eff_radius[index] * Sqrt(delta_n);
+                kn = tmp * user_kn;
+                kt = tmp * user_kt;
+                gn = tmp * m_eff * user_gn * delta_n;
+                gt = tmp * m_eff * user_gt;
+            }
+
+            kn_simple = kn / Sqrt(delta_n);
+            gn_simple = gn / Pow(delta_n, 3.0 / 2.0);
 
             break;
 
@@ -548,10 +579,10 @@ void ChIterativeSolverParallelSMC::host_CalcContactForces(custom_vector<int>& ex
             data_manager->host_data.adhesionMultDMT_data.data(), data_manager->host_data.adhesionSPerko_data.data(),
             data_manager->host_data.bids_rigid_rigid.data(), shape_pairs.data(), data_manager->host_data.cpta_rigid_rigid.data(),
             data_manager->host_data.cptb_rigid_rigid.data(), data_manager->host_data.norm_rigid_rigid.data(),
-            data_manager->host_data.dpth_rigid_rigid.data(), data_manager->host_data.erad_rigid_rigid.data(),
-            data_manager->host_data.shear_neigh.data(), shear_touch.data(), data_manager->host_data.shear_disp.data(),
-            data_manager->host_data.contact_duration.data(), ext_body_id.data(), ext_body_force.data(),
-            ext_body_torque.data());
+            data_manager->host_data.dpth_rigid_rigid.data(), data_manager->host_data.erad_rigid_rigid.data(), 
+			data_manager->host_data.shear_neigh.data(), shear_touch.data(), data_manager->host_data.shear_disp.data(), 
+			data_manager->host_data.contact_relvel_init.data(), data_manager->host_data.contact_duration.data(), ext_body_id.data(), 
+			ext_body_force.data(), ext_body_torque.data());
     }
 }
 
