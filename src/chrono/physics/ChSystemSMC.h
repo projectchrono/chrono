@@ -41,7 +41,8 @@ class ChApi ChSystemSMC : public ChSystem {
     /// Enum for adhesion force model.
     enum AdhesionForceModel {
         Constant,  ///< constant adhesion force
-        DMT        ///< Derjagin-Muller-Toropov model
+        DMT,       ///< Derjagin-Muller-Toropov model
+        Perko      ///< Perko et al. (2001) model
     };
 
     /// Enum for tangential displacement model.

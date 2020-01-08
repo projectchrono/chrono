@@ -70,6 +70,7 @@ void function_CalcContactForces(
     real* muSpin,                                         // coefficient of spinning friction (per body)
     real* adhesion,                                       // constant force (per body)
     real* adhesionMultDMT,                                // Adhesion force multiplier (per body), in DMT model.
+    real* adhesionSPerko,                                 // Cleanliness factor (per body), in Perko model
     vec2* body_id,                                        // body IDs (per contact)
     vec2* shape_id,                                       // shape IDs (per contact)
     real3* pt1,                                           // point on shape 1 (per contact)
@@ -139,6 +140,7 @@ void function_CalcContactForces(
     real muSpin_eff = strategy->CombineFriction(muSpin[body1], muSpin[body2]);
     real adhesion_eff = strategy->CombineCohesion(adhesion[body1], adhesion[body2]);
     real adhesionMultDMT_eff = strategy->CombineAdhesionMultiplier(adhesionMultDMT[body1], adhesionMultDMT[body2]);
+    real adhesionSPerko_eff = strategy->CombineAdhesionMultiplier(adhesionSPerko[body1], adhesionSPerko[body2]);
 
     real E_eff, G_eff, cr_eff;
     real user_kn, user_kt, user_gn, user_gt;
@@ -393,6 +395,9 @@ void function_CalcContactForces(
                     case ChSystemSMC::AdhesionForceModel::DMT:
                         force -= adhesionMultDMT_eff * Sqrt(eff_radius[index]) * normal[index];
                         break;
+                    case ChSystemSMC::AdhesionForceModel::Perko:
+                        force -= adhesionSPerko_eff * adhesionSPerko_eff * 3.6E-2 * eff_radius[index] * normal[index];
+                        break;
                 }
 
                 ext_body_id[2 * index] = body1;
@@ -503,6 +508,9 @@ void function_CalcContactForces(
         case ChSystemSMC::AdhesionForceModel::DMT:
             force -= adhesionMultDMT_eff * Sqrt(eff_radius[index]) * normal[index];
             break;
+        case ChSystemSMC::AdhesionForceModel::Perko:
+            force -= adhesionSPerko_eff * adhesionSPerko_eff * 3.6E-2 * eff_radius[index] * normal[index];
+            break;
     }
 
     // Store body forces and torques, duplicated for the two bodies.
@@ -537,8 +545,8 @@ void ChIterativeSolverParallelSMC::host_CalcContactForces(custom_vector<int>& ex
             data_manager->host_data.cr.data(), data_manager->host_data.smc_coeffs.data(),
             data_manager->host_data.mu.data(), data_manager->host_data.muRoll.data(),
             data_manager->host_data.muSpin.data(), data_manager->host_data.cohesion_data.data(),
-            data_manager->host_data.adhesionMultDMT_data.data(), data_manager->host_data.bids_rigid_rigid.data(),
-            shape_pairs.data(), data_manager->host_data.cpta_rigid_rigid.data(),
+            data_manager->host_data.adhesionMultDMT_data.data(), data_manager->host_data.adhesionSPerko_data.data(),
+            data_manager->host_data.bids_rigid_rigid.data(), shape_pairs.data(), data_manager->host_data.cpta_rigid_rigid.data(),
             data_manager->host_data.cptb_rigid_rigid.data(), data_manager->host_data.norm_rigid_rigid.data(),
             data_manager->host_data.dpth_rigid_rigid.data(), data_manager->host_data.erad_rigid_rigid.data(),
             data_manager->host_data.shear_neigh.data(), shear_touch.data(), data_manager->host_data.shear_disp.data(),
@@ -651,19 +659,18 @@ void ChIterativeSolverParallelSMC::ProcessContacts() {
     // zip iterators.
     uint ct_body_count =
         (uint)(thrust::reduce_by_key(
-                   THRUST_PAR ext_body_id.begin(), ext_body_id.end(),
-                   thrust::make_zip_iterator(thrust::make_tuple(ext_body_force.begin(), ext_body_torque.begin())),
-                   ct_body_id.begin(),
-                   thrust::make_zip_iterator(thrust::make_tuple(ct_body_force.begin(), ct_body_torque.begin())),
-#if defined _WIN32
-                   // Windows compilers require an explicit-width type
-                   thrust::equal_to<int64_t>(), sum_tuples()
-#else
-                   thrust::equal_to<int>(), sum_tuples()
-#endif
-                       )
-                   .first -
-               ct_body_id.begin());
+            THRUST_PAR ext_body_id.begin(), ext_body_id.end(),
+            thrust::make_zip_iterator(thrust::make_tuple(ext_body_force.begin(), ext_body_torque.begin())),
+            ct_body_id.begin(),
+            thrust::make_zip_iterator(thrust::make_tuple(ct_body_force.begin(), ct_body_torque.begin())),
+			#if defined _WIN32
+            // Windows compilers require an explicit-width type
+				thrust::equal_to<int64_t>(), sum_tuples()
+			#else
+                thrust::equal_to<int>(), sum_tuples()
+			#endif
+            ).first -
+        ct_body_id.begin());
 
     ct_body_force.resize(ct_body_count);
     ct_body_torque.resize(ct_body_count);

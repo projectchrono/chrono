@@ -57,6 +57,7 @@ void ChSystemParallelSMC::AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody
     data_manager->host_data.muSpin.push_back(0);
     data_manager->host_data.cohesion_data.push_back(0);
     data_manager->host_data.adhesionMultDMT_data.push_back(0);
+    data_manager->host_data.adhesionSPerko_data.push_back(0);
 
     data_manager->host_data.mass_rigid.push_back(0);
 
@@ -81,6 +82,7 @@ void ChSystemParallelSMC::UpdateMaterialSurfaceData(int index, ChBody* body) {
     custom_vector<real2>& elastic_moduli = data_manager->host_data.elastic_moduli;
     custom_vector<real>& adhesion = data_manager->host_data.cohesion_data;
     custom_vector<real>& adhesionMult = data_manager->host_data.adhesionMultDMT_data;
+    custom_vector<real>& adhesionS = data_manager->host_data.adhesionSPerko_data;
     custom_vector<real>& mu = data_manager->host_data.mu;
     custom_vector<real>& muRoll = data_manager->host_data.muRoll;
     custom_vector<real>& muSpin = data_manager->host_data.muSpin;
@@ -100,6 +102,7 @@ void ChSystemParallelSMC::UpdateMaterialSurfaceData(int index, ChBody* body) {
     muSpin[index] = mat_ptr->GetSpinningFriction();
     adhesion[index] = mat_ptr->GetAdhesion();
     adhesionMult[index] = mat_ptr->GetAdhesionMultDMT();
+    adhesionS[index] = mat_ptr->GetAdhesionSPerko();
 
     if (data_manager->settings.solver.use_material_properties) {
         elastic_moduli[index] = real2(mat_ptr->GetYoungModulus(), mat_ptr->GetPoissonRatio());
