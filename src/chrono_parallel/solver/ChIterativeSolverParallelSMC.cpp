@@ -269,6 +269,7 @@ void function_CalcContactForces(
         case ChSystemSMC::ContactForceModel::Hooke:
             if (use_mat_props) {
                 real tmp_k = (16.0 / 15) * Sqrt(eff_radius[index]) * E_eff;
+                char_vel = (displ_mode == ChSystemSMC::TangentialDisplacementModel::MultiStep) ? relvel_init : char_vel;
                 real v2 = char_vel * char_vel;
                 real loge = (cr_eff < eps) ? Log(eps) : Log(cr_eff);
                 loge = (cr_eff > 1 - eps) ? Log(1 - eps) : loge;
