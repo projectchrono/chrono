@@ -35,8 +35,7 @@ constexpr int num_args_full = 6;
 // Show command line usage
 // -----------------------------------------------------------------------------
 void ShowUsage(std::string name) {
-    std::cout << "usage: " + name + " <json_file> [<radius> <run_mode> <box_width> <output_dir>]"
-              << std::endl;
+    std::cout << "usage: " + name + " <json_file> [<radius> <run_mode> <box_width> <output_dir>]" << std::endl;
     std::cout << "must have either 1 or " << num_args_full - 1 << " arguments" << std::endl;
 }
 
@@ -102,6 +101,7 @@ int main(int argc, char* argv[]) {
     }
 
     apiSMC.setElemsPositions(body_points);
+    std::cout << "Added " << body_points.size() << std::endl;
 
     switch (params.run_mode) {
         case run_mode::MULTI_STEP:
