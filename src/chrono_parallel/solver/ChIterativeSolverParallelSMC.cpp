@@ -409,7 +409,7 @@ void function_CalcContactForces(
                     real r2 = Length(pt2_loc);  // r2 = r1;
                     real xc = (r1 * r1 - r2 * r2) / (2 * (r1 + r2 - delta_n)) + 0.5 * (r1 + r2 - delta_n);
                     real rc = r1 * r1 - xc * xc;
-                    rc = (rc < eps) ? eps : sqrt(rc);
+                    rc = (rc < eps) ? eps : Sqrt(rc);
 
                     m_spin1 = muSpin_eff * rc *
                               RotateT(Dot(rel_o, forceN_mag * normal[index]) * normal[index], rot[body1]) /
@@ -524,7 +524,7 @@ void function_CalcContactForces(
         real r2 = Length(pt2_loc);  // r2 = r1;
         real xc = (r1 * r1 - r2 * r2) / (2 * (r1 + r2 - delta_n)) + 0.5 * (r1 + r2 - delta_n);
         real rc = r1 * r1 - xc * xc;
-        rc = (rc < eps) ? eps : sqrt(rc);
+        rc = (rc < eps) ? eps : Sqrt(rc);
 
         m_spin1 = muSpin_eff * rc * RotateT(Dot(rel_o, forceN_mag * normal[index]) * normal[index], rot[body1]) /
                   Length(rel_o);
@@ -581,9 +581,9 @@ void ChIterativeSolverParallelSMC::host_CalcContactForces(custom_vector<int>& ex
             data_manager->host_data.bids_rigid_rigid.data(), shape_pairs.data(), data_manager->host_data.cpta_rigid_rigid.data(),
             data_manager->host_data.cptb_rigid_rigid.data(), data_manager->host_data.norm_rigid_rigid.data(),
             data_manager->host_data.dpth_rigid_rigid.data(), data_manager->host_data.erad_rigid_rigid.data(), 
-			data_manager->host_data.shear_neigh.data(), shear_touch.data(), data_manager->host_data.shear_disp.data(), 
-			data_manager->host_data.contact_relvel_init.data(), data_manager->host_data.contact_duration.data(), ext_body_id.data(), 
-			ext_body_force.data(), ext_body_torque.data());
+            data_manager->host_data.shear_neigh.data(), shear_touch.data(), data_manager->host_data.shear_disp.data(), 
+            data_manager->host_data.contact_relvel_init.data(), data_manager->host_data.contact_duration.data(), ext_body_id.data(), 
+            ext_body_force.data(), ext_body_torque.data());
     }
 }
 
@@ -695,12 +695,12 @@ void ChIterativeSolverParallelSMC::ProcessContacts() {
             thrust::make_zip_iterator(thrust::make_tuple(ext_body_force.begin(), ext_body_torque.begin())),
             ct_body_id.begin(),
             thrust::make_zip_iterator(thrust::make_tuple(ct_body_force.begin(), ct_body_torque.begin())),
-			#if defined _WIN32
+            #if defined _WIN32
             // Windows compilers require an explicit-width type
-				thrust::equal_to<int64_t>(), sum_tuples()
-			#else
+                thrust::equal_to<int64_t>(), sum_tuples()
+            #else
                 thrust::equal_to<int>(), sum_tuples()
-			#endif
+            #endif
             ).first -
         ct_body_id.begin());
 

@@ -136,7 +136,7 @@ class ChApi ChMaterialCompositeSMC : public ChMaterialComposite {
     float mu_eff;               ///< Effective coefficient of friction
     float muRoll_eff;           ///< Effective coefficient of rolling friction
     float muSpin_eff;           ///< Effective coefficient of spinning friction
-	float cr_eff;               ///< Effective coefficient of restitution
+    float cr_eff;               ///< Effective coefficient of restitution
     float adhesion_eff;         ///< Effective cohesion force
     float adhesionMultDMT_eff;  ///< Effective adhesion multiplier (DMT model)
     float adhesionSPerko_eff;   ///< Effective cleanliness factor (Perko model)
