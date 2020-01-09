@@ -303,7 +303,7 @@ void ChSuspensionTestRig::InitializeSubsystems() {
     m_terrain = std::unique_ptr<ChTerrain>(new TestRigTerrain);
 
     // Initialize the suspension and steering subsystems.
-    if (HasSteering()) {
+    if (m_steering) {
         m_steering->Initialize(m_chassis->GetBody(), m_steeringLoc, m_steeringRot);
         m_suspension->Initialize(m_chassis->GetBody(), m_suspLoc, m_steering->GetSteeringLink(), 0);
     } else {
@@ -351,7 +351,8 @@ void ChSuspensionTestRig::Initialize() {
 
     // Set visualization modes
     m_suspension->SetVisualizationType(m_vis_suspension);
-    m_steering->SetVisualizationType(m_vis_steering);
+    if (m_steering)
+        m_steering->SetVisualizationType(m_vis_steering);
     m_wheel[LEFT]->SetVisualizationType(m_vis_wheel);
     m_wheel[RIGHT]->SetVisualizationType(m_vis_wheel);
     m_tire[LEFT]->SetVisualizationType(m_vis_tire);
@@ -373,7 +374,7 @@ void ChSuspensionTestRig::SetDriver(std::shared_ptr<ChDriverSTR> driver) {
 double ChSuspensionTestRig::GetMass() const {
     // Note: do not include mass of the wheels, as these are already accounted for in suspension.
     double mass = m_suspension->GetMass();
-    if (HasSteering())
+    if (m_steering)
         mass += m_steering->GetMass();
 
     return mass;
@@ -441,7 +442,7 @@ void ChSuspensionTestRig::Advance(double step) {
     m_tire[RIGHT]->Synchronize(time, *m_terrain);
 
     // Let the steering subsystem process the steering input
-    if (HasSteering()) {
+    if (m_steering) {
         m_steering->Synchronize(time, m_steering_input);
     }
 
@@ -490,7 +491,7 @@ void ChSuspensionTestRig::LogConstraintViolations() {
     m_suspension->LogConstraintViolations(RIGHT);
 
     // Report constraint violations for the steering joints
-    if (HasSteering()) {
+    if (m_steering) {
         GetLog() << "\n---- STEERING constrain violations\n\n";
         m_steering->LogConstraintViolations();
     }
