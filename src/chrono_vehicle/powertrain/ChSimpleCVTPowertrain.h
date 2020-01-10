@@ -36,7 +36,7 @@ namespace vehicle {
 /// and no transmission box.
 class CH_VEHICLE_API ChSimpleCVTPowertrain : public ChPowertrain {
   public:
-    ChSimpleCVTPowertrain(const std::string& name);
+    ChSimpleCVTPowertrain(const std::string& name, double motor_max_speed = 10000);
 
     virtual ~ChSimpleCVTPowertrain() {}
 
@@ -110,6 +110,7 @@ class CH_VEHICLE_API ChSimpleCVTPowertrain : public ChPowertrain {
     double m_motorSpeed;
     double m_motorTorque;
     double m_shaftTorque;
+    double m_motorMaxSpeed;
 };
 
 /// @} vehicle_powertrain

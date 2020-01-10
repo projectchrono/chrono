@@ -12,7 +12,7 @@
 // Authors: Radu Serban, Asher Elmquist, Evan Hoerl
 // =============================================================================
 //
-// Base class for the WVP vehicle models
+// Base class for the Citybus vehicle models
 //
 // =============================================================================
 

@@ -23,6 +23,13 @@
 
 #include "chrono_models/vehicle/citybus/CityBus.h"
 #include "chrono_models/vehicle/citybus/CityBus_Vehicle.h"
+
+#include "chrono_models/vehicle/man/MAN_5t.h"
+#include "chrono_models/vehicle/man/MAN_7t.h"
+#include "chrono_models/vehicle/man/MAN_10t.h"
+#include "chrono_models/vehicle/man/MAN_5t_Vehicle.h"
+#include "chrono_models/vehicle/man/MAN_7t_Vehicle.h"
+#include "chrono_models/vehicle/man/MAN_10t_Vehicle.h"
 %}
 
 
@@ -40,6 +47,13 @@
 
 %shared_ptr(chrono::vehicle::citybus::CityBus)
 %shared_ptr(chrono::vehicle::citybus::CityBus_Vehicle)
+
+%shared_ptr(chrono::vehicle::man::MAN_5t)
+%shared_ptr(chrono::vehicle::man::MAN_7t)
+%shared_ptr(chrono::vehicle::man::MAN_10t)
+%shared_ptr(chrono::vehicle::man::MAN_5t_Vehicle)
+%shared_ptr(chrono::vehicle::man::MAN_7t_Vehicle)
+%shared_ptr(chrono::vehicle::man::MAN_10t_Vehicle)
 
 
 %import(module = "pychrono.core") "ChMaterialSurface.i"
@@ -67,3 +81,10 @@
 
 %include "../chrono_models/vehicle/citybus/CityBus.h"
 %include "../chrono_models/vehicle/citybus/CityBus_Vehicle.h"
+
+%include "../chrono_models/vehicle/man/MAN_5t.h"
+%include "../chrono_models/vehicle/man/MAN_7t.h"
+%include "../chrono_models/vehicle/man/MAN_10t.h"
+%include "../chrono_models/vehicle/man/MAN_5t_Vehicle.h"
+%include "../chrono_models/vehicle/man/MAN_7t_Vehicle.h"
+%include "../chrono_models/vehicle/man/MAN_10t_Vehicle.h"

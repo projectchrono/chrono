@@ -259,10 +259,12 @@ class ChApi ChElementShellBST : public ChElementShell , public ChLoadableUV, pub
     /// (E.g. the actual position of nodes is not in relaxed reference position) and set values in the Fi vector.
     virtual void ComputeInternalForces(ChVectorDynamic<>& Fi) override;
 
-	void ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
-		ChState& state_x,       ///< state position to evaluate Fi
-		ChStateDelta& state_w,  ///< state speed to evaluate Fi
-		bool used_for_differentiation = false);
+	void ComputeInternalForces_impl(
+        ChVectorDynamic<>& Fi,                 ///< vector of internal forces
+        ChState& state_x,                      ///< state position to evaluate Fi
+        ChStateDelta& state_w,                 ///< state speed to evaluate Fi
+        bool used_for_differentiation = false  ///< true if called during finite-difference Jacobian approximation
+    );
 
     /// Update the state of this element.
     virtual void Update() override;

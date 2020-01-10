@@ -129,8 +129,6 @@ void WheeledVehicle::Create(const std::string& filename) {
         for (SizeType i = 0; i < num_driven_axles; i++) {
             m_driven_axles[i] = d["Driveline"]["Suspension Indexes"][i].GetInt();
         }
-
-        assert(num_driven_axles == GetDriveline()->GetNumDrivenAxles());
     }
 
     // ---------------------------------------------------
@@ -234,6 +232,9 @@ void WheeledVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
 
     // Initialize the driveline
     m_driveline->Initialize(m_chassis->GetBody(), m_axles, m_driven_axles);
+
+    // Sanity check: make sure the driveline can accommodate the number of driven axles.
+    assert(m_driveline->GetNumDrivenAxles() == size(m_driven_axles));
 }
 
 }  // end namespace vehicle

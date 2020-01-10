@@ -17,22 +17,29 @@
 #include "chrono_models/vehicle/sedan/Sedan_Wheel.h"
 
 #include "chrono_models/vehicle/citybus/CityBus_Wheel.h"
+
+#include "chrono_models/vehicle/man/MAN_5t_Wheel.h"
 %}
 
 
 %shared_ptr(chrono::vehicle::generic::Generic_Wheel)
-%shared_ptr(chrono::vehicle::hmmwv::HMMWV_Wheel)
-%shared_ptr(chrono::vehicle::sedan::Sedan_Wheel)
 %shared_ptr(chrono::vehicle::generic::Generic_Wheel)
+
+%shared_ptr(chrono::vehicle::hmmwv::HMMWV_Wheel)
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_WheelLeft)
-%shared_ptr(chrono::vehicle::sedan::Sedan_WheelLeft)
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_WheelRight)
+
+%shared_ptr(chrono::vehicle::sedan::Sedan_Wheel)
+%shared_ptr(chrono::vehicle::sedan::Sedan_WheelLeft)
 %shared_ptr(chrono::vehicle::sedan::Sedan_WheelRight)
 
 %shared_ptr(chrono::vehicle::citybus::CityBus_Wheel)
 %shared_ptr(chrono::vehicle::citybus::CityBus_WheelLeft)
 %shared_ptr(chrono::vehicle::citybus::CityBus_WheelRight)
 
+%shared_ptr(chrono::vehicle::man::MAN_5t_Wheel)
+%shared_ptr(chrono::vehicle::man::MAN_5t_WheelLeft)
+%shared_ptr(chrono::vehicle::man::MAN_5t_WheelRight)
 
 %import "../chrono_vehicle/wheeled_vehicle/ChWheel.h"
 
@@ -45,3 +52,5 @@
 %include "../chrono_models/vehicle/sedan/Sedan_Wheel.h"
 
 %include "../chrono_models/vehicle/citybus/CityBus_Wheel.h"
+
+%include "../chrono_models/vehicle/man/MAN_5t_Wheel.h"
