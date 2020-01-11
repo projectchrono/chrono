@@ -21,6 +21,7 @@
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChEllipsoidShape.h"
 #include "chrono/assets/ChLineShape.h"
+#include "chrono/assets/ChPointPointDrawing.h"
 #include "chrono/assets/ChRoundedBoxShape.h"
 #include "chrono/assets/ChRoundedCylinderShape.h"
 #include "chrono/assets/ChSphereShape.h"
@@ -338,8 +339,11 @@ enum POVRayLinkType {
     DISTANCE = 4,
     ENGINE = 5,
     SPRING = 6,
-    TSDA = 7
+    TSDA = 7,
+    CYLINDRICAL = 8
 };
+
+enum POVRayLineType { SEGMENT = 0, COIL = 1 };
 
 void WriteShapesPovray(ChSystem* system, const std::string& filename, bool body_info, const std::string& delim) {
     CSV_writer csv(delim);
@@ -457,12 +461,17 @@ void WriteShapesPovray(ChSystem* system, const std::string& filename, bool body_
 
             csv << SPHERICAL << frA_abs.GetPos() << std::endl;
             l_count++;
-        }
-        if (auto link = std::dynamic_pointer_cast<ChLinkLockPrismatic>(ilink)) {
+        } else if (auto link = std::dynamic_pointer_cast<ChLinkLockPrismatic>(ilink)) {
             chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
             chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
 
             csv << PRISMATIC << frA_abs.GetPos() << frA_abs.GetA().Get_A_Zaxis() << std::endl;
+            l_count++;
+        } else if (auto link = std::dynamic_pointer_cast<ChLinkLockCylindrical>(ilink)) {
+            chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
+            chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
+
+            csv << CYLINDRICAL << frA_abs.GetPos() << frA_abs.GetA().Get_A_Zaxis() << std::endl;
             l_count++;
         } else if (auto link = std::dynamic_pointer_cast<ChLinkUniversal>(ilink)) {
             chrono::ChFrame<> frA_abs = link->GetFrame1Abs();
@@ -480,10 +489,31 @@ void WriteShapesPovray(ChSystem* system, const std::string& filename, bool body_
         }
     }
 
+    // Loop over links and write assets associated with spring-dampers.
+    int la_count = 0;
+    for (auto ilink : system->Get_linklist()) {
+        auto link = std::dynamic_pointer_cast<ChLinkTSDA>(ilink);
+        if (!link)
+            continue;
+        for (auto asset : link->GetAssets()) {
+            auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset);
+            if (!visual_asset)
+                continue;
+            if (std::dynamic_pointer_cast<ChPointPointSegment>(visual_asset)) {
+                csv << SEGMENT << link->GetPoint1Abs() << link->GetPoint2Abs() << std::endl;
+                la_count++;
+            }
+            else if (std::dynamic_pointer_cast<ChPointPointSpring>(visual_asset)) {
+                csv << COIL << link->GetPoint1Abs() << link->GetPoint2Abs() << std::endl;
+                la_count++;
+            }
+        }
+    }
+
     // Write the output file, including a first line with number of bodies, visual
-    // assets, and links.
+    // assets, links, and TSDA assets.
     std::stringstream header;
-    header << b_count << delim << a_count << delim << l_count << delim << std::endl;
+    header << b_count << delim << a_count << delim << l_count << delim << la_count << delim << std::endl;
 
     csv.write_to_file(filename, header.str());
 }
