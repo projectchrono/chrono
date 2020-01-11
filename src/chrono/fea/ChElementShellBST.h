@@ -376,6 +376,8 @@ class ChApi ChElementShellBST : public ChElementShell , public ChLoadableUV, pub
 
 	virtual bool IsTriangleIntegrationNeeded() override { return true; }
 
+	virtual bool IsTrianglePrismIntegrationNeeded() override { return true; }
+
 };
 
 /// @} fea_elements

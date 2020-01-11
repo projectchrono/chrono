@@ -682,6 +682,7 @@ void ChElementShellBST::ComputeNF(
 }
 
 // Evaluate N'*F , where N is the shape function evaluated at (U,V,W) coordinates of the surface.
+// Note that quadrature will be done with 0..1 coords for U,V (triangle natural coords) and -1..+1 for W, along thickness.
 void ChElementShellBST::ComputeNF(
     const double U,              // parametric coordinate in volume
     const double V,              // parametric coordinate in volume
@@ -695,8 +696,11 @@ void ChElementShellBST::ComputeNF(
     ShapeVector N;
     ShapeFunctions(N, U, V);
 
-	detJ = this->area * 2.0;
-    detJ *= GetThickness();
+	detJ = GetThickness() * this->area; 
+	// simplified from: 
+	//   detJ = GetThickness() * this->area * 2 * 1/2
+	// where ..* 2  stems from the fact that for triangles in natural coordinates [0..+1] the det_tri[J] is area*2
+	// where ..*1/2 stems from the fact that the thickness integration runs in [-1..+1], so det_thick[J] is thickness*1/2
 
 	Qi.setZero();
 
