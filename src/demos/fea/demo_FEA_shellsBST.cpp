@@ -71,8 +71,8 @@ int main(int argc, char* argv[]) {
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
 
-    // my_system.Set_G_acc(VNULL); or
-    my_mesh->SetAutomaticGravity(true);
+    // my_system.Set_G_acc(VNULL); // to remove gravity effect, or:
+    // my_mesh->SetAutomaticGravity(false);  
 
     std::shared_ptr<ChNodeFEAxyz> nodePlotA;
     std::shared_ptr<ChNodeFEAxyz> nodePlotB;
@@ -82,6 +82,7 @@ int main(int argc, char* argv[]) {
     ChFunction_Recorder ref_Y;
 
     ChVector<> load_force;
+
 
     //
     // BENCHMARK n.1
@@ -133,7 +134,7 @@ int main(int argc, char* argv[]) {
         auto melement = chrono_types::make_shared<ChElementShellBST>();
         my_mesh->AddElement(melement);
 
-		melement->SetNodes(mnode0, mnode1, mnode2, mnode3, mnode4, mnode5);
+		melement->SetNodes(mnode0, mnode1, mnode2, nullptr, nullptr, nullptr);//mnode3, mnode4, mnode5);
 
         melement->AddLayer(thickness, 0 * CH_C_DEG_TO_RAD, material);
 
@@ -197,9 +198,9 @@ int main(int argc, char* argv[]) {
 		material->SetDensity(density);
 
 		double L_x = 1;
-		size_t nsections_x = 20;
-		double L_z = 0.5;
-		size_t nsections_z = 10;
+		size_t nsections_x = 40;
+		double L_z = 1;
+		size_t nsections_z = 40;
 
 		// Create nodes
 		std::vector< std::shared_ptr<ChNodeFEAxyz> > mynodes; // for future loop when adding elements
@@ -271,12 +272,22 @@ int main(int argc, char* argv[]) {
 			}
 		}
        
-		mynodes[0*(nsections_x+1)]->SetFixed(true);
-		mynodes[1*(nsections_x+1)]->SetFixed(true);
-
+		// fix some nodes
+		for (int j = 0; j < 30; ++j) {
+			for (int k = 0; k < 30; ++k) {
+				mynodes[j * (nsections_x + 1)+k]->SetFixed(true);
+			}
+		}
+		/*
 		mynodes[0*(nsections_x+1)+1]->SetFixed(true);
 		mynodes[1*(nsections_x+1)+1]->SetFixed(true);
 	
+		mynodes[0*(nsections_x+1)+nsections_x-1]->SetFixed(true);
+		mynodes[1*(nsections_x+1)+nsections_x-1]->SetFixed(true);
+
+		mynodes[0*(nsections_x+1)+nsections_x]->SetFixed(true);
+		mynodes[1*(nsections_x+1)+nsections_x]->SetFixed(true);
+		*/
     }
 
 	//
@@ -311,7 +322,7 @@ int main(int argc, char* argv[]) {
 	
     auto mvisualizeshellA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     //mvisualizeshellA->SetSmoothFaces(true);
-    mvisualizeshellA->SetWireframe(true);
+    //mvisualizeshellA->SetWireframe(true);
 	mvisualizeshellA->SetShellResolution(2);
 	//mvisualizeshellA->SetBackfaceCull(true);
     my_mesh->AddAsset(mvisualizeshellA);
@@ -319,17 +330,9 @@ int main(int argc, char* argv[]) {
     auto mvisualizeshellB = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizeshellB->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     mvisualizeshellB->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
-    mvisualizeshellB->SetSymbolsThickness(0.01);
+    mvisualizeshellB->SetSymbolsThickness(0.006);
     my_mesh->AddAsset(mvisualizeshellB);
     
-	/*
-    auto mvisualizeshellC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizeshellC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
-    // mvisualizeshellC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
-    mvisualizeshellC->SetSymbolsThickness(0.05);
-    mvisualizeshellC->SetZbufferHide(false);
-    my_mesh->AddAsset(mvisualizeshellC);
-	*/
 
 	//
 	// VISUALIZATION
@@ -337,13 +340,16 @@ int main(int argc, char* argv[]) {
 
 	// Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Shells FEA test: triangle BST elements", core::dimension2d<u32>(800, 600), false, true);
+    ChIrrApp application(&my_system, L"Shells FEA test: triangle BST elements", core::dimension2d<u32>(1024, 768), false, true);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
     application.AddTypicalSky();
-    application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(0.f, 1.0f, -1.f));
+	application.AddLightWithShadow(irr::core::vector3df(2, 2, 2), irr::core::vector3df(0, 0, 0), 6, 0.2, 6, 50);
+	application.AddLight(irr::core::vector3df(-2, -2, 0), 6, irr::video::SColorf(0.6,1,1,1));
+	application.AddLight(irr::core::vector3df(0, -2, -2), 6, irr::video::SColorf(0.6,1,1,1));
+    //application.AddTypicalLights();
+    application.AddTypicalCamera(core::vector3df(1.f, 0.3f, 1.3f),core::vector3df(0.5f, -0.3f, 0.5f));
 
     // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
     // in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
@@ -357,6 +363,7 @@ int main(int argc, char* argv[]) {
 
     application.AssetUpdateAll();
 
+	application.AddShadowAll();
     //
     // THE SOFT-REAL-TIME CYCLE
     //
@@ -365,13 +372,13 @@ int main(int argc, char* argv[]) {
     auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
     mkl_solver->LockSparsityPattern(true);
     my_system.SetSolver(mkl_solver);
-
+	
 	//auto gmres_solver = chrono_types::make_shared<ChSolverGMRES>();
-	//gmres_solver->SetMaxIterations(100);
+	//gmres_solver->SetMaxIterations(50);
     //my_system.SetSolver(gmres_solver);
-
+	
     
-    double timestep = 0.01;
+    double timestep = 0.005;
     application.SetTimestep(timestep);
     my_system.Setup();
     my_system.Update();
@@ -385,9 +392,6 @@ int main(int argc, char* argv[]) {
         application.BeginScene();
 
         application.DrawAll();
-
-        // .. draw also a grid
-        //ChIrrTools::drawGrid(application.GetVideoDriver(), 1, 1);
 
         application.DoStep();
 
