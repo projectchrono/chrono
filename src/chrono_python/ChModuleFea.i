@@ -73,6 +73,7 @@
 #include "chrono/fea/ChElementShellReissner4.h"
 #include "chrono/fea/ChElementShellANCF.h"
 #include "chrono/fea/ChElementShellANCF_8.h"
+#include "chrono/fea/ChElementShellBST.h"
 #include "chrono/fea/ChElementCableANCF.h"
 #include "chrono/fea/ChBuilderBeam.h"
 #include "chrono/fea/ChMesh.h"
@@ -108,6 +109,7 @@ using namespace chrono::fea;
 %ignore chrono::fea::ChContactTriangleXYZ::ComputeJacobianForContactPart;
 %ignore chrono::fea::ChContactNodeXYZROT::ComputeJacobianForContactPart;
 %ignore chrono::fea::ChContactTriangleXYZROT::ComputeJacobianForContactPart;
+%ignore chrono::fea::ChElementShellBST::ComputeInternalJacobians;
 
 %ignore chrono::fea::ChElementBrick::MyMass;
 %ignore chrono::fea::ChElementBrick::MyGravity;
@@ -245,6 +247,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::fea::ChElementShellReissner4)
 %shared_ptr(chrono::fea::ChElementShellANCF)
 %shared_ptr(chrono::fea::ChElementShellANCF_8)
+%shared_ptr(chrono::fea::ChElementShellBST)
 %shared_ptr(chrono::fea::ChElementCableANCF)
 %shared_ptr(chrono::fea::ChBuilderBeam)
 %shared_ptr(chrono::fea::ChBuilderBeamIGA)
@@ -362,6 +365,8 @@ using namespace chrono::fea;
 %include "../chrono/fea/ChElementShellANCF.h"
 %rename(ShellANCF_8Layer) chrono::fea::ChElementShellANCF_8::Layer;
 %include "../chrono/fea/ChElementShellANCF_8.h"
+%rename(ShellBSTLayer) chrono::fea::ChElementShellBST::Layer;
+%include "../chrono/fea/ChElementShellBST.h"
 %include "../chrono/fea/ChElementCableANCF.h"
 %include "../chrono/fea/ChContactSurface.h"
 %include "../chrono/fea/ChContactSurfaceMesh.h"
