@@ -459,14 +459,16 @@ void function_CalcContactForces(
     // due to contact history, then the shear displacement is scaled so that
     // the tangential force will be correct if force_T_mag subsequently drops
     // below the Coulomb limit.
+	//
+	// TODO: This implementation currently assumes that mu_slip and mu_k are equal
     real3 forceT = forceT_stiff + forceT_damp;
     real forceT_mag = Length(forceT);
-    real forceT_slide = mu_eff * forceN_mag;
-    if (forceT_mag > abs(forceT_slide)) {
-        if (forceT_mag > eps && kt > eps) {
-            real3 forceT_dir = forceT / forceT_mag;
-            forceT_mag = forceT_slide;
-            forceT = forceT_mag * forceT_dir;
+    real delta_t_mag = Length(delta_t);
+    real forceT_slide = mu_eff * Abs(forceN_mag);
+    if (forceT_mag > forceT_slide) {
+        if (delta_t_mag > eps) {
+            real ratio = forceT_slide / forceT_mag;
+            forceT *= ratio;
             if (displ_mode == ChSystemSMC::TangentialDisplacementModel::MultiStep) {
                 delta_t = (forceT - forceT_damp) / kt;
                 if (shear_body1 == body1) {
