@@ -399,7 +399,7 @@ void function_CalcContactForces(
                 real3 m_roll1 = real3(0);
                 real3 m_roll2 = real3(0);
 
-                if (Length(v_rot) > min_roll_vel) {
+                if (Length(v_rot) > min_roll_vel && muRoll_eff > eps) {
                     m_roll1 = muRoll_eff * Cross(forceN_mag * pt1_loc, RotateT(v_rot, rot[body1])) / Length(v_rot);
                     m_roll2 = muRoll_eff * Cross(forceN_mag * pt2_loc, RotateT(v_rot, rot[body2])) / Length(v_rot);
                 }
@@ -524,7 +524,7 @@ void function_CalcContactForces(
     real3 m_roll1 = real3(0);
     real3 m_roll2 = real3(0);
 
-    if (Length(v_rot) > min_roll_vel) {
+    if (Length(v_rot) > min_roll_vel && muRoll_eff > eps) {
         m_roll1 = muRoll_eff * Cross(forceN_mag * pt1_loc, RotateT(v_rot, rot[body1])) / Length(v_rot);
         m_roll2 = muRoll_eff * Cross(forceN_mag * pt2_loc, RotateT(v_rot, rot[body2])) / Length(v_rot);
     }
