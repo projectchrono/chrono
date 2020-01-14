@@ -36,6 +36,8 @@
 #include "chrono_vehicle/wheeled_vehicle/suspension/LeafspringAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/MacPhersonStrut.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/MultiLink.h"
+#include "chrono_vehicle/wheeled_vehicle/suspension/RigidSuspension.h"
+#include "chrono_vehicle/wheeled_vehicle/suspension/RigidPinnedAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/SemiTrailingArm.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/SolidAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/SolidBellcrankThreeLinkAxle.h"
@@ -181,6 +183,10 @@ std::shared_ptr<ChSuspension> ReadSuspensionJSON(const std::string& filename) {
         suspension = chrono_types::make_shared<SolidThreeLinkAxle>(d);
     } else if (subtype.compare("SolidBellcrankThreeLinkAxle") == 0) {
         suspension = chrono_types::make_shared<SolidBellcrankThreeLinkAxle>(d);
+    } else if (subtype.compare("RigidSuspension") == 0) {
+        suspension = chrono_types::make_shared<RigidSuspension>(d);
+    } else if (subtype.compare("RigidPinnedAxle") == 0) {
+        suspension = chrono_types::make_shared<RigidPinnedAxle>(d);
     } else {
         throw ChException("Suspension type not supported in ReadSuspensionJSON.");
     }
