@@ -377,13 +377,18 @@ void function_CalcContactForces(
 
                 // If the duration of the current contact is less than the durration of a typical collision,
                 // do not apply friction. Rolling and spinning friction should only be applied to persistant contacts
-                real d_coeff = gn_simple / (2.0 * m_eff * Sqrt(kn_simple / m_eff));
-                real t_collision = CH_C_PI * Sqrt(m_eff / (kn_simple * (1 - d_coeff * d_coeff)));
+                //
+				// TODO: The t_collision calc will result in a NAN for critically damped or overdamped systems. Fix
+                // this.
+                if (cr_eff > eps) {
+					real d_coeff = gn_simple / (2.0 * m_eff * Sqrt(kn_simple / m_eff));
+					real t_collision = CH_C_PI * Sqrt(m_eff / (kn_simple * (1 - d_coeff * d_coeff)));
 
-                if (t_contact <= t_collision) {
-                    muRoll_eff = 0.0;
-                    muSpin_eff = 0.0;
-                }
+					if (t_contact <= t_collision) {
+						muRoll_eff = 0.0;
+						muSpin_eff = 0.0;
+					}
+				}
 
                 // Compute some additional vales needed for the rolling and spinning friction calculations
                 real3 v_rot = Rotate(Cross(o_body2, pt2_loc), rot[body2]) - Rotate(Cross(o_body1, pt1_loc), rot[body1]);
@@ -495,13 +500,17 @@ void function_CalcContactForces(
 
     // If the duration of the current contact is less than the durration of a typical collision,
     // do not apply friction. Rolling and spinning friction should only be applied to persistant contacts
-    real d_coeff = gn_simple / (2.0 * m_eff * Sqrt(kn_simple / m_eff));
-    real t_collision = CH_C_PI * Sqrt(m_eff / (kn_simple * (1 - d_coeff * d_coeff)));
+    //
+	// TODO: The t_collision calc will result in a NAN for critically damped or overdamped systems. Fix this.
+    if (cr_eff > eps) {
+		real d_coeff = gn_simple / (2.0 * m_eff * Sqrt(kn_simple / m_eff));
+		real t_collision = CH_C_PI * Sqrt(m_eff / (kn_simple * (1 - d_coeff * d_coeff)));
 
-    if (t_contact <= t_collision) {
-        muRoll_eff = 0.0;
-        muSpin_eff = 0.0;
-    }
+		if (t_contact <= t_collision) {
+			muRoll_eff = 0.0;
+			muSpin_eff = 0.0;
+		}
+	}
 
     // Compute some additional vales needed for the rolling and spinning friction calculations
     real3 v_rot = Rotate(Cross(o_body2, pt2_loc), rot[body2]) - Rotate(Cross(o_body1, pt1_loc), rot[body1]);
