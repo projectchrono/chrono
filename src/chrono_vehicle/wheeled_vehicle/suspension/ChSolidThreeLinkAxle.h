@@ -12,7 +12,7 @@
 // Authors: Rainer Gericke, Radu Serban
 // =============================================================================
 //
-// Base class for a leaf-spring solid axle suspension.
+// Base class for a coil-spring or air-spring solid axle suspension.
 // Derived from ChSuspension, but still an abstract base class.
 //
 // Non steerable solid axle guided by a triangular and two longitudinal links.
@@ -45,8 +45,7 @@ namespace vehicle {
 /// @addtogroup vehicle_wheeled_suspension
 /// @{
 
-/// Base class for a leaf-spring solid axle suspension.
-/// Derived from ChSuspension, but still an abstract base class.
+/// Base class for a coil-spring or air-spring solid axle suspension.
 ///
 /// The suspension subsystem is modeled with respect to a right-handed frame,
 /// with X pointing towards the front, Y to the left, and Z up (ISO standard).

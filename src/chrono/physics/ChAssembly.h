@@ -114,7 +114,8 @@ class ChApi ChAssembly : public ChPhysicsItem {
     std::shared_ptr<ChPhysicsItem> SearchOtherPhysicsItem(const char* name);
     /// Search an item (body, link or other ChPhysics items) by name.
     std::shared_ptr<ChPhysicsItem> Search(const char* name);
-
+    /// Search a body by its ID
+    std::shared_ptr<ChBody> SearchBodyID(int markID);
     /// Search a marker by its name.
     std::shared_ptr<ChMarker> SearchMarker(const char* name);
     /// Search a marker by its unique ID.

@@ -27,7 +27,7 @@ import math
 !!!! Set this path before running the demo!
 """
 chrono.SetChronoDataPath('../../../../Library/data/')
-veh.SetDataPath('../../../../Library/data/Vehicle/')
+veh.SetDataPath('../../../../Library/data/vehicle/')
 
 # Initial vehicle location and orientation
 initLoc = chrono.ChVectorD(0, 0, 0.7)

@@ -148,10 +148,10 @@ class ChApi ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public
     /// Get the element length in the X direction.
     double GetLengthX() const { return m_lenX; }
 
-    /// Get the total thickness of the shell element.
+    /// Get the total thickness of the beam element.
     double GetThicknessY() { return m_thicknessY; }
 
-    /// Get the total thickness of the shell element.
+    /// Get the total thickness of the beam element.
     double GetThicknessZ() { return m_thicknessZ; }
 
     // Shape functions

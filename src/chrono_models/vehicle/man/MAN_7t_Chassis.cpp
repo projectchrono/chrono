@@ -61,7 +61,7 @@ MAN_7t_Chassis::MAN_7t_Chassis(const std::string& name, bool fixed, ChassisColli
 
     m_has_mesh = true;
     m_vis_mesh_name = "MAN_5t_Chassis_POV_geom";
-    m_vis_mesh_file = "MAN_5t/MAN_7t_chassis.obj";
+    m_vis_mesh_file = "MAN_Kat1/meshes/MAN_7t_chassis.obj";
 
     m_has_collision = (chassis_collision_type != ChassisCollisionType::NONE);
     switch (chassis_collision_type) {
@@ -69,7 +69,7 @@ MAN_7t_Chassis::MAN_7t_Chassis(const std::string& name, bool fixed, ChassisColli
             m_coll_boxes.push_back(box1);
             break;
         case ChassisCollisionType::MESH:
-            m_coll_mesh_names.push_back("MAN_5t/MAN_7t_chassis_col.obj");
+            m_coll_mesh_names.push_back("MAN_Kat1/meshes/MAN_7t_chassis_col.obj");
             break;
     }
 }
