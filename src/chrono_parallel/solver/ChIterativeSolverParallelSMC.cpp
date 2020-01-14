@@ -406,12 +406,16 @@ void function_CalcContactForces(
 
                 // Calculate spinning friction torque as M_spin = -mu_t * r_c * ((w_n - w_p) . F_n / |w_n - w_p|) * n
                 // r_c is the radius of the circle resulting from the intersecting body surfaces (Schwartz et al. 2012)
+				//
+				// TODO: The spinning moment calculation is only valid for sphere-sphere collisions because of the 
+				// r1 and r2 terms. In order for the calculation to be valid for sphere-wall collisions, the wall
+				// must be ~100x particle diameters in thickness
                 real3 m_spin1 = real3(0);
                 real3 m_spin2 = real3(0);
 
-                if (Length(rel_o) > min_spin_vel) {
-                    real r1 = Length(pt1_loc);  // r1 = eff_radius[index];
-                    real r2 = Length(pt2_loc);  // r2 = r1;
+                if (Length(rel_o) > min_spin_vel && muSpin_eff > eps) {
+                    real r1 = Length(pt1_loc);
+                    real r2 = Length(pt2_loc);
                     real xc = (r1 * r1 - r2 * r2) / (2 * (r1 + r2 - delta_n)) + 0.5 * (r1 + r2 - delta_n);
                     real rc = r1 * r1 - xc * xc;
                     rc = (rc < eps) ? eps : Sqrt(rc);
@@ -527,12 +531,16 @@ void function_CalcContactForces(
 
     // Calculate spinning friction torque as M_spin = -mu_t * r_c * ((w_n - w_p) . F_n / |w_n - w_p|) * n
     // r_c is the radius of the circle resulting from the intersecting body surfaces (Schwartz et al. 2012)
+	//
+    // TODO: The spinning moment calculation is only valid for sphere-sphere collisions because of the
+    // r1 and r2 terms. In order for the calculation to be valid for sphere-wall collisions, the wall
+    // must be ~100x particle diameters in thickness
     real3 m_spin1 = real3(0);
     real3 m_spin2 = real3(0);
 
-    if (Length(rel_o) > min_spin_vel) {
-        real r1 = Length(pt1_loc);  // r1 = eff_radius[index];
-        real r2 = Length(pt2_loc);  // r2 = r1;
+    if (Length(rel_o) > min_spin_vel && muSpin_eff > eps) {
+        real r1 = Length(pt1_loc);
+        real r2 = Length(pt2_loc);
         real xc = (r1 * r1 - r2 * r2) / (2 * (r1 + r2 - delta_n)) + 0.5 * (r1 + r2 - delta_n);
         real rc = r1 * r1 - xc * xc;
         rc = (rc < eps) ? eps : Sqrt(rc);
