@@ -23,6 +23,8 @@
 // suspension and will be mirrored (reflecting the y coordinates) to construct
 // the right side.
 //
+// TODO: connect transverse beam with universal joint?!?
+//
 // =============================================================================
 
 #include "chrono/assets/ChCylinderShape.h"
@@ -53,8 +55,7 @@ const std::string ChHendricksonPRIMAXX::m_pointNames[] = {"SPINDLE ",
                                                           "SHOCKLB_LB",
                                                           "KNUCKLE_CM",
                                                           "TORQUEROD_CM",
-                                                          "LOWERBEAM_CM",
-                                                          "TRANSVERSEBEAM_CM"};
+                                                          "LOWERBEAM_CM"};
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -459,10 +460,16 @@ void ChHendricksonPRIMAXX::AddVisualizationAssets(VisualizationType vis) {
 
     // Add visualization for the springs and shocks
     m_shockLB[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.06, 150, 15));
+    m_shockLB[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
+
     m_shockLB[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.06, 150, 15));
+    m_shockLB[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
 
     m_shockAH[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.06, 150, 15));
+    m_shockAH[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
+
     m_shockAH[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.06, 150, 15));
+    m_shockAH[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
 
     // Add visualization for the tie-rods
     m_distTierod[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());

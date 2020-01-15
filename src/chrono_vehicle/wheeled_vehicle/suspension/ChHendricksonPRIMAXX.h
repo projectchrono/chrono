@@ -164,7 +164,6 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
         KNUCKLE_CM,         ///< knuckle, center of mass
         TORQUEROD_CM,       ///< torquerod, center of mass
         LOWERBEAM_CM,       ///< lowerbeam, center of mass
-        TRANSVERSEBEAM_CM,  ///< transverse beam, center of mass
         NUM_POINTS
     };
 

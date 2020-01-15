@@ -499,18 +499,20 @@ enum class PowertrainModelType {
 
 /// Enum for available wheeled-vehicle suspension model templates.
 enum class SuspensionType {
-    DOUBLE_WISHBONE,                 ///< double wishbone
-    DOUBLE_WISHBONE_REDUCED,         ///< simplified double wishbone (constraint-based)
-    SOLID_AXLE,                      ///< solid axle
-    MULTI_LINK,                      ///< multi-link
-    HENDRICKSON_PRIMAXX,             ///< Hendrickson PRIMAXX (walking beam)
-    MACPHERSON_STRUT,                ///< MacPherson strut
-    SEMI_TRAILING_ARM,               ///< semi trailing arm
-    THREE_LINK_IRS,                  ///< three-link independent rear suspension
-    RIGID_PINNED,                    ///< pinned rigid beam
-    RIGID_SUSPENSION,                ///< rigid suspension
-    SOLID_THREE_LINK_AXLE,           ///< rigid suspension + 3 guiding links
-    SOLID_BELLCRANK_THREE_LINK_AXLE  ///< rigid suspension + 3 guiding linls + bellcrank steering mechanism
+    DOUBLE_WISHBONE,                  ///< double wishbone
+    DOUBLE_WISHBONE_REDUCED,          ///< simplified double wishbone (constraint-based)
+    HENDRICKSON_PRIMAXX,              ///< Hendrickson PRIMAXX (walking beam)
+    LEAF_SPRING_AXLE,                 ///< leaf-spring solid axle
+    MACPHERSON_STRUT,                 ///< MacPherson strut
+    MULTI_LINK,                       ///< multi-link
+    RIGID_PINNED,                     ///< pinned rigid beam
+    RIGID_SUSPENSION,                 ///< rigid suspension
+    SEMI_TRAILING_ARM,                ///< semi trailing arm
+    SOLID_AXLE,                       ///< solid axle
+    SOLID_THREE_LINK_AXLE,            ///< rigid suspension + 3 guiding links
+    SOLID_BELLCRANK_THREE_LINK_AXLE,  ///< rigid suspension + 3 guiding linls + bellcrank steering mechanism
+    THREE_LINK_IRS,                   ///< three-link independent rear suspension
+    TOE_BAR_LEAF_SPRING_AXLE          ///< steerable leaf-spring solid axle
 };
 
 /// Enum for available wheeled-vehicle steering model templates.
