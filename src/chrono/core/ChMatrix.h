@@ -17,6 +17,7 @@
 
 // Include this before ChMatrixEigenExtensions, that draws on it
 #include "chrono/serialization/ChArchive.h"
+#include "chrono/serialization/ChArchiveAsciiDump.h"
 
 namespace chrono {
 	// A collective tag for storing version in ArchiveIN / ArchiveOUT:
