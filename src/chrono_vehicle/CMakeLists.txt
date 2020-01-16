@@ -400,6 +400,10 @@ set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/SemiTrailingArm.cpp
     wheeled_vehicle/suspension/ThreeLinkIRS.h
     wheeled_vehicle/suspension/ThreeLinkIRS.cpp
+    wheeled_vehicle/suspension/RigidSuspension.h
+    wheeled_vehicle/suspension/RigidSuspension.cpp
+    wheeled_vehicle/suspension/RigidPinnedAxle.h
+    wheeled_vehicle/suspension/RigidPinnedAxle.cpp
     wheeled_vehicle/suspension/LeafspringAxle.h
     wheeled_vehicle/suspension/LeafspringAxle.cpp
     wheeled_vehicle/suspension/SolidBellcrankThreeLinkAxle.h
