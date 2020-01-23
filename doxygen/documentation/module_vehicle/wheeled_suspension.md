@@ -43,6 +43,8 @@ The hardpoints (defined for the left side only and mirrored to construct the rig
 
 ## MacPherson strut {#wheeled_suspension_ChMacPhersonStrut}
 
+Steerable independent suspension system which is preferred for small to mid-sized passenger cars with front wheel drive and traverse mounted engine/gearbox.
+
 See [ChMacPhersonStrut](@ref chrono::vehicle::ChMacPhersonStrut) and [MacPhersonStrut](@ref chrono::vehicle::MacPhersonStrut).
 
 <img src="http://www.projectchrono.org/assets/manual/vehicle/wheeled/MacPhersonStrut_bodies.png" width="600" />
@@ -58,6 +60,8 @@ The hardpoints (defined for the left side only and mirrored to construct the rig
 
 
 ## Multi-link {#wheeled_suspension_ChMultiLink}
+
+This suspension system is similar to a double wishbone axle. The trailing arm can bear high longitudinal forces.
 
 See [ChMultiLink](@ref chrono::vehicle::ChMultiLink) and [MultiLink](@ref chrono::vehicle::MultiLink).
 
@@ -75,6 +79,8 @@ The hardpoints (defined for the left side only and mirrored to construct the rig
 
 ## Semi-trailing arm {#wheeled_suspension_ChSemiTrailingArm}
 
+Simple independent axle system used in smaller passenger cars as rear suspension.
+
 See [ChSemiTrailingArm](@ref chrono::vehicle::ChSemiTrailingArm) and [SemiTrailingArm](@ref chrono::vehicle::SemiTrailingArm).
 
 <img src="http://www.projectchrono.org/assets/manual/vehicle/wheeled/SemiTrailingArm_bodies.png" width="600" />
@@ -90,6 +96,8 @@ The hardpoints (defined for the left side only and mirrored to construct the rig
 
 
 ## Solid axle {#wheeled_suspension_ChSolidAxle}
+
+A solid axle system guided by four links. It normally uses coilsprings or airsprings and could be found in older passenger cars.
 
 See [ChSolidAxle](@ref chrono::vehicle::ChSolidAxle) and [SolidAxle](@ref chrono::vehicle::SolidAxle).
 
@@ -107,7 +115,7 @@ The hardpoints (defined for the left side only and mirrored to construct the rig
 
 ## Solid three-link axle {#wheeled_suspension_ChSolidThreeLinkAxle}
 
-Used as rear suspensions on the [MAN 5t](@ref chrono::vehicle::man::MAN_5t), [MAN 7t](@ref chrono::vehicle::man::MAN_7t), and [MAN 10t](@ref chrono::vehicle::man::MAN_10t) truck models.
+Used as rear suspensions on the [MAN 5t](@ref chrono::vehicle::man::MAN_5t), [MAN 7t](@ref chrono::vehicle::man::MAN_7t), and [MAN 10t](@ref chrono::vehicle::man::MAN_10t) truck models. This suspension allows very high wheel travel, which could not be realized with leafsprings. It is also in on-road trucks with airsprings. Airsprings and coilsprings need a suspension guided by links.
 
 See [ChSolidThreeLinkAxle](@ref chrono::vehicle::ChSolidThreeLinkAxle) and [SolidThreeLinkAxle](@ref chrono::vehicle::SolidThreeLinkAxle).
 
@@ -143,7 +151,7 @@ The hardpoints (defined for the left side only and mirrored to construct the rig
 
 ## Leaf-spring solid axle {#wheeled_suspension_ChLeafspringAxle}
 
-Used as rear suspension on the [UAZ](@ref chrono::vehicle::uaz::UAZBUS) vehicle models.
+Used as rear suspension on the [UAZ](@ref chrono::vehicle::uaz::UAZBUS) vehicle models. Leafspring axles have complex guiding behavior. This is a work-a-like solution, where the guiding effect of the leafsprings is simulated by a special joint in the center of the axle tube. The suspension effect is modeled by coil springs. The rolling behavior is close to a real leafspring axle.
 
 See [ChLeafspringAxle](@ref chrono::vehicle::ChLeafspringAxle) and [LeafspringAxle](@ref chrono::vehicle::LeafspringAxle).
 
@@ -198,7 +206,7 @@ The hardpoints (defined for the left side only and mirrored to construct the rig
 
 ## Rigid suspension {#wheeled_suspension_ChRigidSuspension}
 
-Trivial assembly with spindles directly attached to an axle tube pinned to the chassis.
+Trivial assembly with spindles directly attached to an axle tube pinned to the chassis. It is typical for farm tractors and combine harvesters.
 
 See [ChRigidSuspension](@ref chrono::vehicle::ChRigidSuspension) and [RigidSuspension](@ref chrono::vehicle::RigidSuspension).
 
@@ -216,7 +224,7 @@ The hardpoints (defined for the left side only and mirrored to construct the rig
 
 ## Rigid pinned-axle {#wheeled_suspension_ChRigidPinnedAxle}
 
-Trivial assembly with spindles directly attached to the chassis.
+Trivial assembly with spindles directly attached to the axle tube that can swing around a pivot point against the chassis. This can be used, if an unsprung axle system is needed but has to run on ondulated terrain to avoid wheel lift off.
 
 See [ChRigidPinnedAxle](@ref chrono::vehicle::ChRigidPinnedAxle) and [RigidPinnedAxle](@ref chrono::vehicle::RigidPinnedAxle).
 

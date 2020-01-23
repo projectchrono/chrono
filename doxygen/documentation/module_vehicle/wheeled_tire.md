@@ -25,11 +25,13 @@ See [ChPac89Tire](@ref chrono::vehicle::ChPac89Tire) and [Pac89Tire](@ref chrono
 
 ### Pacejka 2002 (Pac02) tire model  {#wheeled_tire_pac02}
 
-This model is an extension of Pacejka's earlier Magic Formula tire model with additional equations and coefficients.  Since a large number of vehicle dynamics maneuvers do not occur under steady-state slip conditions, the contact patch slip state equations are included to provide more accurate results under transient conditions.
+This model is an extension of Pacejka's earlier Magic Formula tire model with additional equations and coefficients.  Since a large number of vehicle dynamics maneuvers do not occur under steady-state slip conditions, the contact patch slip state equations are included to provide more accurate results under transient conditions (TBD!). Due to the lack of reference data sets the inflation pressure dependence terms and the large camber terms are actually not implemented.
 
 See [ChPac02Tire](@ref chrono::vehicle::ChPac02Tire) and [Pac02Tire](@ref chrono::vehicle::Pac02Tire).
 
 ### TMeasy tire model  {#wheeled_tire_tmeasy}
+
+TMeasy (Tire Model Made Easy) has been developed to allow easy parametration. Its complexity is roughly comparable to the Magic Formula based models. Based on known parameter sets for trucks and passenger cars it is possible to estimate a complete parameter set from few input data, if needed. TMeasy considers nonlinear effects and includes contact patch slip state equations.
 
 See [ChTMeasyTire](@ref chrono::vehicle::ChTMeasyTire) and [TMeasyTire](@ref chrono::vehicle::TMeasyTire).
 
