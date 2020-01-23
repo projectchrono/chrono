@@ -59,6 +59,10 @@ Reference Manual {#manual_root}
 	
 * @subpage pychrono_introduction
 
+* @subpage manual_vehicle
+    * [Wheeled vehicles](@ref wheeled_vehicle)
+    * [Tracked vehicles](@ref tracked_vehicle)
+
 * @subpage introduction_chrono_solidworks
 
 * @subpage tutorial_root
