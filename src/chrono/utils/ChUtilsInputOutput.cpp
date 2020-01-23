@@ -340,7 +340,8 @@ enum POVRayLinkType {
     ENGINE = 5,
     SPRING = 6,
     TSDA = 7,
-    CYLINDRICAL = 8
+    CYLINDRICAL = 8,
+    REV_SPH = 9
 };
 
 enum POVRayLineType { SEGMENT = 0, COIL = 1 };
@@ -485,6 +486,9 @@ void WriteShapesPovray(ChSystem* system, const std::string& filename, bool body_
             l_count++;
         } else if (auto link = std::dynamic_pointer_cast<ChLinkDistance>(ilink)) {
             csv << DISTANCE << link->GetEndPoint1Abs() << link->GetEndPoint2Abs() << std::endl;
+            l_count++;
+        } else if (auto link = std::dynamic_pointer_cast<ChLinkRevoluteSpherical>(ilink)) {
+            csv << REV_SPH << link->GetPoint1Abs() << link->GetPoint2Abs() << std::endl;
             l_count++;
         }
     }
