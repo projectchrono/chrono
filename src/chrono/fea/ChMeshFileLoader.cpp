@@ -20,6 +20,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <cctype>
 
 #include "chrono/core/ChMath.h"
 #include "chrono/physics/ChSystem.h"
@@ -29,6 +30,9 @@
 #include "chrono/fea/ChElementTetra_4.h"
 #include "chrono/fea/ChMeshFileLoader.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
+
+#include "chrono_thirdparty/tinyobjloader/tiny_obj_loader.h"
+#include "chrono/geometry/ChTriangleMeshConnected.h"
 
 using namespace std;
 
@@ -62,7 +66,8 @@ void ChMeshFileLoader::FromTetGenFile(std::shared_ptr<ChMesh> mesh,
         string line;
         while (getline(fin, line)) {
             // trims white space from the beginning of the string
-            line.erase(line.begin(), find_if(line.begin(), line.end(), not1(ptr_fun<int, int>(isspace))));
+            line.erase(line.begin(),
+                       std::find_if(line.begin(), line.end(), [](unsigned char c) { return !std::isspace(c); }));
 
             if (line[0] == '#')
                 continue;  // skip comment
@@ -132,7 +137,8 @@ void ChMeshFileLoader::FromTetGenFile(std::shared_ptr<ChMesh> mesh,
         string line;
         while (getline(fin, line)) {
             // trims white space from the beginning of the string
-            line.erase(line.begin(), find_if(line.begin(), line.end(), not1(ptr_fun<int, int>(isspace))));
+            line.erase(line.begin(),
+                       std::find_if(line.begin(), line.end(), [](unsigned char c) { return !std::isspace(c); }));
 
             if (line[0] == '#')
                 continue;  // skip comment
@@ -197,7 +203,6 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
                                       ChVector<> pos_transform,
                                       ChMatrix33<> rot_transform,
                                       bool discard_unused_nodes) {
-
     std::map<unsigned int, std::pair<shared_ptr<ChNodeFEAbase>, bool>> parsed_nodes;
     std::vector<std::shared_ptr<ChNodeFEAbase>>* current_nodeset_vector = nullptr;
 
@@ -218,7 +223,9 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
     string line;
     while (getline(fin, line)) {
         // trims white space from the beginning of the string
-        line.erase(line.begin(), find_if(line.begin(), line.end(), not1(ptr_fun<int, int>(isspace))));
+        line.erase(line.begin(),
+                   std::find_if(line.begin(), line.end(), [](unsigned char c) { return !std::isspace(c); }));
+
         // convert parsed line to uppercase (since string::find is case sensitive and Abaqus INP is not)
         std::for_each(line.begin(), line.end(), [](char& c) { c = toupper(static_cast<unsigned char>(c)); });
 
@@ -273,21 +280,20 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
                     string::size_type ncom = line.find(",", nse);
                     string s_node_set = line.substr(nse + 5, ncom - (nse + 5));
                     GetLog() << "| parsing nodeset: " << s_node_set << "\n";
-                    auto new_node = node_sets.insert(std::pair < std::string, std::vector<std::shared_ptr<ChNodeFEAbase>>>(
-                                         s_node_set, std::vector<std::shared_ptr<ChNodeFEAbase>>()));
-                    if (new_node.second)
-                    {
+                    auto new_node =
+                        node_sets.insert(std::pair<std::string, std::vector<std::shared_ptr<ChNodeFEAbase>>>(
+                            s_node_set, std::vector<std::shared_ptr<ChNodeFEAbase>>()));
+                    if (new_node.second) {
                         current_nodeset_vector = &new_node.first->second;
                     } else
                         throw ChException("ERROR in .inp file, multiple NSET with same name has been specified\n");
-                     
                 }
                 e_parse_section = E_PARSE_NODESET;
             }
 
             continue;
         }
-        
+
         // node parsing
         if (e_parse_section == E_PARSE_NODES_XYZ) {
             int idnode = 0;
@@ -386,7 +392,7 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
                         parsed_nodes.at(static_cast<unsigned int>(tokenvals[node_sel + 1]));
 
                     element_nodes[node_sel] = node_found.first;
-                    node_found.second = true;  
+                    node_found.second = true;
                 }
 
                 if (std::dynamic_pointer_cast<ChContinuumElastic>(my_material)) {
@@ -414,7 +420,7 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
 
         // parsing nodesets
         if (e_parse_section == E_PARSE_NODESET) {
-            unsigned int tokenvals[20]; // strictly speaking, the maximum is 16 nodes for each line
+            unsigned int tokenvals[20];  // strictly speaking, the maximum is 16 nodes for each line
             int ntoken = 0;
 
             string token;
@@ -437,7 +443,7 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
                     node_found.second = true;
 
                 } else
-                    throw ChException("ERROR in .inp file, negative node ID: " + std::to_string(tokenvals[node_sel])); 
+                    throw ChException("ERROR in .inp file, negative node ID: " + std::to_string(tokenvals[node_sel]));
             }
         }
 
@@ -488,7 +494,8 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
     std::string line;
     while (getline(fin, line)) {
         // trims white space from the beginning of the string
-        line.erase(line.begin(), find_if(line.begin(), line.end(), not1(ptr_fun<int, int>(isspace))));
+        line.erase(line.begin(),
+                   std::find_if(line.begin(), line.end(), [](unsigned char c) { return !std::isspace(c); }));
 
         if (line[0] == 0)
             continue;  // skip empty linesnodes_offset
@@ -691,6 +698,102 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
         }
     }
 }
+
+
+
+void ChMeshFileLoader::BSTShellFromObjFile(
+	std::shared_ptr<ChMesh> mesh,                      ///< destination mesh
+	const char* filename,                              ///< .obj mesh complete filename
+	std::shared_ptr<ChMaterialShellKirchhoff> my_material,  ///< material to be given to the shell elements
+	double my_thickness,							   ///< thickness to be given to shell elements
+	ChVector<> pos_transform,                  ///< optional displacement of imported mesh
+	ChMatrix33<> rot_transform      ///< optional rotation/scaling of imported mesh
+) {
+	auto mmesh = geometry::ChTriangleMeshConnected();
+	mmesh.LoadWavefrontMesh(std::string(filename), false, false);
+
+	std::map<std::pair<int, int>, std::pair<int, int>> winged_edges;
+	mmesh.ComputeWingedEdges(winged_edges);
+
+	std::vector< shared_ptr<ChNodeFEAxyz>> shapenodes;
+
+	for (size_t i = 0; i < mmesh.m_vertices.size(); i++) {
+		ChVector<double> pos = mmesh.m_vertices[i];
+		pos = rot_transform * pos;
+		pos += pos_transform;
+		auto mnode = chrono_types::make_shared<ChNodeFEAxyz>();
+		mnode->SetPos(pos);
+		mesh->AddNode(mnode);
+		shapenodes.push_back(mnode); // for future reference when adding faces
+	}
+
+	for (size_t j = 0; j < mmesh.m_face_v_indices.size(); j++) {
+		int i0 = mmesh.m_face_v_indices[j][0];
+		int i1 = mmesh.m_face_v_indices[j][1];
+		int i2 = mmesh.m_face_v_indices[j][2];
+		GetLog() << "nodes 012 ids= " << i0 << " " << i1 << " " << i2 << " " << "\n";
+
+		std::pair<int, int> medge0(i1, i2);
+		std::pair<int, int> medge1(i2, i0);
+		std::pair<int, int> medge2(i0, i1);
+		if (medge0.first > medge0.second)
+            medge0 = std::pair<int, int>(medge0.second, medge0.first);
+		if (medge1.first > medge1.second)
+            medge1 = std::pair<int, int>(medge1.second, medge1.first);
+		if (medge0.first > medge0.second)
+            medge2 = std::pair<int, int>(medge2.second, medge2.first);
+		shared_ptr<ChNodeFEAxyz> node3 = nullptr;
+		shared_ptr<ChNodeFEAxyz> node4 = nullptr;
+		shared_ptr<ChNodeFEAxyz> node5 = nullptr;
+		int itri = -1;
+		int ivert = -1;
+		if (winged_edges[medge0].second == j) 
+			itri = winged_edges[medge0].first;
+		else
+			itri = winged_edges[medge0].second;
+		for (int vi = 0; vi < 3; ++vi) {
+			if (mmesh.m_face_v_indices[itri][vi] != medge0.first && mmesh.m_face_v_indices[itri][vi] != medge0.second)
+				ivert = mmesh.m_face_v_indices[itri][vi];
+		}
+		if (ivert != -1)
+			node3 = shapenodes[ivert];
+
+		itri = -1;
+		ivert = -1;
+		if (winged_edges[medge1].second == j) 
+			itri = winged_edges[medge1].first;
+		else
+			itri = winged_edges[medge1].second;
+		for (int vi = 0; vi < 3; ++vi) {
+			if (mmesh.m_face_v_indices[itri][vi] != medge1.first && mmesh.m_face_v_indices[itri][vi] != medge1.second)
+				ivert = mmesh.m_face_v_indices[itri][vi];
+		}
+		if (ivert != -1)
+			node4 = shapenodes[ivert];
+
+		itri = -1;
+		ivert = -1;
+		if (winged_edges[medge2].second == j) 
+			itri = winged_edges[medge2].first;
+		else
+			itri = winged_edges[medge2].second;
+		for (int vi = 0; vi < 3; ++vi) {
+			if (mmesh.m_face_v_indices[itri][vi] != medge2.first && mmesh.m_face_v_indices[itri][vi] != medge2.second)
+				ivert = mmesh.m_face_v_indices[itri][vi];
+		}
+		if (ivert != -1)
+			node5 = shapenodes[ivert];
+
+		
+		auto melement = chrono_types::make_shared<ChElementShellBST>();
+		melement->SetNodes(shapenodes[i0], shapenodes[i1], shapenodes[i2], node3, node4, node5);
+		mesh->AddElement(melement);
+		melement->AddLayer(my_thickness, 0, my_material);
+	}
+
+	
+}
+
 
 }  // end namespace fea
 }  // end namespace chrono

@@ -108,7 +108,7 @@ linux:doxygen:deploy:
   before_script:
 #    - pacman -Syyu --noconfirm base-devel git python python-pip doxygen graphviz openssh rsync clang
     - pacman -Syyu --noconfirm base-devel git python python-pip graphviz openssh rsync wget
-    - wget https://svwh.dl.sourceforge.net/project/doxygen/rel-1.8.16/doxygen-1.8.16.linux.bin.tar.gz
+    - wget https://downloads.sourceforge.net/project/doxygen/rel-1.8.16/doxygen-1.8.16.linux.bin.tar.gz
     - tar -xf doxygen-1.8.16.linux.bin.tar.gz
     - mkdir -p ~/.ssh
     - chmod 0700 ~/.ssh
@@ -329,11 +329,16 @@ linux:ubuntu1804:deploy:
   - windows
   before_script:
   - $CHRONO_W64_SHARED = @(
-    "-DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=TRUE",
-    "-DBUILD_BENCHMARKING=TRUE -DENABLE_MODULE_POSTPROCESS=TRUE",
-    "-DENABLE_MODULE_PYTHON=TRUE -DENABLE_MODULE_COSIMULATION=FALSE",
-    "-DENABLE_MODULE_IRRLICHT=TRUE -DENABLE_MODULE_VEHICLE=TRUE",
-    "-DENABLE_MODULE_PARALLEL=TRUE -DENABLE_MODULE_OPENGL=TRUE"
+    "-DCMAKE_BUILD_TYPE=Release",
+    "-DBUILD_TESTING=TRUE",
+    "-DBUILD_BENCHMARKING=TRUE",
+    "-DENABLE_MODULE_POSTPROCESS=TRUE",
+    "-DENABLE_MODULE_PYTHON=TRUE",
+    "-DENABLE_MODULE_COSIMULATION=FALSE",
+    "-DENABLE_MODULE_IRRLICHT=TRUE",
+    "-DENABLE_MODULE_VEHICLE=TRUE",
+    "-DENABLE_MODULE_PARALLEL=TRUE",
+    "-DENABLE_MODULE_OPENGL=TRUE"
     )
     #  - wget -UseBasicParsing https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.5.tar.gz -OutFile blaze-3.5.tar.gz
     #  - tar -xf .\blaze-3.5.tar.gz blaze-3.5/blaze

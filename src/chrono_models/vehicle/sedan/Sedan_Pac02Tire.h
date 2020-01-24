@@ -29,7 +29,7 @@ namespace chrono {
 namespace vehicle {
 namespace sedan {
 
-/// @addtogroup vehicle_models_hmmwv
+/// @addtogroup vehicle_models_sedan
 /// @{
 
 /// PAC89 tire model for the Sedan vehicle.
@@ -64,7 +64,7 @@ class CH_MODELS_API Sedan_Pac02Tire : public ChPac02Tire {
     std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
 };
 
-/// @} vehicle_models_hmmwv
+/// @} vehicle_models_sedan
 
 }  // namespace sedan
 }  // end namespace vehicle

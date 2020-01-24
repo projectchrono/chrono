@@ -33,7 +33,7 @@ const double HMMWV_SimpleCVTPowertrain::m_max_power = 110000;
 const double HMMWV_SimpleCVTPowertrain::m_fwd_gear_ratio = 0.3;
 const double HMMWV_SimpleCVTPowertrain::m_rev_gear_ratio = -0.3;
 const double HMMWV_SimpleCVTPowertrain::m_critical_speed =
-    HMMWV_SimpleCVTPowertrain::m_max_power / HMMWV_SimpleCVTPowertrain::m_max_torque / CH_C_2PI;
+    HMMWV_SimpleCVTPowertrain::m_max_power / HMMWV_SimpleCVTPowertrain::m_max_torque;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

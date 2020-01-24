@@ -39,6 +39,9 @@ namespace uaz {
 /// @addtogroup vehicle_models_uaz
 /// @{
 
+/// Definition of the UAZ assembly.
+/// This class encapsulates a concrete wheeled vehicle model with parameters corresponding to
+/// a UAZ vehicle, the powertrain model, and the 4 tires.
 class CH_MODELS_API UAZBUS {
   public:
     UAZBUS();

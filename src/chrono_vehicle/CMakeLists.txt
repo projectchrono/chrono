@@ -319,6 +319,8 @@ set(CV_WV_DRIVELINE_FILES
     wheeled_vehicle/driveline/ChShaftsDriveline2WD.cpp
     wheeled_vehicle/driveline/ChShaftsDriveline4WD.h
     wheeled_vehicle/driveline/ChShaftsDriveline4WD.cpp
+    wheeled_vehicle/driveline/ChSimpleDrivelineXWD.h
+    wheeled_vehicle/driveline/ChSimpleDrivelineXWD.cpp
     wheeled_vehicle/driveline/ChSimpleDriveline.h
     wheeled_vehicle/driveline/ChSimpleDriveline.cpp
 
@@ -328,6 +330,8 @@ set(CV_WV_DRIVELINE_FILES
     wheeled_vehicle/driveline/ShaftsDriveline4WD.cpp
     wheeled_vehicle/driveline/SimpleDriveline.h
     wheeled_vehicle/driveline/SimpleDriveline.cpp
+    wheeled_vehicle/driveline/SimpleDrivelineXWD.h
+    wheeled_vehicle/driveline/SimpleDrivelineXWD.cpp
 )
 source_group("wheeled_vehicle\\driveline" FILES ${CV_WV_DRIVELINE_FILES})
 
@@ -373,6 +377,10 @@ set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/ChRigidPinnedAxle.cpp
     wheeled_vehicle/suspension/ChLeafspringAxle.h
     wheeled_vehicle/suspension/ChLeafspringAxle.cpp
+    wheeled_vehicle/suspension/ChSolidBellcrankThreeLinkAxle.h
+    wheeled_vehicle/suspension/ChSolidBellcrankThreeLinkAxle.cpp
+    wheeled_vehicle/suspension/ChSolidThreeLinkAxle.h
+    wheeled_vehicle/suspension/ChSolidThreeLinkAxle.cpp
     wheeled_vehicle/suspension/ChToeBarLeafspringAxle.h
     wheeled_vehicle/suspension/ChToeBarLeafspringAxle.cpp
 
@@ -392,8 +400,16 @@ set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/SemiTrailingArm.cpp
     wheeled_vehicle/suspension/ThreeLinkIRS.h
     wheeled_vehicle/suspension/ThreeLinkIRS.cpp
+    wheeled_vehicle/suspension/RigidSuspension.h
+    wheeled_vehicle/suspension/RigidSuspension.cpp
+    wheeled_vehicle/suspension/RigidPinnedAxle.h
+    wheeled_vehicle/suspension/RigidPinnedAxle.cpp
     wheeled_vehicle/suspension/LeafspringAxle.h
     wheeled_vehicle/suspension/LeafspringAxle.cpp
+    wheeled_vehicle/suspension/SolidBellcrankThreeLinkAxle.h
+    wheeled_vehicle/suspension/SolidBellcrankThreeLinkAxle.cpp
+    wheeled_vehicle/suspension/SolidThreeLinkAxle.h
+    wheeled_vehicle/suspension/SolidThreeLinkAxle.cpp
     wheeled_vehicle/suspension/ToeBarLeafspringAxle.h
     wheeled_vehicle/suspension/ToeBarLeafspringAxle.cpp
 )

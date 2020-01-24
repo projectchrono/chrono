@@ -40,7 +40,7 @@ class CH_PARALLEL_API ChIterativeSolverParallel : public ChIterativeSolverVI {
     virtual ~ChIterativeSolverParallel();
 
     /// Each child class must define its own solve method.
-    virtual double Solve(ChSystemDescriptor& sysd) { return 0; }
+    virtual double Solve(ChSystemDescriptor& sysd) override { return 0; }
     /// Similarly, the run timestep function needs to be defined.
     virtual void RunTimeStep() = 0;
     /// This function computes the new velocities based on the lagrange multipliers.

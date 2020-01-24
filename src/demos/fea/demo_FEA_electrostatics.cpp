@@ -23,7 +23,6 @@
 #include "chrono/fea/ChElementBar.h"
 #include "chrono/fea/ChElementHexa_20.h"
 #include "chrono/fea/ChElementHexa_8.h"
-#include "chrono/fea/ChElementSpring.h"
 #include "chrono/fea/ChElementTetra_10.h"
 #include "chrono/fea/ChElementTetra_4.h"
 #include "chrono/fea/ChLinkPointFrame.h"

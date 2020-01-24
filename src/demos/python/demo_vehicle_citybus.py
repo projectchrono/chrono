@@ -27,7 +27,7 @@ import math
 !!!! Set this path before running the demo!
 """
 chrono.SetChronoDataPath('../../../../Library/data/')
-veh.SetDataPath('../../../../Library/data/Vehicle/')
+veh.SetDataPath('../../../../Library/data/vehicle/')
 
 # Initial vehicle location and orientation
 initLoc = chrono.ChVectorD(0, 0, 0.5)
@@ -67,12 +67,6 @@ t_end = 1000
 
 # Time interval between two render frames
 render_step_size = 1.0 / 50  # FPS = 50
-
-# Output directories
-out_dir = chrono.GetChronoOutputPath() + "CityBus"
-
-# POV-Ray output
-povray_output = False
 
 # =============================================================================
 
@@ -116,6 +110,7 @@ terrain.Initialize()
 app = veh.ChWheeledVehicleIrrApp(my_bus.GetVehicle())
 app.SetSkyBox()
 app.AddTypicalLights(irr.vector3df(30, -30, 100), irr.vector3df(30, 50, 100), 250, 130)
+app.AddTypicalLogo(chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
 app.SetChaseCamera(trackPoint, 15.0, 0.5)
 app.SetTimestep(step_size)
 app.AssetBindAll()
@@ -160,7 +155,6 @@ while (app.GetDevice().run()) :
     if (step_number % render_steps == 0) :
         app.BeginScene(True, True, irr.SColor(255, 140, 161, 192))
         app.DrawAll()
-        app.AddTypicalLogo(chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
         app.EndScene()
         render_frame += 1
     

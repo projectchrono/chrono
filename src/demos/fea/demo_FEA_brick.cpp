@@ -17,7 +17,6 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/fea/ChElementSpring.h"
 #include "chrono/fea/ChElementBrick.h"
 #include "chrono/fea/ChElementBar.h"
 #include "chrono/fea/ChLinkPointFrame.h"

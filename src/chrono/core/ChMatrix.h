@@ -9,11 +9,21 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Radu Serban, Alessandro Tasora
 // =============================================================================
 
 #ifndef CHMATRIX_H
 #define CHMATRIX_H
+
+// Include this before ChMatrixEigenExtensions, that draws on it
+#include "chrono/serialization/ChArchive.h"
+#include "chrono/serialization/ChArchiveAsciiDump.h"
+
+namespace chrono {
+	// A collective tag for storing version in ArchiveIN / ArchiveOUT:
+	class ChMatrix_dense_version_tag { }; 
+	CH_CLASS_VERSION(ChMatrix_dense_version_tag, 1)
+}
 
 #define EIGEN_MATRIXBASE_PLUGIN "chrono/core/ChMatrixEigenExtensions.h"
 #define EIGEN_SPARSEMATRIX_PLUGIN "chrono/core/ChSparseMatrixEigenExtensions.h"
@@ -22,7 +32,7 @@
 
 #include "chrono/ChConfig.h"
 #include "chrono/core/ChTypes.h"
-#include "chrono/serialization/ChArchive.h"
+
 
 namespace chrono {
 
@@ -186,6 +196,10 @@ inline void StreamOUT(ChSparseMatrix& matr, ChStreamOutAscii& stream) {
 }
 
 /// @} chrono_linalg
+
+
+
+
 
 }  // end namespace chrono
 

@@ -125,6 +125,10 @@ int main(int argc, char* argv[]) {
             solver->SetVerbose(false);
             break;
         }
+        default: {
+            std::cout << "Solver type not supported." << std::endl;
+            break;
+        }
     }
 
     my_system.SetSolverForceTolerance(1e-13);

@@ -363,7 +363,7 @@ IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 t
     v.Color = color;
     f32 tcx = 0.f;
     
-    double beta = atan2f(radius_low-radius_top, length*2);
+    auto beta = atan2f(radius_low-radius_top, length*2);
 
     for (i = 0; i <= tesselation; ++i) {
         const f32 angle = angleStep * i;

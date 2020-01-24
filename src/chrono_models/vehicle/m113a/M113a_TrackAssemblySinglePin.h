@@ -29,7 +29,6 @@ namespace chrono {
 namespace vehicle {
 namespace m113 {
 
-/// Base class for the M113 track assembly.
 class CH_MODELS_API M113a_TrackAssemblySinglePin : public ChTrackAssemblySinglePin {
   public:
     M113a_TrackAssemblySinglePin(VehicleSide side);

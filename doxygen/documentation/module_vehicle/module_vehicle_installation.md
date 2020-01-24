@@ -14,40 +14,7 @@ background on the modularity of the Chrono project.
 
 The **VEHICLE module** allows users to model and simulate vehicles. 
 
-Here are the main features:
-
-- template-based definition of vehicles
-- both tracked and wheeled vehicles
-- different types of tire models
-	- Pacejka
-	- Fiala
-	- deformable FEA (multi-layer ANCF shell elements)
-	- rigid
-- different types of soil models
-	- rigid
-	- deformable SCM (Soil Contact Model)
-	- deformable FEA (ANCF solid elements)
-	- granular
-- use JSON for easy specification of models (vehicles and sub-systems)
-- different types of suspensions for wheeled vehicles
-	- double wishbone
-	- multilink
-	- solid axle
-	- McPherson
-	- semi-trailing arm
-	- Hendrickson
-- various templates for segmented tracks
-    - single-pin track shoes
-    - double-pin track shoes
-- driveline and powertrain 1D primitives
-	- clutches
-	- thermal engines
-	- reducers
-	- gears
-	- planetary gears
-- driver models
-    - interactive (Irrlicht key and mouse controls)
-    - closed-loop (path-follower, constant speed controller, etc.)
+For more detail, read the [Chrono::Vehicle](@ref manual_vehicle) section of the reference manual.
 
 
 ## Requirements

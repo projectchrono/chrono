@@ -26,6 +26,7 @@
 #include "chrono/fea/ChElementHexa_8.h"
 #include "chrono/fea/ChElementShell.h"
 #include "chrono/fea/ChElementShellReissner4.h"
+#include "chrono/fea/ChElementShellBST.h"
 #include "chrono/fea/ChElementTetra_10.h"
 #include "chrono/fea/ChElementTetra_4.h"
 #include "chrono/fea/ChFaceTetra_4.h"
@@ -49,6 +50,7 @@ ChVisualizationFEAmesh::ChVisualizationFEAmesh(ChMesh& mymesh) {
     symbols_thickness = 0.002;
 
     wireframe = false;
+	backface_cull = false;
 
     zbuffer_hide = true;
 
@@ -367,12 +369,21 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                     n_vnorms += 8 * beam_resolution;
                     n_triangles += 8 * (beam_resolution - 1);  // n. triangle faces
                 }
-            } else if (std::dynamic_pointer_cast<ChElementShell>(this->FEMmesh->GetElement(iel))) {
+            } else if (auto mshell=std::dynamic_pointer_cast<ChElementShell>(this->FEMmesh->GetElement(iel))) {
                 // ELEMENT IS A SHELL
-                n_verts += shell_resolution * shell_resolution;
-                n_vcols += shell_resolution * shell_resolution;
-                n_vnorms += shell_resolution * shell_resolution;
-                n_triangles += 2 * (shell_resolution - 1) * (shell_resolution - 1);  // n. triangle faces
+				if (!mshell->IsTriangleShell()) {
+					n_verts += shell_resolution * shell_resolution;
+					n_vcols += shell_resolution * shell_resolution;
+					n_vnorms += shell_resolution * shell_resolution;
+					n_triangles += 2 * (shell_resolution - 1) * (shell_resolution - 1);  // n. triangle faces
+				} else {
+					for (int idp = 1; idp <= shell_resolution; ++idp) {
+						n_verts += idp;
+						n_vcols += idp;
+						n_vnorms += idp;
+					}
+					n_triangles += 2*(shell_resolution - 1) * (shell_resolution - 1);  // n. triangle faces (double as twin-triangles for back lightning)
+				}
             }
 
             //***TO DO*** other types of elements...
@@ -821,65 +832,184 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                 unsigned int ivert_el = i_verts;
                 unsigned int inorm_el = i_vnorms;
 
-                for (int iu = 0; iu < shell_resolution; ++iu)
-                    for (int iv = 0; iv < shell_resolution; ++iv) {
-                        double u = -1.0 + (2.0 * iu / (shell_resolution - 1));
-                        double v = -1.0 + (2.0 * iv / (shell_resolution - 1));
+				if (!myshell->IsTriangleShell()) {
 
-                        ChVector<> P;
-                        myshell->EvaluateSectionPoint(u, v, P);  // compute abs. pos and rot of section plane
+					for (int iu = 0; iu < shell_resolution; ++iu)
+						for (int iv = 0; iv < shell_resolution; ++iv) {
+							double u = -1.0 + (2.0 * iu / (shell_resolution - 1));
+							double v = -1.0 + (2.0 * iv / (shell_resolution - 1));
 
-                        ChVector<float> mcol(1, 1, 1);
-                        /*
-                        ChVector<> vresult;
-                        ChVector<> vresultB;
-                        double sresult = 0;
-                        switch(this->fem_data_type)
-                        {
-                            case E_PLOT_ELEM_SHELL_blabla:
-                                myshell->EvaluateSectionForceTorque(eta, vresult, vresultB);
-                                sresult = vresultB.x();
-                                break;
+							ChVector<> P;
+							myshell->EvaluateSectionPoint(u, v, P);  // compute abs. pos and rot of section plane
 
-                        }
-                        ChVector<float> mcol = ComputeFalseColor(sresult);
-                        */
+							ChVector<float> mcol(1, 1, 1);
+							/*
+							ChVector<> vresult;
+							ChVector<> vresultB;
+							double sresult = 0;
+							switch(this->fem_data_type)
+							{
+								case E_PLOT_ELEM_SHELL_blabla:
+									myshell->EvaluateSectionForceTorque(eta, vresult, vresultB);
+									sresult = vresultB.x();
+									break;
 
-                        trianglemesh->getCoordsVertices()[i_verts] = P;
-                        ++i_verts;
+							}
+							ChVector<float> mcol = ComputeFalseColor(sresult);
+							*/
 
-                        trianglemesh->getCoordsColors()[i_vcols] = mcol;
-                        ++i_vcols;
+							trianglemesh->getCoordsVertices()[i_verts] = P;
+							++i_verts;
 
-                        ++i_vnorms;
+							trianglemesh->getCoordsColors()[i_vcols] = mcol;
+							++i_vcols;
 
-                        if (iu > 0 && iv > 0) {
-                            ChVector<int> ivert_offset(ivert_el, ivert_el, ivert_el);
+							++i_vnorms;
 
-                            trianglemesh->getIndicesVertexes()[i_triindex] =
-                                ChVector<int>(iu * shell_resolution + iv, (iu - 1) * shell_resolution + iv,
-                                              iu * shell_resolution + iv - 1) +
-                                ivert_offset;
-                            ++i_triindex;
-                            trianglemesh->getIndicesVertexes()[i_triindex] =
-                                ChVector<int>(iu * shell_resolution + iv - 1, (iu - 1) * shell_resolution + iv,
-                                              (iu - 1) * shell_resolution + iv - 1) +
-                                ivert_offset;
-                            ++i_triindex;
+							if (iu > 0 && iv > 0) {
+								ChVector<int> ivert_offset(ivert_el, ivert_el, ivert_el);
 
-                            if (this->smooth_faces) {
-                                ChVector<int> inorm_offset = ChVector<int>(inorm_el, inorm_el, inorm_el);
-                                trianglemesh->getIndicesNormals()[i_triindex - 2] =
-                                    ChVector<int>(iu * shell_resolution + iv, (iu - 1) * shell_resolution + iv,
-                                                  iu * shell_resolution + iv - 1) +
-                                    inorm_offset;
-                                trianglemesh->getIndicesNormals()[i_triindex - 1] =
-                                    ChVector<int>(iu * shell_resolution + iv - 1, (iu - 1) * shell_resolution + iv,
-                                                  (iu - 1) * shell_resolution + iv - 1) +
-                                    inorm_offset;
-                            }
-                        }
-                    }
+								trianglemesh->getIndicesVertexes()[i_triindex] =
+									ChVector<int>(iu * shell_resolution + iv, (iu - 1) * shell_resolution + iv,
+										iu * shell_resolution + iv - 1) +
+									ivert_offset;
+								++i_triindex;
+								trianglemesh->getIndicesVertexes()[i_triindex] =
+									ChVector<int>(iu * shell_resolution + iv - 1, (iu - 1) * shell_resolution + iv,
+									(iu - 1) * shell_resolution + iv - 1) +
+									ivert_offset;
+								++i_triindex;
+
+								if (this->smooth_faces) {
+									ChVector<int> inorm_offset = ChVector<int>(inorm_el, inorm_el, inorm_el);
+									trianglemesh->getIndicesNormals()[i_triindex - 2] =
+										ChVector<int>(iu * shell_resolution + iv, (iu - 1) * shell_resolution + iv,
+											iu * shell_resolution + iv - 1) +
+										inorm_offset;
+									trianglemesh->getIndicesNormals()[i_triindex - 1] =
+										ChVector<int>(iu * shell_resolution + iv - 1, (iu - 1) * shell_resolution + iv,
+										(iu - 1) * shell_resolution + iv - 1) +
+										inorm_offset;
+								}
+							}
+						}
+				}
+				
+				
+				if (myshell->IsTriangleShell()) {
+
+					need_automatic_smoothing = false; 
+					
+					int triangle_pt = 0;
+					for (int iu = 0; iu < shell_resolution; ++iu) {
+						for (int iv = 0; iv + iu < shell_resolution; ++iv) {
+							double u = ((double)iu / (double)(shell_resolution - 1));
+							double v = ((double)iv / (double)(shell_resolution - 1));
+							ChVector<> P;
+							myshell->EvaluateSectionPoint(u, v, P);  // compute abs. pos and rot of section plane
+
+							ChVector<float> mcol(1, 1, 1);
+							/*
+							ChVector<> vresult;
+							ChVector<> vresultB;
+							double sresult = 0;
+							switch(this->fem_data_type)
+							{
+								case E_PLOT_ELEM_SHELL_blabla:
+									myshell->EvaluateSectionForceTorque(eta, vresult, vresultB);
+									sresult = vresultB.x();
+									break;
+
+							}
+							ChVector<float> mcol = ComputeFalseColor(sresult);
+							*/
+
+							trianglemesh->getCoordsVertices()[i_verts] = P;
+							++i_verts;
+
+							trianglemesh->getCoordsColors()[i_vcols] = mcol;
+							++i_vcols;
+
+							++i_vnorms;
+
+							if (iu < shell_resolution-1) {
+								ChVector<int> ivert_offset(ivert_el, ivert_el, ivert_el);
+								ChVector<int> inorm_offset(inorm_el, inorm_el, inorm_el);
+
+								if (iv>0) {
+									trianglemesh->getIndicesVertexes()[i_triindex] =
+										ChVector<int>(
+											triangle_pt,
+											triangle_pt - 1,
+											triangle_pt + shell_resolution - iu - 1
+											) +
+										ivert_offset;
+									trianglemesh->getIndicesVertexes()[i_triindex+1] =
+										ChVector<int>(
+											triangle_pt - 1,
+											triangle_pt,
+											triangle_pt + shell_resolution - iu - 1
+											) +
+										ivert_offset;
+
+									if (this->smooth_faces) {
+										ChVector<int> inorm_offset = ChVector<int>(inorm_el, inorm_el, inorm_el);
+										trianglemesh->getIndicesNormals()[i_triindex] =
+											ChVector<int>(
+												triangle_pt,
+												triangle_pt - 1,
+												triangle_pt + shell_resolution - iu - 1) +
+											inorm_offset;
+										trianglemesh->getIndicesNormals()[i_triindex+1] =
+											ChVector<int>(
+												triangle_pt - 1,
+												triangle_pt,
+												triangle_pt + shell_resolution - iu - 1) +
+											inorm_offset;
+									}
+									++i_triindex;
+									++i_triindex;
+								}
+
+								if (iv > 1) {
+									trianglemesh->getIndicesVertexes()[i_triindex] =
+										ChVector<int>(
+											triangle_pt - 1,
+											triangle_pt + shell_resolution - iu - 2,
+											triangle_pt + shell_resolution - iu - 1) +
+										ivert_offset;
+									trianglemesh->getIndicesVertexes()[i_triindex+1] =
+										ChVector<int>(
+											triangle_pt - 1,
+											triangle_pt + shell_resolution - iu - 1,
+											triangle_pt + shell_resolution - iu - 2) +
+										ivert_offset;
+
+									if (this->smooth_faces) {
+										ChVector<int> inorm_offset = ChVector<int>(inorm_el, inorm_el, inorm_el);
+										trianglemesh->getIndicesNormals()[i_triindex] =
+											ChVector<int>(triangle_pt - 1,
+														  triangle_pt + shell_resolution - iu - 2,
+														  triangle_pt + shell_resolution - iu - 1) +
+											inorm_offset;
+										trianglemesh->getIndicesNormals()[i_triindex+1] =
+											ChVector<int>(triangle_pt - 1,
+														  triangle_pt + shell_resolution - iu - 1,
+														  triangle_pt + shell_resolution - iu - 2) +
+											inorm_offset;
+									}
+									++i_triindex;
+									++i_triindex;
+								}
+
+							}
+							++triangle_pt;
+
+						} // end V loop on triangle tesselated points
+					} // end U loop on triangle tesselated points
+
+				} // end if triangular shell
+
             }
 
             // ------------***TO DO*** other types of elements...
@@ -1008,7 +1138,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
 
     // other flags
     mesh_asset->SetWireframe(this->wireframe);
-
+	mesh_asset->SetBackfaceCull(this->backface_cull);
     //
     // GLYPHS
     //

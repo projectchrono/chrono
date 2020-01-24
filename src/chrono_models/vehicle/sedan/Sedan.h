@@ -39,6 +39,9 @@ namespace sedan {
 /// @addtogroup vehicle_models_sedan
 /// @{
 
+/// Definition of the sedan assembly.
+/// This class encapsulates a concrete wheeled vehicle model with parameters corresponding to
+/// a typical passenger, the powertrain model, and the 4 tires.
 class CH_MODELS_API Sedan {
   public:
     Sedan();

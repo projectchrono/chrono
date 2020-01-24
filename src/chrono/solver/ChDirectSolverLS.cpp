@@ -193,6 +193,8 @@ void ChSolverSparseLU::PrintErrorMessage() {
         case Eigen::InvalidInput:
             GetLog() << "inputs are invalid, or the algorithm has been improperly called\n";
             break;
+        default:
+            break;
     }
 }
 
@@ -219,6 +221,8 @@ void ChSolverSparseQR::PrintErrorMessage() {
             break;
         case Eigen::InvalidInput:
             GetLog() << "inputs are invalid, or the algorithm has been improperly called\n";
+            break;
+        default:
             break;
     }
 }

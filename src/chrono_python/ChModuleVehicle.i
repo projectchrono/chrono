@@ -102,7 +102,7 @@ using namespace chrono::vehicle::generic;
 using namespace chrono::vehicle::hmmwv;
 using namespace chrono::vehicle::sedan;
 using namespace chrono::vehicle::citybus;
-
+using namespace chrono::vehicle::man;
 
 %}
 

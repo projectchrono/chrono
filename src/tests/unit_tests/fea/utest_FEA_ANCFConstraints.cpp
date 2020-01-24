@@ -12,13 +12,12 @@
 // Authors: Radu Serban, Antonio Recuero
 // ===================================================================================
 //
-// Unit test for constraint fulfillment checking: Especially rigid body--
-// ANCF shell mesh constraints
+// Unit test for constraint satisfaction: rigid body - ANCF shell mesh constraints.
 //
 // This unit test builds a model composed of two rigid bodies and one ANCF shell mesh.
-// Body_1 is fully constrained (welded) to the ground through a ChLinkLockLock, whereas
-// the Body_1 is connected to Body_1 through a revolute joint. These two joints are
-// meant to check rigid body to rigid body constraints.
+// Body_1 is fully constrained (welded) to the ground through a ChLinkLockLock,
+// whereas Body_1 is connected to Body_1 through a revolute joint. These two joints
+// are meant to check rigid body to rigid body constraints.
 // Body_1 is connected to node 1 of a mesh of ANCF shell elements. To apply these
 // rigid-body/ANCF shell element constraints, we use the classes ChLinkPointFrame and
 // ChLinkDirFrame, which impose contraints on the position and gradient vector of the
@@ -28,9 +27,9 @@
 //  /|                   |_|_|_|_|
 //  /|                   |_|_|_|_|    ANCF shell element
 //  /|   ______Rev ______|_|_|_|_|         Mesh
-//    J1|______|J2|______|\   
-//  /|   Body 1    Body 2  \
-//  /|  				    \
+//    J1|______|J2|______|.
+//  /|   Body 1    Body 2  .
+//  /|                      .
 //  /|                      Constraints between Body 2 and
 //  /|                      Node 1 of the mesh
 //  /|

@@ -1296,10 +1296,10 @@ void ChElementShellANCF::EvaluateDeflection(double& def) {
     def = defVec.Length();
 }
 
-ChVector<> ChElementShellANCF::EvaluateSectionStrains() {
+ChStrainStress3D ChElementShellANCF::EvaluateSectionStrainStress(const ChVector<>& loc, int layer_id) {
     // Element shape function
     ShapeVector N;
-    ShapeFunctions(N, 0, 0, 0);
+    ShapeFunctions(N, loc.x(), loc.y(), loc.z());
 
     // Determinant of position vector gradient matrix: Initial configuration
     ShapeVector Nx;
@@ -1308,13 +1308,13 @@ ChVector<> ChElementShellANCF::EvaluateSectionStrains() {
     ChMatrixNM<double, 1, 3> Nx_d0;
     ChMatrixNM<double, 1, 3> Ny_d0;
     ChMatrixNM<double, 1, 3> Nz_d0;
-    double detJ0 = this->Calc_detJ0(0, 0, 0, Nx, Ny, Nz, Nx_d0, Ny_d0, Nz_d0);
+    double detJ0 = this->Calc_detJ0(loc.x(), loc.y(), loc.z(), Nx, Ny, Nz, Nx_d0, Ny_d0, Nz_d0);
 
     // ANS shape function
     ChMatrixNM<double, 1, 4> S_ANS;  // Shape function vector for Assumed Natural Strain
     ChMatrixNM<double, 6, 5> M;      // Shape function vector for Enhanced Assumed Strain
-    this->ShapeFunctionANSbilinearShell(S_ANS, 0, 0);
-    this->Basis_M(M, 0, 0, 0);
+    this->ShapeFunctionANSbilinearShell(S_ANS,  loc.x(), loc.y());
+    this->Basis_M(M, loc.x(), loc.y(), loc.z());
 
     // Transformation : Orthogonal transformation (A and J)
     ChVector<double> G1xG2;  // Cross product of first and second column of
@@ -1385,15 +1385,9 @@ ChVector<> ChElementShellANCF::EvaluateSectionStrains() {
     beta(8) = Vdot(AA3, j03);
 
     // Transformation matrix, function of fiber angle
-    const ChMatrixNM<double, 6, 6>& T0 = this->GetLayer(0).Get_T0();
+    const ChMatrixNM<double, 6, 6>& T0 = this->GetLayer(layer_id).Get_T0();
     // Determinant of the initial position vector gradient at the element center
-    double detJ0C = this->GetLayer(0).Get_detJ0C();
-
-    // Enhanced Assumed Strain
-
-    // Enhanced Assumed Strain
-    ChMatrixNM<double, 6, 5> G = T0 * M * (detJ0C / detJ0);
-    ChVectorN<double, 6> strain_EAS = G * this->m_alphaEAS[0];
+    double detJ0C = this->GetLayer(layer_id).Get_detJ0C();
 
     ChVectorN<double, 8> ddNx = m_ddT * Nx.transpose();
     ChVectorN<double, 8> ddNy = m_ddT * Ny.transpose();
@@ -1438,7 +1432,11 @@ ChVector<> ChElementShellANCF::EvaluateSectionStrains() {
                 strain_til(4) * (beta(2) * beta(7) + beta(1) * beta(8)) +
                 strain_til(5) * (beta(5) * beta(7) + beta(4) * beta(8));
 
-    return ChVector<>(strain(0), strain(1), strain(2));
+    const ChMatrixNM<double, 6, 6>& E_eps = GetLayer(layer_id).GetMaterial()->Get_E_eps();
+    const ChVectorN<double, 6>& stress = E_eps * strain;
+    ChStrainStress3D strainStressOut = {strain, stress};
+
+    return strainStressOut;
 }
 void ChElementShellANCF::EvaluateSectionDisplacement(const double u,
                                                      const double v,

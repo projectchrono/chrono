@@ -33,14 +33,16 @@ namespace fea {
 /// This class implements composite material elastic force formulations.
 ///
 /// The node numbering is in ccw fashion as in the following scheme:
+/// <pre>
 ///         v
 ///         ^
+///         |
 /// D o-----+-----o C
 ///   |     |     |
-/// --+-----+-----+-> u
+/// --+-----+-----+----> u
 ///   |     |     |
 /// A o-----+-----o B
-///
+/// </pre>
 class ChApi ChElementShellANCF : public ChElementShell, public ChLoadableUV, public ChLoadableUVW {
   public:
     using ShapeVector = ChMatrixNM<double, 1, 8>;
@@ -176,9 +178,10 @@ class ChApi ChElementShellANCF : public ChElementShell, public ChLoadableUV, pub
     /// it stores only the four values in a 1 row, 8 columns matrix!
     void ShapeFunctionsDerivativeZ(ShapeVector& Nz, double x, double y, double z);
 
-    /// Return a vector with three strain components
-    ChVector<> EvaluateSectionStrains();
-    void EvaluateDeflection(double& defVec);
+    /// Return a struct with 6-component strain and stress vectors evaluated at a
+    /// given quadrature point and layer number.
+    ChStrainStress3D EvaluateSectionStrainStress(const ChVector<>& loc, int layer_id);
+	void EvaluateDeflection(double &defVec);
 
   public:
     // Interface to ChElementBase base class

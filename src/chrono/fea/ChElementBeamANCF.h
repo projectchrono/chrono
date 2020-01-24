@@ -83,12 +83,14 @@ class ChApi ChMaterialBeamANCF {
 /// This class implements a continuum-based elastic force formulation.
 ///
 /// The node numbering, as follows:
+/// <pre>
 ///               v
 ///               ^
 ///               |
 /// A o-----+-----o-----+-----o B -> u
 ///              /C
 ///             w
+/// </pre>
 /// where C is the third and central node.
 
 class ChApi ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoadableUVW {
@@ -146,10 +148,10 @@ class ChApi ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public
     /// Get the element length in the X direction.
     double GetLengthX() const { return m_lenX; }
 
-    /// Get the total thickness of the shell element.
+    /// Get the total thickness of the beam element.
     double GetThicknessY() { return m_thicknessY; }
 
-    /// Get the total thickness of the shell element.
+    /// Get the total thickness of the beam element.
     double GetThicknessZ() { return m_thicknessZ; }
 
     // Shape functions

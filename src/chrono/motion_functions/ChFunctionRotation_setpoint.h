@@ -97,20 +97,20 @@ class ChApi ChFunctionRotation_setpoint : public ChFunctionRotation {
 	
 
 	/// Return the q value of the function, at s, as q=f(s).
-    virtual ChQuaternion<> Get_q(double s) const;
+    virtual ChQuaternion<> Get_q(double s) const override;
 
     /// Return the derivative of the rotation function, at s, expressed as angular velocity w in local frame.
-	virtual ChVector<> Get_w_loc(double s) const;
+	virtual ChVector<> Get_w_loc(double s) const override;
 
     /// Return the derivative of the rotation function, at s, expressed as angular acceleration in local frame.
-	virtual ChVector<> Get_a_loc(double s) const;
+	virtual ChVector<> Get_a_loc(double s) const override;
 
 
     /// Method to allow serialization of transient data to archives
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
 	
 

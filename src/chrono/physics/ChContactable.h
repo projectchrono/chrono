@@ -28,8 +28,10 @@ class ChPhysicsItem;
 /// One should inherit from ChContactable_1vars, ChContactable_2vars  etc. depending
 /// on the number of ChVariable objects contained in the object (i.e. the variable chunks
 /// to whom the contact point position depends, also the variables affected by contact force).
-class ChContactable {
+class ChApi ChContactable {
   public:
+    virtual ~ChContactable() {}
+
     /// Tell if the object must be considered in collision detection
     virtual bool IsContactActive() = 0;
 

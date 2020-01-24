@@ -320,9 +320,11 @@ void ChContactContainerSMC::AddContact(const collision::ChCollisionInfo& mcontac
             }
         } break;
 
-    }  // switch(contactableA->GetContactableType())
+        default: {
+            //// TODO Fallback to some dynamic-size allocated constraint for cases that were not trapped by the switch
+        } break;
 
-    // ***TODO*** Fallback to some dynamic-size allocated constraint for cases that were not trapped by the switch
+    }  // switch(contactableA->GetContactableType())
 }
 
 void ChContactContainerSMC::ComputeContactForces() {

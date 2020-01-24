@@ -111,7 +111,7 @@ class ChApi ChLinkMotorLinearDriveline : public ChLinkMotorLinear {
     virtual void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
                             std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
                             ChFrame<> mabsframe                   ///< mate frame, in abs. coordinate
-    );
+                            ) override;
 
     /// Specialized initialization for LinkMotorLinearDriveline, given the two bodies to be connected, the positions of
     /// the two frames to connect on the bodies (each expressed in body or abs. coordinates).
