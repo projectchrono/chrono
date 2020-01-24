@@ -35,6 +35,6 @@
   "Visualization":
   {
     "Mesh Filename":            "hmmwv/hmmwv_tire.obj",
-    "Mesh Name":                "hmmwv_tire_POV_geom"
+    "Mesh Name":                "tire_geom"
   }
 }

@@ -36,11 +36,11 @@ const ChVector<> HMMWV_Wheel::m_inertia(0.113, 0.113, 0.113);
 const double HMMWV_Wheel::m_radius = 0.268;
 const double HMMWV_Wheel::m_width = 0.22;
 
-const std::string HMMWV_WheelLeft::m_meshName = "wheel_L_POV_geom";
-const std::string HMMWV_WheelLeft::m_meshFile = "hmmwv/wheel_L.obj";
+const std::string HMMWV_WheelLeft::m_meshName = "rim_left_geom";
+const std::string HMMWV_WheelLeft::m_meshFile = "hmmwv/left_hub.obj";
 
-const std::string HMMWV_WheelRight::m_meshName = "wheel_R_POV_geom";
-const std::string HMMWV_WheelRight::m_meshFile = "hmmwv/wheel_R.obj";
+const std::string HMMWV_WheelRight::m_meshName = "rim_right_geom";
+const std::string HMMWV_WheelRight::m_meshFile = "hmmwv/right_hub.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

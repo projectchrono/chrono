@@ -30,8 +30,11 @@ namespace hmmwv {
 // Static variables
 // -----------------------------------------------------------------------------
 
-const std::string HMMWV_TMeasyTire::m_meshName = "hmmwv_tire_POV_geom";
-const std::string HMMWV_TMeasyTire::m_meshFile = "hmmwv/hmmwv_tire.obj";
+const std::string HMMWV_TMeasyTire::m_meshName_left = "tire_left_geom";
+const std::string HMMWV_TMeasyTire::m_meshFile_left = "hmmwv/left_tire.obj";
+
+const std::string HMMWV_TMeasyTire::m_meshName_right = "tire_right_geom";
+const std::string HMMWV_TMeasyTire::m_meshFile_right = "hmmwv/right_tire.obj";
 
 const double HMMWV_TMeasyTire::m_mass = 37.6;
 const ChVector<> HMMWV_TMeasyTire::m_inertia(3.84, 6.69, 3.84);
@@ -76,12 +79,14 @@ void HMMWV_TMeasyTire::GenerateCharacteristicPlots(const std::string& dirname) {
 // -----------------------------------------------------------------------------
 void HMMWV_TMeasyTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
+        auto meshFile = (m_wheel->GetSide() == VehicleSide::LEFT) ? m_meshFile_left : m_meshFile_right;
+        auto meshName = (m_wheel->GetSide() == VehicleSide::LEFT) ? m_meshFile_left : m_meshFile_right;
         auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-        trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
+        trimesh->LoadWavefrontMesh(vehicle::GetDataFile(meshFile), false, false);
         trimesh->Transform(ChVector<>(0, GetOffset(), 0), ChMatrix33<>(1));
         m_trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         m_trimesh_shape->SetMesh(trimesh);
-        m_trimesh_shape->SetName(m_meshName);
+        m_trimesh_shape->SetName(meshName);
         m_trimesh_shape->SetStatic(true);
         m_wheel->GetSpindle()->AddAsset(m_trimesh_shape);
     } else {

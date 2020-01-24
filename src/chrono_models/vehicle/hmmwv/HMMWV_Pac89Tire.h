@@ -59,8 +59,10 @@ class CH_MODELS_API HMMWV_Pac89Tire : public ChPac89Tire {
     static const ChVector<> m_inertia;
     ChFunction_Recorder m_vert_map;
 
-    static const std::string m_meshName;
-    static const std::string m_meshFile;
+    static const std::string m_meshName_left;
+    static const std::string m_meshFile_left;
+    static const std::string m_meshName_right;
+    static const std::string m_meshFile_right;
     std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
 };
 

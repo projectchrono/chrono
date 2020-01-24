@@ -101,9 +101,9 @@
         }
     },
 
-   "Visualization": {
-      "Mesh Filename": "hmmwv/hmmwv_tire.obj",
-      "Mesh Name": "hmmwv_tire_POV_geom"
-   }
+    "Visualization": {
+        "Mesh Filename": "hmmwv/hmmwv_tire.obj",
+        "Mesh Name": "tire_geom"
+    }
 
 }

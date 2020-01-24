@@ -565,7 +565,7 @@ HMMWV_Full* CreateVehicle(ChSystem* system, double vertical_offset) {
     hmmwv->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     hmmwv->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
     hmmwv->SetWheelVisualizationType(VisualizationType::MESH);
-    hmmwv->SetTireVisualizationType(VisualizationType::NONE);
+    hmmwv->SetTireVisualizationType(VisualizationType::MESH);
 
     return hmmwv;
 }

@@ -62,8 +62,10 @@ class CH_MODELS_API HMMWV_LugreTire : public ChLugreTire {
     static const double m_normalStiffness;
     static const double m_normalDamping;
 
-    static const std::string m_meshName;
-    static const std::string m_meshFile;
+    static const std::string m_meshName_left;
+    static const std::string m_meshFile_left;
+    static const std::string m_meshName_right;
+    static const std::string m_meshFile_right;
     std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
 };
 

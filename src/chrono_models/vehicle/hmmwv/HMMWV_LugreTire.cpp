@@ -39,8 +39,11 @@ const double HMMWV_LugreTire::m_discLocs[] = {-5 * in2m, 0 * in2m, 5 * in2m};
 const double HMMWV_LugreTire::m_normalStiffness = 326332;
 const double HMMWV_LugreTire::m_normalDamping = 348;
 
-const std::string HMMWV_LugreTire::m_meshName = "hmmwv_tire_POV_geom";
-const std::string HMMWV_LugreTire::m_meshFile = "hmmwv/hmmwv_tire.obj";
+const std::string HMMWV_LugreTire::m_meshName_left = "tire_left_geom";
+const std::string HMMWV_LugreTire::m_meshFile_left = "hmmwv/left_tire.obj";
+
+const std::string HMMWV_LugreTire::m_meshName_right = "tire_right_geom";
+const std::string HMMWV_LugreTire::m_meshFile_right = "hmmwv/right_tire.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -74,12 +77,14 @@ void HMMWV_LugreTire::SetLugreParams() {
 // -----------------------------------------------------------------------------
 void HMMWV_LugreTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
+        auto meshFile = (m_wheel->GetSide() == VehicleSide::LEFT) ? m_meshFile_left : m_meshFile_right;
+        auto meshName = (m_wheel->GetSide() == VehicleSide::LEFT) ? m_meshFile_left : m_meshFile_right;
         auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-        trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
+        trimesh->LoadWavefrontMesh(vehicle::GetDataFile(meshFile), false, false);
         trimesh->Transform(ChVector<>(0, GetOffset(), 0), ChMatrix33<>(1));
         m_trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         m_trimesh_shape->SetMesh(trimesh);
-        m_trimesh_shape->SetName(m_meshName);
+        m_trimesh_shape->SetName(meshName);
         m_trimesh_shape->SetStatic(true);
         m_wheel->GetSpindle()->AddAsset(m_trimesh_shape);
     } else {
