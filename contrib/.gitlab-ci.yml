@@ -338,7 +338,8 @@ linux:ubuntu1804:deploy:
     "-DENABLE_MODULE_IRRLICHT=TRUE",
     "-DENABLE_MODULE_VEHICLE=TRUE",
     "-DENABLE_MODULE_PARALLEL=TRUE",
-    "-DENABLE_MODULE_OPENGL=TRUE"
+    "-DENABLE_MODULE_OPENGL=TRUE",
+    "-DENABLE_MODULE_GRANULAR=TRUE"
     )
     #  - wget -UseBasicParsing https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.5.tar.gz -OutFile blaze-3.5.tar.gz
     #  - tar -xf .\blaze-3.5.tar.gz blaze-3.5/blaze
