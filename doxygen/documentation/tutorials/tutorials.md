@@ -16,58 +16,55 @@ auto my_body = chrono_types::make_shared<ChBody>();
 </ul>
 </div>
 
-## Core module 
+## Chrono modules
 
 -   @subpage tutorial_table_of_content_chrono
 
-    Examples about the core functionalities of the Chrono library.
+    Examples of the core features and capabilities of the Chrono library.
 
 -   @subpage tutorial_table_of_content_chrono_irrlicht
 
-    Examples with 3D interactive view, using Irrlicht.
-
-
-## Optional modules
+    Examples using run-time visualization with the Irrlicht module.
 
 -   @subpage tutorial_table_of_content_chrono_fea
 
-    Basic information about FEA support in Chrono.
+    Examples of FEA in Chrono.
 
 -   @subpage tutorial_table_of_content_chrono_vehicle
  
-    Modeling and simulating ground vehicles in Chrono.
+    Examples of modeling and simulating ground vehicles in Chrono.
 
 -   @subpage tutorial_table_of_content_chrono_postprocess
 
-    Examples on producing postprocessing data (e.g. POVray or GNUplot output).
+    Examples of producing postprocessing data (e.g. POVray or GNUplot output).
 
 -   @subpage tutorial_table_of_content_chrono_python
 
-    Examples on how to parse Python programs.
+    Examples of parsing Python programs.
 
 -   @subpage tutorial_table_of_content_chrono_matlab
 
-    Examples for Matlab inter-operation.
+    Examples of Matlab inter-operation.
 
 -   @subpage tutorial_table_of_content_chrono_cosimulation
 
-    Examples for cosimulation with Simulink.
+    Examples of cosimulation with Simulink.
 
 -   @subpage tutorial_table_of_content_chrono_cascade
 
-    Examples for loading CAD models.
+    Examples of loading CAD models.
 
 -   @subpage tutorial_table_of_content_chrono_parallel
 
-    Examples on using the Parallel module.
+    Examples of using the Parallel module.
 
 -   @subpage tutorial_table_of_content_chrono_distributed
 
-    Examples on using the Distributed module.
+    Examples of using the Distributed module.
 
 -   @subpage tutorial_table_of_content_chrono_opengl
 
-    Examples on run-time visualization with the OpenGL module.
+    Examples of run-time visualization with the OpenGL module.
 
 -   @subpage tutorial_table_of_content_chrono_fsi
 

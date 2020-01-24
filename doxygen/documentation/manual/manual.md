@@ -1,4 +1,4 @@
-Reference Manual {#manual_root}
+Chrono Reference Manual {#manual_root}
 ==========================
 
 
@@ -46,24 +46,24 @@ Reference Manual {#manual_root}
 	* [3D linear motors](@ref linear_motors)
 	* [1D motors](@ref shaft_motors)
 	* [How to control motors](@ref how_to_control_motors)
-	
+
+* @subpage manual_fea
+	* [List of nodes](@ref manual_fea_nodes)
+	* [List of elements](@ref manual_fea_elements)
+
 * @subpage simulation_system
 	* [ChSystem](@ref manual_ChSystem)
 	* [Time steppers](@ref time_steppers)
 	* [Solvers](@ref solvers)
 	* [Other simulation parameters](@ref other_simulation_parameters)
+
+**Additional documentation pages**
+
+* [Chrono::Vehicle](@ref manual_vehicle)
+
+* [Chrono::SolidWorks](@ref introduction_chrono_solidworks)
 	
-* @subpage manual_fea
-	* [List of nodes](@ref manual_fea_nodes)
-	* [List of elements](@ref manual_fea_elements)
-	
-* @subpage pychrono_introduction
+* [PyChrono](@ref pychrono_introduction)
 
-* @subpage manual_vehicle
-    * [Wheeled vehicles](@ref wheeled_vehicle)
-    * [Tracked vehicles](@ref tracked_vehicle)
-
-* @subpage introduction_chrono_solidworks
-
-* @subpage tutorial_root
+* [Tutorials](@ref tutorial_root)
 
