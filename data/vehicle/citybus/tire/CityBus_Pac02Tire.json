@@ -143,7 +143,7 @@
     },
     "Visualization": {
         "Mesh Filename": "citybus/CityBusTire.obj",
-        "Mesh Name": "citybus_tire_POV_geom",
+        "Mesh Name": "tire_geom",
         "Width": 0.305
     }
 }
