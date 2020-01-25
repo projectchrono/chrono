@@ -30,7 +30,7 @@ namespace sedan {
 // Static variables
 // -----------------------------------------------------------------------------
 
-const std::string Sedan_TMeasyTire::m_meshName = "sedan_tire_POV_geom";
+const std::string Sedan_TMeasyTire::m_meshName = "tire_geom";
 const std::string Sedan_TMeasyTire::m_meshFile = "sedan/tire.obj";
 
 const double Sedan_TMeasyTire::m_mass = 12.0;
@@ -80,6 +80,7 @@ void Sedan_TMeasyTire::AddVisualizationAssets(VisualizationType vis) {
         trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
         trimesh->Transform(ChVector<>(0, GetOffset(), 0), ChMatrix33<>(1));
         m_trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        m_trimesh_shape->Pos = ChVector<>(0, GetOffset(), 0);
         m_trimesh_shape->SetMesh(trimesh);
         m_trimesh_shape->SetStatic(true);
         m_trimesh_shape->SetName(m_meshName);

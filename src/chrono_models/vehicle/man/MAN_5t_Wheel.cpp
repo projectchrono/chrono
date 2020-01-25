@@ -36,10 +36,10 @@ const ChVector<> MAN_5t_Wheel::m_inertia(.6, .63, .6);
 const double MAN_5t_Wheel::m_radius = 0.254;
 const double MAN_5t_Wheel::m_width = 0.254;
 
-const std::string MAN_5t_WheelLeft::m_meshName = "wheel_L_POV_geom";
+const std::string MAN_5t_WheelLeft::m_meshName = "wheel_left_geom";
 const std::string MAN_5t_WheelLeft::m_meshFile = "MAN_Kat1/meshes/MAN_5t_wheel_L.obj";
 
-const std::string MAN_5t_WheelRight::m_meshName = "wheel_R_POV_geom";
+const std::string MAN_5t_WheelRight::m_meshName = "wheel_left_geom";
 const std::string MAN_5t_WheelRight::m_meshFile = "MAN_Kat1/meshes/MAN_5t_wheel_R.obj";
 
 // -----------------------------------------------------------------------------
@@ -58,6 +58,7 @@ void MAN_5t_Wheel::AddVisualizationAssets(VisualizationType vis) {
         trimesh->LoadWavefrontMesh(GetMeshFile(), false, false);
         trimesh->Transform(ChVector<>(0, m_offset, 0), ChMatrix33<>(1));
         m_trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        m_trimesh_shape->Pos = ChVector<>(0, m_offset, 0);
         m_trimesh_shape->SetMesh(trimesh);
         m_trimesh_shape->SetStatic(true);
         m_trimesh_shape->SetName(GetMeshName());

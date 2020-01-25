@@ -36,10 +36,10 @@ const ChVector<> Sedan_Wheel::m_inertia(0.100, 0.100, 0.100);
 const double Sedan_Wheel::m_radius = 0.3365;
 const double Sedan_Wheel::m_width = 0.205;
 
-const std::string Sedan_WheelLeft::m_meshName = "wheel_L_POV_geom";
+const std::string Sedan_WheelLeft::m_meshName = "rim_left_geom";
 const std::string Sedan_WheelLeft::m_meshFile = "sedan/wheel_hub_right.obj";
 
-const std::string Sedan_WheelRight::m_meshName = "wheel_R_POV_geom";
+const std::string Sedan_WheelRight::m_meshName = "rim_right_geom";
 const std::string Sedan_WheelRight::m_meshFile = "sedan/wheel_hub_left.obj";
 
 // -----------------------------------------------------------------------------
@@ -58,6 +58,7 @@ void Sedan_Wheel::AddVisualizationAssets(VisualizationType vis) {
         trimesh->LoadWavefrontMesh(GetMeshFile(), false, false);
         trimesh->Transform(ChVector<>(0, m_offset, 0), ChMatrix33<>(1));
         m_trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        m_trimesh_shape->Pos = ChVector<>(0, m_offset, 0);
         m_trimesh_shape->SetMesh(trimesh);
         m_trimesh_shape->SetStatic(true);
         m_trimesh_shape->SetName(GetMeshName());

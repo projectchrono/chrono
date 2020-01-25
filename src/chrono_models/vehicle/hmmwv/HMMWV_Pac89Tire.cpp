@@ -157,6 +157,7 @@ void HMMWV_Pac89Tire::AddVisualizationAssets(VisualizationType vis) {
         trimesh->LoadWavefrontMesh(vehicle::GetDataFile(meshFile), false, false);
         trimesh->Transform(ChVector<>(0, GetOffset(), 0), ChMatrix33<>(1));
         m_trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        m_trimesh_shape->Pos = ChVector<>(0, GetOffset(), 0);
         m_trimesh_shape->SetMesh(trimesh);
         m_trimesh_shape->SetName(meshName);
         m_trimesh_shape->SetStatic(true);

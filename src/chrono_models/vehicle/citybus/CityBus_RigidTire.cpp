@@ -35,7 +35,7 @@ const double CityBus_RigidTire::m_width = .305;   // 8.07 * 0.0254;
 const double CityBus_RigidTire::m_mass = 68.6;
 const ChVector<> CityBus_RigidTire::m_inertia(6.104, 12.0, 6.104);
 
-const std::string CityBus_RigidTire::m_meshName = "citybus_tire_POV_geom";
+const std::string CityBus_RigidTire::m_meshName = "tire_geom";
 const std::string CityBus_RigidTire::m_meshFile = "citybus/CityBusTire.obj";
 
 // -----------------------------------------------------------------------------
@@ -59,6 +59,7 @@ void CityBus_RigidTire::AddVisualizationAssets(VisualizationType vis) {
         trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
         trimesh->Transform(ChVector<>(0, GetOffset(), 0), ChMatrix33<>(1));
         m_trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        m_trimesh_shape->Pos = ChVector<>(0, GetOffset(), 0);
         m_trimesh_shape->SetMesh(trimesh);
         m_trimesh_shape->SetStatic(true);
         m_trimesh_shape->SetName(m_meshName);

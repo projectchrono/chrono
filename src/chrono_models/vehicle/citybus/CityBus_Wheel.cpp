@@ -36,10 +36,10 @@ const ChVector<> CityBus_Wheel::m_inertia(.6, .63, .6);
 const double CityBus_Wheel::m_radius = 0.33365;
 const double CityBus_Wheel::m_width = 0.205;
 
-const std::string CityBus_WheelLeft::m_meshName = "wheel_L_POV_geom";
+const std::string CityBus_WheelLeft::m_meshName = "rim_left_geom";
 const std::string CityBus_WheelLeft::m_meshFile = "citybus/CityBusRim_Right.obj";
 
-const std::string CityBus_WheelRight::m_meshName = "wheel_R_POV_geom";
+const std::string CityBus_WheelRight::m_meshName = "rim_right_geom";
 const std::string CityBus_WheelRight::m_meshFile = "citybus/CityBusRim_Left.obj";
 
 // -----------------------------------------------------------------------------
@@ -58,6 +58,7 @@ void CityBus_Wheel::AddVisualizationAssets(VisualizationType vis) {
         trimesh->LoadWavefrontMesh(GetMeshFile(), false, false);
         trimesh->Transform(ChVector<>(0, m_offset, 0), ChMatrix33<>(1));
         m_trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        m_trimesh_shape->Pos = ChVector<>(0, m_offset, 0);
         m_trimesh_shape->SetMesh(trimesh);
         m_trimesh_shape->SetStatic(true);
         m_trimesh_shape->SetName(GetMeshName());
