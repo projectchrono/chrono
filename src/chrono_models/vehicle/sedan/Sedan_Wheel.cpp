@@ -37,10 +37,10 @@ const double Sedan_Wheel::m_radius = 0.3365;
 const double Sedan_Wheel::m_width = 0.205;
 
 const std::string Sedan_WheelLeft::m_meshName = "rim_left_geom";
-const std::string Sedan_WheelLeft::m_meshFile = "sedan/wheel_hub_right.obj";
+const std::string Sedan_WheelLeft::m_meshFile = "sedan/wheel_hub_left.obj";
 
 const std::string Sedan_WheelRight::m_meshName = "rim_right_geom";
-const std::string Sedan_WheelRight::m_meshFile = "sedan/wheel_hub_left.obj";
+const std::string Sedan_WheelRight::m_meshFile = "sedan/wheel_hub_right.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

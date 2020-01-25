@@ -53,6 +53,7 @@ VisualizationType chassis_vis_type = VisualizationType::MESH;
 VisualizationType suspension_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType wheel_vis_type = VisualizationType::MESH;
+VisualizationType tire_vis_type = VisualizationType::MESH;
 
 // Collision type for chassis (PRIMITIVES, MESH, or NONE)
 ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE;
@@ -112,8 +113,6 @@ int main(int argc, char* argv[]) {
     my_sedan.SetTireType(tire_model);
     my_sedan.SetTireStepSize(tire_step_size);
     my_sedan.Initialize();
-
-    VisualizationType tire_vis_type = VisualizationType::MESH;
 
     my_sedan.SetChassisVisualizationType(chassis_vis_type);
     my_sedan.SetSuspensionVisualizationType(suspension_vis_type);

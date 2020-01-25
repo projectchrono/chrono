@@ -59,7 +59,7 @@ Sedan_Chassis::Sedan_Chassis(const std::string& name, bool fixed, ChassisCollisi
     m_vis_boxes.push_back(box1);
 
     m_has_mesh = true;
-    m_vis_mesh_name = "sedan_chassis_POV_geom";
+    m_vis_mesh_name = "chassis_geom";
     m_vis_mesh_file = "sedan/sedan_chassis_vis.obj";
 
     m_has_collision = (chassis_collision_type != ChassisCollisionType::NONE);
