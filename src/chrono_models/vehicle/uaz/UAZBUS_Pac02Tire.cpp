@@ -36,8 +36,11 @@ namespace uaz {
 const double UAZBUS_Pac02Tire::m_mass = 16.0;
 const ChVector<> UAZBUS_Pac02Tire::m_inertia(1.02121, 1.82824, 1.02121);
 
-const std::string UAZBUS_Pac02Tire::m_meshName = "UAZBUS_tire_POV_geom";
-const std::string UAZBUS_Pac02Tire::m_meshFile = "hmmwv/UAZBUS_tire.obj";
+const std::string UAZBUS_Pac02Tire::m_meshName_left = "tire_left_geom";
+const std::string UAZBUS_Pac02Tire::m_meshFile_left = "uaz/left_tire.obj";
+
+const std::string UAZBUS_Pac02Tire::m_meshName_right = "tire_right_geom";
+const std::string UAZBUS_Pac02Tire::m_meshFile_right = "uaz/right_tire.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -193,12 +196,14 @@ double UAZBUS_Pac02Tire::GetNormalStiffnessForce(double depth) const {
 // -----------------------------------------------------------------------------
 void UAZBUS_Pac02Tire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
+        auto meshFile = (m_wheel->GetSide() == VehicleSide::LEFT) ? m_meshFile_left : m_meshFile_right;
+        auto meshName = (m_wheel->GetSide() == VehicleSide::LEFT) ? m_meshFile_left : m_meshFile_right;
         auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-        trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
+        trimesh->LoadWavefrontMesh(vehicle::GetDataFile(meshFile), false, false);
         trimesh->Transform(ChVector<>(0, GetOffset(), 0), ChMatrix33<>(1));
         m_trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         m_trimesh_shape->SetMesh(trimesh);
-        m_trimesh_shape->SetName(m_meshName);
+        m_trimesh_shape->SetName(meshName);
         m_trimesh_shape->SetStatic(true);
         m_wheel->GetSpindle()->AddAsset(m_trimesh_shape);
     } else {

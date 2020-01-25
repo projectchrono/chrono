@@ -8,8 +8,8 @@
 
   "Visualization":
   {
-    "Mesh Filename":            "uaz/wheel_R.obj",
-    "Mesh Name":                "wheel_R_POV_geom",
+    "Mesh Filename":            "uaz/right_hub.obj",
+    "Mesh Name":                "rim_right_geom",
     "Radius":                   0.2032,
     "Width":                    0.1524
   }

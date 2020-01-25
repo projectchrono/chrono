@@ -35,7 +35,7 @@ const double UAZBUS_RigidTire::m_width = 0.228;
 const double UAZBUS_RigidTire::m_mass = 19.8;
 const ChVector<> UAZBUS_RigidTire::m_inertia(1.2369, 2.22357, 1.2369);
 
-const std::string UAZBUS_RigidTire::m_meshName = "uaz_tire_POV_geom";
+const std::string UAZBUS_RigidTire::m_meshName = "tire_geom";
 const std::string UAZBUS_RigidTire::m_meshFile = "uaz/uazbus_tire.obj";
 
 // -----------------------------------------------------------------------------

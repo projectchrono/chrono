@@ -51,13 +51,16 @@ class CH_MODELS_API UAZBUS_TMeasyTireFront : public ChTMeasyTire {
     void GenerateCharacteristicPlots(const std::string& dirname);
 
   private:
-    static const std::string m_meshName;
-    static const std::string m_meshFile;
     static const double m_mass;
     static const ChVector<> m_inertia;
 
-    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
     ChFunction_Recorder m_stiffnessMap;
+
+    static const std::string m_meshName_left;
+    static const std::string m_meshFile_left;
+    static const std::string m_meshName_right;
+    static const std::string m_meshFile_right;
+    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
 };
 
 /// TMeasy tire model for the UAZBUS (front)

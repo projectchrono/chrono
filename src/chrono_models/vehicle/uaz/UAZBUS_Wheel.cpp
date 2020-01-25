@@ -36,11 +36,11 @@ const ChVector<> UAZBUS_Wheel::m_inertia(0.240642, 0.410903, 0.240642);
 const double UAZBUS_Wheel::m_radius = 0.2032;
 const double UAZBUS_Wheel::m_width = 0.1524;
 
-const std::string UAZBUS_WheelLeft::m_meshName = "wheel_L_POV_geom";
-const std::string UAZBUS_WheelLeft::m_meshFile = "uaz/wheel_L.obj";
+const std::string UAZBUS_WheelLeft::m_meshName = "rim_left_geom";
+const std::string UAZBUS_WheelLeft::m_meshFile = "uaz/left_hub.obj";
 
-const std::string UAZBUS_WheelRight::m_meshName = "wheel_R_POV_geom";
-const std::string UAZBUS_WheelRight::m_meshFile = "uaz/wheel_R.obj";
+const std::string UAZBUS_WheelRight::m_meshName = "rim_right_geom";
+const std::string UAZBUS_WheelRight::m_meshFile = "uaz/right_hub.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

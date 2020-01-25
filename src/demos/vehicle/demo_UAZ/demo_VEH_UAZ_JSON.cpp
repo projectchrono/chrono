@@ -108,7 +108,6 @@ double tend = 20.0;
 
 // Output directories (Povray only)
 const std::string out_dir = GetChronoOutputPath() + "UAZ_JSON";
-const std::string pov_dir = out_dir + "/POVRAY";
 
 // =============================================================================
 
@@ -143,10 +142,10 @@ int main(int argc, char* argv[]) {
             auto tireFR = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_front_tire_file));
             auto tireRL = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_rear_tire_file));
             auto tireRR = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_rear_tire_file));
-            vehicle.InitializeTire(tireFL, vehicle.GetAxle(0)->m_wheels[0], VisualizationType::NONE);
-            vehicle.InitializeTire(tireFR, vehicle.GetAxle(0)->m_wheels[1], VisualizationType::NONE);
-            vehicle.InitializeTire(tireRL, vehicle.GetAxle(1)->m_wheels[0], VisualizationType::NONE);
-            vehicle.InitializeTire(tireRR, vehicle.GetAxle(1)->m_wheels[1], VisualizationType::NONE);
+            vehicle.InitializeTire(tireFL, vehicle.GetAxle(0)->m_wheels[0], VisualizationType::MESH);
+            vehicle.InitializeTire(tireFR, vehicle.GetAxle(0)->m_wheels[1], VisualizationType::MESH);
+            vehicle.InitializeTire(tireRL, vehicle.GetAxle(1)->m_wheels[0], VisualizationType::MESH);
+            vehicle.InitializeTire(tireRR, vehicle.GetAxle(1)->m_wheels[1], VisualizationType::MESH);
         } break;
 
         case TireModelType::PAC02: {
@@ -154,10 +153,10 @@ int main(int argc, char* argv[]) {
             auto tireFR = chrono_types::make_shared<Pac02Tire>(vehicle::GetDataFile(pac02tire_file));
             auto tireRL = chrono_types::make_shared<Pac02Tire>(vehicle::GetDataFile(pac02tire_file));
             auto tireRR = chrono_types::make_shared<Pac02Tire>(vehicle::GetDataFile(pac02tire_file));
-            vehicle.InitializeTire(tireFL, vehicle.GetAxle(0)->m_wheels[0], VisualizationType::NONE);
-            vehicle.InitializeTire(tireFR, vehicle.GetAxle(0)->m_wheels[1], VisualizationType::NONE);
-            vehicle.InitializeTire(tireRL, vehicle.GetAxle(1)->m_wheels[0], VisualizationType::NONE);
-            vehicle.InitializeTire(tireRR, vehicle.GetAxle(1)->m_wheels[1], VisualizationType::NONE);
+            vehicle.InitializeTire(tireFL, vehicle.GetAxle(0)->m_wheels[0], VisualizationType::MESH);
+            vehicle.InitializeTire(tireFR, vehicle.GetAxle(0)->m_wheels[1], VisualizationType::MESH);
+            vehicle.InitializeTire(tireRL, vehicle.GetAxle(1)->m_wheels[0], VisualizationType::MESH);
+            vehicle.InitializeTire(tireRR, vehicle.GetAxle(1)->m_wheels[1], VisualizationType::MESH);
         } break;
 
         default:
@@ -200,10 +199,6 @@ int main(int argc, char* argv[]) {
 
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(pov_dir))) {
-        std::cout << "Error creating directory " << pov_dir << std::endl;
         return 1;
     }
 

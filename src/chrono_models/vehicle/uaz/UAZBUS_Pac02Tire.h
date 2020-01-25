@@ -59,8 +59,10 @@ class CH_MODELS_API UAZBUS_Pac02Tire : public ChPac02Tire {
     ChFunction_Recorder m_vert_map;
     bool m_use_vert_map;
 
-    static const std::string m_meshName;
-    static const std::string m_meshFile;
+    static const std::string m_meshName_left;
+    static const std::string m_meshFile_left;
+    static const std::string m_meshName_right;
+    static const std::string m_meshFile_right;
     std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
 };
 
