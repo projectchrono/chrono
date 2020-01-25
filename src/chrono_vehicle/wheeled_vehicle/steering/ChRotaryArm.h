@@ -89,15 +89,15 @@ class CH_VEHICLE_API ChRotaryArm : public ChSteering {
   protected:
     /// Identifiers for the various hardpoints.
     enum PointId {
-        PITMANARM,  ///< Pitman arm location (com)
-        REV,        ///< location of joint between Pitman arm and chassis
-        NUM_POINTS
+        ARM_L,      ///< location of joint between Pitman arm and suspension dragling
+        ARM_C,      ///< location of joint between Pitman arm and chassis
+        NUM_POINTS  ///<
     };
 
     /// Identifiers for the various direction unit vectors.
     enum DirectionId {
-        REV_AXIS,  ///< revolute joint
-        NUM_DIRS
+        REV_AXIS,  ///< orientation of arm-chassis revolute joint
+        NUM_DIRS   ///<
     };
 
     /// Protected constructor.

@@ -71,7 +71,7 @@ void ChRotaryArm::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     // Create and initialize the Pitman arm body
     m_link = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_link->SetNameString(m_name + "_arm");
-    m_link->SetPos(points[PITMANARM]);
+    m_link->SetPos(0.5 * (points[ARM_L] + points[ARM_C]));
     m_link->SetRot(steering_to_abs.GetRot());
     m_link->SetMass(getPitmanArmMass());
     if (m_vehicle_frame_inertia) {
@@ -85,15 +85,15 @@ void ChRotaryArm::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     chassis->GetSystem()->AddBody(m_link);
 
     // Cache points for arm visualization (expressed in the arm frame)
-    m_pC = m_link->TransformPointParentToLocal(points[REV]);
-    m_pL = m_link->TransformPointParentToLocal(points[PITMANARM]);
+    m_pC = m_link->TransformPointParentToLocal(points[ARM_C]);
+    m_pL = m_link->TransformPointParentToLocal(points[ARM_L]);
 
     // Create and initialize the revolute joint between chassis and Pitman arm.
     // Note that this is modeled as a rotational motor to allow driving it with
     // imposed rotation (steering input).
     // The z direction of the joint orientation matrix is dirs[REV_AXIS], assumed
     // to be a unit vector.
-    u = points[PITMANARM] - points[REV];
+    u = points[ARM_L] - points[ARM_C];
     v = Vcross(dirs[REV_AXIS], u);
     v.Normalize();
     u = Vcross(v, dirs[REV_AXIS]);
@@ -101,7 +101,7 @@ void ChRotaryArm::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
     m_revolute = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     m_revolute->SetNameString(m_name + "_revolute");
-    m_revolute->Initialize(chassis, m_link, ChFrame<>(points[REV], rot.Get_A_quaternion()));
+    m_revolute->Initialize(chassis, m_link, ChFrame<>(points[ARM_C], rot.Get_A_quaternion()));
     auto motor_fun = chrono_types::make_shared<ChFunction_Setpoint>();
     m_revolute->SetAngleFunction(motor_fun);
     chassis->GetSystem()->AddLink(m_revolute);

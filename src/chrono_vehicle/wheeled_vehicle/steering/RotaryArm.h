@@ -44,8 +44,8 @@ class CH_VEHICLE_API RotaryArm : public ChRotaryArm {
     virtual const ChVector<>& getPitmanArmInertiaMoments() const override { return m_pitmanArmInertiaMoments; }
     virtual const ChVector<>& getPitmanArmInertiaProducts() const override { return m_pitmanArmInertiaProducts; }
 
-    virtual const ChVector<> getLocation(PointId which) override;
-    virtual const ChVector<> getDirection(DirectionId which) override;
+    virtual const ChVector<> getLocation(PointId which) override { return m_points[which]; }
+    virtual const ChVector<> getDirection(DirectionId which) override { return m_dirs[which]; }
 
     virtual double getMaxAngle() const override { return m_maxAngle; }
 
@@ -61,9 +61,8 @@ class CH_VEHICLE_API RotaryArm : public ChRotaryArm {
     ChVector<> m_pitmanArmInertiaMoments;
     ChVector<> m_pitmanArmInertiaProducts;
 
-    ChVector<> m_axisOfRotation;
-    ChVector<> m_pointOfRotation;
-    ChVector<> m_pointToDragLink;
+    ChVector<> m_points[NUM_POINTS];
+    ChVector<> m_dirs[NUM_DIRS];
 };
 
 /// @} vehicle_wheeled_steering
