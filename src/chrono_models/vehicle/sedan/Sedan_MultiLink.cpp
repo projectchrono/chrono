@@ -39,7 +39,7 @@ const double Sedan_MultiLink::m_lateralMass = 1.910;
 const double Sedan_MultiLink::m_trailingLinkMass = 15.204;
 const double Sedan_MultiLink::m_uprightMass = 3.201;
 
-const double Sedan_MultiLink::m_spindleRadius = 0.15;
+const double Sedan_MultiLink::m_spindleRadius = 0.1;
 const double Sedan_MultiLink::m_spindleWidth = 0.03;
 const double Sedan_MultiLink::m_upperArmRadius = 0.02;
 const double Sedan_MultiLink::m_lateralRadius = 0.02;

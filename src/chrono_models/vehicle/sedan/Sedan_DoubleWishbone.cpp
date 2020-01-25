@@ -41,8 +41,8 @@ const double Sedan_DoubleWishbone::m_uprightMass = 1.397;
 const double Sedan_DoubleWishbone::m_UCAMass = 1.032;
 const double Sedan_DoubleWishbone::m_LCAMass = 1.611;
 
-const double Sedan_DoubleWishbone::m_spindleRadius = 0.15;
-const double Sedan_DoubleWishbone::m_spindleWidth = 0.06;
+const double Sedan_DoubleWishbone::m_spindleRadius = 0.1;
+const double Sedan_DoubleWishbone::m_spindleWidth = 0.02;
 const double Sedan_DoubleWishbone::m_uprightRadius = 0.025;
 const double Sedan_DoubleWishbone::m_UCARadius = 0.02;
 const double Sedan_DoubleWishbone::m_LCARadius = 0.03;

@@ -84,7 +84,7 @@ void Sedan_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwd
 
     // Initialize the steering subsystem (specify the steering subsystem's frame relative to the chassis reference
     // frame).
-    ChVector<> offset = ChVector<>(0.95, 0, 0.03);
+    ChVector<> offset = ChVector<>(1.2, 0, 0.14);
     ChQuaternion<> rotation = ChQuaternion<>(1, 0, 0, 0);
     m_steerings[0]->Initialize(m_chassis->GetBody(), offset, rotation);
 
