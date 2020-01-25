@@ -9,7 +9,7 @@
   "Visualization":
   {
     "Mesh Filename":            "hmmwv/lugged_wheel.obj",
-    "Mesh Name":                "lugged_wheel_POV_geom",
+    "Mesh Name":                "lugged_wheel_geom",
     "Radius":                   0.268,
     "Width":                    0.254
   }

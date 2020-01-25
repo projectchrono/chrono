@@ -8,8 +8,8 @@
 
   "Visualization":
   {
-    "Mesh Filename":            "hmmwv/wheel_R.obj",
-    "Mesh Name":                "wheel_R_POV_geom",
+    "Mesh Filename":            "hmmwv/right_hub.obj",
+    "Mesh Name":                "rim_right_geom",
     "Radius":                   0.268,
     "Width":                    0.22
   }
