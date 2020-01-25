@@ -85,7 +85,7 @@ double t_end = 1000;
 double render_step_size = 1.0 / 50;  // FPS = 50
 
 // Output directories
-const std::string out_dir = GetChronoOutputPath() + "CityBus";
+const std::string out_dir = GetChronoOutputPath() + "MAN_7t";
 const std::string pov_dir = out_dir + "/POVRAY";
 
 // Debug logging
