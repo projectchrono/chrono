@@ -108,6 +108,10 @@ double tend = 20.0;
 
 // Output directories (Povray only)
 const std::string out_dir = GetChronoOutputPath() + "UAZ_JSON";
+const std::string pov_dir = out_dir + "/POVRAY";
+
+// POV-Ray output
+bool povray_output = false;
 
 // =============================================================================
 
@@ -201,6 +205,12 @@ int main(int argc, char* argv[]) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
+    if (povray_output) {
+        if (!filesystem::create_directory(filesystem::path(pov_dir))) {
+            std::cout << "Error creating directory " << pov_dir << std::endl;
+            return 1;
+        }
+    }
 
     // Generate JSON information with available output channels
     std::string out_json = vehicle.ExportComponentList();
@@ -211,12 +221,24 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
+    // Initialize simulation frame counters
+    int render_steps = (int)std::ceil(render_step_size / step_size);
+    int step_number = 0;
+    int render_frame = 0;
+
     ChRealtimeStepTimer realtime_timer;
     while (app.GetDevice()->run()) {
         // Render scene
         app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         app.DrawAll();
         app.EndScene();
+
+        if (povray_output && step_number % render_steps == 0) {
+            char filename[100];
+            sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
+            utils::WriteShapesPovray(vehicle.GetSystem(), filename);
+            render_frame++;
+        }
 
         // Get driver inputs
         ChDriver::Inputs driver_inputs = driver.GetInputs();
@@ -233,6 +255,9 @@ int main(int argc, char* argv[]) {
         vehicle.Advance(step_size);
         terrain.Advance(step_size);
         app.Advance(step_size);
+
+        // Increment frame number
+        step_number++;
 
         // Spin in place for real time to catch up
         realtime_timer.Spin(step_size);

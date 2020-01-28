@@ -53,7 +53,7 @@ VisualizationType chassis_vis_type = VisualizationType::MESH;
 VisualizationType suspension_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType wheel_vis_type = VisualizationType::MESH;
-VisualizationType tire_vis_type = VisualizationType::NONE;
+VisualizationType tire_vis_type = VisualizationType::MESH;
 
 // Collision type for chassis (PRIMITIVES, MESH, or NONE)
 ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE;

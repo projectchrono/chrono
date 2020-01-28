@@ -40,6 +40,14 @@
   
   // consider reduced inflation pressure
   "Inflation Pressure Design [Pa]": 7.6e5,
-  "Inflation Pressure Use [Pa]": 4.5e5
+  "Inflation Pressure Use [Pa]": 4.5e5,
+
+  // ------------------------------------------------
+  // Visualization mesh (OPTIONAL)
+
+  "Visualization": {
+    "Mesh Filename Left": "MAN_Kat1/meshes/MAN_tire.obj",
+    "Mesh Filename Right": "MAN_Kat1/meshes/MAN_tire.obj"
+  }
 
 }
