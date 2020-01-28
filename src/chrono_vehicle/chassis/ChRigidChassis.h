@@ -55,10 +55,6 @@ class CH_VEHICLE_API ChRigidChassis : public ChChassis {
     /// An empty string is returned if no mesh was specified.
     const std::string& GetMeshFilename() const { return m_vis_mesh_file; }
 
-    /// Get the name of the chassis visualization mesh asset.
-    /// An empty string is returned if no mesh was specified.
-    const std::string& GetMeshName() const { return m_vis_mesh_name; }
-
     /// Enable/disable contact for the chassis. This function controls contact of
     /// the chassis with all other collision shapes in the simulation.
     virtual void SetCollide(bool state) override { m_body->SetCollide(state); }
@@ -116,7 +112,6 @@ class CH_VEHICLE_API ChRigidChassis : public ChChassis {
     std::vector<CylinderShape> m_vis_cylinders;
 
     bool m_has_mesh;
-    std::string m_vis_mesh_name;
     std::string m_vis_mesh_file;
 };
 

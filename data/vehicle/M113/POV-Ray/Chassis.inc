@@ -37,7 +37,7 @@
  
  
 //Materials
-#include "Chassis_POV_mat.inc"
+#include "Chassis_mat.inc"
  
 //Geometry
 #declare Chassis_unnamed_material_=mesh2{
@@ -38227,7 +38227,7 @@ inside_vector <0,0,1> }
  
  
 //Model assembly from the meshes
-#declare Chassis_POV_geom=
+#declare Chassis=
 object{
 object{Chassis_unnamed_material_  material{unnamed_material_} hollow }
 rotate <-90, 0, 0>

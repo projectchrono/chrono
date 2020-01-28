@@ -25,10 +25,6 @@
 
   "Visualization":
   {
-    "Mesh":
-    {
-       "Filename":  "MAN_Kat1/meshes/MAN_10t_chassis.obj",
-       "Name":      "chassis_10t_geom"
-    }
+    "Mesh":  "MAN_Kat1/meshes/MAN_10t_chassis.obj"
   }
 }
