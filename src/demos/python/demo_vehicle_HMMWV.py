@@ -198,7 +198,7 @@ drive_type = veh.DrivelineType_AWD
 steering_type = veh.SteeringType_PITMAN_ARM
 
 # Type of tire model (RIGID, RIGID_MESH, PACEJKA, LUGRE, FIALA, PAC89)
-tire_model = veh.TireModelType_RIGID
+tire_model = veh.TireModelType_TMEASY
 
 # Rigid terrain
 terrain_model = veh.RigidTerrain.BOX
