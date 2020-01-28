@@ -521,9 +521,12 @@ size_t ChSystemGranularSMC::Create_BC_Plane(float plane_pos[3], float plane_norm
     p.plane_params.position.y = plane_pos[1];
     p.plane_params.position.z = plane_pos[2];
 
-    p.plane_params.normal.x = plane_normal[0];
-    p.plane_params.normal.y = plane_normal[1];
-    p.plane_params.normal.z = plane_normal[2];
+    double len = std::sqrt(plane_normal[0] * plane_normal[0] + plane_normal[1] * plane_normal[1] +
+                           plane_normal[2] * plane_normal[2]);
+
+    p.plane_params.normal.x = plane_normal[0] / len;
+    p.plane_params.normal.y = plane_normal[1] / len;
+    p.plane_params.normal.z = plane_normal[2] / len;
     p.active = true;
     p.fixed = true;
 
@@ -810,7 +813,8 @@ void ChSystemGranularSMC::partitionBD() {
 // Convert unit parameters from UU to SU
 void ChSystemGranularSMC::switchToSimUnits() {
     // Compute sphere mass, highest system stiffness, and gravity magnitude
-    double massSphere = (4. / 3.) * CH_C_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU * sphere_density_UU;
+    double massSphere =
+        (4. / 3.) * CH_C_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU * sphere_density_UU;
     double K_star = get_max_K();
     double magGravAcc = sqrt(X_accGrav * X_accGrav + Y_accGrav * Y_accGrav + Z_accGrav * Z_accGrav);
 

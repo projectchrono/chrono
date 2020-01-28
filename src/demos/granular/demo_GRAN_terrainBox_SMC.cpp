@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
     sim_param_holder params;
 
     // Some of the default values are overwritten by user via command line
-    if (argc < 2 || argc > 2 && argc != num_args_full || ParseJSON(argv[1], params) == false) {
+    if (argc < 2 || (argc > 2 && argc != num_args_full) || ParseJSON(argv[1], params) == false) {
         ShowUsage(argv[0]);
         return 1;
     }
