@@ -55,11 +55,11 @@ void Sedan_Vehicle::Create(bool fixed, ChassisCollisionType chassis_collision_ty
     m_axles[1]->m_suspension = chrono_types::make_shared<Sedan_MultiLink>("RearSusp");
 
     m_axles[0]->m_wheels.resize(2);
-    m_axles[0]->m_wheels[0] = chrono_types::make_shared<Sedan_WheelLeft>("Wheel_FL");
-    m_axles[0]->m_wheels[1] = chrono_types::make_shared<Sedan_WheelRight>("Wheel_FR");
+    m_axles[0]->m_wheels[0] = chrono_types::make_shared<Sedan_Wheel>("Wheel_FL");
+    m_axles[0]->m_wheels[1] = chrono_types::make_shared<Sedan_Wheel>("Wheel_FR");
     m_axles[1]->m_wheels.resize(2);
-    m_axles[1]->m_wheels[0] = chrono_types::make_shared<Sedan_WheelLeft>("Wheel_RL");
-    m_axles[1]->m_wheels[1] = chrono_types::make_shared<Sedan_WheelRight>("Wheel_RR");
+    m_axles[1]->m_wheels[0] = chrono_types::make_shared<Sedan_Wheel>("Wheel_RL");
+    m_axles[1]->m_wheels[1] = chrono_types::make_shared<Sedan_Wheel>("Wheel_RR");
 
     m_axles[0]->m_brake_left = chrono_types::make_shared<Sedan_BrakeSimple>("Brake_FL");
     m_axles[0]->m_brake_right = chrono_types::make_shared<Sedan_BrakeSimple>("Brake_FR");

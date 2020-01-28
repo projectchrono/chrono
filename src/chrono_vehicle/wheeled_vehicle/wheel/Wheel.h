@@ -60,7 +60,6 @@ class CH_VEHICLE_API Wheel : public ChWheel {
     double m_radius;
     double m_width;
     bool m_has_mesh;
-    std::string m_meshName;
     std::string m_meshFile;
     std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
 };

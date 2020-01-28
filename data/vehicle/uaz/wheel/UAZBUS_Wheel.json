@@ -1,5 +1,5 @@
 {
-  "Name":                       "UAS Bus Wheel Front-Left",
+  "Name":                       "UAS Wheel",
   "Type":                       "Wheel",
   "Template":                   "Wheel",
 
@@ -8,8 +8,7 @@
 
   "Visualization":
   {
-    "Mesh Filename":            "uaz/left_hub.obj",
-    "Mesh Name":                "rim_left_geom",
+    "Mesh Filename":            "uaz/uaz_rim.obj",
     "Radius":                   0.2032,
     "Width":                    0.1524
   }

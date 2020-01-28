@@ -1,5 +1,5 @@
 {
-  "Name":                       "MAN_5t Wheel Left",
+  "Name":                       "MAN Wheel",
   "Type":                       "Wheel",
   "Template":                   "Wheel",
 
@@ -8,8 +8,7 @@
 
   "Visualization":
   {
-    "Mesh Filename":            "MAN_Kat1/meshes/MAN_5t_wheel_L.obj",
-    "Mesh Name":                "MAN_5t_wheel_L_POV_geom",
+    "Mesh Filename":            "MAN_Kat1/meshes/MAN_rim.obj",
     "Radius":                   0.254,
     "Width":                    0.254
   }
