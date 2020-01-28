@@ -19,8 +19,6 @@
 #ifndef HMMWV_PAC02_TIRE_H
 #define HMMWV_PAC02_TIRE_H
 
-#include "chrono/assets/ChTriangleMeshShape.h"
-
 #include "chrono_vehicle/wheeled_vehicle/tire/ChPac02Tire.h"
 
 #include "chrono_models/ChApiModels.h"
@@ -63,9 +61,7 @@ class CH_MODELS_API HMMWV_Pac02Tire : public ChPac02Tire {
     ChFunction_Recorder m_bott_map;
     bool m_use_bott_map;
 
-    static const std::string m_meshName_left;
     static const std::string m_meshFile_left;
-    static const std::string m_meshName_right;
     static const std::string m_meshFile_right;
     std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
 };

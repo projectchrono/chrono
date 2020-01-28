@@ -22,7 +22,6 @@
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChPac89Tire.h"
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
 
@@ -72,8 +71,8 @@ class CH_VEHICLE_API Pac89Tire : public ChPac89Tire {
     ChFunction_Recorder m_vert_map;
 
     double m_visualization_width;
-    std::string m_meshName;
-    std::string m_meshFile;
+    std::string m_meshFile_left;
+    std::string m_meshFile_right;
     std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
 };
 

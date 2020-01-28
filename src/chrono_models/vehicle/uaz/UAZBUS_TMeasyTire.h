@@ -20,8 +20,6 @@
 #ifndef UAZBUS_TMEASY_TIRE_H
 #define UAZBUS_TMEASY_TIRE_H
 
-#include "chrono/assets/ChTriangleMeshShape.h"
-
 #include "chrono_vehicle/wheeled_vehicle/tire/ChTMeasyTire.h"
 
 #include "chrono_models/ChApiModels.h"
@@ -56,10 +54,7 @@ class CH_MODELS_API UAZBUS_TMeasyTireFront : public ChTMeasyTire {
 
     ChFunction_Recorder m_stiffnessMap;
 
-    static const std::string m_meshName_left;
-    static const std::string m_meshFile_left;
-    static const std::string m_meshName_right;
-    static const std::string m_meshFile_right;
+    static const std::string m_meshFile;
     std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
 };
 
@@ -86,10 +81,7 @@ class CH_MODELS_API UAZBUS_TMeasyTireRear : public ChTMeasyTire {
 
     ChFunction_Recorder m_stiffnessMap;
 
-    static const std::string m_meshName_left;
-    static const std::string m_meshFile_left;
-    static const std::string m_meshName_right;
-    static const std::string m_meshFile_right;
+    static const std::string m_meshFile;
     std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
 };
 

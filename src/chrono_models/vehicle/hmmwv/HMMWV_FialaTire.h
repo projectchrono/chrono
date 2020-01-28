@@ -19,8 +19,6 @@
 #ifndef HMMWV_FIALA_TIRE_H
 #define HMMWV_FIALA_TIRE_H
 
-#include "chrono/assets/ChTriangleMeshShape.h"
-
 #include "chrono_vehicle/wheeled_vehicle/tire/ChFialaTire.h"
 
 #include "chrono_models/ChApiModels.h"
@@ -61,9 +59,7 @@ class CH_MODELS_API HMMWV_FialaTire : public ChFialaTire {
     static const double m_mass;
     static const ChVector<> m_inertia;
 
-    static const std::string m_meshName_left;
     static const std::string m_meshFile_left;
-    static const std::string m_meshName_right;
     static const std::string m_meshFile_right;
     std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
 };
