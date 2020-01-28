@@ -1,6 +1,6 @@
 # Blender v2.77 (sub 0) OBJ File: 'left_wheel.blend'
 # www.blender.org
-mtllib left_hub.mtl
+mtllib hmmwv_rim.mtl
 o Hub_wheel1
 v -0.242183 -0.138475 -0.000000
 v -0.241693 -0.143896 0.015840

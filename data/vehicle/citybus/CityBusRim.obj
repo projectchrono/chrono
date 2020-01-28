@@ -1,6 +1,6 @@
 # Blender v2.79 (sub 7) OBJ File: ''
 # www.blender.org
-mtllib CityBusRim_Right.mtl
+mtllib CityBusRim.mtl
 o Metal_Cylinder
 v 0.000000 -0.130103 0.319948
 v 0.063404 -0.132672 0.318755
