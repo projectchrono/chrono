@@ -11,6 +11,7 @@ IF(NOT ENABLE_MODULE_FSI)
   return()
 ENDIF()
 
+
 message(STATUS "==== Chrono FSI module ====")
 
 
@@ -76,42 +77,53 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono_fsi/ChConfigFSI.h"
 #-----------------------------------------------------------------------------
 
 set(ChronoEngine_FSI_SOURCES
-    ChBce.cu
-    ChCollisionSystemFsi.cu
-    ChDeviceUtils.cu
-    ChFluidDynamics.cu
-    ChFsiDataManager.cu
-    ChFsiForceExplicitSPH.cu
-    ChFsiForceIISPH.cu
-    ChFsiForce.cu
-    ChFsiGeneral.cu
-    ChSphGeneral.cu
-    ChFsiLinearSolverBiCGStab.cpp
-    ChFsiInterface.cpp
+
     ChSystemFsi.cpp
-    ChFsiTypeConvert.cpp
+    ChFsiInterface.cpp
+    ChFsiDataManager.cu
+    utils/ChUtilsDevice.cu
+    utils/ChUtilsTypeConvert.cpp
+    
+ 	physics/ChBce.cu
+    physics/ChFluidDynamics.cu
+    physics/ChCollisionSystemFsi.cu
+    physics/ChFsiForce.cu
+    physics/ChFsiForceExplicitSPH.cu   
+    physics/ChFsiForceI2SPH.cu
+    physics/ChFsiForceIISPH.cu
+    physics/ChFsiGeneral.cu
+    physics/ChSphGeneral.cu
+    
+    math/ChFsiLinearSolverBiCGStab.cpp
+    math/ChFsiLinearSolverGMRES.cpp
+
 )
 
 set(ChronoEngine_FSI_HEADERS
-    ChBce.cuh
-    ChCollisionSystemFsi.cuh
-    ChDeviceUtils.cuh
-    ChFluidDynamics.cuh
-    ChParams.cuh
-    ChFsiDataManager.cuh
-    ChFsiForceExplicitSPH.cuh
-    ChFsiForceIISPH.cuh
-    ChFsiForce.cuh
-    ChFsiGeneral.cuh
-    ChSphGeneral.cuh
-    ExactLinearSolvers.cuh
-    ChFsiLinearSolver.h
-    ChFsiLinearSolverBiCGStab.h
-    ChFsiInterface.h
-    ChSystemFsi.h
+
     ChApiFsi.h
-    ChFsiTypeConvert.h
-    custom_math.h
+    ChSystemFsi.h
+    ChFsiInterface.h
+    ChFsiDataManager.cuh
+ 	utils/ChUtilsDevice.cuh
+    utils/ChUtilsTypeConvert.h
+
+    physics/ChBce.cuh
+    physics/ChFluidDynamics.cuh
+    physics/ChCollisionSystemFsi.cuh
+    physics/ChFsiForce.cuh    
+    physics/ChFsiForceExplicitSPH.cuh    
+    physics/ChFsiForceI2SPH.cuh
+    physics/ChFsiForceIISPH.cuh
+    physics/ChFsiGeneral.cuh
+    physics/ChSphGeneral.cuh
+    physics/ChParams.cuh
+
+    math/custom_math.h
+    math/ExactLinearSolvers.cuh
+    math/ChFsiLinearSolver.h
+    math/ChFsiLinearSolverBiCGStab.h   
+    math/ChFsiLinearSolverGMRES.h 
 )
 
 source_group("" FILES
@@ -119,7 +131,7 @@ source_group("" FILES
     ${ChronoEngine_FSI_HEADERS})
 
 set(ChronoEngine_FSI_UTILS_SOURCES
-    utils/ChUtilsJsonInput.cpp
+	utils/ChUtilsJSON.cpp
     utils/ChUtilsGeneratorBce.cpp
     utils/ChUtilsGeneratorFluid.cpp
     utils/ChUtilsGeneratorFsi.cpp
@@ -127,12 +139,13 @@ set(ChronoEngine_FSI_UTILS_SOURCES
 )
 
 set(ChronoEngine_FSI_UTILS_HEADERS
-    utils/ChUtilsJsonInput.h
+   	utils/ChUtilsJSON.h
     utils/ChUtilsGeneratorBce.h
     utils/ChUtilsGeneratorFluid.h
     utils/ChUtilsGeneratorFsi.h
     utils/ChUtilsPrintStruct.h
     utils/ChUtilsPrintSph.cuh
+    
 )
 
 source_group(utils FILES
@@ -143,7 +156,27 @@ source_group(utils FILES
 # Create the ChronoEngine_fsi library
 #-----------------------------------------------------------------------------
 
+set(CXX_FLAGS ${CH_CXX_FLAGS})
+
 list(APPEND LIBRARIES "ChronoEngine")
+#set(LIBRARIES "ChronoEngine")
+
+if(ENABLE_MODULE_PARALLEL)
+  set(CXX_FLAGS ${CH_PARALLEL_CXX_FLAGS})
+  include_directories(${CH_PARALLEL_INCLUDES})
+  list(APPEND LIBRARIES ChronoEngine_parallel)
+endif()
+
+if(ENABLE_MODULE_FEA)
+	set(CXX_FLAGS ${CH_FEA_CXX_FLAGS})
+	include_directories(${CH_FEA_INCLUDES})
+	list(APPEND LIBRARIES ChronoEngine_fea)
+endif()
+
+if(ENABLE_MODULE_VEHICLE)
+  include_directories(${CH_VEHICLE_INCLUDES})
+  list(APPEND LIBRARIES ChronoEngine_vehicle)
+endif()
 
 cuda_add_library(ChronoEngine_fsi SHARED
     ${ChronoEngine_FSI_SOURCES}
