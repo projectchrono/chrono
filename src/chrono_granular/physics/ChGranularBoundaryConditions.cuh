@@ -348,7 +348,7 @@ inline __device__ bool addBCForces_Plane(unsigned int sphID,
 
             // compute tangent force
             float3 tangent_force = computeFrictionForces(gran_params, sphere_data, sphID, BC_histmap_label,
-                                                         gran_params->rolling_coeff_s2w_SU, gran_params->K_t_s2w_SU,
+                                                         gran_params->static_friction_coeff_s2w, gran_params->K_t_s2w_SU,
                                                          gran_params->Gamma_t_s2w_SU, force_model_multiplier, m_eff,
                                                          force_accum, rel_vel, contact_normal);
 
