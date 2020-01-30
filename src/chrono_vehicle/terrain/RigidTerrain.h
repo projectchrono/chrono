@@ -46,8 +46,14 @@ namespace vehicle {
 /// a ChRigidTire.
 class CH_VEHICLE_API RigidTerrain : public ChTerrain {
   public:
-    enum Type { BOX, MESH, HEIGHT_MAP };
+    /// Patch type.
+    enum Type {
+        BOX,        ///< rectangular box
+        MESH,       ///< triangular mesh (from a Wavefront OBJ file)
+        HEIGHT_MAP  ///< triangular mesh (generated from a gray-scale BMP height-map)
+    };
 
+    /// Definition of a patch in a rigid terrain model.
     class CH_VEHICLE_API Patch {
       public:
         /// Set coefficient of friction.

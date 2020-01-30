@@ -53,6 +53,8 @@ A sample JSON file with a TMeasy tire specification is provided below:
 
 Finally, the third class of tire models offered are full finite element representations of the tire.  While these models have the potential to be the most accurate due to their detailed physical model of the tire, they are also the most computationally expensive of the tire model currently available in Chrono::Vehicle.  Unlike the rigid or semi-empirical tire models, the finite element based tire models are able to account for the flexibility in both the tire and in the ground at the same time, which is an important characteristic for many types of off-road mobility and vehicle dynamics studies.  These finite element tire models leverage the nonlinear finite element capabilities in Chrono. 
 
+<img src="http://www.projectchrono.org/assets/manual/vehicle/wheeled/FEA_tire_sections.png" width="600" />
+
 ### ANCF shell deformable tire {#vehicle_tire_ancf}
 
 See [ChANCFTire](@ref chrono::vehicle::ChANCFTire) and [ANCFTire](@ref chrono::vehicle::ANCFTire).
