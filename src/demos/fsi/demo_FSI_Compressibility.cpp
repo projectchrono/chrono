@@ -135,20 +135,21 @@ int main(int argc, char* argv[]) {
     // Get the pointer to the system parameter and use a JSON file to fill it out with the user parameters
     std::shared_ptr<fsi::SimParams> paramsH = myFsiSystem.GetSimParams();
     // Use the default input file or you may enter your input parameters as a command line argument
-    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Compressibility_I2SPH.json");
-    if (argc == 1 && fsi::utils::ParseJSON(inputJson.c_str(), paramsH, fsi::mR3(bxDim, byDim, bzDim))) {
-    } else if (argc == 2 && fsi::utils::ParseJSON(argv[1], paramsH, fsi::mR3(bxDim, byDim, bzDim))) {
-    } else {
+    std::string input_json = "fsi/input_json/demo_FSI_Compressibility_I2SPH.json";
+    if (argc > 1) {
+        input_json = std::string(argv[1]);
+    }
+    std::string inputJson = GetChronoDataFile(input_json);
+    if (!fsi::utils::ParseJSON(inputJson, paramsH, fsi::mR3(bxDim, byDim, bzDim))) {
         ShowUsage();
         return 1;
     }
-
     myFsiSystem.SetFluidDynamics(paramsH->fluid_dynamic_type);
     myFsiSystem.SetFluidSystemLinearSolver(paramsH->LinearSolver);
     paramsH->cMin = fsi::mR3(-bxDim / 2, -byDim / 2, 0.0) - fsi::mR3(paramsH->HSML * 20);
     paramsH->cMax = fsi::mR3(bxDim / 2, byDim / 2, bzDim) + fsi::mR3(paramsH->HSML * 10);
     fsi::utils::FinalizeDomainCreating(paramsH);
-    fsi::utils::PrepareOutputDir(paramsH, demo_dir, out_dir, argv[1]);
+    fsi::utils::PrepareOutputDir(paramsH, demo_dir, out_dir, inputJson);
 
     // ******************************* Create Fluid region ****************************************
     Real initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
@@ -244,7 +245,7 @@ void SaveParaViewFilesMBD(fsi::ChSystemFsi& myFsiSystem,
                           int next_frame,
                           double mTime) {
     static double exec_time;
-    int out_steps =(int)ceil((1.0 / paramsH->dT) / paramsH->out_fps);
+    int out_steps = (int)ceil((1.0 / paramsH->dT) / paramsH->out_fps);
     exec_time += mphysicalSystem.GetTimerStep();
     int num_contacts = mphysicalSystem.GetNcontacts();
     double frame_time = 1.0 / paramsH->out_fps;

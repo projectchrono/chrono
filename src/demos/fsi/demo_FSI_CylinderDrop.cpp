@@ -187,10 +187,12 @@ int main(int argc, char* argv[]) {
     // Get the pointer to the system parameter and use a JSON file to fill it out with the user parameters
     std::shared_ptr<fsi::SimParams> paramsH = myFsiSystem.GetSimParams();
     // Use the default input file or you may enter your input parameters as a command line argument
-    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_CylinderDrop_I2SPH.json");
-    if (argc == 1 && fsi::utils::ParseJSON(inputJson.c_str(), paramsH, fsi::mR3(bxDim, byDim, bzDim))) {
-    } else if (argc == 2 && fsi::utils::ParseJSON(argv[1], paramsH, fsi::mR3(bxDim, byDim, bzDim))) {
-    } else {
+    std::string input_json = "fsi/input_json/demo_FSI_CylinderDrop_I2SPH.json";
+    if (argc > 1) {
+        input_json = std::string(argv[1]);
+    }
+    std::string inputJson = GetChronoDataFile(input_json);
+    if (!fsi::utils::ParseJSON(inputJson, paramsH, fsi::mR3(bxDim, byDim, bzDim))) {
         ShowUsage();
         return 1;
     }
@@ -201,7 +203,7 @@ int main(int argc, char* argv[]) {
     paramsH->cMax = fsi::mR3(bxDim / 2, byDim / 2, bzDim + 10 * initSpace0) * 10 + 4 * initSpace0;
     // call FinalizeDomainCreating to setup the binning for neighbor search or write your own
     fsi::utils::FinalizeDomainCreating(paramsH);
-    fsi::utils::PrepareOutputDir(paramsH, demo_dir, out_dir, argv[1]);
+    fsi::utils::PrepareOutputDir(paramsH, demo_dir, out_dir, inputJson);
 
     // ******************************* Create Fluid region ****************************************
     /// Create an initial box of fluid

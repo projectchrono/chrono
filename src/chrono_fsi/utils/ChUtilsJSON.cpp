@@ -101,9 +101,9 @@ void InvalidArg(std::string arg) {
     std::cout << "Invalid arg: " << arg << std::endl;
 }
 
-bool ParseJSON(const char* json_file, std::shared_ptr<SimParams> paramsH, Real3 Domain) {
+bool ParseJSON(std::string json_file, std::shared_ptr<SimParams> paramsH, Real3 Domain) {
     cout << "Reading parameters: " << json_file << endl;
-    FILE* fp = fopen(json_file, "r");
+    FILE* fp = fopen(json_file.c_str(), "r");
     if (!fp) {
         std::cout << "Invalid JSON file!" << std::endl;
         return false;
@@ -204,12 +204,13 @@ bool ParseJSON(const char* json_file, std::shared_ptr<SimParams> paramsH, Real3 
         else
             paramsH->epsMinMarkersDis = 0.01;
 
-        if (doc["SPH Parameters"].HasMember("Maximum Velocity")){
+        if (doc["SPH Parameters"].HasMember("Maximum Velocity")) {
             paramsH->v_Max = doc["SPH Parameters"]["Maximum Velocity"].GetDouble();
-            paramsH->Cs = 10.0*paramsH->v_Max;}
-        else{
+            paramsH->Cs = 10.0 * paramsH->v_Max;
+        } else {
             paramsH->v_Max = 1.0;
-            paramsH->Cs = 10.0*paramsH->v_Max;}
+            paramsH->Cs = 10.0 * paramsH->v_Max;
+        }
 
         if (doc["SPH Parameters"].HasMember("XSPH Coefficient"))
             paramsH->EPS_XSPH = doc["SPH Parameters"]["XSPH Coefficient"].GetDouble();
@@ -404,8 +405,7 @@ bool ParseJSON(const char* json_file, std::shared_ptr<SimParams> paramsH, Real3 
             (sqrt(3) *
              (3 +
               sin(paramsH->Fri_angle)));  // material constants calculate from frictional angle and cohesion coefficient
-    }
-    else{
+    } else {
         paramsH->elastic_SPH = false;
     }
 
@@ -592,7 +592,7 @@ bool ParseJSON(const char* json_file, std::shared_ptr<SimParams> paramsH, Real3 
 void PrepareOutputDir(std::shared_ptr<fsi::SimParams> paramsH,
                       std::string& demo_dir,
                       std::string out_dir,
-                      char* jsonFile) {
+                      std::string jsonFile) {
     time_t rawtime;
     struct tm* timeinfo;
     time(&rawtime);

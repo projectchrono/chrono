@@ -38,7 +38,7 @@
 #include "chrono_fsi/utils/ChUtilsJSON.h"
 #include "chrono_fsi/utils/ChUtilsPrintSph.cuh"
 
-#define ElasticSPH // only for modelling elastic and granular problems
+#define ElasticSPH  // only for modelling elastic and granular problems
 
 // Chrono namespaces
 using namespace chrono;
@@ -86,11 +86,14 @@ void ShowUsage() {
 int main(int argc, char* argv[]) {
     // create a physics system
     ChSystemSMC mphysicalSystem;
+    fsi::ChSystemFsi myFsiSystem(mphysicalSystem);
+    // Get the pointer to the system parameter and use a JSON file to fill it out with the user parameters
+    std::shared_ptr<fsi::SimParams> paramsH = myFsiSystem.GetSimParams();
+    std::string input_json = "fsi/input_json/demo_FSI_Granular_DamBreak_Explicit.json";
 
     // create an fsi system and choose integrator type: I2SPH, ExplicitSPH
-    fsi::ChSystemFsi myFsiSystem(mphysicalSystem, true, fsi::ChFluidDynamics::Integrator::ExplicitSPH);
-    std::shared_ptr<fsi::SimParams> paramsH = myFsiSystem.GetSimParams();
-    if (argc != 2 || fsi::utils::ParseJSON(argv[1], paramsH, fsi::mR3(bxDim, byDim, bzDim)) == false) {
+    std::string inputJson = GetChronoDataFile(input_json);
+    if (!fsi::utils::ParseJSON(inputJson, paramsH, fsi::mR3(bxDim, byDim, bzDim))) {
         ShowUsage();
         return 1;
     }
@@ -117,7 +120,7 @@ int main(int argc, char* argv[]) {
 
     // call FinalizeDomainCreating to setup the binning for neighbor search or write your own
     fsi::utils::FinalizeDomainCreating(paramsH);
-    fsi::utils::PrepareOutputDir(paramsH, demo_dir, out_dir, argv[1]);
+    fsi::utils::PrepareOutputDir(paramsH, demo_dir, out_dir, inputJson);
 
     // choose a GPU
     cudaSetDevice(0);

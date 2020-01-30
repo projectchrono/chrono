@@ -85,18 +85,20 @@ int main(int argc, char* argv[]) {
     fsi::ChSystemFsi myFsiSystem(mphysicalSystem);
     // Get the pointer to the system parameter and use a JSON file to fill it out with the user parameters
     std::shared_ptr<fsi::SimParams> paramsH = myFsiSystem.GetSimParams();
-    std::string input_json = filesystem::path("fsi/input_json/demo_FSI_DamBreak_I2SPH.json").str();
+    std::string input_json = "fsi/input_json/demo_FSI_DamBreak_I2SPH.json";
+    if (argc > 1) {
+        input_json = std::string(argv[1]);
+    }
     std::string inputJson = GetChronoDataFile(input_json);
-    if (argc == 1 && fsi::utils::ParseJSON(inputJson.c_str(), paramsH, fsi::mR3(bxDim, byDim, bzDim))) {
-    } else if (argc == 2 && fsi::utils::ParseJSON(argv[1], paramsH, fsi::mR3(bxDim, byDim, bzDim))) {
-    } else {
+    if (!fsi::utils::ParseJSON(inputJson, paramsH, fsi::mR3(bxDim, byDim, bzDim))) {
         ShowUsage();
         return 1;
     }
+
     myFsiSystem.SetFluidDynamics(paramsH->fluid_dynamic_type);
     myFsiSystem.SetFluidSystemLinearSolver(paramsH->LinearSolver);
     fsi::utils::FinalizeDomainCreating(paramsH);
-    fsi::utils::PrepareOutputDir(paramsH, demo_dir, out_dir, argv[1]);
+    fsi::utils::PrepareOutputDir(paramsH, demo_dir, out_dir, inputJson);
 
     // ******************************* Create Fluid region ****************************************
     Real initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
@@ -110,9 +112,8 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < numPart; i++) {
         Real pre_ini = paramsH->rho0 * abs(paramsH->gravity.z) * (-points[i].z() + fzDim);
         Real rho_ini = paramsH->rho0 + pre_ini / (paramsH->Cs * paramsH->Cs);
-        myFsiSystem.GetDataManager()->AddSphMarker(
-            fsi::mR4(points[i].x(), points[i].y(), points[i].z(), paramsH->HSML), fsi::mR3(1e-10),
-            fsi::mR4(paramsH->rho0, pre_ini, paramsH->mu0, -1));
+        myFsiSystem.GetDataManager()->AddSphMarker(fsi::mR4(points[i].x(), points[i].y(), points[i].z(), paramsH->HSML),
+                                                   fsi::mR3(1e-10), fsi::mR4(paramsH->rho0, pre_ini, paramsH->mu0, -1));
     }
     myFsiSystem.GetDataManager()->fsiGeneralData->referenceArray.push_back(mI4(0, numPart, -1, -1));
     // ******************************* Create Solid region ****************************************

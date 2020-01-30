@@ -30,11 +30,11 @@ struct SimParams;
 
 namespace utils {
 
-CH_FSI_API bool ParseJSON(const char* json_file, std::shared_ptr<fsi::SimParams> paramsH, Real3 Domain);
+CH_FSI_API bool ParseJSON(std::string json_file, std::shared_ptr<fsi::SimParams> paramsH, Real3 Domain);
 CH_FSI_API void PrepareOutputDir(std::shared_ptr<fsi::SimParams> paramsH,
                                  std::string& demo_dir,
                                  std::string out_dir,
-                                 char* jsonFile);
+                                 std::string jsonFile);
 
 Real3 LoadVectorJSON(const Value& a);
 

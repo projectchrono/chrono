@@ -93,14 +93,12 @@ int main(int argc, char* argv[]) {
     fsi::ChSystemFsi myFsiSystem(mphysicalSystem);
     // Get the pointer to the system parameter and use a JSON file to fill it out with the user parameters
     std::shared_ptr<fsi::SimParams> paramsH = myFsiSystem.GetSimParams();
-    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Granular_ConeDrop_Explicit.json");
-    if (argc == 1 && fsi::utils::ParseJSON(inputJson.c_str(), paramsH, fsi::mR3(bxDim, byDim, bzDim))) {
-    } else if (argc == 2 && fsi::utils::ParseJSON(argv[1], paramsH, fsi::mR3(bxDim, byDim, bzDim))) {
-    } else {
+    std::string input_json = "fsi/input_json/demo_FSI_Granular_ConeDrop_Explicit.json";
+    std::string inputJson = GetChronoDataFile(input_json);
+    if (!fsi::utils::ParseJSON(inputJson, paramsH, fsi::mR3(bxDim, byDim, bzDim))) {
         ShowUsage();
         return 1;
     }
-
     /// Dimension of the space domain
     bxDim = paramsH->boxDimX + smalldis;
     byDim = paramsH->boxDimY + smalldis;
@@ -110,9 +108,12 @@ int main(int argc, char* argv[]) {
     fyDim = paramsH->fluidDimY + smalldis;
     fzDim = paramsH->fluidDimZ + smalldis;
 
+    if (argc > 1) {
+        input_json = std::string(argv[1]);
+    }
+
     myFsiSystem.SetFluidDynamics(paramsH->fluid_dynamic_type);
     myFsiSystem.SetFluidSystemLinearSolver(paramsH->LinearSolver);
-
     // fsi::utils::ParseJSON sets default values to cMin and cMax which may need
     // to be modified depending on the case (e.g periodic BC)
     Real initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
@@ -120,7 +121,7 @@ int main(int argc, char* argv[]) {
     paramsH->cMax = fsi::mR3(bxDim / 2, byDim / 2, bzDim + 10 * initSpace0) * 10 + 4 * initSpace0;
     // call FinalizeDomainCreating to setup the binning for neighbor search or write your own
     fsi::utils::FinalizeDomainCreating(paramsH);
-    fsi::utils::PrepareOutputDir(paramsH, demo_dir, out_dir, argv[1]);
+    fsi::utils::PrepareOutputDir(paramsH, demo_dir, out_dir, inputJson);
 
     // ******************************* Create Fluid region ****************************************
     /// Create an initial box of fluid
