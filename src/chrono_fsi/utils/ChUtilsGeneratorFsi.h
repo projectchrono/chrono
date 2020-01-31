@@ -38,7 +38,7 @@ namespace utils {
 chrono::ChVector<> TransformBCEToCOG(std::shared_ptr<ChBody> body, const chrono::ChVector<>& pos);
 chrono::ChVector<> TransformBCEToCOG(std::shared_ptr<ChBody> body, const Real3& pos3);
 
-CH_FSI_API void FinalizeDomainCreating(std::shared_ptr<SimParams> paramsH);
+CH_FSI_API void FinalizeDomain(std::shared_ptr<SimParams> paramsH);
 
 CH_FSI_API void CreateBceGlobalMarkersFromBceLocalPos(
     std::shared_ptr<ChFsiDataManager> fsiData,

@@ -106,8 +106,8 @@ int main(int argc, char* argv[]) {
     myFsiSystem.SetFluidSystemLinearSolver(paramsH->LinearSolver);
     paramsH->cMin = fsi::mR3(-bxDim, -byDim, -bzDim) - fsi::mR3(paramsH->HSML * 5);
     paramsH->cMax = fsi::mR3(bxDim, byDim, 1.2 * bzDim) + fsi::mR3(paramsH->HSML * 5);
-    // Call FinalizeDomainCreating to setup the binning for neighbor search or write your own
-    fsi::utils::FinalizeDomainCreating(paramsH);
+    // Call FinalizeDomain to setup the binning for neighbor search or write your own
+    fsi::utils::FinalizeDomain(paramsH);
     fsi::utils::PrepareOutputDir(paramsH, demo_dir, out_dir, inputJson);
     MESH_CONNECTIVITY = demo_dir + "Flex_MESH.vtk";
 

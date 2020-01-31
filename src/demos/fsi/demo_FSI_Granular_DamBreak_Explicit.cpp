@@ -118,8 +118,8 @@ int main(int argc, char* argv[]) {
     paramsH->cMax =
         fsi::mR3(bxDim / 2 + 3.0 * initSpace0, byDim / 2 + 1.0 * initSpace0 / 2.0, bzDim / 2 + 3.0 * initSpace0);
 
-    // call FinalizeDomainCreating to setup the binning for neighbor search or write your own
-    fsi::utils::FinalizeDomainCreating(paramsH);
+    // call FinalizeDomain to setup the binning for neighbor search or write your own
+    fsi::utils::FinalizeDomain(paramsH);
     fsi::utils::PrepareOutputDir(paramsH, demo_dir, out_dir, inputJson);
 
     // choose a GPU

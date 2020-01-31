@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
 
     myFsiSystem.SetFluidDynamics(paramsH->fluid_dynamic_type);
     myFsiSystem.SetFluidSystemLinearSolver(paramsH->LinearSolver);
-    fsi::utils::FinalizeDomainCreating(paramsH);
+    fsi::utils::FinalizeDomain(paramsH);
     fsi::utils::PrepareOutputDir(paramsH, demo_dir, out_dir, inputJson);
 
     // ******************************* Create Fluid region ****************************************

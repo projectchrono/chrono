@@ -148,7 +148,7 @@ int main(int argc, char* argv[]) {
     myFsiSystem.SetFluidSystemLinearSolver(paramsH->LinearSolver);
     paramsH->cMin = fsi::mR3(-bxDim / 2, -byDim / 2, 0.0) - fsi::mR3(paramsH->HSML * 20);
     paramsH->cMax = fsi::mR3(bxDim / 2, byDim / 2, bzDim) + fsi::mR3(paramsH->HSML * 10);
-    fsi::utils::FinalizeDomainCreating(paramsH);
+    fsi::utils::FinalizeDomain(paramsH);
     fsi::utils::PrepareOutputDir(paramsH, demo_dir, out_dir, inputJson);
 
     // ******************************* Create Fluid region ****************************************

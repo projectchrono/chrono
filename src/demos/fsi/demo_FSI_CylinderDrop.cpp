@@ -201,8 +201,8 @@ int main(int argc, char* argv[]) {
     Real initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
     paramsH->cMin = fsi::mR3(-bxDim / 2, -byDim / 2, -bzDim / 2 - 5 * initSpace0) * 10 - 4 * initSpace0;
     paramsH->cMax = fsi::mR3(bxDim / 2, byDim / 2, bzDim + 10 * initSpace0) * 10 + 4 * initSpace0;
-    // call FinalizeDomainCreating to setup the binning for neighbor search or write your own
-    fsi::utils::FinalizeDomainCreating(paramsH);
+    // call FinalizeDomain to setup the binning for neighbor search or write your own
+    fsi::utils::FinalizeDomain(paramsH);
     fsi::utils::PrepareOutputDir(paramsH, demo_dir, out_dir, inputJson);
 
     // ******************************* Create Fluid region ****************************************
