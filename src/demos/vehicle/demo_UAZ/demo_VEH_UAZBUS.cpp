@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
     uaz.SetTireVisualizationType(tire_vis_type);
 
     {
-        auto suspF = std::static_pointer_cast<UAZBUS_ToeBarLeafspringAxle>(uaz.GetVehicle().GetSuspension(0));
+        auto suspF = std::static_pointer_cast<ChToeBarLeafspringAxle>(uaz.GetVehicle().GetSuspension(0));
         double leftAngle = suspF->GetKingpinAngleLeft();
         double rightAngle = suspF->GetKingpinAngleRight();
 
@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
         std::cout << "Shock rest length front:  " << shockFL->GetRestLength() << std::endl;
     }
     {
-        auto suspR = std::static_pointer_cast<UAZBUS_LeafspringAxle>(uaz.GetVehicle().GetSuspension(1));
+        auto suspR = std::static_pointer_cast<ChLeafspringAxle>(uaz.GetVehicle().GetSuspension(1));
         auto springRL = suspR->GetSpring(VehicleSide::LEFT);
         auto shockRL = suspR->GetShock(VehicleSide::RIGHT);
 
@@ -217,7 +217,7 @@ int main(int argc, char* argv[]) {
         app.Synchronize(driver.GetInputModeAsString(), driver_inputs);
 
         // Test for validity of kingpin angles (max. allowed by UAZ: 27 deg)
-        auto suspF = std::static_pointer_cast<UAZBUS_ToeBarLeafspringAxle>(uaz.GetVehicle().GetSuspension(0));
+        auto suspF = std::static_pointer_cast<ChToeBarLeafspringAxle>(uaz.GetVehicle().GetSuspension(0));
         double leftAngle = suspF->GetKingpinAngleLeft() * 180.0 / CH_C_PI;
         double rightAngle = suspF->GetKingpinAngleRight() * 180.0 / CH_C_PI;
         if (std::abs(leftAngle) > maxKingpinAngle) {
