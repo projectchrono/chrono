@@ -201,7 +201,6 @@ steering_type = veh.SteeringType_PITMAN_ARM
 tire_model = veh.TireModelType_TMEASY
 
 # Rigid terrain
-terrain_model = veh.RigidTerrain.BOX
 terrainHeight = 0;      # terrain height (FLAT terrain only)
 terrainLength = 100.0;  # size in X direction
 terrainWidth = 100.0;   # size in Y direction

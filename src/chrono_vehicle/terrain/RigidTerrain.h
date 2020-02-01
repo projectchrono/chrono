@@ -47,7 +47,7 @@ namespace vehicle {
 class CH_VEHICLE_API RigidTerrain : public ChTerrain {
   public:
     /// Patch type.
-    enum Type {
+    enum class PatchType {
         BOX,        ///< rectangular box
         MESH,       ///< triangular mesh (from a Wavefront OBJ file)
         HEIGHT_MAP  ///< triangular mesh (generated from a gray-scale BMP height-map)
@@ -56,6 +56,7 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     /// Definition of a patch in a rigid terrain model.
     class CH_VEHICLE_API Patch {
       public:
+
         /// Set coefficient of friction.
         /// The default value is 0.7
         void SetContactFrictionCoefficient(float friction_coefficient);
@@ -100,11 +101,12 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
         std::shared_ptr<ChBody> GetGroundBody() const;
 
       private:
-        Type m_type;
-        std::shared_ptr<ChBody> m_body;
-        std::shared_ptr<geometry::ChTriangleMeshConnected> m_trimesh;
-        std::string m_mesh_name;
-        float m_friction;
+        PatchType m_type;                                              ///< type of this patch
+        std::shared_ptr<ChBody> m_body;                                ///< associated body
+        std::shared_ptr<geometry::ChTriangleMeshConnected> m_trimesh;  ///< associated mesh
+        std::string m_mesh_name;                                       ///< name of associated mesh
+        float m_friction;                                              ///< coefficient of friction
+        double m_radius;                                               ///< bounding sphere radius
 
         friend class RigidTerrain;
     };
@@ -151,6 +153,7 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
         double sizeY,                       ///< [in] terrain dimension in the Y direction
         double hMin,                        ///< [in] minimum height (black level)
         double hMax,                        ///< [in] maximum height (white level)
+        double sweep_sphere_radius = 0,     ///< [in] radius of sweep sphere
         bool visualization = true           ///< [in] enable/disable construction of visualization assets
     );
 

@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include <limits>
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 
@@ -220,7 +222,8 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(const ChCoordsys<>& 
         patch->m_body->AddAsset(box);
     }
 
-    patch->m_type = BOX;
+    patch->m_radius = size.Length() / 2;
+    patch->m_type = PatchType::BOX;
 
     return patch;
 }
@@ -253,8 +256,15 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(const ChCoordsys<>& 
         patch->m_body->AddAsset(trimesh_shape);
     }
 
+    patch->m_radius =
+        std::max_element(patch->m_trimesh->getCoordsVertices().begin(),                                      //
+                         patch->m_trimesh->getCoordsVertices().end(),                                        //
+                         [](const ChVector<>& a, const ChVector<>& b) { return a.Length2() < b.Length2(); }  //
+                         )
+            ->Length();
+
     patch->m_mesh_name = mesh_name;
-    patch->m_type = MESH;
+    patch->m_type = PatchType::MESH;
 
     return patch;
 }
@@ -268,6 +278,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(const ChCoordsys<>& 
                                                             double sizeY,
                                                             double hMin,
                                                             double hMax,
+                                                            double sweep_sphere_radius,
                                                             bool visualization) {
     auto patch = AddPatch(position);
 
@@ -379,7 +390,8 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(const ChCoordsys<>& 
 
     // Create contact geometry.
     patch->m_body->GetCollisionModel()->ClearModel();
-    patch->m_body->GetCollisionModel()->AddTriangleMesh(patch->m_trimesh, true, false, ChVector<>(0, 0, 0));
+    patch->m_body->GetCollisionModel()->AddTriangleMesh(patch->m_trimesh, true, false, VNULL, ChMatrix33<>(1),
+                                                        sweep_sphere_radius);
     patch->m_body->GetCollisionModel()->BuildModel();
 
     // Create the visualization asset.
@@ -390,8 +402,9 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(const ChCoordsys<>& 
         patch->m_body->AddAsset(trimesh_shape);
     }
 
+    patch->m_radius = ChVector<>(sizeX, sizeY, (hMax - hMin)).Length() / 2;
     patch->m_mesh_name = mesh_name;
-    patch->m_type = HEIGHT_MAP;
+    patch->m_type = PatchType::HEIGHT_MAP;
 
     return patch;
 }
@@ -456,10 +469,10 @@ void RigidTerrain::Patch::SetTexture(const std::string& tex_file, float tex_scal
 // -----------------------------------------------------------------------------
 void RigidTerrain::Patch::ExportMeshPovray(const std::string& out_dir) {
     switch (m_type) {
-        case MESH:
+        case PatchType::MESH:
             utils::WriteMeshPovray(*m_trimesh, m_mesh_name, out_dir, ChColor(1, 1, 1));
             break;
-        case HEIGHT_MAP:
+        case PatchType::HEIGHT_MAP:
             utils::WriteMeshPovray(*m_trimesh, m_mesh_name, out_dir, ChColor(1, 1, 1), ChVector<>(0, 0, 0),
                                    ChQuaternion<>(1, 0, 0, 0), true);
             break;
@@ -563,16 +576,15 @@ void RigidTerrain::Initialize() {
 // -----------------------------------------------------------------------------
 bool RigidTerrain::FindPoint(double x, double y, double& height, ChVector<>& normal, float& friction) const {
     bool hit = false;
-    height = -1000;
+    height = std::numeric_limits<double>::lowest();
     normal = ChVector<>(0, 0, 1);
     friction = 0.8f;
 
-    ChVector<> from(x, y, 1000);
-    ChVector<> to(x, y, -1000);
-
     for (auto patch : m_patches) {
         collision::ChCollisionSystem::ChRayhitResult result;
-        m_system->GetCollisionSystem()->RayHit(from, to, patch->m_body->GetCollisionModel().get(), result);
+        m_system->GetCollisionSystem()->RayHit(ChVector<>(x, y, patch->m_body->GetPos().z() + patch->m_radius + 10),
+                                               ChVector<>(x, y, patch->m_body->GetPos().z() - patch->m_radius - 10),
+                                               patch->m_body->GetCollisionModel().get(), result);
         if (result.hit && result.abs_hitPoint.z() > height) {
             hit = true;
             height = result.abs_hitPoint.z();
