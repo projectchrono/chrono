@@ -35,6 +35,9 @@
 #include "chrono_models/vehicle/man/MAN_5t_Solid3LinkAxle.h"
 #include "chrono_models/vehicle/man/MAN_10t_Front1Axle.h"
 #include "chrono_models/vehicle/man/MAN_10t_Front2Axle.h"
+
+#include "chrono_models/vehicle/uaz/UAZBUS_ToeBarLeafspringAxle.h"
+#include "chrono_models/vehicle/uaz/UAZBUS_LeafspringAxle.h"
 %}
 
 
@@ -65,6 +68,9 @@
 %shared_ptr(chrono::vehicle::man::MAN_10t_Front1Axle)
 %shared_ptr(chrono::vehicle::man::MAN_10t_Front2Axle)
 
+%shared_ptr(chrono::vehicle::uaz::UAZBUS_ToeBarLeafspringAxle)
+%shared_ptr(chrono::vehicle::uaz::UAZBUS_LeafspringAxle)
+
 /* Parse the header file to generate wrappers */
 %import "ChSuspension.i"
 
@@ -88,3 +94,6 @@
 %include "../chrono_models/vehicle/man/MAN_5t_Solid3LinkAxle.h"
 %include "../chrono_models/vehicle/man/MAN_10t_Front1Axle.h"
 %include "../chrono_models/vehicle/man/MAN_10t_Front2Axle.h"
+
+%include "../chrono_models/vehicle/uaz/UAZBUS_ToeBarLeafspringAxle.h"
+%include "../chrono_models/vehicle/uaz/UAZBUS_LeafspringAxle.h"
