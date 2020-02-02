@@ -93,20 +93,17 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
                         float tex_scale_y = 1         ///< [in] texture scale in Y
         );
 
-        /// Export the patch mesh (if any) as a macro in a PovRay include file.
-        void ExportMeshPovray(const std::string& out_dir  ///< [in] output directory
-        );
-
         /// Return a handle to the ground body.
-        std::shared_ptr<ChBody> GetGroundBody() const;
+        std::shared_ptr<ChBody> GetGroundBody() const { return m_body; }
 
-      private:
-        PatchType m_type;                                              ///< type of this patch
-        std::shared_ptr<ChBody> m_body;                                ///< associated body
-        std::shared_ptr<geometry::ChTriangleMeshConnected> m_trimesh;  ///< associated mesh
-        std::string m_mesh_name;                                       ///< name of associated mesh
-        float m_friction;                                              ///< coefficient of friction
-        double m_radius;                                               ///< bounding sphere radius
+      protected:
+        virtual bool FindPoint(double x, double y, double& height, ChVector<>& normal) const = 0;
+        virtual void ExportMeshPovray(const std::string& out_dir, bool smoothed = false) {}
+
+        PatchType m_type;                ///< type of this patch
+        std::shared_ptr<ChBody> m_body;  ///< associated body
+        float m_friction;                ///< coefficient of friction
+        double m_radius;                 ///< bounding sphere radius
 
         friend class RigidTerrain;
     };
@@ -125,6 +122,7 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
 
     /// Add a terrain patch represented by a rigid box.
     /// If tiled = true, multiple side-by-side boxes are used.
+    /// The "driving" surface is assumed to be the +z face of the specified box domain.
     std::shared_ptr<Patch> AddPatch(
         const ChCoordsys<>& position,  ///< [in] box location and orientation
         const ChVector<>& size,        ///< [in] box dimensions (x, y, z)
@@ -189,7 +187,7 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     virtual float GetCoefficientFriction(double x, double y) const override;
 
     /// Export all patch meshes as macros in PovRay include files.
-    void ExportMeshPovray(const std::string& out_dir);
+    void ExportMeshPovray(const std::string& out_dir, bool smoothed = false);
 
     /// Evaluate terrain height, normal, and coefficient of friction at the specified (x,y) location.
     /// The point on the terrain surface is obtained through ray casting into the terrain contact model.
@@ -198,13 +196,28 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     bool FindPoint(double x, double y, double& height, ChVector<>& normal, float& friction) const;
 
   private:
+    /// Patch represented as a box domain.
+    struct CH_VEHICLE_API BoxPatch : public Patch {
+        ChVector<> m_hsize;   ///< half-dimensions of the box domain
+        ChVector<> m_normal;  ///< outward normal of the +z face
+        virtual bool FindPoint(double x, double y, double& height, ChVector<>& normal) const override;
+    };
+
+    /// Patch represented as a mesh.
+    struct CH_VEHICLE_API MeshPatch : public Patch {
+        std::shared_ptr<geometry::ChTriangleMeshConnected> m_trimesh;  ///< associated mesh
+        std::string m_mesh_name;                                       ///< name of associated mesh
+        virtual bool FindPoint(double x, double y, double& height, ChVector<>& normal) const override;
+        virtual void ExportMeshPovray(const std::string& out_dir, bool smoothed = false) override;
+    };
+
     ChSystem* m_system;
     int m_num_patches;
     std::vector<std::shared_ptr<Patch>> m_patches;
     bool m_use_friction_functor;
     ChContactContainer::AddContactCallback* m_contact_callback;
 
-    std::shared_ptr<Patch> AddPatch(const ChCoordsys<>& position);
+    void AddPatch(std::shared_ptr<Patch> patch, const ChCoordsys<>& position);
     void LoadPatch(const rapidjson::Value& a);
 };
 
