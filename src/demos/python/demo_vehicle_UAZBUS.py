@@ -151,9 +151,9 @@ driver.Initialize()
 # -----------------
 # Initialize output
 # -----------------
-if not os.path.isdir(out_dir):
-    os.makedirs(out_dir)
-assert (os.path.isdir(out_dir),  "Error creating directory ")
+#if not os.path.isdir(out_dir):
+#    os.makedirs(out_dir)
+#assert os.path.isdir(out_dir),  "Error creating directory "
 
 # ---------------
 # Simulation loop
