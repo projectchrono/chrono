@@ -19,8 +19,6 @@
 #ifndef SEDAN_TMEASY_TIRE_H
 #define SEDAN_TMEASY_TIRE_H
 
-#include "chrono/assets/ChTriangleMeshShape.h"
-
 #include "chrono_vehicle/wheeled_vehicle/tire/ChTMeasyTire.h"
 
 #include "chrono_models/ChApiModels.h"
@@ -50,13 +48,12 @@ class CH_MODELS_API Sedan_TMeasyTire : public ChTMeasyTire {
     void GenerateCharacteristicPlots(const std::string& dirname);
 
   private:
-    static const std::string m_meshName;
-    static const std::string m_meshFile;
     static const double m_mass;
     static const ChVector<> m_inertia;
-
-    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
     ChFunction_Recorder m_stiffnessMap;
+
+    static const std::string m_meshFile;
+    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
 };
 
 /// @} vehicle_models_sedan

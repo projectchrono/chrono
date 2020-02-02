@@ -48,30 +48,10 @@ void RotaryArm::Create(const rapidjson::Document& d) {
     m_pitmanArmRadius = d["Pitman Arm"]["Radius"].GetDouble();
     m_pitmanArmInertiaMoments = ReadVectorJSON(d["Pitman Arm"]["Inertia"]);
     m_pitmanArmInertiaProducts = ReadVectorJSON(d["Pitman Arm"]["Inertia Products"]);
-    m_pointOfRotation = ReadVectorJSON(d["Pitman Arm"]["Point of Rotation"]);
-    m_pointToDragLink = ReadVectorJSON(d["Pitman Arm"]["Point to Draglink"]);
-    m_axisOfRotation = ReadVectorJSON(d["Pitman Arm"]["Axis of Rotation"]);
+    m_points[ARM_C] = ReadVectorJSON(d["Pitman Arm"]["Point of Rotation"]);
+    m_points[ARM_L] = ReadVectorJSON(d["Pitman Arm"]["Point to Draglink"]);
+    m_dirs[REV_AXIS] = ReadVectorJSON(d["Pitman Arm"]["Axis of Rotation"]);
     m_maxAngle = d["Pitman Arm"]["Maximum Angle Degrees"].GetDouble() * CH_C_PI / 180.0;
-}
-
-const ChVector<> RotaryArm::getLocation(PointId which) {
-    switch (which) {
-        case PITMANARM:
-            return m_pointToDragLink;
-        case REV:
-            return m_pointOfRotation;
-        default:
-            return ChVector<>(0, 0, 0);
-    }
-}
-
-const ChVector<> RotaryArm::getDirection(DirectionId which) {
-    switch (which) {
-        case REV_AXIS:
-            return m_axisOfRotation;
-        default:
-            return ChVector<>(0, 0, 0);
-    }
 }
 
 }  // end namespace vehicle

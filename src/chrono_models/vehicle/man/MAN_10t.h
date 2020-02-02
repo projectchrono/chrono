@@ -46,6 +46,8 @@ namespace man {
 /// @addtogroup vehicle_models_man
 /// @{
 
+/// Wrapper class for modeling an entire MAN 10t vehicle assembly
+/// (including the vehicle itself, the powertrain, and the tires).
 class CH_MODELS_API MAN_10t {
   public:
     MAN_10t();

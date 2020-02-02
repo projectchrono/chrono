@@ -45,8 +45,6 @@
 namespace chrono {
 namespace utils {
 
-const double Pi = 3.1415926535897932384626433832795;
-
 // -----------------------------------------------------------------------------
 // Construct a single random engine (on first use)
 //
@@ -103,6 +101,9 @@ enum class SamplingType {
 template <typename T>
 class Sampler {
   public:
+    static_assert(std::is_floating_point<T>::value,
+                  "class chrono::utils::Sampler can only be instantiated with floating point types");
+
     typedef typename Types<T>::PointVector PointVector;
 
     virtual ~Sampler() {}
@@ -152,7 +153,7 @@ class Sampler {
     /// Utility function to check if a point is inside the sampling volume.
     bool accept(VolumeType t, const ChVector<T>& p) {
         ChVector<T> vec = p - m_center;
-        T fuzz = (m_size.x() < 1) ? 1e-6 * m_size.x() : 1e-6;
+        T fuzz = (m_size.x() < 1) ? (T)1e-6 * m_size.x() : (T)1e-6;
 
         switch (t) {
             case BOX:
@@ -221,6 +222,9 @@ class PDGrid {
     std::vector<Content> m_data;
 };
 
+template <class T>
+constexpr T Pi = T(3.1415926535897932385L);
+
 /// Sampler for 3D domains (box, sphere, or cylinder) using Poisson Disk Sampling. The sampler produces a set of points
 /// uniformly distributed in the specified domain such that no two points are closer than a specified distance.
 ///
@@ -253,19 +257,19 @@ class PDSampler : public Sampler<T> {
         // have p.z() = m_center.z()
         if (this->m_size.z() < m_minDist) {
             m_2D = Z_DIR;
-            m_cellSize = m_minDist / std::sqrt(2.0);
+            m_cellSize = m_minDist / std::sqrt((T)2);
             this->m_size.z() = 0;
         } else if (this->m_size.y() < m_minDist) {
             m_2D = Y_DIR;
-            m_cellSize = m_minDist / std::sqrt(2.0);
+            m_cellSize = m_minDist / std::sqrt((T)2);
             this->m_size.y() = 0;
         } else if (this->m_size.x() < m_minDist) {
             m_2D = X_DIR;
-            m_cellSize = m_minDist / std::sqrt(2.0);
+            m_cellSize = m_minDist / std::sqrt((T)2);
             this->m_size.x() = 0;
         } else {
             m_2D = NONE;
-            m_cellSize = m_minDist / std::sqrt(3.0);
+            m_cellSize = m_minDist / std::sqrt((T)3);
         }
 
         m_bl = this->m_center - this->m_size;
@@ -362,29 +366,29 @@ class PDSampler : public Sampler<T> {
         switch (m_2D) {
             case Z_DIR: {
                 T radius = m_minDist * (1 + m_realDist(rengine()));
-                T angle = 2 * Pi * m_realDist(rengine());
+                T angle = 2 * Pi<T> * m_realDist(rengine());
                 x = point.x() + radius * std::cos(angle);
                 y = point.y() + radius * std::sin(angle);
                 z = this->m_center.z();
             } break;
             case Y_DIR: {
                 T radius = m_minDist * (1 + m_realDist(rengine()));
-                T angle = 2 * Pi * m_realDist(rengine());
+                T angle = 2 * Pi<T> * m_realDist(rengine());
                 x = point.x() + radius * std::cos(angle);
                 y = this->m_center.y();
                 z = point.z() + radius * std::sin(angle);
             } break;
             case X_DIR: {
                 T radius = m_minDist * (1 + m_realDist(rengine()));
-                T angle = 2 * Pi * m_realDist(rengine());
+                T angle = 2 * Pi<T> * m_realDist(rengine());
                 x = this->m_center.x();
                 y = point.y() + radius * std::cos(angle);
                 z = point.z() + radius * std::sin(angle);
             } break;
             case NONE: {
                 T radius = m_minDist * (1 + m_realDist(rengine()));
-                T angle1 = 2 * Pi * m_realDist(rengine());
-                T angle2 = 2 * Pi * m_realDist(rengine());
+                T angle1 = 2 * Pi<T> * m_realDist(rengine());
+                T angle2 = 2 * Pi<T> * m_realDist(rengine());
                 x = point.x() + radius * std::cos(angle1) * std::sin(angle2);
                 y = point.y() + radius * std::sin(angle1) * std::sin(angle2);
                 z = point.z() + radius * std::cos(angle2);
@@ -506,17 +510,17 @@ class HCPSampler : public Sampler<T> {
 
         ChVector<T> bl = this->m_center - this->m_size;
 
-        T m_cos30 = 0.5 * sqrt(3.0);
+        T m_cos30 = sqrt((T)3) / 2;
         int nx = (int)(2 * this->m_size.x() / (m_spacing)) + 1;
         int ny = (int)(2 * this->m_size.y() / (m_cos30 * m_spacing)) + 1;
         int nz = (int)(2 * this->m_size.z() / (m_cos30 * m_spacing)) + 1;
-        double offset_x = 0, offset_y = 0;
+        T offset_x = 0, offset_y = 0;
         for (int k = 0; k < nz; k++) {
             // need to offset each alternate layer by radius in both x and y direction
-            offset_x = offset_y = (k % 2 == 0) ? 0 : 0.5 * m_spacing;
+            offset_x = offset_y = (k % 2 == 0) ? 0 : m_spacing / 2;
             for (int j = 0; j < ny; j++) {
                 // need to offset alternate rows by radius
-                T offset = (j % 2 == 0) ? 0 : 0.5 * m_spacing;
+                T offset = (j % 2 == 0) ? 0 : m_spacing / 2;
                 for (int i = 0; i < nx; i++) {
                     ChVector<T> p = bl + ChVector<T>(i * m_spacing + offset + offset_x,
                                                      j * (m_cos30 * m_spacing) + offset_y, k * (m_cos30 * m_spacing));

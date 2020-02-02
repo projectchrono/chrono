@@ -25,10 +25,6 @@
 
   "Visualization":
   {
-    "Mesh":
-    {
-       "Filename":  "uaz/uazbus_chassis.obj",
-       "Name":      "hmmwv_chassis_POV_geom"
-    }
+    "Mesh":  "uaz/uazbus_chassis.obj"
   }
 }

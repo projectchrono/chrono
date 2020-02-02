@@ -12,8 +12,8 @@
       "Suspension Input File": "MAN_Kat1/suspension/MAN_5t_FrontSolidThreeLinkAxle.json",
       "Suspension Location": [ 0, 0, 0 ],
       "Steering Index": 0,
-      "Left Wheel Input File": "MAN_Kat1/wheel/MAN_5t_Wheel_Left.json",
-      "Right Wheel Input File": "MAN_Kat1/wheel/MAN_5t_Wheel_Right.json",
+      "Left Wheel Input File": "MAN_Kat1/wheel/MAN_5t_Wheel.json",
+      "Right Wheel Input File": "MAN_Kat1/wheel/MAN_5t_Wheel.json",
       "Left Brake Input File": "MAN_Kat1/brake/MAN_5t_BrakeSimple.json",
       "Right Brake Input File": "MAN_Kat1/brake/MAN_5t_BrakeSimple.json"
     },
@@ -21,8 +21,8 @@
     {
       "Suspension Input File": "MAN_Kat1/suspension/MAN_5t_RearSolidThreeLinkAxle.json",
       "Suspension Location": [ -4.5, 0, 0 ],
-      "Left Wheel Input File": "MAN_Kat1/wheel/MAN_5t_Wheel_Left.json",
-      "Right Wheel Input File": "MAN_Kat1/wheel/MAN_5t_Wheel_Right.json",
+      "Left Wheel Input File": "MAN_Kat1/wheel/MAN_5t_Wheel.json",
+      "Right Wheel Input File": "MAN_Kat1/wheel/MAN_5t_Wheel.json",
       "Left Brake Input File": "MAN_Kat1/brake/MAN_5t_BrakeSimple.json",
       "Right Brake Input File": "MAN_Kat1/brake/MAN_5t_BrakeSimple.json"
     }

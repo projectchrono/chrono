@@ -84,7 +84,6 @@ M113_Chassis::M113_Chassis(const std::string& name, bool fixed, ChassisCollision
     m_vis_boxes.push_back(box2);
 
     m_has_mesh = true;
-    m_vis_mesh_name = "Chassis_POV_geom";
     m_vis_mesh_file = "M113/Chassis.obj";
 
     m_has_collision = (chassis_collision_type != ChassisCollisionType::NONE);

@@ -23,8 +23,8 @@
         "Y Relaxation Length": 0.0
     },
     "Visualization": {
-        "Mesh Filename": "hmmwv/hmmwv_tire.obj",
-        "Mesh Name": "hmmwv_tire_POV_geom",
+        "Mesh Filename Left": "hmmwv/hmmwv_tire_left.obj",
+        "Mesh Filename Right": "hmmwv/hmmwv_tire_right.obj",
         "Width": 0.318
     }
 }

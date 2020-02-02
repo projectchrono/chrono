@@ -24,11 +24,5 @@
           "Tangential Stiffness":   2e5,
           "Tangential Damping":     20.0
       }
-  },
-
-  "Visualization":
-  {
-    "Mesh Filename":            "hmmwv/hmmwv_tire.obj",
-    "Mesh Name":                "hmmwv_tire_POV_geom"
   }
 }

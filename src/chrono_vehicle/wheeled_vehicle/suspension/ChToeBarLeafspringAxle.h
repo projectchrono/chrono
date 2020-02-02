@@ -250,7 +250,6 @@ class CH_VEHICLE_API ChToeBarLeafspringAxle : public ChSuspension {
 
     void InitializeSide(VehicleSide side,
                         std::shared_ptr<ChBodyAuxRef> chassis,
-                        std::shared_ptr<ChBody> tierod_body,
                         const std::vector<ChVector<>>& points,
                         double ang_vel);
 

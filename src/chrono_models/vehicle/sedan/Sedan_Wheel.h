@@ -34,7 +34,7 @@ namespace sedan {
 /// @addtogroup vehicle_models_sedan
 /// @{
 
-/// Sedan wheel base class.
+/// Sedan wheel (can be used on any axle, left or right).
 class CH_MODELS_API Sedan_Wheel : public ChWheel {
   public:
     Sedan_Wheel(const std::string& name);
@@ -49,43 +49,13 @@ class CH_MODELS_API Sedan_Wheel : public ChWheel {
     virtual void RemoveVisualizationAssets() override;
 
   protected:
-    virtual std::string GetMeshName() const = 0;
-    virtual std::string GetMeshFile() const = 0;
-
+    static const std::string m_meshFile;
     std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
 
     static const double m_radius;
     static const double m_width;
     static const double m_mass;
     static const ChVector<> m_inertia;
-};
-
-/// Sedan left wheel (front or rear).
-class CH_MODELS_API Sedan_WheelLeft : public Sedan_Wheel {
-  public:
-    Sedan_WheelLeft(const std::string& name);
-    ~Sedan_WheelLeft() {}
-
-    virtual std::string GetMeshName() const override { return m_meshName; }
-    virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
-
-  private:
-    static const std::string m_meshName;
-    static const std::string m_meshFile;
-};
-
-/// Sedan right wheel (front or rear).
-class CH_MODELS_API Sedan_WheelRight : public Sedan_Wheel {
-  public:
-    Sedan_WheelRight(const std::string& name);
-    ~Sedan_WheelRight() {}
-
-    virtual std::string GetMeshName() const override { return m_meshName; }
-    virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
-
-  private:
-    static const std::string m_meshName;
-    static const std::string m_meshFile;
 };
 
 /// @} vehicle_models_sedan

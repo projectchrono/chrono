@@ -21,6 +21,7 @@
 // =============================================================================
 
 #include "chrono/core/ChRealtimeStep.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -29,6 +30,8 @@
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 
 #include "chrono_models/vehicle/uaz/UAZBUS.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 #include <chrono>
 #include <thread>
@@ -48,7 +51,7 @@ VisualizationType chassis_vis_type = VisualizationType::MESH;
 VisualizationType suspension_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType wheel_vis_type = VisualizationType::MESH;
-VisualizationType tire_vis_type = VisualizationType::NONE;
+VisualizationType tire_vis_type = VisualizationType::MESH;
 
 // Type of tire model (RIGID, TMEASY, PAC02)
 TireModelType tire_model = TireModelType::PAC02;
@@ -65,6 +68,12 @@ double tend = 15;
 
 // Time interval between two render frames
 double render_step_size = 1.0 / 50;  // FPS = 50
+
+// Output directories
+const std::string out_dir = GetChronoOutputPath() + "UAZBUS";
+const std::string pov_dir = out_dir + "/POVRAY";
+bool povray_output = false;
+
 
 // =============================================================================
 
@@ -91,7 +100,7 @@ int main(int argc, char* argv[]) {
     uaz.SetTireVisualizationType(tire_vis_type);
 
     {
-        auto suspF = std::static_pointer_cast<UAZBUS_ToeBarLeafspringAxle>(uaz.GetVehicle().GetSuspension(0));
+        auto suspF = std::static_pointer_cast<ChToeBarLeafspringAxle>(uaz.GetVehicle().GetSuspension(0));
         double leftAngle = suspF->GetKingpinAngleLeft();
         double rightAngle = suspF->GetKingpinAngleRight();
 
@@ -102,7 +111,7 @@ int main(int argc, char* argv[]) {
         std::cout << "Shock rest length front:  " << shockFL->GetRestLength() << std::endl;
     }
     {
-        auto suspR = std::static_pointer_cast<UAZBUS_LeafspringAxle>(uaz.GetVehicle().GetSuspension(1));
+        auto suspR = std::static_pointer_cast<ChLeafspringAxle>(uaz.GetVehicle().GetSuspension(1));
         auto springRL = suspR->GetSpring(VehicleSide::LEFT);
         auto shockRL = suspR->GetShock(VehicleSide::RIGHT);
 
@@ -155,12 +164,28 @@ int main(int argc, char* argv[]) {
 
     driver.Initialize();
 
+    // -----------------
+    // Initialize output
+    // -----------------
+
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+    if (povray_output) {
+        if (!filesystem::create_directory(filesystem::path(pov_dir))) {
+            std::cout << "Error creating directory " << pov_dir << std::endl;
+            return 1;
+        }
+    }
+
     // ---------------
     // Simulation loop
     // ---------------
 
     int render_steps = (int)std::ceil(render_step_size / step_size);
     int step_number = 0;
+    int render_frame = 0;
 
     double maxKingpinAngle = 0.0;
 
@@ -173,6 +198,13 @@ int main(int argc, char* argv[]) {
             app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
             app.DrawAll();
             app.EndScene();
+
+            if (povray_output && step_number % render_steps == 0) {
+                char filename[100];
+                sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
+                utils::WriteShapesPovray(uaz.GetSystem(), filename);
+                render_frame++;
+            }
         }
 
         // Collect output data from modules (for inter-module communication)
@@ -185,7 +217,7 @@ int main(int argc, char* argv[]) {
         app.Synchronize(driver.GetInputModeAsString(), driver_inputs);
 
         // Test for validity of kingpin angles (max. allowed by UAZ: 27 deg)
-        auto suspF = std::static_pointer_cast<UAZBUS_ToeBarLeafspringAxle>(uaz.GetVehicle().GetSuspension(0));
+        auto suspF = std::static_pointer_cast<ChToeBarLeafspringAxle>(uaz.GetVehicle().GetSuspension(0));
         double leftAngle = suspF->GetKingpinAngleLeft() * 180.0 / CH_C_PI;
         double rightAngle = suspF->GetKingpinAngleRight() * 180.0 / CH_C_PI;
         if (std::abs(leftAngle) > maxKingpinAngle) {

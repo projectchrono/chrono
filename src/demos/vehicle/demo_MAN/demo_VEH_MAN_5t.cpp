@@ -53,7 +53,7 @@ VisualizationType chassis_vis_type = VisualizationType::MESH;
 VisualizationType suspension_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType wheel_vis_type = VisualizationType::MESH;
-VisualizationType tire_vis_type = VisualizationType::NONE;
+VisualizationType tire_vis_type = VisualizationType::MESH;
 
 // Collision type for chassis (PRIMITIVES, MESH, or NONE)
 ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE;
@@ -62,7 +62,7 @@ ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE;
 TireModelType tire_model = TireModelType::TMEASY;
 
 // Rigid terrain
-RigidTerrain::Type terrain_model = RigidTerrain::BOX;
+RigidTerrain::PatchType terrain_model = RigidTerrain::PatchType::BOX;
 double terrainHeight = 0;      // terrain height (FLAT terrain only)
 double terrainLength = 200.0;  // size in X direction
 double terrainWidth = 200.0;   // size in Y direction
@@ -85,7 +85,7 @@ double t_end = 1000;
 double render_step_size = 1.0 / 50;  // FPS = 50
 
 // Output directories
-const std::string out_dir = GetChronoOutputPath() + "CityBus";
+const std::string out_dir = GetChronoOutputPath() + "MAN_5t";
 const std::string pov_dir = out_dir + "/POVRAY";
 
 // Debug logging
@@ -125,17 +125,17 @@ int main(int argc, char* argv[]) {
 
     std::shared_ptr<RigidTerrain::Patch> patch;
     switch (terrain_model) {
-        case RigidTerrain::BOX:
+        case RigidTerrain::PatchType::BOX:
             patch = terrain.AddPatch(ChCoordsys<>(ChVector<>(0, 0, terrainHeight - 5), QUNIT),
                                      ChVector<>(terrainLength, terrainWidth, 10));
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
             break;
-        case RigidTerrain::HEIGHT_MAP:
+        case RigidTerrain::PatchType::HEIGHT_MAP:
             patch = terrain.AddPatch(CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"), "test64", 128,
                                      128, 0, 4);
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
             break;
-        case RigidTerrain::MESH:
+        case RigidTerrain::PatchType::MESH:
             patch = terrain.AddPatch(CSYSNORM, vehicle::GetDataFile("terrain/meshes/test.obj"), "test_mesh");
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 100, 100);
             break;

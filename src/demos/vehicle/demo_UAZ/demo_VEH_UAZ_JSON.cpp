@@ -110,6 +110,9 @@ double tend = 20.0;
 const std::string out_dir = GetChronoOutputPath() + "UAZ_JSON";
 const std::string pov_dir = out_dir + "/POVRAY";
 
+// POV-Ray output
+bool povray_output = false;
+
 // =============================================================================
 
 int main(int argc, char* argv[]) {
@@ -143,10 +146,10 @@ int main(int argc, char* argv[]) {
             auto tireFR = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_front_tire_file));
             auto tireRL = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_rear_tire_file));
             auto tireRR = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_rear_tire_file));
-            vehicle.InitializeTire(tireFL, vehicle.GetAxle(0)->m_wheels[0], VisualizationType::NONE);
-            vehicle.InitializeTire(tireFR, vehicle.GetAxle(0)->m_wheels[1], VisualizationType::NONE);
-            vehicle.InitializeTire(tireRL, vehicle.GetAxle(1)->m_wheels[0], VisualizationType::NONE);
-            vehicle.InitializeTire(tireRR, vehicle.GetAxle(1)->m_wheels[1], VisualizationType::NONE);
+            vehicle.InitializeTire(tireFL, vehicle.GetAxle(0)->m_wheels[0], VisualizationType::MESH);
+            vehicle.InitializeTire(tireFR, vehicle.GetAxle(0)->m_wheels[1], VisualizationType::MESH);
+            vehicle.InitializeTire(tireRL, vehicle.GetAxle(1)->m_wheels[0], VisualizationType::MESH);
+            vehicle.InitializeTire(tireRR, vehicle.GetAxle(1)->m_wheels[1], VisualizationType::MESH);
         } break;
 
         case TireModelType::PAC02: {
@@ -154,10 +157,10 @@ int main(int argc, char* argv[]) {
             auto tireFR = chrono_types::make_shared<Pac02Tire>(vehicle::GetDataFile(pac02tire_file));
             auto tireRL = chrono_types::make_shared<Pac02Tire>(vehicle::GetDataFile(pac02tire_file));
             auto tireRR = chrono_types::make_shared<Pac02Tire>(vehicle::GetDataFile(pac02tire_file));
-            vehicle.InitializeTire(tireFL, vehicle.GetAxle(0)->m_wheels[0], VisualizationType::NONE);
-            vehicle.InitializeTire(tireFR, vehicle.GetAxle(0)->m_wheels[1], VisualizationType::NONE);
-            vehicle.InitializeTire(tireRL, vehicle.GetAxle(1)->m_wheels[0], VisualizationType::NONE);
-            vehicle.InitializeTire(tireRR, vehicle.GetAxle(1)->m_wheels[1], VisualizationType::NONE);
+            vehicle.InitializeTire(tireFL, vehicle.GetAxle(0)->m_wheels[0], VisualizationType::MESH);
+            vehicle.InitializeTire(tireFR, vehicle.GetAxle(0)->m_wheels[1], VisualizationType::MESH);
+            vehicle.InitializeTire(tireRL, vehicle.GetAxle(1)->m_wheels[0], VisualizationType::MESH);
+            vehicle.InitializeTire(tireRR, vehicle.GetAxle(1)->m_wheels[1], VisualizationType::MESH);
         } break;
 
         default:
@@ -202,9 +205,11 @@ int main(int argc, char* argv[]) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
-    if (!filesystem::create_directory(filesystem::path(pov_dir))) {
-        std::cout << "Error creating directory " << pov_dir << std::endl;
-        return 1;
+    if (povray_output) {
+        if (!filesystem::create_directory(filesystem::path(pov_dir))) {
+            std::cout << "Error creating directory " << pov_dir << std::endl;
+            return 1;
+        }
     }
 
     // Generate JSON information with available output channels
@@ -216,12 +221,24 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
+    // Initialize simulation frame counters
+    int render_steps = (int)std::ceil(render_step_size / step_size);
+    int step_number = 0;
+    int render_frame = 0;
+
     ChRealtimeStepTimer realtime_timer;
     while (app.GetDevice()->run()) {
         // Render scene
         app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         app.DrawAll();
         app.EndScene();
+
+        if (povray_output && step_number % render_steps == 0) {
+            char filename[100];
+            sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
+            utils::WriteShapesPovray(vehicle.GetSystem(), filename);
+            render_frame++;
+        }
 
         // Get driver inputs
         ChDriver::Inputs driver_inputs = driver.GetInputs();
@@ -238,6 +255,9 @@ int main(int argc, char* argv[]) {
         vehicle.Advance(step_size);
         terrain.Advance(step_size);
         app.Advance(step_size);
+
+        // Increment frame number
+        step_number++;
 
         // Spin in place for real time to catch up
         realtime_timer.Spin(step_size);

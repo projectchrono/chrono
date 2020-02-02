@@ -53,7 +53,7 @@ int main() {
     // Create wheel and tire subsystems
     // --------------------------------
 
-    auto wheel = chrono_types::make_shared<hmmwv::HMMWV_WheelLeft>("Wheel");
+    auto wheel = chrono_types::make_shared<hmmwv::HMMWV_Wheel>("Wheel");
 
     ////auto tire = chrono_types::make_shared<hmmwv::HMMWV_RigidTire>("Rigid tire");
     ////auto tire = chrono_types::make_shared<hmmwv::HMMWV_TMeasyTire>("TMeasy tire");

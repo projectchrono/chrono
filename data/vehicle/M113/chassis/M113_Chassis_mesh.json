@@ -54,10 +54,6 @@
 
   "Visualization":
   {
-    "Mesh": 
-    {
-       "Filename":  "M113/Chassis_Hulls.obj",
-       "Name":      "Chassis_Hulls_POV_geom"
-    }
+    "Mesh":   "M113/Chassis_Hulls.obj"
   }
 }

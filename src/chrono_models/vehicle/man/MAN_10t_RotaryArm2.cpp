@@ -46,9 +46,9 @@ MAN_10t_RotaryArm2::MAN_10t_RotaryArm2(const std::string& name) : ChRotaryArm(na
 // -----------------------------------------------------------------------------
 const ChVector<> MAN_10t_RotaryArm2::getLocation(PointId which) {
     switch (which) {
-        case PITMANARM:
+        case ARM_L:
             return ChVector<>(0.741, -0.217, 0.089);
-        case REV:
+        case ARM_C:
             return ChVector<>(0.850, -0.028, 0.166);
         default:
             return ChVector<>(0, 0, 0);

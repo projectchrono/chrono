@@ -12,8 +12,8 @@
       "Suspension Input File": "MAN_Kat1/suspension/MAN_10t_Front1SolidThreeLinkAxle.json",
       "Suspension Location": [ 0, 0, 0 ],
       "Steering Index": 0,
-      "Left Wheel Input File": "MAN_Kat1/wheel/MAN_5t_Wheel_Left.json",
-      "Right Wheel Input File": "MAN_Kat1/wheel/MAN_5t_Wheel_Right.json",
+      "Left Wheel Input File": "MAN_Kat1/wheel/MAN_5t_Wheel.json",
+      "Right Wheel Input File": "MAN_Kat1/wheel/MAN_5t_Wheel.json",
       "Left Brake Input File": "MAN_Kat1/brake/MAN_5t_BrakeSimple.json",
       "Right Brake Input File": "MAN_Kat1/brake/MAN_5t_BrakeSimple.json"
     },
@@ -22,8 +22,8 @@
       "Suspension Input File": "MAN_Kat1/suspension/MAN_10t_Front2SolidThreeLinkAxle.json",
       "Suspension Location": [ -1.930, 0, 0 ],
       "Steering Index": 1,
-      "Left Wheel Input File": "MAN_Kat1/wheel/MAN_5t_Wheel_Left.json",
-      "Right Wheel Input File": "MAN_Kat1/wheel/MAN_5t_Wheel_Right.json",
+      "Left Wheel Input File": "MAN_Kat1/wheel/MAN_5t_Wheel.json",
+      "Right Wheel Input File": "MAN_Kat1/wheel/MAN_5t_Wheel.json",
       "Left Brake Input File": "MAN_Kat1/brake/MAN_5t_BrakeSimple.json",
       "Right Brake Input File": "MAN_Kat1/brake/MAN_5t_BrakeSimple.json"
     },
@@ -31,8 +31,8 @@
     {
       "Suspension Input File": "MAN_Kat1/suspension/MAN_7t_RearSolidThreeLinkAxle.json",
       "Suspension Location": [ -5.6, 0, 0 ],
-      "Left Wheel Input File": "MAN_Kat1/wheel/MAN_5t_Wheel_Left.json",
-      "Right Wheel Input File": "MAN_Kat1/wheel/MAN_5t_Wheel_Right.json",
+      "Left Wheel Input File": "MAN_Kat1/wheel/MAN_5t_Wheel.json",
+      "Right Wheel Input File": "MAN_Kat1/wheel/MAN_5t_Wheel.json",
       "Left Brake Input File": "MAN_Kat1/brake/MAN_5t_BrakeSimple.json",
       "Right Brake Input File": "MAN_Kat1/brake/MAN_5t_BrakeSimple.json"
     },
@@ -40,8 +40,8 @@
     {
       "Suspension Input File": "MAN_Kat1/suspension/MAN_7t_RearSolidThreeLinkAxle.json",
       "Suspension Location": [ -7.0, 0, 0 ],
-      "Left Wheel Input File": "MAN_Kat1/wheel/MAN_5t_Wheel_Left.json",
-      "Right Wheel Input File": "MAN_Kat1/wheel/MAN_5t_Wheel_Right.json",
+      "Left Wheel Input File": "MAN_Kat1/wheel/MAN_5t_Wheel.json",
+      "Right Wheel Input File": "MAN_Kat1/wheel/MAN_5t_Wheel.json",
       "Left Brake Input File": "MAN_Kat1/brake/MAN_5t_BrakeSimple.json",
       "Right Brake Input File": "MAN_Kat1/brake/MAN_5t_BrakeSimple.json"
     }

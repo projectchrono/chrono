@@ -135,10 +135,7 @@ void RigidChassis::Create(const rapidjson::Document& d) {
     // Read chassis visualization
     if (d.HasMember("Visualization")) {
         if (d["Visualization"].HasMember("Mesh")) {
-            assert(d["Visualization"]["Mesh"].HasMember("Filename"));
-            assert(d["Visualization"]["Mesh"].HasMember("Name"));
-            m_vis_mesh_file = d["Visualization"]["Mesh"]["Filename"].GetString();
-            m_vis_mesh_name = d["Visualization"]["Mesh"]["Name"].GetString();
+            m_vis_mesh_file = d["Visualization"]["Mesh"].GetString();
             m_has_mesh = true;
         }
         if (d["Visualization"].HasMember("Primitives")) {

@@ -48,14 +48,14 @@
 
 #include "chrono_vehicle/terrain/CRGTerrain.h"
 
+#include "chrono_thirdparty/filesystem/path.h"
+
 extern "C" {
 #include "crgBaseLib.h"
 }
 
 namespace chrono {
 namespace vehicle {
-
-const std::string CRGTerrain::m_mesh_name = "crg_road";
 
 CRGTerrain::CRGTerrain(ChSystem* system)
     : m_use_vis_mesh(true), m_friction(0.8f), m_dataSetId(0), m_cpId(0), m_isClosed(false) {
@@ -138,7 +138,14 @@ void CRGTerrain::Initialize(const std::string& crg_file) {
         m_isClosed = (uIsClosed != 0);
     }
 
+    // Set mesh and curve names based on name of CRG input file.
+    auto stem = filesystem::path(crg_file).stem();
+    m_mesh_name = stem + "_mesh";
+    m_curve_left_name = stem + "_left";
+    m_curve_right_name = stem + "_right";
+
     GenerateMesh();
+    GenerateCurves();
 
     if (m_use_vis_mesh) {
         SetupMeshGraphics();
@@ -190,7 +197,7 @@ ChVector<> CRGTerrain::GetNormal(double x, double y) const {
     return normal;
 }
 
-std::shared_ptr<ChBezierCurve> CRGTerrain::GetPath() {
+std::shared_ptr<ChBezierCurve> CRGTerrain::GetRoadCenterLine() {
     std::vector<ChVector<>> pathpoints;
 
     // damp z oscillation for the path definition
@@ -225,16 +232,14 @@ std::shared_ptr<ChBezierCurve> CRGTerrain::GetPath() {
     return chrono_types::make_shared<ChBezierCurve>(pathpoints);
 }
 
-void CRGTerrain::SetupLineGraphics() {
+void CRGTerrain::GenerateCurves() {
     double dp = 3.0;
     size_t np = static_cast<size_t>(m_uend / dp);
-    std::vector<ChVector<>> pl, pr;
-    unsigned int num_render_points = std::max<unsigned int>(static_cast<unsigned int>(3 * np), 400);
-
     double du = (m_uend - m_ubeg) / double(np - 1);
+    std::vector<ChVector<>> pl, pr;
 
     for (size_t i = 0; i < np; i++) {
-        double u = m_ubeg + double(i) * du;
+        double u = m_ubeg + i * du;
         double xl, yl, zl;
         double xr, yr, zr;
 
@@ -263,24 +268,31 @@ void CRGTerrain::SetupLineGraphics() {
         pr.back() = pr[0];
     }
 
+    // Create the two road boundary Bezier curves
+    m_road_left = chrono_types::make_shared<ChBezierCurve>(pl);
+    m_road_right = chrono_types::make_shared<ChBezierCurve>(pr);
+}
+
+void CRGTerrain::SetupLineGraphics() {
     auto mfloorcolor = chrono_types::make_shared<ChColorAsset>();
     mfloorcolor->SetColor(ChColor(0.3f, 0.3f, 0.6f));
     m_ground->AddAsset(mfloorcolor);
 
-    // Create a Bezier curve asset, reusing the points
-    auto bezier_curve_left = chrono_types::make_shared<ChBezierCurve>(pl);
-    auto bezier_line_left = chrono_types::make_shared<geometry::ChLineBezier>(bezier_curve_left);
+    auto np = m_road_left->getNumPoints();
+    unsigned int num_render_points = std::max<unsigned int>(static_cast<unsigned int>(3 * np), 400);
+
+    auto bezier_line_left = chrono_types::make_shared<geometry::ChLineBezier>(m_road_left);
     auto bezier_asset_left = chrono_types::make_shared<ChLineShape>();
     bezier_asset_left->SetLineGeometry(bezier_line_left);
     bezier_asset_left->SetNumRenderPoints(num_render_points);
+    bezier_asset_left->SetName(m_curve_left_name);
     m_ground->AddAsset(bezier_asset_left);
 
-    // Create a Bezier curve asset, reusing the points
-    auto bezier_curve_right = chrono_types::make_shared<ChBezierCurve>(pr);
-    auto bezier_line_right = chrono_types::make_shared<geometry::ChLineBezier>(bezier_curve_right);
+    auto bezier_line_right = chrono_types::make_shared<geometry::ChLineBezier>(m_road_right);
     auto bezier_asset_right = chrono_types::make_shared<ChLineShape>();
     bezier_asset_right->SetLineGeometry(bezier_line_right);
     bezier_asset_right->SetNumRenderPoints(num_render_points);
+    bezier_asset_right->SetName(m_curve_right_name);
     m_ground->AddAsset(bezier_asset_right);
 }
 
@@ -379,13 +391,21 @@ void CRGTerrain::SetupMeshGraphics() {
 }
 
 void CRGTerrain::ExportMeshWavefront(const std::string& out_dir) {
-    std::vector<geometry::ChTriangleMeshConnected> meshes = { *m_mesh };
+    std::vector<geometry::ChTriangleMeshConnected> meshes = {*m_mesh};
     geometry::ChTriangleMeshConnected::WriteWavefront(out_dir + "/" + m_mesh_name + ".obj", meshes);
 }
 
 void CRGTerrain::ExportMeshPovray(const std::string& out_dir) {
     utils::WriteMeshPovray(*m_mesh, m_mesh_name, out_dir, ChColor(1, 1, 1));
 }
+
+void CRGTerrain::ExportCurvesPovray(const std::string& out_dir) {
+    if (m_use_vis_mesh)
+        return;
+    utils::WriteCurvePovray(*m_road_left, m_curve_left_name, out_dir, 0.04, ChColor(0.5f, 0.8f, 0.0f));
+    utils::WriteCurvePovray(*m_road_right, m_curve_right_name, out_dir, 0.04, ChColor(0.5f, 0.8f, 0.0f));
+}
+
 
 }  // end namespace vehicle
 }  // end namespace chrono

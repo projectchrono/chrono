@@ -71,11 +71,11 @@ void HMMWV_VehicleReduced::Create(bool fixed, ChassisCollisionType chassis_colli
     m_axles[1]->m_suspension = chrono_types::make_shared<HMMWV_DoubleWishboneReducedRear>("RearSusp");
 
     m_axles[0]->m_wheels.resize(2);
-    m_axles[0]->m_wheels[0] = chrono_types::make_shared<HMMWV_WheelLeft>("Wheel_FL");
-    m_axles[0]->m_wheels[1] = chrono_types::make_shared<HMMWV_WheelRight>("Wheel_FR");
+    m_axles[0]->m_wheels[0] = chrono_types::make_shared<HMMWV_Wheel>("Wheel_FL");
+    m_axles[0]->m_wheels[1] = chrono_types::make_shared<HMMWV_Wheel>("Wheel_FR");
     m_axles[1]->m_wheels.resize(2);
-    m_axles[1]->m_wheels[0] = chrono_types::make_shared<HMMWV_WheelLeft>("Wheel_RL");
-    m_axles[1]->m_wheels[1] = chrono_types::make_shared<HMMWV_WheelRight>("Wheel_RR");
+    m_axles[1]->m_wheels[0] = chrono_types::make_shared<HMMWV_Wheel>("Wheel_RL");
+    m_axles[1]->m_wheels[1] = chrono_types::make_shared<HMMWV_Wheel>("Wheel_RR");
 
     m_axles[0]->m_brake_left = chrono_types::make_shared<HMMWV_BrakeSimple>("Brake_FL");
     m_axles[0]->m_brake_right = chrono_types::make_shared<HMMWV_BrakeSimple>("Brake_FR");

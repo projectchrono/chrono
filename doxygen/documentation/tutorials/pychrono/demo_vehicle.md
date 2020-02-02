@@ -13,8 +13,8 @@ Remember to change data paths in the code.
 	
 HMMWV predefined model:
 
-\include demo_vehicle_1.py
+\include demo_vehicle_HMMWV.py
 
 HMMWV imported from json file:
 
-\include demo_vehicle_2.py
+\include demo_vehicle_HMMWV_JSON.py

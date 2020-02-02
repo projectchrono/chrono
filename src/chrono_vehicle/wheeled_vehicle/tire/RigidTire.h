@@ -19,8 +19,6 @@
 #ifndef RIGID_TIRE_H
 #define RIGID_TIRE_H
 
-#include "chrono/assets/ChTriangleMeshShape.h"
-
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChRigidTire.h"
 
@@ -56,8 +54,8 @@ class CH_VEHICLE_API RigidTire : public ChRigidTire {
     ChVector<> m_inertia;
 
     bool m_has_mesh;
-    std::string m_meshName;
-    std::string m_meshFile;
+    std::string m_meshFile_left;
+    std::string m_meshFile_right;
     std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
 };
 

@@ -69,3 +69,12 @@
 
 
 %include "models/PowertrainModels.i"
+
+
+//
+// C- DOWNCASTING OF SHARED POINTERS
+//
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChPowertrain, SimplePowertrain)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChPowertrain, SimpleMapPowertrain)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChPowertrain, SimpleCVTPowertrain)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChPowertrain, ShaftsPowertrain)
