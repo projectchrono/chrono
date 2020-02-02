@@ -259,7 +259,7 @@ void function_CalcContactForces(
         }
 
         // Load the initial collision velocity and accumulated contact duration from the contact history
-        relvel_init = contact_relvel_init[ctSaveId];
+        relvel_init = (contact_relvel_init[ctSaveId] < char_vel) ? char_vel : contact_relvel_init[ctSaveId];
         t_contact = contact_duration[ctSaveId];
     }
 
@@ -319,14 +319,14 @@ void function_CalcContactForces(
                 real sqrt_Rd = Sqrt(eff_radius[index] * delta_n);
                 real Sn = 2 * E_eff * sqrt_Rd;
                 real St = 8 * G_eff * sqrt_Rd;
-                real loge = (cr_eff < eps) ? Log(eps) : Log(cr_eff);
+                cr_eff = (cr_eff < 0.01) ? 0.01 : cr_eff;
+                cr_eff = (cr_eff > 1.0 - eps) ? 1.0 - eps : cr_eff;
+                real loge = Log(cr_eff);
                 real beta = loge / Sqrt(loge * loge + CH_C_PI * CH_C_PI);
-                real cr = (cr_eff < eps) ? 0.01 : cr_eff;
-                cr = (cr_eff > 1.0 - eps) ? 1.0 - eps : cr;
                 char_vel = (displ_mode == ChSystemSMC::TangentialDisplacementModel::MultiStep) ? relvel_init : char_vel;
                 kn = (2.0 / 3.0) * Sn;
                 kt = (2.0 / 3.0) * St;
-                gn = 8.0 * (1.0 - cr) * kn * delta_n / (5.0 * cr * char_vel);
+                gn = 8.0 * (1.0 - cr_eff) * kn * delta_n / (5.0 * cr_eff * char_vel);
                 gt = -2 * Sqrt(5.0 / 6) * beta * Sqrt(St * m_eff);  // Need to multiply St by 2/3 here as well ?
             } else {
                 real tmp = eff_radius[index] * Sqrt(delta_n);
@@ -377,18 +377,15 @@ void function_CalcContactForces(
 
                 // If the duration of the current contact is less than the durration of a typical collision,
                 // do not apply friction. Rolling and spinning friction should only be applied to persistant contacts
-                //
-				// TODO: The t_collision calc will result in a NAN for critically damped or overdamped systems. Fix
-                // this.
-                if (cr_eff > eps) {
-					real d_coeff = gn_simple / (2.0 * m_eff * Sqrt(kn_simple / m_eff));
-					real t_collision = CH_C_PI * Sqrt(m_eff / (kn_simple * (1 - d_coeff * d_coeff)));
-
-					if (t_contact <= t_collision) {
-						muRoll_eff = 0.0;
-						muSpin_eff = 0.0;
-					}
-				}
+                // Rolling and spinning friction are applied right away for critically damped or over-damped systems
+                real d_coeff = gn_simple / (2.0 * m_eff * Sqrt(kn_simple / m_eff));
+                if (d_coeff < 1.0) {
+                    real t_collision = CH_C_PI * Sqrt(m_eff / (kn_simple * (1 - d_coeff * d_coeff)));
+                    if (t_contact <= t_collision) {
+                        muRoll_eff = 0.0;
+                        muSpin_eff = 0.0;
+                    }
+                }
 
                 // Compute some additional vales needed for the rolling and spinning friction calculations
                 real3 v_rot = Rotate(Cross(o_body2, pt2_loc), rot[body2]) - Rotate(Cross(o_body1, pt1_loc), rot[body1]);
@@ -503,13 +500,11 @@ void function_CalcContactForces(
     real3 torque2_loc = Cross(pt2_loc, RotateT(force, rot[body2]));
 
     // If the duration of the current contact is less than the durration of a typical collision,
-    // do not apply friction. Rolling and spinning friction should only be applied to persistant contacts
-    //
-	// TODO: The t_collision calc will result in a NAN for critically damped or overdamped systems. Fix this.
-    if (cr_eff > eps) {
-		real d_coeff = gn_simple / (2.0 * m_eff * Sqrt(kn_simple / m_eff));
+    // do not apply friction. Rolling and spinning friction should only be applied to persistant contacts.
+    // Rolling and spinning friction are applied right away for critically damped or over-damped systems.
+    real d_coeff = gn_simple / (2.0 * m_eff * Sqrt(kn_simple / m_eff));
+    if (d_coeff < 1.0) {
 		real t_collision = CH_C_PI * Sqrt(m_eff / (kn_simple * (1 - d_coeff * d_coeff)));
-
 		if (t_contact <= t_collision) {
 			muRoll_eff = 0.0;
 			muSpin_eff = 0.0;
