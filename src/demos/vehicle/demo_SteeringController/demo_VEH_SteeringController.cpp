@@ -54,7 +54,7 @@ using namespace chrono::vehicle::hmmwv;
 ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::SMC;
 
 // Type of tire model (RIGID, LUGRE, FIALA, PACEJKA, or TMEASY)
-TireModelType tire_model = TireModelType::RIGID;
+TireModelType tire_model = TireModelType::TMEASY;
 
 // Type of powertrain model (SHAFTS or SIMPLE)
 PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
@@ -71,7 +71,7 @@ VisualizationType chassis_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType suspension_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType wheel_vis_type = VisualizationType::MESH;
-VisualizationType tire_vis_type = VisualizationType::NONE;
+VisualizationType tire_vis_type = VisualizationType::MESH;
 
 // Input file names for the path-follower driver model
 ////std::string path_file("paths/straight.txt");

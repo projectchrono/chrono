@@ -82,9 +82,9 @@
   // ------------------------------------------------
   // Visualization mesh (OPTIONAL)
 
-  "Visualization": {
-    "Mesh Filename": "hmmwv/hmmwv_tire.obj",
-    "Mesh Name": "hmmwv_tire_POV_geom"
-  }
+    "Visualization": {
+        "Mesh Filename Left": "hmmwv/hmmwv_tire_left.obj",
+        "Mesh Filename Right": "hmmwv/hmmwv_tire_right.obj"
+    }
 
 }

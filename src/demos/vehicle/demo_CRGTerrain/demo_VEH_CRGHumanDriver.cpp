@@ -95,7 +95,7 @@ int main(int argc, char* argv[]) {
     terrain.Initialize(vehicle::GetDataFile(crg_road_file));
 
     // Get the vehicle path (middle of the road)
-    auto path = terrain.GetPath();
+    auto path = terrain.GetRoadCenterLine();
     bool path_is_closed = terrain.IsPathClosed();
     double road_length = terrain.GetLength();
     double road_width = terrain.GetWidth();

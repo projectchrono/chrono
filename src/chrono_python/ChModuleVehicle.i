@@ -103,6 +103,7 @@ using namespace chrono::vehicle::hmmwv;
 using namespace chrono::vehicle::sedan;
 using namespace chrono::vehicle::citybus;
 using namespace chrono::vehicle::man;
+using namespace chrono::vehicle::uaz;
 
 %}
 
@@ -267,7 +268,7 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 
 // Wheeled parts
 %include "ChSuspension.i"
-%include "ChDrivelineWV.i"
+%include "ChDriveline.i"
 %include "ChSteering.i"
 
 %include "../chrono_vehicle/wheeled_vehicle/ChWheel.h"

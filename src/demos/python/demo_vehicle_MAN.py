@@ -38,7 +38,7 @@ chassis_vis_type = veh.VisualizationType_MESH
 suspension_vis_type = veh.VisualizationType_PRIMITIVES
 steering_vis_type = veh.VisualizationType_PRIMITIVES
 wheel_vis_type = veh.VisualizationType_MESH
-tire_vis_type = veh.VisualizationType_NONE
+tire_vis_type = veh.VisualizationType_MESH
 
 # Collision type for chassis (PRIMITIVES, MESH, or NONE)
 chassis_collision_type = veh.ChassisCollisionType_NONE
@@ -47,13 +47,12 @@ chassis_collision_type = veh.ChassisCollisionType_NONE
 tire_model = veh.TireModelType_TMEASY
 
 # Rigid terrain
-terrain_model = veh.RigidTerrain.BOX
 terrainHeight = 0      # terrain height (FLAT terrain only)
 terrainLength = 200.0  # size in X direction
 terrainWidth = 200.0   # size in Y direction
 
 # Poon chassis tracked by the camera
-trackPoint = chrono.ChVectorD(0.0, 0.0, 1.75)
+trackPoint = chrono.ChVectorD(-3.0, 0.0, 1.75)
 
 # Contact method
 contact_method = chrono.ChMaterialSurface.SMC

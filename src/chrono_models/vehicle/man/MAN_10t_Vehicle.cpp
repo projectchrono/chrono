@@ -67,20 +67,20 @@ void MAN_10t_Vehicle::Create(bool fixed, ChassisCollisionType chassis_collision_
     m_axles[3]->m_suspension = chrono_types::make_shared<MAN_7t_Solid3LinkAxle>("RearSusp2");
 
     m_axles[0]->m_wheels.resize(2);
-    m_axles[0]->m_wheels[0] = chrono_types::make_shared<MAN_5t_WheelLeft>("Wheel_FL1");
-    m_axles[0]->m_wheels[1] = chrono_types::make_shared<MAN_5t_WheelRight>("Wheel_FR1");
+    m_axles[0]->m_wheels[0] = chrono_types::make_shared<MAN_5t_Wheel>("Wheel_FL1");
+    m_axles[0]->m_wheels[1] = chrono_types::make_shared<MAN_5t_Wheel>("Wheel_FR1");
 
     m_axles[1]->m_wheels.resize(2);
-    m_axles[1]->m_wheels[0] = chrono_types::make_shared<MAN_5t_WheelLeft>("Wheel_FL2");
-    m_axles[1]->m_wheels[1] = chrono_types::make_shared<MAN_5t_WheelRight>("Wheel_FR2");
+    m_axles[1]->m_wheels[0] = chrono_types::make_shared<MAN_5t_Wheel>("Wheel_FL2");
+    m_axles[1]->m_wheels[1] = chrono_types::make_shared<MAN_5t_Wheel>("Wheel_FR2");
 
     m_axles[2]->m_wheels.resize(2);
-    m_axles[2]->m_wheels[0] = chrono_types::make_shared<MAN_5t_WheelLeft>("Wheel_RL1");
-    m_axles[2]->m_wheels[1] = chrono_types::make_shared<MAN_5t_WheelRight>("Wheel_RR1");
+    m_axles[2]->m_wheels[0] = chrono_types::make_shared<MAN_5t_Wheel>("Wheel_RL1");
+    m_axles[2]->m_wheels[1] = chrono_types::make_shared<MAN_5t_Wheel>("Wheel_RR1");
 
     m_axles[3]->m_wheels.resize(2);
-    m_axles[3]->m_wheels[0] = chrono_types::make_shared<MAN_5t_WheelLeft>("Wheel_RL2");
-    m_axles[3]->m_wheels[1] = chrono_types::make_shared<MAN_5t_WheelRight>("Wheel_RR2");
+    m_axles[3]->m_wheels[0] = chrono_types::make_shared<MAN_5t_Wheel>("Wheel_RL2");
+    m_axles[3]->m_wheels[1] = chrono_types::make_shared<MAN_5t_Wheel>("Wheel_RR2");
 
     m_axles[0]->m_brake_left = chrono_types::make_shared<MAN_5t_BrakeSimple>("Brake_FL1");
     m_axles[0]->m_brake_right = chrono_types::make_shared<MAN_5t_BrakeSimple>("Brake_FR1");

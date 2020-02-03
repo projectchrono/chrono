@@ -51,6 +51,7 @@ VisualizationType chassis_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType suspension_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType wheel_vis_type = VisualizationType::NONE;
+VisualizationType tire_vis_type = VisualizationType::PRIMITIVES;
 
 // Type of powertrain model (SHAFTS, SIMPLE, SIMPLE_CVT)
 PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
@@ -91,8 +92,9 @@ int main(int argc, char* argv[]) {
     my_hmmwv.Initialize();
 
     // Set subsystem visualization mode
-    VisualizationType tire_vis_type =
-        (tire_model == TireModelType::RIGID_MESH) ? VisualizationType::MESH : VisualizationType::PRIMITIVES;
+    if (tire_model == TireModelType::RIGID_MESH)
+        tire_vis_type = VisualizationType::MESH;
+
     my_hmmwv.SetChassisVisualizationType(chassis_vis_type);
     my_hmmwv.SetSuspensionVisualizationType(suspension_vis_type);
     my_hmmwv.SetSteeringVisualizationType(steering_vis_type);

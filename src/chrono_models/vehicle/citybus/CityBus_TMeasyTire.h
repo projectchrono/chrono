@@ -19,8 +19,6 @@
 #ifndef CITYBUS_TMEASY_TIRE_H
 #define CITYBUS_TMEASY_TIRE_H
 
-#include "chrono/assets/ChTriangleMeshShape.h"
-
 #include "chrono_vehicle/wheeled_vehicle/tire/ChTMeasyTire.h"
 
 #include "chrono_models/ChApiModels.h"
@@ -50,7 +48,6 @@ class CH_MODELS_API CityBus_TMeasyTire : public ChTMeasyTire {
     void GenerateCharacteristicPlots(const std::string& dirname);
 
   private:
-    static const std::string m_meshName;
     static const std::string m_meshFile;
     static const double m_mass;
     static const ChVector<> m_inertia;

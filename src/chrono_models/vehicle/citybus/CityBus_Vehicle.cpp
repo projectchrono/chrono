@@ -55,19 +55,14 @@ void CityBus_Vehicle::Create(bool fixed, ChassisCollisionType chassis_collision_
     m_axles[1]->m_suspension = chrono_types::make_shared<CityBus_LeafspringAxle>("RearSusp");
 
     m_axles[0]->m_wheels.resize(2);
-    m_axles[0]->m_wheels[0] = chrono_types::make_shared<CityBus_WheelLeft>("Wheel_FL");
-    m_axles[0]->m_wheels[1] = chrono_types::make_shared<CityBus_WheelRight>("Wheel_FR");
-    /* Solid axle with two single wheels/tires
-    m_axles[1]->m_wheels.resize(2);
-    m_axles[1]->m_wheels[0] = chrono_types::make_shared<CityBus_WheelLeft>("Wheel_RL");
-    m_axles[1]->m_wheels[1] = chrono_types::make_shared<CityBus_WheelRight>("Wheel_RR");
-    */
+    m_axles[0]->m_wheels[0] = chrono_types::make_shared<CityBus_Wheel>("Wheel_FL");
+    m_axles[0]->m_wheels[1] = chrono_types::make_shared<CityBus_Wheel>("Wheel_FR");
     // Solid axle with two twin wheels/tires
     m_axles[1]->m_wheels.resize(4);
-    m_axles[1]->m_wheels[0] = chrono_types::make_shared<CityBus_WheelLeft>("Wheel_RLi");
-    m_axles[1]->m_wheels[1] = chrono_types::make_shared<CityBus_WheelRight>("Wheel_RRi");
-    m_axles[1]->m_wheels[2] = chrono_types::make_shared<CityBus_WheelLeft>("Wheel_RLo");
-    m_axles[1]->m_wheels[3] = chrono_types::make_shared<CityBus_WheelRight>("Wheel_RRo");
+    m_axles[1]->m_wheels[0] = chrono_types::make_shared<CityBus_Wheel>("Wheel_RLi");
+    m_axles[1]->m_wheels[1] = chrono_types::make_shared<CityBus_Wheel>("Wheel_RRi");
+    m_axles[1]->m_wheels[2] = chrono_types::make_shared<CityBus_Wheel>("Wheel_RLo");
+    m_axles[1]->m_wheels[3] = chrono_types::make_shared<CityBus_Wheel>("Wheel_RRo");
 
     m_axles[0]->m_brake_left = chrono_types::make_shared<CityBus_BrakeSimple>("Brake_FL");
     m_axles[0]->m_brake_right = chrono_types::make_shared<CityBus_BrakeSimple>("Brake_FR");

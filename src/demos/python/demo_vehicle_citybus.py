@@ -46,7 +46,6 @@ chassis_collision_type = veh.ChassisCollisionType_NONE
 tire_model = veh.TireModelType_TMEASY
 
 # Rigid terrain
-terrain_model = veh.RigidTerrain.BOX
 terrainHeight = 0      # terrain height (FLAT terrain only)
 terrainLength = 200.0  # size in X direction
 terrainWidth = 200.0   # size in Y direction

@@ -25,6 +25,7 @@
 #include "chrono/core/ChCoordsys.h"
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChVector.h"
+#include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/motion_functions/ChFunction_Recorder.h"
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChPart.h"
@@ -148,6 +149,17 @@ class CH_VEHICLE_API ChTire : public ChPart {
     /// Chrono contact system or Chrono constraints) must always return zero forces
     /// and moments, else tire forces are double counted.
     virtual TerrainForce GetTireForce() const = 0;
+
+    /// Add mesh visualization to the body associated with this tire (a wheel spindle body). The two meshes are assumed
+    /// to be specified with respect to a frame with origin at the center of the tire and Y axis pointing towards the
+    /// outside. This function uses one of the two provided OBJ files, depending on the side on which the tire is
+    /// mounted. The name of the output mesh shape is set to be the stem of the input filename.
+    std::shared_ptr<ChTriangleMeshShape> AddVisualizationMesh(const std::string& mesh_file_left,
+                                                              const std::string& mesh_file_right);
+
+    /// Remove the specified mesh shape from the visualization assets of the body associated with this tire (a wheel
+    /// spindle body).
+    void RemoveVisualizationMesh(std::shared_ptr<ChTriangleMeshShape> trimesh_shape);
 
     /// Perform disc-terrain collision detection.
     /// This utility function checks for contact between a disc of specified

@@ -23,6 +23,7 @@ For more detail, read the [Chrono::Vehicle](@ref manual_vehicle) section of the 
 
 - To **build** applications based on this module there are no requirements
 
+For run-time visualization, it is recommended to enable and install the [Chrono::Irrlicht](@ref tutorial_install_chrono) module and/or the [Chrono::OpenGL](@ref module_opengl_installation) module. To use the [CRGTerrain](@ref vehicle_terrain_crg) feature, you must download, install, and enable the [OpenCRG](http://opencrg.org/download.html) library. 
 
 ## Building instructions
    
@@ -32,9 +33,11 @@ For more detail, read the [Chrono::Vehicle](@ref manual_vehicle) section of the 
 	 
 3. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
 
+If enabling OpenCRG support (`ENABLE_OPENCRG`), you will be prompted to provide the location of a local installation of OpenCRG, including the location of the headers, library, and (Windows only) the location of the OpenCRG DLL.
+
 
 ## How to use it
 
-- Look at the [API section](group__vehicle.html) of this module for documentation about classes and functions.
+- Look at the [API section](@ref vehicle) of this module for documentation about classes and functions.
 
 - Look at the C++ source of [demos](@ref tutorial_table_of_content_chrono_vehicle) to learn how to use the functions of this module.

@@ -19,8 +19,6 @@
 #ifndef GENERIC_RIGIDMESH_TIRE_H
 #define GENERIC_RIGIDMESH_TIRE_H
 
-#include "chrono/assets/ChTriangleMeshShape.h"
-
 #include "chrono_vehicle/wheeled_vehicle/tire/ChRigidTire.h"
 
 #include "chrono_models/ChApiModels.h"
@@ -53,9 +51,7 @@ class CH_MODELS_API Generic_RigidMeshTire : public ChRigidTire {
     static const double m_mass;
     static const ChVector<> m_inertia;
 
-    static const std::string m_meshName;
     static const std::string m_meshFile;
-
     std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
 };
 

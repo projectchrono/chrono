@@ -60,7 +60,6 @@ MAN_10t_Chassis::MAN_10t_Chassis(const std::string& name, bool fixed, ChassisCol
     m_vis_boxes.push_back(box1);
 
     m_has_mesh = true;
-    m_vis_mesh_name = "MAN_10t_chassis_POV_geom";
     m_vis_mesh_file = "MAN_Kat1/meshes/MAN_10t_chassis.obj";
 
     m_has_collision = (chassis_collision_type != ChassisCollisionType::NONE);

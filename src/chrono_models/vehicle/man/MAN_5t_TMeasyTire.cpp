@@ -30,8 +30,7 @@ namespace man {
 // Static variables
 // -----------------------------------------------------------------------------
 
-const std::string MAN_5t_TMeasyTire::m_meshName = "man_tire_POV_geom";
-const std::string MAN_5t_TMeasyTire::m_meshFile = "man/MAN_5t_wheel_L.obj";
+const std::string MAN_5t_TMeasyTire::m_meshFile = "MAN_Kat1/meshes/MAN_tire.obj";
 
 const double MAN_5t_TMeasyTire::m_mass = 104.0;
 const ChVector<> MAN_5t_TMeasyTire::m_inertia(17.8651, 31.6623, 17.8651);
@@ -75,14 +74,8 @@ void MAN_5t_TMeasyTire::GenerateCharacteristicPlots(const std::string& dirname) 
 // -----------------------------------------------------------------------------
 void MAN_5t_TMeasyTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-        trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
-        trimesh->Transform(ChVector<>(0, GetOffset(), 0), ChMatrix33<>(1));
-        m_trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
-        m_trimesh_shape->SetMesh(trimesh);
-        m_trimesh_shape->SetStatic(true);
-        m_trimesh_shape->SetName(m_meshName);
-        m_wheel->GetSpindle()->AddAsset(m_trimesh_shape);
+        m_trimesh_shape = AddVisualizationMesh(vehicle::GetDataFile(m_meshFile),   // left side
+                                               vehicle::GetDataFile(m_meshFile));  // right side
     } else {
         ChTMeasyTire::AddVisualizationAssets(vis);
     }
@@ -90,14 +83,7 @@ void MAN_5t_TMeasyTire::AddVisualizationAssets(VisualizationType vis) {
 
 void MAN_5t_TMeasyTire::RemoveVisualizationAssets() {
     ChTMeasyTire::RemoveVisualizationAssets();
-
-    // Make sure we only remove the assets added by MAN_5t_TMeasyTire::AddVisualizationAssets.
-    // This is important for the ChTire object because a wheel may add its own assets
-    // to the same body (the spindle/wheel).
-    auto& assets = m_wheel->GetSpindle()->GetAssets();
-    auto it = std::find(assets.begin(), assets.end(), m_trimesh_shape);
-    if (it != assets.end())
-        assets.erase(it);
+    RemoveVisualizationMesh(m_trimesh_shape);
 }
 
 }  // namespace man

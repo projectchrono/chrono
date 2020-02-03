@@ -9,9 +9,9 @@
     "Inertia":                  [0.00638, 0.00756, 0.00150],
     "Inertia Products":         [0, 0, 0],
     "Radius":                   0.02,
-    "Axis of Rotation":         [0, 0, 1],
-    "Point of Rotation":        [0.850, -0.028, 0.166],
-    "Point to Draglink":        [0.741, -0.217, 0.089],
+    "Axis of Rotation":         [0, 0, 1],               // arm-chassis revolute joint
+    "Point of Rotation":        [0.850, -0.028, 0.166],  // location of chassis connection
+    "Point to Draglink":        [0.741, -0.217, 0.089],  // location of draglink connection
     "Maximum Angle Degrees":    28.37
   }
   

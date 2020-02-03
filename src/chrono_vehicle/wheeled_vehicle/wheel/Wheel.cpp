@@ -21,6 +21,7 @@
 #include "chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_thirdparty/filesystem/path.h"
 
 using namespace rapidjson;
 
@@ -55,7 +56,6 @@ void Wheel::Create(const rapidjson::Document& d) {
     if (d.HasMember("Visualization")) {
         if (d["Visualization"].HasMember("Mesh Filename")) {
             m_meshFile = d["Visualization"]["Mesh Filename"].GetString();
-            m_meshName = d["Visualization"]["Mesh Name"].GetString();
             m_has_mesh = true;
         }
 
@@ -68,11 +68,15 @@ void Wheel::Create(const rapidjson::Document& d) {
 // -----------------------------------------------------------------------------
 void Wheel::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH && m_has_mesh) {
+        ChQuaternion<> rot = (m_side == VehicleSide::LEFT) ? Q_from_AngZ(0) : Q_from_AngZ(CH_C_PI);
         auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
         trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
+        trimesh->Transform(ChVector<>(0, m_offset, 0), ChMatrix33<>(rot));
         m_trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        m_trimesh_shape->Pos = ChVector<>(0, m_offset, 0);
+        m_trimesh_shape->Rot = ChMatrix33<>(rot);
         m_trimesh_shape->SetMesh(trimesh);
-        m_trimesh_shape->SetName(m_meshName);
+        m_trimesh_shape->SetName(filesystem::path(m_meshFile).stem());
         m_trimesh_shape->SetStatic(true);
         GetSpindle()->AddAsset(m_trimesh_shape);
     } else {

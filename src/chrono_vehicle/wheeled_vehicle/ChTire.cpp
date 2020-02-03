@@ -23,6 +23,7 @@
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
+#include "chrono_thirdparty/filesystem/path.h"
 
 namespace chrono {
 namespace vehicle {
@@ -95,6 +96,42 @@ void ChTire::CalculateKinematics(double time, const WheelState& state, const ChT
 
     // Camber angle (positive sign = upper side tipping to the left, negative sign = upper side tipping to the right)
     m_camber_angle = std::atan2(n.z(), n.y());
+}
+
+// -----------------------------------------------------------------------------
+// Utility functions for adding/removing a mesh visualization asset to this tire
+// -----------------------------------------------------------------------------
+
+// Add visualization mesh: use one of the two provided OBJ files, depending on the side on which the tire is mounted.
+std::shared_ptr<ChTriangleMeshShape> ChTire::AddVisualizationMesh(const std::string& mesh_file_left,
+                                                                  const std::string& mesh_file_right) {
+    bool left = (m_wheel->GetSide() == VehicleSide::LEFT);
+    ChQuaternion<> rot = left ? Q_from_AngZ(0) : Q_from_AngZ(CH_C_PI);
+    auto meshFile = left ? mesh_file_left : mesh_file_right;
+
+    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+    trimesh->LoadWavefrontMesh(meshFile, false, false);
+    trimesh->Transform(ChVector<>(0, GetOffset(), 0), ChMatrix33<>(rot));
+
+    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+    trimesh_shape->Pos = ChVector<>(0, GetOffset(), 0);
+    trimesh_shape->Rot = ChMatrix33<>(rot);
+    trimesh_shape->SetMesh(trimesh);
+    trimesh_shape->SetName(filesystem::path(meshFile).stem());
+    trimesh_shape->SetStatic(true);
+
+    m_wheel->GetSpindle()->AddAsset(trimesh_shape);
+
+    return trimesh_shape;
+}
+
+// Remove visualization mesh shape. Make sure to only remove the specified asset.  A associated body (a wheel spindle)
+// may have additional assets.
+void ChTire::RemoveVisualizationMesh(std::shared_ptr<ChTriangleMeshShape> trimesh_shape) {
+    auto& assets = m_wheel->GetSpindle()->GetAssets();
+    auto it = std::find(assets.begin(), assets.end(), trimesh_shape);
+    if (it != assets.end())
+        assets.erase(it);
 }
 
 // -----------------------------------------------------------------------------
