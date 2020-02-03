@@ -29,9 +29,12 @@ class ChApi ChMaterialSurfaceSMC : public ChMaterialSurface {
     float poisson_ratio;      ///< Poisson ratio
     float static_friction;    ///< Static coefficient of friction
     float sliding_friction;   ///< Kinetic coefficient of friction
+    float rolling_friction;   ///< Rolling coefficient of friction
+    float spinning_friction;  ///< Spinning coefficient of friction
     float restitution;        ///< Coefficient of restitution
     float constant_adhesion;  ///< Constant adhesion force, when constant adhesion model is used
     float adhesionMultDMT;    ///< Adhesion multiplier used in DMT model.
+    float adhesionSPerko;     ///< Adhesion multiplier used in Perko model.
 
     // DMT adhesion model:
     //     adhesion = adhesionMultDMT * sqrt(R_eff).
@@ -39,6 +42,10 @@ class ChApi ChMaterialSurfaceSMC : public ChMaterialSurface {
     //     adhesionMultDMT = 2 * CH_C_PI * w * sqrt(R_eff).
     // Given the equilibrium penetration distance, y_eq,
     //     adhesionMultDMT = 4.0 / 3.0 * E_eff * powf(y_eq, 1.5)
+    // Perko et al. (2001) ahdesion  model:
+    //     adhesion = 3.6E-2 * S^2 * R_eff
+    // Given S a the measurement of cleanliness
+    //     adhesionSPerko = S
 
     float kn;  ///< user-specified normal stiffness coefficient
     float kt;  ///< user-specified tangential stiffness coefficient
@@ -73,6 +80,14 @@ class ChApi ChMaterialSurfaceSMC : public ChMaterialSurface {
     /// Set both static friction and kinetic friction at once, with same value.
     void SetFriction(float val);
 
+	/// Rolling friction coefficient. Usually around 1E-3. Default = 0
+    float GetRollingFriction() const { return rolling_friction; }
+    void SetRollingFriction(float val) { rolling_friction = val; }
+
+	/// Spinning friction coefficient. Usually around 1E-3. Default = 0
+    float GetSpinningFriction() const { return spinning_friction; }
+    void SetSpinningFriction(float val) { spinning_friction = val; }
+
     /// Normal restitution coefficient
     float GetRestitution() const { return restitution; }
     void SetRestitution(float val) { restitution = val; }
@@ -84,6 +99,10 @@ class ChApi ChMaterialSurfaceSMC : public ChMaterialSurface {
     /// Adhesion multiplier
     float GetAdhesionMultDMT() const { return adhesionMultDMT; }
     void SetAdhesionMultDMT(float val) { adhesionMultDMT = val; }
+
+	/// Cleanliness factor for Perko adhesion model
+    float GetAdhesionSPerko() const { return adhesionSPerko; }
+    void SetAdhesionSPerko(float val) { adhesionSPerko = val; }
 
     /// Stiffness and damping coefficients
     float GetKn() const { return kn; }
@@ -115,9 +134,12 @@ class ChApi ChMaterialCompositeSMC : public ChMaterialComposite {
     float E_eff;                ///< Effective elasticity modulus
     float G_eff;                ///< Effective shear modulus
     float mu_eff;               ///< Effective coefficient of friction
+    float muRoll_eff;           ///< Effective coefficient of rolling friction
+    float muSpin_eff;           ///< Effective coefficient of spinning friction
     float cr_eff;               ///< Effective coefficient of restitution
     float adhesion_eff;         ///< Effective cohesion force
     float adhesionMultDMT_eff;  ///< Effective adhesion multiplier (DMT model)
+    float adhesionSPerko_eff;   ///< Effective cleanliness factor (Perko model)
 
     float kn;  ///< normal stiffness coefficient
     float kt;  ///< tangential stiffness coefficient
