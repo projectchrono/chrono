@@ -131,8 +131,8 @@ for ix in range(0,2):
 pov_exporter = postprocess.ChPovRay(my_system)
 
  # Sets some file names for in-out processes.
-pov_exporter.SetTemplateFile        (chrono.GetChronoDataPath() + "_template_POV.pov")
-pov_exporter.SetOutputScriptFile    ("rendering_frames.pov")
+pov_exporter.SetTemplateFile(chrono.GetChronoDataFile('_template_POV.pov'))
+pov_exporter.SetOutputScriptFile("rendering_frames.pov")
 if not os.path.exists("output"):
     os.mkdir("output")
 if not os.path.exists("anim"):

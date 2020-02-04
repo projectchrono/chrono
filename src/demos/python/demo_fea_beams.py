@@ -171,7 +171,7 @@ myapplication = chronoirr.ChIrrApp(my_system, 'Test FEA beams', chronoirr.dimens
 
 #application.AddTypicalLogo()
 myapplication.AddTypicalSky()
-myapplication.AddTypicalLogo(chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
+myapplication.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 myapplication.AddTypicalCamera(chronoirr.vector3df(0.1,0.1,0.2))
 myapplication.AddTypicalLights()
 

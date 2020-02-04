@@ -160,7 +160,7 @@ my_mesh.AddAsset(mvisualizebeamC)
 # bind a simple user interface, etc. etc.)
 myapplication = chronoirr.ChIrrApp(my_system, 'Test FEA: the Jeffcott rotor with IGA beams', chronoirr.dimension2du(1024,768))
 
-myapplication.AddTypicalLogo(chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
+myapplication.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 myapplication.AddTypicalSky()
 myapplication.AddTypicalCamera(chronoirr.vector3df(0,1,4), chronoirr.vector3df(beam_L/2, 0, 0))
 myapplication.AddTypicalLights()

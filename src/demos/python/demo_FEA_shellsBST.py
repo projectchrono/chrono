@@ -272,7 +272,7 @@ if (False) :
 	material = fea.ChMaterialShellKirchhoff(melasticity)
 	material.SetDensity(density)
 
-	fea.ChMeshFileLoader.BSTShellFromObjFile(my_mesh, "C:\codes\Chrono\Chrono_Source\data\cube.obj", material, thickness)
+	fea.ChMeshFileLoader.BSTShellFromObjFile(my_mesh, chrono.GetChronoDataFile('cube.obj'), material, thickness)
 
 
 

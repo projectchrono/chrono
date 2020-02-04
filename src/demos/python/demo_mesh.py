@@ -69,7 +69,7 @@ mysystem.Add(mfloor)
 # and will automatically compute the mass property (COG position respect to REF, 
 # mass and inertia tensor) given an uniform density.
 
-body_A= chrono.ChBodyEasyMesh(chrono.GetChronoDataPath() +'shoe_view.obj', # mesh filename
+body_A= chrono.ChBodyEasyMesh(chrono.GetChronoDataFile('shoe_view.obj'), # mesh filename
                               7000, # density kg/m^3
                               True, # use mesh for visualization?
                               True) # use mesh for collision?
@@ -102,7 +102,7 @@ body_B.SetFrame_COG_to_REF(chrono.ChFrameD(
 # Attach a visualization shape .
 # First load a .obj from disk into a ChTriangleMeshConnected:
 mesh_for_visualization = chrono.ChTriangleMeshConnected()
-mesh_for_visualization.LoadWavefrontMesh(chrono.GetChronoDataPath() +'shoe_view.obj')
+mesh_for_visualization.LoadWavefrontMesh(chrono.GetChronoDataFile('shoe_view.obj'))
 # Optionally: you can scale/shrink/rotate the mesh using this:
 mesh_for_visualization.Transform(chrono.ChVectorD(0.01,0,0), chrono.ChMatrix33D(1))
 # Now the  triangle mesh is inserted in a ChTriangleMeshShape visualization asset, 
@@ -119,7 +119,7 @@ body_B.AddAsset(visualization_shape)
 # collision, so the simulation performance is not affected by many details such 
 # as bolts and chamfers that may be wanted only for visualization.
 mesh_for_collision = chrono.ChTriangleMeshConnected()
-mesh_for_collision.LoadWavefrontMesh(chrono.GetChronoDataPath() +'shoe_view.obj')
+mesh_for_collision.LoadWavefrontMesh(chrono.GetChronoDataFile('shoe_view.obj'))
 # Optionally: you can scale/shrink/rotate the mesh using this:
 mesh_for_collision.Transform(chrono.ChVectorD(0.01,0,0), chrono.ChMatrix33D(1))
 body_B.GetCollisionModel().ClearModel()
@@ -149,7 +149,7 @@ mysystem.Add(body_B)
 myapplication = chronoirr.ChIrrApp(mysystem, 'PyChrono example', chronoirr.dimension2du(1024,768))
 
 myapplication.AddTypicalSky()
-myapplication.AddTypicalLogo(chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
+myapplication.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 myapplication.AddTypicalCamera(chronoirr.vector3df(0.5,0.5,1), chronoirr.vector3df(0,0,0))
 #myapplication.AddTypicalLights()
 myapplication.AddLightWithShadow(chronoirr.vector3df(3,6,2),    # point

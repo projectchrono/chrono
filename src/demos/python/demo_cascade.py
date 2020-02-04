@@ -74,8 +74,8 @@ my_floor.AddAsset(my_color)
 
 myapplication = chronoirr.ChIrrApp(mysystem, 'Use OpenCascade shapes', chronoirr.dimension2du(1024,768))
 
-myapplication.AddTypicalSky(chrono.GetChronoDataPath() + 'skybox/')
-myapplication.AddTypicalLogo(chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
+myapplication.AddTypicalSky()
+myapplication.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 myapplication.AddTypicalCamera(chronoirr.vector3df(0.2,0.2,-0.2))
 myapplication.AddTypicalLights()
 

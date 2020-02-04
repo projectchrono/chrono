@@ -11,12 +11,6 @@
 # This file shows how to use POV ray for postprocessing, thanks to the
 # utility functions in the unit_POSTPROCESS of Chrono::Engine.
 #
-# Note. Since this file requires a template file ( "_template_POV.pov" in the
-# bin/data/ directory) whose position is set with a relative path, please
-# make sure that the current directory of Python is the one where this demo
-# resides, otherwise if you launch it from another directory it does not
-# find the POV template.
-#
 #-------------------------------------------------------------------------------
 
 print ("Third tutorial: use the postprocess module.");

@@ -41,7 +41,7 @@ chrono.ChCollisionModel.SetDefaultSuggestedMargin(0.001);
 
 print ("Loading C::E scene...");
 
-exported_items = chrono.ImportSolidWorksSystem(chrono.GetChronoDataPath() + "solid_works/swiss_escapement")
+exported_items = chrono.ImportSolidWorksSystem(chrono.GetChronoDataFile('solid_works/swiss_escapement'))
 
 print ("...done!");
 
@@ -58,12 +58,11 @@ for my_item in exported_items:
 #
 #  Create an Irrlicht application to visualize the system
 #
-print (chrono.GetChronoDataFile("skybox/"))
 
 myapplication = chronoirr.ChIrrApp(my_system, 'Test: using data exported by Chrono::Solidworks', chronoirr.dimension2du(1024,768));
 
 myapplication.AddTypicalSky()
-myapplication.AddTypicalLogo(chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
+myapplication.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 myapplication.AddTypicalCamera(chronoirr.vector3df(0.3,0.3,0.4))
 myapplication.AddTypicalLights()
 

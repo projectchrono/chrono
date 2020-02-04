@@ -131,8 +131,8 @@ if not(fixed_L):
 
 myapplication = chronoirr.ChIrrApp(mysystem, 'Test', chronoirr.dimension2du(1024,768))
 
-myapplication.AddTypicalLogo(chrono.GetChronoDataPath() + "logo_pychrono_alpha.png")
-myapplication.AddTypicalSky(chrono.GetChronoDataPath() + "skybox/")
+myapplication.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+myapplication.AddTypicalSky()
 myapplication.AddTypicalCamera(chronoirr.vector3df(0.6,0.6,0.8))
 myapplication.AddTypicalLights()
 
