@@ -389,9 +389,9 @@ class CH_GRANULAR_API ChSystemGranularSMC {
         float3 reaction_forces = BC_params_list_SU.at(BC_id).reaction_forces;
 
         // conversion from SU to UU force
-        forces[0] = reaction_forces.x * FORCE_SU2UU;
-        forces[1] = reaction_forces.y * FORCE_SU2UU;
-        forces[2] = reaction_forces.z * FORCE_SU2UU;
+        forces[0] = (float)(reaction_forces.x * FORCE_SU2UU);
+        forces[1] = (float)(reaction_forces.y * FORCE_SU2UU);
+        forces[2] = (float)(reaction_forces.z * FORCE_SU2UU);
         return true;
     }
 
@@ -677,7 +677,7 @@ class CH_GRANULAR_API ChSystemGranularSMC {
     /// Helper function to convert a position in UU to its SU representation while also changing data type
     template <typename T1, typename T2>
     T1 convertToPosSU(T2 val) {
-        return val / gran_params->LENGTH_UNIT;
+        return (T1)(val / gran_params->LENGTH_UNIT);
     }
 
     /// convert all BCs from UU to SU

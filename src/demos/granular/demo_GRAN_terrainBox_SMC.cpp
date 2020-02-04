@@ -51,9 +51,9 @@ int main(int argc, char* argv[]) {
     }
 
     if (argc == num_args_full) {
-        params.sphere_radius = std::atof(argv[2]);
+        params.sphere_radius = std::stof(argv[2]);
         params.run_mode = std::atoi(argv[3]);
-        params.box_Y = std::atof(argv[4]);
+        params.box_Y = std::stof(argv[4]);
         params.box_X = params.box_Y;
         params.output_dir = std::string(argv[5]);
         printf("new parameters: r is %f, run_mode is %d, width is %f, %s\n", params.sphere_radius, params.run_mode,
@@ -95,7 +95,7 @@ int main(int argc, char* argv[]) {
                          params.box_Z / 2.f - 2 * params.sphere_radius);
         ChVector<> center(0, 0, 0);
 
-        utils::HCPSampler<float> sampler(2.2 * params.sphere_radius);
+        utils::HCPSampler<float> sampler(2.2f * params.sphere_radius);
 
         body_points = sampler.SampleBox(center, hdims);
     }

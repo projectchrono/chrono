@@ -682,7 +682,7 @@ inline __device__ float3 computeSphereNormalForces(float& reciplength,
         hertz_force_factor * gran_params->K_n_s2s_SU * sphereRadius_SU * penetration_over_R * contact_normal;
 
     // Add damping term
-    constexpr float m_eff = gran_params->sphere_mass_SU / 2.f;
+    const float m_eff = gran_params->sphere_mass_SU / 2.f;
     force_accum = force_accum - gran_params->Gamma_n_s2s_SU * vrel_n * m_eff * hertz_force_factor;
     return force_accum;
 }
@@ -778,7 +778,7 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
                         force_accum, my_omega, their_omega, delta_r * sphereRadius_SU);
                     bodyA_AngAcc = bodyA_AngAcc + rolling_resist_ang_acc;
 
-                    constexpr float m_eff = gran_params->sphere_mass_SU / 2.f;
+                    const float m_eff = gran_params->sphere_mass_SU / 2.f;
 
                     float3 tangent_force = computeFrictionForces(
                         gran_params, sphere_data, body_A_offset + contact_id, gran_params->static_friction_coeff_s2s,

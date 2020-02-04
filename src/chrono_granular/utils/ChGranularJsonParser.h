@@ -145,23 +145,23 @@ bool ParseJSON(const char* json_file, sim_param_holder& params, bool verbose = t
 
     CONDITIONAL_PRINTF(verbose, "--- Parsing JSON ---\n");
     if (doc.HasMember("sphere_radius") && doc["sphere_radius"].IsNumber()) {
-        params.sphere_radius = doc["sphere_radius"].GetDouble();
+        params.sphere_radius = doc["sphere_radius"].GetFloat();
         CONDITIONAL_PRINTF(verbose, "params.sphere_radius %f\n", params.sphere_radius);
     }
     if (doc.HasMember("sphere_density") && doc["sphere_density"].IsNumber()) {
-        params.sphere_density = doc["sphere_density"].GetDouble();
+        params.sphere_density = doc["sphere_density"].GetFloat();
         CONDITIONAL_PRINTF(verbose, "params.sphere_density %f\n", params.sphere_density);
     }
     if (doc.HasMember("box_X") && doc["box_X"].IsNumber()) {
-        params.box_X = doc["box_X"].GetDouble();
+        params.box_X = doc["box_X"].GetFloat();
         CONDITIONAL_PRINTF(verbose, "params.box_X %f\n", params.box_X);
     }
     if (doc.HasMember("box_Y") && doc["box_Y"].IsNumber()) {
-        params.box_Y = doc["box_Y"].GetDouble();
+        params.box_Y = doc["box_Y"].GetFloat();
         CONDITIONAL_PRINTF(verbose, "params.box_Y %f\n", params.box_Y);
     }
     if (doc.HasMember("box_Z") && doc["box_Z"].IsNumber()) {
-        params.box_Z = doc["box_Z"].GetDouble();
+        params.box_Z = doc["box_Z"].GetFloat();
         CONDITIONAL_PRINTF(verbose, "params.box_Z %f\n", params.box_Z);
     }
     if (doc.HasMember("time_integrator") && doc["time_integrator"].IsString()) {
@@ -183,19 +183,19 @@ bool ParseJSON(const char* json_file, sim_param_holder& params, bool verbose = t
         }
     }
     if (doc.HasMember("time_end") && doc["time_end"].IsNumber()) {
-        params.time_end = doc["time_end"].GetDouble();
+        params.time_end = doc["time_end"].GetFloat();
         CONDITIONAL_PRINTF(verbose, "params.time_end %f\n", params.time_end);
     }
     if (doc.HasMember("grav_X") && doc["grav_X"].IsNumber()) {
-        params.grav_X = doc["grav_X"].GetDouble();
+        params.grav_X = doc["grav_X"].GetFloat();
         CONDITIONAL_PRINTF(verbose, "params.grav_X %f\n", params.grav_X);
     }
     if (doc.HasMember("grav_Y") && doc["grav_Y"].IsNumber()) {
-        params.grav_Y = doc["grav_Y"].GetDouble();
+        params.grav_Y = doc["grav_Y"].GetFloat();
         CONDITIONAL_PRINTF(verbose, "params.grav_Y %f\n", params.grav_Y);
     }
     if (doc.HasMember("grav_Z") && doc["grav_Z"].IsNumber()) {
-        params.grav_Z = doc["grav_Z"].GetDouble();
+        params.grav_Z = doc["grav_Z"].GetFloat();
         CONDITIONAL_PRINTF(verbose, "params.grav_Z %f\n", params.grav_Z);
     }
     if (doc.HasMember("normalStiffS2S") && doc["normalStiffS2S"].IsNumber()) {
@@ -262,15 +262,15 @@ bool ParseJSON(const char* json_file, sim_param_holder& params, bool verbose = t
         }
     }
     if (doc.HasMember("static_friction_coeffS2S") && doc["static_friction_coeffS2S"].IsNumber()) {
-        params.static_friction_coeffS2S = doc["static_friction_coeffS2S"].GetDouble();
+        params.static_friction_coeffS2S = doc["static_friction_coeffS2S"].GetFloat();
         CONDITIONAL_PRINTF(verbose, "params.static_friction_coeffS2S %f\n", params.static_friction_coeffS2S);
     }
     if (doc.HasMember("static_friction_coeffS2W") && doc["static_friction_coeffS2W"].IsNumber()) {
-        params.static_friction_coeffS2W = doc["static_friction_coeffS2W"].GetDouble();
+        params.static_friction_coeffS2W = doc["static_friction_coeffS2W"].GetFloat();
         CONDITIONAL_PRINTF(verbose, "params.static_friction_coeffS2W %f\n", params.static_friction_coeffS2W);
     }
     if (doc.HasMember("static_friction_coeffS2M") && doc["static_friction_coeffS2M"].IsNumber()) {
-        params.static_friction_coeffS2M = doc["static_friction_coeffS2M"].GetDouble();
+        params.static_friction_coeffS2M = doc["static_friction_coeffS2M"].GetFloat();
         CONDITIONAL_PRINTF(verbose, "params.static_friction_coeffS2M %f\n", params.static_friction_coeffS2M);
     }
     if (doc.HasMember("rolling_mode") && doc["rolling_mode"].IsString()) {
@@ -289,27 +289,27 @@ bool ParseJSON(const char* json_file, sim_param_holder& params, bool verbose = t
         }
     }
     if (doc.HasMember("rolling_friction_coeffS2S") && doc["rolling_friction_coeffS2S"].IsNumber()) {
-        params.rolling_friction_coeffS2S = doc["rolling_friction_coeffS2S"].GetDouble();
+        params.rolling_friction_coeffS2S = doc["rolling_friction_coeffS2S"].GetFloat();
         CONDITIONAL_PRINTF(verbose, "params.rolling_friction_coeffS2S %f\n", params.rolling_friction_coeffS2S);
     }
     if (doc.HasMember("rolling_friction_coeffS2W") && doc["rolling_friction_coeffS2W"].IsNumber()) {
-        params.rolling_friction_coeffS2W = doc["rolling_friction_coeffS2W"].GetDouble();
+        params.rolling_friction_coeffS2W = doc["rolling_friction_coeffS2W"].GetFloat();
         CONDITIONAL_PRINTF(verbose, "params.rolling_friction_coeffS2W %f\n", params.rolling_friction_coeffS2W);
     }
     if (doc.HasMember("rolling_friction_coeffS2M") && doc["rolling_friction_coeffS2M"].IsNumber()) {
-        params.rolling_friction_coeffS2M = doc["rolling_friction_coeffS2M"].GetDouble();
+        params.rolling_friction_coeffS2M = doc["rolling_friction_coeffS2M"].GetFloat();
         CONDITIONAL_PRINTF(verbose, "params.rolling_friction_coeffS2M %f\n", params.rolling_friction_coeffS2M);
     }
     if (doc.HasMember("cohesion_ratio") && doc["cohesion_ratio"].IsNumber()) {
-        params.cohesion_ratio = doc["cohesion_ratio"].GetDouble();
+        params.cohesion_ratio = doc["cohesion_ratio"].GetFloat();
         CONDITIONAL_PRINTF(verbose, "params.cohesion_ratio %f\n", params.cohesion_ratio);
     }
     if (doc.HasMember("adhesion_ratio_s2w") && doc["adhesion_ratio_s2w"].IsNumber()) {
-        params.adhesion_ratio_s2w = doc["adhesion_ratio_s2w"].GetDouble();
+        params.adhesion_ratio_s2w = doc["adhesion_ratio_s2w"].GetFloat();
         CONDITIONAL_PRINTF(verbose, "params.adhesion_ratio_s2w %f\n", params.adhesion_ratio_s2w);
     }
     if (doc.HasMember("adhesion_ratio_s2m") && doc["adhesion_ratio_s2m"].IsNumber()) {
-        params.adhesion_ratio_s2m = doc["adhesion_ratio_s2m"].GetDouble();
+        params.adhesion_ratio_s2m = doc["adhesion_ratio_s2m"].GetFloat();
         CONDITIONAL_PRINTF(verbose, "params.adhesion_ratio_s2m %f\n", params.adhesion_ratio_s2m);
     }
     if (doc.HasMember("verbose") && doc["verbose"].IsInt()) {
@@ -355,7 +355,7 @@ bool ParseJSON(const char* json_file, sim_param_holder& params, bool verbose = t
         }
     }
     if (doc.HasMember("step_size") && doc["step_size"].IsNumber()) {
-        params.step_size = doc["step_size"].GetDouble();
+        params.step_size = doc["step_size"].GetFloat();
         CONDITIONAL_PRINTF(verbose, "params.step_size %f\n", params.step_size);
     }
 

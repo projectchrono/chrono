@@ -72,12 +72,12 @@ int main(int argc, char* argv[]) {
     filesystem::create_directory(filesystem::path(params.output_dir));
 
     // fill box, layer by layer
-    ChVector<> hdims(params.box_X / 2.f - 1.2, params.box_Y / 2.f - 1.2, params.box_Z / 10.f - 1.2);
-    ChVector<> center(0, 0, -params.box_Z / 2.f + params.box_Z / 10.f);
+    ChVector<float> hdims(params.box_X / 2.f - 1.2, params.box_Y / 2.f - 1.2, params.box_Z / 10.f - 1.2);
+    ChVector<float> center(0, 0, -params.box_Z / 2.f + params.box_Z / 10.f);
 
     // Fill box with bodies
     std::vector<ChVector<float>> body_points =
-        utils::PDLayerSampler_BOX<float>(center, hdims, 2. * params.sphere_radius, 1.05);
+        utils::PDLayerSampler_BOX<float>(center, hdims, 2. * params.sphere_radius, 1.05f);
 
     apiSMC.setElemsPositions(body_points);
 

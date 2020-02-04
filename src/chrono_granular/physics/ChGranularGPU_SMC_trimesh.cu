@@ -403,7 +403,7 @@ __global__ void interactionTerrain_TriangleSoup(
                 // Compute force updates for damping term
                 // NOTE assumes sphere mass of 1
                 float fam_mass_SU = d_triangleSoup->familyMass_SU[fam];
-                constexpr float sphere_mass_SU = gran_params->sphere_mass_SU;
+                const float sphere_mass_SU = gran_params->sphere_mass_SU;
                 float m_eff = sphere_mass_SU * fam_mass_SU / (sphere_mass_SU + fam_mass_SU);
                 float3 vrel_n = Dot(v_rel, normal) * normal;
                 v_rel = v_rel - vrel_n;  // v_rel is now tangential relative velocity
@@ -467,8 +467,8 @@ __host__ double ChSystemGranularSMC_trimesh::advance_simulation(float duration) 
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
     // Settling simulation loop.
-    float duration_SU = duration / TIME_SU2UU;
-    unsigned int nsteps = std::round(duration_SU / stepSize_SU);
+    float duration_SU = (float)(duration / TIME_SU2UU);
+    unsigned int nsteps = (unsigned int)std::round(duration_SU / stepSize_SU);
 
     packSphereDataPointers();
     // cudaMemAdvise(gran_params, sizeof(*gran_params), cudaMemAdviseSetReadMostly, dev_ID);
@@ -498,7 +498,8 @@ __host__ double ChSystemGranularSMC_trimesh::advance_simulation(float duration) 
         if (gran_params->friction_mode == FRICTIONLESS) {
             // Compute sphere-sphere forces
             computeSphereForces_frictionless<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(
-                sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(), BC_params_list_SU.size());
+                sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(),
+                (unsigned int)BC_params_list_SU.size());
             gpuErrchk(cudaPeekAtLastError());
             gpuErrchk(cudaDeviceSynchronize());
         } else if (gran_params->friction_mode == SINGLE_STEP || gran_params->friction_mode == MULTI_STEP) {
@@ -508,8 +509,8 @@ __host__ double ChSystemGranularSMC_trimesh::advance_simulation(float duration) 
             gpuErrchk(cudaDeviceSynchronize());
 
             computeSphereContactForces<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
-                sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(), BC_params_list_SU.size(),
-                nSpheres);
+                sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(),
+                (unsigned int)BC_params_list_SU.size(), nSpheres);
             gpuErrchk(cudaPeekAtLastError());
             gpuErrchk(cudaDeviceSynchronize());
         }
@@ -525,7 +526,8 @@ __host__ double ChSystemGranularSMC_trimesh::advance_simulation(float duration) 
         if (meshSoup->numTriangleFamilies != 0 && mesh_collision_enabled) {
             // TODO please do not use a template here
             // triangle labels come after BC labels numerically
-            unsigned int triangleFamilyHistmapOffset = gran_params->nSpheres + 1 + BC_params_list_SU.size() + 1;
+            unsigned int triangleFamilyHistmapOffset =
+                gran_params->nSpheres + 1 + (unsigned int)BC_params_list_SU.size() + 1;
             // compute sphere-triangle forces
             interactionTerrain_TriangleSoup<CUDA_THREADS_PER_BLOCK><<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(
                 meshSoup, sphere_data, triangles_in_SD_composite.data(), SD_numTrianglesTouching.data(),
@@ -559,7 +561,7 @@ __host__ double ChSystemGranularSMC_trimesh::advance_simulation(float duration) 
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
-        elapsedSimTime += stepSize_SU * TIME_SU2UU;  // Advance current time
+        elapsedSimTime += (float)(stepSize_SU * TIME_SU2UU);  // Advance current time
     }
 
     return time_elapsed_SU * TIME_SU2UU;  // return elapsed UU time

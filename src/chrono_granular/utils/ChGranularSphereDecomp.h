@@ -57,7 +57,7 @@ std::vector<ChVector<Real>> MeshSphericalDecomposition(
         ChVector<Real> bc = C - B;
         Real theta_A = std::abs(std::acos(ab.Dot(ac) / (ab.Length() * ac.Length())));
         Real theta_B = std::abs(std::acos(bc.Dot(-ab) / (bc.Length() * ab.Length())));
-        Real theta_C = CH_C_PI - (theta_A + theta_B);
+        Real theta_C = (Real)CH_C_PI - (theta_A + theta_B);
 
         int small_i = (theta_A <= theta_C) ? ((theta_A <= theta_B) ? 0 : 1) : ((theta_C <= theta_B) ? 2 : 1);
 
