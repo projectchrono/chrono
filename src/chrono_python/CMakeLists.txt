@@ -215,10 +215,13 @@ install(TARGETS ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME}
         RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}"
         LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}"
         ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
+
 # Install .py module wrapper 
 install(FILES "${CHPY_CORE_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
+
 # Install __init__.py to signal the directory is a python package
-install(FILES "${CMAKE_SOURCE_DIR}/contrib/packaging-python/__init__.py" DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
+install(FILES "${PROJECT_BINARY_DIR}/chrono_python/__init__.py" DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
+
 # Install demos
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/src/demos/python/" DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}/demos")
 
