@@ -198,10 +198,17 @@ add_custom_command(TARGET ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME}
                    POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_CORE_PY_FILE} ${CHPY_CORE_PYD_PATH}/${CHPY_PACKAGENAME})
 
+# Set default path for Chrono data files relative to python demos in source tree
+set(PYCHRONO_DATA_PATH "../../../data" CACHE PATH "Path to Chrono data files (for Python demos)")
+
+# Generate the __init__.py file using substitution variables and place it in a temporary place
+configure_file(${CMAKE_SOURCE_DIR}/contrib/packaging-python/__init__.py.in
+               ${PROJECT_BINARY_DIR}/chrono_python/__init__.py)
+
 # Copy the __init__.py file in the package
 add_custom_command(TARGET ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME}
                    POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/contrib/packaging-python/__init__.py" ${CHPY_CORE_PYD_PATH}/${CHPY_PACKAGENAME})
+                   COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_BINARY_DIR}/chrono_python/__init__.py" ${CHPY_CORE_PYD_PATH}/${CHPY_PACKAGENAME})
 
 # Install .pyd binary module (.so on linux)
 install(TARGETS ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME}

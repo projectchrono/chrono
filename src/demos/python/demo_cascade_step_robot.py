@@ -19,9 +19,11 @@ try:
     from OCC.Core import TopoDS
 except:
     from OCC import TopoDS 
-# Change this path to asset path, if running from other working dir. 
-# It must point to the data folder, containing GUI assets (textures, fonts, meshes, etc.)
-chrono.SetChronoDataPath("../../../data/")
+    
+# The path to the Chrono data directory containing various assets (meshes, textures, data files)
+# is automatically set, relative to the default location of this demo.
+# If running from a different directory, you must change the path to the data directory with: 
+#chrono.SetChronoDataPath('path/to/data')
 
 
 # ---------------------------------------------------------------------

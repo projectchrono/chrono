@@ -41,6 +41,7 @@ cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DMKL_INCLUDE_DIR=$HOME/miniconda3/include \
  -DMKL_RT_LIBRARY=$HOME/miniconda3/lib/libmkl_rt.so \
  -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3 \
+ -DPYCHRONO_DATA_PATH=../../../../../share/chrono/data \
  ./..
 # Build step
 # on linux travis, limit the number of concurrent jobs otherwise

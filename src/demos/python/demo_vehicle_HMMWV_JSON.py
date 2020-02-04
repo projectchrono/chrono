@@ -107,11 +107,12 @@ def main() :
 
 # =============================================================================
 
-"""
-!!!! Set this path before running the demo!
-"""
-chrono.SetChronoDataPath('../../../../Library/data/')
-veh.SetDataPath('../../../../Library/data/vehicle/')
+# The path to the Chrono data directory containing various assets (meshes, textures, data files)
+# is automatically set, relative to the default location of this demo.
+# If running from a different directory, you must change the path to the data directory with: 
+#chrono.SetChronoDataPath('path/to/data')
+
+veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
 
 # JSON file for vehicle model
 vehicle_file = veh.GetDataPath() +"hmmwv/vehicle/HMMWV_Vehicle.json"
