@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
 
     // Add loose granular material
     int layers = 10;  // Approximate number of material layers
-    const float boundary_padding = 8.0 * params.sphere_radius;
+    const float boundary_padding = 8.f * params.sphere_radius;
     float fill_bottom = -1e16f;
     for (auto pt : terrain_points) {
         fill_bottom = std::max(fill_bottom, pt.z());

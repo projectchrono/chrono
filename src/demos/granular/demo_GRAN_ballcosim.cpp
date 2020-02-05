@@ -150,13 +150,13 @@ int main(int argc, char* argv[]) {
     std::string mesh_filename(GetChronoDataFile("granular/demo_GRAN_ballcosim/sphere.obj"));
     std::vector<string> mesh_filenames(1, mesh_filename);
 
-    std::vector<float3> mesh_translations(1.f, make_float3(0.f, 0.f, 0.f));
+    std::vector<float3> mesh_translations(1, make_float3(0.f, 0.f, 0.f));
 
     float ball_radius = 20.f;
     std::vector<ChMatrix33<float>> mesh_rotscales(1, ChMatrix33<float>(ball_radius));
 
     float ball_density = params.sphere_density / 100.f;
-    float ball_mass = 4.f * CH_C_PI * ball_radius * ball_radius * ball_radius * ball_density / 3.f;
+    float ball_mass = (float)(4.f * CH_C_PI * ball_radius * ball_radius * ball_radius * ball_density / 3.f);
     std::vector<float> mesh_masses(1, ball_mass);
 
     apiSMC_TriMesh.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses);

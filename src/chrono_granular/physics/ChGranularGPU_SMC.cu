@@ -165,9 +165,9 @@ __host__ void ChSystemGranularSMC::defragment_initial_positions() {
         sphere_pos_y_tmp.at(i) = sphere_local_pos_Y.at(sphere_ids.at(i));
         sphere_pos_z_tmp.at(i) = sphere_local_pos_Z.at(sphere_ids.at(i));
 
-        sphere_vel_x_tmp.at(i) = pos_X_dt.at(sphere_ids.at(i));
-        sphere_vel_y_tmp.at(i) = pos_Y_dt.at(sphere_ids.at(i));
-        sphere_vel_z_tmp.at(i) = pos_Z_dt.at(sphere_ids.at(i));
+        sphere_vel_x_tmp.at(i) = (float)pos_X_dt.at(sphere_ids.at(i));
+        sphere_vel_y_tmp.at(i) = (float)pos_Y_dt.at(sphere_ids.at(i));
+        sphere_vel_z_tmp.at(i) = (float)pos_Z_dt.at(sphere_ids.at(i));
 
         sphere_fixed_tmp.at(i) = sphere_fixed.at(sphere_ids.at(i));
         sphere_owner_SDs_tmp.at(i) = sphere_owner_SDs.at(sphere_ids.at(i));
@@ -239,9 +239,9 @@ __host__ void ChSystemGranularSMC::setupSphereDataStructures() {
             sphere_fixed.at(i) = (not_stupid_bool)((user_provided_fixed) ? user_sphere_fixed[i] : false);
             if (user_provided_vel) {
                 auto vel = user_sphere_vel.at(i);
-                pos_X_dt.at(i) = vel.x / VEL_SU2UU;
-                pos_Y_dt.at(i) = vel.y / VEL_SU2UU;
-                pos_Z_dt.at(i) = vel.z / VEL_SU2UU;
+                pos_X_dt.at(i) = (float)(vel.x / VEL_SU2UU);
+                pos_Y_dt.at(i) = (float)(vel.y / VEL_SU2UU);
+                pos_Z_dt.at(i) = (float)(vel.z / VEL_SU2UU);
             }
         }
 

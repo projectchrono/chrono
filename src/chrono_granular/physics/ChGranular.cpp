@@ -40,28 +40,28 @@ ChSystemGranularSMC::ChSystemGranularSMC(float sphere_rad, float density, float3
       box_size_X(boxDims.x),
       box_size_Y(boxDims.y),
       box_size_Z(boxDims.z),
-      stepSize_UU(1e-4),
+      stepSize_UU(1e-4f),
       nSpheres(0),
-      elapsedSimTime(0),
+      elapsedSimTime(0.f),
       verbosity(INFO),
       file_write_mode(CSV),
-      X_accGrav(0),
-      Y_accGrav(0),
-      Z_accGrav(0),
-      cohesion_over_gravity(0),
-      adhesion_s2w_over_gravity(0),
-      K_n_s2s_UU(0),
-      K_n_s2w_UU(0),
-      K_t_s2s_UU(0),
-      K_t_s2w_UU(0),
-      Gamma_n_s2s_UU(0),
-      Gamma_n_s2w_UU(0),
-      Gamma_t_s2s_UU(0),
-      Gamma_t_s2w_UU(0),
-      rolling_coeff_s2s_UU(0),
-      rolling_coeff_s2w_UU(0),
-      spinning_coeff_s2s_UU(0),
-      spinning_coeff_s2w_UU(0) {
+      X_accGrav(0.f),
+      Y_accGrav(0.f),
+      Z_accGrav(0.f),
+      cohesion_over_gravity(0.f),
+      adhesion_s2w_over_gravity(0.f),
+      K_n_s2s_UU(0.0),
+      K_n_s2w_UU(0.0),
+      K_t_s2s_UU(0.0),
+      K_t_s2w_UU(0.0),
+      Gamma_n_s2s_UU(0.0),
+      Gamma_n_s2w_UU(0.0),
+      Gamma_t_s2s_UU(0.0),
+      Gamma_t_s2w_UU(0.0),
+      rolling_coeff_s2s_UU(0.0),
+      rolling_coeff_s2w_UU(0.0),
+      spinning_coeff_s2s_UU(0.0),
+      spinning_coeff_s2w_UU(0.0) {
     gpuErrchk(cudaMallocManaged(&gran_params, sizeof(ChGranParams), cudaMemAttachGlobal));
     gpuErrchk(cudaMallocManaged(&sphere_data, sizeof(ChGranSphereData), cudaMemAttachGlobal));
     psi_T = PSI_T_DEFAULT;
@@ -468,7 +468,7 @@ size_t ChSystemGranularSMC::Create_BC_Sphere(float center[3], float radius, bool
     p.sphere_params.sphere_center.x = center[0];
     p.sphere_params.sphere_center.y = center[1];
     p.sphere_params.sphere_center.z = center[2];
-    p.sphere_params.radius = radius;
+    p.sphere_params.radius = (unsigned int)radius;
     p.active = true;
     p.fixed = true;
     p.track_forces = track_forces;
@@ -587,11 +587,11 @@ void ChSystemGranularSMC::setBCOffset(const BC_type& bc_type,
         case BC_type::SPHERE: {
             old_pos = params_SU.sphere_params.sphere_center;
             params_SU.sphere_params.sphere_center.x =
-                convertToPosSU<int64_t, float>(params_UU.sphere_params.sphere_center.x + offset_UU.x);
+                convertToPosSU<int64_t, float>((float)(params_UU.sphere_params.sphere_center.x + offset_UU.x));
             params_SU.sphere_params.sphere_center.y =
-                convertToPosSU<int64_t, float>(params_UU.sphere_params.sphere_center.y + offset_UU.y);
+                convertToPosSU<int64_t, float>((float)(params_UU.sphere_params.sphere_center.y + offset_UU.y));
             params_SU.sphere_params.sphere_center.z =
-                convertToPosSU<int64_t, float>(params_UU.sphere_params.sphere_center.z + offset_UU.z);
+                convertToPosSU<int64_t, float>((float)(params_UU.sphere_params.sphere_center.z + offset_UU.z));
             new_pos = params_SU.sphere_params.sphere_center;
 
             break;
@@ -600,26 +600,28 @@ void ChSystemGranularSMC::setBCOffset(const BC_type& bc_type,
         case BC_type::CONE: {
             old_pos = params_SU.cone_params.cone_tip;
             params_SU.cone_params.cone_tip.x =
-                convertToPosSU<int64_t, float>(params_UU.cone_params.cone_tip.x + offset_UU.x);
+                convertToPosSU<int64_t, float>((float)(params_UU.cone_params.cone_tip.x + offset_UU.x));
             params_SU.cone_params.cone_tip.y =
-                convertToPosSU<int64_t, float>(params_UU.cone_params.cone_tip.y + offset_UU.y);
+                convertToPosSU<int64_t, float>((float)(params_UU.cone_params.cone_tip.y + offset_UU.y));
             params_SU.cone_params.cone_tip.z =
-                convertToPosSU<int64_t, float>(params_UU.cone_params.cone_tip.z + offset_UU.z);
+                convertToPosSU<int64_t, float>((float)(params_UU.cone_params.cone_tip.z + offset_UU.z));
             new_pos = params_SU.cone_params.cone_tip;
 
-            params_SU.cone_params.hmax = convertToPosSU<int64_t, float>(params_UU.cone_params.hmax + offset_UU.z);
-            params_SU.cone_params.hmin = convertToPosSU<int64_t, float>(params_UU.cone_params.hmin + offset_UU.z);
+            params_SU.cone_params.hmax =
+                convertToPosSU<int64_t, float>((float)(params_UU.cone_params.hmax + offset_UU.z));
+            params_SU.cone_params.hmin =
+                convertToPosSU<int64_t, float>((float)(params_UU.cone_params.hmin + offset_UU.z));
             break;
         }
         case BC_type::PLANE: {
             old_pos = params_SU.plane_params.position;
 
             params_SU.plane_params.position.x =
-                convertToPosSU<int64_t, float>(params_UU.plane_params.position.x + offset_UU.x);
+                convertToPosSU<int64_t, float>((float)(params_UU.plane_params.position.x + offset_UU.x));
             params_SU.plane_params.position.y =
-                convertToPosSU<int64_t, float>(params_UU.plane_params.position.y + offset_UU.y);
+                convertToPosSU<int64_t, float>((float)(params_UU.plane_params.position.y + offset_UU.y));
             params_SU.plane_params.position.z =
-                convertToPosSU<int64_t, float>(params_UU.plane_params.position.z + offset_UU.z);
+                convertToPosSU<int64_t, float>((float)(params_UU.plane_params.position.z + offset_UU.z));
             new_pos = params_SU.plane_params.position;
 
             break;
@@ -627,9 +629,12 @@ void ChSystemGranularSMC::setBCOffset(const BC_type& bc_type,
         case BC_type::CYLINDER: {
             old_pos = params_SU.cyl_params.center;
 
-            params_SU.cyl_params.center.x = convertToPosSU<int64_t, float>(params_UU.cyl_params.center.x + offset_UU.x);
-            params_SU.cyl_params.center.y = convertToPosSU<int64_t, float>(params_UU.cyl_params.center.y + offset_UU.y);
-            params_SU.cyl_params.center.z = convertToPosSU<int64_t, float>(params_UU.cyl_params.center.z + offset_UU.z);
+            params_SU.cyl_params.center.x =
+                convertToPosSU<int64_t, float>((float)(params_UU.cyl_params.center.x + offset_UU.x));
+            params_SU.cyl_params.center.y =
+                convertToPosSU<int64_t, float>((float)(params_UU.cyl_params.center.y + offset_UU.y));
+            params_SU.cyl_params.center.z =
+                convertToPosSU<int64_t, float>((float)(params_UU.cyl_params.center.z + offset_UU.z));
             new_pos = params_SU.cyl_params.center;
 
             break;
@@ -661,7 +666,8 @@ void ChSystemGranularSMC::convertBCUnits() {
             case BC_type::SPHERE: {
                 INFO_PRINTF("adding sphere!\n");
                 setBCOffset(bc_type, params_UU, params_SU, make_double3(0, 0, 0));
-                params_SU.sphere_params.radius = convertToPosSU<int64_t, float>(params_UU.sphere_params.radius);
+                params_SU.sphere_params.radius =
+                    convertToPosSU<int64_t, float>((float)(params_UU.sphere_params.radius));
                 params_SU.sphere_params.normal_sign = (int64_t)params_UU.sphere_params.normal_sign;
 
                 BC_params_list_SU.push_back(params_SU);
@@ -685,9 +691,9 @@ void ChSystemGranularSMC::convertBCUnits() {
                 // normal is unitless
                 // TODO normalize this just in case
                 // float abs = Length(params_UU);
-                params_SU.plane_params.normal.x = (int64_t)params_UU.plane_params.normal.x;
-                params_SU.plane_params.normal.y = (int64_t)params_UU.plane_params.normal.y;
-                params_SU.plane_params.normal.z = (int64_t)params_UU.plane_params.normal.z;
+                params_SU.plane_params.normal.x = (float)params_UU.plane_params.normal.x;
+                params_SU.plane_params.normal.y = (float)params_UU.plane_params.normal.y;
+                params_SU.plane_params.normal.z = (float)params_UU.plane_params.normal.z;
 
                 BC_params_list_SU.push_back(params_SU);
                 break;
@@ -881,7 +887,7 @@ void ChSystemGranularSMC::switchToSimUnits() {
     INFO_PRINTF("SU gravity is %f, %f, %f\n", gran_params->gravAcc_X_SU, gran_params->gravAcc_Y_SU,
                 gran_params->gravAcc_Z_SU);
     INFO_PRINTF("SU radius is %u\n", gran_params->sphereRadius_SU);
-    float dt_safe_estimate = std::sqrt(massSphere / K_n_s2s_UU);
+    float dt_safe_estimate = (float)std::sqrt(massSphere / K_n_s2s_UU);
     INFO_PRINTF("CFL timestep is about %f\n", dt_safe_estimate);
     INFO_PRINTF("Length unit is %0.16f\n", gran_params->LENGTH_UNIT);
 }
