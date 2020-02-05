@@ -791,7 +791,7 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
 
     thrust::device_vector<Real3>::iterator iter =
         thrust::max_element(sortedSphMarkersD->velMasD.begin(), sortedSphMarkersD->velMasD.end(), compare_Real3_mag());
-    unsigned int position = iter - sortedSphMarkersD->velMasD.begin();
+    auto position = iter - sortedSphMarkersD->velMasD.begin();
     Real MaxVel = length(*iter);
 
     if(paramsH->elastic_SPH){

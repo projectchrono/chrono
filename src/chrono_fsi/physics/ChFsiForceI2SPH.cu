@@ -1100,7 +1100,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
         ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Update_AND_Calc_Res");
         Iteration++;
         thrust::device_vector<Real>::iterator iter = thrust::max_element(Residuals.begin(), Residuals.end());
-        int position = iter - Residuals.begin();
+        auto position = iter - Residuals.begin();
         MaxRes = *iter;
         if (paramsH->Verbose_monitoring)
             printf("Iter= %.4d, Res= %.4e\n", Iteration, MaxRes);
@@ -1246,7 +1246,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
             ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Update_AND_Calc_Res");
             Iteration++;
             thrust::device_vector<Real>::iterator iter = thrust::max_element(Residuals.begin(), Residuals.end());
-            int position = iter - Residuals.begin();
+            auto position = iter - Residuals.begin();
             MaxRes = *iter;
 
             if (paramsH->Verbose_monitoring)

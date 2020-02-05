@@ -90,7 +90,7 @@ void CreateBCE_On_Cylinder(thrust::host_vector<Real4>& posRadBCE,
             for (size_t ir = 0; ir < numr; ir++) {
                 Real r = spacing + ir * cyl_rad / numr;
                 //                Real deltaTeta = 2 * spacing / r;
-                int numTheta = floor(2 * 3.1415 * r / spacing);
+                int numTheta = (int)floor(2 * 3.1415 * r / spacing);
                 for (size_t t = 0; t < numTheta; t++) {
                     Real teta = t * 2 * 3.1415 / numTheta;
                     Real3 BCE_Pos_local = mR3(r * cos(teta), 0, r * sin(teta)) + centerPointLF;
@@ -335,7 +335,7 @@ void CreateBCE_On_ChElementCableANCF(thrust::host_vector<Real4>& posRadBCE,
 
     double dx = (cable->GetNodeB()->GetX0() - cable->GetNodeA()->GetX0()).Length();
     double nX = dx / (initSpace0)-floor(dx / (initSpace0));
-    int nFX = floor(dx / (initSpace0));
+    int nFX = (int)floor(dx / (initSpace0));
     if (nX > 0.5)
         nFX++;
 

@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
         myFsiSystem.GetDataManager()->AddSphMarker(fsi::mR4(points[i].x(), points[i].y(), points[i].z(), paramsH->HSML),
                                                    fsi::mR3(1e-10), fsi::mR4(paramsH->rho0, pre_ini, paramsH->mu0, -1));
     }
-    myFsiSystem.GetDataManager()->fsiGeneralData->referenceArray.push_back(mI4(0, numPart, -1, -1));
+    myFsiSystem.GetDataManager()->fsiGeneralData->referenceArray.push_back(mI4(0, (int)numPart, -1, -1));
     // ******************************* Create Solid region ****************************************
     CreateSolidPhase(mphysicalSystem, myFsiSystem, paramsH);
 
@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
     double mTime = 0;
 
     int stepEnd = int(paramsH->tFinal / paramsH->dT);
-    stepEnd = 1e8;
+    stepEnd = (int)1e8;
 
     if (save_output)
         SaveParaViewFilesMBD(myFsiSystem, mphysicalSystem, paramsH, 0, mTime);

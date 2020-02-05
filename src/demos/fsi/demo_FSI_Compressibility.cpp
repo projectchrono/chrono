@@ -166,7 +166,7 @@ int main(int argc, char* argv[]) {
                                                    fsi::mR4(paramsH->rho0, paramsH->BASEPRES, paramsH->mu0, -1));
     }
 
-    myFsiSystem.GetDataManager()->fsiGeneralData->referenceArray.push_back(fsi::mI4(0, numPart, -1, -1));
+    myFsiSystem.GetDataManager()->fsiGeneralData->referenceArray.push_back(fsi::mI4(0, (int)numPart, -1, -1));
     // ******************************* Create Solid region ****************************************
     CreateSolidPhase(mphysicalSystem, myFsiSystem, paramsH);
 

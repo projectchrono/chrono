@@ -1501,7 +1501,7 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodiesDataD> otherFsi
     // thread per particle
     uint numThreads, numBlocks;
     size_t numAllMarkers = (int)numObjectsH->numAllMarkers;
-    computeGridSize(numAllMarkers, 256, numBlocks, numThreads);
+    computeGridSize((uint)numAllMarkers, 256, numBlocks, numThreads);
 
     *isErrorH = false;
     cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
@@ -1630,7 +1630,7 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodiesDataD> otherFsi
             mR3CAST(otherFsiBodiesD->omegaAccLRF_fsiBodies_D), U1CAST(fsiGeneralData->rigidIdentifierD),
 
             mR3CAST(pos_fsi_fea_D), mR3CAST(vel_fsi_fea_D), mR3CAST(acc_fsi_fea_D),
-            U1CAST(fsiGeneralData->FlexIdentifierD), numObjectsH->numFlexBodies1D,
+            U1CAST(fsiGeneralData->FlexIdentifierD), (int)numObjectsH->numFlexBodies1D,
             U2CAST(fsiGeneralData->CableElementsNodes), U4CAST(fsiGeneralData->ShellElementsNodes),
 
             updatePortion, U1CAST(markersProximityD->gridMarkerIndexD), U1CAST(markersProximityD->cellStartD),
@@ -1675,7 +1675,7 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodiesDataD> otherFsi
             exit(0);
         }
 
-        myLinearSolver->Solve(numAllMarkers, NNZ, R1CAST(csrValA), U1CAST(numContacts), U1CAST(csrColIndA),
+        myLinearSolver->Solve((int)numAllMarkers, NNZ, R1CAST(csrValA), U1CAST(numContacts), U1CAST(csrColIndA),
                               (double*)R1CAST(p_old), R1CAST(B_i));
         cudaCheckError();
     }
@@ -1722,7 +1722,7 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodiesDataD> otherFsi
                 mR3CAST(otherFsiBodiesD->omegaAccLRF_fsiBodies_D), U1CAST(fsiGeneralData->rigidIdentifierD),
 
                 mR3CAST(pos_fsi_fea_D), mR3CAST(vel_fsi_fea_D), mR3CAST(acc_fsi_fea_D),
-                U1CAST(fsiGeneralData->FlexIdentifierD), numObjectsH->numFlexBodies1D,
+                U1CAST(fsiGeneralData->FlexIdentifierD), (int)numObjectsH->numFlexBodies1D,
                 U2CAST(fsiGeneralData->CableElementsNodes), U4CAST(fsiGeneralData->ShellElementsNodes), updatePortion,
                 U1CAST(markersProximityD->gridMarkerIndexD), R1CAST(p_old), mR3CAST(V_new),
                 U1CAST(markersProximityD->cellStartD), U1CAST(markersProximityD->cellEndD), paramsH->dT, numAllMarkers,
@@ -1767,7 +1767,7 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodiesDataD> otherFsi
         Iteration++;
 
         thrust::device_vector<Real>::iterator iter = thrust::max_element(Residuals.begin(), Residuals.end());
-        int position = iter - Residuals.begin();
+        auto position = iter - Residuals.begin();
         MaxRes = *iter;
 
         //        MaxRes =
@@ -1788,7 +1788,7 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodiesDataD> otherFsi
     }
 
     thrust::device_vector<Real>::iterator iter = thrust::min_element(p_old.begin(), p_old.end());
-    int position = iter - p_old.begin();
+    auto position = iter - p_old.begin();
     Real shift_p = *iter;
     //    Real shift_p = 0;
 
