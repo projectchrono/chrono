@@ -667,7 +667,7 @@ void ChSystemGranularSMC::convertBCUnits() {
                 INFO_PRINTF("adding sphere!\n");
                 setBCOffset(bc_type, params_UU, params_SU, make_double3(0, 0, 0));
                 params_SU.sphere_params.radius =
-                    convertToPosSU<int64_t, float>((float)(params_UU.sphere_params.radius));
+                    (unsigned int)convertToPosSU<int64_t, float>((float)(params_UU.sphere_params.radius));
                 params_SU.sphere_params.normal_sign = (int64_t)params_UU.sphere_params.normal_sign;
 
                 BC_params_list_SU.push_back(params_SU);
