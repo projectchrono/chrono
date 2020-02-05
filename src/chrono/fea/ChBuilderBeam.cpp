@@ -648,15 +648,15 @@ void ChBuilderBeamANCF::BuildBeam_FSI(std::shared_ptr<ChMesh> mesh,  ///< mesh t
                                       std::vector<std::vector<int>>& NodeNeighborElement1D_mesh) {
     beam_elems.clear();
     beam_nodes.clear();
-    int _1D_elementsNodes_size = _1D_elementsNodes_mesh.size();
-    int NodeNeighborElement1D_size = NodeNeighborElement1D_mesh.size();
+    size_t _1D_elementsNodes_size = _1D_elementsNodes_mesh.size();
+    size_t NodeNeighborElement1D_size = NodeNeighborElement1D_mesh.size();
 
     _1D_elementsNodes_mesh.resize(N + _1D_elementsNodes_size);
     NodeNeighborElement1D_mesh.resize(N + 1 + NodeNeighborElement1D_size);
     ChVector<> bdir = (B - A);
     bdir.Normalize();
 
-    auto nodeA = std::make_shared<ChNodeFEAxyzD>(A, bdir);
+    auto nodeA = chrono_types::make_shared<ChNodeFEAxyzD>(A, bdir);
     mesh->AddNode(nodeA);
     beam_nodes.push_back(nodeA);
     //    printf("Added cable element %d with nBp=(%f,%f,%f) from ChBuilderBeamd\n", N, A.x(), A.y(), A.z());
@@ -670,7 +670,7 @@ void ChBuilderBeamANCF::BuildBeam_FSI(std::shared_ptr<ChMesh> mesh,  ///< mesh t
         double eta = (double)(i + 1) / (double)N;
         ChVector<> pos = A + (B - A) * eta;
 
-        auto nodeB = std::make_shared<ChNodeFEAxyzD>(pos, bdir);
+        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzD>(pos, bdir);
         mesh->AddNode(nodeB);
         beam_nodes.push_back(nodeB);
 
