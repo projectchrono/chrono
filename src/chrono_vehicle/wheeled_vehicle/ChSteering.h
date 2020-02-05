@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -21,18 +21,11 @@
 
 #include <string>
 
-#include "chrono/core/ChShared.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
-
-/**
-    @addtogroup vehicle_wheeled
-    @{
-        @defgroup vehicle_wheeled_steering Steering subsystem
-    @}
-*/
+#include "chrono_vehicle/ChPart.h"
 
 namespace chrono {
 namespace vehicle {
@@ -41,53 +34,56 @@ namespace vehicle {
 /// @{
 
 /// Base class for a steering subsystem.
-class CH_VEHICLE_API ChSteering : public ChShared {
+class CH_VEHICLE_API ChSteering : public ChPart {
   public:
     ChSteering(const std::string& name  ///< [in] name of the subsystem
                );
 
     virtual ~ChSteering() {}
 
-    /// Get the name identifier for this steering subsystem.
-    const std::string& GetName() const { return m_name; }
-
-    /// Set the name identifier for this steering subsystem.
-    void SetName(const std::string& name) { m_name = name; }
+    /// Get the position (location and orientation) of the steering subsystem
+    ///  relative to the chassis reference frame.
+    const ChCoordsys<>& GetPosition() const { return m_position; }
 
     /// Get a handle to the main link of the steering subsystems.
-    /// Return a handle to the body to which the tierods of a steerbale
+    /// Return a handle to the body to which the tierods of a steerable
     /// suspension subsystem are attached.
-    ChSharedPtr<ChBody> GetSteeringLink() const { return m_link; }
+    std::shared_ptr<ChBody> GetSteeringLink() const { return m_link; }
 
     /// Initialize this steering subsystem.
     /// The steering subsystem is initialized by attaching it to the specified
     /// chassis body at the specified location (with respect to and expressed in
     /// the reference frame of the chassis) and with specified orientation (with
     /// respect to the chassis reference frame).
-    virtual void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location,         ///< [in] location relative to the chassis frame
-                            const ChQuaternion<>& rotation      ///< [in] orientation relative to the chassis frame
+    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
+                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
+                            const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
                             ) = 0;
 
     /// Update the state of this steering subsystem at the current time.
     /// The steering subsystem is provided the current steering driver input (a
     /// value between -1 and +1).  Positive steering input indicates steering
     /// to the left. This function is called during the vehicle update.
-    virtual void Update(double time,     ///< [in] current time
-                        double steering  ///< [in] current steering input [-1,+1]
-                        ) = 0;
+    virtual void Synchronize(double time,     ///< [in] current time
+                             double steering  ///< [in] current steering input [-1,+1]
+                             ) = 0;
+
+    /// Get the total mass of the steering subsystem.
+    virtual double GetMass() const = 0;
+
+    /// Get the current global COM location of the steering subsystem.
+    virtual ChVector<> GetCOMPos() const = 0;
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations() {}
 
   protected:
-    std::string m_name;  ///< name of the subsystem
-
-    ChSharedPtr<ChBody> m_link;  ///< handle to the main steering link
+    ChCoordsys<> m_position;         ///< location and orientation relative to chassis
+    std::shared_ptr<ChBody> m_link;  ///< handle to the main steering link
 };
 
 /// Vector of handles to steering subsystems
-typedef std::vector<ChSharedPtr<ChSteering> > ChSteeringList;
+typedef std::vector<std::shared_ptr<ChSteering> > ChSteeringList;
 
 /// @} vehicle_wheeled_steering
 

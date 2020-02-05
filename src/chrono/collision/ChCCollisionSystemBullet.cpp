@@ -1,36 +1,30 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
-//////////////////////////////////////////////////
-//
-//   ChCCollisionSystemBullet.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "collision/ChCCollisionSystemBullet.h"
-#include "collision/ChCModelBullet.h"
-#include "collision/gimpact/GIMPACT/Bullet/btGImpactCollisionAlgorithm.h"
-#include "collision/ChCCollisionUtils.h"
-#include "physics/ChBody.h"
-#include "physics/ChContactContainerBase.h"
-#include "physics/ChProximityContainerBase.h"
-#include "LinearMath/btPoolAllocator.h"
-#include "BulletCollision/CollisionShapes/btSphereShape.h"
-#include "BulletCollision/CollisionShapes/btCylinderShape.h"
-#include "BulletCollision/CollisionShapes/bt2DShape.h"
-#include "BulletCollision/CollisionShapes/btCEtriangleShape.h"
-#include "BulletCollision/CollisionDispatch/btEmptyCollisionAlgorithm.h"
+#include "chrono/collision/ChCCollisionSystemBullet.h"
+#include "chrono/collision/ChCModelBullet.h"
+#include "chrono/collision/gimpact/GIMPACT/Bullet/btGImpactCollisionAlgorithm.h"
+#include "chrono/collision/ChCCollisionUtils.h"
+#include "chrono/physics/ChBody.h"
+#include "chrono/physics/ChContactContainer.h"
+#include "chrono/physics/ChProximityContainer.h"
+#include "chrono/collision/bullet/LinearMath/btPoolAllocator.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/btSphereShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/btCylinderShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/bt2DShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/btCEtriangleShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionDispatch/btEmptyCollisionAlgorithm.h"
 
 extern btScalar gContactBreakingThreshold;
 
@@ -39,7 +33,7 @@ namespace collision {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChCollisionSystemBullet> a_registration_ChCollisionSystemBullet;
+CH_FACTORY_REGISTER(ChCollisionSystemBullet)
 
 
 ////////////////////////////////////
@@ -242,7 +236,7 @@ class btArcSegmentCollisionAlgorithm : public btActivatingCollisionAlgorithm {
         bt2DarcShape* arc = (bt2DarcShape*)arcObj->getCollisionShape();
         bt2DsegmentShape* segment = (bt2DsegmentShape*)segmentObj->getCollisionShape();
 
-        // A concave arc (i.e.with outward volume, counterclockwise abscyssa) will never collide with segments
+        // A concave arc (i.e.with outward volume, counterclockwise abscissa) will never collide with segments
         if (arc->get_counterclock()) 
             return;
 
@@ -691,7 +685,7 @@ class btCEtriangleShapeCollisionAlgorithm : public btActivatingCollisionAlgorith
         ChModelBullet* triModelB = (ChModelBullet*)triB->getUserPointer();
 
         // brute force discard of connected triangles
-        // ***TODO*** faster approach based on colision families that can bypass the
+        // ***TODO*** faster approach based on collision families that can bypass the
         // check at the broadphase level?
         if (triA->get_p1() == triB->get_p1() ||
             triA->get_p1() == triB->get_p2() ||
@@ -762,6 +756,24 @@ class btCEtriangleShapeCollisionAlgorithm : public btActivatingCollisionAlgorith
         double mu, mv;
         double candid_mu, candid_mv; 
 
+
+        // Shortcut: if two degenerate 'skinny' triangles with points 2&3 coincident (ex. used to
+        // represent chunks of beams) just do an edge-edge test (as capsule-capsule) and return:
+        if ((pA2 == pA3) && (pB2 == pB3) && triA->owns_e1() && triB->owns_e1()) {
+            ChVector<> cA, cB, D;
+            if (ChCollisionUtils::LineLineIntersect(pA1, pA2,  pB1, pB2,  &cA, &cB,  &mu, &mv) ) {
+                D = cB - cA;
+                dist = D.Length();
+                if (dist < max_allowed_dist && dist > min_allowed_dist && mu >0 && mu < 1 && mv > 0 && mv < 1) {    
+                    _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
+                    resultOut->refreshContactPoints();
+                    return;
+                }
+            }
+        }
+
+        // vertex-face tests:
+
         if (triA->owns_v1()) {
             dist = ChCollisionUtils::PointTriangleDistance(pA1, pB1, pB2, pB3, mu, mv, is_into, p_projected);
             if (is_into) {
@@ -829,50 +841,68 @@ class btCEtriangleShapeCollisionAlgorithm : public btActivatingCollisionAlgorith
                 }
             }
         }
-        double beta_A1, beta_A2, beta_A3, beta_B1, beta_B2, beta_B3 =0;
+        double beta_A1, beta_A2, beta_A3, beta_B1, beta_B2, beta_B3; // defaults for free edge
         ChVector<> tA1, tA2, tA3, tB1, tB2, tB3;
         ChVector<> lA1, lA2, lA3, lB1, lB2, lB3;
 
-        //  edges edges
+        //  edges-edges tests
 
         if (triA->owns_e1()) {
             tA1 = Vcross(eA1, nA).GetNormalized();
-            lA1 = (mOa + mRa * (*triA->get_e1()) ) - pA1;
+            if(triA->get_e1())
+                lA1 = (mOa + mRa * (*triA->get_e1()) ) - pA1;
+            else 
+                lA1 = - tA1;
             beta_A1 = atan2(Vdot(lA1, tA1), Vdot(lA1, nA) );
             if (beta_A1 < 0)
                 beta_A1 += CH_C_2PI;
         }
         if (triA->owns_e2()) {
             tA2 = Vcross(eA2, nA).GetNormalized();
-            lA2 = (mOa + mRa * (*triA->get_e2()) ) - pA2;
+            if (triA->get_e2())
+                lA2 = (mOa + mRa * (*triA->get_e2()) ) - pA2;
+            else
+                lA2 = -tA2;
             beta_A2 = atan2( Vdot(lA2, tA2), Vdot(lA2, nA) );
             if (beta_A2 < 0) 
                 beta_A2 += CH_C_2PI;
         }
         if (triA->owns_e3()) {
             tA3 = Vcross(eA3, nA).GetNormalized();
-            lA3 = (mOa + mRa * (*triA->get_e3()) ) - pA3;
+            if (triA->get_e3())
+                lA3 = (mOa + mRa * (*triA->get_e3()) ) - pA3;
+            else
+                lA3 = -tA3;
             beta_A3 = atan2( Vdot(lA3, tA3), Vdot(lA3, nA) );
             if (beta_A3 < 0) 
                 beta_A3 += CH_C_2PI;
         }
         if (triB->owns_e1()) {
             tB1 = Vcross(eB1, nB).GetNormalized();
-            lB1 = (mOb + mRb * (*triB->get_e1()) ) - pB1;
+            if (triB->get_e1())
+                lB1 = (mOb + mRb * (*triB->get_e1()) ) - pB1;
+            else
+                lB1 = -tB1;
             beta_B1 = atan2( Vdot(lB1, tB1), Vdot(lB1, nB) );
             if (beta_B1 < 0) 
                 beta_B1 += CH_C_2PI;
         }
         if (triB->owns_e2()) {
             tB2 = Vcross(eB2, nB).GetNormalized();
-            lB2 = (mOb + mRb * (*triB->get_e2()) ) - pB2;
+            if (triB->get_e2())
+                lB2 = (mOb + mRb * (*triB->get_e2()) ) - pB2;
+            else
+                lB2 = -tB2;
             beta_B2 = atan2( Vdot(lB2, tB2), Vdot(lB2, nB) );
             if (beta_B2 < 0) 
                 beta_B2 += CH_C_2PI;
         }
         if (triB->owns_e3()) {
             tB3 = Vcross(eB3, nB).GetNormalized();
-            lB3 = (mOb + mRb * (*triB->get_e3()) ) - pB3;
+            if (triB->get_e3())
+                lB3 = (mOb + mRb * (*triB->get_e3()) ) - pB3;
+            else
+                lB3 = -tB3;
             beta_B3 = atan2( Vdot(lB3, tB3), Vdot(lB3, nB) );
             if (beta_B3 < 0) 
                 beta_B3 += CH_C_2PI;
@@ -881,7 +911,7 @@ class btCEtriangleShapeCollisionAlgorithm : public btActivatingCollisionAlgorith
         ChVector<> cA, cB, D;
 
         double edge_tol = 1e-3;
-        //  + edge_tol to discard flat edges with some tolerancing:
+        //  + edge_tol to discard flat edges with some tolerance:
         double beta_convex_limit = CH_C_PI_2 + edge_tol; 
         //  +/- edge_tol to inflate arc of acceptance of edge vs edge, to cope with singular cases (ex. flat cube vs flat cube):
         double alpha_lo_limit = - edge_tol;              
@@ -1085,16 +1115,16 @@ private:
                       const double offsetA, const double offsetB) {
 
         // convert to Bullet vectors. Note: in absolute csys.
-        btVector3 absA ((btScalar)candid_pA.x, (btScalar)candid_pA.y, (btScalar)candid_pA.z);
-        btVector3 absB ((btScalar)candid_pB.x, (btScalar)candid_pB.y, (btScalar)candid_pB.z);
+        btVector3 absA ((btScalar)candid_pA.x(), (btScalar)candid_pA.y(), (btScalar)candid_pA.z());
+        btVector3 absB ((btScalar)candid_pB.x(), (btScalar)candid_pB.y(), (btScalar)candid_pB.z());
         ChVector<> dabsN_onB ((candid_pA-candid_pB).GetNormalized());
-        btVector3 absN_onB ((btScalar)dabsN_onB.x, (btScalar)dabsN_onB.y, (btScalar)dabsN_onB.z);
+        btVector3 absN_onB ((btScalar)dabsN_onB.x(), (btScalar)dabsN_onB.y(), (btScalar)dabsN_onB.z());
         if (dist<0)
             absN_onB = - absN_onB; // flip norm to be coherent with dist sign
-        resultOut->addContactPoint(absN_onB, absB + absN_onB*offsetB, (btScalar)(dist - (offsetA+offsetB)));
+        resultOut->addContactPoint(absN_onB, absB + absN_onB * (btScalar)offsetB, (btScalar)(dist - (offsetA + offsetB)));
     }
 
-public:
+  public:
 
     virtual btScalar calculateTimeOfImpact(btCollisionObject* body0,
                                            btCollisionObject* body1,
@@ -1170,24 +1200,24 @@ ChCollisionSystemBullet::ChCollisionSystemBullet(unsigned int max_objects, doubl
 */ 
 
     // custom collision for 2D arc-segment case
-    btCollisionAlgorithmCreateFunc* m_collision_arc_seg = new btArcSegmentCollisionAlgorithm::CreateFunc;
-    btCollisionAlgorithmCreateFunc* m_collision_seg_arc = new btArcSegmentCollisionAlgorithm::CreateFunc;
+    m_collision_arc_seg = new btArcSegmentCollisionAlgorithm::CreateFunc;
+    m_collision_seg_arc = new btArcSegmentCollisionAlgorithm::CreateFunc;
     m_collision_seg_arc->m_swapped = true;
     bt_dispatcher->registerCollisionCreateFunc(ARC_SHAPE_PROXYTYPE, SEGMENT_SHAPE_PROXYTYPE, m_collision_arc_seg);
     bt_dispatcher->registerCollisionCreateFunc(SEGMENT_SHAPE_PROXYTYPE, ARC_SHAPE_PROXYTYPE, m_collision_seg_arc);
- 
+
      // custom collision for 2D arc-arc case
-    btCollisionAlgorithmCreateFunc* m_collision_arc_arc = new btArcArcCollisionAlgorithm::CreateFunc;
+    m_collision_arc_arc = new btArcArcCollisionAlgorithm::CreateFunc;
     bt_dispatcher->registerCollisionCreateFunc(ARC_SHAPE_PROXYTYPE, ARC_SHAPE_PROXYTYPE, m_collision_arc_arc);
 
      // custom collision for C::E triangles:
-    btCollisionAlgorithmCreateFunc* m_collision_cetri_cetri = new btCEtriangleShapeCollisionAlgorithm::CreateFunc;
+    m_collision_cetri_cetri = new btCEtriangleShapeCollisionAlgorithm::CreateFunc;
     bt_dispatcher->registerCollisionCreateFunc(CE_TRIANGLE_SHAPE_PROXYTYPE, CE_TRIANGLE_SHAPE_PROXYTYPE, m_collision_cetri_cetri);
 
      // custom collision for point-point case (in point clouds, just never create point-point contacts)
     //btCollisionAlgorithmCreateFunc* m_collision_point_point = new btPointPointCollisionAlgorithm::CreateFunc;
-    void* mem = btAlignedAlloc(sizeof(btEmptyAlgorithm::CreateFunc),16);
-	btCollisionAlgorithmCreateFunc* m_emptyCreateFunc = new(mem) btEmptyAlgorithm::CreateFunc;
+    m_tmp_mem = btAlignedAlloc(sizeof(btEmptyAlgorithm::CreateFunc),16);
+    m_emptyCreateFunc = new(m_tmp_mem) btEmptyAlgorithm::CreateFunc;
     bt_dispatcher->registerCollisionCreateFunc(POINT_SHAPE_PROXYTYPE, POINT_SHAPE_PROXYTYPE, m_emptyCreateFunc);
     bt_dispatcher->registerCollisionCreateFunc(POINT_SHAPE_PROXYTYPE, BOX_SHAPE_PROXYTYPE, bt_collision_configuration->getCollisionAlgorithmCreateFunc(SPHERE_SHAPE_PROXYTYPE,BOX_SHAPE_PROXYTYPE)); // just for speedup
     bt_dispatcher->registerCollisionCreateFunc(BOX_SHAPE_PROXYTYPE,   POINT_SHAPE_PROXYTYPE, bt_collision_configuration->getCollisionAlgorithmCreateFunc(BOX_SHAPE_PROXYTYPE,SPHERE_SHAPE_PROXYTYPE)); // just for speedup
@@ -1197,14 +1227,17 @@ ChCollisionSystemBullet::ChCollisionSystemBullet(unsigned int max_objects, doubl
 }
 
 ChCollisionSystemBullet::~ChCollisionSystemBullet() {
-    if (bt_collision_world)
-        delete bt_collision_world;
-    if (bt_broadphase)
-        delete bt_broadphase;
-    if (bt_dispatcher)
-        delete bt_dispatcher;
-    if (bt_collision_configuration)
-        delete bt_collision_configuration;
+    delete bt_collision_world;
+    delete bt_broadphase;
+    delete bt_dispatcher;
+    delete bt_collision_configuration;
+
+    delete m_collision_arc_seg;
+    delete m_collision_seg_arc;
+    delete m_collision_arc_arc;
+    delete m_collision_cetri_cetri;
+    m_emptyCreateFunc->~btCollisionAlgorithmCreateFunc();
+    btAlignedFree(m_tmp_mem);
 }
 
 void ChCollisionSystemBullet::Clear(void) {
@@ -1236,10 +1269,25 @@ void ChCollisionSystemBullet::Run() {
     }
 }
 
-void ChCollisionSystemBullet::ReportContacts(ChContactContainerBase* mcontactcontainer) {
+void ChCollisionSystemBullet::ResetTimers() {
+    bt_collision_world->timer_collision_broad.reset();
+    bt_collision_world->timer_collision_narrow.reset();
+}
+
+double ChCollisionSystemBullet::GetTimerCollisionBroad() const {
+    return bt_collision_world->timer_collision_broad();
+}
+
+double ChCollisionSystemBullet::GetTimerCollisionNarrow() const {
+    return bt_collision_world->timer_collision_narrow();
+}
+
+void ChCollisionSystemBullet::ReportContacts(ChContactContainer* mcontactcontainer) {
     // This should remove all old contacts (or at least rewind the index)
     mcontactcontainer->BeginAddContact();
 
+    // NOTE: Bullet does not provide information on radius of curvature at a contact point.
+    // As such, for all Bullet-identified contacts, the default value will be used (SMC only). 
     ChCollisionInfo icontact;
 
     int numManifolds = bt_collision_world->getDispatcher()->getNumManifolds();
@@ -1261,17 +1309,16 @@ void ChCollisionSystemBullet::ReportContacts(ChContactContainerBase* mcontactcon
         // Execute custom broadphase callback, if any
         bool do_narrow_contactgeneration = true;
         if (this->broad_callback)
-            do_narrow_contactgeneration = this->broad_callback->BroadCallback(icontact.modelA, icontact.modelB);
+            do_narrow_contactgeneration = this->broad_callback->OnBroadphase(icontact.modelA, icontact.modelB);
 
         if (do_narrow_contactgeneration) {
             int numContacts = contactManifold->getNumContacts();
-//GetLog() << "numContacts=" << numContacts << "\n";
+            //GetLog() << "numContacts=" << numContacts << "\n";
             for (int j = 0; j < numContacts; j++) {
                 btManifoldPoint& pt = contactManifold->getContactPoint(j);
 
-                if (pt.getDistance() <
-                    marginA + marginB)  // to discard "too far" constraints (the Bullet engine also has its threshold)
-                {
+                // Discard "too far" constraints (the Bullet engine also has its threshold)
+                if (pt.getDistance() < marginA + marginB) {
                     btVector3 ptA = pt.getPositionWorldOnA();
                     btVector3 ptB = pt.getPositionWorldOnB();
 
@@ -1291,11 +1338,13 @@ void ChCollisionSystemBullet::ReportContacts(ChContactContainerBase* mcontactcon
                     icontact.reaction_cache = pt.reactions_cache;
 
                     // Execute some user custom callback, if any
+                    bool add_contact = true;
                     if (this->narrow_callback)
-                        this->narrow_callback->NarrowCallback(icontact);
+                        add_contact = this->narrow_callback->OnNarrowphase(icontact);
 
                     // Add to contact container
-                    mcontactcontainer->AddContact(icontact);
+                    if (add_contact)
+                        mcontactcontainer->AddContact(icontact);
                 }
             }
         }
@@ -1306,7 +1355,7 @@ void ChCollisionSystemBullet::ReportContacts(ChContactContainerBase* mcontactcon
     mcontactcontainer->EndAddContact();
 }
 
-void ChCollisionSystemBullet::ReportProximities(ChProximityContainerBase* mproximitycontainer) {
+void ChCollisionSystemBullet::ReportProximities(ChProximityContainer* mproximitycontainer) {
     mproximitycontainer->BeginAddProximities();
     /*
     int numManifolds = bt_collision_world->getDispatcher()->getNumManifolds(); 
@@ -1339,11 +1388,21 @@ void ChCollisionSystemBullet::ReportProximities(ChProximityContainerBase* mproxi
     mproximitycontainer->EndAddProximities();
 }
 
-bool ChCollisionSystemBullet::RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult) {
-    btVector3 btfrom((btScalar)from.x, (btScalar)from.y, (btScalar)from.z);
-    btVector3 btto((btScalar)to.x, (btScalar)to.y, (btScalar)to.z);
+bool ChCollisionSystemBullet::RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult) const {
+    return RayHit(from, to, mresult, btBroadphaseProxy::DefaultFilter, btBroadphaseProxy::AllFilter);
+}
+
+bool ChCollisionSystemBullet::RayHit(const ChVector<>& from,
+                                     const ChVector<>& to,
+                                     ChRayhitResult& mresult,
+                                     short int filter_group,
+                                     short int filter_mask) const {
+    btVector3 btfrom((btScalar)from.x(), (btScalar)from.y(), (btScalar)from.z());
+    btVector3 btto((btScalar)to.x(), (btScalar)to.y(), (btScalar)to.z());
 
     btCollisionWorld::ClosestRayResultCallback rayCallback(btfrom, btto);
+    rayCallback.m_collisionFilterGroup = filter_group;
+    rayCallback.m_collisionFilterMask = filter_mask;
 
     this->bt_collision_world->rayTest(btfrom, btto, rayCallback);
 
@@ -1358,6 +1417,7 @@ bool ChCollisionSystemBullet::RayHit(const ChVector<>& from, const ChVector<>& t
             mresult.abs_hitNormal.Normalize();
             mresult.hit = true;
             mresult.dist_factor = rayCallback.m_closestHitFraction;
+            mresult.abs_hitPoint = mresult.abs_hitPoint - mresult.abs_hitNormal * mresult.hitModel->GetEnvelope();
             return true;
         }
     }
@@ -1365,10 +1425,60 @@ bool ChCollisionSystemBullet::RayHit(const ChVector<>& from, const ChVector<>& t
     return false;
 }
 
+bool ChCollisionSystemBullet::RayHit(const ChVector<>& from,
+                                     const ChVector<>& to,
+                                     ChCollisionModel* model,
+                                     ChRayhitResult& mresult) const {
+    return RayHit(from, to, model, mresult, btBroadphaseProxy::DefaultFilter, btBroadphaseProxy::AllFilter);
+}
+
+bool ChCollisionSystemBullet::RayHit(const ChVector<>& from,
+                                     const ChVector<>& to,
+                                     ChCollisionModel* model,
+                                     ChRayhitResult& mresult,
+                                     short int filter_group,
+                                     short int filter_mask) const {
+    btVector3 btfrom((btScalar)from.x(), (btScalar)from.y(), (btScalar)from.z());
+    btVector3 btto((btScalar)to.x(), (btScalar)to.y(), (btScalar)to.z());
+
+    btCollisionWorld::AllHitsRayResultCallback rayCallback(btfrom, btto);
+    rayCallback.m_collisionFilterGroup = filter_group;
+    rayCallback.m_collisionFilterMask = filter_mask;
+
+    this->bt_collision_world->rayTest(btfrom, btto, rayCallback);
+
+    // Find the closest hit result on the specified model (if any)
+    int hit = -1;
+    btScalar fraction = 1;
+    for (int i = 0; i < rayCallback.m_collisionObjects.size(); ++i) {
+        if (rayCallback.m_collisionObjects[i]->getUserPointer() == model && rayCallback.m_hitFractions[i] < fraction) {
+            hit = i;
+            fraction = rayCallback.m_hitFractions[i];
+        }
+    }
+
+    // Ray does not hit specified model
+    if (hit == -1) {
+        mresult.hit = false;
+        return false;
+    }
+
+    // Return the closest hit on the specified model
+    mresult.hit = true;
+    mresult.hitModel = static_cast<ChCollisionModel*>(rayCallback.m_collisionObjects[hit]->getUserPointer());
+    mresult.abs_hitPoint.Set(rayCallback.m_hitPointWorld[hit].x(), rayCallback.m_hitPointWorld[hit].y(),
+                             rayCallback.m_hitPointWorld[hit].z());
+    mresult.abs_hitNormal.Set(rayCallback.m_hitNormalWorld[hit].x(), rayCallback.m_hitNormalWorld[hit].y(),
+                              rayCallback.m_hitNormalWorld[hit].z());
+    mresult.abs_hitNormal.Normalize();
+    mresult.dist_factor = fraction;
+    mresult.abs_hitPoint = mresult.abs_hitPoint - mresult.abs_hitNormal * mresult.hitModel->GetEnvelope();
+    return true;
+}
+
 void ChCollisionSystemBullet::SetContactBreakingThreshold(double threshold) {
     gContactBreakingThreshold = (btScalar)threshold;
 }
 
-
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono

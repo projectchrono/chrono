@@ -1,0 +1,22 @@
+{
+  "Speed Range":
+  {
+    "MinSpeed":   10.0,
+    "MaxSpeed":   30.0
+  },
+
+  "Lateral Gains":
+  {
+    "Klat":   0.1,
+    "Kug":   1.0
+  },
+  
+  "Longitudinal Gains":
+  {
+    "Klong":   0.1,
+    "Kplus":   0.1,
+    "Kminus":   0.3
+  },
+  
+  "Preview Time": 0.5
+}

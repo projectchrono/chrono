@@ -1,38 +1,22 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHC_MATES_H
 #define CHC_MATES_H
 
-//////////////////////////////////////////////////
-//
-//   ChCMates.h
-//
-//   Header for items representing a couple of colliding
-//   models.
-//   Mostly used by broadphase colliders, like in
-//   sweep and prune.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 namespace chrono {
 namespace collision {
 
-/// Class for couple of 'overlapping' models, i.e. neighbouring graph edge
+/// Class for couple of 'overlapping' models, i.e. neighboring graph edge
 /// (connecting two collision models).
 /// Mostly used by broadphase colliders, for example like in
 /// ChSweepAndPrune() engine.
@@ -48,7 +32,7 @@ class ChMates {
     /// (0=no overlaps, 1=partial overlap,only on an axis, 2=.., 3=full overlap on XYZ axes
     short m_snp_axis_overlap_count;
 
-    /// Boolean flag indicating whether a ovelap have been reported.
+    /// Boolean flag indicating whether a overlap have been reported.
     bool m_snp_overlap_reported;
 
     /// Iterator to already-reported overlap.
@@ -81,7 +65,7 @@ class ChMates {
     model_type* GetModelB() { return m_B; }
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono
 
 #endif

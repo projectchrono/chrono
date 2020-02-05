@@ -12,7 +12,7 @@ subject to the following restrictions:
 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 */
-#include "core/ChLog.h"
+#include "chrono/core/ChLog.h"
 #include "btCollisionWorld.h"
 #include "btCollisionDispatcher.h"
 #include "BulletCollision/CollisionDispatch/btCollisionObject.h"
@@ -29,10 +29,12 @@ subject to the following restrictions:
 #include "BulletCollision/BroadphaseCollision/btCollisionAlgorithm.h"
 #include "BulletCollision/BroadphaseCollision/btBroadphaseInterface.h"
 #include "BulletCollision/BroadphaseCollision/btDbvt.h" //***ALEX***
+#include "BulletCollision/CollisionShapes/btCEtriangleShape.h" //***ALEX***
 #include "LinearMath/btAabbUtil2.h"
 #include "LinearMath/btQuickprof.h"
 #include "LinearMath/btStackAlloc.h"
 #include "LinearMath/btSerializer.h"
+#include "chrono/utils/ChProfiler.h"
 
 //#define USE_BRUTEFORCE_RAYBROADPHASE 1
 //RECALCULATE_AABB is slower, but benefit is that you don't need to call 'stepSimulation'  or 'updateAabbs' before using a rayTest
@@ -204,16 +206,22 @@ void	btCollisionWorld::performDiscreteCollisionDetection()
 
 	{
 		BT_PROFILE("calculateOverlappingPairs");
+        CH_PROFILE("Broad-phase"); //***ALEX***
+        timer_collision_broad.start(); //***RADU***
 		m_broadphasePairCache->calculateOverlappingPairs(m_dispatcher1);
+        timer_collision_broad.stop(); //***RADU***
 	}
 
 
 	btDispatcher* dispatcher = getDispatcher();
 	{
 		BT_PROFILE("dispatchAllCollisionPairs");
-		if (dispatcher)
+        CH_PROFILE("Narrow-phase"); //***ALEX***
+        timer_collision_narrow.start(); //***RADU***
+        if (dispatcher)
 			dispatcher->dispatchAllCollisionPairs(m_broadphasePairCache->getOverlappingPairCache(),dispatchInfo,m_dispatcher1);
-	}
+        timer_collision_narrow.stop(); //***RADU***
+    }
 
 }
 
@@ -1163,7 +1171,7 @@ public:
 void btCollisionWorld::debugDrawObject(const btTransform& worldTransform, const btCollisionShape* shape, const btVector3& color)
 {
 	// Draw a small simplex at the center of the object
-	getDebugDrawer()->drawTransform(worldTransform,1);
+	//getDebugDrawer()->drawTransform(worldTransform,1); //***ALEX***
 
 	if (shape->getShapeType() == COMPOUND_SHAPE_PROXYTYPE)
 	{
@@ -1179,7 +1187,19 @@ void btCollisionWorld::debugDrawObject(const btTransform& worldTransform, const 
 	{
 		switch (shape->getShapeType())
 		{
-
+		case CE_TRIANGLE_SHAPE_PROXYTYPE:	//***ALEX***
+			{
+				const btCEtriangleShape* triShape = static_cast<const btCEtriangleShape*>(shape);
+				chrono::ChVector<>* v1 = triShape->get_p1();
+				chrono::ChVector<>* v2 = triShape->get_p2();
+				chrono::ChVector<>* v3 = triShape->get_p3();
+				auto origin = worldTransform.getOrigin();
+				auto vt1 = origin + worldTransform.getBasis() *  btVector3((btScalar)v1->x(), (btScalar)v1->y(), (btScalar)v1->z());
+				auto vt2 = origin + worldTransform.getBasis() *  btVector3((btScalar)v2->x(), (btScalar)v2->y(), (btScalar)v2->z());
+				auto vt3 = origin + worldTransform.getBasis() *  btVector3((btScalar)v3->x(), (btScalar)v3->y(), (btScalar)v3->z());
+				getDebugDrawer()->drawTriangle(vt1, vt2, vt3,color,1);
+				break;
+			}
 		case BOX_SHAPE_PROXYTYPE:
 			{
 				const btBoxShape* boxShape = static_cast<const btBoxShape*>(shape);

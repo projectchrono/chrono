@@ -1,19 +1,22 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2012 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #ifndef CHCOLORASSET_H
 #define CHCOLORASSET_H
 
-#include "assets/ChAsset.h"
-#include "assets/ChColor.h"
+#include "chrono/assets/ChAsset.h"
+#include "chrono/assets/ChColor.h"
 
 namespace chrono {
 
@@ -22,13 +25,10 @@ namespace chrono {
 /// the assets of the list (or in same ChAssetLevel). It can be used when
 /// exporting to postprocessing or in OpenGL views. The postprocessor must be
 /// able to recognize it and implement the proper translation.
-
 class ChApi ChColorAsset : public ChAsset {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChColorAsset, ChAsset);
-
   public:
     ChColorAsset() : fading(0) {}
+    ChColorAsset(const ChColor& c) : color(c), fading(0) {}
     ChColorAsset(float mR, float mG, float mB, float mA = 0) : color(mR, mG, mB, mA), fading(0) {}
 
     /// Get/Set the color of the surface. This information could be used by
@@ -46,37 +46,16 @@ class ChApi ChColorAsset : public ChAsset {
     ChColor color;  // color of material
     float fading;   // transparency of material
 
-
   public:
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    //
-    // SERIALIZATION
-    //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite(1);
-        // serialize parent class
-        ChAsset::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(color);
-        marchive << CHNVP(fading);
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead();
-        // deserialize parent class
-        ChAsset::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(color);
-        marchive >> CHNVP(fading);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-}  // END_OF_NAMESPACE____
+CH_CLASS_VERSION(ChColorAsset, 0)
+
+}  // end namespace chrono
 
 #endif

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -47,13 +47,12 @@ class ChVehicle;
 class CH_VEHICLE_API ChShaftsPowertrain : public ChPowertrain {
   public:
     /// Construct a shafts-based powertrain model.
-    ChShaftsPowertrain(const ChVector<>& dir_motor_block = ChVector<>(1, 0, 0));
+    ChShaftsPowertrain(const std::string& name, const ChVector<>& dir_motor_block = ChVector<>(1, 0, 0));
 
     virtual ~ChShaftsPowertrain() {}
 
-    /// To be called after creation, to create all the wrapped ChShaft objects
-    /// and their constraints, torques etc.
-    void Initialize(ChSharedPtr<ChBody> chassis, ChSharedPtr<ChShaft> driveshaft);
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "ShaftsPowertrain"; }
 
     /// Return the current engine speed.
     virtual double GetMotorSpeed() const override { return m_crankshaft->GetPos_dt(); }
@@ -73,9 +72,9 @@ class CH_VEHICLE_API ChShaftsPowertrain : public ChPowertrain {
     /// Return the current transmission gear.
     virtual int GetCurrentTransmissionGear() const override { return m_current_gear; }
 
-    /// Return the ouput torque from the powertrain.
+    /// Return the output torque from the powertrain.
     /// This is the torque that is passed to a vehicle system, thus providing the
-    /// interface between the powertrain and vehcicle cosimulation modules.
+    /// interface between the powertrain and vehicle co-simulation modules.
     /// Since a ShaftsPowertrain is directly connected to the vehicle's driveline,
     /// this function returns 0.
     virtual double GetOutputTorque() const override { return 0; }
@@ -94,20 +93,6 @@ class CH_VEHICLE_API ChShaftsPowertrain : public ChPowertrain {
     /// Use this to get the gear shift latency, in seconds.
     double GetGearShiftLatency(double ml) { return m_gear_shift_latency; }
 
-    /// Update the state of this powertrain system at the current time.
-    /// The powertrain system is provided the current driver throttle input, a
-    /// value in the range [0,1], and the current angular speed of the transmission
-    /// shaft (from the driveline).
-    virtual void Update(double time,        ///< [in] current time
-                        double throttle,    ///< [in] current throttle input [0,1]
-                        double shaft_speed  ///< [in] current angular speed of the transmission shaft
-                        ) override;
-
-    /// Advance the state of this powertrain system by the specified time step.
-    /// Since the state of a ShaftsPowertrain is advanced as part of the vehicle
-    /// state, this function does nothing.
-    virtual void Advance(double step) override {}
-
   protected:
     /// Set up the gears, i.e. the transmission ratios of the various gears.
     /// A derived class must populate the vector gear_ratios, using the 0 index
@@ -119,28 +104,50 @@ class CH_VEHICLE_API ChShaftsPowertrain : public ChPowertrain {
     virtual double GetCrankshaftInertia() const = 0;
     virtual double GetIngearShaftInertia() const = 0;
 
+    /// Upshift and downshift rotation speeds (in RPM)
+    virtual double GetUpshiftRPM() const = 0;
+    virtual double GetDownshiftRPM() const = 0;
+
     /// Engine speed-torque map.
-    virtual void SetEngineTorqueMap(ChSharedPtr<ChFunction_Recorder>& map) = 0;
+    virtual void SetEngineTorqueMap(std::shared_ptr<ChFunction_Recorder>& map) = 0;
     /// Engine speed-torque braking effect because of losses.
-    virtual void SetEngineLossesMap(ChSharedPtr<ChFunction_Recorder>& map) = 0;
+    virtual void SetEngineLossesMap(std::shared_ptr<ChFunction_Recorder>& map) = 0;
 
     /// Set the capacity factor map.
     /// Specify the capacity factor as a function of the speed ratio.
-    virtual void SetTorqueConverterCapacityFactorMap(ChSharedPtr<ChFunction_Recorder>& map) = 0;
+    virtual void SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunction_Recorder>& map) = 0;
  
     /// Set the torque ratio map.
     /// Specify torque ratio as a function of the speed ratio.
-    virtual void SetTorqeConverterTorqueRatioMap(ChSharedPtr<ChFunction_Recorder>& map) = 0;
+    virtual void SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunction_Recorder>& map) = 0;
 
   private:
-    ChSharedPtr<ChShaftsBody> m_motorblock_to_body;
-    ChSharedPtr<ChShaft> m_motorblock;
-    ChSharedPtr<ChShaftsThermalEngine> m_engine;
-    ChSharedPtr<ChShaftsThermalEngine> m_engine_losses;
-    ChSharedPtr<ChShaft> m_crankshaft;
-    ChSharedPtr<ChShaftsTorqueConverter> m_torqueconverter;
-    ChSharedPtr<ChShaft> m_shaft_ingear;
-    ChSharedPtr<ChShaftsGearbox> m_gears;
+    /// Initialize this powertrain system.
+    /// This creates all the wrapped ChShaft objects and their constraints, torques etc.
+    /// and connects the powertrain to the vehicle.
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,     ///< [in] chassis of the associated vehicle
+                            std::shared_ptr<ChDriveline> driveline  ///< [in] driveline of the associated vehicle
+                            ) override;
+
+    /// Update the state of this powertrain system at the current time.
+    /// The powertrain system is provided the current driver throttle input, a value in the range [0,1].
+    virtual void Synchronize(double time,     ///< [in] current time
+                             double throttle  ///< [in] current throttle input [0,1]
+                             ) override;
+
+    /// Advance the state of this powertrain system by the specified time step.
+    /// Since the state of a ShaftsPowertrain is advanced as part of the vehicle
+    /// state, this function does nothing.
+    virtual void Advance(double step) override {}
+
+    std::shared_ptr<ChShaftsBody> m_motorblock_to_body;
+    std::shared_ptr<ChShaft> m_motorblock;
+    std::shared_ptr<ChShaftsThermalEngine> m_engine;
+    std::shared_ptr<ChShaftsThermalEngine> m_engine_losses;
+    std::shared_ptr<ChShaft> m_crankshaft;
+    std::shared_ptr<ChShaftsTorqueConverter> m_torqueconverter;
+    std::shared_ptr<ChShaft> m_shaft_ingear;
+    std::shared_ptr<ChShaftsGearbox> m_gears;
 
     int m_current_gear;
     std::vector<double> m_gear_ratios;
@@ -149,6 +156,8 @@ class CH_VEHICLE_API ChShaftsPowertrain : public ChPowertrain {
 
     double m_last_time_gearshift;
     double m_gear_shift_latency;
+    double m_upshift_speed;
+    double m_downshift_speed;
 };
 
 /// @} vehicle_powertrain

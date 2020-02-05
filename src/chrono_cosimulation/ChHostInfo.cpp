@@ -1,9 +1,24 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2014 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
+
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+
 #include "chrono_cosimulation/ChHostInfo.h"
 #include "chrono_cosimulation/ChExceptionSocket.h"
 
-using namespace std;
-using namespace chrono;
-using namespace chrono::cosimul;
+namespace chrono {
+namespace cosimul {
 
 ChHostInfo::ChHostInfo() {
 #ifdef UNIX
@@ -21,7 +36,7 @@ ChHostInfo::ChHostInfo() {
         hostPtr = gethostbyname(sName);
         if (hostPtr == NULL) {
             int errorCode;
-            string errorMsg = "";
+            std::string errorMsg = "";
             detectErrorGethostbyname(&errorCode, errorMsg);
             ChExceptionSocket* gethostbynameException = new ChExceptionSocket(errorCode, errorMsg);
             throw gethostbynameException;
@@ -34,7 +49,7 @@ ChHostInfo::ChHostInfo() {
 #endif
 }
 
-ChHostInfo::ChHostInfo(const string& hostName, hostType type) {
+ChHostInfo::ChHostInfo(const std::string& hostName, hostType type) {
 #ifdef UNIX
     searchHostDB = 0;
 #endif
@@ -47,7 +62,7 @@ ChHostInfo::ChHostInfo(const string& hostName, hostType type) {
             if (hostPtr == NULL) {
 #ifdef WINDOWS_XP
                 int errorCode;
-                string errorMsg = "";
+                std::string errorMsg = "";
                 detectErrorGethostbyname(&errorCode, errorMsg);
                 ChExceptionSocket* gethostbynameException = new ChExceptionSocket(errorCode, errorMsg);
                 throw gethostbynameException;
@@ -71,7 +86,7 @@ ChHostInfo::ChHostInfo(const string& hostName, hostType type) {
             if (hostPtr == NULL) {
 #ifdef WINDOWS_XP
                 int errorCode;
-                string errorMsg = "";
+                std::string errorMsg = "";
                 detectErrorGethostbyaddr(&errorCode, errorMsg);
                 ChExceptionSocket* gethostbyaddrException = new ChExceptionSocket(errorCode, errorMsg);
                 throw gethostbyaddrException;
@@ -103,7 +118,7 @@ char* ChHostInfo::getHostIPAddress() {
 }
 
 #ifdef WINDOWS_XP
-void ChHostInfo::detectErrorGethostbyname(int* errCode, string& errorMsg) {
+void ChHostInfo::detectErrorGethostbyname(int* errCode, std::string& errorMsg) {
     *errCode = WSAGetLastError();
 
     if (*errCode == WSANOTINITIALISED)
@@ -130,7 +145,7 @@ void ChHostInfo::detectErrorGethostbyname(int* errCode, string& errorMsg) {
 #endif
 
 #ifdef WINDOWS_XP
-void ChHostInfo::detectErrorGethostbyaddr(int* errCode, string& errorMsg) {
+void ChHostInfo::detectErrorGethostbyaddr(int* errCode, std::string& errorMsg) {
     *errCode = WSAGetLastError();
 
     if (*errCode == WSANOTINITIALISED)
@@ -172,3 +187,6 @@ char ChHostInfo::getNextHost() {
     return 0;
 }
 #endif
+
+}  // end namespace cosimul
+}  // end namespace chrono

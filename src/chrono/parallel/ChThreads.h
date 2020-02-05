@@ -1,40 +1,26 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010, 2012 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHTHREADS_H
 #define CHTHREADS_H
 
-//////////////////////////////////////////////////
-//
-//   ChThreads.h
-//
-//   Interface for multithreading (for multi-core
-//   processors, SPUs etc.)
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "core/ChApiCE.h"
+#include "chrono/core/ChApiCE.h"
 
 #if defined _WIN32
-#include "ChThreadsWIN32.h"
+#include "chrono/parallel/ChThreadsWIN32.h"
 #endif
 
 #if (defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__))
-#include "ChThreadsPOSIX.h"
+#include "chrono/parallel/ChThreadsPOSIX.h"
 #endif
 
 namespace chrono {
@@ -71,6 +57,6 @@ class ChApi ChThreads : private ChThreadsPlatformImplementation {
     virtual std::string getUniqueName() { return ChThreadsPlatformImplementation::getUniqueName(); }
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

@@ -1,12 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
 
 #include "chrono_irrlicht/ChIrrParticlesSceneNode.h"
 
@@ -62,7 +64,7 @@ ChIrrParticlesSceneNode::ChIrrParticlesSceneNode(ChSystem* msystem,
     // Creating dynamically the shared pointer from heap is not
     // nice to see, but it must be managed dynamically in this wrapper node..
 
-    particlep = new ChSharedPtr<ChParticlesClones>(new ChParticlesClones);
+    particlep = new std::shared_ptr<ChParticlesClones>(new ChParticlesClones);
 
     // set an unique identifier
     particles_identifier++;
@@ -148,23 +150,27 @@ void ChIrrParticlesSceneNode::OnAnimate(u32 timeMs) {
                 // Get the particle actual rotation, as a 3x3 matrix [A]
                 const ChMatrix33<>& chMat = (*particlep)->GetParticle(j).GetA();
 
+                //// RADU
+                //// Is this correct?   ChMatrix33 is also stored row-major (even pre-Eigen)!
+                //// Or is Irrlicht actually using column-major?
+
                 // Fill the upper 3x3 submatrix with the [A] matrix
                 // transposed, since Irrlicht uses the row-major style as in D3D
-                irrMat[0] = (f32)chMat.GetElementN(0);
-                irrMat[1] = (f32)chMat.GetElementN(3);
-                irrMat[2] = (f32)chMat.GetElementN(6);
+                irrMat[0] = (f32)chMat(0);
+                irrMat[1] = (f32)chMat(3);
+                irrMat[2] = (f32)chMat(6);
 
-                irrMat[4] = (f32)chMat.GetElementN(1);
-                irrMat[5] = (f32)chMat.GetElementN(4);
-                irrMat[6] = (f32)chMat.GetElementN(7);
+                irrMat[4] = (f32)chMat(1);
+                irrMat[5] = (f32)chMat(4);
+                irrMat[6] = (f32)chMat(7);
 
-                irrMat[8] = (f32)chMat.GetElementN(2);
-                irrMat[9] = (f32)chMat.GetElementN(5);
-                irrMat[10] = (f32)chMat.GetElementN(8);
+                irrMat[8] = (f32)chMat(2);
+                irrMat[9] = (f32)chMat(5);
+                irrMat[10] = (f32)chMat(8);
 
-                irrMat[12] = (f32)(*particlep)->GetParticle(j).GetPos().x;
-                irrMat[13] = (f32)(*particlep)->GetParticle(j).GetPos().y;
-                irrMat[14] = (f32)(*particlep)->GetParticle(j).GetPos().z;
+                irrMat[12] = (f32)(*particlep)->GetParticle(j).GetPos().x();
+                irrMat[13] = (f32)(*particlep)->GetParticle(j).GetPos().y();
+                irrMat[14] = (f32)(*particlep)->GetParticle(j).GetPos().z();
 
                 // Clear the last column to 0 and set low-right corner to 1
                 // as in Denavitt-Hartemberg matrices, transposed.

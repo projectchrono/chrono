@@ -1,98 +1,48 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2012 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #ifndef CHOBJSBOXSHAPE_H
 #define CHOBJSBOXSHAPE_H
 
-///////////////////////////////////////////////////
-//
-//   ChBoxShape.h
-//
-//   Class for defining a box as an asset shape
-//   that can be visualized in some way.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "assets/ChVisualization.h"
-#include "geometry/ChCBox.h"
+#include "chrono/assets/ChVisualization.h"
+#include "chrono/geometry/ChBox.h"
 
 namespace chrono {
 
-/// Class for a box shape that can be visualized
-/// in some way.
-
+/// Class for a box shape that can be visualized in some way.
 class ChApi ChBoxShape : public ChVisualization {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChBoxShape, ChVisualization);
-
   protected:
-    //
-    // DATA
-    //
     geometry::ChBox gbox;
 
   public:
-    //
-    // CONSTRUCTORS
-    //
+    ChBoxShape() {}
+    ChBoxShape(const geometry::ChBox& mbox) : gbox(mbox) {}
 
-    ChBoxShape(){};
-    ChBoxShape(geometry::ChBox& mbox) : gbox(mbox){};
-
-    virtual ~ChBoxShape(){};
-
-    //
-    // FUNCTIONS
-    //
+    virtual ~ChBoxShape() {}
 
     // Access the sphere geometry
     geometry::ChBox& GetBoxGeometry() { return gbox; }
 
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-
-    //
-    // SERIALIZATION
-    //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite(1);
-        // serialize parent class
-        ChVisualization::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(gbox);
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead();
-        // deserialize parent class
-        ChVisualization::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(gbox);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-//////////////////////////////////////////////////////
-//////////////////////////////////////////////////////
+CH_CLASS_VERSION(ChBoxShape, 0)
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

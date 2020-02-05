@@ -1,36 +1,23 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHC_OBB_H
 #define CHC_OBB_H
 
-//////////////////////////////////////////////////
-//
-//   ChCOBB.h
-//
-//   Header for the Object oriented Bounding Box
-//   class. Useful for BSP collision queries.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include <math.h>
-#include "geometry/ChCGeometry.h"
-#include "ChCCompile.h"
+#include <cmath>
 #include <vector>
+
+#include "chrono/geometry/ChGeometry.h"
+#include "chrono/collision/edgetempest/ChCCompile.h"
 
 namespace chrono {
 namespace collision {
@@ -62,7 +49,7 @@ class CHOBB {
         To = other.To;
         d = other.d;
         first_child = other.first_child;
-        Rot.CopyFromMatrix(other.Rot);
+        Rot = other.Rot;
     }
 
     /// Returns 1 if this is a leaf in BV tree
@@ -81,12 +68,12 @@ class CHOBB {
     inline int GetSecondChildIndex() { return first_child + 1; }
 
     /// Returns the size of the OBB (as sphere radius)
-    double GetSize() { return (d.x * d.x + d.y * d.y + d.z * d.z); }
+    double GetSize() { return (d.x() * d.x() + d.y() * d.y() + d.z() * d.z()); }
 
     /// Given a rotation matrix O which tells the direction of the
     /// axis, and a list of geometric object, this function recomputes the
     /// bounding box in order to enclose 'ngeos' geometries, from index 'firstgeo'
-    /// Box may be also 'inflated' by a thinckness='envelope'
+    /// Box may be also 'inflated' by a thickness='envelope'
     void FitToGeometries(ChMatrix33<>& O,
                          std::vector<geometry::ChGeometry*> mgeos,
                          int firstgeo,
@@ -102,7 +89,7 @@ class CHOBB {
     static bool OBB_Overlap(ChMatrix33<>& B, Vector T, CHOBB* b1, CHOBB* b2);
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono
 
 #endif

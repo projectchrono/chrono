@@ -1,0 +1,48 @@
+{
+  "Name": "UAZ Bus TMeasy Tire",
+  "Type": "Tire",
+  "Template": "TMeasyTire",
+
+  // ------------------------------------------------
+  // Tire design (REQUIRED)
+
+  "Design": {
+    "Unloaded Radius [m]": 0.372,
+    "Mass [kg]": 19.8,
+    "Inertia [kg.m2]": [ 1.2369, 2.22357, 1.2369 ],
+    "Width [m]": 0.228,
+    "Rim Radius [m]": 0.2032,
+    "Roundness of Cross Section": 0.1
+  },
+
+  "Coefficient of Friction": 0.8,
+
+  "Rolling Resistance Coefficients": [ 0.015, 0.015 ],
+
+  // ------------------------------------------------
+  // Vehicle type.
+  // Required only if tire specified with "load index" or "bearing capacity".
+  // Must be one of "Truck" or "Passenger"
+
+  "Vehicle Type": "Truck",
+
+  // ------------------------------------------------
+  // Load index specification.
+  // Takes priority over "bearing capacity" (used only if a full parameterization not provided)
+
+  "Load Index": 121,
+  
+  // ------------------------------------------------
+  // Tire inflation pressure specification  (used only if a full parameterization not provided)
+  "Inflation Pressure Design [Pa]": 590000,
+  "Inflation Pressure Use [Pa]": 220000,
+
+  // ------------------------------------------------
+  // Visualization mesh (OPTIONAL)
+
+  "Visualization": {
+    "Mesh Filename Left":  "uaz/uaz_tire.obj",
+    "Mesh Filename Right": "uaz/uaz_tire.obj"
+  }
+
+}

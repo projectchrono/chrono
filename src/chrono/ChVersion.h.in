@@ -1,26 +1,27 @@
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-//
-// \author Andrew Seidl <dev@aas.io>
-//
+// =============================================================================
+// Authors: Andrew Seidl
+// =============================================================================
 
 #ifndef CORE_VERSION_H_
 #define CORE_VERSION_H_
 
-// TODO: #define in a header forces major recompile, move to .cpp?
+// Chrono version (string)
+#define CHRONO_VERSION "@CHRONO_VERSION@"
+#define CHRONO_VERSION_MAJOR "@CHRONO_VERSION_MAJOR@"
+#define CHRONO_VERSION_MINOR "@CHRONO_VERSION_MINOR@"
+#define CHRONO_VERSION_PATCH "@CHRONO_VERSION_PATCH@"
 
-#define CHRONOENGINE_VCS_REVISION "@VCS_REVISION@"
+// Chrono version (hexadecimal, 0x00MMmmpp)
+#define CH_VERSION @CH_VERSION@
 
-#define CHRONOENGINE_VERSION "@CHRONOENGINE_VERSION@"
-#define CHRONOENGINE_VERSION_MAJOR "@CHRONOENGINE_VERSION_MAJOR@"
-#define CHRONOENGINE_VERSION_MINOR "@CHRONOENGINE_VERSION_MINOR@"
-#define CHRONOENGINE_VERSION_PATCH "@CHRONOENGINE_VERSION_PATCH@"
-
-#endif  // CORE_VERSION_H_
+#endif

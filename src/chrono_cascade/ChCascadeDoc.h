@@ -1,37 +1,25 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2011 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #ifndef CHCASCADEDOC_H
 #define CHCASCADEDOC_H
 
-//////////////////////////////////////////////////
-//
-//   ChCascadeDoc.h
-//
-//   Wraps the OCAF document (the hierarchy of
-//   shapes in the OpenCascade framework)
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include "chrono_cascade/ChApiCASCADE.h"
 
-#include "core/ChStream.h"
-#include "core/ChFrameMoving.h"
-#include "physics/ChBodyAuxRef.h"
+#include "chrono/core/ChStream.h"
+#include "chrono/core/ChFrameMoving.h"
+#include "chrono/physics/ChBodyAuxRef.h"
 
 class TopoDS_Face;
 class TopoDS_Shape;
@@ -41,10 +29,6 @@ class TDF_Label;
 
 namespace chrono {
 
-/// \brief Namespace with classes for the OpenCASCADE unit.
-/// The "cascade" namespace contains tools for interoperation with CAD
-/// files. The OpenCASCADE open-source library is used to this end:
-/// it can load STEP files saved from most 3D CADs.
 namespace cascade {
 
 /// Class that contains an OCAF document (a tree hierarchy of
@@ -75,7 +59,7 @@ class ChApiCASCADE ChCascadeDoc {
     /// It is possible to use # and ? wildcards as in Unix.
     /// If there are multiple parts (or assemblies) with the same name, only the first
     /// instance is returned in 'mshape'; otherwise, one can use the # wildcard
-    /// to get the #n-th object, for example "MyAssembly/bolt#3", "Car/Wheel#2/hub", etc.
+    /// to get the n-th object, for example "MyAssembly/bolt#3", "Car/Wheel#2/hub", etc.
     /// If the 'set_location_to_root' parameter is true (default), the location of the
     /// shape is changed so that it represents its position respect to the root, that is
     /// the shape .Location() function will give the absolute position, otherwise if false
@@ -86,7 +70,7 @@ class ChApiCASCADE ChCascadeDoc {
 
     /// Get the volume properties (center of mass, inertia moments, volume)
     /// of a given shape.
-    bool static GetVolumeProperties(
+    static bool GetVolumeProperties(
         const TopoDS_Shape& mshape,   ///< pass the shape here
         const double density,         ///< pass the density here
         ChVector<>& center_position,  ///< get the COG position center, respect to shape pos.
@@ -116,9 +100,11 @@ class ChApiCASCADE ChCascadeDoc {
     static void FromChronoToCascade(const ChFrame<>& from_coord, TopLoc_Location& to_coord);
 
     /// Create a ChBodyAuxRef with assets for the given TopoDS_Shape
-    static ChSharedPtr<ChBodyAuxRef> CreateBodyFromShape(
-                const TopoDS_Shape& mshape,   ///< pass the shape here
-                const double density          ///< pass the density here
+    static std::shared_ptr<ChBodyAuxRef> CreateBodyFromShape(
+                const TopoDS_Shape& mshape,     ///< pass the shape here
+                const double density,           ///< pass the density here
+				const bool collide = false,     ///< if true, add a collision shape that uses the triangulation of shape
+				const bool visual_asset = true  ///< if true, uses a triangulated shape for visualization
                 );
 
   private:

@@ -1,21 +1,22 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-// File author: A.Tasora
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #ifndef CHPARTICLEPROCESSOR_H
 #define CHPARTICLEPROCESSOR_H
 
-#include "core/ChSmartpointers.h"
-#include "ChParticleEventTrigger.h"
-#include "ChParticleProcessEvent.h"
+#include "chrono/particlefactory/ChParticleEventTrigger.h"
+#include "chrono/particlefactory/ChParticleProcessEvent.h"
 
 namespace chrono {
 namespace particlefactory {
@@ -35,13 +36,13 @@ namespace particlefactory {
 /// the default particle event processor is ChParticleProcessEventDoNothing, so
 /// the default behavior is 'do nothing', so you must plug in more sophisticated ones
 /// after you create the ChParticleProcessor and before you use it.
-class ChParticleProcessor : public ChShared {
+class ChParticleProcessor {
   public:
     ChParticleProcessor() {
         // default trigger: trigger never
-        trigger = ChSharedPtr<ChParticleEventTriggerNever>(new ChParticleEventTriggerNever);
+        trigger = chrono_types::make_shared<ChParticleEventTriggerNever>();
         // default event processor: do nothing
-        particle_processor = ChSharedPtr<ChParticleProcessEventDoNothing>(new ChParticleProcessEventDoNothing);
+        particle_processor = chrono_types::make_shared<ChParticleProcessEventDoNothing>();
     }
 
     /// This function process particles according to some rule,
@@ -55,16 +56,11 @@ class ChParticleProcessor : public ChShared {
 
         int nprocessed = 0;
 
-        ChSystem::IteratorBodies myiter = msystem.IterBeginBodies();
-        while (myiter != msystem.IterEndBodies()) {
-            ChSharedPtr<ChBody> mybody = (*myiter);
-
-            if (this->trigger->TriggerEvent(mybody, msystem)) {
-                this->particle_processor->ParticleProcessEvent(mybody, msystem, this->trigger);
+        for (auto body : msystem.Get_bodylist()) {
+            if (this->trigger->TriggerEvent(body, msystem)) {
+                this->particle_processor->ParticleProcessEvent(body, msystem, this->trigger);
                 ++nprocessed;
             }
-
-            ++myiter;
         }
 
         this->particle_processor->SetupPostProcess(msystem);
@@ -74,14 +70,14 @@ class ChParticleProcessor : public ChShared {
     }
 
     /// Use this function to plug in an event trigger.
-    void SetEventTrigger(ChSharedPtr<ChParticleEventTrigger> mtrigger) { trigger = mtrigger; }
+    void SetEventTrigger(std::shared_ptr<ChParticleEventTrigger> mtrigger) { trigger = mtrigger; }
 
     /// Use this function to plug in a particle event processor.
-    void SetParticleEventProcessor(ChSharedPtr<ChParticleProcessEvent> mproc) { particle_processor = mproc; }
+    void SetParticleEventProcessor(std::shared_ptr<ChParticleProcessEvent> mproc) { particle_processor = mproc; }
 
   protected:
-    ChSharedPtr<ChParticleEventTrigger> trigger;
-    ChSharedPtr<ChParticleProcessEvent> particle_processor;
+    std::shared_ptr<ChParticleEventTrigger> trigger;
+    std::shared_ptr<ChParticleProcessEvent> particle_processor;
 };
 
 /// @} chrono_particles

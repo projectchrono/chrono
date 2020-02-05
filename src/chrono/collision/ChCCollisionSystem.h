@@ -1,93 +1,38 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHC_COLLISIONSYSTEM_H
 #define CHC_COLLISIONSYSTEM_H
 
-//////////////////////////////////////////////////
-//
-//   ChCCollisionSystem.h
-//
-//   Header for base class for generic collision
-//   engine.
-//   Class must be specialized by children classes.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "collision/ChCCollisionInfo.h"
-#include "core/ChFrame.h"
-#include "core/ChApiCE.h"
+#include "chrono/collision/ChCCollisionInfo.h"
+#include "chrono/core/ChApiCE.h"
+#include "chrono/core/ChFrame.h"
 
 namespace chrono {
 
 // forward references
 class ChBody;
-class ChLcpVariablesBody;
-class ChContactContainerBase;
-class ChProximityContainerBase;
+class ChVariablesBody;
+class ChContactContainer;
+class ChProximityContainer;
 
 /// Namespace with classes for collision detection
 namespace collision {
 
-///
-/// Class to be used as a callback interface for the narrow phase collision
-/// system. For each contact point found during the Run() execution
-/// of the ChCollisionSystem, the function ChNarrowPhaseCallback() is called.
-/// The user should implement an inherited class and
-/// implement a custom NarrowCallback() function.
-///
-
-class ChApi ChNarrowPhaseCallback {
-  public:
-    /// Callback, used to report contact points found by default
-    /// narrow phase collision step.
-    /// This must be implemented by a child class of ChNarrowPhaseCallback
-    virtual void NarrowCallback(const ChCollisionInfo& mcontactinfo) = 0;
-};
-
-///
-/// Class to be used as a callback interface for the broad-phase collision
-/// system. For each 'near enough' pair of shapes found during the Run() execution
-/// of the ChCollisionSystem, the function ChBroadPhaseCallback() is called.
-/// The user could optionally implement an inherited class and
-/// implement a custom BroadCallback().
-///
-
-class ChApi ChBroadPhaseCallback {
-  public:
-    /// Callback used to report 'near enough' pairs of models.
-    /// This must be implemented by a child class of ChBroadPhaseCallback.
-    /// Return false to skip narrow-phase contact generation for this pair of bodies.
-    virtual bool BroadCallback(ChCollisionModel* mmodelA,  ///< pass 1st model
-                               ChCollisionModel* mmodelB   ///< pass 2nd model
-                               ) = 0;
-};
-
-///
 /// Base class for generic collision engine.
-/// Most methods are 'pure virtual': they need to be implemented
-/// by child classes.
-///
-
+/// Most methods are 'pure virtual': they need to be implemented by derived classes.
 class ChApi ChCollisionSystem {
-
-    // Chrono RTTI, needed for serialization
-    CH_RTTI_ROOT(ChCollisionSystem);
-
   public:
     ChCollisionSystem(unsigned int max_objects = 16000, double scene_size = 500) {
         narrow_callback = 0;
@@ -112,15 +57,22 @@ class ChApi ChCollisionSystem {
     /// engine (custom data may be deallocated).
     // virtual void RemoveAll() = 0;
 
-    /// RUN THE ALGORITHM and finds the contacts.
-    /// This is the most important function - it will be called
-    /// at each simulation step.
-    /// Children classes _must_ implement this.
+    /// Run the collision detection and finds the contacts.
+    /// This function will be called at each simulation step.
     virtual void Run() = 0;
+
+    /// Return the time (in seconds) for broadphase collision detection.
+    virtual double GetTimerCollisionBroad() const = 0;
+
+    /// Return the time (in seconds) for narrowphase collision detection.
+    virtual double GetTimerCollisionNarrow() const = 0;
+
+    /// Reset any timers associated with collision detection.
+    virtual void ResetTimers() {}
 
     /// After the Run() has completed, you can call this function to
     /// fill a 'contact container', that is an object inherited from class
-    /// ChContactContainerBase. For instance ChSystem, after each Run()
+    /// ChContactContainer. For instance ChSystem, after each Run()
     /// collision detection, calls this method multiple times for all contact containers in the system,
     /// Children classes _must_ implement this.
     /// The basic behavior of the implementation should be the following: collision system
@@ -130,11 +82,11 @@ class ChApi ChCollisionSystem {
     /// finds that the contact container is a specialized one (ex with a GPU buffer)
     /// it can call more performant methods to add directly the contacts in batches, for instance
     /// by recognizing that he can call, say, some special AddAllContactsAsGpuBuffer() instead of many AddContact().
-    virtual void ReportContacts(ChContactContainerBase* mcontactcontainer) = 0;
+    virtual void ReportContacts(ChContactContainer* mcontactcontainer) = 0;
 
     /// After the Run() has completed, you can call this function to
     /// fill a 'proximity container' (container of narrow phase pairs), that is
-    /// an object inherited from class ChProximityContainerBase. For instance ChSystem, after each Run()
+    /// an object inherited from class ChProximityContainer. For instance ChSystem, after each Run()
     /// collision detection, calls this method multiple times for all proximity containers in the system,
     /// Children classes _must_ implement this.
     /// The basic behavior of the implementation should be the following: collision system
@@ -145,46 +97,83 @@ class ChApi ChCollisionSystem {
     /// it can call more performant methods to add directly the proximities in batches, for instance
     /// by recognizing that he can call, say, some special AddAllProximitiesAsGpuBuffer() instead of many
     /// AddProximity().
-    virtual void ReportProximities(ChProximityContainerBase* mproximitycontainer) = 0;
+    virtual void ReportProximities(ChProximityContainer* mproximitycontainer) = 0;
 
-    /// Sets the user ChBroadPhaseCallback to be used
-    /// to tell the near-enough pairs found during the Run()
-    /// execution. It will be executed for near enough pair of bodies.
-    void SetBroadPhaseCallback(ChBroadPhaseCallback* mcallback) { broad_callback = mcallback; }
+    /// Class to be used as a callback interface for user-defined actions to be performed
+    /// for each 'near enough' pair of collision shapes found by the broad-phase collision step.
+    class ChApi BroadphaseCallback {
+      public:
+        virtual ~BroadphaseCallback() {}
 
-    /// Sets the used ChNarrowPhaseCallback to be used
-    /// to report the contacts found during the Run()
-    /// execution. It will be executed for each contact point.
-    void SetNarrowPhaseCallback(ChNarrowPhaseCallback* mcallback) { narrow_callback = mcallback; }
-
-    /// This will be used to recover results from RayHit() raycasting
-    struct ChRayhitResult {
-        bool hit;                    /// if true, there was an hit - look following date for infos
-        ChVector<> abs_hitPoint;     /// hit point in absolute space coordinates
-        ChVector<> abs_hitNormal;    /// normal to surface in absolute space coordinates
-        double dist_factor;          /// from 0 .. 1 means the distance of hit point along the segment
-        ChCollisionModel* hitModel;  /// pointer to hitten model
+        /// Callback used to process 'near enough' pairs of collision models found by the
+        /// broad-phase collision algorithm.
+        /// Return false to skip narrow-phase contact generation for this pair of bodies.
+        virtual bool OnBroadphase(ChCollisionModel* modelA,  ///< 1st model
+                                  ChCollisionModel* modelB   ///< 2nd model
+                                  ) = 0;
     };
+
+    /// Specify a callback object to be used each time a pair of 'near enough' collision shapes
+    /// is found by the broad-phase collision step. The OnBroadphase() method of the provided
+    /// callback object will be called for each pair of 'near enough' shapes.
+    void RegisterBroadphaseCallback(BroadphaseCallback* callback) { broad_callback = callback; }
+
+    /// Class to be used as a callback interface for user-defined actions to be performed
+    /// at each collision pair found during the narrow-phase collision step.
+    /// It can be used to override the geometric information.
+    class ChApi NarrowphaseCallback {
+      public:
+        virtual ~NarrowphaseCallback() {}
+
+        /// Callback used to process collision pairs found by the narrow-phase collision step.
+        /// Return true to generate a contact for this pair of overlapping bodies.
+        virtual bool OnNarrowphase(ChCollisionInfo& contactinfo) = 0;
+    };
+
+    /// Specify a callback object to be used each time a collision pair is found during
+    /// the narrow-phase collision detection step. The OnNarrowphase() method of the provided
+    /// callback object will be called for each collision pair found during narrow phase.
+    void RegisterNarrowphaseCallback(NarrowphaseCallback* callback) { narrow_callback = callback; }
+
+    /// Recover results from RayHit() raycasting.
+    struct ChRayhitResult {
+        bool hit;                    ///< if true, there was an hit
+        ChVector<> abs_hitPoint;     ///< hit point in absolute space coordinates
+        ChVector<> abs_hitNormal;    ///< normal to surface in absolute space coordinates
+        double dist_factor;          ///< from 0 .. 1 means the distance of hit point along the segment
+        ChCollisionModel* hitModel;  ///< pointer to intersected model
+    };
+
     /// Perform a ray-hit test with the collision models.
-    virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult) = 0;
+    virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult) const = 0;
 
-    // SERIALIZATION
+    /// Perform a ray-hit test with the specified collision model.
+    virtual bool RayHit(const ChVector<>& from,
+                        const ChVector<>& to,
+                        ChCollisionModel* model,
+                        ChRayhitResult& mresult) const = 0;
 
+    /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChCollisionSystem>();
     }
+
+    /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChCollisionSystem>();
     }
 
   protected:
-    ChBroadPhaseCallback* broad_callback;    // user callback for each near-enough pair of shapes
-    ChNarrowPhaseCallback* narrow_callback;  // user callback for each contact
+    BroadphaseCallback* broad_callback;    ///< user callback for each near-enough pair of shapes
+    NarrowphaseCallback* narrow_callback;  ///< user callback for each collision pair
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+
+CH_CLASS_VERSION(collision::ChCollisionSystem, 0)
+
+}  // end namespace chrono
 
 #endif

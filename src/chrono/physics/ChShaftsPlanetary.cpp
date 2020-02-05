@@ -1,96 +1,71 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010, 2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChShaftsPlanetary.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChShaftsPlanetary.h"
-#include "physics/ChSystem.h"
-#include "physics/ChShaft.h"
+#include "chrono/physics/ChShaft.h"
+#include "chrono/physics/ChShaftsPlanetary.h"
+#include "chrono/physics/ChSystem.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
-ChClassRegister<ChShaftsPlanetary> a_registration_ChShaftsPlanetary;
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChShaftsPlanetary)
 
-//////////////////////////////////////
-//////////////////////////////////////
+ChShaftsPlanetary::ChShaftsPlanetary()
+    : r1(1), r2(1), r3(1), torque_react(0), shaft1(NULL), shaft2(NULL), shaft3(NULL), avoid_phase_drift(true),
+    phase1(0), phase2(0), phase3(0) {}
 
-/// CLASS FOR SHAFTS
+ChShaftsPlanetary::ChShaftsPlanetary(const ChShaftsPlanetary& other) : ChPhysicsItem(other) {
+    r1 = other.r1;
+    r2 = other.r2;
+    r3 = other.r3;
 
-ChShaftsPlanetary::ChShaftsPlanetary() {
-    this->r1 = 1;
-    this->r2 = 1;
-    this->r3 = 1;
+    torque_react = other.torque_react;
+    shaft1 = NULL;
+    shaft2 = NULL;
+    shaft3 = NULL;
 
-    this->torque_react = 0;
-    this->cache_li_speed = 0.f;
-    this->cache_li_pos = 0.f;
-
-    this->shaft1 = 0;
-    this->shaft2 = 0;
-    this->shaft3 = 0;
-
-    SetIdentifier(GetUniqueIntID());  // mark with unique ID
-
-    // variables.SetUserData((void*)this);
+    avoid_phase_drift = other.avoid_phase_drift;
+    phase1 = other.phase1;
+    phase2 = other.phase2;
+    phase3 = other.phase3;
 }
 
-ChShaftsPlanetary::~ChShaftsPlanetary() {
-}
-
-void ChShaftsPlanetary::Copy(ChShaftsPlanetary* source) {
-    // copy the parent class data...
-    ChPhysicsItem::Copy(source);
-
-    // copy class data
-    r1 = source->r1;
-    r2 = source->r2;
-    r3 = source->r3;
-
-    torque_react = source->torque_react;
-    cache_li_speed = source->cache_li_speed;
-    cache_li_pos = source->cache_li_pos;
-    this->shaft1 = 0;
-    this->shaft2 = 0;
-    this->shaft3 = 0;
-}
-
-int ChShaftsPlanetary::Initialize(ChSharedPtr<ChShaft> mshaft1,
-                                  ChSharedPtr<ChShaft> mshaft2,
-                                  ChSharedPtr<ChShaft> mshaft3) {
-    ChShaft* mm1 = mshaft1.get_ptr();
-    ChShaft* mm2 = mshaft2.get_ptr();
-    ChShaft* mm3 = mshaft3.get_ptr();
+bool ChShaftsPlanetary::Initialize(std::shared_ptr<ChShaft> mshaft1,  // first  shaft to join (carrier wheel)
+                                   std::shared_ptr<ChShaft> mshaft2,  // second shaft to join (wheel)
+                                   std::shared_ptr<ChShaft> mshaft3   // third  shaft to join (wheel)
+                                   ) {
+    ChShaft* mm1 = mshaft1.get();
+    ChShaft* mm2 = mshaft2.get();
+    ChShaft* mm3 = mshaft3.get();
     assert(mm1 && mm2 && mm3);
     assert(mm1 != mm2);
     assert(mm1 != mm3);
     assert(mm3 != mm2);
     assert((mm1->GetSystem() == mm2->GetSystem()) && (mm1->GetSystem() == mm3->GetSystem()));
 
-    this->shaft1 = mm1;
-    this->shaft2 = mm2;
-    this->shaft3 = mm3;
+    shaft1 = mm1;
+    shaft2 = mm2;
+    shaft3 = mm3;
 
-    this->constraint.SetVariables(&mm1->Variables(), &mm2->Variables(), &mm3->Variables());
+    phase1 = shaft1->GetPos();
+    phase2 = shaft2->GetPos();
+    phase3 = shaft3->GetPos();
 
-    this->SetSystem(this->shaft1->GetSystem());
+    constraint.SetVariables(&mm1->Variables(), &mm2->Variables(), &mm3->Variables());
+
+    SetSystem(shaft1->GetSystem());
+
     return true;
 }
 
@@ -104,21 +79,25 @@ void ChShaftsPlanetary::Update(double mytime, bool update_assets) {
 
 //// STATE BOOKKEEPING FUNCTIONS
 
-void ChShaftsPlanetary::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
-                                            ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
-                                            const ChVectorDynamic<>& L,  ///< the L vector
-                                            const double c               ///< a scaling factor
+void ChShaftsPlanetary::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L multipliers
+                                            ChVectorDynamic<>& R,        // result: the R residual, R += c*Cq'*L
+                                            const ChVectorDynamic<>& L,  // the L vector
+                                            const double c               // a scaling factor
                                             ) {
     constraint.MultiplyTandAdd(R, L(off_L) * c);
 }
 
-void ChShaftsPlanetary::IntLoadConstraint_C(const unsigned int off_L,  ///< offset in Qc residual
-                                            ChVectorDynamic<>& Qc,     ///< result: the Qc residual, Qc += c*C
-                                            const double c,            ///< a scaling factor
-                                            bool do_clamp,             ///< apply clamping to c*C?
-                                            double recovery_clamp      ///< value for min/max clamping of c*C
+void ChShaftsPlanetary::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
+                                            ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*C
+                                            const double c,            // a scaling factor
+                                            bool do_clamp,             // apply clamping to c*C?
+                                            double recovery_clamp      // value for min/max clamping of c*C
                                             ) {
-    double res = 0;  // no residual anyway! allow drifting...
+    double res = this->r1 * (this->shaft1->GetPos() - this->phase1) +
+                 this->r2 * (this->shaft2->GetPos() - this->phase2) +
+                 this->r3 * (this->shaft3->GetPos() - this->phase3);  
+    if (!this->avoid_phase_drift)
+        res = 0;
 
     double cnstr_violation = c * res;
 
@@ -129,36 +108,36 @@ void ChShaftsPlanetary::IntLoadConstraint_C(const unsigned int off_L,  ///< offs
     Qc(off_L) += cnstr_violation;
 }
 
-void ChShaftsPlanetary::IntToLCP(const unsigned int off_v,  ///< offset in v, R
-                                 const ChStateDelta& v,
-                                 const ChVectorDynamic<>& R,
-                                 const unsigned int off_L,  ///< offset in L, Qc
-                                 const ChVectorDynamic<>& L,
-                                 const ChVectorDynamic<>& Qc) {
+void ChShaftsPlanetary::IntToDescriptor(const unsigned int off_v,  // offset in v, R
+                                        const ChStateDelta& v,
+                                        const ChVectorDynamic<>& R,
+                                        const unsigned int off_L,  // offset in L, Qc
+                                        const ChVectorDynamic<>& L,
+                                        const ChVectorDynamic<>& Qc) {
     constraint.Set_l_i(L(off_L));
 
     constraint.Set_b_i(Qc(off_L));
 }
 
-void ChShaftsPlanetary::IntFromLCP(const unsigned int off_v,  ///< offset in v
-                                   ChStateDelta& v,
-                                   const unsigned int off_L,  ///< offset in L
-                                   ChVectorDynamic<>& L) {
+void ChShaftsPlanetary::IntFromDescriptor(const unsigned int off_v,  // offset in v
+                                          ChStateDelta& v,
+                                          const unsigned int off_L,  // offset in L
+                                          ChVectorDynamic<>& L) {
     L(off_L) = constraint.Get_l_i();
 }
 
-////////// LCP INTERFACES ////
+// SOLVER INTERFACES
 
 void ChShaftsPlanetary::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
-    L(off_L) = this->torque_react;
+    L(off_L) = torque_react;
 }
 
 void ChShaftsPlanetary::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
-    this->torque_react = L(off_L);
+    torque_react = L(off_L);
 }
 
-void ChShaftsPlanetary::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
-    // if (!this->IsActive())
+void ChShaftsPlanetary::InjectConstraints(ChSystemDescriptor& mdescriptor) {
+    // if (!IsActive())
     //	return;
 
     mdescriptor.InsertConstraint(&constraint);
@@ -169,7 +148,7 @@ void ChShaftsPlanetary::ConstraintsBiReset() {
 }
 
 void ChShaftsPlanetary::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
-    // if (!this->IsActive())
+    // if (!IsActive())
     //	return;
 
     double res = 0;  // no residual
@@ -178,55 +157,29 @@ void ChShaftsPlanetary::ConstraintsBiLoad_C(double factor, double recovery_clamp
 }
 
 void ChShaftsPlanetary::ConstraintsBiLoad_Ct(double factor) {
-    // if (!this->IsActive())
+    // if (!IsActive())
     //	return;
 
     // nothing
 }
 
-/*
-void ChShaftsPlanetary::ConstraintsFbLoadForces(double factor)
-{
-    // no forces
-}
-*/
-
 void ChShaftsPlanetary::ConstraintsLoadJacobians() {
     // compute jacobians
-    constraint.Get_Cq_a()->SetElement(0, 0, (float)this->r1);
-    constraint.Get_Cq_b()->SetElement(0, 0, (float)this->r2);
-    constraint.Get_Cq_c()->SetElement(0, 0, (float)this->r3);
+    constraint.Get_Cq_a()(0) = r1;
+    constraint.Get_Cq_b()(0) = r2;
+    constraint.Get_Cq_c()(0) = r3;
 }
 
 void ChShaftsPlanetary::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
-    this->torque_react = constraint.Get_l_i() * factor;
-}
-
-// Following functions are for exploiting the contact persistence
-
-void ChShaftsPlanetary::ConstraintsLiLoadSuggestedSpeedSolution() {
-    constraint.Set_l_i(this->cache_li_speed);
-}
-
-void ChShaftsPlanetary::ConstraintsLiLoadSuggestedPositionSolution() {
-    constraint.Set_l_i(this->cache_li_pos);
-}
-
-void ChShaftsPlanetary::ConstraintsLiFetchSuggestedSpeedSolution() {
-    this->cache_li_speed = (float)constraint.Get_l_i();
-}
-
-void ChShaftsPlanetary::ConstraintsLiFetchSuggestedPositionSolution() {
-    this->cache_li_pos = (float)constraint.Get_l_i();
+    torque_react = constraint.Get_l_i() * factor;
 }
 
 //////// FILE I/O
 
-void ChShaftsPlanetary::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChShaftsPlanetary::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChShaftsPlanetary>();
 
     // serialize parent class
     ChPhysicsItem::ArchiveOUT(marchive);
@@ -235,16 +188,19 @@ void ChShaftsPlanetary::ArchiveOUT(ChArchiveOut& marchive)
     marchive << CHNVP(r1);
     marchive << CHNVP(r2);
     marchive << CHNVP(r3);
-    //marchive << CHNVP(shaft1); //***TODO*** serialize with shared ptr
-    //marchive << CHNVP(shaft2); //***TODO*** serialize with shared ptr
-    //marchive << CHNVP(shaft3); //***TODO*** serialize with shared ptr
+    marchive << CHNVP(avoid_phase_drift);
+    marchive << CHNVP(phase1);
+    marchive << CHNVP(phase2);
+    marchive << CHNVP(phase3);
+    // marchive << CHNVP(shaft1); //***TODO*** serialize with shared ptr
+    // marchive << CHNVP(shaft2); //***TODO*** serialize with shared ptr
+    // marchive << CHNVP(shaft3); //***TODO*** serialize with shared ptr
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChShaftsPlanetary::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChShaftsPlanetary::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChShaftsPlanetary>();
 
     // deserialize parent class:
     ChPhysicsItem::ArchiveIN(marchive);
@@ -253,12 +209,13 @@ void ChShaftsPlanetary::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(r1);
     marchive >> CHNVP(r2);
     marchive >> CHNVP(r3);
-    //marchive >> CHNVP(shaft1); //***TODO*** serialize with shared ptr
-    //marchive >> CHNVP(shaft2); //***TODO*** serialize with shared ptr
-    //marchive >> CHNVP(shaft3); //***TODO*** serialize with shared ptr
-} 
+    marchive >> CHNVP(avoid_phase_drift);
+    marchive >> CHNVP(phase1);
+    marchive >> CHNVP(phase2);
+    marchive >> CHNVP(phase3);
+    // marchive >> CHNVP(shaft1); //***TODO*** serialize with shared ptr
+    // marchive >> CHNVP(shaft2); //***TODO*** serialize with shared ptr
+    // marchive >> CHNVP(shaft3); //***TODO*** serialize with shared ptr
+}
 
-
-}  // END_OF_NAMESPACE____
-
-/////////////////////
+}  // end namespace chrono

@@ -1,28 +1,21 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2011-2012 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-
-///////////////////////////////////////////////////
-//
-//   ChCascadeDoc.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #include "chrono_cascade/ChCascadeDoc.h"
 
-#include "core/ChMatrixDynamic.h"
-
-//#include "chrono_cascade/ChIrrCascadeMeshTools.h"
+#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono_cascade/ChCascadeMeshTools.h"
 
 #include <TopoDS_Shape.hxx>
 #include <TopoDS.hxx>
@@ -81,6 +74,7 @@
 
 using namespace chrono;
 using namespace cascade;
+using namespace geometry;
 
 ChCascadeDoc::ChCascadeDoc() {
     doc = new Handle(TDocStd_Document);
@@ -396,16 +390,16 @@ bool ChCascadeDoc::GetVolumeProperties(const TopoDS_Shape& mshape,   ///< pass t
     gp_Pnt G = mprops.CentreOfMass();
     gp_Mat I = mprops.MatrixOfInertia();
 
-    center_position.x = G.X();
-    center_position.y = G.Y();
-    center_position.z = G.Z();
+    center_position.x() = G.X();
+    center_position.y() = G.Y();
+    center_position.z() = G.Z();
 
-    inertiaXX.x = I(1, 1);
-    inertiaXX.y = I(2, 2);
-    inertiaXX.z = I(3, 3);
-    inertiaXY.x = I(1, 2);
-    inertiaXY.y = I(1, 3);
-    inertiaXY.z = I(2, 3);
+    inertiaXX.x() = I(1, 1);
+    inertiaXX.y() = I(2, 2);
+    inertiaXX.z() = I(3, 3);
+    inertiaXY.x() = I(1, 2);
+    inertiaXY.y() = I(1, 3);
+    inertiaXY.z() = I(2, 3);
 
     return true;
 }
@@ -434,24 +428,32 @@ void ChCascadeDoc::FromCascadeToChrono(const TopLoc_Location& from_coord, ChFram
 
 void ChCascadeDoc::FromChronoToCascade(const ChFrame<>& from_coord, TopLoc_Location& to_coord) {
     const ChVector<>& mpos = from_coord.GetPos();
-    gp_Vec mtr(mpos.x, mpos.y, mpos.z);
+    gp_Vec mtr(mpos.x(), mpos.y(), mpos.z());
 
     const ChMatrix33<>& from_mat = from_coord.GetA();
+	
+	gp_Trsf castrasf;
+	castrasf.SetValues(from_mat(0, 0), from_mat(0, 1), from_mat(0, 2), mpos.x(), from_mat(1, 0), from_mat(1, 1),
+		from_mat(1, 2), mpos.y(), from_mat(2, 0), from_mat(2, 1), from_mat(2, 2), mpos.z());
 
-    ((gp_Trsf)(to_coord.Transformation()))
-        .SetValues(from_mat(0, 0), from_mat(0, 1), from_mat(0, 2), mpos.x, from_mat(1, 0), from_mat(1, 1),
-                   from_mat(1, 2), mpos.y, from_mat(2, 0), from_mat(2, 1), from_mat(2, 2), mpos.z); //0, 0);
+	to_coord = TopLoc_Location(castrasf);
+
+    //((gp_Trsf)(to_coord.Transformation()))
+    //    .SetValues(from_mat(0, 0), from_mat(0, 1), from_mat(0, 2), mpos.x(), from_mat(1, 0), from_mat(1, 1),
+    //               from_mat(1, 2), mpos.y(), from_mat(2, 0), from_mat(2, 1), from_mat(2, 2), mpos.z()); //0, 0);
 }
 
 
 
 /// Create a ChBodyAuxRef with assets for the given TopoDS_Shape
-ChSharedPtr<ChBodyAuxRef> ChCascadeDoc::CreateBodyFromShape(
+std::shared_ptr<ChBodyAuxRef> ChCascadeDoc::CreateBodyFromShape(
                 const TopoDS_Shape& mshape,   ///< pass the shape here
-                const double density          ///< pass the density here
+                const double density,         ///< pass the density here
+				const bool collide,	
+				const bool visual_asset
                 )
 {
-    ChSharedPtr<ChBodyAuxRef> mbody(new ChBodyAuxRef);
+    std::shared_ptr<ChBodyAuxRef> mbody(new ChBodyAuxRef);
     
     chrono::ChFrame<> frame_ref_to_abs;
 
@@ -468,13 +470,35 @@ ChSharedPtr<ChBodyAuxRef> ChCascadeDoc::CreateBodyFromShape(
     double mmass;
     chrono::cascade::ChCascadeDoc::GetVolumeProperties(objshape, density, mcog, minertiaXX, minertiaXY, mvol, mmass);
 
-    mbody->SetFrame_REF_to_abs(frame_ref_to_abs);
+	// Set mass and COG and REF references
+	mbody->SetDensity((float)density);
+	mbody->SetMass(mmass);
+	mbody->SetInertiaXX(minertiaXX);
+	mbody->SetInertiaXY(minertiaXY);
+	mbody->SetFrame_REF_to_abs(frame_ref_to_abs);
 
-    //mbody->SetFrame_COG_to_REF(frame_ref_to_abs.Invert() * mcog );
+	chrono::ChFrame<> frame_cog_to_ref;
+	frame_cog_to_ref.SetPos(mcog);
+	frame_cog_to_ref.SetRot(chrono::QUNIT);
+	mbody->SetFrame_COG_to_REF(frame_cog_to_ref);
 
-    chrono::ChFrame<>* frame_cog_to_ref = (chrono::ChFrame<>*)mbody.get_ptr();
-    frame_cog_to_ref->SetPos(mcog);
-    frame_cog_to_ref->SetRot(chrono::QUNIT);
+	// Add a visualization asset if needed
+	if (visual_asset) {
+		auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+		ChCascadeMeshTools::fillTriangleMeshFromCascade(*trimesh, objshape);
+
+		auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+		trimesh_shape->SetMesh(trimesh);
+		mbody->AddAsset(trimesh_shape);
+
+		// Add a collision shape if needed
+		if (collide) {
+			mbody->GetCollisionModel()->ClearModel();
+			mbody->GetCollisionModel()->AddTriangleMesh(trimesh, false, false);
+			mbody->GetCollisionModel()->BuildModel();
+			mbody->SetCollide(true);
+		}
+	}
 
     return mbody;
 }

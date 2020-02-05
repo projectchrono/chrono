@@ -1,75 +1,50 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010, 2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChShaftsGear.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChShaftsGear.h"
-#include "physics/ChSystem.h"
-#include "physics/ChShaft.h"
+#include "chrono/physics/ChShaft.h"
+#include "chrono/physics/ChShaftsGear.h"
+#include "chrono/physics/ChSystem.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
-ChClassRegister<ChShaftsGear> a_registration_ChShaftsGear;
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChShaftsGear)
 
-//////////////////////////////////////
-//////////////////////////////////////
+ChShaftsGear::ChShaftsGear() : ratio(1), torque_react(0), avoid_phase_drift(true), phase1(0), phase2(0), violation(0) {}
 
-/// CLASS FOR SHAFTS
-
-ChShaftsGear::ChShaftsGear() {
-    this->ratio = 1;
-    this->torque_react = 0;
-    this->cache_li_speed = 0.f;
-    this->cache_li_pos = 0.f;
-
-    SetIdentifier(GetUniqueIntID());  // mark with unique ID
-
-    // variables.SetUserData((void*)this);
+ChShaftsGear::ChShaftsGear(const ChShaftsGear& other) : ChShaftsCouple(other), violation(0) {
+    ratio = other.ratio;
+    torque_react = other.torque_react;
+    avoid_phase_drift = other.avoid_phase_drift;
+    phase1 = other.phase1;
+    phase2 = other.phase2;
 }
 
-ChShaftsGear::~ChShaftsGear() {
-}
-
-void ChShaftsGear::Copy(ChShaftsGear* source) {
-    // copy the parent class data...
-    ChShaftsCouple::Copy(source);
-
-    // copy class data
-    ratio = source->ratio;
-    torque_react = source->torque_react;
-    cache_li_speed = source->cache_li_speed;
-    cache_li_pos = source->cache_li_pos;
-}
-
-bool ChShaftsGear::Initialize(ChSharedPtr<ChShaft> mshaft1, ChSharedPtr<ChShaft> mshaft2) {
+bool ChShaftsGear::Initialize(std::shared_ptr<ChShaft> mshaft1, std::shared_ptr<ChShaft> mshaft2) {
     // Parent initialization
     if (!ChShaftsCouple::Initialize(mshaft1, mshaft2))
         return false;
 
-    ChShaft* mm1 = mshaft1.get_ptr();
-    ChShaft* mm2 = mshaft2.get_ptr();
+    ChShaft* mm1 = mshaft1.get();
+    ChShaft* mm2 = mshaft2.get();
 
-    this->constraint.SetVariables(&mm1->Variables(), &mm2->Variables());
+    phase1 = shaft1->GetPos();
+    phase2 = shaft2->GetPos();
 
-    this->SetSystem(this->shaft1->GetSystem());
+    constraint.SetVariables(&mm1->Variables(), &mm2->Variables());
+
+    SetSystem(shaft1->GetSystem());
     return true;
 }
 
@@ -78,34 +53,37 @@ void ChShaftsGear::Update(double mytime, bool update_assets) {
     ChShaftsCouple::Update(mytime, update_assets);
 
     // update class data
-    // ...
+    violation = ratio * (shaft1->GetPos() - phase1) - 1.0 * (shaft2->GetPos() - phase2);
 }
 
 //// STATE BOOKKEEPING FUNCTIONS
 
 void ChShaftsGear::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
-    L(off_L) = this->torque_react;
+    L(off_L) = torque_react;
 }
 
 void ChShaftsGear::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
-    this->torque_react = L(off_L);
+    torque_react = L(off_L);
 }
 
-void ChShaftsGear::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
-                                       ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
-                                       const ChVectorDynamic<>& L,  ///< the L vector
-                                       const double c               ///< a scaling factor
+void ChShaftsGear::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L multipliers
+                                       ChVectorDynamic<>& R,        // result: the R residual, R += c*Cq'*L
+                                       const ChVectorDynamic<>& L,  // the L vector
+                                       const double c               // a scaling factor
                                        ) {
     constraint.MultiplyTandAdd(R, L(off_L) * c);
 }
 
-void ChShaftsGear::IntLoadConstraint_C(const unsigned int off_L,  ///< offset in Qc residual
-                                       ChVectorDynamic<>& Qc,     ///< result: the Qc residual, Qc += c*C
-                                       const double c,            ///< a scaling factor
-                                       bool do_clamp,             ///< apply clamping to c*C?
-                                       double recovery_clamp      ///< value for min/max clamping of c*C
+void ChShaftsGear::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
+                                       ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*C
+                                       const double c,            // a scaling factor
+                                       bool do_clamp,             // apply clamping to c*C?
+                                       double recovery_clamp      // value for min/max clamping of c*C
                                        ) {
-    double res = 0;  // no residual anyway! allow drifting...
+    double res = this->ratio * (this->shaft1->GetPos() - phase1) + 
+                 -1.0        * (this->shaft2->GetPos() - phase2);
+    if (!avoid_phase_drift) 
+        res = 0;
 
     double cnstr_violation = c * res;
 
@@ -116,28 +94,28 @@ void ChShaftsGear::IntLoadConstraint_C(const unsigned int off_L,  ///< offset in
     Qc(off_L) += cnstr_violation;
 }
 
-void ChShaftsGear::IntToLCP(const unsigned int off_v,  ///< offset in v, R
-                            const ChStateDelta& v,
-                            const ChVectorDynamic<>& R,
-                            const unsigned int off_L,  ///< offset in L, Qc
-                            const ChVectorDynamic<>& L,
-                            const ChVectorDynamic<>& Qc) {
+void ChShaftsGear::IntToDescriptor(const unsigned int off_v,  // offset in v, R
+                                   const ChStateDelta& v,
+                                   const ChVectorDynamic<>& R,
+                                   const unsigned int off_L,  // offset in L, Qc
+                                   const ChVectorDynamic<>& L,
+                                   const ChVectorDynamic<>& Qc) {
     constraint.Set_l_i(L(off_L));
 
     constraint.Set_b_i(Qc(off_L));
 }
 
-void ChShaftsGear::IntFromLCP(const unsigned int off_v,  ///< offset in v
-                              ChStateDelta& v,
-                              const unsigned int off_L,  ///< offset in L
-                              ChVectorDynamic<>& L) {
+void ChShaftsGear::IntFromDescriptor(const unsigned int off_v,  // offset in v
+                                     ChStateDelta& v,
+                                     const unsigned int off_L,  // offset in L
+                                     ChVectorDynamic<>& L) {
     L(off_L) = constraint.Get_l_i();
 }
 
-////////// LCP INTERFACES ////
+// SOLVER INTERFACES
 
-void ChShaftsGear::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
-    // if (!this->IsActive())
+void ChShaftsGear::InjectConstraints(ChSystemDescriptor& mdescriptor) {
+    // if (!IsActive())
     //	return;
 
     mdescriptor.InsertConstraint(&constraint);
@@ -148,7 +126,7 @@ void ChShaftsGear::ConstraintsBiReset() {
 }
 
 void ChShaftsGear::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
-    // if (!this->IsActive())
+    // if (!IsActive())
     //	return;
 
     double res = 0;  // no residual
@@ -156,77 +134,46 @@ void ChShaftsGear::ConstraintsBiLoad_C(double factor, double recovery_clamp, boo
     constraint.Set_b_i(constraint.Get_b_i() + factor * res);
 }
 
-void ChShaftsGear::ConstraintsBiLoad_Ct(double factor) {
-    // if (!this->IsActive())
-    //	return;
-
-    // nothing
-}
-
-/*
-void ChShaftsGear::ConstraintsFbLoadForces(double factor)
-{
-    // no forces
-}
-*/
-
 void ChShaftsGear::ConstraintsLoadJacobians() {
     // compute jacobians
-    constraint.Get_Cq_a()->SetElement(0, 0, (float)this->ratio);
-    constraint.Get_Cq_b()->SetElement(0, 0, -1);
+    constraint.Get_Cq_a()(0) = ratio;
+    constraint.Get_Cq_b()(0) = -1;
 }
 
 void ChShaftsGear::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
-    this->torque_react = constraint.Get_l_i() * factor;
-}
-
-// Following functions are for exploiting the contact persistence
-
-void ChShaftsGear::ConstraintsLiLoadSuggestedSpeedSolution() {
-    constraint.Set_l_i(this->cache_li_speed);
-}
-
-void ChShaftsGear::ConstraintsLiLoadSuggestedPositionSolution() {
-    constraint.Set_l_i(this->cache_li_pos);
-}
-
-void ChShaftsGear::ConstraintsLiFetchSuggestedSpeedSolution() {
-    this->cache_li_speed = (float)constraint.Get_l_i();
-}
-
-void ChShaftsGear::ConstraintsLiFetchSuggestedPositionSolution() {
-    this->cache_li_pos = (float)constraint.Get_l_i();
+    torque_react = constraint.Get_l_i() * factor;
 }
 
 //////// FILE I/O
 
-void ChShaftsGear::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChShaftsGear::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChShaftsGear>();
 
     // serialize parent class
     ChShaftsCouple::ArchiveOUT(marchive);
 
     // serialize all member data:
     marchive << CHNVP(ratio);
+    marchive << CHNVP(avoid_phase_drift);
+    marchive << CHNVP(phase1);
+    marchive << CHNVP(phase2);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChShaftsGear::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChShaftsGear::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChShaftsGear>();
 
     // deserialize parent class:
     ChShaftsCouple::ArchiveIN(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(ratio);
-} 
+    marchive >> CHNVP(avoid_phase_drift);
+    marchive >> CHNVP(phase1);
+    marchive >> CHNVP(phase2);
+}
 
-
-}  // END_OF_NAMESPACE____
-
-/////////////////////
+}  // end namespace chrono

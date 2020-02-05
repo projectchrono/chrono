@@ -1,179 +1,146 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010, 2012 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHSHAFTSGEAR_H
 #define CHSHAFTSGEAR_H
 
-//////////////////////////////////////////////////
-//
-//   ChShaftsGear.h
-//
-//   Class for defining a transmission ratio between
-//   two one-degree-of-freedom parts, that is,
-//   shafts that can be used to build 1D models
-//   of power trains. This is more efficient than
-//   simulating power trains modeled full 3D ChBody
-//   objects.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChShaftsCouple.h"
-#include "lcp/ChLcpConstraintTwoGeneric.h"
+#include "chrono/physics/ChShaftsCouple.h"
+#include "chrono/solver/ChConstraintTwoGeneric.h"
 
 namespace chrono {
 
-///  Class for defining a 'transmission ratio' (a 1D gear)
-///  between two one-degree-of-freedom parts, that is,
-///  shafts that can be used to build 1D models
-///  of power trains. This is more efficient than
-///  simulating power trains modeled with full 3D ChBody
-///  objects.
-///  Note that this really simple constraint does not
-///  provide a way to trasmit a reaction force to the truss,
-///  if this is needed, just use the ChShaftsPlanetary with
-///  a fixed carrier shaft, or the ChShaftGearbox.
+/// Class for defining a 'transmission ratio' (a 1D gear) between two one-degree-of-freedom
+/// parts; i.e., shafts that can be used to build 1D models of powertrains. This is more
+/// efficient than simulating power trains modeled with full 3D ChBody objects.
+/// Note that this really simple constraint does not provide a way to transmit a reaction
+/// force to the truss, if this is needed, just use the ChShaftsPlanetary with a fixed
+/// carrier shaft, or the ChShaftGearbox.
 
 class ChApi ChShaftsGear : public ChShaftsCouple {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChShaftsGear, ChShaftsCouple);
 
   private:
-    //
-    // DATA
-    //
-
-    double ratio;  // transmission ratio t, as in w2=t*w1, or t=w2/w1
-
-    double torque_react;
-
-    // used as an interface to the LCP solver.
-    ChLcpConstraintTwoGeneric constraint;
-
-    float cache_li_speed;  // used to cache the last computed value of multiplier (solver warm starting)
-    float cache_li_pos;    // used to cache the last computed value of multiplier (solver warm starting)
+    double ratio;                       ///< transmission ratio t, as in w2=t*w1, or t=w2/w1
+    double violation;                   ///< constraint violation
+    double torque_react;                ///< reaction torque
+    ChConstraintTwoGeneric constraint;  ///< used as an interface to the solver
+    bool avoid_phase_drift; 
+    double phase1;
+    double phase2;
 
   public:
-    //
-    // CONSTRUCTORS
-    //
-
-    /// Build a shaft.
     ChShaftsGear();
-    /// Destructor
-    ~ChShaftsGear();
+    ChShaftsGear(const ChShaftsGear& other);
+    ~ChShaftsGear() {}
 
-    /// Copy from another ChShaftsGear.
-    void Copy(ChShaftsGear* source);
-
-    //
-    // FLAGS
-    //
-
-    //
-    // FUNCTIONS
-    //
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChShaftsGear* Clone() const override { return new ChShaftsGear(*this); }
 
     /// Number of scalar constraints
-    virtual int GetDOC_c() { return 1; }
+    virtual int GetDOC_c() override { return 1; }
 
     //
     // STATE FUNCTIONS
     //
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L);
-    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L);
+    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
+    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
     virtual void IntLoadResidual_CqL(const unsigned int off_L,
                                      ChVectorDynamic<>& R,
                                      const ChVectorDynamic<>& L,
-                                     const double c);
+                                     const double c) override;
     virtual void IntLoadConstraint_C(const unsigned int off,
                                      ChVectorDynamic<>& Qc,
                                      const double c,
                                      bool do_clamp,
-                                     double recovery_clamp);
-    virtual void IntToLCP(const unsigned int off_v,
-                          const ChStateDelta& v,
-                          const ChVectorDynamic<>& R,
-                          const unsigned int off_L,
-                          const ChVectorDynamic<>& L,
-                          const ChVectorDynamic<>& Qc);
-    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
+                                     double recovery_clamp) override;
+    virtual void IntToDescriptor(const unsigned int off_v,
+                                 const ChStateDelta& v,
+                                 const ChVectorDynamic<>& R,
+                                 const unsigned int off_L,
+                                 const ChVectorDynamic<>& L,
+                                 const ChVectorDynamic<>& Qc) override;
+    virtual void IntFromDescriptor(const unsigned int off_v,
+                                   ChStateDelta& v,
+                                   const unsigned int off_L,
+                                   ChVectorDynamic<>& L) override;
 
-    // Override/implement LCP system functions of ChShaftsCouple
-    // (to assembly/manage data for LCP system solver
+    // Override/implement system functions of ChShaftsCouple
+    // (to assemble/manage data for system solver)
 
-    virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor);
-    virtual void ConstraintsBiReset();
-    virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
-    virtual void ConstraintsBiLoad_Ct(double factor = 1.);
-    // virtual void ConstraintsFbLoadForces(double factor=1.);
-    virtual void ConstraintsLoadJacobians();
-    virtual void ConstraintsLiLoadSuggestedSpeedSolution();
-    virtual void ConstraintsLiLoadSuggestedPositionSolution();
-    virtual void ConstraintsLiFetchSuggestedSpeedSolution();
-    virtual void ConstraintsLiFetchSuggestedPositionSolution();
-    virtual void ConstraintsFetch_react(double factor = 1.);
+    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override;
+    virtual void ConstraintsBiReset() override;
+    virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
+    virtual void ConstraintsLoadJacobians() override;
+    virtual void ConstraintsFetch_react(double factor = 1) override;
 
     // Other functions
 
     /// Use this function after gear creation, to initialize it, given
     /// two shafts to join.
     /// Each shaft must belong to the same ChSystem.
-    virtual bool Initialize(ChSharedPtr<ChShaft> mshaft1,  ///< first  shaft to join
-                            ChSharedPtr<ChShaft> mshaft2   ///< second shaft to join
-                            );
+    bool Initialize(std::shared_ptr<ChShaft> mshaft1,  ///< first  shaft to join
+                    std::shared_ptr<ChShaft> mshaft2   ///< second shaft to join
+                    ) override;
 
     /// Set the transmission ratio t, as in w2=t*w1, or t=w2/w1 , or  t*w1 - w2 = 0.
     /// For example, t=1 for a rigid joint; t=-0.5 for representing
-    /// a couple of spur gears with teeths z1=20 & z2=40; t=0.1 for
-    /// a gear with inner teeths (or epicycloidal reducer), etc.
-    void SetTransmissionRatio(double mt) { this->ratio = mt; }
+    /// a couple of spur gears with teeth z1=20 & z2=40; t=0.1 for
+    /// a gear with inner teeth (or epicycloidal reducer), etc.
+    void SetTransmissionRatio(double mt) { ratio = mt; }
     /// Get the transmission ratio t, as in w2=t*w1, or t=w2/w1
-    double GetTransmissionRatio() const { return this->ratio; }
+    double GetTransmissionRatio() const { return ratio; }
+
+
+    /// Set if the constraint must avoid phase drift. If true, phasing is always 
+    /// tracked and the constraint is satisfied also at the position level.
+    /// If false, microslipping can accumulate (as in friction wheels).
+    /// Default is enabled.
+    void SetAvoidPhaseDrift(bool mb) {this->avoid_phase_drift = mb;}
+
+    /// Set if the constraint is in "avoid phase drift" mode.
+    bool GetAvoidPhaseDrift() { return this->avoid_phase_drift;}
+
 
     /// Get the reaction torque exchanged between the two shafts,
     /// considered as applied to the 1st axis.
-    double GetTorqueReactionOn1() const { return (this->ratio * this->torque_react); }
+    double GetTorqueReactionOn1() const override { return ratio * torque_react; }
 
     /// Get the reaction torque exchanged between the two shafts,
     /// considered as applied to the 2nd axis.
-    double GetTorqueReactionOn2() const { return -(this->torque_react); }
+    double GetTorqueReactionOn2() const override { return -torque_react; }
 
-    //
-    // UPDATE FUNCTIONS
-    //
+    /// Return current constraint violation
+    double GetConstraintViolation() const { return violation; }
 
     /// Update all auxiliary data of the gear transmission at given time
-    virtual void Update(double mytime, bool update_assets = true);
+    virtual void Update(double mytime, bool update_assets = true) override;
 
     //
     // SERIALIZATION
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-typedef ChSharedPtr<ChShaftsGear> ChSharedShaftsGearPtr;
+CH_CLASS_VERSION(ChShaftsGear,0)
 
-}  // END_OF_NAMESPACE____
+
+}  // end namespace chrono
 
 #endif

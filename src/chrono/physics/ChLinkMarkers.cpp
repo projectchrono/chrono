@@ -1,86 +1,64 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010, 2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChLinkMarkers.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChLinkMarkers.h"
-//#include "physics/ChCollide.h"
-#include "physics/ChExternalObject.h"
+#include "chrono/physics/ChLinkMarkers.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
-ChClassRegisterABSTRACT<ChLinkMarkers> a_registration_ChLinkMarkers;
+// Register into the object factory, to enable run-time dynamic creation and persistence
+// CH_FACTORY_REGISTER(ChLinkMarkers)    // NO! Abstract class!
 
-// BUILDERS
-ChLinkMarkers::ChLinkMarkers() {
+ChLinkMarkers::ChLinkMarkers()
+    : marker1(NULL),
+      marker2(NULL),
+      markID1(0),
+      markID2(0),
+      relM(CSYSNORM),
+      relM_dt(CSYSNULL),
+      relM_dtdt(CSYSNULL),
+      relAngle(0),
+      relRotaxis(VNULL),
+      relWvel(VNULL),
+      relWacc(VNULL),
+      C_force(VNULL),
+      C_torque(VNULL),
+      Scr_force(VNULL),
+      Scr_torque(VNULL) {}
+
+ChLinkMarkers::ChLinkMarkers(const ChLinkMarkers& other) : ChLink(other) {
     marker1 = NULL;
     marker2 = NULL;
 
-    markID1 = 0;
-    markID2 = 0;
+    markID1 = other.markID1;
+    markID2 = other.markID2;
 
-    relM = CSYSNORM;
-    relM_dt = CSYSNULL;
-    relM_dtdt = CSYSNULL;
-    relAngle = 0;
-    relRotaxis = relWvel = relWacc = VNULL;
-    dist = dist_dt = 0;
+    relM = other.relM;  // copy vars
+    relM_dt = other.relM_dt;
+    relM_dtdt = other.relM_dtdt;
+    relAngle = other.relAngle;
+    relRotaxis = other.relRotaxis;
+    relAxis = other.relAxis;
+    relWvel = other.relWvel;
+    relWacc = other.relWacc;
+    dist = other.dist;
+    dist_dt = other.dist_dt;
 
-    C_force = VNULL;
-    C_torque = VNULL;
+    C_force = other.C_force;
+    C_torque = other.C_torque;
 
-    Scr_force = VNULL;
-    Scr_torque = VNULL;
-}
-
-// DESTROYER
-ChLinkMarkers::~ChLinkMarkers() {
-}
-
-void ChLinkMarkers::Copy(ChLinkMarkers* source) {
-    // first copy the parent class data...
-    ChLink::Copy(source);
-
-    marker1 = 0;
-    marker2 = 0;
-
-    markID1 = source->markID1;
-    markID2 = source->markID2;
-
-    relM = source->relM;  // copy vars
-    relM_dt = source->relM_dt;
-    relM_dtdt = source->relM_dtdt;
-    relAngle = source->relAngle;
-    relRotaxis = source->relRotaxis;
-    relAxis = source->relAxis;
-    relWvel = source->relWvel;
-    relWacc = source->relWacc;
-    dist = source->dist;
-    dist_dt = source->dist_dt;
-
-    C_force = source->C_force;
-    C_torque = source->C_torque;
-
-    Scr_force = source->Scr_force;
-    Scr_torque = source->Scr_torque;
+    Scr_force = other.Scr_force;
+    Scr_torque = other.Scr_torque;
 }
 
 void ChLinkMarkers::SetUpMarkers(ChMarker* mark1, ChMarker* mark2) {
@@ -114,9 +92,9 @@ bool ChLinkMarkers::ReferenceMarkers(ChMarker* mark1, ChMarker* mark2) {
     return mark1 && mark2;
 }
 
-void ChLinkMarkers::Initialize(ChSharedPtr<ChMarker> mmark1, ChSharedPtr<ChMarker> mmark2) {
-    ChMarker* mm1 = mmark1.get_ptr();
-    ChMarker* mm2 = mmark2.get_ptr();
+void ChLinkMarkers::Initialize(std::shared_ptr<ChMarker> mmark1, std::shared_ptr<ChMarker> mmark2) {
+    ChMarker* mm1 = mmark1.get();
+    ChMarker* mm2 = mmark2.get();
     assert(mm1 && mm2);
     assert(mm1 != mm2);
     assert(mm1->GetBody() && mm2->GetBody());
@@ -125,26 +103,28 @@ void ChLinkMarkers::Initialize(ChSharedPtr<ChMarker> mmark1, ChSharedPtr<ChMarke
     ReferenceMarkers(mm1, mm2);
 }
 
-void ChLinkMarkers::Initialize(ChSharedPtr<ChBody> mbody1, ChSharedPtr<ChBody> mbody2, const ChCoordsys<>& mpos) {
+void ChLinkMarkers::Initialize(std::shared_ptr<ChBody> mbody1,
+                               std::shared_ptr<ChBody> mbody2,
+                               const ChCoordsys<>& mpos) {
     return Initialize(mbody1, mbody2, false, mpos, mpos);
 }
 
-void ChLinkMarkers::Initialize(ChSharedPtr<ChBody> mbody1,
-                               ChSharedPtr<ChBody> mbody2,
+void ChLinkMarkers::Initialize(std::shared_ptr<ChBody> mbody1,
+                               std::shared_ptr<ChBody> mbody2,
                                bool pos_are_relative,
                                const ChCoordsys<>& mpos1,
                                const ChCoordsys<>& mpos2) {
-    assert(mbody1.get_ptr() != mbody2.get_ptr());
+    assert(mbody1.get() != mbody2.get());
     assert(mbody1->GetSystem() == mbody2->GetSystem());
 
     // create markers to add to the two bodies
-    ChSharedPtr<ChMarker> mmark1(new ChMarker);
-    ChSharedPtr<ChMarker> mmark2(new ChMarker);
+    std::shared_ptr<ChMarker> mmark1(new ChMarker);
+    std::shared_ptr<ChMarker> mmark2(new ChMarker);
     mbody1->AddMarker(mmark1);
     mbody2->AddMarker(mmark2);
 
-    ChMarker* mm1 = mmark1.get_ptr();
-    ChMarker* mm2 = mmark2.get_ptr();
+    ChMarker* mm1 = mmark1.get();
+    ChMarker* mm2 = mmark2.get();
     ReferenceMarkers(mm1, mm2);
 
     if (pos_are_relative) {
@@ -156,35 +136,20 @@ void ChLinkMarkers::Initialize(ChSharedPtr<ChBody> mbody1,
     }
 }
 
-////////////////////////////////////
-///
-///    UPDATING PROCEDURES
-
-/////////      UPDATE RELATIVE MARKER COORDINATES
-/////////
-
+// For all relative degrees of freedom of the two markers, compute relM, relM_dt,
+// and relM_dtdt, as well as auxiliary data. Cache some intermediate quantities
+// for possible reuse in UpdateState by some derived classes.
 void ChLinkMarkers::UpdateRelMarkerCoords() {
-    // FOR ALL THE 6(or3) COORDINATES OF RELATIVE MOTION OF THE TWO MARKERS:
-    // COMPUTE THE relM, relM_dt relM_dtdt COORDINATES, AND AUXILIARY DATA (distance,etc.)
-
-    Vector PQw = Vsub(marker1->GetAbsCoord().pos, marker2->GetAbsCoord().pos);
-    Vector PQw_dt = Vsub(marker1->GetAbsCoord_dt().pos, marker2->GetAbsCoord_dt().pos);
-    Vector PQw_dtdt = Vsub(marker1->GetAbsCoord_dtdt().pos, marker2->GetAbsCoord_dtdt().pos);
+    PQw = Vsub(marker1->GetAbsCoord().pos, marker2->GetAbsCoord().pos);
+    PQw_dt = Vsub(marker1->GetAbsCoord_dt().pos, marker2->GetAbsCoord_dt().pos);
+    PQw_dtdt = Vsub(marker1->GetAbsCoord_dtdt().pos, marker2->GetAbsCoord_dtdt().pos);
 
     dist = Vlength(PQw);                 // distance between origins, modulus
     dist_dt = Vdot(Vnorm(PQw), PQw_dt);  // speed between origins, modulus.
 
-    Vector vtemp1;  // for intermediate calculus
-    Vector vtemp2;
     Quaternion qtemp1;
 
-    ChMatrixNM<double, 3, 4> relGw;
-    Quaternion q_AD;
-    Quaternion q_BC;
-    Quaternion q_8;
-    Vector q_4;
-
-    Quaternion temp1 = marker2->GetCoord_dt().rot;
+    Quaternion temp1 = marker1->GetCoord_dt().rot;
     Quaternion temp2 = marker2->GetCoord_dt().rot;
 
     if (Qnotnull(temp1) || Qnotnull(temp2)) {
@@ -279,28 +244,31 @@ void ChLinkMarkers::UpdateRelMarkerCoords() {
     ChMatrix33<> m2_Rel_A_dtdt;
     marker2->Compute_Adtdt(m2_Rel_A_dtdt);
 
-    vtemp1 = Body2->GetA_dt().MatrT_x_Vect(PQw);
-    vtemp2 = m2_Rel_A_dt.MatrT_x_Vect(vtemp1);
+    ChVector<> vtemp1;
+    ChVector<> vtemp2;
+
+    vtemp1 = Body2->GetA_dt().transpose() * PQw;
+    vtemp2 = m2_Rel_A_dt.transpose() * vtemp1;
     q_4 = Vmul(vtemp2, 2);  // 2[Aq_dt]'[Ao2_dt]'*Qpq,w
 
-    vtemp1 = Body2->GetA().MatrT_x_Vect(PQw_dt);
-    vtemp2 = m2_Rel_A_dt.MatrT_x_Vect(vtemp1);
+    vtemp1 = Body2->GetA().transpose() * PQw_dt;
+    vtemp2 = m2_Rel_A_dt.transpose() * vtemp1;
     vtemp2 = Vmul(vtemp2, 2);  // 2[Aq_dt]'[Ao2]'*Qpq,w_dt
     q_4 = Vadd(q_4, vtemp2);
 
-    vtemp1 = Body2->GetA_dt().MatrT_x_Vect(PQw_dt);
-    vtemp2 = marker2->GetA().MatrT_x_Vect(vtemp1);
+    vtemp1 = Body2->GetA_dt().transpose() * PQw_dt;
+    vtemp2 = marker2->GetA().transpose() * vtemp1;
     vtemp2 = Vmul(vtemp2, 2);  // 2[Aq]'[Ao2_dt]'*Qpq,w_dt
     q_4 = Vadd(q_4, vtemp2);
 
-    vtemp1 = Body2->GetA().MatrT_x_Vect(PQw);
-    vtemp2 = m2_Rel_A_dtdt.MatrT_x_Vect(vtemp1);
+    vtemp1 = Body2->GetA().transpose() * PQw;
+    vtemp2 = m2_Rel_A_dtdt.transpose() * vtemp1;
     q_4 = Vadd(q_4, vtemp2);  //  [Aq_dtdt]'[Ao2]'*Qpq,w
 
     // ----------- RELATIVE MARKER COORDINATES
 
     // relM.pos
-    relM.pos = marker2->GetA().MatrT_x_Vect(Body2->GetA().MatrT_x_Vect(PQw));
+    relM.pos = marker2->GetA().transpose() * (Body2->GetA().transpose() * PQw);
 
     // relM.rot
     relM.rot = Qcross(Qconjugate(marker2->GetCoord().rot),
@@ -308,17 +276,16 @@ void ChLinkMarkers::UpdateRelMarkerCoords() {
                              Qcross((marker1->GetBody()->GetCoord().rot), (marker1->GetCoord().rot))));
 
     // relM_dt.pos
-    relM_dt.pos = Vadd(Vadd(m2_Rel_A_dt.MatrT_x_Vect(Body2->GetA().MatrT_x_Vect(PQw)),
-                            marker2->GetA().MatrT_x_Vect(Body2->GetA_dt().MatrT_x_Vect(PQw))),
-                       marker2->GetA().MatrT_x_Vect(Body2->GetA().MatrT_x_Vect(PQw_dt)));
+    relM_dt.pos = m2_Rel_A_dt.transpose() * (Body2->GetA().transpose() * PQw) +
+                  marker2->GetA().transpose() * (Body2->GetA_dt().transpose() * PQw) +
+                  marker2->GetA().transpose() * (Body2->GetA().transpose() * PQw_dt);
 
     // relM_dt.rot
     relM_dt.rot = Qadd(q_AD, q_BC);
 
     // relM_dtdt.pos
-    relM_dtdt.pos = Vadd(Vadd(marker2->GetA().MatrT_x_Vect(Body2->GetA_dtdt().MatrT_x_Vect(PQw)),
-                              marker2->GetA().MatrT_x_Vect(Body2->GetA().MatrT_x_Vect(PQw_dtdt))),
-                         q_4);
+    relM_dtdt.pos = marker2->GetA().transpose() * (Body2->GetA_dtdt().transpose() * PQw) +
+                    marker2->GetA().transpose() * (Body2->GetA().transpose() * PQw_dtdt) + q_4;
 
     // relM_dtdt.rot
     qtemp1 = Qcross(Qconjugate(marker2->GetCoord().rot),
@@ -335,23 +302,20 @@ void ChLinkMarkers::UpdateRelMarkerCoords() {
     // ... and also "user-friendly" relative coordinates:
 
     // relAngle and relAxis
-    Q_to_AngAxis(&relM.rot, &relAngle, &relAxis);
+    Q_to_AngAxis(relM.rot, relAngle, relAxis);
     // flip rel rotation axis if jerky sign
-    if (relAxis.z < 0) {
+    if (relAxis.z() < 0) {
         relAxis = Vmul(relAxis, -1);
         relAngle = -relAngle;
     }
     // rotation axis
     relRotaxis = Vmul(relAxis, relAngle);
     // relWvel
-    ChFrame<>::SetMatrix_Gw(relGw, relM.rot);  // relGw.Set_Gw_matrix(relM.rot);
-    relWvel = relGw.Matr34_x_Quat(relM_dt.rot);
+    ChGwMatrix34<> relGw(relM.rot);
+    relWvel = relGw * relM_dt.rot;
     // relWacc
-    relWacc = relGw.Matr34_x_Quat(relM_dtdt.rot);
+    relWacc = relGw * relM_dtdt.rot;
 }
-
-/////////      UPDATE FORCES
-/////////
 
 void ChLinkMarkers::UpdateForces(double mytime) {
     C_force = VNULL;  // initialize int.forces accumulators
@@ -362,114 +326,102 @@ void ChLinkMarkers::UpdateForces(double mytime) {
     C_torque = Vadd(C_torque, Scr_torque);
 }
 
-/////////
-/////////   COMPLETE UPDATE
-/////////
-/////////
-
 void ChLinkMarkers::Update(double time, bool update_assets) {
-    // 1 -
     UpdateTime(time);
-
-    // 2 -
     UpdateRelMarkerCoords();
-
-    // 3 -
     UpdateForces(time);
+
+    // Update assets
+    ChPhysicsItem::Update(ChTime, update_assets);
 }
 
 //// STATE BOOKKEEPING FUNCTIONS
 
-void ChLinkMarkers::IntLoadResidual_F(const unsigned int off,  ///< offset in R residual
-                                      ChVectorDynamic<>& R,    ///< result: the R residual, R += c*F
-                                      const double c           ///< a scaling factor
-                                      ) {
+// Load residual R += c * F, starting at specified offset.
+void ChLinkMarkers::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
     if (!Body1 || !Body2)
         return;
 
     Vector mbody_force;
     Vector mbody_torque;
-    if (Vnotnull(&C_force)) {
-        Vector m_abs_force = Body2->GetA().Matr_x_Vect(marker2->GetA().Matr_x_Vect(C_force));
+    if (Vnotnull(C_force)) {
+        Vector m_abs_force = Body2->GetA() * (marker2->GetA() * C_force);
 
-        if (Body2->Variables().IsActive()) {     
+        if (Body2->Variables().IsActive()) {
             Body2->To_abs_forcetorque(m_abs_force,
                                       marker1->GetAbsCoord().pos,  // absolute application point is always marker1
-                                      FALSE,                       // from abs. space
+                                      false,                       // from abs. space
                                       mbody_force, mbody_torque);  // resulting force-torque, both in abs coords
-            R.PasteSumVector(mbody_force * -c, Body2->Variables().GetOffset(), 0);
-            R.PasteSumVector(Body2->TransformDirectionParentToLocal(mbody_torque) * -c, Body2->Variables().GetOffset() + 3,
-                             0);
+            R.segment(Body2->Variables().GetOffset() + 0, 3) -= c * mbody_force.eigen();
+            R.segment(Body2->Variables().GetOffset() + 3, 3) -=
+                c * Body2->TransformDirectionParentToLocal(mbody_torque).eigen();
         }
 
         if (Body1->Variables().IsActive()) {
             Body1->To_abs_forcetorque(m_abs_force,
                                       marker1->GetAbsCoord().pos,  // absolute application point is always marker1
-                                      FALSE,                       // from abs. space
+                                      false,                       // from abs. space
                                       mbody_force, mbody_torque);  // resulting force-torque, both in abs coords
-            R.PasteSumVector(mbody_force * c, Body1->Variables().GetOffset(), 0);
-            R.PasteSumVector(Body1->TransformDirectionParentToLocal(mbody_torque) * c, Body1->Variables().GetOffset() + 3,
-                             0);
+            R.segment(Body1->Variables().GetOffset() + 0, 3) += c * mbody_force.eigen();
+            R.segment(Body1->Variables().GetOffset() + 3, 3) +=
+                c * Body1->TransformDirectionParentToLocal(mbody_torque).eigen();
         }
     }
-    if (Vnotnull(&C_torque)) {
-        Vector m_abs_torque = Body2->GetA().Matr_x_Vect(marker2->GetA().Matr_x_Vect(C_torque));
+    if (Vnotnull(C_torque)) {
+        Vector m_abs_torque = Body2->GetA() * (marker2->GetA() * C_torque);
         // load torques in 'fb' vector accumulator of body variables (torques in local coords)
         if (Body1->Variables().IsActive()) {
-                R.PasteSumVector(Body1->TransformDirectionParentToLocal(m_abs_torque) * c, 
-                                 Body1->Variables().GetOffset() + 3, 0);
+            R.segment(Body1->Variables().GetOffset() + 3, 3) +=
+                c * Body1->TransformDirectionParentToLocal(m_abs_torque).eigen();
         }
         if (Body2->Variables().IsActive()) {
-                R.PasteSumVector(Body2->TransformDirectionParentToLocal(m_abs_torque) * -c,
-                                 Body2->Variables().GetOffset() + 3, 0);
+            R.segment(Body2->Variables().GetOffset() + 3, 3) -=
+                c * Body2->TransformDirectionParentToLocal(m_abs_torque).eigen();
         }
     }
 }
 
-/////////
-///////// LCP INTERFACE
-/////////
+// SOLVER INTERFACE
 
 void ChLinkMarkers::ConstraintsFbLoadForces(double factor) {
     if (!Body1 || !Body2)
         return;
 
-    Vector mbody_force;
-    Vector mbody_torque;
-    if (Vnotnull(&C_force)) {
-        Vector m_abs_force = Body2->GetA().Matr_x_Vect(marker2->GetA().Matr_x_Vect(C_force));
+    if (Vnotnull(C_force)) {
+        Vector mbody_force;
+        Vector mbody_torque;
+        Vector m_abs_force = Body2->GetA() * (marker2->GetA() * C_force);
+
         Body2->To_abs_forcetorque(m_abs_force,
                                   marker1->GetAbsCoord().pos,  // absolute application point is always marker1
-                                  FALSE,                       // from abs. space
+                                  false,                       // from abs. space
                                   mbody_force, mbody_torque);  // resulting force-torque, both in abs coords
-        Body2->Variables().Get_fb().PasteSumVector(mbody_force * -factor, 0, 0);
-        Body2->Variables().Get_fb().PasteSumVector(Body2->TransformDirectionParentToLocal(mbody_torque) * -factor, 3,
-                                                   0);
+        Body2->Variables().Get_fb().segment(0, 3) -= factor * mbody_force.eigen();
+        Body2->Variables().Get_fb().segment(3, 3) -=
+            factor * Body2->TransformDirectionParentToLocal(mbody_torque).eigen();
 
         Body1->To_abs_forcetorque(m_abs_force,
                                   marker1->GetAbsCoord().pos,  // absolute application point is always marker1
-                                  FALSE,                       // from abs. space
+                                  false,                       // from abs. space
                                   mbody_force, mbody_torque);  // resulting force-torque, both in abs coords
-        Body1->Variables().Get_fb().PasteSumVector(mbody_force * factor, 0, 0);
-        Body1->Variables().Get_fb().PasteSumVector(Body1->TransformDirectionParentToLocal(mbody_torque) * factor, 3, 0);
+        Body1->Variables().Get_fb().segment(0, 3) += factor * mbody_force.eigen();
+        Body1->Variables().Get_fb().segment(3, 3) +=
+            factor * Body1->TransformDirectionParentToLocal(mbody_torque).eigen();
     }
-    if (Vnotnull(&C_torque)) {
-        Vector m_abs_torque = Body2->GetA().Matr_x_Vect(marker2->GetA().Matr_x_Vect(C_torque));
+
+    if (Vnotnull(C_torque)) {
+        Vector m_abs_torque = Body2->GetA() * (marker2->GetA() * C_torque);
         // load torques in 'fb' vector accumulator of body variables (torques in local coords)
-        Body1->Variables().Get_fb().PasteSumVector(Body1->TransformDirectionParentToLocal(m_abs_torque) * factor, 3, 0);
-        Body2->Variables().Get_fb().PasteSumVector(Body2->TransformDirectionParentToLocal(m_abs_torque) * -factor, 3,
-                                                   0);
+        Body1->Variables().Get_fb().segment(3, 3) +=
+            factor * Body1->TransformDirectionParentToLocal(m_abs_torque).eigen();
+        Body2->Variables().Get_fb().segment(3, 3) -=
+            factor * Body2->TransformDirectionParentToLocal(m_abs_torque).eigen();
     }
 }
 
-/////////
-///////// FILE I/O
-/////////
-
-void ChLinkMarkers::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChLinkMarkers::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChLinkMarkers>();
 
     // serialize parent class
     ChLink::ArchiveOUT(marchive);
@@ -480,10 +432,9 @@ void ChLinkMarkers::ArchiveOUT(ChArchiveOut& marchive)
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMarkers::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChLinkMarkers::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChLinkMarkers>();
 
     // deserialize parent class
     ChLink::ArchiveIN(marchive);
@@ -493,4 +444,4 @@ void ChLinkMarkers::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(markID2);
 }
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

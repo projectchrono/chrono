@@ -1,29 +1,21 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
-//////////////////////////////////////////////////
-//
-//   ChCAABBTree.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
+#include <cstdio>
+#include <cstring>
 
-#include <stdio.h>
-#include <string.h>
-
-#include "ChCMatVec.h"
-#include "ChCGetTime.h"
-#include "ChCAABBTree.h"
+#include "chrono/collision/edgetempest/ChCMatVec.h"
+#include "chrono/collision/edgetempest/ChCGetTime.h"
+#include "chrono/collision/edgetempest/ChCAABBTree.h"
 
 namespace chrono {
 namespace collision {
@@ -85,7 +77,7 @@ void recurse_scan_AABBs(CHAABBTree* mmodel,
 
     // compute root-relative coords for each box
     ChMatrix33<> Rot;
-    Rot.Set33Identity();
+    Rot.setIdentity();
 
     // execute callback
     callback(Rot, mmodel->child(nb)->To, mmodel->child(nb)->d, current_level, userdata);
@@ -129,14 +121,14 @@ static void get_centroid_geometries(Vector& mean, std::vector<geometry::ChGeomet
         nit = mgeos[firstgeo + count];
         Vector baricenter = nit->Baricenter();
 
-        mean.x += baricenter.x;
-        mean.y += baricenter.y;
-        mean.z += baricenter.z;
+        mean.x() += baricenter.x();
+        mean.y() += baricenter.y();
+        mean.z() += baricenter.z();
     }
 
-    mean.x /= ngeos;
-    mean.y /= ngeos;
-    mean.z /= ngeos;
+    mean.x() /= ngeos;
+    mean.y() /= ngeos;
+    mean.z() /= ngeos;
 }
 
 static int split_geometries(std::vector<geometry::ChGeometry*>& mgeos,
@@ -208,11 +200,11 @@ int build_recurse(CHAABBTree* m, int bn, int first_geo, int num_geos, double env
         // choose splitting axis
 
         axis = VECT_X;
-        if (b->d.y > b->d.x)
+        if (b->d.y() > b->d.x())
             axis = VECT_Y;
-        if (b->d.z > b->d.y)
+        if (b->d.z() > b->d.y())
             axis = VECT_Z;
-        if (b->d.z > b->d.x)
+        if (b->d.z() > b->d.x())
             axis = VECT_Z;
 
         // choose splitting coord
@@ -221,7 +213,7 @@ int build_recurse(CHAABBTree* m, int bn, int first_geo, int num_geos, double env
 
         coord = Vdot(axis, mean);
 
-        //*** TO DO***??? other splitting criterions??
+        //*** TO DO***??? other splitting criterion??
 
         // now split
 
@@ -249,5 +241,5 @@ int CHAABBTree::build_model(double envelope) {
     return ChC_OK;
 }
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -17,8 +17,7 @@
 // =============================================================================
 
 #include "chrono_vehicle/wheeled_vehicle/brake/BrakeSimple.h"
-
-#include "thirdparty/rapidjson/filereadstream.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 using namespace rapidjson;
 
@@ -27,31 +26,23 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-BrakeSimple::BrakeSimple(const std::string& filename) {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream(is);
+BrakeSimple::BrakeSimple(const std::string& filename) : ChBrakeSimple("") {
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     Create(d);
 
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-BrakeSimple::BrakeSimple(const rapidjson::Document& d) {
+BrakeSimple::BrakeSimple(const rapidjson::Document& d) : ChBrakeSimple("") {
     Create(d);
 }
 
 void BrakeSimple::Create(const rapidjson::Document& d) {
-    // Read top-level data
-    assert(d.HasMember("Type"));
-    assert(d.HasMember("Template"));
-    assert(d.HasMember("Name"));
+    // Invoke base class method.
+    ChPart::Create(d);
 
     // Read maximum braking torque
     m_maxtorque = d["Maximum Torque"].GetDouble();

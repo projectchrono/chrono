@@ -1,74 +1,47 @@
 #=============================================================================
 # CMake configuration file for the ARTICULATED_VEHICLE demo.
-# This example program works with and without Irrlicht run-time visualization
+# This example program requires Irrlicht run-time visualization.
 #=============================================================================
 
-MESSAGE(STATUS "...add ARTICULATED_VEHICLE demo")
+IF(NOT ENABLE_MODULE_IRRLICHT)
+    RETURN()
+ENDIF()
 
 #--------------------------------------------------------------
 # List all model files for this demo
 
 SET(MODEL_FILES
-    ../articulated/Articulated_Vehicle.h
-    ../articulated/Articulated_Vehicle.cpp
-    ../articulated/Articulated_Trailer.h
-    ../articulated/Articulated_Trailer.cpp
-    ../generic/Generic_Wheel.h
-    ../generic/Generic_FuncDriver.h
-    ../generic/Generic_SolidAxle.h
-    ../generic/Generic_SolidAxle.cpp
-    ../generic/Generic_MultiLink.h
-    ../generic/Generic_MultiLink.cpp
-    ../generic/Generic_RackPinion.h
-    ../generic/Generic_Driveline2WD.h
-    ../generic/Generic_SimplePowertrain.h
-    ../generic/Generic_BrakeSimple.h
-    ../generic/Generic_RigidTire.h
+    subsystems/Articulated_Front.h
+    subsystems/Articulated_Front.cpp
+    subsystems/Articulated_Rear.h
+    subsystems/Articulated_Rear.cpp
 )
 
-SET(DEMO_FILES
-    demo_ArticulatedVehicle.cpp
+SET(DEMO
+    demo_VEH_ArticulatedVehicle
 )
 
 SOURCE_GROUP("subsystems" FILES ${MODEL_FILES})
-SOURCE_GROUP("" FILES ${DEMO_FILES})
+SOURCE_GROUP("" FILES ${DEMO}.cpp ${MODEL_FILES})
 
 #--------------------------------------------------------------
 # Additional include directories
 
-INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/src/demos/vehicle")
-
-IF(ENABLE_MODULE_IRRLICHT)
-  INCLUDE_DIRECTORIES(${CH_IRRLICHTINC})
-ENDIF()
-
-#--------------------------------------------------------------
-# List of all required libraries
-
-SET(LIBRARIES
-    ChronoEngine
-    ChronoEngine_vehicle)
-
-IF(ENABLE_MODULE_IRRLICHT)
-  SET(LIBRARIES_IRR
-      ChronoEngine_irrlicht
-      ${CH_IRRLICHTLIB})
-ELSE()
-  SET(LIBRARIES_IRR "")
-ENDIF()
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_LIST_DIR})
+INCLUDE_DIRECTORIES(${CH_IRRLICHTINC})
 
 #--------------------------------------------------------------
 # Create the executable
 
-if(ENABLE_MODULE_IRRLICHT)
-  set(MY_CXX_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
-else()
-  set(MY_CXX_FLAGS "${CH_CXX_FLAGS}")
-endif()
+MESSAGE(STATUS "...add ${DEMO}")
 
-ADD_EXECUTABLE(demo_ArticulatedVehicle ${DEMO_FILES} ${MODEL_FILES})
-SET_TARGET_PROPERTIES(demo_ArticulatedVehicle PROPERTIES 
-                      COMPILE_FLAGS "${MY_CXX_FLAGS}"
+ADD_EXECUTABLE(${DEMO} ${DEMO}.cpp ${MODEL_FILES})
+SET_TARGET_PROPERTIES(${DEMO} PROPERTIES 
+                      COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
                       LINK_FLAGS "${LINKERFLAG_EXE}")
-TARGET_LINK_LIBRARIES(demo_ArticulatedVehicle ${LIBRARIES} ${LIBRARIES_IRR})
-INSTALL(TARGETS demo_ArticulatedVehicle DESTINATION bin)
+TARGET_LINK_LIBRARIES(${DEMO}
+                      ChronoEngine
+                      ChronoEngine_irrlicht
+                      ChronoEngine_vehicle
+                      ChronoModels_vehicle)
+INSTALL(TARGETS ${DEMO} DESTINATION ${CH_INSTALL_DEMO})

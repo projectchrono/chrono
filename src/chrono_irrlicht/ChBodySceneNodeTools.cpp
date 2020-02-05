@@ -1,18 +1,18 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
-#include "chrono/geometry/ChCSphere.h"
-#include "chrono/geometry/ChCBox.h"
-#include "chrono/geometry/ChCTriangleMeshSoup.h"
+#include "chrono/geometry/ChSphere.h"
+#include "chrono/geometry/ChBox.h"
+#include "chrono/geometry/ChTriangleMeshSoup.h"
 
 #include "chrono_irrlicht/ChBodySceneNodeTools.h"
 
@@ -90,8 +90,8 @@ ISceneNode* addChBodySceneNode_easySphere(ChSystem* asystem,
         sphereMesh = createEllipticalMesh(1.0, 1.0, -2, +2, 0, Hslices, Vslices);
 
     // create a ChronoENGINE rigid body
-    ChBodySceneNode* rigidBodyZ = (ChBodySceneNode*)addChBodySceneNode(
-        asystem, amanager, sphereMesh, mmass, position, ChQuaternion<>(1, 0, 0, 0), aparent, mid);
+    ChBodySceneNode* rigidBodyZ = (ChBodySceneNode*)addChBodySceneNode(asystem, amanager, sphereMesh, mmass, position,
+                                                                       ChQuaternion<>(1, 0, 0, 0), aparent, mid);
 
     rigidBodyZ->setScale(core::vector3df((f32)mradius, (f32)mradius, (f32)mradius));
 
@@ -124,11 +124,11 @@ ISceneNode* addChBodySceneNode_easyBox(ChSystem* asystem,
 
     ChVector<> hsize = size * 0.5;
 
-    core::vector3df irrsize((f32)hsize.x, (f32)hsize.y, (f32)hsize.z);
+    core::vector3df irrsize((f32)hsize.x(), (f32)hsize.y(), (f32)hsize.z());
     rigidBodyZ->setScale(irrsize);
 
     rigidBodyZ->GetBody()->GetCollisionModel()->ClearModel();
-    rigidBodyZ->GetBody()->GetCollisionModel()->AddBox(hsize.x, hsize.y, hsize.z);
+    rigidBodyZ->GetBody()->GetCollisionModel()->AddBox(hsize.x(), hsize.y(), hsize.z());
     rigidBodyZ->GetBody()->GetCollisionModel()->BuildModel();
     rigidBodyZ->GetBody()->SetCollide(true);
 
@@ -156,11 +156,11 @@ ISceneNode* addChBodySceneNode_easyCylinder(ChSystem* asystem,
 
     ChVector<> hsize = size * 0.5;
 
-    core::vector3df irrsize((f32)hsize.x, (f32)hsize.y, (f32)hsize.z);
+    core::vector3df irrsize((f32)hsize.x(), (f32)hsize.y(), (f32)hsize.z());
     rigidBodyZ->setScale(irrsize);
 
     rigidBodyZ->GetBody()->GetCollisionModel()->ClearModel();
-    rigidBodyZ->GetBody()->GetCollisionModel()->AddCylinder(hsize.x, hsize.z, hsize.y);  // radius, radius, height on y
+    rigidBodyZ->GetBody()->GetCollisionModel()->AddCylinder(hsize.x(), hsize.z(), hsize.y());  // radius, radius, height on y
     rigidBodyZ->GetBody()->GetCollisionModel()->BuildModel();
     rigidBodyZ->GetBody()->SetCollide(true);
 
@@ -186,8 +186,8 @@ ISceneNode* addChBodySceneNode_easyBarrel(ChSystem* asystem,
         createEllipticalMesh((f32)mradiusH, (f32)mradiusV, (f32)mYlow, (f32)mYhigh, (f32)mOffset, Hslices, Vslices);
 
     // create a ChronoENGINE rigid body
-    ChBodySceneNode* rigidBodyZ = (ChBodySceneNode*)addChBodySceneNode(
-        asystem, amanager, barrellMesh, mmass, position, ChQuaternion<>(1, 0, 0, 0), aparent, mid);
+    ChBodySceneNode* rigidBodyZ = (ChBodySceneNode*)addChBodySceneNode(asystem, amanager, barrellMesh, mmass, position,
+                                                                       ChQuaternion<>(1, 0, 0, 0), aparent, mid);
 
     rigidBodyZ->GetBody()->GetCollisionModel()->ClearModel();
     rigidBodyZ->GetBody()->GetCollisionModel()->AddBarrel(mYlow, mYhigh, mradiusV, mradiusH, mOffset);
@@ -211,16 +211,16 @@ ISceneNode* addChBodySceneNode_easyClone(ChSystem* asystem,
                                                                        0,  // source->GetChildMesh()->getMesh(),
                                                                        1, position, rotation, aparent, mid);
 
-    rigidBodyZ->GetBody()->Copy(
-        source->GetBody().get_ptr());  // copy all settings of the original body (masses, inertia, etc.)
-    rigidBodyZ->GetBody()->SetSystem(source->GetBody()->GetSystem());  // because Copy() set system to null..
-    rigidBodyZ->GetBody()->SetPos(position);                           // because Copy() changed it
-    rigidBodyZ->GetBody()->SetRot(rotation);                           // because Copy() changed it
+    // copy all settings of the original body (masses, inertia, etc.)
+    rigidBodyZ->GetBody() = std::shared_ptr<ChBody>(source->GetBody().get()->Clone());
+    rigidBodyZ->GetBody()->SetSystem(source->GetBody()->GetSystem());
+    rigidBodyZ->GetBody()->SetPos(position);
+    rigidBodyZ->GetBody()->SetRot(rotation);
 
     rigidBodyZ->setScale(source->getScale());
 
     rigidBodyZ->GetBody()->GetCollisionModel()->ClearModel();
-    rigidBodyZ->GetBody()->GetCollisionModel()->AddCopyOfAnotherModel(source->GetBody()->GetCollisionModel());
+    rigidBodyZ->GetBody()->GetCollisionModel()->AddCopyOfAnotherModel(source->GetBody()->GetCollisionModel().get());
     rigidBodyZ->GetBody()->GetCollisionModel()->BuildModel();
     rigidBodyZ->GetBody()->SetCollide(true);
 
@@ -245,16 +245,15 @@ ISceneNode* addChBodySceneNode_easyGenericMesh(ChSystem* asystem,
 
     assert(genericMesh);
 
-    geometry::ChTriangleMeshSoup temp_trianglemesh;  // temp., only in function scope, since AddTriangleMesh
-                                                             // doesn't reference by striding interface -just copy
-    fillChTrimeshFromIrlichtMesh(&temp_trianglemesh, genericMesh->getMesh(0));
+    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshSoup>();
+    fillChTrimeshFromIrlichtMesh(trimesh.get(), genericMesh->getMesh(0));
 
     // create a ChronoENGINE rigid body
     ChBodySceneNode* rigidBodyZ =
         (ChBodySceneNode*)addChBodySceneNode(asystem, amanager, genericMesh, mmass, position, rotation, aparent, mid);
 
     rigidBodyZ->GetBody()->GetCollisionModel()->ClearModel();
-    rigidBodyZ->GetBody()->GetCollisionModel()->AddTriangleMesh(temp_trianglemesh, is_static, is_convex);
+    rigidBodyZ->GetBody()->GetCollisionModel()->AddTriangleMesh(trimesh, is_static, is_convex);
     rigidBodyZ->GetBody()->GetCollisionModel()->BuildModel();
     rigidBodyZ->GetBody()->SetCollide(true);
 

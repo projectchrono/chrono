@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -37,12 +37,13 @@
 #ifndef CH_BEZIER_CURVE_H
 #define CH_BEZIER_CURVE_H
 
-#include <vector>
 #include <string>
+#include <vector>
 
 #include "chrono/core/ChApiCE.h"
+#include "chrono/core/ChFrame.h"
 #include "chrono/core/ChVector.h"
-#include "serialization/ChArchive.h"
+#include "chrono/serialization/ChArchive.h"
 
 namespace chrono {
 
@@ -79,6 +80,11 @@ class ChApi ChBezierCurve {
     /// Destructor for ChBezierCurve.
     ~ChBezierCurve() {}
 
+    /// Set the nodes and control points
+    void setPoints(const std::vector<ChVector<> >& points,
+                   const std::vector<ChVector<> >& inCV,
+                   const std::vector<ChVector<> >& outCV);
+
     /// Return the number of knot points.
     size_t getNumPoints() const { return m_points.size(); }
 
@@ -86,10 +92,19 @@ class ChApi ChBezierCurve {
     const ChVector<>& getPoint(size_t i) const { return m_points[i]; }
 
     /// Evaluate the value of the Bezier curve.
+    /// This function calculates and returns the point on the curve at the
+    /// given curve parameter (assumed to be in [0,1]).  
+    /// A value t=0 returns the first point on the curve.
+    /// A value t=1 returns the last point on the curve.
+    ChVector<> eval(double t) const;
+
+    /// Evaluate the value of the Bezier curve.
     /// This function calculates and returns the point on the curve in the
     /// specified interval between two knot points and at the given curve
-    /// parameter (assumed to be in [0,1]). It uses the Bernstein polynomial
-    /// representation of a Bezier curve.
+    /// parameter (assumed to be in [0,1]).
+    /// A value t-0 returns the first end of the specified interval.
+    /// A value t=1 return the second end of the specified interval.
+    /// It uses the Bernstein polynomial representation of a Bezier curve.
     ChVector<> eval(size_t i, double t) const;
 
     /// Evaluate the tangent vector to the Bezier curve.
@@ -127,43 +142,17 @@ class ChApi ChBezierCurve {
     /// coordinates of the "outgoing" control point (i.e. 9 values per line). The
     /// returned curve is a general Bezier curve using the specified knots and
     /// control polygons.
-    static ChBezierCurve* read(const std::string& filename);
-
+    static std::shared_ptr<ChBezierCurve> read(const std::string& filename);
 
     //
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite(1);
+    /// Method to allow serialization of transient data to archives.
+    void ArchiveOUT(ChArchiveOut& marchive);
 
-        // serialize all member data:
-        marchive << CHNVP(m_points);
-        marchive << CHNVP(m_inCV);
-        marchive << CHNVP(m_outCV);
-        marchive << CHNVP(m_maxNumIters);
-        marchive << CHNVP(m_sqrDistTol);
-        marchive << CHNVP(m_cosAngleTol);
-        marchive << CHNVP(m_paramTol);
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead();
-
-        // stream in all member data:
-        marchive >> CHNVP(m_points);
-        marchive >> CHNVP(m_inCV);
-        marchive >> CHNVP(m_outCV);
-        marchive >> CHNVP(m_maxNumIters);
-        marchive >> CHNVP(m_sqrDistTol);
-        marchive >> CHNVP(m_cosAngleTol);
-        marchive >> CHNVP(m_paramTol);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    void ArchiveIN(ChArchiveIn& marchive);
 
   private:
     /// Utility function to solve for the outCV control points.
@@ -194,7 +183,8 @@ class ChApi ChBezierCurve {
 class ChApi ChBezierCurveTracker {
   public:
     /// Create a tracker associated with the specified Bezier curve.
-    ChBezierCurveTracker(ChBezierCurve* path) : m_path(path), m_curInterval(0), m_curParam(0) {}
+      ChBezierCurveTracker(std::shared_ptr<ChBezierCurve> path, bool isClosedPath = false)
+          : m_path(path), m_curInterval(0), m_curParam(0), m_isClosedPath(isClosedPath) {}
 
     /// Destructor for ChBezierCurveTracker.
     ~ChBezierCurveTracker() {}
@@ -215,11 +205,25 @@ class ChApi ChBezierCurveTracker {
     /// such, this function should be called with a continuous sequence of locations.
     int calcClosestPoint(const ChVector<>& loc, ChVector<>& point);
 
+    /// Calculate the closest point on the underlying curve to the specified location.
+    /// Return the TNB (tangent-normal-binormal) frame and the curvature at the closest point.
+    /// The ChFrame 'tnb' has X axis along the tangent, Y axis along the normal, and Z axis
+    /// along the binormal.  The frame location is the closest point on the Bezier curve.
+    /// Note that the normal and binormal are not defined at points with zero curvature.
+    /// In such cases, we return an orthonormal frame with X axis along the tangent.
+    int calcClosestPoint(const ChVector<>& loc, ChFrame<>& tnb, double& curvature);
+
+    /// Set if the path is treated as an open loop or a closed loop for tracking
+    void setIsClosedPath(bool isClosedPath);
+
   private:
-    ChBezierCurve* m_path;  ///< associated Bezier curve
-    size_t m_curInterval;   ///< current search interval
-    double m_curParam;      ///< parameter for current closest point
+    std::shared_ptr<ChBezierCurve> m_path;  ///< associated Bezier curve
+    size_t m_curInterval;                   ///< current search interval
+    double m_curParam;                      ///< parameter for current closest point
+    bool m_isClosedPath;                    ///< treat the path as a closed loop curve
 };
+
+CH_CLASS_VERSION(ChBezierCurve,0)
 
 }  // end of namespace chrono
 

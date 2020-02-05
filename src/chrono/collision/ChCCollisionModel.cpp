@@ -1,33 +1,25 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2011 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-//////////////////////////////////////////////////
-//
-//   ChCCollisionModel.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "ChCCollisionModel.h"
-#include "physics/ChBody.h"
+#include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/physics/ChBody.h"
 
 namespace chrono {
 namespace collision {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
-ChClassRegisterABSTRACT<ChCollisionModel> a_registration_ChCollisionModel;
-
+// Register into the object factory, to enable run-time dynamic creation and persistence
+// CH_FACTORY_REGISTER(ChCollisionModel)  // NO! Abstract class!
 
 static double default_model_envelope = 0.03;
 static double default_safe_margin = 0.01;
@@ -95,15 +87,15 @@ bool ChCollisionModel::GetFamilyMaskDoesCollisionWithFamily(int mfamily) {
 }
 
 // Set the collision family group of this model.
-// In orer to properly encode a collision family, the value 'group' must be a power of 2.
-void ChCollisionModel::SetFamilyGroup(short group) {
+// In order to properly encode a collision family, the value 'group' must be a power of 2.
+void ChCollisionModel::SetFamilyGroup(short int group) {
     assert(group > 0 && !(group & (group - 1)));
     family_group = group;
 }
 
 // Set the collision mask for this model.
 // In order to properly encode a collision mask, the value 'mask' must not exceed 0x7FFFF (i.e. 15 right bits all set)
-void ChCollisionModel::SetFamilyMask(short mask) {
+void ChCollisionModel::SetFamilyMask(short int mask) {
     assert(mask >= 0 && mask <= 0x7FFF);
     family_mask = mask;
 }
@@ -155,9 +147,23 @@ bool ChCollisionModel::AddConvexHullsFromFile(ChStreamInAscii& mstream,
     return true;
 }
 
+void ChCollisionModel::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChCollisionModel>();
 
+    // serialize all member data:
+    marchive << CHNVP(model_envelope);
+    marchive << CHNVP(model_safe_margin);
+}
 
+void ChCollisionModel::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChCollisionModel>();
 
+    // stream in all member data:
+    marchive >> CHNVP(model_envelope);
+    marchive >> CHNVP(model_safe_margin);
+}
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono

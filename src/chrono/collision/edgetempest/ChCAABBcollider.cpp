@@ -1,37 +1,28 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
-//////////////////////////////////////////////////
-//
-//   ChCAABBcollider.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
+#include <cstdio>
+#include <cstring>
 
-#include <stdio.h>
-#include <string.h>
-
-#include "ChCMatVec.h"
-#include "ChCGetTime.h"
-#include "ChCAABBcollider.h"
-
-#include "ChCGeometryCollider.h"
+#include "chrono/collision/edgetempest/ChCMatVec.h"
+#include "chrono/collision/edgetempest/ChCGetTime.h"
+#include "chrono/collision/edgetempest/ChCAABBcollider.h"
+#include "chrono/collision/edgetempest/ChCGeometryCollider.h"
 
 namespace chrono {
 namespace collision {
 
 CHAABBcollider::CHAABBcollider() {
-    this->Rabs.Set33Identity();
+    this->Rabs.setIdentity();
 }
 
 CHAABBcollider::~CHAABBcollider() {
@@ -47,7 +38,7 @@ void CHAABBcollider::CollideRecurse(CHAABBTree* o1, int b1, CHAABBTree* o2, int 
 
     static Vector Translation;
     Translation = Vsub(this->T, box1->To);
-    Translation = Vadd(Translation, this->R.Matr_x_Vect(box2->To));
+    Translation = Vadd(Translation, this->R * box2->To);
 
     if (!CHAABB::AABB_Overlap(this->R, this->Rabs, Translation, box1, box2))
         return;
@@ -137,23 +128,23 @@ ChNarrowPhaseCollider::eCollSuccess CHAABBcollider::ComputeCollisions(ChMatrix33
 
     const double reps = (double)1e-6;
     // Rabs = fabs(R)+eps
-    Rabs(0, 0) = myfabs(R.Get33Element(0, 0));
+    Rabs(0, 0) = myfabs(R(0, 0));
     Rabs(0, 0) += reps;
-    Rabs(0, 1) = myfabs(R.Get33Element(0, 1));
+    Rabs(0, 1) = myfabs(R(0, 1));
     Rabs(0, 1) += reps;
-    Rabs(0, 2) = myfabs(R.Get33Element(0, 2));
+    Rabs(0, 2) = myfabs(R(0, 2));
     Rabs(0, 2) += reps;
-    Rabs(1, 0) = myfabs(R.Get33Element(1, 0));
+    Rabs(1, 0) = myfabs(R(1, 0));
     Rabs(1, 0) += reps;
-    Rabs(1, 1) = myfabs(R.Get33Element(1, 1));
+    Rabs(1, 1) = myfabs(R(1, 1));
     Rabs(1, 1) += reps;
-    Rabs(1, 2) = myfabs(R.Get33Element(1, 2));
+    Rabs(1, 2) = myfabs(R(1, 2));
     Rabs(1, 2) += reps;
-    Rabs(2, 0) = myfabs(R.Get33Element(2, 0));
+    Rabs(2, 0) = myfabs(R(2, 0));
     Rabs(2, 0) += reps;
-    Rabs(2, 1) = myfabs(R.Get33Element(2, 1));
+    Rabs(2, 1) = myfabs(R(2, 1));
     Rabs(2, 1) += reps;
-    Rabs(2, 2) = myfabs(R.Get33Element(2, 2));
+    Rabs(2, 2) = myfabs(R(2, 2));
     Rabs(2, 2) += reps;
 
     // Now start with both top level BVs and recurse...
@@ -166,5 +157,5 @@ ChNarrowPhaseCollider::eCollSuccess CHAABBcollider::ComputeCollisions(ChMatrix33
     return ChC_RESULT_OK;
 }
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono

@@ -21,20 +21,22 @@
 #include "chrono_opengl/core/ChOpenGLMaterial.h"
 #include "chrono_opengl/shapes/ChOpenGLText.h"
 #include "chrono_opengl/ChOpenGLCamera.h"
+#include "chrono_opengl/shapes/ChOpenGLBars.h"
 
-#include "physics/ChSystem.h"
-#include "core/ChTimer.h"
+#include "chrono/physics/ChSystem.h"
+//#include "chrono_parallel/physics/ChSystemParallel.h"
+
 namespace chrono {
 namespace opengl {
 
-/// @addtogroup opengl
+/// @addtogroup opengl_module
 /// @{
 
 /// Class that renders the text and other UI elements.
 class CH_OPENGL_API ChOpenGLHUD : public ChOpenGLBase {
   public:
     ChOpenGLHUD();
-    bool Initialize(ChOpenGLCamera* camera);
+    bool Initialize(ChOpenGLCamera* camera, ChTimer<>* render, ChTimer<>* text, ChTimer<>* geometry);
     void GenerateHelp();
     void GenerateCamera();
     void GenerateSystem(ChSystem* physics_system);
@@ -45,28 +47,33 @@ class CH_OPENGL_API ChOpenGLHUD : public ChOpenGLBase {
     void GenerateExtraStats(ChSystem* physics_system);
     void TakeDown();
     void Update(const glm::ivec2& window_size,
-                const float& dpi,
-                const float& frame_per_sec,
-                const float& t_geometry,
-                const float& t_text,
-                const float& t_total);
+                const double& dpi,
+                const double& frame_per_sec,
+                const double& t_geometry,
+                const double& t_text,
+                const double& t_total);
     void Draw();
 
   private:
     ChOpenGLText text;
+    ChOpenGLBars bars;
     ChOpenGLShader font_shader;
+    ChOpenGLShader bar_shader;
+
     float sx, sy;
     float aspect, z_x, z_y;
     char buffer[50];
     ChOpenGLCamera* render_camera;
+    double time_geometry, time_text, time_total, fps;
 
-    float time_geometry, time_text, time_total, fps;
-
-    ChTimer<double> timer_text, timer_render, timer_geometry;
+    ChTimer<>* timer_render;
+    ChTimer<>* timer_text;
+    ChTimer<>* timer_geometry;
 };
 
-/// @} opengl
+/// @} opengl_module
 
 }
 }
-#endif  // END of CHOPENGLHUD_H
+
+#endif

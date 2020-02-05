@@ -1,38 +1,22 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #ifndef CHMATLABENGINE_H
 #define CHMATLABENGINE_H
 
-///////////////////////////////////////////////////
-//
-//   ChMatlabEngine.h
-//
-//   Use this header if you want to exploit Matlab
-//   from Chrono::Engine programs.
-//
-//   HEADER file for CHRONO,
-//  Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include "chrono_matlab/ChApiMatlab.h"
-#include "core/ChMath.h"
-#include "core/ChLinkedListMatrix.h"
-//#include "lcp/ChLcpSystemDescriptor.h"
-
-// include also the Matlab header..
+#include "chrono/core/ChMath.h"
 
 // Following namespace trick is a fix for VS2010+ and Matlab: avoid error with typedef in matrix.h
 namespace matlabengine {
@@ -41,11 +25,14 @@ namespace matlabengine {
 
 namespace chrono {
 
+/// @addtogroup matlab_module
+/// @{
+
 /// Class for accessing the Matlab engine with a C++ wrapper.
 /// When a ChMatlabEngine object is instanced, a Matlab engine
 /// is started (assuming Matlab is properly installed and its
 /// dll are available on the system) and following funcitons can
-/// be used to copy variables from/to chrono::engine, and
+/// be used to copy variables from/to Chrono, and
 /// to execute commands in Matlab. Useful also to exploit the
 /// powerful plotting features of Matlab.
 /// Note! to compile programs that include this header, your
@@ -82,36 +69,35 @@ class ChApiMatlab ChMatlabEngine {
 
     /// Put a matrix in Matlab environment, specifying its name as variable.
     /// If a variable with the same name already exist, it is overwritten.
-    bool PutVariable(const ChMatrix<double>& mmatr, std::string varname);
+    bool PutVariable(ChMatrixConstRef mmatr, std::string varname);
 
     /// Put a sparse matrix in Matlab environment, specifying its name as variable.
     /// If a variable with the same name already exist, it is overwritten.
-    bool PutSparseMatrix(const ChLinkedListMatrix& mmatr, std::string varname);
+    bool PutSparseMatrix(const ChSparseMatrix& mmatr, std::string varname);
 
     /// Fetch a matrix from Matlab environment, specifying its name as variable.
     /// The used matrix must be of ChMatrixDynamic<double> type because
     /// it might undergo resizing.
     bool GetVariable(ChMatrixDynamic<double>& mmatr, std::string varname);
 
-
     //
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
+    virtual void ArchiveOUT(ChArchiveOut& marchive) {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChMatlabEngine>();
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
+    virtual void ArchiveIN(ChArchiveIn& marchive) {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChMatlabEngine>();
     }
 };
 
-}  // END_OF_NAMESPACE____
+/// @} matlab_module
+
+}  // end namespace chrono
 
 #endif

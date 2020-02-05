@@ -1,0 +1,163 @@
+newmtl Body
+Kd 0.619608 0.694118 0.694118
+Ke 0 0 0
+Ka 0.8 0.8 0.8
+Ks 0.5 0.5 0.5
+Ns 330
+Tr 0
+d 1
+Ni 1.5
+Tf 1 1 1
+
+newmtl Chrome
+Kd 0.435294 0.435294 0.435294
+Ke 0 0 0
+Ka 1 1 1
+Ks 0.89 0.89 0.89
+Ns 200
+Tr 0
+d 1
+Ni 1
+Tf 1 1 1
+
+newmtl Dessous_/_partie_noir
+Kd 0.164706 0.164706 0.164706
+Ke 0 0 0
+Ka 1 1 1
+Ks 0.07 0.07 0.07
+Ns 349
+Tr 0
+d 1
+Ni 1.5
+Tf 1 1 1
+
+
+newmtl Feux_ar
+Kd 0.529412 0.196078 0.196078
+Ke 0 0 0
+Ka 1 1 1
+Ks 0.15 0.15 0.15
+Ns 400
+Tr 0
+d 1
+Ni 1.5
+Tf 1 1 1
+
+
+newmtl Interieur_beige
+Kd 1 0.902778 0.777778
+Ke 0 0 0
+Ka 0.564706 0.564706 0.564706
+Ks 0.15 0.15 0.15
+Ns 379
+Tr 0
+d 1
+Ni 1.5
+Tf 1 1 1
+
+newmtl Interieur_metal
+Kd 0.207843 0.207843 0.207843
+Ke 0 0 0
+Ka 1 1 1
+Ks 0.14 0.14 0.14
+Ns 400
+Tr 0
+d 1
+Ni 1.5
+Tf 1 1 1
+
+
+newmtl Interieur_sol
+Kd 0.172549 0.172549 0.172549
+Ke 0 0 0
+Ka 1 1 1
+Ks 0.026 0.026 0.026
+Ns 279
+Tr 0
+d 1
+Ni 1.5
+Tf 1 1 1
+
+
+newmtl Miroir
+Kd 0.254902 0.254902 0.254902
+Ke 0 0 0
+Ka 1 1 1
+Ks 0.6 0.6 0.6
+Ns 400
+Tr 0
+d 1
+Ni 1
+Tf 1 1 1
+
+newmtl Phare_texture
+Kd 0.756863 0.756863 0.756863
+Ke 0 0 0
+Ka 1 1 1
+Ks 0.14 0.14 0.14
+Ns 439
+Tr 0
+d 1
+Ni 1.5
+Tf 1 1 1
+
+
+newmtl Phare_vitre
+Kd 0.698039 0.698039 0.698039
+Ke 0 0 0
+Ka 1 1 1
+Ks 0.2 0.2 0.2
+Ns 400
+Tr 0.11
+d 0.89
+Ni 1.5
+Tf 1 1 1
+
+
+newmtl Plaque_ar
+Kd 0.172549 0.172549 0.172549
+Ke 0 0 0
+Ka 1 1 1
+Ks 0.1 0.1 0.1
+Ns 400
+Tr 0
+d 1
+Ni 1.5
+Tf 1 1 1
+
+
+newmtl Plaque_av
+Kd 0.172549 0.172549 0.172549
+Ke 0 0 0
+Ka 1 1 1
+Ks 0.1 0.1 0.1
+Ns 400
+Tr 0
+d 1
+Ni 1.5
+Tf 1 1 1
+
+
+newmtl Siege
+Kd 0.176471 0.176471 0.176471
+Ke 0 0 0
+Ka 1 1 1
+Ks 0.114 0.114 0.114
+Ns 310
+Tr 0
+d 1
+Ni 1.5
+Tf 1 1 1
+
+
+newmtl Vitre
+Kd 0.407843 0.435294 0.427451
+Ke 0 0 0
+Ka 1 1 1
+Ks 0.6 0.6 0.6
+Ns 200
+Tr 0.725
+d 0.275
+Ni 1
+Tf 1 1 1
+

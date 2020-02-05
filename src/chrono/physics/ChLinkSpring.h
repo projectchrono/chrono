@@ -1,53 +1,51 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010, 2012 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHLINKSPRING_H
 #define CHLINKSPRING_H
 
-#include "physics/ChLinkMarkers.h"
+#include "chrono/physics/ChLinkMarkers.h"
 
 namespace chrono {
 
+/// Class for spring-damper systems, acting along the polar distance of two markers.
 ///
-/// Class for spring-damper systems, acting along the polar
-/// distance of two markers
-///
-
-class ChApi ChLinkSpring : public ChLinkMarkers {
-    CH_RTTI(ChLinkSpring, ChLinkMarkers);
-
+/// \deprecated Use ChLinkTSDA instead. This class will be removed in a future Chrono release.
+class ChApi 
+/// \cond
+CH_DEPRECATED("deprecated. Use ChLinkTSDA instead.")
+/// \endcond
+ChLinkSpring : public ChLinkMarkers {
   protected:
-    double spr_restlength;
-    double spr_k;
-    double spr_r;
-    double spr_f;
-    ChSharedPtr<ChFunction> mod_f_time;   // f(t)
-    ChSharedPtr<ChFunction> mod_k_d;      // k(d)
-    ChSharedPtr<ChFunction> mod_r_d;      // r(d)
-    ChSharedPtr<ChFunction> mod_r_speed;  // k(speed)
-    ChSharedPtr<ChFunction> mod_k_speed;  // r(speed)
-    double spr_react;                     // resulting force in dist. coord / readonly
+    double spr_restlength;                    ///< spring rest (undeformed) length
+    double spr_k;                             ///< spring coefficient
+    double spr_r;                             ///< damping coefficient
+    double spr_f;                             ///< actuator force
+    std::shared_ptr<ChFunction> mod_f_time;   ///< f(t)
+    std::shared_ptr<ChFunction> mod_k_d;      ///< k(d)
+    std::shared_ptr<ChFunction> mod_r_d;      ///< r(d)
+    std::shared_ptr<ChFunction> mod_r_speed;  ///< k(speed)
+    std::shared_ptr<ChFunction> mod_k_speed;  ///< r(speed)
+    double spr_react;                         ///< resulting force in dist. coord / readonly
 
   public:
-    //
-    // FUNCTIONS
-    //
-
-    // builders and destroyers
     ChLinkSpring();
-    virtual ~ChLinkSpring();
-    virtual void Copy(ChLinkSpring* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+    ChLinkSpring(const ChLinkSpring& other);
+    virtual ~ChLinkSpring() {}
 
-    virtual int GetType() { return LNK_SPRING; }
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkSpring* Clone() const override;
 
     // data fetch/store
     double Get_SpringRestLength() const { return spr_restlength; }
@@ -64,17 +62,17 @@ class ChApi ChLinkSpring : public ChLinkMarkers {
     void Set_SpringR(double m_r) { spr_r = m_r; }
     void Set_SpringF(double m_r) { spr_f = m_r; }
 
-    ChSharedPtr<ChFunction> Get_mod_f_time() const { return mod_f_time; }
-    ChSharedPtr<ChFunction> Get_mod_k_d() const { return mod_k_d; }
-    ChSharedPtr<ChFunction> Get_mod_r_d() const { return mod_r_d; }
-    ChSharedPtr<ChFunction> Get_mod_k_speed() const { return mod_k_speed; }
-    ChSharedPtr<ChFunction> Get_mod_r_speed() const { return mod_r_speed; }
+    std::shared_ptr<ChFunction> Get_mod_f_time() const { return mod_f_time; }
+    std::shared_ptr<ChFunction> Get_mod_k_d() const { return mod_k_d; }
+    std::shared_ptr<ChFunction> Get_mod_r_d() const { return mod_r_d; }
+    std::shared_ptr<ChFunction> Get_mod_k_speed() const { return mod_k_speed; }
+    std::shared_ptr<ChFunction> Get_mod_r_speed() const { return mod_r_speed; }
 
-    void Set_mod_f_time(ChSharedPtr<ChFunction> mf) { mod_f_time = mf; }
-    void Set_mod_k_d(ChSharedPtr<ChFunction> mf) { mod_k_d = mf; }
-    void Set_mod_r_d(ChSharedPtr<ChFunction> mf) { mod_r_d = mf; }
-    void Set_mod_k_speed(ChSharedPtr<ChFunction> mf) { mod_k_speed = mf; }
-    void Set_mod_r_speed(ChSharedPtr<ChFunction> mf) { mod_r_speed = mf; }
+    void Set_mod_f_time(std::shared_ptr<ChFunction> mf) { mod_f_time = mf; }
+    void Set_mod_k_d(std::shared_ptr<ChFunction> mf) { mod_k_d = mf; }
+    void Set_mod_r_d(std::shared_ptr<ChFunction> mf) { mod_r_d = mf; }
+    void Set_mod_k_speed(std::shared_ptr<ChFunction> mf) { mod_k_speed = mf; }
+    void Set_mod_r_speed(std::shared_ptr<ChFunction> mf) { mod_r_speed = mf; }
 
     /// Specialized initialization for springs, given the two bodies to be connected,
     /// the positions of the two anchor endpoints of the spring (each expressed
@@ -82,13 +80,13 @@ class ChApi ChLinkSpring : public ChLinkMarkers {
     /// NOTE! As in ChLinkMarkers::Initialize(), the two markers are automatically
     /// created and placed inside the two connected bodies.
     void Initialize(
-        ChSharedPtr<ChBody> mbody1,  ///< first body to link
-        ChSharedPtr<ChBody> mbody2,  ///< second body to link
-        bool pos_are_relative,  ///< true: following pos. are considered relative to bodies. false: pos.are absolute
-        ChVector<> mpos1,       ///< position of spring endpoint, for 1st body (rel. or abs., see flag above)
-        ChVector<> mpos2,       ///< position of spring endpoint, for 2nd body (rel. or abs., see flag above)
-        bool auto_rest_length = true,  ///< if true, initializes the rest-length as the distance between mpos1 and mpos2
-        double mrest_length = 0        ///< imposed rest_length (no need to define, if auto_rest_length=true.)
+        std::shared_ptr<ChBody> mbody1,  ///< first body to link
+        std::shared_ptr<ChBody> mbody2,  ///< second body to link
+        bool pos_are_relative,           ///< true: following pos. are relative to bodies
+        ChVector<> mpos1,                ///< position of spring endpoint, for 1st body (rel. or abs., see flag above)
+        ChVector<> mpos2,                ///< position of spring endpoint, for 2nd body (rel. or abs., see flag above)
+        bool auto_rest_length = true,    ///< if true, initializes the rest-length as the distance between mpos1 and mpos2
+        double mrest_length = 0          ///< imposed rest_length (no need to define, if auto_rest_length=true.)
         );
 
     /// Get the 1st spring endpoint (expressed in Body1 coordinate system)
@@ -109,33 +107,18 @@ class ChApi ChLinkSpring : public ChLinkMarkers {
     /// Set the 1st spring endpoint (expressed in absolute coordinate system)
     void SetEndPoint2Abs(ChVector<>& mset) { marker2->Impose_Abs_Coord(ChCoordsys<>(mset, QUNIT)); }
 
-    //
-    // UPDATING FUNCTIONS
-    //
-
-    /// Inherits, then also adds the spring custom forces to
-    /// the C_force and C_torque.
-    virtual void UpdateForces(double mytime);
-
-    //
-    // STATE FUNCTIONS
-    //
-    // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-
-    //
-    // SERIALIZATION
-    //
+    /// Inherits, then also adds the spring custom forces to the C_force and C_torque.
+    virtual void UpdateForces(double mytime) override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-//////////////////////////////////////////////////////
-//////////////////////////////////////////////////////
+CH_CLASS_VERSION(ChLinkSpring,0)
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

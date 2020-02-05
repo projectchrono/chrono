@@ -1,10 +1,10 @@
-/* %module ChronoEngine_python_mod */
+/*  */
 
 %include "std_string.i"
 
 %{
 /* Includes the header in the wrapper code */
-#include "core/ChException.h"
+#include "chrono/core/ChException.h"
 
 %}
  

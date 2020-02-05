@@ -1,7 +1,7 @@
 #--------------------------------------------------------------
 # 
 # Example of CMake configuration file to build an external 
-# project depending on Chrono and on optionam Chrono modules.
+# project depending on Chrono and on optional Chrono modules.
 # 
 # This minimal sample project can be used as a template for a
 # user project.  Modify sections 1, 2, and 3 below as appropriate.
@@ -31,8 +31,9 @@ project(my_project)
 # Matlab, Parallel, Postprocess, Python, Vehicle.
 # 
 # Note that you will have to set the variable Chrono_DIR to 
-# specify the location of the ChronoConfig.cmake script. This
-# can be either a Chrono build tree or a Chrono install tree.
+# specify the location of the ChronoConfig.cmake script, if
+# it is not in its default install location.
+# Chrono_DIR can be either a Chrono build tree or a Chrono install tree.
 # 
 # The following variables are set and can be used further down:
 # CHRONO_FOUND
@@ -58,6 +59,7 @@ project(my_project)
 # In this example, we only request the Irrlicht module (required)
 #--------------------------------------------------------------
 
+LIST(APPEND CMAKE_PREFIX_PATH "${CMAKE_INSTALL_PREFIX}/../Chrono/lib")
 find_package(Chrono
              COMPONENTS Irrlicht
              CONFIG)
@@ -67,10 +69,26 @@ find_package(Chrono
 #--------------------------------------------------------------
 
 if (NOT Chrono_FOUND)
-  message("Could not find requirements for FEA projects")
+  message("Could not find Chrono or one of its required modules")
   return()
 endif()
 
+#--------------------------------------------------------------
+# Enable creation of "application bundles" on MacOSX.
+#--------------------------------------------------------------
+
+# This is necessary for any Irrlicht-based project (like the example here).
+# For OpenGL-based or non-graphics projects, this is optional and the block
+# below can be removed (or else explcitly set CMAKE_MACOSX_BUNDLE to 'OFF').
+#
+# If creating application bundles, the build output will be named 'myexe.app'.
+# Use the convenience script 'run_app.sh' available under 'contrib/appbundle-macosx/'
+# to run:
+#     start_demo.sh myexe.app
+
+if(APPLE)
+    set(CMAKE_MACOSX_BUNDLE ON)
+endif()
 
 #--------------------------------------------------------------
 # Add path to Chrono headers and to headers of all dependencies
@@ -78,6 +96,28 @@ endif()
 #--------------------------------------------------------------
 
 include_directories(${CHRONO_INCLUDE_DIRS})
+
+#-----------------------------------------------------------------------------
+# Fix for VS 2017 15.8 and newer to handle alignment specification with Eigen
+#-----------------------------------------------------------------------------
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  if(MSVC AND ${MSVC_VERSION} GREATER_EQUAL 1915)
+    add_definitions( "-D_ENABLE_EXTENDED_ALIGNED_STORAGE" )
+  endif()
+endif()
+
+#--------------------------------------------------------------
+# Tweaks to disable some warnings with MSVC
+#--------------------------------------------------------------
+if(MSVC)
+    add_definitions("-D_CRT_SECURE_NO_DEPRECATE")  # avoids deprecation warnings
+    add_definitions("-D_SCL_SECURE_NO_DEPRECATE")  # avoids deprecation warnings
+    add_definitions( "-DNOMINMAX" )                # do not use MSVC's min/max macros
+    set(EXTRA_COMPILE_FLAGS "/wd4275")             # disable warnings triggered by Irrlicht
+else()
+    set(EXTRA_COMPILE_FLAGS "")
+endif()
 
 #--------------------------------------------------------------
 # === 3 ===
@@ -97,9 +137,9 @@ add_executable(myexe my_example.cpp)
 #--------------------------------------------------------------
 
 set_target_properties(myexe PROPERTIES 
-	    COMPILE_FLAGS "${CHRONO_CXX_FLAGS}"
+	    COMPILE_FLAGS "${CHRONO_CXX_FLAGS} ${EXTRA_COMPILE_FLAGS}"
 	    COMPILE_DEFINITIONS "CHRONO_DATA_DIR=\"${CHRONO_DATA_DIR}\""
-	    LINK_FLAGS "${CHRONO_CXX_FLAGS}")
+	    LINK_FLAGS "${CHRONO_LINKER_FLAGS}")
 
 #--------------------------------------------------------------
 # Link to Chrono libraries and dependency libraries

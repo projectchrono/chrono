@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -52,6 +52,9 @@ class CH_VEHICLE_API ChAntirollBarRSD : public ChAntirollBar {
 
     virtual ~ChAntirollBarRSD() {}
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "AntirollBarRSD"; }
+
     /// The anti-roll bar subsystem is initialized by attaching it to the specified
     /// chassis body at the specified location (with respect to and expressed in
     /// the reference frame of the chassis). It is assumed that the suspension
@@ -59,11 +62,17 @@ class CH_VEHICLE_API ChAntirollBarRSD : public ChAntirollBar {
     /// Finally, susp_body_left and susp_body_right are handles to the suspension
     /// bodies to which the anti-roll bar's droplinks are to be attached.
     virtual void Initialize(
-        ChSharedPtr<ChBodyAuxRef> chassis,   ///< [in] handle to the chassis body
-        const ChVector<>& location,          ///< [in] location relative to the chassis frame
-        ChSharedPtr<ChBody> susp_body_left,  ///< [in] susp body to which left droplink is connected
-        ChSharedPtr<ChBody> susp_body_right  ///< [in] susp body to which right droplink is connected
+        std::shared_ptr<ChBodyAuxRef> chassis,   ///< [in] handle to the chassis body
+        const ChVector<>& location,              ///< [in] location relative to the chassis frame
+        std::shared_ptr<ChBody> susp_body_left,  ///< [in] susp body to which left droplink is connected
+        std::shared_ptr<ChBody> susp_body_right  ///< [in] susp body to which right droplink is connected
         ) override;
+
+    /// Get the total mass of the anti-roll bar subsystem.
+    virtual double GetMass() const override;
+
+    /// Get the current global COM location of the anti-roll bar subsystem.
+    virtual ChVector<> GetCOMPos() const override;
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;
@@ -88,20 +97,24 @@ class CH_VEHICLE_API ChAntirollBarRSD : public ChAntirollBar {
     /// Return the rotational damping coefficient.
     virtual double getDampingCoefficient() const = 0;
 
-    ChSharedPtr<ChBody> m_arm_left;                 ///< handle to the left arm body
-    ChSharedPtr<ChBody> m_arm_right;                ///< handle to the right arm body
-    ChSharedPtr<ChLinkLockRevolute> m_revolute_ch;  ///< handle to revolute joint to chassis
-    ChSharedPtr<ChLinkLockRevolute> m_revolute;     ///< handle to central revolute joint
-    ChSharedPtr<ChLinkDistance> m_link_left;        ///< handle to the left droplink distance constraint
-    ChSharedPtr<ChLinkDistance> m_link_right;       ///< handle to the right droplink distance constraint
+    std::shared_ptr<ChBody> m_arm_left;                 ///< handle to the left arm body
+    std::shared_ptr<ChBody> m_arm_right;                ///< handle to the right arm body
+    std::shared_ptr<ChLinkLockRevolute> m_revolute_ch;  ///< handle to revolute joint to chassis
+    std::shared_ptr<ChLinkLockRevolute> m_revolute;     ///< handle to central revolute joint
+    std::shared_ptr<ChLinkDistance> m_link_left;        ///< handle to the left droplink distance constraint
+    std::shared_ptr<ChLinkDistance> m_link_right;       ///< handle to the right droplink distance constraint
 
   private:
-    void AddVisualizationArm(ChSharedPtr<ChBody> arm,
+    void AddVisualizationArm(std::shared_ptr<ChBody> arm,
                              const ChVector<>& pt_1,
                              const ChVector<>& pt_2,
                              const ChVector<>& pt_3,
                              double radius,
                              const ChColor& color);
+
+    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
+
+    virtual void Output(ChVehicleOutput& database) const override;
 };
 
 /// @} vehicle_wheeled_antirollbar

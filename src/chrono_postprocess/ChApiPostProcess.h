@@ -1,25 +1,22 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2011-2012 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #ifndef CHAPIPOSTPROCESS_H
 #define CHAPIPOSTPROCESS_H
 
+#include "chrono/ChVersion.h"
 #include "chrono/core/ChPlatform.h"
-
-// Chrono::Engine version
-//
-// This is an integer, as 0xaabbccdd where
-// for example version 1.2.0 is 0x00010200
-
-#define CH_VERSION_POSTPROCESS_MODULE 0x00000100
 
 // When compiling this library, remember to define CH_API_COMPILE_POSTPROCESS
 // (so that the symbols with 'ChApiPostProcess' in front of them will be
@@ -32,4 +29,31 @@
 #define ChApiPostProcess ChApiIMPORT
 #endif
 
-#endif  // END of header
+/**
+    @defgroup postprocess_module POSTPROCESS module
+    @brief Postprocessing tools (for POVray animations, GNUplot, etc.)
+
+    Module provides postprocessing tools that can be used
+    to output high quality renderings and other kind of post processed data.
+
+    Currently supported postprocessing targets:
+    - POVray
+    - GNUplot
+
+    For additional information, see:
+    - the [installation guide](@ref module_postprocess_installation)
+    - the [tutorials](@ref tutorial_root)
+*/
+
+namespace chrono {
+
+/// @addtogroup postprocess_module
+/// @{
+
+/// Namespace with classes for the POSTPROCESS module.
+namespace postprocess {}
+
+/// @}
+}
+
+#endif

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -16,11 +16,10 @@
 //
 // =============================================================================
 
-#include "physics/ChGlobal.h"
+#include "chrono/core/ChGlobal.h"
 
 #include "chrono_vehicle/powertrain/ShaftsPowertrain.h"
-
-#include "thirdparty/rapidjson/filereadstream.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 using namespace rapidjson;
 
@@ -30,23 +29,17 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // Constructor a shafts powertrain using data from the specified JSON file.
 // -----------------------------------------------------------------------------
-ShaftsPowertrain::ShaftsPowertrain(const std::string& filename) {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream(is);
+ShaftsPowertrain::ShaftsPowertrain(const std::string& filename) : ChShaftsPowertrain("") {
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     Create(d);
 
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-ShaftsPowertrain::ShaftsPowertrain(const rapidjson::Document& d) {
+ShaftsPowertrain::ShaftsPowertrain(const rapidjson::Document& d) : ChShaftsPowertrain("") {
     Create(d);
 }
 
@@ -55,12 +48,8 @@ ShaftsPowertrain::ShaftsPowertrain(const rapidjson::Document& d) {
 // specified RapidJSON document.
 // -----------------------------------------------------------------------------
 void ShaftsPowertrain::Create(const rapidjson::Document& d) {
-    unsigned int np;
-
-    // Read top-level data
-    assert(d.HasMember("Type"));
-    assert(d.HasMember("Template"));
-    assert(d.HasMember("Name"));
+    // Invoke base class method.
+    ChPart::Create(d);
 
     // Read engine data
     assert(d.HasMember("Engine"));
@@ -75,10 +64,17 @@ void ShaftsPowertrain::Create(const rapidjson::Document& d) {
 
     m_ingear_shaft_inertia = d["Transmission"]["Input Shaft Inertia"].GetDouble();
     m_rev_gear = d["Transmission"]["Reverse Gear Ratio"].GetDouble();
-    np = d["Transmission"]["Forward Gear Ratios"].Size();
+    unsigned int np = d["Transmission"]["Forward Gear Ratios"].Size();
     m_fwd_gear.resize(np);
     for (unsigned int i = 0; i < np; i++)
         m_fwd_gear[i] = d["Transmission"]["Forward Gear Ratios"][i].GetDouble();
+
+    m_upshift_RPM = d["Transmission"]["Upshift RPM"].GetDouble();
+    m_downshift_RPM = d["Transmission"]["Downshift RPM"].GetDouble();
+
+    if (d["Transmission"].HasMember("Shift Latency")) {
+        SetGearShiftLatency(d["Transmission"]["Shift Latency"].GetDouble());
+    }
 
     // Read torque converter data
     assert(d.HasMember("Torque Converter"));
@@ -107,7 +103,7 @@ void ShaftsPowertrain::ReadMapData(const rapidjson::Value& a, MapData& map_data)
     }
 }
 
-void ShaftsPowertrain::SetMapData(const MapData& map_data, ChSharedPtr<ChFunction_Recorder>& map) {
+void ShaftsPowertrain::SetMapData(const MapData& map_data, std::shared_ptr<ChFunction_Recorder>& map) {
     for (unsigned int i = 0; i < map_data.m_n; i++) {
         map->AddPoint(map_data.m_x[i], map_data.m_y[i]);
     }

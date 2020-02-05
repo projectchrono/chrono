@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -31,19 +31,17 @@ namespace vehicle {
 // conic gear pair, in chassis local coords. This is needed because ChShaftsBody
 // could transfer pitch torque to the chassis.
 // -----------------------------------------------------------------------------
-ChShaftsDriveline4WD::ChShaftsDriveline4WD()
-    : ChDriveline(), m_dir_motor_block(ChVector<>(1, 0, 0)), m_dir_axle(ChVector<>(0, 1, 0)) {
-}
+ChShaftsDriveline4WD::ChShaftsDriveline4WD(const std::string& name)
+    : ChDrivelineWV(name), m_dir_motor_block(ChVector<>(1, 0, 0)), m_dir_axle(ChVector<>(0, 1, 0)) {}
 
 // -----------------------------------------------------------------------------
 // Initialize the driveline subsystem.
-// This function connects this driveline subsystem to the axles of the specified
-// suspension subsystems.
+// This function connects this driveline to the specified axles.
 // -----------------------------------------------------------------------------
-void ChShaftsDriveline4WD::Initialize(ChSharedPtr<ChBody> chassis,
-                                      const ChSuspensionList& suspensions,
+void ChShaftsDriveline4WD::Initialize(std::shared_ptr<ChBody> chassis,
+                                      const ChAxleList& axles,
                                       const std::vector<int>& driven_axles) {
-    assert(suspensions.size() >= 2);
+    assert(axles.size() >= 2);
     assert(driven_axles.size() == 2);
 
     m_driven_axles = driven_axles;
@@ -52,21 +50,21 @@ void ChShaftsDriveline4WD::Initialize(ChSharedPtr<ChBody> chassis,
 
     // Create the driveshaft, a 1 d.o.f. object with rotational inertia which
     // represents the connection of the driveline to the transmission box.
-    m_driveshaft = ChSharedPtr<ChShaft>(new ChShaft);
+    m_driveshaft = chrono_types::make_shared<ChShaft>();
     m_driveshaft->SetInertia(GetDriveshaftInertia());
     my_system->Add(m_driveshaft);
 
     // Create a 1 d.o.f. object: a 'shaft' with rotational inertia.
     // This represents the shaft that connecting central differential to front
     // differential.
-    m_front_shaft = ChSharedPtr<ChShaft>(new ChShaft);
+    m_front_shaft = chrono_types::make_shared<ChShaft>();
     m_front_shaft->SetInertia(GetToFrontDiffShaftInertia());
     my_system->Add(m_front_shaft);
 
     // Create a 1 d.o.f. object: a 'shaft' with rotational inertia.
     // This represents the shaft that connecting central differential to rear
     // differential.
-    m_rear_shaft = ChSharedPtr<ChShaft>(new ChShaft);
+    m_rear_shaft = chrono_types::make_shared<ChShaft>();
     m_rear_shaft->SetInertia(GetToRearDiffShaftInertia());
     my_system->Add(m_rear_shaft);
 
@@ -75,17 +73,24 @@ void ChShaftsDriveline4WD::Initialize(ChSharedPtr<ChBody> chassis,
     // using ChShaftsPlanetary; a proper 'ordinary' transmission ratio t0 must be
     // assigned according to Willis formula. The case of the differential is
     // simple: t0=-1.
-    m_central_differential = ChSharedPtr<ChShaftsPlanetary>(new ChShaftsPlanetary);
+    m_central_differential = chrono_types::make_shared<ChShaftsPlanetary>();
     m_central_differential->Initialize(m_driveshaft,  // the carrier
                                        m_rear_shaft, m_front_shaft);
     m_central_differential->SetTransmissionRatioOrdinary(GetCentralDifferentialRatio());
     my_system->Add(m_central_differential);
 
+    // Create the clutch for central differential locking. By default, unlocked.
+    m_central_clutch = chrono_types::make_shared<ChShaftsClutch>();
+    m_central_clutch->Initialize(m_rear_shaft, m_front_shaft);
+    m_central_clutch->SetTorqueLimit(GetCentralDifferentialLockingLimit());
+    m_central_clutch->SetModulation(0);
+    my_system->Add(m_central_clutch);
+
     // ---Rear differential and axles:
 
     // Create a 1 d.o.f. object: a 'shaft' with rotational inertia.
     // This represents the inertia of the rotating box of the differential.
-    m_rear_differentialbox = ChSharedPtr<ChShaft>(new ChShaft);
+    m_rear_differentialbox = chrono_types::make_shared<ChShaft>();
     m_rear_differentialbox->SetInertia(GetRearDifferentialBoxInertia());
     my_system->Add(m_rear_differentialbox);
 
@@ -94,27 +99,35 @@ void ChShaftsDriveline4WD::Initialize(ChSharedPtr<ChBody> chassis,
     // differential. Note that, differently from the basic ChShaftsGear, this also
     // provides the possibility of transmitting a reaction torque to the box
     // (the truss).
-    m_rear_conicalgear = ChSharedPtr<ChShaftsGearboxAngled>(new ChShaftsGearboxAngled);
+    m_rear_conicalgear = chrono_types::make_shared<ChShaftsGearboxAngled>();
     m_rear_conicalgear->Initialize(m_rear_shaft, m_rear_differentialbox, chassis, m_dir_motor_block, m_dir_axle);
     m_rear_conicalgear->SetTransmissionRatio(GetRearConicalGearRatio());
     my_system->Add(m_rear_conicalgear);
 
-    // Create a differential, i.e. an apicycloidal mechanism that connects three
+    // Create a differential, i.e. an epicycloidal mechanism that connects three
     // rotating members. This class of mechanisms can be simulated using
     // ChShaftsPlanetary; a proper 'ordinary' transmission ratio t0 must be
     // assigned according to Willis formula. The case of the differential is
     // simple: t0=-1.
-    m_rear_differential = ChSharedPtr<ChShaftsPlanetary>(new ChShaftsPlanetary);
-    m_rear_differential->Initialize(m_rear_differentialbox, suspensions[m_driven_axles[1]]->GetAxle(LEFT),
-                                    suspensions[m_driven_axles[1]]->GetAxle(RIGHT));
+    m_rear_differential = chrono_types::make_shared<ChShaftsPlanetary>();
+    m_rear_differential->Initialize(m_rear_differentialbox, axles[m_driven_axles[1]]->m_suspension->GetAxle(LEFT),
+                                    axles[m_driven_axles[1]]->m_suspension->GetAxle(RIGHT));
     m_rear_differential->SetTransmissionRatioOrdinary(GetRearDifferentialRatio());
     my_system->Add(m_rear_differential);
+
+    // Create the clutch for rear differential locking. By default, unlocked.
+    m_rear_clutch = chrono_types::make_shared<ChShaftsClutch>();
+    m_rear_clutch->Initialize(axles[m_driven_axles[1]]->m_suspension->GetAxle(LEFT),
+                              axles[m_driven_axles[1]]->m_suspension->GetAxle(RIGHT));
+    m_rear_clutch->SetTorqueLimit(GetAxleDifferentialLockingLimit());
+    m_rear_clutch->SetModulation(0);
+    my_system->Add(m_rear_clutch);
 
     // ---Front differential and axles:
 
     // Create a 1 d.o.f. object: a 'shaft' with rotational inertia.
     // This represents the inertia of the rotating box of the differential.
-    m_front_differentialbox = ChSharedPtr<ChShaft>(new ChShaft);
+    m_front_differentialbox = chrono_types::make_shared<ChShaft>();
     m_front_differentialbox->SetInertia(GetRearDifferentialBoxInertia());
     my_system->Add(m_front_differentialbox);
 
@@ -123,41 +136,101 @@ void ChShaftsDriveline4WD::Initialize(ChSharedPtr<ChBody> chassis,
     // differential. Note that, differently from the basic ChShaftsGear, this also
     // provides the possibility of transmitting a reaction torque to the box
     // (the truss).
-    m_front_conicalgear = ChSharedPtr<ChShaftsGearboxAngled>(new ChShaftsGearboxAngled);
+    m_front_conicalgear = chrono_types::make_shared<ChShaftsGearboxAngled>();
     m_front_conicalgear->Initialize(m_front_shaft, m_front_differentialbox, chassis, m_dir_motor_block, m_dir_axle);
     m_front_conicalgear->SetTransmissionRatio(GetFrontConicalGearRatio());
     my_system->Add(m_front_conicalgear);
 
-    // Create a differential, i.e. an apicycloidal mechanism that connects three
+    // Create a differential, i.e. an epicycloidal mechanism that connects three
     // rotating members. This class of mechanisms can be simulated using
     // ChShaftsPlanetary; a proper 'ordinary' transmission ratio t0 must be
     // assigned according to Willis formula. The case of the differential is
     // simple: t0=-1.
-    m_front_differential = ChSharedPtr<ChShaftsPlanetary>(new ChShaftsPlanetary);
-    m_front_differential->Initialize(m_front_differentialbox, suspensions[m_driven_axles[0]]->GetAxle(LEFT),
-                                     suspensions[m_driven_axles[0]]->GetAxle(RIGHT));
+    m_front_differential = chrono_types::make_shared<ChShaftsPlanetary>();
+    m_front_differential->Initialize(m_front_differentialbox, axles[m_driven_axles[0]]->m_suspension->GetAxle(LEFT),
+                                     axles[m_driven_axles[0]]->m_suspension->GetAxle(RIGHT));
     m_front_differential->SetTransmissionRatioOrdinary(GetFrontDifferentialRatio());
     my_system->Add(m_front_differential);
+
+    // Create the clutch for front differential locking. By default, unlocked.
+    m_front_clutch = chrono_types::make_shared<ChShaftsClutch>();
+    m_front_clutch->Initialize(axles[m_driven_axles[0]]->m_suspension->GetAxle(LEFT),
+                               axles[m_driven_axles[0]]->m_suspension->GetAxle(RIGHT));
+    m_front_clutch->SetTorqueLimit(GetAxleDifferentialLockingLimit());
+    m_front_clutch->SetModulation(0);
+    my_system->Add(m_front_clutch);
+
+    // ---Initialize shaft angular velocities based on the initial wheel angular velocities.
+
+    double omega_axle_FL = axles[m_driven_axles[0]]->m_suspension->GetAxleSpeed(LEFT);
+    double omega_axle_FR = axles[m_driven_axles[0]]->m_suspension->GetAxleSpeed(RIGHT);
+    double omega_axle_RL = axles[m_driven_axles[1]]->m_suspension->GetAxleSpeed(LEFT);
+    double omega_axle_RR = axles[m_driven_axles[1]]->m_suspension->GetAxleSpeed(RIGHT);
+
+    // Front differential 
+    //// RADU
+    ////  Note that we assume here that the front diff ratio = -1.
+    ////  This is how it should always be anyway ->  MUST MODIFY TEMPLATE
+    ////  REMOVE GetFrontDifferentialRatio() and GetRearDifferentialRatio()
+    double omega_front_differentialbox = 0.5 * (omega_axle_FL + omega_axle_FR);
+    m_front_differentialbox->SetPos_dt(omega_front_differentialbox);
+
+    // Rear differential
+    double omega_rear_differentialbox = 0.5 * (omega_axle_RL + omega_axle_RR);
+    m_rear_differentialbox->SetPos_dt(omega_rear_differentialbox);
+
+    // Front conical gear
+    double omega_front_shaft = omega_front_differentialbox / GetFrontConicalGearRatio();
+    m_front_shaft->SetPos_dt(omega_front_shaft);
+
+    // Rear conical gear
+    double omega_rear_shaft = omega_rear_differentialbox / GetRearConicalGearRatio();
+    m_rear_shaft->SetPos_dt(omega_rear_shaft);
+
+    // Central differential
+    double omega_driveshaft = 0.5 * (omega_front_shaft + omega_rear_shaft);
+    m_driveshaft->SetPos_dt(omega_driveshaft);
 }
 
 // -----------------------------------------------------------------------------
+void ChShaftsDriveline4WD::LockAxleDifferential(int axle, bool lock) {
+    if (axle == m_driven_axles[0]) {
+        m_front_clutch->SetModulation(lock ? 1 : 0);
+        return;
+    } else if (axle == m_driven_axles[1]) {
+        m_rear_clutch->SetModulation(lock ? 1 : 0);
+        return;
+    } else if (axle == -1) {
+        m_front_clutch->SetModulation(lock ? 1 : 0);
+        m_rear_clutch->SetModulation(lock ? 1 : 0);
+        return;
+    }
+
+    GetLog() << "WARNING: Incorrect axle specification in ChShaftsDriveline4WD::LockAxleDifferential.\n";
+    GetLog() << "         Driven axles are: " << m_driven_axles[0] << " and " << m_driven_axles[1] << "\n";
+}
+
+void ChShaftsDriveline4WD::LockCentralDifferential(int which, bool lock) {
+    m_central_clutch->SetModulation(lock ? 1 : 0);
+}
+
 // -----------------------------------------------------------------------------
-double ChShaftsDriveline4WD::GetWheelTorque(const WheelID& wheel_id) const {
-    if (wheel_id.axle() == m_driven_axles[0]) {
-        switch (wheel_id.side()) {
+double ChShaftsDriveline4WD::GetSpindleTorque(int axle, VehicleSide side) const {
+    if (axle == m_driven_axles[0]) {
+        switch (side) {
             case LEFT:
-                return -m_front_differential->GetTorqueReactionOn2();
+                return -m_front_differential->GetTorqueReactionOn2() - m_front_clutch->GetTorqueReactionOn1();
             case RIGHT:
-                return -m_front_differential->GetTorqueReactionOn3();
+                return -m_front_differential->GetTorqueReactionOn3() - m_front_clutch->GetTorqueReactionOn2();
         }
     }
 
-    if (wheel_id.axle() == m_driven_axles[1]) {
-        switch (wheel_id.side()) {
+    if (axle == m_driven_axles[1]) {
+        switch (side) {
             case LEFT:
-                return -m_rear_differential->GetTorqueReactionOn2();
+                return -m_rear_differential->GetTorqueReactionOn2() - m_rear_clutch->GetTorqueReactionOn1();
             case RIGHT:
-                return -m_rear_differential->GetTorqueReactionOn3();
+                return -m_rear_differential->GetTorqueReactionOn3() - m_rear_clutch->GetTorqueReactionOn2();
         }
     }
 

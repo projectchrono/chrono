@@ -1,39 +1,33 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alesandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHTRIANGLEMESHSHAPE_H
 #define CHTRIANGLEMESHSHAPE_H
 
-
-#include "assets/ChVisualization.h"
-#include "geometry/ChCTriangleMeshConnected.h"
+#include "chrono/assets/ChVisualization.h"
+#include "chrono/geometry/ChTriangleMeshConnected.h"
 
 namespace chrono {
 
-/// Class for referencing a triangle mesh shape that can be
-/// visualized in some way. Being a child class of ChAsset, it can
-/// be 'attached' to physics items.
+/// Class for referencing a triangle mesh shape that can be visualized in some way.
+/// As a child class of ChAsset, it can be 'attached' to physics items.
 /// It also defines flags such as 'draw as wireframe', 'do backface culling' etc.
 /// but remember that depending on the type of visualization system
 /// (POVray, Irrlich,etc.) these flags might not be supported.
-
 class ChApi ChTriangleMeshShape : public ChVisualization {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChTriangleMeshShape, ChVisualization);
-
   protected:
-    //
-    // DATA
-    //
-    geometry::ChTriangleMeshConnected trimesh;
+    std::shared_ptr<geometry::ChTriangleMeshConnected> trimesh;
 
     bool wireframe;
     bool backface_cull;
@@ -42,28 +36,16 @@ class ChApi ChTriangleMeshShape : public ChVisualization {
     ChVector<> scale;
 
   public:
-    //
-    // CONSTRUCTORS
-    //
+    ChTriangleMeshShape();
+    ~ChTriangleMeshShape() {}
 
-    ChTriangleMeshShape() {
-        wireframe = false;
-        backface_cull = false;
-    };
+    std::shared_ptr<geometry::ChTriangleMeshConnected> GetMesh() { return trimesh; }
+    void SetMesh(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh) { trimesh = mesh; }
 
-    virtual ~ChTriangleMeshShape(){};
-
-    //
-    // FUNCTIONS
-    //
-
-    geometry::ChTriangleMeshConnected& GetMesh() { return trimesh; }
-    void SetMesh(const geometry::ChTriangleMeshConnected& mesh) { trimesh = mesh; }
-
-    bool IsWireframe() { return wireframe; }
+    bool IsWireframe() const { return wireframe; }
     void SetWireframe(bool mw) { wireframe = mw; }
 
-    bool IsBackfaceCull() { return backface_cull; }
+    bool IsBackfaceCull() const { return backface_cull; }
     void SetBackfaceCull(bool mbc) { backface_cull = mbc; }
 
     const std::string& GetName() const { return name; }
@@ -72,44 +54,15 @@ class ChApi ChTriangleMeshShape : public ChVisualization {
     const ChVector<>& GetScale() const { return scale; }
     void SetScale(const ChVector<>& mscale) { scale = mscale; }
 
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    //
-    // SERIALIZATION
-    //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite(1);
-        // serialize parent class
-        ChVisualization::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(trimesh);
-        marchive << CHNVP(wireframe);
-        marchive << CHNVP(backface_cull);
-        marchive << CHNVP(name);
-        marchive << CHNVP(scale);
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead();
-        // deserialize parent class
-        ChVisualization::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(trimesh);
-        marchive >> CHNVP(wireframe);
-        marchive >> CHNVP(backface_cull);
-        marchive >> CHNVP(name);
-        marchive >> CHNVP(scale);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-//////////////////////////////////////////////////////
-//////////////////////////////////////////////////////
+CH_CLASS_VERSION(ChTriangleMeshShape, 0)
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

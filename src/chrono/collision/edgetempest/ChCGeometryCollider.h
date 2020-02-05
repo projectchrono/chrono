@@ -1,40 +1,25 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHC_GEOMETRYCOLLIDER_H
 #define CHC_GEOMETRYCOLLIDER_H
 
-//////////////////////////////////////////////////
-//
-//   ChCGeometryCollider.h
-//
-//   Here you can find functions to compute
-//   the contact points between colliding geometries
-//   of different kinds..
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
+#include <cmath>
 
-#include <math.h>
-
-#include "ChCNarrowPhaseCollider.h"
-#include "geometry/ChCGeometry.h"
-#include "geometry/ChCSphere.h"
-#include "geometry/ChCTriangle.h"
-#include "geometry/ChCBox.h"
+#include "chrono/collision/edgetempest/ChCNarrowPhaseCollider.h"
+#include "chrono/geometry/ChGeometry.h"
+#include "chrono/geometry/ChSphere.h"
+#include "chrono/geometry/ChTriangle.h"
+#include "chrono/geometry/ChBox.h"
 
 namespace chrono {
 namespace collision {
@@ -43,9 +28,9 @@ namespace collision {
 /// Static functions to get contacts between geometry pairs of
 /// same or different kinds. These functions are automatically
 /// called, for example, by the collision engine when it
-/// discovers that two AABB or two OBB intersecate: in such a
+/// discovers that two AABB or two OBB intersects: in such a
 /// case, the enclosed geometries are tested more precisely using
-/// the metods in this class.
+/// the methods in this class.
 ///
 
 class ChGeometryCollider {
@@ -144,7 +129,7 @@ class ChGeometryCollider {
         );
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono
 
 #endif

@@ -1,14 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHIRRAPPINTERFACE_H
 #define CHIRRAPPINTERFACE_H
@@ -25,23 +25,16 @@
 #include "chrono_irrlicht/ChIrrTools.h"
 #include "chrono_irrlicht/ChIrrWizard.h"
 
-/**
-    @defgroup irrlicht Chrono::Irrlicht
-    @brief Runtime visualization with Irrlicht
-*/
-
 namespace chrono {
-
-/// Namespace with classes for the Chrono::Irrlicht module.
 namespace irrlicht {
 
-/// @addtogroup irrlicht
+/// @addtogroup irrlicht_module
 /// @{
 
 // Forward reference
 class ChIrrAppEventReceiver;
 
-/// Class to add some GUI to Irrlicht + Chrono::Engine applications.
+/// Class to add some GUI to Irrlicht + ChronoEngine applications.
 /// This basic GUI can be used to monitor solver timings, to easily change
 /// physical system settings, etc.
 class ChApiIrr ChIrrAppInterface {
@@ -52,7 +45,9 @@ class ChApiIrr ChIrrAppInterface {
                       irr::core::dimension2d<irr::u32> dimens = irr::core::dimension2d<irr::u32>(640, 480),
                       bool do_fullscreen = false,
                       bool do_shadows = false,
-                      irr::video::E_DRIVER_TYPE mydriver = irr::video::EDT_DIRECT3D9);
+                      bool do_antialias = true,
+                      irr::video::E_DRIVER_TYPE mydriver = irr::video::EDT_DIRECT3D9,
+                      irr::ELOG_LEVEL log_level = irr::ELL_INFORMATION);
 
     /// Safely delete all Irrlicht items (including the Irrlicht scene nodes)
     virtual ~ChIrrAppInterface();
@@ -69,6 +64,14 @@ class ChApiIrr ChIrrAppInterface {
     /// Show the info panel in the 3D view
     void SetShowInfos(bool val) { show_infos = val; }
     bool GetShowInfos() { return show_infos; }
+
+    /// Show the realtime profiler in the 3D view
+    void SetShowProfiler(bool val) { show_profiler = val; }
+    bool GetShowProfiler() { return show_profiler; }
+
+    /// Show the object explorer
+    void SetShowExplorer(bool val) { show_explorer = val; }
+    bool GetShowExplorer() { return show_explorer; }
 
     /// Set/Get the time step for time integration. This value is used when
     /// calling DoStep() in a loop, to advance the simulation by one timestep.
@@ -104,13 +107,23 @@ class ChApiIrr ChIrrAppInterface {
     int GetVideoframeSaveInterval() { return videoframe_each; }
 
     /// Set the label mode for contacts
-    void SetContactsLabelMode(ChIrrTools::eCh_ContactsLabelMode mm) {this->gad_labelcontacts->setSelected((int)mm);}
+    void SetContactsLabelMode(ChIrrTools::eCh_ContactsLabelMode mm) { this->gad_labelcontacts->setSelected((int)mm); }
     /// Set the draw mode for contacts
-    void SetContactsDrawMode(ChIrrTools::eCh_ContactsDrawMode mm) {this->gad_drawcontacts->setSelected((int)mm);}
+    void SetContactsDrawMode(ChIrrTools::eCh_ContactsDrawMode mm) { this->gad_drawcontacts->setSelected((int)mm); }
     /// Set the label mode for links
-    void SetLinksLabelMode(ChIrrTools::eCh_LinkLabelMode mm) {this->gad_labellinks->setSelected((int)mm);}
+    void SetLinksLabelMode(ChIrrTools::eCh_LinkLabelMode mm) { this->gad_labellinks->setSelected((int)mm); }
     /// Set the draw mode for links
-    void SetLinksDrawMode(ChIrrTools::eCh_LinkDrawMode mm) {this->gad_drawlinks->setSelected((int)mm);}
+    void SetLinksDrawMode(ChIrrTools::eCh_LinkDrawMode mm) { this->gad_drawlinks->setSelected((int)mm); }
+	/// Set if the AABB collision shapes will be plotted
+    void SetPlotAABB(bool val) { this->gad_plot_aabb->setChecked(val); }
+	/// Set if the COG frames will be plotted
+	void SetPlotCOGFrames(bool val) { this->gad_plot_cogs->setChecked(val); }
+	/// Set if the Bullet collision shapes will be plotted
+	void SetPlotCollisionShapes(bool val) { this->gad_plot_collisionshapes->setChecked(val); }
+	/// Set if the link frames will be plotted
+    void SetPlotLinkFrames(bool val) { this->gad_plot_linkframes->setChecked(val); }
+	/// Set if the COG frames will be plotted
+    void SetPlotConvergence(bool val) { this->gad_plot_convergence->setChecked(val); }
 
     /// Set the scale for symbol drawing (link frames, COGs, etc.)
     void SetSymbolscale(double val);
@@ -125,7 +138,9 @@ class ChApiIrr ChIrrAppInterface {
     void SetFonts(const std::string& mfontdir = GetChronoDataFile("fonts/arial8.xml"));
 
     /// Call this to clean the canvas at the beginning of each animation frame
-    virtual void BeginScene(bool backBuffer = true, bool zBuffer = true, irr::video::SColor color = irr::video::SColor(255, 0, 0, 0));
+    virtual void BeginScene(bool backBuffer = true,
+                            bool zBuffer = true,
+                            irr::video::SColor color = irr::video::SColor(255, 0, 0, 0));
 
     /// Call this important function inside a cycle like
     ///    while(application.GetDevice()->run()) {...}
@@ -149,7 +164,7 @@ class ChApiIrr ChIrrAppInterface {
     /// benchmarking etc. It saves M mass matrix, Cq jacobians, E compliance
     /// as Matlab sparse matrix format, and known vectors fb, bi as column Matlab
     /// matrices.
-    void DumpMatrices();
+    void DumpSystemMatrices();
 
     //
     // Some wizard functions for 'easy setup' of the application window:
@@ -179,9 +194,10 @@ class ChApiIrr ChIrrAppInterface {
 
     /// Add a point light to the scene
     irr::scene::ILightSceneNode* AddLight(irr::core::vector3df pos,
-                                     double radius,
-                                     irr::video::SColorf color = irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f)) {
-        irr::scene::ILightSceneNode* mlight = device->getSceneManager()->addLightSceneNode(0, pos, color, (irr::f32)radius);
+                                          double radius,
+                                          irr::video::SColorf color = irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f)) {
+        irr::scene::ILightSceneNode* mlight =
+            device->getSceneManager()->addLightSceneNode(0, pos, color, (irr::f32)radius);
         return mlight;
     }
 
@@ -191,16 +207,17 @@ class ChApiIrr ChIrrAppInterface {
     /// NOTE: use myapplication.AddShadow(myitem) to enable shadow for an object!
     /// Otherwise, use myapplication.AddShadowAll().
     irr::scene::ILightSceneNode* AddLightWithShadow(irr::core::vector3df pos,
-                                               irr::core::vector3df aim,
-                                               double radius,
-                                               double mnear,
-                                               double mfar,
-                                               double angle,
-                                               irr::u32 resolution = 512,
-                                               irr::video::SColorf color = irr::video::SColorf(1.f, 1.f, 1.f, 1.f),
-                                               bool directional = false,
-                                               bool clipborder = true) {
-        irr::scene::ILightSceneNode* mlight = device->getSceneManager()->addLightSceneNode(0, pos, color, (irr::f32)radius);
+                                                    irr::core::vector3df aim,
+                                                    double radius,
+                                                    double mnear,
+                                                    double mfar,
+                                                    double angle,
+                                                    irr::u32 resolution = 512,
+                                                    irr::video::SColorf color = irr::video::SColorf(1.f, 1.f, 1.f, 1.f),
+                                                    bool directional = false,
+                                                    bool clipborder = true) {
+        irr::scene::ILightSceneNode* mlight =
+            device->getSceneManager()->addLightSceneNode(0, pos, color, (irr::f32)radius);
         effect->addShadowLight(SShadowLight(resolution, pos, aim, color, (irr::f32)mnear, (irr::f32)mfar,
                                             ((irr::f32)angle * irr::core::DEGTORAD), directional));
         if (clipborder == false) {
@@ -218,7 +235,7 @@ class ChApiIrr ChIrrAppInterface {
     EffectHandler* effect;
     bool use_effects;
 
-    // The Chrono::Engine system:
+    // The ChronoEngine system:
     ChSystem* system;
 
     ChIrrAppEventReceiver* receiver;
@@ -228,6 +245,8 @@ class ChApiIrr ChIrrAppInterface {
     irr::scene::ISceneNode* container;
 
     bool show_infos;
+    bool show_profiler;
+    bool show_explorer;
 
     bool step_manage;
     bool pause_step;
@@ -238,6 +257,8 @@ class ChApiIrr ChIrrAppInterface {
     int videoframe_num;
     int videoframe_each;
     double symbolscale;
+
+    double camera_auto_rotate_speed;
 
     ChRealtimeStepTimer m_realtime_timer;
 
@@ -253,24 +274,18 @@ class ChApiIrr ChIrrAppInterface {
     irr::gui::IGUIComboBox* gad_labellinks;
     irr::gui::IGUICheckBox* gad_plot_aabb;
     irr::gui::IGUICheckBox* gad_plot_cogs;
+	irr::gui::IGUICheckBox* gad_plot_collisionshapes;
     irr::gui::IGUICheckBox* gad_plot_linkframes;
     irr::gui::IGUICheckBox* gad_plot_convergence;
 
     irr::gui::IGUIScrollBar* gad_speed_iternumber;
     irr::gui::IGUIStaticText* gad_speed_iternumber_info;
-    irr::gui::IGUIScrollBar* gad_pos_iternumber;
-    irr::gui::IGUIStaticText* gad_pos_iternumber_info;
-    irr::gui::IGUIScrollBar* gad_omega;
-    irr::gui::IGUIStaticText* gad_omega_info;
-    irr::gui::IGUIScrollBar* gad_lambda;
-    irr::gui::IGUIStaticText* gad_lambda_info;
     irr::gui::IGUIScrollBar* gad_clamping;
     irr::gui::IGUIStaticText* gad_clamping_info;
     irr::gui::IGUIScrollBar* gad_minbounce;
     irr::gui::IGUIStaticText* gad_minbounce_info;
     irr::gui::IGUIScrollBar* gad_dt;
     irr::gui::IGUIStaticText* gad_dt_info;
-    irr::gui::IGUICheckBox* gad_warmstart;
     irr::gui::IGUICheckBox* gad_usesleep;
     irr::gui::IGUIComboBox* gad_ccpsolver;
     irr::gui::IGUIComboBox* gad_stepper;
@@ -282,17 +297,12 @@ class ChApiIrr ChIrrAppInterface {
     irr::gui::IGUIStaticText* gad_symbolscale_info;
     irr::gui::IGUIStaticText* gad_textHelp;
 
-  public:
-    ChSharedPtr<ChLinkSpring>* selectedspring;
-    ChSharedPtr<ChBody>* selectedtruss;
-    ChSharedPtr<ChBody>* selectedmover;
-    ChVector<> selectedpoint;
-    double selecteddist;
+    irr::gui::IGUITreeView* gad_treeview;
 
     friend class ChIrrAppEventReceiver;
 };
 
-/// @} irrlicht
+/// @} irrlicht_module
 
 }  // end namespace irrlicht
 }  // end namespace chrono

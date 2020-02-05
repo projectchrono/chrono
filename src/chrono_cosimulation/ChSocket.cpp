@@ -1,9 +1,26 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2014 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
+
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+
 #include "chrono_cosimulation/ChSocket.h"
 #include "chrono_cosimulation/ChExceptionSocket.h"
 
 using namespace std;
-using namespace chrono;
-using namespace chrono::cosimul;
+
+namespace chrono {
+namespace cosimul {
 
 const int MSG_HEADER_LEN = 6;
 
@@ -243,7 +260,7 @@ void ChSocket::setSocketBlocking(int blockingToggle) {
 
     try {
 #ifdef WINDOWS_XP
-        if (ioctlsocket(socketId, FIONBIO, (unsigned long*)blocking) == -1) {
+        if (ioctlsocket(socketId, FIONBIO, (unsigned long*)&blocking) == -1) {
             int errorCode;
             string errorMsg = "Blocking option: ";
             detectErrorSetSocketOption(&errorCode, errorMsg);
@@ -267,7 +284,11 @@ void ChSocket::setSocketBlocking(int blockingToggle) {
 
 int ChSocket::getDebug() {
     int myOption;
+#if defined(TARGET_OS_MAC) || defined(UNIX)
+    socklen_t myOptionLen = sizeof(myOption);
+#else
     int myOptionLen = sizeof(myOption);
+#endif
 
     try {
         if (getsockopt(socketId, SOL_SOCKET, SO_DEBUG, (char*)&myOption, &myOptionLen) == -1) {
@@ -295,7 +316,11 @@ int ChSocket::getDebug() {
 
 int ChSocket::getReuseAddr() {
     int myOption;
+#if defined(TARGET_OS_MAC) || defined(UNIX)
+    socklen_t myOptionLen = sizeof(myOption);
+#else
     int myOptionLen = sizeof(myOption);
+#endif
 
     try {
         if (getsockopt(socketId, SOL_SOCKET, SO_REUSEADDR, (char*)&myOption, &myOptionLen) == -1) {
@@ -323,7 +348,11 @@ int ChSocket::getReuseAddr() {
 
 int ChSocket::getKeepAlive() {
     int myOption;
+#if defined(TARGET_OS_MAC) || defined(UNIX)
+    socklen_t myOptionLen = sizeof(myOption);
+#else
     int myOptionLen = sizeof(myOption);
+#endif
 
     try {
         if (getsockopt(socketId, SOL_SOCKET, SO_KEEPALIVE, (char*)&myOption, &myOptionLen) == -1) {
@@ -350,7 +379,11 @@ int ChSocket::getKeepAlive() {
 
 int ChSocket::getLingerSeconds() {
     struct linger lingerOption;
+#if defined(TARGET_OS_MAC) || defined(UNIX)
+    socklen_t myOptionLen = sizeof(struct linger);
+#else
     int myOptionLen = sizeof(struct linger);
+#endif
 
     try {
         if (getsockopt(socketId, SOL_SOCKET, SO_LINGER, (char*)&lingerOption, &myOptionLen) == -1) {
@@ -378,7 +411,11 @@ int ChSocket::getLingerSeconds() {
 
 bool ChSocket::getLingerOnOff() {
     struct linger lingerOption;
+#if defined(TARGET_OS_MAC) || defined(UNIX)
+    socklen_t myOptionLen = sizeof(struct linger);
+#else
     int myOptionLen = sizeof(struct linger);
+#endif
 
     try {
         if (getsockopt(socketId, SOL_SOCKET, SO_LINGER, (char*)&lingerOption, &myOptionLen) == -1) {
@@ -409,7 +446,11 @@ bool ChSocket::getLingerOnOff() {
 
 int ChSocket::getSendBufSize() {
     int sendBuf;
+#if defined(TARGET_OS_MAC) || defined(UNIX)
+    socklen_t myOptionLen = sizeof(sendBuf);
+#else
     int myOptionLen = sizeof(sendBuf);
+#endif
 
     try {
         if (getsockopt(socketId, SOL_SOCKET, SO_SNDBUF, (char*)&sendBuf, &myOptionLen) == -1) {
@@ -436,8 +477,11 @@ int ChSocket::getSendBufSize() {
 
 int ChSocket::getReceiveBufSize() {
     int rcvBuf;
+#if defined(TARGET_OS_MAC) || defined(UNIX)
+    socklen_t myOptionLen = sizeof(rcvBuf);
+#else
     int myOptionLen = sizeof(rcvBuf);
-
+#endif
     try {
         if (getsockopt(socketId, SOL_SOCKET, SO_RCVBUF, (char*)&rcvBuf, &myOptionLen) == -1) {
 #ifdef WINDOWS_XP
@@ -566,7 +610,7 @@ ostream& operator<<(ostream& io, ChSocket& s) {
 
 void ChSocketTCP::bindSocket() {
     try {
-        if (bind(socketId, (struct sockaddr*)&clientAddr, sizeof(struct sockaddr_in)) == -1) {
+        if (::bind(socketId, (struct sockaddr*)&clientAddr, sizeof(struct sockaddr_in)) == -1) {
 #ifdef WINDOWS_XP
             int errorCode = 0;
             string errorMsg = "error calling bind(): \n";
@@ -909,7 +953,11 @@ ChSocketTCP* ChSocketTCP::acceptClient(string& clientHost) {
     int newSocket;  // the new socket file descriptor returned by the accept systme call
 
     // the length of the client's address
+#if defined(TARGET_OS_MAC) || defined(UNIX)
+    socklen_t clientAddressLen = sizeof(struct sockaddr_in);
+#else
     int clientAddressLen = sizeof(struct sockaddr_in);
+#endif
     struct sockaddr_in clientAddress;  // Address of the client that sent data
 
     // Accepts a new client connection and stores its socket file descriptor
@@ -1019,7 +1067,7 @@ int ChSocketTCP::sendMessage(string& message) {
     */
 
     char msgLength[MSG_HEADER_LEN + 1];
-    sprintf(msgLength, "%6d", message.size());
+    sprintf(msgLength, "%6d", static_cast<int>(message.size()));
     string sendMsg = string(msgLength);
     sendMsg += message;
 
@@ -1054,7 +1102,7 @@ int ChSocketTCP::XPrecieveMessage(string& message)
 {
     int numBytes = 0;                 // The number of bytes received
     int currentSize = MSG_HEADER_LEN; // The number of bytes wanted to receive
-    int offsetSize = 0;               // The number of bytes currently recieved
+    int offsetSize = 0;               // The number of bytes currently received
 
     // retrieve the length of the message received
 
@@ -1134,7 +1182,7 @@ int ChSocketTCP::XPrecieveMessage(string& message)
 int ChSocketTCP::XPrecieveMessage(string& message) {
     int received = 0;            // The number of bytes received
     int msgSize = MAX_RECV_LEN;  // The number of bytes wanted to receive
-    int numBytes = 0;            // The number of bytes currently recieved
+    int numBytes = 0;            // The number of bytes currently received
     int totalRecvNum = 0;
     bool headerFinished = false;
 
@@ -1185,7 +1233,7 @@ int ChSocketTCP::XPrecieveMessage(string& message) {
 #endif
 
 int ChSocketTCP::receiveMessage(string& message) {
-    int numBytes;  // The number of bytes recieved
+    int numBytes;  // The number of bytes received
 
 #ifdef WINDOWS_XP
     return XPrecieveMessage(message);
@@ -1226,7 +1274,7 @@ int ChSocketTCP::receiveMessage(string& message) {
 
 int ChSocketTCP::SendBuffer(std::vector<char>& source_buf) {
     int nbytes = (int)source_buf.size();
-    char* data;
+    const char* data;
     if (nbytes)
         data = (char*)&(source_buf[0]);  // stl vectors are assured to be sequential
     else
@@ -1279,3 +1327,6 @@ int ChSocketTCP::ReceiveBuffer(std::vector<char>& dest_buf, int bsize) {
 
     return receivedBytes;
 }
+
+}  // end namespace cosimul
+}  // end namespace chrono

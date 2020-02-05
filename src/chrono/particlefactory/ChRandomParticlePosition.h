@@ -1,23 +1,28 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-// File author: A.Tasora
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #ifndef CHRANDOMPARTICLEPOSITION_H
 #define CHRANDOMPARTICLEPOSITION_H
 
-#include "core/ChMathematics.h"
-#include "core/ChVector.h"
-#include "core/ChMatrix.h"
-#include "core/ChDistribution.h"
-#include "core/ChSmartpointers.h"
+#include <memory>
+
+#include "chrono/core/ChMathematics.h"
+#include "chrono/core/ChVector.h"
+#include "chrono/core/ChMatrix.h"
+#include "chrono/core/ChDistribution.h"
+#include "chrono/geometry/ChSurface.h"
+#include "chrono/geometry/ChVolume.h"
 
 namespace chrono {
 namespace particlefactory {
@@ -25,9 +30,10 @@ namespace particlefactory {
 /// BASE class for generators of random particle positions.
 /// By default it simply always returns Pxyz={0,0,0}, so it
 /// it is up to sub-classes to implement more sophisticated randomizations.
-class ChRandomParticlePosition : public ChShared {
+class ChRandomParticlePosition {
   public:
     ChRandomParticlePosition() {}
+    virtual ~ChRandomParticlePosition() {}
 
     /// Function that creates a random position each
     /// time it is called.
@@ -48,7 +54,7 @@ class ChRandomParticlePositionRectangleOutlet : public ChRandomParticlePosition 
 
     /// Function that creates a random position each
     /// time it is called.
-    virtual ChVector<> RandomPosition() {
+    virtual ChVector<> RandomPosition() override {
         ChVector<> localp = ChVector<>(ChRandom() * width - 0.5 * width, ChRandom() * height - 0.5 * height, 0);
         return outlet.TransformLocalToParent(localp);
     }
@@ -75,25 +81,35 @@ class ChRandomParticlePositionOnGeometry : public ChRandomParticlePosition {
   public:
     ChRandomParticlePositionOnGeometry() {
         // defaults
-        geometry = ChSmartPtr<geometry::ChGeometry>(
-            new geometry::ChBox(VNULL, ChMatrix33<>(QUNIT), ChVector<>(0.1, 0.1, 0.1)));
+        geometry = chrono_types::make_shared<geometry::ChBox>(VNULL, ChMatrix33<>(QUNIT), ChVector<>(0.1, 0.1, 0.1));
     }
 
     /// Function that creates a random position each
     /// time it is called.
-    virtual ChVector<> RandomPosition() {
-        ChVector<> mpos;
-        geometry->Evaluate(mpos, ChRandom(), ChRandom(), ChRandom());
+    virtual ChVector<> RandomPosition() override {
+        ChVector<> mpos = VNULL;
+        if (auto mline = std::dynamic_pointer_cast<geometry::ChLine>(geometry)) {
+            mline->Evaluate(mpos, ChRandom());
+            return mpos;
+        }
+        if (auto msurface = std::dynamic_pointer_cast<geometry::ChSurface>(geometry)) {
+            msurface->Evaluate(mpos, ChRandom(), ChRandom());
+            return mpos;
+        }
+        if (auto mvolume = std::dynamic_pointer_cast<geometry::ChVolume>(geometry)) {
+            mvolume->Evaluate(mpos, ChRandom(), ChRandom(), ChRandom());
+            return mpos;
+        }
         return mpos;
     }
 
     /// Set the parametric surface used for this outlet.
     /// The surface will be sampled uniformly over its U,V parametric
     /// coordinaters. In cas of lines, oly U is used, in case of parametric volumes, U,V,W.
-    void SetGeometry(ChSmartPtr<geometry::ChGeometry> mgeometry) { this->geometry = mgeometry; }
+    void SetGeometry(std::shared_ptr<geometry::ChGeometry> mgeometry) { this->geometry = mgeometry; }
 
   private:
-    ChSmartPtr<geometry::ChGeometry> geometry;
+    std::shared_ptr<geometry::ChGeometry> geometry;
 };
 
 }  // end of namespace particlefactory

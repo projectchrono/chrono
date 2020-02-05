@@ -1,0 +1,215 @@
+version: pychrono-dev.{build}
+
+#image: Ubuntu
+
+configuration: Release
+
+branches:
+  only:
+  - feature/AppveyorConda
+
+environment:
+  # setting this var true the PS command are executed only by win build (so Ubuntu will only consider "sh" commands)
+  APPVEYOR_YML_DISABLE_PS_LINUX: true
+  # SSH for remote access to VM
+  APPVEYOR_SSH_KEY: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDYLqPNTACBj/7zg//AOWg/1VtV9dFdCr6kdPHAOHPNd2xiOly5GfNfaRPiIYlqEGga/82Tc5QIqPgiTLVPwqieyOErIR5NGeWqGcTdO4MKsHVM5v+sZbyk0pbOgYLWvTQx5eNwTm+tvCZzgvyWvSVlhElngEwaWjUDB+2wPEcGRnr0vgkPQru0yeHFu+L4NKIR+zOnqXotS30TrH25g0xXLPrCShaFI5CNJ4yVRinSA2bY5KQA0YQeQ53xFV0lBqzzWS9UNDQmusL8Jx6LsNH9iuA5QO4lvIxFZ34LJDhQLLOMI9L+0PDLN8E7pb6WmRZxLI7kXnkl+GldSRNYdUnJ
+  appveyor_rdp_password:
+    secure: pU4ttbgcnJe6nioKXEuvRlup+xCxpPFGK8bpt0eCLRY=
+
+  BINSTAR_TOKEN:
+    # below the secure to upload to anaconda cloud
+    # take the travis-ci token generated from the command line
+    # anaconda auth -n the_token_name --max-age 22896000 -c --scopes api
+    # and copy paste to
+    # https://ci.appveyor.com/tools/encrypt
+    # then copy/paste the result below
+    secure: GMdyezok6xJOnKB5w7km6dvQvBqGxR6RfYSPODdXhy1rq0lvDPMW4m9O9eeBHU99
+
+  
+  global:
+    # SDK v7.0 MSVC Express 2008's SetEnv.cmd script will fail if the
+    # /E:ON and /V:ON options are not enabled in the batch script intepreter
+    # See: http://stackoverflow.com/a/13751649/163740
+    CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\contrib\\packaging-python\\appveyor\\obvci_appveyor_python_build_env.cmd"
+  
+    # Workaround for https://github.com/conda/conda-build/issues/636
+    PYTHONIOENCODING: "UTF-8"
+
+  matrix:
+    - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
+      PYTHON_VERSION: "3.5"
+      PYTHON_ARCH: "64"
+      CONDA_PY: "35"
+      CONDA_NPY: "18"
+      CMAKE_GENERATOR: Unix Makefiles
+      CONFIGURATION: Release
+      
+      
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017 
+      PYTHON: "C:\\Python35_64"
+      PYTHON_VERSION: "3.5"
+      PYTHON_ARCH: "64"
+      CONDA_PY: "35"
+      CONDA_NPY: "18"
+      CONDA_INSTALL_LOCN: "C:\\Miniconda35-x64"
+      CMAKE_GENERATOR: Visual Studio 15 2017 Win64
+      CONFIGURATION: Release
+      CONDAVER: 4.5.11
+      
+    - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
+      PYTHON_VERSION: "3.6"
+      PYTHON_ARCH: "64"
+      CONDA_PY: "36"
+      CONDA_NPY: "18"
+      CMAKE_GENERATOR: Unix Makefiles
+      CONFIGURATION: Release
+
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017 
+      PYTHON: "C:\\Python36_64"
+      PYTHON_VERSION: "3.6"
+      PYTHON_ARCH: "64"
+      CONDA_PY: "36"
+      CONDA_NPY: "18"
+      CONDA_INSTALL_LOCN: "C:\\Miniconda36-x64"
+      CMAKE_GENERATOR: Visual Studio 15 2017 Win64
+      CONFIGURATION: Release
+      CONDAVER: 4.6.12
+      
+    - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
+      PYTHON_VERSION: "3.7"
+      PYTHON_ARCH: "64"
+      CONDA_PY: "37"
+      CONDA_NPY: "18"
+      CMAKE_GENERATOR: Unix Makefiles
+      CONFIGURATION: Release
+      
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017 
+      PYTHON: "C:\\Python37_64"
+      PYTHON_VERSION: "3.7"
+      PYTHON_ARCH: "64"
+      CONDA_PY: "37"
+      CONDA_NPY: "18"
+      CONDA_INSTALL_LOCN: "C:\\Miniconda36-x64"
+      CMAKE_GENERATOR: Visual Studio 15 2017 Win64
+      CONFIGURATION: Release
+      CONDAVER: 4.6.12
+init:
+   - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+   - sh: curl -sflL 'https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-ssh.sh' | bash -e -    
+# We always use a 64-bit machine, but can build x86 distributions
+# with the TARGET_ARCH variable (which is used by CMD_IN_ENV).
+platform:
+    - x64
+
+install:
+#################################################### WINDOWS #############################################################
+
+    - ps: Start-FileDownload 'http://downloads.sourceforge.net/irrlicht/irrlicht-1.8.2.zip'
+    - ps: 7z x irrlicht-1.8.2.zip -oC:\ -y
+    # fetch git submodules, to update the demos/ folder
+    - cmd: git submodule update --init --remote --recursive
+    # Set the CONDA_NPY, although it has no impact on the actual build. We need this because of a test within conda-build.
+    - cmd: set CONDA_NPY=19
+    # Remove cygwin (and therefore the git that comes with it).
+    - cmd: rmdir C:\cygwin /s /q
+    # Use the pre-installed Miniconda for the desired arch
+    #
+    # However, it is really old. So, we need to update some
+    # things before we proceed. That seems to require it being
+    # on the path. So, we temporarily put conda on the path
+    # so that we can update it. Then we remove it so that
+    # we can do a proper activation.
+    #- cmd: set "OLDPATH=%PATH%"
+    - cmd: set "PATH=%CONDA_INSTALL_LOCN%\\Scripts;%CONDA_INSTALL_LOCN%\\Library\\bin;%CONDA_INSTALL_LOCN%\\condabin;%PATH%"
+    #- cmd: conda config --set always_yes yes --set changeps1 no
+    #- cmd: conda update conda
+    #- cmd: set "PATH=%OLDPATH%"
+    - cmd: call %CONDA_INSTALL_LOCN%\Scripts\activate.bat
+    - cmd: conda create -n myenv python=%PYTHON_VERSION% -y 
+    - cmd: conda config --set show_channel_urls true
+    #- cmd: conda update conda --yes
+    - cmd: conda install -c anaconda conda=%CONDAVER% --yes    
+    - cmd: conda install conda-build anaconda-client --yes
+    - cmd: activate myenv
+    - cmd: conda config --add channels https://conda.anaconda.org/conda-forge
+    - cmd: conda config --add channels https://conda.anaconda.org/intel
+    # need to manually add non standard channels.
+    # Up-to date version by tpaviot: breaks conda. Use CadQuery version
+    - cmd: conda install -c conda-forge -c dlr-sc -c pythonocc -c oce -c 3dhubs oce==0.18 --yes
+    #- cmd: conda install -c cadquery pythonocc-core --yes
+    - cmd: conda install -c intel mkl-devel=2018.0.3 --yes
+
+############################################### UBUNTU ###############################################################
+
+    # needed by Irr 
+    - sh: sudo apt-get install libxxf86vm-dev -y
+    - sh: sudo apt-get install libglu1-mesa-dev freeglut3-dev mesa-common-dev -y
+    # had issues manually sompiling shared irrlicht
+    #- ps: Start-FileDownload 'http://downloads.sourceforge.net/irrlicht/irrlicht-1.8.2.zip'
+    #- ps: 7z x irrlicht-1.8.2.zip -oIRR -y
+    #- ps: make sharedlib -C ~/projects/chrono/IRR/irrlicht-1.8.2/source/Irrlicht
+    # I used precompiled instead
+    - sh: sudo apt-get install libirrlicht-dev -y
+    # fetch git submodules, to update the demos/ folder
+    - sh: git submodule update --init --remote --recursive
+    # Set the CONDA_NPY, although it has no impact on the actual build. We need this because of a test within conda-build.
+    - sh: set CONDA_NPY=19
+    - sh: wget "http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh"
+    - sh: bash Miniconda3-latest-Linux-x86_64.sh -b
+    - sh: export PATH=$HOME/miniconda3/bin:$PATH
+    # Downgrading Conda leads to issues in Linux. We create specific environment "myenv" instead
+    - sh: conda create -n myenv python=$PYTHON_VERSION -y
+    - sh: conda update --yes conda
+    - sh: source activate myenv
+    - sh: conda install --yes pip jinja2
+    - sh: conda config --set show_channel_urls true
+    #- sh: conda install conda-build=3.17.5 anaconda-client=1.5.5 conda-verify --yes
+    - sh: conda install conda-build anaconda-client conda-verify --yes
+    - sh: conda update conda --yes
+    # I had to downgrade conda client, latest version does not show error messages
+
+    - sh: conda config --add channels https://conda.anaconda.org/conda-forge
+    - sh: conda config --add channels https://conda.anaconda.org/intel
+    - sh: conda install -c conda-forge -c dlr-sc -c pythonocc -c oce -c 3dhubs oce==0.18.2 --yes
+    #- sh: conda install -c cadquery pythonocc-core --yes
+    - sh: conda install -c intel mkl-devel --yes
+
+build: off
+
+test_script:
+
+##################################################### UBUNTU #####################################
+  # builds conda package following recipe instructions
+  - sh: conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty
+  - sh: mkdir dist
+  - sh: cp  /home/appveyor/miniconda3/envs/myenv/conda-bld/linux-$PYTHON_ARCH/pychrono*.bz2 ./dist/pychrono.tar.bz
+  - sh: anaconda -t $BINSTAR_TOKEN upload /home/appveyor/miniconda3/envs/myenv/conda-bld/linux-$PYTHON_ARCH/pychrono*.bz2 -l $APPVEYOR_REPO_BRANCH --force
+  
+  
+##################################################### WINDOWS ###########################################
+  # Build and test the package. This appears(?) to sporadically fail due to a 
+  # bug in conda-build on 32 bit python.
+  # https://github.com/conda/conda-build/issues/152
+  #
+  # Note also that our setup.py script, which is called by conda-build, writes
+  # a __conda_version__.txt file, so the version number on the binary package
+  # is set dynamically. This unfortunately mean that conda build --output
+  # doesn't really work.
+  #
+  # this syntax abilitate the following lines only for VS builds (otherwise CMD_IN_ENV stucks Linux Build)
+for:
+  -
+    matrix:
+      only:
+        -  APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+    test_script:
+        - "%CMD_IN_ENV% conda build .\\contrib\\packaging-python\\conda --no-remove-work-dir --dirty"
+  # move conda package to /dist
+        - cmd: 'mkdir dist'
+        - cmd: 'copy /Y %CONDA_INSTALL_LOCN%\conda-bld\win-%PYTHON_ARCH%\pychrono*.bz2 dist || cmd /c "exit /b 0"'
+  # upload package to anaconda$
+        - ps: cmd /C anaconda --token $env:BINSTAR_TOKEN upload  dist\*.bz2 -l $env:APPVEYOR_REPO_BRANCH --force "2>&1"
+
+artifacts:
+  - path: dist\*
+    name: packages

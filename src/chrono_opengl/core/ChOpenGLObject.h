@@ -21,12 +21,13 @@
 
 #include "chrono_opengl/core/ChOpenGLBase.h"
 #include "chrono_opengl/core/ChOpenGLShader.h"
+
 #include <vector>
 
 namespace chrono {
 namespace opengl {
 
-/// @addtogroup opengl
+/// @addtogroup opengl_module
 /// @{
 
 /// Base class for all drawable objects.
@@ -55,9 +56,9 @@ class CH_OPENGL_API ChOpenGLObject : public ChOpenGLBase {
     void InternalInitialize();
 };
 
-/// @} opengl
+/// @} opengl_module
 
 }
 }
 
-#endif  // END of CHOPENGLOBJECT_H
+#endif

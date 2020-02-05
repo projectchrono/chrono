@@ -1,51 +1,37 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2011 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChFunction_Sigma.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "ChFunction_Sigma.h"
+#include "chrono/motion_functions/ChFunction_Sigma.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
-ChClassRegister<ChFunction_Sigma> a_registration_sigma;
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChFunction_Sigma)
 
-void ChFunction_Sigma::Copy(ChFunction_Sigma* source) {
-    Set_start(source->start);
-    Set_end(source->end);
-    Set_amp(source->amp);
+ChFunction_Sigma::ChFunction_Sigma(const ChFunction_Sigma& other) {
+    amp = other.amp;
+    start = other.start;
+    end = other.end;
 }
 
-ChFunction* ChFunction_Sigma::new_Duplicate() {
-    ChFunction_Sigma* m_func;
-    m_func = new ChFunction_Sigma;
-    m_func->Copy(this);
-    return (m_func);
-}
-
-void ChFunction_Sigma::Estimate_x_range(double& xmin, double& xmax) {
+void ChFunction_Sigma::Estimate_x_range(double& xmin, double& xmax) const {
     double mdx = end - start;
     xmin = start + mdx * 0.1;
     xmax = end - mdx * 0.1;
 }
 
-double ChFunction_Sigma::Get_y(double x) {
+double ChFunction_Sigma::Get_y(double x) const {
     double ret;
     double A = (end - start);
     if (x < start)
@@ -58,7 +44,7 @@ double ChFunction_Sigma::Get_y(double x) {
     return ret;
 }
 
-double ChFunction_Sigma::Get_y_dx(double x) {
+double ChFunction_Sigma::Get_y_dx(double x) const {
     double ret;
     double A = (end - start);
     if ((x < start) || (x > end))
@@ -69,7 +55,7 @@ double ChFunction_Sigma::Get_y_dx(double x) {
     return ret;
 }
 
-double ChFunction_Sigma::Get_y_dxdx(double x) {
+double ChFunction_Sigma::Get_y_dxdx(double x) const {
     double ret;
     double A = (end - start);
     if ((x < start) || (x > end))
@@ -80,8 +66,26 @@ double ChFunction_Sigma::Get_y_dxdx(double x) {
     return ret;
 }
 
+void ChFunction_Sigma::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChFunction_Sigma>();
+    // serialize parent class
+    ChFunction::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(amp);
+    marchive << CHNVP(start);
+    marchive << CHNVP(end);
+}
 
+void ChFunction_Sigma::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChFunction_Sigma>();
+    // deserialize parent class
+    ChFunction::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(amp);
+    marchive >> CHNVP(start);
+    marchive >> CHNVP(end);
+}
 
-}  // END_OF_NAMESPACE____
-
-// eof
+}  // end namespace chrono

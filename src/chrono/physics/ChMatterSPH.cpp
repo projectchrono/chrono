@@ -1,64 +1,44 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2011 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChMatterSPH.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include <stdlib.h>
 #include <algorithm>
+#include <cstdlib>
 
-#include "physics/ChMatterSPH.h"
-#include "physics/ChSystem.h"
+#include "chrono/physics/ChMatterSPH.h"
+#include "chrono/physics/ChSystem.h"
 
-#include "physics/ChProximityContainerSPH.h"
-#include "collision/ChCModelBullet.h"
-#include "core/ChLinearAlgebra.h"
+#include "chrono/collision/ChCModelBullet.h"
+#include "chrono/physics/ChProximityContainerSPH.h"
 
 namespace chrono {
 
 using namespace collision;
 using namespace geometry;
 
+// -----------------------------------------------------------------------------
+// CLASS FOR SPH NODES
+// -----------------------------------------------------------------------------
 
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChNodeSPH)
 
-//////////////////////////////////////
-//////////////////////////////////////
+ChNodeSPH::ChNodeSPH() : container(NULL), UserForce(VNULL), h_rad(0.1), coll_rad(0.001), volume(0.01), pressure(0) {
+    collision_model = new ChModelBullet;
+    collision_model->SetContactable(this);
 
-/// CLASS FOR A SPH NODE
-
-
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
-ChClassRegister<ChNodeSPH> a_registration_ChNodeSPH;
-
-
-ChNodeSPH::ChNodeSPH() {
-    this->collision_model = new ChModelBullet;
-    this->collision_model->SetContactable(this);
-    this->container = 0;
-
-    this->UserForce = VNULL;
-    this->h_rad = 0.1;
-    this->coll_rad = 0.001;
-    this->SetMass(0.01);
-    this->volume = 0.01;
-    this->density = this->GetMass() / this->volume;
-    this->pressure = 0;
+    SetMass(0.01);
+    density = GetMass() / volume;
 }
 
 ChNodeSPH::~ChNodeSPH() {
@@ -66,19 +46,19 @@ ChNodeSPH::~ChNodeSPH() {
 }
 
 ChNodeSPH::ChNodeSPH(const ChNodeSPH& other) : ChNodeXYZ(other) {
-    this->collision_model = new ChModelBullet;
-    this->collision_model->SetContactable(this);
-    this->collision_model->AddPoint(other.coll_rad);
-    this->container = other.container;
-    this->UserForce = other.UserForce;
-    this->SetKernelRadius(other.h_rad);
-    this->SetCollisionRadius(other.coll_rad);
-    this->SetMass(other.GetMass());
-    this->volume = other.volume;
-    this->density = other.density;
-    this->pressure = other.pressure;
+    collision_model = new ChModelBullet;
+    collision_model->SetContactable(this);
+    collision_model->AddPoint(other.coll_rad);
+    container = other.container;
+    UserForce = other.UserForce;
+    SetKernelRadius(other.h_rad);
+    SetCollisionRadius(other.coll_rad);
+    SetMass(other.GetMass());
+    volume = other.volume;
+    density = other.density;
+    pressure = other.pressure;
 
-    this->variables = other.variables;
+    variables = other.variables;
 }
 
 ChNodeSPH& ChNodeSPH::operator=(const ChNodeSPH& other) {
@@ -87,18 +67,18 @@ ChNodeSPH& ChNodeSPH::operator=(const ChNodeSPH& other) {
 
     ChNodeXYZ::operator=(other);
 
-    this->collision_model->ClearModel();
-    this->collision_model->AddPoint(other.coll_rad);
-    this->collision_model->SetContactable(this);
-    this->container = other.container;
-    this->UserForce = other.UserForce;
-    this->SetKernelRadius(other.h_rad);
-    this->SetCollisionRadius(other.coll_rad);
-    this->SetMass(other.GetMass());
-    this->volume = other.volume;
-    this->density = other.density;
+    collision_model->ClearModel();
+    collision_model->AddPoint(other.coll_rad);
+    collision_model->SetContactable(this);
+    container = other.container;
+    UserForce = other.UserForce;
+    SetKernelRadius(other.h_rad);
+    SetCollisionRadius(other.coll_rad);
+    SetMass(other.GetMass());
+    volume = other.volume;
+    density = other.density;
 
-    this->variables = other.variables;
+    variables = other.variables;
 
     return *this;
 }
@@ -106,17 +86,17 @@ ChNodeSPH& ChNodeSPH::operator=(const ChNodeSPH& other) {
 void ChNodeSPH::SetKernelRadius(double mr) {
     h_rad = mr;
     double aabb_rad = h_rad / 2;  // to avoid too many pairs: bounding boxes hemisizes will sum..  __.__--*--
-    ((ChModelBullet*)this->collision_model)->SetSphereRadius(coll_rad, ChMax(0.0, aabb_rad - coll_rad));
+    ((ChModelBullet*)collision_model)->SetSphereRadius(coll_rad, ChMax(0.0, aabb_rad - coll_rad));
 }
 
 void ChNodeSPH::SetCollisionRadius(double mr) {
     coll_rad = mr;
     double aabb_rad = h_rad / 2;  // to avoid too many pairs: bounding boxes hemisizes will sum..  __.__--*--
-    ((ChModelBullet*)this->collision_model)->SetSphereRadius(coll_rad, ChMax(0.0, aabb_rad - coll_rad));
+    ((ChModelBullet*)collision_model)->SetSphereRadius(coll_rad, ChMax(0.0, aabb_rad - coll_rad));
 }
 
 void ChNodeSPH::ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, ChVectorDynamic<>& R) {
-    R.PasteSumVector(F, this->NodeGetOffset_w() + 0, 0);
+    R.segment(NodeGetOffset_w(), 3) += F.eigen();
 }
 
 void ChNodeSPH::ComputeJacobianForContactPart(const ChVector<>& abs_point,
@@ -125,35 +105,32 @@ void ChNodeSPH::ComputeJacobianForContactPart(const ChVector<>& abs_point,
                                               type_constraint_tuple& jacobian_tuple_U,
                                               type_constraint_tuple& jacobian_tuple_V,
                                               bool second) {
-    ChMatrix33<> Jx1;
-
-    Jx1.CopyFromMatrixT(contact_plane);
+    ChMatrix33<> Jx1 = contact_plane.transpose();
     if (!second)
-        Jx1.MatrNeg();
+        Jx1 *= -1;
 
-    jacobian_tuple_N.Get_Cq()->PasteClippedMatrix(&Jx1, 0, 0, 1, 3, 0, 0);
-    jacobian_tuple_U.Get_Cq()->PasteClippedMatrix(&Jx1, 1, 0, 1, 3, 0, 0);
-    jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(&Jx1, 2, 0, 1, 3, 0, 0);
+    jacobian_tuple_N.Get_Cq().segment(0, 3) = Jx1.row(0);
+    jacobian_tuple_U.Get_Cq().segment(0, 3) = Jx1.row(1);
+    jacobian_tuple_V.Get_Cq().segment(0, 3) = Jx1.row(2);
 }
 
-ChSharedPtr<ChMaterialSurfaceBase>& ChNodeSPH::GetMaterialSurfaceBase() {
-    return container->GetMaterialSurfaceBase();
+std::shared_ptr<ChMaterialSurface>& ChNodeSPH::GetMaterialSurface() {
+    return container->GetMaterialSurface();
 }
 
 ChPhysicsItem* ChNodeSPH::GetPhysicsItem() {
     return container;
 }
 
-void ChNodeSPH::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChNodeSPH::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChNodeSPH>();
 
     // serialize parent class
     ChNodeXYZ::ArchiveOUT(marchive);
 
     // serialize all member data:
-    //marchive << CHNVP(container);
+    // marchive << CHNVP(container);
     marchive << CHNVP(collision_model);
     marchive << CHNVP(UserForce);
     marchive << CHNVP(volume);
@@ -163,17 +140,16 @@ void ChNodeSPH::ArchiveOUT(ChArchiveOut& marchive)
     marchive << CHNVP(pressure);
 }
 
-/// Method to allow de serialization of transient data from archives.
-void ChNodeSPH::ArchiveIN(ChArchiveIn& marchive) 
-{
+// Method to allow de serialization of transient data from archives.
+void ChNodeSPH::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChNodeSPH>();
 
     // deserialize parent class
     ChNodeXYZ::ArchiveIN(marchive);
 
     // deserialize all member data:
-    //marchive >> CHNVP(container);
+    // marchive >> CHNVP(container);
     marchive >> CHNVP(collision_model);
     marchive >> CHNVP(UserForce);
     marchive >> CHNVP(volume);
@@ -183,23 +159,22 @@ void ChNodeSPH::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(pressure);
 }
 
+// -----------------------------------------------------------------------------
+// CLASS FOR SPH MATERIAL
+// -----------------------------------------------------------------------------
 
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChContinuumSPH)
 
+ChContinuumSPH::ChContinuumSPH(const ChContinuumSPH& other) : fea::ChContinuumMaterial(other) {
+    viscosity = other.viscosity;
+    surface_tension = other.surface_tension;
+    pressure_stiffness = other.pressure_stiffness;
+}
 
-//////////////////////////////////////
-//////////////////////////////////////
-
-/// CLASS FOR SPH MATERIAL
-
-
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
-ChClassRegister<ChContinuumSPH> a_registration_ChContinuumSPH;
-
-void ChContinuumSPH::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChContinuumSPH::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChContinuumSPH>();
 
     // serialize parent class
     ChContinuumMaterial::ArchiveOUT(marchive);
@@ -210,11 +185,10 @@ void ChContinuumSPH::ArchiveOUT(ChArchiveOut& marchive)
     marchive << CHNVP(pressure_stiffness);
 }
 
-/// Method to allow de serialization of transient data from archives.
-void ChContinuumSPH::ArchiveIN(ChArchiveIn& marchive) 
-{
+// Method to allow de serialization of transient data from archives.
+void ChContinuumSPH::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChContinuumSPH>();
 
     // deserialize parent class
     ChContinuumMaterial::ArchiveIN(marchive);
@@ -225,83 +199,66 @@ void ChContinuumSPH::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(pressure_stiffness);
 }
 
+// -----------------------------------------------------------------------------
+// CLASS FOR SPH NODE CLUSTER
+// -----------------------------------------------------------------------------
 
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChMatterSPH)
 
-//////////////////////////////////////
-//////////////////////////////////////
+ChMatterSPH::ChMatterSPH() : do_collide(false) {
+    matsurface = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+}
 
-/// CLASS FOR SPH NODE CLUSTER
+ChMatterSPH::ChMatterSPH(const ChMatterSPH& other) : ChIndexedNodes(other) {
+    do_collide = other.do_collide;
 
+    material = other.material;
+    matsurface = other.matsurface;
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
-ChClassRegister<ChMatterSPH> a_registration_ChMatterSPH;
-
-
-ChMatterSPH::ChMatterSPH() {
-    this->do_collide = false;
-
-    this->nodes.clear();
-
-    SetIdentifier(GetUniqueIntID());  // mark with unique ID
-
-    // default DVI material
-    matsurface = ChSharedPtr<ChMaterialSurface>(new ChMaterialSurface);
+    ResizeNnodes(other.GetNnodes());
 }
 
 ChMatterSPH::~ChMatterSPH() {
-    // delete nodes
-    this->ResizeNnodes(0);
-}
-
-void ChMatterSPH::Copy(ChMatterSPH* source) {
-    // copy the parent class data...
-    ChIndexedNodes::Copy(source);
-
-    do_collide = source->do_collide;
-
-    this->material = source->material;
-
-    this->matsurface = source->matsurface;
-
-    ResizeNnodes(source->GetNnodes());
+    // delete all nodes
+    ResizeNnodes(0);
 }
 
 void ChMatterSPH::ResizeNnodes(int newsize) {
-    bool oldcoll = this->GetCollide();
-    this->SetCollide(false);  // this will remove old particle coll.models from coll.engine, if previously added
+    bool oldcoll = GetCollide();
+    SetCollide(false);  // this will remove old particle coll.models from coll.engine, if previously added
 
     /*
     for (unsigned int j = 0; j < nodes.size(); j++)
     {
-        //delete (this->nodes[j]);  ***not needed since using shared ptrs
-        this->nodes[j] = 0;
+        //delete (nodes[j]);  ***not needed since using shared ptrs
+        nodes[j] = 0;
     }
     */
-    this->nodes.resize(newsize);
+    nodes.resize(newsize);
 
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        this->nodes[j] = ChSharedPtr<ChNodeSPH>(new ChNodeSPH);
+        nodes[j] = chrono_types::make_shared<ChNodeSPH>();
 
-        this->nodes[j]->SetContainer(this);
+        nodes[j]->SetContainer(this);
 
-        this->nodes[j]->variables.SetUserData((void*)this);  // UserData unuseful in future cuda solver?
-        //((ChModelBullet*)this->nodes[j]->collision_model)->SetContactable(this->nodes[j]);
-        this->nodes[j]->collision_model->AddPoint(0.001);  //***TEST***
-        this->nodes[j]->collision_model->BuildModel();
+        nodes[j]->variables.SetUserData((void*)this);  // UserData unuseful in future cuda solver?
+        //((ChModelBullet*)nodes[j]->collision_model)->SetContactable(nodes[j]);
+        nodes[j]->collision_model->AddPoint(0.001);  //***TEST***
+        nodes[j]->collision_model->BuildModel();
     }
 
-    this->SetCollide(oldcoll);  // this will also add particle coll.models to coll.engine, if already in a ChSystem
+    SetCollide(oldcoll);  // this will also add particle coll.models to coll.engine, if already in a ChSystem
 }
 
 void ChMatterSPH::AddNode(ChVector<double> initial_state) {
-    ChSharedPtr<ChNodeSPH> newp(new ChNodeSPH);
+    auto newp = chrono_types::make_shared<ChNodeSPH>();
 
     newp->SetContainer(this);
 
     newp->SetPos(initial_state);
 
-    this->nodes.push_back(newp);
+    nodes.push_back(newp);
 
     newp->variables.SetUserData((void*)this);  // UserData unuseful in future cuda solver?
 
@@ -316,9 +273,9 @@ void ChMatterSPH::FillBox(const ChVector<> size,
                           const bool do_centeredcube,
                           const double kernel_sfactor,
                           const double randomness) {
-    int samples_x = (int)(size.x / spacing);
-    int samples_y = (int)(size.y / spacing);
-    int samples_z = (int)(size.z / spacing);
+    int samples_x = (int)(size.x() / spacing);
+    int samples_y = (int)(size.y() / spacing);
+    int samples_z = (int)(size.z() / spacing);
     int totsamples = 0;
 
     double mrandomness = randomness;
@@ -328,96 +285,95 @@ void ChMatterSPH::FillBox(const ChVector<> size,
     for (int ix = 0; ix < samples_x; ix++)
         for (int iy = 0; iy < samples_y; iy++)
             for (int iz = 0; iz < samples_z; iz++) {
-                ChVector<> pos(ix * spacing - 0.5 * size.x, iy * spacing - 0.5 * size.y, iz * spacing - 0.5 * size.z);
+                ChVector<> pos(ix * spacing - 0.5 * size.x(), iy * spacing - 0.5 * size.y(),
+                               iz * spacing - 0.5 * size.z());
                 pos += ChVector<>(mrandomness * ChRandom() * spacing, mrandomness * ChRandom() * spacing,
                                   mrandomness * ChRandom() * spacing);
-                this->AddNode(boxcoords.TransformLocalToParent(pos));
+                AddNode(boxcoords.TransformLocalToParent(pos));
                 totsamples++;
 
                 if (do_centeredcube) {
                     ChVector<> pos2 = pos + 0.5 * ChVector<>(spacing, spacing, spacing);
                     pos2 += ChVector<>(mrandomness * ChRandom() * spacing, mrandomness * ChRandom() * spacing,
                                        mrandomness * ChRandom() * spacing);
-                    this->AddNode(boxcoords.TransformLocalToParent(pos2));
+                    AddNode(boxcoords.TransformLocalToParent(pos2));
                     totsamples++;
                 }
             }
 
-    double mtotvol = size.x * size.y * size.z;
+    double mtotvol = size.x() * size.y() * size.z();
     double mtotmass = mtotvol * initial_density;
     double nodemass = mtotmass / (double)totsamples;
     double kernelrad = kernel_sfactor * spacing;
 
-    for (unsigned int ip = 0; ip < this->GetNnodes(); ip++) {
+    for (unsigned int ip = 0; ip < GetNnodes(); ip++) {
         // downcasting
-        ChSharedPtr<ChNodeSPH> mnode(this->nodes[ip]);
-        assert(!mnode.IsNull());
+        std::shared_ptr<ChNodeSPH> mnode(nodes[ip]);
+        assert(mnode);
 
         mnode->SetKernelRadius(kernelrad);
         mnode->SetCollisionRadius(spacing * 0.05);
         mnode->SetMass(nodemass);
     }
 
-    this->GetMaterial().Set_density(initial_density);
+    GetMaterial().Set_density(initial_density);
 }
 
 //// STATE BOOKKEEPING FUNCTIONS
 
-void ChMatterSPH::IntStateGather(const unsigned int off_x,  ///< offset in x state vector
-                                 ChState& x,                ///< state vector, position part
-                                 const unsigned int off_v,  ///< offset in v state vector
-                                 ChStateDelta& v,           ///< state vector, speed part
-                                 double& T)                 ///< time
+void ChMatterSPH::IntStateGather(const unsigned int off_x,  // offset in x state vector
+                                 ChState& x,                // state vector, position part
+                                 const unsigned int off_v,  // offset in v state vector
+                                 ChStateDelta& v,           // state vector, speed part
+                                 double& T)                 // time
 {
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        x.PasteVector(this->nodes[j]->pos, off_x + 3 * j, 0);
-        v.PasteVector(this->nodes[j]->pos_dt, off_v + 3 * j, 0);
+        x.segment(off_x + 3 * j, 3) = nodes[j]->pos.eigen();
+        v.segment(off_v + 3 * j, 3) = nodes[j]->pos_dt.eigen();
     }
-    T = this->GetChTime();
+    T = GetChTime();
 }
 
-void ChMatterSPH::IntStateScatter(const unsigned int off_x,  ///< offset in x state vector
-                                  const ChState& x,          ///< state vector, position part
-                                  const unsigned int off_v,  ///< offset in v state vector
-                                  const ChStateDelta& v,     ///< state vector, speed part
-                                  const double T)            ///< time
+void ChMatterSPH::IntStateScatter(const unsigned int off_x,  // offset in x state vector
+                                  const ChState& x,          // state vector, position part
+                                  const unsigned int off_v,  // offset in v state vector
+                                  const ChStateDelta& v,     // state vector, speed part
+                                  const double T)            // time
 {
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        this->nodes[j]->pos = x.ClipVector(off_x + 3 * j, 0);
-        this->nodes[j]->pos_dt = v.ClipVector(off_v + 3 * j, 0);
+        nodes[j]->pos = x.segment(off_x + 3 * j, 3);
+        nodes[j]->pos_dt = v.segment(off_v + 3 * j, 3);
     }
-    this->SetChTime(T);
-    this->Update();
+    SetChTime(T);
+    Update(T);
 }
 
 void ChMatterSPH::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        a.PasteVector(this->nodes[j]->pos_dtdt, off_a + 3 * j, 0);
+        a.segment(off_a + 3 * j, 3) = nodes[j]->pos_dtdt.eigen();
     }
 }
 
 void ChMatterSPH::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        this->nodes[j]->pos_dtdt = a.ClipVector(off_a + 3 * j, 0);
+        nodes[j]->pos_dtdt = a.segment(off_a + 3 * j, 3);
     }
 }
 
 void ChMatterSPH::IntLoadResidual_F(
-    const unsigned int off,  ///< offset in R residual (not used here! use particle's offsets)
-    ChVectorDynamic<>& R,    ///< result: the R residual, R += c*F
-    const double c           ///< a scaling factor
-    ) {
+    const unsigned int off,  // offset in R residual (not used here! use particle's offsets)
+    ChVectorDynamic<>& R,    // result: the R residual, R += c*F
+    const double c           // a scaling factor
+) {
     // COMPUTE THE SPH FORCES HERE
 
     // First, find if any ChProximityContainerSPH object is present
     // in the system,
 
-    ChSharedPtr<ChProximityContainerSPH> edges;
-    std::vector< ChSharedPtr<ChPhysicsItem> >::iterator iterotherphysics = this->GetSystem()->Get_otherphysicslist()->begin();
-    while (iterotherphysics != this->GetSystem()->Get_otherphysicslist()->end()) {
-        if ((edges = (*iterotherphysics).DynamicCastTo<ChProximityContainerSPH>()))
+    std::shared_ptr<ChProximityContainerSPH> edges;
+    for (auto otherphysics : GetSystem()->Get_otherphysicslist()) {
+        if ((edges = std::dynamic_pointer_cast<ChProximityContainerSPH>(otherphysics)))
             break;
-        iterotherphysics++;
     }
     assert(edges);  // If using a ChMatterSPH, you must add also a ChProximityContainerSPH.
     if (!edges)
@@ -426,8 +382,8 @@ void ChMatterSPH::IntLoadResidual_F(
     // 1- Per-node initialization
 
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        this->nodes[j]->UserForce = VNULL;
-        this->nodes[j]->density = 0;
+        nodes[j]->UserForce = VNULL;
+        nodes[j]->density = 0;
     }
 
     // 2- Per-edge initialization and accumulation of particles's density
@@ -437,8 +393,8 @@ void ChMatterSPH::IntLoadResidual_F(
     // 3- Per-node volume and pressure computation
 
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        ChSharedPtr<ChNodeSPH> mnode(this->nodes[j]);
-        assert(!mnode.IsNull());
+        std::shared_ptr<ChNodeSPH> mnode(nodes[j]);
+        assert(mnode);
 
         // node volume is v=mass/density
         if (mnode->density)
@@ -447,90 +403,87 @@ void ChMatterSPH::IntLoadResidual_F(
             mnode->volume = 0;
 
         // node pressure = k(dens - dens_0);
-        mnode->pressure = this->material.Get_pressure_stiffness() * (mnode->density - this->material.Get_density());
+        mnode->pressure = material.Get_pressure_stiffness() * (mnode->density - material.Get_density());
     }
 
     // 4- Per-edge forces computation and accumulation
 
     edges->AccumulateStep2();
 
-    // 5- Per-node load forces in LCP
+    // 5- Per-node load forces
 
     for (unsigned int j = 0; j < nodes.size(); j++) {
         // particle gyroscopic force:
         // none.
 
         // add gravity
-        ChVector<> Gforce = GetSystem()->Get_G_acc() * this->nodes[j]->GetMass();
-        ChVector<> TotForce = this->nodes[j]->UserForce + Gforce;
+        ChVector<> Gforce = GetSystem()->Get_G_acc() * nodes[j]->GetMass();
+        ChVector<> TotForce = nodes[j]->UserForce + Gforce;
 
         // downcast
-        ChSharedPtr<ChNodeSPH> mnode(this->nodes[j]);
-        assert(!mnode.IsNull());
+        std::shared_ptr<ChNodeSPH> mnode(nodes[j]);
+        assert(mnode);
 
-        R.PasteSumVector(TotForce * c, off + 3 * j, 0);
+        R.segment(off + 3 * j, 3) += c * TotForce.eigen();
     }
 }
 
-void ChMatterSPH::IntLoadResidual_Mv(const unsigned int off,      ///< offset in R residual
-                                     ChVectorDynamic<>& R,        ///< result: the R residual, R += c*M*v
-                                     const ChVectorDynamic<>& w,  ///< the w vector
-                                     const double c               ///< a scaling factor
-                                     ) {
+void ChMatterSPH::IntLoadResidual_Mv(const unsigned int off,      // offset in R residual
+                                     ChVectorDynamic<>& R,        // result: the R residual, R += c*M*v
+                                     const ChVectorDynamic<>& w,  // the w vector
+                                     const double c               // a scaling factor
+) {
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        R(off + 3 * j) += c * this->nodes[j]->GetMass() * w(off + 3 * j);
-        R(off + 3 * j + 1) += c * this->nodes[j]->GetMass() * w(off + 3 * j + 1);
-        R(off + 3 * j + 2) += c * this->nodes[j]->GetMass() * w(off + 3 * j + 2);
+        R(off + 3 * j) += c * nodes[j]->GetMass() * w(off + 3 * j);
+        R(off + 3 * j + 1) += c * nodes[j]->GetMass() * w(off + 3 * j + 1);
+        R(off + 3 * j + 2) += c * nodes[j]->GetMass() * w(off + 3 * j + 2);
     }
 }
 
-void ChMatterSPH::IntToLCP(const unsigned int off_v,  ///< offset in v, R
-                           const ChStateDelta& v,
-                           const ChVectorDynamic<>& R,
-                           const unsigned int off_L,  ///< offset in L, Qc
-                           const ChVectorDynamic<>& L,
-                           const ChVectorDynamic<>& Qc) {
+void ChMatterSPH::IntToDescriptor(const unsigned int off_v,  // offset in v, R
+                                  const ChStateDelta& v,
+                                  const ChVectorDynamic<>& R,
+                                  const unsigned int off_L,  // offset in L, Qc
+                                  const ChVectorDynamic<>& L,
+                                  const ChVectorDynamic<>& Qc) {
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        this->nodes[j]->variables.Get_qb().PasteClippedMatrix(&v, off_v + 3 * j, 0, 3, 1, 0, 0);
-        this->nodes[j]->variables.Get_fb().PasteClippedMatrix(&R, off_v + 3 * j, 0, 3, 1, 0, 0);
+        nodes[j]->variables.Get_qb() = v.segment(off_v + 3 * j, 3);
+        nodes[j]->variables.Get_fb() = R.segment(off_v + 3 * j, 3);
     }
 }
 
-void ChMatterSPH::IntFromLCP(const unsigned int off_v,  ///< offset in v
-                             ChStateDelta& v,
-                             const unsigned int off_L,  ///< offset in L
-                             ChVectorDynamic<>& L) {
+void ChMatterSPH::IntFromDescriptor(const unsigned int off_v,  // offset in v
+                                    ChStateDelta& v,
+                                    const unsigned int off_L,  // offset in L
+                                    ChVectorDynamic<>& L) {
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        v.PasteMatrix(&this->nodes[j]->variables.Get_qb(), off_v + 3 * j, 0);
+        v.segment(off_v + 3 * j, 3) = nodes[j]->variables.Get_qb();
     }
 }
 
 ////
-void ChMatterSPH::InjectVariables(ChLcpSystemDescriptor& mdescriptor) {
-    // this->variables.SetDisabled(!this->IsActive());
+void ChMatterSPH::InjectVariables(ChSystemDescriptor& mdescriptor) {
+    // variables.SetDisabled(!IsActive());
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        mdescriptor.InsertVariables(&(this->nodes[j]->variables));
+        mdescriptor.InsertVariables(&(nodes[j]->variables));
     }
 }
 
 void ChMatterSPH::VariablesFbReset() {
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        this->nodes[j]->variables.Get_fb().FillElem(0.0);
+        nodes[j]->variables.Get_fb().setZero();
     }
 }
 
 void ChMatterSPH::VariablesFbLoadForces(double factor) {
     // COMPUTE THE SPH FORCES HERE
 
-    // First, find if any ChProximityContainerSPH object is present
-    // in the system,
+    // First, find if any ChProximityContainerSPH object is present in the system
 
-    ChSharedPtr<ChProximityContainerSPH> edges;
-    std::vector<ChSharedPtr<ChPhysicsItem> >::iterator iterotherphysics = this->GetSystem()->Get_otherphysicslist()->begin();
-    while (iterotherphysics != this->GetSystem()->Get_otherphysicslist()->end()) {
-        if ((edges = (*iterotherphysics).DynamicCastTo<ChProximityContainerSPH>()))
+    std::shared_ptr<ChProximityContainerSPH> edges;
+    for (auto otherphysics : GetSystem()->Get_otherphysicslist()) {
+        if ((edges = std::dynamic_pointer_cast<ChProximityContainerSPH>(otherphysics)))
             break;
-        iterotherphysics++;
     }
     assert(edges);  // If using a ChMatterSPH, you must add also a ChProximityContainerSPH.
     if (!edges)
@@ -539,8 +492,8 @@ void ChMatterSPH::VariablesFbLoadForces(double factor) {
     // 1- Per-node initialization
 
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        this->nodes[j]->UserForce = VNULL;
-        this->nodes[j]->density = 0;
+        nodes[j]->UserForce = VNULL;
+        nodes[j]->density = 0;
     }
 
     // 2- Per-edge initialization and accumulation of particles's density
@@ -550,8 +503,8 @@ void ChMatterSPH::VariablesFbLoadForces(double factor) {
     // 3- Per-node volume and pressure computation
 
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        ChSharedPtr<ChNodeSPH> mnode(this->nodes[j]);
-        assert(!mnode.IsNull());
+        std::shared_ptr<ChNodeSPH> mnode(nodes[j]);
+        assert(mnode);
 
         // node volume is v=mass/density
         if (mnode->density)
@@ -560,87 +513,82 @@ void ChMatterSPH::VariablesFbLoadForces(double factor) {
             mnode->volume = 0;
 
         // node pressure = k(dens - dens_0);
-        mnode->pressure = this->material.Get_pressure_stiffness() * (mnode->density - this->material.Get_density());
+        mnode->pressure = material.Get_pressure_stiffness() * (mnode->density - material.Get_density());
     }
 
     // 4- Per-edge forces computation and accumulation
 
     edges->AccumulateStep2();
 
-    // 5- Per-node load forces in LCP
+    // 5- Per-node load forces
 
     for (unsigned int j = 0; j < nodes.size(); j++) {
         // particle gyroscopic force:
         // none.
 
         // add gravity
-        ChVector<> Gforce = GetSystem()->Get_G_acc() * this->nodes[j]->GetMass();
-        ChVector<> TotForce = this->nodes[j]->UserForce + Gforce;
+        ChVector<> Gforce = GetSystem()->Get_G_acc() * nodes[j]->GetMass();
+        ChVector<> TotForce = nodes[j]->UserForce + Gforce;
 
         // downcast
-        ChSharedPtr<ChNodeSPH> mnode(this->nodes[j]);
-        assert(!mnode.IsNull());
+        std::shared_ptr<ChNodeSPH> mnode(nodes[j]);
+        assert(mnode);
 
-        mnode->variables.Get_fb().PasteSumVector(TotForce * factor, 0, 0);
+        mnode->variables.Get_fb() += factor * TotForce.eigen();
     }
 }
 
 void ChMatterSPH::VariablesQbLoadSpeed() {
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        // set current speed in 'qb', it can be used by the LCP solver when working in incremental mode
-        this->nodes[j]->variables.Get_qb().PasteVector(this->nodes[j]->GetPos_dt(), 0, 0);
+        // set current speed in 'qb', it can be used by the solver when working in incremental mode
+        nodes[j]->variables.Get_qb() = nodes[j]->GetPos_dt().eigen();
     }
 }
 
 void ChMatterSPH::VariablesFbIncrementMq() {
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        this->nodes[j]->variables.Compute_inc_Mb_v(this->nodes[j]->variables.Get_fb(),
-                                                   this->nodes[j]->variables.Get_qb());
+        nodes[j]->variables.Compute_inc_Mb_v(nodes[j]->variables.Get_fb(), nodes[j]->variables.Get_qb());
     }
 }
 
 void ChMatterSPH::VariablesQbSetSpeed(double step) {
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        ChVector<> old_pos_dt = this->nodes[j]->GetPos_dt();
+        ChVector<> old_pos_dt = nodes[j]->GetPos_dt();
 
         // from 'qb' vector, sets body speed, and updates auxiliary data
-        this->nodes[j]->SetPos_dt(this->nodes[j]->variables.Get_qb().ClipVector(0, 0));
+        nodes[j]->SetPos_dt(nodes[j]->variables.Get_qb().segment(0, 3));
 
         // Compute accel. by BDF (approximate by differentiation);
         if (step) {
-            this->nodes[j]->SetPos_dtdt((this->nodes[j]->GetPos_dt() - old_pos_dt) / step);
+            nodes[j]->SetPos_dtdt((nodes[j]->GetPos_dt() - old_pos_dt) / step);
         }
     }
 }
 
 void ChMatterSPH::VariablesQbIncrementPosition(double dt_step) {
-    // if (!this->IsActive())
+    // if (!IsActive())
     //	return;
 
     for (unsigned int j = 0; j < nodes.size(); j++) {
         // Updates position with incremental action of speed contained in the
         // 'qb' vector:  pos' = pos + dt * speed   , like in an Eulero step.
 
-        ChVector<> newspeed = this->nodes[j]->variables.Get_qb().ClipVector(0, 0);
+        ChVector<> newspeed(nodes[j]->variables.Get_qb().segment(0, 3));
 
         // ADVANCE POSITION: pos' = pos + dt * vel
-        this->nodes[j]->SetPos(this->nodes[j]->GetPos() + newspeed * dt_step);
+        nodes[j]->SetPos(nodes[j]->GetPos() + newspeed * dt_step);
     }
 }
-
-//////////////
 
 void ChMatterSPH::SetNoSpeedNoAcceleration() {
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        this->nodes[j]->SetPos_dt(VNULL);
-        this->nodes[j]->SetPos_dtdt(VNULL);
+        nodes[j]->SetPos_dt(VNULL);
+        nodes[j]->SetPos_dtdt(VNULL);
     }
 }
 
-//////
-
 void ChMatterSPH::Update(bool update_assets) {
-    ChMatterSPH::Update(this->GetChTime(), update_assets);
+    ChMatterSPH::Update(GetChTime(), update_assets);
 }
 
 void ChMatterSPH::Update(double mytime, bool update_assets) {
@@ -653,21 +601,21 @@ void ChMatterSPH::Update(double mytime, bool update_assets) {
 
 // collision stuff
 void ChMatterSPH::SetCollide(bool mcoll) {
-    if (mcoll == this->do_collide)
+    if (mcoll == do_collide)
         return;
 
     if (mcoll) {
-        this->do_collide = true;
+        do_collide = true;
         if (GetSystem()) {
             for (unsigned int j = 0; j < nodes.size(); j++) {
-                GetSystem()->GetCollisionSystem()->Add(this->nodes[j]->collision_model);
+                GetSystem()->GetCollisionSystem()->Add(nodes[j]->collision_model);
             }
         }
     } else {
-        this->do_collide = false;
+        do_collide = false;
         if (GetSystem()) {
             for (unsigned int j = 0; j < nodes.size(); j++) {
-                GetSystem()->GetCollisionSystem()->Remove(this->nodes[j]->collision_model);
+                GetSystem()->GetCollisionSystem()->Remove(nodes[j]->collision_model);
             }
         }
     }
@@ -675,42 +623,39 @@ void ChMatterSPH::SetCollide(bool mcoll) {
 
 void ChMatterSPH::SyncCollisionModels() {
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        this->nodes[j]->collision_model->SyncPosition();
+        nodes[j]->collision_model->SyncPosition();
     }
 }
 
 void ChMatterSPH::AddCollisionModelsToSystem() {
-    assert(this->GetSystem());
+    assert(GetSystem());
     SyncCollisionModels();
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        this->GetSystem()->GetCollisionSystem()->Add(this->nodes[j]->collision_model);
+        GetSystem()->GetCollisionSystem()->Add(nodes[j]->collision_model);
     }
 }
 
 void ChMatterSPH::RemoveCollisionModelsFromSystem() {
-    assert(this->GetSystem());
+    assert(GetSystem());
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        this->GetSystem()->GetCollisionSystem()->Remove(this->nodes[j]->collision_model);
+        GetSystem()->GetCollisionSystem()->Remove(nodes[j]->collision_model);
     }
 }
-
-////
 
 void ChMatterSPH::UpdateParticleCollisionModels() {
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        this->nodes[j]->collision_model->ClearModel();
+        nodes[j]->collision_model->ClearModel();
         //***TO DO*** UPDATE RADIUS OF SPHERE?
-        // this->nodes[j]->collision_model->AddCopyOfAnotherModel(this->particle_collision_model);
-        this->nodes[j]->collision_model->BuildModel();
+        // nodes[j]->collision_model->AddCopyOfAnotherModel(particle_collision_model);
+        nodes[j]->collision_model->BuildModel();
     }
 }
 
-//////// FILE I/O
+// FILE I/O
 
-void ChMatterSPH::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChMatterSPH::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChMatterSPH>();
 
     // serialize parent class
     ChIndexedNodes::ArchiveOUT(marchive);
@@ -723,10 +668,9 @@ void ChMatterSPH::ArchiveOUT(ChArchiveOut& marchive)
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChMatterSPH::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChMatterSPH::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChMatterSPH>();
 
     // deserialize parent class
     ChIndexedNodes::ArchiveIN(marchive);
@@ -740,12 +684,9 @@ void ChMatterSPH::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(nodes);
 
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        this->nodes[j]->SetContainer(this);
+        nodes[j]->SetContainer(this);
     }
     AddCollisionModelsToSystem();
 }
 
-
-}  // END_OF_NAMESPACE____
-
-/////////////////////
+}  // end namespace chrono

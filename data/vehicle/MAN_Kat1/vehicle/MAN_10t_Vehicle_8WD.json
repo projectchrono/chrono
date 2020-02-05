@@ -1,0 +1,72 @@
+{
+  "Name": "MAN 10t 8x8 Offroad Truck",
+  "Type": "Vehicle",
+  "Template": "WheeledVehicle",
+
+  "Chassis": {
+    "Input File": "MAN_Kat1/chassis/MAN_10t_Chassis.json"
+  },
+
+  "Axles": [
+    {
+      "Suspension Input File": "MAN_Kat1/suspension/MAN_10t_Front1SolidThreeLinkAxle.json",
+      "Suspension Location": [ 0, 0, 0 ],
+      "Steering Index": 0,
+      "Left Wheel Input File": "MAN_Kat1/wheel/MAN_5t_Wheel.json",
+      "Right Wheel Input File": "MAN_Kat1/wheel/MAN_5t_Wheel.json",
+      "Left Brake Input File": "MAN_Kat1/brake/MAN_5t_BrakeSimple.json",
+      "Right Brake Input File": "MAN_Kat1/brake/MAN_5t_BrakeSimple.json"
+    },
+
+    {
+      "Suspension Input File": "MAN_Kat1/suspension/MAN_10t_Front2SolidThreeLinkAxle.json",
+      "Suspension Location": [ -1.930, 0, 0 ],
+      "Steering Index": 1,
+      "Left Wheel Input File": "MAN_Kat1/wheel/MAN_5t_Wheel.json",
+      "Right Wheel Input File": "MAN_Kat1/wheel/MAN_5t_Wheel.json",
+      "Left Brake Input File": "MAN_Kat1/brake/MAN_5t_BrakeSimple.json",
+      "Right Brake Input File": "MAN_Kat1/brake/MAN_5t_BrakeSimple.json"
+    },
+
+    {
+      "Suspension Input File": "MAN_Kat1/suspension/MAN_7t_RearSolidThreeLinkAxle.json",
+      "Suspension Location": [ -5.6, 0, 0 ],
+      "Left Wheel Input File": "MAN_Kat1/wheel/MAN_5t_Wheel.json",
+      "Right Wheel Input File": "MAN_Kat1/wheel/MAN_5t_Wheel.json",
+      "Left Brake Input File": "MAN_Kat1/brake/MAN_5t_BrakeSimple.json",
+      "Right Brake Input File": "MAN_Kat1/brake/MAN_5t_BrakeSimple.json"
+    },
+
+    {
+      "Suspension Input File": "MAN_Kat1/suspension/MAN_7t_RearSolidThreeLinkAxle.json",
+      "Suspension Location": [ -7.0, 0, 0 ],
+      "Left Wheel Input File": "MAN_Kat1/wheel/MAN_5t_Wheel.json",
+      "Right Wheel Input File": "MAN_Kat1/wheel/MAN_5t_Wheel.json",
+      "Left Brake Input File": "MAN_Kat1/brake/MAN_5t_BrakeSimple.json",
+      "Right Brake Input File": "MAN_Kat1/brake/MAN_5t_BrakeSimple.json"
+    }
+  ],
+
+  "Steering Subsystems": [
+    {
+      "Input File": "MAN_Kat1/steering/MAN_5t_RotaryArm.json",
+      "Location": [ 0, 0, 0 ],
+      "Orientation": [ 1, 0, 0, 0 ]
+    },
+    {
+      "Input File": "MAN_Kat1/steering/MAN_10t_RotaryArm2.json",
+      "Location": [ -1.93, 0, 0 ],
+      "Orientation": [ 1, 0, 0, 0 ]
+    }
+  ],
+
+  "Wheelbase": 6.3,
+  "Minimum Turning Radius": 13.5,
+  "Maximum Steering Angle": 39.0,
+
+  "Driveline": {
+    "Input File": "MAN_Kat1/driveline/MAN_5t_DrivelineSimpleXWD.json",
+    "Suspension Indexes": [ 0, 1, 2, 3 ]
+  }
+}
+  

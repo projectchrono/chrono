@@ -1,23 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2011-2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-
-///////////////////////////////////////////////////
-//
-//   ChPython.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
+// =============================================================================
  
 
 #include "chrono_python/ChSwigutils.h"
@@ -234,7 +225,7 @@ typedef struct {
 */
 
 
-void ChPythonEngine::ImportSolidWorksSystem(const char* solidworks_py_file, ChSystem& msystem)
+void ChPythonEngine::ImportSolidWorksSystem(const char* solidworks_py_file, ChSystemNSC& msystem)
 {
 	std::ostringstream sstream;
 
@@ -282,7 +273,7 @@ void ChPythonEngine::ImportSolidWorksSystem(const char* solidworks_py_file, ChSy
 				if (mswigobj) 
 				{
 					void* objptr = mswigobj->ptr;
-					ChSharedPtr<ChPhysicsItem>* pt_to_shp = (ChSharedPtr<ChPhysicsItem>*)objptr;	
+					std::shared_ptr<ChPhysicsItem>* pt_to_shp = (std::shared_ptr<ChPhysicsItem>*)objptr;	
 				
 						/// Add the ChPhysicsItem to the ChSystem
 					msystem.Add( (*pt_to_shp) );

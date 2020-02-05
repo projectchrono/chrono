@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -39,11 +39,12 @@
 #include <sstream>
 #include <fstream>
 
-#include "core/ChApiCE.h"
-#include "core/ChBezierCurve.h"
-#include "physics/ChSystem.h"
-
-#include "utils/ChUtilsCreators.h"
+#include "chrono/core/ChApiCE.h"
+#include "chrono/core/ChBezierCurve.h"
+#include "chrono/assets/ChColor.h"
+#include "chrono/geometry/ChTriangleMeshConnected.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/utils/ChUtilsCreators.h"
 
 namespace chrono {
 namespace utils {
@@ -99,19 +100,28 @@ class ChApi CSV_writer {
   std::ostringstream m_ss;
 };
 
-inline CSV_writer& operator<<(CSV_writer& out, const ChVector<>& v) {
-  out << v.x << v.y << v.z;
+template <typename T>
+inline CSV_writer& operator<<(CSV_writer& out, const ChVector<T>& v) {
+  out << v.x() << v.y() << v.z();
   return out;
 }
 
-inline CSV_writer& operator<<(CSV_writer& out, const ChQuaternion<>& q) {
-  out << q.e0 << q.e1 << q.e2 << q.e3;
+template <typename T>
+inline CSV_writer& operator<<(CSV_writer& out, const ChQuaternion<T>& q) {
+  out << q.e0() << q.e1() << q.e2() << q.e3();
   return out;
 }
 
 inline CSV_writer& operator<<(CSV_writer& out, const ChColor& c) {
   out << c.R << c.G << c.B;
   return out;
+}
+
+template <typename T>
+inline CSV_writer& operator<<(CSV_writer& out, const std::vector<T>& vec) {
+    for (const auto& v : vec)
+        out << v;
+    return out;
 }
 
 // -----------------------------------------------------------------------------
@@ -149,7 +159,7 @@ void WriteShapesPovray(ChSystem* system,
 // Write the specified mesh as a macro in a PovRay include file. The output file
 // will be "[out_dir]/[mesh_name].inc". The mesh vertices will be transformed to
 // the frame with specified offset and orientation.
-ChApi void WriteMeshPovray(geometry::ChTriangleMeshConnected trimesh,
+ChApi void WriteMeshPovray(geometry::ChTriangleMeshConnected& trimesh,
                            const std::string& mesh_name,
                            const std::string& out_dir,
                            const ChColor& color = ChColor(0.4f, 0.4f, 0.4f),

@@ -1,0 +1,75 @@
+* Emacs major mode to be selected automagically: -*-CASCaDE-*-
+$CT                                                 ! comment text block
+CRG file example for road surface description (width: 3m, length: 22m)
+with default straight reference line and grid of 0.5m x 1.0m
+
+Copyright 2009 OpenCRG - VIRES GmbH - Marius Dupuis
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+More Information on OpenCRG open file formats and tools can be found at
+
+    http://www.opencrg.org
+
+$!**********************************************************************
+$ROAD_CRG                                          ! crg road parameters
+REFERENCE_LINE_START_U   = 0.0
+REFERENCE_LINE_START_X   = 0.0
+REFERENCE_LINE_START_Y   = 0.0
+REFERENCE_LINE_START_PHI = 0.0
+REFERENCE_LINE_END_U     = 22.0
+REFERENCE_LINE_END_X     = 22.0
+REFERENCE_LINE_END_Y     = 0.0
+REFERENCE_LINE_END_PHI   = 0.0
+REFERENCE_LINE_INCREMENT = 1.0
+LONG_SECTION_V_RIGHT     =-1.50           ! no explicit definition below
+LONG_SECTION_V_LEFT      = 1.50           ! no explicit definition below
+LONG_SECTION_V_INCREMENT = 0.50           ! no explicit definition below
+$!**********************************************************************
+$KD_Definition                                   ! data definition block
+#:LRFI                           ! one of the men readable IPLOS formats
+U:reference line x,m,0,1.0     ! virtual channel, only for IPLOS viewing
+D:long section 1,m                        ! 1.5m right of reference line
+D:long section 2,m                        ! 1.0m right of reference line
+D:long section 3,m                        ! 0.5m right of reference line
+D:long section 4,m                        !            on reference line
+D:long section 5,m                        ! 0.5m left  of reference line
+D:long section 6,m                        ! 1.0m left  of reference line
+D:long section 7,m                        ! 1.5m left  of reference line
+$!**********************************************************************
+* l_sec 1   l_sec 2   l_sec 3   l_sec 4   l_sec 5   l_sec 6   l_sec 7
+* v=-1.50   v=-1.00   v=-0.50   v= 0.00   v= 0.50   v= 1.00   v= 1.50
+$$$$$$$$$0$$$$$$$$$0$$$$$$$$$0$$$$$$$$$0$$$$$$$$$0$$$$$$$$$0$$$$$$$$$0$$$$$$$$$0
+ 0.0000000 0.0000000 2.2222222 3.3333333 4.4444444 5.5555555 5.5555555
+ 0.0000000 0.0000000 2.2222222 3.3333333 4.4444444 5.5555555 5.5555555
+ 0.0000000 0.0000000 2.2222222 3.3333333 4.4444444 5.5555555 5.5555555
+ 0.0000000 0.0000000 2.2222222 3.3333333 4.4444444 5.5555555 5.5555555
+ 0.0000000 0.0000000 2.2222222 3.3333333 4.4444444 5.5555555 5.5555555
+ 0.0000000 0.0000000 2.2222222 3.3333333 4.4444444 5.5555555 5.5555555
+ 0.0000000 0.0000000 2.2222222 3.3333333 4.4444444 5.5555555 5.5555555
+ 0.0000000 0.0000000 2.2222222 3.3333333 4.4444444 5.5555555 5.5555555
+ 0.0000000 0.0000000 2.2222222 3.3333333 4.4444444 5.5555555 5.5555555
+ 0.0000000 0.0000000 2.2222222 3.3333333 4.4444444 5.5555555 5.5555555
+ 0.0000000 0.0000000 2.2222222 3.3333333 4.4444444 5.5555555 5.5555555
+ 0.0000000 0.0000000 2.2222222 3.3333333 4.4444444 5.5555555 5.5555555
+ 0.0000000 0.0000000 2.2222222 3.3333333 4.4444444 5.5555555 5.5555555
+ 0.0000000 0.0000000 2.2222222 3.3333333 4.4444444 5.5555555 5.5555555
+ 0.0000000 0.0000000 2.2222222 3.3333333 4.4444444 5.5555555 5.5555555
+ 0.0000000 0.0000000 2.2222222 3.3333333 4.4444444 5.5555555 5.5555555
+ 0.0000000 0.0000000 2.2222222 3.3333333 4.4444444 5.5555555 5.5555555
+ 0.0000000 0.0000000 2.2222222 3.3333333 4.4444444 5.5555555 5.5555555
+ 0.0000000 0.0000000 2.2222222 3.3333333 4.4444444 5.5555555 5.5555555
+ 0.0000000 0.0000000 2.2222222 3.3333333 4.4444444 5.5555555 5.5555555
+ 0.0000000 0.0000000 2.2222222 3.3333333 4.4444444 5.5555555 5.5555555
+ 0.0000000 0.0000000 2.2222222 3.3333333 4.4444444 5.5555555 5.5555555
+ 0.0000000 0.0000000 2.2222222 3.3333333 4.4444444 5.5555555 5.5555555

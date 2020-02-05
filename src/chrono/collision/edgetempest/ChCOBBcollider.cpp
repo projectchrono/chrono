@@ -1,32 +1,24 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
-//////////////////////////////////////////////////
-//
-//   ChCOBBcollider.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
+#include <cstdio>
+#include <cstring>
 
-#include <stdio.h>
-#include <string.h>
+#include "chrono/collision/edgetempest/ChCMatVec.h"
+#include "chrono/collision/edgetempest/ChCGetTime.h"
+#include "chrono/collision/edgetempest/ChCOBBcollider.h"
+#include "chrono/collision/edgetempest/ChCGeometryCollider.h"
 
-#include "ChCMatVec.h"
-#include "ChCGetTime.h"
-#include "ChCOBBcollider.h"
-
-#include "ChCGeometryCollider.h"
-#include "core/ChTransform.h"
+#include "chrono/core/ChTransform.h"
 
 namespace chrono {
 namespace collision {
@@ -79,7 +71,7 @@ void CHOBBcollider::CollideRecurse(ChMatrix33<>& boR,
         return;
     }
 
-    // we dont, so decide whose children to visit next
+    // we don't, so decide whose children to visit next
 
     double sz1 = box1->GetSize();
     double sz2 = box2->GetSize();
@@ -91,7 +83,7 @@ void CHOBBcollider::CollideRecurse(ChMatrix33<>& boR,
         int c1 = box1->GetFirstChildIndex();
         int c2 = box1->GetSecondChildIndex();
 
-        Rc.MatrTMultiply(o1->child(c1)->Rot, boR);
+        Rc = o1->child(c1)->Rot.transpose() * boR;
 
         Tc = ChTransform<>::TransformParentToLocal(boT, o1->child(c1)->To, o1->child(c1)->Rot);
 
@@ -100,7 +92,7 @@ void CHOBBcollider::CollideRecurse(ChMatrix33<>& boR,
         if ((flag == ChC_FIRST_CONTACT) && (this->GetNumPairs() > 0))
             return;
 
-        Rc.MatrTMultiply(o1->child(c2)->Rot, boR);
+        Rc = o1->child(c2)->Rot.transpose() * boR;
 
         Tc = ChTransform<>::TransformParentToLocal(boT, o1->child(c2)->To, o1->child(c2)->Rot);
 
@@ -109,7 +101,7 @@ void CHOBBcollider::CollideRecurse(ChMatrix33<>& boR,
         int c1 = box2->GetFirstChildIndex();
         int c2 = box2->GetSecondChildIndex();
 
-        Rc.MatrMultiply(boR, o2->child(c1)->Rot);
+        Rc = boR * o2->child(c1)->Rot;
 
         Tc = ChTransform<>::TransformLocalToParent(o2->child(c1)->To, boT, boR);
 
@@ -118,7 +110,7 @@ void CHOBBcollider::CollideRecurse(ChMatrix33<>& boR,
         if ((flag == ChC_FIRST_CONTACT) && (this->GetNumPairs() > 0))
             return;
 
-        Rc.MatrMultiply(boR, o2->child(c2)->Rot);
+        Rc = boR * o2->child(c2)->Rot;
 
         Tc = ChTransform<>::TransformLocalToParent(o2->child(c2)->To, boT, boR);
 
@@ -139,7 +131,7 @@ ChNarrowPhaseCollider::eCollSuccess CHOBBcollider::ComputeCollisions(ChMatrix33<
                                                                      eCollMode flag) {
     double t1 = GetTime();
 
-    // INHERIT parent class behaviour
+    // INHERIT parent class behavior
 
     if (ChNarrowPhaseCollider::ComputeCollisions(R1, T1, oc1, R2, T2, oc2, flag) != ChC_RESULT_OK)
         return ChC_RESULT_GENERICERROR;
@@ -160,14 +152,14 @@ ChNarrowPhaseCollider::eCollSuccess CHOBBcollider::ComputeCollisions(ChMatrix33<
     static Vector bT;
     static Vector Ttemp;
 
-    Rtemp.MatrMultiply(this->R, o2->child(0)->Rot);  // MxM(Rtemp,this->R,o2->child(0)->R);
-    bR.MatrMultiply(o1->child(0)->Rot, Rtemp);       // MTxM(R,o1->child(0)->R,Rtemp);
+    Rtemp = this->R * o2->child(0)->Rot;  // MxM(Rtemp,this->R,o2->child(0)->R);
+    bR = o1->child(0)->Rot * Rtemp;       // MTxM(R,o1->child(0)->R,Rtemp);
 
     Ttemp = ChTransform<>::TransformLocalToParent(o2->child(0)->To, this->T,
                                                   this->R);  // MxVpV(Ttemp,this->R,o2->child(0)->To,this->T);
     Ttemp = Vsub(Ttemp, o1->child(0)->To);                   // VmV(Ttemp,Ttemp,o1->child(0)->To);
 
-    bT = o1->child(0)->Rot.MatrT_x_Vect(Ttemp);  // MTxV(T,o1->child(0)->R,Ttemp);
+    bT = o1->child(0)->Rot.transpose() * Ttemp;  // MTxV(T,o1->child(0)->R,Ttemp);
 
     // now start with both top level BVs
 
@@ -179,5 +171,5 @@ ChNarrowPhaseCollider::eCollSuccess CHOBBcollider::ComputeCollisions(ChMatrix33<
     return ChC_RESULT_OK;
 }
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono

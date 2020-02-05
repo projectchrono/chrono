@@ -1,38 +1,24 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHINDEXEDPARTICLES_H
 #define CHINDEXEDPARTICLES_H
 
-//////////////////////////////////////////////////
-//
-//   ChIndexedParticles.h
-//
-//   Interface class for clusters of 'particles' that can
-//   be accessed with an index. Particles have 6 DOF.
-//   Must be inherited by children classes.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
+#include <cmath>
 
-#include <math.h>
-
-#include "core/ChFrameMoving.h"
-#include "physics/ChPhysicsItem.h"
+#include "chrono/core/ChFrameMoving.h"
+#include "chrono/physics/ChPhysicsItem.h"
 
 namespace chrono {
 
@@ -45,14 +31,14 @@ class ChSystem;
 
 class ChApi ChParticleBase : public ChFrameMoving<double> {
   public:
-    ChParticleBase();
-    virtual ~ChParticleBase();
+    ChParticleBase() {}
+    ChParticleBase(const ChParticleBase& other) : ChFrameMoving<double>(other) {}
+    virtual ~ChParticleBase() {}
 
-    ChParticleBase(const ChParticleBase& other);             // Copy constructor
-    ChParticleBase& operator=(const ChParticleBase& other);  // Assignment operator
+    ChParticleBase& operator=(const ChParticleBase& other);
 
-    // Access the 'LCP variables' of the node
-    virtual ChLcpVariables& Variables() = 0;
+    // Access the variables of the node
+    virtual ChVariables& Variables() = 0;
 };
 
 /// Interface class for clusters of particles that can
@@ -60,29 +46,11 @@ class ChApi ChParticleBase : public ChFrameMoving<double> {
 /// Must be inherited by children classes.
 
 class ChApi ChIndexedParticles : public ChPhysicsItem {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChIndexedParticles, ChPhysicsItem);
-
-  private:
-    //
-    // DATA
-    //
 
   public:
-    //
-    // CONSTRUCTORS
-    //
-
-    /// Build a cluster of particles.
-    /// By default the cluster will contain 0 particles.
-    ChIndexedParticles();
-
-    /// Destructor
-    ~ChIndexedParticles();
-
-    //
-    // FUNCTIONS
-    //
+    ChIndexedParticles() {}
+    ChIndexedParticles(const ChIndexedParticles& other) : ChPhysicsItem(other) {}
+    virtual ~ChIndexedParticles() {}
 
     /// Get the number of particles
     virtual size_t GetNparticles() const = 0;
@@ -99,32 +67,25 @@ class ChApi ChIndexedParticles : public ChPhysicsItem {
     virtual void AddParticle(ChCoordsys<double> initial_state = CSYSNORM) = 0;
 
     /// Number of coordinates of the particle cluster, x7 because with quaternions for rotation
-    virtual int GetDOF() { return 7 * (int)GetNparticles(); }
+    virtual int GetDOF() override { return 7 * (int)GetNparticles(); }
     /// Number of coordinates of the particle cluster, x6 because derivatives es. angular vel.
-    virtual int GetDOF_w() { return 6 * (int)GetNparticles(); }
+    virtual int GetDOF_w() override { return 6 * (int)GetNparticles(); }
 
     /// Get the master coordinate system for the assets (this will return the
     /// main coordinate system of the rigid body)
-    virtual ChFrame<> GetAssetsFrame(unsigned int nclone = 0) {
-        ChFrame<> res;
-        res = GetParticle(nclone);
-        return (res);
-    }
-    virtual unsigned int GetAssetsFrameNclones() { return (unsigned int)GetNparticles(); }
+    virtual ChFrame<> GetAssetsFrame(unsigned int nclone = 0) override;
 
-    //
-    // SERIALIZATION
-    //
+    virtual unsigned int GetAssetsFrameNclones() override { return (unsigned int)GetNparticles(); }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-typedef ChSharedPtr<ChIndexedParticles> ChSharedIndexedParticlesPtr;
+CH_CLASS_VERSION(ChIndexedParticles,0)
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

@@ -1,0 +1,43 @@
+{
+  "Name":                           "M113 SinglePin Sprocket Right",
+  "Type":                           "Sprocket",
+  "Template":                       "SprocketSinglePin",
+
+  "Number Teeth":                   10,
+  "Gear Mass":                      27.68,
+  "Gear Inertia":                   [0.646, 0.883, 0.646],
+  "Axle Inertia":                   0.02,
+  "Gear Separation":                0.225,
+
+  "Profile": 
+  {
+      "Addenum Radius":             0.2605,
+      "Arc Radius":                 0.089,
+      "Arc Centers Radius":         0.3,
+      "Assembly Radius":            0.245
+  },
+
+  "Contact Material":
+  {
+      "Coefficient of Friction":    0.4,
+      "Coefficient of Restitution": 0.1,
+
+      "Properties": {
+          "Young Modulus":          1e7,
+          "Poisson Ratio":          0.3
+      },
+
+      "Coefficients": {
+          "Normal Stiffness":       2e5,
+          "Normal Damping":         40.0,
+          "Tangential Stiffness":   2e5,
+          "Tangential Damping":     20.0
+      }
+  },
+
+  "Visualization":
+  {
+      "Mesh Filename":              "M113/Sprocket_R.obj",
+      "Mesh Name":                  "Sprocket_R_POV_geom"
+  }
+}

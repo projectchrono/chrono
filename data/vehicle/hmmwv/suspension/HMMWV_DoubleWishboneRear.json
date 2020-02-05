@@ -3,6 +3,8 @@
   "Type":                       "Suspension",
   "Template":                   "DoubleWishbone",
 
+  "Vehicle-Frame Inertia":      false,
+
   "Spindle" :
   {
     "Mass":                     15.91,
@@ -16,7 +18,8 @@
   {
     "Mass":                     27.27,
     "COM":                      [0.036, 0.751, -0.026],
-    "Inertia":                  [5, 5, 5],
+    "Moments of Inertia":       [5, 5, 5],
+    "Products of Inertia":      [0, 0, 0],
     "Radius":                   0.025
   },
 
@@ -24,7 +27,8 @@
   {
     "Mass":                     5.45,
     "COM":                      [0.124, 0.589, 0.221],
-    "Inertia":                  [2, 2, 2],
+    "Moments of Inertia":       [2, 2, 2],
+    "Products of Inertia":      [0, 0, 0],
     "Radius":                   0.02,
     "Location Chassis Front":   [0.349, 0.462, 0.228],
     "Location Chassis Back":    [0.077, 0.462, 0.224],
@@ -35,7 +39,8 @@
   {
     "Mass":                     16.36,
     "COM":                      [0.000, 0.547, -0.059],
-    "Inertia":                  [3, 3, 3],
+    "Moments of Inertia":       [3, 3, 3],
+    "Products of Inertia":      [0, 0, 0],
     "Radius":                   0.03,
     "Location Chassis Front":   [0.223, 0.307, 0.000],
     "Location Chassis Back":    [-0.223, 0.307, 0.000],
@@ -52,7 +57,29 @@
   {
     "Location Chassis":         [-0.104, 0.502, 0.256],
     "Location Arm":             [-0.097, 0.543, -0.047],
-    "Spring Coefficient":       369149.000,
+    "Minimum Length":       0.15,
+    "Maximum Length":      0.35,
+    "Curve Data":  [[-0.2,  -711719.272],
+                    [-0.18, -531468.245],
+                    [-0.16, -385663.250],
+                    [-0.14, -270476.949],
+                    [-0.12, -182082.006],
+                    [-0.1,  -116651.084],
+                    [-0.08,  -70356.846],
+                    [-0.06,  -39371.956],
+                    [-0.04,  -19869.076],
+                    [-0.02,   -8020.869],
+                    [0,           0],
+                    [0.02,     8020.869],
+                    [0.04,    19869.076],
+                    [0.06,    39371.956],
+                    [0.08,    70356.846],
+                    [0.1,    116651.084],
+                    [0.12,   182082.006],
+                    [0.14,   270476.949],
+                    [0.16,   385663.250],
+                    [0.18,   531468.245],
+                    [0.2,    711719.272]],
     "Free Length":              0.382
   },
 

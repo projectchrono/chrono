@@ -1,14 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2011 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHIRRTOOLS_H
 #define CHIRRTOOLS_H
@@ -27,20 +27,20 @@
 namespace irr {
 namespace core {
 
-/// Utility class to easily convert a Chrono::Engine vector into an Irrlicht
+/// Utility class to easily convert a Chrono vector into an Irrlicht
 /// vector3df. Simply create an Irrlicht compatible vector as:
 ///          myvector=vector3dfCH(mychronovector);
 class ChApiIrr vector3dfCH : public vector3df {
   public:
     vector3dfCH(const chrono::ChVector<>& mch) {
-        X = ((f32)mch.x);
-        Y = ((f32)mch.y);
-        Z = ((f32)mch.z);
+        X = ((f32)mch.x());
+        Y = ((f32)mch.y());
+        Z = ((f32)mch.z());
     }
     vector3dfCH(chrono::ChVector<>* mch) {
-        X = ((f32)mch->x);
-        Y = ((f32)mch->y);
-        Z = ((f32)mch->z);
+        X = ((f32)mch->x());
+        Y = ((f32)mch->y());
+        Z = ((f32)mch->z());
     }
 };
 
@@ -50,12 +50,12 @@ class ChApiIrr vector3dfCH : public vector3df {
 namespace chrono {
 namespace irrlicht {
 
-/// @addtogroup irrlicht
+/// @addtogroup irrlicht_module
 /// @{
 
 // -----------------------------------------------------------------------------
 /// Class with static functions which help with the integration of
-/// Chrono::Engine and Irrlicht 3D rendering library.
+/// Chrono and Irrlicht 3D rendering library.
 class ChApiIrr ChIrrTools {
   public:
     enum eCh_ContactsDrawMode {
@@ -95,21 +95,21 @@ class ChApiIrr ChIrrTools {
         LINK_NONE_VAL              // draw nothing
     };
 
-    /// Function to align an Irrlicht object to a Chrono::Engine coordsys.
+    /// Function to align an Irrlicht object to a Chrono coordsys.
     static void alignIrrlichtNodeToChronoCsys(irr::scene::ISceneNode* mnode, const ChCoordsys<>& mcoords);
 
     /// Easy-to-use function which draws contact points used by a ChSystem in the
     /// current Irrlicht viewer (the IVideoDriver). The contact points are
     /// visually represented with short lines, of length mlen, aligned to contact
     /// normals.
-    static int drawAllContactPoints(ChSystem& mphysicalSystem,
+	static int drawAllContactPoints(std::shared_ptr<ChContactContainer> mcontactcontainer,
                                     irr::video::IVideoDriver* driver,
                                     double mlen = 1.0,
                                     eCh_ContactsDrawMode drawtype = CONTACT_NORMALS);
 
     /// Easy-to-use function which draws contact informations as labels at the
     /// contact point
-    static int drawAllContactLabels(ChSystem& mphysicalSystem,
+    static int drawAllContactLabels(std::shared_ptr<ChContactContainer> mcontactcontainer,
                                     irr::IrrlichtDevice* device,
                                     eCh_ContactsLabelMode labeltype = CONTACT_FORCES_N_VAL,
                                     irr::video::SColor mcol = irr::video::SColor(255, 255, 255, 255));
@@ -146,8 +146,7 @@ class ChApiIrr ChIrrTools {
                                  int my = 290,
                                  int sx = 300,
                                  int sy = 100,
-                                 double spfact = 100.0,
-                                 double posfact = 500.0);
+                                 double spfact = 100.0);
 
     /// --
     static void drawChFunction(irr::IrrlichtDevice* mdevice,
@@ -208,17 +207,37 @@ class ChApiIrr ChIrrTools {
                          irr::video::SColor mcol = irr::video::SColor(50, 80, 110, 110),
                          bool use_Zbuffer = false);
 
+    /// Easy-to-use function to draw color bar with a color map and 2D legend
+    static void drawColorbar(double vmin,
+                             double vmax,
+                             const std::string& label,
+                             irr::IrrlichtDevice* mdevice,
+                             int mx = 740,
+                             int my = 20,
+                             int sx = 30,
+                             int sy = 300);
+
+	/// Draw the collision shapes as wireframe, overlayed to shapes.
+	/// Note: this works only for the Bullet collision system (i.e. not working for Chrono Parallel) 
+	static void drawCollisionShapes(ChSystem& asystem,
+		irr::IrrlichtDevice* mdevice,
+		irr::video::SColor mcol = irr::video::SColor(50, 0, 0, 110) );
+
     /// --
     static void drawPlot3D(irr::video::IVideoDriver* driver,
-                           ChMatrix<> X,  // x of points, in local csys x
-                           ChMatrix<> Y,  // y of points, in local csys y
-                           ChMatrix<> Z,  // z height map of points, in local csys z
+                           ChMatrixConstRef X,  // x of points, in local csys x
+                           ChMatrixConstRef Y,  // y of points, in local csys y
+                           ChMatrixConstRef Z,  // z height map of points, in local csys z
                            ChCoordsys<> mpos = CSYSNORM,
                            irr::video::SColor mcol = irr::video::SColor(50, 80, 110, 110),
                            bool use_Zbuffer = false);
+
+    /// Draw run-time profiler infos
+    static void drawProfiler(irr::IrrlichtDevice* device);
+
 };
 
-/// @} irrlicht
+/// @} irrlicht_module
 
 }  // end namespace irrlicht
 }  // end namespace chrono

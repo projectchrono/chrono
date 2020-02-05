@@ -24,6 +24,12 @@
 #include <hacdMeshDecimator.h>
 #include <hacdRaycastMesh.h>
 
+#if defined _WIN32
+#define SIZET_FMT "%zu"
+#else
+#define SIZET_FMT "%lu"
+#endif
+
 //#define THREAD_DIST_POINTS 1
 
 //#define HACD_DEBUG
@@ -143,7 +149,7 @@ namespace HACD
             if (m_callBack)
             {
                 char msg[1024];
-                sprintf(msg, "nCC %lu\n", m_graph.m_nCCs);
+                sprintf(msg, "nCC " SIZET_FMT "\n", m_graph.m_nCCs);
                 (*m_callBack)(msg, 0.0, 0.0,  m_graph.GetNVertices());
                 
             }
@@ -316,7 +322,7 @@ namespace HACD
                 {
 					m_extraDistPoints[f] = hitPoint;
 					m_extraDistNormals[f] = hitNormal;
-					m_graph.m_vertices[f].m_distPoints.PushBack(DPoint(m_nPoints+f, 0, false, true));
+					m_graph.m_vertices[f].m_distPoints.PushBack(DPoint((long)(m_nPoints+f), 0, false, true));
 				}
 
 				// Atomic update of the progress
@@ -575,7 +581,7 @@ namespace HACD
         delete ch;
 #endif
 
-		// compute boudary edges
+		// compute boundary edges
 		double perimeter = 0.0;
 		if (m_alpha > 0.0)
 		{
@@ -874,7 +880,7 @@ namespace HACD
                 if (m_callBack) 
                 {
                     char msg[1024];
-                    sprintf(msg, "\t CH(%lu) \t %lu \t %lf \t %lu \t %f \t %lu\n", v, static_cast<unsigned long>(p), m_graph.m_vertices[v].m_concavity, m_graph.m_vertices[v].m_distPoints.Size(),  m_graph.m_vertices[v].m_surf*100.0/m_area, m_graph.m_vertices[v].m_ancestors.size());
+                    sprintf(msg, "\t CH(" SIZET_FMT ") \t %lu \t %lf \t " SIZET_FMT " \t %f \t " SIZET_FMT "\n", v, static_cast<unsigned long>(p), m_graph.m_vertices[v].m_concavity, m_graph.m_vertices[v].m_distPoints.Size(),  m_graph.m_vertices[v].m_surf*100.0/m_area, m_graph.m_vertices[v].m_ancestors.size());
 					(*m_callBack)(msg, 0.0, 0.0, m_nClusters);
 					p++;
                 }
@@ -925,8 +931,8 @@ namespace HACD
 			msg << "+ Parameters" << std::endl;
 			msg << "\t min # of clusters              \t" << m_nMinClusters << std::endl;
 			msg << "\t max concavity                  \t" << m_concavity << std::endl;
-			msg << "\t compacity weigth               \t" << m_alpha << std::endl;
-            msg << "\t volume weigth                  \t" << m_beta << std::endl;
+			msg << "\t compacity weight               \t" << m_alpha << std::endl;
+            msg << "\t volume weight                  \t" << m_beta << std::endl;
 			msg << "\t # vertices per convex-hull     \t" << m_nVerticesPerCH << std::endl;
 			msg << "\t scale                          \t" << m_scale << std::endl;
 			msg << "\t add extra distance points      \t" << m_addExtraDistPoints << std::endl;

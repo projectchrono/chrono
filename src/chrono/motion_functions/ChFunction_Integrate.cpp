@@ -1,57 +1,38 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2011 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChFunction_Integrate.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "ChFunction_Integrate.h"
-#include "ChFunction_Const.h"
+#include "chrono/motion_functions/ChFunction_Integrate.h"
+#include "chrono/motion_functions/ChFunction_Const.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
-ChClassRegister<ChFunction_Integrate> a_registration_integrate;
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChFunction_Integrate)
 
-ChFunction_Integrate::ChFunction_Integrate() {
-    order = 1;
-    fa = ChSharedPtr<ChFunction_Const>(new ChFunction_Const);  // default
-    C_start = x_start = 0;
-    x_end = 1;
-    num_samples = 2000;
-    array_x = new ChMatrixDynamic<>(num_samples, 1);
+ChFunction_Integrate::ChFunction_Integrate() : order(1), C_start(0), x_start(0), x_end(1), num_samples(2000) {
+    fa = chrono_types::make_shared<ChFunction_Const>();  // default
+    array_x.resize(num_samples);
 }
 
-void ChFunction_Integrate::Copy(ChFunction_Integrate* source) {
-    // fa = source->fa;		//***? shallow copy (now sharing same object)...
-    fa = ChSharedPtr<ChFunction>(source->fa->new_Duplicate());  //***? ..or deep copy? make optional with flag?
-    order = source->order;
-    C_start = source->C_start;
-    x_start = source->x_start;
-    x_end = source->x_end;
-    num_samples = source->num_samples;
-    array_x->CopyFromMatrix(*source->array_x);
-}
-
-ChFunction* ChFunction_Integrate::new_Duplicate() {
-    ChFunction_Integrate* m_func;
-    m_func = new ChFunction_Integrate;
-    m_func->Copy(this);
-    return (m_func);
+ChFunction_Integrate::ChFunction_Integrate(const ChFunction_Integrate& other) {
+    fa = std::shared_ptr<ChFunction>(other.fa->Clone());
+    order = other.order;
+    C_start = other.C_start;
+    x_start = other.x_start;
+    x_end = other.x_end;
+    num_samples = other.num_samples;
+    array_x = other.array_x;
 }
 
 void ChFunction_Integrate::ComputeIntegral() {
@@ -60,7 +41,7 @@ void ChFunction_Integrate::ComputeIntegral() {
 
     double F_sum = this->Get_C_start();
 
-    this->array_x->SetElement(0, 0, this->Get_C_start());
+    array_x(0) = this->Get_C_start();
 
     for (int i = 1; i < this->num_samples; i++) {
         x_b = x_start + ((double)i) * (mstep);
@@ -69,12 +50,12 @@ void ChFunction_Integrate::ComputeIntegral() {
         y_b = this->fa->Get_y(x_b);
         // trapezoidal rule..
         F_b = F_sum + mstep * (y_a + y_b) * 0.5;
-        this->array_x->SetElement(i, 0, F_b);
+        array_x(i) = F_b;
         F_sum = F_b;
     }
 }
 
-double ChFunction_Integrate::Get_y(double x) {
+double ChFunction_Integrate::Get_y(double x) const {
     if ((x < x_start) || (x > x_end))
         return 0.0;
     int i_a, i_b;
@@ -82,43 +63,51 @@ double ChFunction_Integrate::Get_y(double x) {
     i_a = (int)(floor(position));
     i_b = i_a + 1;
 
-    if (i_a == num_samples - 1)
-        return array_x->GetElement(num_samples - 1, 0);
+    if (i_b > num_samples - 1)
+        return array_x(num_samples - 1);
 
-    if ((i_a < 0) || (i_b >= num_samples))
-        return 0.0;
+    if (i_a < 0)
+        return array_x(0);
 
     double weightB = position - (double)i_a;
     double weightA = 1 - weightB;
 
-    return (weightA * (array_x->GetElement(i_a, 0)) + weightB * (array_x->GetElement(i_b, 0)));
+    return (weightA * (array_x(i_a)) + weightB * (array_x(i_b)));
 }
 
-void ChFunction_Integrate::Estimate_x_range(double& xmin, double& xmax) {
+void ChFunction_Integrate::Estimate_x_range(double& xmin, double& xmax) const {
     xmin = x_start;
     xmax = x_end;
 }
 
-int ChFunction_Integrate::MakeOptVariableTree(ChList<chjs_propdata>* mtree) {
-    int i = 0;
-
-    // inherit parent behaviour
-    ChFunction::MakeOptVariableTree(mtree);
-
-    // expand tree for children..
-
-    chjs_propdata* mdataA = new chjs_propdata;
-    strcpy(mdataA->propname, "fa");
-    strcpy(mdataA->label, mdataA->propname);
-    mdataA->haschildren = TRUE;
-    mtree->AddTail(mdataA);
-
-    i += this->fa->MakeOptVariableTree(&mdataA->children);
-
-    return i;
+void ChFunction_Integrate::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChFunction_Integrate>();
+    // serialize parent class
+    ChFunction::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(fa);
+    marchive << CHNVP(order);
+    marchive << CHNVP(C_start);
+    marchive << CHNVP(x_start);
+    marchive << CHNVP(x_end);
+    marchive << CHNVP(num_samples);
 }
 
+void ChFunction_Integrate::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChFunction_Integrate>();
+    // deserialize parent class
+    ChFunction::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(fa);
+    marchive >> CHNVP(order);
+    marchive >> CHNVP(C_start);
+    marchive >> CHNVP(x_start);
+    marchive >> CHNVP(x_end);
+    marchive >> CHNVP(num_samples);
+    array_x.setZero(num_samples);
+    ComputeIntegral();
+}
 
-}  // END_OF_NAMESPACE____
-
-// eof
+}  // end namespace chrono

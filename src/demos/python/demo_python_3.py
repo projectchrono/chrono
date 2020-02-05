@@ -1,50 +1,44 @@
 #-------------------------------------------------------------------------------
-# Name:        demo_python_3
+# Name:        pychrono example
+# Purpose:
+#
+# Author:      Alessandro Tasora
+#
+# Created:     1/01/2019
+# Copyright:   (c) ProjectChrono 2019
+#
 #
 # This file shows how to use POV ray for postprocessing, thanks to the
 # utility functions in the unit_POSTPROCESS of Chrono::Engine.
 #
-# Note. Since this file requires a template file ( "_template_POV.pov" in the
-# bin/data/ directory) whose position is set with a relative path, please
-# make sure that the current directory of Python is the one where this demo
-# resides, otherwise if you launch it from another directory it does not
-# find the POV template.
-#
 #-------------------------------------------------------------------------------
-#!/usr/bin/env python
 
-def main():
-    pass
-
-if __name__ == '__main__':
-    main()
+print ("Third tutorial: use the postprocess module.");
 
 
-# Load the Chrono::Engine unit and the postprocessing unit!!!
-import ChronoEngine_PYTHON_core as chrono
-import ChronoEngine_PYTHON_postprocess as postprocess
+# Load the Chrono::Engine core module and the postprocessing module!
+import pychrono as chrono
+import pychrono.postprocess as postprocess
 
 # We will create two directories for saving some files, we need this:
 import os
 
 
 # Create a physical system,
-my_system = chrono.ChSystem()
+my_system = chrono.ChSystemNSC()
 my_systemB = my_system
-my_system.SetTol(2)
-print (my_systemB.GetTol())
 
 # Create a body
-body_1= chrono.ChBodyAuxRefShared()
+body_1= chrono.ChBodyAuxRef()
 my_system.Add(body_1)
 
-# Attach a visualization asset to the body (a Wavefront .obj mesh)
-myasset = chrono.ChSphereShapeShared()
+# Attach a visualization asset to the body (ex.: a sphere)
+myasset = chrono.ChSphereShape()
 myasset.GetSphereGeometry().rad =0.2
 body_1.GetAssets().push_back(myasset)
 
 # Assets can be shared, ex. to save memory...
-body_2= chrono.ChBodyAuxRefShared()
+body_2= chrono.ChBodyAuxRef()
 body_2.SetPos(chrono.ChVectorD(0.5,0,0))
 my_system.Add(body_2)
 body_2.GetAssets().push_back(myasset)
@@ -56,7 +50,7 @@ body_2.GetAssets().push_back(myasset)
 pov_exporter = postprocess.ChPovRay(my_system)
 
  # Sets some file names for in-out processes.
-pov_exporter.SetTemplateFile        ("../data/_template_POV.pov")
+pov_exporter.SetTemplateFile        ("../../../data/_template_POV.pov")
 pov_exporter.SetOutputScriptFile    ("rendering_frames.pov")
 pov_exporter.SetOutputDataFilebase  ("my_state")
 pov_exporter.SetPictureFilebase     ("picture")

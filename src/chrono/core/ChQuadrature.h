@@ -1,21 +1,24 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-//
-// File author: Alessandro Tasora
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #ifndef CHQUADRATURE
 #define CHQUADRATURE
 
 #include <vector>
-#include "core/ChMath.h"
+
+#include "chrono/core/ChApiCE.h"
+#include "chrono/core/ChMatrix.h"
 
 namespace chrono {
 
@@ -31,10 +34,7 @@ class ChApi ChQuadratureTables {
     void PrintTables();
 
   private:
-    void glege_coef(ChMatrix<>& lcoef, int N);
-    void glege_roots(ChMatrix<>& lcoef, int N, int ntable);
-    double glege_eval(int n, double x, ChMatrix<>& lcoef);
-    double glege_diff(int n, double x, ChMatrix<>& lcoef);
+    void glege_roots(ChMatrixDynamic<>& lcoef, int N, int ntable);
 };
 
 
@@ -82,6 +82,8 @@ class ChApi ChQuadratureTablesTetrahedron {
 template <class T = double>
 class ChIntegrable1D {
   public:
+    virtual ~ChIntegrable1D() {}
+
     /// Evaluate the function at point x , that is
     /// result T = f(x)
     virtual void Evaluate(T& result, const double x) = 0;
@@ -92,6 +94,8 @@ class ChIntegrable1D {
 template <class T = double>
 class ChIntegrable2D {
   public:
+    virtual ~ChIntegrable2D() {}
+
     /// Evaluate the function at point x,y , that is
     /// result T = f(x,y)
     virtual void Evaluate(T& result, const double x, const double y) = 0;
@@ -102,6 +106,8 @@ class ChIntegrable2D {
 template <class T = double>
 class ChIntegrable3D {
   public:
+    virtual ~ChIntegrable3D() {}
+
     /// Evaluate the function at point x,y,z , that is
     /// result T = f(x,y,z)
     virtual void Evaluate(T& result, const double x, const double y, const double z) = 0;
@@ -336,6 +342,7 @@ class ChApi ChQuadrature {
     /// with 5 precomputed tables. Use Dunavant theory.
     static ChQuadratureTablesTetrahedron* GetStaticTablesTetrahedron();
 };
-}
+
+}  // end namespace chrono
 
 #endif

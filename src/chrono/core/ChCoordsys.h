@@ -1,44 +1,27 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHCOORDSYS_H
 #define CHCOORDSYS_H
 
-//////////////////////////////////////////////////
-//
-//   ChCoordsys.h
-//
-//   Basic math functions for 3d coordinates (position
-//   and rotation).
-//   For more advanced features, look into headers
-//   ChFrame.h or ChFrameMoving.h.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "core/ChVector.h"
-#include "core/ChQuaternion.h"
+#include "chrono/core/ChQuaternion.h"
+#include "chrono/core/ChVector.h"
 
 namespace chrono {
 
 ///
 /// COORDSYS:
 ///
-///  This class contains both traslational variable
+///  This class contains both translational variable
 /// (the origin of the axis) and the rotational variable
 /// (that is the unitary quaternion which represent the
 /// special-orthogonal transformation matrix).
@@ -46,24 +29,18 @@ namespace chrono {
 /// are provided. However, for more advanced features, the
 /// heavier classes ChFrame() or ChFrameMoving() may suit better.
 ///  The coordsys object comes either with the template "ChCoordsys<type>" mode,
-/// either in the 'shortcut' flavour, that is "Coordsys", which assumes
+/// either in the 'shortcut' flavor, that is "Coordsys", which assumes
 /// the type of the four scalars is double precision, so it is faster to type.
 ///
+/// Further info at the @ref coordinate_transformations manual page.
 
 template <class Real = double>
 class ChCoordsys {
   public:
-    //
-    // DATA
-    //
-
     ChVector<Real> pos;
     ChQuaternion<Real> rot;
 
-    //
-    // CONSTRUCTORS
-    //
-
+  public:
     // Default constructor (identity frame)
     ChCoordsys() : pos(ChVector<Real>(0, 0, 0)), rot(ChQuaternion<Real>(1, 0, 0, 0)){};
 
@@ -79,9 +56,36 @@ class ChCoordsys {
     /// Copy constructor
     ChCoordsys(const ChCoordsys<Real>& other) : pos(other.pos), rot(other.rot){};
 
-    //
+    // EIGEN INTER-OPERABILITY
+
+    /// Construct a coordsys from an Eigen vector expression.
+    template <typename Derived>
+    ChCoordsys(const Eigen::MatrixBase<Derived>& vec,
+               typename std::enable_if<(Derived::MaxRowsAtCompileTime == 1 || Derived::MaxColsAtCompileTime == 1),
+                                       Derived>::type* = 0) {
+        pos.x() = vec(0);
+        pos.y() = vec(1);
+        pos.z() = vec(2);
+        rot.e0() = vec(3);
+        rot.e1() = vec(4);
+        rot.e2() = vec(5);
+        rot.e3() = vec(6);
+    }
+
+    /// Assign an Eigen vector expression to this coordsys.
+    template <typename Derived>
+    ChCoordsys& operator=(const Eigen::MatrixBase<Derived>& vec) {
+        pos.x() = vec(0);
+        pos.y() = vec(1);
+        pos.z() = vec(2);
+        rot.e0() = vec(3);
+        rot.e1() = vec(4);
+        rot.e2() = vec(5);
+        rot.e3() = vec(6);
+        return *this;
+    }
+
     // OPERATORS OVERLOADING
-    //
 
     /// Assignment operator: copy from another coordsys
     ChCoordsys<Real>& operator=(const ChCoordsys<Real>& other) {
@@ -191,9 +195,9 @@ class ChCoordsys {
 
     /// Force to z=0, and z rotation only. No normalization to quaternion, however.
     void Force2D() {
-        pos.z = 0;
-        rot.e1 = 0;
-        rot.e2 = 0;
+        pos.z() = 0;
+        rot.e1() = 0;
+        rot.e2() = 0;
     }
 
     /// Returns true if coordsys is identical to other coordsys
@@ -275,30 +279,39 @@ class ChCoordsys {
     //
 
     /// Method to allow serialization of transient data in archives.
-    void ArchiveOUT(ChArchiveOut& marchive)
-    {
+    void ArchiveOUT(ChArchiveOut& marchive) {
         // suggested: use versioning
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChCoordsys<double>>();
         // stream out all member data
         marchive << CHNVP(pos);
         marchive << CHNVP(rot);
     }
 
-    /// Method to allow de serialization of transient data from archives.
-    void ArchiveIN(ChArchiveIn& marchive) 
-    {
+    /// Method to allow de-serialization of transient data from archives.
+    void ArchiveIN(ChArchiveIn& marchive) {
         // suggested: use versioning
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChCoordsys<double>>();
         // stream in all member data
         marchive >> CHNVP(pos);
         marchive >> CHNVP(rot);
     }
-
 };
 
-//
+CH_CLASS_VERSION(ChCoordsys<double>, 0)
+
+// -----------------------------------------------------------------------------
+
+/// Insertion of coordsys to output stream.
+template <typename Real>
+inline std::ostream& operator<<(std::ostream& out, const ChCoordsys<Real>& cs) {
+    out << cs.pos.x() << "  " << cs.pos.y() << "  " << cs.pos.z() << "  ";
+    out << cs.rot.e0() << "  " << cs.rot.e1() << "  " << cs.rot.e2() << "  " << cs.rot.e3();
+    return out;
+}
+
+// -----------------------------------------------------------------------------
+
 // MIXED ARGUMENT OPERATORS
-//
 
 // Mixing with ChVector :
 
@@ -413,15 +426,13 @@ typedef ChCoordsys<float> CoordsysF;
 //
 
 /// Force 3d coordsys to lie on a XY plane (note: no normaliz. on quat)
-ChApi Coordsys Force2Dcsys(Coordsys* cs);
+ChApi Coordsys Force2Dcsys(const Coordsys& cs);
 
-//
 // CONSTANTS
-//
 
-static const Coordsys CSYSNULL(VNULL, QNULL);
-static const Coordsys CSYSNORM(VNULL, QUNIT);
+ChApi extern const ChCoordsys<double> CSYSNULL;
+ChApi extern const ChCoordsys<double> CSYSNORM;
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
-#endif  // END of ChCoordsys.h
+#endif

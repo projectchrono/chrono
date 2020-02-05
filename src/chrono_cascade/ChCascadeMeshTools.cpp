@@ -1,22 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2011-2012 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-
-///////////////////////////////////////////////////
-//
-//   ChCascadeMeshTools.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #include "chrono_cascade/ChCascadeMeshTools.h"
 
@@ -270,9 +264,9 @@ void ChCascadeMeshTools::fillObjFileFromCascade(ChStreamOutAscii& objfile,
                     nor*= -1;
 
                 char buff[200];
-                sprintf(buff, "v %0.9f %0.9f %0.9f\r\n", pos.x, pos.y, pos.z);
+                sprintf(buff, "v %0.9f %0.9f %0.9f\r\n", pos.x(), pos.y(), pos.z());
                 objfile << buff;
-                sprintf(buff, "vn %0.9f %0.9f %0.9f\r\n", nor.x, nor.y, nor.z);
+                sprintf(buff, "vn %0.9f %0.9f %0.9f\r\n", nor.x(), nor.y(), nor.z());
                 objfile << buff;
                 vertface++;
 

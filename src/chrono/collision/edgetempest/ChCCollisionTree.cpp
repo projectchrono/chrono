@@ -1,30 +1,22 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
-//////////////////////////////////////////////////
-//
-//   ChCCollisionTree.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
+#include <cstdio>
+#include <cstring>
 
-#include <stdio.h>
-#include <string.h>
-
-#include "ChCMatVec.h"
-#include "ChCGetTime.h"
-#include "ChCCollisionTree.h"
-#include "physics/ChBody.h"
+#include "chrono/collision/edgetempest/ChCMatVec.h"
+#include "chrono/collision/edgetempest/ChCGetTime.h"
+#include "chrono/collision/edgetempest/ChCCollisionTree.h"
+#include "chrono/physics/ChBody.h"
 
 namespace chrono {
 namespace collision {
@@ -112,18 +104,17 @@ void ChCollisionTree::UpdateAbsoluteAABB(double envelope) {
 
     m_absoluteAABB.init(this);
 
-    static ChMatrix33<> at;
-    at.CopyFromMatrixT(m_body->GetA());
+    static ChMatrix33<> at = m_body->GetA().transpose();
 
     GetBoundingBox(xmin, xmax, ymin, ymax, zmin, zmax, &at);
 
-    m_absoluteAABB.m_beginX.m_value = xmin - envelope + m_body->GetPos().x;
-    m_absoluteAABB.m_endX.m_value = xmax + envelope + m_body->GetPos().x;
-    m_absoluteAABB.m_beginY.m_value = ymin - envelope + m_body->GetPos().y;
-    m_absoluteAABB.m_endY.m_value = ymax + envelope + m_body->GetPos().y;
-    m_absoluteAABB.m_beginZ.m_value = zmin - envelope + m_body->GetPos().z;
-    m_absoluteAABB.m_endZ.m_value = zmax + envelope + m_body->GetPos().z;
+    m_absoluteAABB.m_beginX.m_value = xmin - envelope + m_body->GetPos().x();
+    m_absoluteAABB.m_endX.m_value = xmax + envelope + m_body->GetPos().x();
+    m_absoluteAABB.m_beginY.m_value = ymin - envelope + m_body->GetPos().y();
+    m_absoluteAABB.m_endY.m_value = ymax + envelope + m_body->GetPos().y();
+    m_absoluteAABB.m_beginZ.m_value = zmin - envelope + m_body->GetPos().z();
+    m_absoluteAABB.m_endZ.m_value = zmax + envelope + m_body->GetPos().z();
 }
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono

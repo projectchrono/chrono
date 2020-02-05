@@ -1,72 +1,56 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2011 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChFunction_Derive.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "ChFunction_Derive.h"
+#include "chrono/motion_functions/ChFunction_Derive.h"
 
 namespace chrono {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChFunction_Derive> a_registration_derive;
+CH_FACTORY_REGISTER(ChFunction_Derive)
 
-void ChFunction_Derive::Copy(ChFunction_Derive* source) {
-    order = source->order;
-    // fa = source->fa;		//***? shallow copy (now sharing same object)...
-    fa = ChSharedPtr<ChFunction>(source->fa->new_Duplicate());  //***? ..or deep copy? make optional with flag?
+ChFunction_Derive::ChFunction_Derive(const ChFunction_Derive& other) {
+    order = other.order;
+    fa = std::shared_ptr<ChFunction>(other.fa->Clone());
 }
 
-ChFunction* ChFunction_Derive::new_Duplicate() {
-    ChFunction_Derive* m_func;
-    m_func = new ChFunction_Derive;
-    m_func->Copy(this);
-    return (m_func);
-}
-
-double ChFunction_Derive::Get_y(double x) {
+double ChFunction_Derive::Get_y(double x) const {
     return fa->Get_y_dx(x);
 }
 
-void ChFunction_Derive::Estimate_x_range(double& xmin, double& xmax) {
+void ChFunction_Derive::Estimate_x_range(double& xmin, double& xmax) const {
     fa->Estimate_x_range(xmin, xmax);
 }
 
-int ChFunction_Derive::MakeOptVariableTree(ChList<chjs_propdata>* mtree) {
-    int i = 0;
-
-    // inherit parent behaviour
-    ChFunction::MakeOptVariableTree(mtree);
-
-    // expand tree for children..
-
-    chjs_propdata* mdataA = new chjs_propdata;
-    strcpy(mdataA->propname, "fa");
-    strcpy(mdataA->label, mdataA->propname);
-    mdataA->haschildren = TRUE;
-    mtree->AddTail(mdataA);
-
-    i += this->fa->MakeOptVariableTree(&mdataA->children);
-
-    return i;
+void ChFunction_Derive::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChFunction_Derive>();
+    // serialize parent class
+    ChFunction::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(fa);
+    marchive << CHNVP(order);
 }
 
+void ChFunction_Derive::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChFunction_Derive>();
+    // deserialize parent class
+    ChFunction::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(fa);
+    marchive >> CHNVP(order);
+}
 
-}  // END_OF_NAMESPACE____
-
-// eof
+}  // end namespace chrono

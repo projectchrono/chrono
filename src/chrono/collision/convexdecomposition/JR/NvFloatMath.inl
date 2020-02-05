@@ -59,6 +59,8 @@
 #include "NvUserMemAlloc.h"
 #include "NvHashMap.h"
 
+#include <cmath>
+
 namespace CONVEX_DECOMPOSITION
 {
 
@@ -4621,7 +4623,7 @@ void           fm_releaseTesselate(fm_Tesselate *t)
 #define RAY_ABB_INTERSECT
 
 //! Integer representation of a floating-point value.
-#define IR(x)	((NxU32&)x)
+#define IR(x)	(NxU32)((NxU32&)x)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**

@@ -1,16 +1,16 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "assets/ChTexture.h"
+#include "chrono/assets/ChTexture.h"
 
 using namespace chrono;
 
 %}
- 
+
+%shared_ptr(chrono::ChTexture)
+
 /* Parse the header file to generate wrappers */
 %include "../chrono/assets/ChTexture.h"    
 
-// Define also the shared pointer 
 
-%DefChSharedPtr(chrono::,ChTexture)
 

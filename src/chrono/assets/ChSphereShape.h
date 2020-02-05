@@ -1,83 +1,48 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2012 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #ifndef CHOBJSPHERESHAPE_H
 #define CHOBJSPHERESHAPE_H
 
-
-#include "assets/ChVisualization.h"
-#include "geometry/ChCSphere.h"
+#include "chrono/assets/ChVisualization.h"
+#include "chrono/geometry/ChSphere.h"
 
 namespace chrono {
 
-/// Class for referencing a sphere shape that can be
-/// visualized in some way.
-
+/// Class for referencing a sphere shape that can be visualized in some way.
 class ChApi ChSphereShape : public ChVisualization {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChSphereShape, ChVisualization);
-
   protected:
-    //
-    // DATA
-    //
     geometry::ChSphere gsphere;
 
   public:
-    //
-    // CONSTRUCTORS
-    //
+    ChSphereShape() {}
+    ChSphereShape(const geometry::ChSphere& msphere) : gsphere(msphere) {}
 
-    ChSphereShape(){};
-    ChSphereShape(geometry::ChSphere& msphere) : gsphere(msphere){};
-
-    virtual ~ChSphereShape(){};
-
-    //
-    // FUNCTIONS
-    //
+    virtual ~ChSphereShape() {}
 
     // Access the sphere geometry
     geometry::ChSphere& GetSphereGeometry() { return gsphere; }
 
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    //
-    // SERIALIZATION
-    //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite(1);
-        // serialize parent class
-        ChVisualization::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(gsphere);
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead();
-        // deserialize parent class
-        ChVisualization::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(gsphere);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-//////////////////////////////////////////////////////
-//////////////////////////////////////////////////////
+CH_CLASS_VERSION(ChSphereShape, 0)
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

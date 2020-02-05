@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -67,7 +67,7 @@ ChDataDriver::ChDataDriver(ChVehicle& vehicle, const std::vector<Entry>& data, b
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChDataDriver::Update(double time) {
+void ChDataDriver::Synchronize(double time) {
     if (time <= m_data[0].m_time) {
         m_steering = m_data[0].m_steering;
         m_throttle = m_data[0].m_throttle;

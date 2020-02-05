@@ -1,40 +1,26 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010, 2012 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChLinkClearance.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChLinkClearance.h"
+#include "chrono/physics/ChLinkClearance.h"
 
 namespace chrono {
 
-////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////
-//
-//   CLASS FOR CLEARANCE LINKS
-//
-//
-
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
-ChClassRegister<ChLinkClearance> a_registration_ChLinkClearance;
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChLinkClearance)
 
 ChLinkClearance::ChLinkClearance() {
-    type = LNK_CLEARANCE;  // initializes type
+    type = LinkType::CLEARANCE;
 
     clearance = 0.1;
     c_friction = 0.;
@@ -46,43 +32,26 @@ ChLinkClearance::ChLinkClearance() {
     contact_F_abs = VNULL;
     contact_V_abs = VNULL;
 
-    this->limit_X->Set_active(TRUE);
-    this->limit_X->Set_max(clearance);
-    this->limit_X->Set_maxElastic(c_restitution);
-    this->limit_X->Set_min(-1000.0);
+    this->limit_X->SetActive(true);
+    this->limit_X->SetMax(clearance);
+    this->limit_X->SetMaxElastic(c_restitution);
+    this->limit_X->SetMin(-1000.0);
 
     // Mask: initialize our LinkMaskLF (lock formulation mask)
-    // It was a LinkMaskLF because this class inherited from LinkLock.
-    ((ChLinkMaskLF*)mask)->SetLockMask(false, false, false, false, true, true, false);
-
-    ChangedLinkMask();
+    mask.SetLockMask(false, false, false, false, true, true, false);
+    BuildLink();
 }
 
-ChLinkClearance::~ChLinkClearance() {
-}
+ChLinkClearance::ChLinkClearance(const ChLinkClearance& other) : ChLinkLockLock(other) {
+    clearance = other.clearance;
+    c_friction = other.c_friction;
+    c_restitution = other.c_restitution;
+    c_tang_restitution = other.c_tang_restitution;
+    c_viscous = other.c_viscous;
+    diameter = other.diameter;
 
-void ChLinkClearance::Copy(ChLinkClearance* source) {
-    // first copy the parent class data...
-    //
-    ChLinkLock::Copy(source);
-
-    // copy custom data:
-    clearance = source->clearance;
-    c_friction = source->c_friction;
-    c_restitution = source->c_restitution;
-    c_tang_restitution = source->c_tang_restitution;
-    c_viscous = source->c_viscous;
-    diameter = source->diameter;
-
-    contact_F_abs = source->contact_F_abs;
-    contact_V_abs = source->contact_V_abs;
-}
-
-ChLink* ChLinkClearance::new_Duplicate() {
-    ChLinkClearance* m_l;
-    m_l = new ChLinkClearance;  // inherited classes should write here: m_l = new MyInheritedLink;
-    m_l->Copy(this);
-    return (m_l);
+    contact_F_abs = other.contact_F_abs;
+    contact_V_abs = other.contact_V_abs;
 }
 
 // easy data getting
@@ -95,9 +64,8 @@ double ChLinkClearance::Get_axis_phase() {
         return 0;
     double mangle;
     Vector maxis;
-    Quaternion temp = this->GetMarker2()->GetCoord().rot;
-    Q_to_AngAxis(&temp, &mangle, &maxis);
-    if (maxis.z < 0.0) {
+    Q_to_AngAxis(this->GetMarker2()->GetCoord().rot, mangle, maxis);
+    if (maxis.z() < 0.0) {
         maxis = Vmul(maxis, -1.0);
         mangle = (2.0 * CH_C_PI) - mangle;
     }
@@ -117,7 +85,7 @@ Vector ChLinkClearance::Get_contact_N_abs() {
         return VECT_X;
     Vector mNrel = VECT_X;
     mNrel = Vmul(mNrel, -1);
-    return (this->GetMarker2()->Dir_Ref2World(&mNrel));
+    return (this->GetMarker2()->Dir_Ref2World(mNrel));
 }
 Vector ChLinkClearance::Get_contact_F_abs() {
     return (this->contact_F_abs);
@@ -125,17 +93,17 @@ Vector ChLinkClearance::Get_contact_F_abs() {
 double ChLinkClearance::Get_contact_F_n() {
     if (!this->GetMarker2())
         return 0;
-    return (this->GetMarker2()->Dir_World2Ref(&this->contact_F_abs).x);
+    return (this->GetMarker2()->Dir_World2Ref(contact_F_abs).x());
 }
 double ChLinkClearance::Get_contact_F_t() {
     if (!this->GetMarker2())
         return 0;
-    return (this->GetMarker2()->Dir_World2Ref(&this->contact_F_abs).y);
+    return (this->GetMarker2()->Dir_World2Ref(contact_F_abs).y());
 }
 double ChLinkClearance::Get_contact_V_t() {
     if (!this->GetMarker2())
         return 0;
-    return (this->GetMarker2()->Dir_World2Ref(&this->contact_V_abs).y);
+    return (this->GetMarker2()->Dir_World2Ref(contact_V_abs).y());
 }
 
 void ChLinkClearance::UpdateForces(double mytime) {
@@ -144,11 +112,11 @@ void ChLinkClearance::UpdateForces(double mytime) {
     // LinkLock::UpdateForces(mytime);
 
     Vector m_friction_F_abs = VNULL;
-    double m_norm_force = -this->react_force.x;
+    double m_norm_force = -this->react_force.x();
 
-    // Just add coloumb kinematic friction...
+    // Just add Coulomb kinematic friction...
 
-    if (((ChLinkMaskLF*)(this->GetMask()))->Constr_X().IsActive()) {
+    if (mask.Constr_X().IsActive()) {
         Vector temp = Get_contact_P_abs();
         Vector pb1 = ((ChFrame<double>*)Body1)->TransformParentToLocal(temp);
         Vector pb2 = ((ChFrame<double>*)Body2)->TransformParentToLocal(temp);
@@ -161,7 +129,7 @@ void ChLinkClearance::UpdateForces(double mytime) {
         m_friction_F_abs = Vmul(Vnorm(m_tang_V_abs), Get_c_friction() * (-m_norm_force));
 
         // transform the friction force in link master coords ***TO CHECK*** (new version!)
-        this->C_force += this->marker2->Dir_World2Ref(&m_friction_F_abs);
+        this->C_force += this->marker2->Dir_World2Ref(m_friction_F_abs);
     }
 
     // update internal data: the abs. vector of all contact forces, is a sum of reaction and friction
@@ -170,7 +138,7 @@ void ChLinkClearance::UpdateForces(double mytime) {
 
 void ChLinkClearance::UpdateTime(double mytime) {
     // First, inherit to parent class
-    ChLinkLock::UpdateTime(mytime);
+    ChLinkLockLock::UpdateTime(mytime);
 
     // Move (well, rotate...) marker 2 to align it in actuator direction
 
@@ -195,34 +163,31 @@ void ChLinkClearance::UpdateTime(double mytime) {
 
     // imposed relative positions/speeds
     deltaC.pos = VNULL;
-    deltaC.pos.x = this->clearance;  // distance is always on M2 'X' axis
+    deltaC.pos.x() = this->clearance;  // distance is always on M2 'X' axis
 
     deltaC_dt.pos = VNULL;
-    deltaC_dt.pos.x = 0;  // distance speed
+    deltaC_dt.pos.x() = 0;  // distance speed
 
     deltaC_dtdt.pos = VNULL;
 
     // add also the centripetal acceleration if distance vector's rotating,
     // as centripetal acc. of point sliding on a sphere surface.
     Vector tang_speed = GetRelM_dt().pos;
-    tang_speed.x = 0;  // only z-y coords in relative tang speed vector
+    tang_speed.x() = 0;  // only z-y coords in relative tang speed vector
     double Rcurvature = Vlength(absdist);
-    deltaC_dtdt.pos.x = -pow(Vlength(tang_speed), 2) / Rcurvature;  // An =  -(Vt^2 / r)
+    deltaC_dtdt.pos.x() = -pow(Vlength(tang_speed), 2) / Rcurvature;  // An =  -(Vt^2 / r)
 
     deltaC.rot = QUNIT;  // no relative rotations imposed!
     deltaC_dt.rot = QNULL;
     deltaC_dtdt.rot = QNULL;
 }
 
-
-
-void ChLinkClearance::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChLinkClearance::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChLinkClearance>();
 
     // serialize parent class
-    ChLinkLock::ArchiveOUT(marchive);
+    ChLinkLockLock::ArchiveOUT(marchive);
 
     // serialize all member data:
     marchive << CHNVP(clearance);
@@ -234,13 +199,12 @@ void ChLinkClearance::ArchiveOUT(ChArchiveOut& marchive)
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkClearance::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChLinkClearance::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChLinkClearance>();
 
     // deserialize parent class
-    ChLinkLock::ArchiveIN(marchive);
+    ChLinkLockLock::ArchiveIN(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(clearance);
@@ -251,8 +215,4 @@ void ChLinkClearance::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(c_viscous);
 }
 
-
-
-///////////////////////////////////////////////////////////////
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

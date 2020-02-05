@@ -1,16 +1,16 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "assets/ChAssetLevel.h"
+#include "chrono/assets/ChAssetLevel.h"
 
 using namespace chrono;
 
 %}
- 
+
+%shared_ptr(chrono::ChAssetLevel)
+
 /* Parse the header file to generate wrappers */
 %include "../chrono/assets/ChAssetLevel.h"    
 
-// Define also the shared pointer 
 
-%DefChSharedPtr(chrono::,ChAssetLevel)
 

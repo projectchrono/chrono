@@ -1,98 +1,59 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010, 2012 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHSHAFTSCOUPLE_H
 #define CHSHAFTSCOUPLE_H
 
-//////////////////////////////////////////////////
-//
-//   ChShaftsCouple.h
-//
-//   Base class for defining constraints between a couple
-//   of two one-degree-of-freedom parts, that is,
-//   shafts that can be used to build 1D models
-//   of power trains.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChShaft.h"
+#include "chrono/physics/ChShaft.h"
 
 namespace chrono {
 
-/// Base class for defining constraints between a couple
-/// of two one-degree-of-freedom parts, that is,
-/// shafts that can be used to build 1D models
-/// of power trains.
+/// Base class for defining constraints between a couple of two one-degree-of-freedom
+/// parts; i.e., shafts that can be used to build 1D models of powertrains.
 
 class ChApi ChShaftsCouple : public ChPhysicsItem {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChShaftsCouple, ChPhysicsItem);
 
   protected:
-    //
-    // DATA
-    //
-
-    ChShaft* shaft1;
-    ChShaft* shaft2;
+    ChShaft* shaft1;  ///< first shaft
+    ChShaft* shaft2;  ///< second shaft
 
   public:
-    //
-    // CONSTRUCTORS
-    //
+    ChShaftsCouple() : shaft1(nullptr), shaft2(nullptr) {}
+    ChShaftsCouple(const ChShaftsCouple& other) : ChPhysicsItem(other) {}
+    ~ChShaftsCouple() {}
 
-    /// Build a shaft.
-    ChShaftsCouple() {
-        this->shaft1 = 0;
-        this->shaft2 = 0;
-    }
-
-    /// Destructor
-    ~ChShaftsCouple(){};
-
-    /// Copy from another ChShaftsClutch.
-    void Copy(ChShaftsCouple* source) {
-        this->shaft1 = 0;
-        this->shaft2 = 0;
-    }
-
-    //
-    // FUNCTIONS
-    //
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChShaftsCouple* Clone() const override { return new ChShaftsCouple(*this); }
 
     /// Get the number of scalar variables affected by constraints in this link
     virtual int GetNumCoords() { return 2; }
 
-    /// Use this function after gear creation, to initialize it, given
-    /// two shafts to join.
+    /// Use this function after gear creation, to initialize it, given two shafts to join.
     /// Each shaft must belong to the same ChSystem.
-    /// Children classes might overload this (here, basically it only sets the two
-    /// pointers)
-    virtual bool Initialize(ChSharedPtr<ChShaft> mshaft1,  ///< first  shaft to join
-                            ChSharedPtr<ChShaft> mshaft2   ///< second shaft to join
+    /// Derived classes might overload this (here, basically it only sets the two pointers)
+    virtual bool Initialize(std::shared_ptr<ChShaft> mshaft1,  ///< first  shaft to join
+                            std::shared_ptr<ChShaft>
+                                mshaft2  ///< second shaft to join
                             ) {
-        ChShaft* mm1 = mshaft1.get_ptr();
-        ChShaft* mm2 = mshaft2.get_ptr();
+        ChShaft* mm1 = mshaft1.get();
+        ChShaft* mm2 = mshaft2.get();
         assert(mm1 && mm2);
         assert(mm1 != mm2);
         assert(mm1->GetSystem() == mm2->GetSystem());
-        this->shaft1 = mm1;
-        this->shaft2 = mm2;
-        this->SetSystem(this->shaft1->GetSystem());
+        shaft1 = mm1;
+        shaft2 = mm2;
+        SetSystem(shaft1->GetSystem());
         return true;
     }
 
@@ -111,7 +72,7 @@ class ChApi ChShaftsCouple : public ChPhysicsItem {
     /// Children classes might overload this.
     virtual double GetTorqueReactionOn2() const { return 0; }
 
-    /// Get the actual reative angle in terms of phase of shaft 1 respect to 2.
+    /// Get the actual relative angle in terms of phase of shaft 1 respect to 2.
     double GetRelativeRotation() const { return (this->shaft1->GetPos() - this->shaft2->GetPos()); }
     /// Get the actual relative speed in terms of speed of shaft 1 respect to 2.
     double GetRelativeRotation_dt() const { return (this->shaft1->GetPos_dt() - this->shaft2->GetPos_dt()); }
@@ -122,37 +83,34 @@ class ChApi ChShaftsCouple : public ChPhysicsItem {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChShaftsCouple>();
 
         // serialize parent class
         ChPhysicsItem::ArchiveOUT(marchive);
 
         // serialize all member data:
-        //marchive << CHNVP(shaft1);  //***TODO*** serialize, with shared ptr
-        //marchive << CHNVP(shaft2);  //***TODO*** serialize, with shared ptr
-    } 
+        // marchive << CHNVP(shaft1);  //***TODO*** serialize, with shared ptr
+        // marchive << CHNVP(shaft2);  //***TODO*** serialize, with shared ptr
+    }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
+    virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChShaftsCouple>();
 
         // deserialize parent class:
         ChPhysicsItem::ArchiveIN(marchive);
 
         // deserialize all member data:
-        //marchive >> CHNVP(shaft1);  //***TODO*** serialize, with shared ptr
-        //marchive >> CHNVP(shaft2);  //***TODO*** serialize, with shared ptr
-    } 
-
+        // marchive >> CHNVP(shaft1);  //***TODO*** serialize, with shared ptr
+        // marchive >> CHNVP(shaft2);  //***TODO*** serialize, with shared ptr
+    }
 };
 
-typedef ChSharedPtr<ChShaftsCouple> ChSharedShaftsCouplePtr;
+CH_CLASS_VERSION(ChShaftsCouple,0)
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

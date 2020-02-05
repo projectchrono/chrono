@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -22,18 +22,10 @@
 
 #include <string>
 
-#include "chrono/core/ChShared.h"
 #include "chrono/physics/ChSystem.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChVehicle.h"
-
-/**
-    @addtogroup vehicle
-    @{
-        @defgroup vehicle_driver Driver models
-    @}
-*/
 
 namespace chrono {
 namespace vehicle {
@@ -45,10 +37,16 @@ namespace vehicle {
 /// A driver system must be able to report the current values of the inputs
 /// (throttle, steering, braking). A concrete driver class must set the member
 /// variables m_throttle, m_steering, and m_braking.
-class CH_VEHICLE_API ChDriver : public ChShared {
+class CH_VEHICLE_API ChDriver {
   public:
+    struct Inputs {
+        double m_steering;
+        double m_throttle;
+        double m_braking;
+    };
+
     ChDriver(ChVehicle& vehicle  ///< associated vehicle
-             );
+    );
 
     virtual ~ChDriver() {}
 
@@ -61,8 +59,14 @@ class CH_VEHICLE_API ChDriver : public ChShared {
     /// Get the driver braking input (in the range [0,1])
     double GetBraking() const { return m_braking; }
 
+    /// Get all current inputs at once.
+    Inputs GetInputs() const;
+
+    /// Initialize this driver system.
+    virtual void Initialize() {}
+
     /// Update the state of this driver system at the current time.
-    virtual void Update(double time) {}
+    virtual void Synchronize(double time) {}
 
     /// Advance the state of this driver system by the specified time step.
     virtual void Advance(double step) {}

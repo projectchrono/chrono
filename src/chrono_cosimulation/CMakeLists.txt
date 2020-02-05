@@ -60,6 +60,7 @@ ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	SET (CH_SOCKET_LIB "")		  # not needed?
 ENDIF()
 			
+SET(CH_SOCKET_LIB ${CH_SOCKET_LIB} PARENT_SCOPE)
 
 #-----------------------------------------------------------------------------	
 # In most cases, you do not need to edit the lines below.
@@ -72,8 +73,10 @@ ADD_LIBRARY(ChronoEngine_cosimulation SHARED
 			${ChronoEngine_COSIMULATION_HEADERS})
 
 SET_TARGET_PROPERTIES(ChronoEngine_cosimulation PROPERTIES 
-                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
-                      COMPILE_DEFINITIONS "CH_API_COMPILE_COSIMULATION")
+                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
+
+target_compile_definitions(ChronoEngine_cosimulation PRIVATE "CH_API_COMPILE_COSIMULATION")
+target_compile_definitions(ChronoEngine_cosimulation PRIVATE "CH_IGNORE_DEPRECATED")
 
 TARGET_LINK_LIBRARIES(ChronoEngine_cosimulation 
                       ChronoEngine

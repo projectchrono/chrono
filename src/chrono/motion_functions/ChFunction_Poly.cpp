@@ -1,111 +1,80 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2011 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChFunction_Poly.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "ChFunction_Poly.h"
+#include "chrono/motion_functions/ChFunction_Poly.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
-ChClassRegister<ChFunction_Poly> a_registration_poly;
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChFunction_Poly)
 
 ChFunction_Poly::ChFunction_Poly() {
     order = 0;
     for (int i = 0; i < POLY_COEFF_ARRAY; i++) {
         coeff[i] = 0;
-    };
-}
-
-void ChFunction_Poly::Copy(ChFunction_Poly* source) {
-    order = source->order;
-    for (int i = 0; i < POLY_COEFF_ARRAY; i++) {
-        Set_coeff(source->Get_coeff(i), i);
     }
 }
 
-ChFunction* ChFunction_Poly::new_Duplicate() {
-    ChFunction_Poly* m_func;
-    m_func = new ChFunction_Poly;
-    m_func->Copy(this);
-    return (m_func);
+ChFunction_Poly::ChFunction_Poly(const ChFunction_Poly& other) {
+    order = other.order;
+    for (int i = 0; i < POLY_COEFF_ARRAY; i++) {
+        coeff[i] = other.coeff[i];
+    }
 }
 
-double ChFunction_Poly::Get_y(double x) {
+double ChFunction_Poly::Get_y(double x) const {
     double total = 0;
-    int i;
-    for (i = 0; i <= order; i++) {
+    for (int i = 0; i <= order; i++) {
         total += (coeff[i] * pow(x, (double)i));
     }
     return total;
 }
 
-double ChFunction_Poly::Get_y_dx(double x) {
+double ChFunction_Poly::Get_y_dx(double x) const {
     double total = 0;
-    int i;
-
-    if (order < 1)
-        return 0;  // constant function
-
-    for (i = 1; i <= order; i++) {
+    for (int i = 1; i <= order; i++) {
         total += ((double)i * coeff[i] * pow(x, ((double)(i - 1))));
     }
     return total;
 }
 
-double ChFunction_Poly::Get_y_dxdx(double x) {
+double ChFunction_Poly::Get_y_dxdx(double x) const {
     double total = 0;
-    int i;
-
-    if (order < 2)
-        return 0;  // constant function
-
-    for (i = 2; i <= order; i++) {
+    for (int i = 2; i <= order; i++) {
         total += ((double)(i * (i - 1)) * coeff[i] * pow(x, ((double)(i - 2))));
     }
     return total;
 }
 
-int ChFunction_Poly::MakeOptVariableTree(ChList<chjs_propdata>* mtree) {
-    int i = 0;
-
-    // inherit parent behaviour
-    ChFunction::MakeOptVariableTree(mtree);
-
-    // add variables to own tree
-    char msubvar[50];
-    for (int mord = 0; mord < this->order; mord++) {
-        sprintf(msubvar, "C%d", mord);
-
-        chjs_propdata* mdataA = new chjs_propdata;
-        strcpy(mdataA->propname, msubvar);
-        strcpy(mdataA->label, mdataA->propname);
-        mdataA->haschildren = FALSE;
-        mtree->AddTail(mdataA);
-        i++;
-    }
-
-    return i;
+void ChFunction_Poly::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChFunction_Poly>();
+    // serialize parent class
+    ChFunction::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(coeff);
+    marchive << CHNVP(order);
 }
 
+void ChFunction_Poly::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChFunction_Poly>();
+    // deserialize parent class
+    ChFunction::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(coeff);
+    marchive >> CHNVP(order);
+}
 
-
-}  // END_OF_NAMESPACE____
-
-// eof
+}  // end namespace chrono

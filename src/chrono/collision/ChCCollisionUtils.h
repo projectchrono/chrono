@@ -1,34 +1,21 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHCOLLISIONUTILS_H
 #define CHCOLLISIONUTILS_H
 
-//////////////////////////////////////////////////
-//
-//   ChCCollisionUtils.h
-//
-//   Class for collision utilities
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChBody.h"
-#include "LinearMath/btConvexHull.h"
-#include "geometry/ChCTriangleMeshConnected.h"
+#include "chrono/collision/bullet/LinearMath/btConvexHull.h"
+#include "chrono/geometry/ChTriangleMeshConnected.h"
+#include "chrono/physics/ChBody.h"
 
 namespace chrono {
 namespace collision {
@@ -44,9 +31,9 @@ class ChApi ChCollisionUtils {
     /// two lines P1P2 and P3P4. Calculate also the values of mua and mub where
     ///    Pa = P1 + mua (P2 - P1)
     ///    Pb = P3 + mub (P4 - P3)
-    /// Return FALSE if no solution exists.
+    /// Return false if no solution exists.
 
-    static int
+    static bool
     LineLineIntersect(Vector p1, Vector p2, Vector p3, Vector p4, Vector* pa, Vector* pb, double* mua, double* mub);
 
     /// Calculate distance between a point p and a line identified
@@ -70,15 +57,15 @@ class ChApi ChCollisionUtils {
                                         Vector& Bprojected);
 };
 
-/// Wrapper for using andexporting the Bullet implementation of the convex hull library.
+/// Wrapper for using and exporting the Bullet implementation of the convex hull library.
 class ChApi ChConvexHullLibraryWrapper {
   public:
     ChConvexHullLibraryWrapper();
 
-    void ComputeHull(std::vector<ChVector<> >& points, geometry::ChTriangleMeshConnected& vshape);
+    void ComputeHull(const std::vector<ChVector<> >& points, geometry::ChTriangleMeshConnected& vshape);
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono
 
 #endif

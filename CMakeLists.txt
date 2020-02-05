@@ -8,34 +8,22 @@
 # Check backward compatibility
 #-----------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.0)
 
 #-----------------------------------------------------------------------------
 # Prevent in-source builds.
 #-----------------------------------------------------------------------------
 
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
-    message( FATAL_ERROR  "In-source build is not possible and not reccomended. Choose an empty directory for build output.")
+    message( FATAL_ERROR  "In-source build is not possible and not recommended. Choose an empty directory for build output.")
 endif(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 
-enable_testing()
-set(VALGRIND_COMMAND "/usr/bin/valgrind")
-set(VALGRIND_COMMAND_OPTIONS "-v --tool=memcheck --leak-check=full --track-fds=yes --num-callers=50 --show-reachable=yes --track-origins=yes --malloc-fill=0xff --free-fill=0xfe")
-set(MEMORYCHECK_COMMAND "/usr/bin/valgrind")
-set(CTEST_MEMORYCHECK_COMMAND "/usr/bin/valgrind")
-set(CTEST_MEMORYCHECK_COMMAND_OPTIONS "-v --tool=memcheck --leak-check=full --track-fds=yes --num-callers=50 --show-reachable=yes --track-origins=yes --malloc-fill=0xff --free-fill=0xfe")
-
 #-----------------------------------------------------------------------------
-# Disable the warning when adding a subdir that has not CMakeLists.txt
-#-----------------------------------------------------------------------------
-
-if(COMMAND cmake_policy)
-    cmake_policy(SET CMP0014 OLD)
-endif(COMMAND cmake_policy)
 
 # Be sure to avoid troubles with library paths when using old policy
 if(COMMAND cmake_policy)
     cmake_policy(SET CMP0003 NEW)
+    cmake_policy(SET CMP0048 NEW)
 endif(COMMAND cmake_policy)
 
 # Get rid of cmake RPATH warning on OSX
@@ -53,19 +41,21 @@ set_property(GLOBAL PROPERTY USE_FOLDERS Off)
 # Define project name and specify version information
 #-----------------------------------------------------------------------------
 
-project(Chrono)
+set(CHRONO_VERSION_MAJOR 4)
+set(CHRONO_VERSION_MINOR 0)
+set(CHRONO_VERSION_PATCH 0)
 
-set(CHRONOENGINE_VERSION_MAJOR 2)
-set(CHRONOENGINE_VERSION_MINOR 0)
-set(CHRONOENGINE_VERSION_PATCH 0)
+project(Chrono VERSION ${CHRONO_VERSION_MAJOR}.${CHRONO_VERSION_MINOR}.${CHRONO_VERSION_PATCH})
 
-set(CHRONOENGINE_VERSION
-    "${CHRONOENGINE_VERSION_MAJOR}.${CHRONOENGINE_VERSION_MINOR}.${CHRONOENGINE_VERSION_PATCH}")
+set(CHRONO_VERSION "${CHRONO_VERSION_MAJOR}.${CHRONO_VERSION_MINOR}.${CHRONO_VERSION_PATCH}")
 
 set(CPACK_PACKAGE_VERSION "${CHRONO_VERSION}")
-set(CPACK_PACKAGE_VERSION_MAJOR "${CHRONOENGINE_VERSION_MAJOR}")
-set(CPACK_PACKAGE_VERSION_MINOR "${CHRONOENGINE_VERSION_MINOR}")
-set(CPACK_PACKAGE_VERSION_PATCH "${CHRONOENGINE_VERSION_PATCH}")
+set(CPACK_PACKAGE_VERSION_MAJOR "${CHRONO_VERSION_MAJOR}")
+set(CPACK_PACKAGE_VERSION_MINOR "${CHRONO_VERSION_MINOR}")
+set(CPACK_PACKAGE_VERSION_PATCH "${CHRONO_VERSION_PATCH}")
+
+# Version as a hexadecimal integer of the form 0x00MMmmPP
+set(CH_VERSION 0x00040000)
 
 #-----------------------------------------------------------------------------
 # Location of additional CMake scripts
@@ -85,8 +75,24 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Enable CTest
 #-----------------------------------------------------------------------------
 
-enable_testing()
+# Note: no need to explicitly call 'enable_testing' as this is invoked by
+#       'include(CTest)'
+
+option(BUILD_TESTING "Build unit tests" OFF)
 include(CTest)
+
+set(VALGRIND_COMMAND "/usr/bin/valgrind")
+set(VALGRIND_COMMAND_OPTIONS "-v --tool=memcheck --leak-check=full --track-fds=yes --num-callers=50 --show-reachable=yes --track-origins=yes --malloc-fill=0xff --free-fill=0xfe")
+set(MEMORYCHECK_COMMAND "/usr/bin/valgrind")
+set(CTEST_MEMORYCHECK_COMMAND "/usr/bin/valgrind")
+set(CTEST_MEMORYCHECK_COMMAND_OPTIONS "-v --tool=memcheck --leak-check=full --track-fds=yes --num-callers=50 --show-reachable=yes --track-origins=yes --malloc-fill=0xff --free-fill=0xfe")
+
+if (NOT WIN32)
+    find_program(CCACHE_EXE ccache)
+    if(CCACHE_EXE)
+        set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_EXE}")
+    endif()
+endif()
 
 #-----------------------------------------------------------------------------
 # Use dependent options
@@ -135,6 +141,8 @@ if(MSVC AND CMAKE_CL_64)
 elseif(MSVC)
     set(CH_COMPILER "COMPILER_MSVC" CACHE STRING "Compiler Type" FORCE)
 endif()
+
+mark_as_advanced(FORCE CH_COMPILER)
 
 #-----------------------------------------------------------------------------
 # Specify locations of executables and libraries
@@ -186,8 +194,25 @@ set(CPACK_SOURCE_STRIP_FILES "")
 #set(CPACK_TOPLEVEL_TAG "Linux-x64")
 
 #------------------------------------------------------------
+# Install destinations for data and demo programs
+#------------------------------------------------------------
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    set(CH_INSTALL_DATA "data")
+    set(CH_INSTALL_DEMO "bin")
+    set(CH_INSTALL_SAMPLE_PROJ "template_project")
+    set(CH_INSTALL_PYTHON "bin")
+else()
+    set(CH_INSTALL_DATA "share/chrono/data")
+    set(CH_INSTALL_DEMO "share/chrono/bin")
+    set(CH_INSTALL_SAMPLE_PROJ "share/chrono/template_project")
+    set(CH_INSTALL_PYTHON "share/chrono/python")
+endif()
+
+#------------------------------------------------------------
 # Copy data directory to BUILD tree 
 # Install data directory 
+# Install sample template_project
 #------------------------------------------------------------
 
 if(MSVC OR XCODE_VERSION)
@@ -196,7 +221,8 @@ else()
     file(COPY ${CMAKE_SOURCE_DIR}/data/ DESTINATION ${CMAKE_BINARY_DIR}/data/)
 endif()
 
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/data/ DESTINATION data)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/data/ DESTINATION ${CH_INSTALL_DATA})
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/template_project/ DESTINATION ${CH_INSTALL_SAMPLE_PROJ})
 
 #------------------------------------------------------------
 # Defer configuration of all Chrono libraries and programs

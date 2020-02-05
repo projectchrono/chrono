@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -12,8 +12,7 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-// Credits: The Clock class was inspired by the Timer classes in 
-// Ogre (www.ogre3d.org).
+// Credits: The Clock class was inspired by the Timer classes in  Ogre (www.ogre3d.org).
 
 
 /*
@@ -39,14 +38,14 @@ CODE MODIFIED FROM:
 
 #ifndef CH_NO_PROFILE
 
-#include <stdio.h>
+#include <cstdio>
 #include <new>
 #include <cfloat>
-#include <float.h>
+#include <cfloat>
 #include <ctime>
 #include <ratio>
 #include <chrono>
-
+#include "chrono/core/ChApiCE.h"
 
 namespace chrono {
 namespace utils {
@@ -54,7 +53,7 @@ namespace utils {
 
 
 ///A node in the Profile Hierarchy Tree
-class	ChProfileNode {
+class  ChApi ChProfileNode {
 
 public:
 	ChProfileNode( const char * name, ChProfileNode * parent );
@@ -89,7 +88,7 @@ protected:
 };
 
 ///An iterator to navigate through the tree
-class ChProfileIterator
+class  ChApi  ChProfileIterator
 {
 public:
 	// Access all the children of the current parent
@@ -123,7 +122,7 @@ protected:
 
 
 ///The Manager for the Profile system
-class	ChProfileManager {
+class  ChApi ChProfileManager {
 public:
 	static	void						Start_Profile( const char * name );
 	static	void						Stop_Profile( void );
@@ -159,7 +158,7 @@ private:
 
 ///ProfileSampleClass is a simple way to profile a function's scope
 ///Use the BT_PROFILE macro at the start of scope to time
-class	CProfileSample {
+class  ChApi  CProfileSample {
 public:
 	CProfileSample( const char * name )
 	{ 
@@ -173,12 +172,12 @@ public:
 };
 
 
-#define	CH_PROFILE( name )			CProfileSample __profile( name )
-
 
 }  // end namespace utils
 }  // end namespace chrono
 
+
+#define	CH_PROFILE( name )			chrono::utils::CProfileSample __ch_profile( name )
 
 #else
 

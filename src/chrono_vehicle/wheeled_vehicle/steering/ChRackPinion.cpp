@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -36,14 +36,15 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChRackPinion::ChRackPinion(const std::string& name) : ChSteering(name) {
-}
+ChRackPinion::ChRackPinion(const std::string& name) : ChSteering(name) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChRackPinion::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
+void ChRackPinion::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                               const ChVector<>& location,
                               const ChQuaternion<>& rotation) {
+    m_position = ChCoordsys<>(location, rotation);
+
     // Express the steering reference frame in the absolute coordinate system.
     ChFrame<> steering_to_abs(location, rotation);
     steering_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
@@ -52,17 +53,16 @@ void ChRackPinion::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     ChVector<> link_local(0, GetSteeringLinkCOM(), 0);
     ChVector<> link_abs = steering_to_abs.TransformPointLocalToParent(link_local);
 
-    m_link = ChSharedPtr<ChBody>(new ChBody(chassis->GetSystem()->GetContactMethod()));
+    m_link = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_link->SetNameString(m_name + "_link");
     m_link->SetPos(link_abs);
     m_link->SetRot(steering_to_abs.GetRot());
     m_link->SetMass(GetSteeringLinkMass());
     m_link->SetInertiaXX(GetSteeringLinkInertia());
-    AddVisualizationSteeringLink();
     chassis->GetSystem()->AddBody(m_link);
 
     // Create and initialize the prismatic joint between chassis and link.
-    m_prismatic = ChSharedPtr<ChLinkLockPrismatic>(new ChLinkLockPrismatic);
+    m_prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
     m_prismatic->SetNameString(m_name + "_prismatic");
     m_prismatic->Initialize(chassis, m_link, ChCoordsys<>(link_abs, steering_to_abs.GetRot() * Q_from_AngX(CH_C_PI_2)));
     chassis->GetSystem()->AddLink(m_prismatic);
@@ -76,7 +76,7 @@ void ChRackPinion::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     ChVector<> pt1 = link_abs;
     ChVector<> pt2 = link_abs - offset * steering_to_abs.GetRot().GetYaxis();
 
-    m_actuator = ChSharedPtr<ChLinkLinActuator>(new ChLinkLinActuator);
+    m_actuator = chrono_types::make_shared<ChLinkLinActuator>();
     m_actuator->SetNameString(m_name + "_actuator");
     m_actuator->Initialize(chassis, m_link, false, ChCoordsys<>(pt1, QUNIT), ChCoordsys<>(pt2, QUNIT));
     m_actuator->Set_lin_offset(offset);
@@ -85,30 +85,51 @@ void ChRackPinion::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChRackPinion::Update(double time, double steering) {
+void ChRackPinion::Synchronize(double time, double steering) {
     // Convert the steering input into an angle of the pinion and then into a
     // displacement of the rack.
     double angle = steering * GetMaxAngle();
     double displ = angle * GetPinionRadius();
 
-    if (ChSharedPtr<ChFunction_Const> fun = m_actuator->Get_dist_funct().DynamicCastTo<ChFunction_Const>())
+    if (auto fun = std::dynamic_pointer_cast<ChFunction_Const>(m_actuator->Get_dist_funct()))
         fun->Set_yconst(displ);
 }
 
 // -----------------------------------------------------------------------------
+// Get the total mass of the steering subsystem
 // -----------------------------------------------------------------------------
-void ChRackPinion::AddVisualizationSteeringLink() {
+double ChRackPinion::GetMass() const {
+    return GetSteeringLinkMass();
+}
+
+// -----------------------------------------------------------------------------
+// Get the current COM location of the steering subsystem.
+// -----------------------------------------------------------------------------
+ChVector<> ChRackPinion::GetCOMPos() const {
+    return m_link->GetPos();
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChRackPinion::AddVisualizationAssets(VisualizationType vis) {
+    if (vis == VisualizationType::NONE)
+        return;
+
     double length = GetSteeringLinkLength();
 
-    ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
+    auto cyl = chrono_types::make_shared<ChCylinderShape>();
     cyl->GetCylinderGeometry().p1 = ChVector<>(0, length / 2, 0);
     cyl->GetCylinderGeometry().p2 = ChVector<>(0, -length / 2, 0);
     cyl->GetCylinderGeometry().rad = GetSteeringLinkRadius();
     m_link->AddAsset(cyl);
 
-    ChSharedPtr<ChColorAsset> col(new ChColorAsset);
+    auto col = chrono_types::make_shared<ChColorAsset>();
     col->SetColor(ChColor(0.8f, 0.8f, 0.2f));
     m_link->AddAsset(col);
+}
+
+void ChRackPinion::RemoveVisualizationAssets() {
+    m_link->GetAssets().clear();
 }
 
 // -----------------------------------------------------------------------------
@@ -116,21 +137,50 @@ void ChRackPinion::AddVisualizationSteeringLink() {
 void ChRackPinion::LogConstraintViolations() {
     // Translational joint
     {
-        ChMatrix<>* C = m_prismatic->GetC();
+        ChVectorDynamic<> C = m_prismatic->GetC();
         GetLog() << "Prismatic           ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "  ";
-        GetLog() << "  " << C->GetElement(3, 0) << "  ";
-        GetLog() << "  " << C->GetElement(4, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "  ";
+        GetLog() << "  " << C(4) << "\n";
     }
 
     // Actuator
     {
-        ChMatrix<>* C = m_actuator->GetC();
+        ChVectorDynamic<> C = m_actuator->GetC();
         GetLog() << "Actuator            ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
+        GetLog() << "  " << C(0) << "  ";
     }
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChRackPinion::ExportComponentList(rapidjson::Document& jsonDocument) const {
+    ChPart::ExportComponentList(jsonDocument);
+
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_link);
+    ChPart::ExportBodyList(jsonDocument, bodies);
+
+    std::vector<std::shared_ptr<ChLink>> joints;
+    joints.push_back(m_prismatic);
+    joints.push_back(m_actuator);
+    ChPart::ExportJointList(jsonDocument, joints);
+}
+
+void ChRackPinion::Output(ChVehicleOutput& database) const {
+    if (!m_output)
+        return;
+
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_link);
+    database.WriteBodies(bodies);
+
+    std::vector<std::shared_ptr<ChLink>> joints;
+    joints.push_back(m_prismatic);
+    joints.push_back(m_actuator);
+    database.WriteJoints(joints);
 }
 
 }  // end namespace vehicle

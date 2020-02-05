@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -14,7 +14,7 @@
 //
 // Base class for a vehicle driver. A driver object must be able to report the
 // current values of the inputs (throttle, steering, braking). To set these
-// values, a concrete driver class can implement the virtual method Update()
+// values, a concrete driver class can implement the virtual method Synchronize()
 // which will be invoked at each time step.
 //
 // =============================================================================
@@ -33,6 +33,12 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 ChDriver::ChDriver(ChVehicle& vehicle)
     : m_vehicle(vehicle), m_throttle(0), m_steering(0), m_braking(0), m_log_filename("") {
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+ChDriver::Inputs ChDriver::GetInputs() const {
+    return { m_steering, m_throttle, m_braking };
 }
 
 // -----------------------------------------------------------------------------

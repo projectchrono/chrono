@@ -20,12 +20,13 @@
 #include "chrono_opengl/core/ChOpenGLObject.h"
 #include "chrono_opengl/core/ChOpenGLMaterial.h"
 #include "chrono_opengl/shapes/ChOpenGLWires.h"
-#include "physics/ChSystem.h"
+
+#include "chrono/physics/ChSystem.h"
 
 namespace chrono {
 namespace opengl {
 
-/// @addtogroup opengl
+/// @addtogroup opengl_module
 /// @{
 
 /// Class to render simple plots for the UI
@@ -42,8 +43,9 @@ class CH_OPENGL_API ChOpenGLGraphs {
     ChOpenGLWires plots;
 };
 
-/// @} opengl
+/// @} opengl_module
 
 }
 }
-#endif  // END of CHOPENGLGRAPHS_H
+
+#endif

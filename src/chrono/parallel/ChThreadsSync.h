@@ -24,7 +24,7 @@ Modified by: Alessandro Tasora
 #ifndef SPU_SYNC_H
 #define SPU_SYNC_H
 
-//#include "PlatformDefinitions.h"
+#include "chrono/core/ChApiCE.h"
 
 #if defined(_WIN32)
 

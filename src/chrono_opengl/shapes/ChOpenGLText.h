@@ -20,12 +20,13 @@
 
 #include "chrono_opengl/core/ChOpenGLObject.h"
 #include "chrono_opengl/core/ChOpenGLMaterial.h"
+
 #include <map>
 
 namespace chrono {
 namespace opengl {
 
-/// @addtogroup opengl
+/// @addtogroup opengl_module
 /// @{
 
 /// Generic renderable text class that uses an atlas stored in the FontData.h file.
@@ -50,8 +51,8 @@ class CH_OPENGL_API ChOpenGLText : public ChOpenGLObject {
     typedef ChOpenGLObject super;
 };
 
-/// @} opengl
+/// @} opengl_module
 
 }
 }
-#endif  // END of CHOPENGLTEXT_H
+#endif

@@ -1,46 +1,37 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2012 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHSHAFTSTORQUECONVERTER_H
 #define CHSHAFTSTORQUECONVERTER_H
 
-#include "physics/ChShaftsCouple.h"
-#include "physics/ChFunction.h"
+#include "chrono/motion_functions/ChFunction.h"
+#include "chrono/physics/ChShaftsCouple.h"
 
 namespace chrono {
 
-///  Class for defining a torque converter
-///  between two one-degree-of-freedom parts, that is,
-///  shafts that can be used to build 1D models
-///  of power trains. Note that is not inherited from
-///  ChShaftsTorqueBase, because it requires a third part:
-///  the stator.
-///  The torque converter multiplies the input torque
-///  if there is slippage between input and output, then
-///  the multiplicative effect becomes closer to unity
-///  when the slippage is almost null; so it is similar
-///  to a variable-transmission-ratio gearbox, and just
-///  like any gearbox it requires a truss (the 'stator')
-///  that gets some torque.
-///  Note: it can work only in a given direction.
+/// Class for defining a torque converter between two one-degree-of-freedom parts;
+/// i.e., shafts that can be used to build 1D models of powertrains. Note that is
+/// not inherited from ChShaftsTorqueBase, because it requires a third part: the stator.
+/// The torque converter multiplies the input torque if there is slippage between input
+/// and output, then the multiplicative effect becomes closer to unity when the slippage
+/// is almost null; so it is similar to a variable-transmission-ratio gearbox, and just
+/// like any gearbox it requires a truss (the 'stator') that gets some torque.
+/// Note: it can work only in a given direction.
 
 class ChApi ChShaftsTorqueConverter : public ChPhysicsItem {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChShaftsTorqueConverter, ChPhysicsItem);
 
   private:
-    //
-    // DATA
-    //
-
     ChShaft* shaft1;
     ChShaft* shaft2;
     ChShaft* shaft_stator;
@@ -48,53 +39,38 @@ class ChApi ChShaftsTorqueConverter : public ChPhysicsItem {
     double torque_in;
     double torque_out;
 
-    ChSharedPtr<ChFunction> K;
-    ChSharedPtr<ChFunction> T;
+    std::shared_ptr<ChFunction> K;
+    std::shared_ptr<ChFunction> T;
 
     bool state_warning_reverseflow;
     bool state_warning_wrongimpellerdirection;
 
   public:
-    //
-    // CONSTRUCTORS
-    //
-
-    /// Constructor.
     ChShaftsTorqueConverter();
-    /// Destructor
-    ~ChShaftsTorqueConverter();
+    ChShaftsTorqueConverter(const ChShaftsTorqueConverter& other);
+    ~ChShaftsTorqueConverter() {}
 
-    /// Copy from another ChShaftsTorqueConverter.
-    void Copy(ChShaftsTorqueConverter* source);
-
-    //
-    // FUNCTIONS
-    //
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChShaftsTorqueConverter* Clone() const override { return new ChShaftsTorqueConverter(*this); }
 
     /// Number of scalar constraints
-    virtual int GetDOC_c() { return 0; }
-
-    //
-    // STATE FUNCTIONS
-    //
+    virtual int GetDOC_c() override { return 0; }
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c);
+    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
 
-    // Override/implement LCP system functions of ChPhysicsItem
-    // (to assembly/manage data for LCP system solver
+    // Override/implement system functions of ChPhysicsItem
+    // (to assemble/manage data for system solver)
 
-    virtual void VariablesFbLoadForces(double factor);
-
-    // Other functions
+    virtual void VariablesFbLoadForces(double factor) override;
 
     /// Use this function after torque converter creation, to initialize it, given
     /// input and output shafts to join (plus the stator shaft, that should be fixed).
     /// Each shaft must belong to the same ChSystem.
-    virtual int Initialize(ChSharedPtr<ChShaft> mshaft1,       ///< input shaft
-                           ChSharedPtr<ChShaft> mshaft2,       ///< output shaft
-                           ChSharedPtr<ChShaft> mshaft_stator  ///< stator shaft (often fixed)
-                           );
+    bool Initialize(std::shared_ptr<ChShaft> mshaft1,       ///< input shaft
+                    std::shared_ptr<ChShaft> mshaft2,       ///< output shaft
+                    std::shared_ptr<ChShaft> mshaft_stator  ///< stator shaft (often fixed)
+                    );
 
     /// Get the input shaft
     ChShaft* GetShaftInput() { return shaft1; }
@@ -106,15 +82,15 @@ class ChApi ChShaftsTorqueConverter : public ChPhysicsItem {
     /// Set the capacity factor curve, function of speed ratio R.
     /// It is K(R)= input speed / square root of the input torque.
     /// Units: (rad/s) / sqrt(Nm)
-    void SetCurveCapacityFactor(ChSharedPtr<ChFunction> mf) { K = mf; }
+    void SetCurveCapacityFactor(std::shared_ptr<ChFunction> mf) { K = mf; }
     /// Get the capacity factor curve.
-    ChSharedPtr<ChFunction> GetCurveCapacityFactor() { return K; }
+    std::shared_ptr<ChFunction> GetCurveCapacityFactor() { return K; }
 
     /// Set the torque ratio curve, function of speed ratio R.
     /// It is T(R) = (output torque) / (input torque)
-    void SetCurveTorqueRatio(ChSharedPtr<ChFunction> mf) { T = mf; }
+    void SetCurveTorqueRatio(std::shared_ptr<ChFunction> mf) { T = mf; }
     /// Get the torque ratio curve.
-    ChSharedPtr<ChFunction> GetCurveTorqueRatio() { return T; }
+    std::shared_ptr<ChFunction> GetCurveTorqueRatio() { return T; }
 
     /// Get the torque applied to the input shaft
     double GetTorqueReactionOnInput() const { return torque_in; }
@@ -145,24 +121,19 @@ class ChApi ChShaftsTorqueConverter : public ChPhysicsItem {
     /// This is considered an abnormal behavior, and torques are forced to zero.
     bool StateWarningWrongImpellerDirection() { return state_warning_wrongimpellerdirection; }
 
-    //
-    // UPDATE FUNCTIONS
-    //
-
     /// Update all auxiliary data of the gear transmission at given time
-    virtual void Update(double mytime, bool update_assets = true);
-
-    //
-    // SERIALIZATION
-    //
+    virtual void Update(double mytime, bool update_assets = true) override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-}  // END_OF_NAMESPACE____
+CH_CLASS_VERSION(ChShaftsTorqueConverter,0)
+
+
+}  // end namespace chrono
 
 #endif

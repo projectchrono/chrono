@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -17,8 +17,7 @@
 // =============================================================================
 
 #include "chrono_vehicle/wheeled_vehicle/driveline/SimpleDriveline.h"
-
-#include "thirdparty/rapidjson/filereadstream.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 using namespace rapidjson;
 
@@ -27,31 +26,23 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-SimpleDriveline::SimpleDriveline(const std::string& filename) : ChSimpleDriveline() {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream(is);
+SimpleDriveline::SimpleDriveline(const std::string& filename) : ChSimpleDriveline("") {
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     Create(d);
 
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-SimpleDriveline::SimpleDriveline(const rapidjson::Document& d) : ChSimpleDriveline() {
+SimpleDriveline::SimpleDriveline(const rapidjson::Document& d) : ChSimpleDriveline("") {
     Create(d);
 }
 
 void SimpleDriveline::Create(const rapidjson::Document& d) {
-    // Read top-level data.
-    assert(d.HasMember("Type"));
-    assert(d.HasMember("Template"));
-    assert(d.HasMember("Name"));
+    // Invoke base class method.
+    ChPart::Create(d);
 
     m_front_torque_frac = d["Front Torque Fraction"].GetDouble();
     m_front_diff_bias = d["Front Differential Max Bias"].GetDouble();

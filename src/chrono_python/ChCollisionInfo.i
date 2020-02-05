@@ -1,8 +1,8 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "collision/ChCCollisionInfo.h"
-#include "collision/ChCCollisionModel.h"
+#include "chrono/collision/ChCCollisionInfo.h"
+#include "chrono/collision/ChCCollisionModel.h"
 
 using namespace collision;
 
@@ -10,9 +10,6 @@ using namespace collision;
 
 // Forward ref
 //%import "ChCollisionModel.i"
-
-// Undefine ChApi otherwise SWIG gives a syntax error
-#define ChApi 
 
 
 /* Parse the header file to generate wrappers */

@@ -1,0 +1,46 @@
+{
+  "Name":                           "UAZBUS Rear Leafspring Axle",
+  "Type":                           "Suspension",
+  "Template":                       "LeafspringAxle",
+
+  "Spindle" :
+  {
+    "Mass":                         14.705,
+    "COM":                          [0, 0.7325, 0],
+    "Inertia":                      [0.04117, 0.07352, 0.04117],
+    "Radius":                       0.10,
+    "Width":                        0.06
+  },
+    
+  "Axle Tube" :
+  {
+    "Mass":                         124.0,
+    "COM":                          [0, 0, 0],
+    "Inertia":                      [22.21, 0.0775, 22.21],
+    "Radius":                       0.0476
+  },
+
+  "Spring":
+  {
+    "Location Chassis":             [0.0, 0.5142, 0.2476],
+    "Location Axle":                [0.0, 0.5142, 0.0476],
+    "Spring Coefficient":           102643.885771329,
+    "Free Length":                  0.2621225507207084,
+    "Minimum Length":               0.28,
+    "Maximum Length":               0.12
+  },
+
+  "Shock":
+  {
+    "Location Chassis":             [-0.3648,  0.4193, 0.4298],
+    "Location Axle":                [-0.125, 0.441, -0.0507],
+    "Damping Coefficient":          16336.2817986669,
+    "Degressivity Compression":     3,
+    "Degressivity Expansion":       1
+  },
+
+  "Axle":
+  {
+    "Inertia":                      0.4
+  }
+}

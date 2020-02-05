@@ -1,34 +1,34 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #ifndef CHTIMER_H
 #define CHTIMER_H
 
 #if ((defined _WIN32) && !(defined(__MINGW32__) || defined(__CYGWIN__)))
-    #include <time.h>
+    #include <ctime>
     #ifndef NOMINMAX
     #define NOMINMAX
     #endif
     #define WIN32_LEAN_AND_MEAN
     #include <windows.h>
-    #include <time.h>
+    #include <ctime>
     #undef WIN32_LEAN_AND_MEAN
     #undef NOMINMAX
 #else
     #include <ratio>
     #include <chrono>
 #endif
-
-
-
 
 
 namespace chrono {
@@ -54,19 +54,18 @@ class ChTimer {
     LARGE_INTEGER m_start;
     LARGE_INTEGER m_end;
     LARGE_INTEGER m_freq;
-    bool m_first;
     seconds_type total;
 
   public:
-    ChTimer() : m_first(true), total(0) {}
+    ChTimer() : total(0) {
+        QueryPerformanceFrequency(&m_freq);
+        m_start.QuadPart = 0;
+        m_end.QuadPart = 0;
+    }
 
   public:
     /// Start the timer
     void start() {
-        if (m_first) {
-            QueryPerformanceFrequency(&m_freq);
-            m_first = false;
-        }
         QueryPerformanceCounter(&m_start);
     }
 
@@ -162,7 +161,7 @@ class ChTimer {
 
     /// Returns the time in [ms] since start(). It does not require stop(). 
 	unsigned long long GetTimeMillisecondsIntermediate() const {
-        return std::chrono::duration_cast<std::chrono::milliseconds>(m_start - std::chrono::high_resolution_clock::now()).count();
+        return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - m_start).count();
     }
 
 	/// Returns the time in [us]. 
@@ -173,7 +172,7 @@ class ChTimer {
 
     /// Returns the time in [us] since start(). It does not require stop(). 
 	unsigned long long GetTimeMicrosecondsIntermediate() const {
-        return std::chrono::duration_cast<std::chrono::microseconds>(m_start - std::chrono::high_resolution_clock::now()).count();
+        return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - m_start).count();
     }
 
     /// Returns the time in [s], with real_type precision
@@ -184,7 +183,7 @@ class ChTimer {
 
     /// Returns the time in [s] since start(). It does not require stop(). 
 	seconds_type GetTimeSecondsIntermediate() const {
-        std::chrono::duration<seconds_type> int_time = m_start - std::chrono::high_resolution_clock::now();
+        std::chrono::duration<seconds_type> int_time = std::chrono::high_resolution_clock::now() - m_start;
         return int_time.count();
     }
 
@@ -197,7 +196,6 @@ class ChTimer {
 
 #endif
 
+}  // end namespace chrono
 
-}  // END_OF_NAMESPACE____
-
-#endif  // END of ChTimer.h
+#endif

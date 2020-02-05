@@ -1,37 +1,22 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHC_COLLISIONTREE_H
 #define CHC_COLLISIONTREE_H
 
-//////////////////////////////////////////////////
-//
-//   ChCCollisionTree.h
-//
-//   The collision tree class, defining a tree
-//   of geometric objects.
-//
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <vector>
 
-#include "geometry/ChCGeometry.h"
-#include "ChCAbsoluteAABB.h"
+#include "chrono/geometry/ChGeometry.h"
+#include "chrono/collision/edgetempest/ChCAbsoluteAABB.h"
 
 #define CH_COLL_ENVELOPE 0.0022
 
@@ -63,7 +48,7 @@ class ChCollisionTree {
     virtual int AddGeometry(geometry::ChGeometry* mgeo);
 
     /// Builds the BV hierarchy
-    /// MUST be inherited by child classes! (ex for bulding BV hierarchies)
+    /// MUST be inherited by child classes! (ex for building BV hierarchies)
     /// The 'out_layer' parameter can be used if contacts have to be detected
     /// even at a distance='envelope' from the surface (shortly, the effect
     /// is that bounding boxes are 'inflated' by this parameter).
@@ -159,7 +144,7 @@ const int ChC_ERR_BUILD_EMPTY_MODEL = -5;
 // has FAILED -- the model remains "unprocessed", and the client may
 // NOT use it in queries.
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono
 
 #endif

@@ -1,39 +1,20 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChRef.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
+#include <cmath>
 
-#include <math.h>
-#include "physics/ChRef.h"
+#include "chrono/physics/ChRef.h"
 
 namespace chrono {
-
-////////////////////////////////////
-//
-// CLASS  ChRef
-//
-////////////////////////////////////
-
-////////////////////////////////////
-//
-// CLASS  ChRefFunctionSegment
-//
-////////////////////////////////////
 
 ChRefFunctionSegment::ChRefFunctionSegment(ChFunction* mrootf, char* myIDs) {
     this->function = mrootf;
@@ -42,7 +23,7 @@ ChRefFunctionSegment::ChRefFunctionSegment(ChFunction* mrootf, char* myIDs) {
 }
 
 bool ChRefFunctionSegment::RestoreReference(ChFunction* mrootf) {
-    // inherit parent behavoiur
+    // inherit parent behaviour
     ChRefFunction::RestoreReference(mrootf);
 
     // default segment is root function, also for ID=""
@@ -64,24 +45,24 @@ bool ChRefFunctionSegment::RestoreReference(ChFunction* mrootf) {
         buffer[mbupos] = 0;
         int mIDi = atoi(buffer);
 
-        if (this->function_segment->Get_Type() != FUNCT_SEQUENCE)
+        if (this->function_segment->Get_Type() != ChFunction::FUNCT_SEQUENCE)
             return (valid = false);
 
-        this->function_segment = (((ChFunction_Sequence*)function_segment)->GetNthFunction(mIDi))
-                                     .get_ptr();  //***TODO*** use ChSharedPtr everywhere
+        //***TODO*** use shared_ptr everywhere
+        this->function_segment = (((ChFunction_Sequence*)function_segment)->GetNthFunction(mIDi)).get();
 
         mid++;
     }
     return (valid = true);
 }
 
-int ChRefFunctionSegment::SetTreeIDs(char* myIDs) {
+bool ChRefFunctionSegment::SetTreeIDs(char* myIDs) {
     if (strlen(myIDs) < CHREF_TREE_IDS_MAXLENGTH) {
         strcpy(this->treeIDs, myIDs);
         this->RestoreReference(this->function);
-        return TRUE;
+        return true;
     } else
-        return FALSE;
+        return false;
 }
 
 ////////////////////////////////////
@@ -97,7 +78,7 @@ ChRefFunctionHandle::ChRefFunctionHandle(ChFunction* mrootf, int m_hid) {
 }
 
 bool ChRefFunctionHandle::RestoreReference(ChFunction* mrootf) {
-    // inherit parent behavoiur
+    // inherit parent behaviour
     ChRefFunction::RestoreReference(mrootf);
 
     // implement
@@ -115,13 +96,9 @@ int ChRefFunctionHandle::AccessHandle(double& mx, double& my, bool set_mode) {
         return false;
 }
 
-int ChRefFunctionHandle::SetHandleId(int m_hid) {
+void ChRefFunctionHandle::SetHandleId(int m_hid) {
     handle_id = m_hid;
     this->RestoreReference(this->function);
-
-    return TRUE;
 }
 
-}  // END_OF_NAMESPACE____
-
-////// end
+}  // end namespace chrono

@@ -1,20 +1,19 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "physics/ChMaterialSurface.h"
 
+#include "chrono/physics/ChMaterialSurface.h"
+#include "chrono/physics/ChMaterialSurfaceNSC.h"
+#include "chrono/physics/ChMaterialSurfaceSMC.h"
 using namespace chrono;
 
-%}
+%};
 
-// Undefine ChApi otherwise SWIG gives a syntax error
-#define ChApi 
+
 
 /* Parse the header file to generate wrappers */
-%include "../chrono/physics/ChMaterialSurface.h"    
+%include "../chrono/physics/ChMaterialSurface.h"  
+%include "../chrono/physics/ChMaterialSurfaceNSC.h"  
+%include "../chrono/physics/ChMaterialSurfaceSMC.h"  
 
 
-// Define also the shared pointer chrono::ChShared<ChXxxx> 
-// (renamed as 'ChXxxxShared' in python)
-
-%DefChSharedPtr(chrono::,ChMaterialSurface)

@@ -1,42 +1,30 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2011-2012 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #ifndef CHPOVRAY_H
 #define CHPOVRAY_H
 
-//////////////////////////////////////////////////
-//
-//   ChPovRay.h
-//
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <fstream>
-#include <string>
 #include <sstream>
-#include "physics/ChSystem.h"
+#include <string>
+#include <unordered_map>
+
+#include "chrono/assets/ChVisualization.h"
+#include "chrono/physics/ChSystem.h"
 #include "chrono_postprocess/ChPostProcessBase.h"
-#include "core/ChHashTable.h"
-#include "core/ChHashFunction.h"
-#include "assets/ChVisualization.h"
 
 namespace chrono {
-
-/// Namespace with classes for the postprocess unit.
 namespace postprocess {
 
 /// Class for post processing implementation that generates
@@ -64,10 +52,10 @@ class ChApiPostProcess ChPovRay : public ChPostProcessBase {
     /// to render (if it has some associated ChAsset object).
     /// Note that this simply 'flags' the object as renderable
     /// but attaching a ChPovRayAsset to it.
-    virtual void Add(ChSharedPtr<ChPhysicsItem> mitem);
+    virtual void Add(std::shared_ptr<ChPhysicsItem> mitem);
 
     /// Remove a ChPhysicsItem object from the list of objects to render
-    virtual void Remove(ChSharedPtr<ChPhysicsItem> mitem);
+    virtual void Remove(std::shared_ptr<ChPhysicsItem> mitem);
 
     /// Add all ChPhysicsItem objects in the system to
     /// the list of objects to render. Call this at the
@@ -78,7 +66,7 @@ class ChApiPostProcess ChPovRay : public ChPostProcessBase {
     virtual void RemoveAll();
 
     /// Tell if a ChPhysicsItem has been already added.
-    virtual bool IsAdded(ChSharedPtr<ChPhysicsItem> mitem);
+    virtual bool IsAdded(std::shared_ptr<ChPhysicsItem> mitem);
 
     /// Set the filename of the template for the script generation. If not set,
     /// it defaults to "_template_POV.pov" in the default Chrono data directory.
@@ -131,7 +119,7 @@ class ChApiPostProcess ChPovRay : public ChPostProcessBase {
     /// Set the background color - will write this in the output .pov file.
     virtual void SetBackground(ChColor color) { background = color; }
 
-    /// Set the ambiant light - will write this in the output .pov file.
+    /// Set the ambient light - will write this in the output .pov file.
     virtual void SetAmbientLight(ChColor color) { ambient_light = color; }
 
     /// Turn on/off the display of the COG (center of mass) of rigid bodies.
@@ -147,7 +135,7 @@ class ChApiPostProcess ChPovRay : public ChPostProcessBase {
     virtual void SetShowLinks(bool show, double msize = 0.04);
 
     /// Turn on/off the display of contacts, using spheres or arrows (see eChContactSymbol modes).
-    /// The size of the arrow or of the sphere dependson force strength multiplied by 'scale'.
+    /// The size of the arrow or of the sphere depends on force strength multiplied by 'scale'.
     /// Use 'max_size' to limit size of arrows if too long, or spheres if too large (they will be signaled by white
     /// color)
     /// Use 'width' for the radius of the arrow. If in 'SYMBOL_VECTOR_SCALERADIUS' mode, the length of the vector is
@@ -207,17 +195,25 @@ class ChApiPostProcess ChPovRay : public ChPostProcessBase {
     /// As ExportScript(), but overrides the automatically computed filename.
     virtual void ExportData(const std::string& filename);
 
+    /// Set if the assets for the entre scenes at all timesteps must be appended into one
+    /// single large file "rendering_frames.pov.assets". If not, assets will be written inside 
+    /// each state0001.dat, state0002.dat, etc files; this would waste more disk space but would be
+    /// a bit faster in POV parsing and would allow assets whose settings change during time (ex time-changing colors)
+    void SetUseSingleAssetFile(bool muse) {
+        this->single_asset_file = muse;
+    }
+
   protected:
     virtual void SetupLists();
-    virtual void ExportAssets();
-    void _recurseExportAssets(std::vector<ChSharedPtr<ChAsset> >& assetlist, ChStreamOutAsciiFile& assets_file);
+    virtual void ExportAssets(ChStreamOutAsciiFile& assets_file);
+    void _recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& assetlist, ChStreamOutAsciiFile& assets_file);
 
-    void _recurseExportObjData(std::vector<ChSharedPtr<ChAsset> >& assetlist,
+    void _recurseExportObjData(std::vector<std::shared_ptr<ChAsset> >& assetlist,
                                ChFrame<> parentframe,
                                ChStreamOutAsciiFile& mfilepov);
 
-    std::vector<ChSharedPtr<ChPhysicsItem> > mdata;
-    ChHashTable<size_t, ChSharedPtr<ChAsset> > pov_assets;
+    std::vector<std::shared_ptr<ChPhysicsItem> > mdata;
+    std::unordered_map<size_t, std::shared_ptr<ChAsset> > pov_assets;
 
     std::string template_filename;
     std::string pic_filename;
@@ -264,9 +260,11 @@ class ChApiPostProcess ChPovRay : public ChPostProcessBase {
 
     std::string custom_script;
     std::string custom_data;
+
+    bool single_asset_file;
 };
 
-}  // end namespace
-}  // end namespace
+}  // end namespace postprocess
+}  // end namespace chrono
 
 #endif

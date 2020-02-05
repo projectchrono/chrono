@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -30,17 +30,17 @@
 #ifndef CH_UTILS_CHASECAMERA_H
 #define CH_UTILS_CHASECAMERA_H
 
-#include "core/ChApiCE.h"
-#include "physics/ChBody.h"
+#include "chrono/core/ChApiCE.h"
+#include "chrono/physics/ChBody.h"
 
 namespace chrono {
 namespace utils {
 
 class ChApi ChChaseCamera {
   public:
-    enum State { Chase, Follow, Track, Inside };
+    enum State { Chase, Follow, Track, Inside, Free };
 
-    ChChaseCamera(const ChSharedBodyPtr chassis);
+    ChChaseCamera(std::shared_ptr<ChBody> chassis);
     ~ChChaseCamera() {}
 
     void Initialize(const ChVector<>& ptOnChassis,
@@ -52,9 +52,11 @@ class ChApi ChChaseCamera {
 
     void Zoom(int val);
     void Turn(int val);
+    void Raise(int val);
     void SetState(State s);
 
     void SetCameraPos(const ChVector<>& pos);
+    void SetCameraAngle(double angle);
 
     State GetState() const { return m_state; }
     const std::string& GetStateName() const { return m_stateNames[m_state]; }
@@ -67,12 +69,14 @@ class ChApi ChChaseCamera {
 
     void SetMultLimits(double minMult, double maxMult);
 
+    void SetChassis(std::shared_ptr<ChBody> chassis);
+
   private:
     ChVector<> calcDeriv(const ChVector<>& loc);
 
     State m_state;
 
-    ChSharedBodyPtr m_chassis;
+    std::shared_ptr<ChBody> m_chassis;
     ChVector<> m_ptOnChassis;
     ChCoordsys<> m_driverCsys;
     double m_dist;
@@ -83,13 +87,15 @@ class ChApi ChChaseCamera {
     ChVector<> m_loc;
     ChVector<> m_lastLoc;
 
+    double m_locZ;
+
     double m_horizGain;
     double m_vertGain;
     double m_minMult;
     double m_maxMult;
 
     static const double m_maxTrackDist2;
-    static const std::string m_stateNames[4];
+    static const std::string m_stateNames[5];
 };
 
 }  // end namespace utils

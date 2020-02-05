@@ -1,8 +1,8 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// Copyright (c) 2016 projectchrono.org
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -27,6 +27,14 @@
 // If using double precision
 //   #define CHRONO_PARALLEL_USE_DOUBLE
 @CHRONO_PARALLEL_USE_DOUBLE@
+
+// If using SIMD
+//   #define CHRONO_PARALLEL_USE_SIMD
+@CHRONO_PARALLEL_USE_SIMD@
+
+// If using cuda in parallel module
+//   #define CHRONO_PARALLEL_USE_CUDA
+@CHRONO_PARALLEL_USE_CUDA@
 
 
 #endif

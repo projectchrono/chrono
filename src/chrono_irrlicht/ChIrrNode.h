@@ -1,12 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
 
 #ifndef CHIRRNODE_H
 #define CHIRRNODE_H
@@ -25,7 +27,7 @@
 namespace chrono {
 namespace irrlicht {
 
-/// @addtogroup irrlicht
+/// @addtogroup irrlicht_module
 /// @{
 
 /// Class for Irrlicht visualization. It will be managed by a ChIrrNodeAsset
@@ -46,16 +48,16 @@ namespace irrlicht {
 class ChApiIrr ChIrrNode : public irr::scene::ISceneNode {
   public:
     /// Build a scene node for the Irrlicht Engine.
-    /// This scene node also has a pointer to a rigid body for the Chrono::Engine
+    /// This scene node also has a pointer to a rigid body for the Chrono
     /// multibody simulation.  To delete a ChIrrSceneNode node from an Irrlicht
     /// scene, use the remove() function from the Irrlicht side (it won't delete
     /// the C::E body, though), or better delete the corresponding ChIrrlichtObj
     /// asset from the C::E side, or delete the full C::E body.
-      ChIrrNode(ChSharedPtr<ChPhysicsItem> mphysicsitem,  ///< pointer to the Chrono::Engine item (es. rigid body)
-          irr::scene::ISceneNode* parent,                 ///< the parent node in Irrlicht hierarchy
-          irr::scene::ISceneManager* mgr,                 ///< the Irrlicht scene manager
-          irr::s32 id                                     ///< the Irrlicht identifier
-          );
+    ChIrrNode(std::weak_ptr<ChPhysicsItem> mphysicsitem,  ///< pointer to the Chrono item (es. rigid body)
+              irr::scene::ISceneNode* parent,             ///< the parent node in Irrlicht hierarchy
+              irr::scene::ISceneManager* mgr,             ///< the Irrlicht scene manager
+              irr::s32 id                                 ///< the Irrlicht identifier
+              );
 
     /// Destructor.
     ~ChIrrNode() {}
@@ -84,14 +86,14 @@ class ChApiIrr ChIrrNode : public irr::scene::ISceneNode {
     // CHRONO::ENGINE SPECIFIC
     //
 
-    /// Returns reference to the shared pointer which references the ChPhysicsItem
+    /// Returns reference to the pointer which references the ChPhysicsItem
     /// (ex. a ChBody) wrapped by this scene node.
-    ChSharedPtr<ChPhysicsItem> GetPhysicsItem();
+    std::weak_ptr<ChPhysicsItem> GetPhysicsItem() { return physicsitem; }
 
-    /// Returns true if the node is moved by Chrono::Engine simulation system.
+    /// Returns true if the node is moved by Chrono simulation system.
     virtual bool IsChronoControlled() const { return ChronoControlled; }
 
-    /// Set true if the node must be moved by Chrono::Engine simulation system
+    /// Set true if the node must be moved by Chrono simulation system
     /// (it follows a ChPhysicsItem that contains a ChIrrNodeAsset, proxy to this).
     virtual void SetChronoControlled(const bool& controlled) { ChronoControlled = controlled; }
 
@@ -105,11 +107,11 @@ class ChApiIrr ChIrrNode : public irr::scene::ISceneNode {
     void _recurse_update_asset_proxies(irr::scene::ISceneNode* mnode);
 
     irr::core::aabbox3d<irr::f32> Box;
-    ChPhysicsItem* physicsitem;
+    std::weak_ptr<ChPhysicsItem> physicsitem;
     bool ChronoControlled;
 };
 
-/// @} irrlicht
+/// @} irrlicht_module
 
 }  // end namespace irrlicht
 }  // end namespace chrono

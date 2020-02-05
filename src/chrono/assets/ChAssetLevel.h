@@ -1,126 +1,64 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHASSETLEVEL_H
 #define CHASSETLEVEL_H
 
-///////////////////////////////////////////////////
-//
-//   ChAssetLevel.h
-//
-//   Base class grouping assets
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
+#include "chrono/assets/ChAsset.h"
+#include "chrono/core/ChFrame.h"
 
-#include "assets/ChAsset.h"
-#include "core/ChFrame.h"
-#include "core/ChMatrixDynamic.h"
 namespace chrono {
 
-/// Base class for grouping assets in a level. The
-/// level is like a 'subdirectory'. A level can contain
-/// assets; amnog these, also further levels, etc. (but please
-/// avoid circular loops!)
-/// A level can have custom rotation and translation respect
-/// its parent level.
-
+/// Class for grouping assets in a level. The level is like a 'subdirectory'.
+/// A level can contain assets, as well as further levels (but avoid circular loops!)
+/// A level can have custom rotation and translation respect its parent level.
 class ChApi ChAssetLevel : public ChAsset {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChAsset, ChShared);
-
-  protected:
-    //
-    // DATA
-    //
-    ChFrame<> levelframe;
-
-    std::vector<ChSharedPtr<ChAsset> > assets;
-
   public:
-    //
-    // CONSTRUCTORS
-    //
+    ChAssetLevel() : levelframe(CSYSNORM) {}
 
-    ChAssetLevel() : levelframe(chrono::CSYSNORM){};
+    virtual ~ChAssetLevel() {}
 
-    virtual ~ChAssetLevel(){};
-
-    //
-    // FUNCTIONS
-    //
-
-    /// Access the coordinate sytem information of the level, for setting/getting its position
+    /// Access the coordinate system information of the level, for setting/getting its position
     /// and rotation respect to its parent.
     ChFrame<>& GetFrame() { return levelframe; }
 
     /// Access to the list of children assets.
-    std::vector<ChSharedPtr<ChAsset> >& GetAssets() { return this->assets; }
+    std::vector<std::shared_ptr<ChAsset>>& GetAssets() { return assets; }
 
     /// Get the Nth asset in list
-    ChSharedPtr<ChAsset> GetAssetN(unsigned int num) {
-        if (num < assets.size())
-            return assets[num];
-        else {
-            ChSharedPtr<ChAsset> none;
-            return none;
-        };
-    }
+    std::shared_ptr<ChAsset> GetAssetN(unsigned int num);
 
-    /// Add an asset
-    void AddAsset(ChSharedPtr<ChAsset> masset) { this->assets.push_back(masset); }
+    /// Add an asset to this level.
+    void AddAsset(std::shared_ptr<ChAsset> masset) { this->assets.push_back(masset); }
 
-    /// Updates all children assets, if any. Overrides default behaviour that does nothing.
-    /// Note that when calls Update() on children assets, their 'coords' will be the result
+    /// Updates all children assets, if any.
+    /// Note that when calling Update() on children assets, their 'coords' will be the result
     /// of concatenating this frame csys and 'coords'.
-    virtual void Update(ChPhysicsItem* updater, const ChCoordsys<>& coords);
+    virtual void Update(ChPhysicsItem* updater, const ChCoordsys<>& coords) override;
 
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    //
-    // SERIALIZATION
-    //
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite(1);
-        // serialize parent class
-        ChAsset::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(levelframe);
-        marchive << CHNVP(assets);
-    }
+  protected:
+    ChFrame<> levelframe;
 
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead();
-        // deserialize parent class
-        ChAsset::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(levelframe);
-        marchive >> CHNVP(assets);
-    }
+    std::vector<std::shared_ptr<ChAsset>> assets;
 };
 
-//////////////////////////////////////////////////////
-//////////////////////////////////////////////////////
+CH_CLASS_VERSION(ChAssetLevel, 0)
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

@@ -1,43 +1,29 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHOBJECT_H
 #define CHOBJECT_H
 
-//////////////////////////////////////////////////
-//
-//   ChObject.h
-//
-// Base class for objects which can be renamed,
-// copied, etc. Provides interface to link objects to
-// item in hosting applications, like geometric objects
-// in the editor of a 3d modeler.
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include <stdlib.h>
+#include <cfloat>
+#include <cmath>
+#include <cstdlib>
 #include <iostream>
+#include <memory>
 #include <string>
-#include <math.h>
-#include <float.h>
-#include <memory.h>
 
-#include "core/ChLog.h"
-#include "core/ChMath.h"
-#include "core/ChLists.h"
-#include "core/ChShared.h"
+#include "chrono/core/ChLog.h"
+#include "chrono/core/ChMath.h"
 
 #include <vector>
 
@@ -50,63 +36,28 @@ namespace chrono {
 class ChVar;
 class ChTag;
 
-/// Base class for items which can be named, deleted,
-/// copied. etc. as in the editor of a 3d modeler.
-///
-///
-/// This class inherits the features of the reference-countable
-/// ChShared class, so that  ChObj  instances can be managed
-/// easily with the 'intrusive smart pointers' ChSharedPtr
-/// (with minimal overhead in performance, yet providing the
-/// safe and comfortable automatic deallocation mechanism of
-/// shared/smart pointers).
-///
-/// Each ChObject also has a pointer to user data (for example,
-/// the user data can be the encapsulating object in case of
-/// implementation as a plugin for 3D modeling software.
-///
-/// Also, each ChObj object has a 32 bit identifier, in case
-/// unique identifiers are used (hash algorithms, etc.)
-class ChApi ChObj : public virtual ChShared {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChObj, ChShared);
-
+/// Base class for items which can be named, deleted, copied. etc. as in the editor of a 3d modeler.
+class ChApi ChObj {
   private:
-    //
-    // DATA
-    //
-
-    // name of object
-    std::string name;
-
-    // ID for referencing
-    int identifier;
+    std::string name;  ///< name of object
+    int identifier;    ///< object identifier
 
   protected:
-    // the time of simulation for the object
-    double ChTime;
+    double ChTime;  ///< the time of simulation for the object
 
   public:
-    //
-    //	CONSTRUCTORS/DELETION
-    //
-
     ChObj();
-    virtual ~ChObj();
+    ChObj(const ChObj& other);
+    virtual ~ChObj() {}
 
-    void Copy(ChObj* source);
-
-    //
-    // FUNCTIONS
-    //
+    /// "Virtual" copy constructor.
+    /// Concrete derived classes must implement this.
+    virtual ChObj* Clone() const = 0;
 
     /// Gets the numerical identifier of the object.
     int GetIdentifier() const { return identifier; }
     /// Sets the numerical identifier of the object.
     void SetIdentifier(int id) { identifier = id; }
-
-    /// Given a fast list of ChObj, returns the address of the first matching the ID.
-    ChObj* GetAddrFromID(ChObj** ChList, int myID);
 
     /// Gets the simulation time of this object
     double GetChTime() const { return ChTime; }
@@ -114,14 +65,14 @@ class ChApi ChObj : public virtual ChShared {
     void SetChTime(double m_time) { ChTime = m_time; }
 
     /// Gets the name of the object as C Ascii null-terminated string -for reading only!
-    const char* GetName() const;
+    const char* GetName() const { return name.c_str(); }
     /// Sets the name of this object, as ascii string
-    void SetName(const char myname[]);
+    void SetName(const char myname[]) { name = myname; }
 
     /// Gets the name of the object as C Ascii null-terminated string.
-    std::string GetNameString() const;
+    std::string GetNameString() const { return name; }
     /// Sets the name of this object, as std::string
-    void SetNameString(const std::string& myname);
+    void SetNameString(const std::string& myname) { name = myname; }
 
     // Set-get generic LONG flags, passed as reference
 
@@ -132,35 +83,19 @@ class ChApi ChObj : public virtual ChShared {
     }
     void MFlagSetON(int& mflag, int mask) { mflag |= mask; }
     void MFlagSetOFF(int& mflag, int mask) { mflag &= ~mask; }
-    int MFlagGet(int& mflag, int mask) { return (mflag & mask); };
+    int MFlagGet(int& mflag, int mask) { return (mflag & mask); }
 
-    //
-    // STREAMING
-    //
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
 
-            /// Method to allow serialization of transient data in archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        marchive.VersionWrite(1);
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 
-        // stream out all member data
-        marchive << CHNVP(name);
-        marchive << CHNVP(identifier);
-        marchive << CHNVP(ChTime);
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        int version = marchive.VersionRead();
-
-        // stream out all member data
-        marchive >> CHNVP(name);
-        marchive >> CHNVP(identifier);
-        marchive >> CHNVP(ChTime);
-    }
-
+    // Method to allow mnemonic names in (de)serialization of containers (std::vector, arrays, etc.)
+    virtual std::string& ArchiveContainerName() { return name; }
 };
+
+CH_CLASS_VERSION(ChObj, 0)
 
 // Functions to manipulate STL containers of ChObj objects
 
@@ -188,6 +123,6 @@ T ChContainerSearchFromID(int myID, Iterator from, Iterator to) {
 
 /// @} chrono_physics
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

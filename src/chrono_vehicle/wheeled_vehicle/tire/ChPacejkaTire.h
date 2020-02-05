@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -12,22 +12,25 @@
 // Authors: Justin Madsen
 // =============================================================================
 //
-// Base class for a Pacjeka type Magic formula 2002 tire model
+// Base class for a Pacejka type Magic formula 2002 tire model
 //
 // =============================================================================
 
 #ifndef CH_PACEJKATIRE_H
 #define CH_PACEJKATIRE_H
 
-#include <vector>
-#include <string>
-#include <sstream>
 #include <fstream>
+#include <sstream>
+#include <string>
+#include <vector>
 
+#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChTexture.h"
 #include "chrono/physics/ChBody.h"
 
-#include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 #include "chrono_vehicle/ChTerrain.h"
+#include "chrono_vehicle/wheeled_vehicle/ChTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChPac2002_data.h"
 
 namespace chrono {
 namespace vehicle {
@@ -49,7 +52,6 @@ struct relaxationL;
 struct bessel;
 
 /// Concrete tire class that implements the Pacejka tire model.
-/// Detailed description goes here...
 class CH_VEHICLE_API ChPacejkaTire : public ChTire {
   public:
     /// Default constructor for a Pacejka tire.
@@ -69,30 +71,45 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
 
     ~ChPacejkaTire();
 
-    /// specify the file name to read the Pactire input from
-    void Initialize(VehicleSide side,  ///< [in]
-                    bool driven);
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "PacejkaTire"; }
 
-    /// return the reactions for the combined slip EQs, in global coords
-    virtual TireForce GetTireForce() const override;
+    /// Specify whether or not the associated wheel is driven.
+    /// By default, the wheel is assumed not driven.
+    void SetDrivenWheel(bool val) { m_driven = val; }
+
+    /// Add visualization assets for the rigid tire subsystem.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+
+    /// Remove visualization assets for the rigid tire subsystem.
+    virtual void RemoveVisualizationAssets() override;
+
+    /// Get the tire radius.
+    virtual double GetRadius() const override { return m_R_eff; }
+
+    /// Get visualization tire width.
+    virtual double GetVisualizationWidth() const { return 0.25; }
+
+    /// Report the tire force and moment.
+    virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override;
 
     ///  Return the reactions for the pure slip EQs, in local or global coords
-    TireForce GetTireForce_pureSlip(const bool local = true) const;
+    TerrainForce GetTireForce_pureSlip(const bool local = true) const;
 
     /// Return the reactions for the combined slip EQs, in local or global coords
-    TireForce GetTireForce_combinedSlip(const bool local = true) const;
+    TerrainForce GetTireForce_combinedSlip(const bool local = true) const;
 
-    /// Update the state of this tire system at the current time.
-    /// Set the PacTire spindle state data from the global wheel body state.
-    virtual void Update(double time,                      ///< [in] current time
-                        const WheelState& wheel_state,  ///< [in] current state of associated wheel body
-                        const ChTerrain& terrain          ///< [in] reference to the terrain system
-                        ) override;
+    /// Get the tire slip angle computed internally by the Pacejka model (in radians).
+    /// The reported value will be the same as that reported by ChTire::GetSlipAngle.
+    double GetSlipAngle_internal() const { return m_slip->alpha; }
 
-    /// Advance the state of this tire by the specified time step.
-    /// Use the new body state, calculate all the relevant quantities over the
-    /// time increment.
-    virtual void Advance(double step) override;
+    /// Get the tire longitudinal slip computed internally by the Pacejka model.
+    /// The reported value will be the same as that reported by ChTire::GetLongitudinalSlip.
+    double GetLongitudinalSlip_internal() const { return m_slip->kappa; }
+
+    /// Get the camber angle for the Pacejka tire model (in radians).
+    /// The reported value will be the same as that reported by ChTire::GetCamberAngle.
+    double GetCamberAngle_internal() const { return m_slip->gamma; }
 
     /// Write output data to a file.
     void WriteOutData(double time, const std::string& outFilename);
@@ -104,10 +121,10 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
     /// Assumes the tire is going straight forward (global x-dir), and the
     /// returned state's orientation yields gamma and alpha, as x and z NASA angles
     WheelState getState_from_KAG(double kappa,  ///< [in] ...
-                                   double alpha,  ///< [in] ...
-                                   double gamma,  ///< [in] ...
-                                   double Vx      ///< [in] tire forward velocity x-dir
-                                   );
+                                 double alpha,  ///< [in] ...
+                                 double gamma,  ///< [in] ...
+                                 double Vx      ///< [in] tire forward velocity x-dir
+                                 );
 
     /// Get the average simulation time per step spent in advance()
     double get_average_Advance_time() { return m_sum_Advance_time / (double)m_num_Advance_calls; }
@@ -151,24 +168,41 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
     /// Get the tire rolling radius, ideally updated each step.
     double get_tire_rolling_rad() const { return m_R_eff; }
 
-    /// Set the value of the integration step size.
-    void SetStepsize(double val) { m_step_size = val; }
-
-    /// Get the current value of the integration step size.
-    double GetStepsize() const { return m_step_size; }
+  protected:
+    const std::string& getPacTireParamFile() const { return m_paramFile; }
+    std::string m_paramFile;  // input parameter file
 
   private:
-    // where to find the input parameter file
-    const std::string& getPacTireParamFile() const { return m_paramFile; }
+    virtual void Create(const rapidjson::Document& d) override {}
+
+    /// Get the tire force and moment.
+    /// This represents the output from this tire system that is passed to the
+    /// vehicle system.  Typically, the vehicle subsystem will pass the tire force
+    /// to the appropriate suspension subsystem which applies it as an external
+    /// force one the wheel body.
+    virtual TerrainForce GetTireForce() const override;
+
+    /// Initialize this tire by associating it to the specified wheel.
+    virtual void Initialize(std::shared_ptr<ChWheel> wheel) override;
+
+    /// Update the state of this tire system at the current time.
+    /// Set the PacTire spindle state data from the global wheel body state.
+    virtual void Synchronize(double time,              ///< [in] current time
+                             const ChTerrain& terrain  ///< [in] reference to the terrain system
+                             ) override;
+
+    /// Advance the state of this tire by the specified time step.
+    /// Use the new body state, calculate all the relevant quantities over the time increment.
+    virtual void Advance(double step) override;
 
     // look for this data file
     void loadPacTireParamFile();
 
-    // once Pac tire input text file has been succesfully opened, read the input
+    // once Pac tire input text file has been successfully opened, read the input
     // data, and populate the data struct
     void readPacTireInput(std::ifstream& inFile);
 
-    // functions for reading each section in the paramter file
+    // functions for reading each section in the parameter file
     void readSection_UNITS(std::ifstream& inFile);
     void readSection_MODEL(std::ifstream& inFile);
     void readSection_DIMENSION(std::ifstream& inFile);
@@ -255,7 +289,7 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
                       double step_size);
 
     // calculate and set the transient slip values (kappaP, alphaP, gammaP) from
-    // u, v deflections. optionally turn on/off besselink low velocity damping
+    // u, v deflections. optionally turn on/off Besselink low velocity damping
     void slip_from_uv(bool use_besselink = true,
                       double bessel_Cx = 350.0,
                       double bessel_Cy = 200.0,
@@ -272,17 +306,17 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
 
     /// longitudinal force, alpha ~= 0
     /// assign to m_FM.force.x
-    /// assign m_pureLong, trionometric function calculated constants
+    /// assign m_pureLong, trigonometric function calculated constants
     double Fx_pureLong(double gamma, double kappa);
 
     /// lateral force,  kappa ~= 0
     /// assign to m_FM.force.y
-    /// assign m_pureLong, trionometric function calculated constants
+    /// assign m_pureLong, trigonometric function calculated constants
     double Fy_pureLat(double alpha, double gamma);
 
     /// aligning moment,  kappa ~= 0
     /// assign to m_FM.moment.z
-    /// assign m_pureLong, trionometric function calculated constants
+    /// assign m_pureLong, trigonometric function calculated constants
     double Mz_pureLat(double alpha, double gamma, double Fy_pureSlip);
 
     /// longitudinal force, combined slip (general case)
@@ -295,7 +329,7 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
     /// assign m_combinedLat
     double Fy_combined(double alpha, double gamma, double kappa, double Fy_pureSlip);
 
-    // calculate aligning torque, combined slip (gernal case)
+    // calculate aligning torque, combined slip (general case)
     /// assign m_FM_combined.moment.z
     /// assign m_combinedTorque
     double Mz_combined(double alpha_r,
@@ -315,13 +349,12 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
 
     // ----- Data members
     bool m_use_transient_slip;
-    VehicleSide m_side;
     bool m_driven;   // is this a driven tire?
     int m_sameSide;  // does parameter file side equal m_side? 1 = true, -1 opposite
 
     WheelState m_tireState;  // tire state, global coordinates
-    ChCoordsys<> m_W_frame;    // tire contact coordinate system, TYDEX W-Axis
-    double m_simTime;          // Chrono simulation time
+    ChCoordsys<> m_W_frame;  // tire contact coordinate system, TYDEX W-Axis
+    double m_simTime;        // Chrono simulation time
 
     bool m_in_contact;  // indicates if there is tire-terrain contact
     double m_depth;     // if in contact, this is the contact depth
@@ -335,7 +368,6 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
     bool m_use_Fz_override;  // calculate Fz using collision, or user input
     double m_Fz_override;    // if manually inputting the vertical wheel load
 
-    double m_step_size;             // integration step size
     double m_time_since_last_step;  // init. to -1 in Initialize()
     bool m_initial_step;            // so Advance() gets called at time = 0
     int m_num_ODE_calls;
@@ -343,18 +375,17 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
     int m_num_Advance_calls;
     double m_sum_Advance_time;
 
-    TireForce m_FM_pure;      // output tire forces, based on pure slip
-    TireForce m_FM_combined;  // output tire forces, based on combined slip
+    TerrainForce m_FM_pure;      // output tire forces, based on pure slip
+    TerrainForce m_FM_combined;  // output tire forces, based on combined slip
     // previous steps calculated reaction
-    TireForce m_FM_pure_last;
-    TireForce m_FM_combined_last;
+    TerrainForce m_FM_pure_last;
+    TerrainForce m_FM_combined_last;
 
     // TODO: could calculate these using sigma_kappa_adams and sigma_alpha_adams, in getRelaxationLengths()
     // HARDCODED IN Initialize() for now
     double m_C_Fx;
     double m_C_Fy;
 
-    std::string m_paramFile;    // input parameter file
     std::string m_outFilename;  // output filename
 
     int m_Num_WriteOutData;  // number of times WriteOut was called
@@ -380,9 +411,17 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
 
     zetaCoefs* m_zeta;
 
+    double m_mu;   // current road friction coefficient
+    double m_mu0;  // tire reference friction coeffient
+
+    ChFunction_Recorder m_areaDep;  // lookup table for estimation of penetration depth from intersection area
+
     // for transient contact point tire model
     relaxationL* m_relaxation;
     bessel* m_bessel;
+
+    std::shared_ptr<ChCylinderShape> m_cyl_shape;  ///< visualization cylinder asset
+    std::shared_ptr<ChTexture> m_texture;          ///< visualization texture asset
 };
 
 // -----------------------------------------------------------------------------

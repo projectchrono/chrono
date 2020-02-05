@@ -728,7 +728,6 @@ hacd::HaI32 dgPolyhedra::PackVertex (hacd::HaF32* const destArray, const hacd::H
 	iter ++;
 
 	tree[edgeCount] = node;
-	node->AddRef();
 
 	HACD_ASSERT (edgeCount < maxCount);
 	edgeCount ++;
@@ -2868,7 +2867,7 @@ void dgPolyhedra::Optimize (const hacd::HaF64* const array, hacd::HaI32 strideIn
 							if (handle) {
 								handle->m_edge = NULL;
 							}
-							ptr->m_userData = hacd::HaU32 (NULL);
+							ptr->m_userData = hacd::HaU64 (NULL);
 
 						}
 
@@ -2907,7 +2906,7 @@ void dgPolyhedra::Optimize (const hacd::HaF64* const array, hacd::HaI32 strideIn
 									if (handle) {
 										handle->m_edge = NULL;
 									}
-									ptr1->m_userData = hacd::HaU32 (NULL);
+									ptr1->m_userData = hacd::HaU64 (NULL);
 
 								}
 							}
@@ -2933,7 +2932,7 @@ void dgPolyhedra::Optimize (const hacd::HaF64* const array, hacd::HaI32 strideIn
 									if (handle) {
 										handle->m_edge = NULL;
 									}
-									ptr1->m_twin->m_userData = hacd::HaU32 (NULL);
+									ptr1->m_twin->m_userData = hacd::HaU64 (NULL);
 
 								}
 							}

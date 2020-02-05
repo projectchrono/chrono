@@ -12,12 +12,10 @@ SET(LIBRARIES
 IF(ENABLE_MODULE_OPENGL)
     INCLUDE_DIRECTORIES(${CH_OPENGL_INCLUDES})
     SET(LIBRARIES ${LIBRARIES} ChronoEngine_opengl)
-ENDIF()
 
-# ------------------------------------------------------------------------------
-
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    SET (CH_LINKERFLAG_EXE  "${CH_LINKERFLAG_EXE} -framework IOKit -framework Cocoa -framework OpenGL")
+    IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+       SET (CH_LINKERFLAG_EXE  "${CH_LINKERFLAG_EXE} -framework IOKit -framework Cocoa -framework OpenGL")
+    ENDIF()
 ENDIF()
 
 # ------------------------------------------------------------------------------
@@ -26,16 +24,20 @@ ENDIF()
 
 # Programs that can work with or without OpenGL
 SET(DEMOS
-    ballsDEM
-    ballsDVI
-    mixerDEM
-    mixerDVI
+    demo_PAR_ballsSMC
+    demo_PAR_ballsNSC
+    demo_PAR_mixerSMC
+    demo_PAR_mixerNSC
+    demo_PAR_fluidNSC
+    demo_PAR_snowMPM
+    demo_PAR_particlesNSC
+    demo_PAR_friction
 )
 
-# Programs that require OpenGL support
-IF(ENABLE_MODULE_OPENGL)
-    SET(DEMOS ${DEMOS} benchmarkOpenGL shapesOpenGL)
-ENDIF()
+# Add programs that require OpenGL
+if(ENABLE_MODULE_OPENGL)
+    set(DEMOS ${DEMOS} demo_PAR_motors)
+endif()
 
 # ------------------------------------------------------------------------------
 # Add all executables
@@ -58,7 +60,7 @@ FOREACH(PROGRAM ${DEMOS})
     TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES})
     ADD_DEPENDENCIES(${PROGRAM} ${LIBRARIES})
 
-    INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
+    INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 
 ENDFOREACH(PROGRAM)
 

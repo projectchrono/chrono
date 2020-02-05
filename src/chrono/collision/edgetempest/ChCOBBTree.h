@@ -1,34 +1,20 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHC_OBBTREE
 #define CHC_OBBTREE
 
-//////////////////////////////////////////////////
-//
-//   ChCOBBTree.h
-//
-//   Class for the binary space partitioning tree
-//   (aka BSP) based on OBB bounding volumes
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "ChCCollisionTree.h"
-#include "ChCOBB.h"
+#include "chrono/collision/edgetempest/ChCCollisionTree.h"
+#include "chrono/collision/edgetempest/ChCOBB.h"
 
 namespace chrono {
 namespace collision {
@@ -73,7 +59,7 @@ class CHOBBTree : public ChCollisionTree {
     int build_model(double envelope);
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono
 
 #endif

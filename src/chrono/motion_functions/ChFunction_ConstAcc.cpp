@@ -1,46 +1,37 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2011 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChFunction_ConstAcc.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "ChFunction_ConstAcc.h"
+#include "chrono/motion_functions/ChFunction_ConstAcc.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
-ChClassRegister<ChFunction_ConstAcc> a_registration_constacc;
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChFunction_ConstAcc)
 
-void ChFunction_ConstAcc::Copy(ChFunction_ConstAcc* source) {
-    h = source->h;
-    av = source->av;
-    aw = source->aw;
-    end = source->end;
+ChFunction_ConstAcc::ChFunction_ConstAcc(double m_h, double m_av, double m_aw, double m_end) : h(m_h) {
+    Set_end(m_end);
+    Set_avw(m_av, m_aw);
 }
 
-ChFunction* ChFunction_ConstAcc::new_Duplicate() {
-    ChFunction_ConstAcc* m_func;
-    m_func = new ChFunction_ConstAcc;
-    m_func->Copy(this);
-    return (m_func);
+ChFunction_ConstAcc::ChFunction_ConstAcc(const ChFunction_ConstAcc& other) {
+    h = other.h;
+    av = other.av;
+    aw = other.aw;
+    end = other.end;
 }
 
-double ChFunction_ConstAcc::Get_y(double x) {
+double ChFunction_ConstAcc::Get_y(double x) const {
     double ret = 0;
     if (x <= 0)
         return 0;
@@ -62,7 +53,7 @@ double ChFunction_ConstAcc::Get_y(double x) {
     return ret;
 }
 
-double ChFunction_ConstAcc::Get_y_dx(double x) {
+double ChFunction_ConstAcc::Get_y_dx(double x) const {
     double ret = 0;
     double ev = av * end;
     double ew = aw * end;
@@ -80,7 +71,7 @@ double ChFunction_ConstAcc::Get_y_dx(double x) {
     return ret;
 }
 
-double ChFunction_ConstAcc::Get_y_dxdx(double x) {
+double ChFunction_ConstAcc::Get_y_dxdx(double x) const {
     double ret = 0;
     double ev = av * end;
     double ew = aw * end;
@@ -98,17 +89,40 @@ double ChFunction_ConstAcc::Get_y_dxdx(double x) {
     return ret;
 }
 
-double ChFunction_ConstAcc::Get_Ca_pos() {
+double ChFunction_ConstAcc::Get_Ca_pos() const {
     return 2 * (end * end) / (av * end * (end - av * end + aw * end));
 }
-double ChFunction_ConstAcc::Get_Ca_neg() {
+
+double ChFunction_ConstAcc::Get_Ca_neg() const {
     return 2 * (end * end) / ((end - aw * end) * (end - av * end + aw * end));
 }
-double ChFunction_ConstAcc::Get_Cv() {
+
+double ChFunction_ConstAcc::Get_Cv() const {
     return 2 * (end) / (end - av * end + aw * end);
 }
 
+void ChFunction_ConstAcc::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChFunction_ConstAcc>();
+    // serialize parent class
+    ChFunction::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(h);
+    marchive << CHNVP(end);
+    marchive << CHNVP(aw);
+    marchive << CHNVP(av);
+}
 
-}  // END_OF_NAMESPACE____
+void ChFunction_ConstAcc::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChFunction_ConstAcc>();
+    // deserialize parent class
+    ChFunction::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(h);
+    marchive >> CHNVP(end);
+    marchive >> CHNVP(aw);
+    marchive >> CHNVP(av);
+}
 
-// eof
+}  // end namespace chrono

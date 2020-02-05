@@ -1,95 +1,43 @@
 #=============================================================================
-# CMake configuration file for the HMMWV demo.
-# This example program requires Irrlicht run-time visualization
+# CMake configuration file for the HMMWV demos.
+# These example programs require Irrlicht run-time visualization.
 #=============================================================================
 
 IF(NOT ENABLE_MODULE_IRRLICHT)
     RETURN()
 ENDIF()
 
-MESSAGE(STATUS "...add HMMWV demo")
-
 #--------------------------------------------------------------
-# List all model files for this demo
+# List all HMMWV demos
 
-SET(MODEL_FILES
-    ../hmmwv/HMMWV.h
-    ../hmmwv/HMMWV.cpp
-    ../hmmwv/vehicle/HMMWV_Vehicle.h
-    ../hmmwv/vehicle/HMMWV_Vehicle.cpp
-    ../hmmwv/vehicle/HMMWV_VehicleReduced.h
-    ../hmmwv/vehicle/HMMWV_VehicleReduced.cpp
-    ../hmmwv/suspension/HMMWV_DoubleWishbone.h
-    ../hmmwv/suspension/HMMWV_DoubleWishbone.cpp
-    ../hmmwv/suspension/HMMWV_DoubleWishboneReduced.h
-    ../hmmwv/suspension/HMMWV_DoubleWishboneReduced.cpp
-    ../hmmwv/steering/HMMWV_PitmanArm.h
-    ../hmmwv/steering/HMMWV_PitmanArm.cpp
-    ../hmmwv/steering/HMMWV_RackPinion.h
-    ../hmmwv/steering/HMMWV_RackPinion.cpp
-    ../hmmwv/driveline/HMMWV_Driveline2WD.h
-    ../hmmwv/driveline/HMMWV_Driveline2WD.cpp
-    ../hmmwv/driveline/HMMWV_Driveline4WD.h
-    ../hmmwv/driveline/HMMWV_Driveline4WD.cpp
-    ../hmmwv/powertrain/HMMWV_SimplePowertrain.h
-    ../hmmwv/powertrain/HMMWV_SimplePowertrain.cpp
-    ../hmmwv/powertrain/HMMWV_Powertrain.h
-    ../hmmwv/powertrain/HMMWV_Powertrain.cpp
-    ../hmmwv/brake/HMMWV_BrakeSimple.h
-    ../hmmwv/brake/HMMWV_BrakeSimple.cpp
-    ../hmmwv/wheel/HMMWV_Wheel.h
-    ../hmmwv/wheel/HMMWV_Wheel.cpp
-    ../hmmwv/tire/HMMWV_RigidTire.h
-    ../hmmwv/tire/HMMWV_RigidTire.cpp
-    ../hmmwv/tire/HMMWV_LugreTire.h
-    ../hmmwv/tire/HMMWV_LugreTire.cpp
-    ../hmmwv/tire/HMMWV_FialaTire.h
-    ../hmmwv/tire/HMMWV_FialaTire.cpp
-)
-
-SET(DEMO_FILES
-    demo_HMMWV.cpp
-)
-
-SOURCE_GROUP("subsystems" FILES ${MODEL_FILES})
-SOURCE_GROUP("" FILES ${DEMO_FILES})
+SET(DEMOS
+    demo_VEH_HMMWV
+    demo_VEH_HMMWV_Accel
+    demo_VEH_HMMWV_DoubleLaneChange
+    demo_VEH_HMMWV_DefSoil)
 
 #--------------------------------------------------------------
 # Additional include directories
 
-INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/src/demos/vehicle")
-
-IF(ENABLE_MODULE_IRRLICHT)
-  INCLUDE_DIRECTORIES(${CH_IRRLICHTINC})
-ENDIF()
+INCLUDE_DIRECTORIES(${CH_IRRLICHTINC})
 
 #--------------------------------------------------------------
-# List of all required libraries
+# Create the executables
 
-SET(LIBRARIES
-    ChronoEngine
-    ChronoEngine_vehicle)
+FOREACH(DEMO ${DEMOS})
 
-IF(ENABLE_MODULE_IRRLICHT)
-  SET(LIBRARIES_IRR
-      ChronoEngine_irrlicht
-      ${CH_IRRLICHTLIB})
-ELSE()
-  SET(LIBRARIES_IRR "")
-ENDIF()
+    MESSAGE(STATUS "...add ${DEMO}")
 
-#--------------------------------------------------------------
-# Create the executable
+    ADD_EXECUTABLE(${DEMO} ${DEMO}.cpp)
+    SOURCE_GROUP("" FILES ${DEMO}.cpp)
+    SET_TARGET_PROPERTIES(${DEMO} PROPERTIES 
+                          COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
+                          LINK_FLAGS "${CH_LINKERFLAG_EXE}")
+    TARGET_LINK_LIBRARIES(${DEMO}
+                          ChronoEngine
+                          ChronoEngine_irrlicht
+                          ChronoEngine_vehicle
+                          ChronoModels_vehicle)
+    INSTALL(TARGETS ${DEMO} DESTINATION ${CH_INSTALL_DEMO})
 
-if(ENABLE_MODULE_IRRLICHT)
-  set(MY_CXX_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
-else()
-  set(MY_CXX_FLAGS "${CH_CXX_FLAGS}")
-endif()
-
-ADD_EXECUTABLE(demo_HMMWV ${DEMO_FILES} ${MODEL_FILES})
-SET_TARGET_PROPERTIES(demo_HMMWV PROPERTIES 
-                      COMPILE_FLAGS "${MY_CXX_FLAGS}"
-                      LINK_FLAGS "${LINKERFLAG_EXE}")
-TARGET_LINK_LIBRARIES(demo_HMMWV ${LIBRARIES} ${LIBRARIES_IRR})
-INSTALL(TARGETS demo_HMMWV DESTINATION bin)
+ENDFOREACH()

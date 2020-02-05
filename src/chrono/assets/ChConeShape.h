@@ -1,84 +1,46 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHOBJCONESHAPE_H
 #define CHOBJCONESHAPE_H
 
-
-
-#include "assets/ChVisualization.h"
-#include "geometry/ChCCone.h"
+#include "chrono/assets/ChVisualization.h"
+#include "chrono/geometry/ChCone.h"
 
 namespace chrono {
 
-/// Class for referencing a cone shape that can be
-/// visualized in some way.
-
+/// Class for referencing a cone shape that can be visualized in some way.
 class ChApi ChConeShape : public ChVisualization {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChConeShape, ChVisualization);
-
   protected:
-    //
-    // DATA
-    //
     geometry::ChCone gcone;
 
   public:
-    //
-    // CONSTRUCTORS
-    //
-
-    ChConeShape(){};
-    ChConeShape(geometry::ChCone& mcone) : gcone(mcone){};
+    ChConeShape() {}
+    ChConeShape(const geometry::ChCone& mcone) : gcone(mcone) {}
 
     virtual ~ChConeShape(){};
-
-    //
-    // FUNCTIONS
-    //
 
     // Access the sphere geometry
     geometry::ChCone& GetConeGeometry() { return gcone; }
 
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    //
-    // SERIALIZATION
-    //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite(1);
-        // serialize parent class
-        ChVisualization::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(gcone);
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead();
-        // deserialize parent class
-        ChVisualization::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(gcone);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-//////////////////////////////////////////////////////
-//////////////////////////////////////////////////////
+CH_CLASS_VERSION(ChConeShape, 0)
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

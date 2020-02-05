@@ -1,32 +1,17 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHC_BROADPHASECOLLIDER_H
 #define CHC_BROADPHASECOLLIDER_H
-
-//////////////////////////////////////////////////
-//
-//   ChCBroadPhaseCollider.h
-//
-//   Header for base class for generic broad-phase
-//   collision engine.
-//   Class must be specialized by children classes.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 #if (_MSC_VER >= 1200)
 #pragma warning(4 : 4786)
@@ -34,7 +19,7 @@
 
 #include <list>
 
-#include "ChCMates.h"
+#include "chrono/collision/edgetempest/ChCMates.h"
 
 namespace chrono {
 namespace collision {
@@ -75,7 +60,7 @@ class ChBroadPhaseCollider {
     virtual ChMatesPtrList& GetReportedMates() = 0;
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono
 
 #endif

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -13,8 +13,8 @@
 // =============================================================================
 //
 // Simple brake created with constant torque opposing wheel rotation.
-// It just uses a speed-dependant torque, so it fits in ODEs because it does not
-// use DVI set valued constraints (the drawback is that it cannot simulate
+// It just uses a speed-dependent torque, so it fits in ODEs because it does not
+// use NSC set valued constraints (the drawback is that it cannot simulate
 // sticking brakes).
 //
 // =============================================================================
@@ -22,7 +22,6 @@
 #ifndef CH_BRAKESIMPLE_H
 #define CH_BRAKESIMPLE_H
 
-#include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChLinkBrake.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChBrake.h"
@@ -35,22 +34,29 @@ namespace vehicle {
 
 /// Template for a simple brake subsystem.
 /// Simple brake created with constant torque opposing wheel rotation.
-/// It just uses a speed-dependant torque, so it fits in ODEs because it does not
-/// use DVI set valued constraints (the drawback is that it cannot simulate
+/// It just uses a speed-dependent torque, so it fits in ODEs because it does not
+/// use NSC set valued constraints (the drawback is that it cannot simulate
 /// sticking brakes).
 class CH_VEHICLE_API ChBrakeSimple : public ChBrake {
   public:
-    ChBrakeSimple();
+    ChBrakeSimple(const std::string& name);
+
     virtual ~ChBrakeSimple() {}
 
-    /// Initialize the brake by providing the wheel's revolute link.
-    virtual void Initialize(ChSharedPtr<ChLinkLockRevolute> hub) override;
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "BrakeSimple"; }
 
-    /// Update the brake subsystem: set the brake modulation, in 0..1 range,
+    /// Initialize the brake by associating it to an existing suspension subsystem.
+    virtual void Initialize(std::shared_ptr<ChSuspension> suspension,  ///< associated suspension subsystem
+                            VehicleSide side                           ///< brake mounted on left/right side
+                            ) override;
+
+    /// Update the brake subsystem: set the brake modulation, in 0..1 range:
+    /// <pre>
     /// when = 0 it is completely free,
     /// when = 1 it should provide the max braking torque
-    /// This function can be called to modulate braking in realtime simulation loops.
-    virtual void Update(double modulation) override;
+    /// </pre>
+    virtual void Synchronize(double modulation) override;
 
     /// Get the current brake torque, as a result of simulation,
     /// so it might change from time to time
@@ -64,7 +70,7 @@ class CH_VEHICLE_API ChBrakeSimple : public ChBrake {
     virtual double GetMaxBrakingTorque() = 0;
 
     double m_modulation;
-    ChSharedPtr<ChLinkBrake> m_brake;
+    std::shared_ptr<ChLinkBrake> m_brake;
 };
 
 /// @} vehicle_wheeled_brake

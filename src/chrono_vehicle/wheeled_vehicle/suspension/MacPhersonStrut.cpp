@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -19,8 +19,7 @@
 #include <cstdio>
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/MacPhersonStrut.h"
-
-#include "thirdparty/rapidjson/filereadstream.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 using namespace rapidjson;
 
@@ -28,30 +27,14 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// This utility function returns a ChVector from the specified JSON array
-// -----------------------------------------------------------------------------
-static ChVector<> loadVector(const Value& a) {
-    assert(a.IsArray());
-    assert(a.Size() == 3);
-
-    return ChVector<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
-}
-
-// -----------------------------------------------------------------------------
 // Construct a MacPherson strut suspension using data from the specified JSON
 // file.
 // -----------------------------------------------------------------------------
-MacPhersonStrut::MacPhersonStrut(const std::string& filename) 
+MacPhersonStrut::MacPhersonStrut(const std::string& filename)
     : ChMacPhersonStrut(""), m_springForceCB(NULL), m_shockForceCB(NULL) {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     Create(d);
 
@@ -75,20 +58,16 @@ MacPhersonStrut::~MacPhersonStrut() {
 // specified RapidJSON document.
 // -----------------------------------------------------------------------------
 void MacPhersonStrut::Create(const rapidjson::Document& d) {
-    // Read top-level data
-    assert(d.HasMember("Type"));
-    assert(d.HasMember("Template"));
-    assert(d.HasMember("Name"));
-
-    SetName(d["Name"].GetString());
+    // Invoke base class method.
+    ChPart::Create(d);
 
     // Read Spindle data
     assert(d.HasMember("Spindle"));
     assert(d["Spindle"].IsObject());
 
     m_spindleMass = d["Spindle"]["Mass"].GetDouble();
-    m_points[SPINDLE] = loadVector(d["Spindle"]["COM"]);
-    m_spindleInertia = loadVector(d["Spindle"]["Inertia"]);
+    m_points[SPINDLE] = ReadVectorJSON(d["Spindle"]["COM"]);
+    m_spindleInertia = ReadVectorJSON(d["Spindle"]["Inertia"]);
     m_spindleRadius = d["Spindle"]["Radius"].GetDouble();
     m_spindleWidth = d["Spindle"]["Width"].GetDouble();
 
@@ -97,8 +76,8 @@ void MacPhersonStrut::Create(const rapidjson::Document& d) {
     assert(d["Upright"].IsObject());
 
     m_uprightMass = d["Upright"]["Mass"].GetDouble();
-    m_points[UPRIGHT] = loadVector(d["Upright"]["COM"]);
-    m_uprightInertia = loadVector(d["Upright"]["Inertia"]);
+    m_points[UPRIGHT] = ReadVectorJSON(d["Upright"]["COM"]);
+    m_uprightInertia = ReadVectorJSON(d["Upright"]["Inertia"]);
     m_uprightRadius = d["Upright"]["Radius"].GetDouble();
 
     // Read LCA data
@@ -106,54 +85,73 @@ void MacPhersonStrut::Create(const rapidjson::Document& d) {
     assert(d["Control Arm"].IsObject());
 
     m_LCAMass = d["Control Arm"]["Mass"].GetDouble();
-    m_points[LCA_CM] = loadVector(d["Control Arm"]["COM"]);
-    m_LCAInertia = loadVector(d["Control Arm"]["Inertia"]);
+    m_points[LCA_CM] = ReadVectorJSON(d["Control Arm"]["COM"]);
+    m_LCAInertia = ReadVectorJSON(d["Control Arm"]["Inertia"]);
     m_LCARadius = d["Control Arm"]["Radius"].GetDouble();
-    m_points[LCA_F] = loadVector(d["Control Arm"]["Location Chassis Front"]);
-    m_points[LCA_B] = loadVector(d["Control Arm"]["Location Chassis Back"]);
-    m_points[LCA_U] = loadVector(d["Control Arm"]["Location Upright"]);
+    m_points[LCA_F] = ReadVectorJSON(d["Control Arm"]["Location Chassis Front"]);
+    m_points[LCA_B] = ReadVectorJSON(d["Control Arm"]["Location Chassis Back"]);
+    m_points[LCA_U] = ReadVectorJSON(d["Control Arm"]["Location Upright"]);
 
     // Read strut data
     assert(d.HasMember("Strut"));
     assert(d["Strut"].IsObject());
 
     m_strutMass = d["Strut"]["Mass"].GetDouble();
-    m_strutInertia = loadVector(d["Strut"]["Inertia"]);
+    m_strutInertia = ReadVectorJSON(d["Strut"]["Inertia"]);
     m_strutRadius = d["Strut"]["Radius"].GetDouble();
 
     // Read Tierod data
     assert(d.HasMember("Tierod"));
     assert(d["Tierod"].IsObject());
 
-    m_points[TIEROD_C] = loadVector(d["Tierod"]["Location Chassis"]);
-    m_points[TIEROD_U] = loadVector(d["Tierod"]["Location Upright"]);
+    m_points[TIEROD_C] = ReadVectorJSON(d["Tierod"]["Location Chassis"]);
+    m_points[TIEROD_U] = ReadVectorJSON(d["Tierod"]["Location Upright"]);
 
     // Read spring data and create force callback
     assert(d.HasMember("Spring"));
     assert(d["Spring"].IsObject());
 
-    m_points[SPRING_C] = loadVector(d["Spring"]["Location Chassis"]);
-    m_points[SPRING_U] = loadVector(d["Spring"]["Location Upright"]);
+    m_points[SPRING_C] = ReadVectorJSON(d["Spring"]["Location Chassis"]);
+    m_points[SPRING_U] = ReadVectorJSON(d["Spring"]["Location Upright"]);
     m_springRestLength = d["Spring"]["Free Length"].GetDouble();
 
-    if (d["Spring"].HasMember("Spring Coefficient")) {
-        m_springForceCB = new LinearSpringForce(d["Spring"]["Spring Coefficient"].GetDouble());
-    } else if (d["Spring"].HasMember("Curve Data")) {
-        int num_points = d["Spring"]["Curve Data"].Size();
-        MapSpringForce* springForceCB = new MapSpringForce();
-        for (int i = 0; i < num_points; i++) {
-            springForceCB->add_point(d["Spring"]["Curve Data"][i][0u].GetDouble(),
-                                     d["Spring"]["Curve Data"][i][1u].GetDouble());
+    if (d["Spring"].HasMember("Minimum Length") && d["Spring"].HasMember("Maximum Length")) {
+        // Use bump stops
+        if (d["Spring"].HasMember("Spring Coefficient")) {
+            m_springForceCB = new LinearSpringBistopForce(d["Spring"]["Spring Coefficient"].GetDouble(),
+                                                          d["Spring"]["Minimum Length"].GetDouble(),
+                                                          d["Spring"]["Maximum Length"].GetDouble());
+        } else if (d["Spring"].HasMember("Curve Data")) {
+            int num_points = d["Spring"]["Curve Data"].Size();
+            MapSpringBistopForce* springForceCB = new MapSpringBistopForce(d["Spring"]["Minimum Length"].GetDouble(),
+                                                                           d["Spring"]["Maximum Length"].GetDouble());
+            for (int i = 0; i < num_points; i++) {
+                springForceCB->add_point(d["Spring"]["Curve Data"][i][0u].GetDouble(),
+                                         d["Spring"]["Curve Data"][i][1u].GetDouble());
+            }
+            m_springForceCB = springForceCB;
         }
-        m_springForceCB = springForceCB;
+    } else {
+        // No bump stops
+        if (d["Spring"].HasMember("Spring Coefficient")) {
+            m_springForceCB = new LinearSpringForce(d["Spring"]["Spring Coefficient"].GetDouble());
+        } else if (d["Spring"].HasMember("Curve Data")) {
+            int num_points = d["Spring"]["Curve Data"].Size();
+            MapSpringForce* springForceCB = new MapSpringForce();
+            for (int i = 0; i < num_points; i++) {
+                springForceCB->add_point(d["Spring"]["Curve Data"][i][0u].GetDouble(),
+                                         d["Spring"]["Curve Data"][i][1u].GetDouble());
+            }
+            m_springForceCB = springForceCB;
+        }
     }
 
     // Read shock data and create force callback
     assert(d.HasMember("Shock"));
     assert(d["Shock"].IsObject());
 
-    m_points[SHOCK_C] = loadVector(d["Shock"]["Location Chassis"]);
-    m_points[SHOCK_U] = loadVector(d["Shock"]["Location Upright"]);
+    m_points[SHOCK_C] = ReadVectorJSON(d["Shock"]["Location Chassis"]);
+    m_points[SHOCK_U] = ReadVectorJSON(d["Shock"]["Location Upright"]);
 
     if (d["Shock"].HasMember("Damping Coefficient")) {
         m_shockForceCB = new LinearDamperForce(d["Shock"]["Damping Coefficient"].GetDouble());

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -25,6 +25,9 @@
 #include "chrono/ChConfig.h"
 
 // -----------------------------------------------------------------------------
+
+// If OpenCRG support was enabled, define CHRONO_OPENCRG
+@CHRONO_OPENCRG@
 
 // If Irrklang suppport was enabled, define CHRONO_IRRKLANG
 @CHRONO_IRRKLANG@

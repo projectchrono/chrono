@@ -1,0 +1,128 @@
+* Emacs major mode to be selected automagically: -*-CASCaDE-*-
+* $Id: handmade_straight_double.crg 152 2010-02-11 12:08:22Z jorauh $
+$CT                                                 ! comment text block
+CRG file example for road surface description (width: 3m, length: 22m)
+with default straight reference line and grid of 0.5m x 1.0m
+
+Copyright 2005-2009 OpenCRG - Daimler AG - Jochen Rauh
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+More Information on OpenCRG open file formats and tools can be found at
+
+    http://www.opencrg.org
+$!**********************************************************************
+$ROAD_CRG                                          ! crg road parameters
+REFERENCE_LINE_START_U   = 0.0
+REFERENCE_LINE_START_X   = 0.0
+REFERENCE_LINE_START_Y   = 0.0
+REFERENCE_LINE_START_PHI = 0.0
+REFERENCE_LINE_END_U     = 22.0
+REFERENCE_LINE_END_X     = 22.0
+REFERENCE_LINE_END_Y     = 0.0
+REFERENCE_LINE_END_PHI   = 0.0
+REFERENCE_LINE_INCREMENT = 1.0
+LONG_SECTION_V_RIGHT     =-1.50           ! no explicit definition below
+LONG_SECTION_V_LEFT      = 1.50           ! no explicit definition below
+LONG_SECTION_V_INCREMENT = 0.50           ! no explicit definition below
+$!**********************************************************************
+$KD_Definition                                   ! data definition block
+#:LDFI                           ! one of the men readable IPLOS formats
+U:reference line u,m,0,1.0     ! virtual channel, only for IPLOS viewing
+D:long section 1,m                        ! 1.5m right of reference line
+D:long section 2,m                        ! 1.0m right of reference line
+D:long section 3,m                        ! 0.5m right of reference line
+D:long section 4,m                        !            on reference line
+D:long section 5,m                        ! 0.5m left  of reference line
+D:long section 6,m                        ! 1.0m left  of reference line
+D:long section 7,m                        ! 1.5m left  of reference line
+$!**********************************************************************
+* Stuctured data above is organized in named blocks. Maximum record
+* length of structured data is 72 bytes, using ISO-8859-1 coding.
+* Comments are marked by "*" in column 1 or "!" in-line.
+*
+* Sequential data starts after the $$$$ separator line below.
+* The data channels are defined by the "D:" specifiers above, and are
+* the columns of the sequential data.
+* The sequential data records are 80 bytes fixed length, so rows of the
+* data matrix need to be wrapped if more data channels are defined than
+* can be represented in one record.
+* The data representation is ascii clear text or binary depending on the
+* format specifier "#:" above. Supported by OpenCRG are:
+* - LRFI: long, real, formatted, interchangeable
+* - LDFI: long, double, formatted, interchangeable
+* - KRBI: kernel, real, binary, interchangeable (default)
+* - KDBI: kernel, double, binary, interchangeable
+* In long formats, each data row starts in a new record.
+* In kernel formats, records are sucessively filled until their 80 byte
+* limit, the last record is filled by NaNs.
+* In formatted interchangeable representation, real/double numbers are
+* 10/20 characters long, fixpoint or scientific format, 8/4 numbers per
+* record, NaNs are represented by a placeholder with a leading "*".
+* In binary interchangeable representation, real/double numbers are 4/8
+* bytes ieee big endian format, 20/10 numbers per record.
+************************************************************************
+* Example data organization, 7 channels as defined by "D:" above:
+* l_sec 1             l_sec 2             l_sec 3             l_sec 4
+* v=-1.50             v=-1.00             v=-0.50             v= 0.00
+************************************************************************
+* l_sec 5             l_sec 6             l_sec 7
+* v= 0.50             v= 1.00             v= 1.50
+************************************************************************
+$$$$$$$$$$$$$$$$$$20$$$$$$$$$$$$$$$$$$40$$$$$$$$$$$$$$$$$$60$$$$$$$$$$$$$$$$$$80
+ 0.00000000000000000 0.00000000000000000 0.00000000000000000 0.00000000000000000
+ 0.00000000000000000 0.00000000000000000 0.00000000000000000
+ 0.00000000000000000 0.00000000000000000 0.00000000000000000 0.01111110000000000
+ 0.00000000000000000 0.00000000000000000 0.00000000000000000
+ 0.00000000000000000 0.00000000000000000 0.01111110000000000 0.01111110000000000
+ 0.01111110000000000 0.00000000000000000 0.00000000000000000
+ 0.00000000000000000 0.01111110000000000 0.01111110000000000 0.01111110000000000
+ 0.01111110000000000 0.01111110000000000 0.00000000000000000
+ 0.00000000000000000 0.00000000000000000 0.01111110000000000 0.01111110000000000
+ 0.01111110000000000 0.00000000000000000 0.00000000000000000
+ 0.01111110000000000 0.00000000000000000 0.00000000000000000 0.01111110000000000
+ 0.00000000000000000 0.00000000000000000 0.01111110000000000
+ 0.01111110000000000 0.01111110000000000 0.00000000000000000 0.00000000000000000
+ 0.00000000000000000 0.01111110000000000 0.02222220000000000
+ *missing*********** 0.01111110000000000 0.01111110000000000 0.00000000000000000
+ 0.01111110000000000 0.02222220000000000 *missing***********
+ *missing*********** 0.01111110000000000 0.00000000000000000 0.00000000000000000
+ 0.00000000000000000 0.01111110000000000 0.02222220000000000
+ 0.01111110000000000 0.00000000000000000 0.00000000000000000 0.01111110000000000
+ 0.00000000000000000 0.00000000000000000 0.01111110000000000
+ 0.00000000000000000 0.00000000000000000 0.01111110000000000 0.02222220000000000
+ 0.01111110000000000 0.00000000000000000 0.00000000000000000
+ 0.00000000000000000 0.01111110000000000 0.02222220000000000 0.02222220000000000
+ 0.02222220000000000 0.01111110000000000 0.00000000000000000
+ 0.00000000000000000 0.00000000000000000 0.01111110000000000 0.02222220000000000
+ 0.01111110000000000 0.00000000000000000 0.00000000000000000
+ 0.01111110000000000 0.00000000000000000 0.00000000000000000 0.01111110000000000
+ 0.00000000000000000 0.00000000000000000-0.01111110000000000
+ 0.01111110000000000 0.01111110000000000 0.00000000000000000 0.00000000000000000
+ 0.00000000000000000-0.01111110000000000-0.02222220000000000
+ 0.01111110000000000 0.01111110000000000 0.01111110000000000 0.00000000000000000
+-0.01111110000000000-0.02222220000000000-0.03333330000000000
+ 0.01111110000000000 0.01111110000000000 0.00000000000000000 0.00000000000000000
+ 0.00000000000000000-0.01111110000000000-0.02222220000000000
+ 0.01111110000000000 0.00000000000000000 0.00000000000000000 0.01111110000000000
+ 0.00000000000000000 0.00000000000000000-0.01111110000000000
+ 0.00000000000000000 0.00000000000000000 0.01111110000000000 0.02222220000000000
+ 0.01111110000000000 0.00000000000000000 0.00000000000000000
+ 0.00000000000000000 0.01111110000000000 0.02222220000000000 0.03333330000000000
+ 0.02222220000000000 0.01111110000000000 0.00000000000000000
+ 0.00000000000000000 0.00000000000000000 0.01111110000000000 0.02222220000000000
+ 0.01111110000000000 0.00000000000000000 0.00000000000000000
+ 0.00000000000000000 0.00000000000000000 0.00000000000000000 0.01111110000000000
+ 0.00000000000000000 0.00000000000000000 0.00000000000000000
+ 0.00000000000000000 0.00000000000000000 0.00000000000000000 0.00000000000000000
+ 0.00000000000000000 0.00000000000000000 0.00000000000000000

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -19,18 +19,13 @@
 #ifndef CH_POWERTRAIN_H
 #define CH_POWERTRAIN_H
 
-#include "chrono/core/ChShared.h"
 #include "chrono/core/ChVector.h"
 #include "chrono/physics/ChBody.h"
+#include "chrono/physics/ChShaft.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
-
-/**
-    @addtogroup vehicle
-    @{
-        @defgroup vehicle_powertrain Powertrain models
-    @}
-*/
+#include "chrono_vehicle/ChChassis.h"
+#include "chrono_vehicle/ChDriveline.h"
 
 namespace chrono {
 namespace vehicle {
@@ -39,7 +34,7 @@ namespace vehicle {
 /// @{
 
 /// Base class for a powertrain system.
-class CH_VEHICLE_API ChPowertrain : public ChShared {
+class CH_VEHICLE_API ChPowertrain : public ChPart {
   public:
     /// Driving modes.
     enum DriveMode {
@@ -48,7 +43,7 @@ class CH_VEHICLE_API ChPowertrain : public ChShared {
         REVERSE   ///< vehicle moving backward
     };
 
-    ChPowertrain();
+    ChPowertrain(const std::string& name);
 
     virtual ~ChPowertrain() {}
 
@@ -70,9 +65,9 @@ class CH_VEHICLE_API ChPowertrain : public ChShared {
     /// Return the current transmission gear.
     virtual int GetCurrentTransmissionGear() const = 0;
 
-    /// Return the ouput torque from the powertrain.
+    /// Return the output torque from the powertrain.
     /// This is the torque that is passed to a vehicle system, thus providing the
-    /// interface between the powertrain and vehcicle cosimulation modules.
+    /// interface between the powertrain and vehicle co-simulation modules.
     virtual double GetOutputTorque() const = 0;
 
     /// Return the current mode of the transmission.
@@ -81,20 +76,30 @@ class CH_VEHICLE_API ChPowertrain : public ChShared {
     /// Set the mode of the transmission.
     virtual void SetDriveMode(DriveMode mmode) = 0;
 
-    /// Update the state of this powertrain system at the current time.
-    /// The powertrain system is provided the current driver throttle input, a
-    /// value in the range [0,1], and the current angular speed of the transmission
-    /// shaft (from the driveline).
-    virtual void Update(double time,        ///< [in] current time
-                        double throttle,    ///< [in] current throttle input [0,1]
-                        double shaft_speed  ///< [in] current angular speed of the transmission shaft
-                        ) = 0;
+  protected:
+    // Note: Users should not directly call these functions. The vehicle system (whether wheeled or tracked)
+    // intermediates calls to these functions.
+
+    /// Initialize this powertrain system by attaching it to an existing vehicle chassis and associating it with an
+    /// existing driveline subsystem. A derived class override must first call this base class version.
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,     ///< [in] chassis of the associated vehicle
+                            std::shared_ptr<ChDriveline> driveline  ///< [in] driveline of the associated vehicle
+    );
+
+    /// Synchronize the state of this powertrain system at the current time.
+    /// The powertrain system is provided the current driver throttle input, a value in the range [0,1].
+    virtual void Synchronize(double time,     ///< [in] current time
+                             double throttle  ///< [in] current throttle input [0,1]
+                             ) = 0;
 
     /// Advance the state of this powertrain system by the specified time step.
-    virtual void Advance(double step) = 0;
+    virtual void Advance(double step) {}
 
-  protected:
-    DriveMode m_drive_mode;
+    DriveMode m_drive_mode;                    ///< drive mode (neutral, forward, or reverse)
+    std::shared_ptr<ChDriveline> m_driveline;  ///< associated driveline subsystem
+
+    friend class ChWheeledVehicle;
+    friend class ChTrackedVehicle;
 };
 
 /// @} vehicle_powertrain

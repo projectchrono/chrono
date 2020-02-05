@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -21,7 +21,7 @@
 // the vehicle.  When attached to a chassis, only an offset is provided.
 //
 // All point locations are assumed to be given for the left half of the
-// supspension and will be mirrored (reflecting the y coordinates) to construct
+// suspension and will be mirrored (reflecting the y coordinates) to construct
 // the right side.
 //
 // =============================================================================
@@ -51,7 +51,7 @@ namespace vehicle {
 /// the vehicle.  When attached to a chassis, only an offset is provided.
 ///
 /// All point locations are assumed to be given for the left half of the
-/// supspension and will be mirrored (reflecting the y coordinates) to construct
+/// suspension and will be mirrored (reflecting the y coordinates) to construct
 /// the right side.
 class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
   public:
@@ -60,24 +60,53 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
 
     virtual ~ChHendricksonPRIMAXX() {}
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "HendricksonPRIMAXX"; }
+
     /// Specify whether or not this suspension can be steered.
-    virtual bool IsSteerable() const override { return true; }
+    virtual bool IsSteerable() const final override { return true; }
 
     /// Specify whether or not this is an independent suspension.
-    virtual bool IsIndependent() const override { return false; }
+    virtual bool IsIndependent() const final override { return false; }
 
     /// Initialize this suspension subsystem.
     /// The suspension subsystem is initialized by attaching it to the specified
     /// chassis body at the specified location (with respect to and expressed in
     /// the reference frame of the chassis). It is assumed that the suspension
     /// reference frame is always aligned with the chassis reference frame.
-    /// Finally, tierod_body is a handle to the body to which the suspension
-    /// tierods are to be attached. For a steerable suspension, this will be the
-    /// steering link of a suspension subsystem.  Otherwise, this is the chassis.
-    virtual void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location,         ///< [in] location relative to the chassis frame
-                            ChSharedPtr<ChBody> tierod_body     ///< [in] body to which tireods are connected
+    /// 'tierod_body' is a handle to the body to which the suspension tierods
+    /// are to be attached. For a steered suspension, this will be the steering
+    /// (central) link of a suspension subsystem.  Otherwise, this is the chassis.
+    /// If this suspension is steered, 'steering_index' indicates the index of the
+    /// associated steering mechanism in the vehicle's list (-1 for a non-steered suspension).
+    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
+                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
+                            std::shared_ptr<ChBody> tierod_body,    ///< [in] body to which tireods are connected
+                            int steering_index,                     ///< [in] index of the associated steering mechanism
+                            double left_ang_vel = 0,                ///< [in] initial angular velocity of left wheel
+                            double right_ang_vel = 0                ///< [in] initial angular velocity of right wheel
                             ) override;
+
+    /// Add visualization assets for the suspension subsystem.
+    /// This default implementation uses primitives.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+
+    /// Remove visualization assets for the suspension subsystem.
+    virtual void RemoveVisualizationAssets() override;
+
+    /// Get the total mass of the suspension subsystem.
+    virtual double GetMass() const override;
+
+    /// Get the current global COM location of the suspension subsystem.
+    virtual ChVector<> GetCOMPos() const override;
+
+    /// Get the wheel track for the suspension subsystem.
+    virtual double GetTrack() override;
+
+    /// Return current suspension forces (spring and shock) on the specified side.
+    /// For this particular suspension, the return struct contains information about the LB force element in its
+    /// "spring" members and information about the AH force element in its "shock" members.
+    virtual ChSuspension::Force ReportSuspensionForce(VehicleSide side) const override;
 
     /// There could be a spring (coil or air) and damper element between chassis and lower beam
     /// and a second spring and damper element between chassis and housing
@@ -86,25 +115,25 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
     /// Get the force in the air spring (coil or spring) and a damper element
 
     /// Get the force in the spring-damper element.
-    double GetShockLBForce(VehicleSide side) const { return m_shockLB[side]->Get_SpringReact(); }
+    double GetShockLBForce(VehicleSide side) const { return m_shockLB[side]->GetForce(); }
 
     /// Get the current length of the spring-damper element.
-    double GetShockLBLength(VehicleSide side) const { return m_shockLB[side]->Get_SpringLength(); }
+    double GetShockLBLength(VehicleSide side) const { return m_shockLB[side]->GetLength(); }
 
     /// Get the current deformation velocity of the spring-damper element.
-    double GetShockLBVelocity(VehicleSide side) const { return m_shockLB[side]->Get_SpringVelocity(); }
+    double GetShockLBVelocity(VehicleSide side) const { return m_shockLB[side]->GetVelocity(); }
 
     /// Spring (coil or air) and damper element between chassis and axle housing (AH)
     /// Get the force in the air spring (coil or spring) and a damper element
 
     /// Get the force in the spring-damper element.
-    double GetShockAHForce(VehicleSide side) const { return m_shockAH[side]->Get_SpringReact(); }
+    double GetShockAHForce(VehicleSide side) const { return m_shockAH[side]->GetForce(); }
 
     /// Get the current length of the spring-damper element.
-    double GetShockAHLength(VehicleSide side) const { return m_shockAH[side]->Get_SpringLength(); }
+    double GetShockAHLength(VehicleSide side) const { return m_shockAH[side]->GetLength(); }
 
     /// Get the current deformation velocity of the spring-damper element.
-    double GetShockAHVelocity(VehicleSide side) const { return m_shockAH[side]->Get_SpringVelocity(); }
+    double GetShockAHVelocity(VehicleSide side) const { return m_shockAH[side]->GetVelocity(); }
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations(VehicleSide side) override;
@@ -135,7 +164,6 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
         KNUCKLE_CM,         ///< knuckle, center of mass
         TORQUEROD_CM,       ///< torquerod, center of mass
         LOWERBEAM_CM,       ///< lowerbeam, center of mass
-        TRANSVERSEBEAM_CM,  ///< transverse beam, center of mass
         NUM_POINTS
     };
 
@@ -171,7 +199,7 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
     virtual double getLowerbeamMass() const = 0;
     /// Return the mass of the transverse beam body.
     virtual double getTransversebeamMass() const = 0;
-    /// Return the mass of the axlehousing body.
+    /// Return the mass of the axle housing body.
     virtual double getAxlehousingMass() const = 0;
 
     /// Return the moments of inertia of the spindle body.
@@ -184,16 +212,12 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
     virtual const ChVector<>& getLowerbeamInertia() const = 0;
     /// Return the moments of inertia of the transverse beam body.
     virtual const ChVector<>& getTransversebeamInertia() const = 0;
-    /// Return the moments of inertia of the axlehousing body.
+    /// Return the moments of inertia of the axle housing body.
     virtual const ChVector<>& getAxlehousingInertia() const = 0;
 
     /// Return the inertia of the axle shaft.
     virtual double getAxleInertia() const = 0;
 
-    /// Return the radius of the spindle body (visualization only).
-    virtual double getSpindleRadius() const = 0;
-    /// Return the width of the spindle body (visualization only).
-    virtual double getSpindleWidth() const = 0;
     /// Return the radius of the knuckle body (visualization only).
     virtual double getKnuckleRadius() const = 0;
 
@@ -203,77 +227,89 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
     virtual double getLowerbeamRadius() const = 0;
     /// Return the radius of the transverse beam body (visualization only).
     virtual double getTransversebeamRadius() const = 0;
-    /// Return the radius of the axlehousing body (visualization only).
+    /// Return the radius of the axle housing body (visualization only).
     virtual double getAxlehousingRadius() const = 0;
 
     // Lower beam spring and damper
 
     /// Return the free (rest) length of the spring element.
     virtual double getShockLBRestLength() const = 0;
-    /// Return the callback function for shock force.
-    virtual ChSpringForceCallback* getShockLBForceCallback() const = 0;
+    /// Return the functor object for shock force.
+    virtual ChLinkTSDA::ForceFunctor* getShockLBForceCallback() const = 0;
 
-    // Axlehousing spring and damper
+    // Axle housing spring and damper
 
     /// Return the free (rest) length of the spring element.
     virtual double getShockAHRestLength() const = 0;
-    /// Return the callback function for shock force.
-    virtual ChSpringForceCallback* getShockAHForceCallback() const = 0;
+    /// Return the functor object for shock force.
+    virtual ChLinkTSDA::ForceFunctor* getShockAHForceCallback() const = 0;
 
-    ChSharedPtr<ChBody> m_knuckle[2];      ///< handles to the knuckle bodies (left/right)
-    ChSharedPtr<ChBody> m_torquerod[2];    ///< handles to torquerod bodies (left/right)
-    ChSharedPtr<ChBody> m_lowerbeam[2];    ///< handles to lowerbeam bodies (left/right)
-    ChSharedPtr<ChBody> m_transversebeam;  ///< handles to transversebeam body
-    ChSharedPtr<ChBody> m_axlehousing;     ///< handles to axlehousing body
+    std::shared_ptr<ChBody> m_knuckle[2];      ///< handles to the knuckle bodies (left/right)
+    std::shared_ptr<ChBody> m_torquerod[2];    ///< handles to torquerod bodies (left/right)
+    std::shared_ptr<ChBody> m_lowerbeam[2];    ///< handles to lowerbeam bodies (left/right)
+    std::shared_ptr<ChBody> m_transversebeam;  ///< handles to transversebeam body
+    std::shared_ptr<ChBody> m_axlehousing;     ///< handles to axlehousing body
 
-    ChSharedPtr<ChLinkLockRevolute>
+    std::shared_ptr<ChLinkLockRevolute>
         m_revoluteKingpin[2];  ///< handles to the knuckle-axle housing revolute joints (left/right)
-    ChSharedPtr<ChLinkLockSpherical>
+    std::shared_ptr<ChLinkLockSpherical>
         m_sphericalTorquerod[2];  ///< handles to the torque rod-axle housing spherical joints (left/right)
 
-    ChSharedPtr<ChLinkLockRevolute>
+    std::shared_ptr<ChLinkLockRevolute>
       m_revoluteTorquerod[2];  ///< handles to the torquerod chasis revolute joints (left/right)
 
-    ChSharedPtr<ChLinkLockSpherical>
+    std::shared_ptr<ChLinkLockSpherical>
         m_sphericalLowerbeam[2];  ///< handles to the lower beam-axle housing spherical joints (left/right)
 
-    ChSharedPtr<ChLinkLockRevolute>
+    std::shared_ptr<ChLinkLockRevolute>
       m_revoluteLowerbeam[2];  ///< handles to the lowerbeam chasis revolute joints (left/right)
 
-
-
-
-    ChSharedPtr<ChLinkLockSpherical>
+    std::shared_ptr<ChLinkLockSpherical>
         m_sphericalTB[2];  ///< handles to the transversebeam-lower beam spherical joints (left/right)
-    ChSharedPtr<ChLinkDistance> m_distTierod[2];  ///< handles to the tierod distance constraints (left/right)
+    std::shared_ptr<ChLinkDistance> m_distTierod[2];  ///< handles to the tierod distance constraints (left/right)
 
-    ChSharedPtr<ChLinkSpringCB> m_shockLB[2];  ///< handles to the spring links (left/right)
-    ChSharedPtr<ChLinkSpringCB> m_shockAH[2];  ///< handles to the spring links (left/right)
+    std::shared_ptr<ChLinkTSDA> m_shockLB[2];  ///< handles to the spring links (left/right)
+    std::shared_ptr<ChLinkTSDA> m_shockAH[2];  ///< handles to the spring links (left/right)
 
   private:
-    void InitializeSide(VehicleSide side,
-                        ChSharedPtr<ChBodyAuxRef> chassis,
-                        ChSharedPtr<ChBody> tierod_body,
-                        const std::vector<ChVector<> >& points,
-                        const std::vector<ChVector<> >& dirs);
+    // Hardpoint absolute locations and directions
+    std::vector<ChVector<>> m_pointsL;
+    std::vector<ChVector<>> m_pointsR;
 
-    static void AddVisualizationLink(ChSharedPtr<ChBody> body,
+    std::vector<ChVector<>> m_dirsL;
+    std::vector<ChVector<>> m_dirsR;
+
+    // Points for link visualization
+    ChVector<> m_outerL;
+    ChVector<> m_outerR;
+
+    void InitializeSide(VehicleSide side,
+                        std::shared_ptr<ChBodyAuxRef> chassis,
+                        std::shared_ptr<ChBody> tierod_body,
+                        const std::vector<ChVector<>>& points,
+                        const std::vector<ChVector<>>& dirs,
+                        double ang_vel);
+
+    static void AddVisualizationLink(std::shared_ptr<ChBody> body,
                                      const ChVector<> pt_1,
                                      const ChVector<> pt_2,
                                      double radius,
                                      const ChColor& color);
-    static void AddVisualizationLowerBeam(ChSharedPtr<ChBody> body,
+    static void AddVisualizationLowerBeam(std::shared_ptr<ChBody> body,
                                           const ChVector<> pt_C,
                                           const ChVector<> pt_AH,
                                           const ChVector<> pt_TB,
                                           double radius,
                                           const ChColor& color);
-    static void AddVisualizationKnuckle(ChSharedPtr<ChBody> knuckle,
+    static void AddVisualizationKnuckle(std::shared_ptr<ChBody> knuckle,
                                         const ChVector<> pt_U,
                                         const ChVector<> pt_L,
                                         const ChVector<> pt_T,
                                         double radius);
-    static void AddVisualizationSpindle(ChSharedPtr<ChBody> spindle, double radius, double width);
+
+    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
+
+    virtual void Output(ChVehicleOutput& database) const override;
 
     static const std::string m_pointNames[NUM_POINTS];
 };

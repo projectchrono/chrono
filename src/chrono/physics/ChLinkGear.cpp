@@ -1,96 +1,62 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChLinkGear.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChLinkGear.h"
+#include "chrono/physics/ChLinkGear.h"
 
 namespace chrono {
 
-////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////
-//
-//   CLASS FOR GEAR
-//
-//
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChLinkGear)
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
-ChClassRegister<ChLinkGear> a_registration_ChLinkGear;
-
-ChLinkGear::ChLinkGear() {
-    type = LNK_GEAR;  // initializes type
-
-    tau = 1;
-    alpha = 0;
-    beta = 0;
-    phase = 0;
-    checkphase = FALSE;
-    epicyclic = FALSE;
-    a1 = 0;
-    a2 = 0;
-    r1 = 0;
-    r2 = 0;
-
+ChLinkGear::ChLinkGear()
+    : tau(1),
+      alpha(0),
+      beta(0),
+      phase(0),
+      checkphase(false),
+      epicyclic(false),
+      a1(0),
+      a2(0),
+      r1(0),
+      r2(0),
+      contact_pt(VNULL) {
     local_shaft1.SetIdentity();
     local_shaft2.SetIdentity();
 
-    contact_pt = VNULL;
-
-    // Mask: initialize our LinkMaskLF (lock formulation mask)
-    // to X  only. It was a LinkMaskLF because this class inherited from LinkLock.
-    ((ChLinkMaskLF*)mask)->SetLockMask(true, false, false, false, false, false, false);
-    ChangedLinkMask();
+    // Mask: initialize our LinkMaskLF (lock formulation mask) to X  only
+    mask.SetLockMask(true, false, false, false, false, false, false);
+    BuildLink();
 }
 
-ChLinkGear::~ChLinkGear() {
+ChLinkGear::ChLinkGear(const ChLinkGear& other) : ChLinkLock(other) {
+    tau = other.tau;
+    alpha = other.alpha;
+    beta = other.beta;
+    phase = other.phase;
+    a1 = other.a1;
+    a2 = other.a2;
+    epicyclic = other.epicyclic;
+    checkphase = other.checkphase;
+    r1 = other.r1;
+    r2 = other.r2;
+    contact_pt = other.contact_pt;
+    local_shaft1 = other.local_shaft1;
+    local_shaft2 = other.local_shaft2;
 }
 
-void ChLinkGear::Copy(ChLinkGear* source) {
-    // first copy the parent class data...
-    //
-    ChLinkLock::Copy(source);
-
-    // copy custom data:
-    tau = source->tau;
-    alpha = source->alpha;
-    beta = source->beta;
-    phase = source->phase;
-    a1 = source->a1;
-    a2 = source->a2;
-    epicyclic = source->epicyclic;
-    checkphase = source->checkphase;
-    r1 = source->r1;
-    r2 = source->r2;
-    contact_pt = source->contact_pt;
-    local_shaft1 = source->local_shaft1;
-    local_shaft2 = source->local_shaft2;
-}
-
-ChLink* ChLinkGear::new_Duplicate() {
-    ChLinkGear* m_l;
-    m_l = new ChLinkGear;  // inherited classes should write here: m_l = new MyInheritedLink;
-    m_l->Copy(this);
-    return (m_l);
-}
-
-Vector ChLinkGear::Get_shaft_dir1() {
-    if (this->Body1) {
+ChVector<> ChLinkGear::Get_shaft_dir1() const {
+    if (Body1) {
         ChFrame<double> absframe;
         ((ChFrame<double>*)Body1)->TransformLocalToParent(local_shaft1, absframe);
         return absframe.GetA().Get_A_Zaxis();
@@ -98,8 +64,8 @@ Vector ChLinkGear::Get_shaft_dir1() {
         return VECT_Z;
 }
 
-Vector ChLinkGear::Get_shaft_dir2() {
-    if (this->Body1) {
+ChVector<> ChLinkGear::Get_shaft_dir2() const {
+    if (Body1) {
         ChFrame<double> absframe;
         ((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2, absframe);
         return absframe.GetA().Get_A_Zaxis();
@@ -107,8 +73,8 @@ Vector ChLinkGear::Get_shaft_dir2() {
         return VECT_Z;
 }
 
-Vector ChLinkGear::Get_shaft_pos1() {
-    if (this->Body1) {
+ChVector<> ChLinkGear::Get_shaft_pos1() const {
+    if (Body1) {
         ChFrame<double> absframe;
         ((ChFrame<double>*)Body1)->TransformLocalToParent(local_shaft1, absframe);
         return absframe.GetPos();
@@ -116,8 +82,8 @@ Vector ChLinkGear::Get_shaft_pos1() {
         return VNULL;
 }
 
-Vector ChLinkGear::Get_shaft_pos2() {
-    if (this->Body1) {
+ChVector<> ChLinkGear::Get_shaft_pos2() const {
+    if (Body1) {
         ChFrame<double> absframe;
         ((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2, absframe);
         return absframe.GetPos();
@@ -131,18 +97,14 @@ void ChLinkGear::UpdateTime(double mytime) {
 
     // Move markers 1 and 2 to align them as gear teeth
 
-    ChMatrix33<> ma1;
-    ChMatrix33<> ma2;
-    ChMatrix33<> mrotma;
-    ChMatrix33<> marot_beta;
-    Vector mx;
-    Vector my;
-    Vector mz;
-    Vector mr;
-    Vector mmark1;
-    Vector mmark2;
-    Vector lastX;
-    Vector vrota;
+    ChVector<> mx;
+    ChVector<> my;
+    ChVector<> mz;
+    ChVector<> mr;
+    ChVector<> mmark1;
+    ChVector<> mmark2;
+    ChVector<> lastX;
+    ChVector<> vrota;
     Coordsys newmarkpos;
 
     ChFrame<double> abs_shaft1;
@@ -151,22 +113,22 @@ void ChLinkGear::UpdateTime(double mytime) {
     ((ChFrame<double>*)Body1)->TransformLocalToParent(local_shaft1, abs_shaft1);
     ((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2, abs_shaft2);
 
-    Vector vbdist = Vsub(Get_shaft_pos1(), Get_shaft_pos2());
-    Vector Trad1 = Vnorm(Vcross(Get_shaft_dir1(), Vnorm(Vcross(Get_shaft_dir1(), vbdist))));
-    Vector Trad2 = Vnorm(Vcross(Vnorm(Vcross(Get_shaft_dir2(), vbdist)), Get_shaft_dir2()));
+    ChVector<> vbdist = Vsub(Get_shaft_pos1(), Get_shaft_pos2());
+    ChVector<> Trad1 = Vnorm(Vcross(Get_shaft_dir1(), Vnorm(Vcross(Get_shaft_dir1(), vbdist))));
+    ChVector<> Trad2 = Vnorm(Vcross(Vnorm(Vcross(Get_shaft_dir2(), vbdist)), Get_shaft_dir2()));
 
     double dist = Vlength(vbdist);
 
     // compute actual rotation of the two wheels (relative to truss).
-    Vector md1 = abs_shaft1.GetA().MatrT_x_Vect(-vbdist);
-    md1.z = 0;
+    ChVector<> md1 = abs_shaft1.GetA().transpose() * (-vbdist);
+    md1.z() = 0;
     md1 = Vnorm(md1);
-    Vector md2 = abs_shaft2.GetA().MatrT_x_Vect(-vbdist);
-    md2.z = 0;
+    ChVector<> md2 = abs_shaft2.GetA().transpose() * (-vbdist);
+    md2.z() = 0;
     md2 = Vnorm(md2);
 
-    double periodic_a1 = ChAtan2(md1.x, md1.y);
-    double periodic_a2 = ChAtan2(md2.x, md2.y);
+    double periodic_a1 = ChAtan2(md1.x(), md1.y());
+    double periodic_a2 = ChAtan2(md2.x(), md2.y());
     double old_a1 = a1;
     double old_a2 = a2;
     double turns_a1 = floor(old_a1 / CH_C_2PI);
@@ -200,26 +162,27 @@ void ChLinkGear::UpdateTime(double mytime) {
     mx2 = Vnorm(Vcross(my2, mz2));
     mr2 = Vnorm(Vcross(mz2, mx2));
 
-    ma1.Set_A_axis(mx, my, mz);
+    ChMatrix33<> ma1(mx, my, mz);
 
     // rotate csys because of beta
-    vrota.x = 0.0;
-    vrota.y = this->beta;
-    vrota.z = 0.0;
+    vrota.x() = 0.0;
+    vrota.y() = beta;
+    vrota.z() = 0.0;
+    ChMatrix33<> mrotma;
     mrotma.Set_A_Rxyz(vrota);
-    marot_beta.MatrMultiply(ma1, mrotma);
+    ChMatrix33<> marot_beta = ma1 * mrotma;
     // rotate csys because of alpha
-    vrota.x = 0.0;
-    vrota.y = 0.0;
-    vrota.z = this->alpha;
-    if (react_force.x < 0)
-        vrota.z = this->alpha;
+    vrota.x() = 0.0;
+    vrota.y() = 0.0;
+    vrota.z() = alpha;
+    if (react_force.x() < 0)
+        vrota.z() = alpha;
     else
-        vrota.z = -this->alpha;
+        vrota.z() = -alpha;
     mrotma.Set_A_Rxyz(vrota);
-    ma1.MatrMultiply(marot_beta, mrotma);
+    ma1 = marot_beta * mrotma;
 
-    ma2.CopyFromMatrix(ma1);
+    ChMatrix33<> ma2 = ma1;
 
     // is a bevel gear?
     double be = acos(Vdot(Get_shaft_dir1(), Get_shaft_dir2()));
@@ -227,13 +190,12 @@ void ChLinkGear::UpdateTime(double mytime) {
     if (fabs(Vdot(Get_shaft_dir1(), Get_shaft_dir2())) > 0.96)
         is_bevel = false;
 
-    // compute wheel radii
-    // so that:
+    // compute wheel radii so that:
     //            w2 = - tau * w1
     if (!is_bevel) {
         double pardist = Vdot(mr, vbdist);
         double inv_tau = 1.0 / tau;
-        if (!this->epicyclic) {
+        if (!epicyclic) {
             r2 = pardist - pardist / (inv_tau + 1.0);
         } else {
             r2 = pardist - (tau * pardist) / (tau - 1.0);
@@ -241,7 +203,7 @@ void ChLinkGear::UpdateTime(double mytime) {
         r1 = r2 * tau;
     } else {
         double gamma2;
-        if (!this->epicyclic) {
+        if (!epicyclic) {
             gamma2 = be / (tau + 1.0);
         } else {
             gamma2 = be / (-tau + 1.0);
@@ -260,9 +222,9 @@ void ChLinkGear::UpdateTime(double mytime) {
     contact_pt = mmark1;
 
     // correct marker 1 position if phasing is not correct
-    if (this->checkphase) {
+    if (checkphase) {
         double realtau = tau;
-        if (this->epicyclic)
+        if (epicyclic)
             realtau = -tau;
         double m_delta;
         m_delta = -(a2 / realtau) - a1 - phase;
@@ -274,18 +236,18 @@ void ChLinkGear::UpdateTime(double mytime) {
         if (m_delta < -(CH_C_PI / 4.0))
             m_delta = -(CH_C_PI / 4.0);
 
-        vrota.x = vrota.y = 0.0;
-        vrota.z = -m_delta;
+        vrota.x() = vrota.y() = 0.0;
+        vrota.z() = -m_delta;
         mrotma.Set_A_Rxyz(vrota);  // rotate about Z of shaft to correct
-        mmark1 = abs_shaft1.GetA().MatrT_x_Vect(Vsub(mmark1, Get_shaft_pos1()));
-        mmark1 = mrotma.Matr_x_Vect(mmark1);
-        mmark1 = Vadd(abs_shaft1.GetA().Matr_x_Vect(mmark1), Get_shaft_pos1());
+        mmark1 = abs_shaft1.GetA().transpose() * (mmark1 - Get_shaft_pos1());
+        mmark1 = mrotma * mmark1;
+        mmark1 = abs_shaft1.GetA() * mmark1 + Get_shaft_pos1();
     }
     // Move Shaft 1 along its direction if not aligned to wheel
-    double offset = Vdot(this->Get_shaft_dir1(), (contact_pt - this->Get_shaft_pos1()));
-    ChVector<> moff = this->Get_shaft_dir1() * offset;
+    double offset = Vdot(Get_shaft_dir1(), (contact_pt - Get_shaft_pos1()));
+    ChVector<> moff = Get_shaft_dir1() * offset;
     if (fabs(offset) > 0.0001)
-        this->local_shaft1.SetPos(local_shaft1.GetPos() + Body1->TransformDirectionParentToLocal(moff));
+        local_shaft1.SetPos(local_shaft1.GetPos() + Body1->TransformDirectionParentToLocal(moff));
 
     // ! Require that the BDF routine of marker won't handle speed and acc.calculus of the moved marker 2!
     marker2->SetMotionType(ChMarker::M_MOTION_EXTERNAL);
@@ -299,22 +261,11 @@ void ChLinkGear::UpdateTime(double mytime) {
     newmarkpos.pos = mmark2;
     newmarkpos.rot = ma2.Get_A_quaternion();
     marker2->Impose_Abs_Coord(newmarkpos);  // move marker2 into teeth position
-
-    // imposed relative positions/speeds
-    deltaC.pos = VNULL;
-    deltaC_dt.pos = VNULL;
-    deltaC_dtdt.pos = VNULL;
-
-    deltaC.rot = QUNIT;  // no relative rotations imposed!
-    deltaC_dt.rot = QNULL;
-    deltaC_dtdt.rot = QNULL;
 }
 
-
-void ChLinkGear::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChLinkGear::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChLinkGear>();
 
     // serialize parent class
     ChLinkLock::ArchiveOUT(marchive);
@@ -335,10 +286,9 @@ void ChLinkGear::ArchiveOUT(ChArchiveOut& marchive)
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkGear::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChLinkGear::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChLinkGear>();
 
     // deserialize parent class
     ChLinkLock::ArchiveIN(marchive);
@@ -358,7 +308,4 @@ void ChLinkGear::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(local_shaft2);
 }
 
-
-///////////////////////////////////////////////////////////////
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

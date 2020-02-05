@@ -1,20 +1,23 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Radu Serban
+// =============================================================================
 
-#include "physics/ChLinkRevoluteTranslational.h"
+#include "chrono/physics/ChLinkRevoluteTranslational.h"
 
 namespace chrono {
 
 // Register into the object factory.
-ChClassRegister<ChLinkRevoluteTranslational> a_registration_ChLinkRevoluteTranslational;
+CH_FACTORY_REGISTER(ChLinkRevoluteTranslational)
 
 // -----------------------------------------------------------------------------
 // Constructor and destructor
@@ -30,67 +33,46 @@ ChLinkRevoluteTranslational::ChLinkRevoluteTranslational()
       m_cur_par2(0),
       m_cur_dot(0),
       m_cur_dist(0) {
-    m_C = new ChMatrixDynamic<>(4, 1);
-
     for (int i = 0; i < 4; i++) {
-        m_cache_speed[i] = 0;
-        m_cache_pos[i] = 0;
+        m_multipliers[i] = 0;
     }
 }
 
-ChLinkRevoluteTranslational::~ChLinkRevoluteTranslational() {
-    delete m_C;
-}
+ChLinkRevoluteTranslational::ChLinkRevoluteTranslational(const ChLinkRevoluteTranslational& other) : ChLink(other) {
+    Body1 = other.Body1;
+    Body2 = other.Body2;
+    system = other.system;
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChLinkRevoluteTranslational::Copy(ChLinkRevoluteTranslational* source) {
-    // first copy the parent class data...
-    ChLink::Copy(source);
+    m_p1 = other.m_p1;
+    m_p2 = other.m_p2;
+    m_z1 = other.m_z1;
+    m_x2 = other.m_x2;
+    m_y2 = other.m_y2;
+    m_dist = other.m_dist;
+    m_cur_par1 = other.m_cur_par1;
+    m_cur_par2 = other.m_cur_par2;
+    m_cur_dot = other.m_cur_dot;
+    m_cur_dist = other.m_cur_dist;
 
-    Body1 = source->Body1;
-    Body2 = source->Body2;
-    system = source->system;
-
-    m_p1 = source->m_p1;
-    m_p2 = source->m_p2;
-    m_z1 = source->m_z1;
-    m_x2 = source->m_x2;
-    m_y2 = source->m_y2;
-    m_dist = source->m_dist;
-    m_cur_par1 = source->m_cur_par1;
-    m_cur_par2 = source->m_cur_par2;
-    m_cur_dot = source->m_cur_dot;
-    m_cur_dist = source->m_cur_dist;
-
-    m_cnstr_par1.SetVariables(&Body1->Variables(), &Body2->Variables());
-    m_cnstr_par2.SetVariables(&Body1->Variables(), &Body2->Variables());
-    m_cnstr_dot.SetVariables(&Body1->Variables(), &Body2->Variables());
-    m_cnstr_dist.SetVariables(&Body1->Variables(), &Body2->Variables());
+    m_cnstr_par1.SetVariables(&other.Body1->Variables(), &other.Body2->Variables());
+    m_cnstr_par2.SetVariables(&other.Body1->Variables(), &other.Body2->Variables());
+    m_cnstr_dot.SetVariables(&other.Body1->Variables(), &other.Body2->Variables());
+    m_cnstr_dist.SetVariables(&other.Body1->Variables(), &other.Body2->Variables());
 
     for (int i = 0; i < 4; i++) {
-        m_cache_speed[i] = source->m_cache_speed[i];
-        m_cache_pos[i] = source->m_cache_pos[i];
+        m_multipliers[i] = other.m_multipliers[i];
     }
-}
-
-ChLink* ChLinkRevoluteTranslational::new_Duplicate() {
-    ChLinkRevoluteTranslational* link = new ChLinkRevoluteTranslational;
-    link->Copy(this);
-    return (link);
 }
 
 // -----------------------------------------------------------------------------
 // Link initialization functions
 // -----------------------------------------------------------------------------
-void ChLinkRevoluteTranslational::Initialize(
-    ChSharedPtr<ChBodyFrame> body1,  // first frame (revolute side)
-    ChSharedPtr<ChBodyFrame> body2,  // second frame (translational side)
-    const ChCoordsys<>& csys,        // joint coordinate system (in absolute frame)
-    double distance                  // imposed distance between rotation axis and translation axis
-    ) {
-    Body1 = body1.get_ptr();
-    Body2 = body2.get_ptr();
+void ChLinkRevoluteTranslational::Initialize(std::shared_ptr<ChBodyFrame> body1,
+                                             std::shared_ptr<ChBodyFrame> body2,
+                                             const ChCoordsys<>& csys,
+                                             double distance) {
+    Body1 = body1.get();
+    Body2 = body2.get();
 
     m_cnstr_par1.SetVariables(&Body1->Variables(), &Body2->Variables());
     m_cnstr_par2.SetVariables(&Body1->Variables(), &Body2->Variables());
@@ -115,20 +97,18 @@ void ChLinkRevoluteTranslational::Initialize(
     m_cur_dist = distance;
 }
 
-void ChLinkRevoluteTranslational::Initialize(
-    ChSharedPtr<ChBodyFrame> body1,  // first frame (revolute side)
-    ChSharedPtr<ChBodyFrame> body2,  // second frame (spherical side)
-    bool local,                      // true if data given in body local frames
-    const ChVector<>& p1,            // point on first frame (revolute side)
-    const ChVector<>& dirZ1,         // direction of revolute on first frame
-    const ChVector<>& p2,            // point on second frame (translational side)
-    const ChVector<>& dirX2,         // first direction of translational joint
-    const ChVector<>& dirY2,         // second direction of translational joint
-    bool auto_distance,              // true if imposed distance equal to distance between axes
-    double distance                  // imposed distance (used only if auto_distance = false)
-    ) {
-    Body1 = body1.get_ptr();
-    Body2 = body2.get_ptr();
+void ChLinkRevoluteTranslational::Initialize(std::shared_ptr<ChBodyFrame> body1,
+                                             std::shared_ptr<ChBodyFrame> body2,
+                                             bool local,
+                                             const ChVector<>& p1,
+                                             const ChVector<>& dirZ1,
+                                             const ChVector<>& p2,
+                                             const ChVector<>& dirX2,
+                                             const ChVector<>& dirY2,
+                                             bool auto_distance,
+                                             double distance) {
+    Body1 = body1.get();
+    Body2 = body2.get();
 
     m_cnstr_par1.SetVariables(&Body1->Variables(), &Body2->Variables());
     m_cnstr_par2.SetVariables(&Body1->Variables(), &Body2->Variables());
@@ -182,8 +162,7 @@ ChCoordsys<> ChLinkRevoluteTranslational::GetLinkRelativeCoords() {
     // Origin at P1 (center of revolute side) and orientation formed using
     // the mutually orthogonal direction x2 and y2.
     ChVector<> p = Body2->TransformPointParentToLocal(Body1->TransformPointLocalToParent(m_p1));
-    ChMatrix33<> A;
-    A.Set_A_axis(m_x2, m_y2, Vcross(m_x2, m_y2));
+    ChMatrix33<> A(m_x2, m_y2, Vcross(m_x2, m_y2));
 
     return ChCoordsys<>(p, A.Get_A_quaternion());
 }
@@ -221,113 +200,113 @@ void ChLinkRevoluteTranslational::Update(double time, bool update_assets) {
     // First constraint (par1)
     {
         // Cache constraint violation
-        m_C->SetElement(0, 0, m_cur_par1);
+        m_C(0) = m_cur_par1;
 
         // Set Jacobian w.r.t. states of Body 1
         ChVector<> Phi_pi1 = Vcross(m_z1, x2_1);
 
-        m_cnstr_par1.Get_Cq_a()->ElementN(0) = 0;
-        m_cnstr_par1.Get_Cq_a()->ElementN(1) = 0;
-        m_cnstr_par1.Get_Cq_a()->ElementN(2) = 0;
+        m_cnstr_par1.Get_Cq_a()(0) = 0;
+        m_cnstr_par1.Get_Cq_a()(1) = 0;
+        m_cnstr_par1.Get_Cq_a()(2) = 0;
 
-        m_cnstr_par1.Get_Cq_a()->ElementN(3) = Phi_pi1.x;
-        m_cnstr_par1.Get_Cq_a()->ElementN(4) = Phi_pi1.y;
-        m_cnstr_par1.Get_Cq_a()->ElementN(5) = Phi_pi1.z;
+        m_cnstr_par1.Get_Cq_a()(3) = Phi_pi1.x();
+        m_cnstr_par1.Get_Cq_a()(4) = Phi_pi1.y();
+        m_cnstr_par1.Get_Cq_a()(5) = Phi_pi1.z();
 
         // Set Jacobian w.r.t. states of Body 2
         ChVector<> Phi_pi2 = Vcross(m_x2, z1_2);
 
-        m_cnstr_par1.Get_Cq_b()->ElementN(0) = 0;
-        m_cnstr_par1.Get_Cq_b()->ElementN(1) = 0;
-        m_cnstr_par1.Get_Cq_b()->ElementN(2) = 0;
+        m_cnstr_par1.Get_Cq_b()(0) = 0;
+        m_cnstr_par1.Get_Cq_b()(1) = 0;
+        m_cnstr_par1.Get_Cq_b()(2) = 0;
 
-        m_cnstr_par1.Get_Cq_b()->ElementN(3) = Phi_pi2.x;
-        m_cnstr_par1.Get_Cq_b()->ElementN(4) = Phi_pi2.y;
-        m_cnstr_par1.Get_Cq_b()->ElementN(5) = Phi_pi2.z;
+        m_cnstr_par1.Get_Cq_b()(3) = Phi_pi2.x();
+        m_cnstr_par1.Get_Cq_b()(4) = Phi_pi2.y();
+        m_cnstr_par1.Get_Cq_b()(5) = Phi_pi2.z();
     }
 
     // Second constraint (par2)
     {
         // Cache constraint violation
-        m_C->SetElement(1, 0, m_cur_par2);
+        m_C(1) = m_cur_par2;
 
         // Set Jacobian w.r.t. states of Body 1
         ChVector<> Phi_pi1 = Vcross(m_z1, y2_1);
 
-        m_cnstr_par2.Get_Cq_a()->ElementN(0) = 0;
-        m_cnstr_par2.Get_Cq_a()->ElementN(1) = 0;
-        m_cnstr_par2.Get_Cq_a()->ElementN(2) = 0;
+        m_cnstr_par2.Get_Cq_a()(0) = 0;
+        m_cnstr_par2.Get_Cq_a()(1) = 0;
+        m_cnstr_par2.Get_Cq_a()(2) = 0;
 
-        m_cnstr_par2.Get_Cq_a()->ElementN(3) = Phi_pi1.x;
-        m_cnstr_par2.Get_Cq_a()->ElementN(4) = Phi_pi1.y;
-        m_cnstr_par2.Get_Cq_a()->ElementN(5) = Phi_pi1.z;
+        m_cnstr_par2.Get_Cq_a()(3) = Phi_pi1.x();
+        m_cnstr_par2.Get_Cq_a()(4) = Phi_pi1.y();
+        m_cnstr_par2.Get_Cq_a()(5) = Phi_pi1.z();
 
         // Set Jacobian w.r.t. states of Body 2
         ChVector<> Phi_pi2 = Vcross(m_y2, z1_2);
 
-        m_cnstr_par2.Get_Cq_b()->ElementN(0) = 0;
-        m_cnstr_par2.Get_Cq_b()->ElementN(1) = 0;
-        m_cnstr_par2.Get_Cq_b()->ElementN(2) = 0;
+        m_cnstr_par2.Get_Cq_b()(0) = 0;
+        m_cnstr_par2.Get_Cq_b()(1) = 0;
+        m_cnstr_par2.Get_Cq_b()(2) = 0;
 
-        m_cnstr_par2.Get_Cq_b()->ElementN(3) = Phi_pi2.x;
-        m_cnstr_par2.Get_Cq_b()->ElementN(4) = Phi_pi2.y;
-        m_cnstr_par2.Get_Cq_b()->ElementN(5) = Phi_pi2.z;
+        m_cnstr_par2.Get_Cq_b()(3) = Phi_pi2.x();
+        m_cnstr_par2.Get_Cq_b()(4) = Phi_pi2.y();
+        m_cnstr_par2.Get_Cq_b()(5) = Phi_pi2.z();
     }
 
     // Third constraint (dot)
     {
         // Cache constraint violation
-        m_C->SetElement(2, 0, m_cur_dot);
+        m_C(2) = m_cur_dot;
 
         // Set Jacobian w.r.t. states of Body 1
         ChVector<> Phi_pi1 = Vcross(m_z1, d12_1) - Vcross(m_p1, m_z1);
 
-        m_cnstr_dot.Get_Cq_a()->ElementN(0) = -z1_abs.x;
-        m_cnstr_dot.Get_Cq_a()->ElementN(1) = -z1_abs.y;
-        m_cnstr_dot.Get_Cq_a()->ElementN(2) = -z1_abs.z;
+        m_cnstr_dot.Get_Cq_a()(0) = -z1_abs.x();
+        m_cnstr_dot.Get_Cq_a()(1) = -z1_abs.y();
+        m_cnstr_dot.Get_Cq_a()(2) = -z1_abs.z();
 
-        m_cnstr_dot.Get_Cq_a()->ElementN(3) = Phi_pi1.x;
-        m_cnstr_dot.Get_Cq_a()->ElementN(4) = Phi_pi1.y;
-        m_cnstr_dot.Get_Cq_a()->ElementN(5) = Phi_pi1.z;
+        m_cnstr_dot.Get_Cq_a()(3) = Phi_pi1.x();
+        m_cnstr_dot.Get_Cq_a()(4) = Phi_pi1.y();
+        m_cnstr_dot.Get_Cq_a()(5) = Phi_pi1.z();
 
         // Set Jacobian w.r.t. states of Body 2
         ChVector<> Phi_pi2 = Vcross(m_p2, z1_2);
 
-        m_cnstr_dot.Get_Cq_b()->ElementN(0) = z1_abs.x;
-        m_cnstr_dot.Get_Cq_b()->ElementN(1) = z1_abs.y;
-        m_cnstr_dot.Get_Cq_b()->ElementN(2) = z1_abs.z;
+        m_cnstr_dot.Get_Cq_b()(0) = z1_abs.x();
+        m_cnstr_dot.Get_Cq_b()(1) = z1_abs.y();
+        m_cnstr_dot.Get_Cq_b()(2) = z1_abs.z();
 
-        m_cnstr_dot.Get_Cq_b()->ElementN(3) = Phi_pi2.x;
-        m_cnstr_dot.Get_Cq_b()->ElementN(4) = Phi_pi2.y;
-        m_cnstr_dot.Get_Cq_b()->ElementN(5) = Phi_pi2.z;
+        m_cnstr_dot.Get_Cq_b()(3) = Phi_pi2.x();
+        m_cnstr_dot.Get_Cq_b()(4) = Phi_pi2.y();
+        m_cnstr_dot.Get_Cq_b()(5) = Phi_pi2.z();
     }
 
     // Fourth constraint (dist)
     {
         // Cache constraint violation
-        m_C->SetElement(3, 0, m_cur_dist - m_dist);
+        m_C(3) = m_cur_dist - m_dist;
 
         // Set Jacobian w.r.t. states of Body 1
         ChVector<> Phi_pi1 = -Vcross(m_p1, x2_1);
 
-        m_cnstr_dist.Get_Cq_a()->ElementN(0) = -x2_abs.x;
-        m_cnstr_dist.Get_Cq_a()->ElementN(1) = -x2_abs.y;
-        m_cnstr_dist.Get_Cq_a()->ElementN(2) = -x2_abs.z;
+        m_cnstr_dist.Get_Cq_a()(0) = -x2_abs.x();
+        m_cnstr_dist.Get_Cq_a()(1) = -x2_abs.y();
+        m_cnstr_dist.Get_Cq_a()(2) = -x2_abs.z();
 
-        m_cnstr_dist.Get_Cq_a()->ElementN(3) = Phi_pi1.x;
-        m_cnstr_dist.Get_Cq_a()->ElementN(4) = Phi_pi1.y;
-        m_cnstr_dist.Get_Cq_a()->ElementN(5) = Phi_pi1.z;
+        m_cnstr_dist.Get_Cq_a()(3) = Phi_pi1.x();
+        m_cnstr_dist.Get_Cq_a()(4) = Phi_pi1.y();
+        m_cnstr_dist.Get_Cq_a()(5) = Phi_pi1.z();
 
         // Set Jacobian w.r.t. states of Body 2
         ChVector<> Phi_pi2 = Vcross(m_x2, d12_2) + Vcross(m_p2, m_x2);
 
-        m_cnstr_dist.Get_Cq_b()->ElementN(0) = x2_abs.x;
-        m_cnstr_dist.Get_Cq_b()->ElementN(1) = x2_abs.y;
-        m_cnstr_dist.Get_Cq_b()->ElementN(2) = x2_abs.z;
+        m_cnstr_dist.Get_Cq_b()(0) = x2_abs.x();
+        m_cnstr_dist.Get_Cq_b()(1) = x2_abs.y();
+        m_cnstr_dist.Get_Cq_b()(2) = x2_abs.z();
 
-        m_cnstr_dist.Get_Cq_b()->ElementN(3) = Phi_pi2.x;
-        m_cnstr_dist.Get_Cq_b()->ElementN(4) = Phi_pi2.y;
-        m_cnstr_dist.Get_Cq_b()->ElementN(5) = Phi_pi2.z;
+        m_cnstr_dist.Get_Cq_b()(3) = Phi_pi2.x();
+        m_cnstr_dist.Get_Cq_b()(4) = Phi_pi2.y();
+        m_cnstr_dist.Get_Cq_b()(5) = Phi_pi2.z();
     }
 }
 
@@ -337,26 +316,26 @@ void ChLinkRevoluteTranslational::IntStateGatherReactions(const unsigned int off
     if (!this->IsActive())
         return;
 
-    L(off_L + 0) = m_cache_speed[0];
-    L(off_L + 1) = m_cache_speed[1];
-    L(off_L + 2) = m_cache_speed[2];
-    L(off_L + 3) = m_cache_speed[3];
+    L(off_L + 0) = m_multipliers[0];
+    L(off_L + 1) = m_multipliers[1];
+    L(off_L + 2) = m_multipliers[2];
+    L(off_L + 3) = m_multipliers[3];
 }
 
 void ChLinkRevoluteTranslational::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
     if (!this->IsActive())
         return;
 
-    m_cache_speed[0] = L(off_L + 0);
-    m_cache_speed[1] = L(off_L + 1);
-    m_cache_speed[2] = L(off_L + 2);
-    m_cache_speed[3] = L(off_L + 3);
+    m_multipliers[0] = L(off_L + 0);
+    m_multipliers[1] = L(off_L + 1);
+    m_multipliers[2] = L(off_L + 2);
+    m_multipliers[3] = L(off_L + 3);
 
     // Also compute 'intuitive' reactions:
-    double lam_par1 = m_cache_speed[0];
-    double lam_par2 = m_cache_speed[1];
-    double lam_dot = m_cache_speed[2];
-    double lam_dist = m_cache_speed[3];
+    double lam_par1 = m_multipliers[0];
+    double lam_par2 = m_multipliers[1];
+    double lam_dot = m_multipliers[2];
+    double lam_dist = m_multipliers[3];
 
     ////
     //// TODO
@@ -367,19 +346,19 @@ void ChLinkRevoluteTranslational::IntStateScatterReactions(const unsigned int of
     //  which is defined on body 1, the x-axis is along the vector from the
     //  point on body 1 to the point on body 2.  The z axis is along the revolute
     //  axis defined for the joint)
-    react_force.x = 0;
-    react_force.y = 0;
-    react_force.z = 0;
+    react_force.x() = 0;
+    react_force.y() = 0;
+    react_force.z() = 0;
 
-    react_torque.x = 0;
-    react_torque.y = 0;
-    react_torque.z = 0;
+    react_torque.x() = 0;
+    react_torque.y() = 0;
+    react_torque.z() = 0;
 }
 
-void ChLinkRevoluteTranslational::IntLoadResidual_CqL(const unsigned int off_L,  ///< offset in L multipliers
-                                                      ChVectorDynamic<>& R,  ///< result: the R residual, R += c*Cq'*L
-                                                      const ChVectorDynamic<>& L,  ///< the L vector
-                                                      const double c               ///< a scaling factor
+void ChLinkRevoluteTranslational::IntLoadResidual_CqL(const unsigned int off_L,  
+                                                      ChVectorDynamic<>& R,  
+                                                      const ChVectorDynamic<>& L,  
+                                                      const double c               
                                                       ) {
     m_cnstr_par1.MultiplyTandAdd(R, L(off_L + 0) * c);
     m_cnstr_par2.MultiplyTandAdd(R, L(off_L + 1) * c);
@@ -387,11 +366,11 @@ void ChLinkRevoluteTranslational::IntLoadResidual_CqL(const unsigned int off_L, 
     m_cnstr_dist.MultiplyTandAdd(R, L(off_L + 3) * c);
 }
 
-void ChLinkRevoluteTranslational::IntLoadConstraint_C(const unsigned int off_L,  ///< offset in Qc residual
-                                                      ChVectorDynamic<>& Qc,     ///< result: the Qc residual, Qc += c*C
-                                                      const double c,            ///< a scaling factor
-                                                      bool do_clamp,             ///< apply clamping to c*C?
-                                                      double recovery_clamp      ///< value for min/max clamping of c*C
+void ChLinkRevoluteTranslational::IntLoadConstraint_C(const unsigned int off_L,
+                                                      ChVectorDynamic<>& Qc,   
+                                                      const double c,          
+                                                      bool do_clamp,           
+                                                      double recovery_clamp    
                                                       ) {
     if (!IsActive())
         return;
@@ -411,12 +390,12 @@ void ChLinkRevoluteTranslational::IntLoadConstraint_C(const unsigned int off_L, 
     Qc(off_L + 3) += cnstr_dist_violation;
 }
 
-void ChLinkRevoluteTranslational::IntToLCP(const unsigned int off_v,  ///< offset in v, R
-                                           const ChStateDelta& v,
-                                           const ChVectorDynamic<>& R,
-                                           const unsigned int off_L,  ///< offset in L, Qc
-                                           const ChVectorDynamic<>& L,
-                                           const ChVectorDynamic<>& Qc) {
+void ChLinkRevoluteTranslational::IntToDescriptor(const unsigned int off_v,
+                                                  const ChStateDelta& v,
+                                                  const ChVectorDynamic<>& R,
+                                                  const unsigned int off_L,
+                                                  const ChVectorDynamic<>& L,
+                                                  const ChVectorDynamic<>& Qc) {
     if (!IsActive())
         return;
 
@@ -431,10 +410,10 @@ void ChLinkRevoluteTranslational::IntToLCP(const unsigned int off_v,  ///< offse
     m_cnstr_dist.Set_b_i(Qc(off_L + 3));
 }
 
-void ChLinkRevoluteTranslational::IntFromLCP(const unsigned int off_v,  ///< offset in v
-                                             ChStateDelta& v,
-                                             const unsigned int off_L,  ///< offset in L
-                                             ChVectorDynamic<>& L) {
+void ChLinkRevoluteTranslational::IntFromDescriptor(const unsigned int off_v,
+                                                    ChStateDelta& v,
+                                                    const unsigned int off_L,
+                                                    ChVectorDynamic<>& L) {
     if (!IsActive())
         return;
 
@@ -447,7 +426,7 @@ void ChLinkRevoluteTranslational::IntFromLCP(const unsigned int off_v,  ///< off
 // -----------------------------------------------------------------------------
 // Implementation of solver interface functions
 // -----------------------------------------------------------------------------
-void ChLinkRevoluteTranslational::InjectConstraints(ChLcpSystemDescriptor& descriptor) {
+void ChLinkRevoluteTranslational::InjectConstraints(ChSystemDescriptor& descriptor) {
     if (!IsActive())
         return;
 
@@ -511,13 +490,13 @@ void ChLinkRevoluteTranslational::ConstraintsFetch_react(double factor) {
     //  which is defined on body 1, the x-axis is along the vector from the
     //  point on body 1 to the point on body 2.  The z axis is along the revolute
     //  axis defined for the joint)
-    react_force.x = 0;
-    react_force.y = 0;
-    react_force.z = 0;
+    react_force.x() = 0;
+    react_force.y() = 0;
+    react_force.z() = 0;
 
-    react_torque.x = 0;
-    react_torque.y = 0;
-    react_torque.z = 0;
+    react_torque.x() = 0;
+    react_torque.y() = 0;
+    react_torque.z() = 0;
 }
 
 // -----------------------------------------------------------------------------
@@ -581,46 +560,9 @@ ChVector<> ChLinkRevoluteTranslational::Get_react_torque_body2() {
     return VNULL;
 }
 
-// -----------------------------------------------------------------------------
-// Load and store multipliers (caching to allow warm starting)
-// -----------------------------------------------------------------------------
-void ChLinkRevoluteTranslational::ConstraintsLiLoadSuggestedSpeedSolution() {
-    // Set multipliers to those cached at previous step.
-    m_cnstr_par1.Set_l_i(m_cache_speed[0]);
-    m_cnstr_par2.Set_l_i(m_cache_speed[1]);
-    m_cnstr_dot.Set_l_i(m_cache_speed[2]);
-    m_cnstr_dist.Set_l_i(m_cache_speed[3]);
-}
-
-void ChLinkRevoluteTranslational::ConstraintsLiLoadSuggestedPositionSolution() {
-    // Set multipliers to those cached at previous step.
-    m_cnstr_par1.Set_l_i(m_cache_pos[0]);
-    m_cnstr_par2.Set_l_i(m_cache_pos[1]);
-    m_cnstr_dot.Set_l_i(m_cache_pos[2]);
-    m_cnstr_dist.Set_l_i(m_cache_pos[3]);
-}
-
-void ChLinkRevoluteTranslational::ConstraintsLiFetchSuggestedSpeedSolution() {
-    // Cache current multipliers.
-    m_cache_speed[0] = m_cnstr_par1.Get_l_i();
-    m_cache_speed[1] = m_cnstr_par2.Get_l_i();
-    m_cache_speed[2] = m_cnstr_dot.Get_l_i();
-    m_cache_speed[3] = m_cnstr_dist.Get_l_i();
-}
-
-void ChLinkRevoluteTranslational::ConstraintsLiFetchSuggestedPositionSolution() {
-    // Cache current multipliers.
-    m_cache_pos[0] = m_cnstr_par1.Get_l_i();
-    m_cache_pos[1] = m_cnstr_par2.Get_l_i();
-    m_cache_pos[2] = m_cnstr_dot.Get_l_i();
-    m_cache_pos[3] = m_cnstr_dist.Get_l_i();
-}
-
-
-void ChLinkRevoluteTranslational::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChLinkRevoluteTranslational::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChLinkRevoluteTranslational>();
 
     // serialize parent class
     ChLink::ArchiveOUT(marchive);
@@ -635,10 +577,9 @@ void ChLinkRevoluteTranslational::ArchiveOUT(ChArchiveOut& marchive)
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkRevoluteTranslational::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChLinkRevoluteTranslational::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChLinkRevoluteTranslational>();
 
     // deserialize parent class
     ChLink::ArchiveIN(marchive);
@@ -651,6 +592,5 @@ void ChLinkRevoluteTranslational::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(m_y2);
     marchive >> CHNVP(m_dist);
 }
-
 
 }  // end namespace chrono

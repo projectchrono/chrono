@@ -15,13 +15,16 @@
 // =============================================================================
 
 #include <iostream>
-#include "ChOpenGLOBJLoader.h"
 #include <sstream>
 #include <string>
 
+#include "chrono_opengl/shapes/obj/ChOpenGLOBJLoader.h"
+
 using namespace glm;
+
 namespace chrono {
 namespace opengl {
+
 ChOpenGLOBJLoader::ChOpenGLOBJLoader() {}
 
 // load an obj mesh. Each mesh can have multiple sub meshes

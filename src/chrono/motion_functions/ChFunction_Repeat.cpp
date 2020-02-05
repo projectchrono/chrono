@@ -1,74 +1,65 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2011 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChFunction_Repeat.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "ChFunction_Repeat.h"
+#include "chrono/motion_functions/ChFunction_Repeat.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
-ChClassRegister<ChFunction_Repeat> a_registration_repeat;
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChFunction_Repeat)
 
-void ChFunction_Repeat::Copy(ChFunction_Repeat* source) {
-    window_start = source->window_start;
-    window_length = source->window_length;
-    // fa = source->fa;		//***? shallow copy (now sharing same object)...
-    fa = ChSharedPtr<ChFunction>(source->fa->new_Duplicate());  //***? ..or deep copy? make optional with flag?
+ChFunction_Repeat::ChFunction_Repeat() : window_start(0), window_length(1), window_phase(0) {
+    fa = chrono_types::make_shared<ChFunction_Const>();  // default
 }
 
-ChFunction* ChFunction_Repeat::new_Duplicate() {
-    ChFunction_Repeat* m_func;
-    m_func = new ChFunction_Repeat;
-    m_func->Copy(this);
-    return (m_func);
+ChFunction_Repeat::ChFunction_Repeat(const ChFunction_Repeat& other) {
+    window_start = other.window_start;
+    window_length = other.window_length;
+    window_phase = other.window_phase;
+    fa = std::shared_ptr<ChFunction>(other.fa->Clone());
 }
 
-double ChFunction_Repeat::Get_y(double x) {
-    return fa->Get_y(this->window_start + fmod(x, this->window_length));
+double ChFunction_Repeat::Get_y(double x) const {
+    return fa->Get_y(this->window_start + fmod(x + this->window_phase, this->window_length));
 }
 
-void ChFunction_Repeat::Estimate_x_range(double& xmin, double& xmax) {
+void ChFunction_Repeat::Estimate_x_range(double& xmin, double& xmax) const {
     fa->Estimate_x_range(xmin, xmax);
 }
 
-int ChFunction_Repeat::MakeOptVariableTree(ChList<chjs_propdata>* mtree) {
-    int i = 0;
-
-    // inherit parent behaviour
-    ChFunction::MakeOptVariableTree(mtree);
-
-    // expand tree for children..
-
-    chjs_propdata* mdataA = new chjs_propdata;
-    strcpy(mdataA->propname, "fa");
-    strcpy(mdataA->label, mdataA->propname);
-    mdataA->haschildren = TRUE;
-    mtree->AddTail(mdataA);
-
-    i += this->fa->MakeOptVariableTree(&mdataA->children);
-
-    return i;
+void ChFunction_Repeat::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChFunction_Repeat>();
+    // serialize parent class
+    ChFunction::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(fa);
+    marchive << CHNVP(window_start);
+    marchive << CHNVP(window_length);
+    marchive << CHNVP(window_phase);
 }
 
+void ChFunction_Repeat::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChFunction_Repeat>();
+    // deserialize parent class
+    ChFunction::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(fa);
+    marchive >> CHNVP(window_start);
+    marchive >> CHNVP(window_length);
+    marchive >> CHNVP(window_phase);
+}
 
-
-}  // END_OF_NAMESPACE____
-
-// eof
+}  // end namespace chrono

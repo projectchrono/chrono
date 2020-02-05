@@ -1,208 +1,90 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2011 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChLinkForce.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChLinkForce.h"
+#include "chrono/physics/ChLinkForce.h"
 
 namespace chrono {
 
-ChLinkForce::ChLinkForce() {
-    active = 0;  // default: inactive limit
-
-    iforce = 0;
-    modul_iforce = new ChFunction_Const(1);  // default: const.modulation of iforce
-
-    K = 0;
-    modul_K = new ChFunction_Const(1);  // default: const.modulation of K
-
-    R = 0;
-    modul_R = new ChFunction_Const(1);  // default: const.modulation of R
+ChLinkForce::ChLinkForce() : m_active(false), m_F(0), m_K(0), m_R(0) {
+    // Default: no modulation
+    m_F_modul = chrono_types::make_shared<ChFunction_Const>(1);
+    m_K_modul = chrono_types::make_shared<ChFunction_Const>(1);
+    m_R_modul = chrono_types::make_shared<ChFunction_Const>(1);
 }
 
-ChLinkForce::~ChLinkForce() {
-    if (modul_iforce)
-        delete modul_iforce;
-    if (modul_K)
-        delete modul_K;
-    if (modul_R)
-        delete modul_R;
+ChLinkForce::ChLinkForce(const ChLinkForce& other) {
+    m_active = other.m_active;
+
+    m_F = other.m_F;
+    m_K = other.m_K;
+    m_R = other.m_R;
+
+    m_F_modul = std::shared_ptr<ChFunction>(other.m_F_modul->Clone());
+    m_K_modul = std::shared_ptr<ChFunction>(other.m_K_modul->Clone());
+    m_R_modul = std::shared_ptr<ChFunction>(other.m_R_modul->Clone());
 }
 
-void ChLinkForce::Copy(ChLinkForce* source) {
-    active = source->active;
-
-    iforce = source->iforce;
-    K = source->K;
-    R = source->R;
-
-    // replace functions:
-    if (modul_iforce)
-        delete modul_iforce;
-    if (modul_K)
-        delete modul_K;
-    if (modul_R)
-        delete modul_R;
-
-    modul_iforce = source->modul_iforce->new_Duplicate();
-    modul_K = source->modul_K->new_Duplicate();
-    modul_R = source->modul_R->new_Duplicate();
+double ChLinkForce::GetKcurrent(double x, double x_dt, double t) const {
+    if (!m_active)
+        return 0;
+    return m_K * m_K_modul->Get_y(x);
 }
 
-ChLinkForce* ChLinkForce::new_Duplicate() {
-    ChLinkForce* m_lim;
-    m_lim = new ChLinkForce;
-    m_lim->Copy(this);
-    return (m_lim);
+double ChLinkForce::GetRcurrent(double x, double x_dt, double t) const {
+    if (!m_active)
+        return 0;
+    return m_R * m_R_modul->Get_y(x);
 }
 
-void ChLinkForce::Set_modul_iforce(ChFunction* m_funct) {
-    if (modul_iforce)
-        delete modul_iforce;
-    modul_iforce = m_funct;
-}
-void ChLinkForce::Set_modul_K(ChFunction* m_funct) {
-    if (modul_K)
-        delete modul_K;
-    modul_K = m_funct;
-}
-void ChLinkForce::Set_modul_R(ChFunction* m_funct) {
-    if (modul_R)
-        delete modul_R;
-    modul_R = m_funct;
+double ChLinkForce::GetFcurrent(double x, double x_dt, double t) const {
+    if (!m_active)
+        return 0;
+    return m_F * m_F_modul->Get_y(t);
 }
 
+double ChLinkForce::GetForce(double x, double x_dt, double t) const {
+    if (!m_active)
+        return 0;
+    return m_F * m_F_modul->Get_y(t) - (m_K * m_K_modul->Get_y(x)) * x - (m_R * m_R_modul->Get_y(x)) * x_dt;
+}
 
 void ChLinkForce::ArchiveOUT(ChArchiveOut& marchive) {
-
     // class version number
-    marchive.VersionWrite(1);
-    // serialize parent class too
+    marchive.VersionWrite<ChLinkForce>();
 
     // stream out all member data
-    marchive << CHNVP(active);
-    marchive << CHNVP(iforce);
-    marchive << CHNVP(modul_iforce);
-    marchive << CHNVP(K);
-    marchive << CHNVP(modul_K);
-    marchive << CHNVP(R);
-    marchive << CHNVP(modul_R);
+    marchive << CHNVP(m_active);
+    marchive << CHNVP(m_F);
+    marchive << CHNVP(m_F_modul);
+    marchive << CHNVP(m_K);
+    marchive << CHNVP(m_K_modul);
+    marchive << CHNVP(m_R);
+    marchive << CHNVP(m_R_modul);
 }
 
 void ChLinkForce::ArchiveIN(ChArchiveIn& marchive) {
-
     // class version number
-    int version = marchive.VersionRead();
-    // deserialize parent class too
+    int version = marchive.VersionRead<ChLinkForce>();
 
     // stream in all member data
-    marchive >> CHNVP(active);
-    marchive >> CHNVP(iforce);
-    marchive >> CHNVP(modul_iforce);
-    marchive >> CHNVP(K);
-    marchive >> CHNVP(modul_K);
-    marchive >> CHNVP(R);
-    marchive >> CHNVP(modul_R);
+    marchive >> CHNVP(m_active);
+    marchive >> CHNVP(m_F);
+    marchive >> CHNVP(m_F_modul);
+    marchive >> CHNVP(m_K);
+    marchive >> CHNVP(m_K_modul);
+    marchive >> CHNVP(m_R);
+    marchive >> CHNVP(m_R_modul);
 }
 
-
-
-double ChLinkForce::Get_Kcurrent(double x, double x_dt, double t) {
-    double mK = 0;
-    if (active) {
-        double modulator;
-
-        if (modul_K) {
-            modulator = modul_K->Get_y(x);
-        } else {
-            modulator = 1;
-        }
-        mK = K * modulator;
-    }
-    return mK;
-}
-
-double ChLinkForce::Get_Rcurrent(double x, double x_dt, double t) {
-    double mR = 0;
-    if (active) {
-        double modulator;
-
-        if (modul_R) {
-            modulator = modul_R->Get_y(x);
-        } else {
-            modulator = 1;
-        }
-        mR = R * modulator;
-    }
-    return mR;
-}
-
-double ChLinkForce::Get_iFcurrent(double x, double x_dt, double t) {
-    double mforce = 0;
-    if (active) {
-        double modulator;
-
-        // the internal force contribute = iforce
-        if (modul_iforce) {
-            modulator = modul_iforce->Get_y(t);
-        } else {
-            modulator = 1;
-        }
-        mforce = iforce * modulator;
-    }
-    return mforce;
-}
-
-///////////////////
-
-double ChLinkForce::Get_Force(double x, double x_dt, double t) {
-    double mforce = 0;
-    if (active) {
-        double modulator;
-
-        // the internal force contribute = iforce
-        if (modul_iforce) {
-            modulator = modul_iforce->Get_y(t);
-        } else {
-            modulator = 1;
-        }
-        mforce = iforce * modulator;
-
-        // the stiffness contribute =  - K x
-        if (modul_K) {
-            modulator = modul_K->Get_y(x);
-        } else {
-            modulator = 1;
-        }
-        mforce -= (K * modulator) * x;
-
-        // the damping contribute =  - R x_dt
-        if (modul_R) {
-            modulator = modul_R->Get_y(x);
-        } else {
-            modulator = 1;
-        }
-        mforce -= (R * modulator) * x_dt;
-    }
-
-    return mforce;
-}
-
-}  // END_OF_NAMESPACE____
-
-///////////////////
+}  // end namespace chrono

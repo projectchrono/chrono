@@ -23,7 +23,7 @@
 namespace chrono {
 namespace opengl {
 
-/// @addtogroup opengl
+/// @addtogroup opengl_module
 /// @{
 
 /// Generic renderable point cloud.
@@ -45,8 +45,9 @@ class CH_OPENGL_API ChOpenGLCloud : public ChOpenGLObject {
     typedef ChOpenGLObject super;
 };
 
-/// @} opengl
+/// @} opengl_module
 
 }
 }
-#endif  // END of CHOPENGLCLOUD_H
+
+#endif

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -13,8 +13,8 @@
 // =============================================================================
 //
 // Simple brake created with constant torque opposing wheel rotation.
-// It just uses a speed-dependant torque, so it fits in ODEs because it does not
-// use DVI set valued constraints (the  drawback is that it cannot simulate
+// It just uses a speed-dependent torque, so it fits in ODEs because it does not
+// use NSC set valued constraints (the  drawback is that it cannot simulate
 // sticking brakes).
 //
 // =============================================================================
@@ -24,26 +24,29 @@
 namespace chrono {
 namespace vehicle {
 
-ChBrakeSimple::ChBrakeSimple() : m_modulation(0) {
-    m_brake = ChSharedPtr<ChLinkBrake>(new ChLinkBrake);
+ChBrakeSimple::ChBrakeSimple(const std::string& name) : ChBrake(name), m_modulation(0) {
+    m_brake = chrono_types::make_shared<ChLinkBrake>();
 }
 
-void ChBrakeSimple::Initialize(ChSharedPtr<ChLinkLockRevolute> hub) {
-    ChSystem* my_system = hub->GetSystem();
+void ChBrakeSimple::Initialize(std::shared_ptr<ChSuspension> suspension, VehicleSide side) {
+    auto hub = suspension->GetRevolute(side);
 
-    // Reuse the same bodies and link coordinate of the hub revolute joint...
-    ChSharedPtr<ChBodyFrame> mbf1(hub->GetBody1());
-    hub->GetBody1()->AddRef();  // because mbf1(mhub->GetBody1()) got a plain pointer, so transformed to shared
-    ChSharedPtr<ChBodyFrame> mbf2(hub->GetBody2());
-    hub->GetBody2()->AddRef();  // because mbf2(mhub->GetBody2()) got a plain pointer, so transformed to shared
-    ChSharedPtr<ChBody> mb1 = mbf1.DynamicCastTo<ChBody>();
-    ChSharedPtr<ChBody> mb2 = mbf2.DynamicCastTo<ChBody>();
+    // Reuse the same bodies and link coordinate of the hub revolute joint
+    // Note that we wrap raw pointers in local shared_ptr.  For this, we must provide
+    // custom empty deleters (to prevent deleting the objects when the local shared_ptr
+    // go out of scope).
+    std::shared_ptr<ChBodyFrame> mbf1(hub->GetBody1(), [](ChBodyFrame*) {});
+    std::shared_ptr<ChBodyFrame> mbf2(hub->GetBody2(), [](ChBodyFrame*) {});
 
-    m_brake->Initialize(mb1, mb2, hub->GetMarker2()->GetCoord());
-    my_system->AddLink(m_brake);
+    // Downcast to ChBody shared_ptr
+    auto mb1 = std::dynamic_pointer_cast<ChBody>(mbf1);
+    auto mb2 = std::dynamic_pointer_cast<ChBody>(mbf2);
+
+    m_brake->Initialize(mb1, mb2, true, hub->GetMarker1()->GetCoord(), hub->GetMarker2()->GetCoord());
+    hub->GetSystem()->AddLink(m_brake);
 }
 
-void ChBrakeSimple::Update(double modulation) {
+void ChBrakeSimple::Synchronize(double modulation) {
     m_modulation = modulation;
     m_brake->Set_brake_torque(modulation * GetMaxBrakingTorque());
 }

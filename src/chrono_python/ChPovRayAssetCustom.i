@@ -12,7 +12,3 @@
 %include "../chrono_postprocess/ChPovRayAssetCustom.h"    
 
 
-// Define also the shared pointer 
-//%DefChSharedPtr(mynamespace::, myclassname)
-
-%DefChSharedPtr(chrono::postprocess::,ChPovRayAssetCustom)

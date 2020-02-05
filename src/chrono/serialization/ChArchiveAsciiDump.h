@@ -1,21 +1,19 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHARCHIVEASCIIDUMP_H
 #define CHARCHIVEASCIIDUMP_H
 
-
-#include "serialization/ChArchive.h"
-
+#include "chrono/serialization/ChArchive.h"
 
 namespace chrono {
 
@@ -38,7 +36,7 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
 
       virtual ~ChArchiveAsciiDump() {};
 
-      /// If true, the variables namesare not printed. 
+      /// If true, the variables names are not printed. 
       /// Useful when used for GetLog() << ...  (for more compact formatting).
       void SetSuppressNames(bool msu) {suppress_names = msu;}
 
@@ -124,19 +122,20 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
             (*ostream) << "\"\n";
       }
 
-      virtual void out_array_pre (const char* name, size_t msize, const char* classname) {
+      virtual void out_array_pre (ChValue& bVal, size_t msize) {
             indent();
-            if (!suppress_names) 
-                (*ostream) << name << "\t"; 
-            (*ostream) << "array of "<< msize << " [" << classname << "]\n";
+            if (!suppress_names) {
+                (*ostream) << bVal.name() << "  ";
+            }
+            (*ostream) << "container of "<< msize << " items, [" << bVal.GetTypeidName() << "]\n";
             ++tablevel;
             indent();
             (*ostream) << "[ \n";
             ++tablevel;
       }
-      virtual void out_array_between (size_t msize, const char* classname) {
+      virtual void out_array_between (ChValue& bVal, size_t msize) {
       }
-      virtual void out_array_end (size_t msize,const char* classname) {
+      virtual void out_array_end (ChValue& bVal, size_t msize) {
             --tablevel;
             indent();
             (*ostream) << "] \n";
@@ -144,49 +143,45 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
       }
 
         // for custom c++ objects:
-      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname, bool tracked, size_t position) {
+      virtual void out     (ChValue& bVal, bool tracked, size_t obj_ID) {
             indent();
             if (!suppress_names) 
                 (*ostream) << bVal.name() << "  "; 
-            (*ostream) << "[" << classname << "]";
+            (*ostream) << "[" << bVal.GetTypeidName() << "]";
             if (tracked)
-                (*ostream) << " (tracked)   ID= " << position; 
+                (*ostream) << " (tracked)   ID= " << obj_ID; 
+            if (this->use_versions)
+                (*ostream) << " version=" << bVal.GetClassRegisteredVersion();
             (*ostream) << " \n";
             ++tablevel;
-            bVal.value().CallArchiveOut(*this);
+            bVal.CallArchiveOut(*this);
             --tablevel;
       }
 
-         // for pointed objects (if pointer hasn't been already serialized, otherwise save ID)
-      virtual void out_ref_abstract (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t position, const char* classname) 
+      virtual void out_ref          (ChValue& bVal,  bool already_inserted, size_t obj_ID, size_t ext_ID) 
       {
+          const char* classname = bVal.GetClassRegisteredName().c_str();
           indent();
           if (!suppress_names) 
                 (*ostream) << bVal.name(); 
-          (*ostream) << "->   [" << classname << "]  (class factory support)   ID=" << position <<"\n";
-          ++tablevel;
-          if (!already_inserted) {
-              if (!bVal.value().IsNull()) {
-                    // New Object, we have to full serialize it
-                    bVal.value().CallArchiveOut(*this);
-              } else {
-                  (*ostream) << "NULL\n";
-              }
+          (*ostream) << "->";
+          if(strlen(classname)>0) {
+                (*ostream) << " [" << classname << "] (registered type)";
+          } else {
+                (*ostream) << " [" << bVal.GetTypeidName() << "]";
           }
-          --tablevel;
-      }
-
-      virtual void out_ref          (ChNameValue<ChFunctorArchiveOut> bVal,  bool already_inserted, size_t position, const char* classname) 
-      {
-          indent();
-          if (!suppress_names) 
-                (*ostream) << bVal.name(); 
-          (*ostream) << "->   [" << classname << "]   ID=" << position <<"\n";
+          if (obj_ID)
+            (*ostream) << "  ID=" << obj_ID;
+          if (ext_ID)
+            (*ostream) << "  external_ID=" << ext_ID;
+          if (this->use_versions)
+            (*ostream) << " version=" << bVal.GetClassRegisteredVersion();
+          (*ostream) << "\n";
           ++tablevel;
           if (!already_inserted) {
-             if (!bVal.value().IsNull()) {
+             if (!bVal.IsNull()) {
                     // New Object, we have to full serialize it
-                    bVal.value().CallArchiveOut(*this);
+                    bVal.CallArchiveOut(*this);
               } else {
                   (*ostream) << "NULL\n";
               }
@@ -206,7 +201,7 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
 /// This is used to stream out in 'readable' form on a ChStreamOutAscii 
 /// stream whatever C++ object that implements the archive serialization, i.e. 
 /// objects that have ArchiveOUT implemented.
-/// For example:  GetLog() < mymatrix;
+/// For example:  GetLog() << mymatrix;
 
 template <class T>
 ChStreamOutAscii & operator<<(ChStreamOutAscii &mstream, const T& obj) {
@@ -216,12 +211,13 @@ ChStreamOutAscii & operator<<(ChStreamOutAscii &mstream, const T& obj) {
     ChArchiveAsciiDump marchive(mtempstream);
     // this avoids printing too much except the object:
     marchive.SetCutAllPointers(true);
+    marchive.SetSuppressNames(true);
+    marchive.SetUseVersions(false);
     marchive << CHNVP(obj,"");
     std::string mystring(mtempstream.GetVector()->begin(),mtempstream.GetVector()->end());
     return mstream << mystring;
 }
 
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

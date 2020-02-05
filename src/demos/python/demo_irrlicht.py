@@ -1,46 +1,39 @@
-#-------------------------------------------------------------------------------
-# Name:        modulo1
+#------------------------------------------------------------------------------
+# Name:        pychrono example
 # Purpose:
 #
-# Author:      tasora
+# Author:      Alessandro Tasora
 #
-# Created:     14/02/2012
-# Copyright:   (c) tasora 2012
-# Licence:     <your licence>
-#-------------------------------------------------------------------------------
-#!/usr/bin/env python
-
-def main():
-    pass
-
-if __name__ == '__main__':
-    main()
+# Created:     1/01/2019
+# Copyright:   (c) ProjectChrono 2019
+#------------------------------------------------------------------------------
 
 
-import os
-import math
-import ChronoEngine_PYTHON_core as chrono
-import ChronoEngine_PYTHON_postprocess as postprocess
-import ChronoEngine_PYTHON_irrlicht as chronoirr
+import pychrono.core as chrono
+import pychrono.irrlicht as chronoirr
 
 print ("Example: create a system and visualize it in realtime 3D");
 
+# The path to the Chrono data directory containing various assets (meshes, textures, data files)
+# is automatically set, relative to the default location of this demo.
+# If running from a different directory, you must change the path to the data directory with: 
+#chrono.SetChronoDataPath('path/to/data')
 
 # ---------------------------------------------------------------------
 #
 #  Create the simulation system and add items
 #
 
-mysystem      = chrono.ChSystem()
+mysystem      = chrono.ChSystemNSC()
 
 # Create a fixed rigid body
 
-mbody1 = chrono.ChBodyShared()
+mbody1 = chrono.ChBody()
 mbody1.SetBodyFixed(True)
 mbody1.SetPos( chrono.ChVectorD(0,0,-0.2))
 mysystem.Add(mbody1)
 
-mboxasset = chrono.ChBoxShapeShared()
+mboxasset = chrono.ChBoxShape()
 mboxasset.GetBoxGeometry().Size = chrono.ChVectorD(0.2,0.5,0.1)
 mbody1.AddAsset(mboxasset)
 
@@ -48,22 +41,22 @@ mbody1.AddAsset(mboxasset)
 
 # Create a swinging rigid body
 
-mbody2 = chrono.ChBodyShared()
+mbody2 = chrono.ChBody()
 mbody2.SetBodyFixed(False)
 mysystem.Add(mbody2)
 
-mboxasset = chrono.ChBoxShapeShared()
+mboxasset = chrono.ChBoxShape()
 mboxasset.GetBoxGeometry().Size = chrono.ChVectorD(0.2,0.5,0.1)
 mbody2.AddAsset(mboxasset)
 
-mboxtexture = chrono.ChTextureShared()
-mboxtexture.SetTextureFilename('../data/concrete.jpg')
+mboxtexture = chrono.ChTexture()
+mboxtexture.SetTextureFilename('../../../data/concrete.jpg')
 mbody2.GetAssets().push_back(mboxtexture)
 
 
 # Create a revolute constraint
 
-mlink = chrono.ChLinkRevoluteShared()
+mlink = chrono.ChLinkRevolute()
 
     # the coordinate system of the constraint reference in abs. space:
 mframe = chrono.ChFrameD(chrono.ChVectorD(0.1,0.5,0))
@@ -78,9 +71,10 @@ mysystem.Add(mlink)
 #  Create an Irrlicht application to visualize the system
 #
 
-myapplication = chronoirr.ChIrrApp(mysystem)
+myapplication = chronoirr.ChIrrApp(mysystem, 'PyChrono example', chronoirr.dimension2du(1024,768))
 
-myapplication.AddTypicalSky('../data/skybox/')
+myapplication.AddTypicalSky()
+myapplication.AddTypicalLogo()
 myapplication.AddTypicalCamera(chronoirr.vector3df(0.6,0.6,0.8))
 myapplication.AddTypicalLights()
 
@@ -103,7 +97,7 @@ myapplication.AssetUpdateAll();
 #
 
 
-myapplication.SetTimestep(0.001)
+myapplication.SetTimestep(0.005)
 
 
 while(myapplication.GetDevice().run()):

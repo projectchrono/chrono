@@ -1,134 +1,114 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHLOADERU_H
 #define CHLOADERU_H
 
-
-#include "physics/ChLoader.h"
-
+#include "chrono/physics/ChLoader.h"
 
 namespace chrono {
 
-
-
-
-/// Class of loaders for ChLoadableU objects (which support 
-/// line loads).
+/// Class of loaders for ChLoadableU objects (which support line loads).
 
 class ChLoaderU : public ChLoader {
-public:
+  public:
     typedef ChLoadableU type_loadable;
 
-    ChSharedPtr<ChLoadableU> loadable;
-      
-    ChLoaderU(ChSharedPtr<ChLoadableU> mloadable) : 
-          loadable(mloadable) {};
+    std::shared_ptr<ChLoadableU> loadable;
 
-            /// Children classes must provide this function that evaluates F = F(u)
-            /// This will be evaluated during ComputeQ() to perform integration over the domain.
-    virtual void ComputeF(const double U,             ///< parametric coordinate in line
-                          ChVectorDynamic<>& F,       ///< Result F vector here, size must be = n.field coords.of loadable
-                          ChVectorDynamic<>* state_x, ///< if != 0, update state (pos. part) to this, then evaluate F
-                          ChVectorDynamic<>* state_w  ///< if != 0, update state (speed part) to this, then evaluate F
+    ChLoaderU(std::shared_ptr<ChLoadableU> mloadable) : loadable(mloadable) {}
+    virtual ~ChLoaderU() {}
+
+    /// Children classes must provide this function that evaluates F = F(u)
+    /// This will be evaluated during ComputeQ() to perform integration over the domain.
+    virtual void ComputeF(const double U,        ///< parametric coordinate in line
+                          ChVectorDynamic<>& F,  ///< Result F vector here, size must be = n.field coords.of loadable
+                          ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate F
+                          ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate F
                           ) = 0;
 
-    void SetLoadable(ChSharedPtr<ChLoadableU>mloadable) {loadable = mloadable;}
-    virtual ChSharedPtr<ChLoadable> GetLoadable() {return loadable;}
-    ChSharedPtr<ChLoadableU> GetLoadableU() {return loadable;}
-
+    void SetLoadable(std::shared_ptr<ChLoadableU> mloadable) { loadable = mloadable; }
+    virtual std::shared_ptr<ChLoadable> GetLoadable() override { return loadable; }
+    std::shared_ptr<ChLoadableU> GetLoadableU() { return loadable; }
 };
 
-
-/// Class of loaders for ChLoadableU objects (which support 
-/// line loads), for loads of distributed type, so these loads
-/// will undergo Gauss quadrature to integrate them in the surface.
+/// Class of loaders for ChLoadableU objects (which support line loads), for loads of distributed type,
+/// so these loads will undergo Gauss quadrature to integrate them in the surface.
 
 class ChLoaderUdistributed : public ChLoaderU {
-public:
-    
-    ChLoaderUdistributed(ChSharedPtr<ChLoadableU> mloadable) : 
-          ChLoaderU(mloadable) {};
+  public:
+    ChLoaderUdistributed(std::shared_ptr<ChLoadableU> mloadable) : ChLoaderU(mloadable) {}
+    virtual ~ChLoaderUdistributed() {}
 
     virtual int GetIntegrationPointsU() = 0;
 
-            /// Computes Q = integral (N'*F*detJ du) 
-    virtual void ComputeQ( ChVectorDynamic<>* state_x, ///< if != 0, update state (pos. part) to this, then evaluate Q
-                           ChVectorDynamic<>* state_w  ///< if != 0, update state (speed part) to this, then evaluate Q
-                          ) {
+    /// Computes Q = integral (N'*F*detJ du)
+    virtual void ComputeQ(ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
+                          ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
+                          ) override {
         assert(GetIntegrationPointsU() <= ChQuadrature::GetStaticTables()->Lroots.size());
 
-        Q.Reset(loadable->LoadableGet_ndof_w());
+        Q.setZero(loadable->LoadableGet_ndof_w());
         ChVectorDynamic<> mF(loadable->Get_field_ncoords());
- 
-        std::vector<double>* Ulroots = &ChQuadrature::GetStaticTables()->Lroots[GetIntegrationPointsU()-1];
-        std::vector<double>* Uweight = &ChQuadrature::GetStaticTables()->Weight[GetIntegrationPointsU()-1];
+        mF.setZero();
 
-        ChVectorDynamic<> mNF (Q.GetRows());        // temporary value for loop
-        
+        const std::vector<double>& Ulroots = ChQuadrature::GetStaticTables()->Lroots[GetIntegrationPointsU() - 1];
+        const std::vector<double>& Uweight = ChQuadrature::GetStaticTables()->Weight[GetIntegrationPointsU() - 1];
+
+        ChVectorDynamic<> mNF(Q.size());  // temporary value for loop
+
         // Gauss quadrature :  Q = sum (N'*F*detJ * wi)
-        for (unsigned int iu = 0; iu < Ulroots->size(); iu++) {
-                    double detJ;
-                    // Compute F= F(u)
-                    this->ComputeF(Ulroots->at(iu),
-                                    mF, state_x, state_w);
-                    // Compute mNF= N(u)'*F
-                    loadable->ComputeNF(Ulroots->at(iu),
-                                        mNF, detJ, mF, state_x, state_w);
-                    // Compute Q+= mNF detJ * wi
-                    mNF *= (detJ * Uweight->at(iu) );
-                    Q += mNF;
+        for (unsigned int iu = 0; iu < Ulroots.size(); iu++) {
+            double detJ;
+            // Compute F= F(u)
+            this->ComputeF(Ulroots[iu], mF, state_x, state_w);
+            // Compute mNF= N(u)'*F
+            loadable->ComputeNF(Ulroots[iu], mNF, detJ, mF, state_x, state_w);
+            // Compute Q+= mNF detJ * wi
+            mNF *= (detJ * Uweight[iu]);
+            Q += mNF;
         }
     }
-
 };
 
-/// Class of loaders for ChLoadableU objects (which support 
-/// line loads) of atomic type, that is, with a concentrated load in a point Pu
+/// Class of loaders for ChLoadableU objects (which support line loads) of atomic type,
+/// that is, with a concentrated load in a point Pu.
 
 class ChLoaderUatomic : public ChLoaderU {
-public:
+  public:
     double Pu;
 
-    ChLoaderUatomic(ChSharedPtr<ChLoadableU> mloadable) : 
-          ChLoaderU(mloadable)
-         {};
+    ChLoaderUatomic(std::shared_ptr<ChLoadableU> mloadable) : ChLoaderU(mloadable), Pu(0) {}
 
-            /// Computes Q = N'*F
-    virtual void ComputeQ( ChVectorDynamic<>* state_x, ///< if != 0, update state (pos. part) to this, then evaluate Q
-                           ChVectorDynamic<>* state_w  ///< if != 0, update state (speed part) to this, then evaluate Q
-                          ) {
-        Q.Reset(loadable->LoadableGet_ndof_w());
+    /// Computes Q = N'*F
+    virtual void ComputeQ(ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
+                          ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
+                          ) override {
+        Q.setZero(loadable->LoadableGet_ndof_w());
         ChVectorDynamic<> mF(loadable->Get_field_ncoords());
- 
-        double detJ; // not used btw
-        
+        mF.setZero();
+
         // Compute F=F(u)
         this->ComputeF(Pu, mF, state_x, state_w);
-        
+
         // Compute N(u)'*F
+        double detJ;
         loadable->ComputeNF(Pu, Q, detJ, mF, state_x, state_w);
     }
 
-        /// Set the position, on the surface where the atomic load is applied
-    void SetApplication(double mu) {Pu=mu;}
+    /// Set the position, on the surface where the atomic load is applied
+    void SetApplication(double mu) { Pu = mu; }
 };
 
+}  // end namespace chrono
 
-
-
-
-
-
-}  // END_OF_NAMESPACE____
-
-#endif  
+#endif

@@ -107,12 +107,12 @@ namespace HACD
 		m_nMaxNodes = 0;
 		for(size_t k = 0; k < maxDepth; k++)
 		{
-			m_nMaxNodes += (1 << maxDepth);
+			m_nMaxNodes += ((size_t)1 << maxDepth);
 		}
 		m_nodes = new RMNode[m_nMaxNodes];
 		RMNode & root = m_nodes[AddNode()];
 		root.m_triIDs.Resize(nTriangles);
-		for(size_t t = 0; t < m_nTriangles; ++t) root.m_triIDs.PushBack(t);
+		for(size_t t = 0; t < m_nTriangles; ++t) root.m_triIDs.PushBack((long)t);
 		root.m_rm = this;
 		root.m_id = 0;
 		root.Create(0, maxDepth, minLeafSize, minAxisSize);
@@ -146,8 +146,8 @@ namespace HACD
 			m_leaf = true;
 			return;
 		}
-		m_idLeft  = m_rm->AddNode();
-		m_idRight = m_rm->AddNode();
+		m_idLeft  = (long)m_rm->AddNode();
+		m_idRight = (long)m_rm->AddNode();
 		RMNode & leftNode  = m_rm->m_nodes[m_idLeft];	
 		RMNode & rightNode = m_rm->m_nodes[m_idRight];
 		leftNode.m_id      = m_idLeft;

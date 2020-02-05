@@ -1,0 +1,47 @@
+{
+  "Name": "UAZ469",
+  "Type": "Vehicle",
+  "Template": "WheeledVehicle",
+
+  "Chassis": {
+    "Input File": "uaz/chassis/UAZ469_Chassis.json"
+  },
+
+  "Axles": [
+    {
+      "Suspension Input File": "uaz/suspension/UAZ469_FrontLeafspringAxle.json",
+      "Suspension Location": [ 0, 0, 0 ],
+      "Steering Index": 0,
+      "Left Wheel Input File": "uaz/wheel/UAZBUS_Wheel.json",
+      "Right Wheel Input File": "uaz/wheel/UAZBUS_Wheel.json",
+      "Left Brake Input File": "uaz/brake/UAZBUS_BrakeSimple_Front.json",
+      "Right Brake Input File": "uaz/brake/UAZBUS_BrakeSimple_Front.json"
+    },
+
+    {
+      "Suspension Input File": "uaz/suspension/UAZBUS_RearLeafspringAxle.json",
+      "Suspension Location": [ -2.38, 0, 0 ],
+      "Left Wheel Input File": "uaz/wheel/UAZBUS_Wheel.json",
+      "Right Wheel Input File": "uaz/wheel/UAZBUS_Wheel.json",
+      "Left Brake Input File": "uaz/brake/UAZBUS_BrakeSimple_Rear.json",
+      "Right Brake Input File": "uaz/brake/UAZBUS_BrakeSimple_Rear.json"
+    }
+  ],
+
+  "Steering Subsystems": [
+    {
+      "Input File": "uaz/steering/UAZ469_RotaryArm.json",
+      "Location": [ 0, 0, 0 ],
+      "Orientation": [ 1, 0, 0, 0 ]
+    }
+  ],
+
+  "Wheelbase": 2.3,
+  "Minimum Turning Radius": 5.8,
+  "Maximum Steering Angle": 27,
+
+  "Driveline": {
+    "Input File": "uaz/driveline/UAZBUS_Driveline2WD.json",
+    "Suspension Indexes": [ 1 ]
+  }
+}

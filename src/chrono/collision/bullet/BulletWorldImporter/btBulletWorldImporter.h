@@ -27,7 +27,9 @@ class btBulletFile;
 class btCollisionShape;
 class btCollisionObject;
 class btRigidBody;
-class btTypedConstraint;
+// This is never defined, but used as a pointer several times. 
+// This trivial implementation suppresses warnings.
+typedef struct btTypedConstraint {} btTypedConstraint;
 class btDynamicsWorld;
 struct ConstraintInput;
 class btRigidBodyColladaInfo;

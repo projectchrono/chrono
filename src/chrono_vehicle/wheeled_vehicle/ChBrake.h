@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -21,17 +21,9 @@
 
 #include <vector>
 
-#include "chrono/core/ChShared.h"
-#include "chrono/physics/ChLinkLock.h"
-
 #include "chrono_vehicle/ChApiVehicle.h"
-
-/**
-    @addtogroup vehicle_wheeled
-    @{
-        @defgroup vehicle_wheeled_brake Brake subsystem
-    @}
-*/
+#include "chrono_vehicle/ChPart.h"
+#include "chrono_vehicle/wheeled_vehicle/ChSuspension.h"
 
 namespace chrono {
 namespace vehicle {
@@ -40,26 +32,29 @@ namespace vehicle {
 /// @{
 
 /// Base class for a brake subsystem
-class CH_VEHICLE_API ChBrake : public ChShared {
+class CH_VEHICLE_API ChBrake : public ChPart {
   public:
-    ChBrake();
+    ChBrake(const std::string& name);
+
     virtual ~ChBrake() {}
 
-    /// Initialize the brake by providing the wheel's revolute link.
-    virtual void Initialize(ChSharedPtr<ChLinkLockRevolute> hub) = 0;
+    /// Initialize the brake by associating it to an existing suspension subsystem.
+    virtual void Initialize(std::shared_ptr<ChSuspension> suspension,  ///< associated suspension subsystem
+                            VehicleSide side                           ///< brake mounted on left/right side
+                            ) = 0;
 
     /// Update the brake subsystem: set the brake modulation.
     /// The input value is in the range [0,1].<br>
     ///   modulation = 0 indicates no braking<br>
     ///   modulation = 1 indicates that the subsystem should provide maximum braking torque
-    virtual void Update(double modulation) = 0;
+    virtual void Synchronize(double modulation) = 0;
 
     /// Get the current brake torque.
     virtual double GetBrakeTorque() = 0;
 };
 
 /// Vector of handles to brake subsystems.
-typedef std::vector<ChSharedPtr<ChBrake> > ChBrakeList;
+typedef std::vector<std::shared_ptr<ChBrake>> ChBrakeList;
 
 /// @} vehicle_wheeled_brake
 

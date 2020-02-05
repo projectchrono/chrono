@@ -1,57 +1,40 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChProbe.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include <math.h>
-
-#include "physics/ChProbe.h"
-#include "physics/ChGlobal.h"
-#include "physics/ChExternalObject.h"
+#include "chrono/core/ChGlobal.h"
+#include "chrono/physics/ChProbe.h"
 
 namespace chrono {
 
-/////////////////////////////////////////////////////////
-///
-///   CLASS
-///
-///
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChProbe)
 
-ChProbe::ChProbe() {
-    SetIdentifier(GetUniqueIntID());  // mark with unique ID
+void ChProbe::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChProbe>();
+
+    // serialize parent class
+    ChObj::ArchiveOUT(marchive);
 }
 
-ChProbe::~ChProbe() {
+/// Method to allow de serialization of transient data from archives.
+void ChProbe::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChProbe>();
+
+    // deserialize parent class
+    ChObj::ArchiveIN(marchive);
 }
 
-void ChProbe::Copy(ChProbe* source) {
-    // first copy the parent class data...
-    ChObj::Copy(source);
-
-    // copy other data..
-}
-
-void ChProbe::Record(double mtime) {
-}
-
-void ChProbe::Reset() {
-}
-
-}  // END_OF_NAMESPACE____
-
-////// end
+}  // end namespace chrono

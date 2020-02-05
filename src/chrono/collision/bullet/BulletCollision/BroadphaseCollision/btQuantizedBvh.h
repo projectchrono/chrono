@@ -79,7 +79,7 @@ ATTRIBUTE_ALIGNED16	(struct) btQuantizedBvhNode
 	{
 		btAssert(isLeafNode());
 		// Get only the lower bits where the triangle index is stored
-		return (m_escapeIndexOrTriangleIndex&~((~0)<<(31-MAX_NUM_PARTS_IN_BITS)));
+		return (m_escapeIndexOrTriangleIndex&~((~0u)<<(31-MAX_NUM_PARTS_IN_BITS)));
 	}
 	int	getPartId() const
 	{

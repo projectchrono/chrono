@@ -1,41 +1,26 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2011 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 #ifndef CHLOG_H
 #define CHLOG_H
 
-//////////////////////////////////////////////////
-//
-//   ChLog.h
-//
-//   Console output for debugging/logging purposes,
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
+#include <cassert>
 
-#include <assert.h>
-#include "ChStream.h"
-#include "ChApiCE.h"
-#include "serialization/ChArchiveAsciiDump.h"
+#include "chrono/core/ChStream.h"
+#include "chrono/core/ChApiCE.h"
 
 namespace chrono {
 
-//////////////////////////////////////////////////////////////////
-//  LOG
-//
 /// Base class for output of errors, messages, warnings, etc.
 /// (logging class). Must be specialized for specific output,
 /// for example output to console, to windows, etc. by inheriting
@@ -129,6 +114,6 @@ ChApi void SetLog(ChLog& new_logobject);
 /// Global function to set the default ChLogConsole output to std::output.
 ChApi void SetLogDefault();
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
-#endif  // END of header
+#endif

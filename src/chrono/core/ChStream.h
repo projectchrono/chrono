@@ -1,50 +1,34 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHSTREAM_H
 #define CHSTREAM_H
 
-//////////////////////////////////////////////////
-//
-//   ChStream.h
-//
-//   Class for stream input-output of Chrono objects.
-//   Defines some functions for ASCII parsing of the
-//   textual file format of Chrono.
-//   Defines binary in/out
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include <stdio.h>
-#include <string.h>
-#include <assert.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstring>
+#include <cassert>
+#include <cstdlib>
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <ios>
-#include "ChException.h"
-#include "core/ChApiCE.h"
-//#include "core/ChClassRegister.h"	///this didn't help the "create not found problem..."
+
+#include "chrono/core/ChException.h"
+#include "chrono/core/ChApiCE.h"
+
 namespace chrono {
 /// Ugly hack added by hammad to get code to compile on osx.
 /// Compiler had trouble finding the create function,
-/// adding #incldue to ChClassRegister made other things break in ChLog so I couldn't do that....
+/// adding include to ChClassRegister made other things break in ChLog so I couldn't do that....
 template <class T>
 void create(std::string cls_name, T** ppObj);
 
@@ -172,9 +156,7 @@ class ChApi ChStreamOutAscii : public ChStreamOut {
         if (strlen(mf) < 10)
             strcpy(number_format, mf);
     }
-    char* GetNumFormat() {
-        return number_format;
-    }
+    char* GetNumFormat() { return number_format; }
     /// Set the trailer symbol before each comment (example: "#" , or "//" etc.)
     void SetCommentTrailer(char* mt) {
         if (strlen(mt) < 10)
@@ -236,7 +218,7 @@ class ChApi ChStreamInAscii : public ChStreamIn {
 };
 
 /// Templated function for swapping bytes of objects of type 'T',
-/// in general fo rwhatever T type. This is used for cross-platform
+/// in general fo whatever T type. This is used for cross-platform
 /// compatibility when sharing objects between big-endian and little-endian
 /// memory models, depending on the microprocessor type.
 
@@ -277,8 +259,8 @@ class ChApi ChBinaryArchive {
 
     virtual ~ChBinaryArchive();
 
-    /// Returns TRUE if the machine where the code runs
-    /// has big endian byte ordering, returns FALSE otherwise.
+    /// Returns true if the machine where the code runs
+    /// has big endian byte ordering, returns false otherwise.
     bool IsBigEndianMachine();
 
     /// Reinitialize the vector of pointers to loaded/saved objects
@@ -288,7 +270,7 @@ class ChApi ChBinaryArchive {
         objects_pointers.push_back(NULL);
     }
     /// Put a pointer in pointer vector, but only if it
-    /// was not previously interted. Returns position of pointer
+    /// was not previously inserted. Returns position of pointer
     /// if already existing, otherwise -1.
     int PutPointer(void* object) {
         for (size_t i = 0; i < objects_pointers.size(); ++i) {
@@ -304,7 +286,7 @@ class ChApi ChBinaryArchive {
 
 ///
 /// This is a base class for all BINARY OUTPUT streams, in a way such
-/// that the stream is platform indepent (see the 'little endian' stuff
+/// that the stream is platform independent (see the 'little endian' stuff
 /// in 'floating point to persistent data' topics..)
 /// Defines some << operators from basic
 /// types, converting all them into calls to the Output() function.
@@ -352,7 +334,7 @@ class ChApi ChStreamOutBinary : public ChStreamOut, public ChBinaryArchive {
     /// Generic operator for binary streaming of generic objects.
     /// WARNING!!! raw byte streaming! If class 'T' contains double,
     /// int, long, etc, these may give problems when loading on another
-    /// platform which has big-endian ordering, if generated on a little-edian platform...
+    /// platform which has big-endian ordering, if generated on a little-endian platform...
     template <class T>
     void GenericBinaryOutput(T& ogg) {
         // from object to stream, all bytes of objects of 'T' type
@@ -373,10 +355,9 @@ class ChApi ChStreamOutBinary : public ChStreamOut, public ChBinaryArchive {
         int pos = PutPointer(pObj);
 
         if (pos == -1) {
-            pObj->GetRTTI()->GetName();
             // New Object, we have to full serialize it
-            std::string str = pObj->GetRTTI()->GetName();
-            *this << str;    // serialize class type
+            std::string str = pObj->FactoryNameTag();
+            *this << str;   // serialize class type
             *this < *pObj;  // serialize data
         } else {
             // Object already in list. Only store position
@@ -402,9 +383,8 @@ class ChApi ChStreamOutBinary : public ChStreamOut, public ChBinaryArchive {
         int pos = PutPointer(pObj);
 
         if (pos == -1) {
-            pObj->GetRTTI()->GetName();
             // New Object, we have to full serialize it
-            std::string str = pObj->GetRTTI()->GetName();
+            std::string str = pObj->FactoryNameTag();
             *this << str;               // serialize class type
             pObj->StreamOUTall(*this);  // serialize data
         } else {
@@ -424,7 +404,7 @@ class ChApi ChStreamOutBinary : public ChStreamOut, public ChBinaryArchive {
 
 ///
 /// This is a base class for all BINARY INPUT streams, in a way such
-/// that the stream is platform indepent (see the 'little endian' stuff
+/// that the stream is platform independent (see the 'little endian' stuff
 /// in 'floating point to persistent data' topics..)
 /// Defines some << operators from basic
 /// types, converting all them into calls to the Output() function.
@@ -470,7 +450,7 @@ class ChApi ChStreamInBinary : public ChStreamIn, public ChBinaryArchive {
     /// Generic operator for raw binary streaming of generic objects
     /// WARNING!!! raw byte streaming! If class 'T' contains double,
     /// int, long, etc, these may give problems when loading on another
-    /// platform which has big-endian ordering, if generated on a little-edian platform...
+    /// platform which has big-endian ordering, if generated on a little-endian platform...
     template <class T>
     void GenericBinaryInput(T& ogg) {
         // from stream to object, all bytes of objects of 'T' type
@@ -516,7 +496,7 @@ class ChApi ChStreamInBinary : public ChStreamIn, public ChBinaryArchive {
         return *mObj;
     }
 
-    /// Extract an object from the archive, and assignes the pointer to it.
+    /// Extract an object from the archive, and assigns the pointer to it.
     /// This function can be used to load objects whose class is not
     /// known in advance (anyway, assuming the class had been registered
     /// with Chrono class factory registration). It _creates_ the object
@@ -581,6 +561,10 @@ class ChApi ChStreamFile {
 
     /// Destruction means that the file stream is also closed.
     virtual ~ChStreamFile();
+
+    /// Synchronizes the associated stream buffer with its controlled output
+    /// sequence
+    virtual void Flush();
 
     /// Writes to file, up to n chars.
     /// If does not succeed, throws exception.
@@ -785,7 +769,6 @@ class ChApi ChStreamInAsciiVector : public ChStreamVectorWrapper, public ChStrea
     virtual void Input(char* data, size_t n) { ChStreamVectorWrapper::Read(data, n); }
 };
 
-
 ///
 /// This is a specialized class for BINARY output on system's file,
 ///
@@ -842,6 +825,6 @@ class ChApi ChStreamInAsciiFile : public ChStreamFile, public ChStreamInAscii {
     virtual void Input(char* data, size_t n) { ChStreamFile::Read(data, n); }
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

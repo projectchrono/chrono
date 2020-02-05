@@ -1,12 +1,13 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "core/ChFrameMoving.h"
+#include "chrono/core/ChFrameMoving.h"
 
 using namespace chrono;
 
 %}
- 
+
+
 /* Parse the header file to generate wrappers */
  %include "../chrono/core/ChFrameMoving.h"    
 

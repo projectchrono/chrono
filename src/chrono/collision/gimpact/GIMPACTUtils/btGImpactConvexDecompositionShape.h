@@ -25,7 +25,7 @@ subject to the following restrictions:
 #define GIMPACT_CONVEX_DECOMPOSITION_SHAPE_H
 
 
-#include "collision/gimpact/GIMPACT/Bullet/btGImpactShape.h" // box tree class
+#include "chrono/collision/gimpact/GIMPACT/Bullet/btGImpactShape.h" // box tree class
 
 
 

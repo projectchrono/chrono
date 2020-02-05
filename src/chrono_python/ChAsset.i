@@ -1,16 +1,15 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "assets/ChAsset.h"
+#include "chrono/assets/ChAsset.h"
 
 using namespace chrono;
 
 %}
  
+%shared_ptr(chrono::ChAsset)
+
 /* Parse the header file to generate wrappers */
- %include "../chrono/assets/ChAsset.h"    
+%include "../chrono/assets/ChAsset.h"    
 
-// Define also the shared pointer chrono::ChShared<ChAsset> 
-// (renamed as 'ChAssetShared' in python)
 
-%DefChSharedPtr(chrono::,ChAsset)

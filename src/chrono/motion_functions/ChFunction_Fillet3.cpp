@@ -1,50 +1,37 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2011 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChFunction_Fillet3.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "ChFunction_Fillet3.h"
-#include "core/ChLinearAlgebra.h"
+#include "chrono/motion_functions/ChFunction_Fillet3.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
-ChClassRegister<ChFunction_Fillet3> a_registration_fillet3;
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChFunction_Fillet3)
 
-void ChFunction_Fillet3::Copy(ChFunction_Fillet3* source) {
-    end = source->end;
-    y1 = source->y1;
-    y2 = source->y2;
-    dy1 = source->dy1;
-    dy2 = source->dy2;
-
-    SetupCoefficients();
+ChFunction_Fillet3::ChFunction_Fillet3(const ChFunction_Fillet3& other) {
+    end = other.end;
+    y1 = other.y1;
+    y2 = other.y2;
+    dy1 = other.dy1;
+    dy2 = other.dy2;
+    c1 = other.c1;
+    c2 = other.c2;
+    c3 = other.c3;
+    c4 = other.c4;
 }
 
-ChFunction* ChFunction_Fillet3::new_Duplicate() {
-    ChFunction_Fillet3* m_func;
-    m_func = new ChFunction_Fillet3;
-    m_func->Copy(this);
-    return (m_func);
-}
-
-double ChFunction_Fillet3::Get_y(double x) {
+double ChFunction_Fillet3::Get_y(double x) const {
     double ret = 0;
     if (x <= 0)
         return y1;
@@ -55,7 +42,7 @@ double ChFunction_Fillet3::Get_y(double x) {
     return ret;
 }
 
-double ChFunction_Fillet3::Get_y_dx(double x) {
+double ChFunction_Fillet3::Get_y_dx(double x) const {
     double ret = 0;
     if (x <= 0)
         return 0;
@@ -66,7 +53,7 @@ double ChFunction_Fillet3::Get_y_dx(double x) {
     return ret;
 }
 
-double ChFunction_Fillet3::Get_y_dxdx(double x) {
+double ChFunction_Fillet3::Get_y_dxdx(double x) const {
     double ret = 0;
     if (x <= 0)
         return 0;
@@ -77,7 +64,7 @@ double ChFunction_Fillet3::Get_y_dxdx(double x) {
     return ret;
 }
 
-int ChFunction_Fillet3::SetupCoefficients() {
+void ChFunction_Fillet3::SetupCoefficients() {
     ChMatrixDynamic<> ma(4, 4);
     ChMatrixDynamic<> mb(4, 1);
     ChMatrixDynamic<> mx(4, 1);
@@ -100,17 +87,39 @@ int ChFunction_Fillet3::SetupCoefficients() {
     ma(3, 1) = 2 * end;
     ma(3, 2) = 1.0;
 
-    ChLinearAlgebra::Solve_LinSys(ma, &mb, &mx);
+    mx = ma.colPivHouseholderQr().solve(mb);
 
     c1 = mx(0, 0);
     c2 = mx(1, 0);
     c3 = mx(2, 0);
     c4 = mx(3, 0);
-
-    return TRUE;
 }
 
+void ChFunction_Fillet3::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChFunction_Fillet3>();
+    // serialize parent class
+    ChFunction::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(end);
+    marchive << CHNVP(y1);
+    marchive << CHNVP(y2);
+    marchive << CHNVP(dy1);
+    marchive << CHNVP(dy2);
+}
 
-}  // END_OF_NAMESPACE____
+void ChFunction_Fillet3::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChFunction_Fillet3>();
+    // deserialize parent class
+    ChFunction::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(end);
+    marchive >> CHNVP(y1);
+    marchive >> CHNVP(y2);
+    marchive >> CHNVP(dy1);
+    marchive >> CHNVP(dy2);
+    SetupCoefficients();
+}
 
-// eof
+}  // end namespace chrono

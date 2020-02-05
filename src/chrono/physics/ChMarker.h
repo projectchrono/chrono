@@ -1,130 +1,88 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHMARKER_H
 #define CHMARKER_H
 
-//////////////////////////////////////////////////
-//
-//   ChMarker.h
-//
-//   "Marker" definition (an auxiliary frame, to be
-//   attached to rigid bodies).
-//   Each body needs markers to define links
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include <stdlib.h>
+#include <cstdlib>
 #include <iostream>
 
-#include "core/ChLog.h"
-#include "core/ChMath.h"
-#include "core/ChFrameMoving.h"
-
-#include "physics/ChFunction.h"
-#include "physics/ChObject.h"
+#include "chrono/core/ChFrameMoving.h"
+#include "chrono/core/ChLog.h"
+#include "chrono/core/ChMath.h"
+#include "chrono/motion_functions/ChFunction.h"
+#include "chrono/physics/ChObject.h"
 
 namespace chrono {
 
 // Forward reference
 class ChBody;
 
-#define CHCLASS_MARKER 5
-
-///
-/// Class for 'markers'.
-///
-///  Markers are auxiliary reference frames which belong to
-/// rigid bodies ChBody() , and move together with them.
-/// Most often, markers are used as references to build
+/// Markers are auxiliary reference frames which belong to rigid bodies and move
+/// together with them. Most often, markers are used as references to build
 /// ChLink() constraints between two rigid bodies.
-///  The ChMarker objects allow also to user-define a
-/// motion law of marker respect to parent ChBody, if
-/// needed to represent imposed trajectories etc.
+/// The ChMarker objects allow also to user-define a motion law of marker respect
+/// to parent ChBody, if needed to represent imposed trajectories etc.
 
 class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChMarker, ChObj);
-
-    //
-    // DATA
-    //
 
   public:
     enum eChMarkerMotion {
-        /// Uses it's own  x,y,z,angle ch functions (default)
-        M_MOTION_FUNCTIONS = 0,
-        /// The marker is moved via external functions, for examples
-        /// Real3d keyframing, so backward dirrerentiation will be used
-        /// to guess derivatives.
-        M_MOTION_KEYFRAMED = 1,
-        /// Someone (i.e. a constraint object) is moving the marker and
-        /// will also provide the correct derivatives.
-        M_MOTION_EXTERNAL = 2,
+        M_MOTION_FUNCTIONS = 0,  ///< marker uses its own x, y, z functions
+        M_MOTION_KEYFRAMED = 1,  ///< marker moved via external key frames (derivatives obtained with BDF)
+        M_MOTION_EXTERNAL = 2,   ///< marker moved via external functions (derivatives provided)
     };
-    CH_ENUM_MAPPER_BEGIN(eChMarkerMotion);
-      CH_ENUM_VAL(M_MOTION_FUNCTIONS);
-      CH_ENUM_VAL(M_MOTION_KEYFRAMED);
-      CH_ENUM_VAL(M_MOTION_EXTERNAL);
-    CH_ENUM_MAPPER_END(eChMarkerMotion);
 
   private:
-    /// The way the motion of this marker (if any) is handled.
-    eChMarkerMotion motion_type;
+    eChMarkerMotion motion_type;  ///< type of marker motion
 
-    ChFunction* motion_X;    // user imposed motion for X coord, body relative
-    ChFunction* motion_Y;    // user imposed motion for Y coord, body relative
-    ChFunction* motion_Z;    // user imposed motion for Z coord, body relative
-    ChFunction* motion_ang;  // user imposed angle rotation about axis
-    Vector motion_axis;      // this is the axis for the user imposed rotation
+    std::shared_ptr<ChFunction> motion_X;    ///< user imposed motion for X coord, body relative
+    std::shared_ptr<ChFunction> motion_Y;    ///< user imposed motion for Y coord, body relative
+    std::shared_ptr<ChFunction> motion_Z;    ///< user imposed motion for Z coord, body relative
+    std::shared_ptr<ChFunction> motion_ang;  ///< user imposed angle rotation about axis
+    Vector motion_axis;      ///< this is the axis for the user imposed rotation
 
-    ChBody* Body;  // points to parent body
+    ChBody* Body;  ///< points to parent body
 
-    Coordsys rest_coord;  // relative resting position for the
-                          // coordsys, for function=0.
+    Coordsys rest_coord;  ///< relative resting position for function=0.
 
-    Coordsys last_rel_coord;     // These values are set for each marker update, and are
-    Coordsys last_rel_coord_dt;  // used internally to guess if there's some external routine
-    double last_time;            // which moves the marker, so marker motion is guessed by BDF.
+    Coordsys last_rel_coord;     ///< These values are set for each marker update, and are
+    Coordsys last_rel_coord_dt;  ///< used internally to guess if there's some external routine
+    double last_time;            ///< which moves the marker, so marker motion is guessed by BDF.
 
-    // Auxiliary variables, computed after Updating functions..
+    /// Absolute position of frame (expressed in absolute coordinate system).
+    /// Computed at each Update() call; Useful for efficiency reasons.
+    ChFrameMoving<double> abs_frame;  ///< absolute frame position
 
-    /// Absolute position of frame (frame translation and rotation
-    /// expressed in absolute coordinate system).
-    /// This is computed at each Update() call. Useful for high
-    /// performance reasons.
-    ChFrameMoving<double> abs_frame;
+    CH_ENUM_MAPPER_BEGIN(eChMarkerMotion);
+    CH_ENUM_VAL(M_MOTION_FUNCTIONS);
+    CH_ENUM_VAL(M_MOTION_KEYFRAMED);
+    CH_ENUM_VAL(M_MOTION_EXTERNAL);
+    CH_ENUM_MAPPER_END(eChMarkerMotion);
 
   public:
-    //
-    // CONSTRUCTORS
-    //
-
     ChMarker();
-
-    ChMarker(char myname[], ChBody* myBody, Coordsys myrel_pos, Coordsys myrel_pos_dt, Coordsys myrel_pos_dtdt);
-
+    ChMarker(const std::string& name,
+             ChBody* body,
+             const ChCoordsys<>& rel_pos,
+             const ChCoordsys<>& rel_pos_dt,
+             const ChCoordsys<>& rel_pos_dtdt);
+    ChMarker(const ChMarker& other);
     ~ChMarker();
 
-    void Copy(ChMarker* source);
-
-    //
-    // FUNCTIONS
-    //
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChMarker* Clone() const override { return new ChMarker(*this); }
 
     /// Gets the address of the parent rigid body.
     ChBody* GetBody() const { return Body; }
@@ -165,7 +123,7 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
 
     /// Get reference to the inner 'absolute frame' auxiliary
     /// coordinates. This object (coordinates/speeds/accel. of marker
-    /// expressed in absolute coordinates) is useful for performace
+    /// expressed in absolute coordinates) is useful for performance
     /// reasons. Note! it is updated only after each Update() function.
     const ChFrameMoving<double>& GetAbsFrame() const { return abs_frame; }
 
@@ -207,46 +165,44 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
     //
 
     /// Set the imposed motion law, for translation on X body axis
-    void SetMotion_X(ChFunction* m_funct);
+    void SetMotion_X(std::shared_ptr<ChFunction> m_funct);
     /// Set the imposed motion law, for translation on Y body axis
-    void SetMotion_Y(ChFunction* m_funct);
+    void SetMotion_Y(std::shared_ptr<ChFunction> m_funct);
     /// Set the imposed motion law, for translation on Z body axis
-    void SetMotion_Z(ChFunction* m_funct);
+    void SetMotion_Z(std::shared_ptr<ChFunction> m_funct);
     /// Set the imposed motion law, for rotation about an axis
-    void SetMotion_ang(ChFunction* m_funct);
+    void SetMotion_ang(std::shared_ptr<ChFunction> m_funct);
     /// Set the axis of rotation, if rotation motion law is used.
     void SetMotion_axis(Vector m_axis);
 
     /// The imposed motion law, for translation on X body axis
-    ChFunction* GetMotion_X() { return motion_X; };
+    std::shared_ptr<ChFunction> GetMotion_X() const { return motion_X; }
     /// The imposed motion law, for translation on Y body axis
-    ChFunction* GetMotion_Y() { return motion_Y; };
+    std::shared_ptr<ChFunction> GetMotion_Y() const { return motion_Y; }
     /// The imposed motion law, for translation on Z body axis
-    ChFunction* GetMotion_Z() { return motion_Z; };
+    std::shared_ptr<ChFunction> GetMotion_Z() const { return motion_Z; }
     /// The imposed motion law, for rotation about an axis
-    ChFunction* GetMotion_ang() { return motion_ang; };
+    std::shared_ptr<ChFunction> GetMotion_ang() const { return motion_ang; }
     /// Get the axis of rotation, if rotation motion law is used.
-    Vector GetMotion_axis() { return motion_axis; };
+    Vector GetMotion_axis() const { return motion_axis; }
 
     /// Sets the way the motion of this marker (if any) is handled (see
     /// the eChMarkerMotion enum options).
-    void SetMotionType(eChMarkerMotion m_motion) { motion_type = m_motion; };
+    void SetMotionType(eChMarkerMotion m_motion) { motion_type = m_motion; }
 
     /// Gets the way the motion of this marker (if any) is handled (see
     /// the eChMarkerMotion enum options).
-    eChMarkerMotion GetMotionType() { return motion_type; }
+    eChMarkerMotion GetMotionType() const { return motion_type; }
 
     //
     // UPDATING
     //
 
-    /// Updates the time.dependant variables (ex: ChFunction objects
-    /// which impose the body-relative motion, etc.)
+    /// Updates the time.dependant variables (ex: ChFunction objects which impose the body-relative motion, etc.)
     void UpdateTime(double mytime);
 
-    /// Given current state, updates auxiliary variables (for example
-    /// the abs_frame data, containing the absolute pos/speed/acc of
-    /// the marker.
+    /// Given current state, updates auxiliary variables (for example the abs_frame data, containing the absolute
+    /// pos/speed/acc of the marker.
     void UpdateState();
 
     /// Both UpdateTime() and UpdateState() at once.
@@ -261,27 +217,25 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
     // UTILITIES
     //
 
-    Vector Point_World2Ref(Vector* mpoint);
-    Vector Point_Ref2World(Vector* mpoint);
-    Vector Dir_World2Ref(Vector* mpoint);
-    Vector Dir_Ref2World(Vector* mpoint);
-
-    //
-    // STREAMING
-    //
+    ChVector<> Point_World2Ref(const ChVector<>& point) const;
+    ChVector<> Point_Ref2World(const ChVector<>& point) const;
+    ChVector<> Dir_World2Ref(const ChVector<>& dir) const;
+    ChVector<> Dir_Ref2World(const ChVector<>& dir) const;
 
     //
     // SERIALIZATION
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
-
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-}  // END_OF_NAMESPACE____
+CH_CLASS_VERSION(ChMarker,0)
+
+
+}  // end namespace chrono
 
 #endif

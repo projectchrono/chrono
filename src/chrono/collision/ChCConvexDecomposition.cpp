@@ -1,30 +1,23 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2012 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
-//////////////////////////////////////////////////
-//
-//   ChCConvexDecomposition.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "collision/ChCConvexDecomposition.h"
-#include "collision/convexdecomposition/HACDv2/wavefront.h"
+#include "chrono/collision/ChCConvexDecomposition.h"
+#include "chrono/collision/convexdecomposition/HACDv2/wavefront.h"
 
 namespace chrono {
 namespace collision {
 
-////////////////////////////////////////////////////////////////////////////
 
 //
 // Utility functions to process bad topology in meshes with repeated vertices
@@ -51,9 +44,9 @@ void FuseMesh(std::vector<ChVector<double> >& vertexIN,
     vertexOUT.clear();
     triangleOUT.clear();
     for (unsigned int it = 0; it < triangleIN.size(); it++) {
-        unsigned int i1 = GetIndex(vertexIN[triangleIN[it].x], vertexOUT, tol);
-        unsigned int i2 = GetIndex(vertexIN[triangleIN[it].y], vertexOUT, tol);
-        unsigned int i3 = GetIndex(vertexIN[triangleIN[it].z], vertexOUT, tol);
+        unsigned int i1 = GetIndex(vertexIN[triangleIN[it].x()], vertexOUT, tol);
+        unsigned int i2 = GetIndex(vertexIN[triangleIN[it].y()], vertexOUT, tol);
+        unsigned int i3 = GetIndex(vertexIN[triangleIN[it].z()], vertexOUT, tol);
 
         ChVector<int> merged_triangle(i1, i2, i3);
 
@@ -95,7 +88,7 @@ bool ChConvexDecomposition::WriteConvexHullsAsChullsFile(ChStreamOutAscii& mstre
 
         mstream << "hull\n";
         for (unsigned int i = 0; i < aconvexhull.size(); i++) {
-            mstream << aconvexhull[i].x << " " << aconvexhull[i].y << " " << aconvexhull[i].z << "\n";
+            mstream << aconvexhull[i].x() << " " << aconvexhull[i].y() << " " << aconvexhull[i].z() << "\n";
         }
     }
     return true;
@@ -131,9 +124,9 @@ void ChConvexDecompositionHACD::Reset(void) {
 
 bool ChConvexDecompositionHACD::AddTriangle(const ChVector<>& v1, const ChVector<>& v2, const ChVector<>& v3) {
     long lastpoint = (long)this->points.size();
-    HACD::Vec3<HACD::Real> vertex1(v1.x, v1.y, v1.z);
-    HACD::Vec3<HACD::Real> vertex2(v2.x, v2.y, v2.z);
-    HACD::Vec3<HACD::Real> vertex3(v3.x, v3.y, v3.z);
+    HACD::Vec3<HACD::Real> vertex1(v1.x(), v1.y(), v1.z());
+    HACD::Vec3<HACD::Real> vertex2(v2.x(), v2.y(), v2.z());
+    HACD::Vec3<HACD::Real> vertex3(v3.x(), v3.y(), v3.z());
     this->points.push_back(vertex1);
     this->points.push_back(vertex2);
     this->points.push_back(vertex3);
@@ -322,17 +315,17 @@ void ChConvexDecompositionJR::Reset(void) {
 
 bool ChConvexDecompositionJR::AddTriangle(const ChVector<>& v1, const ChVector<>& v2, const ChVector<>& v3) {
     NxF32 p1[3];
-    p1[0] = (float)v1.x;
-    p1[1] = (float)v1.y;
-    p1[2] = (float)v1.z;
+    p1[0] = (float)v1.x();
+    p1[1] = (float)v1.y();
+    p1[2] = (float)v1.z();
     NxF32 p2[3];
-    p2[0] = (float)v2.x;
-    p2[1] = (float)v2.y;
-    p2[2] = (float)v2.z;
+    p2[0] = (float)v2.x();
+    p2[1] = (float)v2.y();
+    p2[2] = (float)v2.z();
     NxF32 p3[3];
-    p3[0] = (float)v3.x;
-    p3[1] = (float)v3.y;
-    p3[2] = (float)v3.z;
+    p3[0] = (float)v3.x();
+    p3[1] = (float)v3.y();
+    p3[2] = (float)v3.z();
     return this->mydecomposition->addTriangle(p1, p2, p3);
 }
 
@@ -476,9 +469,9 @@ void ChConvexDecompositionHACDv2::Reset(void) {
 
 bool ChConvexDecompositionHACDv2::AddTriangle(const ChVector<>& v1, const ChVector<>& v2, const ChVector<>& v3) {
     int lastpoint = (int)this->points.size();
-    ChVector<double> vertex1(v1.x, v1.y, v1.z);
-    ChVector<double> vertex2(v2.x, v2.y, v2.z);
-    ChVector<double> vertex3(v3.x, v3.y, v3.z);
+    ChVector<double> vertex1(v1.x(), v1.y(), v1.z());
+    ChVector<double> vertex2(v2.x(), v2.y(), v2.z());
+    ChVector<double> vertex3(v3.x(), v3.y(), v3.z());
     this->points.push_back(vertex1);
     this->points.push_back(vertex2);
     this->points.push_back(vertex3);
@@ -537,14 +530,14 @@ int ChConvexDecompositionHACDv2::ComputeConvexDecomposition() {
     this->descriptor.mIndices = new hacd::HaU32[3 * this->descriptor.mTriangleCount];
     this->descriptor.mVertices = new hacd::HaF32[3 * this->descriptor.mVertexCount];
     for (unsigned int mv = 0; mv < points_FUSED.size(); mv++) {
-        ((hacd::HaF32*)descriptor.mVertices)[mv * 3 + 0] = (float)points_FUSED[mv].x;
-        ((hacd::HaF32*)descriptor.mVertices)[mv * 3 + 1] = (float)points_FUSED[mv].y;
-        ((hacd::HaF32*)descriptor.mVertices)[mv * 3 + 2] = (float)points_FUSED[mv].z;
+        ((hacd::HaF32*)descriptor.mVertices)[mv * 3 + 0] = (float)points_FUSED[mv].x();
+        ((hacd::HaF32*)descriptor.mVertices)[mv * 3 + 1] = (float)points_FUSED[mv].y();
+        ((hacd::HaF32*)descriptor.mVertices)[mv * 3 + 2] = (float)points_FUSED[mv].z();
     }
     for (unsigned int mt = 0; mt < triangles_FUSED.size(); mt++) {
-        ((hacd::HaU32*)descriptor.mIndices)[mt * 3 + 0] = triangles_FUSED[mt].x;
-        ((hacd::HaU32*)descriptor.mIndices)[mt * 3 + 1] = triangles_FUSED[mt].y;
-        ((hacd::HaU32*)descriptor.mIndices)[mt * 3 + 2] = triangles_FUSED[mt].z;
+        ((hacd::HaU32*)descriptor.mIndices)[mt * 3 + 0] = triangles_FUSED[mt].x();
+        ((hacd::HaU32*)descriptor.mIndices)[mt * 3 + 1] = triangles_FUSED[mt].y();
+        ((hacd::HaU32*)descriptor.mIndices)[mt * 3 + 2] = triangles_FUSED[mt].z();
     }
 
     MyCallback callback;
@@ -644,8 +637,5 @@ void ChConvexDecompositionHACDv2::WriteConvexHullsAsWavefrontObj(ChStreamOutAsci
     delete[] baseVertex;
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////
-
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono

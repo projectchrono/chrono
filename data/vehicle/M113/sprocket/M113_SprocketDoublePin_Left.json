@@ -1,0 +1,38 @@
+{
+  "Name":                           "M113 DoublePin Sprocket Left",
+  "Type":                           "Sprocket",
+  "Template":                       "SprocketDoublePin",
+
+  "Number Teeth":                   10,
+  "Gear Mass":                      27.68,
+  "Gear Inertia":                   [0.646, 0.883, 0.646],
+  "Axle Inertia":                   0.02,
+  "Gear Separation":                0.278,
+
+  "Profile":
+  {
+      "Addenum Radius":             0.2715,
+      "Arc Radius":                 0.0223,
+      "Assembly Radius":            0.242,
+      "Arc Center Height":          0.2371,
+      "Arc Center Offset":          0.0464
+  },
+
+  "Contact Material":
+  {
+      "Coefficient of Friction":    0.4,
+      "Coefficient of Restitution": 0.1,
+
+      "Properties": {
+          "Young Modulus":          1e7,
+          "Poisson Ratio":          0.3
+      },
+
+      "Coefficients": {
+          "Normal Stiffness":       2e5,
+          "Normal Damping":         40.0,
+          "Tangential Stiffness":   2e5,
+          "Tangential Damping":     20.0
+      }
+  }
+}

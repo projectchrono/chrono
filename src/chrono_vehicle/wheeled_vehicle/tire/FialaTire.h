@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2015 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -22,7 +22,7 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChFialaTire.h"
 
-#include "thirdparty/rapidjson/document.h"
+#include "chrono_thirdparty/rapidjson/document.h"
 
 namespace chrono {
 namespace vehicle {
@@ -37,18 +37,39 @@ class CH_VEHICLE_API FialaTire : public ChFialaTire {
     FialaTire(const rapidjson::Document& d);
     ~FialaTire();
 
-    virtual double getNormalStiffnessForce(double depth) const override { return m_normalStiffness * depth; }
-    virtual double getNormalDampingForce(double depth, double velocity) const override {
-        return m_normalDamping * velocity;
-    }
+    virtual double GetNormalStiffnessForce(double depth) const override;
+    virtual double GetNormalDampingForce(double depth, double velocity) const override;
 
     virtual void SetFialaParams() override {}
+    virtual double GetMass() const override { return m_mass; }
+    virtual ChVector<> GetInertia() const override { return m_inertia; }
+
+    virtual double GetVisualizationWidth() const override { return m_visualization_width; }
+
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+    virtual void RemoveVisualizationAssets() override final;
 
   private:
-    void Create(const rapidjson::Document& d);
+    virtual void Create(const rapidjson::Document& d) override;
+
+    bool m_has_vert_table;
+    ChFunction_Recorder m_vert_map;
+    double m_max_depth;
+    double m_max_val;
+    double m_slope;
 
     double m_normalStiffness;
     double m_normalDamping;
+
+    double m_mass;
+    ChVector<> m_inertia;
+
+    bool m_has_mesh;
+    std::string m_meshFile_left;
+    std::string m_meshFile_right;
+    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
+
+    double m_visualization_width;
 };
 
 /// @} vehicle_wheeled_tire

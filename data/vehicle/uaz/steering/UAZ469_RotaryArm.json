@@ -1,0 +1,18 @@
+{
+  "Name":                       "UAZBUS Rotary-Arm Steering",
+  "Type":                       "Steering",
+  "Template":                   "RotaryArm",
+
+  "Pitman Arm":
+  {
+    "Mass":                     5.0,
+    "Inertia":                  [0.00638, 0.00756, 0.00150],
+    "Inertia Products":         [0, 0, 0],
+    "Radius":                   0.03,
+    "Axis of Rotation":         [-1, 0, 0],          // arm-chassis revolute joint
+    "Point of Rotation":        [0.2, 0.5325, 0.4],  // location of chassis connection
+    "Point to Draglink":        [0.2, 0.5325, 0.2],  // location of draglink connection
+    "Maximum Angle Degrees":    12.5
+  }
+  
+}

@@ -1,8 +1,8 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// Copyright (c) 2016 projectchrono.org
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -13,95 +13,97 @@
 // =============================================================================
 //
 // Description: Parallel timer class that uses a map to query and add timers
+//
 // =============================================================================
 
 #pragma once
 
 #include <map>
+#include <iostream>
+#include <string>
 
-#include "core/ChTimer.h"
+#include "chrono/core/ChTimer.h"
 
 #include "chrono_parallel/ChParallelDefines.h"
-#include "chrono_parallel/ChDataManager.h"
 #include "chrono_parallel/math/ChParallelMath.h"
-#include "chrono_parallel/math/ChThrustLinearAlgebra.h"
 
 namespace chrono {
 
+/// @addtogroup parallel_module
+/// @{
+
 struct TimerData {
-  TimerData():runs(0) {}
+    TimerData() : runs(0) {}
 
-  void Reset() {
-    runs = 0;
-    timer.reset();
-  }
+    void Reset() {
+        runs = 0;
+        timer.reset();
+    }
 
-  double GetSec() { return timer(); }
-  double GetMsec() { return timer() * 1000.0; }
+    double GetSec() { return timer(); }
+    double GetMsec() { return timer() * 1000.0; }
 
-  void start() {
-    runs++;
-    timer.start();
-  }
-  void stop() { timer.stop(); }
+    void start() {
+        runs++;
+        timer.start();
+    }
+    void stop() { timer.stop(); }
 
-  ChTimer<double> timer;
-  int runs;
+    ChTimer<double> timer;
+    int runs;
 };
 
 class CH_PARALLEL_API ChTimerParallel {
- public:
-  ChTimerParallel():total_timers(0), total_time(0) {
+  public:
+    ChTimerParallel() : total_timers(0) {}
+    ~ChTimerParallel() {}
 
-  }
-  ~ChTimerParallel() {}
-
-  void AddTimer(std::string name) {
-    TimerData temp;
-    timer_list[name] = temp;
-    total_timers++;
-  }
-
-  void Reset() {
-    for (std::map<std::string, TimerData>::iterator it = timer_list.begin(); it != timer_list.end(); it++) {
-      it->second.Reset();
+    void AddTimer(const std::string& name) {
+        TimerData temp;
+        timer_list[name] = temp;
+        total_timers++;
     }
-  }
 
-  void start(std::string name) { timer_list[name].start(); }
-
-  void stop(std::string name) { timer_list[name].stop(); }
-
-  // Returns the time associated with a specific timer
-  double GetTime(std::string name) {
-    if (timer_list.count(name) == 0) {
-      return 0;
+    void Reset() {
+        for (auto& timer : timer_list) {
+            timer.second.Reset();
+        }
     }
-    return timer_list[name].timer();
-  }
 
-  // Returns the number of times a specific timer was called
-  int GetRuns(std::string name) {
-    if (timer_list.count(name) == 0) {
-      return 0;
-    }
-    return timer_list[name].runs;
-  }
-  void PrintReport() {
-    total_time=0;
-    std::cout << "Timer Report:" << std::endl;
-    std::cout << "------------" << std::endl;
-    for (std::map<std::string, TimerData>::iterator it = timer_list.begin(); it != timer_list.end(); it++) {
-      std::cout << "Name:\t" << it->first << "\t" << it->second.timer();
-      std::cout << std::endl;
-      total_time += it->second.timer();
-    }
-    std::cout << "------------" << std::endl;
-  }
+    void start(const std::string& name) { timer_list.at(name).start(); }
 
-  double total_time;
-  int total_timers;
-  std::map<std::string, TimerData> timer_list;
-  std::map<std::string, TimerData>::iterator it;
+    void stop(const std::string& name) { timer_list.at(name).stop(); }
+
+    // Returns the time associated with a specific timer
+    double GetTime(const std::string& name) const {
+        if (timer_list.count(name) == 0) {
+            return 0;
+        }
+        return timer_list.at(name).timer();
+    }
+
+    // Returns the number of times a specific timer was called
+    int GetRuns(const std::string& name) const {
+        if (timer_list.count(name) == 0) {
+            return 0;
+        }
+        return timer_list.at(name).runs;
+    }
+
+    void PrintReport() const {
+        std::cout << "Timer Report:" << std::endl;
+        std::cout << "------------" << std::endl;
+        for (auto& timer : timer_list) {
+            std::cout << "Name:\t" << timer.first << "\t" << timer.second.timer() << "\n";
+        }
+        std::cout << "------------" << std::endl;
+    }
+
+    int total_timers;
+    std::map<std::string, TimerData> timer_list;
+    std::map<std::string, TimerData>::iterator it;
 };
-}
+
+/// @} parallel_module
+
+} // end namespace chrono

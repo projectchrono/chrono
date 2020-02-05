@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -12,17 +12,10 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Utility classes implementing PID steering controllers. The base class
-// implements the basic functionality to control the error between the location
-// of a sentinel point (a point at a look-ahead distance in front of the vehicle)
-// and the current target point.
-// Derived classes differ in how they specify the target point.  This can be the
-// closest point to the sentinel point on a pre-defined curve path (currently
-// using a ChBezierCurve) or from some other external sources (e.g. interfacing
-// with a camera sensor).
+// Utility classes implementing PID speed controllers.
 //
 // An object of this type can be used within a Chrono::Vehicle driver model to
-// provide the steering output.
+// provide the throttle/braking outputs.
 //
 // =============================================================================
 
@@ -31,9 +24,7 @@
 #include "chrono/core/ChMathematics.h"
 
 #include "chrono_vehicle/utils/ChSpeedController.h"
-
-#include "thirdparty/rapidjson/document.h"
-#include "thirdparty/rapidjson/filereadstream.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 using namespace rapidjson;
 
@@ -50,15 +41,9 @@ ChSpeedController::ChSpeedController() : m_speed(0), m_err(0), m_erri(0), m_errd
 
 ChSpeedController::ChSpeedController(const std::string& filename)
     : m_speed(0), m_err(0), m_erri(0), m_errd(0), m_collect(false), m_csv(NULL) {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     m_Kp = d["Gains"]["Kp"].GetDouble();
     m_Ki = d["Gains"]["Ki"].GetDouble();

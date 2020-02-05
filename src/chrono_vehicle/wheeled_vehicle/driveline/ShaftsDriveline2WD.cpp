@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -18,8 +18,7 @@
 // =============================================================================
 
 #include "chrono_vehicle/wheeled_vehicle/driveline/ShaftsDriveline2WD.h"
-
-#include "thirdparty/rapidjson/filereadstream.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 using namespace rapidjson;
 
@@ -27,47 +26,29 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// This utility function returns a ChVector from the specified JSON array
 // -----------------------------------------------------------------------------
-static ChVector<> loadVector(const Value& a) {
-    assert(a.IsArray());
-    assert(a.Size() == 3);
-
-    return ChVector<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-ShaftsDriveline2WD::ShaftsDriveline2WD(const std::string& filename) : ChShaftsDriveline2WD() {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream(is);
+ShaftsDriveline2WD::ShaftsDriveline2WD(const std::string& filename) : ChShaftsDriveline2WD("") {
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     Create(d);
 
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-ShaftsDriveline2WD::ShaftsDriveline2WD(const rapidjson::Document& d) : ChShaftsDriveline2WD() {
+ShaftsDriveline2WD::ShaftsDriveline2WD(const rapidjson::Document& d) : ChShaftsDriveline2WD("") {
     Create(d);
 }
 
 void ShaftsDriveline2WD::Create(const rapidjson::Document& d) {
-    // Read top-level data.
-    assert(d.HasMember("Type"));
-    assert(d.HasMember("Template"));
-    assert(d.HasMember("Name"));
+    // Invoke base class method.
+    ChPart::Create(d);
 
     // Get shaft directions.
     assert(d.HasMember("Shaft Direction"));
-    SetMotorBlockDirection(loadVector(d["Shaft Direction"]["Motor Block"]));
-    SetAxleDirection(loadVector(d["Shaft Direction"]["Axle"]));
+    SetMotorBlockDirection(ReadVectorJSON(d["Shaft Direction"]["Motor Block"]));
+    SetAxleDirection(ReadVectorJSON(d["Shaft Direction"]["Axle"]));
 
     // Read shaft inertias.
     assert(d.HasMember("Shaft Inertia"));
@@ -78,6 +59,11 @@ void ShaftsDriveline2WD::Create(const rapidjson::Document& d) {
     assert(d.HasMember("Gear Ratio"));
     m_conicalgear_ratio = d["Gear Ratio"]["Conical Gear"].GetDouble();
     m_differential_ratio = d["Gear Ratio"]["Differential"].GetDouble();
+
+    m_axle_differential_locking_limit = 100;
+    if (d.HasMember("Axle Differential Locking Limit")) {
+        m_axle_differential_locking_limit = d["Axle Differential Locking Limit"].GetDouble();
+    }
 }
 
 }  // end namespace vehicle

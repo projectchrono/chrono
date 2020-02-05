@@ -1,31 +1,28 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2012 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #ifndef CHCOLOR_H
 #define CHCOLOR_H
 
-#include "core/ChStream.h"
-#include "core/ChRunTimeType.h"
-#include "serialization/ChArchive.h"
-
-
+#include "chrono/core/ChClassFactory.h"
+#include "chrono/core/ChStream.h"
+#include "chrono/serialization/ChArchive.h"
 
 namespace chrono {
 
 /// Class for setting a color (used by ChVisualization)
-
 class ChApi ChColor {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI_ROOT(ChColor);
-
   public:
     float R;  /// red channel (0,1)
     float G;  /// green channel (0,1)
@@ -48,39 +45,20 @@ class ChApi ChColor {
         return *this;
     }
 
+    /// Compute a false color from a scalar value. Uses a cold-to-hot colormap.
+    /// The 'v' scalar value is mapped in the vmin-vmax range.
+    /// If out_of_range_as_bw option is true, when v>vmax the color is white and for v<vmin the color is black.
+    static ChColor ComputeFalseColor(double v, double vmin, double vmax, bool out_of_range_as_bw = false);
 
-    //
-    // SERIALIZATION
-    //
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite(1);
-
-        // serialize all member data:
-        marchive << CHNVP(R);
-        marchive << CHNVP(G);
-        marchive << CHNVP(B);
-        marchive << CHNVP(A);
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead();
-
-        // stream in all member data:
-        marchive >> CHNVP(R);
-        marchive >> CHNVP(G);
-        marchive >> CHNVP(B);
-        marchive >> CHNVP(A);
-    }
-
-
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
-}  // END_OF_NAMESPACE____
+CH_CLASS_VERSION(ChColor, 0)
+
+}  // end namespace chrono
 
 #endif

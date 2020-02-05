@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -35,12 +35,14 @@
 // =============================================================================
 
 #include <algorithm>
+#include <fstream>
 #include <iostream>
 #include <sstream>
-#include <fstream>
 
 #include "chrono/core/ChBezierCurve.h"
+
 #include "chrono/core/ChMathematics.h"
+#include "chrono/core/ChMatrix.h"
 
 namespace chrono {
 
@@ -96,39 +98,50 @@ ChBezierCurve::ChBezierCurve(const std::vector<ChVector<> >& points) : m_points(
 
     // X coordinates.
     for (size_t i = 1; i < n - 1; ++i)
-        rhs[i] = 4 * points[i].x + 2 * points[i + 1].x;
-    rhs[0] = points[0].x + 2 * points[1].x;
-    rhs[n - 1] = (8 * points[n - 1].x + points[n].x) / 2;
+        rhs[i] = 4 * points[i].x() + 2 * points[i + 1].x();
+    rhs[0] = points[0].x() + 2 * points[1].x();
+    rhs[n - 1] = (8 * points[n - 1].x() + points[n].x()) / 2;
     solveTriDiag(n, rhs, x);
 
     // Y coordinates.
     for (size_t i = 1; i < n - 1; ++i)
-        rhs[i] = 4 * points[i].y + 2 * points[i + 1].y;
-    rhs[0] = points[0].y + 2 * points[1].y;
-    rhs[n - 1] = (8 * points[n - 1].y + points[n].y) / 2;
+        rhs[i] = 4 * points[i].y() + 2 * points[i + 1].y();
+    rhs[0] = points[0].y() + 2 * points[1].y();
+    rhs[n - 1] = (8 * points[n - 1].y() + points[n].y()) / 2;
     solveTriDiag(n, rhs, y);
 
     // Z coordinates.
     for (size_t i = 1; i < n - 1; ++i)
-        rhs[i] = 4 * points[i].z + 2 * points[i + 1].z;
-    rhs[0] = points[0].z + 2 * points[1].z;
-    rhs[n - 1] = (8 * points[n - 1].z + points[n].z) / 2;
+        rhs[i] = 4 * points[i].z() + 2 * points[i + 1].z();
+    rhs[0] = points[0].z() + 2 * points[1].z();
+    rhs[n - 1] = (8 * points[n - 1].z() + points[n].z()) / 2;
     solveTriDiag(n, rhs, z);
 
     // Set control points outCV and inCV.
     for (size_t i = 0; i < n - 1; i++) {
         m_outCV[i] = ChVector<>(x[i], y[i], z[i]);
         m_inCV[i + 1] =
-            ChVector<>(2 * points[i + 1].x - x[i + 1], 2 * points[i + 1].y - y[i + 1], 2 * points[i + 1].z - z[i + 1]);
+            ChVector<>(2 * points[i + 1].x() - x[i + 1], 2 * points[i + 1].y() - y[i + 1], 2 * points[i + 1].z() - z[i + 1]);
     }
     m_outCV[n - 1] = ChVector<>(x[n - 1], y[n - 1], z[n - 1]);
-    m_inCV[n] = ChVector<>((points[n].x + x[n - 1]) / 2, (points[n].y + y[n - 1]) / 2, (points[n].z + z[n - 1]) / 2);
+    m_inCV[n] = ChVector<>((points[n].x() + x[n - 1]) / 2, (points[n].y() + y[n - 1]) / 2, (points[n].z() + z[n - 1]) / 2);
 
     // Cleanup.
     delete[] rhs;
     delete[] x;
     delete[] y;
     delete[] z;
+}
+
+void ChBezierCurve::setPoints(const std::vector<ChVector<> >& points,
+                              const std::vector<ChVector<> >& inCV,
+                              const std::vector<ChVector<> >& outCV) {
+    assert(points.size() > 1);
+    assert(points.size() == inCV.size());
+    assert(points.size() == outCV.size());
+    m_points = points;
+    m_inCV = inCV;
+    m_outCV = outCV;
 }
 
 // Utility function for solving the tridiagonal system for one of the
@@ -169,7 +182,7 @@ void ChBezierCurve::solveTriDiag(size_t n, double* rhs, double* x) {
 // returned curve is a general Bezier curve using the specified knots and
 // control polygons.
 // -----------------------------------------------------------------------------
-ChBezierCurve* ChBezierCurve::read(const std::string& filename) {
+std::shared_ptr<ChBezierCurve> ChBezierCurve::read(const std::string& filename) {
     // Open input file stream
     std::ifstream ifile;
     std::string line;
@@ -203,7 +216,7 @@ ChBezierCurve* ChBezierCurve::read(const std::string& filename) {
         }
 
         ifile.close();
-        return new ChBezierCurve(points);
+        return std::shared_ptr<ChBezierCurve>(new ChBezierCurve(points));
     }
 
     if (numCols == 9) {
@@ -227,7 +240,7 @@ ChBezierCurve* ChBezierCurve::read(const std::string& filename) {
         }
 
         ifile.close();
-        return new ChBezierCurve(points, inCV, outCV);
+        return std::shared_ptr<ChBezierCurve>(new ChBezierCurve(points, inCV, outCV));
     }
 
     // Not the expected number of columns.  Close the file and throw an exception.
@@ -250,11 +263,11 @@ void ChBezierCurve::write(const std::string& filename) {
     size_t numPoints = m_points.size();
     ofile << numPoints << "  9\n";
 
-    // Write points and control polygone vertices
+    // Write points and control polygon vertices
     for (size_t i = 0; i < numPoints; i++) {
-        ofile << m_points[i].x << "  " << m_points[i].y << "  " << m_points[i].z << "     ";
-        ofile << m_inCV[i].x << "  " << m_inCV[i].y << "  " << m_inCV[i].z << "     ";
-        ofile << m_outCV[i].x << "  " << m_outCV[i].y << "  " << m_outCV[i].z << "\n";
+        ofile << m_points[i].x() << "  " << m_points[i].y() << "  " << m_points[i].z() << "     ";
+        ofile << m_inCV[i].x() << "  " << m_inCV[i].y() << "  " << m_inCV[i].z() << "     ";
+        ofile << m_outCV[i].x() << "  " << m_outCV[i].y() << "  " << m_outCV[i].z() << "\n";
     }
 
     ofile.close();
@@ -312,6 +325,23 @@ ChVector<> ChBezierCurve::evalDD(size_t i, double t) const {
     double B3 = 6 * t;
 
     return B0 * m_points[i] + B1 * m_outCV[i] + B2 * m_inCV[i + 1] + B3 * m_points[i + 1];
+}
+
+// -----------------------------------------------------------------------------
+// ChBezierCurve::eval()
+//
+// This function evaluates the value of this Bezier curve at the specified value.
+// A value t=0 returns the first point of the Bezier curve.
+// A value t=1 returns the last point of the Bezier curve.
+// -----------------------------------------------------------------------------
+ChVector<> ChBezierCurve::eval(double t) const {
+    double par = ChClamp(t, 0.0, 1.0);
+    size_t numIntervals = getNumPoints() - 1;
+    double epar = par * numIntervals;
+    size_t i = static_cast<size_t>(std::floor(par * numIntervals));
+    ChClampValue(i, size_t(0), numIntervals - 1);
+
+    return eval(i, epar - (double)i);
 }
 
 // -----------------------------------------------------------------------------
@@ -373,6 +403,38 @@ ChVector<> ChBezierCurve::calcClosestPoint(const ChVector<>& loc, size_t i, doub
 }
 
 // -----------------------------------------------------------------------------
+
+void ChBezierCurve::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite<ChBezierCurve>();
+
+    // serialize all member data:
+    marchive << CHNVP(m_points);
+    marchive << CHNVP(m_inCV);
+    marchive << CHNVP(m_outCV);
+    marchive << CHNVP(m_maxNumIters);
+    marchive << CHNVP(m_sqrDistTol);
+    marchive << CHNVP(m_cosAngleTol);
+    marchive << CHNVP(m_paramTol);
+}
+
+void ChBezierCurve::ArchiveIN(ChArchiveIn& marchive)
+{
+    // version number
+    int version = marchive.VersionRead<ChBezierCurve>();
+
+    // stream in all member data:
+    marchive >> CHNVP(m_points);
+    marchive >> CHNVP(m_inCV);
+    marchive >> CHNVP(m_outCV);
+    marchive >> CHNVP(m_maxNumIters);
+    marchive >> CHNVP(m_sqrDistTol);
+    marchive >> CHNVP(m_cosAngleTol);
+    marchive >> CHNVP(m_paramTol);
+}
+
+// -----------------------------------------------------------------------------
 // ChBezierCurveTracker::reset()
 //
 // This function reinitializes the pathTracker at the specified location. It
@@ -418,7 +480,7 @@ void ChBezierCurveTracker::reset(const ChVector<>& loc) {
     ChVector<> loc2cur = m_path->m_points[m_curInterval] - loc;
     ChVector<> loc2prev = m_path->m_points[m_curInterval - 1] - loc;
 
-    if (loc2cur * loc2prev < 0)
+    if (Vdot(loc2cur, loc2prev) < 0)
         m_curInterval--;
 }
 
@@ -450,28 +512,93 @@ int ChBezierCurveTracker::calcClosestPoint(const ChVector<>& loc, ChVector<>& po
         point = m_path->calcClosestPoint(loc, m_curInterval, m_curParam);
 
         if (m_curParam < ChBezierCurve::m_paramTol) {
-            if (m_curInterval == 0)
+            if ((m_curInterval == 0) && (!m_isClosedPath))
                 return -1;
 
             if (lastAtMax)
                 return 0;
 
+            // If the search region is at the beginning of the interval check the 
+            // previous interval.  Loop to the last interval if the path is a 
+            // closed loop and is it is currently in the first interval
+            if ((m_curInterval == 0) && (m_isClosedPath))
+                m_curInterval = m_path->getNumPoints() - 2; 
+            else
+                m_curInterval--;
+
             lastAtMin = true;
-            m_curInterval--;
             m_curParam = 1;
         } else if (m_curParam > 1 - ChBezierCurve::m_paramTol) {
-            if (m_curInterval == m_path->getNumPoints() - 2)
+            if ((m_curInterval == m_path->getNumPoints() - 2) && (!m_isClosedPath))
                 return +1;
 
             if (lastAtMin)
                 return 0;
 
+            // If the search region is at the end of the interval check the 
+            // next interval.  Loop to the first interval if the path is a 
+            // closed loop and is it is currently in the last interval
+            if ((m_curInterval == m_path->getNumPoints() - 2) && (m_isClosedPath))
+                m_curInterval = 0;
+            else
+                m_curInterval++;
+
             lastAtMax = true;
-            m_curInterval++;
             m_curParam = 0;
         } else
             return 0;
     }
+}
+
+int ChBezierCurveTracker::calcClosestPoint(const ChVector<>& loc, ChFrame<>& tnb, double& curvature) {
+    // Find closest point to specified location
+    ChVector<> r;
+    int flag = calcClosestPoint(loc, r);
+
+    // Find 1st and 2nd order derivative vectors at the closest point
+    ChVector<> rp = m_path->evalD(m_curInterval, m_curParam);
+    ChVector<> rpp = m_path->evalDD(m_curInterval, m_curParam);
+
+    // Calculate TNB frame
+    ChVector<> rp_rpp = Vcross(rp, rpp);
+    ChVector<> rp_rpp_rp = Vcross(rp_rpp, rp);
+    double rp_norm = rp.Length();
+    double rp_rpp_norm = rp_rpp.Length();
+
+    ChVector<> T = rp / rp_norm;
+    ChVector<> N;
+    ChVector<> B;
+    if (std::abs(rp_rpp_norm) > 1e-6) {
+        N = Vcross(rp_rpp, rp) / (rp_norm * rp_rpp_norm);
+        B = rp_rpp / rp_rpp_norm;
+    } else {  // Zero curvature
+        B = ChVector<>(0, 0, 1);
+        N = Vcross(B, T);
+        B = Vcross(T, N);
+    }
+
+    ChMatrix33<> A(T, N, B);
+
+    tnb.SetRot(A);
+    tnb.SetPos(r);
+
+
+    // Calculate curvature
+    curvature = rp_rpp_norm / (rp_norm * rp_norm * rp_norm);
+
+    return flag;
+}
+
+// -----------------------------------------------------------------------------
+// ChBezierCurveTracker::setIsClosedPath()
+//
+// This function sets how the end points of the curve are treated by the
+// tracker.  With an open path, the tracker will not loop back to check the 
+// start of the curve.  With a closed loop path, it will loop back
+// -----------------------------------------------------------------------------
+
+void ChBezierCurveTracker::setIsClosedPath(bool isClosedPath){
+    m_isClosedPath = isClosedPath;
 }
 
 }  // end of namespace chrono

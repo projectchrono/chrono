@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -16,9 +16,11 @@
 //
 // =============================================================================
 
-#include "chrono_vehicle/wheeled_vehicle/tire/LugreTire.h"
+#include <algorithm>
 
-#include "thirdparty/rapidjson/filereadstream.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/LugreTire.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 using namespace rapidjson;
 
@@ -26,34 +28,18 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// This utility function returns a ChVector from the specified JSON array
 // -----------------------------------------------------------------------------
-static ChVector<> loadVector(const Value& a) {
-    assert(a.IsArray());
-    assert(a.Size() == 3);
-
-    return ChVector<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-LugreTire::LugreTire(const std::string& filename) : ChLugreTire(""), m_discLocs(NULL) {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream(is);
+LugreTire::LugreTire(const std::string& filename) : ChLugreTire(""), m_discLocs(NULL), m_has_mesh(false) {
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     Create(d);
 
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-LugreTire::LugreTire(const rapidjson::Document& d) : ChLugreTire(""), m_discLocs(NULL) {
+LugreTire::LugreTire(const rapidjson::Document& d) : ChLugreTire(""), m_discLocs(NULL), m_has_mesh(false) {
     Create(d);
 }
 
@@ -62,15 +48,13 @@ LugreTire::~LugreTire() {
 }
 
 void LugreTire::Create(const rapidjson::Document& d) {
-    // Read top-level data
-    assert(d.HasMember("Type"));
-    assert(d.HasMember("Template"));
-    assert(d.HasMember("Name"));
+    // Invoke base class method.
+    ChPart::Create(d);
 
-    SetName(d["Name"].GetString());
-
-    // Read tire radius
+    // Read tire radius, mass, and inertia
     m_radius = d["Radius"].GetDouble();
+    m_mass = d["Mass"].GetDouble();
+    m_inertia = ReadVectorJSON(d["Inertia"]);
 
     // Read disc locations
     m_numDiscs = d["Disc Locations"].Size();
@@ -101,6 +85,31 @@ void LugreTire::Create(const rapidjson::Document& d) {
 
     m_vs[0] = d["Lugre Parameters"]["vs"][0u].GetDouble();  // longitudinal
     m_vs[1] = d["Lugre Parameters"]["vs"][1u].GetDouble();  // lateral
+
+    // Check how to visualize this tire.
+    if (d.HasMember("Visualization")) {
+        if (d["Visualization"].HasMember("Mesh Filename Left") && d["Visualization"].HasMember("Mesh Filename Right")) {
+            m_meshFile_left = d["Visualization"]["Mesh Filename Left"].GetString();
+            m_meshFile_right = d["Visualization"]["Mesh Filename Right"].GetString();
+            m_has_mesh = true;
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
+void LugreTire::AddVisualizationAssets(VisualizationType vis) {
+    if (vis == VisualizationType::MESH && m_has_mesh) {
+        m_trimesh_shape = AddVisualizationMesh(vehicle::GetDataFile(m_meshFile_left),    // left side
+                                               vehicle::GetDataFile(m_meshFile_right));  // right side
+    }
+    else {
+        ChLugreTire::AddVisualizationAssets(vis);
+    }
+}
+
+void LugreTire::RemoveVisualizationAssets() {
+    ChLugreTire::RemoveVisualizationAssets();
+    RemoveVisualizationMesh(m_trimesh_shape);
 }
 
 }  // end namespace vehicle

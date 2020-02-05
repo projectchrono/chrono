@@ -1,57 +1,57 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2011 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChFunction_Noise.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "ChFunction_Noise.h"
+#include "chrono/motion_functions/ChFunction_Noise.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
-ChClassRegister<ChFunction_Noise> a_registration_noise;
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChFunction_Noise)
 
-ChFunction_Noise::ChFunction_Noise() {
-    this->amp = 1;
-    this->octaves = 2;
-    this->amp_ratio = 0.5;
-    this->freq = 1;
+ChFunction_Noise::ChFunction_Noise(const ChFunction_Noise& other) {
+    amp = other.amp;
+    freq = other.freq;
+    amp_ratio = other.amp_ratio;
+    octaves = other.octaves;
 }
 
-void ChFunction_Noise::Copy(ChFunction_Noise* source) {
-    this->amp = source->amp;
-    this->freq = source->freq;
-    this->amp_ratio = source->amp_ratio;
-    this->octaves = source->octaves;
-}
-
-ChFunction* ChFunction_Noise::new_Duplicate() {
-    ChFunction_Noise* m_func;
-    m_func = new ChFunction_Noise;
-    m_func->Copy(this);
-    return (m_func);
-}
-
-double ChFunction_Noise::Get_y(double x) {
+double ChFunction_Noise::Get_y(double x) const {
     return ChNoise(x, amp, freq, octaves, amp_ratio);
 }
 
+void ChFunction_Noise::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChFunction_Noise>();
+    // serialize parent class
+    ChFunction::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(amp);
+    marchive << CHNVP(freq);
+    marchive << CHNVP(amp_ratio);
+    marchive << CHNVP(octaves);
+}
 
-}  // END_OF_NAMESPACE____
+void ChFunction_Noise::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChFunction_Noise>();
+    // deserialize parent class
+    ChFunction::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(amp);
+    marchive >> CHNVP(freq);
+    marchive >> CHNVP(amp_ratio);
+    marchive >> CHNVP(octaves);
+}
 
-// eof
+}  // end namespace chrono

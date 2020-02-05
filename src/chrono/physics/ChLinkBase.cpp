@@ -1,51 +1,34 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-#include "physics/ChLinkBase.h"
-#include "physics/ChGlobal.h"
+#include "chrono/core/ChGlobal.h"
+#include "chrono/physics/ChLinkBase.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
-ChClassRegisterABSTRACT<ChLinkBase> a_registration_ChLinkBase;
+// Register into the object factory, to enable run-time dynamic creation and persistence
+//CH_FACTORY_REGISTER(ChLinkBase)   // NO! Abstract class!
 
-// BUILDERS
-ChLinkBase::ChLinkBase() {
-    broken = false;
-    valid = true;
-    disabled = false;
-
-    SetIdentifier(GetUniqueIntID());  // mark with unique ID
+ChLinkBase::ChLinkBase(const ChLinkBase& other) : ChPhysicsItem(other) {
+    disabled = other.disabled;
+    valid = other.valid;
+    broken = other.broken;
 }
 
-// DESTROYER
-ChLinkBase::~ChLinkBase() {
-}
-
-void ChLinkBase::Copy(ChLinkBase* source) {
-    // first copy the parent class data...
-    ChPhysicsItem::Copy(source);
-
-    broken = source->broken;
-    valid = source->valid;
-    disabled = source->disabled;
-}
-
-
-
-void ChLinkBase::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChLinkBase::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChLinkBase>();
 
     // serialize parent class
     ChPhysicsItem::ArchiveOUT(marchive);
@@ -56,11 +39,9 @@ void ChLinkBase::ArchiveOUT(ChArchiveOut& marchive)
     marchive << CHNVP(broken);
 }
 
-/// Method to allow de serialization of transient data from archives.
-void ChLinkBase::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChLinkBase::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChLinkBase>();
 
     // deserialize parent class
     ChPhysicsItem::ArchiveIN(marchive);
@@ -71,5 +52,4 @@ void ChLinkBase::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(broken);
 }
 
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

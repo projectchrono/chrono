@@ -1,45 +1,63 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2011 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChFunction_Sine.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "ChFunction_Sine.h"
+#include "chrono/motion_functions/ChFunction_Sine.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
-ChClassRegister<ChFunction_Sine> a_registration_sine;
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChFunction_Sine)
 
-void ChFunction_Sine::Copy(ChFunction_Sine* source) {
-    Set_phase(source->phase);
-    Set_freq(source->freq);
-    Set_amp(source->amp);
+ChFunction_Sine::ChFunction_Sine(const ChFunction_Sine& other) {
+    amp = other.amp;
+    phase = other.phase;
+    freq = other.freq;
+    w = other.w;
 }
 
-ChFunction* ChFunction_Sine::new_Duplicate() {
-    ChFunction_Sine* m_func;
-    m_func = new ChFunction_Sine;
-    m_func->Copy(this);
-    return (m_func);
+double ChFunction_Sine::Get_y(double x) const {
+    return amp * (sin(phase + w * x));
 }
 
+double ChFunction_Sine::Get_y_dx(double x) const {
+    return amp * w * (cos(phase + w * x));
+}
 
-}  // END_OF_NAMESPACE____
+double ChFunction_Sine::Get_y_dxdx(double x) const {
+    return amp * -w * w * (sin(phase + w * x));
+}
 
-// eof
+void ChFunction_Sine::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChFunction_Sine>();
+    // serialize parent class
+    ChFunction::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(amp);
+    marchive << CHNVP(phase);
+    marchive << CHNVP(freq);
+}
+
+void ChFunction_Sine::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChFunction_Sine>();
+    // deserialize parent class
+    ChFunction::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(amp);
+    marchive >> CHNVP(phase);
+    marchive >> CHNVP(freq);
+}
+
+}  // end namespace chrono

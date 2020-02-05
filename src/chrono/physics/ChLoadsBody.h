@@ -1,262 +1,441 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-// File authors: Alessandro Tasora
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
+//
+// This file contains a number of ready-to-use loads (ChLoad inherited classes and
+// their embedded ChLoader classes) that can be applied to objects of ChBody (and
+// inherited classes) type.
+// These are 'simplified' tools, that save you from inheriting your custom loads.
+// Or just look at these classes and learn how to implement some special type of load.
+//
+// Example:
+//    std::shared_ptr<ChBodyEasyBox> body_test(new ChBodyEasyBox(8,4,4,1000));
+//    mphysicalSystem.Add(body_test);
+//
+//    std::shared_ptr<ChLoadContainer> mforcecontainer (new ChLoadContainer);
+//    mphysicalSystem.Add(mforcecontainer);
+//
+//    std::shared_ptr<ChLoadBodyForce> mforce (new ChLoadBodyForce(body_test, ChVector<>(0,80000,0), false,
+//    ChVector<>(8,0,0),true)); mforcecontainer->Add(mforce);
+//
+//    std::shared_ptr<ChLoadBodyTorque> mtorque (new ChLoadBodyTorque(body_test, ChVector<>(0,0,-80000*8), true));
+//    mforcecontainer->Add(mtorque);
+//
+// =============================================================================
 
 #ifndef CHLOADSBODY_H
 #define CHLOADSBODY_H
 
-#include "physics/ChLoad.h"
-#include "physics/ChBody.h"
-
+#include "chrono/motion_functions/ChFunction.h"
+#include "chrono/physics/ChBody.h"
+#include "chrono/physics/ChLoad.h"
 
 namespace chrono {
 
-
-// This file contains a number of ready-to-use loads (ChLoad inherited classes and
-// their embedded ChLoader classes) that can be applied to objects of ChBody (and 
-// inherited classes) type.
-// These are 'simplified' tools, that save you from inheriting your custom 
-// loads. 
-// Or just look at these classes and learn how to implement some special type of load.
-//
-// Example: 
-//    ChSharedPtr<ChBodyEasyBox> body_test(new ChBodyEasyBox(8,4,4,1000));
-//    mphysicalSystem.Add(body_test);
-//   
-//    ChSharedPtr<ChLoadContainer> mforcecontainer (new ChLoadContainer);
-//    mphysicalSystem.Add(mforcecontainer);
-//
-//    ChSharedPtr<ChLoadBodyForce> mforce (new ChLoadBodyForce(body_test, ChVector<>(0,80000,0), false, ChVector<>(8,0,0),true));
-//    mforcecontainer->Add(mforce);
-//
-//    ChSharedPtr<ChLoadBodyTorque> mtorque (new ChLoadBodyTorque(body_test, ChVector<>(0,0,-80000*8), true));
-//    mforcecontainer->Add(mtorque);
-
-
-
-/// FORCE ON A RIGID BODY
-/// Load for a constant force applied at a ChBody.
+/// Load representing a concentrated force acting on a rigid body.
 /// The force can rotate together with the body (if in body local coordinates) or not.
 /// The application point can follow the body (if in body local coordinates) or not.
+/// The magnitude of the applied force can be optionally modulated by a function of time.
+/// The default modulation is the constant function with value 1.
+class ChApi ChLoadBodyForce : public ChLoadCustom {
+  public:
+    ChLoadBodyForce(std::shared_ptr<ChBody> body,  ///< object to apply load to
+                    const ChVector<>& force,       ///< force to apply
+                    bool local_force,              ///< force is in body local coords
+                    const ChVector<>& point,       ///< application point for the force
+                    bool local_point = true        ///< application point is in body local coords
+    );
 
-class ChLoadBodyForce : public ChLoadCustom {
-private:
-    ChVector<> force;
-    ChVector<> application;
-    bool local_force;
-    bool local_application;
-public:
-    ChLoadBodyForce(ChSharedPtr<ChBody> mbody,      ///< object to apply load to
-                    const ChVector<> mforce,        ///< force to apply
-                    bool mlocal_force,              ///< force is in body local coords
-                    const ChVector<> mapplication,  ///< application point for the force
-                    bool mlocal_application = true  ///< application point is in body local coords
-                    ) 
-        : ChLoadCustom(mbody), 
-           force(mforce),
-           application(mapplication),
-           local_force(mlocal_force),
-           local_application(mlocal_application)
-        {         
-        }
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLoadBodyForce* Clone() const override { return new ChLoadBodyForce(*this); }
 
-        /// Compute Q, the generalized load. 
-        /// Called automatically at each Update().
-    virtual void ComputeQ(ChState*      state_x, ///< state position to evaluate Q
+    /// Set the constant force vector.
+    /// It can be expressed in absolute coordinates or body local coordinates.
+    /// This value is optionally modulated by a function of time.
+    void SetForce(const ChVector<>& force, bool is_local);
+
+    /// Return the current force vector (scaled by the current modulation value).
+    ChVector<> GetForce() const;
+
+    /// Set the application point of force, assumed to be constant.
+    /// It can be expressed in absolute coordinates or body local coordinates
+    void SetApplicationPoint(const ChVector<>& point, const bool is_local);
+
+    /// Return the location of the application point.
+    ChVector<> GetApplicationPoint() const { return m_point; }
+
+    /// Set modulation function.
+    /// This is a function of time which (optionally) modulates the specified applied force.
+    /// By default the modulation is a constant function, always returning a value of 1.
+    void SetModulationFunction(std::shared_ptr<ChFunction> modulation) { m_modulation = modulation; }
+
+    /// Compute Q, the generalized load.
+    /// Called automatically at each Update().
+    virtual void ComputeQ(ChState* state_x,      ///< state position to evaluate Q
                           ChStateDelta* state_w  ///< state speed to evaluate Q
-                          )  {
-        ChSharedPtr<ChBody> mbody = this->loadable.DynamicCastTo<ChBody>();
-        double detJ;  // not used btw
-        
-        ChVector<> abs_force;
-        if (this->local_force)
-            abs_force = mbody->TransformDirectionLocalToParent(this->force);
-        else
-            abs_force =this->force;
+                          ) override;
 
-        ChVector<> abs_application;
-        if (this->local_application)
-            abs_application = mbody->TransformPointLocalToParent(this->application);
-        else
-            abs_application =this->force;
+  private:
+    ChVector<> m_force;  ///< base force value
+    ChVector<> m_point;  ///< application point
+    bool m_local_force;  ///< is force expressed in local frame?
+    bool m_local_point;  ///< is application expressed in local frame?
 
-        // ChBody assumes F={force_abs, torque_abs}
-        ChVectorDynamic<> mF(loadable->Get_field_ncoords());
-        mF(0) = abs_force.x;
-        mF(1) = abs_force.y;
-        mF(2) = abs_force.z;
+    std::shared_ptr<ChFunction> m_modulation;  ///< modulation function of time
+    double m_scale;                            ///< scaling factor (current modulation value)
 
-        // Compute Q = N(u,v,w)'*F
-        mbody->ComputeNF(abs_application.x, abs_application.y, abs_application.z, load_Q, detJ, mF, state_x, state_w);
-    }
+    virtual bool IsStiff() override { return false; }
 
-    virtual bool IsStiff() {return false;}
-
-
-        /// Set force (ex. in [N] units), assumed to be constant.
-        /// It can be expressed in absolute coordinates or body local coordinates
-    void SetForce(const ChVector<>& mf, const bool is_local) {this->force = mf; this->local_force = is_local;}
-    ChVector<> GetForce() const {return this->force;}
-
-        /// Set the application point of force, assumed to be constant.
-        /// It can be expressed in absolute coordinates or body local coordinates
-    void SetApplicationPoint(const ChVector<>& ma, const bool is_local) {this->application = ma; this->local_application = is_local;}
-    ChVector<> GetApplicationPoint() const {return this->application;}
+    virtual void Update(double time) override;
 };
-
 
 //------------------------------------------------------------------------------------------------
 
+/// Load representing a torque applied to a rigid body.
+/// Torque direction does not rotate with the body.
+/// The magnitude of the applied torque can be optionally modulated by a function of time.
+/// The default modulation is the constant function with value 1.
+class ChApi ChLoadBodyTorque : public ChLoadCustom {
+  public:
+    ChLoadBodyTorque(std::shared_ptr<ChBody> body,  ///< object to apply load to
+                     const ChVector<>& torque,      ///< torque to apply
+                     bool local_torque              ///< torque is in body local coords
+    );
 
-/// TORQUE ON A RIGID BODY
-/// Loader for a constant torque applied at a ChBody.
-/// Torque direction does not rotate with the body. 
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLoadBodyTorque* Clone() const override { return new ChLoadBodyTorque(*this); }
 
+    /// Set the constant torque vector.
+    /// This value is optionally modulated by a function of time.
+    void SetTorque(const ChVector<>& torque, bool is_local);
 
-class ChLoadBodyTorque : public ChLoadCustom {
-private:
-    ChVector<> torque;
-    bool local_torque;
-public:
-    ChLoadBodyTorque(   ChSharedPtr<ChBody> mbody, ///< object to apply load to
-                        const ChVector<> torque,   ///< torque to apply
-                        bool mlocal_torque         ///< torque is in body local coords
-                        ) 
-        : ChLoadCustom(mbody), 
-           torque(torque),
-           local_torque (mlocal_torque)
-        {
-            
-        }
+    /// Return the current torque vector (scaled by the current modulation value).
+    ChVector<> GetTorque() const;
 
-        /// Compute Q, the generalized load. 
-        /// Called automatically at each Update().
-    virtual void ComputeQ(ChState*      state_x, ///< state position to evaluate Q
+    /// Set modulation function.
+    /// This is a function of time which (optionally) modulates the specified applied force.
+    /// By default the modulation is a constant function, always returning a value of 1.
+    void SetModulationFunction(std::shared_ptr<ChFunction> modulation) { m_modulation = modulation; }
+
+    /// Compute Q, the generalized load.
+    /// Called automatically at each Update().
+    virtual void ComputeQ(ChState* state_x,      ///< state position to evaluate Q
                           ChStateDelta* state_w  ///< state speed to evaluate Q
-                          )  {
-        ChSharedPtr<ChBody> mbody = this->loadable.DynamicCastTo<ChBody>();
-        double detJ;  // not used btw
+                          ) override;
 
-        ChVector<> abs_torque;
-        if (this->local_torque)
-            abs_torque = mbody->TransformDirectionLocalToParent(this->torque);
-        else
-            abs_torque =this->torque;
+  private:
+    ChVector<> m_torque;  ///< base torque value
+    bool m_local_torque;  ///< is torque expressed in local frame?
 
-        // ChBody assumes F={force_abs, torque_abs}
-        ChVectorDynamic<> mF(loadable->Get_field_ncoords());
-        mF(3) = this->torque.x;
-        mF(4) = this->torque.y;
-        mF(5) = this->torque.z;
+    std::shared_ptr<ChFunction> m_modulation;  ///< modulation function of time
+    double m_scale;                            ///< scaling factor (current modulation value)
 
-        // Compute Q = N(u,v,w)'*F
-        mbody->ComputeNF(0,0,0, load_Q, detJ, mF, state_x, state_w);
-    }
+    virtual bool IsStiff() override { return false; }
 
-    virtual bool IsStiff() {return false;}
-
-
-        /// Set force (ex. in [N] units), assumed to be constant in space and time
-    void SetTorque(const ChVector<>& mf) {this->torque = mf;}
-    ChVector<> GetTorque() const {return this->torque;}
+    virtual void Update(double time) override;
 };
-
-
 
 //------------------------------------------------------------------------------------------------
 
-/*
-/// BUSHING BETWEEN RIGID BODIES
-/// Load for a spherical flexible bushing connection between two bodies.
+/// Base class for wrench loads (a force + a torque) acting between two bodies.
+/// See children classes for concrete implementations.
+class ChApi ChLoadBodyBody : public ChLoadCustomMultiple {
+  public:
+    ChLoadBodyBody(std::shared_ptr<ChBody> bodyA,    ///< body A
+                   std::shared_ptr<ChBody> bodyB,    ///< body B
+                   const ChFrame<>& abs_application  ///< location of load element (in abs. coordinates)
+    );
 
-class ChLoadBodyBushing : public ChLoadCustomMultiple {
-private:
-    double radial_stiffness;
-    double radial_damping;
-    ChVector<> loc_application_A;
-    ChVector<> loc_application_B;
-public:
-    ChLoadBodyBushing(ChSharedPtr<ChBody> mbodyA,       ///< object A
-                      ChSharedPtr<ChBody> mbodyB,       ///< object B
-                      const ChVector<> abs_application, ///< create the bushing here, in abs. coordinates
-                      const double mstiffness,          ///< radial stiffness
-                      const double mdamping             ///< radial damping
-                    ) 
-         : ChLoadCustomMultiple(mbodyA,mbodyB), 
-           radial_stiffness(mstiffness),
-           radial_damping(mdamping) {         
-            
-            loc_application_A = mbodyA->TransformPointParentToLocal(abs_application);
-            loc_application_B = mbodyB->TransformPointParentToLocal(abs_application);
-        }
+    /// Compute the force between the two bodies, in local reference loc_application_B,
+    /// given rel_AB, i.e. the position and speed of loc_application_A respect to loc_application_B.
+    /// Force is assumed applied to body B, and its opposite to A.
+    /// Inherited classes MUST IMPLEMENT THIS.
+    virtual void ComputeBodyBodyForceTorque(const ChFrameMoving<>& rel_AB,
+                                            ChVector<>& loc_force,
+                                            ChVector<>& loc_torque) = 0;
 
-        /// Compute Q, the generalized load. 
-        /// Called automatically at each Update().
-    virtual void ComputeQ(ChState*      state_x, ///< state position to evaluate Q
+    // Optional: inherited classes could implement this to avoid the
+    // default numerical computation of jacobians:
+    //   virtual void ComputeJacobian(...) // see ChLoad
+
+    /// For diagnosis purposes, this can return the actual last computed value of
+    /// the applied force, expressed in coordinate system of loc_application_B, assumed applied to body B
+    ChVector<> GetForce() const { return locB_force; }
+
+    /// For diagnosis purposes, this can return the actual last computed value of
+    /// the applied torque, expressed in coordinate system of loc_application_B, assumed applied to body B
+    ChVector<> GetTorque() const { return locB_torque; }
+
+    /// Set the application frame of bushing on bodyA
+    void SetApplicationFrameA(const ChFrame<>& mpA) { loc_application_A = mpA; }
+    ChFrame<> GetApplicationFrameA() const { return loc_application_A; }
+
+    /// Set the application frame of bushing on bodyB
+    void SetApplicationFrameB(const ChFrame<>& mpB) { loc_application_B = mpB; }
+    ChFrame<> GetApplicationFrameB() const { return loc_application_B; }
+
+    /// Get absolute coordinate of frame A (last computed)
+    ChFrameMoving<> GetAbsoluteFrameA() const { return frame_Aw; }
+
+    /// Get absolute coordinate of frame B (last computed)
+    ChFrameMoving<> GetAbsoluteFrameB() const { return frame_Bw; }
+
+    std::shared_ptr<ChBody> GetBodyA() const;
+    std::shared_ptr<ChBody> GetBodyB() const;
+
+  protected:
+    ChFrame<> loc_application_A;  ///< application point on body A (local)
+    ChFrame<> loc_application_B;  ///< application point on body B (local)
+    ChVector<> locB_force;        ///< store computed values here
+    ChVector<> locB_torque;       ///< store computed values here
+    ChFrameMoving<> frame_Aw;     ///< for results
+    ChFrameMoving<> frame_Bw;     ///< for results
+
+    /// Compute Q, the generalized load. It calls ComputeBodyBodyForceTorque, so in
+    /// children classes you do not need to implement it.
+    /// Called automatically at each Update().
+    virtual void ComputeQ(ChState* state_x,      ///< state position to evaluate Q
                           ChStateDelta* state_w  ///< state speed to evaluate Q
-                          )  {
-        ChSharedPtr<ChBody> mbodyA = this->loadables[0].DynamicCastTo<ChBody>();
-        ChSharedPtr<ChBody> mbodyB = this->loadables[1].DynamicCastTo<ChBody>();
-    
-        ChCoordsys<> bodycoordA, bodycoordB;
-        if(state_x) {
-            bodycoordA = state_x->ClipCoordsys(0,0); // the numerical jacobian algo might change state_x
-            bodycoordB = state_x->ClipCoordsys(7,0); // the numerical jacobian algo might change state_x
-        }
-        else  {
-            bodycoordA = mbodyA->coord;
-            bodycoordB = mbodyB->coord;
-        }
-        ChVector<> abs_d = bodycoordB.pos -  bodycoordA.pos;
-        ChVector<> abs_force = abs_d * this->radial_stiffness;
-
-        // Compute Q 
-
-        ChVector<> abs_applicationA = bodycoordA.TransformPointLocalToParent(loc_application_A);
-        ChVector<> loc_torque = bodycoordA.rot.RotateBack(  ((abs_applicationA-bodycoordA.pos) %  abs_force) );
-        this->load_Q.PasteVector(abs_force, 0,0);
-        this->load_Q.PasteVector(loc_torque,3,0);
-
-        ChVector<> abs_applicationB = bodycoordB.TransformPointLocalToParent(loc_application_B);
-                   loc_torque = bodycoordB.rot.RotateBack(  ((abs_applicationB-bodycoordB.pos) % -abs_force) );
-        this->load_Q.PasteVector(-abs_force, 6,0);
-        this->load_Q.PasteVector( loc_torque,9,0);
-    }
-
-    virtual bool IsStiff() {return true;}
-
-
-        /// Set radial stiffness, es [Ns/m]
-    void SetRadialStiffness(const double mstiffness) {this->radial_stiffness = mstiffness;}
-    double GetRadialStiffness() const {return this->radial_stiffness;}
-
-        /// Set radial damping, es [N/m]
-    void SetRadialDamping(const double mdamping) {this->radial_damping = mdamping;}
-    double GetRadialDamping() const {return this->radial_damping;}
-
-        /// Set the application point of bushing on bodyA
-    void SetApplicationPointA(const ChVector<> mpA) {this->loc_application_A = mpA;}
-    ChVector<> GetApplicationPointA() const {return this->loc_application_A;}
-
-        /// Set the application point of bushing on bodyB
-    void SetApplicationPointB(const ChVector<> mpB) {this->loc_application_B = mpB;}
-    ChVector<> GetApplicationPointB() const {return this->loc_application_B;}
+                          ) override;
 };
 
+//------------------------------------------------------------------------------------------------
 
-*/
+/// Load representing a torque applied between two bodies.
+/// The magnitude of the applied torque can be optionally modulated by a function of time.
+/// The default modulation is the constant function with value 1.
+class ChApi ChLoadBodyBodyTorque : public ChLoadBodyBody {
+  public:
+    ChLoadBodyBodyTorque(std::shared_ptr<ChBody> bodyA,  ///< first body
+                         std::shared_ptr<ChBody> bodyB,  ///< second body
+                         const ChVector<> torque,        ///< applied torque
+                         bool local_torque               ///< torque is in bodyB local coords
+    );
 
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLoadBodyBodyTorque* Clone() const override { return new ChLoadBodyBodyTorque(*this); }
 
+    /// Set modulation function.
+    /// This is a function of time which (optionally) modulates the specified applied torque.
+    /// By default the modulation is a constant function, always returning a value of 1.
+    void SetModulationFunction(std::shared_ptr<ChFunction> modulation) { m_modulation = modulation; }
 
+  private:
+    ChVector<> m_torque;  ///< base torque value
+    bool m_local_torque;  ///< is torque expressed in local frame (bodyB)?
 
-}  // END_OF_NAMESPACE____
+    std::shared_ptr<ChFunction> m_modulation;  ///< modulation function of time
+    double m_scale;                            ///< scaling factor (current modulation value)
+
+    virtual bool IsStiff() override { return false; }
+
+    virtual void Update(double time) override;
+
+    /// Implement the computation of the body-body force, in local
+    /// coordinates of the loc_application_B.
+    /// Force is assumed applied to body B, and its opposite to A.
+    virtual void ComputeBodyBodyForceTorque(const ChFrameMoving<>& rel_AB,
+                                            ChVector<>& loc_force,
+                                            ChVector<>& loc_torque) override;
+};
+
+//------------------------------------------------------------------------------------------------
+
+/// Load for a visco-elastic bushing acting between two bodies.
+/// It uses three values for stiffness along the X Y Z axes of a coordinate system attached
+/// to the second body. This is equivalent to having a bushing with 3x3 diagonal local stiffness matrix.
+class ChApi ChLoadBodyBodyBushingSpherical : public ChLoadBodyBody {
+  public:
+    ChLoadBodyBodyBushingSpherical(
+        std::shared_ptr<ChBody> mbodyA,    ///< body A
+        std::shared_ptr<ChBody> mbodyB,    ///< body B
+        const ChFrame<>& abs_application,  ///< bushing location, in abs. coordinates.
+        const ChVector<>& mstiffness,      ///< stiffness, along x y z axes of the abs_application
+        const ChVector<>& mdamping         ///< damping, along x y z axes of the abs_application
+    );
+
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLoadBodyBodyBushingSpherical* Clone() const override { return new ChLoadBodyBodyBushingSpherical(*this); }
+
+    /// Set stiffness, along the x y z axes of loc_application_B, es [N/m]
+    void SetStiffness(const ChVector<> mstiffness) { stiffness = mstiffness; }
+    ChVector<> GetStiffness() const { return stiffness; }
+
+    /// Set damping, along the x y z axes of loc_application_B, es [Ns/m]
+    void SetDamping(const ChVector<> mdamping) { damping = mdamping; }
+    ChVector<> GetDamping() const { return damping; }
+
+  protected:
+    ChVector<> stiffness;
+    ChVector<> damping;
+
+    virtual bool IsStiff() override { return true; }
+
+    /// Implement the computation of the bushing force, in local
+    /// coordinates of the loc_application_B.
+    /// Force is assumed applied to body B, and its opposite to A.
+    virtual void ComputeBodyBodyForceTorque(const ChFrameMoving<>& rel_AB,
+                                            ChVector<>& loc_force,
+                                            ChVector<>& loc_torque) override;
+};
+
+//------------------------------------------------------------------------------------------------
+
+/// Load for a visco-elasto-plastic bushing acting between two bodies.
+/// It uses three values for stiffness along the X Y Z axes of a coordinate system attached
+/// to the second body. This is equivalent to having a bushing with 3x3 diagonal local stiffness matrix.
+/// Also, it allows a very simple plasticity model, to cap the plastic force on x,y,z given three yelds.
+class ChApi ChLoadBodyBodyBushingPlastic : public ChLoadBodyBodyBushingSpherical {
+  public:
+    ChLoadBodyBodyBushingPlastic(
+        std::shared_ptr<ChBody> mbodyA,    ///< body A
+        std::shared_ptr<ChBody> mbodyB,    ///< body B
+        const ChFrame<>& abs_application,  ///< create the bushing here, in abs. coordinates.
+        const ChVector<>& mstiffness,      ///< stiffness, along the x y z axes of the abs_application
+        const ChVector<>& mdamping,        ///< damping, along the x y z axes of the abs_application
+        const ChVector<>& myield           ///< plastic yield, along the x y z axes of the abs_application
+    );
+
+    /// Set plastic yield, forces beyond this limit will be capped.
+    /// Expressed along the x y z axes of loc_application_B.
+    void SetYeld(const ChVector<> myeld) { yield = myeld; }
+    ChVector<> GetYeld() const { return yield; }
+
+    /// Get the current accumulated plastic deformation.
+    /// This could become nonzero if forces went beyond the plastic yield.
+    ChVector<> GetPlasticDeformation() const { return plastic_def; }
+
+  protected:
+    ChVector<> yield;
+    ChVector<> plastic_def;
+
+    /// Implement the computation of the bushing force, in local
+    /// coordinates of the loc_application_B.
+    /// Force is assumed applied to body B, and its opposite to A.
+    virtual void ComputeBodyBodyForceTorque(const ChFrameMoving<>& rel_AB,
+                                            ChVector<>& loc_force,
+                                            ChVector<>& loc_torque) override;
+};
+
+//------------------------------------------------------------------------------------------------
+
+/// Load for a visco-elastic translational/rotational bushing acting between two bodies.
+/// It uses three values for stiffness along the X Y Z axes of a coordinate system attached
+/// to the second body , and three rotational stiffness values for (small) rotations about X Y Z of the
+/// same coordinate system.
+/// This is equivalent to having a bushing with 6x6 diagonal local stiffness matrix.
+class ChApi ChLoadBodyBodyBushingMate : public ChLoadBodyBodyBushingSpherical {
+  public:
+    ChLoadBodyBodyBushingMate(
+        std::shared_ptr<ChBody> mbodyA,    ///< body A
+        std::shared_ptr<ChBody> mbodyB,    ///< body B
+        const ChFrame<>& abs_application,  ///< create the bushing here, in abs. coordinates.
+        const ChVector<>& mstiffness,      ///< stiffness, along x y z axes of the abs_application
+        const ChVector<>& mdamping,        ///< damping, along x y z axes of the abs_application
+        const ChVector<>& mrotstiffness,   ///< rotational stiffness, about x y z axes of the abs_application
+        const ChVector<>& mrotdamping      ///< rotational damping, about x y z axes of the abs_application
+    );
+
+    /// Set radial stiffness, along the x y z axes of loc_application_B, es [N/m]
+    void SetRotationalStiffness(const ChVector<> mstiffness) { rot_stiffness = mstiffness; }
+    ChVector<> GetRotationalStiffness() const { return rot_stiffness; }
+
+    /// Set radial damping, along the x y z axes of loc_application_B, es [Ns/m]
+    void SetRotationalDamping(const ChVector<> mdamping) { rot_damping = mdamping; }
+    ChVector<> GetRotationalDamping() const { return rot_damping; }
+
+  protected:
+    ChVector<> rot_stiffness;
+    ChVector<> rot_damping;
+
+    /// Implement the computation of the bushing force, in local
+    /// coordinates of the loc_application_B.
+    /// Force is assumed applied to body B, and its opposite to A.
+    virtual void ComputeBodyBodyForceTorque(const ChFrameMoving<>& rel_AB,
+                                            ChVector<>& loc_force,
+                                            ChVector<>& loc_torque) override;
+};
+
+//------------------------------------------------------------------------------------------------
+
+/// Load for a visco-elastic translational/rotational bushing acting between two bodies.
+/// It uses a full user-defined 6x6 matrix [K] to express the local stiffness of the
+/// bushing, assumed expressed in the bushing coordinate system  attached
+/// to the second body. A user-defined 6x6 matrix [D] can be defined for damping, as well.
+/// Note that this assumes small rotations.
+/// Differently from the simpler ChLoadBodyBodyBushingMate and ChLoadBodyBodyBushingSpherical
+/// this can represent coupled effects, by using extra-diagonal terms in [K] and/or [D].
+class ChApi ChLoadBodyBodyBushingGeneric : public ChLoadBodyBody {
+  public:
+    ChLoadBodyBodyBushingGeneric(
+        std::shared_ptr<ChBody> mbodyA,    ///< body A
+        std::shared_ptr<ChBody> mbodyB,    ///< body B
+        const ChFrame<>& abs_application,  ///< create the bushing here, in abs. coordinates.
+        ChMatrixConstRef mstiffness,       ///< stiffness as a 6x6 matrix, local in the abs_application frame
+        ChMatrixConstRef mdamping          ///< damping as a 6x6 matrix, local in the abs_application frame
+    );
+
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLoadBodyBodyBushingGeneric* Clone() const override { return new ChLoadBodyBodyBushingGeneric(*this); }
+
+    /// Set a generic 6x6 stiffness matrix, expressed in local
+    /// coordinate system of loc_application_B.
+    void SetStiffnessMatrix(ChMatrixConstRef mstiffness) { stiffness = mstiffness; }
+    const ChMatrixNM<double, 6, 6>& GetStiffnessMatrix() const { return stiffness; }
+
+    /// Set a generic 6x6 damping matrix, expressed in local
+    /// coordinate system of loc_application_B.
+    void SetDampingMatrix(ChMatrixConstRef mdamping) { damping = mdamping; }
+    const ChMatrixNM<double, 6, 6>& GetDampingMatrix() const { return damping; }
+
+    /// Set the initial pre-load of the bushing, applied to loc_application_A,
+    /// expressed in local coordinate system of loc_application_B.
+    /// By default it is zero.
+    void SetNeutralForce(const ChVector<> mf) { neutral_force = mf; }
+    ChVector<> GetNeutralForce() const { return neutral_force; }
+
+    /// Set the initial pre-load torque of the bushing, applied to loc_application_A,
+    /// expressed in local coordinate system of loc_application_B.
+    /// By default it is zero.
+    void SetNeutralTorque(const ChVector<> mt) { neutral_torque = mt; }
+    ChVector<> GetNeutralTorque() const { return neutral_torque; }
+
+    /// Set/get the initial pre-displacement of the bushing, as the pre-displacement
+    /// of A, expressed in local coordinate system of loc_application_B.
+    /// Default behavior is no initial pre-displacement.
+    ChFrame<>& NeutralDisplacement() { return neutral_displacement; }
+
+  protected:
+    ChMatrixNM<double, 6, 6> stiffness;
+    ChMatrixNM<double, 6, 6> damping;
+
+    ChVector<> neutral_force;
+    ChVector<> neutral_torque;
+    ChFrame<> neutral_displacement;
+
+    virtual bool IsStiff() override { return true; }
+
+    /// Implement the computation of the bushing force, in local
+    /// coordinates of the loc_application_B.
+    /// Force is assumed applied to body B, and its opposite to A.
+    virtual void ComputeBodyBodyForceTorque(const ChFrameMoving<>& rel_AB,
+                                            ChVector<>& loc_force,
+                                            ChVector<>& loc_torque) override;
+
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+};
+
+}  // end namespace chrono
 
 #endif

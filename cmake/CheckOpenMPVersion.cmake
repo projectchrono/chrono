@@ -1,5 +1,5 @@
 # This script checks for the highest level of OpenMP support on the host
-# by compiling small C++ programs that uses various features.
+# by compiling small C++ programs that use various features.
 #
 # TODO: needs more work. 
 

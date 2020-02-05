@@ -2,9 +2,9 @@
 # Add executables
 
 SET(DEMOS
-  demo_socket
-  demo_cosimulation
-  demo_cosim_hydraulics
+  demo_COSIM_socket
+  demo_COSIM_data_exchange
+  demo_COSIM_hydraulics
 )
 
 MESSAGE(STATUS "Demo programs for COSIMULATION module...")
@@ -24,6 +24,6 @@ FOREACH(PROGRAM ${DEMOS})
     TARGET_LINK_LIBRARIES(${PROGRAM} ChronoEngine ChronoEngine_cosimulation)
     ADD_DEPENDENCIES(${PROGRAM} ChronoEngine ChronoEngine_cosimulation)
 
-    INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
+    INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 
 ENDFOREACH(PROGRAM)

@@ -1,90 +1,57 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHLINKMASK_H
 #define CHLINKMASK_H
 
-///////////////////////////////////////////////////
-//
-//   ChLinkMask.h
-//
-//
-//   Array of ChConstraint() objects, used as a
-//   collection of scalar constraints in ChLink()
-//   objects.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include <math.h>
+#include <cmath>
 #include <vector>
 
-#include "core/ChMath.h"
-#include "lcp/ChLcpConstraintTwoBodies.h"
+#include "chrono/core/ChMath.h"
+#include "chrono/solver/ChConstraintTwoBodies.h"
 
 namespace chrono {
 
-///
 /// Mask structure for N scalar constraint equations between two bodies.
-///
-
 class ChApi ChLinkMask {
-    CH_RTTI_ROOT(ChLinkMask);
-
-    //
-    // DATA
-    //
-
   protected:
-    // Array of pointers to 'n' scalar constraint states (own by this object)
-    std::vector<ChLcpConstraintTwoBodies*> constraints;
+    std::vector<ChConstraintTwoBodies*> constraints;  ///< array of pointers to 'n' scalar constraints
 
   public:
-    int nconstr;  // Number of scalar eq.of constraint.
-                  // Maybe different from effective nDOC because someone may be free/redundant/etc.
+    int nconstr;  ///< number of scalar constraint equations.
 
-    //
-    // CONSTRUCTORS
-    //
-
-    /// Build a link mask with a single constraint
-    /// of class ChLcpConstraintTwoBodies().
+    /// Build a link mask with no constraints.
     ChLinkMask();
 
-    /// Build a link mask with a default array of mnconstr constraints
-    /// of class ChLcpConstraintTwoBodies().
+    /// Build a link mask with a default array of mnconstr constraints of class ChConstraintTwoBodies().
     ChLinkMask(int mnconstr);
 
+    /// Copy constructor
+    ChLinkMask(const ChLinkMask& source);
+
+    /// Destructor
     virtual ~ChLinkMask();
 
-    ChLinkMask(ChLinkMask& source);
-    virtual void Copy(ChLinkMask* source);
-    virtual ChLinkMask* NewDuplicate();
-
-    //
-    // FUNCTIONS
-    //
+    /// Assignment operator.
+    ChLinkMask& operator=(const ChLinkMask& other);
 
     /// Set references to variables of two connected bodies to all
     /// constraints at once, therefore also sets all the constraints as active.
-    void SetTwoBodiesVariables(ChLcpVariables* var1, ChLcpVariables* var2);
+    void SetTwoBodiesVariables(ChVariables* var1, ChVariables* var2);
 
-    /// Obtain the reference to the i-th scalar constraint data
-    /// in the collection link mask.
-    ChLcpConstraintTwoBodies& Constr_N(int i) {
+    /// Obtain the reference to the i-th scalar constraint data in the collection link mask.
+    ChConstraintTwoBodies& Constr_N(int i) {
         assert((i >= 0) && (i < nconstr));
         return *constraints[i];
     }
@@ -94,17 +61,14 @@ class ChApi ChLinkMask {
     /// No action if newnconstr == nconstr
     void ResetNconstr(int newnconstr);
 
-    /// Add a ChLcpConstraintTwoBodies to mask (NOTE: later, the constraint will
+    /// Add a ChConstraintTwoBodies to mask (NOTE: later, the constraint will
     /// be automatically deleted when the mask will be deleted)
-    void AddConstraint(ChLcpConstraintTwoBodies* aconstr);
+    void AddConstraint(ChConstraintTwoBodies* aconstr);
 
-    /// To compare two masks, return TRUE if equal
-    int IsEqual(ChLinkMask& mask2);
+    /// To compare two masks, return true if equal
+    bool IsEqual(ChLinkMask& mask2);
 
-    /// Tells if i-th equation is a unilateral constraint
-    bool IsUnilateral(int i);
-
-    // Get the number of removed degrees of freedom (n.of costraints)
+    // Get the number of removed degrees of freedom (n.of constraints)
 
     /// Count both bilaterals and unilaterals
     int GetMaskDoc();
@@ -113,13 +77,13 @@ class ChApi ChLinkMask {
     /// Count only unilaterals
     int GetMaskDoc_d();
 
-    /// Get the i-th active scalar costraint (not active constr. won't be considered)
-    ChLcpConstraintTwoBodies* GetActiveConstrByNum(int mnum);
+    /// Get the i-th active scalar constraint (not active constr. won't be considered)
+    ChConstraintTwoBodies* GetActiveConstrByNum(int mnum);
 
     /// Sets some active constraints as redundant.
     int SetActiveRedundantByArray(int* mvector, int mcount);
 
-    /// Set lock =ON for costraints which were disabled because redundant
+    /// Set lock =ON for constraints which were disabled because redundant
     int RestoreRedundant();
 
     /// If SetAllDisabled(true), all the constraints are temporarily turned
@@ -130,62 +94,51 @@ class ChApi ChLinkMask {
     /// off (broken) at once, because marked as 'broken'. Return n.of changed.
     int SetAllBroken(bool mdis);
 
-    //
-    // STREAMING
-    //
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
 
-    /// Method to allow deserializing a persistent binary archive (ex: a file)
-    /// into transient data.
-    virtual void StreamIN(ChStreamInBinary& mstream);
-
-    /// Method to allow serializing transient data into a persistent
-    /// binary archive (ex: a file).
-    virtual void StreamOUT(ChStreamOutBinary& mstream);
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
-///
-/// Specialized ChLinkMask class, for constraint equations of
-/// the ChLinkLock link.
-///
+CH_CLASS_VERSION(ChLinkMask, 0)
 
+// -----------------------------------------------------------------------------
+
+/// Specialized ChLinkMask class, for constraint equations of the ChLinkLock link.
 class ChApi ChLinkMaskLF : public ChLinkMask {
-    CH_RTTI(ChLinkMaskLF, ChLinkMask);
-
   public:
     /// Create a ChLinkMaskLF which has 7 scalar constraints of
-    /// class ChLcpConstraintTwoBodies(). This is useful in case it must
+    /// class ChConstraintTwoBodies(). This is useful in case it must
     /// be used for the ChLinkLock link.
     ChLinkMaskLF();
+    ChLinkMaskLF(const ChLinkMaskLF& other) : ChLinkMask(other) {}
 
-    void Copy(ChLinkMaskLF* source);
-    ChLinkMask* NewDuplicate();
+    /// Assignment operator.
+    ChLinkMaskLF& operator=(const ChLinkMaskLF& other);
 
-    /// set all mask data at once
+    /// Set all mask data at once
     void SetLockMask(bool x, bool y, bool z, bool e0, bool e1, bool e2, bool e3);
 
     /// Obtain the reference to specific scalar constraint data
     /// in the collection of this link mask.
-    ChLcpConstraintTwoBodies& Constr_X() { return *constraints[0]; }
-    ChLcpConstraintTwoBodies& Constr_Y() { return *constraints[1]; }
-    ChLcpConstraintTwoBodies& Constr_Z() { return *constraints[2]; }
-    ChLcpConstraintTwoBodies& Constr_E0() { return *constraints[3]; }
-    ChLcpConstraintTwoBodies& Constr_E1() { return *constraints[4]; }
-    ChLcpConstraintTwoBodies& Constr_E2() { return *constraints[5]; }
-    ChLcpConstraintTwoBodies& Constr_E3() { return *constraints[6]; }
+    ChConstraintTwoBodies& Constr_X() { return *constraints[0]; }
+    ChConstraintTwoBodies& Constr_Y() { return *constraints[1]; }
+    ChConstraintTwoBodies& Constr_Z() { return *constraints[2]; }
+    ChConstraintTwoBodies& Constr_E0() { return *constraints[3]; }
+    ChConstraintTwoBodies& Constr_E1() { return *constraints[4]; }
+    ChConstraintTwoBodies& Constr_E2() { return *constraints[5]; }
+    ChConstraintTwoBodies& Constr_E3() { return *constraints[6]; }
 
-    //
-    // STREAMING
-    //
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    /// Method to allow deserializing a persistent binary archive (ex: a file)
-    /// into transient data.
-    virtual void StreamIN(ChStreamInBinary& mstream);
-
-    /// Method to allow serializing transient data into a persistent
-    /// binary archive (ex: a file).
-    virtual void StreamOUT(ChStreamOutBinary& mstream);
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-}  // END_OF_NAMESPACE____
+CH_CLASS_VERSION(ChLinkMaskLF, 0)
+
+}  // end namespace chrono
 
 #endif

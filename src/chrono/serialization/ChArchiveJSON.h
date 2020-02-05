@@ -1,26 +1,26 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-
+// =============================================================================
 #ifndef CHARCHIVEJSON_H
 #define CHARCHIVEJSON_H
 
+#include "chrono/serialization/ChArchive.h"
+#include "chrono/core/ChLog.h"
+#include "chrono/core/ChMathematics.h"
 
-#include "serialization/ChArchive.h"
-#include "thirdparty/rapidjson/document.h"
-#include "thirdparty/rapidjson/prettywriter.h"
-#include "thirdparty/rapidjson/filereadstream.h"
-#include "thirdparty/rapidjson/filewritestream.h"
-#include "core/ChLog.h"
-#include "core/ChMathematics.h"
+#include "chrono_thirdparty/rapidjson/document.h"
+#include "chrono_thirdparty/rapidjson/prettywriter.h"
+#include "chrono_thirdparty/rapidjson/filereadstream.h"
+#include "chrono_thirdparty/rapidjson/filewritestream.h"
+
 #include <stack>
 #include <fstream>
 #include <iostream>
@@ -29,12 +29,8 @@
 namespace chrono {
 
 
-
-/// ASCII 'LOG' ARCHIVES (only output, for debugging etc.)
-
-
 ///
-/// This is a class for serializing to ascii logging 
+/// This is a class for serializing to JSON
 ///
 
 class  ChArchiveOutJSON : public ChArchiveOut {
@@ -165,12 +161,12 @@ class  ChArchiveOutJSON : public ChArchiveOut {
             ++nitems.top();
       }
 
-      virtual void out_array_pre (const char* name, size_t msize, const char* classname) {
+      virtual void out_array_pre (ChValue& bVal, size_t msize) {
             comma_cr();
             if (is_array.top()==false)
             {
                 indent();
-                (*ostream) << "\"" << name << "\"" << "\t: ";
+                (*ostream) << "\"" << bVal.name() << "\"" << "\t: ";
             }
             (*ostream) << "\n";
             indent();
@@ -180,10 +176,10 @@ class  ChArchiveOutJSON : public ChArchiveOut {
             nitems.push(0);
             is_array.push(true);
       }
-      virtual void out_array_between (size_t msize, const char* classname) {
+      virtual void out_array_between (ChValue& bVal, size_t msize) {
 
       }
-      virtual void out_array_end (size_t msize,const char* classname) {
+      virtual void out_array_end (ChValue& bVal, size_t msize) {
             --tablevel;
             nitems.pop();
             is_array.pop();
@@ -195,7 +191,7 @@ class  ChArchiveOutJSON : public ChArchiveOut {
       }
 
         // for custom c++ objects:
-      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname, bool tracked, size_t position) {
+      virtual void out     (ChValue& bVal, bool tracked, size_t obj_ID) {
             comma_cr();
             if (is_array.top()==false)
             {
@@ -212,11 +208,11 @@ class  ChArchiveOutJSON : public ChArchiveOut {
             if(tracked) {
                 comma_cr();
                 indent();
-                (*ostream) << "\"_object_ID\"\t: "  << position;
+                (*ostream) << "\"_object_ID\"\t: "  << obj_ID;
                 ++nitems.top();
             }
 
-            bVal.value().CallArchiveOut(*this);
+            bVal.CallArchiveOut(*this);
             
             --tablevel;
             nitems.pop();
@@ -228,73 +224,50 @@ class  ChArchiveOutJSON : public ChArchiveOut {
             ++nitems.top();
       }
 
-         // for pointed objects (if pointer hasn't been already serialized, otherwise save ID)
-      virtual void out_ref_abstract (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t position, const char* classname)  {
-          comma_cr();
-          indent();
-          if (is_array.top()==false)
-            (*ostream) << "\"" << bVal.name() << "\"" << "\t: \n";
-          indent();
-          (*ostream) << "{ ";
-          
-          ++tablevel;
-          nitems.push(0);
-          is_array.push(false);  
 
+      virtual void out_ref          (ChValue& bVal,  bool already_inserted, size_t obj_ID, size_t ext_ID)  {
+          const char* classname = bVal.GetClassRegisteredName().c_str();
           comma_cr();
-          indent();
-          (*ostream) << "\"type\"\t: "  << "\"" << classname << "\"";
-          ++nitems.top();
-          
-          if (!already_inserted) {
-            comma_cr();
-            indent();
-            (*ostream) << "\"_object_ID\"\t: "  << position;
-            ++nitems.top();
-
-            // New Object, we have to full serialize it
-            bVal.value().CallArchiveOut(*this);
-          } else {
-            comma_cr();
-            indent();
-            (*ostream) << "\"_reference_ID\"\t: "  << position;
-            ++nitems.top();
-          }
-          --tablevel;
-          nitems.pop();
-          is_array.pop();
-          
-          (*ostream) << "\n";
-          indent();
-          (*ostream) << "}";
-          ++nitems.top();
-      }
-
-      virtual void out_ref          (ChNameValue<ChFunctorArchiveOut> bVal,  bool already_inserted, size_t position, const char* classname)  {
-          comma_cr();
-          indent();
-          if (is_array.top()==false)
-            (*ostream) << "\"" << bVal.name() << "\"" << "\t: \n";
+		  if (is_array.top() == false) {
+			  indent();
+			  (*ostream) << "\"" << bVal.name() << "\"" << "\t: \n";
+		  }
           indent();
           (*ostream) << "{ ";
           
           ++tablevel;
           nitems.push(0);
           is_array.push(false);
+
+          if(strlen(classname)>0) {
+              comma_cr();
+              indent();
+              (*ostream) << "\"_type\"\t: "  << "\"" << classname << "\"";
+              ++nitems.top();
+          }
           
           if (!already_inserted) {
             comma_cr();
             indent();
-            (*ostream) << "\"_object_ID\"\t: "  << position;
+            (*ostream) << "\"_object_ID\"\t: "  << obj_ID;
             ++nitems.top();
           
             // New Object, we have to full serialize it
-            bVal.value().CallArchiveOut(*this);
+            bVal.CallArchiveOutConstructor(*this);
+            bVal.CallArchiveOut(*this);
           } else {
-            comma_cr();
-            indent();
-            (*ostream) << "\"_reference_ID\"\t: "  << position;
-            ++nitems.top();
+              if (obj_ID || bVal.IsNull() ) {
+                comma_cr();
+                indent();
+                (*ostream) << "\"_reference_ID\"\t: "  << obj_ID;
+                ++nitems.top();
+              }
+              if (ext_ID) {
+                comma_cr();
+                indent();
+                (*ostream) << "\"_external_ID\"\t: "  << ext_ID;
+                ++nitems.top();
+              }
           }
           --tablevel;
           nitems.pop();
@@ -318,7 +291,7 @@ class  ChArchiveOutJSON : public ChArchiveOut {
 
 
 ///
-/// This is a class for for deserializing from JSON archives
+/// This is a class for deserializing from JSON archives
 ///
 
 
@@ -443,7 +416,8 @@ class  ChArchiveInJSON : public ChArchiveIn {
             if (!mval->IsObject()) {throw (ChExceptionArchive( "Invalid object {...} after '"+std::string(bVal.name())+"'"));}
 
             if (bVal.flags() & NVP_TRACK_OBJECT){
-              objects_pointers.push_back(bVal.value().CallGetRawPtr(*this));
+              bool already_stored; size_t obj_ID;
+              PutPointer(bVal.value().GetRawPtr(), already_stored, obj_ID);  
             }
             
             this->levels.push(mval);
@@ -457,84 +431,71 @@ class  ChArchiveInJSON : public ChArchiveIn {
             this->is_array.pop();
       }
 
-      // for pointed objects (if position != -1 , pointer has been already serialized)
-      virtual void in_ref_abstract (ChNameValue<ChFunctorArchiveIn> bVal) 
+        // for objects to construct, return non-null ptr if new object, return null ptr if just reused obj
+      virtual void* in_ref          (ChNameValue<ChFunctorArchiveIn> bVal)
       {
+            void* new_ptr = nullptr;
+
             rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
             if (!mval->IsObject()) {throw (ChExceptionArchive( "Invalid object {...} after '"+std::string(bVal.name())+"'"));}
             this->levels.push(mval);
             this->level = this->levels.top();
             this->is_array.push(false);
-            
+
             std::string cls_name = "";
-            if (level->HasMember("type")) {
-                if (!(*level)["type"].IsString()) {throw (ChExceptionArchive( "Invalid string after '"+std::string(bVal.name())+"'"));}
-                cls_name = (*level)["type"].GetString();
+            if (bVal.value().IsPolymorphic()) {
+                if (level->HasMember("_type")) {
+                    if (!(*level)["_type"].IsString()) {throw (ChExceptionArchive( "Invalid string after '"+std::string(bVal.name())+"'"));}
+                    cls_name = (*level)["_type"].GetString();
+                }
             }
-            size_t ref_ID = 0;
             bool is_reference = false;
+            size_t ref_ID = 0;
             if (level->HasMember("_reference_ID")) {
                 if (!(*level)["_reference_ID"].IsUint64()) {throw (ChExceptionArchive( "Invalid number after '"+std::string(bVal.name())+"'"));}
                 ref_ID = (*level)["_reference_ID"].GetUint64();
                 is_reference = true;
             }
-             
-            if (!is_reference) {
-                // 2) Dynamically create using class factory
-                bVal.value().CallNewAbstract(*this, cls_name.c_str()); 
-
-                if (bVal.value().CallGetRawPtr(*this)) {
-                    objects_pointers.push_back(bVal.value().CallGetRawPtr(*this));
-                    // 3) Deserialize
-                    bVal.value().CallArchiveIn(*this);
-                } else {
-                    throw(ChExceptionArchive("Archive cannot create abstract object of class '" + cls_name + "'"));
-            }
-
-            } else {
-                if (ref_ID >= objects_pointers.size()) {throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the _reference_ID is larger than pointer array"));}
-                bVal.value().CallSetRawPtr(*this, objects_pointers[ref_ID]);
-            }
-            this->levels.pop();
-            this->level = this->levels.top();
-            this->is_array.pop();
-      }
-
-      virtual void in_ref          (ChNameValue<ChFunctorArchiveIn> bVal)
-      {
-            rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
-            if (!mval->IsObject()) {throw (ChExceptionArchive( "Invalid object {...} after '"+std::string(bVal.name())+"'"));}
-            this->levels.push(mval);
-            this->level = this->levels.top();
-            this->is_array.push(false);
-
-            size_t ref_ID = 0;
-            bool is_reference = false;
-            if (level->HasMember("_reference_ID")) {
-			    if (!(*level)["_reference_ID"].IsUint64()) {throw (ChExceptionArchive( "Invalid number after '"+std::string(bVal.name())+"'"));}
-			    ref_ID = (*level)["_reference_ID"].GetUint64();
+            size_t ext_ID = 0;
+            if (level->HasMember("_external_ID")) {
+                if (!(*level)["_external_ID"].IsUint64()) {throw (ChExceptionArchive( "Invalid number after '"+std::string(bVal.name())+"'"));}
+                ext_ID = (*level)["_external_ID"].GetUint64();
                 is_reference = true;
             }
 
             if (!is_reference) {
                 // 2) Dynamically create 
-                bVal.value().CallNew(*this);
+                // call new(), or deserialize constructor params+call new():
+                bVal.value().CallArchiveInConstructor(*this, cls_name.c_str());
             
-                if (bVal.value().CallGetRawPtr(*this)) {
-                    objects_pointers.push_back(bVal.value().CallGetRawPtr(*this));
+                if (bVal.value().GetRawPtr()) {
+                    bool already_stored; size_t obj_ID;
+                    PutPointer(bVal.value().GetRawPtr(), already_stored, obj_ID);
                     // 3) Deserialize
                     bVal.value().CallArchiveIn(*this);
                 } else {
-                    throw(ChExceptionArchive("Archive cannot create object"));
-            }
+                    throw(ChExceptionArchive("Archive cannot create object " + std::string(bVal.name()) +"\n"));
+                }
+                new_ptr = bVal.value().GetRawPtr();
+            } 
+            else {
+                if (this->internal_id_ptr.find(ref_ID) == this->internal_id_ptr.end()) {
+                    throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the _reference_ID " + std::to_string((int)ref_ID) +" is not a valid number." ));
+                }
+                bVal.value().SetRawPtr(internal_id_ptr[ref_ID]);
 
-            } else {
-                if (ref_ID >= objects_pointers.size()) {throw (ChExceptionArchive( "Object _reference_ID is larger than pointer array"));}
-                bVal.value().CallSetRawPtr(*this, objects_pointers[ref_ID]);
+                if (ext_ID) {
+                    if (this->external_id_ptr.find(ext_ID) == this->external_id_ptr.end()) {
+                        throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the _external_ID " + std::to_string((int)ext_ID) +" is not valid." ));
+                    }
+                    bVal.value().SetRawPtr(external_id_ptr[ext_ID]);
+                }
             }
             this->levels.pop();
             this->level = this->levels.top();
             this->is_array.pop();
+
+            return new_ptr;
       }
 
 
@@ -559,10 +520,6 @@ class  ChArchiveInJSON : public ChArchiveIn {
       bool tolerate_missing_tokens;   
 };
 
-
-
-
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

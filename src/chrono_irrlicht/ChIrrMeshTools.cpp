@@ -1,14 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #include "chrono_irrlicht/ChIrrMeshTools.h"
 
@@ -38,11 +38,12 @@ createEllipticalMesh(f32 radiusH, f32 radiusV, f32 Ylow, f32 Yhigh, f32 offset, 
         polyCountX = 2;
     if (polyCountY < 2)
         polyCountY = 2;
-    if (polyCountX * polyCountY > 32767)  // prevent u16 overflow
+    if (polyCountX * polyCountY > 32767) {  // prevent u16 overflow
         if (polyCountX > polyCountY)      // prevent u16 overflow
             polyCountX = 32767 / polyCountY - 1;
         else
             polyCountY = 32767 / (polyCountX + 1);
+    }
 
     u32 polyCountXPitch = polyCountX + 1;  // get to same vertex on next level
     u32 n_tot_verts = (polyCountXPitch * polyCountY) + 2;
@@ -170,7 +171,7 @@ createEllipticalMesh(f32 radiusH, f32 radiusV, f32 Ylow, f32 Yhigh, f32 offset, 
             // calculate points position
 
             irr::core::vector3df pos((f32)(radiusH * cos(axz) * sinay), (f32)(radiusV * cosay),
-                                (f32)(radiusH * sin(axz) * sinay));
+                                     (f32)(radiusH * sin(axz) * sinay));
             // for spheres the normal is the position
             irr::core::vector3df normal(pos);
             normal.normalize();
@@ -191,7 +192,7 @@ createEllipticalMesh(f32 radiusH, f32 radiusV, f32 Ylow, f32 Yhigh, f32 offset, 
                 tu = buffer->Vertices[i - polyCountXPitch].TCoords.X;
 
             buffer->Vertices[i] = irr::video::S3DVertex(pos.X, pos.Y, pos.Z, normal.X, normal.Y, normal.Z, clr, tu,
-                                                   (f32)(ay * irr::core::RECIPROCAL_PI64));
+                                                        (f32)(ay * irr::core::RECIPROCAL_PI64));
             ++i;
 
             axz += AngleX;
@@ -328,10 +329,23 @@ IMesh* createCubeMesh(const irr::core::vector3df& size) {
 }
 
 // -----------------------------------------------------------------------------
-// Same as CGeomentryCreator::createCylinderMesh(), but with no shared
-// normals between caps and hull
+// Create cone
+// -----------------------------------------------------------------------------
+IMesh* createConeMesh(f32 radius, f32 length, u32 tesselation) {
+    return createTruncatedConeMesh(0, radius, length, tesselation);
+}
+
+// -----------------------------------------------------------------------------
+// No shared normals between caps and hull
 // -----------------------------------------------------------------------------
 IMesh* createCylinderMesh(f32 radius, f32 length, u32 tesselation) {
+    return createTruncatedConeMesh(radius, radius, length, tesselation);
+}
+
+// -----------------------------------------------------------------------------
+// No shared normals between caps and hull
+// -----------------------------------------------------------------------------
+IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 tesselation) {
     f32 oblique = 0;
     irr::video::SColor color(255, 255, 255, 255);
 
@@ -348,19 +362,23 @@ IMesh* createCylinderMesh(f32 radius, f32 length, u32 tesselation) {
     irr::video::S3DVertex v;
     v.Color = color;
     f32 tcx = 0.f;
+    
+    auto beta = atan2f(radius_low-radius_top, length*2);
 
     for (i = 0; i <= tesselation; ++i) {
         const f32 angle = angleStep * i;
-        v.Pos.X = radius * cosf(angle);
+        v.Pos.X = radius_low * cosf(angle);
         v.Pos.Y = -length;
-        v.Pos.Z = radius * sinf(angle);
-        v.Normal = irr::core::vector3df(cosf(angle), 0, sinf(angle));
+        v.Pos.Z = radius_low * sinf(angle);
+        v.Normal = irr::core::vector3df(cosf(angle)*cosf(beta),  sinf(beta), sinf(angle)*cosf(beta));
         v.TCoords.X = tcx;
         v.TCoords.Y = 0.f;
         buffer->Vertices.push_back(v);
 
+        v.Pos.X = radius_top * cosf(angle);
         v.Pos.Y = length;
-        v.Normal = irr::core::vector3df(cosf(angle), 0, sinf(angle));
+        v.Pos.Z = radius_top * sinf(angle);
+       // v.Normal = irr::core::vector3df(cosf(angle), sinf(beta), sinf(angle));
         v.TCoords.Y = 1.f;
         buffer->Vertices.push_back(v);
 
@@ -384,9 +402,9 @@ IMesh* createCylinderMesh(f32 radius, f32 length, u32 tesselation) {
 
     for (i = 0; i <= tesselation; ++i) {
         const f32 angle = angleStep * i;
-        v.Pos.X = radius * cosf(angle);
+        v.Pos.X = radius_low * cosf(angle);
         v.Pos.Y = -length;
-        v.Pos.Z = radius * sinf(angle);
+        v.Pos.Z = radius_low * sinf(angle);
         v.Normal = irr::core::vector3df(0, -1, 0);
         v.TCoords.X = 0.5f + 0.5f * cosf(angle);
         v.TCoords.Y = 0.5f + 0.5f * sinf(angle);
@@ -412,36 +430,38 @@ IMesh* createCylinderMesh(f32 radius, f32 length, u32 tesselation) {
     }
 
     // TOP
+    if (radius_top) {
 
-    u32 index_top = buffer->Vertices.size();
+        u32 index_top = buffer->Vertices.size();
 
-    for (i = 0; i <= tesselation; ++i) {
-        const f32 angle = angleStep * i;
-        v.Pos.X = radius * cosf(angle);
+        for (i = 0; i <= tesselation; ++i) {
+            const f32 angle = angleStep * i;
+            v.Pos.X = radius_top * cosf(angle);
+            v.Pos.Y = length;
+            v.Pos.Z = radius_top * sinf(angle);
+            v.Normal = irr::core::vector3df(0, 1, 0);
+            v.TCoords.X = 0.5f + 0.5f * cosf(angle);
+            v.TCoords.Y = 0.5f + 0.5f * sinf(angle);
+            buffer->Vertices.push_back(v);
+        }
+
+        v.Pos.X = 0.f;
         v.Pos.Y = length;
-        v.Pos.Z = radius * sinf(angle);
-        v.Normal = irr::core::vector3df(0, 1, 0);
-        v.TCoords.X = 0.5f + 0.5f * cosf(angle);
-        v.TCoords.Y = 0.5f + 0.5f * sinf(angle);
+        v.Pos.Z = 0.f;
+        v.Normal.X = 0.f;
+        v.Normal.Y = 1.f;
+        v.Normal.Z = 0.f;
+        v.TCoords.X = 0.5;
+        v.TCoords.Y = 0.5;
         buffer->Vertices.push_back(v);
-    }
 
-    v.Pos.X = 0.f;
-    v.Pos.Y = length;
-    v.Pos.Z = 0.f;
-    v.Normal.X = 0.f;
-    v.Normal.Y = 1.f;
-    v.Normal.Z = 0.f;
-    v.TCoords.X = 0.5;
-    v.TCoords.Y = 0.5;
-    buffer->Vertices.push_back(v);
+        index_center = buffer->Vertices.size() - 1;
 
-    index_center = buffer->Vertices.size() - 1;
-
-    for (i = 0; i < tesselation; ++i) {
-        buffer->Indices.push_back(index_center);
-        buffer->Indices.push_back(index_top + i + 1);
-        buffer->Indices.push_back(index_top + i + 0);
+        for (i = 0; i < tesselation; ++i) {
+            buffer->Indices.push_back(index_center);
+            buffer->Indices.push_back(index_top + i + 1);
+            buffer->Indices.push_back(index_top + i + 0);
+        }
     }
 
     buffer->recalculateBoundingBox();
@@ -525,14 +545,14 @@ void fillIrlichtMeshFromChTrimesh(IMesh* pMesh, chrono::geometry::ChTriangleMesh
         chrono::ChVector<> normal = chTrimesh->getTriangle(i).GetNormal();
         chrono::ChVector<> pos;
         pos = chTrimesh->getTriangle(i).p1;
-        buffer->Vertices[i * 3 + 0] = irr::video::S3DVertex((f32)pos.x, (f32)pos.y, (f32)pos.z, (f32)normal.x, (f32)normal.y,
-                                                       (f32)normal.z, clr, 0, 0);
+        buffer->Vertices[i * 3 + 0] = irr::video::S3DVertex((f32)pos.x(), (f32)pos.y(), (f32)pos.z(), (f32)normal.x(),
+                                                            (f32)normal.y(), (f32)normal.z(), clr, 0, 0);
         pos = chTrimesh->getTriangle(i).p2;
-        buffer->Vertices[i * 3 + 1] = irr::video::S3DVertex((f32)pos.x, (f32)pos.y, (f32)pos.z, (f32)normal.x, (f32)normal.y,
-                                                       (f32)normal.z, clr, 0, 0);
+        buffer->Vertices[i * 3 + 1] = irr::video::S3DVertex((f32)pos.x(), (f32)pos.y(), (f32)pos.z(), (f32)normal.x(),
+                                                            (f32)normal.y(), (f32)normal.z(), clr, 0, 0);
         pos = chTrimesh->getTriangle(i).p3;
-        buffer->Vertices[i * 3 + 2] = irr::video::S3DVertex((f32)pos.x, (f32)pos.y, (f32)pos.z, (f32)normal.x, (f32)normal.y,
-                                                       (f32)normal.z, clr, 0, 0);
+        buffer->Vertices[i * 3 + 2] = irr::video::S3DVertex((f32)pos.x(), (f32)pos.y(), (f32)pos.z(), (f32)normal.x(),
+                                                            (f32)normal.y(), (f32)normal.z(), clr, 0, 0);
         buffer->Indices[i * 3 + 0] = i * 3 + 0;
         buffer->Indices[i * 3 + 1] = i * 3 + 1;
         buffer->Indices[i * 3 + 2] = i * 3 + 2;

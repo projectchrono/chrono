@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -22,11 +22,15 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/powertrain/ChSimplePowertrain.h"
 
-#include "thirdparty/rapidjson/document.h"
+#include "chrono_thirdparty/rapidjson/document.h"
 
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_powertrain
+/// @{
+
+/// Simple powertrain subsystem (specified through JSON file).
 class CH_VEHICLE_API SimplePowertrain : public ChSimplePowertrain {
   public:
     SimplePowertrain(const std::string& filename);
@@ -39,13 +43,15 @@ class CH_VEHICLE_API SimplePowertrain : public ChSimplePowertrain {
     virtual double GetMaxSpeed() const override { return m_max_speed; }
 
   private:
-    void Create(const rapidjson::Document& d);
+    virtual void Create(const rapidjson::Document& d) override;
 
     double m_fwd_gear_ratio;  // forward gear ratio (single gear transmission)
     double m_rev_gear_ratio;  // reverse gear ratio
     double m_max_torque;      // maximum motor torque
     double m_max_speed;       // maximum motor speed
 };
+
+/// @} vehicle_powertrain
 
 }  // end namespace vehicle
 }  // end namespace chrono

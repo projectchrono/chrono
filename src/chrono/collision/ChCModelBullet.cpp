@@ -1,49 +1,43 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2012 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-//////////////////////////////////////////////////
-//
-//   ChCModelBullet.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "ChCModelBullet.h"
-#include "physics/ChPhysicsItem.h"
-#include "physics/ChSystem.h"
-#include "collision/bullet/btBulletCollisionCommon.h"
-#include "collision/ChCCollisionUtils.h"
-#include "GIMPACT/Bullet/btGImpactCollisionAlgorithm.h"
-#include "GIMPACTUtils/btGImpactConvexDecompositionShape.h"
-#include "collision/ChCCollisionSystemBullet.h"
-#include "BulletWorldImporter/btBulletWorldImporter.h"
-#include "collision/ChCConvexDecomposition.h"
-#include "geometry/ChCLineArc.h"
-#include "geometry/ChCLineSegment.h"
-#include "geometry/ChCTriangleMeshConnected.h"
-#include "BulletCollision/CollisionShapes/btBarrelShape.h"
-#include "BulletCollision/CollisionShapes/bt2DShape.h"
-#include "BulletCollision/CollisionShapes/btCEtriangleShape.h"
+#include <memory>
 #include <array>
 
+#include "chrono/collision/ChCCollisionSystemBullet.h"
+#include "chrono/collision/ChCCollisionUtils.h"
+#include "chrono/collision/ChCConvexDecomposition.h"
+#include "chrono/collision/ChCModelBullet.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/bt2DShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/btBarrelShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/btCEtriangleShape.h"
+#include "chrono/collision/bullet/BulletWorldImporter/btBulletWorldImporter.h"
+#include "chrono/collision/bullet/btBulletCollisionCommon.h"
+#include "chrono/collision/gimpact/GIMPACT/Bullet/btGImpactCollisionAlgorithm.h"
+#include "chrono/collision/gimpact/GIMPACTUtils/btGImpactConvexDecompositionShape.h"
+#include "chrono/geometry/ChLineArc.h"
+#include "chrono/geometry/ChLineSegment.h"
+#include "chrono/geometry/ChTriangleMeshConnected.h"
+#include "chrono/physics/ChPhysicsItem.h"
+#include "chrono/physics/ChSystem.h"
 
 namespace chrono {
 
 namespace collision {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
-ChClassRegisterABSTRACT<ChModelBullet> a_registration_ChModelBullet;
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChModelBullet)
 
 
 ChModelBullet::ChModelBullet() {
@@ -99,7 +93,7 @@ int ChModelBullet::BuildModel() {
 }
 
 static btVector3 ChVectToBullet(const ChVector<>& pos) {
-    return btVector3((btScalar)pos.x, (btScalar)pos.y, (btScalar)pos.z);
+    return btVector3((btScalar)pos.x(), (btScalar)pos.y(), (btScalar)pos.z());
 }
 
 static void ChPosMatrToBullet(const ChVector<>& pos, const ChMatrix33<>& rA, btTransform& mtransform) {
@@ -107,7 +101,7 @@ static void ChPosMatrToBullet(const ChVector<>& pos, const ChMatrix33<>& rA, btT
                        (btScalar)rA(1, 1), (btScalar)rA(1, 2), (btScalar)rA(2, 0), (btScalar)rA(2, 1),
                        (btScalar)rA(2, 2));
     mtransform.setBasis(basisA);
-    mtransform.setOrigin(btVector3((btScalar)pos.x, (btScalar)pos.y, (btScalar)pos.z));
+    mtransform.setOrigin(btVector3((btScalar)pos.x(), (btScalar)pos.y(), (btScalar)pos.z()));
 }
 
 static void ChCoordsToBullet(const ChCoordsys<>& mcoords, btTransform& mtransform) {
@@ -117,11 +111,11 @@ static void ChCoordsToBullet(const ChCoordsys<>& mcoords, btTransform& mtransfor
                        (btScalar)rA(1, 1), (btScalar)rA(1, 2), (btScalar)rA(2, 0), (btScalar)rA(2, 1),
                        (btScalar)rA(2, 2));
     mtransform.setBasis(basisA);
-    mtransform.setOrigin(btVector3((btScalar)mcoords.pos.x, (btScalar)mcoords.pos.y, (btScalar)mcoords.pos.z));
+    mtransform.setOrigin(btVector3((btScalar)mcoords.pos.x(), (btScalar)mcoords.pos.y(), (btScalar)mcoords.pos.z()));
 }
 
 void ChModelBullet::_injectShape(const ChVector<>& pos, const ChMatrix33<>& rot, btCollisionShape* mshape) {
-    bool centered = (pos.IsNull() && rot.IsIdentity());
+    bool centered = (pos.IsNull() && rot.isIdentity());
     
     // This is needed so later one can access ChModelBullet::GetSafeMargin and ChModelBullet::GetEnvelope
     mshape->setUserPointer(this);
@@ -129,14 +123,14 @@ void ChModelBullet::_injectShape(const ChVector<>& pos, const ChMatrix33<>& rot,
     // start_vector = ||    -- description is still empty
     if (shapes.size() == 0) {
         if (centered) {
-            shapes.push_back(ChSmartPtr<btCollisionShape>(mshape));
+            shapes.push_back(std::shared_ptr<btCollisionShape>(mshape));
             bt_collision_object->setCollisionShape(mshape);
             // end_vector=  | centered shape |
             return;
         } else {
             btCompoundShape* mcompound = new btCompoundShape(true);
-            shapes.push_back(ChSmartPtr<btCollisionShape>(mcompound));
-            shapes.push_back(ChSmartPtr<btCollisionShape>(mshape));
+            shapes.push_back(std::shared_ptr<btCollisionShape>(mcompound));
+            shapes.push_back(std::shared_ptr<btCollisionShape>(mshape));
             bt_collision_object->setCollisionShape(mcompound);
             btTransform mtransform;
             ChPosMatrToBullet(pos, rot, mtransform);
@@ -149,23 +143,23 @@ void ChModelBullet::_injectShape(const ChVector<>& pos, const ChMatrix33<>& rot,
     if (shapes.size() == 1) {
         btTransform mtransform;
         shapes.push_back(shapes[0]);
-        shapes.push_back(ChSmartPtr<btCollisionShape>(mshape));
+        shapes.push_back(std::shared_ptr<btCollisionShape>(mshape));
         btCompoundShape* mcompound = new btCompoundShape(true);
-        shapes[0] = ChSmartPtr<btCollisionShape>(mcompound);
+        shapes[0] = std::shared_ptr<btCollisionShape>(mcompound);
         bt_collision_object->setCollisionShape(mcompound);
         mtransform.setIdentity();
-        mcompound->addChildShape(mtransform, shapes[1].get_ptr());
+        mcompound->addChildShape(mtransform, shapes[1].get());
         ChPosMatrToBullet(pos, rot, mtransform);
-        mcompound->addChildShape(mtransform, shapes[2].get_ptr());
+        mcompound->addChildShape(mtransform, shapes[2].get());
         // vector=  | compound | old centered shape | new shape | ...
         return;
     }
     // vector=  | compound | old | old.. |   ----already working with compounds..
     if (shapes.size() > 1) {
         btTransform mtransform;
-        shapes.push_back(ChSmartPtr<btCollisionShape>(mshape));
+        shapes.push_back(std::shared_ptr<btCollisionShape>(mshape));
         ChPosMatrToBullet(pos, rot, mtransform);
-        btCollisionShape* mcom = shapes[0].get_ptr();
+        btCollisionShape* mcom = shapes[0].get();
         ((btCompoundShape*)mcom)->addChildShape(mtransform, mshape);
         // vector=  | compound | old | old.. | new shape | ...
         return;
@@ -257,7 +251,7 @@ bool ChModelBullet::AddBarrel(double Y_low,
 }
 
 
-bool ChModelBullet::Add2Dpath(geometry::ChLinePath& mpath,
+bool ChModelBullet::Add2Dpath(std::shared_ptr<geometry::ChLinePath> mpath,
                            const ChVector<>& pos,
                            const ChMatrix33<>& rot,
                            const double mthickness)
@@ -266,57 +260,47 @@ bool ChModelBullet::Add2Dpath(geometry::ChLinePath& mpath,
     this->SetEnvelope(0); 
 
     //if (!mpath.Get_closed()) 
-    //    throw ChException("Error! Add2Dpath requires a CLOSED ChLinePath!"); 
-  
+    //    throw ChException("Error! Add2Dpath requires a CLOSED ChLinePath!");
 
-    for (size_t i=0; i < mpath.GetSubLinesCount(); ++i)
-    {
-        if (ChSharedPtr< geometry::ChLineSegment > msegment = mpath.GetSubLineN(i).DynamicCastTo<geometry::ChLineSegment>())
-        {
-            if ((msegment->pA.z != 0) || (msegment->pB.z != 0))
-                throw ChException("Error! Add2Dpath: a sub segment of the ChLinePath had non-zero z coordinate! It must be flat on xy."); 
+    for (size_t i = 0; i < mpath->GetSubLinesCount(); ++i) {
+        if (auto msegment = std::dynamic_pointer_cast<geometry::ChLineSegment>(mpath->GetSubLineN(i))) {
+            if ((msegment->pA.z() != 0) || (msegment->pB.z() != 0))
+                throw ChException("Error! Add2Dpath: a sub segment of the ChLinePath had non-zero z coordinate!");
 
-            btVector3 pa((btScalar)msegment->pA.x, (btScalar)msegment->pA.y, (btScalar)0);
-            btVector3 pb((btScalar)msegment->pB.x, (btScalar)msegment->pB.y, (btScalar)0);
+            btVector3 pa((btScalar)msegment->pA.x(), (btScalar)msegment->pA.y(), (btScalar)0);
+            btVector3 pb((btScalar)msegment->pB.x(), (btScalar)msegment->pB.y(), (btScalar)0);
             bt2DsegmentShape* mshape = new bt2DsegmentShape(pa, pb, (btScalar)mthickness);
-           
+
             mshape->setMargin((btScalar) this->GetSuggestedFullMargin());
             _injectShape(pos, rot, mshape);
-        } 
-        else 
-        if (ChSharedPtr< geometry::ChLineArc > marc = mpath.GetSubLineN(i).DynamicCastTo<geometry::ChLineArc>())
-        {
-            if ((marc->origin.pos.z != 0))
-                throw ChException("Error! Add2Dpath: a sub arc of the ChLinePath had center with non-zero z coordinate! It must be flat on xy.");
+        } else if (auto marc = std::dynamic_pointer_cast<geometry::ChLineArc>(mpath->GetSubLineN(i))) {
+            if ((marc->origin.pos.z() != 0))
+                throw ChException(
+                    "Error! Add2Dpath: a sub arc of the ChLinePath had center with non-zero z coordinate! It must be "
+                    "flat on xy.");
             double mangle1 = marc->angle1;
             double mangle2 = marc->angle2;
-            if (mangle1-mangle2 == CH_C_2PI)
+            if (mangle1 - mangle2 == CH_C_2PI)
                 mangle1 -= 1e-7;
-            bt2DarcShape* mshape = new bt2DarcShape(
-                (btScalar)marc->origin.pos.x, 
-                (btScalar)marc->origin.pos.y, 
-                (btScalar)marc->radius, 
-                (btScalar)mangle1, 
-                (btScalar)mangle2,
-                marc->counterclockwise, 
-                (btScalar)mthickness);
+            bt2DarcShape* mshape =
+                new bt2DarcShape((btScalar)marc->origin.pos.x(), (btScalar)marc->origin.pos.y(), (btScalar)marc->radius,
+                                 (btScalar)mangle1, (btScalar)mangle2, marc->counterclockwise, (btScalar)mthickness);
 
             mshape->setMargin((btScalar) this->GetSuggestedFullMargin());
             _injectShape(pos, rot, mshape);
-        }
-        else
-        {
+        } else {
             throw ChException("Error! Add2Dpath: ChLinePath must contain only ChLineArc and/or ChLineSegment.");
         }
-        
-        size_t i_prev= i;
-        size_t i_next= i+1;
-        if (i_next >= mpath.GetSubLinesCount()) 
-            if ((mpath.GetEndA()-mpath.GetEndB()).Length() < 1e-9) // can't use Get_closed() that is user preference via Set_closed()
-                i_next= 0; // closed path 
-        if (i_next < mpath.GetSubLinesCount()) {
-            ChSharedPtr< geometry::ChLine > mline_prev = mpath.GetSubLineN(i_prev);
-            ChSharedPtr< geometry::ChLine > mline_next = mpath.GetSubLineN(i_next);
+
+        size_t i_prev = i;
+        size_t i_next = i + 1;
+        if (i_next >= mpath->GetSubLinesCount())
+            if ((mpath->GetEndA() - mpath->GetEndB()).Length() <
+                1e-9)        // can't use Get_closed() that is user preference via Set_closed()
+                i_next = 0;  // closed path
+        if (i_next < mpath->GetSubLinesCount()) {
+            std::shared_ptr<geometry::ChLine> mline_prev = mpath->GetSubLineN(i_prev);
+            std::shared_ptr<geometry::ChLine> mline_next = mpath->GetSubLineN(i_next);
             ChVector<> pos_prev, pos_next;
             ChVector<> dir_prev, dir_next;
             mline_prev->Evaluate(pos_prev, 1);
@@ -327,28 +311,24 @@ bool ChModelBullet::Add2Dpath(geometry::ChLinePath& mpath,
             dir_next.Normalize();
 
             // check if connected segments
-            if ((pos_prev-pos_next).Length() > 1e-9)
-                throw ChException("Error! Add2Dpath: ChLinePath must contain sequence of connected segments/arcs, with no gaps");
-            
+            if ((pos_prev - pos_next).Length() > 1e-9)
+                throw ChException(
+                    "Error! Add2Dpath: ChLinePath must contain sequence of connected segments/arcs, with no gaps");
+
             // insert a 0-radius fillet arc at sharp corners, to allow for sharp-corner vs arc/segment
-            if(Vcross(dir_prev,dir_next).z < -1e-9) {
-                double mangle1 = atan2(dir_prev.y, dir_prev.x) + CH_C_PI_2;
-                double mangle2 = atan2(dir_next.y, dir_next.x) + CH_C_PI_2;
-                bt2DarcShape* mshape = new bt2DarcShape(
-                    (btScalar)pos_prev.x, 
-                    (btScalar)pos_prev.y, 
-                    (btScalar)0, 
-                    (btScalar)mangle1, 
-                    (btScalar)mangle2,
-                    false, 
-                    (btScalar)mthickness);
+            if (Vcross(dir_prev, dir_next).z() < -1e-9) {
+                double mangle1 = atan2(dir_prev.y(), dir_prev.x()) + CH_C_PI_2;
+                double mangle2 = atan2(dir_next.y(), dir_next.x()) + CH_C_PI_2;
+                bt2DarcShape* mshape =
+                    new bt2DarcShape((btScalar)pos_prev.x(), (btScalar)pos_prev.y(), (btScalar)0, (btScalar)mangle1,
+                                     (btScalar)mangle2, false, (btScalar)mthickness);
 
                 mshape->setMargin((btScalar) this->GetSuggestedFullMargin());
                 _injectShape(pos, rot, mshape);
-                //GetLog() << "convex corner between " << i_next << " and " << i_next << " w.angles: " << mangle1 << " " << mangle2 << "\n";
-            }
-            else {
-                //GetLog() << "concave corner between " << i_next << " and " << i_next << "\n";
+                // GetLog() << "convex corner between " << i_next << " and " << i_next << " w.angles: " << mangle1 << "
+                // " << mangle2 << "\n";
+            } else {
+                // GetLog() << "concave corner between " << i_next << " and " << i_next << "\n";
             }
         }
     }
@@ -400,7 +380,7 @@ bool ChModelBullet::AddTriangleProxy(ChVector<>* p1,                ///< points 
 }
 
 
-bool ChModelBullet::AddConvexHull(std::vector<ChVector<double> >& pointlist,
+bool ChModelBullet::AddConvexHull(const std::vector<ChVector<double> >& pointlist,
                                   const ChVector<>& pos,
                                   const ChMatrix33<>& rot) {
 
@@ -408,15 +388,15 @@ bool ChModelBullet::AddConvexHull(std::vector<ChVector<double> >& pointlist,
     ChVector<> aabbMax(-1e9,-1e9,-1e9);
     ChVector<> aabbMin(1e9,1e9,1e9);
     for (size_t i=0; i< pointlist.size(); ++i) {
-        aabbMax.x=ChMax(aabbMax.x,pointlist[i].x);
-        aabbMax.y=ChMax(aabbMax.y,pointlist[i].y);
-        aabbMax.z=ChMax(aabbMax.z,pointlist[i].z);
-        aabbMin.x=ChMin(aabbMin.x,pointlist[i].x);
-        aabbMin.y=ChMin(aabbMin.y,pointlist[i].y);
-        aabbMin.z=ChMin(aabbMin.z,pointlist[i].z);
+        aabbMax.x()=ChMax(aabbMax.x(),pointlist[i].x());
+        aabbMax.y()=ChMax(aabbMax.y(),pointlist[i].y());
+        aabbMax.z()=ChMax(aabbMax.z(),pointlist[i].z());
+        aabbMin.x()=ChMin(aabbMin.x(),pointlist[i].x());
+        aabbMin.y()=ChMin(aabbMin.y(),pointlist[i].y());
+        aabbMin.z()=ChMin(aabbMin.z(),pointlist[i].z());
     }
     ChVector<>aabbsize = aabbMax -aabbMin;
-    double approx_chord = ChMin( ChMin(aabbsize.x, aabbsize.y), aabbsize.z );
+    double approx_chord = ChMin( ChMin(aabbsize.x(), aabbsize.y()), aabbsize.z() );
     // override the inward margin if larger than 0.2 chord:
     this->SetSafeMargin((btScalar)ChMin(this->GetSafeMargin(), approx_chord*0.2));
 
@@ -430,7 +410,7 @@ bool ChModelBullet::AddConvexHull(std::vector<ChVector<double> >& pointlist,
     mmesh.MakeOffset(-this->GetSafeMargin());
 
     for (unsigned int i = 0; i < mmesh.m_vertices.size(); i++) {
-        mshape->addPoint(btVector3((btScalar)mmesh.m_vertices[i].x, (btScalar)mmesh.m_vertices[i].y, (btScalar)mmesh.m_vertices[i].z));
+        mshape->addPoint(btVector3((btScalar)mmesh.m_vertices[i].x(), (btScalar)mmesh.m_vertices[i].y(), (btScalar)mmesh.m_vertices[i].z()));
     }
 
     mshape->setMargin((btScalar) this->GetSuggestedFullMargin());
@@ -508,39 +488,39 @@ class btGImpactMeshShape_handlemesh : public btGImpactMeshShape {
 };
 
 /// Add a triangle mesh to this model
-bool ChModelBullet::AddTriangleMesh(const geometry::ChTriangleMesh& trimesh,
+bool ChModelBullet::AddTriangleMesh(std::shared_ptr<geometry::ChTriangleMesh> trimesh,
                                     bool is_static,
                                     bool is_convex,
                                     const ChVector<>& pos,
                                     const ChMatrix33<>& rot,
                                     double sphereswept_thickness) {
-    if (!trimesh.getNumTriangles())
+    if (!trimesh->getNumTriangles())
         return false;
 
-    //*******EXPERIMENTAL******
-    if (geometry::ChTriangleMeshConnected* mesh = dynamic_cast<geometry::ChTriangleMeshConnected*> ( const_cast<geometry::ChTriangleMesh*>(&trimesh))) {
+    m_trimeshes.push_back(trimesh);  // cache pointer to triangle mesh
 
-        std::vector<std::array<int,4>> trimap;
+    if (auto mesh = std::dynamic_pointer_cast<geometry::ChTriangleMeshConnected>(trimesh)) {
+        std::vector<std::array<int, 4>> trimap;
         mesh->ComputeNeighbouringTriangleMap(trimap);
-        
-        std::map<std::pair<int,int>, std::pair<int, int>> winged_edges;
+
+        std::map<std::pair<int, int>, std::pair<int, int>> winged_edges;
         mesh->ComputeWingedEdges(winged_edges, true);
 
-        std::vector<bool> added_vertexes (mesh->m_vertices.size());
-        
+        std::vector<bool> added_vertexes(mesh->m_vertices.size());
+
         // iterate on triangles
         for (int it = 0; it < mesh->m_face_v_indices.size(); ++it) {
             // edges = pairs of vertexes indexes
-            std::pair<int, int> medgeA(mesh->m_face_v_indices[it].x, mesh->m_face_v_indices[it].y);
-            std::pair<int, int> medgeB(mesh->m_face_v_indices[it].y, mesh->m_face_v_indices[it].z);
-            std::pair<int, int> medgeC(mesh->m_face_v_indices[it].z, mesh->m_face_v_indices[it].x);
+            std::pair<int, int> medgeA(mesh->m_face_v_indices[it].x(), mesh->m_face_v_indices[it].y());
+            std::pair<int, int> medgeB(mesh->m_face_v_indices[it].y(), mesh->m_face_v_indices[it].z());
+            std::pair<int, int> medgeC(mesh->m_face_v_indices[it].z(), mesh->m_face_v_indices[it].x());
             // vertex indexes in edges: always in increasing order to avoid ambiguous duplicated edges
-            if (medgeA.first>medgeA.second) 
+            if (medgeA.first > medgeA.second)
                 medgeA = std::pair<int, int>(medgeA.second, medgeA.first);
-            if (medgeB.first>medgeB.second) 
+            if (medgeB.first > medgeB.second)
                 medgeB = std::pair<int, int>(medgeB.second, medgeB.first);
-            if (medgeC.first>medgeC.second) 
-                medgeC = std::pair<int, int>(medgeC.second, medgeC.first);  
+            if (medgeC.first > medgeC.second)
+                medgeC = std::pair<int, int>(medgeC.second, medgeC.first);
             auto wingedgeA = winged_edges.find(medgeA);
             auto wingedgeB = winged_edges.find(medgeB);
             auto wingedgeC = winged_edges.find(medgeC);
@@ -550,48 +530,48 @@ bool ChModelBullet::AddTriangleMesh(const geometry::ChTriangleMesh& trimesh,
             int i_wingvertex_C = -1;
 
             if (trimap[it][1] != -1) {
-                i_wingvertex_A = mesh->m_face_v_indices[trimap[it][1]].x;
-                if (mesh->m_face_v_indices[trimap[it][1]].y != wingedgeA->first.first && mesh->m_face_v_indices[trimap[it][1]].y != wingedgeA->first.second)
-                    i_wingvertex_A = mesh->m_face_v_indices[trimap[it][1]].y;
-                if (mesh->m_face_v_indices[trimap[it][1]].z != wingedgeA->first.first && mesh->m_face_v_indices[trimap[it][1]].z != wingedgeA->first.second)
-                    i_wingvertex_A = mesh->m_face_v_indices[trimap[it][1]].z;
+                i_wingvertex_A = mesh->m_face_v_indices[trimap[it][1]].x();
+                if (mesh->m_face_v_indices[trimap[it][1]].y() != wingedgeA->first.first && mesh->m_face_v_indices[trimap[it][1]].y() != wingedgeA->first.second)
+                    i_wingvertex_A = mesh->m_face_v_indices[trimap[it][1]].y();
+                if (mesh->m_face_v_indices[trimap[it][1]].z() != wingedgeA->first.first && mesh->m_face_v_indices[trimap[it][1]].z() != wingedgeA->first.second)
+                    i_wingvertex_A = mesh->m_face_v_indices[trimap[it][1]].z();
             }
 
             if (trimap[it][2] != -1) {
-                i_wingvertex_B = mesh->m_face_v_indices[trimap[it][2]].x;
-                if (mesh->m_face_v_indices[trimap[it][2]].y != wingedgeB->first.first && mesh->m_face_v_indices[trimap[it][2]].y != wingedgeB->first.second)
-                    i_wingvertex_B = mesh->m_face_v_indices[trimap[it][2]].y;
-                if (mesh->m_face_v_indices[trimap[it][2]].z != wingedgeB->first.first && mesh->m_face_v_indices[trimap[it][2]].z != wingedgeB->first.second)
-                    i_wingvertex_B = mesh->m_face_v_indices[trimap[it][2]].z;
+                i_wingvertex_B = mesh->m_face_v_indices[trimap[it][2]].x();
+                if (mesh->m_face_v_indices[trimap[it][2]].y() != wingedgeB->first.first && mesh->m_face_v_indices[trimap[it][2]].y() != wingedgeB->first.second)
+                    i_wingvertex_B = mesh->m_face_v_indices[trimap[it][2]].y();
+                if (mesh->m_face_v_indices[trimap[it][2]].z() != wingedgeB->first.first && mesh->m_face_v_indices[trimap[it][2]].z() != wingedgeB->first.second)
+                    i_wingvertex_B = mesh->m_face_v_indices[trimap[it][2]].z();
             }
 
             if (trimap[it][3] != -1) {
-                i_wingvertex_C = mesh->m_face_v_indices[trimap[it][3]].x;
-                if (mesh->m_face_v_indices[trimap[it][3]].y != wingedgeC->first.first && mesh->m_face_v_indices[trimap[it][3]].y != wingedgeC->first.second)
-                    i_wingvertex_C = mesh->m_face_v_indices[trimap[it][3]].y;
-                if (mesh->m_face_v_indices[trimap[it][3]].z != wingedgeC->first.first && mesh->m_face_v_indices[trimap[it][3]].z != wingedgeC->first.second)
-                    i_wingvertex_C = mesh->m_face_v_indices[trimap[it][3]].z;
+                i_wingvertex_C = mesh->m_face_v_indices[trimap[it][3]].x();
+                if (mesh->m_face_v_indices[trimap[it][3]].y() != wingedgeC->first.first && mesh->m_face_v_indices[trimap[it][3]].y() != wingedgeC->first.second)
+                    i_wingvertex_C = mesh->m_face_v_indices[trimap[it][3]].y();
+                if (mesh->m_face_v_indices[trimap[it][3]].z() != wingedgeC->first.first && mesh->m_face_v_indices[trimap[it][3]].z() != wingedgeC->first.second)
+                    i_wingvertex_C = mesh->m_face_v_indices[trimap[it][3]].z();
             }
 
-            this->AddTriangleProxy(&mesh->m_vertices[mesh->m_face_v_indices[it].x], 
-                                   &mesh->m_vertices[mesh->m_face_v_indices[it].y],
-                                   &mesh->m_vertices[mesh->m_face_v_indices[it].z],
-                                   // if no wing vertex (ie. 'free' edge), point to opposite vertex, ie vertex in triangle not belonging to edge
-                                   wingedgeA->second.second != -1 ? &mesh->m_vertices[i_wingvertex_A] : &mesh->m_vertices[mesh->m_face_v_indices[it].z], 
-                                   wingedgeB->second.second != -1 ? &mesh->m_vertices[i_wingvertex_B] : &mesh->m_vertices[mesh->m_face_v_indices[it].x],
-                                   wingedgeC->second.second != -1 ? &mesh->m_vertices[i_wingvertex_C] : &mesh->m_vertices[mesh->m_face_v_indices[it].y],
-                                   !added_vertexes[mesh->m_face_v_indices[it].x],
-                                   !added_vertexes[mesh->m_face_v_indices[it].y],
-                                   !added_vertexes[mesh->m_face_v_indices[it].z],
-                                   // are edges owned by this triangle? (if not, they belong to a neighbouring triangle)
-                                   wingedgeA->second.first != -1,
-                                   wingedgeB->second.first != -1,
-                                   wingedgeC->second.first != -1,
-                                   sphereswept_thickness);
+            this->AddTriangleProxy(&mesh->m_vertices[mesh->m_face_v_indices[it].x()],
+                &mesh->m_vertices[mesh->m_face_v_indices[it].y()],
+                &mesh->m_vertices[mesh->m_face_v_indices[it].z()],
+                // if no wing vertex (ie. 'free' edge), point to opposite vertex, ie vertex in triangle not belonging to edge
+                wingedgeA->second.second != -1 ? &mesh->m_vertices[i_wingvertex_A] : &mesh->m_vertices[mesh->m_face_v_indices[it].z()],
+                wingedgeB->second.second != -1 ? &mesh->m_vertices[i_wingvertex_B] : &mesh->m_vertices[mesh->m_face_v_indices[it].x()],
+                wingedgeC->second.second != -1 ? &mesh->m_vertices[i_wingvertex_C] : &mesh->m_vertices[mesh->m_face_v_indices[it].y()],
+                !added_vertexes[mesh->m_face_v_indices[it].x()],
+                !added_vertexes[mesh->m_face_v_indices[it].y()],
+                !added_vertexes[mesh->m_face_v_indices[it].z()],
+                // are edges owned by this triangle? (if not, they belong to a neighboring triangle)
+                wingedgeA->second.first != -1,
+                wingedgeB->second.first != -1,
+                wingedgeC->second.first != -1,
+                sphereswept_thickness);
             // Mark added vertexes
-            added_vertexes[mesh->m_face_v_indices[it].x] = true;
-            added_vertexes[mesh->m_face_v_indices[it].y] = true;
-            added_vertexes[mesh->m_face_v_indices[it].z] = true;
+            added_vertexes[mesh->m_face_v_indices[it].x()] = true;
+            added_vertexes[mesh->m_face_v_indices[it].y()] = true;
+            added_vertexes[mesh->m_face_v_indices[it].z()] = true;
             // Mark added edges, setting to -1 the 'ti' id of 1st triangle in winged edge {{vi,vj}{ti,tj}}
             wingedgeA->second.first = -1;
             wingedgeB->second.first = -1;
@@ -601,29 +581,31 @@ bool ChModelBullet::AddTriangleMesh(const geometry::ChTriangleMesh& trimesh,
     }
 
     btTriangleMesh* bulletMesh = new btTriangleMesh;
-    for (int i = 0; i < trimesh.getNumTriangles(); i++) {
+    for (int i = 0; i < trimesh->getNumTriangles(); i++) {
         // bulletMesh->m_weldingThreshold = ...
-        bulletMesh->addTriangle(ChVectToBullet(trimesh.getTriangle(i).p1), ChVectToBullet(trimesh.getTriangle(i).p2),
-                                ChVectToBullet(trimesh.getTriangle(i).p3),
-                                true);  // try to remove duplicate vertices
+        bulletMesh->addTriangle(ChVectToBullet(trimesh->getTriangle(i).p1), ChVectToBullet(trimesh->getTriangle(i).p2),
+            ChVectToBullet(trimesh->getTriangle(i).p3),
+            true);  // try to remove duplicate vertices
     }
 
     if (is_static) {
         // Here a static btBvhTriangleMeshShape should suffice, but looks like that the btGImpactMeshShape works
         // better..
         btCollisionShape* pShape = (btBvhTriangleMeshShape*)new btBvhTriangleMeshShape_handlemesh(bulletMesh);
-        pShape->setMargin((btScalar) this->GetSafeMargin());
+        pShape->setMargin((btScalar)this->GetSafeMargin());
         // ((btBvhTriangleMeshShape*)pShape)->refitTree();
         // btCollisionShape* pShape = new btGImpactMeshShape_handlemesh(bulletMesh);
         // pShape->setMargin((btScalar) this->GetSafeMargin() );
         //((btGImpactMeshShape_handlemesh*)pShape)->updateBound();
         _injectShape(pos, rot, pShape);
-    } else {
+    }
+    else {
         if (is_convex) {
             btCollisionShape* pShape = (btConvexTriangleMeshShape*)new btConvexTriangleMeshShape_handlemesh(bulletMesh);
-            pShape->setMargin((btScalar) this->GetEnvelope());
+            pShape->setMargin((btScalar)this->GetEnvelope());
             _injectShape(pos, rot, pShape);
-        } else {
+        }
+        else {
             // Note: currently there's no 'perfect' convex decomposition method,
             // so here the code is a bit experimental...
 
@@ -633,36 +615,36 @@ bool ChModelBullet::AddTriangleMesh(const geometry::ChTriangleMesh& trimesh,
             */
 
             // ----- ..or use this? (using the JR convex decomposition) :
-            ChConvexDecompositionJR mydecompositionJR;
-            mydecompositionJR.AddTriangleMesh(trimesh);
-            mydecompositionJR.SetParameters(0,      // skin width
-                                            9, 64,  // depht, max vertices in hull
-                                            5,      // concavity percent
-                                            5,      // merge treshold percent
-                                            5,      // split threshold percent
-                                            true,   // use initial island generation
-                                            false   // use island generation (unsupported-disabled)
-                                            );
-            mydecompositionJR.ComputeConvexDecomposition();
-            GetLog() << " found n.hulls=" << mydecompositionJR.GetHullCount() << "\n";
+            auto mydecompositionJR = chrono_types::make_shared<ChConvexDecompositionJR>();
+            mydecompositionJR->AddTriangleMesh(*trimesh);
+            mydecompositionJR->SetParameters(0,      // skin width
+                                             9, 64,  // depth, max vertices in hull
+                                             5,      // concavity percent
+                                             5,      // merge threshold percent
+                                             5,      // split threshold percent
+                                             true,   // use initial island generation
+                                             false   // use island generation (unsupported-disabled)
+            );
+            mydecompositionJR->ComputeConvexDecomposition();
+            GetLog() << " found n.hulls=" << mydecompositionJR->GetHullCount() << "\n";
             this->AddTriangleMeshConcaveDecomposed(mydecompositionJR, pos, rot);
 
             /*
             // ----- ..or use this? (using the HACD convex decomposition) :
-            ChConvexDecompositionHACD mydecompositionHACD;
-            mydecompositionHACD.AddTriangleMesh(trimesh);
-            mydecompositionHACD.SetParameters          (2, // clusters
-                                                        0, // no decimation
-                                                        0.0, // small cluster threshold
-                                                        false, // add faces points
-                                                        false, // add extra dist points
-                                                        100.0, // max concavity
-                                                        30, // cc connect dist
-                                                        0.0, // volume weight beta
-                                                        0.0, // compacity alpha
-                                                        50 // vertices per cc
-                                                        );
-            mydecompositionHACD.ComputeConvexDecomposition();
+            auto mydecompositionHACD = chrono_types::make_shared<ChConvexDecompositionHACD>();
+            mydecompositionHACD->AddTriangleMesh(trimesh);
+            mydecompositionHACD->SetParameters(2,      // clusters
+                                               0,      // no decimation
+                                               0.0,    // small cluster threshold
+                                               false,  // add faces points
+                                               false,  // add extra dist points
+                                               100.0,  // max concavity
+                                               30,     // cc connect dist
+                                               0.0,    // volume weight beta
+                                               0.0,    // compacity alpha
+                                               50      // vertices per cc
+            );
+            mydecompositionHACD->ComputeConvexDecomposition();
             this->AddTriangleMeshConcaveDecomposed(mydecompositionHACD, pos, rot);
             */
         }
@@ -671,17 +653,17 @@ bool ChModelBullet::AddTriangleMesh(const geometry::ChTriangleMesh& trimesh,
     return true;
 }
 
-bool ChModelBullet::AddTriangleMeshConcave(const geometry::ChTriangleMesh& trimesh,
+bool ChModelBullet::AddTriangleMeshConcave(std::shared_ptr<geometry::ChTriangleMesh> trimesh,
                                            const ChVector<>& pos,
                                            const ChMatrix33<>& rot) {
-    if (!trimesh.getNumTriangles())
+    if (!trimesh->getNumTriangles())
         return false;
 
     btTriangleMesh* bulletMesh = new btTriangleMesh;
-    for (int i = 0; i < trimesh.getNumTriangles(); i++) {
+    for (int i = 0; i < trimesh->getNumTriangles(); i++) {
         // bulletMesh->m_weldingThreshold = ...
-        bulletMesh->addTriangle(ChVectToBullet(trimesh.getTriangle(i).p1), ChVectToBullet(trimesh.getTriangle(i).p2),
-                                ChVectToBullet(trimesh.getTriangle(i).p3),
+        bulletMesh->addTriangle(ChVectToBullet(trimesh->getTriangle(i).p1), ChVectToBullet(trimesh->getTriangle(i).p2),
+                                ChVectToBullet(trimesh->getTriangle(i).p3),
                                 true);  // try to remove duplicate vertices
     }
 
@@ -696,15 +678,15 @@ bool ChModelBullet::AddTriangleMeshConcave(const geometry::ChTriangleMesh& trime
     return true;
 }
 
-bool ChModelBullet::AddTriangleMeshConcaveDecomposed(ChConvexDecomposition& mydecomposition,
+bool ChModelBullet::AddTriangleMeshConcaveDecomposed(std::shared_ptr<ChConvexDecomposition> mydecomposition,
                                                      const ChVector<>& pos,
                                                      const ChMatrix33<>& rot) {
     // note: since the convex hulls are ot shrunk, the safe margin will be set to zero (must be set before adding them)
     this->SetSafeMargin(0);
 
-    for (unsigned int j = 0; j < mydecomposition.GetHullCount(); j++) {
+    for (unsigned int j = 0; j < mydecomposition->GetHullCount(); j++) {
         std::vector<ChVector<double> > ptlist;
-        mydecomposition.GetConvexHullResult(j, ptlist);
+        mydecomposition->GetConvexHullResult(j, ptlist);
 
         if (ptlist.size())
             this->AddConvexHull(ptlist, pos, rot);
@@ -776,10 +758,10 @@ void ChModelBullet::onFamilyChange() {
     this->SyncPosition();
 
     // Trick to avoid troubles if setting mask or family when model is already overlapping to some other model
-    ChCollisionSystem* mcosys = this->GetPhysicsItem()->GetSystem()->GetCollisionSystem();
+    auto mcosys = this->GetPhysicsItem()->GetSystem()->GetCollisionSystem();
     mcosys->Remove(this);
 
-    ChCollisionSystemBullet* mcs = static_cast<ChCollisionSystemBullet*>(mcosys);
+    auto mcs = std::static_pointer_cast<ChCollisionSystemBullet>(mcosys);
     mcs->GetBulletCollisionWorld()->addCollisionObject(bt_collision_object, family_group, family_mask);
 }
 
@@ -792,9 +774,10 @@ void ChModelBullet::GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const {
     bbmax.Set(btmax.x(), btmax.y(), btmax.z());
 }
 
-void __recurse_add_newcollshapes(btCollisionShape* ashape, std::vector<smartptrshapes>& shapes) {
+void __recurse_add_newcollshapes(btCollisionShape* ashape,
+    std::vector<std::shared_ptr<btCollisionShape> >& shapes) {
     if (ashape) {
-        shapes.push_back(ChSmartPtr<btCollisionShape>(ashape));
+        shapes.push_back(std::shared_ptr<btCollisionShape>(ashape));
 
         if (ashape->getShapeType() == COMPOUND_SHAPE_PROXYTYPE) {
             btCompoundShape* compoundShape = (btCompoundShape*)ashape;
@@ -812,7 +795,7 @@ void ChModelBullet::SyncPosition()
     ChCoordsys<> mcsys = this->mcontactable->GetCsysForCollisionModel();
 
     bt_collision_object->getWorldTransform().setOrigin(btVector3(
-        (btScalar)mcsys.pos.x, (btScalar)mcsys.pos.y, (btScalar)mcsys.pos.z));
+        (btScalar)mcsys.pos.x(), (btScalar)mcsys.pos.y(), (btScalar)mcsys.pos.z()));
     const ChMatrix33<>& rA(mcsys.rot);
     btMatrix3x3 basisA((btScalar)rA(0, 0), (btScalar)rA(0, 1), (btScalar)rA(0, 2), (btScalar)rA(1, 0),
                        (btScalar)rA(1, 1), (btScalar)rA(1, 2), (btScalar)rA(2, 0), (btScalar)rA(2, 1),
@@ -824,7 +807,7 @@ void ChModelBullet::SyncPosition()
 bool ChModelBullet::SetSphereRadius(double coll_radius, double out_envelope) {
     if (this->shapes.size() != 1)
         return false;
-    if (btSphereShape* mshape = dynamic_cast<btSphereShape*>(this->shapes[0].get_ptr())) {
+    if (btSphereShape* mshape = dynamic_cast<btSphereShape*>(this->shapes[0].get())) {
         this->SetSafeMargin(coll_radius);
         this->SetEnvelope(out_envelope);
         mshape->setUnscaledRadius((btScalar)(coll_radius + out_envelope));
@@ -837,7 +820,7 @@ bool ChModelBullet::SetSphereRadius(double coll_radius, double out_envelope) {
 void ChModelBullet::ArchiveOUT(ChArchiveOut& marchive)
 {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChModelBullet>();
     // serialize parent class
     ChCollisionModel::ArchiveOUT(marchive);
 
@@ -846,7 +829,7 @@ void ChModelBullet::ArchiveOUT(ChArchiveOut& marchive)
 
     if (this->bt_collision_object->getCollisionShape()) {
         // serialize all member data:
-        int maxSerializeBufferSize = 1024 * 1024 * 5;  //***TO DO*** make this more efficient
+        int maxSerializeBufferSize = 1024 * 1024 * 5;  // ***TO DO*** make this more efficient
         btDefaultSerializer* serializer = new btDefaultSerializer(maxSerializeBufferSize);
 
         serializer->startSerialization();
@@ -868,7 +851,7 @@ void ChModelBullet::ArchiveOUT(ChArchiveOut& marchive)
 void ChModelBullet::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChModelBullet>();
     // deserialize parent class
     ChCollisionModel::ArchiveIN(marchive);
 
@@ -896,7 +879,7 @@ void ChModelBullet::ArchiveIN(ChArchiveIn& marchive)
                 if (mshape)
                     bt_collision_object->setCollisionShape(mshape);
 
-                // Update the list of sharedpointers to newly created shapes, so that
+                // Update the list of shared pointers to newly created shapes, so that
                 // the deletion will be automatic
                 __recurse_add_newcollshapes(mshape, this->shapes);
             }
@@ -906,75 +889,7 @@ void ChModelBullet::ArchiveIN(ChArchiveIn& marchive)
     }
 }
 
-//***OBSOLETE***
-/*
-void ChModelBullet::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
 
-    // parent class deserialize
-    //ChCollisionModel::StreamIN(mstream);
 
-    // deserialize custom data:
-
-    this->ClearModel();  // remove shape
-
-    int buffer_len = 0;
-
-    mstream >> buffer_len;
-
-    char* mbuffer = new char[buffer_len];
-
-    for (int mpt = 0; mpt < buffer_len; mpt++)
-        mstream >> mbuffer[mpt];
-
-    btBulletWorldImporter import(0);  // don't store info into the world
-    import.setVerboseMode(false);
-
-    if (import.loadFileFromMemory(mbuffer, buffer_len)) {
-        int numShape = import.getNumCollisionShapes();
-        if (numShape) {
-            btCollisionShape* mshape = import.getCollisionShapeByIndex(0);
-            if (mshape)
-                bt_collision_object->setCollisionShape(mshape);
-
-            // Update the list of sharedpointers to newly created shapes, so that
-            // the deletion will be automatic
-            __recurse_add_newcollshapes(mshape, this->shapes);
-        }
-    }
-
-    delete[] mbuffer;
-}
-*/
-//***OBSOLETE***
-/*
-void ChModelBullet::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
-
-    // parent class serialize
-    //ChCollisionModel::StreamOUT(mstream);
-
-    // serialize custom data:
-
-    int maxSerializeBufferSize = 1024 * 1024 * 5;  //***TO DO*** make this more efficient
-    btDefaultSerializer* serializer = new btDefaultSerializer(maxSerializeBufferSize);
-
-    serializer->startSerialization();
-
-    this->bt_collision_object->getCollisionShape()->serializeSingleShape(serializer);
-
-    serializer->finishSerialization();
-
-    mstream << serializer->getCurrentBufferSize();
-
-    for (int mpt = 0; mpt < serializer->getCurrentBufferSize(); mpt++)
-        mstream << (char)(*(serializer->getBufferPointer() + mpt));
-
-    delete serializer;
-}
-*/
-
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono

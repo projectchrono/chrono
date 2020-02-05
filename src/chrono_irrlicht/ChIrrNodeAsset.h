@@ -1,12 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
 
 #ifndef CHIRRNODEASSET_H
 #define CHIRRNODEASSET_H
@@ -22,15 +24,12 @@
 namespace chrono {
 namespace irrlicht {
 
-/// @addtogroup irrlicht
+/// @addtogroup irrlicht_module
 /// @{
 
 /// Class for adding Irrlicht visualization to a ChPhysicsItem.
 /// This must be added as an 'asset' to the item (ex., a ChBody).
 class ChApiIrr ChIrrNodeAsset : public ChAsset {
-
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChIrrNodeAsset, ChAsset);
 
   protected:
     ChIrrNode* mnode;
@@ -45,7 +44,7 @@ class ChApiIrr ChIrrNodeAsset : public ChAsset {
 
     irr::scene::ISceneNode* GetIrrlichtNode() { return mnode; }
 
-    void Bind(ChSharedPtr<ChPhysicsItem> aitem, ChIrrAppInterface& aapp) {
+    void Bind(std::shared_ptr<ChPhysicsItem> aitem, ChIrrAppInterface& aapp) {
         UnBind();
 
         mnode = new ChIrrNode(aitem, aapp.GetContainer(), aapp.GetSceneManager(), 0);
@@ -71,7 +70,7 @@ class ChApiIrr ChIrrNodeAsset : public ChAsset {
     }
 };
 
-/// @} irrlicht
+/// @} irrlicht_module
 
 }  // end namespace irrlicht
 }  // end namespace chrono

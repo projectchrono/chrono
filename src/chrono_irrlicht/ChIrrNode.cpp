@@ -1,14 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-// File author: A.Tasora
+// =============================================================================
 
 #include "chrono/core/ChLog.h"
 #include "chrono_irrlicht/ChIrrNode.h"
@@ -19,17 +19,14 @@ namespace irrlicht {
 
 using namespace irr;
 
-ChIrrNode::ChIrrNode(ChSharedPtr<ChPhysicsItem> mphysicsitem,
+ChIrrNode::ChIrrNode(std::weak_ptr<ChPhysicsItem> mphysicsitem,
                      scene::ISceneNode* parent,
                      scene::ISceneManager* mgr,
                      s32 id)
-    : ISceneNode(parent, mgr, id), ChronoControlled(true) {
+    : ISceneNode(parent, mgr, id), physicsitem(mphysicsitem), ChronoControlled(true) {
 #ifdef _DEBUG
     setDebugName("ChIrrNode");
 #endif
-
-    // Set the shared pointer to the owner ChBody
-    physicsitem = mphysicsitem.get_ptr();
 
     // set an unique identifier
     // static_item_identifier++;
@@ -50,10 +47,7 @@ scene::ISceneNode* ChIrrNode::clone(scene::ISceneNode* newParent, scene::ISceneM
     if (!newManager)
         newManager = SceneManager;
 
-    ChSharedPtr<ChPhysicsItem> shphysicsitem(this->physicsitem);
-    shphysicsitem->AddRef();  // trick because shphysicsitem ctor took raw this->physicsitem that is not a new()
-
-    ChIrrNode* nb = new ChIrrNode(shphysicsitem, newParent, newManager, this->ID);
+    ChIrrNode* nb = new ChIrrNode(this->physicsitem, newParent, newManager, this->ID);
 
     nb->cloneMembers(this, newManager);
     nb->Box = this->Box;
@@ -66,7 +60,7 @@ scene::ISceneNode* ChIrrNode::clone(scene::ISceneNode* newParent, scene::ISceneM
 }
 
 bool ChIrrNode::SetupClones() {
-    unsigned int needed_clones = physicsitem->GetAssetsFrameNclones();
+    unsigned int needed_clones = physicsitem.lock()->GetAssetsFrameNclones();
 
     if (needed_clones) {
         unsigned int actual_clones = this->getChildren().getSize();
@@ -102,20 +96,20 @@ bool ChIrrNode::SetupClones() {
 void ChIrrNode::OnAnimate(u32 timeMs) {
     if (IsVisible && ChronoControlled) {
         // reorient/reposition the scene node every frame
-        if (physicsitem) {
-            if (!physicsitem->GetAssetsFrameNclones()) {
-                ChIrrTools::alignIrrlichtNodeToChronoCsys(this, physicsitem->GetAssetsFrame().GetCoord());
+        if (!physicsitem.expired()) {
+            if (!physicsitem.lock()->GetAssetsFrameNclones()) {
+                ChIrrTools::alignIrrlichtNodeToChronoCsys(this, physicsitem.lock()->GetAssetsFrame().GetCoord());
             } else {
                 // check that children clones are already as many as
                 // assets frame clones, and adjust it if not:
                 if (SetupClones()) {
                     // make each clone node match the corresponding asset frame :
-                    unsigned int nclones = physicsitem->GetAssetsFrameNclones();
+                    unsigned int nclones = physicsitem.lock()->GetAssetsFrameNclones();
                     unsigned int iclone = 0;
                     irr::core::list<ISceneNode*>::ConstIterator it = this->getChildren().begin();
                     for (; it != Children.end(); ++it) {
-                        ChIrrTools::alignIrrlichtNodeToChronoCsys((*it),
-                                                                  physicsitem->GetAssetsFrame(iclone).GetCoord());
+                        ChIrrTools::alignIrrlichtNodeToChronoCsys(
+                            (*it), physicsitem.lock()->GetAssetsFrame(iclone).GetCoord());
                         ++iclone;
                     }
                 }
@@ -124,12 +118,6 @@ void ChIrrNode::OnAnimate(u32 timeMs) {
     }
 
     ISceneNode::OnAnimate(timeMs);
-}
-
-ChSharedPtr<ChPhysicsItem> ChIrrNode::GetPhysicsItem() {
-    ChSharedPtr<ChPhysicsItem> shphysicsitem(this->physicsitem);
-    shphysicsitem->AddRef();  // trick because shphysicsitem ctor took raw this->physicsitem that is not a new()
-    return shphysicsitem;
 }
 
 void ChIrrNode::UpdateAssetsProxies() {

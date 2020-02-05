@@ -1,33 +1,17 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHC_ABSOLUTEAABB_H
 #define CHC_ABSOLUTEAABB_H
-
-//////////////////////////////////////////////////
-//
-//   ChCAbsoluteAABB.h
-//
-//   Header for defining axis-aligned bounding
-//   boxes in absolute space, to be used with
-//   the 'sweep and prune' broad-phase
-//   collision detection stage.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 namespace chrono {
 namespace collision {
@@ -90,7 +74,7 @@ class ChAbsoluteAABB {
     ChIntervalEndpoint<coll_model_type> m_endZ;
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono
 
 #endif

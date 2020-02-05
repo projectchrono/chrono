@@ -1,19 +1,21 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2014 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
+
 #ifndef CHHOSTINFO_H
 #define CHHOSTINFO_H
 
-//////////////////////////////////////////////////
-//
-//   ChHostInfo.h
-//
-//   Custom exception class, for sockets
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-///////////////////////////////////////////////////
-
 /*
-
   Liyang Yu, Jan 9th, 2004, version 0.0
 
   this is to implement the domain and IP address resolution.
@@ -32,10 +34,10 @@
 
   3. nothing is given. in other words, we don't know the host name or the IP address.
      in this case, the standard host name for the current processor is used
-
 */
 
 #include <string>
+
 #include "chrono_cosimulation/ChApiCosimulation.h"
 
 // This version is for both Windows and UNIX, the following statements
@@ -56,34 +58,33 @@
 #else
 #include <winsock2.h>
 #endif
-#include <stdio.h>
+#include <cstdio>
 
 namespace chrono {
 namespace cosimul {
-
 
 enum hostType { NAME, ADDRESS };
 const int HOST_NAME_LENGTH = 64;
 
 /// Class for storing information about a TCP host
-/// in socket communication, ex with an IP address
+/// in socket communication, ex with an IP address.
 
 class ChApiCosimulation ChHostInfo {
   private:
 #ifdef UNIX
-    char searchHostDB;  // search the host database flag
+    char searchHostDB;  ///< search the host database flag
 #endif
 
-    struct hostent* hostPtr;  // Entry within the host address database
+    struct hostent* hostPtr;  ///< Entry within the host address database
 
   public:
-    // Default constructor
+    /// Default constructor
     ChHostInfo();
 
-    // Retrieves the host entry based on the host name or address
+    /// Retrieves the host entry based on the host name or address.
     ChHostInfo(const std::string& hostName, hostType type);
 
-    // Destructor.  Closes the host entry database.
+    /// Destructor.  Closes the host entry database.
     ~ChHostInfo() {
 #ifdef UNIX
         endhostent();
@@ -92,10 +93,10 @@ class ChApiCosimulation ChHostInfo {
 
 #ifdef UNIX
 
-    // Retrieves the next host entry in the database
+    /// Retrieves the next host entry in the database.
     char getNextHost();
 
-    // Opens the host entry database
+    /// Opens the host entry database.
     void openHostDb() {
         endhostent();
         searchHostDB = 1;
@@ -104,10 +105,10 @@ class ChApiCosimulation ChHostInfo {
 
 #endif
 
-    // Retrieves the hosts IP address in dot x.y.z.w notation
+    /// Retrieves the hosts IP address in dot x.y.z.w notation.
     char* getHostIPAddress();
 
-    // Retrieves the hosts name
+    /// Retrieves the hosts name.
     char* getHostName() { return hostPtr->h_name; }
 
   private:
@@ -117,7 +118,7 @@ class ChApiCosimulation ChHostInfo {
 #endif
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace cosimul
+}  // end namespace chrono
 
-#endif  // END of header
+#endif

@@ -26,7 +26,7 @@
 namespace chrono {
 namespace opengl {
 
-/// @addtogroup opengl
+/// @addtogroup opengl_module
 /// @{
 
 /// Class for rendering an object.
@@ -50,9 +50,9 @@ class CH_OPENGL_API ChOpenGLOBJ : public ChOpenGLBase {
     ChOpenGLOBJLoader loader;
 };
 
-/// @} opengl
+/// @} opengl_module
 
 }
 }
 
-#endif  // END of CHOPENGLOBJ_H
+#endif

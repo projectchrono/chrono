@@ -1,83 +1,58 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010, 2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChObject.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include <stdlib.h>
-#include <iostream>
-#include <math.h>
-#include <float.h>
+#include <cfloat>
+#include <cmath>
 #include <memory.h>
+#include <cstdlib>
+#include <iostream>
 
-#include "physics/ChObject.h"
-#include "physics/ChGlobal.h"
-#include "physics/ChExternalObject.h"
+#include "chrono/core/ChGlobal.h"
+#include "chrono/physics/ChObject.h"
 
 namespace chrono {
 
-//////////////////////////////////////
-//////////////////////////////////////
+// Register into the object factory, to enable run-time dynamic creation and persistence
+//CH_FACTORY_REGISTER(ChObj)  // NO! Abstract class!
 
-// BASE CLASS FOR HANDLING ITEMS
-// with linked-list handling functions
-
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
-ChClassRegister<ChObj> a_registration_ChObj;
-
-ChObj::ChObj() {
-    name.clear();
-
-    ChTime = 0;
-    identifier = 0;
+ChObj::ChObj() : ChTime(0) {
+    identifier = GetUniqueIntID();
 }
 
-ChObj::~ChObj() {
+ChObj::ChObj(const ChObj& other) {
+    identifier = GetUniqueIntID();
+
+    name = other.name;
+    ChTime = other.ChTime;
 }
 
-void ChObj::Copy(ChObj* source) {
-    identifier = source->identifier;
+void ChObj::ArchiveOUT(ChArchiveOut& marchive) {
+    marchive.VersionWrite<ChObj>();
 
-    name = source->name;
-    ChTime = source->ChTime;
+    // stream out all member data
+    marchive << CHNVP(name);
+    marchive << CHNVP(identifier);
+    marchive << CHNVP(ChTime);
 }
 
-//
-// OTHER FUNCTIONS
-//
+void ChObj::ArchiveIN(ChArchiveIn& marchive) {
+    int version = marchive.VersionRead<ChObj>();
 
-const char* ChObj::GetName() const {
-    return (char*)this->name.c_str();
+    // stream out all member data
+    marchive >> CHNVP(name);
+    marchive >> CHNVP(identifier);
+    marchive >> CHNVP(ChTime);
 }
 
-void ChObj::SetName(const char myname[]) {
-    name = myname;
-}
-
-std::string ChObj::GetNameString() const {
-    return this->name;
-}
-
-void ChObj::SetNameString(const std::string& myname) {
-    name = myname;
-}
-
-
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

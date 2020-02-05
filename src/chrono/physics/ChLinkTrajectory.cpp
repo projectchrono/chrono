@@ -1,87 +1,55 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChLinkTrajectory.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChLinkTrajectory.h"
-#include "geometry/ChCLineSegment.h"
+#include "chrono/geometry/ChLineSegment.h"
+#include "chrono/physics/ChLinkTrajectory.h"
 
 namespace chrono {
 
 using namespace geometry;
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
-ChClassRegister<ChLinkTrajectory> a_registration_ChLinkTrajectory;
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChLinkTrajectory)
 
-// BUILDERS
-ChLinkTrajectory::ChLinkTrajectory() {
-    type = LNK_TRAJECTORY;  // initializes type
+ChLinkTrajectory::ChLinkTrajectory() : modulo_s(false) {
+    // initializes type
+    type = LinkType::TRAJECTORY;
 
     // default s(t) function. User will provide better fx.
-    space_fx = ChSharedPtr<ChFunction>(new ChFunction_Ramp(0, 1.));
+    space_fx = chrono_types::make_shared<ChFunction_Ramp>(0, 1.);
 
     // default trajectory is a segment
-    trajectory_line = ChSharedPtr<ChLine>(new ChLineSegment());
+    trajectory_line = chrono_types::make_shared<ChLineSegment>();
 
-    modulo_s = false;
+    // Mask: initialize our LinkMaskLF (lock formulation mask) to X  only
+    mask.SetLockMask(true, true, true, false, false, false, false);
 
-    // Mask: initialize our LinkMaskLF (lock formulation mask)
-    // to X  only. It was a LinkMaskLF because this class inherited from LinkLock.
-    ((ChLinkMaskLF*)mask)->SetLockMask(true, true, true, false, false, false, false);
-
-    ChangedLinkMask();
+    BuildLink();
 }
 
-// DESTROYER
-ChLinkTrajectory::~ChLinkTrajectory() {
-    // nothing..
+ChLinkTrajectory::ChLinkTrajectory(const ChLinkTrajectory& other) : ChLinkLockLock(other) {
+    space_fx = std::shared_ptr<ChFunction>(other.space_fx->Clone());            // deep copy
+    trajectory_line = std::shared_ptr<ChLine>((ChLine*)other.trajectory_line->Clone());  // deep copy
 }
 
-void ChLinkTrajectory::Copy(ChLinkTrajectory* source) {
-    // first copy the parent class data...
-    //
-    ChLinkLock::Copy(source);
-
-    // copy own data
-
-    space_fx = ChSharedPtr<ChFunction>(source->space_fx->new_Duplicate());  // deep copy
-
-    trajectory_line = ChSharedPtr<ChLine>((ChLine*)source->trajectory_line->Duplicate());  // deep copy
-}
-
-ChLink* ChLinkTrajectory::new_Duplicate() {
-    ChLinkTrajectory* m_l;
-    m_l = new ChLinkTrajectory;
-    m_l->Copy(this);
-    return (m_l);
-}
-
-void ChLinkTrajectory::Set_space_fx(ChSharedPtr<ChFunction> m_funct) {
+void ChLinkTrajectory::Set_space_fx(std::shared_ptr<ChFunction> m_funct) {
     space_fx = m_funct;
 }
 
-void ChLinkTrajectory::Set_trajectory_line(ChSharedPtr<geometry::ChLine> mline) {
+void ChLinkTrajectory::Set_trajectory_line(std::shared_ptr<geometry::ChLine> mline) {
     trajectory_line = mline;
 }
-
-/////////    UPDATE TIME
-/////////
 
 void ChLinkTrajectory::UpdateTime(double time) {
     ChTime = time;
@@ -108,18 +76,15 @@ void ChLinkTrajectory::UpdateTime(double time) {
         // if line coordinate is relative to body2:
         marker2->Impose_Rel_Coord(CSYSNORM);
         deltaC.pos = result;
-        deltaC_dt.pos = (resultB - resultA) * 1 / (2 * tstep);
-        deltaC_dtdt.pos = (resultA + resultB - result * 2) * 4 / pow(2 * tstep, 2);
+        deltaC_dt.pos = (resultB - resultA) * (1 / (2 * tstep));
+        deltaC_dtdt.pos = (resultA + resultB - result * 2) * (4 / pow(2 * tstep, 2));
         /*
         // if line coordinate is relative to absolute space:
-        deltaC.pos = mw.MatrT_x_Vect(
-                            Vsub (result, marker2->GetAbsCoord().pos));  // ***  CORRECT?
-        deltaC_dt.pos =  mw.MatrT_x_Vect(
-                            Vmul( Vsub(resultB, resultA), 1/(2*tstep)) );
-        deltaC_dtdt.pos =  mw.MatrT_x_Vect (
-                            Vmul   ( Vadd (Vadd (resultA, resultB),
-                                   Vmul (result,-2)), 4/pow(2*tstep, 2) ) );
+        deltaC.pos = mw.transpose() * (result - marker2->GetAbsCoord().pos);  //// CORRECT?
+        deltaC_dt.pos = mw.transpose() * ((resultB - resultA) * (1 / (2 * tstep)));
+        deltaC_dtdt.pos = mw.transpose() * ((resultA + resultB - result * 2) * (4 / pow(2 * tstep, 2)));
         */
+
         deltaC.rot = QUNIT;
         deltaC_dt.rot = QNULL;
         deltaC_dtdt.rot = QNULL;
@@ -128,23 +93,20 @@ void ChLinkTrajectory::UpdateTime(double time) {
     }
 }
 
-void ChLinkTrajectory::Initialize(
-    ChSharedPtr<ChBody> mbody1,  ///< first  body to join (the one that follows the trajectory)
-    ChSharedPtr<ChBody> mbody2,  ///< second body to join (the one that contains the trajectory)
-    const ChVector<>& mpos1,     ///< position of the 'following point' on body1, relative to coordinate of body1.
-    ChSharedPtr<geometry::ChLine> mline  ///< the line on mbody2 to be followed by point mpos1 of mbody1
-    ) {
+void ChLinkTrajectory::Initialize(std::shared_ptr<ChBody> mbody1,
+                                  std::shared_ptr<ChBody> mbody2,
+                                  const ChVector<>& mpos1,
+                                  std::shared_ptr<geometry::ChLine> mline) {
     ChLinkMarkers::Initialize(mbody1, mbody2, true, ChCoordsys<>(mpos1), ChCoordsys<>());
     this->Set_trajectory_line(mline);
 }
 
-void ChLinkTrajectory::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChLinkTrajectory::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChLinkTrajectory>();
 
     // serialize parent class
-    ChLinkLock::ArchiveOUT(marchive);
+    ChLinkLockLock::ArchiveOUT(marchive);
 
     // serialize all member data:
     marchive << CHNVP(space_fx);
@@ -152,14 +114,12 @@ void ChLinkTrajectory::ArchiveOUT(ChArchiveOut& marchive)
     marchive << CHNVP(modulo_s);
 }
 
-/// Method to allow de serialization of transient data from archives.
-void ChLinkTrajectory::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChLinkTrajectory::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChLinkTrajectory>();
 
     // deserialize parent class
-    ChLinkLock::ArchiveIN(marchive);
+    ChLinkLockLock::ArchiveIN(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(space_fx);
@@ -167,8 +127,4 @@ void ChLinkTrajectory::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(modulo_s);
 }
 
-
-
-///////////////////////////////////////////////////////////////
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

@@ -1,28 +1,21 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2003, 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
-//////////////////////////////////////////////////
-//
-//   ChCNarrowPhaseCollider.cpp
-//
-// ------------------------------------------------
-// ------------------------------------------------
-///////////////////////////////////////////////////
+#include <cstdio>
+#include <cstring>
 
-#include <stdio.h>
-#include <string.h>
-
-#include "ChCMatVec.h"
-#include "ChCGetTime.h"
-#include "ChCNarrowPhaseCollider.h"
+#include "chrono/collision/edgetempest/ChCMatVec.h"
+#include "chrono/collision/edgetempest/ChCGetTime.h"
+#include "chrono/collision/edgetempest/ChCNarrowPhaseCollider.h"
 
 namespace chrono {
 namespace collision {
@@ -78,21 +71,21 @@ ChNarrowPhaseCollider::eCollSuccess ChNarrowPhaseCollider::ComputeCollisions(ChM
     this->num_geo_tests = 0;
 
     // don't release the memory,
-    // DONT reset the num_collision_pairs counter (may be mutiple calls for different object couples)
+    // DONT reset the num_collision_pairs counter (may be multiple calls for different object couples)
     // this->ClearPairsList();
 
     // Precompute useful matrices
 
-    this->R.MatrTMultiply(aR1, aR2);  //  MTxM(this->R,R1,R2);
+    this->R = aR1.transpose() *  aR2;  //  MTxM(this->R,R1,R2);
 
     static Vector Ttemp;
     Ttemp = Vsub(aT2, aT1);             // VmV(Ttemp, T2, T1);
-    this->T = aR1.MatrT_x_Vect(Ttemp);  // MTxV(this->T, R1, Ttemp);
+    this->T = aR1.transpose() * Ttemp;  // MTxV(this->T, R1, Ttemp);
 
     this->T1 = aT1;
     this->T2 = aT2;
-    this->R1.CopyFromMatrix(aR1);
-    this->R2.CopyFromMatrix(aR2);
+    this->R1 = aR1;
+    this->R2 = aR2;
 
     //
     // CHILD CLASSES SHOULD IMPLEMENT THE REST....
@@ -102,5 +95,5 @@ ChNarrowPhaseCollider::eCollSuccess ChNarrowPhaseCollider::ComputeCollisions(ChM
     return ChC_RESULT_OK;
 }
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono

@@ -145,7 +145,7 @@ void fm_eulerToQuat(float roll,float pitch,float yaw,float *quat) // convert eul
 	quat[3]   = cr * cpcy + sr * spsy;
 }
 
-void fm_quatToMatrix(const float *quat,float *matrix) // convert quaterinion rotation to matrix, zeros out the translation component.
+void fm_quatToMatrix(const float *quat,float *matrix) // convert quaternion rotation to matrix, zeros out the translation component.
 {
 
 	float xx = quat[0]*quat[0];
@@ -200,7 +200,7 @@ void fm_getTranslation(const float *matrix,float *t)
 	t[2] = matrix[3*4+2];
 }
 
-void fm_matrixToQuat(const float *matrix,float *quat) // convert the 3x3 portion of a 4x4 matrix into a quaterion as x,y,z,w
+void fm_matrixToQuat(const float *matrix,float *quat) // convert the 3x3 portion of a 4x4 matrix into a quaternion as x,y,z,w
 {
 
 	float tr = matrix[0*4+0] + matrix[1*4+1] + matrix[2*4+2];

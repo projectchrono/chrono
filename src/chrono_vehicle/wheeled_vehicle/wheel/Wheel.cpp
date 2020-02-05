@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -16,16 +16,12 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
-#include "chrono/assets/ChTexture.h"
-#include "chrono/assets/ChColorAsset.h"
-#include "chrono/physics/ChGlobal.h"
+#include <algorithm>
 
 #include "chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
-
-#include "thirdparty/rapidjson/filereadstream.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_thirdparty/filesystem/path.h"
 
 using namespace rapidjson;
 
@@ -33,55 +29,34 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// This utility function returns a ChVector from the specified JSON array
 // -----------------------------------------------------------------------------
-static ChVector<> loadVector(const Value& a) {
-    assert(a.IsArray());
-    assert(a.Size() == 3);
-
-    return ChVector<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-Wheel::Wheel(const std::string& filename) : m_vis(NONE) {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream(is);
+Wheel::Wheel(const std::string& filename) : ChWheel(""), m_radius(0), m_width(0), m_has_mesh(false) {
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     Create(d);
 
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-Wheel::Wheel(const rapidjson::Document& d) : m_vis(NONE), m_radius(0), m_width(0) {
+Wheel::Wheel(const rapidjson::Document& d) : ChWheel(""), m_radius(0), m_width(0), m_has_mesh(false) {
     Create(d);
 }
 
 void Wheel::Create(const rapidjson::Document& d) {
-    // Read top-level data
-    assert(d.HasMember("Type"));
-    assert(d.HasMember("Template"));
-    assert(d.HasMember("Name"));
+    // Invoke base class method.
+    ChPart::Create(d);
 
     // Read mass and inertia
     m_mass = d["Mass"].GetDouble();
-    m_inertia = loadVector(d["Inertia"]);
+    m_inertia = ReadVectorJSON(d["Inertia"]);
 
     // Check how to visualize this wheel.
     if (d.HasMember("Visualization")) {
         if (d["Visualization"].HasMember("Mesh Filename")) {
             m_meshFile = d["Visualization"]["Mesh Filename"].GetString();
-            m_meshName = d["Visualization"]["Mesh Name"].GetString();
-            m_vis = MESH;
-        } else {
-            m_vis = PRIMITIVES;
+            m_has_mesh = true;
         }
 
         m_radius = d["Visualization"]["Radius"].GetDouble();
@@ -91,40 +66,33 @@ void Wheel::Create(const rapidjson::Document& d) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void Wheel::Initialize(ChSharedPtr<ChBody> spindle) {
-    // Call the base class initialization function
-    ChWheel::Initialize(spindle);
-
-    // Attach visualization
-    switch (m_vis) {
-        case PRIMITIVES: {
-            ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
-            cyl->GetCylinderGeometry().rad = m_radius;
-            cyl->GetCylinderGeometry().p1 = ChVector<>(0, m_width / 2, 0);
-            cyl->GetCylinderGeometry().p2 = ChVector<>(0, -m_width / 2, 0);
-            spindle->AddAsset(cyl);
-
-            ChSharedPtr<ChTexture> tex(new ChTexture);
-            tex->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
-            spindle->AddAsset(tex);
-
-            break;
-        }
-        case MESH: {
-            geometry::ChTriangleMeshConnected trimesh;
-            trimesh.LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
-
-            ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
-            trimesh_shape->SetMesh(trimesh);
-            trimesh_shape->SetName(m_meshName);
-            spindle->AddAsset(trimesh_shape);
-
-            ChSharedPtr<ChColorAsset> mcolor(new ChColorAsset(0.3f, 0.3f, 0.3f));
-            spindle->AddAsset(mcolor);
-
-            break;
-        }
+void Wheel::AddVisualizationAssets(VisualizationType vis) {
+    if (vis == VisualizationType::MESH && m_has_mesh) {
+        ChQuaternion<> rot = (m_side == VehicleSide::LEFT) ? Q_from_AngZ(0) : Q_from_AngZ(CH_C_PI);
+        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+        trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
+        trimesh->Transform(ChVector<>(0, m_offset, 0), ChMatrix33<>(rot));
+        m_trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        m_trimesh_shape->Pos = ChVector<>(0, m_offset, 0);
+        m_trimesh_shape->Rot = ChMatrix33<>(rot);
+        m_trimesh_shape->SetMesh(trimesh);
+        m_trimesh_shape->SetName(filesystem::path(m_meshFile).stem());
+        m_trimesh_shape->SetStatic(true);
+        GetSpindle()->AddAsset(m_trimesh_shape);
+    } else {
+        ChWheel::AddVisualizationAssets(vis);
     }
+}
+
+void Wheel::RemoveVisualizationAssets() {
+    ChWheel::RemoveVisualizationAssets();
+
+    // Make sure we only remove the assets added by Wheel::AddVisualizationAssets.
+    // This is important for the ChWheel object because a tire may add its own assets
+    // to the same body (the spindle).
+    auto it = std::find(GetSpindle()->GetAssets().begin(), GetSpindle()->GetAssets().end(), m_trimesh_shape);
+    if (it != GetSpindle()->GetAssets().end())
+        GetSpindle()->GetAssets().erase(it);
 }
 
 }  // end namespace vehicle

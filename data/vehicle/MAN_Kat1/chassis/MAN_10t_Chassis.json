@@ -1,0 +1,30 @@
+{
+  "Name":     "MAN 10t chassis",
+  "Type":     "Chassis",
+  "Template": "RigidChassis",
+
+  "Components":
+  [
+   {
+     "Centroidal Frame":    {
+                              "Location":    [-2.248, 0, 0.744], 
+                              "Orientation": [1, 0, 0, 0]
+                            },
+     "Mass":                10785,
+     "Moments of Inertia":  [5238, 43361, 44746],
+     "Products of Inertia": [0, 0, 0],
+     "Void":                false
+   }
+  ],
+ 
+  "Driver Position":
+  {
+    "Location":     [0, 0.5, 1.2],
+    "Orientation":  [1, 0, 0, 0]
+  },
+
+  "Visualization":
+  {
+    "Mesh":  "MAN_Kat1/meshes/MAN_10t_chassis.obj"
+  }
+}

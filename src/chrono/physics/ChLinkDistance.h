@@ -1,34 +1,22 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010, 2012 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHLINKDISTANCE_H
 #define CHLINKDISTANCE_H
 
-///////////////////////////////////////////////////
-//
-//   ChLinkDistance.h
-//
-//   Class for enforcing a fixed polar distance
-//   between two points on two ChBody objects.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChLink.h"
-#include "lcp/ChLcpConstraintTwoBodies.h"
+#include "chrono/physics/ChLink.h"
+#include "chrono/solver/ChConstraintTwoBodies.h"
 
 namespace chrono {
 /// Class for enforcing a fixed polar distance
@@ -42,64 +30,43 @@ namespace chrono {
 /// the more advanced ChLinkLinActuator.
 
 class ChApi ChLinkDistance : public ChLink {
-    CH_RTTI(ChLinkDistance, ChLink);
 
   protected:
-    //
-    // DATA
-    //
-    // the imposed distance
-    double distance;
-    // the distance endpoints, in body rel.coords
-    ChVector<> pos1;
-    ChVector<> pos2;
-    // the constraint object
-    ChLcpConstraintTwoBodies Cx;
-
-    double curr_dist;  // used for internal optimizations
-
-    float cache_li_speed;  // used to cache the last computed value of multiplier (solver warm starting)
-    float cache_li_pos;    // used to cache the last computed value of multiplier (solver warm starting)
+    double distance;           ////< the imposed distance
+    ChVector<> pos1;           ////< first endpoint, in body rel.coords
+    ChVector<> pos2;           ////< second endpoint, in body rel.coords
+    ChConstraintTwoBodies Cx;  ////< the constraint object
+    double curr_dist;          ////< used for internal optimizations
 
   public:
-    //
-    // CONSTRUCTORS
-    //
-
     ChLinkDistance();
+    ChLinkDistance(const ChLinkDistance& other);
+    virtual ~ChLinkDistance() {}
 
-    virtual ~ChLinkDistance();
-    virtual void Copy(ChLinkDistance* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
-
-    //
-    // FUNCTIONS
-    //
-
-    virtual int GetType() { return LNK_GEOMETRICDISTANCE; }
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkDistance* Clone() const override { return new ChLinkDistance(*this); }
 
     /// Initialize this constraint, given the two bodies to be connected, the
     /// positions of the two anchor endpoints of the distance (each expressed
     /// in body or abs. coordinates) and the imposed distance.
     virtual int Initialize(
-        ChSharedPtr<ChBodyFrame> mbody1,  ///< first frame to link
-        ChSharedPtr<ChBodyFrame> mbody2,  ///< second frame to link
-        bool pos_are_relative,  ///< true: following posit. are considered relative to bodies. false: pos.are absolute
-        ChVector<> mpos1,       ///< position of distance endpoint, for 1st body (rel. or abs., see flag above)
-        ChVector<> mpos2,       ///< position of distance endpoint, for 2nd body (rel. or abs., see flag above)
-        bool auto_distance = true,  ///< if true, initializes the imposed distance as the distance between mpos1 and
-        /// mpos2
-        double mdistance = 0  ///< imposed distance (no need to define, if auto_distance=true.)
+        std::shared_ptr<ChBodyFrame> mbody1,  ///< first frame to link
+        std::shared_ptr<ChBodyFrame> mbody2,  ///< second frame to link
+        bool pos_are_relative,                ///< true: following pos. are relative to bodies
+        ChVector<> mpos1,                     ///< pos. of distance endpoint, for 1st body (rel. or abs., see flag above)
+        ChVector<> mpos2,                     ///< pos. of distance endpoint, for 2nd body (rel. or abs., see flag above)
+        bool auto_distance = true,            ///< if true, initializes the imposed distance as the distance between mpos1 and mpos2
+        double mdistance = 0                  ///< imposed distance (no need to define, if auto_distance=true.)
         );
 
     /// Get the number of (bilateral) constraints introduced by this link.
-    virtual int GetDOC_c() { return 1; }
+    virtual int GetDOC_c() override { return 1; }
 
     /// Get the link coordinate system, expressed relative to Body2 (the 'master'
     /// body). This represents the 'main' reference of the link: reaction forces
     /// are expressed in this coordinate system.
     /// (It is the coordinate system of the contact plane relative to Body2)
-    virtual ChCoordsys<> GetLinkRelativeCoords();
+    virtual ChCoordsys<> GetLinkRelativeCoords() override;
 
     /// Get the 1st anchor endpoint for the distance (expressed in Body1 coordinate system)
     ChVector<> GetEndPoint1Rel() const { return pos1; }
@@ -111,7 +78,7 @@ class ChApi ChLinkDistance : public ChLink {
     void SetEndPoint1Abs(ChVector<>& mset) { pos1 = ((ChFrame<double>*)Body1)->TransformParentToLocal(mset); }
 
     /// Get the 2nd anchor endpoint for the distance (expressed in Body2 coordinate system)
-    ChVector<> GetEndPoint2Rel() const { return pos2; };
+    ChVector<> GetEndPoint2Rel() const { return pos2; }
     /// Set the 2nd anchor endpoint for the distance (expressed in Body2 coordinate system)
     void SetEndPoint2Rel(const ChVector<>& mset) { pos2 = mset; }
     /// Get the 1st anchor endpoint for the distance (expressed in absolute coordinate system)
@@ -124,74 +91,66 @@ class ChApi ChLinkDistance : public ChLink {
     /// Set the imposed distance
     void SetImposedDistance(const double mset) { distance = mset; }
     /// Get the distance currently existing between the two endpoints
-    double GetCurrentDistance() const {
-        return (((ChFrame<double>*)Body1)->TransformLocalToParent(pos1) -
-                ((ChFrame<double>*)Body2)->TransformLocalToParent(pos2)).Length();
-    };
+    double GetCurrentDistance() const;
+
     /// Get the constraint violation
     double GetC() const { return GetCurrentDistance() - distance; }
-
-    //
-    // UPDATING FUNCTIONS
-    //
 
     /// Override _all_ time, jacobian etc. updating.
     /// In detail, it computes jacobians, violations, etc. and stores
     /// results in inner structures.
-    virtual void Update(double mtime, bool update_assets = true);
+    virtual void Update(double mtime, bool update_assets = true) override;
 
     //
     // STATE FUNCTIONS
     //
 
-    // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L);
-    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L);
+    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
+    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
     virtual void IntLoadResidual_CqL(const unsigned int off_L,
                                      ChVectorDynamic<>& R,
                                      const ChVectorDynamic<>& L,
-                                     const double c);
+                                     const double c) override;
     virtual void IntLoadConstraint_C(const unsigned int off,
                                      ChVectorDynamic<>& Qc,
                                      const double c,
                                      bool do_clamp,
-                                     double recovery_clamp);
-    virtual void IntToLCP(const unsigned int off_v,
-                          const ChStateDelta& v,
-                          const ChVectorDynamic<>& R,
-                          const unsigned int off_L,
-                          const ChVectorDynamic<>& L,
-                          const ChVectorDynamic<>& Qc);
-    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
+                                     double recovery_clamp) override;
+    virtual void IntToDescriptor(const unsigned int off_v,
+                                 const ChStateDelta& v,
+                                 const ChVectorDynamic<>& R,
+                                 const unsigned int off_L,
+                                 const ChVectorDynamic<>& L,
+                                 const ChVectorDynamic<>& Qc) override;
+    virtual void IntFromDescriptor(const unsigned int off_v,
+                                   ChStateDelta& v,
+                                   const unsigned int off_L,
+                                   ChVectorDynamic<>& L) override;
 
     //
-    // LCP INTERFACE
+    // SOLVER INTERFACE
     //
 
-    virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor);
-    virtual void ConstraintsBiReset();
-    virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
-    virtual void ConstraintsLoadJacobians();
-    virtual void ConstraintsFetch_react(double factor = 1.);
-    virtual void ConstraintsLiLoadSuggestedSpeedSolution();
-    virtual void ConstraintsLiLoadSuggestedPositionSolution();
-    virtual void ConstraintsLiFetchSuggestedSpeedSolution();
-    virtual void ConstraintsLiFetchSuggestedPositionSolution();
+    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override;
+    virtual void ConstraintsBiReset() override;
+    virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
+    virtual void ConstraintsLoadJacobians() override;
+    virtual void ConstraintsFetch_react(double factor = 1) override;
 
     //
     // SERIALIZATION
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-//////////////////////////////////////////////////////
-//////////////////////////////////////////////////////
+CH_CLASS_VERSION(ChLinkDistance,0)
 
-}  // END_OF_NAMESPACE____
+
+}  // end namespace chrono
 
 #endif

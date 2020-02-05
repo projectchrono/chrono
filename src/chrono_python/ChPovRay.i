@@ -12,6 +12,4 @@
 %include "../chrono_postprocess/ChPovRay.h"    
 
 
-// Define also the shared pointer chrono::ChShared<thisclass> 
 
-//%DefChSharedPtr(chrono::,ChPovRay)

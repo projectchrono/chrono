@@ -1,47 +1,42 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-
-#ifndef CHC_SWEEPANDPRUNE_H
-#define CHC_SWEEPANDPRUNE_H
-
-//////////////////////////////////////////////////
-//
-//   ChCSweepAndPrune.h
-//
-//   Header for the 'sweep and prune' broad-phase
-//   collision detection stage.
-//
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 //   Part of the code is a modified version of the
 //   retro_sweepnprune.h code from the OpenTissue
 //   project, by K.Erleben:
 //
 //   "OpenTissue, A toolbox for physical based simulation and animation.
 //   Copyright (C) 2004 Department of Computer Science, University of Copenhagen"
-//
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
+// ==============================================================================
+
+
+#ifndef CHC_SWEEPANDPRUNE_H
+#define CHC_SWEEPANDPRUNE_H
 
 #if (_MSC_VER >= 1200)
 #pragma warning(4 : 4786)
 #endif
 
-#include "geometry/ChCGeometry.h"
-#include "ChCBroadPhaseCollider.h"
-#include "core/ChWrapHashmap.h"
+#include "chrono/collision/edgetempest/ChCBroadPhaseCollider.h"
+#include "chrono/geometry/ChGeometry.h"
+
+#ifdef COMPILER_GCC
+#include <ext/hash_map>
+namespace chronohash = ::__gnu_cxx;
+#else
+#include <hash_map>
+namespace chronohash = ::stdext;  // NOTE: in Visual C++ Toolkit 2003 is ::std;
+#endif
 
 namespace chrono {
 namespace collision {
@@ -232,7 +227,7 @@ class ChSweepAndPrune : public ChBroadPhaseCollider<model_type> {
             //--- Check if we encountered an element that was smaller
             //--- than its left neighbor
             if (isWrong(*left, *scan)) {
-                //--- If so we contineously swap the element to the left
+                //--- If so we continuously swap the element to the left
                 //--- in the list until its left neighbor is no longer
                 //--- bigger than itself
                 typename ChAxisOfCoordinates::iterator _right;
@@ -352,7 +347,7 @@ class ChSweepAndPrune : public ChBroadPhaseCollider<model_type> {
 
 };  // end of s&p class
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono
 
 #endif
