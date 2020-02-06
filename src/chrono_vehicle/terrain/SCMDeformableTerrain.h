@@ -48,7 +48,7 @@ class SCMDeformableSoil;
 /// Deformable terrain model.
 /// This class implements a deformable terrain based on the Soil Contact Model.
 /// Unlike RigidTerrain, the vertical coordinates of this terrain mesh can be deformed
-/// because of interaction with ground vehicles.
+/// due to interaction with ground vehicles or other collision shapes.
 class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
   public:
     enum DataPlotType {
@@ -101,17 +101,14 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
                     );
 
     /// Set the plane reference.
-    /// The soil height is on the Y axis of this plane, and X-Z axes of the coordsys are the
-    /// longitude-latitude. To set as Z up, do SetPlane(ChCoordys(VNULL, Q_from_AngAxis(VECT_X,-CH_C_PI_2)));
+    /// By default, the reference plane is horizontal with Z up (ISO vehicle reference frame).
+    /// To set as Y up, call SetPlane(ChCoordys(VNULL, Q_from_AngX(-CH_C_PI_2)));
     void SetPlane(ChCoordsys<> mplane);
 
-    /// Get the plane reference.
-    /// The soil height is on the Y axis of this plane, and X-Z axes of the coordsys are the
-    /// longitude-latitude.
+    /// Get the current reference plane. The SCM terrain patch is in the (x,y) plane with normal along the Z axis.
     const ChCoordsys<>& GetPlane() const;
 
-    /// Get the mesh.
-    /// The soil mesh is defined by a trimesh.
+    /// Get the underlyinh triangular mesh.
     const std::shared_ptr<ChTriangleMeshShape> GetMesh() const;
 
     /// Set the properties of the SCM soil model.
@@ -131,13 +128,11 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
                             ///is zero in original SCM model)
         );
 
-    /// If true, enable the creation of soil inflation at the side of the ruts,
-    /// like bulldozing the material apart.
+    /// Enable/disable the creation of soil inflation at the side of the ruts (bulldozing effects).
     void SetBulldozingFlow(bool mb);
     bool GetBulldozingFlow() const;
 
-    /// If true, enable the creation of soil inflation at the side of the ruts,
-    /// like bulldozing the material apart. Remember to enable SetBulldozingFlow(true).
+    /// Set parameters controlling the creation of side ruts (bulldozing effects).
     void SetBulldozingParameters(
         double mbulldozing_erosion_angle,            ///< angle of erosion of the displaced material (in degrees!)
         double mbulldozing_flow_factor = 1.0,        ///< growth of lateral volume respect to pressed volume
@@ -145,31 +140,27 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
         int mbulldozing_erosion_n_propagations = 10  ///< number of concentric vertex selections subject to erosion
         );
 
-    /// If true, enable the dynamic refinement of mesh LOD, so that additional
-    /// points are added under the contact patch, up to reach the desired resolution.
+    /// Enable/disable dynamic mesh refinement.
+    /// If enabled, additional points are added under contact patches, up to the desired resolution.
     void SetAutomaticRefinement(bool mr);
     bool GetAutomaticRefinement() const;
 
-    /// Additional points are added under the contact patch, up to reach the desired resolution.
-    /// Using smaller resolution value (in meters) means that triangles in the mesh are subdivided up to
-    /// when the largest side is equal or less than the resolution. Triangles out of the contact patch are not refined.
-    /// Note, you must turn on automatic refinement via SetAutomaticRefinement(true)!
+    /// Set the resolution for automatic mesh refinement (specified in meters).
+    /// The mesh is refined, as needed, until the largest side of a triangle reaches trhe specified resolution.
+    /// Triangles out of contact patches are not refined.
     void SetAutomaticRefinementResolution(double mr);
     double GetAutomaticRefinementResolution() const;
 
-    /// This value says up to which vertical level the collision is tested - respect to current ground level
-    /// at the sample point.
-    /// Since the contact is unilateral, this could be zero. However when computing bulldozing
-    /// flow, if enabled, one might also need to know if in the surrounding there is some potential future contact: so
-    /// it
-    /// might be better to use a positive value (but not higher than the max. expected height of the bulldozed rubble,
-    /// to
-    /// avoid slowdown of collision tests).
+    /// Set the vertical level up to which collision is tested (relative to the reference level at the sample point).
+    /// Since the contact is unilateral, this could be zero. However, when computing bulldozing flow, one might also
+    /// need to know if in the surrounding there is some potential future contact: so it might be better to use a
+    /// positive value (but not higher than the max. expected height of the bulldozed rubble, to avoid slowdown of
+    /// collision tests).
     void SetTestHighOffset(double moff);
     double GetTestHighOffset() const;
 
     /// Set the color plot type for the soil mesh.
-    /// Also, when a scalar plot is used, also define which is the max-min range in the falsecolor colormap.
+    /// When a scalar plot is used, also define the range in the pseudo-color colormap.
     void SetPlotType(DataPlotType mplot, double mmin, double mmax);
 
     /// Enable moving patch an set parameters (default: disabled).
@@ -205,6 +196,7 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
                     double hMax                         ///< [in] maximum height (white level)
                     );
 
+    /// Return the current cumulative contact force on the specified body (due to interaction with the SCM terrain).
     TerrainForce GetContactForce(std::shared_ptr<ChBody> body) const;
 
     /// Print timing and counter information for last step.

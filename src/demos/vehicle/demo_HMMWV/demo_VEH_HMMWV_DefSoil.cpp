@@ -240,7 +240,6 @@ int main(int argc, char* argv[]) {
     switch (terrain_type) {
         case DEFORMABLE_SOIL: {
             SCMDeformableTerrain* terrainD = new SCMDeformableTerrain(system);
-            terrainD->SetPlane(ChCoordsys<>(VNULL, Q_from_AngX(CH_C_PI_2)));
             terrainD->SetSoilParametersSCM(2e6,   // Bekker Kphi
                                            0,     // Bekker Kc
                                            1.1,   // Bekker n exponent

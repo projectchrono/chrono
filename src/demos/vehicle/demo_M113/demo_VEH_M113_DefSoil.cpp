@@ -148,7 +148,6 @@ int main(int argc, char* argv[]) {
 
     // Create the terrain
     SCMDeformableTerrain terrain(vehicle.GetSystem());
-    terrain.SetPlane(ChCoordsys<>(VNULL, Q_from_AngX(CH_C_PI_2)));
     terrain.SetSoilParametersSCM(2e7,   // Bekker Kphi
                                  0,     // Bekker Kc
                                  1.1,   // Bekker n exponent

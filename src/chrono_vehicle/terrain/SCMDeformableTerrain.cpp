@@ -52,7 +52,7 @@ double SCMDeformableTerrain::GetHeight(double x, double y) const {
 // Return the terrain normal at the specified location
 ChVector<> SCMDeformableTerrain::GetNormal(double x, double y) const {
     //// TODO
-    return m_ground->plane.TransformDirectionLocalToParent(ChVector<>(0, 1, 0));
+    return m_ground->plane.TransformDirectionLocalToParent(ChVector<>(0, 0, 1));
 }
 
 // Return the terrain coefficient of friction at the specified location
@@ -299,9 +299,9 @@ void SCMDeformableSoil::Initialize(double height, double sizeX, double sizeY, in
         for (unsigned int ix = 0; ix < nvx; ++ix) {
             double x = ix * dx - 0.5 * sizeX;
             // Set vertex location
-            vertices[iv] = plane * ChVector<>(x, height, y);
+            vertices[iv] = plane * ChVector<>(x, y, height);
             // Initialize vertex normal to Y up
-            normals[iv] = plane.TransformDirectionLocalToParent(ChVector<>(0, 1, 0));
+            normals[iv] = plane.TransformDirectionLocalToParent(ChVector<>(0, 0, 1));
             // Assign color white to all vertices
             //colors[iv] = ChVector<float>(1, 1, 1);
             // Set UV coordinates in [0,1] x [0,1]
@@ -403,7 +403,7 @@ void SCMDeformableSoil::Initialize(const std::string& heightmap_file,
             // Map gray level to vertex height
             double z = hMin + gray * h_scale;
             // Set vertex location
-            vertices[iv] = plane * ChVector<>(x, z, y);
+            vertices[iv] = plane * ChVector<>(x, y, z);
             // Initialize vertex normal to (0, 0, 0).
             normals[iv] = ChVector<>(0, 0, 0);
             // Assign color white to all vertices
@@ -482,7 +482,7 @@ void SCMDeformableSoil::SetupAuxData() {
     p_erosion.resize(vertices.size());
 
     for (int i=0; i< vertices.size(); ++i) {
-        p_level[i] = plane.TransformParentToLocal(vertices[i]).y();
+        p_level[i] = plane.TransformParentToLocal(vertices[i]).z();
         p_level_initial[i] = p_level[i];
     }
 
@@ -540,8 +540,8 @@ void SCMDeformableSoil::ComputeInternalForces() {
         ChVector<> AC = vertices[idx_vertices[it][2]] - vertices[idx_vertices[it][1]];
         AB = plane.TransformDirectionParentToLocal(AB);
         AC = plane.TransformDirectionParentToLocal(AC);
-        AB.y()=0;
-        AC.y()=0;
+        AB.z()=0;
+        AC.z()=0;
         double triangle_area = 0.5*(Vcross(AB,AC)).Length();
         p_area[idx_normals[it][0]] += triangle_area /3.0;
         p_area[idx_normals[it][1]] += triangle_area /3.0;
@@ -550,7 +550,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
 
     m_timer_calc_areas.stop();
 
-    ChVector<> N = plane.TransformDirectionLocalToParent(ChVector<>(0, 1, 0));
+    ChVector<> N = plane.TransformDirectionLocalToParent(ChVector<>(0, 0, 1));
 
     //
     // Perform ray casting test to detect the contact point sinkage
@@ -588,7 +588,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
         p_sinkage_elastic[i] = 0;
         p_step_plastic_flow[i] = 0;
         p_erosion[i] = false;
-        p_level[i] = plane.TransformParentToLocal(vertices[i]).y();
+        p_level[i] = plane.TransformParentToLocal(vertices[i]).z();
         p_hit_level[i] = 1e9;
 
         // Skip vertices outside moving patch
@@ -650,7 +650,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
     std::vector<PatchRecord> patches(num_patches);
     for (auto& h : hits) {
         ChVector<> v = plane.TransformParentToLocal(vertices[h.first]);
-        patches[h.second.patch_id].points.push_back(ChVector2<>(v.x(), v.z()));
+        patches[h.second.patch_id].points.push_back(ChVector2<>(v.x(), v.y()));
     }
 
     // Calculate area and perimeter of each patch.
@@ -681,15 +681,15 @@ void SCMDeformableSoil::ComputeInternalForces() {
 
         double p_hit_offset = 1e9;
 
-        p_hit_level[i] = plane.TransformParentToLocal(abs_point).y();
+        p_hit_level[i] = plane.TransformParentToLocal(abs_point).z();
         p_hit_offset = -p_hit_level[i] + p_level_initial[i];
 
         p_speeds[i] = contactable->GetContactPointSpeed(vertices[i]);
 
         ChVector<> T = -p_speeds[i];
         T = plane.TransformDirectionParentToLocal(T);
-        double Vn = -T.y();
-        T.y() = 0;
+        double Vn = -T.z();
+        T.z() = 0;
         T = plane.TransformDirectionLocalToParent(T);
         T.Normalize();
 
@@ -838,7 +838,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
         public:
             virtual double ComputeLength(const int vert_a, const int  vert_b, geometry::ChTriangleMeshConnected* mmesh) {
                 ChVector<> d = A.transpose() * (mmesh->m_vertices[vert_a] - mmesh->m_vertices[vert_b]);
-                d.y() = 0;
+                d.z() = 0;
                 return d.Length();
             }
             ChMatrix33<> A;
@@ -881,8 +881,8 @@ void SCMDeformableSoil::ComputeInternalForces() {
             ChVector<> AC = vertices[idx_vertices[it][2]] - vertices[idx_vertices[it][0]];
             AB = plane.TransformDirectionParentToLocal(AB);
             AC = plane.TransformDirectionParentToLocal(AC);
-            AB.y() = 0;
-            AC.y() = 0;
+            AB.z() = 0;
+            AC.z() = 0;
             double triangle_area = 0.5 * (Vcross(AB, AC)).Length();
             p_area[idx_normals[it][0]] += triangle_area / 3.0;
             p_area[idx_normals[it][1]] += triangle_area / 3.0;
@@ -1042,7 +1042,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
                     if (p_sigma[ivc] == 0) {
                         ChVector<> vic = this->plane.TransformParentToLocal(vertices[ivc]);
                         ChVector<> vdist = vic-vis;
-                        vdist.y() = 0;
+                        vdist.z() = 0;
                         double ddist = vdist.Length();
                         double dy = p_level[is] + p_massremainder[is]  - p_level[ivc] - p_massremainder[ivc];
                         double dy_lim = ddist * tan(bulldozing_erosion_angle*CH_C_DEG_TO_RAD);

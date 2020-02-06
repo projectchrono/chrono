@@ -107,8 +107,10 @@ int main(int argc, char* argv[]) {
     // Create the 'deformable terrain' object
     vehicle::SCMDeformableTerrain mterrain(&my_system);
 
-    // Optionally, displace/tilt/rotate the terrain reference plane:
-    mterrain.SetPlane(ChCoordsys<>(ChVector<>(0, 0, 0.3)));
+    // Displace/rotate the terrain reference plane.
+    // Note that SCMDeformableTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
+    // a Y-up global frame, we rotate the terrain plane by -90 degrees about the X axis.
+    mterrain.SetPlane(ChCoordsys<>(ChVector<>(0, 0, 0.3), Q_from_AngX(-CH_C_PI_2)));
 
     // Initialize the geometry of the soil: use either a regular grid:
      mterrain.Initialize(0.2,1.5,5,20,60);

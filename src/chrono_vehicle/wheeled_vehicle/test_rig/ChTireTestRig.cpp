@@ -404,7 +404,7 @@ void ChTireTestRig::CreateTerrainSCM() {
     int ndivY = (int)std::ceil(m_params_SCM.width * factor);
 
     auto terrain = chrono_types::make_shared<vehicle::SCMDeformableTerrain>(m_system);
-    terrain->SetPlane(ChCoordsys<>(location, Q_from_AngX(CH_C_PI_2)));
+    terrain->SetPlane(ChCoordsys<>(location));
     terrain->SetSoilParametersSCM(m_params_SCM.Bekker_Kphi, m_params_SCM.Bekker_Kc, m_params_SCM.Bekker_n,            //
                                   m_params_SCM.Mohr_cohesion, m_params_SCM.Mohr_friction, m_params_SCM.Janosi_shear,  //
                                   E_elastic, damping);

@@ -40,10 +40,7 @@ int main(int argc, char* argv[]) {
 
     // Global parameter for tire:
     double tire_rad = 0.8;
-    double tire_vel_z0 = -3;
     ChVector<> tire_center(0, 0.02 + tire_rad, 0);
-
-    double tire_w0 = tire_vel_z0 / tire_rad;
 
     // Create a Chrono::Engine physical system
     ChSystemSMC my_system;
@@ -102,7 +99,7 @@ int main(int argc, char* argv[]) {
     auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     motor->SetSpindleConstraint(ChLinkMotorRotation::SpindleConstraint::OLDHAM);
     motor->SetAngleFunction(chrono_types::make_shared<ChFunction_Ramp>(0, CH_C_PI / 4.0));
-    motor->Initialize(mrigidbody, mtruss, ChFrame<>(tire_center, Q_from_AngAxis(CH_C_PI_2, VECT_Y)));
+    motor->Initialize(mrigidbody, mtruss, ChFrame<>(tire_center, Q_from_AngY(CH_C_PI_2)));
     my_system.Add(motor);
 
     //
@@ -112,8 +109,10 @@ int main(int argc, char* argv[]) {
     // Create the 'deformable terrain' object
     vehicle::SCMDeformableTerrain mterrain(&my_system);
 
-    // Optionally, displace/tilt/rotate the terrain reference plane:
-    mterrain.SetPlane(ChCoordsys<>(ChVector<>(0, 0, 0.5)));
+    // Displace/rotate the terrain reference plane.
+    // Note that SCMDeformableTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
+    // a Y-up global frame, we rotate the terrain plane by -90 degrees about the X axis.
+    mterrain.SetPlane(ChCoordsys<>(ChVector<>(0, 0, 0.5), Q_from_AngX(-CH_C_PI_2)));
 
     // Initialize the geometry of the soil: use either a regular grid:
     mterrain.Initialize(0.2, 1.5, 5, 20, 60);
