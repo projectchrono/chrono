@@ -563,11 +563,13 @@ void SCMDeformableSoil::ComputeInternalForces() {
     ChVector2<> patch_min;
     ChVector2<> patch_max;
     if (m_moving_patch) {
-        ChVector<> center = m_body->GetFrame_REF_to_abs().TransformPointLocalToParent(m_body_point);
-        patch_min.x() = center.x() - m_patch_dim.x() / 2;
-        patch_min.y() = center.y() - m_patch_dim.y() / 2;
-        patch_max.x() = center.x() + m_patch_dim.x() / 2;
-        patch_max.y() = center.y() + m_patch_dim.y() / 2;
+        ChVector<> center_abs = m_body->GetFrame_REF_to_abs().TransformPointLocalToParent(m_body_point);
+        ChVector<> center_loc = plane.TransformPointParentToLocal(center_abs);
+
+        patch_min.x() = center_loc.x() - m_patch_dim.x() / 2;
+        patch_min.y() = center_loc.y() - m_patch_dim.y() / 2;
+        patch_max.x() = center_loc.x() + m_patch_dim.x() / 2;
+        patch_max.y() = center_loc.y() + m_patch_dim.y() / 2;
     }
 
     // Loop through all vertices.
@@ -583,18 +585,20 @@ void SCMDeformableSoil::ComputeInternalForces() {
     std::unordered_map<int, HitRecord> hits;
 
     for (int i = 0; i < vertices.size(); ++i) {
+        auto vertex_loc = plane.TransformParentToLocal(vertices[i]);
+
         // Initialize SCM quantities at current vertex
         p_sigma[i] = 0;
         p_sinkage_elastic[i] = 0;
         p_step_plastic_flow[i] = 0;
         p_erosion[i] = false;
-        p_level[i] = plane.TransformParentToLocal(vertices[i]).z();
+        p_level[i] = vertex_loc.z();
         p_hit_level[i] = 1e9;
 
         // Skip vertices outside moving patch
         if (m_moving_patch) {
-            if (vertices[i].x() < patch_min.x() || vertices[i].x() > patch_max.x() || vertices[i].y() < patch_min.y() ||
-                vertices[i].y() > patch_max.y()) {
+            if (vertex_loc.x() < patch_min.x() || vertex_loc.x() > patch_max.x() || vertex_loc.y() < patch_min.y() ||
+                vertex_loc.y() > patch_max.y()) {
                 continue;
             }
         }
