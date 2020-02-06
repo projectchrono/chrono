@@ -88,14 +88,14 @@ terrain.SetPlane(chrono.ChCoordsysD(chrono.ChVectorD(0,0,0.5), chrono.Q_from_Ang
 terrain.Initialize(0.2, 1.5, 5, 20, 60)
 
 # Set soil properties
-terrain.SetSoilParametersSCM(0.2e6,  # Bekker Kphi
-                             0,      # Bekker Kc
-                             1.1,    # Bekker n exponent
-                             0,      # Mohr cohesive limit (Pa)
-                             30,     # Mohr friction limit (degrees)
-                             0.01,   # Janosi shear coefficient (m)
-                             4e7,    # Elastic stiffness (Pa/m), before plastic yield, must be > Kphi
-                             3e4)    # Damping (Pa s/m), proportional to negative vertical speed (optional)
+terrain.SetSoilParameters(0.2e6,  # Bekker Kphi
+                          0,      # Bekker Kc
+                          1.1,    # Bekker n exponent
+                          0,      # Mohr cohesive limit (Pa)
+                          30,     # Mohr friction limit (degrees)
+                          0.01,   # Janosi shear coefficient (m)
+                          4e7,    # Elastic stiffness (Pa/m), before plastic yield, must be > Kphi
+                          3e4)    # Damping (Pa s/m), proportional to negative vertical speed (optional)
 
 # Enable bulldozing effects (inflate soil at the border of the rut)
 terrain.SetBulldozingFlow(True)

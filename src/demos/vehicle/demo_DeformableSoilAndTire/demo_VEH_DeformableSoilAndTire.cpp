@@ -118,15 +118,15 @@ int main(int argc, char* argv[]) {
     //mterrain.Initialize(vehicle::GetDataFile("terrain/height_maps/test64.bmp"), "test64", 1.6, 1.6, 0, 0.3);
 
     // Set the soil terramechanical parameters:
-    mterrain.SetSoilParametersSCM(1.2e6,  // Bekker Kphi
-                                    0,   // Bekker Kc
-                                    1.1, // Bekker n exponent
-                                    0,   // Mohr cohesive limit (Pa)
-                                    30,  // Mohr friction limit (degrees)
-                                    0.01,// Janosi shear coefficient (m)
-                                    5e7, // Elastic stiffness (Pa/m), before plastic yield, must be > Kphi
-                                    2e4  // Damping (Pa s/m), proportional to negative vertical speed (optional)
-                                    );
+     mterrain.SetSoilParameters(1.2e6,  // Bekker Kphi
+                                0,      // Bekker Kc
+                                1.1,    // Bekker n exponent
+                                0,      // Mohr cohesive limit (Pa)
+                                30,     // Mohr friction limit (degrees)
+                                0.01,   // Janosi shear coefficient (m)
+                                5e7,    // Elastic stiffness (Pa/m), before plastic yield, must be > Kphi
+                                2e4     // Damping (Pa s/m), proportional to negative vertical speed (optional)
+     );
     mterrain.SetBulldozingFlow(true);    // inflate soil at the border of the rut
     mterrain.SetBulldozingParameters(55, // angle of friction for erosion of displaced material at the border of the rut
                                     0.8, // displaced material vs downward pressed material.

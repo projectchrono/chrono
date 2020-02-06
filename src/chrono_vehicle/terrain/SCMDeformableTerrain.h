@@ -71,62 +71,29 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
     /// Construct a default SCMDeformableSoil.
     /// The user is responsible for calling various Set methods before Initialize.
     SCMDeformableTerrain(ChSystem* system  ///< [in] pointer to the containing multibody system
-                         );
+    );
 
     ~SCMDeformableTerrain() {}
-
-    /// Get the terrain height at the specified (x,y) location.
-    virtual double GetHeight(double x, double y) const override;
-
-    /// Get the terrain normal at the specified (x,y) location.
-    virtual chrono::ChVector<> GetNormal(double x, double y) const override;
-
-    /// Get the coefficient of friction at the specified (x,y) location.
-    /// This coefficient of friction value may be used by certain tire models to modify
-    /// the tire characteristics, but it will have no effect on the interaction of the terrain
-    /// with other objects (including tire models that do not explicitly use it).
-    /// For SCMDeformableTerrain, this function defers to the user-provided functor object
-    /// of type ChTerrain::FrictionFunctor, if one was specified.
-    /// Otherwise, it returns the constant value of 0.8.
-    virtual float GetCoefficientFriction(double x, double y) const override;
-
-    /// Set visualization color.
-    void SetColor(ChColor color  ///< [in] color of the visualization material
-                  );
-
-    /// Set texture properties.
-    void SetTexture(const std::string tex_file,  ///< [in] texture filename
-                    float tex_scale_x = 1,       ///< [in] texture scale in X
-                    float tex_scale_y = 1        ///< [in] texture scale in Y
-                    );
 
     /// Set the plane reference.
     /// By default, the reference plane is horizontal with Z up (ISO vehicle reference frame).
     /// To set as Y up, call SetPlane(ChCoordys(VNULL, Q_from_AngX(-CH_C_PI_2)));
     void SetPlane(ChCoordsys<> mplane);
 
-    /// Get the current reference plane. The SCM terrain patch is in the (x,y) plane with normal along the Z axis.
-    const ChCoordsys<>& GetPlane() const;
-
-    /// Get the underlyinh triangular mesh.
-    const std::shared_ptr<ChTriangleMeshShape> GetMesh() const;
-
     /// Set the properties of the SCM soil model.
-    /// The meaning of these parameters is described in the paper:
-    // "Parameter Identification of a Planetary Rover Wheel–Soil
-    // Contact Model via a Bayesian Approach", A.Gallina, R. Krenn et al.
-    void SetSoilParametersSCM(
-        double mBekker_Kphi,    ///< Kphi, frictional modulus in Bekker model
-        double mBekker_Kc,      ///< Kc, cohesive modulus in Bekker model
-        double mBekker_n,       ///< n, exponent of sinkage in Bekker model (usually 0.6...1.8)
-        double mMohr_cohesion,  ///< Cohesion in, Pa, for shear failure
-        double mMohr_friction,  ///< Friction angle (in degrees!), for shear failure
-        double mJanosi_shear,   ///< J , shear parameter, in meters, in Janosi-Hanamoto formula (usually few mm or cm)
-        double melastic_K,  ///< elastic stiffness K, per unit area, [Pa/m] (must be > Kphi; very high values gives the
-                            ///original SCM model)
-        double mdamping_R   ///< vertical damping R, per unit area [Pa s/m] (proportional to vertical negative speed, it
-                            ///is zero in original SCM model)
-        );
+    /// These parameters are described in: "Parameter Identification of a Planetary Rover Wheel-Soil Contact Model via a
+    /// Bayesian Approach", A.Gallina, R. Krenn et al. Note that the original SCM model does not include the K and R
+    /// coefficients. A very large value of K and R=0 reproduce the original SCM.
+    void SetSoilParameters(
+        double Bekker_Kphi,    ///< Kphi, frictional modulus in Bekker model
+        double Bekker_Kc,      ///< Kc, cohesive modulus in Bekker model
+        double Bekker_n,       ///< n, exponent of sinkage in Bekker model (usually 0.6...1.8)
+        double Mohr_cohesion,  ///< Cohesion in, Pa, for shear failure
+        double Mohr_friction,  ///< Friction angle (in degrees!), for shear failure
+        double Janosi_shear,   ///< J , shear parameter, in meters, in Janosi-Hanamoto formula (usually few mm or cm)
+        double elastic_K,      ///< elastic stiffness K, per unit area, [Pa/m] (must be larger than Kphi)
+        double damping_R       ///< vertical damping R, per unit area [Pa s/m] (proportional to vertical speed)
+    );
 
     /// Enable/disable the creation of soil inflation at the side of the ruts (bulldozing effects).
     void SetBulldozingFlow(bool mb);
@@ -138,7 +105,7 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
         double mbulldozing_flow_factor = 1.0,        ///< growth of lateral volume respect to pressed volume
         int mbulldozing_erosion_n_iterations = 3,    ///< number of erosion refinements per timestep
         int mbulldozing_erosion_n_propagations = 10  ///< number of concentric vertex selections subject to erosion
-        );
+    );
 
     /// Enable/disable dynamic mesh refinement.
     /// If enabled, additional points are added under contact patches, up to the desired resolution.
@@ -163,6 +130,16 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
     /// When a scalar plot is used, also define the range in the pseudo-color colormap.
     void SetPlotType(DataPlotType mplot, double mmin, double mmax);
 
+    /// Set visualization color.
+    void SetColor(ChColor color  ///< [in] color of the visualization material
+    );
+
+    /// Set texture properties.
+    void SetTexture(const std::string tex_file,  ///< [in] texture filename
+                    float tex_scale_x = 1,       ///< [in] texture scale in X
+                    float tex_scale_y = 1        ///< [in] texture scale in Y
+    );
+
     /// Enable moving patch an set parameters (default: disabled).
     /// If enabled, ray-casting is performed only for the SCM vertices that are within the specified
     /// range (dimX, dimY) of the given point on the specified reference body.
@@ -172,6 +149,52 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
                            double dimY                       ///< [in] patch Y dimension
     );
 
+    /// Class to be used as a callback interface for location-dependent soil parameters.
+    /// A derived class must implement Set() and set **all** soil parameters (no defaults are provided).
+    class CH_VEHICLE_API SoilParametersCallback {
+      public:
+        virtual ~SoilParametersCallback() {}
+
+        /// Set the soil properties at a given (x,y) location.
+        /// Attention: the location is assumed to be provided in the (x,y) plane of the patch reference plane!
+        /// An implementation of this method in a derived class must set all soil parameters.
+        virtual void Set(double x, double y) = 0;
+
+        double m_Bekker_Kphi;    ///< Kphi, frictional modulus in Bekker model
+        double m_Bekker_Kc;      ///< Kc, cohesive modulus in Bekker model
+        double m_Bekker_n;       ///< n, exponent of sinkage in Bekker model (usually 0.6...1.8)
+        double m_Mohr_cohesion;  ///< Cohesion in, Pa, for shear failure
+        double m_Mohr_friction;  ///< Friction angle (in degrees!), for shear failure
+        double m_Janosi_shear;   ///< J , shear parameter, in meters, in Janosi-Hanamoto formula (usually few mm or cm)
+        double m_elastic_K;      ///< elastic stiffness K, per unit area, [Pa/m] (must be larger than Kphi)
+        double m_damping_R;      ///< vertical damping R, per unit area [Pa s/m] (proportional to vertical speed)
+    };
+
+    /// Specify the callback object to set the soil parameters at given (x,y) locations.
+    /// To use constant soil parameters throughout the entire patch, use SetSoilParameters.
+    void RegisterSoilParametersCallback(SoilParametersCallback* cb);
+
+    /// Get the terrain height at the specified (x,y) location.
+    virtual double GetHeight(double x, double y) const override;
+
+    /// Get the terrain normal at the specified (x,y) location.
+    virtual chrono::ChVector<> GetNormal(double x, double y) const override;
+
+    /// Get the coefficient of friction at the specified (x,y) location.
+    /// This coefficient of friction value may be used by certain tire models to modify
+    /// the tire characteristics, but it will have no effect on the interaction of the terrain
+    /// with other objects (including tire models that do not explicitly use it).
+    /// For SCMDeformableTerrain, this function defers to the user-provided functor object
+    /// of type ChTerrain::FrictionFunctor, if one was specified.
+    /// Otherwise, it returns the constant value of 0.8.
+    virtual float GetCoefficientFriction(double x, double y) const override;
+
+    /// Get the current reference plane. The SCM terrain patch is in the (x,y) plane with normal along the Z axis.
+    const ChCoordsys<>& GetPlane() const;
+
+    /// Get the underlyinh triangular mesh.
+    const std::shared_ptr<ChTriangleMeshShape> GetMesh() const;
+
     /// Initialize the terrain system (flat).
     /// This version creates a flat array of points.
     void Initialize(double height,  ///< [in] terrain height
@@ -179,12 +202,12 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
                     double sizeY,   ///< [in] terrain dimension in the Y direction
                     int divX,       ///< [in] number of divisions in the X direction
                     int divY        ///< [in] number of divisions in the Y direction
-                    );
+    );
 
     /// Initialize the terrain system (mesh).
     /// The initial undeformed mesh is provided via a Wavefront .obj file.
     void Initialize(const std::string& mesh_file  ///< [in] filename of the input mesh (.OBJ file in Wavefront format)
-                    );
+    );
 
     /// Initialize the terrain system (height map).
     /// The initial undeformed mesh is provided via the specified BMP file as a height map
@@ -194,7 +217,7 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
                     double sizeY,                       ///< [in] terrain dimension in the Y direction
                     double hMin,                        ///< [in] minimum height (black level)
                     double hMax                         ///< [in] maximum height (white level)
-                    );
+    );
 
     /// Return the current cumulative contact force on the specified body (due to interaction with the SCM terrain).
     TerrainForce GetContactForce(std::shared_ptr<ChBody> body) const;
@@ -220,12 +243,12 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
                     double sizeY,   ///< [in] terrain dimension in the Y direction
                     int divX,       ///< [in] number of divisions in the X direction
                     int divY        ///< [in] number of divisions in the Y direction
-                    );
+    );
 
     /// Initialize the terrain system (mesh).
     /// The initial undeformed mesh is provided via a Wavefront .obj file.
     void Initialize(const std::string& mesh_file  ///< [in] filename of the input mesh (.OBJ file in Wavefront format)
-                    );
+    );
 
     /// Initialize the terrain system (height map).
     /// The initial undeformed mesh is provided via the specified BMP file as a height map
@@ -235,7 +258,7 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
                     double sizeY,                       ///< [in] terrain dimension in the Y direction
                     double hMin,                        ///< [in] minimum height (black level)
                     double hMax                         ///< [in] maximum height (white level)
-                    );
+    );
 
   private:
     // Updates the forces and the geometry, at the beginning of each timestep
@@ -297,14 +320,14 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     std::vector<int> p_id_island;
     std::vector<bool> p_erosion;
 
-    double Bekker_Kphi;
-    double Bekker_Kc;
-    double Bekker_n;
-    double Mohr_cohesion;
-    double Mohr_friction;
-    double Janosi_shear;
-    double elastic_K;
-    double damping_R;
+    double m_Bekker_Kphi;
+    double m_Bekker_Kc;
+    double m_Bekker_n;
+    double m_Mohr_cohesion;
+    double m_Mohr_friction;
+    double m_Janosi_shear;
+    double m_elastic_K;
+    double m_damping_R;
 
     int plot_type;
     double plot_v_min;
@@ -335,6 +358,8 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     std::shared_ptr<ChBody> m_body;  ///< tracked body
     ChVector<> m_body_point;         ///< patch center, relative to body
     ChVector2<> m_patch_dim;         ///< patch dimensions (X,Y)
+
+    SCMDeformableTerrain::SoilParametersCallback* m_soil_fun;
 
     // Timers and counters
     ChTimer<double> m_timer_calc_areas;
