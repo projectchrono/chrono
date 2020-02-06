@@ -85,6 +85,13 @@
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
 #include "chrono/fea/ChMeshSurface.h"
 #include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/physics/ChLoad.h"
+#include "chrono/physics/ChLoadsBody.h"
+#include "chrono/physics/ChLoadsXYZnode.h"
+#include "chrono/physics/ChLoader.h"
+#include "chrono/physics/ChLoaderU.h"
+#include "chrono/physics/ChLoaderUV.h"
+#include "chrono/physics/ChLoaderUVW.h"
 #include "chrono/fea/ChLoadsBeam.h"
 #include "chrono/fea/ChLinkDirFrame.h"
 #include "chrono/fea/ChLinkPointFrame.h"
@@ -98,7 +105,6 @@ using namespace chrono::fea;
 
 %}
 
-
 // Undefine ChApi otherwise SWIG gives a syntax error
 #define ChApi
 #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -110,7 +116,6 @@ using namespace chrono::fea;
 %ignore chrono::fea::ChContactNodeXYZROT::ComputeJacobianForContactPart;
 %ignore chrono::fea::ChContactTriangleXYZROT::ComputeJacobianForContactPart;
 %ignore chrono::fea::ChElementShellBST::ComputeInternalJacobians;
-
 %ignore chrono::fea::ChElementBrick::MyMass;
 %ignore chrono::fea::ChElementBrick::MyGravity;
 %ignore chrono::fea::ChElementBrick::MyForceAnalytical;
@@ -158,6 +163,11 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChLoadCustomMultiple)
 %shared_ptr(chrono::ChNodeBase) 
 %shared_ptr(chrono::ChNodeXYZ) 
+
+%shared_ptr(chrono::ChLoad< chrono::fea::ChLoaderBeamWrench>)
+%shared_ptr(chrono::ChLoad< chrono::fea::ChLoaderBeamWrenchDistributed>)
+
+
 //from this module:
 %shared_ptr(chrono::fea::ChContinuumMaterial)
 %shared_ptr(chrono::fea::ChContinuumElastic)
@@ -303,11 +313,14 @@ using namespace chrono::fea;
 %feature("director") chrono::ChLoadableUV;
 %feature("director") chrono::ChLoadableUVW;
 %import(module = "pychrono.core") "ChLoadable.i" // disable because strange error in cxx
-%import(module = "pychrono.core") "../chrono/physics/ChLoad.h"
+%import(module = "pychrono.core") "ChLoader.i"
+%import(module = "pychrono.core") "ChLoad.i"
 %import(module = "pychrono.core") "../chrono/physics/ChNodeBase.h"
 %import(module = "pychrono.core") "../chrono/physics/ChNodeXYZ.h"
 %import(module = "pychrono.core") "ChContactContainer.i"
 
+%template(LoadLoaderBeamWrench) chrono::ChLoad< chrono::fea::ChLoaderBeamWrench>;
+%template(LoadLoaderBeamWrenchDistributed) chrono::ChLoad< chrono::fea::ChLoaderBeamWrenchDistributed>;
 
 //  core/  classes
 %include "../chrono/physics/ChPhysicsItem.h"
@@ -380,6 +393,8 @@ using namespace chrono::fea;
 %include "../chrono/fea/ChLinkPointFrame.h"
 %include "../chrono/fea/ChLinkPointPoint.h"
 %include "../chrono/fea/ChLoadsBeam.h"
+//%template(LoadLoaderBeamWrench) chrono::ChLoad< chrono::fea::ChLoaderBeamWrench >;
+%include "../chrono/fea/ChMesh.h"
 %include "../chrono/fea/ChBuilderBeam.h"
 %include "../chrono/fea/ChMeshFileLoader.h"
 
