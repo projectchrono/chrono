@@ -48,6 +48,9 @@ See [ChFialaTire](@ref chrono::vehicle::ChFialaTire) and [FialaTire](@ref chrono
 A sample JSON file with a TMeasy tire specification is provided below:
 \include "../../data/vehicle/hmmwv/tire/HMMWV_FialaTire.json"
 
+The vertical load curve embedded in the above JSON file is show below:
+
+<img src="http://www.projectchrono.org/assets/manual/vehicle/curves/FialaTire_vertical_load.png" width="500" />
 
 ## FEA-based tire models  {#wheeled_tire_fea}
 

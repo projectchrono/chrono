@@ -42,9 +42,9 @@ A height-map patch is specified through a gray-scale BMP image (like the one sho
 
 <img src="http://www.projectchrono.org/assets/manual/vehicle/terrain/Rigid_heightmap_mag.png" width="400" />
 
-**Height and normal calculation**. The implementation of [RigidTerrain::GetHeight](@ref chrono::vehicle::RigidTerrain::GetHeight) and [RigidTerrain::GetNormal](@ref chrono::vehicle::RigidTerrain::GetNormal) rely on a relatively expensive ray-casting operation: a vertical ray is cast from a large (currently 1000) \f$z\f$ value in all constituent patches with the height and normal at the intersection point reported back; if no patch is intersected, these functions return \f$-1000\f$ and \f$[0,0,1]\f$, respectively.
+**Height and normal calculation**. The implementation of [RigidTerrain::GetHeight](@ref chrono::vehicle::RigidTerrain::GetHeight) and [RigidTerrain::GetNormal](@ref chrono::vehicle::RigidTerrain::GetNormal) rely on a relatively expensive ray-casting operation: a vertical ray is cast from above in all constituent patches with the height and normal at the intersection point reported back. For a box patch, the ray-casting uses a custom analytical implementation which finds intersections of the ray with the \f$+z\f$ face of the box domain; for mesh-based patches, the ray-casting is deferred to the underlying collision system.  If no patch is intersected, these functions return \f$0\f$ and \f$[0,0,1]\f$, respectively.
 
-**Location-dependent coefficient of friction**. The rigid terrain model supports the definition of a `FrictionFunctor` object, but its use is a relatively expensive calculation: at each invocation of the collision detection algorithm (i.e., once per simulation step) the list of all contacts in the Chrono system is traversed to intercept all contacts that involve a rigid terrain patch collision model; for these contacts, the composite material properties are modified to account for the terrain coefficient of friction at the point of contact.
+**Location-dependent coefficient of friction**. The rigid terrain model supports the definition of a `FrictionFunctor` object. If no such functor is provided, [RigidTerrain::GetCoefficientFriction](@ref chrono::vehicle::RigidTerrain::GetCoefficientFriction) uses the ray-casting approach to identify the correct patch and the (constant) coefficient of friction for that patch is returned. If a functor is provided, RigidTerrain::GetCoefficientFriction simply returns its value.  However, processing of contacts with the terrain (e.g., when using rigid tires or a tracked vehicle) is relatively expensive: at each invocation of the collision detection algorithm (i.e., once per simulation step) the list of all contacts in the Chrono system is traversed to intercept all contacts that involve a rigid terrain patch collision model; for these contacts, the composite material properties are modified to account for the terrain coefficient of friction at the point of contact.
 
 A rigid terrain can be constructed programatically, defining one patch at a time, or else specified in a JSON file like the following one:
 \include "../../data/vehicle/terrain/RigidPatches.json"
@@ -98,7 +98,9 @@ Some other features of the Chrono SCM implementation are:
   - an arbitrary triangular mesh (provided as a Wavefront OBJ file)
   - from a hight-map (provided as a gray-scale BMP image)
   - programatically
-- support for a moving-patch approach wherein the adaptive mesh refinement is confined to a sphere around a given point on a moving vehicle  
+- support for arbitrary orientation of the terrain reference plane; by default, the terrain is defined as the \f$(x,y)\f$ plane of a \f$z\f$-up [ISO frame](@ref vehicle_ISO_frame)
+- support for a moving-patch approach wherein the adaptive mesh refinement is confined to a rectangular domain around a given point on a moving vehicle  
+- support for specifying location-dependent soil parameters; this can be achieved by providing a custom callback class which implements a method that returns all soil parameters at a given \f$(x,y)\f$ point specified in the terrain's reference plane. See [SCMDeformableTerrain::SoilParametersCallback](@ref chrono::vehicle::SCMDeformableTerrain::SoilParametersCallback)
 
 Since the interaction with this terrain type is done through the underlying Chrono contact system, it can be used in conjunction with [rigid](@ref wheeled_tire_rigid) or [FEA](@ref wheeled_tire_fea) tire models and with tracked vehicles.
 
