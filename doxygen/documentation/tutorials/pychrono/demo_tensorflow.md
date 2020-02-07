@@ -16,6 +16,33 @@ These environments provide an open-source alternative to MuJoCo environments.
 We also provide 2 simple plug-and-play examples to kickstart you into DRL for robotic control. These demos only require Tensorflow and PyChrono to run; and are provided together with a standalon Proximal Policy optimization algorithm.
 
 [PYTHON CODES HERE](https://github.com/projectchrono/chrono/tree/develop/src/demos/python/chrono-tensorflow)
+
+### Requirements:
+In order to run these demos, you will need:
+* Numpy
+* Scikit-Learn
+* Tensorflow 1
+
+We recommend to use [Anaconda](https://www.anaconda.com/). To prepare your environment do the following:
+* [Download](https://www.anaconda.com/distribution/) and install Anaconda. We suggest user-only installation and to set Anaconda as your default Python.
+* Create a new Python [environment](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html). If you've built PyChrono from sources, set the Python version of your environment as the version of the Python executable you pointed to in CMake. You could also use the executable, headers and libraries of the virtual environment to build PyChrono.
+* Activate the new environment 
+* If you have ***not*** built from sources, install pychrono using Anaconda 
+    ~~~~~~~~~~~~~{.sh}
+     conda install -c projectchrono pychrono 
+    ~~~~~~~~~~~~~
+* Install Numpy
+     ~~~~~~~~~~~~~{.sh}
+     conda install numpy
+    ~~~~~~~~~~~~~
+* Install Scikit-Learn
+    ~~~~~~~~~~~~~{.sh}
+    conda install scikit-learn 
+    ~~~~~~~~~~~~~
+* Install Tensorflow
+    ~~~~~~~~~~~~~{.sh}
+    conda install tensorflow-gpu=1.14
+    ~~~~~~~~~~~~~
 ### Goal:
 We will train a Neural Network to solve robotic tasks using virtual training environment created with [PyChrono](@ref pychrono_introduction).
 The demo contains virtual environments and a learning model created with Tensorflow. 
