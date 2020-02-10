@@ -28,6 +28,8 @@
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 #include "chrono_vehicle/ChTerrain.h"
 
+#undef B0
+
 namespace chrono {
 namespace vehicle {
 
