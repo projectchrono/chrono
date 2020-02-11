@@ -254,10 +254,6 @@ void ChSystemGranularSMC::writeFile(std::string ofile) const {
             outstrstream << ",wx,wy,wz";
         }
 
-        // if (GET_OUTPUT_SETTING(FORCE_COMPONENTS)) {
-        //     outstrstream << ",fx,fy,fz";
-        // }
-
         outstrstream << "\n";
         for (unsigned int n = 0; n < nSpheres; n++) {
             unsigned int ownerSD = sphere_owner_SDs.at(n);
