@@ -42,7 +42,7 @@ SCMDeformableTerrain::SCMDeformableTerrain(ChSystem* system) {
     m_ground = chrono_types::make_shared<SCMDeformableSoil>(system);
     system->Add(m_ground);
 }
-    
+
 // Return the terrain height at the specified location
 double SCMDeformableTerrain::GetHeight(double x, double y) const {
     //// TODO
@@ -52,7 +52,7 @@ double SCMDeformableTerrain::GetHeight(double x, double y) const {
 // Return the terrain normal at the specified location
 ChVector<> SCMDeformableTerrain::GetNormal(double x, double y) const {
     //// TODO
-    return m_ground->plane.TransformDirectionLocalToParent(ChVector<>(0, 1, 0));
+    return m_ground->plane.TransformDirectionLocalToParent(ChVector<>(0, 0, 1));
 }
 
 // Return the terrain coefficient of friction at the specified location
@@ -74,13 +74,19 @@ void SCMDeformableTerrain::SetTexture(const std::string tex_file, float tex_scal
 }
 
 // Set the plane reference.
-void SCMDeformableTerrain::SetPlane(ChCoordsys<> mplane) { m_ground->plane = mplane; }
+void SCMDeformableTerrain::SetPlane(ChCoordsys<> mplane) {
+    m_ground->plane = mplane;
+}
 
 // Get the plane reference.
-const ChCoordsys<>& SCMDeformableTerrain::GetPlane() const { return m_ground->plane; }
+const ChCoordsys<>& SCMDeformableTerrain::GetPlane() const {
+    return m_ground->plane;
+}
 
 // Get the trimesh that defines the ground shape.
-const std::shared_ptr<ChTriangleMeshShape> SCMDeformableTerrain::GetMesh() const { return m_ground->m_trimesh_shape; }
+const std::shared_ptr<ChTriangleMeshShape> SCMDeformableTerrain::GetMesh() const {
+    return m_ground->m_trimesh_shape;
+}
 
 // Enable bulldozing effect.
 void SCMDeformableTerrain::SetBulldozingFlow(bool mb) {
@@ -92,38 +98,40 @@ bool SCMDeformableTerrain::GetBulldozingFlow() const {
 }
 
 // Set properties of the SCM soil model
-void SCMDeformableTerrain::SetSoilParametersSCM(
-    double mBekker_Kphi,    // Kphi, frictional modulus in Bekker model
-    double mBekker_Kc,      // Kc, cohesive modulus in Bekker model
-    double mBekker_n,       // n, exponent of sinkage in Bekker model (usually 0.6...1.8)
-    double mMohr_cohesion,  // Cohesion in, Pa, for shear failure
-    double mMohr_friction,  // Friction angle (in degrees!), for shear failure
-    double mJanosi_shear,   // J , shear parameter, in meters, in Janosi-Hanamoto formula (usually few mm or cm)
-    double melastic_K,      // elastic stiffness K (must be > Kphi; very high values gives the original SCM model)
-    double mdamping_R       // vertical damping R, per unit area (vertical speed proportional, it is zero in original SCM model)
-    ) {
-    m_ground->Bekker_Kphi = mBekker_Kphi;
-    m_ground->Bekker_Kc = mBekker_Kc;
-    m_ground->Bekker_n = mBekker_n;
-    m_ground->Mohr_cohesion = mMohr_cohesion;
-    m_ground->Mohr_friction = mMohr_friction;
-    m_ground->Janosi_shear = mJanosi_shear;
-    m_ground->elastic_K = ChMax(melastic_K, mBekker_Kphi);
-    m_ground->damping_R = mdamping_R;
+void SCMDeformableTerrain::SetSoilParameters(
+    double Bekker_Kphi,    // Kphi, frictional modulus in Bekker model
+    double Bekker_Kc,      // Kc, cohesive modulus in Bekker model
+    double Bekker_n,       // n, exponent of sinkage in Bekker model (usually 0.6...1.8)
+    double Mohr_cohesion,  // Cohesion in, Pa, for shear failure
+    double Mohr_friction,  // Friction angle (in degrees!), for shear failure
+    double Janosi_shear,   // J , shear parameter, in meters, in Janosi-Hanamoto formula (usually few mm or cm)
+    double elastic_K,      // elastic stiffness K (must be > Kphi; very high values gives the original SCM model)
+    double
+        damping_R  // vertical damping R, per unit area (vertical speed proportional, it is zero in original SCM model)
+) {
+    m_ground->m_Bekker_Kphi = Bekker_Kphi;
+    m_ground->m_Bekker_Kc = Bekker_Kc;
+    m_ground->m_Bekker_n = Bekker_n;
+    m_ground->m_Mohr_cohesion = Mohr_cohesion;
+    m_ground->m_Mohr_friction = Mohr_friction;
+    m_ground->m_Janosi_shear = Janosi_shear;
+    m_ground->m_elastic_K = ChMax(elastic_K, Bekker_Kphi);
+    m_ground->m_damping_R = damping_R;
 }
 
-void SCMDeformableTerrain::SetBulldozingParameters(double mbulldozing_erosion_angle,     ///< angle of erosion of the displaced material (in degrees!)
-                                 double mbulldozing_flow_factor,  ///< growth of lateral volume respect to pressed volume
-                                 int mbulldozing_erosion_n_iterations, ///< number of erosion refinements per timestep 
-                                 int mbulldozing_erosion_n_propagations ///< number of concentric vertex selections subject to erosion 
-                                 ) {
+void SCMDeformableTerrain::SetBulldozingParameters(
+    double mbulldozing_erosion_angle,       ///< angle of erosion of the displaced material (in degrees!)
+    double mbulldozing_flow_factor,         ///< growth of lateral volume respect to pressed volume
+    int mbulldozing_erosion_n_iterations,   ///< number of erosion refinements per timestep
+    int mbulldozing_erosion_n_propagations  ///< number of concentric vertex selections subject to erosion
+) {
     m_ground->bulldozing_erosion_angle = mbulldozing_erosion_angle;
     m_ground->bulldozing_flow_factor = mbulldozing_flow_factor;
     m_ground->bulldozing_erosion_n_iterations = mbulldozing_erosion_n_iterations;
     m_ground->bulldozing_erosion_n_propagations = mbulldozing_erosion_n_propagations;
 }
 
-void SCMDeformableTerrain::SetAutomaticRefinement(bool mr) { 
+void SCMDeformableTerrain::SetAutomaticRefinement(bool mr) {
     m_ground->do_refinement = mr;
 }
 
@@ -165,6 +173,11 @@ void SCMDeformableTerrain::EnableMovingPatch(std::shared_ptr<ChBody> body,
     m_ground->m_moving_patch = true;
 }
 
+// Set user-supplied callback for evaluating location-dependent soil parameters
+void SCMDeformableTerrain::RegisterSoilParametersCallback(SoilParametersCallback* cb) {
+    m_ground->m_soil_fun = cb;
+}
+
 // Initialize the terrain as a flat grid
 void SCMDeformableTerrain::Initialize(double height, double sizeX, double sizeY, int divX, int divY) {
     m_ground->Initialize(height, sizeX, sizeY, divX, divY);
@@ -177,11 +190,11 @@ void SCMDeformableTerrain::Initialize(const std::string& mesh_file) {
 
 // Initialize the terrain from a specified height map.
 void SCMDeformableTerrain::Initialize(const std::string& heightmap_file,
-                                   const std::string& mesh_name,
-                                   double sizeX,
-                                   double sizeY,
-                                   double hMin,
-                                   double hMax) {
+                                      const std::string& mesh_name,
+                                      double sizeX,
+                                      double sizeY,
+                                      double hMin,
+                                      double hMax) {
     m_ground->Initialize(heightmap_file, mesh_name, sizeX, sizeY, hMin, hMax);
 }
 
@@ -220,7 +233,7 @@ void SCMDeformableTerrain::PrintStepStatistics(std::ostream& os) const {
 // -----------------------------------------------------------------------------
 
 // Constructor.
-SCMDeformableSoil::SCMDeformableSoil(ChSystem* system) {
+SCMDeformableSoil::SCMDeformableSoil(ChSystem* system) : m_soil_fun(nullptr) {
     this->SetSystem(system);
 
     // Create the default mesh asset
@@ -242,16 +255,18 @@ SCMDeformableSoil::SCMDeformableSoil(ChSystem* system) {
     do_refinement = false;
     refinement_resolution = 0.01;
 
-    Bekker_Kphi = 2e6;
-    Bekker_Kc = 0;
-    Bekker_n = 1.1;
-    Mohr_cohesion = 50;
-    Mohr_friction = 20;
-    Janosi_shear = 0.01;
-    elastic_K = 50000000;
+    // Default soil parameters
+    m_Bekker_Kphi = 2e6;
+    m_Bekker_Kc = 0;
+    m_Bekker_n = 1.1;
+    m_Mohr_cohesion = 50;
+    m_Mohr_friction = 20;
+    m_Janosi_shear = 0.01;
+    m_elastic_K = 50000000;
+    m_damping_R = 0;
 
-    Initialize(0,3,3,10,10);
-    
+    Initialize(0, 3, 3, 10, 10);
+
     plot_type = SCMDeformableTerrain::PLOT_NONE;
     plot_v_min = 0;
     plot_v_max = 0.2;
@@ -269,15 +284,15 @@ void SCMDeformableSoil::Initialize(double height, double sizeX, double sizeY, in
     m_trimesh_shape->GetMesh()->Clear();
     // Readability aliases
     auto trimesh = m_trimesh_shape->GetMesh();
-    std::vector<ChVector<> >& vertices = trimesh->getCoordsVertices();
-    std::vector<ChVector<> >& normals = trimesh->getCoordsNormals();
-    std::vector<ChVector<int> >& idx_vertices = trimesh->getIndicesVertexes();
-    std::vector<ChVector<int> >& idx_normals = trimesh->getIndicesNormals();
-    std::vector<ChVector<> >& uv_coords = trimesh->getCoordsUV();
-    std::vector<ChVector<float> >& colors = trimesh->getCoordsColors();
+    std::vector<ChVector<>>& vertices = trimesh->getCoordsVertices();
+    std::vector<ChVector<>>& normals = trimesh->getCoordsNormals();
+    std::vector<ChVector<int>>& idx_vertices = trimesh->getIndicesVertexes();
+    std::vector<ChVector<int>>& idx_normals = trimesh->getIndicesNormals();
+    std::vector<ChVector<>>& uv_coords = trimesh->getCoordsUV();
+    std::vector<ChVector<float>>& colors = trimesh->getCoordsColors();
 
-    unsigned int nvx = nX+1;
-    unsigned int nvy = nY+1;
+    unsigned int nvx = nX + 1;
+    unsigned int nvy = nY + 1;
     double dx = sizeX / nX;
     double dy = sizeY / nY;
     unsigned int n_verts = nvx * nvy;
@@ -289,21 +304,21 @@ void SCMDeformableSoil::Initialize(double height, double sizeX, double sizeY, in
     vertices.resize(n_verts);
     normals.resize(n_verts);
     uv_coords.resize(n_verts);
-    //colors.resize(n_verts);
+    // colors.resize(n_verts);
     idx_vertices.resize(n_faces);
     idx_normals.resize(n_faces);
 
     unsigned int iv = 0;
-    for (int iy = nvy-1; iy >= 0; --iy) {
+    for (int iy = nvy - 1; iy >= 0; --iy) {
         double y = 0.5 * sizeY - iy * dy;
         for (unsigned int ix = 0; ix < nvx; ++ix) {
             double x = ix * dx - 0.5 * sizeX;
             // Set vertex location
-            vertices[iv] = plane * ChVector<>(x, height, y);
+            vertices[iv] = plane * ChVector<>(x, y, height);
             // Initialize vertex normal to Y up
-            normals[iv] = plane.TransformDirectionLocalToParent(ChVector<>(0, 1, 0));
+            normals[iv] = plane.TransformDirectionLocalToParent(ChVector<>(0, 0, 1));
             // Assign color white to all vertices
-            //colors[iv] = ChVector<float>(1, 1, 1);
+            // colors[iv] = ChVector<float>(1, 1, 1);
             // Set UV coordinates in [0,1] x [0,1]
             uv_coords[iv] = ChVector<>(ix * x_scale, iy * y_scale, 0.0);
             ++iv;
@@ -338,11 +353,11 @@ void SCMDeformableSoil::Initialize(const std::string& mesh_file) {
 
 // Initialize the terrain from a specified height map.
 void SCMDeformableSoil::Initialize(const std::string& heightmap_file,
-                              const std::string& mesh_name,
-                              double sizeX,
-                              double sizeY,
-                              double hMin,
-                              double hMax) {
+                                   const std::string& mesh_name,
+                                   double sizeX,
+                                   double sizeY,
+                                   double hMin,
+                                   double hMax) {
     auto trimesh = m_trimesh_shape->GetMesh();
     trimesh->Clear();
 
@@ -381,10 +396,10 @@ void SCMDeformableSoil::Initialize(const std::string& heightmap_file,
     std::vector<int> accumulators(n_verts, 0);
 
     // Readability aliases
-    std::vector<ChVector<> >& vertices = trimesh->getCoordsVertices();
-    std::vector<ChVector<> >& normals = trimesh->getCoordsNormals();
-    std::vector<ChVector<int> >& idx_vertices = trimesh->getIndicesVertexes();
-    std::vector<ChVector<int> >& idx_normals = trimesh->getIndicesNormals();
+    std::vector<ChVector<>>& vertices = trimesh->getCoordsVertices();
+    std::vector<ChVector<>>& normals = trimesh->getCoordsNormals();
+    std::vector<ChVector<int>>& idx_vertices = trimesh->getIndicesVertexes();
+    std::vector<ChVector<int>>& idx_normals = trimesh->getIndicesNormals();
 
     // Load mesh vertices.
     // Note that pixels in a BMP start at top-left corner.
@@ -403,7 +418,7 @@ void SCMDeformableSoil::Initialize(const std::string& heightmap_file,
             // Map gray level to vertex height
             double z = hMin + gray * h_scale;
             // Set vertex location
-            vertices[iv] = plane * ChVector<>(x, z, y);
+            vertices[iv] = plane * ChVector<>(x, y, z);
             // Initialize vertex normal to (0, 0, 0).
             normals[iv] = ChVector<>(0, 0, 0);
             // Assign color white to all vertices
@@ -458,35 +473,35 @@ void SCMDeformableSoil::Initialize(const std::string& heightmap_file,
 // Set up auxiliary data structures.
 void SCMDeformableSoil::SetupAuxData() {
     // better readability:
-    std::vector<ChVector<int> >& idx_vertices = m_trimesh_shape->GetMesh()->getIndicesVertexes();
-    std::vector<ChVector<> >& vertices = m_trimesh_shape->GetMesh()->getCoordsVertices();
+    std::vector<ChVector<int>>& idx_vertices = m_trimesh_shape->GetMesh()->getIndicesVertexes();
+    std::vector<ChVector<>>& vertices = m_trimesh_shape->GetMesh()->getCoordsVertices();
 
     // Reset and initialize computation data:
     //
-    p_vertices_initial= vertices;
-    p_speeds.resize( vertices.size());
-    p_step_plastic_flow.resize( vertices.size());
-    p_level.resize( vertices.size());
-    p_level_initial.resize( vertices.size());
-    p_hit_level.resize( vertices.size());
-    p_sinkage.resize( vertices.size());
-    p_sinkage_plastic.resize( vertices.size());
-    p_sinkage_elastic.resize( vertices.size());
-    p_kshear.resize( vertices.size());
-    p_area.resize( vertices.size());
-    p_sigma.resize( vertices.size());
-    p_sigma_yeld.resize( vertices.size());
-    p_tau.resize( vertices.size());  
-    p_massremainder.resize( vertices.size());  
-    p_id_island.resize (vertices.size());
+    p_vertices_initial = vertices;
+    p_speeds.resize(vertices.size());
+    p_step_plastic_flow.resize(vertices.size());
+    p_level.resize(vertices.size());
+    p_level_initial.resize(vertices.size());
+    p_hit_level.resize(vertices.size());
+    p_sinkage.resize(vertices.size());
+    p_sinkage_plastic.resize(vertices.size());
+    p_sinkage_elastic.resize(vertices.size());
+    p_kshear.resize(vertices.size());
+    p_area.resize(vertices.size());
+    p_sigma.resize(vertices.size());
+    p_sigma_yeld.resize(vertices.size());
+    p_tau.resize(vertices.size());
+    p_massremainder.resize(vertices.size());
+    p_id_island.resize(vertices.size());
     p_erosion.resize(vertices.size());
 
-    for (int i=0; i< vertices.size(); ++i) {
-        p_level[i] = plane.TransformParentToLocal(vertices[i]).y();
+    for (int i = 0; i < vertices.size(); ++i) {
+        p_level[i] = plane.TransformParentToLocal(vertices[i]).z();
         p_level_initial[i] = p_level[i];
     }
 
-    connected_vertexes.resize( vertices.size() );
+    connected_vertexes.resize(vertices.size());
     for (unsigned int iface = 0; iface < idx_vertices.size(); ++iface) {
         connected_vertexes[idx_vertices[iface][0]].insert(idx_vertices[iface][1]);
         connected_vertexes[idx_vertices[iface][0]].insert(idx_vertices[iface][2]);
@@ -509,13 +524,13 @@ void SCMDeformableSoil::ComputeInternalForces() {
 
     // Readability aliases
     auto trimesh = m_trimesh_shape->GetMesh();
-    std::vector<ChVector<> >& vertices = trimesh->getCoordsVertices();
-    std::vector<ChVector<> >& normals = trimesh->getCoordsNormals();
-    std::vector<ChVector<float> >& colors = trimesh->getCoordsColors();
-    std::vector<ChVector<int> >& idx_vertices = trimesh->getIndicesVertexes();
-    std::vector<ChVector<int> >& idx_normals = trimesh->getIndicesNormals();
-    
-    // 
+    std::vector<ChVector<>>& vertices = trimesh->getCoordsVertices();
+    std::vector<ChVector<>>& normals = trimesh->getCoordsNormals();
+    std::vector<ChVector<float>>& colors = trimesh->getCoordsColors();
+    std::vector<ChVector<int>>& idx_vertices = trimesh->getIndicesVertexes();
+    std::vector<ChVector<int>>& idx_normals = trimesh->getIndicesNormals();
+
+    //
     // Reset the load list and map of contact forces
     //
 
@@ -525,12 +540,12 @@ void SCMDeformableSoil::ComputeInternalForces() {
     //
     // Compute (pseudo)areas per node
     //
-    
+
     m_num_vertices = vertices.size();
     m_num_faces = idx_vertices.size();
     m_timer_calc_areas.start();
 
-    // for a X-Z rectangular grid-like mesh it is simply area[i]= xsize/xsteps * zsize/zsteps, 
+    // for a X-Z rectangular grid-like mesh it is simply area[i]= xsize/xsteps * zsize/zsteps,
     // but the following is more general, also for generic meshes:
     for (unsigned int iv = 0; iv < vertices.size(); ++iv) {
         p_area[iv] = 0;
@@ -540,22 +555,22 @@ void SCMDeformableSoil::ComputeInternalForces() {
         ChVector<> AC = vertices[idx_vertices[it][2]] - vertices[idx_vertices[it][1]];
         AB = plane.TransformDirectionParentToLocal(AB);
         AC = plane.TransformDirectionParentToLocal(AC);
-        AB.y()=0;
-        AC.y()=0;
-        double triangle_area = 0.5*(Vcross(AB,AC)).Length();
-        p_area[idx_normals[it][0]] += triangle_area /3.0;
-        p_area[idx_normals[it][1]] += triangle_area /3.0;
-        p_area[idx_normals[it][2]] += triangle_area /3.0;
+        AB.z() = 0;
+        AC.z() = 0;
+        double triangle_area = 0.5 * (Vcross(AB, AC)).Length();
+        p_area[idx_normals[it][0]] += triangle_area / 3.0;
+        p_area[idx_normals[it][1]] += triangle_area / 3.0;
+        p_area[idx_normals[it][2]] += triangle_area / 3.0;
     }
 
     m_timer_calc_areas.stop();
 
-    ChVector<> N = plane.TransformDirectionLocalToParent(ChVector<>(0, 1, 0));
+    ChVector<> N = plane.TransformDirectionLocalToParent(ChVector<>(0, 0, 1));
 
     //
     // Perform ray casting test to detect the contact point sinkage
-    // 
-    
+    //
+
     m_timer_ray_casting.start();
     m_num_ray_casts = 0;
 
@@ -563,11 +578,13 @@ void SCMDeformableSoil::ComputeInternalForces() {
     ChVector2<> patch_min;
     ChVector2<> patch_max;
     if (m_moving_patch) {
-        ChVector<> center = m_body->GetFrame_REF_to_abs().TransformPointLocalToParent(m_body_point);
-        patch_min.x() = center.x() - m_patch_dim.x() / 2;
-        patch_min.y() = center.y() - m_patch_dim.y() / 2;
-        patch_max.x() = center.x() + m_patch_dim.x() / 2;
-        patch_max.y() = center.y() + m_patch_dim.y() / 2;
+        ChVector<> center_abs = m_body->GetFrame_REF_to_abs().TransformPointLocalToParent(m_body_point);
+        ChVector<> center_loc = plane.TransformPointParentToLocal(center_abs);
+
+        patch_min.x() = center_loc.x() - m_patch_dim.x() / 2;
+        patch_min.y() = center_loc.y() - m_patch_dim.y() / 2;
+        patch_max.x() = center_loc.x() + m_patch_dim.x() / 2;
+        patch_max.y() = center_loc.y() + m_patch_dim.y() / 2;
     }
 
     // Loop through all vertices.
@@ -583,18 +600,20 @@ void SCMDeformableSoil::ComputeInternalForces() {
     std::unordered_map<int, HitRecord> hits;
 
     for (int i = 0; i < vertices.size(); ++i) {
+        auto vertex_loc = plane.TransformParentToLocal(vertices[i]);
+
         // Initialize SCM quantities at current vertex
         p_sigma[i] = 0;
         p_sinkage_elastic[i] = 0;
         p_step_plastic_flow[i] = 0;
         p_erosion[i] = false;
-        p_level[i] = plane.TransformParentToLocal(vertices[i]).y();
+        p_level[i] = vertex_loc.z();
         p_hit_level[i] = 1e9;
 
         // Skip vertices outside moving patch
         if (m_moving_patch) {
-            if (vertices[i].x() < patch_min.x() || vertices[i].x() > patch_max.x() || vertices[i].y() < patch_min.y() ||
-                vertices[i].y() > patch_max.y()) {
+            if (vertex_loc.x() < patch_min.x() || vertex_loc.x() > patch_max.x() || vertex_loc.y() < patch_min.y() ||
+                vertex_loc.y() > patch_max.y()) {
                 continue;
             }
         }
@@ -606,7 +625,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
         this->GetSystem()->GetCollisionSystem()->RayHit(from, to, mrayhit_result);
         m_num_ray_casts++;
         if (mrayhit_result.hit) {
-            HitRecord record = { mrayhit_result.hitModel->GetContactable(), mrayhit_result.abs_hitPoint, -1 };
+            HitRecord record = {mrayhit_result.hitModel->GetContactable(), mrayhit_result.abs_hitPoint, -1};
             hits.insert(std::make_pair(i, record));
         }
     }
@@ -645,32 +664,36 @@ void SCMDeformableSoil::ComputeInternalForces() {
         std::vector<ChVector2<>> points;  // points in patch (projected on reference plane)
         double area;                      // patch area
         double perimeter;                 // patch perimeter
-        double Kc_b;                      // approximate Bekker Kc/b value
+        double oob;                       // approximate value of 1/b
     };
     std::vector<PatchRecord> patches(num_patches);
     for (auto& h : hits) {
         ChVector<> v = plane.TransformParentToLocal(vertices[h.first]);
-        patches[h.second.patch_id].points.push_back(ChVector2<>(v.x(), v.z()));
+        patches[h.second.patch_id].points.push_back(ChVector2<>(v.x(), v.y()));
     }
 
     // Calculate area and perimeter of each patch.
-    // Calculate approximation to Beker term Kc/b.
+    // Calculate approximation to Beker term 1/b.
     for (auto& p : patches) {
-        if (Bekker_Kc == 0) {
-            p.Kc_b = 0;
-            continue;
-        }
-
         utils::ChConvexHull2D ch(p.points);
         p.area = ch.GetArea();
         p.perimeter = ch.GetPerimeter();
         if (p.area < 1e-6) {
-            p.Kc_b = 0;
+            p.oob = 0;
         } else {
-            double b = 2 * p.area / p.perimeter;
-            p.Kc_b = Bekker_Kc / b;
+            p.oob = p.perimeter / (2 * p.area);
         }
     }
+
+    // Initialize local values for the soil parameters
+    double Bekker_Kphi = m_Bekker_Kphi;
+    double Bekker_Kc = m_Bekker_Kc;
+    double Bekker_n = m_Bekker_n;
+    double Mohr_cohesion = m_Mohr_cohesion;
+    double Mohr_friction = m_Mohr_friction;
+    double Janosi_shear = m_Janosi_shear;
+    double elastic_K = m_elastic_K;
+    double damping_R = m_damping_R;
 
     // Process only hit vertices
     for (auto& h : hits) {
@@ -679,17 +702,30 @@ void SCMDeformableSoil::ComputeInternalForces() {
         const ChVector<>& abs_point = h.second.abs_point;
         int patch_id = h.second.patch_id;
 
-        double p_hit_offset = 1e9;
+        auto loc_point = plane.TransformParentToLocal(abs_point);
 
-        p_hit_level[i] = plane.TransformParentToLocal(abs_point).y();
-        p_hit_offset = -p_hit_level[i] + p_level_initial[i];
+        if (m_soil_fun) {
+            m_soil_fun->Set(loc_point.x(), loc_point.y());
+
+            Bekker_Kphi = m_soil_fun->m_Bekker_Kphi;
+            Bekker_Kc = m_soil_fun->m_Bekker_Kc;
+            Bekker_n = m_soil_fun->m_Bekker_n;
+            Mohr_cohesion = m_soil_fun->m_Mohr_cohesion;
+            Mohr_friction = m_soil_fun->m_Mohr_friction;
+            Janosi_shear = m_soil_fun->m_Janosi_shear;
+            elastic_K = m_soil_fun->m_elastic_K;
+            damping_R = m_soil_fun->m_damping_R;
+        }
+
+        p_hit_level[i] = loc_point.z();
+        double p_hit_offset = -p_hit_level[i] + p_level_initial[i];
 
         p_speeds[i] = contactable->GetContactPointSpeed(vertices[i]);
 
         ChVector<> T = -p_speeds[i];
         T = plane.TransformDirectionParentToLocal(T);
-        double Vn = -T.y();
-        T.y() = 0;
+        double Vn = -T.z();
+        T.z() = 0;
         T = plane.TransformDirectionLocalToParent(T);
         T.Normalize();
 
@@ -718,7 +754,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
             // Plastic correction:
             if (p_sigma[i] > p_sigma_yeld[i]) {
                 // Bekker formula
-                p_sigma[i] = (patches[patch_id].Kc_b + Bekker_Kphi) * pow(p_sinkage[i], Bekker_n);
+                p_sigma[i] = (patches[patch_id].oob * Bekker_Kc + Bekker_Kphi) * pow(p_sinkage[i], Bekker_n);
                 p_sigma_yeld[i] = p_sigma[i];
                 double old_sinkage_plastic = p_sinkage_plastic[i];
                 p_sinkage_plastic[i] = p_sinkage[i] - p_sigma[i] / elastic_K;
@@ -785,7 +821,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
 
         }  // end positive contact force
 
-    } // end loop on ray hits
+    }  // end loop on ray hits
 
     m_timer_ray_casting.stop();
 
@@ -797,7 +833,6 @@ void SCMDeformableSoil::ComputeInternalForces() {
     m_timer_refinement.start();
 
     if (do_refinement) {
-
         std::vector<std::vector<double>*> aux_data_double;
         aux_data_double.push_back(&p_level);
         aux_data_double.push_back(&p_level_initial);
@@ -824,21 +859,20 @@ void SCMDeformableSoil::ComputeInternalForces() {
         std::vector<int> marked_tris;
         for (int it = 0; it < idx_vertices.size(); ++it) {
             // see if at least one of the vertexes are touching
-            if (p_sigma[idx_vertices[it][0]] > 0 ||
-                p_sigma[idx_vertices[it][1]] > 0 ||
+            if (p_sigma[idx_vertices[it][0]] > 0 || p_sigma[idx_vertices[it][1]] > 0 ||
                 p_sigma[idx_vertices[it][2]] > 0) {
                 marked_tris.push_back(it);
             }
         }
         m_num_marked_faces = marked_tris.size();
 
-        // custom edge refinement criterion: do not use default edge length, 
+        // custom edge refinement criterion: do not use default edge length,
         // length of the edge as projected on soil plane
         class MyRefinement : public geometry::ChTriangleMeshConnected::ChRefineEdgeCriterion {
-        public:
-            virtual double ComputeLength(const int vert_a, const int  vert_b, geometry::ChTriangleMeshConnected* mmesh) {
+          public:
+            virtual double ComputeLength(const int vert_a, const int vert_b, geometry::ChTriangleMeshConnected* mmesh) {
                 ChVector<> d = A.transpose() * (mmesh->m_vertices[vert_a] - mmesh->m_vertices[vert_b]);
-                d.y() = 0;
+                d.z() = 0;
                 return d.Length();
             }
             ChMatrix33<> A;
@@ -850,14 +884,9 @@ void SCMDeformableSoil::ComputeInternalForces() {
         // perform refinement using the LEPP  algorithm, also refining the soil-specific vertex attributes
         for (int i = 0; i < 1; ++i) {
             m_trimesh_shape->GetMesh()->RefineMeshEdges(
-                marked_tris,
-                refinement_resolution,
-                &refinement_criterion,
-                0, //&tri_map, // note, update triangle connectivity map incrementally
-                aux_data_double,
-                aux_data_int,
-                aux_data_bool,
-                aux_data_vect);
+                marked_tris, refinement_resolution, &refinement_criterion,
+                0,  //&tri_map, // note, update triangle connectivity map incrementally
+                aux_data_double, aux_data_int, aux_data_bool, aux_data_vect);
         }
         // TO DO adjust this incrementally
 
@@ -881,8 +910,8 @@ void SCMDeformableSoil::ComputeInternalForces() {
             ChVector<> AC = vertices[idx_vertices[it][2]] - vertices[idx_vertices[it][0]];
             AB = plane.TransformDirectionParentToLocal(AB);
             AC = plane.TransformDirectionParentToLocal(AC);
-            AB.y() = 0;
-            AC.y() = 0;
+            AB.z() = 0;
+            AC.z() = 0;
             double triangle_area = 0.5 * (Vcross(AB, AC)).Length();
             p_area[idx_normals[it][0]] += triangle_area / 3.0;
             p_area[idx_normals[it][1]] += triangle_area / 3.0;
@@ -894,15 +923,15 @@ void SCMDeformableSoil::ComputeInternalForces() {
 
     //
     // Flow material to the side of rut, using heuristics
-    // 
+    //
 
     m_timer_bulldozing.start();
 
     if (do_bulldozing) {
         std::set<int> touched_vertexes;
-        for (int iv = 0; iv< vertices.size(); ++iv) {
+        for (int iv = 0; iv < vertices.size(); ++iv) {
             p_id_island[iv] = 0;
-            if (p_sigma[iv]>0)
+            if (p_sigma[iv] > 0)
                 touched_vertexes.insert(iv);
         }
 
@@ -910,7 +939,8 @@ void SCMDeformableSoil::ComputeInternalForces() {
 
         // Compute contact islands (and their displaced material) by flood-filling the mesh
         int id_island = 0;
-        for (auto fillseed = touched_vertexes.begin(); fillseed != touched_vertexes.end(); fillseed = touched_vertexes.begin()) {
+        for (auto fillseed = touched_vertexes.begin(); fillseed != touched_vertexes.end();
+             fillseed = touched_vertexes.begin()) {
             // new island:
             ++id_island;
             std::set<int> fill_front;
@@ -920,52 +950,56 @@ void SCMDeformableSoil::ComputeInternalForces() {
             double tot_area_boundary = 0;
 
             int n_vert_island = 1;
-            double tot_step_flow_island = p_area[*fillseed] * p_step_plastic_flow[*fillseed] * this->GetSystem()->GetStep();
+            double tot_step_flow_island =
+                p_area[*fillseed] * p_step_plastic_flow[*fillseed] * this->GetSystem()->GetStep();
             double tot_Nforce_island = p_area[*fillseed] * p_sigma[*fillseed];
             double tot_area_island = p_area[*fillseed];
             fill_front.insert(*fillseed);
             p_id_island[*fillseed] = id_island;
             touched_vertexes.erase(fillseed);
-            while (fill_front.size() >0) {
+            while (fill_front.size() > 0) {
                 // fill next front
                 std::set<int> fill_front_2;
                 for (const auto& ifront : fill_front) {
                     for (const auto& ivconnect : connected_vertexes[ifront]) {
-                        if ((p_sigma[ivconnect]>0) && (p_id_island[ivconnect]==0)) {
+                        if ((p_sigma[ivconnect] > 0) && (p_id_island[ivconnect] == 0)) {
                             ++n_vert_island;
-                            tot_step_flow_island += p_area[ivconnect] * p_step_plastic_flow[ivconnect] * this->GetSystem()->GetStep();
+                            tot_step_flow_island +=
+                                p_area[ivconnect] * p_step_plastic_flow[ivconnect] * this->GetSystem()->GetStep();
                             tot_Nforce_island += p_area[ivconnect] * p_sigma[ivconnect];
                             tot_area_island += p_area[ivconnect];
                             fill_front_2.insert(ivconnect);
                             p_id_island[ivconnect] = id_island;
                             touched_vertexes.erase(ivconnect);
-                        } 
-                        else if ((p_sigma[ivconnect] == 0) && (p_id_island[ivconnect] <= 0) && (p_id_island[ivconnect] != -id_island)) {
+                        } else if ((p_sigma[ivconnect] == 0) && (p_id_island[ivconnect] <= 0) &&
+                                   (p_id_island[ivconnect] != -id_island)) {
                             ++n_vert_boundary;
                             tot_area_boundary += p_area[ivconnect];
-                            p_id_island[ivconnect] = -id_island; // negative to mark as boundary
+                            p_id_island[ivconnect] = -id_island;  // negative to mark as boundary
                             boundary.insert(ivconnect);
                         }
                     }
                 }
                 // advance to next front
-                fill_front= fill_front_2;
+                fill_front = fill_front_2;
             }
-            ////GetLog() << " island " << id_island << " flow volume =" << tot_step_flow_island << " N force=" << tot_Nforce_island << "\n"; 
+            ////GetLog() << " island " << id_island << " flow volume =" << tot_step_flow_island << " N force=" <<
+            /// tot_Nforce_island << "\n";
 
             // Raise the boundary because of material flow (it gives a sharp spike around the
             // island boundary, but later we'll use the erosion algorithm to smooth it out)
 
             for (const auto& ibv : boundary) {
-                double d_y = bulldozing_flow_factor * ((p_area[ibv]/tot_area_boundary) *  (1/p_area[ibv]) * tot_step_flow_island);
-                double clamped_d_y = d_y; // ChMin(d_y, ChMin(p_hit_level[ibv]-p_level[ibv], test_high_offset) );
-                if (d_y > p_hit_level[ibv]-p_level[ibv]) {
-                    p_massremainder[ibv] += d_y - (p_hit_level[ibv]-p_level[ibv]);
-                    clamped_d_y = p_hit_level[ibv]-p_level[ibv];
+                double d_y = bulldozing_flow_factor *
+                             ((p_area[ibv] / tot_area_boundary) * (1 / p_area[ibv]) * tot_step_flow_island);
+                double clamped_d_y = d_y;  // ChMin(d_y, ChMin(p_hit_level[ibv]-p_level[ibv], test_high_offset) );
+                if (d_y > p_hit_level[ibv] - p_level[ibv]) {
+                    p_massremainder[ibv] += d_y - (p_hit_level[ibv] - p_level[ibv]);
+                    clamped_d_y = p_hit_level[ibv] - p_level[ibv];
                 }
-                p_level[ibv]            += clamped_d_y;
-                p_level_initial[ibv]    += clamped_d_y;
-                vertices[ibv]           += N * clamped_d_y;
+                p_level[ibv] += clamped_d_y;
+                p_level_initial[ibv] += clamped_d_y;
+                vertices[ibv] += N * clamped_d_y;
                 p_vertices_initial[ibv] += N * clamped_d_y;
             }
 
@@ -979,15 +1013,15 @@ void SCMDeformableSoil::ComputeInternalForces() {
 
         // Erosion domain area select, by topologically dilation of all the
         // boundaries of the islands:
-        std::set<int> domain_erosion= domain_boundaries;
+        std::set<int> domain_erosion = domain_boundaries;
         for (const auto& ie : domain_boundaries)
             p_erosion[ie] = true;
         std::set<int> front_erosion = domain_boundaries;
-        for (int iloop = 0; iloop <10; ++iloop) {
+        for (int iloop = 0; iloop < 10; ++iloop) {
             std::set<int> front_erosion2;
-            for(const auto& is : front_erosion) {
+            for (const auto& is : front_erosion) {
                 for (const auto& ivconnect : connected_vertexes[is]) {
-                    if ((p_id_island[ivconnect]==0) && (p_erosion[ivconnect]==0)) {
+                    if ((p_id_island[ivconnect] == 0) && (p_erosion[ivconnect] == 0)) {
                         front_erosion2.insert(ivconnect);
                         p_erosion[ivconnect] = true;
                     }
@@ -997,128 +1031,128 @@ void SCMDeformableSoil::ComputeInternalForces() {
             front_erosion = front_erosion2;
         }
         // Erosion smoothing algorithm on domain
-        for (int ismo = 0; ismo <3; ++ismo) {
+        for (int ismo = 0; ismo < 3; ++ismo) {
             for (const auto& is : domain_erosion) {
                 for (const auto& ivc : connected_vertexes[is]) {
                     ChVector<> vis = this->plane.TransformParentToLocal(vertices[is]);
-                    // flow remainder material 
+                    // flow remainder material
                     if (true) {
-                        if (p_massremainder[is]>p_massremainder[ivc]) {
+                        if (p_massremainder[is] > p_massremainder[ivc]) {
                             double clamped_d_y_i;
                             double clamped_d_y_c;
- 
-                            // if i higher than c: clamp c upward correction as it might invalidate 
+
+                            // if i higher than c: clamp c upward correction as it might invalidate
                             // the ceiling constraint, if collision is nearby
-                            double d_y_c = (p_massremainder[is]-p_massremainder[ivc])* (1/(double)connected_vertexes[is].size()) *  p_area[is]/(p_area[is]+p_area[ivc]);
-                            clamped_d_y_c = d_y_c; 
-                            if (d_y_c > p_hit_level[ivc]-p_level[ivc]) {
-                                p_massremainder[ivc] += d_y_c - (p_hit_level[ivc]-p_level[ivc]);
-                                clamped_d_y_c = p_hit_level[ivc]-p_level[ivc];
+                            double d_y_c = (p_massremainder[is] - p_massremainder[ivc]) *
+                                           (1 / (double)connected_vertexes[is].size()) * p_area[is] /
+                                           (p_area[is] + p_area[ivc]);
+                            clamped_d_y_c = d_y_c;
+                            if (d_y_c > p_hit_level[ivc] - p_level[ivc]) {
+                                p_massremainder[ivc] += d_y_c - (p_hit_level[ivc] - p_level[ivc]);
+                                clamped_d_y_c = p_hit_level[ivc] - p_level[ivc];
                             }
-                            double d_y_i = - d_y_c * p_area[ivc]/p_area[is];
+                            double d_y_i = -d_y_c * p_area[ivc] / p_area[is];
                             clamped_d_y_i = d_y_i;
-                            if (p_massremainder[is] >  -d_y_i) {
+                            if (p_massremainder[is] > -d_y_i) {
                                 p_massremainder[is] -= -d_y_i;
                                 clamped_d_y_i = 0;
-                            } else
-                            if ((p_massremainder[is] < -d_y_i) && (p_massremainder[is] >0)) {
+                            } else if ((p_massremainder[is] < -d_y_i) && (p_massremainder[is] > 0)) {
                                 p_massremainder[is] = 0;
                                 clamped_d_y_i = d_y_i + p_massremainder[is];
                             }
-                            
+
                             // correct vertexes
-                            p_level[ivc]            += clamped_d_y_c;
-                            p_level_initial[ivc]    += clamped_d_y_c;
-                            vertices[ivc]           += N * clamped_d_y_c;
+                            p_level[ivc] += clamped_d_y_c;
+                            p_level_initial[ivc] += clamped_d_y_c;
+                            vertices[ivc] += N * clamped_d_y_c;
                             p_vertices_initial[ivc] += N * clamped_d_y_c;
 
-                            p_level[is]             += clamped_d_y_i;
-                            p_level_initial[is]     += clamped_d_y_i;
-                            vertices[is]            += N * clamped_d_y_i;
-                            p_vertices_initial[is]  += N * clamped_d_y_i;      
+                            p_level[is] += clamped_d_y_i;
+                            p_level_initial[is] += clamped_d_y_i;
+                            vertices[is] += N * clamped_d_y_i;
+                            p_vertices_initial[is] += N * clamped_d_y_i;
                         }
                     }
                     // smooth
                     if (p_sigma[ivc] == 0) {
                         ChVector<> vic = this->plane.TransformParentToLocal(vertices[ivc]);
-                        ChVector<> vdist = vic-vis;
-                        vdist.y() = 0;
+                        ChVector<> vdist = vic - vis;
+                        vdist.z() = 0;
                         double ddist = vdist.Length();
-                        double dy = p_level[is] + p_massremainder[is]  - p_level[ivc] - p_massremainder[ivc];
-                        double dy_lim = ddist * tan(bulldozing_erosion_angle*CH_C_DEG_TO_RAD);
-                        if (fabs(dy)>dy_lim) {
+                        double dy = p_level[is] + p_massremainder[is] - p_level[ivc] - p_massremainder[ivc];
+                        double dy_lim = ddist * tan(bulldozing_erosion_angle * CH_C_DEG_TO_RAD);
+                        if (fabs(dy) > dy_lim) {
                             double clamped_d_y_i;
                             double clamped_d_y_c;
-                            if (dy > 0) { 
-                                // if i higher than c: clamp c upward correction as it might invalidate 
+                            if (dy > 0) {
+                                // if i higher than c: clamp c upward correction as it might invalidate
                                 // the ceiling constraint, if collision is nearby
-                                double d_y_c = (fabs(dy)-dy_lim)* (1/(double)connected_vertexes[is].size()) *  p_area[is]/(p_area[is]+p_area[ivc]);
-                                clamped_d_y_c = d_y_c; //clamped_d_y_c = ChMin(d_y_c, p_hit_level[ivc]-p_level[ivc] );
-                                if (d_y_c > p_hit_level[ivc]-p_level[ivc]) {
-                                    p_massremainder[ivc] += d_y_c - (p_hit_level[ivc]-p_level[ivc]);
-                                    clamped_d_y_c = p_hit_level[ivc]-p_level[ivc];
+                                double d_y_c = (fabs(dy) - dy_lim) * (1 / (double)connected_vertexes[is].size()) *
+                                               p_area[is] / (p_area[is] + p_area[ivc]);
+                                clamped_d_y_c = d_y_c;  // clamped_d_y_c = ChMin(d_y_c, p_hit_level[ivc]-p_level[ivc] );
+                                if (d_y_c > p_hit_level[ivc] - p_level[ivc]) {
+                                    p_massremainder[ivc] += d_y_c - (p_hit_level[ivc] - p_level[ivc]);
+                                    clamped_d_y_c = p_hit_level[ivc] - p_level[ivc];
                                 }
-                                double d_y_i = - d_y_c * p_area[ivc]/p_area[is];
+                                double d_y_i = -d_y_c * p_area[ivc] / p_area[is];
                                 clamped_d_y_i = d_y_i;
-                                if (p_massremainder[is] >  -d_y_i) {
+                                if (p_massremainder[is] > -d_y_i) {
                                     p_massremainder[is] -= -d_y_i;
                                     clamped_d_y_i = 0;
-                                } else
-                                if ((p_massremainder[is] < -d_y_i) && (p_massremainder[is] >0)) {
+                                } else if ((p_massremainder[is] < -d_y_i) && (p_massremainder[is] > 0)) {
                                     p_massremainder[is] = 0;
                                     clamped_d_y_i = d_y_i + p_massremainder[is];
                                 }
                             } else {
-                                // if c higher than i: clamp i upward correction as it might invalidate 
+                                // if c higher than i: clamp i upward correction as it might invalidate
                                 // the ceiling constraint, if collision is nearby
-                                double d_y_i = (fabs(dy)-dy_lim)* (1/(double)connected_vertexes[is].size()) *  p_area[is]/(p_area[is]+p_area[ivc]);
-                                clamped_d_y_i = d_y_i; 
-                                if (d_y_i > p_hit_level[is]-p_level[is]) {
-                                    p_massremainder[is] += d_y_i - (p_hit_level[is]-p_level[is]);
-                                    clamped_d_y_i = p_hit_level[is]-p_level[is];
+                                double d_y_i = (fabs(dy) - dy_lim) * (1 / (double)connected_vertexes[is].size()) *
+                                               p_area[is] / (p_area[is] + p_area[ivc]);
+                                clamped_d_y_i = d_y_i;
+                                if (d_y_i > p_hit_level[is] - p_level[is]) {
+                                    p_massremainder[is] += d_y_i - (p_hit_level[is] - p_level[is]);
+                                    clamped_d_y_i = p_hit_level[is] - p_level[is];
                                 }
-                                double d_y_c = - d_y_i * p_area[is]/p_area[ivc];
+                                double d_y_c = -d_y_i * p_area[is] / p_area[ivc];
                                 clamped_d_y_c = d_y_c;
-                                if (p_massremainder[ivc] >  -d_y_c) {
+                                if (p_massremainder[ivc] > -d_y_c) {
                                     p_massremainder[ivc] -= -d_y_c;
                                     clamped_d_y_c = 0;
-                                } else
-                                if ((p_massremainder[ivc] < -d_y_c) && (p_massremainder[ivc] >0)) {
+                                } else if ((p_massremainder[ivc] < -d_y_c) && (p_massremainder[ivc] > 0)) {
                                     p_massremainder[ivc] = 0;
                                     clamped_d_y_c = d_y_c + p_massremainder[ivc];
                                 }
                             }
 
                             // correct vertexes
-                            p_level[ivc]            += clamped_d_y_c;
-                            p_level_initial[ivc]    += clamped_d_y_c;
-                            vertices[ivc]           += N * clamped_d_y_c;
+                            p_level[ivc] += clamped_d_y_c;
+                            p_level_initial[ivc] += clamped_d_y_c;
+                            vertices[ivc] += N * clamped_d_y_c;
                             p_vertices_initial[ivc] += N * clamped_d_y_c;
 
-                            p_level[is]             += clamped_d_y_i;
-                            p_level_initial[is]     += clamped_d_y_i;
-                            vertices[is]            += N * clamped_d_y_i;
-                            p_vertices_initial[is]  += N * clamped_d_y_i;      
+                            p_level[is] += clamped_d_y_i;
+                            p_level_initial[is] += clamped_d_y_i;
+                            vertices[is] += N * clamped_d_y_i;
+                            p_vertices_initial[is] += N * clamped_d_y_i;
                         }
                     }
                 }
             }
         }
 
-    } // end bulldozing flow 
+    }  // end bulldozing flow
 
     m_timer_bulldozing.stop();
-
 
     m_timer_visualization.start();
 
     //
     // Update the visualization colors
-    // 
+    //
 
     if (plot_type != SCMDeformableTerrain::PLOT_NONE) {
         colors.resize(vertices.size());
-        for (size_t iv = 0; iv< vertices.size(); ++iv) {
+        for (size_t iv = 0; iv < vertices.size(); ++iv) {
             ChColor mcolor;
             switch (plot_type) {
                 case SCMDeformableTerrain::PLOT_LEVEL:
@@ -1155,19 +1189,19 @@ void SCMDeformableSoil::ComputeInternalForces() {
                     mcolor = ChColor::ComputeFalseColor(p_massremainder[iv], plot_v_min, plot_v_max);
                     break;
                 case SCMDeformableTerrain::PLOT_ISLAND_ID:
-                    mcolor = ChColor(0,0,1);
+                    mcolor = ChColor(0, 0, 1);
                     if (p_erosion[iv] == true)
-                        mcolor = ChColor(1,1,1);
-                    if (p_id_island[iv] >0)
-                        mcolor = ChColor::ComputeFalseColor(4 +(p_id_island[iv] % 8), 0, 12);
-                    if (p_id_island[iv] <0)
-                        mcolor = ChColor(0,0,0);
+                        mcolor = ChColor(1, 1, 1);
+                    if (p_id_island[iv] > 0)
+                        mcolor = ChColor::ComputeFalseColor(4 + (p_id_island[iv] % 8), 0, 12);
+                    if (p_id_island[iv] < 0)
+                        mcolor = ChColor(0, 0, 0);
                     break;
                 case SCMDeformableTerrain::PLOT_IS_TOUCHED:
-                    if (p_sigma[iv]>0)
-                        mcolor = ChColor(1,0,0);
-                    else 
-                        mcolor = ChColor(0,0,1);
+                    if (p_sigma[iv] > 0)
+                        mcolor = ChColor(1, 0, 0);
+                    else
+                        mcolor = ChColor(0, 0, 1);
                     break;
             }
             colors[iv] = {mcolor.R, mcolor.G, mcolor.B};
@@ -1178,7 +1212,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
 
     //
     // Update the visualization normals
-    // 
+    //
 
     std::vector<int> accumulators(vertices.size(), 0);
 
@@ -1186,7 +1220,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
     for (unsigned int it = 0; it < idx_vertices.size(); ++it) {
         // Calculate the triangle normal as a normalized cross product.
         ChVector<> nrm = -Vcross(vertices[idx_vertices[it][1]] - vertices[idx_vertices[it][0]],
-                                vertices[idx_vertices[it][2]] - vertices[idx_vertices[it][0]]);
+                                 vertices[idx_vertices[it][2]] - vertices[idx_vertices[it][0]]);
         nrm.Normalize();
         // Increment the normals of all incident vertices by the face normal
         normals[idx_normals[it][0]] += nrm;
@@ -1205,15 +1239,15 @@ void SCMDeformableSoil::ComputeInternalForces() {
 
     m_timer_visualization.stop();
 
-    // 
-    // Compute the forces 
     //
-    
+    // Compute the forces
+    //
+
     // Use the SCM soil contact model as described in the paper:
     // "Parameter Identification of a Planetary Rover Wheel–Soil
     // Contact Model via a Bayesian Approach", A.Gallina, R. Krenn et al.
 
-    // 
+    //
     // Update visual asset
     //
 

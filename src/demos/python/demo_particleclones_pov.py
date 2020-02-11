@@ -21,9 +21,10 @@ import pychrono.postprocess as postprocess
 # We will create two directories for saving some files, we need this:
 import os
 
-# Change this path to asset path, if running from other working dir. 
-# It must point to the data folder, containing GUI assets (textures, fonts, meshes, etc.)
-chrono.SetChronoDataPath("../../../data/")
+# The path to the Chrono data directory containing various assets (meshes, textures, data files)
+# is automatically set, relative to the default location of this demo.
+# If running from a different directory, you must change the path to the data directory with: 
+#chrono.SetChronoDataPath('path/to/data')
 
 
 # ---------------------------------------------------------------------
@@ -130,8 +131,8 @@ for ix in range(0,2):
 pov_exporter = postprocess.ChPovRay(my_system)
 
  # Sets some file names for in-out processes.
-pov_exporter.SetTemplateFile        (chrono.GetChronoDataPath() + "_template_POV.pov")
-pov_exporter.SetOutputScriptFile    ("rendering_frames.pov")
+pov_exporter.SetTemplateFile(chrono.GetChronoDataFile('_template_POV.pov'))
+pov_exporter.SetOutputScriptFile("rendering_frames.pov")
 if not os.path.exists("output"):
     os.mkdir("output")
 if not os.path.exists("anim"):

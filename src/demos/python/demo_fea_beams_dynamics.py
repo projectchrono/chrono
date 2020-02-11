@@ -17,9 +17,10 @@ import pychrono.irrlicht as chronoirr
 
 print ("Example: FEA of the Jeffcott rotor passing through resonance.");
 
-# Change this path to asset path, if running from other working dir. 
-# It must point to the data folder, containing GUI assets (textures, fonts, meshes, etc.)
-chrono.SetChronoDataPath("../../../data/")
+# The path to the Chrono data directory containing various assets (meshes, textures, data files)
+# is automatically set, relative to the default location of this demo.
+# If running from a different directory, you must change the path to the data directory with: 
+#chrono.SetChronoDataPath('path/to/data')
 
 
 # ---------------------------------------------------------------------
@@ -159,7 +160,7 @@ my_mesh.AddAsset(mvisualizebeamC)
 # bind a simple user interface, etc. etc.)
 myapplication = chronoirr.ChIrrApp(my_system, 'Test FEA: the Jeffcott rotor with IGA beams', chronoirr.dimension2du(1024,768))
 
-myapplication.AddTypicalLogo(chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
+myapplication.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 myapplication.AddTypicalSky()
 myapplication.AddTypicalCamera(chronoirr.vector3df(0,1,4), chronoirr.vector3df(beam_L/2, 0, 0))
 myapplication.AddTypicalLights()

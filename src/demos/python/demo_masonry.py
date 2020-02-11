@@ -19,9 +19,10 @@ import pychrono.core as chrono
 import pychrono.irrlicht as chronoirr
 
 
-# Change this path to asset path, if running from other working dir. 
-# It must point to the data folder, containing GUI assets (textures, fonts, meshes, etc.)
-chrono.SetChronoDataPath("../../../data/")
+# The path to the Chrono data directory containing various assets (meshes, textures, data files)
+# is automatically set, relative to the default location of this demo.
+# If running from a different directory, you must change the path to the data directory with: 
+#chrono.SetChronoDataPath('path/to/data')
 
 # ---------------------------------------------------------------------
 #
@@ -120,7 +121,7 @@ body_floor_shape.GetBoxGeometry().Size = chrono.ChVectorD(3, 1, 3)
 body_floor.GetAssets().push_back(body_floor_shape)
 
 body_floor_texture = chrono.ChTexture()
-body_floor_texture.SetTextureFilename(chrono.GetChronoDataPath() + 'concrete.jpg')
+body_floor_texture.SetTextureFilename(chrono.GetChronoDataFile('concrete.jpg'))
 body_floor.GetAssets().push_back(body_floor_texture)
 
 my_system.Add(body_floor)
@@ -150,7 +151,7 @@ body_table_shape.SetColor(chrono.ChColor(0.4,0.4,0.5))
 body_table.GetAssets().push_back(body_table_shape)
 
 body_table_texture = chrono.ChTexture()
-body_table_texture.SetTextureFilename(chrono.GetChronoDataPath() + 'concrete.jpg')
+body_table_texture.SetTextureFilename(chrono.GetChronoDataFile('concrete.jpg'))
 body_table.GetAssets().push_back(body_table_texture)
 
 my_system.Add(body_table)
@@ -187,7 +188,7 @@ link_shaker.SetMotion_Z(mfunZ)
 myapplication = chronoirr.ChIrrApp(my_system, 'PyChrono example', chronoirr.dimension2du(1024,768))
 
 myapplication.AddTypicalSky()
-myapplication.AddTypicalLogo(chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
+myapplication.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 myapplication.AddTypicalCamera(chronoirr.vector3df(0.5,0.5,1.0))
 myapplication.AddLightWithShadow(chronoirr.vector3df(2,4,2),    # point
                                  chronoirr.vector3df(0,0,0),    # aimpoint

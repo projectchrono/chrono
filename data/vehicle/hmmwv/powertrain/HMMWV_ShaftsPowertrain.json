@@ -1,5 +1,5 @@
 {
-  "Name":                    "Shafts Powertrain",
+  "Name":                    "HMMWV Shafts Powertrain",
   "Type":                    "Powertrain",
   "Template":                "ShaftsPowertrain",
 
@@ -45,8 +45,8 @@
     "Reverse Gear Ratio":    -0.1,
     "Forward Gear Ratios":   [ 0.2, 0.4, 0.8 ],
     "Upshift RPM":           2500,
-    "Downshift RPM":         1500,
-    "Shift Latency":         0.5
+    "Downshift RPM":         1200,
+    "Shift Latency":         1.0
   },
 
   "Torque Converter":

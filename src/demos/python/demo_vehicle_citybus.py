@@ -23,11 +23,12 @@ import pychrono.irrlicht as irr
 import pychrono.vehicle as veh
 import math
 
-"""
-!!!! Set this path before running the demo!
-"""
-chrono.SetChronoDataPath('../../../../Library/data/')
-veh.SetDataPath('../../../../Library/data/vehicle/')
+# The path to the Chrono data directory containing various assets (meshes, textures, data files)
+# is automatically set, relative to the default location of this demo.
+# If running from a different directory, you must change the path to the data directory with: 
+#chrono.SetChronoDataPath('path/to/data')
+
+veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
 
 # Initial vehicle location and orientation
 initLoc = chrono.ChVectorD(0, 0, 0.5)
@@ -109,7 +110,7 @@ terrain.Initialize()
 app = veh.ChWheeledVehicleIrrApp(my_bus.GetVehicle())
 app.SetSkyBox()
 app.AddTypicalLights(irr.vector3df(30, -30, 100), irr.vector3df(30, 50, 100), 250, 130)
-app.AddTypicalLogo(chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
+app.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 app.SetChaseCamera(trackPoint, 15.0, 0.5)
 app.SetTimestep(step_size)
 app.AssetBindAll()

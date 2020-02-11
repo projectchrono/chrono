@@ -26,7 +26,10 @@ import os
 # Output directory
 out_dir = "./FEA_SHELLS"
 
-chrono.SetChronoDataPath('C:/codes/Chrono/Chrono_Source/data/')
+# The path to the Chrono data directory containing various assets (meshes, textures, data files)
+# is automatically set, relative to the default location of this demo.
+# If running from a different directory, you must change the path to the data directory with: 
+#chrono.SetChronoDataPath('path/to/data')
 
 #GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n"
 
@@ -269,7 +272,7 @@ if (False) :
 	material = fea.ChMaterialShellKirchhoff(melasticity)
 	material.SetDensity(density)
 
-	fea.ChMeshFileLoader.BSTShellFromObjFile(my_mesh, "C:\codes\Chrono\Chrono_Source\data\cube.obj", material, thickness)
+	fea.ChMeshFileLoader.BSTShellFromObjFile(my_mesh, chrono.GetChronoDataFile('cube.obj'), material, thickness)
 
 
 

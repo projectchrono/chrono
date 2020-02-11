@@ -73,7 +73,8 @@ class Model(object):
              self.myapplication.SetStepManage(True)
              self.myapplication.SetTimestep(self.timestep)
              self. myapplication.SetTryRealtime(True)  
-             self.myapplication.AddTypicalSky('../data/skybox/')
+             self.myapplication.AddTypicalSky()
+             self.myapplication.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
              self.myapplication.AddTypicalCamera(chronoirr.vector3df(0,1.5,0))
              self.myapplication.AddLightWithShadow(chronoirr.vector3df(4,4,0),    # point
                                             chronoirr.vector3df(0,0,0),    # aimpoint
@@ -206,7 +207,7 @@ class Model(object):
       body_floor_shape.SetColor(chrono.ChColor(0.4,0.4,0.5))
       self.body_floor.GetAssets().push_back(body_floor_shape)
       body_floor_texture = chrono.ChTexture()
-      body_floor_texture.SetTextureFilename('../data/grass.jpg')
+      body_floor_texture.SetTextureFilename(chrono.GetChronoDataFile('vehicle/terrain/textures/grass.jpg'))
       self.body_floor.GetAssets().push_back(body_floor_texture)     
       self.ant_sys.Add(self.body_floor)
       #self.body_abdomen.SetBodyFixed(True)

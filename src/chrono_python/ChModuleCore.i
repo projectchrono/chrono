@@ -374,10 +374,9 @@ using namespace chrono::fea;
 %include "ChSystemNSC.i"
 %include "ChSystemSMC.i"
 %include "ChProximityContainer.i"
-
+%include "ChLoader.i"
 %include "ChLoad.i"
 %include "ChLoadContainer.i"
-
 %include "ChShaft.i"
 %include "ChShaftMotor.i"
 %include "ChLinkMotor.i"

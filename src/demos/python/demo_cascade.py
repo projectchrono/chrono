@@ -19,9 +19,11 @@ try:
     from OCC.Core import BRepAlgoAPI
 except:
     from OCC import BRepPrimAPI, BRepAlgoAPI
-# Change this path to asset path, if running from other working dir. 
-# It must point to the data folder, containing GUI assets (textures, fonts, meshes, etc.)
-chrono.SetChronoDataPath("../../../data/")
+    
+# The path to the Chrono data directory containing various assets (meshes, textures, data files)
+# is automatically set, relative to the default location of this demo.
+# If running from a different directory, you must change the path to the data directory with: 
+#chrono.SetChronoDataPath('path/to/data')
 
 
 # ---------------------------------------------------------------------
@@ -72,8 +74,8 @@ my_floor.AddAsset(my_color)
 
 myapplication = chronoirr.ChIrrApp(mysystem, 'Use OpenCascade shapes', chronoirr.dimension2du(1024,768))
 
-myapplication.AddTypicalSky(chrono.GetChronoDataPath() + 'skybox/')
-myapplication.AddTypicalLogo(chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
+myapplication.AddTypicalSky()
+myapplication.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 myapplication.AddTypicalCamera(chronoirr.vector3df(0.2,0.2,-0.2))
 myapplication.AddTypicalLights()
 
