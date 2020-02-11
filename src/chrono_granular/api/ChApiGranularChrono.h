@@ -71,7 +71,8 @@ class CH_GRANULAR_API ChGranularSMC_API {
   public:
     ChGranularSMC_API() : gran_sys(NULL) {}
     // Set particle positions in UU
-    void setElemsPositions(const std::vector<chrono::ChVector<float>>& points);
+    void setElemsPositions(const std::vector<chrono::ChVector<float>>& points,
+                           const std::vector<chrono::ChVector<float>>& vels = std::vector<chrono::ChVector<float>>());
 
     // set the gran systems that the user talks to; beef up the API so that the gran system is built through the API,
     // instead of passing a gran system pointer to the API (the API builds the gran system; not the API coming in after
