@@ -28,6 +28,12 @@
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 #include "chrono_vehicle/ChTerrain.h"
 
+// The following undef is required in order to compile in conda-forge
+// on OSX for Python 3.6 (somehow termios.h gets included and defines
+// B0 to be 0, leading to a syntax error).
+// see https://github.com/projectchrono/chrono/pull/222
+#undef B0
+
 namespace chrono {
 namespace vehicle {
 
