@@ -77,11 +77,7 @@ void ChSystemGranularSMC_trimesh::initializeTriangles() {
         meshSoup->familyMass_SU[fam] = (float)(meshSoup->familyMass_SU[fam] / MASS_SU2UU);
     }
 
-    double rolling_scalingFactor = 1.;
-    if (gran_params->rolling_mode == GRAN_ROLLING_MODE::VISCOUS) {
-        rolling_scalingFactor = 1. / TIME_SU2UU;
-    }
-    tri_params->rolling_coeff_s2m_SU = (float)(rolling_scalingFactor * rolling_coeff_s2m_UU);
+    tri_params->rolling_coeff_s2m_SU = (float)rolling_coeff_s2m_UU;
 
     TRACK_VECTOR_RESIZE(SD_numTrianglesTouching, nSDs, "SD_numTrianglesTouching", 0);
     TRACK_VECTOR_RESIZE(SD_TriangleCompositeOffsets, nSDs, "SD_TriangleCompositeOffsets", 0);
@@ -202,7 +198,7 @@ void ChSystemGranularSMC_trimesh::meshSoup_applyRigidBodyMotion(double* position
         tri_params->fam_frame_narrow[fam].pos[2] = position_orientation_data[7 * fam + 2];
 
         // Set linear and angular velocity
-        const float C_V = (float) (TIME_SU2UU / LENGTH_SU2UU);
+        const float C_V = (float)(TIME_SU2UU / LENGTH_SU2UU);
         meshSoup->vel[fam] = make_float3(C_V * vel[6 * fam + 0], C_V * vel[6 * fam + 1], C_V * vel[6 * fam + 2]);
         const float C_O = (float)TIME_SU2UU;
         meshSoup->omega[fam] = make_float3(C_O * vel[6 * fam + 3], C_O * vel[6 * fam + 4], C_O * vel[6 * fam + 5]);

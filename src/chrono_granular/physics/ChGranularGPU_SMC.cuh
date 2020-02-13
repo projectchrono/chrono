@@ -758,8 +758,7 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
                                 sphere_data->pos_Z_dt[theirSphereID]),
                     gran_params);
 
-                // TODO verify this
-                float hertz_force_factor = std::sqrt(2. * (1 - (1. / reciplength)));
+                float hertz_force_factor = std::sqrt(2. * (1 - (1. / reciplength))); // sqrt(delta_n / (2 R_eff)
 
                 // add frictional terms, if needed
                 if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {

@@ -871,12 +871,8 @@ void ChSystemGranularSMC::switchToSimUnits() {
     gran_params->Gamma_t_s2s_SU = (float)(Gamma_t_s2s_UU / GAMMA_SU2UU);
     gran_params->Gamma_t_s2w_SU = (float)(Gamma_t_s2w_UU / GAMMA_SU2UU);
 
-    double rolling_scalingFactor = 1.;
-    if (gran_params->rolling_mode == GRAN_ROLLING_MODE::VISCOUS) {
-        rolling_scalingFactor = 1. / TIME_SU2UU;
-    }
-    gran_params->rolling_coeff_s2s_SU = (float)(rolling_scalingFactor * rolling_coeff_s2s_UU);
-    gran_params->rolling_coeff_s2w_SU = (float)(rolling_scalingFactor * rolling_coeff_s2w_UU);
+    gran_params->rolling_coeff_s2s_SU = (float)rolling_coeff_s2s_UU;
+    gran_params->rolling_coeff_s2w_SU = (float)rolling_coeff_s2w_UU;
 
     // Handy debug output
     INFO_PRINTF("UU mass is %f\n", MASS_SU2UU);

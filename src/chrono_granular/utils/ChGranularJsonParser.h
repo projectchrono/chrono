@@ -101,7 +101,7 @@ void ShowJSONUsage() {
     cout << "static_friction_coeffS2S" << endl;
     cout << "static_friction_coeffS2W" << endl;
     cout << "static_friction_coeffS2M" << endl;
-    cout << "rolling_mode (no_resistance|constant_torque|viscous)" << endl;
+    cout << "rolling_mode (no_resistance|schwartz)" << endl;
     cout << "rolling_friction_coeffS2S" << endl;
     cout << "rolling_friction_coeffS2W" << endl;
     cout << "rolling_friction_coeffS2M" << endl;
@@ -277,12 +277,9 @@ bool ParseJSON(const char* json_file, sim_param_holder& params, bool verbose = t
         if (doc["rolling_mode"].GetString() == string("no_resistance")) {
             params.rolling_mode = GRAN_ROLLING_MODE::NO_RESISTANCE;
             CONDITIONAL_PRINTF(verbose, "params.rolling_mode no_resistance\n");
-        } else if (doc["rolling_mode"].GetString() == string("constant_torque")) {
-            params.rolling_mode = GRAN_ROLLING_MODE::CONSTANT_TORQUE;
-            CONDITIONAL_PRINTF(verbose, "params.rolling_mode constant_torque\n");
-        } else if (doc["rolling_mode"].GetString() == string("viscous")) {
-            params.rolling_mode = GRAN_ROLLING_MODE::VISCOUS;
-            CONDITIONAL_PRINTF(verbose, "params.rolling_mode viscous\n");
+        } else if (doc["rolling_mode"].GetString() == string("schwartz")) {
+            params.rolling_mode = GRAN_ROLLING_MODE::SCHWARTZ;
+            CONDITIONAL_PRINTF(verbose, "params.rolling_mode schwartz\n");
         } else {
             InvalidArg("rolling_mode");
             return false;
