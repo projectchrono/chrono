@@ -26,7 +26,10 @@ Chrono::Vehicle Reference Manual {#manual_vehicle}
 
 * @subpage vehicle_driver
 
+* @subpage vehicle_visualization
+
 * @subpage vehicle_models
+
 
 **Additional documentation pages**
 
