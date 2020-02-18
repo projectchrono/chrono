@@ -3,10 +3,13 @@ Steering mechanism models {#wheeled_steering}
 
 \tableofcontents
 
+The base class [ChSteering](@ref chrono::vehicle::ChSteering) imposes that any derived steering mechanism class (a steering mechanism template) provide a steering link body to which a steerable suspension can be sonnected (usually through the suspension's tierods).
 
-A steering mechanism template in Chrono::Vehicle is defined with respect to a subsystem-relative reference frame. The mechanism is then assembled to the chassis, by specifying the location and orientation of this subsystem reference frame relative to the chassis reference frame.
+A derived steering mechanism type defines the bodies, joints, force elements, and topology of a particular type of steering mechanism. All locations are assumed to be provided with respect to a mechanism reference frame (a derived steering mechanism type is free to pick the location and orientation of this frame).
 
-All steering mechanism templates include a steering link body which is attached to the tierods of the associated suspension assembly.
+A steering mechanism assembly is attached to a vehicle's chassis by specifying the location and orientation of the mechanism assembly reference frame with respect to the chassis reference frame (see the definition of the [ISO reference frame](@ref vehicle_ISO_frame)).
+
+A wheeled vehicle may have multiple steering mechanisms, each associated with a different steerable vehicle axle. Similalry, a single steering mechanism may be connected to multiple steerable vehicle axles.
 
 ## Pitman arm {#wheeled_steering_pitman}
 
@@ -49,3 +52,23 @@ The hardpoints are:
 
 A sample JSON file with the specification of a RackPinion steering mechanism is:
 \include "../../data/vehicle/hmmwv/steering/HMMWV_RackPinion.json"
+
+
+## Rotary arm {#wheeled_steering_rotary_arm}
+
+The rotary arm steering is a simple lever arm that rotates around an axis. It works with solid bellcrank axles and solid toebar axles. It is often used as steering system for trucks, farm tractors and combine harvesters.
+
+See [ChRotaryArm](@ref chrono::vehicle::ChRotaryArm) and [RotaryArm](@ref chrono::vehicle::RotaryArm).
+
+<img src="http://www.projectchrono.org/assets/manual/vehicle/wheeled/RotaryArm_bodies.png" width="600" />
+
+The topology of this steering mechanism template is:
+
+<img src="http://www.projectchrono.org/assets/manual/vehicle/wheeled/RotaryArm_topology.png" width="800" />
+
+The hardpoints are:
+
+<img src="http://www.projectchrono.org/assets/manual/vehicle/wheeled/RotaryArm_points.png" width="600" />
+
+A sample JSON file with the specification of a RotaryArm steering mechanism is:
+\include "../../data/vehicle/uaz/steering/UAZBUS_RotaryArm.json"

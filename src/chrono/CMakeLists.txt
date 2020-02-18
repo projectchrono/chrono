@@ -121,11 +121,7 @@ set(ChronoEngine_physics_SOURCES
     physics/ChSystem.cpp
     physics/ChSystemNSC.cpp
     physics/ChSystemSMC.cpp
-    physics/ChProbe.cpp
-    physics/ChControls.cpp
     physics/ChController.cpp
-    physics/ChRef.cpp
-    physics/ChGenericConstraint.cpp
     physics/ChPhysicsItem.cpp
     physics/ChParticlesClones.cpp
     physics/ChIndexedParticles.cpp
@@ -144,9 +140,7 @@ set(ChronoEngine_physics_HEADERS
     physics/ChBody.h
     physics/ChBodyAuxRef.h
     physics/ChBodyEasy.h
-    physics/ChGenericConstraint.h
     physics/ChController.h
-    physics/ChControls.h
     physics/ChConveyor.h
     physics/ChForce.h
     physics/ChIndexedNodes.h
@@ -158,10 +152,8 @@ set(ChronoEngine_physics_HEADERS
     physics/ChObject.h
     physics/ChParticlesClones.h
     physics/ChPhysicsItem.h
-    physics/ChProbe.h
     physics/ChProximityContainer.h
     physics/ChProximityContainerSPH.h
-    physics/ChRef.h
     physics/ChSystem.h
     physics/ChSystemNSC.h
     physics/ChSystemSMC.h    

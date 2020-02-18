@@ -19,9 +19,11 @@ try:
     from OCC.Core import TopoDS
 except:
     from OCC import TopoDS 
-# Change this path to asset path, if running from other working dir. 
-# It must point to the data folder, containing GUI assets (textures, fonts, meshes, etc.)
-chrono.SetChronoDataPath("../../../data/")
+    
+# The path to the Chrono data directory containing various assets (meshes, textures, data files)
+# is automatically set, relative to the default location of this demo.
+# If running from a different directory, you must change the path to the data directory with: 
+#chrono.SetChronoDataPath('path/to/data')
 
 
 # ---------------------------------------------------------------------
@@ -41,7 +43,7 @@ mydoc = cascade.ChCascadeDoc()
 
 
 # load the STEP model using this command:
-load_ok = mydoc.Load_STEP(chrono.GetChronoDataPath() + "cascade/IRB7600_23_500_m2000_rev1_01_decorated.stp");  # or specify abs.path: ("C:\\data\\cascade\\assembly.stp");
+load_ok = mydoc.Load_STEP(chrono.GetChronoDataFile('cascade/IRB7600_23_500_m2000_rev1_01_decorated.stp'))  # or specify abs.path: ("C:\\data\\cascade\\assembly.stp");
 
 if not load_ok:
     raise ValueError("Warning. Desired STEP file could not be opened/parsed \n")
@@ -53,12 +55,12 @@ CH_C_PI = 3.1456
 # In most CADs the Y axis is horizontal, but we want it vertical.
 # So define a root transformation for rotating all the imported objects.
 rotation1 = chrono.ChQuaternionD()
-rotation1.Q_from_AngAxis(-CH_C_PI / 2, chrono.ChVectorD(1, 0, 0));  # 1: rotate 90° on X axis
+rotation1.Q_from_AngAxis(-CH_C_PI / 2, chrono.ChVectorD(1, 0, 0))  # 1: rotate 90° on X axis
 rotation2 = chrono.ChQuaternionD()
-rotation2.Q_from_AngAxis(CH_C_PI, chrono.ChVectorD(0, 1, 0));  # 2: rotate 180° on vertical Y axis
+rotation2.Q_from_AngAxis(CH_C_PI, chrono.ChVectorD(0, 1, 0))  # 2: rotate 180° on vertical Y axis
 tot_rotation = chrono.ChQuaternionD()
 tot_rotation = rotation2 % rotation1     # rotate on 1 then on 2, using quaternion product
-root_frame = chrono.ChFrameMovingD(chrono.ChVectorD(0, 0, 0), tot_rotation);
+root_frame = chrono.ChFrameMovingD(chrono.ChVectorD(0, 0, 0), tot_rotation)
 
     
 # Retrieve some sub shapes from the loaded model, using
@@ -224,8 +226,8 @@ mysystem.Add(mparallelism);
 
 myapplication = chronoirr.ChIrrApp(mysystem, 'Import STEP', chronoirr.dimension2du(1024,768))
 
-myapplication.AddTypicalSky(chrono.GetChronoDataPath() + 'skybox/')
-myapplication.AddTypicalLogo(chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
+myapplication.AddTypicalSky()
+myapplication.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 myapplication.AddTypicalCamera(chronoirr.vector3df(2,2,2),chronoirr.vector3df(0,0.8,0))
 #myapplication.AddTypicalLights()
 myapplication.AddLightWithShadow(chronoirr.vector3df(3,6,2),    # point

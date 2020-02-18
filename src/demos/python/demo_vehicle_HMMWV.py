@@ -70,7 +70,7 @@ def main():
 
     app.SetSkyBox()
     app.AddTypicalLights(chronoirr.vector3df(30, -30, 100), chronoirr.vector3df(30, 50, 100), 250, 130)
-    app.AddTypicalLogo(chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
+    app.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
     app.SetChaseCamera(trackPoint, 6.0, 0.5)
     app.SetTimestep(step_size)
     app.AssetBindAll()
@@ -168,13 +168,15 @@ def main():
 
     return 0
 
-"""
-!!!! Set this path before running the demo!
-"""
-chrono.SetChronoDataPath('../../../../Library/data/')
-veh.SetDataPath('../../../../Library/data/vehicle/')
 
-#  Initial vehicle location and orientation
+# The path to the Chrono data directory containing various assets (meshes, textures, data files)
+# is automatically set, relative to the default location of this demo.
+# If running from a different directory, you must change the path to the data directory with: 
+#chrono.SetChronoDataPath('path/to/data')
+
+veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
+
+# Initial vehicle location and orientation
 initLoc = chrono.ChVectorD(0, 0, 1.6)
 initRot = chrono.ChQuaternionD(1, 0, 0, 0)
 
@@ -201,7 +203,6 @@ steering_type = veh.SteeringType_PITMAN_ARM
 tire_model = veh.TireModelType_TMEASY
 
 # Rigid terrain
-terrain_model = veh.RigidTerrain.BOX
 terrainHeight = 0;      # terrain height (FLAT terrain only)
 terrainLength = 100.0;  # size in X direction
 terrainWidth = 100.0;   # size in Y direction

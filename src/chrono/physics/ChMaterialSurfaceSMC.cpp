@@ -30,9 +30,12 @@ ChMaterialSurfaceSMC::ChMaterialSurfaceSMC()
       poisson_ratio(0.3f),
       static_friction(0.6f),
       sliding_friction(0.6f),
+      rolling_friction(0),
+      spinning_friction(0),
       restitution(0.4f),
       constant_adhesion(0),
       adhesionMultDMT(0),
+      adhesionSPerko(0),
       kn(2e5),
       kt(2e5),
       gn(40),
@@ -43,9 +46,12 @@ ChMaterialSurfaceSMC::ChMaterialSurfaceSMC(const ChMaterialSurfaceSMC& other) {
     poisson_ratio = other.poisson_ratio;
     static_friction = other.static_friction;
     sliding_friction = other.sliding_friction;
+    rolling_friction = other.rolling_friction;
+    spinning_friction = other.spinning_friction;
     restitution = other.restitution;
     constant_adhesion = other.constant_adhesion;
     adhesionMultDMT = other.adhesionMultDMT;
+    adhesionSPerko = other.adhesionSPerko;
     kn = other.kn;
     kt = other.kt;
     gn = other.gn;
@@ -69,9 +75,12 @@ void ChMaterialSurfaceSMC::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(poisson_ratio);
     marchive << CHNVP(static_friction);
     marchive << CHNVP(sliding_friction);
+    marchive << CHNVP(rolling_friction);
+    marchive << CHNVP(spinning_friction);
     marchive << CHNVP(restitution);
     marchive << CHNVP(constant_adhesion);
     marchive << CHNVP(adhesionMultDMT);
+    marchive << CHNVP(adhesionSPerko);
     marchive << CHNVP(kn);
     marchive << CHNVP(kt);
     marchive << CHNVP(gn);
@@ -90,9 +99,12 @@ void ChMaterialSurfaceSMC::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(poisson_ratio);
     marchive >> CHNVP(static_friction);
     marchive >> CHNVP(sliding_friction);
+    marchive >> CHNVP(rolling_friction);
+    marchive >> CHNVP(spinning_friction);
     marchive >> CHNVP(restitution);
     marchive >> CHNVP(constant_adhesion);
     marchive >> CHNVP(adhesionMultDMT);
+    marchive >> CHNVP(adhesionSPerko);
     marchive >> CHNVP(kn);
     marchive >> CHNVP(kt);
     marchive >> CHNVP(gn);
@@ -102,7 +114,19 @@ void ChMaterialSurfaceSMC::ArchiveIN(ChArchiveIn& marchive) {
 // -----------------------------------------------------------------------------
 
 ChMaterialCompositeSMC::ChMaterialCompositeSMC()
-    : E_eff(0), G_eff(0), mu_eff(0), cr_eff(0), adhesion_eff(0), adhesionMultDMT_eff(0), kn(0), kt(0), gn(0), gt(0) {}
+    : E_eff(0),
+      G_eff(0),
+      mu_eff(0),
+      muRoll_eff(0),
+      muSpin_eff(0),
+      cr_eff(0),
+      adhesion_eff(0),
+      adhesionMultDMT_eff(0),
+      adhesionSPerko_eff(0),
+      kn(0),
+      kt(0),
+      gn(0),
+      gt(0) {}
 
 ChMaterialCompositeSMC::ChMaterialCompositeSMC(ChMaterialCompositionStrategy<float>* strategy,
                                                std::shared_ptr<ChMaterialSurfaceSMC> mat1,
@@ -116,9 +140,12 @@ ChMaterialCompositeSMC::ChMaterialCompositeSMC(ChMaterialCompositionStrategy<flo
     G_eff = 1 / inv_G;
 
     mu_eff = strategy->CombineFriction(mat1->static_friction, mat2->static_friction);
+    muRoll_eff = strategy->CombineFriction(mat1->rolling_friction, mat2->rolling_friction);
+    muSpin_eff = strategy->CombineFriction(mat1->spinning_friction, mat2->spinning_friction);
     cr_eff = strategy->CombineRestitution(mat1->restitution, mat2->restitution);
     adhesion_eff = strategy->CombineCohesion(mat1->constant_adhesion, mat2->constant_adhesion);
     adhesionMultDMT_eff = strategy->CombineAdhesionMultiplier(mat1->adhesionMultDMT, mat2->adhesionMultDMT);
+    adhesionSPerko_eff = strategy->CombineAdhesionMultiplier(mat1->adhesionSPerko, mat2->adhesionSPerko);
 
     kn = strategy->CombineStiffnessCoefficient(mat1->kn, mat2->kn);
     kt = strategy->CombineStiffnessCoefficient(mat1->kt, mat2->kt);

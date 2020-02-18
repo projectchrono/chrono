@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetInitPosition(ChCoordsys<>(ChVector<>(0, 0, 1), ChQuaternion<>(1, 0, 0, 0)));
     my_hmmwv.SetPowertrainType(PowertrainModelType::SIMPLE);
     my_hmmwv.SetDriveType(DrivelineType::RWD);
-    my_hmmwv.SetTireType(TireModelType::RIGID);
+    my_hmmwv.SetTireType(TireModelType::TMEASY);
     my_hmmwv.SetTireStepSize(tire_step_size);
     my_hmmwv.Initialize();
 
@@ -74,14 +74,14 @@ int main(int argc, char* argv[]) {
     // Create the terrain patches programatically
     RigidTerrain terrain(my_hmmwv.GetSystem());
 
-    auto patch1 = terrain.AddPatch(ChCoordsys<>(ChVector<>(0, 0, -5), QUNIT), ChVector<>(20,20, 10));
+    auto patch1 = terrain.AddPatch(ChCoordsys<>(ChVector<>(0, 0, -0.5), QUNIT), ChVector<>(20, 20, 1));
     patch1->SetContactFrictionCoefficient(0.9f);
     patch1->SetContactRestitutionCoefficient(0.01f);
     patch1->SetContactMaterialProperties(2e7f, 0.3f);
     patch1->SetColor(ChColor(0.8f, 0.8f, 0.5f));
     patch1->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 20, 20);
 
-    auto patch2 = terrain.AddPatch(ChCoordsys<>(ChVector<>(20, 0, -5), QUNIT), ChVector<>(20, 30, 10.6));
+    auto patch2 = terrain.AddPatch(ChCoordsys<>(ChVector<>(20, 0, -0.5), QUNIT), ChVector<>(20, 30, 1.6));
     patch2->SetContactFrictionCoefficient(0.9f);
     patch2->SetContactRestitutionCoefficient(0.01f);
     patch2->SetContactMaterialProperties(2e7f, 0.3f);
@@ -96,7 +96,7 @@ int main(int argc, char* argv[]) {
     patch3->SetTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"), 200, 200);
 
     auto patch4 = terrain.AddPatch(ChCoordsys<>(ChVector<>(0, 40, -1), QUNIT),
-                                    vehicle::GetDataFile("terrain/height_maps/test64.bmp"), "field_mesh", 64, 64, 0, 3);
+                                    vehicle::GetDataFile("terrain/height_maps/test64.bmp"), "field_mesh", 64.0, 64.0, 0.0, 3.0);
     patch4->SetContactFrictionCoefficient(0.9f);
     patch4->SetContactRestitutionCoefficient(0.01f);
     patch4->SetContactMaterialProperties(2e7f, 0.3f);

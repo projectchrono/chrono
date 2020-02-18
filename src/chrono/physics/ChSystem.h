@@ -31,9 +31,7 @@
 #include "chrono/physics/ChAssembly.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChContactContainer.h"
-#include "chrono/physics/ChControls.h"
 #include "chrono/physics/ChLinksAll.h"
-#include "chrono/physics/ChProbe.h"
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/timestepper/ChAssemblyAnalysis.h"
 #include "chrono/solver/ChSolver.h"
@@ -250,16 +248,6 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// of this ChSystem and with the collision system currently associated with this
     /// ChSystem.  Note that the body is *not* attached to this system.
     virtual ChBodyAuxRef* NewBodyAuxRef() = 0;
-
-    /// Attach a probe to this system.
-    void AddProbe(const std::shared_ptr<ChProbe>& newprobe);
-    /// Attach a control to this system.
-    void AddControls(const std::shared_ptr<ChControls>& newcontrols);
-
-    /// Remove all probes from this system.
-    void RemoveAllProbes();
-    /// Remove all controls from this system.
-    void RemoveAllControls();
 
     /// Replace the contact container.
     virtual void SetContactContainer(std::shared_ptr<ChContactContainer> container);
@@ -518,23 +506,9 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     // UTILITY FUNCTIONS
     //
 
-    /// If ChProbe() objects are added to this system, using this command you force
-    /// the ChProbe::Record() on all them, at once.
-    int RecordAllProbes();
-
-    /// If ChProbe() objects are added to this system, using this command you force
-    /// the ChProbe::Reset() on all them, at once.
-    int ResetAllProbes();
-
     /// Executes custom processing at the end of step. By default it does nothing,
     /// but if you inherit a special ChSystem you can implement this.
     virtual void CustomEndOfStep() {}
-
-    /// If ChControl() objects are added to this system, using the following commands
-    /// you call the execution of their scripts. You seldom call these functions directly,
-    /// since the ChSystem() methods already call them automatically, at each step, update, etc.
-    bool ExecuteControlsForUpdate();
-    bool ExecuteControlsForStep();
 
     /// All bodies with collision detection data are requested to
     /// store the current position as "last position collision-checked"
@@ -764,9 +738,6 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     int FileWriteChR(ChStreamOutBinary& m_file);
 
   protected:
-    std::vector<std::shared_ptr<ChProbe>> probelist;        ///< list of 'probes' (variable-recording objects)
-    std::vector<std::shared_ptr<ChControls>> controlslist;  ///< list of 'controls' script objects
-
     std::shared_ptr<ChContactContainer> contact_container;  ///< the container of contacts
 
     ChVector<> G_acc;  ///< gravitational acceleration

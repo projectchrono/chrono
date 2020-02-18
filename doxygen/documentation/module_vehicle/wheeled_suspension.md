@@ -4,6 +4,11 @@ Suspension models {#wheeled_suspension}
 
 \tableofcontents
 
+A suspension subsystem is a model of one axle of a wheeld vehicle. The base class [ChSuspension](@ref chrono::vehicle::ChSuspension) imposes that any derived suspension class (a suspension template) provide two wheel spindles (left and right) each connected through a revolute joint to some part of that type of suspension, and two spindle axles (elements of [ChShaft](@ref chrono::ChShaft) type) which may be connected to a vehicle driveline if that axle is driven.
+
+A derived suspension type defines the bodies, joints, force elements, and topology of a particular type of suspension. All locations are assumed to be provided with respect to a suspension reference frame (a derived suspension type is free to pick the location of this frame but not its orientation, which is assumed to be parallel to the chassis ISO reference frame).
+
+A suspension assembly is attached to a vehicle's chassis by specifying the location of the suspension assembly reference frame with respect to the chassis reference frame (see the definition of the [ISO reference frame](@ref vehicle_ISO_frame)).
 
 ## Double wishbone {#wheeled_suspension_ChDoubleWishbone}
 

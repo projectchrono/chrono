@@ -295,6 +295,8 @@ struct host_container {
     // Contact shear history (SMC)
     custom_vector<vec3> shear_neigh;  ///< Neighbor list of contacting bodies and shapes
     custom_vector<real3> shear_disp;  ///< Accumulated shear displacement for each neighbor
+    custom_vector<real> contact_relvel_init;  ///< Initial relative normal velocity manitude per contact pair
+    custom_vector<real> contact_duration;  ///< Accumulated contact duration, per contact pair
 
     /// Mapping from all bodies in the system to bodies involved in a contact.
     /// For bodies that are currently not in contact, the mapping entry is -1.
@@ -357,14 +359,21 @@ struct host_container {
     // Material properties (SMC)
     custom_vector<real2> elastic_moduli;       ///< Young's modulus and Poisson ratio (SMC only)
     custom_vector<real> mu;                    ///< Coefficient of friction (SMC only)
+    custom_vector<real> muRoll;                ///< Coefficient of rolling friction (SMC only)
+    custom_vector<real> muSpin;                ///< Coefficient of spinning friction (SMC only)
     custom_vector<real> cr;                    ///< Coefficient of restitution (SMC only)
     custom_vector<real4> smc_coeffs;           ///< Stiffness and damping coefficients (SMC only)
     custom_vector<real> adhesionMultDMT_data;  ///< Adhesion multipliers used in DMT model (SMC only)
+    custom_vector<real> adhesionSPerko_data;   ///< Adhesion multipliers used in Perko model (SMC only)
     // Derjaguin-Muller-Toporov (DMT) model:
     // adhesion = adhesionMult * Sqrt(R_eff). Given the surface energy, w,
     //    adhesionMult = 2 * CH_C_PI * w * Sqrt(R_eff).
     // Given the equilibrium penetration distance, y_eq,
     //    adhesionMult = 4.0 / 3.0 * E_eff * powf(y_eq, 1.5)
+    // Perko et al. (2001) (Perko) model:
+    //    adhesion = 3.6E-2 * S^2 * R_eff
+    //    with S being the measurement of cleanliness
+    //    adhesionSPerko = S
 
     /// This matrix, if used will hold D^TxM^-1xD in sparse form.
     CompressedMatrix<real> Nshur;

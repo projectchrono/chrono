@@ -41,7 +41,7 @@ def main() :
 
     app.SetSkyBox()
     app.AddTypicalLights(chronoirr.vector3df(30, -30, 100), chronoirr.vector3df(30, 50, 100), 250, 130)
-    app.AddTypicalLogo(chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
+    app.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
     app.SetChaseCamera(trackPoint, 6.0, 0.5)
     app.SetTimestep(step_size)
     app.AssetBindAll()
@@ -107,23 +107,24 @@ def main() :
 
 # =============================================================================
 
-"""
-!!!! Set this path before running the demo!
-"""
-chrono.SetChronoDataPath('../../../../Library/data/')
-veh.SetDataPath('../../../../Library/data/vehicle/')
+# The path to the Chrono data directory containing various assets (meshes, textures, data files)
+# is automatically set, relative to the default location of this demo.
+# If running from a different directory, you must change the path to the data directory with: 
+#chrono.SetChronoDataPath('path/to/data')
+
+veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
 
 # JSON file for vehicle model
-vehicle_file = veh.GetDataPath() +"hmmwv/vehicle/HMMWV_Vehicle.json"
+vehicle_file = veh.GetDataFile('hmmwv/vehicle/HMMWV_Vehicle.json')
 
 # JSON files for terrain
-rigidterrain_file = veh.GetDataPath() +"terrain/RigidPlane.json"
+rigidterrain_file = veh.GetDataFile('terrain/RigidPlane.json')
 
 # JSON file for powertrain (simple)
-simplepowertrain_file = veh.GetDataPath() + "generic/powertrain/SimplePowertrain.json"
+simplepowertrain_file = veh.GetDataFile('generic/powertrain/SimplePowertrain.json')
 
 # JSON files tire models (rigid)
-rigidtire_file = veh.GetDataPath() +"hmmwv/tire/HMMWV_RigidTire.json"
+rigidtire_file = veh.GetDataFile('hmmwv/tire/HMMWV_RigidTire.json')
 
 # Initial vehicle position
 initLoc = chrono.ChVectorD(0, 0, 1.6)
@@ -149,6 +150,6 @@ trackPoint = chrono.ChVectorD(0.0, 0.0, 1.75)
 tend = 20.0
 
 # Output directories
-out_dir =  "./WHEELED_JSON";
+out_dir =  './WHEELED_JSON';
 
 main()

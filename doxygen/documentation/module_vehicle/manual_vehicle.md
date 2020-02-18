@@ -12,6 +12,7 @@ Chrono::Vehicle Reference Manual {#manual_vehicle}
     * @subpage wheeled_steering
     * @subpage wheeled_driveline
     * @subpage wheeled_tire
+    * @subpage wheeled_rig
 
 * @subpage tracked_vehicle
     * @subpage tracked_assembly
@@ -19,6 +20,7 @@ Chrono::Vehicle Reference Manual {#manual_vehicle}
     * @subpage tracked_sprocket
     * @subpage tracked_idler
     * @subpage tracked_shoe
+    * @subpage tracked_rig
 
 * @subpage vehicle_powertrain
 
@@ -26,7 +28,10 @@ Chrono::Vehicle Reference Manual {#manual_vehicle}
 
 * @subpage vehicle_driver
 
+* @subpage vehicle_visualization
+
 * @subpage vehicle_models
+
 
 **Additional documentation pages**
 

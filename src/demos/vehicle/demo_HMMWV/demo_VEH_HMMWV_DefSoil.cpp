@@ -240,16 +240,15 @@ int main(int argc, char* argv[]) {
     switch (terrain_type) {
         case DEFORMABLE_SOIL: {
             SCMDeformableTerrain* terrainD = new SCMDeformableTerrain(system);
-            terrainD->SetPlane(ChCoordsys<>(VNULL, Q_from_AngX(CH_C_PI_2)));
-            terrainD->SetSoilParametersSCM(2e6,   // Bekker Kphi
-                                           0,     // Bekker Kc
-                                           1.1,   // Bekker n exponent
-                                           0,     // Mohr cohesive limit (Pa)
-                                           30,    // Mohr friction limit (degrees)
-                                           0.01,  // Janosi shear coefficient (m)
-                                           2e8,   // Elastic stiffness (Pa/m), before plastic yield
-                                           3e4    // Damping (Pa s/m), proportional to negative vertical speed (optional)
-                                           );
+            terrainD->SetSoilParameters(2e6,   // Bekker Kphi
+                                        0,     // Bekker Kc
+                                        1.1,   // Bekker n exponent
+                                        0,     // Mohr cohesive limit (Pa)
+                                        30,    // Mohr friction limit (degrees)
+                                        0.01,  // Janosi shear coefficient (m)
+                                        2e8,   // Elastic stiffness (Pa/m), before plastic yield
+                                        3e4    // Damping (Pa s/m), proportional to negative vertical speed (optional)
+            );
             /*
             terrainD->SetBulldozingFlow(true);    // inflate soil at the border of the rut
             terrainD->SetBulldozingParameters(55, // angle of friction for erosion of displaced material at the border of the rut

@@ -35,13 +35,15 @@ class ChApi ChSystemSMC : public ChSystem {
     enum ContactForceModel {
         Hooke,        ///< linear Hookean model
         Hertz,        ///< nonlinear Hertzian model
-        PlainCoulomb  ///< basic tangential force definition for non-granular bodies
+        PlainCoulomb, ///< basic tangential force definition for non-granular bodies
+        Flores        ///< nonlinear Hertzian model
     };
 
     /// Enum for adhesion force model.
     enum AdhesionForceModel {
         Constant,  ///< constant adhesion force
-        DMT        ///< Derjagin-Muller-Toropov model
+        DMT,       ///< Derjagin-Muller-Toropov model
+        Perko      ///< Perko et al. (2001) model
     };
 
     /// Enum for tangential displacement model.

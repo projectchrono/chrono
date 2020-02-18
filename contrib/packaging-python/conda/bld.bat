@@ -36,6 +36,7 @@ cmake -G "%CMAKE_GENERATOR%" ^
  -DENABLE_MODULE_MKL=ON ^
  -DMKL_INCLUDE_DIR="%CONDA_INSTALL_LOCN%"\envs\myenv\Library\include ^
  -DMKL_RT_LIBRARY="%CONDA_INSTALL_LOCN%"\envs\myenv\Library\lib\mkl_rt.lib ^
+ -DPYCHRONO_DATA_PATH="..\..\..\..\Library\data" ^
  ..
 if errorlevel 1 exit 1
  

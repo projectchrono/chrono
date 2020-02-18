@@ -148,16 +148,15 @@ int main(int argc, char* argv[]) {
 
     // Create the terrain
     SCMDeformableTerrain terrain(vehicle.GetSystem());
-    terrain.SetPlane(ChCoordsys<>(VNULL, Q_from_AngX(CH_C_PI_2)));
-    terrain.SetSoilParametersSCM(2e7,   // Bekker Kphi
-                                 0,     // Bekker Kc
-                                 1.1,   // Bekker n exponent
-                                 0,     // Mohr cohesive limit (Pa)
-                                 20,    // Mohr friction limit (degrees)
-                                 0.01,  // Janosi shear coefficient (m)
-                                 2e8,   // Elastic stiffness (Pa/m), before plastic yield
-                                 3e4    // Damping (Pa s/m), proportional to negative vertical speed (optional)
-                                 );
+    terrain.SetSoilParameters(2e7,   // Bekker Kphi
+                              0,     // Bekker Kc
+                              1.1,   // Bekker n exponent
+                              0,     // Mohr cohesive limit (Pa)
+                              20,    // Mohr friction limit (degrees)
+                              0.01,  // Janosi shear coefficient (m)
+                              2e8,   // Elastic stiffness (Pa/m), before plastic yield
+                              3e4    // Damping (Pa s/m), proportional to negative vertical speed (optional)
+    );
 
     terrain.SetAutomaticRefinement(true);
     terrain.SetAutomaticRefinementResolution(0.04);

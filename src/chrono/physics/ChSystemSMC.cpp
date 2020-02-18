@@ -76,11 +76,14 @@ class my_enum_mappers : public ChSystemSMC {
     CH_ENUM_MAPPER_BEGIN(ContactForceModel);
     CH_ENUM_VAL(Hooke);
     CH_ENUM_VAL(Hertz);
+    CH_ENUM_VAL(PlainCoulomb);
+    CH_ENUM_VAL(Flores)
     CH_ENUM_MAPPER_END(ContactForceModel);
 
     CH_ENUM_MAPPER_BEGIN(AdhesionForceModel);
     CH_ENUM_VAL(Constant);
     CH_ENUM_VAL(DMT);
+    CH_ENUM_VAL(Perko);
     CH_ENUM_MAPPER_END(AdhesionForceModel);
 
     CH_ENUM_MAPPER_BEGIN(TangentialDisplacementModel);
