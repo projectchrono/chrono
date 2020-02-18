@@ -416,7 +416,7 @@ __global__ void interactionTerrain_TriangleSoup(
                         sphere_data, gran_params, mesh_params->rolling_coeff_s2m_SU, mesh_params->spinning_coeff_s2m_SU,
                         force_accum, omega[sphereIDLocal], d_triangleSoup->omega[fam], delta);
 
-                    // sphere_AngAcc = sphere_AngAcc + roll_ang_acc;
+                    sphere_AngAcc = sphere_AngAcc + roll_ang_acc;
 
                     unsigned int BC_histmap_label = triangleFamilyHistmapOffset + fam;
 

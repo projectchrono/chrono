@@ -308,7 +308,7 @@ inline __device__ void computeMultiStepDisplacement(GranParamsPtr gran_params,
 
 inline __device__ void updateMultiStepDisplacement(GranSphereDataPtr sphere_data,
                                                    const size_t& contact_index,
-                                                   const float3& rel_vel,
+                                                   const float3& vrel_t,
                                                    const float3& contact_normal,
                                                    const float k_t,
                                                    const float gamma_t,
@@ -317,7 +317,7 @@ inline __device__ void updateMultiStepDisplacement(GranSphereDataPtr sphere_data
                                                    const float3& tangent_force) {
     // Reverse engineer the delta_t from the clamped force and update the map
     sphere_data->contact_history_map[contact_index] =
-        ((tangent_force / force_model_multiplier) + gamma_t * m_eff * rel_vel) / -k_t;
+        ((tangent_force / force_model_multiplier) + gamma_t * m_eff * vrel_t) / -k_t;
 }
 
 /// compute friction forces for a contact
