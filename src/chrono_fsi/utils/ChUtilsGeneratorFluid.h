@@ -19,12 +19,14 @@
 #define CH_UTILSGENERATORFLUID_H
 
 #include "chrono_fsi/ChFsiDataManager.cuh"
-#include "chrono_fsi/custom_math.h"
+#include "chrono_fsi/math/custom_math.h"
 
 namespace chrono {
 namespace fsi {
 namespace utils {
-int2 CreateFluidMarkers(SphMarkerDataH& sphMarkersH, FsiGeneralData& fsiGeneralData, SimParams& paramsH);
+int2 CreateFluidMarkers(std::shared_ptr<SphMarkerDataH> sphMarkersH,
+                        std::shared_ptr<FsiGeneralData> fsiGeneralData,
+                        std::shared_ptr<SimParams> paramsH);
 
 }  // end namespace utils
 }  // end namespace fsi

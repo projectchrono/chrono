@@ -16,24 +16,27 @@
 // =============================================================================
 #ifndef CHUTILSPRINTSPH_H
 #define CHUTILSPRINTSPH_H
-
-#include <string>
-
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
-
 #include "chrono_fsi/ChApiFsi.h"
-#include "chrono_fsi/custom_math.h"
+#include "chrono_fsi/utils/ChUtilsDevice.cuh"
+#include "chrono_fsi/physics/ChParams.cuh"
+#include "chrono_fsi/math/custom_math.h"
+
+struct SimParams;
 
 namespace chrono {
 namespace fsi {
 namespace utils {
 
-/// Function to save the fluid data into file.
-/// Creates three files with fluid, fluid-boundary, and BCE markers data.
+/// function to save the fluid data into file
+/// When called, this function creates three files to write fluid,
+/// fluid-boundary and BCE markers data into file
+
 CH_FSI_API void PrintToFile(const thrust::device_vector<Real4>& posRadD,
                             const thrust::device_vector<Real3>& velMasD,
                             const thrust::device_vector<Real4>& rhoPresMuD,
+                            const thrust::device_vector<Real4>& sr_tau_I_mu_i,
                             const thrust::host_vector<int4>& referenceArray,
                             const thrust::host_vector<int4>& referenceArrayFEA,
                             const std::string& out_dir,

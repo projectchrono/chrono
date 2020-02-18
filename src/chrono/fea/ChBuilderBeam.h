@@ -111,6 +111,19 @@ class ChApi ChBuilderBeamANCF {
                    const ChVector<> B                         ///< ending point
                    );
 
+    /// Helper function.
+    /// Adds beam FEM elements to the mesh to create a segment beam
+    /// from point A to point B, using ChElementCableANCF type elements.
+    /// Before running, each time resets lists of beam_elems and beam_nodes.
+    /// Also fills out the necessary connectivity information required by ChFsiSystem
+    void BuildBeam_FSI(std::shared_ptr<ChMesh> mesh,              ///< mesh to store the resulting elements
+                       std::shared_ptr<ChBeamSectionCable> sect,  ///< section material for beam elements
+                       const int N,                               ///< number of elements in the segment
+                       const ChVector<> A,                        ///< starting point
+                       const ChVector<> B,                        ///< ending point
+                       std::vector<std::vector<int>>& _1D_elementsNodes_mesh,
+                       std::vector<std::vector<int>>& NodeNeighborElement1D_mesh);
+
     /// Access the list of elements used by the last built beam.
     /// It can be useful for changing properties afterwards.
     /// This list is reset all times a 'Build...' function is called.
@@ -144,7 +157,7 @@ class ChApi ChBuilderBeamANCFFullyPar {
 				   const bool Poisson_effect = false,			///< set true to evaluate poisson effects
 				   const bool grav = false,						///< set true to apply gravity force
 				   const double damp = 0);						///< damping
- 
+
 
     /// Access the list of elements used by the last built beam.
     /// It can be useful for changing properties afterwards.
@@ -211,15 +224,15 @@ class ChApi ChExtruderBeamEuler {
     std::shared_ptr<ChLinkMotorLinearSpeed> actuator;
     std::shared_ptr<ChLinkMateGeneric> guide;
 
-    ChSystem* mysystem; 
+    ChSystem* mysystem;
     std::shared_ptr<ChMesh> mesh;
-    
+
     std::shared_ptr<ChBeamSectionAdvanced> beam_section;
-    double h;                                  
-    ChCoordsys<> outlet;                                         
+    double h;
+    ChCoordsys<> outlet;
     double mytime;
     double speed;
-  
+
     std::shared_ptr<ChMaterialSurfaceSMC> contact_material;
 
     std::shared_ptr<ChContactSurfaceNodeCloud> contactcloud;
@@ -233,7 +246,7 @@ class ChApi ChExtruderBeamEuler {
                    std::shared_ptr<ChBeamSectionAdvanced> sect,///< section material for beam elements
                    double mh,                                  ///< element length
                    const ChCoordsys<> moutlet,                 ///< outlet pos & orientation (x is extrusion direction)
-                   double mspeed                               ///< speed 
+                   double mspeed                               ///< speed
                    );
 
     ~ChExtruderBeamEuler();
@@ -243,16 +256,16 @@ class ChApi ChExtruderBeamEuler {
     void SetContact(
             std::shared_ptr<ChMaterialSurfaceSMC> mcontact_material, ///< material to use for surface
             double mcontact_radius  ///< radius of colliding spheres at each node (usually = to avg.beam thickness)
-            );    
+            );
 
-    /// Create beam elements, if needed, and update the constraint that 
+    /// Create beam elements, if needed, and update the constraint that
     /// imposes the extrusion speed
     void Update();
 
     /// Access the list of created elements
     std::vector<std::shared_ptr<ChElementBeamEuler> >& GetLastBeamElements() { return beam_elems; }
 
-    /// Access the list of created nodes 
+    /// Access the list of created nodes
     std::vector<std::shared_ptr<ChNodeFEAxyzrot> >& GetLastBeamNodes() { return beam_nodes; }
 };
 
@@ -270,15 +283,15 @@ class ChApi ChExtruderBeamIGA {
     std::shared_ptr<ChLinkMotorLinearSpeed> actuator;
     std::shared_ptr<ChLinkMateGeneric> guide;
 
-    ChSystem* mysystem; 
+    ChSystem* mysystem;
     std::shared_ptr<ChMesh> mesh;
-    
+
     std::shared_ptr<ChBeamSectionCosserat> beam_section;
-    double h;                                  
-    ChCoordsys<> outlet;                                         
+    double h;
+    ChCoordsys<> outlet;
     double mytime;
     double speed;
-  
+
     std::shared_ptr<ChMaterialSurfaceSMC> contact_material;
 
     std::shared_ptr<ChContactSurfaceNodeCloud> contactcloud;
@@ -292,7 +305,7 @@ class ChApi ChExtruderBeamIGA {
                    std::shared_ptr<ChBeamSectionCosserat> sect,///< section material for beam elements
                    double mh,                                  ///< element length
                    const ChCoordsys<> moutlet,                 ///< outlet pos & orientation (x is extrusion direction)
-                   double mspeed,                              ///< speed 
+                   double mspeed,                              ///< speed
                    int morder                                  ///< element order, default =3 (cubic)
                    );
 
@@ -303,7 +316,7 @@ class ChApi ChExtruderBeamIGA {
     void SetContact(
             std::shared_ptr<ChMaterialSurfaceSMC> mcontact_material, ///< material to use for surface
             double mcontact_radius  ///< radius of colliding spheres at each node (usually = to avg.beam thickness)
-            );    
+            );
 
     /// Create beam elements, if needed, and update the constraint that  imposes the extrusion speed.
     /// Returns 'true' if any new nodes/elements were created (hence a system change) and 'false' otherwise.
@@ -312,7 +325,7 @@ class ChApi ChExtruderBeamIGA {
     /// Access the list of created elements
     std::vector<std::shared_ptr<ChElementBeamIGA> >& GetLastBeamElements() { return beam_elems; }
 
-    /// Access the list of created nodes 
+    /// Access the list of created nodes
     std::vector<std::shared_ptr<ChNodeFEAxyzrot> >& GetLastBeamNodes() { return beam_nodes; }
 };
 
