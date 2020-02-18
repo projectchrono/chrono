@@ -98,9 +98,6 @@ ChSystem::ChSystem(const ChSystem& other) : ChAssembly(other) {
     collision_callbacks = other.collision_callbacks;
 
     last_err = other.last_err;
-
-    RemoveAllProbes();
-    RemoveAllControls();
 }
 
 ChSystem::~ChSystem() {
@@ -108,9 +105,6 @@ ChSystem::~ChSystem() {
     // it would happen after this destructor, so the ith_body->SetSystem(0) in Clear() would not be able to remove
     // body collision models from the collision_system. Here it is possible, since the collision_system is still alive.
     Clear();
-
-    RemoveAllProbes();
-    RemoveAllControls();
 }
 
 void ChSystem::Clear() {
@@ -118,9 +112,6 @@ void ChSystem::Clear() {
     ChAssembly::Clear();
 
     // contact_container->RemoveAllContacts();
-
-    RemoveAllProbes();
-    RemoveAllControls();
 
     // ResetTimers();
 }
@@ -251,73 +242,9 @@ void ChSystem::SetupInitial() {
     is_initialized = true;
 }
 
-// PROBE STUFF
-
-int ChSystem::RecordAllProbes() {
-    int pcount = 0;
-
-    for (unsigned int ip = 0; ip < probelist.size(); ++ip) {
-        probelist[ip]->Record(GetChTime());
-    }
-
-    return pcount;
-}
-
-int ChSystem::ResetAllProbes() {
-    int pcount = 0;
-
-    for (unsigned int ip = 0; ip < probelist.size(); ++ip) {
-        probelist[ip]->Reset();
-    }
-
-    return pcount;
-}
-
-// CONTROLS STUFF
-
-bool ChSystem::ExecuteControlsForUpdate() {
-    for (unsigned int ip = 0; ip < controlslist.size(); ++ip) {
-        if (!controlslist[ip]->ExecuteForUpdate())
-            return false;
-    }
-    return true;
-}
-
-bool ChSystem::ExecuteControlsForStep() {
-    for (unsigned int ip = 0; ip < controlslist.size(); ++ip) {
-        if (!controlslist[ip]->ExecuteForStep())
-            return false;
-    }
-    return true;
-}
-
 // -----------------------------------------------------------------------------
 // HIERARCHY HANDLERS
 // -----------------------------------------------------------------------------
-
-void ChSystem::AddProbe(const std::shared_ptr<ChProbe>& newprobe) {
-    assert(std::find<std::vector<std::shared_ptr<ChProbe>>::iterator>(probelist.begin(), probelist.end(), newprobe) ==
-           probelist.end());
-
-    // newprobe->SetSystem (this);
-    probelist.push_back(newprobe);
-}
-
-void ChSystem::AddControls(const std::shared_ptr<ChControls>& newcontrols) {
-    assert(std::find<std::vector<std::shared_ptr<ChControls>>::iterator>(controlslist.begin(), controlslist.end(),
-                                                                         newcontrols) == controlslist.end());
-
-    // newcontrols->SetSystem (this);
-    controlslist.push_back(newcontrols);
-}
-
-void ChSystem::RemoveAllProbes() {
-    probelist.clear();
-}
-
-void ChSystem::RemoveAllControls() {
-    controlslist.clear();
-}
 
 void ChSystem::Reference_LM_byID() {
     std::vector<std::shared_ptr<ChLinkBase>> toremove;
@@ -636,9 +563,6 @@ void ChSystem::Update(bool update_assets) {
         SetupInitial();
 
     timer_update.start();  // Timer for profiling
-
-    // Executes the "forUpdate" in all controls of controlslist
-    ExecuteControlsForUpdate();
 
     // Inherit parent class (recursively update sub objects bodies, links, etc)
     ChAssembly::Update(update_assets);
@@ -1339,9 +1263,6 @@ bool ChSystem::Integrate_Y() {
 
     timer_step.start();
 
-    // Executes "forStep" in all controls of controlslist
-    ExecuteControlsForStep();
-
     stepcount++;
     solvecount = 0;
     setupcount = 0;
@@ -1391,10 +1312,6 @@ bool ChSystem::Integrate_Y() {
 
     // Executes custom processing at the end of step
     CustomEndOfStep();
-
-    // If there are some probe objects in the probe list,
-    // tell them to record their variables (usually x-y couples)
-    RecordAllProbes();
 
     // Call method to gather contact forces/torques in rigid bodies
     contact_container->ComputeContactForces();

@@ -69,6 +69,7 @@ The UAZ 469 jeep-like vehicle has been used since 1965 in the Soviet Army. It sh
 
 ### Generic wheeld vehicle {#vehicle_models_generic}
 
+The generic wheeld vehicle model is a sandbox for testing various templates and settings. It does not represent any particular vehicle and not all concrete subsystems provided for this model are necessarily consistent with each other.
 
 ## Tracked vehicle models {#vehicle_models_tracked}
 

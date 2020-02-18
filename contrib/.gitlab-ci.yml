@@ -345,7 +345,7 @@ linux:ubuntu1804:deploy:
   - $CHRONO_W64_LIBRARIES = @(
     "-DBLAZE_DIR=C:/Users/builder/Documents/blaze-3.6",
     "-DSWIG_EXECUTABLE=C:/Users/builder/Documents/swigwin-4.0.1/swig.exe",
-    "-DPYTHON_EXECUTABLE=C:/Users/builder/AppData/Local/Programs/Python/Python37/python.exe",
+    "-DPYTHON_EXECUTABLE=C:/Users/builder/Anaconda3/python.exe",
     "-DBOOST_ROOT=C:/Users/builder/Documents/boost_1_71_0",
     "-DGLM_INCLUDE_DIR=C:/Users/builder/Documents/glm-0.9.9.6",
     "-DGLEW_DLL=C:/Users/builder/Documents/glew-2.1.0/bin/Release/x64/glew32.dll",
@@ -373,7 +373,7 @@ windows:vs2019:build:
     @CHRONO_W64_LIBRARIES 
     -DUSE_PARALLEL_CUDA=OFF
     -DENABLE_MODULE_GRANULAR=TRUE # 19 is the only VS build supporting Chrono::Granular
-  #-DENABLE_MODULE_FSI=TRUE
+    -DENABLE_MODULE_FSI=TRUE
   #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
   - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
   artifacts:
@@ -419,7 +419,6 @@ windows:vs2017:build:
     @CHRONO_W64_SHARED
     @CHRONO_W64_LIBRARIES
     -DUSE_PARALLEL_CUDA=OFF
-  #-DENABLE_MODULE_FSI=TRUE
   #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
   - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
   artifacts:
@@ -436,7 +435,6 @@ windows:vs2017:build:
     @CHRONO_W64_SHARED
     @CHRONO_W64_LIBRARIES
     -DUSE_PARALLEL_CUDA=OFF 
-  #-DENABLE_MODULE_FSI=TRUE
   #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
   - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
   artifacts:
