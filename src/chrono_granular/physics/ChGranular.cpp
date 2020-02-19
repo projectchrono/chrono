@@ -40,28 +40,28 @@ ChSystemGranularSMC::ChSystemGranularSMC(float sphere_rad, float density, float3
       box_size_X(boxDims.x),
       box_size_Y(boxDims.y),
       box_size_Z(boxDims.z),
-      stepSize_UU(1e-4),
+      stepSize_UU(1e-4f),
       nSpheres(0),
-      elapsedSimTime(0),
+      elapsedSimTime(0.f),
       verbosity(INFO),
       file_write_mode(CSV),
-      X_accGrav(0),
-      Y_accGrav(0),
-      Z_accGrav(0),
-      cohesion_over_gravity(0),
-      adhesion_s2w_over_gravity(0),
-      K_n_s2s_UU(0),
-      K_n_s2w_UU(0),
-      K_t_s2s_UU(0),
-      K_t_s2w_UU(0),
-      Gamma_n_s2s_UU(0),
-      Gamma_n_s2w_UU(0),
-      Gamma_t_s2s_UU(0),
-      Gamma_t_s2w_UU(0),
-      rolling_coeff_s2s_UU(0),
-      rolling_coeff_s2w_UU(0),
-      spinning_coeff_s2s_UU(0),
-      spinning_coeff_s2w_UU(0) {
+      X_accGrav(0.f),
+      Y_accGrav(0.f),
+      Z_accGrav(0.f),
+      cohesion_over_gravity(0.f),
+      adhesion_s2w_over_gravity(0.f),
+      K_n_s2s_UU(0.0),
+      K_n_s2w_UU(0.0),
+      K_t_s2s_UU(0.0),
+      K_t_s2w_UU(0.0),
+      Gamma_n_s2s_UU(0.0),
+      Gamma_n_s2w_UU(0.0),
+      Gamma_t_s2s_UU(0.0),
+      Gamma_t_s2w_UU(0.0),
+      rolling_coeff_s2s_UU(0.0),
+      rolling_coeff_s2w_UU(0.0),
+      spinning_coeff_s2s_UU(0.0),
+      spinning_coeff_s2w_UU(0.0) {
     gpuErrchk(cudaMallocManaged(&gran_params, sizeof(ChGranParams), cudaMemAttachGlobal));
     gpuErrchk(cudaMallocManaged(&sphere_data, sizeof(ChGranSphereData), cudaMemAttachGlobal));
     psi_T = PSI_T_DEFAULT;
@@ -189,26 +189,26 @@ void ChSystemGranularSMC::writeFile(std::string ofile) const {
         for (unsigned int n = 0; n < nSpheres; n++) {
             unsigned int ownerSD = sphere_owner_SDs.at(n);
             int3 ownerSD_trip = getSDTripletFromID(ownerSD);
-            float x_UU = sphere_local_pos_X[n] * LENGTH_SU2UU;
-            float y_UU = sphere_local_pos_Y[n] * LENGTH_SU2UU;
-            float z_UU = sphere_local_pos_Z[n] * LENGTH_SU2UU;
+            float x_UU = (float)(sphere_local_pos_X[n] * LENGTH_SU2UU);
+            float y_UU = (float)(sphere_local_pos_Y[n] * LENGTH_SU2UU);
+            float z_UU = (float)(sphere_local_pos_Z[n] * LENGTH_SU2UU);
 
-            x_UU += gran_params->BD_frame_X * LENGTH_SU2UU;
-            y_UU += gran_params->BD_frame_Y * LENGTH_SU2UU;
-            z_UU += gran_params->BD_frame_Z * LENGTH_SU2UU;
+            x_UU += (float)(gran_params->BD_frame_X * LENGTH_SU2UU);
+            y_UU += (float)(gran_params->BD_frame_Y * LENGTH_SU2UU);
+            z_UU += (float)(gran_params->BD_frame_Z * LENGTH_SU2UU);
 
-            x_UU += ((int64_t)ownerSD_trip.x * gran_params->SD_size_X_SU) * LENGTH_SU2UU;
-            y_UU += ((int64_t)ownerSD_trip.y * gran_params->SD_size_Y_SU) * LENGTH_SU2UU;
-            z_UU += ((int64_t)ownerSD_trip.z * gran_params->SD_size_Z_SU) * LENGTH_SU2UU;
+            x_UU += (float)(((int64_t)ownerSD_trip.x * gran_params->SD_size_X_SU) * LENGTH_SU2UU);
+            y_UU += (float)(((int64_t)ownerSD_trip.y * gran_params->SD_size_Y_SU) * LENGTH_SU2UU);
+            z_UU += (float)(((int64_t)ownerSD_trip.z * gran_params->SD_size_Z_SU) * LENGTH_SU2UU);
 
             ptFile.write((const char*)&x_UU, sizeof(float));
             ptFile.write((const char*)&y_UU, sizeof(float));
             ptFile.write((const char*)&z_UU, sizeof(float));
 
             if (GET_OUTPUT_SETTING(VEL_COMPONENTS)) {
-                float vx_UU = pos_X_dt[n] * LENGTH_SU2UU / TIME_SU2UU;
-                float vy_UU = pos_Y_dt[n] * LENGTH_SU2UU / TIME_SU2UU;
-                float vz_UU = pos_Z_dt[n] * LENGTH_SU2UU / TIME_SU2UU;
+                float vx_UU = (float)(pos_X_dt[n] * LENGTH_SU2UU / TIME_SU2UU);
+                float vy_UU = (float)(pos_Y_dt[n] * LENGTH_SU2UU / TIME_SU2UU);
+                float vz_UU = (float)(pos_Z_dt[n] * LENGTH_SU2UU / TIME_SU2UU);
 
                 ptFile.write((const char*)&vx_UU, sizeof(float));
                 ptFile.write((const char*)&vy_UU, sizeof(float));
@@ -216,18 +216,18 @@ void ChSystemGranularSMC::writeFile(std::string ofile) const {
             }
 
             if (GET_OUTPUT_SETTING(ABSV)) {
-                float absv = sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) +
-                                  pos_Z_dt.at(n) * pos_Z_dt.at(n)) *
-                             VEL_SU2UU;
+                float absv = (float)(std::sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) +
+                                               pos_Z_dt.at(n) * pos_Z_dt.at(n)) *
+                                     VEL_SU2UU);
 
                 ptFile.write((const char*)&absv, sizeof(float));
             }
 
             if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS &&
                 GET_OUTPUT_SETTING(ANG_VEL_COMPONENTS)) {
-                float omega_x_UU = sphere_Omega_X.at(n) / TIME_SU2UU;
-                float omega_y_UU = sphere_Omega_Y.at(n) / TIME_SU2UU;
-                float omega_z_UU = sphere_Omega_Z.at(n) / TIME_SU2UU;
+                float omega_x_UU = (float)(sphere_Omega_X.at(n) / TIME_SU2UU);
+                float omega_y_UU = (float)(sphere_Omega_Y.at(n) / TIME_SU2UU);
+                float omega_z_UU = (float)(sphere_Omega_Z.at(n) / TIME_SU2UU);
                 ptFile.write((const char*)&omega_x_UU, sizeof(float));
                 ptFile.write((const char*)&omega_y_UU, sizeof(float));
                 ptFile.write((const char*)&omega_z_UU, sizeof(float));
@@ -253,36 +253,37 @@ void ChSystemGranularSMC::writeFile(std::string ofile) const {
         if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS && GET_OUTPUT_SETTING(ANG_VEL_COMPONENTS)) {
             outstrstream << ",wx,wy,wz";
         }
+
         outstrstream << "\n";
         for (unsigned int n = 0; n < nSpheres; n++) {
             unsigned int ownerSD = sphere_owner_SDs.at(n);
             int3 ownerSD_trip = getSDTripletFromID(ownerSD);
-            float x_UU = sphere_local_pos_X[n] * LENGTH_SU2UU;
-            float y_UU = sphere_local_pos_Y[n] * LENGTH_SU2UU;
-            float z_UU = sphere_local_pos_Z[n] * LENGTH_SU2UU;
+            float x_UU = (float)(sphere_local_pos_X[n] * LENGTH_SU2UU);
+            float y_UU = (float)(sphere_local_pos_Y[n] * LENGTH_SU2UU);
+            float z_UU = (float)(sphere_local_pos_Z[n] * LENGTH_SU2UU);
 
-            x_UU += gran_params->BD_frame_X * LENGTH_SU2UU;
-            y_UU += gran_params->BD_frame_Y * LENGTH_SU2UU;
-            z_UU += gran_params->BD_frame_Z * LENGTH_SU2UU;
+            x_UU += (float)(gran_params->BD_frame_X * LENGTH_SU2UU);
+            y_UU += (float)(gran_params->BD_frame_Y * LENGTH_SU2UU);
+            z_UU += (float)(gran_params->BD_frame_Z * LENGTH_SU2UU);
 
-            x_UU += ((int64_t)ownerSD_trip.x * gran_params->SD_size_X_SU) * LENGTH_SU2UU;
-            y_UU += ((int64_t)ownerSD_trip.y * gran_params->SD_size_Y_SU) * LENGTH_SU2UU;
-            z_UU += ((int64_t)ownerSD_trip.z * gran_params->SD_size_Z_SU) * LENGTH_SU2UU;
+            x_UU += (float)(((int64_t)ownerSD_trip.x * gran_params->SD_size_X_SU) * LENGTH_SU2UU);
+            y_UU += (float)(((int64_t)ownerSD_trip.y * gran_params->SD_size_Y_SU) * LENGTH_SU2UU);
+            z_UU += (float)(((int64_t)ownerSD_trip.z * gran_params->SD_size_Z_SU) * LENGTH_SU2UU);
 
             outstrstream << x_UU << "," << y_UU << "," << z_UU;
 
             if (GET_OUTPUT_SETTING(VEL_COMPONENTS)) {
-                float vx_UU = pos_X_dt[n] * LENGTH_SU2UU / TIME_SU2UU;
-                float vy_UU = pos_Y_dt[n] * LENGTH_SU2UU / TIME_SU2UU;
-                float vz_UU = pos_Z_dt[n] * LENGTH_SU2UU / TIME_SU2UU;
+                float vx_UU = (float)(pos_X_dt[n] * LENGTH_SU2UU / TIME_SU2UU);
+                float vy_UU = (float)(pos_Y_dt[n] * LENGTH_SU2UU / TIME_SU2UU);
+                float vz_UU = (float)(pos_Z_dt[n] * LENGTH_SU2UU / TIME_SU2UU);
 
                 outstrstream << "," << vx_UU << "," << vy_UU << "," << vz_UU;
             }
 
             if (GET_OUTPUT_SETTING(ABSV)) {
-                float absv = sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) +
-                                  pos_Z_dt.at(n) * pos_Z_dt.at(n)) *
-                             VEL_SU2UU;
+                float absv = (float)(std::sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) +
+                                               pos_Z_dt.at(n) * pos_Z_dt.at(n)) *
+                                     VEL_SU2UU);
                 outstrstream << "," << absv;
             }
 
@@ -454,7 +455,7 @@ void ChSystemGranularSMC::copyConstSphereDataToDevice() {
     }
 
     // NOTE: Assumes mass = 1
-    gran_params->sphereInertia_by_r = (2.f / 5.f) * gran_params->sphere_mass_SU * gran_params->sphereRadius_SU;
+    gran_params->sphereInertia_by_r = (float)((2.0 / 5.0) * gran_params->sphere_mass_SU * gran_params->sphereRadius_SU);
 }
 
 size_t ChSystemGranularSMC::Create_BC_Sphere(float center[3], float radius, bool outward_normal, bool track_forces) {
@@ -463,7 +464,7 @@ size_t ChSystemGranularSMC::Create_BC_Sphere(float center[3], float radius, bool
     p.sphere_params.sphere_center.x = center[0];
     p.sphere_params.sphere_center.y = center[1];
     p.sphere_params.sphere_center.z = center[2];
-    p.sphere_params.radius = radius;
+    p.sphere_params.radius = (unsigned int)radius;
     p.active = true;
     p.fixed = true;
     p.track_forces = track_forces;
@@ -521,9 +522,12 @@ size_t ChSystemGranularSMC::Create_BC_Plane(float plane_pos[3], float plane_norm
     p.plane_params.position.y = plane_pos[1];
     p.plane_params.position.z = plane_pos[2];
 
-    p.plane_params.normal.x = plane_normal[0];
-    p.plane_params.normal.y = plane_normal[1];
-    p.plane_params.normal.z = plane_normal[2];
+    double len = std::sqrt(plane_normal[0] * plane_normal[0] + plane_normal[1] * plane_normal[1] +
+                           plane_normal[2] * plane_normal[2]);
+
+    p.plane_params.normal.x = (float)(plane_normal[0] / len);
+    p.plane_params.normal.y = (float)(plane_normal[1] / len);
+    p.plane_params.normal.z = (float)(plane_normal[2] / len);
     p.active = true;
     p.fixed = true;
 
@@ -579,11 +583,11 @@ void ChSystemGranularSMC::setBCOffset(const BC_type& bc_type,
         case BC_type::SPHERE: {
             old_pos = params_SU.sphere_params.sphere_center;
             params_SU.sphere_params.sphere_center.x =
-                convertToPosSU<int64_t, float>(params_UU.sphere_params.sphere_center.x + offset_UU.x);
+                convertToPosSU<int64_t, float>((float)(params_UU.sphere_params.sphere_center.x + offset_UU.x));
             params_SU.sphere_params.sphere_center.y =
-                convertToPosSU<int64_t, float>(params_UU.sphere_params.sphere_center.y + offset_UU.y);
+                convertToPosSU<int64_t, float>((float)(params_UU.sphere_params.sphere_center.y + offset_UU.y));
             params_SU.sphere_params.sphere_center.z =
-                convertToPosSU<int64_t, float>(params_UU.sphere_params.sphere_center.z + offset_UU.z);
+                convertToPosSU<int64_t, float>((float)(params_UU.sphere_params.sphere_center.z + offset_UU.z));
             new_pos = params_SU.sphere_params.sphere_center;
 
             break;
@@ -592,26 +596,28 @@ void ChSystemGranularSMC::setBCOffset(const BC_type& bc_type,
         case BC_type::CONE: {
             old_pos = params_SU.cone_params.cone_tip;
             params_SU.cone_params.cone_tip.x =
-                convertToPosSU<int64_t, float>(params_UU.cone_params.cone_tip.x + offset_UU.x);
+                convertToPosSU<int64_t, float>((float)(params_UU.cone_params.cone_tip.x + offset_UU.x));
             params_SU.cone_params.cone_tip.y =
-                convertToPosSU<int64_t, float>(params_UU.cone_params.cone_tip.y + offset_UU.y);
+                convertToPosSU<int64_t, float>((float)(params_UU.cone_params.cone_tip.y + offset_UU.y));
             params_SU.cone_params.cone_tip.z =
-                convertToPosSU<int64_t, float>(params_UU.cone_params.cone_tip.z + offset_UU.z);
+                convertToPosSU<int64_t, float>((float)(params_UU.cone_params.cone_tip.z + offset_UU.z));
             new_pos = params_SU.cone_params.cone_tip;
 
-            params_SU.cone_params.hmax = convertToPosSU<int64_t, float>(params_UU.cone_params.hmax + offset_UU.z);
-            params_SU.cone_params.hmin = convertToPosSU<int64_t, float>(params_UU.cone_params.hmin + offset_UU.z);
+            params_SU.cone_params.hmax =
+                convertToPosSU<int64_t, float>((float)(params_UU.cone_params.hmax + offset_UU.z));
+            params_SU.cone_params.hmin =
+                convertToPosSU<int64_t, float>((float)(params_UU.cone_params.hmin + offset_UU.z));
             break;
         }
         case BC_type::PLANE: {
             old_pos = params_SU.plane_params.position;
 
             params_SU.plane_params.position.x =
-                convertToPosSU<int64_t, float>(params_UU.plane_params.position.x + offset_UU.x);
+                convertToPosSU<int64_t, float>((float)(params_UU.plane_params.position.x + offset_UU.x));
             params_SU.plane_params.position.y =
-                convertToPosSU<int64_t, float>(params_UU.plane_params.position.y + offset_UU.y);
+                convertToPosSU<int64_t, float>((float)(params_UU.plane_params.position.y + offset_UU.y));
             params_SU.plane_params.position.z =
-                convertToPosSU<int64_t, float>(params_UU.plane_params.position.z + offset_UU.z);
+                convertToPosSU<int64_t, float>((float)(params_UU.plane_params.position.z + offset_UU.z));
             new_pos = params_SU.plane_params.position;
 
             break;
@@ -619,9 +625,12 @@ void ChSystemGranularSMC::setBCOffset(const BC_type& bc_type,
         case BC_type::CYLINDER: {
             old_pos = params_SU.cyl_params.center;
 
-            params_SU.cyl_params.center.x = convertToPosSU<int64_t, float>(params_UU.cyl_params.center.x + offset_UU.x);
-            params_SU.cyl_params.center.y = convertToPosSU<int64_t, float>(params_UU.cyl_params.center.y + offset_UU.y);
-            params_SU.cyl_params.center.z = convertToPosSU<int64_t, float>(params_UU.cyl_params.center.z + offset_UU.z);
+            params_SU.cyl_params.center.x =
+                convertToPosSU<int64_t, float>((float)(params_UU.cyl_params.center.x + offset_UU.x));
+            params_SU.cyl_params.center.y =
+                convertToPosSU<int64_t, float>((float)(params_UU.cyl_params.center.y + offset_UU.y));
+            params_SU.cyl_params.center.z =
+                convertToPosSU<int64_t, float>((float)(params_UU.cyl_params.center.z + offset_UU.z));
             new_pos = params_SU.cyl_params.center;
 
             break;
@@ -653,8 +662,9 @@ void ChSystemGranularSMC::convertBCUnits() {
             case BC_type::SPHERE: {
                 INFO_PRINTF("adding sphere!\n");
                 setBCOffset(bc_type, params_UU, params_SU, make_double3(0, 0, 0));
-                params_SU.sphere_params.radius = convertToPosSU<int64_t, float>(params_UU.sphere_params.radius);
-                params_SU.sphere_params.normal_sign = params_UU.sphere_params.normal_sign;
+                params_SU.sphere_params.radius =
+                    (unsigned int)convertToPosSU<int64_t, float>((float)(params_UU.sphere_params.radius));
+                params_SU.sphere_params.normal_sign = (int64_t)params_UU.sphere_params.normal_sign;
 
                 BC_params_list_SU.push_back(params_SU);
                 break;
@@ -665,7 +675,7 @@ void ChSystemGranularSMC::convertBCUnits() {
                 setBCOffset(bc_type, params_UU, params_SU, make_double3(0, 0, 0));
 
                 params_SU.cone_params.slope = params_UU.cone_params.slope;
-                params_SU.cone_params.normal_sign = params_UU.cone_params.normal_sign;
+                params_SU.cone_params.normal_sign = (int64_t)params_UU.cone_params.normal_sign;
 
                 BC_params_list_SU.push_back(params_SU);
                 break;
@@ -677,9 +687,9 @@ void ChSystemGranularSMC::convertBCUnits() {
                 // normal is unitless
                 // TODO normalize this just in case
                 // float abs = Length(params_UU);
-                params_SU.plane_params.normal.x = params_UU.plane_params.normal.x;
-                params_SU.plane_params.normal.y = params_UU.plane_params.normal.y;
-                params_SU.plane_params.normal.z = params_UU.plane_params.normal.z;
+                params_SU.plane_params.normal.x = (float)params_UU.plane_params.normal.x;
+                params_SU.plane_params.normal.y = (float)params_UU.plane_params.normal.y;
+                params_SU.plane_params.normal.z = (float)params_UU.plane_params.normal.z;
 
                 BC_params_list_SU.push_back(params_SU);
                 break;
@@ -692,7 +702,7 @@ void ChSystemGranularSMC::convertBCUnits() {
                 // TODO normalize this just in case
                 // float abs = Length(params_UU);
                 params_SU.cyl_params.radius = convertToPosSU<int64_t, float>(params_UU.cyl_params.radius);
-                params_SU.cyl_params.normal_sign = params_UU.cyl_params.normal_sign;
+                params_SU.cyl_params.normal_sign = (int64_t)params_UU.cyl_params.normal_sign;
 
                 BC_params_list_SU.push_back(params_SU);
                 break;
@@ -758,7 +768,7 @@ void ChSystemGranularSMC::setParticleFixed(const std::vector<bool>& fixed) {
 
 // Partitions the big domain (BD) and sets the number of SDs that BD is split in.
 void ChSystemGranularSMC::partitionBD() {
-    double sd_length_scale = 2. * sphere_radius_UU * AVERAGE_SPHERES_PER_SD_X_DIR;
+    double sd_length_scale = 2.0 * sphere_radius_UU * AVERAGE_SPHERES_PER_SD_X_DIR;
 
     unsigned int nSDs_X = (unsigned int)(std::ceil(box_size_X / sd_length_scale));
     // work with an even kFac to hit the CM of the box.
@@ -792,9 +802,9 @@ void ChSystemGranularSMC::partitionBD() {
 
     // Place BD frame at bottom-left corner, one half-length in each direction
     // Can change later if desired
-    gran_params->BD_frame_X = -.5 * ((int64_t)nSDs_X * SD_size_X);
-    gran_params->BD_frame_Y = -.5 * ((int64_t)nSDs_Y * SD_size_Y);
-    gran_params->BD_frame_Z = -.5 * ((int64_t)nSDs_Z * SD_size_Z);
+    gran_params->BD_frame_X = (int64_t)(-0.5 * ((int64_t)nSDs_X * SD_size_X));
+    gran_params->BD_frame_Y = (int64_t)(-0.5 * ((int64_t)nSDs_Y * SD_size_Y));
+    gran_params->BD_frame_Z = (int64_t)(-0.5 * ((int64_t)nSDs_Z * SD_size_Z));
 
     // permanently cache the initial frame
     BD_rest_frame_SU = make_longlong3(gran_params->BD_frame_X, gran_params->BD_frame_Y, gran_params->BD_frame_Z);
@@ -810,7 +820,8 @@ void ChSystemGranularSMC::partitionBD() {
 // Convert unit parameters from UU to SU
 void ChSystemGranularSMC::switchToSimUnits() {
     // Compute sphere mass, highest system stiffness, and gravity magnitude
-    double massSphere = (4. / 3.) * CH_C_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU * sphere_density_UU;
+    double massSphere =
+        (4. / 3.) * CH_C_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU * sphere_density_UU;
     double K_star = get_max_K();
     double magGravAcc = sqrt(X_accGrav * X_accGrav + Y_accGrav * Y_accGrav + Z_accGrav * Z_accGrav);
 
@@ -824,7 +835,7 @@ void ChSystemGranularSMC::switchToSimUnits() {
         std::pow(massSphere * massSphere * magGravAcc * magGravAcc * sphere_radius_UU / (K_star * K_star), 1. / 3.) /
         psi_L;
 
-    stepSize_SU = stepSize_UU / TIME_SU2UU;
+    stepSize_SU = (float)(stepSize_UU / TIME_SU2UU);
     gran_params->stepSize_SU = stepSize_SU;
 
     // compute temporary composite quantities
@@ -839,40 +850,36 @@ void ChSystemGranularSMC::switchToSimUnits() {
     // copy into gran params for now
     gran_params->LENGTH_UNIT = LENGTH_SU2UU;
 
-    gran_params->sphereRadius_SU = sphere_radius_UU / LENGTH_SU2UU;
+    gran_params->sphereRadius_SU = (unsigned int)(sphere_radius_UU / LENGTH_SU2UU);
 
-    gran_params->gravAcc_X_SU = X_accGrav / ACC_SU2UU;
-    gran_params->gravAcc_Y_SU = Y_accGrav / ACC_SU2UU;
-    gran_params->gravAcc_Z_SU = Z_accGrav / ACC_SU2UU;
+    gran_params->gravAcc_X_SU = (float)(X_accGrav / ACC_SU2UU);
+    gran_params->gravAcc_Y_SU = (float)(Y_accGrav / ACC_SU2UU);
+    gran_params->gravAcc_Z_SU = (float)(Z_accGrav / ACC_SU2UU);
 
-    gran_params->cohesionAcc_s2s = magGravAcc * cohesion_over_gravity / ACC_SU2UU;
-    gran_params->adhesionAcc_s2w = magGravAcc * adhesion_s2w_over_gravity / ACC_SU2UU;
+    gran_params->cohesionAcc_s2s = (float)(magGravAcc * cohesion_over_gravity / ACC_SU2UU);
+    gran_params->adhesionAcc_s2w = (float)(magGravAcc * adhesion_s2w_over_gravity / ACC_SU2UU);
 
     /// SU values for normal stiffnesses for S2S and S2W
-    gran_params->K_n_s2s_SU = K_n_s2s_UU / K_SU2UU;
-    gran_params->K_n_s2w_SU = K_n_s2w_UU / K_SU2UU;
+    gran_params->K_n_s2s_SU = (float)(K_n_s2s_UU / K_SU2UU);
+    gran_params->K_n_s2w_SU = (float)(K_n_s2w_UU / K_SU2UU);
 
-    gran_params->K_t_s2s_SU = K_t_s2s_UU / K_SU2UU;
-    gran_params->K_t_s2w_SU = K_t_s2w_UU / K_SU2UU;
+    gran_params->K_t_s2s_SU = (float)(K_t_s2s_UU / K_SU2UU);
+    gran_params->K_t_s2w_SU = (float)(K_t_s2w_UU / K_SU2UU);
 
-    gran_params->Gamma_n_s2s_SU = Gamma_n_s2s_UU / GAMMA_SU2UU;
-    gran_params->Gamma_n_s2w_SU = Gamma_n_s2w_UU / GAMMA_SU2UU;
-    gran_params->Gamma_t_s2s_SU = Gamma_t_s2s_UU / GAMMA_SU2UU;
-    gran_params->Gamma_t_s2w_SU = Gamma_t_s2w_UU / GAMMA_SU2UU;
+    gran_params->Gamma_n_s2s_SU = (float)(Gamma_n_s2s_UU / GAMMA_SU2UU);
+    gran_params->Gamma_n_s2w_SU = (float)(Gamma_n_s2w_UU / GAMMA_SU2UU);
+    gran_params->Gamma_t_s2s_SU = (float)(Gamma_t_s2s_UU / GAMMA_SU2UU);
+    gran_params->Gamma_t_s2w_SU = (float)(Gamma_t_s2w_UU / GAMMA_SU2UU);
 
-    double rolling_scalingFactor = 1.;
-    if (gran_params->rolling_mode == GRAN_ROLLING_MODE::VISCOUS) {
-        rolling_scalingFactor = 1. / TIME_SU2UU;
-    }
-    gran_params->rolling_coeff_s2s_SU = rolling_scalingFactor * rolling_coeff_s2s_UU;
-    gran_params->rolling_coeff_s2w_SU = rolling_scalingFactor * rolling_coeff_s2w_UU;
+    gran_params->rolling_coeff_s2s_SU = (float)rolling_coeff_s2s_UU;
+    gran_params->rolling_coeff_s2w_SU = (float)rolling_coeff_s2w_UU;
 
     // Handy debug output
     INFO_PRINTF("UU mass is %f\n", MASS_SU2UU);
     INFO_PRINTF("SU gravity is %f, %f, %f\n", gran_params->gravAcc_X_SU, gran_params->gravAcc_Y_SU,
                 gran_params->gravAcc_Z_SU);
     INFO_PRINTF("SU radius is %u\n", gran_params->sphereRadius_SU);
-    float dt_safe_estimate = sqrt(massSphere / K_n_s2s_UU);
+    float dt_safe_estimate = (float)std::sqrt(massSphere / K_n_s2s_UU);
     INFO_PRINTF("CFL timestep is about %f\n", dt_safe_estimate);
     INFO_PRINTF("Length unit is %0.16f\n", gran_params->LENGTH_UNIT);
 }

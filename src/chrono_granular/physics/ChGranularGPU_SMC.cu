@@ -33,7 +33,7 @@ __host__ double ChSystemGranularSMC::get_max_z() const {
         sphere_pos_global_Z[index] = convertPosLocalToGlobal(ownerSD, sphere_pos_local, gran_params).z;
     }
 
-    double max_z_SU = *(std::max_element(sphere_pos_global_Z.begin(), sphere_pos_global_Z.end()));
+    double max_z_SU = (double)(*(std::max_element(sphere_pos_global_Z.begin(), sphere_pos_global_Z.end())));
     double max_z_UU = max_z_SU * LENGTH_SU2UU;
 
     return max_z_UU;
@@ -93,7 +93,7 @@ __global__ void compute_absv(const unsigned int nSpheres,
     unsigned int my_sphere = blockIdx.x * blockDim.x + threadIdx.x;
     if (my_sphere < nSpheres) {
         float v[3] = {velX[my_sphere], velY[my_sphere], velZ[my_sphere]};
-        d_absv[my_sphere] = v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
+        d_absv[my_sphere] = sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
     }
 }
 
@@ -165,9 +165,9 @@ __host__ void ChSystemGranularSMC::defragment_initial_positions() {
         sphere_pos_y_tmp.at(i) = sphere_local_pos_Y.at(sphere_ids.at(i));
         sphere_pos_z_tmp.at(i) = sphere_local_pos_Z.at(sphere_ids.at(i));
 
-        sphere_vel_x_tmp.at(i) = pos_X_dt.at(sphere_ids.at(i));
-        sphere_vel_y_tmp.at(i) = pos_Y_dt.at(sphere_ids.at(i));
-        sphere_vel_z_tmp.at(i) = pos_Z_dt.at(sphere_ids.at(i));
+        sphere_vel_x_tmp.at(i) = (float)pos_X_dt.at(sphere_ids.at(i));
+        sphere_vel_y_tmp.at(i) = (float)pos_Y_dt.at(sphere_ids.at(i));
+        sphere_vel_z_tmp.at(i) = (float)pos_Z_dt.at(sphere_ids.at(i));
 
         sphere_fixed_tmp.at(i) = sphere_fixed.at(sphere_ids.at(i));
         sphere_owner_SDs_tmp.at(i) = sphere_owner_SDs.at(sphere_ids.at(i));
@@ -239,9 +239,9 @@ __host__ void ChSystemGranularSMC::setupSphereDataStructures() {
             sphere_fixed.at(i) = (not_stupid_bool)((user_provided_fixed) ? user_sphere_fixed[i] : false);
             if (user_provided_vel) {
                 auto vel = user_sphere_vel.at(i);
-                pos_X_dt.at(i) = vel.x / VEL_SU2UU;
-                pos_Y_dt.at(i) = vel.y / VEL_SU2UU;
-                pos_Z_dt.at(i) = vel.z / VEL_SU2UU;
+                pos_X_dt.at(i) = (float)(vel.x / VEL_SU2UU);
+                pos_Y_dt.at(i) = (float)(vel.y / VEL_SU2UU);
+                pos_Z_dt.at(i) = (float)(vel.z / VEL_SU2UU);
             }
         }
 
@@ -397,9 +397,9 @@ __host__ void ChSystemGranularSMC::updateBCPositions() {
         double3 new_BD_offset = BDOffsetFunction(elapsedSimTime);
 
         int64_t3 bd_offset_SU = {0, 0, 0};
-        bd_offset_SU.x = new_BD_offset.x / LENGTH_SU2UU;
-        bd_offset_SU.y = new_BD_offset.y / LENGTH_SU2UU;
-        bd_offset_SU.z = new_BD_offset.z / LENGTH_SU2UU;
+        bd_offset_SU.x = (int64_t)(new_BD_offset.x / LENGTH_SU2UU);
+        bd_offset_SU.y = (int64_t)(new_BD_offset.y / LENGTH_SU2UU);
+        bd_offset_SU.z = (int64_t)(new_BD_offset.z / LENGTH_SU2UU);
 
         int64_t old_frame_X = gran_params->BD_frame_X;
         int64_t old_frame_Y = gran_params->BD_frame_Y;
@@ -434,8 +434,8 @@ __host__ double ChSystemGranularSMC::advance_simulation(float duration) {
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
     // Settling simulation loop.
-    float duration_SU = duration / TIME_SU2UU;
-    unsigned int nsteps = std::round(duration_SU / stepSize_SU);
+    float duration_SU = (float)(duration / TIME_SU2UU);
+    unsigned int nsteps = (unsigned int)std::round(duration_SU / stepSize_SU);
 
     METRICS_PRINTF("advancing by %f at timestep %f, %u timesteps at approx user timestep %f\n", duration_SU,
                    stepSize_SU, nsteps, duration / nsteps);
@@ -459,7 +459,8 @@ __host__ double ChSystemGranularSMC::advance_simulation(float duration) {
         if (gran_params->friction_mode == FRICTIONLESS) {
             // Compute sphere-sphere forces
             computeSphereForces_frictionless<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(
-                sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(), BC_params_list_SU.size());
+                sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(),
+                (unsigned int)BC_params_list_SU.size());
             gpuErrchk(cudaPeekAtLastError());
             gpuErrchk(cudaDeviceSynchronize());
         } else if (gran_params->friction_mode == SINGLE_STEP || gran_params->friction_mode == MULTI_STEP) {
@@ -469,8 +470,8 @@ __host__ double ChSystemGranularSMC::advance_simulation(float duration) {
             gpuErrchk(cudaDeviceSynchronize());
 
             computeSphereContactForces<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
-                sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(), BC_params_list_SU.size(),
-                nSpheres);
+                sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(),
+                (unsigned int)BC_params_list_SU.size(), nSpheres);
             gpuErrchk(cudaPeekAtLastError());
             gpuErrchk(cudaDeviceSynchronize());
         }
@@ -486,7 +487,7 @@ __host__ double ChSystemGranularSMC::advance_simulation(float duration) {
             gpuErrchk(cudaDeviceSynchronize());
         }
 
-        elapsedSimTime += stepSize_SU * TIME_SU2UU;  // Advance current time
+        elapsedSimTime += (float)(stepSize_SU * TIME_SU2UU);  // Advance current time
     }
 
     return time_elapsed_SU * TIME_SU2UU;  // return elapsed UU time

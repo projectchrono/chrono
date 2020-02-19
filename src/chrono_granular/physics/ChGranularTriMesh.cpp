@@ -64,25 +64,20 @@ void ChSystemGranularSMC_trimesh::initializeTriangles() {
     double K_SU2UU = MASS_SU2UU / (TIME_SU2UU * TIME_SU2UU);
     double GAMMA_SU2UU = 1. / TIME_SU2UU;
 
-    tri_params->K_n_s2m_SU = K_n_s2m_UU / K_SU2UU;
-    tri_params->K_t_s2m_SU = K_t_s2m_UU / K_SU2UU;
+    tri_params->K_n_s2m_SU = (float)(K_n_s2m_UU / K_SU2UU);
+    tri_params->K_t_s2m_SU = (float)(K_t_s2m_UU / K_SU2UU);
 
-    tri_params->Gamma_n_s2m_SU = Gamma_n_s2m_UU / GAMMA_SU2UU;
-    tri_params->Gamma_t_s2m_SU = Gamma_t_s2m_UU / GAMMA_SU2UU;
+    tri_params->Gamma_n_s2m_SU = (float)(Gamma_n_s2m_UU / GAMMA_SU2UU);
+    tri_params->Gamma_t_s2m_SU = (float)(Gamma_t_s2m_UU / GAMMA_SU2UU);
 
     double magGravAcc = sqrt(X_accGrav * X_accGrav + Y_accGrav * Y_accGrav + Z_accGrav * Z_accGrav);
-    tri_params->adhesionAcc_s2m = adhesion_s2m_over_gravity * magGravAcc;
+    tri_params->adhesionAcc_s2m = (float)(adhesion_s2m_over_gravity * magGravAcc);
 
     for (unsigned int fam = 0; fam < meshSoup->numTriangleFamilies; fam++) {
-        meshSoup->familyMass_SU[fam] = meshSoup->familyMass_SU[fam] / MASS_SU2UU;
-        meshSoup->inflation_radii[fam] = meshSoup->inflation_radii[fam] / LENGTH_SU2UU;
+        meshSoup->familyMass_SU[fam] = (float)(meshSoup->familyMass_SU[fam] / MASS_SU2UU);
     }
 
-    double rolling_scalingFactor = 1.;
-    if (gran_params->rolling_mode == GRAN_ROLLING_MODE::VISCOUS) {
-        rolling_scalingFactor = 1. / TIME_SU2UU;
-    }
-    tri_params->rolling_coeff_s2m_SU = rolling_scalingFactor * rolling_coeff_s2m_UU;
+    tri_params->rolling_coeff_s2m_SU = (float)rolling_coeff_s2m_UU;
 
     TRACK_VECTOR_RESIZE(SD_numTrianglesTouching, nSDs, "SD_numTrianglesTouching", 0);
     TRACK_VECTOR_RESIZE(SD_TriangleCompositeOffsets, nSDs, "SD_TriangleCompositeOffsets", 0);
@@ -159,8 +154,6 @@ void ChSystemGranularSMC_trimesh::write_meshes(std::string filename) {
 void ChSystemGranularSMC_trimesh::cleanupTriMesh() {
     cudaFree(meshSoup->triangleFamily_ID);
     cudaFree(meshSoup->familyMass_SU);
-    cudaFree(meshSoup->inflated);
-    cudaFree(meshSoup->inflation_radii);
 
     cudaFree(meshSoup->node1);
     cudaFree(meshSoup->node2);
@@ -180,14 +173,14 @@ void ChSystemGranularSMC_trimesh::collectGeneralizedForcesOnMeshSoup(float* genF
     // pull directly from unified memory
     for (unsigned int i = 0; i < 6 * meshSoup->numTriangleFamilies; i += 6) {
         // Divide by C_F to go from SU to UU
-        genForcesOnSoup[i + 0] = meshSoup->generalizedForcesPerFamily[i + 0] * FORCE_SU2UU;
-        genForcesOnSoup[i + 1] = meshSoup->generalizedForcesPerFamily[i + 1] * FORCE_SU2UU;
-        genForcesOnSoup[i + 2] = meshSoup->generalizedForcesPerFamily[i + 2] * FORCE_SU2UU;
+        genForcesOnSoup[i + 0] = (float)(meshSoup->generalizedForcesPerFamily[i + 0] * FORCE_SU2UU);
+        genForcesOnSoup[i + 1] = (float)(meshSoup->generalizedForcesPerFamily[i + 1] * FORCE_SU2UU);
+        genForcesOnSoup[i + 2] = (float)(meshSoup->generalizedForcesPerFamily[i + 2] * FORCE_SU2UU);
 
         // Divide by C_TAU to go from SU to UU
-        genForcesOnSoup[i + 3] = meshSoup->generalizedForcesPerFamily[i + 3] * TORQUE_SU2UU;
-        genForcesOnSoup[i + 4] = meshSoup->generalizedForcesPerFamily[i + 4] * TORQUE_SU2UU;
-        genForcesOnSoup[i + 5] = meshSoup->generalizedForcesPerFamily[i + 5] * TORQUE_SU2UU;
+        genForcesOnSoup[i + 3] = (float)(meshSoup->generalizedForcesPerFamily[i + 3] * TORQUE_SU2UU);
+        genForcesOnSoup[i + 4] = (float)(meshSoup->generalizedForcesPerFamily[i + 4] * TORQUE_SU2UU);
+        genForcesOnSoup[i + 5] = (float)(meshSoup->generalizedForcesPerFamily[i + 5] * TORQUE_SU2UU);
     }
 }
 
@@ -205,9 +198,9 @@ void ChSystemGranularSMC_trimesh::meshSoup_applyRigidBodyMotion(double* position
         tri_params->fam_frame_narrow[fam].pos[2] = position_orientation_data[7 * fam + 2];
 
         // Set linear and angular velocity
-        const float C_V = TIME_SU2UU / LENGTH_SU2UU;
+        const float C_V = (float)(TIME_SU2UU / LENGTH_SU2UU);
         meshSoup->vel[fam] = make_float3(C_V * vel[6 * fam + 0], C_V * vel[6 * fam + 1], C_V * vel[6 * fam + 2]);
-        const float C_O = TIME_SU2UU;
+        const float C_O = (float)TIME_SU2UU;
         meshSoup->omega[fam] = make_float3(C_O * vel[6 * fam + 3], C_O * vel[6 * fam + 4], C_O * vel[6 * fam + 5]);
     }
 }

@@ -64,22 +64,22 @@ int main(int argc, char* argv[]) {
 
     // Add loose granular material
     int layers = 10;  // Approximate number of material layers
-    const double boundary_padding = 8.0 * params.sphere_radius;
-    float fill_bottom = -1e16;
+    const float boundary_padding = 8.f * params.sphere_radius;
+    float fill_bottom = -1e16f;
     for (auto pt : terrain_points) {
         fill_bottom = std::max(fill_bottom, pt.z());
     }
-    fill_bottom += 4.0 * params.sphere_radius;
+    fill_bottom += 4.f * params.sphere_radius;
 
-    const double fill_height = layers * 2.0 * params.sphere_radius;
-    double fill_top = std::min(fill_bottom + fill_height, params.box_Z / 2.0 - 2.0 * params.sphere_radius);
+    const float fill_height = layers * 2.f * params.sphere_radius;
+    float fill_top = std::min(fill_bottom + fill_height, params.box_Z / 2.f - 2.f * params.sphere_radius);
 
-    ChVector<> fill_center(0, 0, (fill_bottom + fill_top) / 2.0);
-    ChVector<> fill_hdims(params.box_X / 2 - boundary_padding - 2.0 * params.sphere_radius,
-                          params.box_Y / 2 - boundary_padding - 2.0 * params.sphere_radius,
-                          (fill_top - fill_bottom) / 2.0);
+    ChVector<float> fill_center(0.f, 0.f, (fill_bottom + fill_top) / 2.f);
+    ChVector<float> fill_hdims(params.box_X / 2.f - boundary_padding - 2.f * params.sphere_radius,
+                               params.box_Y / 2.f - boundary_padding - 2.f * params.sphere_radius,
+                               (fill_top - fill_bottom) / 2.f);
     std::vector<ChVector<float>> material_points =
-        utils::PDLayerSampler_BOX<float>(fill_center, fill_hdims, 2.0 * params.sphere_radius);
+        utils::PDLayerSampler_BOX<float>(fill_center, fill_hdims, 2.f * params.sphere_radius);
 
     // Vectors of all particle positions and fixities
     std::vector<ChVector<float>> body_points;
@@ -159,13 +159,13 @@ int main(int argc, char* argv[]) {
     unsigned int out_fps = 50;
     double frame_step = 1.0 / out_fps;
     int currframe = 0;
-    for (float t = 0; t < params.time_end; t += frame_step, currframe++) {
+    for (double t = 0; t < (double)params.time_end; t += frame_step, currframe++) {
         std::cout << "Rendering frame " << currframe << std::endl;
         char filename[100];
         sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe);
         gran_sys.writeFile(std::string(filename));
 
-        gran_sys.advance_simulation(frame_step);
+        gran_sys.advance_simulation((float)frame_step);
     }
 
     return 0;

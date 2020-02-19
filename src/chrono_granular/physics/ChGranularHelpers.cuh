@@ -243,69 +243,32 @@ inline __device__ float3 computeRollingAngAcc(GranSphereDataPtr sphere_data,
                                               const float3& normal_force,
                                               const float3& my_omega,
                                               const float3& their_omega,
-                                              // points from their center to my center (in line with normal force)
-                                              const float3& delta_r) {
+                                              // TODO check to make sure r_contact is what is passed everywhere
+                                              // vec from my center to center of contact
+                                              const float3& r_contact) {
     float3 delta_Ang_Acc = {0., 0., 0.};
 
     if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS &&
         gran_params->rolling_mode != GRAN_ROLLING_MODE::NO_RESISTANCE) {
-        float3 omega_rel = my_omega - their_omega;
-        float omega_rel_mag = Length(omega_rel);
+        float3 omega_rel = their_omega - my_omega;
 
-        // normalize relative rotation
-        constexpr float GRAN_MACHINE_EPSILON = 1e-5f;  // TODO this is an SU rel ang vel
-        if (omega_rel_mag < GRAN_MACHINE_EPSILON) {
-            return make_float3(0.f, 0.f, 0.f);  // No resistance if too little relative roll
-        }
-
-        omega_rel = omega_rel / omega_rel_mag;
-
-        const float normal_force_mag = Length(normal_force);
         switch (gran_params->rolling_mode) {
-            case GRAN_ROLLING_MODE::CONSTANT_TORQUE: {
-                // M = -w / ||w|| * mu_r * r_eff * ||f_n||
-                // Assumes r_eff = r/2
-                // Reff / inerta = 1 / (2 * inertia_by_r)
-                /// TODO ADD BC CHECK
-                delta_Ang_Acc =
-                    -1 * omega_rel * rolling_coeff * normal_force_mag / (2 * gran_params->sphereInertia_by_r);
-                break;
-            }
-            case GRAN_ROLLING_MODE::VISCOUS: {
-                // relative contact point velocity due to rotation ????
-                const float v_mag = Length(Cross(-1 * delta_r, my_omega + their_omega));
-
-                float3 torque = -rolling_coeff * v_mag * normal_force_mag * omega_rel;
-                delta_Ang_Acc = 1.f / (gran_params->sphereInertia_by_r * gran_params->sphereRadius_SU) * torque;
-                break;
-            }
             case GRAN_ROLLING_MODE::SCHWARTZ: {
                 // Rolling component
                 // v_rot = l_p (w_p x n) - l_n (w_n x n)
-                const float dr = Length(delta_r);
-                const float3 n = delta_r / dr;
-                const float3 v_rot = 0.5 * dr * Cross((omega_rel * omega_rel_mag), n);
+                const float dr = Length(r_contact);
+                const float3 n = r_contact / dr;
+                const float3 v_rot = dr * Cross(omega_rel, n);
 
-                // m_roll = mu_r l_p (f_n x v_rot) / ||v_rot||
-                float3 torque = (rolling_coeff * 0.5 * dr * Cross(normal_force, v_rot)) / Length(v_rot);
-
-                // Spinning component
-                // x_c = (r_p^2 - r_n^2) / (2 (r_p + r_n - delta_n)) + 0.5 (r_p + r_n - delta_n)
-                const float x_c = 0.5 * dr;
-
-                // r_c = sqrt(r_p^2 - x_c^2)
-                const float r_c = sqrt(gran_params->sphereRadius_SU * gran_params->sphereRadius_SU - x_c * x_c);
-
-                // m_spin = -mu_t r_c (((w_n - w_p) . f_n) / ||w_n - w_p||) n
-                torque = torque + -spinning_coeff * r_c * Dot(omega_rel, normal_force) * n;
+                // As in chrono parallel
+                const float normal_force_mag = Length(normal_force);
+                float3 torque = rolling_coeff * Cross(normal_force_mag * r_contact, v_rot) / Length(v_rot);
 
                 // d_aa = torque / inertia
                 delta_Ang_Acc = 1.f / (gran_params->sphereInertia_by_r * gran_params->sphereRadius_SU) * torque;
                 break;
             }
-            default: {
-                ABORTABORTABORT("Rolling mode not implemented\n");
-            }
+            default: { ABORTABORTABORT("Rolling mode not implemented\n"); }
         }
     }
 
@@ -326,13 +289,13 @@ inline __device__ void computeSingleStepDisplacement(GranParamsPtr gran_params,
 inline __device__ void computeMultiStepDisplacement(GranParamsPtr gran_params,
                                                     GranSphereDataPtr sphere_data,
                                                     const size_t& contact_id,
-                                                    const float3& rel_vel,
+                                                    const float3& vrel_t,
                                                     const float3& contact_normal,
                                                     float3& delta_t) {
     // get the tangential displacement so far
     delta_t = sphere_data->contact_history_map[contact_id];
     // add on what we have for this step
-    delta_t = delta_t + rel_vel * gran_params->stepSize_SU;
+    delta_t = delta_t + vrel_t * gran_params->stepSize_SU;
 
     // project onto contact normal
     float disp_proj = Dot(delta_t, contact_normal);
@@ -345,7 +308,7 @@ inline __device__ void computeMultiStepDisplacement(GranParamsPtr gran_params,
 
 inline __device__ void updateMultiStepDisplacement(GranSphereDataPtr sphere_data,
                                                    const size_t& contact_index,
-                                                   const float3& rel_vel,
+                                                   const float3& vrel_t,
                                                    const float3& contact_normal,
                                                    const float k_t,
                                                    const float gamma_t,
@@ -354,7 +317,7 @@ inline __device__ void updateMultiStepDisplacement(GranSphereDataPtr sphere_data
                                                    const float3& tangent_force) {
     // Reverse engineer the delta_t from the clamped force and update the map
     sphere_data->contact_history_map[contact_index] =
-        ((tangent_force / force_model_multiplier) + gamma_t * m_eff * rel_vel) / -k_t;
+        ((tangent_force / force_model_multiplier) + gamma_t * m_eff * vrel_t) / -k_t;
 }
 
 /// compute friction forces for a contact
@@ -368,18 +331,19 @@ inline __device__ float3 computeFrictionForces(GranParamsPtr gran_params,
                                                float force_model_multiplier,
                                                float m_eff,
                                                const float3& normal_force,
-                                               const float3& rel_vel,
+                                               const float3& vrel_t,
                                                const float3& contact_normal) {
-    float3 delta_t = {0., 0., 0.};
+    float3 delta_t = {0.f, 0.f, 0.f};
 
     if (gran_params->friction_mode == GRAN_FRICTION_MODE::SINGLE_STEP) {
-        computeSingleStepDisplacement(gran_params, rel_vel, delta_t);
+        computeSingleStepDisplacement(gran_params, vrel_t, delta_t);
     } else if (gran_params->friction_mode == GRAN_FRICTION_MODE::MULTI_STEP) {
         // TODO optimize this if we already have the contact ID
-        computeMultiStepDisplacement(gran_params, sphere_data, contact_index, rel_vel, contact_normal, delta_t);
+        // Also updates tangential creep
+        computeMultiStepDisplacement(gran_params, sphere_data, contact_index, vrel_t, contact_normal, delta_t);
     }
 
-    float3 tangent_force = force_model_multiplier * (-k_t * delta_t - gamma_t * m_eff * rel_vel);
+    float3 tangent_force = force_model_multiplier * (-k_t * delta_t - gamma_t * m_eff * vrel_t);
     const float ft = Length(tangent_force);  // could be small
 
     // TODO what value is (1) a negligible SU force (2) a safe number to divide by numerically?
@@ -388,13 +352,13 @@ inline __device__ float3 computeFrictionForces(GranParamsPtr gran_params,
         return make_float3(0.f, 0.f, 0.f);
     }
 
-    // If the force is beyond the coulomb criternion, clamp it
+    // If the force is beyond the coulomb criterion, clamp it
     const float ft_max = Length(normal_force) * static_friction_coeff;
     if (ft > ft_max) {
-        return tangent_force * ft_max / ft;  // TODO stability
-
+        // Scale tangent_force to coulomb condition and use stiffness portion of that to clamp displacement
+        tangent_force = tangent_force * ft_max / ft;  // TODO stability
         if (gran_params->friction_mode == GRAN_FRICTION_MODE::MULTI_STEP) {
-            updateMultiStepDisplacement(sphere_data, contact_index, rel_vel, contact_normal, k_t, gamma_t, m_eff,
+            updateMultiStepDisplacement(sphere_data, contact_index, vrel_t, contact_normal, k_t, gamma_t, m_eff,
                                         force_model_multiplier, tangent_force);
         }
     }

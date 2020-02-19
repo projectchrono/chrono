@@ -40,11 +40,6 @@ struct ChTriangleSoup {
     /// Entry i is the SU mass of family i
     float* familyMass_SU;
 
-    /// Entry i true indicates that family i is inflated
-    bool* inflated;
-    /// Entry i is the SU radius of inflation of family i
-    float* inflation_radii;
-
     /// Position in local reference frame of triangle vertex 1
     T3* node1;
     /// Position in local reference frame of triangle vertex 2

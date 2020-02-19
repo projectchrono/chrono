@@ -76,7 +76,7 @@ inline __device__ bool addBCForces_Sphere_frictionless(const int64_t3& sphPos,
         float projection = Dot(rel_vel, contact_normal);
 
         // assume bc mass is infinite
-        constexpr float m_eff = gran_params->sphere_mass_SU;
+        const float m_eff = gran_params->sphere_mass_SU;
         // add damping term
         force_accum =
             force_accum + -gran_params->Gamma_n_s2w_SU * projection * contact_normal * m_eff * force_model_multiplier;
@@ -156,7 +156,7 @@ inline __device__ bool addBCForces_ZCone_frictionless(const int64_t3& sphPos,
         float projection = Dot(rel_vel, contact_normal);
 
         // assume bc mass is infinite
-        constexpr float m_eff = gran_params->sphere_mass_SU;
+        const float m_eff = gran_params->sphere_mass_SU;
 
         // Compute force updates for damping term
         force_accum =
@@ -223,7 +223,7 @@ inline __device__ bool addBCForces_ZCone(unsigned int sphID,
                                                    make_float3(0, 0, 0), dist * contact_normal);
 
             // assume bc mass is infinite
-            constexpr float m_eff = gran_params->sphere_mass_SU;
+            const float m_eff = gran_params->sphere_mass_SU;
 
             // compute tangent force
             float3 tangent_force = computeFrictionForces(
@@ -283,7 +283,7 @@ inline __device__ bool addBCForces_Plane_frictionless(const int64_t3& sphPos,
         float projection = Dot(rel_vel, contact_normal);
 
         // assume bc mass is infinite
-        constexpr float m_eff = gran_params->sphere_mass_SU;
+        const float m_eff = gran_params->sphere_mass_SU;
 
         // damping term
         force_accum = force_accum + -1. * gran_params->Gamma_n_s2w_SU * projection * contact_normal * m_eff;
@@ -344,13 +344,13 @@ inline __device__ bool addBCForces_Plane(unsigned int sphID,
             unsigned int BC_histmap_label = gran_params->nSpheres + BC_id + 1;
 
             // assume bc mass is infinite
-            constexpr float m_eff = gran_params->sphere_mass_SU;
+            const float m_eff = gran_params->sphere_mass_SU;
 
             // compute tangent force
-            float3 tangent_force = computeFrictionForces(gran_params, sphere_data, sphID, BC_histmap_label,
-                                                         gran_params->rolling_coeff_s2w_SU, gran_params->K_t_s2w_SU,
-                                                         gran_params->Gamma_t_s2w_SU, force_model_multiplier, m_eff,
-                                                         force_accum, rel_vel, contact_normal);
+            float3 tangent_force = computeFrictionForces(
+                gran_params, sphere_data, sphID, BC_histmap_label, gran_params->static_friction_coeff_s2w,
+                gran_params->K_t_s2w_SU, gran_params->Gamma_t_s2w_SU, force_model_multiplier, m_eff, force_accum,
+                rel_vel, contact_normal);
 
             float3 roll_acc = computeRollingAngAcc(sphere_data, gran_params, gran_params->rolling_coeff_s2w_SU,
                                                    gran_params->spinning_coeff_s2w_SU, force_accum, sphOmega,
@@ -413,7 +413,7 @@ inline __device__ bool addBCForces_Zcyl_frictionless(const int64_t3& sphPos,
         float projection = Dot(rel_vel, contact_normal);
 
         // assume bc mass is infinite
-        constexpr float m_eff = gran_params->sphere_mass_SU;
+        const float m_eff = gran_params->sphere_mass_SU;
 
         force_accum =
             force_accum + -gran_params->Gamma_n_s2w_SU * projection * contact_normal * m_eff * force_model_multiplier;
@@ -467,7 +467,7 @@ inline __device__ bool addBCForces_Zcyl(unsigned int sphID,
     if (contact) {
         float penetration = sphereRadius_SU - dist;
         float projection = Dot(sphVel, contact_normal);
-        float3 rel_vel = sphVel - contact_normal * projection + Cross(sphOmega, -1. * dist * contact_normal);
+        float3 vrel_t = sphVel - contact_normal * projection + Cross(sphOmega, -1. * dist * contact_normal);
         float force_model_multiplier = sqrt(penetration / sphereRadius_SU);
 
         // add tangent forces
@@ -479,13 +479,13 @@ inline __device__ bool addBCForces_Zcyl(unsigned int sphID,
                                                    make_float3(0, 0, 0), dist * contact_normal);
 
             // assume bc mass is infinite
-            constexpr float m_eff = gran_params->sphere_mass_SU;
+            const float m_eff = gran_params->sphere_mass_SU;
 
             // compute tangent force
             float3 tangent_force = computeFrictionForces(
                 gran_params, sphere_data, sphID, BC_histmap_label, gran_params->static_friction_coeff_s2w,
                 gran_params->K_t_s2w_SU, gran_params->Gamma_t_s2w_SU, force_model_multiplier, m_eff, force_accum,
-                rel_vel, contact_normal);
+                vrel_t, contact_normal);
 
             ang_acc_from_BCs =
                 ang_acc_from_BCs + (Cross(-1 * contact_normal, tangent_force) / gran_params->sphereInertia_by_r);

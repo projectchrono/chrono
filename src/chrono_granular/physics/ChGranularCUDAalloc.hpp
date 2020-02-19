@@ -57,17 +57,17 @@ class cudallocator {
 
 #if (__cplusplus > 201703L)  // newer than (but not including) C++17
     constexpr cudallocator() noexcept {};
-    constexpr cudallocator(const cudallocator& other) noexcept {};
+    constexpr cudallocator(const cudallocator& other) noexcept {}
 
     template <class U>
-    constexpr cudallocator(const cudallocator<U>& other) noexcept {};
+    constexpr cudallocator(const cudallocator<U>& other) noexcept {}
 
 #else  // C++17 or older
-    cudallocator() noexcept {};
-    cudallocator(const cudallocator& other) noexcept {};
+    cudallocator() noexcept {}
+    cudallocator(const cudallocator& other) noexcept {}
 
     template <class U>
-    cudallocator(const cudallocator<U>& other) noexcept {};
+    cudallocator(const cudallocator<U>& other) noexcept {}
 #endif
 
 #if (__cplusplus < 201703L)  // before C++17

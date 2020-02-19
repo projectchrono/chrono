@@ -167,7 +167,7 @@ mark_as_advanced(FORCE
 if(NOT CUDA_FOUND)
   message("Chrono::Granular requires CUDA")
   message(STATUS "Chrono::Granular disabled")
-  set(ENABLE_MODULE_FSI OFF CACHE BOOL "Enable the Chrono Granular module" FORCE)
+  set(ENABLE_MODULE_GRANULAR OFF CACHE BOOL "Enable the Chrono Granular module" FORCE)
   return()
 endif()
 
@@ -175,7 +175,7 @@ option(GRANULAR_VERBOSE_PTXAS "Enable verbose output from ptxas during compilati
 mark_as_advanced(GRANULAR_VERBOSE_PTXAS)
 
 if(GRANULAR_VERBOSE_PTXAS)
-	set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} --ptxas-options=-v)
+	set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --ptxas-options=-v")
 endif()
 
 message(STATUS "NVCC Flags are " ${CUDA_NVCC_FLAGS})

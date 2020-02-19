@@ -38,10 +38,10 @@ float grav_acceleration = -980.f;
 float normStiffness_S2S = 5e7f;
 float normStiffness_S2W = 5e7f;
 
-float normalDampS2S = 20000;
-float normalDampS2W = 20000;
+float normalDampS2S = 20000.f;
+float normalDampS2W = 20000.f;
 float adhesion_ratio_s2w = 0.f;
-float timestep = 5e-5;
+float timestep = 5e-5f;
 
 GRAN_OUTPUT_MODE write_mode = GRAN_OUTPUT_MODE::NONE;
 GRAN_VERBOSITY verbose = GRAN_VERBOSITY::INFO;
@@ -61,9 +61,10 @@ double run_test(float box_size_X, float box_size_Y, float box_size_Z) {
     gran_system.setOutputMode(write_mode);
 
     // Fill the bottom half with material
-    chrono::utils::HCPSampler<float> sampler(2.1 * sphereRadius);  // Add epsilon
-    ChVector<float> center(0, 0, -.25 * box_size_Z);
-    ChVector<float> hdims(box_size_X / 2 - sphereRadius, box_size_X / 2 - sphereRadius, box_size_Z / 4 - sphereRadius);
+    chrono::utils::HCPSampler<float> sampler(2.1f * sphereRadius);  // Add epsilon
+    ChVector<float> center(0.f, 0.f, -0.25f * box_size_Z);
+    ChVector<float> hdims(box_size_X / 2.f - sphereRadius, box_size_X / 2.f - sphereRadius,
+                          box_size_Z / 4.f - sphereRadius);
     std::vector<ChVector<float>> body_points = sampler.SampleBox(center, hdims);
 
     ChGranularSMC_API apiSMC;
@@ -101,7 +102,7 @@ double run_test(float box_size_X, float box_size_Y, float box_size_Z) {
         printf("Time: %f\n", curr_time);
     }
 
-    constexpr float F_CGS_TO_SI = 1e-5;
+    constexpr float F_CGS_TO_SI = 1e-5f;
 
     bool success = gran_system.getBCReactionForces(plane_bc_id, reaction_forces);
     if (!success) {
@@ -111,11 +112,11 @@ double run_test(float box_size_X, float box_size_Y, float box_size_Z) {
                F_CGS_TO_SI * reaction_forces[1], F_CGS_TO_SI * reaction_forces[2]);
 
         float computed_bottom_force = reaction_forces[2];
-        float expected_bottom_force = body_points.size() * (4. / 3.) * CH_C_PI * sphereRadius * sphereRadius *
-                                      sphereRadius * sphereDensity * grav_acceleration;
+        float expected_bottom_force = (float)body_points.size() * (4.f / 3.f) * (float)CH_C_PI * sphereRadius *
+                                      sphereRadius * sphereRadius * sphereDensity * grav_acceleration;
 
         // 1% error allowed, max
-        float percent_error = 0.01;
+        float percent_error = 0.01f;
         printf("Expected bottom force is %f, computed %f\n", expected_bottom_force, computed_bottom_force);
         if (std::abs((expected_bottom_force - computed_bottom_force) / expected_bottom_force) > percent_error) {
             printf("DIFFERENCE IS TOO LARGE!\n");
@@ -146,7 +147,7 @@ int main(int argc, char* argv[]) {
     printf("\tcanUseHostPointerForRegisteredMem: %d\n", dev_props.canUseHostPointerForRegisteredMem);
     printf("\tdirectManagedMemAccessFromHost: %d\n", dev_props.directManagedMemAccessFromHost);
 
-    int canAccessPeer;
+    // int canAccessPeer;
 
     // gpuErrchk(cudaDeviceCanAccessPeer(&canAccessPeer, gpu_dev_id_active, gpu_dev_id_other));
     // printf("\tCan access peer (GPU 0 -> GPU 1): %d\n", canAccessPeer);

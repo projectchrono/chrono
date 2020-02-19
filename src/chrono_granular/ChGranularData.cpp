@@ -20,7 +20,7 @@
 namespace chrono {
 namespace granular {
 
-static std::string chrono_granular_data_path("../data/granular/");
+std::string chrono_granular_data_path("../data/granular/");
 
 // Set the path to the Chrono::Granular data directory (ATTENTION: not thread safe).
 void SetDataPath(const std::string& path) {

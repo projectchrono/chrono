@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    double iteration_step = params.step_size;
+    float iteration_step = params.step_size;
 
     ChGranularChronoTriMeshAPI apiSMC_TriMesh(params.sphere_radius, params.sphere_density,
                                               make_float3(params.box_X, params.box_Y, params.box_Z));
@@ -85,7 +85,7 @@ int main(int argc, char* argv[]) {
     double fill_bottom = -params.box_Z / 2.0;
     double fill_top = params.box_Z / 4.0;
 
-    chrono::utils::PDSampler<float> sampler(2.4 * params.sphere_radius);
+    chrono::utils::PDSampler<float> sampler(2.4f * params.sphere_radius);
     // chrono::utils::HCPSampler<float> sampler(2.05 * params.sphere_radius);
 
     // leave a 4cm margin at edges of sampling
@@ -150,20 +150,16 @@ int main(int argc, char* argv[]) {
     std::string mesh_filename(GetChronoDataFile("granular/demo_GRAN_ballcosim/sphere.obj"));
     std::vector<string> mesh_filenames(1, mesh_filename);
 
-    std::vector<float3> mesh_translations(1, make_float3(0, 0, 0));
+    std::vector<float3> mesh_translations(1, make_float3(0.f, 0.f, 0.f));
 
-    float ball_radius = 20;
+    float ball_radius = 20.f;
     std::vector<ChMatrix33<float>> mesh_rotscales(1, ChMatrix33<float>(ball_radius));
 
-    float ball_density = params.sphere_density / 100;
-    float ball_mass = 4.0 / 3.0 * CH_C_PI * ball_radius * ball_radius * ball_radius * ball_density;
+    float ball_density = params.sphere_density / 100.f;
+    float ball_mass = (float)(4.f * CH_C_PI * ball_radius * ball_radius * ball_radius * ball_density / 3.f);
     std::vector<float> mesh_masses(1, ball_mass);
 
-    std::vector<bool> mesh_inflated(1, false);
-    std::vector<float> mesh_inflation_radii(1, 0);
-
-    apiSMC_TriMesh.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses, mesh_inflated,
-                               mesh_inflation_radii);
+    apiSMC_TriMesh.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses);
 
     gran_sys.setOutputMode(params.write_mode);
     gran_sys.setVerbose(params.verbose);
@@ -193,13 +189,13 @@ int main(int argc, char* argv[]) {
     unsigned int out_fps = 50;
     std::cout << "Rendering at " << out_fps << "FPS" << std::endl;
 
-    unsigned int out_steps = 1 / (out_fps * iteration_step);
+    unsigned int out_steps = (unsigned int)(1.0 / (out_fps * iteration_step));
 
     int currframe = 0;
     unsigned int curr_step = 0;
 
     clock_t start = std::clock();
-    for (float t = 0; t < params.time_end; t += iteration_step, curr_step++) {
+    for (double t = 0; t < (double)params.time_end; t += iteration_step, curr_step++) {
         auto ball_pos = ball_body->GetPos();
         auto ball_rot = ball_body->GetRot();
 
@@ -215,12 +211,12 @@ int main(int argc, char* argv[]) {
         meshPosRot[5] = ball_rot[2];
         meshPosRot[6] = ball_rot[3];
 
-        meshVel[0] = ball_vel.x();
-        meshVel[1] = ball_vel.y();
-        meshVel[2] = ball_vel.z();
-        meshVel[3] = ball_ang_vel.x();
-        meshVel[4] = ball_ang_vel.y();
-        meshVel[5] = ball_ang_vel.z();
+        meshVel[0] = (float)ball_vel.x();
+        meshVel[1] = (float)ball_vel.y();
+        meshVel[2] = (float)ball_vel.z();
+        meshVel[3] = (float)ball_ang_vel.x();
+        meshVel[4] = (float)ball_ang_vel.y();
+        meshVel[5] = (float)ball_ang_vel.z();
 
         gran_sys.meshSoup_applyRigidBodyMotion(meshPosRot, meshVel);
 
