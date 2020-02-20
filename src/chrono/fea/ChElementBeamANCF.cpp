@@ -1788,46 +1788,38 @@ ChVector<> ChElementBeamANCF::EvaluateBeamSectionStrains() {
     return ChVector<>(strain(0), strain(1), strain(2));
 }
 
-// void ChElementBeamANCF::EvaluateSectionDisplacement(const double u,
-//                                                    const double v,
-//                                                    ChVector<>& u_displ,
-//                                                    ChVector<>& u_rotaz) {
-//    // this is not a corotational element, so just do:
-//    EvaluateSectionPoint(u, v, displ, u_displ);
-//    u_rotaz = VNULL;  // no angles.. this is ANCF (or maybe return here the slope derivatives?)
-//}
-//
-// void ChElementBeamANCF::EvaluateSectionFrame(const double u,
-//                                             const double v,
-//                                             ChVector<>& point,
-//                                             ChQuaternion<>& rot) {
-//    // this is not a corotational element, so just do:
-//    EvaluateSectionPoint(u, v, displ, point);
-//    rot = QUNIT;  // or maybe use gram-schmidt to get csys of section from slopes?
-//}
-//
-// void ChElementBeamANCF::EvaluateSectionPoint(const double u,
-//                                             const double v,
-//                                             ChVector<>& point) {
-//    ChVector<> u_displ;
-//
-//    ChMatrixNM<double, 1, 8> N;
-//
-//    double x = u;  // because ShapeFunctions() works in -1..1 range
-//    double y = v;  // because ShapeFunctions() works in -1..1 range
-//    double z = 0;
-//
-//    this->ShapeFunctions(N, x, y, z);
-//
-//    const ChVector<>& pA = m_nodes[0]->GetPos();
-//    const ChVector<>& pB = m_nodes[1]->GetPos();
-//    const ChVector<>& pC = m_nodes[2]->GetPos();
-//    const ChVector<>& pD = m_nodes[3]->GetPos();
-//
-//    point.x() = N(0) * pA.x() + N(2) * pB.x() + N(4) * pC.x() + N(6) * pD.x();
-//    point.y() = N(0) * pA.y() + N(2) * pB.y() + N(4) * pC.y() + N(6) * pD.y();
-//    point.z() = N(0) * pA.z() + N(2) * pB.z() + N(4) * pC.z() + N(6) * pD.z();
-//}
+void ChElementBeamANCF::EvaluateSectionDisplacement(const double eta, ChVector<>& u_displ, ChVector<>& u_rotaz) {
+    //// TODO?
+}
+
+void ChElementBeamANCF::EvaluateSectionFrame(const double eta, ChVector<>& point, ChQuaternion<>& rot) {
+    ChMatrixNM<double, 9, 3> mD;
+    ShapeVector N;
+    ShapeVector Nx;
+    ShapeVector Ny;
+
+    CalcCoordMatrix(mD);
+
+    // r = Se
+    ShapeFunctions(N, eta, 0, 0);
+    point = mD.transpose() * N.transpose();
+
+    // Since ANCF does not use rotations, calculate an approximate
+    // rotation based off the position vector gradients
+    ShapeFunctionsDerivativeX(Nx, eta, 0, 0);
+    ShapeFunctionsDerivativeY(Ny, eta, 0, 0);
+    ChVector<double> BeamAxisTangent = mD.transpose() * Nx.transpose();
+    ChVector<double> CrossSectionY = mD.transpose() * Ny.transpose();
+
+    // Since the position vector gradients are not in general orthogonal,
+    // set the Dx direction tangent to the beam axis and
+    // compute the Dy and Dz directions by using a
+    // Gram-Schmidt orthonormalization, guided by the cross section Y direction
+    ChMatrix33<> msect;
+    msect.Set_A_Xdir(BeamAxisTangent, CrossSectionY);
+
+    rot = msect.Get_A_quaternion();
+}
 
 // -----------------------------------------------------------------------------
 // Functions for ChLoadable interface

@@ -23,13 +23,6 @@ set(FEA_DEMOS ${FEA_DEMOS}
 )
 endif()
 
-# Add demos that require MKL
-if(ENABLE_MODULE_MKL)
-set(FEA_DEMOS ${FEA_DEMOS}
-    #demo_FEA_beamsANCF
-)
-endif()
-
 # Add demos that require Irrlicht and Matlab
 if(ENABLE_MODULE_IRRLICHT AND ENABLE_MODULE_MATLAB)
 set(FEA_DEMOS ${FEA_DEMOS}
@@ -51,6 +44,7 @@ set(FEA_DEMOS ${FEA_DEMOS}
     demo_FEA_ContactANCF
     demo_FEA_Brick9
     demo_FEA_beamsIGA
+    demo_FEA_beamsANCF
 )
 endif()
 

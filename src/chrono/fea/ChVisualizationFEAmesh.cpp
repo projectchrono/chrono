@@ -18,6 +18,7 @@
 #include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
 #include "chrono/fea/ChElementCableANCF.h"
+#include "chrono/fea/ChElementBeamANCF.h"
 #include "chrono/fea/ChElementBeamEuler.h"
 #include "chrono/fea/ChElementBeamIGA.h"
 #include "chrono/fea/ChElementBrick.h"
@@ -349,14 +350,13 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                 bool m_circular = false;
                 // downcasting
                 if (auto mybeameuler = std::dynamic_pointer_cast<ChElementBeamEuler>(this->FEMmesh->GetElement(iel))) {
-                    if (mybeameuler->GetSection()->IsCircular())
-                        m_circular = true;
-                } else if (auto mybeamancf = std::dynamic_pointer_cast<ChElementCableANCF>(this->FEMmesh->GetElement(iel))) {
-                    if (mybeamancf->GetSection()->IsCircular())
-                        m_circular = true;
-                } else if (auto mybeamiga = std::dynamic_pointer_cast<ChElementBeamIGA>(this->FEMmesh->GetElement(iel))) {
-                    if (mybeamiga->GetSection()->IsCircular())
-                        m_circular = true;
+                    m_circular = mybeameuler->GetSection()->IsCircular();
+                } else if (auto mycableancf =
+                               std::dynamic_pointer_cast<ChElementCableANCF>(this->FEMmesh->GetElement(iel))) {
+                    m_circular = mycableancf->GetSection()->IsCircular();
+                } else if (auto mybeamiga =
+                               std::dynamic_pointer_cast<ChElementBeamIGA>(this->FEMmesh->GetElement(iel))) {
+                    m_circular = mybeamiga->GetSection()->IsCircular();
                 }
                 if (m_circular) {
                     n_verts += beam_resolution_section * beam_resolution;
@@ -630,12 +630,15 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                     z_thick = 0.5 * mybeameuler->GetSection()->GetDrawThicknessZ();
                     m_circular = mybeameuler->GetSection()->IsCircular();
                     m_rad = mybeameuler->GetSection()->GetDrawCircularRadius();
-                } else if (auto mybeamancf = std::dynamic_pointer_cast<ChElementCableANCF>(mybeam)) {
+                } else if (auto mybeamancf = std::dynamic_pointer_cast<ChElementBeamANCF>(mybeam)) {
+                    y_thick = 0.5 * mybeamancf->GetThicknessY();
+                    z_thick = 0.5 * mybeamancf->GetThicknessZ();
+                } else if (auto mycableancf = std::dynamic_pointer_cast<ChElementCableANCF>(mybeam)) {
                     // if the beam has a section info, use section specific thickness for drawing
-                    y_thick = 0.5 * mybeamancf->GetSection()->GetDrawThicknessY();
-                    z_thick = 0.5 * mybeamancf->GetSection()->GetDrawThicknessZ();
-                    m_circular = mybeamancf->GetSection()->IsCircular();
-                    m_rad = mybeamancf->GetSection()->GetDrawCircularRadius();
+                    y_thick = 0.5 * mycableancf->GetSection()->GetDrawThicknessY();
+                    z_thick = 0.5 * mycableancf->GetSection()->GetDrawThicknessZ();
+                    m_circular = mycableancf->GetSection()->IsCircular();
+                    m_rad = mycableancf->GetSection()->GetDrawCircularRadius();
                 } else if (auto mybeamiga = std::dynamic_pointer_cast<ChElementBeamIGA>(mybeam)) {
                     // if the beam has a section info, use section specific thickness for drawing
                     y_thick = 0.5 * mybeamiga->GetSection()->GetDrawThicknessY();
@@ -1159,6 +1162,8 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                 glyphs_asset->SetGlyphPoint(inode, mynode->GetPos(), this->symbolscolor);
             } else if (auto mynode = std::dynamic_pointer_cast<ChNodeFEAxyzD>(this->FEMmesh->GetNode(inode))) {
                 glyphs_asset->SetGlyphPoint(inode, mynode->GetPos(), this->symbolscolor);
+            } else if (auto mynode = std::dynamic_pointer_cast<ChNodeFEAxyzDD>(this->FEMmesh->GetNode(inode))) {
+                glyphs_asset->SetGlyphPoint(inode, mynode->GetPos(), this->symbolscolor);            
             }
         }
     }

@@ -213,8 +213,6 @@ class ChApi ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public
     // Interface to ChElementBeam base class
     // --------------------------------------
 
-    // void EvaluateSectionPoint(const double u, const ChMatrix<>& displ, ChVector<>& point); // Not needed?
-
     // Dummy method definitions.
     virtual void EvaluateSectionStrain(const double, chrono::ChVector<double>&) override {}
 
@@ -227,14 +225,15 @@ class ChApi ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public
     /// Note, eta=-1 at node1, eta=+1 at node2.
     /// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetStateBlock()
     /// Results are not corotated.
-    virtual void EvaluateSectionDisplacement(const double eta, ChVector<>& u_displ, ChVector<>& u_rotaz) override {}
+    virtual void EvaluateSectionDisplacement(const double eta, ChVector<>& u_displ, ChVector<>& u_rotaz) override;
 
     /// Gets the absolute xyz position of a point on the beam line,
     /// and the absolute rotation of section plane, at abscissa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
     /// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetStateBlock()
     /// Results are corotated (expressed in world reference)
-    virtual void EvaluateSectionFrame(const double eta, ChVector<>& point, ChQuaternion<>& rot) override {}
+    virtual void EvaluateSectionFrame(const double eta, ChVector<>& point, ChQuaternion<>& rot) override;
+
     // Internal computations
     // ---------------------
 
