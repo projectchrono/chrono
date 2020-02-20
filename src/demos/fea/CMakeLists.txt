@@ -26,7 +26,7 @@ endif()
 # Add demos that require MKL
 if(ENABLE_MODULE_MKL)
 set(FEA_DEMOS ${FEA_DEMOS}
-    demo_FEA_beamsANCF
+    #demo_FEA_beamsANCF
 )
 endif()
 
