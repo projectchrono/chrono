@@ -1644,6 +1644,51 @@ void ChElementShellANCF_8::ComputeNF(
     for (int i = 0; i < 24; i++) {
         Qi.segment(3 * i, 3) = N(i) * F.segment(0, 3);
     }
+
+    // Compute the generalized force vector for the applied moment
+    ShapeVector Nx;
+    ShapeVector Ny;
+    ShapeVector Nz;
+    ChMatrixNM<double, 24, 3> e_bar;
+    ChMatrixNM<double, 3, 24> Sxi_D_transpose;
+    ChMatrix33<double> J_Cxi;
+    ChMatrix33<double> J_Cxi_Inv;
+    ChVectorN<double, 24> G_A;
+    ChVectorN<double, 24> G_B;
+    ChVectorN<double, 24> G_C;
+    ChVectorN<double, 3> M_scaled = 0.5 * F.segment(3, 3);
+
+    ShapeFunctionsDerivativeX(Nx, U, V, 0);
+    ShapeFunctionsDerivativeY(Ny, U, V, 0);
+    ShapeFunctionsDerivativeZ(Nz, U, V, 0);
+    Sxi_D_transpose.row(0) = Nx;
+    Sxi_D_transpose.row(1) = Ny;
+    Sxi_D_transpose.row(2) = Nz;
+
+    CalcCoordMatrix(e_bar);
+
+    // Calculate the element Jacobian between the current configuration and the normalized configuration
+    J_Cxi.noalias() = e_bar.transpose() * Sxi_D_transpose.transpose();
+    J_Cxi_Inv = J_Cxi.inverse();
+
+    // Compute the unique pieces that make up the moment projection matrix "G"
+    // See: Antonio M Recuero, Javier F Aceituno, Jose L Escalona, and Ahmed A Shabana.
+    // A nonlinear approach for modeling rail flexibility using the absolute nodal coordinate
+    // formulation. Nonlinear Dynamics, 83(1-2):463-481, 2016.
+    G_A = Sxi_D_transpose.row(0) * J_Cxi_Inv(0, 0) + Sxi_D_transpose.row(1) * J_Cxi_Inv(1, 0) +
+        Sxi_D_transpose.row(2) * J_Cxi_Inv(2, 0);
+    G_B = Sxi_D_transpose.row(0) * J_Cxi_Inv(0, 1) + Sxi_D_transpose.row(1) * J_Cxi_Inv(1, 1) +
+        Sxi_D_transpose.row(2) * J_Cxi_Inv(2, 1);
+    G_C = Sxi_D_transpose.row(0) * J_Cxi_Inv(0, 2) + Sxi_D_transpose.row(1) * J_Cxi_Inv(1, 2) +
+        Sxi_D_transpose.row(2) * J_Cxi_Inv(2, 2);
+
+    // Compute G'M without actually forming the complete matrix "G" (since it has a sparsity pattern to it)
+    //// MIKE Clean-up when slicing becomes available in Eigen 3.4
+    for (unsigned int i = 0; i < 9; i++) {
+        Qi(3 * i) += M_scaled(1) * G_C(i) - M_scaled(2) * G_B(i);
+        Qi((3 * i) + 1) += M_scaled(2) * G_A(i) - M_scaled(0) * G_C(i);
+        Qi((3 * i) + 2) += M_scaled(0) * G_B(i) - M_scaled(1) * G_A(i);
+    }
 }
 
 // Evaluate N'*F , where N is the shape function evaluated at (U,V,W) coordinates of the surface.
@@ -1665,6 +1710,51 @@ void ChElementShellANCF_8::ComputeNF(
 
     for (int i = 0; i < 24; i++) {
         Qi.segment(3 * i, 3) = N(i) * F.segment(0, 3);
+    }
+
+    // Compute the generalized force vector for the applied moment
+    ShapeVector Nx;
+    ShapeVector Ny;
+    ShapeVector Nz;
+    ChMatrixNM<double, 24, 3> e_bar;
+    ChMatrixNM<double, 3, 24> Sxi_D_transpose;
+    ChMatrix33<double> J_Cxi;
+    ChMatrix33<double> J_Cxi_Inv;
+    ChVectorN<double, 24> G_A;
+    ChVectorN<double, 24> G_B;
+    ChVectorN<double, 24> G_C;
+    ChVectorN<double, 3> M_scaled = 0.5 * F.segment(3, 3);
+
+    ShapeFunctionsDerivativeX(Nx, U, V, W);
+    ShapeFunctionsDerivativeY(Ny, U, V, W);
+    ShapeFunctionsDerivativeZ(Nz, U, V, W);
+    Sxi_D_transpose.row(0) = Nx;
+    Sxi_D_transpose.row(1) = Ny;
+    Sxi_D_transpose.row(2) = Nz;
+
+    CalcCoordMatrix(e_bar);
+
+    // Calculate the element Jacobian between the current configuration and the normalized configuration
+    J_Cxi.noalias() = e_bar.transpose() * Sxi_D_transpose.transpose();
+    J_Cxi_Inv = J_Cxi.inverse();
+
+    // Compute the unique pieces that make up the moment projection matrix "G"
+    // See: Antonio M Recuero, Javier F Aceituno, Jose L Escalona, and Ahmed A Shabana.
+    // A nonlinear approach for modeling rail flexibility using the absolute nodal coordinate
+    // formulation. Nonlinear Dynamics, 83(1-2):463-481, 2016.
+    G_A = Sxi_D_transpose.row(0) * J_Cxi_Inv(0, 0) + Sxi_D_transpose.row(1) * J_Cxi_Inv(1, 0) +
+        Sxi_D_transpose.row(2) * J_Cxi_Inv(2, 0);
+    G_B = Sxi_D_transpose.row(0) * J_Cxi_Inv(0, 1) + Sxi_D_transpose.row(1) * J_Cxi_Inv(1, 1) +
+        Sxi_D_transpose.row(2) * J_Cxi_Inv(2, 1);
+    G_C = Sxi_D_transpose.row(0) * J_Cxi_Inv(0, 2) + Sxi_D_transpose.row(1) * J_Cxi_Inv(1, 2) +
+        Sxi_D_transpose.row(2) * J_Cxi_Inv(2, 2);
+
+    // Compute G'M without actually forming the complete matrix "G" (since it has a sparsity pattern to it)
+    //// MIKE Clean-up when slicing becomes available in Eigen 3.4
+    for (unsigned int i = 0; i < 9; i++) {
+        Qi(3 * i) += M_scaled(1) * G_C(i) - M_scaled(2) * G_B(i);
+        Qi((3 * i) + 1) += M_scaled(2) * G_A(i) - M_scaled(0) * G_C(i);
+        Qi((3 * i) + 2) += M_scaled(0) * G_B(i) - M_scaled(1) * G_A(i);
     }
 }
 
