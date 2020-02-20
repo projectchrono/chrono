@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
 
     // Solver settings
 #ifndef CHRONO_MKL
-    use_mkl = false;
+    use_MKL = false;
 #endif
 
     if (use_MKL) {
