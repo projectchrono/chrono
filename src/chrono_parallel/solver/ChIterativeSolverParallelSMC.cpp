@@ -434,7 +434,7 @@ void function_CalcContactForces(
                         force -= adhesionMultDMT_eff * Sqrt(eff_radius[index]) * normal[index];
                         break;
                     case ChSystemSMC::AdhesionForceModel::Perko:
-                        force -= adhesionSPerko_eff * adhesionSPerko_eff * 3.6E-2 * eff_radius[index] * normal[index];
+                        force -= adhesionSPerko_eff * eff_radius[index] * normal[index];
                         break;
                 }
 
@@ -555,7 +555,7 @@ void function_CalcContactForces(
             force -= adhesionMultDMT_eff * Sqrt(eff_radius[index]) * normal[index];
             break;
         case ChSystemSMC::AdhesionForceModel::Perko:
-            force -= adhesionSPerko_eff * adhesionSPerko_eff * 3.6E-2 * eff_radius[index] * normal[index];
+            force -= adhesionSPerko_eff * eff_radius[index] * normal[index];
             break;
     }
 
