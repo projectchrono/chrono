@@ -398,17 +398,25 @@ windows:vs2019:deploy:
   extends: .windows
   script:
     - rm -r build
-    - conda install --yes conda
-    - conda install --yes conda-build anaconda-client
-    - conda install --yes -c conda-forge -c dlr-sc -c pythonocc -c oce -c 3dhubs oce=0.18
-    - conda install --yes -c intel mkl-devel=2018.0.3
-    - conda build ./contrib/packaging-python --python=3.6 --no-remove-work-dir --dirty
-    - anaconda --token $env:ANACONDA_TOKEN upload C:\Users\buildbot\Miniconda3\envs\base\win-64\pychrono-4.0.0*.bz2
+    - mkdir ./logs
+    - $Env:LOG_DIR=Join-Path -Path $pwd -ChildPath "\logs"
+    # Uncomment the following lines to get a fresh install of Miniconda
+    #- $Env:CONDA_INSTALL_LOCN= "C:\Users\builder\Miniconda3"
+    #- Invoke-WebRequest -Uri https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe  -OutFile ./Miniconda3-latest-Windows-x86_64.exe >temp.txt
+    #- Start-Process -Wait  "Miniconda3-latest-Windows-x86_64.exe" -ArgumentList "/InstallationType=JustMe /RegisterPython=0 /S /D=$env:CONDA_INSTALL_LOCN"
+    # Initializing the PowerShell would require to restart it. Since it isn't possible, we use the cmd instead.
+    - Start-Process "cmd.exe" "/c .\contrib\packaging-python\gitlab\build_pychrono.bat >outputfile.txt" -Wait
+    - get-content outputfile.txt
+    - Copy-Item "./outputfile.txt" -Destination "./logs/"
+
   environment:
     name: pychrono-win64
     url: https://anaconda.org/projectchrono/pychrono
   when: manual
-
+  artifacts:
+    expire_in: 60m
+    paths:
+      - ./logs/
 
 windows:vs2017:build:
   stage: build
