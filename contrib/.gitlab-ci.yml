@@ -312,6 +312,7 @@ linux:ubuntu1804:deploy:
     - conda install -c conda-forge -c dlr-sc -c pythonocc -c oce -c 3dhubs oce=0.18.2 --yes
     - conda install -c intel mkl-devel --yes
     - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.6
+    - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.8
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.bz2 -l develop --force
   environment:
     name: pychrono-ubuntu1804
