@@ -64,8 +64,7 @@ double ANCF_test(ChSystem& sys, double tip_load, int nelements) {
     sys.Clear();
     sys.SetChTime(0);
 
-    // Create a mesh, that is a container for groups
-    // of elements and their referenced nodes.
+    // Create a mesh, that is a container for groups of elements and their referenced nodes.
     // Remember to add it to the system.
     auto mesh = chrono_types::make_shared<ChMesh>();
     mesh->SetAutomaticGravity(false);
@@ -73,7 +72,7 @@ double ANCF_test(ChSystem& sys, double tip_load, int nelements) {
 
     auto material = chrono_types::make_shared<ChMaterialBeamANCF>(rho, E_mod, nu_rat, E_mod * nu_rat, k1, k2);
 
-    ChBuilderBeamANCFFullyPar builder;
+    ChBuilderBeamANCF builder;
     builder.BuildBeam(mesh, material, nelements, ChVector<>(0, 0, 0), ChVector<>(beamL, 0, 0), beam_wy, beam_wz, VECT_Y,
                       VECT_Z);
     builder.GetLastBeamNodes().front()->SetFixed(true);

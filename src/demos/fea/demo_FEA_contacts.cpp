@@ -228,7 +228,7 @@ int main(int argc, char* argv[]) {
     msection_cable2->SetYoungModulus(0.01e9);
     msection_cable2->SetBeamRaleyghDamping(0.05);
 
-    ChBuilderBeamANCF builder;
+    ChBuilderCableANCF builder;
 
     builder.BuildBeam(my_mesh_beams,             // the mesh where to put the created nodes and elements
                       msection_cable2,           // the ChBeamSectionCable to use for the ChElementCableANCF elements

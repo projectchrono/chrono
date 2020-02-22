@@ -276,7 +276,7 @@ void Create_MB_FE(ChSystemSMC& mphysicalSystem,
         msection_cable->SetDensity(rho);
         msection_cable->SetBeamRaleyghDamping(0.02);
 
-        ChBuilderBeamANCF builder;
+        ChBuilderCableANCF builder;
         double loc_x = -0.3;  //+bxDim / 8 + 3 * initSpace0;
         builder.BuildBeam_FSI(
             my_mesh,         // the mesh where to put the created nodes and elements

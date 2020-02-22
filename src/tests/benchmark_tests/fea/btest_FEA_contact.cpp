@@ -207,7 +207,7 @@ void FEAcontactTest::CreateCables(std::shared_ptr<ChMaterialSurfaceSMC> cmat) {
     section->SetYoungModulus(0.01e9);
     section->SetBeamRaleyghDamping(0.05);
 
-    ChBuilderBeamANCF builder;
+    ChBuilderCableANCF builder;
 
     builder.BuildBeam(mesh, section, 10, ChVector<>(0, 0.1, -0.5), ChVector<>(0.5, 0.5, -0.5));
 

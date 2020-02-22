@@ -148,7 +148,7 @@ int main(int argc, char* argv[]) {
     msection2->SetBeamRaleyghDamping(0.000);
     msection2->SetAsCircularSection(hbeam_d);
 
-    ChBuilderBeam builder;
+    ChBuilderBeamEuler builder;
     builder.BuildBeam(my_mesh,               // the mesh where to put the created nodes and elements
                       msection2,             // the ChBeamSectionAdvanced to use for the ChElementBeamEuler elements
                       3,                     // the number of ChElementBeamEuler to create

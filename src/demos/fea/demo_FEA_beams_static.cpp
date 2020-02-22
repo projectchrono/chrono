@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
             msection->SetAsRectangularSection(beam_wy, beam_wz);
 
             // This helps creating sequences of nodes and ChElementBeamEuler elements:
-            ChBuilderBeam builder;
+            ChBuilderBeamEuler builder;
 
             builder.BuildBeam(
                 my_mesh,   // the mesh where to put the created nodes and elements

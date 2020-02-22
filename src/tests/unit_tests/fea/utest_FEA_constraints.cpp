@@ -62,7 +62,7 @@ Model::Model() {
     auto mtruss = chrono_types::make_shared<ChBody>();
     mtruss->SetBodyFixed(true);
 
-    ChBuilderBeamANCF builder;
+    ChBuilderCableANCF builder;
 
     // Now, simply use BuildBeam to create a beam from a point to another:
     builder.BuildBeam(my_mesh,               // the mesh where to put the created nodes and elements
