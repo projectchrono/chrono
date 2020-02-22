@@ -67,7 +67,7 @@ linux:arch-gcc:test:
 
 linux:arch-gcc:deploy:
   stage: deploy
-  needs: ["linux:arch-gcc:test"]
+  needs: []
   extends: .archlinux
   script:
 # Clean up the docker image because it is very large and pychrono won't fit
@@ -292,7 +292,7 @@ linux:ubuntu1804:test:
 
 linux:ubuntu1804:deploy:
   stage: deploy
-  needs: ["linux:ubuntu1804:test"]
+  needs: []
   extends: .ubuntu
   script:
     - echo "Build PyChrono and deploy via Anaconda..."
@@ -395,7 +395,7 @@ windows:vs2019:test:
 
 windows:vs2019:deploy:
   stage: deploy
-  needs: ["windows:vs2019:test"]
+  needs: []
   extends: .windows
   script:
     - rm -r build
