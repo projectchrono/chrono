@@ -58,10 +58,12 @@ class SlidingGravityTest : public ::testing::TestWithParam<ChSystemSMC::ContactF
 
         // Create a parallel SMC system and set the system parameters
         sys = new ChSystemParallelSMC();
-        time_step = 1.0E-5;
+        time_step = 2.0E-5;
         gravity = -9.81;
         SetSimParameters(sys, ChVector<>(0, gravity, 0), fmodel);
 
+        CHOMPfunctions::SetNumThreads(2);
+        
         // Add the wall to the system
         double wmass = 10.0;
         ChVector<> wsize(8, 1, 3);

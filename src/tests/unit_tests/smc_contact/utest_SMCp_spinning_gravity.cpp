@@ -56,9 +56,11 @@ class SpinningGravityTest : public ::testing::TestWithParam<ChSystemSMC::Contact
 
         // Create a parallel SMC system and set the system parameters
         sys = new ChSystemParallelSMC();
-        time_step = 1.0E-5;
+        time_step = 3.0E-5;
         SetSimParameters(sys, ChVector<>(0, -9.81, 0), fmodel);
 
+        CHOMPfunctions::SetNumThreads(2);
+        
         // Add the wall to the system
         int id = -1;
         double wmass = 10.0;

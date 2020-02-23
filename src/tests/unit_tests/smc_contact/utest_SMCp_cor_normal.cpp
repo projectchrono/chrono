@@ -53,9 +53,11 @@ class CorNormalTest : public ::testing::TestWithParam<std::tuple<ChSystemSMC::Co
 
         // Create a parallel SMC system and set the system parameters
         sys = new ChSystemParallelSMC();
-        time_step = 1.0E-5;
+        time_step = 3.0E-5;
         SetSimParameters(sys, ChVector<>(0, 0, 0), fmodel);
 
+        CHOMPfunctions::SetNumThreads(2);
+        
         // Add the sphere to the system
         double srad = 0.5;
         double smass = 1.0;

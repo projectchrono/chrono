@@ -20,7 +20,7 @@ SET(TESTS
     utest_SMCp_rolling_gravity
     utest_SMCp_sliding_gravity
     utest_SMCp_spinning_gravity
-    #utest_SMCp_stacking
+    utest_SMCp_stacking
 )
 
 MESSAGE(STATUS "Unit test programs for SMC contact in PARALLEL module...")
