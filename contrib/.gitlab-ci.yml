@@ -312,6 +312,7 @@ linux:ubuntu1804:deploy:
     - conda install -c conda-forge -c dlr-sc -c pythonocc -c oce -c 3dhubs oce=0.18.2 --yes
     - conda install -c intel mkl-devel --yes
     - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.6
+    - conda build purge
     - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.8
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.bz2 -l develop --force
   environment:
@@ -399,6 +400,9 @@ windows:vs2019:deploy:
   extends: .windows
   script:
     - rm -r build
+    # get libiomp5md.lib
+    - Invoke-WebRequest -Uri http://www.projectchrono.org/assets/downloads/libiomp5md.lib  -OutFile ./libiomp5md.lib  >temp.txt
+    - Copy-Item "./libiomp5md.lib" -Destination Join-Path -Path $Env:CONDA_INSTALL_LOCN -ChildPath "\Library\lib"
     - mkdir ./logs
     - $Env:LOG_DIR=Join-Path -Path $pwd -ChildPath "\logs"
     # Uncomment the following lines to get a fresh install of Miniconda
