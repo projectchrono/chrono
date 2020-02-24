@@ -30,8 +30,8 @@ namespace hmmwv {
 // Static variables
 // -----------------------------------------------------------------------------
 
-const std::string HMMWV_TMeasyTire::m_meshName = "hmmwv_tire_POV_geom";
-const std::string HMMWV_TMeasyTire::m_meshFile = "hmmwv/hmmwv_tire.obj";
+const std::string HMMWV_TMeasyTire::m_meshFile_left = "hmmwv/hmmwv_tire_left.obj";
+const std::string HMMWV_TMeasyTire::m_meshFile_right = "hmmwv/hmmwv_tire_right.obj";
 
 const double HMMWV_TMeasyTire::m_mass = 37.6;
 const ChVector<> HMMWV_TMeasyTire::m_inertia(3.84, 6.69, 3.84);
@@ -76,13 +76,8 @@ void HMMWV_TMeasyTire::GenerateCharacteristicPlots(const std::string& dirname) {
 // -----------------------------------------------------------------------------
 void HMMWV_TMeasyTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
-        trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
-        m_trimesh_shape = std::make_shared<ChTriangleMeshShape>();
-        m_trimesh_shape->SetMesh(trimesh);
-        m_trimesh_shape->SetName(m_meshName);
-        m_trimesh_shape->SetStatic(true);
-        m_wheel->AddAsset(m_trimesh_shape);
+        m_trimesh_shape = AddVisualizationMesh(vehicle::GetDataFile(m_meshFile_left),    // left side
+                                               vehicle::GetDataFile(m_meshFile_right));  // right side
     } else {
         ChTMeasyTire::AddVisualizationAssets(vis);
     }
@@ -90,13 +85,7 @@ void HMMWV_TMeasyTire::AddVisualizationAssets(VisualizationType vis) {
 
 void HMMWV_TMeasyTire::RemoveVisualizationAssets() {
     ChTMeasyTire::RemoveVisualizationAssets();
-
-    // Make sure we only remove the assets added by WVP_FialaTire::AddVisualizationAssets.
-    // This is important for the ChTire object because a wheel may add its own assets
-    // to the same body (the spindle/wheel).
-    auto it = std::find(m_wheel->GetAssets().begin(), m_wheel->GetAssets().end(), m_trimesh_shape);
-    if (it != m_wheel->GetAssets().end())
-        m_wheel->GetAssets().erase(it);
+    RemoveVisualizationMesh(m_trimesh_shape);
 }
 
 }  // end namespace hmmwv

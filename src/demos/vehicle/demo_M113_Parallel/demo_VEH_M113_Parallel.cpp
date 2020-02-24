@@ -155,18 +155,18 @@ int out_fps = 60;
 double CreateParticles(ChSystem* system) {
     // Create a material
 #ifdef USE_SMC
-    auto mat_g = std::make_shared<ChMaterialSurfaceSMC>();
+    auto mat_g = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     mat_g->SetYoungModulus(1e8f);
     mat_g->SetFriction(mu_g);
     mat_g->SetRestitution(0.4f);
 #else
-    auto mat_g = std::make_shared<ChMaterialSurfaceNSC>();
+    auto mat_g = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     mat_g->SetFriction(mu_g);
 #endif
 
     // Create a particle generator and a mixture entirely made out of spheres
     utils::Generator gen(system);
-    std::shared_ptr<utils::MixtureIngredient> m1 = gen.AddMixtureIngredient(utils::SPHERE, 1.0);
+    std::shared_ptr<utils::MixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
     m1->setDefaultMaterial(mat_g);
     m1->setDefaultDensity(rho_g);
     m1->setDefaultSize(r_g);
@@ -180,7 +180,7 @@ double CreateParticles(ChSystem* system) {
     ChVector<> center(0, 0, 2 * r);
 
     while (gen.getTotalNumBodies() < num_particles) {
-        gen.createObjectsBox(utils::POISSON_DISK, 2 * r, center, hdims);
+        gen.createObjectsBox(utils::SamplingType::POISSON_DISK, 2 * r, center, hdims);
         center.z() += 2 * r;
     }
 
@@ -264,14 +264,7 @@ int main(int argc, char* argv[]) {
 
 #ifdef USE_SEQ
 
-    ////system->SetSolverType(ChSolver::Type::MINRES);
-    system->SetMaxItersSolverSpeed(50);
-    system->SetMaxItersSolverStab(50);
-    ////system->SetTol(0);
-    ////system->SetMaxPenetrationRecoverySpeed(1.5);
-    ////system->SetMinBounceSpeed(2.0);
-    ////system->SetSolverOverrelaxationParam(0.8);
-    ////system->SetSolverSharpnessParam(1.0);
+    system->SetSolverMaxIterations(50);
 
 #else
 
@@ -279,7 +272,6 @@ int main(int argc, char* argv[]) {
     int max_threads = CHOMPfunctions::GetNumProcs();
     if (threads > max_threads)
         threads = max_threads;
-    system->SetParallelThreadNumber(threads);
     CHOMPfunctions::SetNumThreads(threads);
     std::cout << "Using " << threads << " threads" << std::endl;
 
@@ -313,12 +305,12 @@ int main(int argc, char* argv[]) {
 
     // Contact material
 #ifdef USE_SMC
-    auto mat_g = std::make_shared<ChMaterialSurfaceSMC>();
+    auto mat_g = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     mat_g->SetYoungModulus(1e8f);
     mat_g->SetFriction(mu_g);
     mat_g->SetRestitution(0.4f);
 #else
-    auto mat_g = std::make_shared<ChMaterialSurfaceNSC>();
+    auto mat_g = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     mat_g->SetFriction(mu_g);
 #endif
 
@@ -385,8 +377,8 @@ int main(int argc, char* argv[]) {
     ////vehicle.SetCollide(TrackCollide::ALL & (~TrackCollide::SPROCKET_LEFT) & (~TrackCollide::SPROCKET_RIGHT));
 
     // Create the powertrain system
-    M113_SimplePowertrain powertrain("Powertrain");
-    powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
+    auto powertrain = chrono_types::make_shared<M113_SimplePowertrain>("Powertrain");
+    vehicle.InitializePowertrain(powertrain);
 
     // Create the driver system
     ChDataDriver driver(vehicle, vehicle::GetDataFile("M113/driver/Acceleration.txt"));
@@ -423,11 +415,7 @@ int main(int argc, char* argv[]) {
 
     while (time < time_end) {
         // Collect output data from modules
-        double throttle_input = driver.GetThrottle();
-        double steering_input = driver.GetSteering();
-        double braking_input = driver.GetBraking();
-        double powertrain_torque = powertrain.GetOutputTorque();
-        double driveshaft_speed = vehicle.GetDriveshaftSpeed();
+        ChDriver::Inputs driver_inputs = driver.GetInputs();
         vehicle.GetTrackShoeStates(LEFT, shoe_states_left);
         vehicle.GetTrackShoeStates(RIGHT, shoe_states_right);
 
@@ -438,9 +426,9 @@ int main(int argc, char* argv[]) {
             cout << "     Sim frame:      " << sim_frame << endl;
             cout << "     Time:           " << time << endl;
             cout << "     Avg. contacts:  " << num_contacts / out_steps << endl;
-            cout << "     Throttle input: " << throttle_input << endl;
-            cout << "     Braking input:  " << braking_input << endl;
-            cout << "     Steering input: " << steering_input << endl;
+            cout << "     Throttle input: " << driver_inputs.m_throttle << endl;
+            cout << "     Braking input:  " << driver_inputs.m_braking << endl;
+            cout << "     Steering input: " << driver_inputs.m_steering << endl;
             cout << "     Execution time: " << exec_time << endl;
 
             if (povray_output) {
@@ -462,12 +450,10 @@ int main(int argc, char* argv[]) {
 
         // Update modules (process inputs from other modules)
         driver.Synchronize(time);
-        powertrain.Synchronize(time, throttle_input, driveshaft_speed);
-        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, shoe_forces_left, shoe_forces_right);
+        vehicle.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(time_step);
-        powertrain.Advance(time_step);
         vehicle.Advance(time_step);
         system->DoStepDynamics(time_step);
 

@@ -147,15 +147,15 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     connection_lengths[1] = m_shoes[0]->GetWebLength();
 
     // Create ANCF materials (shared by all track shoes)
-    auto rubber_mat = std::make_shared<fea::ChMaterialShellANCF>(m_rubber_rho, m_rubber_E, m_rubber_nu, m_rubber_G);
-    auto steel_mat = std::make_shared<fea::ChMaterialShellANCF>(m_steel_rho, m_steel_E, m_steel_nu, m_steel_G);
+    auto rubber_mat = chrono_types::make_shared<fea::ChMaterialShellANCF>(m_rubber_rho, m_rubber_E, m_rubber_nu, m_rubber_G);
+    auto steel_mat = chrono_types::make_shared<fea::ChMaterialShellANCF>(m_steel_rho, m_steel_E, m_steel_nu, m_steel_G);
 
     // Calculate assembly points
     std::vector<ChVector2<>> shoe_points;
     bool ccw = FindAssemblyPoints(chassis, num_shoes, connection_lengths, shoe_points);
 
     // Create and add the mesh container for the track shoe webs to the system
-    m_track_mesh = std::make_shared<ChMesh>();
+    m_track_mesh = chrono_types::make_shared<ChMesh>();
     chassis->GetSystem()->Add(m_track_mesh);
 
     // Now create all of the track shoes at the located points
@@ -185,7 +185,7 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     ////GetLog() << "Track assembly done.  Number of track shoes: " << num_shoes << "\n";
 
     // Create the contact material for the web mesh
-    auto contact_mat = std::make_shared<ChMaterialSurfaceSMC>();
+    auto contact_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     contact_mat->SetFriction(m_friction);
     contact_mat->SetRestitution(m_restitution);
     contact_mat->SetYoungModulus(m_young_modulus);
@@ -200,7 +200,7 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
 
     switch (m_contact_type) {
         case NODE_CLOUD: {
-            auto contact_surf = std::make_shared<ChContactSurfaceNodeCloud>();
+            auto contact_surf = chrono_types::make_shared<ChContactSurfaceNodeCloud>();
             m_track_mesh->AddContactSurface(contact_surf);
             contact_surf->AddAllNodes(thickness / 2);
             contact_surf->SetMaterialSurface(contact_mat);
@@ -208,7 +208,7 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
             break;
         }
         case TRIANGLE_MESH: {
-            auto contact_surf = std::make_shared<ChContactSurfaceMesh>();
+            auto contact_surf = chrono_types::make_shared<ChContactSurfaceMesh>();
             m_track_mesh->AddContactSurface(contact_surf);
             contact_surf->AddFacesFromBoundary(thickness / 2, false);
             contact_surf->SetMaterialSurface(contact_mat);
@@ -228,6 +228,10 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     return ccw;
 }
 
+void ChTrackAssemblyBandANCF::RemoveTrackShoes() {
+    m_shoes.clear();
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
@@ -235,20 +239,20 @@ void ChTrackAssemblyBandANCF::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
 
-    auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(m_track_mesh.get()));
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualizationFEAmesh>(*(m_track_mesh.get()));
     mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(true);
     m_track_mesh->AddAsset(mvisualizemesh);
 
-    auto mvisualizemeshref = std::make_shared<ChVisualizationFEAmesh>(*(m_track_mesh.get()));
+    auto mvisualizemeshref = chrono_types::make_shared<ChVisualizationFEAmesh>(*(m_track_mesh.get()));
     mvisualizemeshref->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
     mvisualizemeshref->SetWireframe(true);
     mvisualizemeshref->SetDrawInUndeformedReference(true);
     m_track_mesh->AddAsset(mvisualizemeshref);
 
-    auto mvisualizemeshC = std::make_shared<ChVisualizationFEAmesh>(*(m_track_mesh.get()));
+    auto mvisualizemeshC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(m_track_mesh.get()));
     mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
     mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     mvisualizemeshC->SetSymbolsThickness(0.004);

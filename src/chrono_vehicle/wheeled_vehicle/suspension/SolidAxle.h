@@ -68,8 +68,8 @@ class CH_VEHICLE_API SolidAxle : public ChSolidAxle {
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
     virtual double getSpringRestLength() const override { return m_springRestLength; }
-    virtual ChLinkSpringCB::ForceFunctor* getSpringForceFunctor() const override { return m_springForceCB; }
-    virtual ChLinkSpringCB::ForceFunctor* getShockForceFunctor() const override { return m_shockForceCB; }
+    virtual ChLinkTSDA::ForceFunctor* getSpringForceFunctor() const override { return m_springForceCB; }
+    virtual ChLinkTSDA::ForceFunctor* getShockForceFunctor() const override { return m_shockForceCB; }
 
     virtual const ChVector<> getAxleTubeCOM() const override { return m_axleTubeCOM; }
 
@@ -78,8 +78,8 @@ class CH_VEHICLE_API SolidAxle : public ChSolidAxle {
 
     virtual void Create(const rapidjson::Document& d) override;
 
-    ChLinkSpringCB::ForceFunctor* m_springForceCB;
-    ChLinkSpringCB::ForceFunctor* m_shockForceCB;
+    ChLinkTSDA::ForceFunctor* m_springForceCB;
+    ChLinkTSDA::ForceFunctor* m_shockForceCB;
 
     ChVector<> m_points[NUM_POINTS];
 

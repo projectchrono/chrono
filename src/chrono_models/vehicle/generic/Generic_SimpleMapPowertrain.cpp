@@ -44,7 +44,9 @@ Generic_SimpleMapPowertrain::Generic_SimpleMapPowertrain(const std::string& name
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void Generic_SimpleMapPowertrain::Initialize(std::shared_ptr<ChBody> chassis, std::shared_ptr<ChShaft> driveshaft) {
+void Generic_SimpleMapPowertrain::Initialize(std::shared_ptr<ChChassis> chassis,
+                                             std::shared_ptr<ChDriveline> driveline) {
+    ChPowertrain::Initialize(chassis, driveline);
     SetSelectedGear(1);
 }
 
@@ -77,7 +79,9 @@ void Generic_SimpleMapPowertrain::SetDriveMode(ChPowertrain::DriveMode mode) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void Generic_SimpleMapPowertrain::Synchronize(double time, double throttle, double shaft_speed) {
+void Generic_SimpleMapPowertrain::Synchronize(double time, double throttle) {
+    double shaft_speed = m_driveline->GetDriveshaftSpeed();
+
     // The motor speed is the shaft speed multiplied by gear ratio inversed: (limited to 8000rpm)
     m_motorSpeed = shaft_speed / m_current_gear_ratio;
     m_motorSpeed = m_motorSpeed > (8000. * CH_C_PI / 30.) ? (8000. * CH_C_PI / 30.) : m_motorSpeed;

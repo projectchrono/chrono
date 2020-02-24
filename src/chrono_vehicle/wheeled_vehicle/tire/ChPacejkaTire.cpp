@@ -16,12 +16,13 @@
 //
 // =============================================================================
 
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
-#include <algorithm>
 
-#include "chrono/physics/ChGlobal.h"
 #include "chrono/core/ChTimer.h"
+#include "chrono/core/ChGlobal.h"
+#include "chrono/core/ChLog.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChPacejkaTire.h"
 
@@ -59,7 +60,8 @@ ChPacejkaTire::ChPacejkaTire(const std::string& name, const std::string& pacTire
       m_params_defined(false),
       m_use_transient_slip(true),
       m_use_Fz_override(false),
-      m_driven(false) {}
+      m_driven(false),
+      m_mu0(0.8) {}
 
 ChPacejkaTire::ChPacejkaTire(const std::string& name,
                              const std::string& pacTire_paramFile,
@@ -71,7 +73,8 @@ ChPacejkaTire::ChPacejkaTire(const std::string& name,
       m_use_transient_slip(use_transient_slip),
       m_use_Fz_override(Fz_override > 0),
       m_Fz_override(Fz_override),
-      m_driven(false) {}
+      m_driven(false),
+      m_mu0(0.8) {}
 
 // -----------------------------------------------------------------------------
 // Destructor
@@ -95,8 +98,8 @@ ChPacejkaTire::~ChPacejkaTire() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // NOTE: no initial conditions passed in at this point, e.g. m_tireState is empty
-void ChPacejkaTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
-    ChTire::Initialize(wheel, side);
+void ChPacejkaTire::Initialize(std::shared_ptr<ChWheel> wheel) {
+    ChTire::Initialize(wheel);
 
     // Create private structures
     m_slip = new slips;
@@ -136,7 +139,7 @@ void ChPacejkaTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) 
     }
 
     // LEFT or RIGHT side of the vehicle?
-    if (m_side == LEFT) {
+    if (m_wheel->GetSide() == LEFT) {
         m_sameSide = (!m_params->model.tyreside.compare("LEFT")) ? 1 : -1;
     } else {
         // on right
@@ -153,6 +156,10 @@ void ChPacejkaTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) 
     double qV1 = 1.5;
     double rho = (m_R0 - m_R_l) * exp(-qV1 * m_R0 * pow(1.05 * m_params->model.longvl / m_params->model.longvl, 2));
     m_R_eff = m_R0 - rho;
+
+    // Build the lookup table for penetration depth as function of intersection area
+    // (used only with the ChTire::ENVELOPE method for terrain-tire collision detection)
+    ConstructAreaDepthTable(m_R0, m_areaDep);
 
     m_Fz = 0;
     m_dF_z = 0;
@@ -179,30 +186,31 @@ void ChPacejkaTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
 
-    m_cyl_shape = std::make_shared<ChCylinderShape>();
+    m_cyl_shape = chrono_types::make_shared<ChCylinderShape>();
     m_cyl_shape->GetCylinderGeometry().rad = GetRadius();
-    m_cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, GetVisualizationWidth() / 2, 0);
-    m_cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, -GetVisualizationWidth() / 2, 0);
-    m_wheel->AddAsset(m_cyl_shape);
+    m_cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, GetOffset() + GetVisualizationWidth() / 2, 0);
+    m_cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, GetOffset() - GetVisualizationWidth() / 2, 0);
+    m_wheel->GetSpindle()->AddAsset(m_cyl_shape);
 
-    m_texture = std::make_shared<ChTexture>();
+    m_texture = chrono_types::make_shared<ChTexture>();
     m_texture->SetTextureFilename(GetChronoDataFile("greenwhite.png"));
-    m_wheel->AddAsset(m_texture);
+    m_wheel->GetSpindle()->AddAsset(m_texture);
 }
 
 void ChPacejkaTire::RemoveVisualizationAssets() {
     // Make sure we only remove the assets added by ChPacejkaTire::AddVisualizationAssets.
     // This is important for the ChTire object because a wheel may add its own assets
     // to the same body (the spindle/wheel).
+    auto& assets = m_wheel->GetSpindle()->GetAssets();
     {
-        auto it = std::find(m_wheel->GetAssets().begin(), m_wheel->GetAssets().end(), m_cyl_shape);
-        if (it != m_wheel->GetAssets().end())
-            m_wheel->GetAssets().erase(it);
+        auto it = std::find(assets.begin(), assets.end(), m_cyl_shape);
+        if (it != assets.end())
+            assets.erase(it);
     }
     {
-        auto it = std::find(m_wheel->GetAssets().begin(), m_wheel->GetAssets().end(), m_texture);
-        if (it != m_wheel->GetAssets().end())
-            m_wheel->GetAssets().erase(it);
+        auto it = std::find(assets.begin(), assets.end(), m_texture);
+        if (it != assets.end())
+            assets.erase(it);
     }
 }
 
@@ -253,7 +261,8 @@ TerrainForce ChPacejkaTire::GetTireForce_combinedSlip(const bool local) const {
 // quantities calculated here will be kept constant until the next call to the
 // Synchronize() function.
 // -----------------------------------------------------------------------------
-void ChPacejkaTire::Synchronize(double time, const WheelState& state, const ChTerrain& terrain) {
+void ChPacejkaTire::Synchronize(double time,
+                                const ChTerrain& terrain) {
     //// TODO: This must be removed from here.  A tire with unspecified or
     ////       incorrect parameters should have been invalidate at initialization.
     // Check that input tire model parameters are defined
@@ -262,11 +271,10 @@ void ChPacejkaTire::Synchronize(double time, const WheelState& state, const ChTe
         return;
     }
 
-    // Invoke the base class function.
-    ChTire::Synchronize(time, state, terrain);
+    m_tireState = m_wheel->GetState();
+    CalculateKinematics(time, m_tireState, terrain);
 
-    // Cache the wheel state and update the tire coordinate system.
-    m_tireState = state;
+    // Update the tire coordinate system.
     m_simTime = time;
     update_W_frame(terrain);
 
@@ -281,16 +289,6 @@ void ChPacejkaTire::Synchronize(double time, const WheelState& state, const ChTe
     // keep the last calculated reaction force or moment, to use later
     m_FM_pure_last = m_FM_pure;
     m_FM_combined_last = m_FM_combined;
-
-    // Initialize the output tire forces to ensure that we do not report any tire
-    // forces if the wheel does not contact the terrain.
-    m_FM_pure.point = ChVector<>();
-    m_FM_pure.force = ChVector<>();
-    m_FM_pure.moment = ChVector<>();
-
-    m_FM_combined.point = ChVector<>();
-    m_FM_combined.force = ChVector<>();
-    m_FM_combined.moment = ChVector<>();
 }
 
 // -----------------------------------------------------------------------------
@@ -299,6 +297,16 @@ void ChPacejkaTire::Synchronize(double time, const WheelState& state, const ChTe
 // as needed.
 // -----------------------------------------------------------------------------
 void ChPacejkaTire::Advance(double step) {
+    // Initialize the output tire forces to ensure that we do not report any tire
+    // forces if the tire does not contact the terrain.
+    m_FM_pure.point = ChVector<>();
+    m_FM_pure.force = ChVector<>();
+    m_FM_pure.moment = ChVector<>();
+
+    m_FM_combined.point = ChVector<>();
+    m_FM_combined.force = ChVector<>();
+    m_FM_combined.moment = ChVector<>();
+
     // increment the counter
     ChTimer<double> advance_time;
     m_num_Advance_calls++;
@@ -427,9 +435,25 @@ void ChPacejkaTire::advance_tire(double step) {
 void ChPacejkaTire::update_W_frame(const ChTerrain& terrain) {
     // Check contact with terrain, using a disc of radius R0.
     ChCoordsys<> contact_frame;
+
+    m_mu = terrain.GetCoefficientFriction(m_tireState.pos.x(), m_tireState.pos.y());
+
     double depth;
-    m_in_contact =
-        disc_terrain_contact(terrain, m_tireState.pos, m_tireState.rot.GetYaxis(), m_R0, contact_frame, depth);
+    double dum_cam;
+    switch (m_collision_type) {
+        case CollisionType::SINGLE_POINT:
+            m_in_contact =
+                DiscTerrainCollision(terrain, m_tireState.pos, m_tireState.rot.GetYaxis(), m_R0, contact_frame, depth);
+            break;
+        case CollisionType::FOUR_POINTS:
+            m_in_contact = DiscTerrainCollision4pt(terrain, m_tireState.pos, m_tireState.rot.GetYaxis(), m_R0,
+                                                   m_params->dimension.width, contact_frame, depth, dum_cam);
+            break;
+        case CollisionType::ENVELOPE:
+            m_in_contact = DiscTerrainCollisionEnvelope(terrain, m_tireState.pos, m_tireState.rot.GetYaxis(), m_R0,
+                                                        m_areaDep, contact_frame, depth);
+            break;
+    }
 
     // set the depth if there is contact with terrain
     m_depth = (m_in_contact) ? depth : 0;
@@ -754,15 +778,11 @@ void ChPacejkaTire::evaluate_reactions(bool write_violations, bool enforce_thres
     bool output_slip_to_console = false;
 
     if (std::abs(m_FM_combined.force.x()) > Fx_thresh) {
-        // GetLog() << "\n ***  !!!  ***  Fx exceeded threshold, tire " << m_name << ", = " << m_FM_combined.force.x() <<
-        // "\n";
         output_slip_to_console = true;
         if (enforce_threshold)
             m_FM_combined.force.x() = m_FM_combined.force.x() * (Fx_thresh / std::abs(m_FM_combined.force.x()));
     }
     if (std::abs(m_FM_combined.force.y()) > Fy_thresh) {
-        // GetLog() << "\n ***  !!!  ***  Fy exceeded threshold, tire " << m_name << ", = " << m_FM_combined.force.y() <<
-        // "\n";
         output_slip_to_console = true;
         if (enforce_threshold)
             m_FM_combined.force.y() = m_FM_combined.force.y() * (Fy_thresh / std::abs(m_FM_combined.force.y()));
@@ -771,21 +791,17 @@ void ChPacejkaTire::evaluate_reactions(bool write_violations, bool enforce_thres
     //  m_Fz, the Fz input to the tire model, must be limited based on the Fz_threshold
     // e.g., should never need t;his
     if (std::abs(m_Fz) > Fz_thresh) {
-        GetLog() << "\n ***  !!!  ***  Fz exceeded threshold:, tire " << m_name << ", = " << m_Fz << "\n";
+        ////GetLog() << "\n ***  !!!  ***  Fz exceeded threshold:, tire " << m_name << ", = " << m_Fz << "\n";
         output_slip_to_console = true;
     }
 
     if (std::abs(m_FM_combined.moment.x()) > Mx_thresh) {
-        // GetLog() << " ***  !!!  ***  Mx exceeded threshold, tire " << m_name << ", = " << m_FM_combined.moment.x() <<
-        // "\n";
         if (enforce_threshold)
             m_FM_combined.moment.x() = m_FM_combined.moment.x() * (Mx_thresh / std::abs(m_FM_combined.moment.x()));
         output_slip_to_console = true;
     }
 
     if (std::abs(m_FM_combined.moment.y()) > My_thresh) {
-        // GetLog() << " ***  !!!  ***  My exceeded threshold, tire " << m_name << ", = " << m_FM_combined.moment.y() <<
-        // "\n";
         if (enforce_threshold)
             m_FM_combined.moment.y() = m_FM_combined.moment.y() * (My_thresh / std::abs(m_FM_combined.moment.y()));
         output_slip_to_console = true;
@@ -795,8 +811,8 @@ void ChPacejkaTire::evaluate_reactions(bool write_violations, bool enforce_thres
         if (enforce_threshold)
             m_FM_combined.moment.z() = m_FM_combined.moment.z() * (Mz_thresh / std::abs(m_FM_combined.moment.z()));
 
-        GetLog() << " ***  !!!  ***  Mz exceeded threshold, tire " << m_name << ", = " << m_FM_combined.moment.z()
-                 << "\n";
+        ////GetLog() << " ***  !!!  ***  Mz exceeded threshold, tire " << m_name << ", = " << m_FM_combined.moment.z()
+        ////         << "\n";
         output_slip_to_console = true;
     }
 
@@ -966,16 +982,19 @@ void ChPacejkaTire::slip_from_uv(bool use_besselink, double bessel_Cx, double be
 // e.g., positive alpha = turn wheel toward vehicle centerline
 // e.g., positive gamma = wheel vertical axis top pointing toward vehicle center
 void ChPacejkaTire::pureSlipReactions() {
-    if (m_in_contact) {
-        // calculate Fx, pure long. slip condition
-        m_FM_pure.force.x() = Fx_pureLong(m_slip->gammaP, m_slip->kappaP);
+    if (!m_in_contact)
+        return;
 
-        // calc. Fy, pure lateral slip.
-        m_FM_pure.force.y() = m_sameSide * Fy_pureLat(m_slip->alphaP, m_slip->gammaP);
+    double mu_scale = m_mu / m_mu0;
 
-        // calc Mz, pure lateral slip. Negative y-input force, and also the output Mz.
-        m_FM_pure.moment.z() = m_sameSide * Mz_pureLat(m_slip->alphaP, m_slip->gammaP, m_sameSide * m_FM_pure.force.y());
-    }
+    // calculate Fx, pure long. slip condition
+    m_FM_pure.force.x() = mu_scale * Fx_pureLong(m_slip->gammaP, m_slip->kappaP);
+
+    // calc. Fy, pure lateral slip.
+    m_FM_pure.force.y() = m_sameSide * mu_scale * Fy_pureLat(m_slip->alphaP, m_slip->gammaP);
+
+    // calc Mz, pure lateral slip. Negative y-input force, and also the output Mz.
+    m_FM_pure.moment.z() = m_sameSide * Mz_pureLat(m_slip->alphaP, m_slip->gammaP, m_sameSide * m_FM_pure.force.y());
 }
 
 // combined slip reactions, if the tire is in contact with the ground
@@ -984,19 +1003,20 @@ void ChPacejkaTire::pureSlipReactions() {
 // e.g., positive alpha = turn wheel toward vehicle centerline
 // e.g., positive gamma = wheel vertical axis top pointing toward vehicle center
 void ChPacejkaTire::combinedSlipReactions() {
-    if (m_in_contact) {
-        // calculate Fx for combined slip
-        m_FM_combined.force.x() = Fx_combined(m_slip->alphaP, m_slip->gammaP, m_slip->kappaP, m_FM_pure.force.x());
+    if (!m_in_contact)
+        return;
 
-        // calc Fy for combined slip.
-        m_FM_combined.force.y() =
-            m_sameSide * Fy_combined(m_slip->alphaP, m_slip->gammaP, m_slip->kappaP, m_sameSide * m_FM_pure.force.y());
+    // calculate Fx for combined slip
+    m_FM_combined.force.x() = Fx_combined(m_slip->alphaP, m_slip->gammaP, m_slip->kappaP, m_FM_pure.force.x());
 
-        // calc Mz for combined slip
-        m_FM_combined.moment.z() =
-            m_sameSide * Mz_combined(m_pureTorque->alpha_r, m_pureTorque->alpha_t, m_slip->gammaP, m_slip->kappaP,
-                                     m_FM_combined.force.x(), m_sameSide * m_FM_combined.force.y());
-    }
+    // calc Fy for combined slip.
+    m_FM_combined.force.y() =
+        m_sameSide * Fy_combined(m_slip->alphaP, m_slip->gammaP, m_slip->kappaP, m_sameSide * m_FM_pure.force.y());
+
+    // calc Mz for combined slip
+    m_FM_combined.moment.z() =
+        m_sameSide * Mz_combined(m_pureTorque->alpha_r, m_pureTorque->alpha_t, m_slip->gammaP, m_slip->kappaP,
+                                 m_FM_combined.force.x(), m_sameSide * m_FM_combined.force.y());
 }
 
 void ChPacejkaTire::relaxationLengths() {
@@ -1162,23 +1182,9 @@ double ChPacejkaTire::Mz_pureLat(double alpha, double gamma, double Fy_pureSlip)
 
     // hold onto coefs
     {
-        pureTorqueCoefs tmp = {S_Hf,
-                               alpha_r,
-                               S_Ht,
-                               alpha_t,
-                               m_slip->cosPrime_alpha,
-                               m_pureLat->K_y,
-                               B_r,
-                               C_r,
-                               D_r,
-                               B_t,
-                               C_t,
-                               D_t0,
-                               D_t,
-                               E_t,
-                               t,
-                               MP_z,
-                               M_zr};
+        pureTorqueCoefs tmp = {
+            S_Hf, alpha_r, S_Ht, alpha_t, m_slip->cosPrime_alpha, m_pureLat->K_y, B_r, C_r, D_r, B_t, C_t, D_t0, D_t,
+            E_t,  t,       MP_z, M_zr};
         *m_pureTorque = tmp;
     }
 
@@ -1242,8 +1248,8 @@ double ChPacejkaTire::Fy_combined(double alpha, double gamma, double kappa, doub
     double F_y = G_yKappa * Fy_pureSlip + S_VyKappa;
 
     {
-        combinedLatCoefs tmp = {
-            S_HyKappa, kappa_S, B_yKappa, C_yKappa, E_yKappa, D_VyKappa, S_VyKappa, G_yKappa0, G_yKappa};
+        combinedLatCoefs tmp = {S_HyKappa, kappa_S,   B_yKappa,  C_yKappa, E_yKappa,
+                                D_VyKappa, S_VyKappa, G_yKappa0, G_yKappa};
         *m_combinedLat = tmp;
     }
 
@@ -1781,13 +1787,14 @@ void ChPacejkaTire::WriteOutData(double time, const std::string& outFilename) {
         m_outFilename = outFilename;
         std::ofstream oFile(outFilename.c_str(), std::ios_base::out);
         if (!oFile.is_open()) {
-            std::cout << " couldn't open file for writing: " << outFilename << " \n\n";
+            GetLog() << " couldn't open file for writing: " << outFilename << " \n\n";
             return;
         } else {
             // write the headers, Fx, Fy are pure forces, Fxc and Fyc are the combined forces
             oFile << "time,kappa,alpha,gamma,kappaP,alphaP,gammaP,Vx,Vy,omega,Fx,Fy,Fz,Mx,My,Mz,Fxc,Fyc,Mzc,Mzx,Mzy,M_"
                      "zrc,contact,m_Fz,m_dF_z,u,valpha,vgamma,vphi,du,dvalpha,dvgamma,dvphi,R0,R_l,Reff,MP_z,M_zr,t,s,"
-                     "FX,FY,FZ,MX,MY,MZ,u_Bessel,u_sigma,v_Bessel,v_sigma" << std::endl;
+                     "FX,FY,FZ,MX,MY,MZ,u_Bessel,u_sigma,v_Bessel,v_sigma"
+                  << std::endl;
             m_Num_WriteOutData++;
             oFile.close();
         }

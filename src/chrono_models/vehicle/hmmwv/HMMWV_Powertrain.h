@@ -44,6 +44,9 @@ class CH_MODELS_API HMMWV_Powertrain : public ChShaftsPowertrain {
     virtual double GetCrankshaftInertia() const override { return m_crankshaft_inertia; }
     virtual double GetIngearShaftInertia() const override { return m_ingear_shaft_inertia; }
 
+    virtual double GetUpshiftRPM() const override { return m_upshift_RPM; }
+    virtual double GetDownshiftRPM() const override { return m_downshift_RPM; }
+
     virtual void SetEngineTorqueMap(std::shared_ptr<ChFunction_Recorder>& map) override;
     virtual void SetEngineLossesMap(std::shared_ptr<ChFunction_Recorder>& map) override;
     virtual void SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunction_Recorder>& map) override;
@@ -54,6 +57,10 @@ class CH_MODELS_API HMMWV_Powertrain : public ChShaftsPowertrain {
     static const double m_motorblock_inertia;
     static const double m_crankshaft_inertia;
     static const double m_ingear_shaft_inertia;
+
+    // Gear shifting characteristics
+    static const double m_upshift_RPM;
+    static const double m_downshift_RPM;
 };
 
 /// @} vehicle_models_hmmwv

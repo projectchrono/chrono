@@ -17,9 +17,8 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/solver/ChSolverMINRES.h"
+#include "chrono/solver/ChIterativeSolverLS.h"
 
-#include "chrono/fea/ChElementSpring.h"
 #include "chrono/fea/ChElementBar.h"
 #include "chrono/fea/ChElementTetra_4.h"
 #include "chrono/fea/ChElementTetra_10.h"
@@ -63,11 +62,11 @@ int main(int argc, char* argv[]) {
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     // Create a material, that must be assigned to each element,
     // and set its parameters
-    auto mmaterial = std::make_shared<ChContinuumThermal>();
+    auto mmaterial = chrono_types::make_shared<ChContinuumThermal>();
     mmaterial->SetMassSpecificHeatCapacity(2);
     mmaterial->SetThermalConductivityK(200);
 
@@ -131,7 +130,7 @@ int main(int argc, char* argv[]) {
 
     // This will paint the colored mesh with temperature scale (E_PLOT_NODE_P is the scalar field of the Poisson
     // problem)
-    auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_P);
     mvisualizemesh->SetColorscaleMinMax(-1, 12);
     mvisualizemesh->SetShrinkElements(false, 0.85);
@@ -139,13 +138,13 @@ int main(int argc, char* argv[]) {
     my_mesh->AddAsset(mvisualizemesh);
 
     // This will paint the wireframe
-    auto mvisualizemeshB = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshB = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshB->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
     mvisualizemeshB->SetWireframe(true);
     my_mesh->AddAsset(mvisualizemeshB);
 
     // This will paint the heat flux as line vectors
-    auto mvisualizemeshC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_ELEM_VECT_DP);
     mvisualizemeshC->SetSymbolsScale(0.003);
@@ -165,18 +164,17 @@ int main(int argc, char* argv[]) {
 
     application.AssetUpdateAll();
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
+    // SIMULATION LOOP
 
-    //
-    // THE SOFT-REAL-TIME CYCLE
-    //
+    // Use MINRES solver to handle stiffness matrices.
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    my_system.SetSolver(solver);
+    solver->SetMaxIterations(150);
+    solver->SetTolerance(1e-6);
+    solver->EnableDiagonalPreconditioner(true);
+    solver->EnableWarmStart(true);  // IMPORTANT for convergence when using EULER_IMPLICIT_LINEARIZED
+    solver->SetVerbose(false);
 
-    // Use MINRES solver because other solvers cannot handle stiffness matrices.
-    // For improved convergence, use warm starting.
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    my_system.SetSolverWarmStarting(false);
-    my_system.SetMaxItersSolverSpeed(160);
     my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
 
     // Note: if you are interested only in a single LINEAR STATIC solution
@@ -198,6 +196,8 @@ int main(int argc, char* argv[]) {
         application.DoStep();
 
         application.EndScene();
+        if (my_system.GetChTime() > 5)
+            break;
     }
 
     // Print some node temperatures..

@@ -29,20 +29,18 @@ ChLinkLinActuator::ChLinkLinActuator()
       mot_rerot(0),
       mot_rerot_dt(0),
       mot_rerot_dtdt(0) {
-    dist_funct = std::make_shared<ChFunction_Const>(0);
-    mot_torque = std::make_shared<ChFunction_Recorder>();
-    mot_rot = std::make_shared<ChFunction_Recorder>();
+    dist_funct = chrono_types::make_shared<ChFunction_Const>(0);
+    mot_torque = chrono_types::make_shared<ChFunction_Recorder>();
+    mot_rot = chrono_types::make_shared<ChFunction_Recorder>();
 
     // Mask: initialize our LinkMaskLF (lock formulation mask)
-    // to X  only. It was a LinkMaskLF because this class inherited from LinkLock.
-    ((ChLinkMaskLF*)mask)->SetLockMask(true, false, false, false, false, false, false);
-
-    ChangedLinkMask();
+    mask.SetLockMask(true, false, false, false, false, false, false);
+    BuildLink();
 
     mot_rerot = mot_rerot_dt = mot_rerot_dtdt = 0;
 }
 
-ChLinkLinActuator::ChLinkLinActuator(const ChLinkLinActuator& other) : ChLinkLock(other) {
+ChLinkLinActuator::ChLinkLinActuator(const ChLinkLinActuator& other) : ChLinkLockLock(other) {
     learn = other.learn;
     learn_torque_rotation = other.learn_torque_rotation;
     offset = other.offset;
@@ -65,29 +63,29 @@ void ChLinkLinActuator::Set_learn(bool mset) {
     }
 
     if (mset)
-        ((ChLinkMaskLF*)mask)->Constr_X().SetMode(CONSTRAINT_FREE);
+        mask.Constr_X().SetMode(CONSTRAINT_FREE);
     else
-        ((ChLinkMaskLF*)mask)->Constr_X().SetMode(CONSTRAINT_LOCK);
+        mask.Constr_X().SetMode(CONSTRAINT_LOCK);
 
-    ChangedLinkMask();
+    BuildLink();
 
     learn = mset;
     if (dist_funct->Get_Type() != ChFunction::FUNCT_RECORDER)
-        dist_funct = std::make_shared<ChFunction_Recorder>();
+        dist_funct = chrono_types::make_shared<ChFunction_Recorder>();
 }
 
 void ChLinkLinActuator::Set_learn_torque_rotaton(bool mset) {
     learn_torque_rotation = mset;
     if (mot_torque->Get_Type() != ChFunction::FUNCT_RECORDER)
-        mot_torque = std::make_shared<ChFunction_Recorder>();
+        mot_torque = chrono_types::make_shared<ChFunction_Recorder>();
 
     if (mot_rot->Get_Type() != ChFunction::FUNCT_RECORDER)
-        mot_rot = std::make_shared<ChFunction_Recorder>();
+        mot_rot = chrono_types::make_shared<ChFunction_Recorder>();
 }
 
 void ChLinkLinActuator::UpdateTime(double mytime) {
     // First, inherit to parent class
-    ChLinkLock::UpdateTime(mytime);
+    ChLinkLockLock::UpdateTime(mytime);
 
     // If LEARN MODE, just record motion
     if (learn) {
@@ -100,7 +98,7 @@ void ChLinkLinActuator::UpdateTime(double mytime) {
         deltaC_dtdt.rot = QNULL;
         */
         if (dist_funct->Get_Type() != ChFunction::FUNCT_RECORDER)
-            dist_funct = std::make_shared<ChFunction_Recorder>();
+            dist_funct = chrono_types::make_shared<ChFunction_Recorder>();
 
         // record point
         double rec_dist = Vlength(Vsub(marker1->GetAbsCoord().pos, marker2->GetAbsCoord().pos));
@@ -113,8 +111,7 @@ void ChLinkLinActuator::UpdateTime(double mytime) {
     // ! Require that the BDF routine of marker won't handle speed and acc.calculus of the moved marker 2!
     marker2->SetMotionType(ChMarker::M_MOTION_EXTERNAL);
 
-    ChMatrix33<> ma;
-    ma.Set_A_quaternion(marker2->GetAbsCoord().rot);
+    ChMatrix33<> ma(marker2->GetAbsCoord().rot);
 
     Vector absdist = Vsub(marker1->GetAbsCoord().pos, marker2->GetAbsCoord().pos);
 
@@ -175,10 +172,10 @@ void ChLinkLinActuator::UpdateTime(double mytime) {
 
     if (learn_torque_rotation) {
         if (mot_torque->Get_Type() != ChFunction::FUNCT_RECORDER)
-            mot_torque = std::make_shared<ChFunction_Recorder>();
+            mot_torque = chrono_types::make_shared<ChFunction_Recorder>();
 
         if (mot_rot->Get_Type() != ChFunction::FUNCT_RECORDER)
-            mot_rot = std::make_shared<ChFunction_Recorder>();
+            mot_rot = chrono_types::make_shared<ChFunction_Recorder>();
 
         std::static_pointer_cast<ChFunction_Recorder>(mot_torque)->AddPoint(mytime, mot_retorque, 1);  // (x,y,w)  x=t
         std::static_pointer_cast<ChFunction_Recorder>(mot_rot)->AddPoint(mytime, mot_rerot, 1);        // (x,y,w)  x=t
@@ -190,7 +187,7 @@ void ChLinkLinActuator::ArchiveOUT(ChArchiveOut& marchive) {
     marchive.VersionWrite<ChLinkLinActuator>();
 
     // serialize parent class
-    ChLinkLock::ArchiveOUT(marchive);
+    ChLinkLockLock::ArchiveOUT(marchive);
 
     // serialize all member data:
     marchive << CHNVP(learn);
@@ -210,7 +207,7 @@ void ChLinkLinActuator::ArchiveIN(ChArchiveIn& marchive) {
     int version = marchive.VersionRead<ChLinkLinActuator>();
 
     // deserialize parent class
-    ChLinkLock::ArchiveIN(marchive);
+    ChLinkLockLock::ArchiveIN(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(learn);

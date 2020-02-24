@@ -75,7 +75,7 @@ void ChIrrAssetConverter::Bind(std::shared_ptr<ChPhysicsItem> mitem) {
 
     if (!irrasset) {
         // add the ChIrrNodeAsset because it was not already there
-        auto mirr_assetpart = std::make_shared<ChIrrNodeAsset>();
+        auto mirr_assetpart = chrono_types::make_shared<ChIrrNodeAsset>();
         mirr_assetpart->Bind(mitem, *minterface);
         mitem->AddAsset(mirr_assetpart);
     }

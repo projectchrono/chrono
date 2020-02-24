@@ -94,6 +94,10 @@ ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   FIND_LIBRARY(IOKIT_LIBRARY IOKit)
   SET(MAC_LIBS ${COCOA_LIBRARY} ${OPENGL_LIBRARY} ${IOKIT_LIBRARY})
   SET(IRRLICHT_LIBRARY "${IRRLICHT_LIBRARY}")
+else()
+  FIND_PATH(IRRLICHT_ROOT NAMES irrlicht.h PATHS "/usr/include/irrlicht" "/usr/local/include/irrlicht")
+  FIND_LIBRARY(IRRLICHT_LIBRARY NAMES Irrlicht PATHS ${IRRLICHT_ROOT}/../../lib)
+  set(IRRLICHT_LIBRARY "${IRRLICHT_LIBRARY}")
 ENDIF()
 
 # Add path to IRRLICHT headers
@@ -124,8 +128,11 @@ ADD_LIBRARY(ChronoEngine_irrlicht SHARED
 
 SET_TARGET_PROPERTIES(ChronoEngine_irrlicht PROPERTIES
   COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
-  LINK_FLAGS "${CH_LINKERFLAG_SHARED}"
-  COMPILE_DEFINITIONS "CH_API_COMPILE_IRRLICHT")
+  LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
+
+target_compile_definitions(ChronoEngine_irrlicht PRIVATE "CH_API_COMPILE_IRRLICHT")
+target_compile_definitions(ChronoEngine_irrlicht PRIVATE "CH_IGNORE_DEPRECATED")
+target_compile_definitions(ChronoEngine_irrlicht PRIVATE "IGNORE_DEPRECATED_WARNING")
 
 TARGET_LINK_LIBRARIES(ChronoEngine_irrlicht
   ChronoEngine

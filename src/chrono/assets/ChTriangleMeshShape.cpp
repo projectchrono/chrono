@@ -20,7 +20,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChTriangleMeshShape)
 
 ChTriangleMeshShape::ChTriangleMeshShape() : name(""), scale(ChVector<>(1)), wireframe(false), backface_cull(false) {
-    trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+    trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
 };
 
 void ChTriangleMeshShape::ArchiveOUT(ChArchiveOut& marchive) {

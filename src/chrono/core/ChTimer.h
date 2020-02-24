@@ -54,19 +54,18 @@ class ChTimer {
     LARGE_INTEGER m_start;
     LARGE_INTEGER m_end;
     LARGE_INTEGER m_freq;
-    bool m_first;
     seconds_type total;
 
   public:
-    ChTimer() : m_first(true), total(0) {}
+    ChTimer() : total(0) {
+        QueryPerformanceFrequency(&m_freq);
+        m_start.QuadPart = 0;
+        m_end.QuadPart = 0;
+    }
 
   public:
     /// Start the timer
     void start() {
-        if (m_first) {
-            QueryPerformanceFrequency(&m_freq);
-            m_first = false;
-        }
         QueryPerformanceCounter(&m_start);
     }
 

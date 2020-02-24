@@ -2,17 +2,12 @@
 # CMake configuration file for the VEHICLE demo - example programs for using
 # a tracked vehicle model with continuous-band track, specified entirely
 # through JSON specification files.
-# These example programs requires Irrlicht run-time visualization and the
-# MKL or MUMPS Chrono modules.
+# This example program works with and without Irrlicht run-time visualization
+# and requires the MKL or MUMPS Chrono modules.
 #=============================================================================
 
-# Irrlicht required
-if(NOT ENABLE_MODULE_IRRLICHT)
-    return()
-endif()
-
-# MUMPS or MKL required
-if (NOT ENABLE_MODULE_MKL AND NOT ENABLE_MODULE_MUMPS)
+# MUMPS or MKL required. IRRLICHT required
+if ((NOT ENABLE_MODULE_MKL AND NOT ENABLE_MODULE_MUMPS) OR NOT ENABLE_MODULE_IRRLICHT)
     return()
 endif()
 

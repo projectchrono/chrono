@@ -17,7 +17,8 @@
 
 #include <vector>
 
-#include "chrono/core/ChMath.h"
+#include "chrono/core/ChApiCE.h"
+#include "chrono/core/ChMatrix.h"
 
 namespace chrono {
 
@@ -33,10 +34,7 @@ class ChApi ChQuadratureTables {
     void PrintTables();
 
   private:
-    void glege_coef(ChMatrix<>& lcoef, int N);
-    void glege_roots(ChMatrix<>& lcoef, int N, int ntable);
-    double glege_eval(int n, double x, ChMatrix<>& lcoef);
-    double glege_diff(int n, double x, ChMatrix<>& lcoef);
+    void glege_roots(ChMatrixDynamic<>& lcoef, int N, int ntable);
 };
 
 

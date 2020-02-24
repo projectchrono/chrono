@@ -27,7 +27,6 @@
 #include <vector>
 
 #include "chrono/core/ChVector2.h"
-
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 #include "chrono_vehicle/tracked_vehicle/sprocket/ChSprocketBand.h"
@@ -69,26 +68,26 @@ class CH_VEHICLE_API ChTrackAssemblyBand : public ChTrackAssembly {
         double Circle1Rad,       ///< Radius of Circle 1
         ChVector2<> Circle2Pos,  ///< Center Position of Circle 2
         double Circle2Rad,       ///< Radius of Circle 2
-        ChVector2<>& Tan1Pnt1,   ///> Point on Circle 1 for the first calculated outside tangent
-        ChVector2<>& Tan1Pnt2,   ///> Point on Circle 2 for the first calculated outside tangent
-        ChVector2<>& Tan2Pnt1,   ///> Point on Circle 1 for the second calculated outside tangent
-        ChVector2<>& Tan2Pnt2    ///> Point on Circle 2 for the second calculated outside tangent
+        ChVector2<>& Tan1Pnt1,   ///< Point on Circle 1 for the first calculated outside tangent
+        ChVector2<>& Tan1Pnt2,   ///< Point on Circle 2 for the first calculated outside tangent
+        ChVector2<>& Tan2Pnt1,   ///< Point on Circle 1 for the second calculated outside tangent
+        ChVector2<>& Tan2Pnt2    ///< Point on Circle 2 for the second calculated outside tangent
     );
     void CheckCircleCircle(
-        bool& found,  ///> Does an intersection point exist between the circle formed by StartingPoint and Radius with
-                      /// the current circle belt feature
-        ChVector2<>& Point,  ///> Intersection Point, if it exists between the circle formed by StartingPoint and Radius
-                             /// with the current circle belt feature
+        bool& found,  ///< Does an intersection point exist between the circle formed by StartingPoint and Radius with
+                      ///< the current circle belt feature
+        ChVector2<>& Point,  ///< Intersection Point, if it exists between the circle formed by StartingPoint and Radius
+                             ///< with the current circle belt feature
         ChMatrixDynamic<>& Features,  ///< Table with the tagent or arc information for the entire belt wrap
         int FeatureIdx,               ///< Current belt feature to check the intersection of
         ChVector2<>& StartingPoint,   ///< Current Point on the belt wrap
         double Radius                 ///< Length of the current belt segment that needs to be placed on the belt wrap
     );
     void CheckCircleLine(
-        bool& found,  ///> Does an intersection point exist between the circle formed by StartingPoint and Radius with
-                      /// the current circle belt feature
-        ChVector2<>& Point,  ///> Intersection Point, if it exists between the circle formed by StartingPoint and Radius
-                             /// with the current circle belt feature
+        bool& found,  ///< Does an intersection point exist between the circle formed by StartingPoint and Radius with
+                      ///< the current circle belt feature
+        ChVector2<>& Point,  ///< Intersection Point, if it exists between the circle formed by StartingPoint and Radius
+                             ///< with the current circle belt feature
         ChMatrixDynamic<>& Features,  ///< Table with the tagent or arc information for the entire belt wrap
         int FeatureIdx,               ///< Current belt feature to check the intersection of
         ChVector2<>& StartingPoint,   ///< Current Point on the belt wrap

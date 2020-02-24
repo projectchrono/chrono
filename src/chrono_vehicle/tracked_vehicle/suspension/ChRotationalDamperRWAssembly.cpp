@@ -74,14 +74,14 @@ void ChRotationalDamperRWAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chas
 
     // Create and initialize the revolute joint between arm and chassis.
     // The axis of rotation is the y axis of the suspension reference frame.
-    m_revolute = std::make_shared<ChLinkLockRevolute>();
+    m_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute->SetNameString(m_name + "_revolute");
     m_revolute->Initialize(chassis, m_arm,
                            ChCoordsys<>(points[ARM_CHASSIS], susp_to_abs.GetRot() * Q_from_AngX(CH_C_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute);
 
     // Create and initialize the rotational spring torque element.
-    m_spring = std::make_shared<ChLinkRotSpringCB>();
+    m_spring = chrono_types::make_shared<ChLinkRotSpringCB>();
     m_spring->SetNameString(m_name + "_spring");
     m_spring->Initialize(chassis, m_arm, ChCoordsys<>(points[ARM_CHASSIS], susp_to_abs.GetRot() * Q_from_AngX(CH_C_PI_2)));
     m_spring->RegisterTorqueFunctor(GetSpringTorqueFunctor());
@@ -89,7 +89,7 @@ void ChRotationalDamperRWAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chas
 
     // Create and initialize the rotational shock torque element.
     if (m_has_shock) {
-        m_shock = std::make_shared<ChLinkRotSpringCB>();
+        m_shock = chrono_types::make_shared<ChLinkRotSpringCB>();
         m_shock->SetNameString(m_name + "_shock");
         m_shock->Initialize(chassis, m_arm, ChCoordsys<>(points[ARM_CHASSIS], susp_to_abs.GetRot() * Q_from_AngX(CH_C_PI_2)));
         m_shock->RegisterTorqueFunctor(GetShockTorqueCallback());
@@ -123,7 +123,7 @@ void ChRotationalDamperRWAssembly::AddVisualizationAssets(VisualizationType vis)
     double radius = GetArmVisRadius();
 
     if ((m_pA - m_pAW).Length2() > threshold2) {
-        auto cyl = std::make_shared<ChCylinderShape>();
+        auto cyl = chrono_types::make_shared<ChCylinderShape>();
         cyl->GetCylinderGeometry().p1 = m_pA;
         cyl->GetCylinderGeometry().p2 = m_pAW;
         cyl->GetCylinderGeometry().rad = radius;
@@ -131,7 +131,7 @@ void ChRotationalDamperRWAssembly::AddVisualizationAssets(VisualizationType vis)
     }
 
     if ((m_pA - m_pAC).Length2() > threshold2) {
-        auto cyl = std::make_shared<ChCylinderShape>();
+        auto cyl = chrono_types::make_shared<ChCylinderShape>();
         cyl->GetCylinderGeometry().p1 = m_pA;
         cyl->GetCylinderGeometry().p2 = m_pAC;
         cyl->GetCylinderGeometry().rad = radius;
@@ -140,7 +140,7 @@ void ChRotationalDamperRWAssembly::AddVisualizationAssets(VisualizationType vis)
 
     // Revolute joint (arm-chassis)
     {
-        auto cyl = std::make_shared<ChCylinderShape>();
+        auto cyl = chrono_types::make_shared<ChCylinderShape>();
         cyl->GetCylinderGeometry().p1 = m_pAC - radius * m_dY;
         cyl->GetCylinderGeometry().p2 = m_pAC + radius * m_dY;
         cyl->GetCylinderGeometry().rad = 1.5 * radius;
@@ -149,7 +149,7 @@ void ChRotationalDamperRWAssembly::AddVisualizationAssets(VisualizationType vis)
 
     // Revolute joint (arm-wheel)
     if ((m_pO - m_pAW).Length2() > threshold2) {
-        auto cyl = std::make_shared<ChCylinderShape>();
+        auto cyl = chrono_types::make_shared<ChCylinderShape>();
         double len = (m_pO - m_pAW).Length();
         cyl->GetCylinderGeometry().p1 = m_pO;
         cyl->GetCylinderGeometry().p2 = m_pAW + (m_pAW - m_pO) * radius/len;
@@ -157,7 +157,7 @@ void ChRotationalDamperRWAssembly::AddVisualizationAssets(VisualizationType vis)
         m_arm->AddAsset(cyl);
     }
 
-    auto col = std::make_shared<ChColorAsset>();
+    auto col = chrono_types::make_shared<ChColorAsset>();
     col->SetColor(ChColor(0.2f, 0.6f, 0.3f));
     m_arm->AddAsset(col);
 }
@@ -169,13 +169,13 @@ void ChRotationalDamperRWAssembly::RemoveVisualizationAssets() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRotationalDamperRWAssembly::LogConstraintViolations() {
-    ChMatrix<>* C = m_revolute->GetC();
+    ChVectorDynamic<> C = m_revolute->GetC();
     GetLog() << "  Arm-chassis revolute\n";
-    GetLog() << "  " << C->GetElement(0, 0) << "  ";
-    GetLog() << "  " << C->GetElement(1, 0) << "  ";
-    GetLog() << "  " << C->GetElement(2, 0) << "  ";
-    GetLog() << "  " << C->GetElement(3, 0) << "  ";
-    GetLog() << "  " << C->GetElement(4, 0) << "\n";
+    GetLog() << "  " << C(0) << "  ";
+    GetLog() << "  " << C(1) << "  ";
+    GetLog() << "  " << C(2) << "  ";
+    GetLog() << "  " << C(3) << "  ";
+    GetLog() << "  " << C(4) << "\n";
 
     m_road_wheel->LogConstraintViolations();
 }

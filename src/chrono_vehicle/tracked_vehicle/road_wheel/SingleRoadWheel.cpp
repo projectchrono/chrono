@@ -21,8 +21,6 @@
 #include "chrono_vehicle/tracked_vehicle/road_wheel/SingleRoadWheel.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
-#include "chrono_thirdparty/rapidjson/filereadstream.h"
-
 using namespace rapidjson;
 
 namespace chrono {
@@ -31,15 +29,9 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 SingleRoadWheel::SingleRoadWheel(const std::string& filename) : ChSingleRoadWheel(""), m_has_mesh(false) {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     Create(d);
 
@@ -59,7 +51,7 @@ void SingleRoadWheel::Create(const rapidjson::Document& d) {
     m_wheel_radius = d["Wheel"]["Radius"].GetDouble();
     m_wheel_width = d["Wheel"]["Width"].GetDouble();
     m_wheel_mass = d["Wheel"]["Mass"].GetDouble();
-    m_wheel_inertia = LoadVectorJSON(d["Wheel"]["Inertia"]);
+    m_wheel_inertia = ReadVectorJSON(d["Wheel"]["Inertia"]);
 
     // Read contact material data
     assert(d.HasMember("Contact Material"));
@@ -97,9 +89,9 @@ void SingleRoadWheel::Create(const rapidjson::Document& d) {
 // -----------------------------------------------------------------------------
 void SingleRoadWheel::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH && m_has_mesh) {
-        auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
         trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
-        auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(m_meshName);
         trimesh_shape->SetStatic(true);

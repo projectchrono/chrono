@@ -47,14 +47,9 @@ class CH_VEHICLE_API TrackAssemblyDoublePin : public ChTrackAssemblyDoublePin {
   private:
     virtual void Create(const rapidjson::Document& d) override;
 
-    void LoadSprocket(const std::string& filename, int output);
-    void LoadBrake(const std::string& filename, int output);
-    void LoadIdler(const std::string& filename, int output);
-    void LoadSuspension(const std::string& filename, int which, bool has_shock, int output);
-    void LoadRoller(const std::string& filename, int which, int output);
-    void LoadTrackShoes(const std::string& filename, int num_shoes, int output);
+    void ReadSprocket(const std::string& filename, int output);
+    void ReadTrackShoes(const std::string& filename, int num_shoes, int output);
 
-  private:
     int m_num_susp;
     int m_num_rollers;
     int m_num_track_shoes;

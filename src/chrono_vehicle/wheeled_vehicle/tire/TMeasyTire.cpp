@@ -18,11 +18,11 @@
 
 #include <algorithm>
 
+#include "chrono/core/ChLog.h"
+
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/TMeasyTire.h"
-
-#include "chrono_thirdparty/rapidjson/filereadstream.h"
 
 using namespace rapidjson;
 
@@ -31,15 +31,9 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 TMeasyTire::TMeasyTire(const std::string& filename) : ChTMeasyTire(""), m_has_mesh(false) {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     Create(d);
 
@@ -60,16 +54,16 @@ void TMeasyTire::Create(const rapidjson::Document& d) {
     assert(d.HasMember("Rolling Resistance Coefficients"));
 
     m_mass = d["Design"]["Mass [kg]"].GetDouble();
-    m_inertia = LoadVectorJSON(d["Design"]["Inertia [kg.m2]"]);
+    m_inertia = ReadVectorJSON(d["Design"]["Inertia [kg.m2]"]);
     m_unloaded_radius = d["Design"]["Unloaded Radius [m]"].GetDouble();
     m_rim_radius = d["Design"]["Rim Radius [m]"].GetDouble();
     m_width = d["Design"]["Width [m]"].GetDouble();
     m_roundness = d["Design"]["Roundness of Cross Section"].GetDouble();
 
-	double 	p_li  = 1.0;
-    double 	p_use = 1.0;
-	bool	pressure_info_found = false;
-	
+    double p_li = 1.0;
+    double p_use = 1.0;
+    bool pressure_info_found = false;
+
     if (d.HasMember("Parameters")) {
         // Full parameterization
         const double N2kN = 0.001;
@@ -120,22 +114,22 @@ void TMeasyTire::Create(const rapidjson::Document& d) {
         m_TMeasyCoeff.syntoE_p2n = d["Parameters"]["Aligning"]["Slip sy where Trail Tends to Zero"][1u].GetDouble();
 
     } else if (d.HasMember("Load Index")) {
-    	// Information about tire inflation pressure might be present
-    	if (d.HasMember("Inflation Pressure Design [Pa]")) {
-    		p_li = d["Inflation Pressure Design [Pa]"].GetDouble();
-    	} else {
-    		p_li = 0.0;
-    	}
-    	if (d.HasMember("Inflation Pressure Use [Pa]")) {
-    		p_use = d["Inflation Pressure Use [Pa]"].GetDouble();
-    	} else {
-    		p_use = 0.0;
-    	}
-    	if(p_use > 0.0 && p_li > 0.0) {
-    		pressure_info_found = true;
-    	} else {
-    	    p_li = p_use = 1.0;
-    	}
+        // Information about tire inflation pressure might be present
+        if (d.HasMember("Inflation Pressure Design [Pa]")) {
+            p_li = d["Inflation Pressure Design [Pa]"].GetDouble();
+        } else {
+            p_li = 0.0;
+        }
+        if (d.HasMember("Inflation Pressure Use [Pa]")) {
+            p_use = d["Inflation Pressure Use [Pa]"].GetDouble();
+        } else {
+            p_use = 0.0;
+        }
+        if (p_use > 0.0 && p_li > 0.0) {
+            pressure_info_found = true;
+        } else {
+            p_li = p_use = 1.0;
+        }
         // Specification through load index
         unsigned int li = d["Load Index"].GetUint();
         std::string vehicle_type = d["Vehicle Type"].GetString();
@@ -145,33 +139,35 @@ void TMeasyTire::Create(const rapidjson::Document& d) {
             GuessPassCar70Par(li, m_width, (m_unloaded_radius - m_rim_radius) / m_width, 2 * m_rim_radius, p_li, p_use);
         }
     } else if (d.HasMember("Maximum Bearing Capacity [N]")) {
-    	// Information about tire inflation pressure might be present
-    	if (d.HasMember("Inflation Pressure Design [Pa]")) {
-    		p_li = d["Inflation Pressure Design [Pa]"].GetDouble();
-    	} else {
-    		p_li = 0.0;
-    	}
-    	if (d.HasMember("Inflation Pressure Use [Pa]")) {
-    		p_use = d["Inflation Pressure Use [Pa]"].GetDouble();
-    	} else {
-    		p_use = 0.0;
-    	}
-    	if(p_use > 0.0 && p_li > 0.0) {
-    		pressure_info_found = true;
-    	} else {
-    		p_use = 1.0;
-    		p_li  = 1.0;
-    	}
+        // Information about tire inflation pressure might be present
+        if (d.HasMember("Inflation Pressure Design [Pa]")) {
+            p_li = d["Inflation Pressure Design [Pa]"].GetDouble();
+        } else {
+            p_li = 0.0;
+        }
+        if (d.HasMember("Inflation Pressure Use [Pa]")) {
+            p_use = d["Inflation Pressure Use [Pa]"].GetDouble();
+        } else {
+            p_use = 0.0;
+        }
+        if (p_use > 0.0 && p_li > 0.0) {
+            pressure_info_found = true;
+        } else {
+            p_use = 1.0;
+            p_li = 1.0;
+        }
         // Specification through bearing capacity
         double bearing_capacity = d["Maximum Bearing Capacity [N]"].GetDouble();
         std::string vehicle_type = d["Name"].GetString();
         if (vehicle_type.compare("truck") == 0) {
-            GuessTruck80Par(bearing_capacity, m_width, (m_unloaded_radius - m_rim_radius) / m_width, m_rim_radius, p_li, p_use);
+            GuessTruck80Par(bearing_capacity, m_width, (m_unloaded_radius - m_rim_radius) / m_width, m_rim_radius, p_li,
+                            p_use);
         } else {
-            GuessPassCar70Par(bearing_capacity, m_width, (m_unloaded_radius - m_rim_radius) / m_width, m_rim_radius, p_li, p_use);
+            GuessPassCar70Par(bearing_capacity, m_width, (m_unloaded_radius - m_rim_radius) / m_width, m_rim_radius,
+                              p_li, p_use);
         }
     } else {
-        std::cout << "ERROR: Incorrect TMeasy JSON specification." << std::endl;
+        GetLog() << "ERROR: Incorrect TMeasy JSON specification.\n";
         return;
     }
 
@@ -183,9 +179,9 @@ void TMeasyTire::Create(const rapidjson::Document& d) {
 
     // Check how to visualize this tire.
     if (d.HasMember("Visualization")) {
-        if (d["Visualization"].HasMember("Mesh Filename")) {
-            m_meshFile = d["Visualization"]["Mesh Filename"].GetString();
-            m_meshName = d["Visualization"]["Mesh Name"].GetString();
+        if (d["Visualization"].HasMember("Mesh Filename Left") && d["Visualization"].HasMember("Mesh Filename Right")) {
+            m_meshFile_left = d["Visualization"]["Mesh Filename Left"].GetString();
+            m_meshFile_right = d["Visualization"]["Mesh Filename Right"].GetString();
             m_has_mesh = true;
         }
     }
@@ -194,13 +190,8 @@ void TMeasyTire::Create(const rapidjson::Document& d) {
 // -----------------------------------------------------------------------------
 void TMeasyTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH && m_has_mesh) {
-        auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
-        trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
-        m_trimesh_shape = std::make_shared<ChTriangleMeshShape>();
-        m_trimesh_shape->SetMesh(trimesh);
-        m_trimesh_shape->SetName(m_meshName);
-        m_trimesh_shape->SetStatic(true);
-        m_wheel->AddAsset(m_trimesh_shape);
+        m_trimesh_shape = AddVisualizationMesh(vehicle::GetDataFile(m_meshFile_left),    // left side
+                                               vehicle::GetDataFile(m_meshFile_right));  // right side
     } else {
         ChTMeasyTire::AddVisualizationAssets(vis);
     }
@@ -208,13 +199,7 @@ void TMeasyTire::AddVisualizationAssets(VisualizationType vis) {
 
 void TMeasyTire::RemoveVisualizationAssets() {
     ChTMeasyTire::RemoveVisualizationAssets();
-
-    // Make sure we only remove the assets added by RigidTire::AddVisualizationAssets.
-    // This is important for the ChTire object because a wheel may add its own assets
-    // to the same body (the spindle/wheel).
-    auto it = std::find(m_wheel->GetAssets().begin(), m_wheel->GetAssets().end(), m_trimesh_shape);
-    if (it != m_wheel->GetAssets().end())
-        m_wheel->GetAssets().erase(it);
+    RemoveVisualizationMesh(m_trimesh_shape);
 }
 
 }  // end namespace vehicle

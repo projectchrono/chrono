@@ -69,9 +69,11 @@ ADD_LIBRARY(ChronoEngine_matlab SHARED
             
 SET_TARGET_PROPERTIES(ChronoEngine_matlab PROPERTIES
             COMPILE_FLAGS "${CH_CXX_FLAGS}"
-            LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
-            COMPILE_DEFINITIONS "CH_API_COMPILE_MATLAB")
+            LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
                           
+target_compile_definitions(ChronoEngine_matlab PRIVATE "CH_API_COMPILE_MATLAB")
+target_compile_definitions(ChronoEngine_matlab PRIVATE "CH_IGNORE_DEPRECATED")
+
 TARGET_LINK_LIBRARIES(ChronoEngine_matlab 
                       ChronoEngine
                       ${CH_MATLABLIB})
@@ -83,5 +85,4 @@ INSTALL(TARGETS ChronoEngine_matlab
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)       
 
-INSTALL(FILES ${ChronoEngine_MATLAB_HEADERS}
-        DESTINATION include/chrono/unit_MATLAB)
+INSTALL(FILES ${ChronoEngine_MATLAB_HEADERS} DESTINATION include/chrono_matlab)

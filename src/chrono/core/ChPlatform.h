@@ -38,6 +38,31 @@
 #define ChApiIMPORT
 #endif
 
+// Define a deprecated macro which generates a warning at compile time.
+// Usage:
+//   For typedef:         typedef CH_DEPRECATED int test1;
+//   For classes/structs: class CH_DEPRECATED test2 { ... };
+//   For methods:         class test3 { CH_DEPRECATED virtual void foo() {} };
+//   For functions:       template<class T> CH_DEPRECATED void test4() {}
+//
+// When building the Chrono libraries, define CH_IGNORE_DEPRECATED to stop issuing these warnings.
+
+#if defined(CH_IGNORE_DEPRECATED)
+#define CH_DEPRECATED(msg)
+#else
+#if __cplusplus >= 201402L
+#define CH_DEPRECATED(msg) [[deprecated(msg)]]
+#elif defined(__GNUC__)
+#define CH_DEPRECATED(msg) __attribute__((deprecated(msg)))
+#elif defined(_MSC_VER)
+#define CH_DEPRECATED(msg) __declspec(deprecated(msg))
+#else
+#define CH_DEPRECATED(msg)
+#endif
+#endif
+
+
+
 // Disable the C4251 warning under MSVC, that happens when using
 // templated classes in data members of other exported classes.
 

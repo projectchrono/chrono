@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/physics/ChGlobal.h"
+#include "chrono/core/ChGlobal.h"
 #include "chrono/physics/ChLink.h"
 #include "chrono/physics/ChSystem.h"
 
@@ -34,10 +34,9 @@ void ChLink::UpdateTime(double time) {
 }
 
 void ChLink::Update(double time, bool update_assets) {
-    // 1 -
     UpdateTime(time);
 
-    // This will update assets
+    // Update assets
     ChPhysicsItem::Update(ChTime, update_assets);
 }
 

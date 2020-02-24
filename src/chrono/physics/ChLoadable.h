@@ -13,7 +13,8 @@
 #ifndef CHLOADABLE_H
 #define CHLOADABLE_H
 
-#include "chrono/core/ChVectorDynamic.h"
+#include "chrono/core/ChMatrix.h"
+#include "chrono/core/ChVector.h"
 #include "chrono/solver/ChVariables.h"
 
 namespace chrono {
@@ -73,12 +74,12 @@ class ChApi ChLoadable {
 /// distributed along UVW coordinates of the object.
 /// For instance finite elements like 3D bricks, ex.for gravitational loads.
 
-class ChApi ChLoadableUVW : public ChLoadable {
+class ChApi ChLoadableUVW : virtual public ChLoadable {
   public:
     virtual ~ChLoadableUVW() {}
 
     /// Evaluate N'*F , where N is some type of shape function
-    /// evaluated at U,V,W coordinates of the volume, each ranging in -1..+1
+    /// evaluated at U,V,W coordinates of the volume, each ranging in [-1..+1], except if IsTetrahedronIntegrationNeeded() true or IsTrianglePrismIntegrationNeeded() true.
     /// F is a load, N'*F is the resulting generalized load
     /// Returns also det[J] with J=[dx/du,..], that might be useful in gauss quadrature.
     virtual void ComputeNF(const double U,              ///< parametric coordinate in volume
@@ -95,21 +96,26 @@ class ChApi ChLoadableUVW : public ChLoadable {
     /// accessed by ChLoaderVolumeGravity. Return 0 if the element/nodes does not support xyz gravity.
     virtual double GetDensity() = 0;
 
-    /// If true, use quadrature over u,v,w in [0..1] range as tetrahedron volumetric coords, with z=1-u-v-w
-    /// otherwise use quadrature over u,v,w in [-1..+1] as box isoparametric coords.
+    /// If true, use quadrature over u,v,w in [0..1] range as tetrahedron volumetric coords (with z=1-u-v-w)
+    /// otherwise use default quadrature over u,v,w in [-1..+1] as box isoparametric coords.
     virtual bool IsTetrahedronIntegrationNeeded() { return false; }
+
+	/// If true, use quadrature over u,v  in [0..1] range as triangle natural coords (with z=1-u-v), and use linear quadrature over w in [-1..+1],
+    /// otherwise use default quadrature over u,v,w in [-1..+1] as box isoparametric coords.
+    virtual bool IsTrianglePrismIntegrationNeeded() { return false; }
+
 };
 
 /// Interface for objects that can be subject to area loads,
 /// distributed along UV coordinates of the object.
 /// For instance finite elements like shells, ex.for applied pressure.
 
-class ChApi ChLoadableUV : public ChLoadable {
+class ChApi ChLoadableUV : virtual public ChLoadable {
   public:
     virtual ~ChLoadableUV() {}
 
     /// Evaluate N'*F , where N is some type of shape function
-    /// evaluated at U,V coordinates of the surface, each ranging in -1..+1
+    /// evaluated at U,V coordinates of the surface, each ranging in [-1..+1], except if IsTriangleIntegrationNeeded() true.
     /// F is a load, N'*F is the resulting generalized load
     /// Returns also det[J] with J=[dx/du,..], that might be useful in gauss quadrature.
     virtual void ComputeNF(const double U,              ///< parametric coordinate in surface
@@ -125,8 +131,8 @@ class ChApi ChLoadableUV : public ChLoadable {
     /// Normal must be considered pointing outside in case the surface is a boundary to a volume.
     virtual ChVector<> ComputeNormal(const double U, const double V) = 0;
 
-    /// If true, use quadrature over u,v in [0..1] range as triangle area coords, with w=1-u-v
-    /// otherwise use quadrature over u,v in [-1..+1] as rectangular isoparametric coords.
+    /// If true, use quadrature over u,v in [0..1] range as triangle area coords (with z=1-u-v)
+    /// otherwise use default quadrature over u,v in [-1..+1] as rectangular isoparametric coords.
     virtual bool IsTriangleIntegrationNeeded() { return false; }
 };
 
@@ -134,12 +140,12 @@ class ChApi ChLoadableUV : public ChLoadable {
 /// distributed along U coordinate of the object.
 /// For instance finite elements like beams.
 
-class ChApi ChLoadableU : public ChLoadable {
+class ChApi ChLoadableU : virtual public ChLoadable {
   public:
     virtual ~ChLoadableU() {}
 
     /// Evaluate N'*F , where N is some type of shape function
-    /// evaluated at U coordinate of the line, ranging in -1..+1
+    /// evaluated at U coordinate of the line, ranging in [-1..+1].
     /// F is a load, N'*F is the resulting generalized load
     /// Returns also det[J] with J=[dx/du,..], that might be useful in gauss quadrature.
     virtual void ComputeNF(const double U,              ///< parametric coordinate in line

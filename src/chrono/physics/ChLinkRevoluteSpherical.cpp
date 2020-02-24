@@ -29,8 +29,6 @@ ChLinkRevoluteSpherical::ChLinkRevoluteSpherical()
       m_dist(0),
       m_cur_dist(0),
       m_cur_dot(0) {
-    m_C = new ChMatrixDynamic<>(2, 1);
-
     m_multipliers[0] = 0;
     m_multipliers[1] = 0;
 }
@@ -52,10 +50,6 @@ ChLinkRevoluteSpherical::ChLinkRevoluteSpherical(const ChLinkRevoluteSpherical& 
 
     m_multipliers[0] = other.m_multipliers[0];
     m_multipliers[1] = other.m_multipliers[1];
-}
-
-ChLinkRevoluteSpherical::~ChLinkRevoluteSpherical() {
-    delete m_C;
 }
 
 // -----------------------------------------------------------------------------
@@ -130,12 +124,11 @@ void ChLinkRevoluteSpherical::Initialize(std::shared_ptr<ChBodyFrame> body1,
 // -----------------------------------------------------------------------------
 ChCoordsys<> ChLinkRevoluteSpherical::GetLinkRelativeCoords() {
     ChVector<> pos1 = Body2->TransformPointParentToLocal(Body1->TransformPointLocalToParent(m_pos1));
-    ChMatrix33<> A;
 
     ChVector<> u = (m_pos2 - pos1).GetNormalized();
     ChVector<> w = Body2->TransformDirectionParentToLocal(Body1->TransformDirectionLocalToParent(m_dir1));
     ChVector<> v = Vcross(w, u);
-    A.Set_A_axis(u, v, w);
+    ChMatrix33<> A(u, v, w);
 
     return ChCoordsys<>(pos1, A.Get_A_quaternion());
 }
@@ -167,7 +160,7 @@ void ChLinkRevoluteSpherical::Update(double time, bool update_assets) {
     ChVector<> dir1_loc2 = Body2->TransformDirectionParentToLocal(dir1_abs);
 
     // Cache violation of the distance constraint
-    m_C->SetElement(0, 0, m_cur_dist - m_dist);
+    m_C(0) = m_cur_dist - m_dist;
 
     // Compute Jacobian of the distance constraint
     //    ||pos2_abs - pos1_abs|| - dist = 0
@@ -175,28 +168,28 @@ void ChLinkRevoluteSpherical::Update(double time, bool update_assets) {
         ChVector<> Phi_r1 = -u12_abs;
         ChVector<> Phi_pi1 = Vcross(u12_loc1, m_pos1);
 
-        m_cnstr_dist.Get_Cq_a()->ElementN(0) = Phi_r1.x();
-        m_cnstr_dist.Get_Cq_a()->ElementN(1) = Phi_r1.y();
-        m_cnstr_dist.Get_Cq_a()->ElementN(2) = Phi_r1.z();
+        m_cnstr_dist.Get_Cq_a()(0) = Phi_r1.x();
+        m_cnstr_dist.Get_Cq_a()(1) = Phi_r1.y();
+        m_cnstr_dist.Get_Cq_a()(2) = Phi_r1.z();
 
-        m_cnstr_dist.Get_Cq_a()->ElementN(3) = Phi_pi1.x();
-        m_cnstr_dist.Get_Cq_a()->ElementN(4) = Phi_pi1.y();
-        m_cnstr_dist.Get_Cq_a()->ElementN(5) = Phi_pi1.z();
+        m_cnstr_dist.Get_Cq_a()(3) = Phi_pi1.x();
+        m_cnstr_dist.Get_Cq_a()(4) = Phi_pi1.y();
+        m_cnstr_dist.Get_Cq_a()(5) = Phi_pi1.z();
 
         ChVector<> Phi_r2 = u12_abs;
         ChVector<> Phi_pi2 = -Vcross(u12_loc2, m_pos2);
 
-        m_cnstr_dist.Get_Cq_b()->ElementN(0) = Phi_r2.x();
-        m_cnstr_dist.Get_Cq_b()->ElementN(1) = Phi_r2.y();
-        m_cnstr_dist.Get_Cq_b()->ElementN(2) = Phi_r2.z();
+        m_cnstr_dist.Get_Cq_b()(0) = Phi_r2.x();
+        m_cnstr_dist.Get_Cq_b()(1) = Phi_r2.y();
+        m_cnstr_dist.Get_Cq_b()(2) = Phi_r2.z();
 
-        m_cnstr_dist.Get_Cq_b()->ElementN(3) = Phi_pi2.x();
-        m_cnstr_dist.Get_Cq_b()->ElementN(4) = Phi_pi2.y();
-        m_cnstr_dist.Get_Cq_b()->ElementN(5) = Phi_pi2.z();
+        m_cnstr_dist.Get_Cq_b()(3) = Phi_pi2.x();
+        m_cnstr_dist.Get_Cq_b()(4) = Phi_pi2.y();
+        m_cnstr_dist.Get_Cq_b()(5) = Phi_pi2.z();
     }
 
     // Cache violation of the dot constraint
-    m_C->SetElement(1, 0, m_cur_dot);
+    m_C(1) = m_cur_dot;
 
     // Compute Jacobian of the dot constraint
     //    dot(dir1_abs, pos2_abs - pos1_abs) = 0
@@ -204,24 +197,24 @@ void ChLinkRevoluteSpherical::Update(double time, bool update_assets) {
         ChVector<> Phi_r1 = -dir1_abs;
         ChVector<> Phi_pi1 = Vcross(m_dir1, m_pos1) - Vcross(u12_loc1, m_pos1);
 
-        m_cnstr_dot.Get_Cq_a()->ElementN(0) = Phi_r1.x();
-        m_cnstr_dot.Get_Cq_a()->ElementN(1) = Phi_r1.y();
-        m_cnstr_dot.Get_Cq_a()->ElementN(2) = Phi_r1.z();
+        m_cnstr_dot.Get_Cq_a()(0) = Phi_r1.x();
+        m_cnstr_dot.Get_Cq_a()(1) = Phi_r1.y();
+        m_cnstr_dot.Get_Cq_a()(2) = Phi_r1.z();
 
-        m_cnstr_dot.Get_Cq_a()->ElementN(3) = Phi_pi1.x();
-        m_cnstr_dot.Get_Cq_a()->ElementN(4) = Phi_pi1.y();
-        m_cnstr_dot.Get_Cq_a()->ElementN(5) = Phi_pi1.z();
+        m_cnstr_dot.Get_Cq_a()(3) = Phi_pi1.x();
+        m_cnstr_dot.Get_Cq_a()(4) = Phi_pi1.y();
+        m_cnstr_dot.Get_Cq_a()(5) = Phi_pi1.z();
 
         ChVector<> Phi_r2 = dir1_abs;
         ChVector<> Phi_pi2 = -Vcross(dir1_loc2, m_pos2);
 
-        m_cnstr_dot.Get_Cq_b()->ElementN(0) = Phi_r2.x();
-        m_cnstr_dot.Get_Cq_b()->ElementN(1) = Phi_r2.y();
-        m_cnstr_dot.Get_Cq_b()->ElementN(2) = Phi_r2.z();
+        m_cnstr_dot.Get_Cq_b()(0) = Phi_r2.x();
+        m_cnstr_dot.Get_Cq_b()(1) = Phi_r2.y();
+        m_cnstr_dot.Get_Cq_b()(2) = Phi_r2.z();
 
-        m_cnstr_dot.Get_Cq_b()->ElementN(3) = Phi_pi2.x();
-        m_cnstr_dot.Get_Cq_b()->ElementN(4) = Phi_pi2.y();
-        m_cnstr_dot.Get_Cq_b()->ElementN(5) = Phi_pi2.z();
+        m_cnstr_dot.Get_Cq_b()(3) = Phi_pi2.x();
+        m_cnstr_dot.Get_Cq_b()(4) = Phi_pi2.y();
+        m_cnstr_dot.Get_Cq_b()(5) = Phi_pi2.z();
     }
 }
 

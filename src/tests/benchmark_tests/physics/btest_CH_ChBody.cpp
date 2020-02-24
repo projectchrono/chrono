@@ -28,7 +28,7 @@ public:
         time_step = 0.1;
         sys = new ChSystemNSC();
         for (int i = 0; i < num_bodies; i++) {
-            auto body = std::make_shared<ChBody>();
+            auto body = chrono_types::make_shared<ChBody>();
             body->SetPos(ChVector<>(rand() % 1000 / 1000.0, rand() % 1000 / 1000.0, rand() % 1000 / 1000.0));
             sys->AddBody(body);
         }
@@ -83,11 +83,6 @@ BM_BODY_OP_TIME(UpdateForces)
 BM_BODY_OP_TIME(UpdateMarkers)
 BM_BODY_OP_VOID(ClampSpeed)
 BM_BODY_OP_VOID(ComputeGyro)
-BM_BODY_OP_VOID(VariablesFbReset)
-BM_BODY_OP_STEP(VariablesFbLoadForces)
-BM_BODY_OP_VOID(VariablesQbLoadSpeed)
-BM_BODY_OP_STEP(VariablesQbIncrementPosition)
-BM_BODY_OP_STEP(VariablesQbSetSpeed)
 
 // Benchmark all operations in a single loop
 BENCHMARK_DEFINE_F(SystemFixture, SingleLoop)(benchmark::State& st) {
@@ -98,11 +93,6 @@ BENCHMARK_DEFINE_F(SystemFixture, SingleLoop)(benchmark::State& st) {
             body->UpdateMarkers(current_time);
             body->ClampSpeed();
             body->ComputeGyro();
-            body->VariablesFbReset();
-            body->VariablesFbLoadForces(time_step);
-            body->VariablesQbLoadSpeed();
-            body->VariablesQbIncrementPosition(time_step);
-            body->VariablesQbSetSpeed(time_step);
         }
     }
     st.SetItemsProcessed(st.iterations() * sys->Get_bodylist().size());

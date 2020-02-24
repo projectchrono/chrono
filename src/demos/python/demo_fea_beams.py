@@ -16,9 +16,10 @@ import pychrono.irrlicht as chronoirr
 
 print ("Example: PyChrono using  beam finite elements");
 
-# Change this path to asset path, if running from other working dir. 
-# It must point to the data folder, containing GUI assets (textures, fonts, meshes, etc.)
-chrono.SetChronoDataPath("../../../data/")
+# The path to the Chrono data directory containing various assets (meshes, textures, data files)
+# is automatically set, relative to the default location of this demo.
+# If running from a different directory, you must change the path to the data directory with: 
+#chrono.SetChronoDataPath('path/to/data')
 
 
 # ---------------------------------------------------------------------
@@ -103,12 +104,12 @@ constr_d.SetConstrainedCoords(False, True, True,     # x, y, z
 # Add some EULER-BERNOULLI BEAMS (the fast way!)
 
 # Shortcut!
-# This ChBuilderBeam helper object is very useful because it will
+# This ChBuilderBeamEuler helper object is very useful because it will
 # subdivide 'beams' into sequences of finite elements of beam type, ex.
 # one 'beam' could be made of 5 FEM elements of ChElementBeamEuler class.
 # If new nodes are needed, it will create them for you.
 
-builder = fea.ChBuilderBeam()
+builder = fea.ChBuilderBeamEuler()
 
 # Now, simply use BuildBeam to create a beam from a point to another:
 builder.BuildBeam(my_mesh,                   # the mesh where to put the created nodes and elements
@@ -170,7 +171,7 @@ myapplication = chronoirr.ChIrrApp(my_system, 'Test FEA beams', chronoirr.dimens
 
 #application.AddTypicalLogo()
 myapplication.AddTypicalSky()
-myapplication.AddTypicalLogo(chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
+myapplication.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 myapplication.AddTypicalCamera(chronoirr.vector3df(0.1,0.1,0.2))
 myapplication.AddTypicalLights()
 
@@ -184,15 +185,12 @@ myapplication.AssetBindAll()
 
 myapplication.AssetUpdateAll()
 
-# Mark completion of system construction
-my_system.SetupInitial();
-
 
 # THE SOFT-REAL-TIME CYCLE
 
 
 # Change the solver form the default SOR to the MKL Pardiso, more precise for fea.
-msolver = mkl.ChSolverMKLcsm()
+msolver = mkl.ChSolverMKL()
 my_system.SetSolver(msolver)
 
 

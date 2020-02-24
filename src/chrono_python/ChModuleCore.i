@@ -20,7 +20,7 @@
 // Turn on the documentation of members, for more intuitive IDE typing
 
 %feature("autodoc", "1");
-
+%feature("flatnested", "1");
 
 // Turn on the exception handling to intercept C++ exceptions
 %include "exception.i"
@@ -55,8 +55,8 @@
 #include "chrono/physics/ChLoadsBody.h"
 #include "chrono/physics/ChNodeBase.h"
 #include "chrono/physics/ChNodeXYZ.h"
+#include "chrono/physics/ChLoadsXYZnode.h"
 #include "chrono/physics/ChTensors.h"
-#include "chrono/physics/ChContinuumMaterial.h"
 #include "chrono/physics/ChIndexedNodes.h"
 #include "chrono/assets/ChLineShape.h"
 #include "chrono/assets/ChPathShape.h"
@@ -64,11 +64,15 @@
 #include "chrono/assets/ChSurfaceShape.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/assets/ChEllipsoidShape.h"
+#include "chrono/assets/ChGlyphs.h"
 #include "chrono/collision/ChCCollisionUtils.h"
+#include "chrono/collision/ChCCollisionSystem.h"
 #include "chrono/geometry/ChTriangleMesh.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/geometry/ChTriangleMeshSoup.h"
-
+#include "chrono/core/ChBezierCurve.h"
+#include "Eigen/src/Core/util/Memory.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
 using namespace chrono;
 using namespace chrono::collision;
 using namespace chrono::geometry;
@@ -78,14 +82,15 @@ using namespace chrono::fea;
 
 // Undefine ChApi otherwise SWIG gives a syntax error
 #define ChApi 
+#define EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+#define CH_DEPRECATED(msg)
 
 %ignore CH_ENUM_MAPPER_BEGIN;
 %ignore CH_ENUM_VAL;
 %ignore CH_ENUM_MAPPER_END;
-
+%ignore CH_CLASS_VERSION;
 // Cross-inheritance between Python and c++ for callbacks that must be inherited.
 // Put this 'director' feature _before_ class wrapping declaration.
-%feature("director") chrono::ChLoadBase;
 
 // Include other .i configuration files for SWIG. 
 // These are divided in many .i files, each per a
@@ -118,17 +123,12 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChFrame<double>)
 %shared_ptr(chrono::ChFrameMoving<double>)
 
-%shared_ptr(chrono::ChAsset)
-%shared_ptr(chrono::ChVisualization)
 //%shared_ptr(chrono::ChColor)
-%shared_ptr(chrono::ChColorAsset)
-%shared_ptr(chrono::ChAssetLevel)
 %shared_ptr(chrono::ChObjShapeFile)
 %shared_ptr(chrono::ChBoxShape) 
 %shared_ptr(chrono::ChSphereShape)
 %shared_ptr(chrono::ChEllipsoidShape)
 %shared_ptr(chrono::ChCylinderShape)
-%shared_ptr(chrono::ChTexture)
 %shared_ptr(chrono::ChCamera) 
 %shared_ptr(chrono::ChLineShape)
 %shared_ptr(chrono::ChSurfaceShape)
@@ -137,6 +137,8 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChPointPointSegment)
 %shared_ptr(chrono::ChPointPointSpring)
 %shared_ptr(chrono::ChTriangleMeshShape)
+%shared_ptr(chrono::ChBezierCurve)
+%shared_ptr(chrono::ChGlyphs)
 
 %shared_ptr(chrono::ChFunction)  
 %shared_ptr(chrono::ChFunction_Const)
@@ -158,23 +160,17 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChFunction_Sigma)
 %shared_ptr(chrono::ChFunction_Sine)
 
-%shared_ptr(chrono::ChObj)
+
 %shared_ptr(chrono::collision::ChCollisionModel)
 %shared_ptr(chrono::ChPhysicsItem)
 %shared_ptr(chrono::ChIndexedNodes)
 %shared_ptr(chrono::ChMaterialSurfaceNSC)
 %shared_ptr(chrono::ChMaterialSurfaceSMC)
 %shared_ptr(chrono::ChMaterialSurface)
-%shared_ptr(chrono::ChContinuumMaterial)
-%shared_ptr(chrono::ChContinuumElastic)
-%shared_ptr(chrono::ChContinuumElastoplastic)
-%shared_ptr(chrono::ChContinuumPlasticVonMises)
-%shared_ptr(chrono::ChContinuumDruckerPrager)
-%shared_ptr(chrono::ChBodyFrame)
+%shared_ptr(chrono::ChNodeBase)
+%shared_ptr(chrono::ChNodeXYZ)
 %shared_ptr(chrono::ChMarker)
 %shared_ptr(chrono::ChForce)
-%shared_ptr(chrono::ChBody)
-%shared_ptr(chrono::ChBodyAuxRef)
 %shared_ptr(chrono::ChBodyEasySphere)
 %shared_ptr(chrono::ChBodyEasyBox)
 %shared_ptr(chrono::ChBodyEasyEllipsoid)
@@ -188,55 +184,15 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChParticleBase)
 %shared_ptr(chrono::ChIndexedParticles)
 %shared_ptr(chrono::ChParticlesClones)
-%shared_ptr(chrono::ChAssembly)
-%shared_ptr(chrono::ChTimestepper)
-%shared_ptr(chrono::ChTimestepperIorder)
-%shared_ptr(chrono::ChTimestepperIIorder)
-%shared_ptr(chrono::ChTimestepperEulerExpl)
-%shared_ptr(chrono::ChTimestepperEulerExplIIorder)
-%shared_ptr(chrono::ChTimestepperEulerSemiImplicit)
-%shared_ptr(chrono::ChTimestepperRungeKuttaExpl)
-%shared_ptr(chrono::ChTimestepperHeun)
-%shared_ptr(chrono::ChTimestepperLeapfrog)
-%shared_ptr(chrono::ChTimestepperEulerImplicit)
-%shared_ptr(chrono::ChTimestepperEulerImplicitLinearized)
-%shared_ptr(chrono::ChTimestepperEulerImplicitProjected)
-%shared_ptr(chrono::ChTimestepperTrapezoidalLinearized)
-%shared_ptr(chrono::ChTimestepperTrapezoidalLinearized2)
-%shared_ptr(chrono::ChTimestepperTrapezoidal)
-%shared_ptr(chrono::ChTimestepperNewmark)
-%shared_ptr(chrono::ChImplicitIterativeTimestepper)
-%shared_ptr(chrono::ChImplicitTimestepper)
-%shared_ptr(chrono::ChSolver)
-%shared_ptr(chrono::ChSystem)
 %shared_ptr(chrono::ChSystemNSC)
 %shared_ptr(chrono::ChSystemSMC)
 %shared_ptr(chrono::ChContactContainer)
 %shared_ptr(chrono::ChProximityContainer)
-%shared_ptr(chrono::ChLoadContainer)
 
-%shared_ptr(chrono::ChLinkBase)
-%shared_ptr(chrono::ChLink)
 %shared_ptr(chrono::ChLinkMarkers)
-%shared_ptr(chrono::ChLinkMasked)
 %shared_ptr(chrono::ChLinkLimit)
-%shared_ptr(chrono::ChLinkLock)
-%shared_ptr(chrono::ChLinkLockRevolute)
-%shared_ptr(chrono::ChLinkLockLock)
-%shared_ptr(chrono::ChLinkLockSpherical)
-%shared_ptr(chrono::ChLinkLockCylindrical)
-%shared_ptr(chrono::ChLinkLockPrismatic)
-%shared_ptr(chrono::ChLinkLockPointPlane)
-%shared_ptr(chrono::ChLinkLockPointLine)
-%shared_ptr(chrono::ChLinkLockPlanePlane)
-%shared_ptr(chrono::ChLinkLockOldham)
-%shared_ptr(chrono::ChLinkLockFree)
-%shared_ptr(chrono::ChLinkLockAlign)
-%shared_ptr(chrono::ChLinkLockParallel)
-%shared_ptr(chrono::ChLinkLockPerpend)
-%shared_ptr(chrono::ChLinkLockRevolutePrismatic)
+
 %shared_ptr(chrono::ChLinkDistance)
-%shared_ptr(chrono::ChLinkEngine)
 %shared_ptr(chrono::ChLinkGear)
 %shared_ptr(chrono::ChLinkLinActuator)
 %shared_ptr(chrono::ChLinkMate)
@@ -253,21 +209,8 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChLinkRevoluteSpherical)
 %shared_ptr(chrono::ChLinkScrew)
 %shared_ptr(chrono::ChLinkSpring)
-%shared_ptr(chrono::ChLinkSpringCB)
+%shared_ptr(chrono::ChLinkTSDA)
 %shared_ptr(chrono::ChLinkUniversal)
-
-%shared_ptr(chrono::ChShaft)
-%shared_ptr(chrono::ChShaftsBody)
-%shared_ptr(chrono::ChShaftsBodyTranslation)
-%shared_ptr(chrono::ChShaftsMotorBase)
-%shared_ptr(chrono::ChShaftsClutch)
-%shared_ptr(chrono::ChShaftsCouple)
-%shared_ptr(chrono::ChShaftsGear)
-%shared_ptr(chrono::ChShaftsMotor)
-%shared_ptr(chrono::ChShaftsPlanetary)
-%shared_ptr(chrono::ChShaftsThermalEngine)
-%shared_ptr(chrono::ChShaftsTorqueBase)
-%shared_ptr(chrono::ChShaftsTorsionSpring) 
 %shared_ptr(chrono::ChLinkMotor)
 %shared_ptr(chrono::ChLinkMotorLinear)
 %shared_ptr(chrono::ChLinkMotorLinearDriveline)
@@ -281,19 +224,8 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChLinkMotorRotationTorque)
 %shared_ptr(chrono::ChLinkTrajectory)
 %shared_ptr(chrono::ChLinkPointSpline)
-%shared_ptr(chrono::ChLoadBase)
-%shared_ptr(chrono::ChLoad)
-%shared_ptr(chrono::ChLoadCustom)
-%shared_ptr(chrono::ChLoadCustomMultiple)
-%shared_ptr(chrono::ChLoadBodyForce)
-%shared_ptr(chrono::ChLoadBodyTorque)
-%shared_ptr(chrono::ChLoadBodyBody)
-%shared_ptr(chrono::ChLoadBodyBodyTorque)
-%shared_ptr(chrono::ChLoadBodyBodyBushingSpherical)
-%shared_ptr(chrono::ChLoadBodyBodyBushingPlastic)
-%shared_ptr(chrono::ChLoadBodyBodyBushingMate)
-%shared_ptr(chrono::ChLoadBodyBodyBushingPlastic)
-%shared_ptr(chrono::ChLoadBodyBodyBushingGeneric)
+
+
 
 %shared_ptr(chrono::geometry::ChGeometry)
 %shared_ptr(chrono::geometry::ChLine)
@@ -319,6 +251,8 @@ using namespace chrono::fea;
 %shared_ptr(chrono::geometry::ChTriangleMeshConnected)
 %shared_ptr(chrono::geometry::ChTriangleMeshSoup)
 
+
+
 //
 // B- INCLUDE HEADERS
 //
@@ -340,22 +274,22 @@ using namespace chrono::fea;
 //  core/  classes
 %include "ChException.i"
 %include "ChClassFactory.i"
-%include "../chrono/physics/ChGlobal.h"
+%include "../chrono/core/ChGlobal.h"
 //%include "ChArchive.i"
+%include "ChMatrix.i"
 %include "ChVector.i"
 #define Vector ChVector<double>
 %include "ChQuaternion.i"
+%include "../chrono/core/ChBezierCurve.h"
 #define Quaternion ChQuaternion<double>
+%include "ChMatrix33.i"
 %include "ChCoordsys.i"
 #define Coordsys ChCoordsys<double>
 %include "ChFrame.i"
 %include "ChFrameMoving.i"
-%include "ChLinearAlgebra.i"
 %include "ChStream.i"
 %include "ChLog.i"
 %include "ChMathematics.i"
-%include "ChMatrix.i"
-%include "ChVectorDynamic.i"
 %include "ChTimer.i"
 %include "ChRealtimeStep.i"
 %include "ChTransform.i"
@@ -368,6 +302,7 @@ using namespace chrono::fea;
 
 %include "ChCollisionModel.i"
 %include "../chrono/collision/ChCCollisionUtils.h"
+%include "../chrono/collision/ChCCollisionSystem.h"
 
 // assets
 %include "ChAsset.i"
@@ -387,19 +322,19 @@ using namespace chrono::fea;
 %include "../chrono/assets/ChSurfaceShape.h"
 %include "../chrono/assets/ChTriangleMeshShape.h"
 %include "../chrono/assets/ChEllipsoidShape.h"
+%include "../chrono/assets/ChGlyphs.h"
+
 
 // physics/  classes
 //%include "../chrono/physics/ChTensors.h"
 //%template(ChVoightTensorD) chrono::fea::ChVoightTensor<double>;
 //%template(ChStressTensorD) chrono::fea::ChStressTensor<double>;
 //%template(ChStrainTensorD) chrono::fea::ChStrainTensor<double>;
-%include "../chrono/physics/ChContinuumMaterial.h"
+%include "ChLoadable.i"
 %include "ChObject.i"
 %include "ChPhysicsItem.i"
 %include "../chrono/physics/ChIndexedNodes.h"
 %include "ChMaterialSurface.i"
-%include "ChMaterialSurfaceNSC.i"
-%include "ChMaterialSurfaceSMC.i"
 %include "../chrono/physics/ChNodeBase.h"
 %include "../chrono/physics/ChNodeXYZ.h"
 %include "ChBodyFrame.i"
@@ -411,54 +346,44 @@ using namespace chrono::fea;
 %include "ChConveyor.i"
 %include "ChIndexedParticles.i"
 %include "ChParticlesClones.i"
-%include "ChAssembly.i"
-%include "../chrono/timestepper/ChTimestepper.h"
-%include "../chrono/solver/ChSolver.h"
-%include "ChSystem.i"
-%include "ChSystemNSC.i"
-%include "ChSystemSMC.i"
-%include "ChContactContainer.i"
-%include "ChProximityContainer.i"
-%include "ChLoadContainer.i"
 %include "ChLinkBase.i"
 %include "ChLink.i"
 %include "ChLinkMarkers.i"
-%include "ChLinkMasked.i"
 %include "ChLinkLimit.i"
 %include "ChLinkForce.i"
 %include "ChLinkLock.i"
-%include "ChLinkEngine.i"
 %include "ChLinkMate.i"
 %include "ChLinkDistance.i"
 %include "ChLinkLinActuator.i"
 %include "ChLinkPulley.i"
 %include "ChLinkScrew.i"
 %include "ChLinkSpring.i"
-%include "ChLinkSpringCB.i"
+%include "ChLinkTSDA.i"
+%include "ChLinkRSDA.i"
 %include "ChLinkGear.i"
 %include "ChLinkRevolute.i"
 %include "ChLinkRevoluteSpherical.i"
 %include "ChLinkUniversal.i" 
 %include "ChLinkTrajectory.i" 
 %include "ChLinkPointSpline.i"
-
+%include "ChAssembly.i"
+%include "ChTimestepper.i"
+%include "ChSolver.i"
+%include "ChContactContainer.i"
+%include "ChSystem.i"
+%include "ChSystemNSC.i"
+%include "ChSystemSMC.i"
+%include "ChProximityContainer.i"
+%include "ChLoader.i"
+%include "ChLoad.i"
+%include "ChLoadContainer.i"
 %include "ChShaft.i"
-%include "ChShaftsCouple.i"
-%include "ChShaftsBody.i"
-%include "ChShaftsClutch.i"
-%include "ChShaftsMotor.i"
-%include "ChShaftsTorqueBase.i"
-%include "ChShaftsTorsionSpring.i"
-%include "ChShaftsPlanetary.i"
-%include "ChShaftsThermalEngine.i"
+%include "ChShaftMotor.i"
 %include "ChLinkMotor.i"
-%include "../chrono/physics/ChLoad.h"
-%include "../chrono/physics/ChLoadsBody.h"
-%include "../chrono/physics/ChLoadContainer.h"
 
+// Utils
 
-
-
+%include "../chrono/utils/ChUtilsInputOutput.h"
 
 //
 // C- DOWNCASTING OF SHARED POINTERS
@@ -467,7 +392,7 @@ using namespace chrono::fea;
 // %downcast_output_sharedptr(...) macro, as above, but this causes
 // a lot of code bloat. So in the following we create a set of Python-side
 // functions to perform casting by hand, thank to the macro 
-// %DefChSharedPtrDynamicDowncast(base,derived). 
+// %DefSharedPtrDynamicDowncast(base,derived). 
 // Do not specify the "chrono::" namespace before base or derived!
 // Later, in python, you can do the following:
 //  myvis = chrono.CastToChVisualizationShared(myasset)
@@ -476,156 +401,154 @@ using namespace chrono::fea;
 // enable _automatic_ downcasting from ChAsset to derived classes (shared pointers versions)
 %downcast_output_sharedptr(chrono::ChAsset, chrono::ChVisualization, chrono::ChObjShapeFile, chrono::ChBoxShape, chrono::ChSphereShape, chrono::ChCylinderShape, chrono::ChTexture, chrono::ChAssetLevel, chrono::ChCamera, chrono::ChColorAsset)
 
-%DefChSharedPtrDynamicDowncast(ChAsset,ChVisualization)
-%DefChSharedPtrDynamicDowncast(ChAsset,ChObjShapeFile)
-%DefChSharedPtrDynamicDowncast(ChAsset,ChBoxShape)
-%DefChSharedPtrDynamicDowncast(ChAsset,ChSphereShape)
-%DefChSharedPtrDynamicDowncast(ChAsset,ChCylinderShape)
-%DefChSharedPtrDynamicDowncast(ChAsset,ChTexture)
-%DefChSharedPtrDynamicDowncast(ChAsset,ChAssetLevel)
-%DefChSharedPtrDynamicDowncast(ChAsset,ChCamera)
-%DefChSharedPtrDynamicDowncast(ChAsset,ChLineShape)
-%DefChSharedPtrDynamicDowncast(ChAsset,ChSurfaceShape)
-%DefChSharedPtrDynamicDowncast(ChAsset,ChPathShape)
-%DefChSharedPtrDynamicDowncast(ChAsset,ChPointPointDrawing)
-%DefChSharedPtrDynamicDowncast(ChAsset,ChPointPointSegment)
-%DefChSharedPtrDynamicDowncast(ChAsset,ChPointPointSpring)
-%DefChSharedPtrDynamicDowncast(ChAsset,ChTriangleMeshShape)
-%DefChSharedPtrDynamicDowncast(ChAsset,ChEllipsoidShape)
+%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChVisualization)
+%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChObjShapeFile)
+%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChBoxShape)
+%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChSphereShape)
+%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChCylinderShape)
+%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChTexture)
+%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChAssetLevel)
+%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChCamera)
+%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChLineShape)
+%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChSurfaceShape)
+%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChPathShape)
+%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChPointPointDrawing)
+%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChPointPointSegment)
+%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChPointPointSpring)
+%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChTriangleMeshShape)
+%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChEllipsoidShape)
 
-%DefChSharedPtrDynamicDowncast(ChBodyFrame, ChBody)
-%DefChSharedPtrDynamicDowncast(ChBodyFrame, ChBodyAuxRef)
-%DefChSharedPtrDynamicDowncast(ChBodyFrame, ChConveyor)
-%DefChSharedPtrDynamicDowncast(ChBody, ChBodyFrame)  // <- upcast, for testing & workaround
-%DefChSharedPtrDynamicDowncast(ChBodyAuxRef, ChBodyFrame)  // <- upcast, for testing & workaround
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChBody)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChConveyor)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChBodyAuxRef)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChIndexedParticles)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChParticlesClones)
+%DefSharedPtrDynamicDowncast(chrono,ChBodyFrame, ChBody)
+%DefSharedPtrDynamicDowncast(chrono,ChBodyFrame, ChBodyAuxRef)
+%DefSharedPtrDynamicDowncast(chrono,ChBodyFrame, ChConveyor)
+%DefSharedPtrDynamicDowncast(chrono,ChBody, ChBodyFrame)  // <- upcast, for testing & workaround
+%DefSharedPtrDynamicDowncast(chrono,ChBodyAuxRef, ChBodyFrame)  // <- upcast, for testing & workaround
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChBody)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChConveyor)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChBodyAuxRef)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChIndexedParticles)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChParticlesClones)
 
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLink)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMarkers)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMasked)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkLock)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkLockLock)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkLockRevolute)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkLockSpherical)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkLockCylindrical)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkLockPrismatic)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkLockPointPlane)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkLockPointLine)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkLockOldham)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkLockFree)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkLockAlign)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkLockParallel)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkLockPerpend)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkEngine)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMate)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMateGeneric)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMatePlane)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMateCoaxial)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMateSpherical)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMateXdistance)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMateParallel)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMateOrthogonal)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMateFix)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkGear)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkDistance)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkLinActuator)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkPulley)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkScrew)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkSpring)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkSpringCB)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMotor)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMotorLinear)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMotorLinearDriveline)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMotorLinearForce)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMotorLinearPosition)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMotorLinearSpeed)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMotorRotation)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMotorRotationAngle)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMotorRotationDriveline)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMotorRotationSpeed)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMotorRotationTorque)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLoadContainer)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLink)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkMarkers)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkLock)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkLockLock)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkLockRevolute)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkLockSpherical)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkLockCylindrical)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkLockPrismatic)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkLockPointPlane)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkLockPointLine)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkLockOldham)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkLockFree)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkLockAlign)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkLockParallel)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkLockPerpend)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkMate)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkMateGeneric)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkMatePlane)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkMateCoaxial)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkMateSpherical)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkMateXdistance)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkMateParallel)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkMateOrthogonal)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkMateFix)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkGear)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkDistance)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkLinActuator)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkPulley)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkScrew)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkSpring)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkTSDA)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkRotSpringCB)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkMotor)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkMotorLinear)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkMotorLinearDriveline)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkMotorLinearForce)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkMotorLinearPosition)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkMotorLinearSpeed)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkMotorRotation)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkMotorRotationAngle)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkMotorRotationDriveline)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkMotorRotationSpeed)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkMotorRotationTorque)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLoadContainer)
 
-%DefChSharedPtrDynamicDowncast(ChLink, ChLinkMarkers)
-%DefChSharedPtrDynamicDowncast(ChLink, ChLinkMasked)
-%DefChSharedPtrDynamicDowncast(ChLink, ChLinkLock)
-%DefChSharedPtrDynamicDowncast(ChLink, ChLinkLockLock)
-%DefChSharedPtrDynamicDowncast(ChLink, ChLinkLockRevolute)
-%DefChSharedPtrDynamicDowncast(ChLink, ChLinkLockSpherical)
-%DefChSharedPtrDynamicDowncast(ChLink, ChLinkLockCylindrical)
-%DefChSharedPtrDynamicDowncast(ChLink, ChLinkLockPrismatic)
-%DefChSharedPtrDynamicDowncast(ChLink, ChLinkLockPointPlane)
-%DefChSharedPtrDynamicDowncast(ChLink, ChLinkLockPointLine)
-%DefChSharedPtrDynamicDowncast(ChLink, ChLinkLockOldham)
-%DefChSharedPtrDynamicDowncast(ChLink, ChLinkLockFree)
-%DefChSharedPtrDynamicDowncast(ChLink, ChLinkLockAlign)
-%DefChSharedPtrDynamicDowncast(ChLink, ChLinkLockParallel)
-%DefChSharedPtrDynamicDowncast(ChLink, ChLinkLockPerpend)
-%DefChSharedPtrDynamicDowncast(ChLink, ChLinkEngine)
-%DefChSharedPtrDynamicDowncast(ChLink, ChLinkMate)
-%DefChSharedPtrDynamicDowncast(ChLink, ChLinkMateGeneric)
-%DefChSharedPtrDynamicDowncast(ChLink, ChLinkMatePlane)
-%DefChSharedPtrDynamicDowncast(ChLink, ChLinkMateCoaxial)
-%DefChSharedPtrDynamicDowncast(ChLink, ChLinkMateSpherical)
-%DefChSharedPtrDynamicDowncast(ChLink, ChLinkMateXdistance)
-%DefChSharedPtrDynamicDowncast(ChLink, ChLinkMateParallel)
-%DefChSharedPtrDynamicDowncast(ChLink, ChLinkMateOrthogonal)
-%DefChSharedPtrDynamicDowncast(ChLink, ChLinkMateFix)
-%DefChSharedPtrDynamicDowncast(ChLink, ChLinkGear)
-%DefChSharedPtrDynamicDowncast(ChLink, ChLinkDistance)
-%DefChSharedPtrDynamicDowncast(ChLink, ChLinkLinActuator)
-%DefChSharedPtrDynamicDowncast(ChLink, ChLinkPulley)
-%DefChSharedPtrDynamicDowncast(ChLink, ChLinkScrew)
-%DefChSharedPtrDynamicDowncast(ChLink, ChLinkSpring)
-%DefChSharedPtrDynamicDowncast(ChLink, ChLinkPointSpline) 
-%DefChSharedPtrDynamicDowncast(ChLink, ChLinkTrajectory)
+%DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkMarkers)
+%DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkLock)
+%DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkLockLock)
+%DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkLockRevolute)
+%DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkLockSpherical)
+%DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkLockCylindrical)
+%DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkLockPrismatic)
+%DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkLockPointPlane)
+%DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkLockPointLine)
+%DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkLockOldham)
+%DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkLockFree)
+%DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkLockAlign)
+%DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkLockParallel)
+%DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkLockPerpend)
+%DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkMate)
+%DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkMateGeneric)
+%DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkMatePlane)
+%DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkMateCoaxial)
+%DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkMateSpherical)
+%DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkMateXdistance)
+%DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkMateParallel)
+%DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkMateOrthogonal)
+%DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkMateFix)
+%DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkGear)
+%DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkDistance)
+%DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkLinActuator)
+%DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkPulley)
+%DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkScrew)
+%DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkSpring)
+%DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkTSDA)
+%DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkPointSpline) 
+%DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkTrajectory)
 
-%DefChSharedPtrDynamicDowncast(ChFunction, ChFunction_Const)
-%DefChSharedPtrDynamicDowncast(ChFunction, ChFunction_ConstAcc)
-%DefChSharedPtrDynamicDowncast(ChFunction, ChFunction_Derive)
-%DefChSharedPtrDynamicDowncast(ChFunction, ChFunction_Fillet3)
-%DefChSharedPtrDynamicDowncast(ChFunction, ChFunction_Integrate)
-%DefChSharedPtrDynamicDowncast(ChFunction, ChFunction_Mirror)
-%DefChSharedPtrDynamicDowncast(ChFunction, ChFunction_Mocap)
-%DefChSharedPtrDynamicDowncast(ChFunction, ChFunction_Noise)
-%DefChSharedPtrDynamicDowncast(ChFunction, ChFunction_Operation)
-%DefChSharedPtrDynamicDowncast(ChFunction, ChFunction_Oscilloscope)
-%DefChSharedPtrDynamicDowncast(ChFunction, ChFunction_Poly)
-%DefChSharedPtrDynamicDowncast(ChFunction, ChFunction_Poly345)
-%DefChSharedPtrDynamicDowncast(ChFunction, ChFunction_Ramp)
-%DefChSharedPtrDynamicDowncast(ChFunction, ChFunction_Recorder)
-%DefChSharedPtrDynamicDowncast(ChFunction, ChFunction_Repeat)
-%DefChSharedPtrDynamicDowncast(ChFunction, ChFunction_Sequence)
-%DefChSharedPtrDynamicDowncast(ChFunction, ChFunction_Sigma)
-%DefChSharedPtrDynamicDowncast(ChFunction, ChFunction_Sine)
+%DefSharedPtrDynamicDowncast(chrono,ChFunction, ChFunction_Const)
+%DefSharedPtrDynamicDowncast(chrono,ChFunction, ChFunction_ConstAcc)
+%DefSharedPtrDynamicDowncast(chrono,ChFunction, ChFunction_Derive)
+%DefSharedPtrDynamicDowncast(chrono,ChFunction, ChFunction_Fillet3)
+%DefSharedPtrDynamicDowncast(chrono,ChFunction, ChFunction_Integrate)
+%DefSharedPtrDynamicDowncast(chrono,ChFunction, ChFunction_Mirror)
+%DefSharedPtrDynamicDowncast(chrono,ChFunction, ChFunction_Mocap)
+%DefSharedPtrDynamicDowncast(chrono,ChFunction, ChFunction_Noise)
+%DefSharedPtrDynamicDowncast(chrono,ChFunction, ChFunction_Operation)
+%DefSharedPtrDynamicDowncast(chrono,ChFunction, ChFunction_Oscilloscope)
+%DefSharedPtrDynamicDowncast(chrono,ChFunction, ChFunction_Poly)
+%DefSharedPtrDynamicDowncast(chrono,ChFunction, ChFunction_Poly345)
+%DefSharedPtrDynamicDowncast(chrono,ChFunction, ChFunction_Ramp)
+%DefSharedPtrDynamicDowncast(chrono,ChFunction, ChFunction_Recorder)
+%DefSharedPtrDynamicDowncast(chrono,ChFunction, ChFunction_Repeat)
+%DefSharedPtrDynamicDowncast(chrono,ChFunction, ChFunction_Sequence)
+%DefSharedPtrDynamicDowncast(chrono,ChFunction, ChFunction_Sigma)
+%DefSharedPtrDynamicDowncast(chrono,ChFunction, ChFunction_Sine)
 
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChShaft)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChShaftsBody)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChShaftsCouple)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChShaftsClutch)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChShaftsMotor)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChShaftsTorsionSpring)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChShaftsPlanetary)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChShaftsTorqueBase)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChShaftsThermalEngine)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChShaft)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChShaftsBody)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChShaftsCouple)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChShaftsClutch)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChShaftsMotor)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChShaftsTorsionSpring)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChShaftsPlanetary)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChShaftsTorqueBase)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChShaftsThermalEngine)
 
-%DefChSharedPtrDynamicDowncast(ChLoadBase, ChLoadCustom)
-%DefChSharedPtrDynamicDowncast(ChLoadBase, ChLoadCustomMultiple)
-%DefChSharedPtrDynamicDowncast(ChLoadBase, ChLoadBodyForce)
-%DefChSharedPtrDynamicDowncast(ChLoadBase, ChLoadBodyTorque)
-%DefChSharedPtrDynamicDowncast(ChLoadBase, ChLoadBodyBody)
-%DefChSharedPtrDynamicDowncast(ChLoadBase, ChLoadBodyBodyTorque)
-%DefChSharedPtrDynamicDowncast(ChLoadBase, ChLoadBodyBodyBushingSpherical)
-%DefChSharedPtrDynamicDowncast(ChLoadBase, ChLoadBodyBodyBushingPlastic)
-%DefChSharedPtrDynamicDowncast(ChLoadBase, ChLoadBodyBodyBushingMate)
-%DefChSharedPtrDynamicDowncast(ChLoadBase, ChLoadBodyBodyBushingGeneric)
+%DefSharedPtrDynamicDowncast(chrono,ChLoadBase, ChLoadCustom)
+%DefSharedPtrDynamicDowncast(chrono,ChLoadBase, ChLoadCustomMultiple)
+%DefSharedPtrDynamicDowncast(chrono,ChLoadBase, ChLoadBodyForce)
+%DefSharedPtrDynamicDowncast(chrono,ChLoadBase, ChLoadBodyTorque)
+%DefSharedPtrDynamicDowncast(chrono,ChLoadBase, ChLoadBodyBody)
+%DefSharedPtrDynamicDowncast(chrono,ChLoadBase, ChLoadBodyBodyTorque)
+%DefSharedPtrDynamicDowncast(chrono,ChLoadBase, ChLoadBodyBodyBushingSpherical)
+%DefSharedPtrDynamicDowncast(chrono,ChLoadBase, ChLoadBodyBodyBushingPlastic)
+%DefSharedPtrDynamicDowncast(chrono,ChLoadBase, ChLoadBodyBodyBushingMate)
+%DefSharedPtrDynamicDowncast(chrono,ChLoadBase, ChLoadBodyBodyBushingGeneric)
 
-%DefChSharedPtrDynamicDowncast(ChGeometry, ChTriangleMeshConnected)
-%DefChSharedPtrDynamicDowncast(ChGeometry, ChTriangleMeshSoup)
+%DefSharedPtrDynamicDowncast(chrono::geometry,ChGeometry, ChTriangleMeshConnected)
+%DefSharedPtrDynamicDowncast(chrono::geometry,ChGeometry, ChTriangleMeshSoup)
 
 // .. to complete
 

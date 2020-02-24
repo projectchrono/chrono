@@ -20,8 +20,6 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
-#include "chrono_thirdparty/rapidjson/filereadstream.h"
-
 using namespace chrono::fea;
 using namespace rapidjson;
 
@@ -32,15 +30,9 @@ namespace vehicle {
 // Constructors for ANCFTire
 // -----------------------------------------------------------------------------
 ANCFTire::ANCFTire(const std::string& filename) : ChANCFTire("") {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     ProcessJSON(d);
 
@@ -98,13 +90,13 @@ void ANCFTire::ProcessJSON(const rapidjson::Document& d) {
             double rho = d["Materials"][i]["Density"].GetDouble();
             double E = d["Materials"][i]["E"].GetDouble();
             double nu = d["Materials"][i]["nu"].GetDouble();
-            m_materials[i] = std::make_shared<ChMaterialShellANCF>(rho, E, nu);
+            m_materials[i] = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu);
         } else if (type.compare("Orthotropic") == 0) {
             double rho = d["Materials"][i]["Density"].GetDouble();
-            ChVector<> E = LoadVectorJSON(d["Materials"][i]["E"]);
-            ChVector<> nu = LoadVectorJSON(d["Materials"][i]["nu"]);
-            ChVector<> G = LoadVectorJSON(d["Materials"][i]["G"]);
-            m_materials[i] = std::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
+            ChVector<> E = ReadVectorJSON(d["Materials"][i]["E"]);
+            ChVector<> nu = ReadVectorJSON(d["Materials"][i]["nu"]);
+            ChVector<> G = ReadVectorJSON(d["Materials"][i]["G"]);
+            m_materials[i] = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
         }
     }
 
@@ -211,7 +203,7 @@ void ANCFTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) 
             ChVector<> nrm_prf = Vcross(tan_prf, nrm).GetNormalized();
             ChVector<> dir = wheel_frame.TransformDirectionLocalToParent(nrm_prf);
 
-            auto node = std::make_shared<ChNodeFEAxyzD>(loc, dir);
+            auto node = chrono_types::make_shared<ChNodeFEAxyzD>(loc, dir);
 
             // Node velocity
             ChVector<> vel = wheel_frame.PointSpeedLocalToParent(ChVector<>(x, y, z));
@@ -242,7 +234,7 @@ void ANCFTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) 
             auto node3 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_mesh->GetNode(inode3));
 
             // Create the element and set its nodes.
-            auto element = std::make_shared<ChElementShellANCF>();
+            auto element = chrono_types::make_shared<ChElementShellANCF>();
             element->SetNodes(node0, node1, node2, node3);
 
             // Element dimensions

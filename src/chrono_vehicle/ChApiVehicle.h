@@ -40,9 +40,9 @@
     - the [tutorials](@ref tutorial_table_of_content_chrono_vehicle)
 
     @{
-        @defgroup vehicle_driver Driver models
-        @defgroup vehicle_powertrain Powertrain models
-        @defgroup vehicle_terrain Terrain models
+        @defgroup vehicle_driver Driver system
+        @defgroup vehicle_powertrain Powertrain system
+        @defgroup vehicle_terrain Terrain system
         @defgroup vehicle_utils Utility classes
         
         @defgroup vehicle_wheeled Wheeled vehicles
@@ -67,6 +67,7 @@
             @defgroup vehicle_tracked_brake Brake subsystem
             @defgroup vehicle_tracked_driveline Driveline subsystem
             @defgroup vehicle_tracked_shoe Track-shoe subsystem
+            @defgroup vehicle_tracked_test_rig Track test rig classes
             @defgroup vehicle_tracked_utils Utility classes
         @}
     @}

@@ -26,6 +26,7 @@
 #include "chrono/core/ChStream.h"
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/physics/ChLinkDistance.h"
+#include "chrono/solver/ChSolverPSOR.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
@@ -106,7 +107,6 @@ int main(int argc, char* argv[]) {
 
     // Initialize the vehicle at the specified position.
     vehicle.Initialize(ChCoordsys<>(ChVector<>(0, 0, 1.2), QUNIT));
-    vehicle.SetStepsize(step_size);
 
     // Set visualization type for vehicle components
     vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
@@ -123,25 +123,25 @@ int main(int argc, char* argv[]) {
     ////vehicle.SetChassisVehicleCollide(false);
 
     // Solver settings.
-    vehicle.GetSystem()->SetSolverType(ChSolver::Type::SOR);
-    vehicle.GetSystem()->SetMaxItersSolverSpeed(50);
-    vehicle.GetSystem()->SetMaxItersSolverStab(50);
-    vehicle.GetSystem()->SetTol(0);
+    auto solver = chrono_types::make_shared<ChSolverPSOR>();
+    solver->SetMaxIterations(50);
+    solver->SetOmega(0.8);
+    solver->SetSharpnessLambda(1.0);
+    vehicle.GetSystem()->SetSolver(solver);
+
     vehicle.GetSystem()->SetMaxPenetrationRecoverySpeed(1.5);
     vehicle.GetSystem()->SetMinBounceSpeed(2.0);
-    vehicle.GetSystem()->SetSolverOverrelaxationParam(0.8);
-    vehicle.GetSystem()->SetSolverSharpnessParam(1.0);
 
     // Create the ground
     RigidTerrain terrain(vehicle.GetSystem(), vehicle::GetDataFile(rigidterrain_file));
 
     // Create and initialize the powertrain system
-    SimplePowertrain powertrain(vehicle::GetDataFile(simplepowertrain_file));
-    powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
+    auto powertrain = chrono_types::make_shared<SimplePowertrain>(vehicle::GetDataFile(simplepowertrain_file));
+    vehicle.InitializePowertrain(powertrain);
 
 #ifdef USE_IRRLICHT
 
-    ChVehicleIrrApp app(&vehicle, &powertrain, L"JSON Tracked Vehicle Demo");
+    ChTrackedVehicleIrrApp app(&vehicle, L"JSON Tracked Vehicle Demo");
 
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
@@ -183,11 +183,6 @@ int main(int argc, char* argv[]) {
     BodyStates shoe_states_right(vehicle.GetNumTrackShoes(RIGHT));
     TerrainForces shoe_forces_left(vehicle.GetNumTrackShoes(LEFT));
     TerrainForces shoe_forces_right(vehicle.GetNumTrackShoes(RIGHT));
-    double powertrain_torque;
-    double driveshaft_speed;
-    double throttle_input;
-    double steering_input;
-    double braking_input;
 
     // Number of simulation steps between two 3D view render frames
     int render_steps = (int)std::ceil(render_step_size / step_size);
@@ -197,7 +192,6 @@ int main(int argc, char* argv[]) {
 #ifdef USE_IRRLICHT
 
     ChRealtimeStepTimer realtime_timer;
-
     while (app.GetDevice()->run()) {
         // Render scene
         app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
@@ -205,28 +199,24 @@ int main(int argc, char* argv[]) {
         app.EndScene();
 
         // Collect output data from modules (for inter-module communication)
-        throttle_input = driver.GetThrottle();
-        steering_input = driver.GetSteering();
-        braking_input = driver.GetBraking();
-        powertrain_torque = powertrain.GetOutputTorque();
-        driveshaft_speed = vehicle.GetDriveshaftSpeed();
+        ChDriver::Inputs driver_inputs = driver.GetInputs();
         vehicle.GetTrackShoeStates(LEFT, shoe_states_left);
         vehicle.GetTrackShoeStates(RIGHT, shoe_states_right);
 
         // Update modules (process inputs from other modules)
         double time = vehicle.GetSystem()->GetChTime();
         driver.Synchronize(time);
-        powertrain.Synchronize(time, throttle_input, driveshaft_speed);
-        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, shoe_forces_left, shoe_forces_right);
-        app.Synchronize("", steering_input, throttle_input, braking_input);
+        vehicle.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
+        app.Synchronize("", driver_inputs);
 
         // Advance simulation for one timestep for all modules
-        double step = realtime_timer.SuggestSimulationStep(step_size);
-        driver.Advance(step);
-        powertrain.Advance(step);
-        vehicle.Advance(step);
-        terrain.Advance(step);
-        app.Advance(step);
+        driver.Advance(step_size);
+        vehicle.Advance(step_size);
+        terrain.Advance(step_size);
+        app.Advance(step_size);
+
+        // Spin in place for real time to catch up
+        realtime_timer.Spin(step_size);
     }
 
 #else
@@ -261,24 +251,18 @@ int main(int argc, char* argv[]) {
         }
 
         // Collect output data from modules (for inter-module communication)
-        throttle_input = driver.GetThrottle();
-        steering_input = driver.GetSteering();
-        braking_input = driver.GetBraking();
-        powertrain_torque = powertrain.GetOutputTorque();
-        driveshaft_speed = vehicle.GetDriveshaftSpeed();
+        ChDriver::Inputs driver_inputs = driver.GetInputs();
         vehicle.GetTrackShoeStates(LEFT, shoe_states_left);
         vehicle.GetTrackShoeStates(RIGHT, shoe_states_right);
 
         // Update modules (process inputs from other modules)
         time = vehicle.GetSystem()->GetChTime();
         driver.Synchronize(time);
-        powertrain.Synchronize(time, throttle_input, driveshaft_speed);
-        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, shoe_forces_left, shoe_forces_right);
+        vehicle.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
         terrain.Synchronize(time);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
-        powertrain.Advance(step_size);
         vehicle.Advance(step_size);
         terrain.Advance(step_size);
 

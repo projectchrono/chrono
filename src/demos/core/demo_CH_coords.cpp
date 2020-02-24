@@ -23,8 +23,6 @@
 #include "chrono/core/ChFrame.h"
 #include "chrono/core/ChFrameMoving.h"
 #include "chrono/core/ChTimer.h"
-#include "chrono/physics/ChMarker.h"
-#include "chrono/physics/ChBody.h"
 
 using namespace chrono;
 
@@ -185,7 +183,7 @@ int main(int argc, char* argv[]) {
     //
 
     GetLog() << mvect1 << " ..mvect1 \n";
-    mvect1 = mrotA.MatrT_x_Vect(mvect2 - vtraslA);  // like:  v1 = [A]'*(v2-t)
+    mvect1 = mrotA.transpose() * (mvect2 - vtraslA);  // like:  v1 = [A]'*(v2-t)
     GetLog() << mvect1 << " ..inv, using linear algebra, \n";
 
     // TRASFORM USING QUATERNION ROTATION
@@ -272,14 +270,10 @@ int main(int argc, char* argv[]) {
     GetLog() << " %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% \n\n";
 
     mrotA.Set_A_quaternion(qrotA);
-    ChMatrixNM<double, 3, 4> Fp;
-    ChFrame<>::SetMatrix_Fp(Fp, qrotA);
-    ChMatrixNM<double, 3, 4> Fm;
-    ChFrame<>::SetMatrix_Fm(Fm, qrotA);
-    ChMatrixNM<double, 3, 4> Gl;
-    ChFrame<>::SetMatrix_Gl(Gl, qrotA);
-    ChMatrixNM<double, 3, 4> Gw;
-    ChFrame<>::SetMatrix_Gw(Gw, qrotA);
+    ChFpMatrix34<> Fp(qrotA);
+    ChFmMatrix34<> Fm(qrotA);
+    ChGlMatrix34<> Gl(qrotA);
+    ChGwMatrix34<> Gw(qrotA);
 
     ChFrameMoving<> testa(vtraslA, qrotA);
     testa.SetPos_dt(ChVector<>(0.5, 0.6, 0.7));
@@ -307,8 +301,6 @@ int main(int argc, char* argv[]) {
 
     GetLog() << bres << " trasf loc->abs \n";
 
-    ChMatrixNM<double, 3, 4> mGl;
-    ChFrame<>::SetMatrix_Gl(mGl, qrotA);
     ChQuaternion<> pollo(3, 5, 6, 7);
     ChVector<> pallo(2, 4, 6);
 

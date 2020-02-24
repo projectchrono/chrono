@@ -25,13 +25,10 @@
 namespace chrono {
 
 /// Class representing a container of many non-smooth contacts.
-/// This is implemented as a typical linked list of ChContactNSC objects
-/// (that is, contacts between two ChContactable objects, with 3 reactions).
-/// It might also contain ChContactNSCrolling objects (extended versions of ChContactNSC,
-/// with 6 reactions, that account also for rolling and spinning resistance), but also
-/// for '6dof vs 6dof' contactables.
+/// Implemented using linked lists of ChContactNSC objects (that is, contacts between two ChContactable objects, with 3
+/// reactions). It might also contain ChContactNSCrolling objects (extended versions of ChContactNSC, with 6 reactions,
+/// that account also for rolling and spinning resistance), but also for '6dof vs 6dof' contactables.
 class ChApi ChContactContainerNSC : public ChContactContainer {
-
   public:
     typedef ChContactNSC<ChContactable_1vars<6>, ChContactable_1vars<6> > ChContactNSC_6_6;
     typedef ChContactNSC<ChContactable_1vars<6>, ChContactable_1vars<3> > ChContactNSC_6_3;
@@ -85,6 +82,8 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
 
     std::list<ChContactNSCrolling_6_6*>::iterator lastcontact_6_6_rolling;
 
+    std::unordered_map<ChContactable*, ForceTorque> contact_forces;
+
   public:
     ChContactContainerNSC();
     ChContactContainerNSC(const ChContactContainerNSC& other);
@@ -93,7 +92,7 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChContactContainerNSC* Clone() const override { return new ChContactContainerNSC(*this); }
 
-    /// Tell the number of added contacts
+    /// Report the number of added contacts.
     virtual int GetNcontacts() const override {
         return n_added_3_3 + n_added_6_3 + n_added_6_6 + n_added_333_3 + n_added_333_6 + n_added_333_333 +
                n_added_666_3 + n_added_666_6 + n_added_666_333 + n_added_666_666 + n_added_6_6_rolling;
@@ -102,39 +101,44 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
     /// Remove (delete) all contained contact data.
     virtual void RemoveAllContacts() override;
 
-    /// The collision system will call BeginAddContact() before adding
-    /// all contacts (for example with AddContact() or similar). Instead of
-    /// simply deleting all list of the previous contacts, this optimized implementation
-    /// rewinds the link iterator to begin and tries to reuse previous contact objects
-    /// until possible, to avoid too much allocation/deallocation.
+    /// The collision system will call BeginAddContact() before adding all contacts (for example with AddContact() or
+    /// similar). Instead of simply deleting all list of the previous contacts, this optimized implementation rewinds
+    /// the link iterator to begin and tries to reuse previous contact objects until possible, to avoid too much
+    /// allocation/deallocation.
     virtual void BeginAddContact() override;
 
     /// Add a contact between two frames.
     virtual void AddContact(const collision::ChCollisionInfo& mcontact) override;
 
-    /// The collision system will call BeginAddContact() after adding
-    /// all contacts (for example with AddContact() or similar). This optimized version
-    /// purges the end of the list of contacts that were not reused (if any).
+    /// The collision system will call BeginAddContact() after adding all contacts (for example with AddContact() or
+    /// similar). This optimized version purges the end of the list of contacts that were not reused (if any).
     virtual void EndAddContact() override;
 
-    /// Scans all the contacts and for each contact executes the OnReportContact()
-    /// function of the provided callback object.
+    /// Scan all the contacts and for each contact executes the OnReportContact() function of the provided callback
+    /// object.
     virtual void ReportAllContacts(ReportContactCallback* mcallback) override;
 
-    /// Tell the number of scalar bilateral constraints (actually, friction
-    /// constraints aren't exactly as unilaterals, but count them too)
+    /// Report the number of scalar unilateral constraints.
+    /// Note: friction constraints aren't exactly unilaterals, but they are still counted.
     virtual int GetDOC_d() override {
         return 3 * (n_added_3_3 + n_added_6_3 + n_added_6_6 + n_added_333_3 + n_added_333_6 + n_added_333_333 +
                     n_added_666_3 + n_added_666_6 + n_added_666_333 + n_added_666_666) +
                6 * (n_added_6_6_rolling);
     }
 
-    /// In detail, it computes jacobians, violations, etc. and stores
-    /// results in inner structures of contacts.
+    /// Update state of this contact container: compute jacobians, violations, etc.
+    /// and store results in inner structures of contacts.
     virtual void Update(double mtime, bool update_assets = true) override;
 
     /// Compute contact forces on all contactable objects in this container.
+    /// This function caches contact forces in a map.
     virtual void ComputeContactForces() override;
+
+    /// Return the resultant contact force acting on the specified contactable object.
+    virtual ChVector<> GetContactableForce(ChContactable* contactable) override;
+
+    /// Return the resultant contact torque acting on the specified contactable object.
+    virtual ChVector<> GetContactableTorque(ChContactable* contactable) override;
 
     //
     // STATE FUNCTIONS

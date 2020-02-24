@@ -33,7 +33,7 @@ class ChApi ChLinkRevoluteSpherical : public ChLink {
   public:
     ChLinkRevoluteSpherical();
     ChLinkRevoluteSpherical(const ChLinkRevoluteSpherical& other);
-    ~ChLinkRevoluteSpherical();
+    ~ChLinkRevoluteSpherical() {}
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkRevoluteSpherical* Clone() const override { return new ChLinkRevoluteSpherical(*this); }
@@ -66,7 +66,7 @@ class ChApi ChLinkRevoluteSpherical : public ChLink {
     virtual ChCoordsys<> GetLinkRelativeCoords() override;
 
     /// Get the joint violation (residuals of the constraint equations)
-    ChMatrix<>* GetC() { return m_C; }
+    const ChVectorN<double, 2>& GetC() const { return m_C; }
 
     /// Initialize this joint by specifying the two bodies to be connected, a
     /// coordinate system specified in the absolute frame, and the distance of
@@ -172,7 +172,7 @@ class ChApi ChLinkRevoluteSpherical : public ChLink {
     ChConstraintTwoBodies m_cnstr_dist;  ///< constraint: ||pos2_abs - pos1_abs|| - dist = 0
     ChConstraintTwoBodies m_cnstr_dot;   ///< constraint: dot(dir1_abs, pos2_abs - pos1_abs) = 0
 
-    ChMatrix<>* m_C;  ////< current constraint violations
+    ChVectorN<double, 2> m_C;  ////< current constraint violations
 
     double m_multipliers[2];  ///< Lagrange multipliers
 };

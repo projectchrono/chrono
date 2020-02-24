@@ -23,7 +23,7 @@ ChLinkMotorRotationTorque::ChLinkMotorRotationTorque() {
     this->c_rz = false;
     SetupLinkMask();
 
-    m_func = std::make_shared<ChFunction_Const>(0.0);
+    m_func = chrono_types::make_shared<ChFunction_Const>(0.0);
 }
 
 ChLinkMotorRotationTorque::ChLinkMotorRotationTorque(const ChLinkMotorRotationTorque& other)
@@ -41,16 +41,16 @@ void ChLinkMotorRotationTorque::IntLoadResidual_F(const unsigned int off, ChVect
 
     ChFrame<> aframe1 = this->frame1 >> (*this->Body1);
     ChFrame<> aframe2 = this->frame2 >> (*this->Body2);
-    Vector m_abs_torque = aframe2.GetA().Matr_x_Vect(ChVector<>(0, 0, mT));
+    Vector m_abs_torque = aframe2.GetA() * ChVector<>(0, 0, mT);
 
     if (Body2->Variables().IsActive()) {
-        R.PasteSumVector(Body2->TransformDirectionParentToLocal(m_abs_torque) * -c, Body2->Variables().GetOffset() + 3,
-                         0);
+        R.segment(Body2->Variables().GetOffset() + 3, 3) -=
+            c * Body2->TransformDirectionParentToLocal(m_abs_torque).eigen();
     }
 
     if (Body1->Variables().IsActive()) {
-        R.PasteSumVector(Body1->TransformDirectionParentToLocal(m_abs_torque) * c, Body1->Variables().GetOffset() + 3,
-                         0);
+        R.segment(Body1->Variables().GetOffset() + 3, 3) +=
+            c * Body1->TransformDirectionParentToLocal(m_abs_torque).eigen();
     }
 }
 
@@ -60,11 +60,10 @@ void ChLinkMotorRotationTorque::ConstraintsFbLoadForces(double factor) {
 
     ChFrame<> aframe1 = this->frame1 >> (*this->Body1);
     ChFrame<> aframe2 = this->frame2 >> (*this->Body2);
-    Vector m_abs_torque = aframe2.GetA().Matr_x_Vect(ChVector<>(0, 0, mT));
+    Vector m_abs_torque = aframe2.GetA() * ChVector<>(0, 0, mT);
 
-    Body2->Variables().Get_fb().PasteSumVector(Body2->TransformDirectionParentToLocal(m_abs_torque) * -factor, 3, 0);
-
-    Body1->Variables().Get_fb().PasteSumVector(Body1->TransformDirectionParentToLocal(m_abs_torque) * factor, 3, 0);
+    Body2->Variables().Get_fb().segment(3, 3) -= factor * Body2->TransformDirectionParentToLocal(m_abs_torque).eigen();
+    Body1->Variables().Get_fb().segment(3, 3) += factor * Body1->TransformDirectionParentToLocal(m_abs_torque).eigen();
 }
 
 void ChLinkMotorRotationTorque::ArchiveOUT(ChArchiveOut& marchive) {

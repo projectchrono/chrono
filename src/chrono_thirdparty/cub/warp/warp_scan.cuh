@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2015, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -178,7 +178,7 @@ private:
 
     /// Shared storage reference
     _TempStorage    &temp_storage;
-    int             lane_id;
+    unsigned int    lane_id;
 
 
 
@@ -253,9 +253,9 @@ public:
      */
     __device__ __forceinline__ void InclusiveSum(
         T               input,              ///< [in] Calling thread's input item.
-        T               &output)            ///< [out] Calling thread's output item.  May be aliased with \p input.
+        T               &inclusive_output)  ///< [out] Calling thread's output item.  May be aliased with \p input.
     {
-        InternalWarpScan(temp_storage).InclusiveScan(input, output, cub::Sum());
+        InclusiveScan(input, inclusive_output, cub::Sum());
     }
 
 
@@ -296,10 +296,10 @@ public:
      */
     __device__ __forceinline__ void InclusiveSum(
         T               input,              ///< [in] Calling thread's input item.
-        T               &output,            ///< [out] Calling thread's output item.  May be aliased with \p input.
+        T               &inclusive_output,  ///< [out] Calling thread's output item.  May be aliased with \p input.
         T               &warp_aggregate)    ///< [out] Warp-wide aggregate reduction of input items.
     {
-        InternalWarpScan(temp_storage).InclusiveScan(input, output, cub::Sum(), warp_aggregate);
+        InclusiveScan(input, inclusive_output, cub::Sum(), warp_aggregate);
     }
 
 
@@ -311,7 +311,7 @@ public:
 
 
     /**
-     * \brief Computes an exclusive prefix sum across the calling warp.
+     * \brief Computes an exclusive prefix sum across the calling warp.  The value of 0 is applied as the initial value, and is assigned to \p exclusive_output in <em>thread</em><sub>0</sub>.
      *
      * \par
      *  - \identityzero
@@ -348,14 +348,15 @@ public:
      */
     __device__ __forceinline__ void ExclusiveSum(
         T               input,              ///< [in] Calling thread's input item.
-        T               &output)            ///< [out] Calling thread's output item.  May be aliased with \p input.
+        T               &exclusive_output)  ///< [out] Calling thread's output item.  May be aliased with \p input.
     {
-        InternalWarpScan(temp_storage).ExclusiveScan(input, output, ZeroInitialize<T>(), cub::Sum());
+        T initial_value = 0;
+        ExclusiveScan(input, exclusive_output, initial_value, cub::Sum());
     }
 
 
     /**
-     * \brief Computes an exclusive prefix sum across the calling warp.  Also provides every thread with the warp-wide \p warp_aggregate of all inputs.
+     * \brief Computes an exclusive prefix sum across the calling warp.  The value of 0 is applied as the initial value, and is assigned to \p exclusive_output in <em>thread</em><sub>0</sub>.  Also provides every thread with the warp-wide \p warp_aggregate of all inputs.
      *
      * \par
      *  - \identityzero
@@ -392,10 +393,11 @@ public:
      */
     __device__ __forceinline__ void ExclusiveSum(
         T               input,              ///< [in] Calling thread's input item.
-        T               &output,            ///< [out] Calling thread's output item.  May be aliased with \p input.
+        T               &exclusive_output,  ///< [out] Calling thread's output item.  May be aliased with \p input.
         T               &warp_aggregate)    ///< [out] Warp-wide aggregate reduction of input items.
     {
-        InternalWarpScan(temp_storage).ExclusiveScan(input, output, ZeroInitialize<T>(), cub::Sum(), warp_aggregate);
+        T initial_value = 0;
+        ExclusiveScan(input, exclusive_output, initial_value, cub::Sum(), warp_aggregate);
     }
 
 
@@ -444,10 +446,10 @@ public:
     template <typename ScanOp>
     __device__ __forceinline__ void InclusiveScan(
         T               input,              ///< [in] Calling thread's input item.
-        T               &output,            ///< [out] Calling thread's output item.  May be aliased with \p input.
+        T               &inclusive_output,  ///< [out] Calling thread's output item.  May be aliased with \p input.
         ScanOp          scan_op)            ///< [in] Binary scan operator
     {
-        InternalWarpScan(temp_storage).InclusiveScan(input, output, scan_op);
+        InternalWarpScan(temp_storage).InclusiveScan(input, inclusive_output, scan_op);
     }
 
 
@@ -494,11 +496,11 @@ public:
     template <typename ScanOp>
     __device__ __forceinline__ void InclusiveScan(
         T               input,              ///< [in] Calling thread's input item.
-        T               &output,            ///< [out] Calling thread's output item.  May be aliased with \p input.
+        T               &inclusive_output,  ///< [out] Calling thread's output item.  May be aliased with \p input.
         ScanOp          scan_op,            ///< [in] Binary scan operator
         T               &warp_aggregate)    ///< [out] Warp-wide aggregate reduction of input items.
     {
-        InternalWarpScan(temp_storage).InclusiveScan(input, output, scan_op, warp_aggregate);
+        InternalWarpScan(temp_storage).InclusiveScan(input, inclusive_output, scan_op, warp_aggregate);
     }
 
 
@@ -507,6 +509,63 @@ public:
      * \name Exclusive prefix scans
      *********************************************************************/
     //@{
+
+    /**
+     * \brief Computes an exclusive prefix scan using the specified binary scan functor across the calling warp.  Because no initial value is supplied, the \p output computed for <em>warp-lane</em><sub>0</sub> is undefined.
+     *
+     * \par
+     * - \smemreuse
+     *
+     * \par Snippet
+     * The code snippet below illustrates four concurrent warp-wide exclusive prefix max scans within a block of
+     * 128 threads (one per each of the 32-thread warps).
+     * \par
+     * \code
+     * #include <cub/cub.cuh>
+     *
+     * __global__ void ExampleKernel(...)
+     * {
+     *     // Specialize WarpScan for type int
+     *     typedef cub::WarpScan<int> WarpScan;
+     *
+     *     // Allocate WarpScan shared memory for 4 warps
+     *     __shared__ typename WarpScan::TempStorage temp_storage[4];
+     *
+     *     // Obtain one input item per thread
+     *     int thread_data = ...
+     *
+     *     // Compute exclusive warp-wide prefix max scans
+     *     int warp_id = threadIdx.x / 32;
+     *     WarpScan(temp_storage[warp_id]).ExclusiveScan(thread_data, thread_data, cub::Max());
+     *
+     * \endcode
+     * \par
+     * Suppose the set of input \p thread_data across the block of threads is <tt>{0, -1, 2, -3, ..., 126, -127}</tt>.
+     * The corresponding output \p thread_data in the first warp would be
+     * <tt>?, 0, 0, 2, ..., 28, 30</tt>, the output for the second warp would be <tt>?, 32, 32, 34, ..., 60, 62</tt>, etc.
+     * (The output \p thread_data in warp lane<sub>0</sub> is undefined.)
+     *
+     * \tparam ScanOp     <b>[inferred]</b> Binary scan operator type having member <tt>T operator()(const T &a, const T &b)</tt>
+     */
+    template <typename ScanOp>
+    __device__ __forceinline__ void ExclusiveScan(
+        T               input,              ///< [in] Calling thread's input item.
+        T               &exclusive_output,  ///< [out] Calling thread's output item.  May be aliased with \p input.
+        ScanOp          scan_op)            ///< [in] Binary scan operator
+    {
+        InternalWarpScan internal(temp_storage);
+
+        T inclusive_output;
+        internal.InclusiveScan(input, inclusive_output, scan_op);
+
+        internal.Update(
+            input,
+            inclusive_output,
+            exclusive_output,
+            scan_op,
+            Int2Type<IS_INTEGER>());
+    }
+
 
     /**
      * \brief Computes an exclusive prefix scan using the specified binary scan functor across the calling warp.
@@ -547,11 +606,83 @@ public:
     template <typename ScanOp>
     __device__ __forceinline__ void ExclusiveScan(
         T               input,              ///< [in] Calling thread's input item.
-        T               &output,            ///< [out] Calling thread's output item.  May be aliased with \p input.
-        T               identity,           ///< [in] Identity value
+        T               &exclusive_output,  ///< [out] Calling thread's output item.  May be aliased with \p input.
+        T               initial_value,      ///< [in] Initial value to seed the exclusive scan
         ScanOp          scan_op)            ///< [in] Binary scan operator
     {
-        InternalWarpScan(temp_storage).ExclusiveScan(input, output, identity, scan_op);
+        InternalWarpScan internal(temp_storage);
+
+        T inclusive_output;
+        internal.InclusiveScan(input, inclusive_output, scan_op);
+
+        internal.Update(
+            input,
+            inclusive_output,
+            exclusive_output,
+            scan_op,
+            initial_value,
+            Int2Type<IS_INTEGER>());
+    }
+
+
+    /**
+     * \brief Computes an exclusive prefix scan using the specified binary scan functor across the calling warp.  Because no initial value is supplied, the \p output computed for <em>warp-lane</em><sub>0</sub> is undefined.  Also provides every thread with the warp-wide \p warp_aggregate of all inputs.
+     *
+     * \par
+     * - \smemreuse
+     *
+     * \par Snippet
+     * The code snippet below illustrates four concurrent warp-wide exclusive prefix max scans within a block of
+     * 128 threads (one per each of the 32-thread warps).
+     * \par
+     * \code
+     * #include <cub/cub.cuh>
+     *
+     * __global__ void ExampleKernel(...)
+     * {
+     *     // Specialize WarpScan for type int
+     *     typedef cub::WarpScan<int> WarpScan;
+     *
+     *     // Allocate WarpScan shared memory for 4 warps
+     *     __shared__ typename WarpScan::TempStorage temp_storage[4];
+     *
+     *     // Obtain one input item per thread
+     *     int thread_data = ...
+     *
+     *     // Compute exclusive warp-wide prefix max scans
+     *     int warp_aggregate;
+     *     int warp_id = threadIdx.x / 32;
+     *     WarpScan(temp_storage[warp_id]).ExclusiveScan(thread_data, thread_data, cub::Max(), warp_aggregate);
+     *
+     * \endcode
+     * \par
+     * Suppose the set of input \p thread_data across the block of threads is <tt>{0, -1, 2, -3, ..., 126, -127}</tt>.
+     * The corresponding output \p thread_data in the first warp would be
+     * <tt>?, 0, 0, 2, ..., 28, 30</tt>, the output for the second warp would be <tt>?, 32, 32, 34, ..., 60, 62</tt>, etc.
+     * (The output \p thread_data in warp lane<sub>0</sub> is undefined.)  Furthermore, \p warp_aggregate would be assigned \p 30 for threads in the first warp, \p 62 for threads
+     * in the second warp, etc.
+     *
+     * \tparam ScanOp     <b>[inferred]</b> Binary scan operator type having member <tt>T operator()(const T &a, const T &b)</tt>
+     */
+    template <typename ScanOp>
+    __device__ __forceinline__ void ExclusiveScan(
+        T               input,              ///< [in] Calling thread's input item.
+        T               &exclusive_output,   ///< [out] Calling thread's output item.  May be aliased with \p input.
+        ScanOp          scan_op,            ///< [in] Binary scan operator
+        T               &warp_aggregate)    ///< [out] Warp-wide aggregate reduction of input items.
+    {
+        InternalWarpScan internal(temp_storage);
+
+        T inclusive_output;
+        internal.InclusiveScan(input, inclusive_output, scan_op);
+
+        internal.Update(
+            input,
+            inclusive_output,
+            exclusive_output,
+            warp_aggregate,
+            scan_op,
+            Int2Type<IS_INTEGER>());
     }
 
 
@@ -597,118 +728,25 @@ public:
     template <typename ScanOp>
     __device__ __forceinline__ void ExclusiveScan(
         T               input,              ///< [in] Calling thread's input item.
-        T               &output,            ///< [out] Calling thread's output item.  May be aliased with \p input.
-        T               identity,           ///< [in] Identity value
+        T               &exclusive_output,  ///< [out] Calling thread's output item.  May be aliased with \p input.
+        T               initial_value,      ///< [in] Initial value to seed the exclusive scan
         ScanOp          scan_op,            ///< [in] Binary scan operator
         T               &warp_aggregate)    ///< [out] Warp-wide aggregate reduction of input items.
     {
-        InternalWarpScan(temp_storage).ExclusiveScan(input, output, identity, scan_op, warp_aggregate);
+        InternalWarpScan internal(temp_storage);
+
+        T inclusive_output;
+        internal.InclusiveScan(input, inclusive_output, scan_op);
+
+        internal.Update(
+            input,
+            inclusive_output,
+            exclusive_output,
+            warp_aggregate,
+            scan_op,
+            initial_value,
+            Int2Type<IS_INTEGER>());
     }
-
-
-    //@}  end member group
-    /******************************************************************//**
-     * \name Identityless exclusive prefix scans
-     *********************************************************************/
-    //@{
-
-
-    /**
-     * \brief Computes an exclusive prefix scan using the specified binary scan functor across the calling warp.  Because no identity value is supplied, the \p output computed for <em>warp-lane</em><sub>0</sub> is undefined.
-     *
-     * \par
-     * - \smemreuse
-     *
-     * \par Snippet
-     * The code snippet below illustrates four concurrent warp-wide exclusive prefix max scans within a block of
-     * 128 threads (one per each of the 32-thread warps).
-     * \par
-     * \code
-     * #include <cub/cub.cuh>
-     *
-     * __global__ void ExampleKernel(...)
-     * {
-     *     // Specialize WarpScan for type int
-     *     typedef cub::WarpScan<int> WarpScan;
-     *
-     *     // Allocate WarpScan shared memory for 4 warps
-     *     __shared__ typename WarpScan::TempStorage temp_storage[4];
-     *
-     *     // Obtain one input item per thread
-     *     int thread_data = ...
-     *
-     *     // Compute exclusive warp-wide prefix max scans
-     *     int warp_id = threadIdx.x / 32;
-     *     WarpScan(temp_storage[warp_id]).ExclusiveScan(thread_data, thread_data, cub::Max());
-     *
-     * \endcode
-     * \par
-     * Suppose the set of input \p thread_data across the block of threads is <tt>{0, -1, 2, -3, ..., 126, -127}</tt>.
-     * The corresponding output \p thread_data in the first warp would be
-     * <tt>?, 0, 0, 2, ..., 28, 30</tt>, the output for the second warp would be <tt>?, 32, 32, 34, ..., 60, 62</tt>, etc.
-     * (The output \p thread_data in warp lane<sub>0</sub> is undefined.)
-     *
-     * \tparam ScanOp     <b>[inferred]</b> Binary scan operator type having member <tt>T operator()(const T &a, const T &b)</tt>
-     */
-    template <typename ScanOp>
-    __device__ __forceinline__ void ExclusiveScan(
-        T               input,              ///< [in] Calling thread's input item.
-        T               &output,            ///< [out] Calling thread's output item.  May be aliased with \p input.
-        ScanOp          scan_op)            ///< [in] Binary scan operator
-    {
-        InternalWarpScan(temp_storage).ExclusiveScan(input, output, scan_op);
-    }
-
-
-    /**
-     * \brief Computes an exclusive prefix scan using the specified binary scan functor across the calling warp.  Because no identity value is supplied, the \p output computed for <em>warp-lane</em><sub>0</sub> is undefined.  Also provides every thread with the warp-wide \p warp_aggregate of all inputs.
-     *
-     * \par
-     * - \smemreuse
-     *
-     * \par Snippet
-     * The code snippet below illustrates four concurrent warp-wide exclusive prefix max scans within a block of
-     * 128 threads (one per each of the 32-thread warps).
-     * \par
-     * \code
-     * #include <cub/cub.cuh>
-     *
-     * __global__ void ExampleKernel(...)
-     * {
-     *     // Specialize WarpScan for type int
-     *     typedef cub::WarpScan<int> WarpScan;
-     *
-     *     // Allocate WarpScan shared memory for 4 warps
-     *     __shared__ typename WarpScan::TempStorage temp_storage[4];
-     *
-     *     // Obtain one input item per thread
-     *     int thread_data = ...
-     *
-     *     // Compute exclusive warp-wide prefix max scans
-     *     int warp_aggregate;
-     *     int warp_id = threadIdx.x / 32;
-     *     WarpScan(temp_storage[warp_id]).ExclusiveScan(thread_data, thread_data, cub::Max(), warp_aggregate);
-     *
-     * \endcode
-     * \par
-     * Suppose the set of input \p thread_data across the block of threads is <tt>{0, -1, 2, -3, ..., 126, -127}</tt>.
-     * The corresponding output \p thread_data in the first warp would be
-     * <tt>?, 0, 0, 2, ..., 28, 30</tt>, the output for the second warp would be <tt>?, 32, 32, 34, ..., 60, 62</tt>, etc.
-     * (The output \p thread_data in warp lane<sub>0</sub> is undefined.)  Furthermore, \p warp_aggregate would be assigned \p 30 for threads in the first warp, \p 62 for threads
-     * in the second warp, etc.
-     *
-     * \tparam ScanOp     <b>[inferred]</b> Binary scan operator type having member <tt>T operator()(const T &a, const T &b)</tt>
-     */
-    template <typename ScanOp>
-    __device__ __forceinline__ void ExclusiveScan(
-        T               input,              ///< [in] Calling thread's input item.
-        T               &output,            ///< [out] Calling thread's output item.  May be aliased with \p input.
-        ScanOp          scan_op,            ///< [in] Binary scan operator
-        T               &warp_aggregate)    ///< [out] Warp-wide aggregate reduction of input items.
-    {
-        InternalWarpScan(temp_storage).ExclusiveScan(input, output, scan_op, warp_aggregate);
-    }
-
 
 
     //@}  end member group
@@ -717,15 +755,15 @@ public:
      *********************************************************************/
     //@{
 
+
     /**
-     * \brief Computes both inclusive and exclusive prefix sums across the calling warp.
+     * \brief Computes both inclusive and exclusive prefix scans using the specified binary scan functor across the calling warp.  Because no initial value is supplied, the \p exclusive_output computed for <em>warp-lane</em><sub>0</sub> is undefined.
      *
      * \par
-     *  - \identityzero
-     *  - \smemreuse
+     * - \smemreuse
      *
      * \par Snippet
-     * The code snippet below illustrates four concurrent warp-wide prefix sums within a block of
+     * The code snippet below illustrates four concurrent warp-wide exclusive prefix max scans within a block of
      * 128 threads (one per each of the 32-thread warps).
      * \par
      * \code
@@ -742,26 +780,38 @@ public:
      *     // Obtain one input item per thread
      *     int thread_data = ...
      *
-     *     // Compute in|exclusive warp-wide prefix sums
+     *     // Compute exclusive warp-wide prefix max scans
      *     int inclusive_partial, exclusive_partial;
-     *     int warp_id = threadIdx.x / 32;
-     *     WarpScan(temp_storage[warp_id]).Sum(thread_data, inclusive_partial, exclusive_partial);
+     *     WarpScan(temp_storage[warp_id]).Scan(thread_data, inclusive_partial, exclusive_partial, cub::Max());
      *
      * \endcode
      * \par
-     * Suppose the set of input \p thread_data across the block of threads is <tt>{1, 1, 1, 1, ...}</tt>.
-     * The corresponding output \p inclusive_partial in each of the four warps of threads will be
-     * <tt>1, 2, 3, ..., 32}</tt>.
-     * The corresponding output \p exclusive_partial in each of the four warps of threads will be
-     * <tt>0, 1, 2, ..., 31}</tt>.
+     * Suppose the set of input \p thread_data across the block of threads is <tt>{0, -1, 2, -3, ..., 126, -127}</tt>.
+     * The corresponding output \p inclusive_partial in the first warp would be
+     * <tt>0, 0, 2, 2, ..., 30, 30</tt>, the output for the second warp would be <tt>32, 32, 34, 34, ..., 62, 62</tt>, etc.
+     * The corresponding output \p exclusive_partial in the first warp would be
+     * <tt>?, 0, 0, 2, ..., 28, 30</tt>, the output for the second warp would be <tt>?, 32, 32, 34, ..., 60, 62</tt>, etc.
+     * (The output \p thread_data in warp lane<sub>0</sub> is undefined.)
      *
+     * \tparam ScanOp     <b>[inferred]</b> Binary scan operator type having member <tt>T operator()(const T &a, const T &b)</tt>
      */
-    __device__ __forceinline__ void Sum(
+    template <typename ScanOp>
+    __device__ __forceinline__ void Scan(
         T               input,              ///< [in] Calling thread's input item.
         T               &inclusive_output,  ///< [out] Calling thread's inclusive-scan output item.
-        T               &exclusive_output)  ///< [out] Calling thread's exclusive-scan output item.
+        T               &exclusive_output,  ///< [out] Calling thread's exclusive-scan output item.
+        ScanOp          scan_op)            ///< [in] Binary scan operator
     {
-        InternalWarpScan(temp_storage).Scan(input, inclusive_output, exclusive_output, ZeroInitialize<T>(), cub::Sum());
+        InternalWarpScan internal(temp_storage);
+
+        internal.InclusiveScan(input, inclusive_output, scan_op);
+
+        internal.Update(
+            input,
+            inclusive_output,
+            exclusive_output,
+            scan_op,
+            Int2Type<IS_INTEGER>());
     }
 
 
@@ -809,61 +859,23 @@ public:
         T               input,              ///< [in] Calling thread's input item.
         T               &inclusive_output,  ///< [out] Calling thread's inclusive-scan output item.
         T               &exclusive_output,  ///< [out] Calling thread's exclusive-scan output item.
-        T               identity,           ///< [in] Identity value
+        T               initial_value,      ///< [in] Initial value to seed the exclusive scan
         ScanOp          scan_op)            ///< [in] Binary scan operator
     {
-        InternalWarpScan(temp_storage).Scan(input, inclusive_output, exclusive_output, identity, scan_op);
+        InternalWarpScan internal(temp_storage);
+
+        internal.InclusiveScan(input, inclusive_output, scan_op);
+
+        internal.Update(
+            input,
+            inclusive_output,
+            exclusive_output,
+            scan_op,
+            initial_value,
+            Int2Type<IS_INTEGER>());
     }
 
 
-    /**
-     * \brief Computes both inclusive and exclusive prefix scans using the specified binary scan functor across the calling warp.  Because no identity value is supplied, the \p exclusive_output computed for <em>warp-lane</em><sub>0</sub> is undefined.
-     *
-     * \par
-     * - \smemreuse
-     *
-     * \par Snippet
-     * The code snippet below illustrates four concurrent warp-wide exclusive prefix max scans within a block of
-     * 128 threads (one per each of the 32-thread warps).
-     * \par
-     * \code
-     * #include <cub/cub.cuh>
-     *
-     * __global__ void ExampleKernel(...)
-     * {
-     *     // Specialize WarpScan for type int
-     *     typedef cub::WarpScan<int> WarpScan;
-     *
-     *     // Allocate WarpScan shared memory for 4 warps
-     *     __shared__ typename WarpScan::TempStorage temp_storage[4];
-     *
-     *     // Obtain one input item per thread
-     *     int thread_data = ...
-     *
-     *     // Compute exclusive warp-wide prefix max scans
-     *     int inclusive_partial, exclusive_partial;
-     *     WarpScan(temp_storage[warp_id]).Scan(thread_data, inclusive_partial, exclusive_partial, cub::Max());
-     *
-     * \endcode
-     * \par
-     * Suppose the set of input \p thread_data across the block of threads is <tt>{0, -1, 2, -3, ..., 126, -127}</tt>.
-     * The corresponding output \p inclusive_partial in the first warp would be
-     * <tt>0, 0, 2, 2, ..., 30, 30</tt>, the output for the second warp would be <tt>32, 32, 34, 34, ..., 62, 62</tt>, etc.
-     * The corresponding output \p exclusive_partial in the first warp would be
-     * <tt>?, 0, 0, 2, ..., 28, 30</tt>, the output for the second warp would be <tt>?, 32, 32, 34, ..., 60, 62</tt>, etc.
-     * (The output \p thread_data in warp lane<sub>0</sub> is undefined.)
-     *
-     * \tparam ScanOp     <b>[inferred]</b> Binary scan operator type having member <tt>T operator()(const T &a, const T &b)</tt>
-     */
-    template <typename ScanOp>
-    __device__ __forceinline__ void Scan(
-        T               input,              ///< [in] Calling thread's input item.
-        T               &inclusive_output,  ///< [out] Calling thread's inclusive-scan output item.
-        T               &exclusive_output,  ///< [out] Calling thread's exclusive-scan output item.
-        ScanOp          scan_op)            ///< [in] Binary scan operator
-    {
-        InternalWarpScan(temp_storage).Scan(input, inclusive_output, exclusive_output, scan_op);
-    }
 
     //@}  end member group
     /******************************************************************//**

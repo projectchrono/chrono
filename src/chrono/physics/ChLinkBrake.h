@@ -23,11 +23,9 @@ namespace chrono {
 /// including the sticking effect.
 /// It could be used to represent also linear brakes.
 /// This constraint can behave also as a clutch.
-///  ***OBSOLETE*** better add ChLinkEngine in ENG_MODE_TO_POWERTRAIN_SHAFT mode, and add a ChShaftsClutch between
-///  shafts
-
+///
+///  ***OBSOLETE***: consider using a ChLinkMotorRotation and add a ChShaftsClutch between shafts
 class ChApi ChLinkBrake : public ChLinkLock {
-
   protected:
     double brake_torque;  ///< applied torque.
     double stick_ratio;  ///< static sticking torque = stick ratio * brake torque (if <1, sticking effect is turned off)
@@ -52,11 +50,11 @@ class ChApi ChLinkBrake : public ChLinkLock {
 
     virtual void SetDisabled(bool mdis) override;
 
-    double Get_brake_torque() { return brake_torque; };
+    double Get_brake_torque() { return brake_torque; }
     void Set_brake_torque(double mset) { brake_torque = mset; }
-    double Get_stick_ratio() { return stick_ratio; };
+    double Get_stick_ratio() { return stick_ratio; }
     void Set_stick_ratio(double mset) { stick_ratio = mset; }
-    int Get_brake_mode() { return brake_mode; };
+    int Get_brake_mode() { return brake_mode; }
     void Set_brake_mode(int mmode);
 
     /// Method to allow serialization of transient data to archives.
@@ -66,7 +64,7 @@ class ChApi ChLinkBrake : public ChLinkLock {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-CH_CLASS_VERSION(ChLinkBrake,0)
+CH_CLASS_VERSION(ChLinkBrake, 0)
 
 }  // end namespace chrono
 

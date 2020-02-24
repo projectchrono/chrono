@@ -160,8 +160,8 @@ void ChShaftsClutch::ConstraintsFbLoadForces(double factor) {
 }
 
 void ChShaftsClutch::ConstraintsLoadJacobians() {
-    constraint.Get_Cq_a()->SetElement(0, 0, 1.0);
-    constraint.Get_Cq_b()->SetElement(0, 0, -1.0);
+    constraint.Get_Cq_a()(0) = 1.0;
+    constraint.Get_Cq_b()(0) = -1.0;
 }
 
 void ChShaftsClutch::ConstraintsFetch_react(double factor) {

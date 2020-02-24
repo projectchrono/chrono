@@ -58,9 +58,7 @@ void ChTrackAssembly::GetTrackShoeStates(BodyStates& states) const {
 // -----------------------------------------------------------------------------
 // Initialize this track assembly subsystem.
 // -----------------------------------------------------------------------------
-void ChTrackAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  // handle to the chassis body
-                                 const ChVector<>& location              // location relative to the chassis frame
-) {
+void ChTrackAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>& location, bool create_shoes) {
     // Initialize the sprocket, idler, and brake
     GetSprocket()->Initialize(chassis, location + GetSprocketLocation(), this);
     m_idler->Initialize(chassis, location + GetIdlerLocation());
@@ -74,6 +72,11 @@ void ChTrackAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  // hand
     // Initialize the roller subsystems
     for (size_t i = 0; i < m_rollers.size(); ++i) {
         m_rollers[i]->Initialize(chassis, location + GetRollerLocation(static_cast<int>(i)));
+    }
+
+    if (!create_shoes) {
+        RemoveTrackShoes();
+        return;
     }
 
     // Assemble the track. This positions all track shoes around the sprocket,

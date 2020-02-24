@@ -29,14 +29,13 @@ namespace hmmwv {
 // Static variables
 // -----------------------------------------------------------------------------
 
-const double HMMWV_RigidTire::m_radius = 0.4673;
+const double HMMWV_RigidTire::m_radius = 0.467;
 const double HMMWV_RigidTire::m_width = 0.254;
 
 const double HMMWV_RigidTire::m_mass = 37.6;
 const ChVector<> HMMWV_RigidTire::m_inertia(3.84, 6.69, 3.84);
 
-const std::string HMMWV_RigidTire::m_meshName = "hmmwv_tire_POV_geom";
-const std::string HMMWV_RigidTire::m_meshFile = "hmmwv/hmmwv_tire.obj";
+const std::string HMMWV_RigidTire::m_meshFile = "hmmwv/hmmwv_tire_fine.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -47,7 +46,7 @@ HMMWV_RigidTire::HMMWV_RigidTire(const std::string& name, bool use_mesh) : ChRig
     SetContactMaterialCoefficients(2e5f, 40.0f, 2e5f, 20.0f);
 
     if (use_mesh) {
-        SetMeshFilename(GetDataFile("hmmwv/hmmwv_tire.obj"), 0.005);
+        SetMeshFilename(GetDataFile("hmmwv/hmmwv_tire_fine.obj"), 0.005);
     }
 }
 
@@ -55,13 +54,8 @@ HMMWV_RigidTire::HMMWV_RigidTire(const std::string& name, bool use_mesh) : ChRig
 // -----------------------------------------------------------------------------
 void HMMWV_RigidTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
-        trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
-        m_trimesh_shape = std::make_shared<ChTriangleMeshShape>();
-        m_trimesh_shape->SetMesh(trimesh);
-        m_trimesh_shape->SetName(m_meshName);
-        m_trimesh_shape->SetStatic(true);
-        m_wheel->AddAsset(m_trimesh_shape);
+        m_trimesh_shape = AddVisualizationMesh(vehicle::GetDataFile(m_meshFile),   // left side
+                                               vehicle::GetDataFile(m_meshFile));  // right side
     } else {
         ChRigidTire::AddVisualizationAssets(vis);
     }
@@ -69,13 +63,7 @@ void HMMWV_RigidTire::AddVisualizationAssets(VisualizationType vis) {
 
 void HMMWV_RigidTire::RemoveVisualizationAssets() {
     ChRigidTire::RemoveVisualizationAssets();
-
-    // Make sure we only remove the assets added by HMMWV_RigidTire::AddVisualizationAssets.
-    // This is important for the ChTire object because a wheel may add its own assets
-    // to the same body (the spindle/wheel).
-    auto it = std::find(m_wheel->GetAssets().begin(), m_wheel->GetAssets().end(), m_trimesh_shape);
-    if (it != m_wheel->GetAssets().end())
-        m_wheel->GetAssets().erase(it);
+    RemoveVisualizationMesh(m_trimesh_shape);
 }
 
 }  // end namespace hmmwv

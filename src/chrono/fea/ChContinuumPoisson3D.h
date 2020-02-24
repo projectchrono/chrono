@@ -15,7 +15,7 @@
 #ifndef CHCONTINUUMPOISSON3D_H
 #define CHCONTINUUMPOISSON3D_H
 
-#include "chrono/physics/ChContinuumMaterial.h"
+#include "chrono/fea/ChContinuumMaterial.h"
 
 namespace chrono {
 namespace fea {
@@ -32,11 +32,10 @@ class ChApi ChContinuumPoisson3D : public ChContinuumMaterial {
 
   public:
     ChContinuumPoisson3D() {
-        ConstitutiveMatrix.Resize(3, 3);
-        ConstitutiveMatrix.FillDiag(1.0);
+        ConstitutiveMatrix.setIdentity(3,3);
     }
     ChContinuumPoisson3D(const ChContinuumPoisson3D& other) : ChContinuumMaterial(other) {
-        ConstitutiveMatrix.CopyFromMatrix(other.ConstitutiveMatrix);
+        ConstitutiveMatrix = other.ConstitutiveMatrix;
     }
     virtual ~ChContinuumPoisson3D() {}
 

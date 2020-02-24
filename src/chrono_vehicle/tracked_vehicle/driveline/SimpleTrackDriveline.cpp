@@ -17,8 +17,7 @@
 // =============================================================================
 
 #include "chrono_vehicle/tracked_vehicle/driveline/SimpleTrackDriveline.h"
-
-#include "chrono_thirdparty/rapidjson/filereadstream.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 using namespace rapidjson;
 
@@ -28,15 +27,9 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 SimpleTrackDriveline::SimpleTrackDriveline(const std::string& filename) : ChSimpleTrackDriveline("") {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     Create(d);
 

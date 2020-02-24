@@ -85,21 +85,43 @@ void ChMesh::SetNoSpeedNoAcceleration() {
 void ChMesh::AddNode(std::shared_ptr<ChNodeFEAbase> m_node) {
     m_node->SetIndex(static_cast<unsigned int>(vnodes.size()) + 1);
     vnodes.push_back(m_node);
+
+    // If the mesh is already added to a system, mark the system uninitialized and out-of-date
+    if (system) {
+        system->is_initialized = false;
+        system->is_updated = false;
+    }
 }
 
 void ChMesh::AddElement(std::shared_ptr<ChElementBase> m_elem) {
     velements.push_back(m_elem);
+
+    // If the mesh is already added to a system, mark the system uninitialized and out-of-date
+    if (system) {
+        system->is_initialized = false;
+        system->is_updated = false;
+    }
 }
 
 void ChMesh::ClearElements() {
     velements.clear();
     vcontactsurfaces.clear();
+
+    // If the mesh is already added to a system, mark the system out-of-date
+    if (system) {
+        system->is_updated = false;
+    }
 }
 
 void ChMesh::ClearNodes() {
     velements.clear();
     vnodes.clear();
     vcontactsurfaces.clear();
+
+    // If the mesh is already added to a system, mark the system out-of-date
+    if (system) {
+        system->is_updated = false;
+    }
 }
 
 void ChMesh::AddContactSurface(std::shared_ptr<ChContactSurface> m_surf) {
@@ -273,7 +295,7 @@ void ChMesh::IntLoadResidual_F(const unsigned int off,
     // it for all 'volume' objects.
     if (automatic_gravity_load) {
         std::shared_ptr<ChLoadableUVW> mloadable;  // still null
-        auto common_gravity_loader = std::make_shared<ChLoad<ChLoaderGravity>>(mloadable);
+        auto common_gravity_loader = chrono_types::make_shared<ChLoad<ChLoaderGravity>>(mloadable);
         common_gravity_loader->loader.Set_G_acc(GetSystem()->Get_G_acc());
         common_gravity_loader->loader.SetNumIntPoints(num_points_gravity);
 

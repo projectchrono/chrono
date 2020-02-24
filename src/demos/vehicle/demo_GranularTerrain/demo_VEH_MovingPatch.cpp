@@ -91,7 +91,6 @@ int main(int argc, char* argv[]) {
     int max_threads = CHOMPfunctions::GetNumProcs();
     if (threads > max_threads)
         threads = max_threads;
-    system->SetParallelThreadNumber(threads);
     CHOMPfunctions::SetNumThreads(threads);
 
     // Edit system settings
@@ -155,7 +154,7 @@ int main(int argc, char* argv[]) {
     utils::AddSphereGeometry(body.get(), body_rad, ChVector<>(0, 0, 0));
     body->GetCollisionModel()->BuildModel();
 
-    auto joint = std::make_shared<ChLinkLockPrismatic>();
+    auto joint = chrono_types::make_shared<ChLinkLockPrismatic>();
     joint->Initialize(terrain.GetGroundBody(), body, ChCoordsys<>(pos, Q_from_AngY(CH_C_PI_2)));
     system->AddLink(joint);
 

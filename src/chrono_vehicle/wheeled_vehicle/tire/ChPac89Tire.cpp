@@ -31,7 +31,7 @@
 #include <algorithm>
 #include <cmath>
 
-#include "chrono/physics/ChGlobal.h"
+#include "chrono/core/ChGlobal.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChPac89Tire.h"
 
@@ -41,7 +41,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChPac89Tire::ChPac89Tire(const std::string& name)
-    : ChTire(name), m_kappa(0), m_alpha(0), m_gamma(0), m_gamma_limit(3) {
+    : ChTire(name), m_kappa(0), m_alpha(0), m_gamma(0), m_gamma_limit(3), m_mu(0), m_mu0(0.8) {
     m_tireforce.force = ChVector<>(0, 0, 0);
     m_tireforce.point = ChVector<>(0, 0, 0);
     m_tireforce.moment = ChVector<>(0, 0, 0);
@@ -49,14 +49,19 @@ ChPac89Tire::ChPac89Tire(const std::string& name)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChPac89Tire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
-    ChTire::Initialize(wheel, side);
+void ChPac89Tire::Initialize(std::shared_ptr<ChWheel> wheel) {
+    ChTire::Initialize(wheel);
 
     SetPac89Params();
+
+    // Build the lookup table for penetration depth as function of intersection area
+    // (used only with the ChTire::ENVELOPE method for terrain-tire collision detection)
+    ConstructAreaDepthTable(m_unloaded_radius, m_areaDep);
 
     // Initialize contact patch state variables to 0;
     m_states.cp_long_slip = 0;
     m_states.cp_side_slip = 0;
+    m_states.R_eff = m_unloaded_radius;
 }
 
 // -----------------------------------------------------------------------------
@@ -65,53 +70,65 @@ void ChPac89Tire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
 
-    m_cyl_shape = std::make_shared<ChCylinderShape>();
+    m_cyl_shape = chrono_types::make_shared<ChCylinderShape>();
     m_cyl_shape->GetCylinderGeometry().rad = m_unloaded_radius;
-    m_cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, GetVisualizationWidth() / 2, 0);
-    m_cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, -GetVisualizationWidth() / 2, 0);
-    m_wheel->AddAsset(m_cyl_shape);
+    m_cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, GetOffset() + GetVisualizationWidth() / 2, 0);
+    m_cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, GetOffset() - GetVisualizationWidth() / 2, 0);
+    m_wheel->GetSpindle()->AddAsset(m_cyl_shape);
 
-    m_texture = std::make_shared<ChTexture>();
+    m_texture = chrono_types::make_shared<ChTexture>();
     m_texture->SetTextureFilename(GetChronoDataFile("greenwhite.png"));
-    m_wheel->AddAsset(m_texture);
+    m_wheel->GetSpindle()->AddAsset(m_texture);
 }
 
 void ChPac89Tire::RemoveVisualizationAssets() {
     // Make sure we only remove the assets added by ChPac89Tire::AddVisualizationAssets.
     // This is important for the ChTire object because a wheel may add its own assets
     // to the same body (the spindle/wheel).
+    auto& assets = m_wheel->GetSpindle()->GetAssets();
     {
-        auto it = std::find(m_wheel->GetAssets().begin(), m_wheel->GetAssets().end(), m_cyl_shape);
-        if (it != m_wheel->GetAssets().end())
-            m_wheel->GetAssets().erase(it);
+        auto it = std::find(assets.begin(), assets.end(), m_cyl_shape);
+        if (it != assets.end())
+            assets.erase(it);
     }
     {
-        auto it = std::find(m_wheel->GetAssets().begin(), m_wheel->GetAssets().end(), m_texture);
-        if (it != m_wheel->GetAssets().end())
-            m_wheel->GetAssets().erase(it);
+        auto it = std::find(assets.begin(), assets.end(), m_texture);
+        if (it != assets.end())
+            assets.erase(it);
     }
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChPac89Tire::Synchronize(double time, const WheelState& wheel_state, const ChTerrain& terrain) {
-    // Invoke the base class function.
-    ChTire::Synchronize(time, wheel_state, terrain);
+void ChPac89Tire::Synchronize(double time,
+                              const ChTerrain& terrain) {
+    WheelState wheel_state = m_wheel->GetState();
+    CalculateKinematics(time, wheel_state, terrain);
 
-    ChCoordsys<> contact_frame;
-    // Clear the force accumulators and set the application point to the wheel
-    // center.
-    m_tireforce.force = ChVector<>(0, 0, 0);
-    m_tireforce.moment = ChVector<>(0, 0, 0);
-    m_tireforce.point = wheel_state.pos;
+    // Get mu at wheel location
+    m_mu = terrain.GetCoefficientFriction(wheel_state.pos.x(), wheel_state.pos.y());
 
     // Extract the wheel normal (expressed in global frame)
     ChMatrix33<> A(wheel_state.rot);
     ChVector<> disc_normal = A.Get_A_Yaxis();
 
+    double dum_cam;
+
     // Assuming the tire is a disc, check contact with terrain
-    m_data.in_contact =
-        disc_terrain_contact(terrain, wheel_state.pos, disc_normal, m_unloaded_radius, m_data.frame, m_data.depth);
+    switch (m_collision_type) {
+        case ChTire::CollisionType::SINGLE_POINT:
+            m_data.in_contact = DiscTerrainCollision(terrain, wheel_state.pos, disc_normal, m_unloaded_radius,
+                                                     m_data.frame, m_data.depth);
+            break;
+        case ChTire::CollisionType::FOUR_POINTS:
+            m_data.in_contact = DiscTerrainCollision4pt(terrain, wheel_state.pos, disc_normal, m_unloaded_radius,
+                                                        m_width, m_data.frame, m_data.depth, dum_cam);
+            break;
+        case ChTire::CollisionType::ENVELOPE:
+            m_data.in_contact = DiscTerrainCollisionEnvelope(terrain, wheel_state.pos, disc_normal, m_unloaded_radius,
+                                                             m_areaDep, m_data.frame, m_data.depth);
+            break;
+    }
     if (m_data.in_contact) {
         // Wheel velocity in the ISO-C Frame
         ChVector<> vel = wheel_state.lin_vel;
@@ -153,12 +170,17 @@ void ChPac89Tire::Synchronize(double time, const WheelState& wheel_state, const 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChPac89Tire::Advance(double step) {
-    // Return now if no contact.  Tire force and moment are already set to 0 in Synchronize().
+    // Set tire forces to zero.
+    m_tireforce.point = m_wheel->GetPos();
+    m_tireforce.force = ChVector<>(0, 0, 0);
+    m_tireforce.moment = ChVector<>(0, 0, 0);
+
+    // Return now if no contact.
     if (!m_data.in_contact)
         return;
 
     if (m_states.vx != 0) {
-        m_states.cp_long_slip = -m_states.vsx / m_states.vx;        
+        m_states.cp_long_slip = -m_states.vsx / m_states.vx;
     } else {
         m_states.cp_long_slip = 0;
     }
@@ -172,6 +194,8 @@ void ChPac89Tire::Advance(double step) {
 
     // Ensure that cp_side_slip stays between -pi()/2 & pi()/2 (a little less to prevent tan from going to infinity)
     ChClampValue(m_states.cp_side_slip, -CH_C_PI_2 + 0.001, CH_C_PI_2 - 0.001);
+
+    double mu_scale = m_mu / m_mu0;
 
     // Calculate the new force and moment values (normal force and moment have already been accounted for in
     // Synchronize()).
@@ -204,7 +228,7 @@ void ChPac89Tire::Advance(double step) {
         double X1 = (m_kappa + Sh);
         double E = (m_PacCoeff.B6 * std::pow(Fz, 2) + m_PacCoeff.B7 * Fz + m_PacCoeff.B8);
 
-        Fx = (D * std::sin(C * std::atan(B * X1 - E * (B * X1 - std::atan(B * X1))))) + Sv;
+        Fx = mu_scale * (D * std::sin(C * std::atan(B * X1 - E * (B * X1 - std::atan(B * X1))))) + Sv;
     }
 
     // Lateral Force
@@ -222,7 +246,7 @@ void ChPac89Tire::Advance(double step) {
         // Ensure that X1 stays within +/-90 deg minus a little bit
         ChClampValue(X1, -89.5, 89.5);
 
-        Fy = (D * std::sin(C * std::atan(B * X1 - E * (B * X1 - std::atan(B * X1))))) + Sv;
+        Fy = mu_scale * (D * std::sin(C * std::atan(B * X1 - E * (B * X1 - std::atan(B * X1))))) + Sv;
     }
 
     // Self-Aligning Torque
@@ -242,7 +266,7 @@ void ChPac89Tire::Advance(double step) {
         // Ensure that X1 stays within +/-90 deg minus a little bit
         ChClampValue(X1, -89.5, 89.5);
 
-        Mz = (D * std::sin(C * std::atan(B * X1 - E * (B * X1 - std::atan(B * X1))))) + Sv;
+        Mz = mu_scale * (D * std::sin(C * std::atan(B * X1 - E * (B * X1 - std::atan(B * X1))))) + Sv;
     }
 
     // Overturning Moment
@@ -264,7 +288,7 @@ void ChPac89Tire::Advance(double step) {
         My = myStartUp * m_rolling_resistance * m_data.normal_force * Lrad * ChSignum(m_states.omega);
     }
 
-    // std::cout << "Fx:" << Fx
+    // GetLog() << "Fx:" << Fx
     //    << " Fy:" << Fy
     //    << " Fz:" << Fz
     //    << " Mx:" << Mx
@@ -275,7 +299,7 @@ void ChPac89Tire::Advance(double step) {
     //    << " A:" << alpha
     //    << " K:" << kappa
     //    << " O:" << m_states.omega
-    //    << std::endl;
+    //    << "\n";
 
     // Compile the force and moment vectors so that they can be
     // transformed into the global coordinate system.

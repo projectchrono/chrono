@@ -4,6 +4,10 @@ version: pychrono-dev.{build}
 
 configuration: Release
 
+branches:
+  only:
+  - feature/AppveyorConda
+
 environment:
   # setting this var true the PS command are executed only by win build (so Ubuntu will only consider "sh" commands)
   APPVEYOR_YML_DISABLE_PS_LINUX: true
@@ -20,6 +24,7 @@ environment:
     # https://ci.appveyor.com/tools/encrypt
     # then copy/paste the result below
     secure: GMdyezok6xJOnKB5w7km6dvQvBqGxR6RfYSPODdXhy1rq0lvDPMW4m9O9eeBHU99
+
   
   global:
     # SDK v7.0 MSVC Express 2008's SetEnv.cmd script will fail if the
@@ -49,6 +54,7 @@ environment:
       CONDA_INSTALL_LOCN: "C:\\Miniconda35-x64"
       CMAKE_GENERATOR: Visual Studio 15 2017 Win64
       CONFIGURATION: Release
+      CONDAVER: 4.5.11
       
     - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
       PYTHON_VERSION: "3.6"
@@ -67,6 +73,7 @@ environment:
       CONDA_INSTALL_LOCN: "C:\\Miniconda36-x64"
       CMAKE_GENERATOR: Visual Studio 15 2017 Win64
       CONFIGURATION: Release
+      CONDAVER: 4.6.12
       
     - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
       PYTHON_VERSION: "3.7"
@@ -85,6 +92,7 @@ environment:
       CONDA_INSTALL_LOCN: "C:\\Miniconda36-x64"
       CMAKE_GENERATOR: Visual Studio 15 2017 Win64
       CONFIGURATION: Release
+      CONDAVER: 4.6.12
 init:
    - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
    - sh: curl -sflL 'https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-ssh.sh' | bash -e -    
@@ -112,20 +120,24 @@ install:
     # so that we can update it. Then we remove it so that
     # we can do a proper activation.
     #- cmd: set "OLDPATH=%PATH%"
-    #- cmd: set "PATH=%CONDA_INSTALL_LOCN%\\Scripts;%CONDA_INSTALL_LOCN%\\Library\\bin;%PATH%"
+    - cmd: set "PATH=%CONDA_INSTALL_LOCN%\\Scripts;%CONDA_INSTALL_LOCN%\\Library\\bin;%CONDA_INSTALL_LOCN%\\condabin;%PATH%"
     #- cmd: conda config --set always_yes yes --set changeps1 no
     #- cmd: conda update conda
     #- cmd: set "PATH=%OLDPATH%"
     - cmd: call %CONDA_INSTALL_LOCN%\Scripts\activate.bat
+    - cmd: conda create -n myenv python=%PYTHON_VERSION% -y 
     - cmd: conda config --set show_channel_urls true
-    - cmd: conda update conda --yes
-    - cmd: conda update -n root conda --yes
+    #- cmd: conda update conda --yes
+    - cmd: conda install -c anaconda conda=%CONDAVER% --yes    
     - cmd: conda install conda-build anaconda-client --yes
+    - cmd: activate myenv
     - cmd: conda config --add channels https://conda.anaconda.org/conda-forge
     - cmd: conda config --add channels https://conda.anaconda.org/intel
-    - cmd: conda install -c conda-forge -c dlr-sc -c pythonocc -c oce pythonocc-core==0.18.1 --yes
-    # need to manually add non standard channels. For the up-to date version by tpaviot (no real difference):
-    # conda install -c conda-forge -c dlr-sc -c pythonocc -c oce -c tpaviot pythonocc-core==0.18.2 --yes
+    # need to manually add non standard channels.
+    # Up-to date version by tpaviot: breaks conda. Use CadQuery version
+    - cmd: conda install -c conda-forge -c dlr-sc -c pythonocc -c oce -c 3dhubs oce==0.18 --yes
+    #- cmd: conda install -c cadquery pythonocc-core --yes
+    - cmd: conda install -c intel mkl-devel=2018.0.3 --yes
 
 ############################################### UBUNTU ###############################################################
 
@@ -149,14 +161,18 @@ install:
     - sh: conda create -n myenv python=$PYTHON_VERSION -y
     - sh: conda update --yes conda
     - sh: source activate myenv
-    - sh: conda install --yes pip conda-build jinja2 binstar
+    - sh: conda install --yes pip jinja2
     - sh: conda config --set show_channel_urls true
+    #- sh: conda install conda-build=3.17.5 anaconda-client=1.5.5 conda-verify --yes
+    - sh: conda install conda-build anaconda-client conda-verify --yes
     - sh: conda update conda --yes
     # I had to downgrade conda client, latest version does not show error messages
-    - sh: conda install conda-build anaconda-client=1.5.5 conda-verify --yes
+
     - sh: conda config --add channels https://conda.anaconda.org/conda-forge
     - sh: conda config --add channels https://conda.anaconda.org/intel
-    - sh: conda install -c conda-forge -c dlr-sc -c pythonocc -c oce pythonocc-core==0.18.1 --yes
+    - sh: conda install -c conda-forge -c dlr-sc -c pythonocc -c oce -c 3dhubs oce==0.18.2 --yes
+    #- sh: conda install -c cadquery pythonocc-core --yes
+    - sh: conda install -c intel mkl-devel --yes
 
 build: off
 
@@ -167,7 +183,7 @@ test_script:
   - sh: conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty
   - sh: mkdir dist
   - sh: cp  /home/appveyor/miniconda3/envs/myenv/conda-bld/linux-$PYTHON_ARCH/pychrono*.bz2 ./dist/pychrono.tar.bz
-  - sh: anaconda -t $BINSTAR_TOKEN upload /home/appveyor/miniconda3/envs/myenv/conda-bld/linux-$PYTHON_ARCH/pychrono*.bz2 --force
+  - sh: anaconda -t $BINSTAR_TOKEN upload /home/appveyor/miniconda3/envs/myenv/conda-bld/linux-$PYTHON_ARCH/pychrono*.bz2 -l $APPVEYOR_REPO_BRANCH --force
   
   
 ##################################################### WINDOWS ###########################################

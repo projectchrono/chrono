@@ -927,9 +927,8 @@ int ChGeometryCollider::ComputeBoxBoxCollisions(
     bool just_intersection  ///< if true, just report if intersecting (no further calculus on normal, depht, etc.)
     ) {
     if (just_intersection) {
-        ChMatrix33<> relRot;
-        relRot.MatrTMultiply(*R1, *R2);
-        Vector relPos = R1->MatrT_x_Vect((*T2) - (*T1));
+        ChMatrix33<> relRot = R1->transpose() * (*R2);
+        Vector relPos = R1->transpose() * ((*T2) - (*T1));
 
         if (CHOBB::OBB_Overlap(relRot, relPos, mgeo1.Size, mgeo2.Size)) {
             ChCollisionPair temp = ChCollisionPair(&mgeo1, &mgeo2);
@@ -1183,15 +1182,14 @@ static double ChPointTriangleDistance(Vector& B,
 
     Dy = Vmul(Dy, 1.0 / dylen);
 
-    static ChMatrix33<> mA;
-    static ChMatrix33<> mAi;
-    mA.Set_A_axis(Dx, Dy, Dz);
+    static ChMatrix33<> mA(Dx, Dy, Dz);
 
     // invert triangle coordinate matrix -if singular matrix, was degenerate triangle-.
-    if (fabs(mA.FastInvert(mAi)) < 0.000001)
+    if (std::abs(mA.determinant()) < 0.000001)
         return mdistance;
 
-    T1 = mAi.Matr_x_Vect(Vsub(B, A1));
+    static ChMatrix33<> mAi = mA.inverse();
+    T1 = mAi * (B - A1);
     T1p = T1;
     T1p.y() = 0;
     mu = T1.x();
@@ -1199,7 +1197,7 @@ static double ChPointTriangleDistance(Vector& B,
     if (mu >= 0 && mv >= 0 && mv <= 1.0 - mu) {
         is_into = 1;
         mdistance = fabs(T1.y());
-        Bprojected = Vadd(A1, mA.Matr_x_Vect(T1p));
+        Bprojected = A1 +  mA * T1p;
     }
 
     return mdistance;

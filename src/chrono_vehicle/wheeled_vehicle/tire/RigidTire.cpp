@@ -22,8 +22,6 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
-#include "chrono_thirdparty/rapidjson/filereadstream.h"
-
 using namespace rapidjson;
 
 namespace chrono {
@@ -32,15 +30,9 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 RigidTire::RigidTire(const std::string& filename) : ChRigidTire(""), m_has_mesh(false) {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     Create(d);
 
@@ -58,7 +50,7 @@ void RigidTire::Create(const rapidjson::Document& d) {
     m_radius = d["Radius"].GetDouble();
     m_width = d["Width"].GetDouble();
     m_mass = d["Mass"].GetDouble();
-    m_inertia = LoadVectorJSON(d["Inertia"]);
+    m_inertia = ReadVectorJSON(d["Inertia"]);
 
     // Read contact material data
     assert(d.HasMember("Contact Material"));
@@ -91,9 +83,9 @@ void RigidTire::Create(const rapidjson::Document& d) {
 
     // Check how to visualize this tire.
     if (d.HasMember("Visualization")) {
-        if (d["Visualization"].HasMember("Mesh Filename")) {
-            m_meshFile = d["Visualization"]["Mesh Filename"].GetString();
-            m_meshName = d["Visualization"]["Mesh Name"].GetString();
+        if (d["Visualization"].HasMember("Mesh Filename Left") && d["Visualization"].HasMember("Mesh Filename Right")) {
+            m_meshFile_left = d["Visualization"]["Mesh Filename Left"].GetString();
+            m_meshFile_right = d["Visualization"]["Mesh Filename Right"].GetString();
             m_has_mesh = true;
         }
     }
@@ -102,13 +94,8 @@ void RigidTire::Create(const rapidjson::Document& d) {
 // -----------------------------------------------------------------------------
 void RigidTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH && m_has_mesh) {
-        auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
-        trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
-        m_trimesh_shape = std::make_shared<ChTriangleMeshShape>();
-        m_trimesh_shape->SetMesh(trimesh);
-        m_trimesh_shape->SetName(m_meshName);
-        m_trimesh_shape->SetStatic(true);
-        m_wheel->AddAsset(m_trimesh_shape);
+        m_trimesh_shape = AddVisualizationMesh(vehicle::GetDataFile(m_meshFile_left),    // left side
+                                               vehicle::GetDataFile(m_meshFile_right));  // right side
     } else {
         ChRigidTire::AddVisualizationAssets(vis);
     }
@@ -116,13 +103,7 @@ void RigidTire::AddVisualizationAssets(VisualizationType vis) {
 
 void RigidTire::RemoveVisualizationAssets() {
     ChRigidTire::RemoveVisualizationAssets();
-
-    // Make sure we only remove the assets added by RigidTire::AddVisualizationAssets.
-    // This is important for the ChTire object because a wheel may add its own assets
-    // to the same body (the spindle/wheel).
-    auto it = std::find(m_wheel->GetAssets().begin(), m_wheel->GetAssets().end(), m_trimesh_shape);
-    if (it != m_wheel->GetAssets().end())
-        m_wheel->GetAssets().erase(it);
+    RemoveVisualizationMesh(m_trimesh_shape);
 }
 
 }  // end namespace vehicle

@@ -18,7 +18,6 @@ class Model(object):
     #
     #  Create the simulation system and add items
     #
-      self.stepcounter = 0
       self.Xtarg = 1000.0
       self.Ytarg = 0.0
       self.d_old = np.linalg.norm(self.Xtarg + self.Ytarg)
@@ -30,24 +29,20 @@ class Model(object):
       chrono.ChCollisionModel.SetDefaultSuggestedMargin(0.001)
 
     #ant_sys.SetSolverType(chrono.ChSolver.Type_BARZILAIBORWEIN) # precise, more slow
-      self.ant_sys.SetMaxItersSolverSpeed(70)
+      self.ant_sys.SetSolverMaxIterations(70)
       
-      #TODO: check contact parameters
+
       self.ant_material = chrono.ChMaterialSurfaceNSC()
       self.ant_material.SetFriction(0.5)
       self.ant_material.SetDampingF(0.2)
       self.ant_material.SetCompliance (0.0005)
       self.ant_material.SetComplianceT(0.0005)
-    # ant_material.SetRollingFriction(rollfrict_param)
-    # ant_material.SetSpinningFriction(0)
-    # ant_material.SetComplianceRolling(0.0000001)
-    # ant_material.SetComplianceSpinning(0.0000001)
-    #TODO: timestep tuning (initialization argument?)
+
       self.timestep = 0.01
       self.abdomen_x = 0.25
       self.abdomen_y = 0.25
       self.abdomen_z = 0.25
-      #TODO: check densisties
+
       self.leg_density = 250    # kg/m^3
       self.abdomen_density = 100
       self.abdomen_y0 = 0.4
@@ -67,10 +62,10 @@ class Model(object):
       
       self.leg_limit = chrono.ChLinkLimit()
       self.ankle_limit = chrono.ChLinkLimit()
-      self.leg_limit.Set_Rmax(math.pi/9)
-      self.leg_limit.Set_Rmin(-math.pi/9)
-      self.ankle_limit.Set_Rmax(math.pi/9)
-      self.ankle_limit.Set_Rmin(-math.pi/9)
+      self.leg_limit.SetRmax(math.pi/9)
+      self.leg_limit.SetRmin(-math.pi/9)
+      self.ankle_limit.SetRmax(math.pi/9)
+      self.ankle_limit.SetRmin(-math.pi/9)
       
       if (self.animate) :
              self.myapplication = chronoirr.ChIrrApp(self.ant_sys)
@@ -78,7 +73,8 @@ class Model(object):
              self.myapplication.SetStepManage(True)
              self.myapplication.SetTimestep(self.timestep)
              self. myapplication.SetTryRealtime(True)  
-             self.myapplication.AddTypicalSky('../data/skybox/')
+             self.myapplication.AddTypicalSky()
+             self.myapplication.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
              self.myapplication.AddTypicalCamera(chronoirr.vector3df(0,1.5,0))
              self.myapplication.AddLightWithShadow(chronoirr.vector3df(4,4,0),    # point
                                             chronoirr.vector3df(0,0,0),    # aimpoint
@@ -182,25 +178,23 @@ class Model(object):
              
              self.ankle_body[i].AddAsset(self.foot_shape)
              
-             self.Leg_rev[i].GetLimit_Rz().Set_active(True)
-             self.Leg_rev[i].GetLimit_Rz().Set_min(-math.pi/3)
-             self.Leg_rev[i].GetLimit_Rz().Set_max(math.pi/3)
-             self.Ankle_rev[i].GetLimit_Rz().Set_active(True)
-             self.Ankle_rev[i].GetLimit_Rz().Set_min(-math.pi/2)
-             self.Ankle_rev[i].GetLimit_Rz().Set_max(math.pi/4)
+             self.Leg_rev[i].GetLimit_Rz().SetActive(True)
+             self.Leg_rev[i].GetLimit_Rz().SetMin(-math.pi/3)
+             self.Leg_rev[i].GetLimit_Rz().SetMax(math.pi/3)
+             self.Ankle_rev[i].GetLimit_Rz().SetActive(True)
+             self.Ankle_rev[i].GetLimit_Rz().SetMin(-math.pi/2)
+             self.Ankle_rev[i].GetLimit_Rz().SetMax(math.pi/4)
              
-             #self.leg_body[i].SetBodyFixed(True)
-             #self.ankle_body[i].SetBodyFixed(True)
+
            
     # Create the room floor: a simple fixed rigid body with a collision shape
     # and a visualization shape
       self.body_floor = chrono.ChBody()
-    #il floor viene direttamente imposto fixed non servono vincoli
       self.body_floor.SetBodyFixed(True)
       self.body_floor.SetPos(chrono.ChVectorD(0, -1, 0 ))
       self.body_floor.SetMaterialSurface(self.ant_material)
       
-      # Floor Collision. TODO different material 
+      # Floor Collision.
       self.body_floor.SetMaterialSurface(self.ant_material)
       self.body_floor.GetCollisionModel().ClearModel()
       self.body_floor.GetCollisionModel().AddBox(50, 1, 50, chrono.ChVectorD(0, 0, 0 ))
@@ -213,7 +207,7 @@ class Model(object):
       body_floor_shape.SetColor(chrono.ChColor(0.4,0.4,0.5))
       self.body_floor.GetAssets().push_back(body_floor_shape)
       body_floor_texture = chrono.ChTexture()
-      body_floor_texture.SetTextureFilename('../data/grass.jpg')
+      body_floor_texture.SetTextureFilename(chrono.GetChronoDataFile('vehicle/terrain/textures/grass.jpg'))
       self.body_floor.GetAssets().push_back(body_floor_texture)     
       self.ant_sys.Add(self.body_floor)
       #self.body_abdomen.SetBodyFixed(True)
@@ -221,13 +215,12 @@ class Model(object):
       if (self.animate):
             self.myapplication.AssetBindAll()
             self.myapplication.AssetUpdateAll()
-	      #self.myapplication.AddShadowAll()
+
       self.numsteps= 0
       self.step(np.zeros(8))
       return self.get_ob()
 
    def step(self, ac):
-       self.stepcounter += 1
        xposbefore = self.body_abdomen.GetPos().x
        self.numsteps += 1
        if (self.animate):
@@ -237,7 +230,7 @@ class Model(object):
               self.myapplication.DrawAll()
        self.ac = ac.reshape((-1,))
        for i in range(len(self.leg_motor)): 
-              #TODO: check twice the max motor torque ()
+
               action_a = chrono.ChFunction_Const(self.gain*float(self.ac[i])) 
               action_b = chrono.ChFunction_Const(self.gain*float(self.ac[i+4])) 
               self.leg_motor[i].SetTorqueFunction(action_a)
@@ -258,7 +251,7 @@ class Model(object):
          
    def get_ob(self):
           
-          #q = np.array([])
+
           ab_rot =  	self.body_abdomen.GetRot().Q_to_Euler123()
           ab_q = np.asarray([self.body_abdomen.GetPos().z, ab_rot.x, ab_rot.y, ab_rot.z])
           ab_speed = self.body_abdomen.GetRot().RotateBack(self.body_abdomen.GetPos_dt())
@@ -273,34 +266,28 @@ class Model(object):
                  self.q_mot[i+4] = self.Ankle_rev[i].GetRelAngle() 
                  self.q_dot_mot[i]  = self.Leg_rev[i].GetRelWvel().z
                  self.q_dot_mot[i+4]  = self.Ankle_rev[i].GetRelWvel().z
-                 joint_at_limit = np.append(joint_at_limit,  [ self.Leg_rev[i].GetLimit_Rz().Get_max()   < self.q_mot[i]   or self.Leg_rev[i].GetLimit_Rz().Get_min()   > self.q_mot[i] ,
-                                                               self.Ankle_rev[i].GetLimit_Rz().Get_max() < self.q_mot[i+4] or self.Ankle_rev[i].GetLimit_Rz().Get_min() > self.q_mot[i+4]])
+                 joint_at_limit = np.append(joint_at_limit,  [ self.Leg_rev[i].GetLimit_Rz().GetMax()   < self.q_mot[i]   or self.Leg_rev[i].GetLimit_Rz().GetMin()   > self.q_mot[i] ,
+                                                               self.Ankle_rev[i].GetLimit_Rz().GetMax() < self.q_mot[i+4] or self.Ankle_rev[i].GetLimit_Rz().GetMin() > self.q_mot[i+4]])
                  feet_contact = np.append(feet_contact, [self.ankle_body[i].GetContactForce().Length()] )
            
-          #TODO: clip contacts?
+
           feet_contact = np.clip(feet_contact , -5, 5)
           self.joint_at_limit = np.count_nonzero(np.abs(joint_at_limit))
-          #if self.stepcounter%250 == 0:
-           #   print(self.joint_at_limit)
+
           return np.concatenate ([ab_q, ab_qdot, self.q_mot,  self.q_dot_mot, feet_contact])
    
    def calc_rew(self, xposbefore):
                   
                   electricity_cost     = -2.0    # cost for using motors -- this parameter should be carefully tuned against reward for making progress, other values less improtant
                   #stall_torque_cost    = -0.1    # cost for running electric current through a motor even at zero rotational speed, small
-                  #TODO: is there a way to punish self-collision? Is it worth the complication?
-                  #foot_collision_cost  = -1.0    # touches another leg, or other objects, that cost makes robot avoid smashing feet into itself
+
                   joints_at_limit_cost = -0.2    # discourage stuck joints
                   
                   power_cost  = electricity_cost  * float(np.abs(self.ac*self.q_dot_mot).mean())  # let's assume we have DC motor with controller, and reverse current braking. BTW this is the formula of motor power
-                  #REduced stall cost to avoid joints at limit
-                  #power_cost += stall_torque_cost * float(np.square(self.ac).mean())
+                  #Reduced stall cost to avoid joints at limit
                   joints_limit = joints_at_limit_cost * self.joint_at_limit
-                  #self.alive_bonus =  +1 if self.body_abdomen.GetPos().z > 0.26 else -1  # 0.25 is central sphere rad, die if it scrapes the ground
-                  #TODO: changed condidtion. To check
-                  self.alive_bonus =  +1 if self.body_abdomen.GetContactForce().Length() == 0 else -1  # 0.25 is central sphere rad, die if it scrapes the ground
+                  self.alive_bonus =  +1 if self.body_abdomen.GetContactForce().Length() == 0 else -1
                   progress = self.calc_progress()
-                  #TODO: inspest energy malus: since this gain is 1/10 of the gain in MuJoCo energy malus is reduced as well. Energy malus tuning impacts noticeably on local maxima
                   rew = progress + self.alive_bonus + 0.1*(power_cost) + 3*(joints_limit)
                   return rew
    def calc_progress(self):

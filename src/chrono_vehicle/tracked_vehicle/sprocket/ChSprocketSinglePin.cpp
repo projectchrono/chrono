@@ -105,6 +105,8 @@ class SprocketSinglePinContactCB : public ChSystem::CustomCollisionCallback {
 
 void SprocketSinglePinContactCB::OnCustomCollision(ChSystem* system) {
     // Return now if collision disabled on sprocket or track shoes.
+    if (m_track->GetNumTrackShoes() == 0)
+        return;
     if (!m_sprocket->GetGearBody()->GetCollide() || !m_track->GetTrackShoe(0)->GetShoeBody()->GetCollide())
         return;
 
@@ -260,7 +262,7 @@ ChSystem::CustomCollisionCallback* ChSprocketSinglePin::GetCollisionCallback(ChT
 // Create and return the sprocket gear profile.
 // -----------------------------------------------------------------------------
 std::shared_ptr<geometry::ChLinePath> ChSprocketSinglePin::GetProfile() {
-    auto profile = std::make_shared<geometry::ChLinePath>();
+    auto profile = chrono_types::make_shared<geometry::ChLinePath>();
 
     int num_teeth = GetNumTeeth();
     double R_T = GetOuterRadius();

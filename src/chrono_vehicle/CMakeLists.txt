@@ -148,6 +148,8 @@ set(CV_BASE_FILES
     ChDriver.cpp
     ChPart.h
     ChPart.cpp
+    ChDriveline.h
+    ChDriveline.cpp
     ChPowertrain.h
     ChPowertrain.cpp
     ChSubsysDefs.h
@@ -162,17 +164,19 @@ set(CV_BASE_FILES
 source_group("base" FILES ${CV_BASE_FILES})
 
 set(CV_CHASSIS_FILES
-	chassis/ChRigidChassis.h
-	chassis/ChRigidChassis.cpp
+    chassis/ChRigidChassis.h
+    chassis/ChRigidChassis.cpp
 
-	chassis/RigidChassis.h
-	chassis/RigidChassis.cpp
+    chassis/RigidChassis.h
+    chassis/RigidChassis.cpp
 )
 source_group("chassis" FILES ${CV_CHASSIS_FILES})
 
 set(CV_DRIVER_FILES
     driver/ChDataDriver.h
     driver/ChDataDriver.cpp
+    driver/ChHumanDriver.h
+    driver/ChHumanDriver.cpp
     driver/ChPathFollowerDriver.h
     driver/ChPathFollowerDriver.cpp
     driver/ChPathFollowerACCDriver.h
@@ -195,11 +199,15 @@ set(CV_POVERTRAIN_FILES
     powertrain/ChShaftsPowertrain.cpp
     powertrain/ChSimpleMapPowertrain.h
     powertrain/ChSimpleMapPowertrain.cpp
+    powertrain/ChSimpleCVTPowertrain.h
+    powertrain/ChSimpleCVTPowertrain.cpp
 
     powertrain/SimpleMapPowertrain.h
     powertrain/SimpleMapPowertrain.cpp
     powertrain/SimplePowertrain.h
     powertrain/SimplePowertrain.cpp
+    powertrain/SimpleCVTPowertrain.h
+    powertrain/SimpleCVTPowertrain.cpp
     powertrain/ShaftsPowertrain.h
     powertrain/ShaftsPowertrain.cpp
 )
@@ -267,12 +275,14 @@ source_group("output" FILES ${CV_OUTPUT_FILES} ${CVHDF5_OUTPUT_FILES})
 # --------------- WHEELED VEHICLE FILES
 
 set(CV_WV_BASE_FILES
+    wheeled_vehicle/ChAxle.h
+    wheeled_vehicle/ChAxle.cpp
     wheeled_vehicle/ChAntirollBar.h
     wheeled_vehicle/ChAntirollBar.cpp
     wheeled_vehicle/ChBrake.h
     wheeled_vehicle/ChBrake.cpp
-    wheeled_vehicle/ChDriveline.h
-    wheeled_vehicle/ChDriveline.cpp
+    wheeled_vehicle/ChDrivelineWV.h
+    wheeled_vehicle/ChDrivelineWV.cpp
     wheeled_vehicle/ChSuspension.h
     wheeled_vehicle/ChSuspension.cpp
     wheeled_vehicle/ChSteering.h
@@ -309,6 +319,8 @@ set(CV_WV_DRIVELINE_FILES
     wheeled_vehicle/driveline/ChShaftsDriveline2WD.cpp
     wheeled_vehicle/driveline/ChShaftsDriveline4WD.h
     wheeled_vehicle/driveline/ChShaftsDriveline4WD.cpp
+    wheeled_vehicle/driveline/ChSimpleDrivelineXWD.h
+    wheeled_vehicle/driveline/ChSimpleDrivelineXWD.cpp
     wheeled_vehicle/driveline/ChSimpleDriveline.h
     wheeled_vehicle/driveline/ChSimpleDriveline.cpp
 
@@ -318,6 +330,8 @@ set(CV_WV_DRIVELINE_FILES
     wheeled_vehicle/driveline/ShaftsDriveline4WD.cpp
     wheeled_vehicle/driveline/SimpleDriveline.h
     wheeled_vehicle/driveline/SimpleDriveline.cpp
+    wheeled_vehicle/driveline/SimpleDrivelineXWD.h
+    wheeled_vehicle/driveline/SimpleDrivelineXWD.cpp
 )
 source_group("wheeled_vehicle\\driveline" FILES ${CV_WV_DRIVELINE_FILES})
 
@@ -363,6 +377,10 @@ set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/ChRigidPinnedAxle.cpp
     wheeled_vehicle/suspension/ChLeafspringAxle.h
     wheeled_vehicle/suspension/ChLeafspringAxle.cpp
+    wheeled_vehicle/suspension/ChSolidBellcrankThreeLinkAxle.h
+    wheeled_vehicle/suspension/ChSolidBellcrankThreeLinkAxle.cpp
+    wheeled_vehicle/suspension/ChSolidThreeLinkAxle.h
+    wheeled_vehicle/suspension/ChSolidThreeLinkAxle.cpp
     wheeled_vehicle/suspension/ChToeBarLeafspringAxle.h
     wheeled_vehicle/suspension/ChToeBarLeafspringAxle.cpp
 
@@ -382,8 +400,16 @@ set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/SemiTrailingArm.cpp
     wheeled_vehicle/suspension/ThreeLinkIRS.h
     wheeled_vehicle/suspension/ThreeLinkIRS.cpp
+    wheeled_vehicle/suspension/RigidSuspension.h
+    wheeled_vehicle/suspension/RigidSuspension.cpp
+    wheeled_vehicle/suspension/RigidPinnedAxle.h
+    wheeled_vehicle/suspension/RigidPinnedAxle.cpp
     wheeled_vehicle/suspension/LeafspringAxle.h
     wheeled_vehicle/suspension/LeafspringAxle.cpp
+    wheeled_vehicle/suspension/SolidBellcrankThreeLinkAxle.h
+    wheeled_vehicle/suspension/SolidBellcrankThreeLinkAxle.cpp
+    wheeled_vehicle/suspension/SolidThreeLinkAxle.h
+    wheeled_vehicle/suspension/SolidThreeLinkAxle.cpp
     wheeled_vehicle/suspension/ToeBarLeafspringAxle.h
     wheeled_vehicle/suspension/ToeBarLeafspringAxle.cpp
 )
@@ -396,6 +422,8 @@ set(CV_WV_TEST_RIG_FILES
     wheeled_vehicle/test_rig/ChDriverSTR.cpp
     wheeled_vehicle/test_rig/ChDataDriverSTR.h
     wheeled_vehicle/test_rig/ChDataDriverSTR.cpp
+    wheeled_vehicle/test_rig/ChTireTestRig.h
+    wheeled_vehicle/test_rig/ChTireTestRig.cpp
 )
 if(ENABLE_MODULE_IRRLICHT)
     set(CVIRR_WV_TEST_RIG_FILES
@@ -412,6 +440,8 @@ set(CV_WV_TIRE_FILES
     wheeled_vehicle/tire/ChRigidTire.cpp
     wheeled_vehicle/tire/ChPacejkaTire.h
     wheeled_vehicle/tire/ChPacejkaTire.cpp
+    wheeled_vehicle/tire/ChPac02Tire.h
+    wheeled_vehicle/tire/ChPac02Tire.cpp
     wheeled_vehicle/tire/ChPac89Tire.h
     wheeled_vehicle/tire/ChPac89Tire.cpp
     wheeled_vehicle/tire/ChLugreTire.h
@@ -431,6 +461,12 @@ set(CV_WV_TIRE_FILES
 
     wheeled_vehicle/tire/RigidTire.h
     wheeled_vehicle/tire/RigidTire.cpp
+    wheeled_vehicle/tire/PacejkaTire.h
+    wheeled_vehicle/tire/PacejkaTire.cpp
+    wheeled_vehicle/tire/Pac02Tire.h
+    wheeled_vehicle/tire/Pac02Tire.cpp
+    wheeled_vehicle/tire/Pac89Tire.h
+    wheeled_vehicle/tire/Pac89Tire.cpp
     wheeled_vehicle/tire/LugreTire.h
     wheeled_vehicle/tire/LugreTire.cpp
     wheeled_vehicle/tire/FialaTire.h
@@ -451,8 +487,6 @@ set(CV_WV_TIRE_FILES
 source_group("wheeled_vehicle\\tire" FILES ${CV_WV_TIRE_FILES})
 
 set(CV_WV_UTILS_FILES
-    wheeled_vehicle/utils/ChWheeledVehicleAssembly.h
-    wheeled_vehicle/utils/ChWheeledVehicleAssembly.cpp
 )
 if(ENABLE_MODULE_IRRLICHT)
     set(CVIRR_WV_UTILS_FILES
@@ -510,8 +544,8 @@ set(CV_TV_BASE_FILES
     tracked_vehicle/ChTrackAssembly.cpp
     tracked_vehicle/ChTrackBrake.h
     tracked_vehicle/ChTrackBrake.cpp
-    tracked_vehicle/ChTrackDriveline.h
-    tracked_vehicle/ChTrackDriveline.cpp
+    tracked_vehicle/ChDrivelineTV.h
+    tracked_vehicle/ChDrivelineTV.cpp
     tracked_vehicle/ChTrackedVehicle.h
     tracked_vehicle/ChTrackedVehicle.cpp
     tracked_vehicle/ChTrackShoe.h
@@ -536,6 +570,8 @@ set(CV_TV_DRIVELINE_FILES
     tracked_vehicle/driveline/ChSimpleTrackDriveline.h
     tracked_vehicle/driveline/ChSimpleTrackDriveline.cpp
 
+    tracked_vehicle/driveline/TrackDrivelineBDS.h
+    tracked_vehicle/driveline/TrackDrivelineBDS.cpp
     tracked_vehicle/driveline/SimpleTrackDriveline.h
     tracked_vehicle/driveline/SimpleTrackDriveline.cpp
 )
@@ -652,16 +688,32 @@ set(CV_TV_TRACKASSEMBLY_FILES
 )
 source_group("tracked_vehicle\\track_assembly" FILES ${CV_TV_TRACKASSEMBLY_FILES})
 
+set(CV_TV_TEST_RIG_FILES
+    tracked_vehicle/test_rig/ChTrackTestRig.h
+    tracked_vehicle/test_rig/ChTrackTestRig.cpp
+    tracked_vehicle/test_rig/ChDriverTTR.h
+    tracked_vehicle/test_rig/ChDriverTTR.cpp
+    tracked_vehicle/test_rig/ChDataDriverTTR.h
+    tracked_vehicle/test_rig/ChDataDriverTTR.cpp
+    tracked_vehicle/test_rig/ChRoadDriverTTR.h
+    tracked_vehicle/test_rig/ChRoadDriverTTR.cpp
+)
+if(ENABLE_MODULE_IRRLICHT)
+    set(CVIRR_TV_TEST_RIG_FILES
+        tracked_vehicle/test_rig/ChIrrGuiDriverTTR.h
+        tracked_vehicle/test_rig/ChIrrGuiDriverTTR.cpp
+    )
+else()
+    set(CVIRR_TV_TEST_RIG_FILES "")
+endif()
+source_group("tracked_vehicle\\test_rig" FILES ${CV_TV_TEST_RIG_FILES} ${CVIRR_TV_TEST_RIG_FILES})
+
 set(CV_TV_UTILS_FILES
-    tracked_vehicle/utils/ChTrackTestRig.h
-    tracked_vehicle/utils/ChTrackTestRig.cpp
 )
 if(ENABLE_MODULE_IRRLICHT)
     set(CVIRR_TV_UTILS_FILES
         tracked_vehicle/utils/ChTrackedVehicleIrrApp.h
         tracked_vehicle/utils/ChTrackedVehicleIrrApp.cpp
-        tracked_vehicle/utils/ChIrrGuiDriverTTR.h
-        tracked_vehicle/utils/ChIrrGuiDriverTTR.cpp
     )
 else()
     set(CVIRR_TV_UTILS_FILES "")
@@ -762,6 +814,8 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_TV_SUSPENSION_FILES}
     ${CV_TV_TRACKSHOE_FILES}
     ${CV_TV_TRACKASSEMBLY_FILES}
+    ${CV_TV_TEST_RIG_FILES}
+    ${CVIRR_TV_TEST_RIG_FILES}
     ${CV_TV_UTILS_FILES}
     ${CVIRR_TV_UTILS_FILES}
     ${CV_TV_VEHICLE_FILES}
@@ -771,8 +825,13 @@ add_library(ChronoEngine_vehicle SHARED
 
 set_target_properties(ChronoEngine_vehicle PROPERTIES
                       COMPILE_FLAGS "${CXX_FLAGS}"
-                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}"
-                      COMPILE_DEFINITIONS "CH_API_COMPILE_VEHICLE")
+                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
+
+target_compile_definitions(ChronoEngine_vehicle PRIVATE "CH_API_COMPILE_VEHICLE")
+target_compile_definitions(ChronoEngine_vehicle PRIVATE "CH_IGNORE_DEPRECATED")
+if(HDF5_FOUND)
+target_compile_definitions(ChronoEngine_vehicle PRIVATE ${HDF5_COMPILE_DEFS})
+endif()
 
 target_link_libraries(ChronoEngine_vehicle ${LIBRARIES})
 

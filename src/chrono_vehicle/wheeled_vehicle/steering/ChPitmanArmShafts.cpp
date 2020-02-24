@@ -118,7 +118,7 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     u = Vcross(v, dirs[REV_AXIS]);
     rot.Set_A_axis(u, v, dirs[REV_AXIS]);
 
-    m_revolute = std::make_shared<ChLinkLockRevolute>();
+    m_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute->SetNameString(m_name + "_revolute");
     m_revolute->Initialize(chassis, m_arm, ChCoordsys<>(points[REV], rot.Get_A_quaternion()));
     chassis->GetSystem()->AddLink(m_revolute);
@@ -130,7 +130,7 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     w = Vcross(dirs[UNIV_AXIS_ARM], dirs[UNIV_AXIS_LINK]);
     rot.Set_A_axis(dirs[UNIV_AXIS_ARM], dirs[UNIV_AXIS_LINK], w);
 
-    m_universal = std::make_shared<ChLinkUniversal>();
+    m_universal = chrono_types::make_shared<ChLinkUniversal>();
     m_universal->SetNameString(m_name + "_universal");
     m_universal->Initialize(m_arm, m_link, ChFrame<>(points[UNIV], rot.Get_A_quaternion()));
     chassis->GetSystem()->AddLink(m_universal);
@@ -147,7 +147,7 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     u = Vcross(v, dirs[REVSPH_AXIS]);
     rot.Set_A_axis(u, v, dirs[REVSPH_AXIS]);
 
-    m_revsph = std::make_shared<ChLinkRevoluteSpherical>();
+    m_revsph = chrono_types::make_shared<ChLinkRevoluteSpherical>();
     m_revsph->SetNameString(m_name + "_revsph");
     m_revsph->Initialize(chassis, m_link, ChCoordsys<>(points[REVSPH_R], rot.Get_A_quaternion()), distance);
     chassis->GetSystem()->AddLink(m_revsph);
@@ -160,51 +160,51 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     // All shafts are aligned with dir[REV_AXIS], assumed to be a unit vector.
     double inertia = getSteeringColumnInertia();
 
-    m_shaft_C = std::make_shared<ChShaft>();
+    m_shaft_C = chrono_types::make_shared<ChShaft>();
     m_shaft_C->SetNameString(m_name + "_shaftC");
     m_shaft_C->SetInertia(inertia);
     m_shaft_C->SetShaftFixed(true);
     chassis->GetSystem()->Add(m_shaft_C);
 
-    m_shaft_C1 = std::make_shared<ChShaft>();
+    m_shaft_C1 = chrono_types::make_shared<ChShaft>();
     m_shaft_C1->SetNameString(m_name + "_shaftC1");
     m_shaft_C1->SetInertia(inertia);
     chassis->GetSystem()->Add(m_shaft_C1);
 
-    m_shaft_A1 = std::make_shared<ChShaft>();
+    m_shaft_A1 = chrono_types::make_shared<ChShaft>();
     m_shaft_A1->SetNameString(m_name + "_shaftA1");
     m_shaft_A1->SetInertia(inertia);
     chassis->GetSystem()->Add(m_shaft_A1);
 
-    m_shaft_A = std::make_shared<ChShaft>();
+    m_shaft_A = chrono_types::make_shared<ChShaft>();
     m_shaft_A->SetNameString(m_name + "_shaftA");
     m_shaft_A->SetInertia(inertia);
     chassis->GetSystem()->Add(m_shaft_A);
 
     // Rigidly attach shaftA to the arm body
-    m_shaft_arm = std::make_shared<ChShaftsBody>();
+    m_shaft_arm = chrono_types::make_shared<ChShaftsBody>();
     m_shaft_arm->SetNameString(m_name + "_shaftA_to_arm");
     m_shaft_arm->Initialize(m_shaft_A, m_arm, dirs[REV_AXIS]);
     chassis->GetSystem()->Add(m_shaft_arm);
 
     // Rigidly attach shaftC to the chassis body
-    ////m_shaft_chassis = std::make_shared<ChShaftsBody>();
+    ////m_shaft_chassis = chrono_types::make_shared<ChShaftsBody>();
     ////m_shaft_chassis->SetNameString(m_name + "_shaftC_to_chassis");
     ////m_shaft_chassis->Initialize(m_shaft_C, chassis, dirs[REV_AXIS]);
     ////chassis->GetSystem()->Add(m_shaft_chassis);
 
     // A motor (for steering input) between shaftC and shaftC1
     // The setpoint for the motor angle function is set in Synchronize()
-    m_shaft_motor = std::make_shared<ChShaftsMotorAngle>();
+    m_shaft_motor = chrono_types::make_shared<ChShaftsMotorAngle>();
     m_shaft_motor->SetNameString(m_name + "_motor");
     m_shaft_motor->Initialize(m_shaft_C, m_shaft_C1);
-    auto motor_fun = std::make_shared<ChFunction_Setpoint>();
+    auto motor_fun = chrono_types::make_shared<ChFunction_Setpoint>();
     m_shaft_motor->SetAngleFunction(motor_fun);
     chassis->GetSystem()->Add(m_shaft_motor);
 
     // A reduction gear between shaftA and shaftA1
     // (note order of connected shafts for gear_ratio > 1)
-    m_shaft_gear = std::make_shared<ChShaftsGear>();
+    m_shaft_gear = chrono_types::make_shared<ChShaftsGear>();
     m_shaft_gear->SetNameString(m_name + "_transmission");
     m_shaft_gear->SetTransmissionRatio(getGearRatio());
     m_shaft_gear->Initialize(m_shaft_A, m_shaft_A1);
@@ -213,14 +213,14 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     // Connect shaftA1 and shaftC1 (compliant or rigid connection)
     if (m_rigid) {
         // Use a gear couple with ratio=1
-        m_rigid_connection = std::make_shared<ChShaftsGear>();
+        m_rigid_connection = chrono_types::make_shared<ChShaftsGear>();
         m_rigid_connection->SetNameString(m_name + "_rigid_column");
         m_rigid_connection->SetTransmissionRatio(1.0);
         m_rigid_connection->Initialize(m_shaft_A1, m_shaft_C1);
         chassis->GetSystem()->Add(m_rigid_connection);
     } else {
         // Use a torsional spring between shaftA1 and shaftC1
-        m_spring_connection = std::make_shared<ChShaftsTorsionSpring>();
+        m_spring_connection = chrono_types::make_shared<ChShaftsTorsionSpring>();
         m_spring_connection->SetNameString(m_name + "_compliant_column");
         m_spring_connection->SetTorsionalStiffness(getSteeringCompliance());
         ////m_spring_connection->SetTorsionalDamping(10);
@@ -260,44 +260,44 @@ void ChPitmanArmShafts::AddVisualizationAssets(VisualizationType vis) {
 
     // Visualization for link
     {
-        auto cyl = std::make_shared<ChCylinderShape>();
+        auto cyl = chrono_types::make_shared<ChCylinderShape>();
         cyl->GetCylinderGeometry().p1 = m_pP;
         cyl->GetCylinderGeometry().p2 = m_pI;
         cyl->GetCylinderGeometry().rad = getSteeringLinkRadius();
         m_link->AddAsset(cyl);
 
-        auto cyl_P = std::make_shared<ChCylinderShape>();
+        auto cyl_P = chrono_types::make_shared<ChCylinderShape>();
         cyl_P->GetCylinderGeometry().p1 = m_pP;
         cyl_P->GetCylinderGeometry().p2 = m_pTP;
         cyl_P->GetCylinderGeometry().rad = getSteeringLinkRadius();
         m_link->AddAsset(cyl_P);
 
-        auto cyl_I = std::make_shared<ChCylinderShape>();
+        auto cyl_I = chrono_types::make_shared<ChCylinderShape>();
         cyl_I->GetCylinderGeometry().p1 = m_pI;
         cyl_I->GetCylinderGeometry().p2 = m_pTI;
         cyl_I->GetCylinderGeometry().rad = getSteeringLinkRadius();
         m_link->AddAsset(cyl_I);
 
-        auto col = std::make_shared<ChColorAsset>();
+        auto col = chrono_types::make_shared<ChColorAsset>();
         col->SetColor(ChColor(0.2f, 0.7f, 0.7f));
         m_link->AddAsset(col);
     }
 
     // Visualization for arm
     {
-        auto cyl = std::make_shared<ChCylinderShape>();
+        auto cyl = chrono_types::make_shared<ChCylinderShape>();
         cyl->GetCylinderGeometry().p1 = m_pC;
         cyl->GetCylinderGeometry().p2 = m_pL;
         cyl->GetCylinderGeometry().rad = getPitmanArmRadius();
         m_arm->AddAsset(cyl);
 
-        auto col = std::make_shared<ChColorAsset>();
+        auto col = chrono_types::make_shared<ChColorAsset>();
         col->SetColor(ChColor(0.7f, 0.7f, 0.2f));
         m_arm->AddAsset(col);
     }
 
     // Visualization for rev-sph link
-    m_revsph->AddAsset(std::make_shared<ChPointPointSegment>());
+    m_revsph->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
 }
 
 void ChPitmanArmShafts::RemoveVisualizationAssets() {
@@ -311,31 +311,31 @@ void ChPitmanArmShafts::RemoveVisualizationAssets() {
 void ChPitmanArmShafts::LogConstraintViolations() {
     // Revolute joint
     {
-        ChMatrix<>* C = m_revolute->GetC();
+        ChVectorDynamic<> C = m_revolute->GetC();
         GetLog() << "Revolute              ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "  ";
-        GetLog() << "  " << C->GetElement(3, 0) << "  ";
-        GetLog() << "  " << C->GetElement(4, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "  ";
+        GetLog() << "  " << C(4) << "\n";
     }
 
     // Universal joint
     {
-        ChMatrix<>* C = m_universal->GetC();
+        ChVectorDynamic<> C = m_universal->GetC();
         GetLog() << "Universal             ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "  ";
-        GetLog() << "  " << C->GetElement(3, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "\n";
     }
 
     // Revolute-spherical joint
     {
-        ChMatrix<>* C = m_revsph->GetC();
+        ChVectorDynamic<> C = m_revsph->GetC();
         GetLog() << "Revolute-spherical    ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "\n";
     }
 
     //// TODO

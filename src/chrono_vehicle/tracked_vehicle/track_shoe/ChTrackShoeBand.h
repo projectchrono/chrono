@@ -132,7 +132,7 @@ class CH_VEHICLE_API ChTrackShoeBand : public ChTrackShoe {
 
   private:
     /// Utilities for creating the tooth visualization mesh.
-    size_t ProfilePoints(std::vector<ChVector2<>>& points, std::vector<ChVector2<>>& normals);
+    int ProfilePoints(std::vector<ChVector2<>>& points, std::vector<ChVector2<>>& normals);
     std::shared_ptr<ChTriangleMeshShape> ToothMesh(double y);
 
     ChVector2<> m_center_p;       ///< center of (+x) arc, in tread body x-z plane

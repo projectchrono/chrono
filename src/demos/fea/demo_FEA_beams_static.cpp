@@ -19,7 +19,6 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChLinkLock.h"
-#include "chrono/solver/ChSolverMINRES.h"
 
 #include "chrono/fea/ChElementBeamEuler.h"
 #include "chrono/fea/ChBuilderBeam.h"
@@ -57,25 +56,25 @@ int main(int argc, char* argv[]) {
     application.AddTypicalCamera(core::vector3df(0.f, 0.6f, -1.f));
 
     // Create a truss:
-    auto my_body_A = std::make_shared<ChBody>();
+    auto my_body_A = chrono_types::make_shared<ChBody>();
 
     my_body_A->SetBodyFixed(true);
     my_system.AddBody(my_body_A);
 
     // Attach a 'box' shape asset for visualization.
-    auto mboxtruss = std::make_shared<ChBoxShape>();
+    auto mboxtruss = chrono_types::make_shared<ChBoxShape>();
     mboxtruss->GetBoxGeometry().Pos = ChVector<>(-0.01, -0.2, -0.25);
     mboxtruss->GetBoxGeometry().SetLengths(ChVector<>(0.02, 0.5, 0.5));
     my_body_A->AddAsset(mboxtruss);
 
     // Create a FEM mesh, that is a container for groups
     // of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     double rotstep = 15;
     double rotmax = 90;
 
-    ChMatrixNM<double, 3, 1> loads;
+    ChVectorN<double, 3> loads;
     loads(0) = -4.448;
     loads(1) = -8.896;
     loads(2) = -13.345;
@@ -95,7 +94,7 @@ int main(int argc, char* argv[]) {
 
             // Create a section, i.e. thickness and material properties
             // for beams. This will be shared among some beams.
-            auto msection = std::make_shared<ChBeamSectionAdvanced>();
+            auto msection = chrono_types::make_shared<ChBeamSectionAdvanced>();
 
             double beam_wz = 0.0032024;  // 3.175;
             double beam_wy = 0.01237;    // 12.7;
@@ -107,7 +106,7 @@ int main(int argc, char* argv[]) {
             msection->SetAsRectangularSection(beam_wy, beam_wz);
 
             // This helps creating sequences of nodes and ChElementBeamEuler elements:
-            ChBuilderBeam builder;
+            ChBuilderBeamEuler builder;
 
             builder.BuildBeam(
                 my_mesh,   // the mesh where to put the created nodes and elements
@@ -150,14 +149,14 @@ int main(int argc, char* argv[]) {
     // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
     // postprocessor that can handle a colored ChTriangleMeshShape).
     // Do not forget AddAsset() at the end!
-    auto mvisualizebeamA = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizebeamA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_ELEM_BEAM_MY);
     mvisualizebeamA->SetColorscaleMinMax(-0.001, 6);
     mvisualizebeamA->SetSmoothFaces(true);
     mvisualizebeamA->SetWireframe(false);
     my_mesh->AddAsset(mvisualizebeamA);
 
-    auto mvisualizebeamC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizebeamC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
     mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     mvisualizebeamC->SetSymbolsThickness(0.02);
@@ -177,40 +176,15 @@ int main(int argc, char* argv[]) {
 
     application.AssetUpdateAll();
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
-    //
-    // THE SOFT-REAL-TIME CYCLE
-    //
-
     // Use a solver that can handle stiffness matrices:
-
-    //***TEST***
-    /*
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    my_system.SetSolverWarmStarting(true);
-    my_system.SetMaxItersSolverSpeed(600);
-    my_system.SetMaxItersSolverStab(600);
-    my_system.SetTolForce(1e-12);
-    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    msolver->SetDiagonalPreconditioning(true);
-    */
-
-    ////***TEST***
-    // ChMatlabEngine matlab_engine;
-    // auto matlab_solver = std::make_shared<ChSolverMatlab>(matlab_engine);
-    // my_system.SetSolver(matlab_solver);
-
-    //***TEST***
-    auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
     my_system.SetSolver(mkl_solver);
 
     application.SetTimestep(0.001);
     application.SetVideoframeSaveInterval(10);
 
     // Perform nonlinear statics
-    my_system.DoStaticNonlinear(20);
+    my_system.DoStaticNonlinear(20, true);
     application.SetPaused(true);
 
     // Output data

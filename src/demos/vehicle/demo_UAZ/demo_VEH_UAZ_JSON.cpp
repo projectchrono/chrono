@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Rainer Gericke, Radu Serban 
+// Authors: Rainer Gericke, Radu Serban
 // =============================================================================
 //
 // Main driver function for a UAZ vehicle specified through JSON files.
@@ -37,6 +37,7 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/RigidTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/TMeasyTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/Pac02Tire.h"
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
@@ -69,8 +70,14 @@ std::string simple_map_powertrain_file("uaz/powertrain/UAZBUS_SimpleMapPowertrai
 std::string tmeasy_front_tire_file("uaz/tire/UAZBUS_TMeasyTireFront.json");
 std::string tmeasy_rear_tire_file("uaz/tire/UAZBUS_TMeasyTireRear.json");
 
+// JSON files tire models (Pac02)
+std::string pac02tire_file("uaz/tire/UAZBUS_Pac02Tire.json");
+
 // Driver input file (if not using Irrlicht)
 std::string driver_file("generic/driver/Sample_Maneuver.txt");
+
+// Type of tire model (TMEASY, PAC02)
+TireModelType tire_model = TireModelType::TMEASY;
 
 // Initial vehicle position, avoid big fall heights with TMeasy
 ChVector<> initLoc(0, 0, 0.38);
@@ -103,6 +110,9 @@ double tend = 20.0;
 const std::string out_dir = GetChronoOutputPath() + "UAZ_JSON";
 const std::string pov_dir = out_dir + "/POVRAY";
 
+// POV-Ray output
+bool povray_output = false;
+
 // =============================================================================
 
 int main(int argc, char* argv[]) {
@@ -117,7 +127,6 @@ int main(int argc, char* argv[]) {
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
     ////vehicle.GetChassis()->SetFixed(true);
-    vehicle.SetStepsize(step_size);
     vehicle.SetChassisVisualizationType(VisualizationType::MESH);
     vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
@@ -125,28 +134,42 @@ int main(int argc, char* argv[]) {
 
     // Create the ground
     RigidTerrain terrain(vehicle.GetSystem(), vehicle::GetDataFile(rigidterrain_file));
- 
+
     // Create and initialize the powertrain system
-    SimpleMapPowertrain powertrain(vehicle::GetDataFile(simple_map_powertrain_file));
-    
-    powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
+    auto powertrain = chrono_types::make_shared<SimpleMapPowertrain>(vehicle::GetDataFile(simple_map_powertrain_file));
+    vehicle.InitializePowertrain(powertrain);
 
     // Create and initialize the tires
-    int num_axles = vehicle.GetNumberAxles();
-    int num_wheels = 2 * num_axles;
-    std::vector<std::shared_ptr<TMeasyTire> > tires(num_wheels);
+    switch (tire_model) {
+        case TireModelType::TMEASY: {
+            auto tireFL = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_front_tire_file));
+            auto tireFR = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_front_tire_file));
+            auto tireRL = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_rear_tire_file));
+            auto tireRR = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_rear_tire_file));
+            vehicle.InitializeTire(tireFL, vehicle.GetAxle(0)->m_wheels[0], VisualizationType::MESH);
+            vehicle.InitializeTire(tireFR, vehicle.GetAxle(0)->m_wheels[1], VisualizationType::MESH);
+            vehicle.InitializeTire(tireRL, vehicle.GetAxle(1)->m_wheels[0], VisualizationType::MESH);
+            vehicle.InitializeTire(tireRR, vehicle.GetAxle(1)->m_wheels[1], VisualizationType::MESH);
+        } break;
 
-    for (int i = 0; i < num_wheels; i++) {
-        if(i < 2) {
-            tires[i] = std::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_front_tire_file));
-        } else {
-            tires[i] = std::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_rear_tire_file));
-        }
-        tires[i]->Initialize(vehicle.GetWheelBody(i), VehicleSide(i % 2));
-        tires[i]->SetVisualizationType(VisualizationType::MESH);
+        case TireModelType::PAC02: {
+            auto tireFL = chrono_types::make_shared<Pac02Tire>(vehicle::GetDataFile(pac02tire_file));
+            auto tireFR = chrono_types::make_shared<Pac02Tire>(vehicle::GetDataFile(pac02tire_file));
+            auto tireRL = chrono_types::make_shared<Pac02Tire>(vehicle::GetDataFile(pac02tire_file));
+            auto tireRR = chrono_types::make_shared<Pac02Tire>(vehicle::GetDataFile(pac02tire_file));
+            vehicle.InitializeTire(tireFL, vehicle.GetAxle(0)->m_wheels[0], VisualizationType::MESH);
+            vehicle.InitializeTire(tireFR, vehicle.GetAxle(0)->m_wheels[1], VisualizationType::MESH);
+            vehicle.InitializeTire(tireRL, vehicle.GetAxle(1)->m_wheels[0], VisualizationType::MESH);
+            vehicle.InitializeTire(tireRR, vehicle.GetAxle(1)->m_wheels[1], VisualizationType::MESH);
+        } break;
+
+        default:
+            GetLog() << "Unsupported tire model selected!\n";
+            return 1;
     }
 
-    ChVehicleIrrApp app(&vehicle, &powertrain, L"UAZ (JSON) Vehicle Demo");
+    // Create the Irrlicht visualization
+    ChWheeledVehicleIrrApp app(&vehicle, L"UAZ (JSON) Vehicle Demo");
 
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
@@ -157,6 +180,7 @@ int main(int argc, char* argv[]) {
     app.AssetBindAll();
     app.AssetUpdateAll();
 
+    // Create an interactive driver
     ChIrrGuiDriver driver(app);
 
     // Set the time response for steering and throttle keyboard inputs.
@@ -181,9 +205,11 @@ int main(int argc, char* argv[]) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
-    if (!filesystem::create_directory(filesystem::path(pov_dir))) {
-        std::cout << "Error creating directory " << pov_dir << std::endl;
-        return 1;
+    if (povray_output) {
+        if (!filesystem::create_directory(filesystem::path(pov_dir))) {
+            std::cout << "Error creating directory " << pov_dir << std::endl;
+            return 1;
+        }
     }
 
     // Generate JSON information with available output channels
@@ -195,60 +221,46 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    // Inter-module communication data
-    TerrainForces tire_forces(num_wheels);
-    WheelStates wheel_states(num_wheels);
-    double driveshaft_speed;
-    double powertrain_torque;
-    double throttle_input;
-    double steering_input;
-    double braking_input;
-
-    // Initialize simulation frame counter and simulation time
+    // Initialize simulation frame counters
+    int render_steps = (int)std::ceil(render_step_size / step_size);
     int step_number = 0;
-    double time = 0;
-    ChRealtimeStepTimer realtime_timer;
+    int render_frame = 0;
 
+    ChRealtimeStepTimer realtime_timer;
     while (app.GetDevice()->run()) {
         // Render scene
         app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         app.DrawAll();
+        app.EndScene();
 
-        // Collect output data from modules (for inter-module communication)
-        throttle_input = driver.GetThrottle();
-        steering_input = driver.GetSteering();
-        braking_input = driver.GetBraking();
-        powertrain_torque = powertrain.GetOutputTorque();
-        driveshaft_speed = vehicle.GetDriveshaftSpeed();
-        for (int i = 0; i < num_wheels; i++) {
-            tire_forces[i] = tires[i]->GetTireForce();
-            wheel_states[i] = vehicle.GetWheelState(i);
+        if (povray_output && step_number % render_steps == 0) {
+            char filename[100];
+            sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
+            utils::WriteShapesPovray(vehicle.GetSystem(), filename);
+            render_frame++;
         }
 
+        // Get driver inputs
+        ChDriver::Inputs driver_inputs = driver.GetInputs();
+
         // Update modules (process inputs from other modules)
-        time = vehicle.GetSystem()->GetChTime();
+        double time = vehicle.GetSystem()->GetChTime();
         driver.Synchronize(time);
-        powertrain.Synchronize(time, throttle_input, driveshaft_speed);
-        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, tire_forces);
+        vehicle.Synchronize(time, driver_inputs, terrain);
         terrain.Synchronize(time);
-        for (int i = 0; i < num_wheels; i++)
-            tires[i]->Synchronize(time, wheel_states[i], terrain);
-        app.Synchronize(driver.GetInputModeAsString(), steering_input, throttle_input, braking_input);
+        app.Synchronize(driver.GetInputModeAsString(), driver_inputs);
 
         // Advance simulation for one timestep for all modules
-        double step = realtime_timer.SuggestSimulationStep(step_size);
-        driver.Advance(step);
-        powertrain.Advance(step);
-        vehicle.Advance(step);
-        terrain.Advance(step);
-        for (int i = 0; i < num_wheels; i++)
-            tires[i]->Advance(step);
-        app.Advance(step);
+        driver.Advance(step_size);
+        vehicle.Advance(step_size);
+        terrain.Advance(step_size);
+        app.Advance(step_size);
 
         // Increment frame number
         step_number++;
 
-        app.EndScene();
+        // Spin in place for real time to catch up
+        realtime_timer.Spin(step_size);
     }
 
     return 0;

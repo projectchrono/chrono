@@ -49,7 +49,7 @@ ChBox::ChBox(const ChVector<>& mC0, const ChVector<>& mC1, const ChVector<>& mC2
 ChBox::ChBox(const ChBox& source) {
     Pos = source.Pos;
     Size = source.Size;
-    Rot.CopyFromMatrix(source.Rot);
+    Rot = source.Rot;
 }
 
 void ChBox::Evaluate(ChVector<>& pos, const double parU, const double parV, const double parW) const {
@@ -164,14 +164,14 @@ void ChBox::GetBoundingBox(double& xmin,
         p7 = GetP7();
         p8 = GetP8();
     } else {
-        p1 = bbRot->MatrT_x_Vect(GetP1());
-        p2 = bbRot->MatrT_x_Vect(GetP2());
-        p3 = bbRot->MatrT_x_Vect(GetP3());
-        p4 = bbRot->MatrT_x_Vect(GetP4());
-        p5 = bbRot->MatrT_x_Vect(GetP5());
-        p6 = bbRot->MatrT_x_Vect(GetP6());
-        p7 = bbRot->MatrT_x_Vect(GetP7());
-        p8 = bbRot->MatrT_x_Vect(GetP8());
+        p1 = bbRot->transpose() * GetP1();
+        p2 = bbRot->transpose() * GetP2();
+        p3 = bbRot->transpose() * GetP3();
+        p4 = bbRot->transpose() * GetP4();
+        p5 = bbRot->transpose() * GetP5();
+        p6 = bbRot->transpose() * GetP6();
+        p7 = bbRot->transpose() * GetP7();
+        p8 = bbRot->transpose() * GetP8();
     }
 
     if (p1.x() > xmax)
@@ -285,6 +285,7 @@ void ChBox::CovarianceMatrix(ChMatrix33<>& C) const {
     p7 = GetP7();
     p8 = GetP8();
 
+    C.setZero();
     C(0, 0) = p1.x() * p1.x() + p2.x() * p2.x() + p3.x() * p3.x() + p4.x() * p4.x() + p5.x() * p5.x() +
               p6.x() * p6.x() + p7.x() * p7.x() + p8.x() * p8.x();
     C(1, 1) = p1.y() * p1.y() + p2.y() * p2.y() + p3.y() * p3.y() + p4.y() * p4.y() + p5.y() * p5.y() +
@@ -318,7 +319,7 @@ void ChBox::ArchiveIN(ChArchiveIn& marchive) {
     ChVolume::ArchiveIN(marchive);
     // stream in all member data:
     marchive >> CHNVP(Pos);
-    marchive >> CHNVP(Rot);
+    ////marchive >> CHNVP(Rot);
     ChVector<> Lengths;
     marchive >> CHNVP(Lengths);  // avoid storing 'Size', i.e. half lengths, because less intuitive
     SetLengths(Lengths);

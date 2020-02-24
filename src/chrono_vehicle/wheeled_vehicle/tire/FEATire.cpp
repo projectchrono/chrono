@@ -23,8 +23,6 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
-#include "chrono_thirdparty/rapidjson/filereadstream.h"
-
 using namespace chrono::fea;
 using namespace rapidjson;
 
@@ -35,15 +33,9 @@ namespace vehicle {
 // Constructors for FEATire
 // -----------------------------------------------------------------------------
 FEATire::FEATire(const std::string& filename) : ChFEATire("") {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     ProcessJSON(d);
 
@@ -98,7 +90,7 @@ void FEATire::ProcessJSON(const rapidjson::Document& d) {
     double rd = d["Continuum Material"]["Rayleigh Damping"].GetDouble();
     double density = d["Continuum Material"]["Density"].GetDouble();
 
-    m_material = std::make_shared<ChContinuumElastic>();
+    m_material = chrono_types::make_shared<ChContinuumElastic>();
     m_material->Set_E(E);
     m_material->Set_v(nu);
     m_material->Set_RayleighDampingK(rd);

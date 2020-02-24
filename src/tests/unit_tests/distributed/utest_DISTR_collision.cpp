@@ -20,8 +20,8 @@ int main(int argc, char* argv[]) {
 
     sys.Set_G_acc(ChVector<double>(0, 0, -9.8));
 
-    auto ball1 = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
-    auto ball2 = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
+    auto ball1 = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
+    auto ball2 = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
 
     ChVector<double> pos1(5, 5, 0.01);
     ball1->SetPos(pos1);

@@ -162,38 +162,27 @@ void ChProximityContainerMeshless::AccumulateStep1() {
         mnodeA->density += mnodeB->GetMass() * W_BA;
         mnodeB->density += mnodeA->GetMass() * W_AB;
 
-        ChMatrixNM<double, 3, 1> mdist;
-        mdist.PasteVector(d_BA, 0, 0);
-        ChMatrixNM<double, 3, 1> mdistT;
-        mdistT.PasteVector(d_BA, 0, 0);
-        ChMatrix33<> ddBA;
-        ddBA.MatrMultiplyT(mdist, mdistT);
+        ChVectorN<double, 3> mdist;
+        mdist.segment(0,3) = d_BA.eigen();
+        
+        ChMatrix33<> ddBA = mdist * mdist.transpose();        
         ChMatrix33<> ddAB(ddBA);
 
-        ddBA.MatrScale(W_BA);
-        mnodeA->Amoment.MatrInc(ddBA);  // increment the moment matrix: Aa += d_BA*d_BA'*W_BA
+        mnodeA->Amoment += W_BA * ddBA;  // increment the moment matrix: Aa += d_BA*d_BA'*W_BA
+        mnodeB->Amoment += W_AB * ddAB;  // increment the moment matrix: Ab += d_AB*d_AB'*W_AB
 
-        ddAB.MatrScale(W_AB);
-        mnodeB->Amoment.MatrInc(ddAB);  // increment the moment matrix: Ab += d_AB*d_AB'*W_AB
+        ChVector<> m_inc_BA = W_BA * d_BA;
+        ChVector<> m_inc_AB = -W_AB * d_BA;
 
-        ChVector<> m_inc_BA = (d_BA)*W_BA;
+        // increment the J matrix
+        mnodeA->J.col(0) += g_BA.x() * m_inc_BA.eigen();
+        mnodeA->J.col(1) += g_BA.y() * m_inc_BA.eigen();
+        mnodeA->J.col(2) += g_BA.z() * m_inc_BA.eigen();
 
-        ChVector<> m_inc_AB = (-d_BA) * W_AB;
-
-        ChVector<> dwg;  // increment the J matrix
-        dwg = m_inc_BA * g_BA.x();
-        mnodeA->J.PasteSumVector(dwg, 0, 0);
-        dwg = m_inc_BA * g_BA.y();
-        mnodeA->J.PasteSumVector(dwg, 0, 1);
-        dwg = m_inc_BA * g_BA.z();
-        mnodeA->J.PasteSumVector(dwg, 0, 2);
-
-        dwg = m_inc_AB * (-g_BA.x());  // increment the J matrix
-        mnodeB->J.PasteSumVector(dwg, 0, 0);
-        dwg = m_inc_AB * (-g_BA.y());
-        mnodeB->J.PasteSumVector(dwg, 0, 1);
-        dwg = m_inc_AB * (-g_BA.z());
-        mnodeB->J.PasteSumVector(dwg, 0, 2);
+        // increment the J matrix
+        mnodeB->J.col(0) -= g_BA.x() * m_inc_AB.eigen();
+        mnodeB->J.col(1) -= g_BA.y() * m_inc_AB.eigen();
+        mnodeB->J.col(2) -= g_BA.z() * m_inc_AB.eigen();
 
         ++iterproximity;
     }

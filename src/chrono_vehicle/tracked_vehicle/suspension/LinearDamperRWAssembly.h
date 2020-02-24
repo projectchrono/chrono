@@ -50,17 +50,15 @@ class CH_VEHICLE_API LinearDamperRWAssembly : public ChLinearDamperRWAssembly {
     virtual ChLinkRotSpringCB::TorqueFunctor* GetSpringTorqueFunctor() const override { return m_spring_torqueCB; }
 
     /// Return the functor object for the translational shock force.
-    virtual ChLinkSpringCB::ForceFunctor* GetShockForceFunctor() const override { return m_shock_forceCB; }
+    virtual ChLinkTSDA::ForceFunctor* GetShockForceFunctor() const override { return m_shock_forceCB; }
 
   private:
     virtual const ChVector<> GetLocation(PointId which) override { return m_points[which]; }
 
     virtual void Create(const rapidjson::Document& d) override;
 
-    void LoadRoadWheel(const std::string& filename);
-
     ChLinkRotSpringCB::TorqueFunctor* m_spring_torqueCB;
-    ChLinkSpringCB::ForceFunctor* m_shock_forceCB;
+    ChLinkTSDA::ForceFunctor* m_shock_forceCB;
 
     ChVector<> m_points[NUM_POINTS];
 

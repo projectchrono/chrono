@@ -45,7 +45,7 @@ FEADeformableTerrain::FEADeformableTerrain(ChSystem* system)
       m_hardening_slope(5000),
       m_friction_angle(0.00001),
       m_dilatancy_angle(0.00001) {
-    m_mesh = std::make_shared<fea::ChMesh>();
+    m_mesh = chrono_types::make_shared<fea::ChMesh>();
     system->Add(m_mesh);
 }
 
@@ -118,7 +118,7 @@ void FEADeformableTerrain::Initialize(const ChVector<>& start_point,
             double loc_z = start_point.z() + j * dz;
 
             // Create the node
-            auto node = std::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
+            auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
             node->SetMass(0);
             // Fix all nodes along the axis Z = 0
             if (j == 0) {
@@ -152,14 +152,14 @@ void FEADeformableTerrain::Initialize(const ChVector<>& start_point,
     }
     // Initialize coordinates for curvature (central) node
     for (int i = 0; i < TotalNumElements; i++) {
-        auto node = std::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
+        auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
                                                     ChVector<>(0.0, 0.0, 0.0));
         node->SetMass(0);
         m_mesh->AddNode(node);
     }
 
     // Basic material properties for soil.
-    auto material = std::make_shared<ChContinuumElastic>();
+    auto material = chrono_types::make_shared<ChContinuumElastic>();
     material->Set_RayleighDampingK(0.0);
     material->Set_RayleighDampingM(0.0);
     material->Set_density(m_rho);
@@ -194,7 +194,7 @@ void FEADeformableTerrain::Initialize(const ChVector<>& start_point,
         int node8 = (numDiv_z + 1) * XYNumNodes + i;
 
         // Create the element and set its nodes.
-        auto element = std::make_shared<ChElementBrick_9>();
+        auto element = chrono_types::make_shared<ChElementBrick_9>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(m_mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(m_mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(m_mesh->GetNode(node2)),
@@ -241,7 +241,7 @@ void FEADeformableTerrain::Initialize(const ChVector<>& start_point,
     // Options for visualization in irrlicht
     // -------------------------------------
 
-    auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(m_mesh.get()));
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualizationFEAmesh>(*(m_mesh.get()));
     mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.995);

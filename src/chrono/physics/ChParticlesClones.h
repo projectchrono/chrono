@@ -51,6 +51,8 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     // INTERFACE TO ChContactable
     //
 
+	virtual ChContactable::eChContactableType GetContactableType() const override { return CONTACTABLE_6; }
+
     /// Access variables.
     virtual ChVariables* GetVariables1() override { return &Variables(); }
 
@@ -64,7 +66,10 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     virtual int ContactableGet_ndof_w() override { return 6; }
 
     /// Get all the DOFs packed in a single vector (position part)
-    virtual void ContactableGetStateBlock_x(ChState& x) override { x.PasteCoordsys(this->GetCoord(), 0, 0); }
+    virtual void ContactableGetStateBlock_x(ChState& x) override {
+        x.segment(0, 3) = GetCoord().pos.eigen();
+        x.segment(3, 4) = GetCoord().rot.eigen();
+    }
 
     /// Get all the DOFs packed in a single vector (speed part)
     virtual void ContactableGetStateBlock_w(ChStateDelta& w) override;
@@ -74,7 +79,7 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     virtual void ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) override;
 
     /// Return the pointer to the contact surface material.
-    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurfaceBase() override;
+    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() override;
 
     /// Express the local point in absolute frame, for the given state position.
     virtual ChVector<> GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) override;
@@ -236,7 +241,7 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     void SetMaterialSurface(const std::shared_ptr<ChMaterialSurface>& mnewsurf) { matsurface = mnewsurf; }
 
     /// Set the material surface for contacts
-    std::shared_ptr<ChMaterialSurface>& GetMaterialSurfaceBase() { return matsurface; }
+    std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() { return matsurface; }
 
     //
     // STATE FUNCTIONS

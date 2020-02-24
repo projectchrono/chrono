@@ -20,6 +20,9 @@
 //
 // =============================================================================
 
+#include "chrono/core/ChRealtimeStep.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
+
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
@@ -27,6 +30,8 @@
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 
 #include "chrono_models/vehicle/uaz/UAZBUS.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 #include <chrono>
 #include <thread>
@@ -46,10 +51,10 @@ VisualizationType chassis_vis_type = VisualizationType::MESH;
 VisualizationType suspension_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType wheel_vis_type = VisualizationType::MESH;
-VisualizationType tire_vis_type = VisualizationType::NONE;
+VisualizationType tire_vis_type = VisualizationType::MESH;
 
-// Type of tire model (RIGID, TMEASY)
-TireModelType tire_model = TireModelType::TMEASY;
+// Type of tire model (RIGID, TMEASY, PAC02)
+TireModelType tire_model = TireModelType::PAC02;
 
 // Point on chassis tracked by the camera
 ChVector<> trackPoint(0.0, 0.0, 1.75);
@@ -63,6 +68,12 @@ double tend = 15;
 
 // Time interval between two render frames
 double render_step_size = 1.0 / 50;  // FPS = 50
+
+// Output directories
+const std::string out_dir = GetChronoOutputPath() + "UAZBUS";
+const std::string pov_dir = out_dir + "/POVRAY";
+bool povray_output = false;
+
 
 // =============================================================================
 
@@ -89,23 +100,23 @@ int main(int argc, char* argv[]) {
     uaz.SetTireVisualizationType(tire_vis_type);
 
     {
-        auto suspF = std::static_pointer_cast<UAZBUS_ToeBarLeafspringAxle>(uaz.GetVehicle().GetSuspension(0));
+        auto suspF = std::static_pointer_cast<ChToeBarLeafspringAxle>(uaz.GetVehicle().GetSuspension(0));
         double leftAngle = suspF->GetKingpinAngleLeft();
         double rightAngle = suspF->GetKingpinAngleRight();
 
         auto springFL = suspF->GetSpring(VehicleSide::LEFT);
         auto shockFL = suspF->GetShock(VehicleSide::RIGHT);
 
-        std::cout << "Spring rest length front: " << springFL->GetSpringRestLength() << std::endl;
-        std::cout << "Shock rest length front:  " << shockFL->GetSpringRestLength() << std::endl;
+        std::cout << "Spring rest length front: " << springFL->GetRestLength() << std::endl;
+        std::cout << "Shock rest length front:  " << shockFL->GetRestLength() << std::endl;
     }
     {
-        auto suspR = std::static_pointer_cast<UAZBUS_LeafspringAxle>(uaz.GetVehicle().GetSuspension(1));
+        auto suspR = std::static_pointer_cast<ChLeafspringAxle>(uaz.GetVehicle().GetSuspension(1));
         auto springRL = suspR->GetSpring(VehicleSide::LEFT);
         auto shockRL = suspR->GetShock(VehicleSide::RIGHT);
 
-        std::cout << "Spring rest length rear: " << springRL->GetSpringRestLength() << std::endl;
-        std::cout << "Shock rest length rear:  " << shockRL->GetSpringRestLength() << std::endl;
+        std::cout << "Spring rest length rear: " << springRL->GetRestLength() << std::endl;
+        std::cout << "Shock rest length rear:  " << shockRL->GetRestLength() << std::endl;
     }
 
     std::cout << "Vehicle mass:               " << uaz.GetVehicle().GetVehicleMass() << std::endl;
@@ -129,7 +140,7 @@ int main(int argc, char* argv[]) {
     // Create the driver system
     // -------------------------------------
 
-    ChWheeledVehicleIrrApp app(&uaz.GetVehicle(), &uaz.GetPowertrain(), L"UAZBUS demo");
+    ChWheeledVehicleIrrApp app(&uaz.GetVehicle(), L"UAZBUS demo");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(+130.f, +130.f, 150.f), irr::core::vector3df(-130.f, +130.f, 150.f), 120,
                          120, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f), irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
@@ -153,14 +164,32 @@ int main(int argc, char* argv[]) {
 
     driver.Initialize();
 
+    // -----------------
+    // Initialize output
+    // -----------------
+
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+    if (povray_output) {
+        if (!filesystem::create_directory(filesystem::path(pov_dir))) {
+            std::cout << "Error creating directory " << pov_dir << std::endl;
+            return 1;
+        }
+    }
+
     // ---------------
     // Simulation loop
     // ---------------
 
     int render_steps = (int)std::ceil(render_step_size / step_size);
     int step_number = 0;
+    int render_frame = 0;
 
     double maxKingpinAngle = 0.0;
+
+    ChRealtimeStepTimer realtime_timer;
     while (app.GetDevice()->run()) {
         double time = uaz.GetSystem()->GetChTime();
 
@@ -169,21 +198,26 @@ int main(int argc, char* argv[]) {
             app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
             app.DrawAll();
             app.EndScene();
+
+            if (povray_output && step_number % render_steps == 0) {
+                char filename[100];
+                sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
+                utils::WriteShapesPovray(uaz.GetSystem(), filename);
+                render_frame++;
+            }
         }
 
         // Collect output data from modules (for inter-module communication)
-        double throttle_input = driver.GetThrottle();
-        double steering_input = driver.GetSteering();
-        double braking_input = driver.GetBraking();
+        ChDriver::Inputs driver_inputs = driver.GetInputs();
 
         // Update modules (process inputs from other modules)
         driver.Synchronize(time);
         terrain.Synchronize(time);
-        uaz.Synchronize(time, steering_input, braking_input, throttle_input, terrain);
-        app.Synchronize(driver.GetInputModeAsString(), steering_input, throttle_input, braking_input);
+        uaz.Synchronize(time, driver_inputs, terrain);
+        app.Synchronize(driver.GetInputModeAsString(), driver_inputs);
 
         // Test for validity of kingpin angles (max. allowed by UAZ: 27 deg)
-        auto suspF = std::static_pointer_cast<UAZBUS_ToeBarLeafspringAxle>(uaz.GetVehicle().GetSuspension(0));
+        auto suspF = std::static_pointer_cast<ChToeBarLeafspringAxle>(uaz.GetVehicle().GetSuspension(0));
         double leftAngle = suspF->GetKingpinAngleLeft() * 180.0 / CH_C_PI;
         double rightAngle = suspF->GetKingpinAngleRight() * 180.0 / CH_C_PI;
         if (std::abs(leftAngle) > maxKingpinAngle) {
@@ -198,8 +232,12 @@ int main(int argc, char* argv[]) {
         terrain.Advance(step_size);
         uaz.Advance(step_size);
         app.Advance(step_size);
+
         // Increment frame number
         step_number++;
+
+        // Spin in place for real time to catch up
+        realtime_timer.Spin(step_size);
     }
 
     std::cout << "Maximum Kingpin Angle = " << maxKingpinAngle << " deg" << std::endl;

@@ -15,10 +15,9 @@
 #include <algorithm>
 #include <cstdlib>
 
-#include "chrono/core/ChLinearAlgebra.h"
+#include "chrono/core/ChGlobal.h"
 #include "chrono/core/ChTransform.h"
 #include "chrono/physics/ChAssembly.h"
-#include "chrono/physics/ChGlobal.h"
 #include "chrono/physics/ChSystem.h"
 
 namespace chrono {
@@ -108,6 +107,9 @@ void ChAssembly::AddBody(std::shared_ptr<ChBody> body) {
     // set system and also add collision models to system
     body->SetSystem(system);
     bodylist.push_back(body);
+
+	////system->is_initialized = false;  // Not needed, unless/until ChBody::SetupInitial does something
+	system->is_updated = false;
 }
 
 void ChAssembly::RemoveBody(std::shared_ptr<ChBody> body) {
@@ -116,21 +118,28 @@ void ChAssembly::RemoveBody(std::shared_ptr<ChBody> body) {
 
     bodylist.erase(itr);
     body->SetSystem(nullptr);
+
+    system->is_updated = false;
 }
 
-void ChAssembly::AddLink(std::shared_ptr<ChLink> link) {
+void ChAssembly::AddLink(std::shared_ptr<ChLinkBase> link) {
     assert(std::find(std::begin(linklist), std::end(linklist), link) == linklist.end());
 
     link->SetSystem(system);
     linklist.push_back(link);
+
+	////system->is_initialized = false;  // Not needed, unless/until ChLink::SetupInitial does something
+    system->is_updated = false;
 }
 
-void ChAssembly::RemoveLink(std::shared_ptr<ChLink> link) {
+void ChAssembly::RemoveLink(std::shared_ptr<ChLinkBase> link) {
     auto itr = std::find(std::begin(linklist), std::end(linklist), link);
     assert(itr != linklist.end());
 
     linklist.erase(itr);
     link->SetSystem(nullptr);
+
+    system->is_updated = false;
 }
 
 void ChAssembly::AddMesh(std::shared_ptr<fea::ChMesh> mesh) {
@@ -138,6 +147,9 @@ void ChAssembly::AddMesh(std::shared_ptr<fea::ChMesh> mesh) {
 
     mesh->SetSystem(system);
     meshlist.push_back(mesh);
+
+	system->is_initialized = false;
+    system->is_updated = false;
 }
 
 void ChAssembly::RemoveMesh(std::shared_ptr<fea::ChMesh> mesh) {
@@ -146,11 +158,13 @@ void ChAssembly::RemoveMesh(std::shared_ptr<fea::ChMesh> mesh) {
 
     meshlist.erase(itr);
     mesh->SetSystem(nullptr);
+
+    system->is_updated = false;
 }
 
 void ChAssembly::AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item) {
     assert(!std::dynamic_pointer_cast<ChBody>(item));
-    assert(!std::dynamic_pointer_cast<ChLink>(item));
+    assert(!std::dynamic_pointer_cast<ChLinkBase>(item));
     assert(!std::dynamic_pointer_cast<ChMesh>(item));
     assert(std::find(std::begin(otherphysicslist), std::end(otherphysicslist), item) == otherphysicslist.end());
     // assert(item->GetSystem()==nullptr); // should remove from other system before adding here
@@ -158,6 +172,9 @@ void ChAssembly::AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item) {
     // set system and also add collision models to system
     item->SetSystem(system);
     otherphysicslist.push_back(item);
+
+	////system->is_initialized = false;  // Not needed, unless/until ChPhysicsItem::SetupInitial does something
+    system->is_updated = false;
 }
 
 void ChAssembly::RemoveOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item) {
@@ -166,6 +183,8 @@ void ChAssembly::RemoveOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item) {
 
     otherphysicslist.erase(itr);
     item->SetSystem(nullptr);
+
+    system->is_updated = false;
 }
 
 void ChAssembly::Add(std::shared_ptr<ChPhysicsItem> item) {
@@ -174,7 +193,7 @@ void ChAssembly::Add(std::shared_ptr<ChPhysicsItem> item) {
         return;
     }
 
-    if (auto link = std::dynamic_pointer_cast<ChLink>(item)) {
+    if (auto link = std::dynamic_pointer_cast<ChLinkBase>(item)) {
         AddLink(link);
         return;
     }
@@ -189,6 +208,9 @@ void ChAssembly::Add(std::shared_ptr<ChPhysicsItem> item) {
 
 void ChAssembly::AddBatch(std::shared_ptr<ChPhysicsItem> item) {
     batch_to_insert.push_back(item);
+
+    system->is_initialized = false;  // Needed, as the list may include a ChMesh
+    system->is_updated = false;
 }
 
 void ChAssembly::FlushBatch() {
@@ -204,7 +226,7 @@ void ChAssembly::Remove(std::shared_ptr<ChPhysicsItem> item) {
         return;
     }
 
-    if (auto link = std::dynamic_pointer_cast<ChLink>(item)) {
+    if (auto link = std::dynamic_pointer_cast<ChLinkBase>(item)) {
         RemoveLink(link);
         return;
     }
@@ -222,6 +244,8 @@ void ChAssembly::RemoveAllBodies() {
         body->SetSystem(nullptr);
     }
     bodylist.clear();
+
+    system->is_updated = false;
 }
 
 void ChAssembly::RemoveAllLinks() {
@@ -229,6 +253,8 @@ void ChAssembly::RemoveAllLinks() {
         link->SetSystem(nullptr);
     }
     linklist.clear();
+
+    system->is_updated = false;
 }
 
 void ChAssembly::RemoveAllMeshes() {
@@ -236,6 +262,8 @@ void ChAssembly::RemoveAllMeshes() {
         mesh->SetSystem(nullptr);
     }
     meshlist.clear();
+
+    system->is_updated = false;
 }
 
 void ChAssembly::RemoveAllOtherPhysicsItems() {
@@ -243,6 +271,8 @@ void ChAssembly::RemoveAllOtherPhysicsItems() {
         item->SetSystem(nullptr);
     }
     otherphysicslist.clear();
+
+    system->is_updated = false;
 }
 
 std::shared_ptr<ChBody> ChAssembly::SearchBody(const char* name) {
@@ -250,8 +280,13 @@ std::shared_ptr<ChBody> ChAssembly::SearchBody(const char* name) {
         name, bodylist.begin(), bodylist.end());
 }
 
-std::shared_ptr<ChLink> ChAssembly::SearchLink(const char* name) {
-    return ChContainerSearchFromName<std::shared_ptr<ChLink>, std::vector<std::shared_ptr<ChLink>>::iterator>(
+std::shared_ptr<ChBody> ChAssembly::SearchBodyID(int markID) {
+    return ChContainerSearchFromID<std::shared_ptr<ChBody>, std::vector<std::shared_ptr<ChBody>>::iterator>(
+        markID, bodylist.begin(), bodylist.end());
+}
+
+std::shared_ptr<ChLinkBase> ChAssembly::SearchLink(const char* name) {
+    return ChContainerSearchFromName<std::shared_ptr<ChLinkBase>, std::vector<std::shared_ptr<ChLinkBase>>::iterator>(
         name, linklist.begin(), linklist.end());
 }
 
@@ -372,7 +407,7 @@ void ChAssembly::Setup() {
             body->SetOffset_w(this->offset_w + ncoords_w);
             body->SetOffset_L(this->offset_L + ndoc_w);
 
-            // body->Setup(); // not needed since in bodies does nothing
+            body->Setup();  // currently, no-op
 
             ncoords += body->GetDOF();
             ncoords_w += body->GetDOF_w();
@@ -511,30 +546,36 @@ void ChAssembly::IntStateScatter(const unsigned int off_x,
                                  const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const double T) {
+    // Notes:
+    // 1. All IntStateScatter() calls below will automatically call Update() for each object, therefore:
+    //    - do not call Update() on this (assembly).
+    //    - do not call ChPhysicsItem::IntStateScatter() as this will also result in a redundant Update()
+    // 2. Order below is *important*
+    //    - in particular, bodies and meshes must be processed *before* links, so that links can use
+    //      up-to-date body and node information
+
     unsigned int displ_x = off_x - this->offset_x;
     unsigned int displ_v = off_v - this->offset_w;
 
     for (auto& body : bodylist) {
         if (body->IsActive())
             body->IntStateScatter(displ_x + body->GetOffset_x(), x, displ_v + body->GetOffset_w(), v, T);
+        else
+            body->Update(T);
+    }
+    for (auto& mesh : meshlist) {
+        mesh->IntStateScatter(displ_x + mesh->GetOffset_x(), x, displ_v + mesh->GetOffset_w(), v, T);
     }
     for (auto& link : linklist) {
         if (link->IsActive())
             link->IntStateScatter(displ_x + link->GetOffset_x(), x, displ_v + link->GetOffset_w(), v, T);
-    }
-    for (auto& mesh : meshlist) {
-        mesh->IntStateScatter(displ_x + mesh->GetOffset_x(), x, displ_v + mesh->GetOffset_w(), v, T);
+        else
+            link->Update(T);
     }
     for (auto& item : otherphysicslist) {
         item->IntStateScatter(displ_x + item->GetOffset_x(), x, displ_v + item->GetOffset_w(), v, T);
     }
     SetChTime(T);
-
-    // Note: all those IntStateScatter() above should call Update() automatically
-    // for each object in the loop, therefore:
-    // -do not call Update() on this.
-    // -do not call ChPhysicsItem::IntStateScatter() -it calls this->Update() anyway-
-    // because this would cause redundant updates.
 }
 
 void ChAssembly::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
@@ -596,7 +637,7 @@ void ChAssembly::IntStateGatherReactions(const unsigned int off_L, ChVectorDynam
     }
 }
 
-// From reaction forces to system, ex. store last computed reactions in ChLink objects for plotting etc.
+// From reaction forces to system, ex. store last computed reactions in ChLinkBase objects for plotting etc.
 void ChAssembly::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
     unsigned int displ_L = off_L - this->offset_L;
 
@@ -1141,7 +1182,7 @@ void ChAssembly::ArchiveIN(ChArchiveIn& marchive) {
 
     // stream in all member data:
     std::vector<std::shared_ptr<ChBody>> tempbodies;
-    std::vector<std::shared_ptr<ChLink>> templinks;
+    std::vector<std::shared_ptr<ChLinkBase>> templinks;
     std::vector<std::shared_ptr<ChMesh>> tempmeshes;
     std::vector<std::shared_ptr<ChPhysicsItem>> tempitems;
     marchive >> CHNVP(tempbodies, "bodies");

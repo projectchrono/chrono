@@ -2,62 +2,54 @@
 Rigid bodies      {#rigid_bodies}
 ============
 
-Rigid bodies play an important role in Chrono as they represent parts of mechanisms.
-For instance, an engine is made 
-of rigid bodies such as rods, pistons, crankshaft, valves, etc. 
+Rigid bodies play an important role in Chrono as they represent parts of mechanisms.  
+You can add a rigid body using different methods:
+ - [using chrono::ChBody directly](@ref manual_ChBody); in this case, the body will not come with any visualization asset nor collision shape: you will need to add them in a second step;
+ - [using 'Easy' bodies](@ref manual_easybodies); if you need basic shapes (sphere, cylinder, box, convex hull, cluster of spheres) this is the way to go; the visualization and collision shapes are (optionally) added automatically;
 
-In some cases the rigid body assumption 
-is an approximation of what happens in the real world. For instance the crankshaft of a car engine might have 
-torsional and bending vibrations, but in many cases 
-this can be neglected. If this flexibility attribute of the time evolution cannot be neglected, 
-one should use the [FEA module](group__chrono__fea.html), which introduces flexible bodies at the cost of a more complex model definition/set up and longer run times.
+Rigid bodies are not the only option. Chrono can simulate also flexible finite-elements bodies. Please refer to [FEA manual](@ref manual_fea) for a description of the FEA capabilities.
 
 # ChBody   {#manual_ChBody}
+
 
 The most used type of rigid bodies is the ChBody.
 See @ref chrono::ChBody for API details.
 
 ![](http://www.projectchrono.org/assets/manual/pic_ChBody.png)
 
-- Rigid bodies inherit (in the C++ sense) from the ChFrameMoving classes and as such they have a position, rotation, velocity, and acceleration
+- Rigid bodies inherit (in the C++ sense) from the @ref chrono::ChFrameMoving classes and as such they have a position, rotation, velocity, and acceleration
 
 - The position, speed, acceleration are that of the center of mass (COG) 
 
 - They have a mass and an inertia tensor
 
-- They can be connected by ChLink constraints
+- They can be connected by @ref chrono::ChLink constraints
 
 - They can participate in collisions
 
 
 Creating/Setting up a ChBody object typically involves the following steps:
 
-1. Create the ChBody and set its position and possibly its velocity along with its mass and inertia tensor properties
-2. Add the body to a @ref chrono::ChSystem
-3. Optional: add [collision shapes](@ref collision_shapes)
-4. Optional: add [visualization assets](@ref visualization_assets)
-
-The following example illustrates Steps 1 and 2:
-
-~~~{.cpp}
-// Create a body – use shared pointer
-auto body_b = std::make_shared<ChBody>();
-
-// Set initial position and velocity of the COG of body,
-// using the same syntax used for ChFrameMoving
-body_b->SetPos( ChVector<>(0.2,0.4,2) );
-body_b->SetPos_dt( ChVector<>(0.1,0,0) );
-
-// Set mass and inertia tensor attributes
-body_b->SetMass(10);
-body_b->SetInertiaXX( ChVector<>(4,4,4) );
-
-// Here's how one can indicate that the body is fixed to ground:
-body_b->SetBodyFixed(true);
-
-// Finally, add the newly created to the system being simulated
-my_system.Add(body_b);
-~~~
+1. Create the ChBody; 
+   ~~~{.cpp}
+   auto body_b = std::make_shared<ChBody>();
+   ~~~
+2. Set its mass and inertia tensor properties
+   ~~~{.cpp}
+   body_b->SetMass(10);
+   body_b->SetInertiaXX( ChVector<>(4,4,4) );
+   ~~~
+3. Set its position and its velocity, if needed
+   ~~~{.cpp}
+   body_b->SetPos( ChVector<>(0.2,0.4,2) );
+   body_b->SetPos_dt( ChVector<>(0.1,0,0) );
+   ~~~
+4. Add the body to a @ref chrono::ChSystem
+   ~~~{.cpp}
+   my_system.Add(body_b);
+   ~~~
+5. Optional: add [collision shapes](@ref collision_shapes)
+6. Optional: add [visualization assets](@ref visualization_assets)
 
 # ChBodyAuxRef   {#manual_ChBodyAuxRef}
 
@@ -92,6 +84,33 @@ body_b->SetFrame_REF_to_abs(X_bref);
 pos_vec = body_b->GetPos();
 ~~~
 
+# 'Easy' bodies   {#manual_easybodies}
+Chrono provides some classes that greatly facilitate the creation of bodies with basic shapes:
+
+- @ref chrono::ChBodyEasySphere,
+- @ref chrono::ChBodyEasyCylinder,
+- @ref chrono::ChBodyEasyBox,
+- @ref chrono::ChBodyEasyConvexHull,
+- @ref chrono::ChBodyEasyClusterOfSpheres,
+
+The syntax differs among the different classes, but basically is of the type
+
+~~~{.cpp}
+auto mySphere = std::make_shared<ChBodyEasySphere>(4,      // radius
+                                                   8000,   // density
+                                                   true,   // collision enabled
+                                                   true);  // visualization enabled
+system.Add(mySphere);
+~~~
+
+For these objects:
+
+- The mass and inertia tensor are computed from the geometry, given the density;
+- Optional: a visualization asset showing the shape is added automatically;
+- Optional: a collision shape is added automatically;
+  
+Since they inherit from @ref chrono::ChBody, setting the position, velocity and any other operation can be done as in ChBody.
+
 
 # Other bodies   {#manual_otherbodies}
 
@@ -105,24 +124,6 @@ The ChConveyor is a body that has a rectangular collision surface
 used in the simulation of a conveyor belt.
 
 See @ref chrono::ChConveyor for API details.
-
-
-## Basic shapes
-
-- @ref chrono::ChBodyEasySphere,
-- @ref chrono::ChBodyEasyCylinder,
-- @ref chrono::ChBodyEasyBox,
-- @ref chrono::ChBodyEasyConvexHull,
-- @ref chrono::ChBodyEasyClusterOfSpheres,
-
-These define ready/easy-to-use bodies that simplify the definition of its attributes when the body is a simple shape such as a box, a sphere, etc.
-When creating one of these objects, one automatically gets:
-
-- The mass and inertia tensor are computed from the geometry, given the density
-- Optional: a visualization asset showing the shape is added automatically
-- Optional: a collision shape is added automatically
-
-
 
 # Examples
 See:

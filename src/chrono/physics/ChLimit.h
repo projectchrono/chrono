@@ -15,91 +15,69 @@
 #ifndef CHLINKLIMIT_H
 #define CHLINKLIMIT_H
 
-#include <cfloat>
-#include <cmath>
-
 #include "chrono/core/ChMath.h"
 #include "chrono/motion_functions/ChFunction.h"
-#include "chrono/physics/ChLinkMask.h"
 #include "chrono/solver/ChConstraintTwoBodies.h"
 
 namespace chrono {
 
-/// Class for limits in link joints (for example limits on elbow or knee rotations, etc.)
-/// Old code. Must be improved.
-
+/// Class for limits in ChLinkLock joints.
 class ChApi ChLinkLimit {
-  private:
-    bool active;  // true|false
-    bool penalty_only;
-    bool polar;
-    bool rotation;
-    double max;
-    double min;
-    double maxCushion;
-    double minCushion;
-    double Kmax;
-    double Kmin;
-    double Rmax;
-    double Rmin;
-    double maxElastic;
-    double minElastic;
-    ChFunction* modul_Kmax;
-    ChFunction* modul_Kmin;
-    ChFunction* modul_Rmax;
-    ChFunction* modul_Rmin;
-    ChFunction* polar_Max;
-
   public:
     ChConstraintTwoBodies constr_upper;
     ChConstraintTwoBodies constr_lower;
 
     ChLinkLimit();
     ChLinkLimit(const ChLinkLimit& other);
-    ~ChLinkLimit();
+    ~ChLinkLimit() {}
 
     ChLinkLimit* Clone() const { return new ChLinkLimit(*this); }
 
-    bool Get_active() const { return active; }
-    bool Get_penalty() const { return penalty_only; }
-    bool Get_polar() const { return polar; }
-    bool Get_rotation() const { return rotation; }
-    double Get_max() const { return max; }
-    double Get_min() const { return min; }
-    double Get_maxCushion() const { return maxCushion; }
-    double Get_minCushion() const { return minCushion; }
-    double Get_Kmax() const { return Kmax; }
-    double Get_Kmin() const { return Kmin; }
-    double Get_Rmax() const { return Rmax; }
-    double Get_Rmin() const { return Rmin; }
-    double Get_maxElastic() const { return maxElastic; }
-    double Get_minElastic() const { return minElastic; }
-    ChFunction* GetModul_Kmax() const { return modul_Kmax; }
-    ChFunction* GetModul_Kmin() const { return modul_Kmin; }
-    ChFunction* GetModul_Rmax() const { return modul_Rmax; }
-    ChFunction* GetModul_Rmin() const { return modul_Rmin; }
-    ChFunction* GetPolar_Max() const { return polar_Max; }
-    double Get_polar_max(double pol_ang) const;
+    bool IsActive() const { return m_active; }
+    void SetActive(bool val) { m_active = val; }
 
-    void Set_active(bool m_active) { active = m_active; }
-    void Set_penalty(bool m_active) { penalty_only = m_active; }
-    void Set_polar(bool m_pol) { polar = m_pol; }
-    void Set_rotation(bool m_rot) { rotation = m_rot; }
-    void Set_max(double m_max);
-    void Set_min(double m_min);
-    void Set_maxCushion(double m_maxCushion);
-    void Set_minCushion(double m_minCushion);
-    void Set_Kmax(double m_K) { Kmax = m_K; }
-    void Set_Kmin(double m_K) { Kmin = m_K; }
-    void Set_Rmax(double m_R) { Rmax = m_R; }
-    void Set_Rmin(double m_R) { Rmin = m_R; }
-    void Set_maxElastic(double m_e) { maxElastic = m_e; }
-    void Set_minElastic(double m_e) { minElastic = m_e; }
-    void SetModul_Kmax(ChFunction* m_funct);
-    void SetModul_Kmin(ChFunction* m_funct);
-    void SetModul_Rmax(ChFunction* m_funct);
-    void SetModul_Rmin(ChFunction* m_funct);
-    void SetPolar_Max(ChFunction* m_funct);
+    bool IsPenalty() const { return m_penalty_only; }
+    bool IsPolar() const { return m_polar; }
+    bool IsRotation() const { return m_rotation; }
+
+    void SetPenalty(bool val) { m_penalty_only = val; }
+    void SetPolar(bool val) { m_polar = val; }
+    void SetRotation(bool val) { m_rotation = val; }
+
+    double GetMax() const { return m_max; }
+    double GetMin() const { return m_min; }
+    double GetMaxCushion() const { return m_maxCushion; }
+    double GetMinCushion() const { return m_minCushion; }
+    double GetKmax() const { return m_Kmax; }
+    double GetKmin() const { return m_Kmin; }
+    double GetRmax() const { return m_Rmax; }
+    double GetRmin() const { return m_Rmin; }
+    double GetMaxElastic() const { return m_maxElastic; }
+    double GetMinElastic() const { return m_minElastic; }
+    double GetMaxPolarAngle(double pol_ang) const;
+
+    void SetMax(double val);
+    void SetMin(double val);
+    void SetMaxCushion(double val);
+    void SetMinCushion(double val);
+    void SetKmax(double val) { m_Kmax = val; }
+    void SetKmin(double val) { m_Kmin = val; }
+    void SetRmax(double val) { m_Rmax = val; }
+    void SetRmin(double val) { m_Rmin = val; }
+    void SetMaxElastic(double val) { m_maxElastic = val; }
+    void SetMinElastic(double val) { m_minElastic = val; }
+
+    void SetModulationKmax(std::shared_ptr<ChFunction> funct) { m_Kmax_modul = funct; }
+    void SetModulationKmin(std::shared_ptr<ChFunction> funct) { m_Kmin_modul = funct; }
+    void SetModulationRmax(std::shared_ptr<ChFunction> funct) { m_Rmax_modul = funct; }
+    void SetModulationRmin(std::shared_ptr<ChFunction> funct) { m_Rmin_modul = funct; }
+    void SetPolarMax(std::shared_ptr<ChFunction> funct) { m_polarMax_funct = funct; }
+
+    std::shared_ptr<ChFunction> GetModulationKmax() const { return m_Kmax_modul; }
+    std::shared_ptr<ChFunction> GetModulationKmin() const { return m_Kmin_modul; }
+    std::shared_ptr<ChFunction> GetModulationRmax() const { return m_Rmax_modul; }
+    std::shared_ptr<ChFunction> GetModulationRmin() const { return m_Rmin_modul; }
+    std::shared_ptr<ChFunction> GetPolarMax() const { return m_polarMax_funct; }
 
     /// Return negative violation when x<min, or positive if x>max
     double GetViolation(double x) const;
@@ -112,6 +90,29 @@ class ChApi ChLinkLimit {
 
     /// Method to allow deserialization of transient data from archives.
     void ArchiveIN(ChArchiveIn& marchive);
+
+  private:
+    bool m_active;
+    bool m_penalty_only;
+    bool m_polar;
+    bool m_rotation;
+
+    double m_max;
+    double m_min;
+    double m_maxCushion;
+    double m_minCushion;
+    double m_Kmax;
+    double m_Kmin;
+    double m_Rmax;
+    double m_Rmin;
+    double m_maxElastic;
+    double m_minElastic;
+
+    std::shared_ptr<ChFunction> m_Kmax_modul;
+    std::shared_ptr<ChFunction> m_Kmin_modul;
+    std::shared_ptr<ChFunction> m_Rmax_modul;
+    std::shared_ptr<ChFunction> m_Rmin_modul;
+    std::shared_ptr<ChFunction> m_polarMax_funct;
 };
 
 CH_CLASS_VERSION(ChLinkLimit, 0)

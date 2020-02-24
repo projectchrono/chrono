@@ -81,9 +81,8 @@ int main(int argc, char* argv[]) {
 
     // Create the system.
     ChSystemNSC system;
-    system.SetSolverType(ChSolver::Type::SOR);
-    system.SetMaxItersSolverSpeed(20);
-    system.SetMaxItersSolverStab(5);
+    system.SetSolverType(ChSolver::Type::PSOR);
+    system.SetSolverMaxIterations(20);
 
     // Create the Irrlicht application.
     ChIrrApp application(&system, L"Number of collisions", irr::core::dimension2d<irr::u32>(800, 600), false);
@@ -93,7 +92,7 @@ int main(int argc, char* argv[]) {
     ChIrrWizard::add_typical_Camera(application.GetDevice(), irr::core::vector3df(0, 14, -20));
 
     // Creeate a container fixed to ground (invisible).
-    auto container = std::make_shared<ChBody>();
+    auto container = chrono_types::make_shared<ChBody>();
     container->SetBodyFixed(true);
     container->SetCollide(true);
     container->GetCollisionModel()->ClearModel();
@@ -110,27 +109,27 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<ChBody> my_box;
     std::shared_ptr<ChBody> my_cylinder;
     for (int bi = 0; bi < 20; bi++) {
-        auto sphere = std::make_shared<ChBodyEasySphere>(1.1, 1000, true, true);
+        auto sphere = chrono_types::make_shared<ChBodyEasySphere>(1.1, 1000, true, true);
         system.Add(sphere);
         sphere->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
         if (bi == 0) {
-            sphere->AddAsset(std::make_shared<ChTexture>(GetChronoDataFile("bluwhite.png")));
+            sphere->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("bluwhite.png")));
             my_sphere = sphere;
         }
 
-        auto box = std::make_shared<ChBodyEasyBox>(1.5, 1.5, 1.5, 100, true, true);
+        auto box = chrono_types::make_shared<ChBodyEasyBox>(1.5, 1.5, 1.5, 100, true, true);
         system.Add(box);
         box->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
         if (bi == 0) {
-            box->AddAsset(std::make_shared<ChTexture>(GetChronoDataFile("cubetexture_bluwhite.png")));
+            box->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("cubetexture_bluwhite.png")));
             my_box = box;
         }
 
-        auto cylinder = std::make_shared<ChBodyEasyCylinder>(0.75, 0.5, 100, true, true);
+        auto cylinder = chrono_types::make_shared<ChBodyEasyCylinder>(0.75, 0.5, 100, true, true);
         system.Add(cylinder);
         cylinder->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
         if (bi == 0) {
-            cylinder->AddAsset(std::make_shared<ChTexture>(GetChronoDataFile("pinkwhite.png")));
+            cylinder->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("pinkwhite.png")));
             my_cylinder = cylinder;
         }
     }

@@ -26,8 +26,11 @@
 #include "chrono_models/vehicle/m113/M113_SimplePowertrain.h"
 #include "chrono_models/vehicle/m113/M113_Vehicle.h"
 
+#ifdef CHRONO_IRRLICHT
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
+#define USE_IRRLICHT
+#endif
 
 #ifdef CHRONO_MUMPS
 #include "chrono_mumps/ChSolverMumps.h"
@@ -38,8 +41,6 @@
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
-
-#define USE_IRRLICHT
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -190,15 +191,15 @@ int main(int argc, char* argv[]) {
     // Create the powertrain system
     // ----------------------------
 
-    M113_SimplePowertrain powertrain("powertrain");
-    powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
+    auto powertrain = chrono_types::make_shared<M113_SimplePowertrain>("powertrain");
+    vehicle.InitializePowertrain(powertrain);
 
 #ifdef USE_IRRLICHT
     // ---------------------------------------
     // Create the vehicle Irrlicht application
     // ---------------------------------------
 
-    ChTrackedVehicleIrrApp app(&vehicle, &powertrain, L"M113 Band-track Vehicle Demo");
+    ChTrackedVehicleIrrApp app(&vehicle, L"M113 Band-track Vehicle Demo");
     app.SetSkyBox();
     irrlicht::ChIrrWizard::add_typical_Logo(app.GetDevice());
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
@@ -290,8 +291,8 @@ int main(int argc, char* argv[]) {
     switch (solver_type) {
 #ifdef CHRONO_MUMPS
         case MUMPS: {
-            auto mumps_solver = std::make_shared<ChSolverMumps>();
-            mumps_solver->SetSparsityPatternLock(true);
+            auto mumps_solver = chrono_types::make_shared<ChSolverMumps>();
+            mumps_solver->LockSparsityPattern(true);
             mumps_solver->SetVerbose(verbose_solver);
             vehicle.GetSystem()->SetSolver(mumps_solver);
             break;
@@ -299,8 +300,8 @@ int main(int argc, char* argv[]) {
 #endif
 #ifdef CHRONO_MKL
         case MKL: {
-            auto mkl_solver = std::make_shared<ChSolverMKL<>>();
-            mkl_solver->SetSparsityPatternLock(true);
+            auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+            mkl_solver->LockSparsityPattern(true);
             mkl_solver->SetVerbose(verbose_solver);
             vehicle.GetSystem()->SetSolver(mkl_solver);
             break;
@@ -322,9 +323,6 @@ int main(int argc, char* argv[]) {
     // ---------------
     // Simulation loop
     // ---------------
-
-    // IMPORTANT: Mark completion of system construction
-    vehicle.GetSystem()->SetupInitial();
 
     // Inter-module communication data
     BodyStates shoe_states_left(vehicle.GetNumTrackShoes(LEFT));
@@ -413,11 +411,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Collect data from modules
-        double throttle_input = driver.GetThrottle();
-        double steering_input = driver.GetSteering();
-        double braking_input = driver.GetBraking();
-        double powertrain_torque = powertrain.GetOutputTorque();
-        double driveshaft_speed = vehicle.GetDriveshaftSpeed();
+        ChDriver::Inputs driver_inputs = driver.GetInputs();
         vehicle.GetTrackShoeStates(LEFT, shoe_states_left);
         vehicle.GetTrackShoeStates(RIGHT, shoe_states_right);
 
@@ -425,17 +419,14 @@ int main(int argc, char* argv[]) {
         double time = vehicle.GetChTime();
         driver.Synchronize(time);
         terrain.Synchronize(time);
-        powertrain.Synchronize(time, throttle_input, driveshaft_speed);
-        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, shoe_forces_left,
-                            shoe_forces_right);
+        vehicle.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
 #ifdef USE_IRRLICHT
-        app.Synchronize("", steering_input, throttle_input, braking_input);
+        app.Synchronize("", driver_inputs);
 #endif
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
-        powertrain.Advance(step_size);
         vehicle.Advance(step_size);
 #ifdef USE_IRRLICHT
         app.Advance(step_size);
@@ -489,18 +480,18 @@ void AddFixedObstacles(ChSystem* system) {
     obstacle->SetCollide(true);
 
     // Visualization
-    auto shape = std::make_shared<ChCylinderShape>();
+    auto shape = chrono_types::make_shared<ChCylinderShape>();
     shape->GetCylinderGeometry().p1 = ChVector<>(0, -length * 0.5, 0);
     shape->GetCylinderGeometry().p2 = ChVector<>(0, length * 0.5, 0);
     shape->GetCylinderGeometry().rad = radius;
     obstacle->AddAsset(shape);
 
-    auto color = std::make_shared<ChColorAsset>();
+    auto color = chrono_types::make_shared<ChColorAsset>();
     color->SetColor(ChColor(1, 1, 1));
     obstacle->AddAsset(color);
 
 #ifdef USE_IRRLICHT
-    auto texture = std::make_shared<ChTexture>();
+    auto texture = chrono_types::make_shared<ChTexture>();
     texture->SetTextureFilename(vehicle::GetDataFile("terrain/textures/tile4.jpg"));
     texture->SetTextureScale(10, 10);
     obstacle->AddAsset(texture);

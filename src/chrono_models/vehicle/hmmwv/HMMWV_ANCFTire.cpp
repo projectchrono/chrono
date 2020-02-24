@@ -129,9 +129,9 @@ HMMWV_ANCFTire::HMMWV_ANCFTire(const std::string& name) : ChANCFTire(name) {
 
     // Create the vector of orthotropic layer materials
     m_materials.resize(3);
-    m_materials[0] = std::make_shared<ChMaterialShellANCF>(m_rho_0, m_E_0, m_nu_0, m_G_0);
-    m_materials[1] = std::make_shared<ChMaterialShellANCF>(m_rho_1, m_E_1, m_nu_1, m_G_1);
-    m_materials[2] = std::make_shared<ChMaterialShellANCF>(m_rho_2, m_E_2, m_nu_2, m_G_2);
+    m_materials[0] = chrono_types::make_shared<ChMaterialShellANCF>(m_rho_0, m_E_0, m_nu_0, m_G_0);
+    m_materials[1] = chrono_types::make_shared<ChMaterialShellANCF>(m_rho_1, m_E_1, m_nu_1, m_G_1);
+    m_materials[2] = chrono_types::make_shared<ChMaterialShellANCF>(m_rho_2, m_E_2, m_nu_2, m_G_2);
 
     // Set the profile
     m_profile_t.resize(m_num_points);
@@ -177,7 +177,7 @@ void HMMWV_ANCFTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide 
             ChVector<> nrm_prf = Vcross(tan_prf, nrm).GetNormalized();
             ChVector<> dir = wheel_frame.TransformDirectionLocalToParent(nrm_prf);
 
-            auto node = std::make_shared<ChNodeFEAxyzD>(loc, dir);
+            auto node = chrono_types::make_shared<ChNodeFEAxyzD>(loc, dir);
 
             // Node velocity
             ChVector<> vel = wheel_frame.PointSpeedLocalToParent(ChVector<>(x, y, z));
@@ -208,7 +208,7 @@ void HMMWV_ANCFTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide 
             auto node3 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_mesh->GetNode(inode3));
 
             // Create the element and set its nodes.
-            auto element = std::make_shared<ChElementShellANCF>();
+            auto element = chrono_types::make_shared<ChElementShellANCF>();
             element->SetNodes(node0, node1, node2, node3);
 
             // Element dimensions

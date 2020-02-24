@@ -19,6 +19,7 @@
 #include <limits>
 
 #include "chrono/core/ChApiCE.h"
+#include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChVector.h"
 #include "chrono/core/ChMathematics.h"
 
@@ -27,10 +28,10 @@ namespace chrono {
 /// Definitions of various angle sets for conversions.
 enum class AngleSet {
     ANGLE_AXIS,
-    EULERO,
-    CARDANO,
-    HPB,
-    RXYZ,
+    EULERO,		///< sequence: Z - X' - Z''
+    CARDANO,	///< sequence: Z - X' - Y''
+    HPB,		///< sequence: 
+    RXYZ,		///< sequence: X - Y' - Z''
     RODRIGUEZ,
     QUATERNION,
 };
@@ -68,6 +69,33 @@ class ChQuaternion {
     const Real& e1() const { return data[1]; }
     const Real& e2() const { return data[2]; }
     const Real& e3() const { return data[3]; }
+
+    // EIGEN INTER-OPERABILITY
+
+    /// Construct a quaternion from an Eigen vector expression.
+    template <typename Derived>
+    ChQuaternion(const Eigen::MatrixBase<Derived>& vec,
+                 typename std::enable_if<(Derived::MaxRowsAtCompileTime == 1 || Derived::MaxColsAtCompileTime == 1),
+                                         Derived>::type* = 0) {
+        data[0] = vec(0);
+        data[1] = vec(1);
+        data[2] = vec(2);
+        data[3] = vec(3);
+    }
+
+    /// View this quaternion as an Eigen vector.
+    Eigen::Map<Eigen::Matrix<Real, 4, 1>> eigen() { return Eigen::Map<Eigen::Matrix<Real, 4, 1>>(data); }
+    Eigen::Map<const Eigen::Matrix<Real, 4, 1>> eigen() const { return Eigen::Map<const Eigen::Matrix<Real, 4, 1>>(data); }
+
+    /// Assign an Eigen vector expression to this quaternion.
+    template <typename Derived>
+    ChQuaternion& operator=(const Eigen::MatrixBase<Derived>& vec) {
+        data[0] = vec(0);
+        data[1] = vec(1);
+        data[2] = vec(2);
+        data[3] = vec(3);
+        return *this;
+    }
 
     // SET & GET FUNCTIONS
 
@@ -542,6 +570,13 @@ ChApi ChQuaternion<double> AngleDTDT_to_QuatDTDT(AngleSet angset,
                                                  const ChVector<double>& mangles,
                                                  const ChQuaternion<double>& q);
 
+/// Insertion of quaternion to output stream.
+template <typename Real>
+inline std::ostream& operator<<(std::ostream& out, const ChQuaternion<Real>& q) {
+    out << q.e0() << "  " << q.e1() << "  " << q.e2() << "  " << q.e3();
+    return out;
+}
+
 // =============================================================================
 // IMPLEMENTATION OF ChQuaternion<Real> methods
 // =============================================================================
@@ -990,7 +1025,7 @@ inline ChQuaternion<Real> ChQuaternion<Real>::GetConjugate() const {
 template <class Real>
 inline ChQuaternion<Real> ChQuaternion<Real>::GetInverse() const {
     ChQuaternion<Real> invq = this->GetConjugate();
-    invq.Scale(1 / this->Length());
+    invq.Scale(1 / this->Length2());
     return invq;
 }
 

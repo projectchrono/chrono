@@ -89,16 +89,13 @@ ChMatrix33<> ChPart::TransformInertiaMatrix(
     const ChMatrix33<>& body_rot      // body absolute orientation matrix
     ) {
     // Calculate rotation matrix body-to-vehicle
-    ChMatrix33<> R;
-    R.MatrTMultiply(vehicle_rot, body_rot);
+    ChMatrix33<> R = vehicle_rot.transpose() * body_rot;
 
     // Assemble the inertia matrix in vehicle-aligned centroidal frame
     ChMatrix33<> J_vehicle(moments, products);
 
     // Calculate transformed inertia matrix:  (R' * J_vehicle * R)
-    ChMatrix33<> tmp;
-    tmp.MatrTMultiply(R, J_vehicle);
-    return tmp * R;
+    return R.transpose() * J_vehicle * R;
 }
 
 // -----------------------------------------------------------------------------
@@ -200,7 +197,7 @@ void ChPart::ExportMarkerList(rapidjson::Document& jsonDocument, std::vector<std
 }
 
 void ChPart::ExportLinSpringList(rapidjson::Document& jsonDocument,
-                                 std::vector<std::shared_ptr<ChLinkSpringCB>> springs) {
+                                 std::vector<std::shared_ptr<ChLinkTSDA>> springs) {
     rapidjson::Document::AllocatorType& allocator = jsonDocument.GetAllocator();
 
     rapidjson::Value jsonArray(rapidjson::kArrayType);

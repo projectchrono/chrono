@@ -31,7 +31,7 @@ ChNodeFEAcurv::ChNodeFEAcurv(const ChVector<>& rxx, const ChVector<>& ryy, const
       m_ryy_dtdt(VNULL),
       m_rzz_dtdt(VNULL) {
     m_variables = new ChVariablesGenericDiagonalMass(9);
-    m_variables->GetMassDiagonal().FillElem(0);
+    m_variables->GetMassDiagonal().setZero();
 }
 
 ChNodeFEAcurv::ChNodeFEAcurv(const ChNodeFEAcurv& other) : ChNodeFEAbase(other) {
@@ -103,12 +103,13 @@ void ChNodeFEAcurv::NodeIntStateGather(const unsigned int off_x,
                                        const unsigned int off_v,
                                        ChStateDelta& v,
                                        double& T) {
-    x.PasteVector(m_rxx, off_x + 0, 0);
-    x.PasteVector(m_ryy, off_x + 3, 0);
-    x.PasteVector(m_rzz, off_x + 6, 0);
-    v.PasteVector(m_rxx_dt, off_v + 0, 0);
-    v.PasteVector(m_ryy_dt, off_v + 3, 0);
-    v.PasteVector(m_rzz_dt, off_v + 6, 0);
+    x.segment(off_x + 0, 3) = m_rxx.eigen();
+    x.segment(off_x + 3, 3) = m_ryy.eigen();
+    x.segment(off_x + 6, 3) = m_rzz.eigen();
+
+    v.segment(off_v + 0, 3) = m_rxx_dt.eigen();
+    v.segment(off_v + 3, 3) = m_ryy_dt.eigen();
+    v.segment(off_v + 6, 3) = m_rzz_dt.eigen();
 }
 
 void ChNodeFEAcurv::NodeIntStateScatter(const unsigned int off_x,
@@ -116,24 +117,25 @@ void ChNodeFEAcurv::NodeIntStateScatter(const unsigned int off_x,
                                         const unsigned int off_v,
                                         const ChStateDelta& v,
                                         const double T) {
-    m_rxx = x.ClipVector(off_x + 0, 0);
-    m_ryy = x.ClipVector(off_x + 3, 0);
-    m_rzz = x.ClipVector(off_x + 6, 0);
-    m_rxx_dt = v.ClipVector(off_v + 0, 0);
-    m_ryy_dt = v.ClipVector(off_v + 3, 0);
-    m_rzz_dt = v.ClipVector(off_v + 6, 0);
+    m_rxx = x.segment(off_x + 0, 3);
+    m_ryy = x.segment(off_x + 3, 3);
+    m_rzz = x.segment(off_x + 6, 3);
+
+    m_rxx_dt = v.segment(off_v + 0, 3);
+    m_ryy_dt = v.segment(off_v + 3, 3);
+    m_rzz_dt = v.segment(off_v + 6, 3);
 }
 
 void ChNodeFEAcurv::NodeIntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
-    a.PasteVector(m_rxx_dtdt, off_a + 0, 0);
-    a.PasteVector(m_ryy_dtdt, off_a + 3, 0);
-    a.PasteVector(m_rzz_dtdt, off_a + 6, 0);
+    a.segment(off_a + 0, 3) = m_rxx_dtdt.eigen();
+    a.segment(off_a + 3, 3) = m_ryy_dtdt.eigen();
+    a.segment(off_a + 6, 3) = m_rzz_dtdt.eigen();
 }
 
 void ChNodeFEAcurv::NodeIntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
-    m_rxx_dtdt = a.ClipVector(off_a + 0, 0);
-    m_ryy_dtdt = a.ClipVector(off_a + 3, 0);
-    m_rzz_dtdt = a.ClipVector(off_a + 6, 0);
+    m_rxx_dtdt = a.segment(off_a + 0, 3);
+    m_ryy_dtdt = a.segment(off_a + 3, 3);
+    m_rzz_dtdt = a.segment(off_a + 6, 3);
 }
 
 void ChNodeFEAcurv::NodeIntStateIncrement(const unsigned int off_x,
@@ -160,12 +162,12 @@ void ChNodeFEAcurv::NodeIntLoadResidual_Mv(const unsigned int off,
 }
 
 void ChNodeFEAcurv::NodeIntToDescriptor(const unsigned int off_v, const ChStateDelta& v, const ChVectorDynamic<>& R) {
-    m_variables->Get_qb().PasteClippedMatrix(v, off_v, 0, 9, 1, 0, 0);
-    m_variables->Get_fb().PasteClippedMatrix(R, off_v, 0, 9, 1, 0, 0);
+    m_variables->Get_qb().segment(0, 9) = v.segment(off_v, 9);
+    m_variables->Get_fb().segment(0, 9) = R.segment(off_v, 9);
 }
 
 void ChNodeFEAcurv::NodeIntFromDescriptor(const unsigned int off_v, ChStateDelta& v) {
-    v.PasteMatrix(m_variables->Get_qb(), off_v, 0);
+    v.segment(off_v, 9) = m_variables->Get_qb().segment(0, 9);
 }
 
 // -----------------------------------------------------------------------------
@@ -175,7 +177,7 @@ void ChNodeFEAcurv::InjectVariables(ChSystemDescriptor& mdescriptor) {
 }
 
 void ChNodeFEAcurv::VariablesFbReset() {
-    m_variables->Get_fb().FillElem(0);
+    m_variables->Get_fb().setZero();
 }
 
 void ChNodeFEAcurv::VariablesFbLoadForces(double factor) {
@@ -183,9 +185,9 @@ void ChNodeFEAcurv::VariablesFbLoadForces(double factor) {
 }
 
 void ChNodeFEAcurv::VariablesQbLoadSpeed() {
-    m_variables->Get_qb().PasteVector(m_rxx_dt, 0, 0);
-    m_variables->Get_qb().PasteVector(m_ryy_dt, 3, 0);
-    m_variables->Get_qb().PasteVector(m_rzz_dt, 6, 0);
+    m_variables->Get_qb().segment(0, 3) = m_rxx_dt.eigen();
+    m_variables->Get_qb().segment(3, 3) = m_ryy_dt.eigen();
+    m_variables->Get_qb().segment(6, 3) = m_rzz_dt.eigen();
 }
 
 void ChNodeFEAcurv::VariablesQbSetSpeed(double step) {
@@ -193,9 +195,9 @@ void ChNodeFEAcurv::VariablesQbSetSpeed(double step) {
     ChVector<> old_ryy_dt = m_ryy_dt;
     ChVector<> old_rzz_dt = m_rzz_dt;
 
-    m_rxx_dt = m_variables->Get_qb().ClipVector(0, 0);
-    m_ryy_dt = m_variables->Get_qb().ClipVector(3, 0);
-    m_rzz_dt = m_variables->Get_qb().ClipVector(6, 0);
+    m_rxx_dt = m_variables->Get_qb().segment(0, 3);
+    m_ryy_dt = m_variables->Get_qb().segment(3, 3);
+    m_rzz_dt = m_variables->Get_qb().segment(6, 3);
 
     if (step) {
         m_rxx_dtdt = (m_rxx_dt - old_rxx_dt) / step;
@@ -209,9 +211,9 @@ void ChNodeFEAcurv::VariablesFbIncrementMq() {
 }
 
 void ChNodeFEAcurv::VariablesQbIncrementPosition(double step) {
-    ChVector<> new_rxx_dt = m_variables->Get_qb().ClipVector(0, 0);
-    ChVector<> new_ryy_dt = m_variables->Get_qb().ClipVector(3, 0);
-    ChVector<> new_rzz_dt = m_variables->Get_qb().ClipVector(6, 0);
+    ChVector<> new_rxx_dt(m_variables->Get_qb().segment(0, 3));
+    ChVector<> new_ryy_dt(m_variables->Get_qb().segment(3, 3));
+    ChVector<> new_rzz_dt(m_variables->Get_qb().segment(6, 3));
     m_rxx = m_rxx + new_rxx_dt * step;
     m_ryy = m_ryy + new_ryy_dt * step;
     m_rzz = m_rzz + new_rzz_dt * step;

@@ -47,19 +47,19 @@ void ChMeshSurface::AddFacesFromNodeSet(std::vector<std::shared_ptr<ChNodeFEAbas
             bool n3 = (node_set_map.find((size_t)mtetra->GetNodeN(3).get()) != node_set_map.end());
 
             if (n0 && n1 && n2) {
-                auto mface = std::make_shared<ChFaceTetra_4>(mtetra, 3);
+                auto mface = chrono_types::make_shared<ChFaceTetra_4>(mtetra, 3);
                 this->AddFace(mface);
             }
             if (n1 && n2 && n3) {
-                auto mface = std::make_shared<ChFaceTetra_4>(mtetra, 0);
+                auto mface = chrono_types::make_shared<ChFaceTetra_4>(mtetra, 0);
                 this->AddFace(mface);
             }
             if (n0 && n2 && n3) {
-                auto mface = std::make_shared<ChFaceTetra_4>(mtetra, 1);
+                auto mface = chrono_types::make_shared<ChFaceTetra_4>(mtetra, 1);
                 this->AddFace(mface);
             }
             if (n0 && n1 && n3) {
-                auto mface = std::make_shared<ChFaceTetra_4>(mtetra, 2);
+                auto mface = chrono_types::make_shared<ChFaceTetra_4>(mtetra, 2);
                 this->AddFace(mface);
             }
         }
@@ -97,7 +97,7 @@ void ChMeshSurface::AddFacesFromBoundary() {
                 if (face_map.count(mface_key) == 1) {
                     // Found a face that is not shared.. so it is a boundary face.
                     // Instance it to be handled via shared ptr, and add it to list...
-                    auto boundary_face = std::make_shared<ChFaceTetra_4>(mtetra, nface);
+                    auto boundary_face = chrono_types::make_shared<ChFaceTetra_4>(mtetra, nface);
                     this->AddFace(boundary_face);
                 }
             }

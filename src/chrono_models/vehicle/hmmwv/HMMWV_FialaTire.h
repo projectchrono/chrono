@@ -19,8 +19,6 @@
 #ifndef HMMWV_FIALA_TIRE_H
 #define HMMWV_FIALA_TIRE_H
 
-#include "chrono/assets/ChTriangleMeshShape.h"
-
 #include "chrono_vehicle/wheeled_vehicle/tire/ChFialaTire.h"
 
 #include "chrono_models/ChApiModels.h"
@@ -39,9 +37,7 @@ class CH_MODELS_API HMMWV_FialaTire : public ChFialaTire {
     ~HMMWV_FialaTire() {}
 
     virtual double GetNormalStiffnessForce(double depth) const override;
-    virtual double GetNormalDampingForce(double depth, double velocity) const override {
-        return m_normalDamping * velocity;
-    }
+    virtual double GetNormalDampingForce(double depth, double velocity) const override;
 
     virtual double GetVisualizationWidth() const override { return 0.25; }
 
@@ -54,12 +50,17 @@ class CH_MODELS_API HMMWV_FialaTire : public ChFialaTire {
     virtual void RemoveVisualizationAssets() override final;
 
   private:
+    ChFunction_Recorder m_vert_map;
+    double m_max_depth;
+    double m_max_val;
+    double m_slope;
+
     static const double m_normalDamping;
     static const double m_mass;
     static const ChVector<> m_inertia;
 
-    static const std::string m_meshName;
-    static const std::string m_meshFile;
+    static const std::string m_meshFile_left;
+    static const std::string m_meshFile_right;
     std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
 };
 

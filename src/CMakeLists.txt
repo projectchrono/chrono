@@ -9,7 +9,7 @@
 #-----------------------------------------------------------------------------
 
 option(BUILD_DEMOS "Build demo programs" ON)
-option(BUILD_BENCHMARKING "Build benchmark tests" ON)
+option(BUILD_BENCHMARKING "Build benchmark tests" OFF)
 
 #-----------------------------------------------------------------------------
 # Collect compiler flags required to build the Chrono libraries
@@ -205,6 +205,27 @@ set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${NEON_FLAGS}")
 set(CH_C_FLAGS "${CH_C_FLAGS} ${NEON_FLAGS}")
 
 #-----------------------------------------------------------------------------
+# Eigen library
+#-----------------------------------------------------------------------------
+
+find_package(Eigen3 3.3.0)
+if(EIGEN3_FOUND)
+  message(STATUS "Eigen3 version: ${EIGEN3_VERSION}")
+  message(STATUS "Eigen3 include directory: ${EIGEN3_INCLUDE_DIR}")
+else()
+  mark_as_advanced(CLEAR EIGEN3_INCLUDE_DIR)
+  mark_as_advanced(FORCE Eigen3_DIR)
+  message(FATAL_ERROR "Eigen3 not found. Specify EIGEN3_INCLUDE_DIR")
+endif()
+
+# Fix for VS 2017 15.8 and newer to handle alignment specification with Eigen.
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	if(MSVC AND ${MSVC_VERSION} GREATER_EQUAL 1915)
+	  add_definitions( "-D_ENABLE_EXTENDED_ALIGNED_STORAGE" )
+	endif()
+endif()
+
+#-----------------------------------------------------------------------------
 # MPI support
 #-----------------------------------------------------------------------------
 
@@ -289,6 +310,8 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
         add_definitions( "-D_SCL_SECURE_NO_DEPRECATE" )  # avoids deprecation warnings
         add_definitions( "-DNOMINMAX" ) # do not use MSVC's min/max macros
         add_definitions( "-MP" ) # perform parallel builds
+
+        set(CH_CXX_FLAGS "${CH_CXX_FLAGS} /Zc:__cplusplus")
     endif(MSVC)
 
     if(MINGW OR CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
@@ -347,6 +370,8 @@ if(ENABLE_HDF5)
         if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
             set(HDF5_COMPILE_DEFS "H5_BUILT_AS_DYNAMIC_LIB")
             message(STATUS "  HDF5 compile defs  (HDF5_COMPILE_DEFS)  ${HDF5_COMPILE_DEFS}")
+        else()
+            set(HDF5_COMPILE_DEFS "")
         endif()
     
         set(CHRONO_HAS_HDF5 "#define CHRONO_HAS_HDF5")
@@ -379,6 +404,7 @@ add_definitions( "-DBP_USE_FIXEDPOINT_INT_32" )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${PROJECT_BINARY_DIR})
+include_directories(${EIGEN3_INCLUDE_DIR})
 
 #------------------------------------------------------------
 # Build submodules
@@ -401,10 +427,13 @@ if(BUILD_TESTING)
     # Hide some Google test-related variables
     mark_as_advanced(FORCE BUILD_GMOCK)
     mark_as_advanced(FORCE INSTALL_GTEST)
+
+    set(CHRONO_HAS_GTEST "#define CHRONO_HAS_GTEST")
   else()
     message("  Google test code not found: update git submodules.")
     message("  Building of unit tests was disabled.")
     set(BUILD_TESTING OFF CACHE BOOL "Build the testing tree." FORCE)
+    set(CHRONO_HAS_GTEST "")
   endif()
 
 endif()
@@ -432,10 +461,13 @@ if(BUILD_BENCHMARKING)
     mark_as_advanced(FORCE BENCHMARK_ENABLE_TESTING)
     mark_as_advanced(FORCE BENCHMARK_USE_LIBCXX)
     mark_as_advanced(FORCE LIBRT)
+
+    set(CHRONO_HAS_GBENCHMARK "#define CHRONO_HAS_GBENCHMARK")
   else()
     message("  Google benchmark code not found: update git submodules.")
     message("  Building of benchmark tests was disabled.")
     set(BUILD_BENCHMARKING OFF CACHE BOOL "Build benchmark tests" FORCE)
+    set(CHRONO_HAS_GBENCHMARK "")
   endif()
 
 endif()
@@ -455,15 +487,15 @@ include_directories(${CH_INCLUDES})
 add_subdirectory(chrono_mkl)
 add_subdirectory(chrono_mumps)
 add_subdirectory(chrono_matlab)
-add_subdirectory(chrono_cascade)
 add_subdirectory(chrono_irrlicht)
+add_subdirectory(chrono_cascade)
 add_subdirectory(chrono_postprocess)
 add_subdirectory(chrono_cosimulation)
 add_subdirectory(chrono_python)
 add_subdirectory(chrono_parallel)
+add_subdirectory(chrono_granular)
 add_subdirectory(chrono_opengl)
 add_subdirectory(chrono_distributed)
-#add_subdirectory(chrono_ogre)
 add_subdirectory(chrono_vehicle)
 add_subdirectory(chrono_fsi)
 
@@ -618,11 +650,12 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono/ChVersion.h"
 
 # For the BUILD tree
 set(CH_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/src")
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono" )
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono/collision/bullet" )
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono/collision/gimpact" )
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono/collision/convexdecomposition/HACD" )
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono")
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono/collision/bullet")
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono/collision/gimpact")
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono/collision/convexdecomposition/HACD")
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_BINARY_DIR}")
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${EIGEN3_INCLUDE_DIR}")
 set(CH_BINARY_DIR "${PROJECT_BINARY_DIR}")
 set(CH_DATA_DIR "${PROJECT_SOURCE_DIR}/data/")
 
@@ -632,10 +665,11 @@ configure_file("${PROJECT_SOURCE_DIR}/cmake/ChronoConfig.cmake.in"
 
 # For the INSTALL tree
 set(CH_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono" )
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono/collision/bullet" )
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono/collision/gimpact" )
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono/collision/convexdecomposition/HACD" )
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono")
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono/collision/bullet")
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono/collision/gimpact")
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono/collision/convexdecomposition/HACD")
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${EIGEN3_INCLUDE_DIR}")
 set(CH_BINARY_DIR ${CMAKE_INSTALL_PREFIX})
 set(CH_DATA_DIR "${CMAKE_INSTALL_PREFIX}/${CH_INSTALL_DATA}/")
 

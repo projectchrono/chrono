@@ -57,7 +57,7 @@ class M113_SpringTorque : public ChLinkRotSpringCB::TorqueFunctor {
 // -----------------------------------------------------------------------------
 // M113 shock functor class - implements a (non)linear translational damper
 // -----------------------------------------------------------------------------
-class M113_ShockForce : public ChLinkSpringCB::ForceFunctor {
+class M113_ShockForce : public ChLinkTSDA::ForceFunctor {
   public:
     M113_ShockForce(double c) : m_c(c) {}
 
@@ -65,7 +65,7 @@ class M113_ShockForce : public ChLinkSpringCB::ForceFunctor {
                               double rest_length,
                               double length,
                               double vel,
-                              ChLinkSpringCB* link) override {
+                              ChLinkTSDA* link) override {
         return -m_c * vel;
     }
 
@@ -85,9 +85,9 @@ M113_Suspension::M113_Suspension(const std::string& name, VehicleSide side, int 
 
     // Create the associated road wheel.
     if (side == LEFT)
-        m_road_wheel = std::make_shared<M113_RoadWheelLeft>(index);
+        m_road_wheel = chrono_types::make_shared<M113_RoadWheelLeft>(index);
     else
-        m_road_wheel = std::make_shared<M113_RoadWheelRight>(index);
+        m_road_wheel = chrono_types::make_shared<M113_RoadWheelRight>(index);
 }
 
 M113_Suspension::~M113_Suspension() {

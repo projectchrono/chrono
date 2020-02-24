@@ -22,8 +22,6 @@
 #include "chrono_vehicle/tracked_vehicle/track_shoe/TrackShoeBandANCF.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
-#include "chrono_thirdparty/rapidjson/filereadstream.h"
-
 using namespace rapidjson;
 
 namespace chrono {
@@ -32,15 +30,9 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 TrackShoeBandANCF::TrackShoeBandANCF(const std::string& filename) : ChTrackShoeBandANCF(""), m_has_mesh(false) {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     Create(d);
 
@@ -64,7 +56,7 @@ void TrackShoeBandANCF::Create(const rapidjson::Document& d) {
     // Read tread body geometry and mass properties
     assert(d.HasMember("Tread"));
     m_tread_mass = d["Tread"]["Mass"].GetDouble();
-    m_tread_inertias = LoadVectorJSON(d["Tread"]["Inertia"]);
+    m_tread_inertias = ReadVectorJSON(d["Tread"]["Inertia"]);
     m_tread_length = d["Tread"]["Length"].GetDouble();
     m_tread_thickness = d["Tread"]["Thickness"].GetDouble();
     m_tooth_tip_length = d["Tread"]["Tooth Tip Length"].GetDouble();
@@ -79,14 +71,14 @@ void TrackShoeBandANCF::Create(const rapidjson::Document& d) {
     m_num_elements_width = d["Web"]["Number Elements Width"].GetInt();
 
     m_web_mass = d["Web"]["Mass"].GetDouble();
-    m_web_inertias = LoadVectorJSON(d["Web"]["Inertia"]);
+    m_web_inertias = ReadVectorJSON(d["Web"]["Inertia"]);
     m_web_length = d["Web"]["Length"].GetDouble();
     m_web_thickness = d["Web"]["Thickness"].GetDouble();
     m_steel_thickness = d["Web"]["Steel Layer Thickness"].GetDouble();
 
     // Read guide pin geometry
     assert(d.HasMember("Guide Pin"));
-    m_guide_box_dims = LoadVectorJSON(d["Guide Pin"]["Dimensions"]);
+    m_guide_box_dims = ReadVectorJSON(d["Guide Pin"]["Dimensions"]);
     m_guide_box_offset_x = d["Guide Pin"]["Offset"].GetDouble();
 
     // Read contact material data
@@ -128,9 +120,9 @@ void TrackShoeBandANCF::Create(const rapidjson::Document& d) {
 // -----------------------------------------------------------------------------
 void TrackShoeBandANCF::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH && m_has_mesh) {
-        auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
         trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
-        auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(m_meshName);
         trimesh_shape->SetStatic(true);

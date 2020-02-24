@@ -13,9 +13,9 @@
 #ifndef CHLOADER_H
 #define CHLOADER_H
 
-#include "chrono/core/ChVectorDynamic.h"
-#include "chrono/physics/ChLoadable.h"
+#include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChQuadrature.h"
+#include "chrono/physics/ChLoadable.h"
 
 namespace chrono {
 

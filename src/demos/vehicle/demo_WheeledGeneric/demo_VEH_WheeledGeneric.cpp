@@ -39,13 +39,10 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-// If Irrlicht support is available...
 #ifdef CHRONO_IRRLICHT
-// ...include additional headers
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
-
-// ...and specify whether the demo should actually use Irrlicht
+// specify whether the demo should actually use Irrlicht
 #define USE_IRRLICHT
 #endif
 
@@ -53,7 +50,9 @@
 //#define DEBUG_LOG
 
 using namespace chrono;
+#ifdef USE_IRRLICHT
 using namespace chrono::irrlicht;
+#endif
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::generic;
 
@@ -106,7 +105,6 @@ int main(int argc, char* argv[]) {
     // and visualization mode for the various vehicle components.
     Generic_Vehicle vehicle(false, SuspensionType::MACPHERSON_STRUT);
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
-    vehicle.SetStepsize(step_size);
     vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
@@ -124,29 +122,23 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     // Create and initialize the powertrain system
-    Generic_SimplePowertrain powertrain("powertrain");
-
-    powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
+    auto powertrain = chrono_types::make_shared<Generic_SimplePowertrain>("powertrain");
+    vehicle.InitializePowertrain(powertrain);
 
     // Create the tires
-    Generic_RigidTire tire_front_left("FL");
-    Generic_RigidTire tire_front_right("FR");
-    Generic_RigidTire tire_rear_left("RL");
-    Generic_RigidTire tire_rear_right("RR");
+    auto tire_FL = chrono_types::make_shared<Generic_RigidTire>("FL");
+    auto tire_FR = chrono_types::make_shared<Generic_RigidTire>("FR");
+    auto tire_RL = chrono_types::make_shared<Generic_RigidTire>("RL");
+    auto tire_RR = chrono_types::make_shared<Generic_RigidTire>("RR");
 
-    tire_front_left.Initialize(vehicle.GetWheelBody(FRONT_LEFT), LEFT);
-    tire_front_right.Initialize(vehicle.GetWheelBody(FRONT_RIGHT), RIGHT);
-    tire_rear_left.Initialize(vehicle.GetWheelBody(REAR_LEFT), LEFT);
-    tire_rear_right.Initialize(vehicle.GetWheelBody(REAR_RIGHT), RIGHT);
-
-    tire_front_left.SetVisualizationType(VisualizationType::PRIMITIVES);
-    tire_front_right.SetVisualizationType(VisualizationType::PRIMITIVES);
-    tire_rear_left.SetVisualizationType(VisualizationType::PRIMITIVES);
-    tire_rear_right.SetVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle.InitializeTire(tire_FL, vehicle.GetAxle(0)->m_wheels[0], VisualizationType::PRIMITIVES);
+    vehicle.InitializeTire(tire_FR, vehicle.GetAxle(0)->m_wheels[1], VisualizationType::PRIMITIVES);
+    vehicle.InitializeTire(tire_RL, vehicle.GetAxle(1)->m_wheels[0], VisualizationType::PRIMITIVES);
+    vehicle.InitializeTire(tire_RR, vehicle.GetAxle(1)->m_wheels[1], VisualizationType::PRIMITIVES);
 
 #ifdef USE_IRRLICHT
 
-    ChWheeledVehicleIrrApp app(&vehicle, &powertrain, L"Generic Vehicle Demo");
+    ChWheeledVehicleIrrApp app(&vehicle, L"Generic Vehicle Demo");
 
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
@@ -205,15 +197,6 @@ int main(int argc, char* argv[]) {
     vehicle.LogHardpointLocations();
 #endif
 
-    // Inter-module communication data
-    TerrainForces tire_forces(4);
-    WheelState wheel_states[4];
-    double driveshaft_speed;
-    double powertrain_torque;
-    double throttle_input;
-    double steering_input;
-    double braking_input;
-
     // Initialize simulation frame counter and simulation time
     int step_number = 0;
     double time = 0;
@@ -221,7 +204,6 @@ int main(int argc, char* argv[]) {
 #ifdef USE_IRRLICHT
 
     ChRealtimeStepTimer realtime_timer;
-
     while (app.GetDevice()->run()) {
         // Update the position of the shadow mapping so that it follows the car
         ////if (do_shadows) {
@@ -237,6 +219,7 @@ int main(int argc, char* argv[]) {
         // Render scene
         app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         app.DrawAll();
+        app.EndScene();
 
 #ifdef DEBUG_LOG
         // Number of simulation steps between two output frames
@@ -249,65 +232,28 @@ int main(int argc, char* argv[]) {
         }
 #endif
 
-        // Collect output data from modules (for inter-module communication)
-        throttle_input = driver.GetThrottle();
-        steering_input = driver.GetSteering();
-        braking_input = driver.GetBraking();
-
-        powertrain_torque = powertrain.GetOutputTorque();
-
-        tire_forces[FRONT_LEFT.id()] = tire_front_left.GetTireForce();
-        tire_forces[FRONT_RIGHT.id()] = tire_front_right.GetTireForce();
-        tire_forces[REAR_LEFT.id()] = tire_rear_left.GetTireForce();
-        tire_forces[REAR_RIGHT.id()] = tire_rear_right.GetTireForce();
-
-        driveshaft_speed = vehicle.GetDriveshaftSpeed();
-
-        wheel_states[FRONT_LEFT.id()] = vehicle.GetWheelState(FRONT_LEFT);
-        wheel_states[FRONT_RIGHT.id()] = vehicle.GetWheelState(FRONT_RIGHT);
-        wheel_states[REAR_LEFT.id()] = vehicle.GetWheelState(REAR_LEFT);
-        wheel_states[REAR_RIGHT.id()] = vehicle.GetWheelState(REAR_RIGHT);
+        // Driver inputs
+        ChDriver::Inputs driver_inputs = driver.GetInputs();
 
         // Update modules (process inputs from other modules)
         time = vehicle.GetSystem()->GetChTime();
 
         driver.Synchronize(time);
-
         terrain.Synchronize(time);
-
-        tire_front_left.Synchronize(time, wheel_states[FRONT_LEFT.id()], terrain);
-        tire_front_right.Synchronize(time, wheel_states[FRONT_RIGHT.id()], terrain);
-        tire_rear_left.Synchronize(time, wheel_states[REAR_LEFT.id()], terrain);
-        tire_rear_right.Synchronize(time, wheel_states[REAR_RIGHT.id()], terrain);
-
-        powertrain.Synchronize(time, throttle_input, driveshaft_speed);
-
-        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, tire_forces);
-
-        app.Synchronize(driver.GetInputModeAsString(), steering_input, throttle_input, braking_input);
+        vehicle.Synchronize(time, driver_inputs, terrain);
+        app.Synchronize(driver.GetInputModeAsString(), driver_inputs);
 
         // Advance simulation for one timestep for all modules
-        double step = realtime_timer.SuggestSimulationStep(step_size);
-
-        driver.Advance(step);
-
-        terrain.Advance(step);
-
-        tire_front_right.Advance(step);
-        tire_front_left.Advance(step);
-        tire_rear_right.Advance(step);
-        tire_rear_left.Advance(step);
-
-        powertrain.Advance(step);
-
-        vehicle.Advance(step);
-
-        app.Advance(step);
+        driver.Advance(step_size);
+        terrain.Advance(step_size);
+        vehicle.Advance(step_size);
+        app.Advance(step_size);
 
         // Increment frame number
         step_number++;
 
-        app.EndScene();
+        // Spin in place for real time to catch up
+        realtime_timer.Spin(step_size);
     }
 
 #else
@@ -342,53 +288,19 @@ int main(int argc, char* argv[]) {
             render_frame++;
         }
 
-        // Collect output data from modules (for inter-module communication)
-        throttle_input = driver.GetThrottle();
-        steering_input = driver.GetSteering();
-        braking_input = driver.GetBraking();
-
-        powertrain_torque = powertrain.GetOutputTorque();
-
-        tire_forces[FRONT_LEFT.id()] = tire_front_left.GetTireForce();
-        tire_forces[FRONT_RIGHT.id()] = tire_front_right.GetTireForce();
-        tire_forces[REAR_LEFT.id()] = tire_rear_left.GetTireForce();
-        tire_forces[REAR_RIGHT.id()] = tire_rear_right.GetTireForce();
-
-        driveshaft_speed = vehicle.GetDriveshaftSpeed();
-
-        wheel_states[FRONT_LEFT.id()] = vehicle.GetWheelState(FRONT_LEFT);
-        wheel_states[FRONT_RIGHT.id()] = vehicle.GetWheelState(FRONT_RIGHT);
-        wheel_states[REAR_LEFT.id()] = vehicle.GetWheelState(REAR_LEFT);
-        wheel_states[REAR_RIGHT.id()] = vehicle.GetWheelState(REAR_RIGHT);
+        // Driver inputs
+        ChDriver::Inputs driver_inputs = driver.GetInputs();
 
         // Update modules (process inputs from other modules)
         time = vehicle.GetSystem()->GetChTime();
 
         driver.Synchronize(time);
-
         terrain.Synchronize(time);
-
-        tire_front_left.Synchronize(time, wheel_states[FRONT_LEFT.id()], terrain);
-        tire_front_right.Synchronize(time, wheel_states[FRONT_RIGHT.id()], terrain);
-        tire_rear_left.Synchronize(time, wheel_states[REAR_LEFT.id()], terrain);
-        tire_rear_right.Synchronize(time, wheel_states[REAR_RIGHT.id()], terrain);
-
-        powertrain.Synchronize(time, throttle_input, driveshaft_speed);
-
-        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, tire_forces);
+        vehicle.Synchronize(time, driver_inputs, terrain);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
-
         terrain.Advance(step_size);
-
-        tire_front_right.Advance(step_size);
-        tire_front_left.Advance(step_size);
-        tire_rear_right.Advance(step_size);
-        tire_rear_left.Advance(step_size);
-
-        powertrain.Advance(step_size);
-
         vehicle.Advance(step_size);
 
         // Increment frame number

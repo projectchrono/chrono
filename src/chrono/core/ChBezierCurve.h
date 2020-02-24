@@ -37,12 +37,11 @@
 #ifndef CH_BEZIER_CURVE_H
 #define CH_BEZIER_CURVE_H
 
-#include <vector>
 #include <string>
+#include <vector>
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChFrame.h"
-#include "chrono/core/ChMatrixDynamic.h"
 #include "chrono/core/ChVector.h"
 #include "chrono/serialization/ChArchive.h"
 

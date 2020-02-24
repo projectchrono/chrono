@@ -190,14 +190,14 @@ void ChIterativeSolverParallelNSC::RunTimeStep() {
         AtIterationEnd(data_manager->measures.solver.maxd_hist[i], data_manager->measures.solver.maxdeltalambda_hist[i],
                        i);
     }
-    tot_iterations = (int)data_manager->measures.solver.maxd_hist.size();
+    m_iterations = (int)data_manager->measures.solver.maxd_hist.size();
 
     LOG(TRACE) << "ChIterativeSolverParallelNSC::RunTimeStep E solve: "
                << data_manager->system_timer.GetTime("ChIterativeSolverParallel_Solve")
                << " shur: " << data_manager->system_timer.GetTime("ShurProduct")
                //<< " residual: " << data_manager->measures.solver.residual
                //<< " objective: " << data_manager->measures.solver.maxdeltalambda_hist.back()
-               << " iterations: " << tot_iterations;
+               << " iterations: " << m_iterations;
 }
 
 void ChIterativeSolverParallelNSC::ComputeD() {
@@ -209,6 +209,7 @@ void ChIterativeSolverParallelNSC::ComputeD() {
     }
 
     uint num_shafts = data_manager->num_shafts;
+    uint num_motors = data_manager->num_motors;
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
     uint num_dof = data_manager->num_dof;
     uint num_rigid_contacts = data_manager->num_rigid_contacts;

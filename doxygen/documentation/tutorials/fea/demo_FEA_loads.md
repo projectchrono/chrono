@@ -1,4 +1,4 @@
-Apply loads   (demo_FEA_loads.cpp)  {#tutorial_demo_FEA_loads}
+Apply loads   (demo_FEA_loads_static.cpp)  {#tutorial_demo_FEA_loads}
 ================================== 
 
 
@@ -13,4 +13,4 @@ There are various ready-to-use ChLoad objects, but here you can also learn how t
 Optionally the ChLoader classes can be used to automate some tasks, most noticeably the Gauss integration of distributed loads.
 
 
-\include demo_FEA_loads.cpp
+\include demo_FEA_loads_statics.cpp

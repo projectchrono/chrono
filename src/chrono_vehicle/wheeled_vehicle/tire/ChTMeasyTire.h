@@ -58,18 +58,12 @@ namespace vehicle {
 /// TMeasy tire model.
 class CH_VEHICLE_API ChTMeasyTire : public ChTire {
   public:
-    ChTMeasyTire(const std::string& name  ///< [in] name of this tire system
-    );
+    ChTMeasyTire(const std::string& name);
 
     virtual ~ChTMeasyTire() {}
 
     /// Get the name of the vehicle subsystem template.
-    virtual std::string GetTemplateName() const override { return "TMeasy"; }
-
-    /// Initialize this tire system.
-    virtual void Initialize(std::shared_ptr<ChBody> wheel,  ///< [in] associated wheel body
-                            VehicleSide side                ///< [in] left/right vehicle side
-                            ) override;
+    virtual std::string GetTemplateName() const override { return "TMeasyTire"; }
 
     /// Add visualization assets for the rigid tire subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
@@ -80,25 +74,8 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     /// Get the tire radius.
     virtual double GetRadius() const override { return m_states.R_eff; }
 
-    /// Get the tire force and moment.
-    /// This represents the output from this tire system that is passed to the
-    /// vehicle system.  Typically, the vehicle subsystem will pass the tire force
-    /// to the appropriate suspension subsystem which applies it as an external
-    /// force one the wheel body.
-    virtual TerrainForce GetTireForce() const override { return m_tireforce; }
-
     /// Report the tire force and moment.
     virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override { return m_tireforce; }
-
-    /// Update the state of this tire system at the current time.
-    /// The tire system is provided the current state of its associated wheel.
-    virtual void Synchronize(double time,                    ///< [in] current time
-                             const WheelState& wheel_state,  ///< [in] current state of associated wheel body
-                             const ChTerrain& terrain        ///< [in] reference to the terrain system
-                             ) override;
-
-    /// Advance the state of this tire by the specified time step.
-    virtual void Advance(double step) override;
 
     /// Set the limit for camber angle (in degrees).  Default: 3 degrees.
     void SetGammaLimit(double gamma_limit) { m_gamma_limit = gamma_limit; }
@@ -109,16 +86,19 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     /// Get visualization width.
     virtual double GetVisualizationWidth() const { return m_width; }
 
-    /// Get the tire slip angle.
-    virtual double GetSlipAngle() const override { return atan(m_states.sy); }
+    /// Get the tire slip angle computed internally by the TMeasy model (in radians).
+    /// The reported value will be similar to that reported by ChTire::GetSlipAngle.
+    double GetSlipAngle_internal() const { return atan(-m_states.sy); }
 
-    /// Get the tire longitudinal slip.
-    virtual double GetLongitudinalSlip() const override { return m_states.sx; }
+    /// Get the tire longitudinal slip computed internally by the TMeasy model.
+    /// The reported value will be similar to that reported by ChTire::GetLongitudinalSlip.
+    double GetLongitudinalSlip_internal() const { return m_states.sx; }
 
-    /// Get the camber angle used in the TMeasy model (expressed in radian).
-    double GetGamma() { return m_gamma; }
+    /// Get the camber angle computed internally by the TMeasy model (in radians).
+    /// The reported value will be similar to that reported by ChTire::GetCamberAngle.
+    double GetCamberAngle_internal() { return m_gamma; }
 
-    /// Get Max. Tire Load from Load Index (LI) in N [0:279]
+    /// Get maximum tire load from Load Index (LI) in N [0:279]
     static double GetTireMaxLoad(unsigned int li);
 
     /// Guess Tire Parameters from characteristic truck tire parameter pattern (Ratio = 80%)
@@ -128,7 +108,7 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
                          double rimDia,          ///< rim diameter [m]
                          double pinfl_li = 1.0,  ///< inflation pressure at load index
                          double pinfl_use = 1.0  ///< inflation pressure in this configuration
-    );
+                         );
 
     void GuessTruck80Par(double loadForce,       ///< tire nominal load force [N]
                          double tireWidth,       ///< tire width [m]
@@ -136,7 +116,7 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
                          double rimDia,          ///< rim diameter [m]
                          double pinfl_li = 1.0,  ///< inflation pressure at load index
                          double pinfl_use = 1.0  ///< inflation pressure in this configuration
-    );
+                         );
 
     /// Guess Tire Parameters from characteristic passenger car tire parameter pattern (Ratio = 70%)
     void GuessPassCar70Par(unsigned int li,        ///< tire load index
@@ -145,14 +125,14 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
                            double rimDia,          ///< rim diameter [m]
                            double pinfl_li = 1.0,  ///< inflation pressure at load index
                            double pinfl_use = 1.0  ///< inflation pressure in this configuration
-    );
+                           );
     void GuessPassCar70Par(double loadForce,       ///< tire nominal load force [N]
                            double tireWidth,       ///< tire width [m]
                            double ratio,           ///< use 0.75 meaning 75%
                            double rimDia,          ///< rim diameter [m]
                            double pinfl_li = 1.0,  ///< inflation pressure at load index
                            double pinfl_use = 1.0  ///< inflation pressure in this configuration
-    );
+                           );
 
     /// Set vertical tire stiffness as linear function by coefficient [N/m].
     void SetVerticalStiffness(double Cz) { SetVerticalStiffness(Cz, Cz); }
@@ -193,39 +173,14 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     bool CheckParameters();
 
   protected:
-    /// Perform disc-terrain collision detection considering the curvature of the road
-    /// surface. The surface normal is calculated based on 4 different height values below
-    /// the wheel center. The effective height is calculated as average value of the four
-    /// height values.
-    /// This utility function checks for contact between a disc of specified
-    /// radius with given position and orientation (specified as the location of
-    /// its center and a unit vector normal to the disc plane) and the terrain
-    /// system associated with this tire. It returns true if the disc contacts the
-    /// terrain and false otherwise.  If contact occurs, it returns a coordinate
-    /// system with the Z axis along the contact normal and the X axis along the
-    /// "rolling" direction, as well as a positive penetration depth (i.e. the
-    /// height below the terrain of the lowest point on the disc).
-    bool disc_terrain_contact_3d(
-        const ChTerrain& terrain,       ///< [in] reference to terrain system
-        const ChVector<>& disc_center,  ///< [in] global location of the disc center
-        const ChVector<>& disc_normal,  ///< [in] disc normal, expressed in the global frame
-        double disc_radius,             ///< [in] disc radius
-        ChCoordsys<>& contact,          ///< [out] contact coordinate system (relative to the global frame)
-        double& depth                   ///< [out] penetration depth (positive if contact occurred)
-    );
-
-    /// Return the vertical tire stiffness contribution to the normal force.
-    double GetNormalStiffnessForce(double depth);
-
-    /// Return the vertical tire damping contribution to the normal force.
-    double GetNormalDampingForce(double depth, double velocity);
-
     /// Set the parameters in the TMeasy model.
     virtual void SetTMeasyParams() = 0;
 
     bool m_consider_relaxation;
 
     bool m_use_Reff_fallback_calculation;
+
+    bool m_use_startup_transition;
 
     unsigned int m_integration_method;
 
@@ -298,15 +253,33 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
 
     TMeasyCoeff m_TMeasyCoeff;
 
-    // linear Interpolation
+    // linear interpolation
     double InterpL(double fz, double w1, double w2) { return w1 + (w2 - w1) * (fz / m_TMeasyCoeff.pn - 1.0); };
-    // quadratic Interpolation
+    // quadratic interpolation
     double InterpQ(double fz, double w1, double w2) {
         return (fz / m_TMeasyCoeff.pn) * (2.0 * w1 - 0.5 * w2 - (w1 - 0.5 * w2) * (fz / m_TMeasyCoeff.pn));
     };
 
   private:
     void UpdateVerticalStiffness();
+
+    /// Get the tire force and moment.
+    /// This represents the output from this tire system that is passed to the
+    /// vehicle system.  Typically, the vehicle subsystem will pass the tire force
+    /// to the appropriate suspension subsystem which applies it as an external
+    /// force one the wheel body.
+    virtual TerrainForce GetTireForce() const override { return m_tireforce; }
+
+    /// Initialize this tire by associating it to the specified wheel.
+    virtual void Initialize(std::shared_ptr<ChWheel> wheel) override;
+
+    /// Update the state of this tire system at the current time.
+    virtual void Synchronize(double time,              ///< [in] current time
+                             const ChTerrain& terrain  ///< [in] reference to the terrain system
+                             ) override;
+
+    /// Advance the state of this tire by the specified time step.
+    virtual void Advance(double step) override;
 
     std::vector<double> m_tire_test_defl;  // set, when test data are used for vertical
     std::vector<double> m_tire_test_frc;   // stiffness calculation
@@ -340,6 +313,8 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
         double Mb;               // Steady state bore torque
         ChVector<> disc_normal;  // (temporary for debug)
     };
+
+    ChFunction_Recorder m_areaDep;  // lookup table for estimation of penetration depth from intersection area
 
     ContactData m_data;
     TireStates m_states;

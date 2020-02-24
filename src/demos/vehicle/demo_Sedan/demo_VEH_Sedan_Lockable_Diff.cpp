@@ -58,9 +58,8 @@ int main(int argc, char* argv[]) {
     my_sedan.SetChassisCollisionType(ChassisCollisionType::NONE);
     my_sedan.SetChassisFixed(false);
     my_sedan.SetInitPosition(ChCoordsys<>(ChVector<>(-40, 0, 1.0)));
-    my_sedan.SetTireType(TireModelType::RIGID);
+    my_sedan.SetTireType(TireModelType::PAC02);
     my_sedan.SetTireStepSize(1e-3);
-    my_sedan.SetVehicleStepSize(step_size);
     my_sedan.Initialize();
 
     my_sedan.SetChassisVisualizationType(VisualizationType::NONE);
@@ -92,7 +91,7 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     // Create the vehicle Irrlicht interface
-    ChWheeledVehicleIrrApp app(&my_sedan.GetVehicle(), &my_sedan.GetPowertrain(), L"Sedan Demo Locked Diff");
+    ChWheeledVehicleIrrApp app(&my_sedan.GetVehicle(), L"Sedan Demo Locked Diff");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.5), 4.0, 0.5);
@@ -119,13 +118,11 @@ int main(int argc, char* argv[]) {
         app.EndScene();
 
         // Driver inputs
-        double steering_input = 0;
-        double braking_input = 0;
-        double throttle_input = 0;
+        ChDriver::Inputs driver_inputs = {0, 0, 0};
         if (time > 2)
-            throttle_input = 0.6;
+            driver_inputs.m_throttle = 0.6;
         else if (time > 1)
-            throttle_input = 0.6 * (time - 1);
+            driver_inputs.m_throttle = 0.6 * (time - 1);
 
         // Output
         double omega_front_left = my_sedan.GetVehicle().GetSuspension(0)->GetAxleSpeed(LEFT);
@@ -134,8 +131,8 @@ int main(int argc, char* argv[]) {
 
         // Synchronize subsystems
         terrain.Synchronize(time);
-        my_sedan.Synchronize(time, steering_input, braking_input, throttle_input, terrain);
-        app.Synchronize("", steering_input, throttle_input, braking_input);
+        my_sedan.Synchronize(time, driver_inputs, terrain);
+        app.Synchronize("", driver_inputs);
 
         // Advance simulation for all subsystems
         terrain.Advance(step_size);

@@ -73,6 +73,9 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     /// Get a handle to the brake subsystem.
     std::shared_ptr<ChTrackBrake> GetBrake() const { return m_brake; }
 
+    /// Get the list of suspension subsystems.
+    const ChRoadWheelAssemblyList& GetRoadWheelAssemblies() const { return m_suspensions; }
+
     /// Get a handle to the specified suspension subsystem.
     std::shared_ptr<ChRoadWheelAssembly> GetRoadWheelAssembly(size_t id) const { return m_suspensions[id]; }
 
@@ -142,8 +145,9 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     /// frame of the chassis). It is assumed that the track assembly reference frame
     /// is always aligned with the chassis reference frame.
     void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                    const ChVector<>& location              ///< [in] location relative to the chassis frame
-                    );
+                    const ChVector<>& location,             ///< [in] location relative to the chassis frame
+                    bool create_shoes = true                ///< [in] control creation of the actual track
+    );
 
     /// Set visualization type for the sprocket subsystem.
     void SetSprocketVisualizationType(VisualizationType vis);
@@ -187,6 +191,9 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     /// direction and false otherwise.
     virtual bool Assemble(std::shared_ptr<ChBodyAuxRef> chassis) = 0;
 
+    /// Remove all track shoes from assembly.
+    virtual void RemoveTrackShoes() = 0;
+
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
     virtual void Output(ChVehicleOutput& database) const override;
@@ -198,6 +205,7 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     ChRollerList m_rollers;                 ///< roller subsystems
 
     friend class ChTrackedVehicle;
+    friend class ChTrackTestRig;
 };
 
 /// @} vehicle_tracked

@@ -35,6 +35,9 @@
 #include "chrono_parallel/physics/ChSystemParallel.h"
 
 #include "chrono/ChConfig.h"
+#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChColorAsset.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
 #ifdef CHRONO_OPENGL
@@ -96,17 +99,17 @@ TEST(ChronoParallel, bodyauxref) {
     z2y.Q_from_AngX(-CH_C_PI / 2);
 
     // Create the ground body
-    auto ground = std::make_shared<ChBody>(std::make_shared<ChCollisionModelParallel>());
+    auto ground = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>());
     ground->SetBodyFixed(true);
     system->AddBody(ground);
 
     // Attach a visualization asset representing the Y axis.
-    auto box = std::make_shared<ChBoxShape>();
+    auto box = chrono_types::make_shared<ChBoxShape>();
     box->GetBoxGeometry().Size = ChVector<>(0.02, 3, 0.02);
     ground->AddAsset(box);
 
     // Create a pendulum modeled using ChBody
-    auto pend_1 = std::make_shared<ChBody>(std::make_shared<ChCollisionModelParallel>());
+    auto pend_1 = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>());
     system->AddBody(pend_1);
     pend_1->SetIdentifier(1);
     pend_1->SetBodyFixed(false);
@@ -117,14 +120,14 @@ TEST(ChronoParallel, bodyauxref) {
     // Attach a visualization asset. Note that the cylinder is defined with
     // respect to the centroidal reference frame (which is the body reference
     // frame for a ChBody).
-    auto cyl_1 = std::make_shared<ChCylinderShape>();
+    auto cyl_1 = chrono_types::make_shared<ChCylinderShape>();
     cyl_1->GetCylinderGeometry().p1 = ChVector<>(0, -1, 0);
     cyl_1->GetCylinderGeometry().p2 = ChVector<>(0, 1, 0);
     cyl_1->GetCylinderGeometry().rad = 0.2;
     cyl_1->Pos = ChVector<>(0, 0, 0);
     cyl_1->Rot = y2x;
     pend_1->AddAsset(cyl_1);
-    auto col_1 = std::make_shared<ChColorAsset>();
+    auto col_1 = chrono_types::make_shared<ChColorAsset>();
     col_1->SetColor(ChColor(0.6f, 0, 0));
     pend_1->AddAsset(col_1);
 
@@ -135,12 +138,12 @@ TEST(ChronoParallel, bodyauxref) {
 
     // Create a revolute joint to connect pendulum to ground. We specify the link
     // coordinate frame in the absolute frame.
-    auto rev_1 = std::make_shared<ChLinkLockRevolute>();
+    auto rev_1 = chrono_types::make_shared<ChLinkLockRevolute>();
     rev_1->Initialize(ground, pend_1, ChCoordsys<>(ChVector<>(0, 1, 0), z2y));
     system->AddLink(rev_1);
 
     // Create a pendulum modeled using ChBodyAuxRef
-    auto pend_2 = std::make_shared<ChBodyAuxRef>(std::make_shared<ChCollisionModelParallel>());
+    auto pend_2 = chrono_types::make_shared<ChBodyAuxRef>(chrono_types::make_shared<ChCollisionModelParallel>());
     system->Add(pend_2);
     pend_2->SetIdentifier(2);
     pend_2->SetBodyFixed(false);
@@ -151,14 +154,14 @@ TEST(ChronoParallel, bodyauxref) {
 
     // Attach a visualization asset. Note that now the cylinder is defined with
     // respect to the body reference frame.
-    auto cyl_2 = std::make_shared<ChCylinderShape>();
+    auto cyl_2 = chrono_types::make_shared<ChCylinderShape>();
     cyl_2->GetCylinderGeometry().p1 = ChVector<>(0, -1, 0);
     cyl_2->GetCylinderGeometry().p2 = ChVector<>(0, 1, 0);
     cyl_2->GetCylinderGeometry().rad = 0.2;
     cyl_2->Pos = ChVector<>(1, 0, 0);
     cyl_2->Rot = y2x;
     pend_2->AddAsset(cyl_2);
-    auto col_2 = std::make_shared<ChColorAsset>();
+    auto col_2 = chrono_types::make_shared<ChColorAsset>();
     col_2->SetColor(ChColor(0, 0, 0.6f));
     pend_2->AddAsset(col_2);
 
@@ -174,7 +177,7 @@ TEST(ChronoParallel, bodyauxref) {
 
     // Create a revolute joint to connect pendulum to ground. We specify the link
     // coordinate frame in the absolute frame.
-    auto rev_2 = std::make_shared<ChLinkLockRevolute>();
+    auto rev_2 = chrono_types::make_shared<ChLinkLockRevolute>();
     rev_2->Initialize(ground, pend_2, ChCoordsys<>(ChVector<>(0, -1, 0), z2y));
     system->AddLink(rev_2);
 

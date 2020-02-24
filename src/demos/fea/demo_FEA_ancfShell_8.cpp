@@ -15,12 +15,11 @@
 // Demo on using 8-node ANCF shell elements. These demo reproduces the example
 // 3.3 of the paper: 'Analysis of higher-order quadrilateral plate elements based
 // on the absolute nodal coordinate formulation for three-dimensional elasticity'
-// H.C.J. Ebel, M.K.Matikainen, V.V.T. Hurskainen, A.M.Mikkola, Multibody System
-// Dynamics, To be published, 2017
+// H.C.J. Ebel, M.K.Matikainen, V.V.T. Hurskainen, A.M.Mikkola, Advances in
+// Mechanical Engineering, 2017
 //
 // =============================================================================
 
-#include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/fea/ChElementShellANCF_8.h"
@@ -28,6 +27,7 @@
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 
 using namespace chrono;
@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
     GetLog() << "-----------------------------------------------------------------\n";
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
     // Geometry of the plate
     double plate_lenght_x = 1.0;
     double plate_lenght_y = 2.0;
@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
         double curvz_y = 0.0;
         double curvz_z = 0.0;
         // Create the node
-        auto node = std::make_shared<ChNodeFEAxyzDD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z),
+        auto node = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z),
                                                      ChVector<>(curvz_x, curvz_y, curvz_z));
         node->SetMass(0);
 
@@ -120,7 +120,7 @@ int main(int argc, char* argv[]) {
         double curvz_y = 0.0;
         double curvz_z = 0.0;
         // Create the node
-        auto node = std::make_shared<ChNodeFEAxyzDD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z),
+        auto node = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z),
                                                      ChVector<>(curvz_x, curvz_y, curvz_z));
         node->SetMass(0);
         // Fix all nodes along the axis X=0
@@ -144,7 +144,7 @@ int main(int argc, char* argv[]) {
     ChVector<> E(2.1e11, 2.1e11, 2.1e11);
     ChVector<> nu(0.0, 0.0, 0.0);
     ChVector<> G(E.x() / (2 * (1 + nu.x())), E.x() / (2 * (1 + nu.x())), E.x() / (2 * (1 + nu.x())));
-    auto mat = std::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
+    auto mat = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
 
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
@@ -175,7 +175,7 @@ int main(int argc, char* argv[]) {
         GetLog() << "Node 3 Location: " << nodetip3->GetPos().x() << " " << nodetip3->GetPos().y() << "  " << nodetip3->GetPos().z() << "\n";
 
         // Create the element and set its nodes.
-        auto element = std::make_shared<ChElementShellANCF_8>();
+        auto element = chrono_types::make_shared<ChElementShellANCF_8>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzDD>(my_mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyzDD>(my_mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyzDD>(my_mesh->GetNode(node2)),
@@ -206,26 +206,26 @@ int main(int argc, char* argv[]) {
     // Options for visualization in irrlicht
     // -------------------------------------
 
-    auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddAsset(mvisualizemesh);
 
-    auto mvisualizemeshref = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshref = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshref->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
     mvisualizemeshref->SetWireframe(true);
     mvisualizemeshref->SetDrawInUndeformedReference(true);
     my_mesh->AddAsset(mvisualizemeshref);
 
-    auto mvisualizemeshC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
     mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     mvisualizemeshC->SetSymbolsThickness(0.004);
     my_mesh->AddAsset(mvisualizemeshC);
 
-    auto mvisualizemeshD = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshD = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     // mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_VECT_SPEED);
     mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_ELEM_TENS_STRAIN);
     mvisualizemeshD->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
@@ -241,15 +241,13 @@ int main(int argc, char* argv[]) {
     // Perform a dynamic time integration
     // ----------------------------------
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
     // Set up solver
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    msolver->SetDiagonalPreconditioning(true);
-    my_system.SetMaxItersSolverSpeed(10000);
-    my_system.SetTolForce(1e-10);
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    my_system.SetSolver(solver);
+    solver->SetMaxIterations(300);
+    solver->SetTolerance(1e-14);
+    solver->EnableDiagonalPreconditioner(true);
+    solver->SetVerbose(true);
 
     // Set up integrator
     my_system.SetTimestepperType(ChTimestepper::Type::HHT);
@@ -267,13 +265,28 @@ int main(int argc, char* argv[]) {
             nodetip1->SetForce(ChVector<>(0, 0, -20.0/3 * my_system.GetChTime()));
             nodetip2->SetForce(ChVector<>(0, 0, -20.0/3 * my_system.GetChTime()));
             nodetip3->SetForce(ChVector<>(0, 0, -20.0/3 * my_system.GetChTime()));
-        } else {
-            nodetip1->SetForce(ChVector<>(0, 0, -2/3.0));
-            nodetip2->SetForce(ChVector<>(0, 0, -2/3.0));
-            nodetip3->SetForce(ChVector<>(0, 0, -2/3.0));
-        }
-        // std::cout << "Node tip vertical position: " << nodetip1->GetPos().z << "\n";
-        GetLog() << "Node tip vertical position: " << nodetip1->GetPos().z() << "\n";
+		} else {
+			nodetip1->SetForce(ChVector<>(0, 0, -2 / 3.0));
+			nodetip2->SetForce(ChVector<>(0, 0, -2 / 3.0));
+			nodetip3->SetForce(ChVector<>(0, 0, -2 / 3.0));
+		}
+
+        GetLog() << "Node tip vertical position: " << nodetip1->GetPos().z()
+				<< "\n";
+
+		auto element = std::dynamic_pointer_cast<ChElementShellANCF_8>(
+				my_mesh->GetElement(TotalNumElements - 1));
+		const ChStrainStress3D strainStressOut =
+				element->EvaluateSectionStrainStress(ChVector<double> (0, 0, 0), 0);
+
+		std::cout << "Strain xx: " << strainStressOut.strain[0] << " \n";
+		std::cout << "Strain yy: " << strainStressOut.strain[1] << " \n";
+		std::cout << "Strain xy: " << strainStressOut.strain[2] << " \n";
+
+		std::cout << "Stress xx: " << strainStressOut.stress[0] << " \n";
+		std::cout << "Stress yy: " << strainStressOut.stress[1] << " \n";
+		std::cout << "Stress xy: " << strainStressOut.stress[2] << " \n";
+
         application.BeginScene();
         application.DrawAll();
         application.DoStep();

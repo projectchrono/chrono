@@ -59,13 +59,13 @@ bool ChMatlabEngine::SetVisible(bool mvis) {
 
 /// Put a matrix in Matlab environment, specifying its name as variable.
 /// If a variable with the same name already exist, it is overwritten.
-bool ChMatlabEngine::PutVariable(const ChMatrix<double>& mmatr, string varname) {
-    ChMatrixDynamic<> transfer;  // elements in Matlab are column-major
-    transfer.CopyFromMatrixT(mmatr);
+bool ChMatlabEngine::PutVariable(ChMatrixConstRef mmatr, string varname) {
+    // elements in Matlab are column-major
+    ChMatrixDynamic<> transfer = mmatr.transpose();
 
     matlabengine::mxArray* T = NULL;
-    T = matlabengine::mxCreateDoubleMatrix(mmatr.GetRows(), mmatr.GetColumns(), matlabengine::mxREAL);
-    memcpy((char*)mxGetPr(T), (char*)transfer.GetAddress(), mmatr.GetRows() * mmatr.GetColumns() * sizeof(double));
+    T = matlabengine::mxCreateDoubleMatrix(mmatr.rows(), mmatr.cols(), matlabengine::mxREAL);
+    memcpy((char*)mxGetPr(T), (char*)transfer.data(), mmatr.rows() * mmatr.cols() * sizeof(double));
     matlabengine::engPutVariable(ep, varname.c_str(), T);
     matlabengine::mxDestroyArray(T);
     return true;
@@ -75,22 +75,20 @@ bool ChMatlabEngine::PutVariable(const ChMatrix<double>& mmatr, string varname) 
 /// If a variable with the same name already exist, it is overwritten.
 bool ChMatlabEngine::PutSparseMatrix(const ChSparseMatrix& mmatr, string varname) {
     int nels = 0;
-    for (int ii = 0; ii < mmatr.GetNumRows(); ii++)
-        for (int jj = 0; jj < mmatr.GetNumColumns(); jj++) {
-            double elVal = ((ChSparseMatrix&)mmatr).GetElement(ii, jj);
-            if (elVal ||
-                (ii + 1 == ((ChSparseMatrix&)mmatr).GetNumRows() && jj + 1 == ((ChSparseMatrix&)mmatr).GetNumColumns()))
+    for (int ii = 0; ii < mmatr.rows(); ii++)
+        for (int jj = 0; jj < mmatr.cols(); jj++) {
+            double elVal = mmatr.coeff(ii, jj);
+            if (elVal || (ii + 1 == mmatr.rows() && jj + 1 == mmatr.cols()))
                 ++nels;
         }
 
     ChMatrixDynamic<> transfer(nels, 3);
 
     int eln = 0;
-    for (int ii = 0; ii < mmatr.GetNumRows(); ii++)
-        for (int jj = 0; jj < mmatr.GetNumColumns(); jj++) {
-            double elVal = ((ChSparseMatrix&)mmatr).GetElement(ii, jj);
-            if (elVal || (ii + 1 == ((ChSparseMatrix&)mmatr).GetNumRows() &&
-                          jj + 1 == ((ChSparseMatrix&)mmatr).GetNumColumns())) {
+    for (int ii = 0; ii < mmatr.rows(); ii++)
+        for (int jj = 0; jj < mmatr.cols(); jj++) {
+            double elVal = mmatr.coeff(ii, jj);
+            if (elVal || (ii + 1 == mmatr.rows() && jj + 1 == mmatr.cols())) {
                 transfer(eln, 0) = ii + 1;
                 transfer(eln, 1) = jj + 1;
                 transfer(eln, 2) = elVal;
@@ -121,12 +119,12 @@ bool ChMatlabEngine::GetVariable(ChMatrixDynamic<double>& mmatr, string varname)
             return false;
         }
         const matlabengine::mwSize* siz = mxGetDimensions(T);
-        transfer.Resize((int)siz[1], (int)siz[0]);
-        memcpy((char*)transfer.GetAddress(), (char*)mxGetPr(T),
-               transfer.GetRows() * transfer.GetColumns() * sizeof(double));
+        transfer.resize((int)siz[1], (int)siz[0]);
+        memcpy((char*)transfer.data(), (char*)mxGetPr(T),
+               transfer.rows() * transfer.cols() * sizeof(double));
         matlabengine::mxDestroyArray(T);
 
-        mmatr.CopyFromMatrixT(transfer);
+        mmatr = transfer.transpose();
 
         return true;
     }

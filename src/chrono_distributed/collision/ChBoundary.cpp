@@ -70,7 +70,7 @@ void ChBoundary::AddVisualization(size_t id, double thickness) {
     double hthick = thickness / 2;
     ChVector<> hlen(m_planes[id].m_hlen.x(), m_planes[id].m_hlen.y(), hthick);
     ChVector<> normal = m_planes[id].m_frame_loc.GetA().Get_A_Zaxis();
-    auto box = std::make_shared<ChBoxShape>();
+    auto box = chrono_types::make_shared<ChBoxShape>();
     box->GetBoxGeometry().Size = hlen;
     box->Pos = m_planes[id].m_frame_loc.GetPos() - normal * hthick;
     box->Rot = m_planes[id].m_frame_loc.GetRot();

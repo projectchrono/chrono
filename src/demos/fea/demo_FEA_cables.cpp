@@ -17,8 +17,8 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/solver/ChSolverMINRES.h"
-#include "chrono/solver/ChSolverPMINRES.h"
+#include "chrono/solver/ChDirectSolverLS.h"
+#include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/timestepper/ChTimestepper.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 
@@ -29,6 +29,9 @@ using namespace chrono::fea;
 using namespace chrono::irrlicht;
 
 using namespace irr;
+
+// Select solver type (SPARSE_QR, SPARSE_LU, or MINRES).
+ChSolver::Type solver_type = ChSolver::Type::SPARSE_QR;
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
@@ -48,12 +51,12 @@ int main(int argc, char* argv[]) {
 
     // Create a mesh, that is a container for groups of elements and
     // their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     // Create one of the available models (defined in FEAcables.h)
-    // model1(my_system, my_mesh);
-    // model2(my_system, my_mesh);
-    model3(my_system, my_mesh);
+    ////auto model = Model1(my_system, my_mesh);
+    ////auto model = Model2(my_system, my_mesh);
+    auto model = Model3(my_system, my_mesh);
 
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
@@ -66,14 +69,14 @@ int main(int argc, char* argv[]) {
     // postprocessor that can handle a colored ChTriangleMeshShape).
     // Do not forget AddAsset() at the end!
 
-    auto mvisualizebeamA = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizebeamA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_ELEM_BEAM_MZ);
     mvisualizebeamA->SetColorscaleMinMax(-0.4, 0.4);
     mvisualizebeamA->SetSmoothFaces(true);
     mvisualizebeamA->SetWireframe(false);
     my_mesh->AddAsset(mvisualizebeamA);
 
-    auto mvisualizebeamC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizebeamC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS); // E_GLYPH_NODE_CSYS
     mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     mvisualizebeamC->SetSymbolsThickness(0.006);
@@ -91,33 +94,49 @@ int main(int argc, char* argv[]) {
     // that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
     application.AssetUpdateAll();
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
-    // Change solver settings
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
-    my_system.SetMaxItersSolverSpeed(200);
-    my_system.SetMaxItersSolverStab(200);
-    my_system.SetTolForce(1e-13);
-    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    msolver->SetVerbose(false);
-    msolver->SetDiagonalPreconditioning(true);
-
-    // Change type of integrator:
-    my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
-    // my_system.SetTimestepperType(chrono::ChTimestepper::Type::HHT);  // precise,slower, might iterate each step
-
-    // if later you want to change integrator settings:
-    if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper())) {
-        mystepper->SetAlpha(-0.2);
-        mystepper->SetMaxiters(2);
-        mystepper->SetAbsTolerances(1e-6);
+    // Set solver and solver settings
+    switch (solver_type) {
+        case ChSolver::Type::SPARSE_QR: {
+            std::cout << "Using SparseQR solver" << std::endl;
+            auto solver = chrono_types::make_shared<ChSolverSparseQR>();
+            my_system.SetSolver(solver);
+            solver->UseSparsityPatternLearner(true);
+            solver->LockSparsityPattern(true);
+            solver->SetVerbose(false);
+            break;
+        }
+        case ChSolver::Type::SPARSE_LU: {
+            std::cout << "Using SparseLU solver" << std::endl;
+            auto solver = chrono_types::make_shared<ChSolverSparseLU>();
+            my_system.SetSolver(solver);
+            solver->UseSparsityPatternLearner(true);
+            solver->LockSparsityPattern(true);
+            solver->SetVerbose(false);
+            break;
+        }
+        case ChSolver::Type::MINRES: {
+            std::cout << "Using MINRES solver" << std::endl;
+            auto solver = chrono_types::make_shared<ChSolverMINRES>();
+            my_system.SetSolver(solver);
+            solver->SetMaxIterations(200);
+            solver->SetTolerance(1e-10);
+            solver->EnableDiagonalPreconditioner(true);
+            solver->EnableWarmStart(true);  // IMPORTANT for convergence when using EULER_IMPLICIT_LINEARIZED
+            solver->SetVerbose(false);
+            break;
+        }
+        default: {
+            std::cout << "Solver type not supported." << std::endl;
+            break;
+        }
     }
 
-    //
-    // THE SOFT-REAL-TIME CYCLE
-    //
+    my_system.SetSolverForceTolerance(1e-13);
+
+    // Set integrator
+    my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
+
+    // SIMULATION LOOP
     application.SetTimestep(0.01);
 
     while (application.GetDevice()->run()) {
@@ -125,6 +144,7 @@ int main(int argc, char* argv[]) {
         application.DrawAll();
         application.DoStep();
         application.EndScene();
+        ////model.PrintBodyPositions();
     }
 
     return 0;

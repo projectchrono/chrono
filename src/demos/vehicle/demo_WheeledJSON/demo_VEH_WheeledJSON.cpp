@@ -36,18 +36,19 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/RigidTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/FialaTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/TMeasyTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/Pac89Tire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/Pac02Tire.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-// If Irrlicht support is available...
 #ifdef CHRONO_IRRLICHT
-// ...include additional headers
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
-
-// ...and specify whether the demo should actually use Irrlicht
+// specify whether the demo should actually use Irrlicht
 #define USE_IRRLICHT
 #endif
 
@@ -85,6 +86,20 @@ std::string simplepowertrain_file("generic/powertrain/SimplePowertrain.json");
 std::string rigidtire_file("hmmwv/tire/HMMWV_RigidTire.json");
 ////std::string rigidtire_file("hmmwv/tire/HMMWV_RigidMeshTire.json");
 ////std::string rigidtire_file("generic/tire/RigidTire.json");
+
+// JSON files tire models (Fiala)
+std::string fialatire_file("hmmwv/tire/HMMWV_Fiala_converted.json");
+
+// JSON files tire models (TMeasy)
+std::string tmeasytire_file("hmmwv/tire/HMMWV_TMeasy_converted.json");
+
+// JSON files tire models (Pac89)
+std::string pac89tire_file("hmmwv/tire/HMMWV_Pac89Tire.json");
+
+std::string pac02tire_file("hmmwv/tire/HMMWV_Pac02Tire.json");
+
+// Type of tire model (RIGID, FIALA, TMEASY, PAC89)
+TireModelType tire_model = TireModelType::PAC02;
 
 // Driver input file (if not using Irrlicht)
 std::string driver_file("generic/driver/Sample_Maneuver.txt");
@@ -133,7 +148,6 @@ int main(int argc, char* argv[]) {
     WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChMaterialSurface::NSC);
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
     ////vehicle.GetChassis()->SetFixed(true);
-    vehicle.SetStepsize(step_size);
     vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
@@ -143,23 +157,54 @@ int main(int argc, char* argv[]) {
     RigidTerrain terrain(vehicle.GetSystem(), vehicle::GetDataFile(rigidterrain_file));
 
     // Create and initialize the powertrain system
-    SimplePowertrain powertrain(vehicle::GetDataFile(simplepowertrain_file));
-    powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
+    auto powertrain = chrono_types::make_shared<SimplePowertrain>(vehicle::GetDataFile(simplepowertrain_file));
+    vehicle.InitializePowertrain(powertrain);
 
     // Create and initialize the tires
-    int num_axles = vehicle.GetNumberAxles();
-    int num_wheels = 2 * num_axles;
-    std::vector<std::shared_ptr<RigidTire> > tires(num_wheels);
-
-    for (int i = 0; i < num_wheels; i++) {
-        tires[i] = std::make_shared<RigidTire>(vehicle::GetDataFile(rigidtire_file));
-        tires[i]->Initialize(vehicle.GetWheelBody(i), VehicleSide(i % 2));
-        tires[i]->SetVisualizationType(VisualizationType::MESH);
+    for (auto& axle : vehicle.GetAxles()) {
+        switch (tire_model) {
+            default:
+            case TireModelType::RIGID: {
+                auto tireL = chrono_types::make_shared<RigidTire>(vehicle::GetDataFile(rigidtire_file));
+                auto tireR = chrono_types::make_shared<RigidTire>(vehicle::GetDataFile(rigidtire_file));
+                vehicle.InitializeTire(tireL, axle->m_wheels[0], VisualizationType::MESH);
+                vehicle.InitializeTire(tireR, axle->m_wheels[1], VisualizationType::MESH);
+                break;
+            }
+            case TireModelType::TMEASY: {
+                auto tireL = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasytire_file));
+                auto tireR = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasytire_file));
+                vehicle.InitializeTire(tireL, axle->m_wheels[0], VisualizationType::MESH);
+                vehicle.InitializeTire(tireR, axle->m_wheels[1], VisualizationType::MESH);
+                break;
+            }
+            case TireModelType::FIALA: {
+                auto tireL = chrono_types::make_shared<FialaTire>(vehicle::GetDataFile(fialatire_file));
+                auto tireR = chrono_types::make_shared<FialaTire>(vehicle::GetDataFile(fialatire_file));
+                vehicle.InitializeTire(tireL, axle->m_wheels[0], VisualizationType::MESH);
+                vehicle.InitializeTire(tireR, axle->m_wheels[1], VisualizationType::MESH);
+                break;
+            }
+            case TireModelType::PAC89: {
+                auto tireL = chrono_types::make_shared<Pac89Tire>(vehicle::GetDataFile(pac89tire_file));
+                auto tireR = chrono_types::make_shared<Pac89Tire>(vehicle::GetDataFile(pac89tire_file));
+                vehicle.InitializeTire(tireL, axle->m_wheels[0], VisualizationType::MESH);
+                vehicle.InitializeTire(tireR, axle->m_wheels[1], VisualizationType::MESH);
+                break;
+            }
+            case TireModelType::PAC02: {
+                auto tireL = chrono_types::make_shared<Pac02Tire>(vehicle::GetDataFile(pac02tire_file));
+                auto tireR = chrono_types::make_shared<Pac02Tire>(vehicle::GetDataFile(pac02tire_file));
+                vehicle.InitializeTire(tireL, axle->m_wheels[0], VisualizationType::MESH);
+                vehicle.InitializeTire(tireR, axle->m_wheels[1], VisualizationType::MESH);
+                break;
+            }
+        }
     }
 
 #ifdef USE_IRRLICHT
 
-    ChVehicleIrrApp app(&vehicle, &powertrain, L"Vehicle Demo");
+    ChWheeledVehicleIrrApp app(&vehicle, L"Vehicle Demo");
 
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
@@ -234,23 +279,9 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    // Inter-module communication data
-    TerrainForces tire_forces(num_wheels);
-    WheelStates wheel_states(num_wheels);
-    double driveshaft_speed;
-    double powertrain_torque;
-    double throttle_input;
-    double steering_input;
-    double braking_input;
-
-    // Initialize simulation frame counter and simulation time
-    int step_number = 0;
-    double time = 0;
-
 #ifdef USE_IRRLICHT
 
     ChRealtimeStepTimer realtime_timer;
-
     while (app.GetDevice()->run()) {
         // Update the position of the shadow mapping so that it follows the car
         ////if (do_shadows) {
@@ -266,42 +297,26 @@ int main(int argc, char* argv[]) {
         // Render scene
         app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         app.DrawAll();
+        app.EndScene();
 
-        // Collect output data from modules (for inter-module communication)
-        throttle_input = driver.GetThrottle();
-        steering_input = driver.GetSteering();
-        braking_input = driver.GetBraking();
-        powertrain_torque = powertrain.GetOutputTorque();
-        driveshaft_speed = vehicle.GetDriveshaftSpeed();
-        for (int i = 0; i < num_wheels; i++) {
-            tire_forces[i] = tires[i]->GetTireForce();
-            wheel_states[i] = vehicle.GetWheelState(i);
-        }
+        // Get driver inputs
+        ChDriver::Inputs driver_inputs = driver.GetInputs();
 
         // Update modules (process inputs from other modules)
-        time = vehicle.GetSystem()->GetChTime();
+        double time = vehicle.GetSystem()->GetChTime();
         driver.Synchronize(time);
-        powertrain.Synchronize(time, throttle_input, driveshaft_speed);
-        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, tire_forces);
+        vehicle.Synchronize(time, driver_inputs, terrain);
         terrain.Synchronize(time);
-        for (int i = 0; i < num_wheels; i++)
-            tires[i]->Synchronize(time, wheel_states[i], terrain);
-        app.Synchronize(driver.GetInputModeAsString(), steering_input, throttle_input, braking_input);
+        app.Synchronize("", driver_inputs);
 
         // Advance simulation for one timestep for all modules
-        double step = realtime_timer.SuggestSimulationStep(step_size);
-        driver.Advance(step);
-        powertrain.Advance(step);
-        vehicle.Advance(step);
-        terrain.Advance(step);
-        for (int i = 0; i < num_wheels; i++)
-            tires[i]->Advance(step);
-        app.Advance(step);
+        driver.Advance(step_size);
+        vehicle.Advance(step_size);
+        terrain.Advance(step_size);
+        app.Advance(step_size);
 
-        // Increment frame number
-        step_number++;
-
-        app.EndScene();
+        // Spin in place for real time to catch up
+        realtime_timer.Spin(step_size);
     }
 
 #else
@@ -309,6 +324,8 @@ int main(int argc, char* argv[]) {
     // Number of simulation steps between two 3D view render frames
     int render_steps = (int)std::ceil(render_step_size / step_size);
 
+    double time = 0;
+    int step_number = 0;
     int render_frame = 0;
     char filename[100];
 
@@ -327,32 +344,18 @@ int main(int argc, char* argv[]) {
         }
 
         // Collect output data from modules (for inter-module communication)
-        throttle_input = driver.GetThrottle();
-        steering_input = driver.GetSteering();
-        braking_input = driver.GetBraking();
-        powertrain_torque = powertrain.GetOutputTorque();
-        driveshaft_speed = vehicle.GetDriveshaftSpeed();
-        for (int i = 0; i < num_wheels; i++) {
-            tire_forces[i] = tires[i]->GetTireForce();
-            wheel_states[i] = vehicle.GetWheelState(i);
-        }
+        ChDriver::Inputs driver_inputs = driver.GetInputs();
 
         // Update modules (process inputs from other modules)
         time = vehicle.GetSystem()->GetChTime();
         driver.Synchronize(time);
-        powertrain.Synchronize(time, throttle_input, driveshaft_speed);
-        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, tire_forces);
+        vehicle.Synchronize(time, driver_inputs, terrain);
         terrain.Synchronize(time);
-        for (int i = 0; i < num_wheels; i++)
-            tires[i]->Synchronize(time, wheel_states[i], terrain);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
-        powertrain.Advance(step_size);
         vehicle.Advance(step_size);
         terrain.Advance(step_size);
-        for (int i = 0; i < num_wheels; i++)
-            tires[i]->Advance(step_size);
 
         // Increment frame number
         step_number++;

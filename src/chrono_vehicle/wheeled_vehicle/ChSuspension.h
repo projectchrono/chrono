@@ -40,8 +40,16 @@ namespace vehicle {
 /// Base class for a suspension subsystem.
 class CH_VEHICLE_API ChSuspension : public ChPart {
   public:
-    ChSuspension(const std::string& name  ///< [in] name of the subsystem
-                 );
+    struct Force {
+        double spring_force;
+        double shock_force;
+        double spring_length;
+        double spring_velocity;
+        double shock_length;
+        double shock_velocity;
+    };
+
+    ChSuspension(const std::string& name);
 
     virtual ~ChSuspension() {}
 
@@ -88,21 +96,17 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     /// Get the index of the associated steering index (-1 if non-steered).
     int GetSteeringIndex() const { return m_steering_index; }
 
-    /// Update the suspension subsystem: apply the provided tire forces.
-    /// The given tire force and moment is applied to the specified (left or
-    /// right) spindle body. This function provides the interface to the tire
-    /// system (intermediated by the vehicle system).
-    void Synchronize(VehicleSide side,               ///< side (left or right) on which forces should be applied
-                     const TerrainForce& tire_force  ///< generalized tire forces
-    );
+    /// Synchronize this suspension subsystem.
+    /// This function must be called before synchronizing any wheels associated with this suspension.
+    void Synchronize();
 
     /// Apply the provided motor torque.
     /// The given torque is applied to the specified (left or right) axle. This
     /// function provides the interface to the drivetrain subsystem (intermediated
     /// by the vehicle system).
     void ApplyAxleTorque(VehicleSide side,  ///< indicates the axle (left or right) where the torque should be applied
-                         double torque        ///< value of applied torque
-                         );
+                         double torque      ///< value of applied torque
+    );
 
     /// Initialize this suspension subsystem.
     /// The suspension subsystem is initialized by attaching it to the specified
@@ -151,6 +155,10 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
 
     /// Get the wheel track for the suspension subsystem.
     virtual double GetTrack() = 0;
+
+    /// Return current suspension forces (spring and shock) on the specified side.
+    /// Different derived types (suspension templates) may load different quantities in the output struct.
+    virtual Force ReportSuspensionForce(VehicleSide side) const = 0;
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations(VehicleSide side) {}

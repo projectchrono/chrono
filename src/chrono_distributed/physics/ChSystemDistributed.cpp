@@ -102,7 +102,7 @@ ChSystemDistributed::ChSystemDistributed(MPI_Comm communicator, double ghostlaye
 
     data_manager->shape_data.sphere_rigid.reserve(init);
 
-    collision_system = std::make_shared<ChCollisionSystemDistributed>(data_manager, ddm);
+    collision_system = chrono_types::make_shared<ChCollisionSystemDistributed>(data_manager, ddm);
 
     /* Create and Commit all custom MPI Data Types */
     MPI_Datatype type_force[2] = {MPI_UNSIGNED, MPI_DOUBLE};
@@ -156,11 +156,11 @@ void ChSystemDistributed::UpdateRigidBodies() {
 }
 
 ChBody* ChSystemDistributed::NewBody() {
-    return new ChBody(std::make_shared<collision::ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
+    return new ChBody(chrono_types::make_shared<collision::ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
 }
 
 ChBodyAuxRef* ChSystemDistributed::NewBodyAuxRef() {
-    return new ChBodyAuxRef(std::make_shared<collision::ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
+    return new ChBodyAuxRef(chrono_types::make_shared<collision::ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
 }
 
 void ChSystemDistributed::AddBodyAllRanks(std::shared_ptr<ChBody> newbody) {

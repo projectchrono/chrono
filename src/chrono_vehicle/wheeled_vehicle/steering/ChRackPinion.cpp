@@ -62,7 +62,7 @@ void ChRackPinion::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     chassis->GetSystem()->AddBody(m_link);
 
     // Create and initialize the prismatic joint between chassis and link.
-    m_prismatic = std::make_shared<ChLinkLockPrismatic>();
+    m_prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
     m_prismatic->SetNameString(m_name + "_prismatic");
     m_prismatic->Initialize(chassis, m_link, ChCoordsys<>(link_abs, steering_to_abs.GetRot() * Q_from_AngX(CH_C_PI_2)));
     chassis->GetSystem()->AddLink(m_prismatic);
@@ -76,7 +76,7 @@ void ChRackPinion::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     ChVector<> pt1 = link_abs;
     ChVector<> pt2 = link_abs - offset * steering_to_abs.GetRot().GetYaxis();
 
-    m_actuator = std::make_shared<ChLinkLinActuator>();
+    m_actuator = chrono_types::make_shared<ChLinkLinActuator>();
     m_actuator->SetNameString(m_name + "_actuator");
     m_actuator->Initialize(chassis, m_link, false, ChCoordsys<>(pt1, QUNIT), ChCoordsys<>(pt2, QUNIT));
     m_actuator->Set_lin_offset(offset);
@@ -117,13 +117,13 @@ void ChRackPinion::AddVisualizationAssets(VisualizationType vis) {
 
     double length = GetSteeringLinkLength();
 
-    auto cyl = std::make_shared<ChCylinderShape>();
+    auto cyl = chrono_types::make_shared<ChCylinderShape>();
     cyl->GetCylinderGeometry().p1 = ChVector<>(0, length / 2, 0);
     cyl->GetCylinderGeometry().p2 = ChVector<>(0, -length / 2, 0);
     cyl->GetCylinderGeometry().rad = GetSteeringLinkRadius();
     m_link->AddAsset(cyl);
 
-    auto col = std::make_shared<ChColorAsset>();
+    auto col = chrono_types::make_shared<ChColorAsset>();
     col->SetColor(ChColor(0.8f, 0.8f, 0.2f));
     m_link->AddAsset(col);
 }
@@ -137,20 +137,20 @@ void ChRackPinion::RemoveVisualizationAssets() {
 void ChRackPinion::LogConstraintViolations() {
     // Translational joint
     {
-        ChMatrix<>* C = m_prismatic->GetC();
+        ChVectorDynamic<> C = m_prismatic->GetC();
         GetLog() << "Prismatic           ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "  ";
-        GetLog() << "  " << C->GetElement(3, 0) << "  ";
-        GetLog() << "  " << C->GetElement(4, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "  ";
+        GetLog() << "  " << C(4) << "\n";
     }
 
     // Actuator
     {
-        ChMatrix<>* C = m_actuator->GetC();
+        ChVectorDynamic<> C = m_actuator->GetC();
         GetLog() << "Actuator            ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
+        GetLog() << "  " << C(0) << "  ";
     }
 }
 

@@ -13,6 +13,10 @@ else
     PY_LIB="libpython${MY_PY_VER}.so"
 fi
 
+# set MKL vars
+export MKL_INTERFACE_LAYER=LP64
+export MKL_THREADING_LAYER=INTEL
+CONFIGURATION=Release
 # Configure step
 cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DCMAKE_PREFIX_PATH=$PREFIX \
@@ -21,24 +25,30 @@ cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DPYTHON_EXECUTABLE:FILEPATH=$PYTHON \
  -DPYTHON_INCLUDE_DIR:PATH=$PREFIX/include/python$MY_PY_VER \
  -DPYTHON_LIBRARY:FILEPATH=$PREFIX/lib/${PY_LIB} \
- --config $CONFIGURATION \
+ -DCMAKE_BUILD_TYPE=$CONFIGURATION \
  -DENABLE_MODULE_IRRLICHT=ON \
  -DENABLE_MODULE_POSTPROCESS=ON \
+ -DENABLE_MODULE_VEHICLE=ON \
  -DENABLE_MODULE_PYTHON=ON \
  -DBUILD_DEMOS=OFF \
  -DBUILD_TESTING=OFF \
  -DBUILD_BENCHMARKING=OFF \
  -DBUILD_GMOCK=OFF \
  -DENABLE_MODULE_CASCADE=ON \
- -DCASCADE_INCLUDE_DIR=/home/appveyor/miniconda3/envs/myenv/include/oce \
- -DCASCADE_LIBDIR=/home/appveyor/miniconda3/envs/myenv/lib \
+ -DCASCADE_INCLUDE_DIR=$HOME/miniconda3/include/oce \
+ -DCASCADE_LIBDIR=$HOME/miniconda3/lib \
+ -DENABLE_MODULE_MKL=ON \
+ -DMKL_INCLUDE_DIR=$HOME/miniconda3/include \
+ -DMKL_RT_LIBRARY=$HOME/miniconda3/lib/libmkl_rt.so \
+ -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3 \
+ -DPYCHRONO_DATA_PATH=../../../../../share/chrono/data \
  ./..
 # Build step
 # on linux travis, limit the number of concurrent jobs otherwise
 # gcc gets out of memory
-cmake --build . --config "%CONFIGURATION%"
+cmake --build . --config "$CONFIGURATION"
 
-cmake --build . --config "%CONFIGURATION%" --target install
+cmake --build . --config "$CONFIGURATION" --target install
 
 
 

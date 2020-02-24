@@ -37,7 +37,7 @@ namespace vehicle {
 /// @addtogroup vehicle_powertrain
 /// @{
 
-/// Simple powertrain model, based on speed-torque engine maps.
+/// Template for simple powertrain model based on speed-torque engine maps.
 /// This model has no torque converter and can have either a manual or an automatic transmission.
 /// It accepts a single reverse gear and any number of forward gears.
 /// In automatic mode, gear shifting is done based on specified ideal shift points.
@@ -90,24 +90,6 @@ class CH_VEHICLE_API ChSimpleMapPowertrain : public ChPowertrain {
     /// currently not in FORWARD drive mode.
     void SetForwardGear(int igear);
 
-    /// Initialize the powertrain system.
-    virtual void Initialize(std::shared_ptr<ChBody> chassis,     ///< [in] chassis o the associated vehicle
-                            std::shared_ptr<ChShaft> driveshaft  ///< [in] shaft connection to the vehicle driveline
-                            ) override;
-
-    /// Update the state of this powertrain system at the current time.
-    /// The powertrain system is provided the current driver throttle input, a
-    /// value in the range [0,1], and the current angular speed of the transmission
-    /// shaft (from the driveline).
-    virtual void Synchronize(double time,        ///< [in] current time
-                             double throttle,    ///< [in] current throttle input [0,1]
-                             double shaft_speed  ///< [in] current angular speed of the transmission shaft
-                             ) override;
-
-    /// Advance the state of this powertrain system by the specified time step.
-    /// This function does nothing for this simplified powertrain model.
-    virtual void Advance(double step) override {}
-
   protected:
     /// Specify maximum engine speed.
     virtual double GetMaxEngineSpeed() = 0;
@@ -134,6 +116,21 @@ class CH_VEHICLE_API ChSimpleMapPowertrain : public ChPowertrain {
         ) = 0;
 
   private:
+    /// Initialize the powertrain system.
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,     ///< [in] chassis of the associated vehicle
+                            std::shared_ptr<ChDriveline> driveline  ///< [in] driveline of the associated vehicle
+                            ) override;
+
+    /// Update the state of this powertrain system at the current time.
+    /// The powertrain system is provided the current driver throttle input, a value in the range [0,1].
+    virtual void Synchronize(double time,     ///< [in] current time
+                             double throttle  ///< [in] current throttle input [0,1]
+                             ) override;
+
+    /// Advance the state of this powertrain system by the specified time step.
+    /// This function does nothing for this simplified powertrain model.
+    virtual void Advance(double step) override {}
+
     bool m_automatic;    ///< manual or automatic transmission
     bool m_initialized;  ///< set to 'true' when the powertrain is initialized
 

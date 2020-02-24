@@ -53,7 +53,7 @@ const std::string M113_IdlerRight::m_meshFile = "M113/Idler_R.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-class M113_TensionerForce : public ChLinkSpringCB::ForceFunctor {
+class M113_TensionerForce : public ChLinkTSDA::ForceFunctor {
   public:
     M113_TensionerForce(double k, double c, double f, double l0) : m_k(k), m_c(c), m_f(f), m_l0(l0) {}
 
@@ -61,7 +61,7 @@ class M113_TensionerForce : public ChLinkSpringCB::ForceFunctor {
                               double rest_length,
                               double length,
                               double vel,
-                              ChLinkSpringCB* link) override {
+                              ChLinkTSDA* link) override {
         return m_f - m_k * (length - m_l0) - m_c * vel;
     }
 
@@ -88,9 +88,9 @@ void M113_Idler::AddVisualizationAssets(VisualizationType vis) {
     ChDoubleIdler::AddVisualizationAssets(vis);
 
     if (vis == VisualizationType::MESH) {
-        auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
         trimesh->LoadWavefrontMesh(GetMeshFile(), false, false);
-        auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(GetMeshName());
         trimesh_shape->SetStatic(true);

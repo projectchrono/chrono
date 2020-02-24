@@ -1,0 +1,30 @@
+{
+  "Name":     "MAN 7t chassis",
+  "Type":     "Chassis",
+  "Template": "RigidChassis",
+
+  "Components":
+  [
+   {
+     "Centroidal Frame":    {
+                              "Location":    [-1.948, 0, 0.744], 
+                              "Orientation": [1, 0, 0, 0]
+                            },
+     "Mass":                8285,
+     "Moments of Inertia":  [4023, 33309, 34373],
+     "Products of Inertia": [0, 0, 0],
+     "Void":                false
+   }
+  ],
+ 
+  "Driver Position":
+  {
+    "Location":     [0, 0.5, 1.2],
+    "Orientation":  [1, 0, 0, 0]
+  },
+
+  "Visualization":
+  {
+    "Mesh":  "MAN_Kat1/meshes/MAN_7t_chassis.obj"
+  }
+}

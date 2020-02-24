@@ -23,8 +23,6 @@
 #include "chrono_vehicle/tracked_vehicle/sprocket/SprocketBand.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
-#include "chrono_thirdparty/rapidjson/filereadstream.h"
-
 using namespace rapidjson;
 
 namespace chrono {
@@ -33,15 +31,9 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 SprocketBand::SprocketBand(const std::string& filename) : ChSprocketBand(""), m_has_mesh(false) {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     Create(d);
 
@@ -59,7 +51,7 @@ void SprocketBand::Create(const rapidjson::Document& d) {
     // Read inertia properties
     m_num_teeth = d["Number Teeth"].GetInt();
     m_gear_mass = d["Gear Mass"].GetDouble();
-    m_gear_inertia = LoadVectorJSON(d["Gear Inertia"]);
+    m_gear_inertia = ReadVectorJSON(d["Gear Inertia"]);
     m_axle_inertia = d["Axle Inertia"].GetDouble();
     m_separation = d["Gear Separation"].GetDouble();
 
@@ -110,9 +102,9 @@ void SprocketBand::Create(const rapidjson::Document& d) {
 // -----------------------------------------------------------------------------
 void SprocketBand::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH && m_has_mesh) {
-        auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
         trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
-        auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(m_meshName);
         trimesh_shape->SetStatic(true);

@@ -20,7 +20,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChFunction_Mirror)
 
 ChFunction_Mirror::ChFunction_Mirror() : mirror_axis(0) {
-    fa = std::make_shared<ChFunction_Const>();
+    fa = chrono_types::make_shared<ChFunction_Const>();
 }
 
 ChFunction_Mirror::ChFunction_Mirror(const ChFunction_Mirror& other) {

@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono/parallel/ChOpenMP.h"
+#include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -87,7 +87,6 @@ int main(int argc, char* argv[]) {
     int max_threads = CHOMPfunctions::GetNumProcs();
     if (threads > max_threads)
         threads = max_threads;
-    system->SetParallelThreadNumber(threads);
     CHOMPfunctions::SetNumThreads(threads);
 
     // Edit system settings
@@ -147,10 +146,10 @@ int main(int argc, char* argv[]) {
     body->SetRot(Q_from_AngZ(CH_C_PI_2));
     system->AddBody(body);
 
-    auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
     trimesh->LoadWavefrontMesh(GetChronoDataFile("tractor_wheel.obj"));
 
-    auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(trimesh);
     body->AddAsset(trimesh_shape);
 
@@ -162,16 +161,15 @@ int main(int argc, char* argv[]) {
 
     body->SetCollide(true);
 
-    auto col = std::make_shared<ChColorAsset>();
+    auto col = chrono_types::make_shared<ChColorAsset>();
     col->SetColor(ChColor(0.3f, 0.3f, 0.3f));
     body->AddAsset(col);
 
-    std::shared_ptr<ChLinkEngine> engine(new ChLinkEngine);
-    engine->Set_shaft_mode(ChLinkEngine::ENG_SHAFT_OLDHAM);
-    engine->Set_eng_mode(ChLinkEngine::ENG_MODE_ROTATION);
-    engine->Set_rot_funct(std::make_shared<ChFunction_Ramp>(0, -tire_ang_vel));  // phase, speed
-    engine->Initialize(body, terrain.GetGroundBody(), ChCoordsys<>(tire_center, Q_from_AngX(CH_C_PI_2)));
-    system->Add(engine);
+    auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
+    motor->SetSpindleConstraint(ChLinkMotorRotation::SpindleConstraint::OLDHAM);
+    motor->SetAngleFunction(chrono_types::make_shared<ChFunction_Ramp>(0, -tire_ang_vel));
+    motor->Initialize(body, terrain.GetGroundBody(), ChFrame<>(tire_center, Q_from_AngX(CH_C_PI_2)));
+    system->Add(motor);
 
     std::cout << "Tire location: " << tire_center.x() << " " << tire_center.y() << " " << tire_center.z() << std::endl;
 

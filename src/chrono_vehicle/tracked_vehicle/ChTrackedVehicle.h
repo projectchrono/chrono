@@ -25,8 +25,9 @@
 #include <vector>
 
 #include "chrono_vehicle/ChVehicle.h"
+#include "chrono_vehicle/ChDriver.h"
+#include "chrono_vehicle/tracked_vehicle/ChDrivelineTV.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
-#include "chrono_vehicle/tracked_vehicle/ChTrackDriveline.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackContactManager.h"
 
 namespace chrono {
@@ -66,11 +67,14 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
         return ChVector<>(0, 0, 0);
     }
 
+    /// Get the powertrain attached to this vehicle.
+    virtual std::shared_ptr<ChPowertrain> GetPowertrain() const override { return m_powertrain; }
+
     /// Get the specified suspension subsystem.
     std::shared_ptr<ChTrackAssembly> GetTrackAssembly(VehicleSide side) const { return m_tracks[side]; }
 
     /// Get a handle to the vehicle's driveline subsystem.
-    std::shared_ptr<ChTrackDriveline> GetDriveline() const { return m_driveline; }
+    std::shared_ptr<ChDrivelineTV> GetDriveline() const { return m_driveline; }
 
     /// Get a handle to the vehicle's driveshaft body.
     virtual std::shared_ptr<ChShaft> GetDriveshaft() const override { return m_driveline->GetDriveshaft(); }
@@ -104,10 +108,14 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
         m_tracks[side]->GetTrackShoeStates(states);
     }
 
+    /// Initialize the given powertrain system and associate it to this vehicle.
+    /// The powertrain is initialized by connecting it to this vehicle's chassis and driveline shaft.
+    void InitializePowertrain(std::shared_ptr<ChPowertrain> powertrain);
+
     /// Set visualization type for the sprocket subsystem.
     void SetSprocketVisualizationType(VisualizationType vis);
 
-    // Set visualization type for the idler subsystem.
+    /// Set visualization type for the idler subsystem.
     void SetIdlerVisualizationType(VisualizationType vis);
 
     /// Set visualization type for the suspension subsystems.
@@ -167,6 +175,7 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     void WriteContacts(const std::string& filename) { m_contacts->WriteContacts(filename); }
 
     /// Enable/disable output for the track assemblies.
+    /// See also ChVehicle::SetOuput.
     void SetTrackAssemblyOutput(VehicleSide side, bool state);
 
     /// Initialize this vehicle at the specified global location and orientation.
@@ -178,20 +187,18 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
                             ) override;
 
     /// Update the state of this vehicle at the current time.
-    /// The vehicle system is provided the current driver inputs (throttle between
-    /// 0 and 1, steering between -1 and +1, braking between 0 and 1), the torque
-    /// from the powertrain, and tire forces (expressed in the global reference
-    /// frame).
+    /// The vehicle system is provided the current driver inputs (throttle between 0 and 1, steering between -1 and +1,
+    /// braking between 0 and 1) and terrain forces on the track shoes (expressed in the global reference frame).
     void Synchronize(double time,                            ///< [in] current time
-                     double steering,                        ///< [in] current steering input [-1,+1]
-                     double braking,                         ///< [in] current braking input [0,1]
-                     double powertrain_torque,               ///< [in] input torque from powertrain
+                     const ChDriver::Inputs& driver_inputs,  ///< [in] current driver inputs
                      const TerrainForces& shoe_forces_left,  ///< [in] vector of track shoe forces (left side)
                      const TerrainForces& shoe_forces_right  ///< [in] vector of track shoe forces (left side)
     );
 
     /// Advance the state of this vehicle by the specified time step.
-    virtual void Advance(double step) final;
+    /// In addition to advancing the state of the multibody system (if the vehicle owns the underlying system), this
+    /// function also advances the state of the associated powertrain.
+    virtual void Advance(double step) override final;
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;
@@ -204,12 +211,13 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     /// These include bodies, shafts, joints, spring-damper elements, markers, etc.
     virtual void ExportComponentList(const std::string& filename) const override;
 
+  protected:
     /// Output data for all modeling components in the vehicle system.
     virtual void Output(int frame, ChVehicleOutput& database) const override;
 
-  protected:
-    std::shared_ptr<ChTrackAssembly> m_tracks[2];   ///< handles to the track assemblies (left/right)
-    std::shared_ptr<ChTrackDriveline> m_driveline;  ///< handle to the driveline subsystem
+    std::shared_ptr<ChTrackAssembly> m_tracks[2];  ///< track assemblies (left/right)
+    std::shared_ptr<ChDrivelineTV> m_driveline;    ///< driveline subsystem
+    std::shared_ptr<ChPowertrain> m_powertrain;    ///< associated powertrain system
 
     ChTrackContactManager* m_contacts;  ///< manager for internal contacts
 

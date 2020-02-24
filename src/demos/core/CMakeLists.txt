@@ -3,6 +3,8 @@
 
 SET(DEMOS
   demo_CH_coords
+  demo_CH_linalg
+  demo_CH_matrix_ref
   demo_CH_math
   demo_CH_stream
   demo_CH_archive

@@ -1,0 +1,85 @@
+{
+    "Name": "HMMWV Pac89 Tire",
+    "Type": "Tire",
+    "Template": "Pac89Tire",
+    "Mass": 37.6,
+    "Inertia": [
+        3.84,
+        6.69,
+        3.84
+    ],
+    "Coefficient of Friction": 0.8, // these parameters have been measured on a road with this friction
+    "Design Parameters": {
+        "Unloaded Radius": 0.464,
+        "Width": 0.318,
+        "Vertical Stiffness": 326332.4234,  // defines linear stiffness, when no curve table is present
+        "Vertical Damping": 3483.932502,
+            "Vertical Curve Data": [[0.0, 0.0], // defines nonlinear vertical stiffness, takes priority over the linear model
+                   [0.01, 2830.0],
+                   [0.02, 6212.0],
+                   [0.03, 10146.0],
+                   [0.04, 14632.0],
+                   [0.05, 19670.0],
+                   [0.06, 25260.0],
+                   [0.07, 31402.0],
+                   [0.08, 38096.0],
+                   [0.09, 45342.0],
+                   [0.10, 53140.0]],
+        "Lateral Stiffness": 261065.0,
+        "Rolling Resistance": 0.015
+    },
+     "Lateral Coefficients": {
+     "a0" : 1.49975356208205,        // shape factor
+     "a1" : -4.84987524731462,       // peak factor calculation
+     "a2" : 812.449795340733,        // peak factor calculation
+     "a3" : 2613.92367840654,        // BCD (slope at zero slip) calculation
+     "a4" : 48.857910109076,          // BCD (slope at zero slip) calculation
+     "a5" : 0.0,                                  // BCD (slope at zero slip) calculation
+     "a6" : -0.00879541881020228, // curvature calculation
+     "a7" : 0.376999015041155,       // curvature calculation
+     "a8" : 0.0,                                  // horizontal shift calculation
+     "a9" : 0.0,                                  // horizontal shift calculation
+     "a10" : 0.0,                                // horizontal shift calculation
+     "a11" : 0.0,                                // vertical shift calculation
+     "a12" : 0.0,                                // vertical shift calculation
+     "a13" : 0.0                                 // vertical shift calculation
+    },
+     "Longitudinal Coefficients": {
+      "b0" : 1.50018802672136,      // shape factor
+      "b1" : -15.7761466722458,     // peak factor calculation
+      "b2" : 1022.11238546683,      // peak factor calculation
+      "b3" : -2.55317715303733,     // BCD (slope at zero slip) calculation
+      "b4" : 208.777316195246,      // BCD (slope at zero slip) calculation
+      "b5" : 0.0073134908964823,   // BCD (slope at zero slip) calculation  
+      "b6" : -0.00376410345674027,  // curvature calculation
+      "b7" : 0.156330736057758,       // curvature calculation
+      "b8" : -1.15310023217878,        // curvature calculation
+      "b9" : 0.0,                                   // horizontal shift calculation
+      "b10" : 0.0                                   // horizontal shift calculation
+   },
+     "Aligning Coefficients": {
+      "c0" : 2.34,                                  // shape factor
+      "c1" : 0.990427,                          // peak factor calculation
+      "c2" : 2.96848,                            // peak factor calculation
+      "c3" : -0.277098,                         // BCD (slope at zero slip) calculation
+      "c4" : -0.944859,                         // BCD (slope at zero slip) calculation
+      "c5" : 0.0,                                    // BCD (slope at zero slip) calculation
+      "c6" : 0.0027699,                        // BCD (slope at zero slip) calculation
+      "c7" : -0.0001151,                       // curvature calculation
+      "c8" : 0.10,                                  // curvature calculation
+      "c9" : -1.3329,                             // curvature calculation
+      "c10" : 0.0,                                  // curvature calculation
+      "c11" : 0.0,                                  // horizontal shift calculation
+      "c12" : 0.0,                                  // horizontal shift calculation
+      "c13" : 0.0,                                  // horizontal shift calculation
+      "c14" : 0.0,                                  // vertical shift calculation
+      "c15" : 0.0,                                  // vertical shift calculation
+      "c16" : 0.0,                                  // vertical shift calculation
+      "c17" : 0.0                                   // vertical shift calculation
+      },
+    "Visualization": {
+        "Mesh Filename Left": "hmmwv/hmmwv_tire_left.obj",
+        "Mesh Filename Right": "hmmwv/hmmwv_tire_right.obj",
+        "Width": 0.318
+    }
+}

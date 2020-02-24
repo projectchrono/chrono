@@ -36,13 +36,12 @@ ChLinkPulley::ChLinkPulley()
     local_shaft1.SetIdentity();
     local_shaft2.SetIdentity();
 
-    // Mask: initialize our LinkMaskLF (lock formulation mask)
-    // to X  only. It was a LinkMaskLF because this class inherited from LinkLock.
-    ((ChLinkMaskLF*)mask)->SetLockMask(true, false, false, false, false, false, false);
-    ChangedLinkMask();
+    // Mask: initialize our LinkMaskLF (lock formulation mask) to X  only
+    mask.SetLockMask(true, false, false, false, false, false, false);
+    BuildLink();
 }
 
-ChLinkPulley::ChLinkPulley(const ChLinkPulley& other) : ChLinkLock(other) {
+ChLinkPulley::ChLinkPulley(const ChLinkPulley& other) : ChLinkLockLock(other) {
     tau = other.tau;
     phase = other.phase;
     a1 = other.a1;
@@ -107,7 +106,7 @@ Vector ChLinkPulley::Get_shaft_pos2() {
 
 void ChLinkPulley::UpdateTime(double mytime) {
     // First, inherit to parent class
-    ChLinkLock::UpdateTime(mytime);
+    ChLinkLockLock::UpdateTime(mytime);
 
     ChFrame<double> abs_shaft1;
     ChFrame<double> abs_shaft2;
@@ -118,10 +117,10 @@ void ChLinkPulley::UpdateTime(double mytime) {
     ChVector<> dcc_w = Vsub(Get_shaft_pos2(), Get_shaft_pos1());
 
     // compute actual rotation of the two wheels (relative to truss).
-    Vector md1 = abs_shaft1.GetA().MatrT_x_Vect(dcc_w);
+    Vector md1 = abs_shaft1.GetA().transpose() * dcc_w;
     md1.z() = 0;
     md1 = Vnorm(md1);
-    Vector md2 = abs_shaft2.GetA().MatrT_x_Vect(dcc_w);
+    Vector md2 = abs_shaft2.GetA().transpose() * dcc_w;
     md2.z() = 0;
     md2 = Vnorm(md2);
 
@@ -184,14 +183,11 @@ void ChLinkPulley::UpdateTime(double mytime) {
     belt_low2 = Get_shaft_pos1() + d21_w + Rl_w * r2;
 
     // marker alignment
-    ChMatrix33<> maU;
-    ChMatrix33<> maL;
-
     ChVector<> Dxu = Vnorm(belt_up2 - belt_up1);
     ChVector<> Dyu = Ru_w;
     ChVector<> Dzu = Vnorm(Vcross(Dxu, Dyu));
     Dyu = Vnorm(Vcross(Dzu, Dxu));
-    maU.Set_A_axis(Dxu, Dyu, Dzu);
+    ChMatrix33<> maU(Dxu, Dyu, Dzu);
 
     // ! Require that the BDF routine of marker won't handle speed and acc.calculus of the moved marker 2!
     marker2->SetMotionType(ChMarker::M_MOTION_EXTERNAL);
@@ -228,7 +224,7 @@ void ChLinkPulley::ArchiveOUT(ChArchiveOut& marchive) {
     marchive.VersionWrite<ChLinkPulley>();
 
     // serialize parent class
-    ChLinkLock::ArchiveOUT(marchive);
+    ChLinkLockLock::ArchiveOUT(marchive);
 
     // serialize all member data:
     marchive << CHNVP(tau);
@@ -248,7 +244,7 @@ void ChLinkPulley::ArchiveIN(ChArchiveIn& marchive) {
     int version = marchive.VersionRead<ChLinkPulley>();
 
     // deserialize parent class
-    ChLinkLock::ArchiveIN(marchive);
+    ChLinkLockLock::ArchiveIN(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(tau);

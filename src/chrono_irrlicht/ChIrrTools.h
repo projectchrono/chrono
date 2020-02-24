@@ -146,8 +146,7 @@ class ChApiIrr ChIrrTools {
                                  int my = 290,
                                  int sx = 300,
                                  int sy = 100,
-                                 double spfact = 100.0,
-                                 double posfact = 500.0);
+                                 double spfact = 100.0);
 
     /// --
     static void drawChFunction(irr::IrrlichtDevice* mdevice,
@@ -224,12 +223,11 @@ class ChApiIrr ChIrrTools {
 		irr::IrrlichtDevice* mdevice,
 		irr::video::SColor mcol = irr::video::SColor(50, 0, 0, 110) );
 
-
     /// --
     static void drawPlot3D(irr::video::IVideoDriver* driver,
-                           ChMatrix<> X,  // x of points, in local csys x
-                           ChMatrix<> Y,  // y of points, in local csys y
-                           ChMatrix<> Z,  // z height map of points, in local csys z
+                           ChMatrixConstRef X,  // x of points, in local csys x
+                           ChMatrixConstRef Y,  // y of points, in local csys y
+                           ChMatrixConstRef Z,  // z height map of points, in local csys z
                            ChCoordsys<> mpos = CSYSNORM,
                            irr::video::SColor mcol = irr::video::SColor(50, 80, 110, 110),
                            bool use_Zbuffer = false);

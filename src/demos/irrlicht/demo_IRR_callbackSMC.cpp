@@ -109,11 +109,10 @@ int main(int argc, char* argv[]) {
     system.Set_G_acc(ChVector<>(0, -10, 0));
 
     // Set solver settings
-    system.SetMaxItersSolverSpeed(100);
-    system.SetTol(0);
-    system.SetTolForce(0);
+    system.SetSolverMaxIterations(100);
+    system.SetSolverForceTolerance(0);
 
-    // Change default collision effective raiuds of curvature
+    // Change default collision effective radius of curvature
     ////collision::ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
 
     // ----------
@@ -133,7 +132,7 @@ int main(int argc, char* argv[]) {
     utils::AddBoxGeometry(container.get(), ChVector<>(4, 0.5, 4), ChVector<>(0, -0.5, 0));
     container->GetCollisionModel()->BuildModel();
 
-    container->AddAsset(std::make_shared<ChColorAsset>(ChColor(0.4f, 0.4f, 0.4f)));
+    container->AddAsset(chrono_types::make_shared<ChColorAsset>(ChColor(0.4f, 0.4f, 0.4f)));
 
     auto box1 = std::shared_ptr<ChBody>(system.NewBody());
     box1->SetMass(10);
@@ -148,7 +147,7 @@ int main(int argc, char* argv[]) {
     utils::AddBoxGeometry(box1.get(), ChVector<>(0.4, 0.2, 0.1));
     box1->GetCollisionModel()->BuildModel();
 
-    box1->AddAsset(std::make_shared<ChColorAsset>(ChColor(0.1f, 0.1f, 0.4f)));
+    box1->AddAsset(chrono_types::make_shared<ChColorAsset>(ChColor(0.1f, 0.1f, 0.4f)));
 
     system.AddBody(box1);
 
@@ -165,7 +164,7 @@ int main(int argc, char* argv[]) {
     utils::AddBoxGeometry(box2.get(), ChVector<>(0.4, 0.2, 0.1));
     box2->GetCollisionModel()->BuildModel();
 
-    box2->AddAsset(std::make_shared<ChColorAsset>(ChColor(0.4f, 0.1f, 0.1f)));
+    box2->AddAsset(chrono_types::make_shared<ChColorAsset>(ChColor(0.4f, 0.1f, 0.1f)));
 
     system.AddBody(box2);
 

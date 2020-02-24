@@ -30,7 +30,7 @@ using namespace geometry;
 // Create a collection of geometric shapes
 // -----------------------------------------------------------------------------
 void AddShapes(ChSystemNSC* sys) {
-    auto bin = std::make_shared<ChBody>();
+    auto bin = chrono_types::make_shared<ChBody>();
     utils::AddSphereGeometry(bin.get(), 1, ChVector<>(0, 0, 0));
     utils::AddEllipsoidGeometry(bin.get(), ChVector<>(.5, 1, 1), ChVector<>(3, 0, 0));
     utils::AddBoxGeometry(bin.get(), ChVector<>(1, 1, 1), ChVector<>(6, 0, 0));

@@ -26,7 +26,6 @@ In this page you can find a description of their properties.
   - rest length L, 
   - stiffness k, 
   - damping r
-- Note: geometric stiffness not (yet) implemented
 - The simpliest element: a starting point to learn how to implement finite elements
 
 
@@ -43,8 +42,6 @@ In this page you can find a description of their properties.
   - Section area A, 
   - Young modulus E, 
   - damping 
-- Note: geometric stiffness not (yet) implemented
-
 
 
 
@@ -144,12 +141,21 @@ In this page you can find a description of their properties.
 
 
 
+# ChElementBeamANCF   {#manual_ChElementBeamANCF}
+
+![](http://www.projectchrono.org/assets/manual/fea_ChElementBeamANCF.png)
+
+- 3 nodes of chrono::fea::ChNodeFEAxyzDD type
+- ANCF formulation for large displacements
+- Section property: rectangular width-height, E, Poisson ratio, shear correction factors, density
+
+
 # ChElementBeamEuler   {#manual_ChElementBeamEuler}
 
 ![](http://www.projectchrono.org/assets/manual/fea_ChElementBeamEuler.png)
 ![](http://www.projectchrono.org/assets/manual/fea_ChElementBeamEuler_section.png)
 
-- 2 nodes of ChNodeFEAxyzrot type
+- 2 nodes of chrono::fea::ChNodeFEAxyzrot type
 - Linear interpolation
 - 1 integration point (default)
 - Corotational formulation for large displacements
@@ -162,13 +168,31 @@ In this page you can find a description of their properties.
 
 
 
-# ChElementBeamANCF   {#manual_ChElementBeamANCF}
 
-![](http://www.projectchrono.org/assets/manual/fea_ChElementBeamANCF.png)
+# ChElementBeamIGA   {#manual_ChElementBeamIGA}
 
-- 2 nodes of ChNodeFEAxyzDD type
-- ANCF formulation for large displacements
-- [recent feature – beta testing]
+![](http://www.projectchrono.org/assets/manual/fea_ChElementBeamIGA.png)
+![](http://www.projectchrono.org/assets/manual/fea_ChElementBeamIGA_b.png)
+
+- Isogeometric formulation (IGA) of a Cosserat rod, with large displacements  
+- User-defined order n (ex: 1=linear 2=quadratic, 3=cubic).
+- Each element is a span of a b-spline, so each element uses n+1 control points, ie. nodes of chrono::fea::ChNodeFEAxyzrot type 
+- Thick beam shear effects are possible, v. Timoshenko theory
+- Reduced integration to correct shear locking
+- Initial curved configuration is supported
+- Suggestion: use ChBuilderBeamIGA for easy creation a full B-spine, ie. given full knot sequence and points as in the second figure above.
+- Section defined in a modular way, with 
+  - Elasticity model
+  - Plasticity model (optional)
+  - Damping model (optional)
+- Already available models:
+  - chrono::fea::ChElasticityCosseratSimple
+  - chrono::fea::ChElasticityCosseratAdvanced 
+  - chrono::fea::ChElasticityCosseratGeneric
+  - chrono::fea::ChElasticityCosseratMesh
+  - chrono::fea::ChPlasticityCosseratLumped
+  - chrono::fea::ChDampingCosseratLinear
+  - ...
 
 
   
@@ -176,7 +200,7 @@ In this page you can find a description of their properties.
 
 ![](http://www.projectchrono.org/assets/manual/fea_ChElementShellReissner.png)
 
-- 4 nodes of ChNodeFEAxyzrot type
+- 4 nodes of chrono::fea::ChNodeFEAxyzrot type
 - Bi-linear interpolation
 - 4 integration points (default)
 - Allows large displacements, exponential map used for SO3
@@ -193,7 +217,7 @@ In this page you can find a description of their properties.
 
 ![](http://www.projectchrono.org/assets/manual/fea_ChElementShellANCF.png)
 
-- 4 nodes of ChNodeFEAxyzD type
+- 4 nodes of chrono::fea::ChNodeFEAxyzD type
 - Bi-linear interpolation
 - 4 integration points (default)
 - Allows large displacements, using ANCF formulation
@@ -203,6 +227,41 @@ In this page you can find a description of their properties.
 - Nodes D must be aligned to shell normal at initialization
 
 
+  
+# ChElementShellANCF_8   {#manual_ChElementShellANCF_8}
+
+![](http://www.projectchrono.org/assets/manual/fea_ChElementShellANCF_8.png)
+
+- 8 nodes of chrono::fea::ChNodeFEAxyzDD type
+- Higher order interpolation
+- Allows large displacements, using ANCF formulation
+- Thick shells allowed
+- Can have multi-layered materials
+- ANS-EAS, shear-lock free
+- Nodes D must be aligned to shell normal at initialization
+
+
+# ChElementShellBST   {#manual_ChElementShellBST}
+
+![](http://www.projectchrono.org/assets/manual/fea_ChElementShellBST.png)
+
+- Triangular thin-shell 
+- 6 nodes of chrono::fea::ChNodeFEAxyz type
+  - 1,2,3 from the triangle
+  - 4,5,6 from the neighbouring triangles (any can be optional if on the boundary)
+- Constant strain, constant curvature computed from bent triangle neighbours
+- Allows large deformation
+- Can have multi-layered materials
+- Based on Kirchhoff-Love theory (no shear), good for tissues, sails, etc.
+- Section defined with 
+  - Elasticity model
+  - Plasticity model (optional)
+  - Damping model (optional)
+- Already available models:
+  - chrono::fea::ChElasticityKirchhoffIsotropic
+  - chrono::fea::ChElasticityKirchhoffOrthotropic 
+  - chrono::fea::ChElasticityKirchhoffGeneric
+  - … 
 
 
 

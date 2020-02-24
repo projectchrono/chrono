@@ -115,7 +115,7 @@ static void ChCoordsToBullet(const ChCoordsys<>& mcoords, btTransform& mtransfor
 }
 
 void ChModelBullet::_injectShape(const ChVector<>& pos, const ChMatrix33<>& rot, btCollisionShape* mshape) {
-    bool centered = (pos.IsNull() && rot.IsIdentity());
+    bool centered = (pos.IsNull() && rot.isIdentity());
     
     // This is needed so later one can access ChModelBullet::GetSafeMargin and ChModelBullet::GetEnvelope
     mshape->setUserPointer(this);
@@ -615,7 +615,7 @@ bool ChModelBullet::AddTriangleMesh(std::shared_ptr<geometry::ChTriangleMesh> tr
             */
 
             // ----- ..or use this? (using the JR convex decomposition) :
-            auto mydecompositionJR = std::make_shared<ChConvexDecompositionJR>();
+            auto mydecompositionJR = chrono_types::make_shared<ChConvexDecompositionJR>();
             mydecompositionJR->AddTriangleMesh(*trimesh);
             mydecompositionJR->SetParameters(0,      // skin width
                                              9, 64,  // depth, max vertices in hull
@@ -631,7 +631,7 @@ bool ChModelBullet::AddTriangleMesh(std::shared_ptr<geometry::ChTriangleMesh> tr
 
             /*
             // ----- ..or use this? (using the HACD convex decomposition) :
-            auto mydecompositionHACD = std::make_shared<ChConvexDecompositionHACD>();
+            auto mydecompositionHACD = chrono_types::make_shared<ChConvexDecompositionHACD>();
             mydecompositionHACD->AddTriangleMesh(trimesh);
             mydecompositionHACD->SetParameters(2,      // clusters
                                                0,      // no decimation

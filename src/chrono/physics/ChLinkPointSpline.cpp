@@ -23,20 +23,19 @@ using namespace geometry;
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLinkPointSpline)
 
-ChLinkPointSpline::ChLinkPointSpline() {
+ChLinkPointSpline::ChLinkPointSpline() : tolerance(1e-6) {
     // default trajectory is a segment
-    trajectory_line = std::make_shared<ChLineSegment>();
+    trajectory_line = chrono_types::make_shared<ChLineSegment>();
 
-    // Mask: initialize our LinkMaskLF (lock formulation mask)
-    // to X  only. It was a LinkMaskLF because this class inherited from LinkLock.
-    ((ChLinkMaskLF*)mask)->SetLockMask(false, true, true, false, false, false, false);
+    // Mask: initialize our LinkMaskLF (lock formulation mask) to X  only
+    mask.SetLockMask(false, true, true, false, false, false, false);
 
-    ChangedLinkMask();
+    BuildLink();
 }
 
-ChLinkPointSpline::ChLinkPointSpline(const ChLinkPointSpline& other) : ChLinkLock(other) {
-    other.trajectory_line->Clone();
-    //trajectory_line = std::shared_ptr<ChLine>(other.trajectory_line->Clone());  // deep copy
+ChLinkPointSpline::ChLinkPointSpline(const ChLinkPointSpline& other) : ChLinkLockLock(other) {
+    trajectory_line = std::shared_ptr<ChLine>((ChLine*)other.trajectory_line->Clone());  // deep copy
+    tolerance = other.tolerance;
 }
 
 void ChLinkPointSpline::Set_trajectory_line(std::shared_ptr<geometry::ChLine> mline) {
@@ -48,10 +47,6 @@ void ChLinkPointSpline::Set_trajectory_line(std::shared_ptr<geometry::ChLine> ml
 void ChLinkPointSpline::UpdateTime(double time) {
     ChTime = time;
 
-    double tol = 10e-9;
-    if (GetSystem())
-        tol = ((ChSystem*)GetSystem())->GetTol();
-
     if (trajectory_line) {
         Vector param, ptang, ptang2, vdir, vdir2, vnorm, vrad, vpoint;
         double mu, ds, dh, mrad;
@@ -59,7 +54,7 @@ void ChLinkPointSpline::UpdateTime(double time) {
         // find nearest point
         vpoint = marker1->GetAbsCoord().pos;
         vpoint = Body2->TransformPointParentToLocal(vpoint);
-        trajectory_line->FindNearestLinePoint(vpoint, mu, 0, ((ChSystem*)GetSystem())->GetTol());
+        trajectory_line->FindNearestLinePoint(vpoint, mu, 0, tolerance);
 
         param.y() = 0;
         param.z() = 0;
@@ -127,7 +122,7 @@ void ChLinkPointSpline::ArchiveOUT(ChArchiveOut& marchive) {
     marchive.VersionWrite<ChLinkPointSpline>();
 
     // serialize parent class
-    ChLinkLock::ArchiveOUT(marchive);
+    ChLinkLockLock::ArchiveOUT(marchive);
 
     // serialize all member data:
     marchive << CHNVP(trajectory_line);
@@ -139,7 +134,7 @@ void ChLinkPointSpline::ArchiveIN(ChArchiveIn& marchive) {
     int version = marchive.VersionRead<ChLinkPointSpline>();
 
     // deserialize parent class
-    ChLinkLock::ArchiveIN(marchive);
+    ChLinkLockLock::ArchiveIN(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(trajectory_line);

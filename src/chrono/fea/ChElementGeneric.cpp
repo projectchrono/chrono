@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
 #include "chrono/fea/ChElementGeneric.h"
@@ -18,17 +18,25 @@ namespace chrono {
 namespace fea {
 
 void ChElementGeneric::EleIntLoadResidual_F(ChVectorDynamic<>& R, const double c) {
-    ChMatrixDynamic<> mFi(this->GetNdofs(), 1);
+    ChVectorDynamic<> mFi(this->GetNdofs());
     this->ComputeInternalForces(mFi);
     // GetLog() << "EleIntLoadResidual_F , mFi=" << mFi << "  c=" << c << "\n";
-    mFi.MatrScale(c);
+    mFi *= c;
+
+    //// RADU
+    //// Attention: this is called from within a parallel OMP for loop.
+    //// Must use atomic increment when updating the global vector R.
+
     int stride = 0;
     for (int in = 0; in < this->GetNnodes(); in++) {
         int nodedofs = GetNodeNdofs(in);
         // GetLog() << "  in=" << in << "  stride=" << stride << "  nodedofs=" << nodedofs << " offset=" <<
         // GetNodeN(in)->NodeGetOffset_w() << "\n";
-        if (!GetNodeN(in)->GetFixed())
-            R.PasteSumClippedMatrix(mFi, stride, 0, nodedofs, 1, GetNodeN(in)->NodeGetOffset_w(), 0);
+        if (!GetNodeN(in)->GetFixed()) {
+            for (int j = 0; j < nodedofs; j++)
+#pragma omp atomic
+                R(GetNodeN(in)->NodeGetOffset_w() + j) += mFi(stride + j);
+        }
         stride += nodedofs;
     }
     // GetLog() << "EleIntLoadResidual_F , R=" << R << "\n";
@@ -41,70 +49,36 @@ void ChElementGeneric::EleIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVecto
     ChMatrixDynamic<> mMi(this->GetNdofs(), this->GetNdofs());
     this->ComputeMmatrixGlobal(mMi);
 
-    ChMatrixDynamic<> mqi(this->GetNdofs(), 1);
+    ChVectorDynamic<> mqi(this->GetNdofs());
     int stride = 0;
     for (int in = 0; in < this->GetNnodes(); in++) {
         int nodedofs = GetNodeNdofs(in);
-        if (!GetNodeN(in)->GetFixed())
-            mqi.PasteClippedMatrix(w, GetNodeN(in)->NodeGetOffset_w(), 0, nodedofs, 1, stride, 0);
+        if (GetNodeN(in)->GetFixed()) {
+            for (int i = 0; i < nodedofs; ++i)
+                mqi(stride + i) = 0;
+        } else {
+            mqi.segment(stride, nodedofs) = w.segment(GetNodeN(in)->NodeGetOffset_w(), nodedofs);
+        }
         stride += nodedofs;
     }
 
-    ChMatrixDynamic<> mFi(this->GetNdofs(), 1);
-    mFi.MatrMultiply(mMi, mqi);
-    mFi.MatrScale(c);
+    ChVectorDynamic<> mFi = c * mMi * mqi;
 
     stride = 0;
     for (int in = 0; in < this->GetNnodes(); in++) {
         int nodedofs = GetNodeNdofs(in);
         if (!GetNodeN(in)->GetFixed())
-            R.PasteSumClippedMatrix(mFi, stride, 0, nodedofs, 1, GetNodeN(in)->NodeGetOffset_w(), 0);
+            R.segment(GetNodeN(in)->NodeGetOffset_w(), nodedofs) += mFi.segment(stride, nodedofs);
         stride += nodedofs;
     }
 }
 
 void ChElementGeneric::VariablesFbLoadInternalForces(double factor) {
     throw(ChException("ChElementGeneric::VariablesFbLoadInternalForces is deprecated"));
-    /*
-    ChMatrixDynamic<> mFi(this->GetNdofs(), 1);
-    this->ComputeInternalForces(mFi);
-    mFi.MatrScale(factor);
-    int stride = 0;
-    for (int in = 0; in < this->GetNnodes(); in++) {
-        int nodedofs = GetNodeNdofs(in);
-        GetNodeN(in)->Variables().Get_fb().PasteSumClippedMatrix(mFi, stride, 0, nodedofs, 1, 0, 0);
-        stride += nodedofs;
-    }
-    */
 }
 
 void ChElementGeneric::VariablesFbIncrementMq() {
-    // This is a default (VERY UNOPTIMAL) book keeping so that in children classes you can avoid
-    // implementing this VariablesFbIncrementMq function, unless you need faster code)
-
     throw(ChException("ChElementGeneric::VariablesFbIncrementMq is deprecated"));
-    /*
-    ChMatrixDynamic<> mMi(this->GetNdofs(), this->GetNdofs());
-    this->ComputeKRMmatricesGlobal(mMi, 0, 0, 1.0);  // fill M mass matrix
-
-    ChMatrixDynamic<> mqi(this->GetNdofs(), 1);
-    int stride = 0;
-    for (int in = 0; in < this->GetNnodes(); in++) {
-        int nodedofs = GetNodeNdofs(in);
-        mqi.PasteMatrix(GetNodeN(in)->Variables().Get_qb(), stride, 0);
-        stride += nodedofs;
-    }
-
-    ChMatrixDynamic<> mFi(this->GetNdofs(), 1);
-    mFi.MatrMultiply(mMi, mqi);
-
-    stride = 0;
-    for (int in = 0; in < this->GetNnodes(); in++) {
-        int nodedofs = GetNodeNdofs(in);
-        GetNodeN(in)->Variables().Get_fb().PasteSumClippedMatrix(mFi, stride, 0, nodedofs, 1, 0, 0);
-        stride += nodedofs;
-    }
-    */
 }
 
 }  // end namespace fea

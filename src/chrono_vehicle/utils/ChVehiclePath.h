@@ -39,12 +39,12 @@ CH_VEHICLE_API std::shared_ptr<ChBezierCurve> StraightLinePath(
 /// <pre>
 /// Example: left circle path
 /// 
-///                    ___<___        Y
+///                     __<__         Y
 ///                   /       \       ^
 ///                  /         \      |
 ///                 |     o     |     +---> X
 ///                  \         /
-///  ________>________\___>___/
+///  ________>________\ __>__ /
 ///         run
 /// </pre>
 CH_VEHICLE_API std::shared_ptr<ChBezierCurve> CirclePath(
@@ -65,7 +65,7 @@ CH_VEHICLE_API std::shared_ptr<ChBezierCurve> CirclePath(
 ///                   ______>______          |
 ///                  /             \         +---> X
 ///                /                 \
-/// _____>_______/                     \______>_______
+/// _____>______ /                     \ ______>_______
 ///     run       ramp   length    ramp      run
 /// </pre>
 CH_VEHICLE_API std::shared_ptr<ChBezierCurve> DoubleLaneChangePath(

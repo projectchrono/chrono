@@ -2,13 +2,14 @@
 
 /* Includes the header in the wrapper code */
 #include "chrono/physics/ChContactContainer.h"
+#include "chrono/physics/ChContactable.h"
 
-using namespace collision;
+//using namespace collision;
 
 
 // NESTED CLASSES: inherit stubs (not virtual) as outside classes
 
-class ChReportContactCallbackP : public chrono::ChContactContainer::ReportContactCallback {
+/*class ChReportContactCallbackP : public chrono::ChContactContainer::ReportContactCallback {
     public:
         ChReportContactCallbackP() {}
         virtual bool OnReportContact(const chrono::ChVector<>& pA,
@@ -32,10 +33,19 @@ class ChAddContactCallbackP : public chrono::ChContactContainer::AddContactCallb
                                   chrono::ChMaterialComposite* const material) {
             GetLog() << "You must implement OnAddContact()!\n";
         }
-};
+};*/
 
 %}
 
+%inline %{
+  chrono::ChBody* CastContactableToChBody(chrono::ChContactable* base) {
+    chrono::ChBody* ptr_out = dynamic_cast<chrono::ChBody*>(base);
+	if (ptr_out == NULL) {
+        throw std::invalid_argument( "Wrong Upcast Choice" );
+    }
+    return ptr_out;
+  }
+%}
 
 // Forward ref
 %import "ChCollisionModel.i"
@@ -47,11 +57,12 @@ class ChAddContactCallbackP : public chrono::ChContactContainer::AddContactCallb
 
 %feature("director") ChReportContactCallbackP;
 %feature("director") ChAddContactCallbackP;
+%feature("director") ReportContactCallback;
 
 
 // NESTED CLASSES
 
-class ChReportContactCallbackP {
+/*class ChReportContactCallbackP {
   public:
     virtual ~ChReportContactCallbackP() {}
     virtual bool OnReportContact(const chrono::ChVector<>& pA,
@@ -84,11 +95,12 @@ class ChAddContactCallbackP {
 	     $self->ReportAllContacts(callback);
 	}
 };
-
-%ignore chrono::ChContactContainer::RegisterAddContactCallback();
-%ignore chrono::ChContactContainer::ReportAllContacts();
+*/
+//%ignore chrono::ChContactContainer::RegisterAddContactCallback();
+//%ignore chrono::ChContactContainer::ReportAllContacts();
 
 
 /* Parse the header file to generate wrappers */
+%include "../chrono/physics/ChContactable.h"
 %include "../chrono/physics/ChContactContainer.h"    
 

@@ -46,9 +46,11 @@ ADD_LIBRARY(ChronoEngine_postprocess SHARED
 
 SET_TARGET_PROPERTIES(ChronoEngine_postprocess PROPERTIES
                       COMPILE_FLAGS "${CH_CXX_FLAGS}"
-                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
-                      COMPILE_DEFINITIONS "CH_API_COMPILE_POSTPROCESS")
+                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
                           
+target_compile_definitions(ChronoEngine_postprocess PRIVATE "CH_API_COMPILE_POSTPROCESS")
+target_compile_definitions(ChronoEngine_postprocess PRIVATE "CH_IGNORE_DEPRECATED")
+
 TARGET_LINK_LIBRARIES(ChronoEngine_postprocess 
 	                  ChronoEngine)
 	

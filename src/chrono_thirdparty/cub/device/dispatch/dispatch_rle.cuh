@@ -1,7 +1,7 @@
 
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2015, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -29,7 +29,7 @@
 
 /**
  * \file
- * cub::DeviceRle provides device-wide, parallel operations for run-length-encoding sequences of data items residing within global memory.
+ * cub::DeviceRle provides device-wide, parallel operations for run-length-encoding sequences of data items residing within device-accessible memory.
  */
 
 #pragma once
@@ -124,11 +124,13 @@ struct DeviceRleDispatch
      * Types and constants
      ******************************************************************************/
 
-    // Data type of input iterator
+    // The input value type
     typedef typename std::iterator_traits<InputIteratorT>::value_type T;
 
-    // Signed integer type for run lengths
-    typedef typename std::iterator_traits<LengthsOutputIteratorT>::value_type LengthT;
+    // The lengths output value type
+    typedef typename If<(Equals<typename std::iterator_traits<LengthsOutputIteratorT>::value_type, void>::VALUE),   // LengthT =  (if output iterator's value type is void) ?
+        OffsetT,                                                                                                    // ... then the OffsetT type,
+        typename std::iterator_traits<LengthsOutputIteratorT>::value_type>::Type LengthT;                           // ... else the output iterator's value type
 
     enum
     {
@@ -353,7 +355,7 @@ struct DeviceRleDispatch
         typename                    DeviceRleSweepKernelPtr>        ///< Function type of cub::DeviceRleSweepKernelPtr
     CUB_RUNTIME_FUNCTION __forceinline__
     static cudaError_t Dispatch(
-        void*                       d_temp_storage,                 ///< [in] %Device allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void*                       d_temp_storage,                 ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t&                     temp_storage_bytes,             ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         InputIteratorT              d_in,                           ///< [in] Pointer to the input sequence of data items
         OffsetsOutputIteratorT      d_offsets_out,                  ///< [out] Pointer to the output sequence of run-offsets
@@ -383,10 +385,6 @@ struct DeviceRleDispatch
             int device_ordinal;
             if (CubDebug(error = cudaGetDevice(&device_ordinal))) break;
 
-            // Get device SM version
-            int sm_version;
-            if (CubDebug(error = SmVersion(sm_version, device_ordinal))) break;
-
             // Get SM count
             int sm_count;
             if (CubDebug(error = cudaDeviceGetAttribute (&sm_count, cudaDevAttrMultiProcessorCount, device_ordinal))) break;
@@ -405,7 +403,7 @@ struct DeviceRleDispatch
             if (d_temp_storage == NULL)
             {
                 // Return if the caller is simply requesting the size of the storage allocation
-                return cudaSuccess;
+                break;
             }
 
             // Construct the tile status interface
@@ -413,13 +411,14 @@ struct DeviceRleDispatch
             if (CubDebug(error = tile_status.Init(num_tiles, allocations[0], allocation_sizes[0]))) break;
 
             // Log device_scan_init_kernel configuration
-            int init_grid_size = (num_tiles + INIT_KERNEL_THREADS - 1) / INIT_KERNEL_THREADS;
-            if (debug_synchronous) CubLog("Invoking device_scan_init_kernel<<<%d, %d, 0, %lld>>>()\n", init_grid_size, INIT_KERNEL_THREADS, (long long) stream);
+            int init_grid_size = CUB_MAX(1, (num_tiles + INIT_KERNEL_THREADS - 1) / INIT_KERNEL_THREADS);
+            if (debug_synchronous) _CubLog("Invoking device_scan_init_kernel<<<%d, %d, 0, %lld>>>()\n", init_grid_size, INIT_KERNEL_THREADS, (long long) stream);
 
             // Invoke device_scan_init_kernel to initialize tile descriptors and queue descriptors
             device_scan_init_kernel<<<init_grid_size, INIT_KERNEL_THREADS, 0, stream>>>(
                 tile_status,
-                num_tiles);
+                num_tiles,
+                d_num_runs_out);
 
             // Check for failure to launch
             if (CubDebug(error = cudaPeekAtLastError())) break;
@@ -427,11 +426,14 @@ struct DeviceRleDispatch
             // Sync the stream if specified to flush runtime errors
             if (debug_synchronous && (CubDebug(error = SyncStream(stream)))) break;
 
+            // Return if empty problem
+            if (num_items == 0)
+                break;
+
             // Get SM occupancy for device_rle_sweep_kernel
             int device_rle_kernel_sm_occupancy;
             if (CubDebug(error = MaxSmOccupancy(
                 device_rle_kernel_sm_occupancy,            // out
-                sm_version,
                 device_rle_sweep_kernel,
                 device_rle_config.block_threads))) break;
 
@@ -446,7 +448,7 @@ struct DeviceRleDispatch
             scan_grid_size.x = CUB_MIN(num_tiles, max_dim_x);
 
             // Log device_rle_sweep_kernel configuration
-            if (debug_synchronous) CubLog("Invoking device_rle_sweep_kernel<<<{%d,%d,%d}, %d, 0, %lld>>>(), %d items per thread, %d SM occupancy\n",
+            if (debug_synchronous) _CubLog("Invoking device_rle_sweep_kernel<<<{%d,%d,%d}, %d, 0, %lld>>>(), %d items per thread, %d SM occupancy\n",
                 scan_grid_size.x, scan_grid_size.y, scan_grid_size.z, device_rle_config.block_threads, (long long) stream, device_rle_config.items_per_thread, device_rle_kernel_sm_occupancy);
 
             // Invoke device_rle_sweep_kernel
@@ -480,7 +482,7 @@ struct DeviceRleDispatch
      */
     CUB_RUNTIME_FUNCTION __forceinline__
     static cudaError_t Dispatch(
-        void*                       d_temp_storage,                 ///< [in] %Device allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void*                       d_temp_storage,                 ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t&                     temp_storage_bytes,             ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         InputIteratorT              d_in,                           ///< [in] Pointer to input sequence of data items
         OffsetsOutputIteratorT      d_offsets_out,                  ///< [out] Pointer to output sequence of run-offsets
@@ -519,7 +521,7 @@ struct DeviceRleDispatch
                 stream,
                 debug_synchronous,
                 ptx_version,
-                DeviceScanInitKernel<OffsetT, ScanTileStateT>,
+                DeviceCompactInitKernel<ScanTileStateT, NumRunsOutputIteratorT>,
                 DeviceRleSweepKernel<PtxRleSweepPolicy, InputIteratorT, OffsetsOutputIteratorT, LengthsOutputIteratorT, NumRunsOutputIteratorT, ScanTileStateT, EqualityOpT, OffsetT>,
                 device_rle_config))) break;
         }

@@ -24,9 +24,9 @@
 using namespace chrono;
 
 ChIterativeSolverParallel::ChIterativeSolverParallel(ChParallelDataManager* dc) : data_manager(dc) {
-    tolerance = 1e-7;
+    m_tolerance = 1e-7;
     record_violation_history = true;
-    warm_start = false;
+    m_warm_start = false;
     solver = new ChSolverParallelAPGD();
     bilateral_solver = new ChSolverParallelMinRes();
     data_manager->rigid_rigid = new ChConstraintRigidRigid();
@@ -42,15 +42,16 @@ void ChIterativeSolverParallel::ComputeInvMassMatrix() {
     LOG(INFO) << "ChIterativeSolverParallel::ComputeInvMassMatrix()";
     uint num_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
+    uint num_motors = data_manager->num_motors;
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
     uint num_fea_nodes = data_manager->num_fea_nodes;
     uint num_dof = data_manager->num_dof;
     bool use_full_inertia_tensor = data_manager->settings.solver.use_full_inertia_tensor;
     const custom_vector<real>& shaft_inr = data_manager->host_data.shaft_inr;
 
-    std::vector<std::shared_ptr<ChBody> >* body_list = data_manager->body_list;
-    std::vector<std::shared_ptr<ChLink> >* link_list = data_manager->link_list;
-    std::vector<std::shared_ptr<ChPhysicsItem> >* other_physics_list = data_manager->other_physics_list;
+    std::vector<std::shared_ptr<ChBody>>* body_list = data_manager->body_list;
+    std::vector<std::shared_ptr<ChLinkBase>>* link_list = data_manager->link_list;
+    std::vector<std::shared_ptr<ChPhysicsItem>>* other_physics_list = data_manager->other_physics_list;
 
     const DynamicVector<real>& hf = data_manager->host_data.hf;
     const DynamicVector<real>& v = data_manager->host_data.v;
@@ -64,7 +65,8 @@ void ChIterativeSolverParallel::ComputeInvMassMatrix() {
 
     // Each rigid object has 3 mass entries and 9 inertia entries
     // Each shaft has one inertia entry
-    M_inv.reserve(num_bodies * 12 + num_shafts * 1 + num_fluid_bodies * 3 + num_fea_nodes * 3);
+    // Each motor has one "mass" entry
+    M_inv.reserve(num_bodies * 12 + num_shafts * 1 + num_motors * 1 + num_fluid_bodies * 3 + num_fea_nodes * 3);
     // The mass matrix is square and each rigid body has 6 DOF
     // Shafts have one DOF
     M_inv.resize(num_dof, num_dof);
@@ -81,25 +83,25 @@ void ChIterativeSolverParallel::ComputeInvMassMatrix() {
             M_inv.append(i * 6 + 2, i * 6 + 2, inv_mass);
             M_inv.finalize(i * 6 + 2);
 
-            M_inv.append(i * 6 + 3, i * 6 + 3, body_inv_inr.GetElement(0, 0));
+            M_inv.append(i * 6 + 3, i * 6 + 3, body_inv_inr(0, 0));
             if (use_full_inertia_tensor) {
-                M_inv.append(i * 6 + 3, i * 6 + 4, body_inv_inr.GetElement(0, 1));
-                M_inv.append(i * 6 + 3, i * 6 + 5, body_inv_inr.GetElement(0, 2));
+                M_inv.append(i * 6 + 3, i * 6 + 4, body_inv_inr(0, 1));
+                M_inv.append(i * 6 + 3, i * 6 + 5, body_inv_inr(0, 2));
             }
             M_inv.finalize(i * 6 + 3);
             if (use_full_inertia_tensor) {
-                M_inv.append(i * 6 + 4, i * 6 + 3, body_inv_inr.GetElement(1, 0));
+                M_inv.append(i * 6 + 4, i * 6 + 3, body_inv_inr(1, 0));
             }
-            M_inv.append(i * 6 + 4, i * 6 + 4, body_inv_inr.GetElement(1, 1));
+            M_inv.append(i * 6 + 4, i * 6 + 4, body_inv_inr(1, 1));
             if (use_full_inertia_tensor) {
-                M_inv.append(i * 6 + 4, i * 6 + 5, body_inv_inr.GetElement(1, 2));
+                M_inv.append(i * 6 + 4, i * 6 + 5, body_inv_inr(1, 2));
             }
             M_inv.finalize(i * 6 + 4);
             if (use_full_inertia_tensor) {
-                M_inv.append(i * 6 + 5, i * 6 + 3, body_inv_inr.GetElement(2, 0));
-                M_inv.append(i * 6 + 5, i * 6 + 4, body_inv_inr.GetElement(2, 1));
+                M_inv.append(i * 6 + 5, i * 6 + 3, body_inv_inr(2, 0));
+                M_inv.append(i * 6 + 5, i * 6 + 4, body_inv_inr(2, 1));
             }
-            M_inv.append(i * 6 + 5, i * 6 + 5, body_inv_inr.GetElement(2, 2));
+            M_inv.append(i * 6 + 5, i * 6 + 5, body_inv_inr(2, 2));
             M_inv.finalize(i * 6 + 5);
         } else {
             M_inv.finalize(i * 6 + 0);
@@ -116,7 +118,12 @@ void ChIterativeSolverParallel::ComputeInvMassMatrix() {
         M_inv.finalize(num_bodies * 6 + i);
     }
 
-    int offset = num_bodies * 6 + num_shafts;
+    for (int i = 0; i < (signed)num_motors; i++) {
+        M_inv.append(num_bodies * 6 + num_shafts + i, num_bodies * 6 + num_shafts + i, 1.0);
+        M_inv.finalize(num_bodies * 6 + num_shafts + i);
+    }
+
+    int offset = num_bodies * 6 + num_shafts + num_motors;
     data_manager->node_container->ComputeInvMass(offset);
     data_manager->fea_container->ComputeInvMass(offset + num_fluid_bodies * 3);
 
@@ -127,15 +134,16 @@ void ChIterativeSolverParallel::ComputeMassMatrix() {
     LOG(INFO) << "ChIterativeSolverParallel::ComputeMassMatrix()";
     uint num_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
+    uint num_motors = data_manager->num_motors;
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
     uint num_fea_nodes = data_manager->num_fea_nodes;
     uint num_dof = data_manager->num_dof;
     bool use_full_inertia_tensor = data_manager->settings.solver.use_full_inertia_tensor;
     const custom_vector<real>& shaft_inr = data_manager->host_data.shaft_inr;
 
-    std::vector<std::shared_ptr<ChBody> >* body_list = data_manager->body_list;
-    std::vector<std::shared_ptr<ChLink> >* link_list = data_manager->link_list;
-    std::vector<std::shared_ptr<ChPhysicsItem> >* other_physics_list = data_manager->other_physics_list;
+    std::vector<std::shared_ptr<ChBody>>* body_list = data_manager->body_list;
+    std::vector<std::shared_ptr<ChLinkBase>>* link_list = data_manager->link_list;
+    std::vector<std::shared_ptr<ChPhysicsItem>>* other_physics_list = data_manager->other_physics_list;
 
     CompressedMatrix<real>& M = data_manager->host_data.M;
 
@@ -145,7 +153,8 @@ void ChIterativeSolverParallel::ComputeMassMatrix() {
 
     // Each rigid object has 3 mass entries and 9 inertia entries
     // Each shaft has one inertia entry
-    M.reserve(num_bodies * 12 + num_shafts * 1 + num_fluid_bodies * 3 + num_fea_nodes * 3);
+    // Each motor has one "mass" entry
+    M.reserve(num_bodies * 12 + num_shafts * 1 + num_motors * 1 + num_fluid_bodies * 3 + num_fea_nodes * 3);
     // The mass matrix is square and each rigid body has 6 DOF
     // Shafts have one DOF
     M.resize(num_dof, num_dof);
@@ -162,25 +171,25 @@ void ChIterativeSolverParallel::ComputeMassMatrix() {
             M.append(i * 6 + 2, i * 6 + 2, mass);
             M.finalize(i * 6 + 2);
 
-            M.append(i * 6 + 3, i * 6 + 3, body_inr.GetElement(0, 0));
+            M.append(i * 6 + 3, i * 6 + 3, body_inr(0, 0));
             if (use_full_inertia_tensor) {
-                M.append(i * 6 + 3, i * 6 + 4, body_inr.GetElement(0, 1));
-                M.append(i * 6 + 3, i * 6 + 5, body_inr.GetElement(0, 2));
+                M.append(i * 6 + 3, i * 6 + 4, body_inr(0, 1));
+                M.append(i * 6 + 3, i * 6 + 5, body_inr(0, 2));
             }
             M.finalize(i * 6 + 3);
             if (use_full_inertia_tensor) {
-                M.append(i * 6 + 4, i * 6 + 3, body_inr.GetElement(1, 0));
+                M.append(i * 6 + 4, i * 6 + 3, body_inr(1, 0));
             }
-            M.append(i * 6 + 4, i * 6 + 4, body_inr.GetElement(1, 1));
+            M.append(i * 6 + 4, i * 6 + 4, body_inr(1, 1));
             if (use_full_inertia_tensor) {
-                M.append(i * 6 + 4, i * 6 + 5, body_inr.GetElement(1, 2));
+                M.append(i * 6 + 4, i * 6 + 5, body_inr(1, 2));
             }
             M.finalize(i * 6 + 4);
             if (use_full_inertia_tensor) {
-                M.append(i * 6 + 5, i * 6 + 3, body_inr.GetElement(2, 0));
-                M.append(i * 6 + 5, i * 6 + 4, body_inr.GetElement(2, 1));
+                M.append(i * 6 + 5, i * 6 + 3, body_inr(2, 0));
+                M.append(i * 6 + 5, i * 6 + 4, body_inr(2, 1));
             }
-            M.append(i * 6 + 5, i * 6 + 5, body_inr.GetElement(2, 2));
+            M.append(i * 6 + 5, i * 6 + 5, body_inr(2, 2));
             M.finalize(i * 6 + 5);
         } else {
             M.finalize(i * 6 + 0);
@@ -197,7 +206,12 @@ void ChIterativeSolverParallel::ComputeMassMatrix() {
         M.finalize(num_bodies * 6 + i);
     }
 
-    int offset = num_bodies * 6 + num_shafts;
+    for (int i = 0; i < (signed)num_motors; i++) {
+        M.append(num_bodies * 6 + num_shafts + i, num_bodies * 6 + num_shafts + i, 1.0);
+        M.finalize(num_bodies * 6 + num_shafts + i);
+    }
+
+    int offset = num_bodies * 6 + num_shafts + num_motors;
     data_manager->node_container->ComputeMass(offset);
     data_manager->fea_container->ComputeMass(offset + num_fluid_bodies * 3);
 }
@@ -229,8 +243,8 @@ void ChIterativeSolverParallel::PerformStabilization() {
         uint num_3dof_3dof = data_manager->node_container->GetNumConstraints();
         uint start_tet = data_manager->num_unilaterals + data_manager->num_bilaterals + num_3dof_3dof;
         int num_constraints = data_manager->num_fea_tets * (6 + 1);
-        uint start_nodes =
-            data_manager->num_rigid_bodies * 6 + data_manager->num_shafts + data_manager->num_fluid_bodies * 3;
+        uint start_nodes = data_manager->num_rigid_bodies * 6 + data_manager->num_shafts + data_manager->num_motors +
+                           data_manager->num_fluid_bodies * 3;
 
         const DynamicVector<real> R_fem = blaze::subvector(R_full, start_tet, num_constraints);
         DynamicVector<real> gamma_fem = blaze::subvector(gamma, start_tet, num_constraints);
@@ -248,6 +262,6 @@ void ChIterativeSolverParallel::PerformStabilization() {
     data_manager->system_timer.stop("ChIterativeSolverParallel_Stab");
 }
 
-real ChIterativeSolverParallel::GetResidual() {
+real ChIterativeSolverParallel::GetResidual() const {
     return data_manager->measures.solver.maxd_hist.size() > 0 ? data_manager->measures.solver.maxd_hist.back() : 0.0;
 }

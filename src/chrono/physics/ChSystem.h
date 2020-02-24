@@ -24,28 +24,23 @@
 #include <list>
 
 #include "chrono/collision/ChCCollisionSystem.h"
+#include "chrono/core/ChGlobal.h"
 #include "chrono/core/ChLog.h"
 #include "chrono/core/ChMath.h"
 #include "chrono/core/ChTimer.h"
 #include "chrono/physics/ChAssembly.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChContactContainer.h"
-#include "chrono/physics/ChControls.h"
-#include "chrono/physics/ChGlobal.h"
 #include "chrono/physics/ChLinksAll.h"
-#include "chrono/physics/ChProbe.h"
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/timestepper/ChAssemblyAnalysis.h"
 #include "chrono/solver/ChSolver.h"
 #include "chrono/timestepper/ChIntegrable.h"
 #include "chrono/timestepper/ChTimestepper.h"
 #include "chrono/timestepper/ChTimestepperHHT.h"
+#include "chrono/timestepper/ChStaticAnalysis.h"
 
 namespace chrono {
-
-// Forward references
-class ChSystemDescriptor;
-class ChContactContainer;
 
 /// Physical system.
 ///
@@ -146,23 +141,12 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// Gets iteration limit for assembly constraints.
     int GetMaxiter() const { return maxiter; }
 
-    /// Sets tolerance (in m) for assembly constraints. When trying to keep constraints together,
-    /// the iterative process is stopped if this tolerance (or max.number of iterations ) is reached
-    void SetTol(double tolerance) { tol = tolerance; }
-    /// Gets current tolerance for assembly constraints.
-    double GetTol() const { return tol; }
-
-    /// Sets tolerance for satisfying constraints at the velocity level.
-    /// The tolerance specified here is in fact a tolerance at the force level.
-    /// this value is multiplied by the value of the current time step and then
-    /// used as a stopping criteria for the iterative speed solver.
-    void SetTolForce(double tolerance) { tol_force = tolerance; }
-    /// Return the current value of the tolerance used in the speed solver.
-    double GetTolForce() const { return tol_force; }
-
     /// Change the default composition laws for contact surface materials
     /// (coefficient of friction, cohesion, compliance, etc.)
     void SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy<float>>&& strategy);
+
+    /// Accessor for the current composition laws for contact surface material.
+    const ChMaterialCompositionStrategy<float>& GetMaterialCompositionStrategy() const { return *composition_strategy; }
 
     /// For elastic collisions, with objects that have nonzero
     /// restitution coefficient: objects will rebounce only if their
@@ -170,84 +154,64 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// If this is too low, aliasing problems can happen with small high frequency
     /// rebounces, and settling to static stacking might be more difficult.
     void SetMinBounceSpeed(double mval) { min_bounce_speed = mval; }
+    
     /// Objects will rebounce only if their relative colliding speed is above this threshold.
     double GetMinBounceSpeed() const { return min_bounce_speed; }
 
     /// For the default stepper, you can limit the speed of exiting from penetration
     /// situations. Usually set a positive value, about 0.1 .. 2 . (as exiting speed, in m/s)
     void SetMaxPenetrationRecoverySpeed(double mval) { max_penetration_recovery_speed = mval; }
+
     /// Get the limit on the speed for exiting from penetration situations (for Anitescu stepper)
     double GetMaxPenetrationRecoverySpeed() const { return max_penetration_recovery_speed; }
 
+    /// Attach a solver (derived from ChSolver) for use by this system.
+    virtual void SetSolver(std::shared_ptr<ChSolver> newsolver);
+
+    /// Access the solver currently associated with this system.
+    virtual std::shared_ptr<ChSolver> GetSolver();
+
     /// Choose the solver type, to be used for the simultaneous solution of the constraints
     /// in dynamical simulations (as well as in kinematics, statics, etc.)
-    ///   - Suggested solver for speed, but lower precision: SOR
+    ///   - Suggested solver for speed, but lower precision: PSOR
     ///   - Suggested solver for higher precision: BARZILAIBORWEIN or APGD
-    ///   - For problems that involve a stiffness matrix: MINRES
+    ///   - For problems that involve a stiffness matrix: GMRES, MINRES
     ///
     /// *Notes*:
-    ///   - Do not use CUSTOM type, as this type is reserved for external solvers
-    ///     (set using SetSolver() and/or SetStabSolver())
-    ///   - This function is a shortcut, internally equivalent to two calls to
-    ///     SetSolver() and SetStabSolve()
+    ///   - This function is a shortcut, internally equivalent to a call to SetSolver().
+    ///   - Only a subset of available Chrono solvers can be set through this mechanism.
+    ///   - Prefer explicitly creating a solver, setting solver parameters, and then attaching the solver with
+    ///     SetSolver.
+    ///
+    /// \deprecated This function does not support all available Chrono solvers. Prefer using SetSolver.
     virtual void SetSolverType(ChSolver::Type type);
 
     /// Gets the current solver type.
-    ChSolver::Type GetSolverType() const { return solver_speed->GetType(); }
+    ChSolver::Type GetSolverType() const { return solver->GetType(); }
 
-    /// When using an iterative solver (es. SOR) set the maximum number of iterations.
-    /// The higher the iteration number, the more precise the simulation (but more CPU time).
-    void SetMaxItersSolverSpeed(int mval) { max_iter_solver_speed = mval; }
-    /// Current maximum number of iterations, if using an iterative solver.
-    int GetMaxItersSolverSpeed() const { return max_iter_solver_speed; }
+    /// Set the maximum number of iterations, if using an iterative solver.
+    /// \deprecated Prefer using SetSolver and setting solver parameters directly.
+    void SetSolverMaxIterations(int max_iters);
 
-    /// When using an iterative solver (es. SOR) and a timestepping method
-    /// requiring post-stabilization (e.g., EULER_IMPLICIT_PROJECTED), set the
-    /// the maximum number of stabilization iterations. The higher the iteration
-    /// number, the more precise the simulation (but more CPU time).
-    void SetMaxItersSolverStab(int mval) { max_iter_solver_stab = mval; }
-    /// Current maxi. number of iterations, if using an iterative solver for stabilization.
-    int GetMaxItersSolverStab() const { return max_iter_solver_stab; }
+    /// Get the current maximum number of iterations, if using an iterative solver.
+    /// \deprecated Prefer using GetSolver and accessing solver statistics directly.
+    int GetSolverMaxIterations() const;
 
-    /// If you want to easily turn ON/OFF the warm starting feature of both iterative solvers
-    /// (the one for speed and the other for pos.stabilization) you can simply use the
-    /// following instead of accessing them directly with GetSolver() and GetStabSolver()
-    void SetSolverWarmStarting(bool usewarm = true);
-    /// Tell if the warm starting is enabled for the speed solver, (if iterative type).
-    bool GetSolverWarmStarting() const;
+    /// Set the solver tolerance threshold (used with iterative solvers only).
+    /// Note that the stopping criteria differs from solver to solver.
+    void SetSolverTolerance(double tolerance);
 
-    /// If you want to easily adjust the omega overrelaxation parameter of both iterative solvers
-    /// (the one for speed and the other for position stabilization) you can simply use the
-    /// following instead of accessing them directly with GetSolver() and GetStabSolver().
-    /// Note, usually a good omega for Jacobi or GPU solver is 0.2; for other iter.solvers can be up to 1.0
-    void SetSolverOverrelaxationParam(double momega = 1.0);
-    /// Tell the omega overrelaxation factor for the speed solver, (if iterative type).
-    double GetSolverOverrelaxationParam() const;
+    /// Get the current tolerance value (used with iterative solvers only).
+    double GetSolverTolerance() const;
 
-    /// If you want to easily adjust the 'sharpness lambda' parameter of both iterative solvers
-    /// (the one for speed and the other for pos.stabilization) you can simply use the
-    /// following instead of accessing them directly with GetSolver() and GetStabSolver().
-    /// Note, usually a good sharpness value is in 1..0.8 range (the lower, the more it helps exact
-    /// convergence, but overall convergence gets also much slower so maybe better to tolerate some error)
-    void SetSolverSharpnessParam(double momega = 1.0);
-    /// Tell the 'sharpness lambda' factor for the speed solver, (if iterative type).
-    double GetSolverSharpnessParam() const;
+    /// Set a solver tolerance threshold at force level (default: not specified).
+    /// Specify this value **only** if solving the problem at velocity level (e.g. solving a DVI problem).
+    /// If this tolerance is specified, it is multiplied by the current integration stepsize and overwrites the current
+    /// solver tolerance.  By default, this tolerance is invalid and hence the solver's own tolerance threshold is used.
+    void SetSolverForceTolerance(double tolerance) { tol_force = tolerance; }
 
-    /// Instead of using SetSolverType(), you can create your own custom solver (inherited from ChSolver)
-    /// and plug it into the system using this function. 
-    virtual void SetStabSolver(std::shared_ptr<ChSolver> newsolver);
-
-    /// Access directly the stabilization solver, configured to be used for the stabilization
-    /// of constraints (solve delta positions).
-    virtual std::shared_ptr<ChSolver> GetStabSolver();
-
-    /// Instead of using SetSolverType(), you can create your own custom solver (suffice it is inherited
-    /// from ChSolver) and plug it into the system using this function.
-    virtual void SetSolver(std::shared_ptr<ChSolver> newsolver);
-
-    /// Access directly the solver, configured to be used for the main differential
-    /// inclusion problem (on speed-impulses).
-    virtual std::shared_ptr<ChSolver> GetSolver();
+    /// Get the current value of the force-level tolerance (used with iterative solvers only).
+    double GetSolverForceTolerance() const { return tol_force; }
 
     /// Instead of using the default 'system descriptor', you can create your own custom descriptor
     /// (inherited from ChSystemDescriptor) and plug it into the system using this function.
@@ -256,29 +220,17 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// Access directly the 'system descriptor'.
     std::shared_ptr<ChSystemDescriptor> GetSystemDescriptor() { return descriptor; }
 
-    /// Changes the number of parallel threads (by default is n.of cores).
-    /// Note that not all solvers use parallel computation.
-    /// If you have a N-core processor, this should be set at least =N for maximum performance.
-    void SetParallelThreadNumber(int mthreads = 2);
-    /// Get the number of parallel threads.
-    /// Note that not all solvers use parallel computation.
-    int GetParallelThreadNumber() { return parallel_thread_number; }
-
     /// Sets the G (gravity) acceleration vector, affecting all the bodies in the system.
     void Set_G_acc(const ChVector<>& m_acc) { G_acc = m_acc; }
+
     /// Gets the G (gravity) acceleration vector affecting all the bodies in the system.
     const ChVector<>& Get_G_acc() const { return G_acc; }
-
-    /// Initial system setup before analysis.
-    /// This function must be called once the system construction is completed.
-    void SetupInitial() override;
 
     //
     // DATABASE HANDLING.
     //
 
-    /// Removes all bodies/marker/forces/links/contacts,
-    /// also resets timers and events.
+    /// Removes all bodies/marker/forces/links/contacts, also resets timers and events.
     void Clear();
 
     /// Return the contact method supported by this system.
@@ -296,16 +248,6 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// of this ChSystem and with the collision system currently associated with this
     /// ChSystem.  Note that the body is *not* attached to this system.
     virtual ChBodyAuxRef* NewBodyAuxRef() = 0;
-
-    /// Attach a probe to this system.
-    void AddProbe(const std::shared_ptr<ChProbe>& newprobe);
-    /// Attach a control to this system.
-    void AddControls(const std::shared_ptr<ChControls>& newcontrols);
-
-    /// Remove all probes from this system.
-    void RemoveAllProbes();
-    /// Remove all controls from this system.
-    void RemoveAllControls();
 
     /// Replace the contact container.
     virtual void SetContactContainer(std::shared_ptr<ChContactContainer> container);
@@ -359,9 +301,15 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     }
 
   protected:
-    /// Pushes all ChConstraints and ChVariables contained in links, bodies, etc.
-    /// into the system descriptor.
+    /// Pushes all ChConstraints and ChVariables contained in links, bodies, etc. into the system descriptor.
     virtual void DescriptorPrepareInject(ChSystemDescriptor& mdescriptor);
+
+  private:
+    // Note: SetupInitial need not be typically called by a user, so it is currently marked private.
+
+    /// Initial system setup before analysis.
+    /// This function performs an initial system setup, once system construction is completed and before an analysis.
+    void SetupInitial() override;
 
   public:
     //
@@ -369,17 +317,22 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     //
 
     /// Counts the number of bodies and links.
-    /// Computes the offsets of object states in the global state.
-    /// Assumes that offset_x, offset_w, and offset_L are already set
-    /// as starting point for offsetting all the contained sub objects.
+    /// Computes the offsets of object states in the global state. Assumes that offset_x, offset_w, and offset_L are
+    /// already set as starting point for offsetting all the contained sub objects.
     virtual void Setup() override;
 
-    /// Updates all the auxiliary data and children of
-    /// bodies, forces, links, given their current state.
+    /// Updates all the auxiliary data and children of bodies, forces, links, given their current state.
     virtual void Update(bool update_assets = true) override;
 
-    // (Overload interfaces for global state vectors, see ChPhysicsItem for comments.)
-    // (The following must be overload because there may be ChContactContainer objects in addition to base ChAssembly)
+    /// In normal usage, no system update is necessary at the beginning of a new dynamics step (since an update is
+    /// performed at the end of a step). However, this is not the case if external changes to the system are made. Most
+    /// such changes are discovered automatically (addition/removal of items, input of mesh loads). For special cases,
+    /// this function allows the user to trigger a system update at the beginning of the step immediately following this
+    /// call.
+    void ForceUpdate();
+
+    // Overload interfaces for global state vectors, see ChPhysicsItem for comments.
+    // The following must be overloaded because there may be ChContactContainer objects in addition to base ChAssembly.
     virtual void IntStateGather(const unsigned int off_x,
                                 ChState& x,
                                 const unsigned int off_v,
@@ -478,7 +431,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// From reaction forces to system, ex. store last computed reactions in ChLink objects for plotting etc.
     virtual void StateScatterReactions(const ChVectorDynamic<>& L) override;
 
-    /// Perform x_new = x + dx    for x in    Y = {x, dx/dt}
+    /// Perform x_new = x + dx, for x in Y = {x, dx/dt}.\n
     /// It takes care of the fact that x has quaternions, dx has angular vel etc.
     /// NOTE: the system is not updated automatically after the state increment, so one might
     /// need to call StateScatter() if needed.
@@ -488,13 +441,17 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
                                  ) override;
 
     /// Assuming a DAE of the form
+    /// <pre>
     ///       M*a = F(x,v,t) + Cq'*L
     ///       C(x,t) = 0
+    /// </pre>
     /// this function computes the solution of the change Du (in a or v or x) for a Newton
     /// iteration within an implicit integration scheme.
+    /// <pre>
     ///  |Du| = [ G   Cq' ]^-1 * | R |
     ///  |DL|   [ Cq  0   ]      | Qc|
-    /// for residual R and  G = [ c_a*M + c_v*dF/dv + c_x*dF/dx ]
+    /// </pre>
+    /// for residual R and  G = [ c_a*M + c_v*dF/dv + c_x*dF/dx ].\n
     /// This function returns true if successful and false otherwise.
     virtual bool StateSolveCorrection(
         ChStateDelta& Dv,                 ///< result: computed Dv
@@ -549,23 +506,9 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     // UTILITY FUNCTIONS
     //
 
-    /// If ChProbe() objects are added to this system, using this command you force
-    /// the ChProbe::Record() on all them, at once.
-    int RecordAllProbes();
-
-    /// If ChProbe() objects are added to this system, using this command you force
-    /// the ChProbe::Reset() on all them, at once.
-    int ResetAllProbes();
-
     /// Executes custom processing at the end of step. By default it does nothing,
     /// but if you inherit a special ChSystem you can implement this.
     virtual void CustomEndOfStep() {}
-
-    /// If ChControl() objects are added to this system, using the following commands
-    /// you call the execution of their scripts. You seldom call these functions directly,
-    /// since the ChSystem() methods already call them automatically, at each step, update, etc.
-    bool ExecuteControlsForUpdate();
-    bool ExecuteControlsForStep();
 
     /// All bodies with collision detection data are requested to
     /// store the current position as "last position collision-checked"
@@ -587,14 +530,12 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     /// Specify a callback object to be invoked at each collision detection step.
     /// Multiple such callback objects can be registered with a system. If present,
-    /// their OnCustomCollision() method is invoked 
+    /// their OnCustomCollision() method is invoked
     /// Use this if you want that some specific callback function is executed at each
     /// collision detection step (ex. all the times that ComputeCollisions() is automatically
     /// called by the integration method). For example some other collision engine could
     /// add further contacts using this callback.
-    void RegisterCustomCollisionCallback(CustomCollisionCallback* mcallb) {
-        collision_callbacks.push_back(mcallb);
-    }
+    void RegisterCustomCollisionCallback(CustomCollisionCallback* mcallb) { collision_callbacks.push_back(mcallb); }
 
     /// For higher performance (ex. when GPU coprocessors are available) you can create your own custom
     /// collision engine (inherited from ChCollisionSystem) and plug it into the system using this function. 
@@ -686,8 +627,11 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     ///    dump_f.dat   has the applied loads
     ///    dump_b.dat   has the constraint rhs
     /// as passed to the solver in the problem
-    ///  | H -Cq'|*|q|- | f|= |0| , l \f$\in Y, c \in Ny\f$, normal cone to Y
+    /// <pre>
+    ///  | H -Cq'|*|q|- | f|= |0|
     ///  | Cq -E | |l|  |-b|  |c|
+    /// </pre>
+    /// where l \f$\in Y, c \in Ny\f$, normal cone to Y
 
     void SetDumpSolverMatrices(bool md) { dump_matrices = md; }
     bool GetDumpSolverMatrices() const { return dump_matrices; }
@@ -754,23 +698,24 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     // ---- STATICS
 
-    /// Solve the position of static equilibrium (and the
-    /// reactions). This is a one-step only approach that solves
-    /// the _linear_ equilibrium. To be used mostly for FEM
-    /// problems with small deformations.
+    /// Solve the position of static equilibrium (and the reactions).
+    /// This is a one-step only approach that solves the **linear** equilibrium.
+    /// Appropriate mostly for FEM problems with small deformations.
     bool DoStaticLinear();
 
-    /// Solve the position of static equilibrium (and the
-    /// reactions). This tries to solve the equilibrium for the nonlinear
-    /// problem (large displacements). The larger nsteps, the more the CPU time
-    /// but the less likely the divergence.
-    bool DoStaticNonlinear(int nsteps = 10);
+    /// Solve the position of static equilibrium (and the reactions).
+    /// This function solves the equilibrium for the nonlinear problem (large displacements).
+    /// This version uses a nonlinear static analysis solver with default parameters.
+    bool DoStaticNonlinear(int nsteps = 10, bool verbose = false);
 
-    /// Finds the position of static equilibrium (and the
-    /// reactions) starting from the current position.
-    /// Since a truncated iterative method is used, you may need
-    /// to call this method multiple times in case of large nonlinearities
-    /// before coming to the precise static solution.
+    /// Solve the position of static equilibrium (and the reactions).
+    /// This function solves the equilibrium for the nonlinear problem (large displacements).
+    /// This version uses the provided nonlinear static analysis solver. 
+    bool DoStaticNonlinear(std::shared_ptr<ChStaticNonLinearAnalysis> analysis);
+
+    /// Finds the position of static equilibrium (and the reactions) starting from the current position.
+    /// Since a truncated iterative method is used, you may need to call this method multiple times in case of large
+    /// nonlinearities before coming to the precise static solution.
     bool DoStaticRelaxing(int nsteps = 10);
 
     //
@@ -793,37 +738,29 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     int FileWriteChR(ChStreamOutBinary& m_file);
 
   protected:
-    std::vector<std::shared_ptr<ChProbe> > probelist;        ///< list of 'probes' (variable-recording objects)
-    std::vector<std::shared_ptr<ChControls> > controlslist;  ///< list of 'controls' script objects
-
     std::shared_ptr<ChContactContainer> contact_container;  ///< the container of contacts
 
     ChVector<> G_acc;  ///< gravitational acceleration
+
+    bool is_initialized;  ///< if false, an initial setup is required (i.e. a call to SetupInitial)
+    bool is_updated;      ///< if false, a new update is required (i.e. a call to Update)
 
     double end_time;  ///< end of simulation
     double step;      ///< time step
     double step_min;  ///< min time step
     double step_max;  ///< max time step
 
-    double tol;        ///< tolerance
     double tol_force;  ///< tolerance for forces (used to obtain a tolerance for impulses)
 
     int maxiter;  ///< max iterations for nonlinear convergence in DoAssembly()
 
     bool use_sleeping;  ///< if true, put to sleep objects that come to rest
 
-    std::shared_ptr<ChSystemDescriptor> descriptor;  ///< the system descriptor
-    std::shared_ptr<ChSolver> solver_speed;          ///< the solver for speed problem
-    std::shared_ptr<ChSolver> solver_stab;           ///< the solver for position (stabilization) problem, if any
-
-    int max_iter_solver_speed;  ///< maximum num iterations for the iterative solver
-    int max_iter_solver_stab;   ///< maximum num iterations for the iterative solver for constraint stabilization
-    int max_steps_simplex;      ///< maximum number of steps for the simplex solver.
+    std::shared_ptr<ChSystemDescriptor> descriptor;  ///< system descriptor
+    std::shared_ptr<ChSolver> solver;                ///< solver for DVI or DAE problem
 
     double min_bounce_speed;                ///< minimum speed for rebounce after impacts. Lower speeds are clamped to 0
     double max_penetration_recovery_speed;  ///< limit for the speed of penetration recovery (positive, speed of exiting)
-
-    int parallel_thread_number;  ///< used for multithreaded solver
 
     size_t stepcount;  ///< internal counter for steps
 
@@ -854,6 +791,10 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     bool last_err;  ///< indicates error over the last kinematic/dynamics/statics
 
     // Friend class declarations
+
+    friend class ChAssembly;
+    friend class ChBody;
+    friend class fea::ChMesh;
 
     template <class Ta, class Tb>
     friend class ChContactNSC;

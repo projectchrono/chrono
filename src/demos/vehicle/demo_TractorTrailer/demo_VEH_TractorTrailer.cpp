@@ -21,6 +21,9 @@
 //
 // =============================================================================
 
+//// RADU
+//// Todo: why are the trailer tires not synchronized? fix!
+
 #include <vector>
 
 #include "chrono/core/ChStream.h"
@@ -43,9 +46,6 @@
 #include "subsystems/TT_Trailer.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
-
-// Comment the following line to disable Irrlicht visualization
-#define USE_IRRLICHT
 
 // DEBUGGING:  Uncomment the following line to print shock data
 //#define DEBUG_LOG
@@ -80,15 +80,8 @@ double render_step_size = 1.0 / 50;  // FPS = 50
 // Time interval between two output frames
 double output_step_size = 1.0 / 1;  // once a second
 
-#ifdef USE_IRRLICHT
 // Point on chassis tracked by the camera
 ChVector<> trackPoint(0.0, 0.0, 1.75);
-#else
-double tend = 20.0;
-
-const std::string out_dir = GetChronoOutputPath() + "TRACTOR_TRAILER";
-const std::string pov_dir = out_dir + "/POVRAY";
-#endif
 
 // =============================================================================
 
@@ -127,44 +120,32 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     // Create and initialize the powertrain system
-    Generic_SimplePowertrain powertrain("Powertrain");
-
-    powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
+    auto powertrain = chrono_types::make_shared<Generic_SimplePowertrain>("Powertrain");
+    vehicle.InitializePowertrain(powertrain);
 
     // Create the tires
-    Generic_RigidTire tire_front_left("FL");
-    Generic_RigidTire tire_front_right("FR");
-    Generic_RigidTire tire_rear_left("RL");
-    Generic_RigidTire tire_rear_right("RR");
+    auto tire_FL = chrono_types::make_shared<Generic_RigidTire>("FL");
+    auto tire_FR = chrono_types::make_shared<Generic_RigidTire>("FR");
+    auto tire_RL = chrono_types::make_shared<Generic_RigidTire>("RL");
+    auto tire_RR = chrono_types::make_shared<Generic_RigidTire>("RR");
 
-    tire_front_left.Initialize(vehicle.GetWheelBody(FRONT_LEFT), LEFT);
-    tire_front_right.Initialize(vehicle.GetWheelBody(FRONT_RIGHT), RIGHT);
-    tire_rear_left.Initialize(vehicle.GetWheelBody(REAR_LEFT), LEFT);
-    tire_rear_right.Initialize(vehicle.GetWheelBody(REAR_RIGHT), RIGHT);
-
-    tire_front_left.SetVisualizationType(VisualizationType::PRIMITIVES);
-    tire_front_right.SetVisualizationType(VisualizationType::PRIMITIVES);
-    tire_rear_left.SetVisualizationType(VisualizationType::PRIMITIVES);
-    tire_rear_right.SetVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle.InitializeTire(tire_FL, vehicle.GetAxle(0)->m_wheels[0], VisualizationType::PRIMITIVES);
+    vehicle.InitializeTire(tire_FR, vehicle.GetAxle(0)->m_wheels[1], VisualizationType::PRIMITIVES);
+    vehicle.InitializeTire(tire_RL, vehicle.GetAxle(1)->m_wheels[0], VisualizationType::PRIMITIVES);
+    vehicle.InitializeTire(tire_RR, vehicle.GetAxle(1)->m_wheels[1], VisualizationType::PRIMITIVES);
 
     // Create the trailer tires
-    Generic_RigidTire tr_tire_front_left("FL");
-    Generic_RigidTire tr_tire_front_right("FR");
-    Generic_RigidTire tr_tire_rear_left("RL");
-    Generic_RigidTire tr_tire_rear_right("RR");
+    auto tr_tire_FL = chrono_types::make_shared<Generic_RigidTire>("FL");
+    auto tr_tire_FR = chrono_types::make_shared<Generic_RigidTire>("FR");
+    auto tr_tire_RL = chrono_types::make_shared<Generic_RigidTire>("RL");
+    auto tr_tire_RR = chrono_types::make_shared<Generic_RigidTire>("RR");
 
-    tr_tire_front_left.Initialize(trailer.GetWheelBody(FRONT_LEFT), LEFT);
-    tr_tire_front_right.Initialize(trailer.GetWheelBody(FRONT_RIGHT), RIGHT);
-    tr_tire_rear_left.Initialize(trailer.GetWheelBody(REAR_LEFT), LEFT);
-    tr_tire_rear_right.Initialize(trailer.GetWheelBody(REAR_RIGHT), RIGHT);
+    trailer.InitializeTire(tr_tire_FL, trailer.GetAxle(0)->m_wheels[0], VisualizationType::PRIMITIVES);
+    trailer.InitializeTire(tr_tire_FR, trailer.GetAxle(0)->m_wheels[1], VisualizationType::PRIMITIVES);
+    trailer.InitializeTire(tr_tire_RL, trailer.GetAxle(1)->m_wheels[0], VisualizationType::PRIMITIVES);
+    trailer.InitializeTire(tr_tire_RR, trailer.GetAxle(1)->m_wheels[1], VisualizationType::PRIMITIVES);
 
-    tr_tire_front_left.SetVisualizationType(VisualizationType::PRIMITIVES);
-    tr_tire_front_right.SetVisualizationType(VisualizationType::PRIMITIVES);
-    tr_tire_rear_left.SetVisualizationType(VisualizationType::PRIMITIVES);
-    tr_tire_rear_right.SetVisualizationType(VisualizationType::PRIMITIVES);
-
-#ifdef USE_IRRLICHT
-    ChWheeledVehicleIrrApp app(&vehicle, &powertrain, L"Articulated Vehicle Demo");
+    ChWheeledVehicleIrrApp app(&vehicle, L"Articulated Vehicle Demo");
 
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
@@ -186,10 +167,6 @@ int main(int argc, char* argv[]) {
     driver.SetThrottleDelta(render_step_size / throttle_time);
     driver.SetBrakingDelta(render_step_size / braking_time);
 
-#else
-    Generic_FuncDriver driver(vehicle);
-#endif
-
     driver.Initialize();
 
 // ---------------
@@ -201,30 +178,16 @@ int main(int argc, char* argv[]) {
     vehicle.LogHardpointLocations();
 #endif
 
-    // Inter-module communication data
-    TerrainForces tire_forces(4);
-    TerrainForces tr_tire_forces(4);
-    WheelState wheel_states[4];
-    double driveshaft_speed;
-    double powertrain_torque;
-    double throttle_input;
-    double steering_input;
-    double braking_input;
-
     // Number of simulation steps between two 3D view render frames
     int render_steps = (int)std::ceil(render_step_size / step_size);
 
     // Number of simulation steps between two output frames
     int output_steps = (int)std::ceil(output_step_size / step_size);
 
-    // Initialize simulation frame counter and simulation time
+    // Initialize simulation frame counter
     int step_number = 0;
-    double time = 0;
-
-#ifdef USE_IRRLICHT
 
     ChRealtimeStepTimer realtime_timer;
-
     while (app.GetDevice()->run()) {
         // Render scene
         if (step_number % render_steps == 0) {
@@ -241,154 +204,31 @@ int main(int argc, char* argv[]) {
         }
 #endif
 
-        // Collect output data from modules (for inter-module communication)
-        throttle_input = driver.GetThrottle();
-        steering_input = driver.GetSteering();
-        braking_input = driver.GetBraking();
-
-        powertrain_torque = powertrain.GetOutputTorque();
-
-        tire_forces[FRONT_LEFT.id()] = tire_front_left.GetTireForce();
-        tire_forces[FRONT_RIGHT.id()] = tire_front_right.GetTireForce();
-        tire_forces[REAR_LEFT.id()] = tire_rear_left.GetTireForce();
-        tire_forces[REAR_RIGHT.id()] = tire_rear_right.GetTireForce();
-
-        tr_tire_forces[FRONT_LEFT.id()] = tr_tire_front_left.GetTireForce();
-        tr_tire_forces[FRONT_RIGHT.id()] = tr_tire_front_right.GetTireForce();
-        tr_tire_forces[REAR_LEFT.id()] = tr_tire_rear_left.GetTireForce();
-        tr_tire_forces[REAR_RIGHT.id()] = tr_tire_rear_right.GetTireForce();
-
-        driveshaft_speed = vehicle.GetDriveshaftSpeed();
-
-        wheel_states[FRONT_LEFT.id()] = vehicle.GetWheelState(FRONT_LEFT);
-        wheel_states[FRONT_RIGHT.id()] = vehicle.GetWheelState(FRONT_RIGHT);
-        wheel_states[REAR_LEFT.id()] = vehicle.GetWheelState(REAR_LEFT);
-        wheel_states[REAR_RIGHT.id()] = vehicle.GetWheelState(REAR_RIGHT);
+        // Driver inputs
+        ChDriver::Inputs driver_inputs = driver.GetInputs();
+        double braking_input = driver.GetBraking();
 
         // Update modules (process inputs from other modules)
-        time = vehicle.GetSystem()->GetChTime();
-
+        double time = vehicle.GetSystem()->GetChTime();
         driver.Synchronize(time);
-
         terrain.Synchronize(time);
-
-        tire_front_left.Synchronize(time, wheel_states[FRONT_LEFT.id()], terrain);
-        tire_front_right.Synchronize(time, wheel_states[FRONT_RIGHT.id()], terrain);
-        tire_rear_left.Synchronize(time, wheel_states[REAR_LEFT.id()], terrain);
-        tire_rear_right.Synchronize(time, wheel_states[REAR_RIGHT.id()], terrain);
-
-        powertrain.Synchronize(time, throttle_input, driveshaft_speed);
-
-        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, tire_forces);
-        trailer.Synchronize(time, braking_input, tr_tire_forces);
-
-        app.Synchronize(driver.GetInputModeAsString(), steering_input, throttle_input, braking_input);
-
-        // Advance simulation for one timestep for all modules
-        double step = realtime_timer.SuggestSimulationStep(step_size);
-
-        driver.Advance(step);
-
-        terrain.Advance(step);
-
-        tire_front_right.Advance(step);
-        tire_front_left.Advance(step);
-        tire_rear_right.Advance(step);
-        tire_rear_left.Advance(step);
-
-        powertrain.Advance(step);
-
-        vehicle.Advance(step);
-
-        app.Advance(step);
-
-        // Increment frame number
-        step_number++;
-    }
-
-#else
-
-    int render_frame = 0;
-
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        std::cout << "Error creating directory " << out_dir << std::endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(pov_dir))) {
-        std::cout << "Error creating directory " << pov_dir << std::endl;
-        return 1;
-    }
-
-    char filename[100];
-
-    while (time < tend) {
-        if (step_number % render_steps == 0) {
-            // Output render data
-            sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-            utils::WriteShapesPovray(vehicle.GetSystem(), filename);
-            std::cout << "Output frame:   " << render_frame << std::endl;
-            std::cout << "Sim frame:      " << step_number << std::endl;
-            std::cout << "Time:           " << time << std::endl;
-            std::cout << "             throttle: " << driver.GetThrottle() << " steering: " << driver.GetSteering()
-                      << std::endl;
-            std::cout << std::endl;
-            render_frame++;
-        }
-
-        // Collect output data from modules (for inter-module communication)
-        throttle_input = driver.GetThrottle();
-        steering_input = driver.GetSteering();
-        braking_input = driver.GetBraking();
-
-        powertrain_torque = powertrain.GetOutputTorque();
-
-        tire_forces[FRONT_LEFT.id()] = tire_front_left.GetTireForce();
-        tire_forces[FRONT_RIGHT.id()] = tire_front_right.GetTireForce();
-        tire_forces[REAR_LEFT.id()] = tire_rear_left.GetTireForce();
-        tire_forces[REAR_RIGHT.id()] = tire_rear_right.GetTireForce();
-
-        driveshaft_speed = vehicle.GetDriveshaftSpeed();
-
-        wheel_states[FRONT_LEFT.id()] = vehicle.GetWheelState(FRONT_LEFT);
-        wheel_states[FRONT_RIGHT.id()] = vehicle.GetWheelState(FRONT_RIGHT);
-        wheel_states[REAR_LEFT.id()] = vehicle.GetWheelState(REAR_LEFT);
-        wheel_states[REAR_RIGHT.id()] = vehicle.GetWheelState(REAR_RIGHT);
-
-        // Update modules (process inputs from other modules)
-        time = vehicle.GetSystem()->GetChTime();
-
-        driver.Synchronize(time);
-
-        terrain.Synchronize(time);
-
-        tire_front_left.Synchronize(time, wheel_states[FRONT_LEFT.id()], terrain);
-        tire_front_right.Synchronize(time, wheel_states[FRONT_RIGHT.id()], terrain);
-        tire_rear_left.Synchronize(time, wheel_states[REAR_LEFT.id()], terrain);
-        tire_rear_right.Synchronize(time, wheel_states[REAR_RIGHT.id()], terrain);
-
-        powertrain.Synchronize(time, throttle_input, driveshaft_speed);
-
-        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, tire_forces);
+        trailer.Synchronize(time, braking_input, terrain);
+        vehicle.Synchronize(time, driver_inputs, terrain);
+        app.Synchronize(driver.GetInputModeAsString(), driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
-
         terrain.Advance(step_size);
-
-        tire_front_right.Advance(step_size);
-        tire_front_left.Advance(step_size);
-        tire_rear_right.Advance(step_size);
-        tire_rear_left.Advance(step_size);
-
-        powertrain.Advance(step_size);
-
+        trailer.Advance(step_size);
         vehicle.Advance(step_size);
+        app.Advance(step_size);
 
         // Increment frame number
         step_number++;
-    }
 
-#endif
+        // Spin in place for real time to catch up
+        realtime_timer.Spin(step_size);
+    }
 
     return 0;
 }

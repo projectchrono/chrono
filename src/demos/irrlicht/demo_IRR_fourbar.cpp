@@ -13,19 +13,18 @@
 // =============================================================================
 //
 // Demo code about
-// - using IRRLICHT as a realtime 3D viewer of a four-bar mechanism 
+// - using IRRLICHT as a realtime 3D viewer of a four-bar mechanism
 // - using the IRRLICHT graphical user interface (GUI) to handle user-input
 //   via mouse.
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
+#include "chrono/physics/ChSystemNSC.h"
+
 #include "chrono_irrlicht/ChBodySceneNode.h"
 #include "chrono_irrlicht/ChBodySceneNodeTools.h"
 #include "chrono_irrlicht/ChIrrApp.h"
-
-#include <irrlicht.h>
 
 // Use the namespaces of Chrono
 using namespace chrono;
@@ -39,9 +38,8 @@ using namespace irr::video;
 using namespace irr::io;
 using namespace irr::gui;
 
-// Some static data (this is a simple application, we can
-// do this ;) just to allow easy GUI manipulation
-IGUIStaticText* text_enginespeed = 0;
+// Some static data (this is a simple application, we can do this ;) just to allow easy GUI manipulation
+IGUIStaticText* text_motorspeed = 0;
 
 // The MyEventReceiver class will be used to manage input
 // from the GUI graphical user interface (the interface will
@@ -50,11 +48,11 @@ IGUIStaticText* text_enginespeed = 0;
 
 class MyEventReceiver : public IEventReceiver {
   public:
-    MyEventReceiver(ChSystemNSC* asystem, IrrlichtDevice* adevice, std::shared_ptr<ChLinkMotorRotationSpeed> aengine) {
+    MyEventReceiver(ChSystemNSC* system, IrrlichtDevice* device, std::shared_ptr<ChLinkMotorRotationSpeed> motor) {
         // store pointer to physical system & other stuff so we can tweak them by user keyboard
-        msystem = asystem;
-        mdevice = adevice;
-        mengine = aengine;
+        msystem = system;
+        mdevice = device;
+        mmotor = motor;
     }
 
     bool OnEvent(const SEvent& event) {
@@ -65,17 +63,17 @@ class MyEventReceiver : public IEventReceiver {
 
             switch (event.GUIEvent.EventType) {
                 case EGET_SCROLL_BAR_CHANGED:
-                    if (id == 101)  // id of 'engine speed' slider..
+                    if (id == 101)  // id of 'motor speed' slider..
                     {
                         s32 pos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
                         double newspeed = 10 * (double)pos / 100.0;
-                        // set the speed into engine object
-                        if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(mengine->GetSpeedFunction()))
+                        // set the speed into motor object
+                        if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(mmotor->GetSpeedFunction()))
                             mfun->Set_yconst(newspeed);
                         // show speed as formatted text in interface screen
                         char message[50];
-                        sprintf(message, "Engine speed: %g [rad/s]", newspeed);
-                        text_enginespeed->setText(core::stringw(message).c_str());
+                        sprintf(message, "Motor speed: %g [rad/s]", newspeed);
+                        text_motorspeed->setText(core::stringw(message).c_str());
                     }
                     break;
                 default:
@@ -89,18 +87,18 @@ class MyEventReceiver : public IEventReceiver {
   private:
     ChSystemNSC* msystem;
     IrrlichtDevice* mdevice;
-    std::shared_ptr<ChLinkMotorRotationSpeed> mengine;
+    std::shared_ptr<ChLinkMotorRotationSpeed> mmotor;
 };
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    // 1- Create a Chrono::Engine physical system
+    // 1- Create a Chrono physical system
     ChSystemNSC my_system;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Example of integration of Chrono::Engine and Irrlicht, with GUI",
+    ChIrrApp application(&my_system, L"Example of integration of Chrono and Irrlicht, with GUI",
                          core::dimension2d<u32>(800, 600), false, true);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
@@ -114,22 +112,22 @@ int main(int argc, char* argv[]) {
     //   position/mass/inertias of their center of mass (COG) etc.
 
     // ..the truss
-    auto my_body_A = std::make_shared<ChBody>();
+    auto my_body_A = chrono_types::make_shared<ChBody>();
     my_system.AddBody(my_body_A);
     my_body_A->SetBodyFixed(true);  // truss does not move!
 
     // ..the flywheel
-    auto my_body_B = std::make_shared<ChBody>();
+    auto my_body_B = chrono_types::make_shared<ChBody>();
     my_system.AddBody(my_body_B);
     my_body_B->SetPos(ChVector<>(0, 0, 0));  // position of COG of flywheel
 
     // ..the rod
-    auto my_body_C = std::make_shared<ChBody>();
+    auto my_body_C = chrono_types::make_shared<ChBody>();
     my_system.AddBody(my_body_C);
     my_body_C->SetPos(ChVector<>(4, 0, 0));  // position of COG of rod
 
     // ..the rocker
-    auto my_body_D = std::make_shared<ChBody>();
+    auto my_body_D = chrono_types::make_shared<ChBody>();
     my_system.AddBody(my_body_D);
     my_body_D->SetPos(ChVector<>(8, -4, 0));  // position of COG of rod
 
@@ -137,24 +135,24 @@ int main(int argc, char* argv[]) {
     //    rigid bodies. Doesn't matter if some constraints are redundant.
 
     // .. a motor between flywheel and truss
-    auto my_link_AB = std::make_shared<ChLinkMotorRotationSpeed>();
+    auto my_link_AB = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     my_link_AB->Initialize(my_body_A, my_body_B, ChFrame<>(ChVector<>(0, 0, 0)));
     my_system.AddLink(my_link_AB);
-    auto my_speed_function = std::make_shared<ChFunction_Const>(CH_C_PI);  // speed w=3.145 rad/sec
+    auto my_speed_function = chrono_types::make_shared<ChFunction_Const>(CH_C_PI);  // speed w=3.145 rad/sec
     my_link_AB->SetSpeedFunction(my_speed_function);
 
     // .. a revolute joint between flywheel and rod
-    auto my_link_BC = std::make_shared<ChLinkLockRevolute>();
+    auto my_link_BC = chrono_types::make_shared<ChLinkLockRevolute>();
     my_link_BC->Initialize(my_body_B, my_body_C, ChCoordsys<>(ChVector<>(2, 0, 0)));
     my_system.AddLink(my_link_BC);
 
     // .. a revolute joint between rod and rocker
-    auto my_link_CD = std::make_shared<ChLinkLockRevolute>();
+    auto my_link_CD = chrono_types::make_shared<ChLinkLockRevolute>();
     my_link_CD->Initialize(my_body_C, my_body_D, ChCoordsys<>(ChVector<>(8, 0, 0)));
     my_system.AddLink(my_link_CD);
 
     // .. a revolute joint between rocker and truss
-    auto my_link_DA = std::make_shared<ChLinkLockRevolute>();
+    auto my_link_DA = chrono_types::make_shared<ChLinkLockRevolute>();
     my_link_DA->Initialize(my_body_D, my_body_A, ChCoordsys<>(ChVector<>(8, -8, 0)));
     my_system.AddLink(my_link_DA);
 
@@ -164,8 +162,8 @@ int main(int argc, char* argv[]) {
     //
 
     // ..add a GUI text and GUI slider to control motor of mechanism via mouse
-    text_enginespeed =
-        application.GetIGUIEnvironment()->addStaticText(L"Engine speed:", rect<s32>(300, 85, 400, 100), false);
+    text_motorspeed =
+        application.GetIGUIEnvironment()->addStaticText(L"Motor speed:", rect<s32>(300, 85, 400, 100), false);
     IGUIScrollBar* scrollbar =
         application.GetIGUIEnvironment()->addScrollBar(true, rect<s32>(300, 105, 450, 120), 0, 101);
     scrollbar->setMax(100);

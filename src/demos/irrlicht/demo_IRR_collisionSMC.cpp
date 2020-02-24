@@ -18,7 +18,6 @@
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChContactContainerSMC.h"
-#include "chrono/solver/ChSolverSMC.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
@@ -44,7 +43,7 @@ void AddFallingItems(ChIrrApp& application) {
             {
                 double mass = 1;
                 double radius = 1.1;
-                auto body = std::make_shared<ChBody>(ChMaterialSurface::SMC);
+                auto body = chrono_types::make_shared<ChBody>(ChMaterialSurface::SMC);
                 body->SetInertiaXX((2.0 / 5.0) * mass * pow(radius, 2) * ChVector<>(1, 1, 1));
                 body->SetMass(mass);
                 body->SetPos(ChVector<>(4.0 * ix, 4.0, 4.0 * iz));
@@ -54,7 +53,7 @@ void AddFallingItems(ChIrrApp& application) {
                 body->GetCollisionModel()->BuildModel();
                 body->SetCollide(true);
 
-                auto sphere = std::make_shared<ChSphereShape>();
+                auto sphere = chrono_types::make_shared<ChSphereShape>();
                 sphere->GetSphereGeometry().rad = radius;
                 sphere->SetColor(ChColor(0.9f, 0.4f, 0.2f));
                 body->AddAsset(sphere);
@@ -66,7 +65,7 @@ void AddFallingItems(ChIrrApp& application) {
             {
                 double mass = 1;
                 ChVector<> hsize(0.75, 0.75, 0.75);
-                auto body = std::make_shared<ChBody>(ChMaterialSurface::SMC);
+                auto body = chrono_types::make_shared<ChBody>(ChMaterialSurface::SMC);
 
                 body->SetMass(mass);
                 body->SetPos(ChVector<>(4.0 * ix, 6.0, 4.0 * iz));
@@ -76,7 +75,7 @@ void AddFallingItems(ChIrrApp& application) {
                 body->GetCollisionModel()->BuildModel();
                 body->SetCollide(true);
 
-                auto box = std::make_shared<ChBoxShape>();
+                auto box = chrono_types::make_shared<ChBoxShape>();
                 box->GetBoxGeometry().Size = hsize;
                 box->SetColor(ChColor(0.4f, 0.9f, 0.2f));
                 body->AddAsset(box);
@@ -96,7 +95,7 @@ void AddContainerWall(std::shared_ptr<ChBody> body,
     body->GetCollisionModel()->AddBox(hsize.x(), hsize.y(), hsize.z(), pos);
 
     if (visible) {
-        auto box = std::make_shared<ChBoxShape>();
+        auto box = chrono_types::make_shared<ChBoxShape>();
         box->GetBoxGeometry().Pos = pos;
         box->GetBoxGeometry().Size = hsize;
         box->SetColor(ChColor(1, 0, 0));
@@ -107,7 +106,7 @@ void AddContainerWall(std::shared_ptr<ChBody> body,
 
 void AddContainer(ChIrrApp& application) {
     // The fixed body (5 walls)
-    auto fixedBody = std::make_shared<ChBody>(ChMaterialSurface::SMC);
+    auto fixedBody = chrono_types::make_shared<ChBody>(ChMaterialSurface::SMC);
 
     fixedBody->SetMass(1.0);
     fixedBody->SetBodyFixed(true);
@@ -125,7 +124,7 @@ void AddContainer(ChIrrApp& application) {
     application.GetSystem()->AddBody(fixedBody);
 
     // The rotating mixer body
-    auto rotatingBody = std::make_shared<ChBody>(ChMaterialSurface::SMC);
+    auto rotatingBody = chrono_types::make_shared<ChBody>(ChMaterialSurface::SMC);
 
     rotatingBody->SetMass(10.0);
     rotatingBody->SetInertiaXX(ChVector<>(50, 50, 50));
@@ -138,7 +137,7 @@ void AddContainer(ChIrrApp& application) {
     rotatingBody->GetCollisionModel()->AddBox(hsize.x(), hsize.y(), hsize.z());
     rotatingBody->GetCollisionModel()->BuildModel();
 
-    auto box = std::make_shared<ChBoxShape>();
+    auto box = chrono_types::make_shared<ChBoxShape>();
     box->GetBoxGeometry().Size = hsize;
     box->SetColor(ChColor(0, 0, 1));
     box->SetFading(0.6f);
@@ -146,11 +145,11 @@ void AddContainer(ChIrrApp& application) {
 
     application.GetSystem()->AddBody(rotatingBody);
 
-    // An engine between the two
-    auto my_motor = std::make_shared<ChLinkMotorRotationSpeed>();
+    // A motor between the two
+    auto my_motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
 
     my_motor->Initialize(rotatingBody, fixedBody, ChFrame<>(ChVector<>(0, 0, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X)));
-    auto mfun = std::make_shared<ChFunction_Const>(CH_C_PI / 2.0);  // speed w=90°/s
+    auto mfun = chrono_types::make_shared<ChFunction_Const>(CH_C_PI / 2.0);  // speed w=90°/s
     my_motor->SetSpeedFunction(mfun);
 
     application.GetSystem()->AddLink(my_motor);

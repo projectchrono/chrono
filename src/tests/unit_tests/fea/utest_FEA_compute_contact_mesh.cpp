@@ -28,8 +28,7 @@
 #include "chrono/physics/ChContactContainerSMC.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/solver/ChSolverSMC.h"
-#include "chrono/solver/ChSolverMINRES.h"
+#include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
@@ -123,7 +122,7 @@ bool test_computecontact(ChMaterialSurface::ContactMethod method) {
             sys->SetStiffContact(stiff_contact);
             system = sys;
 
-            auto mat = std::make_shared<ChMaterialSurfaceSMC>();
+            auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
             mat->SetYoungModulus(young_modulus);
             mat->SetRestitution(restitution);
             mat->SetFriction(friction);
@@ -141,7 +140,7 @@ bool test_computecontact(ChMaterialSurface::ContactMethod method) {
 
             system = new ChSystemNSC;
 
-            auto mat = std::make_shared<ChMaterialSurfaceNSC>();
+            auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
             mat->SetRestitution(restitution);
             mat->SetFriction(friction);
             material = mat;
@@ -154,7 +153,7 @@ bool test_computecontact(ChMaterialSurface::ContactMethod method) {
 
     // Create the ANCF shell element mesh
 
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
     // Geometry of the plate
     double plate_lenght_x = 0.5;
     double plate_lenght_y = 0.05;
@@ -185,7 +184,7 @@ bool test_computecontact(ChMaterialSurface::ContactMethod method) {
         double dir_z = 0;
 
         // Create the node
-        auto node = std::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z));
+        auto node = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z));
         node->SetMass(0);
 
         // Add node to mesh
@@ -196,7 +195,7 @@ bool test_computecontact(ChMaterialSurface::ContactMethod method) {
     double rho = 500;
     double E = 2.1e7;
     double nu = 0.3;
-    auto mat = std::make_shared<ChMaterialShellANCF>(rho, E, nu);
+    auto mat = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu);
 
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
@@ -213,7 +212,7 @@ bool test_computecontact(ChMaterialSurface::ContactMethod method) {
         getchar();*/
 
         // Create the element and set its nodes.
-        auto element = std::make_shared<ChElementShellANCF>();
+        auto element = chrono_types::make_shared<ChElementShellANCF>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node2)),
@@ -233,14 +232,14 @@ bool test_computecontact(ChMaterialSurface::ContactMethod method) {
 
     // Create node cloud for contact with box
     double m_contact_node_radius = 0.0015;
-    auto mysurfmaterial = std::make_shared<ChMaterialSurfaceSMC>();
+    auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
 
     mysurfmaterial->SetKn(kn);
     mysurfmaterial->SetKt(kt);
     mysurfmaterial->SetGn(gn);
     mysurfmaterial->SetGt(gt);
 
-    auto contact_surf = std::make_shared<ChContactSurfaceNodeCloud>();
+    auto contact_surf = chrono_types::make_shared<ChContactSurfaceNodeCloud>();
     my_mesh->AddContactSurface(contact_surf);
     contact_surf->AddAllNodes(m_contact_node_radius);
     contact_surf->SetMaterialSurface(mysurfmaterial);
@@ -250,9 +249,6 @@ bool test_computecontact(ChMaterialSurface::ContactMethod method) {
 
     // Remember to add the mesh to the system!
     system->Add(my_mesh);
-
-    // Mark completion of system construction
-    system->SetupInitial();
 
     // Create container box
     auto ground =
@@ -266,17 +262,20 @@ bool test_computecontact(ChMaterialSurface::ContactMethod method) {
     switch (solver_type) {
         case DEFAULT_SOLVER: {
             GetLog() << "Using DEFAULT solver.\n";
-            system->SetMaxItersSolverSpeed(100);
-            system->SetTolForce(1e-6);
+            system->SetSolverMaxIterations(100);
+            system->SetSolverForceTolerance(1e-6);
             break;
         }
         case MINRES_SOLVER: {
             GetLog() << "Using MINRES solver.\n";
-            auto minres_solver = std::make_shared<ChSolverMINRES>();
-            minres_solver->SetDiagonalPreconditioning(true);
-            system->SetSolver(minres_solver);
-            system->SetMaxItersSolverSpeed(100);
-            system->SetTolForce(1e-6);
+            auto solver = chrono_types::make_shared<ChSolverMINRES>();
+            system->SetSolver(solver);
+            solver->SetMaxIterations(100);
+            solver->SetTolerance(1e-8);
+            solver->EnableDiagonalPreconditioner(true);
+            solver->SetVerbose(false);
+
+            system->SetSolverForceTolerance(1e-6);
             break;
         }
         default:

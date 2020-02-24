@@ -19,7 +19,10 @@
 
 namespace chrono {
 
-/// Integral of a function: y = int{ f(x) dx.
+/// @addtogroup chrono_functions
+/// @{
+
+/// Integral of a function: `y = int{ f(x) dx`
 ///
 /// Uses a numerical quadrature method to compute the definite integral.
 class ChApi ChFunction_Integrate : public ChFunction {
@@ -30,12 +33,12 @@ class ChApi ChFunction_Integrate : public ChFunction {
     double x_start;
     double x_end;
     int num_samples;
-    ChMatrix<>* array_x;
+    ChArray<> array_x;
 
   public:
     ChFunction_Integrate();
     ChFunction_Integrate(const ChFunction_Integrate& other);
-    ~ChFunction_Integrate();
+    ~ChFunction_Integrate() {}
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChFunction_Integrate* Clone() const override { return new ChFunction_Integrate(*this); }
@@ -51,7 +54,7 @@ class ChApi ChFunction_Integrate : public ChFunction {
 
     void Set_num_samples(int m_samples) {
         num_samples = m_samples;
-        array_x->Reset(num_samples, 1);
+        array_x.setZero(num_samples, 1);
         ComputeIntegral();
     }
     int Get_num_samples() const { return num_samples; }
@@ -89,6 +92,8 @@ class ChApi ChFunction_Integrate : public ChFunction {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+/// @} chrono_functions
 
 CH_CLASS_VERSION(ChFunction_Integrate, 0)
 

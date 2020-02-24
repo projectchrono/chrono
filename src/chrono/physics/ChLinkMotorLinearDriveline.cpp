@@ -25,12 +25,12 @@ ChLinkMotorLinearDriveline::ChLinkMotorLinearDriveline() {
     this->c_x = false;
     SetupLinkMask();
 
-    innershaft1lin = std::make_shared<ChShaft>();
-    innershaft2lin = std::make_shared<ChShaft>();
-    innershaft2rot = std::make_shared<ChShaft>();
-    innerconstraint1lin = std::make_shared<ChShaftsBodyTranslation>();
-    innerconstraint2lin = std::make_shared<ChShaftsBodyTranslation>(); 
-    innerconstraint2rot = std::make_shared<ChShaftsBody>(); 
+    innershaft1lin = chrono_types::make_shared<ChShaft>();
+    innershaft2lin = chrono_types::make_shared<ChShaft>();
+    innershaft2rot = chrono_types::make_shared<ChShaft>();
+    innerconstraint1lin = chrono_types::make_shared<ChShaftsBodyTranslation>();
+    innerconstraint2lin = chrono_types::make_shared<ChShaftsBodyTranslation>(); 
+    innerconstraint2rot = chrono_types::make_shared<ChShaftsBody>(); 
     shaft2_rotation_dir = VECT_X;
 }
 
@@ -44,50 +44,79 @@ ChLinkMotorLinearDriveline::ChLinkMotorLinearDriveline(const ChLinkMotorLinearDr
     shaft2_rotation_dir = other.shaft2_rotation_dir;
 }
 
-ChLinkMotorLinearDriveline::~ChLinkMotorLinearDriveline() {
-    
+ChLinkMotorLinearDriveline::~ChLinkMotorLinearDriveline() {}
+
+void ChLinkMotorLinearDriveline::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
+                                            std::shared_ptr<ChBodyFrame> mbody2,
+                                            ChFrame<> mabsframe) {
+    this->Initialize(mbody1, mbody2, false, mabsframe, mabsframe);
+}
+
+void ChLinkMotorLinearDriveline::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
+                                            std::shared_ptr<ChBodyFrame> mbody2,
+                                            bool pos_are_relative,
+                                            ChFrame<> mframe1,
+                                            ChFrame<> mframe2) {
+    ChLinkMotorLinear::Initialize(mbody1, mbody2, pos_are_relative, mframe1, mframe2);
+    innerconstraint1lin->Initialize(innershaft1lin, mbody1, VECT_X, VNULL);
+    innerconstraint2lin->Initialize(innershaft2lin, mbody2, VECT_X, VNULL);
+    innerconstraint2rot->Initialize(innershaft2rot, mbody2, VECT_X);
+}
+
+void ChLinkMotorLinearDriveline::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
+                                            std::shared_ptr<ChBodyFrame> mbody2,
+                                            bool pos_are_relative,
+                                            ChVector<> mpt1,
+                                            ChVector<> mpt2,
+                                            ChVector<> mnorm1,
+                                            ChVector<> mnorm2) {
+    ChLinkMotorLinear::Initialize(mbody1, mbody2, pos_are_relative, mpt1, mpt2, mnorm1, mnorm2);
+    innerconstraint1lin->Initialize(innershaft1lin, mbody1, VECT_X, VNULL);
+    innerconstraint2lin->Initialize(innershaft2lin, mbody2, VECT_X, VNULL);
+    innerconstraint2rot->Initialize(innershaft2rot, mbody2, VECT_X);
+}
+
+void ChLinkMotorLinearDriveline::Setup() {
+    if (innershaft1lin->IsActive()) {
+        innershaft1lin->SetOffset_x(this->offset_x + 0);
+        innershaft1lin->SetOffset_w(this->offset_w + 0);
+    }
+    if (innershaft2lin->IsActive()) {
+        innershaft2lin->SetOffset_x(this->offset_x + 1);
+        innershaft2lin->SetOffset_w(this->offset_w + 1);
+    }
+    if (innershaft2rot->IsActive()) {
+        innershaft2rot->SetOffset_x(this->offset_x + 2);
+        innershaft2rot->SetOffset_w(this->offset_w + 2);
+    }
+    int nc = mask.nconstr;
+    innerconstraint1lin->SetOffset_L(this->offset_L + nc + 0);
+    innerconstraint2lin->SetOffset_L(this->offset_L + nc + 1);
+    innerconstraint2rot->SetOffset_L(this->offset_L + nc + 2);
 }
 
 void ChLinkMotorLinearDriveline::Update(double mytime, bool update_assets) {
-
-     // Inherit parent class:
+    // Inherit parent class:
     ChLinkMotorLinear::Update(mytime, update_assets);
 
-    if (Body1 && Body2) {
-        // Note: we wrap Body1 and Body2 in shared_ptr with custom no-op destructors
-        // so that the two objects are not destroyed when these shared_ptr go out of
-        // scope (since Body1 and Body2 are still managed through other shared_ptr).
-        std::shared_ptr<ChBodyFrame> b1(Body1, [](ChBodyFrame*) {});
-        std::shared_ptr<ChBodyFrame> b2(Body2, [](ChBodyFrame*) {});
-        if (innerconstraint1lin)
-            innerconstraint1lin->Initialize(innershaft1lin, b1, VECT_X, VNULL);
-        if (innerconstraint2lin)
-            innerconstraint2lin->Initialize(innershaft2lin, b2, VECT_X, VNULL);
-        if (innerconstraint2rot)
-            innerconstraint2rot->Initialize(innershaft2rot, b2, VECT_X);
-        // btw. The above initialization code could be moved in a place that is executed once per simulation
+    // Update the direction of 1D-3D ChShaftBody constraints:
+    ChVector<> abs_shaftdir = this->GetLinkAbsoluteCoords().TransformDirectionLocalToParent(VECT_X);
+    ChVector<> shaftdir_b1 = this->Body1->TransformDirectionParentToLocal(abs_shaftdir);
+    ChVector<> shaftdir_b2 = this->Body2->TransformDirectionParentToLocal(abs_shaftdir);
+    ChVector<> shaftpos_b1 = this->Body1->TransformPointParentToLocal(this->GetLinkAbsoluteCoords().pos);
+    ChVector<> shaftpos_b2 = this->Body2->TransformPointParentToLocal(this->GetLinkAbsoluteCoords().pos);
+    ChVector<> abs_shaft2_rotation_dir =
+        this->GetLinkAbsoluteCoords().TransformDirectionLocalToParent(this->shaft2_rotation_dir);
+    ChVector<> shaftdir_b2rot = this->Body2->TransformDirectionParentToLocal(abs_shaft2_rotation_dir);
 
-        // Update the direction of 1D-3D ChShaftBody constraints:
-        ChVector<> abs_shaftdir = this->GetLinkAbsoluteCoords().TransformDirectionLocalToParent(VECT_X);
-        ChVector<> shaftdir_b1 =    this->Body1->TransformDirectionParentToLocal(abs_shaftdir);
-        ChVector<> shaftdir_b2 =    this->Body2->TransformDirectionParentToLocal(abs_shaftdir);
-        ChVector<> shaftpos_b1 =   this->Body1->TransformPointParentToLocal(this->GetLinkAbsoluteCoords().pos);
-        ChVector<> shaftpos_b2 =   this->Body2->TransformPointParentToLocal(this->GetLinkAbsoluteCoords().pos);
-        ChVector<> abs_shaft2_rotation_dir = this->GetLinkAbsoluteCoords().TransformDirectionLocalToParent(this->shaft2_rotation_dir);
-        ChVector<> shaftdir_b2rot = this->Body2->TransformDirectionParentToLocal(abs_shaft2_rotation_dir);
+    innerconstraint1lin->SetShaftDirection(shaftdir_b1);
+    innerconstraint1lin->SetShaftPos(shaftpos_b1);
 
-        innerconstraint1lin->SetShaftDirection(shaftdir_b1);
-        innerconstraint1lin->SetShaftPos(shaftpos_b1);
+    innerconstraint2lin->SetShaftDirection(shaftdir_b2);
+    innerconstraint2lin->SetShaftPos(shaftpos_b2);
 
-        innerconstraint2lin->SetShaftDirection(shaftdir_b2);
-        innerconstraint2lin->SetShaftPos(shaftpos_b2);
-
-        innerconstraint2rot->SetShaftDirection(shaftdir_b2rot);
-
-    }
-
+    innerconstraint2rot->SetShaftDirection(shaftdir_b2rot);
 }
-
 
 int ChLinkMotorLinearDriveline::GetDOF() {
     return 3 + ChLinkMotorLinear::GetDOF();
@@ -125,6 +154,8 @@ void ChLinkMotorLinearDriveline::IntStateScatter(const unsigned int off_x,
     innershaft1lin->IntStateScatter(off_x + 0, x, off_v + 0, v, T);
     innershaft2lin->IntStateScatter(off_x + 1, x, off_v + 1, v, T);
     innershaft2rot->IntStateScatter(off_x + 2, x, off_v + 2, v, T);
+
+    Update(T);
 }
 
 void ChLinkMotorLinearDriveline::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
@@ -162,7 +193,7 @@ void ChLinkMotorLinearDriveline::IntStateGatherReactions(const unsigned int off_
     // First, inherit to parent class
     ChLinkMotorLinear::IntStateGatherReactions(off_L, L);
 
-    int nc = mask->nconstr;
+    int nc = mask.nconstr;
     innerconstraint1lin->IntStateGatherReactions(off_L + nc + 0, L);
     innerconstraint2lin->IntStateGatherReactions(off_L + nc + 1, L);
     innerconstraint2rot->IntStateGatherReactions(off_L + nc + 2, L);
@@ -172,7 +203,7 @@ void ChLinkMotorLinearDriveline::IntStateScatterReactions(const unsigned int off
     // First, inherit to parent class
     ChLinkMotorLinear::IntStateScatterReactions(off_L, L);
 
-    int nc = mask->nconstr;
+    int nc = mask.nconstr;
     innerconstraint1lin->IntStateScatterReactions(off_L + nc + 0, L);
     innerconstraint2lin->IntStateScatterReactions(off_L + nc + 1, L);
     innerconstraint2rot->IntStateScatterReactions(off_L + nc + 2, L);
@@ -206,7 +237,7 @@ void ChLinkMotorLinearDriveline::IntLoadResidual_CqL(const unsigned int off_L,
     // First, inherit to parent class
     ChLinkMotorLinear::IntLoadResidual_CqL(off_L, R, L, c);
 
-    int nc = mask->nconstr;
+    int nc = mask.nconstr;
     innerconstraint1lin->IntLoadResidual_CqL(off_L + nc + 0, R, L, c);
     innerconstraint2lin->IntLoadResidual_CqL(off_L + nc + 1, R, L, c);
     innerconstraint2rot->IntLoadResidual_CqL(off_L + nc + 2, R, L, c);
@@ -220,7 +251,7 @@ void ChLinkMotorLinearDriveline::IntLoadConstraint_C(const unsigned int off_L,
     // First, inherit to parent class
     ChLinkMotorLinear::IntLoadConstraint_C(off_L, Qc, c, do_clamp, recovery_clamp);
 
-    int nc = mask->nconstr;
+    int nc = mask.nconstr;
 
     // compute custom violation C:
     double cnstr_pos_error1 =  this->GetMotorPos() - (this->innershaft1lin->GetPos());// - this->innershaft2lin->GetPos());
@@ -249,7 +280,7 @@ void ChLinkMotorLinearDriveline::IntLoadConstraint_Ct(const unsigned int off_L, 
     // First, inherit to parent class
     ChLinkMotorLinear::IntLoadConstraint_Ct(off_L, Qc, c);
 
-    int nc = mask->nconstr;
+    int nc = mask.nconstr;
     innerconstraint1lin->IntLoadConstraint_Ct(off_L + nc + 0, Qc, c);
     innerconstraint2lin->IntLoadConstraint_Ct(off_L + nc + 1, Qc, c);
     innerconstraint2rot->IntLoadConstraint_Ct(off_L + nc + 2, Qc, c);
@@ -267,7 +298,7 @@ void ChLinkMotorLinearDriveline::IntToDescriptor(const unsigned int off_v,
     innershaft1lin->IntToDescriptor(off_v, v, R, off_L, L, Qc);
     innershaft2lin->IntToDescriptor(off_v + 1, v, R, off_L, L, Qc);
     innershaft2rot->IntToDescriptor(off_v + 2, v, R, off_L, L, Qc);
-    int nc = mask->nconstr;
+    int nc = mask.nconstr;
     innerconstraint1lin->IntToDescriptor(off_v, v, R, off_L + nc + 0, L, Qc);
     innerconstraint2lin->IntToDescriptor(off_v, v, R, off_L + nc + 1, L, Qc);
     innerconstraint2rot->IntToDescriptor(off_v, v, R, off_L + nc + 2, L, Qc);
@@ -283,7 +314,7 @@ void ChLinkMotorLinearDriveline::IntFromDescriptor(const unsigned int off_v,
     innershaft1lin->IntFromDescriptor(off_v, v, off_L, L);
     innershaft2lin->IntFromDescriptor(off_v + 1, v, off_L, L);
     innershaft2rot->IntFromDescriptor(off_v + 2, v, off_L, L);
-    int nc = mask->nconstr;
+    int nc = mask.nconstr;
     innerconstraint1lin->IntFromDescriptor(off_v, v, off_L + nc + 0, L);
     innerconstraint2lin->IntFromDescriptor(off_v, v, off_L + nc + 1, L);
     innerconstraint2rot->IntFromDescriptor(off_v, v, off_L + nc + 2, L);

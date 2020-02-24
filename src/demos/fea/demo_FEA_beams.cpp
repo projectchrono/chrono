@@ -20,8 +20,7 @@
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/timestepper/ChTimestepper.h"
-#include "chrono/solver/ChSolverPMINRES.h"
-#include "chrono/solver/ChSolverMINRES.h"
+#include "chrono/solver/ChIterativeSolverLS.h"
 
 #include "chrono/fea/ChElementBeamEuler.h"
 #include "chrono/fea/ChBuilderBeam.h"
@@ -57,12 +56,12 @@ int main(int argc, char* argv[]) {
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     // Create a section, i.e. thickness and material properties
     // for beams. This will be shared among some beams.
 
-    auto msection = std::make_shared<ChBeamSectionAdvanced>();
+    auto msection = chrono_types::make_shared<ChBeamSectionAdvanced>();
 
     double beam_wy = 0.012;
     double beam_wz = 0.025;
@@ -80,22 +79,22 @@ int main(int argc, char* argv[]) {
 
     double beam_L = 0.1;
 
-    auto hnode1 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(0, 0, 0)));
-    auto hnode2 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L, 0, 0)));
-    auto hnode3 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L * 2, 0, 0)));
+    auto hnode1 = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(0, 0, 0)));
+    auto hnode2 = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L, 0, 0)));
+    auto hnode3 = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L * 2, 0, 0)));
 
     my_mesh->AddNode(hnode1);
     my_mesh->AddNode(hnode2);
     my_mesh->AddNode(hnode3);
 
-    auto belement1 = std::make_shared<ChElementBeamEuler>();
+    auto belement1 = chrono_types::make_shared<ChElementBeamEuler>();
 
     belement1->SetNodes(hnode1, hnode2);
     belement1->SetSection(msection);
 
     my_mesh->AddElement(belement1);
 
-    auto belement2 = std::make_shared<ChElementBeamEuler>();
+    auto belement2 = chrono_types::make_shared<ChElementBeamEuler>();
 
     belement2->SetNodes(hnode2, hnode3);
     belement2->SetSection(msection);
@@ -108,17 +107,17 @@ int main(int argc, char* argv[]) {
 
     // Fix a node to ground:
     // hnode1->SetFixed(true);
-    auto mtruss = std::make_shared<ChBody>();
+    auto mtruss = chrono_types::make_shared<ChBody>();
     mtruss->SetBodyFixed(true);
     my_system.Add(mtruss);
 
-    auto constr_bc = std::make_shared<ChLinkMateGeneric>();
+    auto constr_bc = chrono_types::make_shared<ChLinkMateGeneric>();
     constr_bc->Initialize(hnode3, mtruss, false, hnode3->Frame(), hnode3->Frame());
     my_system.Add(constr_bc);
     constr_bc->SetConstrainedCoords(true, true, true,   // x, y, z
                                     true, true, true);  // Rx, Ry, Rz
 
-    auto constr_d = std::make_shared<ChLinkMateGeneric>();
+    auto constr_d = chrono_types::make_shared<ChLinkMateGeneric>();
     constr_d->Initialize(hnode1, mtruss, false, hnode1->Frame(), hnode1->Frame());
     my_system.Add(constr_d);
     constr_d->SetConstrainedCoords(false, true, true,     // x, y, z
@@ -129,11 +128,11 @@ int main(int argc, char* argv[]) {
     //
 
     // Shortcut!
-    // This ChBuilderBeam helper object is very useful because it will
+    // This ChBuilderBeamEuler helper object is very useful because it will
     // subdivide 'beams' into sequences of finite elements of beam type, ex.
     // one 'beam' could be made of 5 FEM elements of ChElementBeamEuler class.
     // If new nodes are needed, it will create them for you.
-    ChBuilderBeam builder;
+    ChBuilderBeamEuler builder;
 
     // Now, simply use BuildBeam to create a beam from a point to another:
     builder.BuildBeam(my_mesh,                   // the mesh where to put the created nodes and elements
@@ -174,20 +173,20 @@ int main(int argc, char* argv[]) {
     // Do not forget AddAsset() at the end!
 
     /*
-    auto mvisualizebeamA = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizebeamA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
     mvisualizebeamA->SetSmoothFaces(true);
     my_mesh->AddAsset(mvisualizebeamA);
     */
 
-    auto mvisualizebeamA = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizebeamA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_ELEM_BEAM_MZ);
     mvisualizebeamA->SetColorscaleMinMax(-0.4, 0.4);
     mvisualizebeamA->SetSmoothFaces(true);
     mvisualizebeamA->SetWireframe(false);
     my_mesh->AddAsset(mvisualizebeamA);
 
-    auto mvisualizebeamC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizebeamC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
     mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     mvisualizebeamC->SetSymbolsThickness(0.006);
@@ -207,42 +206,26 @@ int main(int argc, char* argv[]) {
 
     application.AssetUpdateAll();
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
+    // THE SIMULATION LOOP
 
-    //
-    // THE SOFT-REAL-TIME CYCLE
-    //
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
-    my_system.SetMaxItersSolverSpeed(460);
-    my_system.SetMaxItersSolverStab(460);
-    my_system.SetTolForce(1e-13);
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    my_system.SetSolver(solver);
+    solver->SetMaxIterations(500);
+    solver->SetTolerance(1e-14);
+    solver->EnableDiagonalPreconditioner(true);
+    solver->EnableWarmStart(true);  // IMPORTANT for convergence when using EULER_IMPLICIT_LINEARIZED
+    solver->SetVerbose(false);
 
-    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    msolver->SetVerbose(false);
-    msolver->SetDiagonalPreconditioning(true);
-
-    /*
-        // TEST: The Matlab external linear solver, for max precision in benchmarks
-    ChMatlabEngine matlab_engine;
-    auto matlab_solver = ats::make_shared<ChMatlabSolver>(matlab_engine);
-    my_system.SetSolver(matlab_solver);
-    my_system.Update();
-    application.SetPaused(true);
-    */
+    my_system.SetSolverForceTolerance(1e-13);
 
     // Change type of integrator:
-    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
-
-    // if later you want to change integrator settings:
-    if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper())) {
-        mystepper->SetAlpha(-0.2);
-        mystepper->SetMaxiters(6);
-        mystepper->SetAbsTolerances(1e-12);
-        mystepper->SetVerbose(true);
-        mystepper->SetStepControl(false);
-    }
+    ////auto stepper = chrono_types::make_shared<ChTimestepperHHT>();
+    ////my_system.SetTimestepper(stepper);
+    ////stepper->SetAlpha(-0.2);
+    ////stepper->SetMaxiters(6);
+    ////stepper->SetAbsTolerances(1e-12);
+    ////stepper->SetVerbose(true);
+    ////stepper->SetStepControl(false);
 
     my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
 
@@ -250,12 +233,12 @@ int main(int argc, char* argv[]) {
 
     GetLog() << "\n\n\n===========STATICS======== \n\n\n";
 
-    //	application.GetSystem()->DoStaticLinear();
+    application.GetSystem()->DoStaticLinear();
 
     GetLog() << "BEAM RESULTS (LINEAR STATIC ANALYSIS) \n\n";
 
     ChVector<> F, M;
-    ChMatrixDynamic<> displ;
+    ChVectorDynamic<> displ;
 
     belement1->GetStateBlock(displ);
     GetLog() << displ;

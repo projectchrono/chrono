@@ -439,7 +439,7 @@ int main(int argc, char* argv[]) {
     // So switch to a more precise solver, ex. BARZILAIBORWEIN
 
     my_system.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
-    my_system.SetMaxItersSolverSpeed(120);
+    my_system.SetSolverMaxIterations(120);
 
     //
     // THE SOFT-REAL-TIME CYCLE, SHOWING THE SIMULATION

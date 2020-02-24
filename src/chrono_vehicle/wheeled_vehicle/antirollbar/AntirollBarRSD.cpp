@@ -19,8 +19,6 @@
 #include "chrono_vehicle/wheeled_vehicle/antirollbar/AntirollBarRSD.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
-#include "chrono_thirdparty/rapidjson/filereadstream.h"
-
 using namespace rapidjson;
 
 namespace chrono {
@@ -29,15 +27,9 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 AntirollBarRSD::AntirollBarRSD(const std::string& filename) : ChAntirollBarRSD("") {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     Create(d);
 
@@ -54,7 +46,7 @@ void AntirollBarRSD::Create(const rapidjson::Document& d) {
 
     // Read arm data
     m_arm_mass = d["Arm"]["Mass"].GetDouble();
-    m_arm_inertia = LoadVectorJSON(d["Arm"]["Inertia"]);
+    m_arm_inertia = ReadVectorJSON(d["Arm"]["Inertia"]);
     m_arm_length = d["Arm"]["Length"].GetDouble();
     m_arm_width = d["Arm"]["Width"].GetDouble();
     m_arm_radius = d["Arm"]["Radius"].GetDouble();

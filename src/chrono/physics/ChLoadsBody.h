@@ -381,8 +381,8 @@ class ChApi ChLoadBodyBodyBushingGeneric : public ChLoadBodyBody {
         std::shared_ptr<ChBody> mbodyA,    ///< body A
         std::shared_ptr<ChBody> mbodyB,    ///< body B
         const ChFrame<>& abs_application,  ///< create the bushing here, in abs. coordinates.
-        const ChMatrix<>& mstiffness,      ///< stiffness as a 6x6 matrix, local in the abs_application frame
-        const ChMatrix<>& mdamping         ///< damping as a 6x6 matrix, local in the abs_application frame
+        ChMatrixConstRef mstiffness,       ///< stiffness as a 6x6 matrix, local in the abs_application frame
+        ChMatrixConstRef mdamping          ///< damping as a 6x6 matrix, local in the abs_application frame
     );
 
     /// "Virtual" copy constructor (covariant return type).
@@ -390,13 +390,13 @@ class ChApi ChLoadBodyBodyBushingGeneric : public ChLoadBodyBody {
 
     /// Set a generic 6x6 stiffness matrix, expressed in local
     /// coordinate system of loc_application_B.
-    void SetStiffnessMatrix(const ChMatrix<>& mstiffness) { stiffness = mstiffness; }
-    const ChMatrix<>& GetStiffnessMatrix() const { return stiffness; }
+    void SetStiffnessMatrix(ChMatrixConstRef mstiffness) { stiffness = mstiffness; }
+    const ChMatrixNM<double, 6, 6>& GetStiffnessMatrix() const { return stiffness; }
 
     /// Set a generic 6x6 damping matrix, expressed in local
     /// coordinate system of loc_application_B.
-    void SetDampingMatrix(const ChMatrix<>& mdamping) { damping = mdamping; }
-    const ChMatrix<>& GetDampingMatrix() const { return damping; }
+    void SetDampingMatrix(ChMatrixConstRef mdamping) { damping = mdamping; }
+    const ChMatrixNM<double, 6, 6>& GetDampingMatrix() const { return damping; }
 
     /// Set the initial pre-load of the bushing, applied to loc_application_A,
     /// expressed in local coordinate system of loc_application_B.
@@ -431,6 +431,9 @@ class ChApi ChLoadBodyBodyBushingGeneric : public ChLoadBodyBody {
     virtual void ComputeBodyBodyForceTorque(const ChFrameMoving<>& rel_AB,
                                             ChVector<>& loc_force,
                                             ChVector<>& loc_torque) override;
+
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 }  // end namespace chrono

@@ -44,10 +44,6 @@ using namespace chrono::vehicle::sedan;
 // Initial vehicle location and orientation
 ChVector<> initLoc(0, 0, 1.0);
 ChQuaternion<> initRot(1, 0, 0, 0);
-// ChQuaternion<> initRot(0.866025, 0, 0, 0.5);
-// ChQuaternion<> initRot(0.7071068, 0, 0, 0.7071068);
-// ChQuaternion<> initRot(0.25882, 0, 0, 0.965926);
-// ChQuaternion<> initRot(0, 0, 0, 1);
 
 enum DriverMode { DEFAULT, RECORD, PLAYBACK };
 DriverMode driver_mode = DEFAULT;
@@ -57,21 +53,16 @@ VisualizationType chassis_vis_type = VisualizationType::MESH;
 VisualizationType suspension_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType wheel_vis_type = VisualizationType::MESH;
+VisualizationType tire_vis_type = VisualizationType::MESH;
 
 // Collision type for chassis (PRIMITIVES, MESH, or NONE)
 ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE;
 
-// Type of powertrain model (SHAFTS, SIMPLE)
-// PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
-
-// Drive type (FWD)
-// DrivelineType drive_type = DrivelineType::FWD;
-
-// Type of tire model (RIGID, TMEASY)
-TireModelType tire_model = TireModelType::RIGID;
+// Type of tire model (RIGID, TMEASY, PAC02)
+TireModelType tire_model = TireModelType::PAC02;
 
 // Rigid terrain
-RigidTerrain::Type terrain_model = RigidTerrain::BOX;
+RigidTerrain::PatchType terrain_model = RigidTerrain::PatchType::BOX;
 double terrainHeight = 0;      // terrain height (FLAT terrain only)
 double terrainLength = 100.0;  // size in X direction
 double terrainWidth = 100.0;   // size in Y direction
@@ -119,14 +110,9 @@ int main(int argc, char* argv[]) {
     my_sedan.SetChassisCollisionType(chassis_collision_type);
     my_sedan.SetChassisFixed(false);
     my_sedan.SetInitPosition(ChCoordsys<>(initLoc, initRot));
-    //my_sedan.SetPowertrainType(powertrain_model);
-    //my_sedan.SetDriveType(drive_type);
     my_sedan.SetTireType(tire_model);
     my_sedan.SetTireStepSize(tire_step_size);
-    my_sedan.SetVehicleStepSize(step_size);
     my_sedan.Initialize();
-
-    VisualizationType tire_vis_type = VisualizationType::MESH;// : VisualizationType::PRIMITIVES;
 
     my_sedan.SetChassisVisualizationType(chassis_vis_type);
     my_sedan.SetSuspensionVisualizationType(suspension_vis_type);
@@ -139,17 +125,17 @@ int main(int argc, char* argv[]) {
 
     std::shared_ptr<RigidTerrain::Patch> patch;
     switch (terrain_model) {
-        case RigidTerrain::BOX:
+        case RigidTerrain::PatchType::BOX:
             patch = terrain.AddPatch(ChCoordsys<>(ChVector<>(0, 0, terrainHeight - 5), QUNIT),
                                      ChVector<>(terrainLength, terrainWidth, 10));
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
             break;
-        case RigidTerrain::HEIGHT_MAP:
+        case RigidTerrain::PatchType::HEIGHT_MAP:
             patch = terrain.AddPatch(CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"), "test64", 128,
                                      128, 0, 4);
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
             break;
-        case RigidTerrain::MESH:
+        case RigidTerrain::PatchType::MESH:
             patch = terrain.AddPatch(CSYSNORM, vehicle::GetDataFile("terrain/meshes/test.obj"), "test_mesh");
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 100, 100);
             break;
@@ -161,7 +147,7 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     // Create the vehicle Irrlicht interface
-    ChWheeledVehicleIrrApp app(&my_sedan.GetVehicle(), &my_sedan.GetPowertrain(), L"Sedan Demo");
+    ChWheeledVehicleIrrApp app(&my_sedan.GetVehicle(), L"Sedan Demo");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(trackPoint, 6.0, 0.5);
@@ -221,26 +207,25 @@ int main(int argc, char* argv[]) {
         my_sedan.LogHardpointLocations();
     }
 
-    //output vehicle mass
-    std::cout<<"VEHICLE MASS: "<<my_sedan.GetVehicle().GetVehicleMass()<<std::endl;
+    // output vehicle mass
+    std::cout << "VEHICLE MASS: " << my_sedan.GetVehicle().GetVehicleMass() << std::endl;
 
     // Number of simulation steps between miscellaneous events
     int render_steps = (int)std::ceil(render_step_size / step_size);
     int debug_steps = (int)std::ceil(debug_step_size / step_size);
 
-    // Initialize simulation frame counter and simulation time
-    ChRealtimeStepTimer realtime_timer;
+    // Initialize simulation frame counters
     int step_number = 0;
     int render_frame = 0;
-    double time = 0;
 
     if (contact_vis) {
         app.SetSymbolscale(1e-4);
         app.SetContactsDrawMode(ChIrrTools::eCh_ContactsDrawMode::CONTACT_FORCES);
     }
 
+    ChRealtimeStepTimer realtime_timer;
     while (app.GetDevice()->run()) {
-        time = my_sedan.GetSystem()->GetChTime();
+        double time = my_sedan.GetSystem()->GetChTime();
 
         // End simulation
         if (time >= t_end)
@@ -268,31 +253,32 @@ int main(int argc, char* argv[]) {
             my_sedan.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS);
         }
 
-        // Collect output data from modules (for inter-module communication)
-        double throttle_input = driver.GetThrottle();
-        double steering_input = driver.GetSteering();
-        double braking_input = driver.GetBraking();
+        // Get driver inputs
+        ChDriver::Inputs driver_inputs = driver.GetInputs();
 
         // Driver output
         if (driver_mode == RECORD) {
-            driver_csv << time << steering_input << throttle_input << braking_input << std::endl;
+            driver_csv << time << driver_inputs.m_steering << driver_inputs.m_throttle << driver_inputs.m_braking
+                       << std::endl;
         }
 
         // Update modules (process inputs from other modules)
         driver.Synchronize(time);
         terrain.Synchronize(time);
-        my_sedan.Synchronize(time, steering_input, braking_input, throttle_input, terrain);
-        app.Synchronize(driver.GetInputModeAsString(), steering_input, throttle_input, braking_input);
+        my_sedan.Synchronize(time, driver_inputs, terrain);
+        app.Synchronize(driver.GetInputModeAsString(), driver_inputs);
 
         // Advance simulation for one timestep for all modules
-        double step = realtime_timer.SuggestSimulationStep(step_size);
-        driver.Advance(step);
-        terrain.Advance(step);
-        my_sedan.Advance(step);
-        app.Advance(step);
+        driver.Advance(step_size);
+        terrain.Advance(step_size);
+        my_sedan.Advance(step_size);
+        app.Advance(step_size);
 
         // Increment frame number
         step_number++;
+
+        // Spin in place for real time to catch up
+        realtime_timer.Spin(step_size);
     }
 
     if (driver_mode == RECORD) {

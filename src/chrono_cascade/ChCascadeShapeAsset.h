@@ -12,8 +12,8 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#ifndef CHLINESHAPE_H
-#define CHLINESHAPE_H
+#ifndef CHCASCADESHAPEASSET_H
+#define CHCASCADESHAPEASSET_H
 
 #include "chrono_cascade/ChApiCASCADE.h"
 #include "chrono/assets/ChAsset.h"

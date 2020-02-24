@@ -15,7 +15,7 @@
 // =============================================================================
 
 #include "chrono/collision/ChCCollisionSystemBullet.h"
-#include "chrono/solver/ChIterativeSolver.h"
+#include "chrono/solver/ChIterativeSolverVI.h"
 
 #include "chrono/ChConfig.h"
 
@@ -277,11 +277,11 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
 }
 
 void ChOpenGLHUD::GenerateSolver(ChSystem* physics_system) {
-    double iters = std::static_pointer_cast<ChIterativeSolver>(physics_system->GetSolver())->GetTotalIterations();
+    double iters = std::static_pointer_cast<ChIterativeSolverVI>(physics_system->GetSolver())->GetIterations();
     const std::vector<double>& vhist =
-        std::static_pointer_cast<ChIterativeSolver>(physics_system->GetSolver())->GetViolationHistory();
+        std::static_pointer_cast<ChIterativeSolverVI>(physics_system->GetSolver())->GetViolationHistory();
     const std::vector<double>& dhist =
-        std::static_pointer_cast<ChIterativeSolver>(physics_system->GetSolver())->GetDeltalambdaHistory();
+        std::static_pointer_cast<ChIterativeSolverVI>(physics_system->GetSolver())->GetDeltalambdaHistory();
     double residual = vhist.size() > 0 ? vhist.back() : 0.0;
     double dlambda = dhist.size() > 0 ? dhist.back() : 0.0;
 

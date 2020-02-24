@@ -21,8 +21,6 @@
 #include "chrono_vehicle/tracked_vehicle/roller/DoubleRoller.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
-#include "chrono_thirdparty/rapidjson/filereadstream.h"
-
 using namespace rapidjson;
 
 namespace chrono {
@@ -31,15 +29,9 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 DoubleRoller::DoubleRoller(const std::string& filename) : ChDoubleRoller(""), m_has_mesh(false) {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     Create(d);
 
@@ -60,7 +52,7 @@ void DoubleRoller::Create(const rapidjson::Document& d) {
     m_roller_width = d["Roller"]["Width"].GetDouble();
     m_roller_gap = d["Roller"]["Gap"].GetDouble();
     m_roller_mass = d["Roller"]["Mass"].GetDouble();
-    m_roller_inertia = LoadVectorJSON(d["Roller"]["Inertia"]);
+    m_roller_inertia = ReadVectorJSON(d["Roller"]["Inertia"]);
 
     // Read contact material data
     assert(d.HasMember("Contact Material"));
@@ -98,9 +90,9 @@ void DoubleRoller::Create(const rapidjson::Document& d) {
 // -----------------------------------------------------------------------------
 void DoubleRoller::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH && m_has_mesh) {
-        auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
         trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
-        auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(m_meshName);
         trimesh_shape->SetStatic(true);

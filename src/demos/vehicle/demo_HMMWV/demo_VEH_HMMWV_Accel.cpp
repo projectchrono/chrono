@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2019 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -24,6 +24,7 @@
 #include "chrono/ChConfig.h"
 #include "chrono/utils/ChFilters.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/core/ChTimer.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -50,15 +51,16 @@ VisualizationType chassis_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType suspension_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType wheel_vis_type = VisualizationType::NONE;
+VisualizationType tire_vis_type = VisualizationType::PRIMITIVES;
 
-// Type of powertrain model (SHAFTS, SIMPLE)
+// Type of powertrain model (SHAFTS, SIMPLE, SIMPLE_CVT)
 PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
 
 // Drive type (FWD, RWD, or AWD)
 DrivelineType drive_type = DrivelineType::AWD;
 
-// Type of tire model (RIGID, RIGID_MESH, PACEJKA, LUGRE, FIALA, PAC89, TMEASY)
-TireModelType tire_model = TireModelType::FIALA;
+// Type of tire model (RIGID, RIGID_MESH, PACEJKA, LUGRE, FIALA, PAC89, PAC02, TMEASY)
+TireModelType tire_model = TireModelType::PAC02;
 
 // Terrain length (X direction)
 double terrainLength = 300.0;
@@ -86,13 +88,13 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetDriveType(drive_type);
     my_hmmwv.SetTireType(tire_model);
     my_hmmwv.SetTireStepSize(tire_step_size);
-    my_hmmwv.SetVehicleStepSize(step_size);
     my_hmmwv.SetAerodynamicDrag(0.5, 5.0, 1.2);
     my_hmmwv.Initialize();
 
     // Set subsystem visualization mode
-    VisualizationType tire_vis_type =
-        (tire_model == TireModelType::RIGID_MESH) ? VisualizationType::MESH : VisualizationType::PRIMITIVES;
+    if (tire_model == TireModelType::RIGID_MESH)
+        tire_vis_type = VisualizationType::MESH;
+
     my_hmmwv.SetChassisVisualizationType(chassis_vis_type);
     my_hmmwv.SetSuspensionVisualizationType(suspension_vis_type);
     my_hmmwv.SetSteeringVisualizationType(steering_vis_type);
@@ -110,7 +112,7 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     // Create the vehicle Irrlicht interface
-    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), &my_hmmwv.GetPowertrain(), L"HMMWV acceleration test");
+    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"HMMWV acceleration test");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
@@ -150,14 +152,18 @@ int main(int argc, char* argv[]) {
     double time = 0;
     bool done = false;
 
+    ChTimer<> timer;
+    timer.start();
     while (app.GetDevice()->run()) {
         time = my_hmmwv.GetSystem()->GetChTime();
 
         double speed = speed_filter.Add(my_hmmwv.GetVehicle().GetVehicleSpeed());
         if (!done) {
             speed_recorder.AddPoint(time, speed);
-            if (time > 1 && std::abs((speed - last_speed) / step_size) < 0.0005) {
+            if (time > 6 && std::abs((speed - last_speed) / step_size) < 2e-4) {
                 done = true;
+                timer.stop();
+                std::cout << "Simulation time: " << timer() << std::endl;
                 std::cout << "Maximum speed: " << speed << std::endl;
 #ifdef CHRONO_POSTPROCESS
                 postprocess::ChGnuPlot gplot;
@@ -177,21 +183,19 @@ int main(int argc, char* argv[]) {
         app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         app.DrawAll();
 
-        // Collect output data from modules (for inter-module communication)
-        double throttle_input = driver.GetThrottle();
-        double steering_input = driver.GetSteering();
-        double braking_input = driver.GetBraking();
+        // Driver inputs
+        ChDriver::Inputs driver_inputs = driver.GetInputs();
 
         if (done) {
-            throttle_input = 0.1;
-            braking_input = 0.8;
+            driver_inputs.m_throttle = 0.1;
+            driver_inputs.m_braking = 0.8;
         }
 
         // Update modules (process inputs from other modules)
         driver.Synchronize(time);
         terrain.Synchronize(time);
-        my_hmmwv.Synchronize(time, steering_input, braking_input, throttle_input, terrain);
-        app.Synchronize("Acceleration test", steering_input, throttle_input, braking_input);
+        my_hmmwv.Synchronize(time, driver_inputs, terrain);
+        app.Synchronize("Acceleration test", driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);

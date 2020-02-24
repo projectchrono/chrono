@@ -22,7 +22,7 @@ namespace chrono {
 namespace collision {
 
 CHAABBcollider::CHAABBcollider() {
-    this->Rabs.Set33Identity();
+    this->Rabs.setIdentity();
 }
 
 CHAABBcollider::~CHAABBcollider() {
@@ -38,7 +38,7 @@ void CHAABBcollider::CollideRecurse(CHAABBTree* o1, int b1, CHAABBTree* o2, int 
 
     static Vector Translation;
     Translation = Vsub(this->T, box1->To);
-    Translation = Vadd(Translation, this->R.Matr_x_Vect(box2->To));
+    Translation = Vadd(Translation, this->R * box2->To);
 
     if (!CHAABB::AABB_Overlap(this->R, this->Rabs, Translation, box1, box2))
         return;
@@ -128,23 +128,23 @@ ChNarrowPhaseCollider::eCollSuccess CHAABBcollider::ComputeCollisions(ChMatrix33
 
     const double reps = (double)1e-6;
     // Rabs = fabs(R)+eps
-    Rabs(0, 0) = myfabs(R.Get33Element(0, 0));
+    Rabs(0, 0) = myfabs(R(0, 0));
     Rabs(0, 0) += reps;
-    Rabs(0, 1) = myfabs(R.Get33Element(0, 1));
+    Rabs(0, 1) = myfabs(R(0, 1));
     Rabs(0, 1) += reps;
-    Rabs(0, 2) = myfabs(R.Get33Element(0, 2));
+    Rabs(0, 2) = myfabs(R(0, 2));
     Rabs(0, 2) += reps;
-    Rabs(1, 0) = myfabs(R.Get33Element(1, 0));
+    Rabs(1, 0) = myfabs(R(1, 0));
     Rabs(1, 0) += reps;
-    Rabs(1, 1) = myfabs(R.Get33Element(1, 1));
+    Rabs(1, 1) = myfabs(R(1, 1));
     Rabs(1, 1) += reps;
-    Rabs(1, 2) = myfabs(R.Get33Element(1, 2));
+    Rabs(1, 2) = myfabs(R(1, 2));
     Rabs(1, 2) += reps;
-    Rabs(2, 0) = myfabs(R.Get33Element(2, 0));
+    Rabs(2, 0) = myfabs(R(2, 0));
     Rabs(2, 0) += reps;
-    Rabs(2, 1) = myfabs(R.Get33Element(2, 1));
+    Rabs(2, 1) = myfabs(R(2, 1));
     Rabs(2, 1) += reps;
-    Rabs(2, 2) = myfabs(R.Get33Element(2, 2));
+    Rabs(2, 2) = myfabs(R(2, 2));
     Rabs(2, 2) += reps;
 
     // Now start with both top level BVs and recurse...

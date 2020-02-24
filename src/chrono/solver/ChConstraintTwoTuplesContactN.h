@@ -17,26 +17,21 @@
 
 namespace chrono {
 
-/// This is enough to use dynamic_casting<> to detect all template types
-/// from ChConstraintTwoTuplesContactN
-
 class ChApi ChConstraintTwoTuplesContactNall {
   public:
     /// Get the friction coefficient
-    double GetFrictionCoefficient() { return friction; }
+    double GetFrictionCoefficient() const { return friction; }
     /// Set the friction coefficient
     void SetFrictionCoefficient(double mcoeff) { friction = mcoeff; }
 
     /// Get the cohesion
-    double GetCohesion() { return cohesion; }
+    double GetCohesion() const { return cohesion; }
     /// Set the cohesion
     void SetCohesion(double mcoh) { cohesion = mcoh; }
 
   protected:
-    /// the friction coefficient 'f', for  sqrt(Tx^2+Ty^2)<f*Nz
-    double friction;
-    /// the cohesion 'c', positive, if any, for  sqrt(Tx^2+Ty^2)<f*(Nz+c)
-    double cohesion;
+    double friction;  ///< friction coefficient 'f', for sqrt(Tx^2+Ty^2)<f*Nz
+    double cohesion;  ///< cohesion 'c', non-negative, for sqrt(Tx^2+Ty^2)<f*(Nz+c)
 };
 
 /// This class is inherited from the ChConstraintTwoTuples,
@@ -56,10 +51,8 @@ template <class Ta, class Tb>
 class ChApi ChConstraintTwoTuplesContactN : public ChConstraintTwoTuples<Ta, Tb>,
                                             public ChConstraintTwoTuplesContactNall {
   protected:
-    /// the pointer to U tangential component
-    ChConstraintTwoTuplesFrictionT<Ta, Tb>* constraint_U;
-    /// the pointer to V tangential component
-    ChConstraintTwoTuplesFrictionT<Ta, Tb>* constraint_V;
+    ChConstraintTwoTuplesFrictionT<Ta, Tb>* constraint_U;  ///< U tangential component
+    ChConstraintTwoTuplesFrictionT<Ta, Tb>* constraint_V;  ///< V tangential component
 
   public:
     /// Default constructor
@@ -98,39 +91,29 @@ class ChApi ChConstraintTwoTuplesContactN : public ChConstraintTwoTuples<Ta, Tb>
     }
 
     /// Get pointer to U tangential component
-    ChConstraintTwoTuplesFrictionT<Ta, Tb>* GetTangentialConstraintU() { return constraint_U; }
+    ChConstraintTwoTuplesFrictionT<Ta, Tb>* GetTangentialConstraintU() const { return constraint_U; }
     /// Get pointer to V tangential component
-    ChConstraintTwoTuplesFrictionT<Ta, Tb>* GetTangentialConstraintV() { return constraint_V; }
+    ChConstraintTwoTuplesFrictionT<Ta, Tb>* GetTangentialConstraintV() const { return constraint_V; }
 
     /// Set pointer to U tangential component
     void SetTangentialConstraintU(ChConstraintTwoTuplesFrictionT<Ta, Tb>* mconstr) { constraint_U = mconstr; }
     /// Set pointer to V tangential component
     void SetTangentialConstraintV(ChConstraintTwoTuplesFrictionT<Ta, Tb>* mconstr) { constraint_V = mconstr; }
 
-    /// For iterative solvers: project the value of a possible
-    /// 'l_i' value of constraint reaction onto admissible set.
-    /// This projection will also modify the l_i values of the two
-    /// tangential friction constraints (projection onto the friction cone,
-    /// as by Anitescu-Tasora theory).
+    /// Project the value of a possible 'l_i' value of constraint reaction onto admissible set.
+    /// This will also modify the l_i values of the two tangential friction constraints
+    /// (projection onto the friction cone, as by Anitescu-Tasora theory).
     virtual void Project() override {
-        if (!constraint_U)
+        if (!constraint_U || !constraint_V)
             return;
 
-        if (!constraint_V)
-            return;
-
-        // METHOD
         // Anitescu-Tasora projection on cone generator and polar cone
         // (contractive, but performs correction on three components: normal,u,v)
 
         double f_n = this->l_i + this->cohesion;
-        double f_u = constraint_U->Get_l_i();
-        double f_v = constraint_V->Get_l_i();
 
-        double f_tang = sqrt(f_v * f_v + f_u * f_u);
-
-        // shortcut
-        if (!friction) {
+		// no friction? project to axis of upper cone
+        if (friction == 0) {
             constraint_U->Set_l_i(0);
             constraint_V->Set_l_i(0);
             if (f_n < 0)
@@ -138,27 +121,30 @@ class ChApi ChConstraintTwoTuplesContactN : public ChConstraintTwoTuples<Ta, Tb>
             return;
         }
 
-        // inside upper cone? keep untouched!
-        if (f_tang < friction * f_n)
-            return;
+        double f_u = constraint_U->Get_l_i();
+        double f_v = constraint_V->Get_l_i();
 
-        // inside lower cone? reset  normal,u,v to zero!
-        if ((f_tang < -(1.0 / friction) * f_n) || (fabs(f_n) < 10e-15)) {
-            double f_n_proj = 0;
-            double f_u_proj = 0;
-            double f_v_proj = 0;
+        double mu2 = friction * friction;
+        double f_n2 = f_n * f_n;
+        double f_t2 = (f_v * f_v + f_u * f_u);
 
-            this->Set_l_i(f_n_proj);
-            constraint_U->Set_l_i(f_u_proj);
-            constraint_V->Set_l_i(f_v_proj);
-
+        // inside lower cone or close to origin? reset normal, u, v to zero!
+        if ((f_n <= 0 && f_t2 < f_n2 / mu2) || (f_n < 1e-14 && f_n > -1e-14)) {
+            this->Set_l_i(0);
+            constraint_U->Set_l_i(0);
+            constraint_V->Set_l_i(0);
             return;
         }
 
-        // remaining case: project orthogonally to generator segment of upper cone
-        double f_n_proj = (f_tang * friction + f_n) / (friction * friction + 1);
-        double f_tang_proj = f_n_proj * friction;
-        double tproj_div_t = f_tang_proj / f_tang;
+        // inside upper cone? keep untouched!
+        if (f_t2 < f_n2 * mu2)
+            return;
+
+        // project orthogonally to generator segment of upper cone
+        double f_t = sqrt(f_t2);
+		double f_n_proj = (f_t * friction + f_n) / (mu2 + 1);
+        double f_t_proj = f_n_proj * friction;
+        double tproj_div_t = f_t_proj / f_t;
         double f_u_proj = tproj_div_t * f_u;
         double f_v_proj = tproj_div_t * f_v;
 

@@ -24,19 +24,17 @@
 namespace chrono {
 
 /// Mask structure for N scalar constraint equations between two bodies.
-
 class ChApi ChLinkMask {
   protected:
-    std::vector<ChConstraintTwoBodies*> constraints;  ///< array of pointers to 'n' scalar constraint states
+    std::vector<ChConstraintTwoBodies*> constraints;  ///< array of pointers to 'n' scalar constraints
 
   public:
-    int nconstr;  ///< number of scalar eq.of constraint.
+    int nconstr;  ///< number of scalar constraint equations.
 
-    /// Build a link mask with a single constraint of class ChConstraintTwoBodies().
+    /// Build a link mask with no constraints.
     ChLinkMask();
 
-    /// Build a link mask with a default array of mnconstr constraints
-    /// of class ChConstraintTwoBodies().
+    /// Build a link mask with a default array of mnconstr constraints of class ChConstraintTwoBodies().
     ChLinkMask(int mnconstr);
 
     /// Copy constructor
@@ -45,15 +43,14 @@ class ChApi ChLinkMask {
     /// Destructor
     virtual ~ChLinkMask();
 
-    /// "Virtual" copy constructor (covariant return type).
-    virtual ChLinkMask* Clone() const { return new ChLinkMask(*this); }
+    /// Assignment operator.
+    ChLinkMask& operator=(const ChLinkMask& other);
 
     /// Set references to variables of two connected bodies to all
     /// constraints at once, therefore also sets all the constraints as active.
     void SetTwoBodiesVariables(ChVariables* var1, ChVariables* var2);
 
-    /// Obtain the reference to the i-th scalar constraint data
-    /// in the collection link mask.
+    /// Obtain the reference to the i-th scalar constraint data in the collection link mask.
     ChConstraintTwoBodies& Constr_N(int i) {
         assert((i >= 0) && (i < nconstr));
         return *constraints[i];
@@ -70,9 +67,6 @@ class ChApi ChLinkMask {
 
     /// To compare two masks, return true if equal
     bool IsEqual(ChLinkMask& mask2);
-
-    /// Tells if i-th equation is a unilateral constraint
-    bool IsUnilateral(int i);
 
     // Get the number of removed degrees of freedom (n.of constraints)
 
@@ -111,8 +105,7 @@ CH_CLASS_VERSION(ChLinkMask, 0)
 
 // -----------------------------------------------------------------------------
 
-/// Specialized ChLinkMask class, for constraint equations of
-/// the ChLinkLock link.
+/// Specialized ChLinkMask class, for constraint equations of the ChLinkLock link.
 class ChApi ChLinkMaskLF : public ChLinkMask {
   public:
     /// Create a ChLinkMaskLF which has 7 scalar constraints of
@@ -121,8 +114,8 @@ class ChApi ChLinkMaskLF : public ChLinkMask {
     ChLinkMaskLF();
     ChLinkMaskLF(const ChLinkMaskLF& other) : ChLinkMask(other) {}
 
-    /// "Virtual" copy constructor (covariant return type).
-    virtual ChLinkMaskLF* Clone() const override { return new ChLinkMaskLF(*this); }
+    /// Assignment operator.
+    ChLinkMaskLF& operator=(const ChLinkMaskLF& other);
 
     /// Set all mask data at once
     void SetLockMask(bool x, bool y, bool z, bool e0, bool e1, bool e2, bool e3);

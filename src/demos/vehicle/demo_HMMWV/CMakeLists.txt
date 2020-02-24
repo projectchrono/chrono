@@ -1,6 +1,6 @@
 #=============================================================================
 # CMake configuration file for the HMMWV demos.
-# These example programs requires Irrlicht run-time visualization
+# These example programs require Irrlicht run-time visualization.
 #=============================================================================
 
 IF(NOT ENABLE_MODULE_IRRLICHT)
@@ -13,6 +13,7 @@ ENDIF()
 SET(DEMOS
     demo_VEH_HMMWV
     demo_VEH_HMMWV_Accel
+    demo_VEH_HMMWV_DoubleLaneChange
     demo_VEH_HMMWV_DefSoil)
 
 #--------------------------------------------------------------

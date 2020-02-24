@@ -28,6 +28,7 @@
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/ChVehicleOutput.h"
 #include "chrono_vehicle/ChChassis.h"
+#include "chrono_vehicle/ChPowertrain.h"
 
 namespace chrono {
 namespace vehicle {
@@ -63,6 +64,9 @@ class CH_VEHICLE_API ChVehicle {
 
     /// Get a handle to the vehicle's chassis body.
     std::shared_ptr<ChBodyAuxRef> GetChassisBody() const { return m_chassis->GetBody(); }
+
+    /// Get the powertrain attached to this vehicle.
+    virtual std::shared_ptr<ChPowertrain> GetPowertrain() const { return nullptr; }
 
     /// Get the vehicle total mass.
     /// This includes the mass of the chassis and all vehicle subsystems.
@@ -115,7 +119,7 @@ class CH_VEHICLE_API ChVehicle {
     ChVector<> GetDriverPos() const { return m_chassis->GetDriverPos(); }
 
     /// Enable output for this vehicle system.
-    void SetOutput(ChVehicleOutput::Type type,   ///< [int] type of ooutput DB
+    void SetOutput(ChVehicleOutput::Type type,   ///< [int] type of output DB
                    const std::string& out_dir,   ///< [in] output directory name
                    const std::string& out_name,  ///< [in] rootname of output file
                    double output_step            ///< [in] interval between output times
@@ -142,15 +146,9 @@ class CH_VEHICLE_API ChVehicle {
     void SetChassisOutput(bool state);
 
     /// Advance the state of this vehicle by the specified time step.
-    /// This is done only if the vehicle owns the underlying Chrono system.
+    /// A call to ChSystem::DoStepDynamics is done only if the vehicle owns the underlying Chrono system.
     /// Otherwise, the caller is responsible for advancing the sate of the entire system.
     virtual void Advance(double step);
-
-    /// Set the integration step size for the vehicle system.
-    void SetStepsize(double val) { m_stepsize = val; }
-
-    /// Get the current value of the integration step size for the vehicle system.
-    double GetStepsize() const { return m_stepsize; }
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations() = 0;
@@ -197,8 +195,6 @@ class CH_VEHICLE_API ChVehicle {
     int m_output_frame;            ///< current output frame
 
     std::shared_ptr<ChChassis> m_chassis;  ///< handle to the chassis subsystem
-
-    double m_stepsize;  ///< integration step-size for the vehicle system
 };
 
 /// @} vehicle

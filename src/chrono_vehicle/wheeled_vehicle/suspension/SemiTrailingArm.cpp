@@ -21,8 +21,6 @@
 #include "chrono_vehicle/wheeled_vehicle/suspension/SemiTrailingArm.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
-#include "chrono_thirdparty/rapidjson/filereadstream.h"
-
 using namespace rapidjson;
 
 namespace chrono {
@@ -33,15 +31,9 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 SemiTrailingArm::SemiTrailingArm(const std::string& filename)
     : ChSemiTrailingArm(""), m_springForceCB(NULL), m_shockForceCB(NULL) {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     Create(d);
 
@@ -73,8 +65,8 @@ void SemiTrailingArm::Create(const rapidjson::Document& d) {
     assert(d["Spindle"].IsObject());
 
     m_spindleMass = d["Spindle"]["Mass"].GetDouble();
-    m_points[SPINDLE] = LoadVectorJSON(d["Spindle"]["COM"]);
-    m_spindleInertia = LoadVectorJSON(d["Spindle"]["Inertia"]);
+    m_points[SPINDLE] = ReadVectorJSON(d["Spindle"]["COM"]);
+    m_spindleInertia = ReadVectorJSON(d["Spindle"]["Inertia"]);
     m_spindleRadius = d["Spindle"]["Radius"].GetDouble();
     m_spindleWidth = d["Spindle"]["Width"].GetDouble();
 
@@ -83,39 +75,58 @@ void SemiTrailingArm::Create(const rapidjson::Document& d) {
     assert(d["Trailing Arm"].IsObject());
 
     m_armMass = d["Trailing Arm"]["Mass"].GetDouble();
-    m_points[TA_CM] = LoadVectorJSON(d["Trailing Arm"]["COM"]);
-    m_armInertia = LoadVectorJSON(d["Trailing Arm"]["Inertia"]);
+    m_points[TA_CM] = ReadVectorJSON(d["Trailing Arm"]["COM"]);
+    m_armInertia = ReadVectorJSON(d["Trailing Arm"]["Inertia"]);
     m_armRadius = d["Trailing Arm"]["Radius"].GetDouble();
-    m_points[TA_O] = LoadVectorJSON(d["Trailing Arm"]["Location Chassis Outer"]);
-    m_points[TA_I] = LoadVectorJSON(d["Trailing Arm"]["Location Chassis Inner"]);
-    m_points[TA_S] = LoadVectorJSON(d["Trailing Arm"]["Location Spindle"]);
+    m_points[TA_O] = ReadVectorJSON(d["Trailing Arm"]["Location Chassis Outer"]);
+    m_points[TA_I] = ReadVectorJSON(d["Trailing Arm"]["Location Chassis Inner"]);
+    m_points[TA_S] = ReadVectorJSON(d["Trailing Arm"]["Location Spindle"]);
 
     // Read spring data and create force callback
     assert(d.HasMember("Spring"));
     assert(d["Spring"].IsObject());
 
-    m_points[SPRING_C] = LoadVectorJSON(d["Spring"]["Location Chassis"]);
-    m_points[SPRING_A] = LoadVectorJSON(d["Spring"]["Location Arm"]);
+    m_points[SPRING_C] = ReadVectorJSON(d["Spring"]["Location Chassis"]);
+    m_points[SPRING_A] = ReadVectorJSON(d["Spring"]["Location Arm"]);
     m_springRestLength = d["Spring"]["Free Length"].GetDouble();
 
-    if (d["Spring"].HasMember("Spring Coefficient")) {
-        m_springForceCB = new LinearSpringForce(d["Spring"]["Spring Coefficient"].GetDouble());
-    } else if (d["Spring"].HasMember("Curve Data")) {
-        int num_points = d["Spring"]["Curve Data"].Size();
-        MapSpringForce* springForceCB = new MapSpringForce();
-        for (int i = 0; i < num_points; i++) {
-            springForceCB->add_point(d["Spring"]["Curve Data"][i][0u].GetDouble(),
-                                     d["Spring"]["Curve Data"][i][1u].GetDouble());
+    if (d["Spring"].HasMember("Minimum Length") && d["Spring"].HasMember("Maximum Length")) {
+        // Use bump stops
+        if (d["Spring"].HasMember("Spring Coefficient")) {
+            m_springForceCB = new LinearSpringBistopForce(d["Spring"]["Spring Coefficient"].GetDouble(),
+                                                          d["Spring"]["Minimum Length"].GetDouble(),
+                                                          d["Spring"]["Maximum Length"].GetDouble());
+        } else if (d["Spring"].HasMember("Curve Data")) {
+            int num_points = d["Spring"]["Curve Data"].Size();
+            MapSpringBistopForce* springForceCB = new MapSpringBistopForce(d["Spring"]["Minimum Length"].GetDouble(),
+                                                                           d["Spring"]["Maximum Length"].GetDouble());
+            for (int i = 0; i < num_points; i++) {
+                springForceCB->add_point(d["Spring"]["Curve Data"][i][0u].GetDouble(),
+                                         d["Spring"]["Curve Data"][i][1u].GetDouble());
+            }
+            m_springForceCB = springForceCB;
         }
-        m_springForceCB = springForceCB;
+    } else {
+        // No bump stops
+        if (d["Spring"].HasMember("Spring Coefficient")) {
+            m_springForceCB = new LinearSpringForce(d["Spring"]["Spring Coefficient"].GetDouble());
+        } else if (d["Spring"].HasMember("Curve Data")) {
+            int num_points = d["Spring"]["Curve Data"].Size();
+            MapSpringForce* springForceCB = new MapSpringForce();
+            for (int i = 0; i < num_points; i++) {
+                springForceCB->add_point(d["Spring"]["Curve Data"][i][0u].GetDouble(),
+                                         d["Spring"]["Curve Data"][i][1u].GetDouble());
+            }
+            m_springForceCB = springForceCB;
+        }
     }
 
     // Read shock data and create force callback
     assert(d.HasMember("Shock"));
     assert(d["Shock"].IsObject());
 
-    m_points[SHOCK_C] = LoadVectorJSON(d["Shock"]["Location Chassis"]);
-    m_points[SHOCK_A] = LoadVectorJSON(d["Shock"]["Location Arm"]);
+    m_points[SHOCK_C] = ReadVectorJSON(d["Shock"]["Location Chassis"]);
+    m_points[SHOCK_A] = ReadVectorJSON(d["Shock"]["Location Arm"]);
 
     if (d["Shock"].HasMember("Damping Coefficient")) {
         m_shockForceCB = new LinearDamperForce(d["Shock"]["Damping Coefficient"].GetDouble());

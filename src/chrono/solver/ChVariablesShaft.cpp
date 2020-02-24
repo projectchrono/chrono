@@ -41,45 +41,43 @@ void ChVariablesShaft::SetInertia(double inertia) {
 
 // Computes the product of the inverse mass matrix by a
 // vector, and set in result: result = [invMb]*vect
-void ChVariablesShaft::Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
-    assert(vect.GetRows() == Get_ndof());
-    assert(result.GetRows() == Get_ndof());
+void ChVariablesShaft::Compute_invMb_v(ChVectorRef result, ChVectorConstRef vect) const {
+    assert(vect.size() == Get_ndof());
+    assert(result.size() == Get_ndof());
+
     result(0) = m_inv_inertia * vect(0);
 }
 
 // Computes the product of the inverse mass matrix by a
 // vector, and increment result: result += [invMb]*vect
-void ChVariablesShaft::Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
-    assert(vect.GetRows() == Get_ndof());
-    assert(result.GetRows() == Get_ndof());
-    result(0) += (float)m_inv_inertia * vect(0);
+void ChVariablesShaft::Compute_inc_invMb_v(ChVectorRef result, ChVectorConstRef vect) const {
+    assert(vect.size() == Get_ndof());
+    assert(result.size() == Get_ndof());
+
+    result(0) += m_inv_inertia * vect(0);
 }
 
 // Computes the product of the mass matrix by a
 // vector, and set in result: result = [Mb]*vect
-void ChVariablesShaft::Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
-    assert(result.GetRows() == vect.GetRows());
-    assert(vect.GetRows() == Get_ndof());
+void ChVariablesShaft::Compute_inc_Mb_v(ChVectorRef result, ChVectorConstRef vect) const {
+    assert(result.size() == Get_ndof());
+    assert(vect.size() == Get_ndof());
+
     result(0) += m_inertia * vect(0);
 }
 
-// Computes the product of the corresponding block in the
-// system matrix (ie. the mass matrix) by 'vect', scale by c_a, and add to 'result'.
-// NOTE: the 'vect' and 'result' vectors must already have
-// the size of the total variables&constraints in the system; the procedure
-// will use the ChVariable offsets (that must be already updated) to know the
-// indexes in result and vect.
-void ChVariablesShaft::MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect, const double c_a) const {
-    assert(result.GetColumns() == 1 && vect.GetColumns() == 1);
+// Computes the product of the corresponding block in the system matrix (ie. the mass matrix) by 'vect', scale by c_a,
+// and add to 'result'.
+// NOTE: the 'vect' and 'result' vectors must already have the size of the total variables&constraints in the system;
+// the procedure will use the ChVariable offsets (that must be already updated) to know the indexes in result and vect.
+void ChVariablesShaft::MultiplyAndAdd(ChVectorRef result, ChVectorConstRef vect, const double c_a) const {
     result(this->offset) += c_a * m_inertia * vect(this->offset);
 }
 
 // Add the diagonal of the mass matrix scaled by c_a, to 'result'.
-// NOTE: the 'result' vector must already have the size of system unknowns, ie
-// the size of the total variables&constraints in the system; the procedure
-// will use the ChVariable offset (that must be already updated) as index.
-void ChVariablesShaft::DiagonalAdd(ChMatrix<double>& result, const double c_a) const {
-    assert(result.GetColumns() == 1);
+// NOTE: the 'result' vector must already have the size of system unknowns, ie the size of the total variables &
+// constraints in the system; the procedure will use the ChVariable offset (that must be already updated) as index.
+void ChVariablesShaft::DiagonalAdd(ChVectorRef result, const double c_a) const {
     result(this->offset) += c_a * m_inertia;
 }
 

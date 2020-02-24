@@ -29,8 +29,6 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChBodyEasy.h"
 
-#include "chrono/solver/ChSolverMINRES.h"
-
 #include "chrono/fea/ChElementBrick_9.h"
 #include "chrono/fea/ChElementShellANCF.h"
 #include "chrono/fea/ChMesh.h"
@@ -109,7 +107,7 @@ void DPCapPress() {
     GetLog() << "-----------------------------------------------------------------------\n";
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     // Geometry of the plate
     double plate_lenght_x = 0.48;  // 0.4;
@@ -145,7 +143,7 @@ void DPCapPress() {
             double loc_y = (i / (numDiv_x + 1)) % (numDiv_y + 1) * dy;
             double loc_z = j * dz;
             // Create the node
-            auto node = std::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
+            auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
             node->SetMass(0);
 
             // Fix all nodes along the axis X=0
@@ -158,7 +156,7 @@ void DPCapPress() {
     }
 
     for (int i = 0; i < TotalNumElements; i++) {
-        auto node = std::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
+        auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
                                                     ChVector<>(0.0, 0.0, 0.0));
         node->SetMass(0);
         my_mesh->AddNode(node);
@@ -169,7 +167,7 @@ void DPCapPress() {
     ChVector<> E(54.1e6, 54.1e6, 54.1e6);         // (1.379e7, 1.379e7, 1.379e7);
     ChVector<> nu(0.293021, 0.293021, 0.293021);  // (0.3, 0.3, 0.3);
     // ChVector<> G(3.8461538e6, 3.8461538e6, 3.8461538e6);
-    auto material = std::make_shared<ChContinuumElastic>();
+    auto material = chrono_types::make_shared<ChContinuumElastic>();
     material->Set_RayleighDampingK(0.0);
     material->Set_RayleighDampingM(0.0);
     material->Set_density(rho);
@@ -241,7 +239,7 @@ void DPCapPress() {
         int node8 = (numDiv_z + 1) * XYNumNodes + i;
 
         // Create the element and set its nodes.
-        auto element = std::make_shared<ChElementBrick_9>();
+        auto element = chrono_types::make_shared<ChElementBrick_9>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node2)),
@@ -296,33 +294,30 @@ void DPCapPress() {
     // Add the mesh to the system
     my_system.Add(my_mesh);
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
     // -------------------------------------
     // Options for visualization in irrlicht
     // -------------------------------------
 
-    auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddAsset(mvisualizemesh);
 
-    auto mvisualizemeshref = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshref = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshref->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
     mvisualizemeshref->SetWireframe(true);
     mvisualizemeshref->SetDrawInUndeformedReference(true);
     my_mesh->AddAsset(mvisualizemeshref);
 
-    auto mvisualizemeshC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
     mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     mvisualizemeshC->SetSymbolsThickness(0.004);
     my_mesh->AddAsset(mvisualizemeshC);
 
-    auto mvisualizemeshD = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshD = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_VECT_SPEED);
     mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_ELEM_TENS_STRAIN);
     mvisualizemeshD->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
@@ -331,7 +326,7 @@ void DPCapPress() {
     mvisualizemeshD->SetZbufferHide(false);
     my_mesh->AddAsset(mvisualizemeshD);
 
-    auto mvisualizemeshcoll = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshcoll = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshcoll->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_CONTACTSURFACES);
     mvisualizemeshcoll->SetWireframe(true);
     mvisualizemeshcoll->SetDefaultMeshColor(ChColor(1, 0.5, 0));
@@ -341,10 +336,9 @@ void DPCapPress() {
     application.AssetUpdateAll();
 
     // Use the MKL Solver
-    auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
     my_system.SetSolver(mkl_solver);
-    mkl_solver->SetSparsityPatternLock(true);
-    my_system.Update();
+    mkl_solver->LockSparsityPattern(true);
 
     // Set the time integrator parameters
     my_system.SetTimestepperType(ChTimestepper::Type::HHT);
@@ -357,7 +351,6 @@ void DPCapPress() {
     mystepper->SetScaling(true);
     application.SetTimestep(timestep);
 
-    my_system.Setup();
     my_system.Update();
 
     std::string filename = out_dir + "/DPCapPress.txt";
@@ -440,7 +433,7 @@ void ShellBrickContact() {
     GetLog() << "-----------------------------------------------------------------------\n";
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     // Geometry of the bricked plate.
     double plate_lenght_x = 0.5;
@@ -494,7 +487,7 @@ void ShellBrickContact() {
             double loc_y = (i / (numDiv_x + 1)) % (numDiv_y + 1) * dy;
             double loc_z = j * dz;
             // Create the node
-            auto node = std::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
+            auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
             node->SetMass(0);
 
             // Fix all nodes along the axis X=0
@@ -507,7 +500,7 @@ void ShellBrickContact() {
     }
 
     for (int i = 0; i < TotalNumElements; i++) {
-        auto node = std::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
+        auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
                                                     ChVector<>(0.0, 0.0, 0.0));
         node->SetMass(0);
         my_mesh->AddNode(node);
@@ -518,7 +511,7 @@ void ShellBrickContact() {
         double loc_x = (k % (SnumDiv_x + 1)) * Sdx + 0.15;
         double loc_y = (k / (SnumDiv_x + 1)) % (SnumDiv_y + 1) * Sdy + 0.15;
         double loc_z = 0.13;
-        auto nodeshell = std::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(0.0, 0.0, 1.0));
+        auto nodeshell = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(0.0, 0.0, 1.0));
         nodeshell->SetMass(0);
         my_mesh->AddNode(nodeshell);
     }
@@ -530,7 +523,7 @@ void ShellBrickContact() {
     ChVector<> E(1.379e7, 1.379e7, 1.379e7);
     ChVector<> nu(0.3, 0.3, 0.3);
     // ChVector<> G(3.8461538e6, 3.8461538e6, 3.8461538e6);
-    auto material = std::make_shared<ChContinuumElastic>();
+    auto material = chrono_types::make_shared<ChContinuumElastic>();
     material->Set_RayleighDampingK(0.0);
     material->Set_RayleighDampingM(0.0);
     material->Set_density(rho);
@@ -541,7 +534,7 @@ void ShellBrickContact() {
     ChVector<> ES(2.1e10, 2.1e10, 2.1e10);                 // Modulus of elasticity
     ChVector<> nuS(0.3, 0.3, 0.3);                         // Poisson ratio
     ChVector<> GS(8.0769231e9, 8.0769231e9, 8.0769231e9);  // Modulus of rigidity
-    auto mat = std::make_shared<ChMaterialShellANCF>(rhoS, ES, nuS, GS);
+    auto mat = chrono_types::make_shared<ChMaterialShellANCF>(rhoS, ES, nuS, GS);
     std::shared_ptr<ChMaterialSurfaceSMC> my_surfacematerial(new ChMaterialSurfaceSMC);
     my_surfacematerial->SetKn(3e6f);
     my_surfacematerial->SetKt(3e6f);
@@ -576,7 +569,7 @@ void ShellBrickContact() {
         int node8 = (numDiv_z + 1) * XYNumNodes + i;
 
         // Create the element and set its nodes.
-        auto element = std::make_shared<ChElementBrick_9>();
+        auto element = chrono_types::make_shared<ChElementBrick_9>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node2)),
@@ -624,7 +617,7 @@ void ShellBrickContact() {
         int node2 = (ii / (SnumDiv_x)) * (SN_x) + ii % SnumDiv_x + 1 + SN_x;
         int node3 = (ii / (SnumDiv_x)) * (SN_x) + ii % SnumDiv_x + SN_x;
 
-        auto elementshell = std::make_shared<ChElementShellANCF>();
+        auto elementshell = chrono_types::make_shared<ChElementShellANCF>();
         elementshell->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(TotalNumNodes + node0)),
                                std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(TotalNumNodes + node1)),
                                std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(TotalNumNodes + node2)),
@@ -650,33 +643,30 @@ void ShellBrickContact() {
     my_system.Set_G_acc(ChVector<>(0.0, 0.0, -9.81));
     my_mesh->SetAutomaticGravity(false);
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
     // -------------------------------------
     // Options for visualization in irrlicht
     // -------------------------------------
 
-    auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddAsset(mvisualizemesh);
 
-    auto mvisualizemeshref = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshref = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshref->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
     mvisualizemeshref->SetWireframe(true);
     mvisualizemeshref->SetDrawInUndeformedReference(true);
     my_mesh->AddAsset(mvisualizemeshref);
 
-    auto mvisualizemeshC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
     mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     mvisualizemeshC->SetSymbolsThickness(0.004);
     my_mesh->AddAsset(mvisualizemeshC);
 
-    auto mvisualizemeshD = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshD = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_VECT_SPEED);
     mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_ELEM_TENS_STRAIN);
     mvisualizemeshD->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
@@ -685,7 +675,7 @@ void ShellBrickContact() {
     mvisualizemeshD->SetZbufferHide(false);
     my_mesh->AddAsset(mvisualizemeshD);
 
-    auto mvisualizemeshcoll = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshcoll = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshcoll->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_CONTACTSURFACES);
     mvisualizemeshcoll->SetWireframe(true);
     mvisualizemeshcoll->SetDefaultMeshColor(ChColor(1, 0.5, 0));
@@ -695,10 +685,9 @@ void ShellBrickContact() {
     application.AssetUpdateAll();
 
     // Use the MKL Solver
-    auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
     my_system.SetSolver(mkl_solver);
-    mkl_solver->SetSparsityPatternLock(true);
-    my_system.Update();
+    mkl_solver->LockSparsityPattern(true);
 
     // Set the time integrator parameters
     my_system.SetTimestepperType(ChTimestepper::Type::HHT);
@@ -711,7 +700,6 @@ void ShellBrickContact() {
     mystepper->SetScaling(true);
     application.SetTimestep(timestep);
 
-    my_system.Setup();
     my_system.Update();
 
     std::string filename = out_dir + "/ShellBrickContact.txt";
@@ -800,7 +788,7 @@ void SimpleBoxContact() {
     GetLog() << "-----------------------------------------------------------------------\n";
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     // Geometry of the plate
     double plate_lenght_x = 0.05;
@@ -837,7 +825,7 @@ void SimpleBoxContact() {
             double loc_y = (i / (numDiv_x + 1)) % (numDiv_y + 1) * dy;
             double loc_z = j * dz + brick_gap;
             // Create the node
-            auto node = std::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
+            auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
             node->SetMass(0);
 
             // Add node to mesh
@@ -846,7 +834,7 @@ void SimpleBoxContact() {
     }
 
     for (int i = 0; i < TotalNumElements; i++) {
-        auto node = std::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
+        auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
                                                     ChVector<>(0.0, 0.0, 0.0));
         node->SetMass(0);
         my_mesh->AddNode(node);
@@ -859,7 +847,7 @@ void SimpleBoxContact() {
     ChVector<> E(200e9, 200e9, 200e9);
     ChVector<> nu(0.3, 0.3, 0.3);
     // ChVector<> G(3.8461538e6, 3.8461538e6, 3.8461538e6);
-    auto material = std::make_shared<ChContinuumElastic>();
+    auto material = chrono_types::make_shared<ChContinuumElastic>();
     material->Set_RayleighDampingK(0.0);
     material->Set_RayleighDampingM(0.0);
     material->Set_density(rho);
@@ -899,7 +887,7 @@ void SimpleBoxContact() {
         int node8 = (numDiv_z + 1) * XYNumNodes + i;
 
         // Create the element and set its nodes.
-        auto element = std::make_shared<ChElementBrick_9>();
+        auto element = chrono_types::make_shared<ChElementBrick_9>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node2)),
@@ -955,7 +943,7 @@ void SimpleBoxContact() {
     double plate_w = 0.1;
     double plate_l = 0.1;
     double plate_h = 0.1;
-    auto Plate = std::make_shared<ChBodyEasyBox>(plate_l, plate_w, plate_h, 1000, true);
+    auto Plate = chrono_types::make_shared<ChBodyEasyBox>(plate_l, plate_w, plate_h, 1000, true);
     my_system.Add(Plate);
     Plate->SetBodyFixed(true);
     Plate->SetPos(ChVector<>(0.025, 0.025, -0.0015 - plate_h / 2));
@@ -966,33 +954,30 @@ void SimpleBoxContact() {
     my_system.Set_G_acc(ChVector<>(0.0, 0.0, -9.81));
     my_mesh->SetAutomaticGravity(false);
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
     // -------------------------------------
     // Options for visualization in irrlicht
     // -------------------------------------
 
-    auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.99);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddAsset(mvisualizemesh);
 
-    auto mvisualizemeshref = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshref = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshref->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
     mvisualizemeshref->SetWireframe(true);
     mvisualizemeshref->SetDrawInUndeformedReference(true);
     my_mesh->AddAsset(mvisualizemeshref);
 
-    auto mvisualizemeshC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
     mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     mvisualizemeshC->SetSymbolsThickness(0.004);
     my_mesh->AddAsset(mvisualizemeshC);
 
-    auto mvisualizemeshD = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshD = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_VECT_SPEED);
     mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_ELEM_TENS_STRAIN);
     mvisualizemeshD->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
@@ -1001,7 +986,7 @@ void SimpleBoxContact() {
     mvisualizemeshD->SetZbufferHide(false);
     my_mesh->AddAsset(mvisualizemeshD);
 
-    auto mvisualizemeshcoll = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshcoll = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshcoll->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_CONTACTSURFACES);
     mvisualizemeshcoll->SetWireframe(true);
     mvisualizemeshcoll->SetDefaultMeshColor(ChColor(1, 0.5, 0));
@@ -1011,10 +996,9 @@ void SimpleBoxContact() {
     application.AssetUpdateAll();
 
     // Use the MKL Solver
-    auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
     my_system.SetSolver(mkl_solver);
-    mkl_solver->SetSparsityPatternLock(true);
-    my_system.Update();
+    mkl_solver->LockSparsityPattern(true);
 
     // Set the time integrator parameters
     my_system.SetTimestepperType(ChTimestepper::Type::HHT);
@@ -1027,7 +1011,6 @@ void SimpleBoxContact() {
     mystepper->SetScaling(true);
     application.SetTimestep(timestep);
 
-    my_system.Setup();
     my_system.Update();
 
     std::string filename = out_dir + "/SimpleBoxContact.txt";
@@ -1108,7 +1091,7 @@ void SoilBin() {
     GetLog() << "-----------------------------------------------------------------------\n";
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     // Geometry of the plate
     double plate_lenght_x = 0.4;
@@ -1144,7 +1127,7 @@ void SoilBin() {
             double loc_y = (i / (numDiv_x + 1)) % (numDiv_y + 1) * dy;
             double loc_z = j * dz;
             // Create the node
-            auto node = std::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
+            auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
             node->SetMass(0);
 
             // Fix all nodes along the axis X=0
@@ -1157,7 +1140,7 @@ void SoilBin() {
     }
 
     for (int i = 0; i < TotalNumElements; i++) {
-        auto node = std::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
+        auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
                                                     ChVector<>(0.0, 0.0, 0.0));
         node->SetMass(0);
         my_mesh->AddNode(node);
@@ -1171,7 +1154,7 @@ void SoilBin() {
     ChVector<> E(1.379e7, 1.379e7, 1.379e7);
     ChVector<> nu(0.3, 0.3, 0.3);
     // ChVector<> G(3.8461538e6, 3.8461538e6, 3.8461538e6);
-    auto material = std::make_shared<ChContinuumElastic>();
+    auto material = chrono_types::make_shared<ChContinuumElastic>();
     material->Set_RayleighDampingK(0.0);
     material->Set_RayleighDampingM(0.0);
     material->Set_density(rho);
@@ -1209,7 +1192,7 @@ void SoilBin() {
         int node8 = (numDiv_z + 1) * XYNumNodes + i;
 
         // Create the element and set its nodes.
-        auto element = std::make_shared<ChElementBrick_9>();
+        auto element = chrono_types::make_shared<ChElementBrick_9>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node2)),
@@ -1269,7 +1252,7 @@ void SoilBin() {
     double plate_w = 0.2;  // 0.15
     double plate_l = 0.2;  // 0.15
     double plate_h = 0.1;
-    auto Plate = std::make_shared<ChBodyEasyBox>(plate_l, plate_w, plate_h, 1000, true);
+    auto Plate = chrono_types::make_shared<ChBodyEasyBox>(plate_l, plate_w, plate_h, 1000, true);
     my_system.Add(Plate);
     Plate->SetBodyFixed(false);
     Plate->SetPos(ChVector<>(0.2, 0.2, 0.6001 + plate_h / 2));
@@ -1280,7 +1263,7 @@ void SoilBin() {
     Plate->SetMaterialSurface(my_surfacematerial);
 
     //// Create ground body
-    auto Ground = std::make_shared<ChBody>();
+    auto Ground = chrono_types::make_shared<ChBody>();
     Ground->SetBodyFixed(true);
     Ground->SetPos(ChVector<>(0.0, 0.0, -0.02));
     Ground->SetRot(ChQuaternion<>(1.0, 0.0, 0.0, 0.0));
@@ -1293,41 +1276,38 @@ void SoilBin() {
     std::shared_ptr<ChLinkLockPointPlane> constraintLongitudinal;
 
     ////// Constrain only the lateral displacement of the Rim
-    constraintLateral = std::make_shared<ChLinkLockPointPlane>();
+    constraintLateral = chrono_types::make_shared<ChLinkLockPointPlane>();
     my_system.AddLink(constraintLateral);
     constraintLateral->Initialize(Plate, Ground, ChCoordsys<>(Plate->GetPos(), Q_from_AngX(CH_C_PI_2)));
 
-    constraintLongitudinal = std::make_shared<ChLinkLockPointPlane>();
+    constraintLongitudinal = chrono_types::make_shared<ChLinkLockPointPlane>();
     my_system.AddLink(constraintLongitudinal);
     constraintLongitudinal->Initialize(Plate, Ground, ChCoordsys<>(Plate->GetPos(), Q_from_AngY(CH_C_PI_2)));
-
-    // Mark completion of system construction
-    my_system.SetupInitial();
 
     // -------------------------------------
     // Options for visualization in irrlicht
     // -------------------------------------
 
-    auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddAsset(mvisualizemesh);
 
-    auto mvisualizemeshref = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshref = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshref->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
     mvisualizemeshref->SetWireframe(true);
     mvisualizemeshref->SetDrawInUndeformedReference(true);
     my_mesh->AddAsset(mvisualizemeshref);
 
-    auto mvisualizemeshC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
     mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     mvisualizemeshC->SetSymbolsThickness(0.004);
     my_mesh->AddAsset(mvisualizemeshC);
 
-    auto mvisualizemeshD = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshD = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_VECT_SPEED);
     mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_ELEM_TENS_STRAIN);
     mvisualizemeshD->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
@@ -1336,7 +1316,7 @@ void SoilBin() {
     mvisualizemeshD->SetZbufferHide(false);
     my_mesh->AddAsset(mvisualizemeshD);
 
-    auto mvisualizemeshcoll = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshcoll = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshcoll->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_CONTACTSURFACES);
     mvisualizemeshcoll->SetWireframe(true);
     mvisualizemeshcoll->SetDefaultMeshColor(ChColor(1, 0.5, 0));
@@ -1346,10 +1326,9 @@ void SoilBin() {
     application.AssetUpdateAll();
 
     // Use the MKL Solver
-    auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
     my_system.SetSolver(mkl_solver);
-    mkl_solver->SetSparsityPatternLock(true);
-    my_system.Update();
+    mkl_solver->LockSparsityPattern(true);
 
     // Set the time integrator parameters
     my_system.SetTimestepperType(ChTimestepper::Type::HHT);
@@ -1362,7 +1341,6 @@ void SoilBin() {
     mystepper->SetScaling(true);
     application.SetTimestep(timestep);
 
-    my_system.Setup();
     my_system.Update();
 
     std::string filename = out_dir + "/SoilBin.txt";
@@ -1451,7 +1429,7 @@ void AxialDynamics() {
     GetLog() << "-----------------------------------------------------------------------\n";
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     // Geometry of the plate
     double plate_lenght_x = 1;
@@ -1487,7 +1465,7 @@ void AxialDynamics() {
             double loc_y = (i / (numDiv_x + 1)) % (numDiv_y + 1) * dy;
             double loc_z = j * dz;
             // Create the node
-            auto node = std::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
+            auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
             node->SetMass(0);
 
             // Fix all nodes along the axis X=0
@@ -1500,7 +1478,7 @@ void AxialDynamics() {
     }
 
     for (int i = 0; i < TotalNumElements; i++) {
-        auto node = std::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
+        auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
                                                     ChVector<>(0.0, 0.0, 0.0));
         node->SetMass(0);
         my_mesh->AddNode(node);
@@ -1521,7 +1499,7 @@ void AxialDynamics() {
     ChVector<> E(1.0e7, 1.0e7, 1.0e7);
     ChVector<> nu(0.3, 0.3, 0.3);
     ChVector<> G(3.8461538e6, 3.8461538e6, 3.8461538e6);
-    auto material = std::make_shared<ChContinuumElastic>();
+    auto material = chrono_types::make_shared<ChContinuumElastic>();
     material->Set_RayleighDampingK(0.0);
     material->Set_RayleighDampingM(0.0);
     material->Set_density(rho);
@@ -1548,7 +1526,7 @@ void AxialDynamics() {
         int node8 = 2 * XYNumNodes + i;
 
         // Create the element and set its nodes.
-        auto element = std::make_shared<ChElementBrick_9>();
+        auto element = chrono_types::make_shared<ChElementBrick_9>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node2)),
@@ -1596,33 +1574,30 @@ void AxialDynamics() {
     my_system.Set_G_acc(ChVector<>(0.0, 0.0, 0.0));
     my_mesh->SetAutomaticGravity(false);
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
     // -------------------------------------
     // Options for visualization in irrlicht
     // -------------------------------------
 
-    // auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    // auto mvisualizemesh = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     // mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
     // mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     // mvisualizemesh->SetShrinkElements(true, 0.85);
     // mvisualizemesh->SetSmoothFaces(true);
     // my_mesh->AddAsset(mvisualizemesh);
 
-    // auto mvisualizemeshref = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    // auto mvisualizemeshref = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     // mvisualizemeshref->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
     // mvisualizemeshref->SetWireframe(true);
     // mvisualizemeshref->SetDrawInUndeformedReference(true);
     // my_mesh->AddAsset(mvisualizemeshref);
 
-    // auto mvisualizemeshC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    // auto mvisualizemeshC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     // mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
     // mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     // mvisualizemeshC->SetSymbolsThickness(0.004);
     // my_mesh->AddAsset(mvisualizemeshC);
 
-    // auto mvisualizemeshD = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    // auto mvisualizemeshD = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     //// mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_VECT_SPEED);
     // mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_ELEM_TENS_STRAIN);
     // mvisualizemeshD->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
@@ -1635,10 +1610,9 @@ void AxialDynamics() {
     // application.AssetUpdateAll();
 
     // Use the MKL Solver
-    auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
     my_system.SetSolver(mkl_solver);
-    mkl_solver->SetSparsityPatternLock(true);
-    my_system.Update();
+    mkl_solver->LockSparsityPattern(true);
 
     // Set the time integrator parameters
     my_system.SetTimestepperType(ChTimestepper::Type::HHT);
@@ -1651,7 +1625,6 @@ void AxialDynamics() {
     mystepper->SetScaling(true);
     // application.SetTimestep(timestep);
 
-    my_system.Setup();
     my_system.Update();
 
     std::string filename = out_dir + "/AxialDynamics.txt";
@@ -1719,7 +1692,7 @@ void BendingQuasiStatic() {
     GetLog() << "-----------------------------------------------------------\n";
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
     int numFlexBody = 1;
     // Geometry of the plate
     double plate_lenght_x = 1;
@@ -1751,7 +1724,7 @@ void BendingQuasiStatic() {
             double loc_z = j * dz;
 
             // Create the node
-            auto node = std::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
+            auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
             node->SetMass(0);
 
             // Fix all nodes along the axis X=0
@@ -1764,7 +1737,7 @@ void BendingQuasiStatic() {
     }
 
     for (int i = 0; i < TotalNumElements; i++) {
-        auto node = std::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
+        auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
                                                     ChVector<>(0.0, 0.0, 0.0));
         node->SetMass(0);
         my_mesh->AddNode(node);
@@ -1778,7 +1751,7 @@ void BendingQuasiStatic() {
     ChVector<> E(2.1e8, 2.1e8, 2.1e8);
     ChVector<> nu(0.3, 0.3, 0.3);
     ChVector<> G(8.0769231e7, 8.0769231e7, 8.0769231e7);
-    auto material = std::make_shared<ChContinuumElastic>();
+    auto material = chrono_types::make_shared<ChContinuumElastic>();
     material->Set_RayleighDampingK(0.0);
     material->Set_RayleighDampingM(0.0);
     material->Set_density(rho);
@@ -1800,7 +1773,7 @@ void BendingQuasiStatic() {
         int node8 = 2 * XYNumNodes + i;
 
         // Create the element and set its nodes.
-        auto element = std::make_shared<ChElementBrick_9>();
+        auto element = chrono_types::make_shared<ChElementBrick_9>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node2)),
@@ -1833,33 +1806,30 @@ void BendingQuasiStatic() {
 
     my_system.Set_G_acc(ChVector<>(0.0, 0.0, 0.0));
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
     // -------------------------------------
     // Options for visualization in irrlicht
     // -------------------------------------
 
-    auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddAsset(mvisualizemesh);
 
-    auto mvisualizemeshref = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshref = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshref->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
     mvisualizemeshref->SetWireframe(true);
     mvisualizemeshref->SetDrawInUndeformedReference(true);
     my_mesh->AddAsset(mvisualizemeshref);
 
-    auto mvisualizemeshC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
     mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     mvisualizemeshC->SetSymbolsThickness(0.004);
     my_mesh->AddAsset(mvisualizemeshC);
 
-    auto mvisualizemeshD = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshD = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     // mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_VECT_SPEED);
     mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_ELEM_TENS_STRAIN);
     mvisualizemeshD->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
@@ -1875,18 +1845,10 @@ void BendingQuasiStatic() {
     // Perform a dynamic time integration
     // ----------------------------------
 
-    // Set up solver
-    // my_system.SetSolverType(ChSolver::Type::MINRES);
-    // auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    // msolver->SetDiagonalPreconditioning(true);
-    // my_system.SetMaxItersSolverSpeed(100);
-    // my_system.SetTolForce(1e-10);
-
     // Use the MKL Solver
-    auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
     my_system.SetSolver(mkl_solver);
-    mkl_solver->SetSparsityPatternLock(true);
-    my_system.Update();
+    mkl_solver->LockSparsityPattern(true);
 
     // Set the time integrator parameters
     my_system.SetTimestepperType(ChTimestepper::Type::HHT);
@@ -1899,7 +1861,6 @@ void BendingQuasiStatic() {
     mystepper->SetScaling(true);
     application.SetTimestep(timestep);
 
-    my_system.Setup();
     my_system.Update();
 
     std::string filename = out_dir + "/BendingQuasistatic.txt";
@@ -1961,7 +1922,7 @@ void SwingingShell() {
     GetLog() << "--------------------------------------------------------------------\n";
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     // Geometry of the plate
     double plate_lenght_x = 1;
@@ -1996,7 +1957,7 @@ void SwingingShell() {
             double loc_z = j * dz;
 
             // Create the node
-            auto node = std::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
+            auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
             node->SetMass(0);
             // Fix all nodes along the axis X=0
             if (i == 0 && j == 0)
@@ -2008,7 +1969,7 @@ void SwingingShell() {
     }
 
     for (int i = 0; i < TotalNumElements; i++) {
-        auto node = std::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
+        auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
                                                     ChVector<>(0.0, 0.0, 0.0));
         node->SetMass(0);
         my_mesh->AddNode(node);
@@ -2024,7 +1985,7 @@ void SwingingShell() {
     ChVector<> E(2.1e7, 2.1e7, 2.1e7);
     ChVector<> nu(0.3, 0.3, 0.3);
     ChVector<> G(8.0769231e6, 8.0769231e6, 8.0769231e6);
-    auto material = std::make_shared<ChContinuumElastic>();
+    auto material = chrono_types::make_shared<ChContinuumElastic>();
     material->Set_RayleighDampingK(0.0);
     material->Set_RayleighDampingM(0.0);
     material->Set_density(rho);
@@ -2046,7 +2007,7 @@ void SwingingShell() {
         int node8 = 2 * XYNumNodes + i;
 
         // Create the element and set its nodes.
-        auto element = std::make_shared<ChElementBrick_9>();
+        auto element = chrono_types::make_shared<ChElementBrick_9>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node2)),
@@ -2083,29 +2044,26 @@ void SwingingShell() {
     my_system.Set_G_acc(ChVector<>(0.0, 0.0, -9.81));
     my_mesh->SetAutomaticGravity(false);
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
-    auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddAsset(mvisualizemesh);
 
-    auto mvisualizemeshref = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshref = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshref->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_ELEM_STRESS_VONMISES);
     mvisualizemeshref->SetWireframe(true);
     mvisualizemeshref->SetDrawInUndeformedReference(true);
     my_mesh->AddAsset(mvisualizemeshref);
 
-    auto mvisualizemeshC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
     mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     mvisualizemeshC->SetSymbolsThickness(0.004);
     my_mesh->AddAsset(mvisualizemeshC);
 
-    auto mvisualizemeshD = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshD = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     // mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_VECT_SPEED);
     mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_ELEM_TENS_STRAIN);
     mvisualizemeshD->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
@@ -2121,18 +2079,10 @@ void SwingingShell() {
     // Perform a dynamic time integration
     // ----------------------------------
 
-    // Set up solver
-    // my_system.SetSolverType(ChSolver::Type::MINRES);
-    // auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    // msolver->SetDiagonalPreconditioning(true);
-    // my_system.SetMaxItersSolverSpeed(100);
-    // my_system.SetTolForce(1e-10);
-
     // Use the MKL Solver
-    auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
     my_system.SetSolver(mkl_solver);
-    mkl_solver->SetSparsityPatternLock(true);
-    my_system.Update();
+    mkl_solver->LockSparsityPattern(true);
 
     // Set the time integrator parameters
     my_system.SetTimestepperType(ChTimestepper::Type::HHT);
@@ -2145,7 +2095,6 @@ void SwingingShell() {
     mystepper->SetScaling(true);
     application.SetTimestep(timestep);
 
-    my_system.Setup();
     my_system.Update();
 
     std::string filename = out_dir + "SwingingShell.txt";

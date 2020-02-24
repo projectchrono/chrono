@@ -23,7 +23,7 @@
 #include "chrono/physics/ChContactContainerSMC.h"
 
 #include "chrono/solver/ChSystemDescriptor.h"
-#include "chrono/solver/ChSolverSMC.h"
+#include "chrono/solver/ChIterativeSolverLS.h"
 
 #include "chrono/collision/ChCCollisionSystemBullet.h"
 
@@ -39,19 +39,17 @@ ChSystemSMC::ChSystemSMC(bool use_material_properties, unsigned int max_objects,
       m_adhesion_model(Constant),
       m_tdispl_model(OneStep),
       m_stiff_contact(false) {
-    descriptor = std::make_shared<ChSystemDescriptor>();
-    descriptor->SetNumThreads(parallel_thread_number);
+    descriptor = chrono_types::make_shared<ChSystemDescriptor>();
 
-    solver_speed = std::make_shared<ChSolverSMC>();
-    solver_stab = std::make_shared<ChSolverSMC>();
+    SetSolverType(ChSolver::Type::PSOR);
 
-    collision_system = std::make_shared<collision::ChCollisionSystemBullet>(max_objects, scene_size);
+    collision_system = chrono_types::make_shared<collision::ChCollisionSystemBullet>(max_objects, scene_size);
 
     // For default SMC there is no need to create contacts 'in advance'
     // when models are closer than the safety envelope, so set default envelope to 0
     collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0);
 
-    contact_container = std::make_shared<ChContactContainerSMC>();
+    contact_container = chrono_types::make_shared<ChContactContainerSMC>();
     contact_container->SetSystem(this);
 
     m_minSlipVelocity = 1e-4;
@@ -78,11 +76,14 @@ class my_enum_mappers : public ChSystemSMC {
     CH_ENUM_MAPPER_BEGIN(ContactForceModel);
     CH_ENUM_VAL(Hooke);
     CH_ENUM_VAL(Hertz);
+    CH_ENUM_VAL(PlainCoulomb);
+    CH_ENUM_VAL(Flores)
     CH_ENUM_MAPPER_END(ContactForceModel);
 
     CH_ENUM_MAPPER_BEGIN(AdhesionForceModel);
     CH_ENUM_VAL(Constant);
     CH_ENUM_VAL(DMT);
+    CH_ENUM_VAL(Perko);
     CH_ENUM_MAPPER_END(AdhesionForceModel);
 
     CH_ENUM_MAPPER_BEGIN(TangentialDisplacementModel);

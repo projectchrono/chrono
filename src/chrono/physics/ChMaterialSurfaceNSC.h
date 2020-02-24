@@ -23,7 +23,6 @@ namespace chrono {
 /// This data is used to define surface properties owned by ChBody rigid bodies and
 /// similar objects; it carries information that is used to make contacts.
 class ChApi ChMaterialSurfaceNSC : public ChMaterialSurface {
-
   public:
     float static_friction;
     float sliding_friction;

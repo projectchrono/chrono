@@ -19,7 +19,6 @@
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChMath.h"
-#include "chrono/core/ChVectorDynamic.h"
 #include "chrono/timestepper/ChState.h"
 
 namespace chrono {
@@ -45,8 +44,8 @@ class ChApi ChIntegrable {
 
     /// Set up the system state.
     virtual void StateSetup(ChState& y, ChStateDelta& dy) {
-        y.Resize(GetNcoords_y(), 1);
-        dy.Resize(GetNcoords_dy(), 1);
+        y.resize(GetNcoords_y());
+        dy.resize(GetNcoords_dy());
     }
 
     /// Gather system state in specified array.
@@ -323,7 +322,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
                                 const double c         ///< a scaling factor
                                 ) override {
         throw ChException("LoadResidual_F() not implemented, implicit integrators cannot be used. ");
-    };
+    }
 
     /// Assuming   M*a = F(x,v,t) + Cq'*L
     ///         C(x,t) = 0
@@ -335,7 +334,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
                                  const double c               ///< a scaling factor
                                  ) {
         throw ChException("LoadResidual_Mv() not implemented, implicit integrators cannot be used. ");
-    };
+    }
 
     /// Assuming   M*a = F(x,v,t) + Cq'*L
     ///         C(x,t) = 0
@@ -347,7 +346,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
                                   const double c               ///< a scaling factor
                                   ) override {
         throw ChException("LoadResidual_CqL() not implemented, implicit integrators cannot be used. ");
-    };
+    }
 
     /// Assuming   M*a = F(x,v,t) + Cq'*L
     ///         C(x,t) = 0
@@ -360,7 +359,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
                                   const double mclam = 1e30     ///< clamping value
                                   ) override {
         throw ChException("LoadConstraint_C() not implemented, implicit integrators cannot be used. ");
-    };
+    }
 
     /// Assuming   M*a = F(x,v,t) + Cq'*L
     ///         C(x,t) = 0
@@ -371,7 +370,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
                                    const double c          ///< a scaling factor
                                    ) override {
         throw ChException("LoadConstraint_Ct() not implemented, implicit integrators cannot be used. ");
-    };
+    }
 
     //
     // OVERRIDE ChIntegrable BASE MEMBERS TO SUPPORT 1st ORDER INTEGRATORS:
@@ -390,11 +389,11 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
 
     /// Return the number of coordinates in the state Y.
     /// (overrides base - just a fallback to enable using with plain 1st order timesteppers)
-    virtual int GetNcoords_y() override { return GetNcoords_x() + GetNcoords_v(); };
+    virtual int GetNcoords_y() override { return GetNcoords_x() + GetNcoords_v(); }
 
     /// Return the number of coordinates in the state increment.
     /// (overrides base - just a fallback to enable using with plain 1st order timesteppers)
-    virtual int GetNcoords_dy() override { return GetNcoords_v() + GetNcoords_a(); };
+    virtual int GetNcoords_dy() override { return GetNcoords_v() + GetNcoords_a(); }
 
     /// Gather system state in specified array.
     /// (overrides base - just a fallback to enable using with plain 1st order timesteppers)
@@ -468,7 +467,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
 /// "y_new = y + Dy", invokes the specialized StateIncrement() in the ChIntegrable. If none is 
 /// provided, this defaults to a simple vector sum
 inline ChState operator+(const ChState& y, const ChStateDelta& Dy) {
-    ChState result(y.GetRows(), y.GetIntegrable());
+    ChState result(y.size(), y.GetIntegrable());
     y.GetIntegrable()->StateIncrement(result, y, Dy);
     return result;
 }
@@ -482,7 +481,7 @@ inline ChState& operator+=(ChState& y, const ChStateDelta& Dy) {
 /// "y_new = Dy + y", invokes the specialized StateIncrement() in the ChIntegrable. If none is 
 /// provided, this defaults to a simple vector sum
 inline ChState operator+(const ChStateDelta& Dy, const ChState& y) {
-    ChState result(y.GetRows(), y.GetIntegrable());
+    ChState result(y.size(), y.GetIntegrable());
     y.GetIntegrable()->StateIncrement(result, y, Dy);
     return result;
 }

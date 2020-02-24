@@ -22,7 +22,7 @@ CH_FACTORY_REGISTER(ChShaftsMotorTorque)
 
 ChShaftsMotorTorque::ChShaftsMotorTorque()  {
 
-   this->f_torque = std::make_shared<ChFunction_Const>(0.0);
+   this->f_torque = chrono_types::make_shared<ChFunction_Const>(0.0);
 }
 
 ChShaftsMotorTorque::ChShaftsMotorTorque(const ChShaftsMotorTorque& other) : ChShaftsMotorBase(other) {
@@ -58,8 +58,8 @@ void ChShaftsMotorTorque::IntLoadResidual_F(const unsigned int off,  // offset i
 void ChShaftsMotorTorque::VariablesFbLoadForces(double factor) {
 
     double imposed_torque = this->f_torque->Get_y(this->GetChTime());
-    shaft1->Variables().Get_fb().ElementN(0) +=  imposed_torque * factor;
-    shaft2->Variables().Get_fb().ElementN(0) += -imposed_torque * factor;
+    shaft1->Variables().Get_fb()(0) +=  imposed_torque * factor;
+    shaft2->Variables().Get_fb()(0) += -imposed_torque * factor;
 }
 
 //////// FILE I/O

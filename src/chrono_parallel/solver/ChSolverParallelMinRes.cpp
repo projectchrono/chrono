@@ -54,15 +54,19 @@ uint ChSolverParallelMinRes::Solve(ChShurProduct& ShurProduct,
     }
 
     for (current_iteration = 0; current_iteration < (signed)max_iter; current_iteration++) {
-        //// Lanczos
+        // Lanczos
         v_old = v;
         v = 1.0 / beta * v_hat;
         ShurProduct(v, Av);
         alpha = (v, Av);
-        v_hat = Av - alpha * v - beta * v_old;
+        ////v_hat = Av - alpha * v - beta * v_old;
+        v_hat = Av - alpha * v;
+        v_hat -= beta * v_old;
+
         beta_old = beta;
         beta = Sqrt((v_hat, v_hat));
-        //// QR factorization
+
+        // QR factorization
         c_oold = c_old;
         c_old = c;
         s_oold = s_old;
@@ -71,13 +75,20 @@ uint ChSolverParallelMinRes::Solve(ChShurProduct& ShurProduct,
         r1 = 1 / Sqrt(r1_hat * r1_hat + beta * beta);
         r2 = s_old * alpha + c_oold * c_old * beta_old;
         r3 = s_oold * beta_old;
-        //// Givens Rotation
+
+        // Givens Rotation
         c = r1_hat * r1;
         s = beta * r1;
-        //// update
+       
+        // Update
         w_oold = w_old;
         w_old = w;
-        w = r1 * (v - r3 * w_oold - r2 * w_old);
+
+        ////w = r1 * (v - r3 * w_oold - r2 * w_old);
+        w = v - r3 * w_oold;
+        w -= r2 * w_old;
+        w *= r1;
+
         x = x + c * eta * w;
         norm_rMR = norm_rMR * Abs(s);
         eta = -s * eta;

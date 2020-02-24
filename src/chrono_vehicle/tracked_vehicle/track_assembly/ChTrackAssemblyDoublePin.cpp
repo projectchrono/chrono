@@ -292,5 +292,9 @@ void ChTrackAssemblyDoublePin::CreateTrackShoe(size_t index, ChVector2<> p, doub
     m_shoes[index]->Initialize(m_chassis, loc, Q_from_AngY(-angle));
 }
 
+void ChTrackAssemblyDoublePin::RemoveTrackShoes() {
+    m_shoes.clear();
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

@@ -56,31 +56,31 @@ M113_Vehicle::M113_Vehicle(bool fixed,
 
 void M113_Vehicle::Create(bool fixed, ChassisCollisionType chassis_collision_type) {
     // Create the chassis subsystem
-    m_chassis = std::make_shared<M113_Chassis>("Chassis", fixed, chassis_collision_type);
+    m_chassis = chrono_types::make_shared<M113_Chassis>("Chassis", fixed, chassis_collision_type);
 
     // Create the track assembly subsystems
     switch (m_type) {
         case TrackShoeType::SINGLE_PIN:
-            m_tracks[0] = std::make_shared<M113_TrackAssemblySinglePin>(LEFT);
-            m_tracks[1] = std::make_shared<M113_TrackAssemblySinglePin>(RIGHT);
+            m_tracks[0] = chrono_types::make_shared<M113_TrackAssemblySinglePin>(LEFT);
+            m_tracks[1] = chrono_types::make_shared<M113_TrackAssemblySinglePin>(RIGHT);
             break;
         case TrackShoeType::DOUBLE_PIN:
-            m_tracks[0] = std::make_shared<M113_TrackAssemblyDoublePin>(LEFT);
-            m_tracks[1] = std::make_shared<M113_TrackAssemblyDoublePin>(RIGHT);
+            m_tracks[0] = chrono_types::make_shared<M113_TrackAssemblyDoublePin>(LEFT);
+            m_tracks[1] = chrono_types::make_shared<M113_TrackAssemblyDoublePin>(RIGHT);
             break;
         case TrackShoeType::BAND_BUSHING:
-            m_tracks[0] = std::make_shared<M113_TrackAssemblyBandBushing>(LEFT);
-            m_tracks[1] = std::make_shared<M113_TrackAssemblyBandBushing>(RIGHT);
+            m_tracks[0] = chrono_types::make_shared<M113_TrackAssemblyBandBushing>(LEFT);
+            m_tracks[1] = chrono_types::make_shared<M113_TrackAssemblyBandBushing>(RIGHT);
             break;
         case TrackShoeType::BAND_ANCF:
-            m_tracks[0] = std::make_shared<M113_TrackAssemblyBandANCF>(LEFT);
-            m_tracks[1] = std::make_shared<M113_TrackAssemblyBandANCF>(RIGHT);
+            m_tracks[0] = chrono_types::make_shared<M113_TrackAssemblyBandANCF>(LEFT);
+            m_tracks[1] = chrono_types::make_shared<M113_TrackAssemblyBandANCF>(RIGHT);
             break;
     }
 
     // Create the driveline
-    m_driveline = std::make_shared<M113_SimpleDriveline>();
-    ////m_driveline = std::make_shared<M113_DrivelineBDS>();
+    m_driveline = chrono_types::make_shared<M113_SimpleDriveline>();
+    ////m_driveline = chrono_types::make_shared<M113_DrivelineBDS>();
 
     GetLog() << "M113 vehicle mass = " << GetVehicleMass() << " kg.\n";
 }

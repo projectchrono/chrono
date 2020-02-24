@@ -12,8 +12,8 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#ifndef CHSOLVER_H
-#define CHSOLVER_H
+#ifndef CH_SOLVER_H
+#define CH_SOLVER_H
 
 #include <vector>
 
@@ -26,42 +26,42 @@ namespace chrono {
 /// @addtogroup chrono_solver
 /// @{
 
-/// Base class for solvers aimed at solving complementarity problems arising from QP optimization
-/// problems. This is an abstract class and specific solution methods are implemented in derived
-/// classes (e.g., SOR, APGD, etc.)\n
-/// See ChSystemDescriptor for more information about the problem formulation and the data structures
-/// passed to the solver.
-
+/// Base class for all Chrono solvers (for linear problems or complementarity problems). \n
+/// See ChSystemDescriptor for more information about the problem formulation and the data structures passed to the
+/// solver.
 class ChApi ChSolver {
 
   public:
-      /// Available types of solvers.
-      enum class Type {
-          SOR = 0,
-          SYMMSOR,
-          JACOBI,
-          SOR_MULTITHREAD,
-          PMINRES,
-          BARZILAIBORWEIN,
-          PCG,
-          APGD,
-          MINRES,
-          SOLVER_SMC,
-          CUSTOM,
-      };
-
-    ChSolver() : verbose(false) {}
+    /// Available types of solvers.
+    enum class Type {
+        // Iterative VI solvers
+        PSOR = 0,         ///< Projected SOR (Successive Over-Relaxation)
+        PSSOR,            ///< Projected symmetric SOR
+        PJACOBI,          ///< Projected Jacobi
+        PMINRES,          ///< Projected MINRES
+        BARZILAIBORWEIN,  ///< Barzilai-Borwein
+        APGD,             ///< Accelerated Projected Gradient Descent
+        // Direct linear solvers
+        SPARSE_LU,  ///< Sparse supernodal LU factorization
+        SPARSE_QR,  ///< Sparse left-looking rank-revealing QR factorization
+        PARDISO,    ///< Pardiso (super-nodal sparse direct solver)
+        MUMPS,      ///< Mumps (MUltifrontal Massively Parallel sparse direct Solver)
+        // Iterative linear solvers
+        GMRES,     ///< Generalized Minimal RESidual Algorithm
+        MINRES,    ///< MINimum RESidual method
+        BICGSTAB,  ///< Bi-conjugate gradient stabilized
+        // Other
+        CUSTOM,
+    };
 
     virtual ~ChSolver() {}
 
     /// Return type of the solver.
-    /// Default is CUSTOM. Derived classes should override this function.
     virtual Type GetType() const { return Type::CUSTOM; }
 
     /// Indicate whether or not the Solve() phase requires an up-to-date problem matrix.
-    /// Typically, direct solvers only need the matrix for the Setup() phase. However,
-    /// iterative solvers likely require the matrix to perform the necessary matrix-vector
-    /// operations.
+    /// Typically, direct solvers only need the matrix for the Setup() phase. However, iterative solvers likely require
+    /// the matrix to perform the necessary matrix-vector operations.
     virtual bool SolveRequiresMatrix() const = 0;
 
     /// Performs the solution of the problem.
@@ -83,9 +83,6 @@ class ChApi ChSolver {
     /// Set verbose output from solver.
     void SetVerbose(bool mv) { verbose = mv; }
 
-    // Return whether or not verbose output is enabled.
-    bool GetVerbose() const { return verbose; }
-
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive);
 
@@ -93,6 +90,8 @@ class ChApi ChSolver {
     virtual void ArchiveIN(ChArchiveIn& marchive);
 
   protected:
+    ChSolver() : verbose(false) {}
+
     bool verbose;
 };
 

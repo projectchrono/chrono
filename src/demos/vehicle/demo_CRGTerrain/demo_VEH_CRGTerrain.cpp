@@ -19,8 +19,6 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChRealtimeStep.h"
-
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/terrain/CRGTerrain.h"
@@ -35,9 +33,12 @@ using namespace chrono::vehicle;
 using namespace chrono::vehicle::hmmwv;
 
 // =============================================================================
-// Select Path Follower, uncomment the next line to get the puer PID driver
+// Select Path Follower, uncomment the next line to get the pure PID driver
 //#define USE_PID 1
-
+// to use the XT controller uncomment the next line
+//#define USE_XT
+// to use the SR controller uncomment the next line
+#define USE_SR
 // =============================================================================
 // Problem parameters
 
@@ -85,7 +86,6 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetDriveType(DrivelineType::RWD);
     my_hmmwv.SetTireType(tire_model);
     my_hmmwv.SetTireStepSize(tire_step_size);
-    my_hmmwv.SetVehicleStepSize(step_size);
     my_hmmwv.Initialize();
 
     my_hmmwv.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
@@ -101,9 +101,10 @@ int main(int argc, char* argv[]) {
     terrain.Initialize(vehicle::GetDataFile(crg_road_file));
 
     // Get the vehicle path (middle of the road)
-    auto path = terrain.GetPath();
+    auto path = terrain.GetRoadCenterLine();
     bool path_is_closed = terrain.IsPathClosed();
     double road_length = terrain.GetLength();
+    double road_width = terrain.GetWidth();
 
 #ifdef USE_PID
     // Create the driver system based on PID steering controller
@@ -113,23 +114,36 @@ int main(int argc, char* argv[]) {
     driver.GetSpeedController().SetGains(0.4, 0, 0);
     driver.Initialize();
 
-    ChVehicleIrrApp app(&my_hmmwv.GetVehicle(), &my_hmmwv.GetPowertrain(), L"OpenCRG Demo PID Steering",
-                        irr::core::dimension2d<irr::u32>(800, 640));
-#else
+    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"OpenCRG Demo PID Steering",
+                               irr::core::dimension2d<irr::u32>(800, 640));
+#endif
+#ifdef USE_XT
     // Create the driver system based on XT steering controller
-    ChPathFollowerDriverXT driver(my_hmmwv.GetVehicle(), path, "my_path", target_speed, path_is_closed, my_hmmwv.GetVehicle().GetMaxSteeringAngle());    
+    ChPathFollowerDriverXT driver(my_hmmwv.GetVehicle(), path, "my_path", target_speed, path_is_closed,
+                                  my_hmmwv.GetVehicle().GetMaxSteeringAngle());
     driver.GetSteeringController().SetLookAheadDistance(5);
     driver.GetSteeringController().SetGains(0.4, 1, 1, 1);
     driver.GetSpeedController().SetGains(0.4, 0, 0);
     driver.Initialize();
 
-    ChVehicleIrrApp app(&my_hmmwv.GetVehicle(), &my_hmmwv.GetPowertrain(), L"OpenCRG Demo XT Steering",
-                        irr::core::dimension2d<irr::u32>(800, 640));
+    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"OpenCRG Demo XT Steering",
+                               irr::core::dimension2d<irr::u32>(800, 640));
 #endif
+#ifdef USE_SR
+    ChPathFollowerDriverSR driver(my_hmmwv.GetVehicle(), path, "my_path", target_speed, path_is_closed,
+                                  my_hmmwv.GetVehicle().GetMaxSteeringAngle(), 3.2);
+    driver.GetSteeringController().SetGains(0.1, 5);
+    driver.GetSteeringController().SetPreviewTime(0.5);
+    driver.GetSpeedController().SetGains(0.4, 0, 0);
+    driver.Initialize();
+
+    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"OpenCRG Demo SR Steering",
+                               irr::core::dimension2d<irr::u32>(800, 640));
+#endif
+
     // ---------------------------------------
     // Create the vehicle Irrlicht application
     // ---------------------------------------
-
 
     app.SetHUDLocation(500, 20);
     app.SetSkyBox();
@@ -173,6 +187,7 @@ int main(int argc, char* argv[]) {
         t_end += 30.0;
     }
     std::cout << "Road length:     " << road_length << std::endl;
+    std::cout << "Road width:      " << road_width << std::endl;
     std::cout << "Closed loop?     " << path_is_closed << std::endl;
     std::cout << "Set end time to: " << t_end << std::endl;
 
@@ -181,7 +196,6 @@ int main(int argc, char* argv[]) {
     int render_steps = (int)std::ceil(render_step_size / step_size);
 
     // Initialize frame counters
-    ChRealtimeStepTimer realtime_timer;
     int sim_frame = 0;
     int render_frame = 0;
 
@@ -190,10 +204,8 @@ int main(int argc, char* argv[]) {
         if (time >= t_end)
             break;
 
-        // Collect output data from modules (for inter-module communication)
-        double throttle_input = driver.GetThrottle();
-        double steering_input = driver.GetSteering();
-        double braking_input = driver.GetBraking();
+        // Driver inputs
+        ChDriver::Inputs driver_inputs = driver.GetInputs();
 
         // Update sentinel and target location markers for the path-follower controller.
         // Note that we do this whether or not we are currently using the path-follower driver.
@@ -216,21 +228,20 @@ int main(int argc, char* argv[]) {
         // Update modules (process inputs from other modules)
         driver.Synchronize(time);
         terrain.Synchronize(time);
-        my_hmmwv.Synchronize(time, steering_input, braking_input, throttle_input, terrain);
-        app.Synchronize("", steering_input, throttle_input, braking_input);
+        my_hmmwv.Synchronize(time, driver_inputs, terrain);
+        app.Synchronize("", driver_inputs);
 
         // Advance simulation for one timestep for all modules
-        double step = realtime_timer.SuggestSimulationStep(step_size);
-        driver.Advance(step);
-        terrain.Advance(step);
-        my_hmmwv.Advance(step);
-        app.Advance(step);
+        driver.Advance(step_size);
+        terrain.Advance(step_size);
+        my_hmmwv.Advance(step_size);
+        app.Advance(step_size);
 
         // Increment simulation frame number
         sim_frame++;
 
         app.EndScene();
     }
-    
+
     return 0;
 }

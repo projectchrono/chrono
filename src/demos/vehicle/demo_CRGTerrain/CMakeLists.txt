@@ -1,6 +1,6 @@
 #=============================================================================
 # CMake configuration file for the CRGTerrain demos.
-# These example programs requires Irrlicht run-time visualization
+# These example programs require Irrlicht run-time visualization.
 #=============================================================================
 
 IF(NOT ENABLE_MODULE_IRRLICHT OR NOT HAVE_OPENCRG)
@@ -12,6 +12,7 @@ ENDIF()
 
 SET(DEMOS
     demo_VEH_CRGTerrain
+    demo_VEH_CRGHumanDriver
     )
 
 #--------------------------------------------------------------

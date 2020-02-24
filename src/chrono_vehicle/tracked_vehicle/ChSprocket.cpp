@@ -60,19 +60,19 @@ void ChSprocket::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVecto
 
     // Create and initialize the revolute joint between chassis and gear.
     ChCoordsys<> rev_csys(loc, chassisRot * y2z);
-    m_revolute = std::make_shared<ChLinkLockRevolute>();
+    m_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute->SetNameString(m_name + "_revolute");
     m_revolute->Initialize(chassis, m_gear, rev_csys);
     chassis->GetSystem()->AddLink(m_revolute);
 
     // Create and initialize the axle shaft and its connection to the gear. Note that the
     // gear rotates about the Y axis.
-    m_axle = std::make_shared<ChShaft>();
+    m_axle = chrono_types::make_shared<ChShaft>();
     m_axle->SetNameString(m_name + "_axle");
     m_axle->SetInertia(GetAxleInertia());
     chassis->GetSystem()->Add(m_axle);
 
-    m_axle_to_spindle = std::make_shared<ChShaftsBody>();
+    m_axle_to_spindle = chrono_types::make_shared<ChShaftsBody>();
     m_axle_to_spindle->SetNameString(m_name + "_axle_to_spindle");
     m_axle_to_spindle->Initialize(m_axle, m_gear, ChVector<>(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle);
@@ -119,14 +119,14 @@ void ChSprocket::AddVisualizationAssets(VisualizationType vis) {
     double sep = GetSeparation();
     std::shared_ptr<geometry::ChLinePath> profile = GetProfile();
 
-    auto asset_1 = std::make_shared<ChLineShape>();
+    auto asset_1 = chrono_types::make_shared<ChLineShape>();
     asset_1->SetLineGeometry(profile);
     asset_1->Pos = ChVector<>(0, sep / 2, 0);
     asset_1->Rot = rot_y2z;
     asset_1->SetColor(ChColor(1, 0, 0));
     m_gear->AddAsset(asset_1);
 
-    auto asset_2 = std::make_shared<ChLineShape>();
+    auto asset_2 = chrono_types::make_shared<ChLineShape>();
     asset_2->SetLineGeometry(profile);
     asset_2->Pos = ChVector<>(0, -sep / 2, 0);
     asset_2->Rot = rot_y2z;
@@ -149,13 +149,13 @@ void ChSprocket::ApplyAxleTorque(double torque) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChSprocket::LogConstraintViolations() {
-    ChMatrix<>* C = m_revolute->GetC();
+    ChVectorDynamic<> C = m_revolute->GetC();
     GetLog() << "  Sprocket-chassis revolute\n";
-    GetLog() << "  " << C->GetElement(0, 0) << "  ";
-    GetLog() << "  " << C->GetElement(1, 0) << "  ";
-    GetLog() << "  " << C->GetElement(2, 0) << "  ";
-    GetLog() << "  " << C->GetElement(3, 0) << "  ";
-    GetLog() << "  " << C->GetElement(4, 0) << "\n";
+    GetLog() << "  " << C(0) << "  ";
+    GetLog() << "  " << C(1) << "  ";
+    GetLog() << "  " << C(2) << "  ";
+    GetLog() << "  " << C(3) << "  ";
+    GetLog() << "  " << C(4) << "\n";
 }
 
 // -----------------------------------------------------------------------------

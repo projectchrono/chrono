@@ -30,7 +30,7 @@ namespace fea {
 void ChContactNodeXYZ::ContactForceLoadResidual_F(const ChVector<>& F,
                                                   const ChVector<>& abs_point,
                                                   ChVectorDynamic<>& R) {
-    R.PasteSumVector(F, this->mnode->NodeGetOffset_w() + 0, 0);
+    R.segment(this->mnode->NodeGetOffset_w(), 3) += F.eigen();
 }
 
 void ChContactNodeXYZ::ComputeJacobianForContactPart(const ChVector<>& abs_point,
@@ -39,19 +39,17 @@ void ChContactNodeXYZ::ComputeJacobianForContactPart(const ChVector<>& abs_point
                                                      type_constraint_tuple& jacobian_tuple_U,
                                                      type_constraint_tuple& jacobian_tuple_V,
                                                      bool second) {
-    ChMatrix33<> Jx1;
-
-    Jx1.CopyFromMatrixT(contact_plane);
+    ChMatrix33<> Jx1 = contact_plane.transpose();
     if (!second)
-        Jx1.MatrNeg();
+        Jx1 *= -1;
 
-    jacobian_tuple_N.Get_Cq()->PasteClippedMatrix(Jx1, 0, 0, 1, 3, 0, 0);
-    jacobian_tuple_U.Get_Cq()->PasteClippedMatrix(Jx1, 1, 0, 1, 3, 0, 0);
-    jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(Jx1, 2, 0, 1, 3, 0, 0);
+    jacobian_tuple_N.Get_Cq().segment(0,3) = Jx1.row(0);
+    jacobian_tuple_U.Get_Cq().segment(0,3) = Jx1.row(1);
+    jacobian_tuple_V.Get_Cq().segment(0,3) = Jx1.row(2);
 }
 
-std::shared_ptr<ChMaterialSurface>& ChContactNodeXYZ::GetMaterialSurfaceBase() {
-    return container->GetMaterialSurfaceBase();
+std::shared_ptr<ChMaterialSurface>& ChContactNodeXYZ::GetMaterialSurface() {
+    return container->GetMaterialSurface();
 }
 
 ChPhysicsItem* ChContactNodeXYZ::GetPhysicsItem() {
@@ -73,7 +71,7 @@ ChContactNodeXYZsphere::ChContactNodeXYZsphere(ChNodeFEAxyz* anode, ChContactSur
 void ChContactNodeXYZROT::ContactForceLoadResidual_F(const ChVector<>& F,
                                                      const ChVector<>& abs_point,
                                                      ChVectorDynamic<>& R) {
-    R.PasteSumVector(F, this->mnode->NodeGetOffset_w() + 0, 0);
+    R.segment(this->mnode->NodeGetOffset_w(), 3) += F.eigen();
 }
 
 void ChContactNodeXYZROT::ComputeJacobianForContactPart(const ChVector<>& abs_point,
@@ -82,19 +80,17 @@ void ChContactNodeXYZROT::ComputeJacobianForContactPart(const ChVector<>& abs_po
                                                         type_constraint_tuple& jacobian_tuple_U,
                                                         type_constraint_tuple& jacobian_tuple_V,
                                                         bool second) {
-    ChMatrix33<> Jx1;
-
-    Jx1.CopyFromMatrixT(contact_plane);
+    ChMatrix33<> Jx1 = contact_plane.transpose();
     if (!second)
-        Jx1.MatrNeg();
+        Jx1 *= -1;
 
-    jacobian_tuple_N.Get_Cq()->PasteClippedMatrix(Jx1, 0, 0, 1, 3, 0, 0);
-    jacobian_tuple_U.Get_Cq()->PasteClippedMatrix(Jx1, 1, 0, 1, 3, 0, 0);
-    jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(Jx1, 2, 0, 1, 3, 0, 0);
+    jacobian_tuple_N.Get_Cq().segment(0,3) = Jx1.row(0);
+    jacobian_tuple_U.Get_Cq().segment(0,3) = Jx1.row(1);
+    jacobian_tuple_V.Get_Cq().segment(0,3) = Jx1.row(2);
 }
 
-std::shared_ptr<ChMaterialSurface>& ChContactNodeXYZROT::GetMaterialSurfaceBase() {
-    return container->GetMaterialSurfaceBase();
+std::shared_ptr<ChMaterialSurface>& ChContactNodeXYZROT::GetMaterialSurface() {
+    return container->GetMaterialSurface();
 }
 
 ChPhysicsItem* ChContactNodeXYZROT::GetPhysicsItem() {
@@ -117,7 +113,7 @@ void ChContactSurfaceNodeCloud::AddNode(std::shared_ptr<ChNodeFEAxyz> mnode, con
     if (!mnode)
         return;
 
-    auto newp = std::make_shared<ChContactNodeXYZsphere>(mnode.get(), this);
+    auto newp = chrono_types::make_shared<ChContactNodeXYZsphere>(mnode.get(), this);
 
     newp->GetCollisionModel()->AddPoint(point_radius);
     newp->GetCollisionModel()->BuildModel();  // will also add to system, if collision is on.
@@ -129,7 +125,7 @@ void ChContactSurfaceNodeCloud::AddNode(std::shared_ptr<ChNodeFEAxyzrot> mnode, 
     if (!mnode)
         return;
 
-    auto newp = std::make_shared<ChContactNodeXYZROTsphere>(mnode.get(), this);
+    auto newp = chrono_types::make_shared<ChContactNodeXYZROTsphere>(mnode.get(), this);
 
     newp->GetCollisionModel()->AddPoint(point_radius);
     newp->GetCollisionModel()->BuildModel();  // will also add to system, if collision is on.

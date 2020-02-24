@@ -47,7 +47,7 @@ class ChRandomParticleVelocityConstantDirection : public ChRandomParticleVelocit
   public:
     ChRandomParticleVelocityConstantDirection() {
         direction = VECT_X;
-        modulus = std::make_shared<ChConstantDistribution>(0.1);
+        modulus = chrono_types::make_shared<ChConstantDistribution>(0.1);
     }
 
     /// Function that creates a random velocity each
@@ -61,7 +61,7 @@ class ChRandomParticleVelocityConstantDirection : public ChRandomParticleVelocit
     void SetModulusDistribution(std::shared_ptr<ChDistribution> mdistr) { modulus = mdistr; }
     /// Set the modulus of velocities as a constant value
     void SetModulusDistribution(double mval) {
-        modulus = std::make_shared<ChConstantDistribution>(mval);
+        modulus = chrono_types::make_shared<ChConstantDistribution>(mval);
     }
 
   private:
@@ -75,7 +75,7 @@ class ChRandomParticleVelocityConstantDirection : public ChRandomParticleVelocit
 class ChRandomParticleVelocityAnyDirection : public ChRandomParticleVelocity {
   public:
     ChRandomParticleVelocityAnyDirection() {
-        modulus = std::make_shared<ChConstantDistribution>(0.1);
+        modulus = chrono_types::make_shared<ChConstantDistribution>(0.1);
     }
 
     /// Function that creates a random velocity each
@@ -91,7 +91,7 @@ class ChRandomParticleVelocityAnyDirection : public ChRandomParticleVelocity {
     void SetModulusDistribution(std::shared_ptr<ChDistribution> mdistr) { modulus = mdistr; }
     /// Set the modulus of velocities as a constant value
     void SetModulusDistribution(double mval) {
-        modulus = std::make_shared<ChConstantDistribution>(mval);
+        modulus = chrono_types::make_shared<ChConstantDistribution>(mval);
     }
 
   private:

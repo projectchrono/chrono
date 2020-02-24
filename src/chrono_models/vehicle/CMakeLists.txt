@@ -37,10 +37,12 @@ set(CVM_HMMWV_FILES
     hmmwv/HMMWV_FialaTire.h
     hmmwv/HMMWV_LugreTire.cpp
     hmmwv/HMMWV_LugreTire.h
-    hmmwv/HMMWV_Pac02Tire.cpp
-    hmmwv/HMMWV_Pac02Tire.h
+    hmmwv/HMMWV_PacejkaTire.cpp
+    hmmwv/HMMWV_PacejkaTire.h
     hmmwv/HMMWV_Pac89Tire.cpp
     hmmwv/HMMWV_Pac89Tire.h
+    hmmwv/HMMWV_Pac02Tire.cpp
+    hmmwv/HMMWV_Pac02Tire.h
     hmmwv/HMMWV_TMeasyTire.cpp
     hmmwv/HMMWV_TMeasyTire.h
     hmmwv/HMMWV_ANCFTire.cpp
@@ -59,6 +61,8 @@ set(CVM_HMMWV_FILES
     hmmwv/HMMWV_SimpleDriveline.h
     hmmwv/HMMWV_SimplePowertrain.cpp
     hmmwv/HMMWV_SimplePowertrain.h
+    hmmwv/HMMWV_SimpleCVTPowertrain.cpp
+    hmmwv/HMMWV_SimpleCVTPowertrain.h
     hmmwv/HMMWV_SimpleMapPowertrain.cpp
     hmmwv/HMMWV_SimpleMapPowertrain.h
     hmmwv/HMMWV_Vehicle.h
@@ -92,6 +96,8 @@ set(CVM_UAZ_FILES
     uaz/UAZBUS_SimpleMapPowertrain.h
     uaz/UAZBUS_TMeasyTire.cpp
     uaz/UAZBUS_TMeasyTire.h
+    uaz/UAZBUS_Pac02Tire.cpp
+    uaz/UAZBUS_Pac02Tire.h
     uaz/UAZBUS_ToeBarLeafspringAxle.cpp
     uaz/UAZBUS_ToeBarLeafspringAxle.h
     uaz/UAZBUS_Vehicle.cpp
@@ -100,6 +106,64 @@ set(CVM_UAZ_FILES
     uaz/UAZBUS_Wheel.h
 )
 source_group("uaz" FILES ${CVM_UAZ_FILES})
+
+set(CVM_MAN_FILES
+    man/MAN_5t_BellcrankSolid3LinkAxle.cpp
+    man/MAN_5t_BellcrankSolid3LinkAxle.h
+    man/MAN_5t_BrakeSimple.cpp
+    man/MAN_5t_BrakeSimple.h
+    man/MAN_5t_Chassis.cpp
+    man/MAN_5t_Chassis.h
+    man/MAN_5t_Driveline4WD.cpp
+    man/MAN_5t_Driveline4WD.h
+    man/MAN_5t_RotaryArm.cpp
+    man/MAN_5t_RotaryArm.h
+    man/MAN_5t_SimpleDriveline.cpp
+    man/MAN_5t_SimpleDriveline.h
+    man/MAN_5t_SimpleDrivelineXWD.cpp
+    man/MAN_5t_SimpleDrivelineXWD.h
+    man/MAN_5t_SimpleCVTPowertrain.cpp
+    man/MAN_5t_SimpleCVTPowertrain.h
+    man/MAN_5t_SimpleMapPowertrain.cpp
+    man/MAN_5t_SimpleMapPowertrain.h
+    man/MAN_5t_Solid3LinkAxle.cpp
+    man/MAN_5t_Solid3LinkAxle.h
+    man/MAN_5t_TMeasyTire.cpp
+    man/MAN_5t_TMeasyTire.h
+    man/MAN_5t_Wheel.cpp
+    man/MAN_5t_Wheel.h
+    man/MAN_5t_Vehicle.cpp
+    man/MAN_5t_Vehicle.h
+    man/MAN_5t.cpp
+    man/MAN_5t.h
+
+    man/MAN_7t_Chassis.cpp
+    man/MAN_7t_Chassis.h
+    man/MAN_7t_SimpleCVTPowertrain.cpp
+    man/MAN_7t_SimpleCVTPowertrain.h
+    man/MAN_7t_SimpleMapPowertrain.cpp
+    man/MAN_7t_SimpleMapPowertrain.h
+    man/MAN_7t_Solid3LinkAxle.cpp
+    man/MAN_7t_Solid3LinkAxle.h
+    man/MAN_7t_Vehicle.cpp
+    man/MAN_7t_Vehicle.h
+    man/MAN_7t.cpp
+    man/MAN_7t.h
+
+    man/MAN_10t_Chassis.cpp
+    man/MAN_10t_Chassis.h
+    man/MAN_10t_Front1Axle.cpp
+    man/MAN_10t_Front1Axle.h
+    man/MAN_10t_Front2Axle.cpp
+    man/MAN_10t_Front2Axle.h
+    man/MAN_10t_RotaryArm2.cpp
+    man/MAN_10t_RotaryArm2.h
+    man/MAN_10t_Vehicle.cpp
+    man/MAN_10t_Vehicle.h
+    man/MAN_10t.cpp
+    man/MAN_10t.h
+)
+source_group("man" FILES ${CVM_MAN_FILES})
 
 set(CVM_GENERIC_FILES
     generic/Generic_AntirollBarRSD.h
@@ -123,6 +187,8 @@ set(CVM_GENERIC_FILES
     generic/Generic_RackPinion.cpp
     generic/Generic_RigidTire.h
     generic/Generic_RigidTire.cpp
+    generic/Generic_RigidMeshTire.h
+    generic/Generic_RigidMeshTire.cpp
     generic/Generic_FialaTire.h
     generic/Generic_FialaTire.cpp
     generic/Generic_SimplePowertrain.h
@@ -161,6 +227,8 @@ set(CVM_SEDAN_FILES
     sedan/Sedan_RigidTire.h
     sedan/Sedan_TMeasyTire.cpp
     sedan/Sedan_TMeasyTire.h
+    sedan/Sedan_Pac02Tire.cpp
+    sedan/Sedan_Pac02Tire.h
     sedan/Sedan_RackPinion.cpp
     sedan/Sedan_RackPinion.h
     sedan/Sedan_SimpleMapPowertrain.cpp
@@ -171,6 +239,41 @@ set(CVM_SEDAN_FILES
     sedan/Sedan_Wheel.h
 )
 source_group("sedan" FILES ${CVM_SEDAN_FILES})
+
+set(CVM_CITYBUS_FILES
+    citybus/CityBus.cpp
+    citybus/CityBus.h
+    citybus/CityBus_BrakeSimple.cpp
+    citybus/CityBus_BrakeSimple.h
+    citybus/CityBus_Chassis.h
+    citybus/CityBus_Chassis.cpp
+    citybus/CityBus_SolidAxle.h
+    citybus/CityBus_SolidAxle.cpp
+    citybus/CityBus_ToeBarLeafspringAxle.h
+    citybus/CityBus_ToeBarLeafspringAxle.cpp
+    citybus/CityBus_RotaryArm.h
+    citybus/CityBus_RotaryArm.cpp
+    citybus/CityBus_LeafspringAxle.h
+    citybus/CityBus_LeafspringAxle.cpp
+    citybus/CityBus_Driveline2WD.cpp
+    citybus/CityBus_Driveline2WD.h
+    citybus/CityBus_RigidTire.cpp
+    citybus/CityBus_RigidTire.h
+    citybus/CityBus_TMeasyTire.cpp
+    citybus/CityBus_TMeasyTire.h
+    citybus/CityBus_Pac02Tire.cpp
+    citybus/CityBus_Pac02Tire.h
+    citybus/CityBus_RackPinion.cpp
+    citybus/CityBus_RackPinion.h
+    citybus/CityBus_SimpleMapPowertrain.cpp
+    citybus/CityBus_SimpleMapPowertrain.h
+    citybus/CityBus_Vehicle.h
+    citybus/CityBus_Vehicle.cpp
+    citybus/CityBus_Wheel.cpp
+    citybus/CityBus_Wheel.h
+)
+source_group("citybus" FILES ${CVM_CITYBUS_FILES})
+
 
 set(CVM_M113_FILES
     m113/M113_BrakeSimple.h
@@ -265,14 +368,18 @@ add_library(ChronoModels_vehicle SHARED
     ${CVM_UAZ_FILES}
     ${CVM_GENERIC_FILES}
     ${CVM_SEDAN_FILES}
+    ${CVM_CITYBUS_FILES}
     ${CVM_M113_FILES}
     ${CVM_M113_A_FILES}
+    ${CVM_MAN_FILES}
  )
 
 set_target_properties(ChronoModels_vehicle PROPERTIES
                       COMPILE_FLAGS "${CXX_FLAGS}"
-                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}"
-                      COMPILE_DEFINITIONS "CH_API_COMPILE_MODELS")
+                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
+
+target_compile_definitions(ChronoModels_vehicle PRIVATE "CH_API_COMPILE_MODELS")
+target_compile_definitions(ChronoModels_vehicle PRIVATE "CH_IGNORE_DEPRECATED")
 
 target_link_libraries(ChronoModels_vehicle ${LIBRARIES})
 

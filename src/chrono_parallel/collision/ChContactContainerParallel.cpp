@@ -13,7 +13,8 @@
 // =============================================================================
 
 #include "chrono_parallel/collision/ChContactContainerParallel.h"
-
+#include "chrono_parallel/physics/ChSystemParallel.h"
+//
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChParticlesClones.h"
@@ -139,6 +140,31 @@ void ChContactContainerParallel::ReportAllContacts(ReportContactCallback* callba
         if (!proceed)
             break;
     }
+}
+
+void ChContactContainerParallel::ComputeContactForces() {
+    // Defer to associated system
+    static_cast<ChSystemParallel*>(GetSystem())->CalculateContactForces();
+}
+
+ChVector<> ChContactContainerParallel::GetContactableForce(ChContactable* contactable) {
+    // If contactable is a body, defer to associated system
+    if (auto body = dynamic_cast<ChBody*>(contactable)) {
+        real3 frc = static_cast<ChSystemParallel*>(GetSystem())->GetBodyContactForce(body->GetId());
+        return ToChVector(frc);
+    }
+
+    return ChVector<>(0, 0, 0);
+}
+
+ChVector<> ChContactContainerParallel::GetContactableTorque(ChContactable* contactable) {
+    // If contactable is a body, defer to associated system
+    if (auto body = dynamic_cast<ChBody*>(contactable)) {
+        real3 trq = static_cast<ChSystemParallel*>(GetSystem())->GetBodyContactTorque(body->GetId());
+        return ToChVector(trq);
+    }
+
+    return ChVector<>(0, 0, 0);
 }
 
 }  // end namespace chrono

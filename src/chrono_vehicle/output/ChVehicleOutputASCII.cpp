@@ -18,7 +18,7 @@
 
 #include <iostream>
 
-#include "chrono/physics/ChLinkMasked.h"
+#include "chrono/physics/ChLinkLock.h"
 #include "chrono/physics/ChLinkUniversal.h"
 #include "chrono/physics/ChLinkDistance.h"
 
@@ -96,16 +96,15 @@ void ChVehicleOutputASCII::WriteJoints(const std::vector<std::shared_ptr<ChLink>
     for (auto joint : joints) {
         std::vector<double> violations;
         //// TODO: Fix this mess in Chrono
-        ChMatrix<>* C = nullptr;
-        if (auto jnt = std::dynamic_pointer_cast<ChLinkMasked>(joint)) {
-            C = jnt->GetC();
-            for (int i = 0; i < C->GetRows(); i++)
-                violations.push_back(C->GetElement(i, 0));
+        if (auto jnt = std::dynamic_pointer_cast<ChLinkLock>(joint)) {
+            ChVectorDynamic<> C = jnt->GetC();
+            for (int i = 0; i < C.size(); i++)
+                violations.push_back(C(i));
         }
         else if (auto jnt = std::dynamic_pointer_cast<ChLinkUniversal>(joint)) {
-            C = jnt->GetC();
-            for (int i = 0; i < C->GetRows(); i++)
-                violations.push_back(C->GetElement(i, 0));
+            ChVectorDynamic<> C = jnt->GetC();
+            for (int i = 0; i < C.size(); i++)
+                violations.push_back(C(i));
         }
         else if (auto jnt = std::dynamic_pointer_cast<ChLinkDistance>(joint)) {
             violations.push_back(jnt->GetCurrentDistance() - jnt->GetImposedDistance());
@@ -132,11 +131,11 @@ void ChVehicleOutputASCII::WriteCouples(const std::vector<std::shared_ptr<ChShaf
     }
 }
 
-void ChVehicleOutputASCII::WriteLinSprings(const std::vector<std::shared_ptr<ChLinkSpringCB>>& springs) {
+void ChVehicleOutputASCII::WriteLinSprings(const std::vector<std::shared_ptr<ChLinkTSDA>>& springs) {
     for (auto spring : springs) {
         m_stream << "    lin spring: " << spring->GetIdentifier() << " \"" << spring->GetNameString() << "\" ";
-        m_stream << spring->GetSpringLength() << " " << spring->GetSpringVelocity() << " ";
-        m_stream << spring->GetSpringReact() << " ";
+        m_stream << spring->GetLength() << " " << spring->GetVelocity() << " ";
+        m_stream << spring->GetForce() << " ";
         m_stream << std::endl;
         //// TODO
     }
