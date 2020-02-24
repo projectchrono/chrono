@@ -402,8 +402,8 @@ windows:vs2019:deploy:
   script:
     - rm -r build
     # get libiomp5md.lib
-    - Invoke-WebRequest -Uri http://www.projectchrono.org/assets/downloads/libiomp5md.lib  -OutFile ./libiomp5md.lib  >temp.txt
-    - Copy-Item "./libiomp5md.lib" -Destination Join-Path -Path $Env:CONDA_INSTALL_LOCN -ChildPath "\Library\lib"
+    - $libiomppth=Join-Path -Path $Env:CONDA_INSTALL_LOCN -ChildPath "\Library\lib\libiomp5md.lib"
+    - Invoke-WebRequest -Uri http://www.projectchrono.org/assets/downloads/libiomp5md.lib  -OutFile $libiomppth
     - mkdir ./logs
     - $Env:LOG_DIR=Join-Path -Path $pwd -ChildPath "\logs"
     # Uncomment the following lines to get a fresh install of Miniconda
