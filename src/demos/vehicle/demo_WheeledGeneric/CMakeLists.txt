@@ -6,11 +6,7 @@
 #--------------------------------------------------------------
 # List all model files for this demo
 
-SET(DEMO
-    demo_VEH_WheeledGeneric
-)
-
-SOURCE_GROUP("" FILES ${DEMO}.cpp)
+SET(PROGRAM demo_VEH_WheeledGeneric)
 
 #--------------------------------------------------------------
 # Additional include directories
@@ -33,21 +29,24 @@ ELSE()
     SET(LIBRARIES_IRR "")
 ENDIF()
 
-#--------------------------------------------------------------
-# Create the executable
-
-MESSAGE(STATUS "...add ${DEMO}")
-
 if(ENABLE_MODULE_IRRLICHT)
   set(MY_CXX_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
 else()
   set(MY_CXX_FLAGS "${CH_CXX_FLAGS}")
 endif()
 
-ADD_EXECUTABLE(${DEMO} ${DEMO}.cpp)
-SET_TARGET_PROPERTIES(${DEMO} PROPERTIES 
+#--------------------------------------------------------------
+# Create the executable
+
+MESSAGE(STATUS "...add ${PROGRAM}")
+
+ADD_EXECUTABLE(${PROGRAM} ${PROGRAM}.cpp)
+SOURCE_GROUP("" FILES ${PROGRAM}.cpp)
+
+SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES 
                       COMPILE_FLAGS "${MY_CXX_FLAGS}"
                       LINK_FLAGS "${LINKERFLAG_EXE}")
-TARGET_LINK_LIBRARIES(${DEMO} ${LIBRARIES} ${LIBRARIES_IRR})
-INSTALL(TARGETS ${DEMO} DESTINATION ${CH_INSTALL_DEMO})
+SET_PROPERTY(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
+TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES} ${LIBRARIES_IRR})
 
+INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})

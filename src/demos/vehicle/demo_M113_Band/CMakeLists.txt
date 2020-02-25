@@ -46,16 +46,17 @@ endif()
 #--------------------------------------------------------------
 # Add executables
 
-foreach(DEMO ${DEMOS})
+foreach(PROGRAM ${DEMOS})
+    message(STATUS "...add ${PROGRAM}")
 
-    message(STATUS "...add ${DEMO}")
-
-    add_executable(${DEMO} ${DEMO}.cpp ${MODEL_FILES})
-    source_group("" FILES ${DEMO}.cpp)
-    set_target_properties(${DEMO} PROPERTIES 
+    add_executable(${PROGRAM} ${PROGRAM}.cpp)
+    source_group("" FILES ${PROGRAM}.cpp)
+    
+    set_target_properties(${PROGRAM} PROPERTIES 
                           COMPILE_FLAGS "${COMPILER_FLAGS}"
                           LINK_FLAGS "${LINKER_FLAGS}")
-    target_link_libraries(${DEMO} ${LIBRARIES})
-    install(TARGETS ${DEMO} DESTINATION ${CH_INSTALL_DEMO})
-    
+    set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
+    target_link_libraries(${PROGRAM} ${LIBRARIES})
+
+    install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 endforeach()

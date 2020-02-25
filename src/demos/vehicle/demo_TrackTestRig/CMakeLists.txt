@@ -10,8 +10,7 @@ ENDIF()
 #--------------------------------------------------------------
 # List all model files for this demo
 
-SET(DEMO demo_VEH_TrackTestRig)
-SOURCE_GROUP("" FILES ${DEMO}.cpp)
+SET(PROGRAM demo_VEH_TrackTestRig)
 
 #--------------------------------------------------------------
 # Compiler and linker flags
@@ -37,17 +36,20 @@ endif()
 #--------------------------------------------------------------
 # Add executable
 
-MESSAGE(STATUS "...add ${DEMO}")
+MESSAGE(STATUS "...add ${PROGRAM}")
 
-ADD_EXECUTABLE(${DEMO} ${DEMO}.cpp ${MODEL_FILES})
-SET_TARGET_PROPERTIES(${DEMO} PROPERTIES 
+ADD_EXECUTABLE(${PROGRAM} ${PROGRAM}.cpp)
+SOURCE_GROUP("" FILES ${PROGRAM}.cpp)
+
+SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES 
                       COMPILE_FLAGS "${COMPILER_FLAGS}"
                       LINK_FLAGS "${LINKER_FLAGS}")
-TARGET_LINK_LIBRARIES(${DEMO} 
+SET_PROPERTY(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
+TARGET_LINK_LIBRARIES(${PROGRAM} 
                       ChronoEngine
                       ChronoEngine_irrlicht
                       ChronoEngine_vehicle
                       ChronoModels_vehicle
                       ${LIBS})
-INSTALL(TARGETS ${DEMO} DESTINATION ${CH_INSTALL_DEMO})
 
+INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})

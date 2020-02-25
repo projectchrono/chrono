@@ -10,11 +10,7 @@ endif()
 #--------------------------------------------------------------
 # List all model files for this demo
 
-set(DEMO
-    demo_VEH_TireTestRig_Parallel
-)
-
-source_group("" FILES ${DEMO}.cpp)
+set(PROGRAM demo_VEH_TireTestRig_Parallel)
 
 #--------------------------------------------------------------
 # Additional include directories
@@ -36,11 +32,15 @@ set(LIBRARIES
 #--------------------------------------------------------------
 # Add executable
 
-message(STATUS "...add ${DEMO}")
+message(STATUS "...add ${PROGRAM}")
 
-add_executable(${DEMO} ${DEMO}.cpp)
-set_target_properties(${DEMO} PROPERTIES 
+add_executable(${PROGRAM} ${PROGRAM}.cpp)
+source_group("" FILES ${PROGRAM}.cpp)
+
+set_target_properties(${PROGRAM} PROPERTIES 
                       COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_PARALLEL_CXX_FLAGS}"
                       LINK_FLAGS "${CH_LINKERFLAG_EXE}")
-target_link_libraries(${DEMO} ${LIBRARIES})
-install(TARGETS ${DEMO} DESTINATION ${CH_INSTALL_DEMO})
+set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
+target_link_libraries(${PROGRAM} ${LIBRARIES})
+
+install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})

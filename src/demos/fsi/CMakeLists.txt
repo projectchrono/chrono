@@ -42,9 +42,7 @@ ENDIF()
 
 MESSAGE(STATUS "Demo programs for FSI module...")
 
-# Add executables for demos that have no other dependencies
-
-	
+# Add executables for demos that have no other dependencies	
 	
 IF(ENABLE_MODULE_MKL)
 
@@ -54,52 +52,43 @@ IF(ENABLE_MODULE_MKL)
         MESSAGE(STATUS "...add ${PROGRAM}")
 
         CUDA_ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
-        SOURCE_GROUP(""  FILES  "${PROGRAM}.cpp")    
+        SOURCE_GROUP(""  FILES  "${PROGRAM}.cpp")
+
         SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES 
             FOLDER demos
             COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_MKL_CXX_FLAGS}"
             LINK_FLAGS "${CH_LINKERFLAG_EXE} ${CH_MKL_LINK_FLAGS} ")
+        SET_PROPERTY(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
         TARGET_LINK_LIBRARIES(${PROGRAM}
-        	${LIBRARIES}
+            ${LIBRARIES}
             ChronoEngine
-            
             ChronoEngine_mkl
             ChronoEngine_fsi)
-        TARGET_INCLUDE_DIRECTORIES(${PROGRAM} PUBLIC
-		${CH_MKL_INCLUDES})
+        TARGET_INCLUDE_DIRECTORIES(${PROGRAM} PUBLIC ${CH_MKL_INCLUDES})
         ADD_DEPENDENCIES(${PROGRAM}
-         	${LIBRARIES}
+            ${LIBRARIES}
             ChronoEngine
             ChronoEngine_mkl
             ChronoEngine_fsi)
+
         INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
     ENDFOREACH()
    
-        
 ENDIF()
-
-	    
-
-	
-
 
 
 FOREACH(PROGRAM ${FSI_DEMOS})
-  MESSAGE(STATUS "...add ${PROGRAM}")
+    MESSAGE(STATUS "...add ${PROGRAM}")
 
-  CUDA_ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
-  SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
+    CUDA_ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
+    SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
 
-  SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES
-    FOLDER demos
-    COMPILE_FLAGS "${COMPILER_FLAGS}"
-    LINK_FLAGS "${LINKER_FLAGS}")
-  TARGET_LINK_LIBRARIES(${PROGRAM} ChronoEngine ChronoEngine_fsi ${LIBS})
+    SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES
+        FOLDER demos
+        COMPILE_FLAGS "${COMPILER_FLAGS}"
+        LINK_FLAGS "${LINKER_FLAGS}")
+    SET_PROPERTY(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
+    TARGET_LINK_LIBRARIES(${PROGRAM} ChronoEngine ChronoEngine_fsi ${LIBS})
 
-  INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
+    INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 ENDFOREACH()
-
-
-
-
-

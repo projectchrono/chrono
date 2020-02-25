@@ -17,12 +17,9 @@ SET(MODEL_FILES
     subsystems/Articulated_Rear.cpp
 )
 
-SET(DEMO
+SET(PROGRAM
     demo_VEH_ArticulatedVehicle
 )
-
-SOURCE_GROUP("subsystems" FILES ${MODEL_FILES})
-SOURCE_GROUP("" FILES ${DEMO}.cpp ${MODEL_FILES})
 
 #--------------------------------------------------------------
 # Additional include directories
@@ -33,15 +30,20 @@ INCLUDE_DIRECTORIES(${CH_IRRLICHTINC})
 #--------------------------------------------------------------
 # Create the executable
 
-MESSAGE(STATUS "...add ${DEMO}")
+MESSAGE(STATUS "...add ${PROGRAM}")
 
-ADD_EXECUTABLE(${DEMO} ${DEMO}.cpp ${MODEL_FILES})
-SET_TARGET_PROPERTIES(${DEMO} PROPERTIES 
+ADD_EXECUTABLE(${PROGRAM} ${PROGRAM}.cpp ${MODEL_FILES})
+SOURCE_GROUP("subsystems" FILES ${MODEL_FILES})
+SOURCE_GROUP("" FILES ${PROGRAM}.cpp ${MODEL_FILES})
+
+SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES 
                       COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
                       LINK_FLAGS "${LINKERFLAG_EXE}")
-TARGET_LINK_LIBRARIES(${DEMO}
+SET_PROPERTY(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
+TARGET_LINK_LIBRARIES(${PROGRAM}
                       ChronoEngine
                       ChronoEngine_irrlicht
                       ChronoEngine_vehicle
                       ChronoModels_vehicle)
-INSTALL(TARGETS ${DEMO} DESTINATION ${CH_INSTALL_DEMO})
+
+INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
