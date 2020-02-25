@@ -90,6 +90,7 @@ linux:arch-gcc:deploy:
     - conda config --add channels https://conda.anaconda.org/intel
     - conda install -c conda-forge -c dlr-sc -c pythonocc -c oce -c 3dhubs oce=0.18.2 --yes
     - conda install -c intel mkl-devel --yes
+    - conda build purge-all
     - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.7
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.bz2 -l develop --force
   environment:
@@ -311,9 +312,10 @@ linux:ubuntu1804:deploy:
     - conda config --add channels https://conda.anaconda.org/intel
     - conda install -c conda-forge -c dlr-sc -c pythonocc -c oce -c 3dhubs oce=0.18.2 --yes
     - conda install -c intel mkl-devel --yes
+    - conda build purge-all
     - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.6
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.bz2 -l develop --force
-    #- conda build purge
+    #- conda build purge-all
     #- conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.8
     #- anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.bz2 -l develop --force
   environment:
