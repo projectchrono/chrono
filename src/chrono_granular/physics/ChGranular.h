@@ -497,9 +497,10 @@ class CH_GRANULAR_API ChSystemGranularSMC {
     }
 
     /// Set tuning psi factors for tuning the non-dimensionalization
-    void setPsiFactors(unsigned int psi_T_new, unsigned int psi_L_new) {
+    void setPsiFactors(unsigned int psi_T_new, unsigned int psi_L_new, float psi_R_new = 1.f) {
         psi_T = psi_T_new;
         psi_L = psi_L_new;
+        psi_R = psi_R_new;
     }
 
     /// Copy back the subdomain device data and save it to a file for error checking on the priming kernel
@@ -531,6 +532,9 @@ class CH_GRANULAR_API ChSystemGranularSMC {
 
     /// Safety factor on space adim
     unsigned int psi_L;
+
+    /// Fraction of sphere radius which gives an upper bound on the length unit
+    float psi_R;
 
     /// Wrap the device helper function
     int3 getSDTripletFromID(unsigned int SD_ID) const;
