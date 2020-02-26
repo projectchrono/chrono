@@ -1684,10 +1684,10 @@ void ChElementShellANCF_8::ComputeNF(
 
     // Compute G'M without actually forming the complete matrix "G" (since it has a sparsity pattern to it)
     //// MIKE Clean-up when slicing becomes available in Eigen 3.4
-    for (unsigned int i = 0; i < 9; i++) {
-        Qi(3 * i) += M_scaled(1) * G_C(i) - M_scaled(2) * G_B(i);
-        Qi((3 * i) + 1) += M_scaled(2) * G_A(i) - M_scaled(0) * G_C(i);
-        Qi((3 * i) + 2) += M_scaled(0) * G_B(i) - M_scaled(1) * G_A(i);
+    for (unsigned int i = 0; i < 24; i++) {
+        Qi(3 * i + 0) += M_scaled(1) * G_C(i) - M_scaled(2) * G_B(i);
+        Qi(3 * i + 1) += M_scaled(2) * G_A(i) - M_scaled(0) * G_C(i);
+        Qi(3 * i + 2) += M_scaled(0) * G_B(i) - M_scaled(1) * G_A(i);
     }
 }
 
@@ -1751,10 +1751,10 @@ void ChElementShellANCF_8::ComputeNF(
 
     // Compute G'M without actually forming the complete matrix "G" (since it has a sparsity pattern to it)
     //// MIKE Clean-up when slicing becomes available in Eigen 3.4
-    for (unsigned int i = 0; i < 9; i++) {
-        Qi(3 * i) += M_scaled(1) * G_C(i) - M_scaled(2) * G_B(i);
-        Qi((3 * i) + 1) += M_scaled(2) * G_A(i) - M_scaled(0) * G_C(i);
-        Qi((3 * i) + 2) += M_scaled(0) * G_B(i) - M_scaled(1) * G_A(i);
+    for (unsigned int i = 0; i < 24; i++) {
+        Qi(3 * i + 0) += M_scaled(1) * G_C(i) - M_scaled(2) * G_B(i);
+        Qi(3 * i + 1) += M_scaled(2) * G_A(i) - M_scaled(0) * G_C(i);
+        Qi(3 * i + 2) += M_scaled(0) * G_B(i) - M_scaled(1) * G_A(i);
     }
 }
 
