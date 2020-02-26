@@ -78,6 +78,8 @@ source_group("hmmwv" FILES ${CVM_HMMWV_FILES})
 set(CVM_UAZ_FILES
     uaz/UAZBUS.cpp
     uaz/UAZBUS.h
+    uaz/UAZBUS_SAE.cpp
+    uaz/UAZBUS_SAE.h
     uaz/UAZBUS_BrakeSimple.cpp
     uaz/UAZBUS_BrakeSimple.h
     uaz/UAZBUS_Chassis.cpp
@@ -88,6 +90,8 @@ set(CVM_UAZ_FILES
     uaz/UAZBUS_Driveline4WD.h
     uaz/UAZBUS_LeafspringAxle.cpp
     uaz/UAZBUS_LeafspringAxle.h
+    uaz/UAZBUS_SAELeafspringAxle.cpp
+    uaz/UAZBUS_SAELeafspringAxle.h
     uaz/UAZBUS_RigidTire.cpp
     uaz/UAZBUS_RigidTire.h
     uaz/UAZBUS_RotaryArm.cpp
@@ -98,10 +102,14 @@ set(CVM_UAZ_FILES
     uaz/UAZBUS_TMeasyTire.h
     uaz/UAZBUS_Pac02Tire.cpp
     uaz/UAZBUS_Pac02Tire.h
+    uaz/UAZBUS_SAEToeBarLeafspringAxle.cpp
+    uaz/UAZBUS_SAEToeBarLeafspringAxle.h
     uaz/UAZBUS_ToeBarLeafspringAxle.cpp
     uaz/UAZBUS_ToeBarLeafspringAxle.h
     uaz/UAZBUS_Vehicle.cpp
     uaz/UAZBUS_Vehicle.h
+    uaz/UAZBUS_SAEVehicle.cpp
+    uaz/UAZBUS_SAEVehicle.h
     uaz/UAZBUS_Wheel.cpp
     uaz/UAZBUS_Wheel.h
 )

@@ -503,6 +503,7 @@ enum class SuspensionType {
     DOUBLE_WISHBONE_REDUCED,          ///< simplified double wishbone (constraint-based)
     HENDRICKSON_PRIMAXX,              ///< Hendrickson PRIMAXX (walking beam)
     LEAF_SPRING_AXLE,                 ///< leaf-spring solid axle
+    SAE_LEAF_SPRING_AXLE,             ///< leaf-spring solid axle with kinematic leaf-spring model
     MACPHERSON_STRUT,                 ///< MacPherson strut
     MULTI_LINK,                       ///< multi-link
     RIGID_PINNED,                     ///< pinned rigid beam
@@ -512,7 +513,8 @@ enum class SuspensionType {
     SOLID_THREE_LINK_AXLE,            ///< rigid suspension + 3 guiding links
     SOLID_BELLCRANK_THREE_LINK_AXLE,  ///< rigid suspension + 3 guiding linls + bellcrank steering mechanism
     THREE_LINK_IRS,                   ///< three-link independent rear suspension
-    TOE_BAR_LEAF_SPRING_AXLE          ///< steerable leaf-spring solid axle
+    TOE_BAR_LEAF_SPRING_AXLE,         ///< steerable leaf-spring solid axle
+    SAE_TOE_BAR_LEAF_SPRING_AXLE      ///< steerable leaf-spring solid axle with kinematic leaf-spring model
 };
 
 /// Enum for available wheeled-vehicle steering model templates.
