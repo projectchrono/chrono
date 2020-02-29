@@ -1534,6 +1534,38 @@ void ChElementBeamANCF::ShapeFunctionsDerivativeZ(ShapeVector& Nz, double x, dou
     Nz(8) = 1 - x * x;
 }
 
+void ChElementBeamANCF::Calc_Sxi_D(ChMatrixNM<double, 9, 3>& Sxi_D, double xi, double eta, double zeta) {
+    Sxi_D(0, 0) = xi - 0.5;
+    Sxi_D(1, 0) = 0.25*m_thicknessY*eta*(2.0*xi - 1.0);
+    Sxi_D(2, 0) = 0.25*m_thicknessZ*zeta*(2.0*xi - 1.0);
+    Sxi_D(3, 0) = xi + 0.5;
+    Sxi_D(4, 0) = 0.25*m_thicknessY*eta*(2.0*xi + 1.0);
+    Sxi_D(5, 0) = 0.25*m_thicknessZ*zeta*(2.0*xi + 1.0);
+    Sxi_D(6, 0) = -2.0*xi;
+    Sxi_D(7, 0) = -m_thicknessY*eta*xi;
+    Sxi_D(8, 0) = -m_thicknessZ*zeta*xi;
+
+    Sxi_D(0, 1) = 0.0;
+    Sxi_D(1, 1) = 0.25*m_thicknessY*(xi*xi - xi);
+    Sxi_D(2, 1) = 0.0;
+    Sxi_D(3, 1) = 0.0;
+    Sxi_D(4, 1) = 0.25*m_thicknessY*(xi*xi + xi);
+    Sxi_D(5, 1) = 0.0;
+    Sxi_D(6, 1) = 0.0;
+    Sxi_D(7, 1) = 0.5*m_thicknessY*(1 - xi*xi);
+    Sxi_D(8, 1) = 0.0;
+
+    Sxi_D(0, 2) = 0.0;
+    Sxi_D(1, 2) = 0.0;
+    Sxi_D(2, 2) = 0.25*m_thicknessZ*(xi*xi - xi);
+    Sxi_D(3, 2) = 0.0;
+    Sxi_D(4, 2) = 0.0;
+    Sxi_D(5, 2) = 0.25*m_thicknessZ*(xi*xi + xi);
+    Sxi_D(6, 2) = 0.0;
+    Sxi_D(7, 2) = 0.0;
+    Sxi_D(8, 2) = 0.5*m_thicknessZ*(1 - xi*xi);
+}
+
 // -----------------------------------------------------------------------------
 // Helper functions
 // -----------------------------------------------------------------------------
@@ -1910,10 +1942,8 @@ void ChElementBeamANCF::ComputeNF(
     Qi.segment(24, 3) = N(8) * F.segment(0, 3);
 
     // Compute the generalized force vector for the applied moment
-    ShapeVector Nx;
-    ShapeVector Ny;
-    ShapeVector Nz;
     ChMatrixNM<double, 9, 3> e_bar;
+    ChMatrixNM<double, 9, 3> Sxi_D;
     ChMatrixNM<double, 3, 9> Sxi_D_transpose;
     ChMatrix33<double> J_Cxi;
     ChMatrix33<double> J_Cxi_Inv;
@@ -1922,23 +1952,17 @@ void ChElementBeamANCF::ComputeNF(
     ChVectorN<double, 9> G_C;
     ChVectorN<double, 3> M_scaled = 0.5 * F.segment(3, 3);
 
-    ShapeFunctionsDerivativeX(Nx, U, 0, 0);
-    ShapeFunctionsDerivativeY(Ny, U, 0, 0);
-    ShapeFunctionsDerivativeZ(Nz, U, 0, 0);
-    Sxi_D_transpose.row(0) = Nx;
-    Sxi_D_transpose.row(1) = Ny;
-    Sxi_D_transpose.row(2) = Nz;
-
     CalcCoordMatrix(e_bar);
+    Calc_Sxi_D(Sxi_D, U, 0, 0);
 
-    // Calculate the element Jacobian between the current configuration and the normalized configuration
-    J_Cxi.noalias() = e_bar.transpose() * Sxi_D_transpose.transpose();
+    J_Cxi.noalias() = e_bar.transpose() * Sxi_D;
     J_Cxi_Inv = J_Cxi.inverse();
 
     // Compute the unique pieces that make up the moment projection matrix "G"
     // See: Antonio M Recuero, Javier F Aceituno, Jose L Escalona, and Ahmed A Shabana.
     // A nonlinear approach for modeling rail flexibility using the absolute nodal coordinate
     // formulation. Nonlinear Dynamics, 83(1-2):463-481, 2016.
+    Sxi_D_transpose = Sxi_D.transpose();
     G_A = Sxi_D_transpose.row(0) * J_Cxi_Inv(0, 0) + Sxi_D_transpose.row(1) * J_Cxi_Inv(1, 0) +
           Sxi_D_transpose.row(2) * J_Cxi_Inv(2, 0);
     G_B = Sxi_D_transpose.row(0) * J_Cxi_Inv(0, 1) + Sxi_D_transpose.row(1) * J_Cxi_Inv(1, 1) +
@@ -1949,9 +1973,9 @@ void ChElementBeamANCF::ComputeNF(
     // Compute G'M without actually forming the complete matrix "G" (since it has a sparsity pattern to it)
     //// MIKE Clean-up when slicing becomes available in Eigen 3.4
     for (unsigned int i = 0; i < 9; i++) {
-        Qi(3 * i) += M_scaled(1) * G_C(i) - M_scaled(2) * G_B(i);
-        Qi((3 * i) + 1) += M_scaled(2) * G_A(i) - M_scaled(0) * G_C(i);
-        Qi((3 * i) + 2) += M_scaled(0) * G_B(i) - M_scaled(1) * G_A(i);
+        Qi(3 * i + 0) += M_scaled(1) * G_C(i) - M_scaled(2) * G_B(i);
+        Qi(3 * i + 1) += M_scaled(2) * G_A(i) - M_scaled(0) * G_C(i);
+        Qi(3 * i + 2) += M_scaled(0) * G_B(i) - M_scaled(1) * G_A(i);
     }
 }
 
@@ -1983,10 +2007,8 @@ void ChElementBeamANCF::ComputeNF(
     Qi.segment(24, 3) = N(8) * F.segment(0, 3);
 
     // Compute the generalized force vector for the applied moment
-    ShapeVector Nx;
-    ShapeVector Ny;
-    ShapeVector Nz;
     ChMatrixNM<double, 9, 3> e_bar;
+    ChMatrixNM<double, 9, 3> Sxi_D;
     ChMatrixNM<double, 3, 9> Sxi_D_transpose;
     ChMatrix33<double> J_Cxi;
     ChMatrix33<double> J_Cxi_Inv;
@@ -1995,23 +2017,17 @@ void ChElementBeamANCF::ComputeNF(
     ChVectorN<double, 9> G_C;
     ChVectorN<double, 3> M_scaled = 0.5 * F.segment(3, 3);
 
-    ShapeFunctionsDerivativeX(Nx, U, V, W);
-    ShapeFunctionsDerivativeY(Ny, U, V, W);
-    ShapeFunctionsDerivativeZ(Nz, U, V, W);
-    Sxi_D_transpose.row(0) = Nx;
-    Sxi_D_transpose.row(1) = Ny;
-    Sxi_D_transpose.row(2) = Nz;
-
     CalcCoordMatrix(e_bar);
+    Calc_Sxi_D(Sxi_D, U, V, W);
 
-    // Calculate the element Jacobian between the current configuration and the normalized configuration
-    J_Cxi.noalias() = e_bar.transpose() * Sxi_D_transpose.transpose();
+    J_Cxi.noalias() = e_bar.transpose() * Sxi_D;
     J_Cxi_Inv = J_Cxi.inverse();
 
     // Compute the unique pieces that make up the moment projection matrix "G"
     // See: Antonio M Recuero, Javier F Aceituno, Jose L Escalona, and Ahmed A Shabana.
     // A nonlinear approach for modeling rail flexibility using the absolute nodal coordinate
     // formulation. Nonlinear Dynamics, 83(1-2):463-481, 2016.
+    Sxi_D_transpose = Sxi_D.transpose();
     G_A = Sxi_D_transpose.row(0) * J_Cxi_Inv(0, 0) + Sxi_D_transpose.row(1) * J_Cxi_Inv(1, 0) +
           Sxi_D_transpose.row(2) * J_Cxi_Inv(2, 0);
     G_B = Sxi_D_transpose.row(0) * J_Cxi_Inv(0, 1) + Sxi_D_transpose.row(1) * J_Cxi_Inv(1, 1) +
@@ -2022,9 +2038,9 @@ void ChElementBeamANCF::ComputeNF(
     // Compute G'M without actually forming the complete matrix "G" (since it has a sparsity pattern to it)
     //// MIKE Clean-up when slicing becomes available in Eigen 3.4
     for (unsigned int i = 0; i < 9; i++) {
-        Qi(3 * i) += M_scaled(1) * G_C(i) - M_scaled(2) * G_B(i);
-        Qi((3 * i) + 1) += M_scaled(2) * G_A(i) - M_scaled(0) * G_C(i);
-        Qi((3 * i) + 2) += M_scaled(0) * G_B(i) - M_scaled(1) * G_A(i);
+        Qi(3 * i + 0) += M_scaled(1) * G_C(i) - M_scaled(2) * G_B(i);
+        Qi(3 * i + 1) += M_scaled(2) * G_A(i) - M_scaled(0) * G_C(i);
+        Qi(3 * i + 2) += M_scaled(0) * G_B(i) - M_scaled(1) * G_A(i);
     }
 }
 
