@@ -1552,6 +1552,8 @@ void ChElementShellANCF::ComputeNF(
     Qi.segment(18, 3) = N(6) * F.segment(0, 3);
     Qi.segment(21, 3) = N(7) * F.segment(0, 3);
 
+    //// RADU: Under development; requires additional testing
+    /*
     // Compute the generalized force vector for the applied moment
     ShapeVector Nx;
     ShapeVector Ny;
@@ -1596,6 +1598,7 @@ void ChElementShellANCF::ComputeNF(
         Qi(3 * i + 1) += M_scaled(2) * G_A(i) - M_scaled(0) * G_C(i);
         Qi(3 * i + 2) += M_scaled(0) * G_B(i) - M_scaled(1) * G_A(i);
     }
+    */
 }
 
 // Evaluate N'*F , where N is the shape function evaluated at (U,V,W) coordinates of the surface.
@@ -1624,6 +1627,8 @@ void ChElementShellANCF::ComputeNF(
     Qi.segment(18, 3) = N(6) * F.segment(0, 3);
     Qi.segment(21, 3) = N(7) * F.segment(0, 3);
 
+    //// RADU: Under development; requires additional testing
+    /*
     // Compute the generalized force vector for the applied moment
     ShapeVector Nx;
     ShapeVector Ny;
@@ -1668,6 +1673,7 @@ void ChElementShellANCF::ComputeNF(
         Qi(3 * i + 1) += M_scaled(2) * G_A(i) - M_scaled(0) * G_C(i);
         Qi(3 * i + 2) += M_scaled(0) * G_B(i) - M_scaled(1) * G_A(i);
     }
+    */
 }
 
 // -----------------------------------------------------------------------------

@@ -359,7 +359,7 @@ class ChApi ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public
     /// stiffness of each element (if any), the mass, etc.
     virtual void SetupInitial(ChSystem* system) override;
 
-    /// Calculate the 27x3 Compact Shape Function Derivative Matrix
+    /// Calculate the 9x3 Compact Shape Function Derivative Matrix
     void Calc_Sxi_D(ChMatrixNM<double, 9, 3>& Sxi_D, double xi, double eta, double zeta);
 
     //// RADU
