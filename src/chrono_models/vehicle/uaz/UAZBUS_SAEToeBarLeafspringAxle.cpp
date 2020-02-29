@@ -199,29 +199,6 @@ double UAZBUS_SAEShockForceFront::operator()(double time,
     return force;
 }
 
-// Functor class implementing the torque for a ChLinkRotSpringCB link.
-class UAZBUS_SAELeafspringTorqueFront : public ChLinkRotSpringCB::TorqueFunctor {
-  public:
-    UAZBUS_SAELeafspringTorqueFront(double K, double Restangle) {
-        spring_coef = K;
-        rest_angle = Restangle;
-        damping_coef = 0.05 * K;
-    }
-    virtual double operator()(double time,             // current time
-                              double angle,            // relative angle of rotation
-                              double vel,              // relative angular speed
-                              ChLinkRotSpringCB* link  // back-pointer to associated link
-                              ) override {
-        double torque = -spring_coef * (angle - rest_angle) - damping_coef * vel;
-        return torque;
-    }
-
-  private:
-    double spring_coef;
-    double damping_coef;
-    double rest_angle;
-};
-
 UAZBUS_SAEToeBarLeafspringAxle::UAZBUS_SAEToeBarLeafspringAxle(const std::string& name)
     : ChSAEToeBarLeafspringAxle(name) {
     ChVector<> ra = getLocation(CLAMP_A) - getLocation(FRONT_HANGER);
@@ -240,11 +217,13 @@ UAZBUS_SAEToeBarLeafspringAxle::UAZBUS_SAEToeBarLeafspringAxle(const std::string
     double rest_angle_A = Ma.y() / KrotVertA;
     double rest_angle_B = Mb.y() / KrotVertB;
 
-    m_latRotSpringCBA = new UAZBUS_SAELeafspringTorqueFront(KrotLatA, 0);
-    m_latRotSpringCBB = new UAZBUS_SAELeafspringTorqueFront(KrotLatB, 0);
+    double damping_factor = 0.05;
 
-    m_vertRotSpringCBA = new UAZBUS_SAELeafspringTorqueFront(KrotVertA, rest_angle_A);
-    m_vertRotSpringCBB = new UAZBUS_SAELeafspringTorqueFront(KrotVertB, rest_angle_B);
+    m_latRotSpringCBA = new LinearSpringDamperTorque(KrotLatA, KrotLatA * damping_factor, 0);
+    m_latRotSpringCBB = new LinearSpringDamperTorque(KrotLatB, KrotLatA * damping_factor, 0);
+
+    m_vertRotSpringCBA = new LinearSpringDamperTorque(KrotVertA, KrotVertA * damping_factor, rest_angle_A);
+    m_vertRotSpringCBB = new LinearSpringDamperTorque(KrotVertB, KrotVertB * damping_factor, rest_angle_B);
 
     /*
         m_springForceCB = new LinearSpringForce(m_springCoefficient  // coefficient for linear spring

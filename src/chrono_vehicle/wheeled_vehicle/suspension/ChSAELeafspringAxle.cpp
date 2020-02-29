@@ -219,7 +219,7 @@ void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
 
     // Create and initialize the frontleaf body.
     m_frontleaf[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
-    m_frontleaf[side]->SetNameString(m_name + "frontleaf" + suffix);
+    m_frontleaf[side]->SetNameString(m_name + "_frontleaf" + suffix);
     m_frontleaf[side]->SetPos((points[FRONT_HANGER] + points[CLAMP_A]) / 2.0);
     m_frontleaf[side]->SetRot(chassis->GetFrame_REF_to_abs().GetRot());
     m_frontleaf[side]->SetMass(getFrontLeafMass());
@@ -234,7 +234,7 @@ void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
 
     // Create and initialize the rearleaf body.
     m_rearleaf[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
-    m_rearleaf[side]->SetNameString(m_name + "rearleaf" + suffix);
+    m_rearleaf[side]->SetNameString(m_name + "_rearleaf" + suffix);
     m_rearleaf[side]->SetPos((points[SHACKLE] + points[CLAMP_B]) / 2.0);
     m_rearleaf[side]->SetRot(chassis->GetFrame_REF_to_abs().GetRot());
     m_rearleaf[side]->SetMass(getRearLeafMass());
@@ -395,13 +395,7 @@ void ChSAELeafspringAxle::LogConstraintViolations(VehicleSide side) {
     // TODO: Update this to reflect new suspension joints
     // Revolute joints
 
-    {
-        ChVectorDynamic<> C = m_sphericalTierod->GetC();
-        GetLog() << "Tierod spherical          ";
-        GetLog() << "  " << C(0) << "  ";
-        GetLog() << "  " << C(1) << "  ";
-        GetLog() << "  " << C(2) << "\n";
-    }
+    {}
 }
 
 // -----------------------------------------------------------------------------
@@ -415,8 +409,8 @@ void ChSAELeafspringAxle::AddVisualizationAssets(VisualizationType vis) {
     AddVisualizationLink(m_axleTube, m_axleOuterL, m_axleOuterR, getAxleTubeRadius(), ChColor(0.7f, 0.7f, 0.7f));
 
     // Add visualization for the springs and shocks
-    // m_spring[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.06, 150, 15));
-    // m_spring[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.06, 150, 15));
+    m_spring[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.03, 150, 10));
+    m_spring[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.03, 150, 10));
 
     m_shock[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
     m_shock[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
@@ -458,6 +452,18 @@ void ChSAELeafspringAxle::RemoveVisualizationAssets() {
 
     m_shock[LEFT]->GetAssets().clear();
     m_shock[RIGHT]->GetAssets().clear();
+
+    m_frontleaf[LEFT]->GetAssets().clear();
+    m_frontleaf[RIGHT]->GetAssets().clear();
+
+    m_rearleaf[LEFT]->GetAssets().clear();
+    m_rearleaf[RIGHT]->GetAssets().clear();
+
+    m_clampA[LEFT]->GetAssets().clear();
+    m_clampB[RIGHT]->GetAssets().clear();
+
+    m_shackle[LEFT]->GetAssets().clear();
+    m_shackle[RIGHT]->GetAssets().clear();
 }
 
 // -----------------------------------------------------------------------------
@@ -488,6 +494,16 @@ void ChSAELeafspringAxle::ExportComponentList(rapidjson::Document& jsonDocument)
     ChPart::ExportComponentList(jsonDocument);
 
     std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_rearleaf[0]);
+    bodies.push_back(m_rearleaf[1]);
+    bodies.push_back(m_frontleaf[0]);
+    bodies.push_back(m_frontleaf[1]);
+    bodies.push_back(m_shackle[0]);
+    bodies.push_back(m_shackle[1]);
+    bodies.push_back(m_clampA[0]);
+    bodies.push_back(m_clampA[1]);
+    bodies.push_back(m_clampB[0]);
+    bodies.push_back(m_clampB[1]);
     bodies.push_back(m_spindle[0]);
     bodies.push_back(m_spindle[1]);
     bodies.push_back(m_axleTube);
@@ -499,6 +515,21 @@ void ChSAELeafspringAxle::ExportComponentList(rapidjson::Document& jsonDocument)
     ChPart::ExportShaftList(jsonDocument, shafts);
 
     std::vector<std::shared_ptr<ChLink>> joints;
+    joints.push_back(m_shackleRev[0]);
+    joints.push_back(m_shackleRev[1]);
+    joints.push_back(m_clampARev[0]);
+    joints.push_back(m_clampARev[1]);
+    joints.push_back(m_clampBRev[0]);
+    joints.push_back(m_clampBRev[1]);
+    joints.push_back(m_frontleafSph[0]);
+    joints.push_back(m_frontleafSph[1]);
+    joints.push_back(m_frontleafRev[0]);
+    joints.push_back(m_frontleafRev[1]);
+    joints.push_back(m_rearleafSph[0]);
+    joints.push_back(m_rearleafSph[1]);
+    joints.push_back(m_rearleafRev[0]);
+    joints.push_back(m_rearleafRev[1]);
+    joints.push_back(m_revolute[1]);
     joints.push_back(m_revolute[0]);
     joints.push_back(m_revolute[1]);
     ChPart::ExportJointList(jsonDocument, joints);

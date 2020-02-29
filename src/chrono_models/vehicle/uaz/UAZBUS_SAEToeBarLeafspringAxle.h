@@ -73,9 +73,6 @@ class CH_MODELS_API UAZBUS_SAEToeBarLeafspringAxle : public ChSAEToeBarLeafsprin
 
     virtual double getAxleInertia() const override { return m_axleShaftInertia; }
 
-    virtual double getLeafHeight() const override { return m_leafHeight; }
-    virtual double getLeafWidth() const override { return m_leafWidth; }
-
     virtual double getSpringRestLength() const override { return m_auxSpringRestLength; }
     /// Return the functor object for spring force.
     virtual ChLinkTSDA::ForceFunctor* getSpringForceFunctor() const override { return m_auxSpringForceCB; }

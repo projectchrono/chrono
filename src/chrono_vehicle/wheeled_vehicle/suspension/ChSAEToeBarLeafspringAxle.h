@@ -277,12 +277,12 @@ class CH_VEHICLE_API ChSAEToeBarLeafspringAxle : public ChSuspension {
     /// Return the inertia of the axle shaft.
     virtual double getAxleInertia() const = 0;
 
-    double getDensity() { return 7850.0; }  // density of steel
+    // double getDensity() { return 7850.0; }  // density of steel
 
     /// Return the height of the leaf (for visualisation and calculation of mass properties)
-    virtual double getLeafHeight() const = 0;
+    // virtual double getLeafHeight() const = 0;
     /// Return the height of the leaf (for visualisation and calculation of mass properties)
-    virtual double getLeafWidth() const = 0;
+    // virtual double getLeafWidth() const = 0;
 
     /// Return the free (rest) length of the spring element.
     virtual double getSpringRestLength() const = 0;
@@ -297,7 +297,7 @@ class CH_VEHICLE_API ChSAEToeBarLeafspringAxle : public ChSuspension {
     virtual ChLinkRotSpringCB::TorqueFunctor* getVertTorqueFunctorA() const = 0;
     virtual ChLinkRotSpringCB::TorqueFunctor* getVertTorqueFunctorB() const = 0;
 
-    /// Returns toplology flag for knuckle/draglink connection
+    /// Returns topolology flag for knuckle/draglink connection
     virtual bool isLeftKnuckleActuated() { return true; }
 
     std::shared_ptr<ChBody> m_axleTube;    ///< handles to the axle tube body

@@ -590,8 +590,8 @@ void ChSAEToeBarLeafspringAxle::AddVisualizationAssets(VisualizationType vis) {
                             getKnuckleRadius());
 
     // Add visualization for the springs and shocks
-    // m_spring[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.06, 150, 15));
-    // m_spring[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.06, 150, 15));
+    m_spring[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.03, 150, 10));
+    m_spring[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.03, 150, 10));
 
     m_shock[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
     m_shock[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
@@ -709,6 +709,16 @@ void ChSAEToeBarLeafspringAxle::ExportComponentList(rapidjson::Document& jsonDoc
     ChPart::ExportComponentList(jsonDocument);
 
     std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_rearleaf[0]);
+    bodies.push_back(m_rearleaf[1]);
+    bodies.push_back(m_frontleaf[0]);
+    bodies.push_back(m_frontleaf[1]);
+    bodies.push_back(m_shackle[0]);
+    bodies.push_back(m_shackle[1]);
+    bodies.push_back(m_clampA[0]);
+    bodies.push_back(m_clampA[1]);
+    bodies.push_back(m_clampB[0]);
+    bodies.push_back(m_clampB[1]);
     bodies.push_back(m_spindle[0]);
     bodies.push_back(m_spindle[1]);
     bodies.push_back(m_axleTube);
@@ -724,6 +734,20 @@ void ChSAEToeBarLeafspringAxle::ExportComponentList(rapidjson::Document& jsonDoc
     ChPart::ExportShaftList(jsonDocument, shafts);
 
     std::vector<std::shared_ptr<ChLink>> joints;
+    joints.push_back(m_shackleRev[0]);
+    joints.push_back(m_shackleRev[1]);
+    joints.push_back(m_clampARev[0]);
+    joints.push_back(m_clampARev[1]);
+    joints.push_back(m_clampBRev[0]);
+    joints.push_back(m_clampBRev[1]);
+    joints.push_back(m_frontleafSph[0]);
+    joints.push_back(m_frontleafSph[1]);
+    joints.push_back(m_frontleafRev[0]);
+    joints.push_back(m_frontleafRev[1]);
+    joints.push_back(m_rearleafSph[0]);
+    joints.push_back(m_rearleafSph[1]);
+    joints.push_back(m_rearleafRev[0]);
+    joints.push_back(m_rearleafRev[1]);
     joints.push_back(m_revolute[0]);
     joints.push_back(m_revolute[1]);
     joints.push_back(m_sphericalTierod);
