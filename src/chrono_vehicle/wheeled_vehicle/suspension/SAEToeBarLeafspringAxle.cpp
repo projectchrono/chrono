@@ -30,7 +30,7 @@ namespace vehicle {
 // Construct a solid axle suspension using data from the specified JSON file.
 // -----------------------------------------------------------------------------
 SAEToeBarLeafspringAxle::SAEToeBarLeafspringAxle(const std::string& filename)
-    : ChSAEToeBarLeafspringAxle(""), m_springForceCB(NULL), m_shockForceCB(NULL) {
+    : ChSAEToeBarLeafspringAxle(""), m_springForceCB(NULL), m_shockForceCB(NULL), m_use_left_knuckle(true) {
     Document d = ReadFileJSON(filename);
     if (d.IsNull())
         return;
@@ -41,7 +41,7 @@ SAEToeBarLeafspringAxle::SAEToeBarLeafspringAxle(const std::string& filename)
 }
 
 SAEToeBarLeafspringAxle::SAEToeBarLeafspringAxle(const rapidjson::Document& d)
-    : ChSAEToeBarLeafspringAxle(""), m_springForceCB(NULL), m_shockForceCB(NULL) {
+    : ChSAEToeBarLeafspringAxle(""), m_springForceCB(NULL), m_shockForceCB(NULL), m_use_left_knuckle(true) {
     Create(d);
 }
 
