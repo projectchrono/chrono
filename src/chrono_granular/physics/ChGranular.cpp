@@ -256,6 +256,10 @@ void ChSystemGranularSMC::writeFile(std::string ofile) const {
             outstrstream << ",wx,wy,wz";
         }
 
+        if (GET_OUTPUT_SETTING(FORCE_COMPONENTS)) {
+            outstrstream << ",fx,fy,fz";
+        }
+
         outstrstream << "\n";
         for (unsigned int n = 0; n < nSpheres; n++) {
             unsigned int ownerSD = sphere_owner_SDs.at(n);
@@ -299,6 +303,16 @@ void ChSystemGranularSMC::writeFile(std::string ofile) const {
                 outstrstream << "," << sphere_Omega_X.at(n) / TIME_SU2UU << "," << sphere_Omega_Y.at(n) / TIME_SU2UU
                              << "," << sphere_Omega_Z.at(n) / TIME_SU2UU;
             }
+
+            if (GET_OUTPUT_SETTING(FORCE_COMPONENTS)) {
+                double massSphere =
+                    (4.0 / 3.0) * CH_C_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU * sphere_density_UU;
+                double fx = (sphere_acc_X.at(n) - gran_params->gravAcc_X_SU) * massSphere * FORCE_SU2UU;
+                double fy = (sphere_acc_Y.at(n) - gran_params->gravAcc_Y_SU) * massSphere * FORCE_SU2UU;
+                double fz = (sphere_acc_Z.at(n) - gran_params->gravAcc_Z_SU) * massSphere * FORCE_SU2UU;
+                outstrstream << "," << fx << "," << fy << "," << fz;
+            }
+
             outstrstream << "\n";
         }
 
