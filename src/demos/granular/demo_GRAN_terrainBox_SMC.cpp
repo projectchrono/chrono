@@ -88,6 +88,8 @@ int main(int argc, char* argv[]) {
     gran_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
     gran_sys.setOutputMode(params.write_mode);
 
+    gran_sys.set_rolling_mode(GRAN_ROLLING_MODE::NO_RESISTANCE);
+
     std::vector<ChVector<float>> body_points;
 
     {
