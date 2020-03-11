@@ -234,8 +234,8 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     void Clear();
 
     /// Return the contact method supported by this system.
-    /// Bodies added to this system must be compatible.
-    virtual ChMaterialSurface::ContactMethod GetContactMethod() const = 0;
+    /// Contactables (bodies, FEA nodes, FEA traiangles, etc.) added to this system must be compatible.
+    virtual ChContactMethod GetContactMethod() const = 0;
 
     /// Create and return the pointer to a new body.
     /// The returned body is created with a contact model consistent with the type

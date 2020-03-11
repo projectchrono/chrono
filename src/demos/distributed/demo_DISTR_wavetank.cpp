@@ -158,7 +158,8 @@ std::shared_ptr<ChBoundary> AddContainer(ChSystemDistributed* sys) {
     mat->SetRestitution(cr);
     mat->SetPoissonRatio(nu);
 
-    auto bin = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>(), ChMaterialSurface::SMC);
+    auto bin =
+        chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>(), ChContactMethod::SMC);
     bin->SetMaterialSurface(mat);
     bin->SetIdentifier(binId);
     bin->SetMass(1);
@@ -199,7 +200,8 @@ inline std::shared_ptr<ChBody> CreateBall(const ChVector<>& pos,
                                           double m,
                                           ChVector<> inertia,
                                           double radius) {
-    auto ball = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
+    auto ball = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelDistributed>(),
+                                                  ChContactMethod::SMC);
     ball->SetMaterialSurface(ballMat);
 
     ball->SetIdentifier(*ballId++);

@@ -46,11 +46,11 @@ void ChRoller::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<
 
     // Set roller contact material properties.
     switch (m_wheel->GetContactMethod()) {
-        case ChMaterialSurface::NSC:
+        case ChContactMethod::NSC:
             m_wheel->GetMaterialSurfaceNSC()->SetFriction(m_friction);
             m_wheel->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
             break;
-        case ChMaterialSurface::SMC:
+        case ChContactMethod::SMC:
             m_wheel->GetMaterialSurfaceSMC()->SetFriction(m_friction);
             m_wheel->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
             m_wheel->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);

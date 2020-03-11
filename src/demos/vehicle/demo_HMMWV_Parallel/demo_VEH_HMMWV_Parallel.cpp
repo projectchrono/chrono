@@ -551,7 +551,7 @@ int main(int argc, char* argv[]) {
 HMMWV_Full* CreateVehicle(ChSystem* system, double vertical_offset) {
     auto hmmwv = new HMMWV_Full(system);
 
-    hmmwv->SetContactMethod(ChMaterialSurface::NSC);
+    hmmwv->SetContactMethod(ChContactMethod::NSC);
     hmmwv->SetChassisFixed(false);
     hmmwv->SetInitPosition(ChCoordsys<>(initLoc + ChVector<>(0, 0, vertical_offset), initRot));
     hmmwv->SetInitFwdVel(initSpeed);

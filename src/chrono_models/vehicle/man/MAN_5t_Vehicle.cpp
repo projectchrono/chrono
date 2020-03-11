@@ -31,7 +31,7 @@ namespace man {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 MAN_5t_Vehicle::MAN_5t_Vehicle(const bool fixed,
-                               ChMaterialSurface::ContactMethod contact_method,
+                               ChContactMethod contact_method,
                                ChassisCollisionType chassis_collision_type,
                                bool useShaftDrivetrain)
     : ChWheeledVehicle("MAN_5t", contact_method), m_omega({0, 0, 0, 0}), m_use_shafts_drivetrain(useShaftDrivetrain) {

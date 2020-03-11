@@ -40,7 +40,7 @@ ChVector<> inertiaXX(1, 1, 1);
 ChVector<> gravity(0, 0, -9.80665);
 
 class ChLinActuatorTest
-    : public ::testing::TestWithParam<std::tuple<ChMaterialSurface::ContactMethod, double, ChQuaternion<>>> {
+    : public ::testing::TestWithParam<std::tuple<ChContactMethod, double, ChQuaternion<>>> {
   protected:
     ChLinActuatorTest();
     ~ChLinActuatorTest() { delete msystem; }
@@ -48,7 +48,7 @@ class ChLinActuatorTest
     void VerifySolution(double time);
 
     ChSystemParallel* msystem;
-    ChMaterialSurface::ContactMethod cm;
+    ChContactMethod cm;
     ChQuaternion<> rot;
     double speed;
     std::shared_ptr<ChBody> plate;
@@ -80,10 +80,10 @@ ChLinActuatorTest::ChLinActuatorTest() : animate(false) {
 
     // Create the mechanical system
     switch (cm) {
-        case ChMaterialSurface::SMC:
+        case ChContactMethod::SMC:
             msystem = new ChSystemParallelSMC();
             break;
-        case ChMaterialSurface::NSC:
+        case ChContactMethod::NSC:
             msystem = new ChSystemParallelNSC();
             break;
     }
@@ -100,7 +100,7 @@ ChLinActuatorTest::ChLinActuatorTest() : animate(false) {
     msystem->GetSettings()->solver.clamp_bilaterals = clamp_bilaterals;
     msystem->GetSettings()->solver.bilateral_clamp_speed = bilateral_clamp_speed;
 
-    if (cm == ChMaterialSurface::NSC) {
+    if (cm == ChContactMethod::NSC) {
         ChSystemParallelNSC* msystemNSC = static_cast<ChSystemParallelNSC*>(msystem);
         msystemNSC->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
         msystemNSC->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
@@ -332,6 +332,6 @@ TEST_P(ChLinActuatorTest, simulate) {
 
 INSTANTIATE_TEST_CASE_P(ChronoParallel,
                         ChLinActuatorTest,
-                        ::testing::Combine(::testing::Values(ChMaterialSurface::NSC, ChMaterialSurface::SMC),
+                        ::testing::Combine(::testing::Values(ChContactMethod::NSC, ChContactMethod::SMC),
                                            ::testing::Values(1.0, 0.5),
                                            ::testing::Values(QUNIT, Q_from_AngY(CH_C_PI / 4))));

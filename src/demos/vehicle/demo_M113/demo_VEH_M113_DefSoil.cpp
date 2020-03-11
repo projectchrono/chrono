@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Construct the M113 vehicle
-    M113_Vehicle vehicle(false, TrackShoeType::SINGLE_PIN, ChMaterialSurface::SMC);
+    M113_Vehicle vehicle(false, TrackShoeType::SINGLE_PIN, ChContactMethod::SMC);
 
 #ifndef CHRONO_MKL
     // Do not use MKL if not available
@@ -317,11 +317,11 @@ void AddFixedObstacles(ChSystem* system) {
     obstacle->GetCollisionModel()->BuildModel();
 
     switch (obstacle->GetContactMethod()) {
-        case ChMaterialSurface::NSC:
+        case ChContactMethod::NSC:
             obstacle->GetMaterialSurfaceNSC()->SetFriction(friction_coefficient);
             obstacle->GetMaterialSurfaceNSC()->SetRestitution(restitution_coefficient);
             break;
-        case ChMaterialSurface::SMC:
+        case ChContactMethod::SMC:
             obstacle->GetMaterialSurfaceSMC()->SetFriction(friction_coefficient);
             obstacle->GetMaterialSurfaceSMC()->SetRestitution(restitution_coefficient);
             obstacle->GetMaterialSurfaceSMC()->SetYoungModulus(young_modulus);

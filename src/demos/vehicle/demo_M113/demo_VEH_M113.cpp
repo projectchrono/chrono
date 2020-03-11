@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
     // Construct the M113 vehicle
     // --------------------------
 
-    ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::SMC;
+    ChContactMethod contact_method = ChContactMethod::SMC;
     ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE;
     TrackShoeType shoe_type = TrackShoeType::SINGLE_PIN;
 
@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
     //// However, there appear to still be redundant constraints in the double-pin assembly
     //// resulting in solver failures with MKL and MUMPS (rank-deficient matrix).
     if (shoe_type == TrackShoeType::DOUBLE_PIN)
-        contact_method = ChMaterialSurface::NSC;
+        contact_method = ChContactMethod::NSC;
 
     M113_Vehicle vehicle(false, shoe_type, contact_method, chassis_collision_type);
 
@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
     // ------------------------------
 
     // Cannot use HHT + MKL with NSC contact
-    if (contact_method == ChMaterialSurface::NSC) {
+    if (contact_method == ChContactMethod::NSC) {
         use_mkl = false;
     }
 
@@ -436,11 +436,11 @@ void AddFixedObstacles(ChSystem* system) {
     obstacle->GetCollisionModel()->BuildModel();
 
     switch (obstacle->GetContactMethod()) {
-        case ChMaterialSurface::NSC:
+        case ChContactMethod::NSC:
             obstacle->GetMaterialSurfaceNSC()->SetFriction(friction_coefficient);
             obstacle->GetMaterialSurfaceNSC()->SetRestitution(restitution_coefficient);
             break;
-        case ChMaterialSurface::SMC:
+        case ChContactMethod::SMC:
             obstacle->GetMaterialSurfaceSMC()->SetFriction(friction_coefficient);
             obstacle->GetMaterialSurfaceSMC()->SetRestitution(restitution_coefficient);
             obstacle->GetMaterialSurfaceSMC()->SetYoungModulus(young_modulus);

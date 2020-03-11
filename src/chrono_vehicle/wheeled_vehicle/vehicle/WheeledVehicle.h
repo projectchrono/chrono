@@ -34,8 +34,7 @@ namespace vehicle {
 /// Wheeled vehicle model constructed from a JSON specification file.
 class CH_VEHICLE_API WheeledVehicle : public ChWheeledVehicle {
   public:
-    WheeledVehicle(const std::string& filename,
-                   ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC);
+    WheeledVehicle(const std::string& filename, ChContactMethod contact_method = ChContactMethod::NSC);
 
     WheeledVehicle(ChSystem* system, const std::string& filename);
 

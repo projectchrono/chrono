@@ -22,20 +22,21 @@
 
 namespace chrono {
 
+/// Enumeration of contact methods.
+enum class ChContactMethod {
+    NSC,  ///< non-smooth, constraint-based (a.k.a. rigid-body) contact
+    SMC   ///< smooth, penalty-based (a.k.a. soft-body) contact
+};
+
 /// Base class for specifying material properties for contact force generation.
 class ChApi ChMaterialSurface {
   public:
-    enum ContactMethod {
-        NSC,  ///< non-smooth, constraint-based (a.k.a. rigid-body) contact
-        SMC   ///< smooth, penalty-based (a.k.a. soft-body) contact
-    };
-
     virtual ~ChMaterialSurface() {}
 
     /// "Virtual" copy constructor.
     virtual ChMaterialSurface* Clone() const = 0;
 
-    virtual ContactMethod GetContactMethod() const = 0;
+    virtual ChContactMethod GetContactMethod() const = 0;
 
     virtual void ArchiveOUT(ChArchiveOut& marchive) {
         // version number:

@@ -82,9 +82,7 @@ ChTrackTestRigChassis::ChTrackTestRigChassis() : ChRigidChassis("Ground") {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChTrackTestRig::ChTrackTestRig(const std::string& filename,
-                               bool create_track,
-                               ChMaterialSurface::ContactMethod contact_method)
+ChTrackTestRig::ChTrackTestRig(const std::string& filename, bool create_track, ChContactMethod contact_method)
     : ChVehicle("TrackTestRig", contact_method),
       m_create_track(create_track),
       m_ride_height(-1),
@@ -127,7 +125,7 @@ ChTrackTestRig::ChTrackTestRig(const std::string& filename,
 
 ChTrackTestRig::ChTrackTestRig(std::shared_ptr<ChTrackAssembly> assembly,
                                bool create_track,
-                               ChMaterialSurface::ContactMethod contact_method)
+                               ChContactMethod contact_method)
     : ChVehicle("TrackTestRig", contact_method),
       m_create_track(create_track),
       m_track(assembly),

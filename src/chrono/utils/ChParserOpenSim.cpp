@@ -171,9 +171,9 @@ void ChParserOpenSim::Parse(ChSystem& system, const std::string& filename) {
 // Makes a new system and then parses into it
 // -----------------------------------------------------------------------------
 
-ChSystem* ChParserOpenSim::Parse(const std::string& filename, ChMaterialSurface::ContactMethod contact_method) {
-    ChSystem* sys = (contact_method == ChMaterialSurface::NSC) ? static_cast<ChSystem*>(new ChSystemNSC)
-                                                               : static_cast<ChSystem*>(new ChSystemSMC);
+ChSystem* ChParserOpenSim::Parse(const std::string& filename, ChContactMethod contact_method) {
+    ChSystem* sys = (contact_method == ChContactMethod::NSC) ? static_cast<ChSystem*>(new ChSystemNSC)
+                                                             : static_cast<ChSystem*>(new ChSystemSMC);
 
     Parse(*sys, filename);
 
@@ -312,11 +312,11 @@ bool ChParserOpenSim::parseBody(xml_node<>* bodyNode, ChSystem& system) {
     // If body collision is enabled, set the contact material properties
     if (m_collide) {
         switch (newBody->GetContactMethod()) {
-            case ChMaterialSurface::NSC:
+            case ChContactMethod::NSC:
                 newBody->GetMaterialSurfaceNSC()->SetFriction(m_friction);
                 newBody->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
                 break;
-            case ChMaterialSurface::SMC:
+            case ChContactMethod::SMC:
                 newBody->GetMaterialSurfaceSMC()->SetFriction(m_friction);
                 newBody->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
                 newBody->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);

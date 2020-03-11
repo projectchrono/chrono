@@ -421,13 +421,13 @@ void GranularTerrain::Initialize(const ChVector<>& center,
     // Create the contact material.
     std::shared_ptr<ChMaterialSurface> mat;
     switch (m_ground->GetContactMethod()) {
-        case ChMaterialSurface::NSC: {
+        case ChContactMethod::NSC: {
             mat = m_matNSC;
             if (m_envelope < 0)
                 m_envelope = 0.05 * radius;
             break;
         }
-        case ChMaterialSurface::SMC: {
+        case ChContactMethod::SMC: {
             mat = m_matSMC;
             m_envelope = 0;  // collision envelope reset to 0
             break;

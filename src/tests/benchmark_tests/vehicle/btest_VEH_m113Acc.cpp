@@ -62,7 +62,7 @@ private:
 
 template <typename EnumClass, EnumClass SHOE_TYPE>
 M113AccTest<EnumClass, SHOE_TYPE>::M113AccTest() : m_step(1e-3) {
-    ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC;
+    ChContactMethod contact_method = ChContactMethod::NSC;
     ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE;
 
     // Create the M113 vehicle, set parameters, and initialize.

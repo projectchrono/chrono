@@ -34,7 +34,7 @@
 
 using namespace chrono;
 
-class ContactForceTest : public ::testing::TestWithParam<ChMaterialSurface::ContactMethod> {
+class ContactForceTest : public ::testing::TestWithParam<ChContactMethod> {
   protected:
     ContactForceTest();
     ~ContactForceTest() { delete system; }
@@ -61,7 +61,7 @@ ContactForceTest::ContactForceTest() {
 
     std::shared_ptr<ChMaterialSurface> material;
     switch (GetParam()) {
-        case ChMaterialSurface::SMC: {
+        case ChContactMethod::SMC: {
             ChSystemParallelSMC* sys = new ChSystemParallelSMC;
             sys->GetSettings()->solver.contact_force_model = force_model;
             sys->GetSettings()->solver.tangential_displ_mode = tdispl_model;
@@ -81,7 +81,7 @@ ContactForceTest::ContactForceTest() {
 
             break;
         }
-        case ChMaterialSurface::NSC: {
+        case ChContactMethod::NSC: {
             ChSystemParallelNSC* sys = new ChSystemParallelNSC;
             sys->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
             sys->GetSettings()->solver.max_iteration_normal = 0;
@@ -193,4 +193,4 @@ TEST_P(ContactForceTest, simulate) {
 
 INSTANTIATE_TEST_CASE_P(ChronoParallel,
                         ContactForceTest,
-                        ::testing::Values(ChMaterialSurface::NSC, ChMaterialSurface::SMC));
+                        ::testing::Values(ChContactMethod::NSC, ChContactMethod::SMC));

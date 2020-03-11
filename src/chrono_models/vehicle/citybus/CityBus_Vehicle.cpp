@@ -31,7 +31,7 @@ namespace citybus {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 CityBus_Vehicle::CityBus_Vehicle(const bool fixed,
-                                 ChMaterialSurface::ContactMethod contact_method,
+                                 ChContactMethod contact_method,
                                  ChassisCollisionType chassis_collision_type)
     : ChWheeledVehicle("CityBus", contact_method), m_omega({0, 0, 0, 0}) {
     Create(fixed, chassis_collision_type);

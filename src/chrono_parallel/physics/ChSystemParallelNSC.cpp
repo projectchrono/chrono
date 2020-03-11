@@ -48,9 +48,9 @@ ChSystemParallelNSC::ChSystemParallelNSC(const ChSystemParallelNSC& other) : ChS
 
 ChBody* ChSystemParallelNSC::NewBody() {
     if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
-        return new ChBody(chrono_types::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurface::NSC);
+        return new ChBody(chrono_types::make_shared<collision::ChCollisionModelParallel>(), ChContactMethod::NSC);
 
-    return new ChBody(ChMaterialSurface::NSC);
+    return new ChBody(ChContactMethod::NSC);
 }
 
 void ChSystemParallelNSC::ChangeSolverType(SolverType type) {
@@ -59,9 +59,9 @@ void ChSystemParallelNSC::ChangeSolverType(SolverType type) {
 
 ChBodyAuxRef* ChSystemParallelNSC::NewBodyAuxRef() {
     if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
-        return new ChBodyAuxRef(chrono_types::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurface::NSC);
+        return new ChBodyAuxRef(chrono_types::make_shared<collision::ChCollisionModelParallel>(), ChContactMethod::NSC);
 
-    return new ChBodyAuxRef(ChMaterialSurface::NSC);
+    return new ChBodyAuxRef(ChContactMethod::NSC);
 }
 
 void ChSystemParallelNSC::Add3DOFContainer(std::shared_ptr<Ch3DOFContainer> container) {
@@ -76,7 +76,7 @@ void ChSystemParallelNSC::Add3DOFContainer(std::shared_ptr<Ch3DOFContainer> cont
 }
 
 void ChSystemParallelNSC::AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) {
-    assert(newbody->GetContactMethod() == ChMaterialSurface::NSC);
+    assert(newbody->GetContactMethod() == ChContactMethod::NSC);
 
     // Reserve space for material properties for the specified body. Not that the
     // actual data is set in UpdateMaterialProperties().

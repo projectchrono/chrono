@@ -91,14 +91,14 @@ double bin_length = 10;
 double bin_thickness = 0.1;
 
 // Forward declaration
-bool test_computecontact(ChMaterialSurface::ContactMethod method);
+bool test_computecontact(ChContactMethod method);
 
 // ====================================================================================
 
 int main(int argc, char* argv[]) {
     bool passed = true;
-    passed &= test_computecontact(ChMaterialSurface::SMC);
-    // passed &= test_computecontact(ChMaterialSurface::NSC);
+    passed &= test_computecontact(ChContactMethod::SMC);
+    // passed &= test_computecontact(ChContactMethod::NSC);
 
     // Return 0 if all tests passed.
     return !passed;
@@ -106,13 +106,13 @@ int main(int argc, char* argv[]) {
 
 // ====================================================================================
 
-bool test_computecontact(ChMaterialSurface::ContactMethod method) {
+bool test_computecontact(ChContactMethod method) {
     // Create system and contact material.
     ChSystem* system;
     std::shared_ptr<ChMaterialSurface> material;
 
     switch (method) {
-        case ChMaterialSurface::SMC: {
+        case ChContactMethod::SMC: {
             GetLog() << "Using PENALTY method.\n";
 
             ChSystemSMC* sys = new ChSystemSMC;
@@ -135,7 +135,7 @@ bool test_computecontact(ChMaterialSurface::ContactMethod method) {
 
             break;
         }
-        case ChMaterialSurface::NSC: {
+        case ChContactMethod::NSC: {
             GetLog() << "Using COMPLEMENTARITY method.\n";
 
             system = new ChSystemNSC;
@@ -286,7 +286,7 @@ bool test_computecontact(ChMaterialSurface::ContactMethod method) {
     // Setup integrator
     // ----------------
 
-    if (method == ChMaterialSurface::SMC) {
+    if (method == ChContactMethod::SMC) {
         GetLog() << "Using HHT integrator.\n";
         system->SetTimestepperType(ChTimestepper::Type::HHT);
         auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());

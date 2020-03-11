@@ -44,7 +44,7 @@ namespace hmmwv {
 HMMWV::HMMWV()
     : m_system(nullptr),
       m_vehicle(nullptr),
-      m_contactMethod(ChMaterialSurface::NSC),
+      m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(ChassisCollisionType::NONE),
       m_fixed(false),
       m_driveType(DrivelineType::AWD),
@@ -60,7 +60,7 @@ HMMWV::HMMWV()
 HMMWV::HMMWV(ChSystem* system)
     : m_system(system),
       m_vehicle(nullptr),
-      m_contactMethod(ChMaterialSurface::NSC),
+      m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(ChassisCollisionType::NONE),
       m_fixed(false),
       m_driveType(DrivelineType::AWD),

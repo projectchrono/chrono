@@ -116,7 +116,7 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
     ChVector<> pos_yn(0, -byDim / 2 - 3 * initSpace0, bzDim / 2 + 1 * initSpace0);
 
     /// Create a container
-    auto bin = chrono_types::make_shared<ChBody>(ChMaterialSurface::SMC);
+    auto bin = chrono_types::make_shared<ChBody>(ChContactMethod::SMC);
     bin->SetPos(ChVector<>(0.0, 0.0, 0.0));
     bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
     bin->SetIdentifier(-1);
@@ -147,7 +147,7 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
     /// Create falling cylinder
     ChVector<> cyl_pos = ChVector<>(0, 0, fzDim + cyl_radius + 2 * initSpace0);
     ChQuaternion<> cyl_rot = QUNIT;
-    auto cylinder = chrono_types::make_shared<ChBody>(ChMaterialSurface::SMC);
+    auto cylinder = chrono_types::make_shared<ChBody>(ChContactMethod::SMC);
     cylinder->SetPos(cyl_pos);
     double volume = utils::CalcCylinderVolume(cyl_radius, cyl_length / 2);
     ChVector<> gyration = utils::CalcCylinderGyration(cyl_radius, cyl_length / 2).diagonal();

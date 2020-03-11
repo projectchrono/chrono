@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
     // --------------------------
 
     ChassisCollisionType chassis_collision_type = ChassisCollisionType::PRIMITIVES;
-    M113_Vehicle vehicle(false, TrackShoeType::BAND_BUSHING, ChMaterialSurface::SMC, chassis_collision_type);
+    M113_Vehicle vehicle(false, TrackShoeType::BAND_BUSHING, ChContactMethod::SMC, chassis_collision_type);
 
     // Disable gravity in this simulation
     ////vehicle.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
@@ -503,11 +503,11 @@ void AddFixedObstacles(ChSystem* system) {
     obstacle->GetCollisionModel()->BuildModel();
 
     switch (obstacle->GetContactMethod()) {
-        case ChMaterialSurface::NSC:
+        case ChContactMethod::NSC:
             obstacle->GetMaterialSurfaceNSC()->SetFriction(friction_coefficient);
             obstacle->GetMaterialSurfaceNSC()->SetRestitution(restitution_coefficient);
             break;
-        case ChMaterialSurface::SMC:
+        case ChContactMethod::SMC:
             obstacle->GetMaterialSurfaceSMC()->SetFriction(friction_coefficient);
             obstacle->GetMaterialSurfaceSMC()->SetRestitution(restitution_coefficient);
             obstacle->GetMaterialSurfaceSMC()->SetYoungModulus(young_modulus);

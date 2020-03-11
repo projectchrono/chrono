@@ -81,11 +81,11 @@ void ChSprocket::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVecto
     m_gear->SetCollide(true);
 
     switch (m_gear->GetContactMethod()) {
-        case ChMaterialSurface::NSC:
+        case ChContactMethod::NSC:
             m_gear->GetMaterialSurfaceNSC()->SetFriction(m_friction);
             m_gear->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
             break;
-        case ChMaterialSurface::SMC:
+        case ChContactMethod::SMC:
             m_gear->GetMaterialSurfaceSMC()->SetFriction(m_friction);
             m_gear->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
             m_gear->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);

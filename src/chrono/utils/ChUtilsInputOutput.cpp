@@ -69,7 +69,7 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
 
     for (auto body : system->Get_bodylist()) {
         // Infer body type (0: NSC, 1:SMC)
-        int btype = (body->GetContactMethod() == ChMaterialSurface::NSC) ? 0 : 1;
+        int btype = (body->GetContactMethod() == ChContactMethod::NSC) ? 0 : 1;
 
         // Write body type, body identifier, the body fixed flag, and the collide flag
         csv << btype << body->GetIdentifier() << body->GetBodyFixed() << body->GetCollide();

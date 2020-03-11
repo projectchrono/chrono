@@ -163,11 +163,11 @@ void RigidTerrain::AddPatch(std::shared_ptr<Patch> patch, const ChCoordsys<>& po
     // Initialize contact material properties
     patch->m_friction = 0.7f;
     switch (m_system->GetContactMethod()) {
-        case ChMaterialSurface::NSC:
+        case ChContactMethod::NSC:
             patch->m_body->GetMaterialSurfaceNSC()->SetFriction(patch->m_friction);
             patch->m_body->GetMaterialSurfaceNSC()->SetRestitution(0.1f);
             break;
-        case ChMaterialSurface::SMC:
+        case ChContactMethod::SMC:
             patch->m_body->GetMaterialSurfaceSMC()->SetFriction(patch->m_friction);
             patch->m_body->GetMaterialSurfaceSMC()->SetRestitution(0.1f);
             patch->m_body->GetMaterialSurfaceSMC()->SetYoungModulus(2e5f);
@@ -416,10 +416,10 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(const ChCoordsys<>& 
 // -----------------------------------------------------------------------------
 void RigidTerrain::Patch::SetContactFrictionCoefficient(float friction_coefficient) {
     switch (m_body->GetContactMethod()) {
-        case ChMaterialSurface::NSC:
+        case ChContactMethod::NSC:
             m_body->GetMaterialSurfaceNSC()->SetFriction(friction_coefficient);
             break;
-        case ChMaterialSurface::SMC:
+        case ChContactMethod::SMC:
             m_body->GetMaterialSurfaceSMC()->SetFriction(friction_coefficient);
             break;
     }
@@ -429,24 +429,24 @@ void RigidTerrain::Patch::SetContactFrictionCoefficient(float friction_coefficie
 
 void RigidTerrain::Patch::SetContactRestitutionCoefficient(float restitution_coefficient) {
     switch (m_body->GetContactMethod()) {
-        case ChMaterialSurface::NSC:
+        case ChContactMethod::NSC:
             m_body->GetMaterialSurfaceNSC()->SetRestitution(restitution_coefficient);
             break;
-        case ChMaterialSurface::SMC:
+        case ChContactMethod::SMC:
             m_body->GetMaterialSurfaceSMC()->SetRestitution(restitution_coefficient);
             break;
     }
 }
 
 void RigidTerrain::Patch::SetContactMaterialProperties(float young_modulus, float poisson_ratio) {
-    if (m_body->GetContactMethod() == ChMaterialSurface::SMC) {
+    if (m_body->GetContactMethod() == ChContactMethod::SMC) {
         m_body->GetMaterialSurfaceSMC()->SetYoungModulus(young_modulus);
         m_body->GetMaterialSurfaceSMC()->SetPoissonRatio(poisson_ratio);
     }
 }
 
 void RigidTerrain::Patch::SetContactMaterialCoefficients(float kn, float gn, float kt, float gt) {
-    if (m_body->GetContactMethod() == ChMaterialSurface::SMC) {
+    if (m_body->GetContactMethod() == ChContactMethod::SMC) {
         m_body->GetMaterialSurfaceSMC()->SetKn(kn);
         m_body->GetMaterialSurfaceSMC()->SetGn(gn);
         m_body->GetMaterialSurfaceSMC()->SetKt(kt);
@@ -506,7 +506,7 @@ class RTContactCallback : public ChContactContainer::AddContactCallback {
 
         // Set friction in composite material based on contact formulation.
         switch (body_other->GetContactMethod()) {
-            case ChMaterialSurface::NSC: {
+            case ChContactMethod::NSC: {
                 auto mat_other = std::static_pointer_cast<ChMaterialSurfaceNSC>(body_other->GetMaterialSurface());
                 auto friction_other = mat_other->sliding_friction;
                 auto friction = strategy.CombineFriction(friction_terrain, friction_other);
@@ -515,7 +515,7 @@ class RTContactCallback : public ChContactContainer::AddContactCallback {
                 mat->sliding_friction = friction;
                 break;
             }
-            case ChMaterialSurface::SMC: {
+            case ChContactMethod::SMC: {
                 auto mat_other = std::static_pointer_cast<ChMaterialSurfaceSMC>(body_other->GetMaterialSurface());
                 auto friction_other = mat_other->sliding_friction;
                 auto friction = strategy.CombineFriction(friction_terrain, friction_other);

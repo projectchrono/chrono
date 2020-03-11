@@ -1177,6 +1177,7 @@ set(ChronoEngine_utils_HEADERS
     utils/ChFilters.h
     utils/ChCompositeInertia.h
     utils/ChParserOpenSim.h
+    utils/ChParserAdams.h
     utils/ChConvexHull.h
 )
 

@@ -36,7 +36,7 @@ namespace m113 {
 // Constructors
 // -----------------------------------------------------------------------------
 M113a_Vehicle::M113a_Vehicle(bool fixed,
-                             ChMaterialSurface::ContactMethod contact_method,
+                             ChContactMethod contact_method,
                              ChassisCollisionType chassis_collision_type)
     : ChTrackedVehicle("M113a", contact_method) {
     Create(fixed, chassis_collision_type);

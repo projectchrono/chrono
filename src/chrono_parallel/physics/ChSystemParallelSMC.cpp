@@ -35,20 +35,20 @@ ChSystemParallelSMC::ChSystemParallelSMC(const ChSystemParallelSMC& other) : ChS
 
 ChBody* ChSystemParallelSMC::NewBody() {
     if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
-        return new ChBody(chrono_types::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurface::SMC);
+        return new ChBody(chrono_types::make_shared<collision::ChCollisionModelParallel>(), ChContactMethod::SMC);
 
-    return new ChBody(ChMaterialSurface::SMC);
+    return new ChBody(ChContactMethod::SMC);
 }
 
 ChBodyAuxRef* ChSystemParallelSMC::NewBodyAuxRef() {
     if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
-        return new ChBodyAuxRef(chrono_types::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurface::SMC);
+        return new ChBodyAuxRef(chrono_types::make_shared<collision::ChCollisionModelParallel>(), ChContactMethod::SMC);
 
-    return new ChBodyAuxRef(ChMaterialSurface::SMC);
+    return new ChBodyAuxRef(ChContactMethod::SMC);
 }
 
 void ChSystemParallelSMC::AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) {
-    assert(newbody->GetContactMethod() == ChMaterialSurface::SMC);
+    assert(newbody->GetContactMethod() == ChContactMethod::SMC);
 
     // Reserve space for material properties for the specified body. Not that the
     // actual data is set in UpdateMaterialProperties().

@@ -24,11 +24,11 @@
 
 namespace chrono {
 
-ChBodyEasySphere::ChBodyEasySphere(double radius,      // radius of the sphere
-                                   double mdensity,    // density of the body
-                                   bool collide,       // enable the collision detection
-                                   bool visual_asset,  // attach a visualization asset to the body
-                                   ChMaterialSurface::ContactMethod contact_method,              // contact method
+ChBodyEasySphere::ChBodyEasySphere(double radius,                   // radius of the sphere
+                                   double mdensity,                 // density of the body
+                                   bool collide,                    // enable the collision detection
+                                   bool visual_asset,               // attach a visualization asset to the body
+                                   ChContactMethod contact_method,  // contact method
                                    std::shared_ptr<collision::ChCollisionModel> collision_model  // collision model
                                    )
     : ChBody(collision_model, contact_method) {
@@ -57,7 +57,7 @@ ChBodyEasyEllipsoid::ChBodyEasyEllipsoid(
     double mdensity,                                              // density of the body
     bool collide,                                                 // enable the collision detection
     bool visual_asset,                                            // attach a visualization asset to the body
-    ChMaterialSurface::ContactMethod contact_method,              // contact method
+    ChContactMethod contact_method,                               // contact method
     std::shared_ptr<collision::ChCollisionModel> collision_model  // collision model
     )
     : ChBody(collision_model, contact_method) {
@@ -83,12 +83,12 @@ ChBodyEasyEllipsoid::ChBodyEasyEllipsoid(
     }
 }
 
-ChBodyEasyCylinder::ChBodyEasyCylinder(double radius,      // radius of the cylinder
-                                       double height,      // height of the cylinder (along the Y axis)
-                                       double mdensity,    // density of the body
-                                       bool collide,       // enable the collision detection
-                                       bool visual_asset,  // attach a visualization asset to the body
-                                       ChMaterialSurface::ContactMethod contact_method,              // contact method
+ChBodyEasyCylinder::ChBodyEasyCylinder(double radius,                   // radius of the cylinder
+                                       double height,                   // height of the cylinder (along the Y axis)
+                                       double mdensity,                 // density of the body
+                                       bool collide,                    // enable the collision detection
+                                       bool visual_asset,               // attach a visualization asset to the body
+                                       ChContactMethod contact_method,  // contact method
                                        std::shared_ptr<collision::ChCollisionModel> collision_model  // collision model
                                        )
     : ChBody(collision_model, contact_method) {
@@ -114,13 +114,13 @@ ChBodyEasyCylinder::ChBodyEasyCylinder(double radius,      // radius of the cyli
     }
 }
 
-ChBodyEasyBox::ChBodyEasyBox(double Xsize,       // size along the X dimension
-                             double Ysize,       // size along the Y dimension
-                             double Zsize,       // size along the Z dimension
-                             double mdensity,    // density of the body
-                             bool collide,       // enable the collision detection
-                             bool visual_asset,  // attach a visualization asset to the body
-                             ChMaterialSurface::ContactMethod contact_method,              // contact method
+ChBodyEasyBox::ChBodyEasyBox(double Xsize,                    // size along the X dimension
+                             double Ysize,                    // size along the Y dimension
+                             double Zsize,                    // size along the Z dimension
+                             double mdensity,                 // density of the body
+                             bool collide,                    // enable the collision detection
+                             bool visual_asset,               // attach a visualization asset to the body
+                             ChContactMethod contact_method,  // contact method
                              std::shared_ptr<collision::ChCollisionModel> collision_model  // collision model
                              )
     : ChBody(collision_model, contact_method) {
@@ -149,7 +149,7 @@ ChBodyEasyConvexHull::ChBodyEasyConvexHull(
     double mdensity,                                              // density of the body
     bool collide,                                                 // enable the collision detection
     bool visual_asset,                                            // attach a visualization asset to the body
-    ChMaterialSurface::ContactMethod contact_method,              // contact method
+    ChContactMethod contact_method,                               // contact method
     std::shared_ptr<collision::ChCollisionModel> collision_model  // collision model
     )
     : ChBody(collision_model, contact_method) {
@@ -194,7 +194,7 @@ ChBodyEasyConvexHullAuxRef::ChBodyEasyConvexHullAuxRef(
     double mdensity,                  // density of the body
     bool collide,                     // enable the collision detection?
     bool visual_asset,                // attach a visual asset to the body?
-    ChMaterialSurface::ContactMethod contact_method,              // contact method
+    ChContactMethod contact_method,   // contact method
     std::shared_ptr<collision::ChCollisionModel> collision_model  // collision model
     )
     : ChBodyAuxRef(collision_model, contact_method) {
@@ -241,13 +241,13 @@ ChBodyEasyConvexHullAuxRef::ChBodyEasyConvexHullAuxRef(
 }
 
 ChBodyEasyMesh::ChBodyEasyMesh(
-    const std::string filename,  // .OBJ mesh defined respect REF c.sys of body (initially REF=0,0,0 pos.)
-    double mdensity,             // density of the body
-    bool compute_mass,           // automatic evaluation of the mass and inertia properties
-    bool collide,                // enable the collision detection
-    double sphere_swept,         // radius of 'inflating' of mesh, leads to more robust collision detection
-    bool visual_asset,           // attach a visualization asset to the body
-    ChMaterialSurface::ContactMethod contact_method,              // contact method
+    const std::string filename,      // .OBJ mesh defined respect REF c.sys of body (initially REF=0,0,0 pos.)
+    double mdensity,                 // density of the body
+    bool compute_mass,               // automatic evaluation of the mass and inertia properties
+    bool collide,                    // enable the collision detection
+    double sphere_swept,             // radius of 'inflating' of mesh, leads to more robust collision detection
+    bool visual_asset,               // attach a visualization asset to the body
+    ChContactMethod contact_method,  // contact method
     std::shared_ptr<collision::ChCollisionModel> collision_model  // collision model
     )
     : ChBodyAuxRef(collision_model, contact_method) {
@@ -296,7 +296,7 @@ ChBodyEasyClusterOfSpheres::ChBodyEasyClusterOfSpheres(
     double mdensity,                                              // attach a visualization asset to the body
     bool collide,                                                 // attach a visualization asset to the body
     bool visual_asset,                                            // attach a visualization asset to the body
-    ChMaterialSurface::ContactMethod contact_method,              // contact method
+    ChContactMethod contact_method,                               // contact method
     std::shared_ptr<collision::ChCollisionModel> collision_model  // collision model
     )
     : ChBody(collision_model, contact_method) {

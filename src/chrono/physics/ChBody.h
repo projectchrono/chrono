@@ -46,11 +46,11 @@ class ChSystem;
 class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContactable_1vars<6>, public ChLoadableUVW {
   public:
     /// Build a rigid body.
-    ChBody(ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC);
+    ChBody(ChContactMethod contact_method = ChContactMethod::NSC);
 
     /// Build a rigid body with a different collision model.
     ChBody(std::shared_ptr<collision::ChCollisionModel> new_collision_model,
-           ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC);
+           ChContactMethod contact_method = ChContactMethod::NSC);
 
     ChBody(const ChBody& other);
 
@@ -221,7 +221,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     virtual void StreamOUTstate(ChStreamOutBinary& mstream) override;
 
     /// Infer the contact method from the underlying material properties object.
-    ChMaterialSurface::ContactMethod GetContactMethod() const { return matsurface->GetContactMethod(); }
+    ChContactMethod GetContactMethod() const { return matsurface->GetContactMethod(); }
 
     /// Access the NSC material surface properties associated with this body.
     /// This function performs a dynamic cast (and returns an empty pointer

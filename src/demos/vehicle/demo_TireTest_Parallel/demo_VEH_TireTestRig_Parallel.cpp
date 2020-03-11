@@ -103,10 +103,10 @@ int main() {
     system.GetSettings()->collision.fixed_bins = true;
 
     switch (system.GetContactMethod()) {
-        case ChMaterialSurface::NSC:
+        case ChContactMethod::NSC:
             system.GetSettings()->collision.collision_envelope = collision_envelope;
             break;
-        case ChMaterialSurface::SMC:
+        case ChContactMethod::SMC:
             system.GetSettings()->collision.collision_envelope = 0;
             break;
     }

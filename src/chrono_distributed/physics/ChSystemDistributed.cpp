@@ -156,11 +156,11 @@ void ChSystemDistributed::UpdateRigidBodies() {
 }
 
 ChBody* ChSystemDistributed::NewBody() {
-    return new ChBody(chrono_types::make_shared<collision::ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
+    return new ChBody(chrono_types::make_shared<collision::ChCollisionModelDistributed>(), ChContactMethod::SMC);
 }
 
 ChBodyAuxRef* ChSystemDistributed::NewBodyAuxRef() {
-    return new ChBodyAuxRef(chrono_types::make_shared<collision::ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
+    return new ChBodyAuxRef(chrono_types::make_shared<collision::ChCollisionModelDistributed>(), ChContactMethod::SMC);
 }
 
 void ChSystemDistributed::AddBodyAllRanks(std::shared_ptr<ChBody> newbody) {

@@ -59,7 +59,7 @@ class ChApi ChMaterialSurfaceSMC : public ChMaterialSurface {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChMaterialSurfaceSMC* Clone() const override { return new ChMaterialSurfaceSMC(*this); }
 
-    virtual ContactMethod GetContactMethod() const override { return SMC; }
+    virtual ChContactMethod GetContactMethod() const override { return ChContactMethod::SMC; }
 
     /// Young's modulus.
     void SetYoungModulus(float val) { young_modulus = val; }

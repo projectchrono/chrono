@@ -247,7 +247,7 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
     ChVector<> pos_yn(0, -byDim / 2 - 3 * initSpace0, bzDim / 2 + 1 * initSpace0);
 
     /// Create a container
-    auto bin = chrono_types::make_shared<ChBody>(ChMaterialSurface::SMC);
+    auto bin = chrono_types::make_shared<ChBody>(ChContactMethod::SMC);
     bin->SetPos(ChVector<>(0.0, 0.0, 0.0));
     bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
     bin->SetIdentifier(-1);
@@ -278,7 +278,7 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
     /// Create falling cone
     ChVector<> cone_pos = ChVector<>(0, 0, fzDim + 0.5 * cone_length + 1.5 * initSpace0 + 0.01);
     ChQuaternion<> cone_rot = QUNIT;
-    auto cone = chrono_types::make_shared<ChBody>(ChMaterialSurface::SMC);
+    auto cone = chrono_types::make_shared<ChBody>(ChContactMethod::SMC);
     cone->SetPos(cone_pos);
     double volume = utils::CalcConeVolume(cone_radius, cone_length / 2);
     ChVector<> gyration = utils::CalcConeGyration(cone_radius, cone_length / 2).diagonal();

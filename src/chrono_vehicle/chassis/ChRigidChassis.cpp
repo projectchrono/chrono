@@ -47,11 +47,11 @@ void ChRigidChassis::Initialize(ChSystem* system,
 
     // Set chassis body contact material properties.
     switch (m_body->GetContactMethod()) {
-        case ChMaterialSurface::NSC:
+        case ChContactMethod::NSC:
             m_body->GetMaterialSurfaceNSC()->SetFriction(m_friction);
             m_body->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
             break;
-        case ChMaterialSurface::SMC:
+        case ChContactMethod::SMC:
             m_body->GetMaterialSurfaceSMC()->SetFriction(m_friction);
             m_body->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
             m_body->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);

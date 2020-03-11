@@ -51,8 +51,7 @@ std::shared_ptr<ChBody> AddSphere(int id,
     ChVector<> init_w(0, 0, 0);
 
     // Create a spherical body. Set body parameters and sphere collision model
-    auto body = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>(),
-                                                  ChMaterialSurface::SMC);
+    auto body = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>(), ChContactMethod::SMC);
     body->SetIdentifier(id);
     body->SetMass(mass);
     body->SetPos(pos);
@@ -88,8 +87,7 @@ std::shared_ptr<ChBody> AddWall(int id,
     ChQuaternion<> rot(1, 0, 0, 0);
 
     // Create container. Set body parameters and container collision model
-    auto body = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>(),
-                                                  ChMaterialSurface::SMC);
+    auto body = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>(), ChContactMethod::SMC);
     body->SetIdentifier(id);
     body->SetMass(mass);
     body->SetPos(pos);

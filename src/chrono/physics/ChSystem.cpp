@@ -1272,7 +1272,7 @@ bool ChSystem::Integrate_Y() {
     ComputeCollisions();
 
     // Declare an NSC system as "out of date" if there are contacts
-    if (GetContactMethod() == ChMaterialSurface::NSC && (ncontacts_old != 0 || ncontacts != 0))
+    if (GetContactMethod() == ChContactMethod::NSC && (ncontacts_old != 0 || ncontacts != 0))
         is_updated = false;
 
     // Counts dofs, number of constraints, statistics, etc.

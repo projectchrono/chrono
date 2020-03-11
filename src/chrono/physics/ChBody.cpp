@@ -32,7 +32,7 @@ using namespace geometry;
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChBody)
 
-ChBody::ChBody(ChMaterialSurface::ContactMethod contact_method) {
+ChBody::ChBody(ChContactMethod contact_method) {
     marklist.clear();
     forcelist.clear();
 
@@ -49,10 +49,10 @@ ChBody::ChBody(ChMaterialSurface::ContactMethod contact_method) {
     collision_model = InstanceCollisionModel();
 
     switch (contact_method) {
-        case ChMaterialSurface::NSC:
+        case ChContactMethod::NSC:
             matsurface = chrono_types::make_shared<ChMaterialSurfaceNSC>();
             break;
-        case ChMaterialSurface::SMC:
+        case ChContactMethod::SMC:
             matsurface = chrono_types::make_shared<ChMaterialSurfaceSMC>();
             break;
     }
@@ -75,8 +75,7 @@ ChBody::ChBody(ChMaterialSurface::ContactMethod contact_method) {
     body_id = 0;
 }
 
-ChBody::ChBody(std::shared_ptr<collision::ChCollisionModel> new_collision_model,
-               ChMaterialSurface::ContactMethod contact_method) {
+ChBody::ChBody(std::shared_ptr<collision::ChCollisionModel> new_collision_model, ChContactMethod contact_method) {
     marklist.clear();
     forcelist.clear();
 
@@ -94,10 +93,10 @@ ChBody::ChBody(std::shared_ptr<collision::ChCollisionModel> new_collision_model,
     collision_model->SetContactable(this);
 
     switch (contact_method) {
-        case ChMaterialSurface::NSC:
+        case ChContactMethod::NSC:
             matsurface = chrono_types::make_shared<ChMaterialSurfaceNSC>();
             break;
-        case ChMaterialSurface::SMC:
+        case ChContactMethod::SMC:
             matsurface = chrono_types::make_shared<ChMaterialSurfaceSMC>();
             break;
     }

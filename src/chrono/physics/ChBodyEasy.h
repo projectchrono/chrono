@@ -40,7 +40,7 @@ class ChApi ChBodyEasySphere : public ChBody {
                      double mdensity,           ///< density of the body
                      bool collide = false,      ///< enable the collision detection
                      bool visual_asset = true,  ///< attach a visualization asset to the body
-                     ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,  ///< contact method
+                     ChContactMethod contact_method = ChContactMethod::NSC,  ///< contact method
                      std::shared_ptr<collision::ChCollisionModel> collision_model =
                          chrono_types::make_shared<collision::ChModelBullet>()  ///< collision model
     );
@@ -62,7 +62,7 @@ class ChApi ChBodyEasyEllipsoid : public ChBody {
                         double mdensity,           ///< density of the body
                         bool collide = false,      ///< enable the collision detection
                         bool visual_asset = true,  ///< attach a visualization asset to the body
-                        ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,  ///< contact method
+                        ChContactMethod contact_method = ChContactMethod::NSC,  ///< contact method
                         std::shared_ptr<collision::ChCollisionModel> collision_model =
                             chrono_types::make_shared<collision::ChModelBullet>()  ///< collision model
     );
@@ -85,7 +85,7 @@ class ChApi ChBodyEasyCylinder : public ChBody {
                        double mdensity,           ///< density of the body
                        bool collide = false,      ///< enable the collision detection
                        bool visual_asset = true,  ///< attach a visualization asset to the body
-                       ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,  ///< contact method
+                       ChContactMethod contact_method = ChContactMethod::NSC,  ///< contact method
                        std::shared_ptr<collision::ChCollisionModel> collision_model =
                            chrono_types::make_shared<collision::ChModelBullet>()  ///< collision model
     );
@@ -103,13 +103,13 @@ class ChApi ChBodyEasyBox : public ChBody {
     /// Creates a ChBody plus adds an optional visualization shape and, optionally, a collision shape.
     /// Mass and inertia are set automatically depending on density.
     /// Box is assumed centered, i.e. and reference of body in the middle.
-    ChBodyEasyBox(double Xsize,              ///< size along the X dimension
-                  double Ysize,              ///< size along the Y dimension
-                  double Zsize,              ///< size along the Z dimension
-                  double mdensity,           ///< density of the body
-                  bool collide = false,      ///< enable the collision detection
-                  bool visual_asset = true,  ///< attach a visualization asset to the body
-                  ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,  ///< contact method
+    ChBodyEasyBox(double Xsize,                                           ///< size along the X dimension
+                  double Ysize,                                           ///< size along the Y dimension
+                  double Zsize,                                           ///< size along the Z dimension
+                  double mdensity,                                        ///< density of the body
+                  bool collide = false,                                   ///< enable the collision detection
+                  bool visual_asset = true,                               ///< attach a visualization asset to the body
+                  ChContactMethod contact_method = ChContactMethod::NSC,  ///< contact method
                   std::shared_ptr<collision::ChCollisionModel> collision_model =
                       chrono_types::make_shared<collision::ChModelBullet>()  ///< collision model
     );
@@ -133,7 +133,7 @@ class ChApi ChBodyEasyConvexHull : public ChBody {
                          double mdensity,                   ///< density of the body
                          bool collide = false,              ///< enable the collision detection
                          bool visual_asset = true,          ///< attach a visualization asset to the body
-                         ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,  ///< contact method
+                         ChContactMethod contact_method = ChContactMethod::NSC,  ///< contact method
                          std::shared_ptr<collision::ChCollisionModel> collision_model =
                              chrono_types::make_shared<collision::ChModelBullet>()  ///< collision model
     );
@@ -161,7 +161,7 @@ class ChApi ChBodyEasyConvexHullAuxRef : public ChBodyAuxRef {
         double mdensity,                   ///< density of the body
         bool collide = false,              ///< enable the collision detection?
         bool visual_asset = true,          ///< attach a visual asset to the body?
-        ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,  ///< contact method
+        ChContactMethod contact_method = ChContactMethod::NSC,  ///< contact method
         std::shared_ptr<collision::ChCollisionModel> collision_model =
             chrono_types::make_shared<collision::ChModelBullet>()  ///< collision model
     );
@@ -191,7 +191,7 @@ class ChApi ChBodyEasyMesh : public ChBodyAuxRef {
         bool collide = false,         ///< enable the collision detection
         double sphere_swept = 0.001,  ///< radius of 'inflating' of mesh, leads to more robust collision detection
         bool visual_asset = true,     ///< attach a visualization asset to the body
-        ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,  ///< contact method
+        ChContactMethod contact_method = ChContactMethod::NSC,  ///< contact method
         std::shared_ptr<collision::ChCollisionModel> collision_model =
             chrono_types::make_shared<collision::ChModelBullet>()  ///< collision model
     );
@@ -212,15 +212,14 @@ class ChApi ChBodyEasyClusterOfSpheres : public ChBody {
     /// Creates a ChBody plus adds an optional visualization shape and, optionally, a collision shape.
     /// Mass and inertia are set automatically depending on density.
     /// The cluster of spheres will be displaced so that their center of mass corresponds to the origin of the ChBody.
-    ChBodyEasyClusterOfSpheres(
-        std::vector<ChVector<> >& positions,  ///< position of the spheres
-        std::vector<double>& radii,           ///< radius of the sphere
-        double mdensity,                      ///< attach a visualization asset to the body
-        bool collide = false,                 ///< attach a visualization asset to the body
-        bool visual_asset = true,             ///< attach a visualization asset to the body
-        ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,  ///< contact method
-        std::shared_ptr<collision::ChCollisionModel> collision_model =
-            chrono_types::make_shared<collision::ChModelBullet>()  ///< collision model
+    ChBodyEasyClusterOfSpheres(std::vector<ChVector<> >& positions,  ///< position of the spheres
+                               std::vector<double>& radii,           ///< radius of the sphere
+                               double mdensity,                      ///< attach a visualization asset to the body
+                               bool collide = false,                 ///< attach a visualization asset to the body
+                               bool visual_asset = true,             ///< attach a visualization asset to the body
+                               ChContactMethod contact_method = ChContactMethod::NSC,  ///< contact method
+                               std::shared_ptr<collision::ChCollisionModel> collision_model =
+                                   chrono_types::make_shared<collision::ChModelBullet>()  ///< collision model
     );
 };
 

@@ -49,7 +49,7 @@ namespace sedan {
 class CH_MODELS_API Sedan_Vehicle : public ChWheeledVehicle {
   public:
     Sedan_Vehicle(const bool fixed = false,
-                  ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,
+                  ChContactMethod contact_method = ChContactMethod::NSC,
                   ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
 
     Sedan_Vehicle(ChSystem* system,

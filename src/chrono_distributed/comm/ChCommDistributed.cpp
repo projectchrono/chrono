@@ -110,7 +110,8 @@ void ChCommDistributed::ProcessExchanges(int num_recv, BodyExchange* buf, int up
         // If there are no empty spaces in the data manager, create
         // a new body to add
         if (ddm->first_empty == data_manager->num_rigid_bodies) {
-            body = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
+            body = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelDistributed>(),
+                                                     ChContactMethod::SMC);
             body->SetId(data_manager->num_rigid_bodies);
         }
         // If an empty space was found in the body manager

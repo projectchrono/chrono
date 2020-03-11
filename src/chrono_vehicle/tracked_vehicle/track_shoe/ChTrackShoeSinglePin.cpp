@@ -52,11 +52,11 @@ void ChTrackShoeSinglePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_shoe->SetCollide(true);
 
     switch (m_shoe->GetContactMethod()) {
-        case ChMaterialSurface::NSC:
+        case ChContactMethod::NSC:
             m_shoe->GetMaterialSurfaceNSC()->SetFriction(m_friction);
             m_shoe->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
             break;
-        case ChMaterialSurface::SMC:
+        case ChContactMethod::SMC:
             m_shoe->GetMaterialSurfaceSMC()->SetFriction(m_friction);
             m_shoe->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
             m_shoe->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);

@@ -91,11 +91,11 @@ void ChTrackShoeBandBushing::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         m_web_segments[is]->SetCollide(true);
 
         switch (m_web_segments[is]->GetContactMethod()) {
-            case ChMaterialSurface::NSC:
+            case ChContactMethod::NSC:
                 m_web_segments[is]->GetMaterialSurfaceNSC()->SetFriction(m_friction);
                 m_web_segments[is]->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
                 break;
-            case ChMaterialSurface::SMC:
+            case ChContactMethod::SMC:
                 m_web_segments[is]->GetMaterialSurfaceSMC()->SetFriction(m_friction);
                 m_web_segments[is]->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
                 m_web_segments[is]->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);

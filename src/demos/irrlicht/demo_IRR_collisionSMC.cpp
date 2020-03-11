@@ -43,7 +43,7 @@ void AddFallingItems(ChIrrApp& application) {
             {
                 double mass = 1;
                 double radius = 1.1;
-                auto body = chrono_types::make_shared<ChBody>(ChMaterialSurface::SMC);
+                auto body = chrono_types::make_shared<ChBody>(ChContactMethod::SMC);
                 body->SetInertiaXX((2.0 / 5.0) * mass * pow(radius, 2) * ChVector<>(1, 1, 1));
                 body->SetMass(mass);
                 body->SetPos(ChVector<>(4.0 * ix, 4.0, 4.0 * iz));
@@ -65,7 +65,7 @@ void AddFallingItems(ChIrrApp& application) {
             {
                 double mass = 1;
                 ChVector<> hsize(0.75, 0.75, 0.75);
-                auto body = chrono_types::make_shared<ChBody>(ChMaterialSurface::SMC);
+                auto body = chrono_types::make_shared<ChBody>(ChContactMethod::SMC);
 
                 body->SetMass(mass);
                 body->SetPos(ChVector<>(4.0 * ix, 6.0, 4.0 * iz));
@@ -106,7 +106,7 @@ void AddContainerWall(std::shared_ptr<ChBody> body,
 
 void AddContainer(ChIrrApp& application) {
     // The fixed body (5 walls)
-    auto fixedBody = chrono_types::make_shared<ChBody>(ChMaterialSurface::SMC);
+    auto fixedBody = chrono_types::make_shared<ChBody>(ChContactMethod::SMC);
 
     fixedBody->SetMass(1.0);
     fixedBody->SetBodyFixed(true);
@@ -124,7 +124,7 @@ void AddContainer(ChIrrApp& application) {
     application.GetSystem()->AddBody(fixedBody);
 
     // The rotating mixer body
-    auto rotatingBody = chrono_types::make_shared<ChBody>(ChMaterialSurface::SMC);
+    auto rotatingBody = chrono_types::make_shared<ChBody>(ChContactMethod::SMC);
 
     rotatingBody->SetMass(10.0);
     rotatingBody->SetInertiaXX(ChVector<>(50, 50, 50));
