@@ -32,19 +32,19 @@ class ChApi ChContactable {
   public:
     virtual ~ChContactable() {}
 
-    /// Tell if the object must be considered in collision detection
+    /// Indicate whether or not the object must be considered in collision detection.
     virtual bool IsContactActive() = 0;
 
-    /// Get the number of DOFs affected by this object (position part)
+    /// Get the number of DOFs affected by this object (position part).
     virtual int ContactableGet_ndof_x() = 0;
 
-    /// Get the number of DOFs affected by this object (speed part)
+    /// Get the number of DOFs affected by this object (speed part).
     virtual int ContactableGet_ndof_w() = 0;
 
-    /// Get all the DOFs packed in a single vector (position part)
+    /// Get all the DOFs packed in a single vector (position part).
     virtual void ContactableGetStateBlock_x(ChState& x) = 0;
 
-    /// Get all the DOFs packed in a single vector (speed part)
+    /// Get all the DOFs packed in a single vector (speed part).
     virtual void ContactableGetStateBlock_w(ChStateDelta& w) = 0;
 
     /// Increment the provided state of this object by the given state-delta increment.

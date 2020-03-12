@@ -871,6 +871,14 @@ void ChBody::GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax) {
         ChPhysicsItem::GetTotalAABB(bbmin, bbmax);  // default: infinite aabb
 }
 
+ChContactMethod ChBody::GetContactMethod() const {
+    return matsurface->GetContactMethod();
+}
+
+std::shared_ptr<ChMaterialSurface>& ChBody::GetMaterialSurface() {
+    return matsurface;
+}
+
 void ChBody::ContactableGetStateBlock_x(ChState& x) {
     x.segment(0, 3) = this->GetCoord().pos.eigen();
     x.segment(3, 4) = this->GetCoord().rot.eigen();

@@ -108,7 +108,7 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
     virtual void BeginAddContact() override;
 
     /// Add a contact between two frames.
-    virtual void AddContact(const collision::ChCollisionInfo& mcontact) override;
+    virtual void AddContact(const collision::ChCollisionInfo& cinfo) override;
 
     /// The collision system will call BeginAddContact() after adding all contacts (for example with AddContact() or
     /// similar). This optimized version purges the end of the list of contacts that were not reused (if any).

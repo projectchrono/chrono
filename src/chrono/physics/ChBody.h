@@ -217,8 +217,15 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     /// Method to deserialize only the state (position, speed)
     virtual void StreamINstate(ChStreamInBinary& mstream) override;
+
     /// Method to serialize only the state (position, speed)
     virtual void StreamOUTstate(ChStreamOutBinary& mstream) override;
+
+    /// Infer the contact method from the underlying material properties object.
+    virtual ChContactMethod GetContactMethod() const override;
+
+    /// Return the pointer to the surface material.
+    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() override;
 
     /// Access the NSC material surface properties associated with this body.
     /// This function performs a dynamic cast (and returns an empty pointer
@@ -455,14 +462,6 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// its children (markers, forces..)
     virtual void Update(bool update_assets = true) override;
 
-    /// Infer the contact method from the underlying material properties object.
-    virtual ChContactMethod GetContactMethod() const override { return matsurface->GetContactMethod(); }
-
-    /// Return the pointer to the surface material.
-    /// Use dynamic cast to understand if this is a ChMaterialSurfaceSMC, ChMaterialSurfaceNSC or others.
-    /// This function returns a reference to the shared pointer member variable and is therefore THREAD SAFE.
-    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() override { return matsurface; }
-
     /// Get the resultant contact force acting on this body.
     ChVector<> GetContactForce();
 
@@ -640,7 +639,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     virtual ChVariables* GetVariables1() override { return &this->variables; }
 
-    /// Tell if the object must be considered in collision detection
+    /// Indicate whether or not the object must be considered in collision detection.
     virtual bool IsContactActive() override { return this->IsActive(); }
 
     /// Get the number of DOFs affected by this object (position part)

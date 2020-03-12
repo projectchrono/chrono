@@ -796,14 +796,8 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     friend class ChBody;
     friend class fea::ChMesh;
 
-    template <class Ta, class Tb>
-    friend class ChContactNSC;
-
-    template <class Ta, class Tb>
-    friend class ChContactNSCrolling;
-
-    template <class Ta, class Tb>
-    friend class ChContactSMC;
+    friend class ChContactContainerNSC;
+    friend class ChContactContainerSMC;
 };
 
 CH_CLASS_VERSION(ChSystem, 0)

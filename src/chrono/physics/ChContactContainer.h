@@ -44,7 +44,7 @@ class ChApi ChContactContainer : public ChPhysicsItem {
     virtual void BeginAddContact() { RemoveAllContacts(); }
 
     /// Add a contact between two models, storing it into this container.
-    virtual void AddContact(const collision::ChCollisionInfo& mcontact) = 0;
+    virtual void AddContact(const collision::ChCollisionInfo& cinfo) = 0;
 
     /// The collision system will call EndAddContact() after adding all contacts (for example with AddContact() or
     /// similar).
