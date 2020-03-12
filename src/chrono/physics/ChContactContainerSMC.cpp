@@ -210,9 +210,8 @@ void ChContactContainerSMC::AddContact(const collision::ChCollisionInfo& mcontac
         return;
 
     // Check that the two collision models are compatible with penalty contact.
-    // If either one has a contact material for complementarity, skip processing this contact.
-    if (contactableA->GetMaterialSurface()->GetContactMethod() != ChContactMethod::SMC ||
-        contactableB->GetMaterialSurface()->GetContactMethod() != ChContactMethod::SMC)
+    if (contactableA->GetContactMethod() != ChContactMethod::SMC ||
+        contactableB->GetContactMethod() != ChContactMethod::SMC)
         return;
 
     // CREATE THE CONTACTS

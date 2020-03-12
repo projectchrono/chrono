@@ -131,6 +131,10 @@ void ChNodeMeshless::ComputeJacobianForContactPart(const ChVector<>& abs_point,
     jacobian_tuple_V.Get_Cq().segment(0,3) = Jx1.row(2);
 }
 
+ChContactMethod ChNodeMeshless::GetContactMethod() const {
+    return container->GetMaterialSurface()->GetContactMethod();
+}
+
 std::shared_ptr<ChMaterialSurface>& ChNodeMeshless::GetMaterialSurface() {
     return container->GetMaterialSurface();
 }

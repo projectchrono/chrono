@@ -61,6 +61,10 @@ ChContactTriangleXYZ::ChContactTriangleXYZ(std::shared_ptr<ChNodeFEAxyz> n1,
     this->collision_model->SetContactable(this);
 }
 
+ChContactMethod ChContactTriangleXYZ::GetContactMethod() const {
+    return container->GetMaterialSurface()->GetContactMethod();
+}
+
 std::shared_ptr<ChMaterialSurface>& ChContactTriangleXYZ::GetMaterialSurface() {
     return container->GetMaterialSurface();
 }
@@ -152,6 +156,10 @@ ChContactTriangleXYZROT::ChContactTriangleXYZROT(std::shared_ptr<ChNodeFEAxyzrot
 
     this->collision_model = new collision::ChModelBullet;
     this->collision_model->SetContactable(this);
+}
+
+ChContactMethod ChContactTriangleXYZROT::GetContactMethod() const {
+    return container->GetMaterialSurface()->GetContactMethod();
 }
 
 std::shared_ptr<ChMaterialSurface>& ChContactTriangleXYZROT::GetMaterialSurface() {

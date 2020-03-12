@@ -220,9 +220,6 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Method to serialize only the state (position, speed)
     virtual void StreamOUTstate(ChStreamOutBinary& mstream) override;
 
-    /// Infer the contact method from the underlying material properties object.
-    ChContactMethod GetContactMethod() const { return matsurface->GetContactMethod(); }
-
     /// Access the NSC material surface properties associated with this body.
     /// This function performs a dynamic cast (and returns an empty pointer
     /// if matsurface is in fact of SMC type).  As such, it must return a copy
@@ -457,6 +454,9 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Update all auxiliary data of the rigid body and of
     /// its children (markers, forces..)
     virtual void Update(bool update_assets = true) override;
+
+    /// Infer the contact method from the underlying material properties object.
+    virtual ChContactMethod GetContactMethod() const override { return matsurface->GetContactMethod(); }
 
     /// Return the pointer to the surface material.
     /// Use dynamic cast to understand if this is a ChMaterialSurfaceSMC, ChMaterialSurfaceNSC or others.
