@@ -21,20 +21,14 @@
 #include <algorithm>
 #include <functional>
 
-#include "chrono/collision/ChCCollisionModel.h"
 #include "chrono/physics/ChContactContainerSMC.h"
-#include "chrono/physics/ChContactSMC.h"
-#include "chrono/physics/ChContactTuple.h"
-#include "chrono/physics/ChContactable.h"
-#include "chrono/physics/ChMaterialSurfaceSMC.h"
 #include "chrono/physics/ChSystemSMC.h"
+
 #include "chrono/solver/ChIterativeSolverLS.h"
 
 #include "chrono/fea/ChElementShellANCF.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChContactSurfaceMesh.h"
-#include "chrono/fea/ChLoadContactSurfaceMesh.h"
-#include "chrono/fea/ChContactSurfaceNodeCloud.h"
 #include "chrono/fea/ChVisualizationFEAmesh.h"
 
 using namespace chrono;

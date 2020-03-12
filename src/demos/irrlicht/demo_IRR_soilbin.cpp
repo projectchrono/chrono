@@ -419,7 +419,7 @@ class TestMech {
         spring->SetDampingCoefficient(springD);
         system->AddLink(spring);
 
-        spring->AddAsset(chrono_types::make_shared<ChColorAsset>(0.6, 0.1, 0.1));
+        spring->AddAsset(chrono_types::make_shared<ChColorAsset>(0.6f, 0.1f, 0.1f));
         spring->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.05, 80, 15));
 
 
