@@ -139,6 +139,7 @@ int main(int argc, char* argv[]) {
             assert(auxsystem);
             double T = auxsystem->GetChTime();
 
+            F.setZero();
             F(3) = TIP_MOMENT;  // Apply the moment along the global X axis
         }
 

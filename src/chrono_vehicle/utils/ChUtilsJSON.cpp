@@ -35,6 +35,7 @@
 #include "chrono_vehicle/wheeled_vehicle/suspension/DoubleWishboneReduced.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/HendricksonPRIMAXX.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/LeafspringAxle.h"
+#include "chrono_vehicle/wheeled_vehicle/suspension/SAELeafspringAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/MacPhersonStrut.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/MultiLink.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/RigidSuspension.h"
@@ -45,6 +46,7 @@
 #include "chrono_vehicle/wheeled_vehicle/suspension/SolidThreeLinkAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/ThreeLinkIRS.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/ToeBarLeafspringAxle.h"
+#include "chrono_vehicle/wheeled_vehicle/suspension/SAEToeBarLeafspringAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/FEATire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/FialaTire.h"
@@ -178,8 +180,12 @@ std::shared_ptr<ChSuspension> ReadSuspensionJSON(const std::string& filename) {
         suspension = chrono_types::make_shared<ThreeLinkIRS>(d);
     } else if (subtype.compare("ToeBarLeafspringAxle") == 0) {
         suspension = chrono_types::make_shared<ToeBarLeafspringAxle>(d);
+    } else if (subtype.compare("SAEToeBarLeafspringAxle") == 0) {
+        suspension = chrono_types::make_shared<SAEToeBarLeafspringAxle>(d);
     } else if (subtype.compare("LeafspringAxle") == 0) {
         suspension = chrono_types::make_shared<LeafspringAxle>(d);
+    } else if (subtype.compare("SAELeafspringAxle") == 0) {
+        suspension = chrono_types::make_shared<SAELeafspringAxle>(d);
     } else if (subtype.compare("SolidThreeLinkAxle") == 0) {
         suspension = chrono_types::make_shared<SolidThreeLinkAxle>(d);
     } else if (subtype.compare("SolidBellcrankThreeLinkAxle") == 0) {

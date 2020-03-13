@@ -25,6 +25,6 @@
 
   "Visualization":
   {
-    "Mesh":  "uaz/uazbus_chassis.obj"
+    //"Mesh":  "uaz/uazbus_chassis.obj"
   }
 }
