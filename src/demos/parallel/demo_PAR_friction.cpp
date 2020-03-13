@@ -24,9 +24,7 @@
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/solver/ChIterativeSolverParallel.h"
 
-#ifdef CHRONO_OPENGL
 #include "chrono_opengl/ChOpenGLWindow.h"
-#endif
 
 using namespace chrono;
 using namespace chrono::collision;
@@ -36,9 +34,7 @@ using namespace chrono::collision;
 int main(int argc, char** argv) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    // ----------------
     // Parameters
-    // ----------------
     double radius = 0.5;
 
     double time_step = 0.01;
@@ -49,10 +45,7 @@ int main(int argc, char** argv) {
     uint max_iteration_spinning = 100;
     uint max_iteration_bilateral = 0;
 
-    // ------------------------
     // Create the parallel system
-    // --------------------------
-
     ChSystemParallelNSC system;
     system.Set_G_acc(ChVector<>(0, -9.81, 0));
 
@@ -147,7 +140,7 @@ int main(int argc, char** argv) {
         // Initial position and velocity
         ball->SetPos(ChVector<>(-8, 1 + radius - 0.5, -5 + bi * radius * 2.5));
         ball->SetPos_dt(ChVector<>(0, 0, 0));
-        ball->SetWvel_par(ChVector<>(0, 0, 20));
+        ball->SetWvel_par(ChVector<>(0, 20, 0));
 
         // Contact geometry
         ball->SetCollide(true);
@@ -163,48 +156,17 @@ int main(int argc, char** argv) {
         system.Add(ball);
     }
 
-#ifdef CHRONO_OPENGL
-    // -------------------------------
     // Create the visualization window
-    // -------------------------------
-
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     gl_window.Initialize(1280, 720, "Settling test", &system);
     gl_window.SetCamera(ChVector<>(10, 10, 20), ChVector<>(0, 0, 0), ChVector<>(0, 1, 0), 0.05f);
     gl_window.SetRenderMode(opengl::WIREFRAME);
-#endif
 
-    // ---------------
     // Simulate system
-    // ---------------
-
-    double time_end = 20.0;
-    double time_out = 2.5;
-    bool output = false;
-
-    while (true) {
-#ifdef CHRONO_OPENGL
-
-#else
+    while (gl_window.Active()) {
         system.DoStepDynamics(time_step);
-#endif
-        if (!output && system.GetChTime() >= time_out) {
-            for (int i = 1; i <= 10; i++) {
-                auto pos = system.Get_bodylist().at(i)->GetPos();
-                std::cout << pos.x() << std::endl;
-            }
-            output = true;
-        }
-
-#ifdef CHRONO_OPENGL
-        opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-        if (gl_window.Active()) {
-            gl_window.DoStepDynamics(time_step);
-            gl_window.Render();
-        } else {
-            break;
-        }
-#endif
+        gl_window.Render();
+        ////std::cout << "num contacts: " << system.GetNcontacts() << "\n\n";
     }
 
     return 0;

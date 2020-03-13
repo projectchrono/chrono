@@ -21,6 +21,7 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
+#include "chrono/utils/ChUtilsCreators.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
@@ -36,27 +37,21 @@ using namespace irr::video;
 using namespace irr::io;
 using namespace irr::gui;
 
-
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    // Create a ChronoENGINE physical system
+    // Create a physical system
     ChSystemNSC mphysicalSystem;
 
-    // Create the Irrlicht visualization (open the Irrlicht device,
-    // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Contacts with rolling friction", core::dimension2d<u32>(800, 600), false,
-                         true);
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
+    // Create the Irrlicht visualization, attach camera and lights, set sky and logo
+    ChIrrApp application(&mphysicalSystem, L"Rolling friction", core::dimension2d<u32>(800, 600), false, true);
     ChIrrWizard::add_typical_Logo(application.GetDevice());
     ChIrrWizard::add_typical_Sky(application.GetDevice());
-    ChIrrWizard::add_typical_Lights(application.GetDevice());
+    ChIrrWizard::add_typical_Lights(application.GetDevice(), vector3df(30.f, 100.f, 30.f),
+                                    vector3df(-30.f, 100.f, -30.f));
     ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0, 14, -20));
 
-
     // Create all the rigid bodies.
-
     double mradius = 0.5;
     double density = 1000;
 
@@ -69,10 +64,10 @@ int main(int argc, char* argv[]) {
         double initial_angspeed = 10;
         double initial_linspeed = initial_angspeed * mradius;
 
-        auto msphereBody = chrono_types::make_shared<ChBodyEasySphere>(mradius,           // radius size
-                                                              1000,              // density
-                                                              true,              // collide enable?
-                                                              true);             // visualization?
+        auto msphereBody = chrono_types::make_shared<ChBodyEasySphere>(mradius,  // radius size
+                                                                       1000,     // density
+                                                                       true,     // collide enable?
+                                                                       true);    // visualization?
         // Set some properties
         msphereBody->SetPos(ChVector<>(-7, mradius - 0.5, -5 + bi * mradius * 2.5));
         msphereBody->GetMaterialSurfaceNSC()->SetFriction(0.4f);
@@ -92,10 +87,10 @@ int main(int argc, char* argv[]) {
     // Create some spheres that spin on place, for a 'drilling friction' case,
     // with increasing spinning friction values
     for (int bi = 0; bi < 10; bi++) {
-        auto msphereBody = chrono_types::make_shared<ChBodyEasySphere>(mradius,           // radius size
-            1000,              // density
-            true,              // collide enable?
-            true);             // visualization?
+        auto msphereBody = chrono_types::make_shared<ChBodyEasySphere>(mradius,  // radius size
+                                                                       1000,     // density
+                                                                       true,     // collide enable?
+                                                                       true);    // visualization?
         // Set some properties
         msphereBody->SetPos(ChVector<>(-8, 1 + mradius - 0.5, -5 + bi * mradius * 2.5));
         msphereBody->GetMaterialSurfaceNSC()->SetFriction(0.4f);
@@ -118,67 +113,31 @@ int main(int argc, char* argv[]) {
         // - avoid using zero spinning friction with nonzero rolling friction.
     }
 
-    // Create the five walls of the rectangular container, using
-    // fixed rigid bodies of 'box' type:
+    // Create a container fixed to ground
+    auto bin = chrono_types::make_shared<ChBody>(ChContactMethod::NSC);
+    bin->SetPos(ChVector<>(0, -1, 0));
+    bin->SetBodyFixed(true);
+    bin->SetCollide(true);
 
-    // floor:
+    // Set rolling and friction coefficients for the container.
+    // By default, the composite material will use the minimum value for an interacting collision pair.
+    bin->GetMaterialSurfaceNSC()->SetRollingFriction(1);
+    bin->GetMaterialSurfaceNSC()->SetSpinningFriction(1);
 
-    auto mfloorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20,  // x,y,z size
-                                                      2000,       // density
-                                                      true,       // collide enable?
-                                                      true);      // visualization?
-    mfloorBody->SetPos(ChVector<>(0, -1, 0));
-    mfloorBody->SetBodyFixed(true);
-    mfloorBody->GetMaterialSurfaceNSC()->SetRollingFriction(
-        1);  // the min. of the two coeff. of the two contact surfaces will be used
-    mfloorBody->GetMaterialSurfaceNSC()->SetSpinningFriction(
-        1);  // the min. of the two coeff. of the two contact surfaces will be used
+    // Add collision geometry and visualization shapes for the floor and the 4 walls
+    bin->GetCollisionModel()->ClearModel();
+    utils::AddBoxGeometry(bin.get(), ChVector<>(20, 1, 20) / 2.0, ChVector<>(0, -1, 0));
+    utils::AddBoxGeometry(bin.get(), ChVector<>(1, 2, 20.99) / 2.0, ChVector<>(-10, 0, 0));
+    utils::AddBoxGeometry(bin.get(), ChVector<>(1, 2, 20.99) / 2.0, ChVector<>(10, 0, 0));
+    utils::AddBoxGeometry(bin.get(), ChVector<>(20.99, 2, 1) / 2.0, ChVector<>(0, 0, -10));
+    utils::AddBoxGeometry(bin.get(), ChVector<>(20.99, 2, 1) / 2.0, ChVector<>(0, 0, 10));
+    bin->GetCollisionModel()->BuildModel();
+    
+    bin->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("blu.png")));
 
-    mfloorBody->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("blu.png")));
+    mphysicalSystem.Add(bin);
 
-    mphysicalSystem.Add(mfloorBody);
-
-    // four walls:
-
-    auto mwallBody1 = chrono_types::make_shared<ChBodyEasyBox>(1, 2, 20.99,  // x,y,z size
-        2000,         // density
-        true,         // collide enable?
-        true);       // visualization?
-    mwallBody1->SetPos(ChVector<>(-10, 0, 0));
-    mwallBody1->SetBodyFixed(true);
-    mwallBody1->AddAsset(chrono_types::make_shared<ChColorAsset>(0.6f, 0.3f, 0.0f));
-    mphysicalSystem.Add(mwallBody1);
-
-    auto mwallBody2 = chrono_types::make_shared<ChBodyEasyBox>(1, 2, 20.99,  // x,y,z size
-        2000,         // density
-        true,         // collide enable?
-        true);       // visualization?
-    mwallBody2->SetPos(ChVector<>(10, 0, 0));
-    mwallBody2->SetBodyFixed(true);
-    mwallBody2->AddAsset(chrono_types::make_shared<ChColorAsset>(0.6f, 0.3f, 0.0f));
-    mphysicalSystem.Add(mwallBody2);
-
-    auto mwallBody3 = chrono_types::make_shared<ChBodyEasyBox>(20.99, 2, 1,  // x,y,z size
-        2000,         // density
-        true,         // collide enable?
-        true);       // visualization?
-    mwallBody3->SetPos(ChVector<>(0, 0, -10));
-    mwallBody3->SetBodyFixed(true);
-    mwallBody3->AddAsset(chrono_types::make_shared<ChColorAsset>(0.6f, 0.3f, 0.0f));
-    mphysicalSystem.Add(mwallBody3);
-
-    auto mwallBody4 = chrono_types::make_shared<ChBodyEasyBox>(20.99, 2, 1,  // x,y,z size
-        2000,         // density
-        true,         // collide enable?
-        true);       // visualization?
-    mwallBody4->SetPos(ChVector<>(0, 0, 10));
-    mwallBody4->SetBodyFixed(true);
-    mwallBody4->AddAsset(chrono_types::make_shared<ChColorAsset>(0.6f, 0.3f, 0.0f));
-    mphysicalSystem.Add(mwallBody4);
-
-
-    // Use this function for adding a ChIrrNodeAsset to all already created items.
-    // Otherwise use application.AssetBind(myitem); on a per-item basis.
+    // Complete asset construction
     application.AssetBindAll();
     application.AssetUpdateAll();
 
@@ -187,19 +146,16 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.SetSolverMaxIterations(100);
 
     // Simulation loop
-
     application.SetStepManage(true);
     application.SetTimestep(0.01);
     application.SetTryRealtime(true);
 
     while (application.GetDevice()->run()) {
         application.BeginScene(true, true, SColor(255, 140, 161, 192));
-
         application.DrawAll();
-
         application.DoStep();
-
         application.EndScene();
+        ////std::cout << "num contacts: " << mphysicalSystem.GetNcontacts() << "\n\n";
     }
 
     return 0;

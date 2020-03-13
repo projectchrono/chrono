@@ -31,12 +31,15 @@ SET(DEMOS
     demo_PAR_fluidNSC
     demo_PAR_snowMPM
     demo_PAR_particlesNSC
-    demo_PAR_friction
 )
 
 # Add programs that require OpenGL
 if(ENABLE_MODULE_OPENGL)
-    set(DEMOS ${DEMOS} demo_PAR_motors)
+    set(DEMOS
+        ${DEMOS} 
+        demo_PAR_motors
+        demo_PAR_friction
+    )
 endif()
 
 # ------------------------------------------------------------------------------
