@@ -12,10 +12,10 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#ifndef CHC_COLLISIONSYSTEM_H
-#define CHC_COLLISIONSYSTEM_H
+#ifndef CH_COLLISIONSYSTEM_H
+#define CH_COLLISIONSYSTEM_H
 
-#include "chrono/collision/ChCCollisionInfo.h"
+#include "chrono/collision/ChCollisionInfo.h"
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChFrame.h"
 

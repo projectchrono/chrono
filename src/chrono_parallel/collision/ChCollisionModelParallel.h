@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/collision/ChCollisionModel.h"
 
 #include "chrono_parallel/ChApiParallel.h"
 #include "chrono_parallel/ChParallelDefines.h"
@@ -178,10 +178,6 @@ class CH_PARALLEL_API ChCollisionModelParallel : public ChCollisionModel {
                            const ChMatrix33<>& rot = ChMatrix33<>(1)) override;
 
     /// Add all shapes already contained in another model.
-    /// Thank to the adoption of shared pointers, underlying shapes are
-    /// shared (not copied) among the models; this will save memory when you must
-    /// simulate thousands of objects with the same collision shape.
-    /// The 'another' model must be of ChModelBullet subclass.
     virtual bool AddCopyOfAnotherModel(ChCollisionModel* another) override;
 
     /// Return the axis aligned bounding box for this collision model.

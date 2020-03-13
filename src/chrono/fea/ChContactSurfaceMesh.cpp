@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/collision/ChCModelBullet.h"
+#include "chrono/collision/ChCollisionModelBullet.h"
 #include "chrono/core/ChMath.h"
 #include "chrono/physics/ChSystem.h"
 
@@ -44,7 +44,7 @@ namespace fea {
 ////  ChContactTriangleXYZ
 
 ChContactTriangleXYZ::ChContactTriangleXYZ() {
-    this->collision_model = new collision::ChModelBullet;
+    this->collision_model = new collision::ChCollisionModelBullet;
     this->collision_model->SetContactable(this);
 }
 
@@ -57,7 +57,7 @@ ChContactTriangleXYZ::ChContactTriangleXYZ(std::shared_ptr<ChNodeFEAxyz> n1,
     mnode1 = n3;
     container = acontainer;
 
-    this->collision_model = new collision::ChModelBullet;
+    this->collision_model = new collision::ChCollisionModelBullet;
     this->collision_model->SetContactable(this);
 }
 
@@ -141,7 +141,7 @@ ChVector<> ChContactTriangleXYZ::ComputeNormal(const double U, const double V) {
 ////  ChContactTriangleXYZROT
 
 ChContactTriangleXYZROT::ChContactTriangleXYZROT() {
-    this->collision_model = new collision::ChModelBullet;
+    this->collision_model = new collision::ChCollisionModelBullet;
     this->collision_model->SetContactable(this);
 }
 
@@ -154,7 +154,7 @@ ChContactTriangleXYZROT::ChContactTriangleXYZROT(std::shared_ptr<ChNodeFEAxyzrot
     mnode1 = n3;
     container = acontainer;
 
-    this->collision_model = new collision::ChModelBullet;
+    this->collision_model = new collision::ChCollisionModelBullet;
     this->collision_model->SetContactable(this);
 }
 
@@ -374,7 +374,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
             contact_triangle->SetContactSurface(this);
 
             contact_triangle->GetCollisionModel()->ClearModel();
-            ((collision::ChModelBullet*)contact_triangle->GetCollisionModel())
+            ((collision::ChCollisionModelBullet*)contact_triangle->GetCollisionModel())
                 ->AddTriangleProxy(&nA->coord.pos, &nB->coord.pos, &nB->coord.pos, 0, 0, 0,  // no wing vertexes
                                    false, false, false,  // are vertexes owned by this triangle?
                                    true, false, true,    // are edges owned by this triangle?
@@ -399,7 +399,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
             contact_triangle->SetContactSurface(this);
 
             contact_triangle->GetCollisionModel()->ClearModel();
-            ((collision::ChModelBullet*)contact_triangle->GetCollisionModel())
+            ((collision::ChCollisionModelBullet*)contact_triangle->GetCollisionModel())
                 ->AddTriangleProxy(&nA->pos, &nB->pos, &nB->pos, 0, 0, 0,  // no wing vertexes
                                    false, false, false,                    // are vertexes owned by this triangle?
                                    true, false, true,                      // are edges owned by this triangle?
@@ -759,7 +759,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
         contact_triangle->SetContactSurface(this);
 
         contact_triangle->GetCollisionModel()->ClearModel();
-        ((collision::ChModelBullet*)contact_triangle->GetCollisionModel())
+        ((collision::ChCollisionModelBullet*)contact_triangle->GetCollisionModel())
             ->AddTriangleProxy(&triangles[it][0]->pos, &triangles[it][1]->pos, &triangles[it][2]->pos,
                                // if no wing vertex (ie. 'free' edge), point to opposite vertex, ie vertex in triangle
                                // not belonging to edge
@@ -847,7 +847,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
         contact_triangle_rot->SetContactSurface(this);
 
         contact_triangle_rot->GetCollisionModel()->ClearModel();
-        ((collision::ChModelBullet*)contact_triangle_rot->GetCollisionModel())
+        ((collision::ChCollisionModelBullet*)contact_triangle_rot->GetCollisionModel())
             ->AddTriangleProxy(
                 &triangles_rot[it][0]->coord.pos, &triangles_rot[it][1]->coord.pos, &triangles_rot[it][2]->coord.pos,
                 // if no wing vertex (ie. 'free' edge), point to opposite vertex, ie vertex in triangle not belonging to

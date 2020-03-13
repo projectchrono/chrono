@@ -18,7 +18,7 @@
 #include <list>
 #include <unordered_map>
 
-#include "chrono/collision/ChCCollisionInfo.h"
+#include "chrono/collision/ChCollisionInfo.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChContactable.h"
 #include "chrono/physics/ChMaterialSurface.h"

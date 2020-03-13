@@ -19,7 +19,7 @@
 #include "chrono/core/ChTransform.h"
 #include "chrono/physics/ChParticlesClones.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono/collision/ChCModelBullet.h"
+#include "chrono/collision/ChCollisionModelBullet.h"
 
 namespace chrono {
 
@@ -31,12 +31,12 @@ using namespace geometry;
 // -----------------------------------------------------------------------------
 
 ChAparticle::ChAparticle() : container(NULL), UserForce(VNULL), UserTorque(VNULL) {
-    collision_model = new ChModelBullet;
+    collision_model = new ChCollisionModelBullet;
     collision_model->SetContactable(this);
 }
 
 ChAparticle::ChAparticle(const ChAparticle& other) : ChParticleBase(other) {
-    collision_model = new ChModelBullet;
+    collision_model = new ChCollisionModelBullet;
     collision_model->AddCopyOfAnotherModel(other.collision_model);
     collision_model->SetContactable(this);
 
@@ -240,7 +240,7 @@ ChParticlesClones::ChParticlesClones()
     SetInertiaXX(ChVector<double>(1.0, 1.0, 1.0));
     SetInertiaXY(ChVector<double>(0, 0, 0));
 
-    particle_collision_model = new ChModelBullet();
+    particle_collision_model = new ChCollisionModelBullet();
     particle_collision_model->SetContactable(0);
 
     particles.clear();

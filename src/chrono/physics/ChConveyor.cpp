@@ -15,7 +15,6 @@
 #include <cstdlib>
 #include <algorithm>
 
-#include "chrono/collision/ChCModelBullet.h"
 #include "chrono/core/ChTransform.h"
 #include "chrono/physics/ChConveyor.h"
 #include "chrono/physics/ChSystem.h"

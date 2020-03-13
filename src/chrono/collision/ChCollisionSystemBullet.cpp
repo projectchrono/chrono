@@ -12,10 +12,10 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#include "chrono/collision/ChCCollisionSystemBullet.h"
-#include "chrono/collision/ChCModelBullet.h"
+#include "chrono/collision/ChCollisionSystemBullet.h"
+#include "chrono/collision/ChCollisionModelBullet.h"
 #include "chrono/collision/gimpact/GIMPACT/Bullet/btGImpactCollisionAlgorithm.h"
-#include "chrono/collision/ChCCollisionUtils.h"
+#include "chrono/collision/ChCollisionUtils.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChContactContainer.h"
 #include "chrono/physics/ChProximityContainer.h"
@@ -681,8 +681,8 @@ class btCEtriangleShapeCollisionAlgorithm : public btActivatingCollisionAlgorith
 
         btCEtriangleShape* triA = (btCEtriangleShape*)triObj1->getCollisionShape();
         btCEtriangleShape* triB = (btCEtriangleShape*)triObj2->getCollisionShape();
-        ChModelBullet* triModelA = (ChModelBullet*)triA->getUserPointer();
-        ChModelBullet* triModelB = (ChModelBullet*)triB->getUserPointer();
+        ChCollisionModelBullet* triModelA = (ChCollisionModelBullet*)triA->getUserPointer();
+        ChCollisionModelBullet* triModelB = (ChCollisionModelBullet*)triB->getUserPointer();
 
         // brute force discard of connected triangles
         // ***TODO*** faster approach based on collision families that can bypass the
@@ -1249,17 +1249,17 @@ void ChCollisionSystemBullet::Clear(void) {
 }
 
 void ChCollisionSystemBullet::Add(ChCollisionModel* model) {
-    if (((ChModelBullet*)model)->GetBulletModel()->getCollisionShape()) {
+    if (((ChCollisionModelBullet*)model)->GetBulletModel()->getCollisionShape()) {
         model->SyncPosition();
-        bt_collision_world->addCollisionObject(((ChModelBullet*)model)->GetBulletModel(),
-                                               ((ChModelBullet*)model)->GetFamilyGroup(),
-                                               ((ChModelBullet*)model)->GetFamilyMask());
+        bt_collision_world->addCollisionObject(((ChCollisionModelBullet*)model)->GetBulletModel(),
+                                               ((ChCollisionModelBullet*)model)->GetFamilyGroup(),
+                                               ((ChCollisionModelBullet*)model)->GetFamilyMask());
     }
 }
 
 void ChCollisionSystemBullet::Remove(ChCollisionModel* model) {
-    if (((ChModelBullet*)model)->GetBulletModel()->getCollisionShape()) {
-        bt_collision_world->removeCollisionObject(((ChModelBullet*)model)->GetBulletModel());
+    if (((ChCollisionModelBullet*)model)->GetBulletModel()->getCollisionShape()) {
+        bt_collision_world->removeCollisionObject(((ChCollisionModelBullet*)model)->GetBulletModel());
     }
 }
 
@@ -1343,8 +1343,16 @@ void ChCollisionSystemBullet::ReportContacts(ChContactContainer* mcontactcontain
                         add_contact = this->narrow_callback->OnNarrowphase(icontact);
 
                     // Add to contact container
-                    if (add_contact)
+                    if (add_contact) {
+                        ////bool compoundA = (obA->getRootCollisionShape()->getShapeType() == COMPOUND_SHAPE_PROXYTYPE);
+                        ////bool compoundB = (obB->getRootCollisionShape()->getShapeType() == COMPOUND_SHAPE_PROXYTYPE);
+                        ////int indexA = compoundA ? pt.m_index0 : -999;
+                        ////int indexB = compoundB ? pt.m_index1 : -999;
+
+                        ////std::cout << "  add contact  indexA=" << indexA << "  indexB=" << indexB << std::endl;
+
                         mcontactcontainer->AddContact(icontact);
+                    }
                 }
             }
         }

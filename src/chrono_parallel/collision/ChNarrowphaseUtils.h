@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/collision/ChCollisionModel.h"
 #include "chrono_parallel/collision/ChDataStructures.h"
 
 namespace chrono {

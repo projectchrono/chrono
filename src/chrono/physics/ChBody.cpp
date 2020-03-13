@@ -22,7 +22,7 @@
 #include "chrono/physics/ChMarker.h"
 #include "chrono/physics/ChSystem.h"
 
-#include "chrono/collision/ChCModelBullet.h"
+#include "chrono/collision/ChCollisionModelBullet.h"
 
 namespace chrono {
 
@@ -159,7 +159,7 @@ ChBody::~ChBody() {
 }
 
 std::shared_ptr<collision::ChCollisionModel> ChBody::InstanceCollisionModel() {
-    auto collision_model_t = chrono_types::make_shared<ChModelBullet>();
+    auto collision_model_t = chrono_types::make_shared<ChCollisionModelBullet>();
     collision_model_t->SetContactable(this);
     return collision_model_t;
 }

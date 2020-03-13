@@ -15,8 +15,8 @@
 #include <algorithm>
 #include <climits>
 
-#include "chrono/collision/ChCCollisionModel.h"
-#include "chrono/collision/ChCCollisionInfo.h"
+#include "chrono/collision/ChCollisionModel.h"
+#include "chrono/collision/ChCollisionInfo.h"
 
 #include "chrono_parallel/math/ChParallelMath.h"
 #include "chrono_parallel/collision/ChCollision.h"

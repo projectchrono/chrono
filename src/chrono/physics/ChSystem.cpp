@@ -14,8 +14,7 @@
 
 #include <algorithm>
 
-#include "chrono/collision/ChCCollisionSystemBullet.h"
-#include "chrono/collision/ChCModelBullet.h"
+#include "chrono/collision/ChCollisionSystemBullet.h"
 #include "chrono/parallel/ChOpenMP.h"
 #include "chrono/physics/ChProximityContainer.h"
 #include "chrono/physics/ChSystem.h"

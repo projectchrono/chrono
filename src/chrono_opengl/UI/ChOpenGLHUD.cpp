@@ -14,7 +14,7 @@
 // Class that renders the text and other UI elements
 // =============================================================================
 
-#include "chrono/collision/ChCCollisionSystemBullet.h"
+#include "chrono/collision/ChCollisionSystemBullet.h"
 #include "chrono/solver/ChIterativeSolverVI.h"
 
 #include "chrono/ChConfig.h"

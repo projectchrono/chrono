@@ -20,7 +20,7 @@
 
 #include "chrono_parallel/collision/ChNarrowphaseMPR.h"
 
-#include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/collision/ChCollisionModel.h"
 #include "chrono/core/ChMathematics.h"
 
 #include "unit_testing.h"

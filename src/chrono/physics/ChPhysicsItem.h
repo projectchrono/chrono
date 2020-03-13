@@ -16,7 +16,7 @@
 #define CHPHYSICSITEM_H
 
 #include "chrono/assets/ChAsset.h"
-#include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/collision/ChCollisionModel.h"
 #include "chrono/core/ChFrame.h"
 #include "chrono/physics/ChObject.h"
 #include "chrono/solver/ChSystemDescriptor.h"

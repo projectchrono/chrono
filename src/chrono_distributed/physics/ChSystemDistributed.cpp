@@ -25,7 +25,7 @@
 #include <numeric>
 #include <string>
 
-#include "chrono/collision/ChCCollisionSystem.h"
+#include "chrono/collision/ChCollisionSystem.h"
 #include "chrono/physics/ChBody.h"
 
 #include "chrono_distributed/ChDistributedDataManager.h"

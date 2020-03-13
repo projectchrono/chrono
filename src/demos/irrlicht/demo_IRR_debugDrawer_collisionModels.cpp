@@ -6,8 +6,7 @@
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
-// http://projectchrono.org/license-chrono.txt.
-//
+// http://projectchrono.org/license-chrono.tx
 // =============================================================================
 // Authors: Kishor Bhalerao
 // =============================================================================
@@ -18,7 +17,7 @@
 // =============================================================================
 
 #include <chrono/collision/bullet/LinearMath/btIDebugDraw.h>
-#include <chrono/collision/ChCCollisionSystemBullet.h>
+#include <chrono/collision/ChCollisionSystemBullet.h>
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/core/ChTimer.h"

@@ -26,8 +26,6 @@
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
 
-#include "chrono/collision/ChCConvexDecomposition.h"
-
 #include "chrono_thirdparty/tinyobjloader/tiny_obj_loader.h"
 
 namespace chrono {

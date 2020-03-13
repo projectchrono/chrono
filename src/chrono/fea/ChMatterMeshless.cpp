@@ -15,7 +15,7 @@
 #include <cstdlib>
 #include <algorithm>
 
-#include "chrono/collision/ChCModelBullet.h"
+#include "chrono/collision/ChCollisionModelBullet.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/fea/ChMatterMeshless.h"
 #include "chrono/fea/ChProximityContainerMeshless.h"
@@ -31,7 +31,7 @@ CH_FACTORY_REGISTER(ChMatterMeshless)
 
 ChNodeMeshless::ChNodeMeshless()
     : pos_ref(VNULL), UserForce(VNULL), h_rad(0.1), coll_rad(0.001), volume(0.01), hardening(0), container(NULL) {
-    collision_model = new ChModelBullet;
+    collision_model = new ChCollisionModelBullet;
     collision_model->SetContactable(this);
 
     SetMass(0.01);
@@ -39,7 +39,7 @@ ChNodeMeshless::ChNodeMeshless()
 }
 
 ChNodeMeshless::ChNodeMeshless(const ChNodeMeshless& other) : ChNodeXYZ(other) {
-    collision_model = new ChModelBullet;
+    collision_model = new ChCollisionModelBullet;
     collision_model->SetContactable(this);
     collision_model->AddPoint(other.coll_rad);
 
@@ -101,13 +101,13 @@ ChNodeMeshless& ChNodeMeshless::operator=(const ChNodeMeshless& other) {
 void ChNodeMeshless::SetKernelRadius(double mr) {
     h_rad = mr;
     double aabb_rad = h_rad / 2;  // to avoid too many pairs: bounding boxes hemisizes will sum..  __.__--*--
-    ((ChModelBullet*)collision_model)->SetSphereRadius(coll_rad, ChMax(0.0, aabb_rad - coll_rad));
+    ((ChCollisionModelBullet*)collision_model)->SetSphereRadius(coll_rad, ChMax(0.0, aabb_rad - coll_rad));
 }
 
 void ChNodeMeshless::SetCollisionRadius(double mr) {
     coll_rad = mr;
     double aabb_rad = h_rad / 2;  // to avoid too many pairs: bounding boxes hemisizes will sum..  __.__--*--
-    ((ChModelBullet*)collision_model)->SetSphereRadius(coll_rad, ChMax(0.0, aabb_rad - coll_rad));
+    ((ChCollisionModelBullet*)collision_model)->SetSphereRadius(coll_rad, ChMax(0.0, aabb_rad - coll_rad));
 }
 
 void ChNodeMeshless::ContactForceLoadResidual_F(const ChVector<>& F,

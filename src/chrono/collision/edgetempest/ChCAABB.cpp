@@ -15,7 +15,7 @@
 
 #include "chrono/collision/edgetempest/ChCAABB.h"
 #include "chrono/collision/edgetempest/ChCMatVec.h"
-#include "chrono/collision/ChCCollisionPair.h"
+#include "chrono/collision/ChCollisionPair.h"
 
 namespace chrono {
 namespace collision {

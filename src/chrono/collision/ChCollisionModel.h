@@ -12,8 +12,8 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#ifndef CHC_COLLISIONMODEL_H
-#define CHC_COLLISIONMODEL_H
+#ifndef CH_COLLISION_MODEL_H
+#define CH_COLLISION_MODEL_H
 
 #include <vector>
 
@@ -48,10 +48,8 @@ enum ShapeType {
     TETRAHEDRON   // Currently implemented in parallel only
 };
 
-/// Class containing the geometric model ready for collision detection.
-/// Each rigid body will have a ChCollisionModel.
-/// A ChCollisionModel will contain all the geometric description(s)
-/// of the shape of the rigid body, for collision purposes.
+/// Class defining the geometric model for collision detection.
+/// A ChCollisionModel contains all geometric shapes on a rigid body, for collision purposes.
 class ChApi ChCollisionModel {
   public:
     ChCollisionModel();

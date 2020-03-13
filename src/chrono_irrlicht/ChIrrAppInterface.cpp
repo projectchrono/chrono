@@ -10,7 +10,6 @@
 //
 // =============================================================================
 
-#include "chrono/collision/ChCModelBullet.h"
 #include "chrono/core/ChStream.h"
 #include "chrono/serialization/ChArchiveAsciiDump.h"
 #include "chrono/serialization/ChArchiveJSON.h"

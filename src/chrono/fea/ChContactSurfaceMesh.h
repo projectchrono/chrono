@@ -18,8 +18,8 @@
 #include "chrono/fea/ChContactSurface.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
 #include "chrono/fea/ChNodeFEAxyzrot.h"
-#include "chrono/collision/ChCCollisionModel.h"
-#include "chrono/collision/ChCCollisionUtils.h"
+#include "chrono/collision/ChCollisionModel.h"
+#include "chrono/collision/ChCollisionUtils.h"
 #include "chrono/physics/ChLoaderUV.h"
 
 namespace chrono {

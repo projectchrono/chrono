@@ -44,7 +44,7 @@ class CH_PARALLEL_API ChContactContainerParallel : public ChContactContainer {
 
     virtual void RemoveAllContacts() override;
     virtual void BeginAddContact() override;
-    virtual void AddContact(const collision::ChCollisionInfo& mcontact) override;
+    virtual void AddContact(const collision::ChCollisionInfo& cinfo) override;
     virtual void EndAddContact() override;
 
     /// Specify a callback object to be used each time a contact point is added to the container.

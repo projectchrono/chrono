@@ -23,7 +23,7 @@
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/timestepper/ChTimestepper.h"
 #include "chrono/utils/ChUtilsCreators.h"
-#include "chrono/collision/ChCCollisionSystemBullet.h"
+#include "chrono/collision/ChCollisionSystemBullet.h"
 
 #include "chrono/fea/ChElementBeamEuler.h"
 #include "chrono/fea/ChBuilderBeam.h"

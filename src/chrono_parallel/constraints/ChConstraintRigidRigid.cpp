@@ -191,6 +191,18 @@ void ChConstraintRigidRigid::Setup(ChParallelDataManager* dm) {
     quat_a.resize(num_contacts);
     quat_b.resize(num_contacts);
 
+
+    ////for (uint i = 0; i < num_contacts; i++) {
+    ////    auto body = data_manager->host_data.bids_rigid_rigid[i];
+    ////    auto b1 = body.x;
+    ////    auto b2 = body.y;
+    ////    auto shape_pair = data_manager->host_data.contact_pairs[i]; 
+    ////    auto s1 = int(data_manager->host_data.contact_pairs[i] >> 32);
+    ////    auto s2 = int(data_manager->host_data.contact_pairs[i] & 0xffffffff);
+    ////
+    ////    std::cout << "body1/shape1 = " << b1 << "," << s1 << "   body2/shape2 = " << b2 << "," << s2 << std::endl;
+    ////}
+
 #pragma omp parallel for
     for (int i = 0; i < (signed)num_contacts; i++) {
         vec2 body = data_manager->host_data.bids_rigid_rigid[i];

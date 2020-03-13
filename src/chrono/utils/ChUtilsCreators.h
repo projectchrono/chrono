@@ -45,7 +45,7 @@
 
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 
-#include "chrono/collision/ChCConvexDecomposition.h"
+#include "chrono/collision/ChConvexDecomposition.h"
 
 namespace chrono {
 namespace utils {

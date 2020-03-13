@@ -293,8 +293,7 @@ void ChSystemParallel::AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> newite
 //
 // Add the specified shaft to the system.
 // A unique identifier is assigned to each shaft for indexing purposes.
-// Space is allocated in system-wide vectors for data corresponding to the
-// shaft.
+// Space is allocated in system-wide vectors for data corresponding to the shaft.
 //
 // Currently, this function is private to prevent the user from directly calling
 // it and instead force them to use AddOtherPhysicsItem().  See comment above.

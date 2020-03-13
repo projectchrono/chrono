@@ -17,6 +17,8 @@
 //
 // =============================================================================
 
+#include "chrono/collision/ChCollisionModelBullet.h"
+
 #include "chrono_parallel/collision/ChCollisionSystemBulletParallel.h"
 #include "chrono_parallel/ChDataManager.h"
 
@@ -89,7 +91,7 @@ void ChCollisionSystemBulletParallel::Clear(void) {
 }
 
 void ChCollisionSystemBulletParallel::Add(ChCollisionModel* model) {
-    ChModelBullet* bmodel = static_cast<ChModelBullet*>(model);
+    ChCollisionModelBullet* bmodel = static_cast<ChCollisionModelBullet*>(model);
     if (bmodel->GetBulletModel()->getCollisionShape()) {
         bmodel->SyncPosition();
         bmodel->GetBulletModel()->setCompanionId(counter);
@@ -101,7 +103,7 @@ void ChCollisionSystemBulletParallel::Add(ChCollisionModel* model) {
 }
 
 void ChCollisionSystemBulletParallel::Remove(ChCollisionModel* model) {
-    ChModelBullet* bmodel = static_cast<ChModelBullet*>(model);
+    ChCollisionModelBullet* bmodel = static_cast<ChCollisionModelBullet*>(model);
     if (bmodel->GetBulletModel()->getCollisionShape()) {
         bt_collision_world->removeCollisionObject(bmodel->GetBulletModel());
     }

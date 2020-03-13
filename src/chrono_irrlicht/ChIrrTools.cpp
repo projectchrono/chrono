@@ -17,7 +17,7 @@
 #include "chrono_irrlicht/ChIrrTools.h"
 #include "chrono/utils/ChProfiler.h"
 #include "chrono/collision/bullet/LinearMath/btIDebugDraw.h"
-#include "chrono/collision/ChCCollisionSystemBullet.h"
+#include "chrono/collision/ChCollisionSystemBullet.h"
 
 namespace chrono {
 namespace irrlicht {

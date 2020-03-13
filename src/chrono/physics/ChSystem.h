@@ -23,7 +23,7 @@
 #include <iostream>
 #include <list>
 
-#include "chrono/collision/ChCCollisionSystem.h"
+#include "chrono/collision/ChCollisionSystem.h"
 #include "chrono/core/ChGlobal.h"
 #include "chrono/core/ChLog.h"
 #include "chrono/core/ChMath.h"
@@ -304,12 +304,12 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// Pushes all ChConstraints and ChVariables contained in links, bodies, etc. into the system descriptor.
     virtual void DescriptorPrepareInject(ChSystemDescriptor& mdescriptor);
 
-  private:
-    // Note: SetupInitial need not be typically called by a user, so it is currently marked private.
+    // Note: SetupInitial need not be typically called by a user, so it is currently marked protected
+    // (as it may need to be called by derived classes)
 
     /// Initial system setup before analysis.
     /// This function performs an initial system setup, once system construction is completed and before an analysis.
-    void SetupInitial() override;
+    virtual void SetupInitial() override;
 
   public:
     //

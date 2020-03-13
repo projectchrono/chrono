@@ -18,7 +18,7 @@
 #include "chrono/core/ChFrame.h"
 #include "chrono/solver/ChConstraintTwoTuplesContactN.h"
 #include "chrono/solver/ChSystemDescriptor.h"
-#include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/collision/ChCollisionModel.h"
 #include "chrono/physics/ChContactTuple.h"
 #include "chrono/physics/ChContactContainer.h"
 #include "chrono/physics/ChSystem.h"

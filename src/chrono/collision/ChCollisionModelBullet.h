@@ -12,13 +12,13 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#ifndef CHC_MODELBULLET_H
-#define CHC_MODELBULLET_H
+#ifndef CH_COLLISION_MODEL_BULLET_H
+#define CH_COLLISION_MODEL_BULLET_H
 
 #include <memory>
 #include <vector>
 
-#include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/collision/ChCollisionModel.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/btCollisionShape.h"
 #include "chrono/geometry/ChLinePath.h"
 
@@ -35,28 +35,23 @@ namespace collision {
 
 class ChConvexDecomposition;
 
-///  A wrapper to use the Bullet collision detection  library
-class ChApi ChModelBullet : public ChCollisionModel {
+/// Class defining the Bullet geometric model for collision detection.
+class ChApi ChCollisionModelBullet : public ChCollisionModel {
   protected:
-    // The Bullet collision object containing Bullet geometries
-    btCollisionObject* bt_collision_object;
-
-    // Vector of shared pointers to geometric objects.
-    std::vector<std::shared_ptr<btCollisionShape>> shapes;
+    btCollisionObject* bt_collision_object;                 ///< Bullet collision object containing Bullet geometries
+    std::vector<std::shared_ptr<btCollisionShape>> shapes;  ///< Vector of shared pointers to geometric objects
 
   public:
-    ChModelBullet();
-    virtual ~ChModelBullet();
+    ChCollisionModelBullet();
+    virtual ~ChCollisionModelBullet();
 
     /// Deletes all inserted geometries.
     /// Also, if you begin the definition of a model, AFTER adding
     /// the geometric description, remember to call the ClearModel().
-    /// MUST be inherited by child classes! (ex for resetting also BV hierarchies)
     virtual int ClearModel() override;
 
     /// Builds the BV hierarchy.
     /// Call this function AFTER adding the geometric description.
-    /// MUST be inherited by child classes! (ex for building BV hierarchies)
     virtual int BuildModel() override;
 
     //
@@ -230,10 +225,7 @@ class ChApi ChModelBullet : public ChCollisionModel {
     );
 
     /// Add all shapes already contained in another model.
-    /// Thank to the adoption of shared pointers, underlying shapes are
-    /// shared (not copied) among the models; this will save memory when you must
-    /// simulate thousands of objects with the same collision shape.
-    /// The 'another' model must be of ChModelBullet subclass.
+    /// The 'another' model must be of ChCollisionModelBullet subclass.
     virtual bool AddCopyOfAnotherModel(ChCollisionModel* another) override;
 
     virtual void SetFamily(int mfamily) override;
@@ -286,7 +278,7 @@ class ChApi ChModelBullet : public ChCollisionModel {
 
 }  // end namespace collision
 
-CH_CLASS_VERSION(collision::ChModelBullet, 0)
+CH_CLASS_VERSION(collision::ChCollisionModelBullet, 0)
 
 }  // end namespace chrono
 

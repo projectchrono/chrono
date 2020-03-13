@@ -18,7 +18,7 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/collision/ChCConvexDecomposition.h"
+#include "chrono/collision/ChConvexDecomposition.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 #include "chrono_irrlicht/ChIrrMeshTools.h"

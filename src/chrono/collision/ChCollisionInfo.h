@@ -10,10 +10,10 @@
 //
 // =============================================================================
 
-#ifndef CHCCOLLISIONINFO_H
-#define CHCCOLLISIONINFO_H
+#ifndef CH_COLLISION_INFO_H
+#define CH_COLLISION_INFO_H
 
-#include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/collision/ChCollisionModel.h"
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChVector.h"
 
@@ -23,7 +23,7 @@ namespace collision {
 /// @addtogroup chrono_collision
 /// @{
 
-///   Class for passing basic data about contact pairs
+/// Class defining basic geometric information for collision pairs.
 class ChApi ChCollisionInfo {
   public:
     ChCollisionModel* modelA;  ///< model A

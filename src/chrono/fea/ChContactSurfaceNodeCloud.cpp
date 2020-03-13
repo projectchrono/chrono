@@ -12,7 +12,7 @@
 // Authors: Andrea Favali, Alessandro Tasora
 // =============================================================================
 
-#include "chrono/collision/ChCModelBullet.h"
+#include "chrono/collision/ChCollisionModelBullet.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
 #include "chrono/fea/ChElementShellANCF.h"
@@ -65,7 +65,7 @@ ChPhysicsItem* ChContactNodeXYZ::GetPhysicsItem() {
 
 ChContactNodeXYZsphere::ChContactNodeXYZsphere(ChNodeFEAxyz* anode, ChContactSurface* acontainer)
     : ChContactNodeXYZ(anode, acontainer) {
-    this->collision_model = new collision::ChModelBullet;
+    this->collision_model = new collision::ChCollisionModelBullet;
     this->collision_model->SetContactable(this);
 }
 
@@ -110,7 +110,7 @@ ChPhysicsItem* ChContactNodeXYZROT::GetPhysicsItem() {
 
 ChContactNodeXYZROTsphere::ChContactNodeXYZROTsphere(ChNodeFEAxyzrot* anode, ChContactSurface* acontainer)
     : ChContactNodeXYZROT(anode, acontainer) {
-    this->collision_model = new collision::ChModelBullet;
+    this->collision_model = new collision::ChCollisionModelBullet;
     this->collision_model->SetContactable(this);
 }
 

@@ -17,7 +17,7 @@
 
 #include <cmath>
 
-#include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/collision/ChCollisionModel.h"
 #include "chrono/physics/ChIndexedNodes.h"
 #include "chrono/physics/ChNodeXYZ.h"
 #include "chrono/fea/ChContinuumMaterial.h"

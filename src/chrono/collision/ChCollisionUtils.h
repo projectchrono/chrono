@@ -10,8 +10,8 @@
 //
 // =============================================================================
 
-#ifndef CHCOLLISIONUTILS_H
-#define CHCOLLISIONUTILS_H
+#ifndef CH_OLLISION_UTILS_H
+#define CH_OLLISION_UTILS_H
 
 #include "chrono/collision/bullet/LinearMath/btConvexHull.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"

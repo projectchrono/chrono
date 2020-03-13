@@ -15,7 +15,7 @@
 // =============================================================================
 
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/collision/ChCConvexDecomposition.h"
+#include "chrono/collision/ChConvexDecomposition.h"
 #include "chrono/physics/ChSystemNSC.h"
 
 #include "chrono_cascade/ChCascadeDoc.h"
