@@ -4,7 +4,7 @@
     
     "box_X": 100,
     "box_Y": 100,
-    "box_Z": 100,
+    "box_Z": 50,
     
     "step_size": 1e-5,
     "time_end": 1,
@@ -15,14 +15,17 @@
     
     "normalStiffS2S": 1e7,
     "normalStiffS2W": 1e7,
-    "normalDampS2S": 1e4,
-    "normalDampS2W": 1e4,
+    "normalDampS2S": 5e3,
+    "normalDampS2W": 5e3,
     
-    "tangentStiffS2S" : 2e6,
-    "tangentStiffS2W" : 1e6, 
-    "tangentDampS2S": 50,
-    "tangentDampS2W": 50,
-    
+    "tangentStiffS2S" : 1e5,
+    "tangentStiffS2W" : 1e5, 
+    "tangentDampS2S": 0,
+    "tangentDampS2W": 0,
+   
+    "static_friction_coeffS2S" : 0.5,
+    "static_friction_coeffS2W" : 0.5,
+
     "cohesion_ratio": 0,
     "adhesion_ratio_s2w": 0,
     
@@ -31,6 +34,6 @@
     "psi_L": 16,
 
     "output_dir": "terrain_box",
-    "write_mode": "csv",
+    "write_mode": "none",
     "run_mode": 1
 }
