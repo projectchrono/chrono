@@ -56,7 +56,11 @@ class StackingTest : public ::testing::TestWithParam<ChSystemSMC::ContactForceMo
         SetSimParameters(sys, ChVector<>(0, -9.81, 0), fmodel);
 
         CHOMPfunctions::SetNumThreads(2);
-        
+        sys->GetSettings()->perform_thread_tuning = false;
+#pragma omp parallel
+#pragma omp master
+        std::cout << "Using " << omp_get_num_threads() << " threads" << std::endl;
+
         // Add the wall to the system
         double wmass = 10.0;
         ChVector<> wsize(8, 1, 8);

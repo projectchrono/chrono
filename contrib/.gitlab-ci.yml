@@ -61,6 +61,7 @@ linux:arch-gcc:test:
   extends: .archlinux
   script:
   - cd build
+  - export OMP_NUM_THREADS=8
   - make test
   dependencies: ["linux:arch-gcc:build"]
 
@@ -162,6 +163,7 @@ linux:arch-llvm:test:
   script:
   - pacman -S --noconfirm llvm clang openmp
   - cd build
+  - export OMP_NUM_THREADS=8
   - make test
   dependencies: ["linux:arch-llvm:build"]
 
@@ -233,6 +235,7 @@ linux:centos:test:
   extends: .centos
   script:
   - cd build
+  - export OMP_NUM_THREADS=8
   - make test
   dependencies: ["linux:centos:build"]
   
@@ -287,6 +290,7 @@ linux:ubuntu1804:test:
   extends: .ubuntu
   script:
     - cd build
+    - export OMP_NUM_THREADS=8
     - make test
   dependencies: ["linux:ubuntu1804:build"]
 
