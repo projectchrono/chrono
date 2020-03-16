@@ -471,7 +471,8 @@ class MyEventReceiver : public IEventReceiver {
         // ..add a GUI text and GUI slider to control the stiffness
         scrollbar_FspringK = mdevice->getGUIEnvironment()->addScrollBar(true, rect<s32>(10, 125, 150, 140), 0, 102);
         scrollbar_FspringK->setMax(100);
-        scrollbar_FspringK->setPos((s32)(50 + 50.0 * (acar->link_springRF->GetSpringCoefficient() - 80000.0) / 60000.0));
+        scrollbar_FspringK->setPos(
+            (s32)(50 + 50.0 * (acar->link_springRF->GetSpringCoefficient() - 80000.0) / 60000.0));
         text_FspringK =
             mdevice->getGUIEnvironment()->addStaticText(L"Spring K [N/m]:", rect<s32>(155, 125, 300, 140), false);
 
@@ -521,7 +522,6 @@ class MyEventReceiver : public IEventReceiver {
                         sprintf(message, "Spring K [N/m]: %g", newstiff);
 
                         std::cout << "K = " << newstiff << std::endl;
-
 
                         text_FspringK->setText(core::stringw(message).c_str());
                     }
@@ -690,9 +690,9 @@ int main(int argc, char* argv[]) {
     // THE SOFT-REAL-TIME CYCLE, SHOWING THE SIMULATION
     //
 
-    // This will help choosing an integration step which matches the
-    // real-time step of the simulation..
-    ChRealtimeStepTimer m_realtime_timer;
+    // Timer for enforcing sodt real-time
+    ChRealtimeStepTimer realtime_timer;
+    double time_step = 0.005;
 
     while (application.GetDevice()->run()) {
         // Irrlicht must prepare frame to draw
@@ -728,14 +728,13 @@ int main(int argc, char* argv[]) {
         // wheels and truss, depends on many parameters (gear, throttle, etc):
         mycar->ComputeWheelTorque();
 
-        // HERE CHRONO INTEGRATION IS PERFORMED: THE
-        // TIME OF THE SIMULATION ADVANCES FOR A SINGLE
-        // STEP:
+        // ADVANCE SYSTEM STATE BY ONE STEP
+        my_system.DoStepDynamics(time_step);
+        // Enforce soft real-time
+        realtime_timer.Spin(time_step);
 
-        my_system.DoStepDynamics(m_realtime_timer.SuggestSimulationStep(0.005));
-
-        // Irrlicht must finish drawing the frame
-        application.EndScene();
+            // Irrlicht must finish drawing the frame
+            application.EndScene();
     }
 
     if (mycar)

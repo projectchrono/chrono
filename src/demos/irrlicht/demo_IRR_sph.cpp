@@ -171,7 +171,6 @@ int main(int argc, char* argv[]) {
     // THE SOFT-REAL-TIME CYCLE
     //
 
-    application.SetStepManage(true);
     application.SetTimestep(0.0025);
 
     while (application.GetDevice()->run()) {

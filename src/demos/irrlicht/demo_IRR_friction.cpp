@@ -146,8 +146,7 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.SetSolverMaxIterations(100);
 
     // Simulation loop
-    application.SetStepManage(true);
-    application.SetTimestep(0.01);
+    application.SetTimestep(0.005);
     application.SetTryRealtime(true);
 
     while (application.GetDevice()->run()) {

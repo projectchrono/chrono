@@ -142,7 +142,6 @@ int main(int argc, char* argv[]) {
     ContactManager manager(&system);
 
     // Simulation loop.
-    application.SetStepManage(true);
     application.SetTimestep(0.02);
 
     while (application.GetDevice()->run()) {

@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) {
     debugDrawer.setDebugMode(btIDebugDraw::DBG_DrawWireframe);
     bulletCollisionWorld->setDebugDrawer(&debugDrawer);
 
-    application.SetTimestep(0.01);
+    application.SetTimestep(0.005);
     application.SetTryRealtime(true);
 
     while (application.GetDevice()->run()) {

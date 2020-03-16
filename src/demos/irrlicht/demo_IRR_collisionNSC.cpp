@@ -211,13 +211,11 @@ int main(int argc, char* argv[]) {
 
     // mphysicalSystem.SetUseSleeping(true);
 
-    application.SetStepManage(true);
-    application.SetTimestep(0.02);
-
     //
     // THE SOFT-REAL-TIME CYCLE
     //
    
+    application.SetTimestep(0.02);
 
     while (application.GetDevice()->run()) {
 

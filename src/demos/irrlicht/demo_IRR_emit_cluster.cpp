@@ -195,12 +195,11 @@ int main(int argc, char* argv[]) {
     // Turn off default -9.8 downward gravity
     mphysicalSystem.Set_G_acc(ChVector<>(0, 0, 0));
 
-    application.SetStepManage(true);
-    application.SetTimestep(0.01);
-
     //
     // THE SOFT-REAL-TIME CYCLE
     //
+
+    application.SetTimestep(0.01);
 
     while (application.GetDevice()->run()) {
         application.BeginScene(true, true, SColor(255, 140, 161, 192));

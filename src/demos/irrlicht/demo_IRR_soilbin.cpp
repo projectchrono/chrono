@@ -422,7 +422,6 @@ class TestMech {
         spring->AddAsset(chrono_types::make_shared<ChColorAsset>(0.6f, 0.1f, 0.1f));
         spring->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.05, 80, 15));
 
-
         // create a prismatic constraint between the weight and the ground
         auto weightLink = chrono_types::make_shared<ChLinkLockOldham>();
         weightLink->Initialize(suspweight, floor,
@@ -960,7 +959,6 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.SetSolverMaxIterations(70);
 
     // Use real-time step of the simulation, OR...
-    application.SetStepManage(true);
     application.SetTimestep(0.01);
     application.SetTryRealtime(true);
 

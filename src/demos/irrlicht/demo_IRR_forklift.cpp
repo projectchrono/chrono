@@ -489,10 +489,8 @@ int main(int argc, char* argv[]) {
     // THE SOFT-REAL-TIME CYCLE, SHOWING THE SIMULATION
     //
 
-    // This will help choosing an integration step which matches the
-    // real-time step of the simulation..
-    application.SetStepManage(true);
     application.SetTimestep(0.005);
+    application.SetTryRealtime(true);
 
     while (application.GetDevice()->run()) {
         // Irrlicht must prepare frame to draw

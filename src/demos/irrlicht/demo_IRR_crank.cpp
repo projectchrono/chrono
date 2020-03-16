@@ -120,9 +120,9 @@ int main(int argc, char* argv[]) {
     // THE SOFT-REAL-TIME CYCLE, SHOWING THE SIMULATION
     //
 
-    // This will help choosing an integration step which matches the
-    // real-time step of the simulation..
-    ChRealtimeStepTimer m_realtime_timer;
+    // Timer for enforcing soft real-time
+    ChRealtimeStepTimer realtime_timer;
+    double time_step = 0.01;
 
     bool removed = false;
 
@@ -156,11 +156,10 @@ int main(int argc, char* argv[]) {
                 removed = true;
         }*/
 
-        // HERE CHRONO INTEGRATION IS PERFORMED: THE
-        // TIME OF THE SIMULATION ADVANCES FOR A SINGLE
-        // STEP:
-
-        my_system.DoStepDynamics(m_realtime_timer.SuggestSimulationStep(0.02));
+        // ADVANCE SYSTEM STATE BY ONE STEP
+        my_system.DoStepDynamics(time_step);
+        // Enforce soft real-time
+        realtime_timer.Spin(time_step);
 
         // Irrlicht must finish drawing the frame
         application.EndScene();
