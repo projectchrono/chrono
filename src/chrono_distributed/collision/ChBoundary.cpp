@@ -105,13 +105,13 @@ void ChBoundary::OnCustomCollision(ChSystem* system) {
 
         for (auto& shape : model->mData) {
             switch (shape.type) {
-                case collision::SPHERE: {
+                case collision::ChCollisionShape::Type::SPHERE : {
                     ChVector<> center_loc = ChVector<>(shape.A.x, shape.A.y, shape.A.z);
                     ChVector<> center_abs = body->TransformPointLocalToParent(center_loc);
                     CheckSphere(model, center_abs, shape.B.x);
                     break;
                 }
-                case collision::BOX: {
+                case collision::ChCollisionShape::Type::BOX: {
                     ChFrame<> frame_loc(ChVector<>(shape.A.x, shape.A.y, shape.A.z),
                                         ChQuaternion<>(shape.R.w, shape.R.x, shape.R.y, shape.R.z));
                     ChFrame<> frame_abs;

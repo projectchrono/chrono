@@ -39,46 +39,40 @@ namespace collision {
 CH_FACTORY_REGISTER(ChCollisionModelBullet)
 
 ChCollisionModelBullet::ChCollisionModelBullet() {
-    bt_collision_object = new btCollisionObject;
-    bt_collision_object->setCollisionShape(0);
+    bt_collision_object = std::unique_ptr<btCollisionObject>(new btCollisionObject);
+    bt_collision_object->setCollisionShape(nullptr);
     bt_collision_object->setUserPointer((void*)this);
-
-    shapes.clear();
 }
 
-ChCollisionModelBullet::~ChCollisionModelBullet() {
-    shapes.clear();
-    delete bt_collision_object;
-}
+ChCollisionModelBullet::~ChCollisionModelBullet() {}
 
 int ChCollisionModelBullet::ClearModel() {
-    // delete previously added shapes, if collision shape(s) used by collision object
-    if (shapes.size() > 0) {
-        // deletes shared pointers, so also deletes shapes if uniquely referenced
-        shapes.clear();
+    // Delete any existing collision shapes and remove the model from the collision system, if applicable.
+    if (m_shapes.size() > 0) {
+        m_shapes.clear();
 
-        // tell to the parent collision system to remove this from collision system,
-        // if still connected to a physical system
-        if (GetContactable())
-            if (GetPhysicsItem())
-                if (GetPhysicsItem()->GetSystem())
-                    if (GetPhysicsItem()->GetCollide())
-                        GetPhysicsItem()->GetSystem()->GetCollisionSystem()->Remove(this);
-
-        // at the end, no collision shape
-        bt_collision_object->setCollisionShape(0);
+        if (mcontactable &&                                 //
+            mcontactable->GetPhysicsItem() &&               //
+            mcontactable->GetPhysicsItem()->GetSystem() &&  //
+            mcontactable->GetPhysicsItem()->GetCollide()    //
+        )
+            mcontactable->GetPhysicsItem()->GetSystem()->GetCollisionSystem()->Remove(this);
     }
+
+    bt_collision_object->setCollisionShape(nullptr);
+    bt_compound_shape.reset();
 
     return 1;
 }
 
 int ChCollisionModelBullet::BuildModel() {
-    // insert again (we assume it was removed by ClearModel!!!)
-    if (GetContactable())
-        if (GetPhysicsItem())
-            if (GetPhysicsItem()->GetSystem())
-                if (GetPhysicsItem()->GetCollide())
-                    GetPhysicsItem()->GetSystem()->GetCollisionSystem()->Add(this);
+    // Insert model into collision system, if applicable.
+    if (mcontactable &&                                 //
+        mcontactable->GetPhysicsItem() &&               //
+        mcontactable->GetPhysicsItem()->GetSystem() &&  //
+        mcontactable->GetPhysicsItem()->GetCollide()    //
+    )
+        mcontactable->GetPhysicsItem()->GetSystem()->GetCollisionSystem()->Add(this);
 
     return 1;
 }
@@ -105,69 +99,68 @@ static void ChCoordsToBullet(const ChCoordsys<>& mcoords, btTransform& mtransfor
     mtransform.setOrigin(btVector3((btScalar)mcoords.pos.x(), (btScalar)mcoords.pos.y(), (btScalar)mcoords.pos.z()));
 }
 
-void ChCollisionModelBullet::_injectShape(const ChVector<>& pos, const ChMatrix33<>& rot, btCollisionShape* mshape) {
+void ChCollisionModelBullet::injectShape(const ChVector<>& pos,
+                                         const ChMatrix33<>& rot,
+                                         ChCollisionShapeBullet* shape) {
     bool centered = (pos.IsNull() && rot.isIdentity());
 
-    // This is needed so later one can access ChCollisionModelBullet::GetSafeMargin and
-    // ChCollisionModelBullet::GetEnvelope
-    mshape->setUserPointer(this);
+    // This is needed so one can later access the model's GetSafeMargin() and GetEnvelope()
+    shape->m_bt_shape->setUserPointer(this);
 
-    // start_vector = ||    -- description is still empty
-    if (shapes.size() == 0) {
+    // If this is the first shape added to the model...
+    if (m_shapes.size() == 0) {
+        // shape vector: {}
+        m_shapes.push_back(std::shared_ptr<ChCollisionShape>(shape));
         if (centered) {
-            shapes.push_back(std::shared_ptr<btCollisionShape>(mshape));
-            bt_collision_object->setCollisionShape(mshape);
-            // end_vector=  | centered shape |
+            bt_collision_object->setCollisionShape(shape->m_bt_shape);
             return;
+            // shape vector: {centered shape}
         } else {
-            btCompoundShape* mcompound = new btCompoundShape(true);
-            shapes.push_back(std::shared_ptr<btCollisionShape>(mcompound));
-            shapes.push_back(std::shared_ptr<btCollisionShape>(mshape));
-            bt_collision_object->setCollisionShape(mcompound);
+            bt_compound_shape = chrono_types::make_shared<btCompoundShape>(true);
             btTransform mtransform;
             ChPosMatrToBullet(pos, rot, mtransform);
-            mcompound->addChildShape(mtransform, mshape);
-            // vector=  | compound | not centered shape |
+            bt_compound_shape->addChildShape(mtransform, shape->m_bt_shape);
+            bt_collision_object->setCollisionShape(bt_compound_shape.get());
             return;
+            // shape vector: {off-center shape}
         }
     }
-    // start_vector = | centered shape |    ----just a single centered shape was added
-    if (shapes.size() == 1) {
+
+    // If the model currently has only one centered shape...
+    if (!bt_compound_shape && m_shapes.size() == 1) {
+        // shape vector: {centered shape}
+        m_shapes.push_back(std::shared_ptr<ChCollisionShape>(shape));
+        bt_compound_shape = chrono_types::make_shared<btCompoundShape>(true);
         btTransform mtransform;
-        shapes.push_back(shapes[0]);
-        shapes.push_back(std::shared_ptr<btCollisionShape>(mshape));
-        btCompoundShape* mcompound = new btCompoundShape(true);
-        shapes[0] = std::shared_ptr<btCollisionShape>(mcompound);
-        bt_collision_object->setCollisionShape(mcompound);
         mtransform.setIdentity();
-        mcompound->addChildShape(mtransform, shapes[1].get());
+        bt_compound_shape->addChildShape(mtransform, ((ChCollisionShapeBullet*)m_shapes[0].get())->m_bt_shape);
         ChPosMatrToBullet(pos, rot, mtransform);
-        mcompound->addChildShape(mtransform, shapes[2].get());
-        // vector=  | compound | old centered shape | new shape | ...
+        bt_compound_shape->addChildShape(mtransform, shape->m_bt_shape);
+        bt_collision_object->setCollisionShape(bt_compound_shape.get());
         return;
+        // shape vector: {old centered shape | shape}
     }
-    // vector=  | compound | old | old.. |   ----already working with compounds..
-    if (shapes.size() > 1) {
-        btTransform mtransform;
-        shapes.push_back(std::shared_ptr<btCollisionShape>(mshape));
-        ChPosMatrToBullet(pos, rot, mtransform);
-        btCollisionShape* mcom = shapes[0].get();
-        ((btCompoundShape*)mcom)->addChildShape(mtransform, mshape);
-        // vector=  | compound | old | old.. | new shape | ...
-        return;
-    }
+
+    // Already working with a compound...
+    // shape vector: {old shape | old shape | ...}
+    m_shapes.push_back(std::shared_ptr<ChCollisionShape>(shape));
+    btTransform mtransform;
+    ChPosMatrToBullet(pos, rot, mtransform);
+    bt_compound_shape->addChildShape(mtransform, shape->m_bt_shape);
+    return;
+    // shape vector: {old shape | old shape | ... | new shape}
 }
 
 bool ChCollisionModelBullet::AddSphere(double radius, const ChVector<>& pos) {
     // adjust default inward 'safe' margin (always as radius)
-    this->SetSafeMargin(radius);
+    SetSafeMargin(radius);
 
-    btSphereShape* mshape = new btSphereShape((btScalar)(radius + this->GetEnvelope()));
+    auto shape = new ChCollisionShapeBullet(ChCollisionShape::Type::SPHERE);
 
-    mshape->setMargin((btScalar)this->GetSuggestedFullMargin());
+    shape->m_bt_shape = new btSphereShape((btScalar)(radius + GetEnvelope()));
+    shape->m_bt_shape->setMargin((btScalar)GetSuggestedFullMargin());
 
-    _injectShape(pos, ChMatrix33<>(1), mshape);
-
+    injectShape(pos, ChMatrix33<>(1), shape);
     return true;
 }
 
@@ -176,56 +169,54 @@ bool ChCollisionModelBullet::AddEllipsoid(double rx,
                                           double rz,
                                           const ChVector<>& pos,
                                           const ChMatrix33<>& rot) {
+    auto shape = new ChCollisionShapeBullet(ChCollisionShape::Type::ELLIPSOID);
+
     btScalar rad = 1.0;
     btVector3 spos(0, 0, 0);
-    double arx = rx + this->GetEnvelope();
-    double ary = ry + this->GetEnvelope();
-    double arz = rz + this->GetEnvelope();
-    double mmargin = GetSuggestedFullMargin();
-    btMultiSphereShape* mshape = new btMultiSphereShape(&spos, &rad, 1);
-    mshape->setLocalScaling(btVector3((btScalar)arx, (btScalar)ary, (btScalar)arz));
+    double arx = rx + GetEnvelope();
+    double ary = ry + GetEnvelope();
+    double arz = rz + GetEnvelope();
+    shape->m_bt_shape = new btMultiSphereShape(&spos, &rad, 1);
+    shape->m_bt_shape->setLocalScaling(btVector3((btScalar)arx, (btScalar)ary, (btScalar)arz));
+    shape->m_bt_shape->setMargin((btScalar)ChMin(GetSuggestedFullMargin(), 0.9 * ChMin(ChMin(arx, ary), arz)));
 
-    mshape->setMargin((btScalar)ChMin(mmargin, 0.9 * ChMin(ChMin(arx, ary), arz)));
-
-    _injectShape(pos, rot, mshape);
-
+    injectShape(pos, rot, shape);
     return true;
 }
 
 bool ChCollisionModelBullet::AddBox(double hx, double hy, double hz, const ChVector<>& pos, const ChMatrix33<>& rot) {
     // adjust default inward margin (if object too thin)
-    this->SetSafeMargin(ChMin(this->GetSafeMargin(), 0.2 * ChMin(ChMin(hx, hy), hz)));
+    SetSafeMargin(ChMin(GetSafeMargin(), 0.2 * ChMin(ChMin(hx, hy), hz)));
 
-    btScalar ahx = (btScalar)(hx + this->GetEnvelope());
-    btScalar ahy = (btScalar)(hy + this->GetEnvelope());
-    btScalar ahz = (btScalar)(hz + this->GetEnvelope());
-    btBoxShape* mshape = new btBoxShape(btVector3(ahx, ahy, ahz));
+    auto shape = new ChCollisionShapeBullet(ChCollisionShape::Type::BOX);
 
-    mshape->setMargin((btScalar)this->GetSuggestedFullMargin());
+    btScalar ahx = (btScalar)(hx + GetEnvelope());
+    btScalar ahy = (btScalar)(hy + GetEnvelope());
+    btScalar ahz = (btScalar)(hz + GetEnvelope());
+    shape->m_bt_shape = new btBoxShape(btVector3(ahx, ahy, ahz));
+    shape->m_bt_shape->setMargin((btScalar)GetSuggestedFullMargin());
 
-    _injectShape(pos, rot, mshape);
-
+    injectShape(pos, rot, shape);
     return true;
 }
 
-/// Add a cylinder to this model (default axis on Y direction), for collision purposes
 bool ChCollisionModelBullet::AddCylinder(double rx,
                                          double rz,
                                          double hy,
                                          const ChVector<>& pos,
                                          const ChMatrix33<>& rot) {
     // adjust default inward margin (if object too thin)
-    this->SetSafeMargin(ChMin(this->GetSafeMargin(), 0.2 * ChMin(ChMin(rx, rz), 0.5 * hy)));
+    SetSafeMargin(ChMin(GetSafeMargin(), 0.2 * ChMin(ChMin(rx, rz), 0.5 * hy)));
 
-    btScalar arx = (btScalar)(rx + this->GetEnvelope());
-    btScalar arz = (btScalar)(rz + this->GetEnvelope());
-    btScalar ahy = (btScalar)(hy + this->GetEnvelope());
-    btCylinderShape* mshape = new btCylinderShape(btVector3(arx, ahy, arz));
+    auto shape = new ChCollisionShapeBullet(ChCollisionShape::Type::CYLINDER);
 
-    mshape->setMargin((btScalar)this->GetSuggestedFullMargin());
+    btScalar arx = (btScalar)(rx + GetEnvelope());
+    btScalar arz = (btScalar)(rz + GetEnvelope());
+    btScalar ahy = (btScalar)(hy + GetEnvelope());
+    shape->m_bt_shape = new btCylinderShape(btVector3(arx, ahy, arz));
+    shape->m_bt_shape->setMargin((btScalar)GetSuggestedFullMargin());
 
-    _injectShape(pos, rot, mshape);
-
+    injectShape(pos, rot, shape);
     return true;
 }
 
@@ -237,16 +228,19 @@ bool ChCollisionModelBullet::AddBarrel(double Y_low,
                                        const ChVector<>& pos,
                                        const ChMatrix33<>& rot) {
     // adjust default inward margin (if object too thin)
-    this->SetSafeMargin(ChMin(this->GetSafeMargin(), 0.15 * ChMin(ChMin(R_vert, R_hor), Y_high - Y_low)));
+    SetSafeMargin(ChMin(GetSafeMargin(), 0.15 * ChMin(ChMin(R_vert, R_hor), Y_high - Y_low)));
 
-    btBarrelShape* mshape = new btBarrelShape(
-        (btScalar)(Y_low - this->model_envelope), (btScalar)(Y_high + this->model_envelope),
-        (btScalar)(R_vert + this->model_envelope), (btScalar)(R_hor + this->model_envelope), (btScalar)(R_offset));
+    auto shape = new ChCollisionShapeBullet(ChCollisionShape::Type::BARREL);
 
-    mshape->setMargin((btScalar)this->GetSuggestedFullMargin());
+    btScalar sY_low = (btScalar)(Y_low - model_envelope);
+    btScalar sY_high = (btScalar)(Y_high + model_envelope);
+    btScalar sR_vert = (btScalar)(R_vert + model_envelope);
+    btScalar sR_hor = (btScalar)(R_hor + model_envelope);
+    btScalar sR_offset = (btScalar)(R_offset);
+    shape->m_bt_shape = new btBarrelShape(sY_low, sY_high, sR_vert, sR_hor, sR_offset);
+    shape->m_bt_shape->setMargin((btScalar)GetSuggestedFullMargin());
 
-    _injectShape(pos, rot, mshape);
-
+    injectShape(pos, rot, shape);
     return true;
 }
 
@@ -255,7 +249,7 @@ bool ChCollisionModelBullet::Add2Dpath(std::shared_ptr<geometry::ChLinePath> mpa
                                        const ChMatrix33<>& rot,
                                        const double mthickness) {
     // The envelope is not used in this type of collision primitive.
-    this->SetEnvelope(0);
+    SetEnvelope(0);
 
     // if (!mpath.Get_closed())
     //    throw ChException("Error! Add2Dpath requires a CLOSED ChLinePath!");
@@ -263,29 +257,28 @@ bool ChCollisionModelBullet::Add2Dpath(std::shared_ptr<geometry::ChLinePath> mpa
     for (size_t i = 0; i < mpath->GetSubLinesCount(); ++i) {
         if (auto msegment = std::dynamic_pointer_cast<geometry::ChLineSegment>(mpath->GetSubLineN(i))) {
             if ((msegment->pA.z() != 0) || (msegment->pB.z() != 0))
-                throw ChException("Error! Add2Dpath: a sub segment of the ChLinePath had non-zero z coordinate!");
+                throw ChException("Error! Add2Dpath: sub segment of ChLinePath has non-zero z coordinate!");
 
             btVector3 pa((btScalar)msegment->pA.x(), (btScalar)msegment->pA.y(), (btScalar)0);
             btVector3 pb((btScalar)msegment->pB.x(), (btScalar)msegment->pB.y(), (btScalar)0);
-            bt2DsegmentShape* mshape = new bt2DsegmentShape(pa, pb, (btScalar)mthickness);
 
-            mshape->setMargin((btScalar)this->GetSuggestedFullMargin());
-            _injectShape(pos, rot, mshape);
+            auto shape = new ChCollisionShapeBullet(ChCollisionShape::Type::PATH2D);
+            shape->m_bt_shape = new bt2DsegmentShape(pa, pb, (btScalar)mthickness);
+            shape->m_bt_shape->setMargin((btScalar)GetSuggestedFullMargin());
+            injectShape(pos, rot, shape);
         } else if (auto marc = std::dynamic_pointer_cast<geometry::ChLineArc>(mpath->GetSubLineN(i))) {
             if ((marc->origin.pos.z() != 0))
-                throw ChException(
-                    "Error! Add2Dpath: a sub arc of the ChLinePath had center with non-zero z coordinate! It must be "
-                    "flat on xy.");
+                throw ChException("Error! Add2Dpath: a sub arc of ChLinePath has center with non-zero z coordinate!");
             double mangle1 = marc->angle1;
             double mangle2 = marc->angle2;
             if (mangle1 - mangle2 == CH_C_2PI)
                 mangle1 -= 1e-7;
-            bt2DarcShape* mshape =
+            auto shape = new ChCollisionShapeBullet(ChCollisionShape::Type::PATH2D);
+            shape->m_bt_shape =
                 new bt2DarcShape((btScalar)marc->origin.pos.x(), (btScalar)marc->origin.pos.y(), (btScalar)marc->radius,
                                  (btScalar)mangle1, (btScalar)mangle2, marc->counterclockwise, (btScalar)mthickness);
-
-            mshape->setMargin((btScalar)this->GetSuggestedFullMargin());
-            _injectShape(pos, rot, mshape);
+            shape->m_bt_shape->setMargin((btScalar)GetSuggestedFullMargin());
+            injectShape(pos, rot, shape);
         } else {
             throw ChException("Error! Add2Dpath: ChLinePath must contain only ChLineArc and/or ChLineSegment.");
         }
@@ -317,12 +310,12 @@ bool ChCollisionModelBullet::Add2Dpath(std::shared_ptr<geometry::ChLinePath> mpa
             if (Vcross(dir_prev, dir_next).z() < -1e-9) {
                 double mangle1 = atan2(dir_prev.y(), dir_prev.x()) + CH_C_PI_2;
                 double mangle2 = atan2(dir_next.y(), dir_next.x()) + CH_C_PI_2;
-                bt2DarcShape* mshape =
-                    new bt2DarcShape((btScalar)pos_prev.x(), (btScalar)pos_prev.y(), (btScalar)0, (btScalar)mangle1,
-                                     (btScalar)mangle2, false, (btScalar)mthickness);
 
-                mshape->setMargin((btScalar)this->GetSuggestedFullMargin());
-                _injectShape(pos, rot, mshape);
+                auto shape = new ChCollisionShapeBullet(ChCollisionShape::Type::PATH2D);
+                shape->m_bt_shape = new bt2DarcShape((btScalar)pos_prev.x(), (btScalar)pos_prev.y(), (btScalar)0,
+                                                     (btScalar)mangle1, (btScalar)mangle2, false, (btScalar)mthickness);
+                shape->m_bt_shape->setMargin((btScalar)GetSuggestedFullMargin());
+                injectShape(pos, rot, shape);
                 // GetLog() << "convex corner between " << i_next << " and " << i_next << " w.angles: " << mangle1 << "
                 // " << mangle2 << "\n";
             } else {
@@ -336,45 +329,40 @@ bool ChCollisionModelBullet::Add2Dpath(std::shared_ptr<geometry::ChLinePath> mpa
 
 bool ChCollisionModelBullet::AddPoint(double radius, const ChVector<>& pos) {
     // adjust default inward 'safe' margin (always as radius)
-    this->SetSafeMargin(radius);
+    SetSafeMargin(radius);
 
-    btPointShape* mshape = new btPointShape((btScalar)(radius + this->GetEnvelope()));
+    auto shape = new ChCollisionShapeBullet(ChCollisionShape::Type::POINT);
 
-    mshape->setMargin((btScalar)this->GetSuggestedFullMargin());
+    shape->m_bt_shape = new btPointShape((btScalar)(radius + GetEnvelope()));
+    shape->m_bt_shape->setMargin((btScalar)GetSuggestedFullMargin());
 
-    _injectShape(pos, ChMatrix33<>(1), mshape);
-
+    injectShape(pos, ChMatrix33<>(1), shape);
     return true;
 }
 
-bool ChCollisionModelBullet::AddTriangleProxy(
-    ChVector<>* p1,       ///< points to vertex1 coords
-    ChVector<>* p2,       ///< points to vertex2 coords
-    ChVector<>* p3,       ///< points to vertex3 coords
-    ChVector<>* ep1,      ///< points to neighbouring vertex at edge1 if any
-    ChVector<>* ep2,      ///< points to neighbouring vertex at edge1 if any
-    ChVector<>* ep3,      ///< points to neighbouring vertex at edge1 if any
-    bool mowns_vertex_1,  ///< vertex is owned by this triangle (otherwise, owned by neighbour)
-    bool mowns_vertex_2,
-    bool mowns_vertex_3,
-    bool mowns_edge_1,  ///< edge is owned by this triangle (otherwise, owned by neighbour)
-    bool mowns_edge_2,
-    bool mowns_edge_3,
-    double msphereswept_rad  ///< sphere swept triangle ('fat' triangle, improves robustness)
-) {
+bool ChCollisionModelBullet::AddTriangleProxy(ChVector<>* p1,
+                                              ChVector<>* p2,
+                                              ChVector<>* p3,
+                                              ChVector<>* ep1,
+                                              ChVector<>* ep2,
+                                              ChVector<>* ep3,
+                                              bool mowns_vertex_1,
+                                              bool mowns_vertex_2,
+                                              bool mowns_vertex_3,
+                                              bool mowns_edge_1,
+                                              bool mowns_edge_2,
+                                              bool mowns_edge_3,
+                                              double msphereswept_rad) {
     // adjust default inward 'safe' margin (always as radius)
-    this->SetSafeMargin(msphereswept_rad);
+    SetSafeMargin(msphereswept_rad);
 
-    btCEtriangleShape* mshape =
-        new btCEtriangleShape(p1, p2, p3, ep1, ep2, ep3, mowns_vertex_1, mowns_vertex_2, mowns_vertex_3, mowns_edge_1,
-                              mowns_edge_2, mowns_edge_3, msphereswept_rad);
+    auto shape = new ChCollisionShapeBullet(ChCollisionShape::Type::TRIANGLE);
 
-    mshape->setMargin(
-        (btScalar)this->GetSuggestedFullMargin());  // this->GetSafeMargin());  // not this->GetSuggestedFullMargin()
-                                                    // given the way that btCEtriangleShape works.
+    shape->m_bt_shape = new btCEtriangleShape(p1, p2, p3, ep1, ep2, ep3, mowns_vertex_1, mowns_vertex_2, mowns_vertex_3,
+                                              mowns_edge_1, mowns_edge_2, mowns_edge_3, msphereswept_rad);
+    shape->m_bt_shape->setMargin((btScalar)GetSuggestedFullMargin());
 
-    _injectShape(VNULL, ChMatrix33<>(1), mshape);
-
+    injectShape(VNULL, ChMatrix33<>(1), shape);
     return true;
 }
 
@@ -395,34 +383,34 @@ bool ChCollisionModelBullet::AddConvexHull(const std::vector<ChVector<double>>& 
     ChVector<> aabbsize = aabbMax - aabbMin;
     double approx_chord = ChMin(ChMin(aabbsize.x(), aabbsize.y()), aabbsize.z());
     // override the inward margin if larger than 0.2 chord:
-    this->SetSafeMargin((btScalar)ChMin(this->GetSafeMargin(), approx_chord * 0.2));
-
-    btConvexHullShape* mshape = new btConvexHullShape;
+    SetSafeMargin((btScalar)ChMin(GetSafeMargin(), approx_chord * 0.2));
 
     // shrink the convex hull by GetSafeMargin()
     collision::ChConvexHullLibraryWrapper lh;
     geometry::ChTriangleMeshConnected mmesh;
     lh.ComputeHull(pointlist, mmesh);
-    mmesh.MakeOffset(-this->GetSafeMargin());
+    mmesh.MakeOffset(-GetSafeMargin());
 
+    auto shape = new ChCollisionShapeBullet(ChCollisionShape::Type::CONVEXHULL);
+
+    auto bt_shape = new btConvexHullShape;
     for (unsigned int i = 0; i < mmesh.m_vertices.size(); i++) {
-        mshape->addPoint(btVector3((btScalar)mmesh.m_vertices[i].x(), (btScalar)mmesh.m_vertices[i].y(),
-                                   (btScalar)mmesh.m_vertices[i].z()));
+        bt_shape->addPoint(btVector3((btScalar)mmesh.m_vertices[i].x(), (btScalar)mmesh.m_vertices[i].y(),
+                                     (btScalar)mmesh.m_vertices[i].z()));
     }
+    bt_shape->setMargin((btScalar)GetSuggestedFullMargin());
+    bt_shape->recalcLocalAabb();
+    shape->m_bt_shape = bt_shape;
 
-    mshape->setMargin((btScalar)this->GetSuggestedFullMargin());
-    mshape->recalcLocalAabb();
-
-    _injectShape(pos, rot, mshape);
-
+    injectShape(pos, rot, shape);
     return true;
 }
 
-// These classes inherits the Bullet triangle mesh, but adds just a single feature:
-// when this shape is deleted, also the referenced triangle mesh interface is deleted.
-// Hence, when a btBvhTriangleMeshShape_handlemesh is added to the list of shapes of this ChCollisionModelBullet,
-// there's no need to remember to delete the mesh interface because it dies with the model, when shapes are deleted.
-// This is just to avoid adding a pointer to a triangle interface in all collision models, when not needed.
+// These classes inherit the Bullet triangle mesh and add just a single feature: when this shape is deleted, also delete
+// the referenced triangle mesh interface. Hence, when a btBvhTriangleMeshShape_handlemesh is added to the list of
+// shapes of this ChCollisionModelBullet, there's no need to remember to delete the mesh interface because it dies with
+// the model, when shapes are deleted. This is just to avoid adding a pointer to a triangle interface in all collision
+// models, when not needed.
 
 class btBvhTriangleMeshShape_handlemesh : public btBvhTriangleMeshShape {
     btStridingMeshInterface* minterface;
@@ -459,7 +447,7 @@ class btGImpactConvexDecompositionShape_handlemesh : public btGImpactConvexDecom
     btGImpactConvexDecompositionShape_handlemesh(btStridingMeshInterface* meshInterface)
         : btGImpactConvexDecompositionShape(meshInterface, btVector3(1.f, 1.f, 1.f), btScalar(0.01)),
           minterface(meshInterface){
-              // this->setLocalScaling(btVector3(1.f,1.f,1.f));
+              // setLocalScaling(btVector3(1.f,1.f,1.f));
           };
 
     virtual ~btGImpactConvexDecompositionShape_handlemesh() {
@@ -476,7 +464,7 @@ class btGImpactMeshShape_handlemesh : public btGImpactMeshShape {
     btGImpactMeshShape_handlemesh(btStridingMeshInterface* meshInterface)
         : btGImpactMeshShape(meshInterface),
           minterface(meshInterface){
-              // this->setLocalScaling(btVector3(1.f,1.f,1.f));
+              // setLocalScaling(btVector3(1.f,1.f,1.f));
           };
 
     virtual ~btGImpactMeshShape_handlemesh() {
@@ -486,7 +474,6 @@ class btGImpactMeshShape_handlemesh : public btGImpactMeshShape {
     }
 };
 
-/// Add a triangle mesh to this model
 bool ChCollisionModelBullet::AddTriangleMesh(std::shared_ptr<geometry::ChTriangleMesh> trimesh,
                                              bool is_static,
                                              bool is_convex,
@@ -558,7 +545,7 @@ bool ChCollisionModelBullet::AddTriangleMesh(std::shared_ptr<geometry::ChTriangl
                     i_wingvertex_C = mesh->m_face_v_indices[trimap[it][3]].z();
             }
 
-            this->AddTriangleProxy(
+            AddTriangleProxy(
                 &mesh->m_vertices[mesh->m_face_v_indices[it].x()], &mesh->m_vertices[mesh->m_face_v_indices[it].y()],
                 &mesh->m_vertices[mesh->m_face_v_indices[it].z()],
                 // if no wing vertex (ie. 'free' edge), point to opposite vertex, ie vertex in triangle not belonging to
@@ -595,30 +582,24 @@ bool ChCollisionModelBullet::AddTriangleMesh(std::shared_ptr<geometry::ChTriangl
     }
 
     if (is_static) {
-        // Here a static btBvhTriangleMeshShape should suffice, but looks like that the btGImpactMeshShape works
-        // better..
-        btCollisionShape* pShape = (btBvhTriangleMeshShape*)new btBvhTriangleMeshShape_handlemesh(bulletMesh);
-        pShape->setMargin((btScalar)this->GetSafeMargin());
-        // ((btBvhTriangleMeshShape*)pShape)->refitTree();
-        // btCollisionShape* pShape = new btGImpactMeshShape_handlemesh(bulletMesh);
-        // pShape->setMargin((btScalar) this->GetSafeMargin() );
-        //((btGImpactMeshShape_handlemesh*)pShape)->updateBound();
-        _injectShape(pos, rot, pShape);
+        // Here a static btBvhTriangleMeshShape suffices, but btGImpactMeshShape might work better?
+        auto shape = new ChCollisionShapeBullet(ChCollisionShape::Type::TRIANGLEMESH);
+        shape->m_bt_shape = (btBvhTriangleMeshShape*)new btBvhTriangleMeshShape_handlemesh(bulletMesh);
+        shape->m_bt_shape->setMargin((btScalar)GetSafeMargin());
+        injectShape(pos, rot, shape);
     } else {
         if (is_convex) {
-            btCollisionShape* pShape = (btConvexTriangleMeshShape*)new btConvexTriangleMeshShape_handlemesh(bulletMesh);
-            pShape->setMargin((btScalar)this->GetEnvelope());
-            _injectShape(pos, rot, pShape);
+            auto shape = new ChCollisionShapeBullet(ChCollisionShape::Type::TRIANGLEMESH);
+            shape->m_bt_shape = (btConvexTriangleMeshShape*)new btConvexTriangleMeshShape_handlemesh(bulletMesh);
+            shape->m_bt_shape->setMargin((btScalar)GetEnvelope());
+            injectShape(pos, rot, shape);
         } else {
-            // Note: currently there's no 'perfect' convex decomposition method,
-            // so here the code is a bit experimental...
+            // Note: currently there's no 'perfect' convex decomposition method, so code here is a bit experimental...
 
-            /*
-            // ----- use this? (using GImpact collision method without decomposition) :
-            this->AddTriangleMeshConcave(trimesh,pos,rot);
-            */
+            // ----- use this? (using GImpact collision method without decomposition)
+            ////AddTriangleMeshConcave(trimesh,pos,rot);
 
-            // ----- ..or use this? (using the JR convex decomposition) :
+            // ----- or use this? (using the JR convex decomposition) :
             auto mydecompositionJR = chrono_types::make_shared<ChConvexDecompositionJR>();
             mydecompositionJR->AddTriangleMesh(*trimesh);
             mydecompositionJR->SetParameters(0,      // skin width
@@ -630,27 +611,25 @@ bool ChCollisionModelBullet::AddTriangleMesh(std::shared_ptr<geometry::ChTriangl
                                              false   // use island generation (unsupported-disabled)
             );
             mydecompositionJR->ComputeConvexDecomposition();
-            GetLog() << " found n.hulls=" << mydecompositionJR->GetHullCount() << "\n";
-            this->AddTriangleMeshConcaveDecomposed(mydecompositionJR, pos, rot);
+            ////GetLog() << " found " << mydecompositionJR->GetHullCount() << " hulls\n";
+            AddTriangleMeshConcaveDecomposed(mydecompositionJR, pos, rot);
 
-            /*
-            // ----- ..or use this? (using the HACD convex decomposition) :
-            auto mydecompositionHACD = chrono_types::make_shared<ChConvexDecompositionHACD>();
-            mydecompositionHACD->AddTriangleMesh(trimesh);
-            mydecompositionHACD->SetParameters(2,      // clusters
-                                               0,      // no decimation
-                                               0.0,    // small cluster threshold
-                                               false,  // add faces points
-                                               false,  // add extra dist points
-                                               100.0,  // max concavity
-                                               30,     // cc connect dist
-                                               0.0,    // volume weight beta
-                                               0.0,    // compacity alpha
-                                               50      // vertices per cc
-            );
-            mydecompositionHACD->ComputeConvexDecomposition();
-            this->AddTriangleMeshConcaveDecomposed(mydecompositionHACD, pos, rot);
-            */
+            // ----- or use this? (using the HACD convex decomposition)
+            ////auto mydecompositionHACD = chrono_types::make_shared<ChConvexDecompositionHACD>();
+            ////mydecompositionHACD->AddTriangleMesh(*trimesh);
+            ////mydecompositionHACD->SetParameters(2,      // clusters
+            ////                                   0,      // no decimation
+            ////                                   0.0,    // small cluster threshold
+            ////                                   false,  // add faces points
+            ////                                   false,  // add extra dist points
+            ////                                   100.0,  // max concavity
+            ////                                   30,     // cc connect dist
+            ////                                   0.0,    // volume weight beta
+            ////                                   0.0,    // compacity alpha
+            ////                                   50      // vertices per cc
+            ////);
+            ////mydecompositionHACD->ComputeConvexDecomposition();
+            ////AddTriangleMeshConcaveDecomposed(mydecompositionHACD, pos, rot);
         }
     }
 
@@ -671,14 +650,17 @@ bool ChCollisionModelBullet::AddTriangleMeshConcave(std::shared_ptr<geometry::Ch
                                 true);  // try to remove duplicate vertices
     }
 
+    SetSafeMargin(0);
+
+    auto shape = new ChCollisionShapeBullet(ChCollisionShape::Type::TRIANGLEMESH);
+
     // Use the GImpact custom mesh-mesh algorithm
-    btCollisionShape* pShape = (btGImpactMeshShape*)new btGImpactMeshShape_handlemesh(bulletMesh);
-    pShape->setMargin((btScalar)this->GetEnvelope());
-    this->SetSafeMargin(0);
+    auto bt_shape = new btGImpactMeshShape_handlemesh(bulletMesh);
+    bt_shape->setMargin((btScalar)GetEnvelope());
+    bt_shape->updateBound();
+    shape->m_bt_shape = bt_shape;
 
-    ((btGImpactMeshShape_handlemesh*)pShape)->updateBound();
-    _injectShape(pos, rot, pShape);
-
+    injectShape(pos, rot, shape);
     return true;
 }
 
@@ -686,29 +668,29 @@ bool ChCollisionModelBullet::AddTriangleMeshConcaveDecomposed(std::shared_ptr<Ch
                                                               const ChVector<>& pos,
                                                               const ChMatrix33<>& rot) {
     // note: since the convex hulls are ot shrunk, the safe margin will be set to zero (must be set before adding them)
-    this->SetSafeMargin(0);
+    SetSafeMargin(0);
 
     for (unsigned int j = 0; j < mydecomposition->GetHullCount(); j++) {
         std::vector<ChVector<double>> ptlist;
         mydecomposition->GetConvexHullResult(j, ptlist);
 
         if (ptlist.size())
-            this->AddConvexHull(ptlist, pos, rot);
+            AddConvexHull(ptlist, pos, rot);
     }
 
     return true;
 }
 
-bool ChCollisionModelBullet::AddCopyOfAnotherModel(ChCollisionModel* another) {
-    // this->ClearModel();
-    this->shapes.clear();  // this will also delete owned shapes, if any, thank to shared pointers in 'shapes' vector
+bool ChCollisionModelBullet::AddCopyOfAnotherModel(ChCollisionModel* other) {
+    SetSafeMargin(other->GetSafeMargin());
+    SetEnvelope(other->GetEnvelope());
 
-    this->SetSafeMargin(another->GetSafeMargin());
-    this->SetEnvelope(another->GetEnvelope());
+    m_shapes.clear();
+    CopyShapes(other);
 
-    this->bt_collision_object->setCollisionShape(
-        ((ChCollisionModelBullet*)another)->GetBulletModel()->getCollisionShape());
-    this->shapes = ((ChCollisionModelBullet*)another)->shapes;
+    auto other_bt = static_cast<ChCollisionModelBullet*>(other);
+    bt_collision_object->setCollisionShape(other_bt->GetBulletModel()->getCollisionShape());
+    bt_compound_shape = other_bt->bt_compound_shape;
 
     return true;
 }
@@ -760,14 +742,14 @@ void ChCollisionModelBullet::onFamilyChange() {
     if (!bt_collision_object->getBroadphaseHandle())
         return;
 
-    this->SyncPosition();
+    SyncPosition();
 
     // Trick to avoid troubles if setting mask or family when model is already overlapping to some other model
-    auto mcosys = this->GetPhysicsItem()->GetSystem()->GetCollisionSystem();
+    auto mcosys = mcontactable->GetPhysicsItem()->GetSystem()->GetCollisionSystem();
     mcosys->Remove(this);
 
     auto mcs = std::static_pointer_cast<ChCollisionSystemBullet>(mcosys);
-    mcs->GetBulletCollisionWorld()->addCollisionObject(bt_collision_object, family_group, family_mask);
+    mcs->GetBulletCollisionWorld()->addCollisionObject(bt_collision_object.get(), family_group, family_mask);
 }
 
 void ChCollisionModelBullet::GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const {
@@ -779,21 +761,8 @@ void ChCollisionModelBullet::GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const
     bbmax.Set(btmax.x(), btmax.y(), btmax.z());
 }
 
-void __recurse_add_newcollshapes(btCollisionShape* ashape, std::vector<std::shared_ptr<btCollisionShape>>& shapes) {
-    if (ashape) {
-        shapes.push_back(std::shared_ptr<btCollisionShape>(ashape));
-
-        if (ashape->getShapeType() == COMPOUND_SHAPE_PROXYTYPE) {
-            btCompoundShape* compoundShape = (btCompoundShape*)ashape;
-            for (int shi = 0; shi < compoundShape->getNumChildShapes(); shi++) {
-                __recurse_add_newcollshapes(compoundShape->getChildShape(shi), shapes);
-            }
-        }
-    }
-}
-
 void ChCollisionModelBullet::SyncPosition() {
-    ChCoordsys<> mcsys = this->mcontactable->GetCsysForCollisionModel();
+    ChCoordsys<> mcsys = mcontactable->GetCsysForCollisionModel();
 
     bt_collision_object->getWorldTransform().setOrigin(
         btVector3((btScalar)mcsys.pos.x(), (btScalar)mcsys.pos.y(), (btScalar)mcsys.pos.z()));
@@ -805,16 +774,41 @@ void ChCollisionModelBullet::SyncPosition() {
 }
 
 bool ChCollisionModelBullet::SetSphereRadius(double coll_radius, double out_envelope) {
-    if (this->shapes.size() != 1)
+    if (m_shapes.size() != 1)
         return false;
-    if (btSphereShape* mshape = dynamic_cast<btSphereShape*>(this->shapes[0].get())) {
-        this->SetSafeMargin(coll_radius);
-        this->SetEnvelope(out_envelope);
-        mshape->setUnscaledRadius((btScalar)(coll_radius + out_envelope));
-        // mshape->setMargin((btScalar) (coll_radius+out_envelope));
-    } else
-        return false;
-    return true;
+
+    auto bt_shape = ((ChCollisionShapeBullet*)m_shapes[0].get())->m_bt_shape;
+    if (btSphereShape* bt_sphere_shape = dynamic_cast<btSphereShape*>(bt_shape)) {
+        SetSafeMargin(coll_radius);
+        SetEnvelope(out_envelope);
+        bt_sphere_shape->setUnscaledRadius((btScalar)(coll_radius + out_envelope));
+        ////bt_sphere_shape->setMargin((btScalar)(coll_radius + out_envelope));
+        return true;
+    }
+
+    return false;
+}
+
+void ChCollisionModelBullet::ArchiveOUT(ChArchiveOut& marchive) {
+    //// TODO
+}
+
+void ChCollisionModelBullet::ArchiveIN(ChArchiveIn& marchive) {
+    //// TODO
+}
+
+/*
+void __recurse_add_newcollshapes(btCollisionShape* ashape, std::vector<std::shared_ptr<btCollisionShape>>& shapes) {
+    if (ashape) {
+        shapes.push_back(std::shared_ptr<btCollisionShape>(ashape));
+
+        if (ashape->getShapeType() == COMPOUND_SHAPE_PROXYTYPE) {
+            btCompoundShape* compoundShape = (btCompoundShape*)ashape;
+            for (int shi = 0; shi < compoundShape->getNumChildShapes(); shi++) {
+                __recurse_add_newcollshapes(compoundShape->getChildShape(shi), shapes);
+            }
+        }
+    }
 }
 
 void ChCollisionModelBullet::ArchiveOUT(ChArchiveOut& marchive) {
@@ -886,6 +880,7 @@ void ChCollisionModelBullet::ArchiveIN(ChArchiveIn& marchive) {
         delete[] mbuffer;
     }
 }
+*/
 
 }  // end namespace collision
 }  // end namespace chrono

@@ -1249,17 +1249,18 @@ void ChCollisionSystemBullet::Clear(void) {
 }
 
 void ChCollisionSystemBullet::Add(ChCollisionModel* model) {
-    if (((ChCollisionModelBullet*)model)->GetBulletModel()->getCollisionShape()) {
+    auto model_bt = static_cast<ChCollisionModelBullet*>(model);
+    if (model_bt->GetBulletModel()->getCollisionShape()) {
         model->SyncPosition();
-        bt_collision_world->addCollisionObject(((ChCollisionModelBullet*)model)->GetBulletModel(),
-                                               ((ChCollisionModelBullet*)model)->GetFamilyGroup(),
-                                               ((ChCollisionModelBullet*)model)->GetFamilyMask());
+        bt_collision_world->addCollisionObject(model_bt->GetBulletModel(), model_bt->GetFamilyGroup(),
+                                               model_bt->GetFamilyMask());
     }
 }
 
 void ChCollisionSystemBullet::Remove(ChCollisionModel* model) {
-    if (((ChCollisionModelBullet*)model)->GetBulletModel()->getCollisionShape()) {
-        bt_collision_world->removeCollisionObject(((ChCollisionModelBullet*)model)->GetBulletModel());
+    auto model_bt = static_cast<ChCollisionModelBullet*>(model);
+    if (model_bt->GetBulletModel()->getCollisionShape()) {
+        bt_collision_world->removeCollisionObject(model_bt->GetBulletModel());
     }
 }
 

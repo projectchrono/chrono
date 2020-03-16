@@ -22,12 +22,9 @@
 namespace chrono {
 namespace collision {
 
-///
-/// Class for collision engine based on the 'Bullet' library.
-/// Contains either the broadphase and the narrow phase Bullet
-/// methods.
-///
 
+/// Collision engine based on the 'Bullet' library.
+/// Contains both the broadphase and the narrow phase Bullet methods.
 class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
   public:
     ChCollisionSystemBullet(unsigned int max_objects = 16000, double scene_size = 500);

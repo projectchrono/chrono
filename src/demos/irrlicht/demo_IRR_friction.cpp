@@ -126,11 +126,11 @@ int main(int argc, char* argv[]) {
 
     // Add collision geometry and visualization shapes for the floor and the 4 walls
     bin->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(bin.get(), ChVector<>(20, 1, 20) / 2.0, ChVector<>(0, -1, 0));
-    utils::AddBoxGeometry(bin.get(), ChVector<>(1, 2, 20.99) / 2.0, ChVector<>(-10, 0, 0));
-    utils::AddBoxGeometry(bin.get(), ChVector<>(1, 2, 20.99) / 2.0, ChVector<>(10, 0, 0));
-    utils::AddBoxGeometry(bin.get(), ChVector<>(20.99, 2, 1) / 2.0, ChVector<>(0, 0, -10));
-    utils::AddBoxGeometry(bin.get(), ChVector<>(20.99, 2, 1) / 2.0, ChVector<>(0, 0, 10));
+    utils::AddBoxGeometry(bin.get(), ChVector<>(20, 1, 20) / 2.0, ChVector<>(0, 0, 0));
+    utils::AddBoxGeometry(bin.get(), ChVector<>(1, 2, 20.99) / 2.0, ChVector<>(-10, 1, 0));
+    utils::AddBoxGeometry(bin.get(), ChVector<>(1, 2, 20.99) / 2.0, ChVector<>(10, 1, 0));
+    utils::AddBoxGeometry(bin.get(), ChVector<>(20.99, 2, 1) / 2.0, ChVector<>(0, 1, -10));
+    utils::AddBoxGeometry(bin.get(), ChVector<>(20.99, 2, 1) / 2.0, ChVector<>(0, 1, 10));
     bin->GetCollisionModel()->BuildModel();
     
     bin->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("blu.png")));
@@ -155,7 +155,6 @@ int main(int argc, char* argv[]) {
         application.DrawAll();
         application.DoStep();
         application.EndScene();
-        ////std::cout << "num contacts: " << mphysicalSystem.GetNcontacts() << "\n\n";
     }
 
     return 0;

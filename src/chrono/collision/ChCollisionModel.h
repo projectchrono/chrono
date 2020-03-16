@@ -12,6 +12,10 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
+//// TODO
+//// - eliminate GetPhysicsItem
+//// - change signature for ClearModel / BuildModel; no need for return value?
+
 #ifndef CH_COLLISION_MODEL_H
 #define CH_COLLISION_MODEL_H
 
@@ -23,6 +27,7 @@
 #include "chrono/geometry/ChLinePath.h"
 #include "chrono/geometry/ChTriangleMesh.h"
 #include "chrono/physics/ChContactable.h"
+#include "chrono/collision/ChCollisionShape.h"
 
 namespace chrono {
 
@@ -30,23 +35,6 @@ namespace chrono {
 class ChPhysicsItem;
 
 namespace collision {
-/// Shape types that can be created.
-enum ShapeType {
-    SPHERE,
-    ELLIPSOID,
-    BOX,
-    CYLINDER,
-    CONVEXHULL,
-    TRIANGLEMESH,
-    BARREL,
-    CAPSULE,      // Currently implemented in parallel only
-    CONE,         // Currently implemented in parallel only
-    ROUNDEDBOX,   // Currently implemented in parallel only
-    ROUNDEDCYL,   // Currently implemented in parallel only
-    ROUNDEDCONE,  // Currently implemented in parallel only
-    CONVEX,       // Currently implemented in parallel only
-    TETRAHEDRON   // Currently implemented in parallel only
-};
 
 /// Class defining the geometric model for collision detection.
 /// A ChCollisionModel contains all geometric shapes on a rigid body, for collision purposes.
@@ -54,28 +42,25 @@ class ChApi ChCollisionModel {
   public:
     ChCollisionModel();
 
-    virtual ~ChCollisionModel(){};
+    virtual ~ChCollisionModel() {}
 
-    /// Deletes all inserted geometries.
-    /// Also, if you begin the definition of a model, AFTER adding
-    /// the geometric description, remember to call the ClearModel().
-    /// MUST be inherited by child classes! (ex for resetting also BV hierarchies)
+    /// Delete all inserted geometries.
+    /// Addition of collision shapes must be done between calls to ClearModel() and BuildModel().
+    /// This function must be invoked before adding geometric collision shapes.
     virtual int ClearModel() = 0;
 
-    /// Builds the BV hierarchy.
-    /// Call this function AFTER adding the geometric description.
-    /// MUST be inherited by child classes! (ex for building BV hierarchies)
+    /// Complete the construction of the collision model.
+    /// Addition of collision shapes must be done between calls to ClearModel() and BuildModel().
+    /// This function must be invoked after all geometric collision shapes have been added.
     virtual int BuildModel() = 0;
 
     //
     // GEOMETRY DESCRIPTION
     //
-    //  The following functions must be called inbetween
-    //  the ClearModel() BuildModel() pair.
-    //  The class must implement automatic deletion of the created
-    //  geometries at class destruction time and at ClearModel()
-    //  Return value is true if the child class implements the
-    //  corresponding type of geometry.
+    // The following functions must be called in between calls to ClearModel() and BuildModel().
+    // The class must implement automatic deletion of the created geometries at class destruction time and at
+    // ClearModel(). Return value is true if the child class implements the corresponding type of geometry.
+    // If created, the shape must be added to the model's list of shapes.
 
     /// Add a sphere shape to this model, for collision purposes
     virtual bool AddSphere(double radius,                        ///< the radius of the sphere
@@ -192,7 +177,7 @@ class ChApi ChCollisionModel {
                            const ChMatrix33<>& rot = ChMatrix33<>(1),
                            const double thickness = 0.001) {
         return true;
-    };
+    }
 
     /// Add a point-like sphere, that will collide with other geometries,
     /// but won't ever create contacts between them.
@@ -350,12 +335,15 @@ class ChApi ChCollisionModel {
     virtual void ArchiveIN(ChArchiveIn& marchive);
 
   protected:
+    /// Copy the collision shapes from another model.
+    void CopyShapes(ChCollisionModel* other);
+
     virtual float GetSuggestedFullMargin() { return model_envelope + model_safe_margin; }
 
     // Maximum envelope: surrounding volume from surface to the exterior
     float model_envelope;
 
-    // This is the max.value to be used for fast penetration contact detection.
+    // Maximum margin value to be used for fast penetration contact detection.
     float model_safe_margin;
 
     // Pointer to the contactable object
@@ -364,6 +352,8 @@ class ChApi ChCollisionModel {
     // Collision family group and mask
     short int family_group;
     short int family_mask;
+
+    std::vector<std::shared_ptr<ChCollisionShape>> m_shapes;
 };
 
 }  // end namespace collision

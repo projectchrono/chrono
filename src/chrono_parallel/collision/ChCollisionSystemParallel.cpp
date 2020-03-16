@@ -50,47 +50,47 @@ void ChCollisionSystemParallel::Add(ChCollisionModel* model) {
             // already present
 
             switch (pmodel->mData[j].type) {
-                case chrono::collision::SPHERE:
+                case ChCollisionShape::Type::SPHERE:
                     start = (int)data_manager->shape_data.sphere_rigid.size();
                     data_manager->shape_data.sphere_rigid.push_back(obB.x);
                     break;
-                case chrono::collision::ELLIPSOID:
+                case ChCollisionShape::Type::ELLIPSOID:
                     start = (int)data_manager->shape_data.box_like_rigid.size();
                     data_manager->shape_data.box_like_rigid.push_back(obB);
                     break;
-                case chrono::collision::BOX:
+                case ChCollisionShape::Type::BOX:
                     start = (int)data_manager->shape_data.box_like_rigid.size();
                     data_manager->shape_data.box_like_rigid.push_back(obB);
                     break;
-                case chrono::collision::CYLINDER:
+                case ChCollisionShape::Type::CYLINDER:
                     start = (int)data_manager->shape_data.box_like_rigid.size();
                     data_manager->shape_data.box_like_rigid.push_back(obB);
                     break;
-                case chrono::collision::CONE:
+                case ChCollisionShape::Type::CONE:
                     start = (int)data_manager->shape_data.box_like_rigid.size();
                     data_manager->shape_data.box_like_rigid.push_back(obB);
                     break;
-                case chrono::collision::CAPSULE:
+                case ChCollisionShape::Type::CAPSULE:
                     start = (int)data_manager->shape_data.capsule_rigid.size();
                     data_manager->shape_data.capsule_rigid.push_back(real2(obB.x, obB.y));
                     break;
-                case chrono::collision::ROUNDEDBOX:
+                case ChCollisionShape::Type::ROUNDEDBOX:
                     start = (int)data_manager->shape_data.rbox_like_rigid.size();
                     data_manager->shape_data.rbox_like_rigid.push_back(real4(obB, obC.x));
                     break;
-                case chrono::collision::ROUNDEDCYL:
+                case ChCollisionShape::Type::ROUNDEDCYL:
                     start = (int)data_manager->shape_data.rbox_like_rigid.size();
                     data_manager->shape_data.rbox_like_rigid.push_back(real4(obB, obC.x));
                     break;
-                case chrono::collision::ROUNDEDCONE:
+                case ChCollisionShape::Type::ROUNDEDCONE:
                     start = (int)data_manager->shape_data.rbox_like_rigid.size();
                     data_manager->shape_data.rbox_like_rigid.push_back(real4(obB, obC.x));
                     break;
-                case chrono::collision::CONVEX:
+                case ChCollisionShape::Type::CONVEX:
                     start = (int)(obB.y + convex_data_offset);
                     length = (int)obB.x;
                     break;
-                case chrono::collision::TRIANGLEMESH:
+                case ChCollisionShape::Type::TRIANGLEMESH:
                     start = (int)data_manager->shape_data.triangle_rigid.size();
                     data_manager->shape_data.triangle_rigid.push_back(obA);
                     data_manager->shape_data.triangle_rigid.push_back(obB);

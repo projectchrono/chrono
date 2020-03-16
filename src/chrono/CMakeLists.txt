@@ -632,6 +632,7 @@ source_group(assets FILES
 
 set(ChronoEngine_collision_SOURCES
     collision/ChCollisionInfo.cpp
+    collision/ChCollisionShape.cpp
     collision/ChCollisionModel.cpp
     collision/ChCollisionModelBullet.cpp
     collision/ChCollisionSystemBullet.cpp
@@ -641,9 +642,11 @@ set(ChronoEngine_collision_SOURCES
 
 set(ChronoEngine_collision_HEADERS
     collision/ChCollisionInfo.h
+    collision/ChCollisionShape.h
     collision/ChCollisionModel.h
     collision/ChCollisionPair.h
     collision/ChCollisionSystem.h
+    collision/ChCollisionShapeBullet.h
     collision/ChCollisionModelBullet.h
     collision/ChCollisionSystemBullet.h
     collision/ChConvexDecomposition.h

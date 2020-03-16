@@ -124,26 +124,26 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
 
             // Write shape type and geometry data
             if (auto sphere = std::dynamic_pointer_cast<ChSphereShape>(visual_asset)) {
-                csv << collision::SPHERE << sphere->GetSphereGeometry().rad;
+                csv << collision::ChCollisionShape::Type::SPHERE << sphere->GetSphereGeometry().rad;
             } else if (auto ellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(visual_asset)) {
-                csv << collision::ELLIPSOID << ellipsoid->GetEllipsoidGeometry().rad;
+                csv << collision::ChCollisionShape::Type::ELLIPSOID << ellipsoid->GetEllipsoidGeometry().rad;
             } else if (auto box = std::dynamic_pointer_cast<ChBoxShape>(visual_asset)) {
-                csv << collision::BOX << box->GetBoxGeometry().Size;
+                csv << collision::ChCollisionShape::Type::BOX << box->GetBoxGeometry().Size;
             } else if (auto capsule = std::dynamic_pointer_cast<ChCapsuleShape>(visual_asset)) {
                 const geometry::ChCapsule& geom = capsule->GetCapsuleGeometry();
-                csv << collision::CAPSULE << geom.rad << geom.hlen;
+                csv << collision::ChCollisionShape::Type::CAPSULE << geom.rad << geom.hlen;
             } else if (auto cylinder = std::dynamic_pointer_cast<ChCylinderShape>(visual_asset)) {
                 const geometry::ChCylinder& geom = cylinder->GetCylinderGeometry();
-                csv << collision::CYLINDER << geom.rad << (geom.p1.y() - geom.p2.y()) / 2;
+                csv << collision::ChCollisionShape::Type::CYLINDER << geom.rad << (geom.p1.y() - geom.p2.y()) / 2;
             } else if (auto cone = std::dynamic_pointer_cast<ChConeShape>(visual_asset)) {
                 const geometry::ChCone& geom = cone->GetConeGeometry();
-                csv << collision::CONE << geom.rad.x() << geom.rad.y();
+                csv << collision::ChCollisionShape::Type::CONE << geom.rad.x() << geom.rad.y();
             } else if (auto rbox = std::dynamic_pointer_cast<ChRoundedBoxShape>(visual_asset)) {
                 const geometry::ChRoundedBox& geom = rbox->GetRoundedBoxGeometry();
-                csv << collision::ROUNDEDBOX << geom.Size << geom.radsphere;
+                csv << collision::ChCollisionShape::Type::ROUNDEDBOX << geom.Size << geom.radsphere;
             } else if (auto rcyl = std::dynamic_pointer_cast<ChRoundedCylinderShape>(visual_asset)) {
                 const geometry::ChRoundedCylinder& geom = rcyl->GetRoundedCylinderGeometry();
-                csv << collision::ROUNDEDCYL << geom.rad << geom.hlen << geom.radsphere;
+                csv << collision::ChCollisionShape::Type::ROUNDEDCYL << geom.rad << geom.hlen << geom.radsphere;
             } else {
                 // Unsupported visual asset type.
                 return false;
@@ -246,44 +246,44 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
             int atype;
             iss >> atype;
 
-            switch (collision::ShapeType(atype)) {
-                case collision::SPHERE: {
+            switch (collision::ChCollisionShape::Type(atype)) {
+                case collision::ChCollisionShape::Type::SPHERE: {
                     double radius;
                     iss >> radius;
                     AddSphereGeometry(body, radius, apos, arot);
                 } break;
-                case collision::ELLIPSOID: {
+                case collision::ChCollisionShape::Type::ELLIPSOID: {
                     ChVector<> size;
                     iss >> size.x() >> size.y() >> size.z();
                     AddEllipsoidGeometry(body, size, apos, arot);
                 } break;
-                case collision::BOX: {
+                case collision::ChCollisionShape::Type::BOX: {
                     ChVector<> size;
                     iss >> size.x() >> size.y() >> size.z();
                     AddBoxGeometry(body, size, apos, arot);
                 } break;
-                case collision::CAPSULE: {
+                case collision::ChCollisionShape::Type::CAPSULE: {
                     double radius, hlen;
                     iss >> radius >> hlen;
                     AddCapsuleGeometry(body, radius, hlen, apos, arot);
                 } break;
-                case collision::CYLINDER: {
+                case collision::ChCollisionShape::Type::CYLINDER: {
                     double radius, hlen;
                     iss >> radius >> hlen;
                     AddCylinderGeometry(body, radius, hlen, apos, arot);
                 } break;
-                case collision::CONE: {
+                case collision::ChCollisionShape::Type::CONE: {
                     double radius, height;
                     iss >> radius >> height;
                     AddConeGeometry(body, radius, height, apos, arot);
                 } break;
-                case collision::ROUNDEDBOX: {
+                case collision::ChCollisionShape::Type::ROUNDEDBOX: {
                     ChVector<> size;
                     double srad;
                     iss >> size.x() >> size.y() >> size.z() >> srad;
                     AddRoundedBoxGeometry(body, size, srad, apos, arot);
                 } break;
-                case collision::ROUNDEDCYL: {
+                case collision::ChCollisionShape::Type::ROUNDEDCYL: {
                     double radius, hlen, srad;
                     iss >> radius >> hlen >> srad;
                     AddRoundedCylinderGeometry(body, radius, hlen, srad, apos, arot);

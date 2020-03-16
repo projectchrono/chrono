@@ -43,8 +43,8 @@ namespace collision {
 /// @addtogroup parallel_collision
 /// @{
 
-/// Class for collision engine based on the spatial subdivision method.
-/// Contains both the broadphase and the narrow phase methods.
+/// Collision engine based on the 'Bullet' library.
+/// Contains both the broadphase and the narrow phase Bullet methods.
 class CH_PARALLEL_API ChCollisionSystemBulletParallel : public ChCollisionSystem {
   public:
     ChCollisionSystemBulletParallel(ChParallelDataManager* dc,

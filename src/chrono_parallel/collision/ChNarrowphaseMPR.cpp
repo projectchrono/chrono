@@ -60,13 +60,13 @@ bool chrono::collision::MPRSphereSphere(const ConvexBase* ShapeA,
 
 real3 GetCenter(const ConvexBase* Shape) {
     switch (Shape->Type()) {
-        case chrono::collision::TRIANGLEMESH:
+        case ChCollisionShape::Type::TRIANGLEMESH:
             return GetCenter_Triangle(Shape->Triangles());  // triangle center
             break;
-        case chrono::collision::CONVEX:
+        case ChCollisionShape::Type::CONVEX:
             return GetCenter_Convex(Shape->Size(), Shape->Convex()) + Shape->A();  // convex center
             break;
-        case chrono::collision::TETRAHEDRON:
+        case ChCollisionShape::Type::TETRAHEDRON:
             return GetCenter_Tetrahedron(Shape->TetIndex(), Shape->TetNodes());  // tetrahedron center
             break;
         default:

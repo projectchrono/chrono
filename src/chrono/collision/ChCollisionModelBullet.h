@@ -12,6 +12,9 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
+//// TODO
+//// - implement ArchiveIN & ArchiveOUT
+
 #ifndef CH_COLLISION_MODEL_BULLET_H
 #define CH_COLLISION_MODEL_BULLET_H
 
@@ -19,8 +22,9 @@
 #include <vector>
 
 #include "chrono/collision/ChCollisionModel.h"
-#include "chrono/collision/bullet/BulletCollision/CollisionShapes/btCollisionShape.h"
+#include "chrono/collision/ChCollisionShapeBullet.h"
 #include "chrono/geometry/ChLinePath.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/btCompoundShape.h"
 
 // forward references
 class btCollisionObject;
@@ -38,20 +42,22 @@ class ChConvexDecomposition;
 /// Class defining the Bullet geometric model for collision detection.
 class ChApi ChCollisionModelBullet : public ChCollisionModel {
   protected:
-    btCollisionObject* bt_collision_object;                 ///< Bullet collision object containing Bullet geometries
-    std::vector<std::shared_ptr<btCollisionShape>> shapes;  ///< Vector of shared pointers to geometric objects
+    std::unique_ptr<btCollisionObject> bt_collision_object;  ///< Bullet collision object containing Bullet geometries
+    std::shared_ptr<btCompoundShape> bt_compound_shape;      ///< Compound for models with more than one collision shape
 
   public:
     ChCollisionModelBullet();
+
     virtual ~ChCollisionModelBullet();
 
-    /// Deletes all inserted geometries.
-    /// Also, if you begin the definition of a model, AFTER adding
-    /// the geometric description, remember to call the ClearModel().
+    /// Delete all inserted geometries.
+    /// Addition of collision shapes must be done between calls to ClearModel() and BuildModel().
+    /// This function must be invoked before adding geometric collision shapes.
     virtual int ClearModel() override;
 
-    /// Builds the BV hierarchy.
-    /// Call this function AFTER adding the geometric description.
+    /// Complete the construction of the collision model (build the BV hierarchy).
+    /// Addition of collision shapes must be done between calls to ClearModel() and BuildModel().
+    /// This function must be invoked after all geometric collision shapes have been added.
     virtual int BuildModel() override;
 
     //
@@ -265,15 +271,17 @@ class ChApi ChCollisionModelBullet : public ChCollisionModel {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
-    /// Return the pointer to the Bullet model
-    btCollisionObject* GetBulletModel() { return this->bt_collision_object; }
-
   private:
-    void _injectShape(const ChVector<>& pos, const ChMatrix33<>& rot, btCollisionShape* mshape);
+    void injectShape(const ChVector<>& pos, const ChMatrix33<>& rot, ChCollisionShapeBullet* shape);
 
     void onFamilyChange();
 
+    btCollisionObject* GetBulletModel() { return bt_collision_object.get(); }
+
     std::vector<std::shared_ptr<geometry::ChTriangleMesh>> m_trimeshes;
+
+    friend class ChCollisionSystemBullet;
+    friend class ChCollisionSystemBulletParallel;
 };
 
 }  // end namespace collision

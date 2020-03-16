@@ -211,20 +211,19 @@ void ChCommDistributed::ProcessShapes(int num_recv, Shape* buf) {
             data = (buf + n)->data;
 
             switch ((buf + n)->type) {
-                case chrono::collision::SPHERE:
+                case ChCollisionShape::Type::SPHERE:
                     body->GetCollisionModel()->AddSphere(data[0], A);
                     break;
-                case chrono::collision::BOX:
-
+                case ChCollisionShape::Type::BOX:
                     body->GetCollisionModel()->AddBox(data[0], data[1], data[2], A,
                                                       ChMatrix33<>(ChQuaternion<>(rot[0], rot[1], rot[2], rot[3])));
                     break;
-                case chrono::collision::TRIANGLEMESH:
+                case ChCollisionShape::Type::TRIANGLEMESH:
                     std::static_pointer_cast<ChCollisionModelDistributed>(body->GetCollisionModel())
                         ->AddTriangle(A, ChVector<>(data[0], data[1], data[2]), ChVector<>(data[3], data[4], data[5]),
                                       ChVector<>(0, 0, 0), ChQuaternion<>(rot[0], rot[1], rot[2], rot[3]));
                     break;
-                case chrono::collision::ELLIPSOID:
+                case ChCollisionShape::Type::ELLIPSOID:
                     body->GetCollisionModel()->AddEllipsoid(
                         data[0], data[1], data[2], A, ChMatrix33<>(ChQuaternion<>(rot[0], rot[1], rot[2], rot[3])));
                     break;
@@ -890,15 +889,15 @@ int ChCommDistributed::PackShapes(std::vector<Shape>* buf, int index) {
         shape.coll_fam[1] = shape_data.fam_rigid[shape_index].y;
 
          switch (type) {
-            case chrono::collision::SPHERE:
+            case ChCollisionShape::Type::SPHERE:
                 shape.data[0] = shape_data.sphere_rigid[start];
                 break;
-            case chrono::collision::BOX:
+            case ChCollisionShape::Type::BOX:
                 shape.data[0] = shape_data.box_like_rigid[start].x;
                 shape.data[1] = shape_data.box_like_rigid[start].y;
                 shape.data[2] = shape_data.box_like_rigid[start].z;
                 break;
-            case chrono::collision::TRIANGLEMESH:
+            case ChCollisionShape::Type::TRIANGLEMESH:
                 // Pack B
                 shape.data[0] = shape_data.triangle_rigid[start + 1].x;
                 shape.data[1] = shape_data.triangle_rigid[start + 1].y;
@@ -909,7 +908,7 @@ int ChCommDistributed::PackShapes(std::vector<Shape>* buf, int index) {
                 shape.data[4] = shape_data.triangle_rigid[start + 2].y;
                 shape.data[5] = shape_data.triangle_rigid[start + 2].z;
                 break;
-            case chrono::collision::ELLIPSOID:
+            case ChCollisionShape::Type::ELLIPSOID:
                 // Pack B
                 shape.data[0] = shape_data.box_like_rigid[start].x;
                 shape.data[1] = shape_data.box_like_rigid[start].y;

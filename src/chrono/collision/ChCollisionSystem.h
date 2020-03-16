@@ -31,15 +31,14 @@ class ChProximityContainer;
 namespace collision {
 
 /// Base class for generic collision engine.
-/// Most methods are 'pure virtual': they need to be implemented by derived classes.
 class ChApi ChCollisionSystem {
   public:
     ChCollisionSystem(unsigned int max_objects = 16000, double scene_size = 500) {
         narrow_callback = 0;
         broad_callback = 0;
-    };
+    }
 
-    virtual ~ChCollisionSystem(){};
+    virtual ~ChCollisionSystem() {}
 
     /// Clears all data instanced by this algorithm
     /// if any (like persistent contact manifolds)

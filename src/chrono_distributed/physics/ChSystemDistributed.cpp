@@ -371,12 +371,12 @@ void ChSystemDistributed::PrintShapeData() {
                 int shape_index = ddm->body_shapes[body_start + j];
 
                 switch (data_manager->shape_data.typ_rigid[shape_index]) {
-                    case chrono::collision::SPHERE:
+                    case ChCollisionShape::Type::SPHERE:
                         printf(
                             "%d | Sphere: r %.3f, ", my_rank,
                             data_manager->shape_data.sphere_rigid[data_manager->shape_data.start_rigid[shape_index]]);
                         break;
-                    case chrono::collision::BOX:
+                    case ChCollisionShape::Type::BOX:
                         printf("%d | Box: ", my_rank);
                         break;
                     default:
