@@ -123,8 +123,8 @@ int main(int argc, char* argv[]) {
     application.AssetUpdateAll();
 
     // Simulation loop
-    application.SetTryRealtime(true);
     application.SetTimestep(0.001);
+    application.SetTryRealtime(true);
 
     while (application.GetDevice()->run()) {
         application.BeginScene();

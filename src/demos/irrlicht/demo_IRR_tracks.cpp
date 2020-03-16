@@ -543,7 +543,6 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     //
 
-    application.SetStepManage(true);
     application.SetTimestep(0.03);
     application.SetTryRealtime(true);
 
@@ -560,7 +559,6 @@ int main(int argc, char* argv[]) {
                              video::SColor(255, 60, 60, 60), true);
 
         // HERE CHRONO INTEGRATION IS PERFORMED:
-
         application.DoStep();
 
         application.EndScene();

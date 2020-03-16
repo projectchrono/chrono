@@ -54,7 +54,6 @@ class Model(object):
              
              self.myapplication = chronoirr.ChIrrApp(self.rev_pend_sys)
              self.myapplication.AddShadowAll();
-             self.myapplication.SetStepManage(True)
              self.myapplication.SetTimestep(0.01)
              self. myapplication.SetTryRealtime(True)
              

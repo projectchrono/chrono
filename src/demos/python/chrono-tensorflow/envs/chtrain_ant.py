@@ -70,7 +70,6 @@ class Model(object):
       if (self.animate) :
              self.myapplication = chronoirr.ChIrrApp(self.ant_sys)
              self.myapplication.AddShadowAll()
-             self.myapplication.SetStepManage(True)
              self.myapplication.SetTimestep(self.timestep)
              self. myapplication.SetTryRealtime(True)  
              self.myapplication.AddTypicalSky()

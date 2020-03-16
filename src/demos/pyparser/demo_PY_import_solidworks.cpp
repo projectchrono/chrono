@@ -175,7 +175,6 @@ int main(int argc, char* argv[]) {
     // set a low stabilization value because objects are small!
     application.GetSystem()->SetMaxPenetrationRecoverySpeed(0.002);
 
-    application.SetStepManage(true);
     application.SetTimestep(0.002);
     application.SetTryRealtime(true);
 

@@ -159,17 +159,10 @@ int main(int argc, char* argv[]) {
     // Use this function for 'converting' assets into Irrlicht meshes
     application.AssetUpdateAll();
 
-
     //
     // THE SOFT-REAL-TIME CYCLE
     //
 
-    // This will help choosing an integration step which matches the
-    // real-time step of the simulation, if possible.
-
-    int nstep = 0;
-
-    application.SetStepManage(true);
     application.SetTimestep(0.01);
     application.SetTryRealtime(true);
 

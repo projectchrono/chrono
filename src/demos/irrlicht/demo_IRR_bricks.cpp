@@ -232,8 +232,8 @@ int main(int argc, char* argv[]) {
 
     // Simulation loop
 
-    application.SetStepManage(true);
     application.SetTimestep(0.02);
+    application.SetTryRealtime(true);
 
     while (application.GetDevice()->run()) {
         application.BeginScene(true, true, SColor(255, 140, 161, 192));
