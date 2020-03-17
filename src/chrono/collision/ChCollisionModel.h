@@ -132,7 +132,7 @@ class ChApi ChCollisionModel {
     /// Add a convex hull to this model. A convex hull is simply a point cloud that describe
     /// a convex polytope. Connectivity between the vertexes, as faces/edges in triangle meshes is not necessary.
     /// Points are passed as a list, that is instantly copied into the model.
-    virtual bool AddConvexHull(const std::vector<ChVector<double> >& pointlist,
+    virtual bool AddConvexHull(const std::vector<ChVector<double>>& pointlist,
                                const ChVector<>& pos = ChVector<>(),
                                const ChMatrix33<>& rot = ChMatrix33<>(1)) = 0;
 
@@ -333,6 +333,12 @@ class ChApi ChCollisionModel {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive);
+
+    /// Return the number of collision shapes in this model.
+    int GetNumShapes() const { return (int)m_shapes.size(); }
+
+    /// Get the collision shape with specified index.
+    std::shared_ptr<ChCollisionShape> GetShape(int index) { return m_shapes[index]; }
 
   protected:
     /// Copy the collision shapes from another model.

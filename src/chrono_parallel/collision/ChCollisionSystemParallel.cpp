@@ -40,7 +40,7 @@ void ChCollisionSystemParallel::Add(ChCollisionModel* model) {
                                                      pmodel->local_convex_data.begin(),
                                                      pmodel->local_convex_data.end());
 
-        for (int j = 0; j < pmodel->GetNObjects(); j++) {
+        for (int j = 0; j < pmodel->GetNumShapes(); j++) {
             real3 obA = pmodel->mData[j].A;
             real3 obB = pmodel->mData[j].B;
             real3 obC = pmodel->mData[j].C;
@@ -119,8 +119,8 @@ void ChCollisionSystemParallel::Remove(ChCollisionModel* model) {
 	ChCollisionModelParallel* pmodel = static_cast<ChCollisionModelParallel*>(model);
 	int body_id = pmodel->GetBody()->GetId();
 	//loop over the models we nned to remove
-	//std::cout << "removing: " << pmodel->GetNObjects() << " objects" << std::endl;
-	for (int j = 0; j < pmodel->GetNObjects(); j++) {
+	//std::cout << "removing: " << pmodel->GetNumShapes() << " objects" << std::endl;
+	for (int j = 0; j < pmodel->GetNumShapes(); j++) {
 		//find a model to remove
 		bool removed = false;
 		for (int i = 0; i < data_manager->shape_data.id_rigid.size(); i++) {

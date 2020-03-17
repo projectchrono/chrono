@@ -45,7 +45,7 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
     // Find space in ddm vectors - need one index for both start and count
     // need a chunk of body_shapes large enough for all shapes on this body
     int body_index = pmodel->GetBody()->GetId();  // NOTE: Assumes this is set
-    int needed_count = pmodel->GetNObjects();     // Minimum size needed in ddm->body_shapes
+    int needed_count = pmodel->GetNumShapes();    // Minimum size needed in ddm->body_shapes
     ChVector<> pos(pmodel->GetBody()->GetPos());
 
     // TODO Only include shapes relevant to this sub-domain
@@ -254,7 +254,7 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
 //     // Find space in ddm vectors - need one index for both start and count
 //     // need a chunk of body_shapes large enough for all shapes on this body
 //     int body_index = pmodel->GetBody()->GetId();  // NOTE: Assumes this is set
-//     int needed_count = pmodel->GetNObjects();     // Minimum size needed in ddm->body_shapes
+//     int needed_count = pmodel->GetNumShapes();    // Minimum size needed in ddm->body_shapes
 //     ChVector<> pos(pmodel->GetBody()->GetPos());
 //
 //     // TODO Only include shapes relevant to this sub-domain
@@ -439,7 +439,7 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
 void ChCollisionSystemDistributed::Remove(ChCollisionModel* model) {
     ChCollisionModelParallel* pmodel = static_cast<ChCollisionModelParallel*>(model);
     uint id = pmodel->GetBody()->GetId();
-    int count = pmodel->GetNObjects();
+    int count = pmodel->GetNumShapes();
     int start = ddm->body_shape_start[id];
 
     for (int i = 0; i < count; i++) {

@@ -189,9 +189,6 @@ class CH_PARALLEL_API ChCollisionModelParallel : public ChCollisionModel {
     /// Set the pointer to the owner rigid body.
     void SetBody(ChBody* body) { mbody = body; }
 
-    /// Return the number of objects in this model.
-    int GetNObjects() const { return nObjects; }
-
     std::vector<ConvexModel> mData;
     std::vector<real3> local_convex_data;
 
@@ -200,7 +197,6 @@ class CH_PARALLEL_API ChCollisionModelParallel : public ChCollisionModel {
 
   protected:
     ChBody* mbody;
-    unsigned int nObjects;
 };
 
 /// @} parallel_collision
