@@ -161,6 +161,8 @@ void ChSystemParallelNSC::SolveSystem() {
 }
 
 void ChSystemParallelNSC::AssembleSystem() {
+    //// TODO: load colliding shape information in icontact? Not really needed here.
+
     Setup();
 
     collision_system->Run();

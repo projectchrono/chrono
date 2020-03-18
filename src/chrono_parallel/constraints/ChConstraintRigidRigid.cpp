@@ -88,65 +88,61 @@ void ChConstraintRigidRigid::func_Project_spinning(int index, const vec2* ids, c
     real t_u = gam[3 * data_manager->num_rigid_contacts + index * 3 + 1];
     real t_v = gam[3 * data_manager->num_rigid_contacts + index * 3 + 2];
 
-	real t_tang = sqrt(t_v * t_v + t_u * t_u);
-	real t_sptang = fabs(t_n);  // = sqrt(t_n*t_n);
+    real t_tang = sqrt(t_v * t_v + t_u * t_u);
+    real t_sptang = fabs(t_n);  // = sqrt(t_n*t_n);
 
-	if (spinningfriction) {
-		if (t_sptang < spinningfriction * f_n) {
-			// inside upper cone? keep untouched!
-		}
-		else {
-			// inside lower cone? reset  normal,u,v to zero!
-			if ((t_sptang < -(1 / spinningfriction) * f_n) || (fabs(f_n) < 10e-15)) {
-				gam[index * 1 + 0] = 0;
-				gam[3 * data_manager->num_rigid_contacts + index * 3 + 0] = 0;
-			}
-			else {
-				// remaining case: project orthogonally to generator segment of upper cone (CAN BE simplified)
-				real f_n_proj = (t_sptang * spinningfriction + f_n) / (spinningfriction * spinningfriction + 1);
-				real t_tang_proj = f_n_proj * spinningfriction;
-				real tproj_div_t = t_tang_proj / t_sptang;
-				real t_n_proj = tproj_div_t * t_n;
+    if (spinningfriction) {
+        if (t_sptang < spinningfriction * f_n) {
+            // inside upper cone? keep untouched!
+        } else {
+            // inside lower cone? reset  normal,u,v to zero!
+            if ((t_sptang < -(1 / spinningfriction) * f_n) || (fabs(f_n) < 10e-15)) {
+                gam[index * 1 + 0] = 0;
+                gam[3 * data_manager->num_rigid_contacts + index * 3 + 0] = 0;
+            } else {
+                // remaining case: project orthogonally to generator segment of upper cone (CAN BE simplified)
+                real f_n_proj = (t_sptang * spinningfriction + f_n) / (spinningfriction * spinningfriction + 1);
+                real t_tang_proj = f_n_proj * spinningfriction;
+                real tproj_div_t = t_tang_proj / t_sptang;
+                real t_n_proj = tproj_div_t * t_n;
 
-				gam[index * 1 + 0] = f_n_proj;
-				gam[3 * data_manager->num_rigid_contacts + index * 3 + 0] = t_n_proj;
+                gam[index * 1 + 0] = f_n_proj;
+                gam[3 * data_manager->num_rigid_contacts + index * 3 + 0] = t_n_proj;
+            }
+        }
+    }
 
-			}
-		}
-	}
+    if (!rollingfriction) {
+        gam[3 * data_manager->num_rigid_contacts + index * 3 + 1] = 0;
+        gam[3 * data_manager->num_rigid_contacts + index * 3 + 2] = 0;
 
-	if (!rollingfriction) {
-		gam[3 * data_manager->num_rigid_contacts + index * 3 + 1] = 0;
-		gam[3 * data_manager->num_rigid_contacts + index * 3 + 2] = 0;
+        if (f_n < 0)
+            gam[index * 1 + 0] = 0;
+        return;
+    }
+    if (t_tang < rollingfriction * f_n)
+        return;
 
+    if ((t_tang < -(1 / rollingfriction) * f_n) || (fabs(f_n) < 10e-15)) {
+        real f_n_proj = 0;
+        real t_u_proj = 0;
+        real t_v_proj = 0;
 
-		if (f_n < 0)
-			gam[index * 1 + 0] = 0;
-		return;
-	}
-	if (t_tang < rollingfriction * f_n)
-		return;
+        gam[index * 1 + 0] = f_n_proj;
+        gam[3 * data_manager->num_rigid_contacts + index * 3 + 1] = t_u_proj;
+        gam[3 * data_manager->num_rigid_contacts + index * 3 + 2] = t_v_proj;
 
-	if ((t_tang < -(1 / rollingfriction) * f_n) || (fabs(f_n) < 10e-15)) {
-		real f_n_proj = 0;
-		real t_u_proj = 0;
-		real t_v_proj = 0;
+        return;
+    }
+    real f_n_proj = (t_tang * rollingfriction + f_n) / (rollingfriction * rollingfriction + 1);
+    real t_tang_proj = f_n_proj * rollingfriction;
+    real tproj_div_t = t_tang_proj / t_tang;
+    real t_u_proj = tproj_div_t * t_u;
+    real t_v_proj = tproj_div_t * t_v;
 
-		gam[index * 1 + 0] = f_n_proj;
-		gam[3 * data_manager->num_rigid_contacts + index * 3 + 1] = t_u_proj;
-		gam[3 * data_manager->num_rigid_contacts + index * 3 + 2] = t_v_proj;
-
-		return;
-	}
-	real f_n_proj = (t_tang * rollingfriction + f_n) / (rollingfriction * rollingfriction + 1);
-	real t_tang_proj = f_n_proj * rollingfriction;
-	real tproj_div_t = t_tang_proj / t_tang;
-	real t_u_proj = tproj_div_t * t_u;
-	real t_v_proj = tproj_div_t * t_v;
-
-	gam[index * 1 + 0] = f_n_proj;
-	gam[3 * data_manager->num_rigid_contacts + index * 3 + 1] = t_u_proj;
-	gam[3 * data_manager->num_rigid_contacts + index * 3 + 2] = t_v_proj;
+    gam[index * 1 + 0] = f_n_proj;
+    gam[3 * data_manager->num_rigid_contacts + index * 3 + 1] = t_u_proj;
+    gam[3 * data_manager->num_rigid_contacts + index * 3 + 2] = t_v_proj;
 }
 
 // -----------------------------------------------------------------------------
@@ -191,23 +187,45 @@ void ChConstraintRigidRigid::Setup(ChParallelDataManager* dm) {
     quat_a.resize(num_contacts);
     quat_b.resize(num_contacts);
 
-
     ////for (uint i = 0; i < num_contacts; i++) {
-    ////    auto body = data_manager->host_data.bids_rigid_rigid[i];
-    ////    auto b1 = body.x;
-    ////    auto b2 = body.y;
-    ////    auto shape_pair = data_manager->host_data.contact_pairs[i]; 
-    ////    auto s1 = int(data_manager->host_data.contact_pairs[i] >> 32);
-    ////    auto s2 = int(data_manager->host_data.contact_pairs[i] & 0xffffffff);
-    ////
-    ////    std::cout << "body1/shape1 = " << b1 << "," << s1 << "   body2/shape2 = " << b2 << "," << s2 << std::endl;
+    ////    auto body_pair = data_manager->host_data.bids_rigid_rigid[i];  // global IDs of bodies involved in collision
+    ////    auto b1 = body_pair.x;
+    ////    auto b2 = body_pair.y;
+    ////    auto shape_pair = data_manager->host_data.contact_pairs[i];  // global IDs of shapes involved in contact
+    ////    auto s1 = int(shape_pair >> 32);
+    ////    auto s2 = int(shape_pair & 0xffffffff);
+    ////    auto start_rigid = data_manager->shape_data.start_rigid;  // local indexes of shapes involved in contact
+    ////    auto s1l = start_rigid[s1];
+    ////    auto s2l = start_rigid[s2];
+
+    ////    auto blist = *data_manager->body_list;
+    ////    auto body1 = blist[b1];
+    ////    auto body2 = blist[b2];
+    ////    auto shape1 = body1->GetCollisionModel()->GetShape(s1l);
+    ////    auto shape2 = body2->GetCollisionModel()->GetShape(s2l);
+
+    ////    std::cout << "Contact" << std::endl;
+    ////    std::cout << " OBJ1 body=" << b1 << " shapeG=" << s1 << " shapeL=" << s1l << " type=" << shape1->m_type << std::endl;
+    ////    std::cout << " OBJ2 body=" << b2 << " shapeG=" << s2 << " shapeL=" << s2l << " type=" << shape2->m_type << std::endl;
     ////}
+
+    // Readability replacements
+    auto& bids = data_manager->host_data.bids_rigid_rigid;     // global IDs of bodies in contact
+    auto& sids = data_manager->host_data.contact_pairs;        // global IDs of shapes in contact
+    auto& start_rigid = data_manager->shape_data.start_rigid;  // collision model indexes of shapes in contact
 
 #pragma omp parallel for
     for (int i = 0; i < (signed)num_contacts; i++) {
-        vec2 body = data_manager->host_data.bids_rigid_rigid[i];
-        uint b1 = body.x;
-        uint b2 = body.y;
+        auto b1 = bids[i].x;                  // global IDs of bodies in contact
+        auto b2 = bids[i].y;                  //
+        auto s1 = int(sids[i] >> 32);         // global IDs of shapes in contact
+        auto s2 = int(sids[i] & 0xffffffff);  //
+        auto s1_index = start_rigid[s1];      // collision model indexes of shapes in contact
+        auto s2_index = start_rigid[s2];      //
+
+        ////std::cout << "Contact" << std::endl;
+        ////std::cout << " OBJ1 body=" << b1 << " shapeG=" << s1 << " shapeL=" << s1_index << std::endl;
+        ////std::cout << " OBJ2 body=" << b2 << " shapeG=" << s2 << " shapeL=" << s2_index << std::endl;
 
         contact_active_pairs[i] =
             bool2(data_manager->host_data.active_rigid[b1] != 0, data_manager->host_data.active_rigid[b2] != 0);
@@ -237,10 +255,12 @@ void ChConstraintRigidRigid::Setup(ChParallelDataManager* dm) {
             const real3& vN = data_manager->host_data.norm_rigid_rigid[i];
             real3 vpA = data_manager->host_data.cpta_rigid_rigid[i] + data_manager->host_data.pos_rigid[b1];
             real3 vpB = data_manager->host_data.cptb_rigid_rigid[i] + data_manager->host_data.pos_rigid[b2];
-            
+
             chrono::collision::ChCollisionInfo icontact;
             icontact.modelA = blist[b1]->GetCollisionModel().get();
             icontact.modelB = blist[b2]->GetCollisionModel().get();
+            icontact.shapeA = icontact.modelA->GetShape(s1_index).get();
+            icontact.shapeB = icontact.modelB->GetShape(s2_index).get();
             icontact.vN = ChVector<>(vN.x, vN.y, vN.z);
             icontact.vpA = ChVector<>(vpA.x, vpA.y, vpA.z);
             icontact.vpB = ChVector<>(vpB.x, vpB.y, vpB.z);
