@@ -1,7 +1,7 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/collision/ChCollisionModel.h"
 
 using namespace collision;
 
@@ -12,5 +12,5 @@ using namespace collision;
 %feature("nodirector") chrono::collision::ChCollisionModel::GetPhysicsItem;
 
 /* Parse the header file to generate wrappers */
-%include "../chrono/collision/ChCCollisionModel.h"
+%include "../chrono/collision/ChCollisionModel.h"
 

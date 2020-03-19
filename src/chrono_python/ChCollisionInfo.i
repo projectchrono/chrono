@@ -1,8 +1,8 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "chrono/collision/ChCCollisionInfo.h"
-#include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/collision/ChCollisionInfo.h"
+#include "chrono/collision/ChCollisionModel.h"
 
 using namespace collision;
 
@@ -13,6 +13,6 @@ using namespace collision;
 
 
 /* Parse the header file to generate wrappers */
-%include "../chrono/collision/ChCCollisionInfo.h"    
+%include "../chrono/collision/ChCollisionInfo.h"
 
 

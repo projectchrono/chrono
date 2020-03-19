@@ -65,8 +65,8 @@
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/assets/ChEllipsoidShape.h"
 #include "chrono/assets/ChGlyphs.h"
-#include "chrono/collision/ChCCollisionUtils.h"
-#include "chrono/collision/ChCCollisionSystem.h"
+#include "chrono/collision/ChCollisionUtils.h"
+#include "chrono/collision/ChCollisionSystem.h"
 #include "chrono/geometry/ChTriangleMesh.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/geometry/ChTriangleMeshSoup.h"
@@ -301,8 +301,8 @@ using namespace chrono::fea;
 %include "ChGeometry.i"
 
 %include "ChCollisionModel.i"
-%include "../chrono/collision/ChCCollisionUtils.h"
-%include "../chrono/collision/ChCCollisionSystem.h"
+%include "../chrono/collision/ChCollisionUtils.h"
+%include "../chrono/collision/ChCollisionSystem.h"
 
 // assets
 %include "ChAsset.i"
