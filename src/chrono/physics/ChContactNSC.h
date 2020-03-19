@@ -78,7 +78,7 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
                        const ChMaterialCompositeNSC& mat         ///< composite material
     ) {
         // Reset geometric information
-        Reset_cinfo(mobjA, mobjB, cinfo);
+        this->Reset_cinfo(mobjA, mobjB, cinfo);
 
         Nx.Get_tuple_a().SetVariables(*this->objA);
         Nx.Get_tuple_b().SetVariables(*this->objB);

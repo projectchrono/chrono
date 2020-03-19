@@ -90,7 +90,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
                const ChMaterialCompositeSMC& mat         ///< composite material
     ) {
         // Reset geometric information
-        Reset_cinfo(mobjA, mobjB, cinfo);
+        this->Reset_cinfo(mobjA, mobjB, cinfo);
 
         // Note: cinfo.distance is the same as this->norm_dist.
         assert(cinfo.distance < 0);
