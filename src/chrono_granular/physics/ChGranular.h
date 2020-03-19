@@ -407,6 +407,9 @@ class CH_GRANULAR_API ChSystemGranularSMC {
     /// Set timestep size
     void set_fixed_stepSize(float size_UU) { stepSize_UU = size_UU; }
 
+    /// Ensure that the deformation-based length unit is used
+    void disableMinLength() { use_min_length_unit = false; }
+
     /// Set the time integration scheme for the system
     void set_timeIntegrator(GRAN_TIME_INTEGRATOR new_integrator) {
         gran_params->time_integrator = new_integrator;
@@ -555,6 +558,10 @@ class CH_GRANULAR_API ChSystemGranularSMC {
 
     /// Allows the code to be very verbose for debugging
     GRAN_VERBOSITY verbosity;
+
+    /// If dividing the longest box dimension into INT_MAX pieces gives better resolution than the deformation-based
+    /// scaling, do that.
+    bool use_min_length_unit;
 
     /// Bit flags indicating what fields to write out during writeFile
     /// Set with the GRAN_OUTPUT_FLAGS enum

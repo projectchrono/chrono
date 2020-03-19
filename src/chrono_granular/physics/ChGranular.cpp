@@ -45,6 +45,7 @@ ChSystemGranularSMC::ChSystemGranularSMC(float sphere_rad, float density, float3
       nSpheres(0),
       elapsedSimTime(0.f),
       verbosity(INFO),
+      use_min_length_unit(true),
       file_write_mode(CSV),
       X_accGrav(0.f),
       Y_accGrav(0.f),
@@ -851,6 +852,14 @@ void ChSystemGranularSMC::switchToSimUnits() {
         std::pow(massSphere * massSphere * magGravAcc * magGravAcc * sphere_radius_UU / (K_star * K_star), 1. / 3.) /
         psi_L;
     this->LENGTH_SU2UU = std::min((double)(sphere_radius_UU * psi_R), this->LENGTH_SU2UU);
+
+    // If we can get better precision by just dividing the box as fine as possible
+    // using single ints, do that. Conservative by a factor of 2.
+    if (this->use_min_length_unit) {
+        this->LENGTH_SU2UU =
+            std::min((double)std::max(box_size_X, std::max(box_size_Y, box_size_Z)) / std::numeric_limits<int>::max(),
+                     this->LENGTH_SU2UU);
+    }
 
     stepSize_SU = (float)(stepSize_UU / TIME_SU2UU);
     gran_params->stepSize_SU = stepSize_SU;
