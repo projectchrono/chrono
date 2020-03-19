@@ -18,6 +18,7 @@
 #include "chrono/geometry/ChLinePath.h"
 #include "chrono/assets/ChEllipsoidShape.h"
 #include "chrono/assets/ChSurfaceShape.h"
+#include "chrono/assets/ChBarrelShape.h"
 
 #include "chrono_irrlicht/ChIrrAssetConverter.h"
 #include "chrono_irrlicht/ChIrrTools.h"
@@ -237,6 +238,21 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
 
                     //mchildnode->setMaterialFlag(video::EMF_WIREFRAME, mysurf->IsWireframe());
                     //mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mysurf->IsBackfaceCull());
+				} else if (auto mybarrel = std::dynamic_pointer_cast<ChBarrelShape>(k_asset)) {
+					auto mbarrelmesh = createEllipticalMesh(mybarrel->GetRhor(), mybarrel->GetRvert(), mybarrel->GetHlow(), mybarrel->GetHsup(), mybarrel->GetRoffset(), 15, 8);
+					ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(mybarrel, mnode);
+                    ISceneNode* mchildnode = scenemanager->addMeshSceneNode(mbarrelmesh, mproxynode);
+                    mproxynode->drop();
+
+                    // Calculate transform from node to geometry
+                    // (concatenate node - asset and asset - geometry)
+                    ChVector<> pos = mybarrel->Pos;
+                    ChCoordsys<> irrspherecoords(pos, mybarrel->Rot.Get_A_quaternion());
+
+                    //double mradius = mysphere->GetSphereGeometry().rad;
+                    //mchildnode->setScale(core::vector3dfCH(ChVector<>(mradius, mradius, mradius)));
+                    ChIrrTools::alignIrrlichtNodeToChronoCsys(mchildnode, irrspherecoords);
+                    mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
                 } else if (auto myglyphs = std::dynamic_pointer_cast<ChGlyphs>(k_asset)) {
                     CDynamicMeshBuffer* buffer =
                         new CDynamicMeshBuffer(irr::video::EVT_STANDARD, irr::video::EIT_32BIT);

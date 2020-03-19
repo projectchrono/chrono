@@ -576,6 +576,7 @@ set(ChronoEngine_assets_SOURCES
     assets/ChSphereShape.cpp
     assets/ChEllipsoidShape.cpp
     assets/ChBoxShape.cpp
+	assets/ChBarrelShape.cpp
     assets/ChConeShape.cpp
     assets/ChCylinderShape.cpp
     assets/ChCapsuleShape.cpp
@@ -602,6 +603,7 @@ set(ChronoEngine_assets_HEADERS
     assets/ChTriangleMeshShape.h
     assets/ChSphereShape.h
     assets/ChEllipsoidShape.h
+	assets/ChBarrelShape.h
     assets/ChBoxShape.h
     assets/ChConeShape.h
     assets/ChCylinderShape.h
