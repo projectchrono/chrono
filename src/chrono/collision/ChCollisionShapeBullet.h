@@ -23,7 +23,9 @@ namespace collision {
 
 class ChCollisionShapeBullet : public ChCollisionShape {
   public:
-    ChCollisionShapeBullet(Type type) : ChCollisionShape(type), m_bt_shape(nullptr) {}
+    ChCollisionShapeBullet(Type type, std::shared_ptr<ChMaterialSurface> material)
+        : ChCollisionShape(type, material), m_bt_shape(nullptr) {}
+
     ~ChCollisionShapeBullet() { delete m_bt_shape; }
 
   private:

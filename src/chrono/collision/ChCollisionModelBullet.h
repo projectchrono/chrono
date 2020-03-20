@@ -66,93 +66,125 @@ class ChApi ChCollisionModelBullet : public ChCollisionModel {
     //  The following functions must be called inbetween
     //  the ClearModel() BuildModel() pair.
 
-    /// Add a sphere shape to this model, for collision purposes
-    virtual bool AddSphere(double radius, const ChVector<>& pos = ChVector<>()) override;
+    /// Add a sphere shape to this collision model.
+    virtual bool AddSphere(                           //
+        std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
+        double radius,                                ///< sphere radius
+        const ChVector<>& pos = ChVector<>()          ///< center position in model coordinates
+        ) override;
 
-    /// Add an ellipsoid shape to this model, for collision purposes
-    virtual bool AddEllipsoid(double rx,
-                              double ry,
-                              double rz,
-                              const ChVector<>& pos = ChVector<>(),
-                              const ChMatrix33<>& rot = ChMatrix33<>(1)) override;
+    /// Add an ellipsoid shape to this collision model.
+    virtual bool AddEllipsoid(                        //
+        std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
+        double rx,                                    ///< x semi-axis
+        double ry,                                    ///< y semi-axis
+        double rz,                                    ///< z semi-axis
+        const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
+        const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
+        ) override;
 
-    /// Add a box shape to this model, for collision purposes
-    virtual bool AddBox(double hx,
-                        double hy,
-                        double hz,
-                        const ChVector<>& pos = ChVector<>(),
-                        const ChMatrix33<>& rot = ChMatrix33<>(1)) override;
+    /// Add a box shape to this collision model.
+    virtual bool AddBox(                              //
+        std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
+        double hx,                                    ///< x half-dimension
+        double hy,                                    ///< y half-dimension
+        double hz,                                    ///< z half-dimension
+        const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
+        const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
+        ) override;
 
-    /// Add a cylinder to this model (default axis on Y direction), for collision purposes
-    virtual bool AddCylinder(double rx,
-                             double rz,
-                             double hy,
-                             const ChVector<>& pos = ChVector<>(),
-                             const ChMatrix33<>& rot = ChMatrix33<>(1)) override;
+    /// Add a cylinder to this collision model (default axis on Y direction).
+    virtual bool AddCylinder(                         //
+        std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
+        double rx,                                    ///< radius (X direction)
+        double rz,                                    ///< radius (Z direction)
+        double hy,                                    ///< half length
+        const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
+        const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
+        ) override;
 
-    /// Add a cylinder to this model (default axis on Y direction), for collision purposes
-    virtual bool AddCone(double rx,
-                         double rz,
-                         double hy,
-                         const ChVector<>& pos = ChVector<>(),
-                         const ChMatrix33<>& rot = ChMatrix33<>(1)) override {
+    /// Add a cone to this collision model (default axis on Y direction).
+    virtual bool AddCone(                             //
+        std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
+        double rx,                                    ///< radius (X direction)
+        double rz,                                    ///< radius (Z direction)
+        double hy,                                    ///< half length
+        const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
+        const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
+        ) override {
         return false;
     }
 
-    /// Add a capsule to this model (default axis in Y direction), for collision purposes
-    virtual bool AddCapsule(double radius,
-                            double hlen,
-                            const ChVector<>& pos = ChVector<>(),
-                            const ChMatrix33<>& rot = ChMatrix33<>(1)) override {
+    /// Add a capsule to this collision model (default axis in Y direction).
+    virtual bool AddCapsule(                          //
+        std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
+        double radius,                                ///< radius
+        double hlen,                                  ///< half-length of capsule axis
+        const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
+        const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
+        ) override {
         return false;
     }
 
-    /// Add a rounded box shape to this model, for collision purposes
-    virtual bool AddRoundedBox(double hx,
-                               double hy,
-                               double hz,
-                               double sphere_r,
-                               const ChVector<>& pos = ChVector<>(),
-                               const ChMatrix33<>& rot = ChMatrix33<>(1)) override {
+    /// Add a rounded box shape to this collision model.
+    virtual bool AddRoundedBox(                       //
+        std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
+        double hx,                                    ///< x half-dimension
+        double hy,                                    ///< y half-dimension
+        double hz,                                    ///< z half-dimension
+        double sphere_r,                              ///< radius of sweeping sphere
+        const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
+        const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
+        ) override {
         return false;
     }
 
-    /// Add a rounded cylinder to this model (default axis on Y direction), for collision purposes
-    virtual bool AddRoundedCylinder(double rx,
-                                    double rz,
-                                    double hy,
-                                    double sphere_r,
-                                    const ChVector<>& pos = ChVector<>(),
-                                    const ChMatrix33<>& rot = ChMatrix33<>(1)) override {
+    /// Add a rounded cylinder to this collision model (default axis on Y direction).
+    virtual bool AddRoundedCylinder(                  //
+        std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
+        double rx,                                    ///< radius (X direction)
+        double rz,                                    ///< radius (Z direction)
+        double hy,                                    ///< half length
+        double sphere_r,                              ///< radius of sweeping sphere
+        const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
+        const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
+        ) override {
         return false;
     }
 
-    /// Add a rounded cone to this model (default axis on Y direction), for collision purposes
-    virtual bool AddRoundedCone(double rx,
-                                double rz,
-                                double hy,
-                                double sphere_r,
-                                const ChVector<>& pos = ChVector<>(),
-                                const ChMatrix33<>& rot = ChMatrix33<>(1)) override {
+    /// Add a rounded cone to this collision model (default axis on Y direction).
+    virtual bool AddRoundedCone(                      //
+        std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
+        double rx,                                    ///< radius (X direction)
+        double rz,                                    ///< radius (Z direction)
+        double hy,                                    ///< half length
+        double sphere_r,                              ///< radius of sweeping sphere
+        const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
+        const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
+        ) override {
         return false;
     }
 
-    /// Add a convex hull to this model. A convex hull is simply a point cloud that describe
-    /// a convex polytope. Connectivity between the vertexes, as faces/edges in triangle meshes is not necessary.
-    /// Points are passed as a list, that is instantly copied into the model.
-    virtual bool AddConvexHull(const std::vector<ChVector<double>>& pointlist,
-                               const ChVector<>& pos = ChVector<>(),
-                               const ChMatrix33<>& rot = ChMatrix33<>(1)) override;
+    /// Add a convex hull to this collision model. A convex hull is simply a point cloud that describe a convex
+    /// polytope. Connectivity between the vertexes, as faces/edges in triangle meshes is not necessary.
+    /// Points are passed as a list which is then copied into the model.
+    virtual bool AddConvexHull(                          //
+        std::shared_ptr<ChMaterialSurface> material,     ///< surface contact material
+        const std::vector<ChVector<double>>& pointlist,  ///< list of hull points
+        const ChVector<>& pos = ChVector<>(),            ///< origin position in model coordinates
+        const ChMatrix33<>& rot = ChMatrix33<>(1)        ///< rotation in model coordinates
+        ) override;
 
-    /// Add a triangle mesh to this model, passing a triangle mesh.
+    /// Add a triangle mesh to this collision model.
     /// Note: if possible, for better performance, avoid triangle meshes and prefer simplified
     /// representations as compounds of primitive convex shapes (boxes, sphers, etc).
     virtual bool AddTriangleMesh(                           //
+        std::shared_ptr<ChMaterialSurface> material,        ///< surface contact material
         std::shared_ptr<geometry::ChTriangleMesh> trimesh,  ///< the triangle mesh
         bool is_static,                                     ///< true if model doesn't move. May improve performance.
         bool is_convex,                                     ///< if true, a convex hull is used. May improve robustness.
-        const ChVector<>& pos = ChVector<>(),               ///< displacement respect to COG
-        const ChMatrix33<>& rot = ChMatrix33<>(1),          ///< the rotation of the mesh
+        const ChVector<>& pos = ChVector<>(),               ///< origin position in model coordinates
+        const ChMatrix33<>& rot = ChMatrix33<>(1),          ///< rotation in model coordinates
         double sphereswept_thickness = 0.0                  ///< outward sphere-swept layer (when supported)
         ) override;
 
@@ -161,9 +193,12 @@ class ChApi ChCollisionModelBullet : public ChCollisionModel {
     /// arbitrary meshes, there could be issues of robustness and precision, so
     /// when possible, prefer simplified representations as compounds of convex
     /// shapes of boxes/spheres/etc.. type.
-    virtual bool AddTriangleMeshConcave(std::shared_ptr<geometry::ChTriangleMesh> trimesh,
-                                        const ChVector<>& pos = ChVector<>(),
-                                        const ChMatrix33<>& rot = ChMatrix33<>(1));
+    virtual bool AddTriangleMeshConcave(                    //
+        std::shared_ptr<ChMaterialSurface> material,        ///< surface contact material
+        std::shared_ptr<geometry::ChTriangleMesh> trimesh,  ///< the triangle mesh
+        const ChVector<>& pos = ChVector<>(),               ///< origin position in model coordinates
+        const ChMatrix33<>& rot = ChMatrix33<>(1)           ///< rotation in model coordinates
+    );
 
     /// CUSTOM for this class only: add a concave triangle mesh that will be decomposed
     /// into a compound of convex shapes. Decomposition could be more efficient than
@@ -172,24 +207,30 @@ class ChApi ChCollisionModelBullet : public ChCollisionModel {
     /// arbitrary meshes, there could be issues of robustness and precision, so
     /// when possible, prefer simplified representations as compounds of convex
     /// shapes of boxes/spheres/etc.. type.
-    virtual bool AddTriangleMeshConcaveDecomposed(std::shared_ptr<ChConvexDecomposition> mydecomposition,
-                                                  const ChVector<>& pos = ChVector<>(),
-                                                  const ChMatrix33<>& rot = ChMatrix33<>(1));
+    virtual bool AddTriangleMeshConcaveDecomposed(               //
+        std::shared_ptr<ChMaterialSurface> material,             ///< surface contact material
+        std::shared_ptr<ChConvexDecomposition> mydecomposition,  ///< convex mesh decomposition
+        const ChVector<>& pos = ChVector<>(),                    ///< origin position in model coordinates
+        const ChMatrix33<>& rot = ChMatrix33<>(1)                ///< rotation in model coordinates
+    );
 
-    /// Add a barrel-like shape to this model (main axis on Y direction), for collision purposes.
+    /// Add a barrel-like shape to this collision model (main axis on Y direction).
     /// The barrel shape is made by lathing an arc of an ellipse around the vertical Y axis.
     /// The center of the ellipse is on Y=0 level, and it is offsetted by R_offset from
     /// the Y axis in radial direction. The two radii of the ellipse are R_vert (for the
     /// vertical direction, i.e. the axis parallel to Y) and R_hor (for the axis that
     /// is perpendicular to Y). Also, the solid is clamped with two discs on the top and
     /// the bottom, at levels Y_low and Y_high.
-    virtual bool AddBarrel(double Y_low,
-                           double Y_high,
-                           double R_vert,
-                           double R_hor,
-                           double R_offset,
-                           const ChVector<>& pos = ChVector<>(),
-                           const ChMatrix33<>& rot = ChMatrix33<>(1)) override;
+    virtual bool AddBarrel(                           //
+        std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
+        double Y_low,                                 ///<
+        double Y_high,                                ///<
+        double R_vert,                                ///<
+        double R_hor,                                 ///<
+        double R_offset,                              ///<
+        const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
+        const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
+        ) override;
 
     /// Add a 2D closed line, defined on the XY plane passing by pos and aligned as rot,
     /// that defines a 2D collision shape that will collide with another 2D line of the same type
@@ -200,27 +241,32 @@ class ChApi ChCollisionModelBullet : public ChCollisionModel {
     /// - the line must be clockwise for inner material, (counterclockwise=hollow, material outside)
     /// - the line must contain only ChLineSegment and ChLineArc sub-lines
     /// - the sublines must follow in the proper order, with coincident corners, and must be closed.
-    virtual bool Add2Dpath(std::shared_ptr<geometry::ChLinePath> mpath,
-                           const ChVector<>& pos = ChVector<>(),
-                           const ChMatrix33<>& rot = ChMatrix33<>(1),
-                           const double thickness = 0.001) override;
+    virtual bool Add2Dpath(                           //
+        std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
+        std::shared_ptr<geometry::ChLinePath> mpath,  ///< 2D curve path
+        const ChVector<>& pos = ChVector<>(),         ///< origin position in model coordinates
+        const ChMatrix33<>& rot = ChMatrix33<>(1),    ///< rotation in model coordinates
+        const double thickness = 0.001                ///< line thickness
+        ) override;
 
-    /// Add a point-like sphere, that will collide with other geometries,
-    /// but won't ever create contacts between them.
-    virtual bool AddPoint(double radius = 0,                    ///< the radius of the node
-                          const ChVector<>& pos = ChVector<>()  ///< the position of the node in model coordinates
-                          ) override;
+    /// Add a point-like sphere, that will collide with other geometries, but won't ever create contacts between them.
+    virtual bool AddPoint(                            //
+        std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
+        double radius = 0,                            ///< node radius
+        const ChVector<>& pos = ChVector<>()          ///< center position in model coordinates
+        ) override;
 
     /// Add a triangle from  mesh.
     /// For efficiency, points are stored as pointers. Thus, the user must
     /// take care of memory management and of dangling pointers.
-    virtual bool AddTriangleProxy(
-        ChVector<>* p1,              ///< points to vertex1 coords
-        ChVector<>* p2,              ///< points to vertex2 coords
-        ChVector<>* p3,              ///< points to vertex3 coords
-        ChVector<>* ep1,             ///< points to neighbouring vertex at edge1 if any
-        ChVector<>* ep2,             ///< points to neighbouring vertex at edge1 if any
-        ChVector<>* ep3,             ///< points to neighbouring vertex at edge1 if any
+    virtual bool AddTriangleProxy(                    //
+        std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
+        ChVector<>* p1,                               ///< points to vertex1 coords
+        ChVector<>* p2,                               ///< points to vertex2 coords
+        ChVector<>* p3,                               ///< points to vertex3 coords
+        ChVector<>* ep1,                              ///< points to neighbouring vertex at edge1 if any
+        ChVector<>* ep2,                              ///< points to neighbouring vertex at edge1 if any
+        ChVector<>* ep3,                              ///< points to neighbouring vertex at edge1 if any
         bool mowns_vertex_1,         ///< vertex is owned by this triangle (otherwise, owned by neighbour)
         bool mowns_vertex_2,         ///< vertex is owned by this triangle (otherwise, owned by neighbour)
         bool mowns_vertex_3,         ///< vertex is owned by this triangle (otherwise, owned by neighbour)
@@ -264,6 +310,19 @@ class ChApi ChCollisionModelBullet : public ChCollisionModel {
     /// sphere is found in this collision shape, return false).
     /// It can also change the outward envelope; the inward margin is automatically the radius of the sphere.
     bool SetSphereRadius(double coll_radius, double out_envelope);
+
+    /// Return the position and orientation of the collision shape with specified index, relative to the model frame.
+    virtual ChCoordsys<> GetShapePos(int index) const override;
+
+    /// Return shape characteristic dimensions.
+    /// The following collision shapes are supported:
+    /// <pre>
+    /// SPHERE       radius
+    /// BOX          x-halfdim y-halfdim z-halfdim
+    /// ELLIPSOID    x-radius y-radius z-radius
+    /// CYLINDER     x-radius z-radius halflength
+    /// </pre>
+    virtual std::vector<double> GetShapeDimensions(int index) const override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
