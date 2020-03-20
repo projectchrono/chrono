@@ -40,7 +40,7 @@ int main(int argc, char* argv[]) {
     system.Set_G_acc(ChVector<>(0, 0, -9.81));
 
     // Create the ground body
-    auto ground = chrono_types::make_shared<ChBodyEasyBox>(0.6, 0.6, 0.15, 10000, false, true);
+    auto ground = chrono_types::make_shared<ChBodyEasyBox>(0.6, 0.6, 0.15, 10000, true, false);
     system.Add(ground);
     ground->SetBodyFixed(true);
     
@@ -49,7 +49,7 @@ int main(int argc, char* argv[]) {
     // Create a moving body that will 'bounce' thanks to a flexible bushing.
     // Give it an initial angular velocity and attach also a small sphere 
     // to show the anchoring of the bushing.
-    auto body = chrono_types::make_shared<ChBodyEasyBox>(0.9, 0.9, 0.15, 1000, false, true);
+    auto body = chrono_types::make_shared<ChBodyEasyBox>(0.9, 0.9, 0.15, 1000, true, false);
     system.Add(body);
     body->SetBodyFixed(false);
     body->SetPos(ChVector<>(1.0, 0.0, 0.0));

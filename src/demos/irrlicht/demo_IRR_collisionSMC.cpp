@@ -37,6 +37,9 @@ using namespace irr::io;
 using namespace irr::gui;
 
 void AddFallingItems(ChIrrApp& application) {
+    // Shared contact material for falling objects
+    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+
     for (int ix = -2; ix < 3; ix++) {
         for (int iz = -2; iz < 3; iz++) {
             // Spheres
@@ -49,7 +52,7 @@ void AddFallingItems(ChIrrApp& application) {
                 body->SetPos(ChVector<>(4.0 * ix, 4.0, 4.0 * iz));
 
                 body->GetCollisionModel()->ClearModel();
-                body->GetCollisionModel()->AddSphere(radius);
+                body->GetCollisionModel()->AddSphere(mat, radius);
                 body->GetCollisionModel()->BuildModel();
                 body->SetCollide(true);
 
@@ -71,7 +74,7 @@ void AddFallingItems(ChIrrApp& application) {
                 body->SetPos(ChVector<>(4.0 * ix, 6.0, 4.0 * iz));
 
                 body->GetCollisionModel()->ClearModel();
-                body->GetCollisionModel()->AddBox(hsize.x(), hsize.y(), hsize.z());
+                body->GetCollisionModel()->AddBox(mat, hsize.x(), hsize.y(), hsize.z());
                 body->GetCollisionModel()->BuildModel();
                 body->SetCollide(true);
 
@@ -87,12 +90,13 @@ void AddFallingItems(ChIrrApp& application) {
 }
 
 void AddContainerWall(std::shared_ptr<ChBody> body,
-                      const ChVector<>& pos,
+                      std::shared_ptr<ChMaterialSurface> mat,
                       const ChVector<>& size,
+                      const ChVector<>& pos,
                       bool visible = true) {
     ChVector<> hsize = 0.5 * size;
 
-    body->GetCollisionModel()->AddBox(hsize.x(), hsize.y(), hsize.z(), pos);
+    body->GetCollisionModel()->AddBox(mat, hsize.x(), hsize.y(), hsize.z(), pos);
 
     if (visible) {
         auto box = chrono_types::make_shared<ChBoxShape>();
@@ -113,12 +117,15 @@ void AddContainer(ChIrrApp& application) {
     fixedBody->SetPos(ChVector<>());
     fixedBody->SetCollide(true);
 
+    // Contact material for container
+    auto fixed_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+
     fixedBody->GetCollisionModel()->ClearModel();
-    AddContainerWall(fixedBody, ChVector<>(0, -5, 0), ChVector<>(20, 1, 20));
-    AddContainerWall(fixedBody, ChVector<>(-10, 0, 0), ChVector<>(1, 10, 20.99));
-    AddContainerWall(fixedBody, ChVector<>(10, 0, 0), ChVector<>(1, 10, 20.99));
-    AddContainerWall(fixedBody, ChVector<>(0, 0, -10), ChVector<>(20.99, 10, 1), false);
-    AddContainerWall(fixedBody, ChVector<>(0, 0, 10), ChVector<>(20.99, 10, 1));
+    AddContainerWall(fixedBody, fixed_mat, ChVector<>(20, 1, 20), ChVector<>(0, -5, 0));
+    AddContainerWall(fixedBody, fixed_mat, ChVector<>(1, 10, 20.99), ChVector<>(-10, 0, 0));
+    AddContainerWall(fixedBody, fixed_mat, ChVector<>(1, 10, 20.99), ChVector<>(10, 0, 0));
+    AddContainerWall(fixedBody, fixed_mat, ChVector<>(20.99, 10, 1), ChVector<>(0, 0, -10), false);
+    AddContainerWall(fixedBody, fixed_mat, ChVector<>(20.99, 10, 1), ChVector<>(0, 0, 10));
     fixedBody->GetCollisionModel()->BuildModel();
 
     application.GetSystem()->AddBody(fixedBody);
@@ -131,10 +138,13 @@ void AddContainer(ChIrrApp& application) {
     rotatingBody->SetPos(ChVector<>(0, -1.6, 0));
     rotatingBody->SetCollide(true);
 
+    // Contact material for mixer body
+    auto rot_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+
     ChVector<> hsize(5, 2.75, 0.5);
 
     rotatingBody->GetCollisionModel()->ClearModel();
-    rotatingBody->GetCollisionModel()->AddBox(hsize.x(), hsize.y(), hsize.z());
+    rotatingBody->GetCollisionModel()->AddBox(rot_mat, hsize.x(), hsize.y(), hsize.z());
     rotatingBody->GetCollisionModel()->BuildModel();
 
     auto box = chrono_types::make_shared<ChBoxShape>();

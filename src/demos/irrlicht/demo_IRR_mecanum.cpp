@@ -106,23 +106,23 @@ class MyEventReceiver : public IEventReceiver {
 // wheel and the many radial rollers, already lined to the wheel with revolute joints.)
 // The function returns the pointer to the central wheel.
 std::shared_ptr<ChBody> create_mecanum_wheel(ChSystemNSC& mphysicalSystem,
-                                      ChVector<> shaft_position,
-                                      ChQuaternion<> shaft_alignment,
-                                      double wheel_radius,
-                                      double wheel_width,
-                                      int n_rollers,
-                                      double roller_angle,
-                                      double roller_midradius,
-                                      double roller_density,
-                                      double spindle_density) {
+                                             ChVector<> shaft_position,
+                                             ChQuaternion<> shaft_alignment,
+                                             double wheel_radius,
+                                             double wheel_width,
+                                             int n_rollers,
+                                             double roller_angle,
+                                             double roller_midradius,
+                                             double roller_density,
+                                             double spindle_density) {
     ChFrameMoving<> ftot(shaft_position, shaft_alignment);  // will be used to transform pos & rot of all objects
 
-	auto mCentralWheel = chrono_types::make_shared<ChBodyEasyCylinder>(
-														wheel_radius/2, wheel_width, // radius, height
-														spindle_density, // density
-														false, true); // collide, visualize
-	mCentralWheel->SetPos(shaft_position);
-	mCentralWheel->SetRot(shaft_alignment);
+    auto mCentralWheel = chrono_types::make_shared<ChBodyEasyCylinder>(wheel_radius / 2, wheel_width,  // radius, height
+                                                                       spindle_density,                // density
+                                                                       true,                           // visualize
+                                                                       false);                         // no collision
+    mCentralWheel->SetPos(shaft_position);
+    mCentralWheel->SetRot(shaft_alignment);
     mCentralWheel->GetMaterialSurfaceNSC()->SetFriction(STATIC_wheelfriction);
 	mphysicalSystem.Add(mCentralWheel);
 
@@ -130,7 +130,8 @@ std::shared_ptr<ChBody> create_mecanum_wheel(ChSystemNSC& mphysicalSystem,
     mtexturepw->SetTextureFilename(GetChronoDataFile("pinkwhite.png"));
     mCentralWheel->AddAsset(mtexturepw);
 
-
+    auto wheel_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    wheel_mat->SetFriction(STATIC_wheelfriction);
 
     double half_length_roller = 0.5 * wheel_width * 1.0 / (cos(roller_angle));
     double roller_elliptical_rad_Hor = wheel_radius;
@@ -142,7 +143,7 @@ std::shared_ptr<ChBody> create_mecanum_wheel(ChSystemNSC& mphysicalSystem,
 		double Roffset = -(wheel_radius - roller_midradius);
 
         // Create the roller
-		auto mRoller = chrono_types::make_shared<ChBody>(); // collide, visualize
+		auto mRoller = chrono_types::make_shared<ChBody>();
 		mphysicalSystem.Add(mRoller);
 
 		// move it to slanted aligment
@@ -158,17 +159,23 @@ std::shared_ptr<ChBody> create_mecanum_wheel(ChSystemNSC& mphysicalSystem,
 		mRoller->SetMass(utils::CalcCylinderVolume(roller_elliptical_rad_Hor + Roffset, 2 * half_length_roller) * roller_density);
 		mRoller->SetInertia(utils::CalcCylinderGyration(roller_elliptical_rad_Hor + Roffset, 2 * half_length_roller) * roller_density);
 
-		// add collision shape
-		mRoller->GetCollisionModel()->ClearModel();
-		mRoller->GetCollisionModel()->AddBarrel(-half_length_roller, +half_length_roller, roller_elliptical_rad_Vert, roller_elliptical_rad_Hor, Roffset);
-		mRoller->GetCollisionModel()->BuildModel();
-		mRoller->SetCollide(true);
+        // add collision shape
+        mRoller->GetCollisionModel()->ClearModel();
+        mRoller->GetCollisionModel()->AddBarrel(wheel_mat,                                              //
+                                                -half_length_roller, +half_length_roller,               //
+                                                roller_elliptical_rad_Vert, roller_elliptical_rad_Hor,  //
+                                                Roffset);
+        mRoller->GetCollisionModel()->BuildModel();
+        mRoller->SetCollide(true);
 
-		// add visualization shape
-		auto mrollershape = chrono_types::make_shared<ChBarrelShape>(-half_length_roller,+half_length_roller, roller_elliptical_rad_Vert, roller_elliptical_rad_Hor, Roffset);
-		mRoller->AddAsset(mrollershape);
+        // add visualization shape
+        auto mrollershape =
+            chrono_types::make_shared<ChBarrelShape>(-half_length_roller, +half_length_roller,               //
+                                                     roller_elliptical_rad_Vert, roller_elliptical_rad_Hor,  //
+                                                     Roffset);
+        mRoller->AddAsset(mrollershape);
 
-		// Make the revolute joint between the roller and the central wheel
+        // Make the revolute joint between the roller and the central wheel
         // (preconcatenate rotation 90 degrees on X, to set axis of revolute joint)
         ChFrameMoving<> fr(ChVector<>(0, 0, 0), Q_from_AngAxis(CH_C_PI / 2.0, ChVector<>(1, 0, 0)));
         ChFrameMoving<> frabs = fr >> f3;
@@ -211,11 +218,11 @@ int main(int argc, char* argv[]) {
     double roller_angle = CH_C_PI / 4;
 
     // Create the robot truss, as a circular platform
-	auto mTrussPlatform = chrono_types::make_shared<ChBodyEasyCylinder>(
-														platform_radius * 0.7, 2, // radius, height
-														1000, // density
-														false, true); // collide, visualize
-	mphysicalSystem.Add(mTrussPlatform);
+    auto mTrussPlatform = chrono_types::make_shared<ChBodyEasyCylinder>(platform_radius * 0.7, 2,  // radius, height
+                                                                        1000,                      // density
+                                                                        true,                      // visualize
+                                                                        false);                    // no collision
+    mphysicalSystem.Add(mTrussPlatform);
 
 	
 
@@ -286,12 +293,16 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.AddLink(my_link_shaftC);
 
     // Create the ground for the collision
-	auto ground = chrono_types::make_shared<ChBodyEasyBox>(
-														200, 1, 200, // size
-														1000, // density
-														true, true); // collide, visualize
-	ground->SetPos(ChVector<>(0, -5, 0));
-	ground->SetBodyFixed(true);
+    auto ground_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    ground_mat->SetFriction(STATIC_wheelfriction);
+
+    auto ground = chrono_types::make_shared<ChBodyEasyBox>(200, 1, 200,  // size
+                                                           1000,         // density
+                                                           true,         // visualize
+                                                           true,         // collide
+                                                           ground_mat);  // contact material
+    ground->SetPos(ChVector<>(0, -5, 0));
+    ground->SetBodyFixed(true);
     ground->GetMaterialSurfaceNSC()->SetFriction(STATIC_wheelfriction);
 	mphysicalSystem.Add(ground);
 

@@ -77,25 +77,31 @@ int main(int argc, char** argv) {
     system.GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
     system.GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
 
-    // Create the container body.
-    // Note that Chrono::Parallel uses the *minimum* of the spinning and rolling friction values for a contacting pair.
+    // Create the container body
     auto container = std::shared_ptr<ChBody>(system.NewBody());
     system.Add(container);
     container->SetPos(ChVector<>(0, 0, 0));
     container->SetBodyFixed(true);
     container->SetIdentifier(-1);
+    container->SetCollide(true);
+
+    // Set rolling and friction coefficients for the container.
+    // By default, the composite material will use the minimum value for an interacting collision pair.
+    auto bin_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    bin_mat->SetFriction(0.6f);
+    bin_mat->SetRollingFriction(1);
+    bin_mat->SetSpinningFriction(1);
 
     container->GetMaterialSurfaceNSC()->SetFriction(0.6f);
     container->GetMaterialSurfaceNSC()->SetRollingFriction(1);
     container->GetMaterialSurfaceNSC()->SetSpinningFriction(1);
 
-    container->SetCollide(true);
     container->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(container.get(), ChVector<>(20, 1, 20) / 2.0, ChVector<>(0, -1, 0));
-    utils::AddBoxGeometry(container.get(), ChVector<>(1, 2, 20.99) / 2.0, ChVector<>(-10, 0, 0));
-    utils::AddBoxGeometry(container.get(), ChVector<>(1, 2, 20.99) / 2.0, ChVector<>(10, 0, 0));
-    utils::AddBoxGeometry(container.get(), ChVector<>(20.99, 2, 1) / 2.0, ChVector<>(0, 0, -10));
-    utils::AddBoxGeometry(container.get(), ChVector<>(20.99, 2, 1) / 2.0, ChVector<>(0, 0, 10));
+    utils::AddBoxGeometry(container.get(), ChVector<>(20, 1, 20) / 2.0, bin_mat, ChVector<>(0, -1, 0));
+    utils::AddBoxGeometry(container.get(), ChVector<>(1, 2, 20.99) / 2.0, bin_mat, ChVector<>(-10, 0, 0));
+    utils::AddBoxGeometry(container.get(), ChVector<>(1, 2, 20.99) / 2.0, bin_mat, ChVector<>(10, 0, 0));
+    utils::AddBoxGeometry(container.get(), ChVector<>(20.99, 2, 1) / 2.0, bin_mat, ChVector<>(0, 0, -10));
+    utils::AddBoxGeometry(container.get(), ChVector<>(20.99, 2, 1) / 2.0, bin_mat, ChVector<>(0, 0, 10));
     container->GetCollisionModel()->BuildModel();
 
     // Create some spheres that roll horizontally, with increasing rolling friction values
@@ -106,6 +112,10 @@ int main(int argc, char** argv) {
     double initial_linspeed = initial_angspeed * radius;
 
     for (int bi = 0; bi < 10; bi++) {
+        auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        mat->SetFriction(0.4f);
+        mat->SetRollingFriction(((float)bi / 10) * 0.05f);
+
         auto ball = std::shared_ptr<ChBody>(system.NewBody());
         ball->SetIdentifier(bi);
         ball->SetMass(mass);
@@ -119,7 +129,7 @@ int main(int argc, char** argv) {
         // Contact geometry
         ball->SetCollide(true);
         ball->GetCollisionModel()->ClearModel();
-        utils::AddSphereGeometry(ball.get(), radius);
+        utils::AddSphereGeometry(ball.get(), radius, mat);
         ball->GetCollisionModel()->BuildModel();
 
         // Sliding and rolling friction coefficients
@@ -132,6 +142,10 @@ int main(int argc, char** argv) {
 
     // Create some spheres that spin in place, with increasing spinning friction values
     for (int bi = 0; bi < 10; bi++) {
+        auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        mat->SetFriction(0.4f);
+        mat->SetSpinningFriction(((float)bi / 10) * 0.02f);
+
         auto ball = std::shared_ptr<ChBody>(system.NewBody());
         ball->SetIdentifier(bi);
         ball->SetMass(mass);
@@ -145,7 +159,7 @@ int main(int argc, char** argv) {
         // Contact geometry
         ball->SetCollide(true);
         ball->GetCollisionModel()->ClearModel();
-        utils::AddSphereGeometry(ball.get(), radius);
+        utils::AddSphereGeometry(ball.get(), radius, mat);
         ball->GetCollisionModel()->BuildModel();
 
         // Sliding and rolling friction coefficients

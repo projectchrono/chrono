@@ -35,8 +35,8 @@ using namespace irr::video;
 using namespace irr::io;
 using namespace irr::gui;
 
-void AddWall(std::shared_ptr<ChBody> body, const ChVector<>& dim, const ChVector<>& loc) {
-    body->GetCollisionModel()->AddBox(dim.x(), dim.y(), dim.z(), loc);
+void AddWall(std::shared_ptr<ChBody> body, const ChVector<>& dim, const ChVector<>& loc, std::shared_ptr<ChMaterialSurface> mat) {
+    body->GetCollisionModel()->AddBox(mat, dim.x(), dim.y(), dim.z(), loc);
 
     auto box = chrono_types::make_shared<ChBoxShape>();
     box->GetBoxGeometry().Size = dim;
@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
     ball->SetCollide(true);
 
     ball->GetCollisionModel()->ClearModel();
-    ball->GetCollisionModel()->AddSphere(radius);
+    ball->GetCollisionModel()->AddSphere(material, radius);
     ball->GetCollisionModel()->BuildModel();
 
     ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector<>(1, 1, 1));
@@ -143,11 +143,11 @@ int main(int argc, char* argv[]) {
     bin->SetMaterialSurface(material);
 
     bin->GetCollisionModel()->ClearModel();
-    AddWall(bin, ChVector<>(width, thickness, length), ChVector<>(0, 0, 0));
-    // AddWall(bin, ChVector<>(thickness, height, length), ChVector<>(-width + thickness, height, 0));
-    // AddWall(bin, ChVector<>(thickness, height, length), ChVector<>(width - thickness, height, 0));
-    // AddWall(bin, ChVector<>(width, height, thickness), ChVector<>(0, height, -length + thickness));
-    // AddWall(bin, ChVector<>(width, height, thickness), ChVector<>(0, height, length - thickness));
+    AddWall(bin, ChVector<>(width, thickness, length), ChVector<>(0, 0, 0), material);
+    ////AddWall(bin, ChVector<>(thickness, height, length), ChVector<>(-width + thickness, height, 0), material);
+    ////AddWall(bin, ChVector<>(thickness, height, length), ChVector<>(width - thickness, height, 0), material);
+    ////AddWall(bin, ChVector<>(width, height, thickness), ChVector<>(0, height, -length + thickness), material);
+    ////AddWall(bin, ChVector<>(width, height, thickness), ChVector<>(0, height, length - thickness), material);
     bin->GetCollisionModel()->BuildModel();
 
     msystem.AddBody(bin);

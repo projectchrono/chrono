@@ -132,7 +132,7 @@ ContactForceTest::ContactForceTest() {
         ball->SetMaterialSurface(material);
 
         ball->GetCollisionModel()->ClearModel();
-        ball->GetCollisionModel()->AddSphere(radius);
+        ball->GetCollisionModel()->AddSphere(material, radius);
         ball->GetCollisionModel()->BuildModel();
 
         auto sphere = chrono_types::make_shared<ChSphereShape>();

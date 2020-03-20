@@ -58,22 +58,26 @@ int main(int argc, char* argv[]) {
     // Create a texture asset. It can be shared between bodies.
     auto textureasset = chrono_types::make_shared<ChTexture>(GetChronoDataFile("bluwhite.png"));
 
-    // Create some spheres that roll horizontally,
-    // with increasing rolling friction values
+    // Create some spheres that roll horizontally, with increasing rolling friction values
     for (int bi = 0; bi < 10; bi++) {
-        double initial_angspeed = 10;
-        double initial_linspeed = initial_angspeed * mradius;
+        auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        mat->SetFriction(0.4f);
+        mat->SetRollingFriction(((float)bi / 10) * 0.05f);
 
         auto msphereBody = chrono_types::make_shared<ChBodyEasySphere>(mradius,  // radius size
                                                                        1000,     // density
-                                                                       true,     // collide enable?
-                                                                       true);    // visualization?
+                                                                       true,     // visualization?
+                                                                       true,     // collision?
+                                                                       mat);     // contact material
+
         // Set some properties
         msphereBody->SetPos(ChVector<>(-7, mradius - 0.5, -5 + bi * mradius * 2.5));
         msphereBody->GetMaterialSurfaceNSC()->SetFriction(0.4f);
         msphereBody->AddAsset(textureasset);  // assets can be shared
 
-        // Set initial speed: rolling in horizontal direction,
+        // Set initial speed: rolling in horizontal direction
+        double initial_angspeed = 10;
+        double initial_linspeed = initial_angspeed * mradius;
         msphereBody->SetWvel_par(ChVector<>(0, 0, -initial_angspeed));
         msphereBody->SetPos_dt(ChVector<>(initial_linspeed, 0, 0));
 
@@ -84,13 +88,16 @@ int main(int argc, char* argv[]) {
         mphysicalSystem.Add(msphereBody);
     }
 
-    // Create some spheres that spin on place, for a 'drilling friction' case,
-    // with increasing spinning friction values
+    // Create some spheres that spin on place, for a 'drilling friction' case, with increasing spinning friction values
     for (int bi = 0; bi < 10; bi++) {
+        auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        mat->SetSpinningFriction(((float)bi / 10) * 0.02f);
+
         auto msphereBody = chrono_types::make_shared<ChBodyEasySphere>(mradius,  // radius size
                                                                        1000,     // density
-                                                                       true,     // collide enable?
-                                                                       true);    // visualization?
+                                                                       true,     // visualization?
+                                                                       true,     // collision?
+                                                                       mat);     // contact material
         // Set some properties
         msphereBody->SetPos(ChVector<>(-8, 1 + mradius - 0.5, -5 + bi * mradius * 2.5));
         msphereBody->GetMaterialSurfaceNSC()->SetFriction(0.4f);
@@ -121,18 +128,22 @@ int main(int argc, char* argv[]) {
 
     // Set rolling and friction coefficients for the container.
     // By default, the composite material will use the minimum value for an interacting collision pair.
+    auto bin_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    bin_mat->SetRollingFriction(1);
+    bin_mat->SetSpinningFriction(1);
+
     bin->GetMaterialSurfaceNSC()->SetRollingFriction(1);
     bin->GetMaterialSurfaceNSC()->SetSpinningFriction(1);
 
     // Add collision geometry and visualization shapes for the floor and the 4 walls
     bin->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(bin.get(), ChVector<>(20, 1, 20) / 2.0, ChVector<>(0, 0, 0));
-    utils::AddBoxGeometry(bin.get(), ChVector<>(1, 2, 20.99) / 2.0, ChVector<>(-10, 1, 0));
-    utils::AddBoxGeometry(bin.get(), ChVector<>(1, 2, 20.99) / 2.0, ChVector<>(10, 1, 0));
-    utils::AddBoxGeometry(bin.get(), ChVector<>(20.99, 2, 1) / 2.0, ChVector<>(0, 1, -10));
-    utils::AddBoxGeometry(bin.get(), ChVector<>(20.99, 2, 1) / 2.0, ChVector<>(0, 1, 10));
+    utils::AddBoxGeometry(bin.get(), ChVector<>(20, 1, 20) / 2.0, bin_mat, ChVector<>(0, 0, 0));
+    utils::AddBoxGeometry(bin.get(), ChVector<>(1, 2, 20.99) / 2.0, bin_mat, ChVector<>(-10, 1, 0));
+    utils::AddBoxGeometry(bin.get(), ChVector<>(1, 2, 20.99) / 2.0, bin_mat, ChVector<>(10, 1, 0));
+    utils::AddBoxGeometry(bin.get(), ChVector<>(20.99, 2, 1) / 2.0, bin_mat, ChVector<>(0, 1, -10));
+    utils::AddBoxGeometry(bin.get(), ChVector<>(20.99, 2, 1) / 2.0, bin_mat, ChVector<>(0, 1, 10));
     bin->GetCollisionModel()->BuildModel();
-    
+
     bin->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("blu.png")));
 
     mphysicalSystem.Add(bin);

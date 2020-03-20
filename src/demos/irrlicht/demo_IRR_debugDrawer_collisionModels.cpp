@@ -88,24 +88,27 @@ int main(int argc, char* argv[]) {
     ChIrrWizard::add_typical_Lights(application.GetDevice());
     ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0, 10, 5));
 
-    auto ground = chrono_types::make_shared<ChBodyEasyBox>(10, 3, 10, 100, true, true);
+    // Shared contact material
+    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+
+    auto ground = chrono_types::make_shared<ChBodyEasyBox>(10, 3, 10, 100, true, true, mat);
     ground->SetBodyFixed(true);
     ground->SetPos(ChVector<>(0.0, 0.0, 0.0));
     my_system.AddBody(ground);
 
-    auto cyl1 = chrono_types::make_shared<ChBodyEasyCylinder>(0.5, 1.0, 100, true, true);
+    auto cyl1 = chrono_types::make_shared<ChBodyEasyCylinder>(0.5, 1.0, 100, true, true, mat);
     cyl1->SetPos(ChVector<>(0.0, 3.0, 0.0));
     my_system.AddBody(cyl1);
 
-    auto box1 = chrono_types::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 100, true, true);
+    auto box1 = chrono_types::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 100, true, true, mat);
     box1->SetPos(ChVector<>(0.2, 1.0, 0.0));
     my_system.AddBody(box1);
 
-    auto shpere = chrono_types::make_shared<ChBodyEasySphere>(0.25, 100.0, true, true);
+    auto shpere = chrono_types::make_shared<ChBodyEasySphere>(0.25, 100.0, true, true, mat);
     shpere->SetPos(ChVector<>(-0.2, 1.0, 1.0));
     my_system.AddBody(shpere);
 
-    auto ellipse = chrono_types::make_shared<ChBodyEasyEllipsoid>(ChVector<>(0.2, 0.4, 0.6),  100.0, true, true);
+    auto ellipse = chrono_types::make_shared<ChBodyEasyEllipsoid>(ChVector<>(0.2, 0.4, 0.6),  100.0, true, true, mat);
     ellipse->SetPos(ChVector<>(0.2, 1.0, -1.0));
     my_system.AddBody(ellipse);
 

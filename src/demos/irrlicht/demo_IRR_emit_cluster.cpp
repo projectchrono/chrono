@@ -83,14 +83,15 @@ int main(int argc, char* argv[]) {
     // CREATE THE SYSTEM OBJECTS
     //
 
-    // Example: create a ChBody rigid body (trick: using the ChBodyEasyXXYYZZ
-    // functions it also sets mass and inertia tensor for you, and collision
-    // and visualization shapes are added automatically)
+    // Example: create a ChBody rigid body.
+    auto sphere_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    sphere_mat->SetFriction(0.2f);
 
-    auto msphereBody = chrono_types::make_shared<ChBodyEasySphere>(2.1,    // radius size
-                                                          1800,   // density
-                                                          true,   // collide enable?
-                                                          true);  // visualization?
+    auto msphereBody = chrono_types::make_shared<ChBodyEasySphere>(2.1,          // radius size
+                                                                   1800,         // density
+                                                                   true,         // visualization?
+                                                                   true,         // collision?
+                                                                   sphere_mat);  // contact material
     msphereBody->SetPos(ChVector<>(1, 1, 0));
     msphereBody->GetMaterialSurfaceNSC()->SetFriction(0.2f);
 

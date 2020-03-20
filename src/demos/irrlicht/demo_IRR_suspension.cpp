@@ -121,8 +121,14 @@ class MySimpleCar {
         auto texture = chrono_types::make_shared<ChTexture>();
         texture->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
 
+        // Contact materials for the various components
+        auto chassis_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+
+        auto wheel_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        wheel_mat->SetFriction(1.0f);
+
         // --- The car body ---
-        chassis = chrono_types::make_shared<ChBodyEasyBox>(1, 0.5, 3, 1.0, true, true);
+        chassis = chrono_types::make_shared<ChBodyEasyBox>(1, 0.5, 3, 1.0, true, true, chassis_mat);
         chassis->SetPos(ChVector<>(0, 1, 0));
         chassis->SetMass(150);
         chassis->SetInertiaXX(ChVector<>(4.8, 4.5, 1));
@@ -132,14 +138,14 @@ class MySimpleCar {
         // --- Right Front suspension ---
 
         // ..the car right-front spindle
-        spindleRF = chrono_types::make_shared<ChBodyEasyBox>(0.1, 0.4, 0.4, 1.0, false, true);
+        spindleRF = chrono_types::make_shared<ChBodyEasyBox>(0.1, 0.4, 0.4, 1.0, true, false);
         spindleRF->SetPos(ChVector<>(1.3, 1, 1));
         spindleRF->SetMass(8);
         spindleRF->SetInertiaXX(ChVector<>(0.2, 0.2, 0.2));
         my_system.AddBody(spindleRF);
 
         // ..the car right-front wheel
-        wheelRF = chrono_types::make_shared<ChBodyEasyCylinder>(0.45, 0.3, 1.0, true, true);
+        wheelRF = chrono_types::make_shared<ChBodyEasyCylinder>(0.45, 0.3, 1.0, true, true, wheel_mat);
         wheelRF->SetPos(ChVector<>(1.5, 1, 1));
         wheelRF->SetRot(chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Z));
         wheelRF->SetMass(3);
@@ -186,14 +192,14 @@ class MySimpleCar {
         // --- Left Front suspension ---
 
         // ..the car right-front spindle
-        spindleLF = chrono_types::make_shared<ChBodyEasyBox>(0.1, 0.4, 0.4, 1.0, false, true);
+        spindleLF = chrono_types::make_shared<ChBodyEasyBox>(0.1, 0.4, 0.4, 1.0, true, false);
         spindleLF->SetPos(ChVector<>(-1.3, 1, 1));
         spindleLF->SetMass(8);
         spindleLF->SetInertiaXX(ChVector<>(0.2, 0.2, 0.2));
         my_system.AddBody(spindleLF);
 
         // ..the car left-front wheel
-        wheelLF = chrono_types::make_shared<ChBodyEasyCylinder>(0.45, 0.3, 1.0, true, true);
+        wheelLF = chrono_types::make_shared<ChBodyEasyCylinder>(0.45, 0.3, 1.0, true, true, wheel_mat);
         wheelLF->SetPos(ChVector<>(-1.5, 1, 1));
         wheelLF->SetRot(chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Z));
         wheelLF->SetMass(3);
@@ -241,14 +247,14 @@ class MySimpleCar {
         // --- Right Back suspension ---
 
         // ..the car right-back spindle
-        spindleRB = chrono_types::make_shared<ChBodyEasyBox>(0.1, 0.4, 0.4, 1.0, false, true);
+        spindleRB = chrono_types::make_shared<ChBodyEasyBox>(0.1, 0.4, 0.4, 1.0, true, false);
         spindleRB->SetPos(ChVector<>(1.3, 1, -1));
         spindleRB->SetMass(8);
         spindleRB->SetInertiaXX(ChVector<>(0.2, 0.2, 0.2));
         my_system.AddBody(spindleRB);
 
         // ..the car right-back wheel
-        wheelRB = chrono_types::make_shared<ChBodyEasyCylinder>(0.45, 0.3, 1.0, true, true);
+        wheelRB = chrono_types::make_shared<ChBodyEasyCylinder>(0.45, 0.3, 1.0, true, true, wheel_mat);
         wheelRB->SetPos(ChVector<>(1.5, 1, -1));
         wheelRB->SetRot(chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Z));
         wheelRB->SetMass(3);
@@ -302,14 +308,14 @@ class MySimpleCar {
         // --- Left Back suspension ---
 
         // ..the car right-back spindle
-        spindleLB = chrono_types::make_shared<ChBodyEasyBox>(0.1, 0.4, 0.4, 1.0, false, true);
+        spindleLB = chrono_types::make_shared<ChBodyEasyBox>(0.1, 0.4, 0.4, 1.0, true, false);
         spindleLB->SetPos(ChVector<>(-1.3, 1, -1));
         spindleLB->SetMass(8);
         spindleLB->SetInertiaXX(ChVector<>(0.2, 0.2, 0.2));
         my_system.AddBody(spindleLB);
 
         // ..the car left-back wheel
-        wheelLB = chrono_types::make_shared<ChBodyEasyCylinder>(0.45, 0.3, 1.0, true, true);
+        wheelLB = chrono_types::make_shared<ChBodyEasyCylinder>(0.45, 0.3, 1.0, true, true, wheel_mat);
         wheelLB->SetPos(ChVector<>(-1.5, 1, -1));
         wheelLB->SetRot(chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Z));
         wheelLB->SetMass(3);
@@ -366,9 +372,6 @@ class MySimpleCar {
     // removes constraints from the system.
     ~MySimpleCar() {
         ChSystem* mysystem = spindleRF->GetSystem();  // trick to get the system here
-        // When a ChBodySceneNode is removed via ->remove() from Irrlicht 3D scene manager,
-        // it is also automatically removed from the ChSystemNSC (the ChSystemNSC::RemoveBody() is
-        // automatically called at Irrlicht node deletion - see ChBodySceneNode.h ).
 
         // For links, just remove them from the ChSystemNSC using ChSystemNSC::RemoveLink()
         mysystem->RemoveLink(link_revoluteRF);
@@ -621,7 +624,15 @@ int main(int argc, char* argv[]) {
     auto texture = chrono_types::make_shared<ChTexture>();
     texture->SetTextureFilename(GetChronoDataFile("blu.png"));
 
-    auto my_ground = chrono_types::make_shared<ChBodyEasyBox>(60, 2, 60, 1.0, true, true);
+    // ..contact materials
+    auto ground_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    ground_mat->SetSfriction(1.0);
+    ground_mat->SetKfriction(1.0);
+
+    auto obstacle_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+
+    // ..ground body
+    auto my_ground = chrono_types::make_shared<ChBodyEasyBox>(60, 2, 60, 1.0, true, true, ground_mat);
     my_ground->SetPos(ChVector<>(0, -1, 0));
     my_ground->SetBodyFixed(true);
     my_ground->GetMaterialSurfaceNSC()->SetSfriction(1.0);
@@ -629,9 +640,9 @@ int main(int argc, char* argv[]) {
     my_ground->AddAsset(texture);
     my_system.AddBody(my_ground);
 
-    // ..some obstacles on the ground:
+    // ..some obstacles on the ground
     for (int i = 0; i < 6; i++) {
-        auto my_obstacle = chrono_types::make_shared<ChBodyEasyBox>(1, 0.1, 0.5, 60.0, true, true);
+        auto my_obstacle = chrono_types::make_shared<ChBodyEasyBox>(1, 0.1, 0.5, 60.0, true, true, obstacle_mat);
         my_obstacle->SetPos(ChVector<>(20 * ChRandom(), 2, 20 * ChRandom()));
         my_obstacle->SetMass(3);
         my_system.AddBody(my_obstacle);
@@ -733,8 +744,8 @@ int main(int argc, char* argv[]) {
         // Enforce soft real-time
         realtime_timer.Spin(time_step);
 
-            // Irrlicht must finish drawing the frame
-            application.EndScene();
+        // Irrlicht must finish drawing the frame
+        application.EndScene();
     }
 
     if (mycar)

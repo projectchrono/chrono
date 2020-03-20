@@ -63,8 +63,9 @@ int main(int argc, char* argv[]) {
     //
 
     // Create the floor:
+    auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
-    auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true);
+    auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true, floor_mat);
     floorBody->SetPos(ChVector<>(0, -5, 0));
     floorBody->SetBodyFixed(true);
 
