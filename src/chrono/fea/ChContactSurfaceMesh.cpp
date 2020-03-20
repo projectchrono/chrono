@@ -375,7 +375,9 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
 
             contact_triangle->GetCollisionModel()->ClearModel();
             ((collision::ChCollisionModelBullet*)contact_triangle->GetCollisionModel())
-                ->AddTriangleProxy(&nA->coord.pos, &nB->coord.pos, &nB->coord.pos, 0, 0, 0,  // no wing vertexes
+                ->AddTriangleProxy(matsurface,                                      // contact material
+                                   &nA->coord.pos, &nB->coord.pos, &nB->coord.pos,  // vertices
+                                   0, 0, 0,                                         // no wing vertexes
                                    false, false, false,  // are vertexes owned by this triangle?
                                    true, false, true,    // are edges owned by this triangle?
                                    mbeam->GetSection()->GetDrawCircularRadius());
@@ -400,9 +402,11 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
 
             contact_triangle->GetCollisionModel()->ClearModel();
             ((collision::ChCollisionModelBullet*)contact_triangle->GetCollisionModel())
-                ->AddTriangleProxy(&nA->pos, &nB->pos, &nB->pos, 0, 0, 0,  // no wing vertexes
-                                   false, false, false,                    // are vertexes owned by this triangle?
-                                   true, false, true,                      // are edges owned by this triangle?
+                ->AddTriangleProxy(matsurface,                    // contact materials
+                                   &nA->pos, &nB->pos, &nB->pos,  // vertices
+                                   0, 0, 0,                       // no wing vertexes
+                                   false, false, false,           // are vertexes owned by this triangle?
+                                   true, false, true,             // are edges owned by this triangle?
                                    mbeam->GetSection()->GetDrawCircularRadius());
             contact_triangle->GetCollisionModel()->BuildModel();
         }
@@ -760,7 +764,8 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
 
         contact_triangle->GetCollisionModel()->ClearModel();
         ((collision::ChCollisionModelBullet*)contact_triangle->GetCollisionModel())
-            ->AddTriangleProxy(&triangles[it][0]->pos, &triangles[it][1]->pos, &triangles[it][2]->pos,
+            ->AddTriangleProxy(matsurface,  // contact material
+                               &triangles[it][0]->pos, &triangles[it][1]->pos, &triangles[it][2]->pos,
                                // if no wing vertex (ie. 'free' edge), point to opposite vertex, ie vertex in triangle
                                // not belonging to edge
                                wingedgeA->second.second != -1 ? &i_wingvertex_A->pos : &triangles[it][2]->pos,
@@ -849,6 +854,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
         contact_triangle_rot->GetCollisionModel()->ClearModel();
         ((collision::ChCollisionModelBullet*)contact_triangle_rot->GetCollisionModel())
             ->AddTriangleProxy(
+                matsurface,  // contact material
                 &triangles_rot[it][0]->coord.pos, &triangles_rot[it][1]->coord.pos, &triangles_rot[it][2]->coord.pos,
                 // if no wing vertex (ie. 'free' edge), point to opposite vertex, ie vertex in triangle not belonging to
                 // edge

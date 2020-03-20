@@ -48,7 +48,7 @@ ChNodeSPH::~ChNodeSPH() {
 ChNodeSPH::ChNodeSPH(const ChNodeSPH& other) : ChNodeXYZ(other) {
     collision_model = new ChCollisionModelBullet;
     collision_model->SetContactable(this);
-    collision_model->AddPoint(other.coll_rad);
+    collision_model->AddPoint(other.container->GetMaterialSurface(), other.coll_rad);
     container = other.container;
     UserForce = other.UserForce;
     SetKernelRadius(other.h_rad);
@@ -68,7 +68,7 @@ ChNodeSPH& ChNodeSPH::operator=(const ChNodeSPH& other) {
     ChNodeXYZ::operator=(other);
 
     collision_model->ClearModel();
-    collision_model->AddPoint(other.coll_rad);
+    collision_model->AddPoint(other.container->GetMaterialSurface(), other.coll_rad);
     collision_model->SetContactable(this);
     container = other.container;
     UserForce = other.UserForce;
@@ -248,7 +248,7 @@ void ChMatterSPH::ResizeNnodes(int newsize) {
 
         nodes[j]->variables.SetUserData((void*)this);  // UserData unuseful in future cuda solver?
         //((ChCollisionModelBullet*)nodes[j]->collision_model)->SetContactable(nodes[j]);
-        nodes[j]->collision_model->AddPoint(0.001);  //***TEST***
+        nodes[j]->collision_model->AddPoint(matsurface, 0.001);  //***TEST***
         nodes[j]->collision_model->BuildModel();
     }
 
@@ -266,7 +266,7 @@ void ChMatterSPH::AddNode(ChVector<double> initial_state) {
 
     newp->variables.SetUserData((void*)this);  // UserData unuseful in future cuda solver?
 
-    newp->collision_model->AddPoint(0.1);  //***TEST***
+    newp->collision_model->AddPoint(matsurface, 0.1);  //***TEST***
     newp->collision_model->BuildModel();   // will also add to system, if collision is on.
 }
 

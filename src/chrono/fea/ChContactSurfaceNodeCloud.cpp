@@ -123,7 +123,7 @@ void ChContactSurfaceNodeCloud::AddNode(std::shared_ptr<ChNodeFEAxyz> mnode, con
 
     auto newp = chrono_types::make_shared<ChContactNodeXYZsphere>(mnode.get(), this);
 
-    newp->GetCollisionModel()->AddPoint(point_radius);
+    newp->GetCollisionModel()->AddPoint(matsurface, point_radius);
     newp->GetCollisionModel()->BuildModel();  // will also add to system, if collision is on.
 
     this->vnodes.push_back(newp);
@@ -135,7 +135,7 @@ void ChContactSurfaceNodeCloud::AddNode(std::shared_ptr<ChNodeFEAxyzrot> mnode, 
 
     auto newp = chrono_types::make_shared<ChContactNodeXYZROTsphere>(mnode.get(), this);
 
-    newp->GetCollisionModel()->AddPoint(point_radius);
+    newp->GetCollisionModel()->AddPoint(matsurface, point_radius);
     newp->GetCollisionModel()->BuildModel();  // will also add to system, if collision is on.
 
     this->vnodes_rot.push_back(newp);
