@@ -31,7 +31,6 @@
 #include "chrono/assets/ChLineShape.h"
 
 #include "chrono_irrlicht/ChApiIrr.h"
-#include "chrono_irrlicht/ChBodySceneNodeTools.h"
 #include "chrono_irrlicht/ChIrrNodeAsset.h"
 
 namespace chrono {

@@ -19,19 +19,15 @@ MARK_AS_ADVANCED(CLEAR IRRLICHT_LIBRARY)
 MARK_AS_ADVANCED(CLEAR IRRLICHT_ROOT)
 
 #-------------------------------------------------------------------------------
-# List all the files in the ChronoEngine_irrlicht library
-
+# List all the files in the ChronoEngine_irrlicht lib
 SET(ChronoEngine_IRRLICHT_SOURCES
   ChIrrApp.cpp
-  ChBodySceneNode.cpp
-  ChBodySceneNodeTools.cpp
   ChIrrAppInterface.cpp
   ChIrrAssetConverter.cpp
   ChIrrCamera.cpp
   ChIrrMeshTools.cpp
   ChIrrNode.cpp
   ChIrrNodeProxyToAsset.cpp
-  ChIrrParticlesSceneNode.cpp
   ChIrrTools.cpp
   ChIrrWizard.cpp
   ChIrrNodeAsset.cpp
@@ -39,15 +35,12 @@ SET(ChronoEngine_IRRLICHT_SOURCES
 
 SET(ChronoEngine_IRRLICHT_HEADERS
   ChApiIrr.h
-  ChBodySceneNode.h
-  ChBodySceneNodeTools.h
   ChIrrTools.h
   ChIrrAppInterface.h
   ChIrrApp.h
   ChIrrCamera.h
   ChIrrMeshTools.h
   ChIrrWizard.h
-  ChIrrParticlesSceneNode.h
   ChIrrAssetConverter.h
   ChIrrNode.h
   ChIrrNodeProxyToAsset.h
