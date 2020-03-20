@@ -513,18 +513,26 @@ void Generator::createObjects(const PointVector& points, const ChVector<>& vel) 
         // Select the type of object to be created.
         int index = selectIngredient();
 
-        // Create the body (with appropriate contact method and collision model, consistent
-        // with the associated system) and set contact material
-        ChBody* body = m_system->NewBody();
-
+        // Create a contact material consistent with the associated system and modify it based on attributes of the
+        // current ingredient.
+        std::shared_ptr<ChMaterialSurface> mat;
         switch (m_system->GetContactMethod()) {
-            case ChContactMethod::NSC:
-                m_mixture[index]->setMaterialProperties(body->GetMaterialSurfaceNSC());
+            case ChContactMethod::NSC: {
+                auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+                m_mixture[index]->setMaterialProperties(matNSC);
+                mat = matNSC;
                 break;
-            case ChContactMethod::SMC:
-                m_mixture[index]->setMaterialProperties(body->GetMaterialSurfaceSMC());
+            }
+            case ChContactMethod::SMC: {
+                auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+                m_mixture[index]->setMaterialProperties(matSMC);
+                mat = matSMC;
                 break;
+            }
         }
+
+        // Create the body (with appropriate collision model, consistent with the associated system)
+        ChBody* body = m_system->NewBody();
 
         // Set identifier
         body->SetIdentifier(m_crtBodyId++);
@@ -555,28 +563,28 @@ void Generator::createObjects(const PointVector& points, const ChVector<>& vel) 
 
         switch (m_mixture[index]->m_type) {
             case MixtureType::SPHERE:
-                AddSphereGeometry(body, size.x());
+                AddSphereGeometry(body, size.x(), mat);
                 break;
             case MixtureType::ELLIPSOID:
-                AddEllipsoidGeometry(body, size);
+                AddEllipsoidGeometry(body, size, mat);
                 break;
             case MixtureType::BOX:
-                AddBoxGeometry(body, size);
+                AddBoxGeometry(body, size, mat);
                 break;
             case MixtureType::CYLINDER:
-                AddCylinderGeometry(body, size.x(), size.y());
+                AddCylinderGeometry(body, size.x(), size.y(), mat);
                 break;
             case MixtureType::CONE:
-                AddConeGeometry(body, size.x(), size.y());
+                AddConeGeometry(body, size.x(), size.y(), mat);
                 break;
             case MixtureType::BISPHERE:
-            	AddBiSphereGeometry(body, size.x(), size.y());
+            	AddBiSphereGeometry(body, size.x(), size.y(), mat);
                 break;
             case MixtureType::CAPSULE:
-                AddCapsuleGeometry(body, size.x(), size.y());
+                AddCapsuleGeometry(body, size.x(), size.y(), mat);
                 break;
             case MixtureType::ROUNDEDCYLINDER:
-                AddRoundedCylinderGeometry(body, size.x(), size.y(), size.z());
+                AddRoundedCylinderGeometry(body, size.x(), size.y(), size.z(), mat);
                 break;
         }
 

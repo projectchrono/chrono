@@ -830,12 +830,38 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
             }
         }
 
+        // Create a contact material that will be shared by all shapes for this body
+        auto contact_method = body_info.body->GetSystem()->GetContactMethod();
+        std::shared_ptr<ChMaterialSurface> mat;
+        switch (contact_method) {
+            case ChContactMethod::NSC: {
+                auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+                matNSC->SetFriction(m_friction);
+                matNSC->SetRestitution(m_restitution);
+                mat = matNSC;
+                break;
+            }
+            case ChContactMethod::SMC: {
+                auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+                matSMC->SetFriction(m_friction);
+                matSMC->SetRestitution(m_restitution);
+                matSMC->SetYoungModulus(m_young_modulus);
+                matSMC->SetPoissonRatio(m_poisson_ratio);
+                matSMC->SetKn(m_kn);
+                matSMC->SetGn(m_gn);
+                matSMC->SetKt(m_kt);
+                matSMC->SetGt(m_gt);
+                mat = matSMC;
+                break;
+            }
+        }
+
         // Set collision shapes
         if (body_info.body->GetCollide()) {
             body_info.body->GetCollisionModel()->ClearModel();
 
             for (auto cyl_info : body_info.cylinders) {
-                utils::AddCylinderGeometry(body_info.body, cyl_info.rad, cyl_info.hlen, cyl_info.pos, cyl_info.rot,
+                utils::AddCylinderGeometry(body_info.body, cyl_info.rad, cyl_info.hlen, mat, cyl_info.pos, cyl_info.rot,
                                            false);
             }
 
