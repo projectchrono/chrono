@@ -22,7 +22,8 @@ CH_FACTORY_REGISTER(ChCollisionShape)
 
 ChCollisionShape::ChCollisionShape() : m_type(Type::UNKNOWN_SHAPE) {}
 
-ChCollisionShape::ChCollisionShape(Type type) : m_type(type) {}
+ChCollisionShape::ChCollisionShape(Type type, std::shared_ptr<ChMaterialSurface> material)
+    : m_type(type), m_material(material) {}
 
 }  // namespace collision
 }  // namespace chrono

@@ -104,7 +104,8 @@ void ChCollisionModel::SetFamilyMask(short int mask) {
     family_mask = mask;
 }
 
-bool ChCollisionModel::AddConvexHullsFromFile(ChStreamInAscii& mstream,
+bool ChCollisionModel::AddConvexHullsFromFile(std::shared_ptr<ChMaterialSurface> material,
+                                              ChStreamInAscii& mstream,
                                               const ChVector<>& pos,
                                               const ChMatrix33<>& rot) {
     std::vector<ChVector<double> > ptlist;
@@ -135,7 +136,7 @@ bool ChCollisionModel::AddConvexHullsFromFile(ChStreamInAscii& mstream,
         }
         if (strcmp(bufdata, "hull") == 0) {
             if (ptlist.size())
-                this->AddConvexHull(ptlist, pos, rot);
+                this->AddConvexHull(material, ptlist, pos, rot);
             ptlist.clear();
             parsedline = true;
         }
@@ -145,9 +146,11 @@ bool ChCollisionModel::AddConvexHullsFromFile(ChStreamInAscii& mstream,
             parsedline = true;
         }
     }
+    
     if (ptlist.size())
-        this->AddConvexHull(ptlist, pos, rot);
+        this->AddConvexHull(material, ptlist, pos, rot);
     ptlist.clear();
+
     return true;
 }
 

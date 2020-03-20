@@ -43,15 +43,21 @@ class ChApi ChCollisionShape {
         CONVEX,       // Currently implemented in parallel only
         TETRAHEDRON,  // Currently implemented in parallel only
         PATH2D,
-        COMPOUND,
         UNKNOWN_SHAPE
     };
 
     ChCollisionShape();
-    ChCollisionShape(Type type);
+    ChCollisionShape(
+        Type type,
+        std::shared_ptr<ChMaterialSurface> material);
     virtual ~ChCollisionShape() {}
 
-    Type m_type;
+    Type GetType() const { return m_type; }
+    std::shared_ptr<ChMaterialSurface> GetMaterial() const { return m_material; }
+
+  protected:
+    Type m_type;                                    ///< type of collision shape
+    std::shared_ptr<ChMaterialSurface> m_material;  ///< surface contact material
 };
 
 }  // end namespace collision
