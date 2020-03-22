@@ -144,7 +144,7 @@ void ChCNarrowphaseDispatch::PreprocessLocalToParent() {
         quaternion rot = body_rot[ID];  // Get the global object rotation
 
         data_manager->shape_data.obj_data_A_global[index] = TransformLocalToParent(pos, rot, obj_data_A[index]);
-        if (T == ChCollisionShape::Type::TRIANGLEMESH) {
+        if (T == ChCollisionShape::Type::TRIANGLE) {
             int start = data_manager->shape_data.start_rigid[index];
             data_manager->shape_data.triangle_global[start + 0] =
                 TransformLocalToParent(pos, rot, data_manager->shape_data.triangle_rigid[start + 0]);

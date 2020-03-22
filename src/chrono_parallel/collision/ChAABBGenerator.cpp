@@ -171,7 +171,7 @@ void ChCAABBGenerator::GenerateAABB() {
                 temp_min -= collision_envelope;
                 temp_max += collision_envelope;
 
-            } else if (type == ChCollisionShape::Type::TRIANGLEMESH) {
+            } else if (type == ChCollisionShape::Type::TRIANGLE) {
                 real3 A, B, C;
 
                 A = data_manager->shape_data.triangle_rigid[start + 0];

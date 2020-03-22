@@ -122,7 +122,7 @@ class ConvexShapeTriangle : public ConvexBase {
         tri[2] = t3;
     }
     virtual ~ConvexShapeTriangle() {}
-    inline int Type() const override { return ChCollisionShape::Type::TRIANGLEMESH; }
+    inline int Type() const override { return ChCollisionShape::Type::TRIANGLE; }
     inline real3 A() const override { return real3(0); }
     const real3* Triangles() const override { return &tri[0]; }
     real3 tri[3];

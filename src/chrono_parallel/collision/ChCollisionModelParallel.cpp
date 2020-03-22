@@ -181,7 +181,7 @@ bool ChCollisionModelParallel::AddTriangle(std::shared_ptr<ChMaterialSurface> ma
     tData.B = real3(B.x() + position.x(), B.y() + position.y(), B.z() + position.z());
     tData.C = real3(C.x() + position.x(), C.y() + position.y(), C.z() + position.z());
     tData.R = quaternion(rotation.e0(), rotation.e1(), rotation.e2(), rotation.e3());
-    tData.type = ChCollisionShape::Type::TRIANGLEMESH;
+    tData.type = ChCollisionShape::Type::TRIANGLE;
     mData.push_back(tData);
 
     auto shape = new ChCollisionShape(ChCollisionShape::Type::TRIANGLE, material);
@@ -376,13 +376,12 @@ bool ChCollisionModelParallel::AddTriangleMesh(std::shared_ptr<ChMaterialSurface
         tData.B = real3(temptri.p2.x() + position.x(), temptri.p2.y() + position.y(), temptri.p2.z() + position.z());
         tData.C = real3(temptri.p3.x() + position.x(), temptri.p3.y() + position.y(), temptri.p3.z() + position.z());
         tData.R = quaternion(rotation.e0(), rotation.e1(), rotation.e2(), rotation.e3());
-        tData.type = ChCollisionShape::Type::TRIANGLEMESH;
-
+        tData.type = ChCollisionShape::Type::TRIANGLE;
         mData.push_back(tData);
-    }
 
-    auto shape = new ChCollisionShape(ChCollisionShape::Type::TRIANGLEMESH, material);
-    m_shapes.push_back(std::shared_ptr<ChCollisionShape>(shape));
+        auto shape = new ChCollisionShape(ChCollisionShape::Type::TRIANGLE, material);
+        m_shapes.push_back(std::shared_ptr<ChCollisionShape>(shape));
+    }
 
     return true;
 }

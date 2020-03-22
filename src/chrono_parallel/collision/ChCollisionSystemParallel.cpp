@@ -93,7 +93,7 @@ void ChCollisionSystemParallel::Add(ChCollisionModel* model) {
                     start = (int)(obB.y + convex_data_offset);
                     length = (int)obB.x;
                     break;
-                case ChCollisionShape::Type::TRIANGLEMESH:
+                case ChCollisionShape::Type::TRIANGLE:
                     start = (int)data_manager->shape_data.triangle_rigid.size();
                     data_manager->shape_data.triangle_rigid.push_back(obA);
                     data_manager->shape_data.triangle_rigid.push_back(obB);
@@ -174,7 +174,7 @@ void ChCollisionSystemParallel::Remove(ChCollisionModel* model) {
 				case chrono::collision::CONVEX:
 					ERASE_MACRO_LEN(data_manager->shape_data.convex_rigid, start, length);
 					break;
-				case chrono::collision::TRIANGLEMESH:
+				case chrono::collision::TRIANGLE:
 					ERASE_MACRO_LEN(data_manager->shape_data.convex_rigid, start, 3);
 					break;
 				}

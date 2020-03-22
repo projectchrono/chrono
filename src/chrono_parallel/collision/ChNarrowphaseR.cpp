@@ -162,7 +162,7 @@ bool RCollision(const ConvexBase* shapeA,  // first candidate shape
         return true;
     }
 
-    if (shapeA->Type() == ChCollisionShape::Type::TRIANGLEMESH && shapeB->Type() == ChCollisionShape::Type::SPHERE) {
+    if (shapeA->Type() == ChCollisionShape::Type::TRIANGLE && shapeB->Type() == ChCollisionShape::Type::SPHERE) {
         if (face_sphere(shapeA->Triangles()[0], shapeA->Triangles()[1], shapeA->Triangles()[2], shapeB->A(),
                         shapeB->Radius(), separation, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
             nC = 1;
@@ -170,7 +170,7 @@ bool RCollision(const ConvexBase* shapeA,  // first candidate shape
         return true;
     }
 
-    if (shapeA->Type() == ChCollisionShape::Type::SPHERE && shapeB->Type() == ChCollisionShape::Type::TRIANGLEMESH) {
+    if (shapeA->Type() == ChCollisionShape::Type::SPHERE && shapeB->Type() == ChCollisionShape::Type::TRIANGLE) {
         if (face_sphere(shapeB->Triangles()[0], shapeB->Triangles()[1], shapeB->Triangles()[2], shapeA->A(),
                         shapeA->Radius(), separation, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
             *ct_norm = -(*ct_norm);

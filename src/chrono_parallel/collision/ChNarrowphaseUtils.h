@@ -314,7 +314,7 @@ inline real3 TransformSupportVert(const chrono::collision::ConvexBase* Shape, co
     real3 localSupport;
 
     switch (Shape->Type()) {
-        case ChCollisionShape::Type::TRIANGLEMESH: {
+        case ChCollisionShape::Type::TRIANGLE: {
             // Triangles are handled differently than other convex shapes but they
             // still have an envelope around them. Prior to this there was no way
             // to define envelopes for triangle meshes.
