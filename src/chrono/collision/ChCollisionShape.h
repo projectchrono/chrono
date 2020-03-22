@@ -54,6 +54,7 @@ class ChApi ChCollisionShape {
 
     Type GetType() const { return m_type; }
     std::shared_ptr<ChMaterialSurface> GetMaterial() const { return m_material; }
+    ChContactMethod GetContactMethod() const { return m_material->GetContactMethod(); }
 
   protected:
     Type m_type;                                    ///< type of collision shape

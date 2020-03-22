@@ -117,13 +117,16 @@ ChContactNodeXYZROTsphere::ChContactNodeXYZROTsphere(ChNodeFEAxyzrot* anode, ChC
 //////////////////////////////////////////////////////////////////////////////
 ////  ChContactSurfaceNodeCloud
 
+ChContactSurfaceNodeCloud::ChContactSurfaceNodeCloud(std::shared_ptr<ChMaterialSurface> material, ChMesh* mesh)
+    : ChContactSurface(material, mesh) {}
+
 void ChContactSurfaceNodeCloud::AddNode(std::shared_ptr<ChNodeFEAxyz> mnode, const double point_radius) {
     if (!mnode)
         return;
 
     auto newp = chrono_types::make_shared<ChContactNodeXYZsphere>(mnode.get(), this);
 
-    newp->GetCollisionModel()->AddPoint(matsurface, point_radius);
+    newp->GetCollisionModel()->AddPoint(m_material, point_radius);
     newp->GetCollisionModel()->BuildModel();  // will also add to system, if collision is on.
 
     this->vnodes.push_back(newp);
@@ -135,7 +138,7 @@ void ChContactSurfaceNodeCloud::AddNode(std::shared_ptr<ChNodeFEAxyzrot> mnode, 
 
     auto newp = chrono_types::make_shared<ChContactNodeXYZROTsphere>(mnode.get(), this);
 
-    newp->GetCollisionModel()->AddPoint(matsurface, point_radius);
+    newp->GetCollisionModel()->AddPoint(m_material, point_radius);
     newp->GetCollisionModel()->BuildModel();  // will also add to system, if collision is on.
 
     this->vnodes_rot.push_back(newp);
@@ -143,19 +146,19 @@ void ChContactSurfaceNodeCloud::AddNode(std::shared_ptr<ChNodeFEAxyzrot> mnode, 
 
 /// Add all nodes of the mesh to this collision cloud
 void ChContactSurfaceNodeCloud::AddAllNodes(const double point_radius) {
-    if (!this->GetMesh())
+    if (!m_mesh)
         return;
-    for (unsigned int i = 0; i < this->GetMesh()->GetNnodes(); ++i)
-        if (auto mnodeFEA = std::dynamic_pointer_cast<ChNodeFEAxyz>(this->GetMesh()->GetNode(i)))
+    for (unsigned int i = 0; i < m_mesh->GetNnodes(); ++i)
+        if (auto mnodeFEA = std::dynamic_pointer_cast<ChNodeFEAxyz>(m_mesh->GetNode(i)))
             this->AddNode(mnodeFEA, point_radius);
-        else if (auto mnodeFEArot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(this->GetMesh()->GetNode(i)))
+        else if (auto mnodeFEArot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(m_mesh->GetNode(i)))
             this->AddNode(mnodeFEArot, point_radius);
 }
 
 /// Add nodes of the mesh, belonging to the node_set, to this collision cloud
 void ChContactSurfaceNodeCloud::AddFacesFromNodeSet(std::vector<std::shared_ptr<ChNodeFEAbase> >& node_set,
                                                     const double point_radius) {
-    if (!this->GetMesh())
+    if (!m_mesh)
         return;
     for (unsigned int i = 0; i < node_set.size(); ++i)
         if (auto mnodeFEA = std::dynamic_pointer_cast<ChNodeFEAxyz>(node_set[i]))

@@ -315,11 +315,10 @@ class ChApi ChContactNodeXYZROTsphere : public ChContactNodeXYZROT {
 /// Might be an efficient option in case of dense tessellations (but misses the FEAnodes-vs-FEAfaces
 /// cases, and misses FEAedge-vs-edges)
 class ChApi ChContactSurfaceNodeCloud : public ChContactSurface {
-
   public:
-    ChContactSurfaceNodeCloud(ChMesh* parentmesh = 0) : ChContactSurface(parentmesh){};
+    ChContactSurfaceNodeCloud(std::shared_ptr<ChMaterialSurface> material, ChMesh* mesh = nullptr);
 
-    virtual ~ChContactSurfaceNodeCloud(){};
+    virtual ~ChContactSurfaceNodeCloud() {}
 
     //
     // FUNCTIONS

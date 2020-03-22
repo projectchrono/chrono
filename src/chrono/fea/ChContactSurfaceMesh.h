@@ -29,8 +29,7 @@ namespace fea {
 /// @{
 
 /// Contact element of triangular type.
-/// This can be used to 'tessellate' a generic surface like the
-/// outer of tetrahedral meshes
+/// This can be used to 'tessellate' the surface of FEA meshes for collision purposes.
 class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public ChLoadableUV {
 
   public:
@@ -690,9 +689,8 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
 /// Differently from ChContactSurfaceNodeCloud, this also captures the FEAnodes-vs-FEAfaces
 /// and FEAedge-vs-FEAedges cases, but it has a higher computational overhead
 class ChApi ChContactSurfaceMesh : public ChContactSurface {
-
   public:
-    ChContactSurfaceMesh(ChMesh* parentmesh = 0) : ChContactSurface(parentmesh) {}
+    ChContactSurfaceMesh(std::shared_ptr<ChMaterialSurface> material, ChMesh* mesh = nullptr);
 
     virtual ~ChContactSurfaceMesh() {}
 
