@@ -200,10 +200,9 @@ int main(int argc, char* argv[]) {
     mysurfmaterial->SetGn(gn);
     mysurfmaterial->SetGt(gt);
 
-    auto contact_surf = chrono_types::make_shared<ChContactSurfaceNodeCloud>();
+    auto contact_surf = chrono_types::make_shared<ChContactSurfaceNodeCloud>(mysurfmaterial);
     my_mesh->AddContactSurface(contact_surf);
     contact_surf->AddAllNodes(m_contact_node_radius);
-    contact_surf->SetMaterialSurface(mysurfmaterial);
 
     // Switch off mesh class gravity (ANCF shell elements have a custom implementation)
     my_mesh->SetAutomaticGravity(false);

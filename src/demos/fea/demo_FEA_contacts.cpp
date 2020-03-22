@@ -145,7 +145,7 @@ int main(int argc, char* argv[]) {
     //
 
     // Create a mesh. We will use it for tetrahedrons.
-
+    
     auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     // 1) a FEA tetrahedron(s):
@@ -203,22 +203,19 @@ int main(int argc, char* argv[]) {
     // Create the contact surface(s).
     // In this case it is a ChContactSurfaceMesh, that allows mesh-mesh collsions.
 
-    auto mcontactsurf = chrono_types::make_shared<ChContactSurfaceMesh>();
+    auto mcontactsurf = chrono_types::make_shared<ChContactSurfaceMesh>(mysurfmaterial);
     my_mesh->AddContactSurface(mcontactsurf);
-
     mcontactsurf->AddFacesFromBoundary(sphere_swept_thickness);  // do this after my_mesh->AddContactSurface
-
-    mcontactsurf->SetMaterialSurface(mysurfmaterial);  // use the SMC penalty contacts
 
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
-
+    
     //
     // Example 2: beams, with collisions
     //
 
     // Create a mesh. We will use it for beams only.
-
+    
     auto my_mesh_beams = chrono_types::make_shared<ChMesh>();
 
     // 2) an ANCF cable:
@@ -240,12 +237,9 @@ int main(int argc, char* argv[]) {
     // In this case it is a ChContactSurfaceNodeCloud, so just pass
     // all nodes to it.
 
-    auto mcontactcloud = chrono_types::make_shared<ChContactSurfaceNodeCloud>();
+    auto mcontactcloud = chrono_types::make_shared<ChContactSurfaceNodeCloud>(mysurfmaterial);
     my_mesh_beams->AddContactSurface(mcontactcloud);
-
     mcontactcloud->AddAllNodes(0.025);  // use larger point size to match beam section radius
-
-    mcontactcloud->SetMaterialSurface(mysurfmaterial);
 
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh_beams);
@@ -273,19 +267,19 @@ int main(int argc, char* argv[]) {
     mvisualizemeshcoll->SetWireframe(true);
     mvisualizemeshcoll->SetDefaultMeshColor(ChColor(1, 0.5, 0));
     my_mesh->AddAsset(mvisualizemeshcoll);
-
+    
     auto mvisualizemeshbeam = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh_beams.get()));
     mvisualizemeshbeam->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
     mvisualizemeshbeam->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemeshbeam->SetSmoothFaces(true);
-    my_mesh->AddAsset(mvisualizemeshbeam);
+    my_mesh_beams->AddAsset(mvisualizemeshbeam);
 
     auto mvisualizemeshbeamnodes = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh_beams.get()));
     mvisualizemeshbeamnodes->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
     mvisualizemeshbeamnodes->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     mvisualizemeshbeamnodes->SetSymbolsThickness(0.008);
-    my_mesh->AddAsset(mvisualizemeshbeamnodes);
-
+    my_mesh_beams->AddAsset(mvisualizemeshbeamnodes);
+    
     // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
     // in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
     // If you need a finer control on which item really needs a visualization proxy in

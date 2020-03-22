@@ -261,14 +261,12 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
     my_meshes_2->AddElement(Element2);
     std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_meshes_1->GetNode(0))->SetFixed(true);
 
-    auto mcontactsurf_1 = chrono_types::make_shared<ChContactSurfaceMesh>();
-    auto mcontactsurf_2 = chrono_types::make_shared<ChContactSurfaceMesh>();
+    auto mcontactsurf_1 = chrono_types::make_shared<ChContactSurfaceMesh>(mysurfmaterial);
+    auto mcontactsurf_2 = chrono_types::make_shared<ChContactSurfaceMesh>(mysurfmaterial);
     my_meshes_1->AddContactSurface(mcontactsurf_1);
     my_meshes_2->AddContactSurface(mcontactsurf_2);
     mcontactsurf_1->AddFacesFromBoundary(sphere_swept_thickness);  // do this after my_mesh->AddContactSurface
-    mcontactsurf_1->SetMaterialSurface(mysurfmaterial);            // use the SMC penalty contacts
     mcontactsurf_2->AddFacesFromBoundary(sphere_swept_thickness);  // do this after my_mesh->AddContactSurface
-    mcontactsurf_2->SetMaterialSurface(mysurfmaterial);
 
     // use the SMC penalty contacts
     my_meshes_1->SetAutomaticGravity(addGravity);
