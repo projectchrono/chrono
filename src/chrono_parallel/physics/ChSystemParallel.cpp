@@ -888,7 +888,7 @@ settings_container* ChSystemParallel::GetSettings() {
 
 // -------------------------------------------------------------
 
-void ChSystemParallel::SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy<real>>&& strategy) {
+void ChSystemParallel::SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy>&& strategy) {
     data_manager->composition_strategy = std::move(strategy);
 }
 

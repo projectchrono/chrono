@@ -52,7 +52,7 @@ void function_CalcContactForces(
     ChSystemSMC::ContactForceModel contact_model,         // contact force model
     ChSystemSMC::AdhesionForceModel adhesion_model,       // adhesion force model
     ChSystemSMC::TangentialDisplacementModel displ_mode,  // type of tangential displacement history
-    ChMaterialCompositionStrategy<real>* strategy,        // material composition strategy
+    ChMaterialCompositionStrategy* strategy,              // material composition strategy
     bool use_mat_props,                                   // flag specifying how coefficients are obtained
     real char_vel,                                        // characteristic velocity (Hooke)
     real min_slip_vel,                                    // threshold tangential velocity

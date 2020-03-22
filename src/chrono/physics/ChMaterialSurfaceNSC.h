@@ -148,7 +148,7 @@ class ChApi ChMaterialCompositeNSC : public ChMaterialComposite {
 
     ChMaterialCompositeNSC();
 
-    ChMaterialCompositeNSC(ChMaterialCompositionStrategy<float>* strategy,
+    ChMaterialCompositeNSC(ChMaterialCompositionStrategy* strategy,
                            std::shared_ptr<ChMaterialSurfaceNSC> mat1,
                            std::shared_ptr<ChMaterialSurfaceNSC> mat2);
 };

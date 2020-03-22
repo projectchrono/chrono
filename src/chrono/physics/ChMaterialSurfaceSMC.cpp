@@ -128,7 +128,7 @@ ChMaterialCompositeSMC::ChMaterialCompositeSMC()
       gn(0),
       gt(0) {}
 
-ChMaterialCompositeSMC::ChMaterialCompositeSMC(ChMaterialCompositionStrategy<float>* strategy,
+ChMaterialCompositeSMC::ChMaterialCompositeSMC(ChMaterialCompositionStrategy* strategy,
                                                std::shared_ptr<ChMaterialSurfaceSMC> mat1,
                                                std::shared_ptr<ChMaterialSurfaceSMC> mat2) {
     float inv_E = (1 - mat1->poisson_ratio * mat1->poisson_ratio) / mat1->young_modulus +

@@ -66,7 +66,6 @@ class ChMPMContainer;
 class ChFLIPContainer;
 class ChConstraintRigidRigid;
 class ChConstraintBilateral;
-template <typename T>
 class ChMaterialCompositionStrategy;
 
 namespace collision {
@@ -481,7 +480,7 @@ class CH_PARALLEL_API ChParallelDataManager {
     measures_container measures;
 
     /// Material composition strategy.
-    std::unique_ptr<ChMaterialCompositionStrategy<real>> composition_strategy;
+    std::unique_ptr<ChMaterialCompositionStrategy> composition_strategy;
 
     /// User-provided callback for overriding coposite material properties.
     ChContactContainer::AddContactCallback* add_contact_callback;

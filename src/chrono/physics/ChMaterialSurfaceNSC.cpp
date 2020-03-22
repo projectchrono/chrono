@@ -113,7 +113,7 @@ ChMaterialCompositeNSC::ChMaterialCompositeNSC()
       complianceRoll(0),
       complianceSpin(0) {}
 
-ChMaterialCompositeNSC::ChMaterialCompositeNSC(ChMaterialCompositionStrategy<float>* strategy,
+ChMaterialCompositeNSC::ChMaterialCompositeNSC(ChMaterialCompositionStrategy* strategy,
                                                std::shared_ptr<ChMaterialSurfaceNSC> mat1,
                                                std::shared_ptr<ChMaterialSurfaceNSC> mat2) {
     static_friction = strategy->CombineFriction(mat1->static_friction, mat2->static_friction);

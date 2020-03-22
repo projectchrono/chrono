@@ -61,20 +61,19 @@ class ChApi ChMaterialComposite {
 /// Implements the default combination laws for coefficients of friction, cohesion, compliance, etc.
 /// Derived classes can override one or more of these combination laws.
 /// Enabling the use of a customized composition strategy is system type-dependent.
-template <typename T>
-class ChMaterialCompositionStrategy {
+class ChApi ChMaterialCompositionStrategy {
   public:
     virtual ~ChMaterialCompositionStrategy() {}
 
-    virtual T CombineFriction(T a1, T a2) const { return std::min<T>(a1, a2); }
-    virtual T CombineCohesion(T a1, T a2) const { return std::min<T>(a1, a2); }
-    virtual T CombineRestitution(T a1, T a2) const { return std::min<T>(a1, a2); }
-    virtual T CombineDamping(T a1, T a2) const { return std::min<T>(a1, a2); }
-    virtual T CombineCompliance(T a1, T a2) const { return a1 + a2; }
+    virtual float CombineFriction(float a1, float a2) const { return std::min<float>(a1, a2); }
+    virtual float CombineCohesion(float a1, float a2) const { return std::min<float>(a1, a2); }
+    virtual float CombineRestitution(float a1, float a2) const { return std::min<float>(a1, a2); }
+    virtual float CombineDamping(float a1, float a2) const { return std::min<float>(a1, a2); }
+    virtual float CombineCompliance(float a1, float a2) const { return a1 + a2; }
 
-    virtual T CombineAdhesionMultiplier(T a1, T a2) const { return std::min<T>(a1, a2); }
-    virtual T CombineStiffnessCoefficient(T a1, T a2) const { return (a1 + a2) / 2; }
-    virtual T CombineDampingCoefficient(T a1, T a2) const { return (a1 + a2) / 2; }
+    virtual float CombineAdhesionMultiplier(float a1, float a2) const { return std::min<float>(a1, a2); }
+    virtual float CombineStiffnessCoefficient(float a1, float a2) const { return (a1 + a2) / 2; }
+    virtual float CombineDampingCoefficient(float a1, float a2) const { return (a1 + a2) / 2; }
 };
 
 }  // end namespace chrono

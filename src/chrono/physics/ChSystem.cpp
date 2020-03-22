@@ -56,7 +56,7 @@ ChSystem::ChSystem()
       setupcount(0),
       dump_matrices(false),
       last_err(false),
-      composition_strategy(new ChMaterialCompositionStrategy<float>) {
+      composition_strategy(new ChMaterialCompositionStrategy) {
     // Required by ChAssembly
     system = this;
 
@@ -218,7 +218,7 @@ void ChSystem::SetCollisionSystem(std::shared_ptr<ChCollisionSystem> newcollsyst
     collision_system = newcollsystem;
 }
 
-void ChSystem::SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy<float>>&& strategy) {
+void ChSystem::SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy>&& strategy) {
     composition_strategy = std::move(strategy);
 }
 

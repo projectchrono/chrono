@@ -83,7 +83,7 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
 
     /// Change the default composition laws for contact surface materials
     /// (coefficient of friction, cohesion, compliance, etc.).
-    void SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy<real>>&& strategy);
+    virtual void SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy>&& strategy) override;
 
     virtual void PrintStepStats();
     unsigned int GetNumBodies();
