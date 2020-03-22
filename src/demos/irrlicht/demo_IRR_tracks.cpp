@@ -549,13 +549,16 @@ int main(int argc, char* argv[]) {
     auto my_ground = chrono_types::make_shared<ChBodyEasyBox>(60, 2, 60, 1000, true, true, ground_mat);
     my_ground->SetPos(ChVector<>(0, -1, 0));
     my_ground->SetBodyFixed(true);
+    my_ground->GetMaterialSurfaceNSC()->SetFriction(1.0);
     my_ground->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("blu.png")));
     my_system.AddBody(my_ground);
 
     // ..some obstacles on the ground:
+    auto obst_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+
     for (int i = 0; i < 50; i++) {
         auto my_obstacle = chrono_types::make_shared<ChBodyEasyBox>(
-            0.6 * (1 - 0.4 * ChRandom()), 0.08, 0.3 * (1 - 0.4 * ChRandom()), 1000, true, true, ground_mat);
+            0.6 * (1 - 0.4 * ChRandom()), 0.08, 0.3 * (1 - 0.4 * ChRandom()), 1000, true, true, obst_mat);
         my_obstacle->SetMass(3);
         my_obstacle->SetPos(ChVector<>(-6 + 6 * ChRandom(), 2 + 1 * ChRandom(), 6 * ChRandom()));
         my_obstacle->SetRot(Q_from_AngAxis(ChRandom() * CH_C_PI, VECT_Y));

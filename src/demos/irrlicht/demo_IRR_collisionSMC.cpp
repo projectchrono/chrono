@@ -38,7 +38,7 @@ using namespace irr::gui;
 
 void AddFallingItems(ChIrrApp& application) {
     // Shared contact material for falling objects
-    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
 
     for (int ix = -2; ix < 3; ix++) {
         for (int iz = -2; iz < 3; iz++) {
@@ -118,7 +118,7 @@ void AddContainer(ChIrrApp& application) {
     fixedBody->SetCollide(true);
 
     // Contact material for container
-    auto fixed_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto fixed_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
 
     fixedBody->GetCollisionModel()->ClearModel();
     AddContainerWall(fixedBody, fixed_mat, ChVector<>(20, 1, 20), ChVector<>(0, -5, 0));
@@ -139,7 +139,7 @@ void AddContainer(ChIrrApp& application) {
     rotatingBody->SetCollide(true);
 
     // Contact material for mixer body
-    auto rot_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto rot_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
 
     ChVector<> hsize(5, 2.75, 0.5);
 

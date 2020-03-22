@@ -39,9 +39,11 @@ using namespace irr::io;
 using namespace irr::gui;
 
 void create_some_falling_items(ChSystemNSC& mphysicalSystem, ISceneManager* msceneManager, IVideoDriver* driver) {
-    // Shared contact material for falling objects
-    auto obj_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-    obj_mat->SetFriction(0.2f);
+    // Shared contact materials for falling objects
+    auto sph_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    sph_mat->SetFriction(0.2f);
+    auto box_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto cyl_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
     // Create falling rigid bodies (spheres and boxes etc.)
     for (int bi = 0; bi < 29; bi++) {
@@ -49,7 +51,7 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem, ISceneManager* msce
                                                                        1000,      // density
                                                                        true,      // visualization?
                                                                        true,      // collision?
-                                                                       obj_mat);  // contact material
+                                                                       sph_mat);  // contact material
         msphereBody->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
         msphereBody->GetMaterialSurfaceNSC()->SetFriction(0.2f);
 
@@ -63,7 +65,7 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem, ISceneManager* msce
                                                                  100,            // density
                                                                  true,           // visualization?
                                                                  true,           // collision?
-                                                                 obj_mat);       // contact material
+                                                                 box_mat);       // contact material
         mboxBody->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
 
         mphysicalSystem.Add(mboxBody);
@@ -76,7 +78,7 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem, ISceneManager* msce
                                                                       100,        // density
                                                                       true,       // visualization?
                                                                       true,       // collision?
-                                                                      obj_mat);   // contact material
+                                                                      cyl_mat);   // contact material
         mcylBody->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
 
         mphysicalSystem.Add(mcylBody);

@@ -91,6 +91,7 @@ int main(int argc, char* argv[]) {
     // Create some spheres that spin on place, for a 'drilling friction' case, with increasing spinning friction values
     for (int bi = 0; bi < 10; bi++) {
         auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        mat->SetFriction(0.4f);
         mat->SetSpinningFriction(((float)bi / 10) * 0.02f);
 
         auto msphereBody = chrono_types::make_shared<ChBodyEasySphere>(mradius,  // radius size

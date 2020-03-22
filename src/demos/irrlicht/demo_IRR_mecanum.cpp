@@ -307,7 +307,9 @@ int main(int argc, char* argv[]) {
 	mphysicalSystem.Add(ground);
 
 	auto mtexture = chrono_types::make_shared<ChTexture>();
-    mtexture->SetTextureFilename(GetChronoDataFile("cubetexture.png"));
+    mtexture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+    mtexture->SetTextureScale(100, 100);
+
     ground->AddAsset(mtexture);
 
 

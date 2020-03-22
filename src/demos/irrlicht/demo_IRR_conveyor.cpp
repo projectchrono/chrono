@@ -149,6 +149,8 @@ void create_debris(ChIrrApp& application, double dt, double particles_second) {
                                                                           sphere_mat);  // contact material
             mrigidBody->SetPos(ChVector<>(-0.5 * xnozzlesize + ChRandom() * xnozzlesize, ynozzle + i * 0.005,
                                           -0.5 * znozzlesize + ChRandom() * znozzlesize));
+            mrigidBody->GetMaterialSurfaceNSC()->SetFriction(0.2f);
+            mrigidBody->GetMaterialSurfaceNSC()->SetRestitution(0.8f);
             mrigidBody->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("bluwhite.png")));
 
             application.GetSystem()->Add(mrigidBody);
@@ -251,11 +253,13 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.Add(mfence1);
     mfence1->SetPos(ChVector<>(0, 0, -0.325));
     mfence1->SetBodyFixed(true);
+    mfence1->GetMaterialSurfaceNSC()->SetFriction(0.1f);
 
     auto mfence2 = chrono_types::make_shared<ChBodyEasyBox>(2, 0.11, 0.04, 1000, true, true, fence_mat);
     mphysicalSystem.Add(mfence2);
     mfence2->SetPos(ChVector<>(0, 0, 0.325));
     mfence2->SetBodyFixed(true);
+    mfence2->GetMaterialSurfaceNSC()->SetFriction(0.1f);
 
     // Create the conveyor belt (this is a pure Chrono::Engine object,
     // because an Irrlicht 'SceneNode' wrapper is not yet available, so it is invisible - no 3D preview)
