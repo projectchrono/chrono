@@ -40,12 +40,15 @@ void ChCollisionSystemParallel::Add(ChCollisionModel* model) {
                                                      pmodel->local_convex_data.begin(),
                                                      pmodel->local_convex_data.end());
 
+        // Shape index in the collision model
+        int local_shape_index = 0;
+
         for (int j = 0; j < pmodel->GetNumShapes(); j++) {
             real3 obA = pmodel->mData[j].A;
             real3 obB = pmodel->mData[j].B;
             real3 obC = pmodel->mData[j].C;
             int length = 1;
-            int start = 0;
+            int start;
             // Compute the global offset of the convex data structure based on the number of points
             // already present
 
@@ -96,6 +99,9 @@ void ChCollisionSystemParallel::Add(ChCollisionModel* model) {
                     data_manager->shape_data.triangle_rigid.push_back(obB);
                     data_manager->shape_data.triangle_rigid.push_back(obC);
                     break;
+                default:
+                    start = -1;
+                    break;
             }
 
             data_manager->shape_data.ObA_rigid.push_back(obA);
@@ -106,7 +112,9 @@ void ChCollisionSystemParallel::Add(ChCollisionModel* model) {
             data_manager->shape_data.fam_rigid.push_back(fam);
             data_manager->shape_data.typ_rigid.push_back(pmodel->mData[j].type);
             data_manager->shape_data.id_rigid.push_back(body_id);
+            data_manager->shape_data.local_rigid.push_back(local_shape_index);
             data_manager->num_rigid_shapes++;
+            local_shape_index++;
         }
     }
 }

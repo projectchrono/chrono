@@ -194,9 +194,9 @@ void ChConstraintRigidRigid::Setup(ChParallelDataManager* dm) {
     ////    auto shape_pair = data_manager->host_data.contact_pairs[i];  // global IDs of shapes involved in contact
     ////    auto s1 = int(shape_pair >> 32);
     ////    auto s2 = int(shape_pair & 0xffffffff);
-    ////    auto start_rigid = data_manager->shape_data.start_rigid;  // local indexes of shapes involved in contact
-    ////    auto s1l = start_rigid[s1];
-    ////    auto s2l = start_rigid[s2];
+    ////    auto shape_index = data_manager->shape_data.local_rigid;  // local indexes of shapes involved in contact
+    ////    auto s1l = shape_index[s1];
+    ////    auto s2l = shape_index[s2];
 
     ////    auto blist = *data_manager->body_list;
     ////    auto body1 = blist[b1];
@@ -205,14 +205,15 @@ void ChConstraintRigidRigid::Setup(ChParallelDataManager* dm) {
     ////    auto shape2 = body2->GetCollisionModel()->GetShape(s2l);
 
     ////    std::cout << "Contact" << std::endl;
-    ////    std::cout << " OBJ1 body=" << b1 << " shapeG=" << s1 << " shapeL=" << s1l << " type=" << shape1->m_type << std::endl;
-    ////    std::cout << " OBJ2 body=" << b2 << " shapeG=" << s2 << " shapeL=" << s2l << " type=" << shape2->m_type << std::endl;
+    ////    std::cout << " OBJ1 body=" << b1 << " shapeG=" << s1 << " shapeL=" << s1l << " type=" << shape1->GetType() << std::endl;
+    ////    std::cout << " OBJ2 body=" << b2 << " shapeG=" << s2 << " shapeL=" << s2l << " type=" << shape2->GetType() << std::endl;
     ////}
 
     // Readability replacements
     auto& bids = data_manager->host_data.bids_rigid_rigid;     // global IDs of bodies in contact
     auto& sids = data_manager->host_data.contact_pairs;        // global IDs of shapes in contact
-    auto& start_rigid = data_manager->shape_data.start_rigid;  // collision model indexes of shapes in contact
+    auto& sindex = data_manager->shape_data.local_rigid;    // collision model indexes of shapes in contact
+    auto& blist = *data_manager->body_list;
 
 #pragma omp parallel for
     for (int i = 0; i < (signed)num_contacts; i++) {
@@ -220,8 +221,8 @@ void ChConstraintRigidRigid::Setup(ChParallelDataManager* dm) {
         auto b2 = bids[i].y;                  //
         auto s1 = int(sids[i] >> 32);         // global IDs of shapes in contact
         auto s2 = int(sids[i] & 0xffffffff);  //
-        auto s1_index = start_rigid[s1];      // collision model indexes of shapes in contact
-        auto s2_index = start_rigid[s2];      //
+        auto s1_index = sindex[s1];      // collision model indexes of shapes in contact
+        auto s2_index = sindex[s2];      //
 
         ////std::cout << "Contact" << std::endl;
         ////std::cout << " OBJ1 body=" << b1 << " shapeG=" << s1 << " shapeL=" << s1_index << std::endl;
@@ -251,7 +252,6 @@ void ChConstraintRigidRigid::Setup(ChParallelDataManager* dm) {
 
         // Allow user to override composite material
         if (data_manager->add_contact_callback) {
-            auto blist = *data_manager->body_list;
             const real3& vN = data_manager->host_data.norm_rigid_rigid[i];
             real3 vpA = data_manager->host_data.cpta_rigid_rigid[i] + data_manager->host_data.pos_rigid[b1];
             real3 vpB = data_manager->host_data.cptb_rigid_rigid[i] + data_manager->host_data.pos_rigid[b2];

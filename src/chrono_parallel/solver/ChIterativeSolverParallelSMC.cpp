@@ -609,7 +609,7 @@ void ChIterativeSolverParallelSMC::host_CalcContactForces(custom_vector<int>& ex
             data_manager->host_data.adhesionSPerko_data.data(),     // Cleanliness factor in Perko model (per body)
             data_manager->host_data.bids_rigid_rigid.data(),        // body IDs (per contact)
             shape_pairs.data(),                                     // shape IDs (per contact)
-            data_manager->shape_data.start_rigid.data(),            // shape index in associated model (per shape)
+            data_manager->shape_data.local_rigid.data(),            // shape index in associated model (per shape)
             data_manager->host_data.cpta_rigid_rigid.data(),        // point on shape 1 (per contact)
             data_manager->host_data.cptb_rigid_rigid.data(),        // point on shape 2 (per contact)
             data_manager->host_data.norm_rigid_rigid.data(),        // contact normal (per contact)

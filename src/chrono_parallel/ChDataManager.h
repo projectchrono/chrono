@@ -207,21 +207,23 @@ typedef blaze::Subvector<const DynamicVector<real>> ConstSubVectorType;
 
 /// Structure of arrays containing contact shape information.
 struct shape_container {
-    custom_vector<short2> fam_rigid;      ///< Family information
-    custom_vector<uint> id_rigid;         ///< Body identifier for each shape
-    custom_vector<int> typ_rigid;         ///< Shape type
-    custom_vector<int> start_rigid;       ///< Index for shape start
-    custom_vector<int> length_rigid;      ///< Usually 1, except for convex
+    custom_vector<short2> fam_rigid;  ///< family information
+    custom_vector<uint> id_rigid;     ///< ID of associated body
+    custom_vector<int> typ_rigid;     ///< shape type
+    custom_vector<int> local_rigid;   ///< local shape index in collision model of associated body
+    custom_vector<int> start_rigid;   ///< start index in the appropriate container of dimensions
+    custom_vector<int> length_rigid;  ///< usually 1, except for convex
+
     custom_vector<quaternion> ObR_rigid;  ///< Shape rotation
     custom_vector<real3> ObA_rigid;       ///< Position of shape
 
-    custom_vector<real> sphere_rigid;
-    custom_vector<real3> box_like_rigid;
-    custom_vector<real3> triangle_rigid;
-    custom_vector<real2> capsule_rigid;
-    custom_vector<real4> rbox_like_rigid;
-    custom_vector<real3> convex_rigid;
-    custom_vector<int> tetrahedron_rigid;
+    custom_vector<real> sphere_rigid;      ///< radius for sphere shapes
+    custom_vector<real3> box_like_rigid;   ///< dimensions for box-like shapes
+    custom_vector<real3> triangle_rigid;   ///< vertices of all triangle shapes (3 per shape)
+    custom_vector<real2> capsule_rigid;    ///< radius and half-length for capsule shapes
+    custom_vector<real4> rbox_like_rigid;  ///< dimensions and radius for rbox-like shapes
+    custom_vector<real3> convex_rigid;     ///<
+    custom_vector<int> tetrahedron_rigid;  ///<
 
     custom_vector<real3> triangle_global;
     custom_vector<real3> obj_data_A_global;
