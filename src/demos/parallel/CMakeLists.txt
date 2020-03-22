@@ -39,6 +39,7 @@ if(ENABLE_MODULE_OPENGL)
         ${DEMOS} 
         demo_PAR_motors
         demo_PAR_friction
+        demo_PAR_mesh_contact
     )
 endif()
 
