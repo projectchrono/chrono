@@ -311,9 +311,11 @@ struct host_container {
     /// This is precomputed at every timestep for all contacts in parallel.
     /// Improves performance and reduces conditionals later on.
     custom_vector<real3> fric_rigid_rigid;
+
     /// Holds the cohesion value for each contact.
     /// Similar to friction this is precomputed for all contacts in parallel.
     custom_vector<real> coh_rigid_rigid;
+    
     /// Precomputed compliance values for all contacts.
     custom_vector<real4> compliance_rigid_rigid;
 
@@ -341,7 +343,7 @@ struct host_container {
     custom_vector<uint> boundary_element_fea;
     custom_vector<short2> boundary_family_fea;
 
-    /// Bilateral constraint type (all supported constraints).
+    /// Bilateral constraint type (all supported constraints)
     custom_vector<int> bilateral_type;
 
     /// Keeps track of active bilateral constraints.
@@ -352,10 +354,9 @@ struct host_container {
     custom_vector<real> shaft_inr;     ///< shaft inverse inertias
     custom_vector<char> shaft_active;  ///< shaft active (not sleeping nor fixed) flags
 
-    // Material properties (NSC)
-    custom_vector<real3> fric_data;        ///< friction information (sliding, rolling, spinning)
-    custom_vector<real> cohesion_data;     ///< constant cohesion forces (NSC and SMC)
-    custom_vector<real4> compliance_data;  ///< compliance (NSC only)
+    // Material properties (NSC, only for fluid-rigid and FEA-rigid contacts)
+    custom_vector<float> sliding_friction;  ///< sliding coefficients of friction
+    custom_vector<float> cohesion;          ///< constant cohesion forces
 
     /// This matrix, if used will hold D^TxM^-1xD in sparse form.
     CompressedMatrix<real> Nshur;

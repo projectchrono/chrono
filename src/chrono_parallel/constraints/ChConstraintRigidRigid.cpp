@@ -187,31 +187,10 @@ void ChConstraintRigidRigid::Setup(ChParallelDataManager* dm) {
     quat_a.resize(num_contacts);
     quat_b.resize(num_contacts);
 
-    ////for (uint i = 0; i < num_contacts; i++) {
-    ////    auto body_pair = data_manager->host_data.bids_rigid_rigid[i];  // global IDs of bodies involved in collision
-    ////    auto b1 = body_pair.x;
-    ////    auto b2 = body_pair.y;
-    ////    auto shape_pair = data_manager->host_data.contact_pairs[i];  // global IDs of shapes involved in contact
-    ////    auto s1 = int(shape_pair >> 32);
-    ////    auto s2 = int(shape_pair & 0xffffffff);
-    ////    auto shape_index = data_manager->shape_data.local_rigid;  // local indexes of shapes involved in contact
-    ////    auto s1l = shape_index[s1];
-    ////    auto s2l = shape_index[s2];
-
-    ////    auto blist = *data_manager->body_list;
-    ////    auto body1 = blist[b1];
-    ////    auto body2 = blist[b2];
-    ////    auto shape1 = body1->GetCollisionModel()->GetShape(s1l);
-    ////    auto shape2 = body2->GetCollisionModel()->GetShape(s2l);
-
-    ////    std::cout << "Contact" << std::endl;
-    ////    std::cout << " OBJ1 body=" << b1 << " shapeG=" << s1 << " shapeL=" << s1l << " type=" << shape1->GetType() << std::endl;
-    ////    std::cout << " OBJ2 body=" << b2 << " shapeG=" << s2 << " shapeL=" << s2l << " type=" << shape2->GetType() << std::endl;
-    ////}
-
     // Readability replacements
-    auto& bids = data_manager->host_data.bids_rigid_rigid;     // global IDs of bodies in contact
-    auto& sids = data_manager->host_data.contact_pairs;        // global IDs of shapes in contact
+    auto& bids = data_manager->host_data.bids_rigid_rigid;  // global IDs of bodies in contact
+    auto& abody = data_manager->host_data.active_rigid;     // flags for active bodies
+    auto& sids = data_manager->host_data.contact_pairs;     // global IDs of shapes in contact
     auto& sindex = data_manager->shape_data.local_rigid;    // collision model indexes of shapes in contact
     auto& blist = *data_manager->body_list;
 
@@ -221,34 +200,18 @@ void ChConstraintRigidRigid::Setup(ChParallelDataManager* dm) {
         auto b2 = bids[i].y;                  //
         auto s1 = int(sids[i] >> 32);         // global IDs of shapes in contact
         auto s2 = int(sids[i] & 0xffffffff);  //
-        auto s1_index = sindex[s1];      // collision model indexes of shapes in contact
-        auto s2_index = sindex[s2];      //
+        auto s1_index = sindex[s1];           // collision model indexes of shapes in contact
+        auto s2_index = sindex[s2];           //
 
-        ////std::cout << "Contact" << std::endl;
-        ////std::cout << " OBJ1 body=" << b1 << " shapeG=" << s1 << " shapeL=" << s1_index << std::endl;
-        ////std::cout << " OBJ2 body=" << b2 << " shapeG=" << s2 << " shapeL=" << s2_index << std::endl;
+        auto mat1 = std::static_pointer_cast<ChMaterialSurfaceNSC>(
+            blist[b1]->GetCollisionModel()->GetShape(s1_index)->GetMaterial());
+        auto mat2 = std::static_pointer_cast<ChMaterialSurfaceNSC>(
+            blist[b2]->GetCollisionModel()->GetShape(s2_index)->GetMaterial());
 
-        contact_active_pairs[i] =
-            bool2(data_manager->host_data.active_rigid[b1] != 0, data_manager->host_data.active_rigid[b2] != 0);
+        // Composite material
+        ChMaterialCompositeNSC cmat(data_manager->composition_strategy.get(), mat1, mat2);
 
-        // Combine material properties
-        const real3& f_a = data_manager->host_data.fric_data[b1];
-        const real3& f_b = data_manager->host_data.fric_data[b2];
-        const real& coh_a = data_manager->host_data.cohesion_data[b1];
-        const real& coh_b = data_manager->host_data.cohesion_data[b2];
-        const real4& c_a = data_manager->host_data.compliance_data[b1];
-        const real4& c_b = data_manager->host_data.compliance_data[b2];
-
-        real mu_sliding = data_manager->composition_strategy->CombineFriction(f_a.x, f_b.x);   // sliding
-        real mu_rolling = data_manager->composition_strategy->CombineFriction(f_a.y, f_b.y);   // rolling
-        real mu_spinning = data_manager->composition_strategy->CombineFriction(f_a.z, f_b.z);  // spinning
-
-        real coh = data_manager->composition_strategy->CombineCohesion(coh_a, coh_b);
-
-        real compliance_normal = data_manager->composition_strategy->CombineCompliance(c_a.x, c_b.x);    // normal
-        real compliance_sliding = data_manager->composition_strategy->CombineCompliance(c_a.y, c_b.y);   // sliding
-        real compliance_rolling = data_manager->composition_strategy->CombineCompliance(c_a.z, c_b.z);   // rolling
-        real compliance_spinning = data_manager->composition_strategy->CombineCompliance(c_a.w, c_b.w);  // spinning
+        contact_active_pairs[i] = bool2(abody[b1] != 0, abody[b2] != 0);
 
         // Allow user to override composite material
         if (data_manager->add_contact_callback) {
@@ -267,34 +230,12 @@ void ChConstraintRigidRigid::Setup(ChParallelDataManager* dm) {
             icontact.distance = data_manager->host_data.dpth_rigid_rigid[i];
             icontact.eff_radius = data_manager->host_data.erad_rigid_rigid[i];
 
-            ChMaterialCompositeNSC mat;
-            mat.static_friction = static_cast<float>(mu_sliding);
-            mat.sliding_friction = static_cast<float>(mu_sliding);
-            mat.rolling_friction = static_cast<float>(mu_rolling);
-            mat.spinning_friction = static_cast<float>(mu_spinning);
-            mat.cohesion = static_cast<float>(coh);
-            mat.compliance = static_cast<float>(compliance_normal);
-            mat.complianceT = static_cast<float>(compliance_sliding);
-            mat.complianceRoll = static_cast<float>(compliance_rolling);
-            mat.complianceSpin = static_cast<float>(compliance_spinning);
-            mat.restitution = 0;
-            mat.dampingf = 0;
-
-            data_manager->add_contact_callback->OnAddContact(icontact, &mat);
-
-            mu_sliding = mat.sliding_friction;
-            mu_rolling = mat.rolling_friction;
-            mu_spinning = mat.spinning_friction;
-            coh = mat.cohesion;
-            compliance_normal = mat.compliance;
-            compliance_sliding = mat.complianceT;
-            compliance_rolling = mat.complianceRoll;
-            compliance_spinning = mat.complianceSpin;
+            data_manager->add_contact_callback->OnAddContact(icontact, &cmat);
         }
 
-        real3 mu(mu_sliding, mu_rolling, mu_spinning);
-        real4 compliance(compliance_normal, compliance_sliding, compliance_rolling, compliance_spinning);
-        data_manager->host_data.coh_rigid_rigid[i] = coh;
+        real3 mu(cmat.sliding_friction, cmat.rolling_friction, cmat.spinning_friction);
+        real4 compliance(cmat.compliance, cmat.complianceT, cmat.complianceRoll, cmat.complianceSpin);
+        data_manager->host_data.coh_rigid_rigid[i] = cmat.cohesion;
         data_manager->host_data.fric_rigid_rigid[i] = mu;
         data_manager->host_data.compliance_rigid_rigid[i] = compliance;
 
