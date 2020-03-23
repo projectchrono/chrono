@@ -238,16 +238,14 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     virtual ChContactMethod GetContactMethod() const = 0;
 
     /// Create and return the pointer to a new body.
-    /// The returned body is created with a contact model consistent with the type
-    /// of this ChSystem and with the collision system currently associated with this
-    /// ChSystem.  Note that the body is *not* attached to this system.
-    virtual ChBody* NewBody() = 0;
+    /// The body is consistent with the typewith the collision system currently associated with this ChSystem.
+    /// Note that the body is *not* attached to this system.
+    virtual ChBody* NewBody() { return new ChBody(); }
 
     /// Create and return the pointer to a new body with auxiliary reference frame.
-    /// The returned body is created with a contact model consistent with the type
-    /// of this ChSystem and with the collision system currently associated with this
-    /// ChSystem.  Note that the body is *not* attached to this system.
-    virtual ChBodyAuxRef* NewBodyAuxRef() = 0;
+    /// The body is consistent with the typewith the collision system currently associated with this ChSystem.
+    /// Note that the body is *not* attached to this system.
+    virtual ChBodyAuxRef* NewBodyAuxRef() { return new ChBodyAuxRef(); }
 
     /// Replace the contact container.
     virtual void SetContactContainer(std::shared_ptr<ChContactContainer> container);

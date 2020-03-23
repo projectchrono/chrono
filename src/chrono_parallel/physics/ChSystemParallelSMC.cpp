@@ -33,20 +33,6 @@ ChSystemParallelSMC::ChSystemParallelSMC(const ChSystemParallelSMC& other) : ChS
     //// TODO
 }
 
-ChBody* ChSystemParallelSMC::NewBody() {
-    if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
-        return new ChBody(chrono_types::make_shared<collision::ChCollisionModelParallel>(), ChContactMethod::SMC);
-
-    return new ChBody(ChContactMethod::SMC);
-}
-
-ChBodyAuxRef* ChSystemParallelSMC::NewBodyAuxRef() {
-    if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
-        return new ChBodyAuxRef(chrono_types::make_shared<collision::ChCollisionModelParallel>(), ChContactMethod::SMC);
-
-    return new ChBodyAuxRef(ChContactMethod::SMC);
-}
-
 void ChSystemParallelSMC::AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) {
     data_manager->host_data.mass_rigid.push_back(0);
 

@@ -46,22 +46,8 @@ ChSystemParallelNSC::ChSystemParallelNSC(const ChSystemParallelNSC& other) : ChS
     //// TODO
 }
 
-ChBody* ChSystemParallelNSC::NewBody() {
-    if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
-        return new ChBody(chrono_types::make_shared<collision::ChCollisionModelParallel>(), ChContactMethod::NSC);
-
-    return new ChBody(ChContactMethod::NSC);
-}
-
 void ChSystemParallelNSC::ChangeSolverType(SolverType type) {
     std::static_pointer_cast<ChIterativeSolverParallelNSC>(solver)->ChangeSolverType(type);
-}
-
-ChBodyAuxRef* ChSystemParallelNSC::NewBodyAuxRef() {
-    if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
-        return new ChBodyAuxRef(chrono_types::make_shared<collision::ChCollisionModelParallel>(), ChContactMethod::NSC);
-
-    return new ChBodyAuxRef(ChContactMethod::NSC);
 }
 
 void ChSystemParallelNSC::Add3DOFContainer(std::shared_ptr<Ch3DOFContainer> container) {

@@ -102,7 +102,7 @@ int main(int argc, char* argv[]) {
     material->SetAdhesion(0);  // Magnitude of the adhesion in Constant adhesion model
 
     // Create the falling ball
-    auto ball = chrono_types::make_shared<ChBody>(ChContactMethod::SMC);
+    auto ball = chrono_types::make_shared<ChBody>();
 
     ball->SetIdentifier(ballId);
     ball->SetMass(mass);
@@ -131,7 +131,7 @@ int main(int argc, char* argv[]) {
     msystem.AddBody(ball);
 
     // Create container
-    auto bin = chrono_types::make_shared<ChBody>(ChContactMethod::SMC);
+    auto bin = chrono_types::make_shared<ChBody>();
 
     bin->SetIdentifier(binId);
     bin->SetMass(1);

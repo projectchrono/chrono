@@ -32,7 +32,7 @@ using namespace geometry;
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChBody)
 
-ChBody::ChBody(ChContactMethod contact_method) {
+ChBody::ChBody() {
     marklist.clear();
     forcelist.clear();
 
@@ -64,7 +64,7 @@ ChBody::ChBody(ChContactMethod contact_method) {
     body_id = 0;
 }
 
-ChBody::ChBody(std::shared_ptr<collision::ChCollisionModel> new_collision_model, ChContactMethod contact_method) {
+ChBody::ChBody(std::shared_ptr<collision::ChCollisionModel> new_collision_model) {
     marklist.clear();
     forcelist.clear();
 

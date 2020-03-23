@@ -44,11 +44,10 @@ class ChSystem;
 class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContactable_1vars<6>, public ChLoadableUVW {
   public:
     /// Build a rigid body.
-    ChBody(ChContactMethod contact_method = ChContactMethod::NSC);
+    ChBody();
 
     /// Build a rigid body with a different collision model.
-    ChBody(std::shared_ptr<collision::ChCollisionModel> new_collision_model,
-           ChContactMethod contact_method = ChContactMethod::NSC);
+    ChBody(std::shared_ptr<collision::ChCollisionModel> new_collision_model);
 
     ChBody(const ChBody& other);
 

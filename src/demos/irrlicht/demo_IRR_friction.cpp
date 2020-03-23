@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Create a container fixed to ground
-    auto bin = chrono_types::make_shared<ChBody>(ChContactMethod::NSC);
+    auto bin = chrono_types::make_shared<ChBody>();
     bin->SetPos(ChVector<>(0, -1, 0));
     bin->SetBodyFixed(true);
     bin->SetCollide(true);

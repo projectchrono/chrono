@@ -55,11 +55,9 @@ template <int N>
 ChainTest<N>::ChainTest() : m_length(0.25), m_step(1e-3) {
     ChTimestepper::Type integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
     ChSolver::Type solver_type = ChSolver::Type::BARZILAIBORWEIN;
-    ChContactMethod contact_method = ChContactMethod::NSC;
 
     // Create system
-    m_system = (contact_method == ChContactMethod::NSC) ? static_cast<ChSystem*>(new ChSystemNSC)
-                                                        : static_cast<ChSystem*>(new ChSystemSMC);
+    m_system = new ChSystemNSC;
     m_system->Set_G_acc(ChVector<>(0, -1, 0));
 
     // Set solver parameters
@@ -110,7 +108,7 @@ ChainTest<N>::ChainTest() : m_length(0.25), m_step(1e-3) {
     }
 
     // Create ground
-    auto ground = chrono_types::make_shared<ChBody>(contact_method);
+    auto ground = chrono_types::make_shared<ChBody>();
     ground->SetBodyFixed(true);
     m_system->AddBody(ground);
 

@@ -37,10 +37,8 @@ class ChApi ChBodyAuxRef : public ChBody {
     ChFrameMoving<> auxref_to_abs;  ///< auxiliary REF location, relative to abs coords (needs Update() )
 
   public:
-    ChBodyAuxRef(ChContactMethod contact_method = ChContactMethod::NSC) : ChBody(contact_method) {}
-    ChBodyAuxRef(std::shared_ptr<collision::ChCollisionModel> new_coll_model,
-                 ChContactMethod contact_method = ChContactMethod::NSC)
-        : ChBody(new_coll_model, contact_method) {}
+    ChBodyAuxRef() {}
+    ChBodyAuxRef(std::shared_ptr<collision::ChCollisionModel> new_coll_model) : ChBody(new_coll_model) {}
     ChBodyAuxRef(const ChBodyAuxRef& other);
     ~ChBodyAuxRef() {}
 

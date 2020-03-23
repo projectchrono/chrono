@@ -76,6 +76,9 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     virtual void Update3DOFBodies();
     void RecomputeThreads();
 
+    virtual ChBody* NewBody() override;
+    virtual ChBodyAuxRef* NewBodyAuxRef() override;
+
     virtual void AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) = 0;
     virtual void UpdateMaterialSurfaceData(int index, ChBody* body) = 0;
     virtual void Setup() override;
@@ -190,8 +193,6 @@ class CH_PARALLEL_API ChSystemParallelNSC : public ChSystemParallel {
     void Initialize();
 
     virtual ChContactMethod GetContactMethod() const override { return ChContactMethod::NSC; }
-    virtual ChBody* NewBody() override;
-    virtual ChBodyAuxRef* NewBodyAuxRef() override;
     virtual void AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) override;
     virtual void UpdateMaterialSurfaceData(int index, ChBody* body) override;
 
@@ -223,8 +224,6 @@ class CH_PARALLEL_API ChSystemParallelSMC : public ChSystemParallel {
     virtual ChSystemParallelSMC* Clone() const override { return new ChSystemParallelSMC(*this); }
 
     virtual ChContactMethod GetContactMethod() const override { return ChContactMethod::SMC; }
-    virtual ChBody* NewBody() override;
-    virtual ChBodyAuxRef* NewBodyAuxRef() override;
     virtual void AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) override;
     virtual void UpdateMaterialSurfaceData(int index, ChBody* body) override;
 

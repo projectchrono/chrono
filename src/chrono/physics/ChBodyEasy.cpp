@@ -12,8 +12,6 @@
 // Authors: Alessandro Tasora, Radu Serban, Arman Pazouki
 // =============================================================================
 
-//// RADU: remove hardcoded ChContactMethod::NSC from ChBody constructor!!!
-
 #include "chrono/physics/ChBodyEasy.h"
 
 #include "chrono/assets/ChBoxShape.h"
@@ -32,7 +30,7 @@ ChBodyEasySphere::ChBodyEasySphere(double radius,
                                    bool collide,
                                    std::shared_ptr<ChMaterialSurface> material,
                                    std::shared_ptr<collision::ChCollisionModel> collision_model)
-    : ChBody(collision_model, ChContactMethod::NSC) {
+    : ChBody(collision_model) {
     double mmass = mdensity * ((4.0 / 3.0) * CH_C_PI * pow(radius, 3));
     double inertia = (2.0 / 5.0) * mmass * pow(radius, 2);
 
@@ -60,7 +58,7 @@ ChBodyEasyEllipsoid::ChBodyEasyEllipsoid(ChVector<> radius,
                                          bool collide,
                                          std::shared_ptr<ChMaterialSurface> material,
                                          std::shared_ptr<collision::ChCollisionModel> collision_model)
-    : ChBody(collision_model, ChContactMethod::NSC) {
+    : ChBody(collision_model) {
     double mmass = mdensity * ((4.0 / 3.0) * CH_C_PI * radius.x() * radius.y() * radius.z());
     double inertiax = (1.0 / 5.0) * mmass * (pow(radius.y(), 2) + pow(radius.z(), 2));
     double inertiay = (1.0 / 5.0) * mmass * (pow(radius.x(), 2) + pow(radius.z(), 2));
@@ -91,7 +89,7 @@ ChBodyEasyCylinder::ChBodyEasyCylinder(double radius,
                                        bool collide,
                                        std::shared_ptr<ChMaterialSurface> material,
                                        std::shared_ptr<collision::ChCollisionModel> collision_model)
-    : ChBody(collision_model, ChContactMethod::NSC) {
+    : ChBody(collision_model) {
     double mmass = mdensity * (CH_C_PI * pow(radius, 2) * height);
 
     this->SetDensity((float)mdensity);
@@ -123,7 +121,7 @@ ChBodyEasyBox::ChBodyEasyBox(double Xsize,
                              bool collide,
                              std::shared_ptr<ChMaterialSurface> material,
                              std::shared_ptr<collision::ChCollisionModel> collision_model)
-    : ChBody(collision_model, ChContactMethod::NSC) {
+    : ChBody(collision_model) {
     double mmass = mdensity * (Xsize * Ysize * Zsize);
 
     this->SetDensity((float)mdensity);
@@ -151,7 +149,7 @@ ChBodyEasyConvexHull::ChBodyEasyConvexHull(std::vector<ChVector<>>& points,
                                            bool collide,
                                            std::shared_ptr<ChMaterialSurface> material,
                                            std::shared_ptr<collision::ChCollisionModel> collision_model)
-    : ChBody(collision_model, ChContactMethod::NSC) {
+    : ChBody(collision_model) {
     auto vshape = chrono_types::make_shared<ChTriangleMeshShape>();
     collision::ChConvexHullLibraryWrapper lh;
     lh.ComputeHull(points, *vshape->GetMesh());
@@ -195,7 +193,7 @@ ChBodyEasyConvexHullAuxRef::ChBodyEasyConvexHullAuxRef(std::vector<ChVector<>>& 
                                                        bool collide,
                                                        std::shared_ptr<ChMaterialSurface> material,
                                                        std::shared_ptr<collision::ChCollisionModel> collision_model)
-    : ChBodyAuxRef(collision_model, ChContactMethod::NSC) {
+    : ChBodyAuxRef(collision_model) {
     auto vshape = chrono_types::make_shared<ChTriangleMeshShape>();
     collision::ChConvexHullLibraryWrapper lh;
     lh.ComputeHull(points, *vshape->GetMesh());
@@ -247,7 +245,7 @@ ChBodyEasyMesh::ChBodyEasyMesh(const std::string filename,
                                std::shared_ptr<ChMaterialSurface> material,
                                double sphere_swept,
                                std::shared_ptr<collision::ChCollisionModel> collision_model)
-    : ChBodyAuxRef(collision_model, ChContactMethod::NSC) {
+    : ChBodyAuxRef(collision_model) {
     auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
     trimesh->LoadWavefrontMesh(filename, true, true);
 
@@ -295,7 +293,7 @@ ChBodyEasyClusterOfSpheres::ChBodyEasyClusterOfSpheres(std::vector<ChVector<>>& 
                                                        bool collide,
                                                        std::shared_ptr<ChMaterialSurface> material,
                                                        std::shared_ptr<collision::ChCollisionModel> collision_model)
-    : ChBody(collision_model, ChContactMethod::NSC) {
+    : ChBody(collision_model) {
     assert(positions.size() == radii.size());
 
     double totmass = 0;

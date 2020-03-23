@@ -94,6 +94,20 @@ ChSystemParallel::~ChSystemParallel() {
     delete data_manager;
 }
 
+ChBody* ChSystemParallel::NewBody() {
+    if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
+        return new ChBody(chrono_types::make_shared<collision::ChCollisionModelParallel>());
+
+    return new ChBody();
+}
+
+ChBodyAuxRef* ChSystemParallel::NewBodyAuxRef() {
+    if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
+        return new ChBodyAuxRef(chrono_types::make_shared<collision::ChCollisionModelParallel>());
+
+    return new ChBodyAuxRef();
+}
+
 bool ChSystemParallel::Integrate_Y() {
     LOG(INFO) << "ChSystemParallel::Integrate_Y() Time: " << ChTime;
     // Get the pointer for the system descriptor and store it into the data manager

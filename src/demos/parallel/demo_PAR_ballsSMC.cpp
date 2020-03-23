@@ -67,8 +67,7 @@ void AddContainer(ChSystemParallelSMC* sys) {
     mat->SetRestitution(cr);
 
     // Create the containing bin (4 x 4 x 1)
-    auto bin =
-        chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>(), ChContactMethod::SMC);
+    auto bin = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>());
     bin->SetIdentifier(binId);
     bin->SetMass(1);
     bin->SetPos(ChVector<>(0, 0, 0));
@@ -116,8 +115,7 @@ void AddFallingBalls(ChSystemParallel* sys) {
         for (int iy = -count_Y; iy <= count_Y; iy++) {
             ChVector<> pos(0.4 * ix, 0.4 * iy, 1);
 
-            auto ball = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>(),
-                                                          ChContactMethod::SMC);
+            auto ball = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>());
             ball->SetIdentifier(ballId++);
             ball->SetMass(mass);
             ball->SetInertiaXX(inertia);
