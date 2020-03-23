@@ -207,14 +207,15 @@ void ChContactContainerSMC::AddContact(const collision::ChCollisionInfo& cinfo) 
         return;
 
     // Check that the two collision models are compatible with penalty contact.
-    if (contactableA->GetContactMethod() != ChContactMethod::SMC ||
-        contactableB->GetContactMethod() != ChContactMethod::SMC)
+    if (cinfo.shapeA->GetContactMethod() != ChContactMethod::SMC ||
+        cinfo.shapeB->GetContactMethod() != ChContactMethod::SMC) {
         return;
+    }
 
     // Create the composite material
     ChMaterialCompositeSMC cmat(GetSystem()->composition_strategy.get(),
-                                std::static_pointer_cast<ChMaterialSurfaceSMC>(contactableA->GetMaterialSurface()),
-                                std::static_pointer_cast<ChMaterialSurfaceSMC>(contactableB->GetMaterialSurface()));
+                                std::static_pointer_cast<ChMaterialSurfaceSMC>(cinfo.shapeA->GetMaterial()),
+                                std::static_pointer_cast<ChMaterialSurfaceSMC>(cinfo.shapeB->GetMaterial()));
 
     // Check for a user-provided callback to modify the material
     if (GetAddContactCallback()) {

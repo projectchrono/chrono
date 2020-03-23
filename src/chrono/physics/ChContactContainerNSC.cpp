@@ -206,14 +206,15 @@ void ChContactContainerNSC::AddContact(const collision::ChCollisionInfo& cinfo) 
         return;
 
     // Check that the two collision models are compatible with complementarity contact.
-    if (contactableA->GetContactMethod() != ChContactMethod::NSC ||
-        contactableB->GetContactMethod() != ChContactMethod::NSC)
+    if (cinfo.shapeA->GetContactMethod() != ChContactMethod::NSC ||
+        cinfo.shapeB->GetContactMethod() != ChContactMethod::NSC) {
         return;
+    }
 
     // Create the composite material
     ChMaterialCompositeNSC cmat(GetSystem()->composition_strategy.get(),
-                                std::static_pointer_cast<ChMaterialSurfaceNSC>(contactableA->GetMaterialSurface()),
-                                std::static_pointer_cast<ChMaterialSurfaceNSC>(contactableB->GetMaterialSurface()));
+                                std::static_pointer_cast<ChMaterialSurfaceNSC>(cinfo.shapeA->GetMaterial()),
+                                std::static_pointer_cast<ChMaterialSurfaceNSC>(cinfo.shapeB->GetMaterial()));
 
     // Check for a user-provided callback to modify the material
     if (GetAddContactCallback()) {
