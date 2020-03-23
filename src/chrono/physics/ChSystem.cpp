@@ -1090,13 +1090,6 @@ int ChSystem::GetNcontacts() {
     return contact_container->GetNcontacts();
 }
 
-void ChSystem::SynchronizeLastCollPositions() {
-    for (int ip = 0; ip < bodylist.size(); ++ip) {
-        if (bodylist[ip]->GetCollide())
-            bodylist[ip]->SynchronizeLastCollPos();
-    }
-}
-
 double ChSystem::ComputeCollisions() {
     CH_PROFILE("ComputeCollisions");
 

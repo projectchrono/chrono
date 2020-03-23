@@ -50,8 +50,6 @@ ChBody::ChBody(ChContactMethod contact_method) {
 
     density = 1000.0f;
 
-    last_coll_pos = CSYSNORM;
-
     max_speed = 0.5f;
     max_wvel = 2.0f * float(CH_C_PI);
 
@@ -84,8 +82,6 @@ ChBody::ChBody(std::shared_ptr<collision::ChCollisionModel> new_collision_model,
     collision_model->SetContactable(this);
 
     density = 1000.0f;
-
-    last_coll_pos = CSYSNORM;
 
     max_speed = 0.5f;
     max_wvel = 2.0f * float(CH_C_PI);
@@ -121,8 +117,6 @@ ChBody::ChBody(const ChBody& other) : ChPhysicsItem(other), ChBodyFrame(other) {
 
     Scr_force = other.Scr_force;
     Scr_torque = other.Scr_torque;
-
-    last_coll_pos = other.last_coll_pos;
 
     max_speed = other.max_speed;
     max_wvel = other.max_wvel;
@@ -695,7 +689,6 @@ void ChBody::SetBodyFixed(bool state) {
     if (state == BFlagGet(BodyFlag::FIXED))
         return;
     BFlagSet(BodyFlag::FIXED, state);
-    // RecomputeCollisionModel(); // because one may use different model types for static or dynamic coll.shapes
 }
 
 bool ChBody::GetBodyFixed() const {
@@ -809,19 +802,6 @@ void ChBody::SetCollisionModel(std::shared_ptr<collision::ChCollisionModel> new_
 
     collision_model = new_collision_model;
     collision_model->SetContactable(this);
-}
-
-bool ChBody::RecomputeCollisionModel() {
-    if (!GetCollide())
-        return false;  // do nothing unless collision enabled
-
-    collision_model->ClearModel();  // ++++ start geometry definition
-
-    // ... external geometry fetch shapes?
-
-    collision_model->BuildModel();  // ++++ complete geometry definition
-
-    return true;
 }
 
 void ChBody::SyncCollisionModels() {
@@ -1132,7 +1112,6 @@ void ChBody::ArchiveOUT(ChArchiveOut& marchive) {
     // marchive << CHNVP(Torque_acc);// not useful in serialization
     // marchive << CHNVP(Scr_force); // not useful in serialization
     // marchive << CHNVP(Scr_torque);// not useful in serialization
-    // marchive << CHNVP(last_coll_pos);// not useful in serialization
     marchive << CHNVP(density);
     marchive << CHNVP(variables);
     marchive << CHNVP(max_speed);
@@ -1194,7 +1173,6 @@ void ChBody::ArchiveIN(ChArchiveIn& marchive) {
     // marchive << CHNVP(Torque_acc);// not useful in serialization
     // marchive << CHNVP(Scr_force); // not useful in serialization
     // marchive << CHNVP(Scr_torque);// not useful in serialization
-    // marchive << CHNVP(last_coll_pos);// not useful in serialization
     marchive >> CHNVP(density);
     marchive >> CHNVP(variables);
     marchive >> CHNVP(max_speed);

@@ -241,7 +241,6 @@ class ChApi ChMatterSPH : public ChIndexedNodes {
     virtual ChMatterSPH* Clone() const override { return new ChMatterSPH(*this); }
 
     /// Enable/disable the collision for this cluster of particles.
-    /// After setting ON, remember RecomputeCollisionModel()
     /// before anim starts (it is not automatically
     /// recomputed here because of performance issues.)
     void SetCollide(bool mcoll);

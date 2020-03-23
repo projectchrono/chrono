@@ -200,7 +200,6 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     virtual ChParticlesClones* Clone() const override { return new ChParticlesClones(*this); }
 
     /// Enable/disable the collision for this cluster of particles.
-    /// After setting ON, remember RecomputeCollisionModel()
     /// before anim starts (it is not automatically
     /// recomputed here because of performance issues.)
     void SetCollide(bool mcoll);

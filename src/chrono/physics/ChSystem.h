@@ -510,10 +510,6 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// but if you inherit a special ChSystem you can implement this.
     virtual void CustomEndOfStep() {}
 
-    /// All bodies with collision detection data are requested to
-    /// store the current position as "last position collision-checked"
-    void SynchronizeLastCollPositions();
-
     /// Perform the collision detection.
     /// New contacts are inserted in the ChContactContainer object(s), and old ones are removed.
     /// This is mostly called automatically by time integration.

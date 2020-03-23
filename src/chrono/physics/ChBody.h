@@ -84,7 +84,6 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     bool GetEvalContactSf() const;
 
     /// Enable/disable the collision for this rigid body.
-    /// (After setting ON, you may need RecomputeCollisionModel()
     /// before anim starts, if you added an external object
     /// that implements onAddCollisionGeometries(), ex. in a plug-in for a CAD)
     void SetCollide(bool state);
@@ -182,16 +181,6 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     virtual void SyncCollisionModels() override;
     virtual void AddCollisionModelsToSystem() override;
     virtual void RemoveCollisionModelsFromSystem() override;
-
-    /// Update the optimization structures (OOBB, ABB, etc.)
-    /// of the collision model, from the associated geometry in some external object (es.CAD).
-    bool RecomputeCollisionModel();
-
-    /// Gets the last position when the collision detection was
-    /// performed last time (i.e. last time SynchronizeLastCollPos() was used)
-    const ChCoordsys<>& GetLastCollPos() const { return last_coll_pos; }
-    /// Stores the current position in the last-collision-position buffer.
-    void SynchronizeLastCollPos() { last_coll_pos = this->coord; }
 
     /// Get the rigid body coordinate system that represents
     /// the GOG (Center of Gravity). The mass and inertia tensor
@@ -503,10 +492,6 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     ChVector<> Scr_force;   ///< script force accumulator, applied to COG (in absolute coords)
     ChVector<> Scr_torque;  ///< script torque accumulator (in absolute coords)
-
-    // Auxiliary, stores position/rotation once a while when collision detection
-    // routines require to know the last time that coll. detect. was satisfied
-    ChCoordsys<> last_coll_pos;  ///< cached position at last collision
 
     float density;  ///< used when doing the 'recompute mass' operation.
 
