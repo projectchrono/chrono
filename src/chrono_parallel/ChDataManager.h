@@ -357,26 +357,6 @@ struct host_container {
     custom_vector<real> cohesion_data;     ///< constant cohesion forces (NSC and SMC)
     custom_vector<real4> compliance_data;  ///< compliance (NSC only)
 
-    // Material properties (SMC)
-    custom_vector<real2> elastic_moduli;       ///< Young's modulus and Poisson ratio (SMC only)
-    custom_vector<real> mu;                    ///< Coefficient of friction (SMC only)
-    custom_vector<real> muRoll;                ///< Coefficient of rolling friction (SMC only)
-    custom_vector<real> muSpin;                ///< Coefficient of spinning friction (SMC only)
-    custom_vector<real> cr;                    ///< Coefficient of restitution (SMC only)
-    custom_vector<real4> smc_coeffs;           ///< Stiffness and damping coefficients (SMC only)
-    custom_vector<real> adhesionMultDMT_data;  ///< Adhesion multipliers used in DMT model (SMC only)
-    custom_vector<real> adhesionSPerko_data;   ///< Adhesion multipliers used in Perko model (SMC only)
-
-    // Derjaguin-Muller-Toporov (DMT) model:
-    // adhesion = adhesionMult * Sqrt(R_eff). Given the surface energy, w,
-    //    adhesionMult = 2 * CH_C_PI * w * Sqrt(R_eff).
-    // Given the equilibrium penetration distance, y_eq,
-    //    adhesionMult = 4.0 / 3.0 * E_eff * powf(y_eq, 1.5)
-    // Perko et al. (2001) (Perko) model:
-    //    adhesion = adhesionSPerko * R_eff
-    // with adhesionSPerko depending on the Hamaker constant A and a measure of cleanliness S.
-    // For lunar regolith, adhesionSPerko = 3.6E-2 * S^2
-
     /// This matrix, if used will hold D^TxM^-1xD in sparse form.
     CompressedMatrix<real> Nshur;
     /// The D Matrix hold the Jacobian for the entire system.

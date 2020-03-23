@@ -49,32 +49,22 @@ using namespace chrono;
 // -----------------------------------------------------------------------------
 void function_CalcContactForces(
     int index,                                            // index of this contact pair
+    const vec2& body_pair,                                // indices of the body pair in contact
+    const vec2& shape_pair,                               // indices of the shape pair in contact
     ChSystemSMC::ContactForceModel contact_model,         // contact force model
     ChSystemSMC::AdhesionForceModel adhesion_model,       // adhesion force model
     ChSystemSMC::TangentialDisplacementModel displ_mode,  // type of tangential displacement history
-    ChMaterialCompositionStrategy* strategy,              // material composition strategy
+    ChMaterialCompositeSMC& cmat,                         // composite material
+    real m_eff,                                           // effective contact mass
     bool use_mat_props,                                   // flag specifying how coefficients are obtained
     real char_vel,                                        // characteristic velocity (Hooke)
     real min_slip_vel,                                    // threshold tangential velocity
     real min_roll_vel,                                    // threshold rolling velocity
     real min_spin_vel,                                    // threshold spinning velocity
     real dT,                                              // integration time step
-    real* mass,                                           // body masses
     real3* pos,                                           // body positions
     quaternion* rot,                                      // body orientations
     real* vel,                                            // body linear and angular velocities
-    real2* elastic_moduli,                                // Young's modulus (per body)
-    real* cr,                                             // coefficient of restitution (per body)
-    real4* smc_coeffs,                                    // stiffness and damping coefficients (per body)
-    real* mu,                                             // coefficient of friction (per body)
-    real* muRoll,                                         // coefficient of rolling friction (per body)
-    real* muSpin,                                         // coefficient of spinning friction (per body)
-    real* adhesion,                                       // constant force (per body)
-    real* adhesionMultDMT,                                // Adhesion force multiplier in DMT model (per body)
-    real* adhesionSPerko,                                 // Cleanliness factor in Perko model (per body)
-    vec2* body_id,                                        // body IDs (per contact)
-    vec2* shape_id,                                       // shape IDs (per contact)
-    int* shape_index,                                     // shape index in associated model (per shape)
     real3* pt1,                                           // point on shape 1 (per contact)
     real3* pt2,                                           // point on shape 2 (per contact)
     real3* normal,                                        // contact normal (per contact)
@@ -90,20 +80,12 @@ void function_CalcContactForces(
     real3* ext_body_torque                                // [output] body torque (two per contact)
 ) {
     // Identify the two bodies in contact (global body IDs).
-    int b1 = body_id[index].x;
-    int b2 = body_id[index].y;
+    int b1 = body_pair.x;
+    int b2 = body_pair.y;
 
     // Identify the two shapes in contact (global shape IDs).
-    int s1 = shape_id[index].x;
-    int s2 = shape_id[index].y;
-
-    // Identify shapes in their respective collision models
-    auto s1_index = shape_index[s1];
-    auto s2_index = shape_index[s2];
-
-    ////std::cout << "Contact" << std::endl;
-    ////std::cout << " OBJ1 body=" << b1 << " shapeG=" << s1 << " shapeL=" << s1_index << std::endl;
-    ////std::cout << " OBJ2 body=" << b2 << " shapeG=" << s2 << " shapeL=" << s2_index << std::endl;
+    int s1 = shape_pair.x;
+    int s2 = shape_pair.y;
 
     // If the two contact shapes are actually separated, set zero forces and torques.
     if (depth[index] >= 0) {
@@ -145,38 +127,24 @@ void function_CalcContactForces(
     real3 relvel_t = relvel - relvel_n;
     real relvel_t_mag = Length(relvel_t);
 
-    // Calculate composite material properties
-    // ---------------------------------------
+    // Extract composite material properties
+    // -------------------------------------
+    real mu_eff = (real)cmat.mu_eff;
+    real muRoll_eff = (real)cmat.muRoll_eff;
+    real muSpin_eff = (real)cmat.muSpin_eff;
 
-    real m_eff = mass[b1] * mass[b2] / (mass[b1] + mass[b2]);
+    real adhesion_eff = (real)cmat.adhesion_eff;
+    real adhesionMultDMT_eff = (real)cmat.adhesionMultDMT_eff;
+    real adhesionSPerko_eff = (real)cmat.adhesionSPerko_eff;
 
-    real mu_eff = strategy->CombineFriction(mu[b1], mu[b2]);
-    real muRoll_eff = strategy->CombineFriction(muRoll[b1], muRoll[b2]);
-    real muSpin_eff = strategy->CombineFriction(muSpin[b1], muSpin[b2]);
-    real adhesion_eff = strategy->CombineCohesion(adhesion[b1], adhesion[b2]);
-    real adhesionMultDMT_eff = strategy->CombineAdhesionMultiplier(adhesionMultDMT[b1], adhesionMultDMT[b2]);
-    real adhesionSPerko_eff = strategy->CombineAdhesionMultiplier(adhesionSPerko[b1], adhesionSPerko[b2]);
+    real E_eff = (real)cmat.E_eff;
+    real G_eff = (real)cmat.G_eff;
+    real cr_eff = (real)cmat.cr_eff;
 
-    real E_eff, G_eff, cr_eff;
-    real user_kn, user_kt, user_gn, user_gt;
-
-    if (use_mat_props) {
-        real Y1 = elastic_moduli[b1].x;
-        real Y2 = elastic_moduli[b2].x;
-        real nu1 = elastic_moduli[b1].y;
-        real nu2 = elastic_moduli[b2].y;
-        real inv_E = (1 - nu1 * nu1) / Y1 + (1 - nu2 * nu2) / Y2;
-        real inv_G = 2 * (2 - nu1) * (1 + nu1) / Y1 + 2 * (2 - nu2) * (1 + nu2) / Y2;
-
-        E_eff = 1 / inv_E;
-        G_eff = 1 / inv_G;
-        cr_eff = strategy->CombineRestitution(cr[b1], cr[b2]);
-    } else {
-        user_kn = strategy->CombineStiffnessCoefficient(smc_coeffs[b1].x, smc_coeffs[b2].x);
-        user_kt = strategy->CombineStiffnessCoefficient(smc_coeffs[b1].y, smc_coeffs[b2].y);
-        user_gn = strategy->CombineDampingCoefficient(smc_coeffs[b1].z, smc_coeffs[b2].z);
-        user_gt = strategy->CombineDampingCoefficient(smc_coeffs[b1].w, smc_coeffs[b2].w);
-    }
+    real user_kn = (real)cmat.kn;
+    real user_kt = (real)cmat.kt;
+    real user_gn = (real)cmat.gn;
+    real user_gt = (real)cmat.gt;
 
     // Contact force
     // -------------
@@ -580,36 +548,55 @@ void ChIterativeSolverParallelSMC::host_CalcContactForces(custom_vector<int>& ex
                                                           custom_vector<real3>& ext_body_torque,
                                                           custom_vector<vec2>& shape_pairs,
                                                           custom_vector<char>& shear_touch) {
+    // Readability replacements
+    auto& blist = *data_manager->body_list;
+    auto& body_pairs = data_manager->host_data.bids_rigid_rigid;
+    auto& body_mass = data_manager->host_data.mass_rigid;
+
 #pragma omp parallel for
     for (int index = 0; index < (signed)data_manager->num_rigid_contacts; index++) {
+        // Identify the two bodies in contact (global body IDs)
+        int b1 = body_pairs[index].x;
+        int b2 = body_pairs[index].y;
+
+        // Identify the two shapes in contact (global shape IDs)
+        int s1 = shape_pairs[index].x;
+        int s2 = shape_pairs[index].y;
+
+        // Identify shapes in their respective collision models
+        auto s1_index = data_manager->shape_data.local_rigid[s1];
+        auto s2_index = data_manager->shape_data.local_rigid[s2];
+
+        // Contact materials of the two colliding shapes
+        auto mat1 = std::static_pointer_cast<ChMaterialSurfaceSMC>(
+            blist[b1]->GetCollisionModel()->GetShape(s1_index)->GetMaterial());
+        auto mat2 = std::static_pointer_cast<ChMaterialSurfaceSMC>(
+            blist[b2]->GetCollisionModel()->GetShape(s2_index)->GetMaterial());
+
+        // Composite material
+        ChMaterialCompositeSMC cmat(data_manager->composition_strategy.get(), mat1, mat2);
+
+        // Effective contact mass
+        real m_eff = body_mass[b1] * body_mass[b2] / (body_mass[b1] + body_mass[b2]);
+
         function_CalcContactForces(
             index,                                                  // index of this contact pair
+            body_pairs[index],                                      // indices of the body pair in contact
+            shape_pairs[index],                                     // indices of the shape pair in contact
             data_manager->settings.solver.contact_force_model,      // contact force model
             data_manager->settings.solver.adhesion_force_model,     // adhesion force model
             data_manager->settings.solver.tangential_displ_mode,    // type of tangential displacement history
-            data_manager->composition_strategy.get(),               // material composition strategy
+            cmat,                                                   // composite material
+            m_eff,                                                  // effective contact mass
             data_manager->settings.solver.use_material_properties,  // flag specifying how coefficients are obtained
             data_manager->settings.solver.characteristic_vel,       // characteristic velocity (Hooke)
             data_manager->settings.solver.min_slip_vel,             // threshold tangential velocity
             data_manager->settings.solver.min_roll_vel,             // threshold rolling velocity
             data_manager->settings.solver.min_spin_vel,             // threshold spinning velocity
             data_manager->settings.step_size,                       // integration time step
-            data_manager->host_data.mass_rigid.data(),              // body masses
             data_manager->host_data.pos_rigid.data(),               // body positions
             data_manager->host_data.rot_rigid.data(),               // body orientations
             data_manager->host_data.v.data(),                       // body linear and angular velocities
-            data_manager->host_data.elastic_moduli.data(),          // Young's modulus (per body)
-            data_manager->host_data.cr.data(),                      // coefficient of restitution (per body)
-            data_manager->host_data.smc_coeffs.data(),              // stiffness and damping coefficients (per body)
-            data_manager->host_data.mu.data(),                      // coefficient of friction (per body)
-            data_manager->host_data.muRoll.data(),                  // coefficient of rolling friction (per body)
-            data_manager->host_data.muSpin.data(),                  // coefficient of spinning friction (per body)
-            data_manager->host_data.cohesion_data.data(),           // constant force (per body)
-            data_manager->host_data.adhesionMultDMT_data.data(),    // Adhesion force multiplier in DMT model (per body)
-            data_manager->host_data.adhesionSPerko_data.data(),     // Cleanliness factor in Perko model (per body)
-            data_manager->host_data.bids_rigid_rigid.data(),        // body IDs (per contact)
-            shape_pairs.data(),                                     // shape IDs (per contact)
-            data_manager->shape_data.local_rigid.data(),            // shape index in associated model (per shape)
             data_manager->host_data.cpta_rigid_rigid.data(),        // point on shape 1 (per contact)
             data_manager->host_data.cptb_rigid_rigid.data(),        // point on shape 2 (per contact)
             data_manager->host_data.norm_rigid_rigid.data(),        // contact normal (per contact)

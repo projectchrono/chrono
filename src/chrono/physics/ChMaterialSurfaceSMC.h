@@ -36,17 +36,6 @@ class ChApi ChMaterialSurfaceSMC : public ChMaterialSurface {
     float adhesionMultDMT;    ///< Adhesion multiplier used in DMT model.
     float adhesionSPerko;     ///< Adhesion multiplier used in Perko model.
 
-    // DMT adhesion model:
-    //     adhesion = adhesionMultDMT * sqrt(R_eff).
-    // Given the surface energy, w,
-    //     adhesionMultDMT = 2 * CH_C_PI * w * sqrt(R_eff).
-    // Given the equilibrium penetration distance, y_eq,
-    //     adhesionMultDMT = 4.0 / 3.0 * E_eff * powf(y_eq, 1.5)
-    // Perko et al. (2001) ahdesion  model:
-    //     adhesion = adhesionSPerko * R_eff
-    // Given S a the measurement of cleanliness
-    //     adhesionSPerko = 3.6E-2 * S^2 (for lunar regolith)
-
     float kn;  ///< user-specified normal stiffness coefficient
     float kt;  ///< user-specified tangential stiffness coefficient
     float gn;  ///< user-specified normal damping coefficient
@@ -98,13 +87,25 @@ class ChApi ChMaterialSurfaceSMC : public ChMaterialSurface {
     float GetAdhesion() const { return constant_adhesion; }
 
     /// Adhesion multiplier in the Derjaguin-Muller-Toporov model.
+    /// <pre>
+    /// In this model,
+    ///    adhesion = adhesionMultDMT * sqrt(R_eff)
+    /// given the surface energy, w,
+    ///    adhesionMultDMT = 2 * CH_C_PI * w * sqrt(R_eff)
+    /// given the equilibrium penetration distance, y_eq,
+    ///    adhesionMultDMT = 4.0 / 3.0 * E_eff * powf(y_eq, 1.5)
+    /// </pre>
     void SetAdhesionMultDMT(float val) { adhesionMultDMT = val; }
     float GetAdhesionMultDMT() const { return adhesionMultDMT; }
 
 	/// Coefficient for Perko adhesion model.
-    /// In this model (see Perko et al., 2001), adhesion = adhesionSPerko * R.
-    /// The coefficient adhesionSPerko is function of the Hamaker constant A and a measurement of cleanliness S.
-    /// For lunar regolith, adhesionSPerko = 3.6e-2 * S^2.
+    /// <pre>
+    /// In this model (see Perko et al., 2001),
+    ///    adhesion = adhesionSPerko * R
+    /// The coefficient adhesionSPerko is function of the Hamaker constant A and a measure of cleanliness S.
+    /// For lunar regolith, 
+    ///    adhesionSPerko = 3.6e-2 * S^2
+    /// </pre>
     void SetAdhesionSPerko(float val) { adhesionSPerko = val; }
     float GetAdhesionSPerko() const { return adhesionSPerko; }
 
@@ -119,7 +120,7 @@ class ChApi ChMaterialSurfaceSMC : public ChMaterialSurface {
     float GetGn() const { return gn; }
     float GetGt() const { return gt; }
 
-    /// Method to allow serializing transient data into in ASCII.
+    /// Method to allow serialization transient data into ASCII.
     virtual void StreamOUT(ChStreamOutAscii& mstream) { mstream << "Material SMC \n"; }
 
     /// Method to allow serialization of transient data to archives.
