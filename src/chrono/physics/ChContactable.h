@@ -51,10 +51,6 @@ class ChApi ChContactable {
     /// Compute: x_new = x + dw.
     virtual void ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) = 0;
 
-    /// Return the contact method supported by this contactable object.
-    /// This must be consistent with associated surface materials.
-    virtual ChContactMethod GetContactMethod() const = 0;
-
     /// Return the pointer to the surface material.
     /// This function returns a reference to the shared pointer member variable and is therefore THREAD SAFE.
     virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() = 0;

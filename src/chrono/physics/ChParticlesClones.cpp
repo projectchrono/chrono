@@ -69,10 +69,6 @@ ChAparticle& ChAparticle::operator=(const ChAparticle& other) {
     return *this;
 }
 
-ChContactMethod ChAparticle::GetContactMethod() const {
-    return container->GetMaterialSurface()->GetContactMethod();
-}
-
 std::shared_ptr<ChMaterialSurface>& ChAparticle::GetMaterialSurface() {
     return container->GetMaterialSurface();
 }

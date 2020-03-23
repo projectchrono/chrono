@@ -221,9 +221,6 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Method to serialize only the state (position, speed)
     virtual void StreamOUTstate(ChStreamOutBinary& mstream) override;
 
-    /// Infer the contact method from the underlying material properties object.
-    virtual ChContactMethod GetContactMethod() const override;
-
     /// Return the pointer to the surface material.
     virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() override;
 

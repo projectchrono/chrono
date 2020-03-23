@@ -311,7 +311,7 @@ bool ChParserOpenSim::parseBody(xml_node<>* bodyNode, ChSystem& system) {
 
     // If body collision is enabled, set the contact material properties
     if (m_collide) {
-        switch (newBody->GetContactMethod()) {
+        switch (system.GetContactMethod()) {
             case ChContactMethod::NSC:
                 newBody->GetMaterialSurfaceNSC()->SetFriction(m_friction);
                 newBody->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
@@ -831,9 +831,8 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
         }
 
         // Create a contact material that will be shared by all shapes for this body
-        auto contact_method = body_info.body->GetSystem()->GetContactMethod();
         std::shared_ptr<ChMaterialSurface> mat;
-        switch (contact_method) {
+        switch (system.GetContactMethod()) {
             case ChContactMethod::NSC: {
                 auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
                 matNSC->SetFriction(m_friction);

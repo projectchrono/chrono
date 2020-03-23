@@ -48,10 +48,6 @@ void ChContactNodeXYZ::ComputeJacobianForContactPart(const ChVector<>& abs_point
     jacobian_tuple_V.Get_Cq().segment(0,3) = Jx1.row(2);
 }
 
-ChContactMethod ChContactNodeXYZ::GetContactMethod() const {
-    return container->GetMaterialSurface()->GetContactMethod();
-}
-
 std::shared_ptr<ChMaterialSurface>& ChContactNodeXYZ::GetMaterialSurface() {
     return container->GetMaterialSurface();
 }
@@ -91,10 +87,6 @@ void ChContactNodeXYZROT::ComputeJacobianForContactPart(const ChVector<>& abs_po
     jacobian_tuple_N.Get_Cq().segment(0,3) = Jx1.row(0);
     jacobian_tuple_U.Get_Cq().segment(0,3) = Jx1.row(1);
     jacobian_tuple_V.Get_Cq().segment(0,3) = Jx1.row(2);
-}
-
-ChContactMethod ChContactNodeXYZROT::GetContactMethod() const {
-    return container->GetMaterialSurface()->GetContactMethod();
 }
 
 std::shared_ptr<ChMaterialSurface>& ChContactNodeXYZROT::GetMaterialSurface() {

@@ -147,10 +147,6 @@ class ChApi ChNodeSPH : public ChNodeXYZ, public ChContactable_1vars<3> {
 
     virtual double GetContactableMass() override { return GetMass(); }
 
-    /// Return the contact method supported by this contactable object.
-    /// Infered from the underlying material properties object.
-    virtual ChContactMethod GetContactMethod() const override;
-
     /// Return the pointer to the surface material.
     virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() override;
 
