@@ -135,9 +135,6 @@ class ChApi ChContactNodeXYZ : public ChContactable_1vars<3> {
         // return this->mnode->GetMass(); // no!! could be zero in nodes of non-lumped-masses meshes!
     }
 
-    /// Return the pointer to the surface material.
-    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() override;
-
     /// This is only for backward compatibility
     virtual ChPhysicsItem* GetPhysicsItem() override;
 
@@ -274,9 +271,6 @@ class ChApi ChContactNodeXYZROT : public ChContactable_1vars<6> {
         return 1;
         // return this->mnode->GetMass(); // no!! could be zero in nodes of non-lumped-masses meshes!
     }
-
-    /// Return the pointer to the surface material.
-    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() override;
 
     /// This is only for backward compatibility
     virtual ChPhysicsItem* GetPhysicsItem() override;

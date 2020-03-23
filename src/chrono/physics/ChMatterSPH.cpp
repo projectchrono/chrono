@@ -114,10 +114,6 @@ void ChNodeSPH::ComputeJacobianForContactPart(const ChVector<>& abs_point,
     jacobian_tuple_V.Get_Cq().segment(0, 3) = Jx1.row(2);
 }
 
-std::shared_ptr<ChMaterialSurface>& ChNodeSPH::GetMaterialSurface() {
-    return container->GetMaterialSurface();
-}
-
 ChPhysicsItem* ChNodeSPH::GetPhysicsItem() {
     return container;
 }

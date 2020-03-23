@@ -615,16 +615,7 @@ void Generator::writeObjectInfo(const std::string& filename) {
         csv << m_bodies[i].m_body->GetPos() << m_bodies[i].m_size;
         csv << m_bodies[i].m_density << m_bodies[i].m_body->GetMass();
 
-        switch (m_system->GetContactMethod()) {
-            case ChContactMethod::NSC: {
-                std::shared_ptr<ChMaterialSurfaceNSC> mat = m_bodies[i].m_body->GetMaterialSurfaceNSC();
-                csv << mat->GetSfriction() << mat->GetCohesion();
-            } break;
-            case ChContactMethod::SMC: {
-                std::shared_ptr<ChMaterialSurfaceSMC> mat = m_bodies[i].m_body->GetMaterialSurfaceSMC();
-                csv << mat->GetYoungModulus() << mat->GetPoissonRatio() << mat->GetSfriction() << mat->GetRestitution();
-            } break;
-        }
+        //// RADU: write collision shape information, including contact material properties?
 
         csv << std::endl;
     }

@@ -14,7 +14,6 @@
 #define CHCONTACTABLE_H
 
 #include "chrono/solver/ChConstraintTuple.h"
-#include "chrono/physics/ChMaterialSurface.h"
 #include "chrono/core/ChMatrix33.h"
 #include "chrono/timestepper/ChState.h"
 
@@ -50,10 +49,6 @@ class ChApi ChContactable {
     /// Increment the provided state of this object by the given state-delta increment.
     /// Compute: x_new = x + dw.
     virtual void ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) = 0;
-
-    /// Return the pointer to the surface material.
-    /// This function returns a reference to the shared pointer member variable and is therefore THREAD SAFE.
-    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() = 0;
 
     /// Express the local point in absolute frame, for the given state position.
     virtual ChVector<> GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) = 0;

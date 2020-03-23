@@ -21,8 +21,8 @@
 
 #include "chrono/fea/ChElementBase.h"
 #include "chrono/physics/ChContactable.h"
-#include "chrono/physics/ChMaterialSurface.h"
-#include "chrono/physics/ChMaterialSurface.h"
+#include "chrono/physics/ChMaterialSurfaceSMC.h"
+#include "chrono/physics/ChMaterialSurfaceNSC.h"
 
 namespace chrono {
 namespace fea {

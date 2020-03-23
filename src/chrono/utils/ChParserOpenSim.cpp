@@ -309,26 +309,6 @@ bool ChParserOpenSim::parseBody(xml_node<>* bodyNode, ChSystem& system) {
     newBody->SetNameString(name);
     system.AddBody(newBody);
 
-    // If body collision is enabled, set the contact material properties
-    if (m_collide) {
-        switch (system.GetContactMethod()) {
-            case ChContactMethod::NSC:
-                newBody->GetMaterialSurfaceNSC()->SetFriction(m_friction);
-                newBody->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
-                break;
-            case ChContactMethod::SMC:
-                newBody->GetMaterialSurfaceSMC()->SetFriction(m_friction);
-                newBody->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
-                newBody->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);
-                newBody->GetMaterialSurfaceSMC()->SetPoissonRatio(m_poisson_ratio);
-                newBody->GetMaterialSurfaceSMC()->SetKn(m_kn);
-                newBody->GetMaterialSurfaceSMC()->SetGn(m_gn);
-                newBody->GetMaterialSurfaceSMC()->SetKt(m_kt);
-                newBody->GetMaterialSurfaceSMC()->SetGt(m_gt);
-                break;
-        }
-    }
-
     newBody->SetCollide(m_collide);
 
     // Traverse the list of fields and parse the information for each one

@@ -564,8 +564,6 @@ std::shared_ptr<ChBody> CreateBoxContainer(ChSystem* system,
     // Create the body and set material
     std::shared_ptr<ChBody> body(system->NewBody());
 
-    body->SetMaterialSurface(mat);
-
     // Set body properties and geometry.
     body->SetIdentifier(id);
     body->SetMass(1);
@@ -642,8 +640,6 @@ std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(ChSystem* system,
 
     // Create the body and set material
     std::shared_ptr<ChBody> body(system->NewBody());
-
-    body->SetMaterialSurface(mat);
 
     // Set body properties and geometry.
     body->SetIdentifier(id);

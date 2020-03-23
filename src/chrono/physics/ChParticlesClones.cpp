@@ -69,10 +69,6 @@ ChAparticle& ChAparticle::operator=(const ChAparticle& other) {
     return *this;
 }
 
-std::shared_ptr<ChMaterialSurface>& ChAparticle::GetMaterialSurface() {
-    return container->GetMaterialSurface();
-}
-
 void ChAparticle::ContactableGetStateBlock_w(ChStateDelta& w) {
     w.segment(0, 3) = GetPos_dt().eigen();
     w.segment(3, 3) = GetWvel_loc().eigen();

@@ -22,8 +22,6 @@
 #include "chrono/physics/ChForce.h"
 #include "chrono/physics/ChLoadable.h"
 #include "chrono/physics/ChMarker.h"
-#include "chrono/physics/ChMaterialSurfaceNSC.h"
-#include "chrono/physics/ChMaterialSurfaceSMC.h"
 #include "chrono/physics/ChPhysicsItem.h"
 #include "chrono/solver/ChConstraint.h"
 #include "chrono/solver/ChVariablesBodyOwnMass.h"
@@ -220,29 +218,6 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     /// Method to serialize only the state (position, speed)
     virtual void StreamOUTstate(ChStreamOutBinary& mstream) override;
-
-    /// Return the pointer to the surface material.
-    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() override;
-
-    /// Access the NSC material surface properties associated with this body.
-    /// This function performs a dynamic cast (and returns an empty pointer
-    /// if matsurface is in fact of SMC type).  As such, it must return a copy
-    /// of the shared pointer and is therefore NOT thread safe.
-    std::shared_ptr<ChMaterialSurfaceNSC> GetMaterialSurfaceNSC() {
-        return std::dynamic_pointer_cast<ChMaterialSurfaceNSC>(matsurface);
-    }
-
-    /// Access the SMC material surface properties associated with this body.
-    /// This function performs a dynamic cast (and returns an empty pointer
-    /// if matsurface is in fact of NSC type).  As such, it must return a copy
-    /// of the shared pointer and is therefore NOT thread safe.
-    std::shared_ptr<ChMaterialSurfaceSMC> GetMaterialSurfaceSMC() {
-        return std::dynamic_pointer_cast<ChMaterialSurfaceSMC>(matsurface);
-    }
-
-    /// Set the material surface properties by passing a ChMaterialSurfaceNSC or
-    /// ChMaterialSurfaceSMC object.
-    void SetMaterialSurface(const std::shared_ptr<ChMaterialSurface>& mnewsurf) { matsurface = mnewsurf; }
 
     /// The density of the rigid body, as [mass]/[unit volume]. Used just if
     /// the inertia tensor and mass are automatically recomputed from the
@@ -528,8 +503,6 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     ChVector<> Scr_force;   ///< script force accumulator, applied to COG (in absolute coords)
     ChVector<> Scr_torque;  ///< script torque accumulator (in absolute coords)
-
-    std::shared_ptr<ChMaterialSurface> matsurface;  ///< data for surface contact and impact
 
     // Auxiliary, stores position/rotation once a while when collision detection
     // routines require to know the last time that coll. detect. was satisfied

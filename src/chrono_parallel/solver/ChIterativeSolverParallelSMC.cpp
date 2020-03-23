@@ -26,6 +26,7 @@
 #include <thrust/sort.h>
 
 #include "chrono/physics/ChSystemSMC.h"
+#include "chrono/physics/ChMaterialSurfaceSMC.h"
 #include "chrono_parallel/solver/ChIterativeSolverParallel.h"
 
 #if defined(CHRONO_OPENMP_ENABLED)

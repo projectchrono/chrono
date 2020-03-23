@@ -147,9 +147,6 @@ class ChApi ChNodeSPH : public ChNodeXYZ, public ChContactable_1vars<3> {
 
     virtual double GetContactableMass() override { return GetMass(); }
 
-    /// Return the pointer to the surface material.
-    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() override;
-
     /// This is only for backward compatibility
     virtual ChPhysicsItem* GetPhysicsItem() override;
 

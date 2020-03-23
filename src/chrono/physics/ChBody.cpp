@@ -48,15 +48,6 @@ ChBody::ChBody(ChContactMethod contact_method) {
 
     collision_model = InstanceCollisionModel();
 
-    switch (contact_method) {
-        case ChContactMethod::NSC:
-            matsurface = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-            break;
-        case ChContactMethod::SMC:
-            matsurface = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-            break;
-    }
-
     density = 1000.0f;
 
     last_coll_pos = CSYSNORM;
@@ -92,15 +83,6 @@ ChBody::ChBody(std::shared_ptr<collision::ChCollisionModel> new_collision_model,
     collision_model = new_collision_model;
     collision_model->SetContactable(this);
 
-    switch (contact_method) {
-        case ChContactMethod::NSC:
-            matsurface = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-            break;
-        case ChContactMethod::SMC:
-            matsurface = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-            break;
-    }
-
     density = 1000.0f;
 
     last_coll_pos = CSYSNORM;
@@ -134,8 +116,6 @@ ChBody::ChBody(const ChBody& other) : ChPhysicsItem(other), ChBodyFrame(other) {
 
     // also copy-duplicate the collision model? Let the user handle this..
     collision_model = InstanceCollisionModel();
-
-    matsurface = other.matsurface;  // also copy-duplicate the material? Let the user handle this..
 
     density = other.density;
 
@@ -871,10 +851,6 @@ void ChBody::GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax) {
         ChPhysicsItem::GetTotalAABB(bbmin, bbmax);  // default: infinite aabb
 }
 
-std::shared_ptr<ChMaterialSurface>& ChBody::GetMaterialSurface() {
-    return matsurface;
-}
-
 void ChBody::ContactableGetStateBlock_x(ChState& x) {
     x.segment(0, 3) = this->GetCoord().pos.eigen();
     x.segment(3, 4) = this->GetCoord().rot.eigen();
@@ -1156,7 +1132,6 @@ void ChBody::ArchiveOUT(ChArchiveOut& marchive) {
     // marchive << CHNVP(Torque_acc);// not useful in serialization
     // marchive << CHNVP(Scr_force); // not useful in serialization
     // marchive << CHNVP(Scr_torque);// not useful in serialization
-    marchive << CHNVP(matsurface);
     // marchive << CHNVP(last_coll_pos);// not useful in serialization
     marchive << CHNVP(density);
     marchive << CHNVP(variables);
@@ -1219,7 +1194,6 @@ void ChBody::ArchiveIN(ChArchiveIn& marchive) {
     // marchive << CHNVP(Torque_acc);// not useful in serialization
     // marchive << CHNVP(Scr_force); // not useful in serialization
     // marchive << CHNVP(Scr_torque);// not useful in serialization
-    marchive >> CHNVP(matsurface);
     // marchive << CHNVP(last_coll_pos);// not useful in serialization
     marchive >> CHNVP(density);
     marchive >> CHNVP(variables);
