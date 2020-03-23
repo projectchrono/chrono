@@ -20,7 +20,6 @@
 
 #include "chrono/core/ChTimer.h"
 #include "chrono/physics/ChIndexedNodes.h"
-#include "chrono/physics/ChMaterialSurfaceNSC.h"
 #include "chrono/fea/ChContinuumMaterial.h"
 #include "chrono/fea/ChContactSurface.h"
 #include "chrono/fea/ChElementBase.h"

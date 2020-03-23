@@ -19,7 +19,6 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChInertiaUtils.h"
-#include "chrono/physics/ChParticlesClones.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"

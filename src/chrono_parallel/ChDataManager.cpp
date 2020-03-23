@@ -24,7 +24,6 @@
 #include "chrono_parallel/collision/ChCollision.h"
 
 #include "chrono/core/ChStream.h"
-#include "chrono/physics/ChMaterialSurface.h"
 
 using namespace chrono;
 using namespace chrono::collision;
