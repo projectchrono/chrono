@@ -98,8 +98,6 @@ void create_items(ChIrrAppInterface& application) {
                 application.GetSystem()->Add(mrigidBody);
             }
 
-            mrigidBody->SetMaterialSurface(material);
-
             mspheres.push_back(mrigidBody);
 
             level += sphrad * 2;
@@ -121,7 +119,6 @@ void create_items(ChIrrAppInterface& application) {
                     mrigidWall->SetPos(ChVector<>(-0.8 + ui * 0.4 + 0.2 * (bi % 2), 0.10 + bi * 0.2, -0.5 + ai * 0.6));
                     mrigidWall->AddAsset(
                         chrono_types::make_shared<ChTexture>(GetChronoDataFile("cubetexture_bluwhite.png")));
-                    mrigidWall->SetMaterialSurface(material);
 
                     application.GetSystem()->Add(mrigidWall);
                 }
@@ -141,7 +138,6 @@ void create_items(ChIrrAppInterface& application) {
                                                                        material);       // contact material
         mrigidHeavy->SetPos(ChVector<>(0.5, sphrad + 0.6, -1));
         mrigidHeavy->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("pinkwhite.png")));
-        mrigidHeavy->SetMaterialSurface(material);
 
         application.GetSystem()->Add(mrigidHeavy);
 
@@ -159,8 +155,6 @@ void create_items(ChIrrAppInterface& application) {
                                                                 material);  // contact material
     mrigidFloor->SetPos(ChVector<>(0, -2, 0));
     mrigidFloor->SetBodyFixed(true);
-    mrigidFloor->SetMaterialSurface(material);
-    // mrigidFloor->GetMaterialSurfaceNSC()->SetFriction(0.6f);
     mrigidFloor->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("concrete.jpg")));
 
     application.GetSystem()->Add(mrigidFloor);

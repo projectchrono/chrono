@@ -93,7 +93,6 @@ int main(int argc, char* argv[]) {
                                                                    true,         // collision?
                                                                    sphere_mat);  // contact material
     msphereBody->SetPos(ChVector<>(1, 1, 0));
-    msphereBody->GetMaterialSurfaceNSC()->SetFriction(0.2f);
 
     // optional: add further assets, ex for improving visualization:
     auto mtexture = chrono_types::make_shared<ChTexture>();

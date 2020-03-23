@@ -61,7 +61,6 @@ void AddContainer(ChSystemParallelSMC* sys) {
     // Create the containing bin (2 x 2 x 1)
     auto bin =
         chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>(), ChContactMethod::SMC);
-    bin->SetMaterialSurface(mat);
     bin->SetIdentifier(binId);
     bin->SetMass(1);
     bin->SetPos(ChVector<>(0, 0, 0));
@@ -92,7 +91,6 @@ void AddContainer(ChSystemParallelSMC* sys) {
     // The rotating mixer body (1.6 x 0.2 x 0.4)
     auto mixer =
         chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>(), ChContactMethod::SMC);
-    mixer->SetMaterialSurface(mat);
     mixer->SetIdentifier(mixerId);
     mixer->SetMass(10.0);
     mixer->SetInertiaXX(ChVector<>(50, 50, 50));
@@ -138,8 +136,6 @@ void AddFallingBalls(ChSystemParallelSMC* sys) {
 
             auto ball = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>(),
                                                           ChContactMethod::SMC);
-            ball->SetMaterialSurface(ballMat);
-
             ball->SetIdentifier(ballId++);
             ball->SetMass(mass);
             ball->SetInertiaXX(inertia);

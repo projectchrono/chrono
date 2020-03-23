@@ -59,7 +59,6 @@ void create_wall_bodies(ChSystemNSC& mphysicalSystem) {
                                                                            true,        // collision?
                                                                            mat);        // contact material
                 mrigidBody->SetPos(ChVector<>(-8 + ui * 4.0 + 2 * (bi % 2), 1.0 + bi * 2.0, ai * 9));
-                mrigidBody->SetMaterialSurface(mat);
 
                 mphysicalSystem.Add(mrigidBody);
 
@@ -80,7 +79,6 @@ void create_wall_bodies(ChSystemNSC& mphysicalSystem) {
                                                                 true,         // collision?
                                                                 mat);         // contact material
     mrigidFloor->SetPos(ChVector<>(0, -2, 0));
-    mrigidFloor->SetMaterialSurface(mat);
     mrigidFloor->SetBodyFixed(true);
 
     mphysicalSystem.Add(mrigidFloor);
@@ -92,7 +90,6 @@ void create_wall_bodies(ChSystemNSC& mphysicalSystem) {
                                                                   true,  // collision?
                                                                   mat);  // contact material
     mrigidBall->SetPos(ChVector<>(0, -2, 0));
-    mrigidBall->SetMaterialSurface(mat);
     mrigidBall->SetPos(ChVector<>(0, 3, -8));
     mrigidBall->SetPos_dt(ChVector<>(0, 0, 16));  // set initial speed
 
@@ -123,7 +120,6 @@ void create_jengatower_bodies(ChSystemNSC& mphysicalSystem) {
                                                                     true,      // collision?
                                                                     mat);      // contact material
         mrigidBody1->SetPos(ChVector<>(-5, 1.0 + bi * 2.0, 0));
-        mrigidBody1->SetMaterialSurface(mat);  // use shared surface properties
         mphysicalSystem.Add(mrigidBody1);
 
         auto mrigidBody2 = chrono_types::make_shared<ChBodyEasyBox>(2, 2, 14,  // x,y,z size
@@ -132,7 +128,6 @@ void create_jengatower_bodies(ChSystemNSC& mphysicalSystem) {
                                                                     true,      // collision?
                                                                     mat);      // contact material
         mrigidBody2->SetPos(ChVector<>(5, 1.0 + bi * 2.0, 0));
-        mrigidBody2->SetMaterialSurface(mat);  // use shared surface properties
         mphysicalSystem.Add(mrigidBody2);
 
         auto mrigidBody3 = chrono_types::make_shared<ChBodyEasyBox>(14, 2, 2,  // x,y,z size
@@ -141,7 +136,6 @@ void create_jengatower_bodies(ChSystemNSC& mphysicalSystem) {
                                                                     true,      // collision?
                                                                     mat);      // contact material
         mrigidBody3->SetPos(ChVector<>(0, 3.0 + bi * 2.0, 5));
-        mrigidBody3->SetMaterialSurface(mat);  // use shared surface properties
         mphysicalSystem.Add(mrigidBody3);
 
         auto mrigidBody4 = chrono_types::make_shared<ChBodyEasyBox>(14, 2, 2,  // x,y,z size
@@ -150,7 +144,6 @@ void create_jengatower_bodies(ChSystemNSC& mphysicalSystem) {
                                                                     true,      // collision?
                                                                     mat);      // contact material
         mrigidBody4->SetPos(ChVector<>(0, 3.0 + bi * 2.0, -5));
-        mrigidBody4->SetMaterialSurface(mat);  // use shared surface properties
         mphysicalSystem.Add(mrigidBody4);
     }
 
@@ -162,7 +155,6 @@ void create_jengatower_bodies(ChSystemNSC& mphysicalSystem) {
                                                                 true,         // collision?
                                                                 mat);         // contact material
     mrigidFloor->SetPos(ChVector<>(0, -2, 0));
-    mrigidFloor->SetMaterialSurface(mat);
     mrigidFloor->SetBodyFixed(true);
 
     mphysicalSystem.Add(mrigidFloor);
@@ -173,7 +165,6 @@ void create_jengatower_bodies(ChSystemNSC& mphysicalSystem) {
                                                                   true,  // visualization?
                                                                   true,  // collision?
                                                                   mat);  // contact material
-    mrigidBall->SetMaterialSurface(mat);
     mrigidBall->SetPos(ChVector<>(0, 3, -8));
     mrigidBall->SetPos_dt(ChVector<>(0, 0, 2));  // set initial speed
 

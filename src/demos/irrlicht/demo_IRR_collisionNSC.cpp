@@ -53,8 +53,6 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem, ISceneManager* msce
                                                                        true,      // collision?
                                                                        sph_mat);  // contact material
         msphereBody->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
-        msphereBody->GetMaterialSurfaceNSC()->SetFriction(0.2f);
-
         mphysicalSystem.Add(msphereBody);
 
         auto mtexture = chrono_types::make_shared<ChTexture>();
@@ -137,7 +135,6 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem, ISceneManager* msce
                                                                  true,        // collision?
                                                                  mixer_mat);  // contact material
     rotatingBody->SetPos(ChVector<>(0, -1.6, 0));
-    rotatingBody->GetMaterialSurfaceNSC()->SetFriction(0.4f);
     mphysicalSystem.Add(rotatingBody);
 
     // .. a motor between mixer and truss

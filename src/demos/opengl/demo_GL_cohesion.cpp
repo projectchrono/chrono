@@ -55,8 +55,6 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem) {
                                                                       true,  // collision?
                                                                       mat);  // contact material
         mrigidBody->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
-        mrigidBody->GetMaterialSurfaceNSC()->SetFriction(0.3f);
-
         mphysicalSystem.Add(mrigidBody);
     }
 
@@ -119,8 +117,6 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem) {
                                                                  true,        // collision?
                                                                  mixer_mat);  // contact material
     rotatingBody->SetPos(ChVector<>(0, -1.6, 0));
-    rotatingBody->GetMaterialSurfaceNSC()->SetFriction(0.4f);
-
     mphysicalSystem.Add(rotatingBody);
 
     // .. a motor between mixer and truss

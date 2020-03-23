@@ -60,7 +60,6 @@ std::shared_ptr<ChBody> CreateLobedGear (
             )  {
 
     auto mgear = chrono_types::make_shared<ChBody>();
-    mgear->SetMaterialSurface(mysurfmaterial);
     mgear->SetPos(gear_center);
     my_system.Add(mgear);
 

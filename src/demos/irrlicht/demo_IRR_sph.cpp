@@ -72,7 +72,6 @@ void create_some_falling_items(ChSystemNSC& system) {
     wall1->SetPos(ChVector<>(0, -thick * 0.5, 0));
     wall1->SetBodyFixed(true);
     wall1->SetMass(100);
-    wall1->GetMaterialSurfaceNSC()->SetFriction(0);
     wall1->AddAsset(texture);
     system.Add(wall1);
 
@@ -80,7 +79,6 @@ void create_some_falling_items(ChSystemNSC& system) {
     wall2->SetPos(ChVector<>(-xsize * 0.5 - thick * 0.5, height * 0.5, 0));
     wall2->SetBodyFixed(true);
     wall2->SetMass(100);
-    wall2->GetMaterialSurfaceNSC()->SetFriction(0);
     wall2->AddAsset(texture);
     system.Add(wall2);
 
@@ -88,7 +86,6 @@ void create_some_falling_items(ChSystemNSC& system) {
     wall3->SetPos(ChVector<>(xsize * 0.5 + thick * 0.5, height * 0.5, 0));
     wall3->SetBodyFixed(true);
     wall3->SetMass(100);
-    wall3->GetMaterialSurfaceNSC()->SetFriction(0);
     wall3->AddAsset(texture);
     system.Add(wall3);
 
@@ -96,7 +93,6 @@ void create_some_falling_items(ChSystemNSC& system) {
     wall4->SetPos(ChVector<>(0, height * 0.5, -zsize * 0.5 - thick * 0.5));
     wall4->SetBodyFixed(true);
     wall4->SetMass(100);
-    wall4->GetMaterialSurfaceNSC()->SetFriction(0);
     wall4->AddAsset(texture);
     system.Add(wall4);
 
@@ -105,7 +101,6 @@ void create_some_falling_items(ChSystemNSC& system) {
     wall5->SetPos(ChVector<>(opening, height * 0.5, zsize * 0.5 + thick * 0.5));
     wall5->SetBodyFixed(true);
     wall5->SetMass(100);
-    wall5->GetMaterialSurfaceNSC()->SetFriction(0);
     wall5->AddAsset(texture);
     system.Add(wall5);
 
@@ -114,7 +109,6 @@ void create_some_falling_items(ChSystemNSC& system) {
     floor->SetPos(ChVector<>(0, -0.5, 0));
     floor->SetBodyFixed(true);
     floor->SetMass(100);
-    floor->GetMaterialSurfaceNSC()->SetFriction(0.2f);
     system.Add(floor);
 
     // Create floating balls.
@@ -127,7 +121,6 @@ void create_some_falling_items(ChSystemNSC& system) {
     for (int ib = 0; ib < 12; ib++) {
         auto ball = chrono_types::make_shared<ChBodyEasySphere>(0.02 + ChRandom() * 0.02, 100, true, true, ball_mat);
         ball->SetPos(ChVector<>(ChRandom() * 0.3 - 0.15, 0.2, ChRandom() * 0.3 - 0.15));
-        ball->GetMaterialSurfaceNSC()->SetFriction(0.0f);
         ball->AddAsset(ball_texture);
         system.Add(ball);
     }

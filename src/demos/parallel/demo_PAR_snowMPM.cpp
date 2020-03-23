@@ -65,7 +65,6 @@ void AddBody(ChSystemParallelNSC* sys) {
 
     // Create the containing bin (2 x 2 x 1)
     auto bin = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>());
-    bin->SetMaterialSurface(mat);
     bin->SetIdentifier(binId);
     bin->SetMass(100);
     bin->SetPos(ChVector<>(0, 0, 1));
@@ -97,7 +96,6 @@ void AddContainer(ChSystemParallelNSC* sys) {
 
     // Create the containing bin (2 x 2 x 1)
     auto bin = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>());
-    bin->SetMaterialSurface(mat);
     bin->SetIdentifier(binId);
     bin->SetMass(1);
     bin->SetPos(ChVector<>(0, 0, 0));

@@ -150,10 +150,6 @@ int main(int argc, char* argv[]) {
             matNSC->SetFriction(object_friction);
             matNSC->SetRestitution(object_restitution);
             object_mat = matNSC;
-
-            object->GetMaterialSurfaceNSC()->SetFriction(object_friction);
-            object->GetMaterialSurfaceNSC()->SetRestitution(object_restitution);
-
             break;
         }
         case ChContactMethod::SMC: {
@@ -167,16 +163,6 @@ int main(int argc, char* argv[]) {
             matSMC->SetKt(object_kt);
             matSMC->SetGt(object_gt);
             object_mat = matSMC;
-
-            object->GetMaterialSurfaceSMC()->SetFriction(object_friction);
-            object->GetMaterialSurfaceSMC()->SetRestitution(object_restitution);
-            object->GetMaterialSurfaceSMC()->SetYoungModulus(object_young_modulus);
-            object->GetMaterialSurfaceSMC()->SetPoissonRatio(object_poisson_ratio);
-            object->GetMaterialSurfaceSMC()->SetKn(object_kn);
-            object->GetMaterialSurfaceSMC()->SetGn(object_gn);
-            object->GetMaterialSurfaceSMC()->SetKt(object_kt);
-            object->GetMaterialSurfaceSMC()->SetGt(object_gt);
-
             break;
         }
     }
@@ -211,10 +197,6 @@ int main(int argc, char* argv[]) {
             matNSC->SetFriction(ground_friction);
             matNSC->SetRestitution(ground_restitution);
             ground_mat = matNSC;
-
-            ground->GetMaterialSurfaceNSC()->SetFriction(ground_friction);
-            ground->GetMaterialSurfaceNSC()->SetRestitution(ground_restitution);
-
             break;
         }
         case ChContactMethod::SMC: {
@@ -228,16 +210,6 @@ int main(int argc, char* argv[]) {
             matSMC->SetKt(ground_kt);
             matSMC->SetGt(ground_gt);
             ground_mat = matSMC;
-
-            ground->GetMaterialSurfaceSMC()->SetFriction(ground_friction);
-            ground->GetMaterialSurfaceSMC()->SetRestitution(ground_restitution);
-            ground->GetMaterialSurfaceSMC()->SetYoungModulus(ground_young_modulus);
-            ground->GetMaterialSurfaceSMC()->SetPoissonRatio(ground_poisson_ratio);
-            ground->GetMaterialSurfaceSMC()->SetKn(ground_kn);
-            ground->GetMaterialSurfaceSMC()->SetGn(ground_gn);
-            ground->GetMaterialSurfaceSMC()->SetKt(ground_kt);
-            ground->GetMaterialSurfaceSMC()->SetGt(ground_gt);
-
             break;
         }
     }

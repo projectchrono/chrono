@@ -132,8 +132,6 @@ int main(int argc, char* argv[]) {
     container->SetBodyFixed(true);
     container->SetIdentifier(-1);
 
-    container->GetMaterialSurfaceSMC()->SetFriction(friction);
-
     container->SetCollide(true);
     container->GetCollisionModel()->ClearModel();
     utils::AddBoxGeometry(container.get(), ChVector<>(4, 0.5, 4), material, ChVector<>(0, -0.5, 0));
@@ -146,8 +144,6 @@ int main(int argc, char* argv[]) {
     box1->SetInertiaXX(ChVector<>(1, 1, 1));
     box1->SetPos(ChVector<>(-1, 0.21, -1));
     box1->SetPos_dt(ChVector<>(5, 0, 0));
-
-    box1->GetMaterialSurfaceSMC()->SetFriction(friction);
 
     box1->SetCollide(true);
     box1->GetCollisionModel()->ClearModel();
@@ -163,8 +159,6 @@ int main(int argc, char* argv[]) {
     box2->SetInertiaXX(ChVector<>(1, 1, 1));
     box2->SetPos(ChVector<>(-1, 0.21, +1));
     box2->SetPos_dt(ChVector<>(5, 0, 0));
-
-    box2->GetMaterialSurfaceSMC()->SetFriction(friction);
 
     box2->SetCollide(true);
     box2->GetCollisionModel()->ClearModel();

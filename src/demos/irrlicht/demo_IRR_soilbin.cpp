@@ -151,7 +151,6 @@ class ParticleGenerator {
                 auto currRigidBody =
                     chrono_types::make_shared<ChBodyEasySphere>(sphrad, this->sphDens, true, true, sphere_mat);
                 currRigidBody->SetPos(currPos);
-                currRigidBody->GetMaterialSurfaceNSC()->SetFriction(this->mu);
                 currRigidBody->SetRot(randrot);
                 currRigidBody->AddAsset(rockMap);
 
@@ -188,7 +187,6 @@ class ParticleGenerator {
                     pSize * xscale, pSize * yscale, pSize * zscale, this->boxDens, true, true, box_mat);
                 currRigidBody->SetPos(currPos);
                 currRigidBody->SetRot(randrot);
-                currRigidBody->GetMaterialSurfaceNSC()->SetFriction(0.5f);
                 currRigidBody->AddAsset(cubeMap);
 
                 msys->AddBody(currRigidBody);
@@ -270,7 +268,6 @@ class SoilbinWheel {
         wheel->SetPos(mposition);
         wheel->SetMass(mass);
         wheel->SetInertiaXX(inertia);
-        wheel->GetMaterialSurfaceNSC()->SetFriction(0.4f);
         wheel->SetCollide(true);
 
         // Visualization mesh
@@ -361,7 +358,6 @@ class TestMech {
                                                          binLength + wallWidth / 2.0, 1.0, true, true, floor_mat);
         floor->SetPos(ChVector<>(0, -0.5 - wallWidth / 2.0, 0));
         floor->SetBodyFixed(true);
-        floor->GetMaterialSurfaceNSC()->SetFriction(0.5);
         floor->AddAsset(cubeMap);
         system->AddBody(floor);
 

@@ -144,7 +144,6 @@ class MySimpleTank {
         wheelRF->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
         wheelRF->SetMass(9.0);
         wheelRF->SetInertiaXX(ChVector<>(1.2, 1.2, 1.2));
-        wheelRF->GetMaterialSurfaceNSC()->SetFriction(1.0);
 
         wheelRF->GetCollisionModel()->ClearModel();
         wheelRF->GetCollisionModel()->AddCylinder(wheel_mat, wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness,
@@ -181,7 +180,6 @@ class MySimpleTank {
         wheelLF->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
         wheelLF->SetMass(9.0);
         wheelLF->SetInertiaXX(ChVector<>(1.2, 1.2, 1.2));
-        wheelLF->GetMaterialSurfaceNSC()->SetFriction(1.0);
         wheelLF->AddAsset(color_wheel);
 
         wheelLF->GetCollisionModel()->ClearModel();
@@ -216,7 +214,6 @@ class MySimpleTank {
         wheelRB->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
         wheelRB->SetMass(9.0);
         wheelRB->SetInertiaXX(ChVector<>(1.2, 1.2, 1.2));
-        wheelRB->GetMaterialSurfaceNSC()->SetFriction(1.0);
         wheelRB->AddAsset(color_wheel);
 
         wheelRB->GetCollisionModel()->ClearModel();
@@ -252,7 +249,6 @@ class MySimpleTank {
         wheelLB->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
         wheelLB->SetMass(9.0);
         wheelLB->SetInertiaXX(ChVector<>(1.2, 1.2, 1.2));
-        wheelLB->GetMaterialSurfaceNSC()->SetFriction(1.0);
         wheelLB->AddAsset(color_wheel);
 
         wheelLB->GetCollisionModel()->ClearModel();
@@ -549,7 +545,6 @@ int main(int argc, char* argv[]) {
     auto my_ground = chrono_types::make_shared<ChBodyEasyBox>(60, 2, 60, 1000, true, true, ground_mat);
     my_ground->SetPos(ChVector<>(0, -1, 0));
     my_ground->SetBodyFixed(true);
-    my_ground->GetMaterialSurfaceNSC()->SetFriction(1.0);
     my_ground->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("blu.png")));
     my_system.AddBody(my_ground);
 

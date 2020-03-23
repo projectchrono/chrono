@@ -51,7 +51,6 @@ std::shared_ptr<ChBody> create_wheel(ChVector<> mposition, ChIrrAppInterface& ma
     mrigidBody->SetMass(50);
     mrigidBody->SetInertiaXX(ChVector<>(10, 10, 10));
     mrigidBody->SetPos(mposition);
-    mrigidBody->GetMaterialSurfaceNSC()->SetFriction(0.5f);
 
     // now attach a visualization shape, as a mesh from disk
     auto tireMesh = chrono_types::make_shared<ChObjShapeFile>();
@@ -115,7 +114,6 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem, ISceneManager* msce
         mrigidBody->SetPos(ChVector<>(-0.5 * bed_x + ChRandom() * bed_x, 
                             0.01 + 0.04 * ((double)bi / (double)n_pebbles),
                               -0.5 * bed_z + ChRandom() * bed_z));
-        mrigidBody->GetMaterialSurfaceNSC()->SetFriction(0.4f);
     }
 
     // Create the a plane using body of 'box' type:
@@ -126,7 +124,6 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem, ISceneManager* msce
     mphysicalSystem.Add(mrigidBodyB);
     mrigidBodyB->SetBodyFixed(true);
     mrigidBodyB->SetPos(ChVector<>(0, -0.5, 0));
-    mrigidBodyB->GetMaterialSurfaceNSC()->SetFriction(0.5);
     auto mcolor = chrono_types::make_shared<ChColorAsset>();
     mcolor->SetColor(ChColor(0.2f,0.2f,0.2f));
     mrigidBodyB->AddAsset(mcolor);

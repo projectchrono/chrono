@@ -154,9 +154,8 @@ FEAcontactTest::FEAcontactTest(SolverType solver_type) {
 }
 
 void FEAcontactTest::CreateFloor(std::shared_ptr<ChMaterialSurfaceSMC> cmat) {
-    auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(2, 0.1, 2, 2700, true);
+    auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(2, 0.1, 2, 2700, true, true, cmat);
     mfloor->SetBodyFixed(true);
-    mfloor->SetMaterialSurface(cmat);
     m_system->Add(mfloor);
 
     auto masset_texture = chrono_types::make_shared<ChTexture>();

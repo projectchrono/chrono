@@ -123,7 +123,6 @@ std::shared_ptr<ChBody> create_mecanum_wheel(ChSystemNSC& mphysicalSystem,
                                                                        false);                         // no collision
     mCentralWheel->SetPos(shaft_position);
     mCentralWheel->SetRot(shaft_alignment);
-    mCentralWheel->GetMaterialSurfaceNSC()->SetFriction(STATIC_wheelfriction);
 	mphysicalSystem.Add(mCentralWheel);
 
 	auto mtexturepw = chrono_types::make_shared<ChTexture>();
@@ -147,7 +146,6 @@ std::shared_ptr<ChBody> create_mecanum_wheel(ChSystemNSC& mphysicalSystem,
 		mphysicalSystem.Add(mRoller);
 
 		// move it to slanted aligment
-		mRoller->GetMaterialSurfaceNSC()->SetFriction(STATIC_wheelfriction);
 		ChFrameMoving<> f1( ChVector<>(0, 0, -(wheel_radius - roller_midradius)),
 							Q_from_AngAxis(roller_angle, ChVector<>(0, 0, 1)));
         ChFrameMoving<> f2( ChVector<>(0, 0, 0), 
@@ -303,7 +301,6 @@ int main(int argc, char* argv[]) {
                                                            ground_mat);  // contact material
     ground->SetPos(ChVector<>(0, -5, 0));
     ground->SetBodyFixed(true);
-    ground->GetMaterialSurfaceNSC()->SetFriction(STATIC_wheelfriction);
 	mphysicalSystem.Add(ground);
 
 	auto mtexture = chrono_types::make_shared<ChTexture>();

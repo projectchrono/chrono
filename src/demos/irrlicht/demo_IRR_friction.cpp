@@ -72,7 +72,6 @@ int main(int argc, char* argv[]) {
 
         // Set some properties
         msphereBody->SetPos(ChVector<>(-7, mradius - 0.5, -5 + bi * mradius * 2.5));
-        msphereBody->GetMaterialSurfaceNSC()->SetFriction(0.4f);
         msphereBody->AddAsset(textureasset);  // assets can be shared
 
         // Set initial speed: rolling in horizontal direction
@@ -80,9 +79,6 @@ int main(int argc, char* argv[]) {
         double initial_linspeed = initial_angspeed * mradius;
         msphereBody->SetWvel_par(ChVector<>(0, 0, -initial_angspeed));
         msphereBody->SetPos_dt(ChVector<>(initial_linspeed, 0, 0));
-
-        // Set a non zero value of rolling friction to have a rolling resisting torque:
-        msphereBody->GetMaterialSurfaceNSC()->SetRollingFriction(((float)bi / 10) * 0.05f);
 
         // Add to the system
         mphysicalSystem.Add(msphereBody);
@@ -101,15 +97,10 @@ int main(int argc, char* argv[]) {
                                                                        mat);     // contact material
         // Set some properties
         msphereBody->SetPos(ChVector<>(-8, 1 + mradius - 0.5, -5 + bi * mradius * 2.5));
-        msphereBody->GetMaterialSurfaceNSC()->SetFriction(0.4f);
         msphereBody->AddAsset(textureasset);  // assets can be shared
 
         // Set initial speed: spinning in vertical direction
         msphereBody->SetWvel_par(ChVector<>(0, 20, 0));
-
-        // Set a non zero value of spinning friction that brakes the spinning on vertical axis
-        // of the contact:
-        msphereBody->GetMaterialSurfaceNSC()->SetSpinningFriction(((float)bi / 10) * 0.02f);
 
         // Add to the system
         mphysicalSystem.Add(msphereBody);
@@ -132,9 +123,6 @@ int main(int argc, char* argv[]) {
     auto bin_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     bin_mat->SetRollingFriction(1);
     bin_mat->SetSpinningFriction(1);
-
-    bin->GetMaterialSurfaceNSC()->SetRollingFriction(1);
-    bin->GetMaterialSurfaceNSC()->SetSpinningFriction(1);
 
     // Add collision geometry and visualization shapes for the floor and the 4 walls
     bin->GetCollisionModel()->ClearModel();

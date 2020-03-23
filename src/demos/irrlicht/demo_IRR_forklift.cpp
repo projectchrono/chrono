@@ -451,8 +451,6 @@ int main(int argc, char* argv[]) {
     my_system.Add(my_ground);
     my_ground->SetBodyFixed(true);
     my_ground->SetPos(ChVector<>(0, -1, 0));
-    my_ground->GetMaterialSurfaceNSC()->SetSfriction(1.0);
-    my_ground->GetMaterialSurfaceNSC()->SetKfriction(1.0);
     auto mtexture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("concrete.jpg"));
     my_ground->AddAsset(mtexture);
 
@@ -461,7 +459,6 @@ int main(int argc, char* argv[]) {
         auto my_obstacle = chrono_types::make_shared<ChBodyEasyBox>(1, 0.5, 1, 200, true, true, ground_mat);
         my_system.Add(my_obstacle);
         my_obstacle->SetPos(ChVector<>(20 * ChRandom(), 2, 20 * ChRandom()));
-        my_obstacle->GetMaterialSurfaceNSC()->SetFriction(1.0);
         auto mtexture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("cubetexture_wood.png"));
         my_obstacle->AddAsset(mtexture);
     }

@@ -92,10 +92,6 @@ int main(int argc, char** argv) {
     bin_mat->SetRollingFriction(1);
     bin_mat->SetSpinningFriction(1);
 
-    container->GetMaterialSurfaceNSC()->SetFriction(0.6f);
-    container->GetMaterialSurfaceNSC()->SetRollingFriction(1);
-    container->GetMaterialSurfaceNSC()->SetSpinningFriction(1);
-
     container->GetCollisionModel()->ClearModel();
     utils::AddBoxGeometry(container.get(), ChVector<>(20, 1, 20) / 2.0, bin_mat, ChVector<>(0, -1, 0));
     utils::AddBoxGeometry(container.get(), ChVector<>(1, 2, 20.99) / 2.0, bin_mat, ChVector<>(-10, 0, 0));
@@ -132,10 +128,6 @@ int main(int argc, char** argv) {
         utils::AddSphereGeometry(ball.get(), radius, mat);
         ball->GetCollisionModel()->BuildModel();
 
-        // Sliding and rolling friction coefficients
-        ball->GetMaterialSurfaceNSC()->SetFriction(0.4f);
-        ball->GetMaterialSurfaceNSC()->SetRollingFriction(((float)bi / 10) * 0.05f);
-
         // Add to the system
         system.Add(ball);
     }
@@ -161,10 +153,6 @@ int main(int argc, char** argv) {
         ball->GetCollisionModel()->ClearModel();
         utils::AddSphereGeometry(ball.get(), radius, mat);
         ball->GetCollisionModel()->BuildModel();
-
-        // Sliding and rolling friction coefficients
-        ball->GetMaterialSurfaceNSC()->SetFriction(0.4f);
-        ball->GetMaterialSurfaceNSC()->SetSpinningFriction((bi / 10.0f) * 0.02f);
 
         // Add to the system
         system.Add(ball);

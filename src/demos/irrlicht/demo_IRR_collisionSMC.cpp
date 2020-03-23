@@ -36,7 +36,7 @@ using namespace irr::video;
 using namespace irr::io;
 using namespace irr::gui;
 
-void AddFallingItems(ChIrrApp& application) {
+void AddFallingItems(ChSystemSMC& sys) {
     // Shared contact material for falling objects
     auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
 
@@ -58,10 +58,13 @@ void AddFallingItems(ChIrrApp& application) {
 
                 auto sphere = chrono_types::make_shared<ChSphereShape>();
                 sphere->GetSphereGeometry().rad = radius;
-                sphere->SetColor(ChColor(0.9f, 0.4f, 0.2f));
                 body->AddAsset(sphere);
 
-                application.GetSystem()->AddBody(body);
+                auto texture = chrono_types::make_shared<ChTexture>();
+                texture->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+                body->AddAsset(texture);
+
+                sys.AddBody(body);
             }
 
             // Boxes
@@ -80,10 +83,13 @@ void AddFallingItems(ChIrrApp& application) {
 
                 auto box = chrono_types::make_shared<ChBoxShape>();
                 box->GetBoxGeometry().Size = hsize;
-                box->SetColor(ChColor(0.4f, 0.9f, 0.2f));
                 body->AddAsset(box);
 
-                application.GetSystem()->AddBody(body);
+                auto texture = chrono_types::make_shared<ChTexture>();
+                texture->SetTextureFilename(GetChronoDataFile("pinkwhite.png"));
+                body->AddAsset(texture);
+
+                sys.AddBody(body);
             }
         }
     }
@@ -102,13 +108,11 @@ void AddContainerWall(std::shared_ptr<ChBody> body,
         auto box = chrono_types::make_shared<ChBoxShape>();
         box->GetBoxGeometry().Pos = pos;
         box->GetBoxGeometry().Size = hsize;
-        box->SetColor(ChColor(1, 0, 0));
-        box->SetFading(0.6f);
         body->AddAsset(box);
     }
 }
 
-void AddContainer(ChIrrApp& application) {
+void AddContainer(ChSystemSMC& sys) {
     // The fixed body (5 walls)
     auto fixedBody = chrono_types::make_shared<ChBody>(ChContactMethod::SMC);
 
@@ -128,7 +132,11 @@ void AddContainer(ChIrrApp& application) {
     AddContainerWall(fixedBody, fixed_mat, ChVector<>(20.99, 10, 1), ChVector<>(0, 0, 10));
     fixedBody->GetCollisionModel()->BuildModel();
 
-    application.GetSystem()->AddBody(fixedBody);
+    auto texture = chrono_types::make_shared<ChTexture>();
+    texture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+    fixedBody->AddAsset(texture);
+
+    sys.AddBody(fixedBody);
 
     // The rotating mixer body
     auto rotatingBody = chrono_types::make_shared<ChBody>(ChContactMethod::SMC);
@@ -149,11 +157,11 @@ void AddContainer(ChIrrApp& application) {
 
     auto box = chrono_types::make_shared<ChBoxShape>();
     box->GetBoxGeometry().Size = hsize;
-    box->SetColor(ChColor(0, 0, 1));
-    box->SetFading(0.6f);
     rotatingBody->AddAsset(box);
 
-    application.GetSystem()->AddBody(rotatingBody);
+    rotatingBody->AddAsset(texture);
+
+    sys.AddBody(rotatingBody);
 
     // A motor between the two
     auto my_motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
@@ -162,7 +170,7 @@ void AddContainer(ChIrrApp& application) {
     auto mfun = chrono_types::make_shared<ChFunction_Const>(CH_C_PI / 2.0);  // speed w=90°/s
     my_motor->SetSpeedFunction(mfun);
 
-    application.GetSystem()->AddLink(my_motor);
+    sys.AddLink(my_motor);
 }
 
 int main(int argc, char* argv[]) {
@@ -172,13 +180,13 @@ int main(int argc, char* argv[]) {
     double time_step = 1e-4;
     double out_step = 0.02;
 
-    // Create a ChronoENGINE physical system
-    ChSystemSMC mphysicalSystem;
-    mphysicalSystem.Set_G_acc(0.38 * mphysicalSystem.Get_G_acc());
+    // Create the physical system
+    ChSystemSMC sys;
+    sys.Set_G_acc(sys.Get_G_acc());
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"SMC collision demo", core::dimension2d<u32>(800, 600), false, true);
+    ChIrrApp application(&sys, L"SMC collision demo", core::dimension2d<u32>(800, 600), false, true);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -187,8 +195,8 @@ int main(int argc, char* argv[]) {
     application.AddTypicalCamera(core::vector3df(0, 18, -20));
 
     // Add fixed and moving bodies
-    AddContainer(application);
-    AddFallingItems(application);
+    AddContainer(sys);
+    AddFallingItems(sys);
 
     // Complete asset specification: convert all assets to Irrlicht
     application.AssetBindAll();
@@ -203,7 +211,7 @@ int main(int argc, char* argv[]) {
         application.DrawAll();
 
         while (time < out_time) {
-            mphysicalSystem.DoStepDynamics(time_step);
+            sys.DoStepDynamics(time_step);
             time += time_step;
         }
         out_time += out_step;

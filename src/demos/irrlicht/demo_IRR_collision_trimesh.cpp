@@ -158,7 +158,6 @@ int main(int argc, char* argv[]) {
                                                                        true,      // collision?
                                                                        obj_mat);  // contact material
         msphereBody->SetPos(ChVector<>(-0.5 + ChRandom() * 1, 1.4, -0.5 + ChRandom()));
-        msphereBody->GetMaterialSurfaceNSC()->SetFriction(0.2f);
 
         auto mballcolor = chrono_types::make_shared<ChColorAsset>();
         mballcolor->SetColor(ChColor(0.3f, 0.3f, 0.6f));

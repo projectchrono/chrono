@@ -59,7 +59,6 @@ std::shared_ptr<ChBody> AddSphere(int id,
     body->SetPos_dt(init_v);
     body->SetWvel_par(init_w);
     body->SetInertiaXX(inertia);
-    body->SetMaterialSurface(mat);
     body->SetBodyFixed(false);
     body->SetCollide(true);
 
@@ -94,7 +93,6 @@ std::shared_ptr<ChBody> AddWall(int id,
     body->SetRot(rot);
     body->SetPos_dt(init_v);
     body->SetInertiaXX(inertia);
-    body->SetMaterialSurface(mat);
     body->SetBodyFixed(wall);
     body->SetCollide(true);
 

@@ -113,7 +113,6 @@ int main(int argc, char* argv[]) {
         auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(3, 3, 0.2, 8000, true, true, mysurfmaterial);
 
         mfloor->SetBodyFixed(true);
-        mfloor->SetMaterialSurface(mysurfmaterial);
         my_system.Add(mfloor);
         auto masset_texture = chrono_types::make_shared<ChTexture>();
         masset_texture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));

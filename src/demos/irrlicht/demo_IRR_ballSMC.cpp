@@ -111,7 +111,6 @@ int main(int argc, char* argv[]) {
     ball->SetPos_dt(init_vel);
     // ball->SetWvel_par(ChVector<>(0,0,3));
     ball->SetBodyFixed(false);
-    ball->SetMaterialSurface(material);
 
     ball->SetCollide(true);
 
@@ -140,7 +139,6 @@ int main(int argc, char* argv[]) {
     bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
     bin->SetCollide(true);
     bin->SetBodyFixed(true);
-    bin->SetMaterialSurface(material);
 
     bin->GetCollisionModel()->ClearModel();
     AddWall(bin, ChVector<>(width, thickness, length), ChVector<>(0, 0, 0), material);

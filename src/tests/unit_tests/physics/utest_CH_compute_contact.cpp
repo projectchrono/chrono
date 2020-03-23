@@ -131,7 +131,6 @@ ContactForceTest::ContactForceTest() {
         ball->SetWvel_par(init_omg);
         ball->SetCollide(true);
         ball->SetBodyFixed(false);
-        ball->SetMaterialSurface(material);
 
         ball->GetCollisionModel()->ClearModel();
         ball->GetCollisionModel()->AddSphere(material, radius);

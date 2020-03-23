@@ -940,7 +940,6 @@ void SimpleBoxContact() {
     Plate->SetBodyFixed(true);
     Plate->SetPos(ChVector<>(0.025, 0.025, -0.0015 - plate_h / 2));
     Plate->SetRot(ChQuaternion<>(1.0, 0.0, 0.0, 0.0));
-    Plate->SetMaterialSurface(my_surfacematerial);
     // Plate->SetPos_dt(ChVector<>(0.0, 0.0, -0.1));
 
     my_system.Set_G_acc(ChVector<>(0.0, 0.0, -9.81));
@@ -1247,7 +1246,6 @@ void SoilBin() {
     Plate->SetPos_dt(ChVector<>(0.0, 0.0, 0.0));
     Plate->SetRot_dt(ChQuaternion<>(0.0, 0.0, 0.0, 0.0));
     Plate->SetMass(1.2265625);
-    Plate->SetMaterialSurface(my_surfacematerial);
 
     //// Create ground body
     auto Ground = chrono_types::make_shared<ChBody>();

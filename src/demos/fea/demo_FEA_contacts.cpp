@@ -98,7 +98,6 @@ int main(int argc, char* argv[]) {
         auto mfloor = chrono_types::make_shared<ChBody>();
         mfloor->SetPos(ChVector<>(0, -1, 0));
         mfloor->SetBodyFixed(true);
-        mfloor->SetMaterialSurface(mysurfmaterial);
         my_system.Add(mfloor);
 
         mfloor->GetCollisionModel()->ClearModel();
@@ -120,7 +119,6 @@ int main(int argc, char* argv[]) {
 
         auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(2, 0.1, 2, 2700, true, true, mysurfmaterial);
         mfloor->SetBodyFixed(true);
-        mfloor->SetMaterialSurface(mysurfmaterial);
         my_system.Add(mfloor);
 
         auto masset_texture = chrono_types::make_shared<ChTexture>();
@@ -132,12 +130,10 @@ int main(int argc, char* argv[]) {
 
     auto mcube = chrono_types::make_shared<ChBodyEasyBox>(0.1, 0.1, 0.1, 2700, true, true, mysurfmaterial);
     mcube->SetPos(ChVector<>(0.6, 0.5, 0.6));
-    mcube->SetMaterialSurface(mysurfmaterial);
     my_system.Add(mcube);
 
     auto msphere = chrono_types::make_shared<ChBodyEasySphere>(0.1, 2700, true, true, mysurfmaterial);
     msphere->SetPos(ChVector<>(0.8, 0.5, 0.6));
-    msphere->SetMaterialSurface(mysurfmaterial);
     my_system.Add(msphere);
 
     //

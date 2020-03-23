@@ -41,7 +41,6 @@ void CreateContainer(ChSystemParallel* system) {
     mat_walls->SetFriction(0.3f);
 
     std::shared_ptr<ChBody> container(system->NewBody());
-    container->SetMaterialSurface(mat_walls);
     container->SetBodyFixed(true);
     container->SetCollide(true);
     container->SetMass(10000.0);
@@ -76,7 +75,6 @@ void CreateGranularMaterial(ChSystemParallel* sys) {
                 ChVector<> pos(0.4 * ix, 0.4 * iy, 0.4 * iz + 1);
 
                 std::shared_ptr<ChBody> ball(sys->NewBody());
-                ball->SetMaterialSurface(ballMat);
 
                 ball->SetMass(mass);
                 ball->SetInertiaXX(inertia);
