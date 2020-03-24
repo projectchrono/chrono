@@ -446,13 +446,11 @@ void ChCascadeDoc::FromChronoToCascade(const ChFrame<>& from_coord, TopLoc_Locat
 
 
 /// Create a ChBodyAuxRef with assets for the given TopoDS_Shape
-std::shared_ptr<ChBodyAuxRef> ChCascadeDoc::CreateBodyFromShape(
-                const TopoDS_Shape& mshape,   ///< pass the shape here
-                const double density,         ///< pass the density here
-				const bool collide,	
-				const bool visual_asset
-                )
-{
+std::shared_ptr<ChBodyAuxRef> ChCascadeDoc::CreateBodyFromShape(const TopoDS_Shape& mshape,
+                                                                const double density,
+                                                                const bool visual_asset,
+                                                                const bool collide,
+                                                                std::shared_ptr<ChMaterialSurface> mat) {
     std::shared_ptr<ChBodyAuxRef> mbody(new ChBodyAuxRef);
     
     chrono::ChFrame<> frame_ref_to_abs;
@@ -493,8 +491,9 @@ std::shared_ptr<ChBodyAuxRef> ChCascadeDoc::CreateBodyFromShape(
 
 		// Add a collision shape if needed
 		if (collide) {
+            assert(mat);
 			mbody->GetCollisionModel()->ClearModel();
-			mbody->GetCollisionModel()->AddTriangleMesh(trimesh, false, false);
+			mbody->GetCollisionModel()->AddTriangleMesh(mat, trimesh, false, false);
 			mbody->GetCollisionModel()->BuildModel();
 			mbody->SetCollide(true);
 		}
