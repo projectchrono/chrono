@@ -56,8 +56,10 @@ int main(int argc, char* argv[]) {
     mfloor->SetBodyFixed(true);
 
     // Define a collision shape
+    auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+
     mfloor->GetCollisionModel()->ClearModel();
-    mfloor->GetCollisionModel()->AddBox(10, 0.5, 10, ChVector<>(0, -1, 0));
+    mfloor->GetCollisionModel()->AddBox(floor_mat, 10, 0.5, 10, ChVector<>(0, -1, 0));
     mfloor->GetCollisionModel()->BuildModel();
     mfloor->SetCollide(true);
 
@@ -187,8 +189,10 @@ int main(int argc, char* argv[]) {
     auto mparticles = chrono_types::make_shared<ChParticlesClones>();
 
     // Note: coll. shape, if needed, must be specified before creating particles
+    auto particle_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+
     mparticles->GetCollisionModel()->ClearModel();
-    mparticles->GetCollisionModel()->AddSphere(0.05);
+    mparticles->GetCollisionModel()->AddSphere(particle_mat, 0.05);
     mparticles->GetCollisionModel()->BuildModel();
     mparticles->SetCollide(true);
 
