@@ -50,8 +50,6 @@ ChSystemParallel::ChSystemParallel() : ChSystem() {
     data_manager = new ChParallelDataManager();
 
     descriptor = chrono_types::make_shared<ChSystemDescriptorParallel>(data_manager);
-    contact_container = chrono_types::make_shared<ChContactContainerParallel>(data_manager);
-    contact_container->SetSystem(this);
     collision_system = chrono_types::make_shared<ChCollisionSystemParallel>(data_manager);
 
     collision_system_type = CollisionSystemType::COLLSYS_PARALLEL;

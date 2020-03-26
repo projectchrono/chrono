@@ -58,7 +58,6 @@ class CH_PARALLEL_API ChCollisionSystemParallel : public ChCollisionSystem {
     virtual void Remove(ChCollisionModel* model) override;
 
     /// Run the algorithm and finds all the contacts.
-    /// (Contacts will be managed by the Bullet persistent contact cache).
     virtual void Run() override;
 
     /// Return the time (in seconds) for broadphase collision detection.
@@ -68,8 +67,7 @@ class CH_PARALLEL_API ChCollisionSystemParallel : public ChCollisionSystem {
     virtual double GetTimerCollisionNarrow() const override;
 
     /// Fill in the provided contact container with collision information after Run().
-    /// Not used in Chrono::Parallel.
-    virtual void ReportContacts(ChContactContainer* mcontactcontainer) override {}
+    virtual void ReportContacts(ChContactContainer* mcontactcontainer) override;
 
     /// Fill in the provided proximity container with near point information after Run().
     /// Not used in Chrono::Parallel.

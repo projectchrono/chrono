@@ -22,6 +22,12 @@
 //
 // =============================================================================
 
+//// RADU
+//// When using the MultiStep tangential displacement mode, we need to calculate the
+//// indeices of the shape in collision.  This conflicts with cases where contacts
+//// are defined by a user custom callback as there are no shapes defined in that
+//// case. Is there a solution?
+
 #include <algorithm>
 #include <thrust/sort.h>
 
@@ -50,22 +56,26 @@ using namespace chrono;
 // -----------------------------------------------------------------------------
 void function_CalcContactForces(
     int index,                                            // index of this contact pair
-    const vec2& body_pair,                                // indices of the body pair in contact
-    const vec2& shape_pair,                               // indices of the shape pair in contact
+    vec2* body_pairs,                                     // indices of the body pair in contact
+    vec2* shape_pairs,                                    // indices of the shape pair in contact
     ChSystemSMC::ContactForceModel contact_model,         // contact force model
     ChSystemSMC::AdhesionForceModel adhesion_model,       // adhesion force model
     ChSystemSMC::TangentialDisplacementModel displ_mode,  // type of tangential displacement history
-    ChMaterialCompositeSMC& cmat,                         // composite material
-    real m_eff,                                           // effective contact mass
     bool use_mat_props,                                   // flag specifying how coefficients are obtained
     real char_vel,                                        // characteristic velocity (Hooke)
     real min_slip_vel,                                    // threshold tangential velocity
     real min_roll_vel,                                    // threshold rolling velocity
     real min_spin_vel,                                    // threshold spinning velocity
     real dT,                                              // integration time step
-    real3* pos,                                           // body positions
+    real* body_mass,                                      // body masses (per body)
+    real3* pos,                                           // body positions 
     quaternion* rot,                                      // body orientations
     real* vel,                                            // body linear and angular velocities
+    real3* friction,                                      // eff. coefficients of friction (per contact)
+    real2* modulus,                                       // eff. elasticity and shear modulus (per contact)
+    real3* adhesion,                                      // eff. adhesion paramters (per contact)
+    real* cr,                                             // eff. coefficient of restitution (per contact)
+    real4* smc_params,                                    // eff. SMC parameters k and g (per contact)
     real3* pt1,                                           // point on shape 1 (per contact)
     real3* pt2,                                           // point on shape 2 (per contact)
     real3* normal,                                        // contact normal (per contact)
@@ -81,12 +91,8 @@ void function_CalcContactForces(
     real3* ext_body_torque                                // [output] body torque (two per contact)
 ) {
     // Identify the two bodies in contact (global body IDs).
-    int b1 = body_pair.x;
-    int b2 = body_pair.y;
-
-    // Identify the two shapes in contact (global shape IDs).
-    int s1 = shape_pair.x;
-    int s2 = shape_pair.y;
+    int b1 = body_pairs[index].x;
+    int b2 = body_pairs[index].y;
 
     // If the two contact shapes are actually separated, set zero forces and torques.
     if (depth[index] >= 0) {
@@ -96,7 +102,6 @@ void function_CalcContactForces(
         ext_body_force[2 * index + 1] = real3(0);
         ext_body_torque[2 * index] = real3(0);
         ext_body_torque[2 * index + 1] = real3(0);
-
         return;
     }
 
@@ -130,22 +135,26 @@ void function_CalcContactForces(
 
     // Extract composite material properties
     // -------------------------------------
-    real mu_eff = (real)cmat.mu_eff;
-    real muRoll_eff = (real)cmat.muRoll_eff;
-    real muSpin_eff = (real)cmat.muSpin_eff;
 
-    real adhesion_eff = (real)cmat.adhesion_eff;
-    real adhesionMultDMT_eff = (real)cmat.adhesionMultDMT_eff;
-    real adhesionSPerko_eff = (real)cmat.adhesionSPerko_eff;
+    real m_eff = body_mass[b1] * body_mass[b2] / (body_mass[b1] + body_mass[b2]);
 
-    real E_eff = (real)cmat.E_eff;
-    real G_eff = (real)cmat.G_eff;
-    real cr_eff = (real)cmat.cr_eff;
+    real mu_eff = friction[index].x;
+    real muRoll_eff = friction[index].y;
+    real muSpin_eff = friction[index].z;
 
-    real user_kn = (real)cmat.kn;
-    real user_kt = (real)cmat.kt;
-    real user_gn = (real)cmat.gn;
-    real user_gt = (real)cmat.gt;
+    real E_eff = modulus[index].x;
+    real G_eff = modulus[index].y;
+
+    real adhesion_eff = adhesion[index].x;
+    real adhesionMultDMT_eff = adhesion[index].y;
+    real adhesionSPerko_eff = adhesion[index].z;
+
+    real cr_eff = cr[index];
+
+    real user_kn = smc_params[index].x;
+    real user_kt = smc_params[index].y;
+    real user_gn = smc_params[index].z;
+    real user_gt = smc_params[index].w;
 
     // Contact force
     // -------------
@@ -179,6 +188,10 @@ void function_CalcContactForces(
         delta_t = relvel_t * dT;
     } else if (displ_mode == ChSystemSMC::TangentialDisplacementModel::MultiStep) {
         delta_t = relvel_t * dT;
+
+        // Identify the two shapes in contact (global shape IDs).
+        int s1 = shape_pairs[index].x;
+        int s2 = shape_pairs[index].y;
 
         // Contact history information stored on the body with the smaller shape or else the body with larger index.
         // Currently, it is assumed that the smaller shape is on the body with larger ID. We call this body shear_body1.
@@ -549,55 +562,30 @@ void ChIterativeSolverParallelSMC::host_CalcContactForces(custom_vector<int>& ex
                                                           custom_vector<real3>& ext_body_torque,
                                                           custom_vector<vec2>& shape_pairs,
                                                           custom_vector<char>& shear_touch) {
-    // Readability replacements
-    auto& blist = *data_manager->body_list;
-    auto& body_pairs = data_manager->host_data.bids_rigid_rigid;
-    auto& body_mass = data_manager->host_data.mass_rigid;
-
 #pragma omp parallel for
     for (int index = 0; index < (signed)data_manager->num_rigid_contacts; index++) {
-        // Identify the two bodies in contact (global body IDs)
-        int b1 = body_pairs[index].x;
-        int b2 = body_pairs[index].y;
-
-        // Identify the two shapes in contact (global shape IDs)
-        int s1 = shape_pairs[index].x;
-        int s2 = shape_pairs[index].y;
-
-        // Identify shapes in their respective collision models
-        auto s1_index = data_manager->shape_data.local_rigid[s1];
-        auto s2_index = data_manager->shape_data.local_rigid[s2];
-
-        // Contact materials of the two colliding shapes
-        auto mat1 = std::static_pointer_cast<ChMaterialSurfaceSMC>(
-            blist[b1]->GetCollisionModel()->GetShape(s1_index)->GetMaterial());
-        auto mat2 = std::static_pointer_cast<ChMaterialSurfaceSMC>(
-            blist[b2]->GetCollisionModel()->GetShape(s2_index)->GetMaterial());
-
-        // Composite material
-        ChMaterialCompositeSMC cmat(data_manager->composition_strategy.get(), mat1, mat2);
-
-        // Effective contact mass
-        real m_eff = body_mass[b1] * body_mass[b2] / (body_mass[b1] + body_mass[b2]);
-
         function_CalcContactForces(
             index,                                                  // index of this contact pair
-            body_pairs[index],                                      // indices of the body pair in contact
-            shape_pairs[index],                                     // indices of the shape pair in contact
+            data_manager->host_data.bids_rigid_rigid.data(),        // indices of the body pair in contact
+            shape_pairs.data(),                                     // indices of the shape pair in contact
             data_manager->settings.solver.contact_force_model,      // contact force model
             data_manager->settings.solver.adhesion_force_model,     // adhesion force model
             data_manager->settings.solver.tangential_displ_mode,    // type of tangential displacement history
-            cmat,                                                   // composite material
-            m_eff,                                                  // effective contact mass
             data_manager->settings.solver.use_material_properties,  // flag specifying how coefficients are obtained
             data_manager->settings.solver.characteristic_vel,       // characteristic velocity (Hooke)
             data_manager->settings.solver.min_slip_vel,             // threshold tangential velocity
             data_manager->settings.solver.min_roll_vel,             // threshold rolling velocity
             data_manager->settings.solver.min_spin_vel,             // threshold spinning velocity
             data_manager->settings.step_size,                       // integration time step
+            data_manager->host_data.mass_rigid.data(),              // body masses
             data_manager->host_data.pos_rigid.data(),               // body positions
             data_manager->host_data.rot_rigid.data(),               // body orientations
             data_manager->host_data.v.data(),                       // body linear and angular velocities
+            data_manager->host_data.fric_rigid_rigid.data(),        // eff. coefficients of friction (per contact)
+            data_manager->host_data.modulus_rigid_rigid.data(),     // eff. elasticity and shear modulus (per contact)
+            data_manager->host_data.adhesion_rigid_rigid.data(),    // eff. adhesion paramters (per contact)
+            data_manager->host_data.cr_rigid_rigid.data(),          // eff. coefficient of restitution (per contact)
+            data_manager->host_data.smc_rigid_rigid.data(),         // eff. SMC parameters k and g (per contact)
             data_manager->host_data.cpta_rigid_rigid.data(),        // point on shape 1 (per contact)
             data_manager->host_data.cptb_rigid_rigid.data(),        // point on shape 2 (per contact)
             data_manager->host_data.norm_rigid_rigid.data(),        // contact normal (per contact)
@@ -675,14 +663,16 @@ void ChIterativeSolverParallelSMC::ProcessContacts() {
     custom_vector<vec2> shape_pairs;
     custom_vector<char> shear_touch;
 
-    shape_pairs.resize(data_manager->num_rigid_contacts);
-    shear_touch.resize(max_shear * data_manager->num_rigid_bodies);
-    Thrust_Fill(shear_touch, false);
+    if (data_manager->settings.solver.tangential_displ_mode == ChSystemSMC::TangentialDisplacementModel::MultiStep) {
+        shape_pairs.resize(data_manager->num_rigid_contacts);
+        shear_touch.resize(max_shear * data_manager->num_rigid_bodies);
+        Thrust_Fill(shear_touch, false);
 #pragma omp parallel for
-    for (int i = 0; i < (signed)data_manager->num_rigid_contacts; i++) {
-        vec2 pair = I2(int(data_manager->host_data.contact_pairs[i] >> 32),
-                       int(data_manager->host_data.contact_pairs[i] & 0xffffffff));
-        shape_pairs[i] = pair;
+        for (int i = 0; i < (signed)data_manager->num_rigid_contacts; i++) {
+            vec2 pair = I2(int(data_manager->host_data.contact_pairs[i] >> 32),
+                           int(data_manager->host_data.contact_pairs[i] & 0xffffffff));
+            shape_pairs[i] = pair;
+        }
     }
 
     host_CalcContactForces(ext_body_id, ext_body_force, ext_body_torque, shape_pairs, shear_touch);

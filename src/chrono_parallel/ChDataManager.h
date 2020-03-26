@@ -72,7 +72,7 @@ namespace collision {
 class ChCBroadphase;           // forward declaration
 class ChCNarrowphaseDispatch;  // forward declaration
 class ChCAABBGenerator;        // forward declaration
-}
+}  // namespace collision
 
 #if BLAZE_MAJOR_VERSION == 2
 typedef blaze::SparseSubmatrix<CompressedMatrix<real>> SubMatrixType;
@@ -294,30 +294,39 @@ struct host_container {
     custom_vector<real3> ct_body_torque;  ///< Total contact torque on these bodies
 
     // Contact shear history (SMC)
-    custom_vector<vec3> shear_neigh;  ///< Neighbor list of contacting bodies and shapes
-    custom_vector<real3> shear_disp;  ///< Accumulated shear displacement for each neighbor
+    custom_vector<vec3> shear_neigh;          ///< Neighbor list of contacting bodies and shapes
+    custom_vector<real3> shear_disp;          ///< Accumulated shear displacement for each neighbor
     custom_vector<real> contact_relvel_init;  ///< Initial relative normal velocity manitude per contact pair
-    custom_vector<real> contact_duration;  ///< Accumulated contact duration, per contact pair
+    custom_vector<real> contact_duration;     ///< Accumulated contact duration, per contact pair
 
     /// Mapping from all bodies in the system to bodies involved in a contact.
     /// For bodies that are currently not in contact, the mapping entry is -1.
     /// Otherwise, the mapping holds the appropriate index in the vectors above.
     custom_vector<int> ct_body_map;
 
-    /// This vector holds the friction information as a triplet:
+    /// This vector holds the friction information (composite material) as a triplet:
     /// x - Sliding friction,
     /// y - Rolling friction,
     /// z - Spinning Friction.
     /// This is precomputed at every timestep for all contacts in parallel.
     /// Improves performance and reduces conditionals later on.
+    // Used for both NSC and SMC contacts.
     custom_vector<real3> fric_rigid_rigid;
 
-    /// Holds the cohesion value for each contact.
+    /// Holds the cohesion value (composite material) for each contact.
     /// Similar to friction this is precomputed for all contacts in parallel.
+    /// Used for NSC only.
     custom_vector<real> coh_rigid_rigid;
-    
-    /// Precomputed compliance values for all contacts.
+
+    /// Precomputed compliance (composite material) values for all contacts.
+    /// Used for NSC only.
     custom_vector<real4> compliance_rigid_rigid;
+
+    /// Precomputed composite material quantities for SMC only
+    custom_vector<real2> modulus_rigid_rigid;   ///< E_eff and G_eff
+    custom_vector<real3> adhesion_rigid_rigid;  ///< adhesion_eff, adhesionMultDMT_eff, and adhesionSPerko_eff
+    custom_vector<real> cr_rigid_rigid;         ///< cr_eff (effective coefficient of restitution)
+    custom_vector<real4> smc_rigid_rigid;       ///< kn, kt, gn, gt
 
     // Object data
     custom_vector<real3> pos_rigid;

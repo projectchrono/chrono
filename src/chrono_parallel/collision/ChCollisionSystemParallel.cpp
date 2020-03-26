@@ -124,84 +124,84 @@ void ChCollisionSystemParallel::Add(ChCollisionModel* model) {
 
 void ChCollisionSystemParallel::Remove(ChCollisionModel* model) {
     /*
-	ChCollisionModelParallel* pmodel = static_cast<ChCollisionModelParallel*>(model);
-	int body_id = pmodel->GetBody()->GetId();
-	//loop over the models we nned to remove
-	//std::cout << "removing: " << pmodel->GetNumShapes() << " objects" << std::endl;
-	for (int j = 0; j < pmodel->GetNumShapes(); j++) {
-		//find a model to remove
-		bool removed = false;
-		for (int i = 0; i < data_manager->shape_data.id_rigid.size(); i++) {
-			if (data_manager->shape_data.id_rigid[i] == body_id) {
-				int index = i;
-				data_manager->num_rigid_shapes--;
+    ChCollisionModelParallel* pmodel = static_cast<ChCollisionModelParallel*>(model);
+    int body_id = pmodel->GetBody()->GetId();
+    //loop over the models we nned to remove
+    //std::cout << "removing: " << pmodel->GetNumShapes() << " objects" << std::endl;
+    for (int j = 0; j < pmodel->GetNumShapes(); j++) {
+        //find a model to remove
+        bool removed = false;
+        for (int i = 0; i < data_manager->shape_data.id_rigid.size(); i++) {
+            if (data_manager->shape_data.id_rigid[i] == body_id) {
+                int index = i;
+                data_manager->num_rigid_shapes--;
 
-				int start = data_manager->shape_data.start_rigid[index];
-				int length = data_manager->shape_data.length_rigid[index];
-				int type = data_manager->shape_data.typ_rigid[index];
+                int start = data_manager->shape_data.start_rigid[index];
+                int length = data_manager->shape_data.length_rigid[index];
+                int type = data_manager->shape_data.typ_rigid[index];
 
-				//std::cout << "removing: type " << type << " " << start<< " " <<j << std::endl;
+                //std::cout << "removing: type " << type << " " << start<< " " <<j << std::endl;
 
 
-				switch (type) {
-				case chrono::collision::SPHERE:
-					ERASE_MACRO_LEN(data_manager->shape_data.sphere_rigid, start, length);
-					break;
-				case chrono::collision::ELLIPSOID:
-					ERASE_MACRO_LEN(data_manager->shape_data.box_like_rigid, start, length);
-					break;
-				case chrono::collision::BOX:
-					ERASE_MACRO_LEN(data_manager->shape_data.box_like_rigid, start, length);
-					break;
-				case chrono::collision::CYLINDER:
-					ERASE_MACRO_LEN(data_manager->shape_data.box_like_rigid, start, length);
-					break;
-				case chrono::collision::CONE:
-					ERASE_MACRO_LEN(data_manager->shape_data.box_like_rigid, start, length);
-					break;
-				case chrono::collision::CAPSULE:
-					ERASE_MACRO_LEN(data_manager->shape_data.capsule_rigid, start, length);
-					break;
-				case chrono::collision::ROUNDEDBOX:
-					ERASE_MACRO_LEN(data_manager->shape_data.rbox_like_rigid, start, length);
-					break;
-				case chrono::collision::ROUNDEDCYL:
-					ERASE_MACRO_LEN(data_manager->shape_data.rbox_like_rigid, start, length);
-					break;
-				case chrono::collision::ROUNDEDCONE:
-					ERASE_MACRO_LEN(data_manager->shape_data.rbox_like_rigid, start, length);
-					break;
-				case chrono::collision::CONVEX:
-					ERASE_MACRO_LEN(data_manager->shape_data.convex_rigid, start, length);
-					break;
-				case chrono::collision::TRIANGLE:
-					ERASE_MACRO_LEN(data_manager->shape_data.convex_rigid, start, 3);
-					break;
-				}
+                switch (type) {
+                case chrono::collision::SPHERE:
+                    ERASE_MACRO_LEN(data_manager->shape_data.sphere_rigid, start, length);
+                    break;
+                case chrono::collision::ELLIPSOID:
+                    ERASE_MACRO_LEN(data_manager->shape_data.box_like_rigid, start, length);
+                    break;
+                case chrono::collision::BOX:
+                    ERASE_MACRO_LEN(data_manager->shape_data.box_like_rigid, start, length);
+                    break;
+                case chrono::collision::CYLINDER:
+                    ERASE_MACRO_LEN(data_manager->shape_data.box_like_rigid, start, length);
+                    break;
+                case chrono::collision::CONE:
+                    ERASE_MACRO_LEN(data_manager->shape_data.box_like_rigid, start, length);
+                    break;
+                case chrono::collision::CAPSULE:
+                    ERASE_MACRO_LEN(data_manager->shape_data.capsule_rigid, start, length);
+                    break;
+                case chrono::collision::ROUNDEDBOX:
+                    ERASE_MACRO_LEN(data_manager->shape_data.rbox_like_rigid, start, length);
+                    break;
+                case chrono::collision::ROUNDEDCYL:
+                    ERASE_MACRO_LEN(data_manager->shape_data.rbox_like_rigid, start, length);
+                    break;
+                case chrono::collision::ROUNDEDCONE:
+                    ERASE_MACRO_LEN(data_manager->shape_data.rbox_like_rigid, start, length);
+                    break;
+                case chrono::collision::CONVEX:
+                    ERASE_MACRO_LEN(data_manager->shape_data.convex_rigid, start, length);
+                    break;
+                case chrono::collision::TRIANGLE:
+                    ERASE_MACRO_LEN(data_manager->shape_data.convex_rigid, start, 3);
+                    break;
+                }
 
-				ERASE_MACRO(data_manager->shape_data.ObA_rigid, index);
-				ERASE_MACRO(data_manager->shape_data.ObR_rigid, index);
-				ERASE_MACRO(data_manager->shape_data.start_rigid, index);
-				ERASE_MACRO(data_manager->shape_data.length_rigid, index);
+                ERASE_MACRO(data_manager->shape_data.ObA_rigid, index);
+                ERASE_MACRO(data_manager->shape_data.ObR_rigid, index);
+                ERASE_MACRO(data_manager->shape_data.start_rigid, index);
+                ERASE_MACRO(data_manager->shape_data.length_rigid, index);
 
-				ERASE_MACRO(data_manager->shape_data.fam_rigid, index);
-				ERASE_MACRO(data_manager->shape_data.typ_rigid, index);
-				ERASE_MACRO(data_manager->shape_data.id_rigid, index);
-				removed = true;
-				break;
-			}
-		}
-		//std::cout << "decrement start "<< std::endl;
-		if (removed) {
-			//we removed a model, all of the starts are off by one, decrement all starts before removing a second model
-			for (int i = 0; i < data_manager->shape_data.start_rigid.size(); i++) {
-				if (data_manager->shape_data.start_rigid[i] != 0) {
-					data_manager->shape_data.start_rigid[i] -= 1;
-				}
-			}
-		}
+                ERASE_MACRO(data_manager->shape_data.fam_rigid, index);
+                ERASE_MACRO(data_manager->shape_data.typ_rigid, index);
+                ERASE_MACRO(data_manager->shape_data.id_rigid, index);
+                removed = true;
+                break;
+            }
+        }
+        //std::cout << "decrement start "<< std::endl;
+        if (removed) {
+            //we removed a model, all of the starts are off by one, decrement all starts before removing a second model
+            for (int i = 0; i < data_manager->shape_data.start_rigid.size(); i++) {
+                if (data_manager->shape_data.start_rigid[i] != 0) {
+                    data_manager->shape_data.start_rigid[i] -= 1;
+                }
+            }
+        }
 
-	}
+    }
 */
 }
 #undef ERASE_MACRO
@@ -253,6 +253,43 @@ void ChCollisionSystemParallel::Run() {
     }
 
     data_manager->system_timer.stop("collision_narrow");
+}
+
+void ChCollisionSystemParallel::ReportContacts(ChContactContainer* mcontactcontainer) {
+    assert(dynamic_cast<ChContactContainerParallel*>(mcontactcontainer));
+
+    // Resize global arrays with composite material properties.
+    // NOTE: important to do this here, to set size to zero if no contacts (in case some other added by a custom user
+    // callback)
+    mcontactcontainer->BeginAddContact();
+
+    uint num_contacts = data_manager->num_rigid_contacts;
+    if (num_contacts <= 0) {
+        return;
+    }
+
+    auto container = static_cast<ChContactContainerParallel*>(mcontactcontainer);
+
+    auto& bids = data_manager->host_data.bids_rigid_rigid;  // global IDs of bodies in contact
+    auto& abody = data_manager->host_data.active_rigid;     // flags for active bodies
+    auto& sids = data_manager->host_data.contact_pairs;     // global IDs of shapes in contact
+    auto& sindex = data_manager->shape_data.local_rigid;    // collision model indexes of shapes in contact
+
+    // Loop over all current contacts, create the composite material, and load material properties in the data manager
+    // (on a per contact basis). Snce this is contact method-specific, we defer to the underlying contact container.
+#pragma omp parallel for
+    for (int i = 0; i < (signed)num_contacts; i++) {
+        auto b1 = bids[i].x;                  // global IDs of bodies in contact
+        auto b2 = bids[i].y;                  //
+        auto s1 = int(sids[i] >> 32);         // global IDs of shapes in contact
+        auto s2 = int(sids[i] & 0xffffffff);  //
+        auto s1_index = sindex[s1];           // collision model indexes of shapes in contact
+        auto s2_index = sindex[s2];           //
+
+        container->AddContact(i, b1, s1, b2, s2);
+    }
+
+    mcontactcontainer->EndAddContact();
 }
 
 double ChCollisionSystemParallel::GetTimerCollisionBroad() const {

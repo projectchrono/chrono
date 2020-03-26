@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Hammad Mazhar
+// Authors: Hammad Mazhar, Radu Serban
 // =============================================================================
 
 #include "chrono_parallel/collision/ChContactContainerParallel.h"
@@ -60,33 +60,6 @@ void ChContactContainerParallel::EndAddContact() {
     while (lastcontact_6_6 != contactlist_6_6.end()) {
         delete (*lastcontact_6_6);
         lastcontact_6_6 = contactlist_6_6.erase(lastcontact_6_6);
-    }
-}
-
-void ChContactContainerParallel::AddContact(const collision::ChCollisionInfo& cinfo) {
-    assert(cinfo.modelA->GetContactable());
-    assert(cinfo.modelB->GetContactable());
-
-    // Return now if both objects are inactive
-    bool inactiveA = !cinfo.modelA->GetContactable()->IsContactActive();
-    bool inactiveB = !cinfo.modelB->GetContactable()->IsContactActive();
-
-    if (inactiveA && inactiveB)
-        return;
-
-    // Currently, we only consider contacts between rigid bodies
-    ChContactable_1vars<6>* mmboA = dynamic_cast<ChContactable_1vars<6>*>(cinfo.modelA->GetContactable());
-    ChContactable_1vars<6>* mmboB = dynamic_cast<ChContactable_1vars<6>*>(cinfo.modelB->GetContactable());
-
-    if (mmboA && mmboB) {
-        data_manager->host_data.norm_rigid_rigid.push_back(real3(cinfo.vN.x(), cinfo.vN.y(), cinfo.vN.z()));
-        data_manager->host_data.cpta_rigid_rigid.push_back(real3(cinfo.vpA.x(), cinfo.vpA.y(), cinfo.vpA.z()));
-        data_manager->host_data.cptb_rigid_rigid.push_back(real3(cinfo.vpB.x(), cinfo.vpB.y(), cinfo.vpB.z()));
-        data_manager->host_data.dpth_rigid_rigid.push_back(cinfo.distance);
-        data_manager->host_data.erad_rigid_rigid.push_back(cinfo.eff_radius);
-        data_manager->host_data.bids_rigid_rigid.push_back(vec2(((ChBody*)(cinfo.modelA->GetPhysicsItem()))->GetId(),
-                                                                ((ChBody*)(cinfo.modelB->GetPhysicsItem()))->GetId()));
-        data_manager->num_rigid_contacts++;
     }
 }
 

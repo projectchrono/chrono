@@ -179,9 +179,6 @@ void ChConstraintRigidRigid::Setup(ChParallelDataManager* dm) {
     }
 
     contact_active_pairs.resize(int(num_contacts));
-    data_manager->host_data.coh_rigid_rigid.resize(num_contacts);
-    data_manager->host_data.fric_rigid_rigid.resize(num_contacts);
-    data_manager->host_data.compliance_rigid_rigid.resize(num_contacts);
     rotated_point_a.resize(num_contacts);
     rotated_point_b.resize(num_contacts);
     quat_a.resize(num_contacts);
@@ -198,46 +195,8 @@ void ChConstraintRigidRigid::Setup(ChParallelDataManager* dm) {
     for (int i = 0; i < (signed)num_contacts; i++) {
         auto b1 = bids[i].x;                  // global IDs of bodies in contact
         auto b2 = bids[i].y;                  //
-        auto s1 = int(sids[i] >> 32);         // global IDs of shapes in contact
-        auto s2 = int(sids[i] & 0xffffffff);  //
-        auto s1_index = sindex[s1];           // collision model indexes of shapes in contact
-        auto s2_index = sindex[s2];           //
-
-        auto mat1 = std::static_pointer_cast<ChMaterialSurfaceNSC>(
-            blist[b1]->GetCollisionModel()->GetShape(s1_index)->GetMaterial());
-        auto mat2 = std::static_pointer_cast<ChMaterialSurfaceNSC>(
-            blist[b2]->GetCollisionModel()->GetShape(s2_index)->GetMaterial());
-
-        // Composite material
-        ChMaterialCompositeNSC cmat(data_manager->composition_strategy.get(), mat1, mat2);
 
         contact_active_pairs[i] = bool2(abody[b1] != 0, abody[b2] != 0);
-
-        // Allow user to override composite material
-        if (data_manager->add_contact_callback) {
-            const real3& vN = data_manager->host_data.norm_rigid_rigid[i];
-            real3 vpA = data_manager->host_data.cpta_rigid_rigid[i] + data_manager->host_data.pos_rigid[b1];
-            real3 vpB = data_manager->host_data.cptb_rigid_rigid[i] + data_manager->host_data.pos_rigid[b2];
-
-            chrono::collision::ChCollisionInfo icontact;
-            icontact.modelA = blist[b1]->GetCollisionModel().get();
-            icontact.modelB = blist[b2]->GetCollisionModel().get();
-            icontact.shapeA = icontact.modelA->GetShape(s1_index).get();
-            icontact.shapeB = icontact.modelB->GetShape(s2_index).get();
-            icontact.vN = ChVector<>(vN.x, vN.y, vN.z);
-            icontact.vpA = ChVector<>(vpA.x, vpA.y, vpA.z);
-            icontact.vpB = ChVector<>(vpB.x, vpB.y, vpB.z);
-            icontact.distance = data_manager->host_data.dpth_rigid_rigid[i];
-            icontact.eff_radius = data_manager->host_data.erad_rigid_rigid[i];
-
-            data_manager->add_contact_callback->OnAddContact(icontact, &cmat);
-        }
-
-        real3 mu(cmat.sliding_friction, cmat.rolling_friction, cmat.spinning_friction);
-        real4 compliance(cmat.compliance, cmat.complianceT, cmat.complianceRoll, cmat.complianceSpin);
-        data_manager->host_data.coh_rigid_rigid[i] = cmat.cohesion;
-        data_manager->host_data.fric_rigid_rigid[i] = mu;
-        data_manager->host_data.compliance_rigid_rigid[i] = compliance;
 
         {
             quaternion quaternion_conjugate = ~data_manager->host_data.rot_rigid[b1];

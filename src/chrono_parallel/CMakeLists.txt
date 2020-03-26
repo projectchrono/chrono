@@ -314,6 +314,11 @@ SET(ChronoEngine_Parallel_COLLISION
     collision/ChCollisionSystemBulletParallel.cpp
     collision/ChContactContainerParallel.h
     collision/ChContactContainerParallel.cpp
+    collision/ChContactContainerParallelNSC.h
+    collision/ChContactContainerParallelNSC.cpp
+    collision/ChContactContainerParallelSMC.h
+    collision/ChContactContainerParallelSMC.cpp
+
     )
 
 SOURCE_GROUP(collision FILES ${ChronoEngine_Parallel_COLLISION})

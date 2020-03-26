@@ -14,11 +14,15 @@
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/solver/ChIterativeSolverParallel.h"
+#include "chrono_parallel/collision/ChContactContainerParallelSMC.h"
 
 using namespace chrono;
 using namespace chrono::collision;
 
 ChSystemParallelSMC::ChSystemParallelSMC() : ChSystemParallel() {
+    contact_container = chrono_types::make_shared<ChContactContainerParallelSMC>(data_manager);
+    contact_container->SetSystem(this);
+
     solver = chrono_types::make_shared<ChIterativeSolverParallelSMC>(data_manager);
 
     data_manager->settings.collision.collision_envelope = 0;

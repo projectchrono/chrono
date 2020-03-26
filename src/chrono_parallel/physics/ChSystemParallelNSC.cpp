@@ -15,12 +15,16 @@
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/solver/ChSolverParallel.h"
 #include "chrono_parallel/solver/ChIterativeSolverParallel.h"
+#include "chrono_parallel/collision/ChContactContainerParallelNSC.h"
 #include "chrono_parallel/collision/ChCollisionSystemParallel.h"
 #include "chrono_parallel/collision/ChCollisionSystemBulletParallel.h"
 
 using namespace chrono;
 
 ChSystemParallelNSC::ChSystemParallelNSC() : ChSystemParallel() {
+    contact_container = chrono_types::make_shared<ChContactContainerParallelNSC>(data_manager);
+    contact_container->SetSystem(this);
+
     solver = chrono_types::make_shared<ChIterativeSolverParallelNSC>(data_manager);
 
     // Set this so that the CD can check what type of system it is (needed for narrowphase)
