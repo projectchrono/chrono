@@ -7,7 +7,6 @@ using namespace collision;
 
 %}
 
-
 %feature("director") chrono::collision::ChCollisionModel; // ?????
 %feature("nodirector") chrono::collision::ChCollisionModel::GetPhysicsItem;
 

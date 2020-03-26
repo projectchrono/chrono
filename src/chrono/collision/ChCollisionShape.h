@@ -59,6 +59,8 @@ class ChApi ChCollisionShape {
   protected:
     Type m_type;                                    ///< type of collision shape
     std::shared_ptr<ChMaterialSurface> m_material;  ///< surface contact material
+
+    friend class ChCollisionModel;
 };
 
 }  // end namespace collision

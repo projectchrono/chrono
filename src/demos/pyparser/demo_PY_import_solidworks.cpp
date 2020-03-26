@@ -105,6 +105,10 @@ int main(int argc, char* argv[]) {
     auto mbalance      = std::dynamic_pointer_cast<ChBody>(myitemB);
     auto manchor       = std::dynamic_pointer_cast<ChBody>(myitemC);
 
+    // Create a contact material with zero friction which will be shared by all parts
+    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    mat->SetFriction(0);
+
     if (mescape_wheel && mtruss && mbalance && manchor ) {
 
         // Set a constant torque to escape wheel, in a
@@ -122,9 +126,9 @@ int main(int argc, char* argv[]) {
         mbalance->SetWvel_par(ChVector<>(0, 5, 0));
 
         // Set no friction in all parts
-        mbalance->GetMaterialSurfaceNSC()->SetFriction(0);
-        mescape_wheel->GetMaterialSurfaceNSC()->SetFriction(0);
-        manchor->GetMaterialSurfaceNSC()->SetFriction(0);
+        mbalance->GetCollisionModel()->SetAllShapesMaterial(mat);
+        mescape_wheel->GetCollisionModel()->SetAllShapesMaterial(mat);
+        manchor->GetCollisionModel()->SetAllShapesMaterial(mat);
     } else
         GetLog() << "Error: cannot one or more objects from their names in the C::E system! \n\n";
 

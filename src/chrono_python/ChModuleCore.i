@@ -300,6 +300,7 @@ using namespace chrono::fea;
 // geometry/   classes
 %include "ChGeometry.i"
 
+%include "ChMaterialSurface.i"
 %include "ChCollisionModel.i"
 %include "../chrono/collision/ChCollisionUtils.h"
 %include "../chrono/collision/ChCollisionSystem.h"
@@ -334,7 +335,6 @@ using namespace chrono::fea;
 %include "ChObject.i"
 %include "ChPhysicsItem.i"
 %include "../chrono/physics/ChIndexedNodes.h"
-%include "ChMaterialSurface.i"
 %include "../chrono/physics/ChNodeBase.h"
 %include "../chrono/physics/ChNodeXYZ.h"
 %include "ChBodyFrame.i"
