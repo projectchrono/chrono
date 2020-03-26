@@ -194,6 +194,32 @@ void _OptimalContactInsert(std::list<Tcont*>& contactlist,           // contact 
     n_added++;
 }
 
+void ChContactContainerNSC::AddContact(const collision::ChCollisionInfo& cinfo,
+                                       std::shared_ptr<ChMaterialSurface> mat1,
+                                       std::shared_ptr<ChMaterialSurface> mat2) {
+    assert(cinfo.modelA->GetContactable());
+    assert(cinfo.modelB->GetContactable());
+
+    auto contactableA = cinfo.modelA->GetContactable();
+    auto contactableB = cinfo.modelB->GetContactable();
+
+    // Do nothing if any of the contactables is not contact-active
+    if (!contactableA->IsContactActive() && !contactableB->IsContactActive())
+        return;
+
+    // Check that the two collision models are compatible with penalty contact.
+    if (mat1->GetContactMethod() != ChContactMethod::NSC || mat2->GetContactMethod() != ChContactMethod::NSC) {
+        return;
+    }
+
+    // Create the composite material
+    ChMaterialCompositeNSC cmat(GetSystem()->composition_strategy.get(),
+                                std::static_pointer_cast<ChMaterialSurfaceNSC>(mat1),
+                                std::static_pointer_cast<ChMaterialSurfaceNSC>(mat2));
+
+    InsertContact(cinfo, cmat);
+}
+
 void ChContactContainerNSC::AddContact(const collision::ChCollisionInfo& cinfo) {
     assert(cinfo.modelA->GetContactable());
     assert(cinfo.modelB->GetContactable());
@@ -201,7 +227,7 @@ void ChContactContainerNSC::AddContact(const collision::ChCollisionInfo& cinfo) 
     auto contactableA = cinfo.modelA->GetContactable();
     auto contactableB = cinfo.modelB->GetContactable();
 
-    // Bail out if any of the two contactable objects is not contact-active:
+    // Do nothing if any of the contactables is not contact-active
     if (!contactableA->IsContactActive() && !contactableB->IsContactActive())
         return;
 
@@ -220,6 +246,13 @@ void ChContactContainerNSC::AddContact(const collision::ChCollisionInfo& cinfo) 
     if (GetAddContactCallback()) {
         GetAddContactCallback()->OnAddContact(cinfo, &cmat);
     }
+
+    InsertContact(cinfo, cmat);
+}
+
+void ChContactContainerNSC::InsertContact(const collision::ChCollisionInfo& cinfo, const ChMaterialCompositeNSC& cmat) {
+    auto contactableA = cinfo.modelA->GetContactable();
+    auto contactableB = cinfo.modelB->GetContactable();
 
     // CREATE THE CONTACTS
     //

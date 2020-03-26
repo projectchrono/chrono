@@ -191,6 +191,36 @@ void _OptimalContactInsert(std::list<Tcont*>& contactlist,           // contact 
     n_added++;
 }
 
+void ChContactContainerSMC::AddContact(const collision::ChCollisionInfo& cinfo,
+                                       std::shared_ptr<ChMaterialSurface> mat1,
+                                       std::shared_ptr<ChMaterialSurface> mat2) {
+    assert(cinfo.modelA->GetContactable());
+    assert(cinfo.modelB->GetContactable());
+
+    // Do nothing if the shapes are separated
+    if (cinfo.distance >= 0)
+        return;
+
+    auto contactableA = cinfo.modelA->GetContactable();
+    auto contactableB = cinfo.modelB->GetContactable();
+
+    // Do nothing if any of the contactables is not contact-active
+    if (!contactableA->IsContactActive() && !contactableB->IsContactActive())
+        return;
+
+    // Check that the two collision models are compatible with penalty contact.
+    if (mat1->GetContactMethod() != ChContactMethod::SMC || mat2->GetContactMethod() != ChContactMethod::SMC) {
+        return;
+    }
+
+    // Create the composite material
+    ChMaterialCompositeSMC cmat(GetSystem()->composition_strategy.get(),
+                                std::static_pointer_cast<ChMaterialSurfaceSMC>(mat1),
+                                std::static_pointer_cast<ChMaterialSurfaceSMC>(mat2));
+
+    InsertContact(cinfo, cmat);
+}
+
 void ChContactContainerSMC::AddContact(const collision::ChCollisionInfo& cinfo) {
     assert(cinfo.modelA->GetContactable());
     assert(cinfo.modelB->GetContactable());
@@ -202,7 +232,7 @@ void ChContactContainerSMC::AddContact(const collision::ChCollisionInfo& cinfo) 
     auto contactableA = cinfo.modelA->GetContactable();
     auto contactableB = cinfo.modelB->GetContactable();
 
-    // Bail out if any of the two contactable objects is not contact-active:
+    // Do nothing if any of the contactables is not contact-active
     if (!contactableA->IsContactActive() && !contactableB->IsContactActive())
         return;
 
@@ -221,6 +251,13 @@ void ChContactContainerSMC::AddContact(const collision::ChCollisionInfo& cinfo) 
     if (GetAddContactCallback()) {
         GetAddContactCallback()->OnAddContact(cinfo, &cmat);
     }
+
+    InsertContact(cinfo, cmat);
+}
+
+void ChContactContainerSMC::InsertContact(const collision::ChCollisionInfo& cinfo, const ChMaterialCompositeSMC& cmat) {
+    auto contactableA = cinfo.modelA->GetContactable();
+    auto contactableB = cinfo.modelB->GetContactable();
 
     // CREATE THE CONTACTS
     //

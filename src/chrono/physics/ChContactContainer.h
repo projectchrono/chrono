@@ -12,6 +12,11 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
+//// RADU
+////   TODO: Eliminate the namespace 'chrono::collision'
+////         Make the internal use AddContact private (protected) here and in derived classes.
+////         (with the collision namespace, this would require ugly dependencies)
+
 #ifndef CH_CONTACT_CONTAINER_H
 #define CH_CONTACT_CONTAINER_H
 
@@ -43,7 +48,16 @@ class ChApi ChContactContainer : public ChPhysicsItem {
     /// possible.
     virtual void BeginAddContact() { RemoveAllContacts(); }
 
-    /// Add a contact between two models, storing it into this container.
+    /// Add a contact between two collision shapes, storing it into this container.
+    /// A compositecontact material is created from the two given materials.
+    /// In this case, the collision info object may have null pointers to collision shapes.
+    virtual void AddContact(const collision::ChCollisionInfo& cinfo,
+                            std::shared_ptr<ChMaterialSurface> mat1,
+                            std::shared_ptr<ChMaterialSurface> mat2) = 0;
+
+    /// Add a contact between two collision shapes, storing it into this container.
+    /// The collision info object is assumed to contain valid pointers to the two colliding shapes.
+    /// A composite contact material is created from their material properties.
     virtual void AddContact(const collision::ChCollisionInfo& cinfo) = 0;
 
     /// The collision system will call EndAddContact() after adding all contacts (for example with AddContact() or
