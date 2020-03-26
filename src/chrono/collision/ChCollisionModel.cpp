@@ -154,6 +154,18 @@ bool ChCollisionModel::AddConvexHullsFromFile(std::shared_ptr<ChMaterialSurface>
     return true;
 }
 
+void ChCollisionModel::SetShapeMaterial(int index, std::shared_ptr<ChMaterialSurface> mat) {
+    assert(index < GetNumShapes());
+    assert(m_shapes[index]->m_material->GetContactMethod() == mat->GetContactMethod());
+    m_shapes[index]->m_material = mat;
+}
+
+void ChCollisionModel::SetAllShapesMaterial(std::shared_ptr<ChMaterialSurface> mat) {
+    assert(GetNumShapes() == 0 || m_shapes[0]->m_material->GetContactMethod() == mat->GetContactMethod());
+    for (auto shape : m_shapes)
+        shape->m_material = mat;
+}
+
 void ChCollisionModel::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChCollisionModel>();
