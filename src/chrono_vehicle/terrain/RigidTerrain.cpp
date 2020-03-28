@@ -84,18 +84,48 @@ void RigidTerrain::LoadPatch(const rapidjson::Value& d) {
     assert(d.HasMember("Geometry"));
     assert(d.HasMember("Contact Material"));
 
-    // Create patch with specified geometry
+    // Create patch with specified geometry and contact material
     std::shared_ptr<Patch> patch;
     auto loc = ReadVectorJSON(d["Location"]);
     auto rot = ReadQuaternionJSON(d["Orientation"]);
 
+    // Create a default material (consistent with containing system) and overwrite properties
+    std::shared_ptr<ChMaterialSurface> material;
+    switch (m_system->GetContactMethod()) {
+        case ChContactMethod::NSC: {
+            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            matNSC->SetFriction(d["Contact Material"]["Coefficient of Friction"].GetFloat());
+            matNSC->SetRestitution(d["Contact Material"]["Coefficient of Restitution"].GetFloat());
+            material = matNSC;
+            break;
+        }
+        case ChContactMethod::SMC: {
+            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            matSMC->SetFriction(d["Contact Material"]["Coefficient of Friction"].GetFloat());
+            matSMC->SetRestitution(d["Contact Material"]["Coefficient of Restitution"].GetFloat());
+            if (d["Contact Material"].HasMember("Properties")) {
+                matSMC->SetYoungModulus(d["Contact Material"]["Properties"]["Young Modulus"].GetFloat());
+                matSMC->SetPoissonRatio(d["Contact Material"]["Properties"]["Poisson Ratio"].GetFloat());
+            }
+            if (d["Contact Material"].HasMember("Coefficients")) {
+                matSMC->SetKn(d["Contact Material"]["Coefficients"]["Normal Stiffness"].GetFloat());
+                matSMC->SetGn(d["Contact Material"]["Coefficients"]["Normal Damping"].GetFloat());
+                matSMC->SetKt(d["Contact Material"]["Coefficients"]["Tangential Stiffness"].GetFloat());
+                matSMC->SetGt(d["Contact Material"]["Coefficients"]["Tangential Damping"].GetFloat());
+            }
+            material = matSMC;
+            break;
+        }
+    }
+
+    // Create patch geometry (infer type based on existing keys)
     if (d["Geometry"].HasMember("Dimensions")) {
         auto size = ReadVectorJSON(d["Geometry"]["Dimensions"]);
-        patch = AddPatch(ChCoordsys<>(loc, rot), size);
+        patch = AddPatch(material, ChCoordsys<>(loc, rot), size);
     } else if (d["Geometry"].HasMember("Mesh Filename")) {
         std::string mesh_file = d["Geometry"]["Mesh Filename"].GetString();
         std::string mesh_name = d["Geometry"]["Mesh Name"].GetString();
-        patch = AddPatch(ChCoordsys<>(loc, rot), vehicle::GetDataFile(mesh_file), mesh_name);
+        patch = AddPatch(material, ChCoordsys<>(loc, rot), vehicle::GetDataFile(mesh_file), mesh_name);
     } else if (d["Geometry"].HasMember("Height Map Filename")) {
         std::string bmp_file = d["Geometry"]["Height Map Filename"].GetString();
         std::string mesh_name = d["Geometry"]["Mesh Name"].GetString();
@@ -103,25 +133,7 @@ void RigidTerrain::LoadPatch(const rapidjson::Value& d) {
         double sy = d["Geometry"]["Size"][1u].GetDouble();
         double hMin = d["Geometry"]["Height Range"][0u].GetDouble();
         double hMax = d["Geometry"]["Height Range"][1u].GetDouble();
-        patch = AddPatch(ChCoordsys<>(loc, rot), vehicle::GetDataFile(bmp_file), mesh_name, sx, sy, hMin, hMax);
-    }
-
-    // Set contact material properties
-    float mu = d["Contact Material"]["Coefficient of Friction"].GetFloat();
-    float cr = d["Contact Material"]["Coefficient of Restitution"].GetFloat();
-    patch->SetContactFrictionCoefficient(mu);
-    patch->SetContactRestitutionCoefficient(cr);
-    if (d["Contact Material"].HasMember("Properties")) {
-        float ym = d["Contact Material"]["Properties"]["Young Modulus"].GetFloat();
-        float pr = d["Contact Material"]["Properties"]["Poisson Ratio"].GetFloat();
-        patch->SetContactMaterialProperties(ym, pr);
-    }
-    if (d["Contact Material"].HasMember("Coefficients")) {
-        float kn = d["Contact Material"]["Coefficients"]["Normal Stiffness"].GetFloat();
-        float gn = d["Contact Material"]["Coefficients"]["Normal Damping"].GetFloat();
-        float kt = d["Contact Material"]["Coefficients"]["Tangential Stiffness"].GetFloat();
-        float gt = d["Contact Material"]["Coefficients"]["Tangential Damping"].GetFloat();
-        patch->SetContactMaterialCoefficients(kn, gn, kt, gt);
+        patch = AddPatch(material, ChCoordsys<>(loc, rot), vehicle::GetDataFile(bmp_file), mesh_name, sx, sy, hMin, hMax);
     }
 
     // Set visualization data
@@ -147,7 +159,9 @@ void RigidTerrain::LoadPatch(const rapidjson::Value& d) {
 // Functions to add terrain patches with various definitions
 // (box, mesh, height-field)
 // -----------------------------------------------------------------------------
-void RigidTerrain::AddPatch(std::shared_ptr<Patch> patch, const ChCoordsys<>& position) {
+void RigidTerrain::AddPatch(std::shared_ptr<Patch> patch,
+                            const ChCoordsys<>& position,
+                            std::shared_ptr<ChMaterialSurface> material) {
     m_num_patches++;
 
     // Create the rigid body for this patch (fixed)
@@ -159,39 +173,30 @@ void RigidTerrain::AddPatch(std::shared_ptr<Patch> patch, const ChCoordsys<>& po
     patch->m_body->SetBodyFixed(true);
     patch->m_body->SetCollide(true);
     m_system->AddBody(patch->m_body);
-
-    // Initialize contact material properties
-    patch->m_friction = 0.7f;
+    
+    // Cache coefficient of friction
     switch (m_system->GetContactMethod()) {
         case ChContactMethod::NSC:
-            patch->m_body->GetMaterialSurfaceNSC()->SetFriction(patch->m_friction);
-            patch->m_body->GetMaterialSurfaceNSC()->SetRestitution(0.1f);
+            patch->m_friction = std::static_pointer_cast<ChMaterialSurfaceNSC>(material)->GetSfriction();
             break;
         case ChContactMethod::SMC:
-            patch->m_body->GetMaterialSurfaceSMC()->SetFriction(patch->m_friction);
-            patch->m_body->GetMaterialSurfaceSMC()->SetRestitution(0.1f);
-            patch->m_body->GetMaterialSurfaceSMC()->SetYoungModulus(2e5f);
-            patch->m_body->GetMaterialSurfaceSMC()->SetPoissonRatio(0.3f);
-            patch->m_body->GetMaterialSurfaceSMC()->SetKn(2e5f);
-            patch->m_body->GetMaterialSurfaceSMC()->SetGn(40.0f);
-            patch->m_body->GetMaterialSurfaceSMC()->SetKt(2e5f);
-            patch->m_body->GetMaterialSurfaceSMC()->SetGt(20.0f);
+            patch->m_friction = std::static_pointer_cast<ChMaterialSurfaceSMC>(material)->GetSfriction();
             break;
     }
 
-    // Insert in vector and return a reference to the patch
     m_patches.push_back(patch);
 }
 
 // -----------------------------------------------------------------------------
 
-std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(const ChCoordsys<>& position,
+std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMaterialSurface> material,
+                                                            const ChCoordsys<>& position,
                                                             const ChVector<>& size,
                                                             bool tiled,
                                                             double max_tile_size,
                                                             bool visualization) {
     auto patch = chrono_types::make_shared<BoxPatch>();
-    AddPatch(patch, position);
+    AddPatch(patch, position, material);
 
     // Create collision model (box) attached to the patch body
     patch->m_body->GetCollisionModel()->ClearModel();
@@ -202,13 +207,15 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(const ChCoordsys<>& 
         double sizeY1 = size.y() / nY;
         for (int ix = 0; ix < nX; ix++) {
             for (int iy = 0; iy < nY; iy++) {
-                patch->m_body->GetCollisionModel()->AddBox(
-                    0.5 * sizeX1, 0.5 * sizeY1, 0.5 * size.z(),
-                    ChVector<>((sizeX1 - size.x()) / 2 + ix * sizeX1, (sizeY1 - size.y()) / 2 + iy * sizeY1, 0));
+                patch->m_body->GetCollisionModel()->AddBox(                                                      //
+                    material,                                                                                    //
+                    0.5 * sizeX1, 0.5 * sizeY1, 0.5 * size.z(),                                                  //
+                    ChVector<>((sizeX1 - size.x()) / 2 + ix * sizeX1, (sizeY1 - size.y()) / 2 + iy * sizeY1, 0)  //
+                );
             }
         }
     } else {
-        patch->m_body->GetCollisionModel()->AddBox(0.5 * size.x(), 0.5 * size.y(), 0.5 * size.z());
+        patch->m_body->GetCollisionModel()->AddBox(material, 0.5 * size.x(), 0.5 * size.y(), 0.5 * size.z());
     }
     patch->m_body->GetCollisionModel()->BuildModel();
 
@@ -230,13 +237,14 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(const ChCoordsys<>& 
 
 // -----------------------------------------------------------------------------
 
-std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(const ChCoordsys<>& position,
+std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMaterialSurface> material,
+                                                            const ChCoordsys<>& position,
                                                             const std::string& mesh_file,
                                                             const std::string& mesh_name,
                                                             double sweep_sphere_radius,
                                                             bool visualization) {
     auto patch = chrono_types::make_shared<MeshPatch>();
-    AddPatch(patch, position);
+    AddPatch(patch, position, material);
 
     // Load mesh from file
     patch->m_trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
@@ -244,7 +252,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(const ChCoordsys<>& 
 
     // Create the collision model
     patch->m_body->GetCollisionModel()->ClearModel();
-    patch->m_body->GetCollisionModel()->AddTriangleMesh(patch->m_trimesh, true, false, VNULL, ChMatrix33<>(1),
+    patch->m_body->GetCollisionModel()->AddTriangleMesh(material, patch->m_trimesh, true, false, VNULL, ChMatrix33<>(1),
                                                         sweep_sphere_radius);
     patch->m_body->GetCollisionModel()->BuildModel();
 
@@ -272,7 +280,8 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(const ChCoordsys<>& 
 
 // -----------------------------------------------------------------------------
 
-std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(const ChCoordsys<>& position,
+std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMaterialSurface> material,
+                                                            const ChCoordsys<>& position,
                                                             const std::string& heightmap_file,
                                                             const std::string& mesh_name,
                                                             double sizeX,
@@ -282,7 +291,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(const ChCoordsys<>& 
                                                             double sweep_sphere_radius,
                                                             bool visualization) {
     auto patch = chrono_types::make_shared<MeshPatch>();
-    AddPatch(patch, position);
+    AddPatch(patch, position, material);
 
     // Read the BMP file and extract number of pixels.
     BMP hmap;
@@ -392,7 +401,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(const ChCoordsys<>& 
 
     // Create contact geometry.
     patch->m_body->GetCollisionModel()->ClearModel();
-    patch->m_body->GetCollisionModel()->AddTriangleMesh(patch->m_trimesh, true, false, VNULL, ChMatrix33<>(1),
+    patch->m_body->GetCollisionModel()->AddTriangleMesh(material, patch->m_trimesh, true, false, VNULL, ChMatrix33<>(1),
                                                         sweep_sphere_radius);
     patch->m_body->GetCollisionModel()->BuildModel();
 
@@ -414,45 +423,6 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(const ChCoordsys<>& 
 // -----------------------------------------------------------------------------
 // Functions to modify properties of a patch
 // -----------------------------------------------------------------------------
-void RigidTerrain::Patch::SetContactFrictionCoefficient(float friction_coefficient) {
-    switch (m_body->GetContactMethod()) {
-        case ChContactMethod::NSC:
-            m_body->GetMaterialSurfaceNSC()->SetFriction(friction_coefficient);
-            break;
-        case ChContactMethod::SMC:
-            m_body->GetMaterialSurfaceSMC()->SetFriction(friction_coefficient);
-            break;
-    }
-
-    m_friction = friction_coefficient;
-}
-
-void RigidTerrain::Patch::SetContactRestitutionCoefficient(float restitution_coefficient) {
-    switch (m_body->GetContactMethod()) {
-        case ChContactMethod::NSC:
-            m_body->GetMaterialSurfaceNSC()->SetRestitution(restitution_coefficient);
-            break;
-        case ChContactMethod::SMC:
-            m_body->GetMaterialSurfaceSMC()->SetRestitution(restitution_coefficient);
-            break;
-    }
-}
-
-void RigidTerrain::Patch::SetContactMaterialProperties(float young_modulus, float poisson_ratio) {
-    if (m_body->GetContactMethod() == ChContactMethod::SMC) {
-        m_body->GetMaterialSurfaceSMC()->SetYoungModulus(young_modulus);
-        m_body->GetMaterialSurfaceSMC()->SetPoissonRatio(poisson_ratio);
-    }
-}
-
-void RigidTerrain::Patch::SetContactMaterialCoefficients(float kn, float gn, float kt, float gt) {
-    if (m_body->GetContactMethod() == ChContactMethod::SMC) {
-        m_body->GetMaterialSurfaceSMC()->SetKn(kn);
-        m_body->GetMaterialSurfaceSMC()->SetGn(gn);
-        m_body->GetMaterialSurfaceSMC()->SetKt(kt);
-        m_body->GetMaterialSurfaceSMC()->SetGt(gt);
-    }
-}
 
 void RigidTerrain::Patch::SetColor(const ChColor& color) {
     auto acolor = chrono_types::make_shared<ChColorAsset>(color);
@@ -476,49 +446,51 @@ class RTContactCallback : public ChContactContainer::AddContactCallback {
         //// TODO: also accomodate terrain contact with FEA meshes.
 
         // Loop over all patch bodies and check if this contact involves one of them.
+        ChBody* body_patch = nullptr;
         ChBody* body_other = nullptr;
-        bool process = false;
+        collision::ChCollisionShape* shape_other = nullptr;
         for (auto patch : m_terrain->GetPatches()) {
             auto model = patch->GetGroundBody()->GetCollisionModel().get();
             if (model == contactinfo.modelA) {
+                body_patch = patch->GetGroundBody().get();
                 body_other = dynamic_cast<ChBody*>(contactinfo.modelB->GetContactable());
-                process = true;
+                shape_other = contactinfo.shapeB;
                 break;
             }
             if (model == contactinfo.modelB) {
+                body_patch = patch->GetGroundBody().get();
                 body_other = dynamic_cast<ChBody*>(contactinfo.modelA->GetContactable());
-                process = true;
+                shape_other = contactinfo.shapeA;
                 break;
             }
         }
 
         // Do nothing if this contact does not involve a terrain body or if the other contactable
-        // is not a body.
-        if (!process || !body_other)
+        // is not a body or if the collsion does not involve a shape (e.g., a contact added by the user)
+        if (!body_patch || !body_other || !shape_other)
             return;
+
+        // Containing system and current combination strategy for composite materials
+        auto sys = body_patch->GetSystem();
+        auto& strategy = sys->GetMaterialCompositionStrategy();
 
         // Find the terrain coefficient of friction at the location of current contact.
         // Arbitrarily use the collision point on modelA.
         auto friction_terrain = (*m_friction_fun)(contactinfo.vpA.x(), contactinfo.vpA.y());
 
-        // Get the current combination strategy for composite materials.
-        auto& strategy = body_other->GetSystem()->GetMaterialCompositionStrategy();
-
         // Set friction in composite material based on contact formulation.
-        switch (body_other->GetContactMethod()) {
+        switch (sys->GetContactMethod()) {
             case ChContactMethod::NSC: {
-                auto mat_other = std::static_pointer_cast<ChMaterialSurfaceNSC>(body_other->GetMaterialSurface());
-                auto friction_other = mat_other->sliding_friction;
-                auto friction = strategy.CombineFriction(friction_terrain, friction_other);
+                auto mat_other = std::static_pointer_cast<ChMaterialSurfaceNSC>(shape_other->GetMaterial());
+                auto friction = strategy.CombineFriction(friction_terrain, mat_other->sliding_friction);
                 auto mat = static_cast<ChMaterialCompositeNSC* const>(material);
                 mat->static_friction = friction;
                 mat->sliding_friction = friction;
                 break;
             }
             case ChContactMethod::SMC: {
-                auto mat_other = std::static_pointer_cast<ChMaterialSurfaceSMC>(body_other->GetMaterialSurface());
-                auto friction_other = mat_other->sliding_friction;
-                auto friction = strategy.CombineFriction(friction_terrain, friction_other);
+                auto mat_other = std::static_pointer_cast<ChMaterialSurfaceSMC>(shape_other->GetMaterial());
+                auto friction = strategy.CombineFriction(friction_terrain, mat_other->sliding_friction);
                 auto mat = static_cast<ChMaterialCompositeSMC* const>(material);
                 mat->mu_eff = friction;
                 break;

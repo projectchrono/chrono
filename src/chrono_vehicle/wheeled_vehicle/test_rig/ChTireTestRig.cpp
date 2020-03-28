@@ -421,11 +421,29 @@ void ChTireTestRig::CreateTerrainRigid() {
     ChVector<> location(m_params_rigid.length / 2 - 2 * m_tire->GetRadius(), m_terrain_offset, m_terrain_height - 0.1);
 
     auto terrain = chrono_types::make_shared<vehicle::RigidTerrain>(m_system);
-    auto patch =
-        terrain->AddPatch(ChCoordsys<>(location, QUNIT), ChVector<>(m_params_rigid.length, m_params_rigid.width, 0.1));
-    patch->SetContactFrictionCoefficient(m_params_rigid.friction);
-    patch->SetContactRestitutionCoefficient(m_params_rigid.restitution);
-    patch->SetContactMaterialProperties(m_params_rigid.Young_modulus, 0.3f);
+
+    std::shared_ptr<ChMaterialSurface> patch_mat;
+    switch (m_system->GetContactMethod()) {
+        case ChContactMethod::NSC: {
+            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            matNSC->SetFriction(m_params_rigid.friction);
+            matNSC->SetRestitution(m_params_rigid.restitution);
+            patch_mat = matNSC;
+            break;
+        }
+        case ChContactMethod::SMC: {
+            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            matSMC->SetFriction(m_params_rigid.friction);
+            matSMC->SetRestitution(m_params_rigid.restitution);
+            matSMC->SetYoungModulus(m_params_rigid.Young_modulus);
+            matSMC->SetPoissonRatio(0.3f);
+            patch_mat = matSMC;
+            break;
+        }
+    }
+
+    auto patch = terrain->AddPatch(patch_mat, ChCoordsys<>(location, QUNIT),
+                                   ChVector<>(m_params_rigid.length, m_params_rigid.width, 0.1));
     patch->SetColor(ChColor(0.8f, 0.8f, 0.8f));
     patch->SetTexture(GetChronoDataFile("pinkwhite.png"), 10 * (float)m_params_rigid.length,
                       10 * (float)m_params_rigid.width);
@@ -453,7 +471,7 @@ void ChTireTestRig::CreateTerrainGranular() {
             mat_g->SetGn(6.0e1f);
             mat_g->SetKt(4.0e5f);
             mat_g->SetGt(4.0e1f);
-            terrain->SetContactMaterialSMC(std::static_pointer_cast<ChMaterialSurfaceSMC>(mat_g));
+            terrain->SetContactMaterial(mat_g);
             break;
         }
         case ChContactMethod::NSC: {
@@ -462,7 +480,7 @@ void ChTireTestRig::CreateTerrainGranular() {
             mat_g->SetFriction(static_cast<float>(m_params_granular.friction));
             mat_g->SetRestitution(0.0f);
             mat_g->SetCohesion(static_cast<float>(coh_force * step_size));
-            terrain->SetContactMaterialNSC(std::static_pointer_cast<ChMaterialSurfaceNSC>(mat_g));
+            terrain->SetContactMaterial(mat_g);
             terrain->SetCollisionEnvelope(0.05 * m_params_granular.radius);
             break;
         }
