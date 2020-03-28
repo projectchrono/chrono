@@ -22,6 +22,8 @@
 #include <vector>
 
 #include "chrono/physics/ChBody.h"
+#include "chrono/physics/ChMaterialSurfaceNSC.h"
+#include "chrono/physics/ChMaterialSurfaceSMC.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChTexture.h"
@@ -90,7 +92,13 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     /// Mesh vertex positions and velocities are returned in the absolute frame.
     void GetMeshVertexStates(std::vector<ChVector<>>& pos,  ///< mesh vertex positions (expressed in absolute frame)
                              std::vector<ChVector<>>& vel   ///< mesh vertex velocities (expressed in absolute frame)
-                             ) const;
+    ) const;
+
+  protected:
+    /// Create the contact material consistent with the specified contact method.
+    virtual void CreateContactMaterial(ChContactMethod contact_method) = 0;
+
+    std::shared_ptr<ChMaterialSurface> m_material;  ///< contact material;
 
   private:
     /// Get the tire force and moment.

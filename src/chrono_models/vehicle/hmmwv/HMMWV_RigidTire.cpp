@@ -40,11 +40,6 @@ const std::string HMMWV_RigidTire::m_meshFile = "hmmwv/hmmwv_tire_fine.obj";
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 HMMWV_RigidTire::HMMWV_RigidTire(const std::string& name, bool use_mesh) : ChRigidTire(name) {
-    SetContactFrictionCoefficient(0.9f);
-    SetContactRestitutionCoefficient(0.1f);
-    SetContactMaterialProperties(2e7f, 0.3f);
-    SetContactMaterialCoefficients(2e5f, 40.0f, 2e5f, 20.0f);
-
     if (use_mesh) {
         SetMeshFilename(GetDataFile("hmmwv/hmmwv_tire_fine.obj"), 0.005);
     }
@@ -52,6 +47,26 @@ HMMWV_RigidTire::HMMWV_RigidTire(const std::string& name, bool use_mesh) : ChRig
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+void HMMWV_RigidTire::CreateContactMaterial(ChContactMethod contact_method) {
+    switch (contact_method) {
+        case ChContactMethod::NSC: {
+            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            matNSC->SetFriction(0.9f);
+            matNSC->SetRestitution(0.1f);
+            m_material = matNSC;
+            break;
+        }
+        case ChContactMethod::SMC: {
+            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            matSMC->SetFriction(0.9f);
+            matSMC->SetRestitution(0.1f);
+            matSMC->SetYoungModulus(2e7f);
+            m_material = matSMC;
+            break;
+        }
+    }
+}
+
 void HMMWV_RigidTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
         m_trimesh_shape = AddVisualizationMesh(vehicle::GetDataFile(m_meshFile),   // left side
