@@ -77,29 +77,41 @@ void RigidChassis::Create(const rapidjson::Document& d) {
 
     // Read contact information
     if (d.HasMember("Contact")) {
-
-        assert(d["Contact"].HasMember("Material"));
+        assert(d["Contact"].HasMember("Materials"));
         assert(d["Contact"].HasMember("Shapes"));
 
-        // Read contact material data
-        const Value& mat = d["Contact"]["Material"];
-        float mu = mat["Coefficient of Friction"].GetFloat();
-        float cr = mat["Coefficient of Restitution"].GetFloat();
+        // Read contact material information (but defer creating and loading materials until LoadCollisionShapes)
+        assert(d["Contact"]["Materials"].IsArray());
+        int num_mats = d["Contact"]["Materials"].Size();
 
-        SetContactFrictionCoefficient(mu);
-        SetContactRestitutionCoefficient(cr);
+        for (int i = 0; i < num_mats; i++) {
+            MatInfo minfo;
+            // Load default values (in case not all are provided in the JSON file)
+            minfo.mu = 0.7f;
+            minfo.cr = 0.1f;
+            minfo.Y = 1e7f;
+            minfo.nu = 0.3f;
+            minfo.kn = 2e6f;
+            minfo.gn = 40.0f;
+            minfo.kt = 2e5f;
+            minfo.gt = 20.0f;
 
-        if (mat.HasMember("Properties")) {
-            float ym = mat["Properties"]["Young Modulus"].GetFloat();
-            float pr = mat["Properties"]["Poisson Ratio"].GetFloat();
-            SetContactMaterialProperties(ym, pr);
-        }
-        if (mat.HasMember("Coefficients")) {
-            float kn = mat["Coefficients"]["Normal Stiffness"].GetFloat();
-            float gn = mat["Coefficients"]["Normal Damping"].GetFloat();
-            float kt = mat["Coefficients"]["Tangential Stiffness"].GetFloat();
-            float gt = mat["Coefficients"]["Tangential Damping"].GetFloat();
-            SetContactMaterialCoefficients(kn, gn, kt, gt);
+            const Value& mat = d["Contact"]["Materials"][i];
+
+            minfo.mu = mat["Coefficient of Friction"].GetFloat();
+            minfo.cr = mat["Coefficient of Restitution"].GetFloat();
+            if (mat.HasMember("Properties")) {
+                minfo.Y = mat["Properties"]["Young Modulus"].GetFloat();
+                minfo.nu = mat["Properties"]["Poisson Ratio"].GetFloat();
+            }
+            if (mat.HasMember("Coefficients")) {
+                minfo.kn = mat["Coefficients"]["Normal Stiffness"].GetFloat();
+                minfo.gn = mat["Coefficients"]["Normal Damping"].GetFloat();
+                minfo.kt = mat["Coefficients"]["Tangential Stiffness"].GetFloat();
+                minfo.gt = mat["Coefficients"]["Tangential Damping"].GetFloat();
+            }
+
+            m_mat_info.push_back(minfo);
         }
 
         // Read contact shapes
@@ -108,24 +120,29 @@ void RigidChassis::Create(const rapidjson::Document& d) {
 
         for (int i = 0; i < num_shapes; i++) {
             const Value& shape = d["Contact"]["Shapes"][i];
+
             std::string type = shape["Type"].GetString();
+            int matID = shape["Material Index"].GetInt();
+            assert(matID >= 0 && matID < num_mats);
+
             if (type.compare("SPHERE") == 0) {
                 ChVector<> pos = ReadVectorJSON(shape["Location"]);
                 double radius = shape["Radius"].GetDouble();
-                m_coll_spheres.push_back(SphereShape(pos, radius));
+                m_coll_spheres.push_back(SphereShape(pos, radius, matID));
             } else if (type.compare("BOX") == 0) {
                 ChVector<> pos = ReadVectorJSON(shape["Location"]);
                 ChQuaternion<> rot = ReadQuaternionJSON(shape["Orientation"]);
                 ChVector<> dims = ReadVectorJSON(shape["Dimensions"]);
-                m_coll_boxes.push_back(BoxShape(pos, rot, dims));
+                m_coll_boxes.push_back(BoxShape(pos, rot, dims, matID));
             } else if (type.compare("CYLINDER") == 0) {
                 ChVector<> pos = ReadVectorJSON(shape["Location"]);
                 ChQuaternion<> rot = ReadQuaternionJSON(shape["Orientation"]);
                 double radius = shape["Radius"].GetDouble();
                 double length = shape["Length"].GetDouble();
-                m_coll_cylinders.push_back(CylinderShape(pos, rot, radius, length));
+                m_coll_cylinders.push_back(CylinderShape(pos, rot, radius, length, matID));
             } else if (type.compare("MESH") == 0) {
-                m_coll_mesh_names.push_back(shape["Filename"].GetString());
+                std::string filename = shape["Filename"].GetString();
+                m_coll_hulls.push_back(ConvexHullsShape(filename, matID));
             }
         }
 
@@ -162,6 +179,33 @@ void RigidChassis::Create(const rapidjson::Document& d) {
                 }
             }
             m_has_primitives = true;
+        }
+    }
+}
+
+void RigidChassis::CreateContactMaterials(ChContactMethod contact_method) {
+    // Create the contact materials.
+    for (auto minfo : m_mat_info) {
+        switch (contact_method) {
+            case ChContactMethod::NSC: {
+                auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+                matNSC->SetFriction(minfo.mu);
+                matNSC->SetRestitution(minfo.cr);
+                m_materials.push_back(matNSC);
+                break;
+            }
+            case ChContactMethod::SMC:
+                auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+                matSMC->SetFriction(minfo.mu);
+                matSMC->SetRestitution(minfo.cr);
+                matSMC->SetYoungModulus(minfo.Y);
+                matSMC->SetPoissonRatio(minfo.nu);
+                matSMC->SetKn(minfo.kn);
+                matSMC->SetGn(minfo.gn);
+                matSMC->SetKt(minfo.kt);
+                matSMC->SetGt(minfo.gt);
+                m_materials.push_back(matSMC);
+                break;
         }
     }
 }

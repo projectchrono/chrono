@@ -65,12 +65,31 @@ CityBus_Chassis::CityBus_Chassis(const std::string& name, bool fixed, ChassisCol
     m_has_collision = (chassis_collision_type != ChassisCollisionType::NONE);
     switch (chassis_collision_type) {
         case ChassisCollisionType::PRIMITIVES:
+            box1.m_matID = 0;
             m_coll_boxes.push_back(box1);
             break;
-        case ChassisCollisionType::MESH:
-            m_coll_mesh_names.push_back("citybus/CityBus_Col.obj");
+        case ChassisCollisionType::MESH: {
+            ConvexHullsShape hull("citybus/CityBus_Col.obj", 0);
+            m_coll_hulls.push_back(hull);
             break;
+        }
         default:
+            break;
+    }
+}
+
+void CityBus_Chassis::CreateContactMaterials(ChContactMethod contact_method) {
+    // Create the contact materials.
+    // In this model, we use a single material with default properties.
+    switch (contact_method) {
+        case ChContactMethod::NSC: {
+            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            m_materials.push_back(matNSC);
+            break;
+        }
+        case ChContactMethod::SMC:
+            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            m_materials.push_back(matSMC);
             break;
     }
 }

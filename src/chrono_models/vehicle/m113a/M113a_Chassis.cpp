@@ -75,7 +75,7 @@ M113a_Chassis::M113a_Chassis(const std::string& name, bool fixed, ChassisCollisi
 
     ChVector<> dims2((Cx - Bx) / std::cos(alpha), width, thickness);
     ChVector<> loc2(0.5 * (Bx + Cx) - 0.5 * thickness * std::sin(alpha), 0.0,
-        0.5 * (Bz + Cz) + 0.5 * thickness * std::cos(alpha));
+                    0.5 * (Bz + Cz) + 0.5 * thickness * std::cos(alpha));
     ChQuaternion<> rot2 = Q_from_AngY(-alpha);
     BoxShape box2(loc2, rot2, dims2);
 
@@ -88,15 +88,35 @@ M113a_Chassis::M113a_Chassis(const std::string& name, bool fixed, ChassisCollisi
 
     m_has_collision = (chassis_collision_type != ChassisCollisionType::NONE);
     switch (chassis_collision_type) {
-    case ChassisCollisionType::PRIMITIVES:
-        m_coll_boxes.push_back(box1);
-        m_coll_boxes.push_back(box2);
-        break;
-    case ChassisCollisionType::MESH:
-        m_coll_mesh_names.push_back("M113/Chassis_Hulls.obj");
-        break;
-    default:
-        break;
+        case ChassisCollisionType::PRIMITIVES:
+            box1.m_matID = 0;
+            box2.m_matID = 0;
+            m_coll_boxes.push_back(box1);
+            m_coll_boxes.push_back(box2);
+            break;
+        case ChassisCollisionType::MESH: {
+            ConvexHullsShape hull("M113/Chassis_Hulls.obj", 0);
+            m_coll_hulls.push_back(hull);
+            break;
+        }
+        default:
+            break;
+    }
+}
+
+void M113a_Chassis::LoadContactMaterials(ChContactMethod contact_method) {
+    // Create the contact materials.
+    // In this model, we use a single material with default properties.
+    switch (contact_method) {
+        case ChContactMethod::NSC: {
+            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            m_materials.push_back(matNSC);
+            break;
+        }
+        case ChContactMethod::SMC:
+            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            m_materials.push_back(matSMC);
+            break;
     }
 }
 
