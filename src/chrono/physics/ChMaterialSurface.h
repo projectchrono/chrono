@@ -12,6 +12,10 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
+//// RADU: 
+////   Consider moving common (NSC/SMC) properties, such as coefficients of friction
+////   to this base class.  This would eliminate some static_pointer_cast calls.   
+
 #ifndef CH_MATERIAL_SURFACE_H
 #define CH_MATERIAL_SURFACE_H
 
