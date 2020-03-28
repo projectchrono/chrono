@@ -248,13 +248,32 @@ int main(int argc, char* argv[]) {
 
     // Create the terrain
     RigidTerrain terrain(my_hmmwv.GetSystem());
-    auto patch = terrain.AddPatch(ChCoordsys<>(ChVector<>(0, 0, terrainHeight - 5), QUNIT),
+
+    std::shared_ptr<ChMaterialSurface> patch_mat;
+    switch (contact_method) {
+        case ChContactMethod::NSC: {
+            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            matNSC->SetFriction(0.8f);
+            matNSC->SetRestitution(0.01f);
+            patch_mat = matNSC;
+            break;
+        }
+        case ChContactMethod::SMC: {
+            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            matSMC->SetFriction(0.8f);
+            matSMC->SetRestitution(0.01f);
+            matSMC->SetYoungModulus(2e7f);
+            matSMC->SetPoissonRatio(0.3f);
+            patch_mat = matSMC;
+            break;
+        }
+    }
+
+    auto patch = terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector<>(0, 0, terrainHeight - 5), QUNIT),
                                   ChVector<>(terrainLength, terrainWidth, 10));
-    patch->SetContactFrictionCoefficient(0.8f);
-    patch->SetContactRestitutionCoefficient(0.01f);
-    patch->SetContactMaterialProperties(2e7f, 0.3f);
     patch->SetColor(ChColor(1, 1, 1));
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
+
     terrain.Initialize();
 
     // ----------------------
