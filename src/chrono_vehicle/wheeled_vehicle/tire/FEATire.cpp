@@ -65,23 +65,29 @@ void FEATire::ProcessJSON(const rapidjson::Document& d) {
     // Read contact material data
     assert(d.HasMember("Contact Material"));
 
-    float mu = d["Contact Material"]["Coefficient of Friction"].GetFloat();
-    float cr = d["Contact Material"]["Coefficient of Restitution"].GetFloat();
+    // Load default values (in case not all are provided in the JSON file)
+    m_mat_info.mu = 0.9f;
+    m_mat_info.cr = 0.01f;
+    m_mat_info.Y = 2e7f;
+    m_mat_info.nu = 0.3f;
+    m_mat_info.kn = 2e5f;
+    m_mat_info.gn = 40.0f;
+    m_mat_info.kt = 2e5f;
+    m_mat_info.gt = 20.0f;
 
-    SetContactFrictionCoefficient(mu);
-    SetContactRestitutionCoefficient(cr);
+    const Value& mat = d["Contact Material"];
 
-    if (d["Contact Material"].HasMember("Properties")) {
-        float ym = d["Contact Material"]["Properties"]["Young Modulus"].GetFloat();
-        float pr = d["Contact Material"]["Properties"]["Poisson Ratio"].GetFloat();
-        SetContactMaterialProperties(ym, pr);
+    m_mat_info.mu = mat["Coefficient of Friction"].GetFloat();
+    m_mat_info.cr = mat["Coefficient of Restitution"].GetFloat();
+    if (mat.HasMember("Properties")) {
+        m_mat_info.Y = mat["Properties"]["Young Modulus"].GetFloat();
+        m_mat_info.nu = mat["Properties"]["Poisson Ratio"].GetFloat();
     }
-    if (d["Contact Material"].HasMember("Coefficients")) {
-        float kn = d["Contact Material"]["Coefficients"]["Normal Stiffness"].GetFloat();
-        float gn = d["Contact Material"]["Coefficients"]["Normal Damping"].GetFloat();
-        float kt = d["Contact Material"]["Coefficients"]["Tangential Stiffness"].GetFloat();
-        float gt = d["Contact Material"]["Coefficients"]["Tangential Damping"].GetFloat();
-        SetContactMaterialCoefficients(kn, gn, kt, gt);
+    if (mat.HasMember("Coefficients")) {
+        m_mat_info.kn = mat["Coefficients"]["Normal Stiffness"].GetFloat();
+        m_mat_info.gn = mat["Coefficients"]["Normal Damping"].GetFloat();
+        m_mat_info.kt = mat["Coefficients"]["Tangential Stiffness"].GetFloat();
+        m_mat_info.gt = mat["Coefficients"]["Tangential Damping"].GetFloat();
     }
 
     // Read continuum material data
@@ -129,6 +135,18 @@ std::vector<std::shared_ptr<ChNodeFEAbase>> FEATire::GetInternalNodes() const {
 
 std::vector<std::shared_ptr<fea::ChNodeFEAbase>> FEATire::GetConnectedNodes() const {
     return m_node_sets.at("BC_CONN");
+}
+
+void FEATire::CreateContactMaterial() {
+    m_contact_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    m_contact_mat->SetFriction(m_mat_info.mu);
+    m_contact_mat->SetRestitution(m_mat_info.cr);
+    m_contact_mat->SetYoungModulus(m_mat_info.Y);
+    m_contact_mat->SetPoissonRatio(m_mat_info.nu);
+    m_contact_mat->SetKn(m_mat_info.kn);
+    m_contact_mat->SetGn(m_mat_info.gn);
+    m_contact_mat->SetKt(m_mat_info.kt);
+    m_contact_mat->SetGt(m_mat_info.gt);
 }
 
 }  // end namespace vehicle

@@ -69,7 +69,7 @@ const std::vector<int> HMMWV_ANCFTire::m_material_id_tread{{2, 1, 1, 0}};
 const int HMMWV_ANCFTire::m_div_circumference = 90;
 
 const float HMMWV_ANCFTire::m_friction = 0.9f;
-const float HMMWV_ANCFTire::m_restiturion = 0.1f;
+const float HMMWV_ANCFTire::m_restitution = 0.1f;
 const float HMMWV_ANCFTire::m_Young = 2.0e6f;
 const float HMMWV_ANCFTire::m_Poisson = 0.3f;
 const float HMMWV_ANCFTire::m_kn = 2.0e6f;
@@ -120,12 +120,6 @@ const double HMMWV_ANCFTire::m_profile[71][3] = {
 
 HMMWV_ANCFTire::HMMWV_ANCFTire(const std::string& name) : ChANCFTire(name) {
     m_div_width = 2 * (m_num_elements_bead + m_num_elements_sidewall + m_num_elements_tread);
-
-    // Set contact material properties
-    SetContactFrictionCoefficient(m_friction);
-    SetContactRestitutionCoefficient(m_restitution);
-    SetContactMaterialProperties(m_Young, m_Poisson);
-    SetContactMaterialCoefficients(m_kn, m_gn, m_kt, m_gt);
 
     // Create the vector of orthotropic layer materials
     m_materials.resize(3);
@@ -270,6 +264,18 @@ std::vector<std::shared_ptr<fea::ChNodeFEAbase>> HMMWV_ANCFTire::GetConnectedNod
     }
 
     return nodes;
+}
+
+void HMMWV_ANCFTire::CreateContactMaterial() {
+    m_contact_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    m_contact_mat->SetFriction(m_friction);
+    m_contact_mat->SetRestitution(m_restitution);
+    m_contact_mat->SetYoungModulus(m_Young);
+    m_contact_mat->SetPoissonRatio(m_Poisson);
+    m_contact_mat->SetKn(m_kn);
+    m_contact_mat->SetGn(m_gn);
+    m_contact_mat->SetKt(m_kt);
+    m_contact_mat->SetGt(m_gt);
 }
 
 }  // end namespace hmmwv
