@@ -77,6 +77,7 @@ print( "Copyright (c) 2017 projectchrono.org\n")
 
 # Create the vehicle, set parameters, and initialize
 uaz = veh.UAZBUS()
+uaz.SetContactMethod(chrono.ChContactMethod_NSC)
 uaz.SetChassisFixed(False)
 uaz.SetInitPosition(chrono.ChCoordsysD(initLoc, initRot))
 uaz.SetTireType(tire_model)
@@ -114,10 +115,12 @@ print("Vehicle mass (with tires):  " + str(uaz.GetTotalMass() ) + "\n")
 # ------------------
 
 terrain = veh.RigidTerrain(uaz.GetSystem())
-patch = terrain.AddPatch(chrono.ChCoordsysD(chrono.ChVectorD(0, 0, -5), chrono.QUNIT), chrono.ChVectorD(600, 600, 10))
-patch.SetContactFrictionCoefficient(0.8)
-patch.SetContactRestitutionCoefficient(0.01)
-patch.SetContactMaterialProperties(2e7, 0.3)
+patch_mat = chrono.ChMaterialSurfaceNSC()
+patch_mat.SetFriction(0.9)
+patch_mat.SetRestitution(0.01)
+patch = terrain.AddPatch(patch_mat,
+                         chrono.ChCoordsysD(chrono.ChVectorD(0, 0, -5), chrono.QUNIT),
+                         chrono.ChVectorD(600, 600, 10))
 patch.SetColor(chrono.ChColor(0.8, 0.8, 1.0))
 patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 1200, 1200)
 terrain.Initialize()

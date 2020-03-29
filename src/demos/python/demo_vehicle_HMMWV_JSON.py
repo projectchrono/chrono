@@ -15,7 +15,7 @@ def main() :
     # --------------------------
 
     # Create the vehicle system
-    vehicle = veh.WheeledVehicle(vehicle_file ,chrono.ChMaterialSurface.NSC)
+    vehicle = veh.WheeledVehicle(vehicle_file, chrono.ChContactMethod_NSC)
     vehicle.Initialize(chrono.ChCoordsysD(initLoc, initRot))
     #vehicle.GetChassis().SetFixed(True)
     vehicle.SetChassisVisualizationType(veh.VisualizationType_PRIMITIVES)
