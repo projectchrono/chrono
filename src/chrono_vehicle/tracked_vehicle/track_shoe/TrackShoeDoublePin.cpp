@@ -64,43 +64,183 @@ void TrackShoeDoublePin::Create(const rapidjson::Document& d) {
     m_connector_inertia = ReadVectorJSON(d["Connector"]["Inertia"]);
 
     // Read contact geometry data
-    assert(d.HasMember("Contact Geometry"));
-    assert(d["Contact Geometry"].HasMember("Shoe"));
+    assert(d.HasMember("Contact"));
+    assert(d["Contact"].HasMember("Connector Material"));
+    assert(d["Contact"].HasMember("Shoe Materials"));
+    assert(d["Contact"].HasMember("Shoe Shapes"));
 
-    m_pad_box_dims = ReadVectorJSON(d["Contact Geometry"]["Shoe"]["Pad Dimensions"]);
-    m_pad_box_loc = ReadVectorJSON(d["Contact Geometry"]["Shoe"]["Pad Location"]);
-    m_guide_box_dims = ReadVectorJSON(d["Contact Geometry"]["Shoe"]["Guide Dimensions"]);
-    m_guide_box_loc = ReadVectorJSON(d["Contact Geometry"]["Shoe"]["Guide Location"]);
+    // Read contact material information (defer creating the materials until CreateCylContactMaterial and
+    // CreateShoeContactMaterials).  Load default values in MatInfo structures (in case not all are provided in the
+    // JSON file).
 
-    // Read contact material data
-    assert(d.HasMember("Contact Material"));
+    m_cyl_mat_info.mu = 0.7f;
+    m_cyl_mat_info.cr = 0.1f;
+    m_cyl_mat_info.Y = 1e7f;
+    m_cyl_mat_info.nu = 0.3f;
+    m_cyl_mat_info.kn = 2e6f;
+    m_cyl_mat_info.gn = 40.0f;
+    m_cyl_mat_info.kt = 2e5f;
+    m_cyl_mat_info.gt = 20.0f;
 
-    float mu = d["Contact Material"]["Coefficient of Friction"].GetFloat();
-    float cr = d["Contact Material"]["Coefficient of Restitution"].GetFloat();
+    const Value& mat = d["Contact"]["Connector Material"];
 
-    SetContactFrictionCoefficient(mu);
-    SetContactRestitutionCoefficient(cr);
-
-    if (d["Contact Material"].HasMember("Properties")) {
-        float ym = d["Contact Material"]["Properties"]["Young Modulus"].GetFloat();
-        float pr = d["Contact Material"]["Properties"]["Poisson Ratio"].GetFloat();
-        SetContactMaterialProperties(ym, pr);
+    m_cyl_mat_info.mu = mat["Coefficient of Friction"].GetFloat();
+    m_cyl_mat_info.cr = mat["Coefficient of Restitution"].GetFloat();
+    if (mat.HasMember("Properties")) {
+        m_cyl_mat_info.Y = mat["Properties"]["Young Modulus"].GetFloat();
+        m_cyl_mat_info.nu = mat["Properties"]["Poisson Ratio"].GetFloat();
     }
-    if (d["Contact Material"].HasMember("Coefficients")) {
-        float kn = d["Contact Material"]["Coefficients"]["Normal Stiffness"].GetFloat();
-        float gn = d["Contact Material"]["Coefficients"]["Normal Damping"].GetFloat();
-        float kt = d["Contact Material"]["Coefficients"]["Tangential Stiffness"].GetFloat();
-        float gt = d["Contact Material"]["Coefficients"]["Tangential Damping"].GetFloat();
-        SetContactMaterialCoefficients(kn, gn, kt, gt);
+    if (mat.HasMember("Coefficients")) {
+        m_cyl_mat_info.kn = mat["Coefficients"]["Normal Stiffness"].GetFloat();
+        m_cyl_mat_info.gn = mat["Coefficients"]["Normal Damping"].GetFloat();
+        m_cyl_mat_info.kt = mat["Coefficients"]["Tangential Stiffness"].GetFloat();
+        m_cyl_mat_info.gt = mat["Coefficients"]["Tangential Damping"].GetFloat();
     }
 
-    // Read wheel visualization
+        assert(d["Contact"]["Shoe Materials"].IsArray());
+    int num_mats = d["Contact"]["Shoe Materials"].Size();
+
+    for (int i = 0; i < num_mats; i++) {
+        MatInfo minfo;
+        minfo.mu = 0.7f;
+        minfo.cr = 0.1f;
+        minfo.Y = 1e7f;
+        minfo.nu = 0.3f;
+        minfo.kn = 2e6f;
+        minfo.gn = 40.0f;
+        minfo.kt = 2e5f;
+        minfo.gt = 20.0f;
+
+        const Value& mat = d["Contact"]["Shoe Materials"][i];
+
+        minfo.mu = mat["Coefficient of Friction"].GetFloat();
+        minfo.cr = mat["Coefficient of Restitution"].GetFloat();
+        if (mat.HasMember("Properties")) {
+            minfo.Y = mat["Properties"]["Young Modulus"].GetFloat();
+            minfo.nu = mat["Properties"]["Poisson Ratio"].GetFloat();
+        }
+        if (mat.HasMember("Coefficients")) {
+            minfo.kn = mat["Coefficients"]["Normal Stiffness"].GetFloat();
+            minfo.gn = mat["Coefficients"]["Normal Damping"].GetFloat();
+            minfo.kt = mat["Coefficients"]["Tangential Stiffness"].GetFloat();
+            minfo.gt = mat["Coefficients"]["Tangential Damping"].GetFloat();
+        }
+
+        m_shoe_mat_info.push_back(minfo);
+    }
+
+    // Read geometric collison data
+
+    assert(d["Contact"]["Shoe Shapes"].IsArray());
+    int num_shapes = d["Contact"]["Shoe Shapes"].Size();
+
+    for (int i = 0; i < num_shapes; i++) {
+        const Value& shape = d["Contact"]["Shoe Shapes"][i];
+
+        std::string type = shape["Type"].GetString();
+        int matID = shape["Material Index"].GetInt();
+        assert(matID >= 0 && matID < num_mats);
+
+        if (type.compare("BOX") == 0) {
+            ChVector<> pos = ReadVectorJSON(shape["Location"]);
+            ChQuaternion<> rot = ReadQuaternionJSON(shape["Orientation"]);
+            ChVector<> dims = ReadVectorJSON(shape["Dimensions"]);
+            m_coll_boxes.push_back(BoxShape(pos, rot, dims, matID));
+        } else if (type.compare("CYLINDER") == 0) {
+            ChVector<> pos = ReadVectorJSON(shape["Location"]);
+            ChQuaternion<> rot = ReadQuaternionJSON(shape["Orientation"]);
+            double radius = shape["Radius"].GetDouble();
+            double length = shape["Length"].GetDouble();
+            m_coll_cylinders.push_back(CylinderShape(pos, rot, radius, length, matID));
+        }
+    }
+
+    // Read visualization data
+
     if (d.HasMember("Visualization")) {
-        assert(d["Visualization"].HasMember("Mesh Filename"));
-        assert(d["Visualization"].HasMember("Mesh Name"));
-        m_meshFile = d["Visualization"]["Mesh Filename"].GetString();
-        m_meshName = d["Visualization"]["Mesh Name"].GetString();
-        m_has_mesh = true;
+        if (d["Visualization"].HasMember("Mesh")) {
+            m_meshFile = d["Visualization"]["Mesh"].GetString();
+            m_has_mesh = true;
+        }
+
+        if (d["Visualization"].HasMember("Primitives")) {
+            assert(d["Visualization"]["Primitives"].IsArray());
+            int num_shapes = d["Visualization"]["Primitives"].Size();
+            for (int i = 0; i < num_shapes; i++) {
+                const Value& shape = d["Visualization"]["Primitives"][i];
+                std::string type = shape["Type"].GetString();
+                if (type.compare("BOX") == 0) {
+                    ChVector<> pos = ReadVectorJSON(shape["Location"]);
+                    ChQuaternion<> rot = ReadQuaternionJSON(shape["Orientation"]);
+                    ChVector<> dims = ReadVectorJSON(shape["Dimensions"]);
+                    m_vis_boxes.push_back(BoxShape(pos, rot, dims));
+                } else if (type.compare("CYLINDER") == 0) {
+                    ChVector<> pos = ReadVectorJSON(shape["Location"]);
+                    ChQuaternion<> rot = ReadQuaternionJSON(shape["Orientation"]);
+                    double radius = shape["Radius"].GetDouble();
+                    double length = shape["Length"].GetDouble();
+                    m_vis_cylinders.push_back(CylinderShape(pos, rot, radius, length));
+                }
+            }
+        }
+    } else {
+        // Default to using the collision shapes
+        for (auto box : m_coll_boxes) {
+            m_vis_boxes.push_back(box);
+        }
+        for (auto cyl : m_coll_cylinders) {
+            m_vis_cylinders.push_back(cyl);
+        }
+    }
+}
+
+void TrackShoeDoublePin::CreateConnectorContactMaterial(ChContactMethod contact_method) {
+    switch (contact_method) {
+        case ChContactMethod::NSC: {
+            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            matNSC->SetFriction(m_cyl_mat_info.mu);
+            matNSC->SetRestitution(m_cyl_mat_info.cr);
+            m_conn_material = matNSC;
+            break;
+        }
+        case ChContactMethod::SMC:
+            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            matSMC->SetFriction(m_cyl_mat_info.mu);
+            matSMC->SetRestitution(m_cyl_mat_info.cr);
+            matSMC->SetYoungModulus(m_cyl_mat_info.Y);
+            matSMC->SetPoissonRatio(m_cyl_mat_info.nu);
+            matSMC->SetKn(m_cyl_mat_info.kn);
+            matSMC->SetGn(m_cyl_mat_info.gn);
+            matSMC->SetKt(m_cyl_mat_info.kt);
+            matSMC->SetGt(m_cyl_mat_info.gt);
+            m_conn_material = matSMC;
+            break;
+    }
+}
+
+void TrackShoeDoublePin::CreateShoeContactMaterials(ChContactMethod contact_method) {
+    for (auto minfo : m_shoe_mat_info) {
+        switch (contact_method) {
+            case ChContactMethod::NSC: {
+                auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+                matNSC->SetFriction(minfo.mu);
+                matNSC->SetRestitution(minfo.cr);
+                m_shoe_materials.push_back(matNSC);
+                break;
+            }
+            case ChContactMethod::SMC:
+                auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+                matSMC->SetFriction(minfo.mu);
+                matSMC->SetRestitution(minfo.cr);
+                matSMC->SetYoungModulus(minfo.Y);
+                matSMC->SetPoissonRatio(minfo.nu);
+                matSMC->SetKn(minfo.kn);
+                matSMC->SetGn(minfo.gn);
+                matSMC->SetKt(minfo.kt);
+                matSMC->SetGt(minfo.gt);
+                m_shoe_materials.push_back(matSMC);
+                break;
+        }
     }
 }
 
