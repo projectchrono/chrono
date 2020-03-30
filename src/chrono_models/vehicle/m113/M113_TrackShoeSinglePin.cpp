@@ -49,7 +49,7 @@ M113_TrackShoeSinglePin::M113_TrackShoeSinglePin(const std::string& name) : ChTr
     BoxShape box_bottom(ChVector<>(0, 0, -0.015), QUNIT, ChVector<>(0.11, 0.19, 0.03), 0);
 
     // Collision box: pad top (wheel contact)
-    BoxShape box_top(ChVector<>(0, 0, +0.015), QUNIT, ChVector<>(0.12, 0.20, 0.03), 1);
+    BoxShape box_top(ChVector<>(0, 0, +0.015), QUNIT, ChVector<>(0.10, 0.18, 0.03), 1);
 
     // Collision box: guide pin (wheel contact)
     BoxShape box_guide(ChVector<>(0.045, 0, 0.0375), QUNIT, ChVector<>(0.0284, 0.0114, 0.075), 2);

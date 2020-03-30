@@ -214,7 +214,8 @@ void SprocketSinglePinContactCB::CheckCircleProfile(std::shared_ptr<ChTrackShoeS
     contact.distance = m_R_diff - dist;
     ////contact.eff_radius = m_shoe_R;  //// TODO: take into account m_gear_R?
 
-    m_sprocket->GetGearBody()->GetSystem()->GetContactContainer()->AddContact(contact, m_sprocket->GetContactMaterial(), shoe->GetCylContactMaterial());
+    m_sprocket->GetGearBody()->GetSystem()->GetContactContainer()->AddContact(contact, m_sprocket->GetContactMaterial(),
+                                                                              shoe->m_cyl_material);
 }
 
 // Find the center of the profile arc that is closest to the specified location.

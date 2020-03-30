@@ -46,9 +46,6 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoe {
     /// Get the mass of the track shoe.
     virtual double GetMass() const override;
 
-    /// Get contact material for sprocket collisions.
-    std::shared_ptr<ChMaterialSurface> GetCylContactMaterial() const { return m_cyl_material; }
-
     /// Initialize this track shoe subsystem.
     /// The track shoe is created within the specified system and initialized
     /// at the specified location and orientation (expressed in the global frame).
@@ -89,12 +86,12 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoe {
     virtual double GetCylinderRadius() const = 0;
 
     /// Create the contact material for the cylinders (for contact with the sprocket), consistent with the specified
-    /// contact method. A derived class must set m_material_pin;
+    /// contact method. A derived class must set m_cyl_material;
     virtual void CreateCylContactMaterial(ChContactMethod contact_method) = 0;
 
     /// Create the contact materials for the shoe, consistent with the specified contact method. The material list must
     /// include one or more contact materials for the collision shapes of the shoe itself (for contact with the wheels,
-    /// idler, and ground). A derived class must set m_materials_shoe.
+    /// idler, and ground). A derived class must set m_shoe_materials.
     virtual void CreateShoeContactMaterials(ChContactMethod contact_method) = 0;
 
     /// Add contact geometry for the track shoe.
@@ -126,8 +123,8 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoe {
         int m_matID;
     };
 
-    std::vector<BoxShape> m_coll_boxes;                                ///< collision boxes
-    std::vector<CylinderShape> m_coll_cylinders;                       ///< collision cylinders
+    std::vector<BoxShape> m_coll_boxes;                                ///< collision boxes on shoe body
+    std::vector<CylinderShape> m_coll_cylinders;                       ///< collision cylinders on shoe body
     std::vector<std::shared_ptr<ChMaterialSurface>> m_shoe_materials;  ///< contact materials for shoe collision shapes
     std::shared_ptr<ChMaterialSurface> m_cyl_material;                 ///< contact material for cylindrical surface
 
@@ -135,6 +132,7 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoe {
     std::vector<CylinderShape> m_vis_cylinders;
 
     friend class ChSprocketSinglePin;
+    friend class SprocketSinglePinContactCB;
     friend class ChTrackAssemblySinglePin;
 };
 
