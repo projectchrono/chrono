@@ -54,9 +54,9 @@ M113_Chassis::M113_Chassis(const std::string& name, bool fixed, ChassisCollision
     m_inertia(2, 1) = m_inertiaXY.z();
 
     // Belly shape (all dimensions in cm)
-    // width: 170
-    // points in x-z transversal plane: (-417.0 -14.3), (4.1, -14.3), (21.4, 34.3)
-    // thickness: 20
+    //   width: 170
+    //   points in x-z transversal plane: (-417.0 -14.3), (4.1, -14.3), (21.4, 34.3)
+    //   thickness: 20
     double width = 1.70;
     double Ax = -4.17;
     double Az = -0.143;
@@ -104,7 +104,7 @@ M113_Chassis::M113_Chassis(const std::string& name, bool fixed, ChassisCollision
     }
 }
 
-void M113_Chassis::LoadContactMaterials(ChContactMethod contact_method) {
+void M113_Chassis::CreateContactMaterials(ChContactMethod contact_method) {
     // Create the contact materials.
     // In this model, we use a single material with default properties.
     switch (contact_method) {

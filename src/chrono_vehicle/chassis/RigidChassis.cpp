@@ -80,7 +80,7 @@ void RigidChassis::Create(const rapidjson::Document& d) {
         assert(d["Contact"].HasMember("Materials"));
         assert(d["Contact"].HasMember("Shapes"));
 
-        // Read contact material information (but defer creating and loading materials until LoadCollisionShapes)
+        // Read contact material information (but defer creating and loading materials until CreateContactMaterials)
         assert(d["Contact"]["Materials"].IsArray());
         int num_mats = d["Contact"]["Materials"].Size();
 

@@ -55,7 +55,7 @@ class CH_MODELS_API M113_Chassis : public ChRigidChassis {
     virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return m_driverCsys; }
 
   protected:
-    virtual void LoadContactMaterials(ChContactMethod contact_method) override;
+    virtual void CreateContactMaterials(ChContactMethod contact_method) override;
 
     ChMatrix33<> m_inertia;
 
