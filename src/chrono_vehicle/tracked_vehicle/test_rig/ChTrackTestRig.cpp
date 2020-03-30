@@ -159,6 +159,22 @@ void ChTrackTestRig::Create() {
     // Initialize the track assembly subsystem
     m_track->Initialize(m_chassis->GetBody(), ChVector<>(0, 0, 0), m_create_track);
 
+    // Create a contact material for the posts (shared)
+    //// TODO: are default material properties ok?
+    std::shared_ptr<ChMaterialSurface> post_mat;
+    switch (m_system->GetContactMethod()) {
+        case ChContactMethod::NSC: {
+            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            post_mat = matNSC;
+            break;
+        }
+        case ChContactMethod::SMC: {
+            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            post_mat = matSMC;
+            break;
+        }
+    }
+
     // Create and initialize the shaker post body
     auto num_wheels = m_track->GetNumRoadWheelAssemblies();
     double rw_radius = m_track->GetRoadWheel(0)->GetWheelRadius();
@@ -189,7 +205,7 @@ void ChTrackTestRig::Create() {
         m_system->Add(post);
 
         post->GetCollisionModel()->ClearModel();
-        post->GetCollisionModel()->AddCylinder(m_post_radius, m_post_radius, m_post_hheight,
+        post->GetCollisionModel()->AddCylinder(post_mat, m_post_radius, m_post_radius, m_post_hheight,
                                                ChVector<>(0, 0, -m_post_hheight),
                                                ChMatrix33<>(Q_from_AngX(CH_C_PI / 2)));
         post->GetCollisionModel()->BuildModel();
