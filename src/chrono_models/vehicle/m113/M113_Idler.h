@@ -70,11 +70,14 @@ class CH_MODELS_API M113_Idler : public ChDoubleIdler {
     /// Return the free length for the tensioner spring.
     virtual double GetTensionerFreeLength() const override { return m_tensioner_l0; }
 
-    /// Add visualization assets for the idler subsystem.
-    virtual void AddVisualizationAssets(VisualizationType vis) override;
-
   protected:
     M113_Idler(const std::string& name);
+
+    /// Create the contact material consistent with the specified contact method.
+    virtual void CreateContactMaterial(ChContactMethod contact_method) override;
+
+    /// Add visualization assets for the idler subsystem.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
 
     virtual VehicleSide GetVehicleSide() const = 0;
 

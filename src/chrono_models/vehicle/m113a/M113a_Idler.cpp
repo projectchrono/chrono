@@ -75,11 +75,26 @@ class M113a_TensionerForce : public ChLinkTSDA::ForceFunctor {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 M113a_Idler::M113a_Idler(const std::string& name) : ChDoubleIdler(name) {
-    SetContactFrictionCoefficient(0.7f);
-    SetContactRestitutionCoefficient(0.1f);
-    SetContactMaterialProperties(1e8f, 0.3f);
-    SetContactMaterialCoefficients(2e5f, 40.0f, 2e5f, 20.0f);
     m_tensionerForceCB = new M113a_TensionerForce(m_tensioner_k, m_tensioner_c, m_tensioner_f, m_tensioner_l0);
+}
+
+void M113a_Idler::CreateContactMaterial(ChContactMethod contact_method) {
+    switch (contact_method) {
+        case ChContactMethod::NSC: {
+            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            matNSC->SetFriction(0.7f);
+            matNSC->SetRestitution(0.1f);
+            m_material = matNSC;
+            break;
+        }
+        case ChContactMethod::SMC:
+            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            matSMC->SetFriction(0.7f);
+            matSMC->SetRestitution(0.1f);
+            matSMC->SetYoungModulus(1e7f);
+            m_material = matSMC;
+            break;
+    }
 }
 
 // -----------------------------------------------------------------------------

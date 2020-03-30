@@ -44,10 +44,10 @@ class CH_VEHICLE_API DoubleRoller : public ChDoubleRoller {
     virtual double GetMass() const override { return m_roller_mass; }
     virtual const ChVector<>& GetInertia() override { return m_roller_inertia; }
 
-    virtual void AddVisualizationAssets(VisualizationType vis) override;
-
   private:
     virtual void Create(const rapidjson::Document& d) override;
+    virtual void CreateContactMaterial(ChContactMethod contact_method) override;
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
 
     double m_roller_radius;
     double m_roller_width;
@@ -59,6 +59,18 @@ class CH_VEHICLE_API DoubleRoller : public ChDoubleRoller {
     bool m_has_mesh;
     std::string m_meshName;
     std::string m_meshFile;
+
+    struct MatInfo {
+        float mu;
+        float cr;
+        float Y;
+        float nu;
+        float kn;
+        float gn;
+        float kt;
+        float gt;
+    };
+    MatInfo m_mat_info;
 };
 
 /// @} vehicle_tracked_roller

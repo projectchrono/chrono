@@ -43,10 +43,10 @@ class CH_VEHICLE_API SingleRoadWheel : public ChSingleRoadWheel {
     virtual double GetWheelMass() const override { return m_wheel_mass; }
     virtual const ChVector<>& GetWheelInertia() override { return m_wheel_inertia; }
 
-    virtual void AddVisualizationAssets(VisualizationType vis) override;
-
   private:
     virtual void Create(const rapidjson::Document& d) override;
+    virtual void CreateContactMaterial(ChContactMethod contact_method) override;
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
 
     double m_wheel_radius;
     double m_wheel_width;
@@ -57,6 +57,18 @@ class CH_VEHICLE_API SingleRoadWheel : public ChSingleRoadWheel {
     bool m_has_mesh;
     std::string m_meshName;
     std::string m_meshFile;
+
+    struct MatInfo {
+        float mu;
+        float cr;
+        float Y;
+        float nu;
+        float kn;
+        float gn;
+        float kt;
+        float gt;
+    };
+    MatInfo m_mat_info;
 };
 
 /// @} vehicle_tracked_suspension
