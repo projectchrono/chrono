@@ -312,22 +312,29 @@ void AddFixedObstacles(ChSystem* system) {
     obstacle->AddAsset(texture);
 
     // Contact
-    obstacle->GetCollisionModel()->ClearModel();
-    obstacle->GetCollisionModel()->AddCylinder(radius, radius, length * 0.5);
-    obstacle->GetCollisionModel()->BuildModel();
-
-    switch (obstacle->GetContactMethod()) {
-        case ChContactMethod::NSC:
-            obstacle->GetMaterialSurfaceNSC()->SetFriction(friction_coefficient);
-            obstacle->GetMaterialSurfaceNSC()->SetRestitution(restitution_coefficient);
+    std::shared_ptr<ChMaterialSurface> obst_mat;
+    switch (system->GetContactMethod()) {
+        case ChContactMethod::NSC: {
+            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            matNSC->SetFriction(friction_coefficient);
+            matNSC->SetRestitution(restitution_coefficient);
+            obst_mat = matNSC;
             break;
-        case ChContactMethod::SMC:
-            obstacle->GetMaterialSurfaceSMC()->SetFriction(friction_coefficient);
-            obstacle->GetMaterialSurfaceSMC()->SetRestitution(restitution_coefficient);
-            obstacle->GetMaterialSurfaceSMC()->SetYoungModulus(young_modulus);
-            obstacle->GetMaterialSurfaceSMC()->SetPoissonRatio(poisson_ratio);
+        }
+        case ChContactMethod::SMC: {
+            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            matSMC->SetFriction(friction_coefficient);
+            matSMC->SetRestitution(restitution_coefficient);
+            matSMC->SetYoungModulus(young_modulus);
+            matSMC->SetPoissonRatio(poisson_ratio);
+            obst_mat = matSMC;
             break;
+        }
     }
+
+    obstacle->GetCollisionModel()->ClearModel();
+    obstacle->GetCollisionModel()->AddCylinder(obst_mat, radius, radius, length * 0.5);
+    obstacle->GetCollisionModel()->BuildModel();
 
     system->AddBody(obstacle);
 }
@@ -354,12 +361,10 @@ void AddMovingObstacles(ChSystem* system) {
     ball->SetPos_dt(init_vel);
     ball->SetWvel_loc(init_ang_vel);
     ball->SetBodyFixed(false);
-    ball->SetMaterialSurface(material);
-
     ball->SetCollide(true);
 
     ball->GetCollisionModel()->ClearModel();
-    ball->GetCollisionModel()->AddSphere(radius);
+    ball->GetCollisionModel()->AddSphere(material, radius);
     ball->GetCollisionModel()->BuildModel();
 
     ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector<>(1, 1, 1));

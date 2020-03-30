@@ -70,7 +70,7 @@ std::string rigidterrain_file("terrain/RigidPlane.json");
 std::string driver_file("generic/driver/Sample_Maneuver.txt");
 
 // Simulation step size
-double step_size = 2e-3;
+double step_size = 4e-3;
 
 // Simulation length (Povray only)
 double tend = 10.0;
