@@ -58,11 +58,14 @@ class CH_MODELS_API M113a_SprocketSinglePin : public ChSprocketSinglePin {
     /// Return the radius of the tooth arc centers.
     virtual double GetArcCentersRadius() const override { return m_gear_RC; }
 
-    /// Add visualization of the sprocket.
-    virtual void AddVisualizationAssets(VisualizationType vis) override;
-
   protected:
     M113a_SprocketSinglePin(const std::string& name);
+
+    /// Create the contact material consistent with the specified contact method.
+    virtual void CreateContactMaterial(ChContactMethod contact_method) override;
+
+    /// Add visualization of the sprocket.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
 
     virtual std::string GetMeshName() const = 0;
     virtual std::string GetMeshFile() const = 0;

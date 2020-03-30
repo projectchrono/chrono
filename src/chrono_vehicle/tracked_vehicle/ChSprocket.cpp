@@ -77,25 +77,11 @@ void ChSprocket::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVecto
     m_axle_to_spindle->Initialize(m_axle, m_gear, ChVector<>(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle);
 
+    // Create the contact material
+    CreateContactMaterial(chassis->GetSystem()->GetContactMethod());
+
     // Enable contact for the gear body and set contact material properties.
     m_gear->SetCollide(true);
-
-    switch (m_gear->GetContactMethod()) {
-        case ChContactMethod::NSC:
-            m_gear->GetMaterialSurfaceNSC()->SetFriction(m_friction);
-            m_gear->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
-            break;
-        case ChContactMethod::SMC:
-            m_gear->GetMaterialSurfaceSMC()->SetFriction(m_friction);
-            m_gear->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
-            m_gear->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);
-            m_gear->GetMaterialSurfaceSMC()->SetPoissonRatio(m_poisson_ratio);
-            m_gear->GetMaterialSurfaceSMC()->SetKn(m_kn);
-            m_gear->GetMaterialSurfaceSMC()->SetGn(m_gn);
-            m_gear->GetMaterialSurfaceSMC()->SetKt(m_kt);
-            m_gear->GetMaterialSurfaceSMC()->SetGt(m_gt);
-            break;
-    }
 
     // Set user-defined custom collision callback class for sprocket-shoes contact.
     chassis->GetSystem()->RegisterCustomCollisionCallback(GetCollisionCallback(track));
