@@ -100,6 +100,10 @@ class CH_VEHICLE_API TrackShoeBandBushing : public ChTrackShoeBandBushing {
   private:
     virtual void Create(const rapidjson::Document& d) override;
 
+    /// Create the 4 contact materials, consistent with the specified contact method, for interactionss with the
+    /// sprocket, wheels, and ground.
+    virtual void CreateContactMaterials(ChContactMethod contact_method) override;
+
     double m_tread_mass;
     ChVector<> m_tread_inertias;
 
@@ -127,6 +131,21 @@ class CH_VEHICLE_API TrackShoeBandBushing : public ChTrackShoeBandBushing {
     std::string m_meshName;        // name for tread visualization mesh read from OBJ file
     std::string m_meshFile;        // name of OBJ file with tread visualization mesh
     std::string m_tread_meshName;  // name for procedurally-generated tread visualization mesh
+
+    struct MatInfo {
+        float mu;
+        float cr;
+        float Y;
+        float nu;
+        float kn;
+        float gn;
+        float kt;
+        float gt;
+    };
+    MatInfo m_pad_mat_info;
+    MatInfo m_body_mat_info;
+    MatInfo m_guide_mat_info;
+    MatInfo m_tooth_mat_info;
 };
 
 /// @} vehicle_tracked_shoe

@@ -90,39 +90,229 @@ void TrackShoeBandBushing::Create(const rapidjson::Document& d) {
     double Drot_other = d["Bushing Parameters"]["Damping Rotational non-DOF"].GetDouble();
     SetBushingParameters(Klin, Krot_dof, Krot_other, Dlin, Drot_dof, Drot_other);
 
-    // Read contact material data
-    assert(d.HasMember("Contact Material"));
+    // Read contact material information (defer creating the materials until CreateContactMaterials.  Load default
+    // values in MatInfo structures (in case not all are provided in the JSON file).
+    assert(d.HasMember("Contact Materials"));
 
-    float mu = d["Contact Material"]["Coefficient of Friction"].GetFloat();
-    float cr = d["Contact Material"]["Coefficient of Restitution"].GetFloat();
+    {
+        // Material for shoe pad (ground contact)
+        m_pad_mat_info.mu = 0.7f;
+        m_pad_mat_info.cr = 0.1f;
+        m_pad_mat_info.Y = 1e7f;
+        m_pad_mat_info.nu = 0.3f;
+        m_pad_mat_info.kn = 2e6f;
+        m_pad_mat_info.gn = 40.0f;
+        m_pad_mat_info.kt = 2e5f;
+        m_pad_mat_info.gt = 20.0f;
 
-    SetContactFrictionCoefficient(mu);
-    SetContactRestitutionCoefficient(cr);
+        assert(d["Contact Materials"].HasMember("Pad Material"));
+        const Value& mat = d["Contact Materials"]["Pad Material"];
 
-    if (d["Contact Material"].HasMember("Properties")) {
-        float ym = d["Contact Material"]["Properties"]["Young Modulus"].GetFloat();
-        float pr = d["Contact Material"]["Properties"]["Poisson Ratio"].GetFloat();
-        SetContactMaterialProperties(ym, pr);
+        m_pad_mat_info.mu = mat["Coefficient of Friction"].GetFloat();
+        m_pad_mat_info.cr = mat["Coefficient of Restitution"].GetFloat();
+        if (mat.HasMember("Properties")) {
+            m_pad_mat_info.Y = mat["Properties"]["Young Modulus"].GetFloat();
+            m_pad_mat_info.nu = mat["Properties"]["Poisson Ratio"].GetFloat();
+        }
+        if (mat.HasMember("Coefficients")) {
+            m_pad_mat_info.kn = mat["Coefficients"]["Normal Stiffness"].GetFloat();
+            m_pad_mat_info.gn = mat["Coefficients"]["Normal Damping"].GetFloat();
+            m_pad_mat_info.kt = mat["Coefficients"]["Tangential Stiffness"].GetFloat();
+            m_pad_mat_info.gt = mat["Coefficients"]["Tangential Damping"].GetFloat();
+        }
     }
-    if (d["Contact Material"].HasMember("Coefficients")) {
-        float kn = d["Contact Material"]["Coefficients"]["Normal Stiffness"].GetFloat();
-        float gn = d["Contact Material"]["Coefficients"]["Normal Damping"].GetFloat();
-        float kt = d["Contact Material"]["Coefficients"]["Tangential Stiffness"].GetFloat();
-        float gt = d["Contact Material"]["Coefficients"]["Tangential Damping"].GetFloat();
-        SetContactMaterialCoefficients(kn, gn, kt, gt);
+
+    {
+        // Material for shoe body (wheel contact)
+        m_body_mat_info.mu = 0.7f;
+        m_body_mat_info.cr = 0.1f;
+        m_body_mat_info.Y = 1e7f;
+        m_body_mat_info.nu = 0.3f;
+        m_body_mat_info.kn = 2e6f;
+        m_body_mat_info.gn = 40.0f;
+        m_body_mat_info.kt = 2e5f;
+        m_body_mat_info.gt = 20.0f;
+
+        assert(d["Contact Materials"].HasMember("Body Material"));
+        const Value& mat = d["Contact Materials"]["Body Material"];
+
+        m_body_mat_info.mu = mat["Coefficient of Friction"].GetFloat();
+        m_body_mat_info.cr = mat["Coefficient of Restitution"].GetFloat();
+        if (mat.HasMember("Properties")) {
+            m_body_mat_info.Y = mat["Properties"]["Young Modulus"].GetFloat();
+            m_body_mat_info.nu = mat["Properties"]["Poisson Ratio"].GetFloat();
+        }
+        if (mat.HasMember("Coefficients")) {
+            m_body_mat_info.kn = mat["Coefficients"]["Normal Stiffness"].GetFloat();
+            m_body_mat_info.gn = mat["Coefficients"]["Normal Damping"].GetFloat();
+            m_body_mat_info.kt = mat["Coefficients"]["Tangential Stiffness"].GetFloat();
+            m_body_mat_info.gt = mat["Coefficients"]["Tangential Damping"].GetFloat();
+        }
+    }
+
+    {
+        // Material for guide (wheel contact)
+        m_guide_mat_info.mu = 0.7f;
+        m_guide_mat_info.cr = 0.1f;
+        m_guide_mat_info.Y = 1e7f;
+        m_guide_mat_info.nu = 0.3f;
+        m_guide_mat_info.kn = 2e6f;
+        m_guide_mat_info.gn = 40.0f;
+        m_guide_mat_info.kt = 2e5f;
+        m_guide_mat_info.gt = 20.0f;
+
+        assert(d["Contact Materials"].HasMember("Guide Material"));
+        const Value& mat = d["Contact Materials"]["Guide Material"];
+
+        m_guide_mat_info.mu = mat["Coefficient of Friction"].GetFloat();
+        m_guide_mat_info.cr = mat["Coefficient of Restitution"].GetFloat();
+        if (mat.HasMember("Properties")) {
+            m_guide_mat_info.Y = mat["Properties"]["Young Modulus"].GetFloat();
+            m_guide_mat_info.nu = mat["Properties"]["Poisson Ratio"].GetFloat();
+        }
+        if (mat.HasMember("Coefficients")) {
+            m_guide_mat_info.kn = mat["Coefficients"]["Normal Stiffness"].GetFloat();
+            m_guide_mat_info.gn = mat["Coefficients"]["Normal Damping"].GetFloat();
+            m_guide_mat_info.kt = mat["Coefficients"]["Tangential Stiffness"].GetFloat();
+            m_guide_mat_info.gt = mat["Coefficients"]["Tangential Damping"].GetFloat();
+        }
+    }
+
+    {
+        // Material for teeth (sprocket contact)
+        m_tooth_mat_info.mu = 0.7f;
+        m_tooth_mat_info.cr = 0.1f;
+        m_tooth_mat_info.Y = 1e7f;
+        m_tooth_mat_info.nu = 0.3f;
+        m_tooth_mat_info.kn = 2e6f;
+        m_tooth_mat_info.gn = 40.0f;
+        m_tooth_mat_info.kt = 2e5f;
+        m_tooth_mat_info.gt = 20.0f;
+
+        assert(d["Contact Materials"].HasMember("Tooth Material"));
+        const Value& mat = d["Contact Materials"]["Tooth Material"];
+
+        m_tooth_mat_info.mu = mat["Coefficient of Friction"].GetFloat();
+        m_tooth_mat_info.cr = mat["Coefficient of Restitution"].GetFloat();
+        if (mat.HasMember("Properties")) {
+            m_tooth_mat_info.Y = mat["Properties"]["Young Modulus"].GetFloat();
+            m_tooth_mat_info.nu = mat["Properties"]["Poisson Ratio"].GetFloat();
+        }
+        if (mat.HasMember("Coefficients")) {
+            m_tooth_mat_info.kn = mat["Coefficients"]["Normal Stiffness"].GetFloat();
+            m_tooth_mat_info.gn = mat["Coefficients"]["Normal Damping"].GetFloat();
+            m_tooth_mat_info.kt = mat["Coefficients"]["Tangential Stiffness"].GetFloat();
+            m_tooth_mat_info.gt = mat["Coefficients"]["Tangential Damping"].GetFloat();
+        }
     }
 
     // Read wheel visualization
     if (d.HasMember("Visualization")) {
-        assert(d["Visualization"].HasMember("Mesh Filename"));
-        assert(d["Visualization"].HasMember("Mesh Name"));
-        m_meshFile = d["Visualization"]["Mesh Filename"].GetString();
-        m_meshName = d["Visualization"]["Mesh Name"].GetString();
+        assert(d["Visualization"].HasMember("Mesh"));
+        m_meshFile = d["Visualization"]["Mesh"].GetString();
         m_has_mesh = true;
     }
 
     // Set name for procedurally-generated tread visualization mesh.
     m_tread_meshName = GetName();
+}
+
+void TrackShoeBandBushing::CreateContactMaterials(ChContactMethod contact_method) {
+    // Material for shoe pad (ground contact)
+    switch (contact_method) {
+        case ChContactMethod::NSC: {
+            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            matNSC->SetFriction(m_pad_mat_info.mu);
+            matNSC->SetRestitution(m_pad_mat_info.cr);
+            m_pad_material = matNSC;
+            break;
+        }
+        case ChContactMethod::SMC: {
+            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            matSMC->SetFriction(m_pad_mat_info.mu);
+            matSMC->SetRestitution(m_pad_mat_info.cr);
+            matSMC->SetYoungModulus(m_pad_mat_info.Y);
+            matSMC->SetPoissonRatio(m_pad_mat_info.nu);
+            matSMC->SetKn(m_pad_mat_info.kn);
+            matSMC->SetGn(m_pad_mat_info.gn);
+            matSMC->SetKt(m_pad_mat_info.kt);
+            matSMC->SetGt(m_pad_mat_info.gt);
+            m_pad_material = matSMC;
+            break;
+        }
+    }
+
+    // Material for shoe body (wheel contact)
+    switch (contact_method) {
+        case ChContactMethod::NSC: {
+            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            matNSC->SetFriction(m_body_mat_info.mu);
+            matNSC->SetRestitution(m_body_mat_info.cr);
+            m_body_material = matNSC;
+            break;
+        }
+        case ChContactMethod::SMC: {
+            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            matSMC->SetFriction(m_body_mat_info.mu);
+            matSMC->SetRestitution(m_body_mat_info.cr);
+            matSMC->SetYoungModulus(m_body_mat_info.Y);
+            matSMC->SetPoissonRatio(m_body_mat_info.nu);
+            matSMC->SetKn(m_body_mat_info.kn);
+            matSMC->SetGn(m_body_mat_info.gn);
+            matSMC->SetKt(m_body_mat_info.kt);
+            matSMC->SetGt(m_body_mat_info.gt);
+            m_body_material = matSMC;
+            break;
+        }
+    }
+
+    // Material for guide (wheel contact)
+    switch (contact_method) {
+        case ChContactMethod::NSC: {
+            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            matNSC->SetFriction(m_guide_mat_info.mu);
+            matNSC->SetRestitution(m_guide_mat_info.cr);
+            m_guide_material = matNSC;
+            break;
+        }
+        case ChContactMethod::SMC: {
+            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            matSMC->SetFriction(m_guide_mat_info.mu);
+            matSMC->SetRestitution(m_guide_mat_info.cr);
+            matSMC->SetYoungModulus(m_guide_mat_info.Y);
+            matSMC->SetPoissonRatio(m_guide_mat_info.nu);
+            matSMC->SetKn(m_guide_mat_info.kn);
+            matSMC->SetGn(m_guide_mat_info.gn);
+            matSMC->SetKt(m_guide_mat_info.kt);
+            matSMC->SetGt(m_guide_mat_info.gt);
+            m_guide_material = matSMC;
+            break;
+        }
+    }
+
+    // Material for teeth (sprocket contact)
+    switch (contact_method) {
+        case ChContactMethod::NSC: {
+            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            matNSC->SetFriction(m_tooth_mat_info.mu);
+            matNSC->SetRestitution(m_tooth_mat_info.cr);
+            m_tooth_material = matNSC;
+            break;
+        }
+        case ChContactMethod::SMC: {
+            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            matSMC->SetFriction(m_tooth_mat_info.mu);
+            matSMC->SetRestitution(m_tooth_mat_info.cr);
+            matSMC->SetYoungModulus(m_tooth_mat_info.Y);
+            matSMC->SetPoissonRatio(m_tooth_mat_info.nu);
+            matSMC->SetKn(m_tooth_mat_info.kn);
+            matSMC->SetGn(m_tooth_mat_info.gn);
+            matSMC->SetKt(m_tooth_mat_info.kt);
+            matSMC->SetGt(m_tooth_mat_info.gt);
+            m_tooth_material = matSMC;
+            break;
+        }
+    }
 }
 
 // -----------------------------------------------------------------------------
