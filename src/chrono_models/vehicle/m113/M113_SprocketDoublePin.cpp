@@ -56,22 +56,11 @@ const std::string M113_SprocketDoublePinRight::m_meshFile = "M113/Sprocket2_R.ob
 M113_SprocketDoublePin::M113_SprocketDoublePin(const std::string& name) : ChSprocketDoublePin(name) {}
 
 void M113_SprocketDoublePin::CreateContactMaterial(ChContactMethod contact_method) {
-    switch (contact_method) {
-        case ChContactMethod::NSC: {
-            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-            matNSC->SetFriction(0.4f);
-            matNSC->SetRestitution(0.1f);
-            m_material = matNSC;
-            break;
-        }
-        case ChContactMethod::SMC:
-            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-            matSMC->SetFriction(0.4f);
-            matSMC->SetRestitution(0.1f);
-            matSMC->SetYoungModulus(1e7f);
-            m_material = matSMC;
-            break;
-    }
+    MaterialInfo minfo;
+    minfo.mu = 0.4f;
+    minfo.cr = 0.1f;
+    minfo.Y = 1e7f;
+    m_material = minfo.CreateMaterial(contact_method);
 }
 
 // -----------------------------------------------------------------------------

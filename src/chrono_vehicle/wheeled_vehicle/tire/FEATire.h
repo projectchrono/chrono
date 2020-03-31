@@ -74,17 +74,7 @@ class CH_VEHICLE_API FEATire : public ChFEATire {
 
     std::map<std::string, std::vector<std::shared_ptr<fea::ChNodeFEAbase>>> m_node_sets;
 
-    struct MatInfo {
-        float mu;
-        float cr;
-        float Y;
-        float nu;
-        float kn;
-        float gn;
-        float kt;
-        float gt;
-    };
-    MatInfo m_mat_info;
+    MaterialInfo m_mat_info;
 };
 
 /// @} vehicle_wheeled_tire

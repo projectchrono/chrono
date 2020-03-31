@@ -61,64 +61,16 @@ void TrackShoeSinglePin::Create(const rapidjson::Document& d) {
     assert(d["Contact"].HasMember("Shoe Materials"));
     assert(d["Contact"].HasMember("Cylinder Shape"));    
     assert(d["Contact"].HasMember("Shoe Shapes"));
-
-    // Read contact material information (defer creating the materials until CreateCylContactMaterial and
-    // CreateShoeContactMaterials).  Load default values in MatInfo structures (in case not all are provided in the
-    // JSON file).
-
-    m_cyl_mat_info.mu = 0.7f;
-    m_cyl_mat_info.cr = 0.1f;
-    m_cyl_mat_info.Y = 1e7f;
-    m_cyl_mat_info.nu = 0.3f;
-    m_cyl_mat_info.kn = 2e6f;
-    m_cyl_mat_info.gn = 40.0f;
-    m_cyl_mat_info.kt = 2e5f;
-    m_cyl_mat_info.gt = 20.0f;
-
-    const Value& mat = d["Contact"]["Cylinder Material"];
-
-    m_cyl_mat_info.mu = mat["Coefficient of Friction"].GetFloat();
-    m_cyl_mat_info.cr = mat["Coefficient of Restitution"].GetFloat();
-    if (mat.HasMember("Properties")) {
-        m_cyl_mat_info.Y = mat["Properties"]["Young Modulus"].GetFloat();
-        m_cyl_mat_info.nu = mat["Properties"]["Poisson Ratio"].GetFloat();
-    }
-    if (mat.HasMember("Coefficients")) {
-        m_cyl_mat_info.kn = mat["Coefficients"]["Normal Stiffness"].GetFloat();
-        m_cyl_mat_info.gn = mat["Coefficients"]["Normal Damping"].GetFloat();
-        m_cyl_mat_info.kt = mat["Coefficients"]["Tangential Stiffness"].GetFloat();
-        m_cyl_mat_info.gt = mat["Coefficients"]["Tangential Damping"].GetFloat();
-    }
-
     assert(d["Contact"]["Shoe Materials"].IsArray());
+    assert(d["Contact"]["Shoe Shapes"].IsArray());
+
+    // Read contact material information (defer creating the materials until CreateContactMaterials)
+
+    m_cyl_mat_info = ReadMaterialInfoJSON(d["Contact"]["Cylinder Material"]);
+
     int num_mats = d["Contact"]["Shoe Materials"].Size();
-
     for (int i = 0; i < num_mats; i++) {
-        MatInfo minfo;
-        minfo.mu = 0.7f;
-        minfo.cr = 0.1f;
-        minfo.Y = 1e7f;
-        minfo.nu = 0.3f;
-        minfo.kn = 2e6f;
-        minfo.gn = 40.0f;
-        minfo.kt = 2e5f;
-        minfo.gt = 20.0f;
-
-        const Value& mat = d["Contact"]["Shoe Materials"][i];
-
-        minfo.mu = mat["Coefficient of Friction"].GetFloat();
-        minfo.cr = mat["Coefficient of Restitution"].GetFloat();
-        if (mat.HasMember("Properties")) {
-            minfo.Y = mat["Properties"]["Young Modulus"].GetFloat();
-            minfo.nu = mat["Properties"]["Poisson Ratio"].GetFloat();
-        }
-        if (mat.HasMember("Coefficients")) {
-            minfo.kn = mat["Coefficients"]["Normal Stiffness"].GetFloat();
-            minfo.gn = mat["Coefficients"]["Normal Damping"].GetFloat();
-            minfo.kt = mat["Coefficients"]["Tangential Stiffness"].GetFloat();
-            minfo.gt = mat["Coefficients"]["Tangential Damping"].GetFloat();
-        }
-
+        MaterialInfo minfo = ReadMaterialInfoJSON(d["Contact"]["Shoe Materials"][i]);
         m_shoe_mat_info.push_back(minfo);
     }
 
@@ -128,7 +80,6 @@ void TrackShoeSinglePin::Create(const rapidjson::Document& d) {
     m_front_cyl_loc = d["Contact"]["Cylinder Shape"]["Front Offset"].GetDouble();
     m_rear_cyl_loc = d["Contact"]["Cylinder Shape"]["Rear Offset"].GetDouble();
 
-    assert(d["Contact"]["Shoe Shapes"].IsArray());
     int num_shapes = d["Contact"]["Shoe Shapes"].Size();
 
     for (int i = 0; i < num_shapes; i++) {
@@ -183,53 +134,11 @@ void TrackShoeSinglePin::Create(const rapidjson::Document& d) {
     }
 }
 
-void TrackShoeSinglePin::CreateCylContactMaterial(ChContactMethod contact_method) {
-    switch (contact_method) {
-        case ChContactMethod::NSC: {
-            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-            matNSC->SetFriction(m_cyl_mat_info.mu);
-            matNSC->SetRestitution(m_cyl_mat_info.cr);
-            m_cyl_material = matNSC;
-            break;
-        }
-        case ChContactMethod::SMC:
-            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-            matSMC->SetFriction(m_cyl_mat_info.mu);
-            matSMC->SetRestitution(m_cyl_mat_info.cr);
-            matSMC->SetYoungModulus(m_cyl_mat_info.Y);
-            matSMC->SetPoissonRatio(m_cyl_mat_info.nu);
-            matSMC->SetKn(m_cyl_mat_info.kn);
-            matSMC->SetGn(m_cyl_mat_info.gn);
-            matSMC->SetKt(m_cyl_mat_info.kt);
-            matSMC->SetGt(m_cyl_mat_info.gt);
-            m_cyl_material = matSMC;
-            break;
-    }
-}
+void TrackShoeSinglePin::CreateContactMaterials(ChContactMethod contact_method) {
+    m_cyl_material = m_cyl_mat_info.CreateMaterial(contact_method);
 
-void TrackShoeSinglePin::CreateShoeContactMaterials(ChContactMethod contact_method) {
     for (auto minfo : m_shoe_mat_info) {
-        switch (contact_method) {
-            case ChContactMethod::NSC: {
-                auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-                matNSC->SetFriction(minfo.mu);
-                matNSC->SetRestitution(minfo.cr);
-                m_shoe_materials.push_back(matNSC);
-                break;
-            }
-            case ChContactMethod::SMC:
-                auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-                matSMC->SetFriction(minfo.mu);
-                matSMC->SetRestitution(minfo.cr);
-                matSMC->SetYoungModulus(minfo.Y);
-                matSMC->SetPoissonRatio(minfo.nu);
-                matSMC->SetKn(minfo.kn);
-                matSMC->SetGn(minfo.gn);
-                matSMC->SetKt(minfo.kt);
-                matSMC->SetGt(minfo.gt);
-                m_shoe_materials.push_back(matSMC);
-                break;
-        }
+        m_shoe_materials.push_back(minfo.CreateMaterial(contact_method));
     }
 }
 

@@ -101,14 +101,11 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoe {
     /// Return the radius of a connector body.
     virtual double GetConnectorRadius() const = 0;
 
-    /// Create the contact material for the connectors (for contact with the sprocket), consistent with the specified
-    /// contact method. A derived class must set m_conn_material;
-    virtual void CreateConnectorContactMaterial(ChContactMethod contact_method) = 0;
-
-    /// Create the contact materials for the shoe, consistent with the specified contact method. The material list must
+    /// Create the contact materials for the shoe and connector bodies, consistent with the specified contact method.
+    /// A derived class must set m_conn_material (used for contact with the sprocket) and m_shoe_materials which must
     /// include one or more contact materials for the collision shapes of the shoe itself (for contact with the wheels,
-    /// idler, and ground). A derived class must set m_shoe_materials.
-    virtual void CreateShoeContactMaterials(ChContactMethod contact_method) = 0;
+    /// idler, and ground).
+    virtual void CreateContactMaterials(ChContactMethod contact_method) = 0;
 
     /// Add contact geometry for the track shoe.
     /// Note that this is for contact with wheels, idler, and ground only.

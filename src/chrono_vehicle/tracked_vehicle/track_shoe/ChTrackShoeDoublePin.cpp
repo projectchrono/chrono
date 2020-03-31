@@ -56,10 +56,6 @@ void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_shoe->SetCollide(true);
     chassis->GetSystem()->AddBody(m_shoe);
 
-    // Add contact geometry on shoe body
-    CreateShoeContactMaterials(sys->GetContactMethod());
-    AddShoeContact();
-
     // Create the connector bodies.
     m_connector_L = std::shared_ptr<ChBody>(sys->NewBody());
     m_connector_L->SetNameString(m_name + "_connector_L");
@@ -77,8 +73,11 @@ void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_connector_R->SetInertiaXX(GetConnectorInertia());
     chassis->GetSystem()->AddBody(m_connector_R);
 
-    // Create the contact material for sprocket collision (no associated collision shapes)
-    CreateConnectorContactMaterial(sys->GetContactMethod());
+    // Create all contact materials
+    CreateContactMaterials(sys->GetContactMethod());
+
+    // Add contact geometry on shoe body
+    AddShoeContact();
 }
 
 void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,

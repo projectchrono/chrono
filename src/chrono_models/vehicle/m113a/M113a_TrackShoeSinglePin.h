@@ -58,11 +58,8 @@ class CH_MODELS_API M113a_TrackShoeSinglePin : public ChTrackShoeSinglePin {
     virtual double GetCylinderRadius() const override { return m_cyl_radius; }
 
   private:
-    /// Create the contact materials for the shoe collision shapes.
-    void CreateShoeContactMaterials(ChContactMethod contact_method) override;
-
-    /// Create the contact material for the cylinders.
-    void CreateCylContactMaterial(ChContactMethod contact_method) override;
+    /// Create the contact materials.
+    void CreateContactMaterials(ChContactMethod contact_method) override;
 
     /// Add visualization assets for the track shoe subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;

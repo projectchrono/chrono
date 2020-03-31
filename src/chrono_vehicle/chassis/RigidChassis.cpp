@@ -85,32 +85,7 @@ void RigidChassis::Create(const rapidjson::Document& d) {
         int num_mats = d["Contact"]["Materials"].Size();
 
         for (int i = 0; i < num_mats; i++) {
-            MatInfo minfo;
-            // Load default values (in case not all are provided in the JSON file)
-            minfo.mu = 0.7f;
-            minfo.cr = 0.1f;
-            minfo.Y = 1e7f;
-            minfo.nu = 0.3f;
-            minfo.kn = 2e6f;
-            minfo.gn = 40.0f;
-            minfo.kt = 2e5f;
-            minfo.gt = 20.0f;
-
-            const Value& mat = d["Contact"]["Materials"][i];
-
-            minfo.mu = mat["Coefficient of Friction"].GetFloat();
-            minfo.cr = mat["Coefficient of Restitution"].GetFloat();
-            if (mat.HasMember("Properties")) {
-                minfo.Y = mat["Properties"]["Young Modulus"].GetFloat();
-                minfo.nu = mat["Properties"]["Poisson Ratio"].GetFloat();
-            }
-            if (mat.HasMember("Coefficients")) {
-                minfo.kn = mat["Coefficients"]["Normal Stiffness"].GetFloat();
-                minfo.gn = mat["Coefficients"]["Normal Damping"].GetFloat();
-                minfo.kt = mat["Coefficients"]["Tangential Stiffness"].GetFloat();
-                minfo.gt = mat["Coefficients"]["Tangential Damping"].GetFloat();
-            }
-
+            MaterialInfo minfo = ReadMaterialInfoJSON(d["Contact"]["Materials"][i]);
             m_mat_info.push_back(minfo);
         }
 
@@ -184,29 +159,8 @@ void RigidChassis::Create(const rapidjson::Document& d) {
 }
 
 void RigidChassis::CreateContactMaterials(ChContactMethod contact_method) {
-    // Create the contact materials.
     for (auto minfo : m_mat_info) {
-        switch (contact_method) {
-            case ChContactMethod::NSC: {
-                auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-                matNSC->SetFriction(minfo.mu);
-                matNSC->SetRestitution(minfo.cr);
-                m_materials.push_back(matNSC);
-                break;
-            }
-            case ChContactMethod::SMC:
-                auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-                matSMC->SetFriction(minfo.mu);
-                matSMC->SetRestitution(minfo.cr);
-                matSMC->SetYoungModulus(minfo.Y);
-                matSMC->SetPoissonRatio(minfo.nu);
-                matSMC->SetKn(minfo.kn);
-                matSMC->SetGn(minfo.gn);
-                matSMC->SetKt(minfo.kt);
-                matSMC->SetGt(minfo.gt);
-                m_materials.push_back(matSMC);
-                break;
-        }
+        m_materials.push_back(minfo.CreateMaterial(contact_method));
     }
 }
 

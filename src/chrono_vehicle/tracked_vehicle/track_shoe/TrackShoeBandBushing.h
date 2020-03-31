@@ -132,20 +132,10 @@ class CH_VEHICLE_API TrackShoeBandBushing : public ChTrackShoeBandBushing {
     std::string m_meshFile;        // name of OBJ file with tread visualization mesh
     std::string m_tread_meshName;  // name for procedurally-generated tread visualization mesh
 
-    struct MatInfo {
-        float mu;
-        float cr;
-        float Y;
-        float nu;
-        float kn;
-        float gn;
-        float kt;
-        float gt;
-    };
-    MatInfo m_pad_mat_info;
-    MatInfo m_body_mat_info;
-    MatInfo m_guide_mat_info;
-    MatInfo m_tooth_mat_info;
+    MaterialInfo m_pad_mat_info;
+    MaterialInfo m_body_mat_info;
+    MaterialInfo m_guide_mat_info;
+    MaterialInfo m_tooth_mat_info;
 };
 
 /// @} vehicle_tracked_shoe

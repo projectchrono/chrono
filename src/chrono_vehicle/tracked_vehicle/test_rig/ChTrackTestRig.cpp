@@ -151,6 +151,11 @@ ChTrackTestRig::~ChTrackTestRig() {
 }
 
 void ChTrackTestRig::Create() {
+    // Create a contact material for the posts (shared)
+    //// TODO: are default material properties ok?
+    MaterialInfo minfo;
+    auto post_mat = minfo.CreateMaterial(m_system->GetContactMethod());
+
     // Create the chassis subsystem
     m_chassis = chrono_types::make_shared<ChTrackTestRigChassis>();
     m_chassis->Initialize(m_system, ChCoordsys<>(), 0);
@@ -158,22 +163,6 @@ void ChTrackTestRig::Create() {
 
     // Initialize the track assembly subsystem
     m_track->Initialize(m_chassis->GetBody(), ChVector<>(0, 0, 0), m_create_track);
-
-    // Create a contact material for the posts (shared)
-    //// TODO: are default material properties ok?
-    std::shared_ptr<ChMaterialSurface> post_mat;
-    switch (m_system->GetContactMethod()) {
-        case ChContactMethod::NSC: {
-            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-            post_mat = matNSC;
-            break;
-        }
-        case ChContactMethod::SMC: {
-            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-            post_mat = matSMC;
-            break;
-        }
-    }
 
     // Create and initialize the shaker post body
     auto num_wheels = m_track->GetNumRoadWheelAssemblies();

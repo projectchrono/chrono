@@ -72,63 +72,33 @@ M113_TrackShoeBandBushing::M113_TrackShoeBandBushing(const std::string& name) : 
 
 void M113_TrackShoeBandBushing::CreateContactMaterials(ChContactMethod contact_method) {
     // Pad material (ground contact)
-    switch (contact_method) {
-        case ChContactMethod::NSC: {
-            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-            matNSC->SetFriction(0.8f);
-            matNSC->SetRestitution(0.1f);
-            m_pad_material = matNSC;
-            break;
-        }
-        case ChContactMethod::SMC: {
-            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-            matSMC->SetFriction(0.8f);
-            matSMC->SetRestitution(0.1f);
-            matSMC->SetYoungModulus(1e7f);
-            m_pad_material = matSMC;
-            break;
-        }
+    {
+        MaterialInfo minfo;
+        minfo.mu = 0.8f;
+        minfo.cr = 0.1f;
+        minfo.Y = 1e7f;
+        m_pad_material = minfo.CreateMaterial(contact_method);
     }
 
     // Body material (wheel contact)
-    switch (contact_method) {
-        case ChContactMethod::NSC: {
-            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-            matNSC->SetFriction(0.8f);
-            matNSC->SetRestitution(0.1f);
-            m_body_material = matNSC;
-            break;
-        }
-        case ChContactMethod::SMC: {
-            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-            matSMC->SetFriction(0.8f);
-            matSMC->SetRestitution(0.1f);
-            matSMC->SetYoungModulus(1e7f);
-            m_body_material = matSMC;
-            break;
-        }
+    {
+        MaterialInfo minfo;
+        minfo.mu = 0.8f;
+        minfo.cr = 0.1f;
+        minfo.Y = 1e7f;
+        m_body_material = minfo.CreateMaterial(contact_method);
     }
 
     // Guide material (wheel contact)
     m_guide_material = m_body_material;
 
     // Tooth material (sprocket contact)
-    switch (contact_method) {
-        case ChContactMethod::NSC: {
-            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-            matNSC->SetFriction(0.8f);
-            matNSC->SetRestitution(0.1f);
-            m_tooth_material = matNSC;
-            break;
-        }
-        case ChContactMethod::SMC: {
-            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-            matSMC->SetFriction(0.8f);
-            matSMC->SetRestitution(0.1f);
-            matSMC->SetYoungModulus(1e7f);
-            m_tooth_material = matSMC;
-            break;
-        }
+    {
+        MaterialInfo minfo;
+        minfo.mu = 0.8f;
+        minfo.cr = 0.1f;
+        minfo.Y = 1e7f;
+        m_tooth_material = minfo.CreateMaterial(contact_method);
     }
 }
 

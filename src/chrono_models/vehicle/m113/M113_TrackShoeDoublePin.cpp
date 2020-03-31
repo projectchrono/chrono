@@ -73,84 +73,41 @@ M113_TrackShoeDoublePin::M113_TrackShoeDoublePin(const std::string& name) : ChTr
     m_vis_cylinders.push_back(CylinderShape(ChVector<>(-0.0492, 0, 0), QUNIT, 0.01, 0.3381, -1));
 }
 
-void M113_TrackShoeDoublePin::CreateConnectorContactMaterial(ChContactMethod contact_method) {
-    switch (contact_method) {
-        case ChContactMethod::NSC: {
-            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-            matNSC->SetFriction(0.8f);
-            matNSC->SetRestitution(0.1f);
-            m_conn_material = matNSC;
-            break;
-        }
-        case ChContactMethod::SMC:
-            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-            matSMC->SetFriction(0.8f);
-            matSMC->SetRestitution(0.1f);
-            matSMC->SetYoungModulus(1e7f);
-            m_conn_material = matSMC;
-            break;
+void M113_TrackShoeDoublePin::CreateContactMaterials(ChContactMethod contact_method) {
+    // Material for connectors (sprocket contact)
+    {
+        MaterialInfo minfo;
+        minfo.mu = 0.8f;
+        minfo.cr = 0.1f;
+        minfo.Y = 1e7f;
+        m_conn_material = minfo.CreateMaterial(contact_method);
     }
-}
 
-void M113_TrackShoeDoublePin::CreateShoeContactMaterials(ChContactMethod contact_method) {
     // Material 0: pad bottom (ground contact)
     {
-        switch (contact_method) {
-            case ChContactMethod::NSC: {
-                auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-                matNSC->SetFriction(0.8f);
-                matNSC->SetRestitution(0.1f);
-                m_shoe_materials.push_back(matNSC);
-                break;
-            }
-            case ChContactMethod::SMC:
-                auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-                matSMC->SetFriction(0.8f);
-                matSMC->SetRestitution(0.1f);
-                matSMC->SetYoungModulus(1e7f);
-                m_shoe_materials.push_back(matSMC);
-                break;
-        }
+        MaterialInfo minfo;
+        minfo.mu = 0.8f;
+        minfo.cr = 0.1f;
+        minfo.Y = 1e7f;
+        m_shoe_materials.push_back(minfo.CreateMaterial(contact_method));
     }
 
     // Material 1: pad top (wheel contact)
     {
-        switch (contact_method) {
-            case ChContactMethod::NSC: {
-                auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-                matNSC->SetFriction(0.8f);
-                matNSC->SetRestitution(0.1f);
-                m_shoe_materials.push_back(matNSC);
-                break;
-            }
-            case ChContactMethod::SMC:
-                auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-                matSMC->SetFriction(0.8f);
-                matSMC->SetRestitution(0.1f);
-                matSMC->SetYoungModulus(1e7f);
-                m_shoe_materials.push_back(matSMC);
-                break;
-        }
+        MaterialInfo minfo;
+        minfo.mu = 0.8f;
+        minfo.cr = 0.1f;
+        minfo.Y = 1e7f;
+        m_shoe_materials.push_back(minfo.CreateMaterial(contact_method));
     }
 
     // Material 2: guide pin (wheel contact)
     {
-        switch (contact_method) {
-            case ChContactMethod::NSC: {
-                auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-                matNSC->SetFriction(0.8f);
-                matNSC->SetRestitution(0.1f);
-                m_shoe_materials.push_back(matNSC);
-                break;
-            }
-            case ChContactMethod::SMC:
-                auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-                matSMC->SetFriction(0.8f);
-                matSMC->SetRestitution(0.1f);
-                matSMC->SetYoungModulus(1e7f);
-                m_shoe_materials.push_back(matSMC);
-                break;
-        }
+        MaterialInfo minfo;
+        minfo.mu = 0.8f;
+        minfo.cr = 0.1f;
+        minfo.Y = 1e7f;
+        m_shoe_materials.push_back(minfo.CreateMaterial(contact_method));
     }
 }
 

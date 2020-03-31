@@ -81,17 +81,8 @@ MAN_10t_Chassis::MAN_10t_Chassis(const std::string& name, bool fixed, ChassisCol
 void MAN_10t_Chassis::CreateContactMaterials(ChContactMethod contact_method) {
     // Create the contact materials.
     // In this model, we use a single material with default properties.
-    switch (contact_method) {
-        case ChContactMethod::NSC: {
-            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-            m_materials.push_back(matNSC);
-            break;
-        }
-        case ChContactMethod::SMC:
-            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-            m_materials.push_back(matSMC);
-            break;
-    }
+    MaterialInfo minfo;
+    m_materials.push_back(minfo.CreateMaterial(contact_method));
 }
 
 }  // namespace man

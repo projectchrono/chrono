@@ -66,11 +66,8 @@ class CH_VEHICLE_API TrackShoeDoublePin : public ChTrackShoeDoublePin {
   private:
     virtual void Create(const rapidjson::Document& d) override;
 
-    /// Create the contact materials for the shoe collision shapes.
-    void CreateShoeContactMaterials(ChContactMethod contact_method) override;
-
-    /// Create the contact material for the connectors.
-    void CreateConnectorContactMaterial(ChContactMethod contact_method) override;
+    /// Create the contact materials.
+    void CreateContactMaterials(ChContactMethod contact_method) override;
 
     /// Add visualization assets for the idler subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
@@ -91,18 +88,8 @@ class CH_VEHICLE_API TrackShoeDoublePin : public ChTrackShoeDoublePin {
     std::string m_meshName;
     std::string m_meshFile;
 
-    struct MatInfo {
-        float mu;
-        float cr;
-        float Y;
-        float nu;
-        float kn;
-        float gn;
-        float kt;
-        float gt;
-    };
-    std::vector<MatInfo> m_shoe_mat_info;
-    MatInfo m_cyl_mat_info;
+    std::vector<MaterialInfo> m_shoe_mat_info;
+    MaterialInfo m_cyl_mat_info;
 };
 
 /// @} vehicle_tracked_shoe

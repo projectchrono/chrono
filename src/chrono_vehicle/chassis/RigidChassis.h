@@ -60,17 +60,7 @@ class CH_VEHICLE_API RigidChassis : public ChRigidChassis {
 
     ChCoordsys<> m_driverCsys;  ///< driver position and orientation relative to chassis
 
-    struct MatInfo {
-        float mu;
-        float cr;
-        float Y;
-        float nu;
-        float kn;
-        float gn;
-        float kt;
-        float gt;
-    };
-    std::vector<MatInfo> m_mat_info;
+    std::vector<MaterialInfo> m_mat_info;
 };
 
 /// @} vehicle

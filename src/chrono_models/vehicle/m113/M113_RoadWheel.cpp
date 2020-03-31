@@ -47,22 +47,11 @@ const std::string M113_RoadWheelRight::m_meshFile = "M113/Roller_R.obj";
 M113_RoadWheel::M113_RoadWheel(const std::string& name) : ChDoubleRoadWheel(name) {}
 
 void M113_RoadWheel::CreateContactMaterial(ChContactMethod contact_method) {
-    switch (contact_method) {
-        case ChContactMethod::NSC: {
-            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-            matNSC->SetFriction(0.7f);
-            matNSC->SetRestitution(0.1f);
-            m_material = matNSC;
-            break;
-        }
-        case ChContactMethod::SMC:
-            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-            matSMC->SetFriction(0.7f);
-            matSMC->SetRestitution(0.1f);
-            matSMC->SetYoungModulus(1e7f);
-            m_material = matSMC;
-            break;
-    }
+    MaterialInfo minfo;
+    minfo.mu = 0.7f;
+    minfo.cr = 0.1f;
+    minfo.Y = 1e7f;
+    m_material = minfo.CreateMaterial(contact_method);
 }
 
 // -----------------------------------------------------------------------------

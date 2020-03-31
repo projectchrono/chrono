@@ -90,33 +90,9 @@ void RigidTerrain::LoadPatch(const rapidjson::Value& d) {
     auto rot = ReadQuaternionJSON(d["Orientation"]);
 
     // Create a default material (consistent with containing system) and overwrite properties
-    std::shared_ptr<ChMaterialSurface> material;
-    switch (m_system->GetContactMethod()) {
-        case ChContactMethod::NSC: {
-            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-            matNSC->SetFriction(d["Contact Material"]["Coefficient of Friction"].GetFloat());
-            matNSC->SetRestitution(d["Contact Material"]["Coefficient of Restitution"].GetFloat());
-            material = matNSC;
-            break;
-        }
-        case ChContactMethod::SMC: {
-            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-            matSMC->SetFriction(d["Contact Material"]["Coefficient of Friction"].GetFloat());
-            matSMC->SetRestitution(d["Contact Material"]["Coefficient of Restitution"].GetFloat());
-            if (d["Contact Material"].HasMember("Properties")) {
-                matSMC->SetYoungModulus(d["Contact Material"]["Properties"]["Young Modulus"].GetFloat());
-                matSMC->SetPoissonRatio(d["Contact Material"]["Properties"]["Poisson Ratio"].GetFloat());
-            }
-            if (d["Contact Material"].HasMember("Coefficients")) {
-                matSMC->SetKn(d["Contact Material"]["Coefficients"]["Normal Stiffness"].GetFloat());
-                matSMC->SetGn(d["Contact Material"]["Coefficients"]["Normal Damping"].GetFloat());
-                matSMC->SetKt(d["Contact Material"]["Coefficients"]["Tangential Stiffness"].GetFloat());
-                matSMC->SetGt(d["Contact Material"]["Coefficients"]["Tangential Damping"].GetFloat());
-            }
-            material = matSMC;
-            break;
-        }
-    }
+    assert(d.HasMember("Contact Material"));
+    MaterialInfo minfo = ReadMaterialInfoJSON(d["Contact Material"]);
+    auto material = minfo.CreateMaterial(m_system->GetContactMethod());
 
     // Create patch geometry (infer type based on existing keys)
     if (d["Geometry"].HasMember("Dimensions")) {

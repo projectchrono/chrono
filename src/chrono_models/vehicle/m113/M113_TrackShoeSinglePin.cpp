@@ -82,84 +82,41 @@ M113_TrackShoeSinglePin::M113_TrackShoeSinglePin(const std::string& name) : ChTr
     m_vis_cylinders.push_back(CylinderShape(ChVector<>(-0.061, +0.095, 0), QUNIT, 0.015, 0.095, -1));
 }
 
-void M113_TrackShoeSinglePin::CreateCylContactMaterial(ChContactMethod contact_method) {
-    switch (contact_method) {
-        case ChContactMethod::NSC: {
-            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-            matNSC->SetFriction(0.8f);
-            matNSC->SetRestitution(0.1f);
-            m_cyl_material = matNSC;
-            break;
-        }
-        case ChContactMethod::SMC:
-            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-            matSMC->SetFriction(0.8f);
-            matSMC->SetRestitution(0.1f);
-            matSMC->SetYoungModulus(1e7f);
-            m_cyl_material = matSMC;
-            break;
-    }
-}
-
-void M113_TrackShoeSinglePin::CreateShoeContactMaterials(ChContactMethod contact_method) {
+void M113_TrackShoeSinglePin::CreateContactMaterials(ChContactMethod contact_method) {
+    // Material for cylindrical surfaces (sprocket contact)
+    {
+        MaterialInfo minfo;
+        minfo.mu = 0.8f;
+        minfo.cr = 0.1f;
+        minfo.Y = 1e7f;
+        m_cyl_material = minfo.CreateMaterial(contact_method);
+    }  
+    
     // Material 0: pad bottom (ground contact)
     {
-        switch (contact_method) {
-            case ChContactMethod::NSC: {
-                auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-                matNSC->SetFriction(0.8f);
-                matNSC->SetRestitution(0.1f);
-                m_shoe_materials.push_back(matNSC);
-                break;
-            }
-            case ChContactMethod::SMC:
-                auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-                matSMC->SetFriction(0.8f);
-                matSMC->SetRestitution(0.1f);
-                matSMC->SetYoungModulus(1e7f);
-                m_shoe_materials.push_back(matSMC);
-                break;
-        }
+        MaterialInfo minfo;
+        minfo.mu = 0.8f;
+        minfo.cr = 0.1f;
+        minfo.Y = 1e7f;
+        m_shoe_materials.push_back(minfo.CreateMaterial(contact_method));
     }
 
     // Material 1: pad top (wheel contact)
     {
-        switch (contact_method) {
-            case ChContactMethod::NSC: {
-                auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-                matNSC->SetFriction(0.8f);
-                matNSC->SetRestitution(0.1f);
-                m_shoe_materials.push_back(matNSC);
-                break;
-            }
-            case ChContactMethod::SMC:
-                auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-                matSMC->SetFriction(0.8f);
-                matSMC->SetRestitution(0.1f);
-                matSMC->SetYoungModulus(1e7f);
-                m_shoe_materials.push_back(matSMC);
-                break;
-        }
+        MaterialInfo minfo;
+        minfo.mu = 0.8f;
+        minfo.cr = 0.1f;
+        minfo.Y = 1e7f;
+        m_shoe_materials.push_back(minfo.CreateMaterial(contact_method));
     }
 
     // Material 2: guide pin (wheel contact)
     {
-        switch (contact_method) {
-            case ChContactMethod::NSC: {
-                auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-                matNSC->SetFriction(0.8f);
-                matNSC->SetRestitution(0.1f);
-                m_shoe_materials.push_back(matNSC);
-                break;
-            }
-            case ChContactMethod::SMC:
-                auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-                matSMC->SetFriction(0.8f);
-                matSMC->SetRestitution(0.1f);
-                matSMC->SetYoungModulus(1e7f);
-                m_shoe_materials.push_back(matSMC);
-                break;
-        }
+        MaterialInfo minfo;
+        minfo.mu = 0.8f;
+        minfo.cr = 0.1f;
+        minfo.Y = 1e7f;
+        m_shoe_materials.push_back(minfo.CreateMaterial(contact_method));
     }
 }
 

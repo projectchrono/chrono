@@ -46,6 +46,7 @@
 #include "chrono/utils/ChUtilsGenerators.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChPart.h"
 #include "chrono_vehicle/terrain/GranularTerrain.h"
 
 namespace chrono {
@@ -83,30 +84,11 @@ GranularTerrain::GranularTerrain(ChSystem* system)
     system->AddBody(m_ground);
 
     // Set default parameters for contact material
-    switch (system->GetContactMethod()) {
-        case ChContactMethod::SMC: {
-            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-            matSMC->SetFriction(0.9f);
-            matSMC->SetRestitution(0.0f);
-            matSMC->SetAdhesion(0.0f);
-            matSMC->SetYoungModulus(2e5f);
-            matSMC->SetPoissonRatio(0.3f);
-            matSMC->SetKn(2e5f);
-            matSMC->SetGn(40.0f);
-            matSMC->SetKt(2e5f);
-            matSMC->SetGt(20.0f);
-            m_material = matSMC;
-            break;
-        }
-        case ChContactMethod::NSC: {
-            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-            matNSC->SetFriction(0.9f);
-            matNSC->SetRestitution(0.0f);
-            matNSC->SetCohesion(0.0f);
-            m_material = matNSC;
-            break;
-        }
-    }
+    MaterialInfo minfo;
+    minfo.mu = 0.9f;
+    minfo.cr = 0.0f;
+    minfo.Y = 2e5f;
+    m_material = minfo.CreateMaterial(system->GetContactMethod());
 
     // Create the default color asset
     m_color = chrono_types::make_shared<ChColorAsset>();

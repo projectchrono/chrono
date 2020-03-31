@@ -207,25 +207,11 @@ int main(int argc, char* argv[]) {
     // ------------------
 
     RigidTerrain terrain(vehicle.GetSystem());
-    std::shared_ptr<ChMaterialSurface> patch_mat;
-    switch (contact_method) {
-        case ChContactMethod::NSC: {
-            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-            matNSC->SetFriction(0.9f);
-            matNSC->SetRestitution(0.01f);
-            patch_mat = matNSC;
-            break;
-        }
-        case ChContactMethod::SMC: {
-            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-            matSMC->SetFriction(0.9f);
-            matSMC->SetRestitution(0.01f);
-            matSMC->SetYoungModulus(2e7f);
-            matSMC->SetPoissonRatio(0.3f);
-            patch_mat = matSMC;
-            break;
-        }
-    }
+    MaterialInfo minfo;
+    minfo.mu = 0.9f;
+    minfo.cr = 0.01f;
+    minfo.Y = 2e7f;
+    auto patch_mat = minfo.CreateMaterial(contact_method);
     auto patch = terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector<>(0, 0, terrainHeight - 5), QUNIT),
                                   ChVector<>(terrainLength, terrainWidth, 10));
     patch->SetColor(ChColor(0.5f, 0.8f, 0.5f));
@@ -420,11 +406,6 @@ void AddFixedObstacles(ChSystem* system) {
     double radius = 2.2;
     double length = 6;
 
-    float friction_coefficient = 0.9f;
-    float restitution_coefficient = 0.01f;
-    float young_modulus = 2e7f;
-    float poisson_ratio = 0.3f;
-
     auto obstacle = std::shared_ptr<ChBody>(system->NewBody());
     obstacle->SetPos(ChVector<>(10, 0, -1.8));
     obstacle->SetBodyFixed(true);
@@ -447,25 +428,11 @@ void AddFixedObstacles(ChSystem* system) {
     obstacle->AddAsset(texture);
 
     // Contact
-    std::shared_ptr<ChMaterialSurface> obst_mat;
-    switch (system->GetContactMethod()) {
-        case ChContactMethod::NSC: {
-            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-            matNSC->SetFriction(friction_coefficient);
-            matNSC->SetRestitution(restitution_coefficient);
-            obst_mat = matNSC;
-            break;
-        }
-        case ChContactMethod::SMC: {
-            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-            matSMC->SetFriction(friction_coefficient);
-            matSMC->SetRestitution(restitution_coefficient);
-            matSMC->SetYoungModulus(young_modulus);
-            matSMC->SetPoissonRatio(poisson_ratio);
-            obst_mat = matSMC;
-            break;
-        }
-    }
+    MaterialInfo minfo;
+    minfo.mu = 0.9f;
+    minfo.cr = 0.01f;
+    minfo.Y = 2e7f;
+    auto obst_mat = minfo.CreateMaterial(system->GetContactMethod());
 
     obstacle->GetCollisionModel()->ClearModel();
     obstacle->GetCollisionModel()->AddCylinder(obst_mat, radius, radius, length * 0.5);
@@ -487,19 +454,8 @@ void AddFallingObjects(ChSystem* system) {
     ball->SetPos_dt(ChVector<>(3, 0, 0));
     ball->SetBodyFixed(false);
 
-    std::shared_ptr<ChMaterialSurface> obst_mat;
-    switch (system->GetContactMethod()) {
-        case ChContactMethod::NSC: {
-            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-            obst_mat = matNSC;
-            break;
-        }
-        case ChContactMethod::SMC: {
-            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-            obst_mat = matSMC;
-            break;
-        }
-    }
+    MaterialInfo minfo;
+    auto obst_mat = minfo.CreateMaterial(system->GetContactMethod());
 
     ball->SetCollide(true);
     ball->GetCollisionModel()->ClearModel();

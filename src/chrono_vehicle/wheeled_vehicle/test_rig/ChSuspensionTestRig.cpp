@@ -582,19 +582,8 @@ ChSuspensionTestRigPlatform::ChSuspensionTestRigPlatform(
 void ChSuspensionTestRigPlatform::Create() {
     // Create a contact material for the two posts (shared)
     //// TODO: are default material properties ok?
-    std::shared_ptr<ChMaterialSurface> post_mat;
-    switch (m_system->GetContactMethod()) {
-        case ChContactMethod::NSC: {
-            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-            post_mat = matNSC;
-            break;
-        }
-        case ChContactMethod::SMC: {
-            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-            post_mat = matSMC;
-            break;
-        }
-    }
+    MaterialInfo minfo;
+    auto post_mat = minfo.CreateMaterial(m_system->GetContactMethod());
 
     // Create the left post body (green)
     ChVector<> spindle_L_pos = m_suspension->GetSpindlePos(LEFT);

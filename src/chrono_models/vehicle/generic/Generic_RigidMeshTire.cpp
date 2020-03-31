@@ -46,23 +46,11 @@ Generic_RigidMeshTire::Generic_RigidMeshTire(const std::string& name) : ChRigidT
 
 // -----------------------------------------------------------------------------
 void Generic_RigidMeshTire::CreateContactMaterial(ChContactMethod contact_method) {
-    switch (contact_method) {
-        case ChContactMethod::NSC: {
-            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-            matNSC->SetFriction(0.9f);
-            matNSC->SetRestitution(0.1f);
-            m_material = matNSC;
-            break;
-        }
-        case ChContactMethod::SMC: {
-            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-            matSMC->SetFriction(0.9f);
-            matSMC->SetRestitution(0.1f);
-            matSMC->SetYoungModulus(2e7f);
-            m_material = matSMC;
-            break;
-        }
-    }
+    MaterialInfo minfo;
+    minfo.mu = 0.9f;
+    minfo.cr = 0.1f;
+    minfo.Y = 2e7f;
+    m_material = minfo.CreateMaterial(contact_method);
 }
 
 void Generic_RigidMeshTire::AddVisualizationAssets(VisualizationType vis) {

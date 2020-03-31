@@ -85,14 +85,10 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoe {
     /// Return the radius of the contact cylinders.
     virtual double GetCylinderRadius() const = 0;
 
-    /// Create the contact material for the cylinders (for contact with the sprocket), consistent with the specified
-    /// contact method. A derived class must set m_cyl_material;
-    virtual void CreateCylContactMaterial(ChContactMethod contact_method) = 0;
-
-    /// Create the contact materials for the shoe, consistent with the specified contact method. The material list must
-    /// include one or more contact materials for the collision shapes of the shoe itself (for contact with the wheels,
-    /// idler, and ground). A derived class must set m_shoe_materials.
-    virtual void CreateShoeContactMaterials(ChContactMethod contact_method) = 0;
+    /// Create the contact materials for the shoe, consistent with the specified contact method. A derived class must
+    /// set m_cyl_material (used for contact with the sprocket) and m_shoe_materials which must include one or more
+    /// contact materials for the collision shapes of the shoe itself (for contact with the wheels, idler, and ground).
+    virtual void CreateContactMaterials(ChContactMethod contact_method) = 0;
 
     /// Add contact geometry for the track shoe.
     /// Note that this is for contact with wheels, idler, and ground only.

@@ -52,12 +52,11 @@ void ChTrackShoeSinglePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_shoe->SetCollide(true);
     chassis->GetSystem()->AddBody(m_shoe);
 
-    // Add contact geometry on shoe body
-    CreateShoeContactMaterials(sys->GetContactMethod());
-    AddShoeContact();
+    // Create all contact materials
+    CreateContactMaterials(sys->GetContactMethod());
 
-    // Create the contact material for sprocket collision (no associate collision shapes)
-    CreateCylContactMaterial(sys->GetContactMethod());
+    // Add contact geometry on shoe body
+    AddShoeContact();
 }
 
 // -----------------------------------------------------------------------------

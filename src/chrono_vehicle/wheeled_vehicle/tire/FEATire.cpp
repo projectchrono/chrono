@@ -64,31 +64,7 @@ void FEATire::ProcessJSON(const rapidjson::Document& d) {
 
     // Read contact material data
     assert(d.HasMember("Contact Material"));
-
-    // Load default values (in case not all are provided in the JSON file)
-    m_mat_info.mu = 0.9f;
-    m_mat_info.cr = 0.01f;
-    m_mat_info.Y = 2e7f;
-    m_mat_info.nu = 0.3f;
-    m_mat_info.kn = 2e5f;
-    m_mat_info.gn = 40.0f;
-    m_mat_info.kt = 2e5f;
-    m_mat_info.gt = 20.0f;
-
-    const Value& mat = d["Contact Material"];
-
-    m_mat_info.mu = mat["Coefficient of Friction"].GetFloat();
-    m_mat_info.cr = mat["Coefficient of Restitution"].GetFloat();
-    if (mat.HasMember("Properties")) {
-        m_mat_info.Y = mat["Properties"]["Young Modulus"].GetFloat();
-        m_mat_info.nu = mat["Properties"]["Poisson Ratio"].GetFloat();
-    }
-    if (mat.HasMember("Coefficients")) {
-        m_mat_info.kn = mat["Coefficients"]["Normal Stiffness"].GetFloat();
-        m_mat_info.gn = mat["Coefficients"]["Normal Damping"].GetFloat();
-        m_mat_info.kt = mat["Coefficients"]["Tangential Stiffness"].GetFloat();
-        m_mat_info.gt = mat["Coefficients"]["Tangential Damping"].GetFloat();
-    }
+    m_mat_info = ReadMaterialInfoJSON(d["Contact Material"]);
 
     // Read continuum material data
     double E = d["Continuum Material"]["Elasticity Modulus"].GetDouble();

@@ -58,17 +58,7 @@ class CH_VEHICLE_API RigidTire : public ChRigidTire {
     std::string m_meshFile_right;
     std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
 
-    struct MatInfo {
-        float mu;
-        float cr;
-        float Y;
-        float nu;
-        float kn;
-        float gn;
-        float kt;
-        float gt;
-    };
-    MatInfo m_mat_info;
+    MaterialInfo m_mat_info;
 };
 
 /// @} vehicle_wheeled_tire

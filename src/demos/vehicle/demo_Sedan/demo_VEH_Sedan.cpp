@@ -123,25 +123,11 @@ int main(int argc, char* argv[]) {
     // Create the terrain
     RigidTerrain terrain(my_sedan.GetSystem());
 
-    std::shared_ptr<ChMaterialSurface> patch_mat;
-    switch (contact_method) {
-        case ChContactMethod::NSC: {
-            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-            matNSC->SetFriction(0.9f);
-            matNSC->SetRestitution(0.01f);
-            patch_mat = matNSC;
-            break;
-        }
-        case ChContactMethod::SMC: {
-            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-            matSMC->SetFriction(0.9f);
-            matSMC->SetRestitution(0.01f);
-            matSMC->SetYoungModulus(2e7f);
-            matSMC->SetPoissonRatio(0.3f);
-            patch_mat = matSMC;
-            break;
-        }
-    }
+    MaterialInfo minfo;
+    minfo.mu = 0.9f;
+    minfo.cr = 0.01f;
+    minfo.Y = 2e7f;
+    auto patch_mat = minfo.CreateMaterial(contact_method);
 
     std::shared_ptr<RigidTerrain::Patch> patch;
     switch (terrain_model) {

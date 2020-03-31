@@ -83,17 +83,7 @@ class CH_VEHICLE_API DoubleIdler : public ChDoubleIdler {
     std::string m_meshName;
     std::string m_meshFile;
 
-    struct MatInfo {
-        float mu;
-        float cr;
-        float Y;
-        float nu;
-        float kn;
-        float gn;
-        float kt;
-        float gt;
-    };
-    MatInfo m_mat_info;
+    MaterialInfo m_mat_info;
 };
 
 /// @} vehicle_tracked_idler

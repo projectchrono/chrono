@@ -63,31 +63,7 @@ void SprocketSinglePin::Create(const rapidjson::Document& d) {
 
     // Read contact material data
     assert(d.HasMember("Contact Material"));
-
-    // Load default values (in case not all are provided in the JSON file)
-    m_mat_info.mu = 0.4f;
-    m_mat_info.cr = 0.1f;
-    m_mat_info.Y = 1e7f;
-    m_mat_info.nu = 0.3f;
-    m_mat_info.kn = 2e5f;
-    m_mat_info.gn = 40.0f;
-    m_mat_info.kt = 2e5f;
-    m_mat_info.gt = 20.0f;
-
-    const Value& mat = d["Contact Material"];
-
-    m_mat_info.mu = mat["Coefficient of Friction"].GetFloat();
-    m_mat_info.cr = mat["Coefficient of Restitution"].GetFloat();
-    if (mat.HasMember("Properties")) {
-        m_mat_info.Y = mat["Properties"]["Young Modulus"].GetFloat();
-        m_mat_info.nu = mat["Properties"]["Poisson Ratio"].GetFloat();
-    }
-    if (mat.HasMember("Coefficients")) {
-        m_mat_info.kn = mat["Coefficients"]["Normal Stiffness"].GetFloat();
-        m_mat_info.gn = mat["Coefficients"]["Normal Damping"].GetFloat();
-        m_mat_info.kt = mat["Coefficients"]["Tangential Stiffness"].GetFloat();
-        m_mat_info.gt = mat["Coefficients"]["Tangential Damping"].GetFloat();
-    }
+    m_mat_info = ReadMaterialInfoJSON(d["Contact Material"]);
 
     // Read sprocket visualization
     if (d.HasMember("Visualization")) {
@@ -100,27 +76,7 @@ void SprocketSinglePin::Create(const rapidjson::Document& d) {
 }
 
 void SprocketSinglePin::CreateContactMaterial(ChContactMethod contact_method) {
-    switch (contact_method) {
-        case ChContactMethod::NSC: {
-            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-            matNSC->SetFriction(m_mat_info.mu);
-            matNSC->SetRestitution(m_mat_info.cr);
-            m_material = matNSC;
-            break;
-        }
-        case ChContactMethod::SMC:
-            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-            matSMC->SetFriction(m_mat_info.mu);
-            matSMC->SetRestitution(m_mat_info.cr);
-            matSMC->SetYoungModulus(m_mat_info.Y);
-            matSMC->SetPoissonRatio(m_mat_info.nu);
-            matSMC->SetKn(m_mat_info.kn);
-            matSMC->SetGn(m_mat_info.gn);
-            matSMC->SetKt(m_mat_info.kt);
-            matSMC->SetGt(m_mat_info.gt);
-            m_material = matSMC;
-            break;
-    }
+    m_material = m_mat_info.CreateMaterial(contact_method);
 }
 
 // -----------------------------------------------------------------------------

@@ -249,25 +249,11 @@ int main(int argc, char* argv[]) {
     // Create the terrain
     RigidTerrain terrain(my_hmmwv.GetSystem());
 
-    std::shared_ptr<ChMaterialSurface> patch_mat;
-    switch (contact_method) {
-        case ChContactMethod::NSC: {
-            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-            matNSC->SetFriction(0.8f);
-            matNSC->SetRestitution(0.01f);
-            patch_mat = matNSC;
-            break;
-        }
-        case ChContactMethod::SMC: {
-            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-            matSMC->SetFriction(0.8f);
-            matSMC->SetRestitution(0.01f);
-            matSMC->SetYoungModulus(2e7f);
-            matSMC->SetPoissonRatio(0.3f);
-            patch_mat = matSMC;
-            break;
-        }
-    }
+    MaterialInfo minfo;
+    minfo.mu = 0.8f;
+    minfo.cr = 0.01f;
+    minfo.Y = 2e7f;
+    auto patch_mat = minfo.CreateMaterial(contact_method);
 
     auto patch = terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector<>(0, 0, terrainHeight - 5), QUNIT),
                                   ChVector<>(terrainLength, terrainWidth, 10));
@@ -283,17 +269,17 @@ int main(int argc, char* argv[]) {
     // From data file
     auto path = ChBezierCurve::read(vehicle::GetDataFile(path_file));
 
-// Parameterized ISO double lane change (to left)
-////auto path = DoubleLaneChangePath(ChVector<>(-125, -125, 0.1), 13.5, 4.0, 11.0, 50.0, true);
+    // Parameterized ISO double lane change (to left)
+    ////auto path = DoubleLaneChangePath(ChVector<>(-125, -125, 0.1), 13.5, 4.0, 11.0, 50.0, true);
 
-// Parameterized NATO double lane change (to right)
-////auto path = DoubleLaneChangePath(ChVector<>(-125, -125, 0.1), 28.93, 3.6105, 25.0, 50.0, false);
+    // Parameterized NATO double lane change (to right)
+    ////auto path = DoubleLaneChangePath(ChVector<>(-125, -125, 0.1), 28.93, 3.6105, 25.0, 50.0, false);
 
-////path->write("my_path.txt");
+    ////path->write("my_path.txt");
 
-// ---------------------------------------
-// Create the vehicle Irrlicht application
-// ---------------------------------------
+    // ---------------------------------------
+    // Create the vehicle Irrlicht application
+    // ---------------------------------------
 
 #ifdef USE_PID
     ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"Steering PID Controller Demo",
