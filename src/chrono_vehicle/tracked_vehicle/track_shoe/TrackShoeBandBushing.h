@@ -94,15 +94,15 @@ class CH_VEHICLE_API TrackShoeBandBushing : public ChTrackShoeBandBushing {
     /// Specify the name assigned to the procedurally-generated tread body visualization mesh.
     virtual const std::string& GetTreadVisualizationMeshName() const override { return m_tread_meshName; }
 
-    /// Add visualization assets for the idler subsystem.
-    virtual void AddVisualizationAssets(VisualizationType vis) override;
-
   private:
     virtual void Create(const rapidjson::Document& d) override;
 
     /// Create the 4 contact materials, consistent with the specified contact method, for interactionss with the
     /// sprocket, wheels, and ground.
     virtual void CreateContactMaterials(ChContactMethod contact_method) override;
+
+    /// Add visualization assets for the idler subsystem.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
 
     double m_tread_mass;
     ChVector<> m_tread_inertias;

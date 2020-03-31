@@ -154,7 +154,7 @@ int main(int argc, char* argv[]) {
             }
             case TrackShoeType::BAND_ANCF: {
                 auto assembly = chrono_types::make_shared<M113_TrackAssemblyBandANCF>(side);
-                assembly->SetContactSurfaceType(ChTrackAssemblyBandANCF::NONE);
+                assembly->SetContactSurfaceType(ChTrackAssemblyBandANCF::ContactSurfaceType::NONE);
                 track_assembly = assembly;
                 break;
             }

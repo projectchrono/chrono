@@ -219,26 +219,11 @@ void TrackAssemblyBandANCF::Create(const rapidjson::Document& d) {
 
     // Read web contact material properties
     assert(d.HasMember("Mesh Contact Material"));
+    m_mat_info = ReadMaterialInfoJSON(d["Mesh Contact Material"]);
+}
 
-    SetContactSurfaceType(ChTrackAssemblyBandANCF::TRIANGLE_MESH);
-
-    float mu = d["Mesh Contact Material"]["Coefficient of Friction"].GetFloat();
-    float cr = d["Mesh Contact Material"]["Coefficient of Restitution"].GetFloat();
-    SetContactFrictionCoefficient(mu);
-    SetContactRestitutionCoefficient(cr);
-
-    if (d["Mesh Contact Material"].HasMember("Properties")) {
-        float ym = d["Mesh Contact Material"]["Properties"]["Young Modulus"].GetFloat();
-        float pr = d["Mesh Contact Material"]["Properties"]["Poisson Ratio"].GetFloat();
-        SetContactMaterialProperties(ym, pr);
-    }
-    if (d["Mesh Contact Material"].HasMember("Coefficients")) {
-        float kn = d["Mesh Contact Material"]["Coefficients"]["Normal Stiffness"].GetFloat();
-        float gn = d["Mesh Contact Material"]["Coefficients"]["Normal Damping"].GetFloat();
-        float kt = d["Mesh Contact Material"]["Coefficients"]["Tangential Stiffness"].GetFloat();
-        float gt = d["Mesh Contact Material"]["Coefficients"]["Tangential Damping"].GetFloat();
-        SetContactMaterialCoefficients(kn, gn, kt, gt);
-    }
+void TrackAssemblyBandANCF::CreateContactMaterial(ChContactMethod contact_method) {
+    m_contact_material = m_mat_info.CreateMaterial(contact_method);
 }
 
 }  // end namespace vehicle

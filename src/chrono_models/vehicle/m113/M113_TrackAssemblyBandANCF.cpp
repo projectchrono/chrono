@@ -56,24 +56,24 @@ M113_TrackAssemblyBandANCF::M113_TrackAssemblyBandANCF(VehicleSide side) : ChTra
     std::string suspName("M113_Suspension");
     std::string shoeName("M113_TrackShoe");
     switch (side) {
-    case LEFT:
-        SetName("M113_TrackAssemblyLeft");
-        m_idler = chrono_types::make_shared<M113_IdlerLeft>();
-        m_brake = chrono_types::make_shared<M113_BrakeSimple>("M113_BrakeLeft");
-        m_sprocket = chrono_types::make_shared<M113_SprocketBandLeft>();
-        num_shoes = 105;
-        suspName += "Left_";
-        shoeName += "Left_";
-        break;
-    case RIGHT:
-        SetName("M113_TrackAssemblyRight");
-        m_idler = chrono_types::make_shared<M113_IdlerRight>();
-        m_brake = chrono_types::make_shared<M113_BrakeSimple>("M113_BrakeRight");
-        m_sprocket = chrono_types::make_shared<M113_SprocketBandRight>();
-        num_shoes = 106;
-        suspName += "Right_";
-        shoeName += "Right_";
-        break;
+        case LEFT:
+            SetName("M113_TrackAssemblyLeft");
+            m_idler = chrono_types::make_shared<M113_IdlerLeft>();
+            m_brake = chrono_types::make_shared<M113_BrakeSimple>("M113_BrakeLeft");
+            m_sprocket = chrono_types::make_shared<M113_SprocketBandLeft>();
+            num_shoes = 105;
+            suspName += "Left_";
+            shoeName += "Left_";
+            break;
+        case RIGHT:
+            SetName("M113_TrackAssemblyRight");
+            m_idler = chrono_types::make_shared<M113_IdlerRight>();
+            m_brake = chrono_types::make_shared<M113_BrakeSimple>("M113_BrakeRight");
+            m_sprocket = chrono_types::make_shared<M113_SprocketBandRight>();
+            num_shoes = 106;
+            suspName += "Right_";
+            shoeName += "Right_";
+            break;
     }
 
     m_suspensions.resize(5);
@@ -103,12 +103,15 @@ M113_TrackAssemblyBandANCF::M113_TrackAssemblyBandANCF(VehicleSide side) : ChTra
     SetElementStructuralDamping(0.05);
 
     // Specify contact properties for the web mesh
-    SetContactSurfaceType(ChTrackAssemblyBandANCF::TRIANGLE_MESH);
+    SetContactSurfaceType(ChTrackAssemblyBandANCF::ContactSurfaceType::TRIANGLE_MESH);
+}
 
-    SetContactFrictionCoefficient(0.8f);
-    SetContactRestitutionCoefficient(0.1f);
-    SetContactMaterialProperties(1e7f, 0.3f);
-    SetContactMaterialCoefficients(2e5f, 40.0f, 2e5f, 20.0f);
+void M113_TrackAssemblyBandANCF::CreateContactMaterial(ChContactMethod contact_method) {
+    MaterialInfo minfo;
+    minfo.mu = 0.8f;
+    minfo.cr = 0.1f;
+    minfo.Y = 1e7f;
+    m_contact_material = minfo.CreateMaterial(contact_method);
 }
 
 // -----------------------------------------------------------------------------

@@ -102,11 +102,15 @@ class CH_VEHICLE_API TrackShoeBandANCF : public ChTrackShoeBandANCF {
     /// Specify the name assigned to the procedurally-generated tread body visualization mesh.
     virtual const std::string& GetTreadVisualizationMeshName() const override { return m_tread_meshName; }
 
-    /// Add visualization assets for the idler subsystem.
-    virtual void AddVisualizationAssets(VisualizationType vis) override;
-
   private:
     virtual void Create(const rapidjson::Document& d) override;
+
+    /// Create the 4 contact materials, consistent with the specified contact method, for interactionss with the
+    /// sprocket, wheels, and ground.
+    virtual void CreateContactMaterials(ChContactMethod contact_method) override;
+
+    /// Add visualization assets for the idler subsystem.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
 
     double m_tread_mass;
     ChVector<> m_tread_inertias;
@@ -138,6 +142,11 @@ class CH_VEHICLE_API TrackShoeBandANCF : public ChTrackShoeBandANCF {
     std::string m_meshName;        // name for tread visualization mesh read from OBJ file
     std::string m_meshFile;        // name of OBJ file with tread visualization mesh
     std::string m_tread_meshName;  // name for procedurally-generated tread visualization mesh
+
+    MaterialInfo m_pad_mat_info;
+    MaterialInfo m_body_mat_info;
+    MaterialInfo m_guide_mat_info;
+    MaterialInfo m_tooth_mat_info;
 };
 
 /// @} vehicle_tracked_shoe
