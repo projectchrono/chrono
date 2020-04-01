@@ -43,16 +43,17 @@ void ChCollisionSystemParallel::Add(ChCollisionModel* model) {
         // Shape index in the collision model
         int local_shape_index = 0;
 
-        for (int j = 0; j < pmodel->GetNumShapes(); j++) {
-            real3 obA = pmodel->mData[j].A;
-            real3 obB = pmodel->mData[j].B;
-            real3 obC = pmodel->mData[j].C;
+        for (auto s : pmodel->GetShapes()) {
+            auto shape = std::static_pointer_cast<ChCollisionShapeParallel>(s);
+            real3 obA = shape->A;
+            real3 obB = shape->B;
+            real3 obC = shape->C;
             int length = 1;
             int start;
             // Compute the global offset of the convex data structure based on the number of points
             // already present
 
-            switch (pmodel->mData[j].type) {
+            switch (shape->GetType()) {
                 case ChCollisionShape::Type::SPHERE:
                     start = (int)data_manager->shape_data.sphere_rigid.size();
                     data_manager->shape_data.sphere_rigid.push_back(obB.x);
@@ -105,12 +106,12 @@ void ChCollisionSystemParallel::Add(ChCollisionModel* model) {
             }
 
             data_manager->shape_data.ObA_rigid.push_back(obA);
-            data_manager->shape_data.ObR_rigid.push_back(pmodel->mData[j].R);
+            data_manager->shape_data.ObR_rigid.push_back(shape->R);
             data_manager->shape_data.start_rigid.push_back(start);
             data_manager->shape_data.length_rigid.push_back(length);
 
             data_manager->shape_data.fam_rigid.push_back(fam);
-            data_manager->shape_data.typ_rigid.push_back(pmodel->mData[j].type);
+            data_manager->shape_data.typ_rigid.push_back(shape->GetType());
             data_manager->shape_data.id_rigid.push_back(body_id);
             data_manager->shape_data.local_rigid.push_back(local_shape_index);
             data_manager->num_rigid_shapes++;

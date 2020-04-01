@@ -33,17 +33,15 @@ namespace collision {
 /// @{
 
 /// Class to encapsulate description of a convex collision shape.
-struct ConvexModel {
-    shape_type type;  ///< type of shape
+class ChCollisionShapeParallel : public ChCollisionShape {
+  public:
+    ChCollisionShapeParallel(Type t, std::shared_ptr<ChMaterialSurface> material) : ChCollisionShape(t, material) {}
+
     real3 A;          ///< location
     real3 B;          ///< dimensions
     real3 C;          ///< extra
     quaternion R;     ///< rotation
     real3* convex;    ///< pointer to convex data;
-
-    ConvexModel() {}
-    ConvexModel(shape_type t, real3 a, real3 b, real3 c, quaternion r, real3* con)
-        : type(t), A(a), B(b), C(c), R(r), convex(con) {}
 };
 
 /// Class for geometric model for collision detection.
@@ -246,7 +244,6 @@ class CH_PARALLEL_API ChCollisionModelParallel : public ChCollisionModel {
     /// Set the pointer to the owner rigid body.
     void SetBody(ChBody* body) { mbody = body; }
 
-    std::vector<ConvexModel> mData;
     std::vector<real3> local_convex_data;
 
     real3 aabb_min;
