@@ -117,10 +117,6 @@ using namespace chrono::fea;
 %ignore chrono::fea::ChContactNodeXYZROT::ComputeJacobianForContactPart;
 %ignore chrono::fea::ChContactTriangleXYZROT::ComputeJacobianForContactPart;
 %ignore chrono::fea::ChElementShellBST::ComputeInternalJacobians;
-%ignore chrono::fea::ChElementBrick::MyMass;
-%ignore chrono::fea::ChElementBrick::MyGravity;
-%ignore chrono::fea::ChElementBrick::MyForceAnalytical;
-%ignore chrono::fea::ChElementBrick::MyForceNum;
 
 // Include other .i configuration files for SWIG. 
 // These are divided in many .i files, each per a
