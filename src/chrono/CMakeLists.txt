@@ -84,6 +84,7 @@ set(ChronoEngine_core_HEADERS
     core/ChGlobal.h
     core/ChFx.h
     core/ChTypes.h
+	core/ChTensors.h
     )
 
 source_group(core FILES
@@ -158,7 +159,6 @@ set(ChronoEngine_physics_HEADERS
     physics/ChSystemNSC.h
     physics/ChSystemSMC.h    
     physics/ChAssembly.h
-    physics/ChTensors.h
     physics/ChInertiaUtils.h
     )
 

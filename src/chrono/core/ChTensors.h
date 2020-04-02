@@ -25,7 +25,6 @@
 #include "chrono/core/ChMath.h"
 
 namespace chrono {
-namespace fea {
 
 /// Base class for stress and strain tensors, in compact Voight notation
 /// that is with 6 components in a column. This saves some
@@ -272,7 +271,6 @@ class ChStrainTensor : public ChVoightTensor<Real> {
     }
 };
 
-}  // end namespace fea
 }  // end namespace chrono
 
 #endif

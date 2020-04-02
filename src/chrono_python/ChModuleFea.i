@@ -85,6 +85,7 @@
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
 #include "chrono/fea/ChMeshSurface.h"
 #include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/core/ChTensors.h"
 #include "chrono/physics/ChLoad.h"
 #include "chrono/physics/ChLoadsBody.h"
 #include "chrono/physics/ChLoadsXYZnode.h"
