@@ -25,7 +25,7 @@
 #include "chrono_distributed/ChApiDistributed.h"
 #include "chrono_distributed/ChDistributedDataManager.h"
 #include "chrono_distributed/comm/ChCommDistributed.h"
-#include "chrono_distributed/other_types.h"
+#include "chrono_distributed/ChTypesDistributed.h"
 #include "chrono_distributed/physics/ChDomainDistributed.h"
 
 #include "chrono_parallel/ChDataManager.h"

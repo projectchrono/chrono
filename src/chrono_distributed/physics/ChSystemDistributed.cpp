@@ -31,15 +31,12 @@
 #include "chrono_distributed/ChDistributedDataManager.h"
 #include "chrono_distributed/collision/ChCollisionModelDistributed.h"
 #include "chrono_distributed/collision/ChCollisionSystemDistributed.h"
-#include "chrono_distributed/other_types.h"
 #include "chrono_distributed/physics/ChDomainDistributed.h"
 #include "chrono_distributed/physics/ChSystemDistributed.h"
 
 #include "chrono_parallel/ChDataManager.h"
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/collision/ChCollisionSystemParallel.h"
-#include "chrono_parallel/math/other_types.h"
-#include "chrono_parallel/math/real3.h"
 
 using namespace chrono;
 using namespace collision;
@@ -85,12 +82,6 @@ ChSystemDistributed::ChSystemDistributed(MPI_Comm communicator, double ghostlaye
     data_manager->host_data.active_rigid.reserve(init);
     data_manager->host_data.collide_rigid.reserve(init);
     data_manager->host_data.mass_rigid.reserve(init);
-
-    data_manager->host_data.elastic_moduli.reserve(init);
-    data_manager->host_data.mu.reserve(init);
-    data_manager->host_data.cr.reserve(init);
-    data_manager->host_data.smc_coeffs.reserve(init);
-    data_manager->host_data.adhesionMultDMT_data.reserve(init);
 
     data_manager->shape_data.fam_rigid.reserve(init);
     data_manager->shape_data.id_rigid.reserve(init);
@@ -156,11 +147,11 @@ void ChSystemDistributed::UpdateRigidBodies() {
 }
 
 ChBody* ChSystemDistributed::NewBody() {
-    return new ChBody(chrono_types::make_shared<collision::ChCollisionModelDistributed>(), ChContactMethod::SMC);
+    return new ChBody(chrono_types::make_shared<collision::ChCollisionModelDistributed>());
 }
 
 ChBodyAuxRef* ChSystemDistributed::NewBodyAuxRef() {
-    return new ChBodyAuxRef(chrono_types::make_shared<collision::ChCollisionModelDistributed>(), ChContactMethod::SMC);
+    return new ChBodyAuxRef(chrono_types::make_shared<collision::ChCollisionModelDistributed>());
 }
 
 void ChSystemDistributed::AddBodyAllRanks(std::shared_ptr<ChBody> newbody) {

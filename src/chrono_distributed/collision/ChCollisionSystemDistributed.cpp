@@ -161,7 +161,8 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
             // Search data_manager->shape_data for a free and shape-matching spot
             for (int j = 0; j < dm->shape_data.id_rigid.size(); j++) {
                 // If the index in the data manager is open and corresponds to the same shape type
-                if (dm->shape_data.id_rigid[j] == UINT_MAX && dm->shape_data.typ_rigid[j] == pmodel->mData[i].type) {
+                if (dm->shape_data.id_rigid[j] == UINT_MAX &&
+                    dm->shape_data.typ_rigid[j] == pmodel->GetShape(i)->GetType()) {
                     free_dm_shapes.push_back(j);
                     break;  // Found spot for this shape, break inner loop to get new i (shape)
                 }
@@ -174,6 +175,7 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
     if (free_dm_shapes.size() == needed_count) {
         for (int i = 0; i < needed_count; i++) {
             // i identifies a shape in the MODEL
+            auto shape = std::static_pointer_cast<ChCollisionShapeParallel>(pmodel->GetShape(i));
 
             int j = free_dm_shapes[i];  // Index into dm->shape_data
 
@@ -184,13 +186,13 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
             // type_rigid and start_rigid are unchanged because the shape type is the same
             int start = dm->shape_data.start_rigid[j];
 
-            real3 obA = pmodel->mData[i].A;
-            real3 obB = pmodel->mData[i].B;
-            real3 obC = pmodel->mData[i].C;
+            real3 obA = shape->A;
+            real3 obB = shape->B;
+            real3 obC = shape->C;
 
             short2 fam = S2(pmodel->GetFamilyGroup(), pmodel->GetFamilyMask());
 
-            switch (pmodel->mData[i].type) {
+            switch (shape->GetType()) {
                 case ChCollisionShape::Type::SPHERE:
                     dm->shape_data.sphere_rigid[start] = obB.x;
                     break;
@@ -228,7 +230,7 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
             }
 
             dm->shape_data.ObA_rigid[j] = obA;
-            dm->shape_data.ObR_rigid[j] = pmodel->mData[i].R;
+            dm->shape_data.ObR_rigid[j] = shape->R;
             dm->shape_data.fam_rigid[j] = fam;
         }
     }

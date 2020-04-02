@@ -36,17 +36,21 @@ class CH_DISTR_API ChCollisionModelDistributed : public ChCollisionModelParallel
     virtual int ClearModel() override;
 
     /// Adds a box collision shape to the model and calculates the model's new AABB
-    virtual bool AddBox(double hx,
+    virtual bool AddBox(std::shared_ptr<ChMaterialSurface> material,
+                        double hx,
                         double hy,
                         double hz,
                         const ChVector<>& pos = ChVector<>(),
                         const ChMatrix33<>& rot = ChMatrix33<>(1)) override;
 
     /// Adds a sphere collision shape to the model and calculates the model's new AABB
-    virtual bool AddSphere(double radius, const ChVector<>& pos = ChVector<>()) override;
+    virtual bool AddSphere(std::shared_ptr<ChMaterialSurface> material,
+                           double radius,
+                           const ChVector<>& pos = ChVector<>()) override;
 
     /// Adds a triangle collision shape to the model
-    virtual bool AddTriangle(ChVector<> A,                              ///< Vertex of triangle
+    virtual bool AddTriangle(std::shared_ptr<ChMaterialSurface> material,
+                             ChVector<> A,                              ///< Vertex of triangle
                              ChVector<> B,                              ///< Vertex of triangle
                              ChVector<> C,                              ///< Vertex of triangle
                              const ChVector<>& pos = ChVector<>(),      ///< Triangle position
