@@ -85,7 +85,6 @@ class CH_VEHICLE_API TrackShoeDoublePin : public ChTrackShoeDoublePin {
     double m_connector_width;
 
     bool m_has_mesh;
-    std::string m_meshName;
     std::string m_meshFile;
 
     std::vector<MaterialInfo> m_shoe_mat_info;

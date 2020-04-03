@@ -77,7 +77,6 @@ class CH_VEHICLE_API TrackShoeSinglePin : public ChTrackShoeSinglePin {
     double m_rear_cyl_loc;
 
     bool m_has_mesh;
-    std::string m_meshName;
     std::string m_meshFile;
 
     std::vector<MaterialInfo> m_shoe_mat_info;

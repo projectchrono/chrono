@@ -25,6 +25,8 @@
 
 #include "chrono_models/vehicle/m113/M113_TrackShoeDoublePin.h"
 
+#include "chrono_thirdparty/filesystem/path.h"
+
 namespace chrono {
 namespace vehicle {
 namespace m113 {
@@ -45,7 +47,6 @@ const double M113_TrackShoeDoublePin::m_connector_radius = 0.02;               /
 const double M113_TrackShoeDoublePin::m_connector_length = 0.054;              // 2.125''
 const double M113_TrackShoeDoublePin::m_connector_width = 0.02;
 
-const std::string M113_TrackShoeDoublePin::m_meshName = "TrackShoeDoublePin_POV_geom";
 const std::string M113_TrackShoeDoublePin::m_meshFile = "M113/TrackShoeDoublePin.obj";
 
 // -----------------------------------------------------------------------------

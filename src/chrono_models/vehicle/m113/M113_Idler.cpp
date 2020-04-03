@@ -23,6 +23,8 @@
 
 #include "chrono_models/vehicle/m113/M113_Idler.h"
 
+#include "chrono_thirdparty/filesystem/path.h"
+
 namespace chrono {
 namespace vehicle {
 namespace m113 {
@@ -45,10 +47,7 @@ const double M113_Idler::m_tensioner_f = 2e4;
 const double M113_Idler::m_tensioner_k = 1e6;
 const double M113_Idler::m_tensioner_c = 1.4e4;
 
-const std::string M113_IdlerLeft::m_meshName = "Idler_L_POV_geom";
 const std::string M113_IdlerLeft::m_meshFile = "M113/Idler_L.obj";
-
-const std::string M113_IdlerRight::m_meshName = "Idler_R_POV_geom";
 const std::string M113_IdlerRight::m_meshFile = "M113/Idler_R.obj";
 
 // -----------------------------------------------------------------------------
@@ -96,7 +95,7 @@ void M113_Idler::AddVisualizationAssets(VisualizationType vis) {
         trimesh->LoadWavefrontMesh(GetMeshFile(), false, false);
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
-        trimesh_shape->SetName(GetMeshName());
+        trimesh_shape->SetName(filesystem::path(GetMeshFile()).stem());
         trimesh_shape->SetStatic(true);
         m_wheel->AddAsset(trimesh_shape);
     }

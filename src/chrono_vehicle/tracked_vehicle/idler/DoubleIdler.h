@@ -80,7 +80,6 @@ class CH_VEHICLE_API DoubleIdler : public ChDoubleIdler {
     double m_tensioner_l0;
 
     bool m_has_mesh;
-    std::string m_meshName;
     std::string m_meshFile;
 
     MaterialInfo m_mat_info;

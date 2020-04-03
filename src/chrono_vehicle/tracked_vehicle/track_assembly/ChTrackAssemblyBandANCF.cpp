@@ -136,7 +136,7 @@ void ChTrackAssemblyBandANCF::SetLayerFiberAngles(double angle_1, double angle_2
 // -----------------------------------------------------------------------------
 bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     // Only SMC contact is currently possible with FEA
-    assert(chassis->GetContactMethod() == ChContactMethod::SMC);
+    assert(chassis->GetSystem()->GetContactMethod() == ChContactMethod::SMC);
 
     // Number of track shoes
     int num_shoes = static_cast<int>(m_shoes.size());

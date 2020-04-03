@@ -139,7 +139,6 @@ class CH_VEHICLE_API TrackShoeBandANCF : public ChTrackShoeBandANCF {
     int m_num_elements_width;
 
     bool m_has_mesh;               // OBJ file provided
-    std::string m_meshName;        // name for tread visualization mesh read from OBJ file
     std::string m_meshFile;        // name of OBJ file with tread visualization mesh
     std::string m_tread_meshName;  // name for procedurally-generated tread visualization mesh
 

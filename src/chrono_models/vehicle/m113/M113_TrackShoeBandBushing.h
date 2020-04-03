@@ -129,7 +129,6 @@ class CH_MODELS_API M113_TrackShoeBandBushing : public ChTrackShoeBandBushing {
     static const ChVector<> m_guide_box_dims;
     static const double m_guide_box_offset_x;
 
-    static const std::string m_meshName;        // name for tread visualization mesh read from OBJ file
     static const std::string m_meshFile;        // name of OBJ file with tread visualization mesh
     static const std::string m_tread_meshName;  // name for procedurally-generated tread visualization mesh
 };

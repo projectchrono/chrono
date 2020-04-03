@@ -86,7 +86,6 @@ class CH_VEHICLE_API SprocketDoublePin : public ChSprocketDoublePin {
     double m_gear_W;
 
     bool m_has_mesh;
-    std::string m_meshName;
     std::string m_meshFile;
 
     MaterialInfo m_mat_info;

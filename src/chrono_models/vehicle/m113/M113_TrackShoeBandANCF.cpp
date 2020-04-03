@@ -25,6 +25,8 @@
 
 #include "chrono_models/vehicle/m113/M113_TrackShoeBandANCF.h"
 
+#include "chrono_thirdparty/filesystem/path.h"
+
 namespace chrono {
 namespace vehicle {
 namespace m113 {
@@ -62,7 +64,6 @@ const double M113_TrackShoeBandANCF::m_tread_thickness = 0.0157 * 1.04;
 const ChVector<> M113_TrackShoeBandANCF::m_guide_box_dims(0.0529, 0.0114, 0.075);
 const double M113_TrackShoeBandANCF::m_guide_box_offset_x = 0;
 
-const std::string M113_TrackShoeBandANCF::m_meshName = "TrackShoeBandANCF_POV_geom";
 const std::string M113_TrackShoeBandANCF::m_meshFile = "M113/TrackShoeBandANCF.obj";
 const std::string M113_TrackShoeBandANCF::m_tread_meshName = "M113_Tread";
 

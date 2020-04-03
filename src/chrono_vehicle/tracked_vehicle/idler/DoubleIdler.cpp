@@ -21,6 +21,8 @@
 #include "chrono_vehicle/tracked_vehicle/idler/DoubleIdler.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
+#include "chrono_thirdparty/filesystem/path.h"
+
 using namespace rapidjson;
 
 namespace chrono {
@@ -98,10 +100,8 @@ void DoubleIdler::Create(const rapidjson::Document& d) {
 
     // Read wheel visualization
     if (d.HasMember("Visualization")) {
-        assert(d["Visualization"].HasMember("Mesh Filename"));
-        assert(d["Visualization"].HasMember("Mesh Name"));
-        m_meshFile = d["Visualization"]["Mesh Filename"].GetString();
-        m_meshName = d["Visualization"]["Mesh Name"].GetString();
+        assert(d["Visualization"].HasMember("Mesh"));
+        m_meshFile = d["Visualization"]["Mesh"].GetString();
         m_has_mesh = true;
     }
 }
@@ -120,7 +120,7 @@ void DoubleIdler::AddVisualizationAssets(VisualizationType vis) {
         trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
-        trimesh_shape->SetName(m_meshName);
+        trimesh_shape->SetName(filesystem::path(m_meshFile).stem());
         trimesh_shape->SetStatic(true);
         m_wheel->AddAsset(trimesh_shape);
     }

@@ -77,7 +77,6 @@ class CH_MODELS_API M113a_Idler : public ChDoubleIdler {
 
     virtual VehicleSide GetVehicleSide() const = 0;
 
-    virtual std::string GetMeshName() const = 0;
     virtual std::string GetMeshFile() const = 0;
 
     ChLinkTSDA::ForceFunctor* m_tensionerForceCB;
@@ -105,11 +104,9 @@ class CH_MODELS_API M113a_IdlerLeft : public M113a_Idler {
 
     virtual VehicleSide GetVehicleSide() const override { return LEFT; }
 
-    virtual std::string GetMeshName() const override { return m_meshName; }
     virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
 
   private:
-    static const std::string m_meshName;
     static const std::string m_meshFile;
 };
 
@@ -120,11 +117,9 @@ class CH_MODELS_API M113a_IdlerRight : public M113a_Idler {
 
     virtual VehicleSide GetVehicleSide() const override { return RIGHT; }
 
-    virtual std::string GetMeshName() const override { return m_meshName; }
     virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
 
   private:
-    static const std::string m_meshName;
     static const std::string m_meshFile;
 };
 

@@ -25,6 +25,8 @@
 
 #include "chrono_models/vehicle/m113a/M113a_TrackShoeSinglePin.h"
 
+#include "chrono_thirdparty/filesystem/path.h"
+
 namespace chrono {
 namespace vehicle {
 namespace m113 {
@@ -41,7 +43,6 @@ const double M113a_TrackShoeSinglePin::m_cyl_radius = 0.015;
 const double M113a_TrackShoeSinglePin::m_front_cyl_loc = 0.0535;
 const double M113a_TrackShoeSinglePin::m_rear_cyl_loc = -0.061;
 
-const std::string M113a_TrackShoeSinglePin::m_meshName = "TrackShoe_POV_geom";
 const std::string M113a_TrackShoeSinglePin::m_meshFile = "M113/TrackShoe.obj";
 
 // -----------------------------------------------------------------------------
@@ -130,7 +131,7 @@ void M113a_TrackShoeSinglePin::AddVisualizationAssets(VisualizationType vis) {
         trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
-        trimesh_shape->SetName(m_meshName);
+        trimesh_shape->SetName(filesystem::path(m_meshFile).stem());
         trimesh_shape->SetStatic(true);
         m_shoe->AddAsset(trimesh_shape);
     } else {

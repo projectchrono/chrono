@@ -71,7 +71,6 @@ class CH_MODELS_API M113_SprocketSinglePin : public ChSprocketSinglePin {
     /// Add visualization of the sprocket.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
-    virtual std::string GetMeshName() const = 0;
     virtual std::string GetMeshFile() const = 0;
 
     static const int m_num_teeth;
@@ -94,11 +93,9 @@ class CH_MODELS_API M113_SprocketSinglePinLeft : public M113_SprocketSinglePin {
     M113_SprocketSinglePinLeft() : M113_SprocketSinglePin("M113_SprocketLeft") {}
     ~M113_SprocketSinglePinLeft() {}
 
-    virtual std::string GetMeshName() const override { return m_meshName; }
     virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
 
   private:
-    static const std::string m_meshName;
     static const std::string m_meshFile;
 };
 
@@ -108,11 +105,9 @@ class CH_MODELS_API M113_SprocketSinglePinRight : public M113_SprocketSinglePin 
     M113_SprocketSinglePinRight() : M113_SprocketSinglePin("M113_SprocketRight") {}
     ~M113_SprocketSinglePinRight() {}
 
-    virtual std::string GetMeshName() const override { return m_meshName; }
     virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
 
   private:
-    static const std::string m_meshName;
     static const std::string m_meshFile;
 };
 

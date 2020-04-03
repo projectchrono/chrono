@@ -73,7 +73,6 @@ class CH_MODELS_API M113a_TrackShoeSinglePin : public ChTrackShoeSinglePin {
     static const double m_front_cyl_loc;
     static const double m_rear_cyl_loc;
 
-    static const std::string m_meshName;
     static const std::string m_meshFile;
 };
 

@@ -98,7 +98,6 @@ class CH_VEHICLE_API SprocketBand : public ChSprocketBand {
     double m_gear_guide_wheel_gap;
 
     bool m_has_mesh;
-    std::string m_meshName;
     std::string m_meshFile;
 
     MaterialInfo m_mat_info;

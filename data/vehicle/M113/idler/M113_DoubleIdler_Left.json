@@ -53,7 +53,6 @@
 
   "Visualization":
   {
-      "Mesh Filename":              "M113/Idler_L.obj",
-      "Mesh Name":                  "Idler_L_POV_geom"
+      "Mesh":              "M113/Idler_L.obj"
   }
 }

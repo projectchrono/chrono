@@ -84,7 +84,6 @@ class CH_MODELS_API M113_SprocketBand : public ChSprocketBand {
     /// Add visualization of the sprocket.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
-    virtual std::string GetMeshName() const = 0;
     virtual std::string GetMeshFile() const = 0;
 
     static const int m_num_teeth;
@@ -112,11 +111,9 @@ class CH_MODELS_API M113_SprocketBandLeft : public M113_SprocketBand {
     M113_SprocketBandLeft() : M113_SprocketBand("M113_SprocketLeft") {}
     ~M113_SprocketBandLeft() {}
 
-    virtual std::string GetMeshName() const override { return m_meshName; }
     virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
 
   private:
-    static const std::string m_meshName;
     static const std::string m_meshFile;
 };
 
@@ -126,11 +123,9 @@ class CH_MODELS_API M113_SprocketBandRight : public M113_SprocketBand {
     M113_SprocketBandRight() : M113_SprocketBand("M113_SprocketRight") {}
     ~M113_SprocketBandRight() {}
 
-    virtual std::string GetMeshName() const override { return m_meshName; }
     virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
 
   private:
-    static const std::string m_meshName;
     static const std::string m_meshFile;
 };
 

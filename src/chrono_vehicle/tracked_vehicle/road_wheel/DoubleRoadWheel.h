@@ -57,7 +57,6 @@ class CH_VEHICLE_API DoubleRoadWheel : public ChDoubleRoadWheel {
     ChVector<> m_wheel_inertia;
 
     bool m_has_mesh;
-    std::string m_meshName;
     std::string m_meshFile;
 
     MaterialInfo m_mat_info;

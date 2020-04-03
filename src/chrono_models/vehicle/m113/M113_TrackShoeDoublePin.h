@@ -86,7 +86,6 @@ class CH_MODELS_API M113_TrackShoeDoublePin : public ChTrackShoeDoublePin {
     static const double m_connector_length;
     static const double m_connector_width;
 
-    static const std::string m_meshName;
     static const std::string m_meshFile;
 };
 

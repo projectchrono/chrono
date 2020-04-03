@@ -23,6 +23,8 @@
 
 #include "chrono_models/vehicle/m113a/M113a_RoadWheel.h"
 
+#include "chrono_thirdparty/filesystem/path.h"
+
 namespace chrono {
 namespace vehicle {
 namespace m113 {
@@ -36,10 +38,7 @@ const double M113a_RoadWheel::m_wheel_radius = 0.305;
 const double M113a_RoadWheel::m_wheel_width = 0.18542;
 const double M113a_RoadWheel::m_wheel_gap = 0.033;
 
-const std::string M113a_RoadWheelLeft::m_meshName = "Roller_L_POV_geom";
 const std::string M113a_RoadWheelLeft::m_meshFile = "M113/Roller_L.obj";
-
-const std::string M113a_RoadWheelRight::m_meshName = "Roller_R_POV_geom";
 const std::string M113a_RoadWheelRight::m_meshFile = "M113/Roller_R.obj";
 
 // -----------------------------------------------------------------------------
@@ -62,7 +61,7 @@ void M113a_RoadWheel::AddVisualizationAssets(VisualizationType vis) {
         trimesh->LoadWavefrontMesh(GetMeshFile(), false, false);
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
-        trimesh_shape->SetName(GetMeshName());
+        trimesh_shape->SetName(filesystem::path(GetMeshFile()).stem());
         trimesh_shape->SetStatic(true);
         m_wheel->AddAsset(trimesh_shape);
     } else {

@@ -24,6 +24,8 @@
 
 #include "chrono_models/vehicle/m113a/M113a_SprocketSinglePin.h"
 
+#include "chrono_thirdparty/filesystem/path.h"
+
 namespace chrono {
 namespace vehicle {
 namespace m113 {
@@ -43,10 +45,7 @@ const double M113a_SprocketSinglePin::m_gear_RC = 0.3;
 const double M113a_SprocketSinglePin::m_gear_R = 0.089;
 const double M113a_SprocketSinglePin::m_gear_RA = 0.245;
 
-const std::string M113a_SprocketSinglePinLeft::m_meshName = "Sprocket_L_POV_geom";
 const std::string M113a_SprocketSinglePinLeft::m_meshFile = "M113/Sprocket_L.obj";
-
-const std::string M113a_SprocketSinglePinRight::m_meshName = "Sprocket_R_POV_geom";
 const std::string M113a_SprocketSinglePinRight::m_meshFile = "M113/Sprocket_R.obj";
 
 // -----------------------------------------------------------------------------
@@ -69,7 +68,7 @@ void M113a_SprocketSinglePin::AddVisualizationAssets(VisualizationType vis) {
         trimesh->LoadWavefrontMesh(GetMeshFile(), false, false);
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
-        trimesh_shape->SetName(GetMeshName());
+        trimesh_shape->SetName(filesystem::path(GetMeshFile()).stem());
         trimesh_shape->SetStatic(true);
         m_gear->AddAsset(trimesh_shape);
     } else {

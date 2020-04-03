@@ -22,6 +22,8 @@
 #include "chrono_vehicle/tracked_vehicle/track_shoe/TrackShoeBandBushing.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
+#include "chrono_thirdparty/filesystem/path.h"
+
 using namespace rapidjson;
 
 namespace chrono {
@@ -128,7 +130,7 @@ void TrackShoeBandBushing::AddVisualizationAssets(VisualizationType vis) {
         trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
-        trimesh_shape->SetName(m_meshName);
+        trimesh_shape->SetName(filesystem::path(m_meshFile).stem());
         trimesh_shape->SetStatic(true);
         m_shoe->AddAsset(trimesh_shape);
     } else {
