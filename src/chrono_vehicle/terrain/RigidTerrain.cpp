@@ -151,14 +151,7 @@ void RigidTerrain::AddPatch(std::shared_ptr<Patch> patch,
     m_system->AddBody(patch->m_body);
     
     // Cache coefficient of friction
-    switch (m_system->GetContactMethod()) {
-        case ChContactMethod::NSC:
-            patch->m_friction = std::static_pointer_cast<ChMaterialSurfaceNSC>(material)->GetSfriction();
-            break;
-        case ChContactMethod::SMC:
-            patch->m_friction = std::static_pointer_cast<ChMaterialSurfaceSMC>(material)->GetSfriction();
-            break;
-    }
+    patch->m_friction = material->GetSfriction();
 
     m_patches.push_back(patch);
 }
@@ -455,18 +448,16 @@ class RTContactCallback : public ChContactContainer::AddContactCallback {
         auto friction_terrain = (*m_friction_fun)(contactinfo.vpA.x(), contactinfo.vpA.y());
 
         // Set friction in composite material based on contact formulation.
+        auto friction_other = shape_other->GetMaterial()->sliding_friction;
+        auto friction = strategy.CombineFriction(friction_terrain, friction_other);
         switch (sys->GetContactMethod()) {
             case ChContactMethod::NSC: {
-                auto mat_other = std::static_pointer_cast<ChMaterialSurfaceNSC>(shape_other->GetMaterial());
-                auto friction = strategy.CombineFriction(friction_terrain, mat_other->sliding_friction);
                 auto mat = static_cast<ChMaterialCompositeNSC* const>(material);
                 mat->static_friction = friction;
                 mat->sliding_friction = friction;
                 break;
             }
             case ChContactMethod::SMC: {
-                auto mat_other = std::static_pointer_cast<ChMaterialSurfaceSMC>(shape_other->GetMaterial());
-                auto friction = strategy.CombineFriction(friction_terrain, mat_other->sliding_friction);
                 auto mat = static_cast<ChMaterialCompositeSMC* const>(material);
                 mat->mu_eff = friction;
                 break;

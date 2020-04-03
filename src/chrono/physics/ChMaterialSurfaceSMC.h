@@ -19,28 +19,10 @@
 
 namespace chrono {
 
-/// Material data for a surface for use with smooth (penalty) contact method.
-/// This data is used to define surface properties owned by ChBody rigid bodies and
-/// similar objects; it carries information that is used to make contacts.
+/// Material data for a collision surface for use with smooth (penalty) contact method.
 class ChApi ChMaterialSurfaceSMC : public ChMaterialSurface {
 
   public:
-    float young_modulus;      ///< Young's modulus (elastic modulus)
-    float poisson_ratio;      ///< Poisson ratio
-    float static_friction;    ///< Static coefficient of friction
-    float sliding_friction;   ///< Kinetic coefficient of friction
-    float rolling_friction;   ///< Rolling coefficient of friction
-    float spinning_friction;  ///< Spinning coefficient of friction
-    float restitution;        ///< Coefficient of restitution
-    float constant_adhesion;  ///< Constant adhesion force, when constant adhesion model is used
-    float adhesionMultDMT;    ///< Adhesion multiplier used in DMT model.
-    float adhesionSPerko;     ///< Adhesion multiplier used in Perko model.
-
-    float kn;  ///< user-specified normal stiffness coefficient
-    float kt;  ///< user-specified tangential stiffness coefficient
-    float gn;  ///< user-specified normal damping coefficient
-    float gt;  ///< user-specified tangential damping coefficient
-
     ChMaterialSurfaceSMC();
     ChMaterialSurfaceSMC(const ChMaterialSurfaceSMC& other);
     ~ChMaterialSurfaceSMC() {}
@@ -57,30 +39,6 @@ class ChApi ChMaterialSurfaceSMC : public ChMaterialSurface {
     // Poisson ratio.
     void SetPoissonRatio(float val) { poisson_ratio = val; }
     float GetPoissonRatio() const { return poisson_ratio; }
-
-    /// Static sliding friction coefficient.
-    /// Usually in 0..1 range, rarely above. Default 0.6
-    void SetSfriction(float val) { static_friction = val; }
-    float GetSfriction() const { return static_friction; }
-
-    /// Kinetic sliding friction coefficient.
-    void SetKfriction(float val) { sliding_friction = val; }
-    float GetKfriction() const { return sliding_friction; }
-
-    /// Set both static friction and kinetic friction at once, with same value.
-    void SetFriction(float val);
-
-	/// Rolling friction coefficient. Usually around 1E-3. Default = 0
-    void SetRollingFriction(float val) { rolling_friction = val; }
-    float GetRollingFriction() const { return rolling_friction; }
-
-	/// Spinning friction coefficient. Usually around 1E-3. Default = 0
-    void SetSpinningFriction(float val) { spinning_friction = val; }
-    float GetSpinningFriction() const { return spinning_friction; }
-
-    /// Normal coefficient of restitution.
-    void SetRestitution(float val) { restitution = val; }
-    float GetRestitution() const { return restitution; }
 
     /// Constant cohesion force.
     void SetAdhesion(float val) { constant_adhesion = val; }
@@ -128,6 +86,17 @@ class ChApi ChMaterialSurfaceSMC : public ChMaterialSurface {
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+    float young_modulus;      ///< Young's modulus (elastic modulus)
+    float poisson_ratio;      ///< Poisson ratio
+    float constant_adhesion;  ///< Constant adhesion force, when constant adhesion model is used
+    float adhesionMultDMT;    ///< Adhesion multiplier used in DMT model.
+    float adhesionSPerko;     ///< Adhesion multiplier used in Perko model.
+
+    float kn;  ///< user-specified normal stiffness coefficient
+    float kt;  ///< user-specified tangential stiffness coefficient
+    float gn;  ///< user-specified normal damping coefficient
+    float gt;  ///< user-specified tangential damping coefficient
 };
 
 CH_CLASS_VERSION(ChMaterialSurfaceSMC, 0)

@@ -512,10 +512,7 @@ float GranularTerrain::GetCoefficientFriction(double x, double y) const {
     if (m_friction_fun)
         return (*m_friction_fun)(x, y);
 
-    if (m_ground->GetSystem()->GetContactMethod() == ChContactMethod::NSC)
-        return std::static_pointer_cast<ChMaterialSurfaceNSC>(m_material)->GetSfriction();
-
-    return std::static_pointer_cast<ChMaterialSurfaceSMC>(m_material)->GetSfriction();
+    return m_material->GetSfriction();
 }
 
 }  // end namespace vehicle
