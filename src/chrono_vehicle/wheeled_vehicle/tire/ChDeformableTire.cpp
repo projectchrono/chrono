@@ -68,20 +68,11 @@ void ChDeformableTire::Initialize(std::shared_ptr<ChWheel> wheel) {
         CreatePressureLoad();
     }
 
-    // Create the contact material
-    m_contact_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-    m_contact_mat->SetFriction(m_friction);
-    m_contact_mat->SetRestitution(m_restitution);
-    m_contact_mat->SetYoungModulus(m_young_modulus);
-    m_contact_mat->SetPoissonRatio(m_poisson_ratio);
-    m_contact_mat->SetKn(m_kn);
-    m_contact_mat->SetGn(m_gn);
-    m_contact_mat->SetKt(m_kt);
-    m_contact_mat->SetGt(m_gt);
-
     // Enable tire contact
     if (m_contact_enabled) {
         // Let the derived class create the contact surface and add it to the mesh.
+        CreateContactMaterial();
+        assert(m_contact_mat && m_contact_mat->GetContactMethod() == ChContactMethod::SMC);
         CreateContactSurface();
     }
 

@@ -39,17 +39,19 @@ const std::string Generic_RigidMeshTire::m_meshFile("generic/tire/generic_tire_c
 // -----------------------------------------------------------------------------
 
 Generic_RigidMeshTire::Generic_RigidMeshTire(const std::string& name) : ChRigidTire(name) {
-    SetContactFrictionCoefficient(0.9f);
-    SetContactRestitutionCoefficient(0.1f);
-    SetContactMaterialProperties(2e7f, 0.3f);
-    SetContactMaterialCoefficients(2e5f, 40.0f, 2e5f, 20.0f);
-
     // Contact and visualization meshes
     double sweep_radius = 0.005;
     SetMeshFilename(vehicle::GetDataFile(m_meshFile), sweep_radius);
 }
 
 // -----------------------------------------------------------------------------
+void Generic_RigidMeshTire::CreateContactMaterial(ChContactMethod contact_method) {
+    MaterialInfo minfo;
+    minfo.mu = 0.9f;
+    minfo.cr = 0.1f;
+    minfo.Y = 2e7f;
+    m_material = minfo.CreateMaterial(contact_method);
+}
 
 void Generic_RigidMeshTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {

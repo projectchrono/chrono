@@ -79,23 +79,7 @@ void ChSprocket::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVecto
 
     // Enable contact for the gear body and set contact material properties.
     m_gear->SetCollide(true);
-
-    switch (m_gear->GetContactMethod()) {
-        case ChMaterialSurface::NSC:
-            m_gear->GetMaterialSurfaceNSC()->SetFriction(m_friction);
-            m_gear->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
-            break;
-        case ChMaterialSurface::SMC:
-            m_gear->GetMaterialSurfaceSMC()->SetFriction(m_friction);
-            m_gear->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
-            m_gear->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);
-            m_gear->GetMaterialSurfaceSMC()->SetPoissonRatio(m_poisson_ratio);
-            m_gear->GetMaterialSurfaceSMC()->SetKn(m_kn);
-            m_gear->GetMaterialSurfaceSMC()->SetGn(m_gn);
-            m_gear->GetMaterialSurfaceSMC()->SetKt(m_kt);
-            m_gear->GetMaterialSurfaceSMC()->SetGt(m_gt);
-            break;
-    }
+    CreateContactMaterial(chassis->GetSystem()->GetContactMethod());
 
     // Set user-defined custom collision callback class for sprocket-shoes contact.
     chassis->GetSystem()->RegisterCustomCollisionCallback(GetCollisionCallback(track));

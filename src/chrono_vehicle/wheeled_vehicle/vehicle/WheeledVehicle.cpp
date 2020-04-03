@@ -31,7 +31,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-WheeledVehicle::WheeledVehicle(const std::string& filename, ChMaterialSurface::ContactMethod contact_method)
+WheeledVehicle::WheeledVehicle(const std::string& filename, ChContactMethod contact_method)
     : ChWheeledVehicle("", contact_method) {
     Create(filename);
 }

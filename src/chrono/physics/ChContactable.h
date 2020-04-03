@@ -14,7 +14,6 @@
 #define CHCONTACTABLE_H
 
 #include "chrono/solver/ChConstraintTuple.h"
-#include "chrono/physics/ChMaterialSurface.h"
 #include "chrono/core/ChMatrix33.h"
 #include "chrono/timestepper/ChState.h"
 
@@ -32,28 +31,24 @@ class ChApi ChContactable {
   public:
     virtual ~ChContactable() {}
 
-    /// Tell if the object must be considered in collision detection
+    /// Indicate whether or not the object must be considered in collision detection.
     virtual bool IsContactActive() = 0;
 
-    /// Get the number of DOFs affected by this object (position part)
+    /// Get the number of DOFs affected by this object (position part).
     virtual int ContactableGet_ndof_x() = 0;
 
-    /// Get the number of DOFs affected by this object (speed part)
+    /// Get the number of DOFs affected by this object (speed part).
     virtual int ContactableGet_ndof_w() = 0;
 
-    /// Get all the DOFs packed in a single vector (position part)
+    /// Get all the DOFs packed in a single vector (position part).
     virtual void ContactableGetStateBlock_x(ChState& x) = 0;
 
-    /// Get all the DOFs packed in a single vector (speed part)
+    /// Get all the DOFs packed in a single vector (speed part).
     virtual void ContactableGetStateBlock_w(ChStateDelta& w) = 0;
 
     /// Increment the provided state of this object by the given state-delta increment.
     /// Compute: x_new = x + dw.
     virtual void ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) = 0;
-
-    /// Return the pointer to the surface material.
-    /// This function returns a reference to the shared pointer member variable and is therefore THREAD SAFE.
-    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() = 0;
 
     /// Express the local point in absolute frame, for the given state position.
     virtual ChVector<> GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) = 0;
@@ -95,20 +90,20 @@ class ChApi ChContactable {
     /// a container (ex. the ChMEsh, for ChContactTriangle)
     virtual ChPhysicsItem* GetPhysicsItem() = 0;
 
-	// enum used for dispatcher optimization instead than rtti
-	enum eChContactableType {
-		CONTACTABLE_UNKNOWN = 0,
-		CONTACTABLE_6,
-		CONTACTABLE_3,
-		CONTACTABLE_333,
-		CONTACTABLE_666
-	};
-	/// This must return the proper eChContactableType enum, for allowing
-	/// a faster collision dispatcher in ChContactContainer classes (this enum
-	/// will be used instead of slow dynamic_cast<> to infer the type of ChContactable,
-	/// if possible)
-	virtual eChContactableType GetContactableType() const = 0;
+    /// Enum used for dispatcher optimization instead than rtti
+    enum eChContactableType {
+        CONTACTABLE_UNKNOWN = 0,  ///< unknown contactable type
+        CONTACTABLE_6,            ///< 1 variable with 6 DOFs (e.g., ChBody, ChNodeFEAxyzrot)
+        CONTACTABLE_3,            ///< 1 variable with 3 DOFS (e.g., ChNodeFEAxyz, ChAparticle)
+        CONTACTABLE_333,          ///< 3 variables, each with 3 DOFs (e.g., triangle between 3 ChNodeFEAxyz nodes)
+        CONTACTABLE_666           ///< 3 variables, each with 6 DOFs (e.g., triangle between 3 ChNodeFEAxyzrot nodes)
+    };
 
+    /// This must return the proper eChContactableType enum, for allowing
+    /// a faster collision dispatcher in ChContactContainer classes (this enum
+    /// will be used instead of slow dynamic_cast<> to infer the type of ChContactable,
+    /// if possible)
+    virtual eChContactableType GetContactableType() const = 0;
 };
 
 // Note that template T1 is the number of DOFs in the referenced ChVariable, 

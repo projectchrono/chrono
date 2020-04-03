@@ -51,7 +51,7 @@ class CH_MODELS_API UAZBUS_SAEVehicle : public ChWheeledVehicle {
   public:
     UAZBUS_SAEVehicle(const bool fixed = false,
                       SteeringType steering_model = SteeringType::PITMAN_ARM,
-                      ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,
+                      ChContactMethod contact_method = ChContactMethod::NSC,
                       ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
 
     UAZBUS_SAEVehicle(ChSystem* system,

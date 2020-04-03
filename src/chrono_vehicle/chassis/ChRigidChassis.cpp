@@ -45,29 +45,14 @@ void ChRigidChassis::Initialize(ChSystem* system,
     // Invoke the base class method to construct the frame body.
     ChChassis::Initialize(system, chassisPos, chassisFwdVel);
 
-    // Set chassis body contact material properties.
-    switch (m_body->GetContactMethod()) {
-        case ChMaterialSurface::NSC:
-            m_body->GetMaterialSurfaceNSC()->SetFriction(m_friction);
-            m_body->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
-            break;
-        case ChMaterialSurface::SMC:
-            m_body->GetMaterialSurfaceSMC()->SetFriction(m_friction);
-            m_body->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
-            m_body->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);
-            m_body->GetMaterialSurfaceSMC()->SetPoissonRatio(m_poisson_ratio);
-            m_body->GetMaterialSurfaceSMC()->SetKn(m_kn);
-            m_body->GetMaterialSurfaceSMC()->SetGn(m_gn);
-            m_body->GetMaterialSurfaceSMC()->SetKt(m_kt);
-            m_body->GetMaterialSurfaceSMC()->SetGt(m_gt);
-            break;
-    }
-
     // If collision shapes were defined, create the contact geometry and enable contact
     // for the chassis's rigid body.
     // NOTE: setting the collision family is deferred to the containing vehicle system
     // (which can also disable contact between the chassis and certain vehicle subsystems).
     if (m_has_collision) {
+        auto contact_method = system->GetContactMethod();
+        CreateContactMaterials(contact_method);
+
         m_body->SetCollide(true);
 
         m_body->GetCollisionModel()->ClearModel();
@@ -75,21 +60,29 @@ void ChRigidChassis::Initialize(ChSystem* system,
         m_body->GetCollisionModel()->SetFamily(collision_family);
 
         for (auto sphere : m_coll_spheres) {
-            m_body->GetCollisionModel()->AddSphere(sphere.m_radius, sphere.m_pos);
+            assert(m_materials[sphere.m_matID] && m_materials[sphere.m_matID]->GetContactMethod() == contact_method);
+            m_body->GetCollisionModel()->AddSphere(m_materials[sphere.m_matID], sphere.m_radius, sphere.m_pos);
         }
         for (auto box : m_coll_boxes) {
+            assert(m_materials[box.m_matID] && m_materials[box.m_matID]->GetContactMethod() == contact_method);
             ChVector<> hdims = box.m_dims / 2;
-            m_body->GetCollisionModel()->AddBox(hdims.x(), hdims.y(), hdims.z(), box.m_pos, box.m_rot);
+            m_body->GetCollisionModel()->AddBox(m_materials[box.m_matID], hdims.x(), hdims.y(), hdims.z(), box.m_pos,
+                                                box.m_rot);
         }
         for (auto cyl : m_coll_cylinders) {
-            m_body->GetCollisionModel()->AddCylinder(cyl.m_radius, cyl.m_radius, cyl.m_length / 2, cyl.m_pos, cyl.m_rot);
+            assert(m_materials[cyl.m_matID] && m_materials[cyl.m_matID]->GetContactMethod() == contact_method);
+            m_body->GetCollisionModel()->AddCylinder(m_materials[cyl.m_matID], cyl.m_radius, cyl.m_radius,
+                                                     cyl.m_length / 2,
+                                                     cyl.m_pos, cyl.m_rot);
         }
-        for (auto mesh_name : m_coll_mesh_names) {
+        for (auto hulls_group : m_coll_hulls) {
+            assert(m_materials[hulls_group.m_matID] &&
+                   m_materials[hulls_group.m_matID]->GetContactMethod() == contact_method);
             geometry::ChTriangleMeshConnected mesh;
             std::vector<std::vector<ChVector<>>> hulls;
-            utils::LoadConvexHulls(vehicle::GetDataFile(mesh_name), mesh, hulls);
+            utils::LoadConvexHulls(vehicle::GetDataFile(hulls_group.m_filename), mesh, hulls);
             for (int c = 0; c < hulls.size(); c++) {
-                m_body->GetCollisionModel()->AddConvexHull(hulls[c]);
+                m_body->GetCollisionModel()->AddConvexHull(m_materials[hulls_group.m_matID], hulls[c]);
             }
         }
         m_body->GetCollisionModel()->BuildModel();

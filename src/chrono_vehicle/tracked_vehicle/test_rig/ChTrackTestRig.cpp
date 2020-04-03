@@ -82,9 +82,7 @@ ChTrackTestRigChassis::ChTrackTestRigChassis() : ChRigidChassis("Ground") {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChTrackTestRig::ChTrackTestRig(const std::string& filename,
-                               bool create_track,
-                               ChMaterialSurface::ContactMethod contact_method)
+ChTrackTestRig::ChTrackTestRig(const std::string& filename, bool create_track, ChContactMethod contact_method)
     : ChVehicle("TrackTestRig", contact_method),
       m_create_track(create_track),
       m_ride_height(-1),
@@ -127,7 +125,7 @@ ChTrackTestRig::ChTrackTestRig(const std::string& filename,
 
 ChTrackTestRig::ChTrackTestRig(std::shared_ptr<ChTrackAssembly> assembly,
                                bool create_track,
-                               ChMaterialSurface::ContactMethod contact_method)
+                               ChContactMethod contact_method)
     : ChVehicle("TrackTestRig", contact_method),
       m_create_track(create_track),
       m_track(assembly),
@@ -153,6 +151,11 @@ ChTrackTestRig::~ChTrackTestRig() {
 }
 
 void ChTrackTestRig::Create() {
+    // Create a contact material for the posts (shared)
+    //// TODO: are default material properties ok?
+    MaterialInfo minfo;
+    auto post_mat = minfo.CreateMaterial(m_system->GetContactMethod());
+
     // Create the chassis subsystem
     m_chassis = chrono_types::make_shared<ChTrackTestRigChassis>();
     m_chassis->Initialize(m_system, ChCoordsys<>(), 0);
@@ -191,7 +194,7 @@ void ChTrackTestRig::Create() {
         m_system->Add(post);
 
         post->GetCollisionModel()->ClearModel();
-        post->GetCollisionModel()->AddCylinder(m_post_radius, m_post_radius, m_post_hheight,
+        post->GetCollisionModel()->AddCylinder(post_mat, m_post_radius, m_post_radius, m_post_hheight,
                                                ChVector<>(0, 0, -m_post_hheight),
                                                ChMatrix33<>(Q_from_AngX(CH_C_PI / 2)));
         post->GetCollisionModel()->BuildModel();

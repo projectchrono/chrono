@@ -23,7 +23,7 @@
 #include <algorithm>
 #include <limits>
 
-#include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/collision/ChCollisionModel.h"
 #include "chrono/core/ChFrame.h"
 #include "chrono/core/ChMatrix.h"
 #include "chrono/solver/ChKblockGeneric.h"
@@ -57,13 +57,14 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
   public:
     ChContactSMC() : m_Jac(NULL) {}
 
-    ChContactSMC(ChContactContainer* mcontainer,      ///< contact container
-                 Ta* mobjA,                               ///< collidable object A
-                 Tb* mobjB,                               ///< collidable object B
-                 const collision::ChCollisionInfo& cinfo  ///< data for the contact pair
+    ChContactSMC(ChContactContainer* mcontainer,           ///< contact container
+                 Ta* mobjA,                                ///< collidable object A
+                 Tb* mobjB,                                ///< collidable object B
+                 const collision::ChCollisionInfo& cinfo,  ///< data for the collision pair
+                 const ChMaterialCompositeSMC& mat         ///< composite material
                  )
         : ChContactTuple<Ta, Tb>(mcontainer, mobjA, mobjB, cinfo), m_Jac(NULL) {
-        Reset(mobjA, mobjB, cinfo);
+        Reset(mobjA, mobjB, cinfo, mat);
     }
 
     ~ChContactSMC() { delete m_Jac; }
@@ -82,27 +83,17 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
     const ChMatrixDynamic<double>* GetJacobianK() const { return m_Jac ? &(m_Jac->m_K) : NULL; }
     const ChMatrixDynamic<double>* GetJacobianR() const { return m_Jac ? &(m_Jac->m_R) : NULL; }
 
-    /// Reinitialize this contact.
-    virtual void Reset(Ta* mobjA,                               ///< collidable object A
-                       Tb* mobjB,                               ///< collidable object B
-                       const collision::ChCollisionInfo& cinfo  ///< data for the contact pair
-                       ) override {
-        // Inherit base class.
-        ChContactTuple<Ta, Tb>::Reset(mobjA, mobjB, cinfo);
+    /// Reinitialize this contact for reuse.
+    void Reset(Ta* mobjA,                                ///< collidable object A
+               Tb* mobjB,                                ///< collidable object B
+               const collision::ChCollisionInfo& cinfo,  ///< data for the collision pair
+               const ChMaterialCompositeSMC& mat         ///< composite material
+    ) {
+        // Reset geometric information
+        this->Reset_cinfo(mobjA, mobjB, cinfo);
 
         // Note: cinfo.distance is the same as this->norm_dist.
         assert(cinfo.distance < 0);
-
-        // Calculate composite material properties
-        ChMaterialCompositeSMC mat(
-            this->container->GetSystem()->composition_strategy.get(),
-            std::static_pointer_cast<ChMaterialSurfaceSMC>(this->objA->GetMaterialSurface()),
-            std::static_pointer_cast<ChMaterialSurfaceSMC>(this->objB->GetMaterialSurface()));
-
-        // Check for a user-provided callback to modify the material
-        if (this->container->GetAddContactCallback()) {
-            this->container->GetAddContactCallback()->OnAddContact(cinfo, &mat);
-        }
 
         // Calculate contact force.
         m_force = CalculateForce(-this->norm_dist,                            // overlap (here, always positive)

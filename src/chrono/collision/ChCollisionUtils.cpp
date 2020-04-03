@@ -16,7 +16,7 @@
 #include <cfloat>
 #include <memory.h>
 
-#include "chrono/collision/ChCCollisionUtils.h"
+#include "chrono/collision/ChCollisionUtils.h"
 #include "chrono/core/ChGlobal.h"
 #include "chrono/core/ChTransform.h"
 #include "chrono/geometry/ChBox.h"

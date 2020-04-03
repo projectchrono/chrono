@@ -10,7 +10,7 @@
 //
 // =============================================================================
 
-#include "chrono/collision/ChCCollisionInfo.h"
+#include "chrono/collision/ChCollisionInfo.h"
 
 namespace chrono {
 namespace collision {
@@ -20,6 +20,8 @@ static double default_eff_radius = 0.1;
 ChCollisionInfo::ChCollisionInfo()
     : modelA(nullptr),
       modelB(nullptr),
+      shapeA(nullptr),
+      shapeB(nullptr),
       vpA(VNULL),
       vpB(VNULL),
       vN(ChVector<>(1, 0, 0)),
@@ -31,6 +33,8 @@ ChCollisionInfo::ChCollisionInfo(const ChCollisionInfo& other, const bool swap) 
     if (!swap) {
         modelA = other.modelA;
         modelB = other.modelB;
+        shapeA = other.shapeA;
+        shapeB = other.shapeB;
         vpA = other.vpA;
         vpB = other.vpB;
         vN = other.vN;
@@ -38,6 +42,8 @@ ChCollisionInfo::ChCollisionInfo(const ChCollisionInfo& other, const bool swap) 
         // copy by swapping models
         modelA = other.modelB;
         modelB = other.modelA;
+        shapeA = other.shapeB;
+        shapeB = other.shapeA;
         vpA = other.vpB;
         vpB = other.vpA;
         vN = -other.vN;

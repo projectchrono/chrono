@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Nic Olsen
+// Authors: Nic Olsen, Radu Serban
 // =============================================================================
 
 #include <mpi.h>
@@ -23,7 +23,6 @@
 #include "chrono_distributed/collision/ChCollisionModelDistributed.h"
 #include "chrono_distributed/collision/ChCollisionSystemDistributed.h"
 #include "chrono_distributed/comm/ChCommDistributed.h"
-#include "chrono_distributed/other_types.h"
 #include "chrono_distributed/physics/ChSystemDistributed.h"
 
 #include "chrono_parallel/ChDataManager.h"
@@ -45,16 +44,15 @@ ChCommDistributed::ChCommDistributed(ChSystemDistributed* my_sys) {
 
     /* Create and Commit all custom MPI Data Types */
     // Exchange
-    MPI_Datatype type_exchange[5] = {MPI_UNSIGNED, MPI_BYTE, MPI_DOUBLE, MPI_FLOAT, MPI_INT};
-    int blocklen_exchange[5] = {1, 1, 20, 6, 1};
-    MPI_Aint disp_exchange[5];
+    MPI_Datatype type_exchange[4] = {MPI_UNSIGNED, MPI_BYTE, MPI_DOUBLE, MPI_INT};
+    int blocklen_exchange[4] = {1, 1, 20, 1};
+    MPI_Aint disp_exchange[4];
     disp_exchange[0] = offsetof(BodyExchange, gid);
     disp_exchange[1] = offsetof(BodyExchange, collide);
     disp_exchange[2] = offsetof(BodyExchange, pos);
-    disp_exchange[3] = offsetof(BodyExchange, mu);
-    disp_exchange[4] = offsetof(BodyExchange, identifier);
+    disp_exchange[3] = offsetof(BodyExchange, identifier);
     MPI_Datatype temp_type;
-    MPI_Type_create_struct(5, blocklen_exchange, disp_exchange, type_exchange, &temp_type);
+    MPI_Type_create_struct(4, blocklen_exchange, disp_exchange, type_exchange, &temp_type);
     MPI_Aint lb, extent;
     MPI_Type_get_extent(temp_type, &lb, &extent);
     MPI_Type_create_resized(temp_type, lb, extent, &BodyExchangeType);
@@ -71,16 +69,16 @@ ChCommDistributed::ChCommDistributed(ChSystemDistributed* my_sys) {
     MPI_Type_commit(&BodyUpdateType);
 
     // Shape
-    MPI_Datatype type_shape[4] = {MPI_UNSIGNED, MPI_INT, MPI_SHORT, MPI_DOUBLE};
-    int blocklen_shape[4] = {1, 1, 2, 13};
-    MPI_Aint disp_shape[4];
+    MPI_Datatype type_shape[5] = {MPI_UNSIGNED, MPI_INT, MPI_SHORT, MPI_DOUBLE, MPI_FLOAT};
+    int blocklen_shape[5] = {1, 1, 2, 13, 6};
+    MPI_Aint disp_shape[5];
     disp_shape[0] = offsetof(Shape, gid);
     disp_shape[1] = offsetof(Shape, type);
     disp_shape[2] = offsetof(Shape, coll_fam);
     disp_shape[3] = offsetof(Shape, A);
-
+    disp_shape[4] = offsetof(Shape, mu);
     MPI_Datatype temp_type_s;
-    MPI_Type_create_struct(4, blocklen_shape, disp_shape, type_shape, &temp_type_s);
+    MPI_Type_create_struct(5, blocklen_shape, disp_shape, type_shape, &temp_type_s);
     MPI_Aint lb_s, extent_s;
     MPI_Type_get_extent(temp_type_s, &lb_s, &extent_s);
     MPI_Type_create_resized(temp_type_s, lb_s, extent_s, &ShapeType);
@@ -110,7 +108,7 @@ void ChCommDistributed::ProcessExchanges(int num_recv, BodyExchange* buf, int up
         // If there are no empty spaces in the data manager, create
         // a new body to add
         if (ddm->first_empty == data_manager->num_rigid_bodies) {
-            body = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
+            body = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelDistributed>());
             body->SetId(data_manager->num_rigid_bodies);
         }
         // If an empty space was found in the body manager
@@ -186,6 +184,9 @@ void ChCommDistributed::ProcessShapes(int num_recv, Shape* buf) {
     int n = 0;
     uint gid;
 
+    ChSystemSMC::AdhesionForceModel adhesion_model = ddm->data_manager->settings.solver.adhesion_force_model;
+    bool use_material_properties = ddm->data_manager->settings.solver.use_material_properties;
+
     // Each iteration handles all shapes for a single body
     while (n < num_recv) {
         gid = (buf + n)->gid;
@@ -205,27 +206,51 @@ void ChCommDistributed::ProcessShapes(int num_recv, Shape* buf) {
 
         // Each iteration handles a single shape for the body
         while (n < num_recv && (buf + n)->gid == gid) {
-            ChVector<double> A((buf + n)->A[0], (buf + n)->A[1], (buf + n)->A[2]);
-            rot = (buf + n)->R;
-            data = (buf + n)->data;
+            ChVector<double> A((buf + n)->A[0], (buf + n)->A[1], (buf + n)->A[2]);  // shape position
+            rot = (buf + n)->R;                                                     // quaternion
+            data = (buf + n)->data;                                                 // shape-specific geometric data
+
+            // Create the contact material
+            auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            material->SetFriction((buf + n)->mu);
+            switch (adhesion_model) {
+                case ChSystemSMC::Constant:
+                    material->SetAdhesion((buf + n)->cohesion);
+                    break;
+                case ChSystemSMC::DMT:
+                    material->SetAdhesionMultDMT((buf + n)->cohesion);
+                    break;
+            }
+            if (use_material_properties) {
+                material->SetYoungModulus((buf + n)->ym_kn);
+                material->SetPoissonRatio((buf + n)->pr_kt);
+                material->SetRestitution((buf + n)->restit_gn);
+            } else {
+                material->SetKn((buf + n)->ym_kn);
+                material->SetKt((buf + n)->pr_kt);
+                material->SetGn((buf + n)->restit_gn);
+                material->SetGt((buf + n)->gt);
+            }
 
             switch ((buf + n)->type) {
-                case chrono::collision::SPHERE:
-                    body->GetCollisionModel()->AddSphere(data[0], A);
+                case ChCollisionShape::Type::SPHERE:
+                    body->GetCollisionModel()->AddSphere(material, data[0], A);
                     break;
-                case chrono::collision::BOX:
-
-                    body->GetCollisionModel()->AddBox(data[0], data[1], data[2], A,
+                case ChCollisionShape::Type::BOX:
+                    body->GetCollisionModel()->AddBox(material, data[0], data[1], data[2], A,
                                                       ChMatrix33<>(ChQuaternion<>(rot[0], rot[1], rot[2], rot[3])));
                     break;
-                case chrono::collision::TRIANGLEMESH:
+                case ChCollisionShape::Type::TRIANGLEMESH:
+                    //// RADU:  why this cast here?
                     std::static_pointer_cast<ChCollisionModelDistributed>(body->GetCollisionModel())
-                        ->AddTriangle(A, ChVector<>(data[0], data[1], data[2]), ChVector<>(data[3], data[4], data[5]),
-                                      ChVector<>(0, 0, 0), ChQuaternion<>(rot[0], rot[1], rot[2], rot[3]));
+                        ->AddTriangle(material, A, ChVector<>(data[0], data[1], data[2]),
+                                      ChVector<>(data[3], data[4], data[5]), ChVector<>(0, 0, 0),
+                                      ChQuaternion<>(rot[0], rot[1], rot[2], rot[3]));
                     break;
-                case chrono::collision::ELLIPSOID:
+                case ChCollisionShape::Type::ELLIPSOID:
                     body->GetCollisionModel()->AddEllipsoid(
-                        data[0], data[1], data[2], A, ChMatrix33<>(ChQuaternion<>(rot[0], rot[1], rot[2], rot[3])));
+                        material, data[0], data[1], data[2], A,
+                        ChMatrix33<>(ChQuaternion<>(rot[0], rot[1], rot[2], rot[3])));
                     break;
                 default:
                     GetLog() << "Error: gid " << gid << " rank " << my_sys->my_rank << " type " << (buf + n)->type
@@ -415,14 +440,14 @@ void ChCommDistributed::Exchange() {
         }      // End of update take loop
     }          // End of parallel sections
 
-    //MPI_Status status_exchange_up;
-    //MPI_Status status_exchange_down;
-    //MPI_Status status_update_up;
-    //MPI_Status status_update_down;
-    //MPI_Status status_take_up;
-    //MPI_Status status_take_down;
-    //MPI_Status status_shapes_up;
-    //MPI_Status status_shapes_down;
+    // MPI_Status status_exchange_up;
+    // MPI_Status status_exchange_down;
+    // MPI_Status status_update_up;
+    // MPI_Status status_update_down;
+    // MPI_Status status_take_up;
+    // MPI_Status status_take_down;
+    // MPI_Status status_shapes_up;
+    // MPI_Status status_shapes_down;
 
     MPI_Request rq_exchange_up;
     MPI_Request rq_exchange_down;
@@ -627,10 +652,12 @@ void ChCommDistributed::Exchange() {
         ProcessExchanges(num_recv_exchange_down, recv_exchange_down, 0);
     if (my_rank != num_ranks - 1)
         ProcessExchanges(num_recv_exchange_up, recv_exchange_up, 1);
+
     if (my_rank != 0)
         ProcessUpdates(num_recv_update_down, recv_update_down);
     if (my_rank != num_ranks - 1)
         ProcessUpdates(num_recv_update_up, recv_update_up);
+
     if (my_rank != 0)
         ProcessTakes(num_recv_take_down, recv_take_down);
     if (my_rank != num_ranks - 1)
@@ -730,40 +757,14 @@ void ChCommDistributed::PackExchange(BodyExchange* buf, int index) {
     buf->inertiaXY[1] = inertiaXY.y();
     buf->inertiaXY[2] = inertiaXY.z();
 
-    // Material SMC
-    buf->mu = static_cast<float>(data_manager->host_data.mu[index]);  // Static Friction
-
-    switch (data_manager->settings.solver.adhesion_force_model) {
-        case ChSystemSMC::Constant:
-            // constant adhesion/cohesion
-            buf->cohesion = static_cast<float>(data_manager->host_data.cohesion_data[index]);
-            break;
-        case ChSystemSMC::DMT:
-            // Derjagin-Muller-Toropov coefficient
-            buf->cohesion = static_cast<float>(data_manager->host_data.adhesionMultDMT_data[index]);  
-            break;
-    }
-
-    if (data_manager->settings.solver.use_material_properties) {
-        // Young's modulus, Poisson ratio, and coefficient of restitution
-        buf->ym_kn = static_cast<float>(data_manager->host_data.elastic_moduli[index].x);
-        buf->pr_kt = static_cast<float>(data_manager->host_data.elastic_moduli[index].y);
-        buf->restit_gn = static_cast<float>(data_manager->host_data.cr[index]);
-
-    } else {
-        buf->ym_kn = static_cast<float>(data_manager->host_data.smc_coeffs[index].x);
-        buf->pr_kt = static_cast<float>(data_manager->host_data.smc_coeffs[index].y);
-        buf->restit_gn = static_cast<float>(data_manager->host_data.smc_coeffs[index].z);
-        buf->gt = static_cast<float>(data_manager->host_data.smc_coeffs[index].w);
-    }
+    ////auto body = (*(data_manager->body_list))[index];
 
     // Collision
     buf->collide = data_manager->host_data.collide_rigid[index];
 }
 
-// Unpacks a sphere body from the buffer into body.
-// Note: body is meant to be a ptr into the data structure
-// where the body should be unpacked.
+// Unpacks the buffer into a body.
+// Note: body is meant to be a ptr into the data structure where the body should be unpacked.
 // The body must be in the bodylist already so that GetId is valid
 void ChCommDistributed::UnpackExchange(BodyExchange* buf, std::shared_ptr<ChBody> body) {
     // Global Id
@@ -787,33 +788,6 @@ void ChCommDistributed::UnpackExchange(BodyExchange* buf, std::shared_ptr<ChBody
     body->SetMass(buf->mass);
     body->SetInertiaXX(ChVector<double>(buf->inertiaXX[0], buf->inertiaXX[1], buf->inertiaXX[2]));
     body->SetInertiaXY(ChVector<double>(buf->inertiaXY[0], buf->inertiaXY[1], buf->inertiaXY[2]));
-
-    // Material SMC
-    std::shared_ptr<ChMaterialSurfaceSMC> mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-
-    mat->SetFriction(buf->mu);  // Static Friction
-
-    switch (data_manager->settings.solver.adhesion_force_model) {
-        case ChSystemSMC::Constant:
-            mat->SetAdhesion(buf->cohesion);  // constant adhesion/cohesion
-            break;
-        case ChSystemSMC::DMT:
-            mat->SetAdhesionMultDMT(buf->cohesion);  // Derjagin-Muller-Toropov coefficient
-            break;
-    }
-
-    if (data_manager->settings.solver.use_material_properties) {
-        mat->young_modulus = buf->ym_kn;
-        mat->poisson_ratio = buf->pr_kt;
-        mat->restitution = buf->restit_gn;
-    } else {
-        mat->kn = buf->ym_kn;
-        mat->kt = buf->pr_kt;
-        mat->gn = buf->restit_gn;
-        mat->gt = buf->gt;
-    }
-
-    body->SetMaterialSurface(mat);
 }
 
 // Only packs the essentials for a body update
@@ -865,9 +839,14 @@ int ChCommDistributed::PackShapes(std::vector<Shape>* buf, int index) {
     int shape_count = ddm->body_shape_count[index];
     shape_container& shape_data = data_manager->shape_data;
 
+    auto body = my_sys->bodylist[index];
+    ChSystemSMC::AdhesionForceModel adhesion_model = ddm->data_manager->settings.solver.adhesion_force_model;
+    bool use_material_properties = ddm->data_manager->settings.solver.use_material_properties;
+
     // Pack each shape on the body
     for (int i = 0; i < shape_count; i++) {
         Shape shape;
+
         shape.gid = ddm->global_id[index];
         int shape_index =
             ddm->body_shapes[ddm->body_shape_start[index] + i];  // index of the shape in data_manager->shape_data
@@ -888,16 +867,16 @@ int ChCommDistributed::PackShapes(std::vector<Shape>* buf, int index) {
         shape.coll_fam[0] = shape_data.fam_rigid[shape_index].x;
         shape.coll_fam[1] = shape_data.fam_rigid[shape_index].y;
 
-         switch (type) {
-            case chrono::collision::SPHERE:
+        switch (type) {
+            case ChCollisionShape::Type::SPHERE:
                 shape.data[0] = shape_data.sphere_rigid[start];
                 break;
-            case chrono::collision::BOX:
+            case ChCollisionShape::Type::BOX:
                 shape.data[0] = shape_data.box_like_rigid[start].x;
                 shape.data[1] = shape_data.box_like_rigid[start].y;
                 shape.data[2] = shape_data.box_like_rigid[start].z;
                 break;
-            case chrono::collision::TRIANGLEMESH:
+            case ChCollisionShape::Type::TRIANGLEMESH:
                 // Pack B
                 shape.data[0] = shape_data.triangle_rigid[start + 1].x;
                 shape.data[1] = shape_data.triangle_rigid[start + 1].y;
@@ -908,7 +887,7 @@ int ChCommDistributed::PackShapes(std::vector<Shape>* buf, int index) {
                 shape.data[4] = shape_data.triangle_rigid[start + 2].y;
                 shape.data[5] = shape_data.triangle_rigid[start + 2].z;
                 break;
-            case chrono::collision::ELLIPSOID:
+            case ChCollisionShape::Type::ELLIPSOID:
                 // Pack B
                 shape.data[0] = shape_data.box_like_rigid[start].x;
                 shape.data[1] = shape_data.box_like_rigid[start].y;
@@ -918,6 +897,30 @@ int ChCommDistributed::PackShapes(std::vector<Shape>* buf, int index) {
             default:
                 my_sys->ErrorAbort("Invalid shape for transfer\n");
         }
+
+        // Pack contact material
+        auto material =
+            std::static_pointer_cast<ChMaterialSurfaceSMC>(body->GetCollisionModel()->GetShape(i)->GetMaterial());
+        shape.mu = material->GetSfriction();
+        switch (adhesion_model) {
+            case ChSystemSMC::Constant:
+                shape.cohesion = material->GetAdhesion();
+                break;
+            case ChSystemSMC::DMT:
+                shape.cohesion = material->GetAdhesionMultDMT();
+                break;
+        }
+        if (use_material_properties) {
+            shape.ym_kn = material->GetYoungModulus();
+            shape.pr_kt = material->GetPoissonRatio();
+            shape.restit_gn = material->GetRestitution();
+        } else {
+            shape.ym_kn = material->GetKn();
+            shape.pr_kt = material->GetKt();
+            shape.restit_gn = material->GetGn();
+            shape.gt = material->GetGt();
+        }
+
         buf->push_back(shape);
     }
     return shape_count;

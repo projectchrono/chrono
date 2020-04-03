@@ -12,8 +12,8 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#ifndef CHC_COLLISIONPAIR_H
-#define CHC_COLLISIONPAIR_H
+#ifndef CH_COLLISION_PAIR_H
+#define CH_COLLISION_PAIR_H
 
 #include "chrono/geometry/ChGeometry.h"
 

@@ -23,7 +23,7 @@
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/timestepper/ChTimestepper.h"
 #include "chrono/utils/ChUtilsCreators.h"
-#include "chrono/collision/ChCCollisionSystemBullet.h"
+#include "chrono/collision/ChCollisionSystemBullet.h"
 
 #include "chrono/fea/ChElementBeamEuler.h"
 #include "chrono/fea/ChBuilderBeam.h"
@@ -60,7 +60,6 @@ std::shared_ptr<ChBody> CreateLobedGear (
             )  {
 
     auto mgear = chrono_types::make_shared<ChBody>();
-    mgear->SetMaterialSurface(mysurfmaterial);
     mgear->SetPos(gear_center);
     my_system.Add(mgear);
 
@@ -75,19 +74,21 @@ std::shared_ptr<ChBody> CreateLobedGear (
             mgear.get(), 
             lobe_width*0.5, 
             lobe_thickness*0.5, 
+            mysurfmaterial,
             ChVector<>(lobe_primitive_rad*sin(phase), lobe_primitive_rad*cos(phase),0),
             Q_from_AngAxis(CH_C_PI_2, VECT_X), // rotate cylinder axis: from default on Y axis, to Z axis
             true);    
-        /* 
-        utils::AddBoxGeometry(
-            mgear.get(), 
-            ChVector<>(lobe_width, lobe_outer_rad-lobe_inner_rad, lobe_thickness)*0.5, // half size used in this function 
-            ChVector<>(0.5*(lobe_outer_rad+lobe_inner_rad)*sin(phase), 0.5*(lobe_outer_rad+lobe_inner_rad)*cos(phase),0),
-            Q_from_AngAxis(-phase, VECT_Z), // rotate cylinder axis: from default on Y axis, to Z axis
-            true);
-			*/
+         
+        ////utils::AddBoxGeometry(
+        ////    mgear.get(), ChVector<>(lobe_width, lobe_outer_rad - lobe_inner_rad, lobe_thickness) * 0.5, mysurfmaterial,
+        ////    ChVector<>(0.5 * (lobe_outer_rad + lobe_inner_rad) * sin(phase),
+        ////               0.5 * (lobe_outer_rad + lobe_inner_rad) * cos(phase), 0),
+        ////    Q_from_AngAxis(-phase, VECT_Z),  // rotate cylinder axis: from default on Y axis, to Z axis
+        ////    true);
     }
-    utils::AddCylinderGeometry( mgear.get(), lobe_inner_rad, lobe_thickness*0.5,  ChVector<>(0,0,0), Q_from_AngAxis(CH_C_PI_2, VECT_X), true);
+
+    utils::AddCylinderGeometry(mgear.get(), lobe_inner_rad, lobe_thickness * 0.5, mysurfmaterial, ChVector<>(0, 0, 0),
+                               Q_from_AngAxis(CH_C_PI_2, VECT_X), true);
     mgear->GetCollisionModel()->BuildModel();
     mgear->SetCollide(true);
     

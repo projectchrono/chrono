@@ -41,7 +41,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChTrackAssemblyBandANCF : public ChTrackAssemblyBand {
   public:
     /// Type of the mesh contact surface.
-    enum ContactSurfaceType { NONE, NODE_CLOUD, TRIANGLE_MESH };
+    enum class ContactSurfaceType { NONE, NODE_CLOUD, TRIANGLE_MESH };
 
     /// Construct an ANCFshell-based track assembly on the specified vehicle side.
     ChTrackAssemblyBandANCF(const std::string& name,  ///< [in] name of the subsystem
@@ -86,9 +86,13 @@ class CH_VEHICLE_API ChTrackAssemblyBandANCF : public ChTrackAssemblyBand {
                              double angle_3   ///< fiber angle for top (inner) rubber layer (default: 0 rad)
     );
 
-    ChTrackShoeBandANCFList m_shoes;            ///< track shoes
-    std::shared_ptr<fea::ChMesh> m_track_mesh;  ///< web mesh
-    ContactSurfaceType m_contact_type;          ///< type of contact surface model (node cloud or mesh)
+    /// Create the contact material for the web mesh, consistent with the specified contact method.
+    virtual void CreateContactMaterial(ChContactMethod contact_method) = 0;
+
+    ChTrackShoeBandANCFList m_shoes;                        ///< track shoes
+    std::shared_ptr<fea::ChMesh> m_track_mesh;              ///< web mesh
+    std::shared_ptr<ChMaterialSurface> m_contact_material;  ///< contact material for the web mesh
+    ContactSurfaceType m_contact_type;                      ///< type of contact surface model (node cloud or mesh)
 
   private:
     /// Custom callback class for culling broadphase collisions.

@@ -43,6 +43,8 @@ class CH_MODELS_API Generic_RigidTire : public ChRigidTire {
     virtual ChVector<> GetInertia() const override { return m_inertia; }
 
   private:
+    virtual void CreateContactMaterial(ChContactMethod contact_method) override;
+
     static const double m_radius;
     static const double m_width;
     static const double m_mass;

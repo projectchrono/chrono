@@ -633,23 +633,26 @@ source_group(assets FILES
 # Collision group
 
 set(ChronoEngine_collision_SOURCES
-    collision/ChCCollisionInfo.cpp
-    collision/ChCCollisionModel.cpp
-    collision/ChCModelBullet.cpp
-    collision/ChCCollisionSystemBullet.cpp
-    collision/ChCConvexDecomposition.cpp
-    collision/ChCCollisionUtils.cpp
+    collision/ChCollisionInfo.cpp
+    collision/ChCollisionShape.cpp
+    collision/ChCollisionModel.cpp
+    collision/ChCollisionModelBullet.cpp
+    collision/ChCollisionSystemBullet.cpp
+    collision/ChConvexDecomposition.cpp
+    collision/ChCollisionUtils.cpp
     )
 
 set(ChronoEngine_collision_HEADERS
-    collision/ChCCollisionInfo.h
-    collision/ChCCollisionModel.h
-    collision/ChCCollisionPair.h
-    collision/ChCCollisionSystem.h
-    collision/ChCCollisionSystemBullet.h
-    collision/ChCConvexDecomposition.h
-    collision/ChCModelBullet.h
-    collision/ChCCollisionUtils.h
+    collision/ChCollisionInfo.h
+    collision/ChCollisionShape.h
+    collision/ChCollisionModel.h
+    collision/ChCollisionPair.h
+    collision/ChCollisionSystem.h
+    collision/ChCollisionShapeBullet.h
+    collision/ChCollisionModelBullet.h
+    collision/ChCollisionSystemBullet.h
+    collision/ChConvexDecomposition.h
+    collision/ChCollisionUtils.h
     )
 
 source_group(collision FILES
@@ -1179,6 +1182,7 @@ set(ChronoEngine_utils_HEADERS
     utils/ChFilters.h
     utils/ChCompositeInertia.h
     utils/ChParserOpenSim.h
+    utils/ChParserAdams.h
     utils/ChConvexHull.h
 )
 

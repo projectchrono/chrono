@@ -72,7 +72,7 @@ ChVector<> Articulated_Chassis::GetConnectionPoint() const {
 // -----------------------------------------------------------------------------
 // Front side of the articulated vehicle
 // -----------------------------------------------------------------------------
-Articulated_Front::Articulated_Front(const bool fixed, ChMaterialSurface::ContactMethod contactMethod)
+Articulated_Front::Articulated_Front(const bool fixed, ChContactMethod contactMethod)
     : ChWheeledVehicle("ArticulatedVehicle", contactMethod) {
     // Create the chassis subsystem
     m_chassis = chrono_types::make_shared<Articulated_Chassis>("Chassis", fixed);

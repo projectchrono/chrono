@@ -43,7 +43,7 @@ class ChApi ChMaterialSurfaceNSC : public ChMaterialSurface {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChMaterialSurfaceNSC* Clone() const override { return new ChMaterialSurfaceNSC(*this); }
 
-    virtual ContactMethod GetContactMethod() const override { return NSC; }
+    virtual ChContactMethod GetContactMethod() const override { return ChContactMethod::NSC; }
 
     /// The static friction coefficient.
     /// Usually in 0..1 range, rarely above. Default 0.6
@@ -148,7 +148,7 @@ class ChApi ChMaterialCompositeNSC : public ChMaterialComposite {
 
     ChMaterialCompositeNSC();
 
-    ChMaterialCompositeNSC(ChMaterialCompositionStrategy<float>* strategy,
+    ChMaterialCompositeNSC(ChMaterialCompositionStrategy* strategy,
                            std::shared_ptr<ChMaterialSurfaceNSC> mat1,
                            std::shared_ptr<ChMaterialSurfaceNSC> mat2);
 };

@@ -136,6 +136,7 @@ array_pos    = []
 array_speed  = []
 
 myapplication.SetTimestep(0.005)
+myapplication.SetTryRealtime(True)
 
 # Run the interactive simulation loop
 while(myapplication.GetDevice().run()):

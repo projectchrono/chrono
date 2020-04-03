@@ -66,14 +66,13 @@ class ChMPMContainer;
 class ChFLIPContainer;
 class ChConstraintRigidRigid;
 class ChConstraintBilateral;
-template <typename T>
 class ChMaterialCompositionStrategy;
 
 namespace collision {
 class ChCBroadphase;           // forward declaration
 class ChCNarrowphaseDispatch;  // forward declaration
 class ChCAABBGenerator;        // forward declaration
-}
+}  // namespace collision
 
 #if BLAZE_MAJOR_VERSION == 2
 typedef blaze::SparseSubmatrix<CompressedMatrix<real>> SubMatrixType;
@@ -207,21 +206,23 @@ typedef blaze::Subvector<const DynamicVector<real>> ConstSubVectorType;
 
 /// Structure of arrays containing contact shape information.
 struct shape_container {
-    custom_vector<short2> fam_rigid;      ///< Family information
-    custom_vector<uint> id_rigid;         ///< Body identifier for each shape
-    custom_vector<int> typ_rigid;         ///< Shape type
-    custom_vector<int> start_rigid;       ///< Index for shape start
-    custom_vector<int> length_rigid;      ///< Usually 1, except for convex
+    custom_vector<short2> fam_rigid;  ///< family information
+    custom_vector<uint> id_rigid;     ///< ID of associated body
+    custom_vector<int> typ_rigid;     ///< shape type
+    custom_vector<int> local_rigid;   ///< local shape index in collision model of associated body
+    custom_vector<int> start_rigid;   ///< start index in the appropriate container of dimensions
+    custom_vector<int> length_rigid;  ///< usually 1, except for convex
+
     custom_vector<quaternion> ObR_rigid;  ///< Shape rotation
     custom_vector<real3> ObA_rigid;       ///< Position of shape
 
-    custom_vector<real> sphere_rigid;
-    custom_vector<real3> box_like_rigid;
-    custom_vector<real3> triangle_rigid;
-    custom_vector<real2> capsule_rigid;
-    custom_vector<real4> rbox_like_rigid;
-    custom_vector<real3> convex_rigid;
-    custom_vector<int> tetrahedron_rigid;
+    custom_vector<real> sphere_rigid;      ///< radius for sphere shapes
+    custom_vector<real3> box_like_rigid;   ///< dimensions for box-like shapes
+    custom_vector<real3> triangle_rigid;   ///< vertices of all triangle shapes (3 per shape)
+    custom_vector<real2> capsule_rigid;    ///< radius and half-length for capsule shapes
+    custom_vector<real4> rbox_like_rigid;  ///< dimensions and radius for rbox-like shapes
+    custom_vector<real3> convex_rigid;     ///<
+    custom_vector<int> tetrahedron_rigid;  ///<
 
     custom_vector<real3> triangle_global;
     custom_vector<real3> obj_data_A_global;
@@ -293,28 +294,39 @@ struct host_container {
     custom_vector<real3> ct_body_torque;  ///< Total contact torque on these bodies
 
     // Contact shear history (SMC)
-    custom_vector<vec3> shear_neigh;  ///< Neighbor list of contacting bodies and shapes
-    custom_vector<real3> shear_disp;  ///< Accumulated shear displacement for each neighbor
+    custom_vector<vec3> shear_neigh;          ///< Neighbor list of contacting bodies and shapes
+    custom_vector<real3> shear_disp;          ///< Accumulated shear displacement for each neighbor
     custom_vector<real> contact_relvel_init;  ///< Initial relative normal velocity manitude per contact pair
-    custom_vector<real> contact_duration;  ///< Accumulated contact duration, per contact pair
+    custom_vector<real> contact_duration;     ///< Accumulated contact duration, per contact pair
 
     /// Mapping from all bodies in the system to bodies involved in a contact.
     /// For bodies that are currently not in contact, the mapping entry is -1.
     /// Otherwise, the mapping holds the appropriate index in the vectors above.
     custom_vector<int> ct_body_map;
 
-    /// This vector holds the friction information as a triplet:
+    /// This vector holds the friction information (composite material) as a triplet:
     /// x - Sliding friction,
     /// y - Rolling friction,
     /// z - Spinning Friction.
     /// This is precomputed at every timestep for all contacts in parallel.
     /// Improves performance and reduces conditionals later on.
+    // Used for both NSC and SMC contacts.
     custom_vector<real3> fric_rigid_rigid;
-    /// Holds the cohesion value for each contact.
+
+    /// Holds the cohesion value (composite material) for each contact.
     /// Similar to friction this is precomputed for all contacts in parallel.
+    /// Used for NSC only.
     custom_vector<real> coh_rigid_rigid;
-    /// Precomputed compliance values for all contacts.
+
+    /// Precomputed compliance (composite material) values for all contacts.
+    /// Used for NSC only.
     custom_vector<real4> compliance_rigid_rigid;
+
+    /// Precomputed composite material quantities for SMC only
+    custom_vector<real2> modulus_rigid_rigid;   ///< E_eff and G_eff
+    custom_vector<real3> adhesion_rigid_rigid;  ///< adhesion_eff, adhesionMultDMT_eff, and adhesionSPerko_eff
+    custom_vector<real> cr_rigid_rigid;         ///< cr_eff (effective coefficient of restitution)
+    custom_vector<real4> smc_rigid_rigid;       ///< kn, kt, gn, gt
 
     // Object data
     custom_vector<real3> pos_rigid;
@@ -340,7 +352,7 @@ struct host_container {
     custom_vector<uint> boundary_element_fea;
     custom_vector<short2> boundary_family_fea;
 
-    /// Bilateral constraint type (all supported constraints).
+    /// Bilateral constraint type (all supported constraints)
     custom_vector<int> bilateral_type;
 
     /// Keeps track of active bilateral constraints.
@@ -351,30 +363,9 @@ struct host_container {
     custom_vector<real> shaft_inr;     ///< shaft inverse inertias
     custom_vector<char> shaft_active;  ///< shaft active (not sleeping nor fixed) flags
 
-    // Material properties (NSC)
-    custom_vector<real3> fric_data;        ///< friction information (sliding, rolling, spinning)
-    custom_vector<real> cohesion_data;     ///< constant cohesion forces (NSC and SMC)
-    custom_vector<real4> compliance_data;  ///< compliance (NSC only)
-
-    // Material properties (SMC)
-    custom_vector<real2> elastic_moduli;       ///< Young's modulus and Poisson ratio (SMC only)
-    custom_vector<real> mu;                    ///< Coefficient of friction (SMC only)
-    custom_vector<real> muRoll;                ///< Coefficient of rolling friction (SMC only)
-    custom_vector<real> muSpin;                ///< Coefficient of spinning friction (SMC only)
-    custom_vector<real> cr;                    ///< Coefficient of restitution (SMC only)
-    custom_vector<real4> smc_coeffs;           ///< Stiffness and damping coefficients (SMC only)
-    custom_vector<real> adhesionMultDMT_data;  ///< Adhesion multipliers used in DMT model (SMC only)
-    custom_vector<real> adhesionSPerko_data;   ///< Adhesion multipliers used in Perko model (SMC only)
-
-    // Derjaguin-Muller-Toporov (DMT) model:
-    // adhesion = adhesionMult * Sqrt(R_eff). Given the surface energy, w,
-    //    adhesionMult = 2 * CH_C_PI * w * Sqrt(R_eff).
-    // Given the equilibrium penetration distance, y_eq,
-    //    adhesionMult = 4.0 / 3.0 * E_eff * powf(y_eq, 1.5)
-    // Perko et al. (2001) (Perko) model:
-    //    adhesion = adhesionSPerko * R_eff
-    // with adhesionSPerko depending on the Hamaker constant A and a measure of cleanliness S.
-    // For lunar regolith, adhesionSPerko = 3.6E-2 * S^2
+    // Material properties (NSC, only for fluid-rigid and FEA-rigid contacts)
+    custom_vector<float> sliding_friction;  ///< sliding coefficients of friction
+    custom_vector<float> cohesion;          ///< constant cohesion forces
 
     /// This matrix, if used will hold D^TxM^-1xD in sparse form.
     CompressedMatrix<real> Nshur;
@@ -479,7 +470,7 @@ class CH_PARALLEL_API ChParallelDataManager {
     measures_container measures;
 
     /// Material composition strategy.
-    std::unique_ptr<ChMaterialCompositionStrategy<real>> composition_strategy;
+    std::unique_ptr<ChMaterialCompositionStrategy> composition_strategy;
 
     /// User-provided callback for overriding coposite material properties.
     ChContactContainer::AddContactCallback* add_contact_callback;

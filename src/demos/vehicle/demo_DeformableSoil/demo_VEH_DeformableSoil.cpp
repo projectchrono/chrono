@@ -116,8 +116,10 @@ int main(int argc, char* argv[]) {
     mrigidmesh->SetMesh(trimesh);
     mrigidbody->AddAsset(mrigidmesh);
 
+    auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+
     mrigidbody->GetCollisionModel()->ClearModel();
-    mrigidbody->GetCollisionModel()->AddTriangleMesh(trimesh, false, false, VNULL, ChMatrix33<>(1), 0.01);
+    mrigidbody->GetCollisionModel()->AddTriangleMesh(material, trimesh, false, false, VNULL, ChMatrix33<>(1), 0.01);
     mrigidbody->GetCollisionModel()->BuildModel();
     mrigidbody->SetCollide(true);
 

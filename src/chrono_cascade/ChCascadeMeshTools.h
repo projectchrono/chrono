@@ -79,7 +79,7 @@ class ChApiCASCADE ChCascadeMeshTools {
 
 /// @} cascade_module
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace cascade
+}  // end namespace chrono
 
 #endif  // END of header

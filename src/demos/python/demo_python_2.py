@@ -18,6 +18,11 @@ import pychrono as chrono
 # Create a physical system,
 my_system = chrono.ChSystemNSC()
 
+# Create a contact material, shared by all collision shapes
+material = chrono.ChMaterialSurfaceNSC()
+material.SetFriction(0.3)
+material.SetCompliance(0)
+
 # Add two bodies
 my_shbodyA = chrono.ChBody()
 my_shbodyA.SetMass(20)
@@ -25,14 +30,14 @@ my_shbodyA.SetName('BodyA')
 my_shbodyA.SetInertiaXX( chrono.ChVectorD(10,10,10) )
 print (my_shbodyA.GetInertia() )
 my_shbodyA.SetPos(chrono.ChVectorD(1,-1,0))
-my_shbodyA.GetCollisionModel().AddBox(10,1,10)
+my_shbodyA.GetCollisionModel().AddBox(material,10,1,10)
 my_shbodyA.SetBodyFixed(True)
 my_shbodyA.SetCollide(True)
 
 my_shbodyB = chrono.ChBody()
 my_shbodyB.SetName('BodyB')
 my_shbodyB.SetPos(chrono.ChVectorD(0,2,0))
-my_shbodyB.GetCollisionModel().AddBox(1,1,1)
+my_shbodyB.GetCollisionModel().AddBox(material,1,1,1)
 my_shbodyB.SetCollide(True)
 
 my_shmarker = chrono.ChMarker()
@@ -44,12 +49,6 @@ my_shbodyB.AddMarker(my_shmarker)
 my_system.Add(my_shbodyA)
 my_system.Add(my_shbodyB)
 
-# Define surface material(s)
-my_shmaterial = chrono.ChMaterialSurfaceNSC()
-my_shmaterial.SetFriction(0.3)
-my_shmaterial.SetCompliance(0)
-my_shbodyA.SetMaterialSurface(my_shmaterial)
-my_shbodyB.SetMaterialSurface(my_shmaterial)
 
 
 # Add Contact callback (TO FIX!!)

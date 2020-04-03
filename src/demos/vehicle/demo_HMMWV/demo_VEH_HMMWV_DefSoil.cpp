@@ -148,14 +148,14 @@ class MyDriver : public ChDriver {
 
 // =============================================================================
 
-void CreateLuggedGeometry(std::shared_ptr<ChBody> wheelBody) {
+void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<ChMaterialSurfaceSMC> wheel_material) {
     std::string lugged_file("hmmwv/lugged_wheel_section.obj");
     geometry::ChTriangleMeshConnected lugged_mesh;
     ChConvexDecompositionHACDv2 lugged_convex;
     utils::LoadConvexMesh(vehicle::GetDataFile(lugged_file), lugged_mesh, lugged_convex);
     int num_hulls = lugged_convex.GetHullCount();
 
-    auto coll_model = wheelBody->GetCollisionModel();
+    auto coll_model = wheel_body->GetCollisionModel();
     coll_model->ClearModel();
 
     // Assemble the tire contact from 15 segments, properly offset.
@@ -165,12 +165,12 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheelBody) {
         for (int ihull = 0; ihull < num_hulls; ihull++) {
             std::vector<ChVector<> > convexhull;
             lugged_convex.GetConvexHullResult(ihull, convexhull);
-            coll_model->AddConvexHull(convexhull, VNULL, rot);
+            coll_model->AddConvexHull(wheel_material, convexhull, VNULL, rot);
         }
     }
 
     // Add a cylinder to represent the wheel hub.
-    coll_model->AddCylinder(0.223, 0.223, 0.126);
+    coll_model->AddCylinder(wheel_material, 0.223, 0.223, 0.126);
     coll_model->BuildModel();
 
     // Visualization
@@ -180,10 +180,10 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheelBody) {
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName("lugged_wheel");
-    wheelBody->AddAsset(trimesh_shape);
+    wheel_body->AddAsset(trimesh_shape);
 
     auto mcolor = chrono_types::make_shared<ChColorAsset>(0.3f, 0.3f, 0.3f);
-    wheelBody->AddAsset(mcolor);
+    wheel_body->AddAsset(mcolor);
 }
 
 // =============================================================================
@@ -195,7 +195,7 @@ int main(int argc, char* argv[]) {
     // Create HMMWV vehicle
     // --------------------
     HMMWV_Full my_hmmwv;
-    my_hmmwv.SetContactMethod(ChMaterialSurface::SMC);
+    my_hmmwv.SetContactMethod(ChContactMethod::SMC);
     my_hmmwv.SetChassisFixed(false);
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     my_hmmwv.SetPowertrainType(powertrain_model);
@@ -213,17 +213,16 @@ int main(int argc, char* argv[]) {
     // Set wheel contact material.
     // If needed, modify wheel contact and visualization models
     // --------------------------------------------------------
+    auto wheel_material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    wheel_material->SetFriction(mu_t);
+    wheel_material->SetYoungModulus(Y_t);
+    wheel_material->SetRestitution(cr_t);
+
     for (auto& axle : my_hmmwv.GetVehicle().GetAxles()) {
         auto wheelBodyL = axle->m_wheels[0]->GetSpindle();
-        wheelBodyL->GetMaterialSurfaceSMC()->SetFriction(mu_t);
-        wheelBodyL->GetMaterialSurfaceSMC()->SetYoungModulus(Y_t);
-        wheelBodyL->GetMaterialSurfaceSMC()->SetRestitution(cr_t);
-        CreateLuggedGeometry(wheelBodyL);
+        CreateLuggedGeometry(wheelBodyL, wheel_material);
         auto wheelBodyR = axle->m_wheels[1]->GetSpindle();
-        wheelBodyR->GetMaterialSurfaceSMC()->SetFriction(mu_t);
-        wheelBodyR->GetMaterialSurfaceSMC()->SetYoungModulus(Y_t);
-        wheelBodyR->GetMaterialSurfaceSMC()->SetRestitution(cr_t);
-        CreateLuggedGeometry(wheelBodyR);
+        CreateLuggedGeometry(wheelBodyR, wheel_material);
     }
 
     // --------------------
@@ -274,11 +273,11 @@ int main(int argc, char* argv[]) {
 
         case RIGID_SOIL: {
             RigidTerrain* terrainR = new RigidTerrain(system);
-            auto patch = terrainR->AddPatch(ChCoordsys<>(ChVector<>(0, 0, terrainHeight - 5), QUNIT),
+            auto patch_material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            patch_material->SetFriction(0.9f);
+            patch_material->SetRestitution(0.01f);
+            auto patch = terrainR->AddPatch(patch_material, ChCoordsys<>(ChVector<>(0, 0, terrainHeight - 5), QUNIT),
                                             ChVector<>(terrainLength, terrainWidth, 10));
-            patch->SetContactFrictionCoefficient(0.9f);
-            patch->SetContactRestitutionCoefficient(0.01f);
-            patch->SetContactMaterialProperties(2e7f, 0.3f);
             patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
             terrainR->Initialize();

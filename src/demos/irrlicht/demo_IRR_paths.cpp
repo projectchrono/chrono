@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Paths", core::dimension2d<u32>(800, 600), false, true);
+    ChIrrApp application(&mphysicalSystem, L"Paths", core::dimension2d<u32>(1200, 900), false, true);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
 
     // Create a ChBody that contains the trajectory (a floor, fixed body)
 
-    auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(3, 0.2, 3, 1000);
+    auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(3, 0.2, 3, 1000, true, false);
     mfloor->SetBodyFixed(true);
     // mfloor->SetRot(Q_from_AngAxis(0.1,VECT_Z));
     application.GetSystem()->Add(mfloor);
@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
 
     // Create a body that will follow the trajectory
 
-    auto mpendulum = chrono_types::make_shared<ChBodyEasyBox>(0.1, 1, 0.1, 1000);
+    auto mpendulum = chrono_types::make_shared<ChBodyEasyBox>(0.1, 1, 0.1, 1000, true, false);
     mpendulum->SetPos(ChVector<>(1, 1.5, 0));
     application.GetSystem()->Add(mpendulum);
 
@@ -146,7 +146,7 @@ int main(int argc, char* argv[]) {
 
     // Create a body that will slide on the glyph
 
-    auto mpendulum2 = chrono_types::make_shared<ChBodyEasyBox>(0.1, 1, 0.1, 1000);
+    auto mpendulum2 = chrono_types::make_shared<ChBodyEasyBox>(0.1, 1, 0.1, 1000, true, false);
     mpendulum2->SetPos(ChVector<>(-3, 1, 0));
     application.GetSystem()->Add(mpendulum2);
 

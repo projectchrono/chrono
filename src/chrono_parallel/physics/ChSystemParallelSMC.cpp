@@ -14,11 +14,15 @@
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/solver/ChIterativeSolverParallel.h"
+#include "chrono_parallel/collision/ChContactContainerParallelSMC.h"
 
 using namespace chrono;
 using namespace chrono::collision;
 
 ChSystemParallelSMC::ChSystemParallelSMC() : ChSystemParallel() {
+    contact_container = chrono_types::make_shared<ChContactContainerParallelSMC>(data_manager);
+    contact_container->SetSystem(this);
+
     solver = chrono_types::make_shared<ChIterativeSolverParallelSMC>(data_manager);
 
     data_manager->settings.collision.collision_envelope = 0;
@@ -33,40 +37,8 @@ ChSystemParallelSMC::ChSystemParallelSMC(const ChSystemParallelSMC& other) : ChS
     //// TODO
 }
 
-ChBody* ChSystemParallelSMC::NewBody() {
-    if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
-        return new ChBody(chrono_types::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurface::SMC);
-
-    return new ChBody(ChMaterialSurface::SMC);
-}
-
-ChBodyAuxRef* ChSystemParallelSMC::NewBodyAuxRef() {
-    if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
-        return new ChBodyAuxRef(chrono_types::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurface::SMC);
-
-    return new ChBodyAuxRef(ChMaterialSurface::SMC);
-}
-
 void ChSystemParallelSMC::AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) {
-    assert(newbody->GetContactMethod() == ChMaterialSurface::SMC);
-
-    // Reserve space for material properties for the specified body. Not that the
-    // actual data is set in UpdateMaterialProperties().
-    data_manager->host_data.mu.push_back(0);
-    data_manager->host_data.muRoll.push_back(0);
-    data_manager->host_data.muSpin.push_back(0);
-    data_manager->host_data.cohesion_data.push_back(0);
-    data_manager->host_data.adhesionMultDMT_data.push_back(0);
-    data_manager->host_data.adhesionSPerko_data.push_back(0);
-
     data_manager->host_data.mass_rigid.push_back(0);
-
-    if (data_manager->settings.solver.use_material_properties) {
-        data_manager->host_data.elastic_moduli.push_back(real2(0, 0));
-        data_manager->host_data.cr.push_back(0);
-    } else {
-        data_manager->host_data.smc_coeffs.push_back(real4(0, 0, 0, 0));
-    }
 
     if (data_manager->settings.solver.tangential_displ_mode == ChSystemSMC::TangentialDisplacementModel::MultiStep) {
         for (int i = 0; i < max_shear; i++) {
@@ -79,38 +51,7 @@ void ChSystemParallelSMC::AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody
 }
 
 void ChSystemParallelSMC::UpdateMaterialSurfaceData(int index, ChBody* body) {
-    custom_vector<real>& mass = data_manager->host_data.mass_rigid;
-    custom_vector<real2>& elastic_moduli = data_manager->host_data.elastic_moduli;
-    custom_vector<real>& adhesion = data_manager->host_data.cohesion_data;
-    custom_vector<real>& adhesionMult = data_manager->host_data.adhesionMultDMT_data;
-    custom_vector<real>& adhesionS = data_manager->host_data.adhesionSPerko_data;
-    custom_vector<real>& mu = data_manager->host_data.mu;
-    custom_vector<real>& muRoll = data_manager->host_data.muRoll;
-    custom_vector<real>& muSpin = data_manager->host_data.muSpin;
-    custom_vector<real>& cr = data_manager->host_data.cr;
-    custom_vector<real4>& smc_coeffs = data_manager->host_data.smc_coeffs;
-
-    // Since this function is called in a parallel for loop, we must access the
-    // material properties in a thread-safe manner (we cannot use the function
-    // ChBody::GetMaterialSurfaceSMC since that returns a copy of the reference
-    // counted shared pointer).
-    std::shared_ptr<ChMaterialSurface>& mat = body->GetMaterialSurface();
-    ChMaterialSurfaceSMC* mat_ptr = static_cast<ChMaterialSurfaceSMC*>(mat.get());
-
-    mass[index] = body->GetMass();
-    mu[index] = mat_ptr->GetSfriction();
-    muRoll[index] = mat_ptr->GetRollingFriction();
-    muSpin[index] = mat_ptr->GetSpinningFriction();
-    adhesion[index] = mat_ptr->GetAdhesion();
-    adhesionMult[index] = mat_ptr->GetAdhesionMultDMT();
-    adhesionS[index] = mat_ptr->GetAdhesionSPerko();
-
-    if (data_manager->settings.solver.use_material_properties) {
-        elastic_moduli[index] = real2(mat_ptr->GetYoungModulus(), mat_ptr->GetPoissonRatio());
-        cr[index] = mat_ptr->GetRestitution();
-    } else {
-        smc_coeffs[index] = real4(mat_ptr->GetKn(), mat_ptr->GetKt(), mat_ptr->GetGn(), mat_ptr->GetGt());
-    }
+    data_manager->host_data.mass_rigid[index] = body->GetMass();
 }
 
 void ChSystemParallelSMC::Setup() {

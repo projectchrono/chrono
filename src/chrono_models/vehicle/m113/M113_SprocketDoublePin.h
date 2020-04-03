@@ -64,11 +64,14 @@ class CH_MODELS_API M113_SprocketDoublePin : public ChSprocketDoublePin {
     /// Return offset of arc center.
     virtual double GetArcCenterOffset() const override { return m_gear_W; }
 
-    /// Add visualization of the sprocket.
-    virtual void AddVisualizationAssets(VisualizationType vis) override;
-
   protected:
     M113_SprocketDoublePin(const std::string& name);
+
+    /// Create the contact material consistent with the specified contact method.
+    virtual void CreateContactMaterial(ChContactMethod contact_method) override;
+
+    /// Add visualization of the sprocket.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
 
     virtual std::string GetMeshName() const = 0;
     virtual std::string GetMeshFile() const = 0;

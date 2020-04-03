@@ -63,25 +63,7 @@ void SprocketSinglePin::Create(const rapidjson::Document& d) {
 
     // Read contact material data
     assert(d.HasMember("Contact Material"));
-
-    float mu = d["Contact Material"]["Coefficient of Friction"].GetFloat();
-    float cr = d["Contact Material"]["Coefficient of Restitution"].GetFloat();
-
-    SetContactFrictionCoefficient(mu);
-    SetContactRestitutionCoefficient(cr);
-
-    if (d["Contact Material"].HasMember("Properties")) {
-        float ym = d["Contact Material"]["Properties"]["Young Modulus"].GetFloat();
-        float pr = d["Contact Material"]["Properties"]["Poisson Ratio"].GetFloat();
-        SetContactMaterialProperties(ym, pr);
-    }
-    if (d["Contact Material"].HasMember("Coefficients")) {
-        float kn = d["Contact Material"]["Coefficients"]["Normal Stiffness"].GetFloat();
-        float gn = d["Contact Material"]["Coefficients"]["Normal Damping"].GetFloat();
-        float kt = d["Contact Material"]["Coefficients"]["Tangential Stiffness"].GetFloat();
-        float gt = d["Contact Material"]["Coefficients"]["Tangential Damping"].GetFloat();
-        SetContactMaterialCoefficients(kn, gn, kt, gt);
-    }
+    m_mat_info = ReadMaterialInfoJSON(d["Contact Material"]);
 
     // Read sprocket visualization
     if (d.HasMember("Visualization")) {
@@ -91,6 +73,10 @@ void SprocketSinglePin::Create(const rapidjson::Document& d) {
         m_meshName = d["Visualization"]["Mesh Name"].GetString();
         m_has_mesh = true;
     }
+}
+
+void SprocketSinglePin::CreateContactMaterial(ChContactMethod contact_method) {
+    m_material = m_mat_info.CreateMaterial(contact_method);
 }
 
 // -----------------------------------------------------------------------------

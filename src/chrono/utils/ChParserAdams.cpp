@@ -664,9 +664,9 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
 // Makes a new system and then parses into it
 // -----------------------------------------------------------------------------
 
-ChSystem* ChParserAdams::Parse(const std::string& filename, ChMaterialSurface::ContactMethod contact_method) {
-    ChSystem* sys = (contact_method == ChMaterialSurface::NSC) ? static_cast<ChSystem*>(new ChSystemNSC)
-                                                               : static_cast<ChSystem*>(new ChSystemSMC);
+ChSystem* ChParserAdams::Parse(const std::string& filename, ChContactMethod contact_method) {
+    ChSystem* sys = (contact_method == ChContactMethod::NSC) ? static_cast<ChSystem*>(new ChSystemNSC)
+                                                             : static_cast<ChSystem*>(new ChSystemSMC);
 
     Parse(*sys, filename);
 

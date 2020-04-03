@@ -12,6 +12,8 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
+//// RADU:  this was always hard-coded for NSC.  Look into allowing either contact method
+
 #ifndef CHCONVEYOR_H
 #define CHCONVEYOR_H
 
@@ -27,12 +29,12 @@ namespace chrono {
 /// has continuous motion in X direction. No cylindrical rounding is used at the ends.
 
 class ChApi ChConveyor : public ChPhysicsItem {
-
   private:
-    double conveyor_speed;          ///< speed of conveyor, along the X direction of the box.
-    ChLinkLockLock* internal_link;  ///< link between this body and conveyor plate
-    ChBody* conveyor_truss;         ///< used for the conveyor truss
-    ChBody* conveyor_plate;         ///< used for the conveyor plate
+    double conveyor_speed;                            ///< speed of conveyor, along the X direction of the box.
+    ChLinkLockLock* internal_link;                    ///< link between this body and conveyor plate
+    ChBody* conveyor_truss;                           ///< used for the conveyor truss
+    ChBody* conveyor_plate;                           ///< used for the conveyor plate
+    std::shared_ptr<ChMaterialSurface> conveyor_mat;  ///< surface contact material for the conveyor plate
 
   public:
     /// Build a conveyor belt, with motion along x axis
@@ -71,16 +73,11 @@ class ChApi ChConveyor : public ChPhysicsItem {
     void SetRot(const ChQuaternion<>& mrot) { GetTruss()->SetRot(mrot); }
     void SetPos(const ChVector<>& mpos) { GetTruss()->SetPos(mpos); }
 
-    /// Access the material surface properties of the conveyor belt (shortcut)
-    std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() { return GetPlate()->GetMaterialSurface(); }
-
-    /// Access the NSC material surface properties of the conveyor belt (shortcut)
-    std::shared_ptr<ChMaterialSurfaceNSC> GetMaterialSurfaceNSC() { return GetPlate()->GetMaterialSurfaceNSC(); }
-
     /// Set the material surface properties by passing a ChMaterialSurfaceNSC or ChMaterialSurfaceSMC object.
-    void SetMaterialSurface(const std::shared_ptr<ChMaterialSurface>& mnewsurf) {
-        GetPlate()->SetMaterialSurface(mnewsurf);
-    }
+    void SetMaterialSurface(std::shared_ptr<ChMaterialSurface> mat) { conveyor_mat = mat; }
+
+    /// Access the material surface properties of the conveyor belt (shortcut)
+    std::shared_ptr<ChMaterialSurface> GetMaterialSurface() const { return conveyor_mat; }
 
     //
     // STATE FUNCTIONS

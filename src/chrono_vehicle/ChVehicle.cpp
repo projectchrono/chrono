@@ -37,21 +37,21 @@ namespace vehicle {
 // Constructor for a ChVehicle using a default Chrono system.
 // Specify default step size and solver parameters.
 // -----------------------------------------------------------------------------
-ChVehicle::ChVehicle(const std::string& name, ChMaterialSurface::ContactMethod contact_method)
+ChVehicle::ChVehicle(const std::string& name, ChContactMethod contact_method)
     : m_name(name),
       m_ownsSystem(true),
       m_output(false),
       m_output_db(nullptr),
       m_next_output_time(0),
       m_output_frame(0) {
-    m_system = (contact_method == ChMaterialSurface::NSC) ? static_cast<ChSystem*>(new ChSystemNSC)
-                                                          : static_cast<ChSystem*>(new ChSystemSMC);
+    m_system = (contact_method == ChContactMethod::NSC) ? static_cast<ChSystem*>(new ChSystemNSC)
+                                                        : static_cast<ChSystem*>(new ChSystemSMC);
 
     m_system->Set_G_acc(ChVector<>(0, 0, -9.81));
 
     // Integration and Solver settings
     switch (contact_method) {
-        case ChMaterialSurface::NSC:
+        case ChContactMethod::NSC:
             m_system->SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
             break;
         default:

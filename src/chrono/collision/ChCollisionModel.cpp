@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/collision/ChCollisionModel.h"
 #include "chrono/physics/ChBody.h"
 
 namespace chrono {
@@ -24,9 +24,13 @@ namespace collision {
 static double default_model_envelope = 0.03;
 static double default_safe_margin = 0.01;
 
-ChCollisionModel::ChCollisionModel() : family_group(1), family_mask(0x7FFF), mcontactable(0) {
+ChCollisionModel::ChCollisionModel() : family_group(1), family_mask(0x7FFF), mcontactable(nullptr) {
     model_envelope = (float)default_model_envelope;
     model_safe_margin = (float)default_safe_margin;
+}
+
+void ChCollisionModel::CopyShapes(ChCollisionModel* other) {
+    m_shapes = other->m_shapes;
 }
 
 ChPhysicsItem* ChCollisionModel::GetPhysicsItem() {
@@ -100,7 +104,8 @@ void ChCollisionModel::SetFamilyMask(short int mask) {
     family_mask = mask;
 }
 
-bool ChCollisionModel::AddConvexHullsFromFile(ChStreamInAscii& mstream,
+bool ChCollisionModel::AddConvexHullsFromFile(std::shared_ptr<ChMaterialSurface> material,
+                                              ChStreamInAscii& mstream,
                                               const ChVector<>& pos,
                                               const ChMatrix33<>& rot) {
     std::vector<ChVector<double> > ptlist;
@@ -131,7 +136,7 @@ bool ChCollisionModel::AddConvexHullsFromFile(ChStreamInAscii& mstream,
         }
         if (strcmp(bufdata, "hull") == 0) {
             if (ptlist.size())
-                this->AddConvexHull(ptlist, pos, rot);
+                this->AddConvexHull(material, ptlist, pos, rot);
             ptlist.clear();
             parsedline = true;
         }
@@ -141,10 +146,24 @@ bool ChCollisionModel::AddConvexHullsFromFile(ChStreamInAscii& mstream,
             parsedline = true;
         }
     }
+    
     if (ptlist.size())
-        this->AddConvexHull(ptlist, pos, rot);
+        this->AddConvexHull(material, ptlist, pos, rot);
     ptlist.clear();
+
     return true;
+}
+
+void ChCollisionModel::SetShapeMaterial(int index, std::shared_ptr<ChMaterialSurface> mat) {
+    assert(index < GetNumShapes());
+    assert(m_shapes[index]->m_material->GetContactMethod() == mat->GetContactMethod());
+    m_shapes[index]->m_material = mat;
+}
+
+void ChCollisionModel::SetAllShapesMaterial(std::shared_ptr<ChMaterialSurface> mat) {
+    assert(GetNumShapes() == 0 || m_shapes[0]->m_material->GetContactMethod() == mat->GetContactMethod());
+    for (auto shape : m_shapes)
+        shape->m_material = mat;
 }
 
 void ChCollisionModel::ArchiveOUT(ChArchiveOut& marchive) {

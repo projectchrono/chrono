@@ -50,9 +50,6 @@ class CH_MODELS_API M113_RoadWheel : public ChDoubleRoadWheel {
     /// Return the gap width.
     virtual double GetWheelGap() const override { return m_wheel_gap; }
 
-    /// Add visualization of the road wheel.
-    virtual void AddVisualizationAssets(VisualizationType vis) override;
-
   protected:
     M113_RoadWheel(const std::string& name);
 
@@ -60,6 +57,12 @@ class CH_MODELS_API M113_RoadWheel : public ChDoubleRoadWheel {
 
     virtual std::string GetMeshName() const = 0;
     virtual std::string GetMeshFile() const = 0;
+
+    /// Create the contact material consistent with the specified contact method.
+    virtual void CreateContactMaterial(ChContactMethod contact_method) override;
+
+    /// Add visualization of the road wheel.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
 
     static const double m_wheel_mass;
     static const ChVector<> m_wheel_inertia;

@@ -169,54 +169,95 @@ void ChContactContainerSMC::EndAddContact() {
 }
 
 template <class Tcont, class Titer, class Ta, class Tb>
-void _OptimalContactInsert(std::list<Tcont*>& contactlist,
-                           Titer& lastcontact,
-                           int& n_added,
-                           ChContactContainer* mcontainer,
-                           Ta* objA,  // collidable object A
-                           Tb* objB,  // collidable object B
-                           const collision::ChCollisionInfo& cinfo) {
+void _OptimalContactInsert(std::list<Tcont*>& contactlist,           // contact list
+                           Titer& lastcontact,                       // last contact acquired
+                           int& n_added,                             // number of contacts inserted
+                           ChContactContainer* container,            // contact container
+                           Ta* objA,                                 // collidable object A
+                           Tb* objB,                                 // collidable object B
+                           const collision::ChCollisionInfo& cinfo,  // collision information
+                           const ChMaterialCompositeSMC& cmat        // composite material
+) {
     if (lastcontact != contactlist.end()) {
         // reuse old contacts
-        (*lastcontact)->Reset(objA, objB, cinfo);
-
+        (*lastcontact)->Reset(objA, objB, cinfo, cmat);
         lastcontact++;
-
     } else {
         // add new contact
-        Tcont* mc = new Tcont(mcontainer, objA, objB, cinfo);
-
+        Tcont* mc = new Tcont(container, objA, objB, cinfo, cmat);
         contactlist.push_back(mc);
         lastcontact = contactlist.end();
     }
     n_added++;
 }
 
-void ChContactContainerSMC::AddContact(const collision::ChCollisionInfo& mcontact) {
-    assert(mcontact.modelA->GetContactable());
-    assert(mcontact.modelB->GetContactable());
+void ChContactContainerSMC::AddContact(const collision::ChCollisionInfo& cinfo,
+                                       std::shared_ptr<ChMaterialSurface> mat1,
+                                       std::shared_ptr<ChMaterialSurface> mat2) {
+    assert(cinfo.modelA->GetContactable());
+    assert(cinfo.modelB->GetContactable());
 
     // Do nothing if the shapes are separated
-    if (mcontact.distance >= 0)
+    if (cinfo.distance >= 0)
         return;
 
-    auto contactableA = mcontact.modelA->GetContactable();
-    auto contactableB = mcontact.modelB->GetContactable();
+    auto contactableA = cinfo.modelA->GetContactable();
+    auto contactableB = cinfo.modelB->GetContactable();
 
-    // Bail out if any of the two contactable objects is not contact-active:
-    bool inactiveA = !contactableA->IsContactActive();
-    bool inactiveB = !contactableB->IsContactActive();
-    if (inactiveA && inactiveB)
+    // Do nothing if any of the contactables is not contact-active
+    if (!contactableA->IsContactActive() && !contactableB->IsContactActive())
         return;
 
     // Check that the two collision models are compatible with penalty contact.
-    // If either one has a contact material for complementarity, skip processing this contact.
-    if (contactableA->GetMaterialSurface()->GetContactMethod() != ChMaterialSurface::SMC ||
-        contactableB->GetMaterialSurface()->GetContactMethod() != ChMaterialSurface::SMC)
+    if (mat1->GetContactMethod() != ChContactMethod::SMC || mat2->GetContactMethod() != ChContactMethod::SMC) {
+        return;
+    }
+
+    // Create the composite material
+    ChMaterialCompositeSMC cmat(GetSystem()->composition_strategy.get(),
+                                std::static_pointer_cast<ChMaterialSurfaceSMC>(mat1),
+                                std::static_pointer_cast<ChMaterialSurfaceSMC>(mat2));
+
+    InsertContact(cinfo, cmat);
+}
+
+void ChContactContainerSMC::AddContact(const collision::ChCollisionInfo& cinfo) {
+    assert(cinfo.modelA->GetContactable());
+    assert(cinfo.modelB->GetContactable());
+
+    // Do nothing if the shapes are separated
+    if (cinfo.distance >= 0)
         return;
 
-    auto mmatA = std::static_pointer_cast<ChMaterialSurfaceSMC>(contactableA->GetMaterialSurface());
-    auto mmatB = std::static_pointer_cast<ChMaterialSurfaceSMC>(contactableB->GetMaterialSurface());
+    auto contactableA = cinfo.modelA->GetContactable();
+    auto contactableB = cinfo.modelB->GetContactable();
+
+    // Do nothing if any of the contactables is not contact-active
+    if (!contactableA->IsContactActive() && !contactableB->IsContactActive())
+        return;
+
+    // Check that the two collision models are compatible with penalty contact.
+    if (cinfo.shapeA->GetContactMethod() != ChContactMethod::SMC ||
+        cinfo.shapeB->GetContactMethod() != ChContactMethod::SMC) {
+        return;
+    }
+
+    // Create the composite material
+    ChMaterialCompositeSMC cmat(GetSystem()->composition_strategy.get(),
+                                std::static_pointer_cast<ChMaterialSurfaceSMC>(cinfo.shapeA->GetMaterial()),
+                                std::static_pointer_cast<ChMaterialSurfaceSMC>(cinfo.shapeB->GetMaterial()));
+
+    // Check for a user-provided callback to modify the material
+    if (GetAddContactCallback()) {
+        GetAddContactCallback()->OnAddContact(cinfo, &cmat);
+    }
+
+    InsertContact(cinfo, cmat);
+}
+
+void ChContactContainerSMC::InsertContact(const collision::ChCollisionInfo& cinfo, const ChMaterialCompositeSMC& cmat) {
+    auto contactableA = cinfo.modelA->GetContactable();
+    auto contactableB = cinfo.modelB->GetContactable();
 
     // CREATE THE CONTACTS
     //
@@ -231,92 +272,92 @@ void ChContactContainerSMC::AddContact(const collision::ChCollisionInfo& mcontac
 
     switch (contactableA->GetContactableType()) {
         case ChContactable::CONTACTABLE_3: {
-            auto mmboA = static_cast<ChContactable_1vars<3>*>(contactableA);
+            auto objA = static_cast<ChContactable_1vars<3>*>(contactableA);
             if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_3) {
-                auto mmboB = static_cast<ChContactable_1vars<3>*>(contactableB);
+                auto objB = static_cast<ChContactable_1vars<3>*>(contactableB);
                 // 3_3
-                _OptimalContactInsert(contactlist_3_3, lastcontact_3_3, n_added_3_3, this, mmboA, mmboB, mcontact);
+                _OptimalContactInsert(contactlist_3_3, lastcontact_3_3, n_added_3_3, this, objA, objB, cinfo, cmat);
             } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_6) {
-                auto mmboB = static_cast<ChContactable_1vars<6>*>(contactableB);
+                auto objB = static_cast<ChContactable_1vars<6>*>(contactableB);
                 // 3_6 -> 6_3
-                collision::ChCollisionInfo swapped_contact(mcontact, true);
-                _OptimalContactInsert(contactlist_6_3, lastcontact_6_3, n_added_6_3, this, mmboB, mmboA, swapped_contact);
+                collision::ChCollisionInfo swapped_cinfo(cinfo, true);
+                _OptimalContactInsert(contactlist_6_3, lastcontact_6_3, n_added_6_3, this, objB, objA, swapped_cinfo, cmat);
             } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_333) {
-                auto mmboB = static_cast<ChContactable_3vars<3, 3, 3>*>(contactableB);
+                auto objB = static_cast<ChContactable_3vars<3, 3, 3>*>(contactableB);
                 // 3_333 -> 333_3
-                collision::ChCollisionInfo swapped_contact(mcontact, true);
-                _OptimalContactInsert(contactlist_333_3, lastcontact_333_3, n_added_333_3, this, mmboB, mmboA, swapped_contact);
+                collision::ChCollisionInfo swapped_cinfo(cinfo, true);
+                _OptimalContactInsert(contactlist_333_3, lastcontact_333_3, n_added_333_3, this, objB, objA, swapped_cinfo, cmat);
             } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_666) {
-                auto mmboB = static_cast<ChContactable_3vars<6, 6, 6>*>(contactableB);
+                auto objB = static_cast<ChContactable_3vars<6, 6, 6>*>(contactableB);
                 // 3_666 -> 666_3
-                collision::ChCollisionInfo swapped_contact(mcontact, true);
-                _OptimalContactInsert(contactlist_666_3, lastcontact_666_3, n_added_666_3, this, mmboB, mmboA, swapped_contact);
+                collision::ChCollisionInfo swapped_cinfo(cinfo, true);
+                _OptimalContactInsert(contactlist_666_3, lastcontact_666_3, n_added_666_3, this, objB, objA, swapped_cinfo, cmat);
             }
         } break;
 
         case ChContactable::CONTACTABLE_6: {
-            auto mmboA = static_cast<ChContactable_1vars<6>*>(contactableA);
+            auto objA = static_cast<ChContactable_1vars<6>*>(contactableA);
             if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_3) {
-                auto mmboB = static_cast<ChContactable_1vars<3>*>(contactableB);
+                auto objB = static_cast<ChContactable_1vars<3>*>(contactableB);
                 // 6_3
-                _OptimalContactInsert(contactlist_6_3, lastcontact_6_3, n_added_6_3, this, mmboA, mmboB, mcontact);
+                _OptimalContactInsert(contactlist_6_3, lastcontact_6_3, n_added_6_3, this, objA, objB, cinfo, cmat);
             } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_6) {
-                auto mmboB = static_cast<ChContactable_1vars<6>*>(contactableB);
+                auto objB = static_cast<ChContactable_1vars<6>*>(contactableB);
                 // 6_6
-                _OptimalContactInsert(contactlist_6_6, lastcontact_6_6, n_added_6_6, this, mmboA, mmboB, mcontact);
+                _OptimalContactInsert(contactlist_6_6, lastcontact_6_6, n_added_6_6, this, objA, objB, cinfo, cmat);
             } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_333) {
-                auto mmboB = static_cast<ChContactable_3vars<3, 3, 3>*>(contactableB);
+                auto objB = static_cast<ChContactable_3vars<3, 3, 3>*>(contactableB);
                 // 6_333 -> 333_6
-                collision::ChCollisionInfo swapped_contact(mcontact, true);
-                _OptimalContactInsert(contactlist_333_6, lastcontact_333_6, n_added_333_6, this, mmboB, mmboA, swapped_contact);
+                collision::ChCollisionInfo swapped_cinfo(cinfo, true);
+                _OptimalContactInsert(contactlist_333_6, lastcontact_333_6, n_added_333_6, this, objB, objA, swapped_cinfo, cmat);
             } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_666) {
-                auto mmboB = static_cast<ChContactable_3vars<6, 6, 6>*>(contactableB);
+                auto objB = static_cast<ChContactable_3vars<6, 6, 6>*>(contactableB);
                 // 6_666 -> 666_6
-                collision::ChCollisionInfo swapped_contact(mcontact, true);
-                _OptimalContactInsert(contactlist_666_6, lastcontact_666_6, n_added_666_6, this, mmboB, mmboA, swapped_contact);
+                collision::ChCollisionInfo swapped_cinfo(cinfo, true);
+                _OptimalContactInsert(contactlist_666_6, lastcontact_666_6, n_added_666_6, this, objB, objA, swapped_cinfo, cmat);
             }
         } break;
 
         case ChContactable::CONTACTABLE_333: {
-            auto mmboA = static_cast<ChContactable_3vars<3, 3, 3>*>(contactableA);
+            auto objA = static_cast<ChContactable_3vars<3, 3, 3>*>(contactableA);
             if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_3) {
-                auto mmboB = static_cast<ChContactable_1vars<3>*>(contactableB);
+                auto objB = static_cast<ChContactable_1vars<3>*>(contactableB);
                 // 333_3
-                _OptimalContactInsert(contactlist_333_3, lastcontact_333_3, n_added_333_3, this, mmboA, mmboB, mcontact);
+                _OptimalContactInsert(contactlist_333_3, lastcontact_333_3, n_added_333_3, this, objA, objB, cinfo, cmat);
             } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_6) {
-                auto mmboB = static_cast<ChContactable_1vars<6>*>(contactableB);
+                auto objB = static_cast<ChContactable_1vars<6>*>(contactableB);
                 // 333_6
-                _OptimalContactInsert(contactlist_333_6, lastcontact_333_6, n_added_333_6, this, mmboA, mmboB, mcontact);
+                _OptimalContactInsert(contactlist_333_6, lastcontact_333_6, n_added_333_6, this, objA, objB, cinfo, cmat);
             } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_333) {
-                auto mmboB = static_cast<ChContactable_3vars<3, 3, 3>*>(contactableB);
+                auto objB = static_cast<ChContactable_3vars<3, 3, 3>*>(contactableB);
                 // 333_333
-                _OptimalContactInsert(contactlist_333_333, lastcontact_333_333, n_added_333_333, this, mmboA, mmboB, mcontact);
+                _OptimalContactInsert(contactlist_333_333, lastcontact_333_333, n_added_333_333, this, objA, objB, cinfo, cmat);
             } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_666) {
-                auto mmboB = static_cast<ChContactable_3vars<6, 6, 6>*>(contactableB);
+                auto objB = static_cast<ChContactable_3vars<6, 6, 6>*>(contactableB);
                 // 333_666 -> 666_333
-                collision::ChCollisionInfo swapped_contact(mcontact, true);
-                _OptimalContactInsert(contactlist_666_333, lastcontact_666_333, n_added_666_333, this, mmboB, mmboA, swapped_contact);
+                collision::ChCollisionInfo swapped_cinfo(cinfo, true);
+                _OptimalContactInsert(contactlist_666_333, lastcontact_666_333, n_added_666_333, this, objB, objA, swapped_cinfo, cmat);
             }
         } break;
 
         case ChContactable::CONTACTABLE_666: {
-            auto mmboA = static_cast<ChContactable_3vars<6, 6, 6>*>(contactableA);
+            auto objA = static_cast<ChContactable_3vars<6, 6, 6>*>(contactableA);
             if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_3) {
-                auto mmboB = static_cast<ChContactable_1vars<3>*>(contactableB);
+                auto objB = static_cast<ChContactable_1vars<3>*>(contactableB);
                 // 666_3
-                _OptimalContactInsert(contactlist_666_3, lastcontact_666_3, n_added_666_3, this, mmboA, mmboB, mcontact);
+                _OptimalContactInsert(contactlist_666_3, lastcontact_666_3, n_added_666_3, this, objA, objB, cinfo, cmat);
             } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_6) {
-                auto mmboB = static_cast<ChContactable_1vars<6>*>(contactableB);
+                auto objB = static_cast<ChContactable_1vars<6>*>(contactableB);
                 // 666_6
-                _OptimalContactInsert(contactlist_666_6, lastcontact_666_6, n_added_666_6, this, mmboA, mmboB, mcontact);
+                _OptimalContactInsert(contactlist_666_6, lastcontact_666_6, n_added_666_6, this, objA, objB, cinfo, cmat);
             } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_333) {
-                auto mmboB = static_cast<ChContactable_3vars<3, 3, 3>*>(contactableB);
+                auto objB = static_cast<ChContactable_3vars<3, 3, 3>*>(contactableB);
                 // 666_333
-                _OptimalContactInsert(contactlist_666_333, lastcontact_666_333, n_added_666_333, this, mmboA, mmboB, mcontact);
+                _OptimalContactInsert(contactlist_666_333, lastcontact_666_333, n_added_666_333, this, objA, objB, cinfo, cmat);
             } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_666) {
-                auto mmboB = static_cast<ChContactable_3vars<6, 6, 6>*>(contactableB);
+                auto objB = static_cast<ChContactable_3vars<6, 6, 6>*>(contactableB);
                 // 666_666
-                _OptimalContactInsert(contactlist_666_666, lastcontact_666_666, n_added_666_666, this, mmboA, mmboB, mcontact);
+                _OptimalContactInsert(contactlist_666_666, lastcontact_666_666, n_added_666_666, this, objA, objB, cinfo, cmat);
             }
         } break;
 

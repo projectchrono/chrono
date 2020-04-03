@@ -44,11 +44,14 @@ const std::string M113_RoadWheelRight::m_meshFile = "M113/Roller_R.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113_RoadWheel::M113_RoadWheel(const std::string& name) : ChDoubleRoadWheel(name) {
-    SetContactFrictionCoefficient(0.7f);
-    SetContactRestitutionCoefficient(0.1f);
-    SetContactMaterialProperties(1e7f, 0.3f);
-    SetContactMaterialCoefficients(2e5f, 40.0f, 2e5f, 20.0f);
+M113_RoadWheel::M113_RoadWheel(const std::string& name) : ChDoubleRoadWheel(name) {}
+
+void M113_RoadWheel::CreateContactMaterial(ChContactMethod contact_method) {
+    MaterialInfo minfo;
+    minfo.mu = 0.7f;
+    minfo.cr = 0.1f;
+    minfo.Y = 1e7f;
+    m_material = minfo.CreateMaterial(contact_method);
 }
 
 // -----------------------------------------------------------------------------

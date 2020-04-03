@@ -68,11 +68,38 @@ const std::string M113_TrackShoeBandANCF::m_tread_meshName = "M113_Tread";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113_TrackShoeBandANCF::M113_TrackShoeBandANCF(const std::string& name) : ChTrackShoeBandANCF(name) {
-    SetContactFrictionCoefficient(0.8f);
-    SetContactRestitutionCoefficient(0.1f);
-    SetContactMaterialProperties(1e7f, 0.3f);
-    SetContactMaterialCoefficients(2e5f, 40.0f, 2e5f, 20.0f);
+M113_TrackShoeBandANCF::M113_TrackShoeBandANCF(const std::string& name) : ChTrackShoeBandANCF(name) {}
+
+void M113_TrackShoeBandANCF::CreateContactMaterials(ChContactMethod contact_method) {
+    // Pad material (ground contact)
+    {
+        MaterialInfo minfo;
+        minfo.mu = 0.8f;
+        minfo.cr = 0.1f;
+        minfo.Y = 1e7f;
+        m_pad_material = minfo.CreateMaterial(contact_method);
+    }
+
+    // Body material (wheel contact)
+    {
+        MaterialInfo minfo;
+        minfo.mu = 0.8f;
+        minfo.cr = 0.1f;
+        minfo.Y = 1e7f;
+        m_body_material = minfo.CreateMaterial(contact_method);
+    }
+
+    // Guide material (wheel contact)
+    m_guide_material = m_body_material;
+
+    // Tooth material (sprocket contact)
+    {
+        MaterialInfo minfo;
+        minfo.mu = 0.8f;
+        minfo.cr = 0.1f;
+        minfo.Y = 1e7f;
+        m_tooth_material = minfo.CreateMaterial(contact_method);
+    }
 }
 
 // -----------------------------------------------------------------------------

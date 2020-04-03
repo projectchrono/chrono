@@ -56,33 +56,6 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     /// Definition of a patch in a rigid terrain model.
     class CH_VEHICLE_API Patch {
       public:
-
-        /// Set coefficient of friction.
-        /// The default value is 0.7
-        void SetContactFrictionCoefficient(float friction_coefficient);
-
-        /// Set coefficient of restitution.
-        /// The default value is 0.1
-        void SetContactRestitutionCoefficient(float restitution_coefficient);
-
-        /// Set contact material properties.
-        /// These values are used to calculate contact material coefficients (if the containing
-        /// system is so configured and if the SMC contact method is being used).
-        /// The default values are: Y = 2e5 and nu = 0.3
-        void SetContactMaterialProperties(float young_modulus,  ///< [in] Young's modulus of elasticity
-                                          float poisson_ratio   ///< [in] Poisson ratio
-        );
-
-        /// Set contact material coefficients.
-        /// These values are used directly to compute contact forces (if the containing system
-        /// is so configured and if the SMC contact method is being used).
-        /// The default values are: kn=2e5, gn=40, kt=2e5, gt=20
-        void SetContactMaterialCoefficients(float kn,  ///< [in] normal contact stiffness
-                                            float gn,  ///< [in] normal contact damping
-                                            float kt,  ///< [in] tangential contact stiffness
-                                            float gt   ///< [in] tangential contact damping
-        );
-
         /// Set visualization color.
         void SetColor(const ChColor& color  ///< [in] color of the visualization material
         );
@@ -124,35 +97,38 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     /// If tiled = true, multiple side-by-side boxes are used.
     /// The "driving" surface is assumed to be the +z face of the specified box domain.
     std::shared_ptr<Patch> AddPatch(
-        const ChCoordsys<>& position,  ///< [in] box location and orientation
-        const ChVector<>& size,        ///< [in] box dimensions (x, y, z)
-        bool tiled = false,            ///< [in] terrain created from multiple tiled boxes
-        double max_tile_size = 1,      ///< [in] maximum tile size
-        bool visualization = true      ///< [in] enable/disable construction of visualization assets
+        std::shared_ptr<ChMaterialSurface> material,  ///< [in] contact material
+        const ChCoordsys<>& position,                 ///< [in] box location and orientation
+        const ChVector<>& size,                       ///< [in] box dimensions (x, y, z)
+        bool tiled = false,                           ///< [in] terrain created from multiple tiled boxes
+        double max_tile_size = 1,                     ///< [in] maximum tile size
+        bool visualization = true                     ///< [in] enable/disable construction of visualization assets
     );
 
     /// Add a terrain patch represented by a triangular mesh.
     /// The mesh is specified through a Wavefront file and is used for both contact and visualization.
     std::shared_ptr<Patch> AddPatch(
-        const ChCoordsys<>& position,    ///< [in] patch location and orientation
-        const std::string& mesh_file,    ///< [in] filename of the input mesh (OBJ)
-        const std::string& mesh_name,    ///< [in] name of the mesh asset
-        double sweep_sphere_radius = 0,  ///< [in] radius of sweep sphere
-        bool visualization = true        ///< [in] enable/disable construction of visualization assets
+        std::shared_ptr<ChMaterialSurface> material,  ///< [in] contact material
+        const ChCoordsys<>& position,                 ///< [in] patch location and orientation
+        const std::string& mesh_file,                 ///< [in] filename of the input mesh (OBJ)
+        const std::string& mesh_name,                 ///< [in] name of the mesh asset
+        double sweep_sphere_radius = 0,               ///< [in] radius of sweep sphere
+        bool visualization = true                     ///< [in] enable/disable construction of visualization assets
     );
 
     /// Add a terrain patch represented by a height-field map.
     /// The height map is specified through a BMP gray-scale image.
     std::shared_ptr<Patch> AddPatch(
-        const ChCoordsys<>& position,       ///< [in] patch location and orientation
-        const std::string& heightmap_file,  ///< [in] filename for the height map (BMP)
-        const std::string& mesh_name,       ///< [in] name of the mesh asset
-        double sizeX,                       ///< [in] terrain dimension in the X direction
-        double sizeY,                       ///< [in] terrain dimension in the Y direction
-        double hMin,                        ///< [in] minimum height (black level)
-        double hMax,                        ///< [in] maximum height (white level)
-        double sweep_sphere_radius = 0,     ///< [in] radius of sweep sphere
-        bool visualization = true           ///< [in] enable/disable construction of visualization assets
+        std::shared_ptr<ChMaterialSurface> material,  ///< [in] contact material
+        const ChCoordsys<>& position,                 ///< [in] patch location and orientation
+        const std::string& heightmap_file,            ///< [in] filename for the height map (BMP)
+        const std::string& mesh_name,                 ///< [in] name of the mesh asset
+        double sizeX,                                 ///< [in] terrain dimension in the X direction
+        double sizeY,                                 ///< [in] terrain dimension in the Y direction
+        double hMin,                                  ///< [in] minimum height (black level)
+        double hMax,                                  ///< [in] maximum height (white level)
+        double sweep_sphere_radius = 0,               ///< [in] radius of sweep sphere
+        bool visualization = true                     ///< [in] enable/disable construction of visualization assets
     );
 
     /// Initialize all defined terrain patches.
@@ -217,7 +193,9 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     bool m_use_friction_functor;
     ChContactContainer::AddContactCallback* m_contact_callback;
 
-    void AddPatch(std::shared_ptr<Patch> patch, const ChCoordsys<>& position);
+    void AddPatch(std::shared_ptr<Patch> patch,
+                  const ChCoordsys<>& position,
+                  std::shared_ptr<ChMaterialSurface> material);
     void LoadPatch(const rapidjson::Value& a);
 };
 

@@ -45,15 +45,15 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     ChTrackTestRig() : ChVehicle("TrackTestRig") {}
 
     /// Construct a test rig from specified track assembly JSON file.
-    ChTrackTestRig(const std::string& filename,  ///< [in] JSON file with test rig specification
-                   bool create_track = true,     ///< [in] include track shoes?
-                   ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC  ///< [in] contact method
+    ChTrackTestRig(const std::string& filename,                           ///< [in] JSON file with rig specification
+                   bool create_track = true,                              ///< [in] include track shoes?
+                   ChContactMethod contact_method = ChContactMethod::NSC  ///< [in] contact method
     );
 
     /// Construct a test rig using the specified track assembly and subsystem locations.
-    ChTrackTestRig(std::shared_ptr<ChTrackAssembly> assembly,  ///< [in] handle to the track assembly
-                   bool create_track = true,                   ///< [in] include track shoes?
-                   ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC  ///< [in] contact method
+    ChTrackTestRig(std::shared_ptr<ChTrackAssembly> assembly,             ///< [in] handle to the track assembly
+                   bool create_track = true,                              ///< [in] include track shoes?
+                   ChContactMethod contact_method = ChContactMethod::NSC  ///< [in] contact method
     );
 
     /// Destructor

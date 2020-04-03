@@ -74,37 +74,52 @@ class CH_VEHICLE_API ChRigidChassis : public ChChassis {
 
   protected:
     struct BoxShape {
-        BoxShape(const ChVector<>& pos, const ChQuaternion<>& rot, const ChVector<>& dims)
-            : m_pos(pos), m_rot(rot), m_dims(dims) {}
+        BoxShape(const ChVector<>& pos, const ChQuaternion<>& rot, const ChVector<>& dims, int matID = -1)
+            : m_pos(pos), m_rot(rot), m_dims(dims), m_matID(matID) {}
         ChVector<> m_pos;
         ChQuaternion<> m_rot;
         ChVector<> m_dims;
+        int m_matID;
     };
 
     struct SphereShape {
-        SphereShape(const ChVector<>& pos, double radius) : m_pos(pos), m_radius(radius) {}
+        SphereShape(const ChVector<>& pos, double radius, int matID = -1)
+            : m_pos(pos), m_radius(radius), m_matID(matID) {}
         ChVector<> m_pos;
         double m_radius;
+        int m_matID;
     };
 
     struct CylinderShape {
-        CylinderShape(const ChVector<>& pos, const ChQuaternion<>& rot, double radius, double length)
-            : m_pos(pos), m_rot(rot), m_radius(radius), m_length(length) {}
+        CylinderShape(const ChVector<>& pos, const ChQuaternion<>& rot, double radius, double length, int matID = -1)
+            : m_pos(pos), m_rot(rot), m_radius(radius), m_length(length), m_matID(matID) {}
         ChVector<> m_pos;
         ChQuaternion<> m_rot;
         double m_radius;
         double m_length;
+        int m_matID;
     };
+
+    struct ConvexHullsShape {
+        ConvexHullsShape(const std::string& filename, int matID = -1) : m_filename(filename), m_matID(matID) {}
+        std::string m_filename;
+        int m_matID;
+    };
+
+    /// Load contact materials. A derived class must implement this only if it sets m_has_collision to 'true' and should
+    /// use contact materials consistent with the specified contact method.
+    virtual void CreateContactMaterials(ChContactMethod contact_method) {}
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
     virtual void Output(ChVehicleOutput& database) const override;
 
     bool m_has_collision;
+    std::vector<std::shared_ptr<ChMaterialSurface>> m_materials;
     std::vector<BoxShape> m_coll_boxes;
     std::vector<SphereShape> m_coll_spheres;
     std::vector<CylinderShape> m_coll_cylinders;
-    std::vector<std::string> m_coll_mesh_names;
+    std::vector<ConvexHullsShape> m_coll_hulls;
 
     bool m_has_primitives;
     std::vector<BoxShape> m_vis_boxes;

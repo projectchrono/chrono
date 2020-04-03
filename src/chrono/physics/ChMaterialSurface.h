@@ -12,6 +12,10 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
+//// RADU: 
+////   Consider moving common (NSC/SMC) properties, such as coefficients of friction
+////   to this base class.  This would eliminate some static_pointer_cast calls.   
+
 #ifndef CH_MATERIAL_SURFACE_H
 #define CH_MATERIAL_SURFACE_H
 
@@ -22,20 +26,21 @@
 
 namespace chrono {
 
+/// Enumeration of contact methods.
+enum class ChContactMethod {
+    NSC,  ///< non-smooth, constraint-based (a.k.a. rigid-body) contact
+    SMC   ///< smooth, penalty-based (a.k.a. soft-body) contact
+};
+
 /// Base class for specifying material properties for contact force generation.
 class ChApi ChMaterialSurface {
   public:
-    enum ContactMethod {
-        NSC,  ///< non-smooth, constraint-based (a.k.a. rigid-body) contact
-        SMC   ///< smooth, penalty-based (a.k.a. soft-body) contact
-    };
-
     virtual ~ChMaterialSurface() {}
 
     /// "Virtual" copy constructor.
     virtual ChMaterialSurface* Clone() const = 0;
 
-    virtual ContactMethod GetContactMethod() const = 0;
+    virtual ChContactMethod GetContactMethod() const = 0;
 
     virtual void ArchiveOUT(ChArchiveOut& marchive) {
         // version number:
@@ -60,20 +65,19 @@ class ChApi ChMaterialComposite {
 /// Implements the default combination laws for coefficients of friction, cohesion, compliance, etc.
 /// Derived classes can override one or more of these combination laws.
 /// Enabling the use of a customized composition strategy is system type-dependent.
-template <typename T>
-class ChMaterialCompositionStrategy {
+class ChApi ChMaterialCompositionStrategy {
   public:
     virtual ~ChMaterialCompositionStrategy() {}
 
-    virtual T CombineFriction(T a1, T a2) const { return std::min<T>(a1, a2); }
-    virtual T CombineCohesion(T a1, T a2) const { return std::min<T>(a1, a2); }
-    virtual T CombineRestitution(T a1, T a2) const { return std::min<T>(a1, a2); }
-    virtual T CombineDamping(T a1, T a2) const { return std::min<T>(a1, a2); }
-    virtual T CombineCompliance(T a1, T a2) const { return a1 + a2; }
+    virtual float CombineFriction(float a1, float a2) const { return std::min<float>(a1, a2); }
+    virtual float CombineCohesion(float a1, float a2) const { return std::min<float>(a1, a2); }
+    virtual float CombineRestitution(float a1, float a2) const { return std::min<float>(a1, a2); }
+    virtual float CombineDamping(float a1, float a2) const { return std::min<float>(a1, a2); }
+    virtual float CombineCompliance(float a1, float a2) const { return a1 + a2; }
 
-    virtual T CombineAdhesionMultiplier(T a1, T a2) const { return std::min<T>(a1, a2); }
-    virtual T CombineStiffnessCoefficient(T a1, T a2) const { return (a1 + a2) / 2; }
-    virtual T CombineDampingCoefficient(T a1, T a2) const { return (a1 + a2) / 2; }
+    virtual float CombineAdhesionMultiplier(float a1, float a2) const { return std::min<float>(a1, a2); }
+    virtual float CombineStiffnessCoefficient(float a1, float a2) const { return (a1 + a2) / 2; }
+    virtual float CombineDampingCoefficient(float a1, float a2) const { return (a1 + a2) / 2; }
 };
 
 }  // end namespace chrono

@@ -47,6 +47,9 @@ class CH_VEHICLE_API TrackAssemblyBandANCF : public ChTrackAssemblyBandANCF {
   private:
     virtual void Create(const rapidjson::Document& d) override;
 
+    /// Create the contact material for the web mesh, consistent with the specified contact method.
+    virtual void CreateContactMaterial(ChContactMethod contact_method) override;
+
     void ReadSprocket(const std::string& filename, int output);
     void ReadTrackShoes(const std::string& filename, int num_shoes, int output);
 
@@ -58,6 +61,8 @@ class CH_VEHICLE_API TrackAssemblyBandANCF : public ChTrackAssemblyBandANCF {
     ChVector<> m_idler_loc;
     std::vector<ChVector<>> m_susp_locs;
     std::vector<ChVector<>> m_roller_locs;
+
+    MaterialInfo m_mat_info;
 };
 
 /// @} vehicle_tracked

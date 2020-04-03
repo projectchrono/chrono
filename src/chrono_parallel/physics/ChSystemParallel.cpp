@@ -50,8 +50,6 @@ ChSystemParallel::ChSystemParallel() : ChSystem() {
     data_manager = new ChParallelDataManager();
 
     descriptor = chrono_types::make_shared<ChSystemDescriptorParallel>(data_manager);
-    contact_container = chrono_types::make_shared<ChContactContainerParallel>(data_manager);
-    contact_container->SetSystem(this);
     collision_system = chrono_types::make_shared<ChCollisionSystemParallel>(data_manager);
 
     collision_system_type = CollisionSystemType::COLLSYS_PARALLEL;
@@ -92,6 +90,20 @@ ChSystemParallel::ChSystemParallel(const ChSystemParallel& other) : ChSystem(oth
 
 ChSystemParallel::~ChSystemParallel() {
     delete data_manager;
+}
+
+ChBody* ChSystemParallel::NewBody() {
+    if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
+        return new ChBody(chrono_types::make_shared<collision::ChCollisionModelParallel>());
+
+    return new ChBody();
+}
+
+ChBodyAuxRef* ChSystemParallel::NewBodyAuxRef() {
+    if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
+        return new ChBodyAuxRef(chrono_types::make_shared<collision::ChCollisionModelParallel>());
+
+    return new ChBodyAuxRef();
 }
 
 bool ChSystemParallel::Integrate_Y() {
@@ -293,8 +305,7 @@ void ChSystemParallel::AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> newite
 //
 // Add the specified shaft to the system.
 // A unique identifier is assigned to each shaft for indexing purposes.
-// Space is allocated in system-wide vectors for data corresponding to the
-// shaft.
+// Space is allocated in system-wide vectors for data corresponding to the shaft.
 //
 // Currently, this function is private to prevent the user from directly calling
 // it and instead force them to use AddOtherPhysicsItem().  See comment above.
@@ -889,7 +900,7 @@ settings_container* ChSystemParallel::GetSettings() {
 
 // -------------------------------------------------------------
 
-void ChSystemParallel::SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy<real>>&& strategy) {
+void ChSystemParallel::SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy>&& strategy) {
     data_manager->composition_strategy = std::move(strategy);
 }
 

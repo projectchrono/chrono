@@ -20,6 +20,7 @@
 #include "chrono/core/ChStream.h"
 #include "chrono/core/ChFrameMoving.h"
 #include "chrono/physics/ChBodyAuxRef.h"
+#include "chrono/physics/ChMaterialSurface.h"
 
 class TopoDS_Face;
 class TopoDS_Shape;
@@ -28,8 +29,10 @@ class TopLoc_Location;
 class TDF_Label;
 
 namespace chrono {
-
 namespace cascade {
+
+/// @addtogroup cascade_module
+/// @{
 
 /// Class that contains an OCAF document (a tree hierarchy of
 /// shapes in the OpenCascade framework). Most often this is
@@ -78,7 +81,7 @@ class ChApiCASCADE ChCascadeDoc {
         ChVector<>& inertiaXY,        ///< get the inertia extradiagonal terms
         double& volume,               ///< get the volume
         double& mass                  ///< get the mass
-        );
+    );
 
     class callback_CascadeDoc {
       public:
@@ -101,18 +104,21 @@ class ChApiCASCADE ChCascadeDoc {
 
     /// Create a ChBodyAuxRef with assets for the given TopoDS_Shape
     static std::shared_ptr<ChBodyAuxRef> CreateBodyFromShape(
-                const TopoDS_Shape& mshape,     ///< pass the shape here
-                const double density,           ///< pass the density here
-				const bool collide = false,     ///< if true, add a collision shape that uses the triangulation of shape
-				const bool visual_asset = true  ///< if true, uses a triangulated shape for visualization
-                );
+        const TopoDS_Shape& mshape,  ///< OpenCASCADE shape
+        double density,              ///< density
+        bool visual_asset = true,    ///< if true, uses a triangulated shape for visualization
+        bool collide = false,        ///< if true, add a collision shape that uses the triangulation of shape
+        std::shared_ptr<ChMaterialSurface> mat = nullptr  ///< surface contact material
+    );
 
   private:
     // pointer to cascade OCAF doc handle;
     Handle_TDocStd_Document* doc;
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+/// @} cascade_module
 
-#endif  // END of header
+}  // end namespace cascade
+}  // end namespace chrono
+
+#endif

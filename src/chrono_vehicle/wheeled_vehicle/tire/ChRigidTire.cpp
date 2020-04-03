@@ -50,6 +50,9 @@ void ChRigidTire::Initialize(std::shared_ptr<ChWheel> wheel) {
 
     auto wheel_body = wheel->GetSpindle();
 
+    CreateContactMaterial(wheel_body->GetSystem()->GetContactMethod());
+    assert(m_material && m_material->GetContactMethod() == wheel_body->GetSystem()->GetContactMethod());
+    
     wheel_body->SetCollide(true);
 
     wheel_body->GetCollisionModel()->ClearModel();
@@ -69,32 +72,15 @@ void ChRigidTire::Initialize(std::shared_ptr<ChWheel> wheel) {
                 m_trimesh->m_vertices[i].y() += offset;
         }
 
-        wheel_body->GetCollisionModel()->AddTriangleMesh(m_trimesh, false, false, ChVector<>(0), ChMatrix33<>(1),
-                                                         m_sweep_sphere_radius);
+        wheel_body->GetCollisionModel()->AddTriangleMesh(m_material, m_trimesh, false, false, ChVector<>(0),
+                                                         ChMatrix33<>(1), m_sweep_sphere_radius);
     } else {
         // Cylinder contact
-        wheel_body->GetCollisionModel()->AddCylinder(GetRadius(), GetRadius(), GetWidth() / 2,
+        wheel_body->GetCollisionModel()->AddCylinder(m_material, GetRadius(), GetRadius(), GetWidth() / 2,
                                                      ChVector<>(0, GetOffset(), 0));
     }
 
     wheel_body->GetCollisionModel()->BuildModel();
-
-    switch (wheel_body->GetContactMethod()) {
-        case ChMaterialSurface::NSC:
-            wheel_body->GetMaterialSurfaceNSC()->SetFriction(m_friction);
-            wheel_body->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
-            break;
-        case ChMaterialSurface::SMC:
-            wheel_body->GetMaterialSurfaceSMC()->SetFriction(m_friction);
-            wheel_body->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
-            wheel_body->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);
-            wheel_body->GetMaterialSurfaceSMC()->SetPoissonRatio(m_poisson_ratio);
-            wheel_body->GetMaterialSurfaceSMC()->SetKn(m_kn);
-            wheel_body->GetMaterialSurfaceSMC()->SetGn(m_gn);
-            wheel_body->GetMaterialSurfaceSMC()->SetKt(m_kt);
-            wheel_body->GetMaterialSurfaceSMC()->SetGt(m_gt);
-            break;
-    }
 }
 
 // -----------------------------------------------------------------------------

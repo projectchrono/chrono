@@ -42,14 +42,9 @@ typedef struct BodyExchange {
     double mass;
     double inertiaXX[3];
     double inertiaXY[3];
-    float mu;
-    float cohesion;
-    float ym_kn;
-    float pr_kt;
-    float restit_gn;
-    float gt;
     int identifier;
 } BodyExchange;
+
 /// @} distributed_comm
 
 /// @addtogroup distributed_comm
@@ -63,20 +58,29 @@ typedef struct BodyUpdate {
     double rot[4];
     double vel[6];
 } BodyUpdate;
+
 /// @} distributed_comm
 
 /// @addtogroup distributed_comm
 /// @{
 
-/// Structure of data for sending a collision shape to a rank
+/// Structure of data for sending a collision shape to a rank. The encapsulated contact material information depends on
+/// whether or not the system uses material properties to infer contact properties.
 typedef struct Shape {
-    uint gid;
-    int type;
-    short coll_fam[2];
-    double A[3];  // A
-    double R[4];
-    double data[6];  // B C and shape-specific data
+    uint gid;           ///< global shape ID
+    int type;           ///< shape type
+    short coll_fam[2];  ///< collision family and mask
+    double A[3];        ///< position
+    double R[4];        ///< orientation
+    double data[6];     ///< shape-specific geometric data
+    float mu;           ///< coefficient of friction
+    float cohesion;     ///< adhesion (constant OR DMT parameter)
+    float ym_kn;        ///< Young's modulus OR normal stiffness
+    float pr_kt;        ///< Poisson ratio OR tangential stiffness
+    float restit_gn;    ///< coefficient of restitution OR normal damping
+    float gt;           ///< tangential damping
 } Shape;
+
 /// @} distributed_comm
 
 /// @addtogroup distributed_comm

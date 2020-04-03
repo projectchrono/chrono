@@ -121,7 +121,7 @@ int main(int argc, char* argv[]) {
     // -----------------------------
 
     // Create the vehicle system
-    TrackedVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChMaterialSurface::SMC);
+    TrackedVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChContactMethod::SMC);
 
     // Disable gravity in this simulation
     ////vehicle.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));

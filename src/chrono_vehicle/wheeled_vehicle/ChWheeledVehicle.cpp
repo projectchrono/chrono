@@ -29,7 +29,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChWheeledVehicle::ChWheeledVehicle(const std::string& name, ChMaterialSurface::ContactMethod contact_method)
+ChWheeledVehicle::ChWheeledVehicle(const std::string& name, ChContactMethod contact_method)
     : ChVehicle(name, contact_method) {}
 
 ChWheeledVehicle::ChWheeledVehicle(const std::string& name, ChSystem* system) : ChVehicle(name, system) {}

@@ -55,11 +55,9 @@ template <int N>
 ChainTest<N>::ChainTest() : m_length(0.25), m_step(1e-3) {
     ChTimestepper::Type integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
     ChSolver::Type solver_type = ChSolver::Type::BARZILAIBORWEIN;
-    ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC;
 
     // Create system
-    m_system = (contact_method == ChMaterialSurface::NSC) ? static_cast<ChSystem*>(new ChSystemNSC)
-                                                          : static_cast<ChSystem*>(new ChSystemSMC);
+    m_system = new ChSystemNSC;
     m_system->Set_G_acc(ChVector<>(0, -1, 0));
 
     // Set solver parameters
@@ -110,7 +108,7 @@ ChainTest<N>::ChainTest() : m_length(0.25), m_step(1e-3) {
     }
 
     // Create ground
-    auto ground = chrono_types::make_shared<ChBody>(contact_method);
+    auto ground = chrono_types::make_shared<ChBody>();
     ground->SetBodyFixed(true);
     m_system->AddBody(ground);
 
@@ -120,7 +118,7 @@ ChainTest<N>::ChainTest() : m_length(0.25), m_step(1e-3) {
     for (int ib = 0; ib < N; ib++) {
         auto prev = m_system->Get_bodylist().back();
 
-        auto pend = chrono_types::make_shared<ChBodyEasyBox>(m_length, width, width, density, false, true, contact_method);
+        auto pend = chrono_types::make_shared<ChBodyEasyBox>(m_length, width, width, density, true, false);
         pend->SetPos(ChVector<>((ib + 0.5) * m_length, 0, 0));
         pend->AddAsset(chrono_types::make_shared<ChColorAsset>(0.5f * (ib % 2), 0.0f, 0.5f * (ib % 2 - 1)));
         m_system->AddBody(pend);

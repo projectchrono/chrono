@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Construct the M113 vehicle
-    M113_Vehicle vehicle(false, TrackShoeType::SINGLE_PIN, ChMaterialSurface::SMC);
+    M113_Vehicle vehicle(false, TrackShoeType::SINGLE_PIN, ChContactMethod::SMC);
 
 #ifndef CHRONO_MKL
     // Do not use MKL if not available
@@ -285,11 +285,6 @@ void AddFixedObstacles(ChSystem* system) {
     double radius = 2;
     double length = 10;
 
-    float friction_coefficient = 0.9f;
-    float restitution_coefficient = 0.01f;
-    float young_modulus = 2e7f;
-    float poisson_ratio = 0.3f;
-
     auto obstacle = std::shared_ptr<ChBody>(system->NewBody());
     obstacle->SetPos(ChVector<>(0, 0, -1.8));
     obstacle->SetBodyFixed(true);
@@ -312,22 +307,15 @@ void AddFixedObstacles(ChSystem* system) {
     obstacle->AddAsset(texture);
 
     // Contact
-    obstacle->GetCollisionModel()->ClearModel();
-    obstacle->GetCollisionModel()->AddCylinder(radius, radius, length * 0.5);
-    obstacle->GetCollisionModel()->BuildModel();
+    MaterialInfo minfo;
+    minfo.mu = 0.9f;
+    minfo.cr = 0.01f;
+    minfo.Y = 2e7f;
+    auto obst_mat = minfo.CreateMaterial(system->GetContactMethod());
 
-    switch (obstacle->GetContactMethod()) {
-        case ChMaterialSurface::NSC:
-            obstacle->GetMaterialSurfaceNSC()->SetFriction(friction_coefficient);
-            obstacle->GetMaterialSurfaceNSC()->SetRestitution(restitution_coefficient);
-            break;
-        case ChMaterialSurface::SMC:
-            obstacle->GetMaterialSurfaceSMC()->SetFriction(friction_coefficient);
-            obstacle->GetMaterialSurfaceSMC()->SetRestitution(restitution_coefficient);
-            obstacle->GetMaterialSurfaceSMC()->SetYoungModulus(young_modulus);
-            obstacle->GetMaterialSurfaceSMC()->SetPoissonRatio(poisson_ratio);
-            break;
-    }
+    obstacle->GetCollisionModel()->ClearModel();
+    obstacle->GetCollisionModel()->AddCylinder(obst_mat, radius, radius, length * 0.5);
+    obstacle->GetCollisionModel()->BuildModel();
 
     system->AddBody(obstacle);
 }
@@ -354,12 +342,10 @@ void AddMovingObstacles(ChSystem* system) {
     ball->SetPos_dt(init_vel);
     ball->SetWvel_loc(init_ang_vel);
     ball->SetBodyFixed(false);
-    ball->SetMaterialSurface(material);
-
     ball->SetCollide(true);
 
     ball->GetCollisionModel()->ClearModel();
-    ball->GetCollisionModel()->AddSphere(radius);
+    ball->GetCollisionModel()->AddSphere(material, radius);
     ball->GetCollisionModel()->BuildModel();
 
     ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector<>(1, 1, 1));

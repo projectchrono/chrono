@@ -61,25 +61,7 @@ void ANCFTire::ProcessJSON(const rapidjson::Document& d) {
 
     // Read contact material data
     assert(d.HasMember("Contact Material"));
-
-    float mu = d["Contact Material"]["Coefficient of Friction"].GetFloat();
-    float cr = d["Contact Material"]["Coefficient of Restitution"].GetFloat();
-
-    SetContactFrictionCoefficient(mu);
-    SetContactRestitutionCoefficient(cr);
-
-    if (d["Contact Material"].HasMember("Properties")) {
-        float ym = d["Contact Material"]["Properties"]["Young Modulus"].GetFloat();
-        float pr = d["Contact Material"]["Properties"]["Poisson Ratio"].GetFloat();
-        SetContactMaterialProperties(ym, pr);
-    }
-    if (d["Contact Material"].HasMember("Coefficients")) {
-        float kn = d["Contact Material"]["Coefficients"]["Normal Stiffness"].GetFloat();
-        float gn = d["Contact Material"]["Coefficients"]["Normal Damping"].GetFloat();
-        float kt = d["Contact Material"]["Coefficients"]["Tangential Stiffness"].GetFloat();
-        float gt = d["Contact Material"]["Coefficients"]["Tangential Damping"].GetFloat();
-        SetContactMaterialCoefficients(kn, gn, kt, gt);
-    }
+    m_mat_info = ReadMaterialInfoJSON(d["Contact Material"]);
 
     // Read the list of materials (note that order is important)
     int num_materials = d["Materials"].Size();
@@ -296,6 +278,18 @@ std::vector<std::shared_ptr<fea::ChNodeFEAbase>> ANCFTire::GetConnectedNodes() c
     }
 
     return nodes;
+}
+
+void ANCFTire::CreateContactMaterial() {
+    m_contact_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    m_contact_mat->SetFriction(m_mat_info.mu);
+    m_contact_mat->SetRestitution(m_mat_info.cr);
+    m_contact_mat->SetYoungModulus(m_mat_info.Y);
+    m_contact_mat->SetPoissonRatio(m_mat_info.nu);
+    m_contact_mat->SetKn(m_mat_info.kn);
+    m_contact_mat->SetGn(m_mat_info.gn);
+    m_contact_mat->SetKt(m_mat_info.kt);
+    m_contact_mat->SetGt(m_mat_info.gt);
 }
 
 }  // end namespace vehicle

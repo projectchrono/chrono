@@ -52,12 +52,12 @@ class CH_VEHICLE_API SingleIdler : public ChSingleIdler {
     virtual ChLinkTSDA::ForceFunctor* GetTensionerForceCallback() const override { return m_tensionerForceCB; }
     virtual double GetTensionerFreeLength() const override { return m_tensioner_l0; }
 
-    virtual void AddVisualizationAssets(VisualizationType vis) override;
-
   private:
     virtual const ChVector<> GetLocation(PointId which) override { return m_points[which]; }
 
     virtual void Create(const rapidjson::Document& d) override;
+    virtual void CreateContactMaterial(ChContactMethod contact_method) override;
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
 
     ChVector<> m_points[NUM_POINTS];
 
@@ -80,6 +80,8 @@ class CH_VEHICLE_API SingleIdler : public ChSingleIdler {
     bool m_has_mesh;
     std::string m_meshName;
     std::string m_meshFile;
+
+    MaterialInfo m_mat_info;
 };
 
 /// @} vehicle_tracked_idler

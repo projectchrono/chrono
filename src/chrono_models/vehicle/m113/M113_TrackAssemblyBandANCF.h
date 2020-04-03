@@ -41,6 +41,9 @@ class CH_MODELS_API M113_TrackAssemblyBandANCF : public ChTrackAssemblyBandANCF 
     virtual const ChVector<> GetRoadWhelAssemblyLocation(int which) const override;
 
   private:
+    /// Create the contact material for the web mesh, consistent with the specified contact method.
+    virtual void CreateContactMaterial(ChContactMethod contact_method) override;
+
     static const ChVector<> m_sprocket_loc;
     static const ChVector<> m_idler_loc;
     static const ChVector<> m_susp_locs_L[5];

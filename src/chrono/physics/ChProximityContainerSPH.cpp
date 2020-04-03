@@ -14,7 +14,6 @@
 
 #include <list>
 
-#include "chrono/collision/ChCModelBullet.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChMatterSPH.h"
 #include "chrono/physics/ChProximityContainerSPH.h"

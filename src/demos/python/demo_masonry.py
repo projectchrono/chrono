@@ -81,13 +81,11 @@ for ix in range(0,nbricks_on_x):
         body_brick.SetPos(chrono.ChVectorD(ix*size_brick_x, (iy+0.5)*size_brick_y, 0 ))
         # set mass properties
         body_brick.SetMass(mass_brick)
-        body_brick.SetInertiaXX(chrono.ChVectorD(inertia_brick,inertia_brick,inertia_brick))
-        # set collision surface properties
-        body_brick.SetMaterialSurface(brick_material)
+        body_brick.SetInertiaXX(chrono.ChVectorD(inertia_brick,inertia_brick,inertia_brick))       
 
         # Collision shape
         body_brick.GetCollisionModel().ClearModel()
-        body_brick.GetCollisionModel().AddBox(size_brick_x/2, size_brick_y/2, size_brick_z/2) # must set half sizes
+        body_brick.GetCollisionModel().AddBox(brick_material, size_brick_x/2, size_brick_y/2, size_brick_z/2) # must set half sizes
         body_brick.GetCollisionModel().BuildModel()
         body_brick.SetCollide(True)
 
@@ -107,11 +105,10 @@ for ix in range(0,nbricks_on_x):
 body_floor = chrono.ChBody()
 body_floor.SetBodyFixed(True)
 body_floor.SetPos(chrono.ChVectorD(0, -2, 0 ))
-body_floor.SetMaterialSurface(brick_material)
 
 # Collision shape
 body_floor.GetCollisionModel().ClearModel()
-body_floor.GetCollisionModel().AddBox(3, 1, 3) # hemi sizes
+body_floor.GetCollisionModel().AddBox(brick_material, 3, 1, 3) # hemi sizes
 body_floor.GetCollisionModel().BuildModel()
 body_floor.SetCollide(True)
 
@@ -136,11 +133,10 @@ size_table_z = 1;
 
 body_table = chrono.ChBody()
 body_table.SetPos(chrono.ChVectorD(0, -size_table_y/2, 0 ))
-body_table.SetMaterialSurface(brick_material)
 
 # Collision shape
 body_table.GetCollisionModel().ClearModel()
-body_table.GetCollisionModel().AddBox(size_table_x/2, size_table_y/2, size_table_z/2) # hemi sizes
+body_table.GetCollisionModel().AddBox(brick_material, size_table_x/2, size_table_y/2, size_table_z/2) # hemi sizes
 body_table.GetCollisionModel().BuildModel()
 body_table.SetCollide(True)
 

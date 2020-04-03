@@ -67,16 +67,17 @@ int main(int argc, char* argv[]) {
     //
 
     // Create the floor:
+    auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
-    auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true);
+    auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true, floor_mat);
     floorBody->SetPos(ChVector<>(0, -5, 0));
     floorBody->SetBodyFixed(true);
     floorBody->GetCollisionModel()->ClearModel();
-    floorBody->GetCollisionModel()->AddBox(10, 0.5, 10);
-    floorBody->GetCollisionModel()->AddBox(1, 12, 20, ChVector<>(-5, 0, 0));
-    floorBody->GetCollisionModel()->AddBox(1, 12, 20, ChVector<>(5, 0, 0));
-    floorBody->GetCollisionModel()->AddBox(10, 12, 1, ChVector<>(0, 0, -5));
-    floorBody->GetCollisionModel()->AddBox(10, 12, 1, ChVector<>(0, 0, 5));
+    floorBody->GetCollisionModel()->AddBox(floor_mat, 10, 0.5, 10);
+    floorBody->GetCollisionModel()->AddBox(floor_mat, 1, 12, 20, ChVector<>(-5, 0, 0));
+    floorBody->GetCollisionModel()->AddBox(floor_mat, 1, 12, 20, ChVector<>(5, 0, 0));
+    floorBody->GetCollisionModel()->AddBox(floor_mat, 10, 12, 1, ChVector<>(0, 0, -5));
+    floorBody->GetCollisionModel()->AddBox(floor_mat, 10, 12, 1, ChVector<>(0, 0, 5));
     floorBody->GetCollisionModel()->BuildModel();
 
     auto mvisual = chrono_types::make_shared<ChColorAsset>();

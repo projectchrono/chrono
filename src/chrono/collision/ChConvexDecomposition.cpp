@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#include "chrono/collision/ChCConvexDecomposition.h"
+#include "chrono/collision/ChConvexDecomposition.h"
 #include "chrono/collision/convexdecomposition/HACDv2/wavefront.h"
 
 namespace chrono {

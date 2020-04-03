@@ -17,7 +17,7 @@
 
 #include <cmath>
 
-#include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/collision/ChCollisionModel.h"
 #include "chrono/physics/ChIndexedNodes.h"
 #include "chrono/physics/ChNodeXYZ.h"
 #include "chrono/fea/ChContinuumMaterial.h"
@@ -161,9 +161,6 @@ class ChApi ChNodeMeshless : public ChNodeXYZ, public ChContactable_1vars<3> {
     /// Used by some SMC code.
     virtual double GetContactableMass() override { return this->GetMass(); }
 
-    /// Return the pointer to the surface material.
-    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() override;
-
     /// This is only for backward compatibility.
     virtual ChPhysicsItem* GetPhysicsItem() override;
 
@@ -219,7 +216,6 @@ class ChApi ChMatterMeshless : public ChIndexedNodes {
     virtual ChMatterMeshless* Clone() const override { return new ChMatterMeshless(*this); }
 
     /// Enable/disable the collision for this cluster of particles.
-    /// After setting ON, remember RecomputeCollisionModel()
     /// before anim starts (it is not automatically
     /// recomputed here because of performance issues.)
     void SetCollide(bool mcoll);
@@ -249,7 +245,7 @@ class ChApi ChMatterMeshless : public ChIndexedNodes {
     void SetMaterialSurface(const std::shared_ptr<ChMaterialSurface>& mnewsurf) { matsurface = mnewsurf; }
 
     /// Set the material surface for 'boundary contact'.
-    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() { return matsurface; }
+    std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() { return matsurface; }
 
     //
     // STATE FUNCTIONS

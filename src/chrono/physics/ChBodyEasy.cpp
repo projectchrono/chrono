@@ -20,18 +20,17 @@
 #include "chrono/assets/ChObjShapeFile.h"
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
-#include "chrono/collision/ChCCollisionUtils.h"
+#include "chrono/collision/ChCollisionUtils.h"
 
 namespace chrono {
 
-ChBodyEasySphere::ChBodyEasySphere(double radius,      // radius of the sphere
-                                   double mdensity,    // density of the body
-                                   bool collide,       // enable the collision detection
-                                   bool visual_asset,  // attach a visualization asset to the body
-                                   ChMaterialSurface::ContactMethod contact_method,              // contact method
-                                   std::shared_ptr<collision::ChCollisionModel> collision_model  // collision model
-                                   )
-    : ChBody(collision_model, contact_method) {
+ChBodyEasySphere::ChBodyEasySphere(double radius,
+                                   double mdensity,
+                                   bool visualize,
+                                   bool collide,
+                                   std::shared_ptr<ChMaterialSurface> material,
+                                   std::shared_ptr<collision::ChCollisionModel> collision_model)
+    : ChBody(collision_model) {
     double mmass = mdensity * ((4.0 / 3.0) * CH_C_PI * pow(radius, 3));
     double inertia = (2.0 / 5.0) * mmass * pow(radius, 2);
 
@@ -40,27 +39,26 @@ ChBodyEasySphere::ChBodyEasySphere(double radius,      // radius of the sphere
     this->SetInertiaXX(ChVector<>(inertia, inertia, inertia));
 
     if (collide) {
+        assert(material);
         GetCollisionModel()->ClearModel();
-        GetCollisionModel()->AddSphere(radius);  // radius, radius, height on y
+        GetCollisionModel()->AddSphere(material, radius);
         GetCollisionModel()->BuildModel();
         SetCollide(true);
     }
-    if (visual_asset) {
+    if (visualize) {
         std::shared_ptr<ChSphereShape> vshape(new ChSphereShape());
         vshape->GetSphereGeometry().rad = radius;
         this->AddAsset(vshape);
     }
 }
 
-ChBodyEasyEllipsoid::ChBodyEasyEllipsoid(
-    ChVector<> radius,                                            // radii of the ellipsoid
-    double mdensity,                                              // density of the body
-    bool collide,                                                 // enable the collision detection
-    bool visual_asset,                                            // attach a visualization asset to the body
-    ChMaterialSurface::ContactMethod contact_method,              // contact method
-    std::shared_ptr<collision::ChCollisionModel> collision_model  // collision model
-    )
-    : ChBody(collision_model, contact_method) {
+ChBodyEasyEllipsoid::ChBodyEasyEllipsoid(ChVector<> radius,
+                                         double mdensity,
+                                         bool visualize,
+                                         bool collide,
+                                         std::shared_ptr<ChMaterialSurface> material,
+                                         std::shared_ptr<collision::ChCollisionModel> collision_model)
+    : ChBody(collision_model) {
     double mmass = mdensity * ((4.0 / 3.0) * CH_C_PI * radius.x() * radius.y() * radius.z());
     double inertiax = (1.0 / 5.0) * mmass * (pow(radius.y(), 2) + pow(radius.z(), 2));
     double inertiay = (1.0 / 5.0) * mmass * (pow(radius.x(), 2) + pow(radius.z(), 2));
@@ -71,27 +69,27 @@ ChBodyEasyEllipsoid::ChBodyEasyEllipsoid(
     this->SetInertiaXX(ChVector<>(inertiax, inertiay, inertiaz));
 
     if (collide) {
+        assert(material);
         GetCollisionModel()->ClearModel();
-        GetCollisionModel()->AddEllipsoid(radius.x(), radius.y(), radius.z());
+        GetCollisionModel()->AddEllipsoid(material, radius.x(), radius.y(), radius.z());
         GetCollisionModel()->BuildModel();
         SetCollide(true);
     }
-    if (visual_asset) {
+    if (visualize) {
         std::shared_ptr<ChEllipsoidShape> vshape(new ChEllipsoidShape());
         vshape->GetEllipsoidGeometry().rad = radius;
         this->AddAsset(vshape);
     }
 }
 
-ChBodyEasyCylinder::ChBodyEasyCylinder(double radius,      // radius of the cylinder
-                                       double height,      // height of the cylinder (along the Y axis)
-                                       double mdensity,    // density of the body
-                                       bool collide,       // enable the collision detection
-                                       bool visual_asset,  // attach a visualization asset to the body
-                                       ChMaterialSurface::ContactMethod contact_method,              // contact method
-                                       std::shared_ptr<collision::ChCollisionModel> collision_model  // collision model
-                                       )
-    : ChBody(collision_model, contact_method) {
+ChBodyEasyCylinder::ChBodyEasyCylinder(double radius,
+                                       double height,
+                                       double mdensity,
+                                       bool visualize,
+                                       bool collide,
+                                       std::shared_ptr<ChMaterialSurface> material,
+                                       std::shared_ptr<collision::ChCollisionModel> collision_model)
+    : ChBody(collision_model) {
     double mmass = mdensity * (CH_C_PI * pow(radius, 2) * height);
 
     this->SetDensity((float)mdensity);
@@ -100,12 +98,13 @@ ChBodyEasyCylinder::ChBodyEasyCylinder(double radius,      // radius of the cyli
                                   0.5 * mmass * pow(radius, 2),
                                   (1.0 / 12.0) * mmass * (3 * pow(radius, 2) + pow(height, 2))));
     if (collide) {
+        assert(material);
         GetCollisionModel()->ClearModel();
-        GetCollisionModel()->AddCylinder(radius, radius, height * 0.5);  // radius x, radius z, height on y
+        GetCollisionModel()->AddCylinder(material, radius, radius, height * 0.5);
         GetCollisionModel()->BuildModel();
         SetCollide(true);
     }
-    if (visual_asset) {
+    if (visualize) {
         auto vshape = chrono_types::make_shared<ChCylinderShape>();
         vshape->GetCylinderGeometry().p1 = ChVector<>(0, -height * 0.5, 0);
         vshape->GetCylinderGeometry().p2 = ChVector<>(0, height * 0.5, 0);
@@ -114,16 +113,15 @@ ChBodyEasyCylinder::ChBodyEasyCylinder(double radius,      // radius of the cyli
     }
 }
 
-ChBodyEasyBox::ChBodyEasyBox(double Xsize,       // size along the X dimension
-                             double Ysize,       // size along the Y dimension
-                             double Zsize,       // size along the Z dimension
-                             double mdensity,    // density of the body
-                             bool collide,       // enable the collision detection
-                             bool visual_asset,  // attach a visualization asset to the body
-                             ChMaterialSurface::ContactMethod contact_method,              // contact method
-                             std::shared_ptr<collision::ChCollisionModel> collision_model  // collision model
-                             )
-    : ChBody(collision_model, contact_method) {
+ChBodyEasyBox::ChBodyEasyBox(double Xsize,
+                             double Ysize,
+                             double Zsize,
+                             double mdensity,
+                             bool visualize,
+                             bool collide,
+                             std::shared_ptr<ChMaterialSurface> material,
+                             std::shared_ptr<collision::ChCollisionModel> collision_model)
+    : ChBody(collision_model) {
     double mmass = mdensity * (Xsize * Ysize * Zsize);
 
     this->SetDensity((float)mdensity);
@@ -132,31 +130,30 @@ ChBodyEasyBox::ChBodyEasyBox(double Xsize,       // size along the X dimension
                                   (1.0 / 12.0) * mmass * (pow(Xsize, 2) + pow(Zsize, 2)),
                                   (1.0 / 12.0) * mmass * (pow(Xsize, 2) + pow(Ysize, 2))));
     if (collide) {
+        assert(material);
         GetCollisionModel()->ClearModel();
-        GetCollisionModel()->AddBox(Xsize * 0.5, Ysize * 0.5, Zsize * 0.5);  // radius x, radius z, height on y
+        GetCollisionModel()->AddBox(material, Xsize * 0.5, Ysize * 0.5, Zsize * 0.5);
         GetCollisionModel()->BuildModel();
         SetCollide(true);
     }
-    if (visual_asset) {
+    if (visualize) {
         auto vshape = chrono_types::make_shared<ChBoxShape>();
         vshape->GetBoxGeometry().SetLengths(ChVector<>(Xsize, Ysize, Zsize));
         this->AddAsset(vshape);
     }
 }
 
-ChBodyEasyConvexHull::ChBodyEasyConvexHull(
-    std::vector<ChVector<>>& points,                              // points of the convex hull
-    double mdensity,                                              // density of the body
-    bool collide,                                                 // enable the collision detection
-    bool visual_asset,                                            // attach a visualization asset to the body
-    ChMaterialSurface::ContactMethod contact_method,              // contact method
-    std::shared_ptr<collision::ChCollisionModel> collision_model  // collision model
-    )
-    : ChBody(collision_model, contact_method) {
+ChBodyEasyConvexHull::ChBodyEasyConvexHull(std::vector<ChVector<>>& points,
+                                           double mdensity,
+                                           bool visualize,
+                                           bool collide,
+                                           std::shared_ptr<ChMaterialSurface> material,
+                                           std::shared_ptr<collision::ChCollisionModel> collision_model)
+    : ChBody(collision_model) {
     auto vshape = chrono_types::make_shared<ChTriangleMeshShape>();
     collision::ChConvexHullLibraryWrapper lh;
     lh.ComputeHull(points, *vshape->GetMesh());
-    if (visual_asset) {
+    if (visualize) {
         vshape->SetName("chull_mesh_" + std::to_string(GetIdentifier()));
         this->AddAsset(vshape);
     }
@@ -175,6 +172,7 @@ ChBodyEasyConvexHull::ChBodyEasyConvexHull(
     this->SetInertia(inertia * mdensity);
 
     if (collide) {
+        assert(material);
         // avoid passing to collision the inner points discarded by convex hull
         // processor, so use mesh vertexes instead of all argument points
         std::vector<ChVector<>> points_reduced;
@@ -183,25 +181,23 @@ ChBodyEasyConvexHull::ChBodyEasyConvexHull(
             points_reduced[i] = vshape->GetMesh()->getCoordsVertices()[i];
 
         GetCollisionModel()->ClearModel();
-        GetCollisionModel()->AddConvexHull(points_reduced);
+        GetCollisionModel()->AddConvexHull(material, points_reduced);
         GetCollisionModel()->BuildModel();
         SetCollide(true);
     }
 }
 
-ChBodyEasyConvexHullAuxRef::ChBodyEasyConvexHullAuxRef(
-    std::vector<ChVector<>>& points,  // points defined respect REF c.sys of body (initially REF=0,0,0 pos.)
-    double mdensity,                  // density of the body
-    bool collide,                     // enable the collision detection?
-    bool visual_asset,                // attach a visual asset to the body?
-    ChMaterialSurface::ContactMethod contact_method,              // contact method
-    std::shared_ptr<collision::ChCollisionModel> collision_model  // collision model
-    )
-    : ChBodyAuxRef(collision_model, contact_method) {
+ChBodyEasyConvexHullAuxRef::ChBodyEasyConvexHullAuxRef(std::vector<ChVector<>>& points,
+                                                       double mdensity,
+                                                       bool visualize,
+                                                       bool collide,
+                                                       std::shared_ptr<ChMaterialSurface> material,
+                                                       std::shared_ptr<collision::ChCollisionModel> collision_model)
+    : ChBodyAuxRef(collision_model) {
     auto vshape = chrono_types::make_shared<ChTriangleMeshShape>();
     collision::ChConvexHullLibraryWrapper lh;
     lh.ComputeHull(points, *vshape->GetMesh());
-    if (visual_asset) {
+    if (visualize) {
         vshape->SetName("chull_mesh_" + std::to_string(GetIdentifier()));
         this->AddAsset(vshape);  // assets are respect to REF c.sys
     }
@@ -226,6 +222,7 @@ ChBodyEasyConvexHullAuxRef::ChBodyEasyConvexHullAuxRef(
     SetFrame_COG_to_REF(ChFrame<>(baricenter, principal_inertia_csys));
 
     if (collide) {
+        assert(material);
         // avoid passing to collision the inner points discarded by convex hull
         // processor, so use mesh vertexes instead of all argument points
         std::vector<ChVector<>> points_reduced;
@@ -234,27 +231,25 @@ ChBodyEasyConvexHullAuxRef::ChBodyEasyConvexHullAuxRef(
             points_reduced[i] = vshape->GetMesh()->getCoordsVertices()[i];
 
         GetCollisionModel()->ClearModel();
-        GetCollisionModel()->AddConvexHull(points_reduced);  // coll.model is respect to REF c.sys
+        GetCollisionModel()->AddConvexHull(material, points_reduced);
         GetCollisionModel()->BuildModel();
         SetCollide(true);
     }
 }
 
-ChBodyEasyMesh::ChBodyEasyMesh(
-    const std::string filename,  // .OBJ mesh defined respect REF c.sys of body (initially REF=0,0,0 pos.)
-    double mdensity,             // density of the body
-    bool compute_mass,           // automatic evaluation of the mass and inertia properties
-    bool collide,                // enable the collision detection
-    double sphere_swept,         // radius of 'inflating' of mesh, leads to more robust collision detection
-    bool visual_asset,           // attach a visualization asset to the body
-    ChMaterialSurface::ContactMethod contact_method,              // contact method
-    std::shared_ptr<collision::ChCollisionModel> collision_model  // collision model
-    )
-    : ChBodyAuxRef(collision_model, contact_method) {
+ChBodyEasyMesh::ChBodyEasyMesh(const std::string filename,
+                               double mdensity,
+                               bool compute_mass,
+                               bool visualize,
+                               bool collide,
+                               std::shared_ptr<ChMaterialSurface> material,
+                               double sphere_swept,
+                               std::shared_ptr<collision::ChCollisionModel> collision_model)
+    : ChBodyAuxRef(collision_model) {
     auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
     trimesh->LoadWavefrontMesh(filename, true, true);
 
-    if (visual_asset) {
+    if (visualize) {
         auto vshape = chrono_types::make_shared<ChTriangleMeshShape>();
         vshape->SetMesh(trimesh);
         vshape->SetName(filename);
@@ -282,24 +277,23 @@ ChBodyEasyMesh::ChBodyEasyMesh(
     }
 
     if (collide) {
+        assert(material);
         // coll.model is respect to REF c.sys
         GetCollisionModel()->ClearModel();
-        GetCollisionModel()->AddTriangleMesh(trimesh, false, false, VNULL, ChMatrix33<>(1), sphere_swept);
+        GetCollisionModel()->AddTriangleMesh(material, trimesh, false, false, VNULL, ChMatrix33<>(1), sphere_swept);
         GetCollisionModel()->BuildModel();
         SetCollide(true);
     }
 }
 
-ChBodyEasyClusterOfSpheres::ChBodyEasyClusterOfSpheres(
-    std::vector<ChVector<>>& positions,                           // position of the spheres
-    std::vector<double>& radii,                                   // radius of the sphere
-    double mdensity,                                              // attach a visualization asset to the body
-    bool collide,                                                 // attach a visualization asset to the body
-    bool visual_asset,                                            // attach a visualization asset to the body
-    ChMaterialSurface::ContactMethod contact_method,              // contact method
-    std::shared_ptr<collision::ChCollisionModel> collision_model  // collision model
-    )
-    : ChBody(collision_model, contact_method) {
+ChBodyEasyClusterOfSpheres::ChBodyEasyClusterOfSpheres(std::vector<ChVector<>>& positions,
+                                                       std::vector<double>& radii,
+                                                       double mdensity,
+                                                       bool visualize,
+                                                       bool collide,
+                                                       std::shared_ptr<ChMaterialSurface> material,
+                                                       std::shared_ptr<collision::ChCollisionModel> collision_model)
+    : ChBody(collision_model) {
     assert(positions.size() == radii.size());
 
     double totmass = 0;
@@ -338,14 +332,15 @@ ChBodyEasyClusterOfSpheres::ChBodyEasyClusterOfSpheres(
         offset_positions[i] -= baricenter;
 
     if (collide) {
+        assert(material);
         GetCollisionModel()->ClearModel();
         for (unsigned int i = 0; i < positions.size(); ++i) {
-            GetCollisionModel()->AddSphere(radii[i], offset_positions[i]);  // radius, radius, height on y
+            GetCollisionModel()->AddSphere(material, radii[i], offset_positions[i]);  // radius, radius, height on y
         }
         GetCollisionModel()->BuildModel();
         SetCollide(true);
     }
-    if (visual_asset) {
+    if (visualize) {
         for (unsigned int i = 0; i < positions.size(); ++i) {
             auto vshape = chrono_types::make_shared<ChSphereShape>();
             vshape->GetSphereGeometry().rad = radii[i];

@@ -31,7 +31,7 @@ namespace chrono {
 /// Utility class for specifying a collision boundary composed of multiple semi-planes.
 class CH_DISTR_API ChBoundary : public ChSystem::CustomCollisionCallback {
   public:
-    ChBoundary(std::shared_ptr<ChBody> body);
+    ChBoundary(std::shared_ptr<ChBody> body, std::shared_ptr<ChMaterialSurfaceSMC> material);
     ~ChBoundary() {}
 
     /// Add a collision plane with finite extent and return the plane ID.
@@ -81,20 +81,29 @@ class CH_DISTR_API ChBoundary : public ChSystem::CustomCollisionCallback {
 
     virtual void OnCustomCollision(ChSystem* system) override;
 
-    void CheckSphere(std::shared_ptr<collision::ChCollisionModel> model, const ChVector<>& center, double radius);
-    void CheckSpherePlane(std::shared_ptr<collision::ChCollisionModel> model,
+    void CheckSphere(collision::ChCollisionModel* model,
+                     std::shared_ptr<ChMaterialSurface> material,
+                     const ChVector<>& center,
+                     double radius);
+    void CheckSpherePlane(collision::ChCollisionModel* model,
+                          std::shared_ptr<ChMaterialSurface> material,
                           const ChVector<>& center,
                           double radius,
                           const Plane& plane);
 
-    void CheckBox(std::shared_ptr<collision::ChCollisionModel> model, const ChFrame<>& frame, const ChVector<>& size);
-    void CheckBoxPlane(std::shared_ptr<collision::ChCollisionModel> model,
+    void CheckBox(collision::ChCollisionModel* model,
+                  std::shared_ptr<ChMaterialSurface> material,
+                  const ChFrame<>& frame,
+                  const ChVector<>& size);
+    void CheckBoxPlane(collision::ChCollisionModel* model,
+                       std::shared_ptr<ChMaterialSurface> material,
                        const ChFrame<>& frame,
                        const ChVector<>& size,
                        const Plane& plane);
 
-    std::shared_ptr<ChBody> m_body;  ///< body to which boundary is attached
-    std::vector<Plane> m_planes;     ///< list of boundary planes
+    std::shared_ptr<ChBody> m_body;                    ///< body to which boundary is attached
+    std::shared_ptr<ChMaterialSurfaceSMC> m_material;  ///< contact material for the boundary planes
+    std::vector<Plane> m_planes;                       ///< list of boundary planes
 
     int m_crt_count;
 };

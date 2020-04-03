@@ -70,7 +70,7 @@ std::string rigidterrain_file("terrain/RigidPlane.json");
 std::string driver_file("generic/driver/Sample_Maneuver.txt");
 
 // Simulation step size
-double step_size = 2e-3;
+double step_size = 4e-3;
 
 // Simulation length (Povray only)
 double tend = 10.0;
@@ -90,14 +90,14 @@ int main(int argc, char* argv[]) {
     // --------------------------
 
     // Contact formulation
-    ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC;
+    ChContactMethod contact_method = ChContactMethod::NSC;
 
     //// NOTE
     //// When using SMC, a double-pin shoe type requires MKL or MUMPS.  
     //// However, there appear to still be redundant constraints in the double-pin assembly
     //// resulting in solver failures with MKL and MUMPS (rank-deficient matrix).
     ////
-    //// For now, use ChMaterialSurface::NSC for a double-pin track model
+    //// For now, use ChContactMethod::NSC for a double-pin track model
 
     // Create the vehicle system
     TrackedVehicle vehicle(vehicle::GetDataFile(vehicle_file), contact_method);

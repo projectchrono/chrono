@@ -22,8 +22,6 @@
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChSystemNSC.h"
 
-#include "chrono_irrlicht/ChBodySceneNode.h"
-#include "chrono_irrlicht/ChBodySceneNodeTools.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 
 // Use the namespaces of Chrono

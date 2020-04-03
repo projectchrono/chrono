@@ -23,7 +23,7 @@
 #include <iostream>
 #include <list>
 
-#include "chrono/collision/ChCCollisionSystem.h"
+#include "chrono/collision/ChCollisionSystem.h"
 #include "chrono/core/ChGlobal.h"
 #include "chrono/core/ChLog.h"
 #include "chrono/core/ChMath.h"
@@ -143,10 +143,10 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     /// Change the default composition laws for contact surface materials
     /// (coefficient of friction, cohesion, compliance, etc.)
-    void SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy<float>>&& strategy);
+    virtual void SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy>&& strategy);
 
     /// Accessor for the current composition laws for contact surface material.
-    const ChMaterialCompositionStrategy<float>& GetMaterialCompositionStrategy() const { return *composition_strategy; }
+    const ChMaterialCompositionStrategy& GetMaterialCompositionStrategy() const { return *composition_strategy; }
 
     /// For elastic collisions, with objects that have nonzero
     /// restitution coefficient: objects will rebounce only if their
@@ -234,20 +234,18 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     void Clear();
 
     /// Return the contact method supported by this system.
-    /// Bodies added to this system must be compatible.
-    virtual ChMaterialSurface::ContactMethod GetContactMethod() const = 0;
+    /// Contactables (bodies, FEA nodes, FEA traiangles, etc.) added to this system must be compatible.
+    virtual ChContactMethod GetContactMethod() const = 0;
 
     /// Create and return the pointer to a new body.
-    /// The returned body is created with a contact model consistent with the type
-    /// of this ChSystem and with the collision system currently associated with this
-    /// ChSystem.  Note that the body is *not* attached to this system.
-    virtual ChBody* NewBody() = 0;
+    /// The body is consistent with the typewith the collision system currently associated with this ChSystem.
+    /// Note that the body is *not* attached to this system.
+    virtual ChBody* NewBody() { return new ChBody(); }
 
     /// Create and return the pointer to a new body with auxiliary reference frame.
-    /// The returned body is created with a contact model consistent with the type
-    /// of this ChSystem and with the collision system currently associated with this
-    /// ChSystem.  Note that the body is *not* attached to this system.
-    virtual ChBodyAuxRef* NewBodyAuxRef() = 0;
+    /// The body is consistent with the typewith the collision system currently associated with this ChSystem.
+    /// Note that the body is *not* attached to this system.
+    virtual ChBodyAuxRef* NewBodyAuxRef() { return new ChBodyAuxRef(); }
 
     /// Replace the contact container.
     virtual void SetContactContainer(std::shared_ptr<ChContactContainer> container);
@@ -304,12 +302,12 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// Pushes all ChConstraints and ChVariables contained in links, bodies, etc. into the system descriptor.
     virtual void DescriptorPrepareInject(ChSystemDescriptor& mdescriptor);
 
-  private:
-    // Note: SetupInitial need not be typically called by a user, so it is currently marked private.
+    // Note: SetupInitial need not be typically called by a user, so it is currently marked protected
+    // (as it may need to be called by derived classes)
 
     /// Initial system setup before analysis.
     /// This function performs an initial system setup, once system construction is completed and before an analysis.
-    void SetupInitial() override;
+    virtual void SetupInitial() override;
 
   public:
     //
@@ -509,10 +507,6 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// Executes custom processing at the end of step. By default it does nothing,
     /// but if you inherit a special ChSystem you can implement this.
     virtual void CustomEndOfStep() {}
-
-    /// All bodies with collision detection data are requested to
-    /// store the current position as "last position collision-checked"
-    void SynchronizeLastCollPositions();
 
     /// Perform the collision detection.
     /// New contacts are inserted in the ChContactContainer object(s), and old ones are removed.
@@ -775,7 +769,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     std::vector<CustomCollisionCallback*> collision_callbacks;
 
-    std::unique_ptr<ChMaterialCompositionStrategy<float>> composition_strategy; /// material composition strategy
+    std::unique_ptr<ChMaterialCompositionStrategy> composition_strategy; /// material composition strategy
 
     // timers for profiling execution speed
     ChTimer<double> timer_step;       ///< timer for integration step
@@ -796,14 +790,8 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     friend class ChBody;
     friend class fea::ChMesh;
 
-    template <class Ta, class Tb>
-    friend class ChContactNSC;
-
-    template <class Ta, class Tb>
-    friend class ChContactNSCrolling;
-
-    template <class Ta, class Tb>
-    friend class ChContactSMC;
+    friend class ChContactContainerNSC;
+    friend class ChContactContainerSMC;
 };
 
 CH_CLASS_VERSION(ChSystem, 0)

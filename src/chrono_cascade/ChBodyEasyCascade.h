@@ -13,14 +13,12 @@
 #ifndef CHBODYEASYCASCADE_H
 #define CHBODYEASYCASCADE_H
 
-#include "chrono/assets/ChTriangleMeshShape.h"
-#include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono_cascade/ChCascadeDoc.h"
 #include "chrono_cascade/ChCascadeMeshTools.h"
 #include "chrono_cascade/ChCascadeShapeAsset.h"
+#include "chrono/assets/ChTriangleMeshShape.h"
 
 namespace chrono {
-
 namespace cascade {
 
 /// @addtogroup cascade_module
@@ -51,10 +49,11 @@ class ChBodyEasyCascade : public ChBodyAuxRef {
     /// a collision shape. Mass and inertia are set automatically depending
     /// on density. COG is automatically displaced, and REF position is initialized as shape location.
     /// Sphere is assumed with center at body reference coordsystem.
-    ChBodyEasyCascade(TopoDS_Shape& mshape,     ///< pass the OpenCASCADE shape
-                      double mdensity,          ///< density
-                      bool collide = false,     ///< if true, add a collision shape that uses the triangulation of shape
-                      bool visual_asset = true  ///< if true, uses a triangulated shape for visualization
+    ChBodyEasyCascade(TopoDS_Shape& mshape,      ///< OpenCASCADE shape
+                      double mdensity,           ///< density
+                      bool visual_asset = true,  ///< if true, uses a triangulated shape for visualization
+                      bool collide = false,  ///< if true, add a collision shape that uses the triangulation of shape
+                      std::shared_ptr<ChMaterialSurface> mat = nullptr  ///< surface contact material
     ) {
         chrono::ChFrame<>* user_ref_to_abs = 0;  // as parameter?
         chrono::ChFrame<> frame_ref_to_abs;
@@ -102,8 +101,9 @@ class ChBodyEasyCascade : public ChBodyAuxRef {
 
             // Add a collision shape if needed
             if (collide) {
+                assert(mat);
                 GetCollisionModel()->ClearModel();
-                GetCollisionModel()->AddTriangleMesh(trimesh, false, false);
+                GetCollisionModel()->AddTriangleMesh(mat, trimesh, false, false);
                 GetCollisionModel()->BuildModel();
                 SetCollide(true);
             }
@@ -117,7 +117,7 @@ class ChBodyEasyCascade : public ChBodyAuxRef {
 
 /// @} cascade_module
 
-}  // namespace cascade
-}  // namespace chrono
+}  // end namespace cascade
+}  // end namespace chrono
 
 #endif

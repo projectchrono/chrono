@@ -43,74 +43,80 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem) {
     // to allow some compliance with the plastic deformation of cohesive bounds
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.3);
 
-    // Create a bunch of Chrono rigid bodies which will fall..
-    for (int bi = 0; bi < 400; bi++) {
-        auto mrigidBody = chrono_types::make_shared<ChBodyEasySphere>(0.81,   // radius
-                                                             1000,   // density
-                                                             true,   // collide enable?
-                                                             true);  // visualization?
-        mrigidBody->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
-        mrigidBody->GetMaterialSurfaceNSC()->SetFriction(0.3f);
+    // contact material shared by all falling objects
+    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    mat->SetFriction(0.3f);
 
+    // Create falling bodies
+    for (int bi = 0; bi < 400; bi++) {
+        auto mrigidBody = chrono_types::make_shared<ChBodyEasySphere>(0.81,  // radius
+                                                                      1000,  // density
+                                                                      true,  // visualization?
+                                                                      true,  // collision?
+                                                                      mat);  // contact material
+        mrigidBody->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
         mphysicalSystem.Add(mrigidBody);
     }
 
-    // Create the five walls of the rectangular container, using
-    // fixed rigid bodies of 'box' type:
+    // Create the five walls of the rectangular container, using fixed rigid bodies of 'box' type:
 
-    auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20,  // x,y,z size
-                                                     1000,       // density
-                                                     true,       // collide enable?
-                                                     true);      // visualization?
+    auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+
+    auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20,   // x,y,z size
+                                                              1000,        // density
+                                                              true,        // visualization?
+                                                              true,        // collision?
+                                                              floor_mat);  // contact material
     floorBody->SetPos(ChVector<>(0, -5, 0));
     floorBody->SetBodyFixed(true);
-
     mphysicalSystem.Add(floorBody);
 
     auto wallBody1 = chrono_types::make_shared<ChBodyEasyBox>(1, 10, 20.99,  // x,y,z size
-                                                     1000,          // density
-                                                     true,          // collide enable?
-                                                     true);         // visualization?
+                                                              1000,          // density
+                                                              true,          // visualization?
+                                                              true,          // collision?
+                                                              floor_mat);    // contact material
     wallBody1->SetPos(ChVector<>(-10, 0, 0));
     wallBody1->SetBodyFixed(true);
-
     mphysicalSystem.Add(wallBody1);
 
     auto wallBody2 = chrono_types::make_shared<ChBodyEasyBox>(1, 10, 20.99,  // x,y,z size
-                                                     1000,          // density
-                                                     true,          // collide enable?
-                                                     true);         // visualization?
+                                                              1000,          // density
+                                                              true,          // visualization?
+                                                              true,          // collision?
+                                                              floor_mat);    // contact material
     wallBody2->SetPos(ChVector<>(10, 0, 0));
     wallBody2->SetBodyFixed(true);
-
     mphysicalSystem.Add(wallBody2);
 
     auto wallBody3 = chrono_types::make_shared<ChBodyEasyBox>(20.99, 10, 1,  // x,y,z size
-                                                     1000,          // density
-                                                     true,          // collide enable?
-                                                     true);         // visualization?
+                                                              1000,          // density
+                                                              true,          // visualization?
+                                                              true,          // collision?
+                                                              floor_mat);    // contact material
     wallBody3->SetPos(ChVector<>(0, 0, -10));
     wallBody3->SetBodyFixed(true);
-
     mphysicalSystem.Add(wallBody3);
 
     auto wallBody4 = chrono_types::make_shared<ChBodyEasyBox>(20.99, 10, 1,  // x,y,z size
-                                                     1000,          // density
-                                                     true,          // collide enable?
-                                                     true);         // visualization?
+                                                              1000,          // density
+                                                              true,          // visualization?
+                                                              true,          // collision?
+                                                              floor_mat);    // contact material
     wallBody4->SetPos(ChVector<>(0, 0, 10));
     wallBody4->SetBodyFixed(true);
-
     mphysicalSystem.Add(wallBody4);
 
     // Add the rotating mixer
-    auto rotatingBody = chrono_types::make_shared<ChBodyEasyBox>(10, 5, 1,  // x,y,z size
-                                                        4000,      // density
-                                                        true,      // collide enable?
-                                                        true);     // visualization?
-    rotatingBody->SetPos(ChVector<>(0, -1.6, 0));
-    rotatingBody->GetMaterialSurfaceNSC()->SetFriction(0.4f);
+    auto mixer_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    mixer_mat->SetFriction(0.4f);
 
+    auto rotatingBody = chrono_types::make_shared<ChBodyEasyBox>(10, 5, 1,    // x,y,z size
+                                                                 4000,        // density
+                                                                 true,        // visualization?
+                                                                 true,        // collision?
+                                                                 mixer_mat);  // contact material
+    rotatingBody->SetPos(ChVector<>(0, -1.6, 0));
     mphysicalSystem.Add(rotatingBody);
 
     // .. a motor between mixer and truss

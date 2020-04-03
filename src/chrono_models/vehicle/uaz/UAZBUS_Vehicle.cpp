@@ -32,7 +32,7 @@ namespace uaz {
 // -----------------------------------------------------------------------------
 UAZBUS_Vehicle::UAZBUS_Vehicle(const bool fixed,
                                SteeringType steering_model,
-                               ChMaterialSurface::ContactMethod contact_method,
+                               ChContactMethod contact_method,
                                ChassisCollisionType chassis_collision_type)
     : ChWheeledVehicle("UAZBUS", contact_method), m_omega({0, 0, 0, 0}) {
     Create(fixed, steering_model, chassis_collision_type);

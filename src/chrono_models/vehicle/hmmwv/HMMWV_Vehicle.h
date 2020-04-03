@@ -52,7 +52,7 @@ class CH_MODELS_API HMMWV_Vehicle : public ChWheeledVehicle {
     }
 
   protected:
-    HMMWV_Vehicle(const std::string& name, ChMaterialSurface::ContactMethod contactMethod, DrivelineType driveType)
+    HMMWV_Vehicle(const std::string& name, ChContactMethod contactMethod, DrivelineType driveType)
         : ChWheeledVehicle(name, contactMethod), m_driveType(driveType), m_omega({0, 0, 0, 0}) {}
 
     HMMWV_Vehicle(const std::string& name, ChSystem* system, DrivelineType driveType)

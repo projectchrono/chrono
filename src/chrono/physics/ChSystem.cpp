@@ -14,8 +14,7 @@
 
 #include <algorithm>
 
-#include "chrono/collision/ChCCollisionSystemBullet.h"
-#include "chrono/collision/ChCModelBullet.h"
+#include "chrono/collision/ChCollisionSystemBullet.h"
 #include "chrono/parallel/ChOpenMP.h"
 #include "chrono/physics/ChProximityContainer.h"
 #include "chrono/physics/ChSystem.h"
@@ -57,7 +56,7 @@ ChSystem::ChSystem()
       setupcount(0),
       dump_matrices(false),
       last_err(false),
-      composition_strategy(new ChMaterialCompositionStrategy<float>) {
+      composition_strategy(new ChMaterialCompositionStrategy) {
     // Required by ChAssembly
     system = this;
 
@@ -219,7 +218,7 @@ void ChSystem::SetCollisionSystem(std::shared_ptr<ChCollisionSystem> newcollsyst
     collision_system = newcollsystem;
 }
 
-void ChSystem::SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy<float>>&& strategy) {
+void ChSystem::SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy>&& strategy) {
     composition_strategy = std::move(strategy);
 }
 
@@ -1091,13 +1090,6 @@ int ChSystem::GetNcontacts() {
     return contact_container->GetNcontacts();
 }
 
-void ChSystem::SynchronizeLastCollPositions() {
-    for (int ip = 0; ip < bodylist.size(); ++ip) {
-        if (bodylist[ip]->GetCollide())
-            bodylist[ip]->SynchronizeLastCollPos();
-    }
-}
-
 double ChSystem::ComputeCollisions() {
     CH_PROFILE("ComputeCollisions");
 
@@ -1272,7 +1264,7 @@ bool ChSystem::Integrate_Y() {
     ComputeCollisions();
 
     // Declare an NSC system as "out of date" if there are contacts
-    if (GetContactMethod() == ChMaterialSurface::NSC && (ncontacts_old != 0 || ncontacts != 0))
+    if (GetContactMethod() == ChContactMethod::NSC && (ncontacts_old != 0 || ncontacts != 0))
         is_updated = false;
 
     // Counts dofs, number of constraints, statistics, etc.

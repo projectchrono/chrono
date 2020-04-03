@@ -15,7 +15,7 @@
 #include <cstdlib>
 #include <algorithm>
 
-#include "chrono/collision/ChCModelBullet.h"
+#include "chrono/collision/ChCollisionModelBullet.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/fea/ChMatterMeshless.h"
 #include "chrono/fea/ChProximityContainerMeshless.h"
@@ -31,7 +31,7 @@ CH_FACTORY_REGISTER(ChMatterMeshless)
 
 ChNodeMeshless::ChNodeMeshless()
     : pos_ref(VNULL), UserForce(VNULL), h_rad(0.1), coll_rad(0.001), volume(0.01), hardening(0), container(NULL) {
-    collision_model = new ChModelBullet;
+    collision_model = new ChCollisionModelBullet;
     collision_model->SetContactable(this);
 
     SetMass(0.01);
@@ -39,9 +39,9 @@ ChNodeMeshless::ChNodeMeshless()
 }
 
 ChNodeMeshless::ChNodeMeshless(const ChNodeMeshless& other) : ChNodeXYZ(other) {
-    collision_model = new ChModelBullet;
+    collision_model = new ChCollisionModelBullet;
     collision_model->SetContactable(this);
-    collision_model->AddPoint(other.coll_rad);
+    collision_model->AddPoint(other.container->GetMaterialSurface(), other.coll_rad);
 
     pos_ref = other.pos_ref;
     UserForce = other.UserForce;
@@ -73,7 +73,7 @@ ChNodeMeshless& ChNodeMeshless::operator=(const ChNodeMeshless& other) {
     ChNodeXYZ::operator=(other);
 
     collision_model->ClearModel();
-    collision_model->AddPoint(other.coll_rad);
+    collision_model->AddPoint(other.container->GetMaterialSurface(), other.coll_rad);
 
     collision_model->SetContactable(this);
 
@@ -101,13 +101,13 @@ ChNodeMeshless& ChNodeMeshless::operator=(const ChNodeMeshless& other) {
 void ChNodeMeshless::SetKernelRadius(double mr) {
     h_rad = mr;
     double aabb_rad = h_rad / 2;  // to avoid too many pairs: bounding boxes hemisizes will sum..  __.__--*--
-    ((ChModelBullet*)collision_model)->SetSphereRadius(coll_rad, ChMax(0.0, aabb_rad - coll_rad));
+    ((ChCollisionModelBullet*)collision_model)->SetSphereRadius(coll_rad, ChMax(0.0, aabb_rad - coll_rad));
 }
 
 void ChNodeMeshless::SetCollisionRadius(double mr) {
     coll_rad = mr;
     double aabb_rad = h_rad / 2;  // to avoid too many pairs: bounding boxes hemisizes will sum..  __.__--*--
-    ((ChModelBullet*)collision_model)->SetSphereRadius(coll_rad, ChMax(0.0, aabb_rad - coll_rad));
+    ((ChCollisionModelBullet*)collision_model)->SetSphereRadius(coll_rad, ChMax(0.0, aabb_rad - coll_rad));
 }
 
 void ChNodeMeshless::ContactForceLoadResidual_F(const ChVector<>& F,
@@ -129,10 +129,6 @@ void ChNodeMeshless::ComputeJacobianForContactPart(const ChVector<>& abs_point,
     jacobian_tuple_N.Get_Cq().segment(0,3) = Jx1.row(0);
     jacobian_tuple_U.Get_Cq().segment(0,3) = Jx1.row(1);
     jacobian_tuple_V.Get_Cq().segment(0,3) = Jx1.row(2);
-}
-
-std::shared_ptr<ChMaterialSurface>& ChNodeMeshless::GetMaterialSurface() {
-    return container->GetMaterialSurface();
 }
 
 ChPhysicsItem* ChNodeMeshless::GetPhysicsItem() {
@@ -187,7 +183,7 @@ void ChMatterMeshless::ResizeNnodes(int newsize) {
 
         nodes[j]->variables.SetUserData((void*)this);  // UserData unuseful in future cuda solver?
 
-        nodes[j]->collision_model->AddPoint(0.001);  //***TEST***
+        nodes[j]->collision_model->AddPoint(matsurface, 0.001);  //***TEST***
         nodes[j]->collision_model->BuildModel();
     }
 
@@ -206,7 +202,7 @@ void ChMatterMeshless::AddNode(ChVector<double> initial_state) {
 
     newp->variables.SetUserData((void*)this);  // UserData unuseful in future cuda solver?
 
-    newp->collision_model->AddPoint(0.1);  //***TEST***
+    newp->collision_model->AddPoint(matsurface, 0.1);  //***TEST***
     newp->collision_model->BuildModel();   // will also add to system, if collision is on.
 }
 

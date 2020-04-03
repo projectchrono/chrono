@@ -12,22 +12,19 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#ifndef CHC_COLLISIONSYSTEMBULLET_H
-#define CHC_COLLISIONSYSTEMBULLET_H
+#ifndef CH_COLLISION_SYSTEM_BULLET_H
+#define CH_COLLISION_SYSTEM_BULLET_H
 
-#include "chrono/collision/ChCCollisionSystem.h"
+#include "chrono/collision/ChCollisionSystem.h"
 #include "chrono/collision/bullet/btBulletCollisionCommon.h"
 #include "chrono/core/ChApiCE.h"
 
 namespace chrono {
 namespace collision {
 
-///
-/// Class for collision engine based on the 'Bullet' library.
-/// Contains either the broadphase and the narrow phase Bullet
-/// methods.
-///
 
+/// Collision engine based on the 'Bullet' library.
+/// Contains both the broadphase and the narrow phase Bullet methods.
 class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
   public:
     ChCollisionSystemBullet(unsigned int max_objects = 16000, double scene_size = 500);

@@ -119,8 +119,10 @@ int main(int argc, char* argv[]) {
     // ------------------
 
     GranularTerrain terrain(system);
-    terrain.SetContactFrictionCoefficient((float)mu_g);
-    terrain.SetContactCohesion((float)coh_g);
+    auto mat = std::static_pointer_cast<ChMaterialSurfaceNSC>(terrain.GetContactMaterial());
+    mat->SetFriction((float)mu_g);
+    mat->SetCohesion((float)coh_g);
+    terrain.SetContactMaterial(mat);
     terrain.SetCollisionEnvelope(envelope / 5);
     if (rough) {
         int nx = (int)std::round((2 * hdimX) / (4 * r_g));
@@ -150,8 +152,10 @@ int main(int argc, char* argv[]) {
     body->SetPos(pos);
     system->AddBody(body);
 
+    auto body_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+
     body->GetCollisionModel()->ClearModel();
-    utils::AddSphereGeometry(body.get(), body_rad, ChVector<>(0, 0, 0));
+    utils::AddSphereGeometry(body.get(), body_rad, body_mat, ChVector<>(0, 0, 0));
     body->GetCollisionModel()->BuildModel();
 
     auto joint = chrono_types::make_shared<ChLinkLockPrismatic>();

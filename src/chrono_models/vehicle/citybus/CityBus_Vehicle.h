@@ -51,7 +51,7 @@ namespace citybus {
 class CH_MODELS_API CityBus_Vehicle : public ChWheeledVehicle {
   public:
     CityBus_Vehicle(const bool fixed = false,
-                    ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,
+                    ChContactMethod contact_method = ChContactMethod::NSC,
                     ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
 
     CityBus_Vehicle(ChSystem* system,

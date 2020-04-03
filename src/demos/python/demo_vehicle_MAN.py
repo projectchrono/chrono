@@ -56,7 +56,7 @@ terrainWidth = 200.0   # size in Y direction
 trackPoint = chrono.ChVectorD(-3.0, 0.0, 1.75)
 
 # Contact method
-contact_method = chrono.ChMaterialSurface.SMC
+contact_method = chrono.ChContactMethod_SMC
 contact_vis = False
 
 # Simulation step sizes
@@ -96,12 +96,18 @@ my_truck.SetTireVisualizationType(tire_vis_type)
 
 # Create the terrain
 terrain = veh.RigidTerrain(my_truck.GetSystem())
-patch = terrain.AddPatch(chrono.ChCoordsysD(chrono.ChVectorD(0, 0, terrainHeight - 5), chrono.QUNIT),
+if (contact_method == chrono.ChContactMethod_NSC):
+    patch_mat = chrono.ChMaterialSurfaceNSC()
+    patch_mat.SetFriction(0.9)
+    patch_mat.SetRestitution(0.01)
+elif (contact_method == chrono.ChContactMethod_SMC):
+    patch_mat = chrono.ChMaterialSurfaceSMC()
+    patch_mat.SetFriction(0.9)
+    patch_mat.SetRestitution(0.01)
+    patch_mat.SetYoungModulus(2e7)
+patch = terrain.AddPatch(patch_mat, 
+                         chrono.ChCoordsysD(chrono.ChVectorD(0, 0, terrainHeight - 5), chrono.QUNIT),
                          chrono.ChVectorD(terrainLength, terrainWidth, 10))
-
-patch.SetContactFrictionCoefficient(0.9)
-patch.SetContactRestitutionCoefficient(0.01)
-patch.SetContactMaterialProperties(2e7, 0.3)
 patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
 patch.SetColor(chrono.ChColor(0.8, 0.8, 0.5))
 terrain.Initialize()

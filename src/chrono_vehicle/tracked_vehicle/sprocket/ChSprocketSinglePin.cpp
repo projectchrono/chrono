@@ -65,17 +65,17 @@ class SprocketSinglePinContactCB : public ChSystem::CustomCollisionCallback {
   private:
     // Test collision of a shoe contact cylinder with the sprocket's gear profiles.
     // This may introduce up to two contacts (one with each gear plane).
-    void CheckCylinderSprocket(std::shared_ptr<ChBody> shoe,  // shoe body
-                               const ChVector<>& locC_abs,    // center of shoe contact cylinder (global frame)
-                               const ChVector<>& dirC_abs,    // direction of shoe contact cylinder (global frame)
-                               const ChVector<> locS_abs      // center of sprocket (global frame)
-                               );
+    void CheckCylinderSprocket(std::shared_ptr<ChTrackShoeSinglePin> shoe,  // track shoe
+                               const ChVector<>& locC_abs,  // center of shoe contact cylinder (global frame)
+                               const ChVector<>& dirC_abs,  // direction of shoe contact cylinder (global frame)
+                               const ChVector<> locS_abs    // center of sprocket (global frame)
+    );
 
     // Test collision of a shoe contact circle with a gear plane profile.
     // This may introduce one contact.
-    void CheckCircleProfile(std::shared_ptr<ChBody> shoe,  // shoe body
-                            const ChVector<>& loc          // shoe contact circle center (sprocket frame)
-                            );
+    void CheckCircleProfile(std::shared_ptr<ChTrackShoeSinglePin> shoe,  // track shoe
+                            const ChVector<>& loc                        // shoe contact circle center (sprocket frame)
+    );
 
     // Find the center of the profile arc that is closest to the specified location.
     // The calculation is performed in the (x-z) plane.
@@ -115,7 +115,7 @@ void SprocketSinglePinContactCB::OnCustomCollision(ChSystem* system) {
 
     // Loop over all shoes in the associated track.
     for (size_t is = 0; is < m_track->GetNumTrackShoes(); ++is) {
-        std::shared_ptr<ChTrackShoe> shoe = m_track->GetTrackShoe(is);
+        auto shoe = std::static_pointer_cast<ChTrackShoeSinglePin>(m_track->GetTrackShoe(is));
 
         // Calculate locations of the centers of the shoe's contact cylinders
         // (expressed in the global frame)
@@ -126,16 +126,16 @@ void SprocketSinglePinContactCB::OnCustomCollision(ChSystem* system) {
         ChVector<> dir_abs = shoe->GetShoeBody()->GetA().Get_A_Yaxis();
 
         // Perform collision test for the front contact cylinder.
-        CheckCylinderSprocket(shoe->GetShoeBody(), locF_abs, dir_abs, locS_abs);
+        CheckCylinderSprocket(shoe, locF_abs, dir_abs, locS_abs);
 
         // Perform collision test for the rear contact cylinder.
-        CheckCylinderSprocket(shoe->GetShoeBody(), locR_abs, dir_abs, locS_abs);
+        CheckCylinderSprocket(shoe, locR_abs, dir_abs, locS_abs);
     }
 }
 
 // Perform collision test between one of the shoe's contact cylinders and the
 // sprocket gear profiles.
-void SprocketSinglePinContactCB::CheckCylinderSprocket(std::shared_ptr<ChBody> shoe,
+void SprocketSinglePinContactCB::CheckCylinderSprocket(std::shared_ptr<ChTrackShoeSinglePin> shoe,
                                                        const ChVector<>& locC_abs,
                                                        const ChVector<>& dirC_abs,
                                                        const ChVector<> locS_abs) {
@@ -167,7 +167,7 @@ void SprocketSinglePinContactCB::CheckCylinderSprocket(std::shared_ptr<ChBody> s
 
 // Working in the (x-z) plane of the gear, perform a 2D collision test between the
 // gear profile and a circle centered at the specified location.
-void SprocketSinglePinContactCB::CheckCircleProfile(std::shared_ptr<ChBody> shoe, const ChVector<>& loc) {
+void SprocketSinglePinContactCB::CheckCircleProfile(std::shared_ptr<ChTrackShoeSinglePin> shoe, const ChVector<>& loc) {
     // No contact if the circle center is too far from the gear center.
     if (loc.x() * loc.x() + loc.z() * loc.z() > m_gear_RC * m_gear_RC)
         return;
@@ -205,14 +205,17 @@ void SprocketSinglePinContactCB::CheckCircleProfile(std::shared_ptr<ChBody> shoe
     // Express all vectors in the global frame
     collision::ChCollisionInfo contact;
     contact.modelA = m_sprocket->GetGearBody()->GetCollisionModel().get();
-    contact.modelB = shoe->GetCollisionModel().get();
+    contact.modelB = shoe->GetShoeBody()->GetCollisionModel().get();
+    contact.shapeA = nullptr;
+    contact.shapeB = nullptr;
     contact.vN = m_sprocket->GetGearBody()->TransformDirectionLocalToParent(normal);
     contact.vpA = m_sprocket->GetGearBody()->TransformPointLocalToParent(pt_gear);
     contact.vpB = m_sprocket->GetGearBody()->TransformPointLocalToParent(pt_shoe);
     contact.distance = m_R_diff - dist;
     ////contact.eff_radius = m_shoe_R;  //// TODO: take into account m_gear_R?
 
-    m_sprocket->GetGearBody()->GetSystem()->GetContactContainer()->AddContact(contact);
+    m_sprocket->GetGearBody()->GetSystem()->GetContactContainer()->AddContact(contact, m_sprocket->GetContactMaterial(),
+                                                                              shoe->m_cyl_material);
 }
 
 // Find the center of the profile arc that is closest to the specified location.

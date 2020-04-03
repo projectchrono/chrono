@@ -12,8 +12,8 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#ifndef CHC_CONVEXDECOMPOSITION_H
-#define CHC_CONVEXDECOMPOSITION_H
+#ifndef CH_CONVEX_DECOMPOSITION_H
+#define CH_CONVEX_DECOMPOSITION_H
 
 #include "chrono/collision/convexdecomposition/HACD/hacdHACD.h"
 #include "chrono/collision/convexdecomposition/HACDv2/HACD.h"

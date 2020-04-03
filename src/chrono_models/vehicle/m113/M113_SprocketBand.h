@@ -75,11 +75,14 @@ class CH_MODELS_API M113_SprocketBand : public ChSprocketBand {
     /// Return the gap width of the sprocket guiding wheel that acts similar to another road wheel
     virtual double GetGuideWheelGap() const override { return m_gear_guide_wheel_gap; }
 
-    /// Add visualization of the sprocket.
-    virtual void AddVisualizationAssets(VisualizationType vis) override;
-
   protected:
     M113_SprocketBand(const std::string& name);
+
+    /// Create the contact material consistent with the specified contact method.
+    virtual void CreateContactMaterial(ChContactMethod contact_method) override;
+
+    /// Add visualization of the sprocket.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
 
     virtual std::string GetMeshName() const = 0;
     virtual std::string GetMeshFile() const = 0;
