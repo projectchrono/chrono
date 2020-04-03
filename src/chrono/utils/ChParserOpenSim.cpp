@@ -840,7 +840,7 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
             body_info.body->GetCollisionModel()->ClearModel();
 
             for (auto cyl_info : body_info.cylinders) {
-                utils::AddCylinderGeometry(body_info.body, cyl_info.rad, cyl_info.hlen, mat, cyl_info.pos, cyl_info.rot,
+                utils::AddCylinderGeometry(body_info.body, mat, cyl_info.rad, cyl_info.hlen, cyl_info.pos, cyl_info.rot,
                                            false);
             }
 

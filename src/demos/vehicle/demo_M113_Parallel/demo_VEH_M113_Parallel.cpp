@@ -324,33 +324,33 @@ int main(int argc, char* argv[]) {
 
     // Bottom box
     utils::AddBoxGeometry(ground.get(),                                           //
-                          ChVector<>(hdimX, hdimY, hthick),                       //
                           mat_g,                                                  //
+                          ChVector<>(hdimX, hdimY, hthick),                       //
                           ChVector<>(0, 0, -hthick), ChQuaternion<>(1, 0, 0, 0),  //
                           true);
     if (terrain_type == GRANULAR_TERRAIN) {
         // Front box
         utils::AddBoxGeometry(ground.get(),                                                               //
-                              ChVector<>(hthick, hdimY, hdimZ + hthick),                                  //
                               mat_g,                                                                      //
+                              ChVector<>(hthick, hdimY, hdimZ + hthick),                                  //
                               ChVector<>(hdimX + hthick, 0, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0),  //
                               visible_walls);
         // Rear box
         utils::AddBoxGeometry(ground.get(),                                                                //
-                              ChVector<>(hthick, hdimY, hdimZ + hthick),                                   //
                               mat_g,                                                                       //
+                              ChVector<>(hthick, hdimY, hdimZ + hthick),                                   //
                               ChVector<>(-hdimX - hthick, 0, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0),  //
                               visible_walls);
         // Left box
         utils::AddBoxGeometry(ground.get(),                                                               //
-                              ChVector<>(hdimX, hthick, hdimZ + hthick),                                  //
                               mat_g,                                                                      //
+                              ChVector<>(hdimX, hthick, hdimZ + hthick),                                  //
                               ChVector<>(0, hdimY + hthick, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0),  //
                               visible_walls);
         // Right box
         utils::AddBoxGeometry(ground.get(),                                                                //
-                              ChVector<>(hdimX, hthick, hdimZ + hthick),                                   //
                               mat_g,                                                                       //
+                              ChVector<>(hdimX, hthick, hdimZ + hthick),                                   //
                               ChVector<>(0, -hdimY - hthick, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0),  //
                               visible_walls);
     }

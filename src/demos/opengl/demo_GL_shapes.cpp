@@ -34,11 +34,11 @@ int main(int argc, char* argv[]) {
     auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
     auto bin = chrono_types::make_shared<ChBody>();
-    utils::AddSphereGeometry(bin.get(), 1, mat, ChVector<>(0, 0, 0));
-    utils::AddEllipsoidGeometry(bin.get(), ChVector<>(.5, 1, 1), mat, ChVector<>(3, 0, 0));
-    utils::AddBoxGeometry(bin.get(), ChVector<>(1, 1, 1), mat, ChVector<>(6, 0, 0));
-    utils::AddCylinderGeometry(bin.get(), 1, 1, mat, ChVector<>(9, 0, 0));
-    utils::AddConeGeometry(bin.get(), 1, 3, mat, ChVector<>(12, 0, 0));
+    utils::AddSphereGeometry(bin.get(), mat, 1, ChVector<>(0, 0, 0));
+    utils::AddEllipsoidGeometry(bin.get(), mat, ChVector<>(.5, 1, 1), ChVector<>(3, 0, 0));
+    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(1, 1, 1), ChVector<>(6, 0, 0));
+    utils::AddCylinderGeometry(bin.get(), mat, 1, 1, ChVector<>(9, 0, 0));
+    utils::AddConeGeometry(bin.get(), mat, 1, 3, ChVector<>(12, 0, 0));
     sys.AddBody(bin);
 
     // Render everything

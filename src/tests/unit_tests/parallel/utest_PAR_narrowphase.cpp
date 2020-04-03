@@ -50,11 +50,11 @@ void CreateContainer(ChSystemParallel* system) {
     // Attach geometry of the containing bin
     double hthick = 0.05;
     container->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(container.get(), ChVector<>(1, 1, hthick), mat_walls, ChVector<>(0, 0, -hthick));
-    utils::AddBoxGeometry(container.get(), ChVector<>(hthick, 1, 1), mat_walls, ChVector<>(-1 - hthick, 0, 1));
-    utils::AddBoxGeometry(container.get(), ChVector<>(hthick, 1, 1), mat_walls, ChVector<>(1 + hthick, 0, 1));
-    utils::AddBoxGeometry(container.get(), ChVector<>(1, hthick, 1), mat_walls, ChVector<>(0, -1 - hthick, 1));
-    utils::AddBoxGeometry(container.get(), ChVector<>(1, hthick, 1), mat_walls, ChVector<>(0, 1 + hthick, 1));
+    utils::AddBoxGeometry(container.get(), mat_walls, ChVector<>(1, 1, hthick), ChVector<>(0, 0, -hthick));
+    utils::AddBoxGeometry(container.get(), mat_walls, ChVector<>(hthick, 1, 1), ChVector<>(-1 - hthick, 0, 1));
+    utils::AddBoxGeometry(container.get(), mat_walls, ChVector<>(hthick, 1, 1), ChVector<>(1 + hthick, 0, 1));
+    utils::AddBoxGeometry(container.get(), mat_walls, ChVector<>(1, hthick, 1), ChVector<>(0, -1 - hthick, 1));
+    utils::AddBoxGeometry(container.get(), mat_walls, ChVector<>(1, hthick, 1), ChVector<>(0, 1 + hthick, 1));
     container->GetCollisionModel()->BuildModel();
 
     system->AddBody(container);
@@ -87,7 +87,7 @@ void CreateGranularMaterial(ChSystemParallel* sys) {
                 ball->SetCollide(true);
 
                 ball->GetCollisionModel()->ClearModel();
-                utils::AddSphereGeometry(ball.get(), radius, ballMat);
+                utils::AddSphereGeometry(ball.get(), ballMat, radius);
                 ball->GetCollisionModel()->BuildModel();
 
                 sys->AddBody(ball);

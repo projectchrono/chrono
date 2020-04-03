@@ -155,7 +155,7 @@ int main(int argc, char* argv[]) {
     auto body_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
     body->GetCollisionModel()->ClearModel();
-    utils::AddSphereGeometry(body.get(), body_rad, body_mat, ChVector<>(0, 0, 0));
+    utils::AddSphereGeometry(body.get(), body_mat, body_rad, ChVector<>(0, 0, 0));
     body->GetCollisionModel()->BuildModel();
 
     auto joint = chrono_types::make_shared<ChLinkLockPrismatic>();

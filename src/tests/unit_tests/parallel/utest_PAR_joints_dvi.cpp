@@ -126,7 +126,7 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
         auto wheel_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
         wheel->GetCollisionModel()->ClearModel();
-        utils::AddCylinderGeometry(wheel.get(), 0.3, 0.1, wheel_mat, ChVector<>(0, 0, 0), Q_from_AngZ(CH_C_PI_2));
+        utils::AddCylinderGeometry(wheel.get(), wheel_mat, 0.3, 0.1, ChVector<>(0, 0, 0), Q_from_AngZ(CH_C_PI_2));
         wheel->GetCollisionModel()->BuildModel();
 
         system->AddBody(wheel);

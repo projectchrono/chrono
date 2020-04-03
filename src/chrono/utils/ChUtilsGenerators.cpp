@@ -563,28 +563,28 @@ void Generator::createObjects(const PointVector& points, const ChVector<>& vel) 
 
         switch (m_mixture[index]->m_type) {
             case MixtureType::SPHERE:
-                AddSphereGeometry(body, size.x(), mat);
+                AddSphereGeometry(body, mat, size.x());
                 break;
             case MixtureType::ELLIPSOID:
-                AddEllipsoidGeometry(body, size, mat);
+                AddEllipsoidGeometry(body, mat, size);
                 break;
             case MixtureType::BOX:
-                AddBoxGeometry(body, size, mat);
+                AddBoxGeometry(body, mat, size);
                 break;
             case MixtureType::CYLINDER:
-                AddCylinderGeometry(body, size.x(), size.y(), mat);
+                AddCylinderGeometry(body, mat, size.x(), size.y());
                 break;
             case MixtureType::CONE:
-                AddConeGeometry(body, size.x(), size.y(), mat);
+                AddConeGeometry(body, mat, size.x(), size.y());
                 break;
             case MixtureType::BISPHERE:
-            	AddBiSphereGeometry(body, size.x(), size.y(), mat);
+            	AddBiSphereGeometry(body, mat, size.x(), size.y());
                 break;
             case MixtureType::CAPSULE:
-                AddCapsuleGeometry(body, size.x(), size.y(), mat);
+                AddCapsuleGeometry(body, mat, size.x(), size.y());
                 break;
             case MixtureType::ROUNDEDCYLINDER:
-                AddRoundedCylinderGeometry(body, size.x(), size.y(), size.z(), mat);
+                AddRoundedCylinderGeometry(body, mat, size.x(), size.y(), size.z());
                 break;
         }
 

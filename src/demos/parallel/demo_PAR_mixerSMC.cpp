@@ -71,15 +71,14 @@ void AddContainer(ChSystemParallelSMC* sys) {
     double hthick = 0.1;
 
     bin->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(bin.get(), ChVector<>(hdim.x(), hdim.y(), hthick), mat,  //
-                          ChVector<>(0, 0, -hthick));
-    utils::AddBoxGeometry(bin.get(), ChVector<>(hthick, hdim.y(), hdim.z()), mat,  //
+    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hdim.x(), hdim.y(), hthick), ChVector<>(0, 0, -hthick));
+    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hthick, hdim.y(), hdim.z()),
                           ChVector<>(-hdim.x() - hthick, 0, hdim.z()));
-    utils::AddBoxGeometry(bin.get(), ChVector<>(hthick, hdim.y(), hdim.z()), mat,  //
+    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hthick, hdim.y(), hdim.z()),
                           ChVector<>(hdim.x() + hthick, 0, hdim.z()));
-    utils::AddBoxGeometry(bin.get(), ChVector<>(hdim.x(), hthick, hdim.z()), mat,  //
+    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hdim.x(), hthick, hdim.z()),
                           ChVector<>(0, -hdim.y() - hthick, hdim.z()));
-    utils::AddBoxGeometry(bin.get(), ChVector<>(hdim.x(), hthick, hdim.z()), mat,  //
+    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hdim.x(), hthick, hdim.z()),
                           ChVector<>(0, hdim.y() + hthick, hdim.z()));
     bin->GetCollisionModel()->SetFamily(1);
     bin->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(2);
@@ -100,7 +99,7 @@ void AddContainer(ChSystemParallelSMC* sys) {
     ChVector<> hsize(0.8, 0.1, 0.2);
 
     mixer->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(mixer.get(), hsize, mat);
+    utils::AddBoxGeometry(mixer.get(), mat, hsize);
     mixer->GetCollisionModel()->SetFamily(2);
     mixer->GetCollisionModel()->BuildModel();
 
@@ -143,7 +142,7 @@ void AddFallingBalls(ChSystemParallelSMC* sys) {
             ball->SetCollide(true);
 
             ball->GetCollisionModel()->ClearModel();
-            utils::AddSphereGeometry(ball.get(), radius, ballMat);
+            utils::AddSphereGeometry(ball.get(), ballMat, radius);
             ball->GetCollisionModel()->BuildModel();
 
             sys->AddBody(ball);

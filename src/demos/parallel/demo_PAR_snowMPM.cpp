@@ -75,8 +75,8 @@ void AddBody(ChSystemParallelNSC* sys) {
     ChVector<> hdim(.5, .5, 0.05);
 
     bin->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(bin.get(), ChVector<>(hdim.x(), hdim.y(), hdim.z()), mat, ChVector<>(0, 0, -hdim.z()));
-    // utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x(), hdim.y(), hdim.z()), ChVector<>(0, 0, hdim.z()*10));
+    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hdim.x(), hdim.y(), hdim.z()), ChVector<>(0, 0, -hdim.z()));
+    // utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hdim.x(), hdim.y(), hdim.z()), ChVector<>(0, 0, hdim.z()*10));
     bin->GetCollisionModel()->SetFamily(1);
     bin->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(2);
     bin->GetCollisionModel()->BuildModel();
@@ -106,8 +106,8 @@ void AddContainer(ChSystemParallelNSC* sys) {
     ChVector<> hdim(.1, .1, .1);
 
     bin->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(bin.get(), ChVector<>(hdim.x(), hdim.y(), hdim.z()), mat, ChVector<>(0, 0, 0));
-    // utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x(), hdim.y(), hdim.z()), ChVector<>(0, 0, hdim.z()*10));
+    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hdim.x(), hdim.y(), hdim.z()), ChVector<>(0, 0, 0));
+    // utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hdim.x(), hdim.y(), hdim.z()), ChVector<>(0, 0, hdim.z()*10));
     bin->GetCollisionModel()->SetFamily(1);
     bin->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(2);
     bin->GetCollisionModel()->BuildModel();

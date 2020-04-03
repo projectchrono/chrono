@@ -200,15 +200,15 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
     ChVector<> pos_yn(0, -byDim / 2 - 3 * initSpace0, bzDim / 2 + 1 * initSpace0);
 
     /// Add the Boundaries to the chrono system
-    chrono::utils::AddBoxGeometry(ground.get(), sizeBottom, mysurfmaterial, posBottom, QUNIT, true);
-    chrono::utils::AddBoxGeometry(ground.get(), size_YZ, mysurfmaterial, pos_xp, QUNIT, true);
-    chrono::utils::AddBoxGeometry(ground.get(), size_YZ, mysurfmaterial, pos_xn, QUNIT, true);
+    chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, sizeBottom, posBottom, QUNIT, true);
+    chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_YZ, pos_xp, QUNIT, true);
+    chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_YZ, pos_xn, QUNIT, true);
 
     /// You may uncomment the following lines to have side walls as well.
     /// To show the use of Periodic boundary condition, these walls are not added
     /// To this end, paramsH->cMin and paramsH->cMax were set up appropriately (see the .h file)
-    chrono::utils::AddBoxGeometry(ground.get(), size_XZ, mysurfmaterial, pos_yp, QUNIT, true);
-    chrono::utils::AddBoxGeometry(ground.get(), size_XZ, mysurfmaterial, pos_yn, QUNIT, true);
+    chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_XZ, pos_yp, QUNIT, true);
+    chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_XZ, pos_yn, QUNIT, true);
     ground->GetCollisionModel()->BuildModel();
     mphysicalSystem.AddBody(ground);
 

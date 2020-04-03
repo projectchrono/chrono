@@ -243,43 +243,43 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
                 case collision::ChCollisionShape::Type::SPHERE: {
                     double radius;
                     iss >> radius;
-                    AddSphereGeometry(body.get(), radius, mat, spos, srot);
+                    AddSphereGeometry(body.get(), mat, radius, spos, srot);
                 } break;
                 case collision::ChCollisionShape::Type::ELLIPSOID: {
                     ChVector<> size;
                     iss >> size.x() >> size.y() >> size.z();
-                    AddEllipsoidGeometry(body.get(), size, mat, spos, srot);
+                    AddEllipsoidGeometry(body.get(), mat, size, spos, srot);
                 } break;
                 case collision::ChCollisionShape::Type::BOX: {
                     ChVector<> size;
                     iss >> size.x() >> size.y() >> size.z();
-                    AddBoxGeometry(body.get(), size, mat, spos, srot);
+                    AddBoxGeometry(body.get(), mat, size, spos, srot);
                 } break;
                 case collision::ChCollisionShape::Type::CAPSULE: {
                     double radius, hlen;
                     iss >> radius >> hlen;
-                    AddCapsuleGeometry(body.get(), radius, hlen, mat, spos, srot);
+                    AddCapsuleGeometry(body.get(), mat, radius, hlen, spos, srot);
                 } break;
                 case collision::ChCollisionShape::Type::CYLINDER: {
                     double radius, hlen, dummy;
                     iss >> radius >> dummy >> hlen;
-                    AddCylinderGeometry(body.get(), radius, hlen, mat, spos, srot);
+                    AddCylinderGeometry(body.get(), mat, radius, hlen, spos, srot);
                 } break;
                 case collision::ChCollisionShape::Type::CONE: {
                     double radius, height, dummy;
                     iss >> radius >> dummy >> height;
-                    AddConeGeometry(body.get(), radius, height, mat, spos, srot);
+                    AddConeGeometry(body.get(), mat, radius, height, spos, srot);
                 } break;
                 case collision::ChCollisionShape::Type::ROUNDEDBOX: {
                     ChVector<> size;
                     double srad;
                     iss >> size.x() >> size.y() >> size.z() >> srad;
-                    AddRoundedBoxGeometry(body.get(), size, srad, mat, spos, srot);
+                    AddRoundedBoxGeometry(body.get(), mat, size, srad, spos, srot);
                 } break;
                 case collision::ChCollisionShape::Type::ROUNDEDCYL: {
                     double radius, hlen, srad, dummy;
                     iss >> radius >> dummy >> hlen >> srad;
-                    AddRoundedCylinderGeometry(body.get(), radius, hlen, srad, mat, spos, srot);
+                    AddRoundedCylinderGeometry(body.get(), mat, radius, hlen, srad, spos, srot);
                 } break;
                 default:
                     break;

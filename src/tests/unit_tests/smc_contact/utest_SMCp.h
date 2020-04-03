@@ -63,7 +63,7 @@ std::shared_ptr<ChBody> AddSphere(int id,
     body->SetCollide(true);
 
     body->GetCollisionModel()->ClearModel();
-    utils::AddSphereGeometry(body.get(), radius, mat);
+    utils::AddSphereGeometry(body.get(), mat, radius);
     body->GetCollisionModel()->BuildModel();
 
     // Return a pointer to the sphere object
@@ -97,7 +97,7 @@ std::shared_ptr<ChBody> AddWall(int id,
     body->SetCollide(true);
 
     body->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(body.get(), size / 2, mat);
+    utils::AddBoxGeometry(body.get(), mat, size / 2);
     body->GetCollisionModel()->BuildModel();
 
     // Return a pointer to the wall object

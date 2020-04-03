@@ -291,7 +291,7 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
 
     cone->GetCollisionModel()->ClearModel();
     cone->GetCollisionModel()->SetSafeMargin(initSpace0);
-    utils::AddConeGeometry(cone.get(), cone_radius, cone_length, mysurfmaterial, ChVector<>(0.0, 0.0, 0.0),
+    utils::AddConeGeometry(cone.get(), mysurfmaterial, cone_radius, cone_length, ChVector<>(0.0, 0.0, 0.0),
                            ChQuaternion<>(1, 0, 0, 0));
     cone->GetCollisionModel()->BuildModel();
     size_t numRigidObjects = mphysicalSystem.Get_bodylist().size();

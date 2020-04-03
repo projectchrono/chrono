@@ -159,7 +159,7 @@ int main(int argc, char* argv[]) {
 
     body->GetCollisionModel()->ClearModel();
     body->GetCollisionModel()->AddTriangleMesh(body_mat, trimesh, false, false, VNULL, ChMatrix33<>(1), 0.01);
-    ////utils::AddSphereGeometry(body_mat, body.get(), tire_rad, ChVector<>(0, 0, 0));
+    ////utils::AddSphereGeometry(body.get(), body_mat, tire_rad, ChVector<>(0, 0, 0));
     body->GetCollisionModel()->BuildModel();
 
     body->SetCollide(true);

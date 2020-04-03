@@ -634,7 +634,7 @@ void CreateSphereFSI(std::shared_ptr<ChFsiDataManager> fsiData,
     body->SetInertiaXX(mass * gyration);
     //
     body->GetCollisionModel()->ClearModel();
-    chrono::utils::AddSphereGeometry(body.get(), radius, mat_prop);
+    chrono::utils::AddSphereGeometry(body.get(), mat_prop, radius);
     body->GetCollisionModel()->BuildModel();
     mphysicalSystem.AddBody(body);
     fsiBodeis.push_back(body);
@@ -664,7 +664,7 @@ void CreateCylinderFSI(std::shared_ptr<ChFsiDataManager> fsiData,
     body->SetInertiaXX(mass * gyration);
     //
     body->GetCollisionModel()->ClearModel();
-    chrono::utils::AddCylinderGeometry(body.get(), radius, 0.5 * length, mat_prop);
+    chrono::utils::AddCylinderGeometry(body.get(), mat_prop, radius, 0.5 * length);
     body->GetCollisionModel()->BuildModel();
     mphysicalSystem.AddBody(body);
 
@@ -695,7 +695,7 @@ void CreateBoxFSI(std::shared_ptr<ChFsiDataManager> fsiData,
     body->SetInertiaXX(mass * gyration);
     //
     body->GetCollisionModel()->ClearModel();
-    chrono::utils::AddBoxGeometry(body.get(), hsize, mat_prop);
+    chrono::utils::AddBoxGeometry(body.get(), mat_prop, hsize);
     body->GetCollisionModel()->BuildModel();
     mphysicalSystem.AddBody(body);
 

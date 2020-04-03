@@ -72,15 +72,14 @@ void AddContainer(ChSystemParallelNSC* sys) {
     double hthick = 0.1;
 
     bin->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(bin.get(), ChVector<>(hdim.x(), hdim.y(), hthick), mat,  //
-                          ChVector<>(0, 0, -hthick));
-    utils::AddBoxGeometry(bin.get(), ChVector<>(hthick, hdim.y(), hdim.z()), mat,  //
+    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hdim.x(), hdim.y(), hthick), ChVector<>(0, 0, -hthick));
+    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hthick, hdim.y(), hdim.z()),
                           ChVector<>(-hdim.x() - hthick, 0, hdim.z()));
-    utils::AddBoxGeometry(bin.get(), ChVector<>(hthick, hdim.y(), hdim.z()), mat,  //
+    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hthick, hdim.y(), hdim.z()),
                           ChVector<>(hdim.x() + hthick, 0, hdim.z()));
-    utils::AddBoxGeometry(bin.get(), ChVector<>(hdim.x(), hthick, hdim.z()), mat,  //
+    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hdim.x(), hthick, hdim.z()),
                           ChVector<>(0, -hdim.y() - hthick, hdim.z()));
-    utils::AddBoxGeometry(bin.get(), ChVector<>(hdim.x(), hthick, hdim.z()), mat,  //
+    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hdim.x(), hthick, hdim.z()),
                           ChVector<>(0, hdim.y() + hthick, hdim.z()));
     bin->GetCollisionModel()->BuildModel();
 
@@ -116,7 +115,7 @@ void AddFallingBalls(ChSystemParallel* sys) {
             ball->SetCollide(true);
 
             ball->GetCollisionModel()->ClearModel();
-            utils::AddSphereGeometry(ball.get(), radius, ballMat);
+            utils::AddSphereGeometry(ball.get(), ballMat, radius);
             ball->GetCollisionModel()->BuildModel();
 
             sys->AddBody(ball);

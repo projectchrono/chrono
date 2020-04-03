@@ -93,11 +93,11 @@ int main(int argc, char** argv) {
     bin_mat->SetSpinningFriction(1);
 
     container->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(container.get(), ChVector<>(20, 1, 20) / 2.0, bin_mat, ChVector<>(0, -1, 0));
-    utils::AddBoxGeometry(container.get(), ChVector<>(1, 2, 20.99) / 2.0, bin_mat, ChVector<>(-10, 0, 0));
-    utils::AddBoxGeometry(container.get(), ChVector<>(1, 2, 20.99) / 2.0, bin_mat, ChVector<>(10, 0, 0));
-    utils::AddBoxGeometry(container.get(), ChVector<>(20.99, 2, 1) / 2.0, bin_mat, ChVector<>(0, 0, -10));
-    utils::AddBoxGeometry(container.get(), ChVector<>(20.99, 2, 1) / 2.0, bin_mat, ChVector<>(0, 0, 10));
+    utils::AddBoxGeometry(container.get(), bin_mat, ChVector<>(20, 1, 20) / 2.0, ChVector<>(0, -1, 0));
+    utils::AddBoxGeometry(container.get(), bin_mat, ChVector<>(1, 2, 20.99) / 2.0, ChVector<>(-10, 0, 0));
+    utils::AddBoxGeometry(container.get(), bin_mat, ChVector<>(1, 2, 20.99) / 2.0, ChVector<>(10, 0, 0));
+    utils::AddBoxGeometry(container.get(), bin_mat, ChVector<>(20.99, 2, 1) / 2.0, ChVector<>(0, 0, -10));
+    utils::AddBoxGeometry(container.get(), bin_mat, ChVector<>(20.99, 2, 1) / 2.0, ChVector<>(0, 0, 10));
     container->GetCollisionModel()->BuildModel();
 
     // Create some spheres that roll horizontally, with increasing rolling friction values
@@ -125,7 +125,7 @@ int main(int argc, char** argv) {
         // Contact geometry
         ball->SetCollide(true);
         ball->GetCollisionModel()->ClearModel();
-        utils::AddSphereGeometry(ball.get(), radius, mat);
+        utils::AddSphereGeometry(ball.get(), mat, radius);
         ball->GetCollisionModel()->BuildModel();
 
         // Add to the system
@@ -151,7 +151,7 @@ int main(int argc, char** argv) {
         // Contact geometry
         ball->SetCollide(true);
         ball->GetCollisionModel()->ClearModel();
-        utils::AddSphereGeometry(ball.get(), radius, mat);
+        utils::AddSphereGeometry(ball.get(), mat, radius);
         ball->GetCollisionModel()->BuildModel();
 
         // Add to the system

@@ -160,7 +160,7 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
 
     cylinder->GetCollisionModel()->ClearModel();
     cylinder->GetCollisionModel()->SetSafeMargin(initSpace0);
-    utils::AddCylinderGeometry(cylinder.get(), cyl_radius, cyl_length, mysurfmaterial, ChVector<>(0.0, 0.0, 0.0),
+    utils::AddCylinderGeometry(cylinder.get(), mysurfmaterial, cyl_radius, cyl_length, ChVector<>(0.0, 0.0, 0.0),
                                ChQuaternion<>(1, 0, 0, 0));
     cylinder->GetCollisionModel()->BuildModel();
     size_t numRigidObjects = mphysicalSystem.Get_bodylist().size();

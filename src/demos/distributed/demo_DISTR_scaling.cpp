@@ -165,7 +165,7 @@ inline std::shared_ptr<ChBody> CreateBall(const ChVector<>& pos,
     ball->SetCollide(true);
 
     ball->GetCollisionModel()->ClearModel();
-    utils::AddSphereGeometry(ball.get(), radius, ballMat);
+    utils::AddSphereGeometry(ball.get(), ballMat, radius);
     ball->GetCollisionModel()->BuildModel();
     return ball;
 }

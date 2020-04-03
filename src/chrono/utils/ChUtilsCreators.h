@@ -55,78 +55,78 @@ namespace utils {
 
 /// Add a sphere collision shape and optionally a corresponding visualization asset to the specified body.
 ChApi void AddSphereGeometry(ChBody* body,
-                             double radius,
                              std::shared_ptr<ChMaterialSurface> material,
+                             double radius,
                              const ChVector<>& pos = ChVector<>(0, 0, 0),
                              const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
                              bool visualization = true);
 
 /// Add an ellipsoid collision shape and optionally a corresponding visualization asset to the specified body.
 ChApi void AddEllipsoidGeometry(ChBody* body,
-                                const ChVector<>& size,
                                 std::shared_ptr<ChMaterialSurface> material,
+                                const ChVector<>& size,
                                 const ChVector<>& pos = ChVector<>(0, 0, 0),
                                 const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
                                 bool visualization = true);
 
 /// Add a box collision shape and optionally a corresponding visualization asset to the specified body.
 ChApi void AddBoxGeometry(ChBody* body,
-                          const ChVector<>& size,
                           std::shared_ptr<ChMaterialSurface> material,
+                          const ChVector<>& size,
                           const ChVector<>& pos = ChVector<>(0, 0, 0),
                           const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
                           bool visualization = true);
 
 /// Add a bisphere collision shape and optionally a corresponding visualization asset to the specified body.
 ChApi void AddBiSphereGeometry(ChBody* body,
+                               std::shared_ptr<ChMaterialSurface> material,
                                double radius,
                                double cDist,
-                               std::shared_ptr<ChMaterialSurface> material,
                                const ChVector<>& pos = ChVector<>(0, 0, 0),
                                const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
                                bool visualization = true);
 
 /// Add a box capsule shape and optionally a corresponding visualization asset to the specified body.
 ChApi void AddCapsuleGeometry(ChBody* body,
+                              std::shared_ptr<ChMaterialSurface> material,
                               double radius,
                               double hlen,
-                              std::shared_ptr<ChMaterialSurface> material,
                               const ChVector<>& pos = ChVector<>(0, 0, 0),
                               const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
                               bool visualization = true);
 
 /// Add a box cylinder shape and optionally a corresponding visualization asset to the specified body.
 ChApi void AddCylinderGeometry(ChBody* body,
+                               std::shared_ptr<ChMaterialSurface> material,
                                double radius,
                                double hlen,
-                               std::shared_ptr<ChMaterialSurface> material,
                                const ChVector<>& pos = ChVector<>(0, 0, 0),
                                const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
                                bool visualization = true);
 
 /// Add a box cone shape and optionally a corresponding visualization asset to the specified body.
 ChApi void AddConeGeometry(ChBody* body,
+                           std::shared_ptr<ChMaterialSurface> material,
                            double radius,
                            double height,
-                           std::shared_ptr<ChMaterialSurface> material,
                            const ChVector<>& pos = ChVector<>(0, 0, 0),
                            const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
                            bool visualization = true);
 
 /// Add a triangular mesh collision shape and optionally a corresponding visualization asset to the specified body.
 ChApi void AddTriangleMeshGeometry(ChBody* body,
+                                   std::shared_ptr<ChMaterialSurface> material,
                                    const std::string& obj_filename,
                                    const std::string& name,
-                                   std::shared_ptr<ChMaterialSurface> material,
                                    const ChVector<>& pos = ChVector<>(0, 0, 0),
                                    const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
                                    bool visualization = true);
 
 /// Add convex hull collision shapes and optionally a corresponding visualization asset to the specified body.
 ChApi void AddTriangleMeshConvexDecomposition(ChBody* body,
+                                              std::shared_ptr<ChMaterialSurface> material,
                                               const std::string& obj_filename,
                                               const std::string& name,
-                                              std::shared_ptr<ChMaterialSurface> material,
                                               const ChVector<>& pos = ChVector<>(0, 0, 0),
                                               const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
                                               float skin_thickness = 0.0f,
@@ -134,39 +134,39 @@ ChApi void AddTriangleMeshConvexDecomposition(ChBody* body,
 
 /// Add convex hull collision shapes and optionally a corresponding visualization asset to the specified body.
 ChApi void AddTriangleMeshConvexDecompositionV2(ChBody* body,
+                                                std::shared_ptr<ChMaterialSurface> material,
                                                 const std::string& obj_filename,
                                                 const std::string& name,
-                                                std::shared_ptr<ChMaterialSurface> material,
                                                 const ChVector<>& pos = ChVector<>(0, 0, 0),
                                                 const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
                                                 bool use_original_asset = true);
 
 /// Add convex hull collision shapes and optionally a corresponding visualization asset to the specified body.
 ChApi void AddTriangleMeshConvexDecompositionSplit(ChSystem* system,
+                                                   std::shared_ptr<ChMaterialSurface> material,
                                                    const std::string& obj_filename,
                                                    const std::string& name,
-                                                   std::shared_ptr<ChMaterialSurface> material,
                                                    const ChVector<>& pos,
                                                    const ChQuaternion<>& rot,
                                                    double total_mass);
 
 /// Add a triangle collision shape and optionally a corresponding visualization asset to the specified body.
-ChApi void AddTriangle(ChBody* body,
-                       const ChVector<>& vertA,
-                       const ChVector<>& vertB,
-                       const ChVector<>& vertC,
-                       std::shared_ptr<ChMaterialSurface> material,
-                       const std::string& name,
-                       const ChVector<>& pos = ChVector<>(0, 0, 0),
-                       const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
-                       bool visualization = true);
+ChApi void AddTriangleGeometry(ChBody* body,
+                               std::shared_ptr<ChMaterialSurface> material,
+                               const ChVector<>& vertA,
+                               const ChVector<>& vertB,
+                               const ChVector<>& vertC,
+                               const std::string& name,
+                               const ChVector<>& pos = ChVector<>(0, 0, 0),
+                               const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
+                               bool visualization = true);
 
 /// Add a rounded box (sphere-swept box) collision shape and optionally a corresponding visualization asset to the
 /// specified body.
 ChApi void AddRoundedBoxGeometry(ChBody* body,
+                                 std::shared_ptr<ChMaterialSurface> material,
                                  const ChVector<>& size,
                                  double srad,
-                                 std::shared_ptr<ChMaterialSurface> material,
                                  const ChVector<>& pos = ChVector<>(0, 0, 0),
                                  const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
                                  bool visualization = true);
@@ -174,10 +174,10 @@ ChApi void AddRoundedBoxGeometry(ChBody* body,
 /// Add a rounded cylinder (sphere-swept cylinder) collision shape and optionally a corresponding visualization asset
 /// to the specified body.
 ChApi void AddRoundedCylinderGeometry(ChBody* body,
+                                      std::shared_ptr<ChMaterialSurface> material,
                                       double radius,
                                       double hlen,
                                       double srad,
-                                      std::shared_ptr<ChMaterialSurface> material,
                                       const ChVector<>& pos = ChVector<>(0, 0, 0),
                                       const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
                                       bool visualization = true);
@@ -185,9 +185,9 @@ ChApi void AddRoundedCylinderGeometry(ChBody* body,
 /// Add a torus collision shape (compound object created with capsules) and optionally a corresponding visualization
 /// asset to the specified body.
 ChApi void AddTorusGeometry(ChBody* body,
+                            std::shared_ptr<ChMaterialSurface> material,
                             double radius,
                             double thickness,
-                            std::shared_ptr<ChMaterialSurface> material,
                             int segments = 20,
                             int angle = 360,
                             const ChVector<>& pos = ChVector<>(0, 0, 0),
@@ -247,9 +247,9 @@ ChApi void LoadConvexHulls(const std::string& file_name,
 /// Given a convex mesh and its decomposition add it to a ChBody use_original_asset can be used to specify if the mesh
 /// or the convex decomp should be used for visualization
 ChApi void AddConvexCollisionModel(std::shared_ptr<ChBody> body,
+                                   std::shared_ptr<ChMaterialSurface> material,
                                    std::shared_ptr<geometry::ChTriangleMeshConnected> convex_mesh,
                                    collision::ChConvexDecompositionHACDv2& convex_shape,
-                                   std::shared_ptr<ChMaterialSurface> material,
                                    const ChVector<>& pos = ChVector<>(0, 0, 0),
                                    const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
                                    bool use_original_asset = true);
@@ -257,9 +257,9 @@ ChApi void AddConvexCollisionModel(std::shared_ptr<ChBody> body,
 /// Add a convex mesh to an object based on a set of points.
 /// This version will use the triangle mesh to set the visualization geometry.
 ChApi void AddConvexCollisionModel(std::shared_ptr<ChBody> body,
+                                   std::shared_ptr<ChMaterialSurface> material,
                                    std::shared_ptr<geometry::ChTriangleMeshConnected> convex_mesh,
                                    std::vector<std::vector<ChVector<double>>>& convex_hulls,
-                                   std::shared_ptr<ChMaterialSurface> material,
                                    const ChVector<>& pos = ChVector<>(0, 0, 0),
                                    const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0));
 

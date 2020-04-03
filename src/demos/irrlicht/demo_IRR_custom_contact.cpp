@@ -182,11 +182,11 @@ int main(int argc, char* argv[]) {
     ground->SetBodyFixed(true);
 
     ground->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(ground.get(), ChVector<>(5.0, 1, 5.0), ground_mat, ChVector<>(0, -1, 0));
-    utils::AddBoxGeometry(ground.get(), ChVector<>(0.1, 1, 5.1), ground_mat, ChVector<>(-5, 0, 0));
-    utils::AddBoxGeometry(ground.get(), ChVector<>(0.1, 1, 5.1), ground_mat, ChVector<>(+5, 0, 0));
-    utils::AddBoxGeometry(ground.get(), ChVector<>(5.1, 1, 0.1), ground_mat, ChVector<>(0, 0, -5));
-    utils::AddBoxGeometry(ground.get(), ChVector<>(5.1, 1, 0.1), ground_mat, ChVector<>(0, 0, +5));
+    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(5.0, 1, 5.0), ChVector<>(0, -1, 0));
+    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(0.1, 1, 5.1), ChVector<>(-5, 0, 0));
+    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(0.1, 1, 5.1), ChVector<>(+5, 0, 0));
+    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(5.1, 1, 0.1), ChVector<>(0, 0, -5));
+    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(5.1, 1, 0.1), ChVector<>(0, 0, +5));
     ground->GetCollisionModel()->BuildModel();
 
     ground->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("blu.png")));
@@ -202,7 +202,7 @@ int main(int argc, char* argv[]) {
     ball->SetCollide(true);
 
     ball->GetCollisionModel()->ClearModel();
-    utils::AddSphereGeometry(ball.get(), ball_radius, ball_mat);
+    utils::AddSphereGeometry(ball.get(), ball_mat, ball_radius);
     ball->GetCollisionModel()->BuildModel();
 
     ball->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("bluwhite.png")));
