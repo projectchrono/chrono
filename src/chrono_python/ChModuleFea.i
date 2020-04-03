@@ -296,12 +296,14 @@ using namespace chrono::fea;
 %import(module = "pychrono.core")  "ChFrameMoving.i"
 %import(module = "pychrono.core")  "ChBodyFrame.i"
 %import(module = "pychrono.core")  "ChLinkBase.i"
+%import(module = "pychrono.core")  "ChTensors.i"
 // Put this 'director' feature _before_ class wrapping declaration.
 %feature("director") chrono::ChFunction;
 /* Parse the header file to generate wrappers */
 %import(module = "pychrono.core") "../chrono/motion_functions/ChFunction_Base.h"
 %import(module = "pychrono.core") "ChAsset.i"
 %import(module = "pychrono.core") "ChAssetLevel.i"
+%import(module = "pychrono.core") "ChColor.i"
 %import(module = "pychrono.core")  "ChMaterialSurface.i"
 %import(module = "pychrono.core") "../chrono/physics/ChPhysicsItem.h"
 %import(module = "pychrono.core") "../chrono/physics/ChIndexedNodes.h"

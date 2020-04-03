@@ -56,7 +56,6 @@
 #include "chrono/physics/ChNodeBase.h"
 #include "chrono/physics/ChNodeXYZ.h"
 #include "chrono/physics/ChLoadsXYZnode.h"
-#include "chrono/core/ChTensors.h"
 #include "chrono/physics/ChIndexedNodes.h"
 #include "chrono/assets/ChLineShape.h"
 #include "chrono/assets/ChPathShape.h"
@@ -280,6 +279,7 @@ using namespace chrono::fea;
 %include "ChVector.i"
 #define Vector ChVector<double>
 %include "ChQuaternion.i"
+%include "ChTensors.i"
 %include "../chrono/core/ChBezierCurve.h"
 #define Quaternion ChQuaternion<double>
 %include "ChMatrix33.i"
@@ -293,10 +293,7 @@ using namespace chrono::fea;
 %include "ChTimer.i"
 %include "ChRealtimeStep.i"
 %include "ChTransform.i"
-%include "../chrono/core/ChTensors.h"
-%template(ChVoightTensorD) chrono::ChVoightTensor<double>;
-%template(ChStressTensorD) chrono::ChStressTensor<double>;
-%template(ChStrainTensorD) chrono::ChStrainTensor<double>;
+
 
 // motion_functions/   classes
 %include "ChFunction_Base.i"
@@ -308,6 +305,7 @@ using namespace chrono::fea;
 %include "ChCollisionModel.i"
 %include "../chrono/collision/ChCollisionUtils.h"
 %include "../chrono/collision/ChCollisionSystem.h"
+%include "ChCollisionInfo.i"
 
 // assets
 %include "ChAsset.i"
