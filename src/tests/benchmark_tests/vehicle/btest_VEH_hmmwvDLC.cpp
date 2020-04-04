@@ -87,6 +87,7 @@ HmmwvDlcTest<EnumClass, TIRE_MODEL>::HmmwvDlcTest() : m_step_veh(2e-3), m_step_t
     auto patch_material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     patch_material->SetFriction(0.9f);
     patch_material->SetRestitution(0.01f);
+    patch_material->SetYoungModulus(2e7f);
     auto patch = m_terrain->AddPatch(patch_material, ChCoordsys<>(ChVector<>(0, 0, -5), QUNIT), ChVector<>(300, 20, 10));
     patch->SetColor(ChColor(0.8f, 0.8f, 0.8f));
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 300, 20);
