@@ -23,22 +23,22 @@ Here's a summary of the main API changes (there were many other changes under th
 1.	Renamed headers.  For consistency, I renamed various files under src/chrono/collision which had a prefix `ChC` to simply have the prefix `Ch`.  For example, `ChCCollisionModel.h`  -->  `ChCollisionModel.h`
 
 2.	The contact method, NSC or SMC, is now a top-level enum class named `ChContactMethod` (previously it was nested under ChMaterialSurface).  So use things like:
-	~~~{.cpp}
+	```cpp
   	if (system->GetContactMethod() == ChContactMethod::NSC)
-	~~~
+	```
 
 3.	The `ChBody` constructor does not take the contact method as an argument anymore (which previously defaulted to NSC)
 
 4.	`ChBodyEasy***` classes. The list of constructor arguments here has changed, for a more natural order.  All collision-related arguments have been moved to the end of the list. In particular, the flag to indicate whether or not to create a visual asset (default `true`) comes before the flag to indicate whether or not to create a collision shape (default `false`).  If the latter is `true`, the next argument must be a contact material (default `nullptr`).
 
 	Be careful here as it's easy to overlook the required changes here (because of arguments with default values).  For example, the old
-	~~~{.cpp}
+	```cpp
   	auto body = chrono_types::make_shared<ChBodyEasySphere>(radius, density, true);
-	~~~
+	```
 	would create a sphere with visualization and collision enabled (with material properties from the body itself).  This is also valid with the new code, but this will now create a body with a ball visualization but no collision shape.  To get the expected result, you need to use:
-	~~~{.cpp}
+	```cpp
   	auto body = chrono_types::make_shared<ChBodyEasySphere>(radius, density, true, true, material);
-	~~~
+	```
 	and pass a valid material (consistent with the system to which you will add the body).
 
 5.	There is now a proper `ChCollisionShape` class which is very light weight (it carries only the type of shape, from an enum ChCollisionShape::Type, and a (shared) pointer to a contact material).  There are derived classes for the various collision systems (namely the one based on Bullet and the one used in Chrono::Parallel), but few users would have to worry about or work with those.
@@ -46,23 +46,24 @@ Here's a summary of the main API changes (there were many other changes under th
 6.	A collision model maintains a vector of collision shapes (in the order they were added to the model by the user).  There are public accessor methods on ChCollisionModel to get the list of shapes or individual shapes (by its index in the list).
 
 7.	Adding collision shapes.  All `ChCollisionModel::Add***` methods now take as their first argument a (shared) pointer to a contact material.  There is no "default" material automatically constructed under the hood for you anymore.   However, the NSC and SMC contact materials still have constructors that set their respective properties to some default values.  So you can write something like:
-	~~~{.cpp}
-  	auto my_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();  // construct an SMC material with default properties
-  	auto my_body = chrono_types::make_shared<ChBody>();               // note: no need to specify SMC contact here!
+	```cpp
+  	// construct an SMC material with default properties
+  	auto my_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>(); 
+  	auto my_body = chrono_types::make_shared<ChBody>();  // note: no need to specify SMC contact here!
   	...
   	my_body->GetCollisionModel()->AddSphere(my_mat, radius);
   	...
   	my_system.AddBody(my_body);  // it is assumed that my_system is a ChSystemSMC
-  	~~~
+  	```
 
 8.	Utility functions in ChUtilsCreators.  Similar to `ChBodyEasy***`, the various `utils::Add***Geometry` functions now also require a contact material;  this is always their 2nd argument.
 
 9.	FEA contact surfaces.  The two options, `ChContactSurfaceMesh` and `ChContactSurfaceNodeCloud` now require a contact material at construction (there is no SetSurfaceMaterial() method anymore).  As you already know, the only acceptable type of material in this case is ChMaterialSurfaceSMC.  Note that the contact material passed at construction is shared by all components of the FEA contact surface (triangles or nodes, respectively).  Sample code:
-	~~~{.cpp}
+	```cpp
   	auto my_surf = chrono_types::make_shared<ChContactSurfaceMesh>(my_materialSMC);
   	my_mesh->AddContactSurface(my_surf);
   	my_surf->AddFacesFromBoundary(0.05);
-  	~~~
+  	```
 
 10.	`ChCollisionInfo` and user-provided contact callbacks.  A ChCollisionInfo object (which encapsulates information about a collision pair and is used internally to create contacts) now also include pointers to the colliding shapes in the two interacting collision models.   When a contact must be created internally, a composite contact material is created on the fly from the contact materials of the two colliding shapes.
 
@@ -95,7 +96,7 @@ Starting with this release, Chrono relies on Eigen3 for all dense linear algebra
 1. With this change, Chrono requires `Eigen3` version 3.3.0 or newer.  Unless not possible for other reasons, we suggest you use their latest version, 3.3.7.
 	- Eigen is available for download at http://eigen.tuxfamily.org/
 	- Eigen is a headers-only library, so no install is required in order to use it in Chrono.
-	- If the location of the Eigen headers is not automatically detected by CMake, manually specify it by setting the CMake variable EIGEN3_INCLUDE_DIR.
+	- If the location of the Eigen headers is not automatically detected by CMake, manually specify it by setting the CMake variable `EIGEN3_INCLUDE_DIR`.
 	- Note: CUDA 9.1 has removed a file (`math_functions.hpp`) which is referenced by Eigen prior to version 3.3.6.  As such, if you build any of the GPU-based Chrono modules (FSI or Granular) and use CUDA 9.1, make sure to use Eigen 3.3.7.
 
 2. The switch to Eigen does come with a few strings attached
