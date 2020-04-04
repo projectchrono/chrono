@@ -65,6 +65,9 @@ class ChApi ChMaterialSurface {
     virtual void ArchiveOUT(ChArchiveOut& marchive);
     virtual void ArchiveIN(ChArchiveIn& marchive);
 
+    /// Construct and return a contact material of the specified type with default properties.
+    static std::shared_ptr<ChMaterialSurface> DefaultMaterial(ChContactMethod contact_method);
+
     // Properties common to both NSC and SMC materials
     float static_friction;    ///< Static coefficient of friction
     float sliding_friction;   ///< Kinetic coefficient of friction

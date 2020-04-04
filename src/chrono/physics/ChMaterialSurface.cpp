@@ -16,6 +16,8 @@
 #include <cmath>
 
 #include "chrono/physics/ChMaterialSurface.h"
+#include "chrono/physics/ChMaterialSurfaceSMC.h"
+#include "chrono/physics/ChMaterialSurfaceNSC.h"
 #include "chrono/physics/ChSystem.h"
 
 namespace chrono {
@@ -64,6 +66,16 @@ void ChMaterialSurface::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(rolling_friction);
     marchive >> CHNVP(spinning_friction);
     marchive >> CHNVP(restitution);
+}
+
+std::shared_ptr<ChMaterialSurface> ChMaterialSurface::DefaultMaterial(ChContactMethod contact_method) {
+    switch (contact_method) {
+        case ChContactMethod::NSC:
+            return chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        case ChContactMethod::SMC:
+            return chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    }
+    return nullptr;
 }
 
 }  // end namespace chrono
