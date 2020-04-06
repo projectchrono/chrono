@@ -60,8 +60,11 @@ body.AddAsset(vis_shape)
 body.AddAsset(chrono.ChColorAsset(0.3, 0.3, 0.3))
 
 # Set collision shape
+material = chrono.ChMaterialSurfaceSMC()
+
 body.GetCollisionModel().ClearModel()
-body.GetCollisionModel().AddTriangleMesh(mesh,                    # the mesh 
+body.GetCollisionModel().AddTriangleMesh(material,                # contact material
+                                         mesh,                    # the mesh 
                                          False,                   # is it static?
                                          False,                   # is it convex?
                                          chrono.ChVectorD(0,0,0), # position on body

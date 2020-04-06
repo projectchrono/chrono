@@ -50,20 +50,9 @@ brick_material.SetFriction(friction)
 brick_material.SetDampingF(0.00000)
 brick_material.SetCompliance (1e-9)
 brick_material.SetComplianceT(1e-9)
-# brick_material.SetRollingFriction(rollfrict_param)
-# brick_material.SetSpinningFriction(0)
-# brick_material.SetComplianceRolling(0.0000001)
-# brick_material.SetComplianceSpinning(0.0000001)
 
 L_material = chrono.ChMaterialSurfaceNSC()
 L_material.SetFriction(0)
-# brick_material.SetDampingF(0.2)
-# brick_material.SetCompliance (0.0000001)
-# brick_material.SetComplianceT(0.0000001)
-# brick_material.SetRollingFriction(rollfrict_param)
-# brick_material.SetSpinningFriction(0)
-# brick_material.SetComplianceRolling(0.0000001)
-# brick_material.SetComplianceSpinning(0.0000001)
 
 
 S0 = chrono.ChVectorD(0,0,0)
@@ -76,9 +65,8 @@ Dz = chrono.ChVectorD(0,0, thick)
 
 
 if False:
-    mbodyS = chrono.ChBodyEasySphere(0.1,1000,True,True)
+    mbodyS = chrono.ChBodyEasySphere(0.1,1000,True,True,brick_material)
     mbodyS.SetPos( S0 )
-    mbodyS.SetMaterialSurface(brick_material)
     mysystem.Add(mbodyS)
 else:
     S1 = Sl + Dl * 0.2;
@@ -88,8 +76,7 @@ else:
     Dzz = chrono.ChVectorD(0,0, (thick*0.6))
     pointsS = chrono.vector_ChVectorD([S1+Dzz, S2+Dzz, S3+Dzz, S4+Dzz, S1-Dzz, S2-Dzz, S3-Dzz, S4-Dzz])
 
-    mbodyS = chrono.ChBodyEasyConvexHullAuxRef(pointsS, 1000,True,True)
-    mbodyS.SetMaterialSurface(brick_material)
+    mbodyS = chrono.ChBodyEasyConvexHullAuxRef(pointsS, 1000,True,True,brick_material)
     mysystem.Add(mbodyS)
 
 L1 = Sl + Dl * 0.5;
@@ -98,9 +85,8 @@ L3 = chrono.ChVectorD(-2,   L2.y, 0);
 L4 = chrono.ChVectorD(-2,   L1.y, 0);
 pointsL = chrono.vector_ChVectorD([L1+Dz, L2+Dz, L3+Dz, L4+Dz, L1-Dz, L2-Dz, L3-Dz, L4-Dz])
 
-mbodyL = chrono.ChBodyEasyConvexHullAuxRef(pointsL, 1000,True,True)
+mbodyL = chrono.ChBodyEasyConvexHullAuxRef(pointsL, 1000,True,True,L_material)
 mbodyL.SetBodyFixed(fixed_L)
-mbodyL.SetMaterialSurface(L_material)
 mysystem.Add(mbodyL)
 
 
@@ -110,17 +96,15 @@ R3 = chrono.ChVectorD(1,   R2.y, 0);
 R4 = chrono.ChVectorD(1,   R1.y, 0);
 pointsR = chrono.vector_ChVectorD([R1+Dz, R2+Dz, R3+Dz, R4+Dz, R1-Dz, R2-Dz, R3-Dz, R4-Dz])
 
-mbodyR = chrono.ChBodyEasyConvexHullAuxRef(pointsR, 1000,True,True)
+mbodyR = chrono.ChBodyEasyConvexHullAuxRef(pointsR, 1000,True,True,brick_material)
 mbodyR.SetBodyFixed(True)
-mbodyR.SetMaterialSurface(brick_material)
 mysystem.Add(mbodyR)
 
 
 if not(fixed_L):
-    mbodyG = chrono.ChBodyEasyBox(1,0.5 , thick*2.2, 1000,True,True)
+    mbodyG = chrono.ChBodyEasyBox(1,0.5 , thick*2.2, 1000,True,True,brick_material)
     mbodyG.SetPos( chrono.ChVectorD(-1, L2.y-0.5/2, 0 ) )
     mbodyG.SetBodyFixed(True)
-    mbodyG.SetMaterialSurface(brick_material)
     mysystem.Add(mbodyG)
 
 
