@@ -50,6 +50,8 @@
 //#include "chrono_cascade/ChCascadeShapeAsset.h"
 #include "chrono_cascade/ChBodyEasyCascade.h"
 #include "chrono_cascade/ChCascadeDoc.h"
+#include "chrono/physics/ChMaterialSurfaceNSC.h"
+#include "chrono/physics/ChMaterialSurfaceSMC.h"
 #include "Eigen/src/Core/util/Memory.h"
 
 using namespace chrono;
@@ -137,10 +139,13 @@ using namespace chrono::cascade;
 %import(module = "pychrono.core") "ChBodyFrame.i"
 %import(module = "pychrono.core") "ChBody.i"
 %import(module = "pychrono.core") "ChBodyAuxRef.i"
+%import(module = "pychrono.core")  "ChMaterialSurface.i"
 
 %include "../chrono_cascade/ChCascadeShapeAsset.h"
 %include "../chrono_cascade/ChBodyEasyCascade.h"
 %include "../chrono_cascade/ChCascadeDoc.h"
+%include "../chrono/physics/ChMaterialSurfaceNSC.h"
+%include "../chrono/physics/ChMaterialSurfaceSMC.h"
 
 
 //
