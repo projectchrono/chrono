@@ -166,6 +166,8 @@ source_group("base" FILES ${CV_BASE_FILES})
 set(CV_CHASSIS_FILES
     chassis/ChRigidChassis.h
     chassis/ChRigidChassis.cpp
+    chassis/ChTorsionChassis.h
+    chassis/ChTorsionChassis.cpp
 
     chassis/RigidChassis.h
     chassis/RigidChassis.cpp

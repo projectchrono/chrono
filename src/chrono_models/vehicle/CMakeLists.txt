@@ -75,6 +75,45 @@ set(CVM_HMMWV_FILES
 )
 source_group("hmmwv" FILES ${CVM_HMMWV_FILES})
 
+
+set(CVM_MTV_FILES
+    mtv/LMTV_AntiRollBar.cpp
+    mtv/LMTV_AntiRollBar.h
+    mtv/LMTV_BrakeSimple.cpp
+    mtv/LMTV_BrakeSimple.h
+    mtv/LMTV_Chassis.cpp
+    mtv/LMTV_Chassis.h
+    mtv/LMTV_Driveline4WD.cpp
+    mtv/LMTV_Driveline4WD.h
+    mtv/LMTV_LeafspringAxle.cpp
+    mtv/LMTV_LeafspringAxle.h
+    mtv/LMTV_RotaryArm.cpp
+    mtv/LMTV_RotaryArm.h
+    mtv/LMTV_RigidTire.cpp
+    mtv/LMTV_RigidTire.h
+    mtv/LMTV_SimpleDriveline.cpp
+    mtv/LMTV_SimpleDriveline.h
+    mtv/LMTV_SimpleCVTPowertrain.cpp
+    mtv/LMTV_SimpleCVTPowertrain.h
+    mtv/LMTV_SimpleMapPowertrain.cpp
+    mtv/LMTV_SimpleMapPowertrain.h
+    mtv/LMTV_SimplePowertrain.cpp
+    mtv/LMTV_SimplePowertrain.h
+    mtv/LMTV_Powertrain.cpp
+    mtv/LMTV_Powertrain.h
+    mtv/LMTV_TMeasyTire.cpp
+    mtv/LMTV_TMeasyTire.h
+    mtv/LMTV_ToebarLeafspringAxle.cpp
+    mtv/LMTV_ToebarLeafspringAxle.h
+    mtv/LMTV_Vehicle.cpp
+    mtv/LMTV_Vehicle.h
+    mtv/LMTV_Wheel.cpp
+    mtv/LMTV_Wheel.h
+    mtv/LMTV.cpp
+    mtv/LMTV.h
+)
+source_group("mtv" FILES ${CVM_MTV_FILES})
+
 set(CVM_UAZ_FILES
     uaz/UAZBUS.cpp
     uaz/UAZBUS.h
@@ -217,6 +256,7 @@ set(CVM_GENERIC_FILES
     generic/Generic_RigidPinnedAxle.cpp
 )
 source_group("generic" FILES ${CVM_GENERIC_FILES})
+
 
 set(CVM_SEDAN_FILES
     sedan/Sedan.cpp
@@ -373,6 +413,7 @@ endif()
 add_library(ChronoModels_vehicle SHARED
     ${CVM_COMMON_FILES}
     ${CVM_HMMWV_FILES}
+    ${CVM_MTV_FILES}
     ${CVM_UAZ_FILES}
     ${CVM_GENERIC_FILES}
     ${CVM_SEDAN_FILES}
