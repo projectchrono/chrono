@@ -83,7 +83,7 @@ double mph_to_ms = 0.44704;
 double target_speed = 5 * mph_to_ms;
 
 // output directory
-const std::string out_dir = "../LMTV_QUALITY";
+const std::string out_dir = GetChronoOutputPath() + "LMTV_QUALITY";
 const std::string pov_dir = out_dir + "/POVRAY";
 bool povray_output = false;
 bool data_output = true;
