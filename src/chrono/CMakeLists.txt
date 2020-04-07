@@ -18,7 +18,8 @@ option(USE_BULLET_DOUBLE "Compile Chrono::Engine with double precision support i
 set(CH_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}")
 set(CH_INCLUDES ${CH_INCLUDES} "${CMAKE_CURRENT_SOURCE_DIR}/collision/bullet" )
 set(CH_INCLUDES ${CH_INCLUDES} "${CMAKE_CURRENT_SOURCE_DIR}/collision/gimpact" )
-set(CH_INCLUDES ${CH_INCLUDES} "${CMAKE_CURRENT_SOURCE_DIR}/collision/convexdecomposition/HACD" )
+set(CH_INCLUDES ${CH_INCLUDES} "${CMAKE_CURRENT_SOURCE_DIR}/../chrono_thirdparty/HACD" )
+set(CH_INCLUDES ${CH_INCLUDES} "${CMAKE_CURRENT_SOURCE_DIR}/../chrono_thirdparty/HACDv2" )
 
 # Make CH_INCLUDES visible in parent scope
 set(CH_INCLUDES "${CH_INCLUDES}" PARENT_SCOPE)
@@ -1084,47 +1085,27 @@ set(ChronoEngine_collision_gimpact_SOURCES
 source_group(collision\\gimpact FILES
     ${ChronoEngine_collision_gimpact_SOURCES})
 
-# Convex decomposition JR group
-
-set(ChronoEngine_collision_convexdecompJR_SOURCES
-    collision/convexdecomposition/JR/NvConcavityVolume.cpp
-    collision/convexdecomposition/JR/NvConvexDecomposition.cpp
-    collision/convexdecomposition/JR/NvFloatMath.cpp
-    collision/convexdecomposition/JR/NvMeshIslandGeneration.cpp
-    collision/convexdecomposition/JR/NvRayCast.cpp
-    collision/convexdecomposition/JR/NvRemoveTjunctions.cpp
-    collision/convexdecomposition/JR/NvSplitMesh.cpp
-    collision/convexdecomposition/JR/NvStanHull.cpp
-    )
-
-set(ChronoEngine_collision_convexdecompJR_HEADERS
-    collision/convexdecomposition/JR/NvConcavityVolume.h
-    collision/convexdecomposition/JR/NvConvexDecomposition.h
-    collision/convexdecomposition/JR/NvFloatMath.h
-    collision/convexdecomposition/JR/NvHashMap.h
-    collision/convexdecomposition/JR/NvMeshIslandGeneration.h
-    collision/convexdecomposition/JR/NvRayCast.h
-    collision/convexdecomposition/JR/NvRemoveTjunctions.h
-    collision/convexdecomposition/JR/NvSimpleTypes.h
-    collision/convexdecomposition/JR/NvSplitMesh.h
-    collision/convexdecomposition/JR/NvStanHull.h
-    collision/convexdecomposition/JR/NvUserMemAlloc.h
-    )
-
-source_group(collision\\convexdecomp\\JR FILES 
-    ${ChronoEngine_collision_convexdecompJR_SOURCES}
-    ${ChronoEngine_collision_convexdecompJR_HEADERS})
-
 # HACD group
 
 set(ChronoEngine_collision_convexdecompHACD_SOURCES
-    collision/convexdecomposition/HACD/hacdRaycastMesh.cpp
-    collision/convexdecomposition/HACD/hacdMicroAllocator.cpp
-    collision/convexdecomposition/HACD/hacdGraph.cpp
-    collision/convexdecomposition/HACD/hacdMeshDecimator.cpp
-    collision/convexdecomposition/HACD/hacdHACD.cpp
-    collision/convexdecomposition/HACD/hacdManifoldMesh.cpp
-    collision/convexdecomposition/HACD/hacdICHull.cpp
+    ../chrono_thirdparty/HACD/hacdRaycastMesh.h
+    ../chrono_thirdparty/HACD/hacdMicroAllocator.h
+    ../chrono_thirdparty/HACD/hacdGraph.h
+    ../chrono_thirdparty/HACD/hacdMeshDecimator.h
+    ../chrono_thirdparty/HACD/hacdHACD.h
+    ../chrono_thirdparty/HACD/hacdManifoldMesh.h
+    ../chrono_thirdparty/HACD/hacdICHull.h
+    ../chrono_thirdparty/HACD/hacdSArray.h
+    ../chrono_thirdparty/HACD/hacdVector.h
+    ../chrono_thirdparty/HACD/hacdVersion.h
+#
+    ../chrono_thirdparty/HACD/hacdRaycastMesh.cpp
+    ../chrono_thirdparty/HACD/hacdMicroAllocator.cpp
+    ../chrono_thirdparty/HACD/hacdGraph.cpp
+    ../chrono_thirdparty/HACD/hacdMeshDecimator.cpp
+    ../chrono_thirdparty/HACD/hacdHACD.cpp
+    ../chrono_thirdparty/HACD/hacdManifoldMesh.cpp
+    ../chrono_thirdparty/HACD/hacdICHull.cpp
     )
 
 source_group(collision\\convexdecomp\\HACD FILES
@@ -1133,22 +1114,45 @@ source_group(collision\\convexdecomp\\HACD FILES
 # HACDv2 group
 
 set(ChronoEngine_collision_convexdecompHACDv2_SOURCES
-    collision/convexdecomposition/HACDv2/AutoGeometry.cpp
-    collision/convexdecomposition/HACDv2/HACD.cpp
-    collision/convexdecomposition/HACDv2/ConvexHull.cpp
-    collision/convexdecomposition/HACDv2/WuQuantizer.cpp
-    collision/convexdecomposition/HACDv2/dgTypes.cpp
-    collision/convexdecomposition/HACDv2/dgConvexHull3d.cpp
-    collision/convexdecomposition/HACDv2/dgTree.cpp
-    collision/convexdecomposition/HACDv2/dgGoogol.cpp
-    collision/convexdecomposition/HACDv2/dgSphere.cpp
-    collision/convexdecomposition/HACDv2/dgSmallDeterminant.cpp
-    collision/convexdecomposition/HACDv2/dgQuaternion.cpp
-    collision/convexdecomposition/HACDv2/dgMatrix.cpp
-    collision/convexdecomposition/HACDv2/dgPolyhedra.cpp
-    collision/convexdecomposition/HACDv2/dgMeshEffect.cpp
-    collision/convexdecomposition/HACDv2/MergeHulls.cpp
-    collision/convexdecomposition/HACDv2/wavefront.cpp
+    ../chrono_thirdparty/HACDv2/AutoGeometry.h
+    ../chrono_thirdparty/HACDv2/HACD.h
+    ../chrono_thirdparty/HACDv2/ConvexHull.h
+    ../chrono_thirdparty/HACDv2/WuQuantizer.h
+    ../chrono_thirdparty/HACDv2/dgTypes.h
+    ../chrono_thirdparty/HACDv2/dgRefCounter.h
+    ../chrono_thirdparty/HACDv2/dgConvexHull3d.h
+    ../chrono_thirdparty/HACDv2/dgHeap.h
+    ../chrono_thirdparty/HACDv2/dgStack.h
+    ../chrono_thirdparty/HACDv2/dgList.h
+    ../chrono_thirdparty/HACDv2/dgTree.h
+    ../chrono_thirdparty/HACDv2/dgGoogol.h
+    ../chrono_thirdparty/HACDv2/dgSphere.h
+    ../chrono_thirdparty/HACDv2/dgSmallDeterminant.h
+    ../chrono_thirdparty/HACDv2/dgQuaternion.h
+    ../chrono_thirdparty/HACDv2/dgArray.h
+    ../chrono_thirdparty/HACDv2/dgVector.h
+    ../chrono_thirdparty/HACDv2/dgMatrix.h
+    ../chrono_thirdparty/HACDv2/dgPolyhedra.h
+    ../chrono_thirdparty/HACDv2/dgMeshEffect.h
+    ../chrono_thirdparty/HACDv2/MergeHulls.h
+    ../chrono_thirdparty/HACDv2/wavefront.h
+#
+    ../chrono_thirdparty/HACDv2/AutoGeometry.cpp
+    ../chrono_thirdparty/HACDv2/HACD.cpp
+    ../chrono_thirdparty/HACDv2/ConvexHull.cpp
+    ../chrono_thirdparty/HACDv2/WuQuantizer.cpp
+    ../chrono_thirdparty/HACDv2/dgTypes.cpp
+    ../chrono_thirdparty/HACDv2/dgConvexHull3d.cpp
+    ../chrono_thirdparty/HACDv2/dgTree.cpp
+    ../chrono_thirdparty/HACDv2/dgGoogol.cpp
+    ../chrono_thirdparty/HACDv2/dgSphere.cpp
+    ../chrono_thirdparty/HACDv2/dgSmallDeterminant.cpp
+    ../chrono_thirdparty/HACDv2/dgQuaternion.cpp
+    ../chrono_thirdparty/HACDv2/dgMatrix.cpp
+    ../chrono_thirdparty/HACDv2/dgPolyhedra.cpp
+    ../chrono_thirdparty/HACDv2/dgMeshEffect.cpp
+    ../chrono_thirdparty/HACDv2/MergeHulls.cpp
+    ../chrono_thirdparty/HACDv2/wavefront.cpp
     )
 
 source_group(collision\\convexdecomp\\HACDv2 FILES
@@ -1242,8 +1246,6 @@ set(ChronoEngine_FILES
     ${ChronoEngine_assets_HEADERS}
     ${ChronoEngine_collision_edgetempest_SOURCES}
     ${ChronoEngine_collision_edgetempest_HEADERS}
-    ${ChronoEngine_collision_convexdecompJR_SOURCES}
-    ${ChronoEngine_collision_convexdecompJR_HEADERS}
     ${ChronoEngine_collision_convexdecompHACD_SOURCES}
     ${ChronoEngine_collision_convexdecompHACDv2_SOURCES}
     ${ChronoEngine_particlefactory_SOURCES}

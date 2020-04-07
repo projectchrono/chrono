@@ -624,40 +624,22 @@ bool ChCollisionModelBullet::AddTriangleMesh(std::shared_ptr<ChMaterialSurface> 
         } else {
             // Note: currently there's no 'perfect' convex decomposition method, so code here is a bit experimental...
 
-            // ----- use this? (using GImpact collision method without decomposition)
-            ////AddTriangleMeshConcave(trimesh,pos,rot);
-
-            // ----- or use this? (using the JR convex decomposition) :
-            auto mydecompositionJR = chrono_types::make_shared<ChConvexDecompositionJR>();
-            mydecompositionJR->AddTriangleMesh(*trimesh);
-            mydecompositionJR->SetParameters(0,      // skin width
-                                             9, 64,  // depth, max vertices in hull
-                                             5,      // concavity percent
-                                             5,      // merge threshold percent
-                                             5,      // split threshold percent
-                                             true,   // use initial island generation
-                                             false   // use island generation (unsupported-disabled)
+            // using the HACD convex decomposition
+            auto mydecompositionHACD = chrono_types::make_shared<ChConvexDecompositionHACD>();
+            mydecompositionHACD->AddTriangleMesh(*trimesh);
+            mydecompositionHACD->SetParameters(2,      // clusters
+                                               0,      // no decimation
+                                               0.0,    // small cluster threshold
+                                               false,  // add faces points
+                                               false,  // add extra dist points
+                                               100.0,  // max concavity
+                                               30,     // cc connect dist
+                                               0.0,    // volume weight beta
+                                               0.0,    // compacity alpha
+                                               50      // vertices per cc
             );
-            mydecompositionJR->ComputeConvexDecomposition();
-            ////GetLog() << " found " << mydecompositionJR->GetHullCount() << " hulls\n";
-            AddTriangleMeshConcaveDecomposed(material, mydecompositionJR, pos, rot);
-
-            // ----- or use this? (using the HACD convex decomposition)
-            ////auto mydecompositionHACD = chrono_types::make_shared<ChConvexDecompositionHACD>();
-            ////mydecompositionHACD->AddTriangleMesh(*trimesh);
-            ////mydecompositionHACD->SetParameters(2,      // clusters
-            ////                                   0,      // no decimation
-            ////                                   0.0,    // small cluster threshold
-            ////                                   false,  // add faces points
-            ////                                   false,  // add extra dist points
-            ////                                   100.0,  // max concavity
-            ////                                   30,     // cc connect dist
-            ////                                   0.0,    // volume weight beta
-            ////                                   0.0,    // compacity alpha
-            ////                                   50      // vertices per cc
-            ////);
-            ////mydecompositionHACD->ComputeConvexDecomposition();
-            ////AddTriangleMeshConcaveDecomposed(mydecompositionHACD, pos, rot);
+            mydecompositionHACD->ComputeConvexDecomposition();
+            AddTriangleMeshConcaveDecomposed(material, mydecompositionHACD, pos, rot);
         }
     }
 

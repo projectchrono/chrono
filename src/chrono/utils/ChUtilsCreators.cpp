@@ -221,44 +221,38 @@ void AddTriangleMeshConvexDecomposition(ChBody* body,
                                         const ChQuaternion<>& rot,
                                         float skin_thickness,
                                         bool use_original_asset) {
-    int decompdepth = 100;
-    int maxhullvert = 50;
-    float concavity = 0.1f;
-    float merge = 30.f;
-    float volumep = 0.1f;
-    bool useinitialislands = true;
-
     auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
     trimesh->LoadWavefrontMesh(obj_filename, true, false);
     for (int i = 0; i < trimesh->m_vertices.size(); i++) {
         trimesh->m_vertices[i] = pos + rot.Rotate(trimesh->m_vertices[i]);
     }
-    collision::ChConvexDecompositionJR mydecompositionJR;
+    collision::ChConvexDecompositionHACDv2 decomposition;
 
-    mydecompositionJR.Reset();
-    mydecompositionJR.AddTriangleMesh(*trimesh);
-    mydecompositionJR.SetParameters(skin_thickness,     // skin width
-                                    decompdepth,        // decomp.depth
-                                    maxhullvert,        // max hull vertexes
-                                    concavity,          // concavity threshold percent
-                                    merge,              // merge threshold percent
-                                    volumep,            // volume split percent
-                                    useinitialislands,  // initial islands
-                                    false);
-    mydecompositionJR.ComputeConvexDecomposition();
-    collision::ChConvexDecomposition* used_decomposition = &mydecompositionJR;
+    int hacd_maxhullcount = 512;
+    int hacd_maxhullmerge = 256;
+    int hacd_maxhullvertexes = 64;
+    float hacd_concavity = 0.2f;
+    float hacd_smallclusterthreshold = 0.0f;
+    float hacd_fusetolerance = 1e-9f;
 
-    int hull_count = used_decomposition->GetHullCount();
+    decomposition.Reset();
+    decomposition.AddTriangleMesh(*trimesh);
+
+    decomposition.SetParameters(hacd_maxhullcount, hacd_maxhullmerge, hacd_maxhullvertexes, hacd_concavity,
+                                hacd_smallclusterthreshold, hacd_fusetolerance);
+    decomposition.ComputeConvexDecomposition();
+
+    int hull_count = decomposition.GetHullCount();
     std::vector<ChVector<double>> convexhull;
     for (int c = 0; c < hull_count; c++) {
-        used_decomposition->GetConvexHullResult(c, convexhull);
+        decomposition.GetConvexHullResult(c, convexhull);
 
         body->GetCollisionModel()->AddConvexHull(material, convexhull, pos, rot);
         if (!use_original_asset) {
             std::stringstream ss;
             ss << name << "_" << c;
             auto trimesh_convex = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-            used_decomposition->GetConvexHullResult(c, *trimesh_convex);
+            decomposition.GetConvexHullResult(c, *trimesh_convex);
 
             auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
             trimesh_shape->SetMesh(trimesh_convex);
@@ -269,6 +263,7 @@ void AddTriangleMeshConvexDecomposition(ChBody* body,
             body->GetAssets().push_back(trimesh_shape);
         }
     }
+
     if (use_original_asset) {
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
