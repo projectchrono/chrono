@@ -98,7 +98,7 @@ class ChApi ChSpinlock {
 // LINUX CODE
 //
 
-#if (defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__))
+#if (defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__EMSCRIPTEN__))
 
 #include <pthread.h>
 #include <semaphore.h>

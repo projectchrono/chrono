@@ -39,7 +39,7 @@ void SetFirstIntID(int val) {
 }
 
 // Obtain a unique identifier (thread-safe; platform-dependent)
-#if (defined(__GCC_HAVE_SYNC_COMPARE_AND_SWAP_4) || defined(__ARM_ARCH_5T__) || defined(__ARM_ARCH_5TE__))
+#if (defined(__GCC_HAVE_SYNC_COMPARE_AND_SWAP_4) || defined(__ARM_ARCH_5T__) || defined(__ARM_ARCH_5TE__) || defined(__EMSCRIPTEN__))
 
 int GetUniqueIntID() {
     static volatile int id = first_id;
