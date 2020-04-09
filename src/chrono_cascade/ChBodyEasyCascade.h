@@ -16,6 +16,7 @@
 #include "chrono_cascade/ChCascadeDoc.h"
 #include "chrono_cascade/ChCascadeMeshTools.h"
 #include "chrono_cascade/ChCascadeShapeAsset.h"
+#include "chrono_cascade/ChCascadeTriangulate.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
 
 namespace chrono {
@@ -43,15 +44,48 @@ namespace cascade {
 /// - a collision shape is created and added, if collision is desired (note: best performance
 ///   when not using this triangle collision mesh and rather adding simplified coll.shapes by hand)
 
+
+
 class ChBodyEasyCascade : public ChBodyAuxRef {
   public:
     /// Creates a body plus adds a visualization shape and, optionally,
     /// a collision shape. Mass and inertia are set automatically depending
     /// on density. COG is automatically displaced, and REF position is initialized as shape location.
     /// Sphere is assumed with center at body reference coordsystem.
+	/// Parameters for mesh triangulation can be set via ChCascadeTriangulateTolerances.
     ChBodyEasyCascade(TopoDS_Shape& mshape,      ///< OpenCASCADE shape
                       double mdensity,           ///< density
-                      bool visual_asset = true,  ///< if true, uses a triangulated shape for visualization
+					  const ChCascadeTriangulate& visualization, ///< pass ChCascadeTriangulateTolerances if need visualization, pass a ChCascadeTriangulateNone if no visualization needed.
+                      bool collide = false,  ///< if true, add a collision shape that uses the triangulation of shape
+                      std::shared_ptr<ChMaterialSurface> mat = nullptr  ///< surface contact material
+    ) {
+        this->Init(mshape, mdensity, visualization, collide, mat);
+    }
+
+
+
+	/// Creates a body plus adds a visualization shape and, optionally,
+    /// a collision shape. Mass and inertia are set automatically depending
+    /// on density. COG is automatically displaced, and REF position is initialized as shape location.
+    /// Sphere is assumed with center at body reference coordsystem.
+	/// Kept here for backward compatibility. Better use the constructor that takes ChCascadeTriangulate as parameter.
+	ChBodyEasyCascade(TopoDS_Shape& mshape,      ///< OpenCASCADE shape
+		double mdensity,           ///< density
+		bool visual_asset = true,  ///< if true, uses a triangulated shape for visualization, with default tesselation tolerances
+		bool collide = false,  ///< if true, add a collision shape that uses the triangulation of shape
+		std::shared_ptr<ChMaterialSurface> mat = nullptr  ///< surface contact material
+	) {
+		if (visual_asset == true)
+			this->Init(mshape, mdensity, ChCascadeTriangulateTolerances(), collide, mat);
+		else
+			this->Init(mshape, mdensity, ChCascadeTriangulateNone(), collide, mat);
+	}
+		
+
+  private:
+	 void Init(TopoDS_Shape& mshape,			 ///< OpenCASCADE shape
+                      double mdensity,           ///< density
+					  const ChCascadeTriangulate& visualization, ///< pass ChCascadeTriangulateTolerances if need visualization, pass a ChCascadeTriangulateNone if no visualization needed.
                       bool collide = false,  ///< if true, add a collision shape that uses the triangulation of shape
                       std::shared_ptr<ChMaterialSurface> mat = nullptr  ///< surface contact material
     ) {
@@ -91,9 +125,10 @@ class ChBodyEasyCascade : public ChBodyAuxRef {
         this->SetFrame_COG_to_REF(frame_cog_to_ref);
 
         // Add a visualization asset if needed
-        if (visual_asset) {
+		if (const ChCascadeTriangulateTolerances* tolerances = dynamic_cast<const ChCascadeTriangulateTolerances*>(&visualization))
+		{
             auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-            ChCascadeMeshTools::fillTriangleMeshFromCascade(*trimesh, topods_shape);
+            ChCascadeMeshTools::fillTriangleMeshFromCascade(*trimesh, topods_shape, *tolerances);
 
             auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
             trimesh_shape->SetMesh(trimesh);
@@ -107,9 +142,10 @@ class ChBodyEasyCascade : public ChBodyAuxRef {
                 GetCollisionModel()->BuildModel();
                 SetCollide(true);
             }
-        }
+		}
     }
 
+  public:
     // Store the Cascade shape here, with null transformation relative to the REF
     TopoDS_Shape topods_shape;
 
