@@ -14,11 +14,10 @@ print ("Example: create OpenCascade shapes and use them as rigid bodies");
 import pychrono.core as chrono
 import pychrono.irrlicht as chronoirr
 import pychrono.cascade as cascade
-try:
-    from OCC.Core import BRepPrimAPI
-    from OCC.Core import BRepAlgoAPI
-except:
-    from OCC import BRepPrimAPI, BRepAlgoAPI
+from OCC.Core import BRepPrimAPI
+from OCC.Core import BRepAlgoAPI
+    
+
     
 # The path to the Chrono data directory containing various assets (meshes, textures, data files)
 # is automatically set, relative to the default location of this demo.

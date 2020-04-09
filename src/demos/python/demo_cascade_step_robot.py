@@ -14,11 +14,8 @@ print ("Please wait! this may take a while to load the file...");
 import pychrono.core as chrono
 import pychrono.irrlicht as chronoirr
 import pychrono.cascade as cascade
-#import pychrono.mkl as mkl
-try:
-    from OCC.Core import TopoDS
-except:
-    from OCC import TopoDS 
+from OCC.Core import TopoDS
+
     
 # The path to the Chrono data directory containing various assets (meshes, textures, data files)
 # is automatically set, relative to the default location of this demo.
