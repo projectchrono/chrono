@@ -68,8 +68,8 @@ if load_ok:
     shape1 = TopoDS.TopoDS_Shape()
     if (mydoc.GetNamedShape(shape1, "Assem1/body1")):
         
-        mbody1 = mydoc.CreateBodyFromShape(shape1,1000, False, True)
-        # or: mbody1 = cascade.ChBodyEasyCascade(shape1, 1000, False, True)
+        mbody1 = cascade.ChBodyEasyCascade(shape1, 1000) # density
+        
         mysystem.Add(mbody1)
         
         mbody1.SetBodyFixed(True) 
@@ -85,8 +85,8 @@ if load_ok:
     shape2 = TopoDS.TopoDS_Shape()
     if (mydoc.GetNamedShape(shape2, "Assem1/body2")): 
         
-        mbody2 = mydoc.CreateBodyFromShape(shape2,1000, False, True)
-        # or: mbody2 = cascade.ChBodyEasyCascade(shape2, 1000, False, True)
+        mbody2 = cascade.ChBodyEasyCascade(shape2, 1000) # density
+        
         mysystem.Add(mbody2)
         
         # Move the body as for global displacement/rotation  (also mbody2 %= root_frame; )
