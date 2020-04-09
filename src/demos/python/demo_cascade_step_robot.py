@@ -70,8 +70,8 @@ def make_body_from_name(partname, root_transformation):
         # Make a ChBody representing the TopoDS_Shape part from the CAD:
         mbody1 = cascade.ChBodyEasyCascade(shape1, # shape
                                            1000,   # density (center of mass & inertia automatically computed)
-                                           False,  # mesh for collide?
-                                           True)   # mesh for visualization?
+                                           True,    # mesh for visualization?
+                                           False)   # mesh for collision?
         mysystem.Add(mbody1)
         # Move the body as for global displacement/rotation (also mbody1 %= root_frame; )
         mbody1.ConcatenatePreTransformation(root_transformation)
