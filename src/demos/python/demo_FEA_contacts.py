@@ -31,10 +31,10 @@ my_system = chrono.ChSystemSMC()
 
 # Create the Irrlicht visualization (open the Irrlicht device,
 # bind a simple user interface, etc. etc.)
-application = chronoirr.ChIrrApp(my_system, "FEA contacts", chronoirr.dimension2du(800, 600), False, True)
+application = chronoirr.ChIrrApp(my_system, "FEA contacts", chronoirr.dimension2du(1024, 768), False, True)
 
 # Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-application.AddTypicalLogo()
+application.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 application.AddTypicalSky()
 application.AddTypicalLights()
 application.AddTypicalCamera(chronoirr.vector3df(0, 0.6, -1))

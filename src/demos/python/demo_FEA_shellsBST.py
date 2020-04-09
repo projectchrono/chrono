@@ -306,10 +306,10 @@ my_mesh.AddAsset(mvisualizeshellB)
 
 # Create the Irrlicht visualization (open the Irrlicht device,
 # bind a simple user interface, etc. etc.)
-application = chronoirr.ChIrrApp(my_system, "Shells FEA test: triangle BST elements", chronoirr.dimension2du(800, 600), False, True)
+application = chronoirr.ChIrrApp(my_system, "Shells FEA test: triangle BST elements", chronoirr.dimension2du(1024, 768), False, True)
 
 # Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-application.AddTypicalLogo()
+application.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 application.AddTypicalSky()
 application.AddTypicalLights()
 application.AddTypicalCamera(chronoirr.vector3df(1, .3, 1.3), chronoirr.vector3df(.5, -.3, .5))
