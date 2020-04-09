@@ -12,6 +12,15 @@ Change Log
 ## Unreleased (development branch)
 
 
+### [Changed] CASCADE module
+
+1.	Support for OpenCASCADE 7.4.0. The API of OpenCASCADE introduced some changes in the 7.4.0 version so we also updated the CASCADE module of Chrono. Please download and upgrade your OpenCASCADE version as it is not backward compatible. (The module is optionally built via CMake configuration flag ENABLE_MODULE_CASCADE, also remember to update the CASCADE_INCLUDE_DIR and CASCADE_LIBDIR paths and to update your PATH if you added the path to Cascade dlls)
+
+2.	The method `ChCascadeDoc::CreateBodyFromShape()` is obsolete. Just use the `ChBodyEasyCascade` class for obtaining the same result, ex. as in: `auto mbody = chrono_types::make_shared<ChBodyEasyCascade>(myshape, ...);` 
+
+3.	The mesh tesselation algorithm could give coarser or finer meshes respect to the previous release.
+
+
 ### [Changed] Collision shapes and contact materials
 
 The main change is that now contact materials are associated with collision shapes, as opposed to bodies.  We've always had the underlying concept of a collision shape, with a body's collision model potentially including multiple shapes, but these were always sharing the exact same contact material.   With the new code, each collision shape in a collision model can have its own contact material properties.  Of course, through shared pointers, collision shapes in the same model or even in different models can still point to the same (shared) material.   Also, a nice consequence of this change is that now a ChBody is agnostic of contact method or contact materials (as it should be).
