@@ -98,7 +98,12 @@ int main(int argc, char* argv[]) {
     if (load_ok) {
         TopoDS_Shape shape1;
         if (mydoc.GetNamedShape(shape1, "Assem1/body1")) {
-            auto mbody1 = chrono_types::make_shared<ChBodyEasyCascade>(shape1, 1000, true, false);
+			// Create the ChBody using the ChBodyEasyCascade helper:
+            auto mbody1 = chrono_types::make_shared<ChBodyEasyCascade>(shape1, 
+																		1000, // density
+																		true, // add a visualization 
+																		false // add a collision model
+																		);
             my_system.Add(mbody1);
             mbody1->SetBodyFixed(true);
             // Move the body as for global displacement/rotation (also mbody1 %= root_frame; )
@@ -109,7 +114,16 @@ int main(int argc, char* argv[]) {
 
         TopoDS_Shape shape2;
         if (mydoc.GetNamedShape(shape2, "Assem1/body2")) {
-            auto mbody2 = chrono_types::make_shared<ChBodyEasyCascade>(shape2, 1000, true, false);
+			// Create the ChBody using the ChBodyEasyCascade helper (with more detailed info on visualization tesselation):
+			ChCascadeTriangulateTolerances mvisualtolerances (  0.02,  // chordal deflection for triangulation 
+																false, // chordal deflection is relative
+																0.5    // angular deflection for triangulation
+															);
+            auto mbody2 = chrono_types::make_shared<ChBodyEasyCascade>(shape2, 
+																		1000, // density
+																		mvisualtolerances, // add a visualization  
+																		false // add a collision model
+																		);
             my_system.Add(mbody2);
             // Move the body as for global displacement/rotation  (also mbody2 %= root_frame; )
             mbody2->ConcatenatePreTransformation(root_frame);
