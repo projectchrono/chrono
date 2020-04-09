@@ -412,7 +412,7 @@ void ChTireTestRig::CreateTerrainSCM() {
     terrain->SetAutomaticRefinement(true);
     terrain->SetAutomaticRefinementResolution(1.0 / 32);
     terrain->Initialize(m_terrain_height, m_params_SCM.length, m_params_SCM.width, ndivX, ndivY);
-    terrain->EnableMovingPatch(m_chassis_body, ChVector<>(0, 0, 0), 2 * m_tire->GetRadius(), 1.0);
+    terrain->AddMovingPatch(m_chassis_body, ChVector<>(0, 0, 0), 2 * m_tire->GetRadius(), 1.0);
 
     m_terrain = terrain;
 }

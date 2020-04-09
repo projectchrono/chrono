@@ -163,13 +163,18 @@ void SCMDeformableTerrain::SetPlotType(DataPlotType mplot, double mmin, double m
 }
 
 // Enable moving patch
-void SCMDeformableTerrain::EnableMovingPatch(std::shared_ptr<ChBody> body,
+void SCMDeformableTerrain::AddMovingPatch(std::shared_ptr<ChBody> body,
                                              const ChVector<>& point_on_body,
                                              double dimX,
                                              double dimY) {
-    m_ground->m_body = body;
-    m_ground->m_body_point = point_on_body;
-    m_ground->m_patch_dim = ChVector2<>(dimX, dimY);
+    SCMDeformableSoil::MovingPatchInfo pinfo;
+    pinfo.m_body = body;
+    pinfo.m_point = point_on_body;
+    pinfo.m_dim = ChVector2<>(dimX, dimY);
+
+    m_ground->m_patches.push_back(pinfo);
+
+    // Moving patch monitoring is now enabled
     m_ground->m_moving_patch = true;
 }
 
@@ -574,17 +579,18 @@ void SCMDeformableSoil::ComputeInternalForces() {
     m_timer_ray_casting.start();
     m_num_ray_casts = 0;
 
-    // If enabled, update the extent of the moving patch (no ray-hit tests performed outside)
-    ChVector2<> patch_min;
-    ChVector2<> patch_max;
+    // If enabled, update the extent of the moving patches (no ray-hit tests performed outside)
     if (m_moving_patch) {
-        ChVector<> center_abs = m_body->GetFrame_REF_to_abs().TransformPointLocalToParent(m_body_point);
-        ChVector<> center_loc = plane.TransformPointParentToLocal(center_abs);
+        for (auto& p : m_patches) {
+            ChVector<> center_abs = p.m_body->GetFrame_REF_to_abs().TransformPointLocalToParent(p.m_point);
+            ChVector<> center_loc = plane.TransformPointParentToLocal(center_abs);
 
-        patch_min.x() = center_loc.x() - m_patch_dim.x() / 2;
-        patch_min.y() = center_loc.y() - m_patch_dim.y() / 2;
-        patch_max.x() = center_loc.x() + m_patch_dim.x() / 2;
-        patch_max.y() = center_loc.y() + m_patch_dim.y() / 2;
+            p.m_min.x() = center_loc.x() - p.m_dim.x() / 2;
+            p.m_min.y() = center_loc.y() - p.m_dim.y() / 2;
+            p.m_max.x() = center_loc.x() + p.m_dim.x() / 2;
+            p.m_max.y() = center_loc.y() + p.m_dim.y() / 2;
+           
+        }
     }
 
     // Loop through all vertices.
@@ -600,22 +606,27 @@ void SCMDeformableSoil::ComputeInternalForces() {
     std::unordered_map<int, HitRecord> hits;
 
     for (int i = 0; i < vertices.size(); ++i) {
-        auto vertex_loc = plane.TransformParentToLocal(vertices[i]);
+        auto v = plane.TransformParentToLocal(vertices[i]);
 
         // Initialize SCM quantities at current vertex
         p_sigma[i] = 0;
         p_sinkage_elastic[i] = 0;
         p_step_plastic_flow[i] = 0;
         p_erosion[i] = false;
-        p_level[i] = vertex_loc.z();
+        p_level[i] = v.z();
         p_hit_level[i] = 1e9;
 
-        // Skip vertices outside moving patch
+        // Skip vertices outside any moving patch
         if (m_moving_patch) {
-            if (vertex_loc.x() < patch_min.x() || vertex_loc.x() > patch_max.x() || vertex_loc.y() < patch_min.y() ||
-                vertex_loc.y() > patch_max.y()) {
-                continue;
+            bool outside = true;
+            for (auto& p : m_patches) {
+                if (v.x() >= p.m_min.x() && v.x() <= p.m_max.x() && v.y() >= p.m_min.y() && v.y() <= p.m_max.y()) {
+                    outside = false;  // vertex in current patch
+                    break;            // stop checking further patches
+                }
             }
+            if (outside)  // vertex outside all patches
+                continue;
         }
 
         // Perform ray casting from current vertex
