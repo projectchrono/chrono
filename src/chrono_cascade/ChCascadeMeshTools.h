@@ -24,8 +24,6 @@
 class TopoDS_Face;
 class TopoDS_Shape;
 class Poly_Connect;
-class TColgp_Array1OfDir;
-class Handle_TDocStd_Document;
 class TopLoc_Location;
 class TDF_Label;
 

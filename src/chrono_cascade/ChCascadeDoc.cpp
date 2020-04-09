@@ -20,8 +20,6 @@
 #include <TopoDS_Shape.hxx>
 #include <TopoDS.hxx>
 #include <TopoDS_HShape.hxx>
-#include <Handle_TopoDS_HShape.hxx>
-#include <Handle_TopoDS_TShape.hxx>
 #include <STEPControl_Reader.hxx>
 #include <STEPControl_StepModelType.hxx>
 #include <TopoDS_Edge.hxx>
@@ -30,7 +28,6 @@
 #include <BRep_Builder.hxx>
 #include <BRepTools.hxx>
 #include <BRep_Tool.hxx>
-#include <BRepMesh.hxx>
 #include <BRepBuilderAPI_MakeEdge.hxx>
 #include <BRepBuilderAPI_MakeVertex.hxx>
 #include <BRep_Builder.hxx>
@@ -71,6 +68,7 @@
 #include <TNaming_NamedShape.hxx>
 #include <GProp_GProps.hxx>
 #include <BRepGProp.hxx>
+#include <TDocStd_Document.hxx>
 
 using namespace chrono;
 using namespace cascade;
@@ -88,7 +86,7 @@ ChCascadeDoc::~ChCascadeDoc() {
 }
 
 static bool recurse_CascadeDoc(TDF_Label label,
-                               Handle_XCAFDoc_ShapeTool& shapeTool,
+                               Handle(XCAFDoc_ShapeTool)& shapeTool,
                                TopLoc_Location& parentloc,
                                int level,
                                ChCascadeDoc::callback_CascadeDoc& mcallback) {
