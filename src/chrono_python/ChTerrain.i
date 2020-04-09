@@ -39,6 +39,7 @@
 %include "../chrono_vehicle/terrain/FlatTerrain.h"
 %include "../chrono_vehicle/terrain/RigidTerrain.h"
 
+%feature("director") SoilParametersCallback;
 %include "../chrono_vehicle/terrain/SCMDeformableTerrain.h"
 
 //%include "../chrono_vehicle/terrain/CRGTerrain.h"

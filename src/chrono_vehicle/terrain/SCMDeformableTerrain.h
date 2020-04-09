@@ -140,13 +140,15 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
                     float tex_scale_y = 1        ///< [in] texture scale in Y
     );
 
-    /// Enable moving patch an set parameters (default: disabled).
-    /// If enabled, ray-casting is performed only for the SCM vertices that are within the specified
-    /// range (dimX, dimY) of the given point on the specified reference body.
-    void EnableMovingPatch(std::shared_ptr<ChBody> body,     ///< [in] monitored body
-                           const ChVector<>& point_on_body,  ///< [in] patch center, relative to body
-                           double dimX,                      ///< [in] patch X dimension
-                           double dimY                       ///< [in] patch Y dimension
+    /// Add a new moving patch.
+    /// Multiple calls to this function can be made, each of them adding a new active patch area.
+    /// If no patches are defined, ray-casting is performed for every single node of the underlying SCM mesh.
+    /// If at least one patch is defined, ray-casting is performed only for mesh nodes within the patch areas
+    /// (that is, nodes that are within the specified range from the given point on the associated body).
+    void AddMovingPatch(std::shared_ptr<ChBody> body,     ///< [in] monitored body
+                        const ChVector<>& point_on_body,  ///< [in] patch center, relative to body
+                        double dimX,                      ///< [in] patch X dimension
+                        double dimY                       ///< [in] patch Y dimension
     );
 
     /// Class to be used as a callback interface for location-dependent soil parameters.
@@ -354,11 +356,17 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     double last_t;  // for optimization
 
     // Moving patch parameters
-    bool m_moving_patch;             ///< moving patch feature enabled?
-    std::shared_ptr<ChBody> m_body;  ///< tracked body
-    ChVector<> m_body_point;         ///< patch center, relative to body
-    ChVector2<> m_patch_dim;         ///< patch dimensions (X,Y)
+    struct MovingPatchInfo {
+        std::shared_ptr<ChBody> m_body;  // tracked body
+        ChVector<> m_point;              // patch center, relative to body
+        ChVector2<> m_dim;               // patch dimensions (X,Y)
+        ChVector2<> m_min;               // current patch AABB (min x,y)
+        ChVector2<> m_max;               // current patch AABB (max x,y)
+    };
+    std::vector<MovingPatchInfo> m_patches;  // set of active moving patches
+    bool m_moving_patch;                     // moving patch feature enabled?
 
+    // Callback object for position-dependent soil properties
     SCMDeformableTerrain::SoilParametersCallback* m_soil_fun;
 
     // Timers and counters
