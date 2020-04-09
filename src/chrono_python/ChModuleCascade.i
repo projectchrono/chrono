@@ -141,6 +141,7 @@ using namespace chrono::cascade;
 %import(module = "pychrono.core") "ChBodyAuxRef.i"
 %import(module = "pychrono.core")  "ChMaterialSurface.i"
 
+%include "../chrono_cascade/ChCascadeTriangulate.h"
 %include "../chrono_cascade/ChCascadeShapeAsset.h"
 %include "../chrono_cascade/ChBodyEasyCascade.h"
 %include "../chrono_cascade/ChCascadeDoc.h"
