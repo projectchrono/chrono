@@ -22,9 +22,11 @@
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChMaterialSurface.h"
 
+#include <TDocStd_Document.hxx>
+
 class TopoDS_Face;
 class TopoDS_Shape;
-class Handle_TDocStd_Document;
+class TDocStd_Document;
 class TopLoc_Location;
 class TDF_Label;
 
@@ -102,18 +104,11 @@ class ChApiCASCADE ChCascadeDoc {
     /// Convert Chrono coordinates into OpenCascade coordinates
     static void FromChronoToCascade(const ChFrame<>& from_coord, TopLoc_Location& to_coord);
 
-    /// Create a ChBodyAuxRef with assets for the given TopoDS_Shape
-    static std::shared_ptr<ChBodyAuxRef> CreateBodyFromShape(
-        const TopoDS_Shape& mshape,  ///< OpenCASCADE shape
-        double density,              ///< density
-        bool visual_asset = true,    ///< if true, uses a triangulated shape for visualization
-        bool collide = false,        ///< if true, add a collision shape that uses the triangulation of shape
-        std::shared_ptr<ChMaterialSurface> mat = nullptr  ///< surface contact material
-    );
+    
 
   private:
-    // pointer to cascade OCAF doc handle;
-    Handle_TDocStd_Document* doc;
+    // cascade OCAF doc handle; ***note that if using simply the Handle(TDocStd_Document) doc; ie with no pointer to handle, it crashes.
+	Handle(TDocStd_Document)* doc;
 };
 
 /// @} cascade_module
