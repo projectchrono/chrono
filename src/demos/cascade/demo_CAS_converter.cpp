@@ -27,8 +27,6 @@
 #include <TopoDS_Shape.hxx>
 #include <TopoDS.hxx>
 #include <TopoDS_HShape.hxx>
-#include <Handle_TopoDS_HShape.hxx>
-#include <Handle_TopoDS_TShape.hxx>
 #include <STEPControl_Reader.hxx>
 #include <STEPControl_StepModelType.hxx>
 #include <TopoDS_Edge.hxx>
@@ -37,7 +35,6 @@
 #include <BRep_Builder.hxx>
 #include <BRepTools.hxx>
 #include <BRep_Tool.hxx>
-#include <BRepMesh.hxx>
 #include <BRepBuilderAPI_MakeEdge.hxx>
 #include <BRepBuilderAPI_MakeVertex.hxx>
 #include <TopExp_Explorer.hxx>
