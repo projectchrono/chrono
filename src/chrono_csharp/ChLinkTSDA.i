@@ -1,0 +1,20 @@
+%{
+
+/* Includes the header in the wrapper code */
+#include "chrono/physics/ChLinkTSDA.h"
+
+using namespace chrono;
+
+
+
+%}
+
+%shared_ptr(chrono::ChLinkTSDA)
+
+ 
+// Tell SWIG about parent class in Python
+%import "ChLink.i"
+
+
+/* Parse the header file to generate wrappers */
+%include "../chrono/physics/ChLinkTSDA.h"

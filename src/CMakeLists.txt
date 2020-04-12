@@ -506,6 +506,7 @@ add_subdirectory(chrono_opengl)
 add_subdirectory(chrono_distributed)
 add_subdirectory(chrono_vehicle)
 add_subdirectory(chrono_fsi)
+add_subdirectory(chrono_csharp)
 
 # Add directories for model libraries
 add_subdirectory(chrono_models)
