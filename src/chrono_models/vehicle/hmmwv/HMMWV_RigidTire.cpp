@@ -41,7 +41,7 @@ const std::string HMMWV_RigidTire::m_meshFile = "hmmwv/hmmwv_tire_fine.obj";
 // -----------------------------------------------------------------------------
 HMMWV_RigidTire::HMMWV_RigidTire(const std::string& name, bool use_mesh) : ChRigidTire(name) {
     if (use_mesh) {
-        SetMeshFilename(GetDataFile("hmmwv/hmmwv_tire_fine.obj"), 0.005);
+        SetMeshFilename(GetDataFile("hmmwv/hmmwv_tire_coarse.obj"), 0.005);
     }
 }
 
