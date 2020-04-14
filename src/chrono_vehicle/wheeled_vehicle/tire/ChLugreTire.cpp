@@ -113,12 +113,6 @@ void ChLugreTire::Synchronize(double time,
     double disc_radius = GetRadius();
     const double* disc_locs = GetDiscLocations();
 
-    // Clear the force accumulators and set the application point to the wheel
-    // center.
-    m_tireForce.force = ChVector<>(0, 0, 0);
-    m_tireForce.moment = ChVector<>(0, 0, 0);
-    m_tireForce.point = wheel_state.pos;
-
     // Extract the wheel normal (expressed in global frame)
     ChMatrix33<> A(wheel_state.rot);
     ChVector<> disc_normal = A.Get_A_Yaxis();
@@ -137,26 +131,16 @@ void ChLugreTire::Synchronize(double time,
         if (!m_data[id].in_contact)
             continue;
 
-        // Relative velocity at contact point (expressed in the global frame and in
-        // the contact frame)
+        // Relative velocity at contact point (expressed in the global frame and in the contact frame)
         ChVector<> vel = wheel_state.lin_vel + Vcross(wheel_state.ang_vel, m_data[id].frame.pos - wheel_state.pos);
         m_data[id].vel = m_data[id].frame.TransformDirectionParentToLocal(vel);
 
-        // Generate normal contact force and add to accumulators (recall, all forces
-        // are reduced to the wheel center). If the resulting force is negative, the
-        // disc is moving away from the terrain so fast that no contact force is
-        // generated.
+        // Calculate normal contact force. If the resulting force is negative, the disc is moving away from the terrain
+        // so fast that no contact force is generated.
         double Fn_mag = (GetNormalStiffness() * depth - GetNormalDamping() * m_data[id].vel.z()) / GetNumDiscs();
-
         if (Fn_mag < 0)
             Fn_mag = 0;
-
-        ChVector<> Fn = Fn_mag * m_data[id].frame.rot.GetZaxis();
-
         m_data[id].normal_force = Fn_mag;
-
-        m_tireForce.force += Fn;
-        m_tireForce.moment += Vcross(m_data[id].frame.pos - m_tireForce.point, Fn);
 
         // ODE coefficients for longitudinal direction: z' = a + b * z
         {
@@ -180,6 +164,11 @@ void ChLugreTire::Synchronize(double time,
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChLugreTire::Advance(double step) {
+    // Set tire forces to zero.
+    m_tireForce.point = m_wheel->GetPos();
+    m_tireForce.force = ChVector<>(0, 0, 0);
+    m_tireForce.moment = ChVector<>(0, 0, 0);
+
     for (int id = 0; id < GetNumDiscs(); id++) {
         // Nothing to do if this disc is not in contact
         if (!m_data[id].in_contact)
@@ -223,6 +212,9 @@ void ChLugreTire::Advance(double step) {
 
         // Magnitude of normal contact force for this disc
         double Fn_mag = m_data[id].normal_force;
+        ChVector<> Fn = Fn_mag * m_data[id].frame.rot.GetZaxis();
+        m_tireForce.force += Fn;
+        m_tireForce.moment += Vcross(m_data[id].frame.pos - m_tireForce.point, Fn);
 
         // Evaluate friction force and add to accumulators for tire force
         {
