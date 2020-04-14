@@ -51,7 +51,6 @@ class ChBodyEasyCascade : public ChBodyAuxRef {
     /// Creates a body plus adds a visualization shape and, optionally,
     /// a collision shape. Mass and inertia are set automatically depending
     /// on density. COG is automatically displaced, and REF position is initialized as shape location.
-    /// Sphere is assumed with center at body reference coordsystem.
 	/// Parameters for mesh triangulation can be set via ChCascadeTriangulateTolerances.
     ChBodyEasyCascade(TopoDS_Shape& mshape,      ///< OpenCASCADE shape
                       double mdensity,           ///< density
@@ -67,7 +66,6 @@ class ChBodyEasyCascade : public ChBodyAuxRef {
 	/// Creates a body plus adds a visualization shape and, optionally,
     /// a collision shape. Mass and inertia are set automatically depending
     /// on density. COG is automatically displaced, and REF position is initialized as shape location.
-    /// Sphere is assumed with center at body reference coordsystem.
 	/// Kept here for backward compatibility. Better use the constructor that takes ChCascadeTriangulate as parameter.
 	ChBodyEasyCascade(TopoDS_Shape& mshape,      ///< OpenCASCADE shape
 		double mdensity,           ///< density
