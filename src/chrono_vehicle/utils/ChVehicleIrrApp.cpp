@@ -22,6 +22,7 @@
 
 #include <algorithm>
 
+#include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/utils/ChVehicleIrrApp.h"
 
 using namespace irr;
@@ -122,7 +123,8 @@ ChVehicleIrrApp::ChVehicleIrrApp(ChVehicle* vehicle,
       m_throttle(0),
       m_braking(0) {
     // Initialize the chase camera with default values.
-    m_camera.Initialize(ChVector<>(0, 0, 1), vehicle->GetChassis()->GetLocalDriverCoordsys(), 6.0, 0.5);
+    m_camera.Initialize(ChVector<>(0, 0, 1), vehicle->GetChassis()->GetLocalDriverCoordsys(), 6.0, 0.5,
+                        ChWorldFrame::Vertical(), ChWorldFrame::Forward());
     ChVector<> cam_pos = m_camera.GetCameraPos();
     ChVector<> cam_target = m_camera.GetTargetPos();
 
@@ -134,9 +136,9 @@ ChVehicleIrrApp::ChVehicleIrrApp(ChVehicle* vehicle,
     scene::ICameraSceneNode* camera = GetSceneManager()->addCameraSceneNode(
         GetSceneManager()->getRootSceneNode(), core::vector3df(0, 0, 0), core::vector3df(0, 0, 0));
 
-    camera->setUpVector(core::vector3df(0, 0, 1));
-    camera->setPosition(core::vector3df((f32)cam_pos.x(), (f32)cam_pos.y(), (f32)cam_pos.z()));
-    camera->setTarget(core::vector3df((f32)cam_target.x(), (f32)cam_target.y(), (f32)cam_target.z()));
+    camera->setUpVector(core::vector3dfCH(ChWorldFrame::Vertical()));
+    camera->setPosition(core::vector3dfCH(cam_pos));
+    camera->setTarget(core::vector3dfCH(cam_target));
 
 #ifdef CHRONO_IRRKLANG
     m_sound_engine = 0;
@@ -186,14 +188,17 @@ void ChVehicleIrrApp::SetSkyBox() {
     irr::scene::ISceneNode* mbox = GetSceneManager()->addSkyBoxSceneNode(
         GetVideoDriver()->getTexture(str_up.c_str()), GetVideoDriver()->getTexture(str_dn.c_str()), map_skybox_side,
         map_skybox_side, map_skybox_side, map_skybox_side);
-    mbox->setRotation(irr::core::vector3df(90, 0, 0));
+    ChMatrix33<> A = ChWorldFrame::Rotation() * ChMatrix33<>(Q_from_AngX(-CH_C_PI_2));
+    auto angles = CH_C_RAD_TO_DEG * A.Get_A_Rxyz();
+    mbox->setRotation(irr::core::vector3dfCH(angles));
 }
 
 // -----------------------------------------------------------------------------
 // Set parameters for the underlying chase camera.
 // -----------------------------------------------------------------------------
 void ChVehicleIrrApp::SetChaseCamera(const ChVector<>& ptOnChassis, double chaseDist, double chaseHeight) {
-    m_camera.Initialize(ptOnChassis, m_vehicle->GetChassis()->GetLocalDriverCoordsys(), chaseDist, chaseHeight);
+    m_camera.Initialize(ptOnChassis, m_vehicle->GetChassis()->GetLocalDriverCoordsys(), chaseDist, chaseHeight,
+                        ChWorldFrame::Vertical(), ChWorldFrame::Forward());
     ChVector<> cam_pos = m_camera.GetCameraPos();
     ChVector<> cam_target = m_camera.GetTargetPos();
 }
@@ -227,9 +232,8 @@ void ChVehicleIrrApp::Advance(double step) {
     ChVector<> cam_target = m_camera.GetTargetPos();
 
     scene::ICameraSceneNode* camera = GetSceneManager()->getActiveCamera();
-
-    camera->setPosition(core::vector3df((f32)cam_pos.x(), (f32)cam_pos.y(), (f32)cam_pos.z()));
-    camera->setTarget(core::vector3df((f32)cam_target.x(), (f32)cam_target.y(), (f32)cam_target.z()));
+    camera->setPosition(core::vector3dfCH(cam_pos));
+    camera->setTarget(core::vector3dfCH(cam_target));
 
 #ifdef CHRONO_IRRKLANG
     static int stepsbetweensound = 0;
