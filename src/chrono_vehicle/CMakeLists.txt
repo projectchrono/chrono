@@ -160,6 +160,8 @@ set(CV_BASE_FILES
     ChVehicleModelData.h
     ChVehicleModelData.cpp
     ChVehicleOutput.h
+    ChWorldFrame.cpp
+    ChWorldFrame.h
 )
 source_group("base" FILES ${CV_BASE_FILES})
 
