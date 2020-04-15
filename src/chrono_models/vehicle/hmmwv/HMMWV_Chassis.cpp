@@ -54,9 +54,11 @@ HMMWV_Chassis::HMMWV_Chassis(const std::string& name, bool fixed, ChassisCollisi
     //// TODO:
     //// A more appropriate contact shape from primitives
     BoxShape box1(ChVector<>(0.0, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0), ChVector<>(2.0, 1.0, 0.2));
+    BoxShape box2(ChVector<>(0.0, 0.0, 0.3), ChQuaternion<>(1, 0, 0, 0), ChVector<>(1.0, 0.5, 0.2));
 
     m_has_primitives = true;
     m_vis_boxes.push_back(box1);
+    m_vis_boxes.push_back(box2);
 
     m_has_mesh = true;
     m_vis_mesh_file = "hmmwv/hmmwv_chassis.obj";
