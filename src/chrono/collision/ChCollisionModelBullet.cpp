@@ -278,8 +278,8 @@ bool ChCollisionModelBullet::Add2Dpath(std::shared_ptr<ChMaterialSurface> materi
 
     for (size_t i = 0; i < mpath->GetSubLinesCount(); ++i) {
         if (auto msegment = std::dynamic_pointer_cast<geometry::ChLineSegment>(mpath->GetSubLineN(i))) {
-            if ((msegment->pA.z() != 0) || (msegment->pB.z() != 0))
-                throw ChException("Error! Add2Dpath: sub segment of ChLinePath has non-zero z coordinate!");
+            if (msegment->pA.z() != msegment->pB.z())
+                throw ChException("Error! Add2Dpath: sub segment of ChLinePath not parallel to XY plane!");
 
             btVector3 pa((btScalar)msegment->pA.x(), (btScalar)msegment->pA.y(), (btScalar)0);
             btVector3 pb((btScalar)msegment->pB.x(), (btScalar)msegment->pB.y(), (btScalar)0);
@@ -289,8 +289,8 @@ bool ChCollisionModelBullet::Add2Dpath(std::shared_ptr<ChMaterialSurface> materi
             shape->m_bt_shape->setMargin((btScalar)GetSuggestedFullMargin());
             injectShape(pos, rot, shape);
         } else if (auto marc = std::dynamic_pointer_cast<geometry::ChLineArc>(mpath->GetSubLineN(i))) {
-            if ((marc->origin.pos.z() != 0))
-                throw ChException("Error! Add2Dpath: a sub arc of ChLinePath has center with non-zero z coordinate!");
+            if ((marc->origin.rot.e1() != 0) ||  (marc->origin.rot.e2() != 0))
+                throw ChException("Error! Add2Dpath: a sub arc of ChLinePath not parallel to XY plane!");
             double mangle1 = marc->angle1;
             double mangle2 = marc->angle2;
             if (mangle1 - mangle2 == CH_C_2PI)
