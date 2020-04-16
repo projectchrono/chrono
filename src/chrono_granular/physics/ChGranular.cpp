@@ -456,14 +456,14 @@ void ChSystemGranularSMC::copyConstSphereDataToDevice() {
     int64_t true_max_pos = std::max(std::max(gran_params->max_x_pos_unsigned, gran_params->max_y_pos_unsigned),
                                     gran_params->max_z_pos_unsigned);
 
-    if (true_max_pos >= INT_MAX) {
-        printf("WARNING! Max possible position is greater than INT_MAX!!!\n");
-    }
+    // if (true_max_pos >= INT_MAX) {
+    //     printf("WARNING! Max possible position is greater than INT_MAX!!!\n");
+    // }
 
-    if (true_max_pos >= UINT_MAX) {
-        printf("BIG WARNING! Max possible position is greater than UINT_MAX!!!\n");
-        printf("You are now relying on Conlain's local coordinate implementation.\n");
-    }
+    // if (true_max_pos >= UINT_MAX) {
+    //     printf("BIG WARNING! Max possible position is greater than UINT_MAX!!!\n");
+    //     printf("You are now relying on Conlain's local coordinate implementation.\n");
+    // }
 
     if (true_max_pos >= LLONG_MAX) {
         printf("ERROR! Max possible position is greater than LLONG_MAX!!!\n");

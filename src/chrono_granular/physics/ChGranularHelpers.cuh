@@ -258,7 +258,7 @@ inline __device__ float3 computeRollingAngAcc(GranSphereDataPtr sphere_data,
                 // Rolling component
                 // v_rot = l_p (w_p x n) - l_n (w_n x n)
                 const float3 v_rot = Cross(omega_rel, r_contact);
-                if (Length(v_rot) < 1e-7f) {  // TODO choose epsilon
+                if (Length(v_rot) < 1e-7f) {  // TODO choose epsilon in SU L/T units
                     return make_float3(0.f, 0.f, 0.f);
                 }
 
