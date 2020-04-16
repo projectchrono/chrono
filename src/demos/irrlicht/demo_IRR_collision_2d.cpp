@@ -147,7 +147,7 @@ int main(int argc, char* argv[]) {
     double B = R*tan(beta/2);
     ChVector<> crank_center = ChVector<>(B, R, 0) + geneva_center;
     
-    // Create the rotating Gnevawheel:
+    // Create the rotating Genevawheel:
     auto mgenevawheel = chrono_types::make_shared<ChBody>();
     mgenevawheel->SetPos(geneva_center);
     mgenevawheel->SetWvel_loc(ChVector<>(0,0,-0.08));

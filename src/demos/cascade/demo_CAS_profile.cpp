@@ -51,11 +51,14 @@ int main(int argc, char* argv[]) {
     // will be handled by this ChSystemNSC object.
     ChSystemNSC my_system;
 
-    
+    // Collision tolerances. 
+	// note: for 2D-2D contact problems, only the margin tolerance is used (that acts outward as the envelope)
+	collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0);
+	collision::ChCollisionModel::SetDefaultSuggestedMargin(0.1);
 
     // Contact material (shared among all collision shapes)
     auto material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-
+	material->SetFriction(0.05);
     
 
     // Create the truss:
@@ -64,13 +67,17 @@ int main(int argc, char* argv[]) {
     my_system.Add(mfloor);
 
 
+	//
+    // Create the Geneva wheel
+	//
+
 
     // Geneva wheel geometry data:
     int nstations = 5;
     double R = 1;
     double Ri = 0.5;
     double wi = 0.1;
-    double Li = 0.65;
+    double Li = 0.55;
     ChVector<> geneva_center(-0, 0, 0);
     // compute aux data:
     double beta = (CH_C_2PI/(double)nstations); // angle width of station
@@ -124,7 +131,8 @@ int main(int argc, char* argv[]) {
 	// - it computes the mass and the inertia tensor given the profile
 	// - it moves the COG in the computed position
 	// - it adds a 2D collision profile optimized for 2D-2D collision scenarios, with smooth arc collisions. 
-	std::vector<std::shared_ptr<::chrono::geometry::ChLinePath>> wires{ mpathwheel };
+	// Might throw exception if some wire path not on XY plane, or not closed.
+
 	auto mgenevawheel = chrono_types::make_shared<ChBodyEasyCascadeProfile>(
 							std::vector<std::shared_ptr<::chrono::geometry::ChLinePath>> { mpathwheel }, // wire(s) containing the face, made with arcs and segments
 							std::vector<std::shared_ptr<::chrono::geometry::ChLinePath>> { }, // wire(s) telling holes (empty vector here)
@@ -137,6 +145,22 @@ int main(int argc, char* argv[]) {
     mgenevawheel->SetWvel_loc(ChVector<>(0,0,-0.08));
 	my_system.Add(mgenevawheel);
 
+	// Do you need an additional profile at a different Z depht?
+	// If so, use the AddProfile() function. It also updates the mass, COG position, collision shapes, etc. 
+	// Might throw exception if path not on XY plane, or not closed.
+    auto mpathcam = chrono_types::make_shared<ChLinePath>();
+	auto mcamline1 = chrono_types::make_shared<ChLineArc>(ChCoordsys<>(ChVector<>(0, 0, -0.10)), R * 0.3, 1.5, CH_C_PI);//CH_C_2PI, 2.5);
+	auto mcamline2 = chrono_types::make_shared<ChLineSegment>(mcamline1->GetEndB(), mcamline1->GetEndA());
+    mpathcam->AddSubLine(mcamline1);
+	mpathcam->AddSubLine(mcamline2);
+	mgenevawheel->AddProfile(	{ mpathcam }, // wire(s) containing the face, made with arcs and segments
+						{},					  // wire(s) telling holes (empty vector here)
+						0.09, 1000, 		  // thickness, density
+						ChCascadeTriangulateTolerances(), // triangulation tolerances for visualization
+						true, material);    // enable 2D collision on the profile
+	
+
+
 	// Revolute constraint 
     auto mrevolute = chrono_types::make_shared<ChLinkLockRevolute>();
     mrevolute->Initialize(mgenevawheel, mfloor, ChCoordsys<>(geneva_center));
@@ -144,8 +168,9 @@ int main(int argc, char* argv[]) {
 
 
 
-
+	//
     // Create the crank:
+	//
 
      // Create a ChLinePath geometry, and insert sub-paths in clockwise order:
     auto mpathcrankpin = chrono_types::make_shared<ChLinePath>();
@@ -153,12 +178,14 @@ int main(int argc, char* argv[]) {
     mpathcrankpin->AddSubLine(mpin);
 
     auto mpathcrankstopper = chrono_types::make_shared<ChLinePath>();
-    ChLineArc     mstopperarc(ChCoordsys<>(ChVector<>(0, 0, 0)), Ri-0.005, CH_C_PI-gamma/2, -CH_C_PI+gamma/2);
+    ChLineArc     mstopperarc(ChCoordsys<>(ChVector<>(0, 0, 0)), Ri-0.003, CH_C_PI-gamma/2, -CH_C_PI+gamma/2);
     ChLineSegment mstopperve1(mstopperarc.GetEndB(),ChVector<>(0, 0, 0));
     ChLineSegment mstopperve2(ChVector<>(0, 0, 0), mstopperarc.GetEndA());
     mpathcrankstopper->AddSubLine(mstopperarc);
     mpathcrankstopper->AddSubLine(mstopperve1);
     mpathcrankstopper->AddSubLine(mstopperve2);
+
+	// Use the ChBodyEasyCascadeProfile to define a 2D profile, again:
 
 	auto mcrank = chrono_types::make_shared<ChBodyEasyCascadeProfile>(
 							std::vector<std::shared_ptr<::chrono::geometry::ChLinePath>> { mpathcrankstopper,  mpathcrankpin }, // wire(s) containing the face, made with arcs and segments
@@ -168,18 +195,72 @@ int main(int argc, char* argv[]) {
 							ChCascadeTriangulateTolerances(0.01,false,0.2), // triangulation tolerances for visualization, finer than default ChCascadeTriangulateTolerances()
 							true, material // enable 2D collision on the profile
 							);
-	mcrank->SetFrame_REF_to_abs(ChFrame<>(crank_center)); // the REF is the coordsinate where the path has been defined, the COG maybe elsewhere
+
+	// Do you need an additional profile at a different Z depht?
+	// If so, use the AddProfile() function. It also updates the mass, COG position, collision shapes, etc. 
+	// Might throw exception if path not on XY plane, or not closed.
+    auto mpathbackplate = chrono_types::make_shared<ChLinePath>();
+    auto mbackplate = chrono_types::make_shared<ChLineArc>(ChCoordsys<>(ChVector<>(0, 0, 0.06)), Ri*1.3, CH_C_2PI, 0);
+    mpathbackplate->AddSubLine(mbackplate);
+	mcrank->AddProfile(	{ mpathbackplate }, // wire(s) containing the face, made with arcs and segments
+						{},					// wire(s) telling holes (empty vector here)
+						0.05, 1000, 		// thickness, density
+						ChCascadeTriangulateTolerances(), // triangulation tolerances for visualization
+						true, material);    // enable 2D collision on the profile
+	
+	mcrank->SetFrame_REF_to_abs(ChFrame<>(crank_center)); // the REF is the coordinate where the path has been defined, the COG maybe elsewhere
 	my_system.Add(mcrank);
 
+	// Should you later change some geometry, do something like this:
+	// mbackplate->radius = Ri * 2;
+	// mcrank->UpdateCollisionAndVisualizationShapes(ChCascadeTriangulateTolerances());
 
-    // .. a motor between crank and truss
+
+    // Add a motor between crank and truss
     auto my_motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     my_motor->Initialize(mcrank, mfloor, ChFrame<>(crank_center));
     my_motor->SetSpeedFunction(chrono_types::make_shared<ChFunction_Const>(CH_C_PI / 8.0));
     my_system.AddLink(my_motor);
 
 
+	// 
+	// The follower
+	// 
 
+	// Create a simple follower falling on the little cam
+
+	auto mfollowerwire = chrono_types::make_shared<ChLinePath>();
+	double Z_layer_2 = -0.10;
+	ChLineSegment msfoll1(ChVector<>(-0.1, R*0.3+0.1, Z_layer_2), ChVector<>(-0.1, R*0.3, Z_layer_2));
+	ChLineSegment msfoll2(msfoll1.GetEndB(), ChVector<>(-2*R, R*0.3, Z_layer_2));
+	ChLineSegment msfoll3(msfoll2.GetEndB(), ChVector<>(-2*R, R*0.3+0.1, Z_layer_2));
+	ChLineSegment msfoll4(msfoll3.GetEndB(), msfoll1.GetEndA());
+	
+	mfollowerwire->AddSubLine(msfoll1);
+	mfollowerwire->AddSubLine(msfoll2);
+	mfollowerwire->AddSubLine(msfoll3);
+	mfollowerwire->AddSubLine(msfoll4);
+	
+
+	auto mfollower = chrono_types::make_shared<ChBodyEasyCascadeProfile>(
+							std::vector<std::shared_ptr<::chrono::geometry::ChLinePath>> { mfollowerwire }, // wire(s) containing the face, made with arcs and segments
+							std::vector<std::shared_ptr<::chrono::geometry::ChLinePath>> { }, // wire(s) telling holes (empty vector here)
+							0.09,		// the thickness
+							1000,		// the density
+							ChCascadeTriangulateTolerances(0.01,false,0.2), // triangulation tolerances for visualization, finer than default ChCascadeTriangulateTolerances()
+							true, material // enable 2D collision on the profile
+							);
+	my_system.Add(mfollower);
+
+	// Revolute constraint 
+    auto mrevolute2 = chrono_types::make_shared<ChLinkLockRevolute>();
+    mrevolute2->Initialize(mfollower, mfloor, ChCoordsys<>(ChVector<>(-1.4*R, R * 0.3 + 0.05, Z_layer_2)));
+    my_system.Add(mrevolute2);
+
+
+	//
+    // THE VISIALIZATION SYSTEM
+    //
 
 
 	// Create the Irrlicht visualization (open the Irrlicht device,
@@ -187,12 +268,12 @@ int main(int argc, char* argv[]) {
     ChIrrApp application(&my_system, L"Use 2D profiles with OpenCASCADE for mass, inertia, meshing", core::dimension2d<u32>(1024, 768), false, true);
 
     // Easy shortcuts to add logo, camera, lights and sky in Irrlicht scene:
-    ChIrrWizard::add_typical_Logo(application.GetDevice());
-    ChIrrWizard::add_typical_Sky(application.GetDevice());
-    ChIrrWizard::add_typical_Lights(application.GetDevice(), core::vector3df(30, 100, 30),
-                                    core::vector3df(30, -80, -30), 200, 130);
-    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0.2f, 0.2f, -2.3f));
-
+    application.AddTypicalLogo();
+    application.AddTypicalSky();
+    application.AddTypicalLights(core::vector3df(30, 100, 30), core::vector3df(30, -80, -30), 200, 130);
+    application.AddTypicalCamera(core::vector3df(0.2f, 0.2f, -2.3f));
+	application.AddLightWithShadow(core::vector3df(1.5, 5.5, -3.5), core::vector3df(0, 0, 0), 8.2, 2.2, 8.2, 40, 512,
+                                   video::SColorf(0.8, 0.8, 0.8));
 
     // Use this function for adding a ChIrrNodeAsset to all items
     // Otherwise use application.AssetBind(myitem); on a per-item basis.
@@ -201,12 +282,14 @@ int main(int argc, char* argv[]) {
     // Use this function for 'converting' assets into Irrlicht meshes
     application.AssetUpdateAll();
 
+	application.AddShadowAll();
+
+
     //
     // THE SOFT-REAL-TIME CYCLE, SHOWING THE SIMULATION
     //
 
     application.SetTimestep(0.01);
-    application.SetTryRealtime(true);
 
     while (application.GetDevice()->run()) {
 
