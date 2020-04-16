@@ -275,15 +275,16 @@ class btArcSegmentCollisionAlgorithm : public btActivatingCollisionAlgorithm {
 
         btVector3 local_P2 = segment->get_P1() + local_seg_D * param;
         btVector3 local_CP2 = local_arc_center - local_P2;
+		local_CP2.setZ(0);
         btVector3 local_R = local_CP2.normalized() * arc->get_radius();
         btVector3 local_P1;
         btVector3 local_N2;
         if (local_seg_S2S1.cross(local_CP2).getZ() > 0) {
             local_P1 = local_arc_center - local_R;
-            local_N2 = local_R.normalized();
+			local_N2 = local_CP2.normalized(); 
         } else {
             local_P1 = local_arc_center + local_R;
-            local_N2 = -local_R.normalized();
+            local_N2 = -local_CP2.normalized();
         }
         btVector3 local_P1P2 = local_P1 - local_P2;
 
