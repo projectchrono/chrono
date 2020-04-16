@@ -41,48 +41,39 @@ class CH_VEHICLE_API ChWorldFrame {
     void operator=(ChWorldFrame const&) = delete;
 
     /// Set the world frame as a rotation from the base ISO frame.
-    static void Set(const ChMatrix33<>& rot) {
-        instance().m_rot = rot;
-        instance().m_quat = rot.Get_A_quaternion();
-        instance().m_vertical = rot.transpose() * ChVector<>(0, 0, 1);
-        instance().m_forward = rot.transpose() * ChVector<>(1, 0, 0);
-        instance().m_ISO = false;
-    }
+    static void Set(const ChMatrix33<>& rot);
 
     /// Set the world frame as a (right-handed) frame with Y up.
     /// This corresponds to a rotation of 90 degrees about the X axis.
-    static void SetYUP() {
-        instance().m_rot = ChMatrix33<>(Q_from_AngX(CH_C_PI_2));
-        instance().m_quat = instance().m_rot.Get_A_quaternion();
-        instance().m_vertical = ChVector<>(0, 1, 0);
-        instance().m_forward = ChVector<>(1, 0, 0);
-        instance().m_ISO = false;
-    }
+    static void SetYUP();
 
     /// Return `true` if the world frame is an ISO reference frame and `false` otherwise.
-    static bool IsISO() { return instance().m_ISO; }
+    static bool IsISO();
 
     /// Get the world frame rotation matrix.
-    static const ChMatrix33<>& Rotation() { return instance().m_rot; }
+    static const ChMatrix33<>& Rotation();
 
     /// Get the world frame orientation as a quaternion.
-    static const ChQuaternion<>& Quaternion() { return instance().m_quat; }
+    static const ChQuaternion<>& Quaternion();
 
     /// Get the vertical direction of the world frame.
-    static const ChVector<>& Vertical() { return instance().m_vertical; }
+    static const ChVector<>& Vertical();
 
     /// Get the forward direction of the world frame.
-    static const ChVector<>& Forward() { return instance().m_forward; }
+    static const ChVector<>& Forward();
 
     /// Re-express a vector from the current world frame into the ISO frame.
-    static ChVector<> ToISO(const ChVector<>& v) { return instance().m_rot * v; }
+    static ChVector<> ToISO(const ChVector<>& v);
 
     /// Re-express a vector from the ISO frame to the current world frame.
-    static ChVector<> FromISO(const ChVector<>& v) { return instance().m_rot.transpose() * v; }
+    static ChVector<> FromISO(const ChVector<>& v);
 
     /// Get the height of a given vector in the current world frame (i.e., the projection of the vector onto the
     /// vertical direction).
-    static double Height(const ChVector<>& v) { return instance().m_vertical ^ v; }
+    static double Height(const ChVector<>& v);
+
+    /// Project a given vector onto the horizontal plane of the world frame.
+    static void Project(ChVector<>& v);
 
   private:
     /// Default world frame is ISO, corresonding to an identity rotation.
