@@ -183,15 +183,8 @@ int main(int argc, char* argv[]) {
 
         app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         app.DrawAll();
-        ChIrrTools::drawGrid(app.GetVideoDriver(), 1.0, 1.0, 20, 20,
-                             ChCoordsys<>(ChVector<>(0, 0.01, 0), Q_from_AngX(CH_C_PI_2)),
-                             irr::video::SColor(255, 255, 200, 0), true);
-        ChIrrTools::drawSegment(app.GetVideoDriver(), ChVector<>(0, 0, 0), ChVector<>(10, 0, 0),
-                                irr::video::SColor(255, 255, 0, 0));
-        ChIrrTools::drawSegment(app.GetVideoDriver(), ChVector<>(0, 0, 0), ChVector<>(0, 10, 0),
-                                irr::video::SColor(255, 0, 255, 0));
-        ChIrrTools::drawSegment(app.GetVideoDriver(), ChVector<>(0, 0, 0), ChVector<>(0, 0, 10),
-                                irr::video::SColor(255, 0, 0, 255));
+        app.RenderFrame(ChVector<>(0, 0, 0), 10);
+        app.RenderGrid(ChVector<>(0, 0.01, 0), 20, 1.0);
         app.EndScene();
 
         // Driver inputs

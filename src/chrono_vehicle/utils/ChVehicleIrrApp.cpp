@@ -116,9 +116,7 @@ ChVehicleIrrApp::ChVehicleIrrApp(ChVehicle* vehicle,
       m_stepsize(1e-3),
       m_HUD_x(700),
       m_HUD_y(20),
-      m_renderGrid(false),
       m_renderStats(true),
-      m_gridHeight(0.02),
       m_steering(0),
       m_throttle(0),
       m_braking(0) {
@@ -259,9 +257,6 @@ void ChVehicleIrrApp::Advance(double step) {
 // Render the Irrlicht scene and additional visual elements.
 // -----------------------------------------------------------------------------
 void ChVehicleIrrApp::DrawAll() {
-    if (m_renderGrid)
-        renderGrid();
-
     ChIrrAppInterface::DrawAll();
 
     if (m_renderStats)
@@ -271,11 +266,21 @@ void ChVehicleIrrApp::DrawAll() {
     renderOtherGraphics();
 }
 
-// Render a horizontal grid.
-void ChVehicleIrrApp::renderGrid() {
-    ChCoordsys<> gridCsys(ChVector<>(0, 0, m_gridHeight), chrono::Q_from_AngAxis(-CH_C_PI_2, VECT_Z));
+// Render a horizontal grid
+void ChVehicleIrrApp::RenderGrid(const ChVector<>& loc, int num_divs, double delta) {
+    irrlicht::ChIrrTools::drawGrid(GetVideoDriver(), delta, delta, num_divs, num_divs,
+                                   ChCoordsys<>(loc, ChWorldFrame::Quaternion()),
+                                   irr::video::SColor(255, 255, 200, 0), true);
+}
 
-    irrlicht::ChIrrTools::drawGrid(GetVideoDriver(), 0.5, 0.5, 100, 100, gridCsys, video::SColor(255, 80, 130, 255), true);
+// Render a reference frame (aligned with the world frame) at the specified location
+void ChVehicleIrrApp::RenderFrame(const ChVector<>& loc, double axis_length) {
+    irrlicht::ChIrrTools::drawSegment(GetVideoDriver(), loc, loc + ChVector<>(axis_length, 0, 0),
+                                      irr::video::SColor(255, 255, 0, 0));
+    irrlicht::ChIrrTools::drawSegment(GetVideoDriver(), loc, loc + ChVector<>(0, axis_length, 0),
+                                      irr::video::SColor(255, 0, 255, 0));
+    irrlicht::ChIrrTools::drawSegment(GetVideoDriver(), loc, loc + ChVector<>(0, 0, axis_length),
+                                      irr::video::SColor(255, 0, 0, 255));
 }
 
 // Render a linear gauge in the HUD.

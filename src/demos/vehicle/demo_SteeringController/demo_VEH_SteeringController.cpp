@@ -299,7 +299,6 @@ int main(int argc, char* argv[]) {
                          100);
     app.AddTypicalLights(irr::core::vector3df(150.f, -150.f, 200.f), irr::core::vector3df(150.0f, 150.f, 200.f), 100,
                          100);
-    app.EnableGrid(false);
     app.SetChaseCamera(trackPoint, 6.0, 0.5);
 
     app.SetTimestep(step_size);
