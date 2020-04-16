@@ -453,7 +453,7 @@ int main(int argc, char* argv[]) {
         if (!hmmwv && time > time_create_vehicle) {
             cout << time << "    Create vehicle" << endl;
 
-            double max_height = terrain.GetHeight(0, 0);
+            double max_height = terrain.GetHeight(ChVector<>(0, 0, 0));
             hmmwv = CreateVehicle(system, max_height);
             driver = CreateDriver(hmmwv);
 
