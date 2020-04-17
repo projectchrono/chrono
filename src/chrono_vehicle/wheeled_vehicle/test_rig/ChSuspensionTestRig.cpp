@@ -80,27 +80,28 @@ TestRigChassis::TestRigChassis() : ChRigidChassis("Ground") {
 
 // =============================================================================
 // Definition of a terrain object for use by a suspension test rig.
+// Note that this assumes an ISO world frame.
 class TestRigTerrain : public ChTerrain {
   public:
     TestRigTerrain();
-    virtual double GetHeight(double x, double y) const override;
-    virtual ChVector<> GetNormal(double x, double y) const override;
-    virtual float GetCoefficientFriction(double x, double y) const override;
+    virtual double GetHeight(const ChVector<>& loc) const override;
+    virtual ChVector<> GetNormal(const ChVector<>& loc) const override;
+    virtual float GetCoefficientFriction(const ChVector<>& loc) const override;
     double m_height_L;
     double m_height_R;
 };
 
 TestRigTerrain::TestRigTerrain() : m_height_L(-1000), m_height_R(-1000) {}
 
-double TestRigTerrain::GetHeight(double x, double y) const {
-    return (y < 0) ? m_height_R : m_height_L;
+double TestRigTerrain::GetHeight(const ChVector<>& loc) const {
+    return (loc.y() < 0) ? m_height_R : m_height_L;
 }
 
-ChVector<> TestRigTerrain::GetNormal(double x, double y) const {
+ChVector<> TestRigTerrain::GetNormal(const ChVector<>& loc) const {
     return ChVector<>(0, 0, 1);
 }
 
-float TestRigTerrain::GetCoefficientFriction(double x, double y) const {
+float TestRigTerrain::GetCoefficientFriction(const ChVector<>& loc) const {
     return 0.8f;
 }
 

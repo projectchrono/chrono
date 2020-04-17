@@ -108,6 +108,7 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     ChVector<> GetPointAcceleration(const ChVector<>& locpos) const;
 
     /// Initialize the chassis at the specified global position and orientation.
+    /// The initial position and forward velocity are assumed to be given in the current world frame.
     virtual void Initialize(ChSystem* system,                ///< [in] containing system
                             const ChCoordsys<>& chassisPos,  ///< [in] absolute chassis position
                             double chassisFwdVel,            ///< [in] initial chassis forward velocity

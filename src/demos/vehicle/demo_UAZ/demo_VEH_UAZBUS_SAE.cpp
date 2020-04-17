@@ -134,8 +134,8 @@ int main(int argc, char* argv[]) {
     auto patch_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     patch_mat->SetFriction(0.8f);
     patch_mat->SetRestitution(0.01f);
-    auto patch = terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector<>(0, 0, -5), QUNIT), ChVector<>(600, 600, 10));
-    patch->SetColor(ChColor(0.8f, 0.8f, 1.0f));
+    auto patch = terrain.AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 300, 300);
+    patch->SetColor(ChColor(1.0f, 1.0f, 1.0f));
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 1200, 1200);
     terrain.Initialize();
 

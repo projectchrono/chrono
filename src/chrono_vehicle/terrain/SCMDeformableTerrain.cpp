@@ -28,6 +28,7 @@
 #include "chrono/utils/ChConvexHull.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
 
 #include "chrono_thirdparty/Easy_BMP/EasyBMP.h"
@@ -44,20 +45,20 @@ SCMDeformableTerrain::SCMDeformableTerrain(ChSystem* system) {
 }
 
 // Return the terrain height at the specified location
-double SCMDeformableTerrain::GetHeight(double x, double y) const {
+double SCMDeformableTerrain::GetHeight(const ChVector<>& loc) const {
     //// TODO
     return 0;
 }
 
 // Return the terrain normal at the specified location
-ChVector<> SCMDeformableTerrain::GetNormal(double x, double y) const {
+ChVector<> SCMDeformableTerrain::GetNormal(const ChVector<>& loc) const {
     //// TODO
-    return m_ground->plane.TransformDirectionLocalToParent(ChVector<>(0, 0, 1));
+    return m_ground->plane.TransformDirectionLocalToParent(ChWorldFrame::Vertical());
 }
 
 // Return the terrain coefficient of friction at the specified location
-float SCMDeformableTerrain::GetCoefficientFriction(double x, double y) const {
-    return m_friction_fun ? (*m_friction_fun)(x, y) : 0.8f;
+float SCMDeformableTerrain::GetCoefficientFriction(const ChVector<>& loc) const {
+    return m_friction_fun ? (*m_friction_fun)(loc) : 0.8f;
 }
 
 // Set the color of the visualization assets

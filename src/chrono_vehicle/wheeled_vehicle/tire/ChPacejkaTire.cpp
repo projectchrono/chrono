@@ -436,7 +436,7 @@ void ChPacejkaTire::update_W_frame(const ChTerrain& terrain) {
     // Check contact with terrain, using a disc of radius R0.
     ChCoordsys<> contact_frame;
 
-    m_mu = terrain.GetCoefficientFriction(m_tireState.pos.x(), m_tireState.pos.y());
+    m_mu = terrain.GetCoefficientFriction(m_tireState.pos);
 
     double depth;
     double dum_cam;
@@ -462,7 +462,11 @@ void ChPacejkaTire::update_W_frame(const ChTerrain& terrain) {
     ChVector<> wheel_normal = m_tireState.rot.GetYaxis();
 
     // Terrain normal at wheel center location (expressed in global frame)
-    ChVector<> Z_dir = terrain.GetNormal(m_tireState.pos.x(), m_tireState.pos.y());
+
+    //// RADU: what frame is m_tireState in?!?   Will this work with a non-ISO world frame?
+    ////       why don't we use the wheel's normal direction?!?!
+
+    ChVector<> Z_dir = terrain.GetNormal(m_tireState.pos);
 
     // Longitudinal (heading) and lateral directions, in the terrain plane.
     ChVector<> X_dir = Vcross(wheel_normal, Z_dir);

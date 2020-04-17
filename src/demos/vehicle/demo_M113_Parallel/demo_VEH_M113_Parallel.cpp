@@ -66,7 +66,7 @@ using std::endl;
 //#define USE_SEQ
 
 // Comment the following line to use NSC contact
-//#define USE_SMC
+#define USE_SMC
 
 // -----------------------------------------------------------------------------
 // Specification of the terrain

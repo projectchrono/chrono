@@ -118,9 +118,9 @@ terrain = veh.RigidTerrain(uaz.GetSystem())
 patch_mat = chrono.ChMaterialSurfaceNSC()
 patch_mat.SetFriction(0.9)
 patch_mat.SetRestitution(0.01)
-patch = terrain.AddPatch(patch_mat,
-                         chrono.ChCoordsysD(chrono.ChVectorD(0, 0, -5), chrono.QUNIT),
-                         chrono.ChVectorD(600, 600, 10))
+patch = terrain.AddPatch(patch_mat, 
+                         chrono.ChVectorD(0, 0, 0), chrono.ChVectorD(0, 0, 1), 
+                         600, 600)
 patch.SetColor(chrono.ChColor(0.8, 0.8, 1.0))
 patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 1200, 1200)
 terrain.Initialize()

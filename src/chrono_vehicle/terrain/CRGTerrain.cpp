@@ -46,6 +46,7 @@
 #include "chrono/assets/ChLineShape.h"
 #include "chrono/assets/ChPathShape.h"
 
+#include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/terrain/CRGTerrain.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -65,12 +66,21 @@ CRGTerrain::CRGTerrain(ChSystem* system)
     m_ground->SetBodyFixed(true);
     m_ground->SetCollide(false);
     system->Add(m_ground);
+
+    crgMsgSetLevel(dCrgMsgLevelNone);
 }
 
 CRGTerrain::~CRGTerrain() {
     crgContactPointDelete(m_cpId);
     crgDataSetRelease(m_dataSetId);
     crgMemRelease();
+}
+
+void CRGTerrain::EnableVerbose(bool val) {
+    if (val)
+        crgMsgSetLevel(dCrgMsgLevelInfo);
+    else
+        crgMsgSetLevel(dCrgMsgLevelNone);
 }
 
 void CRGTerrain::Initialize(const std::string& crg_file) {
@@ -154,13 +164,14 @@ void CRGTerrain::Initialize(const std::string& crg_file) {
     }
 }
 
-float CRGTerrain::GetCoefficientFriction(double x, double y) const {
-    return m_friction_fun ? (*m_friction_fun)(x, y) : m_friction;
+float CRGTerrain::GetCoefficientFriction(const ChVector<>& loc) const {
+    return m_friction_fun ? (*m_friction_fun)(loc) : m_friction;
 }
 
-double CRGTerrain::GetHeight(double x, double y) const {
+double CRGTerrain::GetHeight(const ChVector<>& loc) const {
+    ChVector<> loc_ISO = ChWorldFrame::ToISO(loc);
     double u, v, z;
-    int uv_ok = crgEvalxy2uv(m_cpId, x, y, &u, &v);
+    int uv_ok = crgEvalxy2uv(m_cpId, loc_ISO.x(), loc_ISO.y(), &u, &v);
     if (uv_ok != 1) {
         GetLog() << "CRGTerrain::GetHeight(): error during xy -> uv coordinate transformation\n";
     }
@@ -177,23 +188,29 @@ double CRGTerrain::GetHeight(double x, double y) const {
     return z;
 }
 
-ChVector<> CRGTerrain::GetNormal(double x, double y) const {
+ChVector<> CRGTerrain::GetNormal(const ChVector<>& loc) const {
+    ChVector<> loc_ISO = ChWorldFrame::ToISO(loc);
     // to avoid 'jumping' of the normal vector, we take this smoothing approach
     const double delta = 0.05;
     double z0, zfront, zleft;
-    z0 = GetHeight(x, y);
-    zfront = GetHeight(x + delta, y);
-    zleft = GetHeight(x, y + delta);
-    ChVector<> p0(x, y, z0), pfront(x + delta, y, zfront), pleft(x, y + delta, zleft), normal;
+    z0 = GetHeight(loc);
+    zfront = GetHeight(ChWorldFrame::FromISO(loc_ISO + ChVector<>(delta, 0, 0)));
+    zleft = GetHeight(ChWorldFrame::FromISO(loc_ISO + ChVector<>(0, delta, 0)));
+    ChVector<> p0(loc_ISO.x(), loc_ISO.y(), z0);
+    ChVector<> pfront(loc_ISO.x() + delta, loc_ISO.y(), zfront);
+    ChVector<> pleft(loc_ISO.x(), loc_ISO.y() + delta, zleft);
+    ChVector<> normal_ISO;
     ChVector<> r1, r2;
     r1 = pfront - p0;
     r2 = pleft - p0;
-    normal = Vcross(r1, r2);
-    if (normal.z() <= 0.0) {
+    normal_ISO = Vcross(r1, r2);
+    if (normal_ISO.z() <= 0.0) {
         GetLog() << "Fatal: wrong surface normal!\n";
         exit(99);
     }
+    ChVector<> normal = ChWorldFrame::FromISO(normal_ISO);
     normal.Normalize();
+
     return normal;
 }
 
@@ -222,7 +239,7 @@ std::shared_ptr<ChBezierCurve> CRGTerrain::GetRoadCenterLine() {
             GetLog() << "CRGTerrain::SetupGraphics(): error during uv -> z coordinate transformation\n";
         }
         ////zm = avg.Add(zm);
-        pathpoints.push_back(ChVector<>(xm, ym, zm + 0.2));
+        pathpoints.push_back(ChWorldFrame::FromISO(ChVector<>(xm, ym, zm + 0.2)));
     }
 
     if (m_isClosed) {
@@ -259,8 +276,8 @@ void CRGTerrain::GenerateCurves() {
         if (z_ok != 1) {
             GetLog() << "CRGTerrain::SetupGraphics(): error during uv -> z coordinate transformation\n";
         }
-        pl.push_back(ChVector<>(xl, yl, zl));
-        pr.push_back(ChVector<>(xr, yr, zr));
+        pl.push_back(ChWorldFrame::FromISO(ChVector<>(xl, yl, zl)));
+        pr.push_back(ChWorldFrame::FromISO(ChVector<>(xr, yr, zr)));
     }
 
     if (m_isClosed) {
@@ -330,9 +347,9 @@ void CRGTerrain::GenerateMesh() {
                     z0.push_back(z);
                 }
                 if (i == nu - 1 && m_isClosed) {
-                    coords.push_back(ChVector<>(x0[j], y0[j], z0[j]));
+                    coords.push_back(ChWorldFrame::FromISO(ChVector<>(x0[j], y0[j], z0[j])));
                 } else {
-                    coords.push_back(ChVector<>(x, y, z));
+                    coords.push_back(ChWorldFrame::FromISO(ChVector<>(x, y, z)));
                 }
             }
         }
@@ -360,9 +377,9 @@ void CRGTerrain::GenerateMesh() {
                     z0.push_back(z);
                 }
                 if (i == nu - 1 && m_isClosed) {
-                    coords.push_back(ChVector<>(x0[j], y0[j], z0[j]));
+                    coords.push_back(ChWorldFrame::FromISO(ChVector<>(x0[j], y0[j], z0[j])));
                 } else {
-                    coords.push_back(ChVector<>(x, y, z));
+                    coords.push_back(ChWorldFrame::FromISO(ChVector<>(x, y, z)));
                 }
             }
         }

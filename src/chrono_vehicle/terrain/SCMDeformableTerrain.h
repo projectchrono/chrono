@@ -176,20 +176,20 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
     /// To use constant soil parameters throughout the entire patch, use SetSoilParameters.
     void RegisterSoilParametersCallback(SoilParametersCallback* cb);
 
-    /// Get the terrain height at the specified (x,y) location.
-    virtual double GetHeight(double x, double y) const override;
+    /// Get the terrain height below the specified location.
+    virtual double GetHeight(const ChVector<>& loc) const override;
 
-    /// Get the terrain normal at the specified (x,y) location.
-    virtual chrono::ChVector<> GetNormal(double x, double y) const override;
+    /// Get the terrain normal at the point below the specified location.
+    virtual chrono::ChVector<> GetNormal(const ChVector<>& loc) const override;
 
-    /// Get the coefficient of friction at the specified (x,y) location.
+    /// Get the terrain coefficient of friction at the point below the specified location.
     /// This coefficient of friction value may be used by certain tire models to modify
     /// the tire characteristics, but it will have no effect on the interaction of the terrain
     /// with other objects (including tire models that do not explicitly use it).
     /// For SCMDeformableTerrain, this function defers to the user-provided functor object
     /// of type ChTerrain::FrictionFunctor, if one was specified.
     /// Otherwise, it returns the constant value of 0.8.
-    virtual float GetCoefficientFriction(double x, double y) const override;
+    virtual float GetCoefficientFriction(const ChVector<>& loc) const override;
 
     /// Get the current reference plane. The SCM terrain patch is in the (x,y) plane with normal along the Z axis.
     const ChCoordsys<>& GetPlane() const;
