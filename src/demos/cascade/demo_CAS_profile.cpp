@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
 
     // Contact material (shared among all collision shapes)
     auto material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-	material->SetFriction(0.05);
+	material->SetFriction(0.05f);
     
 
     // Create the truss:
@@ -156,7 +156,7 @@ int main(int argc, char* argv[]) {
 	mgenevawheel->AddProfile(	{ mpathcam }, // wire(s) containing the face, made with arcs and segments
 						{},					  // wire(s) telling holes (empty vector here)
 						0.09, 1000, 		  // thickness, density
-						ChCascadeTriangulateTolerances(), // triangulation tolerances for visualization
+						ChCascadeTriangulateTolerances(), // triangulation tolerances for visualization, default values
 						true, material);    // enable 2D collision on the profile
 	
 
@@ -205,7 +205,7 @@ int main(int argc, char* argv[]) {
 	mcrank->AddProfile(	{ mpathbackplate }, // wire(s) containing the face, made with arcs and segments
 						{},					// wire(s) telling holes (empty vector here)
 						0.05, 1000, 		// thickness, density
-						ChCascadeTriangulateTolerances(), // triangulation tolerances for visualization
+						ChCascadeTriangulateTolerances(0.01,false,0.2), 
 						true, material);    // enable 2D collision on the profile
 	
 	mcrank->SetFrame_REF_to_abs(ChFrame<>(crank_center)); // the REF is the coordinate where the path has been defined, the COG maybe elsewhere
@@ -240,7 +240,6 @@ int main(int argc, char* argv[]) {
 	mfollowerwire->AddSubLine(msfoll2);
 	mfollowerwire->AddSubLine(msfoll3);
 	mfollowerwire->AddSubLine(msfoll4);
-	
 
 	auto mfollower = chrono_types::make_shared<ChBodyEasyCascadeProfile>(
 							std::vector<std::shared_ptr<::chrono::geometry::ChLinePath>> { mfollowerwire }, // wire(s) containing the face, made with arcs and segments
@@ -273,7 +272,7 @@ int main(int argc, char* argv[]) {
     application.AddTypicalLights(core::vector3df(30, 100, 30), core::vector3df(30, -80, -30), 200, 130);
     application.AddTypicalCamera(core::vector3df(0.2f, 0.2f, -2.3f));
 	application.AddLightWithShadow(core::vector3df(1.5, 5.5, -3.5), core::vector3df(0, 0, 0), 8.2, 2.2, 8.2, 40, 512,
-                                   video::SColorf(0.8, 0.8, 0.8));
+                                   video::SColorf(0.8f, 0.8f, 0.8f));
 
     // Use this function for adding a ChIrrNodeAsset to all items
     // Otherwise use application.AssetBind(myitem); on a per-item basis.
