@@ -21,6 +21,7 @@
 #include "chrono/geometry/ChLinePath.h"
 #include "chrono/geometry/ChLineSegment.h"
 #include "chrono/geometry/ChLineArc.h"
+#include "chrono/utils/ChCompositeInertia.h"
 
 #include <TopExp_Explorer.hxx>
 #include <TopoDS_Wire.hxx>
@@ -212,7 +213,7 @@ public:
 		std::vector<std::shared_ptr<::chrono::geometry::ChLinePath>> mholes, ///< profiles of holes, in XY plane, if any. Each must be closed paths. Must not intersecate.
 		double mthickness,				///< thickness in Z direction
 		double mdensity,				///< density
-		const ChCascadeTriangulate& visualization, ///< pass ChCascadeTriangulateTolerances if need visualization, pass a ChCascadeTriangulateNone if no visualization needed.
+		const ChCascadeTriangulate& mvisualization, ///< pass ChCascadeTriangulateTolerances if need visualization, pass a ChCascadeTriangulateNone if no visualization needed.
 		bool mcollide = false,			///< if true, add a 2D collision shape that uses the outer profile of the face - only arcs and linear edges are considered. 
 		std::shared_ptr<ChMaterialSurface> mat = nullptr  ///< surface contact material if colliding
 	) {
@@ -221,15 +222,16 @@ public:
 		mface.holes = mholes;
 		mface.thickness = mthickness;
 		mface.density = mdensity;
+		mface.visualization = mvisualization.clone();
 		mface.collide = mcollide;
 		mface.material = mat;
 		this->faces.push_back(mface);
-		this->UpdateCollisionAndVisualizationShapes(visualization);
+		this->UpdateCollisionAndVisualizationShapes();
 	}
 
 	void ClearProfiles() {
 		this->faces.clear();
-		this->UpdateCollisionAndVisualizationShapes(ChCascadeTriangulateNone());
+		this->UpdateCollisionAndVisualizationShapes();
 	}
 
 	  /// This function 1) generates the visualizer asset shapes for the part and 2) adds the proper collision shapes 
@@ -237,8 +239,9 @@ public:
 	  /// This is already called automatically when construction the ChBodyEasyCascadeProfile and each time you 
 	  /// call AddProfile(), but you might want to call this by hand if you ever change the profile coordinates, arc 
 	  /// radii etc. after you created the shape and you want to rebuild visualization and collision shapes.
-	  void UpdateCollisionAndVisualizationShapes(const ChCascadeTriangulate& visualization ///< pass ChCascadeTriangulateTolerances if need visualization, pass a ChCascadeTriangulateNone if no visualization needed.
-	  ) {
+	  void UpdateCollisionAndVisualizationShapes() {
+		  
+		  chrono::utils::CompositeInertia inertia_composer;
 
 		  TopoDS_Compound mcompound;
 		  TopoDS_Builder builder;
@@ -271,7 +274,7 @@ public:
 
 			  // Add a visualization asset if needed
 			  if (const ChCascadeTriangulateTolerances * tolerances =
-				  dynamic_cast<const ChCascadeTriangulateTolerances*>(&visualization)) {
+				  dynamic_cast<const ChCascadeTriangulateTolerances*>(chface.visualization.get())) {
 				  auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
 				  ChCascadeMeshTools::fillTriangleMeshFromCascade(*trimesh, prism, *tolerances);
 
@@ -279,6 +282,28 @@ public:
 				  trimesh_shape->SetMesh(trimesh);
 				  this->AddAsset(trimesh_shape);
 			  }
+
+			  prism.Location(TopLoc_Location()); // needed?
+
+			  chrono::ChVector<> mcog;
+			  chrono::ChVector<> minertiaXX;
+			  chrono::ChVector<> minertiaXY;
+			  double mvol;
+			  double mmass;
+			  chrono::cascade::ChCascadeDoc::GetVolumeProperties(prism, chface.density, mcog, minertiaXX, minertiaXY, mvol, mmass);
+
+			  ChMatrix33<> m_inertia;
+				m_inertia(0, 0) = minertiaXX.x();
+				m_inertia(1, 1) = minertiaXX.y();
+				m_inertia(2, 2) = minertiaXX.z();
+
+				m_inertia(0, 1) = minertiaXY.x();
+				m_inertia(0, 2) = minertiaXY.y();
+				m_inertia(1, 2) = minertiaXY.z();
+				m_inertia(1, 0) = minertiaXY.x();
+				m_inertia(2, 0) = minertiaXY.y();
+				m_inertia(2, 1) = minertiaXY.z();
+			  inertia_composer.AddComponent(ChFrame<>(mcog), mmass, m_inertia);
 
 			  builder.Add(mcompound, prism);
 		  }
@@ -298,27 +323,31 @@ public:
 		  this->topods_shape = mcompound;
 		  this->topods_shape.Location(TopLoc_Location());
 
-		  // compute mass properties and COG reference
-		  chrono::ChVector<> mcog;
-		  chrono::ChVector<> minertiaXX;
-		  chrono::ChVector<> minertiaXY;
-		  double mvol;
-		  double mmass;
-		  chrono::cascade::ChCascadeDoc::GetVolumeProperties(topods_shape, density, mcog, minertiaXX, minertiaXY, mvol,
-			  mmass);
 
-		  // Set mass and COG and REF references
-		  this->SetDensity((float)density);
-		  this->SetMass(mmass);
-		  this->SetInertiaXX(minertiaXX);
-		  this->SetInertiaXY(minertiaXY);
-		  //this->SetFrame_REF_to_abs(frame_ref_to_abs);
+		  if (faces.size())
+			this->SetDensity((float)this->faces[0].density); // anyway has no sound meaning...  densities could be different if cluster of  different profiles with different densities..
+
+		  // Set the total mass and total inertia
+
+		  this->SetMass(inertia_composer.GetMass());
+		  ChVector<> m_inertiaXX(
+			  inertia_composer.GetInertia()(0,0),
+			  inertia_composer.GetInertia()(1,1),
+			  inertia_composer.GetInertia()(2,2));
+		  ChVector<> m_inertiaXY(
+			  inertia_composer.GetInertia()(0,1),
+			  inertia_composer.GetInertia()(0,2),
+			  inertia_composer.GetInertia()(1,2));
+		  this->SetInertiaXX(m_inertiaXX);
+		  this->SetInertiaXY(m_inertiaXY);
+
+
+		  //this->SetFrame_REF_to_abs(frame_ref_to_abs); //not needed
 
 		  chrono::ChFrame<> frame_cog_to_ref;
-		  frame_cog_to_ref.SetPos(mcog);
+		  frame_cog_to_ref.SetPos(inertia_composer.GetCOM());
 		  frame_cog_to_ref.SetRot(chrono::QUNIT);
 		  this->SetFrame_COG_to_REF(frame_cog_to_ref);
-
 
 
 		  // Add a collision shape if needed
@@ -356,8 +385,14 @@ public:
 		  std::vector<std::shared_ptr<::chrono::geometry::ChLinePath>> holes;
 		  double thickness;
 		  double density;
+		  std::unique_ptr<ChCascadeTriangulate> visualization;
 		  bool collide;
 		  std::shared_ptr<ChMaterialSurface> material;
+
+		  ChCascadeExtrusionFace() {};
+		  ChCascadeExtrusionFace(const ChCascadeExtrusionFace& other) // needed because later stored in a std::vector
+			  : wires(other.wires), holes(other.holes), thickness(other.thickness), density(other.density), collide(other.collide), material(other.material) 
+		  { visualization = other.visualization->clone(); }
 	  };
 	  std::vector<ChCascadeExtrusionFace> faces;
 
