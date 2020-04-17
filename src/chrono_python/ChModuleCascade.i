@@ -103,7 +103,14 @@ using namespace chrono::cascade;
 %shared_ptr(chrono::ChPhysicsItem)
 
 %shared_ptr(chrono::cascade::ChBodyEasyCascade)
+%shared_ptr(chrono::cascade::ChBodyEasyCascadeProfile)
 %shared_ptr(chrono::cascade::ChCascadeShapeAsset)
+
+//
+// TEMPLATES
+//
+
+%template(vector_ChLinePath) std::vector< std::shared_ptr<::chrono::geometry::ChLinePath> >;
 
 
 //
@@ -140,6 +147,10 @@ using namespace chrono::cascade;
 %import(module = "pychrono.core") "ChBody.i"
 %import(module = "pychrono.core") "ChBodyAuxRef.i"
 %import(module = "pychrono.core")  "ChMaterialSurface.i"
+
+%ignore chrono::cascade::ChCascadeTriangulate::clone;
+%ignore chrono::cascade::ChCascadeTriangulateTolerances::clone;
+%ignore chrono::cascade::ChCascadeTriangulateNone::clone;
 
 %include "../chrono_cascade/ChCascadeTriangulate.h"
 %include "../chrono_cascade/ChCascadeShapeAsset.h"
