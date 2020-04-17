@@ -75,6 +75,7 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/ChChassis.h"
 #include "chrono_vehicle/ChPart.h"
+#include "chrono_vehicle/ChWorldFrame.h"
 
 #include "chrono_vehicle/ChPowertrain.h"
 
@@ -128,12 +129,15 @@ using namespace chrono::vehicle::uaz;
 %include "std_string.i"
 %include "std_vector.i"
 %include "typemaps.i"
+%include "wchar.i"
+%include "python/cwstring.i"
+%include "cstring.i"
 
 // This is to enable references to double,int,etc. types in function parameters
 %pointer_class(int,int_ptr);
 %pointer_class(double,double_ptr);
 %pointer_class(float,float_ptr);
-
+%pointer_class(char,char_ptr);
 
 
 %template(vector_int) std::vector< int >;
@@ -258,6 +262,7 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %include "../chrono_vehicle/ChVehicleOutput.h"
 %include "../chrono_vehicle/ChVehicleModelData.h"
 %include "../chrono_vehicle/ChPart.h"
+%include "../chrono_vehicle/ChWorldFrame.h"
 %include "ChPowertrain.i"
 %include "ChChassis.i"
 %include "../chrono_vehicle/ChVehicle.h"

@@ -137,7 +137,7 @@ void ChTMeasyTire::Synchronize(double time,
     m_time = time;
 
     // Get mu at wheel location and ensure it stays realistic and the formulae don't degenerate
-    m_mu = terrain.GetCoefficientFriction(wheel_state.pos.x(), wheel_state.pos.y());
+    m_mu = terrain.GetCoefficientFriction(wheel_state.pos);
     ChClampValue(m_mu, 0.1, 1.0);
 
     // Extract the wheel normal (expressed in global frame)

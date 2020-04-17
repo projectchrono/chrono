@@ -418,7 +418,7 @@ void ChTireTestRig::CreateTerrainSCM() {
 }
 
 void ChTireTestRig::CreateTerrainRigid() {
-    ChVector<> location(m_params_rigid.length / 2 - 2 * m_tire->GetRadius(), m_terrain_offset, m_terrain_height - 0.1);
+    ChVector<> location(m_params_rigid.length / 2 - 2 * m_tire->GetRadius(), m_terrain_offset, m_terrain_height);
 
     auto terrain = chrono_types::make_shared<vehicle::RigidTerrain>(m_system);
 
@@ -428,8 +428,9 @@ void ChTireTestRig::CreateTerrainRigid() {
     minfo.Y = m_params_rigid.Young_modulus;
     auto patch_mat = minfo.CreateMaterial(m_system->GetContactMethod());
 
-    auto patch = terrain->AddPatch(patch_mat, ChCoordsys<>(location, QUNIT),
-                                   ChVector<>(m_params_rigid.length, m_params_rigid.width, 0.1));
+    auto patch =
+        terrain->AddPatch(patch_mat, location, ChVector<>(0, 0, 1), m_params_rigid.length, m_params_rigid.width, 0.1);
+
     patch->SetColor(ChColor(0.8f, 0.8f, 0.8f));
     patch->SetTexture(GetChronoDataFile("pinkwhite.png"), 10 * (float)m_params_rigid.length,
                       10 * (float)m_params_rigid.width);
