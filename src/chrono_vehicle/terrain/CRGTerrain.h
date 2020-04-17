@@ -56,6 +56,9 @@ class CH_VEHICLE_API CRGTerrain : public ChTerrain {
     CRGTerrain(ChSystem* system  ///< [in] pointer to the containing multibody system
     );
 
+    /// Enable verbose messages from CRG (default : false).
+    void EnableVerbose(bool val);
+
     /// Set the road visualization mode (mesh or boundary lines).
     /// Default: mesh.
     void UseMeshVisualization(bool val) { m_use_vis_mesh = val; }

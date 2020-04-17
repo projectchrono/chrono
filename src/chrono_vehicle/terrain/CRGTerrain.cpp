@@ -66,12 +66,21 @@ CRGTerrain::CRGTerrain(ChSystem* system)
     m_ground->SetBodyFixed(true);
     m_ground->SetCollide(false);
     system->Add(m_ground);
+
+    crgMsgSetLevel(dCrgMsgLevelNone);
 }
 
 CRGTerrain::~CRGTerrain() {
     crgContactPointDelete(m_cpId);
     crgDataSetRelease(m_dataSetId);
     crgMemRelease();
+}
+
+void CRGTerrain::EnableVerbose(bool val) {
+    if (val)
+        crgMsgSetLevel(dCrgMsgLevelInfo);
+    else
+        crgMsgSetLevel(dCrgMsgLevelNone);
 }
 
 void CRGTerrain::Initialize(const std::string& crg_file) {
