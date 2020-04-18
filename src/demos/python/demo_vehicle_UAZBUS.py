@@ -21,7 +21,7 @@
 # =============================================================================
 
 import pychrono.core as chrono
-import pychrono.irrlicht as chronoirr
+import pychrono.irrlicht as irr
 import pychrono.vehicle as veh
 import math
 import os
@@ -130,12 +130,12 @@ terrain.Initialize()
 # Create the driver system
 # -------------------------------------
 
-app = veh.ChWheeledVehicleIrrApp(uaz.GetVehicle())#, "UAZBUS demo")
+app = veh.ChWheeledVehicleIrrApp(uaz.GetVehicle(), 'UAZBUS', irr.dimension2du(1000,800))
 app.SetSkyBox()
-app.AddTypicalLights(chronoirr.vector3df(+130, +130, 150), chronoirr.vector3df(-130, +130, 150), 120,
-                     120, chronoirr.SColorf(0.7, 0.7, 0.7, 1.0), chronoirr.SColorf(0.7, 0.7, 0.7, 1.0))
-app.AddTypicalLights(chronoirr.vector3df(+130, -130, 150), chronoirr.vector3df(-130, -130, 150), 120,
-                     120, chronoirr.SColorf(0.7, 0.7, 0.7, 1.0), chronoirr.SColorf(0.7, 0.7, 0.7, 1.0))
+app.AddTypicalLights(irr.vector3df(+130, +130, 150), irr.vector3df(-130, +130, 150), 120,
+                     120, irr.SColorf(0.7, 0.7, 0.7, 1.0), irr.SColorf(0.7, 0.7, 0.7, 1.0))
+app.AddTypicalLights(irr.vector3df(+130, -130, 150), irr.vector3df(-130, -130, 150), 120,
+                     120, irr.SColorf(0.7, 0.7, 0.7, 1.0), irr.SColorf(0.7, 0.7, 0.7, 1.0))
 
 app.SetChaseCamera(trackPoint, 6.0, 0.5)
 app.SetTimestep(step_size)
@@ -178,7 +178,7 @@ while (app.GetDevice().run()) :
 
     # Render scene
     if (step_number % render_steps == 0) :
-        app.BeginScene(True, True, chronoirr.SColor(255, 140, 161, 192))
+        app.BeginScene(True, True, irr.SColor(255, 140, 161, 192))
         app.DrawAll()
         app.EndScene()
 

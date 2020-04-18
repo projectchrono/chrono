@@ -71,4 +71,8 @@ using namespace irr;*/
 %include "../chrono_vehicle/utils/ChVehicleIrrApp.h"
 %include "../chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 %include "../chrono_vehicle/driver/ChIrrGuiDriver.h"
+%include "irrTypes.h"
+%include "vector2d.h"
+%include "dimension2d.h"
+%template(dimension2du) irr::core::dimension2d<irr::u32>;
 #endif

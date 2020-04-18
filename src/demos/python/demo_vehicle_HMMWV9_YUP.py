@@ -19,7 +19,7 @@
 
 import pychrono as chrono
 import pychrono.vehicle as veh
-import pychrono.irrlicht as chronoirr
+import pychrono.irrlicht as irr
 import os
 import math as m
 
@@ -62,8 +62,7 @@ def main():
     terrain.Initialize()
 
     # Create the vehicle Irrlicht interface
-    # please note that wchar_t conversion requres some workaround
-    app = veh.ChWheeledVehicleIrrApp(my_hmmwv.GetVehicle())
+    app = veh.ChWheeledVehicleIrrApp(my_hmmwv.GetVehicle(), 'HMMWV-9 YUP world frame', irr.dimension2du(1000,800))
     app.SetSkyBox()
     app.AddTypicalLights()
     app.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
@@ -85,7 +84,7 @@ def main():
     while (app.GetDevice().run()):
         time = my_hmmwv.GetSystem().GetChTime()
 
-        app.BeginScene(True, True, chronoirr.SColor(255, 140, 161, 192))
+        app.BeginScene(True, True, irr.SColor(255, 140, 161, 192))
         app.DrawAll()
         app.RenderFrame(chrono.ChVectorD(0, 0, 0), 10)
         app.EndScene()
