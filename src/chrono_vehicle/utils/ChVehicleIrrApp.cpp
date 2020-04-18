@@ -107,8 +107,8 @@ bool ChCameraEventReceiver::OnEvent(const SEvent& event) {
 // Construct a vehicle Irrlicht application.
 // -----------------------------------------------------------------------------
 ChVehicleIrrApp::ChVehicleIrrApp(ChVehicle* vehicle,
-                                 const wchar_t* title,
-                                 irr::core::dimension2d<irr::u32> dims,
+                                 const std::wstring& title,
+                                 const irr::core::dimension2d<irr::u32>& dims,
                                  irr::ELOG_LEVEL log_level)
     : ChIrrApp(vehicle->GetSystem(), title, dims, false, false, true, irr::video::EDT_OPENGL, log_level),
       m_vehicle(vehicle),

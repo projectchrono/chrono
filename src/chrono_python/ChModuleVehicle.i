@@ -127,6 +127,7 @@ using namespace chrono::vehicle::uaz;
 // different c++ class, when possible.
 
 %include "std_string.i"
+%include "std_wstring.i"
 %include "std_vector.i"
 %include "typemaps.i"
 %include "wchar.i"

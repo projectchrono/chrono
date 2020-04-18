@@ -229,7 +229,7 @@ int main(int argc, char* argv[]) {
             break;
     }
 
-    ChWheeledVehicleIrrApp app(&vehicle, windowTitle.c_str());
+    ChWheeledVehicleIrrApp app(&vehicle, windowTitle);
 
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);

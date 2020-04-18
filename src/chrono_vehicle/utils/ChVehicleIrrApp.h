@@ -56,11 +56,11 @@ class ChCameraEventReceiver;  ///< custom event receiver for chase-cam control
 class CH_VEHICLE_API ChVehicleIrrApp : public irrlicht::ChIrrApp {
   public:
     /// Construct a vehicle Irrlicht application.
-    ChVehicleIrrApp(
-        ChVehicle* vehicle,        ///< pointer to the associated vehicle system
-        const wchar_t* title = 0,  ///< window title
-        irr::core::dimension2d<irr::u32> dims = irr::core::dimension2d<irr::u32>(1000, 800),  ///< window dimensions
-        irr::ELOG_LEVEL log_level = irr::ELL_INFORMATION  ///< Irrlicht logging level
+    ChVehicleIrrApp(ChVehicle* vehicle,                              ///< pointer to the associated vehicle system
+                    const std::wstring& title = L"Chrono::Vehicle",  ///< window title
+                    const irr::core::dimension2d<irr::u32>& dims =
+                        irr::core::dimension2d<irr::u32>(1000, 800),  ///< window dimensions
+                    irr::ELOG_LEVEL log_level = irr::ELL_INFORMATION  ///< Irrlicht logging level
     );
 
     virtual ~ChVehicleIrrApp();
