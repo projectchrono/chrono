@@ -32,9 +32,9 @@
 
 // Model:
 
-%include "../chrono_models/vehicle/generic/Generic_BrakeSimple.h"
-%include "../chrono_models/vehicle/hmmwv/HMMWV_BrakeSimple.h"
-%include "../chrono_models/vehicle/sedan/Sedan_BrakeSimple.h"
-%include "../chrono_models/vehicle/citybus/CityBus_BrakeSimple.h"
-%include "../chrono_models/vehicle/man/MAN_5t_BrakeSimple.h"
-%include "../chrono_models/vehicle/uaz/UAZBUS_BrakeSimple.h"
+%include "../../chrono_models/vehicle/generic/Generic_BrakeSimple.h"
+%include "../../chrono_models/vehicle/hmmwv/HMMWV_BrakeSimple.h"
+%include "../../chrono_models/vehicle/sedan/Sedan_BrakeSimple.h"
+%include "../../chrono_models/vehicle/citybus/CityBus_BrakeSimple.h"
+%include "../../chrono_models/vehicle/man/MAN_5t_BrakeSimple.h"
+%include "../../chrono_models/vehicle/uaz/UAZBUS_BrakeSimple.h"
