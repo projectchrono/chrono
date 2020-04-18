@@ -36,7 +36,7 @@
 
 
 // For optional downcasting of polimorphic objects:
-%include "chrono_downcast.i" 
+%include "../chrono_downcast.i" 
 
 // For supporting shared pointers:
 %include <std_shared_ptr.i>
