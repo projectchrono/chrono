@@ -4,6 +4,7 @@ call "%CONDA_INSTALL_LOCN%"\Scripts\activate.bat
 call conda install --yes conda-build anaconda-client
 call conda install --yes -c intel mkl-devel
 call conda install -c conda-forge swig=4.0 --yes
+call conda install -c dlr-sc opencascade --yes
 call conda install mkl --yes
 call conda install cmake --yes
 call conda install jinja2 --yes

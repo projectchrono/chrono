@@ -89,7 +89,7 @@ linux:arch-gcc:deploy:
     - conda update conda --yes
     - conda config --add channels https://conda.anaconda.org/conda-forge
     - conda config --add channels https://conda.anaconda.org/intel
-    - conda install -c conda-forge -c dlr-sc -c pythonocc -c oce -c 3dhubs oce=0.18.2 --yes
+    - conda install -c dlr-sc opencascade --yes
     - conda install -c intel mkl-devel --yes
     - conda build purge-all
     - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.7
