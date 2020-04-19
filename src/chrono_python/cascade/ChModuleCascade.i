@@ -134,19 +134,19 @@ using namespace chrono::cascade;
 //This import gave problems with different PythonOCC versions. Is it 
 //%import(module = "OCC.Core.TopoDS") "TopoDS_Shape.hxx"
 
-%import(module = "pychrono.core")  "../core/ChClassFactory.i"
-%import(module = "pychrono.core")  "../core/ChObject.i"
-%import(module = "pychrono.core")  "../core/ChVector.i"
-%import(module = "pychrono.core")  "../core/ChQuaternion.i"
-%import(module = "pychrono.core")  "../core/ChCoordsys.i"
-%import(module = "pychrono.core")  "../core/ChFrame.i"
-%import(module = "pychrono.core")  "../core/ChFrameMoving.i"
-%import(module = "pychrono.core")  "../core/ChAsset.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChClassFactory.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChObject.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChVector.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChQuaternion.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChCoordsys.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChFrame.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChFrameMoving.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChAsset.i"
 %import(module = "pychrono.core")  "../../chrono/physics/ChPhysicsItem.h"
-%import(module = "pychrono.core")  "../core/ChBodyFrame.i"
-%import(module = "pychrono.core")  "../core/ChBody.i"
-%import(module = "pychrono.core")  "../core/ChBodyAuxRef.i"
-%import(module = "pychrono.core")  "../core/ChMaterialSurface.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChBodyFrame.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChBody.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChBodyAuxRef.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChMaterialSurface.i"
 
 %ignore chrono::cascade::ChCascadeTriangulate::clone;
 %ignore chrono::cascade::ChCascadeTriangulateTolerances::clone;

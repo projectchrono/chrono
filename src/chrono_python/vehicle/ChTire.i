@@ -57,7 +57,7 @@
 %shared_ptr(chrono::vehicle::FialaTire)
 
 
-%import(module = "pychrono.core") "../core/ChShaft.i"
+%import(module = "pychrono.core") "chrono_python/core/ChShaft.i"
 %import "ChTerrain.i"
 %import "chrono_vehicle/ChSubsysDefs.h"
 
@@ -90,7 +90,7 @@
 %include "../../chrono_vehicle/wheeled_vehicle/tire/ANCFToroidalTire.h"
 %include "../../chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"*/
 
-%include "../models/TireModels.i"
+%include "chrono_python/models/TireModels.i"
 
 
 //

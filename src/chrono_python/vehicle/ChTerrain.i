@@ -23,13 +23,13 @@
 
 %}
 
-%import(module = "pychrono.core") "../core/ChColor.i"
-%import(module = "pychrono.core") "../core/ChSystem.i"
-%import(module = "pychrono.core") "../core/ChVector.i"
-%import(module = "pychrono.core") "../core/ChBody.i"
-%import(module = "pychrono.core") "../core/ChLoadContainer.i"
+%import(module = "pychrono.core") "chrono_python/core/ChColor.i"
+%import(module = "pychrono.core") "chrono_python/core/ChSystem.i"
+%import(module = "pychrono.core") "chrono_python/core/ChVector.i"
+%import(module = "pychrono.core") "chrono_python/core/ChBody.i"
+%import(module = "pychrono.core") "chrono_python/core/ChLoadContainer.i"
 %import(module = "pychrono.core") "../../chrono/assets/ChTriangleMeshShape.h"
-%import(module = "pychrono.core") "../core/ChColorAsset.i"
+%import(module = "pychrono.core") "chrono_python/core/ChColorAsset.i"
 
 %shared_ptr(chrono::vehicle::RigidTerrain::Patch)
 %shared_ptr(chrono::vehicle::SCMDeformableSoil)

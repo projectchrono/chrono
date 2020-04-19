@@ -34,7 +34,7 @@
 %shared_ptr(chrono::vehicle::RackPinion)
 %shared_ptr(chrono::vehicle::RotaryArm)
 
-%import(module = "pychrono.core") "../core/ChShaft.i"
+%import(module = "pychrono.core") "chrono_python/core/ChShaft.i"
 %import "../../chrono_vehicle/ChPart.h"
 
 
@@ -54,7 +54,7 @@
 %include "../../chrono_vehicle/wheeled_vehicle/steering/PitmanArm.h"
 %include "../../chrono_vehicle/wheeled_vehicle/steering/RackPinion.h"
 %include "../../chrono_vehicle/wheeled_vehicle/steering/RotaryArm.h"
-%include "../models/SteeringModels.i"
+%include "chrono_python/models/SteeringModels.i"
 
 
 //

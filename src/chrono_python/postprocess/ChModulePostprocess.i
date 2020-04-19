@@ -119,11 +119,11 @@ using namespace chrono::postprocess;
 // in the .i file, before the %include of the .h, even if already forwarded in .h
 
 //  core/  classes
-%import(module = "pychrono.core")  "../core/ChClassFactory.i"
-%import(module = "pychrono.core")  "../core/ChAsset.i"
-%import(module = "pychrono.core")  "../core/ChColor.i"
-%import(module = "pychrono.core")  "../core/ChSystem.i"
-%import(module = "pychrono.core")  "../core/ChVisualization.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChClassFactory.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChAsset.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChColor.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChSystem.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChVisualization.i"
 
 %include "ChPostProcessBase.i"
 %include "ChPovRay.i"

@@ -18,10 +18,10 @@
 %}
  
 // Tell SWIG about parent class in Python
-%import "ChSystem.i"
-%import "ChPhysicsItem.i"
-%import "ChLoad.i"
-%import "ChLoadable.i"
+%import "chrono_python/core/ChSystem.i"
+%import "chrono_python/core/ChPhysicsItem.i"
+%import "chrono_python/core/ChLoad.i"
+%import "chrono_python/core/ChLoadable.i"
 
 //%shared_ptr(chrono::ChVariables)
 //%shared_ptr(chrono::ChVariablesShaft)

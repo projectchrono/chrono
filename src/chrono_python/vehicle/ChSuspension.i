@@ -77,7 +77,7 @@
 %shared_ptr(chrono::vehicle::SolidBellcrankThreeLinkAxle)
 %shared_ptr(chrono::vehicle::SolidThreeLinkAxle)
 
-%import(module = "pychrono.core") "../core/ChShaft.i"
+%import(module = "pychrono.core") "chrono_python/core/ChShaft.i"
 %import "../../chrono_vehicle/ChPart.h"
 
 
@@ -117,7 +117,7 @@
 %include "../../chrono_vehicle/wheeled_vehicle/suspension/SolidBellcrankThreeLinkAxle.h"
 %include "../../chrono_vehicle/wheeled_vehicle/suspension/SolidThreeLinkAxle.h"
 
-%include "../models/SuspensionModels.i"
+%include "chrono_python/models/SuspensionModels.i"
 
 
 //

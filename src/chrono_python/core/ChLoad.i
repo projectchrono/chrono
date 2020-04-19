@@ -47,8 +47,8 @@
 %shared_ptr(chrono::ChLoadXYZnodeBodyBushing)
 
 // Tell SWIG about parent class in Python
-%import "ChPhysicsItem.i"
-%import "ChObject.i"
+%import "chrono_python/core/ChPhysicsItem.i"
+%import "chrono_python/core/ChObject.i"
 
 /* Parse the header file to generate wrappers */
 %ignore chrono::ChLoadBase::ComputeJacobian;

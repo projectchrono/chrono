@@ -51,7 +51,7 @@
 %shared_ptr(chrono::vehicle::ShaftsPowertrain)
 
 %import "../../chrono_vehicle/ChPart.h"
-%import(module = "pychrono.core") "../core/ChShaft.i"
+%import(module = "pychrono.core") "chrono_python/core/ChShaft.i"
 
 /* Parse the header file to generate wrappers */
 
@@ -68,7 +68,7 @@
 %include "../../chrono_vehicle/powertrain/ShaftsPowertrain.h"
 
 
-%include "../models/PowertrainModels.i"
+%include "chrono_python/models/PowertrainModels.i"
 
 
 //

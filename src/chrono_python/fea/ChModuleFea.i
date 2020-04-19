@@ -285,37 +285,37 @@ using namespace chrono::fea;
 //  mynamespace { class myclass; }
 // in the .i file, before the %include of the .h, even if already forwarded in .h
 
-%import(module = "pychrono.core")  "../core/ChClassFactory.i"
-%import(module = "pychrono.core")  "../core/ChObject.i"
-%import(module = "pychrono.core")  "../core/ChVector.i"
-%import(module = "pychrono.core")  "../core/ChQuaternion.i"
-%import(module = "pychrono.core")  "../core/ChMatrix.i"
-%import(module = "pychrono.core")  "../core/ChPhysicsItem.i"
-%import(module = "pychrono.core")  "../core/ChCoordsys.i"
-%import(module = "pychrono.core")  "../core/ChFrame.i"
-%import(module = "pychrono.core")  "../core/ChFrameMoving.i"
-%import(module = "pychrono.core")  "../core/ChBodyFrame.i"
-%import(module = "pychrono.core")  "../core/ChLinkBase.i"
-%import(module = "pychrono.core")  "../core/ChTensors.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChClassFactory.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChObject.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChVector.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChQuaternion.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChMatrix.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChPhysicsItem.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChCoordsys.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChFrame.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChFrameMoving.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChBodyFrame.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChLinkBase.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChTensors.i"
 // Put this 'director' feature _before_ class wrapping declaration.
 %feature("director") chrono::ChFunction;
 %import(module = "pychrono.core")  "../../chrono/motion_functions/ChFunction_Base.h"
-%import(module = "pychrono.core")  "../core/ChAsset.i"
-%import(module = "pychrono.core")  "../core/ChAssetLevel.i"
-%import(module = "pychrono.core")  "../core/ChColor.i"
-%import(module = "pychrono.core")  "../core/ChMaterialSurface.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChAsset.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChAssetLevel.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChColor.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChMaterialSurface.i"
 %import(module = "pychrono.core")  "../../chrono/physics/ChPhysicsItem.h"
 %import(module = "pychrono.core")  "../../chrono/physics/ChIndexedNodes.h"
 %feature("director") chrono::ChLoadable;
 %feature("director") chrono::ChLoadableU;
 %feature("director") chrono::ChLoadableUV;
 %feature("director") chrono::ChLoadableUVW;
-%import(module = "pychrono.core")  "../core/ChLoadable.i" // disable because strange error in cxx
-%import(module = "pychrono.core")  "../core/ChLoader.i"
-%import(module = "pychrono.core")  "../core/ChLoad.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChLoadable.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChLoader.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChLoad.i"
 %import(module = "pychrono.core")  "../../chrono/physics/ChNodeBase.h"
 %import(module = "pychrono.core")  "../../chrono/physics/ChNodeXYZ.h"
-%import(module = "pychrono.core")  "../core/ChContactContainer.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChContactContainer.i"
 
 %template(LoadLoaderBeamWrench) chrono::ChLoad< chrono::fea::ChLoaderBeamWrench>;
 %template(LoadLoaderBeamWrenchDistributed) chrono::ChLoad< chrono::fea::ChLoaderBeamWrenchDistributed>;

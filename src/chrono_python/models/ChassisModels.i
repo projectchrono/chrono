@@ -36,7 +36,7 @@
 %shared_ptr(chrono::vehicle::uaz::UAZBUS_Chassis)
 
 /* Parse the header file to generate wrappers */
-%import "../vehicle/ChChassis.i"
+%import "chrono_python/vehicle/ChChassis.i"
 %import(module = "pychrono.core") "../../chrono/assets/ChAsset.h"
 %import(module = "pychrono.core") "../../chrono/assets/ChAssetLevel.h"
 

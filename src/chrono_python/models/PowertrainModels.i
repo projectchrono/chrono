@@ -47,7 +47,7 @@
 
 %shared_ptr(chrono::vehicle::uaz::UAZBUS_SimpleMapPowertrain)
 
-%import "../vehicle/ChPowertrain.i"
+%import "chrono_python/vehicle/ChPowertrain.i"
 
 // Model:
 %include "../../chrono_models/vehicle/generic/Generic_SimplePowertrain.h"

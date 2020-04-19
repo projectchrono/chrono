@@ -43,7 +43,7 @@
 %shared_ptr(chrono::vehicle::ShaftsDriveline4WD)
 %shared_ptr(chrono::vehicle::SimpleDrivelineXWD)
 
-%import(module = "pychrono.core") "../core/ChShaft.i"
+%import(module = "pychrono.core") "chrono_python/core/ChShaft.i"
 
 /* Parse the header file to generate wrappers */
 %include "../../chrono_vehicle/ChDriveline.h"
@@ -57,7 +57,7 @@
 %include "../../chrono_vehicle/wheeled_vehicle/driveline/ShaftsDriveline4WD.h"
 %include "../../chrono_vehicle/wheeled_vehicle/driveline/SimpleDrivelineXWD.h"
 
-%include "../models/DrivelineModels.i"
+%include "chrono_python/models/DrivelineModels.i"
 
 
 //

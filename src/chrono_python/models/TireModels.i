@@ -36,7 +36,7 @@
 
 
 
-%import "../vehicle/ChTire.i"
+%import "chrono_python/vehicle/ChTire.i"
 
 %shared_ptr(chrono::vehicle::generic::Generic_RigidTire)
 %shared_ptr(chrono::vehicle::generic::Generic_RigidMeshTire)

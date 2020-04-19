@@ -7,7 +7,7 @@ using namespace chrono;
 
 %}
  
-%import  "../core/ChAsset.i"
+%import  "chrono_python/core/ChAsset.i"
 
 /* Parse the header file to generate wrappers */
 %include "../../chrono_irrlicht/ChIrrNodeAsset.h"    

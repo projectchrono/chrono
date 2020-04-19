@@ -72,7 +72,7 @@
 %shared_ptr(chrono::vehicle::uaz::UAZBUS_LeafspringAxle)
 
 /* Parse the header file to generate wrappers */
-%import "../vehicle/ChSuspension.i"
+%import "chrono_python/vehicle/ChSuspension.i"
 
 // Model:
 %include "../../chrono_models/vehicle/generic/Generic_RigidSuspension.h"

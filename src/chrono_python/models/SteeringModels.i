@@ -36,7 +36,7 @@
 %shared_ptr(chrono::vehicle::uaz::UAZBUS_RotaryArm)
 
 /* Parse the header file to generate wrappers */
-%import "../vehicle/ChSteering.i"
+%import "chrono_python/vehicle/ChSteering.i"
 
 // Model:
 

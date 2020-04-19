@@ -31,9 +31,9 @@ class ChCustomCollisionCallbackP : public chrono::ChSystem::CustomCollisionCallb
 %shared_ptr(chrono::ChSystem)
 
 // Forward ref
-%import "ChAssembly.i"
-%import "ChTimestepper.i"
-//%import "ChSolver.i"
+%import "chrono_python/core/ChAssembly.i"
+%import "chrono_python/core/ChTimestepper.i"
+//%import "chrono_python/core/ChSolver.i"
 %import "chrono_python/core/ChCollisionModel.i"
 %import "chrono_python/core/ChCollisionInfo.i"
 

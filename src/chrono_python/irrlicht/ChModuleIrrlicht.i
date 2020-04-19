@@ -131,11 +131,11 @@ using namespace gui;
 // in the .i file, before the %include of the .h, even if already forwarded in .h
 
 
-%import(module = "pychrono.core")  "../core/ChClassFactory.i"
-%import(module = "pychrono.core")  "../core/ChSystem.i"
-%import(module = "pychrono.core")  "../core/ChAsset.i"
-%import(module = "pychrono.core")  "../core/ChVector.i"
-%import(module = "pychrono.core")  "../core/ChCoordsys.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChClassFactory.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChSystem.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChAsset.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChVector.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChCoordsys.i"
 
 %include "IReferenceCounted.h"
 %include "IImage.h"

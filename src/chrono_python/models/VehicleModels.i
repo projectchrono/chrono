@@ -62,13 +62,13 @@
 %shared_ptr(chrono::vehicle::uaz::UAZBUS_Vehicle)
 
 
-%import(module = "pychrono.core") "../core/ChMaterialSurface.i"
-%import "../vehicle/ChSuspension.i"
-%import "../vehicle/ChDriveline.i"
-%import "../vehicle/ChSteering.i"
-%import "../vehicle/ChPowertrain.i"
-%import "../vehicle/ChChassis.i"
-%import "../vehicle/ChTire.i"
+%import(module = "pychrono.core") "chrono_python/core/ChMaterialSurface.i"
+%import "chrono_python/vehicle/ChSuspension.i"
+%import "chrono_python/vehicle/ChDriveline.i"
+%import "chrono_python/vehicle/ChSteering.i"
+%import "chrono_python/vehicle/ChPowertrain.i"
+%import "chrono_python/vehicle/ChChassis.i"
+%import "chrono_python/vehicle/ChTire.i"
 %import "../../chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 %import "../../chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 %import "../../chrono_vehicle/ChVehicle.h"

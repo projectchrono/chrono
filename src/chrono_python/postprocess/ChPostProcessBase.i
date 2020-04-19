@@ -5,7 +5,7 @@
 %}
  
 // Forward ref
-%import "../core/ChSystem.i"
+%import "chrono_python/core/ChSystem.i"
 
 
 /* Parse the header file to generate wrappers */
