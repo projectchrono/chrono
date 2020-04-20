@@ -14,7 +14,7 @@
 //  'import pychrono'
 
 
-%module(directors="1") core
+%module(directors="1") ChronoEngine_csharp
 
 
 // Turn on the documentation of members, for more intuitive IDE typing
