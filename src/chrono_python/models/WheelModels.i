@@ -44,18 +44,18 @@
 %shared_ptr(chrono::vehicle::man::MAN_5t_WheelRight)
 %shared_ptr(chrono::vehicle::uaz::UAZBUS_Wheel)
 
-%import "../chrono_vehicle/wheeled_vehicle/ChWheel.h"
+%import "../../chrono_vehicle/wheeled_vehicle/ChWheel.h"
 
 // Model:
 
-%include "../chrono_models/vehicle/generic/Generic_Wheel.h"
+%include "../../chrono_models/vehicle/generic/Generic_Wheel.h"
 
-%include "../chrono_models/vehicle/hmmwv/HMMWV_Wheel.h"
+%include "../../chrono_models/vehicle/hmmwv/HMMWV_Wheel.h"
 
-%include "../chrono_models/vehicle/sedan/Sedan_Wheel.h"
+%include "../../chrono_models/vehicle/sedan/Sedan_Wheel.h"
 
-%include "../chrono_models/vehicle/citybus/CityBus_Wheel.h"
+%include "../../chrono_models/vehicle/citybus/CityBus_Wheel.h"
 
-%include "../chrono_models/vehicle/man/MAN_5t_Wheel.h"
+%include "../../chrono_models/vehicle/man/MAN_5t_Wheel.h"
 
-%include "../chrono_models/vehicle/uaz/UAZBUS_Wheel.h"
+%include "../../chrono_models/vehicle/uaz/UAZBUS_Wheel.h"

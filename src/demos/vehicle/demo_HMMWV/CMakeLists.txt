@@ -16,6 +16,7 @@ SET(DEMOS
     demo_VEH_HMMWV_DoubleLaneChange
     demo_VEH_HMMWV_DefSoil
     demo_VEH_HMMWV9
+    demo_VEH_HMMWV9_YUP
 )
 
 #--------------------------------------------------------------

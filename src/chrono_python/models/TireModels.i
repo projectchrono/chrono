@@ -36,7 +36,7 @@
 
 
 
-%import "ChTire.i"
+%import "chrono_python/vehicle/ChTire.i"
 
 %shared_ptr(chrono::vehicle::generic::Generic_RigidTire)
 %shared_ptr(chrono::vehicle::generic::Generic_RigidMeshTire)
@@ -59,25 +59,25 @@
 
 // Model:
 
-%include "../chrono_models/vehicle/generic/Generic_RigidTire.h"
-%include "../chrono_models/vehicle/generic/Generic_RigidMeshTire.h"
-%include "../chrono_models/vehicle/generic/Generic_FialaTire.h"
+%include "../../chrono_models/vehicle/generic/Generic_RigidTire.h"
+%include "../../chrono_models/vehicle/generic/Generic_RigidMeshTire.h"
+%include "../../chrono_models/vehicle/generic/Generic_FialaTire.h"
 
-%include "../chrono_models/vehicle/hmmwv/HMMWV_RigidTire.h"
-%include "../chrono_models/vehicle/hmmwv/HMMWV_ReissnerTire.h"
-%include "../chrono_models/vehicle/hmmwv/HMMWV_Pac89Tire.h"
-%include "../chrono_models/vehicle/hmmwv/HMMWV_PacejkaTire.h"
-%include "../chrono_models/vehicle/hmmwv/HMMWV_LugreTire.h"
-%include "../chrono_models/vehicle/hmmwv/HMMWV_FialaTire.h"
+%include "../../chrono_models/vehicle/hmmwv/HMMWV_RigidTire.h"
+%include "../../chrono_models/vehicle/hmmwv/HMMWV_ReissnerTire.h"
+%include "../../chrono_models/vehicle/hmmwv/HMMWV_Pac89Tire.h"
+%include "../../chrono_models/vehicle/hmmwv/HMMWV_PacejkaTire.h"
+%include "../../chrono_models/vehicle/hmmwv/HMMWV_LugreTire.h"
+%include "../../chrono_models/vehicle/hmmwv/HMMWV_FialaTire.h"
 
-%include "../chrono_models/vehicle/sedan/Sedan_TMeasyTire.h"
-%include "../chrono_models/vehicle/sedan/Sedan_RigidTire.h"
+%include "../../chrono_models/vehicle/sedan/Sedan_TMeasyTire.h"
+%include "../../chrono_models/vehicle/sedan/Sedan_RigidTire.h"
 
-%include "../chrono_models/vehicle/citybus/CityBus_RigidTire.h"
-%include "../chrono_models/vehicle/citybus/CityBus_TMeasyTire.h"
+%include "../../chrono_models/vehicle/citybus/CityBus_RigidTire.h"
+%include "../../chrono_models/vehicle/citybus/CityBus_TMeasyTire.h"
 
-%include "../chrono_models/vehicle/man/MAN_5t_TMeasyTire.h"
+%include "../../chrono_models/vehicle/man/MAN_5t_TMeasyTire.h"
 
-%include "../chrono_models/vehicle/uaz/UAZBUS_TMeasyTire.h"
-%include "../chrono_models/vehicle/uaz/UAZBUS_RigidTire.h"
-%include "../chrono_models/vehicle/uaz/UAZBUS_Pac02Tire.h"
+%include "../../chrono_models/vehicle/uaz/UAZBUS_TMeasyTire.h"
+%include "../../chrono_models/vehicle/uaz/UAZBUS_RigidTire.h"
+%include "../../chrono_models/vehicle/uaz/UAZBUS_Pac02Tire.h"

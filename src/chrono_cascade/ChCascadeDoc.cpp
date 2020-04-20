@@ -376,17 +376,16 @@ bool ChCascadeDoc::GetVolumeProperties(const TopoDS_Shape& mshape,   ///< pass t
     if (mshape.IsNull())
         return false;
 
-    GProp_GProps mprops;
     GProp_GProps vprops;
-    BRepGProp::VolumeProperties(mshape, mprops);
+    
+	// default density = 1;
+
     BRepGProp::VolumeProperties(mshape, vprops);
 
-    mprops.Add(mprops, density);
-
-    mass = mprops.Mass();
+	mass = vprops.Mass() * density; 
     volume = vprops.Mass();
-    gp_Pnt G = mprops.CentreOfMass();
-    gp_Mat I = mprops.MatrixOfInertia();
+    gp_Pnt G = vprops.CentreOfMass();
+	gp_Mat I = vprops.MatrixOfInertia();
 
     center_position.x() = G.X();
     center_position.y() = G.Y();
@@ -398,6 +397,9 @@ bool ChCascadeDoc::GetVolumeProperties(const TopoDS_Shape& mshape,   ///< pass t
     inertiaXY.x() = I(1, 2);
     inertiaXY.y() = I(1, 3);
     inertiaXY.z() = I(2, 3);
+
+	inertiaXX *= density;
+	inertiaXY *= density;
 
     return true;
 }

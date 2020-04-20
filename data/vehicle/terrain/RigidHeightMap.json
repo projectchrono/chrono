@@ -1,5 +1,5 @@
 {
-  "Name": "Rigid plane",
+  "Name": "Rigid height map",
   "Type": "Terrain",
   "Template": "RigidTerrain",
 
@@ -9,9 +9,9 @@
       "Orientation": [ 1, 0, 0, 0 ],
 
       "Geometry": {
-        "Height Map Filename": "terrain/height_maps/test64.bmp",
+        "Height Map Filename": "terrain/height_maps/bump64.bmp",
         "Mesh Name": "terrain_test64_POV_geom",
-        "Size": [ 128, 128 ],
+        "Size": [ 100, 64 ],
         "Height Range": [ 0, 4 ]
       },
 

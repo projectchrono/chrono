@@ -36,16 +36,16 @@
 %shared_ptr(chrono::vehicle::uaz::UAZBUS_Chassis)
 
 /* Parse the header file to generate wrappers */
-%import "ChChassis.i"
-%import(module = "pychrono.core") "../chrono/assets/ChAsset.h"
-%import(module = "pychrono.core") "../chrono/assets/ChAssetLevel.h"
+%import "chrono_python/vehicle/ChChassis.i"
+%import(module = "pychrono.core") "../../chrono/assets/ChAsset.h"
+%import(module = "pychrono.core") "../../chrono/assets/ChAssetLevel.h"
 
 // Model:
-%include "../chrono_models/vehicle/generic/Generic_Chassis.h"
-%include "../chrono_models/vehicle/hmmwv/HMMWV_Chassis.h"
-%include "../chrono_models/vehicle/sedan/Sedan_Chassis.h"
-%include "../chrono_models/vehicle/citybus/CityBus_Chassis.h"
-%include "../chrono_models/vehicle/man/MAN_5t_Chassis.h"
-%include "../chrono_models/vehicle/man/MAN_7t_Chassis.h"
-%include "../chrono_models/vehicle/man/MAN_10t_Chassis.h"
-%include "../chrono_models/vehicle/uaz/UAZBUS_Chassis.h"
+%include "../../chrono_models/vehicle/generic/Generic_Chassis.h"
+%include "../../chrono_models/vehicle/hmmwv/HMMWV_Chassis.h"
+%include "../../chrono_models/vehicle/sedan/Sedan_Chassis.h"
+%include "../../chrono_models/vehicle/citybus/CityBus_Chassis.h"
+%include "../../chrono_models/vehicle/man/MAN_5t_Chassis.h"
+%include "../../chrono_models/vehicle/man/MAN_7t_Chassis.h"
+%include "../../chrono_models/vehicle/man/MAN_10t_Chassis.h"
+%include "../../chrono_models/vehicle/uaz/UAZBUS_Chassis.h"

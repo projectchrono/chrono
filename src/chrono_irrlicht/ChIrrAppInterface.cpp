@@ -274,8 +274,8 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
 
 // Create the IRRLICHT context (device, etc.)
 ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
-                                     const wchar_t* title,
-                                     irr::core::dimension2d<irr::u32> dimens,
+                                     const std::wstring& title,
+                                     const irr::core::dimension2d<irr::u32>& dimens,
                                      bool do_fullscreen,
                                      bool do_shadows,
                                      bool do_antialias,
@@ -322,10 +322,7 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
     effect->setAmbientColor(irr::video::SColor(255, 122, 122, 122));
     use_effects = false;  // will be true as sson as a light with shadow is added.
 
-    if (title)
-        device->setWindowCaption(title);
-    else
-        device->setWindowCaption(L"Chrono::Engine");
+    device->setWindowCaption(title.c_str());
 
     irr::gui::IGUISkin* skin = GetIGUIEnvironment()->getSkin();
     irr::gui::IGUIFont* font = GetIGUIEnvironment()->getFont(GetChronoDataFile("fonts/arial8.xml").c_str());

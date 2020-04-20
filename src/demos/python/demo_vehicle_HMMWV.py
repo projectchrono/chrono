@@ -21,7 +21,7 @@
 
 import pychrono as chrono
 import pychrono.vehicle as veh
-import pychrono.irrlicht as chronoirr
+import pychrono.irrlicht as irr
 import os
 import math as m
 
@@ -65,18 +65,17 @@ def main():
         patch_mat.SetRestitution(0.01)
         patch_mat.SetYoungModulus(2e7)
     patch = terrain.AddPatch(patch_mat, 
-                             chrono.ChCoordsysD(chrono.ChVectorD(0, 0, terrainHeight - 5), chrono.QUNIT), 
-                             chrono.ChVectorD(terrainLength, terrainWidth, 10))
+                             chrono.ChVectorD(0, 0, 0), chrono.ChVectorD(0, 0, 1), 
+                             terrainLength, terrainWidth)
     patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
     patch.SetColor(chrono.ChColor(0.8, 0.8, 0.5))
     terrain.Initialize()
 
     # Create the vehicle Irrlicht interface
-    # please note that wchar_t conversion requres some workaround
-    app = veh.ChWheeledVehicleIrrApp(my_hmmwv.GetVehicle())
+    app = veh.ChWheeledVehicleIrrApp(my_hmmwv.GetVehicle(), 'HMMWV', irr.dimension2du(1000,800))
 
     app.SetSkyBox()
-    app.AddTypicalLights(chronoirr.vector3df(30, -30, 100), chronoirr.vector3df(30, 50, 100), 250, 130)
+    app.AddTypicalLights(irr.vector3df(30, -30, 100), irr.vector3df(30, 50, 100), 250, 130)
     app.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
     app.SetChaseCamera(trackPoint, 6.0, 0.5)
     app.SetTimestep(step_size)
@@ -126,7 +125,7 @@ def main():
 
     if (contact_vis):
         app.SetSymbolscale(1e-4);
-        #app.SetContactsDrawMode(chronoirr.eCh_ContactsDrawMode::CONTACT_FORCES);
+        #app.SetContactsDrawMode(irr.eCh_ContactsDrawMode::CONTACT_FORCES);
 
     realtime_timer = chrono.ChRealtimeStepTimer()
     while (app.GetDevice().run()):
@@ -136,7 +135,7 @@ def main():
         if (time >= t_end):
             break
 
-        app.BeginScene(True, True, chronoirr.SColor(255, 140, 161, 192))
+        app.BeginScene(True, True, irr.SColor(255, 140, 161, 192))
         app.DrawAll()
         app.EndScene()
 

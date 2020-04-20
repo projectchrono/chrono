@@ -13,6 +13,7 @@
 #ifndef CHCASCADETRIANGULATE_H
 #define CHCASCADETRIANGULATE_H
 
+#include "chrono/core/ChTypes.h"
 
 namespace chrono {
 namespace cascade {
@@ -26,6 +27,9 @@ namespace cascade {
 class ChCascadeTriangulate{
 public:
 	virtual ~ChCascadeTriangulate() {}
+
+	// Support cloning
+	virtual std::unique_ptr<ChCascadeTriangulate> clone() const = 0;
 };
 
 /// Class for storing settings on openCASCADE tesselation of shapes. 
@@ -40,11 +44,21 @@ class ChCascadeTriangulateTolerances : public ChCascadeTriangulate {
 	  double deflection; 
 	  bool   deflection_is_relative;
 	  double angular_deflection;
+
+	// Support cloning
+	virtual std::unique_ptr<ChCascadeTriangulate> clone() const override {
+        return chrono_types::make_unique<ChCascadeTriangulateTolerances>(*this);
+    }
+
 };
 
 /// Class for storing settings on openCASCADE tesselation of shapes. 
 class ChCascadeTriangulateNone : public ChCascadeTriangulate {
 
+	// Support cloning
+	virtual std::unique_ptr<ChCascadeTriangulate> clone() const override {
+        return chrono_types::make_unique<ChCascadeTriangulateNone>(*this);
+    }
 };
 
 

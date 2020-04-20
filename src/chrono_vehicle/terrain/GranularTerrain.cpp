@@ -47,6 +47,7 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/ChPart.h"
+#include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/terrain/GranularTerrain.h"
 
 namespace chrono {
@@ -499,18 +500,23 @@ void GranularTerrain::Synchronize(double time) {
     }
 }
 
-double GranularTerrain::GetHeight(double x, double y) const {
+double GranularTerrain::GetHeight(const ChVector<>& loc) const {
     double highest = m_bottom;
     for (auto body : m_ground->GetSystem()->Get_bodylist()) {
+        double height = ChWorldFrame::Height(body->GetPos());
         if (body->GetIdentifier() > m_start_id && body->GetPos().z() > highest)
             highest = body->GetPos().z();
     }
     return highest + m_radius;
 }
 
-float GranularTerrain::GetCoefficientFriction(double x, double y) const {
+    ChVector<> GranularTerrain::GetNormal(const ChVector<>& loc) const {
+    return ChWorldFrame::Vertical();
+}
+
+float GranularTerrain::GetCoefficientFriction(const ChVector<>& loc) const {
     if (m_friction_fun)
-        return (*m_friction_fun)(x, y);
+        return (*m_friction_fun)(loc);
 
     return m_material->GetSfriction();
 }

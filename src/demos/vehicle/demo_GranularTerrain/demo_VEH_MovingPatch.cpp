@@ -134,7 +134,7 @@ int main(int argc, char* argv[]) {
 
     terrain.Initialize(center, 2 * hdimX, 2 * hdimY, num_layers, r_g, rho_g, ChVector<>(0, 0, -2));
     uint actual_num_particles = terrain.GetNumParticles();
-    double terrain_height = terrain.GetHeight(0, 0);
+    double terrain_height = terrain.GetHeight(ChVector<>(0, 0, 0));
 
     std::cout << "Number of particles: " << actual_num_particles << std::endl;
     std::cout << "Terrain height:      " << terrain_height << std::endl;

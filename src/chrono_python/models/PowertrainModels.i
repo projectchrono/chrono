@@ -47,22 +47,22 @@
 
 %shared_ptr(chrono::vehicle::uaz::UAZBUS_SimpleMapPowertrain)
 
-%import "ChPowertrain.i"
+%import "chrono_python/vehicle/ChPowertrain.i"
 
 // Model:
-%include "../chrono_models/vehicle/generic/Generic_SimplePowertrain.h"
-%include "../chrono_models/vehicle/generic/Generic_SimpleMapPowertrain.h"
+%include "../../chrono_models/vehicle/generic/Generic_SimplePowertrain.h"
+%include "../../chrono_models/vehicle/generic/Generic_SimpleMapPowertrain.h"
 
-%include "../chrono_models/vehicle/hmmwv/HMMWV_SimplePowertrain.h"
-%include "../chrono_models/vehicle/hmmwv/HMMWV_SimpleMapPowertrain.h"
+%include "../../chrono_models/vehicle/hmmwv/HMMWV_SimplePowertrain.h"
+%include "../../chrono_models/vehicle/hmmwv/HMMWV_SimpleMapPowertrain.h"
 
-%include "../chrono_models/vehicle/sedan/Sedan_SimpleMapPowertrain.h"
+%include "../../chrono_models/vehicle/sedan/Sedan_SimpleMapPowertrain.h"
 
-%include "../chrono_models/vehicle/citybus/CityBus_SimpleMapPowertrain.h"
+%include "../../chrono_models/vehicle/citybus/CityBus_SimpleMapPowertrain.h"
 
-%include "../chrono_models/vehicle/man/MAN_5t_SimpleMapPowertrain.h"
-%include "../chrono_models/vehicle/man/MAN_5t_SimpleCVTPowertrain.h"
-%include "../chrono_models/vehicle/man/MAN_7t_SimpleMapPowertrain.h"
-%include "../chrono_models/vehicle/man/MAN_7t_SimpleCVTPowertrain.h"
+%include "../../chrono_models/vehicle/man/MAN_5t_SimpleMapPowertrain.h"
+%include "../../chrono_models/vehicle/man/MAN_5t_SimpleCVTPowertrain.h"
+%include "../../chrono_models/vehicle/man/MAN_7t_SimpleMapPowertrain.h"
+%include "../../chrono_models/vehicle/man/MAN_7t_SimpleCVTPowertrain.h"
 
-%include "../chrono_models/vehicle/uaz/UAZBUS_SimpleMapPowertrain.h"
+%include "../../chrono_models/vehicle/uaz/UAZBUS_SimpleMapPowertrain.h"
