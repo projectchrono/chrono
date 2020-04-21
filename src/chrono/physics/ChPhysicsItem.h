@@ -31,21 +31,6 @@ class ChSystem;
 /// such as rigid bodies, mechanical joints, etc.
 
 class ChApi ChPhysicsItem : public ChObj {
-
-    friend class ChSystem;
-
-  protected:
-    ChSystem* system;  ///< parent system
-
-    std::vector<std::shared_ptr<ChAsset> > assets;  ///< set of assets
-
-    unsigned int offset_x;  ///< offset in vector of state (position part)
-    unsigned int offset_w;  ///< offset in vector of state (speed part)
-    unsigned int offset_L;  ///< offset in vector of lagrangian multipliers
-
-  private:
-    virtual void SetupInitial() {}
-
   public:
     ChPhysicsItem() : system(NULL), offset_x(0), offset_w(0), offset_L(0) {}
     ChPhysicsItem(const ChPhysicsItem& other);
@@ -407,6 +392,21 @@ class ChApi ChPhysicsItem : public ChObj {
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+  protected:
+    ChSystem* system;  ///< parent system
+
+    std::vector<std::shared_ptr<ChAsset> > assets;  ///< set of assets
+
+    unsigned int offset_x;  ///< offset in vector of state (position part)
+    unsigned int offset_w;  ///< offset in vector of state (speed part)
+    unsigned int offset_L;  ///< offset in vector of lagrangian multipliers
+
+  private:
+    virtual void SetupInitial() {}
+
+    friend class ChSystem;
+    friend class ChAssembly;
 };
 
 CH_CLASS_VERSION(ChPhysicsItem, 0)

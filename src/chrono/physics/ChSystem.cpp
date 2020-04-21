@@ -37,8 +37,16 @@ namespace chrono {
 // -----------------------------------------------------------------------------
 
 ChSystem::ChSystem()
-    : ChAssembly(),
-      end_time(1),
+    : ndof(0),
+      ndoc(0),
+      ndoc_w(0),
+      ndoc_w_C(0),
+      ndoc_w_D(0),
+      ncoords(0),
+      ncoords_w(0),
+      nsysvars(0),
+      nsysvars_w(0),
+      ch_time(0),
       step(0.04),
       step_min(0.002),
       step_max(0.04),
@@ -57,8 +65,7 @@ ChSystem::ChSystem()
       dump_matrices(false),
       last_err(false),
       composition_strategy(new ChMaterialCompositionStrategy) {
-    // Required by ChAssembly
-    system = this;
+    assembly.system = this;
 
     // Set default collision envelope and margin.
     collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.03);
@@ -68,12 +75,22 @@ ChSystem::ChSystem()
     timestepper = chrono_types::make_shared<ChTimestepperEulerImplicitLinearized>(this);
 }
 
-ChSystem::ChSystem(const ChSystem& other) : ChAssembly(other) {
+ChSystem::ChSystem(const ChSystem& other) {
     // Required by ChAssembly
-    system = this;
+    assembly = other.assembly;
+    assembly.system = this;
 
     G_acc = other.G_acc;
-    end_time = other.end_time;
+    ncoords = other.ncoords;
+    ncoords_w = other.ncoords_w;
+    ndoc = other.ndoc;
+    ndoc_w = other.ndoc_w;
+    ndoc_w_C = other.ndoc_w_C;
+    ndoc_w_D = other.ndoc_w_D;
+    ndof = other.ndof;
+    nsysvars = other.nsysvars;
+    nsysvars_w = other.nsysvars_w;
+    ch_time = other.ch_time;
     step = other.step;
     step_min = other.step_min;
     step_max = other.step_max;
@@ -107,12 +124,54 @@ ChSystem::~ChSystem() {
 }
 
 void ChSystem::Clear() {
-    // first the parent class data...
-    ChAssembly::Clear();
+    assembly.Clear();
 
     // contact_container->RemoveAllContacts();
 
     // ResetTimers();
+}
+
+// -----------------------------------------------------------------------------
+
+// Add arbitrary physics item to the underlying assembly.
+// NOTE: we cannot simply invoke ChAssembly::Add as this would not provide
+// polymorphism!
+void ChSystem::Add(std::shared_ptr<ChPhysicsItem> item) {
+    if (auto body = std::dynamic_pointer_cast<ChBody>(item)) {
+        AddBody(body);
+        return;
+    }
+
+    if (auto link = std::dynamic_pointer_cast<ChLinkBase>(item)) {
+        AddLink(link);
+        return;
+    }
+
+    if (auto mesh = std::dynamic_pointer_cast<fea::ChMesh>(item)) {
+        AddMesh(mesh);
+        return;
+    }
+
+    AddOtherPhysicsItem(item);
+}
+
+void ChSystem::Remove(std::shared_ptr<ChPhysicsItem> item) {
+    if (auto body = std::dynamic_pointer_cast<ChBody>(item)) {
+        RemoveBody(body);
+        return;
+    }
+
+    if (auto link = std::dynamic_pointer_cast<ChLinkBase>(item)) {
+        RemoveLink(link);
+        return;
+    }
+
+    if (auto mesh = std::dynamic_pointer_cast<fea::ChMesh>(item)) {
+        RemoveMesh(mesh);
+        return;
+    }
+
+    RemoveOtherPhysicsItem(item);
 }
 
 // -----------------------------------------------------------------------------
@@ -213,7 +272,7 @@ void ChSystem::SetContactContainer(std::shared_ptr<ChContactContainer> container
 }
 
 void ChSystem::SetCollisionSystem(std::shared_ptr<ChCollisionSystem> newcollsystem) {
-    assert(GetNbodies() == 0);
+    assert(assembly.GetNbodies() == 0);
     assert(newcollsystem);
     collision_system = newcollsystem;
 }
@@ -225,19 +284,7 @@ void ChSystem::SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialComposit
 // Initial system setup before analysis.
 // This function must be called once the system construction is completed.
 void ChSystem::SetupInitial() {
-    for (int ip = 0; ip < bodylist.size(); ++ip) {
-        bodylist[ip]->SetupInitial();
-    }
-    for (int ip = 0; ip < linklist.size(); ++ip) {
-        linklist[ip]->SetupInitial();
-    }
-    for (int ip = 0; ip < meshlist.size(); ++ip) {
-        meshlist[ip]->SetupInitial();
-    }
-    for (int ip = 0; ip < otherphysicslist.size(); ++ip) {
-        otherphysicslist[ip]->SetupInitial();
-    }
-
+    assembly.SetupInitial();
     is_initialized = true;
 }
 
@@ -248,12 +295,10 @@ void ChSystem::SetupInitial() {
 void ChSystem::Reference_LM_byID() {
     std::vector<std::shared_ptr<ChLinkBase>> toremove;
 
-    for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-    {
-        std::shared_ptr<ChLinkBase> Lpointer = linklist[ip];
-        if (auto malink = std::dynamic_pointer_cast<ChLinkMarkers>(Lpointer)) {
-            std::shared_ptr<ChMarker> shm1 = SearchMarker(malink->GetMarkID1());
-            std::shared_ptr<ChMarker> shm2 = SearchMarker(malink->GetMarkID2());
+    for (auto& link : assembly.linklist) {
+        if (auto malink = std::dynamic_pointer_cast<ChLinkMarkers>(link)) {
+            std::shared_ptr<ChMarker> shm1 = assembly.SearchMarker(malink->GetMarkID1());
+            std::shared_ptr<ChMarker> shm2 = assembly.SearchMarker(malink->GetMarkID2());
             ChMarker* mm1 = shm1.get();
             ChMarker* mm2 = shm1.get();
             malink->SetUpMarkers(mm1, mm2);
@@ -266,8 +311,9 @@ void ChSystem::Reference_LM_byID() {
             }
         }
     }
+
     for (int ir = 0; ir < toremove.size(); ++ir) {
-        RemoveLink(toremove[ir]);
+        assembly.RemoveLink(toremove[ir]);
     }
 }
 
@@ -336,9 +382,9 @@ bool ChSystem::ManageSleepingBodies() {
     // STEP 1:
     // See if some body could change from no sleep-> sleep
 
-    for (int ip = 0; ip < bodylist.size(); ++ip) {
+    for (auto& body : assembly.bodylist) {
         // mark as 'could sleep' candidate
-        bodylist[ip]->TrySleeping();
+        body->TrySleeping();
     }
 
     // STEP 2:
@@ -408,9 +454,8 @@ bool ChSystem::ManageSleepingBodies() {
         my_waker.someone_sleeps = false;
 
         // scan all links and wake connected bodies
-        for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-        {
-            if (auto Lpointer = std::dynamic_pointer_cast<ChLink>(linklist[ip])) {
+        for (auto& link : assembly.linklist) {
+            if (auto Lpointer = std::dynamic_pointer_cast<ChLink>(link)) {
                 if (Lpointer->IsRequiringWaking()) {
                     ChBody* b1 = dynamic_cast<ChBody*>(Lpointer->GetBody1());
                     ChBody* b2 = dynamic_cast<ChBody*>(Lpointer->GetBody2());
@@ -448,9 +493,9 @@ bool ChSystem::ManageSleepingBodies() {
 
     /// If some body still must change from no sleep-> sleep, do it
     int need_Setup_B = 0;
-    for (int ip = 0; ip < bodylist.size(); ++ip) {
-        if (bodylist[ip]->BFlagGet(ChBody::BodyFlag::COULDSLEEP)) {
-            bodylist[ip]->SetSleeping(true);
+    for (auto& body : assembly.bodylist) {
+        if (body->BFlagGet(ChBody::BodyFlag::COULDSLEEP)) {
+            body->SetSleeping(true);
             ++need_Setup_B;
         }
     }
@@ -479,8 +524,6 @@ void ChSystem::DescriptorPrepareInject(ChSystemDescriptor& mdescriptor) {
 }
 
 // -----------------------------------------------------------------------------
-// CHPHYSICS ITEM INTERFACE
-// -----------------------------------------------------------------------------
 
 // SETUP
 //
@@ -490,21 +533,31 @@ void ChSystem::DescriptorPrepareInject(ChSystemDescriptor& mdescriptor) {
 
 void ChSystem::Setup() {
     CH_PROFILE("Setup");
-    // inherit the parent class (compute offsets of bodies, links, etc.)
-    ChAssembly::Setup();
 
-    // also compute offsets for contact container
-    {
-        contact_container->SetOffset_L(offset_L + ndoc_w);
+    ncoords = 0;
+    ncoords_w = 0;
+    ndoc = 0;
+    ndoc_w = 0;
+    ndoc_w_C = 0;
+    ndoc_w_D = 0;
 
-        ndoc_w += contact_container->GetDOC();
-        ndoc_w_C += contact_container->GetDOC_c();
-        ndoc_w_D += contact_container->GetDOC_d();
-    }
+    // Set up the underlying assembly (compute offsets of bodies, links, etc.)
+    assembly.Setup();
+    ncoords += assembly.ncoords;
+    ncoords_w += assembly.ncoords_w;
+    ndoc_w += assembly.ndoc_w;
+    ndoc_w_C += assembly.ndoc_w_C;
+    ndoc_w_D += assembly.ndoc_w_D;
 
-    ndoc = ndoc_w + nbodies;          // number of constraints including quaternion constraints.
-    nsysvars = ncoords + ndoc;        // total number of variables (coordinates + lagrangian multipliers)
-    nsysvars_w = ncoords_w + ndoc_w;  // total number of variables (with 6 dof per body)
+    // Compute offsets for contact container
+    contact_container->SetOffset_L(assembly.offset_L + ndoc_w);
+    ndoc_w += contact_container->GetDOC();
+    ndoc_w_C += contact_container->GetDOC_c();
+    ndoc_w_D += contact_container->GetDOC_d();
+
+    ndoc = ndoc_w + assembly.nbodies;  // number of constraints including quaternion constraints.
+    nsysvars = ncoords + ndoc;         // total number of variables (coordinates + lagrangian multipliers)
+    nsysvars_w = ncoords_w + ndoc_w;   // total number of variables (with 6 dof per body)
 
     ndof = ncoords - ndoc;  // number of degrees of freedom (approximate - does not consider constr. redundancy, etc)
 
@@ -555,6 +608,12 @@ void ChSystem::Setup() {
 // - updates all forces  (automatic, as children of bodies)
 // - updates all markers (automatic, as children of bodies).
 
+void ChSystem::Update(double mytime, bool update_assets) {
+    ch_time = mytime;
+    assembly.ChTime = mytime;
+    Update(update_assets);
+}
+
 void ChSystem::Update(bool update_assets) {
     CH_PROFILE("Update");
 
@@ -563,11 +622,11 @@ void ChSystem::Update(bool update_assets) {
 
     timer_update.start();  // Timer for profiling
 
-    // Inherit parent class (recursively update sub objects bodies, links, etc)
-    ChAssembly::Update(update_assets);
+    // Update underlying assembly (recursively update sub objects bodies, links, etc)
+    assembly.Update(update_assets);
 
     // Update all contacts, if any
-    contact_container->Update(ChTime, update_assets);
+    contact_container->Update(ch_time, update_assets);
 
     timer_update.stop();
 }
@@ -582,14 +641,16 @@ void ChSystem::IntStateGather(const unsigned int off_x,  // offset in x state ve
                               ChStateDelta& v,           // state vector, speed part
                               double& T)                 // time
 {
-    unsigned int displ_x = off_x - offset_x;
-    unsigned int displ_v = off_v - offset_w;
+    // Operate on assembly items (bodies, links, etc.)
+    assembly.IntStateGather(off_x, x, off_v, v, T);
 
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::IntStateGather(off_x, x, off_v, v, T);
     // Use also on contact container:
+    unsigned int displ_x = off_x - assembly.offset_x;
+    unsigned int displ_v = off_v - assembly.offset_w;
     contact_container->IntStateGather(displ_x + contact_container->GetOffset_x(), x,
                                       displ_v + contact_container->GetOffset_w(), v, T);
+
+    T = ch_time;
 }
 
 void ChSystem::IntStateScatter(const unsigned int off_x,  // offset in x state vector
@@ -598,54 +659,55 @@ void ChSystem::IntStateScatter(const unsigned int off_x,  // offset in x state v
                                const ChStateDelta& v,     // state vector, speed part
                                const double T)            // time
 {
-    unsigned int displ_x = off_x - offset_x;
-    unsigned int displ_v = off_v - offset_w;
-
     // Let each object (bodies, links, etc.) in the assembly extract its own states.
     // Note that each object also performs an update
-    ChAssembly::IntStateScatter(off_x, x, off_v, v, T);
+    assembly.IntStateScatter(off_x, x, off_v, v, T);
 
     // Use also on contact container:
+    unsigned int displ_x = off_x - assembly.offset_x;
+    unsigned int displ_v = off_v - assembly.offset_w;
     contact_container->IntStateScatter(displ_x + contact_container->GetOffset_x(), x,
                                        displ_v + contact_container->GetOffset_w(), v, T);
+
+    ch_time = T;
 }
 
 void ChSystem::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
-    unsigned int displ_a = off_a - offset_w;
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.IntStateGatherAcceleration(off_a, a);
 
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::IntStateGatherAcceleration(off_a, a);
     // Use also on contact container:
+    unsigned int displ_a = off_a - assembly.offset_w;
     contact_container->IntStateGatherAcceleration(displ_a + contact_container->GetOffset_w(), a);
 }
 
 // From state derivative (acceleration) to system, sometimes might be needed
 void ChSystem::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
-    unsigned int displ_a = off_a - offset_w;
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.IntStateScatterAcceleration(off_a, a);
 
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::IntStateScatterAcceleration(off_a, a);
     // Use also on contact container:
+    unsigned int displ_a = off_a - assembly.offset_w;
     contact_container->IntStateScatterAcceleration(displ_a + contact_container->GetOffset_w(), a);
 }
 
 // From system to reaction forces (last computed) - some timestepper might need this
 void ChSystem::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
-    unsigned int displ_L = off_L - offset_L;
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.IntStateGatherReactions(off_L, L);
 
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::IntStateGatherReactions(off_L, L);
     // Use also on contact container:
+    unsigned int displ_L = off_L - assembly.offset_L;
     contact_container->IntStateGatherReactions(displ_L + contact_container->GetOffset_L(), L);
 }
 
 // From reaction forces to system, ex. store last computed reactions in ChLink objects for plotting etc.
 void ChSystem::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
-    unsigned int displ_L = off_L - offset_L;
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.IntStateScatterReactions(off_L, L);
 
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::IntStateScatterReactions(off_L, L);
     // Use also on contact container:
+    unsigned int displ_L = off_L - assembly.offset_L;
     contact_container->IntStateScatterReactions(displ_L + contact_container->GetOffset_L(), L);
 }
 
@@ -655,12 +717,12 @@ void ChSystem::IntStateIncrement(const unsigned int off_x,  // offset in x state
                                  const unsigned int off_v,  // offset in v state vector
                                  const ChStateDelta& Dv)    // state vector, increment
 {
-    unsigned int displ_x = off_x - offset_x;
-    unsigned int displ_v = off_v - offset_w;
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.IntStateIncrement(off_x, x_new, x, off_v, Dv);
 
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::IntStateIncrement(off_x, x_new, x, off_v, Dv);
     // Use also on contact container:
+    unsigned int displ_x = off_x - assembly.offset_x;
+    unsigned int displ_v = off_v - assembly.offset_w;
     contact_container->IntStateIncrement(displ_x + contact_container->GetOffset_x(), x_new, x,
                                          displ_v + contact_container->GetOffset_w(), Dv);
 }
@@ -669,11 +731,11 @@ void ChSystem::IntLoadResidual_F(const unsigned int off,  // offset in R residua
                                  ChVectorDynamic<>& R,    // result: the R residual, R += c*F
                                  const double c           // a scaling factor
 ) {
-    unsigned int displ_v = off - offset_w;
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.IntLoadResidual_F(off, R, c);
 
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::IntLoadResidual_F(off, R, c);
     // Use also on contact container:
+    unsigned int displ_v = off - assembly.offset_w;
     contact_container->IntLoadResidual_F(displ_v + contact_container->GetOffset_w(), R, c);
 }
 
@@ -682,11 +744,12 @@ void ChSystem::IntLoadResidual_Mv(const unsigned int off,      // offset in R re
                                   const ChVectorDynamic<>& w,  // the w vector
                                   const double c               // a scaling factor
 ) {
-    unsigned int displ_v = off - offset_w;
 
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::IntLoadResidual_Mv(off, R, w, c);
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.IntLoadResidual_Mv(off, R, w, c);
+
     // Use also on contact container:
+    unsigned int displ_v = off - assembly.offset_w;
     contact_container->IntLoadResidual_Mv(displ_v + contact_container->GetOffset_w(), R, w, c);
 }
 
@@ -695,11 +758,11 @@ void ChSystem::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L m
                                    const ChVectorDynamic<>& L,  // the L vector
                                    const double c               // a scaling factor
 ) {
-    unsigned int displ_L = off_L - offset_L;
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.IntLoadResidual_CqL(off_L, R, L, c);
 
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::IntLoadResidual_CqL(off_L, R, L, c);
     // Use also on contact container:
+    unsigned int displ_L = off_L - assembly.offset_L;
     contact_container->IntLoadResidual_CqL(displ_L + contact_container->GetOffset_L(), R, L, c);
 }
 
@@ -709,11 +772,11 @@ void ChSystem::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc re
                                    bool do_clamp,             // apply clamping to c*C?
                                    double recovery_clamp      // value for min/max clamping of c*C
 ) {
-    unsigned int displ_L = off_L - offset_L;
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.IntLoadConstraint_C(off_L, Qc, c, do_clamp, recovery_clamp);
 
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::IntLoadConstraint_C(off_L, Qc, c, do_clamp, recovery_clamp);
     // Use also on contact container:
+    unsigned int displ_L = off_L - assembly.offset_L;
     contact_container->IntLoadConstraint_C(displ_L + contact_container->GetOffset_L(), Qc, c, do_clamp, recovery_clamp);
 }
 
@@ -721,11 +784,11 @@ void ChSystem::IntLoadConstraint_Ct(const unsigned int off_L,  // offset in Qc r
                                     ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*Ct
                                     const double c             // a scaling factor
 ) {
-    unsigned int displ_L = off_L - offset_L;
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.IntLoadConstraint_Ct(off_L, Qc, c);
 
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::IntLoadConstraint_Ct(off_L, Qc, c);
     // Use also on contact container:
+    unsigned int displ_L = off_L - assembly.offset_L;
     contact_container->IntLoadConstraint_Ct(displ_L + contact_container->GetOffset_L(), Qc, c);
 }
 
@@ -735,12 +798,12 @@ void ChSystem::IntToDescriptor(const unsigned int off_v,
                                const unsigned int off_L,
                                const ChVectorDynamic<>& L,
                                const ChVectorDynamic<>& Qc) {
-    unsigned int displ_L = off_L - offset_L;
-    unsigned int displ_v = off_v - offset_w;
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.IntToDescriptor(off_v, v, R, off_L, L, Qc);
 
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::IntToDescriptor(off_v, v, R, off_L, L, Qc);
     // Use also on contact container:
+    unsigned int displ_L = off_L - assembly.offset_L;
+    unsigned int displ_v = off_v - assembly.offset_w;
     contact_container->IntToDescriptor(displ_v + contact_container->GetOffset_w(), v, R,
                                        displ_L + contact_container->GetOffset_L(), L, Qc);
 }
@@ -749,12 +812,12 @@ void ChSystem::IntFromDescriptor(const unsigned int off_v,
                                  ChStateDelta& v,
                                  const unsigned int off_L,
                                  ChVectorDynamic<>& L) {
-    unsigned int displ_L = off_L - offset_L;
-    unsigned int displ_v = off_v - offset_w;
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.IntFromDescriptor(off_v, v, off_L, L);
 
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::IntFromDescriptor(off_v, v, off_L, L);
     // Use also on contact container:
+    unsigned int displ_L = off_L - assembly.offset_L;
+    unsigned int displ_v = off_v - assembly.offset_w;
     contact_container->IntFromDescriptor(displ_v + contact_container->GetOffset_w(), v,
                                          displ_L + contact_container->GetOffset_L(), L);
 }
@@ -762,120 +825,137 @@ void ChSystem::IntFromDescriptor(const unsigned int off_v,
 // -----------------------------------------------------------------------------
 
 void ChSystem::InjectVariables(ChSystemDescriptor& mdescriptor) {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::InjectVariables(mdescriptor);
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.InjectVariables(mdescriptor);
+
     // Use also on contact container:
     contact_container->InjectVariables(mdescriptor);
 }
 
 void ChSystem::VariablesFbReset() {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::VariablesFbReset();
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.VariablesFbReset();
+
     // Use also on contact container:
     contact_container->VariablesFbReset();
 }
 
 void ChSystem::VariablesFbLoadForces(double factor) {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::VariablesFbLoadForces();
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.VariablesFbLoadForces();
+
     // Use also on contact container:
     contact_container->VariablesFbLoadForces();
 }
 
 void ChSystem::VariablesFbIncrementMq() {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::VariablesFbIncrementMq();
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.VariablesFbIncrementMq();
+
     // Use also on contact container:
     contact_container->VariablesFbIncrementMq();
 }
 
 void ChSystem::VariablesQbLoadSpeed() {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::VariablesQbLoadSpeed();
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.VariablesQbLoadSpeed();
+
     // Use also on contact container:
     contact_container->VariablesQbLoadSpeed();
 }
 
 void ChSystem::VariablesQbSetSpeed(double step) {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::VariablesQbSetSpeed(step);
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.VariablesQbSetSpeed(step);
+
     // Use also on contact container:
     contact_container->VariablesQbSetSpeed(step);
 }
 
 void ChSystem::VariablesQbIncrementPosition(double dt_step) {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::VariablesQbIncrementPosition(dt_step);
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.VariablesQbIncrementPosition(dt_step);
+
     // Use also on contact container:
     contact_container->VariablesQbIncrementPosition(dt_step);
 }
 
 void ChSystem::InjectConstraints(ChSystemDescriptor& mdescriptor) {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::InjectConstraints(mdescriptor);
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.InjectConstraints(mdescriptor);
+
     // Use also on contact container:
     contact_container->InjectConstraints(mdescriptor);
 }
 
 void ChSystem::ConstraintsBiReset() {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::ConstraintsBiReset();
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.ConstraintsBiReset();
+
     // Use also on contact container:
     contact_container->ConstraintsBiReset();
 }
 
 void ChSystem::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::ConstraintsBiLoad_C(factor, recovery_clamp, do_clamp);
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.ConstraintsBiLoad_C(factor, recovery_clamp, do_clamp);
+
     // Use also on contact container:
     contact_container->ConstraintsBiLoad_C(factor, recovery_clamp, do_clamp);
 }
 
 void ChSystem::ConstraintsBiLoad_Ct(double factor) {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::ConstraintsBiLoad_Ct(factor);
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.ConstraintsBiLoad_Ct(factor);
+
     // Use also on contact container:
     contact_container->ConstraintsBiLoad_Ct(factor);
 }
 
 void ChSystem::ConstraintsBiLoad_Qc(double factor) {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::ConstraintsBiLoad_Qc(factor);
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.ConstraintsBiLoad_Qc(factor);
+
     // Use also on contact container:
     contact_container->ConstraintsBiLoad_Qc(factor);
 }
 
 void ChSystem::ConstraintsFbLoadForces(double factor) {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::ConstraintsFbLoadForces(factor);
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.ConstraintsFbLoadForces(factor);
+
     // Use also on contact container:
     contact_container->ConstraintsFbLoadForces(factor);
 }
 
 void ChSystem::ConstraintsLoadJacobians() {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::ConstraintsLoadJacobians();
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.ConstraintsLoadJacobians();
+
     // Use also on contact container:
     contact_container->ConstraintsLoadJacobians();
 }
 
 void ChSystem::ConstraintsFetch_react(double factor) {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::ConstraintsFetch_react(factor);
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.ConstraintsFetch_react(factor);
+
     // Use also on contact container:
     contact_container->ConstraintsFetch_react(factor);
 }
 
 void ChSystem::InjectKRMmatrices(ChSystemDescriptor& mdescriptor) {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::InjectKRMmatrices(mdescriptor);
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.InjectKRMmatrices(mdescriptor);
+
     // Use also on contact container:
     contact_container->InjectKRMmatrices(mdescriptor);
 }
 
 void ChSystem::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
+
     // Use also on contact container:
     contact_container->KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
 }
@@ -1098,7 +1178,7 @@ double ChSystem::ComputeCollisions() {
     timer_collision.start();
 
     // Update all positions of collision models: delegate this to the ChAssembly
-    SyncCollisionModels();
+    assembly.SyncCollisionModels();
 
     // Perform the collision detection ( broadphase and narrowphase )
     collision_system->Run();
@@ -1106,19 +1186,18 @@ double ChSystem::ComputeCollisions() {
     // Report and store contacts and/or proximities, if there are some
     // containers in the physic system. The default contact container
     // for ChBody and ChParticles is used always.
-
     {
         CH_PROFILE("ReportContacts");
 
         collision_system->ReportContacts(contact_container.get());
 
-        for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip) {
-            if (auto mcontactcontainer = std::dynamic_pointer_cast<ChContactContainer>(otherphysicslist[ip])) {
-                // collision_system->ReportContacts(mcontactcontainer.get()); ***TEST*** if one wants to populate a
-                // ChContactContainer this would clear it anyway...
+        for (auto& item : assembly.otherphysicslist) {
+            if (auto mcontactcontainer = std::dynamic_pointer_cast<ChContactContainer>(item)) {
+                // collision_system->ReportContacts(mcontactcontainer.get()); 
+                // ***TEST*** if one wants to populate a ChContactContainer this would clear it anyway...
             }
 
-            if (auto mproximitycontainer = std::dynamic_pointer_cast<ChProximityContainer>(otherphysicslist[ip])) {
+            if (auto mproximitycontainer = std::dynamic_pointer_cast<ChProximityContainer>(item)) {
                 collision_system->ReportProximities(mproximitycontainer.get());
             }
         }
@@ -1236,11 +1315,11 @@ void ChSystem::DumpSystemMatrices(bool save_M, bool save_K, bool save_R, bool sa
 //  Note that time step can be modified if some variable-time stepper is used.
 // -----------------------------------------------------------------------------
 
-int ChSystem::DoStepDynamics(double m_step) {
+int ChSystem::DoStepDynamics(double step_size) {
     if (!is_initialized)
         SetupInitial();
 
-    step = m_step;
+    step = step_size;
     return Integrate_Y();
 }
 
@@ -1478,31 +1557,31 @@ bool ChSystem::DoStaticRelaxing(int nsteps) {
 
     if ((ncoords > 0) && (ndof >= 0)) {
         for (int m_iter = 0; m_iter < nsteps; m_iter++) {
-            for (int ip = 0; ip < bodylist.size(); ++ip) {
+            for (auto& body : assembly.bodylist) {
                 // Set no body speed and no body accel.
-                bodylist[ip]->SetNoSpeedNoAcceleration();
+                body->SetNoSpeedNoAcceleration();
             }
-            for (auto& mesh : meshlist) {
+            for (auto& mesh : assembly.meshlist) {
                 mesh->SetNoSpeedNoAcceleration();
             }
-            for (int ip = 0; ip < otherphysicslist.size(); ++ip) {
-                otherphysicslist[ip]->SetNoSpeedNoAcceleration();
+            for (auto& item : assembly.otherphysicslist) {
+                item->SetNoSpeedNoAcceleration();
             }
 
-            double m_undotime = GetChTime();
-            DoFrameDynamics(m_undotime + (step * 1.8) * (((double)nsteps - (double)m_iter)) / (double)nsteps);
-            SetChTime(m_undotime);
+            double undotime = GetChTime();
+            DoFrameDynamics(undotime + (step * 1.8) * (((double)nsteps - (double)m_iter)) / (double)nsteps);
+            ch_time = undotime;
         }
 
-        for (int ip = 0; ip < bodylist.size(); ++ip) {
+        for (auto& body : assembly.bodylist) {
             // Set no body speed and no body accel.
-            bodylist[ip]->SetNoSpeedNoAcceleration();
+            body->SetNoSpeedNoAcceleration();
         }
-        for (auto& mesh : meshlist) {
+        for (auto& mesh : assembly.meshlist) {
             mesh->SetNoSpeedNoAcceleration();
         }
-        for (int ip = 0; ip < otherphysicslist.size(); ++ip) {
-            otherphysicslist[ip]->SetNoSpeedNoAcceleration();
+        for (auto& item : assembly.otherphysicslist) {
+            item->SetNoSpeedNoAcceleration();
         }
     }
 
@@ -1519,7 +1598,7 @@ bool ChSystem::DoStaticRelaxing(int nsteps) {
 // **** REACHED, STARTING FROM THE CURRENT TIME.
 // -----------------------------------------------------------------------------
 
-bool ChSystem::DoEntireKinematics() {
+bool ChSystem::DoEntireKinematics(double end_time) {
     if (!is_initialized)
         SetupInitial();
 
@@ -1531,7 +1610,7 @@ bool ChSystem::DoEntireKinematics() {
     // first check if there are redundant links (at least one NR cycle
     // even if the structure is already assembled)
 
-    while (ChTime < end_time) {
+    while (ch_time < end_time) {
         // Newton-Raphson iteration, closing constraints
         DoAssembly(action);
 
@@ -1539,7 +1618,7 @@ bool ChSystem::DoEntireKinematics() {
             return false;
 
         // Update time and repeat.
-        ChTime += step;
+        ch_time += step;
     }
 
     return true;
@@ -1552,7 +1631,7 @@ bool ChSystem::DoEntireKinematics() {
 // **** END_TIME IS REACHED.
 // -----------------------------------------------------------------------------
 
-bool ChSystem::DoEntireDynamics() {
+bool ChSystem::DoEntireDynamics(double end_time) {
     if (!is_initialized)
         SetupInitial();
 
@@ -1568,7 +1647,7 @@ bool ChSystem::DoEntireDynamics() {
     // All the updating (of Y, Y_dt and time) is done
     // automatically by Integrate()
 
-    while (ChTime < end_time) {
+    while (ch_time < end_time) {
         if (!Integrate_Y())
             break;  // >>> 1- single integration step,
                     //        updating Y, from t to t+dt.
@@ -1582,15 +1661,15 @@ bool ChSystem::DoEntireDynamics() {
 }
 
 // Perform the dynamical integration, from current ChTime to
-// the specified m_endtime, and terminating the integration exactly
-// on the m_endtime. Therefore, the step of integration may get a
-// little increment/decrement to have the last step ending in m_endtime.
+// the specified end time, and terminating the integration exactly
+// on the end time. Therefore, the step of integration may get a
+// little increment/decrement to have the last step ending in end time.
 // Note that this function can be used in iterations to provide results in
 // a evenly spaced frames of time, even if the steps are changing.
 // Also note that if the time step is higher than the time increment
-// requested to reach m_endtime, the step is lowered.
+// requested to reach end time, the step is lowered.
 
-bool ChSystem::DoFrameDynamics(double m_endtime) {
+bool ChSystem::DoFrameDynamics(double end_time) {
     if (!is_initialized)
         SetupInitial();
 
@@ -1601,14 +1680,14 @@ bool ChSystem::DoFrameDynamics(double m_endtime) {
     int counter = 0;
     double fixed_step_undo;
 
-    frame_step = (m_endtime - ChTime);
+    frame_step = (end_time - ch_time);
     fixed_step_undo = step;
 
-    while (ChTime < m_endtime) {
+    while (ch_time < end_time) {
         restore_oldstep = false;
         counter++;
 
-        left_time = m_endtime - ChTime;
+        left_time = end_time - ch_time;
 
         if (left_time < 1e-12)
             break;  // - no integration if backward or null frame step.
@@ -1646,7 +1725,7 @@ bool ChSystem::DoFrameDynamics(double m_endtime) {
 // "frame_step" value (steps are performed anyway, like in normal "DoEntireDynamics"
 // command).
 
-bool ChSystem::DoEntireUniformDynamics(double frame_step) {
+bool ChSystem::DoEntireUniformDynamics(double end_time, double frame_step) {
     if (!is_initialized)
         SetupInitial();
 
@@ -1654,8 +1733,8 @@ bool ChSystem::DoEntireUniformDynamics(double frame_step) {
     Setup();
     DoAssembly(AssemblyLevel::POSITION | AssemblyLevel::VELOCITY | AssemblyLevel::ACCELERATION);
 
-    while (ChTime < end_time) {
-        double goto_time = (ChTime + frame_step);
+    while (ch_time < end_time) {
+        double goto_time = (ch_time + frame_step);
         if (!DoFrameDynamics(goto_time))
             return false;
     }
@@ -1665,7 +1744,7 @@ bool ChSystem::DoEntireUniformDynamics(double frame_step) {
 
 // Like DoFrameDynamics, but performs kinematics instead of dynamics
 
-bool ChSystem::DoFrameKinematics(double m_endtime) {
+bool ChSystem::DoFrameKinematics(double end_time) {
     if (!is_initialized)
         SetupInitial();
 
@@ -1675,15 +1754,15 @@ bool ChSystem::DoFrameKinematics(double m_endtime) {
     int restore_oldstep;
     int counter = 0;
 
-    frame_step = (m_endtime - ChTime);
+    frame_step = (end_time - ch_time);
 
     double fixed_step_undo = step;
 
-    while (ChTime < m_endtime) {
+    while (ch_time < end_time) {
         restore_oldstep = false;
         counter++;
 
-        left_time = m_endtime - ChTime;
+        left_time = end_time - ch_time;
 
         if (left_time < 0.000000001)
             break;  // - no kinematics for backward
@@ -1701,7 +1780,7 @@ bool ChSystem::DoFrameKinematics(double m_endtime) {
         if (last_err)
             return false;
 
-        ChTime += step;
+        ch_time += step;
 
         if (restore_oldstep)
             step = old_step;  // if timestep was changed to meet the end of frametime
@@ -1710,11 +1789,11 @@ bool ChSystem::DoFrameKinematics(double m_endtime) {
     return true;
 }
 
-bool ChSystem::DoStepKinematics(double m_step) {
+bool ChSystem::DoStepKinematics(double step_size) {
     if (!is_initialized)
         SetupInitial();
 
-    ChTime += m_step;
+    ch_time += step_size;
 
     Update();
 
@@ -1741,15 +1820,15 @@ void ChSystem::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChSystem>();
 
-    // serialize parent class
-    ChAssembly::ArchiveOUT(marchive);
+    // serialize underlying assembly
+    assembly.ArchiveOUT(marchive);
 
     // serialize all member data:
 
     marchive << CHNVP(contact_container);
 
     marchive << CHNVP(G_acc);
-    marchive << CHNVP(end_time);
+    marchive << CHNVP(ch_time);
     marchive << CHNVP(step);
     marchive << CHNVP(step_min);
     marchive << CHNVP(step_max);
@@ -1778,15 +1857,15 @@ void ChSystem::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead<ChSystem>();
 
-    // deserialize parent class
-    ChAssembly::ArchiveIN(marchive);
+    // deserialize unerlying assembly
+    assembly.ArchiveIN(marchive);
 
     // stream in all member data:
 
     marchive >> CHNVP(contact_container);
 
     marchive >> CHNVP(G_acc);
-    marchive >> CHNVP(end_time);
+    marchive >> CHNVP(ch_time);
     marchive >> CHNVP(step);
     marchive >> CHNVP(step_min);
     marchive >> CHNVP(step_max);

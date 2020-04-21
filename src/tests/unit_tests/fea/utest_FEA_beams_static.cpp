@@ -68,7 +68,7 @@ double ANCF_test(ChSystem& sys, double tip_load, int nelements) {
     // Remember to add it to the system.
     auto mesh = chrono_types::make_shared<ChMesh>();
     mesh->SetAutomaticGravity(false);
-    sys.GetSystem()->Add(mesh);
+    sys.Add(mesh);
 
     auto material = chrono_types::make_shared<ChMaterialBeamANCF>(rho, E_mod, nu_rat, E_mod * nu_rat, k1, k2);
 
@@ -90,8 +90,8 @@ double ANCF_test(ChSystem& sys, double tip_load, int nelements) {
 
 double IGA_test(ChSystem& sys, double tip_load, int nsections, int order) {
     // Clear previous demo, if any:
-    sys.GetSystem()->Clear();
-    sys.GetSystem()->SetChTime(0);
+    sys.Clear();
+    sys.SetChTime(0);
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.

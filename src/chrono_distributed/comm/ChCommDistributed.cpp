@@ -716,8 +716,10 @@ void ChCommDistributed::PackExchange(BodyExchange* buf, int index) {
     // Global Id
     buf->gid = ddm->global_id[index];
 
+    auto& body = my_sys->Get_bodylist()[index];
+
     // User-controlled identifier
-    buf->identifier = my_sys->bodylist[index]->GetIdentifier();
+    buf->identifier = body->GetIdentifier();
 
     // Position and rotation
     real3 pos = data_manager->host_data.pos_rigid[index];
@@ -747,12 +749,12 @@ void ChCommDistributed::PackExchange(BodyExchange* buf, int index) {
     buf->mass = data_manager->host_data.mass_rigid[index];
 
     // Inertia
-    ChVector<double> inertiaXX = my_sys->bodylist[index]->GetInertiaXX();
+    ChVector<double> inertiaXX = body->GetInertiaXX();
     buf->inertiaXX[0] = inertiaXX.x();
     buf->inertiaXX[1] = inertiaXX.y();
     buf->inertiaXX[2] = inertiaXX.z();
 
-    ChVector<double> inertiaXY = my_sys->bodylist[index]->GetInertiaXY();
+    ChVector<double> inertiaXY = body->GetInertiaXY();
     buf->inertiaXY[0] = inertiaXY.x();
     buf->inertiaXY[1] = inertiaXY.y();
     buf->inertiaXY[2] = inertiaXY.z();
@@ -839,7 +841,8 @@ int ChCommDistributed::PackShapes(std::vector<Shape>* buf, int index) {
     int shape_count = ddm->body_shape_count[index];
     shape_container& shape_data = data_manager->shape_data;
 
-    auto body = my_sys->bodylist[index];
+    auto& body = my_sys->Get_bodylist()[index];
+
     ChSystemSMC::AdhesionForceModel adhesion_model = ddm->data_manager->settings.solver.adhesion_force_model;
     bool use_material_properties = ddm->data_manager->settings.solver.use_material_properties;
 

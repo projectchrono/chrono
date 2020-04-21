@@ -107,12 +107,12 @@ ChBodyAuxRef* ChSystemParallel::NewBodyAuxRef() {
 }
 
 bool ChSystemParallel::Integrate_Y() {
-    LOG(INFO) << "ChSystemParallel::Integrate_Y() Time: " << ChTime;
+    LOG(INFO) << "ChSystemParallel::Integrate_Y() Time: " << ch_time;
     // Get the pointer for the system descriptor and store it into the data manager
     data_manager->system_descriptor = this->descriptor;
-    data_manager->body_list = &this->bodylist;
-    data_manager->link_list = &this->linklist;
-    data_manager->other_physics_list = &this->otherphysicslist;
+    data_manager->body_list = &assembly.bodylist;
+    data_manager->link_list = &assembly.linklist;
+    data_manager->other_physics_list = &assembly.otherphysicslist;
 
     data_manager->system_timer.Reset();
     data_manager->system_timer.start("step");
@@ -147,11 +147,11 @@ bool ChSystemParallel::Integrate_Y() {
 
     // Update the constraint reactions.
     double factor = 1 / this->GetStep();
-    for (int ip = 0; ip < linklist.size(); ++ip) {
-        linklist[ip]->ConstraintsFetch_react(factor);
+    for (auto& link : assembly.linklist) {
+        link->ConstraintsFetch_react(factor);
     }
-    for (int ip = 0; ip < otherphysicslist.size(); ++ip) {
-        otherphysicslist[ip]->ConstraintsFetch_react(factor);
+    for (auto& item : assembly.otherphysicslist) {
+        item->ConstraintsFetch_react(factor);
     }
     contact_container->ConstraintsFetch_react(factor);
 
@@ -162,24 +162,25 @@ bool ChSystemParallel::Integrate_Y() {
     custom_vector<quaternion>& rot_pointer = data_manager->host_data.rot_rigid;
 
 #pragma omp parallel for
-    for (int i = 0; i < bodylist.size(); i++) {
+    for (int i = 0; i < assembly.bodylist.size(); i++) {
         if (data_manager->host_data.active_rigid[i] != 0) {
-            bodylist[i]->Variables().Get_qb()(0) = velocities[i * 6 + 0];
-            bodylist[i]->Variables().Get_qb()(1) = velocities[i * 6 + 1];
-            bodylist[i]->Variables().Get_qb()(2) = velocities[i * 6 + 2];
-            bodylist[i]->Variables().Get_qb()(3) = velocities[i * 6 + 3];
-            bodylist[i]->Variables().Get_qb()(4) = velocities[i * 6 + 4];
-            bodylist[i]->Variables().Get_qb()(5) = velocities[i * 6 + 5];
+            auto& body = assembly.bodylist[i];
+            body->Variables().Get_qb()(0) = velocities[i * 6 + 0];
+            body->Variables().Get_qb()(1) = velocities[i * 6 + 1];
+            body->Variables().Get_qb()(2) = velocities[i * 6 + 2];
+            body->Variables().Get_qb()(3) = velocities[i * 6 + 3];
+            body->Variables().Get_qb()(4) = velocities[i * 6 + 4];
+            body->Variables().Get_qb()(5) = velocities[i * 6 + 5];
 
-            bodylist[i]->VariablesQbIncrementPosition(this->GetStep());
-            bodylist[i]->VariablesQbSetSpeed(this->GetStep());
+            body->VariablesQbIncrementPosition(this->GetStep());
+            body->VariablesQbSetSpeed(this->GetStep());
 
-            bodylist[i]->Update(ChTime);
+            body->Update(ch_time);
 
             // update the position and rotation vectors
-            pos_pointer[i] = (real3(bodylist[i]->GetPos().x(), bodylist[i]->GetPos().y(), bodylist[i]->GetPos().z()));
-            rot_pointer[i] = (quaternion(bodylist[i]->GetRot().e0(), bodylist[i]->GetRot().e1(),
-                                         bodylist[i]->GetRot().e2(), bodylist[i]->GetRot().e3()));
+            pos_pointer[i] = (real3(body->GetPos().x(), body->GetPos().y(), body->GetPos().z()));
+            rot_pointer[i] =
+                (quaternion(body->GetRot().e0(), body->GetRot().e1(), body->GetRot().e2(), body->GetRot().e3()));
         }
     }
 
@@ -192,7 +193,7 @@ bool ChSystemParallel::Integrate_Y() {
         shaftlist[i]->Variables().Get_qb()(0) = velocities[offset + i];
         shaftlist[i]->VariablesQbIncrementPosition(GetStep());
         shaftlist[i]->VariablesQbSetSpeed(GetStep());
-        shaftlist[i]->Update(ChTime);
+        shaftlist[i]->Update(ch_time);
     }
 
     offset += data_manager->num_shafts;
@@ -200,7 +201,7 @@ bool ChSystemParallel::Integrate_Y() {
         linmotorlist[i]->Variables().Get_qb()(0) = velocities[offset + i];
         linmotorlist[i]->VariablesQbIncrementPosition(GetStep());
         linmotorlist[i]->VariablesQbSetSpeed(GetStep());
-        linmotorlist[i]->Update(ChTime, true);
+        linmotorlist[i]->Update(ch_time, true);
     }
 
     offset += data_manager->num_linmotors;
@@ -208,19 +209,19 @@ bool ChSystemParallel::Integrate_Y() {
         rotmotorlist[i]->Variables().Get_qb()(0) = velocities[offset + i];
         rotmotorlist[i]->VariablesQbIncrementPosition(GetStep());
         rotmotorlist[i]->VariablesQbSetSpeed(GetStep());
-        rotmotorlist[i]->Update(ChTime, true);
+        rotmotorlist[i]->Update(ch_time, true);
     }
 
-    for (int i = 0; i < otherphysicslist.size(); i++) {
-        otherphysicslist[i]->Update(ChTime);
+    for (int i = 0; i < assembly.otherphysicslist.size(); i++) {
+        assembly.otherphysicslist[i]->Update(ch_time);
     }
 
-    data_manager->node_container->UpdatePosition(ChTime);
-    data_manager->fea_container->UpdatePosition(ChTime);
+    data_manager->node_container->UpdatePosition(ch_time);
+    data_manager->fea_container->UpdatePosition(ch_time);
     data_manager->system_timer.stop("update");
 
     //=============================================================================================
-    ChTime += GetStep();
+    ch_time += GetStep();
     data_manager->system_timer.stop("step");
     if (data_manager->settings.perform_thread_tuning) {
         RecomputeThreads();
@@ -241,7 +242,7 @@ void ChSystemParallel::AddBody(std::shared_ptr<ChBody> newbody) {
     // refer to. Not used by contacts
     newbody->SetId(data_manager->num_rigid_bodies);
 
-    bodylist.push_back(newbody);
+    assembly.bodylist.push_back(newbody);
     data_manager->num_rigid_bodies++;
 
     // Set the system for the body.  Note that this will also add the body's
@@ -294,7 +295,7 @@ void ChSystemParallel::AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> newite
         AddShaft(shaft);
     } else {
         newitem->SetSystem(this);
-        otherphysicslist.push_back(newitem);
+        assembly.otherphysicslist.push_back(newitem);
 
         if (newitem->GetCollide()) {
             newitem->AddCollisionModelsToSystem();
@@ -396,7 +397,7 @@ void ChSystemParallel::AddMesh(std::shared_ptr<fea::ChMesh> mesh) {
 void ChSystemParallel::ClearForceVariables() {
 #pragma omp parallel for
     for (int i = 0; i < (signed)data_manager->num_rigid_bodies; i++) {
-        bodylist[i]->VariablesFbReset();
+        assembly.bodylist[i]->VariablesFbReset();
     }
 
     ////#pragma omp parallel for
@@ -459,16 +460,18 @@ void ChSystemParallel::UpdateRigidBodies() {
     custom_vector<char>& active = data_manager->host_data.active_rigid;
     custom_vector<char>& collide = data_manager->host_data.collide_rigid;
 
-#pragma omp parallel for
-    for (int i = 0; i < bodylist.size(); i++) {
-        bodylist[i]->Update(ChTime, false);
-        bodylist[i]->VariablesFbLoadForces(GetStep());
-        bodylist[i]->VariablesQbLoadSpeed();
+////#pragma omp parallel for
+    for (int i = 0; i < assembly.bodylist.size(); i++) {
+        auto& body = assembly.bodylist[i];
 
-        ChVectorRef body_qb = bodylist[i]->Variables().Get_qb();
-        ChVectorRef body_fb = bodylist[i]->Variables().Get_fb();
-        ChVector<>& body_pos = bodylist[i]->GetPos();
-        ChQuaternion<>& body_rot = bodylist[i]->GetRot();
+        body->Update(ch_time, false);
+        body->VariablesFbLoadForces(GetStep());
+        body->VariablesQbLoadSpeed();
+
+        ChVectorRef body_qb = body->Variables().Get_qb();
+        ChVectorRef body_fb = body->Variables().Get_fb();
+        ChVector<>& body_pos = body->GetPos();
+        ChQuaternion<>& body_rot = body->GetRot();
 
         data_manager->host_data.v[i * 6 + 0] = body_qb(0);
         data_manager->host_data.v[i * 6 + 1] = body_qb(1);
@@ -487,13 +490,13 @@ void ChSystemParallel::UpdateRigidBodies() {
         position[i] = real3(body_pos.x(), body_pos.y(), body_pos.z());
         rotation[i] = quaternion(body_rot.e0(), body_rot.e1(), body_rot.e2(), body_rot.e3());
 
-        active[i] = bodylist[i]->IsActive();
-        collide[i] = bodylist[i]->GetCollide();
+        active[i] = body->IsActive();
+        collide[i] = body->GetCollide();
 
         // Let derived classes set the specific material surface data.
-        UpdateMaterialSurfaceData(i, bodylist[i].get());
+        UpdateMaterialSurfaceData(i, body.get());
 
-        bodylist[i]->GetCollisionModel()->SyncPosition();
+        body->GetCollisionModel()->SyncPosition();
     }
 }
 
@@ -508,7 +511,7 @@ void ChSystemParallel::UpdateShafts() {
 
     ////#pragma omp parallel for
     for (int i = 0; i < (signed)data_manager->num_shafts; i++) {
-        shaftlist[i]->Update(ChTime, false);
+        shaftlist[i]->Update(ch_time, false);
         shaftlist[i]->VariablesFbLoadForces(GetStep());
         shaftlist[i]->VariablesQbLoadSpeed();
 
@@ -530,7 +533,7 @@ void ChSystemParallel::UpdateShafts() {
 void ChSystemParallel::UpdateMotorLinks() {
     int offset = data_manager->num_rigid_bodies * 6 + data_manager->num_shafts;
     for (int i = 0; i < data_manager->num_linmotors; i++) {
-        linmotorlist[i]->Update(ChTime, false);
+        linmotorlist[i]->Update(ch_time, false);
         linmotorlist[i]->VariablesFbLoadForces(GetStep());
         linmotorlist[i]->VariablesQbLoadSpeed();
         data_manager->host_data.v[offset + i] = linmotorlist[i]->Variables().Get_qb()(0);
@@ -538,7 +541,7 @@ void ChSystemParallel::UpdateMotorLinks() {
     }
     offset += data_manager->num_linmotors;
     for (int i = 0; i < data_manager->num_rotmotors; i++) {
-        rotmotorlist[i]->Update(ChTime, false);
+        rotmotorlist[i]->Update(ch_time, false);
         rotmotorlist[i]->VariablesFbLoadForces(GetStep());
         rotmotorlist[i]->VariablesQbLoadSpeed();
         data_manager->host_data.v[offset + i] = rotmotorlist[i]->Variables().Get_qb()(0);
@@ -550,8 +553,8 @@ void ChSystemParallel::UpdateMotorLinks() {
 // Update all fluid nodes
 // currently a stub
 void ChSystemParallel::Update3DOFBodies() {
-    data_manager->node_container->Update(ChTime);
-    data_manager->fea_container->Update(ChTime);
+    data_manager->node_container->Update(ch_time);
+    data_manager->fea_container->Update(ch_time);
 }
 
 //
@@ -563,17 +566,19 @@ void ChSystemParallel::UpdateLinks() {
     real clamp_speed = data_manager->settings.solver.bilateral_clamp_speed;
     bool clamp = data_manager->settings.solver.clamp_bilaterals;
 
-    for (int i = 0; i < linklist.size(); i++) {
-        linklist[i]->Update(ChTime, false);
-        linklist[i]->ConstraintsBiReset();
-        linklist[i]->ConstraintsBiLoad_C(oostep, clamp_speed, clamp);
-        linklist[i]->ConstraintsBiLoad_Ct(1);
-        linklist[i]->ConstraintsFbLoadForces(GetStep());
-        linklist[i]->ConstraintsLoadJacobians();
+    for (int i = 0; i < assembly.linklist.size(); i++) {
+        auto& link = assembly.linklist[i];
 
-        linklist[i]->InjectConstraints(*descriptor);
+        link->Update(ch_time, false);
+        link->ConstraintsBiReset();
+        link->ConstraintsBiLoad_C(oostep, clamp_speed, clamp);
+        link->ConstraintsBiLoad_Ct(1);
+        link->ConstraintsFbLoadForces(GetStep());
+        link->ConstraintsLoadJacobians();
 
-        for (int j = 0; j < linklist[i]->GetDOC_c(); j++)
+        link->InjectConstraints(*descriptor);
+
+        for (int j = 0; j < link->GetDOC_c(); j++)
             data_manager->host_data.bilateral_type.push_back(BilateralType::BODY_BODY);
     }
 }
@@ -620,24 +625,26 @@ void ChSystemParallel::UpdateOtherPhysics() {
     real clamp_speed = data_manager->settings.solver.bilateral_clamp_speed;
     bool clamp = data_manager->settings.solver.clamp_bilaterals;
 
-    for (int i = 0; i < otherphysicslist.size(); i++) {
-        otherphysicslist[i]->Update(ChTime, false);
-        otherphysicslist[i]->ConstraintsBiReset();
-        otherphysicslist[i]->ConstraintsBiLoad_C(oostep, clamp_speed, clamp);
-        otherphysicslist[i]->ConstraintsBiLoad_Ct(1);
-        otherphysicslist[i]->ConstraintsFbLoadForces(GetStep());
-        otherphysicslist[i]->ConstraintsLoadJacobians();
-        otherphysicslist[i]->VariablesFbLoadForces(GetStep());
-        otherphysicslist[i]->VariablesQbLoadSpeed();
+    for (int i = 0; i < assembly.otherphysicslist.size(); i++) {
+        auto& item = assembly.otherphysicslist[i];
 
-        BilateralType type = GetBilateralType(otherphysicslist[i].get());
+        item->Update(ch_time, false);
+        item->ConstraintsBiReset();
+        item->ConstraintsBiLoad_C(oostep, clamp_speed, clamp);
+        item->ConstraintsBiLoad_Ct(1);
+        item->ConstraintsFbLoadForces(GetStep());
+        item->ConstraintsLoadJacobians();
+        item->VariablesFbLoadForces(GetStep());
+        item->VariablesQbLoadSpeed();
+
+        BilateralType type = GetBilateralType(item.get());
 
         if (type == BilateralType::UNKNOWN)
             continue;
 
-        otherphysicslist[i]->InjectConstraints(*descriptor);
+        item->InjectConstraints(*descriptor);
 
-        for (int j = 0; j < otherphysicslist[i]->GetDOC_c(); j++)
+        for (int j = 0; j < item->GetDOC_c(); j++)
             data_manager->host_data.bilateral_type.push_back(type);
     }
 }
@@ -693,9 +700,9 @@ void ChSystemParallel::Setup() {
                             data_manager->num_fluid_bodies * 3 + data_manager->num_fea_nodes * 3;
 
     // Set variables that are stored in the ChSystem class
-    nbodies = data_manager->num_rigid_bodies;
-    nlinks = 0;
-    nphysicsitems = 0;
+    assembly.nbodies = data_manager->num_rigid_bodies;
+    assembly.nlinks = 0;
+    assembly.nphysicsitems = 0;
     ncoords = 0;
     ndoc = 0;
     nsysvars = 0;
@@ -707,8 +714,8 @@ void ChSystemParallel::Setup() {
     ndoc_w_D = 0;
     ncontacts =
         data_manager->num_rigid_contacts + data_manager->num_rigid_fluid_contacts + data_manager->num_fluid_contacts;
-    nbodies_sleep = 0;
-    nbodies_fixed = 0;
+    assembly.nbodies_sleep = 0;
+    assembly.nbodies_fixed = 0;
 }
 
 void ChSystemParallel::RecomputeThreads() {
@@ -754,7 +761,7 @@ void ChSystemParallel::RecomputeThreads() {
 }
 
 void ChSystemParallel::ChangeCollisionSystem(CollisionSystemType type) {
-    assert(GetNbodies() == 0);
+    assert(assembly.GetNbodies() == 0);
 
     collision_system_type = type;
 
