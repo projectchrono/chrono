@@ -84,8 +84,8 @@ void ChIrrAssetConverter::Bind(std::shared_ptr<ChPhysicsItem> mitem) {
 
 void ChIrrAssetConverter::BindAll() {
     ChSystem* msystem = minterface->GetSystem();
-    std::unordered_set<ChAssembly*> mtrace;
-    BindAllContentsOfAssembly(msystem, mtrace);
+    std::unordered_set<const ChAssembly*> mtrace;
+    BindAllContentsOfAssembly(&msystem->GetAssembly(), mtrace);
 }
 
 void ChIrrAssetConverter::Update(std::shared_ptr<ChPhysicsItem> mitem) {
@@ -95,8 +95,8 @@ void ChIrrAssetConverter::Update(std::shared_ptr<ChPhysicsItem> mitem) {
 
 void ChIrrAssetConverter::UpdateAll() {
     ChSystem* msystem = minterface->GetSystem();
-    std::unordered_set<ChAssembly*> mtrace;
-    UpdateAllContentsOfAssembly(msystem, mtrace);
+    std::unordered_set<const ChAssembly*> mtrace;
+    UpdateAllContentsOfAssembly(&msystem->GetAssembly(), mtrace);
 }
 
 void ChIrrAssetConverter::CleanIrrlicht(std::shared_ptr<ChPhysicsItem> mitem) {
@@ -441,7 +441,7 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
     }
 }
 
-void ChIrrAssetConverter::BindAllContentsOfAssembly(ChAssembly* massy, std::unordered_set<ChAssembly*>& mtrace) {
+void ChIrrAssetConverter::BindAllContentsOfAssembly(const ChAssembly* massy, std::unordered_set<const ChAssembly*>& mtrace) {
     // Skip to extract contents if the assembly has been already treated (to avoid circular references).
     if (!mtrace.insert(massy).second) {
         return;
@@ -469,7 +469,7 @@ void ChIrrAssetConverter::BindAllContentsOfAssembly(ChAssembly* massy, std::unor
     }
 }
 
-void ChIrrAssetConverter::UpdateAllContentsOfAssembly(ChAssembly* massy, std::unordered_set<ChAssembly*>& mtrace) {
+void ChIrrAssetConverter::UpdateAllContentsOfAssembly(const ChAssembly* massy, std::unordered_set<const ChAssembly*>& mtrace) {
     // Skip to extract contents if the assembly has been already treated (to avoid circular references).
     if (!mtrace.insert(massy).second) {
         return;

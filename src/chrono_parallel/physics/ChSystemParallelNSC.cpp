@@ -157,8 +157,8 @@ void ChSystemParallelNSC::AssembleSystem() {
     chrono::collision::ChCollisionInfo icontact;
     for (int i = 0; i < (signed)data_manager->num_rigid_contacts; i++) {
         vec2 cd_pair = data_manager->host_data.bids_rigid_rigid[i];
-        icontact.modelA = bodylist[cd_pair.x]->GetCollisionModel().get();
-        icontact.modelB = bodylist[cd_pair.y]->GetCollisionModel().get();
+        icontact.modelA = Get_bodylist()[cd_pair.x]->GetCollisionModel().get();
+        icontact.modelB = Get_bodylist()[cd_pair.y]->GetCollisionModel().get();
         icontact.vN = ToChVector(data_manager->host_data.norm_rigid_rigid[i]);
         icontact.vpA =
             ToChVector(data_manager->host_data.cpta_rigid_rigid[i] + data_manager->host_data.pos_rigid[cd_pair.x]);
@@ -171,11 +171,11 @@ void ChSystemParallelNSC::AssembleSystem() {
     contact_container->EndAddContact();
 
     // Reset sparse representation accumulators.
-    for (int ip = 0; ip < linklist.size(); ++ip) {
-        linklist[ip]->ConstraintsBiReset();
+    for (auto& link : Get_linklist()) {
+        link->ConstraintsBiReset();
     }
-    for (int ip = 0; ip < bodylist.size(); ++ip) {
-        bodylist[ip]->VariablesFbReset();
+    for (auto& body : Get_bodylist()) {
+        body->VariablesFbReset();
     }
     contact_container->ConstraintsBiReset();
 
@@ -188,36 +188,32 @@ void ChSystemParallelNSC::AssembleSystem() {
     double Ct_factor = 1;
     double C_factor = 1 / step;
 
-    for (int ip = 0; ip < linklist.size(); ++ip) {
-        std::shared_ptr<ChLinkBase> Lpointer = linklist[ip];
-
-        Lpointer->ConstraintsBiLoad_C(C_factor, max_penetration_recovery_speed, true);
-        Lpointer->ConstraintsBiLoad_Ct(Ct_factor);
-        Lpointer->VariablesQbLoadSpeed();
-        Lpointer->VariablesFbIncrementMq();
-        Lpointer->ConstraintsLoadJacobians();
-        Lpointer->ConstraintsFbLoadForces(F_factor);
+    for (auto& link : Get_linklist()) {
+        link->ConstraintsBiLoad_C(C_factor, max_penetration_recovery_speed, true);
+        link->ConstraintsBiLoad_Ct(Ct_factor);
+        link->VariablesQbLoadSpeed();
+        link->VariablesFbIncrementMq();
+        link->ConstraintsLoadJacobians();
+        link->ConstraintsFbLoadForces(F_factor);
     }
 
-    for (int ip = 0; ip < bodylist.size(); ++ip) {
-        std::shared_ptr<ChBody> Bpointer = bodylist[ip];
+    for (int ip = 0; ip < Get_bodylist().size(); ++ip) {
+        std::shared_ptr<ChBody> Bpointer = Get_bodylist()[ip];
 
         Bpointer->VariablesFbLoadForces(F_factor);
         Bpointer->VariablesQbLoadSpeed();
         Bpointer->VariablesFbIncrementMq();
     }
 
-    for (int ip = 0; ip < otherphysicslist.size(); ++ip) {
-        std::shared_ptr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-
-        PHpointer->VariablesFbLoadForces(F_factor);
-        PHpointer->VariablesQbLoadSpeed();
-        PHpointer->VariablesFbIncrementMq();
-        PHpointer->ConstraintsBiLoad_C(C_factor, max_penetration_recovery_speed, true);
-        PHpointer->ConstraintsBiLoad_Ct(Ct_factor);
-        PHpointer->ConstraintsLoadJacobians();
-        PHpointer->KRMmatricesLoad(K_factor, R_factor, M_factor);
-        PHpointer->ConstraintsFbLoadForces(F_factor);
+    for (auto& item : Get_otherphysicslist()) {
+        item->VariablesFbLoadForces(F_factor);
+        item->VariablesQbLoadSpeed();
+        item->VariablesFbIncrementMq();
+        item->ConstraintsBiLoad_C(C_factor, max_penetration_recovery_speed, true);
+        item->ConstraintsBiLoad_Ct(Ct_factor);
+        item->ConstraintsLoadJacobians();
+        item->KRMmatricesLoad(K_factor, R_factor, M_factor);
+        item->ConstraintsFbLoadForces(F_factor);
     }
 
     contact_container->ConstraintsBiLoad_C(C_factor, max_penetration_recovery_speed, true);
@@ -226,11 +222,11 @@ void ChSystemParallelNSC::AssembleSystem() {
 
     // Inject all variables and constraints into the system descriptor.
     descriptor->BeginInsertion();
-    for (int ip = 0; ip < bodylist.size(); ++ip) {
-        bodylist[ip]->InjectVariables(*descriptor);
+    for (auto& body : Get_bodylist()) {
+        body->InjectVariables(*descriptor);
     }
-    for (int ip = 0; ip < linklist.size(); ++ip) {
-        linklist[ip]->InjectConstraints(*descriptor);
+    for (auto& link : Get_linklist()) {
+        link->InjectConstraints(*descriptor);
     }
     contact_container->InjectConstraints(*descriptor);
     descriptor->EndInsertion();
