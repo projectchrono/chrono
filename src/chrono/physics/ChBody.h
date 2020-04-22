@@ -360,50 +360,48 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// for each UpdateState().
     void ComputeGyro();
 
-    /// Transform and adds a Cartesian force to a generic 7x1 vector of body lagrangian forces mQf .
-    /// The Cartesian force must be passed as vector and application point, and can be either in local
-    /// (local = true) or absolute reference (local = false)
-    void Add_as_lagrangian_force(const ChVector<>& force,
-                                 const ChVector<>& appl_point,
-                                 bool local,
-                                 ChVectorN<double, 7>& mQf);
-    void Add_as_lagrangian_torque(const ChVector<>& torque, bool local, ChVectorN<double, 7>& mQf);
-
     // UTILITIES FOR FORCES/TORQUES:
 
-    /// Add forces and torques into the "accumulators", as increment.
-    /// Forces and torques currently in accumulators will affect the body.
-    /// It's up to the user to remember to empty them and/or set again at each
-    /// integration step. Useful to apply forces to bodies without needing to
-    /// add ChForce() objects. If local=true, force,appl.point or torque are considered
-    /// expressed in body coordinates, otherwise are considered in absolute coordinates.
-    void Accumulate_force(const ChVector<>& force, const ChVector<>& appl_point, bool local);
-    void Accumulate_torque(const ChVector<>& torque, bool local);
+    /// Add an applied force to the body's accumulator (as an increment).
+    /// It is the caller's responsibility to clear the force and torque accumulators at each integration step.
+    /// If local = true, the provided applied force is assumed to be expressed in body coordinates.
+    /// If local = false, the provided applied force is assumed to be expressed in absolute coordinates.
+    void Accumulate_force(const ChVector<>& force,       ///< applied force
+                          const ChVector<>& appl_point,  ///< application point
+                          bool local                     ///< force and point expressed in body local frame?
+    );
+
+    /// Add an applied torque to the body's accumulator (as an increment).
+    /// It is the caller's responsibility to clear the force and torque accumulators at each integration step.
+    /// If local = true, the provided applied torque is assumed to be expressed in body coordinates.
+    /// If local = false, the provided applied torque is assumed to be expressed in absolute coordinates.
+    void Accumulate_torque(const ChVector<>& torque,  ///< applied torque
+                           bool local                 ///< torque expressed in body local frame?
+    );
+
+    /// Clear the force and torque accumulators.
     void Empty_forces_accumulators() {
         Force_acc = VNULL;
         Torque_acc = VNULL;
     }
-    const ChVector<>& Get_accumulated_force() const { return Force_acc; }
-    const ChVector<>& Get_accumulated_torque() const { return Torque_acc; }
 
-    /// To get & set the 'script' force buffers(only accessed by external scripts, so
-    /// It's up to the script to remember to set& reset them -link class just add them to
-    /// all other forces. Script forces&torques are considered applied to COG, in abs csys.
-    const ChVector<>& Get_Scr_force() const { return Scr_force; }
-    const ChVector<>& Get_Scr_torque() const { return Scr_torque; }
-    void Set_Scr_force(const ChVector<>& mf) { Scr_force = mf; }
-    void Set_Scr_torque(const ChVector<>& mf) { Scr_torque = mf; }
-    void Accumulate_script_force(const ChVector<>& force, const ChVector<>& appl_point, bool local);
-    void Accumulate_script_torque(const ChVector<>& torque, bool local);
+    /// Return the current value of the accumulator force.
+    /// Note that this is a resultant force as applied to the COM and expressed in the absolute frame.
+    const ChVector<>& Get_accumulated_force() const { return Force_acc; }
+
+    /// Return the current value of the accumulator torque.
+    /// Note that this is a resultant torque expressed in the body local frame.
+    const ChVector<>& Get_accumulated_torque() const { return Torque_acc; }
 
     /// Return the gyroscopic torque.
     const ChVector<>& Get_gyro() const { return gyro; }
 
-    /// Get the total force applied to the rigid body (applied at center of mass.
-    /// expressed in absolute coordinates).
+    /// Get the total force applied to the rigid body.
+    /// Note that this is a resultant force as applied to the COM and expressed in the absolute frame.
     const ChVector<>& Get_Xforce() const { return Xforce; }
-    /// Get the total torque applied to the rigid body (expressed in body coordinates).
-    /// This does not include the gyroscopic torque.
+
+    /// Get the total torque applied to the rigid body.
+    /// Note that this is a resultant torque (excluding the gyroscopic torque) expressed in the body local frame.
     const ChVector<>& Get_Xtorque() const { return Xtorque; }
 
     // UPDATE FUNCTIONS
@@ -483,14 +481,11 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     ChVector<> gyro;  ///< gyroscopic torque, i.e. Qm = Wvel x (XInertia*Wvel)
 
-    ChVector<> Xforce;   ///< force  acting on body, applied to COG (in absolute coords)
-    ChVector<> Xtorque;  ///< torque acting on body  (in body relative coords)
+    ChVector<> Xforce;   ///< force  acting on body, applied to COM (in absolute coords)
+    ChVector<> Xtorque;  ///< torque acting on body  (in body local coords)
 
-    ChVector<> Force_acc;   ///< force accumulator, applied to COG (in absolute coords)
-    ChVector<> Torque_acc;  ///< torque accumulator (in abs space)
-
-    ChVector<> Scr_force;   ///< script force accumulator, applied to COG (in absolute coords)
-    ChVector<> Scr_torque;  ///< script torque accumulator (in absolute coords)
+    ChVector<> Force_acc;   ///< force accumulator, applied to COM (in absolute coords)
+    ChVector<> Torque_acc;  ///< torque accumulator (in body local coords)
 
     float density;  ///< used when doing the 'recompute mass' operation.
 
