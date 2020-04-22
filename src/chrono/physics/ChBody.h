@@ -153,18 +153,15 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     // FUNCTIONS
 
-    /// Number of coordinates of body: 7 because uses quaternions for rotation
+    /// Number of coordinates of body: 7 because uses quaternions for rotation.
     virtual int GetDOF() override { return 7; }
-    /// Number of coordinates of body: 6 because derivatives use angular velocity
+
+    /// Number of coordinates of body: 6 because derivatives use angular velocity.
     virtual int GetDOF_w() override { return 6; }
 
-    /// Returns reference to the encapsulated ChVariablesBody, representing
-    /// body variables (pos, speed, or accel.) and forces.
+    /// Return a reference to the encapsulated ChVariablesBody, representing states (pos, speed, or accel.) and forces.
     /// The ChVariablesBodyOwnMass is the interface to the system solver.
-    ChVariablesBodyOwnMass& VariablesBody() override { return variables; }
-    ChVariables& Variables() override { return variables; }
-
-    // Other functions
+    virtual ChVariables& Variables() override { return variables; }
 
     /// Set no speed and no accelerations (but does not change the position)
     void SetNoSpeedNoAcceleration() override;
@@ -257,66 +254,71 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     ChVector<> Point_World2Body(const ChVector<>& mpoint);
     ChVector<> Point_Body2World(const ChVector<>& mpoint);
-    ChVector<> Dir_World2Body(const ChVector<>& mpoint);
-    ChVector<> Dir_Body2World(const ChVector<>& mpoint);
+    ChVector<> Dir_World2Body(const ChVector<>& dir);
+    ChVector<> Dir_Body2World(const ChVector<>& dir);
     ChVector<> RelPoint_AbsSpeed(const ChVector<>& mrelpoint);
     ChVector<> RelPoint_AbsAcc(const ChVector<>& mrelpoint);
 
-    /// Mass of the rigid body. Must be positive.
+    /// Set the body mass.
     /// Try not to mix bodies with too high/too low values of mass, for numerical stability.
     void SetMass(double newmass) {
         if (newmass > 0.)
             variables.SetBodyMass(newmass);
     }
+
+    /// Get the body mass.
     double GetMass() { return variables.GetBodyMass(); }
 
     /// Set the inertia tensor of the body.
-    /// The provided 3x3 matrix should be symmetric and contain the inertia
-    /// tensor, expressed in the local coordinate system:
+    /// The provided 3x3 matrix should be symmetric and contain the inertia tensor, expressed in the local coordinate
+    /// system: 
     /// <pre>
     ///               [ int{x^2+z^2}dm    -int{xy}dm    -int{xz}dm    ]
     /// newXInertia = [                  int{x^2+z^2}   -int{yz}dm    ]
     ///               [                                int{x^2+y^2}dm ]
     /// </pre>
     void SetInertia(const ChMatrix33<>& newXInertia);
-    /// Get a reference to the inertia tensor, expressed in local coordinate system.
-    /// The return 3xe3 symmetric matrix contains the following values:
+
+    /// Get the inertia tensor, expressed in the local coordinate system.
+    /// The return 3x3 symmetric matrix contains the following values:
     /// <pre>
     ///  [ int{x^2+z^2}dm    -int{xy}dm    -int{xz}dm    ]
     ///  [                  int{x^2+z^2}   -int{yz}dm    ]
     ///  [                                int{x^2+y^2}dm ]
     /// </pre>
-    const ChMatrix33<>& GetInertia() { return variables.GetBodyInertia(); }
+    const ChMatrix33<>& GetInertia() const { return variables.GetBodyInertia(); }
+
+    /// Get the inverse of the inertia matrix.
+    const ChMatrix33<>& GetInvInertia() const { return variables.GetBodyInvInertia(); }
+
     /// Set the diagonal part of the inertia tensor (Ixx, Iyy, Izz values).
-    /// The provided 3x1 vector should contain the moments of inertia,
-    /// expressed in the local coordinate frame:
+    /// The provided 3x1 vector should contain the moments of inertia, expressed in the local coordinate frame:
     /// <pre>
     /// iner = [  int{x^2+z^2}dm   int{x^2+z^2}   int{x^2+y^2}dm ]
     /// </pre>
     void SetInertiaXX(const ChVector<>& iner);
+
     /// Get the diagonal part of the inertia tensor (Ixx, Iyy, Izz values).
     /// The return 3x1 vector contains the following values:
     /// <pre>
     /// [  int{x^2+z^2}dm   int{x^2+z^2}   int{x^2+y^2}dm ]
     /// </pre>
-    ChVector<> GetInertiaXX();
+    ChVector<> GetInertiaXX() const;
+
     /// Set the off-diagonal part of the inertia tensor (Ixy, Ixz, Iyz values).
-    /// Warning about sign: in some books they write the inertia tensor as
-    /// I=[Ixx, -Ixy, -Ixz; etc.] but here is I=[Ixx, Ixy, Ixz; ...].
     /// The provided 3x1 vector should contain the products of inertia,
     /// expressed in the local coordinate frame:
     /// <pre>
     /// iner = [ -int{xy}dm   -int{xz}dm   -int{yz}dm ]
     /// </pre>
     void SetInertiaXY(const ChVector<>& iner);
-    /// Get the extra-diagonal part of the inertia tensor (Ixy, Ixz, Iyz values)
-    /// Warning about sign: in some books they write the inertia tensor as
-    /// I=[Ixx, -Ixy, -Ixz; etc.] but here is I=[Ixx, Ixy, Ixz; ...].
+
+    /// Get the extra-diagonal part of the inertia tensor (Ixy, Ixz, Iyz values).
     /// The return 3x1 vector contains the following values:
     /// <pre>
     /// [ -int{xy}dm   -int{xz}dm   -int{yz}dm ]
     /// </pre>
-    ChVector<> GetInertiaXY();
+    ChVector<> GetInertiaXY() const;
 
     /// Set the maximum linear speed (beyond this limit it will be clamped).
     /// This is useful in virtual reality and real-time simulations, because
@@ -380,10 +382,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     );
 
     /// Clear the force and torque accumulators.
-    void Empty_forces_accumulators() {
-        Force_acc = VNULL;
-        Torque_acc = VNULL;
-    }
+    void Empty_forces_accumulators();
 
     /// Return the current value of the accumulator force.
     /// Note that this is a resultant force as applied to the COM and expressed in the absolute frame.

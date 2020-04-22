@@ -151,8 +151,7 @@ TerrainForce ChDeformableTire::ReportTireForce(ChTerrain* terrain) const {
 
     for (size_t ic = 0; ic < m_connectionsD.size(); ic++) {
         ChCoordsys<> csys = m_connectionsD[ic]->GetLinkAbsoluteCoords();
-        ChVector<> react = csys.TransformDirectionLocalToParent(m_connectionsD[ic]->GetReactionOnBody());
-        m_wheel->GetSpindle()->To_abs_torque(react, false, moment);
+        ChVector<> moment = csys.TransformDirectionLocalToParent(m_connectionsD[ic]->GetReactionOnBody());
         tire_force.moment += moment;
     }
 

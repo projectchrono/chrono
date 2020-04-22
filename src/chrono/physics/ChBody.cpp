@@ -342,12 +342,12 @@ ChVector<> ChBody::Point_Body2World(const ChVector<>& mpoint) {
     return ChFrame<double>::TransformLocalToParent(mpoint);
 }
 
-ChVector<> ChBody::Dir_World2Body(const ChVector<>& mpoint) {
-    return Amatrix.transpose() * mpoint;
+ChVector<> ChBody::Dir_World2Body(const ChVector<>& dir) {
+    return Amatrix.transpose() * dir;
 }
 
-ChVector<> ChBody::Dir_Body2World(const ChVector<>& mpoint) {
-    return Amatrix * mpoint;
+ChVector<> ChBody::Dir_Body2World(const ChVector<>& dir) {
+    return Amatrix * dir;
 }
 
 ChVector<> ChBody::RelPoint_AbsSpeed(const ChVector<>& mrelpoint) {
@@ -381,7 +381,7 @@ void ChBody::SetInertiaXY(const ChVector<>& iner) {
     variables.GetBodyInvInertia() = variables.GetBodyInertia().inverse();
 }
 
-ChVector<> ChBody::GetInertiaXX() {
+ChVector<> ChBody::GetInertiaXX() const {
     ChVector<> iner;
     iner.x() = variables.GetBodyInertia()(0, 0);
     iner.y() = variables.GetBodyInertia()(1, 1);
@@ -389,7 +389,7 @@ ChVector<> ChBody::GetInertiaXX() {
     return iner;
 }
 
-ChVector<> ChBody::GetInertiaXY() {
+ChVector<> ChBody::GetInertiaXY() const {
     ChVector<> iner;
     iner.x() = variables.GetBodyInertia()(0, 1);
     iner.y() = variables.GetBodyInertia()(0, 2);
@@ -404,6 +404,11 @@ void ChBody::ComputeQInertia(ChMatrix44<>& mQInertia) {
 }
 
 //////
+
+void ChBody::Empty_forces_accumulators() {
+    Force_acc = VNULL;
+    Torque_acc = VNULL;
+}
 
 void ChBody::Accumulate_force(const ChVector<>& force, const ChVector<>& appl_point, bool local) {
     ChVector<> mabsforce;
@@ -422,7 +427,7 @@ void ChBody::Accumulate_torque(const ChVector<>& torque, bool local) {
     }
 }
 
-////////
+//////
 
 void ChBody::ComputeGyro() {
     ChVector<> Wvel = this->GetWvel_loc();
