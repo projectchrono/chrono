@@ -43,8 +43,6 @@ ChBody::ChBody() {
 
     Force_acc = VNULL;
     Torque_acc = VNULL;
-    Scr_force = VNULL;
-    Scr_torque = VNULL;
 
     collision_model = InstanceCollisionModel();
 
@@ -75,8 +73,6 @@ ChBody::ChBody(std::shared_ptr<collision::ChCollisionModel> new_collision_model)
 
     Force_acc = VNULL;
     Torque_acc = VNULL;
-    Scr_force = VNULL;
-    Scr_torque = VNULL;
 
     collision_model = new_collision_model;
     collision_model->SetContactable(this);
@@ -114,9 +110,6 @@ ChBody::ChBody(const ChBody& other) : ChPhysicsItem(other), ChBodyFrame(other) {
     collision_model = InstanceCollisionModel();
 
     density = other.density;
-
-    Scr_force = other.Scr_force;
-    Scr_torque = other.Scr_torque;
 
     max_speed = other.max_speed;
     max_wvel = other.max_wvel;
@@ -349,12 +342,12 @@ ChVector<> ChBody::Point_Body2World(const ChVector<>& mpoint) {
     return ChFrame<double>::TransformLocalToParent(mpoint);
 }
 
-ChVector<> ChBody::Dir_World2Body(const ChVector<>& mpoint) {
-    return Amatrix.transpose() * mpoint;
+ChVector<> ChBody::Dir_World2Body(const ChVector<>& dir) {
+    return Amatrix.transpose() * dir;
 }
 
-ChVector<> ChBody::Dir_Body2World(const ChVector<>& mpoint) {
-    return Amatrix * mpoint;
+ChVector<> ChBody::Dir_Body2World(const ChVector<>& dir) {
+    return Amatrix * dir;
 }
 
 ChVector<> ChBody::RelPoint_AbsSpeed(const ChVector<>& mrelpoint) {
@@ -388,7 +381,7 @@ void ChBody::SetInertiaXY(const ChVector<>& iner) {
     variables.GetBodyInvInertia() = variables.GetBodyInertia().inverse();
 }
 
-ChVector<> ChBody::GetInertiaXX() {
+ChVector<> ChBody::GetInertiaXX() const {
     ChVector<> iner;
     iner.x() = variables.GetBodyInertia()(0, 0);
     iner.y() = variables.GetBodyInertia()(1, 1);
@@ -396,7 +389,7 @@ ChVector<> ChBody::GetInertiaXX() {
     return iner;
 }
 
-ChVector<> ChBody::GetInertiaXY() {
+ChVector<> ChBody::GetInertiaXY() const {
     ChVector<> iner;
     iner.x() = variables.GetBodyInertia()(0, 1);
     iner.y() = variables.GetBodyInertia()(0, 2);
@@ -412,24 +405,10 @@ void ChBody::ComputeQInertia(ChMatrix44<>& mQInertia) {
 
 //////
 
-void ChBody::Add_as_lagrangian_force(const ChVector<>& force,
-                                     const ChVector<>& appl_point,
-                                     bool local,
-                                     ChVectorN<double, 7>& mQf) {
-    ChVector<> mabsforce;
-    ChVector<> mabstorque;
-    To_abs_forcetorque(force, appl_point, local, mabsforce, mabstorque);
-    mQf.segment(0, 3) += mabsforce.eigen();
-    mQf.segment(3, 4) += ChGlMatrix34<>::GlT_times_v(coord.rot, Dir_World2Body(mabstorque)).eigen();
+void ChBody::Empty_forces_accumulators() {
+    Force_acc = VNULL;
+    Torque_acc = VNULL;
 }
-
-void ChBody::Add_as_lagrangian_torque(const ChVector<>& torque, bool local, ChVectorN<double, 7>& mQf) {
-    ChVector<> mabstorque;
-    To_abs_torque(torque, local, mabstorque);
-    mQf.segment(3, 4) += ChGlMatrix34<>::GlT_times_v(coord.rot, Dir_World2Body(mabstorque)).eigen();
-}
-
-//////
 
 void ChBody::Accumulate_force(const ChVector<>& force, const ChVector<>& appl_point, bool local) {
     ChVector<> mabsforce;
@@ -441,28 +420,14 @@ void ChBody::Accumulate_force(const ChVector<>& force, const ChVector<>& appl_po
 }
 
 void ChBody::Accumulate_torque(const ChVector<>& torque, bool local) {
-    ChVector<> mabstorque;
-    To_abs_torque(torque, local, mabstorque);
-    Torque_acc += mabstorque;
+    if (local) {
+        Torque_acc += torque;
+    } else {
+        Torque_acc += Dir_World2Body(torque);
+    }
 }
 
-void ChBody::Accumulate_script_force(const ChVector<>& force, const ChVector<>& appl_point, bool local) {
-    ChVector<> mabsforce;
-    ChVector<> mabstorque;
-    To_abs_forcetorque(force, appl_point, local, mabsforce, mabstorque);
-
-    Scr_force += mabsforce;
-    Scr_torque += mabstorque;
-}
-
-void ChBody::Accumulate_script_torque(const ChVector<>& torque, bool local) {
-    ChVector<> mabstorque;
-    To_abs_torque(torque, local, mabstorque);
-
-    Scr_torque += mabstorque;
-}
-
-////////
+//////
 
 void ChBody::ComputeGyro() {
     ChVector<> Wvel = this->GetWvel_loc();
@@ -590,19 +555,12 @@ void ChBody::UpdateMarkers(double mytime) {
 }
 
 void ChBody::UpdateForces(double mytime) {
-    // COMPUTE LAGRANGIAN FORCES APPLIED TO BODY
-
-    // 1a- force caused by accumulation of forces in body's accumulator Force_acc
+    // Initialize body force (in abs. coords) and torque (in local coords)
+    // with current values from the accumulators.
     Xforce = Force_acc;
+    Xtorque = Torque_acc;
 
-    // 1b- force caused by accumulation of torques in body's accumulator Force_acc
-    if (Vnotnull(Torque_acc)) {
-        Xtorque = Dir_World2Body(Torque_acc);
-    } else {
-        Xtorque = VNULL;
-    }
-
-    // 2 - accumulation of other applied forces
+    // Accumulate other applied forces
     ChVector<> mforce;
     ChVector<> mtorque;
 
@@ -615,15 +573,9 @@ void ChBody::UpdateForces(double mytime) {
         Xtorque += mtorque;
     }
 
-    // 3 - accumulation of script forces
-    Xforce += Scr_force;
-
-    if (Vnotnull(Scr_torque)) {
-        Xtorque += Dir_World2Body(Scr_torque);
-    }
-
-    if (GetSystem()) {
-        Xforce += GetSystem()->Get_G_acc() * this->GetMass();
+    // Add gravitational forces
+    if (system) {
+        Xforce += system->Get_G_acc() * GetMass();
     }
 }
 

@@ -28,6 +28,8 @@
 
 namespace chrono {
 
+class ChAssembly;
+
 namespace fea {
 
 /// @addtogroup chrono_fea
