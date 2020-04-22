@@ -22,24 +22,11 @@ void ChBodyFrame::To_abs_forcetorque(const ChVector<>& force,
                                      ChVector<>& resultforce,
                                      ChVector<>& resulttorque) {
     if (local) {
-        // local space
-        ChVector<> mforce_abs = TransformDirectionLocalToParent(force);
-        resultforce = mforce_abs;
-        resulttorque = Vcross(TransformDirectionLocalToParent(appl_point), mforce_abs);
+        resultforce = TransformDirectionLocalToParent(force);
+        resulttorque = Vcross(TransformDirectionLocalToParent(appl_point), resultforce);
     } else {
-        // absolute space
         resultforce = force;
         resulttorque = Vcross(Vsub(appl_point, coord.pos), force);
-    }
-}
-
-void ChBodyFrame::To_abs_torque(const ChVector<>& torque, bool local, ChVector<>& resulttorque) {
-    if (local) {
-        // local space
-        resulttorque = this->TransformDirectionLocalToParent(torque);
-    } else {
-        // absolute space
-        resulttorque = torque;
     }
 }
 
@@ -49,8 +36,6 @@ void ChBodyFrame::ArchiveOUT(ChArchiveOut& marchive) {
 
     // serialize parent class
     ChFrameMoving<double>::ArchiveOUT(marchive);
-
-    // serialize all member data:
 }
 
 void ChBodyFrame::ArchiveIN(ChArchiveIn& marchive) {
@@ -59,8 +44,6 @@ void ChBodyFrame::ArchiveIN(ChArchiveIn& marchive) {
 
     // deserialize parent class
     ChFrameMoving<double>::ArchiveIN(marchive);
-
-    // stream in all member data:
 }
 
 }  // end namespace chrono

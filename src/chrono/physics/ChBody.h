@@ -153,18 +153,15 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     // FUNCTIONS
 
-    /// Number of coordinates of body: 7 because uses quaternions for rotation
+    /// Number of coordinates of body: 7 because uses quaternions for rotation.
     virtual int GetDOF() override { return 7; }
-    /// Number of coordinates of body: 6 because derivatives use angular velocity
+
+    /// Number of coordinates of body: 6 because derivatives use angular velocity.
     virtual int GetDOF_w() override { return 6; }
 
-    /// Returns reference to the encapsulated ChVariablesBody, representing
-    /// body variables (pos, speed, or accel.) and forces.
+    /// Return a reference to the encapsulated ChVariablesBody, representing states (pos, speed, or accel.) and forces.
     /// The ChVariablesBodyOwnMass is the interface to the system solver.
-    ChVariablesBodyOwnMass& VariablesBody() override { return variables; }
-    ChVariables& Variables() override { return variables; }
-
-    // Other functions
+    virtual ChVariables& Variables() override { return variables; }
 
     /// Set no speed and no accelerations (but does not change the position)
     void SetNoSpeedNoAcceleration() override;
@@ -257,66 +254,71 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     ChVector<> Point_World2Body(const ChVector<>& mpoint);
     ChVector<> Point_Body2World(const ChVector<>& mpoint);
-    ChVector<> Dir_World2Body(const ChVector<>& mpoint);
-    ChVector<> Dir_Body2World(const ChVector<>& mpoint);
+    ChVector<> Dir_World2Body(const ChVector<>& dir);
+    ChVector<> Dir_Body2World(const ChVector<>& dir);
     ChVector<> RelPoint_AbsSpeed(const ChVector<>& mrelpoint);
     ChVector<> RelPoint_AbsAcc(const ChVector<>& mrelpoint);
 
-    /// Mass of the rigid body. Must be positive.
+    /// Set the body mass.
     /// Try not to mix bodies with too high/too low values of mass, for numerical stability.
     void SetMass(double newmass) {
         if (newmass > 0.)
             variables.SetBodyMass(newmass);
     }
+
+    /// Get the body mass.
     double GetMass() { return variables.GetBodyMass(); }
 
     /// Set the inertia tensor of the body.
-    /// The provided 3x3 matrix should be symmetric and contain the inertia
-    /// tensor, expressed in the local coordinate system:
+    /// The provided 3x3 matrix should be symmetric and contain the inertia tensor, expressed in the local coordinate
+    /// system: 
     /// <pre>
     ///               [ int{x^2+z^2}dm    -int{xy}dm    -int{xz}dm    ]
     /// newXInertia = [                  int{x^2+z^2}   -int{yz}dm    ]
     ///               [                                int{x^2+y^2}dm ]
     /// </pre>
     void SetInertia(const ChMatrix33<>& newXInertia);
-    /// Get a reference to the inertia tensor, expressed in local coordinate system.
-    /// The return 3xe3 symmetric matrix contains the following values:
+
+    /// Get the inertia tensor, expressed in the local coordinate system.
+    /// The return 3x3 symmetric matrix contains the following values:
     /// <pre>
     ///  [ int{x^2+z^2}dm    -int{xy}dm    -int{xz}dm    ]
     ///  [                  int{x^2+z^2}   -int{yz}dm    ]
     ///  [                                int{x^2+y^2}dm ]
     /// </pre>
-    const ChMatrix33<>& GetInertia() { return variables.GetBodyInertia(); }
+    const ChMatrix33<>& GetInertia() const { return variables.GetBodyInertia(); }
+
+    /// Get the inverse of the inertia matrix.
+    const ChMatrix33<>& GetInvInertia() const { return variables.GetBodyInvInertia(); }
+
     /// Set the diagonal part of the inertia tensor (Ixx, Iyy, Izz values).
-    /// The provided 3x1 vector should contain the moments of inertia,
-    /// expressed in the local coordinate frame:
+    /// The provided 3x1 vector should contain the moments of inertia, expressed in the local coordinate frame:
     /// <pre>
     /// iner = [  int{x^2+z^2}dm   int{x^2+z^2}   int{x^2+y^2}dm ]
     /// </pre>
     void SetInertiaXX(const ChVector<>& iner);
+
     /// Get the diagonal part of the inertia tensor (Ixx, Iyy, Izz values).
     /// The return 3x1 vector contains the following values:
     /// <pre>
     /// [  int{x^2+z^2}dm   int{x^2+z^2}   int{x^2+y^2}dm ]
     /// </pre>
-    ChVector<> GetInertiaXX();
+    ChVector<> GetInertiaXX() const;
+
     /// Set the off-diagonal part of the inertia tensor (Ixy, Ixz, Iyz values).
-    /// Warning about sign: in some books they write the inertia tensor as
-    /// I=[Ixx, -Ixy, -Ixz; etc.] but here is I=[Ixx, Ixy, Ixz; ...].
     /// The provided 3x1 vector should contain the products of inertia,
     /// expressed in the local coordinate frame:
     /// <pre>
     /// iner = [ -int{xy}dm   -int{xz}dm   -int{yz}dm ]
     /// </pre>
     void SetInertiaXY(const ChVector<>& iner);
-    /// Get the extra-diagonal part of the inertia tensor (Ixy, Ixz, Iyz values)
-    /// Warning about sign: in some books they write the inertia tensor as
-    /// I=[Ixx, -Ixy, -Ixz; etc.] but here is I=[Ixx, Ixy, Ixz; ...].
+
+    /// Get the extra-diagonal part of the inertia tensor (Ixy, Ixz, Iyz values).
     /// The return 3x1 vector contains the following values:
     /// <pre>
     /// [ -int{xy}dm   -int{xz}dm   -int{yz}dm ]
     /// </pre>
-    ChVector<> GetInertiaXY();
+    ChVector<> GetInertiaXY() const;
 
     /// Set the maximum linear speed (beyond this limit it will be clamped).
     /// This is useful in virtual reality and real-time simulations, because
@@ -360,50 +362,45 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// for each UpdateState().
     void ComputeGyro();
 
-    /// Transform and adds a Cartesian force to a generic 7x1 vector of body lagrangian forces mQf .
-    /// The Cartesian force must be passed as vector and application point, and can be either in local
-    /// (local = true) or absolute reference (local = false)
-    void Add_as_lagrangian_force(const ChVector<>& force,
-                                 const ChVector<>& appl_point,
-                                 bool local,
-                                 ChVectorN<double, 7>& mQf);
-    void Add_as_lagrangian_torque(const ChVector<>& torque, bool local, ChVectorN<double, 7>& mQf);
-
     // UTILITIES FOR FORCES/TORQUES:
 
-    /// Add forces and torques into the "accumulators", as increment.
-    /// Forces and torques currently in accumulators will affect the body.
-    /// It's up to the user to remember to empty them and/or set again at each
-    /// integration step. Useful to apply forces to bodies without needing to
-    /// add ChForce() objects. If local=true, force,appl.point or torque are considered
-    /// expressed in body coordinates, otherwise are considered in absolute coordinates.
-    void Accumulate_force(const ChVector<>& force, const ChVector<>& appl_point, bool local);
-    void Accumulate_torque(const ChVector<>& torque, bool local);
-    void Empty_forces_accumulators() {
-        Force_acc = VNULL;
-        Torque_acc = VNULL;
-    }
-    const ChVector<>& Get_accumulated_force() const { return Force_acc; }
-    const ChVector<>& Get_accumulated_torque() const { return Torque_acc; }
+    /// Add an applied force to the body's accumulator (as an increment).
+    /// It is the caller's responsibility to clear the force and torque accumulators at each integration step.
+    /// If local = true, the provided applied force is assumed to be expressed in body coordinates.
+    /// If local = false, the provided applied force is assumed to be expressed in absolute coordinates.
+    void Accumulate_force(const ChVector<>& force,       ///< applied force
+                          const ChVector<>& appl_point,  ///< application point
+                          bool local                     ///< force and point expressed in body local frame?
+    );
 
-    /// To get & set the 'script' force buffers(only accessed by external scripts, so
-    /// It's up to the script to remember to set& reset them -link class just add them to
-    /// all other forces. Script forces&torques are considered applied to COG, in abs csys.
-    const ChVector<>& Get_Scr_force() const { return Scr_force; }
-    const ChVector<>& Get_Scr_torque() const { return Scr_torque; }
-    void Set_Scr_force(const ChVector<>& mf) { Scr_force = mf; }
-    void Set_Scr_torque(const ChVector<>& mf) { Scr_torque = mf; }
-    void Accumulate_script_force(const ChVector<>& force, const ChVector<>& appl_point, bool local);
-    void Accumulate_script_torque(const ChVector<>& torque, bool local);
+    /// Add an applied torque to the body's accumulator (as an increment).
+    /// It is the caller's responsibility to clear the force and torque accumulators at each integration step.
+    /// If local = true, the provided applied torque is assumed to be expressed in body coordinates.
+    /// If local = false, the provided applied torque is assumed to be expressed in absolute coordinates.
+    void Accumulate_torque(const ChVector<>& torque,  ///< applied torque
+                           bool local                 ///< torque expressed in body local frame?
+    );
+
+    /// Clear the force and torque accumulators.
+    void Empty_forces_accumulators();
+
+    /// Return the current value of the accumulator force.
+    /// Note that this is a resultant force as applied to the COM and expressed in the absolute frame.
+    const ChVector<>& Get_accumulated_force() const { return Force_acc; }
+
+    /// Return the current value of the accumulator torque.
+    /// Note that this is a resultant torque expressed in the body local frame.
+    const ChVector<>& Get_accumulated_torque() const { return Torque_acc; }
 
     /// Return the gyroscopic torque.
     const ChVector<>& Get_gyro() const { return gyro; }
 
-    /// Get the total force applied to the rigid body (applied at center of mass.
-    /// expressed in absolute coordinates).
+    /// Get the total force applied to the rigid body.
+    /// Note that this is a resultant force as applied to the COM and expressed in the absolute frame.
     const ChVector<>& Get_Xforce() const { return Xforce; }
-    /// Get the total torque applied to the rigid body (expressed in body coordinates).
-    /// This does not include the gyroscopic torque.
+
+    /// Get the total torque applied to the rigid body.
+    /// Note that this is a resultant torque (excluding the gyroscopic torque) expressed in the body local frame.
     const ChVector<>& Get_Xtorque() const { return Xtorque; }
 
     // UPDATE FUNCTIONS
@@ -483,14 +480,11 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     ChVector<> gyro;  ///< gyroscopic torque, i.e. Qm = Wvel x (XInertia*Wvel)
 
-    ChVector<> Xforce;   ///< force  acting on body, applied to COG (in absolute coords)
-    ChVector<> Xtorque;  ///< torque acting on body  (in body relative coords)
+    ChVector<> Xforce;   ///< force  acting on body, applied to COM (in absolute coords)
+    ChVector<> Xtorque;  ///< torque acting on body  (in body local coords)
 
-    ChVector<> Force_acc;   ///< force accumulator, applied to COG (in absolute coords)
-    ChVector<> Torque_acc;  ///< torque accumulator (in abs space)
-
-    ChVector<> Scr_force;   ///< script force accumulator, applied to COG (in absolute coords)
-    ChVector<> Scr_torque;  ///< script torque accumulator (in absolute coords)
+    ChVector<> Force_acc;   ///< force accumulator, applied to COM (in absolute coords)
+    ChVector<> Torque_acc;  ///< torque accumulator (in body local coords)
 
     float density;  ///< used when doing the 'recompute mass' operation.
 

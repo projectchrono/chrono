@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) {
         std::shared_ptr<ChBodyAuxRef> mbody;
         for (auto body : my_system.Get_bodylist()) {
             GetLog() << body->GetNameString().c_str() << "\n";
-            if (body->GetNameString() == "escape_wheel^escapement-1")
+            if (body->GetNameString() == "escape_wheel-1")
                 mbody = std::dynamic_pointer_cast<ChBodyAuxRef>(body);
         }
 
