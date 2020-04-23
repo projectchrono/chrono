@@ -48,8 +48,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 endif()
 
 # Set location of SWIG-generated files.
-# Note that *.py files are also generated in this location.
-set(CMAKE_SWIG_OUTDIR "${PROJECT_BINARY_DIR}/swig")
+set(CMAKE_SWIG_OUTDIR "${PROJECT_BINARY_DIR}/swig_csharp")
 SET(CMAKE_SWIG_FLAGS "-c++")
 
 message(STATUS "SWIG_USE_FILE:      ${SWIG_USE_FILE}")
@@ -62,7 +61,7 @@ message(STATUS "CMAKE_SWIG_OUTDIR:  ${CMAKE_SWIG_OUTDIR}")
 message(STATUS "...add Chrono::CSharp CORE module")
 
 # Set module name.
-set(MODULE ChronoEngine_csharp)
+set(MODULE_CORE ChronoEngine_csharp_core)
 
 # Set interface file.
 set(INTERFACE_FILE ChModuleCore.i)
@@ -75,20 +74,20 @@ set_source_files_properties(${CHPY_CORE_WRAPPER_FILES} PROPERTIES HEADER_FILE_ON
 source_group("wrappers" FILES  ${CHPY_CORE_WRAPPER_FILES})
 
 # Create the SWIG module.
-SWIG_ADD_LIBRARY(${MODULE} LANGUAGE csharp SOURCES ${INTERFACE_FILE})
-SWIG_LINK_LIBRARIES(${MODULE} ChronoEngine)
+SWIG_ADD_LIBRARY(${MODULE_CORE} LANGUAGE csharp SOURCES ${INTERFACE_FILE})
+SWIG_LINK_LIBRARIES(${MODULE_CORE} ChronoEngine)
 
 # Ensure that the resultiung library is generated in the bin/ directory.
-set_target_properties(${SWIG_MODULE_${MODULE}_REAL_NAME} PROPERTIES 
-                      PROJECT_LABEL "${MODULE}"
-                      OUTPUT_NAME   "${SWIG_MODULE_${MODULE}_REAL_NAME}"
+set_target_properties(${SWIG_MODULE_${MODULE_CORE}_REAL_NAME} PROPERTIES 
+                      PROJECT_LABEL "${MODULE_CORE}"
+                      OUTPUT_NAME   "${SWIG_MODULE_${MODULE_CORE}_REAL_NAME}"
                       LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
                       )
 
-target_compile_definitions(${SWIG_MODULE_${MODULE}_REAL_NAME} PRIVATE "CH_IGNORE_DEPRECATED")
+target_compile_definitions(${SWIG_MODULE_${MODULE_CORE}_REAL_NAME} PRIVATE "CH_IGNORE_DEPRECATED")
 
-ADD_DEPENDENCIES (${SWIG_MODULE_${MODULE}_REAL_NAME} ChronoEngine)
+ADD_DEPENDENCIES (${SWIG_MODULE_${MODULE_CORE}_REAL_NAME} ChronoEngine)
 
 
-message(STATUS "Module name:     ${MODULE}")
-message(STATUS "SWIG_REAL_NAME:  ${SWIG_MODULE_${MODULE}_REAL_NAME}")
+message(STATUS "Module name:     ${MODULE_CORE}")
+message(STATUS "SWIG_REAL_NAME:  ${SWIG_MODULE_${MODULE_CORE}_REAL_NAME}")
