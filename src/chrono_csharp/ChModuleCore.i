@@ -16,6 +16,14 @@
 
 %module(directors="1") ChronoEngine_csharp
 
+// ATTENTION!!!!  Disable some warnings
+
+#pragma SWIG nowarn=302
+#pragma SWIG nowarn=315
+#pragma SWIG nowarn=401
+#pragma SWIG nowarn=503
+#pragma SWIG nowarn=516
+#pragma SWIG nowarn=842
 
 // Turn on the documentation of members, for more intuitive IDE typing
 
@@ -53,8 +61,8 @@
 #include "chrono/physics/ChLink.h"
 #include "chrono/physics/ChLoad.h"
 #include "chrono/physics/ChLoadsBody.h"
-#include "chrono/physics/ChNodeBase.h"
-#include "chrono/physics/ChNodeXYZ.h"
+////#include "chrono/physics/ChNodeBase.h"
+////#include "chrono/physics/ChNodeXYZ.h"
 #include "chrono/physics/ChLoadsXYZnode.h"
 #include "chrono/physics/ChIndexedNodes.h"
 #include "chrono/assets/ChLineShape.h"
@@ -166,8 +174,8 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChMaterialSurfaceNSC)
 %shared_ptr(chrono::ChMaterialSurfaceSMC)
 %shared_ptr(chrono::ChMaterialSurface)
-%shared_ptr(chrono::ChNodeBase)
-%shared_ptr(chrono::ChNodeXYZ)
+////%shared_ptr(chrono::ChNodeBase)
+////%shared_ptr(chrono::ChNodeXYZ)
 %shared_ptr(chrono::ChMarker)
 %shared_ptr(chrono::ChForce)
 %shared_ptr(chrono::ChBodyEasySphere)
@@ -333,8 +341,8 @@ using namespace chrono::fea;
 %include "ChObject.i"
 %include "ChPhysicsItem.i"
 %include "../chrono/physics/ChIndexedNodes.h"
-%include "../chrono/physics/ChNodeBase.h"
-%include "../chrono/physics/ChNodeXYZ.h"
+////%include "../chrono/physics/ChNodeBase.h"
+////%include "../chrono/physics/ChNodeXYZ.h"
 %include "ChBodyFrame.i"
 %include "ChMarker.i"
 %include "ChForce.i"
