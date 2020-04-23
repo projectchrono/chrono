@@ -1,3 +1,28 @@
+// Ensure that generated C# code does not use 'override' for various virtual methods.
+// This is because solvers use multiple inheritance and SWIG ignores all but the first base class.
+
+%csmethodmodifiers chrono::ChSolverAPGD::GetType "public"
+%csmethodmodifiers chrono::ChSolverBB::GetType "public"
+%csmethodmodifiers chrono::ChSolverPJacobi::GetType "public"
+%csmethodmodifiers chrono::ChSolverPSOR::GetType "public"
+////%csmethodmodifiers chrono::ChSolverBiCGSTAB::GetType "public"
+////%csmethodmodifiers chrono::ChSolverGMRES::GetType "public"
+////%csmethodmodifiers chrono::ChSolverMINRES::GetType "public"
+
+%csmethodmodifiers chrono::ChSolverAPGD::GetError "public"
+%csmethodmodifiers chrono::ChSolverBB::GetError "public"
+%csmethodmodifiers chrono::ChSolverPJacobi::GetError "public"
+%csmethodmodifiers chrono::ChSolverPSOR::GetError "public"
+%csmethodmodifiers chrono::ChSolverBiCGSTAB::GetError "public"
+%csmethodmodifiers chrono::ChSolverGMRES::GetError "public"
+%csmethodmodifiers chrono::ChSolverMINRES::GetError "public"
+
+%csmethodmodifiers chrono::ChIterativeSolverVI::GetIterations "public"
+%csmethodmodifiers chrono::ChSolverBiCGSTAB::GetIterations "public"
+%csmethodmodifiers chrono::ChSolverGMRES::GetIterations "public"
+%csmethodmodifiers chrono::ChSolverMINRES::GetIterations "public"
+
+
 %{
 
 /* Includes the header in the wrapper code */
