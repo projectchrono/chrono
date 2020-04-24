@@ -126,8 +126,8 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
         const ChCoordsys<>& position,                 ///< [in] patch location and orientation
         const std::string& heightmap_file,            ///< [in] filename for the height map (BMP)
         const std::string& mesh_name,                 ///< [in] name of the mesh asset
-        double sizeX,                                 ///< [in] terrain dimension in the X direction
-        double sizeY,                                 ///< [in] terrain dimension in the Y direction
+        double length,                                ///< [in] patch length
+        double width,                                 ///< [in] patch width
         double hMin,                                  ///< [in] minimum height (black level)
         double hMax,                                  ///< [in] maximum height (white level)
         double sweep_sphere_radius = 0,               ///< [in] radius of sweep sphere
@@ -174,6 +174,10 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     /// the output is set to heigh=0, normal=[0,0,1], and friction=0.8).
     bool FindPoint(const ChVector<> loc, double& height, ChVector<>& normal, float& friction) const;
 
+    /// Set common collision family for patches.
+    /// Used only if defining two or more patches. Default: 14.
+    void SetCollisionFamily(int family) { m_collision_family = family; }
+
   private:
     /// Patch represented as a box domain.
     struct CH_VEHICLE_API BoxPatch : public Patch {
@@ -202,6 +206,8 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
                   const ChCoordsys<>& position,
                   std::shared_ptr<ChMaterialSurface> material);
     void LoadPatch(const rapidjson::Value& a);
+
+    int m_collision_family;
 };
 
 /// @} vehicle_terrain
