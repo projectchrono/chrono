@@ -21,9 +21,20 @@
 #include "chrono/motion_functions/ChFunction_Sigma.h"
 #include "chrono/motion_functions/ChFunction_Sine.h"
 
-	// Helper function that will be put in C++ wrapper and that will
-	// be later used by %typemap in order to do downcasting to proper Python
-	// class when a method returns a generic pointer to base ChFunction*
+#include "chrono/motion_functions/ChFunctionRotation.h"
+#include "chrono/motion_functions/ChFunctionRotation_axis.h"
+#include "chrono/motion_functions/ChFunctionRotation_ABCfunctions.h"
+#include "chrono/motion_functions/ChFunctionRotation_setpoint.h"
+#include "chrono/motion_functions/ChFunctionRotation_spline.h"
+#include "chrono/motion_functions/ChFunctionRotation_SQUAD.h"
+#include "chrono/motion_functions/ChFunctionPosition.h"
+#include "chrono/motion_functions/ChFunctionPosition_line.h"
+#include "chrono/motion_functions/ChFunctionPosition_setpoint.h"
+#include "chrono/motion_functions/ChFunctionPosition_XYZfunctions.h"
+
+// Helper function that will be put in C++ wrapper and that will
+// be later used by %typemap in order to do downcasting to proper Python
+// class when a method returns a generic pointer to base ChFunction*
 SWIGRUNTIME PyObject* DowncastChFunction(chrono::ChFunction* out)
 {
   if (out)
@@ -74,6 +85,37 @@ SWIGRUNTIME PyObject* DowncastChFunction(chrono::ChFunction* out)
 
 %}
 
+%shared_ptr(chrono::ChFunction)  
+%shared_ptr(chrono::ChFunction_Const)
+%shared_ptr(chrono::ChFunction_ConstAcc)
+%shared_ptr(chrono::ChFunction_Derive)
+%shared_ptr(chrono::ChFunction_Fillet3)
+%shared_ptr(chrono::ChFunction_Integrate)
+%shared_ptr(chrono::ChFunction_Mirror)
+%shared_ptr(chrono::ChFunction_Mocap)
+%shared_ptr(chrono::ChFunction_Noise)
+%shared_ptr(chrono::ChFunction_Operation)
+%shared_ptr(chrono::ChFunction_Oscilloscope)
+%shared_ptr(chrono::ChFunction_Poly)
+%shared_ptr(chrono::ChFunction_Poly345)
+%shared_ptr(chrono::ChFunction_Ramp)
+%shared_ptr(chrono::ChFunction_Recorder)
+%shared_ptr(chrono::ChFunction_Repeat)
+%shared_ptr(chrono::ChFunction_Sequence)
+%shared_ptr(chrono::ChFunction_Sigma)
+%shared_ptr(chrono::ChFunction_Sine)
+
+%shared_ptr(chrono::ChFunctionRotation)
+%shared_ptr(chrono::ChFunctionRotation_axis)
+%shared_ptr(chrono::ChFunctionRotation_ABCfunctions)
+%shared_ptr(chrono::ChFunctionRotation_setpoint)
+%shared_ptr(chrono::ChFunctionRotation_spline)
+%shared_ptr(chrono::ChFunctionRotation_SQUAD)
+%shared_ptr(chrono::ChFunctionPosition)
+%shared_ptr(chrono::ChFunctionPosition_line)
+%shared_ptr(chrono::ChFunctionPosition_setpoint)
+%shared_ptr(chrono::ChFunctionPosition_XYZfunctions)
+
 
 // Cross-inheritance between Python and c++ for callbacks that must be inherited.
 // Put this 'director' feature _before_ class wrapping declaration.
@@ -101,9 +143,16 @@ SWIGRUNTIME PyObject* DowncastChFunction(chrono::ChFunction* out)
 %include "../../chrono/motion_functions/ChFunction_Sigma.h"
 %include "../../chrono/motion_functions/ChFunction_Sine.h"
 
-// The following is clean but may cause code bloat...
-
-// %downcast_output (chrono::ChFunction, chrono::ChFunction_Sine, chrono::ChFunction_Const)
+%include "../../chrono/motion_functions/ChFunctionRotation.h"
+%include "../../chrono/motion_functions/ChFunctionRotation_axis.h"
+%include "../../chrono/motion_functions/ChFunctionRotation_ABCfunctions.h"
+%include "../../chrono/motion_functions/ChFunctionRotation_setpoint.h"
+%include "../../chrono/motion_functions/ChFunctionRotation_spline.h"
+%include "../../chrono/motion_functions/ChFunctionRotation_SQUAD.h"
+%include "../../chrono/motion_functions/ChFunctionPosition.h"
+%include "../../chrono/motion_functions/ChFunctionPosition_line.h"
+%include "../../chrono/motion_functions/ChFunctionPosition_setpoint.h"
+%include "../../chrono/motion_functions/ChFunctionPosition_XYZfunctions.h"
 
 
 //... so use the following custom trick
@@ -111,5 +160,3 @@ SWIGRUNTIME PyObject* DowncastChFunction(chrono::ChFunction* out)
 %typemap(out) chrono::ChFunction* {
 	$result=DowncastChFunction($1);
 }
-
-

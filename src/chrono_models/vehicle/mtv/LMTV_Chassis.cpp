@@ -16,7 +16,6 @@
 //
 // =============================================================================
 
-
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
@@ -31,19 +30,19 @@ namespace mtv {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const double LMTV_Chassis::m_mass = 3796;
+const double LMTV_Chassis::m_mass = 3946;
 // const ChVector<> LMTV_Chassis::m_inertiaXX(222.8, 944.1, 1053.5);
-const ChVector<> LMTV_Chassis::m_inertiaXX(3.1721e3, 5.1645e3, 4.4865e3);
-const ChVector<> LMTV_Chassis::m_inertiaXY(0, -0.4154e3, 0);
-const ChVector<> LMTV_Chassis::m_COM_loc(-0.7079, 0, 0.6790);
+const ChVector<> LMTV_Chassis::m_inertiaXX(3.2282e3, 5.2323e3, 4.4980e3);
+const ChVector<> LMTV_Chassis::m_inertiaXY(0, -0.4027e3, 0);
+const ChVector<> LMTV_Chassis::m_COM_loc(-0.6972, 0, 0.6672);
 const ChCoordsys<> LMTV_Chassis::m_driverCsys(ChVector<>(0.4, 0.7, 1.18), ChQuaternion<>(1, 0, 0, 0));
 
-const double LMTV_Chassis::m_rear_mass = 1788.333;
-const ChVector<> LMTV_Chassis::m_rear_inertiaXX(2.3677e3, 2.3766e3, 3.2246e3);
-const ChVector<> LMTV_Chassis::m_rear_inertiaXY(0, -0.0915e3, 0);
-const ChVector<> LMTV_Chassis::m_rear_COM_loc(-3.1765, 0, 0.8799);
+const double LMTV_Chassis::m_rear_mass = 1938.333;
+const ChVector<> LMTV_Chassis::m_rear_inertiaXX(2.4461e3, 2.4605e3, 3.2300e3);
+const ChVector<> LMTV_Chassis::m_rear_inertiaXY(0, -0.1055e3, 0);
+const ChVector<> LMTV_Chassis::m_rear_COM_loc(-3.1919, 0, 0.8404);
 
-const ChVector<> LMTV_Chassis::m_torsion_joint_pos(-1.748, 0, 0.466);
+const ChVector<> LMTV_Chassis::m_torsion_joint_pos(-3.1919, 0, 0.8404);
 const double LMTV_Chassis::m_torsion_stiffness = 7085;  // 7.085;
 
 // -----------------------------------------------------------------------------

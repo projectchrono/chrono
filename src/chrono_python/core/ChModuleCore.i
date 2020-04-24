@@ -51,6 +51,7 @@
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLink.h"
+#include "chrono/physics/ChLinkMotionImposed.h"
 #include "chrono/physics/ChLoad.h"
 #include "chrono/physics/ChLoadsBody.h"
 #include "chrono/physics/ChNodeBase.h"
@@ -139,26 +140,6 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChBezierCurve)
 %shared_ptr(chrono::ChGlyphs)
 
-%shared_ptr(chrono::ChFunction)  
-%shared_ptr(chrono::ChFunction_Const)
-%shared_ptr(chrono::ChFunction_ConstAcc)
-%shared_ptr(chrono::ChFunction_Derive)
-%shared_ptr(chrono::ChFunction_Fillet3)
-%shared_ptr(chrono::ChFunction_Integrate)
-%shared_ptr(chrono::ChFunction_Mirror)
-%shared_ptr(chrono::ChFunction_Mocap)
-%shared_ptr(chrono::ChFunction_Noise)
-%shared_ptr(chrono::ChFunction_Operation)
-%shared_ptr(chrono::ChFunction_Oscilloscope)
-%shared_ptr(chrono::ChFunction_Poly)
-%shared_ptr(chrono::ChFunction_Poly345)
-%shared_ptr(chrono::ChFunction_Ramp)
-%shared_ptr(chrono::ChFunction_Recorder)
-%shared_ptr(chrono::ChFunction_Repeat)
-%shared_ptr(chrono::ChFunction_Sequence)
-%shared_ptr(chrono::ChFunction_Sigma)
-%shared_ptr(chrono::ChFunction_Sine)
-
 
 %shared_ptr(chrono::collision::ChCollisionModel)
 %shared_ptr(chrono::ChPhysicsItem)
@@ -223,6 +204,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChLinkMotorRotationTorque)
 %shared_ptr(chrono::ChLinkTrajectory)
 %shared_ptr(chrono::ChLinkPointSpline)
+%shared_ptr(chrono::ChLinkMotionImposed)
 
 
 
@@ -296,7 +278,7 @@ using namespace chrono::fea;
 
 
 // motion_functions/   classes
-%include "ChFunction_Base.i"
+%include "ChFunction.i"
 
 // geometry/   classes
 %include "ChGeometry.i"
@@ -364,6 +346,7 @@ using namespace chrono::fea;
 %include "ChLinkUniversal.i" 
 %include "ChLinkTrajectory.i" 
 %include "ChLinkPointSpline.i"
+%include "../../chrono/physics/ChLinkMotionImposed.h"
 %include "ChAssembly.i"
 %include "ChTimestepper.i"
 %include "ChSolver.i"

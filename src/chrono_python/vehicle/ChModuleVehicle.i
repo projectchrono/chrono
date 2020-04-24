@@ -235,7 +235,7 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %import(module = "pychrono.core")  "chrono_python/core/ChAsset.i"
 %import(module = "pychrono.core")  "chrono_python/core/ChAssetLevel.i"
 %import(module = "pychrono.core")  "chrono_python/core/ChVisualization.i"
-%import(module = "pychrono.core")  "../../chrono/motion_functions/ChFunction_Base.h"
+%import(module = "pychrono.core")  "../../chrono/motion_functions/ChFunction.h"
 %import(module = "pychrono.core")  "chrono_python/core/ChMaterialSurface.i"
 %import(module = "pychrono.core")  "../../chrono/fea/ChContinuumMaterial.h"
 %import(module = "pychrono.core")  "../../chrono/physics/ChPhysicsItem.h"
