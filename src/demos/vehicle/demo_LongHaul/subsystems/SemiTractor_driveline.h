@@ -23,7 +23,7 @@
 
 #include "chrono_models/ChApiModels.h"
 
-class CH_MODELS_API SemiTractor_driveline : public chrono::vehicle::ChShaftsDriveline4WD {
+class SemiTractor_driveline : public chrono::vehicle::ChShaftsDriveline4WD {
   public:
     SemiTractor_driveline(const std::string& name);
     ~SemiTractor_driveline() {}

@@ -27,7 +27,7 @@
 
 #include "chrono_models/ChApiModels.h"
 
-class CH_MODELS_API SemiTractor_wheel : public chrono::vehicle::ChWheel {
+class SemiTractor_wheel : public chrono::vehicle::ChWheel {
   public:
     SemiTractor_wheel(const std::string& name);
     ~SemiTractor_wheel() {}

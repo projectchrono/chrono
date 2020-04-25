@@ -26,7 +26,7 @@
 using namespace chrono;
 using namespace chrono::vehicle;
 
-class CH_MODELS_API SemiTractor_rear_axle : public ChLeafspringAxle {
+class SemiTractor_rear_axle : public ChLeafspringAxle {
   public:
     SemiTractor_rear_axle(const std::string& name);
     ~SemiTractor_rear_axle();

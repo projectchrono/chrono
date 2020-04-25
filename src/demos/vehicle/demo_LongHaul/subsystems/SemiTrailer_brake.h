@@ -23,7 +23,7 @@
 
 #include "chrono_models/ChApiModels.h"
 
-class CH_MODELS_API SemiTrailer_brake : public chrono::vehicle::ChBrakeSimple {
+class SemiTrailer_brake : public chrono::vehicle::ChBrakeSimple {
   public:
     SemiTrailer_brake(const std::string& name);
     virtual ~SemiTrailer_brake() {}

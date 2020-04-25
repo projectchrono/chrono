@@ -23,7 +23,7 @@
 
 #include "chrono_models/ChApiModels.h"
 
-class CH_MODELS_API SemiTractor_steering : public chrono::vehicle::ChRotaryArm {
+class SemiTractor_steering : public chrono::vehicle::ChRotaryArm {
   public:
     SemiTractor_steering(const std::string& name);
     ~SemiTractor_steering() {}

@@ -23,7 +23,7 @@
 
 #include "chrono_models/ChApiModels.h"
 
-class CH_MODELS_API SemiTractor_tire : public chrono::vehicle::ChTMeasyTire {
+class SemiTractor_tire : public chrono::vehicle::ChTMeasyTire {
   public:
     SemiTractor_tire(const std::string& name);
     ~SemiTractor_tire() {}
