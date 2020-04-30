@@ -45,13 +45,21 @@ namespace vehicle {
 // Default constructor.
 // -----------------------------------------------------------------------------
 RigidTerrain::RigidTerrain(ChSystem* system)
-    : m_system(system), m_num_patches(0), m_use_friction_functor(false), m_contact_callback(nullptr) {}
+    : m_system(system),
+      m_num_patches(0),
+      m_collision_family(14),
+      m_use_friction_functor(false),
+      m_contact_callback(nullptr) {}
 
 // -----------------------------------------------------------------------------
 // Constructor from JSON file
 // -----------------------------------------------------------------------------
 RigidTerrain::RigidTerrain(ChSystem* system, const std::string& filename)
-    : m_system(system), m_num_patches(0), m_use_friction_functor(false), m_contact_callback(nullptr) {
+    : m_system(system),
+      m_num_patches(0),
+      m_collision_family(14),
+      m_use_friction_functor(false),
+      m_contact_callback(nullptr) {
     // Open and parse the input file
     Document d = ReadFileJSON(filename);
     if (d.IsNull())
@@ -150,7 +158,7 @@ void RigidTerrain::AddPatch(std::shared_ptr<Patch> patch,
     patch->m_body->SetBodyFixed(true);
     patch->m_body->SetCollide(true);
     m_system->AddBody(patch->m_body);
-    
+
     // Cache coefficient of friction
     patch->m_friction = material->GetSfriction();
 
@@ -180,20 +188,19 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
     // Create the collision model (one or more boxes) attached to the patch body
     patch->m_body->GetCollisionModel()->ClearModel();
     if (tiled) {
-        //// RADU : TODO tiled collision shapes
-        ////int nX = (int)std::ceil(size.x() / max_tile_size);
-        ////int nY = (int)std::ceil(size.y() / max_tile_size);
-        ////double sizeX1 = size.x() / nX;
-        ////double sizeY1 = size.y() / nY;
-        ////for (int ix = 0; ix < nX; ix++) {
-        ////    for (int iy = 0; iy < nY; iy++) {
-        ////        patch->m_body->GetCollisionModel()->AddBox(                                                      //
-        ////            material,                                                                                    //
-        ////            0.5 * sizeX1, 0.5 * sizeY1, 0.5 * size.z(),                                                  //
-        ////            ChVector<>((sizeX1 - size.x()) / 2 + ix * sizeX1, (sizeY1 - size.y()) / 2 + iy * sizeY1, 0)  //
-        ////        );
-        ////    }
-        ////}
+        int nX = (int)std::ceil(length / max_tile_size);
+        int nY = (int)std::ceil(width / max_tile_size);
+        double sizeX1 = length / nX;
+        double sizeY1 = width / nY;
+        for (int ix = 0; ix < nX; ix++) {
+            for (int iy = 0; iy < nY; iy++) {
+                patch->m_body->GetCollisionModel()->AddBox(                                                 //
+                    material,                                                                               //
+                    0.5 * sizeX1, 0.5 * sizeY1, 0.5 * thickness,                                            //
+                    ChVector<>((sizeX1 - length) / 2 + ix * sizeX1, (sizeY1 - width) / 2 + iy * sizeY1, 0)  //
+                );
+            }
+        }
     } else {
         patch->m_body->GetCollisionModel()->AddBox(material, 0.5 * length, 0.5 * width, 0.5 * thickness);
     }
@@ -266,8 +273,8 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
                                                             const ChCoordsys<>& position,
                                                             const std::string& heightmap_file,
                                                             const std::string& mesh_name,
-                                                            double sizeX,
-                                                            double sizeY,
+                                                            double length,
+                                                            double width,
                                                             double hMin,
                                                             double hMax,
                                                             double sweep_sphere_radius,
@@ -289,8 +296,8 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
     // to hMin and white corresponding to hMax.
     // UV coordinates are mapped in [0,1] x [0,1].
     // We use smoothed vertex normals.
-    double dx = sizeX / (nv_x - 1);
-    double dy = sizeY / (nv_y - 1);
+    double dx = length / (nv_x - 1);
+    double dy = width / (nv_y - 1);
     double h_scale = (hMax - hMin) / 255;
     double x_scale = 1.0 / (nv_x - 1);
     double y_scale = 1.0 / (nv_y - 1);
@@ -322,9 +329,9 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
     // The bottom-left corner corresponds to the point (-sizeX/2, -sizeY/2).
     unsigned int iv = 0;
     for (int iy = nv_y - 1; iy >= 0; --iy) {
-        double y = 0.5 * sizeY - iy * dy;
+        double y = 0.5 * width - iy * dy;
         for (int ix = 0; ix < nv_x; ++ix) {
-            double x = ix * dx - 0.5 * sizeX;
+            double x = ix * dx - 0.5 * length;
             // Calculate equivalent gray level (RGB -> YUV)
             ebmpBYTE red = hmap(ix, iy)->Red;
             ebmpBYTE green = hmap(ix, iy)->Green;
@@ -392,10 +399,11 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(patch->m_trimesh);
         trimesh_shape->SetName(mesh_name);
+        trimesh_shape->SetStatic(true);
         patch->m_body->AddAsset(trimesh_shape);
     }
 
-    patch->m_radius = ChVector<>(sizeX, sizeY, (hMax - hMin)).Length() / 2;
+    patch->m_radius = ChVector<>(length, width, (hMax - hMin)).Length() / 2;
     patch->m_mesh_name = mesh_name;
     patch->m_type = PatchType::HEIGHT_MAP;
 
@@ -483,11 +491,21 @@ class RTContactCallback : public ChContactContainer::AddContactCallback {
 };
 
 void RigidTerrain::Initialize() {
+    if (m_patches.empty())
+        return;
+
+    if (m_patches.size() > 1) {
+        for (auto patch : m_patches) {
+            // Add all patches to the same collision family
+            // and disable collision with other collision models in this family.
+            patch->m_body->GetCollisionModel()->SetFamily(m_collision_family);
+            patch->m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(m_collision_family);        
+        }
+    }
+
     if (!m_friction_fun)
         m_use_friction_functor = false;
     if (!m_use_friction_functor)
-        return;
-    if (m_patches.empty())
         return;
 
     // Create and register a custom callback functor of type ChContactContainer::AddContactCallback

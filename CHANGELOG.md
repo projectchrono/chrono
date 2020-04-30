@@ -2,6 +2,8 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+    - [Chrono::Vehicle simulation world frame](#added-chronovehicle-simulation-world-frame)
+    - [CASCADE module](#changed-cascade-module)
 	- [Collision shapes and contact materials](#changed-collision-shapes-and-contact-materials)
 - [Release 5.0.1](#release-501---2020-02-29)
 - [Release 5.0.0](#release-500---2020-02-24)
@@ -11,14 +13,30 @@ Change Log
 
 ## Unreleased (development branch)
 
+### [Added] Chrono::Vehicle simulation world frame
+
+While the default world frame for Chrono::Vehicle simulations is an ISO (Z up) frame, we now provide support to simulate vehicles in a scene specified in a different reference frame (for example, an Y up frame).
+The world frame is uniquely defined through a rotation matrix (the rotation required to align the ISO frame with the desired world frame). To change the world frame definition from the default ISO convention, the desired world frame must be set **before** any Chrono::Vehicle library call:
+```cpp
+ChMatrix33<> world_rotation = ...
+ChWorldFrame::Set(worl_rotation);
+```
+A shortcut is provided to specify a world frame with Y up (and X forward, Z to the right):
+```cpp
+ChWorldFrame::SetYUP();
+```
+
 
 ### [Changed] CASCADE module
 
 1.	Support for OpenCASCADE 7.4.0. The API of OpenCASCADE introduced some changes in the 7.4.0 version so we also updated the CASCADE module of Chrono. Please download and upgrade your OpenCASCADE version as it is not backward compatible. (The module is optionally built via CMake configuration flag ENABLE_MODULE_CASCADE, also remember to update the CASCADE_INCLUDE_DIR and CASCADE_LIBDIR paths and to update your PATH if you added the path to Cascade dlls)
 
-2.	The method `ChCascadeDoc::CreateBodyFromShape()` is obsolete. Just use the `ChBodyEasyCascade` class for obtaining the same result, ex. as in: `auto mbody = chrono_types::make_shared<ChBodyEasyCascade>(myshape, ...);` 
+2.	The method `ChCascadeDoc::CreateBodyFromShape()` is obsolete. Just use the `ChBodyEasyCascade` class to obtain the same result, for example:
+    ```cpp
+    auto mbody = chrono_types::make_shared<ChBodyEasyCascade>(myshape, ...);
+    ```
 
-3.	The mesh tesselation algorithm could give coarser or finer meshes respect to the previous release.
+3.	The mesh tesselation algorithm could give coarser or finer meshes with respect to the previous release.
 
 
 ### [Changed] Collision shapes and contact materials
