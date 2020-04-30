@@ -16,6 +16,7 @@
 #define CHLINKREVOLUTE_H
 
 #include "chrono/physics/ChLink.h"
+#include "chrono/physics/ChBody.h"
 #include "chrono/solver/ChConstraintTwoBodies.h"
 
 namespace chrono {
@@ -59,21 +60,21 @@ class ChApi ChLinkRevolute : public ChLink {
     /// Initialize this joint by specifying the two bodies to be connected and a
     /// joint frame specified in the absolute frame. The revolute joint is
     /// constructed such that ...
-    void Initialize(std::shared_ptr<ChBodyFrame> body1,  ///< first body frame
-                    std::shared_ptr<ChBodyFrame> body2,  ///< second body frame
-                    const ChFrame<>& frame               ///< joint frame (in absolute frame)
-                    );
+    void Initialize(std::shared_ptr<ChBody> body1,  ///< first body frame
+                    std::shared_ptr<ChBody> body2,  ///< second body frame
+                    const ChFrame<>& frame          ///< joint frame (in absolute frame)
+    );
 
     /// Initialize this joint by specifying the two bodies to be connected and the
     /// joint frames on each body. If local = true, it is assumed that these quantities
     /// are specified in the local body frames. Otherwise, it is assumed that they are
     /// specified in the absolute frame.
-    void Initialize(std::shared_ptr<ChBodyFrame> body1,  ///< first body frame
-                    std::shared_ptr<ChBodyFrame> body2,  ///< second body frame
-                    bool local,                          ///< true if data given in body local frames
-                    const ChFrame<>& frame1,             ///< joint frame on body 1
-                    const ChFrame<>& frame2              ///< joint frame on body 2
-                    );
+    void Initialize(std::shared_ptr<ChBody> body1,  ///< first body frame
+                    std::shared_ptr<ChBody> body2,  ///< second body frame
+                    bool local,                     ///< true if data given in body local frames
+                    const ChFrame<>& frame1,        ///< joint frame on body 1
+                    const ChFrame<>& frame2         ///< joint frame on body 2
+    );
 
     //
     // UPDATING FUNCTIONS

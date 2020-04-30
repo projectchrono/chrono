@@ -50,8 +50,8 @@ ChLinkRevolute::ChLinkRevolute(const ChLinkRevolute& other) : ChLink(other) {
 // -----------------------------------------------------------------------------
 // Link initialization functions
 // -----------------------------------------------------------------------------
-void ChLinkRevolute::Initialize(std::shared_ptr<ChBodyFrame> body1,
-                                std::shared_ptr<ChBodyFrame> body2,
+void ChLinkRevolute::Initialize(std::shared_ptr<ChBody> body1,
+                                std::shared_ptr<ChBody> body2,
                                 const ChFrame<>& frame) {
     Body1 = body1.get();
     Body2 = body2.get();
@@ -72,8 +72,8 @@ void ChLinkRevolute::Initialize(std::shared_ptr<ChBodyFrame> body1,
     m_C.setZero();
 }
 
-void ChLinkRevolute::Initialize(std::shared_ptr<ChBodyFrame> body1,
-                                std::shared_ptr<ChBodyFrame> body2,
+void ChLinkRevolute::Initialize(std::shared_ptr<ChBody> body1,
+                                std::shared_ptr<ChBody> body2,
                                 bool local,
                                 const ChFrame<>& frame1,
                                 const ChFrame<>& frame2) {
