@@ -21,6 +21,7 @@
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/collision/ChCollisionModelBullet.h"
+#include "chrono/geometry/ChTriangleMeshConnected.h"
 
 namespace chrono {
 
@@ -137,6 +138,11 @@ class ChApi ChBodyEasyConvexHull : public ChBody {
                          std::shared_ptr<collision::ChCollisionModel> collision_model =
                              chrono_types::make_shared<collision::ChCollisionModelBullet>()  ///< collision model
     );
+
+    std::shared_ptr<geometry::ChTriangleMeshConnected> GetMesh() const { return m_mesh; }
+
+  private:
+    std::shared_ptr<geometry::ChTriangleMeshConnected> m_mesh;
 };
 
 /// Easy-to-use class for quick creation of rigid bodies with a convex hull shape,
@@ -164,6 +170,11 @@ class ChApi ChBodyEasyConvexHullAuxRef : public ChBodyAuxRef {
                                std::shared_ptr<collision::ChCollisionModel> collision_model =
                                    chrono_types::make_shared<collision::ChCollisionModelBullet>()  ///< collision model
     );
+
+    std::shared_ptr<geometry::ChTriangleMeshConnected> GetMesh() const { return m_mesh; }
+
+  private:
+    std::shared_ptr<geometry::ChTriangleMeshConnected> m_mesh;
 };
 
 /// Easy-to-use class for quick creation of rigid bodies with a triangle mesh shape,

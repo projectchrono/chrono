@@ -63,7 +63,7 @@ int main(int argc, char* argv[]) {
     double radB = 4;
 
     // ...the truss
-    auto mbody_truss = chrono_types::make_shared<ChBodyEasyBox>(20, 10, 2, 1000, true, true, mat);
+    auto mbody_truss = chrono_types::make_shared<ChBodyEasyBox>(20, 10, 2, 1000, true, false, mat);
     mphysicalSystem.Add(mbody_truss);
     mbody_truss->SetBodyFixed(true);
     mbody_truss->SetPos(ChVector<>(0, 0, 3));
@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
     auto cylinder_texture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("pinkwhite.png"));
 
     // ...the rotating bar support for the two epicycloidal wheels
-    auto mbody_train = chrono_types::make_shared<ChBodyEasyBox>(8, 1.5, 1.0, 1000, true, true, mat);
+    auto mbody_train = chrono_types::make_shared<ChBodyEasyBox>(8, 1.5, 1.0, 1000, true, false, mat);
     mphysicalSystem.Add(mbody_train);
     mbody_train->SetPos(ChVector<>(3, 0, 0));
 
@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.AddLink(link_revoluteTT);
 
     // ...the first gear
-    auto mbody_gearA = chrono_types::make_shared<ChBodyEasyCylinder>(radA, 0.5, 1000, true, true, mat);
+    auto mbody_gearA = chrono_types::make_shared<ChBodyEasyCylinder>(radA, 0.5, 1000, true, false, mat);
     mphysicalSystem.Add(mbody_gearA);
     mbody_gearA->SetPos(ChVector<>(0, 0, -1));
     mbody_gearA->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
 
     // ...the second gear
     double interaxis12 = radA + radB;
-    auto mbody_gearB = chrono_types::make_shared<ChBodyEasyCylinder>(radB, 0.4, 1000, true, true, mat);
+    auto mbody_gearB = chrono_types::make_shared<ChBodyEasyCylinder>(radB, 0.4, 1000, true, false, mat);
     mphysicalSystem.Add(mbody_gearB);
     mbody_gearB->SetPos(ChVector<>(interaxis12, 0, -1));
     mbody_gearB->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
@@ -148,7 +148,7 @@ int main(int argc, char* argv[]) {
 
     // ...the bevel gear at the side,
     double radD = 5;
-    auto mbody_gearD = chrono_types::make_shared<ChBodyEasyCylinder>(radD, 0.8, 1000, true, true, mat);
+    auto mbody_gearD = chrono_types::make_shared<ChBodyEasyCylinder>(radD, 0.8, 1000, true, false, mat);
     mphysicalSystem.Add(mbody_gearD);
     mbody_gearD->SetPos(ChVector<>(-10, 0, -9));
     mbody_gearD->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_Z));
@@ -172,7 +172,7 @@ int main(int argc, char* argv[]) {
 
     // ...the pulley at the side,
     double radE = 2;
-    auto mbody_pulleyE = chrono_types::make_shared<ChBodyEasyCylinder>(radE, 0.8, 1000, true, true, mat);
+    auto mbody_pulleyE = chrono_types::make_shared<ChBodyEasyCylinder>(radE, 0.8, 1000, true, false, mat);
     mphysicalSystem.Add(mbody_pulleyE);
     mbody_pulleyE->SetPos(ChVector<>(-10, -11, -9));
     mbody_pulleyE->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_Z));
@@ -213,7 +213,7 @@ int main(int argc, char* argv[]) {
     // THE SOFT-REAL-TIME CYCLE
     //
 
-    application.SetTimestep(0.01);
+    application.SetTimestep(0.001);
     application.SetTryRealtime(true);
 
     while (application.GetDevice()->run()) {
