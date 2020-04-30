@@ -185,6 +185,8 @@ ChBodyEasyConvexHull::ChBodyEasyConvexHull(std::vector<ChVector<>>& points,
         GetCollisionModel()->BuildModel();
         SetCollide(true);
     }
+
+    m_mesh = vshape->GetMesh();
 }
 
 ChBodyEasyConvexHullAuxRef::ChBodyEasyConvexHullAuxRef(std::vector<ChVector<>>& points,
@@ -235,6 +237,8 @@ ChBodyEasyConvexHullAuxRef::ChBodyEasyConvexHullAuxRef(std::vector<ChVector<>>& 
         GetCollisionModel()->BuildModel();
         SetCollide(true);
     }
+
+    m_mesh = vshape->GetMesh();
 }
 
 ChBodyEasyMesh::ChBodyEasyMesh(const std::string filename,
