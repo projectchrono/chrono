@@ -79,24 +79,20 @@ const double HMMWV_DoubleWishboneReducedRear::m_springRestLength = in2m * 15.03;
 // -----------------------------------------------------------------------------
 HMMWV_DoubleWishboneReducedFront::HMMWV_DoubleWishboneReducedFront(const std::string& name)
     : ChDoubleWishboneReduced(name) {
-    m_shockForceCB = new LinearSpringDamperForce(m_springCoefficient, m_dampingCoefficient);
+    m_shockForceCB = chrono_types::make_shared<LinearSpringDamperForce>(m_springCoefficient, m_dampingCoefficient);
 }
 
 HMMWV_DoubleWishboneReducedRear::HMMWV_DoubleWishboneReducedRear(const std::string& name)
     : ChDoubleWishboneReduced(name) {
-    m_shockForceCB = new LinearSpringDamperForce(m_springCoefficient, m_dampingCoefficient);
+    m_shockForceCB = chrono_types::make_shared<LinearSpringDamperForce>(m_springCoefficient, m_dampingCoefficient);
 }
 
 // -----------------------------------------------------------------------------
 // Destructors
 // -----------------------------------------------------------------------------
-HMMWV_DoubleWishboneReducedFront::~HMMWV_DoubleWishboneReducedFront() {
-    delete m_shockForceCB;
-}
+HMMWV_DoubleWishboneReducedFront::~HMMWV_DoubleWishboneReducedFront() {}
 
-HMMWV_DoubleWishboneReducedRear::~HMMWV_DoubleWishboneReducedRear() {
-    delete m_shockForceCB;
-}
+HMMWV_DoubleWishboneReducedRear::~HMMWV_DoubleWishboneReducedRear() {}
 
 // -----------------------------------------------------------------------------
 // Implementations of the getLocation() virtual methods.

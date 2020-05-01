@@ -56,16 +56,16 @@ class CH_MODELS_API LMTV_LeafspringAxle : public ChLeafspringAxle {
 
     virtual double getSpringRestLength() const override { return m_springRestLength; }
     /// Return the functor object for spring force.
-    virtual ChLinkTSDA::ForceFunctor* getSpringForceFunctor() const override { return m_springForceCB; }
+    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getSpringForceFunctor() const override { return m_springForceCB; }
     /// Return the functor object for shock force.
-    virtual ChLinkTSDA::ForceFunctor* getShockForceFunctor() const override { return m_shockForceCB; }
+    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const override { return m_shockForceCB; }
 
     virtual std::shared_ptr<ChBody> GetLeftBody() const override { return m_axleTube; }
     virtual std::shared_ptr<ChBody> GetRightBody() const override { return m_axleTube; }
 
   private:
-    ChLinkTSDA::ForceFunctor* m_springForceCB;
-    ChLinkTSDA::ForceFunctor* m_shockForceCB;
+    std::shared_ptr<ChLinkTSDA::ForceFunctor> m_springForceCB;
+    std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockForceCB;
 
     static const double m_axleShaftInertia;
 

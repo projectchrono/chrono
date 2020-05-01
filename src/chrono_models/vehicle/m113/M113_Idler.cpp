@@ -74,7 +74,8 @@ class M113_TensionerForce : public ChLinkTSDA::ForceFunctor {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 M113_Idler::M113_Idler(const std::string& name) : ChDoubleIdler(name) {
-    m_tensionerForceCB = new M113_TensionerForce(m_tensioner_k, m_tensioner_c, m_tensioner_f, m_tensioner_l0);
+    m_tensionerForceCB =
+        chrono_types::make_shared<M113_TensionerForce>(m_tensioner_k, m_tensioner_c, m_tensioner_f, m_tensioner_l0);
 }
 
 void M113_Idler::CreateContactMaterial(ChContactMethod contact_method) {
