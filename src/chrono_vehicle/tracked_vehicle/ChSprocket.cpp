@@ -31,11 +31,9 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChSprocket::ChSprocket(const std::string& name) : ChPart(name), m_callback(NULL) {}
+ChSprocket::ChSprocket(const std::string& name) : ChPart(name) {}
 
-ChSprocket::~ChSprocket() {
-    delete m_callback;
-}
+ChSprocket::~ChSprocket() {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

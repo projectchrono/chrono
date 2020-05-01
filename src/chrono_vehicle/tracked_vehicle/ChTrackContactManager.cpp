@@ -60,7 +60,8 @@ void ChTrackContactManager::Process(ChTrackedVehicle* vehicle) {
     m_idler_R_contacts.clear();
 
     // Traverse all system contacts and extract information.
-    vehicle->GetSystem()->GetContactContainer()->ReportAllContacts(this);
+    std::shared_ptr<ChTrackContactManager> shared_this(this, [](ChTrackContactManager*) {});
+    vehicle->GetSystem()->GetContactContainer()->ReportAllContacts(shared_this);
 
     // Collect contact information data.
     // Print current time, and number of contacts involving the chassis, left/right sprockets,

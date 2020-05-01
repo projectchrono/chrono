@@ -668,7 +668,7 @@ void ChSprocketBand::RemoveVisualizationAssets() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChSystem::CustomCollisionCallback* ChSprocketBand::GetCollisionCallback(ChTrackAssembly* track) {
+std::shared_ptr<ChSystem::CustomCollisionCallback> ChSprocketBand::GetCollisionCallback(ChTrackAssembly* track) {
     // Check compatibility between this type of sprocket and the track shoes.
     // We expect track shoes of type ChTrackShoeBand.
     auto shoe = std::dynamic_pointer_cast<ChTrackShoeBand>(track->GetTrackShoe(0));
@@ -678,7 +678,7 @@ ChSystem::CustomCollisionCallback* ChSprocketBand::GetCollisionCallback(ChTrackA
     int sprocket_nteeth = GetNumTeeth();
 
     // Create and return the callback object. Note: this pointer will be freed by the base class.
-    return new SprocketBandContactCB(track, 0.005, GetNumTeeth(), GetSeparation());
+    return chrono_types::make_shared<SprocketBandContactCB>(track, 0.005, GetNumTeeth(), GetSeparation());
 }
 
 // -----------------------------------------------------------------------------

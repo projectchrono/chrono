@@ -82,9 +82,7 @@ ChTrackAssemblyBandANCF::ChTrackAssemblyBandANCF(const std::string& name, Vehicl
       m_angle_3(0),
       m_alpha(0.05) {}
 
-ChTrackAssemblyBandANCF::~ChTrackAssemblyBandANCF() {
-    delete m_callback;
-}
+ChTrackAssemblyBandANCF::~ChTrackAssemblyBandANCF() {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -216,7 +214,7 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     }
 
     // Create and register the custom broadphase callback.
-    m_callback = new BroadphaseCulling(this);
+    m_callback = chrono_types::make_shared<BroadphaseCulling>(this);
     chassis->GetSystem()->GetCollisionSystem()->RegisterBroadphaseCallback(m_callback);
 
     return ccw;

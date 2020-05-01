@@ -193,12 +193,12 @@ TerrainForce ChRigidTire::ReportTireForce(ChTerrain* terrain) const {
     // Approach using the RigidTireContactReporter does not work in Chrono::Parallel
     // since contact forces and torques passed to OnReportContact are always zero.
     /*
-    RigidTireContactReporter reporter(m_wheel);
+    auto reporter = chrono_types::make_shared<RigidTireContactReporter>(m_wheel);
     m_wheel->GetSpindle()->GetSystem()->GetContactContainer()->ReportAllContacts(&reporter);
     TerrainForce tire_force;
     tire_force.point = m_wheel->GetSpindle()->GetPos();
-    tire_force.force = reporter.GetAccumulatedForce();
-    tire_force.moment = reporter.GetAccumulatedTorque();
+    tire_force.force = reporter->GetAccumulatedForce();
+    tire_force.moment = reporter->GetAccumulatedTorque();
     */
 
     return tire_force;
