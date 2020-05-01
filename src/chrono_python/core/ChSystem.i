@@ -30,7 +30,7 @@ class ChCustomCollisionCallbackP : public chrono::ChSystem::CustomCollisionCallb
 
 %shared_ptr(chrono::ChSystem)
 %shared_ptr(chrono::ChSystem::CustomCollisionCallback)
-%shared_ptr(ChCustomCollisionCallbackP)
+%shared_ptr(ChCustomCollisionCallbackP) // do we need this?!?!
 
 // Forward ref
 %import "chrono_python/core/ChAssembly.i"

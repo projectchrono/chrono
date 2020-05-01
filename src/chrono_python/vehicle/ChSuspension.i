@@ -77,9 +77,10 @@
 %shared_ptr(chrono::vehicle::SolidBellcrankThreeLinkAxle)
 %shared_ptr(chrono::vehicle::SolidThreeLinkAxle)
 
+
+
 %import(module = "pychrono.core") "chrono_python/core/ChShaft.i"
 %import "../../chrono_vehicle/ChPart.h"
-
 
 
 //%shared_ptr(chrono::vehicle::RigidTerrain::Patch)

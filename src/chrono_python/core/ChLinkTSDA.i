@@ -7,7 +7,7 @@ using namespace chrono;
 %}
 
 %shared_ptr(chrono::ChLinkTSDA)
-
+%shared_ptr(chrono::ChLinkTSDA::ForceFunctor)
  
 // Tell SWIG about parent class in Python
 %import "ChLink.i"
