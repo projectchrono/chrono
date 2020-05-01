@@ -41,7 +41,7 @@ class ChRandomShapeCreator;
 class ChRandomShapeCreator {
   public:
     ChRandomShapeCreator() {
-        callback_post_creation = 0;
+        callback_post_creation = nullptr;
         add_collision_shape = true;
         add_visualization_asset = true;
     }
@@ -77,7 +77,7 @@ class ChRandomShapeCreator {
 
     /// Set the callback function to execute at each
     /// each particle generation
-    void RegisterAddBodyCallback(AddBodyCallback* callback) { callback_post_creation = callback; }
+    void RegisterAddBodyCallback(std::shared_ptr<AddBodyCallback> callback) { callback_post_creation = callback; }
 
     /// Set if the created particles must include the collision
     /// shape(s). Note that this is ON by default. Switching off will
@@ -90,7 +90,7 @@ class ChRandomShapeCreator {
     void SetAddVisualizationAsset(bool addvisual) { this->add_visualization_asset = addvisual; }
 
   protected:
-      AddBodyCallback* callback_post_creation;
+    std::shared_ptr<AddBodyCallback> callback_post_creation;
     bool add_collision_shape;
     bool add_visualization_asset;
 };
