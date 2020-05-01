@@ -33,10 +33,7 @@ namespace collision {
 /// Base class for generic collision engine.
 class ChApi ChCollisionSystem {
   public:
-    ChCollisionSystem(unsigned int max_objects = 16000, double scene_size = 500) {
-        narrow_callback = 0;
-        broad_callback = 0;
-    }
+    ChCollisionSystem(unsigned int max_objects = 16000, double scene_size = 500) {}
 
     virtual ~ChCollisionSystem() {}
 
@@ -115,7 +112,7 @@ class ChApi ChCollisionSystem {
     /// Specify a callback object to be used each time a pair of 'near enough' collision shapes
     /// is found by the broad-phase collision step. The OnBroadphase() method of the provided
     /// callback object will be called for each pair of 'near enough' shapes.
-    void RegisterBroadphaseCallback(BroadphaseCallback* callback) { broad_callback = callback; }
+    void RegisterBroadphaseCallback(std::shared_ptr<BroadphaseCallback> callback) { broad_callback = callback; }
 
     /// Class to be used as a callback interface for user-defined actions to be performed
     /// at each collision pair found during the narrow-phase collision step.
@@ -132,7 +129,7 @@ class ChApi ChCollisionSystem {
     /// Specify a callback object to be used each time a collision pair is found during
     /// the narrow-phase collision detection step. The OnNarrowphase() method of the provided
     /// callback object will be called for each collision pair found during narrow phase.
-    void RegisterNarrowphaseCallback(NarrowphaseCallback* callback) { narrow_callback = callback; }
+    void RegisterNarrowphaseCallback(std::shared_ptr<NarrowphaseCallback> callback) { narrow_callback = callback; }
 
     /// Recover results from RayHit() raycasting.
     struct ChRayhitResult {
@@ -165,8 +162,8 @@ class ChApi ChCollisionSystem {
     }
 
   protected:
-    BroadphaseCallback* broad_callback;    ///< user callback for each near-enough pair of shapes
-    NarrowphaseCallback* narrow_callback;  ///< user callback for each collision pair
+    std::shared_ptr<BroadphaseCallback> broad_callback;    ///< user callback for each near-enough pair of shapes
+    std::shared_ptr<NarrowphaseCallback> narrow_callback;  ///< user callback for each collision pair
 };
 
 }  // end namespace collision

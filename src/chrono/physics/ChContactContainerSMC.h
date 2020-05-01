@@ -117,7 +117,7 @@ class ChApi ChContactContainerSMC : public ChContactContainer {
 
     /// Scan all the contacts and for each contact executes the OnReportContact() function of the provided callback
     /// object.
-    virtual void ReportAllContacts(ReportContactCallback* mcallback) override;
+    virtual void ReportAllContacts(std::shared_ptr<ReportContactCallback> callback) override;
 
     /// Update state of this contact container: compute jacobians, violations, etc.
     /// and store results in inner structures of contacts.

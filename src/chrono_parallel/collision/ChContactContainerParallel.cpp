@@ -67,7 +67,7 @@ static inline chrono::ChVector<> ToChVector(const real3& a) {
     return chrono::ChVector<>(a.x, a.y, a.z);
 }
 
-void ChContactContainerParallel::ReportAllContacts(ReportContactCallback* callback) {
+void ChContactContainerParallel::ReportAllContacts(std::shared_ptr<ReportContactCallback> callback) {
     // Readibility
     auto& ptA = data_manager->host_data.cpta_rigid_rigid;
     auto& ptB = data_manager->host_data.cptb_rigid_rigid;

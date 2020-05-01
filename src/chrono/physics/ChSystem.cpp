@@ -444,14 +444,14 @@ bool ChSystem::ManageSleepingBodies() {
         bool need_Setup_A;
     };
 
-    _wakeup_reporter_class my_waker;
-    my_waker.need_Setup_A = false;
+    auto my_waker = chrono_types::make_shared<_wakeup_reporter_class>();
+    my_waker->need_Setup_A = false;
 
     bool need_Setup_L = false;
 
     for (int i = 0; i < 1; i++)  //***TO DO*** reconfigurable number of wakeup cycles
     {
-        my_waker.someone_sleeps = false;
+        my_waker->someone_sleeps = false;
 
         // scan all links and wake connected bodies
         for (auto& link : assembly.linklist) {
@@ -484,10 +484,10 @@ bool ChSystem::ManageSleepingBodies() {
         }
 
         // scan all contacts and wake neighboring bodies
-        contact_container->ReportAllContacts(&my_waker);
+        contact_container->ReportAllContacts(my_waker);
 
         // bailout wakeup cycle prematurely, if all bodies are not sleeping
-        if (!my_waker.someone_sleeps)
+        if (!my_waker->someone_sleeps)
             break;
     }
 
@@ -502,7 +502,7 @@ bool ChSystem::ManageSleepingBodies() {
 
     // if some body has been activated/deactivated because of sleep state changes,
     // the offsets and DOF counts must be updated:
-    if (my_waker.need_Setup_A || need_Setup_B || need_Setup_L) {
+    if (my_waker->need_Setup_A || need_Setup_B || need_Setup_L) {
         Setup();
         return true;
     }
