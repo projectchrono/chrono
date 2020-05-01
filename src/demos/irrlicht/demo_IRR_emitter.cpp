@@ -147,7 +147,7 @@ int main(int argc, char* argv[]) {
             mbody->AddAsset(mvisual);
         }
     };
-    MyCreator_boxes* callback_boxes = new MyCreator_boxes;
+    auto callback_boxes = chrono_types::make_shared<MyCreator_boxes>();
     mcreator_boxes->RegisterAddBodyCallback(callback_boxes);
 
     // Finally, tell to the emitter that it must use the 'mixer' above:
@@ -173,7 +173,7 @@ int main(int argc, char* argv[]) {
         ChIrrApp* airrlicht_application;
     };
     // b- create the callback object...
-    MyCreatorForAll* mcreation_callback = new MyCreatorForAll;
+    auto mcreation_callback = chrono_types::make_shared<MyCreatorForAll>();
     // c- set callback own data that he might need...
     mcreation_callback->airrlicht_application = &application;
     // d- attach the callback to the emitter!

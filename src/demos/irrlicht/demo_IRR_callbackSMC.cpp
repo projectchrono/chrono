@@ -186,10 +186,10 @@ int main(int argc, char* argv[]) {
     // Simulate system
     // ---------------
 
-    ContactReporter creporter(box1, box2);
+    auto creporter = chrono_types::make_shared<ContactReporter>(box1, box2);
 
-    ContactMaterial cmaterial;
-    system.GetContactContainer()->RegisterAddContactCallback(&cmaterial);
+    auto cmaterial = chrono_types::make_shared<ContactMaterial>();
+    system.GetContactContainer()->RegisterAddContactCallback(cmaterial);
 
     application.SetTimestep(1e-3);
 
@@ -205,7 +205,7 @@ int main(int argc, char* argv[]) {
 
         // Process contacts
         std::cout << system.GetChTime() << "  " << system.GetNcontacts() << std::endl;
-        system.GetContactContainer()->ReportAllContacts(&creporter);
+        system.GetContactContainer()->ReportAllContacts(creporter);
 
         // Cumulative contact force and torque on boxes (as applied to COM)
         ChVector<> frc1 = box1->GetContactForce();

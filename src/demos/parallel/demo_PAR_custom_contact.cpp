@@ -206,11 +206,13 @@ int main(int argc, char* argv[]) {
     ball->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("bluwhite.png")));
 
     // Create a custom collision detection callback object and register it with the system
-    MyCustomCollisionDetection my_collision(ball, ground, ball_mat, obst_mat, ball_radius, obstacle);
-    sys->RegisterCustomCollisionCallback(&my_collision);
+    auto my_collision =
+        chrono_types::make_shared<MyCustomCollisionDetection>(ball, ground, ball_mat, obst_mat, ball_radius, obstacle);
+    sys->RegisterCustomCollisionCallback(my_collision);
 
     // Create the Irrlicht visualization
-    ChIrrApp application(sys, L"Custom contact demo (Chrono::Parallel)", irr::core::dimension2d<irr::u32>(800, 600), false, true);
+    ChIrrApp application(sys, L"Custom contact demo (Chrono::Parallel)", irr::core::dimension2d<irr::u32>(800, 600),
+                         false, true);
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();

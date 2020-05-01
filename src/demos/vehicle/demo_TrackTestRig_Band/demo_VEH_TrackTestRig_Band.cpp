@@ -85,7 +85,8 @@ class MyContactReporter : public ChContactContainer::ReportContactCallback {
         cout << "Report contacts" << endl;
         m_num_contacts = 0;
         m_num_contacts_bb = 0;
-        m_rig->GetSystem()->GetContactContainer()->ReportAllContacts(this);
+        std::shared_ptr<MyContactReporter> shared_this(this, [](MyContactReporter*) {});
+        m_rig->GetSystem()->GetContactContainer()->ReportAllContacts(shared_this);
         cout << "Total number contacts:        " << m_num_contacts << endl;
         cout << "Number of body-body contacts: " << m_num_contacts_bb << endl;
     }

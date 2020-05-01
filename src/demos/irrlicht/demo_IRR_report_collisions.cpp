@@ -40,7 +40,8 @@ class ContactManager : public ChContactContainer::ReportContactCallback {
     // Reset the hash map and invoke the callback for each collision.
     void Process() {
         m_bcontacts.clear();
-        m_system->GetContactContainer()->ReportAllContacts(this);
+        std::shared_ptr<ContactManager> shared_this(this, [](ContactManager*) {});
+        m_system->GetContactContainer()->ReportAllContacts(shared_this);
     }
 
   private:
