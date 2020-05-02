@@ -47,18 +47,18 @@ class CH_VEHICLE_API RotationalDamperRWAssembly : public ChRotationalDamperRWAss
     virtual double GetArmVisRadius() const override { return m_arm_radius; }
 
     /// Return the functor object for the torsional spring torque.
-    virtual ChLinkRotSpringCB::TorqueFunctor* GetSpringTorqueFunctor() const override { return m_spring_torqueCB; }
+    virtual std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> GetSpringTorqueFunctor() const override { return m_spring_torqueCB; }
 
     /// Return the functor object for the torsional shock force.
-    virtual ChLinkRotSpringCB::TorqueFunctor* GetShockTorqueCallback() const override { return m_shock_torqueCB; }
+    virtual std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> GetShockTorqueCallback() const override { return m_shock_torqueCB; }
 
   private:
     virtual const ChVector<> GetLocation(PointId which) override { return m_points[which]; }
 
     virtual void Create(const rapidjson::Document& d) override;
 
-    ChLinkRotSpringCB::TorqueFunctor* m_spring_torqueCB;
-    ChLinkRotSpringCB::TorqueFunctor* m_shock_torqueCB;
+    std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> m_spring_torqueCB;
+    std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> m_shock_torqueCB;
 
     ChVector<> m_points[NUM_POINTS];
 

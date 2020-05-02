@@ -91,15 +91,3 @@
 %include "../../chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"*/
 
 %include "chrono_python/models/TireModels.i"
-
-
-//
-// C- DOWNCASTING OF SHARED POINTERS
-//
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChTire, ChTMeasyTire)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChTire, ChRigidTire)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChTire, ChReissnerTire)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChTire, ChPacejkaTire)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChTire, ChPac89Tire)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChTire, ChLugreTire)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChTire, ChFialaTire)

@@ -36,9 +36,3 @@
 %include "../../chrono_vehicle/chassis/ChRigidChassis.h"
 %include "../../chrono_vehicle/chassis/RigidChassis.h"
 %include "../models/ChassisModels.i"
-
-
-//
-// C- DOWNCASTING OF SHARED POINTERS
-//
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChChassis, ChRigidChassis)

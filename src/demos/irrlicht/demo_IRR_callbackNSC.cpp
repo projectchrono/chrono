@@ -170,10 +170,10 @@ int main(int argc, char* argv[]) {
     // Simulate system
     // ---------------
 
-    ContactReporter creporter(box1);
+    auto creporter = chrono_types::make_shared<ContactReporter>(box1);
 
-    ContactMaterial cmaterial;
-    system.GetContactContainer()->RegisterAddContactCallback(&cmaterial);
+    auto cmaterial = chrono_types::make_shared<ContactMaterial>();
+    system.GetContactContainer()->RegisterAddContactCallback(cmaterial);
 
     application.SetTimestep(1e-3);
 
@@ -187,7 +187,7 @@ int main(int argc, char* argv[]) {
 
         // Process contacts
         std::cout << system.GetChTime() << "  " << system.GetNcontacts() << std::endl;
-        system.GetContactContainer()->ReportAllContacts(&creporter);
+        system.GetContactContainer()->ReportAllContacts(creporter);
     }
 
     return 0;

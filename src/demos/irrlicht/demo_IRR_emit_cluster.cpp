@@ -175,7 +175,7 @@ int main(int argc, char* argv[]) {
 
     // a- define a class that implement your custom OnAddBody method (see top of source file)
     // b- create the callback object...
-    MyCreatorForAll* mcreation_callback = new MyCreatorForAll;
+    auto mcreation_callback = chrono_types::make_shared<MyCreatorForAll>();
     // c- set callback own data that he might need...
     mcreation_callback->airrlicht_application = &application;
     // d- attach the callback to the emitter!

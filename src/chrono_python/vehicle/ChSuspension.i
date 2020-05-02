@@ -77,9 +77,10 @@
 %shared_ptr(chrono::vehicle::SolidBellcrankThreeLinkAxle)
 %shared_ptr(chrono::vehicle::SolidThreeLinkAxle)
 
+
+
 %import(module = "pychrono.core") "chrono_python/core/ChShaft.i"
 %import "../../chrono_vehicle/ChPart.h"
-
 
 
 //%shared_ptr(chrono::vehicle::RigidTerrain::Patch)
@@ -120,32 +121,4 @@
 %include "chrono_python/models/SuspensionModels.i"
 
 
-//
-// C- DOWNCASTING OF SHARED POINTERS
-//
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChDoubleWishbone)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChMacPhersonStrut)
-//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, MacPhersonStrut)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChLeafspringAxle)
-//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, LeafspringAxle)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChHendricksonPRIMAXX)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChDoubleWishboneReduced)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChMultiLink)
-//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, MultiLink)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChRigidPinnedAxle)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChSemiTrailingArm)
-//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, SemiTrailingArm)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChRigidSuspension)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChSolidAxle)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChThreeLinkIRS)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChToeBarLeafspringAxle)
-//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, DoubleWishbone)
-//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, DoubleWishboneReduced)
-//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, HendricksonPRIMAXX)
-//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, SolidAxle)
-//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ThreeLinkIRS)
-//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ToeBarLeafspringAxle)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChSolidBellcrankThreeLinkAxle)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChSolidThreeLinkAxle)
-//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, SolidBellcrankThreeLinkAxle)
-//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, SolidThreeLinkAxle)
+

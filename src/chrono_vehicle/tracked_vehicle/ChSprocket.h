@@ -141,9 +141,7 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     virtual void CreateContactMaterial(ChContactMethod contact_method) = 0;
 
     /// Return the custom collision callback object.
-    /// Note that the derived need not delete this object (it is deleted in the
-    /// destructor of this base class).
-    virtual ChSystem::CustomCollisionCallback* GetCollisionCallback(
+    virtual std::shared_ptr<ChSystem::CustomCollisionCallback> GetCollisionCallback(
         ChTrackAssembly* track  ///< [in] pointer to containing track assembly
         ) = 0;
 
@@ -156,8 +154,6 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     std::shared_ptr<ChShaftsBody> m_axle_to_spindle;  ///< handle to gear-shaft connector
     std::shared_ptr<ChLinkLockRevolute> m_revolute;   ///< handle to sprocket revolute joint
     std::shared_ptr<ChMaterialSurface> m_material;    ///< contact material;
-
-    ChSystem::CustomCollisionCallback* m_callback;  ///< custom collision functor object
 
     friend class ChTrackAssembly;
 };

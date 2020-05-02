@@ -151,10 +151,10 @@ int main(int argc, char* argv[]) {
     ////mterrain.Initialize(vehicle::GetDataFile("terrain/height_maps/test64.bmp"), "test64", 1.6, 1.6, 0, 0.3);
 
     // Set the soil terramechanical parameters
-    MySoilParams my_params;
     if (var_params) {
         // Location-dependent soil properties
-        mterrain.RegisterSoilParametersCallback(&my_params);
+        auto my_params = chrono_types::make_shared<MySoilParams>();
+        mterrain.RegisterSoilParametersCallback(my_params);
     } else {
         // Constant soil properties
         mterrain.SetSoilParameters(0.2e6,  // Bekker Kphi

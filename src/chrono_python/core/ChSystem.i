@@ -29,6 +29,8 @@ class ChCustomCollisionCallbackP : public chrono::ChSystem::CustomCollisionCallb
 %}
 
 %shared_ptr(chrono::ChSystem)
+%shared_ptr(chrono::ChSystem::CustomCollisionCallback)
+%shared_ptr(ChCustomCollisionCallbackP) // do we need this?!?!
 
 // Forward ref
 %import "chrono_python/core/ChAssembly.i"
@@ -65,9 +67,9 @@ class ChCustomCollisionCallbackP {
 
 %extend chrono::ChSystem
 {
-	void RegisterCustomCollisionCallback(::ChCustomCollisionCallbackP* mcallb)  // note the :: at the beginning
+	void RegisterCustomCollisionCallback(std::shared_ptr<ChCustomCollisionCallbackP> callback)
 	  {
-		  $self->RegisterCustomCollisionCallback(mcallb);
+		  $self->RegisterCustomCollisionCallback(callback);
 	  }
 };
 

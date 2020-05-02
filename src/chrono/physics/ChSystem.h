@@ -657,12 +657,14 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     /// Specify a callback object to be invoked at each collision detection step.
     /// Multiple such callback objects can be registered with a system. If present,
-    /// their OnCustomCollision() method is invoked
+    /// their OnCustomCollision() method is invoked.
     /// Use this if you want that some specific callback function is executed at each
     /// collision detection step (ex. all the times that ComputeCollisions() is automatically
     /// called by the integration method). For example some other collision engine could
     /// add further contacts using this callback.
-    void RegisterCustomCollisionCallback(CustomCollisionCallback* mcallb) { collision_callbacks.push_back(mcallb); }
+    void RegisterCustomCollisionCallback(std::shared_ptr<CustomCollisionCallback> callback) {
+        collision_callbacks.push_back(callback);
+    }
 
     /// For higher performance (ex. when GPU coprocessors are available) you can create your own custom
     /// collision engine (inherited from ChCollisionSystem) and plug it into the system using this function. 
@@ -903,7 +905,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     std::shared_ptr<collision::ChCollisionSystem> collision_system;  ///< collision engine
 
-    std::vector<CustomCollisionCallback*> collision_callbacks;
+    std::vector<std::shared_ptr<CustomCollisionCallback>> collision_callbacks;
 
     std::unique_ptr<ChMaterialCompositionStrategy> composition_strategy; /// material composition strategy
 

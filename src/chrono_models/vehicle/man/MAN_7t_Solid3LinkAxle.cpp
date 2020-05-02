@@ -126,27 +126,17 @@ double MAN_7t_SpringForceRear::operator()(double time,
 }
 
 MAN_7t_Solid3LinkAxle::MAN_7t_Solid3LinkAxle(const std::string& name) : ChSolidThreeLinkAxle(name) {
-    /*
-        m_springForceCB = new LinearSpringForce(m_springCoefficient  // coefficient for linear spring
-                                                );
+    m_springForceCB = chrono_types::make_shared<MAN_7t_SpringForceRear>(m_springCoefficient1, m_springCoefficient2,
+                                                                        m_springMinLength, m_springMaxLength);
 
-        m_shockForceCB = new LinearDamperForce(m_damperCoefficient  // coefficient for linear damper
-                        );
-    */
-    m_springForceCB =
-        new MAN_7t_SpringForceRear(m_springCoefficient1, m_springCoefficient2, m_springMinLength, m_springMaxLength);
-
-    m_shockForceCB = new DegressiveDamperForce(m_damperCoefCompression, m_damperDegresCompression,
-                                               m_damperCoefExpansion, m_damperDegresExpansion);
+    m_shockForceCB = chrono_types::make_shared<DegressiveDamperForce>(
+        m_damperCoefCompression, m_damperDegresCompression, m_damperCoefExpansion, m_damperDegresExpansion);
 }
 
 // -----------------------------------------------------------------------------
 // Destructors
 // -----------------------------------------------------------------------------
-MAN_7t_Solid3LinkAxle::~MAN_7t_Solid3LinkAxle() {
-    delete m_springForceCB;
-    delete m_shockForceCB;
-}
+MAN_7t_Solid3LinkAxle::~MAN_7t_Solid3LinkAxle() {}
 
 const ChVector<> MAN_7t_Solid3LinkAxle::getLocation(PointId which) {
     switch (which) {

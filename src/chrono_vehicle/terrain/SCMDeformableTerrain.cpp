@@ -180,7 +180,7 @@ void SCMDeformableTerrain::AddMovingPatch(std::shared_ptr<ChBody> body,
 }
 
 // Set user-supplied callback for evaluating location-dependent soil parameters
-void SCMDeformableTerrain::RegisterSoilParametersCallback(SoilParametersCallback* cb) {
+void SCMDeformableTerrain::RegisterSoilParametersCallback(std::shared_ptr<SoilParametersCallback> cb) {
     m_ground->m_soil_fun = cb;
 }
 

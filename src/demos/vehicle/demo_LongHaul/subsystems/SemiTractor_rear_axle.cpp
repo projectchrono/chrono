@@ -166,26 +166,17 @@ double SemiTractor_ShockForceRear::operator()(double time,
 }
 
 SemiTractor_rear_axle::SemiTractor_rear_axle(const std::string& name) : ChLeafspringAxle(name) {
-    /*
-        m_springForceCB = new LinearSpringForce(m_springCoefficient  // coefficient for linear spring
-                                                );
+    m_springForceCB = chrono_types::make_shared<SemiTractor_SpringForceRear>(m_springCoefficient, m_springMinLength,
+                                                                             m_springMaxLength);
 
-        m_shockForceCB = new LinearDamperForce(m_damperCoefficient  // coefficient for linear damper
-                        );
-    */
-    m_springForceCB = new SemiTractor_SpringForceRear(m_springCoefficient, m_springMinLength, m_springMaxLength);
-
-    m_shockForceCB = new SemiTractor_ShockForceRear(m_damperCoefficient, m_damperDegressivityCompression,
-                                                    m_damperCoefficient, m_damperDegressivityExpansion);
+    m_shockForceCB = chrono_types::make_shared<SemiTractor_ShockForceRear>(
+        m_damperCoefficient, m_damperDegressivityCompression, m_damperCoefficient, m_damperDegressivityExpansion);
 }
 
 // -----------------------------------------------------------------------------
 // Destructors
 // -----------------------------------------------------------------------------
-SemiTractor_rear_axle::~SemiTractor_rear_axle() {
-    delete m_springForceCB;
-    delete m_shockForceCB;
-}
+SemiTractor_rear_axle::~SemiTractor_rear_axle() {}
 
 const ChVector<> SemiTractor_rear_axle::getLocation(PointId which) {
     switch (which) {

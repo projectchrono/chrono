@@ -186,7 +186,7 @@ int main(int argc, char* argv[]) {
             irrlicht::ChIrrApp* airrlicht_application;
         };
         // b- create the callback object...
-        MyCreatorForAll* mcreation_callback = new MyCreatorForAll;
+        auto mcreation_callback = chrono_types::make_shared<MyCreatorForAll>();
         // c- set callback own data that he might need...
         mcreation_callback->airrlicht_application = &application;
         // d- attach the callback to the emitter!
@@ -261,7 +261,7 @@ int main(int argc, char* argv[]) {
                 mbody->AddAsset(mPOVcustom);
             }
         };
-        MyCreator_spheres* callback_spheres = new MyCreator_spheres;
+        auto callback_spheres = chrono_types::make_shared<MyCreator_spheres>();
         mcreator_spheres->RegisterAddBodyCallback(callback_spheres);
 
         // B)
@@ -288,7 +288,7 @@ int main(int argc, char* argv[]) {
                 mbody->AddAsset(mPOVcustom);
             }
         };
-        MyCreator_hulls* callback_hulls = new MyCreator_hulls;
+        auto callback_hulls = chrono_types::make_shared<MyCreator_hulls>();
         mcreator_hulls->RegisterAddBodyCallback(callback_hulls);
 
         // Create a parent ChRandomShapeCreator that 'mixes' some generators above,
@@ -328,7 +328,7 @@ int main(int argc, char* argv[]) {
             ChIrrApp* airrlicht_application;
         };
         // b- create the callback object...
-        MyCreatorForAll* mcreation_callback = new MyCreatorForAll;
+        auto mcreation_callback = chrono_types::make_shared<MyCreatorForAll>();
         // c- set callback own data that he might need...
         mcreation_callback->airrlicht_application = &application;
         // d- attach the callback to the emitter!

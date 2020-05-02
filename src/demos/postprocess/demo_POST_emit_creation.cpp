@@ -171,7 +171,7 @@ int main(int argc, char* argv[]) {
             mbody->AddAsset(mPOVcustom);
         }
     };
-    MyCreator_spheres* callback_spheres = new MyCreator_spheres;
+    auto callback_spheres = chrono_types::make_shared<MyCreator_spheres>();
     mcreator_spheres->RegisterAddBodyCallback(callback_spheres);
 
     // B)
@@ -205,7 +205,7 @@ int main(int argc, char* argv[]) {
                 mPOVcustom->SetCommands(" texture {pigment{ color rgb<0.3,0.3,0.8>} }  \n");
         }
     };
-    MyCreator_plastic* callback_boxes = new MyCreator_plastic;
+    auto callback_boxes = chrono_types::make_shared<MyCreator_plastic>();
     mcreator_boxes->RegisterAddBodyCallback(callback_boxes);
 
     // C)
@@ -233,7 +233,7 @@ int main(int argc, char* argv[]) {
             mbody->AddAsset(mPOVcustom);
         }
     };
-    MyCreator_hulls* callback_hulls = new MyCreator_hulls;
+    auto callback_hulls = chrono_types::make_shared<MyCreator_hulls>();
     mcreator_hulls->RegisterAddBodyCallback(callback_hulls);
 
     // D)
@@ -260,7 +260,7 @@ int main(int argc, char* argv[]) {
             mbody->AddAsset(mvisual);
         }
     };
-    MyCreator_shavings* callback_shavings = new MyCreator_shavings;
+    auto callback_shavings = chrono_types::make_shared<MyCreator_shavings>();
     mcreator_shavings->RegisterAddBodyCallback(callback_shavings);
 
     // Create a parent ChRandomShapeCreator that 'mixes' some generators above,
@@ -303,7 +303,7 @@ int main(int argc, char* argv[]) {
         ChIrrApp* airrlicht_application;
     };
     // b- create the callback object...
-    MyCreatorForAll* mcreation_callback = new MyCreatorForAll;
+    auto mcreation_callback = chrono_types::make_shared<MyCreatorForAll>();
     // c- set callback own data that he might need...
     mcreation_callback->airrlicht_application = &application;
     // d- attach the callback to the emitter!

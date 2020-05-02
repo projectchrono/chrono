@@ -80,7 +80,8 @@ void ChTorsionChassis::Initialize(ChSystem* system,
     m_torsion_spring->Initialize(m_body, m_rear_body, rev_csys);
     double K = GetTorsionStiffness();
     double C = K / 100;  // damping should not be zero
-    m_torsion_spring->RegisterTorqueFunctor(new LinearSpringDamperTorque(K, C, 0));
+    auto cb = chrono_types::make_shared<LinearSpringDamperTorque>(K, C, 0);
+    m_torsion_spring->RegisterTorqueFunctor(cb);
 
     system->AddLink(m_torsion_spring);
 

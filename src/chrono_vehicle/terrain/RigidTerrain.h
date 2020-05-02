@@ -200,7 +200,7 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     int m_num_patches;
     std::vector<std::shared_ptr<Patch>> m_patches;
     bool m_use_friction_functor;
-    ChContactContainer::AddContactCallback* m_contact_callback;
+    std::shared_ptr<ChContactContainer::AddContactCallback> m_contact_callback;
 
     void AddPatch(std::shared_ptr<Patch> patch,
                   const ChCoordsys<>& position,

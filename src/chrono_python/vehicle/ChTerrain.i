@@ -33,6 +33,8 @@
 
 %shared_ptr(chrono::vehicle::RigidTerrain::Patch)
 %shared_ptr(chrono::vehicle::SCMDeformableSoil)
+%shared_ptr(chrono::vehicle::SCMDeformableTerrain)
+%shared_ptr(chrono::vehicle::SCMDeformableTerrain::SoilParametersCallback)
 
 /* Parse the header file to generate wrappers */
 %include "../../chrono_vehicle/ChTerrain.h"    

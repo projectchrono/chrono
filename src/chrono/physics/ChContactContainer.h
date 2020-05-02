@@ -84,10 +84,10 @@ class ChApi ChContactContainer : public ChPhysicsItem {
     /// Note that derived classes may not support this. If supported, the OnAddContact() method
     /// of the provided callback object will be called for each contact pair to allow modifying the
     /// composite material properties.
-    virtual void RegisterAddContactCallback(AddContactCallback* mcallback) { add_contact_callback = mcallback; }
+    virtual void RegisterAddContactCallback(std::shared_ptr<AddContactCallback> callback) { add_contact_callback = callback; }
 
     /// Get the callback object to be used each time a contact point is added to the container.
-    virtual AddContactCallback* GetAddContactCallback() { return add_contact_callback; }
+    virtual std::shared_ptr<AddContactCallback> GetAddContactCallback() { return add_contact_callback; }
 
     /// Class to be used as a callback interface for some user defined action to be taken
     /// for each contact (already added to the container, maybe with already computed forces).
@@ -113,7 +113,7 @@ class ChApi ChContactContainer : public ChPhysicsItem {
 
     /// Scan all the contacts and for each contact executes the OnReportContact() function of the provided callback
     /// object.
-    virtual void ReportAllContacts(ReportContactCallback* mcallback) {}
+    virtual void ReportAllContacts(std::shared_ptr<ReportContactCallback> callback) {}
 
     /// Compute contact forces on all contactable objects in this container.
     virtual void ComputeContactForces() {}
@@ -136,7 +136,7 @@ class ChApi ChContactContainer : public ChPhysicsItem {
         ChVector<> torque;
     };
 
-    AddContactCallback* add_contact_callback;
+    std::shared_ptr<AddContactCallback> add_contact_callback;
     ReportContactCallback* report_contact_callback;
 
     /// Utility function to accumulate contact forces from a specified list of contacts.

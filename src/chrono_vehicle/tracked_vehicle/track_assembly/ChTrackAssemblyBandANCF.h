@@ -120,7 +120,7 @@ class CH_VEHICLE_API ChTrackAssemblyBandANCF : public ChTrackAssemblyBand {
     /// Remove visualization assets for the track shoe subsystem.
     virtual void RemoveVisualizationAssets() override final;
 
-    BroadphaseCulling* m_callback;  ///< custom broadphase callback object
+    std::shared_ptr<BroadphaseCulling> m_callback;  ///< custom broadphase callback object
 
     double m_rubber_rho;
     ChVector<> m_rubber_E;
