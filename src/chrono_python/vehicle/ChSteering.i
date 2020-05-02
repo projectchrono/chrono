@@ -56,11 +56,3 @@
 %include "../../chrono_vehicle/wheeled_vehicle/steering/RotaryArm.h"
 %include "chrono_python/models/SteeringModels.i"
 
-
-//
-// C- DOWNCASTING OF SHARED POINTERS
-//
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSteering, ChPitmanArm)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSteering, ChPitmanArmShafts)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSteering, ChRackPinion)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSteering, ChRotaryArm)
