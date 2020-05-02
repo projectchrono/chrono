@@ -169,6 +169,9 @@ using namespace chrono::fea;
 
 
 %shared_ptr(chrono::collision::ChCollisionModel)
+%shared_ptr(chrono::collision::ChCollisionSystem::BroadphaseCallback)
+%shared_ptr(chrono::collision::ChCollisionSystem::NarrowphaseCallback)
+
 %shared_ptr(chrono::ChPhysicsItem)
 %shared_ptr(chrono::ChIndexedNodes)
 %shared_ptr(chrono::ChMaterialSurfaceNSC)

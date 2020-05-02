@@ -1,13 +1,28 @@
-// Ensure that generated C# code does not use 'override' for various virtual methods.
-// This is because solvers use multiple inheritance and SWIG ignores all but the first base class.
+// ============================================================
+// MULTIPLE INHERITANCE WORKAROUND
+
+// (B) Methods of a base class that SWIG discards that *are* overriden in ChSolver***
+
+// Ensure that these functions are not marked as 'overrides' in the generated C# code.
+
+%csmethodmodifiers chrono::ChIterativeSolverLS::Setup "public"
+
+%csmethodmodifiers chrono::ChIterativeSolverLS::Solve "public"
+%csmethodmodifiers chrono::ChSolverAPGD::Solve "public"
+%csmethodmodifiers chrono::ChSolverBB::Solve "public"
+%csmethodmodifiers chrono::ChSolverPJacobi::Solve "public"
+%csmethodmodifiers chrono::ChSolverPSOR::Solve "public"
+%csmethodmodifiers chrono::ChSolverBiCGSTAB::Solve "public"
+%csmethodmodifiers chrono::ChSolverGMRES::Solve "public"
+%csmethodmodifiers chrono::ChSolverMINRES::Solve "public"
 
 %csmethodmodifiers chrono::ChSolverAPGD::GetType "public"
 %csmethodmodifiers chrono::ChSolverBB::GetType "public"
 %csmethodmodifiers chrono::ChSolverPJacobi::GetType "public"
 %csmethodmodifiers chrono::ChSolverPSOR::GetType "public"
-////%csmethodmodifiers chrono::ChSolverBiCGSTAB::GetType "public"
-////%csmethodmodifiers chrono::ChSolverGMRES::GetType "public"
-////%csmethodmodifiers chrono::ChSolverMINRES::GetType "public"
+%csmethodmodifiers chrono::ChSolverBiCGSTAB::GetType "public"
+%csmethodmodifiers chrono::ChSolverGMRES::GetType "public"
+%csmethodmodifiers chrono::ChSolverMINRES::GetType "public"
 
 %csmethodmodifiers chrono::ChSolverAPGD::GetError "public"
 %csmethodmodifiers chrono::ChSolverBB::GetError "public"
@@ -22,10 +37,27 @@
 %csmethodmodifiers chrono::ChSolverGMRES::GetIterations "public"
 %csmethodmodifiers chrono::ChSolverMINRES::GetIterations "public"
 
+%csmethodmodifiers chrono::ChSolverAPGD::ArchiveIN "public"
+%csmethodmodifiers chrono::ChSolverBB::ArchiveIN "public"
+%csmethodmodifiers chrono::ChSolverPJacobi::ArchiveIN "public"
+%csmethodmodifiers chrono::ChSolverPSOR::ArchiveIN "public"
+%csmethodmodifiers chrono::ChSolverBiCGSTAB::ArchiveIN "public"
+%csmethodmodifiers chrono::ChSolverGMRES::ArchiveIN "public"
+%csmethodmodifiers chrono::ChSolverMINRES::ArchiveIN "public"
+
+%csmethodmodifiers chrono::ChSolverAPGD::ArchiveOUT "public"
+%csmethodmodifiers chrono::ChSolverBB::ArchiveOUT "public"
+%csmethodmodifiers chrono::ChSolverPJacobi::ArchiveOUT "public"
+%csmethodmodifiers chrono::ChSolverPSOR::ArchiveOUT "public"
+%csmethodmodifiers chrono::ChSolverBiCGSTAB::ArchiveOUT "public"
+%csmethodmodifiers chrono::ChSolverGMRES::ArchiveOUT "public"
+%csmethodmodifiers chrono::ChSolverMINRES::ArchiveOUT "public"
+
+// ============================================================
+
+// Include the C++ header(s)
 
 %{
-
-/* Includes the header in the wrapper code */
 #include <cstdlib>
 #include <cmath>
 
@@ -37,7 +69,6 @@
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/solver/ChIterativeSolverVI.h"
 
-//#include "chrono/solver/ChSolverPMINRES.h"
 #include "chrono/solver/ChSolverBB.h"
 #include "chrono/solver/ChSolverAPGD.h"
 #include "chrono/solver/ChSolverPSOR.h"
@@ -46,7 +77,7 @@
 using namespace chrono;
 %}
 
-// Tell SWIG about parent class in Python
+// Tell SWIG about parent classes
 
 /* Parse the header file to generate wrappers */
 
@@ -58,7 +89,6 @@ using namespace chrono;
 %shared_ptr(chrono::ChIterativeSolverLS)
 %shared_ptr(chrono::ChIterativeSolverVI)
 
-//%shared_ptr(chrono::ChSolverPMINRES)
 %shared_ptr(chrono::ChSolverGMRES)
 %shared_ptr(chrono::ChSolverBiCGSTAB)
 %shared_ptr(chrono::ChSolverMINRES)
@@ -77,16 +107,7 @@ using namespace chrono;
 %include "../chrono/solver/ChIterativeSolverLS.h"
 %include "../chrono/solver/ChIterativeSolverVI.h"
 
-
-//%ignore chrono::ChSolverMINRES::GetType;
-//%include "../chrono/solver/ChSolverPMINRES.h"
 %include "../chrono/solver/ChSolverBB.h"
 %include "../chrono/solver/ChSolverAPGD.h"
 %include "../chrono/solver/ChSolverPSOR.h"
 %include "../chrono/solver/ChSolverPJacobi.h"
-
-
-
-
-
-

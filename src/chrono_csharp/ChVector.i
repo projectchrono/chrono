@@ -17,6 +17,9 @@
 %attributeref(chrono::ChVector<float>, float, x);
 %attributeref(chrono::ChVector<float>, float, y);
 %attributeref(chrono::ChVector<float>, float, z);
+%attributeref(chrono::ChVector<int>, int, x);
+%attributeref(chrono::ChVector<int>, int, y);
+%attributeref(chrono::ChVector<int>, int, z);
 
 %ignore chrono::ChVector::eigen;
 
@@ -26,7 +29,9 @@
 
 %template(ChVectorD) chrono::ChVector<double>; 
 %template(ChVectorF) chrono::ChVector<float>; 
+%template(ChVectorI) chrono::ChVector<int>;
 
-// This is needed because a std::vector<ChVector<double>
-// might be used  somewhere, and we want to use it via python:
+// This is needed because a std::vector<ChVector<double> or std::vector<ChVector<int>>
+// might be used  somewhere, and we want to use them in C#.
 %template(vector_ChVectorD) std::vector< chrono::ChVector<double> >;
+%template(vector_ChVectorI) std::vector< chrono::ChVector<int> >;

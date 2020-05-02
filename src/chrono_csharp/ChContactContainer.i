@@ -37,6 +37,9 @@ class ChAddContactCallbackP : public chrono::ChContactContainer::AddContactCallb
 
 %}
 
+%shared_ptr(chrono::ChContactContainer::ReportContactCallback)
+%shared_ptr(chrono::ChContactContainer::AddContactCallback)
+
 %inline %{
   chrono::ChBody* CastContactableToChBody(chrono::ChContactable* base) {
     chrono::ChBody* ptr_out = dynamic_cast<chrono::ChBody*>(base);

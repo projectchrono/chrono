@@ -8,7 +8,7 @@ using namespace chrono;
 %}
 
 %shared_ptr(chrono::ChLinkRotSpringCB)
-
+%shared_ptr(chrono::ChLinkRotSpringCB::TorqueFunctor)
  
 // Tell SWIG about parent class in Python
 %import "ChLinkMarkers.i"

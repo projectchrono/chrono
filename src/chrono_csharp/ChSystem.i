@@ -1,6 +1,24 @@
-%{
+// ============================================================
+// MULTIPLE INHERITANCE WORKAROUND
 
-/* Includes the header in the wrapper code */
+// Extend ChSystem with SetSolver functions that accept concrete solver types
+%extend chrono::ChSystem
+{
+void SetSolver(std::shared_ptr<ChSolverPSOR> solver)     {$self->SetSolver(std::static_pointer_cast<ChSolver>(solver));}
+void SetSolver(std::shared_ptr<ChSolverPJacobi> solver)  {$self->SetSolver(std::static_pointer_cast<ChSolver>(solver));}
+void SetSolver(std::shared_ptr<ChSolverBB> solver)       {$self->SetSolver(std::static_pointer_cast<ChSolver>(solver));}
+void SetSolver(std::shared_ptr<ChSolverAPGD> solver)     {$self->SetSolver(std::static_pointer_cast<ChSolver>(solver));}
+void SetSolver(std::shared_ptr<ChSolverSparseLU> solver) {$self->SetSolver(std::static_pointer_cast<ChSolver>(solver));}
+void SetSolver(std::shared_ptr<ChSolverSparseQR> solver) {$self->SetSolver(std::static_pointer_cast<ChSolver>(solver));}
+void SetSolver(std::shared_ptr<ChSolverGMRES> solver)    {$self->SetSolver(std::static_pointer_cast<ChSolver>(solver));}
+void SetSolver(std::shared_ptr<ChSolverBiCGSTAB> solver) {$self->SetSolver(std::static_pointer_cast<ChSolver>(solver));}
+void SetSolver(std::shared_ptr<ChSolverMINRES> solver)   {$self->SetSolver(std::static_pointer_cast<ChSolver>(solver));}
+}
+
+// ============================================================
+
+// Include the C++ header(s)
+%{
 #include "chrono/physics/ChSystem.h"
 #include "chrono/timestepper/ChIntegrable.h"
 #include "chrono/timestepper/ChTimestepper.h"
@@ -29,6 +47,8 @@ class ChCustomCollisionCallbackP : public chrono::ChSystem::CustomCollisionCallb
 %}
 
 %shared_ptr(chrono::ChSystem)
+%shared_ptr(chrono::ChSystem::CustomCollisionCallback)
+%shared_ptr(ChCustomCollisionCallbackP) // do we need this?!?!
 
 // Forward ref
 %import "ChAssembly.i"
@@ -65,9 +85,9 @@ class ChCustomCollisionCallbackP {
 
 %extend chrono::ChSystem
 {
-	void RegisterCustomCollisionCallback(::ChCustomCollisionCallbackP* mcallb)  // note the :: at the beginning
+    void RegisterCustomCollisionCallback(std::shared_ptr<ChCustomCollisionCallbackP> callback)
 	  {
-		  $self->RegisterCustomCollisionCallback(mcallb);
+		  $self->RegisterCustomCollisionCallback(callback);
 	  }
 };
 

@@ -1,15 +1,9 @@
-//%include <swiginterface.i>
-//%interface_impl(chrono::ChPhysicsItem);
-//%interface_impl(chrono::ChLoadable);
+// ============================================================
+// MULTIPLE INHERITANCE WORKAROUND
 
-//%feature("interface", name="INTERFACE") chrono::ChLoadable;
+// (B) Methods of a base class that SWIG discards that *are* overriden in ChShaft
 
-
-// Ensure that generated C# code does not use 'override' for ChLoadable virtual methods implemented by ChShaft.
-// This is because ChShaft uses multiple inheritance and SWIG ignores all but the first base class.
-
-//%typemap(csclassmodifiers) chrono::ChLoadable "public interface";
-//%typemap(csclassmodifiers) chrono::ChLoadable "public interface";
+// Ensure that these functions are not marked as 'overrides' in the generated C# code.
 
 %csmethodmodifiers chrono::ChShaft::LoadableGet_ndof_x "public"
 %csmethodmodifiers chrono::ChShaft::LoadableGet_ndof_w "public"
@@ -22,12 +16,15 @@
 %csmethodmodifiers chrono::ChShaft::GetSubBlockSize "public"
 %csmethodmodifiers chrono::ChShaft::LoadableGetVariables "public"
 
+//// RADU:  Do we actually want to wrap methods of ChLoadable?
+////        If not, we should probably just use %ignore
+
+// ============================================================
 
 
+// Include the C++ header(s)
 
 %{
-
-/* Includes the header in the wrapper code */
 //#include "chrono/solver/ChVariables.h"
 //#include "chrono/solver/ChVariablesShaft.h"
 #include "chrono/physics/ChShaft.h"
@@ -41,16 +38,12 @@
 #include "chrono/physics/ChShaftsThermalEngine.h"
 #include "chrono/physics/ChShaftsTorsionSpring.h"
 #include "chrono/physics/ChShaftsLoads.h"
-
 %}
 
-
-// Tell SWIG about parent class in Python
 %import "ChSystem.i"
 %import "ChPhysicsItem.i"
 %import "ChLoad.i"
 %import "ChLoadable.i"
-
 
 //%shared_ptr(chrono::ChVariables)
 //%shared_ptr(chrono::ChVariablesShaft)
@@ -70,8 +63,6 @@
 %shared_ptr(chrono::ChShaftsTorsionSpringDamper)
 %shared_ptr(chrono::ChShaftsElasticGear)
 
-
-/* Parse the header file to generate wrappers */
 //%include "../chrono/solver/ChVariables.h"
 //%include "../chrono/solver/ChVariablesShaft.h"
 %include "../chrono/physics/ChShaft.h"  
