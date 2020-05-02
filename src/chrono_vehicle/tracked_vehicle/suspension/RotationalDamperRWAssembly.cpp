@@ -45,10 +45,7 @@ RotationalDamperRWAssembly::RotationalDamperRWAssembly(const rapidjson::Document
     Create(d);
 }
 
-RotationalDamperRWAssembly::~RotationalDamperRWAssembly() {
-    delete m_shock_torqueCB;
-    delete m_spring_torqueCB;
-}
+RotationalDamperRWAssembly::~RotationalDamperRWAssembly() {}
 
 void RotationalDamperRWAssembly::Create(const rapidjson::Document& d) {
     // Invoke base class method.
@@ -73,7 +70,7 @@ void RotationalDamperRWAssembly::Create(const rapidjson::Document& d) {
     double torsion_k = d["Torsional Spring"]["Spring Constant"].GetDouble();
     double torsion_c = d["Torsional Spring"]["Damping Coefficient"].GetDouble();
     double torsion_t = d["Torsional Spring"]["Preload"].GetDouble();
-    m_spring_torqueCB = new LinearSpringDamperActuatorTorque(torsion_k, torsion_c, torsion_t);
+    m_spring_torqueCB = chrono_types::make_shared<LinearSpringDamperActuatorTorque>(torsion_k, torsion_c, torsion_t);
 
     // Read linear shock data
     assert(d.HasMember("Damper"));
@@ -81,10 +78,10 @@ void RotationalDamperRWAssembly::Create(const rapidjson::Document& d) {
 
     if (d["Damper"].HasMember("Damping Coefficient")) {
         double damper_c = d["Damper"]["Damping Coefficient"].GetDouble();
-        m_shock_torqueCB = new LinearDamperTorque(damper_c);
+        m_shock_torqueCB = chrono_types::make_shared<LinearDamperTorque>(damper_c);
     } else {
         int num_points = d["Damper"]["Curve Data"].Size();
-        MapDamperTorque* shockTorqueCB = new MapDamperTorque();
+        auto shockTorqueCB = chrono_types::make_shared<MapDamperTorque>();
         for (int i = 0; i < num_points; i++) {
             shockTorqueCB->add_point(d["Damper"]["Curve Data"][i][0u].GetDouble(),
                                      d["Damper"]["Curve Data"][i][1u].GetDouble());

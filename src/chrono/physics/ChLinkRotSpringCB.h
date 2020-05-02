@@ -59,7 +59,7 @@ class ChApi ChLinkRotSpringCB : public ChLinkMarkers {
     };
 
     /// Specify the functor object for calculating the torque.
-    void RegisterTorqueFunctor(TorqueFunctor* functor) { m_torque_fun = functor; }
+    void RegisterTorqueFunctor(std::shared_ptr<TorqueFunctor> functor) { m_torque_fun = functor; }
 
     /// Include the rotational spring custom torque.
     virtual void UpdateForces(double time) override;
@@ -71,8 +71,8 @@ class ChApi ChLinkRotSpringCB : public ChLinkMarkers {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
   protected:
-    TorqueFunctor* m_torque_fun;  ///< functor for torque calculation
-    double m_torque;              ///< resulting torque along relative axis of rotation
+    std::shared_ptr<TorqueFunctor> m_torque_fun;  ///< functor for torque calculation
+    double m_torque;                              ///< resulting torque along relative axis of rotation
 };
 
 CH_CLASS_VERSION(ChLinkRotSpringCB, 0)

@@ -139,27 +139,17 @@ double MAN_10t_SpringForceFront1::operator()(double time,
 }
 
 MAN_10t_Front1Axle::MAN_10t_Front1Axle(const std::string& name) : ChSolidBellcrankThreeLinkAxle(name) {
-    /*
-        m_springForceCB = new LinearSpringForce(m_springCoefficient  // coefficient for linear spring
-                                                );
+    m_springForceCB = chrono_types::make_shared<MAN_10t_SpringForceFront1>(m_springCoefficient1, m_springCoefficient2,
+                                                                           m_springMinLength, m_springMaxLength);
 
-        m_shockForceCB = new LinearDamperForce(m_damperCoefficient  // coefficient for linear damper
-                        );
-    */
-    m_springForceCB =
-        new MAN_10t_SpringForceFront1(m_springCoefficient1, m_springCoefficient2, m_springMinLength, m_springMaxLength);
-
-    m_shockForceCB = new DegressiveDamperForce(m_damperCoefCompression, m_damperDegresCompression,
-                                               m_damperCoefExpansion, m_damperDegresExpansion);
+    m_shockForceCB = chrono_types::make_shared<DegressiveDamperForce>(
+        m_damperCoefCompression, m_damperDegresCompression, m_damperCoefExpansion, m_damperDegresExpansion);
 }
 
 // -----------------------------------------------------------------------------
 // Destructors
 // -----------------------------------------------------------------------------
-MAN_10t_Front1Axle::~MAN_10t_Front1Axle() {
-    delete m_springForceCB;
-    delete m_shockForceCB;
-}
+MAN_10t_Front1Axle::~MAN_10t_Front1Axle() {}
 
 const ChVector<> MAN_10t_Front1Axle::getLocation(PointId which) {
     switch (which) {

@@ -125,7 +125,7 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
 
     /// Scan all the contacts and for each contact executes the OnReportContact() function of the provided callback
     /// object.
-    virtual void ReportAllContacts(ReportContactCallback* mcallback) override;
+    virtual void ReportAllContacts(std::shared_ptr<ReportContactCallback> callback) override;
 
     /// Report the number of scalar unilateral constraints.
     /// Note: friction constraints aren't exactly unilaterals, but they are still counted.

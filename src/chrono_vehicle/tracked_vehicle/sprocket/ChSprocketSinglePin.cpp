@@ -239,7 +239,7 @@ ChSprocketSinglePin::ChSprocketSinglePin(const std::string& name) : ChSprocket(n
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChSystem::CustomCollisionCallback* ChSprocketSinglePin::GetCollisionCallback(ChTrackAssembly* track) {
+std::shared_ptr<ChSystem::CustomCollisionCallback> ChSprocketSinglePin::GetCollisionCallback(ChTrackAssembly* track) {
     // Check compatibility between this type of sprocket and the track shoes.
     // We expect track shoes of type ChSinglePinShoe.
     auto shoe = std::dynamic_pointer_cast<ChTrackShoeSinglePin>(track->GetTrackShoe(0));
@@ -257,8 +257,8 @@ ChSystem::CustomCollisionCallback* ChSprocketSinglePin::GetCollisionCallback(ChT
     double shoe_R = shoe->GetCylinderRadius();
 
     // Create and return the callback object. Note: this pointer will be freed by the base class.
-    return new SprocketSinglePinContactCB(track, 0.005, gear_nteeth, gear_RO, gear_RC, gear_R, GetSeparation(),
-                                          shoe_locF, shoe_locR, shoe_R);
+    return chrono_types::make_shared<SprocketSinglePinContactCB>(track, 0.005, gear_nteeth, gear_RO, gear_RC, gear_R,
+                                                                 GetSeparation(), shoe_locF, shoe_locR, shoe_R);
 }
 
 // -----------------------------------------------------------------------------

@@ -184,28 +184,17 @@ double CityBus_ShockForceFront::operator()(double time, double rest_length, doub
 
 
 CityBus_ToeBarLeafspringAxle::CityBus_ToeBarLeafspringAxle(const std::string& name) : ChToeBarLeafspringAxle(name) {
-/*
-    m_springForceCB = new LinearSpringForce(m_springCoefficient  // coefficient for linear spring
-                                            );
+    m_springForceCB =
+        chrono_types::make_shared<CityBus_SpringForceFront>(m_springCoefficient, m_springMinLength, m_springMaxLength);
 
-    m_shockForceCB = new LinearDamperForce(m_damperCoefficient  // coefficient for linear damper
-                    );
-*/
-    m_springForceCB = new CityBus_SpringForceFront(m_springCoefficient,m_springMinLength,m_springMaxLength);
-    
-    m_shockForceCB = new CityBus_ShockForceFront(m_damperCoefficient,
-        m_damperDegressivityCompression,
-        m_damperCoefficient,
-        m_damperDegressivityExpansion);
+    m_shockForceCB = chrono_types::make_shared<CityBus_ShockForceFront>(
+        m_damperCoefficient, m_damperDegressivityCompression, m_damperCoefficient, m_damperDegressivityExpansion);
 }
 
 // -----------------------------------------------------------------------------
 // Destructors
 // -----------------------------------------------------------------------------
-CityBus_ToeBarLeafspringAxle::~CityBus_ToeBarLeafspringAxle() {
-    delete m_springForceCB;
-    delete m_shockForceCB;
-}
+CityBus_ToeBarLeafspringAxle::~CityBus_ToeBarLeafspringAxle() {}
 
 const ChVector<> CityBus_ToeBarLeafspringAxle::getLocation(PointId which) {
     switch (which) {

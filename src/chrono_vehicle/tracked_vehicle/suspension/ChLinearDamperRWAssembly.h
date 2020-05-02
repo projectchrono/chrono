@@ -104,10 +104,10 @@ class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
     virtual double GetArmVisRadius() const = 0;
 
     /// Return the functor object for the torsional spring torque.
-    virtual ChLinkRotSpringCB::TorqueFunctor* GetSpringTorqueFunctor() const = 0;
+    virtual std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> GetSpringTorqueFunctor() const = 0;
 
     /// Return the functor object for the translational shock force.
-    virtual ChLinkTSDA::ForceFunctor* GetShockForceFunctor() const = 0;
+    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> GetShockForceFunctor() const = 0;
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 

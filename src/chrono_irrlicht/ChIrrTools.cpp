@@ -135,14 +135,14 @@ int ChIrrTools::drawAllContactPoints(std::shared_ptr<ChContactContainer> mcontai
     mattransp.Lighting = false;
     driver->setMaterial(mattransp);
 
-    _draw_reporter_class my_drawer;
+    auto my_drawer = chrono_types::make_shared<_draw_reporter_class>();
 
-    my_drawer.cdriver = driver;
-    my_drawer.clen = mlen;
-    my_drawer.drawtype = drawtype;
+    my_drawer->cdriver = driver;
+    my_drawer->clen = mlen;
+    my_drawer->drawtype = drawtype;
 
     // scan all contacts
-    mcontainer->ReportAllContacts(&my_drawer);
+    mcontainer->ReportAllContacts(my_drawer);
 
     return 0;
 }
@@ -215,14 +215,14 @@ int ChIrrTools::drawAllContactLabels(std::shared_ptr<ChContactContainer> mcontai
     //if (mphysicalSystem.GetNcontacts() == 0)
     //   return 0;
 
-    _label_reporter_class my_label_rep;
+    auto my_label_rep = chrono_types::make_shared<_label_reporter_class>();
 
-    my_label_rep.cdevice = device;
-    my_label_rep.ccol = mcol;
-    my_label_rep.labeltype = labeltype;
+    my_label_rep->cdevice = device;
+    my_label_rep->ccol = mcol;
+    my_label_rep->labeltype = labeltype;
 
     // scan all contacts
-    mcontainer->ReportAllContacts(&my_label_rep);
+    mcontainer->ReportAllContacts(my_label_rep);
 
     return 0;
 }

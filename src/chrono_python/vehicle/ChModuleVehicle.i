@@ -192,6 +192,24 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %shared_ptr(chrono::vehicle::WheeledVehicle)
 
 
+%shared_ptr(chrono::vehicle::LinearSpringForce)
+%shared_ptr(chrono::vehicle::LinearDamperForce)
+%shared_ptr(chrono::vehicle::LinearSpringDamperForce)
+%shared_ptr(chrono::vehicle::LinearSpringDamperActuatorForce)
+%shared_ptr(chrono::vehicle::MapSpringForce)
+%shared_ptr(chrono::vehicle::MapSpringBistopForce)
+%shared_ptr(chrono::vehicle::LinearSpringBistopForce)
+%shared_ptr(chrono::vehicle::DegressiveDamperForce)
+%shared_ptr(chrono::vehicle::MapDamperForce)
+%shared_ptr(chrono::vehicle::MapSpringDamperActuatorForce)
+%shared_ptr(chrono::vehicle::LinearSpringTorque)
+%shared_ptr(chrono::vehicle::LinearDamperTorque)
+%shared_ptr(chrono::vehicle::LinearSpringDamperTorque)
+%shared_ptr(chrono::vehicle::LinearSpringDamperActuatorTorque)
+%shared_ptr(chrono::vehicle::MapSpringTorque)
+%shared_ptr(chrono::vehicle::MapDamperTorque)
+
+
 //
 // B- INCLUDE HEADERS
 //
@@ -294,20 +312,49 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 
 //
 // C- DOWNCASTING OF SHARED POINTERS
-// 
-// This is not automatic in Python + SWIG, except if one uses the 
-// %downcast_output_sharedptr(...) macro, as above, but this causes
-// a lot of code bloat. 
-// Alternatively, in the following we create a set of Python-side
-// functions to perform casting by hand, thank to the macro 
-// %DefSharedPtrDynamicDowncast(base,derived). 
-// Do not specify the "chrono::" namespace before base or derived!
-// Later, in python, you can do the following:
-//  myvis = chrono.CastToChVisualizationShared(myasset)
-//  print ('Could be cast to visualization object?', !myvis.IsNull())
-
-//%DefSharedPtrDynamicDowncast2NS(chrono,chrono::fea,ChPhysicsItem,ChMesh)
-
+//
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChDoubleWishbone)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChMacPhersonStrut)
+//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, MacPhersonStrut)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChLeafspringAxle)
+//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, LeafspringAxle)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChHendricksonPRIMAXX)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChDoubleWishboneReduced)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChMultiLink)
+//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, MultiLink)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChRigidPinnedAxle)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChSemiTrailingArm)
+//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, SemiTrailingArm)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChRigidSuspension)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChSolidAxle)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChThreeLinkIRS)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChToeBarLeafspringAxle)
+//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, DoubleWishbone)
+//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, DoubleWishboneReduced)
+//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, HendricksonPRIMAXX)
+//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, SolidAxle)
+//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ThreeLinkIRS)
+//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ToeBarLeafspringAxle)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChSolidBellcrankThreeLinkAxle)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChSolidThreeLinkAxle)
+//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, SolidBellcrankThreeLinkAxle)
+//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, SolidThreeLinkAxle)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSteering, ChPitmanArm)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSteering, ChPitmanArmShafts)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSteering, ChRackPinion)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSteering, ChRotaryArm)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChChassis, ChRigidChassis)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChTire, ChTMeasyTire)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChTire, ChRigidTire)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChTire, ChReissnerTire)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChTire, ChPacejkaTire)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChTire, ChPac89Tire)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChTire, ChLugreTire)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChTire, ChFialaTire)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChPowertrain, SimplePowertrain)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChPowertrain, SimpleMapPowertrain)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChPowertrain, SimpleCVTPowertrain)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChPowertrain, ShaftsPowertrain)
 
 //
 // ADDITIONAL C++ FUNCTIONS / CLASSES THAT ARE USED ONLY FOR PYTHON WRAPPER

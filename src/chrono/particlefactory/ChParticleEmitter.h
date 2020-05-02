@@ -172,7 +172,7 @@ class ChParticleEmitter {
 
     /// Pass an object from a ChPostCreationCallback-inherited class if you want to
     /// set additional stuff on each created particle (ex.set some random asset, set some random material, or such)
-    void RegisterAddBodyCallback(ChRandomShapeCreator::AddBodyCallback* callback) { this->creation_callback = callback; }
+    void RegisterAddBodyCallback(std::shared_ptr<ChRandomShapeCreator::AddBodyCallback> callback) { creation_callback = callback; }
 
     /// Set the particle creator, that is an object whose class is
     /// inherited from ChRandomShapeCreator
@@ -246,7 +246,7 @@ class ChParticleEmitter {
     std::shared_ptr<ChRandomParticleVelocity> particle_velocity;
     std::shared_ptr<ChRandomParticleVelocity> particle_angular_velocity;
 
-    ChRandomShapeCreator::AddBodyCallback* creation_callback;
+    std::shared_ptr<ChRandomShapeCreator::AddBodyCallback> creation_callback;
 
     int particle_reservoir;
     bool use_particle_reservoir;

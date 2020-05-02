@@ -473,7 +473,7 @@ class CH_PARALLEL_API ChParallelDataManager {
     std::unique_ptr<ChMaterialCompositionStrategy> composition_strategy;
 
     /// User-provided callback for overriding coposite material properties.
-    ChContactContainer::AddContactCallback* add_contact_callback;
+    std::shared_ptr<ChContactContainer::AddContactCallback> add_contact_callback;
 
     /// Output a vector (one dimensional matrix) from blaze to a file.
     int OutputBlazeVector(DynamicVector<real> src, std::string filename);

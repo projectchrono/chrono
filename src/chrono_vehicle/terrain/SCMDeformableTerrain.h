@@ -174,7 +174,7 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
 
     /// Specify the callback object to set the soil parameters at given (x,y) locations.
     /// To use constant soil parameters throughout the entire patch, use SetSoilParameters.
-    void RegisterSoilParametersCallback(SoilParametersCallback* cb);
+    void RegisterSoilParametersCallback(std::shared_ptr<SoilParametersCallback> cb);
 
     /// Get the terrain height below the specified location.
     virtual double GetHeight(const ChVector<>& loc) const override;
@@ -367,7 +367,7 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     bool m_moving_patch;                     // moving patch feature enabled?
 
     // Callback object for position-dependent soil properties
-    SCMDeformableTerrain::SoilParametersCallback* m_soil_fun;
+    std::shared_ptr<SCMDeformableTerrain::SoilParametersCallback> m_soil_fun;
 
     // Timers and counters
     ChTimer<double> m_timer_calc_areas;

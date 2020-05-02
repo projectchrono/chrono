@@ -437,7 +437,7 @@ void GranularTerrain::Initialize(const ChVector<>& center,
     }
 
     // Register the custom collision callback for boundary conditions.
-    auto cb = new BoundaryContact(this);
+    auto cb = chrono_types::make_shared<BoundaryContact>(this);
     m_ground->GetSystem()->RegisterCustomCollisionCallback(cb);
 }
 

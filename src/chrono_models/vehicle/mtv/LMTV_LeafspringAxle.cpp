@@ -160,26 +160,17 @@ double LMTV_ShockForceRear::operator()(double time, double rest_length, double l
 }
 
 LMTV_LeafspringAxle::LMTV_LeafspringAxle(const std::string& name) : ChLeafspringAxle(name) {
-    /*
-        m_springForceCB = new LinearSpringForce(m_springCoefficient  // coefficient for linear spring
-                                                );
+    m_springForceCB =
+        chrono_types::make_shared<LMTV_SpringForceRear>(m_springCoefficient, m_springMinLength, m_springMaxLength);
 
-        m_shockForceCB = new LinearDamperForce(m_damperCoefficient  // coefficient for linear damper
-                        );
-    */
-    m_springForceCB = new LMTV_SpringForceRear(m_springCoefficient, m_springMinLength, m_springMaxLength);
-
-    m_shockForceCB = new LMTV_ShockForceRear(m_damperCoefficient, m_damperDegressivityCompression, m_damperCoefficient,
-                                             m_damperDegressivityExpansion);
+    m_shockForceCB = chrono_types::make_shared<LMTV_ShockForceRear>(
+        m_damperCoefficient, m_damperDegressivityCompression, m_damperCoefficient, m_damperDegressivityExpansion);
 }
 
 // -----------------------------------------------------------------------------
 // Destructors
 // -----------------------------------------------------------------------------
-LMTV_LeafspringAxle::~LMTV_LeafspringAxle() {
-    delete m_springForceCB;
-    delete m_shockForceCB;
-}
+LMTV_LeafspringAxle::~LMTV_LeafspringAxle() {}
 
 const ChVector<> LMTV_LeafspringAxle::getLocation(PointId which) {
     switch (which) {

@@ -141,11 +141,11 @@ int main(int argc, char* argv[]) {
 
     // Create the spring between body_2 and ground. The spring end points are
     // specified in the body relative frames.
-    MySpringForce force;
+    auto force = chrono_types::make_shared<MySpringForce>();
 
     auto spring_2 = chrono_types::make_shared<ChLinkTSDA>();
     spring_2->Initialize(body_2, ground, true, ChVector<>(0, 0, 0), ChVector<>(1, 0, 0), false, rest_length);
-    spring_2->RegisterForceFunctor(&force);
+    spring_2->RegisterForceFunctor(force);
     system.AddLink(spring_2);
 
     // Attach a visualization asset.

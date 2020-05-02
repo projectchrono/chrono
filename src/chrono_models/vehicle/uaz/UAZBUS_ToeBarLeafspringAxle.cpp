@@ -182,30 +182,18 @@ double UAZBUS_ShockForceFront::operator()(double time, double rest_length, doubl
     return force;
 }
 
-
 UAZBUS_ToeBarLeafspringAxle::UAZBUS_ToeBarLeafspringAxle(const std::string& name) : ChToeBarLeafspringAxle(name) {
-/*
-    m_springForceCB = new LinearSpringForce(m_springCoefficient  // coefficient for linear spring
-                                            );
+    m_springForceCB =
+        chrono_types::make_shared<UAZBUS_SpringForceFront>(m_springCoefficient, m_springMinLength, m_springMaxLength);
 
-    m_shockForceCB = new LinearDamperForce(m_damperCoefficient  // coefficient for linear damper
-                    );
-*/
-    m_springForceCB = new UAZBUS_SpringForceFront(m_springCoefficient,m_springMinLength,m_springMaxLength);
-    
-    m_shockForceCB = new UAZBUS_ShockForceFront(m_damperCoefficient,
-        m_damperDegressivityCompression,
-        m_damperCoefficient,
-        m_damperDegressivityExpansion);
+    m_shockForceCB = chrono_types::make_shared<UAZBUS_ShockForceFront>(
+        m_damperCoefficient, m_damperDegressivityCompression, m_damperCoefficient, m_damperDegressivityExpansion);
 }
 
 // -----------------------------------------------------------------------------
 // Destructors
 // -----------------------------------------------------------------------------
-UAZBUS_ToeBarLeafspringAxle::~UAZBUS_ToeBarLeafspringAxle() {
-    delete m_springForceCB;
-    delete m_shockForceCB;
-}
+UAZBUS_ToeBarLeafspringAxle::~UAZBUS_ToeBarLeafspringAxle() {}
 
 const ChVector<> UAZBUS_ToeBarLeafspringAxle::getLocation(PointId which) {
     switch (which) {

@@ -278,16 +278,13 @@ int main(int argc, char* argv[]) {
         ChSystemNSC* msystem;
     };
 
-    MyContactCallback mycontact_callback;           // create the callback object
-    mycontact_callback.msystem = &mphysicalSystem;  // will be used by callback
+    auto mycontact_callback = chrono_types::make_shared<MyContactCallback>();  // create the callback object
+    mycontact_callback->msystem = &mphysicalSystem;                            // will be used by callback
 
     // Use the above callback to process each contact as it is created.
-    mphysicalSystem.GetContactContainer()->RegisterAddContactCallback(&mycontact_callback);
+    mphysicalSystem.GetContactContainer()->RegisterAddContactCallback(mycontact_callback);
 
-    //
-    // THE SOFT-REAL-TIME CYCLE
-    //
-
+    // Simulation loop
     application.SetTimestep(0.01);
 
     while (application.GetDevice()->run()) {

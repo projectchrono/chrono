@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
             mbody->AddAsset(mvisual);
         }
     };
-    MyCreator_plastic* callback_plastic = new MyCreator_plastic;
+    auto callback_plastic = chrono_types::make_shared<MyCreator_plastic>();
     mcreator_plastic->RegisterAddBodyCallback(callback_plastic);
 
     // Finally, tell to the emitter that it must use the creator above:
@@ -166,7 +166,7 @@ int main(int argc, char* argv[]) {
         ChIrrApp* airrlicht_application;
     };
     // b- create the callback object...
-    MyCreatorForAll* mcreation_callback = new MyCreatorForAll;
+    auto mcreation_callback = chrono_types::make_shared<MyCreatorForAll>();
     // c- set callback own data that he might need...
     mcreation_callback->airrlicht_application = &application;
     // d- attach the callback to the emitter!

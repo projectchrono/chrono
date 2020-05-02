@@ -22,7 +22,8 @@ ChBoundary::ChBoundary(std::shared_ptr<ChBody> body, std::shared_ptr<ChMaterialS
     : m_body(body), m_material(material), m_crt_count(0) {
     assert(body->GetSystem());
     assert(body->GetBodyFixed());
-    body->GetSystem()->RegisterCustomCollisionCallback(this);
+    std::shared_ptr<ChBoundary> shared_this(this, [](ChBoundary*) {});
+    body->GetSystem()->RegisterCustomCollisionCallback(shared_this);
 }
 
 void ChBoundary::AddPlane(const ChFrame<>& frame, const ChVector2<>& lengths) {

@@ -670,8 +670,8 @@ int main(int argc, char* argv[]) {
     };
 
     // Use the above callback to process each contact as it is created.
-    MyContactCallback mycontact_callback;
-    my_system.GetContactContainer()->RegisterAddContactCallback(&mycontact_callback);
+    auto mycontact_callback = chrono_types::make_shared<MyContactCallback>();
+    my_system.GetContactContainer()->RegisterAddContactCallback(mycontact_callback);
 
     // Bind visualization assets.
     application.AssetBindAll();

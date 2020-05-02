@@ -82,9 +82,7 @@ RigidTerrain::RigidTerrain(ChSystem* system, const std::string& filename)
     }
 }
 
-RigidTerrain::~RigidTerrain() {
-    delete m_contact_callback;
-}
+RigidTerrain::~RigidTerrain() {}
 
 void RigidTerrain::LoadPatch(const rapidjson::Value& d) {
     assert(d.IsObject());
@@ -510,7 +508,7 @@ void RigidTerrain::Initialize() {
 
     // Create and register a custom callback functor of type ChContactContainer::AddContactCallback
     // and pass to it a list of patch bodies as well as the location-dependent friction functor.
-    auto callback = new RTContactCallback;
+    auto callback = chrono_types::make_shared<RTContactCallback>();
     callback->m_terrain = this;
     callback->m_friction_fun = m_friction_fun;
     m_contact_callback = callback;
