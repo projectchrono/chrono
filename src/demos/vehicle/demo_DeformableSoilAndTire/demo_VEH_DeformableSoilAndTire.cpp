@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
     mrim->SetRot(Q_from_AngAxis(CH_C_PI_2, VECT_Z));
 
     // The wheel object:
-    auto wheel = chrono_types::make_shared<Wheel>(vehicle::GetDataFile("hmmwv/wheel/HMMWV_Wheel_FrontLeft.json"));
+    auto wheel = chrono_types::make_shared<Wheel>(vehicle::GetDataFile("hmmwv/wheel/HMMWV_Wheel.json"));
     wheel->Initialize(mrim, LEFT);
 
     // The tire:
