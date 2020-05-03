@@ -252,11 +252,35 @@ ChBodyEasyMesh::ChBodyEasyMesh(const std::string filename,
     : ChBodyAuxRef(collision_model) {
     auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
     trimesh->LoadWavefrontMesh(filename, true, true);
+    SetupBody(trimesh, filename, mdensity, compute_mass, visualize, collide, material, sphere_swept, collision_model);
+}
+
+ChBodyEasyMesh::ChBodyEasyMesh(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh,
+                               double mdensity,
+                               bool compute_mass,
+                               bool visualize,
+                               bool collide,
+                               std::shared_ptr<ChMaterialSurface> material,
+                               double sphere_swept,
+                               std::shared_ptr<collision::ChCollisionModel> collision_model)
+    : ChBodyAuxRef(collision_model) {
+    SetupBody(mesh, "EasyMesh", mdensity, compute_mass, visualize, collide, material, sphere_swept, collision_model);
+}
+
+void ChBodyEasyMesh::SetupBody(std::shared_ptr<geometry::ChTriangleMeshConnected> trimesh,
+                               const std::string& name,
+                               double mdensity,
+                               bool compute_mass,
+                               bool visualize,
+                               bool collide,
+                               std::shared_ptr<ChMaterialSurface> material,
+                               double sphere_swept,
+                               std::shared_ptr<collision::ChCollisionModel> collision_model) {
 
     if (visualize) {
         auto vshape = chrono_types::make_shared<ChTriangleMeshShape>();
         vshape->SetMesh(trimesh);
-        vshape->SetName(filename);
+        vshape->SetName(name);
         AddAsset(vshape);  // assets are respect to REF c.sys
     }
 
