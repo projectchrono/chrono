@@ -64,7 +64,7 @@ message(STATUS "...add Chrono::CSharp CORE module")
 set(MODULE_CORE ChronoEngine_csharp_core)
 
 # Set interface file.
-set(INTERFACE_FILE ChModuleCore.i)
+set(INTERFACE_FILE core/ChModuleCore.i)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   set_source_files_properties(${INTERFACE_FILE} PROPERTIES COMPILE_FLAGS "-D_WIN32")
