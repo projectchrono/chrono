@@ -363,6 +363,8 @@ set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/ChDoubleWishbone.cpp
     wheeled_vehicle/suspension/ChDoubleWishboneReduced.h
     wheeled_vehicle/suspension/ChDoubleWishboneReduced.cpp
+    wheeled_vehicle/suspension/ChSingleWishbone.h
+    wheeled_vehicle/suspension/ChSingleWishbone.cpp
     wheeled_vehicle/suspension/ChSolidAxle.h
     wheeled_vehicle/suspension/ChSolidAxle.cpp
     wheeled_vehicle/suspension/ChMultiLink.h
@@ -396,6 +398,8 @@ set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/DoubleWishbone.cpp
     wheeled_vehicle/suspension/DoubleWishboneReduced.h
     wheeled_vehicle/suspension/DoubleWishboneReduced.cpp
+#    wheeled_vehicle/suspension/SingleWishbone.h
+#    wheeled_vehicle/suspension/SingleWishbone.cpp
     wheeled_vehicle/suspension/SolidAxle.h
     wheeled_vehicle/suspension/SolidAxle.cpp
     wheeled_vehicle/suspension/MultiLink.h
