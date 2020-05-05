@@ -1,6 +1,4 @@
-message(STATUS "Projects: FED-alpha benchmark...")
-
-if(NOT ENABLE_MODULE_VEHICLE OR NOT ENABLE_MODULE_IRRLICHT)
+if(NOT ENABLE_MODULE_IRRLICHT)
   return()
 endif()  
 
@@ -14,6 +12,7 @@ SET(LIBRARIES
     ChronoEngine
     ChronoEngine_irrlicht
     ChronoEngine_vehicle
+    ChronoEngine_vehicle_irrlicht
     ChronoModels_vehicle
 )
 

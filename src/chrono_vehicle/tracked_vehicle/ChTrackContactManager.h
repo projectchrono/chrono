@@ -47,7 +47,7 @@ struct ChTrackContactInfo {
 };
 
 /// Class for monitoring contacts of tracked vehicle subsystems.
-class ChTrackContactManager : public ChContactContainer::ReportContactCallback {
+class CH_VEHICLE_API ChTrackContactManager : public ChContactContainer::ReportContactCallback {
   public:
     ChTrackContactManager();
 

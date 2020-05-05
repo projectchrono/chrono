@@ -32,6 +32,7 @@ set(LIBRARIES
     ChronoEngine
     ChronoEngine_irrlicht
     ChronoEngine_vehicle
+    ChronoEngine_vehicle_irrlicht
     ChronoModels_vehicle
     )
 
