@@ -3,15 +3,10 @@
 //   ChModuleCore.i
 //
 //   SWIG configuration file.
-//   This is processed by SWIG to create the C::E
-//   wrapper for Python.
+//   This is processed by SWIG to create the C#
+//   wrapper for the core Chrono module.
 //
 ///////////////////////////////////////////////////
-
-
-
-// Define the module to be used in Python when typing 
-//  'import pychrono'
 
 
 %module(directors="1") ChronoEngine_csharp
