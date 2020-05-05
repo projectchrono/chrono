@@ -50,7 +50,7 @@ mboxasset.GetBoxGeometry().Size = chrono.ChVectorD(0.2,0.5,0.1)
 mbody2.AddAsset(mboxasset)
 
 mboxtexture = chrono.ChTexture()
-mboxtexture.SetTextureFilename('../../../data/concrete.jpg')
+mboxtexture.SetTextureFilename(chrono.GetChronoDataFile('concrete.jpg'))
 mbody2.GetAssets().push_back(mboxtexture)
 
 
@@ -98,7 +98,7 @@ myapplication.AssetUpdateAll();
 
 
 myapplication.SetTimestep(0.005)
-
+myapplication.SetTryRealtime(True)
 
 while(myapplication.GetDevice().run()):
     myapplication.BeginScene()

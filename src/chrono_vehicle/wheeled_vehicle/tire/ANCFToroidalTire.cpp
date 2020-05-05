@@ -33,7 +33,10 @@ ANCFToroidalTire::ANCFToroidalTire(const std::string& name)
       m_div_circumference(60),
       m_div_width(12),
       m_default_pressure(320.0e3),
-      m_alpha(0.15) {}
+      m_alpha(0.15) {
+    // default contact material
+    m_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+}
 
 void ANCFToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) {
     // Create an isotropic material (shared by all elements)
@@ -127,6 +130,10 @@ std::vector<std::shared_ptr<ChNodeFEAbase>> ANCFToroidalTire::GetConnectedNodes(
     }
 
     return nodes;
+}
+
+void ANCFToroidalTire::CreateContactMaterial() {
+    m_contact_mat = m_mat;
 }
 
 }  // end namespace vehicle

@@ -21,7 +21,7 @@
 # =============================================================================
 
 import pychrono.core as chrono
-import pychrono.irrlicht as chronoirr
+import pychrono.irrlicht as irr
 import pychrono.vehicle as veh
 import math
 import os
@@ -77,6 +77,7 @@ print( "Copyright (c) 2017 projectchrono.org\n")
 
 # Create the vehicle, set parameters, and initialize
 uaz = veh.UAZBUS()
+uaz.SetContactMethod(chrono.ChContactMethod_NSC)
 uaz.SetChassisFixed(False)
 uaz.SetInitPosition(chrono.ChCoordsysD(initLoc, initRot))
 uaz.SetTireType(tire_model)
@@ -114,10 +115,12 @@ print("Vehicle mass (with tires):  " + str(uaz.GetTotalMass() ) + "\n")
 # ------------------
 
 terrain = veh.RigidTerrain(uaz.GetSystem())
-patch = terrain.AddPatch(chrono.ChCoordsysD(chrono.ChVectorD(0, 0, -5), chrono.QUNIT), chrono.ChVectorD(600, 600, 10))
-patch.SetContactFrictionCoefficient(0.8)
-patch.SetContactRestitutionCoefficient(0.01)
-patch.SetContactMaterialProperties(2e7, 0.3)
+patch_mat = chrono.ChMaterialSurfaceNSC()
+patch_mat.SetFriction(0.9)
+patch_mat.SetRestitution(0.01)
+patch = terrain.AddPatch(patch_mat, 
+                         chrono.ChVectorD(0, 0, 0), chrono.ChVectorD(0, 0, 1), 
+                         600, 600)
 patch.SetColor(chrono.ChColor(0.8, 0.8, 1.0))
 patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 1200, 1200)
 terrain.Initialize()
@@ -127,12 +130,12 @@ terrain.Initialize()
 # Create the driver system
 # -------------------------------------
 
-app = veh.ChWheeledVehicleIrrApp(uaz.GetVehicle())#, "UAZBUS demo")
+app = veh.ChWheeledVehicleIrrApp(uaz.GetVehicle(), 'UAZBUS', irr.dimension2du(1000,800))
 app.SetSkyBox()
-app.AddTypicalLights(chronoirr.vector3df(+130, +130, 150), chronoirr.vector3df(-130, +130, 150), 120,
-                     120, chronoirr.SColorf(0.7, 0.7, 0.7, 1.0), chronoirr.SColorf(0.7, 0.7, 0.7, 1.0))
-app.AddTypicalLights(chronoirr.vector3df(+130, -130, 150), chronoirr.vector3df(-130, -130, 150), 120,
-                     120, chronoirr.SColorf(0.7, 0.7, 0.7, 1.0), chronoirr.SColorf(0.7, 0.7, 0.7, 1.0))
+app.AddTypicalLights(irr.vector3df(+130, +130, 150), irr.vector3df(-130, +130, 150), 120,
+                     120, irr.SColorf(0.7, 0.7, 0.7, 1.0), irr.SColorf(0.7, 0.7, 0.7, 1.0))
+app.AddTypicalLights(irr.vector3df(+130, -130, 150), irr.vector3df(-130, -130, 150), 120,
+                     120, irr.SColorf(0.7, 0.7, 0.7, 1.0), irr.SColorf(0.7, 0.7, 0.7, 1.0))
 
 app.SetChaseCamera(trackPoint, 6.0, 0.5)
 app.SetTimestep(step_size)
@@ -175,7 +178,7 @@ while (app.GetDevice().run()) :
 
     # Render scene
     if (step_number % render_steps == 0) :
-        app.BeginScene(True, True, chronoirr.SColor(255, 140, 161, 192))
+        app.BeginScene(True, True, irr.SColor(255, 140, 161, 192))
         app.DrawAll()
         app.EndScene()
 

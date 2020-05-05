@@ -51,7 +51,7 @@ using namespace chrono::vehicle::hmmwv;
 // Problem parameters
 
 // Contact method type
-ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::SMC;
+ChContactMethod contact_method = ChContactMethod::SMC;
 
 // Type of tire model (RIGID, LUGRE, FIALA, PACEJKA, or TMEASY)
 TireModelType tire_model = TireModelType::TMEASY;
@@ -248,13 +248,17 @@ int main(int argc, char* argv[]) {
 
     // Create the terrain
     RigidTerrain terrain(my_hmmwv.GetSystem());
-    auto patch = terrain.AddPatch(ChCoordsys<>(ChVector<>(0, 0, terrainHeight - 5), QUNIT),
-                                  ChVector<>(terrainLength, terrainWidth, 10));
-    patch->SetContactFrictionCoefficient(0.8f);
-    patch->SetContactRestitutionCoefficient(0.01f);
-    patch->SetContactMaterialProperties(2e7f, 0.3f);
+
+    MaterialInfo minfo;
+    minfo.mu = 0.8f;
+    minfo.cr = 0.01f;
+    minfo.Y = 2e7f;
+    auto patch_mat = minfo.CreateMaterial(contact_method);
+
+    auto patch = terrain.AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), terrainLength, terrainWidth);
     patch->SetColor(ChColor(1, 1, 1));
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
+
     terrain.Initialize();
 
     // ----------------------
@@ -264,17 +268,17 @@ int main(int argc, char* argv[]) {
     // From data file
     auto path = ChBezierCurve::read(vehicle::GetDataFile(path_file));
 
-// Parameterized ISO double lane change (to left)
-////auto path = DoubleLaneChangePath(ChVector<>(-125, -125, 0.1), 13.5, 4.0, 11.0, 50.0, true);
+    // Parameterized ISO double lane change (to left)
+    ////auto path = DoubleLaneChangePath(ChVector<>(-125, -125, 0.1), 13.5, 4.0, 11.0, 50.0, true);
 
-// Parameterized NATO double lane change (to right)
-////auto path = DoubleLaneChangePath(ChVector<>(-125, -125, 0.1), 28.93, 3.6105, 25.0, 50.0, false);
+    // Parameterized NATO double lane change (to right)
+    ////auto path = DoubleLaneChangePath(ChVector<>(-125, -125, 0.1), 28.93, 3.6105, 25.0, 50.0, false);
 
-////path->write("my_path.txt");
+    ////path->write("my_path.txt");
 
-// ---------------------------------------
-// Create the vehicle Irrlicht application
-// ---------------------------------------
+    // ---------------------------------------
+    // Create the vehicle Irrlicht application
+    // ---------------------------------------
 
 #ifdef USE_PID
     ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"Steering PID Controller Demo",
@@ -295,7 +299,6 @@ int main(int argc, char* argv[]) {
                          100);
     app.AddTypicalLights(irr::core::vector3df(150.f, -150.f, 200.f), irr::core::vector3df(150.0f, 150.f, 200.f), 100,
                          100);
-    app.EnableGrid(false);
     app.SetChaseCamera(trackPoint, 6.0, 0.5);
 
     app.SetTimestep(step_size);

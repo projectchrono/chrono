@@ -162,29 +162,29 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
   protected:
     /// Construct a test rig for a specified axle of a given vehicle.
     /// This version uses a concrete vehicle object.
-    ChSuspensionTestRig(ChWheeledVehicle& vehicle,           ///< vehicle source
-                        int axle_index,                      ///< index of the suspension to be tested
-                        double displ_limit,                  ///< limits for post displacement
-                        std::shared_ptr<ChTire> tire_left,   ///< left tire
-                        std::shared_ptr<ChTire> tire_right,  ///< right tire
-                        ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC  ///< contact method
+    ChSuspensionTestRig(ChWheeledVehicle& vehicle,                             ///< vehicle source
+                        int axle_index,                                        ///< index of the suspension to be tested
+                        double displ_limit,                                    ///< limits for post displacement
+                        std::shared_ptr<ChTire> tire_left,                     ///< left tire
+                        std::shared_ptr<ChTire> tire_right,                    ///< right tire
+                        ChContactMethod contact_method = ChContactMethod::NSC  ///< contact method
     );
 
     /// Construct a test rig for a specified axle of a given vehicle.
     /// This version assumes the vehicle is specified through a JSON file.
-    ChSuspensionTestRig(const std::string& filename,         ///< JSON file with vehicle specification
-                        int axle_index,                      ///< index of the suspension to be tested
-                        double displ_limit,                  ///< limits for post displacement
-                        std::shared_ptr<ChTire> tire_left,   ///< left tire
-                        std::shared_ptr<ChTire> tire_right,  ///< right tire
-                        ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC  ///< contact method
+    ChSuspensionTestRig(const std::string& filename,                           ///< JSON file with vehicle specification
+                        int axle_index,                                        ///< index of the suspension to be tested
+                        double displ_limit,                                    ///< limits for post displacement
+                        std::shared_ptr<ChTire> tire_left,                     ///< left tire
+                        std::shared_ptr<ChTire> tire_right,                    ///< right tire
+                        ChContactMethod contact_method = ChContactMethod::NSC  ///< contact method
     );
 
     /// Construct a test rig from specified (JSON) file.
     ChSuspensionTestRig(const std::string& filename,         ///< JSON file with test rig specification
                         std::shared_ptr<ChTire> tire_left,   ///< left tire
                         std::shared_ptr<ChTire> tire_right,  ///< right tire
-                        ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC  ///< contact method
+                        ChContactMethod contact_method = ChContactMethod::NSC  ///< contact method
     );
 
     /// Initialize all underlying vehicle subsystems
@@ -263,32 +263,29 @@ class CH_VEHICLE_API ChSuspensionTestRigPlatform : public ChSuspensionTestRig {
   public:
     /// Construct a test rig for a specified axle of a given vehicle.
     /// This version uses a concrete vehicle object.
-    ChSuspensionTestRigPlatform(
-        ChWheeledVehicle& vehicle,           ///< vehicle source
-        int axle_index,                      ///< index of the suspension to be tested
-        double displ_limit,                  ///< limits for post displacement
-        std::shared_ptr<ChTire> tire_left,   ///< left tire
-        std::shared_ptr<ChTire> tire_right,  ///< right tire
-        ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC  ///< contact method
+    ChSuspensionTestRigPlatform(ChWheeledVehicle& vehicle,           ///< vehicle source
+                                int axle_index,                      ///< index of the suspension to be tested
+                                double displ_limit,                  ///< limits for post displacement
+                                std::shared_ptr<ChTire> tire_left,   ///< left tire
+                                std::shared_ptr<ChTire> tire_right,  ///< right tire
+                                ChContactMethod contact_method = ChContactMethod::NSC  ///< contact method
     );
 
     /// Construct a test rig for a specified axle of a given vehicle.
     /// This version assumes the vehicle is specified through a JSON file.
-    ChSuspensionTestRigPlatform(
-        const std::string& filename,         ///< JSON file with vehicle specification
-        int axle_index,                      ///< index of the suspension to be tested
-        double displ_limit,                  ///< limits for post displacement
-        std::shared_ptr<ChTire> tire_left,   ///< left tire
-        std::shared_ptr<ChTire> tire_right,  ///< right tire
-        ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC  ///< contact method
+    ChSuspensionTestRigPlatform(const std::string& filename,         ///< JSON file with vehicle specification
+                                int axle_index,                      ///< index of the suspension to be tested
+                                double displ_limit,                  ///< limits for post displacement
+                                std::shared_ptr<ChTire> tire_left,   ///< left tire
+                                std::shared_ptr<ChTire> tire_right,  ///< right tire
+                                ChContactMethod contact_method = ChContactMethod::NSC  ///< contact method
     );
 
     /// Construct a test rig from specified (JSON) file.
-    ChSuspensionTestRigPlatform(
-        const std::string& filename,         ///< JSON file with test rig specification
-        std::shared_ptr<ChTire> tire_left,   ///< left tire
-        std::shared_ptr<ChTire> tire_right,  ///< right tire
-        ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC  ///< contact method
+    ChSuspensionTestRigPlatform(const std::string& filename,         ///< JSON file with test rig specification
+                                std::shared_ptr<ChTire> tire_left,   ///< left tire
+                                std::shared_ptr<ChTire> tire_right,  ///< right tire
+                                ChContactMethod contact_method = ChContactMethod::NSC  ///< contact method
     );
 
     virtual double GetActuatorDisp(VehicleSide side) override;
@@ -346,32 +343,29 @@ class CH_VEHICLE_API ChSuspensionTestRigPushrod : public ChSuspensionTestRig {
   public:
     /// Construct a test rig for a specified axle of a given vehicle.
     /// This version uses a concrete vehicle object.
-    ChSuspensionTestRigPushrod(
-        ChWheeledVehicle& vehicle,           ///< vehicle source
-        int axle_index,                      ///< index of the suspension to be tested
-        double displ_limit,                  ///< limits for post displacement
-        std::shared_ptr<ChTire> tire_left,   ///< left tire
-        std::shared_ptr<ChTire> tire_right,  ///< right tire
-        ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC  ///< contact method
+    ChSuspensionTestRigPushrod(ChWheeledVehicle& vehicle,           ///< vehicle source
+                               int axle_index,                      ///< index of the suspension to be tested
+                               double displ_limit,                  ///< limits for post displacement
+                               std::shared_ptr<ChTire> tire_left,   ///< left tire
+                               std::shared_ptr<ChTire> tire_right,  ///< right tire
+                               ChContactMethod contact_method = ChContactMethod::NSC  ///< contact method
     );
 
     /// Construct a test rig for a specified axle of a given vehicle.
     /// This version assumes the vehicle is specified through a JSON file.
-    ChSuspensionTestRigPushrod(
-        const std::string& filename,         ///< JSON file with vehicle specification
-        int axle_index,                      ///< index of the suspension to be tested
-        double displ_limit,                  ///< limits for post displacement
-        std::shared_ptr<ChTire> tire_left,   ///< left tire
-        std::shared_ptr<ChTire> tire_right,  ///< right tire
-        ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC  ///< contact method
+    ChSuspensionTestRigPushrod(const std::string& filename,         ///< JSON file with vehicle specification
+                               int axle_index,                      ///< index of the suspension to be tested
+                               double displ_limit,                  ///< limits for post displacement
+                               std::shared_ptr<ChTire> tire_left,   ///< left tire
+                               std::shared_ptr<ChTire> tire_right,  ///< right tire
+                               ChContactMethod contact_method = ChContactMethod::NSC  ///< contact method
     );
 
     /// Construct a test rig from specified (JSON) file.
-    ChSuspensionTestRigPushrod(
-        const std::string& filename,         ///< JSON file with test rig specification
-        std::shared_ptr<ChTire> tire_left,   ///< left tire
-        std::shared_ptr<ChTire> tire_right,  ///< right tire
-        ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC  ///< contact method
+    ChSuspensionTestRigPushrod(const std::string& filename,         ///< JSON file with test rig specification
+                               std::shared_ptr<ChTire> tire_left,   ///< left tire
+                               std::shared_ptr<ChTire> tire_right,  ///< right tire
+                               ChContactMethod contact_method = ChContactMethod::NSC  ///< contact method
     );
 
     virtual double GetActuatorDisp(VehicleSide side) override;

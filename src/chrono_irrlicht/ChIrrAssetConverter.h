@@ -31,7 +31,6 @@
 #include "chrono/assets/ChLineShape.h"
 
 #include "chrono_irrlicht/ChApiIrr.h"
-#include "chrono_irrlicht/ChBodySceneNodeTools.h"
 #include "chrono_irrlicht/ChIrrNodeAsset.h"
 
 namespace chrono {
@@ -113,8 +112,8 @@ class ChApiIrr ChIrrAssetConverter {
                                   ChFrame<> parentframe,
                                   irr::scene::ISceneNode* mnode);
 
-    void BindAllContentsOfAssembly(ChAssembly* massy, std::unordered_set<ChAssembly*>& mtrace);
-    void UpdateAllContentsOfAssembly(ChAssembly* massy, std::unordered_set<ChAssembly*>& mtrace);
+    void BindAllContentsOfAssembly(const ChAssembly* massy, std::unordered_set<const ChAssembly*>& mtrace);
+    void UpdateAllContentsOfAssembly(const ChAssembly* massy, std::unordered_set<const ChAssembly*>& mtrace);
 };
 
 /// @} irrlicht_module

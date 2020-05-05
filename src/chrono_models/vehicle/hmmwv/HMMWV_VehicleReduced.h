@@ -45,7 +45,7 @@ class CH_MODELS_API HMMWV_VehicleReduced : public HMMWV_Vehicle {
   public:
     HMMWV_VehicleReduced(const bool fixed,
                          DrivelineType drive_type,
-                         ChMaterialSurface::ContactMethod contact_method,
+                         ChContactMethod contact_method,
                          ChassisCollisionType chassis_collision_type);
 
     HMMWV_VehicleReduced(ChSystem* system,

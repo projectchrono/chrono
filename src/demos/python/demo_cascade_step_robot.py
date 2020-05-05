@@ -14,11 +14,8 @@ print ("Please wait! this may take a while to load the file...");
 import pychrono.core as chrono
 import pychrono.irrlicht as chronoirr
 import pychrono.cascade as cascade
-#import pychrono.mkl as mkl
-try:
-    from OCC.Core import TopoDS
-except:
-    from OCC import TopoDS 
+from OCC.Core import TopoDS
+
     
 # The path to the Chrono data directory containing various assets (meshes, textures, data files)
 # is automatically set, relative to the default location of this demo.
@@ -73,8 +70,8 @@ def make_body_from_name(partname, root_transformation):
         # Make a ChBody representing the TopoDS_Shape part from the CAD:
         mbody1 = cascade.ChBodyEasyCascade(shape1, # shape
                                            1000,   # density (center of mass & inertia automatically computed)
-                                           False,  # mesh for collide?
-                                           True)   # mesh for visualization?
+                                           True,    # mesh for visualization?
+                                           False)   # mesh for collision?
         mysystem.Add(mbody1)
         # Move the body as for global displacement/rotation (also mbody1 %= root_frame; )
         mbody1.ConcatenatePreTransformation(root_transformation)

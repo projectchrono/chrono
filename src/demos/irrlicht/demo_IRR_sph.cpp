@@ -64,64 +64,64 @@ void create_some_falling_items(ChSystemNSC& system) {
     auto texture = chrono_types::make_shared<ChTexture>();
     texture->SetTextureFilename(GetChronoDataFile("blu.png"));
 
-    auto wall1 = chrono_types::make_shared<ChBodyEasyBox>(xsize + 2 * thick, thick, zsize + 2 * thick, 1.0, true, true);
+    auto wall_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    wall_mat->SetFriction(0.0f);
+
+    auto wall1 = chrono_types::make_shared<ChBodyEasyBox>(xsize + 2 * thick, thick, zsize + 2 * thick, 1.0, true, true,
+                                                          wall_mat);
     wall1->SetPos(ChVector<>(0, -thick * 0.5, 0));
     wall1->SetBodyFixed(true);
     wall1->SetMass(100);
-    wall1->GetMaterialSurfaceNSC()->SetFriction(0);
     wall1->AddAsset(texture);
     system.Add(wall1);
 
-    auto wall2 = chrono_types::make_shared<ChBodyEasyBox>(thick, height, zsize + 2 * thick, 1.0, true, true);
+    auto wall2 = chrono_types::make_shared<ChBodyEasyBox>(thick, height, zsize + 2 * thick, 1.0, true, true, wall_mat);
     wall2->SetPos(ChVector<>(-xsize * 0.5 - thick * 0.5, height * 0.5, 0));
     wall2->SetBodyFixed(true);
     wall2->SetMass(100);
-    wall2->GetMaterialSurfaceNSC()->SetFriction(0);
     wall2->AddAsset(texture);
     system.Add(wall2);
 
-    auto wall3 = chrono_types::make_shared<ChBodyEasyBox>(thick, height, zsize + 2 * thick, 1.0, true, true);
+    auto wall3 = chrono_types::make_shared<ChBodyEasyBox>(thick, height, zsize + 2 * thick, 1.0, true, true, wall_mat);
     wall3->SetPos(ChVector<>(xsize * 0.5 + thick * 0.5, height * 0.5, 0));
     wall3->SetBodyFixed(true);
     wall3->SetMass(100);
-    wall3->GetMaterialSurfaceNSC()->SetFriction(0);
     wall3->AddAsset(texture);
     system.Add(wall3);
 
-    auto wall4 = chrono_types::make_shared<ChBodyEasyBox>(xsize + 2 * thick, height, thick, 1.0, true, true);
+    auto wall4 = chrono_types::make_shared<ChBodyEasyBox>(xsize + 2 * thick, height, thick, 1.0, true, true, wall_mat);
     wall4->SetPos(ChVector<>(0, height * 0.5, -zsize * 0.5 - thick * 0.5));
     wall4->SetBodyFixed(true);
     wall4->SetMass(100);
-    wall4->GetMaterialSurfaceNSC()->SetFriction(0);
     wall4->AddAsset(texture);
     system.Add(wall4);
 
     double opening = 0.2;
-    auto wall5 = chrono_types::make_shared<ChBodyEasyBox>(xsize + 2 * thick, height, thick, 1.0, true, true);
+    auto wall5 = chrono_types::make_shared<ChBodyEasyBox>(xsize + 2 * thick, height, thick, 1.0, true, true, wall_mat);
     wall5->SetPos(ChVector<>(opening, height * 0.5, zsize * 0.5 + thick * 0.5));
     wall5->SetBodyFixed(true);
     wall5->SetMass(100);
-    wall5->GetMaterialSurfaceNSC()->SetFriction(0);
     wall5->AddAsset(texture);
     system.Add(wall5);
 
     // Create the floor.
-    auto floor = chrono_types::make_shared<ChBodyEasyBox>(2, 0.1, 2, 1.0, true, true);
+    auto floor = chrono_types::make_shared<ChBodyEasyBox>(2, 0.1, 2, 1.0, true, true, wall_mat);
     floor->SetPos(ChVector<>(0, -0.5, 0));
     floor->SetBodyFixed(true);
     floor->SetMass(100);
-    floor->GetMaterialSurfaceNSC()->SetFriction(0.2f);
     system.Add(floor);
 
     // Create floating balls.
-    auto textureball = chrono_types::make_shared<ChTexture>();
-    textureball->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+    auto ball_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    ball_mat->SetFriction(0.0f);
+
+    auto ball_texture = chrono_types::make_shared<ChTexture>();
+    ball_texture->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
 
     for (int ib = 0; ib < 12; ib++) {
-        auto ball = chrono_types::make_shared<ChBodyEasySphere>(0.02 + ChRandom() * 0.02, 100, true, true);
+        auto ball = chrono_types::make_shared<ChBodyEasySphere>(0.02 + ChRandom() * 0.02, 100, true, true, ball_mat);
         ball->SetPos(ChVector<>(ChRandom() * 0.3 - 0.15, 0.2, ChRandom() * 0.3 - 0.15));
-        ball->GetMaterialSurfaceNSC()->SetFriction(0.0f);
-        ball->AddAsset(textureball);
+        ball->AddAsset(ball_texture);
         system.Add(ball);
     }
 }
@@ -162,7 +162,6 @@ int main(int argc, char* argv[]) {
     auto my_sph_proximity = chrono_types::make_shared<ChProximityContainerSPH>();
     mphysicalSystem.Add(my_sph_proximity);
 
-
     // Modify some setting of the physical system for the simulation, if you want
 
     mphysicalSystem.SetSolverMaxIterations(6);  // lower the solver iters, no needed here
@@ -171,7 +170,6 @@ int main(int argc, char* argv[]) {
     // THE SOFT-REAL-TIME CYCLE
     //
 
-    application.SetStepManage(true);
     application.SetTimestep(0.0025);
 
     while (application.GetDevice()->run()) {

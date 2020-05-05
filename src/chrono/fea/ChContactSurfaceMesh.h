@@ -18,8 +18,8 @@
 #include "chrono/fea/ChContactSurface.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
 #include "chrono/fea/ChNodeFEAxyzrot.h"
-#include "chrono/collision/ChCCollisionModel.h"
-#include "chrono/collision/ChCCollisionUtils.h"
+#include "chrono/collision/ChCollisionModel.h"
+#include "chrono/collision/ChCollisionUtils.h"
 #include "chrono/physics/ChLoaderUV.h"
 
 namespace chrono {
@@ -29,8 +29,7 @@ namespace fea {
 /// @{
 
 /// Contact element of triangular type.
-/// This can be used to 'tessellate' a generic surface like the
-/// outer of tetrahedral meshes
+/// This can be used to 'tessellate' the surface of FEA meshes for collision purposes.
 class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public ChLoadableUV {
 
   public:
@@ -253,9 +252,6 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
         // this->mnode1->GetMass()+this->mnode2->GetMass()+this->mnode3->GetMass(); // no!! could be zero in nodes of
         // non-lumped-masses meshes!
     }
-
-    /// Return the pointer to the surface material.
-    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() override;
 
     /// This is only for backward compatibility
     virtual ChPhysicsItem* GetPhysicsItem() override;
@@ -585,9 +581,6 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
         // non-lumped-masses meshes!
     }
 
-    /// Return the pointer to the surface material.
-    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() override;
-
     /// This is only for backward compatibility
     virtual ChPhysicsItem* GetPhysicsItem() override;
 
@@ -682,9 +675,8 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
 /// Differently from ChContactSurfaceNodeCloud, this also captures the FEAnodes-vs-FEAfaces
 /// and FEAedge-vs-FEAedges cases, but it has a higher computational overhead
 class ChApi ChContactSurfaceMesh : public ChContactSurface {
-
   public:
-    ChContactSurfaceMesh(ChMesh* parentmesh = 0) : ChContactSurface(parentmesh) {}
+    ChContactSurfaceMesh(std::shared_ptr<ChMaterialSurface> material, ChMesh* mesh = nullptr);
 
     virtual ~ChContactSurfaceMesh() {}
 

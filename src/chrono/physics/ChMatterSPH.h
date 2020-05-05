@@ -17,7 +17,7 @@
 
 #include <cmath>
 
-#include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/collision/ChCollisionModel.h"
 #include "chrono/physics/ChIndexedNodes.h"
 #include "chrono/physics/ChNodeXYZ.h"
 #include "chrono/fea/ChContinuumMaterial.h"
@@ -147,9 +147,6 @@ class ChApi ChNodeSPH : public ChNodeXYZ, public ChContactable_1vars<3> {
 
     virtual double GetContactableMass() override { return GetMass(); }
 
-    /// Return the pointer to the surface material.
-    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() override;
-
     /// This is only for backward compatibility
     virtual ChPhysicsItem* GetPhysicsItem() override;
 
@@ -244,7 +241,6 @@ class ChApi ChMatterSPH : public ChIndexedNodes {
     virtual ChMatterSPH* Clone() const override { return new ChMatterSPH(*this); }
 
     /// Enable/disable the collision for this cluster of particles.
-    /// After setting ON, remember RecomputeCollisionModel()
     /// before anim starts (it is not automatically
     /// recomputed here because of performance issues.)
     void SetCollide(bool mcoll);

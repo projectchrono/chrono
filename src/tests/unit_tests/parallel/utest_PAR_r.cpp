@@ -123,12 +123,12 @@ class Collision : public ::testing::Test, public ::testing::WithParamInterface<b
 
 TEST_P(Collision, sphere_sphere) {
     ConvexShapeCustom* shapeS1 = new ConvexShapeCustom();
-    shapeS1->type = ShapeType::SPHERE;
+    shapeS1->type = ChCollisionShape::Type::SPHERE;
     shapeS1->radius = 0;
     shapeS1->rotation = quaternion(1, 0, 0, 0);
 
     ConvexShapeCustom* shapeS2 = new ConvexShapeCustom();
-    shapeS2->type = ShapeType::SPHERE;
+    shapeS2->type = ChCollisionShape::Type::SPHERE;
     shapeS2->radius = 0;
     shapeS2->rotation = quaternion(1, 0, 0, 0);
 
@@ -230,7 +230,7 @@ TEST_P(Collision, box_sphere) {
     quaternion b_rot = ToQuaternion(Q_from_AngAxis(CH_C_PI_4, ChVector<>(0, 0, 1)));
 
     ConvexShapeCustom* shapeC = new ConvexShapeCustom();
-    shapeC->type = ShapeType::BOX;
+    shapeC->type = ChCollisionShape::Type::BOX;
     shapeC->position = b_pos;
     shapeC->dimensions = b_hdims;
     shapeC->radius = 0;
@@ -240,7 +240,7 @@ TEST_P(Collision, box_sphere) {
     real s_rad = 1.5;  // sphere radius
 
     ConvexShapeCustom* shapeS = new ConvexShapeCustom();
-    shapeS->type = ShapeType::SPHERE;
+    shapeS->type = ChCollisionShape::Type::SPHERE;
     shapeS->dimensions = real3(s_rad, 0, 0);
     shapeS->radius = 0;
     shapeS->rotation = quaternion(1, 0, 0, 0);
@@ -384,7 +384,7 @@ TEST_P(Collision, capsule_sphere) {
     quaternion c_rot = ToQuaternion(Q_from_AngAxis(CH_C_PI_2, ChVector<>(0, 0, 1)));
 
     ConvexShapeCustom* shapeC = new ConvexShapeCustom();
-    shapeC->type = ShapeType::CAPSULE;
+    shapeC->type = ChCollisionShape::Type::CAPSULE;
     shapeC->position = c_pos;
     shapeC->dimensions = real3(c_rad, c_hlen, c_rad);
     shapeC->radius = 0;
@@ -394,7 +394,7 @@ TEST_P(Collision, capsule_sphere) {
     real s_rad = 1.0;  // sphere radius
 
     ConvexShapeCustom* shapeS = new ConvexShapeCustom();
-    shapeS->type = ShapeType::SPHERE;
+    shapeS->type = ChCollisionShape::Type::SPHERE;
     shapeS->dimensions = real3(s_rad, 0, 0);
     shapeS->radius = 0;
     shapeS->rotation = quaternion(1, 0, 0, 0);
@@ -473,7 +473,7 @@ TEST_P(Collision, cylinder_sphere) {
     quaternion c_rot = ToQuaternion(Q_from_AngAxis(CH_C_PI_2, ChVector<>(0, 0, 1)));
 
     ConvexShapeCustom* shapeC = new ConvexShapeCustom();
-    shapeC->type = ShapeType::CYLINDER;
+    shapeC->type = ChCollisionShape::Type::CYLINDER;
     shapeC->position = c_pos;
     shapeC->dimensions = real3(c_rad, c_hlen, c_rad);
     shapeC->radius = 0;
@@ -483,7 +483,7 @@ TEST_P(Collision, cylinder_sphere) {
     real s_rad = 1.0;  // sphere radius
 
     ConvexShapeCustom* shapeS = new ConvexShapeCustom();
-    shapeS->type = ShapeType::SPHERE;
+    shapeS->type = ChCollisionShape::Type::SPHERE;
     shapeS->dimensions = real3(s_rad, 0, 0);
     shapeS->radius = 0;
     shapeS->rotation = quaternion(1, 0, 0, 0);
@@ -579,7 +579,7 @@ TEST_P(Collision, roundedcyl_sphere) {
     quaternion c_rot = ToQuaternion(Q_from_AngAxis(CH_C_PI_2, ChVector<>(0, 0, 1)));
 
     ConvexShapeCustom* shapeC = new ConvexShapeCustom();
-    shapeC->type = ShapeType::ROUNDEDCYL;
+    shapeC->type = ChCollisionShape::Type::ROUNDEDCYL;
     shapeC->position = c_pos;
     shapeC->dimensions = real3(c_rad, c_hlen, c_rad);
     shapeC->radius = c_srad;
@@ -589,7 +589,7 @@ TEST_P(Collision, roundedcyl_sphere) {
     real s_rad = 1.0;  // sphere radius
 
     ConvexShapeCustom* shapeS = new ConvexShapeCustom();
-    shapeS->type = ShapeType::SPHERE;
+    shapeS->type = ChCollisionShape::Type::SPHERE;
     shapeS->dimensions = real3(s_rad, 0, 0);
     shapeS->radius = 0;
     shapeS->rotation = quaternion(1, 0, 0, 0);

@@ -22,6 +22,7 @@
 #include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChTexture.h"
+#include "chrono/assets/ChAssetLevel.h"
 #include "chrono/core/ChGlobal.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
@@ -34,8 +35,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-// Utility function to calculate the center of a circle of given radius which
-// passes through two given points.
+// Utility function to calculate the center of a circle of given radius which passes through two given points.
 static ChVector2<> CalcCircleCenter(const ChVector2<>& A, const ChVector2<>& B, double r, double direction) {
     // midpoint
     ChVector2<> C = (A + B) / 2;
@@ -109,28 +109,11 @@ void ChTrackShoeBand::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_shoe->SetRot(rot);
     m_shoe->SetMass(GetTreadMass());
     m_shoe->SetInertiaXX(GetTreadInertia());
+    m_shoe->SetCollide(true);
     chassis->GetSystem()->AddBody(m_shoe);
 
-    // Add contact geometry.
-    m_shoe->SetCollide(true);
-
-    switch (m_shoe->GetContactMethod()) {
-        case ChMaterialSurface::NSC:
-            m_shoe->GetMaterialSurfaceNSC()->SetFriction(m_friction);
-            m_shoe->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
-            break;
-        case ChMaterialSurface::SMC:
-            m_shoe->GetMaterialSurfaceSMC()->SetFriction(m_friction);
-            m_shoe->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
-            m_shoe->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);
-            m_shoe->GetMaterialSurfaceSMC()->SetPoissonRatio(m_poisson_ratio);
-            m_shoe->GetMaterialSurfaceSMC()->SetKn(m_kn);
-            m_shoe->GetMaterialSurfaceSMC()->SetGn(m_gn);
-            m_shoe->GetMaterialSurfaceSMC()->SetKt(m_kt);
-            m_shoe->GetMaterialSurfaceSMC()->SetGt(m_gt);
-            break;
-    }
-
+    // Add contact geometry for the tread body
+    CreateContactMaterials(chassis->GetSystem()->GetContactMethod());
     AddShoeContact();
 }
 
@@ -155,17 +138,17 @@ void ChTrackShoeBand::AddShoeContact() {
     // Guide pin
     ChVector<> g_hdims = GetGuideBoxDimensions() / 2;
     ChVector<> g_loc(GetGuideBoxOffsetX(), 0, GetWebThickness() / 2 + g_hdims.z());
-    m_shoe->GetCollisionModel()->AddBox(g_hdims.x(), g_hdims.y(), g_hdims.z(), g_loc);
+    m_shoe->GetCollisionModel()->AddBox(m_guide_material, g_hdims.x(), g_hdims.y(), g_hdims.z(), g_loc);
 
     // Main box
     ChVector<> b_hdims(GetToothBaseLength() / 2, GetBeltWidth() / 2, GetWebThickness() / 2);
     ChVector<> b_loc(0, 0, 0);
-    m_shoe->GetCollisionModel()->AddBox(b_hdims.x(), b_hdims.y(), b_hdims.z(), b_loc);
+    m_shoe->GetCollisionModel()->AddBox(m_body_material, b_hdims.x(), b_hdims.y(), b_hdims.z(), b_loc);
 
-    // Tread box
+    // Pad box
     ChVector<> t_hdims(GetTreadLength() / 2, GetBeltWidth() / 2, GetTreadThickness() / 2);
     ChVector<> t_loc(0, 0, (-GetWebThickness() - GetTreadThickness()) / 2);
-    m_shoe->GetCollisionModel()->AddBox(t_hdims.x(), t_hdims.y(), t_hdims.z(), t_loc);
+    m_shoe->GetCollisionModel()->AddBox(m_pad_material, t_hdims.x(), t_hdims.y(), t_hdims.z(), t_loc);
 
     m_shoe->GetCollisionModel()->BuildModel();
 }
@@ -182,7 +165,10 @@ ChColor ChTrackShoeBand::GetColor(size_t index) {
 }
 
 void ChTrackShoeBand::AddShoeVisualization() {
-    m_shoe->AddAsset(chrono_types::make_shared<ChColorAsset>(GetColor(m_index)));
+    ChColor col1 = GetColor(m_index);
+    ChColor col2(col1.R - 0.2f, col1.G - 0.2f, col1.B - 0.2f);
+
+    m_shoe->AddAsset(chrono_types::make_shared<ChColorAsset>(col1));
 
     // Guide pin
     ChVector<> g_hdims = GetGuideBoxDimensions() / 2;
@@ -200,13 +186,16 @@ void ChTrackShoeBand::AddShoeVisualization() {
     box_main->Pos = b_loc;
     m_shoe->AddAsset(box_main);
 
-    // Tread box
+    // Pad box
     ChVector<> t_hdims(GetTreadLength() / 2, GetBeltWidth() / 2, GetTreadThickness() / 2);
     ChVector<> t_loc(0, 0, (-GetWebThickness() - GetTreadThickness()) / 2);
     auto box_tread = chrono_types::make_shared<ChBoxShape>();
     box_tread->GetBoxGeometry().Size = t_hdims;
     box_tread->Pos = t_loc;
-    m_shoe->AddAsset(box_tread);
+    auto pad_level = chrono_types::make_shared<ChAssetLevel>();
+    pad_level->AddAsset(box_tread);
+    pad_level->AddAsset(chrono_types::make_shared<ChColorAsset>(col2));
+    m_shoe->AddAsset(pad_level);
 
     // Connection to first web segment
     double radius = GetWebThickness() / 4;
@@ -227,7 +216,7 @@ void ChTrackShoeBand::AddShoeVisualization() {
 void ChTrackShoeBand::WriteTreadVisualizationMesh(const std::string& out_dir) {
     auto mesh_shape1 = ToothMesh(GetBeltWidth() / 2 - GetToothWidth() / 2);
     auto mesh_shape2 = ToothMesh(-GetBeltWidth() / 2 + GetToothWidth() / 2);
-    std::vector<geometry::ChTriangleMeshConnected> meshes = { *mesh_shape1->GetMesh(), *mesh_shape2->GetMesh() };
+    std::vector<geometry::ChTriangleMeshConnected> meshes = {*mesh_shape1->GetMesh(), *mesh_shape2->GetMesh()};
     std::string filename = out_dir + "/" + GetTreadVisualizationMeshName() + ".obj";
     geometry::ChTriangleMeshConnected::WriteWavefront(filename, meshes);
 }
@@ -235,7 +224,7 @@ void ChTrackShoeBand::WriteTreadVisualizationMesh(const std::string& out_dir) {
 void ChTrackShoeBand::ExportTreadVisualizationMeshPovray(const std::string& out_dir) {
     auto mesh_shape1 = ToothMesh(GetBeltWidth() / 2 - GetToothWidth() / 2);
     auto mesh_shape2 = ToothMesh(-GetBeltWidth() / 2 + GetToothWidth() / 2);
-    std::vector<geometry::ChTriangleMeshConnected> meshes = { *mesh_shape1->GetMesh(), *mesh_shape2->GetMesh() };
+    std::vector<geometry::ChTriangleMeshConnected> meshes = {*mesh_shape1->GetMesh(), *mesh_shape2->GetMesh()};
     auto trimesh = geometry::ChTriangleMeshConnected::Merge(meshes);
     utils::WriteMeshPovray(trimesh, GetTreadVisualizationMeshName(), out_dir, ChColor(1, 1, 1));
 }

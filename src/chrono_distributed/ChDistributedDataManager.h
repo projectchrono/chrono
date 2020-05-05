@@ -15,11 +15,10 @@
 #pragma once
 
 #include "chrono_distributed/ChApiDistributed.h"
-#include "chrono_distributed/other_types.h"
+#include "chrono_distributed/ChTypesDistributed.h"
 #include "chrono_distributed/physics/ChSystemDistributed.h"
 
 #include "chrono_parallel/ChDataManager.h"
-#include "chrono_parallel/math/other_types.h"
 
 #include <vector>
 
@@ -46,11 +45,6 @@ struct LocalShapeNode {
     int size;                     ///< Number of
     bool free;                    ///< True if this index is free
 };
-/// @} distributed_module
-
-
-/// @addtogroup distributed_module
-/// @{
 
 /// A class for storing data for maintaining a consistent view of a distributed
 /// simulation consisting of multiple wrapped instances of ChSystemParallelSMC.

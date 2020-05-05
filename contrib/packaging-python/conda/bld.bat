@@ -31,8 +31,8 @@ cmake -G "Ninja" ^
  -DIRRLICHT_ROOT="C:\Users\builder\Documents\irrlicht-1.8.4" ^
  -DIRRLICHT_LIBRARY="C:\Users\builder\Documents\irrlicht-1.8.4\lib\Win64-visualStudio\Irrlicht.lib" ^
  -DEIGEN3_INCLUDE_DIR="C:\Users\builder\Documents\eigen-3.3.7" ^
- -DENABLE_MODULE_CASCADE=OFF ^
- -DCASCADE_INCLUDE_DIR="%CONDA_INSTALL_LOCN%"\Library\include\oce ^
+ -DENABLE_MODULE_CASCADE=ON ^
+ -DCASCADE_INCLUDE_DIR="%CONDA_INSTALL_LOCN%"\Library\include\opencascade ^
  -DCASCADE_LIBDIR="%CONDA_INSTALL_LOCN%"\Library\lib ^
  -DENABLE_MODULE_MKL=ON ^
  -DMKL_INCLUDE_DIR="%CONDA_INSTALL_LOCN%"\Library\include ^

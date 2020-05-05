@@ -15,8 +15,8 @@
 #include <algorithm>
 #include <climits>
 
-#include "chrono/collision/ChCCollisionModel.h"
-#include "chrono/collision/ChCCollisionInfo.h"
+#include "chrono/collision/ChCollisionModel.h"
+#include "chrono/collision/ChCollisionInfo.h"
 
 #include "chrono_parallel/math/ChParallelMath.h"
 #include "chrono_parallel/collision/ChCollision.h"
@@ -102,9 +102,9 @@ void ChCNarrowphaseDispatch::PreprocessCount() {
         shape_type type2 = obj_data_T[pair.y];
 
         // Set the maximum number of possible contacts for this particular pair
-        if (type1 == SPHERE || type2 == SPHERE) {
+        if (type1 == ChCollisionShape::Type::SPHERE || type2 == ChCollisionShape::Type::SPHERE) {
             contact_index[index] = 1;
-        } else if (type1 == CAPSULE || type2 == CAPSULE) {
+        } else if (type1 == ChCollisionShape::Type::CAPSULE || type2 == ChCollisionShape::Type::CAPSULE) {
             contact_index[index] = 2;
             ////} else if (type1 == BOX && type2 == BOX) {
             ////  contact_index[index] = 8;
@@ -144,7 +144,7 @@ void ChCNarrowphaseDispatch::PreprocessLocalToParent() {
         quaternion rot = body_rot[ID];  // Get the global object rotation
 
         data_manager->shape_data.obj_data_A_global[index] = TransformLocalToParent(pos, rot, obj_data_A[index]);
-        if (T == TRIANGLEMESH) {
+        if (T == ChCollisionShape::Type::TRIANGLE) {
             int start = data_manager->shape_data.start_rigid[index];
             data_manager->shape_data.triangle_global[start + 0] =
                 TransformLocalToParent(pos, rot, data_manager->shape_data.triangle_rigid[start + 0]);

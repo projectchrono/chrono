@@ -88,9 +88,8 @@ int main(int argc, char* argv[]) {
 
     // RIGID BODIES
     // Create some rigid bodies, for instance a floor:
-    auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(2, 0.2, 6, 2700, true);
+    auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(2, 0.2, 6, 2700, true, true, mysurfmaterial);
     mfloor->SetBodyFixed(true);
-    mfloor->SetMaterialSurface(mysurfmaterial);
     my_system.Add(mfloor);
 
     auto mtexture = chrono_types::make_shared<ChTexture>();
@@ -99,17 +98,16 @@ int main(int argc, char* argv[]) {
 
     // Create a step
     if (false) {
-        auto mfloor_step = chrono_types::make_shared<ChBodyEasyBox>(1, 0.2, 0.5, 2700, true);
+        auto mfloor_step = chrono_types::make_shared<ChBodyEasyBox>(1, 0.2, 0.5, 2700, true, true, mysurfmaterial);
         mfloor_step->SetPos(ChVector<>(0, 0.1, -0.2));
         mfloor_step->SetBodyFixed(true);
-        mfloor_step->SetMaterialSurface(mysurfmaterial);
         my_system.Add(mfloor_step);
     }
 
     // Create some bent rectangular fixed slabs
     if (false) {
         for (int i = 0; i < 50; ++i) {
-            auto mcube = chrono_types::make_shared<ChBodyEasyBox>(0.25, 0.2, 0.25, 2700, true);
+            auto mcube = chrono_types::make_shared<ChBodyEasyBox>(0.25, 0.2, 0.25, 2700, true, true, mysurfmaterial);
             ChQuaternion<> vrot;
             vrot.Q_from_AngAxis(ChRandom() * CH_C_2PI, VECT_Y);
             mcube->Move(ChCoordsys<>(VNULL, vrot));
@@ -118,7 +116,6 @@ int main(int argc, char* argv[]) {
             mcube->Move(ChCoordsys<>(VNULL, vrot));
             mcube->SetPos(ChVector<>((ChRandom() - 0.5) * 1.8, ChRandom() * 0.1, -ChRandom() * 3.2 + 0.9));
             mcube->SetBodyFixed(true);
-            mcube->SetMaterialSurface(mysurfmaterial);
             my_system.Add(mcube);
             auto mcubecol = chrono_types::make_shared<ChColorAsset>();
             mcubecol->SetColor(ChColor(0.3f, 0.3f, 0.3f));
@@ -129,12 +126,11 @@ int main(int argc, char* argv[]) {
     // Create some stones / obstacles on the ground
     if (true) {
         for (int i = 0; i < 150; ++i) {
-            auto mcube = chrono_types::make_shared<ChBodyEasyBox>(0.18, 0.04, 0.18, 2700, true);
+            auto mcube = chrono_types::make_shared<ChBodyEasyBox>(0.18, 0.04, 0.18, 2700, true, true, mysurfmaterial2);
             ChQuaternion<> vrot;
             vrot.Q_from_AngAxis(ChRandom() * CH_C_2PI, VECT_Y);
             mcube->Move(ChCoordsys<>(VNULL, vrot));
             mcube->SetPos(ChVector<>((ChRandom() - 0.5) * 1.4, ChRandom() * 0.2 + 0.05, -ChRandom() * 2.6 + 0.2));
-            mcube->SetMaterialSurface(mysurfmaterial2);
             my_system.Add(mcube);
             auto mcubecol = chrono_types::make_shared<ChColorAsset>();
             mcubecol->SetColor(ChColor(0.3f, 0.3f, 0.3f));
@@ -173,10 +169,9 @@ int main(int argc, char* argv[]) {
     // Create the contact surface(s).
     // In this case it is a ChContactSurfaceNodeCloud, so just pass
     // all nodes to it.
-    auto mcontactsurf = chrono_types::make_shared<ChContactSurfaceNodeCloud>();
+    auto mcontactsurf = chrono_types::make_shared<ChContactSurfaceNodeCloud>(mysurfmaterial);
     my_mesh->AddContactSurface(mcontactsurf);
     mcontactsurf->AddAllNodes();
-    mcontactsurf->SetMaterialSurface(mysurfmaterial);
 
     // Apply initial speed and angular speed
     double speed_x0 = 0.5;

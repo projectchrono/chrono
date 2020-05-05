@@ -20,8 +20,6 @@
 #include <TopoDS_Shape.hxx>
 #include <TopoDS.hxx>
 #include <TopoDS_HShape.hxx>
-#include <Handle_TopoDS_HShape.hxx>
-#include <Handle_TopoDS_TShape.hxx>
 #include <STEPControl_Reader.hxx>
 #include <STEPControl_StepModelType.hxx>
 #include <TopoDS_Edge.hxx>
@@ -30,7 +28,6 @@
 #include <BRep_Builder.hxx>
 #include <BRepTools.hxx>
 #include <BRep_Tool.hxx>
-#include <BRepMesh.hxx>
 #include <BRepBuilderAPI_MakeEdge.hxx>
 #include <BRepBuilderAPI_MakeVertex.hxx>
 #include <BRep_Builder.hxx>
@@ -71,6 +68,7 @@
 #include <TNaming_NamedShape.hxx>
 #include <GProp_GProps.hxx>
 #include <BRepGProp.hxx>
+#include <TDocStd_Document.hxx>
 
 using namespace chrono;
 using namespace cascade;
@@ -88,7 +86,7 @@ ChCascadeDoc::~ChCascadeDoc() {
 }
 
 static bool recurse_CascadeDoc(TDF_Label label,
-                               Handle_XCAFDoc_ShapeTool& shapeTool,
+                               Handle(XCAFDoc_ShapeTool)& shapeTool,
                                TopLoc_Location& parentloc,
                                int level,
                                ChCascadeDoc::callback_CascadeDoc& mcallback) {
@@ -378,17 +376,16 @@ bool ChCascadeDoc::GetVolumeProperties(const TopoDS_Shape& mshape,   ///< pass t
     if (mshape.IsNull())
         return false;
 
-    GProp_GProps mprops;
     GProp_GProps vprops;
-    BRepGProp::VolumeProperties(mshape, mprops);
+    
+	// default density = 1;
+
     BRepGProp::VolumeProperties(mshape, vprops);
 
-    mprops.Add(mprops, density);
-
-    mass = mprops.Mass();
+	mass = vprops.Mass() * density; 
     volume = vprops.Mass();
-    gp_Pnt G = mprops.CentreOfMass();
-    gp_Mat I = mprops.MatrixOfInertia();
+    gp_Pnt G = vprops.CentreOfMass();
+	gp_Mat I = vprops.MatrixOfInertia();
 
     center_position.x() = G.X();
     center_position.y() = G.Y();
@@ -400,6 +397,9 @@ bool ChCascadeDoc::GetVolumeProperties(const TopoDS_Shape& mshape,   ///< pass t
     inertiaXY.x() = I(1, 2);
     inertiaXY.y() = I(1, 3);
     inertiaXY.z() = I(2, 3);
+
+	inertiaXX *= density;
+	inertiaXY *= density;
 
     return true;
 }
@@ -444,64 +444,6 @@ void ChCascadeDoc::FromChronoToCascade(const ChFrame<>& from_coord, TopLoc_Locat
 }
 
 
-
-/// Create a ChBodyAuxRef with assets for the given TopoDS_Shape
-std::shared_ptr<ChBodyAuxRef> ChCascadeDoc::CreateBodyFromShape(
-                const TopoDS_Shape& mshape,   ///< pass the shape here
-                const double density,         ///< pass the density here
-				const bool collide,	
-				const bool visual_asset
-                )
-{
-    std::shared_ptr<ChBodyAuxRef> mbody(new ChBodyAuxRef);
-    
-    chrono::ChFrame<> frame_ref_to_abs;
-
-    TopLoc_Location loc_shape_to_abs = mshape.Location();
-    chrono::cascade::ChCascadeDoc::FromCascadeToChrono(loc_shape_to_abs, frame_ref_to_abs);   
-
-    TopoDS_Shape objshape = mshape;
-    objshape.Location(TopLoc_Location());  // Reset shape location to local ref csys (identity).
-
-    chrono::ChVector<> mcog;
-    chrono::ChVector<> minertiaXX;
-    chrono::ChVector<> minertiaXY;
-    double mvol;
-    double mmass;
-    chrono::cascade::ChCascadeDoc::GetVolumeProperties(objshape, density, mcog, minertiaXX, minertiaXY, mvol, mmass);
-
-	// Set mass and COG and REF references
-	mbody->SetDensity((float)density);
-	mbody->SetMass(mmass);
-	mbody->SetInertiaXX(minertiaXX);
-	mbody->SetInertiaXY(minertiaXY);
-	mbody->SetFrame_REF_to_abs(frame_ref_to_abs);
-
-	chrono::ChFrame<> frame_cog_to_ref;
-	frame_cog_to_ref.SetPos(mcog);
-	frame_cog_to_ref.SetRot(chrono::QUNIT);
-	mbody->SetFrame_COG_to_REF(frame_cog_to_ref);
-
-	// Add a visualization asset if needed
-	if (visual_asset) {
-		auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-		ChCascadeMeshTools::fillTriangleMeshFromCascade(*trimesh, objshape);
-
-		auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
-		trimesh_shape->SetMesh(trimesh);
-		mbody->AddAsset(trimesh_shape);
-
-		// Add a collision shape if needed
-		if (collide) {
-			mbody->GetCollisionModel()->ClearModel();
-			mbody->GetCollisionModel()->AddTriangleMesh(trimesh, false, false);
-			mbody->GetCollisionModel()->BuildModel();
-			mbody->SetCollide(true);
-		}
-	}
-
-    return mbody;
-}
 
 
 /////////////////////

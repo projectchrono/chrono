@@ -31,7 +31,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChTrackedVehicle::ChTrackedVehicle(const std::string& name, ChMaterialSurface::ContactMethod contact_method)
+ChTrackedVehicle::ChTrackedVehicle(const std::string& name, ChContactMethod contact_method)
     : ChVehicle(name, contact_method), m_contacts(new ChTrackContactManager) {
 }
 

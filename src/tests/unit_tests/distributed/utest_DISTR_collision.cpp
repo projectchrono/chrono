@@ -20,21 +20,23 @@ int main(int argc, char* argv[]) {
 
     sys.Set_G_acc(ChVector<double>(0, 0, -9.8));
 
-    auto ball1 = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
-    auto ball2 = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
+    auto ball1 = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelDistributed>());
+    auto ball2 = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelDistributed>());
+
+    auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
 
     ChVector<double> pos1(5, 5, 0.01);
     ball1->SetPos(pos1);
     ball1->GetCollisionModel()->ClearModel();
-    ball1->GetCollisionModel()->AddSphere(0.15, pos1);
+    ball1->GetCollisionModel()->AddSphere(material, 0.15, pos1);
     ball1->GetCollisionModel()->BuildModel();
     ball1->SetCollide(true);
 
     ChVector<double> pos2(5, 5, 11.02);
     ball2->SetPos(pos2);
     ball2->GetCollisionModel()->ClearModel();
-    ball2->GetCollisionModel()->AddSphere(0.15, pos2);
-    // ball2->GetCollisionModel()->AddSphere(0.2, pos2);
+    ball2->GetCollisionModel()->AddSphere(material, 0.15, pos2);
+    // ball2->GetCollisionModel()->AddSphere(material, 0.2, pos2);
     ball2->GetCollisionModel()->BuildModel();
     ball2->SetCollide(true);
 

@@ -116,8 +116,10 @@ int main(int argc, char* argv[]) {
     mrigidmesh->SetMesh(trimesh);
     mrigidbody->AddAsset(mrigidmesh);
 
+    auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+
     mrigidbody->GetCollisionModel()->ClearModel();
-    mrigidbody->GetCollisionModel()->AddTriangleMesh(trimesh, false, false, VNULL, ChMatrix33<>(1), 0.01);
+    mrigidbody->GetCollisionModel()->AddTriangleMesh(material, trimesh, false, false, VNULL, ChMatrix33<>(1), 0.01);
     mrigidbody->GetCollisionModel()->BuildModel();
     mrigidbody->SetCollide(true);
 
@@ -149,10 +151,10 @@ int main(int argc, char* argv[]) {
     ////mterrain.Initialize(vehicle::GetDataFile("terrain/height_maps/test64.bmp"), "test64", 1.6, 1.6, 0, 0.3);
 
     // Set the soil terramechanical parameters
-    MySoilParams my_params;
     if (var_params) {
         // Location-dependent soil properties
-        mterrain.RegisterSoilParametersCallback(&my_params);
+        auto my_params = chrono_types::make_shared<MySoilParams>();
+        mterrain.RegisterSoilParametersCallback(my_params);
     } else {
         // Constant soil properties
         mterrain.SetSoilParameters(0.2e6,  // Bekker Kphi
@@ -189,7 +191,7 @@ int main(int argc, char* argv[]) {
     mterrain.SetAutomaticRefinementResolution(0.04);
 
     // Optionally, enable moving patch feature (reduces number of ray casts)
-    ////mterrain.EnableMovingPatch(mrigidbody, ChVector<>(0, 0, 0), 2 * tire_rad, 2 * tire_rad);
+    ////mterrain.AddMovingPatch(mrigidbody, ChVector<>(0, 0, 0), 2 * tire_rad, 2 * tire_rad);
 
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
     ////mterrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);

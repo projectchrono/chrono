@@ -333,8 +333,8 @@ void ChBuilderCableANCF::BuildBeam_FSI(std::shared_ptr<ChMesh> mesh,  // mesh to
         nodes[n_nodes + i].push_back(beam_nodes[i]->GetIndex() - 1);
         nodes[n_nodes + i].push_back(beam_nodes[i]->GetIndex());
 
-        node_nbrs[beam_nodes[i]->GetIndex() - 1].push_back(n_nodes + i);
-        node_nbrs[beam_nodes[i]->GetIndex()].push_back(n_nodes + i);
+        node_nbrs[beam_nodes[i]->GetIndex() - 1].push_back((int)n_nodes + i);
+        node_nbrs[beam_nodes[i]->GetIndex()].push_back((int)n_nodes + i);
 
         // printf("Adding nodes %d,%d to the cable element %i\n ", n_nodes + i, n_nodes + i + 1, n_nodes + i);
         // printf("Adding element %d to the nodes %d,%d\n ", n_nodes + i, n_nodes + i, n_nodes + i + 1);
@@ -454,9 +454,8 @@ ChExtruderBeamEuler::~ChExtruderBeamEuler() {
 void ChExtruderBeamEuler::SetContact(std::shared_ptr<ChMaterialSurfaceSMC> mcontact_material, double mcontact_radius) {
     this->contact_material = mcontact_material;
     this->contact_radius = mcontact_radius;
-    this->contactcloud = chrono_types::make_shared<ChContactSurfaceNodeCloud>();
+    this->contactcloud = chrono_types::make_shared<ChContactSurfaceNodeCloud>(this->contact_material);
     this->mesh->AddContactSurface(contactcloud);
-    this->contactcloud->SetMaterialSurface(this->contact_material);
 
     this->contactcloud->AddNode(this->beam_nodes.back(), this->contact_radius);
 }
@@ -566,9 +565,8 @@ ChExtruderBeamIGA::~ChExtruderBeamIGA() {
 void ChExtruderBeamIGA::SetContact(std::shared_ptr<ChMaterialSurfaceSMC> mcontact_material, double mcontact_radius) {
     this->contact_material = mcontact_material;
     this->contact_radius = mcontact_radius;
-    this->contactcloud = chrono_types::make_shared<ChContactSurfaceNodeCloud>();
+    this->contactcloud = chrono_types::make_shared<ChContactSurfaceNodeCloud>(this->contact_material);
     this->mesh->AddContactSurface(contactcloud);
-    this->contactcloud->SetMaterialSurface(this->contact_material);
 
     this->contactcloud->AddNode(this->beam_nodes.back(), this->contact_radius);
 }

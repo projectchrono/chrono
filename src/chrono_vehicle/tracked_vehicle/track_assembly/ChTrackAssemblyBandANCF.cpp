@@ -67,7 +67,7 @@ bool ChTrackAssemblyBandANCF::BroadphaseCulling::OnBroadphase(collision::ChColli
 // -----------------------------------------------------------------------------
 ChTrackAssemblyBandANCF::ChTrackAssemblyBandANCF(const std::string& name, VehicleSide side)
     : ChTrackAssemblyBand(name, side),
-      m_contact_type(TRIANGLE_MESH),
+      m_contact_type(ContactSurfaceType::TRIANGLE_MESH),
       m_callback(nullptr),
       m_rubber_rho(1100),
       m_rubber_E(1e7),
@@ -82,9 +82,7 @@ ChTrackAssemblyBandANCF::ChTrackAssemblyBandANCF(const std::string& name, Vehicl
       m_angle_3(0),
       m_alpha(0.05) {}
 
-ChTrackAssemblyBandANCF::~ChTrackAssemblyBandANCF() {
-    delete m_callback;
-}
+ChTrackAssemblyBandANCF::~ChTrackAssemblyBandANCF() {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -136,7 +134,7 @@ void ChTrackAssemblyBandANCF::SetLayerFiberAngles(double angle_1, double angle_2
 // -----------------------------------------------------------------------------
 bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     // Only SMC contact is currently possible with FEA
-    assert(chassis->GetContactMethod() == ChMaterialSurface::SMC);
+    assert(chassis->GetSystem()->GetContactMethod() == ChContactMethod::SMC);
 
     // Number of track shoes
     int num_shoes = static_cast<int>(m_shoes.size());
@@ -184,45 +182,39 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
 
     ////GetLog() << "Track assembly done.  Number of track shoes: " << num_shoes << "\n";
 
-    // Create the contact material for the web mesh
-    auto contact_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-    contact_mat->SetFriction(m_friction);
-    contact_mat->SetRestitution(m_restitution);
-    contact_mat->SetYoungModulus(m_young_modulus);
-    contact_mat->SetPoissonRatio(m_poisson_ratio);
-    contact_mat->SetKn(m_kn);
-    contact_mat->SetGn(m_gn);
-    contact_mat->SetKt(m_kt);
-    contact_mat->SetGt(m_gt);
+    // Add contact for the mesh -- only if SMC!!!
 
-    // Add contact for the mesh
-    double thickness = m_shoes[0]->GetWebThickness();
+    if (chassis->GetSystem()->GetContactMethod() == ChContactMethod::SMC) {
+        // Create the contact material
+        CreateContactMaterial(ChContactMethod::SMC);
 
-    switch (m_contact_type) {
-        case NODE_CLOUD: {
-            auto contact_surf = chrono_types::make_shared<ChContactSurfaceNodeCloud>();
-            m_track_mesh->AddContactSurface(contact_surf);
-            contact_surf->AddAllNodes(thickness / 2);
-            contact_surf->SetMaterialSurface(contact_mat);
-            ////GetLog() << "Node cloud web contact. Number of nodes: " << contact_surf->GetNnodes() << "\n";
-            break;
-        }
-        case TRIANGLE_MESH: {
-            auto contact_surf = chrono_types::make_shared<ChContactSurfaceMesh>();
-            m_track_mesh->AddContactSurface(contact_surf);
-            contact_surf->AddFacesFromBoundary(thickness / 2, false);
-            contact_surf->SetMaterialSurface(contact_mat);
-            ////GetLog() << "Triangle mesh web contact. Number of faces: " << contact_surf->GetNumTriangles() << "\n";
-            break;
-        }
-        case NONE: {
-            ////GetLog() << "No web contact.\n";
-            break;
+        double thickness = m_shoes[0]->GetWebThickness();
+
+        switch (m_contact_type) {
+            case ContactSurfaceType::NODE_CLOUD: {
+                auto contact_surf = chrono_types::make_shared<ChContactSurfaceNodeCloud>(m_contact_material);
+                m_track_mesh->AddContactSurface(contact_surf);
+                contact_surf->AddAllNodes(thickness / 2);
+                ////GetLog() << "Node cloud web contact. Number of nodes: " << contact_surf->GetNnodes() << "\n";
+                break;
+            }
+            case ContactSurfaceType::TRIANGLE_MESH: {
+                auto contact_surf = chrono_types::make_shared<ChContactSurfaceMesh>(m_contact_material);
+                m_track_mesh->AddContactSurface(contact_surf);
+                contact_surf->AddFacesFromBoundary(thickness / 2, false);
+                ////GetLog() << "Triangle mesh web contact. Number of faces: " << contact_surf->GetNumTriangles() <<
+                ///"\n";
+                break;
+            }
+            case ContactSurfaceType::NONE: {
+                ////GetLog() << "No web contact.\n";
+                break;
+            }
         }
     }
 
     // Create and register the custom broadphase callback.
-    m_callback = new BroadphaseCulling(this);
+    m_callback = chrono_types::make_shared<BroadphaseCulling>(this);
     chassis->GetSystem()->GetCollisionSystem()->RegisterBroadphaseCallback(m_callback);
 
     return ccw;

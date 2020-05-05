@@ -15,7 +15,6 @@
 #include <cstdlib>
 #include <algorithm>
 
-#include "chrono/collision/ChCModelBullet.h"
 #include "chrono/core/ChTransform.h"
 #include "chrono/physics/ChConveyor.h"
 #include "chrono/physics/ChSystem.h"
@@ -32,10 +31,10 @@ ChConveyor::ChConveyor(double xlength, double ythick, double zwidth) : conveyor_
     conveyor_truss = new ChBody;
     conveyor_plate = new ChBody;
 
-    // conveyor_plate->SetMaterialSurface(GetMaterialSurfaceNSC());
+    conveyor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
     conveyor_plate->GetCollisionModel()->ClearModel();
-    conveyor_plate->GetCollisionModel()->AddBox(xlength * 0.5, ythick * 0.5, zwidth * 0.5);
+    conveyor_plate->GetCollisionModel()->AddBox(conveyor_mat, xlength * 0.5, ythick * 0.5, zwidth * 0.5);
     conveyor_plate->GetCollisionModel()->BuildModel();
     conveyor_plate->SetCollide(true);
 

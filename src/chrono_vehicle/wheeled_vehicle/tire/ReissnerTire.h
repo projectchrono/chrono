@@ -58,6 +58,7 @@ class CH_VEHICLE_API ReissnerTire : public ChReissnerTire {
 
   private:
     void ProcessJSON(const rapidjson::Document& d);
+    virtual void CreateContactMaterial() override;
 
     double m_tire_radius;
     double m_rim_radius;
@@ -107,6 +108,8 @@ class CH_VEHICLE_API ReissnerTire : public ChReissnerTire {
     std::vector<std::vector<double>> m_lugs_vb;
     std::vector<std::vector<double>> m_lugs_ha;
     std::vector<std::vector<double>> m_lugs_hb;
+
+    MaterialInfo m_mat_info;
 };
 
 /// @} vehicle_wheeled_tire

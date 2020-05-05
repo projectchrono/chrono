@@ -40,8 +40,11 @@ chrono.ChCollisionModel.SetDefaultSuggestedMargin(0.001);
 #  Create the simulation system and add items
 #
 
+# Create a contact material (with default properties, shared by all collision shapes)
+contact_material = chrono.ChMaterialSurfaceNSC()
+
 # Create a floor
-mfloor = chrono.ChBodyEasyBox(3, 0.2, 3, 1000,True,True)
+mfloor = chrono.ChBodyEasyBox(3, 0.2, 3, 1000,True,True, contact_material)
 mfloor.SetBodyFixed(True)
 mysystem.Add(mfloor)
 
@@ -71,8 +74,11 @@ mysystem.Add(mfloor)
 
 body_A= chrono.ChBodyEasyMesh(chrono.GetChronoDataFile('shoe_view.obj'), # mesh filename
                               7000, # density kg/m^3
-                              True, # use mesh for visualization?
-                              True) # use mesh for collision?
+                              True, # automatically compute mass and inertia
+                              True, # visualize?>
+                              True, # collide?
+                              contact_material,
+                              ) # use mesh for collision?
 body_A.SetPos(chrono.ChVectorD(0.5,0.5,0))
 mysystem.Add(body_A)
 
@@ -124,6 +130,7 @@ mesh_for_collision.LoadWavefrontMesh(chrono.GetChronoDataFile('shoe_view.obj'))
 mesh_for_collision.Transform(chrono.ChVectorD(0.01,0,0), chrono.ChMatrix33D(1))
 body_B.GetCollisionModel().ClearModel()
 body_B.GetCollisionModel().AddTriangleMesh(
+            contact_material, # contact material
             mesh_for_collision, # the mesh 
             False,  # is it static?
             False)  # is it convex?

@@ -55,6 +55,8 @@ class CH_MODELS_API HMMWV_ANCFTire : public ChANCFTire {
                             ) override;
 
   private:
+    virtual void CreateContactMaterial() override;
+
     static const double m_tire_radius;
     static const double m_rim_radius;
     static const double m_rim_width;
@@ -98,7 +100,7 @@ class CH_MODELS_API HMMWV_ANCFTire : public ChANCFTire {
     static const std::vector<int> m_material_id_tread;
 
     static const float m_friction;
-    static const float m_restiturion;
+    static const float m_restitution;
     static const float m_Young;
     static const float m_Poisson;
     static const float m_kn;

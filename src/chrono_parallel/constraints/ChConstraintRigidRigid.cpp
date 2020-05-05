@@ -88,65 +88,61 @@ void ChConstraintRigidRigid::func_Project_spinning(int index, const vec2* ids, c
     real t_u = gam[3 * data_manager->num_rigid_contacts + index * 3 + 1];
     real t_v = gam[3 * data_manager->num_rigid_contacts + index * 3 + 2];
 
-	real t_tang = sqrt(t_v * t_v + t_u * t_u);
-	real t_sptang = fabs(t_n);  // = sqrt(t_n*t_n);
+    real t_tang = sqrt(t_v * t_v + t_u * t_u);
+    real t_sptang = fabs(t_n);  // = sqrt(t_n*t_n);
 
-	if (spinningfriction) {
-		if (t_sptang < spinningfriction * f_n) {
-			// inside upper cone? keep untouched!
-		}
-		else {
-			// inside lower cone? reset  normal,u,v to zero!
-			if ((t_sptang < -(1 / spinningfriction) * f_n) || (fabs(f_n) < 10e-15)) {
-				gam[index * 1 + 0] = 0;
-				gam[3 * data_manager->num_rigid_contacts + index * 3 + 0] = 0;
-			}
-			else {
-				// remaining case: project orthogonally to generator segment of upper cone (CAN BE simplified)
-				real f_n_proj = (t_sptang * spinningfriction + f_n) / (spinningfriction * spinningfriction + 1);
-				real t_tang_proj = f_n_proj * spinningfriction;
-				real tproj_div_t = t_tang_proj / t_sptang;
-				real t_n_proj = tproj_div_t * t_n;
+    if (spinningfriction) {
+        if (t_sptang < spinningfriction * f_n) {
+            // inside upper cone? keep untouched!
+        } else {
+            // inside lower cone? reset  normal,u,v to zero!
+            if ((t_sptang < -(1 / spinningfriction) * f_n) || (fabs(f_n) < 10e-15)) {
+                gam[index * 1 + 0] = 0;
+                gam[3 * data_manager->num_rigid_contacts + index * 3 + 0] = 0;
+            } else {
+                // remaining case: project orthogonally to generator segment of upper cone (CAN BE simplified)
+                real f_n_proj = (t_sptang * spinningfriction + f_n) / (spinningfriction * spinningfriction + 1);
+                real t_tang_proj = f_n_proj * spinningfriction;
+                real tproj_div_t = t_tang_proj / t_sptang;
+                real t_n_proj = tproj_div_t * t_n;
 
-				gam[index * 1 + 0] = f_n_proj;
-				gam[3 * data_manager->num_rigid_contacts + index * 3 + 0] = t_n_proj;
+                gam[index * 1 + 0] = f_n_proj;
+                gam[3 * data_manager->num_rigid_contacts + index * 3 + 0] = t_n_proj;
+            }
+        }
+    }
 
-			}
-		}
-	}
+    if (!rollingfriction) {
+        gam[3 * data_manager->num_rigid_contacts + index * 3 + 1] = 0;
+        gam[3 * data_manager->num_rigid_contacts + index * 3 + 2] = 0;
 
-	if (!rollingfriction) {
-		gam[3 * data_manager->num_rigid_contacts + index * 3 + 1] = 0;
-		gam[3 * data_manager->num_rigid_contacts + index * 3 + 2] = 0;
+        if (f_n < 0)
+            gam[index * 1 + 0] = 0;
+        return;
+    }
+    if (t_tang < rollingfriction * f_n)
+        return;
 
+    if ((t_tang < -(1 / rollingfriction) * f_n) || (fabs(f_n) < 10e-15)) {
+        real f_n_proj = 0;
+        real t_u_proj = 0;
+        real t_v_proj = 0;
 
-		if (f_n < 0)
-			gam[index * 1 + 0] = 0;
-		return;
-	}
-	if (t_tang < rollingfriction * f_n)
-		return;
+        gam[index * 1 + 0] = f_n_proj;
+        gam[3 * data_manager->num_rigid_contacts + index * 3 + 1] = t_u_proj;
+        gam[3 * data_manager->num_rigid_contacts + index * 3 + 2] = t_v_proj;
 
-	if ((t_tang < -(1 / rollingfriction) * f_n) || (fabs(f_n) < 10e-15)) {
-		real f_n_proj = 0;
-		real t_u_proj = 0;
-		real t_v_proj = 0;
+        return;
+    }
+    real f_n_proj = (t_tang * rollingfriction + f_n) / (rollingfriction * rollingfriction + 1);
+    real t_tang_proj = f_n_proj * rollingfriction;
+    real tproj_div_t = t_tang_proj / t_tang;
+    real t_u_proj = tproj_div_t * t_u;
+    real t_v_proj = tproj_div_t * t_v;
 
-		gam[index * 1 + 0] = f_n_proj;
-		gam[3 * data_manager->num_rigid_contacts + index * 3 + 1] = t_u_proj;
-		gam[3 * data_manager->num_rigid_contacts + index * 3 + 2] = t_v_proj;
-
-		return;
-	}
-	real f_n_proj = (t_tang * rollingfriction + f_n) / (rollingfriction * rollingfriction + 1);
-	real t_tang_proj = f_n_proj * rollingfriction;
-	real tproj_div_t = t_tang_proj / t_tang;
-	real t_u_proj = tproj_div_t * t_u;
-	real t_v_proj = tproj_div_t * t_v;
-
-	gam[index * 1 + 0] = f_n_proj;
-	gam[3 * data_manager->num_rigid_contacts + index * 3 + 1] = t_u_proj;
-	gam[3 * data_manager->num_rigid_contacts + index * 3 + 2] = t_v_proj;
+    gam[index * 1 + 0] = f_n_proj;
+    gam[3 * data_manager->num_rigid_contacts + index * 3 + 1] = t_u_proj;
+    gam[3 * data_manager->num_rigid_contacts + index * 3 + 2] = t_v_proj;
 }
 
 // -----------------------------------------------------------------------------
@@ -183,88 +179,24 @@ void ChConstraintRigidRigid::Setup(ChParallelDataManager* dm) {
     }
 
     contact_active_pairs.resize(int(num_contacts));
-    data_manager->host_data.coh_rigid_rigid.resize(num_contacts);
-    data_manager->host_data.fric_rigid_rigid.resize(num_contacts);
-    data_manager->host_data.compliance_rigid_rigid.resize(num_contacts);
     rotated_point_a.resize(num_contacts);
     rotated_point_b.resize(num_contacts);
     quat_a.resize(num_contacts);
     quat_b.resize(num_contacts);
 
+    // Readability replacements
+    auto& bids = data_manager->host_data.bids_rigid_rigid;  // global IDs of bodies in contact
+    auto& abody = data_manager->host_data.active_rigid;     // flags for active bodies
+    auto& sids = data_manager->host_data.contact_pairs;     // global IDs of shapes in contact
+    auto& sindex = data_manager->shape_data.local_rigid;    // collision model indexes of shapes in contact
+    auto& blist = *data_manager->body_list;
+
 #pragma omp parallel for
     for (int i = 0; i < (signed)num_contacts; i++) {
-        vec2 body = data_manager->host_data.bids_rigid_rigid[i];
-        uint b1 = body.x;
-        uint b2 = body.y;
+        auto b1 = bids[i].x;                  // global IDs of bodies in contact
+        auto b2 = bids[i].y;                  //
 
-        contact_active_pairs[i] =
-            bool2(data_manager->host_data.active_rigid[b1] != 0, data_manager->host_data.active_rigid[b2] != 0);
-
-        // Combine material properties
-        const real3& f_a = data_manager->host_data.fric_data[b1];
-        const real3& f_b = data_manager->host_data.fric_data[b2];
-        const real& coh_a = data_manager->host_data.cohesion_data[b1];
-        const real& coh_b = data_manager->host_data.cohesion_data[b2];
-        const real4& c_a = data_manager->host_data.compliance_data[b1];
-        const real4& c_b = data_manager->host_data.compliance_data[b2];
-
-        real mu_sliding = data_manager->composition_strategy->CombineFriction(f_a.x, f_b.x);   // sliding
-        real mu_rolling = data_manager->composition_strategy->CombineFriction(f_a.y, f_b.y);   // rolling
-        real mu_spinning = data_manager->composition_strategy->CombineFriction(f_a.z, f_b.z);  // spinning
-
-        real coh = data_manager->composition_strategy->CombineCohesion(coh_a, coh_b);
-
-        real compliance_normal = data_manager->composition_strategy->CombineCompliance(c_a.x, c_b.x);    // normal
-        real compliance_sliding = data_manager->composition_strategy->CombineCompliance(c_a.y, c_b.y);   // sliding
-        real compliance_rolling = data_manager->composition_strategy->CombineCompliance(c_a.z, c_b.z);   // rolling
-        real compliance_spinning = data_manager->composition_strategy->CombineCompliance(c_a.w, c_b.w);  // spinning
-
-        // Allow user to override composite material
-        if (data_manager->add_contact_callback) {
-            auto blist = *data_manager->body_list;
-            const real3& vN = data_manager->host_data.norm_rigid_rigid[i];
-            real3 vpA = data_manager->host_data.cpta_rigid_rigid[i] + data_manager->host_data.pos_rigid[b1];
-            real3 vpB = data_manager->host_data.cptb_rigid_rigid[i] + data_manager->host_data.pos_rigid[b2];
-            
-            chrono::collision::ChCollisionInfo icontact;
-            icontact.modelA = blist[b1]->GetCollisionModel().get();
-            icontact.modelB = blist[b2]->GetCollisionModel().get();
-            icontact.vN = ChVector<>(vN.x, vN.y, vN.z);
-            icontact.vpA = ChVector<>(vpA.x, vpA.y, vpA.z);
-            icontact.vpB = ChVector<>(vpB.x, vpB.y, vpB.z);
-            icontact.distance = data_manager->host_data.dpth_rigid_rigid[i];
-            icontact.eff_radius = data_manager->host_data.erad_rigid_rigid[i];
-
-            ChMaterialCompositeNSC mat;
-            mat.static_friction = static_cast<float>(mu_sliding);
-            mat.sliding_friction = static_cast<float>(mu_sliding);
-            mat.rolling_friction = static_cast<float>(mu_rolling);
-            mat.spinning_friction = static_cast<float>(mu_spinning);
-            mat.cohesion = static_cast<float>(coh);
-            mat.compliance = static_cast<float>(compliance_normal);
-            mat.complianceT = static_cast<float>(compliance_sliding);
-            mat.complianceRoll = static_cast<float>(compliance_rolling);
-            mat.complianceSpin = static_cast<float>(compliance_spinning);
-            mat.restitution = 0;
-            mat.dampingf = 0;
-
-            data_manager->add_contact_callback->OnAddContact(icontact, &mat);
-
-            mu_sliding = mat.sliding_friction;
-            mu_rolling = mat.rolling_friction;
-            mu_spinning = mat.spinning_friction;
-            coh = mat.cohesion;
-            compliance_normal = mat.compliance;
-            compliance_sliding = mat.complianceT;
-            compliance_rolling = mat.complianceRoll;
-            compliance_spinning = mat.complianceSpin;
-        }
-
-        real3 mu(mu_sliding, mu_rolling, mu_spinning);
-        real4 compliance(compliance_normal, compliance_sliding, compliance_rolling, compliance_spinning);
-        data_manager->host_data.coh_rigid_rigid[i] = coh;
-        data_manager->host_data.fric_rigid_rigid[i] = mu;
-        data_manager->host_data.compliance_rigid_rigid[i] = compliance;
+        contact_active_pairs[i] = bool2(abody[b1] != 0, abody[b2] != 0);
 
         {
             quaternion quaternion_conjugate = ~data_manager->host_data.rot_rigid[b1];

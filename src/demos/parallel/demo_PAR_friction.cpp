@@ -24,9 +24,7 @@
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/solver/ChIterativeSolverParallel.h"
 
-#ifdef CHRONO_OPENGL
 #include "chrono_opengl/ChOpenGLWindow.h"
-#endif
 
 using namespace chrono;
 using namespace chrono::collision;
@@ -36,9 +34,7 @@ using namespace chrono::collision;
 int main(int argc, char** argv) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    // ----------------
     // Parameters
-    // ----------------
     double radius = 0.5;
 
     double time_step = 0.01;
@@ -49,10 +45,7 @@ int main(int argc, char** argv) {
     uint max_iteration_spinning = 100;
     uint max_iteration_bilateral = 0;
 
-    // ------------------------
     // Create the parallel system
-    // --------------------------
-
     ChSystemParallelNSC system;
     system.Set_G_acc(ChVector<>(0, -9.81, 0));
 
@@ -84,25 +77,27 @@ int main(int argc, char** argv) {
     system.GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
     system.GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
 
-    // Create the container body.
-    // Note that Chrono::Parallel uses the *minimum* of the spinning and rolling friction values for a contacting pair.
+    // Create the container body
     auto container = std::shared_ptr<ChBody>(system.NewBody());
     system.Add(container);
     container->SetPos(ChVector<>(0, 0, 0));
     container->SetBodyFixed(true);
     container->SetIdentifier(-1);
-
-    container->GetMaterialSurfaceNSC()->SetFriction(0.6f);
-    container->GetMaterialSurfaceNSC()->SetRollingFriction(1);
-    container->GetMaterialSurfaceNSC()->SetSpinningFriction(1);
-
     container->SetCollide(true);
+
+    // Set rolling and friction coefficients for the container.
+    // By default, the composite material will use the minimum value for an interacting collision pair.
+    auto bin_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    bin_mat->SetFriction(0.6f);
+    bin_mat->SetRollingFriction(1);
+    bin_mat->SetSpinningFriction(1);
+
     container->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(container.get(), ChVector<>(20, 1, 20) / 2.0, ChVector<>(0, -1, 0));
-    utils::AddBoxGeometry(container.get(), ChVector<>(1, 2, 20.99) / 2.0, ChVector<>(-10, 0, 0));
-    utils::AddBoxGeometry(container.get(), ChVector<>(1, 2, 20.99) / 2.0, ChVector<>(10, 0, 0));
-    utils::AddBoxGeometry(container.get(), ChVector<>(20.99, 2, 1) / 2.0, ChVector<>(0, 0, -10));
-    utils::AddBoxGeometry(container.get(), ChVector<>(20.99, 2, 1) / 2.0, ChVector<>(0, 0, 10));
+    utils::AddBoxGeometry(container.get(), bin_mat, ChVector<>(20, 1, 20) / 2.0, ChVector<>(0, -1, 0));
+    utils::AddBoxGeometry(container.get(), bin_mat, ChVector<>(1, 2, 20.99) / 2.0, ChVector<>(-10, 0, 0));
+    utils::AddBoxGeometry(container.get(), bin_mat, ChVector<>(1, 2, 20.99) / 2.0, ChVector<>(10, 0, 0));
+    utils::AddBoxGeometry(container.get(), bin_mat, ChVector<>(20.99, 2, 1) / 2.0, ChVector<>(0, 0, -10));
+    utils::AddBoxGeometry(container.get(), bin_mat, ChVector<>(20.99, 2, 1) / 2.0, ChVector<>(0, 0, 10));
     container->GetCollisionModel()->BuildModel();
 
     // Create some spheres that roll horizontally, with increasing rolling friction values
@@ -113,6 +108,10 @@ int main(int argc, char** argv) {
     double initial_linspeed = initial_angspeed * radius;
 
     for (int bi = 0; bi < 10; bi++) {
+        auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        mat->SetFriction(0.4f);
+        mat->SetRollingFriction(((float)bi / 10) * 0.05f);
+
         auto ball = std::shared_ptr<ChBody>(system.NewBody());
         ball->SetIdentifier(bi);
         ball->SetMass(mass);
@@ -126,12 +125,8 @@ int main(int argc, char** argv) {
         // Contact geometry
         ball->SetCollide(true);
         ball->GetCollisionModel()->ClearModel();
-        utils::AddSphereGeometry(ball.get(), radius);
+        utils::AddSphereGeometry(ball.get(), mat, radius);
         ball->GetCollisionModel()->BuildModel();
-
-        // Sliding and rolling friction coefficients
-        ball->GetMaterialSurfaceNSC()->SetFriction(0.4f);
-        ball->GetMaterialSurfaceNSC()->SetRollingFriction(((float)bi / 10) * 0.05f);
 
         // Add to the system
         system.Add(ball);
@@ -139,6 +134,10 @@ int main(int argc, char** argv) {
 
     // Create some spheres that spin in place, with increasing spinning friction values
     for (int bi = 0; bi < 10; bi++) {
+        auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        mat->SetFriction(0.4f);
+        mat->SetSpinningFriction(((float)bi / 10) * 0.02f);
+
         auto ball = std::shared_ptr<ChBody>(system.NewBody());
         ball->SetIdentifier(bi);
         ball->SetMass(mass);
@@ -147,64 +146,29 @@ int main(int argc, char** argv) {
         // Initial position and velocity
         ball->SetPos(ChVector<>(-8, 1 + radius - 0.5, -5 + bi * radius * 2.5));
         ball->SetPos_dt(ChVector<>(0, 0, 0));
-        ball->SetWvel_par(ChVector<>(0, 0, 20));
+        ball->SetWvel_par(ChVector<>(0, 20, 0));
 
         // Contact geometry
         ball->SetCollide(true);
         ball->GetCollisionModel()->ClearModel();
-        utils::AddSphereGeometry(ball.get(), radius);
+        utils::AddSphereGeometry(ball.get(), mat, radius);
         ball->GetCollisionModel()->BuildModel();
-
-        // Sliding and rolling friction coefficients
-        ball->GetMaterialSurfaceNSC()->SetFriction(0.4f);
-        ball->GetMaterialSurfaceNSC()->SetSpinningFriction((bi / 10.0f) * 0.02f);
 
         // Add to the system
         system.Add(ball);
     }
 
-#ifdef CHRONO_OPENGL
-    // -------------------------------
     // Create the visualization window
-    // -------------------------------
-
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     gl_window.Initialize(1280, 720, "Settling test", &system);
     gl_window.SetCamera(ChVector<>(10, 10, 20), ChVector<>(0, 0, 0), ChVector<>(0, 1, 0), 0.05f);
     gl_window.SetRenderMode(opengl::WIREFRAME);
-#endif
 
-    // ---------------
     // Simulate system
-    // ---------------
-
-    double time_end = 20.0;
-    double time_out = 2.5;
-    bool output = false;
-
-    while (true) {
-#ifdef CHRONO_OPENGL
-
-#else
+    while (gl_window.Active()) {
         system.DoStepDynamics(time_step);
-#endif
-        if (!output && system.GetChTime() >= time_out) {
-            for (int i = 1; i <= 10; i++) {
-                auto pos = system.Get_bodylist().at(i)->GetPos();
-                std::cout << pos.x() << std::endl;
-            }
-            output = true;
-        }
-
-#ifdef CHRONO_OPENGL
-        opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-        if (gl_window.Active()) {
-            gl_window.DoStepDynamics(time_step);
-            gl_window.Render();
-        } else {
-            break;
-        }
-#endif
+        gl_window.Render();
+        ////std::cout << "num contacts: " << system.GetNcontacts() << "\n\n";
     }
 
     return 0;

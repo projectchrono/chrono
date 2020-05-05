@@ -76,6 +76,9 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     virtual void Update3DOFBodies();
     void RecomputeThreads();
 
+    virtual ChBody* NewBody() override;
+    virtual ChBodyAuxRef* NewBodyAuxRef() override;
+
     virtual void AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) = 0;
     virtual void UpdateMaterialSurfaceData(int index, ChBody* body) = 0;
     virtual void Setup() override;
@@ -83,7 +86,7 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
 
     /// Change the default composition laws for contact surface materials
     /// (coefficient of friction, cohesion, compliance, etc.).
-    void SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy<real>>&& strategy);
+    virtual void SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy>&& strategy) override;
 
     virtual void PrintStepStats();
     unsigned int GetNumBodies();
@@ -189,9 +192,7 @@ class CH_PARALLEL_API ChSystemParallelNSC : public ChSystemParallel {
     void ChangeSolverType(SolverType type);
     void Initialize();
 
-    virtual ChMaterialSurface::ContactMethod GetContactMethod() const override { return ChMaterialSurface::NSC; }
-    virtual ChBody* NewBody() override;
-    virtual ChBodyAuxRef* NewBodyAuxRef() override;
+    virtual ChContactMethod GetContactMethod() const override { return ChContactMethod::NSC; }
     virtual void AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) override;
     virtual void UpdateMaterialSurfaceData(int index, ChBody* body) override;
 
@@ -222,9 +223,7 @@ class CH_PARALLEL_API ChSystemParallelSMC : public ChSystemParallel {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChSystemParallelSMC* Clone() const override { return new ChSystemParallelSMC(*this); }
 
-    virtual ChMaterialSurfaceNSC::ContactMethod GetContactMethod() const override { return ChMaterialSurface::SMC; }
-    virtual ChBody* NewBody() override;
-    virtual ChBodyAuxRef* NewBodyAuxRef() override;
+    virtual ChContactMethod GetContactMethod() const override { return ChContactMethod::SMC; }
     virtual void AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) override;
     virtual void UpdateMaterialSurfaceData(int index, ChBody* body) override;
 

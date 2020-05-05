@@ -50,17 +50,15 @@ void ChReissnerTire::CreatePressureLoad() {
 void ChReissnerTire::CreateContactSurface() {
     switch (m_contact_type) {
         case NODE_CLOUD: {
-            auto contact_surf = chrono_types::make_shared<ChContactSurfaceNodeCloud>();
+            auto contact_surf = chrono_types::make_shared<ChContactSurfaceNodeCloud>(m_contact_mat);
             m_mesh->AddContactSurface(contact_surf);
             contact_surf->AddAllNodes(m_contact_node_radius);
-            contact_surf->SetMaterialSurface(m_contact_mat);
             break;
         }
         case TRIANGLE_MESH: {
-            auto contact_surf = chrono_types::make_shared<ChContactSurfaceMesh>();
+            auto contact_surf = chrono_types::make_shared<ChContactSurfaceMesh>(m_contact_mat);
             m_mesh->AddContactSurface(contact_surf);
             contact_surf->AddFacesFromBoundary(m_contact_face_thickness, false);
-            contact_surf->SetMaterialSurface(m_contact_mat);
             break;
         }
     }

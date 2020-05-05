@@ -85,7 +85,8 @@ class MyContactReporter : public ChContactContainer::ReportContactCallback {
         cout << "Report contacts" << endl;
         m_num_contacts = 0;
         m_num_contacts_bb = 0;
-        m_rig->GetSystem()->GetContactContainer()->ReportAllContacts(this);
+        std::shared_ptr<MyContactReporter> shared_this(this, [](MyContactReporter*) {});
+        m_rig->GetSystem()->GetContactContainer()->ReportAllContacts(shared_this);
         cout << "Total number contacts:        " << m_num_contacts << endl;
         cout << "Number of body-body contacts: " << m_num_contacts_bb << endl;
     }
@@ -141,7 +142,7 @@ int main(int argc, char* argv[]) {
 
     ChTrackTestRig* rig = nullptr;
     if (use_JSON) {
-        rig = new ChTrackTestRig(vehicle::GetDataFile(filename), create_track, ChMaterialSurface::SMC);
+        rig = new ChTrackTestRig(vehicle::GetDataFile(filename), create_track, ChContactMethod::SMC);
     } else {
         VehicleSide side = LEFT;
         TrackShoeType type = TrackShoeType::BAND_BUSHING;
@@ -154,7 +155,7 @@ int main(int argc, char* argv[]) {
             }
             case TrackShoeType::BAND_ANCF: {
                 auto assembly = chrono_types::make_shared<M113_TrackAssemblyBandANCF>(side);
-                assembly->SetContactSurfaceType(ChTrackAssemblyBandANCF::NONE);
+                assembly->SetContactSurfaceType(ChTrackAssemblyBandANCF::ContactSurfaceType::NONE);
                 track_assembly = assembly;
                 break;
             }
@@ -163,7 +164,7 @@ int main(int argc, char* argv[]) {
                 return 1;
         }
 
-        rig = new ChTrackTestRig(track_assembly, create_track, ChMaterialSurface::SMC);
+        rig = new ChTrackTestRig(track_assembly, create_track, ChContactMethod::SMC);
         std::cout << "Rig uses M113 track assembly:  type " << (int)type << " side " << side << std::endl;
     }
 

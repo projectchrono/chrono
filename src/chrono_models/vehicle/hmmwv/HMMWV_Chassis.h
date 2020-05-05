@@ -55,6 +55,8 @@ class CH_MODELS_API HMMWV_Chassis : public ChRigidChassis {
     virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return m_driverCsys; }
 
   protected:
+    virtual void CreateContactMaterials(ChContactMethod contact_method) override;
+
     ChMatrix33<> m_inertia;
 
     static const double m_mass;

@@ -72,11 +72,14 @@ class CH_VEHICLE_API SprocketBand : public ChSprocketBand {
     /// Return the gap width of the sprocket guiding wheel that acts similar to another road wheel.
     virtual double GetGuideWheelGap() const override { return m_gear_guide_wheel_gap; }
 
-    /// Add visualization of the sprocket.
-    virtual void AddVisualizationAssets(VisualizationType vis) override;
-
   private:
     virtual void Create(const rapidjson::Document& d) override;
+
+    /// Create the contact material consistent with the specified contact method.
+    virtual void CreateContactMaterial(ChContactMethod contact_method) override;
+
+    /// Add visualization of the sprocket.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
 
     int m_num_teeth;
 
@@ -95,8 +98,9 @@ class CH_VEHICLE_API SprocketBand : public ChSprocketBand {
     double m_gear_guide_wheel_gap;
 
     bool m_has_mesh;
-    std::string m_meshName;
     std::string m_meshFile;
+
+    MaterialInfo m_mat_info;
 };
 
 /// @} vehicle_tracked_sprocket

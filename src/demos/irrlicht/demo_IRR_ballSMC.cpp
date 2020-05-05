@@ -35,8 +35,8 @@ using namespace irr::video;
 using namespace irr::io;
 using namespace irr::gui;
 
-void AddWall(std::shared_ptr<ChBody> body, const ChVector<>& dim, const ChVector<>& loc) {
-    body->GetCollisionModel()->AddBox(dim.x(), dim.y(), dim.z(), loc);
+void AddWall(std::shared_ptr<ChBody> body, const ChVector<>& dim, const ChVector<>& loc, std::shared_ptr<ChMaterialSurface> mat) {
+    body->GetCollisionModel()->AddBox(mat, dim.x(), dim.y(), dim.z(), loc);
 
     auto box = chrono_types::make_shared<ChBoxShape>();
     box->GetBoxGeometry().Size = dim;
@@ -102,7 +102,7 @@ int main(int argc, char* argv[]) {
     material->SetAdhesion(0);  // Magnitude of the adhesion in Constant adhesion model
 
     // Create the falling ball
-    auto ball = chrono_types::make_shared<ChBody>(ChMaterialSurface::SMC);
+    auto ball = chrono_types::make_shared<ChBody>();
 
     ball->SetIdentifier(ballId);
     ball->SetMass(mass);
@@ -111,12 +111,11 @@ int main(int argc, char* argv[]) {
     ball->SetPos_dt(init_vel);
     // ball->SetWvel_par(ChVector<>(0,0,3));
     ball->SetBodyFixed(false);
-    ball->SetMaterialSurface(material);
 
     ball->SetCollide(true);
 
     ball->GetCollisionModel()->ClearModel();
-    ball->GetCollisionModel()->AddSphere(radius);
+    ball->GetCollisionModel()->AddSphere(material, radius);
     ball->GetCollisionModel()->BuildModel();
 
     ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector<>(1, 1, 1));
@@ -132,7 +131,7 @@ int main(int argc, char* argv[]) {
     msystem.AddBody(ball);
 
     // Create container
-    auto bin = chrono_types::make_shared<ChBody>(ChMaterialSurface::SMC);
+    auto bin = chrono_types::make_shared<ChBody>();
 
     bin->SetIdentifier(binId);
     bin->SetMass(1);
@@ -140,14 +139,13 @@ int main(int argc, char* argv[]) {
     bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
     bin->SetCollide(true);
     bin->SetBodyFixed(true);
-    bin->SetMaterialSurface(material);
 
     bin->GetCollisionModel()->ClearModel();
-    AddWall(bin, ChVector<>(width, thickness, length), ChVector<>(0, 0, 0));
-    // AddWall(bin, ChVector<>(thickness, height, length), ChVector<>(-width + thickness, height, 0));
-    // AddWall(bin, ChVector<>(thickness, height, length), ChVector<>(width - thickness, height, 0));
-    // AddWall(bin, ChVector<>(width, height, thickness), ChVector<>(0, height, -length + thickness));
-    // AddWall(bin, ChVector<>(width, height, thickness), ChVector<>(0, height, length - thickness));
+    AddWall(bin, ChVector<>(width, thickness, length), ChVector<>(0, 0, 0), material);
+    ////AddWall(bin, ChVector<>(thickness, height, length), ChVector<>(-width + thickness, height, 0), material);
+    ////AddWall(bin, ChVector<>(thickness, height, length), ChVector<>(width - thickness, height, 0), material);
+    ////AddWall(bin, ChVector<>(width, height, thickness), ChVector<>(0, height, -length + thickness), material);
+    ////AddWall(bin, ChVector<>(width, height, thickness), ChVector<>(0, height, length - thickness), material);
     bin->GetCollisionModel()->BuildModel();
 
     msystem.AddBody(bin);

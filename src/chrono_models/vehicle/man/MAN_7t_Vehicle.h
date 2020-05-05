@@ -49,7 +49,7 @@ namespace man {
 class CH_MODELS_API MAN_7t_Vehicle : public ChWheeledVehicle {
   public:
     MAN_7t_Vehicle(const bool fixed = false,
-                   ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,
+                   ChContactMethod contact_method = ChContactMethod::NSC,
                    ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE,
                    bool useShaftDrivetrain = true);
 

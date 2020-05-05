@@ -25,8 +25,7 @@
 #include "chrono/physics/ChContactContainer.h"
 #include "chrono/physics/ChProximityContainer.h"
 
-#include "chrono/collision/ChCCollisionSystem.h"
-#include "chrono/collision/ChCModelBullet.h"
+#include "chrono/collision/ChCollisionSystem.h"
 #include "chrono/collision/bullet/btBulletCollisionCommon.h"
 #include "chrono/collision/gimpact/GIMPACT/Bullet/btGImpactCollisionAlgorithm.h"
 
@@ -44,8 +43,8 @@ namespace collision {
 /// @addtogroup parallel_collision
 /// @{
 
-/// Class for collision engine based on the spatial subdivision method.
-/// Contains both the broadphase and the narrow phase methods.
+/// Collision engine based on the 'Bullet' library.
+/// Contains both the broadphase and the narrow phase Bullet methods.
 class CH_PARALLEL_API ChCollisionSystemBulletParallel : public ChCollisionSystem {
   public:
     ChCollisionSystemBulletParallel(ChParallelDataManager* dc,
@@ -53,21 +52,14 @@ class CH_PARALLEL_API ChCollisionSystemBulletParallel : public ChCollisionSystem
                                     double scene_size = 500);
     virtual ~ChCollisionSystemBulletParallel();
 
-    /// Clears all data instanced by this algorithm
-    /// if any (like persistent contact manifolds)
+    /// Clear all data instanced by this algorithm if any (like persistent contact manifolds)
     virtual void Clear(void) override;
 
-    /// Adds a collision model to the collision
-    /// engine (custom data may be allocated).
+    /// Add a collision model to the collision engine (custom data may be allocated).
     virtual void Add(ChCollisionModel* model) override;
 
-    /// Removes a collision model from the collision
-    /// engine (custom data may be deallocated).
+    /// Remove a collision model from the collision engine.
     virtual void Remove(ChCollisionModel* model) override;
-
-    /// Removes all collision models from the collision
-    /// engine (custom data may be deallocated).
-    // virtual void RemoveAll();
 
     /// Run the algorithm and finds all the contacts.
     /// (Contacts will be managed by the Bullet persistent contact cache).
@@ -82,22 +74,11 @@ class CH_PARALLEL_API ChCollisionSystemBulletParallel : public ChCollisionSystem
     /// Return the time (in seconds) for narrowphase collision detection.
     virtual double GetTimerCollisionNarrow() const override;
 
-    /// After the Run() has completed, you can call this function to
-    /// fill a 'contact container', that is an object inherited from class
-    /// ChContactContainer. For instance ChSystem, after each Run()
-    /// collision detection, calls this method multiple times for all contact containers in the system,
-    /// The basic behavior of the implementation is the following: collision system
-    /// will call in sequence the functions BeginAddContact(), AddContact() (x n times),
-    /// EndAddContact() of the contact container.
+    /// Fill in the provided contact container with collision information after Run().
     virtual void ReportContacts(ChContactContainer* mcontactcontainer) override;
 
-    /// After the Run() has completed, you can call this function to
-    /// fill a 'proximity container' (container of narrow phase pairs), that is
-    /// an object inherited from class ChProximityContainer. For instance ChSystem, after each Run()
-    /// collision detection, calls this method multiple times for all proximity containers in the system,
-    /// The basic behavior of the implementation is  the following: collision system
-    /// will call in sequence the functions BeginAddProximities(), AddProximity() (x n times),
-    /// EndAddProximities() of the proximity container.
+    /// Fill in the provided proximity container with near point information after Run().
+    /// Not used in Chrono::Parallel.
     virtual void ReportProximities(ChProximityContainer* mproximitycontainer) override {}
 
     /// Perform a ray-hit test with all collision models.

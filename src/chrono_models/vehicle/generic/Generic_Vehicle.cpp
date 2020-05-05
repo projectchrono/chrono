@@ -47,9 +47,7 @@ namespace generic {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-Generic_Vehicle::Generic_Vehicle(const bool fixed,
-                                 SuspensionType suspType,
-                                 ChMaterialSurface::ContactMethod contactMethod)
+Generic_Vehicle::Generic_Vehicle(const bool fixed, SuspensionType suspType, ChContactMethod contactMethod)
     : ChWheeledVehicle("GenericWV", contactMethod), m_suspType(suspType) {
     // Create the chassis subsystem
     m_chassis = chrono_types::make_shared<Generic_Chassis>("Chassis", fixed);

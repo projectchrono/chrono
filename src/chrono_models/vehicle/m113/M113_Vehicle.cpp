@@ -40,7 +40,7 @@ namespace m113 {
 // -----------------------------------------------------------------------------
 M113_Vehicle::M113_Vehicle(bool fixed,
                            TrackShoeType shoe_type,
-                           ChMaterialSurface::ContactMethod contact_method,
+                           ChContactMethod contact_method,
                            ChassisCollisionType chassis_collision_type)
     : ChTrackedVehicle("M113", contact_method), m_type(shoe_type) {
     Create(fixed, chassis_collision_type);

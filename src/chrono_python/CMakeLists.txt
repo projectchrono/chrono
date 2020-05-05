@@ -152,13 +152,13 @@ set(CHPY_CORE core)
 
 # Interface files
 set(CHPY_CORE_MODULE_FILE
-    ChModuleCore.i
+    core/ChModuleCore.i
     )
 set(CHPY_CORE_WRAPPER_FILES
-    ChException.i
-    ChCoordsys.i
-    ChVector.i
-    ChQuaternion.i
+    core/ChException.i
+    core/ChCoordsys.i
+    core/ChVector.i
+    core/ChQuaternion.i
     )
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -248,7 +248,7 @@ if(ENABLE_MODULE_POSTPROCESS)
 
   # Interface files
   set(CHPY_POSTPROCESS_MODULE_FILE 
-      ChModulePostprocess.i
+      postprocess/ChModulePostprocess.i
       )
 
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -317,7 +317,7 @@ endif()
 
   # Interface files
   set(CHPY_FEA_MODULE_FILE 
-      ChModuleFea.i
+      fea/ChModuleFea.i
       )
 
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -385,7 +385,7 @@ if(ENABLE_MODULE_IRRLICHT)
 
   # Interface files
   set(CHPY_IRRLICHT_MODULE_FILE 
-      ChModuleIrrlicht.i
+      irrlicht/ChModuleIrrlicht.i
       )
 
   include_directories(${CH_IRRLICHTINC})
@@ -463,7 +463,7 @@ if(ENABLE_MODULE_MKL)
 
   # Interface files
   set(CHPY_MKL_MODULE_FILE 
-      ChModuleMkl.i
+      mkl/ChModuleMkl.i
       )
 
   include_directories(${CH_MKL_INCLUDES})
@@ -529,7 +529,7 @@ if(ENABLE_MODULE_CASCADE)
 
   # Interface files
   set(CHPY_CASCADE_MODULE_FILE 
-      ChModuleCascade.i
+      cascade/ChModuleCascade.i
       )
 
   include_directories(${CASCADE_INCLUDE_DIR})
@@ -603,7 +603,7 @@ if(ENABLE_MODULE_VEHICLE)
 
   # Interface files
   set(CHPY_VEHICLE_MODULE_FILE 
-      ChModuleVehicle.i
+      vehicle/ChModuleVehicle.i
       )
 
   include_directories(${VEHICLE_INCLUDE_DIR})
@@ -623,6 +623,9 @@ if(ENABLE_MODULE_VEHICLE)
     SWIG_ADD_LIBRARY(${CHPY_VEHICLE} LANGUAGE python SOURCES ${CHPY_VEHICLE_MODULE_FILE})
   endif()
   SWIG_LINK_LIBRARIES(${CHPY_VEHICLE} ${PYTHON_LIBRARY} ChronoEngine ChronoEngine_vehicle)
+  if(ENABLE_MODULE_IRRLICHT)
+    SWIG_LINK_LIBRARIES(${CHPY_VEHICLE} ${PYTHON_LIBRARY} ChronoEngine ChronoEngine_vehicle_irrlicht)
+  endif()
   SWIG_LINK_LIBRARIES(${CHPY_VEHICLE} ${PYTHON_LIBRARY} ChronoEngine ChronoModels_vehicle)
 
   IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -647,6 +650,9 @@ if(ENABLE_MODULE_VEHICLE)
 
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_VEHICLE}_REAL_NAME} ChronoEngine)
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_VEHICLE}_REAL_NAME} ChronoEngine_vehicle)
+  if(ENABLE_MODULE_IRRLICHT)  
+    ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_VEHICLE}_REAL_NAME} ChronoEngine_vehicle)
+  endif()
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_VEHICLE}_REAL_NAME} ChronoModels_vehicle)
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_VEHICLE}_REAL_NAME} ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME})
 

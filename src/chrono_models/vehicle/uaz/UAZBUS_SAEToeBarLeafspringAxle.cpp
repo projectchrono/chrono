@@ -219,33 +219,25 @@ UAZBUS_SAEToeBarLeafspringAxle::UAZBUS_SAEToeBarLeafspringAxle(const std::string
 
     double damping_factor = 0.05;
 
-    m_latRotSpringCBA = new LinearSpringDamperTorque(KrotLatA, KrotLatA * damping_factor, 0);
-    m_latRotSpringCBB = new LinearSpringDamperTorque(KrotLatB, KrotLatA * damping_factor, 0);
+    m_latRotSpringCBA = chrono_types::make_shared<LinearSpringDamperTorque>(KrotLatA, KrotLatA * damping_factor, 0);
+    m_latRotSpringCBB = chrono_types::make_shared<LinearSpringDamperTorque>(KrotLatB, KrotLatA * damping_factor, 0);
 
-    m_vertRotSpringCBA = new LinearSpringDamperTorque(KrotVertA, KrotVertA * damping_factor, rest_angle_A);
-    m_vertRotSpringCBB = new LinearSpringDamperTorque(KrotVertB, KrotVertB * damping_factor, rest_angle_B);
+    m_vertRotSpringCBA =
+        chrono_types::make_shared<LinearSpringDamperTorque>(KrotVertA, KrotVertA * damping_factor, rest_angle_A);
+    m_vertRotSpringCBB =
+        chrono_types::make_shared<LinearSpringDamperTorque>(KrotVertB, KrotVertB * damping_factor, rest_angle_B);
 
-    /*
-        m_springForceCB = new LinearSpringForce(m_springCoefficient  // coefficient for linear spring
-                                                );
+    m_auxSpringForceCB = chrono_types::make_shared<UAZBUS_AuxSpringForceFront>(
+        m_auxSpringCoefficient, m_auxSpringMinLength, m_auxSpringMaxLength);
 
-        m_shockForceCB = new LinearDamperForce(m_damperCoefficient  // coefficient for linear damper
-                        );
-    */
-    m_auxSpringForceCB =
-        new UAZBUS_AuxSpringForceFront(m_auxSpringCoefficient, m_auxSpringMinLength, m_auxSpringMaxLength);
-
-    m_shockForceCB = new UAZBUS_SAEShockForceFront(m_damperCoefficient, m_damperDegressivityCompression,
-                                                   m_damperCoefficient, m_damperDegressivityExpansion);
+    m_shockForceCB = chrono_types::make_shared<UAZBUS_SAEShockForceFront>(
+        m_damperCoefficient, m_damperDegressivityCompression, m_damperCoefficient, m_damperDegressivityExpansion);
 }
 
 // -----------------------------------------------------------------------------
 // Destructors
 // -----------------------------------------------------------------------------
-UAZBUS_SAEToeBarLeafspringAxle::~UAZBUS_SAEToeBarLeafspringAxle() {
-    delete m_auxSpringForceCB;
-    delete m_shockForceCB;
-}
+UAZBUS_SAEToeBarLeafspringAxle::~UAZBUS_SAEToeBarLeafspringAxle() {}
 
 const ChVector<> UAZBUS_SAEToeBarLeafspringAxle::getLocation(PointId which) {
     switch (which) {

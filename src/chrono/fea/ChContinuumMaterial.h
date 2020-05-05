@@ -17,7 +17,7 @@
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChMath.h"
-#include "chrono/physics/ChTensors.h"
+#include "chrono/core/ChTensors.h"
 
 namespace chrono {
 namespace fea {

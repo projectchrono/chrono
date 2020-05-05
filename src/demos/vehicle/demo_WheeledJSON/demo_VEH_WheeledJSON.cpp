@@ -145,7 +145,7 @@ int main(int argc, char* argv[]) {
     // --------------------------
 
     // Create the vehicle system
-    WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChMaterialSurface::NSC);
+    WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChContactMethod::NSC);
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
     ////vehicle.GetChassis()->SetFixed(true);
     vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);

@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
     // --------------------------
 
     // Create the front side
-    Articulated_Front front_side(false);
+    Articulated_Front front_side(false, ChContactMethod::NSC);
     front_side.Initialize(ChCoordsys<>(initLoc, initRot));
     front_side.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
     front_side.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
@@ -91,11 +91,11 @@ int main(int argc, char* argv[]) {
 
     // Create the terrain
     RigidTerrain terrain(front_side.GetSystem());
-    auto patch = terrain.AddPatch(ChCoordsys<>(ChVector<>(0, 0, terrainHeight - 5), QUNIT),
-                                  ChVector<>(terrainLength, terrainWidth, 10));
-    patch->SetContactFrictionCoefficient(0.9f);
-    patch->SetContactRestitutionCoefficient(0.01f);
-    patch->SetContactMaterialProperties(2e7f, 0.3f);
+    auto patch_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    patch_mat->SetFriction(0.9f);
+    patch_mat->SetRestitution(0.01f);
+    auto patch =
+        terrain.AddPatch(patch_mat, ChVector<>(0, 0, terrainHeight), ChVector<>(0, 0, 1), terrainLength, terrainWidth);
     patch->SetColor(ChColor(0.5f, 0.5f, 1));
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
     terrain.Initialize();

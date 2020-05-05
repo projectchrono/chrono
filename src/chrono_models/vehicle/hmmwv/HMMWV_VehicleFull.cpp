@@ -34,7 +34,7 @@ HMMWV_VehicleFull::HMMWV_VehicleFull(const bool fixed,
                                      DrivelineType drive_type,
                                      SteeringType steering_type,
                                      bool rigid_steering_column,
-                                     ChMaterialSurface::ContactMethod contact_method,
+                                     ChContactMethod contact_method,
                                      ChassisCollisionType chassis_collision_type)
     : HMMWV_Vehicle("HMMWVfull", contact_method, drive_type) {
     Create(fixed, steering_type, rigid_steering_column, chassis_collision_type);

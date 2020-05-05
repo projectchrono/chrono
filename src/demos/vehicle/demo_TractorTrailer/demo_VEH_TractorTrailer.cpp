@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
 
     // Create the tractor: specify if chassis is fixed, the suspension type
     // (SOLID_AXLE or MULTI_LINK) and the wheel visualization (PRIMITIVES or NONE)
-    TT_Tractor vehicle(false, SuspensionType::MULTI_LINK);
+    TT_Tractor vehicle(false, SuspensionType::MULTI_LINK, ChContactMethod::NSC);
     vehicle.Initialize(ChCoordsys<>(initLoc + ChVector<>(0, 0, 0), initRot));
     vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
@@ -110,11 +110,10 @@ int main(int argc, char* argv[]) {
 
     // Create the terrain
     RigidTerrain terrain(vehicle.GetSystem());
-    auto patch = terrain.AddPatch(ChCoordsys<>(ChVector<>(0, 0, terrainHeight - 5), QUNIT),
-                                  ChVector<>(terrainLength, terrainWidth, 10));
-    patch->SetContactFrictionCoefficient(0.9f);
-    patch->SetContactRestitutionCoefficient(0.01f);
-    patch->SetContactMaterialProperties(2e7f, 0.3f);
+    auto patch_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    patch_mat->SetFriction(0.9f);
+    patch_mat->SetRestitution(0.01f);
+    auto patch = terrain.AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), terrainLength, terrainWidth);
     patch->SetColor(ChColor(0.5f, 0.5f, 1));
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
     terrain.Initialize();

@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
 
     // Create the vehicle
     Sedan my_sedan;
-    my_sedan.SetContactMethod(ChMaterialSurface::SMC);
+    my_sedan.SetContactMethod(ChContactMethod::SMC);
     my_sedan.SetChassisCollisionType(ChassisCollisionType::NONE);
     my_sedan.SetChassisFixed(false);
     my_sedan.SetInitPosition(ChCoordsys<>(ChVector<>(-40, 0, 1.0)));
@@ -73,18 +73,24 @@ int main(int argc, char* argv[]) {
     // Create the terrain
     RigidTerrain terrain(my_sedan.GetSystem());
 
-    auto patch1 = terrain.AddPatch(ChCoordsys<>(ChVector<>(0, -25, -5), QUNIT), ChVector<>(100, 50, 10));
-    auto patch2 = terrain.AddPatch(ChCoordsys<>(ChVector<>(0, 25, -5), QUNIT), ChVector<>(100, 50, 10));
+    auto patch1_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    patch1_mat->SetFriction(0.1f);
+    patch1_mat->SetRestitution(0.01f);
+    patch1_mat->SetYoungModulus(2e7f);
+    patch1_mat->SetPoissonRatio(0.3f);
 
-    patch1->SetContactFrictionCoefficient(0.1f);
-    patch1->SetContactRestitutionCoefficient(0.01f);
-    patch1->SetContactMaterialProperties(2e7f, 0.3f);
+    auto patch2_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    patch2_mat->SetFriction(0.9f);
+    patch2_mat->SetRestitution(0.01f);
+    patch2_mat->SetYoungModulus(2e7f);
+    patch2_mat->SetPoissonRatio(0.3f);
+
+    auto patch1 = terrain.AddPatch(patch1_mat, ChVector<>(0, -25, 0), ChVector<>(0, 0, 1), 100, 50);
+    auto patch2 = terrain.AddPatch(patch2_mat, ChVector<>(0, +25, 0), ChVector<>(0, 0, 1), 100, 50);
+
     patch1->SetColor(ChColor(0.8f, 0.8f, 0.5f));
     patch1->SetTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"), 200, 50);
 
-    patch2->SetContactFrictionCoefficient(0.9f);
-    patch2->SetContactRestitutionCoefficient(0.01f);
-    patch2->SetContactMaterialProperties(2e7f, 0.3f);
     patch2->SetColor(ChColor(0.5f, 0.5f, 0.8f));
     patch2->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 50);
 

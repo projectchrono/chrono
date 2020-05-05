@@ -40,7 +40,6 @@
 
   "Visualization":
   {
-      "Mesh Filename":              "M113/Sprocket_L.obj",
-      "Mesh Name":                  "Sprocket_L_POV_geom"
+      "Mesh":              "M113/SprocketBand_L.obj"
   }
 }

@@ -98,39 +98,38 @@ int main(int argc, char* argv[]) {
     // Create all the rigid bodies!!!!
     //
 
-    // ..create the five pendulums (bodies are Irrlicht nodes of
-    //   the special class ChBodySceneNode, which encapsulate ChBody items ):
+    // ..create the five pendulums
 
     for (int k = 0; k < 5; k++) {
         double z_step = (double)k * 2.;
 
         // .. the truss
         auto mrigidBody0 = chrono_types::make_shared<ChBodyEasyBox>(5, 1, 0.5,  // x,y,z size
-                                                           100,        // density
-                                                           false,      // collide enable?
-                                                           true);      // visualization?
+                                                                    100,        // density
+                                                                    true,       // visualization?
+                                                                    false);     // collision?
         mrigidBody0->SetPos(ChVector<>(0, 0, z_step));
         mrigidBody0->SetBodyFixed(true);  // the truss does not move!
         my_system.Add(mrigidBody0);
 
         auto mrigidBody1 = chrono_types::make_shared<ChBodyEasyBox>(1, 6, 1,  // x,y,z size
-                                                           1,        // density
-                                                           false,    // collide enable?
-                                                           true);    // visualization?);
+                                                                    1,        // density
+                                                                    true,     // visualization?
+                                                                    false);   // collision?
         mrigidBody1->SetPos(ChVector<>(0, -3, z_step));
         my_system.Add(mrigidBody1);
 
         auto mrigidBody2 = chrono_types::make_shared<ChBodyEasyBox>(1, 6, 1,  // x,y,z size
-                                                           1,        // density
-                                                           false,    // collide enable?
-                                                           true);    // visualization?
+                                                                    1,        // density
+                                                                    true,     // visualization?
+                                                                    false);   // collision?
         mrigidBody2->SetPos(ChVector<>(0, -9, z_step));
         my_system.Add(mrigidBody2);
 
         auto mrigidBody3 = chrono_types::make_shared<ChBodyEasyBox>(6, 1, 1,  // x,y,z size
-                                                           1,        // density
-                                                           false,    // collide enable?
-                                                           true);    // visualization?
+                                                                    1,        // density
+                                                                    true,     // visualization?
+                                                                    false);   // collision?
         mrigidBody3->SetPos(ChVector<>(3, -12, z_step));
         my_system.Add(mrigidBody3);
 
@@ -164,9 +163,8 @@ int main(int argc, char* argv[]) {
     // THE SOFT-REAL-TIME CYCLE
     //
 
-    // create a 'fan ventilator' object, using Irrlicht mesh
-    // loading and handling (this object is here for aesthetical reasons,
-    // it is NOT handled by Chrono::Engine).
+    // Create a 'fan ventilator' object, using Irrlicht mesh loading and handling 
+    // (this object is here for aesthetical reasons, it is NOT handled by Chrono)
     double fan_radius = 5.3;
     IAnimatedMesh* fanMesh = application.GetSceneManager()->getMesh(GetChronoDataFile("fan2.obj").c_str());
     IAnimatedMeshSceneNode* fanNode = application.GetSceneManager()->addAnimatedMeshSceneNode(fanMesh);

@@ -4,9 +4,10 @@ Terrain models {#vehicle_terrain}
 \tableofcontents
 
 A terrain object in Chrono::Vehicle must provide methods to:
-- return the terrain height at a specified \f$(x,y)\f$ location
-- return the terrain normal at a specified \f$(x,y)\f$ location
-- return the terrain coefficient of friction at at a specified \f$(x,y)\f$ location
+- return the terrain height at the point directly below a specified location
+- return the terrain normal at the point directly below a specified location
+- return the terrain coefficient of friction at the point directly below a specified location
+where the given location is assumed to be expressed in the current world frame.
 
 See the definition of the base class [ChTerrain](@ref chrono::vehicle::ChTerrain).
 
@@ -15,34 +16,34 @@ Note however that these quantities are relevant only for the interaction with th
 
 Furthermore, the coefficient of friction value may be used by certain tire models to modify the tire characteristics, but it will have no effect on the interaction of the terrain with other objects (including tire models that do not explicitly use it).
 
-The ChTerrain base class also defines a functor object [ChTerrain::FrictionFunctor](@ref chrono::vehicle::ChTerrain::FrictionFunctor) which provides an interface for specification of a position-dependent coefficient of friction.  The user must implement a custom class derived from this base class and implement the virtual method `operator()` to return the coefficient of friction at the given \f$(x,y)\f$ location.
+The ChTerrain base class also defines a functor object [ChTerrain::FrictionFunctor](@ref chrono::vehicle::ChTerrain::FrictionFunctor) which provides an interface for specification of a position-dependent coefficient of friction.  The user must implement a custom class derived from this base class and implement the virtual method `operator()` to return the coefficient of friction at the point directly below the given \f$(x,y,z)\f$ location (assumed to be expressed in the current world frame).
 
 ## Flat terrain {#vehicle_terrain_flat}
 
-[FlatTerrain](@ref chrono::vehicle::FlatTerrain) is a model of a horizontal plane, with infinite \f$x\f$ and \f$y\f$ extent, located at a user-specified \f$z\f$ height.  The method [FlatTerrain::GetCoefficientFriction](@ref chrono::vehicle::FlatTerrain::GetCoefficientFriction) returns the constant coefficient of friction specified at construction or, if a `FrictionFunctor` object was registered, its return value.
+[FlatTerrain](@ref chrono::vehicle::FlatTerrain) is a model of a horizontal plane, with infinite extent, located at a user-specified height.  The method [FlatTerrain::GetCoefficientFriction](@ref chrono::vehicle::FlatTerrain::GetCoefficientFriction) returns the constant coefficient of friction specified at construction or, if a `FrictionFunctor` object was registered, its return value.
 
 Since the flat terrain model does not carry any collision and contact information, it can only be used with the [semi-empirical tire models](@ref vehicle_tire_empirical).
 
 ## Rigid terrain {#vehicle_terrain_rigid}
 
 [RigidTerrain](@ref chrono::vehicle::RigidTerrain) is a model of a rigid terrain with arbitrary geometry. A rigid terrain is spcified as a collection of patches, each of which can be one of the following:
-- a rectangular box, possibly rotated; the "driving" surface is the \f$+z\f$ face of the box
+- a rectangular box, possibly rotated; the "driving" surface is the top face of the box (in the world's vertical direction)
 - a triangular mesh read from a user-specified Wavefront OBJ file
 - a triangular mesh generated programatically from a user-specified gray-scale BMP image
 
 The rigid terrain model can be used with any of the Chrono::Vehicle tire models, as well as with tracked vehicles.
 
-A box patch is specified by its 3 dimensions (a 3D vector which encodes the length, width, and height, respectively) and the box orientation (a coordinate system which defines the box center and its orientation). Optionally, the box patch can be created from multiple adjacent tiles, each of which being a Chrono box contact shape; this is recommended for a box patch with large \f$(x,y)\f$ extent as a single collision shape of that dimension may lead to errors in the collision detection algorithm.
+A box patch is specified by the center of the top (driving) surface, the normal to the top surface, and the patch dimensions (length, width, and optionally thickness). Optionally, the box patch can be created from multiple adjacent tiles, each of which being a Chrono box contact shape; this is recommended for a box patch with large horizontal extent as a single collision shape of that dimension may lead to errors in the collision detection algorithm.
 
 An example of a mesh rigid terrain patch is shown in the image below.  It is assumed that the mesh is provided with respect to an ISO reference frame and that it has no "overhangs" (in other words, a vertical ray intersects the mesh in at most one point).  Optionally, the user can specify a "thickness" for the terrain mesh as the radius of a sweeping sphere. Specifying a small positive value for this radius can significantly iprove the robustness of the collision detection algorithm.
 
 <img src="http://www.projectchrono.org/assets/manual/vehicle/terrain/Rigid_mesh.png" width="600" />
 
-A height-map patch is specified through a gray-scale BMP image (like the one shown below), a horizontal extent of the patch (the \f$x\f$ and \f$y\f$ dimensions), and a height range (minimum and maximum heights). A triangular mesh is programatically generated, by creating a mesh vertex for each pixel in the input BMP image, stretching the mesh in the \f$(x,y)\f$ plane to match the given horizontal extent and in the \f$z\f$ direction such that the minimum height corresponds to a perfectly black pixel color and the maximum height corresponds to a perfectly white pixel.
+A height-map patch is specified through a gray-scale BMP image (like the one shown below), a horizontal extent of the patch (length and width), and a height range (minimum and maximum heights). A triangular mesh is programatically generated, by creating a mesh vertex for each pixel in the input BMP image, stretching the mesh in the horizontal plane to match the given extents and in the vertical direction such that the minimum height corresponds to a perfectly black pixel color and the maximum height corresponds to a perfectly white pixel.
 
 <img src="http://www.projectchrono.org/assets/manual/vehicle/terrain/Rigid_heightmap_mag.png" width="400" />
 
-**Height and normal calculation**. The implementation of [RigidTerrain::GetHeight](@ref chrono::vehicle::RigidTerrain::GetHeight) and [RigidTerrain::GetNormal](@ref chrono::vehicle::RigidTerrain::GetNormal) rely on a relatively expensive ray-casting operation: a vertical ray is cast from above in all constituent patches with the height and normal at the intersection point reported back. For a box patch, the ray-casting uses a custom analytical implementation which finds intersections of the ray with the \f$+z\f$ face of the box domain; for mesh-based patches, the ray-casting is deferred to the underlying collision system.  If no patch is intersected, these functions return \f$0\f$ and \f$[0,0,1]\f$, respectively.
+**Height and normal calculation**. The implementation of [RigidTerrain::GetHeight](@ref chrono::vehicle::RigidTerrain::GetHeight) and [RigidTerrain::GetNormal](@ref chrono::vehicle::RigidTerrain::GetNormal) rely on a relatively expensive ray-casting operation: a vertical ray is cast from above in all constituent patches with the height and normal at the intersection point reported back. For a box patch, the ray-casting uses a custom analytical implementation which finds intersections of the ray with the top face of the box domain; for mesh-based patches, the ray-casting is deferred to the underlying collision system.  If no patch is intersected, these functions return \f$0\f$ and the world's vertical direction, respectively.
 
 **Location-dependent coefficient of friction**. The rigid terrain model supports the definition of a `FrictionFunctor` object. If no such functor is provided, [RigidTerrain::GetCoefficientFriction](@ref chrono::vehicle::RigidTerrain::GetCoefficientFriction) uses the ray-casting approach to identify the correct patch and the (constant) coefficient of friction for that patch is returned. If a functor is provided, RigidTerrain::GetCoefficientFriction simply returns its value.  However, processing of contacts with the terrain (e.g., when using rigid tires or a tracked vehicle) is relatively expensive: at each invocation of the collision detection algorithm (i.e., once per simulation step) the list of all contacts in the Chrono system is traversed to intercept all contacts that involve a rigid terrain patch collision model; for these contacts, the composite material properties are modified to account for the terrain coefficient of friction at the point of contact.
 

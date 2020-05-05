@@ -61,18 +61,13 @@ class CH_MODELS_API M113_TrackShoeSinglePin : public ChTrackShoeSinglePin {
     /// Return the radius of the contact cylinders.
     virtual double GetCylinderRadius() const override { return m_cyl_radius; }
 
-    /// Return dimensions and locations of the contact boxes for the shoe and guiding pin.
-    /// Note that this is for contact with wheels, idler, and ground only.
-    /// This contact geometry does not affect contact with the sprocket.
-    virtual const ChVector<>& GetPadBoxDimensions() const override { return m_pad_box_dims; }
-    virtual const ChVector<>& GetPadBoxLocation() const override { return m_pad_box_loc; }
-    virtual const ChVector<>& GetGuideBoxDimensions() const override { return m_guide_box_dims; }
-    virtual const ChVector<>& GetGuideBoxLocation() const override { return m_guide_box_loc; }
+  private:
+    /// Create the contact materials.
+    void CreateContactMaterials(ChContactMethod contact_method) override;
 
     /// Add visualization assets for the track shoe subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
-  private:
     static const double m_shoe_height;
     static const double m_shoe_pitch;
     static const double m_shoe_mass;
@@ -82,12 +77,6 @@ class CH_MODELS_API M113_TrackShoeSinglePin : public ChTrackShoeSinglePin {
     static const double m_front_cyl_loc;
     static const double m_rear_cyl_loc;
 
-    static const ChVector<> m_pad_box_dims;
-    static const ChVector<> m_pad_box_loc;
-    static const ChVector<> m_guide_box_dims;
-    static const ChVector<> m_guide_box_loc;
-
-    static const std::string m_meshName;
     static const std::string m_meshFile;
 };
 

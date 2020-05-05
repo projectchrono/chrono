@@ -67,18 +67,13 @@ class CH_MODELS_API M113_TrackShoeDoublePin : public ChTrackShoeDoublePin {
     /// Return the width of a connector body (visualization only).
     virtual double GetConnectorWidth() const override { return m_connector_width; }
 
+  private:
+    /// Create the contact materials.
+    void CreateContactMaterials(ChContactMethod contact_method) override;
+
     /// Add visualization assets for the track shoe subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
-    /// Return dimensions and locations of the contact boxes for the shoe and guiding pin.
-    /// Note that this is for contact with wheels, idler, and ground only.
-    /// This contact geometry does not affect contact with the sprocket.
-    virtual const ChVector<>& GetPadBoxDimensions() const override { return m_pad_box_dims; }
-    virtual const ChVector<>& GetPadBoxLocation() const override { return m_pad_box_loc; }
-    virtual const ChVector<>& GetGuideBoxDimensions() const override { return m_guide_box_dims; }
-    virtual const ChVector<>& GetGuideBoxLocation() const override { return m_guide_box_loc; }
-
-  private:
     static const double m_shoe_mass;
     static const ChVector<> m_shoe_inertia;
     static const double m_shoe_length;
@@ -91,12 +86,6 @@ class CH_MODELS_API M113_TrackShoeDoublePin : public ChTrackShoeDoublePin {
     static const double m_connector_length;
     static const double m_connector_width;
 
-    static const ChVector<> m_pad_box_dims;
-    static const ChVector<> m_pad_box_loc;
-    static const ChVector<> m_guide_box_dims;
-    static const ChVector<> m_guide_box_loc;
-
-    static const std::string m_meshName;
     static const std::string m_meshFile;
 };
 

@@ -50,7 +50,7 @@ body_2.GetAssets().push_back(myasset)
 pov_exporter = postprocess.ChPovRay(my_system)
 
  # Sets some file names for in-out processes.
-pov_exporter.SetTemplateFile        ("../../../data/_template_POV.pov")
+pov_exporter.SetTemplateFile        (chrono.GetChronoDataFile("_template_POV.pov"))
 pov_exporter.SetOutputScriptFile    ("rendering_frames.pov")
 pov_exporter.SetOutputDataFilebase  ("my_state")
 pov_exporter.SetPictureFilebase     ("picture")

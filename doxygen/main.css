@@ -6350,6 +6350,15 @@ tr.inherit_header td{
 }
 
 
+
+/* tooltip related style info */
+
+.ttc {
+        position: absolute;
+        display: none;
+}
+
+
 /* @end */
 
 

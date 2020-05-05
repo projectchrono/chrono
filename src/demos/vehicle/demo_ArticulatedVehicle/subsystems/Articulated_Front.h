@@ -57,8 +57,7 @@ class Articulated_Chassis : public chrono::vehicle::ChRigidChassis {
 
 class Articulated_Front : public chrono::vehicle::ChWheeledVehicle {
   public:
-    Articulated_Front(const bool fixed = false,
-                      chrono::ChMaterialSurface::ContactMethod contactMethod = chrono::ChMaterialSurface::NSC);
+    Articulated_Front(const bool fixed = false, chrono::ChContactMethod contactMethod = chrono::ChContactMethod::NSC);
 
     ~Articulated_Front() {}
 

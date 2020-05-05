@@ -59,22 +59,22 @@
 %shared_ptr(chrono::vehicle::uaz::UAZBUS_Driveline4WD)
 
 /* Parse the header file to generate wrappers */
-%import "ChDriveline.i"
+%import "chrono_python/vehicle/ChDriveline.i"
 
 // Model:
-%include "../chrono_models/vehicle/generic/Generic_Driveline2WD.h"
-%include "../chrono_models/vehicle/generic/Generic_SimpleDriveline.h"
+%include "../../chrono_models/vehicle/generic/Generic_Driveline2WD.h"
+%include "../../chrono_models/vehicle/generic/Generic_SimpleDriveline.h"
 
-%include "../chrono_models/vehicle/hmmwv/HMMWV_Driveline2WD.h"
-%include "../chrono_models/vehicle/hmmwv/HMMWV_Driveline4WD.h"
-%include "../chrono_models/vehicle/hmmwv/HMMWV_SimpleDriveline.h"
+%include "../../chrono_models/vehicle/hmmwv/HMMWV_Driveline2WD.h"
+%include "../../chrono_models/vehicle/hmmwv/HMMWV_Driveline4WD.h"
+%include "../../chrono_models/vehicle/hmmwv/HMMWV_SimpleDriveline.h"
 
-%include "../chrono_models/vehicle/sedan/Sedan_Driveline2WD.h"
+%include "../../chrono_models/vehicle/sedan/Sedan_Driveline2WD.h"
 
-%include "../chrono_models/vehicle/citybus/CityBus_Driveline2WD.h"
+%include "../../chrono_models/vehicle/citybus/CityBus_Driveline2WD.h"
 
-%include "../chrono_models/vehicle/man/MAN_5t_SimpleDriveline.h"
-%include "../chrono_models/vehicle/man/MAN_5t_SimpleDrivelineXWD.h"
+%include "../../chrono_models/vehicle/man/MAN_5t_SimpleDriveline.h"
+%include "../../chrono_models/vehicle/man/MAN_5t_SimpleDrivelineXWD.h"
 
-%include "../chrono_models/vehicle/uaz/UAZBUS_Driveline2WD.h"
-%include "../chrono_models/vehicle/uaz/UAZBUS_Driveline4WD.h"
+%include "../../chrono_models/vehicle/uaz/UAZBUS_Driveline2WD.h"
+%include "../../chrono_models/vehicle/uaz/UAZBUS_Driveline4WD.h"

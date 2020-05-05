@@ -25,7 +25,7 @@
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 
-#include "chrono/collision/ChCCollisionSystemBullet.h"
+#include "chrono/collision/ChCollisionSystemBullet.h"
 
 namespace chrono {
 

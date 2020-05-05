@@ -23,6 +23,8 @@
 
 #include "chrono_models/vehicle/m113/M113_TrackShoeSinglePin.h"
 
+#include "chrono_thirdparty/filesystem/path.h"
+
 namespace chrono {
 namespace vehicle {
 namespace m113 {
@@ -39,21 +41,84 @@ const double M113_TrackShoeSinglePin::m_cyl_radius = 0.015;
 const double M113_TrackShoeSinglePin::m_front_cyl_loc = 0.0535;
 const double M113_TrackShoeSinglePin::m_rear_cyl_loc = -0.061;
 
-const ChVector<> M113_TrackShoeSinglePin::m_pad_box_dims(0.11, 0.19, 0.06);
-const ChVector<> M113_TrackShoeSinglePin::m_pad_box_loc(0, 0, 0);
-const ChVector<> M113_TrackShoeSinglePin::m_guide_box_dims(0.0284, 0.0114, 0.075);
-const ChVector<> M113_TrackShoeSinglePin::m_guide_box_loc(0.045, 0, 0.0375);
-
-const std::string M113_TrackShoeSinglePin::m_meshName = "TrackShoe_POV_geom";
 const std::string M113_TrackShoeSinglePin::m_meshFile = "M113/TrackShoe.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 M113_TrackShoeSinglePin::M113_TrackShoeSinglePin(const std::string& name) : ChTrackShoeSinglePin(name) {
-    SetContactFrictionCoefficient(0.8f);
-    SetContactRestitutionCoefficient(0.1f);
-    SetContactMaterialProperties(1e7f, 0.3f);
-    SetContactMaterialCoefficients(2e5f, 40.0f, 2e5f, 20.0f);
+    // Collision box: pad bottom (ground contact)
+    BoxShape box_bottom(ChVector<>(0, 0, -0.015), QUNIT, ChVector<>(0.11, 0.19, 0.03), 0);
+
+    // Collision box: pad top (wheel contact)
+    BoxShape box_top(ChVector<>(0, 0, +0.015), QUNIT, ChVector<>(0.10, 0.18, 0.03), 1);
+
+    // Collision box: guide pin (wheel contact)
+    BoxShape box_guide(ChVector<>(0.045, 0, 0.0375), QUNIT, ChVector<>(0.0284, 0.0114, 0.075), 2);
+
+    // Collision box: pad side outer (ground contact)
+    BoxShape box_side_outer(ChVector<>(0, +0.16245, 0), QUNIT, ChVector<>(0.1315, 0.0542, 0.02), 0);
+
+    // Collision box: pad side inner (ground contact)
+    BoxShape box_side_inner(ChVector<>(0, -0.16245, 0), QUNIT, ChVector<>(0.1315, 0.0542, 0.02), 0);
+
+    m_coll_boxes.push_back(box_bottom);
+    m_coll_boxes.push_back(box_top);
+    m_coll_boxes.push_back(box_guide);
+    m_coll_boxes.push_back(box_side_outer);
+    m_coll_boxes.push_back(box_side_inner);
+
+    m_vis_boxes.push_back(box_bottom);
+    m_vis_boxes.push_back(box_top);
+    m_vis_boxes.push_back(box_guide);
+    m_vis_boxes.push_back(box_side_outer);
+    m_vis_boxes.push_back(box_side_inner);
+
+    // Visualization cylinder: pin revolute joint
+    m_vis_cylinders.push_back(CylinderShape(ChVector<>(0.077, 0, 0), QUNIT, 0.01, 0.399, -1));
+
+    // Visualization cylinders: sprocket contact surfaces
+    m_vis_cylinders.push_back(CylinderShape(ChVector<>(0.0535, -0.095, 0), QUNIT, 0.015, 0.095, -1));
+    m_vis_cylinders.push_back(CylinderShape(ChVector<>(0.0535, +0.095, 0), QUNIT, 0.015, 0.095, -1));
+    m_vis_cylinders.push_back(CylinderShape(ChVector<>(-0.061, -0.095, 0), QUNIT, 0.015, 0.095, -1));
+    m_vis_cylinders.push_back(CylinderShape(ChVector<>(-0.061, +0.095, 0), QUNIT, 0.015, 0.095, -1));
+}
+
+void M113_TrackShoeSinglePin::CreateContactMaterials(ChContactMethod contact_method) {
+    // Material for cylindrical surfaces (sprocket contact)
+    {
+        MaterialInfo minfo;
+        minfo.mu = 0.8f;
+        minfo.cr = 0.1f;
+        minfo.Y = 1e7f;
+        m_cyl_material = minfo.CreateMaterial(contact_method);
+    }  
+    
+    // Material 0: pad bottom (ground contact)
+    {
+        MaterialInfo minfo;
+        minfo.mu = 0.8f;
+        minfo.cr = 0.1f;
+        minfo.Y = 1e7f;
+        m_shoe_materials.push_back(minfo.CreateMaterial(contact_method));
+    }
+
+    // Material 1: pad top (wheel contact)
+    {
+        MaterialInfo minfo;
+        minfo.mu = 0.8f;
+        minfo.cr = 0.1f;
+        minfo.Y = 1e7f;
+        m_shoe_materials.push_back(minfo.CreateMaterial(contact_method));
+    }
+
+    // Material 2: guide pin (wheel contact)
+    {
+        MaterialInfo minfo;
+        minfo.mu = 0.8f;
+        minfo.cr = 0.1f;
+        minfo.Y = 1e7f;
+        m_shoe_materials.push_back(minfo.CreateMaterial(contact_method));
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -64,7 +129,7 @@ void M113_TrackShoeSinglePin::AddVisualizationAssets(VisualizationType vis) {
         trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
-        trimesh_shape->SetName(m_meshName);
+        trimesh_shape->SetName(filesystem::path(m_meshFile).stem());
         trimesh_shape->SetStatic(true);
         m_shoe->AddAsset(trimesh_shape);
     } else {

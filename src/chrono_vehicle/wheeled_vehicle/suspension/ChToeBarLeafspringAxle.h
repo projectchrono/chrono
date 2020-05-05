@@ -211,9 +211,9 @@ class CH_VEHICLE_API ChToeBarLeafspringAxle : public ChSuspension {
     /// Return the free (rest) length of the spring element.
     virtual double getSpringRestLength() const = 0;
     /// Return the functor object for spring force.
-    virtual ChLinkTSDA::ForceFunctor* getSpringForceFunctor() const = 0;
+    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getSpringForceFunctor() const = 0;
     /// Return the functor object for shock force.
-    virtual ChLinkTSDA::ForceFunctor* getShockForceFunctor() const = 0;
+    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const = 0;
     /// Returns toplology flag for knuckle/draglink connection
     virtual bool isLeftKnuckleActuated() { return true; }
 

@@ -31,6 +31,7 @@ SET(ChronoEngine_CASCADE_SOURCES
 
 SET(ChronoEngine_CASCADE_HEADERS
     ChApiCASCADE.h
+	ChCascadeTriangulate.h
     ChCascadeMeshTools.h
     ChCascadeDoc.h
     ChCascadeShapeAsset.h

@@ -22,7 +22,7 @@
 #include "chrono/physics/ChProximityContainer.h"
 #include "chrono/physics/ChBody.h"
 
-#include "chrono/collision/ChCCollisionSystem.h"
+#include "chrono/collision/ChCollisionSystem.h"
 
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/solver/ChSystemDescriptorParallel.h"
@@ -45,24 +45,19 @@ class CH_PARALLEL_API ChCollisionSystemParallel : public ChCollisionSystem {
     ChCollisionSystemParallel(ChParallelDataManager* dc);
     virtual ~ChCollisionSystemParallel();
 
-    /// Clears all data instanced by this algorithm
+    /// Clear all data instanced by this algorithm
     /// if any (like persistent contact manifolds).
     virtual void Clear(void) override {}
 
-    /// Adds a collision model to the collision
+    /// Add a collision model to the collision
     /// engine (custom data may be allocated).
     virtual void Add(ChCollisionModel* model) override;
 
-    /// Removes a collision model from the collision
-    /// engine (custom data may be deallocated).
+    /// Remove a collision model from the collision engine.
+    /// Currently not implemented.
     virtual void Remove(ChCollisionModel* model) override;
 
-    /// Removes all collision models from the collision
-    /// engine (custom data may be deallocated).
-    // virtual void RemoveAll();
-
     /// Run the algorithm and finds all the contacts.
-    /// (Contacts will be managed by the Bullet persistent contact cache).
     virtual void Run() override;
 
     /// Return the time (in seconds) for broadphase collision detection.
@@ -71,24 +66,11 @@ class CH_PARALLEL_API ChCollisionSystemParallel : public ChCollisionSystem {
     /// Return the time (in seconds) for narrowphase collision detection.
     virtual double GetTimerCollisionNarrow() const override;
 
-    /// After the Run() has completed, you can call this function to
-    /// fill a 'contact container', that is an object inherited from class
-    /// ChContactContainer. For instance ChSystem, after each Run()
-    /// collision detection, calls this method multiple times for all contact containers in the system,
-    /// The basic behavior of the implementation is the following: collision system
-    /// will call in sequence the functions BeginAddContact(), AddContact() (x n times),
-    /// EndAddContact() of the contact container. But if a special container (say, GPU enabled)
-    /// is passed, a more rapid buffer copy might be performed).
-    virtual void ReportContacts(ChContactContainer* mcontactcontainer) override {}
+    /// Fill in the provided contact container with collision information after Run().
+    virtual void ReportContacts(ChContactContainer* mcontactcontainer) override;
 
-    /// After the Run() has completed, you can call this function to
-    /// fill a 'proximity container' (container of narrow phase pairs), that is
-    /// an object inherited from class ChProximityContainer. For instance ChSystem, after each Run()
-    /// collision detection, calls this method multiple times for all proximity containers in the system,
-    /// The basic behavior of the implementation is  the following: collision system
-    /// will call in sequence the functions BeginAddProximities(), AddProximity() (x n times),
-    /// EndAddProximities() of the proximity container. But if a special container (say, GPU enabled)
-    /// is passed, a more rapid buffer copy might be performed).
+    /// Fill in the provided proximity container with near point information after Run().
+    /// Not used in Chrono::Parallel.
     virtual void ReportProximities(ChProximityContainer* mproximitycontainer) override {}
 
     /// Perform a ray-hit test with all collision models.

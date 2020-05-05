@@ -36,6 +36,7 @@
 #include "chrono/geometry/ChLineBezier.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
+#include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/driver/ChHumanDriver.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
@@ -206,7 +207,7 @@ void ChHumanDriver::Create() {
     auto num_points = static_cast<unsigned int>(m_path->getNumPoints());
     auto path_asset = chrono_types::make_shared<ChLineShape>();
     path_asset->SetLineGeometry(chrono_types::make_shared<geometry::ChLineBezier>(m_path));
-    path_asset->SetColor(ChColor(0.0f, 0.8f, 0.0f));
+    path_asset->SetColor(ChColor(0.8f, 0.8f, 0.0f));
     path_asset->SetName(m_pathName);
     path_asset->SetNumRenderPoints(std::max<unsigned int>(2 * num_points, 400));
     road->AddAsset(path_asset);
@@ -220,7 +221,10 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
         m_acc_filter.Config(4, step, 2.0);
         m_run_once = false;
     }
-    double u = m_vehicle.GetVehicleSpeed();
+
+    auto& chassis_frame = m_vehicle.GetChassisBody()->GetFrame_REF_to_abs();  // chassis ref-to-world frame
+    double u = m_vehicle.GetVehicleSpeed();                                   // vehicle speed
+
     m_distance = m_UIntegrator.Filter(u);
     m_travel_time += step;
     if (u > m_speed_max) {
@@ -229,6 +233,7 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
     if (u < m_speed_min) {
         m_speed_min = u;
     }
+
     double acc = m_acc_filter.Filter(m_vehicle.GetVehicleAcceleration(ChVector<>(0, 0, 0)).y());
     if (acc > m_left_acc) {
         m_left_acc = acc;
@@ -237,24 +242,27 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
         m_right_acc = acc;
     }
 
-    ChQuaternion<> vehrot = m_vehicle.GetVehicleRot();
-    double psi = vehrot.Q_to_Euler123().z();
-    ChVector<> n_g(-sin(psi), cos(psi), 0);  ///< normal vector pointing to actual yaw center
-    ChVector<> t_g(cos(psi), sin(psi), 0);   ///< normal vector pointing to actual vehicle front
+    // Calculate unit vector pointing to the yaw center
+    ChVector<> n_g = m_vehicle.GetVehicleRot().GetYaxis();  // vehicle left direction
+    ChWorldFrame::Project(n_g);                             // projected onto horizontal plane
+    n_g.Normalize();                                        // normalized
+
+    // Calculate unit vector in the vehicle forward direction
+    ChVector<> t_g = m_vehicle.GetVehicleRot().GetXaxis();  // vehicle forward direction
+    ChWorldFrame::Project(t_g);                             // projected onto horizontal plane
+    t_g.Normalize();                                        // normalized
+
     double R = 0;
     double ut = u > m_uthres ? u : m_uthres;
-
+    double factor = ut * m_Tp;
     if (m_delta == 0.0) {
-        m_sentinel =
-            m_vehicle.GetChassisBody()->GetFrame_REF_to_abs().TransformPointLocalToParent(ChVector<>(ut * m_Tp, 0, 0));
+        m_sentinel = chassis_frame.TransformPointLocalToParent(factor * ChWorldFrame::Forward());
     } else {
         // m_Kug is in [°/g]
         R = (m_L + CH_C_DEG_TO_RAD * m_Kug * ut * ut / g) / m_delta;
         double theta = ut * m_Tp / R;
-        ChMatrix33<> RM(theta, ChVector<>(0, 0, 1));
-        m_sentinel =
-            m_vehicle.GetChassisBody()->GetFrame_REF_to_abs().TransformPointLocalToParent(ChVector<>(ut * m_Tp, 0, 0)) +
-            R * (n_g - RM * n_g);
+        ChMatrix33<> RM(theta, ChWorldFrame::Vertical());
+        m_sentinel = chassis_frame.TransformPointLocalToParent(factor * ChWorldFrame::Forward()) + R * (n_g - RM * n_g);
     }
 
     ChVector<> Pt = m_sentinel - m_S_l[m_idx_curr];
@@ -291,7 +299,7 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
     m_i_curr = m_idx_curr;
     m_j_curr = m_idx_curr;
 
-    ChVector<> n_lu = ChVector<>(0, 0, -1).Cross(m_R_lu[m_idx_curr]);
+    ChVector<> n_lu = m_R_lu[m_idx_curr] % ChWorldFrame::Vertical();  // cross product
 
     double err = Pt.Dot(n_lu);
 
@@ -321,11 +329,13 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
         Lip_G = m_Li[i_next] - m_sentinel;
         Rj_G = m_Rj[m_j_curr] - m_sentinel;
         Rjp_G = m_Rj[j_next] - m_sentinel;
-        bool C1 = Li_G.Cross(Lip_G).z() > 0.0;
-        bool C2 = Rj_G.Cross(Rjp_G).z() < 0.0;
-        bool C3 = Lip_G.Cross(Rjp_G).z() > 0.0;
-        bool C4I = (Li_G.Cross(r_rv).z() > 0.0) && (Lip_G.Cross(r_rv).z() <= 0.0);
-        bool C4J = (Rj_G.Cross(r_lv).z() < 0.0) && (Rjp_G.Cross(r_lv).z() >= 0.0);
+
+        bool C1 = ChWorldFrame::Height(Li_G.Cross(Lip_G)) > 0.0;
+        bool C2 = ChWorldFrame::Height(Rj_G.Cross(Rjp_G)) < 0.0;
+        bool C3 = ChWorldFrame::Height(Lip_G.Cross(Rjp_G)) > 0.0;
+        bool C4I = (ChWorldFrame::Height(Li_G.Cross(r_rv)) > 0.0) && (ChWorldFrame::Height(Lip_G.Cross(r_rv)) <= 0.0);
+        bool C4J = (ChWorldFrame::Height(Rj_G.Cross(r_lv)) < 0.0) && (ChWorldFrame::Height(Rjp_G.Cross(r_lv)) >= 0.0);
+
         d_long = std::max(Li_G.Length(), Rj_G.Length());
         if ((C1 || C2) && C3) {
             if (C1 && !C4I && !i_restrict) {
@@ -381,15 +391,15 @@ void ChHumanDriver::Initialize() {
             m_R_l[i] = m_S_l[i + 1] - m_S_l[i];
             m_R_lu[i] = m_R_l[i];
             m_R_lu[i].Normalize();
-            m_Li[i] = m_S_l[i] + 0.5 * m_road_width * m_R_lu[i].Cross(ChVector<>(0, 0, 1));
-            m_Rj[i] = m_S_l[i] - 0.5 * m_road_width * m_R_lu[i].Cross(ChVector<>(0, 0, 1));
+            m_Li[i] = m_S_l[i] + 0.5 * m_road_width * m_R_lu[i].Cross(ChWorldFrame::Vertical());
+            m_Rj[i] = m_S_l[i] - 0.5 * m_road_width * m_R_lu[i].Cross(ChWorldFrame::Vertical());
         }
         // connect the last point to the first point
         m_R_l[np - 1] = m_S_l[0] - m_S_l[np - 1];
         m_R_lu[np - 1] = m_R_l[np - 1];
         m_R_lu[np - 1].Normalize();
-        m_Li[np - 1] = m_S_l[np - 1] + 0.5 * m_road_width * m_R_lu[np - 1].Cross(ChVector<>(0, 0, 1));
-        m_Rj[np - 1] = m_S_l[np - 1] - 0.5 * m_road_width * m_R_lu[np - 1].Cross(ChVector<>(0, 0, 1));
+        m_Li[np - 1] = m_S_l[np - 1] + 0.5 * m_road_width * m_R_lu[np - 1].Cross(ChWorldFrame::Vertical());
+        m_Rj[np - 1] = m_S_l[np - 1] - 0.5 * m_road_width * m_R_lu[np - 1].Cross(ChWorldFrame::Vertical());
     } else {
         for (size_t i = 0; i < np; i++) {
             m_S_l[i] = m_path->getPoint(i);
@@ -398,14 +408,14 @@ void ChHumanDriver::Initialize() {
             m_R_l[i] = m_S_l[i + 1] - m_S_l[i];
             m_R_lu[i] = m_R_l[i];
             m_R_lu[i].Normalize();
-            m_Li[i] = m_S_l[i] - 0.5 * m_road_width * m_R_lu[i].Cross(ChVector<>(0, 0, 1));
-            m_Rj[i] = m_S_l[i] + 0.5 * m_road_width * m_R_lu[i].Cross(ChVector<>(0, 0, 1));
+            m_Li[i] = m_S_l[i] - 0.5 * m_road_width * m_R_lu[i].Cross(ChWorldFrame::Vertical());
+            m_Rj[i] = m_S_l[i] + 0.5 * m_road_width * m_R_lu[i].Cross(ChWorldFrame::Vertical());
         }
         m_R_l[np - 1] = m_S_l[np - 1] - m_S_l[np - 2];
         m_R_lu[np - 1] = m_R_l[np - 1];
         m_R_lu[np - 1].Normalize();
-        m_Li[np - 1] = m_S_l[np - 1] - 0.5 * m_road_width * m_R_lu[np - 1].Cross(ChVector<>(0, 0, 1));
-        m_Rj[np - 1] = m_S_l[np - 1] + 0.5 * m_road_width * m_R_lu[np - 1].Cross(ChVector<>(0, 0, 1));
+        m_Li[np - 1] = m_S_l[np - 1] - 0.5 * m_road_width * m_R_lu[np - 1].Cross(ChWorldFrame::Vertical());
+        m_Rj[np - 1] = m_S_l[np - 1] + 0.5 * m_road_width * m_R_lu[np - 1].Cross(ChWorldFrame::Vertical());
     }
 }
 

@@ -42,10 +42,11 @@ class CH_MODELS_API Generic_RigidMeshTire : public ChRigidTire {
     virtual double GetMass() const override { return m_mass; }
     virtual ChVector<> GetInertia() const override { return m_inertia; }
 
+  private:
+    virtual void CreateContactMaterial(ChContactMethod contact_method) override;
     virtual void AddVisualizationAssets(VisualizationType vis) override;
     virtual void RemoveVisualizationAssets() override final;
 
-  private:
     static const double m_radius;
     static const double m_width;
     static const double m_mass;

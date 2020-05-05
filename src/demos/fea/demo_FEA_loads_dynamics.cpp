@@ -21,7 +21,6 @@
 #include "chrono/physics/ChLoadContainer.h"
 
 #include "chrono/solver/ChIterativeSolverLS.h"
-#include "chrono/timestepper/ChTimestepperHHT.h"
 
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChNodeFEAxyz.h"

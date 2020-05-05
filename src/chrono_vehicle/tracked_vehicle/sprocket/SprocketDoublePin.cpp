@@ -22,6 +22,8 @@
 #include "chrono_vehicle/tracked_vehicle/sprocket/SprocketDoublePin.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
+#include "chrono_thirdparty/filesystem/path.h"
+
 using namespace rapidjson;
 
 namespace chrono {
@@ -64,34 +66,18 @@ void SprocketDoublePin::Create(const rapidjson::Document& d) {
 
     // Read contact material data
     assert(d.HasMember("Contact Material"));
-
-    float mu = d["Contact Material"]["Coefficient of Friction"].GetFloat();
-    float cr = d["Contact Material"]["Coefficient of Restitution"].GetFloat();
-
-    SetContactFrictionCoefficient(mu);
-    SetContactRestitutionCoefficient(cr);
-
-    if (d["Contact Material"].HasMember("Properties")) {
-        float ym = d["Contact Material"]["Properties"]["Young Modulus"].GetFloat();
-        float pr = d["Contact Material"]["Properties"]["Poisson Ratio"].GetFloat();
-        SetContactMaterialProperties(ym, pr);
-    }
-    if (d["Contact Material"].HasMember("Coefficients")) {
-        float kn = d["Contact Material"]["Coefficients"]["Normal Stiffness"].GetFloat();
-        float gn = d["Contact Material"]["Coefficients"]["Normal Damping"].GetFloat();
-        float kt = d["Contact Material"]["Coefficients"]["Tangential Stiffness"].GetFloat();
-        float gt = d["Contact Material"]["Coefficients"]["Tangential Damping"].GetFloat();
-        SetContactMaterialCoefficients(kn, gn, kt, gt);
-    }
+    m_mat_info = ReadMaterialInfoJSON(d["Contact Material"]);
 
     // Read sprocket visualization
     if (d.HasMember("Visualization")) {
-        assert(d["Visualization"].HasMember("Mesh Filename"));
-        assert(d["Visualization"].HasMember("Mesh Name"));
-        m_meshFile = d["Visualization"]["Mesh Filename"].GetString();
-        m_meshName = d["Visualization"]["Mesh Name"].GetString();
+        assert(d["Visualization"].HasMember("Mesh"));
+        m_meshFile = d["Visualization"]["Mesh"].GetString();
         m_has_mesh = true;
     }
+}
+
+void SprocketDoublePin::CreateContactMaterial(ChContactMethod contact_method) {
+    m_material = m_mat_info.CreateMaterial(contact_method);
 }
 
 // -----------------------------------------------------------------------------
@@ -102,7 +88,7 @@ void SprocketDoublePin::AddVisualizationAssets(VisualizationType vis) {
         trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
-        trimesh_shape->SetName(m_meshName);
+        trimesh_shape->SetName(filesystem::path(m_meshFile).stem());
         trimesh_shape->SetStatic(true);
         m_gear->AddAsset(trimesh_shape);
     } else {

@@ -27,7 +27,7 @@ class TT_Tractor : public chrono::vehicle::ChWheeledVehicle {
   public:
     TT_Tractor(const bool fixed,
                chrono::vehicle::SuspensionType suspType,
-               chrono::ChMaterialSurface::ContactMethod contactMethod = chrono::ChMaterialSurface::NSC);
+               chrono::ChContactMethod contactMethod = chrono::ChContactMethod::NSC);
 
     ~TT_Tractor() {}
 

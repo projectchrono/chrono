@@ -72,18 +72,7 @@ class ChApi ChSystemSMC : public ChSystem {
     virtual ChSystemSMC* Clone() const override { return new ChSystemSMC(*this); }
 
     /// Return the contact method supported by this system.
-    /// Bodies added to this system must be compatible.
-    virtual ChMaterialSurface::ContactMethod GetContactMethod() const override {
-        return ChMaterialSurface::SMC;
-    }
-
-    /// Create a new body, consistent with the contact method and collision model used by this system.
-    /// The returned body is not added to the system.
-    virtual ChBody* NewBody() override { return new ChBody(ChMaterialSurface::SMC); }
-
-    /// Create a new body with non-centroidal reference frame, consistent with the contact method and
-    /// collision model used by this system.  The returned body is not added to the system.
-    virtual ChBodyAuxRef* NewBodyAuxRef() override { return new ChBodyAuxRef(ChMaterialSurface::SMC); }
+    virtual ChContactMethod GetContactMethod() const override { return ChContactMethod::SMC; }
 
     /// Replace the contact container.
     /// The provided container object must be inherited from ChContactContainerSMC.

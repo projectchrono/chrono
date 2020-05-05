@@ -64,13 +64,15 @@ class CH_MODELS_API M113_SprocketDoublePin : public ChSprocketDoublePin {
     /// Return offset of arc center.
     virtual double GetArcCenterOffset() const override { return m_gear_W; }
 
-    /// Add visualization of the sprocket.
-    virtual void AddVisualizationAssets(VisualizationType vis) override;
-
   protected:
     M113_SprocketDoublePin(const std::string& name);
 
-    virtual std::string GetMeshName() const = 0;
+    /// Create the contact material consistent with the specified contact method.
+    virtual void CreateContactMaterial(ChContactMethod contact_method) override;
+
+    /// Add visualization of the sprocket.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+
     virtual std::string GetMeshFile() const = 0;
 
     static const int m_num_teeth;
@@ -94,11 +96,9 @@ class CH_MODELS_API M113_SprocketDoublePinLeft : public M113_SprocketDoublePin {
     M113_SprocketDoublePinLeft() : M113_SprocketDoublePin("M113_SprocketLeft") {}
     ~M113_SprocketDoublePinLeft() {}
 
-    virtual std::string GetMeshName() const override { return m_meshName; }
     virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
 
   private:
-    static const std::string m_meshName;
     static const std::string m_meshFile;
 };
 
@@ -108,11 +108,9 @@ class CH_MODELS_API M113_SprocketDoublePinRight : public M113_SprocketDoublePin 
     M113_SprocketDoublePinRight() : M113_SprocketDoublePin("M113_SprocketRight") {}
     ~M113_SprocketDoublePinRight() {}
 
-    virtual std::string GetMeshName() const override { return m_meshName; }
     virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
 
   private:
-    static const std::string m_meshName;
     static const std::string m_meshFile;
 };
 

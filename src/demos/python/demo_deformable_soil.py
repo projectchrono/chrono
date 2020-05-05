@@ -25,10 +25,37 @@ import math
 # If running from a different directory, you must change the path to the data directory with: 
 #chrono.SetChronoDataPath('path/to/data')
 
+# If true, use provided callback to change soil properties based on location
+var_params = True
+
+class MySoilParams (veh.SoilParametersCallback):
+    def __init__(self):
+        veh.SoilParametersCallback.__init__(self)
+    def Set(self, x, y):
+        if y > 0 :
+            self.m_Bekker_Kphi = 0.2e6
+            self.m_Bekker_Kc = 0
+            self.m_Bekker_n = 1.1
+            self.m_Mohr_cohesion = 0
+            self.m_Mohr_friction = 30
+            self.m_Janosi_shear = 0.01
+            self.m_elastic_K = 4e7
+            self.m_damping_R = 3e4
+        else:
+            self.m_Bekker_Kphi = 5301e3
+            self.m_Bekker_Kc = 102e3
+            self.m_Bekker_n = 0.793
+            self.m_Mohr_cohesion = 1.3e3
+            self.m_Mohr_friction = 31.1
+            self.m_Janosi_shear = 1.2e-2
+            self.m_elastic_K = 4e8
+            self.m_damping_R = 3e4
+        
+
 # Global parameters for tire
 tire_rad = 0.8
 tire_vel_z0 = -3
-tire_center = chrono.ChVectorD(0, 0.02 + tire_rad, 0)
+tire_center = chrono.ChVectorD(0, 0.02 + tire_rad, -1.5)
 tire_w0 = tire_vel_z0 / tire_rad
 
 # ----------------------------
@@ -60,8 +87,11 @@ body.AddAsset(vis_shape)
 body.AddAsset(chrono.ChColorAsset(0.3, 0.3, 0.3))
 
 # Set collision shape
+material = chrono.ChMaterialSurfaceSMC()
+
 body.GetCollisionModel().ClearModel()
-body.GetCollisionModel().AddTriangleMesh(mesh,                    # the mesh 
+body.GetCollisionModel().AddTriangleMesh(material,                # contact material
+                                         mesh,                    # the mesh 
                                          False,                   # is it static?
                                          False,                   # is it convex?
                                          chrono.ChVectorD(0,0,0), # position on body
@@ -87,22 +117,21 @@ terrain = veh.SCMDeformableTerrain(mysystem)
 terrain.SetPlane(chrono.ChCoordsysD(chrono.ChVectorD(0,0,0.5), chrono.Q_from_AngX(-math.pi/2)))
 terrain.Initialize(0.2, 1.5, 5, 20, 60)
 
-# Set soil properties
-terrain.SetSoilParameters(0.2e6,  # Bekker Kphi
-                          0,      # Bekker Kc
-                          1.1,    # Bekker n exponent
-                          0,      # Mohr cohesive limit (Pa)
-                          30,     # Mohr friction limit (degrees)
-                          0.01,   # Janosi shear coefficient (m)
-                          4e7,    # Elastic stiffness (Pa/m), before plastic yield, must be > Kphi
-                          3e4)    # Damping (Pa s/m), proportional to negative vertical speed (optional)
-
-# Enable bulldozing effects (inflate soil at the border of the rut)
-terrain.SetBulldozingFlow(True)
-terrain.SetBulldozingParameters(55,   # angle of friction for erosion of displaced material at the rut border
-                                1,    # displaced material vs downward pressed material.
-                                5,    # number of erosion refinements per timestep
-                                10)   # number of concentric vertex selections subject to erosion
+my_params = MySoilParams()
+if var_params:
+    # Location-dependent soil properties
+    terrain.RegisterSoilParametersCallback(my_params)
+else :
+    # Constant soil properties
+    terrain.SetSoilParameters(0.2e6,  # Bekker Kphi
+                               0,      # Bekker Kc
+                               1.1,    # Bekker n exponent
+                               0,      # Mohr cohesive limit (Pa)
+                               30,     # Mohr friction limit (degrees)
+                               0.01,   # Janosi shear coefficient (m)
+                               4e7,    # Elastic stiffness (Pa/m), before plastic yield, must be > Kphi
+                               3e4     # Damping (Pa s/m), proportional to negative vertical speed (optional)
+    )
 
 # Turn on the automatic mesh refinement
 terrain.SetAutomaticRefinement(True)
@@ -127,9 +156,9 @@ myapplication.AddLightWithShadow(chronoirr.vector3df(1.5,5.5,-2.5),    # point
                                  40,                                   # angle of FOV
                                  512,                                  # resoluition
                                  chronoirr.SColorf(0.8,0.8,1))         # light color
-myapplication.AssetBindAll();
-myapplication.AssetUpdateAll();
-myapplication.AddShadowAll();
+myapplication.AssetBindAll()
+myapplication.AssetUpdateAll()
+myapplication.AddShadowAll()
 
 # ------------------
 # Run the simulation
@@ -139,6 +168,7 @@ myapplication.SetTimestep(0.002)
 
 while(myapplication.GetDevice().run()):
     myapplication.BeginScene()
+    myapplication.GetSceneManager().getActiveCamera().setTarget(chronoirr.vector3dfCH(body.GetPos()))
     myapplication.DrawAll()
     myapplication.DoStep()
     myapplication.EndScene()

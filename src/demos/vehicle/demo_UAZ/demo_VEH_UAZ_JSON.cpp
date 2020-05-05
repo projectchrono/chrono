@@ -58,6 +58,7 @@ std::string vehicle_file("uaz/vehicle/UAZ469_Vehicle.json");
 
 // JSON files for terrain
 std::string rigidterrain_file("terrain/RigidPlane.json");
+////std::string rigidterrain_file("terrain/RigidPatches.json");
 ////std::string rigidterrain_file("terrain/RigidMesh.json");
 ////std::string rigidterrain_file("terrain/RigidHeightMap.json");
 ////std::string rigidterrain_file("terrain/RigidSlope10.json");
@@ -80,7 +81,7 @@ std::string driver_file("generic/driver/Sample_Maneuver.txt");
 TireModelType tire_model = TireModelType::TMEASY;
 
 // Initial vehicle position, avoid big fall heights with TMeasy
-ChVector<> initLoc(0, 0, 0.38);
+ChVector<> initLoc(-40, 0, 0.4);
 
 // Initial vehicle orientation
 ChQuaternion<> initRot(1, 0, 0, 0);
@@ -123,7 +124,7 @@ int main(int argc, char* argv[]) {
     // --------------------------
 
     // Create the vehicle system
-    WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChMaterialSurface::NSC);
+    WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChContactMethod::NSC);
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
     ////vehicle.GetChassis()->SetFixed(true);

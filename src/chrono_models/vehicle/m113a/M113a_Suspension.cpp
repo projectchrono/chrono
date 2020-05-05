@@ -96,11 +96,11 @@ class M113a_ShockForce : public ChLinkTSDA::ForceFunctor {
 M113a_Suspension::M113a_Suspension(const std::string& name, VehicleSide side, int index, bool has_shock)
     : ChLinearDamperRWAssembly(name, has_shock), m_side(side) {
     // Instantiate the force callback for the shock (damper).
-    m_shock_forceCB = new M113a_ShockForce();
+    m_shock_forceCB = chrono_types::make_shared<M113a_ShockForce>();
 
     // Instantiate the torque callback for the spring.
-    m_spring_torqueCB = new M113a_SpringTorque(m_torsion_k, m_torsion_c, m_torsion_t, m_torsion_kstop,
-                                               m_torsion_lowerstop, m_torsion_upperstop);
+    m_spring_torqueCB = chrono_types::make_shared<M113a_SpringTorque>(
+        m_torsion_k, m_torsion_c, m_torsion_t, m_torsion_kstop, m_torsion_lowerstop, m_torsion_upperstop);
 
     // Create the associated road wheel.
     if (side == LEFT)
@@ -109,10 +109,7 @@ M113a_Suspension::M113a_Suspension(const std::string& name, VehicleSide side, in
         m_road_wheel = chrono_types::make_shared<M113a_RoadWheelRight>(index);
 }
 
-M113a_Suspension::~M113a_Suspension() {
-    delete m_shock_forceCB;
-    delete m_spring_torqueCB;
-}
+M113a_Suspension::~M113a_Suspension() {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

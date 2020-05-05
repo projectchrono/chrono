@@ -71,7 +71,7 @@ double terrainWidth = 200.0;   // size in Y direction
 ChVector<> trackPoint(0.0, 0.0, 1.75);
 
 // Contact method
-ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::SMC;
+ChContactMethod contact_method = ChContactMethod::SMC;
 bool contact_vis = false;
 
 // Simulation step sizes
@@ -123,34 +123,37 @@ int main(int argc, char* argv[]) {
     // Create the terrain
     RigidTerrain terrain(my_bus.GetSystem());
 
+    MaterialInfo minfo;
+    minfo.mu = 0.9f;
+    minfo.cr = 0.01f;
+    minfo.Y = 2e7f;
+    auto patch_mat = minfo.CreateMaterial(contact_method);
+
     std::shared_ptr<RigidTerrain::Patch> patch;
     switch (terrain_model) {
         case RigidTerrain::PatchType::BOX:
-            patch = terrain.AddPatch(ChCoordsys<>(ChVector<>(0, 0, terrainHeight - 5), QUNIT),
-                                     ChVector<>(terrainLength, terrainWidth, 10));
+            patch = terrain.AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), terrainLength, terrainWidth);
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
             break;
         case RigidTerrain::PatchType::HEIGHT_MAP:
-            patch = terrain.AddPatch(CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"), "test64", 128,
-                                     128, 0, 4);
+            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"),
+                                     "test64", 128, 128, 0, 4);
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
             break;
         case RigidTerrain::PatchType::MESH:
-            patch = terrain.AddPatch(CSYSNORM, vehicle::GetDataFile("terrain/meshes/test.obj"), "test_mesh");
+            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/meshes/test.obj"), "test_mesh");
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 100, 100);
             break;
     }
-    patch->SetContactFrictionCoefficient(0.9f);
-    patch->SetContactRestitutionCoefficient(0.01f);
-    patch->SetContactMaterialProperties(2e7f, 0.3f);
     patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
+    
     terrain.Initialize();
 
     // Create the vehicle Irrlicht interface
     ChWheeledVehicleIrrApp app(&my_bus.GetVehicle(), L"City Bus Demo");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
-    app.SetChaseCamera(trackPoint, 10.0, 0.5);
+    app.SetChaseCamera(trackPoint, 14.0, 0.5);
     app.SetTimestep(step_size);
     app.AssetBindAll();
     app.AssetUpdateAll();

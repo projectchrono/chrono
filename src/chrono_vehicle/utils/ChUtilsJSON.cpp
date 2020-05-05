@@ -121,6 +121,27 @@ ChColor ReadColorJSON(const Value& a) {
 
 // -----------------------------------------------------------------------------
 
+MaterialInfo ReadMaterialInfoJSON(const rapidjson::Value& mat) {
+    MaterialInfo minfo;
+
+    minfo.mu = mat["Coefficient of Friction"].GetFloat();
+    minfo.cr = mat["Coefficient of Restitution"].GetFloat();
+    if (mat.HasMember("Properties")) {
+        minfo.Y = mat["Properties"]["Young Modulus"].GetFloat();
+        minfo.nu = mat["Properties"]["Poisson Ratio"].GetFloat();
+    }
+    if (mat.HasMember("Coefficients")) {
+        minfo.kn = mat["Coefficients"]["Normal Stiffness"].GetFloat();
+        minfo.gn = mat["Coefficients"]["Normal Damping"].GetFloat();
+        minfo.kt = mat["Coefficients"]["Tangential Stiffness"].GetFloat();
+        minfo.gt = mat["Coefficients"]["Tangential Damping"].GetFloat();
+    }
+
+    return minfo;
+}
+
+// -----------------------------------------------------------------------------
+
 std::shared_ptr<ChChassis> ReadChassisJSON(const std::string& filename) {
     std::shared_ptr<ChChassis> chassis;
 

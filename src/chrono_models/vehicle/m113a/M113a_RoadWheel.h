@@ -46,16 +46,18 @@ class CH_MODELS_API M113a_RoadWheel : public ChDoubleRoadWheel {
     /// Return the gap width.
     virtual double GetWheelGap() const override { return m_wheel_gap; }
 
-    /// Add visualization of the road wheel.
-    virtual void AddVisualizationAssets(VisualizationType vis) override;
-
   protected:
     M113a_RoadWheel(const std::string& name);
 
     virtual VehicleSide GetVehicleSide() const = 0;
 
-    virtual std::string GetMeshName() const = 0;
     virtual std::string GetMeshFile() const = 0;
+
+    /// Create the contact material consistent with the specified contact method.
+    virtual void CreateContactMaterial(ChContactMethod contact_method) override;
+
+    /// Add visualization of the road wheel.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
 
     static const double m_wheel_mass;
     static const ChVector<> m_wheel_inertia;
@@ -71,11 +73,9 @@ class CH_MODELS_API M113a_RoadWheelLeft : public M113a_RoadWheel {
 
     virtual VehicleSide GetVehicleSide() const override { return LEFT; }
 
-    virtual std::string GetMeshName() const override { return m_meshName; }
     virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
 
   private:
-    static const std::string m_meshName;
     static const std::string m_meshFile;
 };
 
@@ -86,11 +86,9 @@ class CH_MODELS_API M113a_RoadWheelRight : public M113a_RoadWheel {
 
     virtual VehicleSide GetVehicleSide() const override { return RIGHT; }
 
-    virtual std::string GetMeshName() const override { return m_meshName; }
     virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
 
   private:
-    static const std::string m_meshName;
     static const std::string m_meshFile;
 };
 

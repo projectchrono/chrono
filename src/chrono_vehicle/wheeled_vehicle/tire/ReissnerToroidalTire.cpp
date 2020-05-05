@@ -33,7 +33,10 @@ ReissnerToroidalTire::ReissnerToroidalTire(const std::string& name)
       m_div_circumference(60),
       m_div_width(12),
       m_default_pressure(320.0e3),
-      m_alpha(0.015) {}
+      m_alpha(0.015) {
+    // default contact material
+    m_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+}
 
 void ReissnerToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) {
     // Create an isotropic material (shared by all elements)
@@ -124,6 +127,10 @@ std::vector<std::shared_ptr<ChNodeFEAbase>> ReissnerToroidalTire::GetConnectedNo
     }
 
     return nodes;
+}
+
+void ReissnerToroidalTire::CreateContactMaterial() {
+    m_contact_mat = m_mat;
 }
 
 }  // end namespace vehicle

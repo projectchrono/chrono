@@ -167,7 +167,7 @@ myapplication.AssetUpdateAll();
 
 
 myapplication.SetTimestep(0.005)
-
+myapplication.SetTryRealtime(True)
 
 while(myapplication.GetDevice().run()):
     myapplication.BeginScene()

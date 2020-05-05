@@ -121,7 +121,7 @@ class ChApi ChLinkTSDA : public ChLink {
     };
 
     /// Specify the functor object for calculating the force.
-    void RegisterForceFunctor(ForceFunctor* functor) { m_force_fun = functor; }
+    void RegisterForceFunctor(std::shared_ptr<ForceFunctor> functor) { m_force_fun = functor; }
 
     /// Class to be used as a callback interface for specifying the ODE, y' = f(t,y); y(0) = y0.
     class ChApi ODE {
@@ -275,8 +275,8 @@ class ChApi ChLinkTSDA : public ChLink {
     double m_r;  ///< damping coefficient (if no force functor provided)
     double m_f;  ///< constant actuation (if no force functor provided)
 
-    ForceFunctor* m_force_fun;  ///< functor for force calculation
-    double m_force;             ///< force in distance coordinates
+    std::shared_ptr<ForceFunctor> m_force_fun;  ///< functor for force calculation
+    double m_force;                             ///< force in distance coordinates
 
     ODE* m_ode_fun;                               ///< functor for ODE specification
     int m_nstates;                                ///< number of internal ODE states

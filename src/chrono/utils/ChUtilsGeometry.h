@@ -26,7 +26,7 @@
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChMathematics.h"
 
-#include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/collision/ChCollisionModel.h"
 
 namespace chrono {
 namespace utils {

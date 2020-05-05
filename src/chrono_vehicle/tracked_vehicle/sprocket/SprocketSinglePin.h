@@ -61,11 +61,14 @@ class CH_VEHICLE_API SprocketSinglePin : public ChSprocketSinglePin {
     /// Return the radius of the tooth arc centers.
     virtual double GetArcCentersRadius() const override { return m_gear_RC; }
 
-    /// Add visualization of the sprocket.
-    virtual void AddVisualizationAssets(VisualizationType vis) override;
-
   private:
     virtual void Create(const rapidjson::Document& d) override;
+
+    /// Create the contact material consistent with the specified contact method.
+    virtual void CreateContactMaterial(ChContactMethod contact_method) override;
+
+    /// Add visualization of the sprocket.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
 
     int m_num_teeth;
 
@@ -80,8 +83,9 @@ class CH_VEHICLE_API SprocketSinglePin : public ChSprocketSinglePin {
     double m_gear_RA;
 
     bool m_has_mesh;
-    std::string m_meshName;
     std::string m_meshFile;
+
+    MaterialInfo m_mat_info;
 };
 
 /// @} vehicle_tracked_sprocket

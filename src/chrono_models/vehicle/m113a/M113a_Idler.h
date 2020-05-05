@@ -61,23 +61,25 @@ class CH_MODELS_API M113a_Idler : public ChDoubleIdler {
     virtual double GetPrismaticPitchAngle() const override { return 0; }
 
     /// Return the functor object for spring force.
-    virtual ChLinkTSDA::ForceFunctor* GetTensionerForceCallback() const override { return m_tensionerForceCB; }
+    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> GetTensionerForceCallback() const override { return m_tensionerForceCB; }
 
     /// Return the free length for the tensioner spring.
     virtual double GetTensionerFreeLength() const override { return m_tensioner_l0; }
 
-    /// Add visualization of the idler.
-    virtual void AddVisualizationAssets(VisualizationType vis) override;
-
   protected:
     M113a_Idler(const std::string& name);
 
+    /// Create the contact material consistent with the specified contact method.
+    virtual void CreateContactMaterial(ChContactMethod contact_method) override;
+
+    /// Add visualization of the idler.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+
     virtual VehicleSide GetVehicleSide() const = 0;
 
-    virtual std::string GetMeshName() const = 0;
     virtual std::string GetMeshFile() const = 0;
 
-    ChLinkTSDA::ForceFunctor* m_tensionerForceCB;
+    std::shared_ptr<ChLinkTSDA::ForceFunctor> m_tensionerForceCB;
 
     static const double m_wheel_mass;
     static const ChVector<> m_wheel_inertia;
@@ -102,11 +104,9 @@ class CH_MODELS_API M113a_IdlerLeft : public M113a_Idler {
 
     virtual VehicleSide GetVehicleSide() const override { return LEFT; }
 
-    virtual std::string GetMeshName() const override { return m_meshName; }
     virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
 
   private:
-    static const std::string m_meshName;
     static const std::string m_meshFile;
 };
 
@@ -117,11 +117,9 @@ class CH_MODELS_API M113a_IdlerRight : public M113a_Idler {
 
     virtual VehicleSide GetVehicleSide() const override { return RIGHT; }
 
-    virtual std::string GetMeshName() const override { return m_meshName; }
     virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
 
   private:
-    static const std::string m_meshName;
     static const std::string m_meshFile;
 };
 

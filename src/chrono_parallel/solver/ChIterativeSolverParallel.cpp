@@ -74,7 +74,7 @@ void ChIterativeSolverParallel::ComputeInvMassMatrix() {
     for (int i = 0; i < (signed)num_bodies; i++) {
         if (data_manager->host_data.active_rigid[i]) {
             real inv_mass = 1.0 / body_list->at(i)->GetMass();
-            ChMatrix33<>& body_inv_inr = body_list->at(i)->VariablesBody().GetBodyInvInertia();
+            const ChMatrix33<>& body_inv_inr = body_list->at(i)->GetInvInertia();
 
             M_inv.append(i * 6 + 0, i * 6 + 0, inv_mass);
             M_inv.finalize(i * 6 + 0);
@@ -162,7 +162,7 @@ void ChIterativeSolverParallel::ComputeMassMatrix() {
     for (int i = 0; i < (signed)num_bodies; i++) {
         if (data_manager->host_data.active_rigid[i]) {
             real mass = body_list->at(i)->GetMass();
-            ChMatrix33<>& body_inr = body_list->at(i)->VariablesBody().GetBodyInertia();
+            const ChMatrix33<>& body_inr = body_list->at(i)->GetInertia();
 
             M.append(i * 6 + 0, i * 6 + 0, mass);
             M.finalize(i * 6 + 0);

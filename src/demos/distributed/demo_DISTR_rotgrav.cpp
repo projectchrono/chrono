@@ -68,7 +68,8 @@ double height = -1.0;
 float Y = 2e6f;
 float mu = 0.4f;
 float cr = 0.05f;
-double gran_radius = 0.00125;  // 1.25mm radius
+double gran_radius = 0.02;
+////double gran_radius = 0.00125;  // 1.25mm radius
 double rho = 4000;
 double spacing = 2.5 * gran_radius;  // Distance between adjacent centers of particles
 double mass = rho * 4 / 3 * CH_C_PI * gran_radius * gran_radius * gran_radius;
@@ -76,7 +77,7 @@ ChVector<> inertia = (2.0 / 5.0) * mass * gran_radius * gran_radius * ChVector<>
 
 // Simulation
 double time_step = 1e-4;
-double out_fps = 120;
+double out_fps = 100;
 unsigned int max_iteration = 100;
 double tolerance = 1e-4;
 
@@ -128,8 +129,8 @@ void AddContainer(ChSystemDistributed* sys) {
     mat->SetFriction(mu);
     mat->SetRestitution(cr);
 
-    auto bin = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>(), ChMaterialSurface::SMC);
-    bin->SetMaterialSurface(mat);
+    auto bin =
+        chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>());
     bin->SetIdentifier(binId);
     bin->SetMass(1);
     bin->SetPos(ChVector<>(0, 0, 0));
@@ -137,7 +138,7 @@ void AddContainer(ChSystemDistributed* sys) {
     bin->SetBodyFixed(true);
     sys->AddBodyAllRanks(bin);
 
-    auto cb = new ChBoundary(bin);
+    auto cb = new ChBoundary(bin, mat);
     // Floor
     cb->AddPlane(ChFrame<>(ChVector<>(0, 0, 0), QUNIT), ChVector2<>(2.0 * hx, 2.0 * hy));
     // low x
@@ -157,9 +158,7 @@ inline std::shared_ptr<ChBody> CreateBall(const ChVector<>& pos,
                                           double m,
                                           ChVector<> inertia,
                                           double radius) {
-    auto ball = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
-    ball->SetMaterialSurface(ballMat);
-
+    auto ball = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelDistributed>());
     ball->SetIdentifier(*ballId++);
     ball->SetMass(m);
     ball->SetInertiaXX(inertia);
@@ -169,7 +168,7 @@ inline std::shared_ptr<ChBody> CreateBall(const ChVector<>& pos,
     ball->SetCollide(true);
 
     ball->GetCollisionModel()->ClearModel();
-    utils::AddSphereGeometry(ball.get(), radius);
+    utils::AddSphereGeometry(ball.get(), ballMat, radius);
     ball->GetCollisionModel()->BuildModel();
     return ball;
 }

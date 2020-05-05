@@ -12,7 +12,6 @@ ENDIF()
 
 SET(DEMOS
     demo_VEH_CRGTerrain
-    demo_VEH_CRGHumanDriver
     )
 
 #--------------------------------------------------------------
@@ -37,6 +36,7 @@ FOREACH(PROGRAM ${DEMOS})
                           ChronoEngine
                           ChronoEngine_irrlicht
                           ChronoEngine_vehicle
+                          ChronoEngine_vehicle_irrlicht
                           ChronoModels_vehicle)
 
     INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})

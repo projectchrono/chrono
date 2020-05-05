@@ -29,7 +29,7 @@
 using namespace chrono;
 using namespace chrono::collision;
 
-class ChShaftTest : public ::testing::TestWithParam<int> {
+class ChShaftTest : public ::testing::TestWithParam<ChContactMethod> {
   protected:
     ChShaftTest() {
         // Settings
@@ -50,10 +50,10 @@ class ChShaftTest : public ::testing::TestWithParam<int> {
 
         // Create the mechanical system
         switch (GetParam()) {
-            case ChMaterialSurface::SMC:
+            case ChContactMethod::SMC:
                 system = new ChSystemParallelSMC();
                 break;
-            case ChMaterialSurface::NSC:
+            case ChContactMethod::NSC:
                 system = new ChSystemParallelNSC();
                 break;
         }
@@ -69,7 +69,7 @@ class ChShaftTest : public ::testing::TestWithParam<int> {
         system->GetSettings()->solver.clamp_bilaterals = clamp_bilaterals;
         system->GetSettings()->solver.bilateral_clamp_speed = bilateral_clamp_speed;
 
-        if (GetParam() == ChMaterialSurface::NSC) {
+        if (GetParam() == ChContactMethod::NSC) {
             ChSystemParallelNSC* systemNSC = static_cast<ChSystemParallelNSC*>(system);
             systemNSC->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
             systemNSC->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
@@ -435,4 +435,4 @@ TEST_P(ChShaftTest, shaft_shaft_shaft) {
     ////          << "     on C: " << planetaryBAC->GetTorqueReactionOn3() << "\n\n\n";
 }
 
-INSTANTIATE_TEST_CASE_P(ChronoParallel, ChShaftTest, ::testing::Values(ChMaterialSurface::NSC, ChMaterialSurface::SMC));
+INSTANTIATE_TEST_CASE_P(ChronoParallel, ChShaftTest, ::testing::Values(ChContactMethod::NSC, ChContactMethod::SMC));

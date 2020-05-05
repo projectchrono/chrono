@@ -54,7 +54,6 @@ class Model(object):
              
              self.myapplication = chronoirr.ChIrrApp(self.rev_pend_sys)
              self.myapplication.AddShadowAll();
-             self.myapplication.SetStepManage(True)
              self.myapplication.SetTimestep(0.01)
              self. myapplication.SetTryRealtime(True)
              
@@ -79,8 +78,7 @@ class Model(object):
       self.body_rod.SetMass(self.mass_rod)
 
       self.body_rod.SetInertiaXX(chrono.ChVectorD(self.inertia_rod_x,self.inertia_rod_y,self.inertia_rod_x))
-    # set collision surface properties
-      self.body_rod.SetMaterialSurface(self.rod_material)
+
 
 
 
@@ -101,7 +99,6 @@ class Model(object):
       self.body_floor = chrono.ChBody()
       self.body_floor.SetBodyFixed(True)
       self.body_floor.SetPos(chrono.ChVectorD(0, -5, 0 ))
-      self.body_floor.SetMaterialSurface(self.rod_material)
 
 
 
@@ -119,7 +116,6 @@ class Model(object):
 
       self.body_table = chrono.ChBody()
       self.body_table.SetPos(chrono.ChVectorD(0, -self.size_table_y/2, 0 ))
-      self.body_table.SetMaterialSurface(self.rod_material)
 
 
       if self.render:

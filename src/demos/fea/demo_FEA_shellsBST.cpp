@@ -345,9 +345,9 @@ int main(int argc, char* argv[]) {
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
     application.AddTypicalSky();
-	application.AddLightWithShadow(irr::core::vector3df(2, 2, 2), irr::core::vector3df(0, 0, 0), 6, 0.2, 6, 50);
-	application.AddLight(irr::core::vector3df(-2, -2, 0), 6, irr::video::SColorf(0.6,1,1,1));
-	application.AddLight(irr::core::vector3df(0, -2, -2), 6, irr::video::SColorf(0.6,1,1,1));
+    application.AddLightWithShadow(irr::core::vector3df(2, 2, 2), irr::core::vector3df(0, 0, 0), 6, 0.2, 6, 50);
+    application.AddLight(irr::core::vector3df(-2, -2, 0), 6, irr::video::SColorf(0.6f, 1.0f, 1.0f, 1.0f));
+    application.AddLight(irr::core::vector3df(0, -2, -2), 6, irr::video::SColorf(0.6f, 1.0f, 1.0f, 1.0f));
     //application.AddTypicalLights();
     application.AddTypicalCamera(core::vector3df(1.f, 0.3f, 1.3f),core::vector3df(0.5f, -0.3f, 0.5f));
 

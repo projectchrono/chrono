@@ -31,7 +31,7 @@ namespace citybus {
 CityBus::CityBus()
     : m_system(nullptr),
       m_vehicle(nullptr),
-      m_contactMethod(ChMaterialSurface::NSC),
+      m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(ChassisCollisionType::NONE),
       m_fixed(false),
       m_tireType(TireModelType::TMEASY),
@@ -44,7 +44,7 @@ CityBus::CityBus()
 CityBus::CityBus(ChSystem* system)
     : m_system(system),
       m_vehicle(nullptr),
-      m_contactMethod(ChMaterialSurface::NSC),
+      m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(ChassisCollisionType::NONE),
       m_fixed(false),
       m_tireType(TireModelType::RIGID),

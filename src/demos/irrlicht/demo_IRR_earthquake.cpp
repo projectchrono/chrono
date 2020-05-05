@@ -44,6 +44,7 @@ using namespace irr::gui;
 
 void create_column(ChSystemNSC& mphysicalSystem,
                    ChCoordsys<> base_pos,
+                   std::shared_ptr<ChMaterialSurface> material,
                    int col_nedges = 10,
                    double col_radius_hi = 0.45,
                    double col_radius_lo = 0.5,
@@ -66,7 +67,7 @@ void create_column(ChSystemNSC& mphysicalSystem,
         double y = col_base;
         mpoints.push_back(ChVector<>(x, y, z));
     }
-    auto bodyColumn = chrono_types::make_shared<ChBodyEasyConvexHull>(mpoints, col_density, true, true);
+    auto bodyColumn = chrono_types::make_shared<ChBodyEasyConvexHull>(mpoints, col_density, true, true, material);
     ChCoordsys<> cog_column(ChVector<>(0, col_base + col_height / 2, 0));
     ChCoordsys<> abs_cog_column = cog_column >> base_pos;
     bodyColumn->SetCoord(abs_cog_column);
@@ -95,7 +96,7 @@ int main(int argc, char* argv[]) {
 
     // Create a floor that is fixed (that is used also to represent the absolute reference)
 
-    auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 2, 20, 3000, false, true);
+    auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 2, 20, 3000, true, false);
     floorBody->SetPos(ChVector<>(0, -2, 0));
     floorBody->SetBodyFixed(true);
 
@@ -108,7 +109,9 @@ int main(int argc, char* argv[]) {
 
     // Create the table that is subject to earthquake
 
-    auto tableBody = chrono_types::make_shared<ChBodyEasyBox>(15, 1, 15, 3000, true, true);
+    auto table_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+
+    auto tableBody = chrono_types::make_shared<ChBodyEasyBox>(15, 1, 15, 3000, true, true, table_mat);
     tableBody->SetPos(ChVector<>(0, -0.5, 0));
 
     mphysicalSystem.Add(tableBody);
@@ -129,22 +132,29 @@ int main(int argc, char* argv[]) {
 
     mphysicalSystem.Add(linkEarthquake);
 
-    // Create few column chuncks
+    // Create few column chunks
+
+    // Contact material shared among all column chunks
+    auto column_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+
+    // Create three columns from 5 chunks each
     double spacing = 1.6;
     double density = 3000;
     for (int icol = 0; icol < 5; ++icol) {
         ChCoordsys<> base_position1(ChVector<>(icol * spacing, 0, 0));
-        create_column(mphysicalSystem, base_position1, 10, 0.45, 0.5, 1.5, density);
+        create_column(mphysicalSystem, base_position1, column_mat, 10, 0.45, 0.5, 1.5, density);
 
         ChCoordsys<> base_position2(ChVector<>(icol * spacing, 1.5, 0));
-        create_column(mphysicalSystem, base_position2, 10, 0.40, 0.45, 1.5, density);
+        create_column(mphysicalSystem, base_position2, column_mat, 10, 0.40, 0.45, 1.5, density);
 
         ChCoordsys<> base_position3(ChVector<>(icol * spacing, 3.0, 0));
-        create_column(mphysicalSystem, base_position3, 10, 0.35, 0.40, 1.5, density);
- 
+        create_column(mphysicalSystem, base_position3, column_mat, 10, 0.35, 0.40, 1.5, density);
+
         if (icol < 4) {
             auto bodyTop = chrono_types::make_shared<ChBodyEasyBox>(spacing, 0.4, 1.2,  // x y z sizes
-                                                           density, true, true);
+                                                                    density,            // density
+                                                                    true, true,         // visualize?, collision?
+                                                                    column_mat);        // contact material
 
             ChCoordsys<> cog_top(ChVector<>(icol * spacing + spacing / 2, 4.5 + 0.4 / 2, 0));
             bodyTop->SetCoord(cog_top);
@@ -171,13 +181,12 @@ int main(int argc, char* argv[]) {
 
     // mphysicalSystem.SetUseSleeping(true);
 
-    application.SetStepManage(true);
-    application.SetTimestep(0.005);
-    application.SetTryRealtime(true);
-
     //
     // THE SOFT-REAL-TIME CYCLE
     //
+
+    application.SetTimestep(0.005);
+    application.SetTryRealtime(true);
 
     while (application.GetDevice()->run()) {
         application.BeginScene(true, true, SColor(255, 140, 161, 192));

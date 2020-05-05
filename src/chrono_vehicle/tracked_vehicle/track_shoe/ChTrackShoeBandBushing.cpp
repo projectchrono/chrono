@@ -85,28 +85,10 @@ void ChTrackShoeBandBushing::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         m_web_segments[is]->SetRot(rot);
         m_web_segments[is]->SetMass(m_seg_mass);
         m_web_segments[is]->SetInertiaXX(m_seg_inertia);
+        m_web_segments[is]->SetCollide(true);
         chassis->GetSystem()->AddBody(m_web_segments[is]);
 
-        // Add contact geometry.
-        m_web_segments[is]->SetCollide(true);
-
-        switch (m_web_segments[is]->GetContactMethod()) {
-            case ChMaterialSurface::NSC:
-                m_web_segments[is]->GetMaterialSurfaceNSC()->SetFriction(m_friction);
-                m_web_segments[is]->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
-                break;
-            case ChMaterialSurface::SMC:
-                m_web_segments[is]->GetMaterialSurfaceSMC()->SetFriction(m_friction);
-                m_web_segments[is]->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
-                m_web_segments[is]->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);
-                m_web_segments[is]->GetMaterialSurfaceSMC()->SetPoissonRatio(m_poisson_ratio);
-                m_web_segments[is]->GetMaterialSurfaceSMC()->SetKn(m_kn);
-                m_web_segments[is]->GetMaterialSurfaceSMC()->SetGn(m_gn);
-                m_web_segments[is]->GetMaterialSurfaceSMC()->SetKt(m_kt);
-                m_web_segments[is]->GetMaterialSurfaceSMC()->SetGt(m_gt);
-                break;
-        }
-
+        // Add contact geometry
         AddWebContact(m_web_segments[is]);
     }
 }
@@ -139,7 +121,7 @@ void ChTrackShoeBandBushing::AddWebContact(std::shared_ptr<ChBody> segment) {
     segment->GetCollisionModel()->SetFamily(TrackedCollisionFamily::SHOES);
     segment->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::SHOES);
 
-    segment->GetCollisionModel()->AddBox(m_seg_length / 2, GetBeltWidth() / 2, GetWebThickness() / 2);
+    segment->GetCollisionModel()->AddBox(m_body_material, m_seg_length / 2, GetBeltWidth() / 2, GetWebThickness() / 2);
 
     segment->GetCollisionModel()->BuildModel();
 }
@@ -163,7 +145,9 @@ void ChTrackShoeBandBushing::RemoveVisualizationAssets() {
 }
 
 void ChTrackShoeBandBushing::AddWebVisualization(std::shared_ptr<ChBody> segment) {
-    segment->AddAsset(chrono_types::make_shared<ChColorAsset>(GetColor(m_index)));
+    ChColor col1 = GetColor(m_index);
+    ChColor col2(col1.R + 0.1f, col1.G + 0.1f, col1.B + 0.1f);
+    segment->AddAsset(chrono_types::make_shared<ChColorAsset>(col2));
 
     auto box = chrono_types::make_shared<ChBoxShape>();
     box->GetBoxGeometry().SetLengths(ChVector<>(m_seg_length, GetBeltWidth(), GetWebThickness()));

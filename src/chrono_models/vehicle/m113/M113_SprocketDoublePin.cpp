@@ -24,6 +24,8 @@
 
 #include "chrono_models/vehicle/m113/M113_SprocketDoublePin.h"
 
+#include "chrono_thirdparty/filesystem/path.h"
+
 namespace chrono {
 namespace vehicle {
 namespace m113 {
@@ -45,19 +47,19 @@ const double M113_SprocketDoublePin::m_gear_RA = 0.242;   // 9.53''
 const double M113_SprocketDoublePin::m_gear_C = 0.2371;  // 9.334''
 const double M113_SprocketDoublePin::m_gear_W = 0.0464;  // 1.825''
 
-const std::string M113_SprocketDoublePinLeft::m_meshName = "Sprocket2_L_POV_geom";
 const std::string M113_SprocketDoublePinLeft::m_meshFile = "M113/Sprocket2_L.obj";
-
-const std::string M113_SprocketDoublePinRight::m_meshName = "Sprocket2_R_POV_geom";
 const std::string M113_SprocketDoublePinRight::m_meshFile = "M113/Sprocket2_R.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113_SprocketDoublePin::M113_SprocketDoublePin(const std::string& name) : ChSprocketDoublePin(name) {
-    SetContactFrictionCoefficient(0.4f);
-    SetContactRestitutionCoefficient(0.1f);
-    SetContactMaterialProperties(1e7f, 0.3f);
-    SetContactMaterialCoefficients(2e5f, 40.0f, 2e5f, 20.0f);
+M113_SprocketDoublePin::M113_SprocketDoublePin(const std::string& name) : ChSprocketDoublePin(name) {}
+
+void M113_SprocketDoublePin::CreateContactMaterial(ChContactMethod contact_method) {
+    MaterialInfo minfo;
+    minfo.mu = 0.4f;
+    minfo.cr = 0.1f;
+    minfo.Y = 1e7f;
+    m_material = minfo.CreateMaterial(contact_method);
 }
 
 // -----------------------------------------------------------------------------
@@ -72,7 +74,7 @@ void M113_SprocketDoublePin::AddVisualizationAssets(VisualizationType vis) {
         ////trimesh.LoadWavefrontMesh(GetMeshFile(), false, false);
         ////auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         ////trimesh_shape->SetMesh(trimesh);
-        ////trimesh_shape->SetName(GetMeshName());
+        ////trimesh_shape->SetName(filesystem::path(GetMeshFile()).stem());
         ////trimesh_shape->SetStatic(true);
         ////m_gear->AddAsset(trimesh_shape);
     } else {

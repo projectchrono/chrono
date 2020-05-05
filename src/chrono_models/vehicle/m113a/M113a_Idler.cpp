@@ -23,6 +23,8 @@
 
 #include "chrono_models/vehicle/m113a/M113a_Idler.h"
 
+#include "chrono_thirdparty/filesystem/path.h"
+
 namespace chrono {
 namespace vehicle {
 namespace m113 {
@@ -45,10 +47,7 @@ const double M113a_Idler::m_tensioner_f = 5e4;//2e4;
 const double M113a_Idler::m_tensioner_k = 1e7;
 const double M113a_Idler::m_tensioner_c = 4e4;
 
-const std::string M113a_IdlerLeft::m_meshName = "Idler_L_POV_geom";
 const std::string M113a_IdlerLeft::m_meshFile = "M113/Idler_L.obj";
-
-const std::string M113a_IdlerRight::m_meshName = "Idler_R_POV_geom";
 const std::string M113a_IdlerRight::m_meshFile = "M113/Idler_R.obj";
 
 // -----------------------------------------------------------------------------
@@ -75,11 +74,16 @@ class M113a_TensionerForce : public ChLinkTSDA::ForceFunctor {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 M113a_Idler::M113a_Idler(const std::string& name) : ChDoubleIdler(name) {
-    SetContactFrictionCoefficient(0.7f);
-    SetContactRestitutionCoefficient(0.1f);
-    SetContactMaterialProperties(1e8f, 0.3f);
-    SetContactMaterialCoefficients(2e5f, 40.0f, 2e5f, 20.0f);
-    m_tensionerForceCB = new M113a_TensionerForce(m_tensioner_k, m_tensioner_c, m_tensioner_f, m_tensioner_l0);
+    m_tensionerForceCB =
+        chrono_types::make_shared<M113a_TensionerForce>(m_tensioner_k, m_tensioner_c, m_tensioner_f, m_tensioner_l0);
+}
+
+void M113a_Idler::CreateContactMaterial(ChContactMethod contact_method) {
+    MaterialInfo minfo;
+    minfo.mu = 0.7f;
+    minfo.cr = 0.1f;
+    minfo.Y = 1e7f;
+    m_material = minfo.CreateMaterial(contact_method);
 }
 
 // -----------------------------------------------------------------------------
@@ -92,7 +96,7 @@ void M113a_Idler::AddVisualizationAssets(VisualizationType vis) {
         trimesh->LoadWavefrontMesh(GetMeshFile(), false, false);
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
-        trimesh_shape->SetName(GetMeshName());
+        trimesh_shape->SetName(filesystem::path(GetMeshFile()).stem());
         trimesh_shape->SetStatic(true);
         m_wheel->AddAsset(trimesh_shape);
     }

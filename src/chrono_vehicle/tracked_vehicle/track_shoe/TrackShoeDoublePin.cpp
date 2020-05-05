@@ -21,6 +21,8 @@
 #include "chrono_vehicle/tracked_vehicle/track_shoe/TrackShoeDoublePin.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
+#include "chrono_thirdparty/filesystem/path.h"
+
 using namespace rapidjson;
 
 namespace chrono {
@@ -64,43 +66,92 @@ void TrackShoeDoublePin::Create(const rapidjson::Document& d) {
     m_connector_inertia = ReadVectorJSON(d["Connector"]["Inertia"]);
 
     // Read contact geometry data
-    assert(d.HasMember("Contact Geometry"));
-    assert(d["Contact Geometry"].HasMember("Shoe"));
+    assert(d.HasMember("Contact"));
+    assert(d["Contact"].HasMember("Connector Material"));
+    assert(d["Contact"].HasMember("Shoe Materials"));
+    assert(d["Contact"].HasMember("Shoe Shapes"));
+    assert(d["Contact"]["Shoe Materials"].IsArray());
+    assert(d["Contact"]["Shoe Shapes"].IsArray());
 
-    m_pad_box_dims = ReadVectorJSON(d["Contact Geometry"]["Shoe"]["Pad Dimensions"]);
-    m_pad_box_loc = ReadVectorJSON(d["Contact Geometry"]["Shoe"]["Pad Location"]);
-    m_guide_box_dims = ReadVectorJSON(d["Contact Geometry"]["Shoe"]["Guide Dimensions"]);
-    m_guide_box_loc = ReadVectorJSON(d["Contact Geometry"]["Shoe"]["Guide Location"]);
+    // Read contact material information (defer creating the materials until CreateContactMaterials)
 
-    // Read contact material data
-    assert(d.HasMember("Contact Material"));
+    m_cyl_mat_info = ReadMaterialInfoJSON(d["Contact"]["Connector Material"]);
 
-    float mu = d["Contact Material"]["Coefficient of Friction"].GetFloat();
-    float cr = d["Contact Material"]["Coefficient of Restitution"].GetFloat();
-
-    SetContactFrictionCoefficient(mu);
-    SetContactRestitutionCoefficient(cr);
-
-    if (d["Contact Material"].HasMember("Properties")) {
-        float ym = d["Contact Material"]["Properties"]["Young Modulus"].GetFloat();
-        float pr = d["Contact Material"]["Properties"]["Poisson Ratio"].GetFloat();
-        SetContactMaterialProperties(ym, pr);
-    }
-    if (d["Contact Material"].HasMember("Coefficients")) {
-        float kn = d["Contact Material"]["Coefficients"]["Normal Stiffness"].GetFloat();
-        float gn = d["Contact Material"]["Coefficients"]["Normal Damping"].GetFloat();
-        float kt = d["Contact Material"]["Coefficients"]["Tangential Stiffness"].GetFloat();
-        float gt = d["Contact Material"]["Coefficients"]["Tangential Damping"].GetFloat();
-        SetContactMaterialCoefficients(kn, gn, kt, gt);
+    int num_mats = d["Contact"]["Shoe Materials"].Size();
+    for (int i = 0; i < num_mats; i++) {
+        MaterialInfo minfo = ReadMaterialInfoJSON(d["Contact"]["Shoe Materials"][i]);
+        m_shoe_mat_info.push_back(minfo);
     }
 
-    // Read wheel visualization
+    // Read geometric collison data
+
+    int num_shapes = d["Contact"]["Shoe Shapes"].Size();
+
+    for (int i = 0; i < num_shapes; i++) {
+        const Value& shape = d["Contact"]["Shoe Shapes"][i];
+
+        std::string type = shape["Type"].GetString();
+        int matID = shape["Material Index"].GetInt();
+        assert(matID >= 0 && matID < num_mats);
+
+        if (type.compare("BOX") == 0) {
+            ChVector<> pos = ReadVectorJSON(shape["Location"]);
+            ChQuaternion<> rot = ReadQuaternionJSON(shape["Orientation"]);
+            ChVector<> dims = ReadVectorJSON(shape["Dimensions"]);
+            m_coll_boxes.push_back(BoxShape(pos, rot, dims, matID));
+        } else if (type.compare("CYLINDER") == 0) {
+            ChVector<> pos = ReadVectorJSON(shape["Location"]);
+            ChQuaternion<> rot = ReadQuaternionJSON(shape["Orientation"]);
+            double radius = shape["Radius"].GetDouble();
+            double length = shape["Length"].GetDouble();
+            m_coll_cylinders.push_back(CylinderShape(pos, rot, radius, length, matID));
+        }
+    }
+
+    // Read visualization data
+
     if (d.HasMember("Visualization")) {
-        assert(d["Visualization"].HasMember("Mesh Filename"));
-        assert(d["Visualization"].HasMember("Mesh Name"));
-        m_meshFile = d["Visualization"]["Mesh Filename"].GetString();
-        m_meshName = d["Visualization"]["Mesh Name"].GetString();
-        m_has_mesh = true;
+        if (d["Visualization"].HasMember("Mesh")) {
+            m_meshFile = d["Visualization"]["Mesh"].GetString();
+            m_has_mesh = true;
+        }
+
+        if (d["Visualization"].HasMember("Primitives")) {
+            assert(d["Visualization"]["Primitives"].IsArray());
+            int num_shapes = d["Visualization"]["Primitives"].Size();
+            for (int i = 0; i < num_shapes; i++) {
+                const Value& shape = d["Visualization"]["Primitives"][i];
+                std::string type = shape["Type"].GetString();
+                if (type.compare("BOX") == 0) {
+                    ChVector<> pos = ReadVectorJSON(shape["Location"]);
+                    ChQuaternion<> rot = ReadQuaternionJSON(shape["Orientation"]);
+                    ChVector<> dims = ReadVectorJSON(shape["Dimensions"]);
+                    m_vis_boxes.push_back(BoxShape(pos, rot, dims));
+                } else if (type.compare("CYLINDER") == 0) {
+                    ChVector<> pos = ReadVectorJSON(shape["Location"]);
+                    ChQuaternion<> rot = ReadQuaternionJSON(shape["Orientation"]);
+                    double radius = shape["Radius"].GetDouble();
+                    double length = shape["Length"].GetDouble();
+                    m_vis_cylinders.push_back(CylinderShape(pos, rot, radius, length));
+                }
+            }
+        }
+    } else {
+        // Default to using the collision shapes
+        for (auto box : m_coll_boxes) {
+            m_vis_boxes.push_back(box);
+        }
+        for (auto cyl : m_coll_cylinders) {
+            m_vis_cylinders.push_back(cyl);
+        }
+    }
+}
+
+void TrackShoeDoublePin::CreateContactMaterials(ChContactMethod contact_method) {
+    m_conn_material = m_cyl_mat_info.CreateMaterial(contact_method);
+
+    for (auto minfo : m_shoe_mat_info) {
+        m_shoe_materials.push_back(minfo.CreateMaterial(contact_method));
     }
 }
 
@@ -112,7 +163,7 @@ void TrackShoeDoublePin::AddVisualizationAssets(VisualizationType vis) {
         trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
-        trimesh_shape->SetName(m_meshName);
+        trimesh_shape->SetName(filesystem::path(m_meshFile).stem());
         trimesh_shape->SetStatic(true);
         m_shoe->AddAsset(trimesh_shape);
     } else {
