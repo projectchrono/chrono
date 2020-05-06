@@ -171,6 +171,11 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       list(APPEND CHRONO_LIB_NAMES "ChronoModels_vehicle")
       list(APPEND CHRONO_DLL_NAMES "ChronoModels_vehicle.dll")
       
+      if(${Chrono_HAS_irrlicht})
+        list(APPEND CHRONO_LIB_NAMES "ChronoEngine_vehicle_irrlicht")
+        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_vehicle_irrlicht.dll")
+      endif()
+
     elseif(${COMPONENT_UPPER} MATCHES "FSI")
  
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_FSI_INCLUDES@")

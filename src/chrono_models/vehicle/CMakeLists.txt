@@ -403,12 +403,6 @@ source_group("m113a" FILES ${CVM_M113_A_FILES})
 
 set(CXX_FLAGS ${CH_CXX_FLAGS})
 set(LIBRARIES ChronoEngine ChronoEngine_vehicle)
-if(ENABLE_MODULE_IRRLICHT)
-    set(CXX_FLAGS "${CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
-    list(APPEND LIBRARIES ChronoEngine_irrlicht)
-    list(APPEND LIBRARIES ${CH_IRRKLANGLIB})
-    include_directories(${CH_IRRLICHTINC})
-endif()
 
 add_library(ChronoModels_vehicle SHARED
     ${CVM_COMMON_FILES}
