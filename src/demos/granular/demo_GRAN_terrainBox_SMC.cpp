@@ -9,15 +9,16 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Conlain Kelly
+// Authors: Conlain Kelly, Nic Olsen
 // =============================================================================
 // Simple Chrono::Granular settling experiment which allows for sweeping various
-// simulation parameters.
+// simulation parameters to produce scaling analyses.
 // =============================================================================
 
 #include <iostream>
 #include <string>
 #include <cmath>
+#include <chrono>
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_granular/api/ChApiGranularChrono.h"
 #include "chrono_granular/physics/ChGranular.h"
@@ -87,6 +88,8 @@ int main(int argc, char* argv[]) {
     gran_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
     gran_sys.setOutputMode(params.write_mode);
 
+    gran_sys.set_rolling_mode(GRAN_ROLLING_MODE::NO_RESISTANCE);
+
     std::vector<ChVector<float>> body_points;
 
     {
@@ -119,16 +122,18 @@ int main(int argc, char* argv[]) {
             gran_sys.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
             break;
         case run_mode::FRICTIONLESS:
-        default:
-            // fall through to frictionless as default
             gran_sys.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
+            break;
+        default:
+            std::cout << "Invalid run mode" << std::endl;
+            return 1;
     }
 
     gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::EXTENDED_TAYLOR);
     gran_sys.set_fixed_stepSize(params.step_size);
-
-    filesystem::create_directory(filesystem::path(params.output_dir));
-
+    if (params.write_mode != GRAN_OUTPUT_MODE::NONE) {
+        filesystem::create_directory(filesystem::path(params.output_dir));
+    }
     gran_sys.set_BD_Fixed(true);
 
     gran_sys.setVerbose(params.verbose);
@@ -146,6 +151,7 @@ int main(int argc, char* argv[]) {
 
     std::cout << "frame step is " << frame_step << std::endl;
 
+    std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
     while (curr_time < params.time_end) {
         gran_sys.advance_simulation(frame_step);
         curr_time += frame_step;
@@ -153,6 +159,9 @@ int main(int argc, char* argv[]) {
         sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
         gran_sys.writeFile(std::string(filename));
     }
+    std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> time_sec = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
+    std::cout << time_sec.count() << " seconds" << std::endl;
 
     return 0;
 }
