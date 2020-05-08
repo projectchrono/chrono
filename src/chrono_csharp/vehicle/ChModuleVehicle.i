@@ -136,9 +136,10 @@ using namespace chrono::vehicle::uaz;
 %pointer_class(char,char_ptr);
 
 
-%template(vector_int) std::vector< int >;
-%template(TerrainForces) std::vector< chrono::vehicle::TerrainForce >;
-%template(WheelStates) std::vector< chrono::vehicle::WheelState >;
+%template(vector_int) std::vector<int>;
+%template(vector_double) std::vector<double>;
+%template(TerrainForces) std::vector<chrono::vehicle::TerrainForce>;
+%template(WheelStates) std::vector<chrono::vehicle::WheelState>;
 %template(ChWheelList) std::vector<std::shared_ptr<chrono::vehicle::ChWheel> > ;
 %template(ChAxleList) std::vector<std::shared_ptr<chrono::vehicle::ChAxle> > ;
 
