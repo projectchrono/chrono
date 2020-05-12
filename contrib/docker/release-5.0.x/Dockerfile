@@ -98,6 +98,9 @@ ADD chrono-root.tar.gz prelaunch_env.sh /
 ## Set the unprivileged chrono user as default
 USER chrono
 
-## Use bash as a generic entrypoint
+## Use bash as a generic entrypoint for builds
+#ENTRYPOINT ["/bin/bash"]
+
+## Use a predefined environment for production images
 ENTRYPOINT ["/bin/bash", "/prelaunch_env.sh"]
 
