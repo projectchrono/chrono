@@ -95,10 +95,30 @@ void ChSingleWishbone::InitializeSide(VehicleSide side,
     ChQuaternion<> chassisRot = chassis->GetFrame_REF_to_abs().GetRot();
     ChVector<> up = chassisRot.GetZaxis();
 
+    // Create and initialize the spindle body
+    m_spindle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
+    m_spindle[side]->SetPos(points[SPINDLE]);
+    m_spindle[side]->SetRot(chassisRot);
+    m_spindle[side]->SetWvel_loc(ChVector<>(0, ang_vel, 0));
+    m_spindle[side]->SetMass(getSpindleMass());
+    m_spindle[side]->SetInertiaXX(getSpindleInertia());
+    chassis->GetSystem()->AddBody(m_spindle[side]);
+
+    // Create and initialize the upright body
+    m_upright[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_upright[side]->SetNameString(m_name + "_upright" + suffix);
+    m_upright[side]->SetPos(points[UPRIGHT]);
+    m_upright[side]->SetRot(chassisRot);
+    m_upright[side]->SetMass(getUprightMass());
+    m_upright[side]->SetInertiaXX(getUprightInertiaMoments());
+    m_upright[side]->SetInertiaXY(getUprightInertiaProducts());
+    chassis->GetSystem()->AddBody(m_upright[side]);
+
     // Orientation of the control arm. 
     // Y axis along the direction of the control arm (connections to chassis and to upright).
     ChMatrix33<> A;
-    ChVector<> v = (points[CA_U] - points[CA_C]).Normalize();
+    ChVector<> v = (points[CA_U] - points[CA_C]).GetNormalized();
     ChVector<> u = Vcross(v, up);
     ChVector<> w = Vcross(u, v);
     A.Set_A_axis(u, v, w);
@@ -114,44 +134,24 @@ void ChSingleWishbone::InitializeSide(VehicleSide side,
     m_control_arm[side]->SetInertiaXY(getCAInertiaProducts());
     chassis->GetSystem()->AddBody(m_control_arm[side]);
 
-    // Create and initialize the spindle body
-    m_spindle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
-    m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
-    m_spindle[side]->SetPos(points[SPINDLE]);
-    m_spindle[side]->SetRot(rot);
-    m_spindle[side]->SetWvel_loc(ChVector<>(0, ang_vel, 0));
-    m_spindle[side]->SetMass(getSpindleMass());
-    m_spindle[side]->SetInertiaXX(getSpindleInertia());
-    chassis->GetSystem()->AddBody(m_spindle[side]);
-
-    // Create and initialize the upright body
-    m_upright[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
-    m_upright[side]->SetNameString(m_name + "_upright" + suffix);
-    m_upright[side]->SetPos(points[UPRIGHT]);
-    m_upright[side]->SetRot(rot);
-    m_upright[side]->SetMass(getUprightMass());
-    m_upright[side]->SetInertiaXX(getUprightInertiaMoments());
-    m_upright[side]->SetInertiaXY(getUprightInertiaProducts());
-    chassis->GetSystem()->AddBody(m_upright[side]);
-
-    // Create and initialize the revolute joint between upright and spindle (aligned with the arm direction)
+    // Create and initialize the revolute joint between upright and spindle
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
     m_revolute[side]->Initialize(m_spindle[side], m_upright[side],
-                                 ChCoordsys<>(points[SPINDLE], rot * Q_from_AngX(CH_C_PI_2)));
+                                 ChCoordsys<>(points[SPINDLE], chassisRot * Q_from_AngX(CH_C_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
 
-    // Create and initialize the revolute joint between chassis and CA (aligned with fwd direction)
+    // Create and initialize the revolute joint between chassis and CA
     m_revoluteCA[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revoluteCA[side]->SetNameString(m_name + "_revoluteCA" + suffix);
     m_revoluteCA[side]->Initialize(chassis, m_control_arm[side],
-                                   ChCoordsys<>(points[CA_C], rot * Q_from_AngY(CH_C_PI_2)));
+                                   ChCoordsys<>(points[CA_C], chassisRot * Q_from_AngY(CH_C_PI_2)));
     chassis->GetSystem()->AddLink(m_revoluteCA[side]);
 
-    // Create and initialize the revolute joint between upright and CA (perpendicular to the arm in the vertical plane)
+    // Create and initialize the revolute joint between upright and CA
     m_revoluteUA[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revoluteUA[side]->SetNameString(m_name + "_revoluteUA" + suffix);
-    m_revoluteUA[side]->Initialize(m_control_arm[side], m_upright[side], ChCoordsys<>(points[CA_U], rot));
+    m_revoluteUA[side]->Initialize(m_control_arm[side], m_upright[side], ChCoordsys<>(points[CA_U], chassisRot));
     chassis->GetSystem()->AddLink(m_revoluteUA[side]);
 
     // Create and initialize the tierod distance constraint between chassis and upright.
@@ -298,8 +298,8 @@ void ChSingleWishbone::AddVisualizationAssets(VisualizationType vis) {
     AddVisualizationControlArm(m_control_arm[RIGHT], m_pointsR[CA_C], m_pointsR[CA_U], getCARadius());
 
     // Add visualization for the shocks
-    m_shock[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.06, 150, 15));
-    m_shock[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.06, 150, 15));
+    m_shock[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.04, 150, 15));
+    m_shock[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.04, 150, 15));
     m_shock[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
     m_shock[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
 
@@ -342,11 +342,11 @@ void ChSingleWishbone::AddVisualizationControlArm(std::shared_ptr<ChBody> arm,
     cyl->GetCylinderGeometry().rad = radius;
     arm->AddAsset(cyl);
 
-    ////auto cyl_B = chrono_types::make_shared<ChCylinderShape>();
-    ////cyl_B->GetCylinderGeometry().p1 = p_B;
-    ////cyl_B->GetCylinderGeometry().p2 = p_U;
-    ////cyl_B->GetCylinderGeometry().rad = radius;
-    ////arm->AddAsset(cyl_B);
+    auto cyl_B = chrono_types::make_shared<ChCylinderShape>();
+    cyl_B->GetCylinderGeometry().p1 = p_C + ChVector<>(radius, 0, 0);
+    cyl_B->GetCylinderGeometry().p2 = p_C - ChVector<>(radius, 0, 0);
+    cyl_B->GetCylinderGeometry().rad = radius;
+    arm->AddAsset(cyl_B);
 
     auto col = chrono_types::make_shared<ChColorAsset>();
     col->SetColor(ChColor(0.7f, 0.7f, 0.7f));
