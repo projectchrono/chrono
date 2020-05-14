@@ -23,6 +23,12 @@
 
 %}
 
+
+
+%feature("director") chrono::vehicle::ChTerrain;
+%feature("director") SoilParametersCallback;
+
+
 %import "chrono_csharp/core/ChColor.i"
 %import "chrono_csharp/core/ChSystem.i"
 %import "chrono_csharp/core/ChVector.i"
@@ -40,9 +46,7 @@
 %include "../../chrono_vehicle/ChTerrain.h"    
 %include "../../chrono_vehicle/terrain/FlatTerrain.h"
 %include "../../chrono_vehicle/terrain/RigidTerrain.h"
-
-%feature("director") SoilParametersCallback;
 %include "../../chrono_vehicle/terrain/SCMDeformableTerrain.h"
 
+
 //%include "../../chrono_vehicle/terrain/CRGTerrain.h"
-//FEADeformableTerrain
