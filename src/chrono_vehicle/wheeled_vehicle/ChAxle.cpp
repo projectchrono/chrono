@@ -29,8 +29,10 @@ ChAxle::ChAxle() : m_steering_index(-1) {}
 
 void ChAxle::SetOutput(bool state) {
     m_suspension->SetOutput(state);
-    m_brake_left->SetOutput(state);
-    m_brake_right->SetOutput(state);
+    if (m_brake_left && m_brake_right) {
+        m_brake_left->SetOutput(state);
+        m_brake_right->SetOutput(state);
+    }
     for (auto& wheel : m_wheels) {
         wheel->SetOutput(state);
     }
@@ -48,8 +50,10 @@ void ChAxle::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                         double left_ang_vel,
                         double right_ang_vel) {
     m_suspension->Initialize(chassis, susp_location, tierod_body, steering_index, left_ang_vel, right_ang_vel);
-    m_brake_left->Initialize(m_suspension, LEFT);
-    m_brake_right->Initialize(m_suspension, RIGHT);
+    if (m_brake_left && m_brake_right) {
+        m_brake_left->Initialize(m_suspension, LEFT);
+        m_brake_right->Initialize(m_suspension, RIGHT);
+    }
     if (wheel_separation > 0) {
         assert(m_wheels.size() == 4);
         m_wheels[0]->Initialize(m_suspension->GetSpindle(LEFT), LEFT, -wheel_separation / 2);    // inner left
@@ -77,8 +81,10 @@ void ChAxle::Synchronize(double braking) {
     }
 
     // Apply braking input.
-    m_brake_left->Synchronize(braking);
-    m_brake_right->Synchronize(braking);
+    if (m_brake_left && m_brake_right) {
+        m_brake_left->Synchronize(braking);
+        m_brake_right->Synchronize(braking);
+    }
 }
 
 std::shared_ptr<ChWheel> ChAxle::GetWheel(VehicleSide side, WheelLocation location) const {

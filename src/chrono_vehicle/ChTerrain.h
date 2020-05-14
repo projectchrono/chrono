@@ -43,16 +43,16 @@ class CH_VEHICLE_API ChTerrain {
     virtual void Advance(double step) {}
 
     /// Get the terrain height below the specified location.
-    virtual double GetHeight(const ChVector<>& loc) const = 0;
+    virtual double GetHeight(const ChVector<>& loc) const;
 
     /// Get the terrain normal at the point below the specified location.
-    virtual ChVector<> GetNormal(const ChVector<>& loc) const = 0;
+    virtual ChVector<> GetNormal(const ChVector<>& loc) const;
 
     /// Get the terrain coefficient of friction at the point below the specified location.
     /// This coefficient of friction value may be used by certain tire models to modify
     /// the tire characteristics, but it will have no effect on the interaction of the terrain
     /// with other objects (including tire models that do not explicitly use it).
-    virtual float GetCoefficientFriction(const ChVector<>& loc) const = 0;
+    virtual float GetCoefficientFriction(const ChVector<>& loc) const;
 
     /// Class to be used as a functor interface for location-dependent coefficient of friction.
     class CH_VEHICLE_API FrictionFunctor {

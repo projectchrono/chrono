@@ -126,7 +126,7 @@ enum GRAN_FRICTION_MODE { FRICTIONLESS, SINGLE_STEP, MULTI_STEP };
 /// Rolling resistance models -- ELASTIC_PLASTIC not implemented yet
 enum GRAN_ROLLING_MODE { NO_RESISTANCE, SCHWARTZ, ELASTIC_PLASTIC };
 
-enum GRAN_OUTPUT_FLAGS { ABSV = 1, VEL_COMPONENTS = 2, FIXITY = 4, ANG_VEL_COMPONENTS = 8 };
+enum GRAN_OUTPUT_FLAGS { ABSV = 1, VEL_COMPONENTS = 2, FIXITY = 4, ANG_VEL_COMPONENTS = 8, FORCE_COMPONENTS = 16 };
 #define GET_OUTPUT_SETTING(setting) (this->output_flags & setting)
 
 /// Parameters needed for sphere-based granular dynamics. This structure is stored in CUDA unified memory so that it can
@@ -407,6 +407,9 @@ class CH_GRANULAR_API ChSystemGranularSMC {
     /// Set timestep size
     void set_fixed_stepSize(float size_UU) { stepSize_UU = size_UU; }
 
+    /// Ensure that the deformation-based length unit is used
+    void disableMinLength() { use_min_length_unit = false; }
+
     /// Set the time integration scheme for the system
     void set_timeIntegrator(GRAN_TIME_INTEGRATOR new_integrator) {
         gran_params->time_integrator = new_integrator;
@@ -497,9 +500,10 @@ class CH_GRANULAR_API ChSystemGranularSMC {
     }
 
     /// Set tuning psi factors for tuning the non-dimensionalization
-    void setPsiFactors(unsigned int psi_T_new, unsigned int psi_L_new) {
+    void setPsiFactors(unsigned int psi_T_new, unsigned int psi_L_new, float psi_R_new = 1.f) {
         psi_T = psi_T_new;
         psi_L = psi_L_new;
+        psi_R = psi_R_new;
     }
 
     /// Copy back the subdomain device data and save it to a file for error checking on the priming kernel
@@ -532,6 +536,9 @@ class CH_GRANULAR_API ChSystemGranularSMC {
     /// Safety factor on space adim
     unsigned int psi_L;
 
+    /// Fraction of sphere radius which gives an upper bound on the length unit
+    float psi_R;
+
     /// Wrap the device helper function
     int3 getSDTripletFromID(unsigned int SD_ID) const;
 
@@ -551,6 +558,10 @@ class CH_GRANULAR_API ChSystemGranularSMC {
 
     /// Allows the code to be very verbose for debugging
     GRAN_VERBOSITY verbosity;
+
+    /// If dividing the longest box dimension into INT_MAX pieces gives better resolution than the deformation-based
+    /// scaling, do that.
+    bool use_min_length_unit;
 
     /// Bit flags indicating what fields to write out during writeFile
     /// Set with the GRAN_OUTPUT_FLAGS enum

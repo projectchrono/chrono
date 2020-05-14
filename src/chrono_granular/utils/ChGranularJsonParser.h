@@ -67,6 +67,7 @@ typedef struct sim_param_holder {
     int run_mode;
     unsigned int psi_T;
     unsigned int psi_L;
+    float psi_R;
     string output_dir;
     string checkpoint_file;
     GRAN_OUTPUT_MODE write_mode;
@@ -320,6 +321,10 @@ bool ParseJSON(const char* json_file, sim_param_holder& params, bool verbose = t
     if (doc.HasMember("psi_L") && doc["psi_L"].IsInt()) {
         params.psi_L = doc["psi_L"].GetInt();
         CONDITIONAL_PRINTF(verbose, "params.psi_L %d\n", params.psi_L);
+    }
+    if (doc.HasMember("psi_R") && doc["psi_R"].IsNumber()) {
+        params.psi_R = doc["psi_R"].GetFloat();
+        CONDITIONAL_PRINTF(verbose, "params.psi_R %f\n", params.psi_R);
     }
     if (doc.HasMember("run_mode") && doc["run_mode"].IsInt()) {
         params.run_mode = doc["run_mode"].GetInt();
