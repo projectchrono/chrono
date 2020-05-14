@@ -22,6 +22,10 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 
 #include "chrono_models/vehicle/gator/Gator.h"
+#include "chrono_models/vehicle/gator/Gator_SimplePowertrain.h"
+////#include "chrono_models/vehicle/gator/Gator_SimpleMapPowertrain.h"
+#include "chrono_models/vehicle/gator/Gator_RigidTire.h"
+#include "chrono_models/vehicle/gator/Gator_TMeasyTire.h"
 
 namespace chrono {
 namespace vehicle {
@@ -82,7 +86,8 @@ void Gator::Initialize() {
     }
 
     // Create and initialize the powertrain system
-    auto powertrain = chrono_types::make_shared<Gator_SimpleMapPowertrain>("Powertrain");
+    auto powertrain = chrono_types::make_shared<Gator_SimplePowertrain>("Powertrain");
+    ////auto powertrain = chrono_types::make_shared<Gator_SimpleMapPowertrain>("Powertrain");
     m_vehicle->InitializePowertrain(powertrain);
 
     // Create the tires and set parameters depending on type.

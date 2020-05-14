@@ -19,24 +19,10 @@
 #ifndef GATOR_VEHICLE_H
 #define GATOR_VEHICLE_H
 
-#include <vector>
-
-#include "chrono/core/ChCoordsys.h"
-#include "chrono/physics/ChMaterialSurface.h"
-#include "chrono/physics/ChSystem.h"
-
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/vehicle/ChVehicleModelDefs.h"
-
-#include "chrono_models/vehicle/gator/Gator_BrakeSimple.h"
-#include "chrono_models/vehicle/gator/Gator_Chassis.h"
-#include "chrono_models/vehicle/gator/Gator_SingleWishbone.h"
-#include "chrono_models/vehicle/gator/Gator_RigidSuspension.h"
-#include "chrono_models/vehicle/gator/Gator_Driveline2WD.h"
-#include "chrono_models/vehicle/gator/Gator_RackPinion.h"
-#include "chrono_models/vehicle/gator/Gator_Wheel.h"
 
 namespace chrono {
 namespace vehicle {

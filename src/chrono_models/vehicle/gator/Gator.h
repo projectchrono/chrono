@@ -25,9 +25,6 @@
 
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/vehicle/gator/Gator_Vehicle.h"
-#include "chrono_models/vehicle/gator/Gator_SimpleMapPowertrain.h"
-#include "chrono_models/vehicle/gator/Gator_RigidTire.h"
-#include "chrono_models/vehicle/gator/Gator_TMeasyTire.h"
 
 namespace chrono {
 namespace vehicle {

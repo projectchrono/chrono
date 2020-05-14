@@ -28,6 +28,7 @@
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 
 #include "chrono_models/vehicle/gator/Gator.h"
+#include "chrono_models/vehicle/gator/Gator_SimplePowertrain.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -92,6 +93,7 @@ int main(int argc, char* argv[]) {
     gator.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     gator.SetTireType(tire_model);
     gator.SetTireStepSize(tire_step_size);
+    gator.SetAerodynamicDrag(0.5, 5.0, 1.2);
     gator.Initialize();
 
     gator.SetChassisVisualizationType(chassis_vis_type);

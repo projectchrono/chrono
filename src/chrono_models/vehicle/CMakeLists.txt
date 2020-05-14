@@ -331,6 +331,8 @@ set(CVM_GATOR_FILES
     gator/Gator_Chassis.cpp
     gator/Gator_SingleWishbone.cpp
     gator/Gator_SingleWishbone.h
+    gator/Gator_SimpleDriveline.cpp
+    gator/Gator_SimpleDriveline.h
     gator/Gator_Driveline2WD.cpp
     gator/Gator_Driveline2WD.h
     gator/Gator_RigidSuspension.cpp
@@ -341,6 +343,8 @@ set(CVM_GATOR_FILES
     gator/Gator_TMeasyTire.h
     gator/Gator_RackPinion.cpp
     gator/Gator_RackPinion.h
+    gator/Gator_SimplePowertrain.cpp
+    gator/Gator_SimplePowertrain.h
     gator/Gator_SimpleMapPowertrain.cpp
     gator/Gator_SimpleMapPowertrain.h
     gator/Gator_Vehicle.h

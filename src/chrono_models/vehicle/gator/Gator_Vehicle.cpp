@@ -23,6 +23,14 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 
 #include "chrono_models/vehicle/gator/Gator_Vehicle.h"
+#include "chrono_models/vehicle/gator/Gator_Chassis.h"
+#include "chrono_models/vehicle/gator/Gator_SingleWishbone.h"
+#include "chrono_models/vehicle/gator/Gator_RigidSuspension.h"
+#include "chrono_models/vehicle/gator/Gator_BrakeSimple.h"
+#include "chrono_models/vehicle/gator/Gator_RackPinion.h"
+#include "chrono_models/vehicle/gator/Gator_SimpleDriveline.h"
+////#include "chrono_models/vehicle/gator/Gator_Driveline2WD.h"
+#include "chrono_models/vehicle/gator/Gator_Wheel.h"
 
 namespace chrono {
 namespace vehicle {
@@ -61,8 +69,8 @@ void Gator_Vehicle::Create(bool fixed, ChassisCollisionType chassis_collision_ty
     m_axles[1]->m_wheels[0] = chrono_types::make_shared<Gator_Wheel>("Wheel_RL");
     m_axles[1]->m_wheels[1] = chrono_types::make_shared<Gator_Wheel>("Wheel_RR");
 
-    m_axles[0]->m_brake_left = chrono_types::make_shared<Gator_BrakeSimple>("Brake_FL");
-    m_axles[0]->m_brake_right = chrono_types::make_shared<Gator_BrakeSimple>("Brake_FR");
+    ////m_axles[0]->m_brake_left = chrono_types::make_shared<Gator_BrakeSimple>("Brake_FL");
+    ////m_axles[0]->m_brake_right = chrono_types::make_shared<Gator_BrakeSimple>("Brake_FR");
     m_axles[1]->m_brake_left = chrono_types::make_shared<Gator_BrakeSimple>("Brake_RL");
     m_axles[1]->m_brake_right = chrono_types::make_shared<Gator_BrakeSimple>("Brake_RR");
 
@@ -71,7 +79,8 @@ void Gator_Vehicle::Create(bool fixed, ChassisCollisionType chassis_collision_ty
     m_steerings[0] = chrono_types::make_shared<Gator_RackPinion>("Steering");
 
     // Create the driveline
-    m_driveline = chrono_types::make_shared<Gator_Driveline2WD>("Driveline");
+    m_driveline = chrono_types::make_shared<Gator_SimpleDriveline>("Driveline");
+    ////m_driveline = chrono_types::make_shared<Gator_Driveline2WD>("Driveline");
 }
 
 Gator_Vehicle::~Gator_Vehicle() {}
@@ -95,7 +104,7 @@ void Gator_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwd
                            0.0, m_omega[2], m_omega[3]);
 
     // Initialize the driveline subsystem (FWD)
-    std::vector<int> driven_susp_indexes = {0};
+    std::vector<int> driven_susp_indexes = {1};
     m_driveline->Initialize(m_chassis->GetBody(), m_axles, driven_susp_indexes);
 }
 
