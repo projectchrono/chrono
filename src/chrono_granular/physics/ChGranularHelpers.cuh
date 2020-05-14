@@ -254,21 +254,25 @@ inline __device__ float3 computeRollingAngAcc(GranSphereDataPtr sphere_data,
 
         switch (gran_params->rolling_mode) {
             case GRAN_ROLLING_MODE::SCHWARTZ: {
+                // As in chrono parallel
                 // Rolling component
                 // v_rot = l_p (w_p x n) - l_n (w_n x n)
-                const float dr = Length(r_contact);
-                const float3 n = r_contact / dr;
-                const float3 v_rot = dr * Cross(omega_rel, n);
+                const float3 v_rot = Cross(omega_rel, r_contact);
+                if (Length(v_rot) < 1e-7f) {  // TODO choose epsilon in SU L/T units
+                    return make_float3(0.f, 0.f, 0.f);
+                }
 
-                // As in chrono parallel
+                const float dr = Length(r_contact);
                 const float normal_force_mag = Length(normal_force);
-                float3 torque = rolling_coeff * Cross(normal_force_mag * r_contact, v_rot) / Length(v_rot);
+                float3 torque = (rolling_coeff * normal_force_mag / Length(v_rot)) * Cross(r_contact, v_rot);
 
                 // d_aa = torque / inertia
                 delta_Ang_Acc = 1.f / (gran_params->sphereInertia_by_r * gran_params->sphereRadius_SU) * torque;
                 break;
             }
-            default: { ABORTABORTABORT("Rolling mode not implemented\n"); }
+            default: {
+                ABORTABORTABORT("Rolling mode not implemented\n");
+            }
         }
     }
 
