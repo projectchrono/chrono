@@ -1,6 +1,8 @@
 Install Chrono {#tutorial_install_chrono_linux}
 ==========================
-This page will assume you are using an Arch Linux distribution to build Chrono, package manger commands and distribution specific instructions will be most applicable to Arch. The intent and order of each install step will be the same for most Linux distributions however.
+<div class="ce-info">
+The instruction process detailed here are universal to most major Linux distrubtions.
+</div>
 
 A summary of the process required to **build** Chrono is provided in the picture below. 
 
@@ -11,14 +13,16 @@ A summary of the process required to **build** Chrono is provided in the picture
 
 Recommended compilers:
 - GNU C++ compiler for Linux-based platforms (version 4.9 or newer).<br>
-Install the latest version of GCC through your package manger: `pacman -S gcc`.
+Install the latest version of GCC through your package manger: `gcc`.
+- LLVM Clang C and C++ compiler (version 1.6 or newer).<br>
+Install the latest version of Clang through your package manger: `clang`.
 
 Other compilers were also tested (e.g. Intel C++, PGI) but they are not officially supported and maintained.
 While it is likely possible to build Chrono with other tool chains, this might require changes to the CMake scripts.
 
 ## 2) Download and install the Eigen library
 
-Chrono now uses [Eigen3](http://eigen.tuxfamily.org/) for all of its internal dense linear algebra needs. Chrono requires Eigen version 3.3.0 or newer, but we strongly encourage using the **latest stable release, Eigen 3.3.7**. Eigen is available to install through the Arch package manger: `pacman -S eigen`. 
+Chrono now uses [Eigen3](http://eigen.tuxfamily.org/) for all of its internal dense linear algebra needs. Chrono requires Eigen version 3.3.0 or newer, but we strongly encourage using the **latest stable release, Eigen 3.3.7**. Eigen is available through your system package manager as: `eigen`, `eigen3-dev`, `eigen3-devel`. 
 
 <div class="ce-warning"> 
 Chrono has been tested most extensively with Eigen 3.3.4 and Eigen 3.3.7.<br>
@@ -30,10 +34,10 @@ However, if you are building the Chrono::FSI or Chrono::Granular modules, note t
 
 While Chrono::Irrlicht is an optional module and not required to begin modeling with Chrono, it is suggested you enable this module to get access to many Chrono demos which rely on Irrlicht for their run-time visualization.
 
-- **download** [Irrlicht Engine](http://irrlicht.sourceforge.net/downloads.html); `pacman -S irrlicht`.
+- **download** [Irrlicht Engine](http://irrlicht.sourceforge.net/downloads.html)<br>
+May also be installed through a package manager: `irrlicht`, `libirrlicht-dev`, `irrlicht-devel`.
 
 <div class="ce-info">
-
 If you encounter any problem with version 1.8.4 please try to roll back to [release 1.8.2](http://irrlicht.sourceforge.net/downloads.html).<br>
 Previous versions must be built from source.<br>
 Release v.1.8.3 does not contain the precompiled 64bit DLL.<br>
@@ -42,7 +46,11 @@ Release v.1.8.0 has issues with soft shadows.<br>
 
 ## 4) Download and Install CMake
 
-[CMake](https://cmake.org/) is required to configure the build before compiling Chrono. It is also widely used among the Linux community to build many other software units. If it isn't already installed, use the a package manager to install it: `pacman -S cmake`.
+[CMake](https://cmake.org/) is required to configure the build before compiling Chrono. It is also widely used among the Linux community to build many other software units. If it isn't already installed, use the a package manager to install it: `cmake`.
+
+<div class="ce-warning">
+Debian distributions may need to install the package `cmake-curses-gui` along with `cmake` to use terminal based GUI for CMake.
+</div>
 
 ## 5) Download the project by cloning the Git repository
 
