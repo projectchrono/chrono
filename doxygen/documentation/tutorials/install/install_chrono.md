@@ -1,7 +1,8 @@
-Install Chrono {#tutorial_install_chrono}<br>
+Install Chrono {#tutorial_install_chrono}
 ==========================
 <div class="ce-info">
-This page includes instructions for installing Chrono on Windows or Mac only. A detailed install guide for Linux operating systems can be read <a href="install_chrono_linux.md">here</a>.
+Looking for Linux installation instructions?<br>
+A detailed install guide may be found [here](@ref tutorial_install_chrono_linux).
 </div>
 
 A summary of the process required to **build** Chrono is provided in the picture below. 

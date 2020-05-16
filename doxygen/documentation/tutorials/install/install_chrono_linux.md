@@ -1,7 +1,8 @@
 Install Chrono {#tutorial_install_chrono_linux}
 ==========================
 <div class="ce-info">
-The instruction process detailed here are universal to most major Linux distrubtions.
+The instruction process detailed here are universal to most major Linux distributions.<br>
+Windows and Mac instructions may be read [here](@ref tutorial_install_chrono).
 </div>
 
 A summary of the process required to **build** Chrono is provided in the picture below. 
@@ -72,7 +73,7 @@ Create a new directory **outside** of the Chrono SDK source directory. This will
 -  Specify the location of the Eigen installation.
    If this is not detected automatically, you may need to manually set the CMake variable `EIGEN3_INCLUDE_DIR`.<br>
 
-<img src="http://www.projectchrono.org/assets/manual/install_ccmake_1.png" class="img-responsive" width="400">
+<img src="http://www.projectchrono.org/assets/Images/install_ccmake_1.png" class="img-responsive" width="400">
 
 <div class="ce-warning">
 The Eigen directory field should be correctly filled in already, assuming the Eigen library was installed through a package manager. If the library was built from the source verify the path to the library is correct before continuing.
@@ -87,7 +88,7 @@ The Eigen directory field should be correctly filled in already, assuming the Ei
       -  Enter `c` to **Configure** and continue to the next screen.
       - Verify the path to the Irrlicht root directory and the Irrlicht library are automatically filled in the `IRRLICHT_ROOT` and `IRRLICHT_LIBRARY` fields respectively. If this is not the case, update to match the example below.
 
-<img src="http://www.projectchrono.org/assets/manual/install_ccmake_2.png" class="img-responsive" width="400">
+<img src="http://www.projectchrono.org/assets/Images/install_ccmake_2.png" class="img-responsive" width="400">
 
 <div class="ce-warning">
 Similar to the Eigen directory field set earlier, we assume the Irrlicht library was installed through a package manager. If the library was built from, source verify the location of the library is correct before continuing.
@@ -95,7 +96,7 @@ Similar to the Eigen directory field set earlier, we assume the Irrlicht library
  
 - Enter `c` to **Configure** and continue until you reach the final screen. At which point enter `g` to **Generate**, CCMake will close on completion.
 
-<img src="http://www.projectchrono.org/assets/manual/install_ccmake_3.png" class="img-responsive" width="400">
+<img src="http://www.projectchrono.org/assets/Images/install_ccmake_3.png" class="img-responsive" width="400">
 
 ## 7) Compile the project
 
