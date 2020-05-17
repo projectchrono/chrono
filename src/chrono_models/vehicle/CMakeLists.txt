@@ -322,6 +322,37 @@ set(CVM_CITYBUS_FILES
 )
 source_group("citybus" FILES ${CVM_CITYBUS_FILES})
 
+set(CVM_GATOR_FILES
+    gator/Gator.cpp
+    gator/Gator.h
+    gator/Gator_BrakeSimple.cpp
+    gator/Gator_BrakeSimple.h
+    gator/Gator_Chassis.h
+    gator/Gator_Chassis.cpp
+    gator/Gator_SingleWishbone.cpp
+    gator/Gator_SingleWishbone.h
+    gator/Gator_SimpleDriveline.cpp
+    gator/Gator_SimpleDriveline.h
+    gator/Gator_Driveline2WD.cpp
+    gator/Gator_Driveline2WD.h
+    gator/Gator_RigidSuspension.cpp
+    gator/Gator_RigidSuspension.h
+    gator/Gator_RigidTire.cpp
+    gator/Gator_RigidTire.h
+    gator/Gator_TMeasyTire.cpp
+    gator/Gator_TMeasyTire.h
+    gator/Gator_RackPinion.cpp
+    gator/Gator_RackPinion.h
+    gator/Gator_SimplePowertrain.cpp
+    gator/Gator_SimplePowertrain.h
+    gator/Gator_SimpleMapPowertrain.cpp
+    gator/Gator_SimpleMapPowertrain.h
+    gator/Gator_Vehicle.h
+    gator/Gator_Vehicle.cpp
+    gator/Gator_Wheel.cpp
+    gator/Gator_Wheel.h
+)
+source_group("gator" FILES ${CVM_GATOR_FILES})
 
 set(CVM_M113_FILES
     m113/M113_BrakeSimple.h
@@ -412,6 +443,7 @@ add_library(ChronoModels_vehicle SHARED
     ${CVM_GENERIC_FILES}
     ${CVM_SEDAN_FILES}
     ${CVM_CITYBUS_FILES}
+    ${CVM_GATOR_FILES}
     ${CVM_M113_FILES}
     ${CVM_M113_A_FILES}
     ${CVM_MAN_FILES}
