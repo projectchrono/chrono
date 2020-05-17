@@ -52,7 +52,7 @@ class Articulated_Rear {
     const chrono::ChVector<>& GetSpindlePos(chrono::vehicle::VehicleSide side) const;
 
     /// Get the orientation of the specified spindle.
-    const chrono::ChQuaternion<>& GetSpindleRot(chrono::vehicle::VehicleSide side) const;
+    chrono::ChQuaternion<> GetSpindleRot(chrono::vehicle::VehicleSide side) const;
 
     /// Get the linear velocity of the specified spindle.
     const chrono::ChVector<>& GetSpindleLinVel(chrono::vehicle::VehicleSide side) const;

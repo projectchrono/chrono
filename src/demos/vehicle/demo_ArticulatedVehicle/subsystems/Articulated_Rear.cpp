@@ -175,7 +175,7 @@ const ChVector<>& Articulated_Rear::GetSpindlePos(VehicleSide side) const {
     return m_axle->m_suspension->GetSpindlePos(side);
 }
 
-const ChQuaternion<>& Articulated_Rear::GetSpindleRot(VehicleSide side) const {
+ChQuaternion<> Articulated_Rear::GetSpindleRot(VehicleSide side) const {
     return m_axle->m_suspension->GetSpindleRot(side);
 }
 

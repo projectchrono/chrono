@@ -112,7 +112,7 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
 
     /// Get the orientation of the specified spindle.
     /// Return a quaternion representing a rotation with respect to the global reference frame.
-    const ChQuaternion<>& GetSpindleRot(int axle, VehicleSide side) const;
+    ChQuaternion<> GetSpindleRot(int axle, VehicleSide side) const;
 
     /// Get the linear velocity of the specified spindle.
     /// Return the linear velocity of the spindle center, expressed in the global reference frame.

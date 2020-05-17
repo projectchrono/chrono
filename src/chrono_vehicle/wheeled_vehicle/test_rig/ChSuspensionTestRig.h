@@ -93,7 +93,7 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     const ChVector<>& GetSpindlePos(VehicleSide side) const { return m_suspension->GetSpindlePos(side); }
 
     /// Get the global rotation of the specified spindle.
-    const ChQuaternion<>& GetSpindleRot(VehicleSide side) const { return m_suspension->GetSpindleRot(side); }
+    ChQuaternion<> GetSpindleRot(VehicleSide side) const { return m_suspension->GetSpindleRot(side); }
 
     /// Get the linear velocity of the specified spindle (expressed in the global reference frame).
     const ChVector<>& GetSpindleLinVel(VehicleSide side) const { return m_suspension->GetSpindleLinVel(side); }

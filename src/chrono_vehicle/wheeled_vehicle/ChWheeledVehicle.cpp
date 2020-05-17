@@ -235,7 +235,7 @@ const ChVector<>& ChWheeledVehicle::GetSpindlePos(int axle, VehicleSide side) co
     return m_axles[axle]->m_suspension->GetSpindlePos(side);
 }
 
-const ChQuaternion<>& ChWheeledVehicle::GetSpindleRot(int axle, VehicleSide side) const {
+ChQuaternion<> ChWheeledVehicle::GetSpindleRot(int axle, VehicleSide side) const {
     return m_axles[axle]->m_suspension->GetSpindleRot(side);
 }
 

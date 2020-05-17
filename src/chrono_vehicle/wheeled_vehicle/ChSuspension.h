@@ -78,7 +78,7 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     /// Get the orientation of the spindle body on the specified side.
     /// The spindle body orientation is returned as a quaternion representing a
     /// rotation with respect to the global reference frame.
-    const ChQuaternion<>& GetSpindleRot(VehicleSide side) const { return m_spindle[side]->GetRot(); }
+    ChQuaternion<> GetSpindleRot(VehicleSide side) const;
 
     /// Get the linear velocity of the spindle body on the specified side.
     /// Return the linear velocity of the spindle center, expressed in the global
