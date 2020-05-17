@@ -82,7 +82,7 @@ class CH_VEHICLE_API ChVehicle {
     /// Get the vehicle orientation.
     /// This is the chassis orientation, returned as a quaternion representing a
     /// rotation with respect to the global reference frame.
-    const ChQuaternion<>& GetVehicleRot() const { return m_chassis->GetRot(); }
+    ChQuaternion<> GetVehicleRot() const { return m_chassis->GetRot(); }
 
     /// Get the vehicle speed.
     /// Return the speed measured at the origin of the chassis reference frame.
