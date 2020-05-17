@@ -30,6 +30,14 @@ ChChassis::ChChassis(const std::string& name, bool fixed) : ChPart(name), m_fixe
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+ChQuaternion<> ChChassis::GetRot() const {
+    return m_body->GetFrame_REF_to_abs().GetRot() * ChWorldFrame::Quaternion();
+}
+
+ChQuaternion<> ChChassis::GetCOMRot() const {
+    return m_body->GetRot() * ChWorldFrame::Quaternion();
+}
+
 ChVector<> ChChassis::GetPointLocation(const ChVector<>& locpos) const {
     return m_body->GetFrame_REF_to_abs().TransformPointLocalToParent(locpos);
 }

@@ -18,12 +18,17 @@
 
 #include <algorithm>
 
+#include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/wheeled_vehicle/ChSuspension.h"
 
 namespace chrono {
 namespace vehicle {
 
 ChSuspension::ChSuspension(const std::string& name) : ChPart(name), m_steering_index(-1) {}
+
+ChQuaternion<> ChSuspension::GetSpindleRot(VehicleSide side) const {
+    return m_spindle[side]->GetRot() * ChWorldFrame::Quaternion();
+}
 
 void ChSuspension::ApplyAxleTorque(VehicleSide side, double torque) {
     m_axle[side]->SetAppliedTorque(torque);
