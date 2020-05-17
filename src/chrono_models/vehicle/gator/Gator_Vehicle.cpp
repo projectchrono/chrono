@@ -98,9 +98,9 @@ void Gator_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwd
     m_steerings[0]->Initialize(m_chassis->GetBody(), offset, rotation);
 
     // Initialize the axle subsystems.
-    m_axles[0]->Initialize(m_chassis->GetBody(), ChVector<>(0.99, 0, 0), ChVector<>(0),
+    m_axles[0]->Initialize(m_chassis->GetBody(), ChVector<>(0.97, 0, 0), ChVector<>(0),
                            m_steerings[0]->GetSteeringLink(), 0, 0.0, m_omega[0], m_omega[1]);
-    m_axles[1]->Initialize(m_chassis->GetBody(), ChVector<>(-0.99, 0, 0), ChVector<>(0), m_chassis->GetBody(), -1,
+    m_axles[1]->Initialize(m_chassis->GetBody(), ChVector<>(-0.97, 0, 0), ChVector<>(0), m_chassis->GetBody(), -1,
                            0.0, m_omega[2], m_omega[3]);
 
     // Initialize the driveline subsystem (FWD)
