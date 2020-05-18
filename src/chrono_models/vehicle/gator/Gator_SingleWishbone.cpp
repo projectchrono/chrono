@@ -36,9 +36,9 @@ namespace gator {
 // Static variables -- all in SI units
 // -----------------------------------------------------------------------------
 
-const double Gator_SingleWishbone::m_spindleMass = 1.0;
-const double Gator_SingleWishbone::m_uprightMass = 1.0;
-const double Gator_SingleWishbone::m_CAMass = 3.0;
+const double Gator_SingleWishbone::m_spindleMass = 3.0;
+const double Gator_SingleWishbone::m_uprightMass = 1.5;
+const double Gator_SingleWishbone::m_CAMass = 4.0;
 
 const double Gator_SingleWishbone::m_spindleRadius = 0.06;
 const double Gator_SingleWishbone::m_spindleWidth = 0.025;
@@ -81,7 +81,7 @@ Gator_SingleWishbone::~Gator_SingleWishbone() {}
 const ChVector<> Gator_SingleWishbone::getLocation(PointId which) {
     switch (which) {
         case SPINDLE:
-            return ChVector<>(0, 0.53, -0.02);  // spindle location
+            return ChVector<>(0, 0.56, -0.02);  // spindle location
         case UPRIGHT:
             return ChVector<>(0, 0.5, -0.02);  // upright location
         case CA_C:

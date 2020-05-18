@@ -26,13 +26,13 @@ namespace gator {
 // Static variables
 // -----------------------------------------------------------------------------
 
-const double Gator_RackPinion::m_steeringLinkMass = 1.889;
+const double Gator_RackPinion::m_steeringLinkMass = 2;
 const ChVector<> Gator_RackPinion::m_steeringLinkInertia(.138, 0.00009, .138);
 const double Gator_RackPinion::m_steeringLinkCOM = 0;
 const double Gator_RackPinion::m_steeringLinkLength = 0.5;
 const double Gator_RackPinion::m_steeringLinkRadius = 0.03;
 
-const double Gator_RackPinion::m_pinionRadius = 0.03;
+const double Gator_RackPinion::m_pinionRadius = 0.035;
 
 const double Gator_RackPinion::m_maxAngle = 1;
 

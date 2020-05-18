@@ -40,6 +40,7 @@ Gator::Gator()
       m_fixed(false),
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
+      m_tire_mass(0),
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
       m_initOmega({0, 0, 0, 0}),
@@ -53,6 +54,7 @@ Gator::Gator(ChSystem* system)
       m_fixed(false),
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
+      m_tire_mass(0),
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
       m_initOmega({0, 0, 0, 0}),
@@ -106,7 +108,7 @@ void Gator::Initialize() {
             m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
 
-            m_tire_mass = tire_FL->ReportMass();
+            m_tire_mass = 2 * (tire_FL->ReportMass() + tire_RL->ReportMass());
 
             break;
         }
@@ -122,7 +124,7 @@ void Gator::Initialize() {
             m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
 
-            m_tire_mass = tire_FL->ReportMass();
+            m_tire_mass = 2 * (tire_FL->ReportMass() + tire_RL->ReportMass());
 
             break;
         }
@@ -160,7 +162,7 @@ void Gator::Advance(double step) {
 
 // -----------------------------------------------------------------------------
 double Gator::GetTotalMass() const {
-    return m_vehicle->GetVehicleMass() + 4 * m_tire_mass;
+    return m_vehicle->GetVehicleMass() + m_tire_mass;
 }
 
 }  // end namespace gator

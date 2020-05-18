@@ -30,7 +30,7 @@ namespace gator {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const double Gator_Chassis::m_mass = 550;
+const double Gator_Chassis::m_mass = 800;
 const ChVector<> Gator_Chassis::m_inertiaXX(107.7, 350.8, 457.7);
 const ChVector<> Gator_Chassis::m_inertiaXY(0, 0, 0);
 const ChVector<> Gator_Chassis::m_COM_loc(-0.184, 0, 0.359);

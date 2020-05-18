@@ -54,13 +54,15 @@ void Gator_TMeasyTire_Front::SetTMeasyParams() {
     double h = 0.5 * (wheel_diam - rim_diam);
     double r = h / w;
 
-    double load = 1300;
+    double load = 1800;
 
     GuessTruck80Par(load,     // tire load [N]
                     w,        // tire width [m]
                     r,        // aspect ratio []
                     rim_diam  // rim diameter [m]
     );
+
+    SetFrictionCoefficient(0.7f);
 }
 
 void Gator_TMeasyTire_Front::GenerateCharacteristicPlots(const std::string& dirname) {
@@ -98,13 +100,15 @@ void Gator_TMeasyTire_Rear::SetTMeasyParams() {
     double h = 0.5 * (wheel_diam - rim_diam);
     double r = h / w;
 
-    double load = 1900;
+    double load = 2600;
 
     GuessTruck80Par(load,     // tire load [N]
                     w,        // tire width [m]
                     r,        // aspect ratio []
                     rim_diam  // rim diameter [m]
     );
+
+    SetFrictionCoefficient(0.7f);
 }
 
 void Gator_TMeasyTire_Rear::GenerateCharacteristicPlots(const std::string& dirname) {
