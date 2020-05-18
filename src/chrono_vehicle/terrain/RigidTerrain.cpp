@@ -176,6 +176,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
                                                             bool visualization) {
     ChVector<> up = normal.GetNormalized();
     ChVector<> lateral = Vcross(up, ChWorldFrame::Forward());
+    lateral.Normalize();
     ChVector<> forward = Vcross(lateral, up);
     ChMatrix33<> rot;
     rot.Set_A_axis(forward, lateral, up);
