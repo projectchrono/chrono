@@ -12,6 +12,7 @@ ENDIF()
 
 SET(DEMOS
     demo_VEH_Gator
+    demo_VEH_Gator_Accel
     )
 
 #--------------------------------------------------------------

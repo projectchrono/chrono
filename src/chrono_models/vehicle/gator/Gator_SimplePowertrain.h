@@ -23,7 +23,7 @@
 #define GATOR_SIMPLEPOWERTRAIN_H
 
 #include "chrono_vehicle/ChVehicle.h"
-#include "chrono_vehicle/powertrain/ChSimplePowertrain.h"
+#include "chrono_vehicle/ChPowertrain.h"
 
 #include "chrono_models/ChApiModels.h"
 
@@ -35,18 +35,30 @@ namespace gator {
 /// @{
 
 /// Simple Gator powertrain subsystem (DC motor linear torque-speed characteristic).
-class CH_MODELS_API Gator_SimplePowertrain : public ChSimplePowertrain {
+class CH_MODELS_API Gator_SimplePowertrain : public ChPowertrain {
   public:
     Gator_SimplePowertrain(const std::string& name);
-
     ~Gator_SimplePowertrain() {}
 
-    virtual double GetForwardGearRatio() const override { return m_fwd_gear_ratio; }
-    virtual double GetReverseGearRatio() const override { return m_rev_gear_ratio; }
-    virtual double GetMaxTorque() const override { return m_max_torque; }
-    virtual double GetMaxSpeed() const override { return m_max_speed; }
+    virtual std::string GetTemplateName() const override { return "SimplePowertrain"; }
+    virtual double GetMotorSpeed() const override { return m_motorSpeed; }
+    virtual double GetMotorTorque() const override { return m_motorTorque; }
+    virtual double GetTorqueConverterSlippage() const override { return 0; }
+    virtual double GetTorqueConverterInputTorque() const override { return 0; }
+    virtual double GetTorqueConverterOutputTorque() const override { return 0; }
+    virtual int GetCurrentTransmissionGear() const override { return 1; }
+    virtual double GetOutputTorque() const override { return m_shaftTorque; }
+    virtual void SetDriveMode(ChPowertrain::DriveMode mmode) override;
 
   private:
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis, std::shared_ptr<ChDriveline> driveline) override;
+    virtual void Synchronize(double time, double throttle) override;
+
+    double m_current_gear_ratio;
+    double m_motorSpeed;
+    double m_motorTorque;
+    double m_shaftTorque;
+
     static const double m_fwd_gear_ratio;  // forward gear ratio (single gear transmission)
     static const double m_rev_gear_ratio;  // reverse gear ratio
     static const double m_max_torque;      // maximum motor torque

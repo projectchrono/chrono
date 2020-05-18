@@ -28,14 +28,54 @@ namespace gator {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const double Gator_SimplePowertrain::m_max_torque = 80;
-const double Gator_SimplePowertrain::m_max_speed = 3500 * (CH_C_2PI / 60.0);
-const double Gator_SimplePowertrain::m_fwd_gear_ratio = 0.3;
-const double Gator_SimplePowertrain::m_rev_gear_ratio = -0.5;
+const double Gator_SimplePowertrain::m_max_torque = 200;                      // N.m
+const double Gator_SimplePowertrain::m_max_speed = 3500 * (CH_C_2PI / 60.0);  // rad/s
+const double Gator_SimplePowertrain::m_fwd_gear_ratio = 0.07;
+const double Gator_SimplePowertrain::m_rev_gear_ratio = -0.05;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-Gator_SimplePowertrain::Gator_SimplePowertrain(const std::string& name) : ChSimplePowertrain(name) {}
+Gator_SimplePowertrain::Gator_SimplePowertrain(const std::string& name)
+    : ChPowertrain(name), m_current_gear_ratio(m_fwd_gear_ratio), m_motorSpeed(0), m_motorTorque(0), m_shaftTorque(0) {}
+
+void Gator_SimplePowertrain::Initialize(std::shared_ptr<ChChassis> chassis, std::shared_ptr<ChDriveline> driveline) {
+    ChPowertrain::Initialize(chassis, driveline);
+    m_current_gear_ratio = m_fwd_gear_ratio;
+}
+
+void Gator_SimplePowertrain::SetDriveMode(ChPowertrain::DriveMode mode) {
+    m_drive_mode = mode;
+    switch (mode) {
+        case FORWARD:
+            m_current_gear_ratio = m_fwd_gear_ratio;
+            break;
+        case REVERSE:
+            m_current_gear_ratio = m_rev_gear_ratio;
+            break;
+        case NEUTRAL:
+            m_current_gear_ratio = 1e20;
+            break;
+    }
+}
+
+void Gator_SimplePowertrain::Synchronize(double time, double throttle) {
+    double shaftSpeed = std::abs(m_driveline->GetDriveshaftSpeed());
+
+    // The motor speed is the shaft speed multiplied by gear ratio inversed
+    m_motorSpeed = shaftSpeed / m_current_gear_ratio;
+
+    // DC motor model (throttle modulates output torque)
+    m_motorTorque = m_max_torque - m_motorSpeed * (m_max_torque / m_max_speed);
+    m_motorTorque *= throttle;
+
+    // The torque at motor shaft
+    m_shaftTorque = m_motorTorque / m_current_gear_ratio;
+
+    ////std::cout << throttle                                            //
+    ////          << "      " << m_motorSpeed << "  " << shaftSpeed      //
+    ////          << "      " << m_motorTorque << "  " << m_shaftTorque  //
+    ////          << std::endl;
+}
 
 }  // end namespace gator
 }  // end namespace vehicle

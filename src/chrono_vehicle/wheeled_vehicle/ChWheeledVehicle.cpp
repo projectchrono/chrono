@@ -190,14 +190,14 @@ std::shared_ptr<ChWheel> ChWheeledVehicle::GetWheel(int axle, VehicleSide side, 
 
 // -----------------------------------------------------------------------------
 // Calculate and return the total vehicle mass
-// Note: do not include the wheels, as these are already accounted for through
-// the associated spindle body.
 // -----------------------------------------------------------------------------
 double ChWheeledVehicle::GetVehicleMass() const {
     double mass = m_chassis->GetMass();
 
     for (auto& axle : m_axles) {
         mass += axle->m_suspension->GetMass();
+        for (auto& wheel : axle->GetWheels())
+            mass += wheel->GetMass();
         if (axle->m_antirollbar)
             mass += axle->m_antirollbar->GetMass();
     }

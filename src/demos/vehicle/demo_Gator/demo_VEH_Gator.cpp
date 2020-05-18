@@ -60,10 +60,10 @@ TireModelType tire_model = TireModelType::TMEASY;
 RigidTerrain::PatchType terrain_model = RigidTerrain::PatchType::BOX;
 
 // Contact method
-ChContactMethod contact_method = ChContactMethod::SMC;
+ChContactMethod contact_method = ChContactMethod::NSC;
 
 // Simulation step sizes
-double step_size = 3e-4;
+double step_size = 1e-3;
 double tire_step_size = step_size;
 
 // Time interval between two render frames
@@ -82,10 +82,9 @@ int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // --------------
-    // Create systems
+    // Create vehicle
     // --------------
 
-    // Create the Sedan vehicle, set parameters, and initialize
     Gator gator;
     gator.SetContactMethod(contact_method);
     gator.SetChassisCollisionType(chassis_collision_type);
@@ -102,7 +101,10 @@ int main(int argc, char* argv[]) {
     gator.SetWheelVisualizationType(wheel_vis_type);
     gator.SetTireVisualizationType(tire_vis_type);
 
+    // ------------------
     // Create the terrain
+    // ------------------
+
     RigidTerrain terrain(gator.GetSystem());
 
     MaterialInfo minfo;
@@ -131,9 +133,9 @@ int main(int argc, char* argv[]) {
 
     terrain.Initialize();
 
+    // -------------------------------------
     // Create the vehicle Irrlicht interface
-
-    auto vvv = &gator.GetVehicle();
+    // -------------------------------------
 
     ChWheeledVehicleIrrApp app(&gator.GetVehicle(), L"Gator Demo");
     app.SetSkyBox();
@@ -181,7 +183,7 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     // output vehicle mass
-    std::cout << "VEHICLE MASS: " << gator.GetVehicle().GetVehicleMass() << std::endl;
+    std::cout << "VEHICLE MASS: " << gator.GetTotalMass() << std::endl;
 
     // Number of simulation steps between miscellaneous events
     int render_steps = (int)std::ceil(render_step_size / step_size);
