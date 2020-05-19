@@ -24,12 +24,16 @@
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
+#include "chrono_vehicle/driver/ChPathFollowerDriver.h"
+#include "chrono_vehicle/utils/ChVehiclePath.h"
 
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
+
+//#define USE_PATH_FOLLOWER
 
 using namespace chrono;
 using namespace chrono::irrlicht;
@@ -49,24 +53,6 @@ TireModelType tire_model = TireModelType::TMEASY;
 // Simulation step sizes
 double step_size = 3e-3;
 double tire_step_size = 1e-3;
-
-// =============================================================================
-
-class MyDriver : public ChDriver {
-  public:
-    MyDriver(ChVehicle& vehicle) : ChDriver(vehicle) {} 
-    virtual void Synchronize(double time) override {
-        m_throttle = 0;
-        m_steering = 0;
-        m_braking = 0;
-        if (time > 1) {
-            m_throttle = 0.25;
-        }
-        if (time > 2) {
-            m_steering = 0.3;
-        }
-    }
-};
 
 // =============================================================================
 
@@ -117,14 +103,14 @@ int main(int argc, char* argv[]) {
 
     // "Box" patch
     double terrainHeight = 0;
-    double terrainLength = 200.0;  // size in "forward" direction
-    double terrainWidth = 100.0;   // size in "lateral" direction
+    double terrainLength = 300.0;  // size in "forward" direction
+    double terrainWidth = 300.0;   // size in "lateral" direction
     auto patch =
         terrain.AddPatch(patch_mat, ChVector<>(0, terrainHeight, 0), ChVector<>(0, 1, 0), terrainLength, terrainWidth);
     patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
 
-    ////// "Meash" patch (mesh assumed to be defined in a Y up frame)
+    ////// "Mesh" patch (mesh assumed to be defined in a Y up frame)
     ////auto patch = terrain.AddPatch(patch_mat, ChCoordsys<>(), vehicle::GetDataFile("terrain/meshes/bump_YUP.obj"),
     ////                              "ground", 0.005);
     ////patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
@@ -152,26 +138,41 @@ int main(int argc, char* argv[]) {
                                irr::ELL_NONE);
     app.SetSkyBox();
     app.AddTypicalLights();
-    app.SetChaseCamera(ChVector<>(0.0, 0.0, .75), 6.0, 0.5);
+    app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
     app.SetTimestep(step_size);
-
-    app.AssetBindAll();
-    app.AssetUpdateAll();
 
     // ------------------------
     // Create the driver system
     // ------------------------
 
-    ////// Scripted driver inputs (custom driver system) 
-    ////MyDriver driver(my_hmmwv.GetVehicle());
-    ////driver.Initialize();
+#ifdef USE_PATH_FOLLOWER
+    // Path follower driver
+    ////auto path = DoubleLaneChangePath(initLoc, 13.5, 4.0, 11.0, 20.0, true);
+    auto path = CirclePath(initLoc, 20, 50, true, 5);
 
+    ChPathFollowerDriver driver(my_hmmwv.GetVehicle(), path, "my_path", 10);
+    driver.GetSteeringController().SetLookAheadDistance(5);
+    driver.GetSteeringController().SetGains(0.8, 0, 0);
+    driver.GetSpeedController().SetGains(0.4, 0, 0);
+    driver.Initialize();
+
+    // Visualization of controller points (sentinel & target)
+    irr::scene::IMeshSceneNode* ballS = app.GetSceneManager()->addSphereSceneNode(0.1f);
+    irr::scene::IMeshSceneNode* ballT = app.GetSceneManager()->addSphereSceneNode(0.1f);
+    ballS->getMaterial(0).EmissiveColor = irr::video::SColor(0, 255, 0, 0);
+    ballT->getMaterial(0).EmissiveColor = irr::video::SColor(0, 0, 255, 0);
+#else
     // Interactive driver
     ChIrrGuiDriver driver(app);
     driver.SetSteeringDelta(0.06);
     driver.SetThrottleDelta(0.02);
     driver.SetBrakingDelta(0.06);
     driver.Initialize();
+#endif
+
+    // Finalize construction of visualization assets
+    app.AssetBindAll();
+    app.AssetUpdateAll();
 
     // ---------------
     // Simulation loop
@@ -180,6 +181,13 @@ int main(int argc, char* argv[]) {
     ChRealtimeStepTimer realtime_timer;
     while (app.GetDevice()->run()) {
         double time = my_hmmwv.GetSystem()->GetChTime();
+
+#ifdef USE_PATH_FOLLOWER
+        const ChVector<>& pS = driver.GetSteeringController().GetSentinelLocation();
+        const ChVector<>& pT = driver.GetSteeringController().GetTargetLocation();
+        ballS->setPosition(irr::core::vector3df((irr::f32)pS.x(), (irr::f32)pS.y(), (irr::f32)pS.z()));
+        ballT->setPosition(irr::core::vector3df((irr::f32)pT.x(), (irr::f32)pT.y(), (irr::f32)pT.z()));
+#endif
 
         app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         app.DrawAll();
