@@ -71,6 +71,7 @@ using namespace gui;
 // Undefine ChApi and other macros that otherwise SWIG gives a syntax error
 #define ChApiIrr 
 #define ChApi 
+#define IRRLICHT_API
 #define _IRR_DEPRECATED_ //
 #define CH_DEPRECATED(msg)
 
@@ -150,11 +151,13 @@ using namespace gui;
 %template(vector3df) irr::core::vector3d<irr::f32>;
 %template(vector3di) irr::core::vector3d<irr::s32>;
 %include "SColor.h"
+%include "SMaterial.h"
+%include "SMaterialLayer.h"
 %include "IVideoDriver.h"
 %include "ISceneNode.h"
 %include "ICameraSceneNode.h"
 %include "IrrlichtDevice.h"
-%include "ISceneNode.h"
+%include "IMeshSceneNode.h"
 %include "ISceneManager.h"
 %include "IGUIEnvironment.h"
 %include "dimension2d.h"

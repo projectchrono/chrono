@@ -307,6 +307,7 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %include "../../chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 %include "../models/VehicleModels.i"
 
+%include "vehicleUtils.i"
 // Tracked vehicles are not going to be wrapped in the short term
 
 
