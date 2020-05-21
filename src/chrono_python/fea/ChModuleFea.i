@@ -186,6 +186,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::fea::ChPlasticityCosseratLumped)
 %shared_ptr(chrono::fea::ChDampingCosserat)
 %shared_ptr(chrono::fea::ChDampingCosseratLinear)
+%shared_ptr(chrono::fea::ChDampingCosseratRayleigh)
 %shared_ptr(chrono::fea::ChElementBeam)
 %shared_ptr(chrono::fea::ChElementBeamEuler)
 %shared_ptr(chrono::fea::ChElementBeamANCF)
