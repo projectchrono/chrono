@@ -53,7 +53,7 @@ class ChApi ChElasticityCosserat {
     /// known (preferred for high performance), otherwise the base behaviour here is to compute
     /// [Km] by numerical differentiation calling ComputeStress() multiple times.
     virtual void ComputeStiffnessMatrix(
-        ChMatrixDynamic<>& K,        ///< 6x6 material stiffness matrix values here
+        ChMatrixNM<double, 6, 6>& K, ///< 6x6 material stiffness matrix values here
         const ChVector<>& strain_e,  ///< local strain (deformation part): x= elongation, y and z are shear
         const ChVector<>& strain_k   ///< local strain (curvature part), x= torsion, y and z are line curvatures
     );
@@ -149,7 +149,7 @@ class ChApi ChElasticityCosseratSimple : public ChElasticityCosserat {
 
     /// Compute the 6x6 tangent material stiffness matrix [Km] = d&sigma;/d&epsilon;
     virtual void ComputeStiffnessMatrix(
-        ChMatrixDynamic<>& K,        ///< 6x6 stiffness matrix
+        ChMatrixNM<double, 6, 6>& K, ///< 6x6 stiffness matrix
         const ChVector<>& strain_e,  ///< local strain (deformation part): x= elongation, y and z are shear
         const ChVector<>& strain_k   ///< local strain (curvature part), x= torsion, y and z are line curvatures
         ) override;
@@ -195,7 +195,7 @@ class ChApi ChElasticityCosseratGeneric : public ChElasticityCosserat {
 
     /// Compute the 6x6 tangent material stiffness matrix [Km] = d&sigma;/d&epsilon;
     virtual void ComputeStiffnessMatrix(
-        ChMatrixDynamic<>& K,        ///< 6x6 stiffness matrix
+        ChMatrixNM<double, 6, 6>& K, ///< 6x6 stiffness matrix
         const ChVector<>& strain_e,  ///< local strain (deformation part): x= elongation, y and z are shear
         const ChVector<>& strain_k   ///< local strain (curvature part), x= torsion, y and z are line curvatures
         ) override;
@@ -278,7 +278,7 @@ class ChApi ChElasticityCosseratAdvanced : public ChElasticityCosseratSimple {
 
     /// Compute the 6x6 tangent material stiffness matrix [Km] = d&sigma;/d&epsilon;
     virtual void ComputeStiffnessMatrix(
-        ChMatrixDynamic<>& K,        ///< 6x6 stiffness matrix
+        ChMatrixNM<double, 6, 6>& K, ///< 6x6 stiffness matrix
         const ChVector<>& strain_e,  ///< local strain (deformation part): x= elongation, y and z are shear
         const ChVector<>& strain_k   ///< local strain (curvature part), x= torsion, y and z are line curvatures
         ) override;
@@ -356,7 +356,7 @@ class ChApi ChElasticityCosseratMesh : public ChElasticityCosserat {
     /// Compute the 6x6 tangent material stiffness matrix [Km] = d&sigma;/d&epsilon;
     /// * for the moment, defaults to numerical differentiation *
     virtual void ComputeStiffnessMatrix(
-        ChMatrixDynamic<>& K,       ///< 6x6 stiffness matrix
+        ChMatrixNM<double, 6, 6>& K,///< 6x6 stiffness matrix
         const ChVector<>& strain_e, ///< local strain (deformation part): x= elongation, y and z are shear
         const ChVector<>& strain_k  ///< local strain (curvature part), x= torsion, y and z are line curvatures
     ) override;
@@ -406,7 +406,7 @@ class ChApi ChPlasticityCosserat {
     /// known (preferred for high performance), otherwise the base behaviour here is to compute
     /// [Km] by numerical differentiation calling ComputeStressWithReturnMapping() multiple times.
     virtual void ComputeStiffnessMatrixElastoplastic(
-        ChMatrixDynamic<>& K,        ///< 6x6 material stiffness matrix values here
+        ChMatrixNM<double, 6, 6>& K, ///< 6x6 material stiffness matrix values here
         const ChVector<>& strain_e,  ///< tot strain (deformation part): x= elongation, y and z are shear
         const ChVector<>& strain_k,  ///< tot strain (curvature part), x= torsion, y and z are line curvatures
         const ChBeamMaterialInternalData& data  ///< updated material internal variables, at this point,
@@ -494,7 +494,7 @@ class ChApi ChPlasticityCosseratLumped : public ChPlasticityCosserat {
     /// given actual internal data and deformation and curvature (if needed). If in
     /// plastic regime, uses elastoplastic matrix, otherwise uses elastic.
     virtual void ComputeStiffnessMatrixElastoplastic(
-        ChMatrixDynamic<>& K,       ///< 6x6 material stiffness matrix values here
+        ChMatrixNM<double, 6, 6>& K,///< 6x6 material stiffness matrix values here
         const ChVector<>& strain_e, ///< tot strain (deformation part): x= elongation, y and z are shear
         const ChVector<>& strain_k, ///< tot strain (curvature part), x= torsion, y and z are line curvatures
         ChBeamMaterialInternalData& data ///< updated material internal variables, at this point, including
@@ -552,7 +552,7 @@ class ChApi ChDampingCosserat {
     /// This must be overridden by subclasses if an analytical solution is
     /// known (preferred for high performance), otherwise the base behaviour here is to compute
     /// [Rm] by numerical differentiation calling ComputeStress() multiple times.
-    virtual void ComputeDampingMatrix(ChMatrixDynamic<>& R,         ///< 6x6 material stiffness matrix values here
+    virtual void ComputeDampingMatrix(ChMatrixNM<double, 6, 6>& R,  ///< 6x6 material stiffness matrix values here
                                       const ChVector<>& dstrain_e,  ///< current strain speed (deformation part)
                                       const ChVector<>& dstrain_k   ///< current strain speed (curvature part)
     );
@@ -591,10 +591,8 @@ class ChApi ChDampingCosseratLinear : public ChDampingCosserat {
         ) override;
 
     /// Compute the 6x6 tangent material damping matrix, ie the jacobian [Rm]=dstress/dstrainspeed.
-    /// This must be overridden by subclasses if an analytical solution is
-    /// known (preferred for high performance), otherwise the base behaviour here is to compute
-    /// [Rm] by numerical differentiation calling ComputeStress() multiple times.
-    virtual void ComputeDampingMatrix(ChMatrixDynamic<>& R,         ///< 6x6 material stiffness matrix values here
+    /// By the way, in this model, it is simply a diagonal matrix with R_e and R_k values on the diagonal.
+    virtual void ComputeDampingMatrix(ChMatrixNM<double, 6, 6>& R,  ///< 6x6 material stiffness matrix values here
                                       const ChVector<>& dstrain_e,  ///< current strain speed (deformation part)
                                       const ChVector<>& dstrain_k   ///< current strain speed (curvature part)
                                       ) override;
@@ -657,7 +655,7 @@ class ChApi ChBeamSectionCosserat : public ChBeamSectionProperties {
     /// at a given strain state, and at given internal data state (if mdata=nullptr,
     /// computes only the elastic tangent stiffenss, regardless of plasticity).
     virtual void ComputeStiffnessMatrix(
-        ChMatrixDynamic<>& K,        ///< 6x6 stiffness matrix
+        ChMatrixNM<double, 6, 6>& K, ///< 6x6 stiffness matrix
         const ChVector<>& strain_e,  ///< strain (deformation part): x= elongation, y and z are shear
         const ChVector<>& strain_k,  ///< strain (curvature part), x= torsion, y and z are line curvatures
         const ChBeamMaterialInternalData* mdata = nullptr  ///< material internal variables, at this point, if any,
