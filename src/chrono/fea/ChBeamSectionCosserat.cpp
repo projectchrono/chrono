@@ -765,6 +765,57 @@ void ChDampingCosseratLinear::ComputeDampingMatrix(ChMatrixNM<double, 6, 6>& R,
 
 // -----------------------------------------------------------------------------
 
+
+
+// -----------------------------------------------------------------------------
+
+ChDampingCosseratRayleigh::ChDampingCosseratRayleigh(
+									std::shared_ptr<ChElasticityCosserat> melasticity, 
+									const double& mbeta) {
+	this->beta = mbeta;
+	this->section_elasticity = melasticity;
+	this->updated = false;
+}
+
+
+void ChDampingCosseratRayleigh::ComputeStress(ChVector<>& stress_n,
+                                            ChVector<>& stress_m,
+                                            const ChVector<>& dstrain_e,
+                                            const ChVector<>& dstrain_k) {
+	if (!this->updated) {
+		this->UpdateStiffnessModel();
+		this->updated = true;
+	}
+	ChVectorN<double, 6> mdstrain;
+    ChVectorN<double, 6> mstress;
+    mdstrain.segment(0 , 3) = dstrain_e.eigen();
+    mdstrain.segment(3 , 3) = dstrain_k.eigen();
+    mstress = this->beta * this->E_const * mdstrain;
+    stress_n = mstress.segment(0, 3);
+    stress_m = mstress.segment(3, 3);
+    
+}
+
+void ChDampingCosseratRayleigh::ComputeDampingMatrix(ChMatrixNM<double, 6, 6>& R,
+                                                   const ChVector<>& dstrain_e,
+                                                   const ChVector<>& dstrain_k) {
+	R = this->beta * this->E_const;
+}
+
+
+void ChDampingCosseratRayleigh::UpdateStiffnessModel() {
+	
+	/// Precompute and store the stiffness matrix into E_const, assuming 
+	/// initial zero stress and zero strain, and use it as constant E from now on
+	/// (for many stiffness models, this is constant anyway)
+	this->section_elasticity->ComputeStiffnessMatrix(this->E_const, VNULL, VNULL);
+	
+}
+
+
+// -----------------------------------------------------------------------------
+
+
 ChBeamSectionCosserat::ChBeamSectionCosserat(std::shared_ptr<ChElasticityCosserat> melasticity) {
     this->SetElasticity(melasticity);
 }

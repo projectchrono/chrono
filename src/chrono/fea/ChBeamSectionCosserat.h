@@ -582,7 +582,6 @@ class ChApi ChDampingCosseratLinear : public ChDampingCosserat {
 
     /// Compute the generalized cut force and cut torque, caused by structural damping,
     /// given actual deformation speed and curvature speed.
-    /// This MUST be implemented by subclasses.
     virtual void ComputeStress(
         ChVector<>& stress_n,         ///< local stress (generalized force), x component = traction along beam
         ChVector<>& stress_m,         ///< local stress (generalized torque), x component = torsion torque along beam
@@ -609,6 +608,74 @@ class ChApi ChDampingCosseratLinear : public ChDampingCosserat {
   private:
     ChVector<> R_e;
     ChVector<> R_k;
+};
+
+
+/// Simple Rayleight damping of beam sections of Cosserat type,
+/// where damping is proportional to stiffness via a beta coefficient.
+/// In order to generalize it also in case of nonlinearity, the full
+/// element tangent stiffness matrix cannot be used (it may contain negative eigenvalues)
+/// and it can't be used to recover instant nodal caused by damping as F=beta*K*q_dt
+/// so it is generalized to the following implementation at the material stress level
+///   <pre>
+///   {n,m}=beta*[E]*{e',k'}
+///   </pre>
+/// where 
+/// - beta is the 2nd Rayleigh damping parameter
+/// - [E] is the 6x6 material stiffness matrix at the undeformed unstressed case (hence assumed constant)
+/// - {e',k'} is the speed of deformation/curvature
+/// Note that the alpha mass-proportional parameter (the first of the alpha,beta parameters of the original
+/// Rayleigh model) is not supported.
+
+class ChApi ChDampingCosseratRayleigh : public ChDampingCosserat {
+  public:
+		/// Construct the Rayleigh damping model from the stiffness model used by the section.
+		/// This is important because the Rayleigh damping is proportional to the stiffness,
+		/// so the model must know which is the stiffness matrix of the material.
+	    /// Note: melasticity must be alreay set with proper values: its [E] stiffness matrix will be
+		/// fetched just once for all.
+	ChDampingCosseratRayleigh(std::shared_ptr<ChElasticityCosserat> melasticity, const double& mbeta = 0);
+
+	virtual ~ChDampingCosseratRayleigh() {}
+
+    /// Compute the generalized cut force and cut torque, caused by structural damping,
+    /// given actual deformation speed and curvature speed.
+    virtual void ComputeStress(
+        ChVector<>& stress_n,         ///< local stress (generalized force), x component = traction along beam
+        ChVector<>& stress_m,         ///< local stress (generalized torque), x component = torsion torque along beam
+        const ChVector<>& dstrain_e,  ///< local strain speed (deformation); x elongation speed; y,z shear speeds
+        const ChVector<>& dstrain_k   ///< local strain speed (curvature); x torsion speed; y,z line curvature speeds
+        ) override;
+
+    /// Compute the 6x6 tangent material damping matrix, ie the jacobian [Rm]=dstress/dstrainspeed.
+    /// In this model, it is beta*[E] where [E] is the 6x6 stiffness matrix at material level, assumed constant
+    virtual void ComputeDampingMatrix(ChMatrixNM<double, 6, 6>& R,  ///< 6x6 material stiffness matrix values here
+                                      const ChVector<>& dstrain_e,  ///< current strain speed (deformation part)
+                                      const ChVector<>& dstrain_k   ///< current strain speed (curvature part)
+                                      ) override;
+
+	/// Get the beta Rayleigh parameter (stiffness proportional damping)
+    double GetBeta() { return beta; }
+    /// Set the beta Rayleigh parameter (stiffness proportional damping)
+	void SetBeta(const double mbeta) { beta = mbeta; }
+
+	/// After you added this damping to a ChBeamSectionCosserat, in case you have changed some parameters in the stiffness model after creating 
+	/// this Rayleigh damping, you must call this UpdateStiffnessModel() method so that here we
+	/// update the [E] 6x6 material stiffness matrix, which is stored here as private and constant data for performance
+	void UpdateStiffnessModel();
+
+
+    virtual void SetAsRectangularSection(double width_y, double width_z) override {}
+    virtual void SetAsCircularSection(double diameter) override {}
+
+  private:
+	std::shared_ptr<ChElasticityCosserat> section_elasticity;
+    ChMatrixNM<double, 6, 6> E_const; // to store the precomputed stiffness matrix at undeformed unstressed initial state
+	double beta;
+	bool updated;
+
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 /// Base class for properties of beam sections of Cosserat type (with shear too).
