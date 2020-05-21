@@ -134,8 +134,8 @@ class ChApi ChElasticityCosseratSimple : public ChElasticityCosserat {
     void SetGwithPoissonRatio(double mpoisson) { this->G = this->E / (2.0 * (1.0 + mpoisson)); }
 
     /// Set the Rayleigh damping ratio r (as in: R = r * K ), to do: also mass-proportional term
-    void SetBeamRaleyghDamping(double mr) { this->rdamping = mr; }
-    double GetBeamRaleyghDamping() { return this->rdamping; }
+    /// void SetBeamRaleyghDamping(double mr) { this->rdamping = mr; } ***OBSOLETE*** use ChDampingCosseratRayleigh object instead
+
 
     // Interface to base:
 
