@@ -143,6 +143,10 @@ using namespace chrono::vehicle::uaz;
 %template(ChWheelList) std::vector<std::shared_ptr<chrono::vehicle::ChWheel> > ;
 %template(ChAxleList) std::vector<std::shared_ptr<chrono::vehicle::ChAxle> > ;
 
+
+//////%feature("director") chrono::vehicle::ChVehicle;
+
+
 //
 // For each class, keep updated the  A, B, C sections: 
 // 
@@ -302,6 +306,8 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %include "../../chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 %include "../../chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 %include "../models/VehicleModels.i"
+
+%include "vehicleUtils.i"
 
 // Tracked vehicles are not going to be wrapped in the short term
 
