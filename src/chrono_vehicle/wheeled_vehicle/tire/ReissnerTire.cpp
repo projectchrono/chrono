@@ -66,6 +66,9 @@ void ReissnerTire::ProcessJSON(const rapidjson::Document& d) {
     assert(d.HasMember("Contact Material"));
     m_mat_info = ReadMaterialInfoJSON(d["Contact Material"]);
 
+	// Structural damping
+    m_alpha = d["Structural Damping Coefficient"].GetDouble();
+
     // Read the list of materials (note that order is important)
     int num_materials = d["Materials"].Size();
     m_materials.resize(num_materials);
@@ -76,6 +79,8 @@ void ReissnerTire::ProcessJSON(const rapidjson::Document& d) {
             double E = d["Materials"][i]["E"].GetDouble();
             double nu = d["Materials"][i]["nu"].GetDouble();
             m_materials[i] = chrono_types::make_shared<ChMaterialShellReissnerIsothropic>(rho, E, nu);
+			auto mdamping = chrono_types::make_shared<ChDampingReissnerRayleigh>(m_materials[i]->GetElasticity(),m_alpha);
+			m_materials[i]->SetDamping(mdamping);
         } else if (type.compare("Orthotropic") == 0) {
             double rho = d["Materials"][i]["Density"].GetDouble();
             double Ex = d["Materials"][i]["Ex"].GetDouble();
@@ -85,11 +90,10 @@ void ReissnerTire::ProcessJSON(const rapidjson::Document& d) {
             double Gxz =d["Materials"][i]["Gxz"].GetDouble();
             double Gyz =d["Materials"][i]["Gyz"].GetDouble();
             m_materials[i] = chrono_types::make_shared<ChMaterialShellReissnerOrthotropic>(rho, Ex, Ey, nu, Gxy, Gxz, Gyz);
+			auto mdamping = chrono_types::make_shared<ChDampingReissnerRayleigh>(m_materials[i]->GetElasticity(),m_alpha);
+			m_materials[i]->SetDamping(mdamping);
         }
-    }
-
-    // Structural damping
-    m_alpha = d["Structural Damping Coefficient"].GetDouble();
+    }  
 
     // Default tire pressure
     m_default_pressure = d["Default Pressure"].GetDouble();
@@ -346,8 +350,7 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
                 }
             }
 
-            // Set other element properties
-            element->SetAlphaDamp(m_alpha);
+
             //***TODO*** add gravity load 
             //element->SetGravityOn(true); 
 
