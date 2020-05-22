@@ -103,7 +103,8 @@ double IGA_test(ChSystem& sys, double tip_load, int nsections, int order) {
     auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
     melasticity->SetYoungModulus(E_mod);
     melasticity->SetGshearModulus(E_mod * nu_rat);
-    melasticity->SetBeamRaleyghDamping(0.0000);
+    auto mdamping = chrono_types::make_shared<ChDampingCosseratRayleigh>(melasticity);
+    mdamping->SetBeta(0.000);
 
     auto section = chrono_types::make_shared<ChBeamSectionCosserat>(melasticity);
     section->SetDensity(rho);

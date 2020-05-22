@@ -69,7 +69,8 @@ Model::Model(int sec, int ord) {
     melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
     melasticity->SetYoungModulus(E);
     melasticity->SetGshearModulus(E * nu);
-    melasticity->SetBeamRaleyghDamping(0.0000);
+    auto mdamping = chrono_types::make_shared<ChDampingCosseratRayleigh>(melasticity);
+    mdamping->SetBeta(0.000);
 
     auto msection = chrono_types::make_shared<ChBeamSectionCosserat>(melasticity);
     msection->SetDensity(rho);
