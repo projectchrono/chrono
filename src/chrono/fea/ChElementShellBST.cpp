@@ -483,11 +483,32 @@ void ChElementShellBST::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
 	this->m = VNULL;
     for (size_t il = 0; il < this->m_layers.size(); ++il) {
         // compute layer stresses (per-unit-length forces and torques), and accumulate
-        m_layers[il].GetMaterial()->ComputeStress(l_n, l_m, this->e, this->k, 
+        m_layers[il].GetMaterial()->ComputeStress(	l_n, 
+													l_m, 
+													this->e, 
+													this->k, 
                                                     m_layers_z[il], m_layers_z[il + 1], m_layers[il].Get_theta());
         this->n += l_n;
 		this->m += l_m;
+
+		// add viscous damping 
+		//***TO DO*** this require (still not computed) time derivative of this->e and this->k from state_w. Ex. see in IGA beam etc.
+		/*
+		if (m_layers[il].GetMaterial()->GetDamping()) {
+			ChVector<> n_sp;
+			ChVector<> m_sp;
+			m_layers[il].GetMaterial()->GetDamping()->ComputeStress(
+					n_sp,
+					m_sp,
+					e_dt, ???
+					k_dt, ???
+					m_layers_z[il], m_layers_z[il + 1], m_layers[il].Get_theta());
+			this->n += n_sp;
+			this->n += m_sp;
+		}
+		*/
     }
+	
 
 	// Compute forces by computing variations. One gauss point integration.
 
@@ -532,8 +553,6 @@ void ChElementShellBST::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
 		}
 	}
 
-	// Add Rayleigh damping if needed
-	// ***TODO***
 
 }
 
