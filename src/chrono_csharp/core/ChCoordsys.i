@@ -13,12 +13,3 @@
 
 %template(ChCoordsysD) chrono::ChCoordsys<double>; 
 //%template(ChCoordsysF) chrono::ChCoordsys<float>; 
-
-
-// This because constants do not work well, so implement them in script-side
-/*
-%pythoncode %{
-    
-    CSYSNULL = ChCoordsysD(VNULL,QNULL)
-    CSYSNORM = ChCoordsysD(VNULL,QUNIT)
-%}*/

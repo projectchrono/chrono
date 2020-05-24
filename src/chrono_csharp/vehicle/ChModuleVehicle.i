@@ -292,12 +292,12 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 
 %include "../../chrono_vehicle/wheeled_vehicle/ChWheel.h"
 %include "../../chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
-%include "../models/WheelModels.i"
+%include "chrono_csharp/models/WheelModels.i"
 
 %include "../../chrono_vehicle/wheeled_vehicle/ChBrake.h"
 %include "../../chrono_vehicle/wheeled_vehicle/brake/ChBrakeSimple.h"
 %include "../../chrono_vehicle/wheeled_vehicle/brake/BrakeSimple.h"
-%include "../models/BrakeModels.i"
+%include "chrono_csharp/models/BrakeModels.i"
 
 %include "ChTire.i"
 
@@ -305,7 +305,7 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 
 %include "../../chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 %include "../../chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
-%include "../models/VehicleModels.i"
+%include "chrono_csharp/models/VehicleModels.i"
 
 %include "vehicleUtils.i"
 
@@ -315,6 +315,7 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 //
 // C- DOWNCASTING OF SHARED POINTERS
 //
+
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChDoubleWishbone)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChMacPhersonStrut)
 //%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, MacPhersonStrut)
@@ -341,11 +342,13 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChSolidThreeLinkAxle)
 //%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, SolidBellcrankThreeLinkAxle)
 //%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, SolidThreeLinkAxle)
+
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSteering, ChPitmanArm)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSteering, ChPitmanArmShafts)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSteering, ChRackPinion)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSteering, ChRotaryArm)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChChassis, ChRigidChassis)
+
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChTire, ChTMeasyTire)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChTire, ChRigidTire)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChTire, ChReissnerTire)
@@ -353,31 +356,14 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChTire, ChPac89Tire)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChTire, ChLugreTire)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChTire, ChFialaTire)
+
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChPowertrain, SimplePowertrain)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChPowertrain, SimpleMapPowertrain)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChPowertrain, SimpleCVTPowertrain)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChPowertrain, ShaftsPowertrain)
 
-//
-// ADDITIONAL C++ FUNCTIONS / CLASSES THAT ARE USED ONLY FOR PYTHON WRAPPER
-//
-
-/*
-%inline %{
-
-
-%}
-*/
-
-
-//
-// ADD PYTHON CODE
-//
-
-/*
-%pythoncode %{
-
-%}
-*/
-
-
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChDriveline, ChDrivelineWV)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChDriveline, ChShaftsDriveline2WD)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChDriveline, ChShaftsDriveline4WD)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChDriveline, ChSimpleDriveline)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChDriveline, ChSimpleDrivelineXWD)

@@ -35,4 +35,5 @@
 %include "../../chrono_vehicle/ChChassis.h"
 %include "../../chrono_vehicle/chassis/ChRigidChassis.h"
 %include "../../chrono_vehicle/chassis/RigidChassis.h"
-%include "../models/ChassisModels.i"
+
+%include "chrono_csharp/models/ChassisModels.i"
