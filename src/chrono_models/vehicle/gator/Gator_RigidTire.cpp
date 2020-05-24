@@ -29,11 +29,11 @@ namespace gator {
 // Static variables
 // -----------------------------------------------------------------------------
 
-const double Gator_RigidTire::m_radius = 0.467;
+const double Gator_RigidTire::m_radius = 0.28575;
 const double Gator_RigidTire::m_width = 0.254;
 
-const double Gator_RigidTire::m_mass = 37.6;
-const ChVector<> Gator_RigidTire::m_inertia(3.84, 6.69, 3.84);
+const double Gator_RigidTire::m_mass = 9.3;
+const ChVector<> Gator_RigidTire::m_inertia(0.258, 0.416, 0.258);
 
 const std::string Gator_RigidTire::m_meshFile = "gator/gator_tire_fine.obj";
 
