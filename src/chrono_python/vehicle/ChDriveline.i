@@ -58,13 +58,3 @@
 %include "../../chrono_vehicle/wheeled_vehicle/driveline/SimpleDrivelineXWD.h"
 
 %include "chrono_python/models/DrivelineModels.i"
-
-
-//
-// C- DOWNCASTING OF SHARED POINTERS
-//
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChDriveline, ChDrivelineWV)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChDriveline, ChShaftsDriveline2WD)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChDriveline, ChShaftsDriveline4WD)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChDriveline, ChSimpleDriveline)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChDriveline, ChSimpleDrivelineXWD)
