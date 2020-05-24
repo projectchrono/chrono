@@ -62,7 +62,7 @@ void Gator_TMeasyTire_Front::SetTMeasyParams() {
                     rim_diam  // rim diameter [m]
     );
 
-    SetFrictionCoefficient(0.7f);
+    SetFrictionCoefficient(0.6f);
 }
 
 void Gator_TMeasyTire_Front::GenerateCharacteristicPlots(const std::string& dirname) {
@@ -108,7 +108,7 @@ void Gator_TMeasyTire_Rear::SetTMeasyParams() {
                     rim_diam  // rim diameter [m]
     );
 
-    SetFrictionCoefficient(0.7f);
+    SetFrictionCoefficient(0.6f);
 }
 
 void Gator_TMeasyTire_Rear::GenerateCharacteristicPlots(const std::string& dirname) {

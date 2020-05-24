@@ -19,7 +19,7 @@ namespace fea {
 
 // -----------------------------------------------------------------------------
 
-void ChElasticityCosserat::ComputeStiffnessMatrix(ChMatrixDynamic<>& K,
+void ChElasticityCosserat::ComputeStiffnessMatrix(ChMatrixNM<double, 6, 6>& K,
                                                   const ChVector<>& strain_e,
                                                   const ChVector<>& strain_k) {
     double epsi = 1e-6;
@@ -98,7 +98,7 @@ void ChElasticityCosseratSimple::ComputeStress(ChVector<>& stress_n,
     stress_m.z() = E * Izz * strain_m.z();
 }
 
-void ChElasticityCosseratSimple::ComputeStiffnessMatrix(ChMatrixDynamic<>& K,
+void ChElasticityCosseratSimple::ComputeStiffnessMatrix(ChMatrixNM<double, 6, 6>& K,
                                                         const ChVector<>& strain_n,
                                                         const ChVector<>& strain_m) {
     K.setZero(6, 6);
@@ -179,7 +179,7 @@ void ChElasticityCosseratGeneric::ComputeStress(ChVector<>& stress_n,
     stress_m = mstress.segment(3, 3);
 }
 
-void ChElasticityCosseratGeneric::ComputeStiffnessMatrix(ChMatrixDynamic<>& K,
+void ChElasticityCosseratGeneric::ComputeStiffnessMatrix(ChMatrixNM<double, 6, 6>& K,
                                                          const ChVector<>& strain_n,
                                                          const ChVector<>& strain_m) {
     K = this->mE;
@@ -220,7 +220,7 @@ void ChElasticityCosseratAdvanced::ComputeStress(ChVector<>& stress_n,
     stress_m.x() = s13 * strain_n.y() + s23 * strain_n.z() + s33 * strain_m.x();
 }
 
-void ChElasticityCosseratAdvanced::ComputeStiffnessMatrix(ChMatrixDynamic<>& K,
+void ChElasticityCosseratAdvanced::ComputeStiffnessMatrix(ChMatrixNM<double, 6, 6>& K,
                                                           const ChVector<>& strain_n,
                                                           const ChVector<>& strain_m) {
     K.setZero(6, 6);
@@ -394,7 +394,7 @@ void ChElasticityCosseratMesh::ComputeStress(ChVector<>& stress_n,
 
 ChPlasticityCosserat::ChPlasticityCosserat() : section(nullptr), nr_yeld_tolerance(1e-7), nr_yeld_maxiters(5) {}
 
-void ChPlasticityCosserat::ComputeStiffnessMatrixElastoplastic(ChMatrixDynamic<>& K,
+void ChPlasticityCosserat::ComputeStiffnessMatrixElastoplastic(ChMatrixNM<double, 6, 6>& K,
                                                                const ChVector<>& strain_n,
                                                                const ChVector<>& strain_m,
                                                                const ChBeamMaterialInternalData& data) {
@@ -710,7 +710,7 @@ void ChPlasticityCosseratLumped::CreatePlasticityData(
 
 // -----------------------------------------------------------------------------
 
-void ChDampingCosserat::ComputeDampingMatrix(ChMatrixDynamic<>& R,
+void ChDampingCosserat::ComputeDampingMatrix(ChMatrixNM<double, 6, 6>& R,
                                              const ChVector<>& dstrain_e,
                                              const ChVector<>& dstrain_k) {
     double epsi = 1e-6;
@@ -751,7 +751,7 @@ void ChDampingCosseratLinear::ComputeStress(ChVector<>& stress_n,
     stress_m.z() = dstrain_k.z() * R_k.z();
 }
 
-void ChDampingCosseratLinear::ComputeDampingMatrix(ChMatrixDynamic<>& R,
+void ChDampingCosseratLinear::ComputeDampingMatrix(ChMatrixNM<double, 6, 6>& R,
                                                    const ChVector<>& dstrain_e,
                                                    const ChVector<>& dstrain_k) {
     R.setZero();
@@ -764,6 +764,57 @@ void ChDampingCosseratLinear::ComputeDampingMatrix(ChMatrixDynamic<>& R,
 }
 
 // -----------------------------------------------------------------------------
+
+
+
+// -----------------------------------------------------------------------------
+
+ChDampingCosseratRayleigh::ChDampingCosseratRayleigh(
+									std::shared_ptr<ChElasticityCosserat> melasticity, 
+									const double& mbeta) {
+	this->beta = mbeta;
+	this->section_elasticity = melasticity;
+	this->updated = false;
+}
+
+
+void ChDampingCosseratRayleigh::ComputeStress(ChVector<>& stress_n,
+                                            ChVector<>& stress_m,
+                                            const ChVector<>& dstrain_e,
+                                            const ChVector<>& dstrain_k) {
+	if (!this->updated) {
+		this->UpdateStiffnessModel();
+		this->updated = true;
+	}
+	ChVectorN<double, 6> mdstrain;
+    ChVectorN<double, 6> mstress;
+    mdstrain.segment(0 , 3) = dstrain_e.eigen();
+    mdstrain.segment(3 , 3) = dstrain_k.eigen();
+    mstress = this->beta * this->E_const * mdstrain;
+    stress_n = mstress.segment(0, 3);
+    stress_m = mstress.segment(3, 3);
+    
+}
+
+void ChDampingCosseratRayleigh::ComputeDampingMatrix(ChMatrixNM<double, 6, 6>& R,
+                                                   const ChVector<>& dstrain_e,
+                                                   const ChVector<>& dstrain_k) {
+	R = this->beta * this->E_const;
+}
+
+
+void ChDampingCosseratRayleigh::UpdateStiffnessModel() {
+	
+	/// Precompute and store the stiffness matrix into E_const, assuming 
+	/// initial zero stress and zero strain, and use it as constant E from now on
+	/// (for many stiffness models, this is constant anyway)
+	this->section_elasticity->ComputeStiffnessMatrix(this->E_const, VNULL, VNULL);
+	
+}
+
+
+// -----------------------------------------------------------------------------
+
 
 ChBeamSectionCosserat::ChBeamSectionCosserat(std::shared_ptr<ChElasticityCosserat> melasticity) {
     this->SetElasticity(melasticity);
@@ -803,7 +854,7 @@ void ChBeamSectionCosserat::ComputeStress(ChVector<>& stress_n,
     }
 }
 
-void ChBeamSectionCosserat::ComputeStiffnessMatrix(ChMatrixDynamic<>& K,
+void ChBeamSectionCosserat::ComputeStiffnessMatrix(ChMatrixNM<double, 6, 6>& K,
                                                    const ChVector<>& strain_e,
                                                    const ChVector<>& strain_k,
                                                    const ChBeamMaterialInternalData* mdata) {

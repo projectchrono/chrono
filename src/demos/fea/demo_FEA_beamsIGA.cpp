@@ -78,7 +78,6 @@ void MakeAndRunDemo0(ChIrrApp& myapp) {
 	auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
 	melasticity->SetYoungModulus(0.02e10);
 	melasticity->SetGshearModulus(0.02e10 * 0.3);
-	melasticity->SetBeamRaleyghDamping(0.0000);
 	auto msection = chrono_types::make_shared<ChBeamSectionCosserat>(melasticity);
 	msection->SetDensity(1000);
 	msection->SetAsRectangularSection(beam_wy, beam_wz);
@@ -184,7 +183,6 @@ void MakeAndRunDemo1(ChIrrApp& myapp, int nsections=32, int order=2) {
 	auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
 	melasticity->SetYoungModulus( 0.02e10);
 	melasticity->SetGshearModulus(0.02e10 * 0.38);
-	melasticity->SetBeamRaleyghDamping(0.0000);
 
 	auto msection = chrono_types::make_shared<ChBeamSectionCosserat>(melasticity);
 	msection->SetDensity(1000);
@@ -280,8 +278,11 @@ void MakeAndRunDemo2(ChIrrApp& myapp) {
 	auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
 	melasticity->SetYoungModulus(0.02e10);
 	melasticity->SetGshearModulus(0.02e10 * 0.3);
-	melasticity->SetBeamRaleyghDamping(0.0000);
-	auto msection = chrono_types::make_shared<ChBeamSectionCosserat>(melasticity);
+
+	auto mdamping = chrono_types::make_shared<ChDampingCosseratRayleigh>(melasticity);
+	mdamping->SetBeta(0.005);
+
+	auto msection = chrono_types::make_shared<ChBeamSectionCosserat>(melasticity, nullptr, mdamping);
 	msection->SetDensity(1000);
 	msection->SetAsRectangularSection(beam_wy, beam_wz);
 
@@ -367,7 +368,6 @@ void MakeAndRunDemo3(ChIrrApp& myapp) {
 	auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
 	melasticity->SetYoungModulus(0.02e10);
 	melasticity->SetGshearModulus(0.02e10 * 0.3);
-	melasticity->SetBeamRaleyghDamping(0.0000);
 
 	auto mplasticity = chrono_types::make_shared<ChPlasticityCosseratLumped>();
 	// The isotropic hardening curve. The value at zero absyssa is the initial yeld.

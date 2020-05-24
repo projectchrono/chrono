@@ -186,6 +186,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::fea::ChPlasticityCosseratLumped)
 %shared_ptr(chrono::fea::ChDampingCosserat)
 %shared_ptr(chrono::fea::ChDampingCosseratLinear)
+%shared_ptr(chrono::fea::ChDampingCosseratRayleigh)
 %shared_ptr(chrono::fea::ChElementBeam)
 %shared_ptr(chrono::fea::ChElementBeamEuler)
 %shared_ptr(chrono::fea::ChElementBeamANCF)
@@ -243,6 +244,8 @@ using namespace chrono::fea;
 %shared_ptr(chrono::fea::ChElasticityReissnerOrthotropic)
 %shared_ptr(chrono::fea::ChElasticityReissnerGeneric)
 %shared_ptr(chrono::fea::ChPlasticityReissner)
+%shared_ptr(chrono::fea::ChDampingReissner)
+%shared_ptr(chrono::fea::ChDampingReissnerRayleigh)
 %shared_ptr(chrono::fea::ChMaterialShellKirchhoff)
 %shared_ptr(chrono::fea::ChElasticityKirchhoff)
 %shared_ptr(chrono::fea::ChElasticityKirchhoffIsothropic)
@@ -250,6 +253,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::fea::ChElasticityKirchhoffGeneric)
 %shared_ptr(chrono::fea::ChPlasticityKirchhoff)
 %shared_ptr(chrono::fea::ChDampingKirchhoff)
+%shared_ptr(chrono::fea::ChDampingKirchhoffRayleigh)
 %shared_ptr(chrono::fea::ChElementShell)
 %shared_ptr(chrono::fea::ChElementShellReissner4)
 %shared_ptr(chrono::fea::ChElementShellANCF)
@@ -361,12 +365,14 @@ using namespace chrono::fea;
 %ignore chrono::fea::ChElasticityReissner::ComputeStiffnessMatrix;
 %ignore chrono::fea::ChPlasticityReissner::ComputeStiffnessMatrixElastoplastic;
 %ignore chrono::fea::ChDampingReissner::ComputeDampingMatrix;
+%ignore chrono::fea::ChDampingReissnerRayleigh::ComputeDampingMatrix;
 %ignore chrono::fea::ChMaterialShellReissner::ComputeStiffnessMatrix;
 %include "../../chrono/fea/ChMaterialShellReissner.h"
 // TODO: if eigen::ref can be wrapped, unignore these,
 %ignore chrono::fea::ChElasticityKirchhoff::ComputeStiffnessMatrix;
 %ignore chrono::fea::ChPlasticityKirchhoff::ComputeStiffnessMatrixElastoplastic;
 %ignore chrono::fea::ChDampingKirchhoff::ComputeDampingMatrix;
+%ignore chrono::fea::ChDampingKirchhoffReissner::ComputeDampingMatrix;
 %ignore chrono::fea::ChMaterialShellKirchhoff::ComputeStiffnessMatrix;
 %include "../../chrono/fea/ChMaterialShellKirchhoff.h"
 %include "../../chrono/fea/ChElementShell.h"

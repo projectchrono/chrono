@@ -109,7 +109,12 @@ int main(int argc, char* argv[]) {
         double E = 1.2e6;
         double nu = 0.0;
 
-        auto mat = chrono_types::make_shared<ChMaterialShellReissnerIsothropic>(rho, E, nu, 1.0, 0.01);
+		auto melasticity = chrono_types::make_shared<ChElasticityReissnerIsothropic>(E, nu, 1.0, 0.01);
+		auto mat = chrono_types::make_shared<ChMaterialShellReissner>(melasticity);
+		// In case you need also damping it would add...
+		//auto mdamping = chrono_types::make_shared<ChDampingReissnerRayleigh>(melasticity,0.01);
+		//auto mat = chrono_types::make_shared<ChMaterialShellReissner>(melasticity, nullptr, mdamping);
+		mat->SetDensity(rho);
 
         // Create the nodes
 
@@ -151,7 +156,7 @@ int main(int argc, char* argv[]) {
                                        nodearray[(il - 1) * (nels_W + 1) + (iw)]);
 
                     melement->AddLayer(rect_thickness, 0 * CH_C_DEG_TO_RAD, mat);
-                    melement->SetAlphaDamp(0.0);
+
                     elarray[(il - 1) * (nels_W) + (iw - 1)] = melement;
                 }
             }
@@ -254,7 +259,7 @@ int main(int argc, char* argv[]) {
                                        nodearray[(iu) * (nels_W + 1) + (iw - 1)]);
 
                     melement->AddLayer(plate_thickness, 0 * CH_C_DEG_TO_RAD, mat);
-                    melement->SetAlphaDamp(0.0);
+
                     elarray[(iu - 1) * (nels_W) + (iw - 1)] = melement;
                 }
             }
@@ -370,7 +375,7 @@ int main(int argc, char* argv[]) {
                     //  melement->AddLayer(plate_thickness/3, 0 * CH_C_DEG_TO_RAD, mat_ortho);
                     //  melement->AddLayer(plate_thickness/3, 90 * CH_C_DEG_TO_RAD, mat_ortho);
                     //  melement->AddLayer(plate_thickness/3, 0 * CH_C_DEG_TO_RAD, mat_ortho);
-                    melement->SetAlphaDamp(0.0);
+
                     elarray[(iu - 1) * (nels_W) + (iw - 1)] = melement;
                 }
             }
@@ -463,8 +468,8 @@ int main(int argc, char* argv[]) {
 
     // Change type of integrator:
     my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
-    // my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
-    // my_system.SetTimestepperType(ChTimestepper::NEWMARK);
+    //my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
+    //my_system.SetTimestepperType(ChTimestepper::Type::HHT);
 
     if (auto mint = std::dynamic_pointer_cast<ChImplicitIterativeTimestepper>(my_system.GetTimestepper())) {
         mint->SetMaxiters(5);

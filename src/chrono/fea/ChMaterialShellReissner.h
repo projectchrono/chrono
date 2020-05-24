@@ -432,6 +432,81 @@ class ChApi ChDampingReissner {
 
 
 
+
+/// Simple Rayleight damping of a Reissner-mindlin shell,
+/// where damping is proportional to stiffness via a beta coefficient.
+/// In order to generalize it also in case of nonlinearity, the full
+/// element tangent stiffness matrix cannot be used (it may contain negative eigenvalues)
+/// and it can't be used to recover instant nodal caused by damping as F=beta*K*q_dt
+/// so it is generalized to the following implementation at the material stress level
+///   <pre>
+///   {n,m}=beta*[E]*{e',k'}
+///   </pre>
+/// where 
+/// - beta is the 2nd Rayleigh damping parameter
+/// - [E] is the 6x6 shell stiffness matrix at the undeformed unstressed case (hence assumed constant)
+/// - {e',k'} is the speed of deformation/curvature
+/// Note that the alpha mass-proportional parameter (the first of the alpha,beta parameters of the original
+/// Rayleigh model) is not supported.
+
+class ChApi ChDampingReissnerRayleigh : public ChDampingReissner {
+  public:
+		/// Construct the Rayleigh damping model from the stiffness model used by the shell layer.
+		/// This is important because the Rayleigh damping is proportional to the stiffness,
+		/// so the model must know which is the stiffness matrix of the material.
+	    /// Note: melasticity must be alreay set with proper values: its [E] stiffness matrix will be
+		/// fetched just once for all.
+	ChDampingReissnerRayleigh(std::shared_ptr<ChElasticityReissner> melasticity, const double& mbeta = 0);
+
+	virtual ~ChDampingReissnerRayleigh() {}
+
+	/// Compute the generalized cut force and cut torque, caused by structural damping,
+    /// given actual deformation speed and curvature speed.
+	virtual void ComputeStress(
+        ChVector<>& n_u,          ///< forces along \e u direction (per unit length)
+        ChVector<>& n_v,          ///< forces along \e v direction (per unit length)
+        ChVector<>& m_u,          ///< torques along \e u direction (per unit length)
+        ChVector<>& m_v,          ///< torques along \e v direction (per unit length)
+        const ChVector<>& deps_u,  ///< time derivative of strains along \e u direction
+        const ChVector<>& deps_v,  ///< time derivative of strains along \e v direction
+        const ChVector<>& dkur_u,  ///< time derivative of curvature along \e u direction
+        const ChVector<>& dkur_v,  ///< time derivative of curvature along \e v direction
+        const double z_inf,       ///< layer lower z value (along thickness coord)
+        const double z_sup,       ///< layer upper z value (along thickness coord)
+        const double angle        ///< layer angle respect to x (if needed) 
+        );
+
+    /// Compute the 6x6 tangent material damping matrix, ie the jacobian [Rm]=dstress/dstrainspeed.
+    /// In this model, it is beta*[E] where [E] is the 12x12 stiffness matrix at material level, assumed constant
+    virtual void ComputeDampingMatrix(	ChMatrixRef R,      ///< 12x12 material damping matrix values here
+										const ChVector<>& deps_u,  ///< time derivative of strains along \e u direction
+										const ChVector<>& deps_v,  ///< time derivative of strains along \e v direction
+										const ChVector<>& dkur_u,  ///< time derivative of curvature along \e u direction
+										const ChVector<>& dkur_v,  ///< time derivative of curvature along \e v direction
+										const double z_inf,       ///< layer lower z value (along thickness coord)
+										const double z_sup,       ///< layer upper z value (along thickness coord)
+										const double angle        ///< layer angle respect to x (if needed) -not used in this, isotropic
+    );
+
+	/// Get the beta Rayleigh parameter (stiffness proportional damping)
+    double GetBeta() { return beta; }
+    /// Set the beta Rayleigh parameter (stiffness proportional damping)
+	void SetBeta(const double mbeta) { beta = mbeta; }
+
+
+  private:
+	std::shared_ptr<ChElasticityReissner> section_elasticity;
+    ChMatrixNM<double, 12, 12> E_const; // to store the precomputed stiffness matrix at undeformed unstressed initial state
+	double beta;
+	bool updated;
+
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+};
+
+
+
+
 // ----------------------------------------------------------------------------
 
 /// Material for a single layer of a 6-field Reissner-Mindlin shells 

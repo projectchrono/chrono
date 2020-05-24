@@ -128,6 +128,13 @@ HMMWV_ReissnerTire::HMMWV_ReissnerTire(const std::string& name) : ChReissnerTire
     m_materials[1] = chrono_types::make_shared<ChMaterialShellReissnerOrthotropic>(m_rho_1, m_E_1.x(), m_E_1.y(), m_nu_1, m_G_1.x(), m_G_1.y(), m_G_1.z());
     m_materials[2] = chrono_types::make_shared<ChMaterialShellReissnerOrthotropic>(m_rho_2, m_E_2.x(), m_E_2.y(), m_nu_2, m_G_2.x(), m_G_2.y(), m_G_2.z());
 
+	auto mdamping = chrono_types::make_shared<ChDampingReissnerRayleigh>(m_materials[0]->GetElasticity(),m_alpha);
+	m_materials[0]->SetDamping(mdamping);
+	mdamping = chrono_types::make_shared<ChDampingReissnerRayleigh>(m_materials[1]->GetElasticity(),m_alpha);
+	m_materials[1]->SetDamping(mdamping);
+	mdamping = chrono_types::make_shared<ChDampingReissnerRayleigh>(m_materials[2]->GetElasticity(),m_alpha);
+	m_materials[2]->SetDamping(mdamping);
+
     // Set the profile
     m_profile_t.resize(m_num_points);
     m_profile_x.resize(m_num_points);
@@ -235,9 +242,6 @@ void HMMWV_ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleS
                                       m_materials[m_material_id_tread[im]]);
                 }
             }
-
-            // Set other element properties
-            element->SetAlphaDamp(m_alpha);
 
             // Add element to mesh
             m_mesh->AddElement(element);
