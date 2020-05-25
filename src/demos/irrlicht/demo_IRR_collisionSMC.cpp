@@ -49,7 +49,7 @@ void AddFallingItems(ChSystemSMC& sys) {
                 auto body = chrono_types::make_shared<ChBody>();
                 body->SetInertiaXX((2.0 / 5.0) * mass * pow(radius, 2) * ChVector<>(1, 1, 1));
                 body->SetMass(mass);
-                body->SetPos(ChVector<>(4.0 * ix, 4.0, 4.0 * iz));
+                body->SetPos(ChVector<>(4.0 * ix + 0.1, 4.0, 4.0 * iz));
 
                 body->GetCollisionModel()->ClearModel();
                 body->GetCollisionModel()->AddSphere(mat, radius);
@@ -112,7 +112,7 @@ void AddContainerWall(std::shared_ptr<ChBody> body,
     }
 }
 
-void AddContainer(ChSystemSMC& sys) {
+std::shared_ptr<ChBody> AddContainer(ChSystemSMC& sys) {
     // The fixed body (5 walls)
     auto fixedBody = chrono_types::make_shared<ChBody>();
 
@@ -171,6 +171,8 @@ void AddContainer(ChSystemSMC& sys) {
     my_motor->SetSpeedFunction(mfun);
 
     sys.AddLink(my_motor);
+
+    return rotatingBody;
 }
 
 int main(int argc, char* argv[]) {
@@ -178,45 +180,47 @@ int main(int argc, char* argv[]) {
 
     // Simulation and rendering time-step
     double time_step = 1e-4;
-    double out_step = 0.02;
+    double out_step = 1.0 / 20;
 
     // Create the physical system
     ChSystemSMC sys;
-    sys.Set_G_acc(sys.Get_G_acc());
 
-    // Create the Irrlicht visualization (open the Irrlicht device,
-    // bind a simple user interface, etc. etc.)
+    // Create the Irrlicht visualization
     ChIrrApp application(&sys, L"SMC collision demo", core::dimension2d<u32>(800, 600), false, true);
 
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
+    // Add camera, lights, logo and sky in Irrlicht scene
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();
     application.AddTypicalCamera(core::vector3df(0, 18, -20));
 
     // Add fixed and moving bodies
-    AddContainer(sys);
+    auto mixer = AddContainer(sys);
     AddFallingItems(sys);
 
     // Complete asset specification: convert all assets to Irrlicht
     application.AssetBindAll();
     application.AssetUpdateAll();
 
-    // The soft-real-time cycle
+    // Simulation loop
     double time = 0;
     double out_time = 0;
+
     while (application.GetDevice()->run()) {
-        application.BeginScene();
+        sys.DoStepDynamics(time_step);
 
-        application.DrawAll();
+        double time = sys.GetChTime();
+        if (time >= out_time) {
+            application.BeginScene();
+            application.DrawAll();
+            application.EndScene();
 
-        while (time < out_time) {
-            sys.DoStepDynamics(time_step);
-            time += time_step;
+            ////auto frc = mixer->GetAppliedForce();
+            ////auto trq = mixer->GetAppliedTorque();
+            ////std::cout << time << "  force: " << frc << "  torque: " << trq << std::endl;
+
+            out_time += out_step;
         }
-        out_time += out_step;
-
-        application.EndScene();
     }
 
     return 0;

@@ -452,6 +452,18 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// This function performs an initial system setup, once system construction is completed and before an analysis.
     void SetupInitial();
 
+    /// Return the resultant applied force on the specified body.
+    /// This resultant force includes all external applied loads acting on the body (from gravity, loads, springs,
+    /// etc). However, this does *not* include any constraint forces. In particular, contact forces are not included if
+    /// using the NSC formulation, but are included when using the SMC formulation.
+    virtual ChVector<> GetBodyAppliedForce(ChBody* body);
+
+    /// Return the resultant applied torque on the specified body.
+    /// This resultant torque includes all external applied loads acting on the body (from gravity, loads, springs,
+    /// etc). However, this does *not* include any constraint forces. In particular, contact torques are not included if
+    /// using the NSC formulation, but are included when using the SMC formulation.
+    virtual ChVector<> GetBodyAppliedTorque(ChBody* body);
+
   public:
     /// Counts the number of bodies and links.
     /// Computes the offsets of object states in the global state. Assumes that offset_x, offset_w, and offset_L are
@@ -892,6 +904,9 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     std::shared_ptr<ChTimestepper> timestepper;  ///< time-stepper object
 
     bool last_err;  ///< indicates error over the last kinematic/dynamics/statics
+
+    ChVectorDynamic<> applied_forces;  ///< system-wide vector of applied forces (lazy evaluation)
+    bool applied_forces_current;       ///< indicates if system-wide vector of forces is up-to-date
 
     // Friend class declarations
 

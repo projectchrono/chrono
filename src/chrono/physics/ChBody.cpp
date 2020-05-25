@@ -962,6 +962,14 @@ void ChBody::ComputeJacobianForRollingContactPart(
     jacobian_tuple_V.Get_Cq().segment(3, 3) = Jr1.row(2);
 }
 
+ChVector<> ChBody::GetAppliedForce() {
+    return GetSystem()->GetBodyAppliedForce(this);
+}
+
+ChVector<> ChBody::GetAppliedTorque() {
+    return GetSystem()->GetBodyAppliedTorque(this);
+}
+
 ChVector<> ChBody::GetContactForce() {
     return GetSystem()->GetContactContainer()->GetContactableForce(this);
 }

@@ -419,6 +419,18 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// its children (markers, forces..)
     virtual void Update(bool update_assets = true) override;
 
+    /// Return the resultant applied force on the body.
+    /// This resultant force includes all external applied loads acting on this body (from gravity, loads, springs,
+    /// etc). However, this does *not* include any constraint forces. In particular, contact forces are not included if
+    /// using the NSC formulation, but are included when using the SMC formulation.
+    ChVector<> GetAppliedForce();
+
+    /// Return the resultant applied torque on the body.
+    /// This resultant torque includes all external applied loads acting on this body (from gravity, loads, springs,
+    /// etc). However, this does *not* include any constraint forces. In particular, contact torques are not included if
+    /// using the NSC formulation, but are included when using the SMC formulation.
+    ChVector<> GetAppliedTorque();
+
     /// Get the resultant contact force acting on this body.
     ChVector<> GetContactForce();
 

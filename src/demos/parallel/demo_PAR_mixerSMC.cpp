@@ -47,7 +47,7 @@ using namespace chrono::collision;
 // blade attached through a revolute joint to ground. The mixer is constrained
 // to rotate at constant angular velocity.
 // -----------------------------------------------------------------------------
-void AddContainer(ChSystemParallelSMC* sys) {
+std::shared_ptr<ChBody> AddContainer(ChSystemParallelSMC* sys) {
     // IDs for the two bodies
     int binId = -200;
     int mixerId = -201;
@@ -110,6 +110,8 @@ void AddContainer(ChSystemParallelSMC* sys) {
     motor->Initialize(mixer, bin, ChFrame<>(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
     motor->SetAngleFunction(chrono_types::make_shared<ChFunction_Ramp>(0, CH_C_PI / 2));
     sys->AddLink(motor);
+
+    return mixer;
 }
 
 // -----------------------------------------------------------------------------
@@ -197,11 +199,11 @@ int main(int argc, char* argv[]) {
     // Create the fixed and moving bodies
     // ----------------------------------
 
-    AddContainer(&msystem);
+    auto mixer = AddContainer(&msystem);
     AddFallingBalls(&msystem);
 
-// Perform the simulation
-// ----------------------
+    // Perform the simulation
+    // ----------------------
 
 #ifdef CHRONO_OPENGL
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
@@ -209,18 +211,13 @@ int main(int argc, char* argv[]) {
     gl_window.SetCamera(ChVector<>(0, -3, 2), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
     gl_window.SetRenderMode(opengl::WIREFRAME);
 
-    // Uncomment the following two lines for the OpenGL manager to automatically
-    // run the simulation in an infinite loop.
-    // gl_window.StartDrawLoop(time_step);
-    // return 0;
+    while (gl_window.Active()) {
+        gl_window.DoStepDynamics(time_step);
+        gl_window.Render();
 
-    while (true) {
-        if (gl_window.Active()) {
-            gl_window.DoStepDynamics(time_step);
-            gl_window.Render();
-        } else {
-            break;
-        }
+        ////auto frc = mixer->GetAppliedForce();
+        ////auto trq = mixer->GetAppliedTorque();
+        ////std::cout << msystem.GetChTime() << "  force: " << frc << "  torque: " << trq << std::endl;
     }
 #else
     // Run simulation for specified time

@@ -53,6 +53,7 @@ ChSystem::ChSystem()
       tol_force(-1),
       is_initialized(false),
       is_updated(false),
+      applied_forces_current(false),
       maxiter(6),
       ncontacts(0),
       min_bounce_speed(0.15),
@@ -102,6 +103,7 @@ ChSystem::ChSystem(const ChSystem& other) {
     tol_force = other.tol_force;
     is_initialized = false;
     is_updated = false;
+    applied_forces_current = false;
     maxiter = other.maxiter;
 
     min_bounce_speed = other.min_bounce_speed;
@@ -1021,6 +1023,30 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
     return true;
 }
 
+ChVector<> ChSystem::GetBodyAppliedForce(ChBody* body) {
+    if (!is_initialized)
+        return ChVector<>(0, 0, 0);
+
+    if (!applied_forces_current) {
+        applied_forces.setZero(this->GetNcoords_v());
+        LoadResidual_F(applied_forces, 1.0);
+        applied_forces_current = true;
+    }
+    return applied_forces.segment(body->Variables().GetOffset() + 0, 3);
+}
+
+ChVector<> ChSystem::GetBodyAppliedTorque(ChBody* body) {
+    if (!is_initialized)
+        return ChVector<>(0, 0, 0);
+
+    if (!applied_forces_current) {
+        applied_forces.setZero(this->GetNcoords_v());
+        LoadResidual_F(applied_forces, 1.0);
+        applied_forces_current = true;
+    }
+    return applied_forces.segment(body->Variables().GetOffset() + 3, 3);
+}
+
 // Increment a vector R with the term c*F:
 //    R += c*F
 void ChSystem::LoadResidual_F(ChVectorDynamic<>& R, const double c) {
@@ -1247,6 +1273,7 @@ int ChSystem::DoStepDynamics(double step_size) {
     if (!is_initialized)
         SetupInitial();
 
+    applied_forces_current = false;
     step = step_size;
     return Integrate_Y();
 }
@@ -1335,6 +1362,8 @@ bool ChSystem::DoAssembly(int action) {
     if (!is_initialized)
         SetupInitial();
 
+    applied_forces_current = false;
+
     solvecount = 0;
     setupcount = 0;
 
@@ -1378,6 +1407,8 @@ bool ChSystem::DoAssembly(int action) {
 bool ChSystem::DoStaticLinear() {
     if (!is_initialized)
         SetupInitial();
+
+    applied_forces_current = false;
 
     solvecount = 0;
     setupcount = 0;
@@ -1430,6 +1461,8 @@ bool ChSystem::DoStaticNonlinear(int nsteps, bool verbose) {
     if (!is_initialized)
         SetupInitial();
 
+    applied_forces_current = false;
+
     solvecount = 0;
     setupcount = 0;
 
@@ -1458,6 +1491,8 @@ bool ChSystem::DoStaticNonlinear(std::shared_ptr<ChStaticNonLinearAnalysis> anal
     if (!is_initialized)
         SetupInitial();
 
+    applied_forces_current = false;
+
     Setup();
     Update();
 
@@ -1476,6 +1511,8 @@ bool ChSystem::DoStaticNonlinear(std::shared_ptr<ChStaticNonLinearAnalysis> anal
 bool ChSystem::DoStaticRelaxing(int nsteps) {
     if (!is_initialized)
         SetupInitial();
+
+    applied_forces_current = false;
 
     solvecount = 0;
     setupcount = 0;
@@ -1530,6 +1567,8 @@ bool ChSystem::DoEntireKinematics(double end_time) {
     if (!is_initialized)
         SetupInitial();
 
+    applied_forces_current = false;
+
     Setup();
 
     int action = AssemblyLevel::POSITION | AssemblyLevel::VELOCITY | AssemblyLevel::ACCELERATION;
@@ -1562,6 +1601,8 @@ bool ChSystem::DoEntireKinematics(double end_time) {
 bool ChSystem::DoEntireDynamics(double end_time) {
     if (!is_initialized)
         SetupInitial();
+
+    applied_forces_current = false;
 
     Setup();
 
@@ -1600,6 +1641,8 @@ bool ChSystem::DoEntireDynamics(double end_time) {
 bool ChSystem::DoFrameDynamics(double end_time) {
     if (!is_initialized)
         SetupInitial();
+
+    applied_forces_current = false;
 
     double frame_step;
     double old_step;
@@ -1657,6 +1700,8 @@ bool ChSystem::DoEntireUniformDynamics(double end_time, double frame_step) {
     if (!is_initialized)
         SetupInitial();
 
+    applied_forces_current = false;
+
     // the initial system may have wrong layout, or too large clearances in constraints.
     Setup();
     DoAssembly(AssemblyLevel::POSITION | AssemblyLevel::VELOCITY | AssemblyLevel::ACCELERATION);
@@ -1675,6 +1720,8 @@ bool ChSystem::DoEntireUniformDynamics(double end_time, double frame_step) {
 bool ChSystem::DoFrameKinematics(double end_time) {
     if (!is_initialized)
         SetupInitial();
+
+    applied_forces_current = false;
 
     double frame_step;
     double old_step;
@@ -1720,6 +1767,8 @@ bool ChSystem::DoFrameKinematics(double end_time) {
 bool ChSystem::DoStepKinematics(double step_size) {
     if (!is_initialized)
         SetupInitial();
+
+    applied_forces_current = false;
 
     ch_time += step_size;
 
