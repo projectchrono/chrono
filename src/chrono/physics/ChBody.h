@@ -392,17 +392,6 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Note that this is a resultant torque expressed in the body local frame.
     const ChVector<>& Get_accumulated_torque() const { return Torque_acc; }
 
-    /// Return the gyroscopic torque.
-    const ChVector<>& Get_gyro() const { return gyro; }
-
-    /// Get the total force applied to the rigid body.
-    /// Note that this is a resultant force as applied to the COM and expressed in the absolute frame.
-    const ChVector<>& Get_Xforce() const { return Xforce; }
-
-    /// Get the total torque applied to the rigid body.
-    /// Note that this is a resultant torque (excluding the gyroscopic torque) expressed in the body local frame.
-    const ChVector<>& Get_Xtorque() const { return Xtorque; }
-
     // UPDATE FUNCTIONS
 
     /// Update all children markers of the rigid body, at current body state
